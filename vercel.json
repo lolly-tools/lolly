@@ -5,7 +5,7 @@
   "functions": {
     "api/mcp/**": {
       "maxDuration": 60,
-      "includeFiles": "{tools,catalog}/**",
+      "includeFiles": "{tools/**,catalog/assets/**,catalog/fonts/**,catalog/tools/**,catalog/previews/*.svg,catalog/previews/*.json}",
       "regions": ["fra1"]
     },
     "api/ca/**": {

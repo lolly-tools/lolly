@@ -97,7 +97,11 @@ function exportUrl(base: string, toolId: string, query: string, fmt: string, dim
   // Node shells were simply never carrying the values into the URL that drives it.
   if (dims.bleed) p.set('bleed', dims.bleed);                    // e.g. "3mm"
   if (dims.marks) p.set('marks', dims.marks);                    // CSV: crop,reg,bleed,bars,prov
-  if (dims.imprint) p.set('imprint', '1');                       // durable pixel watermark
+  // The Imprint is DEFAULT-ON in the web shell, so `false` has to travel as the explicit
+  // `imprint=0` opt-out: forwarding only the true case would have made the Node shells'
+  // --imprint=0 (and --no-provenance) a suggestion the browser tier quietly overrode.
+  if (dims.imprint === false) p.set('imprint', '0');
+  else if (dims.imprint) p.set('imprint', '1');                  // durable pixel watermark
   if (dims.durable) p.set('durable', '1');                       // neural TrustMark credential
   if (dims.pressProfile) p.set('profile', dims.pressProfile);    // URL 'profile' = CMYK press condition
   // Content Credentials: forward the setting so the web shell is the single c2pa authority
@@ -126,7 +130,9 @@ export interface RenderDims {
   /** Print marks CSV (crop,reg,bleed,bars,prov) for the print formats. */
   marks?: string;
   /** Embed the durable Lolly pixel watermark on raster exports. */
-  imprint?: boolean;
+  /** `false` = the explicit opt-out (forwarded as `imprint=0`); `null`/absent = let the
+   *  web shell apply its own default. */
+  imprint?: boolean | null;
   /** Embed the opt-in durable Content Credential (neural TrustMark mark) on raster
    *  exports — the web shell's durableEmbedCanvas runs it (?durable=1). */
   durable?: boolean;

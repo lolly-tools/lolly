@@ -1,0 +1,107 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://lolly.tools/schemas/ratecard.schema.json",
+  "title": "Lolly rate card",
+  "description": "A printer's own rate card, dropped by the user. Lolly multiplies these rates by quantities it COUNTED. Lolly never originates a price. Every `rate` is a number the USER typed from their supplier's card; a placeholder string is invalid ON PURPOSE (rule 10).",
+  "type": "object",
+  "required": ["$format", "formatVersion", "currency", "lines"],
+  "additionalProperties": false,
+  "properties": {
+    "$format": { "const": "lolly-ratecard" },
+    "formatVersion": { "const": 1 },
+    "minReader": { "type": "integer", "minimum": 1 },
+    "issuer": {
+      "type": "object",
+      "description": "A CLAIM typed inside the file. Lolly verifies none of it and renders it as reported speech.",
+      "additionalProperties": false,
+      "properties": {
+        "name": { "type": "string" },
+        "url": { "type": "string" },
+        "issued": { "type": "string" },
+        "validUntil": { "type": "string" },
+        "note": { "type": "string" }
+      }
+    },
+    "currency": {
+      "type": "string",
+      "pattern": "^[A-Z]{3}$",
+      "description": "ISO 4217. Shape only — parseRateCard proves it is a real code by letting Intl.NumberFormat throw. No default anywhere."
+    },
+    "taxIncluded": { "type": "boolean" },
+    "minimumCharge": {
+      "type": "number",
+      "minimum": 0,
+      "description": "A number, so the §5 placeholder \"<your minimum>\" is invalid. Applied as a visible adjustment row, never a silent floor."
+    },
+    "breakMode": {
+      "enum": ["flat", "marginal"],
+      "description": "REQUIRED (in parseRateCard, not here) whenever any line carries breaks. No default in either direction."
+    },
+    "confidential": {
+      "type": "boolean",
+      "description": "Phase 5. A catalog-shipped house card sets this true; money is suppressed in any view reached from a link rather than the user's own session."
+    },
+    "sheet": {
+      "type": "object",
+      "required": ["width", "height", "unit"],
+      "additionalProperties": false,
+      "properties": {
+        "width": { "type": "number", "exclusiveMinimum": 0 },
+        "height": { "type": "number", "exclusiveMinimum": 0 },
+        "unit": { "enum": ["mm", "cm", "in", "pt"] },
+        "gripperMargin": { "type": "number", "minimum": 0 }
+      },
+      "description": "The press sheet. Absent → no perSheet line can be evaluated; those report as a gap, never zero."
+    },
+    "lines": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["id", "kind", "rate"],
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^[a-z0-9][a-z0-9-]*$",
+            "description": "Unique across lines (enforced in parseRateCard)."
+          },
+          "kind": {
+            "enum": ["perPlate", "perSheet", "perArea", "perQuantity", "perUnit", "perJob"],
+            "description": "There is deliberately no perRender: §4 counts three different things a job produces and they differ by an order of magnitude."
+          },
+          "rate": {
+            "type": "number",
+            "minimum": 0,
+            "description": "THE constraint that makes the §5 example invalid. A rate is a number FROM THE CARD; the placeholder \"<your rate>\" is a string and is rejected."
+          },
+          "finish": {
+            "type": "string",
+            "description": "Open FinishKind spelling. An unrecognised finish disables the line and is reported, never silently dropped."
+          },
+          "unit": {
+            "type": "string",
+            "description": "For perArea: the area unit, 'm2-sheet' (area THROUGH the press), never a bare 'm2'."
+          },
+          "quantityKind": {
+            "type": "string",
+            "description": "REQUIRED when kind is perQuantity (enforced in parseRateCard). Names the counted quantity, e.g. 'variantRows'. A kind the job did not produce is an uncosted gap, not a guess."
+          },
+          "breaks": {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+              "type": "object",
+              "required": ["min", "rate"],
+              "additionalProperties": false,
+              "properties": {
+                "min": { "type": "integer", "minimum": 1 },
+                "rate": { "type": "number", "minimum": 0 }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

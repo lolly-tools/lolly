@@ -892,7 +892,7 @@ var init_asset_schema = __esm({
         description: { type: "string" },
         type: {
           type: "string",
-          enum: ["vector", "raster", "video", "audio", "lottie", "palette", "tokens", "font", "profile"]
+          enum: ["vector", "raster", "video", "audio", "lottie", "palette", "tokens", "font", "profile", "ratecard"]
         },
         version: {
           type: "string",
@@ -1030,6 +1030,120 @@ var init_asset_ref_schema = __esm({
   }
 });
 
+// schemas/ratecard.schema.json
+var ratecard_schema_default;
+var init_ratecard_schema = __esm({
+  "schemas/ratecard.schema.json"() {
+    ratecard_schema_default = {
+      $schema: "https://json-schema.org/draft/2020-12/schema",
+      $id: "https://lolly.tools/schemas/ratecard.schema.json",
+      title: "Lolly rate card",
+      description: "A printer's own rate card, dropped by the user. Lolly multiplies these rates by quantities it COUNTED. Lolly never originates a price. Every `rate` is a number the USER typed from their supplier's card; a placeholder string is invalid ON PURPOSE (rule 10).",
+      type: "object",
+      required: ["$format", "formatVersion", "currency", "lines"],
+      additionalProperties: false,
+      properties: {
+        $format: { const: "lolly-ratecard" },
+        formatVersion: { const: 1 },
+        minReader: { type: "integer", minimum: 1 },
+        issuer: {
+          type: "object",
+          description: "A CLAIM typed inside the file. Lolly verifies none of it and renders it as reported speech.",
+          additionalProperties: false,
+          properties: {
+            name: { type: "string" },
+            url: { type: "string" },
+            issued: { type: "string" },
+            validUntil: { type: "string" },
+            note: { type: "string" }
+          }
+        },
+        currency: {
+          type: "string",
+          pattern: "^[A-Z]{3}$",
+          description: "ISO 4217. Shape only \u2014 parseRateCard proves it is a real code by letting Intl.NumberFormat throw. No default anywhere."
+        },
+        taxIncluded: { type: "boolean" },
+        minimumCharge: {
+          type: "number",
+          minimum: 0,
+          description: 'A number, so the \xA75 placeholder "<your minimum>" is invalid. Applied as a visible adjustment row, never a silent floor.'
+        },
+        breakMode: {
+          enum: ["flat", "marginal"],
+          description: "REQUIRED (in parseRateCard, not here) whenever any line carries breaks. No default in either direction."
+        },
+        confidential: {
+          type: "boolean",
+          description: "Phase 5. A catalog-shipped house card sets this true; money is suppressed in any view reached from a link rather than the user's own session."
+        },
+        sheet: {
+          type: "object",
+          required: ["width", "height", "unit"],
+          additionalProperties: false,
+          properties: {
+            width: { type: "number", exclusiveMinimum: 0 },
+            height: { type: "number", exclusiveMinimum: 0 },
+            unit: { enum: ["mm", "cm", "in", "pt"] },
+            gripperMargin: { type: "number", minimum: 0 }
+          },
+          description: "The press sheet. Absent \u2192 no perSheet line can be evaluated; those report as a gap, never zero."
+        },
+        lines: {
+          type: "array",
+          minItems: 1,
+          items: {
+            type: "object",
+            required: ["id", "kind", "rate"],
+            additionalProperties: false,
+            properties: {
+              id: {
+                type: "string",
+                pattern: "^[a-z0-9][a-z0-9-]*$",
+                description: "Unique across lines (enforced in parseRateCard)."
+              },
+              kind: {
+                enum: ["perPlate", "perSheet", "perArea", "perQuantity", "perUnit", "perJob"],
+                description: "There is deliberately no perRender: \xA74 counts three different things a job produces and they differ by an order of magnitude."
+              },
+              rate: {
+                type: "number",
+                minimum: 0,
+                description: 'THE constraint that makes the \xA75 example invalid. A rate is a number FROM THE CARD; the placeholder "<your rate>" is a string and is rejected.'
+              },
+              finish: {
+                type: "string",
+                description: "Open FinishKind spelling. An unrecognised finish disables the line and is reported, never silently dropped."
+              },
+              unit: {
+                type: "string",
+                description: "For perArea: the area unit, 'm2-sheet' (area THROUGH the press), never a bare 'm2'."
+              },
+              quantityKind: {
+                type: "string",
+                description: "REQUIRED when kind is perQuantity (enforced in parseRateCard). Names the counted quantity, e.g. 'variantRows'. A kind the job did not produce is an uncosted gap, not a guess."
+              },
+              breaks: {
+                type: "array",
+                minItems: 1,
+                items: {
+                  type: "object",
+                  required: ["min", "rate"],
+                  additionalProperties: false,
+                  properties: {
+                    min: { type: "integer", minimum: 1 },
+                    rate: { type: "number", minimum: 0 }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    };
+  }
+});
+
 // engine/src/validate.ts
 import Ajv from "ajv/dist/2020.js";
 function validateManifest(manifest) {
@@ -1057,18 +1171,21 @@ function formatError(err) {
   }
   return { path, message };
 }
-var ajv, validateTool;
+var ajv, validateTool, rateCardValidator, validateRateCard;
 var init_validate = __esm({
   "engine/src/validate.ts"() {
     "use strict";
     init_tool_schema();
     init_asset_schema();
     init_asset_ref_schema();
+    init_ratecard_schema();
     ajv = new Ajv({ allErrors: true, strict: false });
     ajv.addSchema(tool_schema_default);
     ajv.addSchema(asset_schema_default);
     ajv.addSchema(asset_ref_schema_default);
     validateTool = ajv.compile(tool_schema_default);
+    rateCardValidator = ajv.compile(ratecard_schema_default);
+    validateRateCard = (doc) => rateCardValidator(doc);
   }
 });
 
@@ -1112,7 +1229,7 @@ var init_bytes = __esm({
 // engine/src/der-read.ts
 function derTlv(b, i) {
   if (i + 2 > b.length) throw new Error("der: truncated");
-  const tag = b[i];
+  const tag2 = b[i];
   let len2 = b[i + 1];
   let j = i + 2;
   if (len2 & 128) {
@@ -1122,7 +1239,7 @@ function derTlv(b, i) {
     for (let x = 0; x < k; x++) len2 = len2 * 256 + b[j++];
   }
   if (j + len2 > b.length) throw new Error("der: length overruns buffer");
-  return { tag, start: i, contentStart: j, end: j + len2 };
+  return { tag: tag2, start: i, contentStart: j, end: j + len2 };
 }
 function derChildren(b, tlv) {
   const kids = [];
@@ -1137,11 +1254,11 @@ function derChildren(b, tlv) {
 function ecdsaDerToRaw(derSig, size) {
   const top = derTlv(derSig, 0);
   if (top.tag !== 48) throw new Error("der: not an ECDSA-Sig-Value");
-  const [r, s] = derChildren(derSig, top);
-  if (!r || !s || r.tag !== 2 || s.tag !== 2) throw new Error("der: not an ECDSA-Sig-Value");
+  const [r3, s] = derChildren(derSig, top);
+  if (!r3 || !s || r3.tag !== 2 || s.tag !== 2) throw new Error("der: not an ECDSA-Sig-Value");
   const out = new Uint8Array(size * 2);
   let at = 0;
-  for (const int of [r, s]) {
+  for (const int of [r3, s]) {
     let i = int.contentStart;
     while (i < int.end && derSig[i] === 0) i++;
     const v = derSig.subarray(i, int.end);
@@ -1157,8 +1274,8 @@ function derLen(n2) {
   if (n2 < 65536) return Uint8Array.of(130, n2 >>> 8, n2 & 255);
   return Uint8Array.of(131, n2 >>> 16, n2 >>> 8 & 255, n2 & 255);
 }
-function derWrap(tag, body) {
-  return concatBytes([Uint8Array.of(tag), derLen(body.length), body]);
+function derWrap(tag2, body) {
+  return concatBytes([Uint8Array.of(tag2), derLen(body.length), body]);
 }
 function ecdsaRawToDer(raw) {
   const half = raw.length / 2;
@@ -1193,9 +1310,9 @@ function derLen2(n2) {
   if (n2 < 65536) return Uint8Array.of(130, n2 >>> 8, n2 & 255);
   return Uint8Array.of(131, n2 >>> 16, n2 >>> 8 & 255, n2 & 255);
 }
-function der(tag, ...content) {
+function der(tag2, ...content) {
   const body = concatBytes(content);
-  return concatBytes([Uint8Array.of(tag), derLen2(body.length), body]);
+  return concatBytes([Uint8Array.of(tag2), derLen2(body.length), body]);
 }
 function derUint(bytes) {
   let i = 0;
@@ -1225,10 +1342,31 @@ function asDate(v, fallback) {
   if (Number.isNaN(d.getTime())) throw new Error("c2pa: invalid date " + v);
   return d;
 }
+async function keyIdOf(spkiDer) {
+  const [, bits] = derChildren(spkiDer, derTlv(spkiDer, 0));
+  if (!bits || bits.tag !== 3) throw new Error("x509: SPKI has no subjectPublicKey BIT STRING");
+  return new Uint8Array(await subtle.digest("SHA-1", asBufferSource(spkiDer.subarray(bits.contentStart + 1, bits.end))));
+}
+function certNameAndKey(certDer) {
+  const [tbs] = derChildren(certDer, derTlv(certDer, 0));
+  const kids = derChildren(certDer, tbs);
+  const shift = kids[0].tag === 160 ? 1 : 0;
+  return {
+    subjectBytes: certDer.slice(kids[shift + 4].start, kids[shift + 4].end),
+    spkiDer: certDer.slice(kids[shift + 5].start, kids[shift + 5].end)
+  };
+}
 function pemToDer(pem) {
   const b64 = String(pem).replace(/-----[^-]+-----/g, "").replace(/\s+/g, "");
   if (!b64) throw new Error("x509: no PEM body found");
   return base64ToBytes(b64);
+}
+function derToPem(der2, label) {
+  const body = btoa(bytesToBin(der2)).replace(/(.{64})/g, "$1\n").trimEnd();
+  return `-----BEGIN ${label}-----
+${body}
+-----END ${label}-----
+`;
 }
 function randomSerial() {
   const serial = globalThis.crypto.getRandomValues(new Uint8Array(9));
@@ -1285,6 +1423,86 @@ async function generateSigner(dates = {}) {
   const certDer = await signTbs(tbs, pair.privateKey);
   return { privateKey: pair.privateKey, certDer };
 }
+async function generateCaRoot({ commonName = "Lolly CA", organization = "Lolly", days = 3650 } = {}) {
+  const notBefore = new Date(Date.now() - 6e4);
+  const notAfter = new Date(notBefore.getTime() + days * 24 * 3600 * 1e3);
+  const pair = await subtle.generateKey({ name: "ECDSA", namedCurve: "P-256" }, true, ["sign", "verify"]);
+  const spki = new Uint8Array(await subtle.exportKey("spki", pair.publicKey));
+  const keyId = await keyIdOf(spki);
+  const name = x501Name(organization, commonName);
+  const extensions = derSeq(
+    derSeq(derOid("2.5.29.19"), der(1, Uint8Array.of(255)), derOctet(derSeq(der(1, Uint8Array.of(255))))),
+    // basicConstraints: CA:TRUE, critical
+    derSeq(derOid("2.5.29.15"), der(1, Uint8Array.of(255)), derOctet(der(3, Uint8Array.of(1, 6)))),
+    // keyUsage: keyCertSign | cRLSign, critical
+    derSeq(derOid("2.5.29.14"), derOctet(derOctet(keyId)))
+    // subjectKeyIdentifier
+  );
+  const tbs = derSeq(
+    der(160, derUint(Uint8Array.of(2))),
+    // [0] version: v3
+    derUint(randomSerial()),
+    derSeq(derOid(OID_ECDSA_WITH_SHA256)),
+    name,
+    // issuer == subject (self-signed root)
+    derSeq(derTime(notBefore), derTime(notAfter)),
+    name,
+    spki,
+    der(163, extensions)
+  );
+  const certDer = await signTbs(tbs, pair.privateKey);
+  const pkcs8Der = new Uint8Array(await subtle.exportKey("pkcs8", pair.privateKey));
+  return { certDer, pkcs8Der };
+}
+async function issueLeafCert({
+  caCertDer,
+  caPrivateKey,
+  spkiDer,
+  email,
+  commonName,
+  organization = "Lolly",
+  days = 7,
+  notBefore,
+  notAfter
+} = {}) {
+  if (!(caCertDer instanceof Uint8Array)) throw new Error("x509: caCertDer must be a Uint8Array");
+  if (!(spkiDer instanceof Uint8Array)) throw new Error("x509: spkiDer must be a Uint8Array");
+  if (!email) throw new Error("x509: email is required");
+  const nb = asDate(notBefore, Date.now() - 6e4);
+  const na = asDate(notAfter, nb.getTime() + days * 24 * 3600 * 1e3);
+  const signKey = caPrivateKey instanceof Uint8Array ? await subtle.importKey("pkcs8", asBufferSource(caPrivateKey), { name: "ECDSA", namedCurve: "P-256" }, false, ["sign"]) : caPrivateKey;
+  const ca = certNameAndKey(caCertDer);
+  const keyId = await keyIdOf(spkiDer);
+  const issuerKeyId = await keyIdOf(ca.spkiDer);
+  const extensions = derSeq(
+    derSeq(derOid("2.5.29.19"), derOctet(derSeq())),
+    // basicConstraints: CA absent = false
+    derSeq(derOid("2.5.29.15"), der(1, Uint8Array.of(255)), derOctet(der(3, Uint8Array.of(7, 128)))),
+    // keyUsage: digitalSignature, critical
+    derSeq(derOid("2.5.29.37"), derOctet(derSeq(derOid("1.3.6.1.5.5.7.3.4")))),
+    // extKeyUsage: emailProtection
+    derSeq(derOid("2.5.29.14"), derOctet(derOctet(keyId))),
+    // subjectKeyIdentifier
+    derSeq(derOid("2.5.29.35"), derOctet(derSeq(der(128, issuerKeyId)))),
+    // authorityKeyIdentifier: [0] keyid
+    derSeq(derOid("2.5.29.17"), derOctet(derSeq(der(129, te.encode(String(email))))))
+    // subjectAltName: rfc822Name
+  );
+  const tbs = derSeq(
+    der(160, derUint(Uint8Array.of(2))),
+    // [0] version: v3
+    derUint(randomSerial()),
+    derSeq(derOid(OID_ECDSA_WITH_SHA256)),
+    ca.subjectBytes,
+    // issuer, byte-identical to the CA's subject
+    derSeq(derTime(nb), derTime(na)),
+    x501Name(organization, commonName || String(email)),
+    spkiDer,
+    // already a DER SubjectPublicKeyInfo
+    der(163, extensions)
+  );
+  return signTbs(tbs, signKey);
+}
 var te, subtle, derSeq, derSet, derOctet, OID_ECDSA_WITH_SHA256, SIGNER_CN, SIGNER_O;
 var init_x509 = __esm({
   "engine/src/x509.ts"() {
@@ -1303,8 +1521,13 @@ var init_x509 = __esm({
 });
 
 // engine/src/catalog-integrity.ts
-function base64UrlToBytes(str2) {
-  return base64ToBytes(str2.replace(/-/g, "+").replace(/_/g, "/"));
+function bytesToBase64Url(bytes) {
+  let bin = "";
+  for (const b of bytes) bin += String.fromCharCode(b);
+  return btoa(bin).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+}
+function base64UrlToBytes(str3) {
+  return base64ToBytes(str3.replace(/-/g, "+").replace(/_/g, "/"));
 }
 function canonicalJson(value) {
   if (value === null || typeof value !== "object") {
@@ -1323,6 +1546,29 @@ function canonicalJson(value) {
 }
 async function sha256Hex(bytes) {
   return bytesToHex(await sha256(bytes));
+}
+async function jwkThumbprint(jwk) {
+  if (jwk.kty !== "EC" || !jwk.crv || !jwk.x || !jwk.y) {
+    throw new Error("catalog integrity: keyId needs an EC JWK with crv/x/y");
+  }
+  const canonical = canonicalJson({ crv: jwk.crv, kty: jwk.kty, x: jwk.x, y: jwk.y });
+  const digest2 = new Uint8Array(await subtle2.digest("SHA-256", asBufferSource(te2.encode(canonical))));
+  return bytesToBase64Url(digest2);
+}
+async function importSpkiOrJwkPublicKey(key) {
+  if (typeof key === "string") {
+    const trimmed = key.trim();
+    if (trimmed.startsWith("{")) {
+      return subtle2.importKey("jwk", JSON.parse(trimmed), EC_P256, true, ["verify"]);
+    }
+    return subtle2.importKey("spki", asBufferSource(pemToDer(trimmed)), EC_P256, true, ["verify"]);
+  }
+  return subtle2.importKey("jwk", key, EC_P256, true, ["verify"]);
+}
+async function signCatalogEnvelope(unsigned, privateKey) {
+  const bytes = te2.encode(canonicalJson(unsigned));
+  const raw = new Uint8Array(await subtle2.sign(ECDSA_SHA256, privateKey, asBufferSource(bytes)));
+  return { ...unsigned, signature: bytesToBase64Url(raw) };
 }
 async function verifyEnvelopeSignature(envelope, publicKey) {
   if (!envelope || typeof envelope !== "object") return { ok: false, reason: "envelope missing" };
@@ -1345,6 +1591,15 @@ async function verifyEnvelopeSignature(envelope, publicKey) {
   const ok3 = await subtle2.verify(ECDSA_SHA256, publicKey, asBufferSource(sig), asBufferSource(bytes));
   return ok3 ? { ok: true } : { ok: false, reason: "signature does not verify against the pinned key" };
 }
+async function verifyCatalogEnvelope(envelope, indexBytes, publicKey) {
+  const sigResult = await verifyEnvelopeSignature(envelope, publicKey);
+  if (!sigResult.ok) return sigResult;
+  const actual = await sha256Hex(indexBytes);
+  if (actual !== envelope.indexHash) {
+    return { ok: false, reason: `tool index does not match its signed hash (signed ${envelope.indexHash}, got ${actual})` };
+  }
+  return { ok: true };
+}
 async function verifyToolFile(envelope, toolId, filename, bytes) {
   const key = `${toolId}/${filename}`;
   const expected = envelope?.files?.[key];
@@ -1357,14 +1612,27 @@ async function verifyToolFile(envelope, toolId, filename, bytes) {
   }
   return { ok: true };
 }
-var te2, subtle2, CATALOG_SIG_ALG, ECDSA_SHA256;
+var te2, subtle2, CATALOG_SIG_ALG, CATALOG_SIG_PATH, CATALOG_SIGNED_TOOL_FILES, EC_P256, ECDSA_SHA256;
 var init_catalog_integrity = __esm({
   "engine/src/catalog-integrity.ts"() {
     "use strict";
+    init_x509();
     init_bytes();
     te2 = new TextEncoder();
     subtle2 = globalThis.crypto.subtle;
     CATALOG_SIG_ALG = "ECDSA-P256-SHA256";
+    CATALOG_SIG_PATH = "tools/index.sig.json";
+    CATALOG_SIGNED_TOOL_FILES = [
+      "tool.json",
+      "template.html",
+      "styles.css",
+      "hooks.js",
+      "template.ics",
+      "template.vcf",
+      "template.csv",
+      "template.md"
+    ];
+    EC_P256 = { name: "ECDSA", namedCurve: "P-256" };
     ECDSA_SHA256 = { name: "ECDSA", hash: "SHA-256" };
   }
 });
@@ -1374,7 +1642,7 @@ var ENGINE_VERSION;
 var init_version = __esm({
   "engine/src/version.ts"() {
     "use strict";
-    ENGINE_VERSION = "1.93.0";
+    ENGINE_VERSION = "1.95.0";
   }
 });
 
@@ -1448,9 +1716,9 @@ function termToPredicate(term) {
 function satisfiesRange(version, range) {
   const v = parseVersion(version);
   if (!v) return false;
-  const r = String(range).trim();
-  if (r === "" || r === "*") return true;
-  return r.split("||").some((group) => {
+  const r3 = String(range).trim();
+  if (r3 === "" || r3 === "*") return true;
+  return r3.split("||").some((group) => {
     const terms = group.trim().split(/[\s,]+/).filter(Boolean);
     if (terms.length === 0) return true;
     return terms.every((term) => termToPredicate(term)(v));
@@ -1697,10 +1965,10 @@ var init_loader = __esm({
 });
 
 // engine/src/brand-derive.ts
-function linearSrgbToOklab(r, g2, b) {
-  const l = Math.cbrt(0.4122214708 * r + 0.5363325363 * g2 + 0.0514459929 * b);
-  const m = Math.cbrt(0.2119034982 * r + 0.6806995451 * g2 + 0.1073969566 * b);
-  const s = Math.cbrt(0.0883024619 * r + 0.2817188376 * g2 + 0.6299787005 * b);
+function linearSrgbToOklab(r3, g2, b) {
+  const l = Math.cbrt(0.4122214708 * r3 + 0.5363325363 * g2 + 0.0514459929 * b);
+  const m = Math.cbrt(0.2119034982 * r3 + 0.6806995451 * g2 + 0.1073969566 * b);
+  const s = Math.cbrt(0.0883024619 * r3 + 0.2817188376 * g2 + 0.6299787005 * b);
   return lmsToOklab(l, m, s);
 }
 function oklabToLinearSrgb(L, a, b) {
@@ -1750,8 +2018,8 @@ function parseHueToken(tok) {
   if (!m) return null;
   const n2 = parseFloat(m[1]);
   const unit2 = (m[2] ?? "deg").toLowerCase();
-  const deg = unit2 === "rad" ? n2 * 180 / Math.PI : unit2 === "grad" ? n2 * 0.9 : unit2 === "turn" ? n2 * 360 : n2;
-  return normHue(deg);
+  const deg2 = unit2 === "rad" ? n2 * 180 / Math.PI : unit2 === "grad" ? n2 * 0.9 : unit2 === "turn" ? n2 * 360 : n2;
+  return normHue(deg2);
 }
 function parseAlphaToken(tok) {
   const c = parseComponent(tok);
@@ -1788,12 +2056,19 @@ function parseOklch(s) {
   if (alpha != null && alpha < 1) out.alpha = alpha;
   return out;
 }
+function formatOklch(c) {
+  const l = fmtNum(clamp01(c.l) * 100, 2);
+  const cc = fmtNum(Math.max(0, c.c), 4);
+  const h = fmtNum(normHue(c.h), 2);
+  const a = c.alpha != null && c.alpha < 1 ? ` / ${fmtNum(clamp01(c.alpha), 3)}` : "";
+  return `oklch(${l}% ${cc} ${h}${a})`;
+}
 function hexToOklch(hex) {
   const rgba = parseHex(hex);
   if (!rgba) return null;
-  const [r, g2, b, a] = rgba;
+  const [r3, g2, b, a] = rgba;
   const out = oklabToOklch(
-    ...linearSrgbToOklab(srgbToLinear(r / 255), srgbToLinear(g2 / 255), srgbToLinear(b / 255))
+    ...linearSrgbToOklab(srgbToLinear(r3 / 255), srgbToLinear(g2 / 255), srgbToLinear(b / 255))
   );
   if (a < 1) out.alpha = a;
   return out;
@@ -1840,6 +2115,22 @@ function oklchToHex(c) {
   const base = `#${byte(rgb[0])}${byte(rgb[1])}${byte(rgb[2])}`;
   return c.alpha != null && c.alpha < 1 ? base + Math.round(clamp01(c.alpha) * 255).toString(16).padStart(2, "0") : base;
 }
+function mixOklch(a, b, t) {
+  const k = clamp01(t);
+  const carry = 0.02;
+  const ha = a.c < carry && b.c >= carry ? b.h : a.h;
+  const hb = b.c < carry && a.c >= carry ? a.h : b.h;
+  const arc = ((hb - ha) % 360 + 540) % 360 - 180;
+  const lerp = (x, y) => x + (y - x) * k;
+  const out = {
+    l: clamp01(lerp(a.l, b.l)),
+    c: Math.max(0, lerp(a.c, b.c)),
+    h: normHue(ha + arc * k)
+  };
+  const alpha = lerp(a.alpha ?? 1, b.alpha ?? 1);
+  if (alpha < 1) out.alpha = alpha;
+  return out;
+}
 function wcagLuminance(hex) {
   const rgba = parseHex(hex);
   if (!rgba) return null;
@@ -1855,7 +2146,223 @@ function contrastRatio(aHex, bHex) {
   if (la == null || lb == null) return NaN;
   return (Math.max(la, lb) + 0.05) / (Math.min(la, lb) + 0.05);
 }
-var clamp01, normHue, apply3, srgbToLinear, linearToSrgb, lmsToOklab, D50_WHITE, D50_TO_D65, XYZ_TO_LMS, parseComponent, parseAlphaComponent, JND, GAMUT_EPSILON, MAP_EPSILON, inSrgbGamut, clipSrgb;
+function hslToRgb01(h, s, l) {
+  const hh = normHue(h) / 360;
+  if (s === 0) return [l, l, l];
+  const q = l < 0.5 ? l * (1 + s) : l + s - l * s;
+  const p = 2 * l - q;
+  const chan = (t) => {
+    t = (t % 1 + 1) % 1;
+    if (t < 1 / 6) return p + (q - p) * 6 * t;
+    if (t < 1 / 2) return q;
+    if (t < 2 / 3) return p + (q - p) * (2 / 3 - t) * 6;
+    return p;
+  };
+  return [chan(hh + 1 / 3), chan(hh), chan(hh - 1 / 3)];
+}
+function parseCssColor(input) {
+  const s = String(input).trim();
+  if (s.startsWith("#")) return hexToOklch(s);
+  if (/^(?:ok)?lch\(/i.test(s)) return parseOklch(s);
+  let m;
+  if (m = /^rgba?\(([^)]+)\)$/i.exec(s)) {
+    const p = m[1].split(/[,\s/]+/).filter(Boolean);
+    if (p.length < 3) return null;
+    const chan = (t) => t.endsWith("%") ? parseFloat(t) / 100 * 255 : parseFloat(t);
+    const rgb = [chan(p[0]), chan(p[1]), chan(p[2])];
+    if (rgb.some(Number.isNaN)) return null;
+    return oklabToOklch(...linearSrgbToOklab(
+      srgbToLinear(clamp01(rgb[0] / 255)),
+      srgbToLinear(clamp01(rgb[1] / 255)),
+      srgbToLinear(clamp01(rgb[2] / 255))
+    ));
+  }
+  if (m = /^hsla?\(([^)]+)\)$/i.exec(s)) {
+    const p = m[1].split(/[,\s/]+/).filter(Boolean);
+    if (p.length < 3) return null;
+    const h = parseHueToken(p[0]);
+    const sat = parseFloat(p[1]) / 100;
+    const li = parseFloat(p[2]) / 100;
+    if (h == null || Number.isNaN(sat) || Number.isNaN(li)) return null;
+    const [r3, g2, b] = hslToRgb01(h, clamp01(sat), clamp01(li));
+    return oklabToOklch(...linearSrgbToOklab(srgbToLinear(r3), srgbToLinear(g2), srgbToLinear(b)));
+  }
+  return null;
+}
+function rampLightnesses(primaryL, n2) {
+  const src = RAMP_L;
+  const Ls = [];
+  for (let i = 0; i < n2; i++) {
+    const t = n2 === 1 ? 0.5 : i / (n2 - 1);
+    const x = t * (src.length - 1);
+    const lo = Math.floor(x), hi = Math.min(src.length - 1, lo + 1);
+    Ls.push(src[lo] + (src[hi] - src[lo]) * (x - lo));
+  }
+  if (primaryL >= 0.45 && primaryL <= 0.75 && n2 >= 3) {
+    const mid2 = Math.round((n2 - 1) / 2);
+    Ls[mid2] = primaryL;
+    for (let i = 1; i < mid2; i++) Ls[i] = Ls[0] + (Ls[mid2] - Ls[0]) * (i / mid2);
+    for (let i = mid2 + 1; i < n2 - 1; i++) Ls[i] = Ls[mid2] + (Ls[n2 - 1] - Ls[mid2]) * ((i - mid2) / (n2 - 1 - mid2));
+  }
+  return Ls;
+}
+function chromaBell(L, peak) {
+  const lo = 0.02;
+  const hi = 1;
+  const t = L <= peak ? (L - lo) / Math.max(peak - lo, 1e-9) : (hi - L) / Math.max(hi - peak, 1e-9);
+  return clamp01(t) ** 0.7;
+}
+function nudgeHue(from, toward, maxDeg) {
+  const d = ((toward - from) % 360 + 540) % 360 - 180;
+  return normHue(from + Math.max(-maxDeg, Math.min(maxDeg, d)));
+}
+function emitHex(v) {
+  return oklchToHex(parseOklch(formatOklch(v)) ?? v);
+}
+function stepsByDistance(preferred, tie, n2 = 9) {
+  const out = [preferred];
+  for (let d = 1; d < n2; d++) {
+    for (const s of [preferred + tie * d, preferred - tie * d]) {
+      if (s >= 1 && s <= n2 && !out.includes(s)) out.push(s);
+    }
+  }
+  return out;
+}
+function nudged(from, surfaceHex, floor) {
+  const surfLum = wcagLuminance(surfaceHex) ?? 0;
+  const dir = surfLum > 0.18 ? -1 : 1;
+  for (let i = 0; i <= 50; i++) {
+    const l = clamp01(from.l + dir * 0.02 * i);
+    const v = { l, c: from.c, h: from.h };
+    if (contrastRatio(emitHex(v), surfaceHex) >= floor) return v;
+    if (l === 0 || l === 1) break;
+  }
+  return dir < 0 ? BLACK : WHITE;
+}
+function pickByContrast(ramp, preferred, surfaceHex, floor, tie) {
+  for (const s of stepsByDistance(preferred, tie, ramp.length)) {
+    const v = ramp[s - 1];
+    if (contrastRatio(emitHex(v), surfaceHex) >= floor) return { step: s, value: v };
+  }
+  return { value: nudged(ramp[preferred - 1], surfaceHex, floor) };
+}
+function pickOnPrimary(primaryHex, primaryRamp, floor) {
+  const N2 = primaryRamp.length;
+  const candidates2 = [
+    { value: WHITE },
+    { value: BLACK },
+    { step: N2, value: primaryRamp[N2 - 1] },
+    { step: 1, value: primaryRamp[0] }
+  ];
+  for (const cand of candidates2) {
+    if (contrastRatio(emitHex(cand.value), primaryHex) >= floor) return cand;
+  }
+  return null;
+}
+function buildSemantic(spec, ramps, p, F, high, foreground) {
+  const { primary: pRamp, neutral } = ramps;
+  const tie = spec.dark ? 1 : -1;
+  const N2 = neutral.length;
+  const at = (frac) => Math.min(N2, Math.max(1, Math.round(frac * (N2 - 1)) + 1));
+  const anchor = at(0.5);
+  let surface;
+  if (spec.primarySurface) {
+    surface = { value: { l: 0.26, c: Math.max(0.06, p.c * 0.6), h: p.h } };
+  } else {
+    const step = spec.dark ? high ? at(0.125) : at(0) : high ? at(0.875) : at(1);
+    surface = { step, value: neutral[step - 1] };
+  }
+  const surfaceHex = emitHex(surface.value);
+  const text = pickByContrast(neutral, spec.dark ? at(1) : at(0), surfaceHex, F.text, tie);
+  const muted = pickByContrast(neutral, spec.dark ? at(0.625) : at(0.375), surfaceHex, F.muted, tie);
+  const edge = pickByContrast(neutral, spec.dark ? at(0.25) : at(0.75), surfaceHex, F.edge, tie);
+  let primary = null;
+  let onPrimary = null;
+  if (spec.primarySurface) {
+    for (let s = at(0.625); s <= N2 && !primary; s++) {
+      const v = pRamp[s - 1];
+      if (contrastRatio(emitHex(v), surfaceHex) < F.muted) continue;
+      const on = pickOnPrimary(emitHex(v), pRamp, F.onPrimary);
+      if (on) {
+        primary = { step: s, value: v };
+        onPrimary = on;
+      }
+    }
+  } else {
+    for (const s of stepsByDistance(anchor, tie, N2)) {
+      const v = pRamp[s - 1];
+      const on = pickOnPrimary(emitHex(v), pRamp, F.onPrimary);
+      if (on) {
+        primary = { step: s, value: v };
+        onPrimary = on;
+        break;
+      }
+    }
+  }
+  if (!primary || !onPrimary) {
+    const step = spec.primarySurface ? N2 : 1;
+    primary = { step, value: pRamp[step - 1] };
+    onPrimary = { value: nudged(step === N2 ? BLACK : WHITE, emitHex(primary.value), F.onPrimary) };
+  }
+  if (foreground === "light") onPrimary = { value: WHITE };
+  else if (foreground === "dark") onPrimary = { value: BLACK };
+  return {
+    "primary": slotTok(primary, "primary", "Semantic"),
+    "on-primary": slotTok(onPrimary, "primary", "Semantic"),
+    "secondary": aliasTok(`color.ramp.secondary.${anchor}`, "Semantic"),
+    "surface": slotTok(surface, "neutral", "Semantic"),
+    "text": slotTok(text, "neutral", "Semantic"),
+    "muted": slotTok(muted, "neutral", "Semantic"),
+    "edge": slotTok(edge, "neutral", "Semantic")
+  };
+}
+function deriveBrandTokens(opts) {
+  const p = parseCssColor(opts.primary);
+  if (!p) throw new Error(`deriveBrandTokens: unparseable primary colour ${JSON.stringify(opts.primary)}`);
+  const scheme = opts.scheme && Object.hasOwn(SCHEME_ROTATION, opts.scheme) ? opts.scheme : "mono";
+  const surfaceOpt = opts.surface === "dark" || opts.surface === "primary" ? opts.surface : "light";
+  const contrast = opts.contrast === "high" ? "high" : "comfort";
+  const high = contrast === "high";
+  const F = FLOORS[contrast];
+  const foreground = opts.foreground === "light" || opts.foreground === "dark" ? opts.foreground : "auto";
+  const steps = Math.round(Math.min(RAMP_STEPS_MAX, Math.max(RAMP_STEPS_MIN, opts.steps ?? RAMP_STEPS_DEFAULT)));
+  const peak = Math.min(0.75, Math.max(0.45, p.l));
+  const Ls = rampLightnesses(p.l, steps);
+  const mkRamp = (hue, chromaScale) => Ls.map((L) => ({ l: L, c: p.c * chromaScale * chromaBell(L, peak), h: normHue(hue) }));
+  const primaryRamp = mkRamp(p.h, 1);
+  const secondaryRamp = mkRamp(p.h + SCHEME_ROTATION[scheme], scheme === "mono" ? 0.35 : 1);
+  const neutralC = Math.min(0.02, Math.max(4e-3, p.c * 0.25));
+  const neutralRamp = Ls.map((L) => ({ l: L, c: neutralC * chromaBell(L, peak), h: p.h }));
+  const rampGroup = (r3, group) => Object.fromEntries(r3.map((v, i) => [String(i + 1), literalTok(v, group)]));
+  const spectrum = Object.fromEntries(SPECTRUM.map(([name, hue]) => [name, literalTok({ l: 0.65, c: 0.12, h: nudgeHue(hue, p.h, 8) }, "Spectrum")]));
+  const ramps = { primary: primaryRamp, neutral: neutralRamp };
+  const lightSem = buildSemantic({ dark: false, primarySurface: false }, ramps, p, F, high, foreground);
+  const darkSem = buildSemantic({ dark: true, primarySurface: surfaceOpt === "primary" }, ramps, p, F, high, foreground);
+  const themes = [
+    { name: "light", selectedTokenSets: { base: "enabled", light: "enabled" } },
+    { name: "dark", selectedTokenSets: { base: "enabled", dark: "enabled" } }
+  ];
+  if (surfaceOpt !== "light") themes.reverse();
+  return {
+    $description: `Derived brand tokens${opts.name ? ` for ${opts.name}` : ""} \u2014 primary ${formatOklch(p)}, scheme ${scheme}, surface ${surfaceOpt}, contrast ${contrast}${foreground === "auto" ? "" : `, ${foreground} foreground`}.`,
+    $metadata: { tokenSetOrder: ["base", "light", "dark"] },
+    $themes: themes,
+    base: {
+      color: {
+        $type: "color",
+        ramp: {
+          primary: rampGroup(primaryRamp, "Primary"),
+          neutral: rampGroup(neutralRamp, "Neutral"),
+          secondary: rampGroup(secondaryRamp, "Secondary")
+        },
+        spectrum
+      }
+    },
+    light: { color: { $type: "color", semantic: lightSem } },
+    dark: { color: { $type: "color", semantic: darkSem } }
+  };
+}
+var clamp01, normHue, apply3, srgbToLinear, linearToSrgb, lmsToOklab, D50_WHITE, D50_TO_D65, XYZ_TO_LMS, parseComponent, parseAlphaComponent, fmtNum, JND, GAMUT_EPSILON, MAP_EPSILON, inSrgbGamut, clipSrgb, RAMP_STEPS_MIN, RAMP_STEPS_MAX, RAMP_STEPS_DEFAULT, VENDOR_EXT, FLOORS, RAMP_L, SPECTRUM, SCHEME_ROTATION, WHITE, BLACK, withGroup, literalTok, aliasTok, slotTok;
 var init_brand_derive = __esm({
   "engine/src/brand-derive.ts"() {
     "use strict";
@@ -1898,11 +2405,36 @@ var init_brand_derive = __esm({
     ];
     parseComponent = parseComponentToken;
     parseAlphaComponent = parseAlphaToken;
+    fmtNum = (n2, dp) => n2.toFixed(dp).replace(/(\.\d*?)0+$/, "$1").replace(/\.$/, "");
     JND = 0.02;
     GAMUT_EPSILON = 1e-4;
     MAP_EPSILON = GAMUT_EPSILON;
     inSrgbGamut = (rgb) => rgb.every((v) => v >= -MAP_EPSILON && v <= 1 + MAP_EPSILON);
     clipSrgb = (rgb) => [clamp01(rgb[0]), clamp01(rgb[1]), clamp01(rgb[2])];
+    RAMP_STEPS_MIN = 3;
+    RAMP_STEPS_MAX = 20;
+    RAMP_STEPS_DEFAULT = 9;
+    VENDOR_EXT = "com.suse.lolly";
+    FLOORS = {
+      comfort: { text: 7, muted: 3, onPrimary: 4.5, edge: 1.3 },
+      high: { text: 10, muted: 4.5, onPrimary: 7, edge: 1.6 }
+    };
+    RAMP_L = [0.18, 0.28, 0.38, 0.5, 0.62, 0.74, 0.84, 0.92, 0.97];
+    SPECTRUM = [
+      ["blue", 250],
+      ["teal", 190],
+      ["violet", 300],
+      ["amber", 75],
+      ["rose", 355],
+      ["green", 145]
+    ];
+    SCHEME_ROTATION = { mono: 0, complement: 180, analogous: 30, triad: 120 };
+    WHITE = { l: 1, c: 0, h: 0 };
+    BLACK = { l: 0, c: 0, h: 0 };
+    withGroup = (group) => ({ [VENDOR_EXT]: { group } });
+    literalTok = (v, group) => ({ $value: formatOklch(v), $extensions: withGroup(group) });
+    aliasTok = (path, group) => ({ $value: `{${path}}`, $extensions: withGroup(group) });
+    slotTok = (s, ramp, group) => s.step ? aliasTok(`color.ramp.${ramp}.${s.step}`, group) : literalTok(s.value, group);
   }
 });
 
@@ -1942,17 +2474,17 @@ function hslToSrgb(h, s, l) {
   };
   return [ch(hn + 1 / 3), ch(hn), ch(hn - 1 / 3)];
 }
-function srgbToHsl(r, g2, b) {
-  const max = Math.max(r, g2, b);
-  const min = Math.min(r, g2, b);
+function srgbToHsl(r3, g2, b) {
+  const max = Math.max(r3, g2, b);
+  const min = Math.min(r3, g2, b);
   const l = (max + min) / 2;
   const d = max - min;
   if (d < 1e-9) return [0, 0, l * 100];
   const s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
   let h;
-  if (max === r) h = (g2 - b) / d % 6;
-  else if (max === g2) h = (b - r) / d + 2;
-  else h = (r - g2) / d + 4;
+  if (max === r3) h = (g2 - b) / d % 6;
+  else if (max === g2) h = (b - r3) / d + 2;
+  else h = (r3 - g2) / d + 4;
   return [normHue2(h * 60), s * 100, l * 100];
 }
 function hwbToSrgb(h, w, blk) {
@@ -1966,9 +2498,9 @@ function hwbToSrgb(h, w, blk) {
   const scale = 1 - wn - bn;
   return [rgb[0] * scale + wn, rgb[1] * scale + wn, rgb[2] * scale + wn];
 }
-function srgbToHwb(r, g2, b) {
-  const [h] = srgbToHsl(r, g2, b);
-  return [h, Math.min(r, g2, b) * 100, (1 - Math.max(r, g2, b)) * 100];
+function srgbToHwb(r3, g2, b) {
+  const [h] = srgbToHsl(r3, g2, b);
+  return [h, Math.min(r3, g2, b) * 100, (1 - Math.max(r3, g2, b)) * 100];
 }
 function toXyzD65(c) {
   const [c0, c1, c2] = c.components;
@@ -2160,15 +2692,39 @@ function colorToSrgb(c) {
   return gamutMapSrgb(convertColor(c, "srgb").components);
 }
 function colorToSrgb8(c) {
-  const [r, g2, b] = colorToSrgb(c);
+  const [r3, g2, b] = colorToSrgb(c);
   const byte = (v) => Math.round(clamp012(v) * 255);
-  return [byte(r), byte(g2), byte(b), clamp012(c.alpha)];
+  return [byte(r3), byte(g2), byte(b), clamp012(c.alpha)];
 }
 function colorToHexString(c) {
-  const [r, g2, b, a] = colorToSrgb8(c);
+  const [r3, g2, b, a] = colorToSrgb8(c);
   const h = (n2) => n2.toString(16).padStart(2, "0");
-  const base = `#${h(r)}${h(g2)}${h(b)}`;
+  const base = `#${h(r3)}${h(g2)}${h(b)}`;
   return a >= 1 ? base : base + h(Math.round(a * 255));
+}
+function formatColor(c) {
+  const [c0, c1, c2] = c.components;
+  const tok = (v, flag, dp) => (c.missing & flag) !== 0 ? "none" : fmtNum2(v, dp);
+  const pct = (v, flag, dp) => (c.missing & flag) !== 0 ? "none" : `${fmtNum2(v, dp)}%`;
+  const alpha = (c.missing & MISSING_ALPHA) !== 0 ? " / none" : c.alpha < 1 ? ` / ${fmtNum2(clamp012(c.alpha), 4)}` : "";
+  if (RGB_SPACES.has(c.space)) {
+    const dp = 6;
+    return `color(${c.space} ${tok(c0, MISSING_C0, dp)} ${tok(c1, MISSING_C1, dp)} ${tok(c2, MISSING_C2, dp)}${alpha})`;
+  }
+  switch (c.space) {
+    case "hsl":
+      return `hsl(${tok(c0, MISSING_C0, 2)} ${pct(c1, MISSING_C1, 2)} ${pct(c2, MISSING_C2, 2)}${alpha})`;
+    case "hwb":
+      return `hwb(${tok(c0, MISSING_C0, 2)} ${pct(c1, MISSING_C1, 2)} ${pct(c2, MISSING_C2, 2)}${alpha})`;
+    case "lab":
+      return `lab(${pct(c0, MISSING_C0, 3)} ${tok(c1, MISSING_C1, 3)} ${tok(c2, MISSING_C2, 3)}${alpha})`;
+    case "lch":
+      return `lch(${pct(c0, MISSING_C0, 3)} ${tok(c1, MISSING_C1, 3)} ${tok(c2, MISSING_C2, 2)}${alpha})`;
+    case "oklab":
+      return `oklab(${pct(c0 * 100, MISSING_C0, 3)} ${tok(c1, MISSING_C1, 5)} ${tok(c2, MISSING_C2, 5)}${alpha})`;
+    default:
+      return `oklch(${pct(c0 * 100, MISSING_C0, 3)} ${tok(c1, MISSING_C1, 5)} ${tok(c2, MISSING_C2, 2)}${alpha})`;
+  }
 }
 function splitArgs(inner) {
   const slash = inner.split("/");
@@ -2208,8 +2764,8 @@ function parseColor(input) {
   if (input == null) return null;
   const s = String(input).trim();
   if (s.length === 0) return null;
-  const lower = s.toLowerCase();
-  if (lower === "transparent") {
+  const lower2 = s.toLowerCase();
+  if (lower2 === "transparent") {
     return { space: "srgb", components: [0, 0, 0], alpha: 0, missing: 0 };
   }
   if (s.startsWith("#")) {
@@ -2218,7 +2774,7 @@ function parseColor(input) {
   }
   const fn = /^([a-z][a-z0-9-]*)\(([^()]*)\)$/i.exec(s);
   if (!fn) {
-    const named = Object.hasOwn(NAMED_COLORS, lower) ? NAMED_COLORS[lower] : null;
+    const named = Object.hasOwn(NAMED_COLORS, lower2) ? NAMED_COLORS[lower2] : null;
     return named == null ? null : {
       space: "srgb",
       components: [(named >> 16 & 255) / 255, (named >> 8 & 255) / 255, (named & 255) / 255],
@@ -2276,12 +2832,16 @@ function hueComp(tok) {
   const h = parseHueToken(tok);
   return h == null ? null : { v: h, none: false };
 }
+function findColorToken(text, allowBareIdent = false) {
+  const m = (allowBareIdent ? COLOR_TOKEN_OR_IDENT : COLOR_TOKEN).exec(String(text));
+  return m ? m[0] : null;
+}
 function parseColorToSrgb8(input) {
   const c = parseColor(input);
   if (!c || c.alpha <= 0) return null;
   return colorToSrgb8(c);
 }
-var MISSING_C0, MISSING_C1, MISSING_C2, MISSING_ALPHA, clamp012, normHue2, apply32, NAMED_COLORS, srgbToLinear2, linearToSrgb2, A98_GAMMA, a98ToLinear, linearToA98, prophotoToLinear, linearToProphoto, R2020_A, R2020_B, rec2020ToLinear, linearToRec2020, LIN_SRGB_TO_XYZ65, XYZ65_TO_LIN_SRGB, LIN_P3_TO_XYZ65, XYZ65_TO_LIN_P3, LIN_A98_TO_XYZ65, XYZ65_TO_LIN_A98, LIN_2020_TO_XYZ65, XYZ65_TO_LIN_2020, LIN_PROPHOTO_TO_XYZ50, XYZ50_TO_LIN_PROPHOTO, XYZ65_TO_XYZ50, XYZ50_TO_XYZ65, D50_WHITE2, LAB_K, LAB_E, polarToRect, ACHROMATIC_C, HSL_ACHROMATIC_S, rectToPolar, HUE_INDEX, PROBES, inSrgb, COLOR_FN_SPACES, COLOR_FN, COLOR_TOKEN, COLOR_TOKEN_OR_IDENT;
+var MISSING_C0, MISSING_C1, MISSING_C2, MISSING_ALPHA, clamp012, normHue2, apply32, NAMED_COLORS, srgbToLinear2, linearToSrgb2, A98_GAMMA, a98ToLinear, linearToA98, prophotoToLinear, linearToProphoto, R2020_A, R2020_B, rec2020ToLinear, linearToRec2020, LIN_SRGB_TO_XYZ65, XYZ65_TO_LIN_SRGB, LIN_P3_TO_XYZ65, XYZ65_TO_LIN_P3, LIN_A98_TO_XYZ65, XYZ65_TO_LIN_A98, LIN_2020_TO_XYZ65, XYZ65_TO_LIN_2020, LIN_PROPHOTO_TO_XYZ50, XYZ50_TO_LIN_PROPHOTO, XYZ65_TO_XYZ50, XYZ50_TO_XYZ65, D50_WHITE2, LAB_K, LAB_E, polarToRect, ACHROMATIC_C, HSL_ACHROMATIC_S, rectToPolar, HUE_INDEX, PROBES, inSrgb, fmtNum2, RGB_SPACES, COLOR_FN_SPACES, COLOR_FN, COLOR_TOKEN, COLOR_TOKEN_OR_IDENT;
 var init_css_color = __esm({
   "engine/src/css-color.ts"() {
     "use strict";
@@ -2635,6 +3195,17 @@ var init_css_color = __esm({
     };
     PROBES = [0.25, 0.5, 0.75];
     inSrgb = (rgb) => rgb.every((v) => v >= -GAMUT_EPSILON && v <= 1 + GAMUT_EPSILON);
+    fmtNum2 = (n2, dp) => (Number(n2.toFixed(dp)) + 0).toFixed(dp).replace(/(\.\d*?)0+$/, "$1").replace(/\.$/, "");
+    RGB_SPACES = /* @__PURE__ */ new Set([
+      "srgb",
+      "srgb-linear",
+      "display-p3",
+      "a98-rgb",
+      "prophoto-rgb",
+      "rec2020",
+      "xyz-d50",
+      "xyz-d65"
+    ]);
     COLOR_FN_SPACES = {
       srgb: "srgb",
       "srgb-linear": "srgb-linear",
@@ -2675,10 +3246,69 @@ function normaliseFaceValue(v) {
   }
   return null;
 }
+function writeFace(ns, target, face) {
+  const faces = isRec(ns.faces) ? ns.faces : null;
+  if (face === null) {
+    if (faces) {
+      delete faces[target];
+      if (Object.keys(faces).length === 0) delete ns.faces;
+    }
+    return ns;
+  }
+  const map = faces ?? (ns.faces = {});
+  const value = normaliseFaceValue(face.value);
+  if (value === null) return ns;
+  map[target] = { value, ...face.label ? { label: face.label } : {} };
+  return ns;
+}
+function colorFaces(canonical, targets, stored, derive) {
+  const out = [];
+  const seen = /* @__PURE__ */ new Set();
+  for (const { target, label } of targets) {
+    seen.add(target);
+    const override = stored.get(target);
+    const derived = derive(canonical, target);
+    if (!override) {
+      if (derived === null) continue;
+      out.push({ target, value: derived, origin: "auto", ...label ? { label } : {} });
+      continue;
+    }
+    const drift = derived === null ? void 0 : faceDrift(override.value, derived);
+    out.push({
+      target,
+      value: override.value,
+      origin: "set",
+      ...label || override.label ? { label: label ?? override.label } : {},
+      ...drift === void 0 ? {} : { drift }
+    });
+  }
+  for (const [target, face] of stored) {
+    if (seen.has(target)) continue;
+    out.push({ target, value: face.value, origin: "set", ...face.label ? { label: face.label } : {} });
+  }
+  return out;
+}
+function faceDrift(a, b) {
+  if (Array.isArray(a) && Array.isArray(b)) {
+    let worst = 0;
+    for (let i = 0; i < 4; i++) worst = Math.max(worst, Math.abs((a[i] ?? 0) - (b[i] ?? 0)));
+    return worst;
+  }
+  if (typeof a !== "string" || typeof b !== "string") return void 0;
+  const ca = parseColor(a), cb = parseColor(b);
+  if (!ca || !cb) return void 0;
+  return deltaEOkColor(ca, cb);
+}
+function canonicalValue(color) {
+  const c = typeof color === "string" ? parseColor(color) : color;
+  if (!c) return null;
+  return formatColor(convertColor(c, "lab"));
+}
 var isRec;
 var init_color_faces = __esm({
   "engine/src/color-faces.ts"() {
     "use strict";
+    init_css_color();
     isRec = (v) => typeof v === "object" && v !== null && !Array.isArray(v);
   }
 });
@@ -2819,8 +3449,8 @@ function resolveAliases(map) {
         if (tv !== void 0) {
           e.value = tv;
           if (e.type == null) {
-            const te8 = map.get(target);
-            if (te8) e.type = te8.type;
+            const te9 = map.get(target);
+            if (te9) e.type = te9.type;
           }
         }
       }
@@ -2876,10 +3506,10 @@ function createTokenSet(doc, { theme } = {}) {
       const themesArr = isRecord(doc) && Array.isArray(doc.$themes) ? doc.$themes : null;
       if (!themesArr) return [];
       return themesArr.map((t) => {
-        const r = isRecord(t) ? t : {};
+        const r3 = isRecord(t) ? t : {};
         return {
-          name: strOrNull(r.name) ?? strOrNull(r.id) ?? "",
-          group: strOrNull(r.group)
+          name: strOrNull(r3.name) ?? strOrNull(r3.id) ?? "",
+          group: strOrNull(r3.group)
         };
       });
     }
@@ -2935,14 +3565,49 @@ function facesOf(ext) {
 function prettify(slug) {
   return String(slug).replace(/[-_]+/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
 }
+function resolveColorValue(tokenSet, stored) {
+  if (isTokenValue(stored)) {
+    const r3 = tokenSet?.resolve(stored.ref);
+    return r3 !== void 0 ? colorToHex(r3) : colorToHex(stored.value);
+  }
+  if (isAlias(stored)) {
+    const r3 = tokenSet?.resolve(stored);
+    return r3 !== void 0 ? colorToHex(r3) : void 0;
+  }
+  return stored;
+}
+function typographyFamilies(value) {
+  const out = [];
+  const seen = /* @__PURE__ */ new Set();
+  const take = (v) => {
+    if (Array.isArray(v)) {
+      for (const item of v) take(item);
+      return;
+    }
+    if (typeof v !== "string" || isAlias(v)) return;
+    for (const part of v.split(",")) {
+      const fam = part.trim().replace(/^['"]+|['"]+$/g, "").trim();
+      if (!fam || seen.has(fam)) continue;
+      seen.add(fam);
+      out.push(fam);
+    }
+  };
+  if (typeof value === "string" || Array.isArray(value)) {
+    take(value);
+    return out;
+  }
+  if (!isRecord(value)) return out;
+  take(value.fontFamilies ?? value.fontFamily);
+  return out;
+}
 function colorToHex(value) {
   if (value == null) return value;
   if (isRecord(value)) {
     if (typeof value.hex === "string") return normHex(value.hex);
     if (Array.isArray(value.components)) {
-      const [r, g2, b] = value.components;
+      const [r3, g2, b] = value.components;
       return rgbaToHex(
-        Number(r) * 255,
+        Number(r3) * 255,
         Number(g2) * 255,
         Number(b) * 255,
         value.alpha == null ? 1 : Number(value.alpha)
@@ -2968,9 +3633,9 @@ function normHex(s) {
   }
   return /^#(?:[0-9a-f]{6}|[0-9a-f]{8})$/.test(h) ? h : null;
 }
-function rgbaToHex(r, g2, b, a = 1) {
+function rgbaToHex(r3, g2, b, a = 1) {
   const h = (n2) => Math.max(0, Math.min(255, Math.round(Number(n2) || 0))).toString(16).padStart(2, "0");
-  const base = `#${h(r)}${h(g2)}${h(b)}`;
+  const base = `#${h(r3)}${h(g2)}${h(b)}`;
   return a >= 1 ? base : base + h(a * 255);
 }
 var TOKEN_EXT, ALIAS_RE, isRecord, strOrNull, isNumberArray, isSpotColor, readSpotColor;
@@ -3008,8 +3673,8 @@ function normalizeTableValue(v) {
   if (!Array.isArray(o.columns) || !Array.isArray(o.rows)) return null;
   const cell = (c) => typeof c === "string" ? c : typeof c === "number" || typeof c === "boolean" ? String(c) : "";
   const columns = o.columns.map(cell);
-  const rows = o.rows.filter((r) => Array.isArray(r)).map((r) => {
-    const out = r.slice(0, columns.length).map(cell);
+  const rows = o.rows.filter((r3) => Array.isArray(r3)).map((r3) => {
+    const out = r3.slice(0, columns.length).map(cell);
     while (out.length < columns.length) out.push("");
     return out;
   });
@@ -3134,8 +3799,8 @@ function pickControl(input) {
   if (input.type === "table") return "table";
   return "text-input";
 }
-function updateInput(model, id, value) {
-  return model.map((input) => {
+function updateInput(model2, id, value) {
+  return model2.map((input) => {
     if (input.id !== id) return input;
     const constrained = constrain(input, value);
     return { ...input, value: constrained, isDirty: true };
@@ -3180,14 +3845,14 @@ function constrain(input, value) {
   }
   return value;
 }
-function modelToValues(model) {
+function modelToValues(model2) {
   const out = {};
-  for (const i of model) out[i.id] = flattenValue(i.value);
+  for (const i of model2) out[i.id] = flattenValue(i.value);
   return out;
 }
-function summarizeInputs(model, { maxValueLen = 48, maxEntries = 24 } = {}) {
+function summarizeInputs(model2, { maxValueLen = 48, maxEntries = 24 } = {}) {
   const out = {};
-  for (const item of model) {
+  for (const item of model2) {
     if (Object.keys(out).length >= maxEntries) break;
     if (!item || !SUMMARISABLE_TYPES.has(item.type) || item.bindToProfile) continue;
     const v = flattenValue(item.value);
@@ -3201,8 +3866,8 @@ function summarizeInputs(model, { maxValueLen = 48, maxEntries = 24 } = {}) {
   }
   return out;
 }
-function modelForHooks(model) {
-  return model.map((i) => {
+function modelForHooks(model2) {
+  return model2.map((i) => {
     const v = flattenValue(i.value);
     return v === i.value ? i : { ...i, value: v };
   });
@@ -3247,6 +3912,67 @@ function mediaBool(v, dflt) {
   if (typeof v === "boolean") return v;
   const s = String(v).toLowerCase();
   return s === "true" || s === "1" || s === "yes" || s === "on";
+}
+function annotateTemplate(source, inputIds) {
+  if (!inputIds.length) return source;
+  const idAlt = inputIds.map((id) => id.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")).join("|");
+  const triple = new RegExp(`\\{\\{\\{[^}]*\\b(${idAlt})\\b[^}]*\\}\\}\\}`, "g");
+  const double = new RegExp(`(?<!\\{)\\{\\{(?![{#/!>^])[^}]*\\b(${idAlt})\\b[^}]*\\}\\}(?!\\})`, "g");
+  const tripleAttr = new RegExp(`\\{\\{\\{[^}]*\\b(${idAlt})\\b[^}]*\\}\\}\\}`);
+  const doubleAttr = new RegExp(`(?<!\\{)\\{\\{(?![{#/!>^])[^}]*\\b(${idAlt})\\b[^}]*\\}\\}(?!\\})`);
+  function annotateContent(text) {
+    text = text.replace(triple, (m, id) => `<!-- ci:${id} -->${m}<!-- /ci:${id} -->`);
+    text = text.replace(double, (m, id) => `<!-- ci:${id} -->${m}<!-- /ci:${id} -->`);
+    return text;
+  }
+  function annotateTagAttrs(tag2) {
+    if (tag2.startsWith("</") || tag2.startsWith("<!")) return tag2;
+    if (/\sdata-canvas-input=/.test(tag2)) return tag2;
+    const m = tripleAttr.exec(tag2) || doubleAttr.exec(tag2);
+    if (!m) return tag2;
+    const id = m[1];
+    const selfClose = /\/\s*>$/.exec(tag2);
+    const insertAt = selfClose ? tag2.length - selfClose[0].length : tag2.length - 1;
+    const before = tag2.slice(0, insertAt).replace(/\s+$/, "");
+    return `${before} data-canvas-input="${id}"${selfClose ? " />" : ">"}`;
+  }
+  const result = [];
+  let i = 0;
+  let contentStart = 0;
+  while (i < source.length) {
+    if (source[i] !== "<") {
+      i++;
+      continue;
+    }
+    result.push(annotateContent(source.slice(contentStart, i)));
+    const tagStart = i++;
+    let quoteChar = "";
+    while (i < source.length) {
+      const ch = source[i++];
+      if (quoteChar) {
+        if (ch === quoteChar) quoteChar = "";
+      } else if (ch === '"' || ch === "'") {
+        quoteChar = ch;
+      } else if (ch === ">") {
+        break;
+      }
+    }
+    const tag2 = annotateTagAttrs(source.slice(tagStart, i));
+    result.push(tag2);
+    contentStart = i;
+    const raw = /^<(script|style)(?:\s|>)/i.exec(tag2);
+    if (raw && !tag2.endsWith("/>")) {
+      const close = new RegExp(`</${raw[1]}\\s*>`, "i").exec(source.slice(i));
+      if (close) {
+        const rawEnd = i + close.index;
+        result.push(source.slice(i, rawEnd));
+        i = rawEnd;
+        contentStart = rawEnd;
+      }
+    }
+  }
+  result.push(annotateContent(source.slice(contentStart)));
+  return result.join("");
 }
 function hydrate(templateSource, values, { raw = false } = {}) {
   const key = raw ? " raw " + templateSource : templateSource;
@@ -3363,26 +4089,26 @@ var init_template = __esm({
     Handlebars.registerHelper("media", (ref, options) => {
       const empty = new Handlebars.SafeString("");
       if (!ref || typeof ref !== "object") return empty;
-      const esc2 = Handlebars.escapeExpression;
-      const get2 = (k) => Reflect.get(ref, k);
-      const url = get2("url");
+      const esc3 = Handlebars.escapeExpression;
+      const get3 = (k) => Reflect.get(ref, k);
+      const url = get3("url");
       if (typeof url !== "string" || !url) return empty;
-      const type = String(get2("type") ?? "");
-      const meta = get2("meta") && typeof get2("meta") === "object" ? get2("meta") : {};
+      const type = String(get3("type") ?? "");
+      const meta = get3("meta") && typeof get3("meta") === "object" ? get3("meta") : {};
       const hash = options?.hash ?? {};
-      const cls = hash.class != null ? ` class="${esc2(String(hash.class))}"` : "";
-      const style = hash.style != null ? ` style="${esc2(String(hash.style))}"` : "";
+      const cls = hash.class != null ? ` class="${esc3(String(hash.class))}"` : "";
+      const style = hash.style != null ? ` style="${esc3(String(hash.style))}"` : "";
       if (type === "lottie" || /\.json($|\?|#)/i.test(url)) {
         const loop = mediaBool(hash.loop, true) ? "1" : "0";
         const autoplay = mediaBool(hash.autoplay, true) ? "1" : "0";
         const fit = hash.fit === "cover" ? "cover" : "contain";
         return new Handlebars.SafeString(
-          `<div${cls} data-lottie-src="${esc2(url)}" data-lottie-loop="${loop}" data-lottie-autoplay="${autoplay}" data-lottie-fit="${fit}"${style}></div>`
+          `<div${cls} data-lottie-src="${esc3(url)}" data-lottie-loop="${loop}" data-lottie-autoplay="${autoplay}" data-lottie-fit="${fit}"${style}></div>`
         );
       }
       if (type === "video" || /\.(mp4|m4v|mov|webm)($|\?|#)/i.test(url)) {
-        const poster = typeof meta.posterUrl === "string" && meta.posterUrl ? ` poster="${esc2(meta.posterUrl)}"` : "";
-        const keyRaw = hash.key != null ? String(hash.key) : typeof get2("id") === "string" ? String(get2("id")) : url;
+        const poster = typeof meta.posterUrl === "string" && meta.posterUrl ? ` poster="${esc3(meta.posterUrl)}"` : "";
+        const keyRaw = hash.key != null ? String(hash.key) : typeof get3("id") === "string" ? String(get3("id")) : url;
         const flags = [
           mediaBool(hash.autoplay, true) ? "autoplay" : "",
           mediaBool(hash.loop, true) ? "loop" : "",
@@ -3390,10 +4116,10 @@ var init_template = __esm({
           mediaBool(hash.controls, false) ? "controls" : "",
           "playsinline"
         ].filter(Boolean).join(" ");
-        return new Handlebars.SafeString(`<video${cls} src="${esc2(url)}" data-video-key="${esc2(keyRaw)}"${poster} ${flags}${style}></video>`);
+        return new Handlebars.SafeString(`<video${cls} src="${esc3(url)}" data-video-key="${esc3(keyRaw)}"${poster} ${flags}${style}></video>`);
       }
-      const alt = esc2(String(hash.alt ?? meta.name ?? ""));
-      return new Handlebars.SafeString(`<img${cls} src="${esc2(url)}" alt="${alt}"${style}>`);
+      const alt = esc3(String(hash.alt ?? meta.name ?? ""));
+      return new Handlebars.SafeString(`<img${cls} src="${esc3(url)}" alt="${alt}"${style}>`);
     });
     COMPILE_CACHE_MAX = 50;
     compileCache = /* @__PURE__ */ new Map();
@@ -3445,11 +4171,11 @@ var init_metadata = __esm({
 });
 
 // engine/src/compose.ts
-async function resolveNestedRenders(tool, model, extras, host, composeStack = [], memo = /* @__PURE__ */ new Map()) {
+async function resolveNestedRenders(tool, model2, extras, host, composeStack = [], memo = /* @__PURE__ */ new Map()) {
   const specs = tool?.manifest?.composes;
   if (!host?.compose || !Array.isArray(specs) || specs.length === 0) return {};
   const compose = host.compose;
-  const ctx = { ...modelToValues(model), ...extras };
+  const ctx = { ...modelToValues(model2), ...extras };
   const out = {};
   for (const spec of specs) {
     if (!spec || typeof spec.id !== "string" || typeof spec.tool !== "string") continue;
@@ -3621,6 +4347,32 @@ function isBakedRef(v) {
   const meta = v.meta;
   return !!meta && typeof meta === "object" && meta.baked === true;
 }
+function bakeError(code, message) {
+  const err = new Error(message);
+  err.code = code;
+  throw err;
+}
+function bakeAssetRef(ref, opts = {}) {
+  if (typeof ref?.url !== "string" || !ref.url.startsWith("data:")) {
+    bakeError("BAKE_NOT_SELF_CONTAINED", `bake: asset url must be a data: URL (got ${String(ref?.url).slice(0, 32)}\u2026)`);
+  }
+  if (ref.url.length > MAX_BAKED_URL_CHARS) {
+    bakeError("BAKE_TOO_LARGE", `bake: data: URL is ${ref.url.length} chars (max ${MAX_BAKED_URL_CHARS})`);
+  }
+  const now2 = opts.now ?? Date.now();
+  const source = ref.meta ?? {};
+  const bakedFrom = typeof source.toolUrl === "string" ? source.toolUrl : isToolUrl(ref.id) ? ref.id : void 0;
+  const meta = {};
+  for (const [k, v] of Object.entries(source)) {
+    if (k === "toolUrl") continue;
+    if (typeof v === "string" && v.startsWith("blob:")) continue;
+    meta[k] = v;
+  }
+  meta.baked = true;
+  meta.bakedAt = now2;
+  if (bakedFrom !== void 0) meta.bakedFrom = bakedFrom;
+  return { ...ref, source: "remote", id: `baked/${now2.toString(36)}`, meta };
+}
 function assetIdForUrl(ref) {
   if (isBakedRef(ref) && typeof ref.meta?.bakedFrom === "string") return ref.meta.bakedFrom;
   return ref.id;
@@ -3645,12 +4397,13 @@ function blocksForUrl(rows) {
   });
   return changed ? out : rows;
 }
-var MAX_COMPOSE_DEPTH, ComposeGuardError;
+var MAX_COMPOSE_DEPTH, MAX_BAKED_URL_CHARS, ComposeGuardError;
 var init_bake = __esm({
   "engine/src/bake.ts"() {
     "use strict";
     init_tool_url();
     MAX_COMPOSE_DEPTH = 3;
+    MAX_BAKED_URL_CHARS = 12e6;
     ComposeGuardError = class extends Error {
       code;
       /** The offending compose path, ancestors first, the rejected tool last. */
@@ -3666,6 +4419,21 @@ var init_bake = __esm({
 });
 
 // engine/src/video-meta.ts
+function videoProvenanceTags(meta, date = /* @__PURE__ */ new Date()) {
+  const clean2 = (s) => s == null ? "" : String(s).trim();
+  const software = clean2(meta?.software) || "Lolly";
+  const source = clean2(meta?.source);
+  return {
+    title: clean2(meta?.tool),
+    artist: clean2(meta?.author),
+    date: date.toISOString(),
+    // Same credit line the GIF comment carries (see withGifComment call sites).
+    comment: [clean2(meta?.description), clean2(meta?.contact), source].filter(Boolean).join(" \xB7 "),
+    encoder: source ? `${software} (${source})` : software,
+    encodedBy: source,
+    publisher: source
+  };
+}
 function walkBoxes(bytes, start, end) {
   const out = [];
   let off = start;
@@ -3676,6 +4444,67 @@ function walkBoxes(bytes, start, end) {
     if (size === 1 || size < 8 || off + size > end) return null;
     out.push({ off, size, type: boxType(bytes, off) });
     off += size;
+  }
+  return out;
+}
+function patchChunkOffsets(buf, moovOff, moovSize, insertAt, delta) {
+  const kids = (start, end, type) => (walkBoxes(buf, start, end) ?? []).find((b) => b.type === type);
+  for (const trak of (walkBoxes(buf, moovOff + 8, moovOff + moovSize) ?? []).filter((b) => b.type === "trak")) {
+    const mdia = kids(trak.off + 8, trak.off + trak.size, "mdia");
+    if (!mdia) continue;
+    const minf = kids(mdia.off + 8, mdia.off + mdia.size, "minf");
+    if (!minf) continue;
+    const stbl = kids(minf.off + 8, minf.off + minf.size, "stbl");
+    if (!stbl) continue;
+    for (const b of walkBoxes(buf, stbl.off + 8, stbl.off + stbl.size) ?? []) {
+      if (b.type !== "stco" && b.type !== "co64") continue;
+      const wide = b.type === "co64";
+      const fits = Math.max(0, Math.floor((b.size - 16) / (wide ? 8 : 4)));
+      const count2 = Math.min(readU32(buf, b.off + 12), fits);
+      for (let i = 0; i < count2; i++) {
+        const p = b.off + 16 + i * (wide ? 8 : 4);
+        if (wide) {
+          const val = readU32(buf, p) * 4294967296 + readU32(buf, p + 4);
+          if (val >= insertAt) {
+            const nv = val + delta;
+            writeU32(buf, p, Math.floor(nv / 4294967296));
+            writeU32(buf, p + 4, nv >>> 0);
+          }
+        } else {
+          const val = readU32(buf, p);
+          if (val >= insertAt) writeU32(buf, p, val + delta);
+        }
+      }
+    }
+  }
+}
+function embedMp4Meta(bytes, tags) {
+  const top = walkBoxes(bytes, 0, bytes.length);
+  const moov = top?.find((b) => b.type === "moov");
+  if (!moov) return bytes;
+  const children = walkBoxes(bytes, moov.off + 8, moov.off + moov.size);
+  if (!children || children.some((b) => b.type === "udta")) return bytes;
+  const items = [];
+  if (tags.title) items.push(ilstItem("\xA9nam", tags.title));
+  if (tags.artist) items.push(ilstItem("\xA9ART", tags.artist));
+  if (tags.date) items.push(ilstItem("\xA9day", tags.date));
+  if (tags.comment) items.push(ilstItem("\xA9cmt", tags.comment));
+  if (tags.encoder) items.push(ilstItem("\xA9too", tags.encoder));
+  if (tags.publisher) items.push(freeform("PUBLISHER", tags.publisher));
+  if (!items.length) return bytes;
+  const hdlr = box("hdlr", be32(0), be32(0), fourcc("mdir"), fourcc("appl"), be32(0), be32(0), new Uint8Array(1));
+  const udta = box("udta", box("meta", be32(0), hdlr, box("ilst", ...items)));
+  const out = concat(
+    bytes.subarray(0, moov.off),
+    be32(moov.size + udta.length),
+    fourcc("moov"),
+    bytes.subarray(moov.off + 8, moov.off + moov.size),
+    udta,
+    bytes.subarray(moov.off + moov.size)
+  );
+  const mdat = top.find((b) => b.type === "mdat");
+  if (mdat && mdat.off > moov.off) {
+    patchChunkOffsets(out, moov.off, moov.size + udta.length, moov.off + moov.size, udta.length);
   }
   return out;
 }
@@ -3705,6 +4534,19 @@ function writeVint(value, width) {
   }
   out[0] = (out[0] ?? 0) | 128 >> w - 1;
   return out;
+}
+function buildTagsElement(tags) {
+  const entries = [];
+  if (tags.title) entries.push(simpleTag("TITLE", tags.title));
+  if (tags.artist) entries.push(simpleTag("ARTIST", tags.artist));
+  if (tags.date) entries.push(simpleTag("DATE_RELEASED", tags.date));
+  if (tags.comment) entries.push(simpleTag("COMMENT", tags.comment));
+  if (tags.encoder) entries.push(simpleTag("ENCODER", tags.encoder));
+  if (tags.encodedBy) entries.push(simpleTag("ENCODED_BY", tags.encodedBy));
+  if (tags.publisher) entries.push(simpleTag("PUBLISHER", tags.publisher));
+  if (!entries.length) return null;
+  const targets = ebml(ID_TARGETS, ebml(ID_TARGETTYPE, new Uint8Array([50])));
+  return ebml(ID_TAGS, ebml(ID_TAG, concat(targets, ...entries)));
 }
 function readId(bytes, off) {
   const first = bytes[off];
@@ -3767,11 +4609,48 @@ function seekHeadEntrySplice(bytes, scan, seekId, pos) {
     )
   };
 }
-var concat, be32, fourcc, box, readU32, boxType, EBML_ID, SEGMENT_ID, ID_TAGS, ID_TAG, ID_TARGETS, ID_TARGETTYPE, ID_SIMPLETAG, ID_TAGNAME, ID_TAGSTRING, ID_SEEK, ID_SEEKID, ID_SEEKPOS, SEEKHEAD, CLUSTER, CUES, VOID, CRC32, ebml, idAt, beUint;
+function embedWebmMeta(bytes, tags) {
+  const tagsEl = buildTagsElement(tags);
+  if (!tagsEl) return bytes;
+  if (!idAt(bytes, 0, EBML_ID)) return bytes;
+  const headSize = readVint(bytes, EBML_ID.length);
+  if (!headSize || headSize.unknown) return bytes;
+  const segOff = EBML_ID.length + headSize.width + headSize.value;
+  if (!idAt(bytes, segOff, SEGMENT_ID)) return bytes;
+  const segSize = readVint(bytes, segOff + SEGMENT_ID.length);
+  if (!segSize) return bytes;
+  if (segSize.unknown) {
+    const payloadStart2 = segOff + SEGMENT_ID.length + segSize.width;
+    const scan2 = scanSegmentChildren(bytes, payloadStart2, bytes.length);
+    const indexed = scan2?.elements.some((e) => e.id === SEEKHEAD || e.id === CUES);
+    if (scan2?.firstCluster && !indexed) {
+      const at = scan2.firstCluster.off;
+      return concat(bytes.subarray(0, at), tagsEl, bytes.subarray(at));
+    }
+    return concat(bytes, tagsEl);
+  }
+  const payloadStart = segOff + SEGMENT_ID.length + segSize.width;
+  const segEnd = payloadStart + segSize.value;
+  if (segEnd > bytes.length) return bytes;
+  const patched = writeVint(segSize.value + tagsEl.length, segSize.width);
+  if (!patched) return bytes;
+  const scan = scanSegmentChildren(bytes, payloadStart, segEnd);
+  const splice = scan ? seekHeadEntrySplice(bytes, scan, ID_TAGS, segSize.value) : null;
+  const payload = splice ? concat(bytes.subarray(payloadStart, splice.start), splice.bytes, bytes.subarray(splice.end, segEnd)) : bytes.subarray(payloadStart, segEnd);
+  return concat(
+    bytes.subarray(0, segOff + SEGMENT_ID.length),
+    patched,
+    payload,
+    tagsEl,
+    bytes.subarray(segEnd)
+  );
+}
+var utf8, concat, be32, fourcc, box, readU32, boxType, dataAtom, ilstItem, freeform, writeU32, EBML_ID, SEGMENT_ID, ID_TAGS, ID_TAG, ID_TARGETS, ID_TARGETTYPE, ID_SIMPLETAG, ID_TAGNAME, ID_TAGSTRING, ID_SEEK, ID_SEEKID, ID_SEEKPOS, SEEKHEAD, CLUSTER, CUES, VOID, CRC32, ebml, simpleTag, idAt, beUint;
 var init_video_meta = __esm({
   "engine/src/video-meta.ts"() {
     "use strict";
     init_bytes();
+    utf8 = (s) => new TextEncoder().encode(s);
     concat = (...parts) => concatBytes(parts);
     be32 = (n2) => new Uint8Array([n2 >>> 24 & 255, n2 >>> 16 & 255, n2 >>> 8 & 255, n2 & 255]);
     fourcc = (s) => Uint8Array.from(s, (c) => c.charCodeAt(0) & 255);
@@ -3781,6 +4660,15 @@ var init_video_meta = __esm({
     };
     readU32 = (bytes, off) => ((bytes[off] ?? 0) << 24 | (bytes[off + 1] ?? 0) << 16 | (bytes[off + 2] ?? 0) << 8 | (bytes[off + 3] ?? 0)) >>> 0;
     boxType = (bytes, off) => String.fromCharCode(bytes[off + 4] ?? 0, bytes[off + 5] ?? 0, bytes[off + 6] ?? 0, bytes[off + 7] ?? 0);
+    dataAtom = (value) => box("data", be32(1), be32(0), utf8(value));
+    ilstItem = (key, value) => box(key, dataAtom(value));
+    freeform = (name, value) => box("----", box("mean", be32(0), fourcc("com.apple.iTunes")), box("name", be32(0), fourcc(name)), dataAtom(value));
+    writeU32 = (buf, off, v) => {
+      buf[off] = v >>> 24 & 255;
+      buf[off + 1] = v >>> 16 & 255;
+      buf[off + 2] = v >>> 8 & 255;
+      buf[off + 3] = v & 255;
+    };
     EBML_ID = [26, 69, 223, 163];
     SEGMENT_ID = [24, 83, 128, 103];
     ID_TAGS = new Uint8Array([18, 84, 195, 103]);
@@ -3799,6 +4687,7 @@ var init_video_meta = __esm({
     VOID = 236;
     CRC32 = 191;
     ebml = (id, payload) => concat(id, writeVint(payload.length), payload);
+    simpleTag = (name, value) => ebml(ID_SIMPLETAG, concat(ebml(ID_TAGNAME, utf8(name)), ebml(ID_TAGSTRING, utf8(value))));
     idAt = (bytes, off, id) => id.every((b, i) => bytes[off + i] === b);
     beUint = (n2) => {
       const out = [];
@@ -3933,9 +4822,9 @@ function patchMpfEntries(bytes, images) {
   let n2 = 0;
   for (let i = 0; i < count2; i++) {
     const e = ifd + 2 + i * 12;
-    const tag = dv.getUint16(e, le);
-    if (tag === 45057) n2 = dv.getUint32(e + 8, le);
-    if (tag === 45058) entriesAt = h + dv.getUint32(e + 8, le);
+    const tag2 = dv.getUint16(e, le);
+    if (tag2 === 45057) n2 = dv.getUint32(e + 8, le);
+    if (tag2 === 45058) entriesAt = h + dv.getUint32(e + 8, le);
   }
   if (entriesAt < 0 || n2 !== images.length) return false;
   if (!inSeg(entriesAt, n2 * 16)) return false;
@@ -4127,16 +5016,16 @@ function parsePdf(bin) {
   return { startxref, entries, root, maxNum, infoRaw: infoM ? infoM[0] : null, idRaw: idM ? idM[0] : null };
 }
 function catalogSource(bin, info) {
-  const { num: num3, gen } = info.root;
-  const headRe = new RegExp(`^${num3}\\s+${gen}\\s+obj\\b`);
+  const { num: num5, gen } = info.root;
+  const headRe = new RegExp(`^${num5}\\s+${gen}\\s+obj\\b`);
   let at = -1;
-  const entry = info.entries.get(num3);
+  const entry = info.entries.get(num5);
   if (entry && entry.type === "n") {
     const i2 = skipWs(bin, entry.offset);
     if (headRe.test(bin.slice(i2, i2 + 32))) at = i2;
   }
   if (at < 0) {
-    const re = new RegExp(`(?:^|[^0-9])(${num3}\\s+${gen}\\s+obj)\\b`, "g");
+    const re = new RegExp(`(?:^|[^0-9])(${num5}\\s+${gen}\\s+obj)\\b`, "g");
     for (let m; m = re.exec(bin); ) at = m.index + m[0].length - m[1].length;
   }
   if (at < 0) throw new Error("C2PA embed: cannot locate the PDF Catalog object");
@@ -4240,7 +5129,7 @@ ${xrefOff}
   let manifestLen = (await build2(dummyHash, [{ start: pdfBytes.length + 512, length: 4096 }], pad)).length;
   let layout = null;
   let placeholder = null;
-  for (let round3 = 0; round3 < 8 && !placeholder; round3++) {
+  for (let round4 = 0; round4 < 8 && !placeholder; round4++) {
     const l = layoutFor(manifestLen);
     const m = await build2(dummyHash, [{ start: l.manifestOffset, length: manifestLen }], pad);
     if (m.length === manifestLen) {
@@ -4251,15 +5140,15 @@ ${xrefOff}
   if (!placeholder) throw new Error("C2PA embed: manifest layout did not converge");
   const out = concatBytes([pdfBytes, binToBytes(layout.head), placeholder, binToBytes(layout.tail)]);
   const exclusions = [{ start: layout.manifestOffset, length: manifestLen }];
-  const digest = await sha256(concatBytes([
+  const digest2 = await sha256(concatBytes([
     out.subarray(0, layout.manifestOffset),
     out.subarray(layout.manifestOffset + manifestLen)
   ]));
-  let manifest = await build2(digest, exclusions, pad);
+  let manifest = await build2(digest2, exclusions, pad);
   if (manifest.length !== manifestLen) {
     const padLen = pad.length + (manifestLen - manifest.length);
     if (padLen < 0 || padLen >= 24) throw new Error("C2PA embed: manifest length drifted beyond pad range");
-    manifest = await build2(digest, exclusions, new Uint8Array(padLen));
+    manifest = await build2(digest2, exclusions, new Uint8Array(padLen));
     if (manifest.length !== manifestLen) throw new Error("C2PA embed: manifest length is not deterministic");
   }
   out.set(manifest, layout.manifestOffset);
@@ -4298,7 +5187,7 @@ function placePng(png, manifest) {
     i = end;
   }
   if (ihdrEnd < 0) throw new Error("C2PA embed: PNG has no IHDR");
-  const chunk = concatBytes([u32be(manifest.length), asciiBytes("caBX"), manifest, u32be(crc32(asciiBytes("caBX"), manifest))]);
+  const chunk4 = concatBytes([u32be(manifest.length), asciiBytes("caBX"), manifest, u32be(crc32(asciiBytes("caBX"), manifest))]);
   const parts = [];
   let insertAt = ihdrEnd;
   for (const d of drop) if (d.end <= ihdrEnd) insertAt -= d.end - d.start;
@@ -4309,8 +5198,8 @@ function placePng(png, manifest) {
   }
   parts.push(png.subarray(at));
   const cleaned = drop.length ? concatBytes(parts) : png;
-  const out = concatBytes([cleaned.subarray(0, insertAt), chunk, cleaned.subarray(insertAt)]);
-  return { out, exclusions: [{ start: insertAt, length: chunk.length }] };
+  const out = concatBytes([cleaned.subarray(0, insertAt), chunk4, cleaned.subarray(insertAt)]);
+  return { out, exclusions: [{ start: insertAt, length: chunk4.length }] };
 }
 function placeJpeg(jpeg, manifest) {
   if (!(jpeg[0] === 255 && jpeg[1] === 216)) throw new Error("C2PA embed: not a JPEG");
@@ -4344,8 +5233,8 @@ function placeJpeg(jpeg, manifest) {
   const head8 = manifest.subarray(0, 8);
   let z = 1;
   for (let o = 0; o < manifest.length; o += JPEG_CHUNK, z++) {
-    const chunk = manifest.subarray(o, Math.min(o + JPEG_CHUNK, manifest.length));
-    const body = z === 1 ? concatBytes([asciiBytes("JP"), Uint8Array.of(2, 17), u32be(z), chunk]) : concatBytes([asciiBytes("JP"), Uint8Array.of(2, 17), u32be(z), head8, chunk]);
+    const chunk4 = manifest.subarray(o, Math.min(o + JPEG_CHUNK, manifest.length));
+    const body = z === 1 ? concatBytes([asciiBytes("JP"), Uint8Array.of(2, 17), u32be(z), chunk4]) : concatBytes([asciiBytes("JP"), Uint8Array.of(2, 17), u32be(z), head8, chunk4]);
     segs.push(concatBytes([Uint8Array.of(255, 235), u16be(body.length + 2), body]));
   }
   const block = concatBytes(segs);
@@ -4389,8 +5278,8 @@ function placeGif(gif, manifest) {
   }
   const sub = [];
   for (let o = 0; o < manifest.length; o += 255) {
-    const chunk = manifest.subarray(o, Math.min(o + 255, manifest.length));
-    sub.push(Uint8Array.of(chunk.length), chunk);
+    const chunk4 = manifest.subarray(o, Math.min(o + 255, manifest.length));
+    sub.push(Uint8Array.of(chunk4.length), chunk4);
   }
   const block = concatBytes([
     Uint8Array.of(33, 255, 11),
@@ -4508,26 +5397,26 @@ function placeTiff(tiff, manifest) {
   };
 }
 function placeWebp(webp, manifest) {
-  const fourcc2 = (o) => String.fromCharCode(webp[o], webp[o + 1], webp[o + 2], webp[o + 3]);
-  if (fourcc2(0) !== "RIFF" || fourcc2(8) !== "WEBP") throw new Error("C2PA embed: not a WebP");
+  const fourcc3 = (o) => String.fromCharCode(webp[o], webp[o + 1], webp[o + 2], webp[o + 3]);
+  if (fourcc3(0) !== "RIFF" || fourcc3(8) !== "WEBP") throw new Error("C2PA embed: not a WebP");
   const dv = new DataView(webp.buffer, webp.byteOffset);
   let drop = null;
   for (let i = 12; i + 8 <= webp.length; ) {
     const size = dv.getUint32(i + 4, true);
     const end = i + 8 + size + (size & 1);
     if (end > webp.length + 1) throw new Error("C2PA embed: malformed WebP chunk");
-    if (fourcc2(i) === "C2PA") drop = { start: i, end: Math.min(end, webp.length) };
+    if (fourcc3(i) === "C2PA") drop = { start: i, end: Math.min(end, webp.length) };
     i = end;
   }
   const cleaned = drop ? concatBytes([webp.subarray(0, drop.start), webp.subarray(drop.end)]) : webp;
-  const chunk = concatBytes([
+  const chunk4 = concatBytes([
     asciiBytes("C2PA"),
     u32le(manifest.length),
     manifest,
     manifest.length & 1 ? Uint8Array.of(0) : new Uint8Array(0)
   ]);
   const start = cleaned.length;
-  const out = concatBytes([cleaned, chunk]);
+  const out = concatBytes([cleaned, chunk4]);
   new DataView(out.buffer, out.byteOffset).setUint32(4, out.length - 8, true);
   return { out, exclusions: [{ start, length: manifest.length + 8 }] };
 }
@@ -4699,6 +5588,13 @@ function seekHeadHasEntry(bytes, scan, seekId) {
   }
   return false;
 }
+function attachC2paStore(bytes, format, store) {
+  if (!(bytes instanceof Uint8Array)) throw new Error("C2PA attach: bytes must be a Uint8Array");
+  if (!(store instanceof Uint8Array)) throw new Error("C2PA attach: store must be a Uint8Array");
+  const container = CONTAINERS[String(format || "").toLowerCase()];
+  if (!container) throw new Error(`C2PA attach: no container for format '${format}'`);
+  return container.place(bytes, store).out;
+}
 async function embedC2pa(bytes, format, opts = {}) {
   if (!(bytes instanceof Uint8Array)) throw new Error("C2PA embed: bytes must be a Uint8Array");
   const fmt2 = String(format || "").toLowerCase();
@@ -4733,7 +5629,7 @@ async function embedC2pa(bytes, format, opts = {}) {
   let manifestLen = (await build2(dummyHash, [{ start: bytes.length + 512, length: 4096 }], pad)).length;
   let layout = null;
   let placeholder = null;
-  for (let round3 = 0; round3 < 8 && !layout; round3++) {
+  for (let round4 = 0; round4 < 8 && !layout; round4++) {
     const probe = container.place(bytes, new Uint8Array(manifestLen));
     const m = await build2(dummyHash, probe.exclusions, pad);
     if (m.length === manifestLen) {
@@ -4754,18 +5650,18 @@ async function embedC2pa(bytes, format, opts = {}) {
     return sha256(concatBytes(spans));
   };
   const staged = container.place(bytes, placeholder);
-  const digest = await digestOf(staged.out);
-  let manifest = await build2(digest, layout.exclusions, pad);
+  const digest2 = await digestOf(staged.out);
+  let manifest = await build2(digest2, layout.exclusions, pad);
   if (manifest.length !== manifestLen) {
     const padLen = pad.length + (manifestLen - manifest.length);
     if (padLen < 0 || padLen >= 24) throw new Error("C2PA embed: manifest length drifted beyond pad range");
-    manifest = await build2(digest, layout.exclusions, new Uint8Array(padLen));
+    manifest = await build2(digest2, layout.exclusions, new Uint8Array(padLen));
     if (manifest.length !== manifestLen) throw new Error("C2PA embed: manifest length is not deterministic");
   }
   const final = container.place(bytes, manifest);
   const check = await digestOf(final.out);
   for (let i = 0; i < 32; i++) {
-    if (check[i] !== digest[i]) throw new Error("C2PA embed: container placement is not content-independent");
+    if (check[i] !== digest2[i]) throw new Error("C2PA embed: container placement is not content-independent");
   }
   return final.out;
 }
@@ -4969,6 +5865,37 @@ function urnUuid() {
   const h = bytesToHex(b);
   return `urn:uuid:${h.slice(0, 8)}-${h.slice(8, 12)}-${h.slice(12, 16)}-${h.slice(16, 20)}-${h.slice(20)}`;
 }
+function joinList(items) {
+  if (items.length <= 1) return items[0] ?? "";
+  if (items.length === 2) return `${items[0]} and ${items[1]}`;
+  return `${items.slice(0, -1).join(", ")} and ${items[items.length - 1]}`;
+}
+function exportActionSteps(format, flags = {}) {
+  if (flags.delivered) return [{ action: "c2pa.published" }];
+  const f = String(format || "").toLowerCase();
+  const cap = flags.capture;
+  const screened = !!cap?.screen;
+  const captured = !!(cap && (cap.camera || cap.microphone));
+  const created = screened ? { action: "c2pa.created", digitalSourceType: SCREEN_SOURCE_TYPE, description: captureDescription(cap) } : captured ? { action: "c2pa.created", digitalSourceType: CAPTURE_SOURCE_TYPE, description: captureDescription(cap) } : { action: "c2pa.created", digitalSourceType: DIGITAL_SOURCE_TYPE };
+  const steps = [created];
+  if (flags.cmyk) steps.push({ action: "c2pa.color_adjustments", description: "Converted colours to CMYK for print" });
+  if (flags.paletteColors) steps.push({ action: "c2pa.color_adjustments", description: `Snapped colours to the brand palette (${flags.paletteColors} colour${flags.paletteColors === 1 ? "" : "s"})` });
+  if (flags.marks?.length) steps.push({ action: "c2pa.edited", description: `Added ${joinList(flags.marks)}` });
+  if (flags.watermarked) steps.push({ action: "c2pa.edited", description: "Added experimental-tool watermark" });
+  if (flags.imprint) steps.push({ action: "c2pa.edited", description: "Embedded a durable Lolly pixel watermark" });
+  if (flags.audio) steps.push({ action: "c2pa.edited", description: "Added an audio track" });
+  if (flags.textAdded) steps.push({ action: "c2pa.edited", description: flags.textSample ? `Added text \u2014 \u201C${flags.textSample}\u201D` : "Added text" });
+  if (RASTER_OUTPUTS.has(f)) steps.push({ action: "c2pa.converted", description: `Rendered to ${f.toUpperCase()}` });
+  else if (VIDEO_OUTPUTS.has(f)) steps.push({ action: "c2pa.converted", description: `Encoded to ${f.toUpperCase()}` });
+  else if (f === "pdf" || f === "pdf-cmyk") steps.push({ action: "c2pa.converted", description: "Rendered to PDF" });
+  return steps;
+}
+function captureDescription(cap) {
+  if (cap.screen) return cap.microphone ? "Captured from the screen with microphone narration" : "Captured from the screen";
+  if (cap.camera && cap.microphone) return "Recorded live from the camera and microphone";
+  if (cap.camera) return "Captured live from the camera";
+  return "Recorded live from the microphone";
+}
 async function buildC2paManifest({
   title,
   claimGenerator,
@@ -5118,7 +6045,7 @@ async function buildC2paManifest({
   const ingredientManifestBoxes = ingList.flatMap((ing) => ing.manifestBoxes);
   return jumbfSuperbox(UUID_C2PA_STORE, "c2pa", ...ingredientManifestBoxes, manifest);
 }
-var te4, subtle3, CborTag, JUMBF_UUID_SUFFIX, boxUuid, UUID_C2PA_STORE, UUID_MANIFEST, UUID_ASSERTION_STORE, UUID_CLAIM, UUID_SIGNATURE, UUID_CBOR_CONTENT, UUID_JSON_CONTENT, COSE_HEADER_ALG, COSE_HEADER_X5CHAIN, isoSeconds, DIGITAL_SOURCE_TYPE, INGREDIENT_MIME, LOLLY_EXPORT_ASSERTION, BMFF_HASH_LABEL2, CREATIVE_WORK_ASSERTION, METADATA_ASSERTION, DC_CONTEXT;
+var te4, subtle3, CborTag, JUMBF_UUID_SUFFIX, boxUuid, UUID_C2PA_STORE, UUID_MANIFEST, UUID_ASSERTION_STORE, UUID_CLAIM, UUID_SIGNATURE, UUID_CBOR_CONTENT, UUID_JSON_CONTENT, COSE_HEADER_ALG, COSE_HEADER_X5CHAIN, isoSeconds, DIGITAL_SOURCE_TYPE, CAPTURE_SOURCE_TYPE, SCREEN_SOURCE_TYPE, RASTER_OUTPUTS, VIDEO_OUTPUTS, INGREDIENT_MIME, LOLLY_EXPORT_ASSERTION, BMFF_HASH_LABEL2, CREATIVE_WORK_ASSERTION, METADATA_ASSERTION, DC_CONTEXT;
 var init_c2pa = __esm({
   "engine/src/c2pa.ts"() {
     "use strict";
@@ -5131,13 +6058,13 @@ var init_c2pa = __esm({
     CborTag = class {
       tag;
       value;
-      constructor(tag, value) {
-        this.tag = tag;
+      constructor(tag2, value) {
+        this.tag = tag2;
         this.value = value;
       }
     };
     JUMBF_UUID_SUFFIX = [0, 17, 0, 16, 128, 0, 0, 170, 0, 56, 155, 113];
-    boxUuid = (fourcc2) => Uint8Array.of(fourcc2.charCodeAt(0), fourcc2.charCodeAt(1), fourcc2.charCodeAt(2), fourcc2.charCodeAt(3), ...JUMBF_UUID_SUFFIX);
+    boxUuid = (fourcc3) => Uint8Array.of(fourcc3.charCodeAt(0), fourcc3.charCodeAt(1), fourcc3.charCodeAt(2), fourcc3.charCodeAt(3), ...JUMBF_UUID_SUFFIX);
     UUID_C2PA_STORE = boxUuid("c2pa");
     UUID_MANIFEST = boxUuid("c2ma");
     UUID_ASSERTION_STORE = boxUuid("c2as");
@@ -5149,6 +6076,10 @@ var init_c2pa = __esm({
     COSE_HEADER_X5CHAIN = 33;
     isoSeconds = (d) => d.toISOString().slice(0, 19) + "Z";
     DIGITAL_SOURCE_TYPE = "http://cv.iptc.org/newscodes/digitalsourcetype/digitalCreation";
+    CAPTURE_SOURCE_TYPE = "http://cv.iptc.org/newscodes/digitalsourcetype/digitalCapture";
+    SCREEN_SOURCE_TYPE = "http://cv.iptc.org/newscodes/digitalsourcetype/screenCapture";
+    RASTER_OUTPUTS = /* @__PURE__ */ new Set(["png", "apng", "jpg", "jpeg", "webp", "webp-anim", "tiff", "cmyk-tiff", "gif", "ico"]);
+    VIDEO_OUTPUTS = /* @__PURE__ */ new Set(["mp4", "m4v", "mov", "webm"]);
     INGREDIENT_MIME = {
       png: "image/png",
       apng: "image/apng",
@@ -6632,12 +7563,12 @@ function resolveVerdict(report) {
     identity: report.signer?.identity ?? null
   };
 }
-function defaultTrustAnchors({ includeLollyRoot = false, extra = [] } = {}) {
+function defaultTrustAnchors({ includeLollyRoot = false, includeVendored = true, extra = [] } = {}) {
   return [
     // Empty LOLLY_CA_ROOT_PEM = no root configured yet: degrade to vendored-only
     // (the same guard the web view had around its CA_ROOT_PEM import).
     ...includeLollyRoot && LOLLY_CA_ROOT_PEM ? [pemToDer(LOLLY_CA_ROOT_PEM)] : [],
-    ...c2paTrustAnchors(),
+    ...includeVendored ? c2paTrustAnchors() : [],
     ...extra.map((pem) => pemToDer(pem))
   ];
 }
@@ -7209,6 +8140,21 @@ function collectActionChain(store) {
     return true;
   });
 }
+function extractC2paStore(bytes) {
+  if (!(bytes instanceof Uint8Array)) return null;
+  const format = sniffFormat(bytes);
+  if (!format) return null;
+  try {
+    const ex = EXTRACTORS[format]?.(bytes);
+    return ex ? { store: ex.manifest, format } : null;
+  } catch {
+    return null;
+  }
+}
+function prepareC2paIngredient(bytes) {
+  const ex = extractC2paStore(bytes);
+  return ex ? prepareC2paIngredientFromStore(ex.store, ex.format) : null;
+}
 function prepareC2paIngredientFromStore(store, format) {
   if (!(store instanceof Uint8Array)) return null;
   let root;
@@ -7496,11 +8442,11 @@ async function chainsToAnchor(leaf, chainDers, trustAnchors) {
   }
   return null;
 }
-function derWrap2(tag, body) {
+function derWrap2(tag2, body) {
   let head;
-  if (body.length < 128) head = Uint8Array.of(tag, body.length);
-  else if (body.length < 256) head = Uint8Array.of(tag, 129, body.length);
-  else head = Uint8Array.of(tag, 130, body.length >>> 8, body.length & 255);
+  if (body.length < 128) head = Uint8Array.of(tag2, body.length);
+  else if (body.length < 256) head = Uint8Array.of(tag2, 129, body.length);
+  else head = Uint8Array.of(tag2, 130, body.length >>> 8, body.length & 255);
   return concatBytes([head, body]);
 }
 function normalizeRsaSpki(spki) {
@@ -7522,6 +8468,11 @@ async function verifyCoseSignature(alg, spki, sigRaw, sigStructure) {
   }
   const key = await subtle4.importKey("spki", asBufferSource(spki), { name: "Ed25519" }, false, ["verify"]);
   return subtle4.verify({ name: "Ed25519" }, key, asBufferSource(sigRaw), asBufferSource(sigStructure));
+}
+function untrustedReason(signer) {
+  if (signer?.selfSigned === false) return "signing certificate untrusted \u2014 a CA-issued certificate that chains to no pinned trust anchor (pin its root to verify the identity)";
+  if (signer && signer.commonName !== EPHEMERAL_CN) return "signing certificate untrusted \u2014 a self-signed certificate, which vouches only for itself (pin it as a trust anchor to verify the identity)";
+  return "signing certificate untrusted \u2014 an ephemeral on-device key, not a CA-issued identity";
 }
 async function verifyC2pa(bytes, { trustAnchors } = {}) {
   if (!(bytes instanceof Uint8Array)) throw new Error("verifyC2pa: bytes must be a Uint8Array");
@@ -7813,7 +8764,7 @@ async function verifyC2pa(bytes, { trustAnchors } = {}) {
     const who = report.signer.identity.email || report.signer.commonName;
     pass(C2PA_CHECK.signingCredentialTrusted, report.trusted ? `signing certificate chains to a pinned CA root \u2014 verified identity: ${who}` : `signing certificate chains to a pinned CA root \u2014 verified identity: ${who} (certificate has since expired; signing time cannot be proven \u2014 no timestamp authority yet)`);
   } else {
-    fail3(C2PA_CHECK.signingCredentialUntrusted, "signing certificate untrusted \u2014 an ephemeral on-device key, not a CA-issued identity");
+    fail3(C2PA_CHECK.signingCredentialUntrusted, untrustedReason(report.signer));
   }
   report.state = checks.every((c) => c.ok || c.code === C2PA_CHECK.signingCredentialUntrusted) ? "valid" : "invalid";
   const acts = report.claim.actions || [];
@@ -7829,7 +8780,7 @@ async function verifyC2pa(bytes, { trustAnchors } = {}) {
   report.delivered = report.state === "valid" && !created && acts.some((a) => a.action === "c2pa.published");
   return report;
 }
-var td2, te6, subtle4, SIG_ALGS, SIG_OID_RSA_PSS, SIG_OID_ED25519, HASH_OIDS, MAX_CHAIN_INTERMEDIATES, COSE_ALGS, OID_RSASSA_PSS, ALGID_RSA_ENCRYPTION, HASHED_URI_PREFIX;
+var td2, te6, subtle4, SIG_ALGS, SIG_OID_RSA_PSS, SIG_OID_ED25519, HASH_OIDS, MAX_CHAIN_INTERMEDIATES, COSE_ALGS, OID_RSASSA_PSS, ALGID_RSA_ENCRYPTION, HASHED_URI_PREFIX, EPHEMERAL_CN, verifyC2paPdf;
 var init_c2pa_verify = __esm({
   "engine/src/c2pa-verify.ts"() {
     "use strict";
@@ -7876,6 +8827,8 @@ var init_c2pa_verify = __esm({
     OID_RSASSA_PSS = Uint8Array.of(6, 9, 42, 134, 72, 134, 247, 13, 1, 1, 10);
     ALGID_RSA_ENCRYPTION = Uint8Array.of(48, 13, 6, 9, 42, 134, 72, 134, 247, 13, 1, 1, 1, 5, 0);
     HASHED_URI_PREFIX = "self#jumbf=c2pa.assertions/";
+    EPHEMERAL_CN = "Lolly On-Device Credential";
+    verifyC2paPdf = verifyC2pa;
   }
 });
 
@@ -7889,12 +8842,12 @@ async function createRuntime(tool, host, initialState = {}, opts = {}) {
   let setInputSeq = 0;
   const profile = await host.profile.get();
   const profileValues = { ...profile };
-  let model = buildInputModel(tool.manifest, { profile: profileValues, initial: initialState });
-  const inputIds = new Set(model.map((i) => i.id));
+  let model2 = buildInputModel(tool.manifest, { profile: profileValues, initial: initialState });
+  const inputIds = new Set(model2.map((i) => i.id));
   const hookErrors = [];
   const droppedAssets = [];
-  model = await resolveAssetRefs(model, host, droppedAssets, composeStack, tool.manifest.id);
-  model = await resolveTokenRefs(model, host);
+  model2 = await resolveAssetRefs(model2, host, droppedAssets, composeStack, tool.manifest.id);
+  model2 = await resolveTokenRefs(model2, host);
   let extras = {};
   function runHook(name, invoke) {
     const budget = HOOK_BUDGET_MS[name];
@@ -7915,18 +8868,18 @@ async function createRuntime(tool, host, initialState = {}, opts = {}) {
     const onInit = hooks.onInit;
     if (onInit) {
       try {
-        const patch = await runHook("onInit", () => onInit({ model: modelForHooks(model), host }));
-        if (patch) ({ model, extras } = mergePatch(model, extras, patch, inputIds));
+        const patch = await runHook("onInit", () => onInit({ model: modelForHooks(model2), host }));
+        if (patch) ({ model: model2, extras } = mergePatch(model2, extras, patch, inputIds));
       } catch (e) {
         hookErrors.push({ hook: "onInit", message: e.message });
         host.log("error", `onInit ${e.message}`, { toolId: tool.manifest.id });
       }
     }
   }
-  extras = { ...extras, ...await resolveNestedRenders(tool, model, extras, host, composeStack, composeMemo) };
+  extras = { ...extras, ...await resolveNestedRenders(tool, model2, extras, host, composeStack, composeMemo) };
   const listeners = /* @__PURE__ */ new Set();
   const emit = () => {
-    const state = { model, hydrated: getHydrated() };
+    const state = { model: model2, hydrated: getHydrated() };
     listeners.forEach((fn) => fn(state));
   };
   let liveUnsub = null;
@@ -7952,9 +8905,9 @@ async function createRuntime(tool, host, initialState = {}, opts = {}) {
     return source.subscribe((level) => {
       if (levelPending) return;
       levelPending = true;
-      Promise.resolve(onLevel({ level, model: modelForHooks(model), host })).then((patch) => {
+      Promise.resolve(onLevel({ level, model: modelForHooks(model2), host })).then((patch) => {
         if (patch && meterUnsub) {
-          ({ model, extras } = mergePatch(model, extras, patch, inputIds));
+          ({ model: model2, extras } = mergePatch(model2, extras, patch, inputIds));
           emit();
         }
       }).catch((e) => host.log("warn", `onLevel ${e.message}`, { toolId: tool.manifest.id })).finally(() => {
@@ -7976,9 +8929,9 @@ async function createRuntime(tool, host, initialState = {}, opts = {}) {
   let ctxModel = null;
   let ctxExtras = null;
   function templateContext() {
-    if (ctxModel !== model || ctxExtras !== extras) {
-      ctxCache = { ...modelToValues(model), ...extras };
-      ctxModel = model;
+    if (ctxModel !== model2 || ctxExtras !== extras) {
+      ctxCache = { ...modelToValues(model2), ...extras };
+      ctxModel = model2;
       ctxExtras = extras;
     }
     return ctxCache;
@@ -7990,7 +8943,7 @@ async function createRuntime(tool, host, initialState = {}, opts = {}) {
   }
   function hydratePaginated(sourceId) {
     const base = templateContext();
-    const t = normalizeTableValue(model.find((i) => i.id === sourceId)?.value);
+    const t = normalizeTableValue(model2.find((i) => i.id === sourceId)?.value);
     const rows = t && t.rows.length ? t.rows : [[]];
     const columns = t?.columns ?? [];
     const count2 = rows.length;
@@ -8014,14 +8967,14 @@ async function createRuntime(tool, host, initialState = {}, opts = {}) {
       return `<section data-pdf-page class="lolly-page" data-page-index="${index}">${body}</section>`;
     }).join("");
   }
-  function getHydratedString(str2) {
-    return str2 ? hydrate(str2, templateContext()) : "";
+  function getHydratedString(str3) {
+    return str3 ? hydrate(str3, templateContext()) : "";
   }
-  function getHydratedText(str2) {
-    return str2 ? hydrate(str2, templateContext(), { raw: true }) : "";
+  function getHydratedText(str3) {
+    return str3 ? hydrate(str3, templateContext(), { raw: true }) : "";
   }
   return {
-    getModel: () => model,
+    getModel: () => model2,
     getHydrated,
     getHydratedString,
     manifest: tool.manifest,
@@ -8033,17 +8986,17 @@ async function createRuntime(tool, host, initialState = {}, opts = {}) {
     // instead of a silently-blank canvas. Empty when every hook ran cleanly.
     hookErrors,
     async setInput(id, value) {
-      const priorType = model.find((i) => i.id === id)?.type;
+      const priorType = model2.find((i) => i.id === id)?.type;
       if (priorType === "asset" || priorType === "file" || priorType === "url") liveCameraShown = false;
-      model = updateInput(model, id, value);
+      model2 = updateInput(model2, id, value);
       const seq = ++setInputSeq;
       emit();
       const onInput = hooks?.onInput;
       if (onInput) {
         try {
-          const patch = await runHook("onInput", () => onInput({ id, value: flattenValue(value), model: modelForHooks(model), host }));
+          const patch = await runHook("onInput", () => onInput({ id, value: flattenValue(value), model: modelForHooks(model2), host }));
           if (patch) {
-            ({ model, extras } = mergePatch(model, extras, patch, inputIds));
+            ({ model: model2, extras } = mergePatch(model2, extras, patch, inputIds));
             emit();
           }
         } catch (e) {
@@ -8051,7 +9004,7 @@ async function createRuntime(tool, host, initialState = {}, opts = {}) {
         }
       }
       if (host.compose && tool.manifest.composes?.length) {
-        const composeOut = await resolveNestedRenders(tool, model, extras, host, composeStack, composeMemo);
+        const composeOut = await resolveNestedRenders(tool, model2, extras, host, composeStack, composeMemo);
         const changed = Object.keys(composeOut).some((k) => extras[k] !== composeOut[k]);
         if (seq === setInputSeq && changed) {
           extras = { ...extras, ...composeOut };
@@ -8061,7 +9014,7 @@ async function createRuntime(tool, host, initialState = {}, opts = {}) {
     },
     subscribe(fn) {
       listeners.add(fn);
-      fn({ model, hydrated: getHydrated() });
+      fn({ model: model2, hydrated: getHydrated() });
       return () => listeners.delete(fn);
     },
     // Re-notify subscribers with the CURRENT model — no value change. For shell
@@ -8090,9 +9043,9 @@ async function createRuntime(tool, host, initialState = {}, opts = {}) {
       liveUnsub = media.subscribe((frame) => {
         if (framePending) return;
         framePending = true;
-        Promise.resolve(onFrame({ frame, model: modelForHooks(model), host })).then((patch) => {
+        Promise.resolve(onFrame({ frame, model: modelForHooks(model2), host })).then((patch) => {
           if (patch && liveUnsub) {
-            ({ model, extras } = mergePatch(model, extras, patch, inputIds));
+            ({ model: model2, extras } = mergePatch(model2, extras, patch, inputIds));
             liveCameraShown = true;
             emit();
           }
@@ -8211,7 +9164,7 @@ async function createRuntime(tool, host, initialState = {}, opts = {}) {
       }
       const out = await runHook(
         "exportFile",
-        () => exportFileHook({ model: modelForHooks(model), host, opts: opts2 })
+        () => exportFileHook({ model: modelForHooks(model2), host, opts: opts2 })
       );
       if (!out || out.bytes == null) {
         throw new Error(`exportFile produced no bytes (${tool.manifest.id})`);
@@ -8224,7 +9177,7 @@ async function createRuntime(tool, host, initialState = {}, opts = {}) {
         await runHook("beforeExport", () => beforeExport({ node: renderedNode, format, opts: opts2, host }));
       }
       if (opts2.convertPaths === void 0) {
-        const cp = model.find((i) => i.id === "convertPaths");
+        const cp = model2.find((i) => i.id === "convertPaths");
         if (cp) opts2 = { ...opts2, convertPaths: Boolean(cp.value) };
         else if (tool.manifest?.render?.convertPaths === false) opts2 = { ...opts2, convertPaths: false };
       }
@@ -8232,9 +9185,9 @@ async function createRuntime(tool, host, initialState = {}, opts = {}) {
       const isOnDevice = tool.manifest.privacy === "on-device";
       let meta = opts2.meta;
       if (meta === void 0 && opts2.embedMeta !== false && !isOnDevice) {
-        meta = await buildExportMeta(host, tool.manifest, profile, model);
+        meta = await buildExportMeta(host, tool.manifest, profile, model2);
       }
-      const dataExtra = buildDataPayload(tool, format, model, getHydratedText);
+      const dataExtra = buildDataPayload(tool, format, model2, getHydratedText);
       let ingredients;
       if (!isOnDevice && meta !== void 0 && host.assets?.credential) {
         const ids = /* @__PURE__ */ new Set();
@@ -8244,7 +9197,7 @@ async function createRuntime(tool, host, initialState = {}, opts = {}) {
             if (typeof id === "string" && (source === "user" || source === "library")) ids.add(id);
           }
         };
-        for (const input of model) {
+        for (const input of model2) {
           if (input.type === "asset") note(input.value);
           else if (input.type === "blocks" && Array.isArray(input.value)) {
             const assetFields = (input.fields ?? []).filter((f) => f.type === "asset").map((f) => f.id);
@@ -8265,7 +9218,7 @@ async function createRuntime(tool, host, initialState = {}, opts = {}) {
         if (prepared.length) ingredients = prepared;
       }
       const stampProvenance = opts2.c2pa && !isOnDevice;
-      const c2paInputs = stampProvenance ? summarizeInputs(model) : void 0;
+      const c2paInputs = stampProvenance ? summarizeInputs(model2) : void 0;
       const capCamera = liveCameraShown || recordedCamera;
       const c2paCapture = stampProvenance && (recordedScreen || capCamera || recordedMic) ? {
         ...recordedScreen ? { screen: true } : {},
@@ -8274,7 +9227,7 @@ async function createRuntime(tool, host, initialState = {}, opts = {}) {
       } : void 0;
       let c2paTextAdded;
       if (stampProvenance && ingredients?.length) {
-        const textItem = model.find((i) => (i.type === "text" || i.type === "longtext") && !i.bindToProfile && String(flattenValue(i.value) ?? "").trim());
+        const textItem = model2.find((i) => (i.type === "text" || i.type === "longtext") && !i.bindToProfile && String(flattenValue(i.value) ?? "").trim());
         if (textItem) {
           const s = String(flattenValue(textItem.value)).trim();
           c2paTextAdded = { sample: s.length > 48 ? s.slice(0, 47) + "\u2026" : s };
@@ -8309,7 +9262,7 @@ async function createRuntime(tool, host, initialState = {}, opts = {}) {
     }
   };
 }
-function buildDataPayload(tool, format, model, getHydratedText) {
+function buildDataPayload(tool, format, model2, getHydratedText) {
   if (format === "md") {
     const tpl2 = tool.textTemplates?.md;
     return tpl2 != null ? { dataText: getHydratedText(tpl2), dataMime: "text/markdown" } : {};
@@ -8318,7 +9271,7 @@ function buildDataPayload(tool, format, model, getHydratedText) {
   if (!dataMime) return {};
   if (format === "json") {
     const dataText = JSON.stringify(
-      { tool: tool.manifest.id, version: tool.manifest.version, inputs: modelToValues(model) },
+      { tool: tool.manifest.id, version: tool.manifest.version, inputs: modelToValues(model2) },
       null,
       2
     );
@@ -8350,8 +9303,8 @@ function inputNeedsAssetResolve(input) {
   }
   return false;
 }
-async function resolveAssetRefs(model, host, dropped = [], composeStack = [], toolId = "") {
-  if (!model.some(inputNeedsAssetResolve)) return model;
+async function resolveAssetRefs(model2, host, dropped = [], composeStack = [], toolId = "") {
+  if (!model2.some(inputNeedsAssetResolve)) return model2;
   const resolveOne = async (value, id, inputId, label) => {
     try {
       if (isBakedRef(value)) {
@@ -8378,7 +9331,7 @@ async function resolveAssetRefs(model, host, dropped = [], composeStack = [], to
     }
   };
   return Promise.all(
-    model.map(async (input) => {
+    model2.map(async (input) => {
       const v = input.value;
       if (input.type === "asset") {
         const id = assetRefId(v);
@@ -8407,17 +9360,17 @@ async function resolveAssetRefs(model, host, dropped = [], composeStack = [], to
     })
   );
 }
-async function resolveTokenRefs(model, host) {
-  if (!host.tokens) return model;
-  const needs = model.some((i) => i.type === "color" && (isTokenValue(i.value) || isAlias(i.value)));
-  if (!needs) return model;
+async function resolveTokenRefs(model2, host) {
+  if (!host.tokens) return model2;
+  const needs = model2.some((i) => i.type === "color" && (isTokenValue(i.value) || isAlias(i.value)));
+  if (!needs) return model2;
   let set;
   try {
     set = await host.tokens.get();
   } catch {
-    return model;
+    return model2;
   }
-  return model.map((input) => {
+  return model2.map((input) => {
     if (input.type !== "color") return input;
     const v = input.value;
     const ref = isTokenValue(v) ? v.ref : isAlias(v) ? v : null;
@@ -8470,9 +9423,9 @@ function withTimeout2(promise, ms, toolId) {
     );
   });
 }
-function mergePatch(model, extras, patch, inputIds) {
-  if (!patch || typeof patch !== "object") return { model, extras };
-  const ids = inputIds ?? new Set(model.map((i) => i.id));
+function mergePatch(model2, extras, patch, inputIds) {
+  if (!patch || typeof patch !== "object") return { model: model2, extras };
+  const ids = inputIds ?? new Set(model2.map((i) => i.id));
   const newExtras = { ...extras };
   const modelPatch = {};
   let hasModelPatch = false;
@@ -8482,7 +9435,7 @@ function mergePatch(model, extras, patch, inputIds) {
       hasModelPatch = true;
     } else newExtras[k] = v;
   }
-  const newModel = hasModelPatch ? model.map((input) => input.id in modelPatch ? { ...input, value: modelPatch[input.id] } : input) : model;
+  const newModel = hasModelPatch ? model2.map((input) => input.id in modelPatch ? { ...input, value: modelPatch[input.id] } : input) : model2;
   return { model: newModel, extras: newExtras };
 }
 var HOOK_BUDGET_MS, DATA_FORMATS, hookFactoryCache, COMPOSE_TIMEOUT_MS2;
@@ -8510,6 +9463,108 @@ var init_runtime = __esm({
   }
 });
 
+// engine/src/media-sniff.ts
+function asBytes(input) {
+  return input instanceof Uint8Array ? input : new Uint8Array(input);
+}
+function has(bytes, offset, ...sig) {
+  if (offset + sig.length > bytes.length) return false;
+  for (let i = 0; i < sig.length; i++) if (bytes[offset + i] !== sig[i]) return false;
+  return true;
+}
+function fourcc2(bytes, offset, cc) {
+  if (offset + 4 > bytes.length) return false;
+  for (let i = 0; i < 4; i++) if (bytes[offset + i] !== cc.charCodeAt(i)) return false;
+  return true;
+}
+function gifFrameCount(bytes, stopAt = 2) {
+  let p = 13;
+  const packed = bytes[10] ?? 0;
+  if (packed & 128) p += 3 * (1 << (packed & 7) + 1);
+  let frames = 0;
+  let guard2 = 0;
+  const n2 = bytes.length;
+  while (p < n2 && guard2++ < 1e6) {
+    const block = bytes[p++];
+    if (block === 59) break;
+    if (block === 44) {
+      if (++frames >= stopAt) return frames;
+      const lp = bytes[p + 8] ?? 0;
+      p += 9;
+      if (lp & 128) p += 3 * (1 << (lp & 7) + 1);
+      p += 1;
+      p = skipSubBlocks(bytes, p);
+    } else if (block === 33) {
+      p += 1;
+      p = skipSubBlocks(bytes, p);
+    } else {
+      break;
+    }
+  }
+  return frames;
+}
+function skipSubBlocks(bytes, p) {
+  const n2 = bytes.length;
+  while (p < n2) {
+    const len2 = bytes[p++];
+    if (len2 === 0) break;
+    p += len2;
+  }
+  return p;
+}
+function isAnimatedPng(bytes) {
+  let p = 8;
+  let guard2 = 0;
+  const n2 = bytes.length;
+  while (p + 8 <= n2 && guard2++ < 1e5) {
+    const len2 = bytes[p] << 24 | bytes[p + 1] << 16 | bytes[p + 2] << 8 | bytes[p + 3];
+    if (fourcc2(bytes, p + 4, "acTL")) return true;
+    if (fourcc2(bytes, p + 4, "IDAT")) return false;
+    if (len2 < 0) return false;
+    p += 12 + len2;
+  }
+  return false;
+}
+function isAnimatedWebp(bytes) {
+  if (!fourcc2(bytes, 0, "RIFF") || !fourcc2(bytes, 8, "WEBP")) return false;
+  if (fourcc2(bytes, 12, "VP8X")) {
+    const flags = bytes[20] ?? 0;
+    if (flags & 2) return true;
+  }
+  const scan = Math.min(bytes.length - 4, 4096);
+  for (let p = 12; p < scan; p++) {
+    if (fourcc2(bytes, p, "ANIM") || fourcc2(bytes, p, "ANMF")) return true;
+  }
+  return false;
+}
+function sniffAnimatedRaster(input, { mime = "", name = "" } = {}) {
+  const bytes = asBytes(input);
+  const ext = (name.match(/\.([a-z0-9]+)$/i)?.[1] ?? "").toLowerCase();
+  if (has(bytes, 0, 71, 73, 70, 56)) {
+    return gifFrameCount(bytes) >= 2 ? "gif" : null;
+  }
+  if (has(bytes, 0, 137, 80, 78, 71, 13, 10, 26, 10)) {
+    return isAnimatedPng(bytes) ? "apng" : null;
+  }
+  if (fourcc2(bytes, 0, "RIFF") && fourcc2(bytes, 8, "WEBP")) {
+    return isAnimatedWebp(bytes) ? "webp" : null;
+  }
+  if ((/png/.test(mime) || ext === "png" || ext === "apng") && isAnimatedPng(bytes)) return "apng";
+  if ((/webp/.test(mime) || ext === "webp") && isAnimatedWebp(bytes)) return "webp";
+  return null;
+}
+function sniffVideoContainer(input) {
+  const bytes = asBytes(input);
+  if (has(bytes, 0, 26, 69, 223, 163)) return "webm";
+  if (fourcc2(bytes, 4, "ftyp")) return "mp4";
+  return null;
+}
+var init_media_sniff = __esm({
+  "engine/src/media-sniff.ts"() {
+    "use strict";
+  }
+});
+
 // engine/src/units.ts
 function parseDimension(input, defaultUnit = "px") {
   if (input == null || input === "") return null;
@@ -8532,21 +9587,34 @@ function toPoints(dim) {
 function toCssPx(dim) {
   return dim.unit === "px" ? dim.value : toInches(dim) * CSS_DPI;
 }
+function toUnit(dim, unit2) {
+  return toInches(dim) * PER_INCH[unit2];
+}
 function toCssLength(dim) {
   return dim.unit === "px" ? `${dim.value}px` : `${dim.value}${dim.unit}`;
 }
-var CSS_DPI, PER_INCH, isUnit, toInches;
+var CSS_DPI, UNITS, PER_INCH, isUnit, toInches, isPhysical;
 var init_units = __esm({
   "engine/src/units.ts"() {
     "use strict";
     CSS_DPI = 96;
+    UNITS = ["px", "pt", "pc", "mm", "cm", "in"];
     PER_INCH = { px: 96, pt: 72, pc: 6, mm: 25.4, cm: 2.54, in: 1 };
     isUnit = (u) => Object.hasOwn(PER_INCH, u);
     toInches = (dim) => dim.value / PER_INCH[dim.unit];
+    isPhysical = (dim) => dim != null && dim.unit !== "px";
   }
 });
 
 // engine/src/lang.ts
+function flagEmoji(cc) {
+  const s = String(cc ?? "").trim().toUpperCase();
+  if (!/^[A-Z]{2}$/.test(s)) return "";
+  if (s === "AU") return "\u{1F428}";
+  const RI = 127462;
+  const A = "A".charCodeAt(0);
+  return String.fromCodePoint(RI + s.charCodeAt(0) - A, RI + s.charCodeAt(1) - A);
+}
 function isLang(v) {
   return LANGS.includes(v);
 }
@@ -8556,11 +9624,47 @@ function normalizeLang(raw) {
   if (isLang(v)) return v;
   return ALIASES[v] ?? null;
 }
-var LANGS, ALIASES;
+function sortedLangs(order = "speakers") {
+  const langs = [...LANGS];
+  if (order === "az") {
+    return langs.sort((a, b) => LANG_META[a].nativeName.localeCompare(LANG_META[b].nativeName, "en"));
+  }
+  return langs.sort((a, b) => LANG_META[b].speakers - LANG_META[a].speakers);
+}
+var LANGS, LANG_META, ALIASES;
 var init_lang = __esm({
   "engine/src/lang.ts"() {
     "use strict";
     LANGS = ["en", "zh", "es", "hi", "bn", "ur", "ar", "fr", "pt", "de", "ja", "it", "vi", "tl", "ko", "id", "ms", "nl", "ro", "sv", "cs", "no", "zh-hant", "bg", "tr", "uk", "pl"];
+    LANG_META = {
+      en: { code: "en", htmlLang: "en", nativeName: "English", englishName: "English", speakers: 1500, flags: ["gb", "us", "au"] },
+      es: { code: "es", htmlLang: "es", nativeName: "Espa\xF1ol", englishName: "Spanish", speakers: 560, flags: ["es", "mx", "ar"] },
+      de: { code: "de", htmlLang: "de", nativeName: "Deutsch", englishName: "German", speakers: 135, flags: ["de", "at", "ch"] },
+      fr: { code: "fr", htmlLang: "fr", nativeName: "Fran\xE7ais", englishName: "French", speakers: 310, flags: ["fr", "ca", "be"] },
+      zh: { code: "zh", htmlLang: "zh-Hans", nativeName: "\u7B80\u4F53\u4E2D\u6587", englishName: "Simplified Chinese", speakers: 1140, flags: ["cn", "sg"] },
+      ja: { code: "ja", htmlLang: "ja", nativeName: "\u65E5\u672C\u8A9E", englishName: "Japanese", speakers: 125, flags: ["jp"] },
+      vi: { code: "vi", htmlLang: "vi", nativeName: "Ti\u1EBFng Vi\u1EC7t", englishName: "Vietnamese", speakers: 86, flags: ["vn"] },
+      pt: { code: "pt", htmlLang: "pt-BR", nativeName: "Portugu\xEAs (Brasil)", englishName: "Portuguese (Brazil)", speakers: 260, flags: ["br", "pt"] },
+      "zh-hant": { code: "zh-hant", htmlLang: "zh-Hant", nativeName: "\u7E41\u9AD4\u4E2D\u6587", englishName: "Traditional Chinese", speakers: 32, flags: ["tw", "hk"] },
+      cs: { code: "cs", htmlLang: "cs", nativeName: "\u010Ce\u0161tina", englishName: "Czech", speakers: 13, flags: ["cz"] },
+      nl: { code: "nl", htmlLang: "nl", nativeName: "Nederlands", englishName: "Dutch", speakers: 30, flags: ["nl", "be"] },
+      tl: { code: "tl", htmlLang: "tl", nativeName: "Tagalog", englishName: "Tagalog", speakers: 83, flags: ["ph"] },
+      sv: { code: "sv", htmlLang: "sv", nativeName: "Svenska", englishName: "Swedish", speakers: 13, flags: ["se"] },
+      ms: { code: "ms", htmlLang: "ms", nativeName: "Bahasa Melayu", englishName: "Malay", speakers: 80, flags: ["my", "sg", "bn"] },
+      ro: { code: "ro", htmlLang: "ro", nativeName: "Rom\xE2n\u0103", englishName: "Romanian", speakers: 25, flags: ["ro", "md"] },
+      hi: { code: "hi", htmlLang: "hi", nativeName: "\u0939\u093F\u0928\u094D\u0926\u0940", englishName: "Hindi", speakers: 610, flags: ["in"] },
+      bn: { code: "bn", htmlLang: "bn", nativeName: "\u09AC\u09BE\u0982\u09B2\u09BE", englishName: "Bengali", speakers: 280, flags: ["bd", "in"] },
+      ur: { code: "ur", htmlLang: "ur", nativeName: "\u0627\u0631\u062F\u0648", englishName: "Urdu", dir: "rtl", speakers: 230, flags: ["pk", "in"] },
+      id: { code: "id", htmlLang: "id", nativeName: "Bahasa Indonesia", englishName: "Indonesian", speakers: 200, flags: ["id"] },
+      ar: { code: "ar", htmlLang: "ar", nativeName: "\u0627\u0644\u0639\u0631\u0628\u064A\u0629", englishName: "Arabic", dir: "rtl", speakers: 380, flags: ["sa", "eg", "ae"] },
+      bg: { code: "bg", htmlLang: "bg", nativeName: "\u0411\u044A\u043B\u0433\u0430\u0440\u0441\u043A\u0438", englishName: "Bulgarian", speakers: 8, flags: ["bg"] },
+      tr: { code: "tr", htmlLang: "tr", nativeName: "T\xFCrk\xE7e", englishName: "Turkish", speakers: 90, flags: ["tr", "cy"] },
+      uk: { code: "uk", htmlLang: "uk", nativeName: "\u0423\u043A\u0440\u0430\u0457\u043D\u0441\u044C\u043A\u0430", englishName: "Ukrainian", speakers: 40, flags: ["ua"] },
+      pl: { code: "pl", htmlLang: "pl", nativeName: "Polski", englishName: "Polish", speakers: 45, flags: ["pl"] },
+      it: { code: "it", htmlLang: "it", nativeName: "Italiano", englishName: "Italian", speakers: 68, flags: ["it", "ch"] },
+      no: { code: "no", htmlLang: "no", nativeName: "Norsk", englishName: "Norwegian", speakers: 5, flags: ["no"] },
+      ko: { code: "ko", htmlLang: "ko", nativeName: "\uD55C\uAD6D\uC5B4", englishName: "Korean", speakers: 82, flags: ["kr"] }
+    };
     ALIASES = {
       cn: "zh",
       "zh-cn": "zh",
@@ -8668,6 +9772,11 @@ function parseDepth(raw) {
   if (raw == null) return "auto";
   return DEPTH_VALUES.get(String(raw).trim().toLowerCase()) ?? "auto";
 }
+function serializeHdr(s) {
+  const d = HDR_DEFAULTS;
+  if (s.peakNits === d.peakNits && s.reach === d.reach && s.lift === d.lift && s.richness === d.richness) return "1";
+  return `${s.peakNits}-${s.reach}-${s.lift}-${s.richness}`;
+}
 function parseCuts(raw) {
   if (raw == null) return 1;
   const n2 = Number(String(raw).trim());
@@ -8743,9 +9852,9 @@ function parseUrlState(searchParams, manifest) {
     lang: normalizeLang(params.get("lang"))
   };
 }
-function serializeUrlState(model, opts = {}) {
+function serializeUrlState(model2, opts = {}) {
   const params = new URLSearchParams();
-  for (const input of model) {
+  for (const input of model2) {
     if (input.value === null || input.value === void 0) continue;
     if (input.type === "file") continue;
     if (input.type === "vector") {
@@ -8838,9 +9947,9 @@ function coerceToString(input, value) {
   if (input.type === "table") return encodeTableCompact(normalizeTableValue(value));
   return String(value);
 }
-function decodeBlocksCompact(str2, fields) {
-  if (!str2 || !fields.length) return [];
-  return str2.split("~").filter(Boolean).map((item) => {
+function decodeBlocksCompact(str3, fields) {
+  if (!str3 || !fields.length) return [];
+  return str3.split("~").filter(Boolean).map((item) => {
     const parts = splitToFields(item, fields.length);
     const obj = {};
     fields.forEach((f, i) => {
@@ -8865,11 +9974,11 @@ function decodeBlocksCompact(str2, fields) {
 function encodeTableCompact(t) {
   if (!t) return "";
   const cell = (c) => encodeURIComponent(c).replace(/~/g, "%7E");
-  const row = (r) => r.map(cell).join(",");
+  const row = (r3) => r3.map(cell).join(",");
   return [row(t.columns), ...t.rows.map(row)].join("~");
 }
-function decodeTableCompact(str2) {
-  if (!str2) return { columns: [], rows: [] };
+function decodeTableCompact(str3) {
+  if (!str3) return { columns: [], rows: [] };
   const dec = (part) => {
     try {
       return decodeURIComponent(part);
@@ -8877,13 +9986,13 @@ function decodeTableCompact(str2) {
       return part;
     }
   };
-  const segments = str2.split("~");
+  const segments = str3.split("~");
   const columns = (segments[0] ?? "").split(",").map(dec);
   const rows = segments.slice(1).filter(Boolean).map((seg) => splitToFields(seg, columns.length).map(dec));
   return normalizeTableValue({ columns, rows }) ?? { columns: [], rows: [] };
 }
-function splitToFields(str2, count2) {
-  const parts = str2.split(",");
+function splitToFields(str3, count2) {
+  const parts = str3.split(",");
   if (parts.length <= count2) return parts;
   return [...parts.slice(0, count2 - 1), parts.slice(count2 - 1).join(",")];
 }
@@ -8904,13 +10013,101 @@ var init_url_mode = __esm({
   }
 });
 
+// engine/src/table-text.ts
+function looksLikeTable(text) {
+  const t = text.trim();
+  if (!t) return false;
+  if (t.includes("	")) return true;
+  if (/^\s*\|.*\|\s*$/m.test(t)) return true;
+  const lines = t.split(/\r\n?|\n/).filter((l) => l.trim());
+  if (lines.length < 2 || !lines[0].includes(",")) return false;
+  const n2 = splitCsvLine(lines[0]).length;
+  return n2 > 1 && lines.every((l) => splitCsvLine(l).length === n2);
+}
+function parseTableText(text) {
+  const t = text.replace(/\r\n?/g, "\n").replace(/\n+$/, "");
+  if (!t.trim()) return null;
+  const lines = t.split("\n");
+  let grid;
+  if (t.includes("	")) {
+    grid = lines.map((l) => l.split("	"));
+  } else if (/^\s*\|.*\|\s*$/m.test(t)) {
+    grid = lines.map((l) => l.trim()).filter((l) => l.startsWith("|") || l.includes("|")).filter((l) => !/^\|?[\s:|-]+\|?$/.test(l) || !/-/.test(l)).map((l) => l.replace(/^\|/, "").replace(/\|$/, "").split("|").map((c) => c.trim()));
+  } else {
+    grid = lines.map(splitCsvLine);
+  }
+  grid = grid.filter((r3) => r3.some((c) => c.trim() !== ""));
+  if (!grid.length || !grid[0].length) return null;
+  const width = Math.max(...grid.map((r3) => r3.length));
+  const rows = grid.map((r3) => {
+    const out = r3.slice(0, width);
+    while (out.length < width) out.push("");
+    return out;
+  });
+  return { columns: rows[0], rows: rows.slice(1) };
+}
+function splitCsvLine(line) {
+  const cells = [];
+  let cur = "", quoted = false;
+  for (let i = 0; i < line.length; i++) {
+    const ch = line[i];
+    if (quoted) {
+      if (ch === '"' && line[i + 1] === '"') {
+        cur += '"';
+        i++;
+      } else if (ch === '"') quoted = false;
+      else cur += ch;
+    } else if (ch === '"' && cur === "") {
+      quoted = true;
+    } else if (ch === ",") {
+      cells.push(cur);
+      cur = "";
+    } else {
+      cur += ch;
+    }
+  }
+  cells.push(cur);
+  return cells;
+}
+function toTsv(t) {
+  const clean2 = (c) => c.replace(/[\t\n\r]+/g, " ");
+  return [t.columns, ...t.rows].map((r3) => r3.map(clean2).join("	")).join("\n");
+}
+function toMarkdown(t) {
+  const clean2 = (c) => c.replace(/\|/g, "\\|").replace(/\n/g, "<br>");
+  const row = (r3) => `| ${r3.map(clean2).join(" | ")} |`;
+  return [row(t.columns), `|${t.columns.map(() => " --- |").join("")}`, ...t.rows.map(row)].join("\n");
+}
+function toHtmlTable(t) {
+  const esc3 = (s) => s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+  const cells = (r3, tag2) => r3.map((c) => `<${tag2}>${esc3(c)}</${tag2}>`).join("");
+  return `<table><thead><tr>${cells(t.columns, "th")}</tr></thead><tbody>${t.rows.map((r3) => `<tr>${cells(r3, "td")}</tr>`).join("")}</tbody></table>`;
+}
+var init_table_text = __esm({
+  "engine/src/table-text.ts"() {
+    "use strict";
+  }
+});
+
 // engine/src/url-pack.ts
-function base64UrlToBytes2(str2) {
-  const b64 = str2.replace(/-/g, "+").replace(/_/g, "/");
+function bytesToBase64Url2(bytes) {
+  let bin = "";
+  for (const b of bytes) bin += String.fromCharCode(b);
+  return btoa(bin).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+}
+function base64UrlToBytes2(str3) {
+  const b64 = str3.replace(/-/g, "+").replace(/_/g, "/");
   const bin = atob(b64);
   const out = new Uint8Array(bin.length);
   for (let i = 0; i < bin.length; i++) out[i] = bin.charCodeAt(i);
   return out;
+}
+async function deflateRaw(bytes) {
+  const cs = new CompressionStream("deflate-raw");
+  const writer = cs.writable.getWriter();
+  writer.write(bytes);
+  writer.close();
+  return new Uint8Array(await new Response(cs.readable).arrayBuffer());
 }
 async function inflateRaw(bytes) {
   const ds = new DecompressionStream("deflate-raw");
@@ -8945,13 +10142,98 @@ async function inflateRaw(bytes) {
 function isPackAvailable() {
   return typeof CompressionStream === "function" && typeof DecompressionStream === "function" && typeof Response === "function" && typeof btoa === "function" && typeof atob === "function";
 }
+function hasPackedState(query) {
+  if (!query) return false;
+  return new URLSearchParams(query).has(PACK_PARAM);
+}
+async function packQuery(query) {
+  if (!isPackAvailable() || query == null) return null;
+  try {
+    const bytes = new TextEncoder().encode(String(query));
+    if (bytes.length > MAX_UNPACKED) return null;
+    const token2 = TAG_DEFLATE_RAW + bytesToBase64Url2(await deflateRaw(bytes));
+    return token2.length > MAX_TOKEN ? null : token2;
+  } catch {
+    return null;
+  }
+}
 async function unpackToken(token2) {
   if (!isPackAvailable() || typeof token2 !== "string" || token2.length < 2 || token2.length > MAX_TOKEN) return null;
-  const tag = token2[0];
-  if (tag !== TAG_DEFLATE_RAW) return null;
+  const tag2 = token2[0];
+  if (tag2 !== TAG_DEFLATE_RAW) return null;
   try {
     const bytes = base64UrlToBytes2(token2.slice(1));
     return new TextDecoder().decode(await inflateRaw(bytes));
+  } catch {
+    return null;
+  }
+}
+function isEncryptAvailable() {
+  return isPackAvailable() && typeof globalThis.crypto?.subtle !== "undefined";
+}
+function hasEncryptedState(query) {
+  if (!query) return false;
+  return new URLSearchParams(query).has(ENC_PARAM);
+}
+async function deriveLinkKey(password, salt, iterations) {
+  const base = await globalThis.crypto.subtle.importKey(
+    "raw",
+    asBufferSource(new TextEncoder().encode(password)),
+    "PBKDF2",
+    false,
+    ["deriveKey"]
+  );
+  return globalThis.crypto.subtle.deriveKey(
+    { name: "PBKDF2", salt: asBufferSource(salt), iterations, hash: "SHA-256" },
+    base,
+    { name: "AES-GCM", length: 256 },
+    false,
+    ["encrypt", "decrypt"]
+  );
+}
+async function packEncrypted(query, password) {
+  if (!isEncryptAvailable() || query == null || !password) return null;
+  try {
+    const bytes = new TextEncoder().encode(String(query));
+    if (bytes.length > MAX_UNPACKED) return null;
+    const compressed = await deflateRaw(bytes);
+    const salt = globalThis.crypto.getRandomValues(new Uint8Array(ENC_SALT_BYTES));
+    const iv = globalThis.crypto.getRandomValues(new Uint8Array(ENC_IV_BYTES));
+    const key = await deriveLinkKey(password, salt, PBKDF2_ITERATIONS);
+    const ct = new Uint8Array(await globalThis.crypto.subtle.encrypt(
+      { name: "AES-GCM", iv: asBufferSource(iv) },
+      key,
+      asBufferSource(compressed)
+    ));
+    const blob = new Uint8Array(ENC_HEADER + ct.length);
+    new DataView(blob.buffer).setUint32(0, PBKDF2_ITERATIONS, false);
+    blob.set(salt, 4);
+    blob.set(iv, 4 + ENC_SALT_BYTES);
+    blob.set(ct, ENC_HEADER);
+    const token2 = TAG_PBKDF2_AESGCM + bytesToBase64Url2(blob);
+    return token2.length > MAX_TOKEN ? null : token2;
+  } catch {
+    return null;
+  }
+}
+async function unpackEncrypted(token2, password) {
+  if (!isEncryptAvailable() || typeof token2 !== "string" || token2.length < 2 || token2.length > MAX_TOKEN || !password) return null;
+  if (token2[0] !== TAG_PBKDF2_AESGCM) return null;
+  try {
+    const blob = base64UrlToBytes2(token2.slice(1));
+    if (blob.length < ENC_HEADER + 16) return null;
+    const iterations = new DataView(blob.buffer, blob.byteOffset, 4).getUint32(0, false);
+    if (iterations < 1 || iterations > 1e7) return null;
+    const salt = blob.subarray(4, 4 + ENC_SALT_BYTES);
+    const iv = blob.subarray(4 + ENC_SALT_BYTES, ENC_HEADER);
+    const ct = blob.subarray(ENC_HEADER);
+    const key = await deriveLinkKey(password, salt, iterations);
+    const compressed = new Uint8Array(await globalThis.crypto.subtle.decrypt(
+      { name: "AES-GCM", iv: asBufferSource(iv) },
+      key,
+      asBufferSource(ct)
+    ));
+    return new TextDecoder().decode(await inflateRaw(compressed));
   } catch {
     return null;
   }
@@ -8970,17 +10252,168 @@ async function expandQuery(query) {
   });
   return extras.length ? `${decoded}&${extras.join("&")}` : decoded;
 }
-var PACK_PARAM, TAG_DEFLATE_RAW, MAX_TOKEN, MAX_UNPACKED, ENC_SALT_BYTES, ENC_IV_BYTES, ENC_HEADER;
+var PACK_PARAM, TAG_DEFLATE_RAW, MAX_TOKEN, MAX_UNPACKED, ENC_PARAM, TAG_PBKDF2_AESGCM, PBKDF2_ITERATIONS, ENC_SALT_BYTES, ENC_IV_BYTES, ENC_HEADER;
 var init_url_pack = __esm({
   "engine/src/url-pack.ts"() {
     "use strict";
+    init_bytes();
     PACK_PARAM = "z";
     TAG_DEFLATE_RAW = "1";
     MAX_TOKEN = 64 * 1024;
     MAX_UNPACKED = 256 * 1024;
+    ENC_PARAM = "zx";
+    TAG_PBKDF2_AESGCM = "1";
+    PBKDF2_ITERATIONS = 21e4;
     ENC_SALT_BYTES = 16;
     ENC_IV_BYTES = 12;
     ENC_HEADER = 4 + ENC_SALT_BYTES + ENC_IV_BYTES;
+  }
+});
+
+// engine/src/batch.ts
+function toCSV(keys, records, headers = keys) {
+  const lines = [headers.map(csvCell).join(",")];
+  for (const rec of records) {
+    lines.push(keys.map((k) => csvCell(rec[k])).join(","));
+  }
+  return lines.join("\r\n") + "\r\n";
+}
+function csvCell(value) {
+  const s = value == null ? "" : String(value);
+  return /[",\r\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
+}
+function parseDelimited(text, delim = ",") {
+  const rows = [];
+  let row = [];
+  let field = "";
+  let inQuotes = false;
+  let i = 0;
+  const n2 = text.length;
+  const endField = () => {
+    row.push(field);
+    field = "";
+  };
+  const endRow = () => {
+    endField();
+    rows.push(row);
+    row = [];
+  };
+  while (i < n2) {
+    const ch = text[i];
+    if (inQuotes) {
+      if (ch === '"') {
+        if (text[i + 1] === '"') {
+          field += '"';
+          i += 2;
+          continue;
+        }
+        inQuotes = false;
+        i++;
+        continue;
+      }
+      field += ch;
+      i++;
+      continue;
+    }
+    if (ch === '"') {
+      inQuotes = true;
+      i++;
+      continue;
+    }
+    if (ch === delim) {
+      endField();
+      i++;
+      continue;
+    }
+    if (ch === "\r") {
+      i++;
+      continue;
+    }
+    if (ch === "\n") {
+      endRow();
+      i++;
+      continue;
+    }
+    field += ch;
+    i++;
+  }
+  if (field !== "" || row.length) endRow();
+  return rows.filter((r3) => !(r3.length === 1 && r3[0] === ""));
+}
+function detectDelimiter(text) {
+  const firstLine = text.slice(0, text.indexOf("\n") >= 0 ? text.indexOf("\n") : text.length);
+  const tabs = (firstLine.match(/\t/g) || []).length;
+  const commas = (firstLine.match(/,/g) || []).length;
+  const semis = (firstLine.match(/;/g) || []).length;
+  if (tabs > commas && tabs > semis) return "	";
+  if (semis > commas && semis > tabs) return ";";
+  return ",";
+}
+function parseBatchCsv(text) {
+  const grid = parseDelimited(text, detectDelimiter(text));
+  if (grid.length < 2) return [];
+  const header = grid[0].map((h) => h.trim());
+  const out = [];
+  for (let r3 = 1; r3 < grid.length; r3++) {
+    const cells = grid[r3];
+    const row = { toolId: "", params: {} };
+    header.forEach((h, c) => {
+      const raw = (cells[c] ?? "").trim();
+      if (!h || raw === "") return;
+      const reserved = RESERVED_HEADERS[h.toLowerCase()];
+      if (reserved === "toolId") row.toolId = raw;
+      else if (reserved === "width" || reserved === "height" || reserved === "dpi") {
+        const num5 = Number(raw);
+        if (Number.isFinite(num5) && num5 > 0) row[reserved] = num5;
+      } else if (reserved) row[reserved] = raw;
+      else row.params[h] = raw;
+    });
+    if (row.toolId) out.push(row);
+  }
+  return out;
+}
+function batchCsvTemplate(tools) {
+  return batchCsvTemplateWithNotes(tools).csv;
+}
+function batchCsvTemplateWithNotes(tools) {
+  const inputIds = [];
+  const shadowed = [];
+  const reserved = new Set(TEMPLATE_OUTPUT_COLUMNS.map((h) => h.toLowerCase()));
+  const seen = /* @__PURE__ */ new Set();
+  for (const t of tools) {
+    for (const i of t.inputs) {
+      if (seen.has(i.id)) continue;
+      seen.add(i.id);
+      if (reserved.has(i.id.toLowerCase()) || i.id.toLowerCase() in RESERVED_HEADERS) {
+        shadowed.push(i.id);
+        continue;
+      }
+      inputIds.push(i.id);
+    }
+  }
+  const header = [...TEMPLATE_OUTPUT_COLUMNS, ...inputIds];
+  const rows = tools.map((t) => ({ toolId: t.id }));
+  return { csv: toCSV(header, rows), shadowedInputs: shadowed };
+}
+var RESERVED_HEADERS, TEMPLATE_OUTPUT_COLUMNS;
+var init_batch = __esm({
+  "engine/src/batch.ts"() {
+    "use strict";
+    RESERVED_HEADERS = {
+      toolid: "toolId",
+      tool: "toolId",
+      format: "format",
+      export: "format",
+      width: "width",
+      w: "width",
+      height: "height",
+      h: "height",
+      unit: "unit",
+      dpi: "dpi",
+      filename: "filename",
+      output: "filename"
+    };
+    TEMPLATE_OUTPUT_COLUMNS = ["toolId", "format", "width", "height", "unit", "dpi"];
   }
 });
 
@@ -8997,8 +10430,8 @@ function sniff(b) {
   if (/<svg[\s>]/i.test(head) || /^\s*<\?xml/i.test(head) && /<svg[\s>]/i.test(new TextDecoder().decode(b.subarray(0, Math.min(b.length, 4096))))) return "SVG";
   return "";
 }
-function matchAscii(b, off, str2) {
-  for (let i = 0; i < str2.length; i++) if (b[off + i] !== str2.charCodeAt(i)) return false;
+function matchAscii(b, off, str3) {
+  for (let i = 0; i < str3.length; i++) if (b[off + i] !== str3.charCodeAt(i)) return false;
   return true;
 }
 function clip(s) {
@@ -9011,12 +10444,12 @@ function readIfd(dv, off, le) {
   let p = off + 2;
   for (let i = 0; i < n2; i++) {
     if (p + 12 > dv.byteLength) break;
-    const tag = dv.getUint16(p, le);
+    const tag2 = dv.getUint16(p, le);
     const type = dv.getUint16(p + 2, le);
     const count2 = dv.getUint32(p + 4, le);
     const size = (TYPE_SIZE[type] || 1) * count2;
     const valueOffset = size > 4 ? dv.getUint32(p + 8, le) : p + 8;
-    out.push({ tag, type, count: count2, size, valueOffset, le });
+    out.push({ tag: tag2, type, count: count2, size, valueOffset, le });
     p += 12;
   }
   return out;
@@ -9040,8 +10473,8 @@ function scalar(dv, e) {
     if (e.type === 4) return dv.getUint32(e.valueOffset, e.le);
     if (e.type === 5) {
       if (e.valueOffset + 8 > dv.byteLength) return null;
-      const num3 = dv.getUint32(e.valueOffset, e.le), den = dv.getUint32(e.valueOffset + 4, e.le);
-      return den ? num3 / den : 0;
+      const num5 = dv.getUint32(e.valueOffset, e.le), den = dv.getUint32(e.valueOffset + 4, e.le);
+      return den ? num5 / den : 0;
     }
   } catch {
   }
@@ -9053,8 +10486,8 @@ function rationals(dv, e, want) {
   for (let i = 0; i < Math.min(e.count, want); i++) {
     const o = e.valueOffset + i * 8;
     if (o + 8 > dv.byteLength) return null;
-    const num3 = dv.getUint32(o, e.le), den = dv.getUint32(o + 4, e.le);
-    out.push(den ? num3 / den : 0);
+    const num5 = dv.getUint32(o, e.le), den = dv.getUint32(o + 4, e.le);
+    out.push(den ? num5 / den : 0);
   }
   return out.length === want ? out : null;
 }
@@ -9081,9 +10514,9 @@ function readGps(dv, off, le) {
     const d = dms[0] + dms[1] / 60 + dms[2] / 3600;
     return ref === "S" || ref === "W" ? -d : d;
   };
-  const r = { lat: dec(lat, latRef), lon: dec(lon, lonRef) };
-  if (alt != null) r.alt = altRef === 1 ? -alt : alt;
-  return r;
+  const r3 = { lat: dec(lat, latRef), lon: dec(lon, lonRef) };
+  if (alt != null) r3.alt = altRef === 1 ? -alt : alt;
+  return r3;
 }
 function readExif(bytes, base, len2, out) {
   if (len2 < 8 || base < 0 || base + len2 > bytes.length) return;
@@ -9107,8 +10540,8 @@ function readExif(bytes, base, len2, out) {
   const byTag = /* @__PURE__ */ new Map();
   for (const e of ifd0) byTag.set(e.tag, e);
   const make = byTag.has(271) ? asciiVal(dv, byTag.get(271)) : null;
-  const model = byTag.has(272) ? asciiVal(dv, byTag.get(272)) : null;
-  push("Camera", [make, model].filter(Boolean).join(" ") || null, "device", true);
+  const model2 = byTag.has(272) ? asciiVal(dv, byTag.get(272)) : null;
+  push("Camera", [make, model2].filter(Boolean).join(" ") || null, "device", true);
   push("Software", byTag.has(305) ? asciiVal(dv, byTag.get(305)) : null, "software");
   push("Artist", byTag.has(315) ? asciiVal(dv, byTag.get(315)) : null, "authorship", true);
   push("Copyright", byTag.has(33432) ? asciiVal(dv, byTag.get(33432)) : null, "authorship");
@@ -9230,9 +10663,9 @@ function readMpfIndex(bytes) {
     let entriesAt = -1;
     for (let i = 0; i < count2; i++) {
       const e = ifd + 2 + i * 12;
-      const tag = dv.getUint16(e, le);
-      if (tag === 45057) declared = dv.getUint32(e + 8, le);
-      else if (tag === 45058) entriesAt = h + dv.getUint32(e + 8, le);
+      const tag2 = dv.getUint16(e, le);
+      if (tag2 === 45057) declared = dv.getUint32(e + 8, le);
+      else if (tag2 === 45058) entriesAt = h + dv.getUint32(e + 8, le);
     }
     if (declared < 2 || declared > MAX_MPF_IMAGES) return null;
     if (entriesAt < h || entriesAt + declared * 16 > mpf.end) return null;
@@ -9477,14 +10910,14 @@ function readGif(bytes, out) {
 function readWebp(bytes, out) {
   let p = 12;
   while (p + 8 <= bytes.length && out.fields.length < MAX_FIELDS) {
-    const fourcc2 = String.fromCharCode(bytes[p], bytes[p + 1], bytes[p + 2], bytes[p + 3]);
+    const fourcc3 = String.fromCharCode(bytes[p], bytes[p + 1], bytes[p + 2], bytes[p + 3]);
     const size = (bytes[p + 4] | bytes[p + 5] << 8 | bytes[p + 6] << 16 | bytes[p + 7] * 16777216) >>> 0;
     const dataStart = p + 8;
     if (dataStart + size > bytes.length) break;
-    if (fourcc2 === "EXIF") {
+    if (fourcc3 === "EXIF") {
       const off = matchAscii(bytes, dataStart, "Exif\0\0") ? dataStart + 6 : dataStart;
       readExif(bytes, off, dataStart + size - off, out);
-    } else if (fourcc2 === "XMP ") {
+    } else if (fourcc3 === "XMP ") {
       readXmp(new TextDecoder("utf-8").decode(bytes.subarray(dataStart, dataStart + size)), out);
     }
     p = dataStart + size + (size & 1);
@@ -9568,12 +11001,34 @@ function extractFileMetadata(bytes) {
   }
   return out;
 }
-var MAX_FIELDS, MAX_VALUE_CHARS, MAX_TEXT_SCAN, TYPE_SIZE, ORIENTATION, ISO_GAINMAP_URN, HDRGM_NS, MAX_MPF_IMAGES, MAX_GAINMAP_SNIFF, PNG_KEYWORD_GROUP, MAX_GIF_BLOCKS, XMP_BOX_UUID;
+var META_GROUP_ORDER, META_GROUP_LABEL, MAX_FIELDS, MAX_VALUE_CHARS, MAX_TEXT_SCAN, TYPE_SIZE, ORIENTATION, ISO_GAINMAP_URN, HDRGM_NS, MAX_MPF_IMAGES, MAX_GAINMAP_SNIFF, PNG_KEYWORD_GROUP, MAX_GIF_BLOCKS, XMP_BOX_UUID;
 var init_file_metadata = __esm({
   "engine/src/file-metadata.ts"() {
     "use strict";
     init_c2pa_verify();
     init_jpeg_segments();
+    META_GROUP_ORDER = [
+      "location",
+      "device",
+      "capture",
+      "software",
+      "authorship",
+      "timestamps",
+      "description",
+      "structure",
+      "technical"
+    ];
+    META_GROUP_LABEL = {
+      location: "Location",
+      device: "Device",
+      capture: "Capture settings",
+      software: "Software",
+      authorship: "Authorship & rights",
+      timestamps: "Timestamps",
+      description: "Description & text",
+      structure: "Embedded content & behaviour",
+      technical: "Technical"
+    };
     MAX_FIELDS = 64;
     MAX_VALUE_CHARS = 2048;
     MAX_TEXT_SCAN = 16 * 1024 * 1024;
@@ -9608,22 +11063,1688 @@ var init_file_metadata = __esm({
   }
 });
 
-// engine/src/color.ts
-function rgbToCmyk(r, g2, b) {
-  const k = 1 - Math.max(r, g2, b);
-  if (k >= 1) return [0, 0, 0, 1];
-  const d = 1 - k;
-  return [(1 - r - k) / d, (1 - g2 - k) / d, (1 - b - k) / d, k];
+// engine/src/strip-metadata.ts
+function isStrippableFormat(format) {
+  return !!format && STRIPPABLE.has(format.toUpperCase());
 }
-var init_color = __esm({
-  "engine/src/color.ts"() {
+function scanJpeg(bytes) {
+  if (bytes[0] !== 255 || bytes[1] !== 216) return null;
+  const segs = [];
+  let p = 2;
+  while (p + 1 < bytes.length) {
+    if (bytes[p] !== 255) break;
+    let marker = bytes[p + 1];
+    while (marker === 255 && p + 2 < bytes.length) {
+      p++;
+      marker = bytes[p + 1];
+    }
+    if (marker === 217) {
+      segs.push({ marker, start: p, end: p + 2 });
+      break;
+    }
+    if (marker === 218) {
+      segs.push({ marker, start: p, sos: true });
+      break;
+    }
+    if (marker >= 208 && marker <= 215 || marker === 1) {
+      segs.push({ marker, start: p, end: p + 2 });
+      p += 2;
+      continue;
+    }
+    if (p + 4 > bytes.length) break;
+    const len2 = bytes[p + 2] << 8 | bytes[p + 3];
+    if (len2 < 2 || p + 2 + len2 > bytes.length) break;
+    segs.push({ marker, start: p, end: p + 2 + len2 });
+    p += 2 + len2;
+  }
+  return segs;
+}
+function stripJpeg(bytes) {
+  const segs = scanJpeg(bytes);
+  if (!segs) return bytes;
+  const mpf = readMpfIndex(bytes);
+  const cut = mpf ? mpf.trailerStart : bytes.length;
+  const keep = [bytes.subarray(0, 2)];
+  for (const s of segs) {
+    if (s.sos) {
+      keep.push(bytes.subarray(s.start, Math.max(cut, s.start)));
+      continue;
+    }
+    const isApp = s.marker >= 224 && s.marker <= 239;
+    const isCom = s.marker === 254;
+    if (isApp && s.marker !== 224 || isCom) continue;
+    keep.push(bytes.subarray(s.start, s.end));
+  }
+  return concatBytes(keep);
+}
+function stripPng(bytes) {
+  const keep = [bytes.subarray(0, 8)];
+  let p = 8;
+  while (p + 8 <= bytes.length) {
+    const len2 = (bytes[p] << 24 | bytes[p + 1] << 16 | bytes[p + 2] << 8 | bytes[p + 3]) >>> 0;
+    const type = String.fromCharCode(bytes[p + 4], bytes[p + 5], bytes[p + 6], bytes[p + 7]);
+    const end = p + 12 + len2;
+    if (end > bytes.length) break;
+    if (!PNG_STRIP.has(type)) keep.push(bytes.subarray(p, end));
+    p = end;
+    if (type === "IEND") break;
+  }
+  return concatBytes(keep);
+}
+function prefixOf(name) {
+  const c = name.indexOf(":");
+  return c > 0 ? name.slice(0, c).toLowerCase() : "";
+}
+function shouldDropElement(name) {
+  return DROP_EL_NAME.has(name.toLowerCase()) || DROP_EL_PREFIX.has(prefixOf(name));
+}
+function shouldDropAttr(name) {
+  if (name === "xml:space") return false;
+  if (DROP_EL_PREFIX.has(prefixOf(name))) return true;
+  if (DROP_XMLNS.has(name.toLowerCase())) return true;
+  if (name === "data-name") return true;
+  return false;
+}
+function parseAttrs(s) {
+  const attrs = [];
+  const re = /([^\s=/>]+)(?:\s*=\s*(?:"([^"]*)"|'([^']*)'|([^\s">]+)))?/g;
+  let m;
+  while ((m = re.exec(s)) && m[0]) {
+    const value = m[2] != null ? m[2] : m[3] != null ? m[3] : m[4] != null ? m[4] : null;
+    attrs.push({ name: m[1], value });
+  }
+  return attrs;
+}
+function parseTag(raw) {
+  const selfClose = raw.endsWith("/>");
+  const inner = raw.slice(1, selfClose ? -2 : -1);
+  if (inner[0] === "/") return { t: "close", name: inner.slice(1).trim(), raw };
+  const m = /^\s*([^\s/>]+)/.exec(inner);
+  const name = m ? m[1] : "";
+  const attrs = m ? parseAttrs(inner.slice(m[0].length)) : [];
+  return { t: selfClose ? "self" : "open", name, attrs, raw };
+}
+function tokenize(s) {
+  const toks = [];
+  let i = 0;
+  const n2 = s.length;
+  while (i < n2) {
+    if (s[i] === "<") {
+      if (s.startsWith("<!--", i)) {
+        const end = s.indexOf("-->", i + 4);
+        const close = end === -1 ? n2 : end + 3;
+        toks.push({ t: "comment", raw: s.slice(i, close) });
+        i = close;
+      } else if (s.startsWith("<![CDATA[", i)) {
+        const end = s.indexOf("]]>", i + 9);
+        const close = end === -1 ? n2 : end + 3;
+        toks.push({ t: "cdata", raw: s.slice(i, close) });
+        i = close;
+      } else if (s.startsWith("<!", i)) {
+        const end = s.indexOf(">", i);
+        const close = end === -1 ? n2 : end + 1;
+        toks.push({ t: "doctype", raw: s.slice(i, close) });
+        i = close;
+      } else if (s.startsWith("<?", i)) {
+        const end = s.indexOf("?>", i);
+        const close = end === -1 ? n2 : end + 2;
+        const raw = s.slice(i, close);
+        toks.push({ t: "pi", raw, isXmlDecl: /^<\?xml\s/i.test(raw) });
+        i = close;
+      } else {
+        let j = i + 1, q = "";
+        while (j < n2) {
+          const c = s[j];
+          if (q) {
+            if (c === q) q = "";
+          } else if (c === '"' || c === "'") q = c;
+          else if (c === ">") break;
+          j++;
+        }
+        const close = j < n2 ? j + 1 : n2;
+        toks.push(parseTag(s.slice(i, close)));
+        i = close;
+      }
+    } else {
+      const next = s.indexOf("<", i);
+      const close = next === -1 ? n2 : next;
+      toks.push({ t: "text", raw: s.slice(i, close) });
+      i = close;
+    }
+  }
+  return toks;
+}
+function rebuildTag(tk) {
+  const kept = [];
+  for (const a of tk.attrs) {
+    if (shouldDropAttr(a.name)) continue;
+    if (a.value == null) {
+      kept.push(a.name);
+      continue;
+    }
+    const quote = a.value.includes('"') ? "'" : '"';
+    kept.push(`${a.name}=${quote}${a.value}${quote}`);
+  }
+  const body = tk.name + (kept.length ? " " + kept.join(" ") : "");
+  return tk.t === "self" ? `<${body}/>` : `<${body}>`;
+}
+function cleanSvgTokens(toks) {
+  const out = [];
+  const stack = [];
+  let dropName = null, dropDepth = 0;
+  for (const tk of toks) {
+    if (dropDepth > 0) {
+      if (tk.t === "open" && tk.name === dropName) dropDepth++;
+      else if (tk.t === "close" && tk.name === dropName) dropDepth--;
+      continue;
+    }
+    switch (tk.t) {
+      case "comment":
+      case "doctype":
+        break;
+      // drop
+      case "pi":
+        if (tk.isXmlDecl) out.push(tk.raw);
+        break;
+      case "cdata":
+        out.push(tk.raw);
+        break;
+      case "text": {
+        const sensitive = stack.length > 0 && SPACE_SENSITIVE.has(stack[stack.length - 1]);
+        if (!sensitive && /^\s*$/.test(tk.raw)) break;
+        out.push(tk.raw);
+        break;
+      }
+      case "open":
+      case "self": {
+        if (shouldDropElement(tk.name)) {
+          if (tk.t === "open") {
+            dropName = tk.name;
+            dropDepth = 1;
+          }
+          break;
+        }
+        const hasDroppable = tk.attrs.some((a) => shouldDropAttr(a.name));
+        out.push(hasDroppable ? rebuildTag(tk) : tk.raw);
+        if (tk.t === "open") stack.push(tk.name.toLowerCase());
+        break;
+      }
+      case "close": {
+        for (let k = stack.length - 1; k >= 0; k--) {
+          if (stack[k] === tk.name.toLowerCase()) {
+            stack.length = k;
+            break;
+          }
+        }
+        out.push(tk.raw);
+        break;
+      }
+    }
+  }
+  return out.join("");
+}
+function stripSvg(bytes) {
+  const text = new TextDecoder("utf-8").decode(bytes);
+  return new TextEncoder().encode(cleanSvgTokens(tokenize(text)));
+}
+function hasResidualMetadata(bytes, format) {
+  if (format === "jpeg") {
+    for (const s of scanJpeg(bytes) ?? []) {
+      if (s.sos) break;
+      if (s.marker === 254) return "a JPEG comment (COM) segment";
+      if (s.marker >= 225 && s.marker <= 239) return `a JPEG APP${s.marker - 224} metadata segment`;
+    }
+    return null;
+  }
+  if (format === "png") {
+    let p = 8;
+    while (p + 8 <= bytes.length) {
+      const len2 = (bytes[p] << 24 | bytes[p + 1] << 16 | bytes[p + 2] << 8 | bytes[p + 3]) >>> 0;
+      const type = String.fromCharCode(bytes[p + 4], bytes[p + 5], bytes[p + 6], bytes[p + 7]);
+      const end = p + 12 + len2;
+      if (end > bytes.length) break;
+      if (PNG_STRIP.has(type)) return `a PNG ${type} chunk`;
+      p = end;
+      if (type === "IEND") break;
+    }
+    return null;
+  }
+  const text = new TextDecoder("utf-8").decode(bytes);
+  for (const tk of tokenize(text)) {
+    if (tk.t === "comment") return "an XML comment";
+    if (tk.t === "doctype") return "a DOCTYPE declaration";
+    if (tk.t === "pi" && !tk.isXmlDecl) return "a processing instruction";
+    if (tk.t === "open" || tk.t === "self") {
+      if (shouldDropElement(tk.name)) return `an editor-private <${tk.name}> element`;
+      for (const a of tk.attrs) if (shouldDropAttr(a.name)) return `an editor-private ${a.name} attribute`;
+    }
+  }
+  return null;
+}
+function stripMetadata(bytes, format) {
+  let out;
+  if (format === "jpeg") out = stripJpeg(bytes);
+  else if (format === "png") out = stripPng(bytes);
+  else if (format === "svg") out = stripSvg(bytes);
+  else return bytes;
+  const residual = hasResidualMetadata(out, format);
+  if (residual) throw new Error(`stripMetadata(${format}): clean copy still contains ${residual}`);
+  return out;
+}
+var STRIPPABLE, PNG_STRIP, DROP_EL_PREFIX, DROP_EL_NAME, SPACE_SENSITIVE, DROP_XMLNS;
+var init_strip_metadata = __esm({
+  "engine/src/strip-metadata.ts"() {
+    "use strict";
+    init_bytes();
+    init_file_metadata();
+    STRIPPABLE = /* @__PURE__ */ new Set(["JPEG", "PNG", "SVG", "PDF"]);
+    PNG_STRIP = /* @__PURE__ */ new Set(["tEXt", "zTXt", "iTXt", "eXIf", "tIME"]);
+    DROP_EL_PREFIX = /* @__PURE__ */ new Set(["sodipodi", "inkscape", "i", "x"]);
+    DROP_EL_NAME = /* @__PURE__ */ new Set(["metadata"]);
+    SPACE_SENSITIVE = /* @__PURE__ */ new Set(["text", "tspan", "textpath", "tref", "style", "title", "desc", "script"]);
+    DROP_XMLNS = /* @__PURE__ */ new Set([
+      "xmlns:inkscape",
+      "xmlns:sodipodi",
+      "xmlns:i",
+      "xmlns:x",
+      "xmlns:dc",
+      "xmlns:cc",
+      "xmlns:rdf"
+    ]);
+  }
+});
+
+// engine/src/pixel-watermark.ts
+function detectionThreshold(nCoef, hypotheses = 1) {
+  const sigma = Math.sqrt(DETECT_MIN_SIGMA ** 2 + 2 * Math.log(Math.max(1, hypotheses)));
+  return Math.max(DETECT_THRESHOLD, sigma / Math.sqrt(nCoef));
+}
+function thresholdForCoefficients(nCoef) {
+  return detectionThreshold(nCoef, 1);
+}
+function dct2(block, tmp, out) {
+  for (let y = 0; y < N; y++) {
+    for (let u = 0; u < N; u++) {
+      let s = 0;
+      for (let x = 0; x < N; x++) s += M[u * N + x] * block[y * N + x];
+      tmp[y * N + u] = s;
+    }
+  }
+  for (let v = 0; v < N; v++) {
+    for (let u = 0; u < N; u++) {
+      let s = 0;
+      for (let y = 0; y < N; y++) s += M[v * N + y] * tmp[y * N + u];
+      out[v * N + u] = s;
+    }
+  }
+}
+function idct2(coef, tmp, out) {
+  for (let y = 0; y < N; y++) {
+    for (let u = 0; u < N; u++) {
+      let s = 0;
+      for (let v = 0; v < N; v++) s += M[v * N + y] * coef[v * N + u];
+      tmp[y * N + u] = s;
+    }
+  }
+  for (let y = 0; y < N; y++) {
+    for (let x = 0; x < N; x++) {
+      let s = 0;
+      for (let u = 0; u < N; u++) s += M[u * N + x] * tmp[y * N + u];
+      out[y * N + x] = s;
+    }
+  }
+}
+function canCarryWatermark(width, height) {
+  const bw = Math.floor(width / N);
+  const bh = Math.floor(height / N);
+  return bw >= 1 && bh >= 1 && bw * bh >= MIN_IMPRINT_BLOCKS;
+}
+function mulberry32(seed) {
+  let a = seed >>> 0;
+  return () => {
+    a = a + 1831565813 >>> 0;
+    let t = a;
+    t = Math.imul(t ^ t >>> 15, t | 1);
+    t ^= t + Math.imul(t ^ t >>> 7, t | 61);
+    return ((t ^ t >>> 14) >>> 0) / 4294967296;
+  };
+}
+function blockActivity(coef) {
+  let acEnergy = 0;
+  for (let i = 1; i < BLOCK; i++) acEnergy += coef[i] * coef[i];
+  return Math.sqrt(acEnergy / (BLOCK - 1));
+}
+function blockMask(activity) {
+  if (activity < ACTIVITY_FLOOR) return 0;
+  const m = activity / MASK_REF;
+  return m < MASK_MIN ? MASK_MIN : m > MASK_MAX ? MASK_MAX : m;
+}
+function lumaPlane(rgba, w, h) {
+  const Y = new Float64Array(w * h);
+  for (let i = 0, p = 0; i < Y.length; i++, p += 4) {
+    Y[i] = 0.299 * rgba[p] + 0.587 * rgba[p + 1] + 0.114 * rgba[p + 2];
+  }
+  return Y;
+}
+function embedWatermark(rgba, opts) {
+  const { width: w, height: h } = opts;
+  const out = new Uint8Array(rgba.length);
+  out.set(rgba);
+  const bw = Math.floor(w / N);
+  const bh = Math.floor(h / N);
+  if (bw < 1 || bh < 1 || w * h * 4 > rgba.length) return out;
+  try {
+    const Y = lumaPlane(rgba, w, h);
+    const base = opts.strength ?? DEFAULT_STRENGTH;
+    for (let attempt2 = 0; attempt2 <= MAX_STRENGTH_RETRIES; attempt2++) {
+      const eps = base * Math.pow(0.7, attempt2);
+      const delta = applyMark(Y, w, bw, bh, eps);
+      const marked = writeLumaDelta(rgba, delta, w, h);
+      if (psnrRgb(rgba, marked) >= PSNR_FLOOR || attempt2 === MAX_STRENGTH_RETRIES) return marked;
+    }
+    return out;
+  } catch {
+    return out;
+  }
+}
+function applyMark(Y, w, bw, bh, eps) {
+  const delta = new Float64Array(Y.length);
+  const block = new Float64Array(BLOCK);
+  const tmp = new Float64Array(BLOCK);
+  const coef = new Float64Array(BLOCK);
+  const marked = new Float64Array(BLOCK);
+  for (let by = 0; by < bh; by++) {
+    for (let bx = 0; bx < bw; bx++) {
+      const ox = bx * N, oy = by * N;
+      for (let y = 0; y < N; y++) for (let x = 0; x < N; x++) block[y * N + x] = Y[(oy + y) * w + (ox + x)];
+      dct2(block, tmp, coef);
+      const mask = blockMask(blockActivity(coef));
+      if (mask === 0) continue;
+      for (let k = 0; k < MIDBAND.length; k++) coef[MIDBAND[k]] += eps * CHIP[k] * mask;
+      idct2(coef, tmp, marked);
+      for (let y = 0; y < N; y++) for (let x = 0; x < N; x++) {
+        delta[(oy + y) * w + (ox + x)] = marked[y * N + x] - block[y * N + x];
+      }
+    }
+  }
+  return delta;
+}
+function writeLumaDelta(rgba, delta, w, h) {
+  const out = new Uint8Array(rgba.length);
+  out.set(rgba);
+  for (let i = 0, p = 0; i < w * h; i++, p += 4) {
+    const d = delta[i];
+    if (d === 0) continue;
+    out[p] = clamp8(rgba[p] + d);
+    out[p + 1] = clamp8(rgba[p + 1] + d);
+    out[p + 2] = clamp8(rgba[p + 2] + d);
+  }
+  return out;
+}
+function clamp8(v) {
+  const r3 = Math.round(v);
+  return r3 < 0 ? 0 : r3 > 255 ? 255 : r3;
+}
+function psnrRgb(a, b) {
+  let sse = 0, n2 = 0;
+  for (let p = 0; p < a.length; p += 4) {
+    for (let c = 0; c < 3; c++) {
+      const d = a[p + c] - b[p + c];
+      sse += d * d;
+      n2++;
+    }
+  }
+  if (n2 === 0 || sse === 0) return Infinity;
+  const mse = sse / n2;
+  return 10 * Math.log10(255 * 255 / mse);
+}
+function detectWatermark(rgba, opts) {
+  const { width: w, height: h } = opts;
+  const bw = Math.floor(w / N);
+  const bh = Math.floor(h / N);
+  if (bw < 1 || bh < 1 || w * h * 4 > rgba.length) return { present: false, score: 0, blocks: 0 };
+  try {
+    const Y = lumaPlane(rgba, w, h);
+    const block = new Float64Array(BLOCK);
+    const tmp = new Float64Array(BLOCK);
+    const coef = new Float64Array(BLOCK);
+    let acc2 = 0, energy2 = 0, n2 = 0, scanned2 = 0;
+    let acc1 = 0, energy1 = 0, n1 = 0;
+    for (let by = 0; by < bh; by++) {
+      for (let bx = 0; bx < bw; bx++) {
+        const ox = bx * N, oy = by * N;
+        for (let y = 0; y < N; y++) for (let x = 0; x < N; x++) block[y * N + x] = Y[(oy + y) * w + (ox + x)];
+        dct2(block, tmp, coef);
+        const activity = blockActivity(coef);
+        if (activity >= ACTIVITY_FLOOR) {
+          scanned2++;
+          for (let k = 0; k < V2_MIDBAND.length; k++) {
+            const c = coef[V2_MIDBAND[k]];
+            acc2 += V2_CHIP[k] * c;
+            energy2 += c * c;
+            n2++;
+          }
+        }
+        if (activity >= V1_ACTIVITY_FLOOR) {
+          for (let k = 0; k < V1_MIDBAND.length; k++) {
+            const c = coef[V1_MIDBAND[k]];
+            acc1 += V1_CHIP[k] * c;
+            energy1 += c * c;
+            n1++;
+          }
+        }
+      }
+    }
+    const score2 = energy2 > 0 ? acc2 / Math.sqrt(energy2 * n2) : 0;
+    const score1 = energy1 > 0 ? acc1 / Math.sqrt(energy1 * n1) : 0;
+    const present2 = n2 > 0 && score2 > thresholdForCoefficients(n2);
+    const present1 = n1 > 0 && score1 > thresholdForCoefficients(n1);
+    return { present: present2 || present1, score: Math.max(score1, score2), blocks: scanned2 };
+  } catch {
+    return { present: false, score: 0, blocks: 0 };
+  }
+}
+var WATERMARK_VERSION, DEFAULT_STRENGTH, LOSSLESS_STRENGTH, DETECT_THRESHOLD, DETECT_MIN_SIGMA, PSNR_FLOOR, MAX_STRENGTH_RETRIES, N, BLOCK, M, V1_MIDBAND, V2_MIDBAND, MIDBAND, V2_BAND_SIZE, MIN_IMPRINT_THRESHOLD, MIN_IMPRINT_BLOCKS, CHIP_KEY_V1, CHIP_KEY_V2, deriveChip, V1_CHIP, V2_CHIP, CHIP, ACTIVITY_FLOOR, V1_ACTIVITY_FLOOR, MASK_MIN, MASK_MAX, MASK_REF;
+var init_pixel_watermark = __esm({
+  "engine/src/pixel-watermark.ts"() {
+    "use strict";
+    WATERMARK_VERSION = 2;
+    DEFAULT_STRENGTH = 3.8;
+    LOSSLESS_STRENGTH = 2;
+    DETECT_THRESHOLD = 0.06;
+    DETECT_MIN_SIGMA = 4;
+    PSNR_FLOOR = 40;
+    MAX_STRENGTH_RETRIES = 3;
+    N = 8;
+    BLOCK = N * N;
+    M = (() => {
+      const m = new Float64Array(BLOCK);
+      for (let u = 0; u < N; u++) {
+        const a = u === 0 ? Math.sqrt(1 / N) : Math.sqrt(2 / N);
+        for (let x = 0; x < N; x++) m[u * N + x] = a * Math.cos((2 * x + 1) * u * Math.PI / (2 * N));
+      }
+      return m;
+    })();
+    V1_MIDBAND = [3, 10, 17, 24, 32, 25, 18, 11, 4, 5, 12, 19, 26, 33, 40];
+    V2_MIDBAND = [3, 10, 17, 24, 32, 25, 18, 11, 4, 5, 12, 19, 26, 33, 40, 48, 41, 34, 27, 20, 13, 6];
+    MIDBAND = V2_MIDBAND;
+    V2_BAND_SIZE = V2_MIDBAND.length;
+    MIN_IMPRINT_THRESHOLD = 0.035;
+    MIN_IMPRINT_BLOCKS = Math.ceil((DETECT_MIN_SIGMA / MIN_IMPRINT_THRESHOLD) ** 2 / MIDBAND.length);
+    CHIP_KEY_V1 = 269557340;
+    CHIP_KEY_V2 = 539110766;
+    deriveChip = (key, band) => {
+      const rnd = mulberry32(key);
+      return band.map(() => rnd() < 0.5 ? -1 : 1);
+    };
+    V1_CHIP = deriveChip(CHIP_KEY_V1, V1_MIDBAND);
+    V2_CHIP = deriveChip(CHIP_KEY_V2, V2_MIDBAND);
+    CHIP = V2_CHIP;
+    ACTIVITY_FLOOR = 2.5;
+    V1_ACTIVITY_FLOOR = 1.5;
+    MASK_MIN = 0.12;
+    MASK_MAX = 2.5;
+    MASK_REF = 9;
+  }
+});
+
+// engine/src/watermark-search.ts
+function bilinearResampleRgba(src, srcW, srcH, scale) {
+  const dstW = Math.max(1, Math.round(srcW * scale));
+  const dstH = Math.max(1, Math.round(srcH * scale));
+  const out = new Uint8Array(dstW * dstH * 4);
+  const maxX = srcW - 1, maxY = srcH - 1;
+  for (let dy = 0; dy < dstH; dy++) {
+    let sy = (dy + 0.5) / scale - 0.5;
+    if (sy < 0) sy = 0;
+    else if (sy > maxY) sy = maxY;
+    const y0 = Math.floor(sy);
+    const y1 = y0 < maxY ? y0 + 1 : y0;
+    const fy = sy - y0;
+    const row0 = y0 * srcW, row1 = y1 * srcW;
+    for (let dx = 0; dx < dstW; dx++) {
+      let sx = (dx + 0.5) / scale - 0.5;
+      if (sx < 0) sx = 0;
+      else if (sx > maxX) sx = maxX;
+      const x0 = Math.floor(sx);
+      const x1 = x0 < maxX ? x0 + 1 : x0;
+      const fx = sx - x0;
+      const p00 = (row0 + x0) * 4, p01 = (row0 + x1) * 4;
+      const p10 = (row1 + x0) * 4, p11 = (row1 + x1) * 4;
+      const w00 = (1 - fx) * (1 - fy), w01 = fx * (1 - fy);
+      const w10 = (1 - fx) * fy, w11 = fx * fy;
+      const o = (dy * dstW + dx) * 4;
+      for (let c = 0; c < 4; c++) {
+        out[o + c] = src[p00 + c] * w00 + src[p01 + c] * w01 + src[p10 + c] * w10 + src[p11 + c] * w11 + 0.5 | 0;
+      }
+    }
+  }
+  return { data: out, width: dstW, height: dstH };
+}
+function cropOrigin(src, w, h, dx, dy) {
+  const nw = w - dx, nh = h - dy;
+  const out = new Uint8Array(nw * nh * 4);
+  for (let y = 0; y < nh; y++) {
+    const srcStart = ((y + dy) * w + dx) * 4;
+    out.set(src.subarray(srcStart, srcStart + nw * 4), y * nw * 4);
+  }
+  return { data: out, width: nw, height: nh };
+}
+function passes(r3, hypotheses) {
+  if (r3.blocks <= 0) return false;
+  const nCoef = r3.blocks * V2_BAND_SIZE;
+  const threshold = Math.max(SEARCH_DETECT_FLOOR, detectionThreshold(nCoef, hypotheses));
+  return r3.score > threshold;
+}
+async function detectWatermarkSearch(rgba, opts, searchOpts) {
+  const tier = searchOpts?.tier ?? 1;
+  const budget = Math.max(1, searchOpts?.hypothesisBudget ?? DEFAULT_HYPOTHESIS_BUDGET);
+  let data = rgba;
+  let w = opts.width, h = opts.height;
+  const longEdge = Math.max(w, h);
+  if (longEdge > MAX_WORK_EDGE && w * h * 4 <= rgba.length) {
+    const capped = bilinearResampleRgba(rgba, w, h, MAX_WORK_EDGE / longEdge);
+    data = capped.data;
+    w = capped.width;
+    h = capped.height;
+  }
+  let tried = 0;
+  const best = { present: false, score: 0, blocks: 0, scale: 1, offsetX: 0, offsetY: 0, hypothesesTried: 0, tier };
+  const consider = (r3, scale, dx, dy) => {
+    if (r3.score > best.score) {
+      best.score = r3.score;
+      best.blocks = r3.blocks;
+      best.scale = scale;
+      best.offsetX = dx;
+      best.offsetY = dy;
+    }
+  };
+  const yieldMaybe = async () => {
+    if (tried % YIELD_EVERY === 0) await new Promise((res) => setTimeout(res, 0));
+  };
+  for (let dy = 0; dy < 8 && tried < budget; dy++) {
+    for (let dx = 0; dx < 8 && tried < budget; dx++) {
+      if (w - dx < 8 || h - dy < 8) continue;
+      const cand = dx === 0 && dy === 0 ? { data, width: w, height: h } : cropOrigin(data, w, h, dx, dy);
+      const r3 = detectWatermark(cand.data, { width: cand.width, height: cand.height });
+      tried++;
+      consider(r3, 1, dx, dy);
+      if (passes(r3, TIER1_HYPOTHESES)) {
+        return { present: true, score: r3.score, blocks: r3.blocks, scale: 1, offsetX: dx, offsetY: dy, hypothesesTried: tried, tier: 1 };
+      }
+      await yieldMaybe();
+    }
+  }
+  if (tier < 2) {
+    best.hypothesesTried = tried;
+    best.tier = 1;
+    return best;
+  }
+  for (const scale of SCALE_ORDER) {
+    if (tried >= budget) break;
+    const rs = bilinearResampleRgba(data, w, h, scale);
+    if (rs.width < 8 || rs.height < 8) continue;
+    for (let dy = 0; dy < 8 && tried < budget; dy++) {
+      for (let dx = 0; dx < 8 && tried < budget; dx++) {
+        if (rs.width - dx < 8 || rs.height - dy < 8) continue;
+        const cand = dx === 0 && dy === 0 ? rs : cropOrigin(rs.data, rs.width, rs.height, dx, dy);
+        const r3 = detectWatermark(cand.data, { width: cand.width, height: cand.height });
+        tried++;
+        consider(r3, scale, dx, dy);
+        if (passes(r3, TIER2_HYPOTHESES)) {
+          return { present: true, score: r3.score, blocks: r3.blocks, scale, offsetX: dx, offsetY: dy, hypothesesTried: tried, tier: 2 };
+        }
+        await yieldMaybe();
+      }
+    }
+  }
+  best.hypothesesTried = tried;
+  best.tier = 2;
+  return best;
+}
+var SEARCH_DETECT_FLOOR, SCALE_ORDER, TIER1_HYPOTHESES, TIER2_HYPOTHESES, DEFAULT_HYPOTHESIS_BUDGET, MAX_WORK_EDGE, YIELD_EVERY;
+var init_watermark_search = __esm({
+  "engine/src/watermark-search.ts"() {
+    "use strict";
+    init_pixel_watermark();
+    SEARCH_DETECT_FLOOR = 0.12;
+    SCALE_ORDER = [0.84, 1.19, 0.71, 1.41, 0.59, 1.68, 0.5, 2];
+    TIER1_HYPOTHESES = 64;
+    TIER2_HYPOTHESES = 576;
+    DEFAULT_HYPOTHESIS_BUDGET = 640;
+    MAX_WORK_EDGE = 2e3;
+    YIELD_EVERY = 16;
+  }
+});
+
+// engine/src/png-unfilter.ts
+function unfilterPng(inflated2, width, height, bytesPerPixel) {
+  const bpp = Math.floor(bytesPerPixel);
+  const w = Math.floor(width);
+  const h = Math.floor(height);
+  if (!(bpp > 0) || !(w > 0) || !(h > 0)) return null;
+  const rowBytes = w * bpp;
+  const stride = rowBytes + 1;
+  if (!Number.isSafeInteger(rowBytes) || !Number.isSafeInteger(stride * h)) return null;
+  if (inflated2.length < stride * h) return null;
+  const out = new Uint8Array(rowBytes * h);
+  let prevRow = 0;
+  for (let y = 0; y < h; y++) {
+    const filter = inflated2[y * stride];
+    const inRow = y * stride + 1;
+    const outRow = y * rowBytes;
+    for (let x = 0; x < rowBytes; x++) {
+      const raw = inflated2[inRow + x];
+      const a = x >= bpp ? out[outRow + x - bpp] : 0;
+      const b = y > 0 ? out[prevRow + x] : 0;
+      const c = y > 0 && x >= bpp ? out[prevRow + x - bpp] : 0;
+      let val;
+      switch (filter) {
+        case 0:
+          val = raw;
+          break;
+        // None
+        case 1:
+          val = raw + a;
+          break;
+        // Sub
+        case 2:
+          val = raw + b;
+          break;
+        // Up
+        case 3:
+          val = raw + (a + b >> 1);
+          break;
+        // Average (floor)
+        case 4:
+          val = raw + paethPredictor(a, b, c);
+          break;
+        // Paeth
+        default:
+          return null;
+      }
+      out[outRow + x] = val & 255;
+    }
+    prevRow = outRow;
+  }
+  return out;
+}
+function paethPredictor(a, b, c) {
+  const p = a + b - c;
+  const pa = Math.abs(p - a);
+  const pb = Math.abs(p - b);
+  const pc = Math.abs(p - c);
+  if (pa <= pb && pa <= pc) return a;
+  if (pb <= pc) return b;
+  return c;
+}
+var init_png_unfilter = __esm({
+  "engine/src/png-unfilter.ts"() {
     "use strict";
   }
 });
 
+// engine/src/steganalysis.ts
+function gammaQ(a, x) {
+  if (x < 0 || a <= 0) return 1;
+  if (x === 0) return 1;
+  const gln = lnGamma(a);
+  if (x < a + 1) {
+    let ap = a, sum = 1 / a, del = sum;
+    for (let i = 0; i < 200; i++) {
+      ap++;
+      del *= x / ap;
+      sum += del;
+      if (Math.abs(del) < Math.abs(sum) * 1e-9) break;
+    }
+    return Math.max(0, 1 - sum * Math.exp(-x + a * Math.log(x) - gln));
+  }
+  let b = x + 1 - a, c = 1 / 1e-30, d = 1 / b, h = d;
+  for (let i = 1; i <= 200; i++) {
+    const an = -i * (i - a);
+    b += 2;
+    d = an * d + b;
+    if (Math.abs(d) < 1e-30) d = 1e-30;
+    c = b + an / c;
+    if (Math.abs(c) < 1e-30) c = 1e-30;
+    d = 1 / d;
+    const del = d * c;
+    h *= del;
+    if (Math.abs(del - 1) < 1e-9) break;
+  }
+  return Math.min(1, Math.exp(-x + a * Math.log(x) - gln) * h);
+}
+function lnGamma(x) {
+  const c = [
+    676.5203681218851,
+    -1259.1392167224028,
+    771.3234287776531,
+    -176.6150291621406,
+    12.507343278686905,
+    -0.13857109526572012,
+    9984369578019572e-21,
+    15056327351493116e-23
+  ];
+  if (x < 0.5) return Math.log(Math.PI / Math.sin(Math.PI * x)) - lnGamma(1 - x);
+  x -= 1;
+  let a = 0.9999999999998099;
+  const t = x + 7.5;
+  for (let i = 0; i < 8; i++) a += c[i] / (x + i + 1);
+  return 0.5 * Math.log(2 * Math.PI) + (x + 0.5) * Math.log(t) - t + Math.log(a);
+}
+function channelP(rgba, channel2, n2) {
+  const h = new Float64Array(256);
+  for (let i = 0; i < n2; i++) h[rgba[i * 4 + channel2]]++;
+  let chi2 = 0, k = 0;
+  for (let v = 0; v < 256; v += 2) {
+    const e = (h[v] + h[v + 1]) / 2;
+    if (e < 5) continue;
+    chi2 += (h[v] - e) * (h[v] - e) / e;
+    k++;
+  }
+  if (k < 2) return 0;
+  return gammaQ((k - 1) / 2, chi2 / 2);
+}
+function analyzeLsb(rgba, opts) {
+  const total = Math.min(opts.width * opts.height, Math.floor(rgba.length / 4));
+  if (total < MIN_PIXELS) return { suspicious: false, score: 0, pixels: total };
+  try {
+    let best = 0;
+    for (const f of PREFIXES) {
+      const n2 = Math.floor(total * f);
+      if (n2 < MIN_PIXELS) continue;
+      const p = Math.min(channelP(rgba, 0, n2), channelP(rgba, 1, n2), channelP(rgba, 2, n2));
+      if (p > best) best = p;
+    }
+    return { suspicious: best >= P_THRESHOLD, score: best, pixels: total };
+  } catch {
+    return { suspicious: false, score: 0, pixels: total };
+  }
+}
+var MIN_PIXELS, P_THRESHOLD, PREFIXES;
+var init_steganalysis = __esm({
+  "engine/src/steganalysis.ts"() {
+    "use strict";
+    MIN_PIXELS = 64 * 64;
+    P_THRESHOLD = 0.95;
+    PREFIXES = [0.25, 0.5, 1];
+  }
+});
+
+// engine/src/trustmark.ts
+function deg(x) {
+  let count2 = 0;
+  let v = x >>> 0;
+  while (v >>> 1) {
+    v = v >>> 1;
+    count2++;
+  }
+  return count2;
+}
+function ceilDiv(a, b) {
+  return Math.floor((a + b - 1) / b);
+}
+function load4Bytes(b0, b1, b2, b3) {
+  return (b0 << 24 | b1 << 16 | b2 << 8 | b3) >>> 0;
+}
+function gMod(engine, v) {
+  return v < engine.n ? v : v - engine.n;
+}
+function gModN(engine, v) {
+  const n2 = engine.n;
+  while (v >= n2) {
+    v -= n2;
+    v = (v & n2) + (v >>> engine.m);
+  }
+  return v;
+}
+function gLog(engine, x) {
+  return engine.logarithms[x];
+}
+function gPow(engine, i) {
+  return engine.exponents[gModN(engine, i)];
+}
+function gMul(engine, a, b) {
+  if (a > 0 && b > 0) {
+    return engine.exponents[gMod(engine, engine.logarithms[a] + engine.logarithms[b])];
+  }
+  return 0;
+}
+function gDiv(engine, a, b) {
+  if (a) {
+    return engine.exponents[gMod(engine, engine.logarithms[a] + engine.n - engine.logarithms[b])];
+  }
+  return 0;
+}
+function gSqrt(engine, a) {
+  return a ? engine.exponents[gMod(engine, 2 * engine.logarithms[a])] : 0;
+}
+function getRoots(engine, k, poly) {
+  const roots = [];
+  if (poly.deg > 2) {
+    const kk = k * 8 + engine.eccBits;
+    const rep = new Array(engine.t * 2).fill(0);
+    const d = poly.deg;
+    const l = engine.n - gLog(engine, poly.c[poly.deg]);
+    for (let i = 0; i < d; i++) {
+      rep[i] = poly.c[i] ? gMod(engine, gLog(engine, poly.c[i]) + l) : -1;
+    }
+    rep[poly.deg] = 0;
+    const syn0 = gDiv(engine, poly.c[0], poly.c[poly.deg]);
+    for (let i = engine.n - kk + 1; i <= engine.n; i++) {
+      let syn = syn0;
+      for (let j = 1; j <= poly.deg; j++) {
+        const m = rep[j];
+        if (m >= 0) syn = syn ^ gPow(engine, m + j * i);
+      }
+      if (syn === 0) {
+        roots.push(engine.n - i);
+        if (roots.length === poly.deg) break;
+      }
+    }
+    if (roots.length < poly.deg) {
+      engine.errloc = [];
+      return -1;
+    }
+  }
+  if (poly.deg === 1) {
+    if (poly.c[0]) {
+      roots.push(gMod(engine, engine.n - engine.logarithms[poly.c[0]] + engine.logarithms[poly.c[1]]));
+    }
+  }
+  if (poly.deg === 2) {
+    if (poly.c[0] && poly.c[1]) {
+      const l0 = engine.logarithms[poly.c[0]];
+      const l1 = engine.logarithms[poly.c[1]];
+      const l2 = engine.logarithms[poly.c[2]];
+      const u = gPow(engine, l0 + l2 + 2 * (engine.n - l1));
+      let r3 = 0;
+      let v = u;
+      while (v) {
+        const i = deg(v);
+        r3 = r3 ^ engine.elpPre[i];
+        v = v ^ 1 << i;
+      }
+      if ((gSqrt(engine, r3) ^ r3) === u) {
+        roots.push(gModN(engine, 2 * engine.n - l1 - engine.logarithms[r3] + l2));
+        roots.push(gModN(engine, 2 * engine.n - l1 - engine.logarithms[r3 ^ 1] + l2));
+      }
+    }
+  }
+  engine.errloc = roots;
+  return roots.length;
+}
+function buildCyclic(engine, g2) {
+  const l = ceilDiv(engine.m * engine.t, 32);
+  const plen = ceilDiv(engine.eccBits + 1, 32);
+  const ecclen = ceilDiv(engine.eccBits, 32);
+  engine.cyclicTab = new Array(4 * 256 * l).fill(0);
+  for (let i = 0; i < 256; i++) {
+    for (let b = 0; b < 4; b++) {
+      const offset = (b * 256 + i) * l;
+      let data = i << 8 * b >>> 0;
+      while (data) {
+        const d = deg(data);
+        data = (data ^ g2[0] >>> 31 - d) >>> 0;
+        for (let j = 0; j < ecclen; j++) {
+          const hi = d < 31 ? g2[j] << d + 1 >>> 0 : 0;
+          const lo = j + 1 < plen ? g2[j + 1] >>> 31 - d : 0;
+          engine.cyclicTab[j + offset] = (engine.cyclicTab[j + offset] ^ (hi | lo)) >>> 0;
+        }
+      }
+    }
+  }
+}
+function createBchEngine(t, poly) {
+  let tmp = poly;
+  let m = 0;
+  while (tmp >>> 1) {
+    tmp = tmp >>> 1;
+    m++;
+  }
+  const n2 = (1 << m) - 1;
+  const eccBytes = ceilDiv(m * t, 8);
+  const engine = {
+    m,
+    t,
+    poly,
+    n: n2,
+    eccBytes,
+    eccBits: 0,
+    // set below, once the generator polynomial's real degree is known
+    cyclicTab: [],
+    exponents: new Array(n2 + 1).fill(0),
+    logarithms: new Array(n2 + 1).fill(0),
+    elpPre: new Array(m + 1).fill(0),
+    eccBuf: [],
+    errloc: new Array(t).fill(0)
+  };
+  const k = 1 << deg(poly);
+  if (k !== 1 << m) throw new Error("trustmark: BCH polynomial degree does not match field size");
+  let x = 1;
+  for (let i = 0; i < n2; i++) {
+    engine.exponents[i] = x;
+    engine.logarithms[x] = i;
+    if (i && x === 1) throw new Error("trustmark: BCH polynomial is not primitive for this field");
+    x *= 2;
+    if (x & k) x ^= poly;
+  }
+  engine.logarithms[0] = 0;
+  engine.exponents[n2] = 1;
+  const g2 = { deg: 0, c: new Array(m * t + 1).fill(0) };
+  const roots = new Array(n2 + 1).fill(0);
+  for (let i = 0; i < t; i++) {
+    let r3 = 2 * i + 1;
+    for (let j = 0; j < m; j++) {
+      roots[r3] = 1;
+      r3 = gMod(engine, 2 * r3);
+    }
+  }
+  g2.deg = 0;
+  g2.c[0] = 1;
+  for (let i = 0; i < n2; i++) {
+    if (roots[i]) {
+      const r3 = engine.exponents[i];
+      g2.c[g2.deg + 1] = 1;
+      for (let j = g2.deg; j > 0; j--) {
+        g2.c[j] = gMul(engine, g2.c[j], r3) ^ g2.c[j - 1];
+      }
+      g2.c[0] = gMul(engine, g2.c[0], r3);
+      g2.deg += 1;
+    }
+  }
+  const genpoly = new Array(ceilDiv(m * t + 1, 32)).fill(0);
+  let nrem = g2.deg + 1;
+  let gi = 0;
+  while (nrem > 0) {
+    const nbits = nrem > 32 ? 32 : nrem;
+    let word = 0;
+    for (let j = 0; j < nbits; j++) {
+      if (g2.c[nrem - 1 - j]) word |= 1 << 31 - j;
+    }
+    genpoly[gi] = word >>> 0;
+    gi++;
+    nrem -= nbits;
+  }
+  engine.eccBits = g2.deg;
+  buildCyclic(engine, genpoly);
+  let aexp = 0;
+  for (let i = 0; i < m; i++) {
+    let sum = 0;
+    for (let j = 0; j < m; j++) sum ^= gPow(engine, i * (1 << j));
+    if (sum) {
+      aexp = engine.exponents[i];
+      break;
+    }
+  }
+  let x2 = 0;
+  const precomp = new Array(31).fill(0);
+  let remaining = m;
+  while (x2 <= n2 && remaining) {
+    let y = gSqrt(engine, x2) ^ x2;
+    for (let i = 0; i < 2; i++) {
+      const r3 = gLog(engine, y);
+      if (y && r3 < m && !precomp[r3]) {
+        engine.elpPre[r3] = x2;
+        precomp[r3] = 1;
+        remaining--;
+        break;
+      }
+      y = y ^ aexp;
+    }
+    x2++;
+  }
+  return engine;
+}
+function bchEncode(engine, dataIn) {
+  const data = dataIn;
+  const datalen = data.length;
+  const l = ceilDiv(engine.m * engine.t, 32) - 1;
+  const eccMaxWords = ceilDiv(31 * 64, 32);
+  const r3 = new Array(eccMaxWords).fill(0);
+  const tab0idx = 0;
+  const tab1idx = tab0idx + 256 * (l + 1);
+  const tab2idx = tab1idx + 256 * (l + 1);
+  const tab3idx = tab2idx + 256 * (l + 1);
+  let mlen = Math.floor(datalen / 4);
+  let offset = 0;
+  while (mlen > 0) {
+    let w = load4Bytes(data[offset], data[offset + 1], data[offset + 2], data[offset + 3]);
+    w = (w ^ r3[0]) >>> 0;
+    const p0 = tab0idx + (l + 1) * (w >>> 0 & 255);
+    const p1 = tab1idx + (l + 1) * (w >>> 8 & 255);
+    const p2 = tab2idx + (l + 1) * (w >>> 16 & 255);
+    const p3 = tab3idx + (l + 1) * (w >>> 24 & 255);
+    for (let i = 0; i < l; i++) {
+      r3[i] = (r3[i + 1] ^ engine.cyclicTab[p0 + i] ^ engine.cyclicTab[p1 + i] ^ engine.cyclicTab[p2 + i] ^ engine.cyclicTab[p3 + i]) >>> 0;
+    }
+    r3[l] = (engine.cyclicTab[p0 + l] ^ engine.cyclicTab[p1 + l] ^ engine.cyclicTab[p2 + l] ^ engine.cyclicTab[p3 + l]) >>> 0;
+    mlen--;
+    offset += 4;
+  }
+  let posn = offset;
+  let leftdata = datalen - offset;
+  while (leftdata > 0) {
+    const tmp = data[posn];
+    posn++;
+    let pidx = (l + 1) * ((r3[0] >>> 24 ^ tmp) & 255);
+    for (let i = 0; i < l; i++) {
+      r3[i] = ((r3[i] << 8 | r3[i + 1] >>> 24) ^ engine.cyclicTab[pidx]) >>> 0;
+      pidx++;
+    }
+    r3[l] = (r3[l] << 8 ^ engine.cyclicTab[pidx]) >>> 0;
+    leftdata--;
+  }
+  engine.eccBuf = r3.slice();
+  const eccout = [];
+  for (const e of r3) {
+    eccout.push(e >>> 24 & 255, e >>> 16 & 255, e >>> 8 & 255, e >>> 0 & 255);
+  }
+  return eccout.slice(0, engine.eccBytes);
+}
+function bchDecode(engine, data, recvecc) {
+  bchEncode(engine, data);
+  engine.errloc = [];
+  const ecclen = recvecc.length;
+  let mlen = Math.floor(ecclen / 4);
+  const eccbuf = [];
+  let offset = 0;
+  while (mlen > 0) {
+    eccbuf.push(load4Bytes(recvecc[offset], recvecc[offset + 1], recvecc[offset + 2], recvecc[offset + 3]));
+    offset += 4;
+    mlen--;
+  }
+  let recvTail = recvecc.slice(offset);
+  const leftdata = recvTail.length;
+  if (leftdata > 0) {
+    recvTail = recvTail.concat(new Array(4 - leftdata).fill(0));
+    eccbuf.push(load4Bytes(recvTail[0], recvTail[1], recvTail[2], recvTail[3]));
+  }
+  const eccwords = ceilDiv(engine.m * engine.t, 32);
+  let sum = 0;
+  for (let i = 0; i < eccwords; i++) {
+    engine.eccBuf[i] = (engine.eccBuf[i] ^ eccbuf[i]) >>> 0;
+    sum = sum | engine.eccBuf[i];
+  }
+  if (sum === 0) return 0;
+  let s = engine.eccBits;
+  const t = engine.t;
+  const syn = new Array(2 * t).fill(0);
+  const m = s & 31;
+  const synbuf = engine.eccBuf;
+  if (m) {
+    const idx = Math.floor(s / 32);
+    synbuf[idx] = (synbuf[idx] & ~0 << 32 - m) >>> 0;
+  }
+  let synptr = 0;
+  while (s > 0 || synptr === 0) {
+    let poly = synbuf[synptr];
+    synptr++;
+    s -= 32;
+    while (poly) {
+      const i = deg(poly);
+      for (let j = 0; j < 2 * t; j += 2) {
+        syn[j] = syn[j] ^ gPow(engine, (j + 1) * (i + s));
+      }
+      poly = (poly ^ 1 << i) >>> 0;
+    }
+  }
+  for (let i = 0; i < t; i++) syn[2 * i + 1] = gSqrt(engine, syn[i]);
+  const n2 = engine.n;
+  let pp = -1;
+  let pd = 1;
+  let pelp = { deg: 0, c: new Array(2 * t).fill(0) };
+  pelp.c[0] = 1;
+  const elp = { deg: 0, c: new Array(2 * t).fill(0) };
+  elp.c[0] = 1;
+  let d = syn[0];
+  for (let i = 0; i < t; i++) {
+    if (elp.deg > t) break;
+    if (d) {
+      const k = 2 * i - pp;
+      const elpCopy = { deg: elp.deg, c: elp.c.slice() };
+      const tmp0 = gLog(engine, d) + n2 - gLog(engine, pd);
+      for (let j = 0; j <= pelp.deg; j++) {
+        if (pelp.c[j]) {
+          const l = gLog(engine, pelp.c[j]);
+          elp.c[j + k] = elp.c[j + k] ^ gPow(engine, tmp0 + l);
+        }
+      }
+      const tmp1 = pelp.deg + k;
+      if (tmp1 > elp.deg) {
+        elp.deg = tmp1;
+        pelp = elpCopy;
+        pd = d;
+        pp = 2 * i;
+      }
+    }
+    if (i < t - 1) {
+      d = syn[2 * i + 2];
+      for (let j = 1; j <= elp.deg; j++) {
+        d = d ^ gMul(engine, elp.c[j], syn[2 * i + 2 - j]);
+      }
+    }
+  }
+  const nroots = getRoots(engine, data.length, elp);
+  const datalen = data.length;
+  const nbits = datalen * 8 + engine.eccBits;
+  for (let i = 0; i < nroots; i++) {
+    if (engine.errloc[i] >= nbits) return -1;
+    let e = nbits - 1 - engine.errloc[i];
+    e = e & ~7 | 7 - (e & 7);
+    engine.errloc[i] = e;
+  }
+  for (const bitflip of engine.errloc) {
+    const byte = Math.floor(bitflip / 8);
+    const bit = 1 << (bitflip & 7);
+    if (bitflip < (data.length + recvecc.length) * 8) {
+      if (byte < data.length) {
+        data[byte] = data[byte] ^ bit;
+      } else {
+        recvTail[byte - data.length] = recvTail[byte - data.length] ^ bit;
+      }
+    }
+  }
+  return nroots;
+}
+function schemaEngine(version) {
+  if (!engineCache) {
+    engineCache = {};
+    for (const v of Object.keys(SCHEMA_INFO)) {
+      const vi = Number(v);
+      engineCache[vi] = createBchEngine(SCHEMA_INFO[vi].t, BCH_POLYNOMIAL);
+    }
+  }
+  return engineCache[version];
+}
+function padToByteBoundary(bits) {
+  const pad = (8 - bits.length % 8) % 8;
+  return pad ? bits.concat(new Array(pad).fill(0)) : bits.slice();
+}
+function bitsToBytes(bits) {
+  const padded = padToByteBoundary(bits);
+  const bytes = [];
+  for (let i = 0; i < padded.length; i += 8) {
+    let byte = 0;
+    for (let j = 0; j < 8; j++) byte = byte << 1 | (padded[i + j] ? 1 : 0);
+    bytes.push(byte);
+  }
+  return bytes;
+}
+function bytesToBitString(bytes, count2) {
+  let s = "";
+  for (const b of bytes) s += (b & 255).toString(2).padStart(8, "0");
+  return s.slice(0, count2);
+}
+function bitStringToHex(bits) {
+  const pad = (4 - bits.length % 4) % 4;
+  const padded = bits + "0".repeat(pad);
+  let hex = "";
+  for (let i = 0; i < padded.length; i += 4) hex += parseInt(padded.slice(i, i + 4), 2).toString(16);
+  return hex;
+}
+function decodeTrustmarkPayload(bits) {
+  try {
+    if (!bits || bits.length !== TRUSTMARK_PAYLOAD_BITS) {
+      return { valid: false, version: -1, schema: "unknown", dataBits: "", payloadHex: "" };
+    }
+    const bitArr = new Array(bits.length);
+    for (let i = 0; i < bits.length; i++) bitArr[i] = bits[i] ? 1 : 0;
+    const version = bitArr[bitArr.length - 2] * 2 + bitArr[bitArr.length - 1];
+    const info = SCHEMA_INFO[version];
+    const engine = schemaEngine(version);
+    if (!info || !engine) {
+      return { valid: false, version, schema: "unknown", dataBits: "", payloadHex: "" };
+    }
+    const dataBitArr = bitArr.slice(0, info.dataBits);
+    const eccBitArr = bitArr.slice(info.dataBits, ECC_REGION_BITS);
+    const dataBytes = bitsToBytes(dataBitArr);
+    const eccBytes = bitsToBytes(eccBitArr);
+    if (eccBytes.length !== engine.eccBytes) {
+      return { valid: false, version, schema: info.name, dataBits: "", payloadHex: "" };
+    }
+    const flips = bchDecode(engine, dataBytes, eccBytes);
+    if (flips === -1) {
+      return { valid: false, version, schema: info.name, dataBits: "", payloadHex: "" };
+    }
+    const correctedBits = bytesToBitString(dataBytes, info.dataBits);
+    return {
+      valid: true,
+      version,
+      schema: info.name,
+      dataBits: correctedBits,
+      payloadHex: bitStringToHex(correctedBits),
+      softBinding: `${version}*${bitArr.join("")}`
+    };
+  } catch {
+    return { valid: false, version: -1, schema: "unknown", dataBits: "", payloadHex: "" };
+  }
+}
+function encodeTrustmarkPayload(dataBits, version) {
+  const info = SCHEMA_INFO[version];
+  const engine = schemaEngine(version);
+  if (!info || !engine) throw new Error(`trustmark: unknown schema version ${version} (expected 0\u20133)`);
+  const dataArr = typeof dataBits === "string" ? Array.from(dataBits, (c) => c === "1" ? 1 : 0) : Array.from({ length: dataBits.length }, (_, i) => dataBits[i] ? 1 : 0);
+  if (dataArr.length !== info.dataBits) {
+    throw new Error(`trustmark: ${info.name} needs ${info.dataBits} data bits, got ${dataArr.length}`);
+  }
+  const dataBytes = bitsToBytes(dataArr);
+  const eccBytes = bchEncode(engine, dataBytes);
+  const eccRegionBits = ECC_REGION_BITS - info.dataBits;
+  const eccBitStr = bytesToBitString(eccBytes, eccRegionBits);
+  const out = [];
+  for (const b of dataArr) out.push(b);
+  for (const c of eccBitStr) out.push(c === "1" ? 1 : 0);
+  out.push(0, 0, version >> 1 & 1, version & 1);
+  return out;
+}
+function intToBits(value, width) {
+  const bits = new Array(width);
+  for (let i = 0; i < width; i++) bits[width - 1 - i] = value >>> i & 1;
+  return bits;
+}
+function bitsToInt(bits) {
+  let v = 0;
+  for (const b of bits) v = (v << 1 | (b ? 1 : 0)) >>> 0;
+  return v >>> 0;
+}
+function buildLollyDurablePayload(reservedId = 0) {
+  const data = [
+    ...intToBits(LOLLY_MAGIC_VALUE, LOLLY_MAGIC_BITS),
+    ...intToBits(LOLLY_SCHEME_VALUE, LOLLY_SCHEME_BITS),
+    ...intToBits(reservedId >>> 0, LOLLY_RESERVED_BITS)
+  ];
+  return encodeTrustmarkPayload(data, LOLLY_DURABLE_SCHEMA_VERSION);
+}
+function readLollyDurable(decoded) {
+  if (!decoded.valid || decoded.version !== LOLLY_DURABLE_SCHEMA_VERSION) return null;
+  const bits = Array.from(decoded.dataBits, (c) => c === "1" ? 1 : 0);
+  if (bits.length !== SCHEMA_INFO[LOLLY_DURABLE_SCHEMA_VERSION].dataBits) return null;
+  const magic = bitsToInt(bits.slice(0, LOLLY_MAGIC_BITS));
+  const scheme = bitsToInt(bits.slice(LOLLY_MAGIC_BITS, LOLLY_MAGIC_BITS + LOLLY_SCHEME_BITS));
+  if (magic !== LOLLY_MAGIC_VALUE || scheme !== LOLLY_SCHEME_VALUE) return null;
+  return { reservedId: bitsToInt(bits.slice(LOLLY_MAGIC_BITS + LOLLY_SCHEME_BITS)) };
+}
+function packNchwSigned(rgba, s) {
+  const total = s * s, page2 = total, twopage = 2 * total;
+  const t = new Float32Array(total * 3);
+  for (let i = 0; i < total; i++) {
+    const idx = i * 4;
+    t[i] = rgba[idx] / 127.5 - 1;
+    t[i + page2] = rgba[idx + 1] / 127.5 - 1;
+    t[i + twopage] = rgba[idx + 2] / 127.5 - 1;
+  }
+  return t;
+}
+function sampleBilinear(plane, s, fx, fy) {
+  const x = Math.min(Math.max(fx, 0), s - 1), y = Math.min(Math.max(fy, 0), s - 1);
+  const x0 = Math.floor(x), y0 = Math.floor(y);
+  const x1 = Math.min(x0 + 1, s - 1), y1 = Math.min(y0 + 1, s - 1);
+  const dx = x - x0, dy = y - y0;
+  const p00 = plane[y0 * s + x0], p10 = plane[y0 * s + x1];
+  const p01 = plane[y1 * s + x0], p11 = plane[y1 * s + x1];
+  return p00 * (1 - dx) * (1 - dy) + p10 * dx * (1 - dy) + p01 * (1 - dx) * dy + p11 * dx * dy;
+}
+async function embedDurableIntoRgba(rgba, width, height, hooks, opts = {}) {
+  if (width < TRUSTMARK_MIN_SIDE || height < TRUSTMARK_MIN_SIDE) return null;
+  const S = TRUSTMARK_MODEL_RESOLUTION, plane = S * S;
+  const strength = opts.strength ?? TRUSTMARK_Q_WM_STRENGTH;
+  const cover256 = await hooks.resizeCover(rgba, width, height, S);
+  if (!cover256 || cover256.length !== plane * 4) return null;
+  const bits = buildLollyDurablePayload(opts.reservedId ?? 0);
+  if (bits.length !== TRUSTMARK_PAYLOAD_BITS) return null;
+  const coverNchw = packNchwSigned(cover256, S);
+  const stegoData = await hooks.runEncoder(coverNchw, bits);
+  if (!stegoData || stegoData.length !== 3 * plane) return null;
+  const residual = [];
+  for (let c = 0; c < 3; c++) {
+    const r3 = new Float32Array(plane);
+    let sum = 0;
+    for (let i = 0; i < plane; i++) {
+      const st = Math.min(Math.max(stegoData[c * plane + i], -1), 1);
+      const d = st - coverNchw[c * plane + i];
+      r3[i] = d;
+      sum += d;
+    }
+    const mean = sum / plane;
+    for (let i = 0; i < plane; i++) r3[i] = r3[i] - mean;
+    residual.push(r3);
+  }
+  const out = new Uint8ClampedArray(rgba.length);
+  out.set(rgba);
+  return mergeResidual(out, rgba, residual, width, height, S, strength);
+}
+function mergeResidual(out, rgba, residual, width, height, S, strength) {
+  const sx = S / width, sy = S / height;
+  for (let y = 0; y < height; y++) {
+    const fy = (y + 0.5) * sy - 0.5;
+    for (let x = 0; x < width; x++) {
+      const fx = (x + 0.5) * sx - 0.5;
+      const o = (y * width + x) * 4;
+      for (let c = 0; c < 3; c++) {
+        const res = sampleBilinear(residual[c], S, fx, fy);
+        const base = rgba[o + c] / 127.5 - 1;
+        const merged = Math.min(Math.max(res * strength + base, -1), 1);
+        out[o + c] = Math.round((merged + 1) * 127.5);
+      }
+    }
+  }
+  return out;
+}
+var BCH_POLYNOMIAL, ECC_REGION_BITS, VERSION_FIELD_BITS, TRUSTMARK_PAYLOAD_BITS, SCHEMA_INFO, engineCache, LOLLY_DURABLE_SCHEMA_VERSION, LOLLY_MAGIC_BITS, LOLLY_MAGIC_VALUE, LOLLY_SCHEME_BITS, LOLLY_SCHEME_VALUE, LOLLY_RESERVED_BITS, TRUSTMARK_MODEL_RESOLUTION, TRUSTMARK_Q_WM_STRENGTH, TRUSTMARK_MIN_SIDE;
+var init_trustmark = __esm({
+  "engine/src/trustmark.ts"() {
+    "use strict";
+    BCH_POLYNOMIAL = 137;
+    ECC_REGION_BITS = 96;
+    VERSION_FIELD_BITS = 4;
+    TRUSTMARK_PAYLOAD_BITS = ECC_REGION_BITS + VERSION_FIELD_BITS;
+    SCHEMA_INFO = {
+      0: { name: "BCH_SUPER", dataBits: 40, t: 8 },
+      1: { name: "BCH_5", dataBits: 61, t: 5 },
+      2: { name: "BCH_4", dataBits: 68, t: 4 },
+      3: { name: "BCH_3", dataBits: 75, t: 3 }
+    };
+    engineCache = null;
+    LOLLY_DURABLE_SCHEMA_VERSION = 0;
+    LOLLY_MAGIC_BITS = 16;
+    LOLLY_MAGIC_VALUE = 4113;
+    LOLLY_SCHEME_BITS = 4;
+    LOLLY_SCHEME_VALUE = 1;
+    LOLLY_RESERVED_BITS = SCHEMA_INFO[LOLLY_DURABLE_SCHEMA_VERSION].dataBits - LOLLY_MAGIC_BITS - LOLLY_SCHEME_BITS;
+    TRUSTMARK_MODEL_RESOLUTION = 256;
+    TRUSTMARK_Q_WM_STRENGTH = 1;
+    TRUSTMARK_MIN_SIDE = 256;
+  }
+});
+
+// engine/src/contentseal.ts
+function bitsToHex(bits) {
+  const pad = (4 - bits.length % 4) % 4;
+  let hex = "";
+  for (let i = 0; i < bits.length + pad; i += 4) {
+    let nib = 0;
+    for (let j = 0; j < 4; j++) nib = nib << 1 | (bits[i + j] ? 1 : 0);
+    hex += nib.toString(16);
+  }
+  return hex;
+}
+function contentSealConsensus(views, opts = {}) {
+  const tau = opts.tau ?? CONTENTSEAL_DEFAULT_TAU;
+  const V = views.length;
+  const bits = V > 0 ? views[0].length : 0;
+  if (V < 2 || bits === 0 || views.some((v) => v.length !== bits)) {
+    return { present: false, unanimous: 0, bits, tau, views: V, minPairAgreement: 0, messageHex: "" };
+  }
+  const pairCount = V * (V - 1) / 2;
+  const pairAgree = new Array(pairCount).fill(0);
+  const message = new Array(bits);
+  let unanimous = 0;
+  for (let i = 0; i < bits; i++) {
+    let ones = 0;
+    let pair = 0;
+    for (let a = 0; a < V; a++) {
+      const ba = views[a][i] ? 1 : 0;
+      if (ba) ones++;
+      for (let b = a + 1; b < V; b++) {
+        if (ba === (views[b][i] ? 1 : 0)) pairAgree[pair] = pairAgree[pair] + 1;
+        pair++;
+      }
+    }
+    if (ones === 0 || ones === V) unanimous++;
+    message[i] = ones * 2 > V ? 1 : ones * 2 < V ? 0 : views[0][i] ? 1 : 0;
+  }
+  const minPairAgreement = pairAgree.length ? Math.min(...pairAgree) : bits;
+  return {
+    present: unanimous >= tau,
+    unanimous,
+    bits,
+    tau,
+    views: V,
+    minPairAgreement,
+    messageHex: bitsToHex(message)
+  };
+}
+var CONTENTSEAL_MESSAGE_BITS, CONTENTSEAL_DEFAULT_TAU;
+var init_contentseal = __esm({
+  "engine/src/contentseal.ts"() {
+    "use strict";
+    CONTENTSEAL_MESSAGE_BITS = 256;
+    CONTENTSEAL_DEFAULT_TAU = 72;
+  }
+});
+
+// engine/src/color.ts
+function srgbToLinear3(c) {
+  return c <= 0.04045 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4;
+}
+function writeSig(buf, offset, sig) {
+  for (let i = 0; i < 4; i++) buf[offset + i] = sig.charCodeAt(i);
+}
+function xyzType([x, y, z]) {
+  const b = new Uint8Array(20);
+  const dv = new DataView(b.buffer);
+  writeSig(b, 0, "XYZ ");
+  dv.setInt32(8, s15f16(x));
+  dv.setInt32(12, s15f16(y));
+  dv.setInt32(16, s15f16(z));
+  return b;
+}
+function curveType(samples) {
+  const n2 = samples.length;
+  const b = new Uint8Array(12 + n2 * 2);
+  const dv = new DataView(b.buffer);
+  writeSig(b, 0, "curv");
+  dv.setUint32(8, n2);
+  for (const [i, s] of samples.entries()) dv.setUint16(12 + i * 2, s);
+  return b;
+}
+function descType(ascii2) {
+  const a = new TextEncoder().encode(ascii2);
+  const count2 = a.length + 1;
+  const b = new Uint8Array(8 + 4 + count2 + 4 + 4 + 2 + 1 + 67);
+  const dv = new DataView(b.buffer);
+  writeSig(b, 0, "desc");
+  dv.setUint32(8, count2);
+  b.set(a, 12);
+  return b;
+}
+function textType(ascii2) {
+  const a = new TextEncoder().encode(ascii2);
+  const b = new Uint8Array(8 + a.length + 1);
+  writeSig(b, 0, "text");
+  b.set(a, 8);
+  return b;
+}
+function mlucType(str3) {
+  const HEADER = 16;
+  const RECORD = 12;
+  const bytes = str3.length * 2;
+  const b = new Uint8Array(HEADER + RECORD + bytes);
+  const dv = new DataView(b.buffer);
+  writeSig(b, 0, "mluc");
+  dv.setUint32(8, 1);
+  dv.setUint32(12, RECORD);
+  dv.setUint16(16, 25966);
+  dv.setUint16(18, 21843);
+  dv.setUint32(20, bytes);
+  dv.setUint32(24, HEADER + RECORD);
+  for (let i = 0; i < str3.length; i++) dv.setUint16(HEADER + RECORD + i * 2, str3.charCodeAt(i));
+  return b;
+}
+function sf32Type(values) {
+  const b = new Uint8Array(8 + values.length * 4);
+  const dv = new DataView(b.buffer);
+  writeSig(b, 0, "sf32");
+  values.forEach((v, i) => dv.setInt32(8 + i * 4, s15f16(v)));
+  return b;
+}
+function cicpType(primaries, transfer, matrix, fullRange) {
+  const b = new Uint8Array(12);
+  writeSig(b, 0, "cicp");
+  b[8] = primaries;
+  b[9] = transfer;
+  b[10] = matrix;
+  b[11] = fullRange;
+  return b;
+}
+function buildIcc(versionBE, tags) {
+  const tagTableSize = 4 + tags.length * 12;
+  let offset = align4(128 + tagTableSize);
+  const placed2 = /* @__PURE__ */ new Map();
+  const blobs = [];
+  const entries = tags.map(([sig, data]) => {
+    let p = placed2.get(data);
+    if (!p) {
+      p = { offset, size: data.length };
+      placed2.set(data, p);
+      blobs.push({ offset, data });
+      offset = align4(offset + data.length);
+    }
+    return { sig, offset: p.offset, size: p.size };
+  });
+  const total = offset;
+  const out = new Uint8Array(total);
+  const dv = new DataView(out.buffer);
+  dv.setUint32(0, total);
+  dv.setUint32(8, versionBE);
+  writeSig(out, 12, "mntr");
+  writeSig(out, 16, "RGB ");
+  writeSig(out, 20, "XYZ ");
+  dv.setUint16(24, 2024);
+  dv.setUint16(26, 1);
+  dv.setUint16(28, 1);
+  writeSig(out, 36, "acsp");
+  dv.setInt32(68, s15f16(D50[0]));
+  dv.setInt32(72, s15f16(D50[1]));
+  dv.setInt32(76, s15f16(D50[2]));
+  dv.setUint32(128, tags.length);
+  let to = 132;
+  for (const e of entries) {
+    writeSig(out, to, e.sig);
+    dv.setUint32(to + 4, e.offset);
+    dv.setUint32(to + 8, e.size);
+    to += 12;
+  }
+  for (const { offset: o, data } of blobs) out.set(data, o);
+  return out;
+}
+function srgbIccProfile() {
+  if (_srgbCache) return _srgbCache;
+  const trc = new Array(TRC_SAMPLES);
+  for (let i = 0; i < TRC_SAMPLES; i++) {
+    const lin = srgbToLinear3(i / (TRC_SAMPLES - 1));
+    trc[i] = Math.max(0, Math.min(65535, Math.round(lin * 65535)));
+  }
+  const trcData = curveType(trc);
+  _srgbCache = buildIcc(34603008, [
+    ["desc", descType("sRGB IEC61966-2.1")],
+    ["wtpt", xyzType(D50)],
+    ["rXYZ", xyzType(PRIMARIES.r)],
+    ["gXYZ", xyzType(PRIMARIES.g)],
+    ["bXYZ", xyzType(PRIMARIES.b)],
+    ["rTRC", trcData],
+    ["gTRC", trcData],
+    ["bTRC", trcData],
+    ["cprt", textType("Public Domain \u2014 sRGB profile generated by Lolly")]
+  ]);
+  return _srgbCache;
+}
+function pqEotfNorm(code) {
+  if (code <= 0) return 0;
+  const m1 = 2610 / 16384, m2 = 2523 / 4096 * 128;
+  const c1 = 3424 / 4096, c2 = 2413 / 4096 * 32, c3 = 2392 / 4096 * 32;
+  const p = code ** (1 / m2);
+  const num5 = Math.max(p - c1, 0);
+  const den = c2 - c3 * p;
+  return (num5 / den) ** (1 / m1);
+}
+function pqBt2020IccProfile() {
+  if (_pqCache) return _pqCache;
+  const trc = new Array(TRC_SAMPLES);
+  for (let i = 0; i < TRC_SAMPLES; i++) {
+    trc[i] = Math.max(0, Math.min(65535, Math.round(pqEotfNorm(i / (TRC_SAMPLES - 1)) * 65535)));
+  }
+  const trcData = curveType(trc);
+  _pqCache = buildIcc(71303168, [
+    // ICC v4.4 (first version with the cicp tag)
+    ["desc", mlucType("Rec.2100 PQ")],
+    ["cprt", mlucType("Public Domain \u2014 Rec.2100 PQ profile generated by Lolly")],
+    ["wtpt", xyzType(D50)],
+    ["chad", sf32Type(CHAD_D65_TO_D50)],
+    ["rXYZ", xyzType(BT2020_D50.r)],
+    ["gXYZ", xyzType(BT2020_D50.g)],
+    ["bXYZ", xyzType(BT2020_D50.b)],
+    ["rTRC", trcData],
+    ["gTRC", trcData],
+    ["bTRC", trcData],
+    ["cicp", cicpType(9, 16, 0, 1)]
+  ]);
+  return _pqCache;
+}
+function iccProfileBytes(name = "srgb") {
+  if (!name || name === "none") return null;
+  const p = isProfileName(name) ? COLOR_PROFILES[name] : COLOR_PROFILES.srgb;
+  return p.bytes();
+}
+function rgbToCmyk(r3, g2, b) {
+  const k = 1 - Math.max(r3, g2, b);
+  if (k >= 1) return [0, 0, 0, 1];
+  const d = 1 - k;
+  return [(1 - r3 - k) / d, (1 - g2 - k) / d, (1 - b - k) / d, k];
+}
+function cmykCondition(name = DEFAULT_CMYK_CONDITION) {
+  return isCmykConditionName(name) ? CMYK_CONDITIONS[name] : CMYK_CONDITIONS[DEFAULT_CMYK_CONDITION];
+}
+var s15f16, align4, D50, PRIMARIES, TRC_SAMPLES, _srgbCache, BT2020_D50, CHAD_D65_TO_D50, _pqCache, COLOR_PROFILES, isProfileName, CMYK_CONDITIONS, DEFAULT_CMYK_CONDITION, isCmykConditionName;
+var init_color = __esm({
+  "engine/src/color.ts"() {
+    "use strict";
+    s15f16 = (v) => Math.round(v * 65536);
+    align4 = (n2) => n2 + 3 & ~3;
+    D50 = [0.9642, 1, 0.8249];
+    PRIMARIES = {
+      r: [0.43607, 0.22249, 0.01392],
+      g: [0.38515, 0.71687, 0.09708],
+      b: [0.14307, 0.06061, 0.7141]
+    };
+    TRC_SAMPLES = 1024;
+    _srgbCache = null;
+    BT2020_D50 = {
+      r: [0.673459, 0.279033, -1938e-6],
+      g: [0.165661, 0.675338, 0.029996],
+      b: [0.1251, 0.045631, 0.797177]
+    };
+    CHAD_D65_TO_D50 = [
+      1.0478112,
+      0.0228866,
+      -0.050127,
+      0.0295424,
+      0.9904844,
+      -0.0170491,
+      -92345e-7,
+      0.0150436,
+      0.7521316
+    ];
+    _pqCache = null;
+    COLOR_PROFILES = {
+      srgb: { id: "srgb", name: "sRGB IEC61966-2.1", space: "RGB", bytes: srgbIccProfile }
+    };
+    isProfileName = (n2) => Object.hasOwn(COLOR_PROFILES, n2);
+    CMYK_CONDITIONS = {
+      fogra39: { identifier: "FOGRA39", info: "Coated FOGRA39 (ISO 12647-2:2004)", registry: "http://www.color.org" },
+      fogra51: { identifier: "FOGRA51", info: "PSO Coated v3 (FOGRA51)", registry: "http://www.color.org" },
+      swop: { identifier: "CGATS TR 001", info: "U.S. Web Coated (SWOP) v2", registry: "http://www.color.org" },
+      gracol: { identifier: "CGATS TR 006", info: "GRACoL 2006 Coated", registry: "http://www.color.org" }
+    };
+    DEFAULT_CMYK_CONDITION = "fogra39";
+    isCmykConditionName = (n2) => Object.hasOwn(CMYK_CONDITIONS, n2);
+  }
+});
+
 // engine/src/cmyk-palette.ts
-function cmykKey(r, g2, b) {
-  return `${Math.round(r * 100)},${Math.round(g2 * 100)},${Math.round(b * 100)}`;
+function cmykKey(r3, g2, b) {
+  return `${Math.round(r3 * 100)},${Math.round(g2 * 100)},${Math.round(b * 100)}`;
 }
 function buildCmykPaletteMap(palette) {
   const map = /* @__PURE__ */ new Map();
@@ -9631,14 +12752,17 @@ function buildCmykPaletteMap(palette) {
     if (!hex || !cmyk && !spot) continue;
     const h = hex.replace("#", "").toLowerCase();
     if (h.length !== 6) continue;
-    const r = parseInt(h.slice(0, 2), 16) / 255;
+    const r3 = parseInt(h.slice(0, 2), 16) / 255;
     const g2 = parseInt(h.slice(2, 4), 16) / 255;
     const b = parseInt(h.slice(4, 6), 16) / 255;
-    const frac = cmyk && cmyk.length === 4 ? cmyk.map((v) => v / 100) : rgbToCmyk(r, g2, b);
+    const frac = cmyk && cmyk.length === 4 ? cmyk.map((v) => v / 100) : rgbToCmyk(r3, g2, b);
     const build2 = spot?.finish ? FINISH_MASK_CMYK : frac;
-    map.set(cmykKey(r, g2, b), spot ? { cmyk: build2, spot: { name: spot.name, cmyk: build2, ...spot.finish ? { finish: spot.finish } : {} } } : { cmyk: frac });
+    map.set(cmykKey(r3, g2, b), spot ? { cmyk: build2, spot: { name: spot.name, cmyk: build2, ...spot.finish ? { finish: spot.finish } : {} } } : { cmyk: frac });
   }
   return map;
+}
+function paletteHasFinish(palette) {
+  return (palette ?? []).some((p) => typeof p?.spot?.finish === "string" && p.spot.finish !== "");
 }
 var FINISH_MASK_CMYK;
 var init_cmyk_palette = __esm({
@@ -9711,6 +12835,16 @@ function spreadPositions(stops) {
   }
   for (let k = 1; k <= last; k++) stops[k].pos = Math.max(stops[k].pos, stops[k - 1].pos);
 }
+function formatGradientSpec(g2) {
+  const mods = [
+    g2.space !== DEFAULT_GRADIENT_SPACE ? g2.space : "",
+    g2.hue && g2.hue !== "shorter" ? g2.hue : ""
+  ].filter(Boolean).join(".");
+  const head = KIND_SHORT[g2.kind] + (mods ? `.${mods}` : "");
+  const num5 = (n2) => String(Math.round(n2 * 100) / 100);
+  const stops = g2.stops.map((s) => `${wireColor(s.color)}-${num5(clampPos(s.pos))}`);
+  return [head, num5(normAngle(g2.angle)), ...stops].join("_");
+}
 function gradientSpecStops(g2) {
   const authored = [];
   for (const s of g2.stops) {
@@ -9735,11 +12869,12 @@ function gradientSpecToCss(input) {
       return `linear-gradient(${Math.round(normAngle(g2.angle) * 100) / 100}deg, ${stops})`;
   }
 }
-var DEFAULT_GRADIENT_SPACE, MAX_GRADIENT_STOPS, KIND_TOKENS, SPACE_TOKENS, HUE_TOKENS, normAngle, clampPos;
+var GRADIENT_KINDS, DEFAULT_GRADIENT_SPACE, MAX_GRADIENT_STOPS, KIND_TOKENS, KIND_SHORT, SPACE_TOKENS, HUE_TOKENS, normAngle, clampPos, wireColor;
 var init_gradient_spec = __esm({
   "engine/src/gradient-spec.ts"() {
     "use strict";
     init_css_color();
+    GRADIENT_KINDS = ["linear", "radial", "conic"];
     DEFAULT_GRADIENT_SPACE = "oklab";
     MAX_GRADIENT_STOPS = 12;
     KIND_TOKENS = {
@@ -9749,6 +12884,11 @@ var init_gradient_spec = __esm({
       radial: "radial",
       con: "conic",
       conic: "conic"
+    };
+    KIND_SHORT = {
+      linear: "lin",
+      radial: "rad",
+      conic: "con"
     };
     SPACE_TOKENS = {
       oklab: "oklab",
@@ -9767,6 +12907,7 @@ var init_gradient_spec = __esm({
     };
     normAngle = (n2) => (n2 % 360 + 360) % 360;
     clampPos = (n2) => Math.min(100, Math.max(0, n2));
+    wireColor = (c) => c.startsWith("#") ? c.slice(1) : c;
   }
 });
 
@@ -9782,6 +12923,11 @@ function assertDims(len2, width, height, what) {
     throw new Error(`${what}: buffer length ${len2} != ${width}x${height}x4 (${width * height * 4})`);
   }
 }
+function createDeepFrame(width, height, space = "srgb-linear") {
+  assertSpace(space);
+  assertDims(width * height * 4, width, height, "createDeepFrame");
+  return { width, height, data: new Float32Array(width * height * 4), space };
+}
 function fromU8Srgb(src, width, height) {
   assertDims(src.length, width, height, "fromU8Srgb");
   const data = new Float32Array(src.length);
@@ -9792,6 +12938,33 @@ function fromU8Srgb(src, width, height) {
     data[i + 3] = src[i + 3] / 255;
   }
   return { width, height, data, space: "srgb-linear" };
+}
+function toU8Srgb(frame) {
+  const f = convertSpace(frame, "srgb-linear");
+  const src = f.data;
+  const out = new Uint8ClampedArray(src.length);
+  for (let i = 0; i < src.length; i += 4) {
+    out[i] = Math.round(linearToSrgb3(clamp013(src[i])) * 255);
+    out[i + 1] = Math.round(linearToSrgb3(clamp013(src[i + 1])) * 255);
+    out[i + 2] = Math.round(linearToSrgb3(clamp013(src[i + 2])) * 255);
+    out[i + 3] = Math.round(clamp013(src[i + 3]) * 255);
+  }
+  return out;
+}
+function fromU16(src, width, height, space = "srgb-linear") {
+  assertDims(src.length, width, height, "fromU16");
+  if (space === "lab") throw new Error("fromU16: lab is not a 0..1 interchange space");
+  assertSpace(space);
+  const data = new Float32Array(src.length);
+  for (let i = 0; i < src.length; i++) data[i] = src[i] / 65535;
+  return { width, height, data, space };
+}
+function toU16(frame) {
+  if (frame.space === "lab") throw new Error("toU16: lab channels are not 0..1; convertSpace first");
+  const src = frame.data;
+  const out = new Uint16Array(src.length);
+  for (let i = 0; i < src.length; i++) out[i] = Math.round(clamp013(src[i]) * 65535);
+  return out;
 }
 function roundTiesToEven(x) {
   const fl = Math.floor(x);
@@ -9822,6 +12995,16 @@ function floatToHalf(v) {
   if (E >= 16) return sign | 31744;
   return sign | E + 15 << 10 | hm - 1024;
 }
+function halfToFloat(bits) {
+  const h = bits & 65535;
+  const e = h >>> 10 & 31;
+  const m = h & 1023;
+  let v;
+  if (e === 0) v = m * 2 ** -24;
+  else if (e === 31) v = m ? Number.NaN : Number.POSITIVE_INFINITY;
+  else v = (1 + m / 1024) * 2 ** (e - 15);
+  return h & 32768 ? -v : v;
+}
 function packF16(src) {
   if (F16) {
     const h = new F16(src.length);
@@ -9831,6 +13014,48 @@ function packF16(src) {
   const out = new Uint16Array(src.length);
   for (let i = 0; i < src.length; i++) out[i] = floatToHalf(src[i]);
   return out;
+}
+function unpackF16(src) {
+  const out = new Float32Array(src.length);
+  if (F16) {
+    const bits = new Uint16Array(src);
+    const view = new F16(bits.buffer);
+    out.set(view);
+    return out;
+  }
+  for (let i = 0; i < src.length; i++) out[i] = halfToFloat(src[i]);
+  return out;
+}
+function premultiply(frame) {
+  const d = frame.data;
+  for (let i = 0; i < d.length; i += 4) {
+    const a = d[i + 3];
+    if (a !== 1) {
+      d[i] *= a;
+      d[i + 1] *= a;
+      d[i + 2] *= a;
+    }
+  }
+  return frame;
+}
+function unpremultiply(frame) {
+  const d = frame.data;
+  for (let i = 0; i < d.length; i += 4) {
+    const a = d[i + 3];
+    if (a !== 0 && a !== 1) {
+      d[i] /= a;
+      d[i + 1] /= a;
+      d[i + 2] /= a;
+    }
+  }
+  return frame;
+}
+function mapScanlines(frame, fn) {
+  const stride = frame.width * 4;
+  for (let y = 0; y < frame.height; y++) {
+    fn(frame.data.subarray(y * stride, (y + 1) * stride), y);
+  }
+  return frame;
 }
 function xyzD50ToLab(X, Y, Z) {
   const f = (t) => t > LAB_E2 ? Math.cbrt(t) : (LAB_K2 * t + 16) / 116;
@@ -9856,7 +13081,7 @@ function convertSpace(frame, target) {
   const dstLab = target === "lab";
   const matSrc = frame.space === "lab" ? "xyz-d50" : frame.space;
   const matDst = target === "lab" ? "xyz-d50" : target;
-  const M = matSrc === matDst ? null : mul3(FROM_XYZ_D65[matDst], TO_XYZ_D65[matSrc]);
+  const M2 = matSrc === matDst ? null : mul3(FROM_XYZ_D65[matDst], TO_XYZ_D65[matSrc]);
   const src = frame.data;
   const out = new Float32Array(src.length);
   for (let i = 0; i < src.length; i += 4) {
@@ -9864,10 +13089,10 @@ function convertSpace(frame, target) {
     let y = src[i + 1];
     let z = src[i + 2];
     if (srcLab) [x, y, z] = labToXyzD50(x, y, z);
-    if (M) {
-      const nx = M[0] * x + M[1] * y + M[2] * z;
-      const ny = M[3] * x + M[4] * y + M[5] * z;
-      const nz = M[6] * x + M[7] * y + M[8] * z;
+    if (M2) {
+      const nx = M2[0] * x + M2[1] * y + M2[2] * z;
+      const ny = M2[3] * x + M2[4] * y + M2[5] * z;
+      const nz = M2[6] * x + M2[7] * y + M2[8] * z;
       x = nx;
       y = ny;
       z = nz;
@@ -9880,7 +13105,7 @@ function convertSpace(frame, target) {
   }
   return { width: frame.width, height: frame.height, data: out, space: target };
 }
-var PIXEL_SPACES, srgbToLinear3, LINEAR_LUT, F16, mul3, SRGB_TO_XYZ_D65, XYZ_D65_TO_SRGB, P3_TO_XYZ_D65, XYZ_D65_TO_P3, REC2020_TO_XYZ_D65, XYZ_D65_TO_REC2020, XYZ_D65_TO_D50, XYZ_D50_TO_D65, TO_XYZ_D65, FROM_XYZ_D65, D50_WHITE3, LAB_K2, LAB_E2;
+var PIXEL_SPACES, srgbToLinear4, linearToSrgb3, LINEAR_LUT, clamp013, F16, mul3, SRGB_TO_XYZ_D65, XYZ_D65_TO_SRGB, P3_TO_XYZ_D65, XYZ_D65_TO_P3, REC2020_TO_XYZ_D65, XYZ_D65_TO_REC2020, XYZ_D65_TO_D50, XYZ_D50_TO_D65, TO_XYZ_D65, FROM_XYZ_D65, D50_WHITE3, LAB_K2, LAB_E2;
 var init_pixels = __esm({
   "engine/src/pixels.ts"() {
     "use strict";
@@ -9891,9 +13116,11 @@ var init_pixels = __esm({
       "xyz-d50",
       "lab"
     ];
-    srgbToLinear3 = (c) => c <= 0.04045 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4;
+    srgbToLinear4 = (c) => c <= 0.04045 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4;
+    linearToSrgb3 = (c) => c <= 31308e-7 ? 12.92 * c : 1.055 * c ** (1 / 2.4) - 0.055;
     LINEAR_LUT = new Float64Array(256);
-    for (let i = 0; i < 256; i++) LINEAR_LUT[i] = srgbToLinear3(i / 255);
+    for (let i = 0; i < 256; i++) LINEAR_LUT[i] = srgbToLinear4(i / 255);
+    clamp013 = (v) => v <= 0 ? 0 : v >= 1 ? 1 : v;
     F16 = globalThis.Float16Array;
     mul3 = (a, b) => [
       a[0] * b[0] + a[1] * b[3] + a[2] * b[6],
@@ -10013,10 +13240,16 @@ var init_pixels = __esm({
 });
 
 // engine/src/hdr.ts
-function linearSrgbToOklab2(r, g2, b) {
-  const l = Math.cbrt(0.4122214708 * r + 0.5363325363 * g2 + 0.0514459929 * b);
-  const m = Math.cbrt(0.2119034982 * r + 0.6806995451 * g2 + 0.1073969566 * b);
-  const s = Math.cbrt(0.0883024619 * r + 0.2817188376 * g2 + 0.6299787005 * b);
+function pqEncode(nits) {
+  const yn = Math.min(1, Math.max(0, san(nits) / 1e4));
+  if (yn <= 0) return 0;
+  const y = yn ** PQ_M1;
+  return ((PQ_C1 + PQ_C2 * y) / (1 + PQ_C3 * y)) ** PQ_M2;
+}
+function linearSrgbToOklab2(r3, g2, b) {
+  const l = Math.cbrt(0.4122214708 * r3 + 0.5363325363 * g2 + 0.0514459929 * b);
+  const m = Math.cbrt(0.2119034982 * r3 + 0.6806995451 * g2 + 0.1073969566 * b);
+  const s = Math.cbrt(0.0883024619 * r3 + 0.2817188376 * g2 + 0.6299787005 * b);
   return [
     0.2104542553 * l + 0.793617785 * m - 0.0040720468 * s,
     1.9779984951 * l - 2.428592205 * m + 0.4505937099 * s,
@@ -10051,6 +13284,45 @@ function resolveTargets(opts) {
     out.push({ lab, gain });
   }
   return out;
+}
+function hdrBoostToPQ(rgba, opts) {
+  const targets = resolveTargets(opts);
+  const sdrWhiteNits = opts.sdrWhiteNits ?? DEFAULTS.sdrWhiteNits;
+  const peakNits = opts.peakNits ?? DEFAULTS.peakNits;
+  const richness = opts.richness ?? DEFAULTS.richness;
+  const inner = opts.innerRadius ?? DEFAULTS.innerRadius;
+  const outer = opts.outerRadius ?? DEFAULTS.outerRadius;
+  const maxExtra = Math.max(1, peakNits / sdrWhiteNits) - 1;
+  const [m0, m1, m2] = M_709_TO_2020;
+  for (let i = 0; i < rgba.length; i += 4) {
+    let lr = LINEAR_LUT2[rgba[i]];
+    let lg = LINEAR_LUT2[rgba[i + 1]];
+    let lb = LINEAR_LUT2[rgba[i + 2]];
+    let extra = 0;
+    if (targets.length) {
+      const [pl, pa, pb] = linearSrgbToOklab2(lr, lg, lb);
+      for (const t of targets) {
+        const dE = Math.hypot(pl - t.lab[0], pa - t.lab[1], pb - t.lab[2]);
+        const contribution = (t.gain - 1) * falloff(dE, inner, outer);
+        if (contribution > extra) extra = contribution;
+      }
+    }
+    if (richness > 0 && extra > 0 && maxExtra > 0) {
+      const sat = 1 + richness * (extra / maxExtra);
+      const y = 0.2126 * lr + 0.7152 * lg + 0.0722 * lb;
+      lr = Math.max(0, y + (lr - y) * sat);
+      lg = Math.max(0, y + (lg - y) * sat);
+      lb = Math.max(0, y + (lb - y) * sat);
+    }
+    const scale = (1 + extra) * sdrWhiteNits;
+    const r22 = (m0[0] * lr + m0[1] * lg + m0[2] * lb) * scale;
+    const g2 = (m1[0] * lr + m1[1] * lg + m1[2] * lb) * scale;
+    const b2 = (m2[0] * lr + m2[1] * lg + m2[2] * lb) * scale;
+    rgba[i] = Math.round(pqEncode(r22) * 255);
+    rgba[i + 1] = Math.round(pqEncode(g2) * 255);
+    rgba[i + 2] = Math.round(pqEncode(b2) * 255);
+  }
+  return rgba;
 }
 function hdrViewTransform(frame, opts) {
   const f = convertSpace(frame, "srgb-linear");
@@ -10094,25 +13366,49 @@ function hdrViewTransform(frame, opts) {
   }
   return { width: f.width, height: f.height, data: out, space: "rec2020-linear" };
 }
-var srgbToLinear4, PQ_M1, PQ_M2, PQ_C1, PQ_C2, PQ_C3, M_709_TO_2020, LINEAR_LUT2, DEFAULTS;
+function pqEncodeFrame(frame, sdrWhiteNits = DEFAULTS.sdrWhiteNits) {
+  const f = convertSpace(frame, "rec2020-linear");
+  const src = f.data;
+  const data = new Float32Array(src.length);
+  for (let i = 0; i < src.length; i += 4) {
+    data[i] = pqEncode(src[i] * sdrWhiteNits);
+    data[i + 1] = pqEncode(src[i + 1] * sdrWhiteNits);
+    data[i + 2] = pqEncode(src[i + 2] * sdrWhiteNits);
+    const a = src[i + 3];
+    data[i + 3] = a <= 0 ? 0 : a >= 1 ? 1 : a;
+  }
+  return { width: f.width, height: f.height, data, encoding: "pq" };
+}
+function pqToU16(pq) {
+  const src = pq.data;
+  const out = new Uint16Array(src.length);
+  for (let i = 0; i < src.length; i++) {
+    const v = san(src[i]);
+    out[i] = v <= 0 ? 0 : v >= 1 ? 65535 : Math.round(v * 65535);
+  }
+  return out;
+}
+var HDR_PQ_CICP, srgbToLinear5, PQ_M1, PQ_M2, PQ_C1, PQ_C2, PQ_C3, san, M_709_TO_2020, LINEAR_LUT2, DEFAULTS;
 var init_hdr = __esm({
   "engine/src/hdr.ts"() {
     "use strict";
     init_brand_derive();
     init_pixels();
-    srgbToLinear4 = (c) => c <= 0.04045 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4;
+    HDR_PQ_CICP = { primaries: 9, transfer: 16, matrix: 0, fullRange: 1 };
+    srgbToLinear5 = (c) => c <= 0.04045 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4;
     PQ_M1 = 2610 / 16384;
     PQ_M2 = 2523 / 4096 * 128;
     PQ_C1 = 3424 / 4096;
     PQ_C2 = 2413 / 4096 * 32;
     PQ_C3 = 2392 / 4096 * 32;
+    san = (v) => Number.isFinite(v) ? v : 0;
     M_709_TO_2020 = [
       [0.6274038959, 0.3292830384, 0.0433130657],
       [0.0690972894, 0.9195403951, 0.0113623156],
       [0.0163914389, 0.0880132309, 0.8955953302]
     ];
     LINEAR_LUT2 = new Float64Array(256);
-    for (let i = 0; i < 256; i++) LINEAR_LUT2[i] = srgbToLinear4(i / 255);
+    for (let i = 0; i < 256; i++) LINEAR_LUT2[i] = srgbToLinear5(i / 255);
     DEFAULTS = {
       sdrWhiteNits: 203,
       peakNits: 1e3,
@@ -10127,12 +13423,1340 @@ var init_hdr = __esm({
   }
 });
 
+// engine/src/print-marks.ts
+function cmykToRgbApprox([c, m, y, k]) {
+  return [(1 - c) * (1 - k), (1 - m) * (1 - k), (1 - y) * (1 - k)];
+}
+function computePrintGeometry({ trimWpt, trimHpt, bleedPt = 0, marks = {}, palette = [] }) {
+  const m = { crop: false, registration: false, bleed: false, colorBars: false, provenance: false, ...marks };
+  const { markLengthPt: L, markReachPt: R2, regRadiusPt: rr, regCrossPt: rc, barCellPt: bc, barPairGapPt: bg, barGroupGapPt: bgap, barMaxCells: bmax, labelSizePt: ls, labelInsetPt: li } = PRINT_MARK_DEFAULTS;
+  const anyMark = m.crop || m.registration || m.bleed || m.colorBars || m.provenance;
+  const reach = anyMark ? R2 : 0;
+  const M2 = bleedPt + reach;
+  const pageW = trimWpt + 2 * M2;
+  const pageH = trimHpt + 2 * M2;
+  const trim2 = { x: M2, y: M2, w: trimWpt, h: trimHpt };
+  const bleed = { x: M2 - bleedPt, y: M2 - bleedPt, w: trimWpt + 2 * bleedPt, h: trimHpt + 2 * bleedPt };
+  const media = { x: 0, y: 0, w: pageW, h: pageH };
+  const trimL = trim2.x, trimT = trim2.y, trimR = trim2.x + trim2.w, trimB = trim2.y + trim2.h;
+  const bL = bleed.x, bT = bleed.y, bR = bleed.x + bleed.w, bB = bleed.y + bleed.h;
+  const lines = [], circles = [], bars = [], labels = [];
+  const line = (x1, y1, x2, y2, mark) => {
+    lines.push({ x1, y1, x2, y2, mark });
+  };
+  if (m.crop) {
+    line(trimL, bT, trimL, bT - L, "crop");
+    line(bL, trimT, bL - L, trimT, "crop");
+    line(trimR, bT, trimR, bT - L, "crop");
+    line(bR, trimT, bR + L, trimT, "crop");
+    line(trimL, bB, trimL, bB + L, "crop");
+    line(bL, trimB, bL - L, trimB, "crop");
+    line(trimR, bB, trimR, bB + L, "crop");
+    line(bR, trimB, bR + L, trimB, "crop");
+  }
+  if (m.bleed && bleedPt > 0) {
+    line(bL, bT, bL, bT - L, "bleed");
+    line(bL, bT, bL - L, bT, "bleed");
+    line(bR, bT, bR, bT - L, "bleed");
+    line(bR, bT, bR + L, bT, "bleed");
+    line(bL, bB, bL, bB + L, "bleed");
+    line(bL, bB, bL - L, bB, "bleed");
+    line(bR, bB, bR, bB + L, "bleed");
+    line(bR, bB, bR + L, bB, "bleed");
+  }
+  if (m.registration) {
+    const reg = (cx, cy) => {
+      circles.push({ cx, cy, r: rr, mark: "registration" });
+      line(cx, cy - rc, cx, cy + rc, "registration");
+      line(cx - rc, cy, cx + rc, cy, "registration");
+    };
+    const midX = pageW / 2, midY = pageH / 2, half = reach / 2;
+    reg(midX, bT - half);
+    reg(midX, bB + half);
+    reg(bL - half, midY);
+    reg(bR + half, midY);
+  }
+  if (m.colorBars) {
+    const y = bB + reach / 2 - bc / 2;
+    const maxX = m.registration ? pageW / 2 - rc - 6 : pageW - M2;
+    let x = trimL;
+    if (palette.length) {
+      for (const cmyk of COLOR_BAR_CELLS.slice(0, 4)) {
+        if (x + bc > maxX) break;
+        bars.push({ x, y, w: bc, h: bc, cmyk, rgb: cmykToRgbApprox(cmyk), ink: "cmyk", mark: "colorbar" });
+        x += bc;
+      }
+      if (bars.length) x += bgap;
+      let brandCells = 0;
+      for (const { rgb, cmyk, label, spotName } of palette) {
+        if (brandCells + 2 > bmax) break;
+        if (x + 2 * bc > maxX) break;
+        bars.push({ x, y, w: bc, h: bc, cmyk, rgb, ink: "rgb", label, spotName, mark: "colorbar" });
+        bars.push({ x: x + bc, y, w: bc, h: bc, cmyk, rgb, ink: "cmyk", label, spotName, mark: "colorbar" });
+        x += 2 * bc + bg;
+        brandCells += 2;
+      }
+    } else {
+      for (const cmyk of COLOR_BAR_CELLS) {
+        if (bars.length >= bmax) break;
+        if (x + bc > maxX) break;
+        bars.push({ x, y, w: bc, h: bc, cmyk, rgb: cmykToRgbApprox(cmyk), ink: "page", mark: "colorbar" });
+        x += bc;
+      }
+    }
+  }
+  if (m.provenance && reach > 0) {
+    labels.push({ slot: "topLeft", x: trimL + li, y: li + ls, size: ls, rotation: 0, align: "left", mark: "label" });
+    labels.push({ slot: "topRight", x: trimR - li, y: li + ls, size: ls, rotation: 0, align: "right", mark: "label" });
+    labels.push({ slot: "bottomLeftUp", x: reach / 2, y: trimB - li, size: ls, rotation: 90, align: "left", mark: "label" });
+  }
+  return {
+    page: { w: pageW, h: pageH },
+    boxes: { media, bleed, trim: trim2 },
+    artwork: { ...bleed },
+    strokeWeight: PRINT_MARK_DEFAULTS.markStrokePt,
+    primitives: { lines, circles, bars, labels }
+  };
+}
+var PRINT_MARK_DEFAULTS, COLOR_BAR_CELLS;
+var init_print_marks = __esm({
+  "engine/src/print-marks.ts"() {
+    "use strict";
+    PRINT_MARK_DEFAULTS = {
+      bleed: "3mm",
+      // default bleed amount (a dimension string; see units.js)
+      markLengthPt: 18,
+      // crop / bleed tick length (~0.25")
+      markStrokePt: 0.5,
+      // hairline stroke for all line marks
+      markReachPt: 30,
+      // margin band beyond the bleed that holds the marks
+      regRadiusPt: 6,
+      // registration target circle radius
+      regCrossPt: 11,
+      // registration crosshair half-length (overshoots the circle)
+      barCellPt: 14,
+      // colour-bar cell size (square)
+      barPairGapPt: 6,
+      // gap between brand RGB/CMYK swatch pairs
+      barGroupGapPt: 18,
+      // wider gap between the process primaries and the brand pairs
+      barMaxCells: 12,
+      // flat ceiling on brand colour-bar cells (width is the real cap)
+      labelSizePt: 6,
+      // provenance / credit text size (points)
+      labelInsetPt: 5
+      // provenance text inset from the page edge
+    };
+    COLOR_BAR_CELLS = [
+      [1, 0, 0, 0],
+      [0, 1, 0, 0],
+      [0, 0, 1, 0],
+      [0, 0, 0, 1],
+      [1, 1, 0, 0],
+      [1, 0, 1, 0],
+      [0, 1, 1, 0],
+      [0, 0, 0, 0.25],
+      [0, 0, 0, 0.5],
+      [0, 0, 0, 0.75]
+    ];
+  }
+});
+
+// packages/core/src/host-v1.ts
+var KNOWN_FINISH_KINDS;
+var init_host_v1 = __esm({
+  "packages/core/src/host-v1.ts"() {
+    "use strict";
+    KNOWN_FINISH_KINDS = [
+      "foil",
+      "emboss",
+      "deboss",
+      "spot-uv",
+      "soft-touch",
+      "cut",
+      "crease",
+      "perforate"
+    ];
+  }
+});
+
+// packages/core/src/preflight.ts
+var SEVERITY_RANK;
+var init_preflight = __esm({
+  "packages/core/src/preflight.ts"() {
+    "use strict";
+    SEVERITY_RANK = { error: 0, warn: 1, info: 2 };
+  }
+});
+
+// packages/core/src/money.ts
+function minorUnitExponent(currency, locale) {
+  return exponentOf(currencyFormatter(currency, locale), currency);
+}
+function exponentOf(fmt2, currency) {
+  const exp = fmt2.resolvedOptions().maximumFractionDigits;
+  if (typeof exp !== "number") throw new CurrencyError(currency);
+  return exp;
+}
+function currencyFormatter(currency, locale) {
+  if (typeof currency !== "string" || currency.length === 0) throw new CurrencyError(currency);
+  try {
+    return new Intl.NumberFormat(locale ?? void 0, { style: "currency", currency });
+  } catch (e) {
+    throw new CurrencyError(currency, e);
+  }
+}
+function monetaryFigure(minorUnits, currency) {
+  if (!Number.isSafeInteger(minorUnits)) throw new MinorUnitError(minorUnits);
+  return { minorUnits, currency, exponent: minorUnitExponent(currency) };
+}
+var CurrencyError, MinorUnitError;
+var init_money = __esm({
+  "packages/core/src/money.ts"() {
+    "use strict";
+    CurrencyError = class extends Error {
+      currency;
+      constructor(currency, cause) {
+        super(
+          `Unusable currency code ${JSON.stringify(currency)}. A currency must come from the rate card; there is no default and no fallback symbol.`
+        );
+        this.name = "CurrencyError";
+        this.currency = currency;
+        if (cause !== void 0) this.cause = cause;
+      }
+    };
+    MinorUnitError = class extends Error {
+      minorUnits;
+      constructor(minorUnits) {
+        super(
+          `Money must be integer minor units; got ${minorUnits}. A non-integer amount means a float leaked into a subtotal.`
+        );
+        this.name = "MinorUnitError";
+        this.minorUnits = minorUnits;
+      }
+    };
+  }
+});
+
+// packages/core/src/index.ts
+var init_src = __esm({
+  "packages/core/src/index.ts"() {
+    "use strict";
+    init_host_v1();
+    init_preflight();
+    init_money();
+  }
+});
+
+// engine/src/preflight.ts
+function preflight(job) {
+  const out = [];
+  const rowIndex = isFiniteNum(job?.rowIndex) ? job.rowIndex : void 0;
+  const ctx = {
+    job,
+    fmt: lower(job?.settings?.format),
+    out,
+    add(f) {
+      const fixed = f.needs ? { ...f, severity: "info", count: void 0, needs: f.needs } : f;
+      out.push(rowIndex === void 0 ? fixed : { ...fixed, rowIndex });
+    }
+  };
+  for (const check of CHECKS) guard(() => check(ctx));
+  const findings = out.map((f, i) => ({ f, i })).sort((a, b) => SEVERITY_RANK[a.f.severity] - SEVERITY_RANK[b.f.severity] || a.i - b.i).map(({ f }) => f);
+  const seen = /* @__PURE__ */ new Set();
+  const counts = [];
+  for (const f of findings) {
+    if (!f.count) continue;
+    const key = `${f.count.kind}|${f.count.box ?? ""}|${f.count.basis}`;
+    if (seen.has(key)) continue;
+    seen.add(key);
+    counts.push(f.count);
+  }
+  return {
+    $format: "lolly-preflight",
+    formatVersion: 1,
+    engine: ENGINE_VERSION,
+    job: safeReportedJob(job, ctx.fmt, rowIndex),
+    findings,
+    counts,
+    gaps: findings.filter((f) => !!f.needs)
+  };
+}
+function safeReportedJob(job, fmt2, rowIndex) {
+  try {
+    return reportedJob(job, fmt2, rowIndex);
+  } catch {
+    return {
+      toolId: "",
+      format: fmt2,
+      ...rowIndex === void 0 ? {} : { rowIndex },
+      stageMounted: false,
+      paletteResolved: false,
+      settings: {
+        format: fmt2,
+        size: { width: { value: 0, unit: "px" }, height: { value: 0, unit: "px" }, dpi: 0, declaredBy: "manifest", unitDeclared: false },
+        bleed: { known: false, why: "not-set" },
+        marks: { known: false, why: "not-set" },
+        pressProfile: { known: false, why: "not-set" }
+      }
+    };
+  }
+}
+function reportedJob(job, fmt2, rowIndex) {
+  const dim = (d) => isDim(d) ? { value: d.value, unit: d.unit } : { value: 0, unit: "px" };
+  const s = job?.settings;
+  const size = {
+    width: dim(s?.size?.width),
+    height: dim(s?.size?.height),
+    dpi: isFiniteNum(s?.size?.dpi) ? s.size.dpi : 0,
+    declaredBy: typeof s?.size?.declaredBy === "string" ? s.size.declaredBy : "manifest",
+    unitDeclared: s?.size?.unitDeclared === true
+  };
+  const bleed = s?.bleed?.known === true ? { known: true, value: isDim(s.bleed.value) ? dim(s.bleed.value) : null } : { known: false, why: s?.bleed?.known === false ? s.bleed.why : "not-set" };
+  const marks = s?.marks?.known === true ? { known: true, value: s.marks.value ?? null } : { known: false, why: s?.marks?.known === false ? s.marks.why : "not-set" };
+  const pressProfile = s?.pressProfile?.known === true ? { known: true, value: typeof s.pressProfile.value === "string" ? s.pressProfile.value : null } : { known: false, why: s?.pressProfile?.known === false ? s.pressProfile.why : "not-set" };
+  const settings = { format: fmt2, size, bleed, marks, pressProfile };
+  return {
+    toolId: typeof job?.manifest?.id === "string" && job.manifest.id || "",
+    format: fmt2,
+    ...rowIndex === void 0 ? {} : { rowIndex },
+    ...typeof job?.source === "string" ? { source: job.source } : {},
+    ...typeof job?.modelPhase === "string" ? { modelPhase: job.modelPhase } : {},
+    stageMounted: job?.stage?.known === true,
+    paletteResolved: job?.palette?.known === true,
+    settings
+  };
+}
+var PRINT_MARK_FORMATS, SEPARATING_FORMATS, SPOT_PLATE_FORMATS, HDR_FORMATS, DURABLE_FORMATS, CUTS_FORMATS, MOTION_FORMATS, RASTER_FORMATS, DEPTH_FORMATS, PAGED_FORMATS, KNOWN_FINISHES, lower, isFiniteNum, clamp, num, labelOf, isDim, PT_TO_M, pt2ToM2, guard, spotSwatches, finishSpots, checkFinishSeparatesAsInk, checkFinishFlattened, checkFinishUnknownKind, checkFormatOffered, bleedIsSet, marksAreSet, checkPrintMarksOnNonPrintFormat, checkPressProfileOnNonSeparatingFormat, checkHdrFormat, checkDurableFormat, checkAspectGuard, model, isBlank, checkRequiredBlank, checkNumberRange, checkTextMaxLength, checkSelectValue, checkVectorClamped, checkNoBleed, checkBleedUnknown, physicalTrim, checkTrimPartial, checkTrimNotPhysical, checkPrintGeometry, checkPagesPaginate, checkPagesPages, checkPagesFromStage, checkPagesUnknown, checkSequenceDuration, checkRasterPixels, checkVideoDurationDeclared, checkProcessPlates, checkSpotCeiling, checkFinishCeiling, checkNoSpotsDeclared, checkPaletteUnresolved, cutsOf, checkCutsNeedsStage, checkCutsInert, checkCutsApplies, checkExperimentalWatermark, refusal, checkRefusals, CHECKS;
+var init_preflight2 = __esm({
+  "engine/src/preflight.ts"() {
+    "use strict";
+    init_src();
+    init_inputs();
+    init_print_marks();
+    init_units();
+    init_version();
+    PRINT_MARK_FORMATS = /* @__PURE__ */ new Set(["pdf", "pdf-cmyk", "cmyk-tiff"]);
+    SEPARATING_FORMATS = /* @__PURE__ */ new Set(["pdf-cmyk", "cmyk-tiff", "eps-cmyk"]);
+    SPOT_PLATE_FORMATS = /* @__PURE__ */ new Set(["pdf-cmyk"]);
+    HDR_FORMATS = /* @__PURE__ */ new Set(["png", "jpg", "jpeg", "avif", "tiff"]);
+    DURABLE_FORMATS = /* @__PURE__ */ new Set(["png", "jpg", "jpeg", "webp", "avif", "tiff"]);
+    CUTS_FORMATS = /* @__PURE__ */ new Set(["png", "jpg", "jpeg", "webp", "svg", "pdf"]);
+    MOTION_FORMATS = /* @__PURE__ */ new Set(["webm", "mp4", "gif", "apng"]);
+    RASTER_FORMATS = /* @__PURE__ */ new Set([
+      "png",
+      "jpg",
+      "jpeg",
+      "webp",
+      "avif",
+      "tiff",
+      "cmyk-tiff",
+      "gif",
+      "apng",
+      "exr",
+      "hdr"
+    ]);
+    DEPTH_FORMATS = /* @__PURE__ */ new Set(["exr", "hdr"]);
+    PAGED_FORMATS = /* @__PURE__ */ new Set(["pdf", "pdf-cmyk", "pptx"]);
+    KNOWN_FINISHES = new Set(KNOWN_FINISH_KINDS);
+    lower = (v) => typeof v === "string" ? v.toLowerCase() : "";
+    isFiniteNum = (v) => typeof v === "number" && Number.isFinite(v);
+    clamp = (n2, lo, hi) => n2 < lo ? lo : n2 > hi ? hi : n2;
+    num = (n2) => {
+      if (!Number.isFinite(n2)) return "?";
+      const r3 = Math.round(n2 * 100) / 100;
+      return Number.isInteger(r3) ? String(r3) : String(r3);
+    };
+    labelOf = (i) => typeof i.label === "string" && i.label || typeof i.id === "string" && i.id || "An input";
+    isDim = (d) => !!d && typeof d === "object" && isFiniteNum(d.value) && typeof d.unit === "string";
+    PT_TO_M = 0.0254 / 72;
+    pt2ToM2 = (w, h) => w * PT_TO_M * (h * PT_TO_M);
+    guard = (fn) => {
+      try {
+        fn();
+      } catch {
+      }
+    };
+    spotSwatches = (c) => {
+      const p = c.job?.palette;
+      if (!p || p.known !== true || !Array.isArray(p.value)) return [];
+      const out = [];
+      for (const s of p.value) {
+        const spot = s?.spot;
+        if (!spot || typeof spot !== "object" || typeof spot.name !== "string" || !spot.name) continue;
+        out.push({
+          name: typeof s.name === "string" && s.name ? s.name : spot.name,
+          spot,
+          path: typeof s.path === "string" ? s.path : ""
+        });
+      }
+      return out;
+    };
+    finishSpots = (c) => spotSwatches(c).filter((s) => typeof s.spot.finish === "string" && s.spot.finish !== "").map((s) => ({ ...s, finish: s.spot.finish }));
+    checkFinishSeparatesAsInk = (c) => {
+      if (!SPOT_PLATE_FORMATS.has(c.fmt)) return;
+      for (const s of finishSpots(c)) {
+        c.add({
+          id: "print.finish-separates-as-ink",
+          severity: "error",
+          message: `${s.name} is a ${s.finish} finish. Lolly writes it as its own named plate whose process fallback is a 100% black mask, and it is not overprinted, so the finish plate knocks out the artwork beneath it. Agree with your printer how they want the finish supplied before sending this.`,
+          evidence: { spotName: s.spot.name, swatch: s.name, finish: s.finish, tokenPath: s.path, format: c.fmt, overprint: false }
+        });
+      }
+    };
+    checkFinishFlattened = (c) => {
+      if (!SEPARATING_FORMATS.has(c.fmt) || SPOT_PLATE_FORMATS.has(c.fmt)) return;
+      for (const s of finishSpots(c)) {
+        c.add({
+          id: "print.finish-flattened-into-process",
+          severity: "error",
+          message: `${s.name} is a ${s.finish} finish, and ${c.fmt} has no separation plates. It is written into the process build as solid black, so it is a mask rather than a finish, and it is not overprinted. Supply the finish as its own artwork.`,
+          evidence: { spotName: s.spot.name, swatch: s.name, finish: s.finish, tokenPath: s.path, format: c.fmt, overprint: false }
+        });
+      }
+    };
+    checkFinishUnknownKind = (c) => {
+      for (const s of finishSpots(c)) {
+        if (KNOWN_FINISHES.has(s.finish)) continue;
+        c.add({
+          id: "print.finish-unknown-kind",
+          severity: "info",
+          message: `${s.name} declares the finish "${s.finish}", which Lolly does not recognise. The ink is kept; nothing is discarded.`,
+          evidence: { spotName: s.spot.name, finish: s.finish, tokenPath: s.path }
+        });
+      }
+    };
+    checkFormatOffered = (c) => {
+      if (DEPTH_FORMATS.has(c.fmt)) return;
+      const offered = c.job?.manifest?.render?.formats;
+      if (!Array.isArray(offered) || offered.length === 0 || !c.fmt) return;
+      const list2 = offered.map(lower).filter(Boolean);
+      if (list2.includes(c.fmt)) return;
+      c.add({
+        id: "settings.format-not-offered",
+        severity: "error",
+        message: `This tool does not offer ${c.fmt}. It offers: ${list2.join(", ")}.`,
+        evidence: { format: c.fmt, offered: list2.join(",") }
+      });
+    };
+    bleedIsSet = (c) => {
+      const b = c.job?.settings?.bleed;
+      return b?.known === true && isDim(b.value) && b.value.value > 0;
+    };
+    marksAreSet = (c) => {
+      const m = c.job?.settings?.marks;
+      if (m?.known !== true || !m.value || typeof m.value !== "object") return false;
+      return Object.values(m.value).some((v) => v === true);
+    };
+    checkPrintMarksOnNonPrintFormat = (c) => {
+      if (PRINT_MARK_FORMATS.has(c.fmt)) return;
+      if (!bleedIsSet(c) && !marksAreSet(c)) return;
+      c.add({
+        id: "settings.print-marks-on-non-print-format",
+        severity: "warn",
+        message: `Bleed and print marks are set, but ${c.fmt || "this format"} ignores them. Only PDF, Print PDF and Print TIFF carry them.`,
+        evidence: { format: c.fmt, bleedSet: bleedIsSet(c), marksSet: marksAreSet(c) }
+      });
+    };
+    checkPressProfileOnNonSeparatingFormat = (c) => {
+      const p = c.job?.settings?.pressProfile;
+      if (p?.known !== true) return;
+      const v = p.value;
+      if (typeof v !== "string" || v === "" || v === "none") return;
+      if (SEPARATING_FORMATS.has(c.fmt)) return;
+      c.add({
+        id: "settings.press-profile-on-non-separating-format",
+        severity: "warn",
+        message: `A press condition (${v}) is set, but ${c.fmt || "this format"} has no separation to apply it to.`,
+        evidence: { pressProfile: v, format: c.fmt }
+      });
+    };
+    checkHdrFormat = (c) => {
+      if (c.job?.settings?.hdr !== true || HDR_FORMATS.has(c.fmt)) return;
+      c.add({
+        id: "settings.hdr-on-unsupported-format",
+        severity: "warn",
+        message: `HDR is on, but ${c.fmt || "this format"} cannot carry it.`,
+        evidence: { format: c.fmt }
+      });
+    };
+    checkDurableFormat = (c) => {
+      if (c.job?.settings?.durable !== true || DURABLE_FORMATS.has(c.fmt)) return;
+      c.add({
+        id: "settings.durable-on-unsupported-format",
+        severity: "warn",
+        message: `A durable credential is requested, but ${c.fmt || "this format"} cannot carry one.`,
+        evidence: { format: c.fmt }
+      });
+    };
+    checkAspectGuard = (c) => {
+      const aw = c.job?.manifest?.render?.aspectWarning;
+      if (!aw) return;
+      const { width, height } = c.job.settings.size;
+      if (!isDim(width) || !isDim(height) || toCssPx(height) <= 0) return;
+      const ratio = toCssPx(width) / toCssPx(height);
+      const under = isFiniteNum(aw.min) && ratio < aw.min;
+      const over = isFiniteNum(aw.max) && ratio > aw.max;
+      if (!under && !over) return;
+      c.add({
+        id: "settings.aspect-guard",
+        severity: "warn",
+        message: typeof aw.message === "string" && aw.message || "This size may not suit this tool.",
+        evidence: {
+          ratio: Math.round(ratio * 1e3) / 1e3,
+          min: isFiniteNum(aw.min) ? aw.min : null,
+          max: isFiniteNum(aw.max) ? aw.max : null
+        }
+      });
+    };
+    model = (c) => Array.isArray(c.job?.model) ? c.job.model : [];
+    isBlank = (v) => v === null || v === void 0 || v === "" || Array.isArray(v) && v.length === 0;
+    checkRequiredBlank = (c) => {
+      for (const i of model(c)) {
+        if (i?.required !== true || !isBlank(i.value)) continue;
+        c.add({
+          id: "input.required-blank",
+          severity: "warn",
+          message: `${labelOf(i)} is marked required and is empty.`,
+          inputId: i.id,
+          evidence: { inputId: i.id, type: i.type }
+        });
+      }
+    };
+    checkNumberRange = (c) => {
+      for (const i of model(c)) {
+        if (i?.type !== "number" || !isFiniteNum(i.value)) continue;
+        const hasMin = isFiniteNum(i.min), hasMax = isFiniteNum(i.max);
+        if (!hasMin && !hasMax) continue;
+        const lo = hasMin ? i.min : -Infinity;
+        const hi = hasMax ? i.max : Infinity;
+        if (i.value >= lo && i.value <= hi) continue;
+        const clamped = clamp(i.value, lo, hi);
+        c.add({
+          id: "input.number-out-of-range",
+          severity: "warn",
+          message: `${labelOf(i)} is ${num(i.value)}, outside its declared range ${hasMin ? num(lo) : "any"} to ${hasMax ? num(hi) : "any"}. The control will snap it to ${num(clamped)} the moment it is touched, so this render cannot be reproduced from the interface.`,
+          inputId: i.id,
+          evidence: {
+            inputId: i.id,
+            value: i.value,
+            clamped,
+            min: hasMin ? lo : null,
+            max: hasMax ? hi : null
+          }
+        });
+      }
+    };
+    checkTextMaxLength = (c) => {
+      for (const i of model(c)) {
+        if (i?.type !== "text" && i?.type !== "longtext") continue;
+        if (!isFiniteNum(i.maxLength) || typeof i.value !== "string") continue;
+        if (i.value.length <= i.maxLength) continue;
+        c.add({
+          id: "input.text-over-maxlength",
+          severity: "warn",
+          message: `${labelOf(i)} is ${i.value.length} characters; the declared limit is ${i.maxLength}. Editing the field will cut it to ${i.maxLength}.`,
+          inputId: i.id,
+          evidence: { inputId: i.id, length: i.value.length, maxLength: i.maxLength }
+        });
+      }
+    };
+    checkSelectValue = (c) => {
+      for (const i of model(c)) {
+        if (i?.type !== "select" || !Array.isArray(i.options) || i.options.length === 0) continue;
+        if (i.brandFonts === true) continue;
+        if (typeof i.value !== "string" || i.value === "") continue;
+        if (i.options.some((o) => o?.value === i.value)) continue;
+        c.add({
+          id: "input.select-value-unknown",
+          severity: "warn",
+          message: `${labelOf(i)} is set to "${i.value}", which is not one of its options.`,
+          inputId: i.id,
+          evidence: {
+            inputId: i.id,
+            value: i.value,
+            options: i.options.map((o) => String(o?.value ?? "")).join(",")
+          }
+        });
+      }
+    };
+    checkVectorClamped = (c) => {
+      const raw = c.job?.rawInitial;
+      if (!raw || typeof raw !== "object") return;
+      for (const i of model(c)) {
+        if (i?.type !== "vector" || !Array.isArray(i.fields)) continue;
+        const given = raw[i.id];
+        if (!given || typeof given !== "object" || Array.isArray(given)) continue;
+        for (const f of i.fields) {
+          if (!f || typeof f.id !== "string") continue;
+          const rawV = given[f.id];
+          if (!isFiniteNum(rawV)) continue;
+          const hasMin = isFiniteNum(f.min), hasMax = isFiniteNum(f.max);
+          if (!hasMin && !hasMax) continue;
+          const clamped = clamp(rawV, hasMin ? f.min : -Infinity, hasMax ? f.max : Infinity);
+          if (clamped === rawV) continue;
+          c.add({
+            id: "input.vector-clamped",
+            severity: "warn",
+            message: `${labelOf(i)}.${f.id} was given as ${num(rawV)} and was silently clamped to ${num(clamped)}.`,
+            inputId: i.id,
+            evidence: { inputId: i.id, field: f.id, raw: rawV, clamped }
+          });
+        }
+      }
+    };
+    checkNoBleed = (c) => {
+      if (!PRINT_MARK_FORMATS.has(c.fmt)) return;
+      if (!SEPARATING_FORMATS.has(c.fmt) && !marksAreSet(c) && !physicalTrim(c)) return;
+      const b = c.job?.settings?.bleed;
+      if (b?.known !== true) return;
+      const zero = b.value === null || isDim(b.value) && b.value.value === 0;
+      if (!zero) return;
+      c.add({
+        id: "print.no-bleed",
+        severity: "warn",
+        message: "This is a print format and bleed is set to zero. Artwork that runs to the edge will show a white sliver after trimming.",
+        evidence: { format: c.fmt }
+      });
+    };
+    checkBleedUnknown = (c) => {
+      if (!PRINT_MARK_FORMATS.has(c.fmt)) return;
+      const b = c.job?.settings?.bleed;
+      if (!b || b.known !== false) return;
+      c.add({
+        id: "print.bleed-unknown",
+        severity: "info",
+        needs: b.why,
+        message: "Lolly cannot see the bleed setting for this job, so it is not reporting one. Zero has not been assumed.",
+        evidence: { format: c.fmt, why: b.why }
+      });
+    };
+    physicalTrim = (c) => {
+      const s = c.job?.settings?.size;
+      if (!s || s.unitDeclared !== true) return null;
+      if (!isDim(s.width) || !isDim(s.height)) return null;
+      if (!(s.width.value > 0) || !(s.height.value > 0)) return null;
+      if (!isPhysical(s.width) || !isPhysical(s.height)) return null;
+      return { w: s.width, h: s.height };
+    };
+    checkTrimPartial = (c) => {
+      if (!PRINT_MARK_FORMATS.has(c.fmt)) return;
+      const s = c.job?.settings?.size;
+      if (!s || s.unitDeclared !== true) return;
+      if (!isDim(s.width) || !isDim(s.height)) return;
+      const wOk = s.width.value > 0, hOk = s.height.value > 0;
+      if (wOk === hOk) return;
+      const set = wOk ? s.width : s.height;
+      c.add({
+        id: "print.trim-partially-declared",
+        severity: "info",
+        needs: "not-set",
+        message: `Only the ${wOk ? "width" : "height"} was set (${num(set.value)} ${set.unit}). The other follows the artwork's aspect, which Lolly cannot read without the artwork on screen, so no trim size and no print area are being reported.`,
+        evidence: { declared: wOk ? "width" : "height", value: set.value, unit: set.unit, format: c.fmt }
+      });
+    };
+    checkTrimNotPhysical = (c) => {
+      if (!PRINT_MARK_FORMATS.has(c.fmt)) return;
+      if (physicalTrim(c)) return;
+      const s = c.job.settings.size;
+      if (!isDim(s?.width) || !isDim(s?.height)) return;
+      if (!(s.width.value > 0) || !(s.height.value > 0)) return;
+      const dpi = isFiniteNum(s.dpi) ? s.dpi : 300;
+      const w = toPixels(s.width, dpi), h = toPixels(s.height, dpi);
+      c.add({
+        id: "print.trim-not-physical",
+        severity: "info",
+        needs: "not-set",
+        message: `The page is ${w} x ${h} pixels. No physical page size was declared, so Lolly is reporting pixels and no print area.`,
+        evidence: { widthPx: w, heightPx: h, declaredBy: s.declaredBy ?? null, unitDeclared: s.unitDeclared === true }
+      });
+    };
+    checkPrintGeometry = (c) => {
+      if (!PRINT_MARK_FORMATS.has(c.fmt)) return;
+      const trim2 = physicalTrim(c);
+      if (!trim2) return;
+      const b = c.job.settings.bleed, m = c.job.settings.marks;
+      if (b?.known !== true || m?.known !== true) return;
+      const bleedPt = isDim(b.value) ? toPoints(b.value) : 0;
+      const geo = computePrintGeometry({
+        trimWpt: toPoints(trim2.w),
+        trimHpt: toPoints(trim2.h),
+        bleedPt,
+        marks: m.value ?? {}
+      });
+      const unit2 = trim2.w.unit === trim2.h.unit ? trim2.w.unit : "pt";
+      const wLbl = unit2 === trim2.w.unit ? num(trim2.w.value) : num(toPoints(trim2.w));
+      const hLbl = unit2 === trim2.h.unit ? num(trim2.h.value) : num(toPoints(trim2.h));
+      const bleedLbl = isDim(b.value) ? `${num(b.value.value)} ${b.value.unit}` : "none";
+      const area = (box2, w, h) => ({
+        kind: "area",
+        value: pt2ToM2(w, h),
+        unit: "m2-sheet",
+        box: box2,
+        bound: "exact",
+        basis: "print-marks.computePrintGeometry"
+      });
+      c.add({
+        id: "print.geometry",
+        severity: "info",
+        message: `Trim ${wLbl} x ${hLbl} ${unit2}. Bleed ${bleedLbl}. Media box ${num(geo.page.w)} x ${num(geo.page.h)} points.`,
+        evidence: {
+          trimWpt: Math.round(geo.boxes.trim.w * 100) / 100,
+          trimHpt: Math.round(geo.boxes.trim.h * 100) / 100,
+          bleedPt: Math.round(bleedPt * 100) / 100,
+          mediaWpt: Math.round(geo.page.w * 100) / 100,
+          mediaHpt: Math.round(geo.page.h * 100) / 100
+        },
+        count: area("trim", geo.boxes.trim.w, geo.boxes.trim.h)
+      });
+      c.add({
+        id: "print.geometry",
+        severity: "info",
+        message: `Bleed box ${num(geo.boxes.bleed.w)} x ${num(geo.boxes.bleed.h)} points.`,
+        count: area("bleed", geo.boxes.bleed.w, geo.boxes.bleed.h)
+      });
+      c.add({
+        id: "print.geometry",
+        severity: "info",
+        message: `Media box ${num(geo.boxes.media.w)} x ${num(geo.boxes.media.h)} points, the whole sheet through the press.`,
+        count: area("media", geo.boxes.media.w, geo.boxes.media.h)
+      });
+    };
+    checkPagesPaginate = (c) => {
+      const src = c.job?.manifest?.render?.paginate?.source;
+      if (typeof src !== "string" || !src) return;
+      const input = model(c).find((i) => i?.id === src);
+      if (!input) return;
+      const table = normalizeTableValue(input.value);
+      if (!table) return;
+      const n2 = Math.max(1, table.rows.length);
+      const bound = c.job.modelPhase === "post-init" ? "exact" : "ceiling";
+      c.add({
+        id: "count.pages.paginate",
+        severity: "info",
+        message: `${n2} ${n2 === 1 ? "page" : "pages"}, one per row of ${labelOf(input)}.`,
+        evidence: { source: src, rows: table.rows.length, modelPhase: c.job.modelPhase ?? null },
+        count: { kind: "pages", value: n2, unit: "page", bound, basis: "manifest.render.paginate" }
+      });
+    };
+    checkPagesPages = (c) => {
+      const pages = c.job?.manifest?.render?.pages;
+      const id = pages?.count;
+      if (typeof id !== "string" || !id) return;
+      const input = model(c).find((i) => i?.id === id);
+      if (!input || !isFiniteNum(input.value)) return;
+      const lo = isFiniteNum(pages.min) ? pages.min : 1;
+      const hi = isFiniteNum(pages.max) ? pages.max : 6;
+      const n2 = Math.round(clamp(input.value, lo, hi));
+      c.add({
+        id: "count.pages.pages",
+        severity: "info",
+        message: `${n2} ${n2 === 1 ? "page" : "pages"}.`,
+        evidence: { source: id, typed: input.value, min: lo, max: hi },
+        count: { kind: "pages", value: n2, unit: "page", bound: "exact", basis: "manifest.render.pages" }
+      });
+    };
+    checkPagesFromStage = (c) => {
+      if (!PAGED_FORMATS.has(c.fmt)) return;
+      const r3 = c.job?.manifest?.render;
+      if (r3?.paginate?.source || r3?.pages?.count) return;
+      const st = c.job?.stage;
+      if (st?.known !== true) return;
+      const n2 = st.value?.pageBoxes;
+      if (!isFiniteNum(n2) || n2 <= 0) return;
+      c.add({
+        id: "count.pages.stage",
+        severity: "info",
+        message: `${Math.floor(n2)} ${n2 === 1 ? "page" : "pages"}, counted on the artwork as it stands.`,
+        evidence: { format: c.fmt, pageBoxes: Math.floor(n2) },
+        count: { kind: "pages", value: Math.floor(n2), unit: "page", bound: "exact", basis: "stage.pageBoxes" }
+      });
+    };
+    checkPagesUnknown = (c) => {
+      if (!PAGED_FORMATS.has(c.fmt)) return;
+      const r3 = c.job?.manifest?.render;
+      if (r3?.paginate?.source || r3?.pages?.count) return;
+      const st = c.job?.stage;
+      if (st?.known === true && isFiniteNum(st.value?.pageBoxes) && st.value.pageBoxes > 0) return;
+      c.add({
+        id: "count.pages.unknown",
+        severity: "info",
+        needs: st?.known === true ? "not-set" : "needs-mount",
+        message: st?.known === true ? "This tool declares no page count and the artwork on screen carries no page boxes, so Lolly is not reporting a page count." : "Lolly cannot count this tool's pages without the artwork on screen.",
+        evidence: { format: c.fmt }
+      });
+    };
+    checkSequenceDuration = (c) => {
+      if (!MOTION_FORMATS.has(c.fmt) && cutsOf(c) === 0) return;
+      const st = c.job?.stage;
+      if (st?.known !== true) return;
+      const ms = st.value?.durationMs;
+      if (!isFiniteNum(ms) || ms <= 0) return;
+      const s = Math.round(ms / 1e3 * 100) / 100;
+      c.add({
+        id: "count.sequence-duration",
+        severity: "info",
+        message: `The timeline on screen is ${num(s)} seconds long.`,
+        evidence: { durationMs: Math.round(ms), format: c.fmt },
+        count: { kind: "seconds", value: s, unit: "s", bound: "exact", basis: "stage.durationMs" }
+      });
+    };
+    checkRasterPixels = (c) => {
+      if (!RASTER_FORMATS.has(c.fmt)) return;
+      const s = c.job?.settings?.size;
+      if (!isDim(s?.width) || !isDim(s?.height)) return;
+      const px = s.width.unit === "px" && s.height.unit === "px";
+      const dpi = isFiniteNum(s.dpi) ? s.dpi : 96;
+      const w = toPixels(s.width, dpi), h = toPixels(s.height, dpi);
+      if (!(w > 0) || !(h > 0)) return;
+      c.add({
+        id: "count.raster-pixels",
+        severity: "info",
+        message: px ? `${w} x ${h} pixels.` : `${w} x ${h} pixels at ${num(dpi)} DPI.`,
+        evidence: { width: w, height: h, dpi: px ? null : dpi },
+        count: { kind: "pixels", value: w * h, unit: "px", bound: "exact", basis: "units.toPixels" }
+      });
+    };
+    checkVideoDurationDeclared = (c) => {
+      if (!MOTION_FORMATS.has(c.fmt)) return;
+      const d = c.job?.manifest?.render?.video?.duration;
+      if (!isFiniteNum(d) || d <= 0) return;
+      c.add({
+        id: "count.video-duration-declared",
+        severity: "info",
+        message: `The tool declares a ${num(d)} second clip. The clip Lolly actually captures is measured after it runs.`,
+        evidence: { declaredSeconds: d, format: c.fmt },
+        count: { kind: "seconds", value: d, unit: "s", bound: "ceiling", basis: "manifest.render.video" }
+      });
+    };
+    checkProcessPlates = (c) => {
+      if (!SEPARATING_FORMATS.has(c.fmt)) return;
+      c.add({
+        id: "plates.process",
+        severity: "info",
+        message: "4 process plates. Whether all four carry ink cannot be known before the file is written.",
+        evidence: { format: c.fmt },
+        count: { kind: "processPlates", value: 4, unit: "plate", bound: "ceiling", basis: "format" }
+      });
+    };
+    checkSpotCeiling = (c) => {
+      if (!SEPARATING_FORMATS.has(c.fmt)) return;
+      if (c.job?.palette?.known !== true) return;
+      const names = new Set(spotSwatches(c).filter((s) => !s.spot.finish).map((s) => s.spot.name));
+      if (names.size === 0) return;
+      c.add({
+        id: "plates.spot-ceiling",
+        severity: "info",
+        message: `Up to ${names.size} spot ${names.size === 1 ? "plate" : "plates"}.`,
+        evidence: { spots: [...names].join(", "), format: c.fmt },
+        count: { kind: "spotPlates", value: names.size, unit: "plate", bound: "ceiling", basis: "palette.spot" }
+      });
+    };
+    checkFinishCeiling = (c) => {
+      if (!SEPARATING_FORMATS.has(c.fmt)) return;
+      if (c.job?.palette?.known !== true) return;
+      const names = [...new Set(finishSpots(c).map((s) => s.spot.name))];
+      if (names.length === 0) return;
+      c.add({
+        id: "plates.finish-ceiling",
+        severity: "info",
+        message: `Up to ${names.length} finish ${names.length === 1 ? "plate" : "plates"}: ${names.join(", ")}.`,
+        evidence: { finishes: names.join(", "), format: c.fmt },
+        count: { kind: "finishPlates", value: names.length, unit: "plate", bound: "ceiling", basis: "palette.spot.finish" }
+      });
+    };
+    checkNoSpotsDeclared = (c) => {
+      if (!SEPARATING_FORMATS.has(c.fmt)) return;
+      if (c.job?.palette?.known !== true) return;
+      if (spotSwatches(c).length > 0) return;
+      c.add({
+        id: "plates.no-spots-declared",
+        severity: "info",
+        needs: "not-set",
+        message: "This brand declares no spot inks, so there are no spot plates to count.",
+        evidence: { format: c.fmt }
+      });
+    };
+    checkPaletteUnresolved = (c) => {
+      if (!SEPARATING_FORMATS.has(c.fmt)) return;
+      const p = c.job?.palette;
+      if (!p || p.known !== false) return;
+      c.add({
+        id: "plates.palette-unresolved",
+        severity: "info",
+        needs: p.why,
+        message: "No brand palette resolved, so plate count is unavailable.",
+        evidence: { format: c.fmt, why: p.why }
+      });
+    };
+    cutsOf = (c) => {
+      const n2 = c.job?.settings?.cuts;
+      return isFiniteNum(n2) && n2 > 1 ? Math.floor(n2) : 0;
+    };
+    checkCutsNeedsStage = (c) => {
+      const n2 = cutsOf(c);
+      if (!n2 || c.job?.stage?.known !== false) return;
+      c.add({
+        id: "count.cuts-needs-stage",
+        severity: "info",
+        needs: "needs-mount",
+        message: `cuts=${n2} is set. It multiplies the output only on a timed composition, which Lolly cannot tell without the artwork on screen. Counted as one file.`,
+        evidence: { cuts: n2, format: c.fmt }
+      });
+    };
+    checkCutsInert = (c) => {
+      const n2 = cutsOf(c);
+      const st = c.job?.stage;
+      if (!n2 || st?.known !== true) return;
+      const seq = st.value?.isSequence === true;
+      const fmtOk = CUTS_FORMATS.has(c.fmt);
+      if (seq && fmtOk) return;
+      const reason = !seq ? "this tool is not a timed composition" : `${c.fmt || "this format"} has no contact sheet`;
+      c.add({
+        id: "count.cuts-inert",
+        severity: "info",
+        message: `cuts=${n2} is set but does nothing here: ${reason}. One file will come out.`,
+        evidence: { cuts: n2, format: c.fmt, isSequence: seq },
+        count: { kind: "outputFiles", value: 1, unit: "file", bound: "exact", basis: "settings.cuts" }
+      });
+    };
+    checkCutsApplies = (c) => {
+      const n2 = cutsOf(c);
+      const st = c.job?.stage;
+      if (!n2 || st?.known !== true || st.value?.isSequence !== true || !CUTS_FORMATS.has(c.fmt)) return;
+      const pdf = c.fmt === "pdf";
+      c.add({
+        id: "count.cuts-applies",
+        severity: "info",
+        message: `A contact sheet of ${n2} frames, delivered as one ${pdf ? "PDF" : "ZIP"}.`,
+        evidence: { cuts: n2, format: c.fmt, delivery: pdf ? "pdf" : "zip" },
+        count: { kind: "outputFiles", value: 1, unit: "file", bound: "exact", basis: "settings.cuts" }
+      });
+      if (pdf) {
+        c.add({
+          id: "count.cuts-applies",
+          severity: "info",
+          message: `${n2} pages, one per frame.`,
+          evidence: { cuts: n2, format: c.fmt },
+          count: { kind: "pages", value: n2, unit: "page", bound: "exact", basis: "settings.cuts" }
+        });
+      }
+    };
+    checkExperimentalWatermark = (c) => {
+      if (c.job?.manifest?.status !== "experimental") return;
+      c.add({
+        id: "export.experimental-watermark",
+        severity: "info",
+        message: "This tool is experimental, so every export carries a watermark.",
+        evidence: { status: "experimental" }
+      });
+    };
+    refusal = (id, needs, message, evidence) => ({ id, severity: "info", needs, message, ...evidence ? { evidence } : {} });
+    checkRefusals = (c) => {
+      const separating = SEPARATING_FORMATS.has(c.fmt);
+      const motion = MOTION_FORMATS.has(c.fmt);
+      if (separating) {
+        c.add(refusal(
+          "refuse.ink-coverage",
+          "not-computable",
+          "Lolly cannot measure ink coverage or total area coverage. Nothing in the platform computes it, and a guess would be worse than nothing."
+        ));
+        c.add(refusal(
+          "refuse.exact-separation",
+          "needs-render",
+          "The exact set of plates is only known once the file is written. Ink substitution is an exact colour match against brand swatches; everything else falls through to process, and images inside a CMYK PDF are not converted at all."
+        ));
+      }
+      if (finishSpots(c).length > 0) {
+        c.add(refusal(
+          "refuse.finish-covered-area",
+          "not-computable",
+          "Lolly cannot measure the area a finish covers. The only area it can supply is the whole sheet through the press, not the varnished part of it."
+        ));
+      }
+      c.add(refusal(
+        "refuse.output-file-size",
+        "not-computable",
+        "Lolly cannot predict the output file size."
+      ));
+      if (motion) {
+        c.add(refusal(
+          "refuse.render-time",
+          "not-computable",
+          "Lolly cannot predict how long a render will take. Motion capture runs in real time."
+        ));
+        c.add(refusal(
+          "refuse.video-frames",
+          "needs-render",
+          "Frame count and the frame rate actually used are decided while the export runs."
+        ));
+      }
+      if (c.job?.stage?.known === false && (motion || cutsOf(c) > 0)) {
+        c.add(refusal(
+          "refuse.sequence-duration",
+          "needs-mount",
+          "Lolly cannot read the timeline length without the artwork on screen."
+        ));
+      }
+      if (PRINT_MARK_FORMATS.has(c.fmt) && c.job?.settings?.size?.declaredBy === "manifest") {
+        c.add(refusal(
+          "refuse.trim-when-unset",
+          "not-set",
+          "No page size was set, so the trim size is whatever the artwork measures on screen. Lolly is not converting the tool's pixel canvas into millimetres."
+        ));
+      }
+    };
+    CHECKS = [
+      // errors
+      checkFinishSeparatesAsInk,
+      checkFinishFlattened,
+      checkFormatOffered,
+      // warnings
+      checkRequiredBlank,
+      checkNumberRange,
+      checkTextMaxLength,
+      checkSelectValue,
+      checkVectorClamped,
+      checkPrintMarksOnNonPrintFormat,
+      checkPressProfileOnNonSeparatingFormat,
+      checkHdrFormat,
+      checkDurableFormat,
+      checkAspectGuard,
+      checkNoBleed,
+      // info: geometry & counts
+      checkFinishUnknownKind,
+      checkBleedUnknown,
+      checkTrimPartial,
+      checkTrimNotPhysical,
+      checkPrintGeometry,
+      checkPagesPaginate,
+      checkPagesPages,
+      checkPagesFromStage,
+      checkPagesUnknown,
+      checkRasterPixels,
+      checkSequenceDuration,
+      checkVideoDurationDeclared,
+      checkProcessPlates,
+      checkSpotCeiling,
+      checkFinishCeiling,
+      checkNoSpotsDeclared,
+      checkPaletteUnresolved,
+      checkCutsNeedsStage,
+      checkCutsInert,
+      checkCutsApplies,
+      checkExperimentalWatermark,
+      // named refusals, last
+      checkRefusals
+    ];
+  }
+});
+
+// engine/src/rate-card.ts
+function toText(input) {
+  return typeof input === "string" ? input : decoder.decode(input);
+}
+function isObject(v) {
+  return typeof v === "object" && v !== null && !Array.isArray(v);
+}
+function isFiniteRate(v) {
+  return typeof v === "number" && Number.isFinite(v) && v >= 0;
+}
+function breaksAreValid(breaks) {
+  if (!Array.isArray(breaks) || breaks.length === 0) return false;
+  let prevMin = 0;
+  for (let i = 0; i < breaks.length; i++) {
+    const b = breaks[i];
+    if (!isObject(b)) return false;
+    const { min, rate } = b;
+    if (typeof min !== "number" || !Number.isInteger(min)) return false;
+    if (i === 0 ? min !== 1 : min <= prevMin) return false;
+    if (!isFiniteRate(rate)) return false;
+    prevMin = min;
+  }
+  return true;
+}
+function parseRateCard(input, digest2, validate) {
+  if (digest2 === EXAMPLE_RATECARD_DIGEST) return { error: "example-card" };
+  let doc;
+  try {
+    doc = JSON.parse(toText(input));
+  } catch {
+    return { error: "not-a-rate-card" };
+  }
+  if (!isObject(doc) || doc.$format !== "lolly-ratecard") return { error: "not-a-rate-card" };
+  if (!validate(doc)) return { error: "not-a-rate-card" };
+  const currency = doc.currency;
+  try {
+    new Intl.NumberFormat(void 0, { style: "currency", currency });
+  } catch {
+    return { error: "not-a-rate-card" };
+  }
+  const breakMode = doc.breakMode;
+  const rawLines = doc.lines ?? [];
+  const seen = /* @__PURE__ */ new Set();
+  const lines = [];
+  for (const raw of rawLines) {
+    const r3 = raw;
+    const line = {
+      id: r3.id,
+      kind: r3.kind,
+      rate: r3.rate
+    };
+    if (r3.finish !== void 0) line.finish = r3.finish;
+    if (r3.unit !== void 0) line.unit = r3.unit;
+    if (r3.quantityKind !== void 0) line.quantityKind = r3.quantityKind;
+    if (r3.breaks !== void 0) line.breaks = r3.breaks;
+    let disabled;
+    if (seen.has(line.id)) {
+      disabled = "bad-rate";
+    } else {
+      seen.add(line.id);
+    }
+    if (!disabled && !isFiniteRate(line.rate)) disabled = "bad-rate";
+    if (!disabled && line.breaks !== void 0) {
+      if (!breaksAreValid(line.breaks)) disabled = "bad-rate";
+      else if (breakMode === void 0) disabled = "needs-break-mode";
+    }
+    if (!disabled && line.kind === "perQuantity") {
+      const qk = line.quantityKind;
+      if (typeof qk !== "string" || qk.trim() === "") disabled = "missing-quantity-kind";
+    }
+    if (!disabled && typeof line.finish === "string" && !KNOWN_FINISHES2.has(line.finish)) {
+      disabled = "unknown-finish";
+    }
+    if (disabled) line.disabled = { reason: disabled };
+    lines.push(line);
+  }
+  const anyPriced = lines.some((l) => !l.disabled && isFiniteRate(l.rate));
+  if (!anyPriced) return { error: "no-priced-lines" };
+  const card = {
+    digest: digest2,
+    formatVersion: 1,
+    currency,
+    taxIncluded: doc.taxIncluded === true,
+    issuer: isObject(doc.issuer) ? doc.issuer : {},
+    confidential: doc.confidential === true,
+    lines
+  };
+  if (breakMode !== void 0) card.breakMode = breakMode;
+  if (isFiniteRate(doc.minimumCharge)) card.minimumCharge = doc.minimumCharge;
+  if (isObject(doc.sheet)) card.sheet = doc.sheet;
+  return card;
+}
+function toMinor(rate, exponent) {
+  return Math.round(rate * 10 ** exponent);
+}
+function exactMinor(rate, exponent) {
+  return rate * 10 ** exponent;
+}
+function breaksToMinor(breaks, exponent) {
+  return breaks.map((b) => ({ min: b.min, rate: exactMinor(b.rate, exponent) }));
+}
+function flatTier(breaks, q) {
+  let chosen = breaks[0];
+  for (const b of breaks) if (b.min <= q) chosen = b;
+  return chosen;
+}
+function priceQuantity(line, breakMode, rateExact, breaksExact, q, ctx) {
+  const base = {
+    lineId: line.id,
+    kind: line.kind,
+    quantityKind: ctx.quantityKind,
+    bound: ctx.bound,
+    ...ctx.unit !== void 0 ? { unit: ctx.unit } : {},
+    ...ctx.box !== void 0 ? { box: ctx.box } : {},
+    subtotalBound: ctx.bound
+  };
+  if (!breaksExact) {
+    return [{ ...base, quantity: q, unitRate: Math.round(rateExact), subtotal: Math.round(q * rateExact) }];
+  }
+  if (breakMode === "flat") {
+    const t = flatTier(breaksExact, q);
+    return [
+      { ...base, quantity: q, unitRate: Math.round(t.rate), subtotal: Math.round(q * t.rate), breakApplied: { mode: "flat", min: t.min } }
+    ];
+  }
+  const rows = [];
+  const active = breaksExact.filter((b) => b.min <= q);
+  for (let i = 0; i < active.length; i++) {
+    const b = active[i];
+    const next = active[i + 1];
+    const upper = next === void 0 ? q : next.min - 1;
+    const units = upper - b.min + 1;
+    if (units <= 0) continue;
+    rows.push({
+      ...base,
+      quantity: units,
+      unitRate: Math.round(b.rate),
+      subtotal: Math.round(units * b.rate),
+      breakApplied: { mode: "marginal", min: b.min, upTo: upper }
+    });
+  }
+  return rows;
+}
+function countsForLine(line, counts) {
+  switch (line.kind) {
+    case "perPlate":
+      return counts.filter(
+        (c) => line.finish !== void 0 ? c.kind === "finishPlates" : c.kind === "processPlates" || c.kind === "spotPlates"
+      );
+    case "perSheet":
+      return counts.filter((c) => c.kind === "sheets");
+    case "perArea":
+      return counts.filter((c) => c.kind === "area" && c.unit === "m2-sheet" && c.box === "media");
+    case "perQuantity":
+      return counts.filter((c) => c.kind === line.quantityKind);
+    default:
+      return [];
+  }
+}
+function gapReason(line) {
+  if (line.kind === "perSheet") return "no-sheet-count";
+  if (line.kind === "perArea") return "no-sheet-area";
+  return "quantity-not-produced";
+}
+function isExpired(card, now2) {
+  const v = card.issuer.validUntil;
+  if (typeof v !== "string" || v.trim() === "") return false;
+  const t = Date.parse(v);
+  if (Number.isNaN(t)) return false;
+  return t < (now2 ?? Date.now());
+}
+function computeCost(card, counts, input = {}) {
+  const exponent = minorUnitExponent(card.currency);
+  const rows = [];
+  const uncosted = [];
+  let coveredLines = 0;
+  for (const line of card.lines) {
+    if (line.disabled) {
+      uncosted.push({ lineId: line.id, reason: line.disabled.reason });
+      continue;
+    }
+    const rateExact = exactMinor(line.rate, exponent);
+    const rateFlat = Math.round(rateExact);
+    const breaksExact = line.breaks ? breaksToMinor(line.breaks, exponent) : void 0;
+    if (breaksExact && card.breakMode === void 0) {
+      uncosted.push({ lineId: line.id, reason: "needs-break-mode" });
+      continue;
+    }
+    let lineRows = [];
+    if (line.kind === "perJob") {
+      lineRows = [
+        {
+          lineId: line.id,
+          kind: line.kind,
+          quantityKind: "job",
+          quantity: 1,
+          bound: "exact",
+          unitRate: rateFlat,
+          subtotal: rateFlat,
+          subtotalBound: "exact"
+        }
+      ];
+    } else if (line.kind === "perUnit") {
+      const q = input.runLength;
+      if (typeof q !== "number" || !Number.isInteger(q) || q < 0) {
+        uncosted.push({ lineId: line.id, reason: "no-run-length" });
+        continue;
+      }
+      lineRows = priceQuantity(line, card.breakMode, rateExact, breaksExact, q, {
+        quantityKind: "runLength",
+        bound: "exact"
+      });
+    } else {
+      if (line.kind === "perQuantity" && !QUANTITY_KINDS.has(line.quantityKind ?? "")) {
+        uncosted.push({ lineId: line.id, reason: "quantity-unknown-kind" });
+        continue;
+      }
+      const matched = countsForLine(line, counts);
+      if (matched.length === 0) {
+        uncosted.push({ lineId: line.id, reason: gapReason(line) });
+        continue;
+      }
+      for (const c of matched) {
+        lineRows.push(
+          ...priceQuantity(line, card.breakMode, rateExact, breaksExact, c.value, {
+            quantityKind: c.kind,
+            bound: c.bound,
+            unit: c.unit,
+            box: c.box
+          })
+        );
+      }
+    }
+    if (lineRows.length === 0) {
+      uncosted.push({ lineId: line.id, reason: gapReason(line) });
+      continue;
+    }
+    rows.push(...lineRows);
+    coveredLines++;
+  }
+  const subtotalOfCovered = rows.reduce((s, r3) => s + r3.subtotal, 0);
+  const bound = rows.some((r3) => r3.subtotalBound === "ceiling") ? "ceiling" : "exact";
+  const fullCoverage = uncosted.length === 0;
+  const adjustments = [];
+  let headline = subtotalOfCovered;
+  if (fullCoverage && card.minimumCharge !== void 0) {
+    const minMinor = toMinor(card.minimumCharge, exponent);
+    if (minMinor > subtotalOfCovered) {
+      adjustments.push({
+        lineId: "minimum-charge",
+        kind: "adjustment",
+        reason: "minimumCharge",
+        from: subtotalOfCovered,
+        to: minMinor,
+        delta: minMinor - subtotalOfCovered
+      });
+      headline = minMinor;
+    }
+  }
+  const estimatedTotal = fullCoverage ? monetaryFigure(headline, card.currency) : null;
+  return {
+    currency: card.currency,
+    expired: isExpired(card, input.now),
+    rows,
+    adjustments,
+    uncosted,
+    coveredLines,
+    totalLines: card.lines.length,
+    subtotalOfCovered,
+    bound,
+    estimatedTotal
+  };
+}
+var isRateCardError, EXAMPLE_RATECARD_DIGEST, KNOWN_FINISHES2, decoder, QUANTITY_KINDS;
+var init_rate_card = __esm({
+  "engine/src/rate-card.ts"() {
+    "use strict";
+    init_src();
+    isRateCardError = (r3) => "error" in r3;
+    EXAMPLE_RATECARD_DIGEST = "ef6b6002525d25ce";
+    KNOWN_FINISHES2 = new Set(KNOWN_FINISH_KINDS);
+    decoder = new TextDecoder();
+    QUANTITY_KINDS = /* @__PURE__ */ new Set([
+      "variantRows",
+      "outputFiles",
+      "pages",
+      "processPlates",
+      "spotPlates",
+      "finishPlates",
+      "sheets",
+      "area",
+      "pixels",
+      "seconds",
+      "frames",
+      "inputs"
+    ]);
+  }
+});
+
 // engine/src/svg-path.ts
-function parseSvgPathArgs(str2) {
-  const m = str2.match(/[+-]?(?:\d+\.?\d*|\.\d+)(?:[eE][+-]?\d+)?/g);
+function parseSvgPathArgs(str3) {
+  const m = str3.match(/[+-]?(?:\d+\.?\d*|\.\d+)(?:[eE][+-]?\d+)?/g);
   return m ? m.map(Number) : [];
 }
-function parseArcArgs(str2) {
+function parseArcArgs(str3) {
   const numRe = /[+-]?(?:\d+\.?\d*|\.\d+)(?:[eE][+-]?\d+)?/y;
   const flagRe = /[01]/y;
   const sepRe = /[\s,]*/y;
@@ -10140,18 +14764,18 @@ function parseArcArgs(str2) {
   let i = 0;
   const skipSep = () => {
     sepRe.lastIndex = i;
-    sepRe.exec(str2);
+    sepRe.exec(str3);
     i = sepRe.lastIndex;
   };
   const grab = (re) => {
     skipSep();
     re.lastIndex = i;
-    const mm = re.exec(str2);
+    const mm = re.exec(str3);
     if (!mm) return null;
     i = re.lastIndex;
     return mm[0];
   };
-  while (i < str2.length) {
+  while (i < str3.length) {
     const rx = grab(numRe);
     if (rx === null) break;
     const ry = grab(numRe);
@@ -10336,9 +14960,9 @@ function svgArcToBeziers(x1, y1, rx, ry, phi, fa, fs, x2, y2) {
     rx2 = rx * rx;
     ry2 = ry * ry;
   }
-  const num3 = Math.max(0, rx2 * ry2 - rx2 * y1p2 - ry2 * x1p2);
+  const num5 = Math.max(0, rx2 * ry2 - rx2 * y1p2 - ry2 * x1p2);
   const den = rx2 * y1p2 + ry2 * x1p2;
-  const coef = (fa === fs ? -1 : 1) * Math.sqrt(num3 / den);
+  const coef = (fa === fs ? -1 : 1) * Math.sqrt(num5 / den);
   const cxp = coef * rx * y1p / ry;
   const cyp = -coef * ry * x1p / rx;
   const cx = cosP * cxp - sinP * cyp + (x1 + x2) / 2;
@@ -10384,6 +15008,62 @@ function svgArcToBeziers(x1, y1, rx, ry, phi, fa, fs, x2, y2) {
 var init_svg_path = __esm({
   "engine/src/svg-path.ts"() {
     "use strict";
+  }
+});
+
+// engine/src/svg-colors.ts
+function extractSvgColors(svgText) {
+  const out = [];
+  if (typeof svgText !== "string" || svgText.length === 0) return out;
+  const seen = /* @__PURE__ */ new Set();
+  const consider = (raw) => {
+    if (raw == null) return;
+    let v = raw.trim().replace(/\s*!important\s*$/i, "").trim();
+    if (v.length === 0) return;
+    const lc = v.toLowerCase();
+    if (lc.startsWith("url(")) return;
+    if (EXCLUDE.has(lc)) return;
+    if (!SAFE_CSS_COLOR.test(v)) return;
+    if (BARE_IDENT.test(v) && !isNamedColor(lc)) return;
+    const hex = colorToHex(v);
+    if (hex == null || hex === "transparent") return;
+    const key = hex.toLowerCase();
+    if (seen.has(key)) return;
+    seen.add(key);
+    out.push(hex);
+  };
+  let guard2 = 0;
+  let m;
+  const attrRe = /(?<![-\w])(?:fill|stroke|stop-color|flood-color|lighting-color|color)\s*=\s*(?:"([^"]*)"|'([^']*)')/gi;
+  while ((m = attrRe.exec(svgText)) && guard2++ < MATCH_CAP) {
+    consider(m[1] ?? m[2]);
+  }
+  const declRe = /(?<![-\w])(?:fill|stroke|stop-color|flood-color|lighting-color|color)\s*:\s*([^;}"']+)/gi;
+  while ((m = declRe.exec(svgText)) && guard2++ < MATCH_CAP) {
+    consider(m[1]);
+  }
+  return out;
+}
+var SAFE_CSS_COLOR, BARE_IDENT, EXCLUDE, MATCH_CAP;
+var init_svg_colors = __esm({
+  "engine/src/svg-colors.ts"() {
+    "use strict";
+    init_tokens();
+    init_css_color();
+    SAFE_CSS_COLOR = /^(?:#[0-9a-f]{3,8}|(?:rgb|rgba|hsl|hsla|hwb|lab|lch|oklab|oklch|color)\([^();"'{}<>\\]*\)|[a-z][a-z0-9-]*)$/i;
+    BARE_IDENT = /^[a-z][a-z0-9-]*$/i;
+    EXCLUDE = /* @__PURE__ */ new Set([
+      "none",
+      "transparent",
+      "currentcolor",
+      "inherit",
+      "initial",
+      "unset",
+      "revert",
+      "context-fill",
+      "context-stroke"
+    ]);
+    MATCH_CAP = 1e5;
   }
 });
 
@@ -10544,8 +15224,8 @@ function analysePcm(channels, sampleRate, opts = {}) {
   const bands = clampInt(opts.bands ?? 64, 4, 512);
   const buckets = clampInt(opts.buckets ?? 128, 4, 4096);
   const waveLen = opts.samples ? Math.min(4096, nextPow2(clampInt(opts.samples, 16, 4096))) : 0;
-  const start = clamp(opts.start ?? 0, 0, duration);
-  const window2 = clamp(opts.window ?? duration - start, 0, duration - start);
+  const start = clamp2(opts.start ?? 0, 0, duration);
+  const window2 = clamp2(opts.window ?? duration - start, 0, duration - start);
   const s0 = Math.floor(start * sampleRate);
   const s1 = Math.min(total, Math.max(s0 + 1, Math.floor((start + window2) * sampleRate)));
   const span = s1 - s0;
@@ -10842,11 +15522,11 @@ function fftInPlace(re, im) {
     }
   }
 }
-function clamp(v, lo, hi) {
+function clamp2(v, lo, hi) {
   return v < lo ? lo : v > hi ? hi : v;
 }
 function clampInt(v, lo, hi) {
-  return Math.round(clamp(Number.isFinite(v) ? v : lo, lo, hi));
+  return Math.round(clamp2(Number.isFinite(v) ? v : lo, lo, hi));
 }
 function nextPow2(v) {
   let n2 = 1;
@@ -10931,8 +15611,8 @@ function parseWav(bytes) {
   }
   return { channels, sampleRate };
 }
-function sampleReader(view, tag, bits) {
-  if (tag === FMT_FLOAT) {
+function sampleReader(view, tag2, bits) {
+  if (tag2 === FMT_FLOAT) {
     return bits === 64 ? (at) => view.getFloat64(at, true) : (at) => view.getFloat32(at, true);
   }
   switch (bits) {
@@ -10968,8 +15648,134 @@ var init_wav = __esm({
   }
 });
 
+// engine/src/midi.ts
+function tag(b, off) {
+  return String.fromCharCode(b[off] ?? 0, b[off + 1] ?? 0, b[off + 2] ?? 0, b[off + 3] ?? 0);
+}
+function parseMidi(bytes) {
+  const dv = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
+  if (bytes.length < 14 || tag(bytes, 0) !== "MThd") throw new Error("not a Standard MIDI File");
+  const division = dv.getUint16(12);
+  const ntracks = dv.getUint16(10);
+  let pos = 8 + dv.getUint32(4);
+  const notes = [];
+  let usPerQuarter = 5e5;
+  for (let t = 0; t < ntracks && notes.length < MAX_NOTES; t++) {
+    if (pos + 8 > bytes.length || tag(bytes, pos) !== "MTrk") break;
+    const len2 = dv.getUint32(pos + 4);
+    let p = pos + 8;
+    const end = Math.min(p + len2, bytes.length);
+    let tick = 0;
+    let status = 0;
+    const active = /* @__PURE__ */ new Map();
+    while (p < end && notes.length < MAX_NOTES) {
+      let delta = 0, b;
+      do {
+        b = bytes[p++] ?? 0;
+        delta = delta << 7 | b & 127;
+      } while (b & 128 && p < end);
+      tick += delta;
+      let sb = bytes[p] ?? 0;
+      if (sb & 128) {
+        status = sb;
+        p++;
+      } else sb = status;
+      if (sb === 255) {
+        const type = bytes[p++] ?? 0;
+        let mlen = 0, mb;
+        do {
+          mb = bytes[p++] ?? 0;
+          mlen = mlen << 7 | mb & 127;
+        } while (mb & 128 && p < end);
+        if (type === 81 && mlen === 3 && p + 3 <= end) {
+          usPerQuarter = bytes[p] << 16 | bytes[p + 1] << 8 | bytes[p + 2];
+        }
+        p += mlen;
+      } else if (sb === 240 || sb === 247) {
+        let slen = 0, sbb;
+        do {
+          sbb = bytes[p++] ?? 0;
+          slen = slen << 7 | sbb & 127;
+        } while (sbb & 128 && p < end);
+        p += slen;
+      } else {
+        const hi = sb & 240, ch = sb & 15;
+        if (hi === 144 || hi === 128) {
+          const note = bytes[p++] ?? 0, vel = bytes[p++] ?? 0;
+          const key = ch << 8 | note;
+          if (hi === 144 && vel > 0) {
+            (active.get(key) ?? active.set(key, []).get(key)).push(tick);
+          } else {
+            const stack = active.get(key);
+            if (stack && stack.length) notes.push({ start: stack.shift(), end: tick, midi: note });
+          }
+        } else if (hi === 192 || hi === 208) {
+          p += 1;
+        } else {
+          p += 2;
+        }
+      }
+    }
+    pos = end;
+  }
+  return { notes, division, bpm: usPerQuarter > 0 ? 6e7 / usPerQuarter : 120 };
+}
+function midiToSong(parsed, opts = {}) {
+  const { notes, division } = parsed;
+  const bpm = Number.isFinite(parsed.bpm) && parsed.bpm > 0 ? parsed.bpm : 120;
+  const stepsPerQuarter = opts.stepsPerQuarter && opts.stepsPerQuarter > 0 ? opts.stepsPerQuarter : 4;
+  if (!notes.length) throw new Error("no notes in MIDI");
+  if (!division || division & 32768) throw new Error("unsupported MIDI time division (SMPTE)");
+  const stepTicks = division / stepsPerQuarter;
+  const quant = (tick) => Math.round(tick / stepTicks);
+  const minMidi = notes.reduce((m, n2) => Math.min(m, n2.midi), Infinity);
+  const K = minMidi - 1;
+  const baseFreq = 440 * 2 ** ((K - 57) / 12);
+  const piano = [...PIANO];
+  piano[2] = baseFreq;
+  const events = notes.map((n2) => ({ s: quant(n2.start), e: Math.max(quant(n2.start) + 1, quant(n2.end)), z: n2.midi - K })).filter((ev) => ev.s < MAX_STEPS).sort((a, b) => a.s - b.s || b.z - a.z);
+  if (!events.length) throw new Error("no notes in MIDI");
+  const totalSteps = Math.min(events.reduce((m, e) => Math.max(m, e.e), 1), MAX_STEPS);
+  const voiceEnd = [];
+  const voices = [];
+  for (const ev of events) {
+    if (ev.s >= totalSteps) continue;
+    let v = voiceEnd.findIndex((endStep) => endStep <= ev.s);
+    if (v < 0) {
+      if (voices.length >= MAX_VOICES) continue;
+      v = voices.length;
+      voices.push(new Array(totalSteps).fill(0));
+      voiceEnd.push(0);
+    }
+    voices[v][ev.s] = ev.z;
+    voiceEnd[v] = Math.min(ev.e, totalSteps);
+  }
+  const channels = voices.map((v) => [0, 0, ...v]);
+  const song = {
+    bpm: Math.round(bpm * stepsPerQuarter / 4),
+    instruments: [piano],
+    patterns: [channels],
+    sequence: [0]
+  };
+  if (opts.name) song.title = opts.name;
+  return song;
+}
+function midiToZzfxm(bytes, opts = {}) {
+  return midiToSong(parseMidi(bytes), opts);
+}
+var PIANO, MAX_NOTES, MAX_STEPS, MAX_VOICES;
+var init_midi = __esm({
+  "engine/src/midi.ts"() {
+    "use strict";
+    PIANO = [0.4, 0, 261.63, 2e-3, 0.06, 0.55, 3, 1];
+    MAX_NOTES = 2e5;
+    MAX_STEPS = 1 << 15;
+    MAX_VOICES = 8;
+  }
+});
+
 // engine/src/zzfx-compose.ts
-function mulberry32(seed) {
+function mulberry322(seed) {
   let a = seed >>> 0;
   return () => {
     a += 1831565813;
@@ -11038,7 +15844,7 @@ function arpeggio(root, intervals, stepEvery = 2) {
   return a;
 }
 function composeSong(spec) {
-  const rng = mulberry32(spec.seed);
+  const rng = mulberry322(spec.seed);
   const scale = SCALES[spec.scale];
   const pan = spec.pan ?? 0;
   let instruments;
@@ -11245,7 +16051,7 @@ function withoutRandomness(inst) {
   return out;
 }
 function generatedSongSpec(seed, targetSec, style) {
-  const rng = mulberry32(seed >>> 0);
+  const rng = mulberry322(seed >>> 0);
   const pick = (a) => a[Math.floor(rng() * a.length)];
   const drawn = pick(ZZFXM_SEEDED_ARCHETYPES);
   const archetype = style ?? drawn;
@@ -11410,6 +16216,160 @@ var init_zzfxm_ref = __esm({
 });
 
 // engine/src/css-box.ts
+function parseCssMatrix(transform2) {
+  if (!transform2 || transform2 === "none") return null;
+  const m2 = /matrix\(([^)]+)\)/.exec(transform2);
+  if (m2) {
+    const p = m2[1].split(",").map((s) => parseFloat(s));
+    if (p.length < 6 || p.some((v) => !Number.isFinite(v))) return null;
+    return { a: p[0], b: p[1], c: p[2], d: p[3], e: p[4], f: p[5] };
+  }
+  const m3 = /matrix3d\(([^)]+)\)/.exec(transform2);
+  if (m3) {
+    const p = m3[1].split(",").map((s) => parseFloat(s));
+    if (p.length < 16 || p.some((v) => !Number.isFinite(v))) return null;
+    const z = [p[2], p[3], p[6], p[7], p[8], p[9], p[11], p[14]];
+    if (z.some((v) => Math.abs(v) > 1e-6) || Math.abs(p[10] - 1) > 1e-6 || Math.abs(p[15] - 1) > 1e-6) return null;
+    return { a: p[0], b: p[1], c: p[4], d: p[5], e: p[12], f: p[13] };
+  }
+  return null;
+}
+function multiplyMat(P, C) {
+  return {
+    a: P.a * C.a + P.c * C.b,
+    b: P.b * C.a + P.d * C.b,
+    c: P.a * C.c + P.c * C.d,
+    d: P.b * C.c + P.d * C.d,
+    e: P.a * C.e + P.c * C.f + P.e,
+    f: P.b * C.e + P.d * C.f + P.f
+  };
+}
+function matAboutPivot(m, px, py) {
+  return {
+    a: m.a,
+    b: m.b,
+    c: m.c,
+    d: m.d,
+    e: m.e + px - (m.a * px + m.c * py),
+    f: m.f + py - (m.b * px + m.d * py)
+  };
+}
+function isAxisAlignedMat(m) {
+  return Math.abs(m.b) < 1e-6 && Math.abs(m.c) < 1e-6 && m.a > 0 && m.d > 0;
+}
+function matToSvg(m) {
+  const n2 = (v) => {
+    const r3 = Math.round(v * 1e5) / 1e5;
+    return Object.is(r3, -0) ? 0 : r3;
+  };
+  return `matrix(${n2(m.a)},${n2(m.b)},${n2(m.c)},${n2(m.d)},${n2(m.e)},${n2(m.f)})`;
+}
+function parseCssLength(value, refPx = 0) {
+  if (value == null || value === "" || value === "0" || value === "0px") return 0;
+  const s = String(value).trim();
+  if (s.includes("(")) return 0;
+  if (s.endsWith("%")) {
+    const n4 = parseFloat(s);
+    return Number.isFinite(n4) ? n4 / 100 * refPx : 0;
+  }
+  const n2 = parseFloat(s);
+  return Number.isFinite(n2) ? n2 : 0;
+}
+function cornerPair(value, w, h) {
+  const s = String(value || "").trim();
+  const t = s.includes("(") ? [s] : s.split(/\s+/);
+  return [parseCssLength(t[0], w), parseCssLength(t[1] ?? t[0], h)];
+}
+function cornerRadii(corners, w, h) {
+  const tl = cornerPair(corners.topLeft, w, h);
+  const tr = cornerPair(corners.topRight, w, h);
+  const br = cornerPair(corners.bottomRight, w, h);
+  const bl = cornerPair(corners.bottomLeft, w, h);
+  const ratio = (len2, a, b) => {
+    const s = a + b;
+    return s > 0 ? len2 / s : Infinity;
+  };
+  const f = Math.min(
+    1,
+    ratio(w, tl[0], tr[0]),
+    // top edge    — horizontal radii
+    ratio(w, bl[0], br[0]),
+    // bottom edge  — horizontal radii
+    ratio(h, tl[1], bl[1]),
+    // left edge    — vertical radii
+    ratio(h, tr[1], br[1])
+    // right edge   — vertical radii
+  );
+  const scale = (p) => [p[0] * f, p[1] * f];
+  return { topLeft: scale(tl), topRight: scale(tr), bottomRight: scale(br), bottomLeft: scale(bl) };
+}
+function uniformRadius(radii) {
+  const c = [radii.topLeft, radii.topRight, radii.bottomRight, radii.bottomLeft];
+  const [rx, ry] = radii.topLeft;
+  const equal = c.every((p) => Math.abs(p[0] - rx) < 1e-3 && Math.abs(p[1] - ry) < 1e-3);
+  if (!equal) return null;
+  if (rx <= 0 && ry <= 0) return [0, 0];
+  return [rx, ry];
+}
+function insetCorners(radii, inset) {
+  const r3 = (p) => [Math.max(0, p[0] - inset), Math.max(0, p[1] - inset)];
+  return {
+    topLeft: r3(radii.topLeft),
+    topRight: r3(radii.topRight),
+    bottomRight: r3(radii.bottomRight),
+    bottomLeft: r3(radii.bottomLeft)
+  };
+}
+function splitTopLevel(str3) {
+  const out = [];
+  let depth = 0, cur = "";
+  for (const ch of String(str3)) {
+    if (ch === "(") depth++;
+    else if (ch === ")") depth = Math.max(0, depth - 1);
+    if (ch === "," && depth === 0) {
+      out.push(cur);
+      cur = "";
+    } else cur += ch;
+  }
+  if (cur.trim()) out.push(cur);
+  return out;
+}
+function parseBoxShadow(value) {
+  if (!value || value === "none") return [];
+  const shadows = [];
+  for (const raw of splitTopLevel(value)) {
+    const part = raw.trim();
+    if (!part) continue;
+    const inset = /\binset\b/.test(part);
+    const body = part.replace(/\binset\b/g, " ");
+    const colorMatch = findColorToken(body, true);
+    const color = colorMatch ?? "rgb(0,0,0)";
+    const rest = colorMatch ? body.replace(colorMatch, " ") : body;
+    const nums = (rest.match(/-?\d*\.?\d+(?:px)?/g) || []).map((s) => parseFloat(s)).filter(Number.isFinite);
+    if (nums.length < 2) continue;
+    const [x, y, blur = 0, spread = 0] = nums;
+    if (x === void 0 || y === void 0) continue;
+    shadows.push({ x, y, blur: Math.max(0, blur), spread, color, inset });
+  }
+  return shadows;
+}
+function parseTextShadow(value) {
+  if (!value || value === "none") return [];
+  const out = [];
+  for (const raw of splitTopLevel(value)) {
+    const part = raw.trim();
+    if (!part) continue;
+    const colorMatch = findColorToken(part);
+    const color = colorMatch ?? "rgb(0,0,0)";
+    const rest = colorMatch ? part.replace(colorMatch, " ") : part;
+    const nums = (rest.match(/-?\d*\.?\d+(?:px)?/g) || []).map((v) => parseFloat(v)).filter(Number.isFinite);
+    if (nums.length < 2) continue;
+    const [x, y, blur = 0] = nums;
+    if (x === void 0 || y === void 0) continue;
+    out.push({ x, y, blur: Math.max(0, blur), color });
+  }
+  return out;
+}
 function normalCdf(x) {
   const t = 1 / (1 + 0.2316419 * Math.abs(x));
   const d = 0.3989422804014327 * Math.exp(-x * x / 2);
@@ -11447,9 +16407,389 @@ function gaussianShadowRings(blur, alpha, bands) {
   }
   return out;
 }
+function roundedRectPath(x, y, w, h, radii) {
+  const cl = (p) => [
+    Math.max(0, Math.min(p[0], w)),
+    Math.max(0, Math.min(p[1], h))
+  ];
+  const [tlh, tlv] = cl(radii.topLeft);
+  const [trh, trv] = cl(radii.topRight);
+  const [brh, brv] = cl(radii.bottomRight);
+  const [blh, blv] = cl(radii.bottomLeft);
+  return [
+    `M${n3(x + tlh)},${n3(y)}`,
+    `H${n3(x + w - trh)}`,
+    trh || trv ? `A${n3(trh)},${n3(trv)} 0 0 1 ${n3(x + w)},${n3(y + trv)}` : "",
+    `V${n3(y + h - brv)}`,
+    brh || brv ? `A${n3(brh)},${n3(brv)} 0 0 1 ${n3(x + w - brh)},${n3(y + h)}` : "",
+    `H${n3(x + blh)}`,
+    blh || blv ? `A${n3(blh)},${n3(blv)} 0 0 1 ${n3(x)},${n3(y + h - blv)}` : "",
+    `V${n3(y + tlv)}`,
+    tlh || tlv ? `A${n3(tlh)},${n3(tlv)} 0 0 1 ${n3(x + tlh)},${n3(y)}` : "",
+    "Z"
+  ].filter(Boolean).join(" ");
+}
+var IDENTITY_2D, n3;
 var init_css_box = __esm({
   "engine/src/css-box.ts"() {
     "use strict";
+    init_css_color();
+    IDENTITY_2D = { a: 1, b: 0, c: 0, d: 1, e: 0, f: 0 };
+    n3 = (v) => {
+      const r3 = Math.round(v * 1e3) / 1e3;
+      return Object.is(r3, -0) ? 0 : r3;
+    };
+  }
+});
+
+// engine/src/css-paint.ts
+function clipLen(tok, ref) {
+  if (!tok) return null;
+  const t = tok.trim();
+  if (t.endsWith("%")) {
+    const p2 = parseFloat(t);
+    return Number.isFinite(p2) ? p2 / 100 * ref : null;
+  }
+  const p = parseFloat(t);
+  return Number.isFinite(p) ? p : null;
+}
+function clipPos(posStr, w, h) {
+  const s = (posStr || "").trim().toLowerCase();
+  if (!s) return { cx: w / 2, cy: h / 2 };
+  const toks = s.split(/\s+/);
+  const XK = { left: 0, right: w, center: w / 2 };
+  const YK = { top: 0, bottom: h, center: h / 2 };
+  const first = toks[0], second = toks[1];
+  const cx = first in XK ? XK[first] : first in YK ? null : clipLen(first, w);
+  const cy = second == null ? h / 2 : second in YK ? YK[second] : second in XK ? null : clipLen(second, h);
+  return { cx: cx ?? w / 2, cy: cy ?? h / 2 };
+}
+function clipRadius(tok, w, h, cx, cy, axis) {
+  const t = (tok || "closest-side").trim().toLowerCase();
+  if (t === "closest-side") return axis === "x" ? Math.min(cx, w - cx) : axis === "y" ? Math.min(cy, h - cy) : Math.min(cx, w - cx, cy, h - cy);
+  if (t === "farthest-side") return axis === "x" ? Math.max(cx, w - cx) : axis === "y" ? Math.max(cy, h - cy) : Math.max(cx, w - cx, cy, h - cy);
+  if (t.endsWith("%")) {
+    const p = parseFloat(t);
+    if (!Number.isFinite(p)) return null;
+    const ref = axis === "x" ? w : axis === "y" ? h : Math.sqrt(w * w + h * h) / Math.SQRT2;
+    return p / 100 * ref;
+  }
+  const px = parseFloat(t);
+  return Number.isFinite(px) ? px : null;
+}
+function splitShapeAt(inner) {
+  const s = inner.trim();
+  const lead = /^at\s+/i.exec(s);
+  if (lead) return ["", s.slice(lead[0].length)];
+  const i = s.toLowerCase().indexOf(" at ");
+  return i >= 0 ? [s.slice(0, i), s.slice(i + 4)] : [s, ""];
+}
+function parseClipShape(cp, w, h) {
+  const s = cp.trim();
+  if (s.indexOf("polygon(") === 0) {
+    const pts = s.slice(8, s.indexOf(")")).split(",").map((t) => t.trim().split(/\s+/).map(parseFloat)).filter((p) => p.length === 2 && Number.isFinite(p[0]) && Number.isFinite(p[1]));
+    return pts.length >= 3 ? { kind: "polygon", points: pts } : null;
+  }
+  let m = /^circle\(\s*(.*?)\s*\)$/i.exec(s);
+  if (m) {
+    const [radS, posS] = splitShapeAt(m[1]);
+    const pos = clipPos(posS, w, h);
+    const r3 = clipRadius(radS.trim() || void 0, w, h, pos.cx, pos.cy, "circle");
+    if (r3 == null) return null;
+    return r3 > 0 ? { kind: "circle", cx: pos.cx, cy: pos.cy, r: r3 } : { kind: "empty" };
+  }
+  m = /^ellipse\(\s*(.*?)\s*\)$/i.exec(s);
+  if (m) {
+    const [radS, posS] = splitShapeAt(m[1]);
+    const pos = clipPos(posS, w, h);
+    const rs = radS.trim() ? radS.trim().split(/\s+/) : [];
+    const rx = clipRadius(rs[0], w, h, pos.cx, pos.cy, "x");
+    const ry = clipRadius(rs[1] ?? rs[0], w, h, pos.cx, pos.cy, "y");
+    if (rx == null || ry == null) return null;
+    return rx > 0 && ry > 0 ? { kind: "ellipse", cx: pos.cx, cy: pos.cy, rx, ry } : { kind: "empty" };
+  }
+  m = /^inset\(\s*(.*?)\s*\)$/i.exec(s);
+  if (m) {
+    let body = m[1], roundS = "";
+    const ri = body.toLowerCase().indexOf(" round ");
+    if (ri >= 0) {
+      roundS = body.slice(ri + 7);
+      body = body.slice(0, ri);
+    }
+    const t = body.trim().split(/\s+/);
+    let tt, rt, bt, lt;
+    if (t.length === 1) {
+      tt = rt = bt = lt = t[0];
+    } else if (t.length === 2) {
+      tt = bt = t[0];
+      rt = lt = t[1];
+    } else if (t.length === 3) {
+      tt = t[0];
+      rt = lt = t[1];
+      bt = t[2];
+    } else if (t.length >= 4) {
+      [tt, rt, bt, lt] = t;
+    } else return null;
+    const top = clipLen(tt, h), right = clipLen(rt, w), bot = clipLen(bt, h), left = clipLen(lt, w);
+    if (top == null || right == null || bot == null || left == null) return null;
+    const rw = w - left - right, rh = h - top - bot;
+    if (rw <= 0.5 || rh <= 0.5) return { kind: "empty" };
+    const rr = roundS ? clipLen(roundS.trim().split(/\s+/)[0], Math.min(w, h)) : null;
+    return { kind: "inset", x: left, y: top, w: rw, h: rh, r: rr && rr > 0 ? rr : 0 };
+  }
+  return null;
+}
+function expandGradientStops(stops) {
+  return stops.flatMap((s) => s.offset2 !== void 0 ? [
+    { colorStr: s.colorStr, opacity: s.opacity, offset: s.offset },
+    { colorStr: s.colorStr, opacity: s.opacity, offset: s.offset2 }
+  ] : [s]);
+}
+function splitCssArgs(str3) {
+  const parts = [];
+  let depth = 0, start = 0;
+  for (let i = 0; i < str3.length; i++) {
+    if (str3[i] === "(") depth++;
+    else if (str3[i] === ")") depth--;
+    else if (str3[i] === "," && depth === 0) {
+      parts.push(str3.slice(start, i).trim());
+      start = i + 1;
+    }
+  }
+  parts.push(str3.slice(start).trim());
+  return parts;
+}
+function parseGradientAngle(token2) {
+  const t = token2.trim().toLowerCase();
+  if (t === "to top") return 0;
+  if (t === "to top right") return Math.PI * 0.25;
+  if (t === "to right") return Math.PI * 0.5;
+  if (t === "to bottom right") return Math.PI * 0.75;
+  if (t === "to bottom") return Math.PI;
+  if (t === "to bottom left") return Math.PI * 1.25;
+  if (t === "to left") return Math.PI * 1.5;
+  if (t === "to top left") return Math.PI * 1.75;
+  if (t.endsWith("deg")) return parseFloat(t) * Math.PI / 180;
+  if (t.endsWith("turn")) return parseFloat(t) * 2 * Math.PI;
+  if (t.endsWith("grad")) return parseFloat(t) * Math.PI / 200;
+  if (t.endsWith("rad")) return parseFloat(t);
+  return Math.PI;
+}
+function splitTopLevelWs(str3) {
+  const out = [];
+  let depth = 0, cur = "";
+  for (const ch of str3) {
+    if (ch === "(") {
+      depth++;
+      cur += ch;
+    } else if (ch === ")") {
+      depth--;
+      cur += ch;
+    } else if (depth === 0 && /\s/.test(ch)) {
+      if (cur) {
+        out.push(cur);
+        cur = "";
+      }
+    } else cur += ch;
+  }
+  if (cur) out.push(cur);
+  return out;
+}
+function parseGradientStop(raw, index, total) {
+  const tokens = splitTopLevelWs(raw.trim());
+  const positions = [];
+  while (tokens.length && /^-?[\d.]+(px|%)$/.test(tokens[tokens.length - 1])) {
+    positions.unshift(tokens.pop());
+  }
+  const colorRaw = tokens.join(" ").trim().toLowerCase();
+  const pos = positions[0];
+  const norm2 = (p) => p.endsWith("%") ? p : parseFloat(p) + "px";
+  const offset = pos ? norm2(pos) : `${(index / Math.max(total - 1, 1) * 100).toFixed(2)}%`;
+  const off2 = positions[1] !== void 0 ? { offset2: norm2(positions[1]) } : {};
+  if (!colorRaw) return { colorStr: null, opacity: 1, offset };
+  if (colorRaw === "transparent") return { colorStr: "rgba(0,0,0,0)", opacity: 0, offset, ...off2 };
+  if (/^#(?:[0-9a-f]{3}|[0-9a-f]{6})$/.test(colorRaw)) {
+    return { colorStr: colorRaw, opacity: 1, offset, ...off2 };
+  }
+  const parsed = parseColor(colorRaw);
+  if (!parsed) return { colorStr: null, opacity: 1, offset };
+  return {
+    colorStr: colorToHexString({ ...parsed, alpha: 1 }),
+    opacity: parsed.alpha,
+    offset,
+    ...off2
+  };
+}
+function radialLen(tok, ref) {
+  if (!tok) return null;
+  const t = tok.trim();
+  if (t.endsWith("%")) {
+    const p2 = parseFloat(t);
+    return Number.isFinite(p2) ? p2 / 100 * ref : null;
+  }
+  const p = parseFloat(t);
+  return Number.isFinite(p) ? p : null;
+}
+function radialKeywordRadii(kw, shape, cx, cy, w, h) {
+  const l = cx, r3 = w - cx, t = cy, b = h - cy;
+  const nx = Math.min(l, r3), fx = Math.max(l, r3), ny = Math.min(t, b), fy = Math.max(t, b);
+  if (shape === "circle") {
+    let rad;
+    switch (kw) {
+      case "closest-side":
+        rad = Math.max(0, Math.min(nx, ny));
+        break;
+      case "farthest-side":
+        rad = Math.max(fx, fy);
+        break;
+      case "closest-corner":
+        rad = Math.hypot(nx, ny);
+        break;
+      default:
+        rad = Math.hypot(fx, fy);
+        break;
+    }
+    return [rad, rad];
+  }
+  switch (kw) {
+    case "closest-side":
+      return [Math.max(0, nx), Math.max(0, ny)];
+    case "farthest-side":
+      return [fx, fy];
+    case "closest-corner":
+      return [nx * Math.SQRT2, ny * Math.SQRT2];
+    default:
+      return [fx * Math.SQRT2, fy * Math.SQRT2];
+  }
+}
+function parseRadialGradient(value, w, h) {
+  const m = value.match(/^radial-gradient\((.+)\)$/s);
+  if (!m) return null;
+  const parts = splitCssArgs(m[1]);
+  if (parts.length < 2) return null;
+  const first = parts[0].trim();
+  const isHeader = /circle|ellipse|closest-side|closest-corner|farthest-side|farthest-corner|(^|\s)at\s/i.test(first) || /^-?[\d.]+[a-z%]*(\s+-?[\d.]+[a-z%]*)?$/i.test(first);
+  const rawStops = isHeader ? parts.slice(1) : parts;
+  if (rawStops.length < 2) return null;
+  const headerStr = isHeader ? first : "";
+  let posStr = "", sizeShape = headerStr;
+  const atIdx = headerStr.toLowerCase().indexOf(" at ");
+  if (atIdx >= 0) {
+    posStr = headerStr.slice(atIdx + 4);
+    sizeShape = headerStr.slice(0, atIdx);
+  } else if (/^at\s/i.test(headerStr.trim())) {
+    posStr = headerStr.trim().replace(/^at\s+/i, "");
+    sizeShape = "";
+  }
+  const pos = clipPos(posStr, w, h);
+  let shape = "ellipse";
+  let sizeKw = "";
+  const sizeToks = [];
+  for (const tok of sizeShape.trim().split(/\s+/).filter(Boolean)) {
+    if (/^(circle|ellipse)$/i.test(tok)) shape = tok.toLowerCase();
+    else if (/^(closest-side|closest-corner|farthest-side|farthest-corner)$/i.test(tok)) sizeKw = tok.toLowerCase();
+    else sizeToks.push(tok);
+  }
+  let rx, ry;
+  if (sizeToks.length) {
+    if (shape === "circle") {
+      rx = ry = radialLen(sizeToks[0], Math.min(w, h));
+    } else {
+      rx = radialLen(sizeToks[0], w);
+      ry = radialLen(sizeToks[1] ?? sizeToks[0], h);
+    }
+  } else {
+    [rx, ry] = radialKeywordRadii(sizeKw || "farthest-corner", shape, pos.cx, pos.cy, w, h);
+  }
+  if (rx == null || ry == null || rx <= 0 || ry <= 0) return null;
+  const stops = expandGradientStops(rawStops.map((raw, i) => parseGradientStop(raw.trim(), i, rawStops.length)).filter((s) => s.colorStr));
+  if (stops.length < 2) return null;
+  return { cx: pos.cx, cy: pos.cy, rx, ry, stops };
+}
+function parseConicGradient(value, w, h) {
+  const m = /(?:^|\s)(repeating-)?conic-gradient\(([\s\S]*)\)\s*$/i.exec((value || "").trim());
+  if (!m) return null;
+  const repeating = Boolean(m[1]);
+  const args = splitCssArgs(m[2]);
+  if (!args.length) return null;
+  let fromRad = 0;
+  let cx = w / 2, cy = h / 2;
+  let firstStop = 0;
+  const head = args[0].trim().toLowerCase();
+  if (/^(from\s|at\s)/.test(head)) {
+    firstStop = 1;
+    const fm = /from\s+([^\s]+)/.exec(head);
+    if (fm) {
+      const t = fm[1];
+      fromRad = t.endsWith("turn") ? Number.parseFloat(t) * 2 * Math.PI : t.endsWith("grad") ? Number.parseFloat(t) * Math.PI / 200 : t.endsWith("rad") ? Number.parseFloat(t) : Number.parseFloat(t) * Math.PI / 180;
+      if (!Number.isFinite(fromRad)) fromRad = 0;
+    }
+    const am = /\bat\s+(.+)$/.exec(head);
+    if (am) {
+      const axis = (tok, ref) => {
+        if (tok === "center") return ref / 2;
+        if (tok === "left" || tok === "top") return 0;
+        if (tok === "right" || tok === "bottom") return ref;
+        if (tok.endsWith("%")) return Number.parseFloat(tok) / 100 * ref;
+        const n2 = Number.parseFloat(tok);
+        return Number.isFinite(n2) ? n2 : null;
+      };
+      const toks = am[1].trim().split(/\s+/);
+      const px = axis(toks[0] ?? "center", w);
+      const py = toks.length > 1 ? axis(toks[1], h) : h / 2;
+      if (px !== null) cx = px;
+      if (py !== null) cy = py;
+    }
+  }
+  const raw = args.slice(firstStop);
+  if (raw.length < 2) return null;
+  const stops = expandGradientStops(raw.map((r3, i) => parseGradientStop(r3.trim(), i, raw.length)).filter((st) => st.colorStr));
+  if (stops.length < 2) return null;
+  return { cx, cy, fromRad, stops, repeating };
+}
+function splitFilterFunctions(str3) {
+  const out = [];
+  let depth = 0, cur = "";
+  for (const ch of str3) {
+    if (ch === "(") {
+      depth++;
+      cur += ch;
+    } else if (ch === ")") {
+      depth--;
+      cur += ch;
+    } else if (depth === 0 && /\s/.test(ch)) {
+      if (cur.trim()) {
+        out.push(cur.trim());
+        cur = "";
+      }
+    } else cur += ch;
+  }
+  if (cur.trim()) out.push(cur.trim());
+  return out;
+}
+function parseDropShadowFilter(filterStr) {
+  if (!filterStr || filterStr === "none") return null;
+  const fns = splitFilterFunctions(filterStr);
+  if (!fns.length) return null;
+  const shadows = [];
+  for (const fn of fns) {
+    if (!/^drop-shadow\(/i.test(fn)) return null;
+    const body = fn.slice(fn.indexOf("(") + 1, fn.lastIndexOf(")")).trim();
+    let color = "rgb(0,0,0)";
+    const cm = findColorToken(body);
+    const rest = cm ? body.replace(cm, " ") : body;
+    if (cm) color = cm;
+    const nums = (rest.match(/-?\d*\.?\d+(?:px)?/g) || []).map(parseFloat).filter(Number.isFinite);
+    if (nums.length < 2) return null;
+    const [dx, dy, blur = 0] = nums;
+    shadows.push({ dx, dy, blur: Math.max(0, blur), color });
+  }
+  return shadows.length ? shadows : null;
+}
+var init_css_paint = __esm({
+  "engine/src/css-paint.ts"() {
+    "use strict";
+    init_css_color();
   }
 });
 
@@ -11553,6 +16893,25 @@ function flatnessCubic(c) {
   const d1 = Math.abs((c[2] - c[0]) * dy - (c[3] - c[1]) * dx) / len2;
   const d2 = Math.abs((c[4] - c[0]) * dy - (c[5] - c[1]) * dx) / len2;
   return Math.max(d1, d2);
+}
+function lengthCubic(c, tol = 0.01, depth = 0) {
+  if (depth > 20 || flatnessCubic(c) <= tol) return Math.hypot(c[6] - c[0], c[7] - c[1]);
+  const [a, b] = splitCubic(c, 0.5);
+  return lengthCubic(a, tol, depth + 1) + lengthCubic(b, tol, depth + 1);
+}
+function flattenCubic(c, tol = 0.1) {
+  const out = [{ x: c[0], y: c[1] }];
+  const rec = (q, depth) => {
+    if (depth > 24 || flatnessCubic(q) <= tol) {
+      out.push({ x: q[6], y: q[7] });
+      return;
+    }
+    const [a, b] = splitCubic(q, 0.5);
+    rec(a, depth + 1);
+    rec(b, depth + 1);
+  };
+  rec(c, 0);
+  return out;
 }
 function isLineCubic(c, tol = 1e-9) {
   return flatnessCubic(c) <= tol;
@@ -11685,6 +17044,10 @@ function nearestOnCubic(c, px, py, _samples) {
   }
   return { t: bestT, point: bestP, distance: Math.sqrt(bestD2) };
 }
+function signedAreaCubic(c) {
+  const [x0, y0, x1, y1, x2, y2, x3, y3] = c;
+  return (x0 * (-2 * y1 - y2 + 3 * y3) + x1 * (2 * y0 - y2 - y3) + x2 * (y0 + y1 - 2 * y3) + x3 * (-3 * y0 + y1 + 2 * y2)) * 0.15;
+}
 var CO_BUF, KN_BUF, NEAREST_OUT, EV_SLOPE;
 var init_bezier = __esm({
   "engine/src/geom/bezier.ts"() {
@@ -11743,9 +17106,9 @@ function cubicRoots01(a, b, c, d) {
     push(2 * u + shift);
     push(-u + shift);
   } else {
-    const r = Math.sqrt(-(p * p * p) / 27);
-    const phi = Math.acos(Math.min(1, Math.max(-1, -q / (2 * r))));
-    const m = 2 * Math.cbrt(r);
+    const r3 = Math.sqrt(-(p * p * p) / 27);
+    const phi = Math.acos(Math.min(1, Math.max(-1, -q / (2 * r3))));
+    const m = 2 * Math.cbrt(r3);
     for (let k = 0; k < 3; k++) push(m * Math.cos((phi + 2 * Math.PI * k) / 3) + shift);
   }
   const polished = out.map((t0) => {
@@ -11822,7 +17185,7 @@ function clipToFatLine(c, fat) {
     }
     return h;
   };
-  const upper = chain2(-1), lower = chain2(1);
+  const upper = chain2(-1), lower2 = chain2(1);
   const crossings = (h, level) => {
     const ts2 = [];
     for (let i = 1; i < h.length; i++) {
@@ -11835,7 +17198,7 @@ function clipToFatLine(c, fat) {
   };
   const inBand = (v) => v >= fat.dMin - 1e-12 && v <= fat.dMax + 1e-12;
   const ts = [];
-  for (const h of [upper, lower]) {
+  for (const h of [upper, lower2]) {
     ts.push(...crossings(h, fat.dMin), ...crossings(h, fat.dMax));
   }
   if (inBand(d[0])) ts.push(0);
@@ -11976,6 +17339,10 @@ function reverseContour(c) {
   const curves = c.curves.map((k) => [k[6], k[7], k[4], k[5], k[2], k[3], k[0], k[1]]).reverse();
   return { curves, closed: c.closed };
 }
+function orientContour(c, counterClockwise) {
+  const ccw = contourArea(c) > 0;
+  return ccw === counterClockwise ? c : reverseContour(c);
+}
 function pathBounds(p) {
   let box2 = null;
   for (const c of p) {
@@ -12026,7 +17393,19 @@ function pathFromSubPaths(subs) {
   }
   return out;
 }
-function num(v, dp) {
+function subPathsFromPath(p) {
+  return p.map((c) => {
+    const segments = [];
+    const first = c.curves[0];
+    if (!first) return { segments, closed: c.closed };
+    segments.push({ op: "M", x: first[0], y: first[1] });
+    for (const k of c.curves) {
+      segments.push({ op: "C", x1: k[2], y1: k[3], x2: k[4], y2: k[5], x: k[6], y: k[7] });
+    }
+    return { segments, closed: c.closed };
+  });
+}
+function num2(v, dp) {
   const s = v.toFixed(dp);
   return s.replace(/\.?0+$/, "") || "0";
 }
@@ -12035,12 +17414,12 @@ function toSvgPathData(p, dp = 4) {
   for (const c of p) {
     const first = c.curves[0];
     if (!first) continue;
-    parts.push(`M${num(first[0], dp)} ${num(first[1], dp)}`);
+    parts.push(`M${num2(first[0], dp)} ${num2(first[1], dp)}`);
     for (const k of c.curves) {
       if (isStraight(k)) {
-        parts.push(`L${num(k[6], dp)} ${num(k[7], dp)}`);
+        parts.push(`L${num2(k[6], dp)} ${num2(k[7], dp)}`);
       } else {
-        parts.push(`C${num(k[2], dp)} ${num(k[3], dp)} ${num(k[4], dp)} ${num(k[5], dp)} ${num(k[6], dp)} ${num(k[7], dp)}`);
+        parts.push(`C${num2(k[2], dp)} ${num2(k[3], dp)} ${num2(k[4], dp)} ${num2(k[5], dp)} ${num2(k[6], dp)} ${num2(k[7], dp)}`);
       }
     }
     if (c.closed) parts.push("Z");
@@ -12056,6 +17435,10 @@ function isStraight(k, tol = 1e-9) {
     if (Math.hypot(px - p.x, py - p.y) > tol * Math.max(1, len2)) return false;
   }
   return true;
+}
+function contourPoint(c, index, t) {
+  const k = c.curves[Math.min(c.curves.length - 1, Math.max(0, index))];
+  return evalCubic(k, t);
 }
 var JOIN_EPS;
 var init_path = __esm({
@@ -12282,8 +17665,8 @@ function sweepPairs(a, b, self, budget, visit) {
   const byStart = (list2) => list2.map((_, i) => i).sort((p, q) => list2[p].box.x0 - list2[q].box.x0);
   const prune = (active, list2, x) => {
     let w = 0;
-    for (let r = 0; r < active.length; r++) {
-      const i = active[r];
+    for (let r3 = 0; r3 < active.length; r3++) {
+      const i = active[r3];
       if (list2[i].box.x1 >= x) active[w++] = i;
     }
     active.length = w;
@@ -12373,8 +17756,8 @@ function selfIntersectCubic(c) {
   const q = s * s - m;
   const disc = s * s - 4 * q;
   if (disc <= 0) return null;
-  const r = Math.sqrt(disc);
-  const t1 = (s - r) / 2, t2 = (s + r) / 2;
+  const r3 = Math.sqrt(disc);
+  const t1 = (s - r3) / 2, t2 = (s + r3) / 2;
   if (!(t1 > 1e-9 && t2 < 1 - 1e-9 && t2 - t1 > 1e-9)) return null;
   return [t1, t2];
 }
@@ -12758,7 +18141,7 @@ function walkLoops(edges, weld) {
     const sx = start[0], sy = start[1];
     let cur = seed;
     let joined = false;
-    for (let guard = 0; guard <= edges.length; guard++) {
+    for (let guard2 = 0; guard2 <= edges.length; guard2++) {
       used[cur] = 1;
       const e = edges[cur];
       curves.push(e);
@@ -12867,20 +18250,32 @@ function rawMomentsCubic(c) {
   const x2 = c[4] - x0, y2 = c[5] - y0;
   const x3 = c[6] - x0, y3 = c[7] - y0;
   const r0 = 3 * x1, r1 = 3 * y1;
-  const r2 = x2 * y3, r3 = x3 * y2, r4 = x3 * y3;
-  const r5 = 27 * y1, r6 = x1 * x2, r7 = 27 * y2, r8 = 45 * r2, r9 = 18 * x3;
+  const r22 = x2 * y3, r3 = x3 * y2, r4 = x3 * y3;
+  const r5 = 27 * y1, r6 = x1 * x2, r7 = 27 * y2, r8 = 45 * r22, r9 = 18 * x3;
   const r10 = x1 * y1, r11 = 30 * x1, r12 = 45 * x3, r13 = x2 * y1, r14 = 45 * r3;
   const r15 = x1 * x1, r16 = 18 * y3, r17 = x2 * x2, r18 = 45 * y3, r19 = x3 * x3;
-  const r20 = 30 * y1, r21 = y2 * y2, r22 = y3 * y3, r23 = y1 * y1;
-  const a = -r0 * y2 - r0 * y3 + r1 * x2 + r1 * x3 - 6 * r2 + 6 * r3 + 10 * r4;
+  const r20 = 30 * y1, r21 = y2 * y2, r222 = y3 * y3, r23 = y1 * y1;
+  const a = -r0 * y2 - r0 * y3 + r1 * x2 + r1 * x3 - 6 * r22 + 6 * r3 + 10 * r4;
   const lift = x3 * y0;
   const area = a * 0.05 + lift;
-  const x = r10 * r9 - r11 * r4 + r12 * r13 + r14 * x2 - r15 * r16 - r15 * r7 - r17 * r18 + r17 * r5 + r19 * r20 + 105 * r19 * y2 + 280 * r19 * y3 - 105 * r2 * x3 + r5 * r6 - r6 * r7 - r8 * x1;
-  const y = -r10 * r16 - r10 * r7 - r11 * r22 + r12 * r21 + r13 * r7 + r14 * y1 - r18 * x1 * y2 + r20 * r4 - 27 * r21 * x1 - 105 * r22 * x2 + 140 * r22 * x3 + r23 * r9 + 27 * r23 * x2 + 105 * r3 * y3 - r8 * y2;
+  const x = r10 * r9 - r11 * r4 + r12 * r13 + r14 * x2 - r15 * r16 - r15 * r7 - r17 * r18 + r17 * r5 + r19 * r20 + 105 * r19 * y2 + 280 * r19 * y3 - 105 * r22 * x3 + r5 * r6 - r6 * r7 - r8 * x1;
+  const y = -r10 * r16 - r10 * r7 - r11 * r222 + r12 * r21 + r13 * r7 + r14 * y1 - r18 * x1 * y2 + r20 * r4 - 27 * r21 * x1 - 105 * r222 * x2 + 140 * r222 * x3 + r23 * r9 + 27 * r23 * x2 + 105 * r3 * y3 - r8 * y2;
   return {
     a: area,
     x: x * (1 / 840) + x0 * area + 0.5 * x3 * lift,
     y: y * (1 / 420) + y0 * a * 0.1 + y0 * lift
+  };
+}
+function cubicAsSource(c) {
+  return {
+    sample(t) {
+      const p = evalCubic(c, t), d = tangentAt(c, t);
+      return { x: p.x, y: p.y, dx: d.x, dy: d.y };
+    },
+    momentIntegrals(t0, t1) {
+      const piece = subCubic(c, t0, t1);
+      return chordFrameMoments(rawMomentsCubic(piece), piece[0], piece[1], piece[6] - piece[0], piece[7] - piece[1]);
+    }
   };
 }
 function copysign(mag, sign) {
@@ -12921,8 +18316,8 @@ function solveCubic(c0, c1, c2, c3) {
   const disc = 4 * d0 * d2 - d1 * d1;
   const de = -2 * s2 * d0 + d1;
   if (disc < 0) {
-    const sq = Math.sqrt(-0.25 * disc), r = -0.5 * de;
-    return [Math.cbrt(r + sq) + Math.cbrt(r - sq) - s2];
+    const sq = Math.sqrt(-0.25 * disc), r3 = -0.5 * de;
+    return [Math.cbrt(r3 + sq) + Math.cbrt(r3 - sq) - s2];
   }
   if (disc === 0) {
     const t1 = copysign(Math.sqrt(-d0), de);
@@ -12934,15 +18329,15 @@ function solveCubic(c0, c1, c2, c3) {
   return [t * thc - s2, t * 0.5 * (-thc + ss3) - s2, t * 0.5 * (-thc - ss3) - s2];
 }
 function depressedCubicDominant(g2, h) {
-  const q = -1 / 3 * g2, r = 0.5 * h;
+  const q = -1 / 3 * g2, r3 = 0.5 * h;
   let x;
-  if (r === 0) {
+  if (r3 === 0) {
     x = g2 > 0 ? 0 : Math.sqrt(-g2);
-  } else if (r * r < q * q * q) {
-    const t = r / Math.sqrt(q * q * q);
+  } else if (r3 * r3 < q * q * q) {
+    const t = r3 / Math.sqrt(q * q * q);
     x = -2 * Math.sqrt(q) * copysign(Math.cos(Math.acos(Math.abs(t)) * (1 / 3)), t);
   } else {
-    const a = Math.cbrt(-r - copysign(Math.sqrt(r * r - q * q * q), r));
+    const a = Math.cbrt(-r3 - copysign(Math.sqrt(r3 * r3 - q * q * q), r3));
     x = a === 0 ? 0 : a + q / a;
   }
   let f = (x * x + g2) * x + h;
@@ -13005,15 +18400,15 @@ function factorQuartic(a, b, c, d) {
     if (Math.abs(a1) !== Math.abs(a2)) {
       const o1 = a1, o2 = a2;
       const alts = Math.abs(o1) < Math.abs(o2) ? [[a - o2, o2], [(c - b1 * o2) / b2, o2], [(b - b2 - b1) / o2, o2]] : [[o1, a - o1], [o1, (c - o1 * b2) / b1], [o1, (b - b2 - b1) / o1]];
-      let bestQ = 0, has = false;
+      let bestQ = 0, has3 = false;
       for (const [t1, t2] of alts) {
         if (!Number.isFinite(t1) || !Number.isFinite(t2)) continue;
         const e = epsQ(t1, b1, t2, b2);
-        if (!has || e < bestQ) {
+        if (!has3 || e < bestQ) {
           a1 = t1;
           a2 = t2;
           bestQ = e;
-          has = true;
+          has3 = true;
         }
       }
     }
@@ -13065,7 +18460,7 @@ function endpointSample(src, t, dir, span) {
   const len2 = Math.hypot(tx, ty);
   let step = span * 1e-7;
   if (len2 > 1e-12) {
-    const probe = src.sample(clamp013(t + dir * step));
+    const probe = src.sample(clamp014(t + dir * step));
     const pl = Math.hypot(probe.dx, probe.dy);
     if (pl > 1e-12) {
       const sin = Math.abs(tx * probe.dy - ty * probe.dx) / (len2 * pl);
@@ -13078,7 +18473,7 @@ function endpointSample(src, t, dir, span) {
     return { x: s.x, y: s.y, tx, ty };
   }
   for (let i = 0; i < 6 && Math.hypot(tx, ty) < 1e-12; i++) {
-    const probe = src.sample(clamp013(t + dir * step));
+    const probe = src.sample(clamp014(t + dir * step));
     tx = probe.dx;
     ty = probe.dy;
     if (Math.hypot(tx, ty) < 1e-12) {
@@ -13089,7 +18484,7 @@ function endpointSample(src, t, dir, span) {
   }
   return { x: s.x, y: s.y, tx, ty };
 }
-function clamp013(t) {
+function clamp014(t) {
   return t < 0 ? 0 : t > 1 ? 1 : t;
 }
 function frameFor(src, t0, t1) {
@@ -13362,6 +18757,10 @@ function evalDist(d, c, acc2) {
   const arc = evalArc(d, c, acc2);
   return arc > ray ? arc : ray;
 }
+function fitError(src, c, t0, t1) {
+  const d = curveDist(src, t0, t1);
+  return Math.sqrt(evalDist(d, c, Infinity));
+}
 function chordCubic(sx, sy, ex, ey) {
   return lineToCubic(sx, sy, ex, ey);
 }
@@ -13400,6 +18799,26 @@ function fitOne(src, t0, t1, tol) {
     }
   }
   return best ? { c: best, err: Math.sqrt(bestErr2) } : null;
+}
+function fitCubicMoment(src, t0, t1) {
+  const f = frameFor(src, t0, t1);
+  if (!f) return null;
+  const cands = candidates(f);
+  if (!cands.length) return null;
+  const d = curveDist(src, t0, t1);
+  let best = null;
+  let bestErr = Infinity;
+  for (const cand of cands) {
+    const err2 = evalDist(d, cand.c, Infinity);
+    if (!Number.isFinite(err2)) continue;
+    const err = Math.sqrt(err2) * Math.max(armPenalty(cand.d0), armPenalty(cand.d1));
+    if (err < bestErr) {
+      best = cand;
+      bestErr = err;
+    }
+  }
+  if (!best) return null;
+  return best.d0 > MAX_ARM_RATIO || best.d1 > MAX_ARM_RATIO ? null : best.c;
 }
 function collectBreaks(src) {
   if (!src.breaks) return [];
@@ -13445,15 +18864,15 @@ function solveItp(f, a, b, eps, n0, k1, ya, yb) {
   const n12 = Math.max(0, Math.ceil(Math.log2((b - a) / eps)) - 1);
   let scaledEps = eps * 2 ** (n0 + n12);
   let lo = a, hi = b, ylo = ya, yhi = yb;
-  let guard = 0;
-  while (hi - lo > 2 * eps && guard++ < 128) {
+  let guard2 = 0;
+  while (hi - lo > 2 * eps && guard2++ < 128) {
     const half = 0.5 * (lo + hi);
-    const r = scaledEps - 0.5 * (hi - lo);
+    const r3 = scaledEps - 0.5 * (hi - lo);
     const xf = (yhi * lo - ylo * hi) / (yhi - ylo);
     const sigma = half - xf;
     const delta = k1 * (hi - lo) ** 2;
     const xt = delta <= Math.abs(sigma) ? xf + copysign(delta, sigma) : half;
-    const x = Math.abs(xt - half) <= r ? xt : half - copysign(r, sigma);
+    const x = Math.abs(xt - half) <= r3 ? xt : half - copysign(r3, sigma);
     const y = f(x);
     if (y > 0) {
       hi = x;
@@ -13468,8 +18887,8 @@ function solveItp(f, a, b, eps, n0, k1, ya, yb) {
 }
 function fitGreedy(src, t0, t1, tol, b) {
   let t = t0;
-  let guard = 0;
-  while (t < t1 && b.out.length < b.max && guard++ < b.max) {
+  let guard2 = 0;
+  while (t < t1 && b.out.length < b.max && guard2++ < b.max) {
     const whole = fitOne(src, t, t1, tol);
     if (whole) {
       b.out.push(whole.c);
@@ -13477,8 +18896,8 @@ function fitGreedy(src, t0, t1, tol, b) {
     }
     const start = t;
     const f = (x2) => {
-      const r = fitOne(src, start, x2, tol);
-      return r ? r.err - tol : tol;
+      const r3 = fitOne(src, start, x2, tol);
+      return r3 ? r3.err - tol : tol;
     };
     const x = solveItp(f, start, t1, 1e-6, 1, 2 / (t1 - start), -tol, tol);
     const seg = fitOne(src, start, x, tol);
@@ -13568,7 +18987,7 @@ function simplifyCubics(curves, tol = DEFAULT_TOL) {
   if (!fitted.length || fitted.length >= curves.length) return curves.slice();
   return fitted;
 }
-var D_PENALTY_ELBOW, D_PENALTY_SLOPE, N_SAMPLE, SPICY_THRESH, DEFAULT_TOL, DEFAULT_MAX_SEGMENTS, MAX_DEPTH, GL16, REFINE_ITERS, INV_PHI, ARC_SPANS;
+var D_PENALTY_ELBOW, D_PENALTY_SLOPE, MAX_ARM_RATIO, N_SAMPLE, SPICY_THRESH, DEFAULT_TOL, DEFAULT_MAX_SEGMENTS, MAX_DEPTH, GL16, REFINE_ITERS, INV_PHI, ARC_SPANS;
 var init_fit = __esm({
   "engine/src/geom/fit.ts"() {
     "use strict";
@@ -13576,6 +18995,7 @@ var init_fit = __esm({
     init_intersect();
     D_PENALTY_ELBOW = 0.65;
     D_PENALTY_SLOPE = 2;
+    MAX_ARM_RATIO = 4;
     N_SAMPLE = 20;
     SPICY_THRESH = 0.2;
     DEFAULT_TOL = 0.1;
@@ -13606,6 +19026,9 @@ var init_fit = __esm({
 });
 
 // engine/src/geom/offset.ts
+function offsetCubic(c, distance, tol = DEFAULT_TOL2) {
+  return offsetPieces(c, distance, tol).map((p) => p.curve);
+}
 function offsetPieces(c, distance, tol) {
   if (!isFiniteCubic2(c)) return [];
   if (!Number.isFinite(distance) || Math.abs(distance) < 1e-12) {
@@ -13772,8 +19195,8 @@ function featureCuts(c) {
   for (let i = 0; i < feats.length; ) {
     let j = i;
     while (j + 1 < feats.length && feats[j + 1].t - feats[i].t <= MIN_SPAN) j++;
-    const cluster = feats.slice(i, j + 1);
-    const at = (cluster.find((f) => f.exact) ?? cluster[0]).t;
+    const cluster2 = feats.slice(i, j + 1);
+    const at = (cluster2.find((f) => f.exact) ?? cluster2[0]).t;
     if (!cuts.length || at - cuts[cuts.length - 1] > MIN_SPAN / 2) cuts.push(at);
     i = j + 1;
   }
@@ -13801,8 +19224,8 @@ function offsetCuspParams(c, d) {
     if (!(t > MIN_SPAN) || !(t < 1 - MIN_SPAN)) continue;
     const speed2 = (((dPoly[4] * t + dPoly[3]) * t + dPoly[2]) * t + dPoly[1]) * t + dPoly[0];
     if (!(speed2 > 0)) continue;
-    const num3 = (a[2] * t + a[1]) * t + a[0];
-    if (Math.abs(1 - d * num3 / (speed2 * Math.sqrt(speed2))) < 0.5) out.push(t);
+    const num5 = (a[2] * t + a[1]) * t + a[0];
+    if (Math.abs(1 - d * num5 / (speed2 * Math.sqrt(speed2))) < 0.5) out.push(t);
   }
   return out;
 }
@@ -13858,11 +19281,11 @@ function rootsInUnit(poly) {
   for (const v of poly) scale = Math.max(scale, Math.abs(v));
   if (!(scale > 0) || !Number.isFinite(scale)) return [];
   const a = poly.map((v) => v / scale);
-  let deg = a.length - 1;
-  while (deg > 0 && Math.abs(a[deg]) < 1e-12) deg--;
-  if (deg === 0) return [];
+  let deg2 = a.length - 1;
+  while (deg2 > 0 && Math.abs(a[deg2]) < 1e-12) deg2--;
+  if (deg2 === 0) return [];
   const out = [];
-  isolateRoots(bernsteinFromPower(a.slice(0, deg + 1)), 0, 1, 0, out);
+  isolateRoots(bernsteinFromPower(a.slice(0, deg2 + 1)), 0, 1, 0, out);
   return out;
 }
 function bernsteinFromPower(a) {
@@ -13907,7 +19330,7 @@ function splitBernstein(b) {
     for (let i = 0; i + 1 < prev.length; i++) row.push((prev[i] + prev[i + 1]) / 2);
     rows.push(row);
   }
-  return [rows.map((r) => r[0]), rows.map((r) => r[r.length - 1]).reverse()];
+  return [rows.map((r3) => r3[0]), rows.map((r3) => r3[r3.length - 1]).reverse()];
 }
 function offsetContour(c, distance, opts = {}) {
   const src = finiteContour(c);
@@ -14095,8 +19518,8 @@ function joinPieces(a, b, pivot, t0, t1, d, style, miterLimit) {
 function arcJoin(a, b, pivot, heading) {
   const r0 = Math.hypot(a.x - pivot.x, a.y - pivot.y);
   const r1 = Math.hypot(b.x - pivot.x, b.y - pivot.y);
-  const r = (r0 + r1) / 2;
-  if (r < 1e-12) return [lineToCubic(a.x, a.y, b.x, b.y)];
+  const r3 = (r0 + r1) / 2;
+  if (r3 < 1e-12) return [lineToCubic(a.x, a.y, b.x, b.y)];
   const from = Math.atan2(a.y - pivot.y, a.x - pivot.x);
   let sweep = Math.atan2(b.y - pivot.y, b.x - pivot.x) - from;
   while (sweep <= -Math.PI) sweep += 2 * Math.PI;
@@ -14111,15 +19534,15 @@ function arcJoin(a, b, pivot, heading) {
   const out = [];
   for (let i = 0; i < n2; i++) {
     const s = from + step * i, e = s + step;
-    const sx = pivot.x + r * Math.cos(s), sy = pivot.y + r * Math.sin(s);
-    const ex = pivot.x + r * Math.cos(e), ey = pivot.y + r * Math.sin(e);
+    const sx = pivot.x + r3 * Math.cos(s), sy = pivot.y + r3 * Math.sin(s);
+    const ex = pivot.x + r3 * Math.cos(e), ey = pivot.y + r3 * Math.sin(e);
     out.push([
       sx,
       sy,
-      sx - k * r * Math.sin(s),
-      sy + k * r * Math.cos(s),
-      ex + k * r * Math.sin(e),
-      ey - k * r * Math.cos(e),
+      sx - k * r3 * Math.sin(s),
+      sy + k * r3 * Math.cos(s),
+      ex + k * r3 * Math.sin(e),
+      ey - k * r3 * Math.cos(e),
       ex,
       ey
     ]);
@@ -14149,6 +19572,104 @@ function matchOrientation(p, wantCcw) {
   if (biggest === 0 || area > 0 === wantCcw) return p;
   return p.map(reverseContour);
 }
+function fitCubic(points, tangents, tol = DEFAULT_TOL2) {
+  const pts = dedupePoints(points);
+  if (pts.length < 2) return [];
+  const first = normalise3(tangents.start) ?? direction(pts[0], pts[1]);
+  const back = normalise3({ x: -tangents.end.x, y: -tangents.end.y }) ?? direction(pts[pts.length - 1], pts[pts.length - 2]);
+  if (!first || !back) return [];
+  return fitRecursive(pts, first, back, Math.max(tol, 1e-9), 0);
+}
+function fitRecursive(pts, t0, t1, tol, depth) {
+  if (pts.length === 2) {
+    const a = pts[0], b = pts[1];
+    const l = Math.hypot(b.x - a.x, b.y - a.y) / 3;
+    return [[a.x, a.y, a.x + t0.x * l, a.y + t0.y * l, b.x + t1.x * l, b.y + t1.y * l, b.x, b.y]];
+  }
+  let u = chordParams(pts);
+  let curve = bezierWithTangents(pts, u, t0, t1);
+  let worst = fitError2(pts, u, curve);
+  for (let i = 0; i < MAX_FIT_ITERATIONS && worst.error > tol; i++) {
+    const nu = reparameterise(pts, u, curve);
+    const nc = bezierWithTangents(pts, nu, t0, t1);
+    const ne = fitError2(pts, nu, nc);
+    if (!(ne.error < worst.error)) break;
+    u = nu;
+    curve = nc;
+    worst = ne;
+  }
+  if (worst.error <= tol) return [curve];
+  if (depth >= MAX_FIT_DEPTH) return [curve];
+  const at = Math.min(pts.length - 2, Math.max(1, worst.index));
+  const centre = centreTangent(pts, at);
+  if (!centre) return [curve];
+  return [
+    ...fitRecursive(pts.slice(0, at + 1), t0, centre, tol, depth + 1),
+    ...fitRecursive(pts.slice(at), { x: -centre.x, y: -centre.y }, t1, tol, depth + 1)
+  ];
+}
+function bezierWithTangents(pts, u, t0, t1) {
+  const n2 = pts.length;
+  const first = pts[0], last = pts[n2 - 1];
+  let c00 = 0, c01 = 0, c11 = 0, x0 = 0, x1 = 0;
+  for (let i = 0; i < n2; i++) {
+    const t = u[i], mt = 1 - t;
+    const b0 = mt * mt * mt, b1 = 3 * mt * mt * t, b2 = 3 * mt * t * t, b3 = t * t * t;
+    const a0x = t0.x * b1, a0y = t0.y * b1;
+    const a1x = t1.x * b2, a1y = t1.y * b2;
+    c00 += a0x * a0x + a0y * a0y;
+    c01 += a0x * a1x + a0y * a1y;
+    c11 += a1x * a1x + a1y * a1y;
+    const rx = pts[i].x - (first.x * (b0 + b1) + last.x * (b2 + b3));
+    const ry = pts[i].y - (first.y * (b0 + b1) + last.y * (b2 + b3));
+    x0 += a0x * rx + a0y * ry;
+    x1 += a1x * rx + a1y * ry;
+  }
+  const det = c00 * c11 - c01 * c01;
+  const chord = Math.hypot(last.x - first.x, last.y - first.y);
+  let l0 = 0, l1 = 0;
+  if (Math.abs(det) > 1e-18) {
+    l0 = (c11 * x0 - c01 * x1) / det;
+    l1 = (c00 * x1 - c01 * x0) / det;
+  }
+  const floor = 1e-6 * Math.max(chord, 1e-9);
+  if (!(l0 > floor) || !(l1 > floor)) {
+    l0 = chord / 3;
+    l1 = chord / 3;
+  }
+  return [
+    first.x,
+    first.y,
+    first.x + t0.x * l0,
+    first.y + t0.y * l0,
+    last.x + t1.x * l1,
+    last.y + t1.y * l1,
+    last.x,
+    last.y
+  ];
+}
+function fitError2(pts, u, curve) {
+  let error = 0, index = Math.floor(pts.length / 2);
+  for (let i = 1; i < pts.length - 1; i++) {
+    const p = evalCubic(curve, u[i]);
+    const d = Math.hypot(p.x - pts[i].x, p.y - pts[i].y);
+    if (d > error) {
+      error = d;
+      index = i;
+    }
+  }
+  return { error, index };
+}
+function reparameterise(pts, u, curve) {
+  return u.map((t, i) => {
+    const p = evalCubic(curve, t), d1 = tangentAt(curve, t), d2 = secondDeriv(curve, t);
+    const dx = p.x - pts[i].x, dy = p.y - pts[i].y;
+    const num5 = dx * d1.x + dy * d1.y;
+    const den = d1.x * d1.x + d1.y * d1.y + dx * d2.x + dy * d2.y;
+    if (Math.abs(den) < 1e-14) return t;
+    return Math.min(1, Math.max(0, t - num5 / den));
+  });
+}
 function secondDeriv(c, t) {
   const mt = 1 - t;
   return {
@@ -14156,7 +19677,38 @@ function secondDeriv(c, t) {
     y: 6 * mt * (c[5] - 2 * c[3] + c[1]) + 6 * t * (c[7] - 2 * c[5] + c[3])
   };
 }
-var DEFAULT_TOL2, DEFAULT_MITER_LIMIT, MAX_OFFSET_DEPTH, MAX_FIT_SEGMENTS, ERROR_SAMPLES, MAX_ERROR_DEPTH, ERROR_BUDGET, PROBE_CURVES, MIN_SPAN;
+function centreTangent(pts, i) {
+  const prev = pts[i - 1], at = pts[i], next = pts[i + 1];
+  return normalise3({
+    x: (prev.x - at.x + at.x - next.x) / 2,
+    y: (prev.y - at.y + at.y - next.y) / 2
+  }) ?? direction(at, prev);
+}
+function chordParams(pts) {
+  const u = [0];
+  for (let i = 1; i < pts.length; i++) {
+    u.push(u[i - 1] + Math.hypot(pts[i].x - pts[i - 1].x, pts[i].y - pts[i - 1].y));
+  }
+  const total = u[u.length - 1];
+  if (!(total > 0)) return pts.map((_, i) => i / Math.max(1, pts.length - 1));
+  return u.map((v) => v / total);
+}
+function dedupePoints(pts) {
+  const out = [];
+  for (const p of pts) {
+    const last = out[out.length - 1];
+    if (!last || Math.hypot(p.x - last.x, p.y - last.y) > 1e-12) out.push({ x: p.x, y: p.y });
+  }
+  return out;
+}
+function normalise3(v) {
+  const l = Math.hypot(v.x, v.y);
+  return l > 1e-12 ? { x: v.x / l, y: v.y / l } : null;
+}
+function direction(from, to) {
+  return normalise3({ x: to.x - from.x, y: to.y - from.y });
+}
+var DEFAULT_TOL2, DEFAULT_MITER_LIMIT, MAX_OFFSET_DEPTH, MAX_FIT_DEPTH, MAX_FIT_ITERATIONS, MAX_FIT_SEGMENTS, ERROR_SAMPLES, MAX_ERROR_DEPTH, ERROR_BUDGET, PROBE_CURVES, MIN_SPAN;
 var init_offset = __esm({
   "engine/src/geom/offset.ts"() {
     "use strict";
@@ -14168,6 +19720,8 @@ var init_offset = __esm({
     DEFAULT_TOL2 = 0.01;
     DEFAULT_MITER_LIMIT = 4;
     MAX_OFFSET_DEPTH = 8;
+    MAX_FIT_DEPTH = 16;
+    MAX_FIT_ITERATIONS = 8;
     MAX_FIT_SEGMENTS = 32;
     ERROR_SAMPLES = 12;
     MAX_ERROR_DEPTH = 20;
@@ -14180,31 +19734,31 @@ var init_offset = __esm({
 // engine/src/geom/stroke.ts
 function strokeToPath(p, width, opts = {}) {
   if (!(width > 0)) return [];
-  const r = width / 2;
+  const r3 = width / 2;
   const cap = opts.cap ?? "butt";
   const off = { join: opts.join ?? "miter", miterLimit: opts.miterLimit ?? 4, tol: opts.tol };
   const raw = [];
   for (const c of p) {
     if (!c.curves.length) continue;
     if (isPoint(c)) {
-      const dot = dotContour(c, r, cap);
+      const dot = dotContour(c, r3, cap);
       if (dot) raw.push(dot);
       continue;
     }
-    if (c.closed) raw.push(...ring(c, r, off));
+    if (c.closed) raw.push(...ring(c, r3, off));
     else {
-      const outline = openOutline(c, r, cap, off);
+      const outline = openOutline(c, r3, cap, off);
       if (outline) raw.push(outline);
     }
   }
   if (!raw.length) return [];
-  return keptContours(selfUnion(raw, { fillRule: "nonzero" }), p, r);
+  return keptContours(selfUnion(raw, { fillRule: "nonzero" }), p, r3);
 }
-function keptContours(resolved, centreline, r) {
+function keptContours(resolved, centreline, r3) {
   if (resolved.length < 2) return resolved;
   const src = centreline.filter((c) => c.curves.length).map((c) => c.closed ? closeContour(c) : c);
   if (!src.length) return resolved;
-  const paint = (p) => distanceToPath(src, p.x, p.y) <= r * (1 + 1e-9);
+  const paint = (p) => distanceToPath(src, p.x, p.y) <= r3 * (1 + 1e-9);
   const probes = regionProber(resolved);
   return resolved.filter((c) => {
     for (const probe of probes(c)) {
@@ -14215,18 +19769,18 @@ function keptContours(resolved, centreline, r) {
     return true;
   });
 }
-function ring(c, r, off) {
+function ring(c, r3, off) {
   const cc = closeContour(c);
   const out = [];
   for (const side of [cc, reverseContour(cc)]) {
-    const sweep = offsetSweep(side, r, off);
+    const sweep = offsetSweep(side, r3, off);
     if (sweep) out.push(sweep);
   }
   return out;
 }
-function openOutline(c, r, cap, off) {
-  const fwd = offsetSide(c, r, off);
-  const back = offsetSide(reverseContour(c), r, off);
+function openOutline(c, r3, cap, off) {
+  const fwd = offsetSide(c, r3, off);
+  const back = offsetSide(reverseContour(c), r3, off);
   if (!fwd.length || !back.length) return null;
   const ahead = endDirection(c);
   const behind = startDirection(c);
@@ -14248,8 +19802,8 @@ function offsetSide(c, distance, off) {
 function capCurves(from, to, dir, cap) {
   if (cap === "round") return halfCircle(from, to, dir);
   if (cap === "square") {
-    const r = Math.hypot(to.x - from.x, to.y - from.y) / 2;
-    const ex = dir.x * r, ey = dir.y * r;
+    const r3 = Math.hypot(to.x - from.x, to.y - from.y) / 2;
+    const ex = dir.x * r3, ey = dir.y * r3;
     const a = { x: from.x + ex, y: from.y + ey };
     const b = { x: to.x + ex, y: to.y + ey };
     return [
@@ -14263,33 +19817,33 @@ function capCurves(from, to, dir, cap) {
 function halfCircle(from, to, dir) {
   const cx = (from.x + to.x) / 2, cy = (from.y + to.y) / 2;
   const ux = from.x - cx, uy = from.y - cy;
-  const r = Math.hypot(ux, uy);
-  if (r < JOIN_EPS) return [lineToCubic(from.x, from.y, to.x, to.y)];
-  const ax = ux / r, ay = uy / r;
+  const r3 = Math.hypot(ux, uy);
+  if (r3 < JOIN_EPS) return [lineToCubic(from.x, from.y, to.x, to.y)];
+  const ax = ux / r3, ay = uy / r3;
   let mx = ay, my = -ax;
   if (mx * dir.x + my * dir.y < 0) {
     mx = -mx;
     my = -my;
   }
   const arcs = [
-    quarterArc(cx, cy, r, ax, ay, mx, my),
-    quarterArc(cx, cy, r, mx, my, -ax, -ay)
+    quarterArc(cx, cy, r3, ax, ay, mx, my),
+    quarterArc(cx, cy, r3, mx, my, -ax, -ay)
   ];
   const last = arcs[arcs.length - 1];
   last[6] = to.x;
   last[7] = to.y;
   return arcs;
 }
-function quarterArc(cx, cy, r, ax, ay, bx, by) {
-  const p0x = cx + r * ax, p0y = cy + r * ay;
-  const p3x = cx + r * bx, p3y = cy + r * by;
+function quarterArc(cx, cy, r3, ax, ay, bx, by) {
+  const p0x = cx + r3 * ax, p0y = cy + r3 * ay;
+  const p3x = cx + r3 * bx, p3y = cy + r3 * by;
   return [
     p0x,
     p0y,
-    p0x + KAPPA * r * bx,
-    p0y + KAPPA * r * by,
-    p3x + KAPPA * r * ax,
-    p3y + KAPPA * r * ay,
+    p0x + KAPPA * r3 * bx,
+    p0y + KAPPA * r3 * by,
+    p3x + KAPPA * r3 * ax,
+    p3y + KAPPA * r3 * ay,
     p3x,
     p3y
   ];
@@ -14298,7 +19852,7 @@ function isPoint(c) {
   const b = pathBounds([c]);
   return !b || b.x1 - b.x0 <= JOIN_EPS && b.y1 - b.y0 <= JOIN_EPS;
 }
-function dotContour(c, r, cap) {
+function dotContour(c, r3, cap) {
   if (cap === "butt") return null;
   const k = c.curves[0];
   if (!k) return null;
@@ -14306,20 +19860,20 @@ function dotContour(c, r, cap) {
   if (cap === "square") {
     return {
       curves: [
-        lineToCubic(x - r, y - r, x + r, y - r),
-        lineToCubic(x + r, y - r, x + r, y + r),
-        lineToCubic(x + r, y + r, x - r, y + r),
-        lineToCubic(x - r, y + r, x - r, y - r)
+        lineToCubic(x - r3, y - r3, x + r3, y - r3),
+        lineToCubic(x + r3, y - r3, x + r3, y + r3),
+        lineToCubic(x + r3, y + r3, x - r3, y + r3),
+        lineToCubic(x - r3, y + r3, x - r3, y - r3)
       ],
       closed: true
     };
   }
   return {
     curves: [
-      quarterArc(x, y, r, 1, 0, 0, 1),
-      quarterArc(x, y, r, 0, 1, -1, 0),
-      quarterArc(x, y, r, -1, 0, 0, -1),
-      quarterArc(x, y, r, 0, -1, 1, 0)
+      quarterArc(x, y, r3, 1, 0, 0, 1),
+      quarterArc(x, y, r3, 0, 1, -1, 0),
+      quarterArc(x, y, r3, -1, 0, 0, -1),
+      quarterArc(x, y, r3, 0, -1, 1, 0)
     ],
     closed: true
   };
@@ -14506,12 +20060,12 @@ function hbJoin(prev, next) {
   const p = Math.sqrt(prev.chord), q = Math.sqrt(next.chord);
   const A = prev.ak1, B = next.ak0;
   const sA = Math.sin(A), cA = Math.cos(A), sB = Math.sin(B), cB = Math.cos(B);
-  const r = Math.atan2(sA * q, cA * p) - Math.atan2(sB * p, cB * q);
+  const r3 = Math.atan2(sA * q, cA * p) - Math.atan2(sB * p, cB * q);
   const denA = q * q * sA * sA + p * p * cA * cA;
   const denB = p * p * sB * sB + q * q * cB * cB;
   const pq = p * q;
   return {
-    r: mod2pi2(r),
+    r: mod2pi2(r3),
     dA: denA > 0 ? pq / denA : 0,
     dB: denB > 0 ? -pq / denB : 0
   };
@@ -14524,42 +20078,42 @@ function hbSystem(pts, wrap, startTh, endTh, ths) {
     const p = pts[i], q = pts[(i + 1) % m];
     segs.push(hbSegState(p.x, p.y, q.x, q.y, ths[i], ths[(i + 1) % m]));
   }
-  const r = new Array(m).fill(0);
+  const r3 = new Array(m).fill(0);
   const a = new Array(m).fill(0);
   const b = new Array(m).fill(1);
   const c = new Array(m).fill(0);
   const join11 = (k, prevIx, nextIx) => {
     const prev = segs[prevIx], next = segs[nextIx];
     const j = hbJoin(prev, next);
-    r[k] = j.r;
+    r3[k] = j.r;
     a[k] = j.dA * prev.d10;
     b[k] = j.dA * -prev.d11 + j.dB * next.d00;
     c[k] = j.dB * -next.d01;
   };
   if (wrap) {
     for (let k = 0; k < m; k++) join11(k, (k - 1 + m) % m, k);
-    return { r, a, b, c, segs };
+    return { r: r3, a, b, c, segs };
   }
   for (let k = 1; k < m - 1; k++) join11(k, k - 1, k);
   const first = segs[0];
   if (startTh !== null) {
-    r[0] = mod2pi2(ths[0] - startTh);
+    r3[0] = mod2pi2(ths[0] - startTh);
     b[0] = 1;
   } else {
-    r[0] = mod2pi2(first.th0 - hbEndTangent(first.th1));
+    r3[0] = mod2pi2(first.th0 - hbEndTangent(first.th1));
     b[0] = 1;
     c[0] = hbEndTangentD(first.th1);
   }
   const last = segs[nSeg - 1];
   if (endTh !== null) {
-    r[m - 1] = mod2pi2(ths[m - 1] - endTh);
+    r3[m - 1] = mod2pi2(ths[m - 1] - endTh);
     b[m - 1] = 1;
   } else {
-    r[m - 1] = mod2pi2(last.th1 - hbEndTangent(last.th0));
+    r3[m - 1] = mod2pi2(last.th1 - hbEndTangent(last.th0));
     b[m - 1] = -1;
     a[m - 1] = -hbEndTangentD(last.th0);
   }
-  return { r, a, b, c, segs };
+  return { r: r3, a, b, c, segs };
 }
 function hbThomas(a, b, c, d) {
   const n2 = b.length;
@@ -14666,9 +20220,9 @@ function hbSolveRun(pts, wrap, startTh, endTh, warm) {
   for (; iter < HB_MAX_ITER && worst > HB_TOL; iter++) {
     const d = sys.r.map((v) => -v);
     const newton = wrap ? hbCyclic(sys.a, sys.b, sys.c, d) : hbThomas(sys.a, sys.b, sys.c, d);
-    const diagonal = () => sys.b.map((bk, k) => Math.abs(bk) > 1e-12 ? 0.5 * (d[k] / bk) : 0);
+    const diagonal2 = () => sys.b.map((bk, k) => Math.abs(bk) > 1e-12 ? 0.5 * (d[k] / bk) : 0);
     let took = false;
-    for (const step of newton ? [newton, diagonal()] : [diagonal()]) {
+    for (const step of newton ? [newton, diagonal2()] : [diagonal2()]) {
       if (!step.every((v) => Number.isFinite(v))) continue;
       for (let k = 0; k < m; k++) {
         const v = step[k];
@@ -14876,17 +20430,17 @@ var init_spline = __esm({
 
 // engine/src/geom/authored-url.ts
 function numOut(v) {
-  const r = Number(v.toFixed(DECIMALS));
-  let s = Object.is(r, -0) ? "0" : String(r);
-  if (s.includes("e") || s.includes("E")) s = r.toFixed(DECIMALS);
+  const r3 = Number(v.toFixed(DECIMALS));
+  let s = Object.is(r3, -0) ? "0" : String(r3);
+  if (s.includes("e") || s.includes("E")) s = r3.toFixed(DECIMALS);
   if (s.startsWith("0.")) return s.slice(1);
   if (s.startsWith("-0.")) return `-${s.slice(2)}`;
   return s;
 }
 function handleOut(v) {
   if (typeof v !== "number" || !Number.isFinite(v)) return "";
-  const r = Number(v.toFixed(DECIMALS));
-  return r === 0 ? "" : numOut(r);
+  const r3 = Number(v.toFixed(DECIMALS));
+  return r3 === 0 ? "" : numOut(r3);
 }
 function numIn(s) {
   if (s === void 0 || s === "") return void 0;
@@ -14943,6 +20497,14 @@ function decodeAuthoredPathsResult(value) {
     out.push(one);
   }
   return out;
+}
+function decodeAuthoredPaths(value) {
+  const r3 = decodeAuthoredPathsResult(value);
+  return typeof r3 === "string" ? null : r3;
+}
+function decodeAuthoredPath(value) {
+  const r3 = decodeAuthoredPaths(value);
+  return r3 && r3.length === 1 ? r3[0] : null;
 }
 function decodeOne(value) {
   const s = value;
@@ -15357,10 +20919,10 @@ function makeGeomApi() {
     },
     decodeAuthored: (value) => {
       if (typeof value !== "string") return fail2("invalid-argument", "geom: expected an encoded authored path");
-      const r = decodeAuthoredPathsResult(value);
-      if (r === "too-complex") return fail2("too-large", `geom: encoded path is past the ${MAX_NODES2}-node ceiling`);
-      if (r === "malformed") return fail2("invalid-argument", "geom: not a usable encoded authored path");
-      return ok2(r);
+      const r3 = decodeAuthoredPathsResult(value);
+      if (r3 === "too-complex") return fail2("too-large", `geom: encoded path is past the ${MAX_NODES2}-node ceiling`);
+      if (r3 === "malformed") return fail2("invalid-argument", "geom: not a usable encoded authored path");
+      return ok2(r3);
     },
     continuity: (node, moved) => {
       if (moved !== "in" && moved !== "out") {
@@ -15430,10 +20992,10 @@ function makeGeomApi() {
       for (let ci = 0; ci < p.length; ci++) {
         const curves = p[ci].curves;
         for (let ki = 0; ki < curves.length; ki++) {
-          const r = nearestOnCubic(curves[ki], x, y);
-          if (!Number.isFinite(r.distance)) continue;
-          if (!best || r.distance < best.distance) {
-            best = { x: r.point.x, y: r.point.y, distance: r.distance, contour: ci, curve: ki, t: r.t };
+          const r3 = nearestOnCubic(curves[ki], x, y);
+          if (!Number.isFinite(r3.distance)) continue;
+          if (!best || r3.distance < best.distance) {
+            best = { x: r3.point.x, y: r3.point.y, distance: r3.distance, contour: ci, curve: ki, t: r3.t };
           }
         }
       }
@@ -15697,14 +21259,14 @@ function emitEmf(ir, opts = {}) {
   }
   body.push(recEof());
   const nRecords = body.length + 1;
-  const bodyBytes = body.reduce((n2, r) => n2 + r.length, 0);
+  const bodyBytes = body.reduce((n2, r3) => n2 + r3.length, 0);
   const nBytes = HEADER_SIZE + bodyBytes;
   const out = new Uint8Array(nBytes);
   out.set(writeHeader(h, nBytes, nRecords), 0);
   let off = HEADER_SIZE;
-  for (const r of body) {
-    out.set(r, off);
-    off += r.length;
+  for (const r3 of body) {
+    out.set(r3, off);
+    off += r3.length;
   }
   return out;
 }
@@ -15743,7 +21305,7 @@ var init_emf = __esm({
     H_BRUSH = 1;
     H_PEN = 2;
     N_HANDLES = 3;
-    colorRef = ({ r, g: g2, b }) => (r & 255 | (g2 & 255) << 8 | (b & 255) << 16) >>> 0;
+    colorRef = ({ r: r3, g: g2, b }) => (r3 & 255 | (g2 & 255) << 8 | (b & 255) << 16) >>> 0;
     clampInt2 = (v) => Math.round(v);
     setRect = (dv, off, b) => {
       dv.setInt32(off, clampInt2(b.left), true);
@@ -15786,17 +21348,17 @@ var init_emf = __esm({
 });
 
 // engine/src/eps.ts
-function rgbPaletteKey(r, g2, b) {
-  return Math.round(r * 100) + "," + Math.round(g2 * 100) + "," + Math.round(b * 100);
+function rgbPaletteKey(r3, g2, b) {
+  return Math.round(r3 * 100) + "," + Math.round(g2 * 100) + "," + Math.round(b * 100);
 }
 function colorOp(c, cmyk, palette) {
-  const r = (c.r & 255) / 255, g2 = (c.g & 255) / 255, b = (c.b & 255) / 255;
+  const r3 = (c.r & 255) / 255, g2 = (c.g & 255) / 255, b = (c.b & 255) / 255;
   if (cmyk) {
-    const hit = palette?.get(rgbPaletteKey(r, g2, b));
-    const [cy, m, y, k] = hit ? hit.cmyk : rgbToCmyk(r, g2, b);
+    const hit = palette?.get(rgbPaletteKey(r3, g2, b));
+    const [cy, m, y, k] = hit ? hit.cmyk : rgbToCmyk(r3, g2, b);
     return n(cy) + " " + n(m) + " " + n(y) + " " + n(k) + " setcmykcolor";
   }
-  return n(r) + " " + n(g2) + " " + n(b) + " setrgbcolor";
+  return n(r3) + " " + n(g2) + " " + n(b) + " setrgbcolor";
 }
 function emitImagePrim(prim, out) {
   const pxW = Math.max(1, Math.round(prim.pxW));
@@ -15885,8 +21447,8 @@ var init_eps = __esm({
     init_color();
     n = (v) => {
       if (!Number.isFinite(v)) return "0";
-      const r = Math.round(v * 1e3) / 1e3;
-      return Object.is(r, -0) ? "0" : String(r);
+      const r3 = Math.round(v * 1e3) / 1e3;
+      return Object.is(r3, -0) ? "0" : String(r3);
     };
     HEX = [];
     for (let i = 0; i < 256; i++) HEX.push((i < 16 ? "0" : "") + i.toString(16));
@@ -15894,11 +21456,11 @@ var init_eps = __esm({
 });
 
 // engine/src/dxf.ts
-function num2(v) {
+function num3(v) {
   if (!Number.isFinite(v)) return "0.0";
-  let r = Math.round(v * 1e4) / 1e4;
-  if (Object.is(r, -0)) r = 0;
-  return Number.isInteger(r) ? r.toFixed(1) : String(r);
+  let r3 = Math.round(v * 1e4) / 1e4;
+  if (Object.is(r3, -0)) r3 = 0;
+  return Number.isInteger(r3) ? r3.toFixed(1) : String(r3);
 }
 function g(out, code, value) {
   out.push(String(code), String(value));
@@ -15915,7 +21477,7 @@ function nearestAci(c) {
   }
   return best;
 }
-function flattenCubic(p0, p1, p2, p3, tol, out, depth = 0) {
+function flattenCubic2(p0, p1, p2, p3, tol, out, depth = 0) {
   const dx = p3.x - p0.x, dy = p3.y - p0.y;
   const d1 = Math.abs((p1.x - p3.x) * dy - (p1.y - p3.y) * dx);
   const d2 = Math.abs((p2.x - p3.x) * dy - (p2.y - p3.y) * dx);
@@ -15925,8 +21487,8 @@ function flattenCubic(p0, p1, p2, p3, tol, out, depth = 0) {
   }
   const p01 = mid(p0, p1), p12 = mid(p1, p2), p23 = mid(p2, p3);
   const p012 = mid(p01, p12), p123 = mid(p12, p23), p0123 = mid(p012, p123);
-  flattenCubic(p0, p01, p012, p0123, tol, out, depth + 1);
-  flattenCubic(p0123, p123, p23, p3, tol, out, depth + 1);
+  flattenCubic2(p0, p01, p012, p0123, tol, out, depth + 1);
+  flattenCubic2(p0123, p123, p23, p3, tol, out, depth + 1);
 }
 function subpathVertices(segments, tol) {
   const pts = [];
@@ -15939,7 +21501,7 @@ function subpathVertices(segments, tol) {
       cur = { x: s.x, y: s.y };
       pts.push(cur);
     } else if (s.op === "C") {
-      flattenCubic(cur, { x: s.x1, y: s.y1 }, { x: s.x2, y: s.y2 }, { x: s.x, y: s.y }, tol, pts);
+      flattenCubic2(cur, { x: s.x1, y: s.y1 }, { x: s.x2, y: s.y2 }, { x: s.x, y: s.y }, tol, pts);
       cur = { x: s.x, y: s.y };
     }
   }
@@ -15978,8 +21540,8 @@ function emitDxf(ir, opts = {}) {
       for (const p of pts) {
         g(ent, 0, "VERTEX");
         g(ent, 8, "0");
-        g(ent, 10, num2(MX(p.x)));
-        g(ent, 20, num2(MY(p.y)));
+        g(ent, 10, num3(MX(p.x)));
+        g(ent, 20, num3(MY(p.y)));
         g(ent, 30, "0.0");
       }
       g(ent, 0, "SEQEND");
@@ -15997,8 +21559,8 @@ function emitDxf(ir, opts = {}) {
   g(out, 20, "0.0");
   g(out, 30, "0.0");
   g(out, 9, "$EXTMAX");
-  g(out, 10, num2(Wmm));
-  g(out, 20, num2(Hmm));
+  g(out, 10, num3(Wmm));
+  g(out, 20, num3(Hmm));
   g(out, 30, "0.0");
   g(out, 0, "ENDSEC");
   g(out, 0, "SECTION");
@@ -16044,6 +21606,811 @@ var init_dxf = __esm({
   }
 });
 
+// engine/src/pptx.ts
+function clr(hex, alpha) {
+  const v = (hex || "#000000").replace("#", "").slice(0, 6).toUpperCase().padStart(6, "0");
+  if (alpha != null && alpha < 1) return `<a:srgbClr val="${v}"><a:alpha val="${clampInt3(alpha * 1e5, 0, 1e5)}"/></a:srgbClr>`;
+  return `<a:srgbClr val="${v}"/>`;
+}
+function fillXml(fill) {
+  if (!fill) return "<a:noFill/>";
+  if ("solid" in fill) return `<a:solidFill>${clr(fill.solid, fill.alpha)}</a:solidFill>`;
+  const stops = fill.grad.map((s) => `<a:gs pos="${clampInt3((s.pos ?? 0) * 1e5, 0, 1e5)}">${clr(s.color, s.alpha)}</a:gs>`).join("");
+  const ang = ((Math.round(fill.angle) - 90) % 360 + 360) % 360;
+  return `<a:gradFill><a:gsLst>${stops}</a:gsLst><a:lin ang="${ang * 6e4}" scaled="1"/></a:gradFill>`;
+}
+function geomXml(radius, cx = 0, cy = 0) {
+  if (radius && radius > 0) {
+    const adj = clampInt3(radius / Math.max(1, Math.min(cx, cy)) * 1e5, 0, 5e4);
+    return `<a:prstGeom prst="roundRect"><a:avLst><a:gd name="adj" fmla="val ${adj}"/></a:avLst></a:prstGeom>`;
+  }
+  return `<a:prstGeom prst="rect"><a:avLst/></a:prstGeom>`;
+}
+function rectXml(r3, id) {
+  return `<p:sp><p:nvSpPr><p:cNvPr id="${id}" name="rect${id}"/><p:cNvSpPr/><p:nvPr/></p:nvSpPr><p:spPr>${xfrmXml(r3)}${geomXml(r3.radius, r3.cx, r3.cy)}${fillXml(r3.fill)}${lineXml(r3.line)}</p:spPr><p:txBody><a:bodyPr/><a:lstStyle/><a:p/></p:txBody></p:sp>`;
+}
+function custGeomXml(shape) {
+  const w = Math.max(1, Math.round(shape.cx));
+  const h = Math.max(1, Math.round(shape.cy));
+  let segs = "";
+  for (const p of shape.paths ?? []) {
+    for (const sub of parseSvgPath(p?.d ?? "")) {
+      const first = sub.segments[0];
+      if (!first || first.op !== "M") continue;
+      segs += `<a:moveTo><a:pt x="${finInt(first.x)}" y="${finInt(first.y)}"/></a:moveTo>`;
+      for (let i = 1; i < sub.segments.length; i++) {
+        const s = sub.segments[i];
+        if (s.op === "L") segs += `<a:lnTo><a:pt x="${finInt(s.x)}" y="${finInt(s.y)}"/></a:lnTo>`;
+        else if (s.op === "C") segs += `<a:cubicBezTo><a:pt x="${finInt(s.x1)}" y="${finInt(s.y1)}"/><a:pt x="${finInt(s.x2)}" y="${finInt(s.y2)}"/><a:pt x="${finInt(s.x)}" y="${finInt(s.y)}"/></a:cubicBezTo>`;
+      }
+      if (sub.closed) segs += `<a:close/>`;
+    }
+  }
+  return `<a:custGeom><a:avLst/><a:gdLst/><a:ahLst/><a:cxnLst/><a:rect l="0" t="0" r="${w}" b="${h}"/><a:pathLst><a:path w="${w}" h="${h}">${segs}</a:path></a:pathLst></a:custGeom>`;
+}
+function pathXml(shape, id) {
+  return `<p:sp><p:nvSpPr><p:cNvPr id="${id}" name="path${id}"/><p:cNvSpPr/><p:nvPr/></p:nvSpPr><p:spPr>${xfrmXml(shape)}${custGeomXml(shape)}${fillXml(shape.fill)}${lineXml(shape.line)}</p:spPr><p:txBody><a:bodyPr/><a:lstStyle/><a:p/></p:txBody></p:sp>`;
+}
+function runXml(run) {
+  const u = run.underline ? ' u="sng"' : "";
+  const strike = run.strike ? ' strike="sngStrike"' : "";
+  const attrs = `lang="en-US" sz="${clampInt3(run.sizePt * 100, 100, 4e5)}" b="${run.bold ? 1 : 0}" i="${run.italic ? 1 : 0}"${u}${strike} dirty="0"`;
+  const fill = run.color ? `<a:solidFill>${clr(run.color)}</a:solidFill>` : "";
+  const font = run.font ? `<a:latin typeface="${xmlEsc(run.font)}"/><a:cs typeface="${xmlEsc(run.font)}"/>` : "";
+  const rid = run.linkSlide != null && slideLinkRid ? slideLinkRid(run.linkSlide) : void 0;
+  const hlink = rid ? `<a:hlinkClick r:id="${rid}" action="ppaction://hlinksldjump"/>` : "";
+  return `<a:r><a:rPr ${attrs}>${fill}${font}${hlink}</a:rPr><a:t>${xmlEsc(run.text)}</a:t></a:r>`;
+}
+function paraXml(p) {
+  const lvl = p.level && p.level > 0 ? Math.min(8, Math.round(p.level)) : 0;
+  const hasBullet = p.bullet === true || p.bullet === "number" || typeof p.bullet === "object" && p.bullet != null;
+  const attrs = [];
+  if (hasBullet) attrs.push(`marL="${(lvl + 1) * BULLET_STEP}"`);
+  else if (lvl > 0) attrs.push(`marL="${lvl * BULLET_STEP}"`);
+  if (lvl > 0) attrs.push(`lvl="${lvl}"`);
+  if (hasBullet) attrs.push(`indent="-${BULLET_STEP}"`);
+  if (p.align) attrs.push(`algn="${p.align}"`);
+  let kids = "";
+  if (p.lineSpacingPct && p.lineSpacingPct > 0) kids += `<a:lnSpc><a:spcPct val="${clampInt3(p.lineSpacingPct * 1e3, 1e3, 1e6)}"/></a:lnSpc>`;
+  if (p.spaceBeforePt && p.spaceBeforePt > 0) kids += `<a:spcBef><a:spcPts val="${clampInt3(p.spaceBeforePt * 100, 0, 158400)}"/></a:spcBef>`;
+  if (p.spaceAfterPt && p.spaceAfterPt > 0) kids += `<a:spcAft><a:spcPts val="${clampInt3(p.spaceAfterPt * 100, 0, 158400)}"/></a:spcAft>`;
+  if (hasBullet) {
+    if (p.bullet === "number") kids += `<a:buFont typeface="+mj-lt"/><a:buAutoNum type="arabicPeriod"/>`;
+    else {
+      const ch = typeof p.bullet === "object" && p.bullet && p.bullet.char ? p.bullet.char : "\u2022";
+      kids += `<a:buFont typeface="Arial"/><a:buChar char="${xmlEsc(ch)}"/>`;
+    }
+  } else if (p.bullet === false) {
+    kids += `<a:buNone/>`;
+  }
+  const attrStr = attrs.length ? ` ${attrs.join(" ")}` : "";
+  const pPr = attrs.length || kids ? kids ? `<a:pPr${attrStr}>${kids}</a:pPr>` : `<a:pPr${attrStr}/>` : "";
+  return `<a:p>${pPr}${p.runs.map(runXml).join("")}</a:p>`;
+}
+function textXml(t, id) {
+  const body = `<a:bodyPr wrap="square" anchor="${t.anchor ?? "t"}" lIns="0" tIns="0" rIns="0" bIns="0"><a:noAutofit/></a:bodyPr>`;
+  const paras = t.paras.length ? t.paras.map(paraXml).join("") : "<a:p/>";
+  return `<p:sp><p:nvSpPr><p:cNvPr id="${id}" name="text${id}"/><p:cNvSpPr txBox="1"/><p:nvPr/></p:nvSpPr><p:spPr>${xfrmXml(t)}<a:prstGeom prst="rect"><a:avLst/></a:prstGeom><a:noFill/></p:spPr><p:txBody>${body}<a:lstStyle/>${paras}</p:txBody></p:sp>`;
+}
+function picXml(p, id) {
+  const blip = p.svg != null ? `<a:blip r:embed="${mediaRid(p.media)}"><a:extLst><a:ext uri="${SVG_EXT_URI}"><asvg:svgBlip xmlns:asvg="http://schemas.microsoft.com/office/drawing/2016/SVG/main" r:embed="${mediaRid(p.svg)}"/></a:ext></a:extLst></a:blip>` : `<a:blip r:embed="${mediaRid(p.media)}"/>`;
+  const pct = (v) => v && v > 0 ? String(clampInt3(v * 1e5, 0, 99e3)) : "0";
+  const sr = p.srcRect;
+  const srcRect = sr && (sr.l || sr.t || sr.r || sr.b) ? `<a:srcRect l="${pct(sr.l)}" t="${pct(sr.t)}" r="${pct(sr.r)}" b="${pct(sr.b)}"/>` : "";
+  return `<p:pic><p:nvPicPr><p:cNvPr id="${id}" name="${xmlEsc(p.name ?? `pic${id}`)}"/><p:cNvPicPr><a:picLocks noChangeAspect="1"/></p:cNvPicPr><p:nvPr/></p:nvPicPr><p:blipFill>${blip}${srcRect}<a:stretch><a:fillRect/></a:stretch></p:blipFill><p:spPr>${xfrmXml(p)}<a:prstGeom prst="rect"><a:avLst/></a:prstGeom></p:spPr></p:pic>`;
+}
+function buildTableGrid(nCols, rows) {
+  const nRows = rows.length;
+  const grid = Array.from({ length: nRows }, () => Array(nCols).fill(null));
+  for (let r3 = 0; r3 < nRows; r3++) {
+    let c = 0;
+    for (const cell of rows[r3].cells) {
+      while (c < nCols && grid[r3][c] !== null) c++;
+      if (c >= nCols) break;
+      let cs = Math.min(spanOf(cell.colSpan), nCols - c);
+      for (let dc = 1; dc < cs; dc++) if (grid[r3][c + dc] !== null) {
+        cs = dc;
+        break;
+      }
+      let rs = Math.min(spanOf(cell.rowSpan), nRows - r3);
+      rows: for (let dr = 1; dr < rs; dr++) {
+        for (let dc = 0; dc < cs; dc++) if (grid[r3 + dr][c + dc] !== null) {
+          rs = dr;
+          break rows;
+        }
+      }
+      grid[r3][c] = { kind: "origin", cell, gridSpan: cs, rowSpan: rs };
+      for (let dr = 0; dr < rs; dr++)
+        for (let dc = 0; dc < cs; dc++) {
+          if (dr === 0 && dc === 0) continue;
+          if (grid[r3 + dr][c + dc] !== null) continue;
+          const hm = dc > 0, vm = dr > 0;
+          grid[r3 + dr][c + dc] = { kind: hm && vm ? "hvmerge" : hm ? "hmerge" : "vmerge" };
+        }
+      c += cs;
+    }
+    for (let cc = 0; cc < nCols; cc++) if (grid[r3][cc] === null) grid[r3][cc] = { kind: "origin", cell: {}, gridSpan: 1, rowSpan: 1 };
+  }
+  return grid;
+}
+function cellTxBody(cell) {
+  const paras = cell.paras && cell.paras.length ? cell.paras : [{ runs: cell.text ? [{ text: cell.text, sizePt: cell.sizePt ?? 12, bold: cell.bold, color: cell.color, font: cell.font }] : [], align: cell.align }];
+  const body = paras.map(paraXml).join("") || "<a:p/>";
+  return `<a:txBody><a:bodyPr/><a:lstStyle/>${body}</a:txBody>`;
+}
+function tcPrXml(cell) {
+  const m = cell.margin != null ? Math.max(0, Math.round(cell.margin)) : null;
+  const mar = m != null ? ` marL="${m}" marR="${m}" marT="${Math.round(m * 0.5)}" marB="${Math.round(m * 0.5)}"` : ` marL="91440" marR="91440" marT="45720" marB="45720"`;
+  const anchor = ` anchor="${cell.anchor ?? "ctr"}"`;
+  const b = cell.borders ?? {};
+  const borders = lnSideXml("lnL", b.l) + lnSideXml("lnR", b.r) + lnSideXml("lnT", b.t) + lnSideXml("lnB", b.b);
+  const fill = cell.fill ? `<a:solidFill>${clr(cell.fill)}</a:solidFill>` : "";
+  return `<a:tcPr${mar}${anchor}>${borders}${fill}</a:tcPr>`;
+}
+function tcXml(slot) {
+  if (slot.kind !== "origin") {
+    const attr2 = slot.kind === "hmerge" ? ' hMerge="1"' : slot.kind === "vmerge" ? ' vMerge="1"' : ' hMerge="1" vMerge="1"';
+    return `<a:tc${attr2}>${EMPTY_TXBODY}<a:tcPr/></a:tc>`;
+  }
+  const span = slot.gridSpan > 1 ? ` gridSpan="${slot.gridSpan}"` : "";
+  const rspan = slot.rowSpan > 1 ? ` rowSpan="${slot.rowSpan}"` : "";
+  return `<a:tc${span}${rspan}>${cellTxBody(slot.cell)}${tcPrXml(slot.cell)}</a:tc>`;
+}
+function tableXml(t, id) {
+  const rawCols = Array.isArray(t.cols) && t.cols.length ? t.cols : [t.cx];
+  const colW = rawCols.slice(0, MAX_TABLE_COLS).map((w) => Math.max(1, finInt(w, 914400)));
+  const nCols = colW.length;
+  const rows = (t.rows ?? []).slice(0, MAX_TABLE_ROWS);
+  const grid = buildTableGrid(nCols, rows);
+  const styleId = t.styleId ?? DEFAULT_TABLE_STYLE;
+  const tblPr = `<a:tblPr firstRow="${t.firstRow ? 1 : 0}" bandRow="1"><a:tableStyleId>${styleId}</a:tableStyleId></a:tblPr>`;
+  const tblGrid = `<a:tblGrid>${colW.map((w) => `<a:gridCol w="${w}"/>`).join("")}</a:tblGrid>`;
+  const fallbackH = Math.max(1, finInt((finInt(t.cy) || 0) / Math.max(1, rows.length))) || 370840;
+  const trs = rows.map((row, r3) => {
+    const h = row.h != null ? Math.max(1, finInt(row.h, fallbackH)) : fallbackH;
+    return `<a:tr h="${h}">${grid[r3].map(tcXml).join("")}</a:tr>`;
+  }).join("");
+  return `<p:graphicFrame><p:nvGraphicFramePr><p:cNvPr id="${id}" name="table${id}"/><p:cNvGraphicFramePr><a:graphicFrameLocks noGrp="1"/></p:cNvGraphicFramePr><p:nvPr/></p:nvGraphicFramePr><p:xfrm><a:off x="${finInt(t.x)}" y="${finInt(t.y)}"/><a:ext cx="${Math.max(1, finInt(t.cx, 914400))}" cy="${Math.max(1, finInt(t.cy, 914400))}"/></p:xfrm><a:graphic><a:graphicData uri="http://schemas.openxmlformats.org/drawingml/2006/table"><a:tbl>${tblPr}${tblGrid}${trs}</a:tbl></a:graphicData></a:graphic></p:graphicFrame>`;
+}
+function shapeXml(shape, id) {
+  switch (shape.kind) {
+    case "rect":
+      return rectXml(shape, id);
+    case "text":
+      return textXml(shape, id);
+    case "pic":
+      return picXml(shape, id);
+    case "table":
+      return tableXml(shape, id);
+    case "path":
+      return pathXml(shape, id);
+  }
+}
+function slideXml(slide) {
+  let id = 1;
+  const shapes = slide.shapes.map((s) => shapeXml(s, ++id)).join("");
+  return `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<p:sld xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main" xmlns:r="${REL}" xmlns:p="http://schemas.openxmlformats.org/presentationml/2006/main"><p:cSld><p:spTree><p:nvGrpSpPr><p:cNvPr id="1" name=""/><p:cNvGrpSpPr/><p:nvPr/></p:nvGrpSpPr><p:grpSpPr/>` + shapes + `</p:spTree></p:cSld><p:clrMapOvr><a:overrideClrMapping bg1="lt1" tx1="dk1" bg2="lt2" tx2="dk2" accent1="accent1" accent2="accent2" accent3="accent3" accent4="accent4" accent5="accent5" accent6="accent6" hlink="hlink" folHlink="folHlink"/></p:clrMapOvr></p:sld>`;
+}
+function collectLinkTargets(slide) {
+  const set = /* @__PURE__ */ new Set();
+  for (const s of slide.shapes) {
+    if (s.kind !== "text") continue;
+    for (const p of s.paras) for (const r3 of p.runs) if (typeof r3.linkSlide === "number" && Number.isFinite(r3.linkSlide)) set.add(Math.trunc(r3.linkSlide));
+  }
+  return [...set].sort((a, b) => a - b);
+}
+function slideRelsXml(slideIdx, media, hasNotes = false, linkTargets = []) {
+  let rels = `<Relationship Id="rId1" Type="${REL}/slideLayout" Target="../slideLayouts/slideLayout1.xml"/>`;
+  media.forEach((m, i) => {
+    rels += `<Relationship Id="${mediaRid(i)}" Type="${REL}/image" Target="../media/${mediaName(slideIdx, i, m.ext)}"/>`;
+  });
+  if (hasNotes) rels += `<Relationship Id="rId${media.length + 2}" Type="${REL}/notesSlide" Target="../notesSlides/notesSlide${slideIdx + 1}.xml"/>`;
+  const base = linkRidBase(media.length, hasNotes);
+  linkTargets.forEach((t, k) => {
+    rels += `<Relationship Id="rId${base + k}" Type="${REL}/slide" Target="slide${t + 1}.xml"/>`;
+  });
+  return `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<Relationships xmlns="${PKG_REL_NS}">${rels}</Relationships>`;
+}
+function notesSlideXml(notes) {
+  const paras = notes.split(/\r?\n/).map((line) => `<a:p><a:r><a:rPr lang="en-US" dirty="0"/><a:t>${xmlEsc(line)}</a:t></a:r></a:p>`).join("");
+  return `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<p:notes xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main" xmlns:r="${REL}" xmlns:p="http://schemas.openxmlformats.org/presentationml/2006/main"><p:cSld><p:spTree><p:nvGrpSpPr><p:cNvPr id="1" name=""/><p:cNvGrpSpPr/><p:nvPr/></p:nvGrpSpPr><p:grpSpPr/><p:sp><p:nvSpPr><p:cNvPr id="2" name="Notes Placeholder"/><p:cNvSpPr><a:spLocks noGrp="1"/></p:cNvSpPr><p:nvPr><p:ph type="body" idx="1"/></p:nvPr></p:nvSpPr><p:spPr/><p:txBody><a:bodyPr/><a:lstStyle/>${paras || "<a:p/>"}</p:txBody></p:sp></p:spTree></p:cSld><p:clrMapOvr><a:overrideClrMapping bg1="lt1" tx1="dk1" bg2="lt2" tx2="dk2" accent1="accent1" accent2="accent2" accent3="accent3" accent4="accent4" accent5="accent5" accent6="accent6" hlink="hlink" folHlink="folHlink"/></p:clrMapOvr></p:notes>`;
+}
+function notesSlideRelsXml(slideIdx) {
+  return `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<Relationships xmlns="${PKG_REL_NS}"><Relationship Id="rId1" Type="${REL}/slide" Target="../slides/slide${slideIdx + 1}.xml"/><Relationship Id="rId2" Type="${REL}/notesMaster" Target="../notesMasters/notesMaster1.xml"/></Relationships>`;
+}
+function notesMasterXml(notesW, notesH) {
+  const x = Math.round(notesW * 0.1), cx = Math.round(notesW * 0.8);
+  const y = Math.round(notesH * 0.5), cy = Math.round(notesH * 0.4);
+  return `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<p:notesMaster xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main" xmlns:r="${REL}" xmlns:p="http://schemas.openxmlformats.org/presentationml/2006/main"><p:cSld><p:spTree><p:nvGrpSpPr><p:cNvPr id="1" name=""/><p:cNvGrpSpPr/><p:nvPr/></p:nvGrpSpPr><p:grpSpPr/><p:sp><p:nvSpPr><p:cNvPr id="2" name="Notes Placeholder"/><p:cNvSpPr><a:spLocks noGrp="1"/></p:cNvSpPr><p:nvPr><p:ph type="body" idx="1"/></p:nvPr></p:nvSpPr><p:spPr><a:xfrm><a:off x="${x}" y="${y}"/><a:ext cx="${cx}" cy="${cy}"/></a:xfrm><a:prstGeom prst="rect"><a:avLst/></a:prstGeom></p:spPr><p:txBody><a:bodyPr/><a:lstStyle/><a:p/></p:txBody></p:sp></p:spTree></p:cSld><p:clrMap bg1="lt1" tx1="dk1" bg2="lt2" tx2="dk2" accent1="accent1" accent2="accent2" accent3="accent3" accent4="accent4" accent5="accent5" accent6="accent6" hlink="hlink" folHlink="folHlink"/></p:notesMaster>`;
+}
+function presentationXml(n2, emuW, emuH, hasAnyNotes = false) {
+  let sldIds = "";
+  for (let i = 0; i < n2; i++) sldIds += `<p:sldId id="${256 + i}" r:id="rId${i + 2}"/>`;
+  const notesMasterIdLst = hasAnyNotes ? `<p:notesMasterIdLst><p:notesMasterId r:id="rId${n2 + 3}"/></p:notesMasterIdLst>` : "";
+  return `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<p:presentation xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main" xmlns:r="${REL}" xmlns:p="http://schemas.openxmlformats.org/presentationml/2006/main"><p:sldMasterIdLst><p:sldMasterId id="2147483648" r:id="rId1"/></p:sldMasterIdLst>` + notesMasterIdLst + `<p:sldIdLst>${sldIds}</p:sldIdLst><p:sldSz cx="${emuW}" cy="${emuH}"/><p:notesSz cx="${emuH}" cy="${emuW}"/></p:presentation>`;
+}
+function presentationRelsXml(n2, hasAnyNotes = false) {
+  let rels = `<Relationship Id="rId1" Type="${REL}/slideMaster" Target="slideMasters/slideMaster1.xml"/>`;
+  for (let i = 0; i < n2; i++) rels += `<Relationship Id="rId${i + 2}" Type="${REL}/slide" Target="slides/slide${i + 1}.xml"/>`;
+  rels += `<Relationship Id="rId${n2 + 2}" Type="${REL}/theme" Target="theme/theme1.xml"/>`;
+  if (hasAnyNotes) rels += `<Relationship Id="rId${n2 + 3}" Type="${REL}/notesMaster" Target="notesMasters/notesMaster1.xml"/>`;
+  return `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<Relationships xmlns="${PKG_REL_NS}">${rels}</Relationships>`;
+}
+function contentTypesXml(n2, exts, notedIdxs = []) {
+  const defaults = [
+    `<Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/>`,
+    `<Default Extension="xml" ContentType="application/xml"/>`
+  ];
+  for (const e of exts) defaults.push(`<Default Extension="${e}" ContentType="${MEDIA_CT[e]}"/>`);
+  let overrides = `<Override PartName="/ppt/presentation.xml" ContentType="application/vnd.openxmlformats-officedocument.presentationml.presentation.main+xml"/><Override PartName="/ppt/slideMasters/slideMaster1.xml" ContentType="application/vnd.openxmlformats-officedocument.presentationml.slideMaster+xml"/><Override PartName="/ppt/slideLayouts/slideLayout1.xml" ContentType="application/vnd.openxmlformats-officedocument.presentationml.slideLayout+xml"/><Override PartName="/ppt/theme/theme1.xml" ContentType="application/vnd.openxmlformats-officedocument.theme+xml"/><Override PartName="/docProps/core.xml" ContentType="application/vnd.openxmlformats-package.core-properties+xml"/><Override PartName="/docProps/app.xml" ContentType="application/vnd.openxmlformats-officedocument.extended-properties+xml"/>`;
+  for (let i = 0; i < n2; i++) overrides += `<Override PartName="/ppt/slides/slide${i + 1}.xml" ContentType="application/vnd.openxmlformats-officedocument.presentationml.slide+xml"/>`;
+  if (notedIdxs.length) {
+    overrides += `<Override PartName="/ppt/notesMasters/notesMaster1.xml" ContentType="application/vnd.openxmlformats-officedocument.presentationml.notesMaster+xml"/><Override PartName="/ppt/theme/theme2.xml" ContentType="application/vnd.openxmlformats-officedocument.theme+xml"/>`;
+    for (const i of notedIdxs) overrides += `<Override PartName="/ppt/notesSlides/notesSlide${i + 1}.xml" ContentType="application/vnd.openxmlformats-officedocument.presentationml.notesSlide+xml"/>`;
+  }
+  return `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<Types xmlns="${CT}">${defaults.join("")}${overrides}</Types>`;
+}
+function slideMasterXml() {
+  return `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<p:sldMaster xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main" xmlns:r="${REL}" xmlns:p="http://schemas.openxmlformats.org/presentationml/2006/main"><p:cSld><p:spTree><p:nvGrpSpPr><p:cNvPr id="1" name=""/><p:cNvGrpSpPr/><p:nvPr/></p:nvGrpSpPr><p:grpSpPr/></p:spTree></p:cSld><p:clrMap bg1="lt1" tx1="dk1" bg2="lt2" tx2="dk2" accent1="accent1" accent2="accent2" accent3="accent3" accent4="accent4" accent5="accent5" accent6="accent6" hlink="hlink" folHlink="folHlink"/><p:sldLayoutIdLst><p:sldLayoutId id="2147483649" r:id="rId1"/></p:sldLayoutIdLst></p:sldMaster>`;
+}
+function slideLayoutXml() {
+  return `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<p:sldLayout xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main" xmlns:r="${REL}" xmlns:p="http://schemas.openxmlformats.org/presentationml/2006/main" type="blank" preserve="1"><p:cSld name="Blank"><p:spTree><p:nvGrpSpPr><p:cNvPr id="1" name=""/><p:cNvGrpSpPr/><p:nvPr/></p:nvGrpSpPr><p:grpSpPr/></p:spTree></p:cSld><p:clrMapOvr><a:overrideClrMapping bg1="lt1" tx1="dk1" bg2="lt2" tx2="dk2" accent1="accent1" accent2="accent2" accent3="accent3" accent4="accent4" accent5="accent5" accent6="accent6" hlink="hlink" folHlink="folHlink"/></p:clrMapOvr></p:sldLayout>`;
+}
+function themeXml(theme) {
+  const col = { ...THEME_DEFAULT_COLORS };
+  if (theme?.colors)
+    for (const k of Object.keys(col)) {
+      const v = theme.colors[k];
+      if (v) col[k] = hexNorm(v);
+    }
+  const name = xmlEsc(theme?.name ?? "Lolly");
+  const majorFace = xmlEsc(theme?.fonts?.major ?? "Calibri");
+  const minorFace = xmlEsc(theme?.fonts?.minor ?? "Calibri");
+  const c = (n2, hex) => `<a:${n2}><a:srgbClr val="${hex}"/></a:${n2}>`;
+  const fontLst = (face) => `<a:latin typeface="${face}"/><a:ea typeface="${face}"/><a:cs typeface="${face}"/>`;
+  const three = (inner) => inner + inner + inner;
+  return `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<a:theme xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main" name="${name}"><a:themeElements><a:clrScheme name="${name}">` + c("dk1", col.dk1) + c("lt1", col.lt1) + c("dk2", col.dk2) + c("lt2", col.lt2) + c("accent1", col.accent1) + c("accent2", col.accent2) + c("accent3", col.accent3) + c("accent4", col.accent4) + c("accent5", col.accent5) + c("accent6", col.accent6) + c("hlink", col.hlink) + c("folHlink", col.folHlink) + `</a:clrScheme><a:fontScheme name="${name}"><a:majorFont>${fontLst(majorFace)}</a:majorFont><a:minorFont>${fontLst(minorFace)}</a:minorFont></a:fontScheme><a:fmtScheme name="${name}"><a:fillStyleLst>${three('<a:solidFill><a:schemeClr val="phClr"/></a:solidFill>')}</a:fillStyleLst><a:lnStyleLst>${three('<a:ln><a:solidFill><a:schemeClr val="phClr"/></a:solidFill></a:ln>')}</a:lnStyleLst><a:effectStyleLst>${three("<a:effectStyle><a:effectLst/></a:effectStyle>")}</a:effectStyleLst><a:bgFillStyleLst>${three('<a:solidFill><a:schemeClr val="phClr"/></a:solidFill>')}</a:bgFillStyleLst></a:fmtScheme></a:themeElements></a:theme>`;
+}
+function corePropsXml(meta, now2) {
+  const title = xmlEsc(meta?.title ?? "Presentation");
+  const desc = [meta?.description, meta?.contact, meta?.source].filter(Boolean).map(String).join(" \xB7 ");
+  return `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<cp:coreProperties xmlns:cp="http://schemas.openxmlformats.org/package/2006/metadata/core-properties" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:dcterms="http://purl.org/dc/terms/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"><dc:title>${title}</dc:title>` + (desc ? `<dc:description>${xmlEsc(desc)}</dc:description>` : "") + `<dc:creator>Lolly</dc:creator><cp:lastModifiedBy>Lolly</cp:lastModifiedBy><dcterms:created xsi:type="dcterms:W3CDTF">${now2}</dcterms:created><dcterms:modified xsi:type="dcterms:W3CDTF">${now2}</dcterms:modified></cp:coreProperties>`;
+}
+function buildPptxParts(slides, opts = {}) {
+  if (!slides.length) throw new Error("buildPptxParts: at least one slide is required");
+  const emuW = Math.max(1, Math.round(opts.emuW ?? 1280 * EMU_PER_PX));
+  const emuH = Math.max(1, Math.round(opts.emuH ?? 720 * EMU_PER_PX));
+  const n2 = slides.length;
+  const exts = /* @__PURE__ */ new Set();
+  for (const s of slides) for (const m of s.media) exts.add(m.ext);
+  const now2 = opts.now ?? "2026-01-01T00:00:00Z";
+  const noted = slides.map((s, i) => ({ i, notes: (s.notes ?? "").trim() })).filter((x) => x.notes !== "");
+  const hasAnyNotes = noted.length > 0;
+  const parts = {
+    "[Content_Types].xml": contentTypesXml(n2, exts, noted.map((x) => x.i)),
+    "_rels/.rels": ROOT_RELS,
+    "ppt/presentation.xml": presentationXml(n2, emuW, emuH, hasAnyNotes),
+    "ppt/_rels/presentation.xml.rels": presentationRelsXml(n2, hasAnyNotes),
+    "ppt/slideMasters/slideMaster1.xml": slideMasterXml(),
+    "ppt/slideMasters/_rels/slideMaster1.xml.rels": slideMasterRels,
+    "ppt/slideLayouts/slideLayout1.xml": slideLayoutXml(),
+    "ppt/slideLayouts/_rels/slideLayout1.xml.rels": slideLayoutRels,
+    "ppt/theme/theme1.xml": themeXml(opts.theme),
+    "docProps/core.xml": corePropsXml(opts.meta, now2),
+    "docProps/app.xml": appPropsXml(n2)
+  };
+  slides.forEach((slide, i) => {
+    const hasNotes = (slide.notes ?? "").trim() !== "";
+    const targets = collectLinkTargets(slide);
+    if (targets.length) {
+      const base = linkRidBase(slide.media.length, hasNotes);
+      const map = new Map(targets.map((t, k) => [t, `rId${base + k}`]));
+      slideLinkRid = (t) => map.get(t);
+    }
+    parts[`ppt/slides/slide${i + 1}.xml`] = slideXml(slide);
+    slideLinkRid = null;
+    parts[`ppt/slides/_rels/slide${i + 1}.xml.rels`] = slideRelsXml(i, slide.media, hasNotes, targets);
+    slide.media.forEach((m, j) => {
+      parts[`ppt/media/${mediaName(i, j, m.ext)}`] = m.bytes;
+    });
+  });
+  if (hasAnyNotes) {
+    parts["ppt/notesMasters/notesMaster1.xml"] = notesMasterXml(emuH, emuW);
+    parts["ppt/notesMasters/_rels/notesMaster1.xml.rels"] = notesMasterRels;
+    parts["ppt/theme/theme2.xml"] = themeXml(opts.theme);
+    for (const { i, notes } of noted) {
+      parts[`ppt/notesSlides/notesSlide${i + 1}.xml`] = notesSlideXml(notes);
+      parts[`ppt/notesSlides/_rels/notesSlide${i + 1}.xml.rels`] = notesSlideRelsXml(i);
+    }
+  }
+  return parts;
+}
+var EMU_PER_INCH, EMU_PER_PX, xmlEsc, REL, PKG_REL_NS, CT, SVG_EXT_URI, MEDIA_CT, clampInt3, finInt, lineXml, xfrmXml, slideLinkRid, BULLET_STEP, mediaRid, DEFAULT_TABLE_STYLE, spanOf, EMPTY_TXBODY, lnSideXml, MAX_TABLE_COLS, MAX_TABLE_ROWS, mediaName, linkRidBase, notesMasterRels, ROOT_RELS, slideMasterRels, slideLayoutRels, THEME_DEFAULT_COLORS, hexNorm, appPropsXml;
+var init_pptx = __esm({
+  "engine/src/pptx.ts"() {
+    "use strict";
+    init_svg_path();
+    EMU_PER_INCH = 914400;
+    EMU_PER_PX = EMU_PER_INCH / 96;
+    xmlEsc = (s) => s.replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F\uFFFE\uFFFF]/g, "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+    REL = "http://schemas.openxmlformats.org/officeDocument/2006/relationships";
+    PKG_REL_NS = "http://schemas.openxmlformats.org/package/2006/relationships";
+    CT = "http://schemas.openxmlformats.org/package/2006/content-types";
+    SVG_EXT_URI = "{96DAC541-7B7A-43D3-8B79-37D633B846F1}";
+    MEDIA_CT = {
+      emf: "image/x-emf",
+      png: "image/png",
+      jpeg: "image/jpeg",
+      svg: "image/svg+xml"
+    };
+    clampInt3 = (v, lo, hi) => Math.max(lo, Math.min(hi, Math.round(v)));
+    finInt = (v, fallback = 0) => Number.isFinite(v) ? Math.round(v) : fallback;
+    lineXml = (line) => line ? `<a:ln w="${Math.max(0, Math.round(line.w))}"><a:solidFill>${clr(line.color)}</a:solidFill></a:ln>` : "";
+    xfrmXml = (s) => `<a:xfrm${s.rot ? ` rot="${Math.round((s.rot % 360 + 360) % 360 * 6e4)}"` : ""}><a:off x="${Math.round(s.x)}" y="${Math.round(s.y)}"/><a:ext cx="${Math.max(1, Math.round(s.cx))}" cy="${Math.max(1, Math.round(s.cy))}"/></a:xfrm>`;
+    slideLinkRid = null;
+    BULLET_STEP = 342900;
+    mediaRid = (i) => `rId${i + 2}`;
+    DEFAULT_TABLE_STYLE = "{5C22544A-7EE6-4342-B048-85BDC9FD1C3A}";
+    spanOf = (v) => Number.isFinite(v) && v > 1 ? Math.floor(v) : 1;
+    EMPTY_TXBODY = "<a:txBody><a:bodyPr/><a:lstStyle/><a:p/></a:txBody>";
+    lnSideXml = (tag2, line) => line ? `<a:${tag2} w="${Math.max(0, Math.round(line.w))}" cap="flat" cmpd="sng" algn="ctr"><a:solidFill>${clr(line.color)}</a:solidFill></a:${tag2}>` : "";
+    MAX_TABLE_COLS = 128;
+    MAX_TABLE_ROWS = 512;
+    mediaName = (slideIdx, mediaIdx, ext) => `image${slideIdx + 1}_${mediaIdx + 1}.${ext}`;
+    linkRidBase = (mediaCount, hasNotes) => mediaCount + 2 + (hasNotes ? 1 : 0);
+    notesMasterRels = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<Relationships xmlns="${PKG_REL_NS}"><Relationship Id="rId1" Type="${REL}/theme" Target="../theme/theme2.xml"/></Relationships>`;
+    ROOT_RELS = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<Relationships xmlns="${PKG_REL_NS}"><Relationship Id="rId1" Type="${REL}/officeDocument" Target="ppt/presentation.xml"/><Relationship Id="rId2" Type="${REL}/metadata/core-properties" Target="docProps/core.xml"/><Relationship Id="rId3" Type="${REL}/extended-properties" Target="docProps/app.xml"/></Relationships>`;
+    slideMasterRels = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<Relationships xmlns="${PKG_REL_NS}"><Relationship Id="rId1" Type="${REL}/slideLayout" Target="../slideLayouts/slideLayout1.xml"/><Relationship Id="rId2" Type="${REL}/theme" Target="../theme/theme1.xml"/></Relationships>`;
+    slideLayoutRels = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<Relationships xmlns="${PKG_REL_NS}"><Relationship Id="rId1" Type="${REL}/slideMaster" Target="../slideMasters/slideMaster1.xml"/></Relationships>`;
+    THEME_DEFAULT_COLORS = {
+      dk1: "000000",
+      lt1: "FFFFFF",
+      dk2: "44546A",
+      lt2: "E7E6E6",
+      accent1: "5194D5",
+      accent2: "4DA46B",
+      accent3: "B28727",
+      accent4: "EFEFEF",
+      accent5: "A0A0A0",
+      accent6: "6B7280",
+      hlink: "336699",
+      folHlink: "6B7280"
+    };
+    hexNorm = (v) => v.replace("#", "").slice(0, 6).toUpperCase().padStart(6, "0");
+    appPropsXml = (n2) => `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<Properties xmlns="http://schemas.openxmlformats.org/officeDocument/2006/extended-properties"><Application>Lolly</Application><Slides>${n2}</Slides><PresentationFormat>Custom</PresentationFormat></Properties>`;
+  }
+});
+
+// engine/src/svg-custgeom.ts
+function matMul(m1, m2) {
+  const [a1, b1, c1, d1, e1, f1] = m1;
+  const [a2, b2, c2, d2, e2, f2] = m2;
+  return [
+    a1 * a2 + c1 * b2,
+    b1 * a2 + d1 * b2,
+    a1 * c2 + c1 * d2,
+    b1 * c2 + d1 * d2,
+    a1 * e2 + c1 * f2 + e1,
+    b1 * e2 + d1 * f2 + f1
+  ];
+}
+function parseTransform(v) {
+  if (!v) return IDENTITY;
+  const trimmed = v.trim();
+  if (trimmed === "" || trimmed.toLowerCase() === "none") return IDENTITY;
+  let acc = IDENTITY;
+  const re = /([a-zA-Z]+)\s*\(([^)]*)\)/g;
+  let m;
+  let saw = false;
+  while ((m = re.exec(v)) !== null) {
+    saw = true;
+    const name = m[1].toLowerCase();
+    const n2 = (m[2] ?? "").trim().split(/[\s,]+/).filter((s) => s !== "").map(Number);
+    if (n2.some((x) => !Number.isFinite(x))) return null;
+    let t;
+    if (name === "translate") t = [1, 0, 0, 1, n2[0] ?? 0, n2[1] ?? 0];
+    else if (name === "scale") t = [n2[0] ?? 1, 0, 0, n2[1] ?? n2[0] ?? 1, 0, 0];
+    else if (name === "matrix" && n2.length >= 6) t = [n2[0], n2[1], n2[2], n2[3], n2[4], n2[5]];
+    else return null;
+    acc = matMul(acc, t);
+  }
+  return saw ? acc : null;
+}
+function attrOf(attrs, name) {
+  const re = new RegExp(`(?:^|[\\s])${name}\\s*=\\s*("([^"]*)"|'([^']*)')`, "i");
+  const m = re.exec(attrs);
+  return m ? m[2] ?? m[3] : void 0;
+}
+function parseStyle(s) {
+  const out = {};
+  if (!s) return out;
+  for (const decl of s.split(";")) {
+    const i = decl.indexOf(":");
+    if (i < 0) continue;
+    out[decl.slice(0, i).trim().toLowerCase()] = decl.slice(i + 1).trim();
+  }
+  return out;
+}
+function resolvePaint(v) {
+  if (v == null) return void 0;
+  const s = v.trim().toLowerCase();
+  if (s === "") return void 0;
+  if (s === "none" || s === "transparent") return "none";
+  if (s === "currentcolor" || s.includes("url(")) return null;
+  const hex = colorToHex(s);
+  if (typeof hex !== "string") return null;
+  if (hex.startsWith("#")) {
+    if (hex.length === 9) {
+      return parseInt(hex.slice(7, 9), 16) >= 250 ? hex.slice(0, 7).toUpperCase() : null;
+    }
+    return hex.toUpperCase();
+  }
+  const named = NAMED_COLOR_HEX[hex.toLowerCase()];
+  return named ?? null;
+}
+function primitiveToD(tag2, attrs) {
+  if (tag2 === "rect") {
+    const x = numAttr(attrs, "x", 0), y = numAttr(attrs, "y", 0);
+    const w = numAttr(attrs, "width", 0), h = numAttr(attrs, "height", 0);
+    if (!(w > 0 && h > 0)) return null;
+    let rx = numAttr(attrs, "rx", NaN), ry = numAttr(attrs, "ry", NaN);
+    if (!Number.isFinite(rx) && !Number.isFinite(ry)) rx = ry = 0;
+    else {
+      if (!Number.isFinite(rx)) rx = ry;
+      if (!Number.isFinite(ry)) ry = rx;
+    }
+    rx = Math.min(Math.max(0, rx), w / 2);
+    ry = Math.min(Math.max(0, ry), h / 2);
+    if (rx <= 0 || ry <= 0) return `M${x} ${y}H${x + w}V${y + h}H${x}Z`;
+    return `M${x + rx} ${y}H${x + w - rx}A${rx} ${ry} 0 0 1 ${x + w} ${y + ry}V${y + h - ry}A${rx} ${ry} 0 0 1 ${x + w - rx} ${y + h}H${x + rx}A${rx} ${ry} 0 0 1 ${x} ${y + h - ry}V${y + ry}A${rx} ${ry} 0 0 1 ${x + rx} ${y}Z`;
+  }
+  if (tag2 === "circle") {
+    const cx = numAttr(attrs, "cx", 0), cy = numAttr(attrs, "cy", 0), r3 = numAttr(attrs, "r", 0);
+    if (!(r3 > 0)) return null;
+    return `M${cx - r3} ${cy}A${r3} ${r3} 0 1 0 ${cx + r3} ${cy}A${r3} ${r3} 0 1 0 ${cx - r3} ${cy}Z`;
+  }
+  if (tag2 === "ellipse") {
+    const cx = numAttr(attrs, "cx", 0), cy = numAttr(attrs, "cy", 0);
+    const rx = numAttr(attrs, "rx", 0), ry = numAttr(attrs, "ry", 0);
+    if (!(rx > 0 && ry > 0)) return null;
+    return `M${cx - rx} ${cy}A${rx} ${ry} 0 1 0 ${cx + rx} ${cy}A${rx} ${ry} 0 1 0 ${cx - rx} ${cy}Z`;
+  }
+  if (tag2 === "line") {
+    const x1 = numAttr(attrs, "x1", 0), y1 = numAttr(attrs, "y1", 0);
+    const x2 = numAttr(attrs, "x2", 0), y2 = numAttr(attrs, "y2", 0);
+    return `M${x1} ${y1}L${x2} ${y2}`;
+  }
+  if (tag2 === "polygon" || tag2 === "polyline") {
+    const pts = (attrOf(attrs, "points") ?? "").trim().split(/[\s,]+/).map(Number).filter((x) => Number.isFinite(x));
+    if (pts.length < 4) return null;
+    let d = `M${pts[0]} ${pts[1]}`;
+    for (let i = 2; i + 1 < pts.length; i += 2) d += `L${pts[i]} ${pts[i + 1]}`;
+    return tag2 === "polygon" ? d + "Z" : d;
+  }
+  return null;
+}
+function rootMap(rootAttrs, targetW, targetH) {
+  const vb = attrOf(rootAttrs, "viewBox");
+  let vx = 0, vy = 0, vw = 0, vh = 0;
+  if (vb) {
+    const p = vb.trim().split(/[\s,]+/).map(Number);
+    if (p.length < 4 || p.some((x) => !Number.isFinite(x))) return null;
+    [vx, vy, vw, vh] = p;
+  } else {
+    vw = parseFloat(attrOf(rootAttrs, "width") ?? "");
+    vh = parseFloat(attrOf(rootAttrs, "height") ?? "");
+  }
+  if (!(vw > 0 && vh > 0)) return null;
+  const sx = targetW / vw, sy = targetH / vh;
+  return [sx, 0, 0, sy, -sx * vx, -sy * vy];
+}
+function svgToCustGeomPaths(svgText, targetW, targetH) {
+  if (typeof svgText !== "string" || svgText.length === 0 || svgText.length > MAX_SVG_LEN) return null;
+  if (!(Number.isFinite(targetW) && Number.isFinite(targetH) && targetW > 0 && targetH > 0)) return null;
+  const cx = Math.round(targetW), cy = Math.round(targetH);
+  const shapes = [];
+  const base = { g: IDENTITY, fill: "#000000", stroke: "none", strokeWidth: 1, defs: false };
+  const stack = [base];
+  let mVb = null;
+  let sawSvg = false;
+  const round4 = (n2) => Math.round(n2);
+  const emit = (d, f, forceNoFill) => {
+    if (!mVb) return;
+    const fill = forceNoFill ? "none" : f.fill;
+    const stroke = f.stroke;
+    if ((fill === "none" || fill == null) && (stroke === "none" || stroke == null)) return;
+    const final = matMul(mVb, f.g);
+    const subs = parseSvgPath(d);
+    if (!subs.length) return;
+    let out = "";
+    for (const sub of subs) {
+      for (const seg of sub.segments) {
+        if (seg.op === "M") {
+          const [x, y] = applyMat(final, seg.x, seg.y);
+          out += `M${round4(x)} ${round4(y)}`;
+        } else if (seg.op === "L") {
+          const [x, y] = applyMat(final, seg.x, seg.y);
+          out += `L${round4(x)} ${round4(y)}`;
+        } else {
+          const [x1, y1] = applyMat(final, seg.x1, seg.y1);
+          const [x2, y2] = applyMat(final, seg.x2, seg.y2);
+          const [x, y] = applyMat(final, seg.x, seg.y);
+          out += `C${round4(x1)} ${round4(y1)} ${round4(x2)} ${round4(y2)} ${round4(x)} ${round4(y)}`;
+        }
+      }
+      if (sub.closed) out += "Z";
+    }
+    if (!out) return;
+    const shape = { kind: "path", x: 0, y: 0, cx, cy, paths: [{ d: out }] };
+    if (fill !== "none" && fill != null) shape.fill = { solid: fill };
+    if (stroke !== "none" && stroke != null) shape.line = { color: stroke, w: Math.max(1, Math.round(f.strokeWidth * matScale(final))) };
+    shapes.push(shape);
+  };
+  const tagRe = /<(\/?)\s*([a-zA-Z][\w:.-]*)((?:"[^"]*"|'[^']*'|[^"'>])*)>/g;
+  let m;
+  let tagCount = 0;
+  while ((m = tagRe.exec(svgText)) !== null) {
+    if (++tagCount > MAX_TAGS) return null;
+    const closing = m[1] === "/";
+    const tag2 = m[2].toLowerCase();
+    const attrsRaw = m[3] ?? "";
+    if (closing) {
+      if (stack.length > 1) stack.pop();
+      continue;
+    }
+    const selfClose = /\/\s*$/.test(attrsRaw);
+    if (BAIL_TAGS.has(tag2)) return null;
+    const parent = stack[stack.length - 1];
+    const style = parseStyle(attrOf(attrsRaw, "style"));
+    const opq = (k) => {
+      const raw = style[k] ?? attrOf(attrsRaw, k);
+      return raw != null && Number.isFinite(parseFloat(raw)) && parseFloat(raw) < 0.999;
+    };
+    if (opq("opacity") || opq("fill-opacity") || opq("stroke-opacity")) return null;
+    for (const k of ["filter", "mask", "clip-path", "mix-blend-mode"]) {
+      const raw = style[k] ?? attrOf(attrsRaw, k);
+      if (raw != null && raw.trim() !== "" && raw.trim().toLowerCase() !== "none") return null;
+    }
+    const tm = parseTransform(style["transform"] ?? attrOf(attrsRaw, "transform"));
+    if (tm === null) return null;
+    const fillR = resolvePaint(style["fill"] ?? attrOf(attrsRaw, "fill"));
+    const strokeR = resolvePaint(style["stroke"] ?? attrOf(attrsRaw, "stroke"));
+    if (fillR === null || strokeR === null) return null;
+    const swRaw = style["stroke-width"] ?? attrOf(attrsRaw, "stroke-width");
+    const sw = swRaw != null && Number.isFinite(parseFloat(swRaw)) ? parseFloat(swRaw) : void 0;
+    const frame = {
+      g: matMul(parent.g, tm),
+      fill: fillR ?? parent.fill,
+      stroke: strokeR ?? parent.stroke,
+      strokeWidth: sw ?? parent.strokeWidth,
+      defs: parent.defs || tag2 === "defs"
+    };
+    if (tag2 === "svg" && !sawSvg) {
+      sawSvg = true;
+      mVb = rootMap(attrsRaw, targetW, targetH);
+      if (!mVb) return null;
+    }
+    const hidden2 = (style["display"] ?? attrOf(attrsRaw, "display"))?.trim().toLowerCase() === "none";
+    if (DRAW_TAGS.has(tag2) && !frame.defs && !hidden2) {
+      const d = tag2 === "path" ? attrOf(attrsRaw, "d") : primitiveToD(tag2, attrsRaw);
+      if (d) emit(d, frame, tag2 === "line");
+      if (shapes.length > MAX_SHAPES) return null;
+    }
+    if (!selfClose) stack.push(frame);
+  }
+  return shapes.length ? shapes : null;
+}
+var MAX_SVG_LEN, MAX_TAGS, MAX_SHAPES, BAIL_TAGS, DRAW_TAGS, IDENTITY, applyMat, matScale, numAttr, NAMED_COLOR_HEX;
+var init_svg_custgeom = __esm({
+  "engine/src/svg-custgeom.ts"() {
+    "use strict";
+    init_svg_path();
+    init_tokens();
+    MAX_SVG_LEN = 4e6;
+    MAX_TAGS = 4e4;
+    MAX_SHAPES = 4e3;
+    BAIL_TAGS = /* @__PURE__ */ new Set([
+      "lineargradient",
+      "radialgradient",
+      "meshgradient",
+      "pattern",
+      "filter",
+      "mask",
+      "clippath",
+      "image",
+      "use",
+      "text",
+      "tspan",
+      "textpath",
+      "foreignobject",
+      "symbol",
+      "marker",
+      "switch",
+      "style",
+      "feimage",
+      "animate",
+      "animatetransform",
+      "set"
+    ]);
+    DRAW_TAGS = /* @__PURE__ */ new Set(["path", "rect", "circle", "ellipse", "line", "polygon", "polyline"]);
+    IDENTITY = [1, 0, 0, 1, 0, 0];
+    applyMat = (m, x, y) => [m[0] * x + m[2] * y + m[4], m[1] * x + m[3] * y + m[5]];
+    matScale = (m) => Math.sqrt(Math.abs(m[0] * m[3] - m[1] * m[2])) || 1;
+    numAttr = (attrs, name, def) => {
+      const v = attrOf(attrs, name);
+      const n2 = v != null ? parseFloat(v) : NaN;
+      return Number.isFinite(n2) ? n2 : def;
+    };
+    NAMED_COLOR_HEX = {
+      aliceblue: "#F0F8FF",
+      antiquewhite: "#FAEBD7",
+      aqua: "#00FFFF",
+      aquamarine: "#7FFFD4",
+      azure: "#F0FFFF",
+      beige: "#F5F5DC",
+      bisque: "#FFE4C4",
+      black: "#000000",
+      blanchedalmond: "#FFEBCD",
+      blue: "#0000FF",
+      blueviolet: "#8A2BE2",
+      brown: "#A52A2A",
+      burlywood: "#DEB887",
+      cadetblue: "#5F9EA0",
+      chartreuse: "#7FFF00",
+      chocolate: "#D2691E",
+      coral: "#FF7F50",
+      cornflowerblue: "#6495ED",
+      cornsilk: "#FFF8DC",
+      crimson: "#DC143C",
+      cyan: "#00FFFF",
+      darkblue: "#00008B",
+      darkcyan: "#008B8B",
+      darkgoldenrod: "#B8860B",
+      darkgray: "#A9A9A9",
+      darkgreen: "#006400",
+      darkgrey: "#A9A9A9",
+      darkkhaki: "#BDB76B",
+      darkmagenta: "#8B008B",
+      darkolivegreen: "#556B2F",
+      darkorange: "#FF8C00",
+      darkorchid: "#9932CC",
+      darkred: "#8B0000",
+      darksalmon: "#E9967A",
+      darkseagreen: "#8FBC8F",
+      darkslateblue: "#483D8B",
+      darkslategray: "#2F4F4F",
+      darkslategrey: "#2F4F4F",
+      darkturquoise: "#00CED1",
+      darkviolet: "#9400D3",
+      deeppink: "#FF1493",
+      deepskyblue: "#00BFFF",
+      dimgray: "#696969",
+      dimgrey: "#696969",
+      dodgerblue: "#1E90FF",
+      firebrick: "#B22222",
+      floralwhite: "#FFFAF0",
+      forestgreen: "#228B22",
+      fuchsia: "#FF00FF",
+      gainsboro: "#DCDCDC",
+      ghostwhite: "#F8F8FF",
+      gold: "#FFD700",
+      goldenrod: "#DAA520",
+      gray: "#808080",
+      green: "#008000",
+      greenyellow: "#ADFF2F",
+      grey: "#808080",
+      honeydew: "#F0FFF0",
+      hotpink: "#FF69B4",
+      indianred: "#CD5C5C",
+      indigo: "#4B0082",
+      ivory: "#FFFFF0",
+      khaki: "#F0E68C",
+      lavender: "#E6E6FA",
+      lavenderblush: "#FFF0F5",
+      lawngreen: "#7CFC00",
+      lemonchiffon: "#FFFACD",
+      lightblue: "#ADD8E6",
+      lightcoral: "#F08080",
+      lightcyan: "#E0FFFF",
+      lightgoldenrodyellow: "#FAFAD2",
+      lightgray: "#D3D3D3",
+      lightgreen: "#90EE90",
+      lightgrey: "#D3D3D3",
+      lightpink: "#FFB6C1",
+      lightsalmon: "#FFA07A",
+      lightseagreen: "#20B2AA",
+      lightskyblue: "#87CEFA",
+      lightslategray: "#778899",
+      lightslategrey: "#778899",
+      lightsteelblue: "#B0C4DE",
+      lightyellow: "#FFFFE0",
+      lime: "#00FF00",
+      limegreen: "#32CD32",
+      linen: "#FAF0E6",
+      magenta: "#FF00FF",
+      maroon: "#800000",
+      mediumaquamarine: "#66CDAA",
+      mediumblue: "#0000CD",
+      mediumorchid: "#BA55D3",
+      mediumpurple: "#9370DB",
+      mediumseagreen: "#3CB371",
+      mediumslateblue: "#7B68EE",
+      mediumspringgreen: "#00FA9A",
+      mediumturquoise: "#48D1CC",
+      mediumvioletred: "#C71585",
+      midnightblue: "#191970",
+      mintcream: "#F5FFFA",
+      mistyrose: "#FFE4E1",
+      moccasin: "#FFE4B5",
+      navajowhite: "#FFDEAD",
+      navy: "#000080",
+      oldlace: "#FDF5E6",
+      olive: "#808000",
+      olivedrab: "#6B8E23",
+      orange: "#FFA500",
+      orangered: "#FF4500",
+      orchid: "#DA70D6",
+      palegoldenrod: "#EEE8AA",
+      palegreen: "#98FB98",
+      paleturquoise: "#AFEEEE",
+      palevioletred: "#DB7093",
+      papayawhip: "#FFEFD5",
+      peachpuff: "#FFDAB9",
+      peru: "#CD853F",
+      pink: "#FFC0CB",
+      plum: "#DDA0DD",
+      powderblue: "#B0E0E6",
+      purple: "#800080",
+      rebeccapurple: "#663399",
+      red: "#FF0000",
+      rosybrown: "#BC8F8F",
+      royalblue: "#4169E1",
+      saddlebrown: "#8B4513",
+      salmon: "#FA8072",
+      sandybrown: "#F4A460",
+      seagreen: "#2E8B57",
+      seashell: "#FFF5EE",
+      sienna: "#A0522D",
+      silver: "#C0C0C0",
+      skyblue: "#87CEEB",
+      slateblue: "#6A5ACD",
+      slategray: "#708090",
+      slategrey: "#708090",
+      snow: "#FFFAFA",
+      springgreen: "#00FF7F",
+      steelblue: "#4682B4",
+      tan: "#D2B48C",
+      teal: "#008080",
+      thistle: "#D8BFD8",
+      tomato: "#FF6347",
+      turquoise: "#40E0D0",
+      violet: "#EE82EE",
+      wheat: "#F5DEB3",
+      white: "#FFFFFF",
+      whitesmoke: "#F5F5F5",
+      yellow: "#FFFF00",
+      yellowgreen: "#9ACD32"
+    };
+  }
+});
+
 // engine/src/pptx-patch.ts
 var pptx_patch_exports = {};
 __export(pptx_patch_exports, {
@@ -16059,7 +22426,7 @@ function xmlDecode(s) {
 function xmlEncode(s) {
   return s.replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F\uFFFE\uFFFF]/g, "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
 }
-function hexNorm(v) {
+function hexNorm2(v) {
   const h = v.replace("#", "").replace(/[^0-9A-Fa-f]/g, "").slice(0, 6).toUpperCase();
   return h.length === 6 ? h : h.padStart(6, "0");
 }
@@ -16067,9 +22434,9 @@ function rewriteTagAttr(xml, qname, attr2, map) {
   let count2 = 0;
   const tagRe = new RegExp(`<${reEsc(qname)}(?=[\\s/>])[^>]*>`, "g");
   const attrRe = new RegExp(`(\\s${reEsc(attr2)}=")([^"]*)(")`);
-  const text = xml.replace(tagRe, (tag) => {
+  const text = xml.replace(tagRe, (tag2) => {
     let changed = false;
-    const out = tag.replace(attrRe, (whole, pre, val, post) => {
+    const out = tag2.replace(attrRe, (whole, pre, val, post) => {
       const nv = map(val);
       if (nv === void 0 || nv === val) return whole;
       changed = true;
@@ -16108,27 +22475,27 @@ function patchTheme(xml, theme) {
   for (const slot of SLOT_ORDER) {
     const v = theme[slot];
     if (!v) continue;
-    const r = setThemeSlot(text, slot, hexNorm(v));
-    text = r.text;
-    changed = changed || r.changed;
+    const r3 = setThemeSlot(text, slot, hexNorm2(v));
+    text = r3.text;
+    changed = changed || r3.changed;
   }
   if (theme.majorFont) {
-    const r = setSchemeFont(text, "major", theme.majorFont);
-    text = r.text;
-    changed = changed || r.changed;
+    const r3 = setSchemeFont(text, "major", theme.majorFont);
+    text = r3.text;
+    changed = changed || r3.changed;
   }
   if (theme.minorFont) {
-    const r = setSchemeFont(text, "minor", theme.minorFont);
-    text = r.text;
-    changed = changed || r.changed;
+    const r3 = setSchemeFont(text, "minor", theme.minorFont);
+    text = r3.text;
+    changed = changed || r3.changed;
   }
   return { text, changed };
 }
 function remapColors(xml, colorMap) {
   const lookup = (raw) => {
-    const key = hexNorm(raw);
+    const key = hexNorm2(raw);
     const to = colorMap.get(key);
-    return to === void 0 ? void 0 : hexNorm(to);
+    return to === void 0 ? void 0 : hexNorm2(to);
   };
   const a = rewriteTagAttr(xml, "a:srgbClr", "val", lookup);
   const b = rewriteTagAttr(a.text, "a:sysClr", "lastClr", lookup);
@@ -16142,9 +22509,9 @@ function remapFonts(xml, fontMap) {
   let text = xml;
   let count2 = 0;
   for (const q of ["a:latin", "a:ea", "a:cs"]) {
-    const r = rewriteTagAttr(text, q, "typeface", lookup);
-    text = r.text;
-    count2 += r.count;
+    const r3 = rewriteTagAttr(text, q, "typeface", lookup);
+    text = r3.text;
+    count2 += r3.count;
   }
   return { text, count: count2 };
 }
@@ -16191,19 +22558,19 @@ function rebrandPptxParts(parts, plan = {}) {
     }
     let text = original;
     if (theme && isTheme(p)) {
-      const r = patchTheme(text, theme);
-      text = r.text;
-      if (r.changed) report.themesPatched++;
+      const r3 = patchTheme(text, theme);
+      text = r3.text;
+      if (r3.changed) report.themesPatched++;
     }
     if (colorMap && isColorRemapPart(p)) {
-      const r = remapColors(text, colorMap);
-      text = r.text;
-      report.colorsRemapped += r.count;
+      const r3 = remapColors(text, colorMap);
+      text = r3.text;
+      report.colorsRemapped += r3.count;
     }
     if (fontMap && isFontRemapPart(p)) {
-      const r = remapFonts(text, fontMap);
-      text = r.text;
-      report.fontsRemapped += r.count;
+      const r3 = remapFonts(text, fontMap);
+      text = r3.text;
+      report.fontsRemapped += r3.count;
     }
     if (drop && isPresentation(p)) text = stripEmbeddedFontLst(text);
     if (drop && isPresentationRels(p)) text = stripFontRels(text);
@@ -16341,11 +22708,11 @@ function normHex2(v) {
   return hex.slice(0, 6);
 }
 function makeStore(parts) {
-  const lower = /* @__PURE__ */ new Map();
+  const lower2 = /* @__PURE__ */ new Map();
   const keys = [];
   for (const k of Object.keys(parts)) {
     keys.push(k);
-    if (!lower.has(k.toLowerCase())) lower.set(k.toLowerCase(), k);
+    if (!lower2.has(k.toLowerCase())) lower2.set(k.toLowerCase(), k);
   }
   const decode = (raw) => {
     if (typeof raw === "string") return raw.length > MAX_PART_CHARS2 ? null : raw;
@@ -16361,7 +22728,7 @@ function makeStore(parts) {
     get(path) {
       let raw = parts[path];
       if (raw === void 0) {
-        const real = lower.get(path.toLowerCase());
+        const real = lower2.get(path.toLowerCase());
         if (real === void 0) return null;
         raw = parts[real];
       }
@@ -16518,15 +22885,15 @@ function readXfrm(container) {
   }
   const rot = attrByLocal(xfrm, "rot");
   if (rot) {
-    const deg = toInt(rot) / 6e4;
-    if (deg) box2.rot = deg;
+    const deg2 = toInt(rot) / 6e4;
+    if (deg2) box2.rot = deg2;
   }
   return box2;
 }
-function readRun(r, theme) {
-  const t = firstChildByLocal(r, "t");
+function readRun(r3, theme) {
+  const t = firstChildByLocal(r3, "t");
   const text = textOf(t);
-  const rPr = firstChildByLocal(r, "rPr");
+  const rPr = firstChildByLocal(r3, "rPr");
   const run = { text };
   if (rPr) {
     if (truthy(attrByLocal(rPr, "b"))) run.bold = true;
@@ -16572,7 +22939,7 @@ function readTxBody(txBody, theme) {
   return paras;
 }
 function paraHasText(paras) {
-  for (const p of paras) for (const r of p.runs) if (r.text.trim().length > 0) return true;
+  for (const p of paras) for (const r3 of p.runs) if (r3.text.trim().length > 0) return true;
   return false;
 }
 function readSp(sp, theme) {
@@ -16623,12 +22990,12 @@ function readGraphicFrame(gf, theme) {
   if (tbl) {
     const rows = [];
     for (const tr of childrenByLocal(tbl, "tr")) {
-      if (rows.length >= MAX_TABLE_ROWS) break;
+      if (rows.length >= MAX_TABLE_ROWS2) break;
       const cells = [];
       for (const tc of childrenByLocal(tr, "tc")) {
-        if (cells.length >= MAX_TABLE_COLS) break;
+        if (cells.length >= MAX_TABLE_COLS2) break;
         const paras = readTxBody(firstChildByLocal(tc, "txBody"), theme);
-        cells.push(paras.map((p) => p.runs.map((r) => r.text).join("")).join("\n"));
+        cells.push(paras.map((p) => p.runs.map((r3) => r3.text).join("")).join("\n"));
       }
       rows.push(cells);
     }
@@ -16685,7 +23052,7 @@ function readNotes(store, notesPath, parseXml) {
     const ph = nvPr ? firstChildByLocal(nvPr, "ph") : null;
     const phType = ph ? attrByLocal(ph, "type") : null;
     const paras = readTxBody(firstChildByLocal(sp, "txBody"), { colors: {} });
-    const text = paras.map((p) => p.runs.map((r) => r.text).join("")).join("\n").trim();
+    const text = paras.map((p) => p.runs.map((r3) => r3.text).join("")).join("\n").trim();
     if (phType === "body" && bodyText == null) bodyText = text;
     else if (phType !== "sldNum" && phType !== "dt" && text) allParts.push(text);
   }
@@ -16695,7 +23062,7 @@ function readNotes(store, notesPath, parseXml) {
 function slidePathsInOrder(store, parseXml) {
   const pres = parsePart(store, "ppt/presentation.xml", parseXml);
   const rels = parseRels(store, "ppt/presentation.xml", parseXml);
-  const byId = new Map(rels.map((r) => [r.id, r]));
+  const byId = new Map(rels.map((r3) => [r3.id, r3]));
   const ordered = [];
   if (pres?.documentElement) {
     const sldIdLst = descendantByLocal(pres.documentElement, "sldIdLst");
@@ -16792,10 +23159,10 @@ function readPptx(parts, parseXml) {
       const doc = parsePart(store, path, parseXml);
       if (doc?.documentElement) {
         const rels = parseRels(store, path, parseXml);
-        const relsById = new Map(rels.map((r) => [r.id, r]));
+        const relsById = new Map(rels.map((r3) => [r3.id, r3]));
         const spTree = descendantByLocal(doc.documentElement, "spTree");
         if (spTree) walkTree(spTree, deck.theme, relsById, slide.nodes, 0);
-        const notesRel = rels.find((r) => /notesSlide$/i.test(r.type) && !r.external);
+        const notesRel = rels.find((r3) => /notesSlide$/i.test(r3.type) && !r3.external);
         if (notesRel) {
           const notes = readNotes(store, notesRel.target, parseXml);
           if (notes) slide.notes = notes;
@@ -16807,7 +23174,7 @@ function readPptx(parts, parseXml) {
   }
   return deck;
 }
-var MAX_PART_BYTES, MAX_PART_CHARS2, MAX_SLIDES, MAX_NODES_PER_SLIDE, MAX_GROUP_DEPTH, MAX_PARAS, MAX_RUNS_PER_PARA, MAX_TABLE_ROWS, MAX_TABLE_COLS, MAX_TEXT_LEN, MAX_DFS_VISITS, MAX_COORD2, DEFAULT_W_EMU, DEFAULT_H_EMU, ELEMENT_NODE, THEME_SLOTS;
+var MAX_PART_BYTES, MAX_PART_CHARS2, MAX_SLIDES, MAX_NODES_PER_SLIDE, MAX_GROUP_DEPTH, MAX_PARAS, MAX_RUNS_PER_PARA, MAX_TABLE_ROWS2, MAX_TABLE_COLS2, MAX_TEXT_LEN, MAX_DFS_VISITS, MAX_COORD2, DEFAULT_W_EMU, DEFAULT_H_EMU, ELEMENT_NODE, THEME_SLOTS;
 var init_pptx_read = __esm({
   "engine/src/pptx-read.ts"() {
     "use strict";
@@ -16818,8 +23185,8 @@ var init_pptx_read = __esm({
     MAX_GROUP_DEPTH = 16;
     MAX_PARAS = 4e3;
     MAX_RUNS_PER_PARA = 4e3;
-    MAX_TABLE_ROWS = 2e3;
-    MAX_TABLE_COLS = 512;
+    MAX_TABLE_ROWS2 = 2e3;
+    MAX_TABLE_COLS2 = 512;
     MAX_TEXT_LEN = 2e5;
     MAX_DFS_VISITS = 2e5;
     MAX_COORD2 = 1e11;
@@ -16843,14 +23210,1402 @@ var init_pptx_read = __esm({
   }
 });
 
+// engine/src/pdfx.ts
+function makeDocumentId(seed) {
+  if (seed == null || seed === "") {
+    const uuid = globalThis.crypto?.randomUUID?.();
+    if (uuid) return "uuid:" + uuid;
+    seed = String(Math.random()) + "/" + String(Math.random());
+  }
+  const s = String(seed);
+  let hex = "";
+  for (let w = 0; w < 4; w++) {
+    let h = (2166136261 ^ Math.imul(w + 1, 2654435769)) >>> 0;
+    for (let i = 0; i < s.length; i++) {
+      h ^= s.charCodeAt(i);
+      h = Math.imul(h, 16777619);
+    }
+    hex += (h >>> 0).toString(16).padStart(8, "0");
+  }
+  const variant = (parseInt(hex[16], 16) & 3 | 8).toString(16);
+  return "uuid:" + hex.slice(0, 8) + "-" + hex.slice(8, 12) + "-5" + hex.slice(13, 16) + // version nibble 5 (name-based)
+  "-" + variant + hex.slice(17, 20) + "-" + hex.slice(20, 32);
+}
+function formatPdfDate(date) {
+  const d = date instanceof Date ? date : new Date(date);
+  if (Number.isNaN(d.getTime())) throw new TypeError("formatPdfDate: invalid date");
+  const p = (v) => String(v).padStart(2, "0");
+  const offMin = -d.getTimezoneOffset();
+  const sign = offMin < 0 ? "-" : "+";
+  const abs = Math.abs(offMin);
+  return "D:" + d.getFullYear() + p(d.getMonth() + 1) + p(d.getDate()) + p(d.getHours()) + p(d.getMinutes()) + p(d.getSeconds()) + sign + p(Math.floor(abs / 60)) + "'" + p(abs % 60) + "'";
+}
+function buildPdfXXmp(opts = {}) {
+  const {
+    createDate,
+    modifyDate = createDate,
+    title = "",
+    creatorTool = "Lolly",
+    producer = "Lolly",
+    documentId = makeDocumentId(),
+    instanceId = makeDocumentId(),
+    trapped = "False",
+    pdfxVersion = PDFX_VERSION
+  } = opts;
+  if (!createDate) throw new TypeError("buildPdfXXmp: createDate (ISO string) is required");
+  const meta = '<x:xmpmeta xmlns:x="adobe:ns:meta/">\n <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">\n  <rdf:Description rdf:about=""\n    xmlns:dc="http://purl.org/dc/elements/1.1/"\n    xmlns:xmp="http://ns.adobe.com/xap/1.0/"\n    xmlns:xmpMM="http://ns.adobe.com/xap/1.0/mm/"\n    xmlns:pdf="http://ns.adobe.com/pdf/1.3/"\n    xmlns:pdfxid="http://www.npes.org/pdfx/ns/id/">\n   <dc:title>\n    <rdf:Alt>\n     <rdf:li xml:lang="x-default">' + esc(title) + "</rdf:li>\n    </rdf:Alt>\n   </dc:title>\n   <xmp:CreateDate>" + esc(createDate) + "</xmp:CreateDate>\n   <xmp:ModifyDate>" + esc(modifyDate) + "</xmp:ModifyDate>\n   <xmp:CreatorTool>" + esc(creatorTool) + "</xmp:CreatorTool>\n   <pdf:Producer>" + esc(producer) + "</pdf:Producer>\n   <pdf:Trapped>" + esc(trapped) + "</pdf:Trapped>\n   <pdfxid:GTS_PDFXVersion>" + esc(pdfxVersion) + "</pdfxid:GTS_PDFXVersion>\n   <xmpMM:DocumentID>" + esc(documentId) + "</xmpMM:DocumentID>\n   <xmpMM:InstanceID>" + esc(instanceId) + "</xmpMM:InstanceID>\n  </rdf:Description>\n </rdf:RDF>\n</x:xmpmeta>";
+  return XPACKET_BEGIN + "\n" + meta + XPACKET_PAD + XPACKET_END;
+}
+function pdfxOutputIntentSpec(kind = "srgb", opts = {}) {
+  const over = (given, base) => given === void 0 ? base : given;
+  if (kind === "srgb") {
+    return {
+      subtype: "GTS_PDFX",
+      identifier: over(opts.identifier, "sRGB IEC61966-2.1"),
+      info: opts.info ?? "sRGB IEC61966-2.1",
+      registry: over(opts.registry, "http://www.color.org"),
+      iccBytes: over(opts.iccBytes, srgbIccProfile()),
+      components: over(opts.components, 3)
+    };
+  }
+  const c = cmykCondition(kind);
+  return {
+    subtype: "GTS_PDFX",
+    identifier: over(opts.identifier, c.identifier),
+    info: opts.info ?? c.info,
+    registry: over(opts.registry, c.registry),
+    iccBytes: over(opts.iccBytes, null),
+    components: over(opts.components, 4)
+  };
+}
+function pdfxProfileEligibility(f, intentSpace) {
+  const cls = String(f.deviceClass ?? "").trim().toLowerCase();
+  if (cls !== "prtr") {
+    return { ok: false, reason: `device class ${cls || "?"} is not an output profile (prtr)` };
+  }
+  const space = String(f.dataColourSpace ?? "").trim().toUpperCase();
+  if (space !== intentSpace) {
+    return { ok: false, reason: `profile is ${space || "?"}, the output intent is ${intentSpace}` };
+  }
+  const n2 = Number(f.nChannels);
+  if (!N_ALLOWED.has(n2)) return { ok: false, reason: `${n2} colour channels cannot be an /N value` };
+  if (intentSpace === "CMYK" && n2 !== 4) return { ok: false, reason: `CMYK profile with ${n2} channels` };
+  if (intentSpace === "RGB" && n2 !== 3) return { ok: false, reason: `RGB profile with ${n2} channels` };
+  const m = /^(\d+)\.(\d+)/.exec(String(f.version ?? ""));
+  if (!m) return { ok: false, reason: "unreadable ICC version" };
+  const [major, minor] = [Number(m[1]), Number(m[2])];
+  if (major === 2) return { ok: true };
+  if (major === 4 && minor <= 2) return { ok: true };
+  return { ok: false, reason: `ICC version ${f.version} is outside PDF/X's range (2.x\u20134.2)` };
+}
+var PDFX_VERSION, esc, XPACKET_BEGIN, XPACKET_END, XPACKET_PAD, N_ALLOWED;
+var init_pdfx = __esm({
+  "engine/src/pdfx.ts"() {
+    "use strict";
+    init_color();
+    PDFX_VERSION = "PDF/X-4";
+    esc = (s) => String(s ?? "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#39;");
+    XPACKET_BEGIN = '<?xpacket begin="\uFEFF" id="W5M0MpCehiHzreSzNTczkc9d"?>';
+    XPACKET_END = "<?xpacket end='w'?>";
+    XPACKET_PAD = ("\n" + " ".repeat(99)).repeat(20) + "\n";
+    N_ALLOWED = /* @__PURE__ */ new Set([1, 3, 4]);
+  }
+});
+
+// engine/src/provenance-defaults.ts
+function c2paDefaultOn(manifest) {
+  return manifest.render.c2pa !== false && manifest.privacy !== "on-device";
+}
+function imprintDefaultOn(manifest) {
+  return c2paDefaultOn(manifest);
+}
+function isImprintFormat(format) {
+  return !!format && IMPRINT_FORMATS.includes(format.toLowerCase());
+}
+var IMPRINT_FORMATS;
+var init_provenance_defaults = __esm({
+  "engine/src/provenance-defaults.ts"() {
+    "use strict";
+    IMPRINT_FORMATS = Object.freeze([
+      "png",
+      "jpg",
+      "jpeg",
+      "webp",
+      "avif",
+      "tiff",
+      "pdf",
+      "pdf-cmyk",
+      "pptx"
+    ]);
+  }
+});
+
+// engine/src/seal.ts
+function base64ToBytes2(input) {
+  let s = input.replace(/\s+/g, "");
+  const pad = s.length % 4;
+  if (pad === 1) throw new Error("seal: bad base64 length");
+  if (pad) s += "=".repeat(4 - pad);
+  return base64ToBytes(s);
+}
+function hexToBytes(input) {
+  const s = input.replace(/\s+/g, "");
+  if (s.length % 2) throw new Error("seal: odd-length hex");
+  const out = new Uint8Array(s.length / 2);
+  for (let i = 0; i < out.length; i++) {
+    const b = Number.parseInt(s.substr(i * 2, 2), 16);
+    if (Number.isNaN(b)) throw new Error("seal: bad hex digit");
+    out[i] = b;
+  }
+  return out;
+}
+function binStringToBytes(s) {
+  const out = new Uint8Array(s.length);
+  for (let i = 0; i < s.length; i++) out[i] = s.charCodeAt(i) & 255;
+  return out;
+}
+function locateRecords(bin, length) {
+  const spans = [];
+  const windows = length > SCAN_WHOLE_MAX ? [[0, SCAN_EDGE], [length - SCAN_EDGE, length]] : [[0, length]];
+  const seen = /* @__PURE__ */ new Set();
+  for (const [wStart, wEnd] of windows) {
+    for (const needle of START_NEEDLES) {
+      let from = wStart;
+      for (; ; ) {
+        const at = bin.indexOf(needle, from);
+        if (at < 0 || at >= wEnd) break;
+        from = at + 1;
+        const after = bin[at + needle.length];
+        if (after !== " " && after !== "=" && after !== ":") continue;
+        if (seen.has(at)) continue;
+        let end = -1;
+        const nextTag = bin.indexOf("<", at + needle.length);
+        const limit = Math.min(at + 64 * 1024, length);
+        for (const term of TERMINATORS) {
+          const t = bin.indexOf(term, at + needle.length);
+          if (t < 0 || t >= limit) continue;
+          if (nextTag >= 0 && nextTag < t && !needle.startsWith("&")) continue;
+          const e = t + term.length;
+          if (end < 0 || e < end) end = e;
+        }
+        if (end < 0) continue;
+        seen.add(at);
+        spans.push({ start: at, end });
+      }
+    }
+  }
+  spans.sort((a, b) => a.start - b.start);
+  return spans;
+}
+function entityDecode(s) {
+  return s.replace(/&quot;/g, '"').replace(/&lt;/g, "<").replace(/&gt;/g, ">").replace(/&amp;/g, "&");
+}
+function extractPairs(interior) {
+  const pairs2 = [];
+  const re = /([A-Za-z][A-Za-z0-9._+-]*)\s*=\s*(?:"([^"]*)"|([^\s"]+))/g;
+  for (let m; m = re.exec(interior); ) {
+    const key = m[1];
+    const val = m[2] !== void 0 ? m[2] : m[3] ?? "";
+    pairs2.push([key, val]);
+  }
+  return pairs2;
+}
+function findSigValueSpan(rec) {
+  let end = rec.length;
+  for (const term of TERMINATORS) {
+    if (rec.endsWith(term)) {
+      end = rec.length - term.length;
+      break;
+    }
+  }
+  while (end > 0 && (rec[end - 1] === " " || rec[end - 1] === "	")) end--;
+  if (rec[end - 1] === '"') {
+    const valEnd = end - 1;
+    const valStart = rec.lastIndexOf('"', valEnd - 1) + 1;
+    if (valStart <= 0) return null;
+    return { valStart, valEnd };
+  }
+  if (rec.slice(end - 6, end) === "&quot;") {
+    const valEnd = end - 6;
+    const open = rec.lastIndexOf("&quot;", valEnd - 1);
+    if (open < 0) return null;
+    return { valStart: open + 6, valEnd };
+  }
+  return null;
+}
+function parseSealRecords(bytes) {
+  if (!(bytes instanceof Uint8Array) || bytes.length < 8) return [];
+  let bin;
+  try {
+    bin = bytesToBin(bytes);
+  } catch {
+    return [];
+  }
+  const out = [];
+  let spans;
+  try {
+    spans = locateRecords(bin, bytes.length);
+  } catch {
+    return [];
+  }
+  let prevSigStart = -1;
+  let prevSigEnd = -1;
+  for (const span of spans) {
+    try {
+      const rec = bin.slice(span.start, span.end);
+      const sigSpan = findSigValueSpan(rec);
+      if (!sigSpan) continue;
+      let interior = rec;
+      for (const needle of START_NEEDLES) {
+        if (interior.startsWith(needle)) {
+          interior = interior.slice(needle.length);
+          break;
+        }
+      }
+      if (interior.startsWith("=")) interior = "seal" + interior;
+      for (const term of TERMINATORS) {
+        if (interior.endsWith(term)) {
+          interior = interior.slice(0, interior.length - term.length);
+          break;
+        }
+      }
+      const pairs2 = extractPairs(entityDecode(interior));
+      const get3 = (k) => {
+        for (const [key, val] of pairs2) if (key === k) return val;
+        return void 0;
+      };
+      const sealVer = get3("seal");
+      const domain = get3("d");
+      const kaRaw = get3("ka");
+      const sRaw = get3("s");
+      if (sealVer === void 0 || !domain || !kaRaw || sRaw === void 0) continue;
+      if (kaRaw !== "rsa" && kaRaw !== "ec") {
+        out.push(makeStub(span, sigSpan, sealVer, domain, kaRaw, get3, `unsupported key algorithm '${kaRaw}' (SEAL defines rsa and ec)`));
+        continue;
+      }
+      const digestAlgRaw = (get3("da") || "sha256").toLowerCase();
+      const digestAlg = digestAlgRaw in DIGEST_MAP ? DIGEST_MAP[digestAlgRaw] : void 0;
+      const uid = get3("uid") ?? "";
+      const keyVersion = get3("kv") ?? "1";
+      const id = get3("id") ?? null;
+      const sfRaw = get3("sf") || "base64";
+      const dateMatch = /^(date[0-9]*)[:]?(.*)$/.exec(sfRaw);
+      const dateScheme = dateMatch && /^date/.test(sfRaw) && dateMatch[1] !== void 0 && dateMatch[2] !== void 0 ? dateMatch[1] : null;
+      const sigFormat = dateScheme ? dateMatch[2] || "base64" : sfRaw;
+      const sigValueStart = span.start + sigSpan.valStart;
+      const sigValueEnd = span.start + sigSpan.valEnd;
+      const rawValue = bin.slice(sigValueStart, sigValueEnd);
+      let timestamp = null;
+      let encoded = rawValue;
+      if (dateScheme) {
+        const colon = rawValue.indexOf(":");
+        if (colon >= 0) {
+          timestamp = rawValue.slice(0, colon);
+          encoded = rawValue.slice(colon + 1);
+        }
+      }
+      let signature = null;
+      let parseError;
+      try {
+        signature = decodeSignature(encoded, sigFormat);
+      } catch (e) {
+        parseError = `signature value could not be decoded (${e.message})`;
+      }
+      const ctx = {
+        F: 0,
+        f: bytes.length,
+        S: sigValueStart,
+        s: sigValueEnd,
+        P: prevSigStart,
+        p: prevSigEnd
+      };
+      const byteRangeSpec = get3("b") || "F~S,s~f";
+      let ranges = null;
+      try {
+        ranges = resolveRanges(byteRangeSpec, ctx);
+      } catch (e) {
+        if (!parseError) parseError = `byte range could not be resolved (${e.message})`;
+      }
+      let inlineKey = null;
+      const pk = get3("pk");
+      if (pk) {
+        try {
+          inlineKey = base64ToBytes2(pk);
+        } catch {
+        }
+      }
+      out.push({
+        version: Number.parseInt(sealVer, 10) || 1,
+        domain,
+        keyAlg: kaRaw,
+        digestAlg: digestAlg === void 0 ? null : digestAlg,
+        digestAlgRaw,
+        sigFormat,
+        dateScheme,
+        signature,
+        timestamp,
+        ranges,
+        byteRangeSpec,
+        uid,
+        keyVersion,
+        id,
+        inlineKey,
+        recordStart: span.start,
+        recordEnd: span.end,
+        sigValueStart,
+        sigValueEnd,
+        parseError
+      });
+      prevSigStart = sigValueStart;
+      prevSigEnd = sigValueEnd;
+    } catch {
+    }
+  }
+  return out;
+}
+function makeStub(span, sigSpan, sealVer, domain, ka, get3, parseError) {
+  return {
+    version: Number.parseInt(sealVer, 10) || 1,
+    domain,
+    keyAlg: ka === "rsa" || ka === "ec" ? ka : "ec",
+    digestAlg: null,
+    digestAlgRaw: (get3("da") || "sha256").toLowerCase(),
+    sigFormat: get3("sf") || "base64",
+    dateScheme: null,
+    signature: null,
+    timestamp: null,
+    ranges: null,
+    byteRangeSpec: get3("b") || "F~S,s~f",
+    uid: get3("uid") ?? "",
+    keyVersion: get3("kv") ?? "1",
+    id: get3("id") ?? null,
+    inlineKey: null,
+    recordStart: span.start,
+    recordEnd: span.end,
+    sigValueStart: span.start + sigSpan.valStart,
+    sigValueEnd: span.start + sigSpan.valEnd,
+    parseError
+  };
+}
+function parseSealRecord(bytes) {
+  const all = parseSealRecords(bytes);
+  return all.length ? all[0] : null;
+}
+function decodeSignature(value, sf) {
+  switch (sf) {
+    case "hex":
+    case "HEX":
+      return hexToBytes(value);
+    case "bin":
+      return binStringToBytes(value);
+    default:
+      return base64ToBytes2(value);
+  }
+}
+function resolveToken(tok, ctx, isStart, len2) {
+  const t = tok.trim();
+  if (t === "") return isStart ? 0 : len2;
+  const m = /^([FfSsPp])?\s*([+-]\s*\d+)?$/.exec(t);
+  if (m && (m[1] || m[2])) {
+    let base = 0;
+    if (m[1]) {
+      const v = ctx[m[1]];
+      if (v === void 0 || v < 0) throw new Error(`unresolved marker '${m[1]}'`);
+      base = v;
+    }
+    if (m[2]) base += Number.parseInt(m[2].replace(/\s+/g, ""), 10);
+    return base;
+  }
+  if (/^\d+$/.test(t)) return Number.parseInt(t, 10);
+  throw new Error(`bad range token '${tok}'`);
+}
+function resolveRanges(spec, ctx) {
+  const len2 = ctx.f ?? 0;
+  const ranges = [];
+  const parts = spec.split(",");
+  if (!parts.length) throw new Error("empty byte range");
+  for (const part of parts) {
+    const tilde = part.indexOf("~");
+    if (tilde < 0) throw new Error(`range '${part}' has no '~'`);
+    const start = resolveToken(part.slice(0, tilde), ctx, true, len2);
+    const stop = resolveToken(part.slice(tilde + 1), ctx, false, len2);
+    if (!Number.isFinite(start) || !Number.isFinite(stop)) throw new Error("non-numeric range");
+    if (start < 0 || stop > len2 || stop < start) throw new Error(`range ${start}~${stop} out of bounds (0..${len2})`);
+    ranges.push({ start, stop });
+  }
+  return ranges;
+}
+function assembleSealMessage(bytes, ranges) {
+  const parts = [];
+  for (const r3 of ranges) {
+    if (r3.start < 0 || r3.stop > bytes.length || r3.stop < r3.start) throw new Error("seal: range out of bounds");
+    parts.push(bytes.subarray(r3.start, r3.stop));
+  }
+  return concatBytes(parts);
+}
+async function computeSealDigest(bytes, ranges, digestAlg) {
+  const msg = assembleSealMessage(bytes, ranges);
+  return new Uint8Array(await subtle5.digest(digestAlg, asBufferSource(msg)));
+}
+function coversWholeFile(ranges, sigStart, len2) {
+  if (!ranges.length) return false;
+  const sorted = [...ranges].sort((a, b) => a.start - b.start);
+  if (sorted[0].start !== 0) return false;
+  let pos = 0;
+  let gaps = 0;
+  let gapAtSig = false;
+  for (const r3 of sorted) {
+    if (r3.start > pos) {
+      gaps++;
+      if (pos === sigStart) gapAtSig = true;
+    } else if (r3.start < pos) return false;
+    pos = Math.max(pos, r3.stop);
+  }
+  return pos === len2 && gaps === 1 && gapAtSig;
+}
+function ecCurveOf(spki) {
+  try {
+    const top = derTlv(spki, 0);
+    if (top.tag !== 48) return EC_SPKI_LEN[spki.length] ?? null;
+    const algId = derChildren(spki, top)[0];
+    if (!algId || algId.tag !== 48) return EC_SPKI_LEN[spki.length] ?? null;
+    for (const kid of derChildren(spki, algId)) {
+      if (kid.tag !== 6) continue;
+      const byOid = EC_CURVES[bytesToHex(spki.subarray(kid.contentStart, kid.end))];
+      if (byOid) return byOid;
+    }
+    return EC_SPKI_LEN[spki.length] ?? null;
+  } catch {
+    return EC_SPKI_LEN[spki.length] ?? null;
+  }
+}
+async function importSealKey(spki, keyAlg, digestAlg) {
+  if (keyAlg === "rsa") {
+    return subtle5.importKey("spki", asBufferSource(spki), { name: "RSASSA-PKCS1-v1_5", hash: digestAlg }, false, ["verify"]);
+  }
+  const ec = ecCurveOf(spki);
+  if (!ec) throw new Error("seal: unrecognised EC curve (only P-256/384/521 are supported)");
+  return subtle5.importKey("spki", asBufferSource(spki), { name: "ECDSA", namedCurve: ec.curve }, false, ["verify"]);
+}
+async function verifySealSignature(message, signature, publicKey, keyAlg, digestAlg) {
+  try {
+    if (keyAlg === "rsa") {
+      return await subtle5.verify({ name: "RSASSA-PKCS1-v1_5" }, publicKey, asBufferSource(signature), asBufferSource(message));
+    }
+    const named = publicKey.algorithm.namedCurve;
+    const size = named === "P-384" ? 48 : named === "P-521" ? 66 : 32;
+    let raw = signature;
+    if (signature[0] === 48) {
+      try {
+        raw = ecdsaDerToRaw(signature, size);
+      } catch {
+      }
+    }
+    return await subtle5.verify({ name: "ECDSA", hash: digestAlg }, publicKey, asBufferSource(raw), asBufferSource(message));
+  } catch {
+    return false;
+  }
+}
+async function verifySeal(bytes, resolveKey) {
+  if (!(bytes instanceof Uint8Array)) return { ...NONE };
+  const records = parseSealRecords(bytes);
+  if (!records.length) return { ...NONE };
+  let firstResult = null;
+  for (const rec of records) {
+    const result = await verifyOneRecord(bytes, rec, records.length, resolveKey);
+    if (result.valid) return result;
+    if (!firstResult) firstResult = result;
+  }
+  return firstResult ?? { ...NONE, found: true, recordCount: records.length, reason: "SEAL record found but could not be verified" };
+}
+async function verifyOneRecord(bytes, rec, recordCount, resolveKey) {
+  const base = {
+    found: true,
+    valid: false,
+    domain: rec.domain,
+    coversWholeFile: false,
+    keyAlg: rec.keyAlg,
+    digestAlg: rec.digestAlg,
+    timestamp: rec.timestamp,
+    uid: rec.uid,
+    signerId: rec.id,
+    keySource: null,
+    recordCount,
+    reason: "unverified"
+  };
+  if (rec.parseError) return { ...base, reason: rec.parseError };
+  if (!rec.digestAlg) return { ...base, reason: `unsupported digest '${rec.digestAlgRaw}' (WebCrypto has no SHA-224)` };
+  if (!rec.signature) return { ...base, reason: "signature value could not be decoded" };
+  if (!rec.ranges) return { ...base, reason: "signed byte range could not be resolved" };
+  base.coversWholeFile = coversWholeFile(rec.ranges, rec.sigValueStart, bytes.length);
+  let spki = null;
+  let keySource = null;
+  if (resolveKey) {
+    try {
+      const resolved = await resolveKey(rec);
+      if (resolved instanceof Uint8Array && resolved.length) {
+        spki = resolved;
+        keySource = "dns";
+      }
+    } catch (e) {
+      return { ...base, reason: `could not resolve the signing key for ${rec.domain} (${e.message})` };
+    }
+  }
+  if (!spki && rec.inlineKey) {
+    spki = rec.inlineKey;
+    keySource = "inline";
+  }
+  if (!spki) {
+    return { ...base, reason: resolveKey ? `no public key published for ${rec.domain}` : "no key resolver and no inline key" };
+  }
+  let key;
+  try {
+    key = await importSealKey(spki, rec.keyAlg, rec.digestAlg);
+  } catch (e) {
+    return { ...base, keySource, reason: `could not import the ${rec.keyAlg.toUpperCase()} public key (${e.message})` };
+  }
+  let message;
+  try {
+    const rangeMsg = assembleSealMessage(bytes, rec.ranges);
+    if (rec.id || rec.timestamp) {
+      const digest1 = new Uint8Array(await subtle5.digest(rec.digestAlg, asBufferSource(rangeMsg)));
+      let prepend = "";
+      if (rec.timestamp) prepend += rec.timestamp + ":";
+      if (rec.id) prepend += rec.id + ":";
+      message = concatBytes([te7.encode(prepend), digest1]);
+    } else {
+      message = rangeMsg;
+    }
+  } catch (e) {
+    return { ...base, keySource, reason: `could not assemble the signed bytes (${e.message})` };
+  }
+  const valid = await verifySealSignature(message, rec.signature, key, rec.keyAlg, rec.digestAlg);
+  return {
+    ...base,
+    keySource,
+    valid,
+    reason: valid ? `signature valid \u2014 attributed to ${rec.domain}${base.coversWholeFile ? ", covers the whole file" : ", covers a partial byte range"}${keySource === "inline" ? " (verified with the record\u2019s inline key)" : ""}` : "signature did not verify (the covered bytes were modified, or the key does not match)"
+  };
+}
+var te7, subtle5, DIGEST_MAP, START_NEEDLES, TERMINATORS, SCAN_EDGE, SCAN_WHOLE_MAX, EC_SPKI_LEN, NONE;
+var init_seal = __esm({
+  "engine/src/seal.ts"() {
+    "use strict";
+    init_bytes();
+    init_der_read();
+    te7 = new TextEncoder();
+    subtle5 = globalThis.crypto.subtle;
+    DIGEST_MAP = {
+      sha256: "SHA-256",
+      sha384: "SHA-384",
+      sha512: "SHA-512",
+      sha224: null
+      // allowed by the spec, but WebCrypto SubtleCrypto has no SHA-224
+    };
+    START_NEEDLES = ["<?seal", "<seal", "&lt;seal"];
+    TERMINATORS = ["/>", "?>", "/&gt;"];
+    SCAN_EDGE = 64 * 1024;
+    SCAN_WHOLE_MAX = 128 * 1024;
+    EC_SPKI_LEN = {
+      91: { curve: "P-256", size: 32 },
+      120: { curve: "P-384", size: 48 },
+      156: { curve: "P-521", size: 66 }
+    };
+    NONE = {
+      found: false,
+      valid: false,
+      domain: null,
+      coversWholeFile: false,
+      keyAlg: null,
+      digestAlg: null,
+      timestamp: null,
+      uid: null,
+      signerId: null,
+      keySource: null,
+      recordCount: 0,
+      reason: "no SEAL record found"
+    };
+  }
+});
+
+// engine/src/zip-crypto.ts
+function crc322(bytes) {
+  let c = 4294967295;
+  for (let i = 0; i < bytes.length; i++) c = CRC_TABLE2[(c ^ bytes[i]) & 255] ^ c >>> 8;
+  return (c ^ 4294967295) >>> 0;
+}
+function zipCryptoEncrypt(pw, compressed, crc, random11) {
+  const header = new Uint8Array(12);
+  header.set(random11.subarray(0, 11), 0);
+  header[11] = crc >>> 24 & 255;
+  const keys = new ZipCryptoKeys(pw);
+  return concatBytes([keys.encrypt(header), keys.encrypt(compressed)]);
+}
+function xtime(a) {
+  return (a << 1 ^ (a & 128 ? 283 : 0)) & 255;
+}
+function mul(a, b) {
+  let r3 = 0;
+  for (let i = 0; i < 8; i++) {
+    if (b & 1) r3 ^= a;
+    const hi = a & 128;
+    a = a << 1 & 255;
+    if (hi) a ^= 27;
+    b >>= 1;
+  }
+  return r3 & 255;
+}
+function aesCtrLe(encKey, data) {
+  const aes = new Aes256(encKey);
+  const out = new Uint8Array(data.length);
+  const counter = new Uint8Array(16);
+  let value = 1n;
+  for (let off = 0; off < data.length; off += 16) {
+    let v = value;
+    for (let b = 0; b < 16; b++) {
+      counter[b] = Number(v & 0xffn);
+      v >>= 8n;
+    }
+    const ks = aes.encryptBlock(counter);
+    const n2 = Math.min(16, data.length - off);
+    for (let i = 0; i < n2; i++) out[off + i] = data[off + i] ^ ks[i];
+    value += 1n;
+  }
+  return out;
+}
+async function deriveAesZipKey(pw, salt16) {
+  const base = await subtle6.importKey("raw", asBufferSource(pw), "PBKDF2", false, ["deriveBits"]);
+  const dk = new Uint8Array(await subtle6.deriveBits(
+    { name: "PBKDF2", hash: "SHA-1", salt: asBufferSource(salt16), iterations: 1e3 },
+    base,
+    66 * 8
+  ));
+  return { encKey: dk.subarray(0, 32), authKey: dk.subarray(32, 64), pwVerify: dk.subarray(64, 66) };
+}
+async function aesZipEncryptEntry(pw, compressed, salt16) {
+  const { encKey, authKey, pwVerify } = await deriveAesZipKey(pw, salt16);
+  const ct = aesCtrLe(encKey, compressed);
+  const hmacKey = await subtle6.importKey("raw", asBufferSource(authKey), { name: "HMAC", hash: "SHA-1" }, false, ["sign"]);
+  const mac = new Uint8Array(await subtle6.sign("HMAC", hmacKey, asBufferSource(ct))).subarray(0, 10);
+  return concatBytes([salt16, pwVerify, ct, mac]);
+}
+function encodeName(name) {
+  return new TextEncoder().encode(name);
+}
+function aesExtraField(method) {
+  return new Uint8Array([1, 153, 7, 0, 2, 0, 65, 69, 3, method & 255, 0]);
+}
+async function buildEncryptedZip(entries, opts) {
+  const rng = opts.rng ?? ((n2) => globalThis.crypto.getRandomValues(new Uint8Array(n2)));
+  const pw = new TextEncoder().encode(opts.password);
+  const framed = [];
+  for (const e of entries) {
+    if (opts.tier === "standard") {
+      const payload = zipCryptoEncrypt(pw, e.compressed, e.crc32, rng(11));
+      framed.push({
+        name: encodeName(e.name),
+        method: e.method,
+        crc: e.crc32,
+        compSize: payload.length,
+        uncompSize: e.uncompressedSize,
+        payload,
+        extra: new Uint8Array(0)
+      });
+    } else {
+      const payload = await aesZipEncryptEntry(pw, e.compressed, rng(16));
+      framed.push({
+        name: encodeName(e.name),
+        method: 99,
+        crc: 0,
+        compSize: payload.length,
+        uncompSize: e.uncompressedSize,
+        payload,
+        extra: aesExtraField(e.method)
+      });
+    }
+  }
+  const locals = [];
+  const offsets = [];
+  let offset = 0;
+  for (const f of framed) {
+    const lfh = new Uint8Array(30 + f.name.length + f.extra.length);
+    const dv = new DataView(lfh.buffer);
+    dv.setUint32(0, 67324752, true);
+    dv.setUint16(4, 20, true);
+    dv.setUint16(6, 1, true);
+    dv.setUint16(8, f.method, true);
+    dv.setUint16(10, 0, true);
+    dv.setUint16(12, DOS_DATE, true);
+    dv.setUint32(14, f.crc, true);
+    dv.setUint32(18, f.compSize, true);
+    dv.setUint32(22, f.uncompSize, true);
+    dv.setUint16(26, f.name.length, true);
+    dv.setUint16(28, f.extra.length, true);
+    lfh.set(f.name, 30);
+    lfh.set(f.extra, 30 + f.name.length);
+    offsets.push(offset);
+    locals.push(lfh, f.payload);
+    offset += lfh.length + f.payload.length;
+  }
+  const localBlob = concatBytes(locals);
+  const centrals = [];
+  for (let i = 0; i < framed.length; i++) {
+    const f = framed[i];
+    const cdr = new Uint8Array(46 + f.name.length + f.extra.length);
+    const dv = new DataView(cdr.buffer);
+    dv.setUint32(0, 33639248, true);
+    dv.setUint16(4, 20, true);
+    dv.setUint16(6, 20, true);
+    dv.setUint16(8, 1, true);
+    dv.setUint16(10, f.method, true);
+    dv.setUint16(12, 0, true);
+    dv.setUint16(14, DOS_DATE, true);
+    dv.setUint32(16, f.crc, true);
+    dv.setUint32(20, f.compSize, true);
+    dv.setUint32(24, f.uncompSize, true);
+    dv.setUint16(28, f.name.length, true);
+    dv.setUint16(30, f.extra.length, true);
+    dv.setUint16(32, 0, true);
+    dv.setUint16(34, 0, true);
+    dv.setUint16(36, 0, true);
+    dv.setUint32(38, 0, true);
+    dv.setUint32(42, offsets[i], true);
+    cdr.set(f.name, 46);
+    cdr.set(f.extra, 46 + f.name.length);
+    centrals.push(cdr);
+  }
+  const centralBlob = concatBytes(centrals);
+  const eocd = new Uint8Array(22);
+  const edv = new DataView(eocd.buffer);
+  edv.setUint32(0, 101010256, true);
+  edv.setUint16(8, framed.length, true);
+  edv.setUint16(10, framed.length, true);
+  edv.setUint32(12, centralBlob.length, true);
+  edv.setUint32(16, localBlob.length, true);
+  return concatBytes([localBlob, centralBlob, eocd]);
+}
+var subtle6, CRC_TABLE2, crc32Byte, ZipCryptoKeys, AES_SBOX, Aes256, DOS_DATE;
+var init_zip_crypto = __esm({
+  "engine/src/zip-crypto.ts"() {
+    "use strict";
+    init_bytes();
+    subtle6 = globalThis.crypto.subtle;
+    CRC_TABLE2 = (() => {
+      const t = new Uint32Array(256);
+      for (let n2 = 0; n2 < 256; n2++) {
+        let c = n2;
+        for (let k = 0; k < 8; k++) c = c & 1 ? 3988292384 ^ c >>> 1 : c >>> 1;
+        t[n2] = c >>> 0;
+      }
+      return t;
+    })();
+    crc32Byte = (crc, b) => (CRC_TABLE2[(crc ^ b) & 255] ^ crc >>> 8) >>> 0;
+    ZipCryptoKeys = class {
+      k0 = 305419896;
+      k1 = 591751049;
+      k2 = 878082192;
+      constructor(pw) {
+        for (let i = 0; i < pw.length; i++) this.update(pw[i]);
+      }
+      update(c) {
+        this.k0 = crc32Byte(this.k0, c);
+        this.k1 = this.k1 + (this.k0 & 255) >>> 0;
+        this.k1 = Math.imul(this.k1, 134775813) + 1 >>> 0;
+        this.k2 = crc32Byte(this.k2, this.k1 >>> 24 & 255);
+      }
+      streamByte() {
+        const temp = (this.k2 | 2) & 65535;
+        return temp * (temp ^ 1) >>> 8 & 255;
+      }
+      encrypt(plain) {
+        const out = new Uint8Array(plain.length);
+        for (let i = 0; i < plain.length; i++) {
+          const p = plain[i];
+          out[i] = (p ^ this.streamByte()) & 255;
+          this.update(p);
+        }
+        return out;
+      }
+    };
+    AES_SBOX = (() => {
+      const sbox = new Uint8Array(256);
+      const p = new Uint8Array(256);
+      const log = new Uint8Array(256), exp = new Uint8Array(256);
+      let x = 1;
+      for (let i = 0; i < 255; i++) {
+        exp[i] = x;
+        log[x] = i;
+        x ^= xtime(x);
+      }
+      const inv = (a) => a === 0 ? 0 : exp[(255 - log[a]) % 255];
+      for (let i = 0; i < 256; i++) {
+        let s = inv(i);
+        let xf = s;
+        for (let k = 0; k < 4; k++) {
+          xf = (xf << 1 | xf >>> 7) & 255;
+          s ^= xf;
+        }
+        sbox[i] = (s ^ 99) & 255;
+      }
+      void p;
+      return sbox;
+    })();
+    Aes256 = class {
+      rk;
+      // 240-byte expanded key (60 words)
+      constructor(key) {
+        const Nk = 8, Nr = 14, total = 4 * (Nr + 1);
+        const w = new Uint8Array(total * 4);
+        w.set(key.subarray(0, 32), 0);
+        const rcon = [1, 2, 4, 8, 16, 32, 64];
+        for (let i = Nk; i < total; i++) {
+          const o = i * 4;
+          let t0 = w[o - 4], t1 = w[o - 3], t2 = w[o - 2], t3 = w[o - 1];
+          if (i % Nk === 0) {
+            [t0, t1, t2, t3] = [AES_SBOX[t1] ^ rcon[i / Nk - 1], AES_SBOX[t2], AES_SBOX[t3], AES_SBOX[t0]];
+          } else if (i % Nk === 4) {
+            [t0, t1, t2, t3] = [AES_SBOX[t0], AES_SBOX[t1], AES_SBOX[t2], AES_SBOX[t3]];
+          }
+          w[o] = w[o - 32] ^ t0;
+          w[o + 1] = w[o - 31] ^ t1;
+          w[o + 2] = w[o - 30] ^ t2;
+          w[o + 3] = w[o - 29] ^ t3;
+        }
+        this.rk = w;
+      }
+      encryptBlock(inBlk) {
+        const s = inBlk.slice(0, 16);
+        const Nr = 14;
+        this.addRoundKey(s, 0);
+        for (let round4 = 1; round4 < Nr; round4++) {
+          this.subBytes(s);
+          this.shiftRows(s);
+          this.mixColumns(s);
+          this.addRoundKey(s, round4);
+        }
+        this.subBytes(s);
+        this.shiftRows(s);
+        this.addRoundKey(s, Nr);
+        return s;
+      }
+      addRoundKey(s, round4) {
+        const o = round4 * 16;
+        for (let i = 0; i < 16; i++) s[i] = s[i] ^ this.rk[o + i];
+      }
+      subBytes(s) {
+        for (let i = 0; i < 16; i++) s[i] = AES_SBOX[s[i]];
+      }
+      shiftRows(s) {
+        const t = s.slice(0);
+        for (let r3 = 1; r3 < 4; r3++) for (let c = 0; c < 4; c++) s[r3 + 4 * c] = t[r3 + 4 * ((c + r3) % 4)];
+      }
+      mixColumns(s) {
+        for (let c = 0; c < 4; c++) {
+          const o = 4 * c;
+          const a0 = s[o], a1 = s[o + 1], a2 = s[o + 2], a3 = s[o + 3];
+          s[o] = mul(a0, 2) ^ mul(a1, 3) ^ a2 ^ a3;
+          s[o + 1] = a0 ^ mul(a1, 2) ^ mul(a2, 3) ^ a3;
+          s[o + 2] = a0 ^ a1 ^ mul(a2, 2) ^ mul(a3, 3);
+          s[o + 3] = mul(a0, 3) ^ a1 ^ a2 ^ mul(a3, 2);
+        }
+      }
+    };
+    DOS_DATE = 33;
+  }
+});
+
+// engine/src/apng.ts
+function writeU322(bytes, off, value) {
+  bytes[off] = value >>> 24 & 255;
+  bytes[off + 1] = value >>> 16 & 255;
+  bytes[off + 2] = value >>> 8 & 255;
+  bytes[off + 3] = value & 255;
+}
+function readU322(bytes, off) {
+  return (bytes[off] << 24 | bytes[off + 1] << 16 | bytes[off + 2] << 8 | bytes[off + 3]) >>> 0;
+}
+function chunk(type, data) {
+  const out = new Uint8Array(12 + data.length);
+  writeU322(out, 0, data.length);
+  for (let i = 0; i < 4; i++) out[4 + i] = type.charCodeAt(i);
+  out.set(data, 8);
+  writeU322(out, 8 + data.length, crc322(out.subarray(4, 8 + data.length)));
+  return out;
+}
+function parsePng(bytes, label) {
+  if (!(bytes instanceof Uint8Array)) {
+    throw new Error(`packApng: ${label} is not a Uint8Array`);
+  }
+  for (let i = 0; i < 8; i++) {
+    if (bytes[i] !== PNG_SIG2[i]) throw new Error(`packApng: ${label} has a bad PNG signature`);
+  }
+  const chunks = [];
+  let off = 8;
+  while (off + 8 <= bytes.length) {
+    const len2 = readU322(bytes, off);
+    const type = String.fromCharCode(bytes[off + 4], bytes[off + 5], bytes[off + 6], bytes[off + 7]);
+    const end = off + 12 + len2;
+    if (end > bytes.length) throw new Error(`packApng: ${label} is truncated inside a ${type} chunk`);
+    chunks.push({ type, data: bytes.subarray(off + 8, off + 8 + len2) });
+    off = end;
+    if (type === "IEND") break;
+  }
+  if (!chunks.length || chunks[0].type !== "IHDR" || chunks[0].data.length !== 13) {
+    throw new Error(`packApng: ${label} does not start with a valid IHDR chunk`);
+  }
+  if (chunks[chunks.length - 1].type !== "IEND") {
+    throw new Error(`packApng: ${label} has no IEND chunk`);
+  }
+  return chunks;
+}
+function packApng(frames, opts = {}) {
+  const { delayMs = 67, loops = 0 } = opts;
+  if (!Array.isArray(frames) || frames.length === 0) {
+    throw new Error("packApng: frames must be a non-empty array of encoded PNG byte arrays");
+  }
+  if (!Number.isInteger(loops) || loops < 0) {
+    throw new Error("packApng: loops must be a non-negative integer (0 = infinite)");
+  }
+  const parsed = frames.map((f, i) => parsePng(f, `frame ${i}`));
+  const ihdr0 = parsed[0][0].data;
+  for (let i = 1; i < parsed.length; i++) {
+    const ihdr = parsed[i][0].data;
+    for (let b = 0; b < 13; b++) {
+      if (ihdr[b] !== ihdr0[b]) {
+        throw new Error(`packApng: frame ${i} IHDR (${ihdrDesc(ihdr)}) does not match frame 0 (${ihdrDesc(ihdr0)})`);
+      }
+    }
+  }
+  const width = readU322(ihdr0, 0);
+  const height = readU322(ihdr0, 4);
+  let seq = 0;
+  const fctl = (frameIndex) => {
+    const raw = Array.isArray(delayMs) ? delayMs[frameIndex] : delayMs;
+    const num5 = Number.isFinite(raw) && raw >= 0 ? Math.min(65535, Math.round(raw)) : 67;
+    const d = new Uint8Array(26);
+    writeU322(d, 0, seq++);
+    writeU322(d, 4, width);
+    writeU322(d, 8, height);
+    writeU322(d, 12, 0);
+    writeU322(d, 16, 0);
+    d[20] = num5 >>> 8 & 255;
+    d[21] = num5 & 255;
+    d[22] = 1e3 >>> 8 & 255;
+    d[23] = 1e3 & 255;
+    d[24] = 0;
+    d[25] = 0;
+    return chunk("fcTL", d);
+  };
+  const parts = [Uint8Array.from(PNG_SIG2)];
+  let sawIdat = false;
+  for (const c of parsed[0]) {
+    if (c.type === "IEND" || ANIM_CHUNKS.has(c.type)) continue;
+    if (c.type === "IDAT" && !sawIdat) {
+      parts.push(fctl(0));
+      sawIdat = true;
+    }
+    parts.push(chunk(c.type, c.data));
+    if (c.type === "IHDR") {
+      const actl = new Uint8Array(8);
+      writeU322(actl, 0, parsed.length);
+      writeU322(actl, 4, loops);
+      parts.push(chunk("acTL", actl));
+    }
+  }
+  if (!sawIdat) throw new Error("packApng: frame 0 has no IDAT chunk");
+  for (let i = 1; i < parsed.length; i++) {
+    parts.push(fctl(i));
+    let wrote = false;
+    for (const c of parsed[i]) {
+      if (c.type !== "IDAT") continue;
+      const fd = new Uint8Array(4 + c.data.length);
+      writeU322(fd, 0, seq++);
+      fd.set(c.data, 4);
+      parts.push(chunk("fdAT", fd));
+      wrote = true;
+    }
+    if (!wrote) throw new Error(`packApng: frame ${i} has no IDAT chunk`);
+  }
+  parts.push(chunk("IEND", new Uint8Array(0)));
+  let total = 0;
+  for (const p of parts) total += p.length;
+  const out = new Uint8Array(total);
+  let off = 0;
+  for (const p of parts) {
+    out.set(p, off);
+    off += p.length;
+  }
+  return out;
+}
+var PNG_SIG2, ANIM_CHUNKS, ihdrDesc;
+var init_apng = __esm({
+  "engine/src/apng.ts"() {
+    "use strict";
+    init_zip_crypto();
+    PNG_SIG2 = [137, 80, 78, 71, 13, 10, 26, 10];
+    ANIM_CHUNKS = /* @__PURE__ */ new Set(["acTL", "fcTL", "fdAT"]);
+    ihdrDesc = (d) => `${readU322(d, 0)}x${readU322(d, 4)} depth ${d[8]} color type ${d[9]}`;
+  }
+});
+
+// engine/src/webp-anim.ts
+function chunk2(fourcc3, payload) {
+  const out = new Uint8Array(8 + payload.length + (payload.length & 1));
+  for (let i = 0; i < 4; i++) out[i] = fourcc3.charCodeAt(i);
+  const n2 = payload.length;
+  out[4] = n2 & 255;
+  out[5] = n2 >>> 8 & 255;
+  out[6] = n2 >>> 16 & 255;
+  out[7] = n2 >>> 24 & 255;
+  out.set(payload, 8);
+  return out;
+}
+function parseStillWebp(bytes, label) {
+  const fourcc3 = (o) => String.fromCharCode(bytes[o], bytes[o + 1], bytes[o + 2], bytes[o + 3]);
+  const u322 = (o) => (bytes[o] | bytes[o + 1] << 8 | bytes[o + 2] << 16 | bytes[o + 3] << 24) >>> 0;
+  const u24 = (o) => bytes[o] | bytes[o + 1] << 8 | bytes[o + 2] << 16;
+  if (bytes.length < 12 || fourcc3(0) !== "RIFF" || fourcc3(8) !== "WEBP") {
+    throw new Error(`packWebpAnim: ${label} is not a WebP (bad RIFF/WEBP signature)`);
+  }
+  const imageChunks = [];
+  let hasAlpha = false, width = 0, height = 0, sawImage = false;
+  let p = 12;
+  while (p + 8 <= bytes.length) {
+    const cc = fourcc3(p);
+    const size = u322(p + 4);
+    const full = 8 + size + (size & 1);
+    if (p + 8 + size > bytes.length) throw new Error(`packWebpAnim: ${label} truncated in ${cc}`);
+    const q = p + 8;
+    if (cc === "VP8X") {
+      if (bytes[q] & 16) hasAlpha = true;
+      width = u24(q + 4) + 1;
+      height = u24(q + 7) + 1;
+    } else if (cc === "ALPH") {
+      hasAlpha = true;
+      imageChunks.push(bytes.subarray(p, p + full));
+    } else if (cc === "VP8 ") {
+      imageChunks.push(bytes.subarray(p, p + full));
+      sawImage = true;
+      if (!width) {
+        width = (bytes[q + 6] | bytes[q + 7] << 8) & 16383;
+        height = (bytes[q + 8] | bytes[q + 9] << 8) & 16383;
+      }
+    } else if (cc === "VP8L") {
+      imageChunks.push(bytes.subarray(p, p + full));
+      sawImage = true;
+      if (!width) {
+        const bits = (bytes[q + 1] | bytes[q + 2] << 8 | bytes[q + 3] << 16 | bytes[q + 4] << 24) >>> 0;
+        width = (bits & 16383) + 1;
+        height = (bits >>> 14 & 16383) + 1;
+        if (bits >>> 28 & 1) hasAlpha = true;
+      }
+    }
+    p += full;
+  }
+  if (!sawImage) throw new Error(`packWebpAnim: ${label} has no VP8/VP8L image data`);
+  return { chunks: concatBytes(imageChunks), hasAlpha, width, height };
+}
+function packWebpAnim(frames, opts = {}) {
+  const { delayMs = 67, loops = 0, background = [0, 0, 0, 0] } = opts;
+  if (!Array.isArray(frames) || frames.length === 0) {
+    throw new Error("packWebpAnim: frames must be a non-empty array of encoded WebP byte arrays");
+  }
+  if (!Number.isInteger(loops) || loops < 0) {
+    throw new Error("packWebpAnim: loops must be a non-negative integer (0 = infinite)");
+  }
+  const imgs = frames.map((f, i) => {
+    if (!(f instanceof Uint8Array)) throw new Error(`packWebpAnim: frame ${i} is not a Uint8Array`);
+    return parseStillWebp(f, `frame ${i}`);
+  });
+  const width = opts.width ?? imgs[0].width;
+  const height = opts.height ?? imgs[0].height;
+  const hasAlpha = imgs.some((im) => im.hasAlpha);
+  const vp8x = new Uint8Array(10);
+  vp8x[0] = 2 | (hasAlpha ? 16 : 0);
+  vp8x.set(u24LE(width - 1), 4);
+  vp8x.set(u24LE(height - 1), 7);
+  const anim = new Uint8Array(6);
+  anim[0] = background[2] & 255;
+  anim[1] = background[1] & 255;
+  anim[2] = background[0] & 255;
+  anim[3] = background[3] & 255;
+  anim.set(u16LE(Math.min(65535, loops)), 4);
+  const parts = [chunk2("VP8X", vp8x), chunk2("ANIM", anim)];
+  for (let i = 0; i < imgs.length; i++) {
+    const raw = Array.isArray(delayMs) ? delayMs[i] : delayMs;
+    const dur = Number.isFinite(raw) && raw >= 0 ? Math.min(16777215, Math.max(1, Math.round(raw))) : 67;
+    const hdr = new Uint8Array(16);
+    hdr.set(u24LE(0), 0);
+    hdr.set(u24LE(0), 3);
+    hdr.set(u24LE(width - 1), 6);
+    hdr.set(u24LE(height - 1), 9);
+    hdr.set(u24LE(dur), 12);
+    hdr[15] = 2;
+    parts.push(chunk2("ANMF", concatBytes([hdr, imgs[i].chunks])));
+  }
+  const body = concatBytes(parts);
+  const out = new Uint8Array(12 + body.length);
+  out.set([82, 73, 70, 70], 0);
+  const riffSize = 4 + body.length;
+  out[4] = riffSize & 255;
+  out[5] = riffSize >>> 8 & 255;
+  out[6] = riffSize >>> 16 & 255;
+  out[7] = riffSize >>> 24 & 255;
+  out.set([87, 69, 66, 80], 8);
+  out.set(body, 12);
+  return out;
+}
+var u16LE, u24LE;
+var init_webp_anim = __esm({
+  "engine/src/webp-anim.ts"() {
+    "use strict";
+    init_bytes();
+    u16LE = (v) => [v & 255, v >>> 8 & 255];
+    u24LE = (v) => [v & 255, v >>> 8 & 255, v >>> 16 & 255];
+  }
+});
+
+// engine/src/tiff.ts
+function packTiff(pixels, opts = { width: 0, height: 0 }) {
+  const W = opts.width | 0;
+  const H = opts.height | 0;
+  const spp = opts.samplesPerPixel ?? 3;
+  const depth = opts.depth ?? 8;
+  if (W <= 0 || H <= 0) throw new Error("packTiff: width and height must be positive.");
+  if (spp < 1 || spp > 4) throw new Error(`packTiff: unsupported samplesPerPixel ${spp}.`);
+  if (depth !== 8 && depth !== 16 && depth !== "float32") {
+    throw new Error(`packTiff: unsupported depth ${String(depth)} (8, 16 or 'float32').`);
+  }
+  if (depth === 8 && !(pixels instanceof Uint8Array || pixels instanceof Uint8ClampedArray)) {
+    throw new Error("packTiff: depth 8 requires a Uint8Array or Uint8ClampedArray.");
+  }
+  if (depth === 16 && !(pixels instanceof Uint16Array)) {
+    throw new Error("packTiff: depth 16 requires a Uint16Array.");
+  }
+  if (depth === "float32" && !(pixels instanceof Float32Array)) {
+    throw new Error("packTiff: depth 'float32' requires a Float32Array.");
+  }
+  const bits = depth === "float32" ? 32 : depth;
+  const bytesPerSample = bits >> 3;
+  const expected = W * H * spp;
+  if (pixels.length !== expected) {
+    throw new Error(`packTiff: pixel buffer is ${pixels.length} samples, expected ${expected} (${W}\xD7${H}\xD7${spp}).`);
+  }
+  const stripBytes = expected * bytesPerSample;
+  const photometric = opts.photometric ?? (spp === 1 ? 1 : 2);
+  const meta = opts.meta || {};
+  const description = opts.description ?? meta.description;
+  const enc2 = new TextEncoder();
+  const entries = [];
+  const num5 = (tag2, type, n2) => entries.push({ tag: tag2, type, count: 1, n: n2 });
+  const asciiTag = (tag2, s) => {
+    if (!s) return;
+    const a = enc2.encode(String(s));
+    const d = new Uint8Array(a.length + 1);
+    d.set(a, 0);
+    entries.push({ tag: tag2, type: ASCII, count: d.length, data: d });
+  };
+  const bps = new Uint8Array(spp * 2);
+  {
+    const dv2 = new DataView(bps.buffer);
+    for (let i = 0; i < spp; i++) dv2.setUint16(i * 2, bits, true);
+  }
+  const rational = (n2, den) => {
+    const d = new Uint8Array(8);
+    const dv2 = new DataView(d.buffer);
+    dv2.setUint32(0, n2, true);
+    dv2.setUint32(4, den, true);
+    return d;
+  };
+  const res = Math.max(1, Math.round(opts.dpi || 72));
+  num5(256, LONG, W);
+  num5(257, LONG, H);
+  entries.push({ tag: 258, type: SHORT, count: spp, data: bps });
+  num5(259, SHORT, 1);
+  num5(262, SHORT, photometric);
+  asciiTag(270, description);
+  num5(273, LONG, 0);
+  num5(277, SHORT, spp);
+  num5(278, LONG, H);
+  num5(279, LONG, stripBytes);
+  entries.push({ tag: 282, type: RATIONAL, count: 1, data: rational(res, 1) });
+  entries.push({ tag: 283, type: RATIONAL, count: 1, data: rational(res, 1) });
+  num5(296, SHORT, 2);
+  asciiTag(305, meta.software);
+  asciiTag(315, meta.author);
+  if (depth !== 8) {
+    const sampleFormat = depth === "float32" ? 3 : 1;
+    const sf = new Uint8Array(spp * 2);
+    {
+      const dv2 = new DataView(sf.buffer);
+      for (let i = 0; i < spp; i++) dv2.setUint16(i * 2, sampleFormat, true);
+    }
+    entries.push({ tag: 339, type: SHORT, count: spp, data: sf });
+  }
+  const baseComponents = photometric === 5 ? 4 : photometric === 2 ? 3 : 1;
+  const extraSamples = spp - baseComponents;
+  if (extraSamples > 0) {
+    const es = new Uint8Array(extraSamples * 2);
+    {
+      const dv2 = new DataView(es.buffer);
+      for (let i = 0; i < extraSamples; i++) dv2.setUint16(i * 2, 2, true);
+    }
+    entries.push({ tag: 338, type: SHORT, count: extraSamples, data: es });
+  }
+  if (opts.icc?.length) {
+    entries.push({ tag: 34675, type: UNDEFINED, count: opts.icc.length, data: opts.icc });
+  }
+  entries.sort((a, b) => a.tag - b.tag);
+  const N2 = entries.length;
+  const ifdStart = 8;
+  let ext = ifdStart + 2 + N2 * 12 + 4;
+  for (const e of entries) {
+    const bytes = e.data ? e.data.length : e.count * TYPE_SIZE2[e.type];
+    if (bytes > 4) {
+      e.offset = ext;
+      ext += bytes + (bytes & 1);
+    }
+  }
+  const stripOffset = ext + (ext & 1);
+  entries.find((e) => e.tag === 273).n = stripOffset;
+  const out = new Uint8Array(stripOffset + stripBytes);
+  const dv = new DataView(out.buffer);
+  out[0] = 73;
+  out[1] = 73;
+  dv.setUint16(2, 42, true);
+  dv.setUint32(4, ifdStart, true);
+  dv.setUint16(ifdStart, N2, true);
+  let o = ifdStart + 2;
+  for (const e of entries) {
+    dv.setUint16(o, e.tag, true);
+    dv.setUint16(o + 2, e.type, true);
+    dv.setUint32(o + 4, e.count, true);
+    const bytes = e.data ? e.data.length : e.count * TYPE_SIZE2[e.type];
+    if (bytes > 4) {
+      dv.setUint32(o + 8, e.offset, true);
+      out.set(e.data, e.offset);
+    } else if (e.data) out.set(e.data, o + 8);
+    else if (e.type === SHORT) dv.setUint16(o + 8, e.n, true);
+    else dv.setUint32(o + 8, e.n, true);
+    o += 12;
+  }
+  dv.setUint32(o, 0, true);
+  if (depth === 8) {
+    out.set(pixels, stripOffset);
+  } else if (depth === 16) {
+    for (let i = 0; i < expected; i++) dv.setUint16(stripOffset + i * 2, pixels[i], true);
+  } else {
+    for (let i = 0; i < expected; i++) dv.setFloat32(stripOffset + i * 4, pixels[i], true);
+  }
+  return out;
+}
+var ASCII, SHORT, LONG, RATIONAL, UNDEFINED, TYPE_SIZE2;
+var init_tiff = __esm({
+  "engine/src/tiff.ts"() {
+    "use strict";
+    ASCII = 2;
+    SHORT = 3;
+    LONG = 4;
+    RATIONAL = 5;
+    UNDEFINED = 7;
+    TYPE_SIZE2 = { 2: 1, 3: 2, 4: 4, 5: 8, 7: 1 };
+  }
+});
+
 // engine/src/deflate.ts
 function revBits(code, len2) {
-  let r = 0;
+  let r3 = 0;
   for (let i = 0; i < len2; i++) {
-    r = r << 1 | code & 1;
+    r3 = r3 << 1 | code & 1;
     code >>= 1;
   }
-  return r;
+  return r3;
+}
+function tokenize2(data, lazy, maxChain) {
+  const n2 = data.length;
+  const tokens = new Uint32Array(n2);
+  let count2 = 0;
+  if (n2 < MIN_MATCH + 1) {
+    for (let i2 = 0; i2 < n2; i2++) tokens[count2++] = data[i2];
+    return { tokens, count: count2 };
+  }
+  const head = new Int32Array(HASH_SIZE).fill(-1);
+  const prev = new Int32Array(n2);
+  const hashAt = (i2) => (data[i2] << 10 ^ data[i2 + 1] << 5 ^ data[i2 + 2]) & HASH_SIZE - 1;
+  const insert = (i2) => {
+    const h = hashAt(i2);
+    prev[i2] = head[h];
+    head[h] = i2;
+  };
+  const findMatch = (pos) => {
+    const maxLen = Math.min(MAX_MATCH, n2 - pos);
+    if (maxLen < MIN_MATCH) return 0;
+    const floor = pos - WINDOW;
+    let best = 0;
+    let bestDist = 0;
+    let chain2 = maxChain;
+    let cand = head[hashAt(pos)];
+    while (cand >= 0 && cand >= floor && chain2-- > 0) {
+      if (data[cand + best] === data[pos + best] && data[cand] === data[pos]) {
+        let l = 0;
+        while (l < maxLen && data[cand + l] === data[pos + l]) l++;
+        if (l > best) {
+          best = l;
+          bestDist = pos - cand;
+          if (l >= maxLen || l >= NICE_LEN) break;
+        }
+      }
+      cand = prev[cand];
+    }
+    return best >= MIN_MATCH ? bestDist << 9 | best : 0;
+  };
+  const hashLimit = n2 - MIN_MATCH;
+  let i = 0;
+  let prevLen = 0;
+  let prevDist = 0;
+  let havePrev = false;
+  while (i < n2) {
+    let mLen = 0;
+    let mDist = 0;
+    if (i <= hashLimit) {
+      const m = findMatch(i);
+      mLen = m & 511;
+      mDist = m >>> 9;
+      insert(i);
+    }
+    if (havePrev) {
+      if (mLen > prevLen) {
+        tokens[count2++] = data[i - 1];
+        prevLen = mLen;
+        prevDist = mDist;
+        i++;
+        continue;
+      }
+      tokens[count2++] = 1073741824 | prevDist << 8 | prevLen - MIN_MATCH;
+      const end = Math.min(i - 1 + prevLen, hashLimit + 1);
+      for (let j = i + 1; j < end; j++) insert(j);
+      i = i - 1 + prevLen;
+      havePrev = false;
+      continue;
+    }
+    if (mLen >= MIN_MATCH) {
+      if (lazy && mLen < NICE_LEN && i + 1 < n2) {
+        prevLen = mLen;
+        prevDist = mDist;
+        havePrev = true;
+        i++;
+        continue;
+      }
+      tokens[count2++] = 1073741824 | mDist << 8 | mLen - MIN_MATCH;
+      const end = Math.min(i + mLen, hashLimit + 1);
+      for (let j = i + 1; j < end; j++) insert(j);
+      i += mLen;
+    } else {
+      tokens[count2++] = data[i];
+      i++;
+    }
+  }
+  return { tokens, count: count2 };
 }
 function writeTokens(w, tokens, count2) {
   for (let t = 0; t < count2; t++) {
@@ -16884,6 +24639,35 @@ function fixedCost(tokens, count2) {
   }
   return bits;
 }
+function deflateRaw2(data, opts) {
+  const n2 = data.length;
+  const lazy = opts?.lazy !== false;
+  const maxChain = Math.max(1, opts?.maxChain ?? 128);
+  const { tokens, count: count2 } = tokenize2(data, lazy, maxChain);
+  const fixedBytes = Math.ceil(fixedCost(tokens, count2) / 8);
+  const storedBlocks = Math.max(1, Math.ceil(n2 / STORED_MAX));
+  const storedBytes = n2 + 5 * storedBlocks;
+  if (fixedBytes <= storedBytes) {
+    const w2 = new BitWriter(fixedBytes);
+    w2.writeBits(1, 1);
+    w2.writeBits(1, 2);
+    writeTokens(w2, tokens, count2);
+    return w2.finish();
+  }
+  const w = new BitWriter(storedBytes);
+  let off = 0;
+  do {
+    const chunk4 = Math.min(STORED_MAX, n2 - off);
+    const final = off + chunk4 >= n2;
+    w.writeBits(final ? 1 : 0, 1);
+    w.writeBits(0, 2);
+    w.alignByte();
+    w.writeBytes(Uint8Array.of(chunk4 & 255, chunk4 >>> 8 & 255, ~chunk4 & 255, ~chunk4 >>> 8 & 255));
+    w.writeBytes(data.subarray(off, off + chunk4));
+    off += chunk4;
+  } while (off < n2);
+  return w.finish();
+}
 function adler32(data, seed = 1) {
   const MOD = 65521;
   const NMAX = 5552;
@@ -16901,6 +24685,20 @@ function adler32(data, seed = 1) {
     s2 %= MOD;
   }
   return (s2 << 16 | s1) >>> 0;
+}
+function zlibCompress(data, opts) {
+  const body = deflateRaw2(data, opts);
+  const out = new Uint8Array(2 + body.length + 4);
+  out[0] = 120;
+  out[1] = 156;
+  out.set(body, 2);
+  const a = adler32(data);
+  const o = 2 + body.length;
+  out[o] = a >>> 24 & 255;
+  out[o + 1] = a >>> 16 & 255;
+  out[o + 2] = a >>> 8 & 255;
+  out[o + 3] = a & 255;
+  return out;
 }
 function createDeflateStream(opts = {}) {
   const lazy = opts.lazy !== false;
@@ -17130,7 +24928,7 @@ function createZlibStream(opts = {}) {
     }
   };
 }
-var LEN_BASE, LEN_EXTRA, DIST_BASE, DIST_EXTRA, MIN_MATCH, MAX_MATCH, WINDOW, STORED_MAX, HASH_BITS, HASH_SIZE, NICE_LEN, LEN_SLOT, DIST_SLOT, FIXED_LIT_BITS, FIXED_LIT_CODE, FIXED_DIST_CODE, MIN_LOOKAHEAD, MAX_DIST, DEFAULT_BLOCK_BYTES, StreamWriter;
+var LEN_BASE, LEN_EXTRA, DIST_BASE, DIST_EXTRA, MIN_MATCH, MAX_MATCH, WINDOW, STORED_MAX, HASH_BITS, HASH_SIZE, NICE_LEN, LEN_SLOT, DIST_SLOT, FIXED_LIT_BITS, FIXED_LIT_CODE, FIXED_DIST_CODE, BitWriter, MIN_LOOKAHEAD, MAX_DIST, DEFAULT_BLOCK_BYTES, StreamWriter;
 var init_deflate = __esm({
   "engine/src/deflate.ts"() {
     "use strict";
@@ -17307,6 +25105,50 @@ var init_deflate = __esm({
     })();
     FIXED_DIST_CODE = new Uint8Array(30);
     for (let s = 0; s < 30; s++) FIXED_DIST_CODE[s] = revBits(s, 5);
+    BitWriter = class {
+      out;
+      len = 0;
+      bitBuf = 0;
+      bitCnt = 0;
+      constructor(capacity) {
+        this.out = new Uint8Array(Math.max(64, capacity));
+      }
+      ensure(n2) {
+        if (this.len + n2 <= this.out.length) return;
+        const grown = new Uint8Array(Math.max(this.out.length * 2, this.len + n2));
+        grown.set(this.out.subarray(0, this.len));
+        this.out = grown;
+      }
+      /** Write `count` bits of `value`, LSB first. count <= 16. */
+      writeBits(value, count2) {
+        this.bitBuf |= value << this.bitCnt;
+        this.bitCnt += count2;
+        while (this.bitCnt >= 8) {
+          this.ensure(1);
+          this.out[this.len++] = this.bitBuf & 255;
+          this.bitBuf >>>= 8;
+          this.bitCnt -= 8;
+        }
+      }
+      /** Pad to a byte boundary with zero bits (stored-block alignment, §3.2.4). */
+      alignByte() {
+        if (this.bitCnt > 0) {
+          this.ensure(1);
+          this.out[this.len++] = this.bitBuf & 255;
+          this.bitBuf = 0;
+          this.bitCnt = 0;
+        }
+      }
+      writeBytes(bytes) {
+        this.ensure(bytes.length);
+        this.out.set(bytes, this.len);
+        this.len += bytes.length;
+      }
+      finish() {
+        this.alignByte();
+        return this.out.slice(0, this.len);
+      }
+    };
     MIN_LOOKAHEAD = MAX_MATCH + MIN_MATCH + 1;
     MAX_DIST = WINDOW - MIN_LOOKAHEAD;
     DEFAULT_BLOCK_BYTES = 32768;
@@ -17354,6 +25196,4648 @@ var init_deflate = __esm({
   }
 });
 
+// engine/src/png.ts
+function writeU323(b, o, v) {
+  b[o] = v >>> 24 & 255;
+  b[o + 1] = v >>> 16 & 255;
+  b[o + 2] = v >>> 8 & 255;
+  b[o + 3] = v & 255;
+}
+function chunk3(type, data) {
+  const out = new Uint8Array(12 + data.length);
+  writeU323(out, 0, data.length);
+  for (let i = 0; i < 4; i++) out[4 + i] = type.charCodeAt(i);
+  out.set(data, 8);
+  writeU323(out, 8 + data.length, crc322(out.subarray(4, 8 + data.length)));
+  return out;
+}
+function concat2(parts) {
+  let n2 = 0;
+  for (const p of parts) n2 += p.length;
+  const out = new Uint8Array(n2);
+  let o = 0;
+  for (const p of parts) {
+    out.set(p, o);
+    o += p.length;
+  }
+  return out;
+}
+function paeth(a, b, c) {
+  const p = a + b - c;
+  const pa = Math.abs(p - a);
+  const pb = Math.abs(p - b);
+  const pc = Math.abs(p - c);
+  if (pa <= pb && pa <= pc) return a;
+  if (pb <= pc) return b;
+  return c;
+}
+function msad(row) {
+  let sum = 0;
+  for (let i = 0; i < row.length; i++) {
+    const v = row[i];
+    sum += v < 128 ? v : 256 - v;
+  }
+  return sum;
+}
+function filterRow(raw, prior, bpp, dst, scratch, auto) {
+  const n2 = raw.length;
+  if (!auto) {
+    dst[0] = 0;
+    dst.set(raw, 1);
+    return;
+  }
+  const [sub, up, avg, pae] = scratch;
+  for (let x = 0; x < n2; x++) {
+    const r3 = raw[x];
+    const a = x >= bpp ? raw[x - bpp] : 0;
+    const b = prior ? prior[x] : 0;
+    const c = prior && x >= bpp ? prior[x - bpp] : 0;
+    sub[x] = r3 - a & 255;
+    up[x] = r3 - b & 255;
+    avg[x] = r3 - (a + b >> 1) & 255;
+    pae[x] = r3 - paeth(a, b, c) & 255;
+  }
+  let bestType = 0;
+  let bestCost = msad(raw);
+  const cands = [[1, sub], [2, up], [3, avg], [4, pae]];
+  let best = null;
+  for (const [type, buf] of cands) {
+    const cost = msad(buf);
+    if (cost < bestCost) {
+      bestCost = cost;
+      bestType = type;
+      best = buf;
+    }
+  }
+  dst[0] = bestType;
+  dst.set(best ?? raw, 1);
+}
+function storedZlib(data) {
+  const blocks = Math.max(1, Math.ceil(data.length / STORED_MAX2));
+  const out = new Uint8Array(2 + data.length + 5 * blocks + 4);
+  out[0] = 120;
+  out[1] = 1;
+  let o = 2;
+  let off = 0;
+  do {
+    const len2 = Math.min(STORED_MAX2, data.length - off);
+    const final = off + len2 >= data.length;
+    out[o++] = final ? 1 : 0;
+    out[o++] = len2 & 255;
+    out[o++] = len2 >>> 8 & 255;
+    out[o++] = ~len2 & 255;
+    out[o++] = ~len2 >>> 8 & 255;
+    out.set(data.subarray(off, off + len2), o);
+    o += len2;
+    off += len2;
+  } while (off < data.length);
+  const a = adler32(data);
+  writeU323(out, o, a);
+  return out.subarray(0, o + 4);
+}
+function packPng(pixels, opts) {
+  const W = Math.floor(opts.width);
+  const H = Math.floor(opts.height);
+  const channels = opts.channels ?? 4;
+  const depth = opts.depth ?? 8;
+  if (!Number.isFinite(W) || !Number.isFinite(H) || W <= 0 || H <= 0) {
+    throw new Error("packPng: width and height must be positive.");
+  }
+  if (channels !== 3 && channels !== 4) {
+    throw new Error(`packPng: unsupported channels ${String(channels)} (3 = RGB, 4 = RGBA).`);
+  }
+  if (depth !== 8 && depth !== 16) {
+    throw new Error(`packPng: unsupported depth ${String(depth)} (8 or 16).`);
+  }
+  if (depth === 8 && !(pixels instanceof Uint8Array || pixels instanceof Uint8ClampedArray)) {
+    throw new Error("packPng: depth 8 requires a Uint8Array or Uint8ClampedArray (pixels.ts owns depth conversion).");
+  }
+  if (depth === 16 && !(pixels instanceof Uint16Array)) {
+    throw new Error("packPng: depth 16 requires a Uint16Array (pixels.ts owns depth conversion).");
+  }
+  const expected = W * H * channels;
+  if (!Number.isSafeInteger(expected)) throw new Error("packPng: image is too large to address.");
+  if (pixels.length !== expected) {
+    throw new Error(`packPng: pixel buffer is ${pixels.length} samples, expected ${expected} (${W}x${H}x${channels}).`);
+  }
+  const bpp = channels * (depth >> 3);
+  const rowBytes = W * bpp;
+  const stride = rowBytes + 1;
+  const filteredLen = stride * H;
+  if (!Number.isSafeInteger(filteredLen)) throw new Error("packPng: image is too large to address.");
+  const cap = opts.maxDeflateBytes ?? DEFAULT_MAX_DEFLATE_BYTES;
+  if (filteredLen > cap && opts.oversize !== "store") {
+    throw new Error(
+      `packPng: ${filteredLen} filtered bytes exceeds maxDeflateBytes (${cap}). That ceiling is now deliberate, not a memory limit: deflate.ts had no incremental surface when the guard was written and now has one (createZlibStream), so a payload this size compresses in constant scratch. Pass oversize: 'store' for an uncompressed (but valid) PNG, or raise maxDeflateBytes deliberately.`
+    );
+  }
+  const streaming = filteredLen > STREAM_ABOVE_BYTES && filteredLen <= cap;
+  const stored = filteredLen > cap;
+  const filtered = streaming ? null : new Uint8Array(filteredLen);
+  const zstream = streaming ? createZlibStream(opts.deflate) : null;
+  const zparts = [];
+  const rowOut = new Uint8Array(stride);
+  let cur = new Uint8Array(rowBytes);
+  let prev = new Uint8Array(rowBytes);
+  const auto = (opts.filter ?? "auto") !== "none";
+  const scratch = auto ? [new Uint8Array(rowBytes), new Uint8Array(rowBytes), new Uint8Array(rowBytes), new Uint8Array(rowBytes)] : [];
+  for (let y = 0; y < H; y++) {
+    const src = y * W * channels;
+    if (depth === 8) {
+      for (let i = 0; i < rowBytes; i++) cur[i] = pixels[src + i] & 255;
+    } else {
+      for (let i = 0, s = src; i < rowBytes; i += 2, s++) {
+        const v = pixels[s] & 65535;
+        cur[i] = v >>> 8;
+        cur[i + 1] = v & 255;
+      }
+    }
+    filterRow(cur, y > 0 ? prev : null, bpp, rowOut, scratch, auto);
+    if (zstream) {
+      const part = zstream.push(rowOut);
+      if (part.length > 0) zparts.push(part);
+    } else {
+      filtered.set(rowOut, y * stride);
+    }
+    const t = prev;
+    prev = cur;
+    cur = t;
+  }
+  let zdata;
+  if (zstream) {
+    zparts.push(zstream.finish());
+    zdata = concat2(zparts);
+  } else if (stored) {
+    zdata = storedZlib(filtered);
+  } else {
+    zdata = zlibCompress(filtered, opts.deflate);
+  }
+  const ihdr = new Uint8Array(13);
+  writeU323(ihdr, 0, W);
+  writeU323(ihdr, 4, H);
+  ihdr[8] = depth;
+  ihdr[9] = channels === 4 ? 6 : 2;
+  ihdr[10] = 0;
+  ihdr[11] = 0;
+  ihdr[12] = 0;
+  const parts = [PNG_SIG3, chunk3("IHDR", ihdr)];
+  if (opts.cicp) {
+    const { primaries, transfer, matrix, fullRange } = opts.cicp;
+    for (const [name, v] of [["primaries", primaries], ["transfer", transfer], ["matrix", matrix], ["fullRange", fullRange]]) {
+      if (!Number.isInteger(v) || v < 0 || v > 255) throw new Error(`packPng: cICP ${name} must be a byte, got ${String(v)}.`);
+    }
+    if (matrix !== 0) throw new Error(`packPng: cICP matrix must be 0 (identity) in a PNG, got ${matrix}.`);
+    parts.push(chunk3("cICP", Uint8Array.of(primaries, transfer, matrix, fullRange)));
+  }
+  if (opts.dpi !== void 0 && opts.dpi > 0) {
+    const ppm = Math.round(opts.dpi / 0.0254);
+    const phys = new Uint8Array(9);
+    writeU323(phys, 0, ppm);
+    writeU323(phys, 4, ppm);
+    phys[8] = 1;
+    parts.push(chunk3("pHYs", phys));
+  }
+  for (const entry of opts.text ?? []) {
+    const keyword = latin1(entry.keyword);
+    if (keyword.length < 1 || keyword.length > 79) {
+      throw new Error(`packPng: iTXt keyword must be 1-79 characters, got ${keyword.length}.`);
+    }
+    if (/\0/.test(entry.keyword) || /^ | $|  /.test(entry.keyword)) {
+      throw new Error("packPng: iTXt keyword must not contain NUL or leading/trailing/consecutive spaces.");
+    }
+    parts.push(chunk3("iTXt", concat2([
+      keyword,
+      Uint8Array.of(0),
+      Uint8Array.of(0, 0),
+      // compression flag 0, method 0
+      latin1(entry.languageTag ?? ""),
+      Uint8Array.of(0),
+      utf82(entry.translatedKeyword ?? ""),
+      Uint8Array.of(0),
+      utf82(entry.text)
+    ])));
+  }
+  const idatMax = Math.max(1, Math.floor(opts.idatChunkBytes ?? DEFAULT_IDAT_CHUNK_BYTES));
+  for (let o = 0; o < zdata.length; o += idatMax) {
+    parts.push(chunk3("IDAT", zdata.subarray(o, Math.min(o + idatMax, zdata.length))));
+  }
+  parts.push(chunk3("IEND", new Uint8Array(0)));
+  return concat2(parts);
+}
+var PNG_SIG3, DEFAULT_MAX_DEFLATE_BYTES, STREAM_ABOVE_BYTES, DEFAULT_IDAT_CHUNK_BYTES, STORED_MAX2, latin1, utf82;
+var init_png = __esm({
+  "engine/src/png.ts"() {
+    "use strict";
+    init_deflate();
+    init_zip_crypto();
+    PNG_SIG3 = Uint8Array.of(137, 80, 78, 71, 13, 10, 26, 10);
+    DEFAULT_MAX_DEFLATE_BYTES = 1024 * 1024 * 1024;
+    STREAM_ABOVE_BYTES = 4 * 1024 * 1024;
+    DEFAULT_IDAT_CHUNK_BYTES = 1024 * 1024;
+    STORED_MAX2 = 65535;
+    latin1 = (s) => {
+      const out = new Uint8Array(s.length);
+      for (let i = 0; i < s.length; i++) {
+        const c = s.charCodeAt(i);
+        if (c > 255) throw new Error(`packPng: ${JSON.stringify(s)} is not Latin-1 (PNG keyword/language fields are).`);
+        out[i] = c;
+      }
+      return out;
+    };
+    utf82 = (s) => new TextEncoder().encode(s);
+  }
+});
+
+// engine/src/data-import.ts
+function parseDataRows(text, opts = {}) {
+  const fields = (opts.fields || []).filter((f) => f && f.id);
+  if (!fields.length) throw new Error("This input has no fields to import into.");
+  if (typeof text !== "string" || !text.trim()) throw new Error("The file is empty.");
+  if (text.length > MAX_IMPORT_CHARS) {
+    throw new Error(`The file is too large to import (over ${Math.round(MAX_IMPORT_CHARS / 1024 / 1024)} MB of text).`);
+  }
+  const limit = Number.isFinite(opts.limit) && opts.limit > 0 ? Math.floor(opts.limit) : DEFAULT_ROW_LIMIT;
+  const format = (opts.format || detectFormat(text)).toLowerCase();
+  let header = null;
+  let records = [];
+  let objectMode = false;
+  if (format === "json") {
+    const arr = readJson(text);
+    records = arr;
+    objectMode = records.length > 0 && records[0] != null && typeof records[0] === "object" && !Array.isArray(records[0]);
+    header = objectMode ? unionKeys(records) : null;
+  } else {
+    const table = readCsv(text).filter((r3) => r3.some((c) => String(c).trim() !== ""));
+    if (!table.length) throw new Error("No rows found in the file.");
+    header = table[0].map((h) => String(h).trim());
+    records = table.slice(1);
+  }
+  if (!records.length) throw new Error("No data rows found in the file.");
+  const columns = opts.columns || {};
+  const lc = (s) => String(s ?? "").trim().toLowerCase();
+  const headerIndex = header && !objectMode ? new Map(header.map((h, i) => [lc(h), i])) : null;
+  const accessors = fields.map((f, fi) => {
+    const want = columns[f.id];
+    const candidates2 = want != null ? [want] : [f.id, f.label];
+    if (objectMode) {
+      const keyByLc = new Map(header.map((k) => [lc(k), k]));
+      let key = null;
+      for (const nm of candidates2) {
+        if (nm == null) continue;
+        if (keyByLc.has(lc(nm))) {
+          key = keyByLc.get(lc(nm));
+          break;
+        }
+      }
+      return (rec) => key != null ? rec[key] : void 0;
+    }
+    if (headerIndex) {
+      let idx = -1;
+      for (const nm of candidates2) {
+        if (nm == null) continue;
+        const hit = headerIndex.get(lc(nm));
+        if (hit != null) {
+          idx = hit;
+          break;
+        }
+      }
+      return (rec) => idx >= 0 ? rec[idx] : void 0;
+    }
+    return (rec) => rec[fi];
+  });
+  const rows = [];
+  let truncated = false;
+  for (const rec of records) {
+    if (rec == null) continue;
+    if (rows.length >= limit) {
+      truncated = true;
+      break;
+    }
+    const row = {};
+    let any = false;
+    for (let i = 0; i < fields.length; i++) {
+      const val = coerce(accessors[i](rec), fields[i]);
+      row[fields[i].id] = val;
+      if (val !== "") any = true;
+    }
+    if (any) rows.push(row);
+  }
+  if (!rows.length) throw new Error("No usable rows \u2014 check the column names match the fields.");
+  return { rows, truncated };
+}
+function detectFormat(text) {
+  const t = text.replace(/^﻿/, "").trim();
+  return t.startsWith("[") || t.startsWith("{") ? "json" : "csv";
+}
+function readJson(text) {
+  let parsed;
+  try {
+    parsed = JSON.parse(text.replace(/^﻿/, ""));
+  } catch {
+    throw new Error("Could not read the JSON file \u2014 it isn\u2019t valid JSON.");
+  }
+  const obj = parsed && typeof parsed === "object" ? parsed : null;
+  const arr = Array.isArray(parsed) ? parsed : obj && Array.isArray(obj.data) ? obj.data : obj && Array.isArray(obj.rows) ? obj.rows : null;
+  if (!arr) throw new Error('JSON must be an array of rows (or { "data": [ \u2026 ] }).');
+  return arr;
+}
+function unionKeys(records) {
+  const seen = [];
+  const has3 = /* @__PURE__ */ new Set();
+  for (const r3 of records) {
+    if (!r3 || typeof r3 !== "object" || Array.isArray(r3)) continue;
+    for (const k of Object.keys(r3)) if (!has3.has(k)) {
+      has3.add(k);
+      seen.push(k);
+    }
+  }
+  return seen;
+}
+function readCsv(text) {
+  const s = text.replace(/^﻿/, "");
+  const rows = [];
+  let row = [], field = "", inQuotes = false, i = 0;
+  while (i < s.length) {
+    const c = s[i];
+    if (inQuotes) {
+      if (c === '"') {
+        if (s[i + 1] === '"') {
+          field += '"';
+          i += 2;
+          continue;
+        }
+        inQuotes = false;
+        i++;
+        continue;
+      }
+      field += c;
+      i++;
+      continue;
+    }
+    if (c === '"') {
+      inQuotes = true;
+      i++;
+      continue;
+    }
+    if (c === ",") {
+      row.push(field);
+      field = "";
+      i++;
+      continue;
+    }
+    if (c === "\r") {
+      i++;
+      continue;
+    }
+    if (c === "\n") {
+      row.push(field);
+      rows.push(row);
+      row = [];
+      field = "";
+      i++;
+      continue;
+    }
+    field += c;
+    i++;
+  }
+  if (field !== "" || row.length) {
+    row.push(field);
+    rows.push(row);
+  }
+  return rows;
+}
+function coerce(raw, field) {
+  if (raw == null) return "";
+  const v = typeof raw === "string" ? raw.trim() : String(raw);
+  if (field.type === "boolean") {
+    const t = v.toLowerCase();
+    if (["true", "1", "yes", "y", "on"].includes(t)) return "true";
+    if (["false", "0", "no", "n", "off", ""].includes(t)) return "false";
+  }
+  return v;
+}
+var DEFAULT_ROW_LIMIT, MAX_IMPORT_CHARS;
+var init_data_import = __esm({
+  "engine/src/data-import.ts"() {
+    "use strict";
+    DEFAULT_ROW_LIMIT = 1e3;
+    MAX_IMPORT_CHARS = 8 * 1024 * 1024;
+  }
+});
+
+// engine/src/design-map.ts
+function num4(v, d) {
+  const x = typeof v === "number" ? v : parseFloat(v);
+  return isFinite(x) ? x : d;
+}
+function clamp3(v, a, b) {
+  return v < a ? a : v > b ? b : v;
+}
+function round1(v) {
+  return Math.round(v * 10) / 10;
+}
+function round2(v) {
+  return Math.round(v * 100) / 100;
+}
+function get(o, k) {
+  return o != null && typeof o === "object" ? o[k] : void 0;
+}
+function safeColor(v, fallback) {
+  const s = String(v == null ? "" : v).trim();
+  if (!s) return fallback;
+  if (/^#[0-9a-fA-F]{3,8}$/.test(s)) return s;
+  if (/^(rgb|rgba|hsl|hsla)\([0-9.,%\s/]+\)$/i.test(s)) return s;
+  if (/^[a-zA-Z]+$/.test(s)) return s;
+  return fallback;
+}
+function decomposeMatrix(m) {
+  const a = num4(m && m.a, 1), b = num4(m && m.b, 0);
+  const c = num4(m && m.c, 0), d = num4(m && m.d, 1);
+  const e = num4(m && m.e, 0), f = num4(m && m.f, 0);
+  const rot = Math.atan2(b, a) * 180 / Math.PI;
+  const sx = Math.hypot(a, b);
+  const sy = sx === 0 ? Math.hypot(c, d) : (a * d - b * c) / sx;
+  return { tx: e, ty: f, sx, sy, rot };
+}
+function boxGeomFromBBox(bbox, m) {
+  const bx = num4(bbox && bbox.x, 0), by = num4(bbox && bbox.y, 0);
+  const bw = num4(bbox && bbox.width, 0), bh = num4(bbox && bbox.height, 0);
+  const a = num4(m && m.a, 1), b = num4(m && m.b, 0);
+  const c = num4(m && m.c, 0), d = num4(m && m.d, 1);
+  const e = num4(m && m.e, 0), f = num4(m && m.f, 0);
+  const lx = bx + bw / 2, ly = by + bh / 2;
+  const cx = a * lx + c * ly + e;
+  const cy = b * lx + d * ly + f;
+  const dec = decomposeMatrix({ a, b, c, d, e, f });
+  const w = bw * Math.abs(dec.sx);
+  const h = bh * Math.abs(dec.sy);
+  return { x: cx - w / 2, y: cy - h / 2, w, h, rot: dec.rot };
+}
+function mapWeight(weight, font, fonts) {
+  let w = clamp3(Math.round(num4(weight, 700) / 100) * 100, 100, 900);
+  const monoFamily = (fonts && fonts.monoFamily) ?? DEFAULT_FONTS.monoFamily;
+  const monoMax = (fonts && fonts.monoMaxWeight) ?? DEFAULT_FONTS.monoMaxWeight;
+  if (String(font) === monoFamily && w > monoMax) w = monoMax;
+  return String(w);
+}
+function mapFontFamily(family, fonts) {
+  const fam = String(family == null ? "" : family).trim();
+  const hit = fonts?.knownFamilies?.find((k) => k.toLowerCase() === fam.toLowerCase());
+  if (hit) return hit;
+  return /mono|consol|courier|menlo|code/i.test(String(family == null ? "" : family)) ? (fonts && fonts.monoFamily) ?? DEFAULT_FONTS.monoFamily : (fonts && fonts.defaultFamily) ?? DEFAULT_FONTS.defaultFamily;
+}
+function mapAlign(a) {
+  const s = String(a == null ? "" : a).trim().toLowerCase();
+  if (s === "center" || s === "centre" || s === "middle") return "center";
+  if (s === "right" || s === "end") return "right";
+  return "left";
+}
+function colorRunsToText(runs, defaultHex) {
+  const def = String(defaultHex == null ? "" : defaultHex).toLowerCase();
+  const flat = [];
+  for (const r3 of Array.isArray(runs) ? runs : []) {
+    if (!r3 || r3.text == null) continue;
+    const col = r3.color && /^#[0-9a-fA-F]{3,8}$/.test(r3.color) ? String(r3.color).toLowerCase() : "";
+    const parts = String(r3.text).split("\n");
+    parts.forEach((p, idx) => {
+      if (idx > 0) flat.push({ text: "\n", color: "" });
+      if (p) flat.push({ text: p, color: col });
+    });
+  }
+  const merged = [];
+  for (const r3 of flat) {
+    const last = merged[merged.length - 1];
+    if (last && last.color === r3.color && last.text !== "\n" && r3.text !== "\n") last.text += r3.text;
+    else merged.push({ text: r3.text, color: r3.color });
+  }
+  const esc3 = (t) => t.replace(/([*_])/g, "\\$1");
+  return merged.map((r3) => {
+    if (r3.text === "\n") return "\n";
+    const t = esc3(r3.text);
+    return r3.color && r3.color !== def ? "{" + r3.color + "|" + t + "}" : t;
+  }).join("");
+}
+function has2(o, k) {
+  return o != null && Object.hasOwn(o, k);
+}
+function nodeToBox(node, opts) {
+  const n2 = node || {};
+  const o = opts || {};
+  const id = o.id != null ? String(o.id) : "";
+  const kind = n2.kind === "text" ? "text" : n2.kind === "image" ? "image" : "box";
+  const seed = SEED[kind];
+  const sc = o.seedColors || {};
+  const seedBg = kind === "box" ? sc.boxBg ?? seed.bg : kind === "image" ? sc.imageBg ?? seed.bg : seed.bg;
+  const x = Math.round(num4(n2.x, 0));
+  const y = Math.round(num4(n2.y, 0));
+  const w = Math.max(1, Math.round(num4(n2.w, 1)));
+  const h = Math.max(1, Math.round(num4(n2.h, 1)));
+  const rot = round1(num4(n2.rot, 0));
+  const opacity = clamp3(Math.round(num4(n2.opacity, 100)), 0, 100);
+  const shape = SHAPES[n2.shape] ? n2.shape : num4(n2.radius, 0) > 0 ? "rounded" : "rect";
+  const radius = Math.max(0, Math.round(num4(n2.radius, shape === "rounded" ? 16 : 0)));
+  const bg = has2(n2, "fill") ? safeColor(n2.fill, "") : seedBg;
+  const font = mapFontFamily(n2.fontFamily, o.fonts);
+  const weight = mapWeight(n2.fontWeight, font, o.fonts);
+  const align = mapAlign(n2.textAlign);
+  const fontSize = Math.max(1, Math.round(num4(n2.fontSize, kind === "text" ? 64 : 48)));
+  const lineHeight = num4(n2.lineHeight, seed.lineHeight != null ? seed.lineHeight : 1.12);
+  const img = n2.image;
+  const image = img && typeof img === "object" && img.id != null && img.id !== "" ? img : null;
+  const fit = FITS[n2.fit] ? n2.fit : seed.fit || "contain";
+  return {
+    id,
+    kind,
+    x,
+    y,
+    w,
+    h,
+    rot,
+    shape,
+    radius,
+    bg,
+    grad: n2.grad != null ? String(n2.grad) : "",
+    opacity,
+    image,
+    fit,
+    blend: BLENDS[n2.blend] ? n2.blend : "normal",
+    text: n2.text != null ? String(n2.text) : "",
+    fg: safeColor(n2.fg, sc.textFg ?? SEED.text.fg),
+    fontSize,
+    align,
+    valign: kind === "text" ? seed.valign || "top" : "middle",
+    weight,
+    font,
+    lineHeight,
+    group: n2.group != null && n2.group !== "" ? String(n2.group) : "",
+    clip: "",
+    pad: Math.max(0, Math.round(num4(n2.pad, 8))),
+    shadow: n2.shadow || "none",
+    shadowColor: n2.shadowColor ? safeColor(n2.shadowColor, "#00000055") : "#00000055",
+    shadowX: Math.round(num4(n2.shadowX, 0)),
+    shadowY: Math.round(num4(n2.shadowY, 0)),
+    shadowBlur: Math.round(num4(n2.shadowBlur, 10)),
+    blur: clamp3(round1(num4(n2.blur, 0)), 0, 300),
+    stroke: n2.stroke ? safeColor(n2.stroke, "") : "",
+    strokeW: Math.max(0, num4(n2.strokeW, 0) ?? 0),
+    strokeDash: n2.strokeDash === "dashed" || n2.strokeDash === "dotted" ? n2.strokeDash : "",
+    // Authored dash/gap lengths (Penpot 2.17 PR #9765). Numbers, never strings, so
+    // the compact blocks URL form is untouched — it cannot carry a comma or a tilde.
+    // 0 keeps the editor's width-proportional synthesis, so an unauthored row is
+    // byte-identical to what it produced before these fields existed.
+    strokeDashLen: Math.max(0, round2(num4(n2.strokeDashLen, 0))),
+    strokeGapLen: Math.max(0, round2(num4(n2.strokeGapLen, 0))),
+    // Backdrop blur (frosted glass) — CSS backdrop-filter, same 0..300 clamp and
+    // 1-decimal rounding as `blur`. 0 is off, so a row without the field renders
+    // byte-identically to one from before the field existed.
+    bgBlur: clamp3(round1(num4(n2.bgBlur, 0)), 0, 300)
+  };
+}
+function finalizeBoxes(nodes, opts) {
+  const prefix = opts && opts.prefix != null ? String(opts.prefix) : "n";
+  const list2 = Array.isArray(nodes) ? nodes : [];
+  const out = [];
+  for (const node of list2) {
+    if (node == null) continue;
+    const kind = node.kind === "text" ? "text" : node.kind === "image" ? "image" : "box";
+    if (kind !== "text" && num4(node.w, 0) < 1 && num4(node.h, 0) < 1) continue;
+    out.push(nodeToBox(node, { id: prefix + out.length, fonts: opts?.fonts, seedColors: opts?.seedColors }));
+  }
+  return out;
+}
+function camelKey(k) {
+  return k.replace(/-([a-z])/g, (_, c) => c.toUpperCase());
+}
+function pget(o, k) {
+  if (o == null) return void 0;
+  const obj = o;
+  if (obj[k] !== void 0) return obj[k];
+  if (obj[":" + k] !== void 0) return obj[":" + k];
+  const ck = camelKey(k);
+  if (ck !== k && obj[ck] !== void 0) return obj[ck];
+  return void 0;
+}
+function pkids(o) {
+  const c = pget(o, "children");
+  return Array.isArray(c) ? c : [];
+}
+function isLeaf(n2) {
+  return n2 != null && pget(n2, "text") !== void 0;
+}
+function numOrNull(v) {
+  const x = parseFloat(v);
+  return isFinite(x) ? x : null;
+}
+function penpotLeafColor(leaf) {
+  const fc = pget(leaf, "fill-color");
+  if (fc != null) return String(fc);
+  const fills = pget(leaf, "fills");
+  if (Array.isArray(fills) && fills[0]) {
+    const ffc = pget(fills[0], "fill-color");
+    if (ffc != null) return String(ffc);
+  }
+  return "";
+}
+function parsePenpotContent(contentJson) {
+  const empty = { text: "", fontSize: null, fontWeight: null, fontFamily: "", fg: "", textAlign: "left", lineHeight: null };
+  let root = contentJson;
+  if (typeof contentJson === "string") {
+    try {
+      root = JSON.parse(contentJson);
+    } catch {
+      return empty;
+    }
+  }
+  if (!root || typeof root !== "object") return empty;
+  const runs = [];
+  let firstStyle = null;
+  let firstAlign = null;
+  let paraCount = 0;
+  function collectParagraph(p) {
+    if (firstAlign == null) {
+      const al = pget(p, "text-align");
+      if (al != null) firstAlign = String(al);
+    }
+    const leaves = [];
+    (function gather(node) {
+      if (isLeaf(node)) {
+        leaves.push(node);
+        return;
+      }
+      pkids(node).forEach(gather);
+    })(p);
+    if (!leaves.length && isLeaf(p)) leaves.push(p);
+    if (paraCount > 0) runs.push({ text: "\n", color: "" });
+    paraCount++;
+    for (const lf of leaves) {
+      const leafText = pget(lf, "text");
+      const t = String(leafText != null ? leafText : "");
+      runs.push({ text: t, color: penpotLeafColor(lf) });
+      if (!firstStyle && t !== "") firstStyle = lf;
+    }
+  }
+  (function walk2(n2) {
+    if (n2 == null || typeof n2 !== "object") return;
+    const type = pget(n2, "type");
+    const children = pkids(n2);
+    if (type === "paragraph" || type == null && children.some(isLeaf)) {
+      collectParagraph(n2);
+      return;
+    }
+    if (isLeaf(n2) && !children.length) {
+      collectParagraph(n2);
+      return;
+    }
+    children.forEach(walk2);
+  })(root);
+  const fg = firstStyle ? penpotLeafColor(firstStyle) : "";
+  let fontFamily = "";
+  if (firstStyle) {
+    const ff = pget(firstStyle, "font-family");
+    if (ff != null) fontFamily = String(ff);
+  }
+  return {
+    text: colorRunsToText(runs, fg),
+    fontSize: firstStyle ? numOrNull(pget(firstStyle, "font-size")) : null,
+    fontWeight: firstStyle ? numOrNull(pget(firstStyle, "font-weight")) : null,
+    fontFamily,
+    fg,
+    textAlign: firstAlign != null ? firstAlign : "left",
+    lineHeight: firstStyle ? numOrNull(pget(firstStyle, "line-height")) : null
+  };
+}
+function collectPenpotFontUsage(contentJson) {
+  let root = contentJson;
+  if (typeof contentJson === "string") {
+    try {
+      root = JSON.parse(contentJson);
+    } catch {
+      return [];
+    }
+  }
+  if (!root || typeof root !== "object") return [];
+  const byKey = /* @__PURE__ */ new Map();
+  (function walk2(n2) {
+    if (n2 == null || typeof n2 !== "object") return;
+    const fid = pget(n2, "font-id");
+    if (fid !== void 0) {
+      const fontId = String(fid);
+      const fontVariantId = String(pget(n2, "font-variant-id") ?? "");
+      const fontStyle = String(pget(n2, "font-style") ?? "normal");
+      const key = `${fontId}|${fontVariantId}|${fontStyle}`;
+      const cur = byKey.get(key);
+      if (cur) {
+        cur.runs++;
+      } else {
+        const w = Number(pget(n2, "font-weight"));
+        byKey.set(key, {
+          fontId,
+          fontFamily: String(pget(n2, "font-family") ?? ""),
+          fontVariantId,
+          fontWeight: Number.isFinite(w) ? w : 400,
+          fontStyle,
+          runs: 1
+        });
+      }
+    }
+    pkids(n2).forEach(walk2);
+  })(root);
+  return [...byKey.values()];
+}
+function penpotGradientToSpec(g2, w, h, fillOpacity) {
+  const grad = g2 && typeof g2 === "object" ? g2 : null;
+  const stops = grad && Array.isArray(grad.stops) ? grad.stops : [];
+  if (!grad || stops.length < 2) return "";
+  const kind = String(grad.type || "") === "radial" ? "rad" : "lin";
+  const dx = (num4(grad.endX, 1) - num4(grad.startX, 0)) * Math.max(1, w);
+  const dy = (num4(grad.endY, 1) - num4(grad.startY, 0)) * Math.max(1, h);
+  const angle = kind === "rad" ? 0 : Math.round((Math.atan2(dx, -dy) * 180 / Math.PI + 360) % 360);
+  const parts = [];
+  const fo = clamp3(fillOpacity, 0, 1);
+  for (const raw of stops.slice(0, MAX_PENPOT_GRADIENT_STOPS)) {
+    const st = raw && typeof raw === "object" ? raw : null;
+    const hex6 = safeColor(String(st?.color ?? ""), "");
+    if (!hex6) return "";
+    const a = Math.round(clamp3(num4(st?.opacity, 1), 0, 1) * fo * 255);
+    const hex = (hex6.replace(/^#/, "") + (a < 255 ? a.toString(16).padStart(2, "0") : "")).toLowerCase();
+    const pos = clamp3(Math.round(num4(st?.offset, 0) * 100), 0, 100);
+    parts.push(`${hex}-${pos}`);
+  }
+  return `${kind}.srgb_${angle}_${parts.join("_")}`;
+}
+function penpotTransformBaked(t) {
+  if (!t || typeof t !== "object") return false;
+  const m = t;
+  return Math.abs(num4(m.a, 1) - 1) + Math.abs(num4(m.b, 0)) + Math.abs(num4(m.c, 0)) + Math.abs(num4(m.d, 1) - 1) > 1e-3;
+}
+function pathDBounds(d) {
+  const s = String(d ?? "");
+  const NUM_RE2 = /-?(?:\d+\.?\d*|\.\d+)(?:[eE][+-]?\d+)?/g;
+  const cmds = s.replace(NUM_RE2, " ").match(/[A-Za-z]/g) || [];
+  if (!cmds.length || cmds.some((c) => c !== "M" && c !== "L" && c !== "C" && c !== "Z")) return null;
+  const nums = s.match(NUM_RE2) || [];
+  let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+  for (let i = 0; i + 1 < nums.length; i += 2) {
+    const px = parseFloat(nums[i]), py = parseFloat(nums[i + 1]);
+    if (!Number.isFinite(px) || !Number.isFinite(py)) continue;
+    if (px < minX) minX = px;
+    if (px > maxX) maxX = px;
+    if (py < minY) minY = py;
+    if (py > maxY) maxY = py;
+  }
+  if (!Number.isFinite(minX)) return null;
+  return { x: minX, y: minY, w: maxX - minX, h: maxY - minY };
+}
+function mirrorPenpotGradient(g2, flipX, flipY) {
+  if (!flipX && !flipY || !g2 || typeof g2 !== "object") return g2;
+  const grad = g2;
+  const out = { ...grad };
+  if (flipX) {
+    out.startX = 1 - num4(grad.startX, 0);
+    out.endX = 1 - num4(grad.endX, 1);
+  }
+  if (flipY) {
+    out.startY = 1 - num4(grad.startY, 0);
+    out.endY = 1 - num4(grad.endY, 1);
+  }
+  return out;
+}
+function penpotRoundedRectD(x, y, w, h, r3) {
+  const px = (v) => `${Math.max(0, num4(v, 0))}px`;
+  const radii = cornerRadii({ topLeft: px(r3[0]), topRight: px(r3[1]), bottomRight: px(r3[2]), bottomLeft: px(r3[3]) }, w, h);
+  return roundedRectPath(x, y, w, h, radii);
+}
+function penpotUnequalCorners(sh) {
+  const r1 = num4(sh.r1, 0);
+  const r22 = num4(sh.r2, r1), r3 = num4(sh.r3, r1), r4 = num4(sh.r4, r1);
+  if (r1 === r22 && r1 === r3 && r1 === r4) return null;
+  let c = [r1, r22, r3, r4];
+  if (sh.flipX === true) c = [c[1], c[0], c[3], c[2]];
+  if (sh.flipY === true) c = [c[3], c[2], c[1], c[0]];
+  return c;
+}
+function penpotPathContentToD(content) {
+  if (typeof content === "string") {
+    const d = content.trim();
+    return /^[Mm]/.test(d) ? d : "";
+  }
+  if (Array.isArray(content)) {
+    const parts = [];
+    for (const seg of content) {
+      const cmd = String(pget(seg, "command") ?? "").replace(/^:/, "");
+      const p = pget(seg, "params");
+      const n2 = (k) => num4(pget(p, k), 0);
+      if (cmd === "move-to") parts.push(`M${n2("x")},${n2("y")}`);
+      else if (cmd === "line-to") parts.push(`L${n2("x")},${n2("y")}`);
+      else if (cmd === "curve-to") parts.push(`C${n2("c1x")},${n2("c1y")},${n2("c2x")},${n2("c2y")},${n2("x")},${n2("y")}`);
+      else if (cmd === "close-path") parts.push("Z");
+      else return "";
+    }
+    return parts.length && parts[0].startsWith("M") ? parts.join("") : "";
+  }
+  return "";
+}
+function safePathD(v) {
+  const s = String(v == null ? "" : v).trim();
+  return /^[Mm]/.test(s) ? s.replace(/[^-+0-9eE.,\sA-Za-z]/g, "") : "";
+}
+function strokeStyleOf(st) {
+  const s = String(pget(st, "stroke-style") ?? "solid").replace(/^:/, "").trim().toLowerCase();
+  return s || "solid";
+}
+function strokeLen(st, key) {
+  const v = pget(st, key);
+  if (v == null) return void 0;
+  const n2 = typeof v === "number" ? v : parseFloat(String(v));
+  return isFinite(n2) && n2 >= 0 ? n2 : void 0;
+}
+function topPenpotStroke(sh) {
+  const list2 = Array.isArray(sh.strokes) ? sh.strokes : [];
+  for (let i = list2.length - 1; i >= 0; i--) {
+    const st = list2[i];
+    if (!st || typeof st !== "object") continue;
+    const style = strokeStyleOf(st);
+    if (style === "none") continue;
+    const width = num4(get(st, "strokeWidth"), 0);
+    const color = safeColor(get(st, "strokeColor"), "");
+    if (width > 0 && color) {
+      const out = {
+        color,
+        width,
+        opacity: clamp3(num4(get(st, "strokeOpacity"), 1), 0, 1),
+        style
+      };
+      const d = strokeLen(st, "stroke-dash");
+      if (d !== void 0) out.dash = d;
+      const g2 = strokeLen(st, "stroke-gap");
+      if (g2 !== void 0) out.gap = g2;
+      const cs = pget(st, "stroke-cap-start");
+      if (cs != null) out.capStart = String(cs).replace(/^:/, "");
+      const ce = pget(st, "stroke-cap-end");
+      if (ce != null) out.capEnd = String(ce).replace(/^:/, "");
+      return out;
+    }
+  }
+  return null;
+}
+function penpotDashArray(style, w, dash, gap) {
+  const s = String(style || "solid");
+  if (s === "dashed") {
+    const d = dash != null && dash > 0 ? dash : w + 10;
+    const g2 = gap != null && gap > 0 ? gap : w + 10;
+    return `${round2(d)},${round2(g2)}`;
+  }
+  if (s === "dotted") return `0,${round2(w + 5)}`;
+  if (s === "mixed") return `${round2(w + 5)},${round2(w + 5)},${round2(w + 1)},${round2(w + 5)}`;
+  return "";
+}
+function penpotLineCap(st) {
+  const raw = String(st.capStart ?? st.capEnd ?? "");
+  if (SVG_LINECAPS.has(raw)) return raw;
+  return st.style === "dotted" ? "round" : "";
+}
+function penpotGradientSvgDef(g2, id, fillOpacity) {
+  const grad = g2 && typeof g2 === "object" ? g2 : null;
+  const stops = grad && Array.isArray(grad.stops) ? grad.stops : [];
+  if (!grad || stops.length < 2) return "";
+  const fo = clamp3(num4(fillOpacity, 1), 0, 1);
+  const stopEls = [];
+  for (const raw of stops) {
+    const st = raw && typeof raw === "object" ? raw : null;
+    const c = safeColor(String(st?.color ?? ""), "");
+    if (!c) return "";
+    const so = Math.round(clamp3(num4(st?.opacity, 1), 0, 1) * fo * 1e3) / 1e3;
+    const off = clamp3(num4(st?.offset, 0), 0, 1);
+    stopEls.push(`<stop offset="${off}" stop-color="${c}"${so < 1 ? ` stop-opacity="${so}"` : ""}/>`);
+  }
+  const sx = num4(grad.startX, 0), sy = num4(grad.startY, 0);
+  const ex = num4(grad.endX, 1), ey = num4(grad.endY, 1);
+  if (String(grad.type || "") === "radial") {
+    const r3 = Math.max(1e-3, Math.hypot(ex - sx, ey - sy));
+    return `<radialGradient id="${id}" gradientUnits="objectBoundingBox" cx="${sx}" cy="${sy}" r="${r3}">${stopEls.join("")}</radialGradient>`;
+  }
+  return `<linearGradient id="${id}" gradientUnits="objectBoundingBox" x1="${sx}" y1="${sy}" x2="${ex}" y2="${ey}">${stopEls.join("")}</linearGradient>`;
+}
+function hasVisibleShadow(sh) {
+  const list2 = Array.isArray(sh.shadow) ? sh.shadow : [];
+  return list2.some((e) => e && typeof e === "object" && get(e, "hidden") !== true);
+}
+function penpotGroupToSvg(group, lookup) {
+  if (!group || typeof group !== "object") return "";
+  const g2 = group;
+  if (String(g2.type || "") !== "group") return "";
+  const selRaw = g2.selrect && typeof g2.selrect === "object" ? g2.selrect : g2;
+  const sel = selRaw;
+  const vx = num4(sel.x, num4(g2.x, 0)), vy = num4(sel.y, num4(g2.y, 0));
+  const vw = num4(sel.width, num4(g2.width, 0)), vh = num4(sel.height, num4(g2.height, 0));
+  if (!(vw > 0) || !(vh > 0)) return "";
+  let seq = 0;
+  let count2 = 0;
+  const defs = [];
+  const paint = (sh) => {
+    const fills = Array.isArray(sh.fills) ? sh.fills : [];
+    if (fills.some((f) => f && f.fillImage && f.fillImage.id != null)) return null;
+    const gradFill = [...fills].reverse().find((f) => f && f.fillColorGradient && Array.isArray(f.fillColorGradient.stops) && f.fillColorGradient.stops.length >= 2) || null;
+    const topFill = fills.length ? fills[fills.length - 1] ?? null : null;
+    let fill = "none", fillOp = "";
+    if (gradFill) {
+      const id = `pg${seq++}`;
+      const def = penpotGradientSvgDef(
+        mirrorPenpotGradient(gradFill.fillColorGradient, sh.flipX === true, sh.flipY === true),
+        id,
+        num4(gradFill.fillOpacity, 1)
+      );
+      if (!def) return null;
+      defs.push(def);
+      fill = `url(#${id})`;
+    } else if (topFill && topFill.fillColor != null) {
+      const c = safeColor(topFill.fillColor, "");
+      if (!c) return null;
+      fill = c;
+      const fo = clamp3(num4(topFill.fillOpacity, 1), 0, 1);
+      if (fo < 1) fillOp = ` fill-opacity="${fo}"`;
+    }
+    const st = topPenpotStroke(sh);
+    const dashAttr = st ? penpotDashArray(String(st.style || "solid"), st.width, st.dash, st.gap) : "";
+    const capAttr = st ? penpotLineCap(st) : "";
+    const stroke = st ? ` stroke="${st.color}" stroke-width="${st.width}"` + (st.opacity != null && st.opacity < 1 ? ` stroke-opacity="${st.opacity}"` : "") + (dashAttr ? ` stroke-dasharray="${dashAttr}"` : "") + (capAttr ? ` stroke-linecap="${capAttr}"` : "") : "";
+    const op = clamp3(num4(sh.opacity, 1), 0, 1);
+    return ` fill="${fill}"${fillOp}${stroke}${op < 1 ? ` opacity="${op}"` : ""}`;
+  };
+  const rotAttr = (sh, cx, cy) => {
+    const r3 = num4(sh.rotation, 0);
+    return r3 ? ` transform="rotate(${round1(r3)} ${cx} ${cy})"` : "";
+  };
+  const leaf = (sh, type) => {
+    if (hasVisibleShadow(sh)) return null;
+    if (penpotBackgroundBlurPx(sh) > 0) return null;
+    const p = paint(sh);
+    if (p == null) return null;
+    const sr = sh.selrect && typeof sh.selrect === "object" ? sh.selrect : sh;
+    const x = num4(sr.x, 0), y = num4(sr.y, 0), w = num4(sr.width, 0), h = num4(sr.height, 0);
+    const bv = (() => {
+      const b = sh.blur;
+      if (!b || typeof b !== "object") return 0;
+      if (get(b, "hidden") === true) return 0;
+      if (String(get(b, "type") || "") !== "layer-blur") return 0;
+      const v = num4(get(b, "value"), 0);
+      return v > 0 ? v : 0;
+    })();
+    let filterAttr = "";
+    if (bv > 0) {
+      const pad = bv * 3 + 8;
+      const fid = `pb${seq++}`;
+      defs.push(`<filter id="${fid}" filterUnits="userSpaceOnUse" x="${x - pad}" y="${y - pad}" width="${w + 2 * pad}" height="${h + 2 * pad}" color-interpolation-filters="sRGB"><feGaussianBlur stdDeviation="${round1(bv)}"/></filter>`);
+      filterAttr = ` filter="url(#${fid})"`;
+    }
+    if (type === "path" || type === "bool") {
+      const d = safePathD(penpotPathContentToD(sh.content));
+      return d ? `<path d="${d}"${p}${filterAttr}/>` : null;
+    }
+    if (type === "circle") {
+      return `<ellipse cx="${x + w / 2}" cy="${y + h / 2}" rx="${w / 2}" ry="${h / 2}"${p}${rotAttr(sh, x + w / 2, y + h / 2)}${filterAttr}/>`;
+    }
+    if (type === "rect") {
+      const corners = penpotUnequalCorners(sh);
+      if (corners) {
+        return `<path d="${penpotRoundedRectD(x, y, w, h, corners)}"${p}${rotAttr(sh, x + w / 2, y + h / 2)}${filterAttr}/>`;
+      }
+      const r1 = num4(sh.r1, 0);
+      return `<rect x="${x}" y="${y}" width="${w}" height="${h}"${r1 > 0 ? ` rx="${r1}"` : ""}${p}${rotAttr(sh, x + w / 2, y + h / 2)}${filterAttr}/>`;
+    }
+    return null;
+  };
+  const serializeGroup = (sh, isRoot) => {
+    const ids = Array.isArray(sh.shapes) ? sh.shapes : [];
+    const masked = sh.maskedGroup === true;
+    const parts = [];
+    let clip3 = "";
+    for (let i = 0; i < ids.length; i++) {
+      const child = lookup(String(ids[i]));
+      if (!child || typeof child !== "object") return null;
+      const cs = child;
+      if (cs.hidden === true) continue;
+      if (++count2 > MAX_VECTOR_GROUP_SHAPES) return null;
+      const ctype = String(cs.type || "");
+      if (masked && i === 0 && ctype === "group") return null;
+      const frag = ctype === "group" ? serializeGroup(cs, false) : leaf(cs, ctype);
+      if (frag == null) return null;
+      if (masked && i === 0) {
+        clip3 = frag;
+        continue;
+      }
+      parts.push(frag);
+    }
+    if (!parts.length) return isRoot ? null : "";
+    const op = clamp3(num4(sh.opacity, 1), 0, 1);
+    const opAttr = !isRoot && op < 1 ? ` opacity="${op}"` : "";
+    if (masked && clip3) {
+      const cid = `pc${seq++}`;
+      defs.push(`<clipPath id="${cid}">${clip3}</clipPath>`);
+      return `<g clip-path="url(#${cid})"${opAttr}>${parts.join("")}</g>`;
+    }
+    return opAttr ? `<g${opAttr}>${parts.join("")}</g>` : parts.join("");
+  };
+  const body = serializeGroup(g2, true);
+  if (!body) return "";
+  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="${vx} ${vy} ${vw} ${vh}" width="${Math.max(1, Math.round(vw))}" height="${Math.max(1, Math.round(vh))}">` + (defs.length ? `<defs>${defs.join("")}</defs>` : "") + body + `</svg>`;
+}
+function penpotShapeToNode(shape) {
+  if (!shape || typeof shape !== "object") return null;
+  const sh = shape;
+  if (sh.id === "00000000-0000-0000-0000-000000000000") return null;
+  const type = String(sh.type || "");
+  const selRaw = sh.selrect && typeof sh.selrect === "object" ? sh.selrect : sh;
+  const sel = selRaw;
+  const x = num4(sel.x, num4(sh.x, 0));
+  const y = num4(sel.y, num4(sh.y, 0));
+  const w = num4(sel.width, num4(sh.width, 0));
+  const h = num4(sel.height, num4(sh.height, 0));
+  const rot = num4(sh.rotation, 0);
+  const shapeOp = num4(sh.opacity, 1);
+  const fills = Array.isArray(sh.fills) ? sh.fills : [];
+  if (type === "text" && sh.content) {
+    const info = parsePenpotContent(sh.content);
+    const node2 = {
+      kind: "text",
+      x,
+      y,
+      w,
+      h,
+      rot,
+      text: info.text,
+      textAlign: info.textAlign,
+      opacity: clamp3(Math.round(shapeOp * 100), 0, 100)
+    };
+    if (info.fg) node2.fg = info.fg;
+    if (info.fontSize) node2.fontSize = info.fontSize;
+    if (info.fontWeight) node2.fontWeight = info.fontWeight;
+    if (info.fontFamily) node2.fontFamily = info.fontFamily;
+    if (info.lineHeight) node2.lineHeight = info.lineHeight;
+    applyPenpotShadow(sh, node2);
+    applyPenpotBlur(sh, node2);
+    return node2;
+  }
+  const imgFill = fills.find((f) => f && f.fillImage && f.fillImage.id != null);
+  if (imgFill) {
+    const node2 = {
+      kind: "image",
+      x,
+      y,
+      w,
+      h,
+      rot,
+      _fillImageId: String(imgFill.fillImage.id),
+      opacity: clamp3(Math.round(shapeOp * num4(imgFill.fillOpacity, 1) * 100), 0, 100),
+      fit: imgFill.fillImage.keepAspectRatio === false ? "fill" : "cover"
+    };
+    const flip = (sh.flipX === true ? "x" : "") + (sh.flipY === true ? "y" : "");
+    if (flip) node2._fillFlip = flip;
+    applyPenpotStroke(sh, node2);
+    applyPenpotShadow(sh, node2);
+    applyPenpotBlur(sh, node2);
+    applyPenpotBackgroundBlur(sh, node2);
+    return node2;
+  }
+  const topFill = fills.length ? fills[fills.length - 1] ?? null : null;
+  const gradFill = [...fills].reverse().find((f) => f && f.fillColorGradient && Array.isArray(f.fillColorGradient.stops) && f.fillColorGradient.stops.length >= 2) || null;
+  if (type === "path" || type === "bool") {
+    const d = penpotPathContentToD(sh.content);
+    if (d) {
+      const gradFirst = gradFill ? gradFill.fillColorGradient.stops[0] ?? null : null;
+      const bb = penpotTransformBaked(sh.transform) ? pathDBounds(d) : null;
+      const bx = bb ? bb.x : x, by = bb ? bb.y : y;
+      const bw = bb ? Math.max(1, bb.w) : w, bh = bb ? Math.max(1, bb.h) : h;
+      const node2 = {
+        // Explicit fill:'' — the baked SVG is transparent outside its outline, so the
+        // image box must not seed a backing colour behind it (nodeToBox seedBg).
+        kind: "image",
+        x: bx,
+        y: by,
+        w: bw,
+        h: bh,
+        rot: bb ? 0 : rot,
+        fit: "fill",
+        fill: "",
+        _vectorPath: d,
+        // Gradient degrades to its first stop when the bake can't emit the def;
+        // fill-less paths (stroke-only lines/arrows) stay unfilled, not black.
+        _vectorFill: gradFirst ? safeColor(String(gradFirst.color ?? ""), "") || "none" : topFill && topFill.fillColor != null ? String(topFill.fillColor) : "none",
+        _vectorGradient: gradFill ? gradFill.fillColorGradient : null,
+        _vectorStroke: topPenpotStroke(sh),
+        _vectorSize: { w: bw, h: bh, x: bx, y: by },
+        // fillOpacity folds into node opacity (uniform over the one fill this branch bakes).
+        opacity: clamp3(Math.round(shapeOp * num4((gradFill ?? topFill)?.fillOpacity, 1) * 100), 0, 100)
+      };
+      applyPenpotShadow(sh, node2);
+      applyPenpotBlur(sh, node2);
+      return node2;
+    }
+  }
+  const node = {
+    kind: "box",
+    x,
+    y,
+    w,
+    h,
+    rot,
+    fill: topFill && topFill.fillColor != null ? String(topFill.fillColor) : "",
+    opacity: clamp3(Math.round(shapeOp * num4(topFill && topFill.fillOpacity, 1) * 100), 0, 100)
+  };
+  if (gradFill) {
+    const spec = penpotGradientToSpec(
+      mirrorPenpotGradient(gradFill.fillColorGradient, sh.flipX === true, sh.flipY === true),
+      w,
+      h,
+      num4(gradFill.fillOpacity, 1)
+    );
+    if (spec) {
+      node.grad = spec;
+      const first = gradFill.fillColorGradient.stops[0] ?? null;
+      node.fill = safeColor(String(first?.color ?? ""), "") || node.fill;
+      node.opacity = clamp3(Math.round(shapeOp * 100), 0, 100);
+    }
+  }
+  if (type === "circle") node.shape = "ellipse";
+  const corners = type !== "circle" ? penpotUnequalCorners(sh) : null;
+  if (corners) {
+    const gradFirst = gradFill ? gradFill.fillColorGradient.stops[0] ?? null : null;
+    const vnode = {
+      kind: "image",
+      x,
+      y,
+      w,
+      h,
+      rot,
+      fit: "fill",
+      fill: "",
+      _vectorPath: penpotRoundedRectD(x, y, w, h, corners),
+      _vectorFill: gradFirst ? safeColor(String(gradFirst.color ?? ""), "") || "none" : topFill && topFill.fillColor != null ? String(topFill.fillColor) : "none",
+      _vectorGradient: gradFill ? mirrorPenpotGradient(gradFill.fillColorGradient, sh.flipX === true, sh.flipY === true) : null,
+      _vectorStroke: topPenpotStroke(sh),
+      _vectorSize: { w, h, x, y },
+      opacity: clamp3(Math.round(shapeOp * num4((gradFill ?? topFill)?.fillOpacity, 1) * 100), 0, 100)
+    };
+    applyPenpotShadow(sh, vnode);
+    applyPenpotBlur(sh, vnode);
+    return vnode;
+  }
+  const r1 = num4(sh.r1, 0);
+  if (r1 > 0) {
+    node.shape = "rounded";
+    node.radius = r1;
+  }
+  applyPenpotStroke(sh, node);
+  applyPenpotShadow(sh, node);
+  applyPenpotBlur(sh, node);
+  applyPenpotBackgroundBlur(sh, node);
+  return node;
+}
+function applyPenpotStroke(sh, node) {
+  const list2 = Array.isArray(sh.strokes) ? sh.strokes : [];
+  let st = null;
+  let style = "solid";
+  for (let i = list2.length - 1; i >= 0; i--) {
+    const cand = list2[i];
+    if (!cand || typeof cand !== "object") continue;
+    const s = strokeStyleOf(cand);
+    if (s === "none") continue;
+    if (!(num4(get(cand, "strokeWidth"), 0) > 0)) continue;
+    if (!safeColor(String(get(cand, "strokeColor") ?? ""), "")) continue;
+    st = cand;
+    style = s;
+    break;
+  }
+  if (!st) return;
+  const sw = num4(get(st, "strokeWidth"), 0);
+  const col6 = safeColor(String(get(st, "strokeColor") ?? ""), "");
+  const a = Math.round(clamp3(num4(get(st, "strokeOpacity"), 1), 0, 1) * 255);
+  const full = hexLong(col6);
+  node.stroke = full + (a < 255 && /^#[0-9a-fA-F]{6}$/.test(full) ? a.toString(16).padStart(2, "0") : "");
+  node.strokeW = Math.round(sw * 100) / 100;
+  node.strokeDash = style === "dashed" || style === "mixed" ? "dashed" : style === "dotted" ? "dotted" : "";
+  if (style === "dashed") {
+    const d = strokeLen(st, "stroke-dash");
+    const g2 = strokeLen(st, "stroke-gap");
+    node.strokeDashLen = round2(d != null && d > 0 ? d : sw + 10);
+    node.strokeGapLen = round2(g2 != null && g2 > 0 ? g2 : sw + 10);
+  }
+  const alignment = String(get(st, "strokeAlignment") || "center");
+  const inflate = alignment === "outer" ? sw : alignment === "inner" ? 0 : sw / 2;
+  if (inflate > 0) {
+    node.x = num4(node.x, 0) - inflate;
+    node.y = num4(node.y, 0) - inflate;
+    node.w = num4(node.w, 0) + 2 * inflate;
+    node.h = num4(node.h, 0) + 2 * inflate;
+    if (node.shape === "rounded") node.radius = num4(node.radius, 0) + inflate;
+  }
+}
+function hexLong(c) {
+  const m = /^#([0-9a-fA-F]{3,4})$/.exec(c);
+  if (!m) return c;
+  return "#" + m[1].split("").map((ch) => ch + ch).join("");
+}
+function applyPenpotShadow(sh, node) {
+  const list2 = Array.isArray(sh.shadow) ? sh.shadow : [];
+  const s = list2.find((e) => e && typeof e === "object" && String(get(e, "style") || "drop-shadow") === "drop-shadow" && get(e, "hidden") !== true);
+  if (!s) return;
+  const x = Math.round(num4(s.offsetX, 0)), y = Math.round(num4(s.offsetY, 0)), blur = Math.round(num4(s.blur, 0));
+  if (!x && !y && !blur) return;
+  const hex6 = hexLong(safeColor(String(s.color?.color ?? ""), "#000000"));
+  const a = Math.round(clamp3(num4(s.color?.opacity, 1), 0, 1) * 255);
+  node.shadow = node.kind === "text" ? "text" : node.kind === "image" ? "content" : "box";
+  node.shadowColor = hex6 + (a < 255 && /^#[0-9a-fA-F]{6}$/.test(hex6) ? a.toString(16).padStart(2, "0") : "");
+  node.shadowX = x;
+  node.shadowY = y;
+  node.shadowBlur = blur;
+}
+function applyPenpotBlur(sh, node) {
+  const b = sh.blur;
+  if (!b || typeof b !== "object") return;
+  if (get(b, "hidden") === true) return;
+  if (String(get(b, "type") || "") !== "layer-blur") return;
+  const v = num4(get(b, "value"), 0);
+  if (v > 0) node.blur = v;
+}
+function penpotBackgroundBlurPx(sh) {
+  const own = get(sh, "backgroundBlur");
+  const legacy = get(sh, "blur");
+  const entry = own && typeof own === "object" ? own : legacy && typeof legacy === "object" && String(get(legacy, "type") || "") === "background-blur" ? legacy : null;
+  if (!entry) return 0;
+  if (get(entry, "hidden") === true) return 0;
+  if (entry === own && String(get(entry, "type") || "background-blur") !== "background-blur") return 0;
+  const v = num4(get(entry, "value"), 0);
+  if (!(v > 0)) return 0;
+  return clamp3(round1(v * BG_BLUR_SIGMA_A + BG_BLUR_SIGMA_B), 0, 300);
+}
+function applyPenpotBackgroundBlur(sh, node) {
+  const px = penpotBackgroundBlurPx(sh);
+  if (px > 0) node.bgBlur = px;
+}
+function normalizePenpotExports(raw) {
+  if (!Array.isArray(raw)) return [];
+  const out = [];
+  const seen = /* @__PURE__ */ new Set();
+  for (const e of raw) {
+    if (!e || typeof e !== "object") continue;
+    const t = String(get(e, "type") ?? "");
+    const type = t === "png" ? "png" : t === "jpeg" ? "jpeg" : t === "svg" ? "svg" : null;
+    if (!type) continue;
+    const scale = clamp3(num4(get(e, "scale"), 1), 0.1, 8);
+    const suffixRaw = get(e, "suffix");
+    const suffix = suffixRaw == null ? "" : String(suffixRaw);
+    const key = `${type}|${scale}|${suffix}`;
+    if (seen.has(key)) continue;
+    seen.add(key);
+    out.push({ type, scale, suffix });
+  }
+  return out;
+}
+function collectPenpotExportMarks(shapesById) {
+  const out = [];
+  const seen = /* @__PURE__ */ new Set();
+  const markSubtreeSeen = (id) => {
+    if (seen.has(id)) return;
+    seen.add(id);
+    const s = shapesById[id];
+    const kids = s && typeof s === "object" && Array.isArray(s.shapes) ? s.shapes : [];
+    for (const k of kids) markSubtreeSeen(String(k));
+  };
+  const visit = (id) => {
+    if (seen.has(id)) return;
+    seen.add(id);
+    const s = shapesById[id];
+    if (!s || typeof s !== "object") return;
+    const sh = s;
+    const kids = Array.isArray(sh.shapes) ? sh.shapes : [];
+    if (sh.hidden === true || sh.componentRoot === true && sh.mainInstance === true) {
+      for (const k of kids) markSubtreeSeen(String(k));
+      return;
+    }
+    const entries = normalizePenpotExports(sh.exports);
+    if (entries.length) out.push({ shape: sh, entries });
+    for (const k of kids) visit(String(k));
+  };
+  visit("00000000-0000-0000-0000-000000000000");
+  for (const id of Object.keys(shapesById)) visit(id);
+  return out;
+}
+function penpotAnimationToTransition(animation) {
+  const type = String(get(animation, "animationType") ?? "").toLowerCase();
+  let enter = "none";
+  if (type === "dissolve") enter = "fade";
+  else if (type === "slide" || type === "push") {
+    const dir = String(get(animation, "direction") ?? "").toLowerCase();
+    if (dir === "left" || dir === "right" || dir === "up" || dir === "down") enter = "slide-" + dir;
+  }
+  if (enter === "none") return { enter: "none" };
+  const ms = num4(get(animation, "duration"), void 0);
+  return ms === void 0 ? { enter } : { enter, enterMs: Math.round(clamp3(ms, FLOW_MIN_MS, FLOW_MAX_MS)) };
+}
+function penpotFlowOrder(boardIds, shapesById, page2) {
+  const order = boardIds.map((id) => String(id));
+  const boards = new Set(order);
+  const empty = () => ({ ordered: [...order], transitions: {}, hasFlow: false });
+  if (order.length < 2) return empty();
+  const owner = /* @__PURE__ */ new Map();
+  for (const bid of order) {
+    const stack = [bid];
+    while (stack.length) {
+      const id = stack.pop();
+      if (owner.has(id)) continue;
+      owner.set(id, bid);
+      const kids = get(shapesById[id], "shapes");
+      if (Array.isArray(kids)) for (const k of kids) stack.push(String(k));
+    }
+  }
+  const edges = /* @__PURE__ */ new Map();
+  let edgeCount = 0;
+  for (const [sid, bid] of owner) {
+    const list2 = get(shapesById[sid], "interactions");
+    if (!Array.isArray(list2)) continue;
+    for (const it of list2) {
+      const action = String(get(it, "actionType") ?? "").toLowerCase();
+      if (action !== "navigate" && action !== "navigate-to") continue;
+      const dest = get(it, "destination");
+      if (typeof dest !== "string" || !dest) continue;
+      const to = owner.get(dest) ?? (boards.has(dest) ? dest : void 0);
+      if (!to || to === bid) continue;
+      const from = edges.get(bid) ?? [];
+      if (!edges.has(bid)) edges.set(bid, from);
+      from.push({ to, anim: penpotAnimationToTransition(get(it, "animation")) });
+      edgeCount++;
+    }
+  }
+  if (!edgeCount) return empty();
+  const inDeg = /* @__PURE__ */ new Map();
+  for (const [, outs] of edges) for (const e of outs) inDeg.set(e.to, (inDeg.get(e.to) ?? 0) + 1);
+  let start = "";
+  const flows = get(page2, "flows");
+  const flowList = Array.isArray(flows) ? flows : flows && typeof flows === "object" ? Object.values(flows) : [];
+  for (const f of flowList) {
+    const sf = get(f, "startingFrame");
+    const bid = typeof sf === "string" ? owner.get(sf) ?? "" : "";
+    if (bid && boards.has(bid)) {
+      start = bid;
+      break;
+    }
+  }
+  if (!start) start = order.find((b) => (edges.get(b)?.length ?? 0) > 0 && !(inDeg.get(b) ?? 0)) ?? "";
+  if (!start) start = order.find((b) => (edges.get(b)?.length ?? 0) > 0 || inDeg.has(b)) ?? order[0];
+  const ordered = [];
+  const transitions = {};
+  const placed2 = /* @__PURE__ */ new Set();
+  let cursor = start;
+  while (ordered.length < order.length) {
+    if (cursor === void 0 || placed2.has(cursor)) {
+      cursor = order.find((b) => !placed2.has(b));
+      if (cursor === void 0) break;
+    }
+    ordered.push(cursor);
+    placed2.add(cursor);
+    const next = (edges.get(cursor) ?? []).find((e) => !placed2.has(e.to));
+    if (next) {
+      if (next.anim.enter !== "none") transitions[next.to] = next.anim;
+      cursor = next.to;
+    } else cursor = void 0;
+  }
+  return { ordered, transitions, hasFlow: true };
+}
+function figMatrix(node) {
+  const t = node && node.transform || {};
+  return { a: num4(t.m00, 1), b: num4(t.m10, 0), c: num4(t.m01, 0), d: num4(t.m11, 1), e: num4(t.m02, 0), f: num4(t.m12, 0) };
+}
+function matMul2(P, C) {
+  return {
+    a: P.a * C.a + P.c * C.b,
+    b: P.b * C.a + P.d * C.b,
+    c: P.a * C.c + P.c * C.d,
+    d: P.b * C.c + P.d * C.d,
+    e: P.a * C.e + P.c * C.f + P.e,
+    f: P.b * C.e + P.d * C.f + P.f
+  };
+}
+function fig255(v) {
+  return clamp3(Math.round(num4(v, 0) * 255), 0, 255);
+}
+function figColorHex(c) {
+  if (!c) return "";
+  const h = (v) => fig255(v).toString(16).padStart(2, "0");
+  return "#" + h(get(c, "r")) + h(get(c, "g")) + h(get(c, "b"));
+}
+function figWeight(style) {
+  const s = String(style || "");
+  for (const [re, w] of FIG_WEIGHTS) if (re.test(s)) return w;
+  return 400;
+}
+function figAlign(a) {
+  const s = String(a || "").toUpperCase();
+  if (s === "CENTER") return "center";
+  if (s === "RIGHT") return "right";
+  return "left";
+}
+function figLineHeight(lh, fontSize) {
+  const l = lh;
+  if (!l || l.value == null) return null;
+  const v = num4(l.value, 0);
+  if (l.units === "PERCENT") return v / 100;
+  if (l.units === "PIXELS" || l.units === "RAW") {
+    const fs = num4(fontSize, 0);
+    return fs > 0 ? v / fs : null;
+  }
+  return null;
+}
+function figImageHash(paint) {
+  const img = paint && (get(paint, "image") || get(paint, "imageRef") || paint);
+  const h = img && (get(img, "hash") || get(img, "imageRef") || get(img, "imageHash"));
+  if (typeof h === "string") return h;
+  if (Array.isArray(h)) return h.map((b) => (b & 255).toString(16).padStart(2, "0")).join("");
+  return null;
+}
+function decodeFigVectorPath(bytes) {
+  const b = bytes instanceof Uint8Array ? bytes : bytes && bytes.length ? Uint8Array.from(bytes) : null;
+  if (!b || !b.length) return "";
+  const dv = new DataView(b.buffer, b.byteOffset, b.byteLength);
+  let off = 0;
+  let d = "";
+  const f = () => {
+    const v = dv.getFloat32(off, true);
+    off += 4;
+    return Math.round(v * 100) / 100;
+  };
+  const room = (n2) => off + n2 * 4 <= b.length;
+  const NF = { 0: 0, 1: 2, 2: 2, 3: 4, 4: 6 };
+  const LT = { 0: "Z", 1: "M", 2: "L", 3: "Q", 4: "C" };
+  while (off < b.length) {
+    const tag2 = dv.getUint8(off);
+    off += 1;
+    const nf = NF[tag2];
+    if (nf == null) break;
+    if (!room(nf)) break;
+    d += LT[tag2];
+    for (let k = 0; k < nf; k++) d += (k ? " " : "") + f();
+    d += " ";
+  }
+  return d.trim();
+}
+function figmaTextRuns(node, baseFg) {
+  const td3 = node.textData || {};
+  const chars = String(td3.characters != null ? td3.characters : node.name || "");
+  const ids = Array.isArray(td3.characterStyleIDs) ? td3.characterStyleIDs : null;
+  const tbl = {};
+  for (const s of Array.isArray(td3.styleOverrideTable) ? td3.styleOverrideTable : []) {
+    const c = s && get(get(s, "fillPaints"), "0") && get(get(get(s, "fillPaints"), "0"), "color");
+    const styleID = get(s, "styleID");
+    if (s && styleID != null && c) tbl[String(styleID)] = figColorHex(c);
+  }
+  if (!ids || !ids.length || !Object.keys(tbl).length) return chars;
+  const arr = [...chars];
+  const runs = arr.map((ch, k) => ({ text: ch, color: ch === "\n" ? "" : tbl[String(ids[k])] || baseFg }));
+  return colorRunsToText(runs, baseFg);
+}
+function figmaNode(node, abs, blobs) {
+  const type = String(node.type || "");
+  const size = node.size;
+  if (!VISUAL_FIG[type] || !size) return null;
+  const geom = boxGeomFromBBox({ x: 0, y: 0, width: num4(size.x, 0), height: num4(size.y, 0) }, abs);
+  const base = { x: geom.x, y: geom.y, w: geom.w, h: geom.h, rot: geom.rot };
+  const nodeOp = num4(node.opacity, 1);
+  const fills = Array.isArray(node.fillPaints) ? node.fillPaints.filter((p) => p && get(p, "visible") !== false) : [];
+  const paint = fills.length ? fills[fills.length - 1] ?? null : null;
+  if (type === "TEXT") {
+    const baseFg = paint && get(paint, "color") ? figColorHex(get(paint, "color")) : "#000000";
+    return {
+      kind: "text",
+      ...base,
+      text: figmaTextRuns(node, baseFg),
+      fg: baseFg,
+      fontSize: num4(node.fontSize, void 0),
+      fontWeight: figWeight(node.fontName && node.fontName.style),
+      fontFamily: node.fontName && node.fontName.family || "",
+      textAlign: figAlign(node.textAlignHorizontal),
+      lineHeight: figLineHeight(node.lineHeight, num4(node.fontSize, 16)) || void 0,
+      opacity: clamp3(Math.round(nodeOp * 100), 0, 100)
+    };
+  }
+  if (paint && get(paint, "type") === "IMAGE") {
+    return {
+      kind: "image",
+      ...base,
+      _imageHash: figImageHash(paint),
+      fit: "cover",
+      opacity: clamp3(Math.round(nodeOp * num4(get(paint, "opacity"), 1) * 100), 0, 100)
+    };
+  }
+  if (type === "VECTOR" && blobs && Array.isArray(node.fillGeometry) && node.fillGeometry.length) {
+    const d = node.fillGeometry.map((g2) => {
+      const cb = get(g2, "commandsBlob");
+      const entry = g2 && cb != null && blobs ? blobs[cb] : null;
+      const blob = entry ? entry.bytes : null;
+      return blob ? decodeFigVectorPath(blob) : "";
+    }).filter(Boolean).join(" ");
+    if (d) {
+      const sp = Array.isArray(node.strokePaints) ? node.strokePaints.find((p) => p && get(p, "visible") !== false && get(p, "type") === "SOLID" && get(p, "color")) : null;
+      const sw = num4(node.strokeWeight, 0);
+      return {
+        kind: "image",
+        ...base,
+        fit: "fill",
+        _vectorPath: d,
+        _vectorFill: paint && get(paint, "type") === "SOLID" && get(paint, "color") ? figColorHex(get(paint, "color")) : "none",
+        _vectorStroke: sp && sw > 0 ? { color: figColorHex(get(sp, "color")), width: sw } : null,
+        _vectorSize: { w: num4(size.x, 0), h: num4(size.y, 0) },
+        opacity: clamp3(Math.round(nodeOp * num4(paint && get(paint, "opacity"), 1) * 100), 0, 100)
+      };
+    }
+  }
+  const dn = {
+    kind: "box",
+    ...base,
+    fill: paint && get(paint, "type") === "SOLID" && get(paint, "color") ? figColorHex(get(paint, "color")) : "",
+    opacity: clamp3(Math.round(nodeOp * num4(paint && get(paint, "opacity"), 1) * 100), 0, 100)
+  };
+  if (type === "ELLIPSE") dn.shape = "ellipse";
+  else if (type === "ROUNDED_RECTANGLE") {
+    dn.shape = "rounded";
+    dn.radius = num4(node.cornerRadius, 12);
+  } else {
+    const cr = num4(node.cornerRadius, 0);
+    if (cr > 0) {
+      dn.shape = "rounded";
+      dn.radius = cr;
+    }
+  }
+  return dn;
+}
+function figmaNodesToNodes(nodeChanges, blobs) {
+  const list2 = Array.isArray(nodeChanges) ? nodeChanges : [];
+  const key = (g2) => g2 ? String(g2.sessionID) + ":" + String(g2.localID) : "";
+  const kids = {};
+  for (const n2 of list2) {
+    if (n2 && n2.parentIndex && n2.parentIndex.guid) {
+      const p = key(n2.parentIndex.guid);
+      (kids[p] || (kids[p] = [])).push(n2);
+    }
+  }
+  const canvases = list2.filter((n2) => n2 && n2.type === "CANVAS" && !n2.internalOnly && n2.name !== "Internal Only Canvas");
+  const page2 = canvases[0] || list2.find((n2) => n2 && n2.type === "CANVAS");
+  if (!page2) return [];
+  const out = [];
+  const visit = (node, pabs) => {
+    if (!node || node.visible === false) return;
+    const abs = matMul2(pabs, figMatrix(node));
+    const dn = figmaNode(node, abs, blobs);
+    if (dn) out.push(dn);
+    const cs = kids[key(node.guid)];
+    if (cs) for (const c of cs) visit(c, abs);
+  };
+  const pageAbs = figMatrix(page2);
+  for (const c of kids[key(page2.guid)] || []) visit(c, pageAbs);
+  return out;
+}
+function shiftNodesToOrigin(nodes) {
+  let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+  for (const n2 of nodes) {
+    const x = num4(n2.x, 0), y = num4(n2.y, 0);
+    minX = Math.min(minX, x);
+    minY = Math.min(minY, y);
+    maxX = Math.max(maxX, x + num4(n2.w, 0));
+    maxY = Math.max(maxY, y + num4(n2.h, 0));
+  }
+  if (!isFinite(minX)) return { width: 1080, height: 1080 };
+  for (const n2 of nodes) {
+    n2.x = num4(n2.x, 0) - minX;
+    n2.y = num4(n2.y, 0) - minY;
+  }
+  return { width: Math.max(1, Math.round(maxX - minX)), height: Math.max(1, Math.round(maxY - minY)) };
+}
+function readingOrder(items, rect) {
+  if (items.length < 2) return [...items];
+  const heights = items.map((t) => rect(t).h).sort((a, b) => a - b);
+  const tol = Math.max(1, (heights[Math.floor(heights.length / 2)] ?? 0) / 2);
+  const byY = [...items].sort((a, b) => rect(a).y + rect(a).h / 2 - (rect(b).y + rect(b).h / 2));
+  const rows = [];
+  let rowYc = -Infinity;
+  for (const t of byY) {
+    const yc = rect(t).y + rect(t).h / 2;
+    if (!rows.length || yc - rowYc > tol) {
+      rows.push([t]);
+      rowYc = yc;
+    } else {
+      const row = rows[rows.length - 1];
+      row.push(t);
+      rowYc = row.reduce((s, r3) => s + rect(r3).y + rect(r3).h / 2, 0) / row.length;
+    }
+  }
+  return rows.flatMap((row) => row.sort((a, b) => rect(a).x - rect(b).x));
+}
+function figmaNodesToScenes(nodeChanges, blobs) {
+  const list2 = Array.isArray(nodeChanges) ? nodeChanges : [];
+  const key = (g2) => g2 ? String(g2.sessionID) + ":" + String(g2.localID) : "";
+  const kids = {};
+  for (const n2 of list2) {
+    if (n2 && n2.parentIndex && n2.parentIndex.guid) {
+      const p = key(n2.parentIndex.guid);
+      (kids[p] || (kids[p] = [])).push(n2);
+    }
+  }
+  const canvases = list2.filter((n2) => n2 && n2.type === "CANVAS" && !n2.internalOnly && n2.name !== "Internal Only Canvas");
+  const scenes = [];
+  for (const page2 of canvases) {
+    const pageAbs = figMatrix(page2);
+    const collect = (root, into) => {
+      const visit = (node, pabs) => {
+        if (!node || node.visible === false) return;
+        const abs = matMul2(pabs, figMatrix(node));
+        const dn = figmaNode(node, abs, blobs);
+        if (dn) into.push(dn);
+        const cs = kids[key(node.guid)];
+        if (cs) for (const c of cs) visit(c, abs);
+      };
+      visit(root, pageAbs);
+    };
+    const loose = [];
+    const framed = [];
+    for (const child of kids[key(page2.guid)] || []) {
+      if (!child || child.visible === false) continue;
+      const type = String(child.type || "");
+      if (FIG_FRAME_TYPES.has(type) && child.size) {
+        const nodes = [];
+        collect(child, nodes);
+        if (!nodes.length) continue;
+        const geom = boxGeomFromBBox(
+          { x: 0, y: 0, width: num4(child.size.x, 0), height: num4(child.size.y, 0) },
+          matMul2(pageAbs, figMatrix(child))
+        );
+        for (const n2 of nodes) {
+          n2.x = num4(n2.x, 0) - geom.x;
+          n2.y = num4(n2.y, 0) - geom.y;
+        }
+        framed.push({
+          at: { x: geom.x, y: geom.y, w: geom.w, h: geom.h },
+          scene: {
+            name: String(child.name || "") || `Frame ${framed.length + 1}`,
+            width: Math.max(1, Math.round(geom.w)) || 1080,
+            height: Math.max(1, Math.round(geom.h)) || 1080,
+            nodes
+          }
+        });
+      } else {
+        collect(child, loose);
+      }
+    }
+    scenes.push(...readingOrder(framed, (f) => f.at).map((f) => f.scene));
+    if (loose.length && !framed.length) {
+      const { width, height } = shiftNodesToOrigin(loose);
+      scenes.push({ name: String(page2.name || "") || "Page", width, height, nodes: loose });
+    }
+  }
+  return scenes;
+}
+var DEFAULT_FONTS, SEED, SHAPES, FITS, BLENDS, MAX_PENPOT_GRADIENT_STOPS, SVG_LINECAPS, MAX_VECTOR_GROUP_SHAPES, BG_BLUR_SIGMA_A, BG_BLUR_SIGMA_B, FLOW_MIN_MS, FLOW_MAX_MS, FIG_WEIGHTS, VISUAL_FIG, FIG_FRAME_TYPES;
+var init_design_map = __esm({
+  "engine/src/design-map.ts"() {
+    "use strict";
+    init_css_box();
+    DEFAULT_FONTS = {
+      defaultFamily: "sans",
+      monoFamily: "mono",
+      monoMaxWeight: 800
+    };
+    SEED = {
+      box: { bg: "#4f84ba" },
+      text: { bg: "", fg: "#0e1217", fontSize: 64, valign: "top", lineHeight: 1.12 },
+      image: { bg: "#e1e5ea", fit: "contain" }
+    };
+    SHAPES = { rect: 1, rounded: 1, pill: 1, ellipse: 1 };
+    FITS = { contain: 1, cover: 1, fill: 1 };
+    BLENDS = {
+      normal: 1,
+      multiply: 1,
+      screen: 1,
+      overlay: 1,
+      darken: 1,
+      lighten: 1,
+      "color-dodge": 1,
+      "color-burn": 1,
+      "hard-light": 1,
+      "soft-light": 1,
+      difference: 1,
+      exclusion: 1,
+      hue: 1,
+      saturation: 1,
+      color: 1,
+      luminosity: 1
+    };
+    MAX_PENPOT_GRADIENT_STOPS = 12;
+    SVG_LINECAPS = /* @__PURE__ */ new Set(["butt", "round", "square"]);
+    MAX_VECTOR_GROUP_SHAPES = 4e3;
+    BG_BLUR_SIGMA_A = 1.1547;
+    BG_BLUR_SIGMA_B = 1;
+    FLOW_MIN_MS = 100;
+    FLOW_MAX_MS = 3e3;
+    FIG_WEIGHTS = [
+      [/thin|hairline/i, 100],
+      [/(extra|ultra)[\s-]*light/i, 200],
+      [/light/i, 300],
+      [/(semi|demi)[\s-]*bold/i, 600],
+      [/(extra|ultra)[\s-]*bold/i, 800],
+      [/black|heavy/i, 900],
+      [/bold/i, 700],
+      [/medium/i, 500],
+      [/regular|normal|book/i, 400]
+    ];
+    VISUAL_FIG = {
+      FRAME: 1,
+      RECTANGLE: 1,
+      ROUNDED_RECTANGLE: 1,
+      ELLIPSE: 1,
+      TEXT: 1,
+      VECTOR: 1,
+      LINE: 1,
+      REGULAR_POLYGON: 1,
+      STAR: 1,
+      BOOLEAN_OPERATION: 1,
+      SECTION: 1
+    };
+    FIG_FRAME_TYPES = /* @__PURE__ */ new Set(["FRAME", "SECTION", "COMPONENT", "INSTANCE", "SYMBOL"]);
+  }
+});
+
+// engine/src/design-components.ts
+function pageMap(shapesByPage) {
+  const out = /* @__PURE__ */ new Map();
+  if (shapesByPage instanceof Map) {
+    for (const [pid, shapes] of shapesByPage) if (isRec2(shapes)) out.set(String(pid), shapes);
+  } else if (isRec2(shapesByPage)) {
+    for (const [pid, shapes] of Object.entries(shapesByPage)) if (isRec2(shapes)) out.set(pid, shapes);
+  }
+  return out;
+}
+function variantProps(v) {
+  if (!Array.isArray(v)) return [];
+  const out = [];
+  for (const p of v) {
+    if (!isRec2(p)) continue;
+    out.push({ name: str2(p.name), value: str2(p.value) });
+  }
+  return out;
+}
+function collectPenpotComponents(componentJsons, shapesByPage, opts = {}) {
+  const pages = pageMap(shapesByPage);
+  const warnings = [];
+  const records = Array.isArray(componentJsons) ? componentJsons.filter(isRec2) : [];
+  const findMaster = (rootShapeId, declaredPage) => {
+    if (!rootShapeId) return null;
+    const declared = pages.get(declaredPage);
+    const hit = declared ? declared[rootShapeId] : void 0;
+    if (isRec2(hit)) return { shape: hit, pageId: declaredPage };
+    for (const [pid, shapes] of pages) {
+      const s = shapes[rootShapeId];
+      if (isRec2(s)) return { shape: s, pageId: pid };
+    }
+    return null;
+  };
+  const groups = /* @__PURE__ */ new Map();
+  let inferredFileId = "";
+  for (const rec of records) {
+    const id = str2(rec.id);
+    const name = str2(rec.name);
+    const rootShapeId = str2(rec.mainInstanceId);
+    const declaredPage = str2(rec.mainInstancePage);
+    const master = findMaster(rootShapeId, declaredPage);
+    if (!master) {
+      warnings.push(`component ${JSON.stringify(name)} (${id || "no id"}): master shape ${rootShapeId || "(none)"} not found`);
+      continue;
+    }
+    if (!inferredFileId) inferredFileId = str2(master.shape.componentFile);
+    const props = variantProps(rec.variantProperties);
+    const variantId = str2(rec.variantId);
+    const key = variantId || id;
+    let g2 = groups.get(key);
+    if (!g2) {
+      g2 = { id: key, name, path: str2(rec.path), isVariantSet: !!variantId, variants: [] };
+      groups.set(key, g2);
+    }
+    if (!g2.name) g2.name = name;
+    if (!g2.path) g2.path = str2(rec.path);
+    g2.variants.push({
+      id,
+      rootShapeId,
+      pageId: master.pageId,
+      properties: props,
+      label: props.map((p) => p.value).filter(Boolean).join(" / ")
+    });
+  }
+  const components = [];
+  for (const g2 of groups.values()) {
+    g2.variants.sort((a, b) => (a.label || "").localeCompare(b.label || "") || a.id.localeCompare(b.id));
+    const first = g2.variants[0];
+    components.push({
+      id: g2.id,
+      name: g2.name,
+      path: g2.path,
+      rootShapeId: first.rootShapeId,
+      pageId: first.pageId,
+      external: false,
+      isVariantSet: g2.isVariantSet,
+      variants: g2.variants
+    });
+  }
+  components.sort((a, b) => a.path.localeCompare(b.path) || a.name.localeCompare(b.name) || a.id.localeCompare(b.id));
+  const localFileId = str2(opts.fileId) || inferredFileId || null;
+  const byComponent = /* @__PURE__ */ new Map();
+  const files = /* @__PURE__ */ new Set();
+  let instances = 0;
+  if (localFileId) {
+    for (const shapes of pages.values()) {
+      for (const shape of Object.values(shapes)) {
+        if (!isRec2(shape)) continue;
+        const componentId = str2(shape.componentId);
+        const componentFile = str2(shape.componentFile);
+        if (!componentId || !componentFile || shape.mainInstance === true) continue;
+        if (componentFile === localFileId) continue;
+        instances++;
+        files.add(componentFile);
+        const key = `${componentFile}/${componentId}`;
+        const row = byComponent.get(key);
+        if (row) row.instances++;
+        else byComponent.set(key, { componentId, componentFile, name: str2(shape.name), instances: 1 });
+      }
+    }
+  } else if (records.length) {
+    warnings.push("external-library census skipped: no local file id (pass opts.fileId)");
+  }
+  const externals = {
+    instances,
+    files: [...files].sort(),
+    components: [...byComponent.values()].sort((a, b) => a.name.localeCompare(b.name) || a.componentId.localeCompare(b.componentId))
+  };
+  return { components, externals, localFileId, warnings };
+}
+function slotFor(sh) {
+  const label = str2(sh.name);
+  if (str2(sh.type) === "text") {
+    const text = sh.content ? parsePenpotContent(sh.content).text : "";
+    return text ? { kind: "text", label, text } : { kind: "text", label };
+  }
+  const fills = Array.isArray(sh.fills) ? sh.fills : [];
+  for (const f of fills) {
+    if (!isRec2(f)) continue;
+    const img = f.fillImage;
+    if (isRec2(img) && img.id != null) return { kind: "image", label, imageId: String(img.id) };
+  }
+  return null;
+}
+function penpotComponentSlots(rootShape, lookup) {
+  const out = [];
+  const seen = /* @__PURE__ */ new Set();
+  const walk2 = (shape) => {
+    if (!isRec2(shape)) return;
+    const id = str2(shape.id);
+    if (id) {
+      if (seen.has(id)) return;
+      seen.add(id);
+    }
+    if (shape.hidden === true) return;
+    const slot = slotFor(shape);
+    if (slot) out.push({ shapeId: id, ...slot });
+    const kids = Array.isArray(shape.shapes) ? shape.shapes : [];
+    for (const k of kids) walk2(lookup(String(k)));
+  };
+  walk2(rootShape);
+  return out;
+}
+var str2, isRec2;
+var init_design_components = __esm({
+  "engine/src/design-components.ts"() {
+    "use strict";
+    init_design_map();
+    str2 = (v) => typeof v === "string" ? v : "";
+    isRec2 = (v) => !!v && typeof v === "object" && !Array.isArray(v);
+  }
+});
+
+// engine/src/pdf-smask.ts
+function maskRegion(bbox, m) {
+  if (!Array.isArray(bbox) || bbox.length < 4) return null;
+  if (!bbox.slice(0, 4).every(fin)) return null;
+  if (![m.a, m.b, m.c, m.d, m.e, m.f].every(fin)) return null;
+  const [x0, y0, x1, y1] = bbox;
+  const corners = [[x0, y0], [x1, y0], [x1, y1], [x0, y1]];
+  const pts = corners.map(([px, py]) => ({ x: m.a * px + m.c * py + m.e, y: m.b * px + m.d * py + m.f }));
+  if (!pts.every((p) => fin(p.x) && fin(p.y))) return null;
+  const xs = pts.map((p) => p.x), ys = pts.map((p) => p.y);
+  const minX = Math.min(...xs), minY = Math.min(...ys);
+  const w = Math.max(...xs) - minX, h = Math.max(...ys) - minY;
+  if (!(w > 0.01) || !(h > 0.01)) return null;
+  const d = "M" + pts.map((p) => `${r2(p.x)} ${r2(p.y)}`).join("L") + "Z";
+  return { x: minX, y: minY, w, h, clip: { d, evenOdd: false } };
+}
+function hexRgb(hex) {
+  const m = /^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$/.exec(String(hex || "").trim());
+  if (!m) return null;
+  const h = m[1];
+  const p = h.length === 3 ? [h[0] + h[0], h[1] + h[1], h[2] + h[2]] : [h.slice(0, 2), h.slice(2, 4), h.slice(4, 6)];
+  return [parseInt(p[0], 16), parseInt(p[1], 16), parseInt(p[2], 16)];
+}
+function relativeLuminance(hex) {
+  const c = hexRgb(hex);
+  if (!c) return 0;
+  return (0.2126 * c[0] + 0.7152 * c[1] + 0.0722 * c[2]) / 255;
+}
+function isAchromatic(fill) {
+  const c = hexRgb(fill);
+  if (!c) return true;
+  return Math.max(c[0], c[1], c[2]) - Math.min(c[0], c[1], c[2]) <= 12;
+}
+function nodeFill(n2) {
+  const v = n2.fill || (n2._vectorFill && n2._vectorFill !== "none" ? n2._vectorFill : "") || "";
+  return hexRgb(v) ? v : "";
+}
+function constantMask(nodes, region, subtype = "Luminosity") {
+  if (!Array.isArray(nodes) || nodes.length !== 1) return null;
+  const n2 = nodes[0];
+  if (!n2 || n2.kind !== "box" || n2.shape !== "rect") return null;
+  if (n2._gradient || n2._imageXObject || n2._vectorPath) return null;
+  const area = Math.max(0, region.w) * Math.max(0, region.h);
+  if (!(area > 0)) return null;
+  const cover = Math.max(0, n2.w) * Math.max(0, n2.h) / area;
+  if (!(cover >= 0.95)) return null;
+  const alpha = typeof n2.opacity === "number" ? Math.max(0, Math.min(100, n2.opacity)) / 100 : 1;
+  if (subtype === "Alpha") return alpha;
+  const col = nodeFill(n2);
+  if (!col) return null;
+  return relativeLuminance(col) * alpha;
+}
+function isShadowPlate(n2) {
+  if (!n2 || !n2._softMask) return false;
+  if (n2.kind === "text") return false;
+  const alpha = typeof n2.opacity === "number" ? n2.opacity : 100;
+  return alpha < 90 && isAchromatic(nodeFill(n2));
+}
+var fin, r2;
+var init_pdf_smask = __esm({
+  "engine/src/pdf-smask.ts"() {
+    "use strict";
+    fin = (v) => typeof v === "number" && isFinite(v);
+    r2 = (v) => Math.round(v * 100) / 100;
+  }
+});
+
+// engine/src/pdf-map.ts
+function clamp4(v, a, b) {
+  return v < a ? a : v > b ? b : v;
+}
+function clamp255(v) {
+  return clamp4(Math.round(v * 255), 0, 255);
+}
+function hx(v) {
+  return clamp255(v).toString(16).padStart(2, "0");
+}
+function rgbHex(r3, g2, b) {
+  return "#" + hx(r3) + hx(g2) + hx(b);
+}
+function matMul3(P, C) {
+  return {
+    a: P.a * C.a + P.c * C.b,
+    b: P.b * C.a + P.d * C.b,
+    c: P.a * C.c + P.c * C.d,
+    d: P.b * C.c + P.d * C.d,
+    e: P.a * C.e + P.c * C.f + P.e,
+    f: P.b * C.e + P.d * C.f + P.f
+  };
+}
+function apply(m, x, y) {
+  return { x: m.a * x + m.c * y + m.e, y: m.b * x + m.d * y + m.f };
+}
+function fromArr(a) {
+  return { a: a[0] || 0, b: a[1] || 0, c: a[2] || 0, d: a[3] || 0, e: a[4] || 0, f: a[5] || 0 };
+}
+function scaleMag(m) {
+  const sx = Math.hypot(m.a, m.b), sy = Math.hypot(m.c, m.d);
+  return (sx + sy) / 2 || 1;
+}
+function rotationOf(m) {
+  return Math.atan2(m.b, m.a) * 180 / Math.PI;
+}
+function tokenize3(src) {
+  const n2 = src.length;
+  const out = [];
+  let i = 0;
+  const code = (k) => src.charCodeAt(k);
+  const readString = () => {
+    const bytes = [];
+    let depth = 0;
+    i++;
+    while (i < n2) {
+      const c = code(i);
+      if (c === 92) {
+        i++;
+        const e = code(i);
+        if (e === 110) bytes.push(10);
+        else if (e === 114) bytes.push(13);
+        else if (e === 116) bytes.push(9);
+        else if (e === 98) bytes.push(8);
+        else if (e === 102) bytes.push(12);
+        else if (e >= 48 && e <= 55) {
+          let oct = "";
+          for (let k = 0; k < 3 && code(i) >= 48 && code(i) <= 55; k++) {
+            oct += src[i];
+            i++;
+          }
+          bytes.push(parseInt(oct, 8) & 255);
+          continue;
+        } else if (e === 10) {
+        } else if (e === 13) {
+          if (code(i + 1) === 10) i++;
+        } else bytes.push(e);
+        i++;
+      } else if (c === 40) {
+        depth++;
+        bytes.push(c);
+        i++;
+      } else if (c === 41) {
+        if (depth === 0) {
+          i++;
+          break;
+        }
+        depth--;
+        bytes.push(c);
+        i++;
+      } else {
+        bytes.push(c);
+        i++;
+      }
+    }
+    return bytes;
+  };
+  const readHexString = () => {
+    const bytes = [];
+    i++;
+    let hi = "";
+    while (i < n2) {
+      const c = code(i);
+      if (c === 62) {
+        i++;
+        break;
+      }
+      if (WS.has(c)) {
+        i++;
+        continue;
+      }
+      hi += src[i];
+      i++;
+      if (hi.length === 2) {
+        bytes.push(parseInt(hi, 16) & 255);
+        hi = "";
+      }
+    }
+    if (hi.length === 1) bytes.push(parseInt(hi + "0", 16) & 255);
+    return bytes;
+  };
+  const readName = () => {
+    i++;
+    let s = "";
+    while (i < n2) {
+      const c = code(i);
+      if (WS.has(c) || DELIM.has(c)) break;
+      if (c === 35) {
+        s += String.fromCharCode(parseInt(src.substr(i + 1, 2), 16) || 0);
+        i += 3;
+      } else {
+        s += src[i];
+        i++;
+      }
+    }
+    return s;
+  };
+  const readNumberOrOp = () => {
+    let s = "";
+    while (i < n2) {
+      const c = code(i);
+      if (WS.has(c) || DELIM.has(c)) break;
+      s += src[i];
+      i++;
+    }
+    if (s === "") return null;
+    if (/^[+-]?(\d+\.?\d*|\.\d+)$/.test(s)) return { t: "num", v: parseFloat(s) };
+    return { t: "op", v: s };
+  };
+  const readDict = () => {
+    let depth = 1;
+    let mcid = null;
+    while (i < n2) {
+      const c = code(i);
+      if (c === 40) {
+        let par = 0;
+        while (i < n2) {
+          const d = code(i);
+          if (d === 92) {
+            i += 2;
+            continue;
+          }
+          if (d === 40) par++;
+          else if (d === 41) {
+            par--;
+            if (par === 0) {
+              i++;
+              break;
+            }
+          }
+          i++;
+        }
+        continue;
+      }
+      if (c === 60 && code(i + 1) === 60) {
+        depth++;
+        i += 2;
+        continue;
+      }
+      if (c === 60) {
+        while (i < n2 && code(i) !== 62) i++;
+        i++;
+        continue;
+      }
+      if (c === 62 && code(i + 1) === 62) {
+        depth--;
+        i += 2;
+        if (depth <= 0) break;
+        continue;
+      }
+      if (c === 47) {
+        const start = i;
+        const key = readName();
+        if (key === "MCID") {
+          while (i < n2 && WS.has(code(i))) i++;
+          const numStart = i;
+          while (i < n2 && !WS.has(code(i)) && !DELIM.has(code(i))) i++;
+          const v = parseInt(src.slice(numStart, i), 10);
+          if (isFinite(v)) mcid = v;
+        } else if (i === start) i++;
+        continue;
+      }
+      i++;
+    }
+    return { mcid };
+  };
+  const MAX_ARRAY_DEPTH = 16;
+  let arrayDepth = 0;
+  const skipArrayBody = () => {
+    let depth = 1;
+    while (i < n2 && depth > 0) {
+      const c = code(i);
+      if (c === 40) {
+        readString();
+        continue;
+      }
+      if (c === 60 && code(i + 1) === 60) {
+        i += 2;
+        readDict();
+        continue;
+      }
+      if (c === 91) depth++;
+      else if (c === 93) depth--;
+      i++;
+    }
+  };
+  const readArray = () => {
+    i++;
+    if (arrayDepth >= MAX_ARRAY_DEPTH) {
+      skipArrayBody();
+      return [];
+    }
+    arrayDepth++;
+    const items = [];
+    while (i < n2) {
+      const c = code(i);
+      if (WS.has(c)) {
+        i++;
+        continue;
+      }
+      if (c === 93) {
+        i++;
+        break;
+      }
+      const tk = readOne();
+      if (tk) items.push(tk);
+      else if (i < n2 && code(i) !== 93) i++;
+    }
+    arrayDepth--;
+    return items;
+  };
+  function readOne() {
+    const c = code(i);
+    if (c === 47) return { t: "name", v: readName() };
+    if (c === 40) return { t: "str", v: readString() };
+    if (c === 60) {
+      if (code(i + 1) === 60) {
+        i += 2;
+        return { t: "dict", v: readDict() };
+      }
+      return { t: "str", v: readHexString() };
+    }
+    if (c === 91) return { t: "arr", v: readArray() };
+    if (c === 93) {
+      i++;
+      return null;
+    }
+    return readNumberOrOp();
+  }
+  const skipInlineImage = () => {
+    while (i < n2) {
+      if (src[i] === "I" && src[i + 1] === "D") {
+        i += 2;
+        break;
+      }
+      i++;
+    }
+    while (i < n2) {
+      if (src[i] === "E" && src[i + 1] === "I" && (i + 2 >= n2 || WS.has(code(i + 2)))) {
+        i += 2;
+        break;
+      }
+      i++;
+    }
+  };
+  while (i < n2) {
+    const c = code(i);
+    if (WS.has(c)) {
+      i++;
+      continue;
+    }
+    if (c === 37) {
+      while (i < n2 && code(i) !== 10 && code(i) !== 13) i++;
+      continue;
+    }
+    const before = i;
+    const tk = readOne();
+    if (tk) {
+      if (tk.t === "op" && tk.v === "BI") {
+        skipInlineImage();
+        continue;
+      }
+      out.push(tk);
+    }
+    if (i === before) i++;
+  }
+  return out;
+}
+function cloneState(s) {
+  return { ...s };
+}
+function nodeGradient(g2) {
+  const m = g2.mat;
+  return {
+    type: g2.type,
+    coords: g2.coords,
+    stops: g2.stops,
+    extend: g2.extend,
+    matrix: [m.a, m.b, m.c, m.d, m.e, m.f],
+    ...g2.domain ? { domain: g2.domain } : {},
+    ...g2.tileKey ? { tileKey: g2.tileKey } : {},
+    ...g2.flat ? { flat: g2.flat } : {}
+  };
+}
+function adoptGradient(g2) {
+  return {
+    type: g2.type,
+    coords: g2.coords,
+    stops: g2.stops,
+    extend: g2.extend,
+    ...g2.domain ? { domain: g2.domain } : {},
+    ...g2.tileKey ? { tileKey: g2.tileKey } : {},
+    ...g2.flat ? { flat: g2.flat } : {},
+    mat: fromArr(g2.matrix)
+  };
+}
+function interpretPdfPage(page2) {
+  const nodes = [];
+  const flip = { a: 1, b: 0, c: 0, d: -1, e: -(page2.originX || 0), f: (page2.originY || 0) + (page2.height || 0) };
+  let gseq = 0;
+  const MAX = 4e3;
+  const onWarn = page2.onWarn ?? (() => {
+  });
+  const pageSink = { nodes, count: 0, max: MAX };
+  const COLLAPSE_MAX_NODES = 256;
+  let collapseBudget = 512;
+  const collapseCache = /* @__PURE__ */ new Map();
+  let softMaskUnresolved = 0;
+  const inFlight = /* @__PURE__ */ new Set();
+  const MASK_MAX_NODES = 64;
+  const MASK_TOTAL_NODES = 4e3;
+  const TOKEN_BUDGET = 4e6;
+  let tokensSpent = 0;
+  let tokenBudgetAnnounced = false;
+  let maskBudget = 256;
+  let maskNodesSpent = 0;
+  let maskBudgetAnnounced = false;
+  const maskExhausted = () => {
+    if (!maskBudgetAnnounced) {
+      maskBudgetAnnounced = true;
+      onWarn("smask.budget.exhausted", "");
+    }
+  };
+  let maskDepth = 0;
+  const maskCache = /* @__PURE__ */ new Map();
+  const maskInFlight = /* @__PURE__ */ new Set();
+  const run = (content, res, baseCtm, depth, parentGroups, baseClips = [], baseFill = "", sink = pageSink, inherit = null, glyphRun = false) => {
+    if (depth > 12) return;
+    if (tokensSpent >= TOKEN_BUDGET) {
+      if (!tokenBudgetAnnounced) {
+        tokenBudgetAnnounced = true;
+        onWarn("content.budget.exhausted", "");
+      }
+      return;
+    }
+    const toks = tokenize3(content || "");
+    tokensSpent += toks.length;
+    let s = inherit ? {
+      ...inherit,
+      ctm: baseCtm,
+      clips: baseClips,
+      ...baseFill ? { fill: baseFill } : {},
+      font: "",
+      fontSize: 0,
+      leading: 0
+    } : {
+      ctm: baseCtm,
+      fill: baseFill,
+      stroke: "",
+      fillAlpha: 1,
+      strokeAlpha: 1,
+      softMask: null,
+      softMaskOpaque: false,
+      lineWidth: 1,
+      font: "",
+      fontSize: 0,
+      leading: 0,
+      clips: baseClips,
+      fillGradient: null,
+      fillMask: null,
+      fillTileNodes: null,
+      fillScale: 1,
+      lineCap: 0,
+      lineJoin: 0,
+      strokePatternUnsupported: ""
+    };
+    const stack = [];
+    let pendingClip = false;
+    const applyPendingClip = () => {
+      if (pendingClip && segs.length) {
+        const baked = serializePath(segs);
+        if (baked.d) s.clips = [...s.clips, { d: baked.d, evenOdd: pendingClip === "evenodd" }];
+      }
+      pendingClip = false;
+    };
+    let segs = [];
+    let cxU = 0, cyU = 0, startXU = 0, startYU = 0;
+    const gstack = [];
+    const mcstack = [];
+    const gpath = () => {
+      const out = parentGroups.slice();
+      for (const id of gstack) if (id) out.push(id);
+      return out;
+    };
+    let tm = IDENTITY2, tlm = IDENTITY2;
+    let textBuf = "";
+    let originSet = false;
+    let origin = { x: 0, y: 0 };
+    let textSize = 0, textRot = 0, textFill = "", textFont = "";
+    let lastLineY = 0;
+    let lastLineX = 0;
+    let leadSum = 0, leadCount = 0;
+    let textAlpha = 1;
+    let textMcid = -1;
+    let textMask = { extra: {}, scale: 1 };
+    let args = [];
+    let nameArg = "";
+    let strArg = null;
+    let arrArg = null;
+    let dictArg = null;
+    const reset = () => {
+      args = [];
+      nameArg = "";
+      strArg = null;
+      arrArg = null;
+      dictArg = null;
+    };
+    const push = (x, y, op, extra) => {
+      const p = apply(s.ctm, x, y);
+      if (op === "c" && extra) {
+        const c1 = apply(s.ctm, extra[0], extra[1]);
+        const c2 = apply(s.ctm, extra[2], extra[3]);
+        segs.push({ op: "c", pts: [c1.x, c1.y, c2.x, c2.y, p.x, p.y] });
+      } else {
+        segs.push({ op, pts: [p.x, p.y] });
+      }
+    };
+    const decodeStr = (codes, fontName) => {
+      const fi = res.fonts && res.fonts[fontName];
+      if (fi && typeof fi.decode === "function") {
+        try {
+          return fi.decode(codes);
+        } catch {
+        }
+      }
+      if (fi && fi.twoByte) return " ".repeat(Math.max(1, Math.ceil(codes.length / 2)));
+      let outS = "";
+      for (const c of codes) outS += WIN_ANSI_HIGH[c] ?? String.fromCharCode(c);
+      return outS;
+    };
+    const onTextMove = () => {
+      const trm = matMul3(s.ctm, tm);
+      const p = apply(trm, 0, 0);
+      if (!originSet) {
+        origin = p;
+        originSet = true;
+        textSize = Math.max(1, (s.fontSize || 1) * scaleMag(matMul3(s.ctm, { ...tm, e: 0, f: 0 })));
+        textRot = rotationOf(trm);
+        textFill = s.fill;
+        textFont = s.font;
+        textMcid = mcstack.length ? mcstack[mcstack.length - 1] : -1;
+        textAlpha = clamp4(s.fillAlpha * s.fillScale, 0, 1);
+        textMask = maskPaint("raw");
+        lastLineY = p.y;
+        lastLineX = p.x;
+        leadSum = 0;
+        leadCount = 0;
+      } else if (!textBuf) {
+        originSet = false;
+        onTextMove();
+        return;
+      } else {
+        const dy = p.y - lastLineY;
+        const dx = p.x - lastLineX;
+        if (Math.abs(dy) <= textSize * 0.35) {
+          if (dx < -textSize * 0.35 || dx > textSize * 3) {
+            flushText();
+            onTextMove();
+            return;
+          }
+        } else if (dy > textSize * 0.35 && dy <= textSize * 2.1 && Math.abs(dx) <= textSize * 2) {
+          if (textBuf && !textBuf.endsWith("\n")) {
+            textBuf += "\n";
+            leadSum += dy / textSize;
+            leadCount++;
+          }
+          lastLineY = p.y;
+          lastLineX = p.x;
+        } else {
+          flushText();
+          onTextMove();
+          return;
+        }
+      }
+    };
+    const drawType3 = (codes, t3) => {
+      if (!codes.length || sink.count >= sink.max) return;
+      const fm = t3.fontMatrix;
+      const fmMat = { a: fm[0] ?? 1e-3, b: fm[1] ?? 0, c: fm[2] ?? 0, d: fm[3] ?? 1e-3, e: fm[4] ?? 0, f: fm[5] ?? 0 };
+      const scale = { a: s.fontSize || 1, b: 0, c: 0, d: s.fontSize || 1, e: 0, f: 0 };
+      const gid = "g" + ++gseq;
+      for (const code of codes) {
+        const proc = t3.encoding[code] ? t3.charProcs[t3.encoding[code]] : void 0;
+        if (proc && sink.count < sink.max) {
+          const glyphCtm = matMul3(matMul3(matMul3(s.ctm, tm), scale), fmMat);
+          run(proc, t3.resources, glyphCtm, depth + 1, [...gpath(), gid], s.clips, s.fill, sink, s, true);
+        }
+        const adv = (t3.widths[code] ?? 0) * (fm[0] ?? 1e-3) * (s.fontSize || 0);
+        tm = matMul3(tm, { a: 1, b: 0, c: 0, d: 1, e: adv, f: 0 });
+      }
+    };
+    const latchMcid = () => {
+      if (textMcid < 0 && mcstack.length) textMcid = mcstack[mcstack.length - 1];
+    };
+    const showString = (codes) => {
+      if (!codes || !codes.length) return;
+      const fi = res.fonts && res.fonts[s.font];
+      if (fi?.type3) {
+        drawType3(codes, fi.type3);
+        return;
+      }
+      if (!originSet) onTextMove();
+      latchMcid();
+      textBuf += decodeStr(codes, s.font);
+    };
+    const showTJ = (arr) => {
+      if (!Array.isArray(arr)) return;
+      const fi = res.fonts && res.fonts[s.font];
+      if (fi?.type3) {
+        for (const el of arr) {
+          if (el.t === "str") drawType3(el.v, fi.type3);
+          else if (el.t === "num") tm = matMul3(tm, { a: 1, b: 0, c: 0, d: 1, e: -(el.v / 1e3) * (s.fontSize || 0), f: 0 });
+        }
+        return;
+      }
+      if (!originSet) onTextMove();
+      latchMcid();
+      for (const el of arr) {
+        if (el.t === "str") textBuf += decodeStr(el.v, s.font);
+        else if (el.t === "num" && el.v <= -180) textBuf += " ";
+      }
+    };
+    const flushText = () => {
+      const txt = textBuf.replace(/[ \t]+\n/g, "\n").replace(/\s+$/g, "");
+      if (originSet && txt.trim() && sink.count < sink.max && textMask) {
+        const size = Math.max(1, textSize);
+        const lead = leadCount ? Math.round(leadSum / leadCount * 1e3) / 1e3 : 0;
+        sink.nodes.push({
+          kind: "text",
+          x: origin.x,
+          y: origin.y - size * 0.8,
+          w: Math.max(4, txt.replace(/\n.*/s, "").length * size * 0.55, size * 2),
+          h: size * (lead || 1.4) * txt.split("\n").length,
+          ...lead ? { lineHeight: lead } : {},
+          rot: Math.abs(textRot) < 0.5 ? 0 : textRot,
+          fg: safeColor(textFill, "#000000") || "#000000",
+          opacity: clamp4(Math.round(textAlpha * 100 * textMask.scale), 0, 100),
+          fontSize: size,
+          fontFamily: res.fonts && res.fonts[textFont] && res.fonts[textFont].family || "",
+          fontWeight: res.fonts && res.fonts[textFont] && res.fonts[textFont].weight || 400,
+          text: txt,
+          ...textMcid >= 0 ? { mcid: textMcid } : {},
+          _groupPath: gpath(),
+          ...s.clips.length ? { _clips: s.clips } : {},
+          ...textMask.extra
+        });
+        sink.count++;
+      }
+      textBuf = "";
+      originSet = false;
+      leadSum = 0;
+      leadCount = 0;
+      textAlpha = 1;
+      textMcid = -1;
+      textMask = { extra: {}, scale: 1 };
+    };
+    const maskPaint = (source) => {
+      if (!s.softMask && !s.softMaskOpaque) {
+        return source === "fill" && s.fillMask ? { extra: { _softMask: s.fillMask }, scale: 1 } : { extra: {}, scale: 1 };
+      }
+      const ev = s.softMask ? evalSoftMask(s.softMask, depth) : null;
+      if (ev) {
+        if (ev.kind === "none") return null;
+        if (ev.kind === "constant") return ev.value < 5e-3 ? null : { extra: {}, scale: ev.value };
+        return { extra: { _softMask: ev.mask }, scale: 1 };
+      }
+      softMaskUnresolved++;
+      if (source === "fill" && !glyphRun && s.fillAlpha < 0.9 && isAchromatic(s.fill)) {
+        onWarn("smask.shadow.skipped", "");
+        return null;
+      }
+      return { extra: {}, scale: 1 };
+    };
+    const paintPath = (mode, evenOdd = false) => {
+      if (!segs.length || sink.count >= sink.max) {
+        segs = [];
+        return;
+      }
+      if (mode !== "fill" && s.strokePatternUnsupported) {
+        onWarn("pattern.unsupported", s.strokePatternUnsupported);
+        s.strokePatternUnsupported = "";
+      }
+      const mpFill = mode === "stroke" ? null : maskPaint("fill");
+      const mpStroke = mode === "fill" ? null : maskPaint("stroke");
+      if (!mpFill && !mpStroke) {
+        segs = [];
+        return;
+      }
+      const fillCol = mpFill ? s.fill : "";
+      const strokeCol = mpStroke ? s.stroke : "";
+      const grad = mpFill ? s.fillGradient : null;
+      const gradExtra = grad ? { _gradient: nodeGradient(grad) } : {};
+      const lead = mpFill && (fillCol || grad || !mpStroke) ? mpFill : mpStroke ?? mpFill;
+      const maskExtra = lead.extra;
+      const alpha = clamp4(Math.round(
+        (lead === mpFill ? s.fillAlpha * s.fillScale : s.strokeAlpha) * 100 * lead.scale
+      ), 0, 100);
+      if (s.fillTileNodes && mode !== "stroke") {
+        const baked2 = serializePath(segs);
+        const pathClip = baked2.d ? [{ d: baked2.d, evenOdd }] : [];
+        for (const n2 of s.fillTileNodes) {
+          if (sink.count >= sink.max) break;
+          sink.nodes.push(pathClip.length ? { ...n2, _clips: [...n2._clips ?? [], ...pathClip] } : { ...n2 });
+          sink.count++;
+        }
+        s.fillTileNodes = null;
+        segs = [];
+        return;
+      }
+      const clip3 = s.clips.length ? { _clips: s.clips } : {};
+      const subpaths = segs.reduce((c2, sg) => c2 + (sg.op === "m" ? 1 : 0), 0);
+      if ((fillCol || grad) && mode !== "stroke" && subpaths === 1) {
+        const rect = asRectangle(segs);
+        if (rect) {
+          sink.nodes.push({
+            kind: "box",
+            x: rect.x,
+            y: rect.y,
+            w: rect.w,
+            h: rect.h,
+            rot: rect.rot,
+            fill: safeColor(fillCol, ""),
+            opacity: alpha,
+            shape: "rect",
+            _groupPath: gpath(),
+            ...clip3,
+            ...gradExtra,
+            ...maskExtra
+          });
+          sink.count++;
+          segs = [];
+          return;
+        }
+        const ell = asEllipse(segs);
+        if (ell) {
+          sink.nodes.push({
+            kind: "box",
+            x: ell.x,
+            y: ell.y,
+            w: ell.w,
+            h: ell.h,
+            rot: 0,
+            fill: safeColor(fillCol, ""),
+            opacity: alpha,
+            shape: "ellipse",
+            _groupPath: gpath(),
+            ...clip3,
+            ...gradExtra,
+            ...maskExtra
+          });
+          sink.count++;
+          segs = [];
+          return;
+        }
+      }
+      const baked = serializePath(segs);
+      const bw = strokeCol ? Math.max(baked.w, 1) : baked.w;
+      const bh = strokeCol ? Math.max(baked.h, 1) : baked.h;
+      const minDim = strokeCol ? 1 : 0.06;
+      if (bw >= minDim && bh >= minDim) {
+        sink.nodes.push({
+          kind: "image",
+          x: baked.x,
+          y: baked.y,
+          w: bw,
+          h: bh,
+          rot: 0,
+          fit: "fill",
+          opacity: alpha,
+          _vectorPath: baked.d,
+          _vectorFill: fillCol ? safeColor(fillCol, "none") : "none",
+          _vectorStroke: strokeCol ? {
+            color: safeColor(strokeCol, "#000000"),
+            width: Math.max(0.3, s.lineWidth * scaleMag(s.ctm)),
+            ...s.lineCap === 1 ? { cap: "round" } : s.lineCap === 2 ? { cap: "square" } : {},
+            ...s.lineJoin === 1 ? { join: "round" } : s.lineJoin === 2 ? { join: "bevel" } : {}
+          } : null,
+          _vectorViewBox: { x: baked.x, y: baked.y, w: baked.w, h: baked.h },
+          _groupPath: gpath(),
+          ...clip3,
+          ...evenOdd ? { _vectorFillRule: "evenodd" } : {},
+          ...gradExtra,
+          ...maskExtra
+        });
+        sink.count++;
+      }
+      segs = [];
+    };
+    const collapseTiling = (pat, tl, name, patMat, tint) => {
+      s.fillMask = null;
+      s.fillScale = 1;
+      const base = matMul3(baseCtm, patMat);
+      const paintTint = tl.paintType === 2 ? tint ?? s.fill : "";
+      const key = `${name}|${[base.a, base.b, base.c, base.d, base.e, base.f].map((v) => Math.round(v * 1e4)).join(",")}|${paintTint}`;
+      let out = collapseCache.get(key);
+      if (!out) {
+        if (depth >= 12 || collapseBudget <= 0 || inFlight.has(key)) {
+          s.fill = safeColor(pat.flat, "");
+          s.fillGradient = null;
+          s.fillMask = null;
+          s.fillScale = 1;
+          s.fillTileNodes = null;
+          onWarn("pattern.tiling.averaged", name);
+          return;
+        }
+        collapseBudget--;
+        inFlight.add(key);
+        const sub = { nodes: [], count: 0, max: COLLAPSE_MAX_NODES };
+        const unresolvedBefore = softMaskUnresolved;
+        try {
+          run(tl.content, tl.resources, base, depth + 1, [], [], paintTint, sub);
+        } finally {
+          inFlight.delete(key);
+        }
+        if (softMaskUnresolved > unresolvedBefore) {
+          s.fill = "";
+          s.fillGradient = null;
+          s.fillMask = null;
+          s.fillScale = 1;
+          s.fillTileNodes = null;
+          collapseCache.set(key, []);
+          onWarn("pattern.smasked.skipped", name);
+          return;
+        }
+        out = sub.nodes;
+        collapseCache.set(key, out);
+      }
+      if (!out.length) {
+        s.fill = "";
+        s.fillGradient = null;
+        s.fillMask = null;
+        s.fillScale = 1;
+        s.fillTileNodes = null;
+        onWarn("pattern.unsupported", name);
+        return;
+      }
+      const isRaster = (n2) => !!n2._imageXObject && !n2._vectorPath;
+      if (out.some(isRaster)) {
+        const allRaster = out.every(isRaster);
+        const noRepeat = tl.xStep >= tl.bbox[2] - tl.bbox[0] - 0.5 && tl.yStep >= tl.bbox[3] - tl.bbox[1] - 0.5;
+        if (allRaster && noRepeat && sink.count + out.length <= sink.max) {
+          const mp = maskPaint("raw");
+          if (!mp) {
+            s.fill = "";
+            s.fillGradient = null;
+            s.fillMask = null;
+            s.fillScale = 1;
+            s.fillTileNodes = null;
+            onWarn("pattern.tiling.raster.skipped", name);
+            return;
+          }
+          s.fillTileNodes = out.map((n2) => {
+            const c = s.clips.length ? { ...n2, _clips: [...n2._clips ?? [], ...s.clips] } : { ...n2 };
+            if (!c._softMask && mp.extra._softMask) c._softMask = mp.extra._softMask;
+            if (mp.scale < 1) c.opacity = clamp4(Math.round((typeof c.opacity === "number" ? c.opacity : 100) * mp.scale), 0, 100);
+            return c;
+          });
+          s.fill = "";
+          s.fillGradient = null;
+          s.fillMask = null;
+          s.fillScale = 1;
+          onWarn("pattern.tiling.raster.emitted", name);
+          return;
+        }
+        s.fill = "";
+        s.fillGradient = null;
+        s.fillMask = null;
+        s.fillScale = 1;
+        s.fillTileNodes = null;
+        onWarn("pattern.tiling.raster.skipped", name);
+        return;
+      }
+      const bb = tl.bbox;
+      const cs = [apply(base, bb[0], bb[1]), apply(base, bb[2], bb[1]), apply(base, bb[2], bb[3]), apply(base, bb[0], bb[3])];
+      const bboxArea = (Math.max(...cs.map((p) => p.x)) - Math.min(...cs.map((p) => p.x))) * (Math.max(...cs.map((p) => p.y)) - Math.min(...cs.map((p) => p.y)));
+      const only = out.length === 1 ? out[0] : null;
+      if (only && bboxArea > 0 && only.w * only.h / bboxArea >= 0.95) {
+        s.fill = nodeFlat(only) || safeColor(pat.flat, "");
+        s.fillGradient = only._gradient ? adoptGradient(only._gradient) : null;
+        s.fillMask = only._softMask ?? null;
+        s.fillScale = typeof only.opacity === "number" ? clamp4(only.opacity, 0, 100) / 100 : 1;
+        onWarn("pattern.tiling.collapsed", name);
+        return;
+      }
+      s.fill = meanNodeColor(out) || safeColor(pat.flat, "");
+      s.fillGradient = null;
+      s.fillMask = null;
+      s.fillScale = 1;
+      onWarn("pattern.tiling.averaged", name);
+    };
+    const applyPattern = (pat, name, tint) => {
+      const patMat = fromArr(pat.matrix && pat.matrix.length >= 6 ? pat.matrix : [1, 0, 0, 1, 0, 0]);
+      if (pat.shading) {
+        const sh = pat.shading;
+        const mat = matMul3(
+          matMul3(baseCtm, patMat),
+          fromArr(sh.shadingMatrix && sh.shadingMatrix.length >= 6 ? sh.shadingMatrix : [1, 0, 0, 1, 0, 0])
+        );
+        s.fillGradient = { ...sh, mat };
+        s.fill = safeColor(pat.flat ?? sh.flat, "");
+        s.fillMask = null;
+        s.fillScale = 1;
+        return;
+      }
+      if (pat.tiling) {
+        collapseTiling(pat, pat.tiling, name, patMat, tint);
+        return;
+      }
+      if (pat.flat) {
+        s.fill = safeColor(pat.flat, "");
+        s.fillGradient = null;
+        s.fillMask = null;
+        s.fillScale = 1;
+        s.fillTileNodes = null;
+        return;
+      }
+      s.fill = "";
+      s.fillGradient = null;
+      s.fillMask = null;
+      s.fillScale = 1;
+      s.fillTileNodes = null;
+      onWarn("pattern.unsupported", name);
+    };
+    for (const tk of toks) {
+      if (tk.t === "num") {
+        args.push(tk.v);
+        continue;
+      }
+      if (tk.t === "name") {
+        nameArg = tk.v;
+        continue;
+      }
+      if (tk.t === "str") {
+        strArg = tk.v;
+        continue;
+      }
+      if (tk.t === "arr") {
+        arrArg = tk.v;
+        continue;
+      }
+      if (tk.t === "dict") {
+        dictArg = tk.v;
+        continue;
+      }
+      if (tk.t !== "op") continue;
+      switch (tk.v) {
+        case "q":
+          stack.push(cloneState(s));
+          gstack.push("g" + ++gseq);
+          break;
+        case "Q":
+          if (stack.length) s = stack.pop();
+          if (gstack.length) gstack.pop();
+          break;
+        case "cm":
+          if (args.length >= 6) s.ctm = matMul3(s.ctm, fromArr(args));
+          break;
+        case "w":
+          s.lineWidth = args[0] ?? s.lineWidth;
+          break;
+        case "J":
+          s.lineCap = args[0] ?? s.lineCap;
+          break;
+        // §8.4.3.3
+        case "j":
+          s.lineJoin = args[0] ?? s.lineJoin;
+          break;
+        // §8.4.3.4
+        case "gs": {
+          const g2 = res.extgstates && res.extgstates[nameArg];
+          if (g2) {
+            if (typeof g2.ca === "number") s.fillAlpha = g2.ca;
+            if (typeof g2.CA === "number") s.strokeAlpha = g2.CA;
+            if (g2.smask !== void 0) {
+              if (g2.smask === false) {
+                s.softMask = null;
+                s.softMaskOpaque = false;
+              } else if (g2.smask === true) {
+                s.softMask = null;
+                s.softMaskOpaque = true;
+              } else {
+                s.softMask = { def: g2.smask, ctm: s.ctm };
+                s.softMaskOpaque = false;
+              }
+            }
+          }
+          break;
+        }
+        case "rg":
+          s.fill = rgbHex(args[0], args[1], args[2]);
+          s.fillGradient = null;
+          s.fillMask = null;
+          s.fillScale = 1;
+          s.fillTileNodes = null;
+          break;
+        case "RG":
+          s.stroke = rgbHex(args[0], args[1], args[2]);
+          s.strokePatternUnsupported = "";
+          break;
+        case "g":
+          s.fill = rgbHex(args[0], args[0], args[0]);
+          s.fillGradient = null;
+          s.fillMask = null;
+          s.fillScale = 1;
+          s.fillTileNodes = null;
+          break;
+        case "G":
+          s.stroke = rgbHex(args[0], args[0], args[0]);
+          s.strokePatternUnsupported = "";
+          break;
+        case "k":
+          s.fill = cmykHex(args);
+          s.fillGradient = null;
+          s.fillMask = null;
+          s.fillScale = 1;
+          s.fillTileNodes = null;
+          break;
+        case "K":
+          s.stroke = cmykHex(args);
+          s.strokePatternUnsupported = "";
+          break;
+        // sc/scn: numeric operands → a real colour; a pattern NAME → `applyPattern`
+        // (see its comment for the fidelity ladder). A name we have NO pattern
+        // resource for still CLEARS the paint rather than letting it inherit the
+        // previous fill, since a stale colour (often black) would flood the shape —
+        // the original anti-stale-black safety valve, now the rare case rather than
+        // the common one. An uncoloured pattern (PaintType 2) carries its tint in
+        // the numeric operands, which scColor resolves.
+        case "sc":
+        case "scn": {
+          const pat = nameArg && res.patterns ? res.patterns[nameArg] : void 0;
+          if (pat) {
+            applyPattern(pat, nameArg, scColor(args));
+          } else {
+            const col = scColor(args);
+            if (col) {
+              s.fill = col;
+              s.fillGradient = null;
+              s.fillMask = null;
+              s.fillScale = 1;
+              s.fillTileNodes = null;
+            } else if (nameArg) {
+              s.fill = "";
+              s.fillGradient = null;
+              s.fillMask = null;
+              s.fillScale = 1;
+              s.fillTileNodes = null;
+              onWarn("pattern.unsupported", nameArg);
+            }
+          }
+          break;
+        }
+        // Stroke patterns: there is no stroke-gradient support in this interpreter
+        // at all, so the best available answer is the pattern's flat back-stop.
+        // A pattern with no back-stop is NOT reported here — see
+        // GState.strokePatternUnsupported; the report moves to the paint site so the
+        // 78 benign Chromium "set stroke to the fill's pattern, then only fill"
+        // selections stop burying real signal in the warning census.
+        case "SC":
+        case "SCN": {
+          const col = scColor(args);
+          if (col) {
+            s.stroke = col;
+            s.strokePatternUnsupported = "";
+            break;
+          }
+          if (!nameArg) break;
+          const pat = res.patterns ? res.patterns[nameArg] : void 0;
+          if (pat?.flat) {
+            s.stroke = pat.flat;
+            s.strokePatternUnsupported = "";
+          } else {
+            s.stroke = "";
+            s.strokePatternUnsupported = nameArg;
+          }
+          break;
+        }
+        case "cs":
+        case "CS":
+          break;
+        // `sh` paints a shading across the current clip. We only emit it when a clip
+        // is in force (the normal case — Chromium clips a gradient to its element
+        // box): a page-sized gradient rect cropped by the clip. Unclipped `sh` is
+        // rare and can't be bounded here (extend:false paints only the axis extent,
+        // not the page), so it's skipped rather than risk flooding the page.
+        //
+        // The shading's own /Matrix (Table 79) composes onto the CTM here; the flat
+        // back-stop rides along as the node fill, so a shading the serializer can't
+        // emit (a function-based one with no rasterised tile) still paints a colour.
+        case "sh": {
+          const sd = res.shadings && res.shadings[nameArg];
+          if (!sd) {
+            if (nameArg) onWarn("shading.unsupported", nameArg);
+            break;
+          }
+          if (!s.clips.length) {
+            onWarn("shading.sh.unclipped", nameArg);
+            break;
+          }
+          if (sink.count < sink.max) {
+            const mp = maskPaint("raw");
+            if (!mp) break;
+            const sm = matMul3(s.ctm, fromArr(sd.shadingMatrix && sd.shadingMatrix.length >= 6 ? sd.shadingMatrix : [1, 0, 0, 1, 0, 0]));
+            sink.nodes.push({
+              kind: "box",
+              x: 0,
+              y: 0,
+              w: page2.width || 0,
+              h: page2.height || 0,
+              rot: 0,
+              shape: "rect",
+              fill: safeColor(sd.flat, ""),
+              opacity: clamp4(Math.round(s.fillAlpha * 100 * mp.scale), 0, 100),
+              _gradient: nodeGradient({ ...sd, mat: sm }),
+              _groupPath: gpath(),
+              _clips: s.clips,
+              ...mp.extra
+            });
+            sink.count++;
+          }
+          break;
+        }
+        case "m":
+          cxU = startXU = args[0];
+          cyU = startYU = args[1];
+          push(args[0], args[1], "m");
+          break;
+        case "l":
+          cxU = args[0];
+          cyU = args[1];
+          push(args[0], args[1], "l");
+          break;
+        case "c":
+          push(args[4], args[5], "c", [args[0], args[1], args[2], args[3]]);
+          cxU = args[4];
+          cyU = args[5];
+          break;
+        case "v":
+          push(args[2], args[3], "c", [cxU, cyU, args[0], args[1]]);
+          cxU = args[2];
+          cyU = args[3];
+          break;
+        case "y":
+          push(args[2], args[3], "c", [args[0], args[1], args[2], args[3]]);
+          cxU = args[2];
+          cyU = args[3];
+          break;
+        case "re": {
+          const x = args[0], y = args[1], w = args[2], h = args[3];
+          push(x, y, "m");
+          push(x + w, y, "l");
+          push(x + w, y + h, "l");
+          push(x, y + h, "l");
+          push(x, y, "l");
+          segs.push({ op: "h", pts: [] });
+          cxU = startXU = x;
+          cyU = startYU = y;
+          break;
+        }
+        case "h":
+          if (segs.length) {
+            push(startXU, startYU, "l");
+            segs.push({ op: "h", pts: [] });
+            cxU = startXU;
+            cyU = startYU;
+          }
+          break;
+        // A pending W/W* applies at the path's terminating operator. Applying it
+        // just BEFORE the paint deviates from the spec by one op (the painted
+        // path self-clips — a no-op, a path clipped by itself is itself) and
+        // keeps the common `re W n` clip-only sequence exact.
+        case "f":
+        case "F":
+          applyPendingClip();
+          paintPath("fill");
+          break;
+        case "f*":
+          applyPendingClip();
+          paintPath("fill", true);
+          break;
+        // `s`/`b`/`b*` are the CLOSE-then-paint forms of `S`/`B`/`B*` (§8.5.3.1);
+        // they must close, or a stroked shape is left with a gap where it started.
+        case "S":
+          applyPendingClip();
+          paintPath("stroke");
+          break;
+        case "s":
+          if (segs.length) {
+            push(startXU, startYU, "l");
+            segs.push({ op: "h", pts: [] });
+          }
+          applyPendingClip();
+          paintPath("stroke");
+          break;
+        case "B":
+          applyPendingClip();
+          paintPath("both");
+          break;
+        case "b":
+          if (segs.length) {
+            push(startXU, startYU, "l");
+            segs.push({ op: "h", pts: [] });
+          }
+          applyPendingClip();
+          paintPath("both");
+          break;
+        case "B*":
+          applyPendingClip();
+          paintPath("both", true);
+          break;
+        case "b*":
+          if (segs.length) {
+            push(startXU, startYU, "l");
+            segs.push({ op: "h", pts: [] });
+          }
+          applyPendingClip();
+          paintPath("both", true);
+          break;
+        case "n":
+          applyPendingClip();
+          segs = [];
+          break;
+        case "W":
+          pendingClip = "nonzero";
+          break;
+        case "W*":
+          pendingClip = "evenodd";
+          break;
+        case "BT":
+          tm = IDENTITY2;
+          tlm = IDENTITY2;
+          textBuf = "";
+          originSet = false;
+          break;
+        case "ET":
+          flushText();
+          break;
+        case "TL":
+          s.leading = args[0] ?? 0;
+          break;
+        case "Tf":
+          s.font = nameArg;
+          s.fontSize = args[0] ?? s.fontSize;
+          break;
+        case "Td":
+          tlm = matMul3(tlm, { a: 1, b: 0, c: 0, d: 1, e: args[0] ?? 0, f: args[1] ?? 0 });
+          tm = tlm;
+          onTextMove();
+          break;
+        case "TD":
+          s.leading = -(args[1] ?? 0);
+          tlm = matMul3(tlm, { a: 1, b: 0, c: 0, d: 1, e: args[0] ?? 0, f: args[1] ?? 0 });
+          tm = tlm;
+          onTextMove();
+          break;
+        case "Tm":
+          tlm = fromArr(args);
+          tm = tlm;
+          onTextMove();
+          break;
+        case "T*":
+          tlm = matMul3(tlm, { a: 1, b: 0, c: 0, d: 1, e: 0, f: -s.leading });
+          tm = tlm;
+          onTextMove();
+          break;
+        case "Tj":
+          showString(strArg);
+          break;
+        case "'":
+          tlm = matMul3(tlm, { a: 1, b: 0, c: 0, d: 1, e: 0, f: -s.leading });
+          tm = tlm;
+          onTextMove();
+          showString(strArg);
+          break;
+        case '"':
+          tlm = matMul3(tlm, { a: 1, b: 0, c: 0, d: 1, e: 0, f: -s.leading });
+          tm = tlm;
+          onTextMove();
+          showString(strArg);
+          break;
+        case "TJ":
+          showTJ(arrArg);
+          break;
+        case "Do": {
+          const xo = res.xobjects && res.xobjects[nameArg];
+          if (xo && xo.kind === "image" && sink.count < sink.max) {
+            const mp = maskPaint("raw");
+            if (!mp) break;
+            const geom = boxGeomFromBBox({ x: 0, y: 0, width: 1, height: 1 }, s.ctm);
+            sink.nodes.push({
+              kind: "image",
+              x: geom.x,
+              y: geom.y,
+              w: geom.w,
+              h: geom.h,
+              rot: geom.rot,
+              fit: "fill",
+              opacity: clamp4(Math.round(s.fillAlpha * 100 * mp.scale), 0, 100),
+              _imageXObject: xo.imageKey || nameArg,
+              _groupPath: gpath(),
+              ...s.clips.length ? { _clips: s.clips } : {},
+              ...mp.extra
+            });
+            sink.count++;
+          } else if (xo && xo.kind === "form") {
+            const fm = xo.matrix && xo.matrix.length >= 6 ? matMul3(s.ctm, fromArr(xo.matrix)) : s.ctm;
+            if (sink.count < sink.max && tokensSpent < TOKEN_BUDGET) {
+              run(xo.content || "", xo.resources || {}, fm, depth + 1, [...gpath(), "g" + ++gseq], s.clips, "", sink, s, glyphRun);
+            }
+          }
+          break;
+        }
+        // Marked content pushes a frame too (an OCG layer id, or '' for a non-group marker)
+        // so it nests correctly with the q…Q frames on the same stack.
+        case "BDC":
+        case "BMC":
+          gstack.push(ocgLabel(tk.v, nameArg, res));
+          mcstack.push(dictArg?.mcid ?? -1);
+          break;
+        case "EMC":
+          if (gstack.length) gstack.pop();
+          if (mcstack.length) mcstack.pop();
+          break;
+        default:
+          break;
+      }
+      reset();
+    }
+    flushText();
+  };
+  const evalSoftMask = (sm, depth) => {
+    const def = sm.def;
+    if (maskDepth >= 1) {
+      onWarn("smask.group.unevaluated", "nested");
+      return null;
+    }
+    if (!def || !def.content) {
+      onWarn("smask.group.unevaluated", "content");
+      return null;
+    }
+    if (def.transfer) {
+      onWarn("smask.group.unevaluated", "transfer");
+      return null;
+    }
+    if (typeof def.backdrop === "number" && def.backdrop > 4e-3) {
+      onWarn("smask.group.unevaluated", "bc");
+      return null;
+    }
+    const base = matMul3(sm.ctm, fromArr(def.matrix && def.matrix.length >= 6 ? def.matrix : [1, 0, 0, 1, 0, 0]));
+    const key = `${def.id}|${[base.a, base.b, base.c, base.d, base.e, base.f].map((v) => Math.round(v * 1e4)).join(",")}`;
+    const hit = maskCache.get(key);
+    if (hit !== void 0) return hit;
+    if (maskInFlight.has(key)) {
+      onWarn("smask.group.unevaluated", "recursive");
+      return null;
+    }
+    if (maskBudget <= 0 || maskNodesSpent >= MASK_TOTAL_NODES) {
+      maskExhausted();
+      onWarn("smask.group.unevaluated", "budget");
+      return null;
+    }
+    const region = maskRegion(def.bbox, base);
+    if (!region) {
+      onWarn("smask.group.unevaluated", "bbox");
+      return null;
+    }
+    maskBudget--;
+    maskInFlight.add(key);
+    maskDepth++;
+    const sub = { nodes: [], count: 0, max: MASK_MAX_NODES };
+    try {
+      run(def.content, def.resources || {}, base, depth + 1, [], [region.clip], "", sub);
+    } catch {
+    } finally {
+      maskInFlight.delete(key);
+      maskDepth--;
+      maskNodesSpent += sub.count;
+    }
+    let out;
+    if (sub.count >= MASK_MAX_NODES) {
+      onWarn("smask.group.unevaluated", "nodes");
+      maskCache.set(key, null);
+      return null;
+    }
+    if (!sub.nodes.length) {
+      out = { kind: "none" };
+      onWarn("smask.group.empty", def.id);
+    } else {
+      const c = constantMask(sub.nodes, region, def.subtype === "Alpha" ? "Alpha" : "Luminosity");
+      if (c != null) {
+        out = { kind: "constant", value: c };
+        onWarn("smask.group.folded", def.id);
+      } else {
+        for (const n2 of sub.nodes) delete n2._groupPath;
+        out = {
+          kind: "mask",
+          mask: { key, nodes: sub.nodes, x: region.x, y: region.y, w: region.w, h: region.h, subtype: def.subtype === "Alpha" ? "Alpha" : "Luminosity" }
+        };
+        onWarn("smask.group.applied", def.id);
+        if (def.subtype === "Alpha") onWarn("smask.alpha.approx", def.id);
+      }
+    }
+    maskCache.set(key, out);
+    return out;
+  };
+  run(page2.content || "", page2, flip, 0, [], [], "", pageSink);
+  const counts = /* @__PURE__ */ new Map();
+  for (const nd of nodes) for (const id of nd._groupPath ?? []) counts.set(id, (counts.get(id) ?? 0) + 1);
+  for (const nd of nodes) {
+    const path = nd._groupPath ?? [];
+    let g2 = "";
+    for (let k = path.length - 1; k >= 0; k--) {
+      const id = path[k];
+      if ((counts.get(id) ?? 0) >= 2) {
+        g2 = id;
+        break;
+      }
+    }
+    if (g2) nd.group = g2;
+    delete nd._groupPath;
+  }
+  return nodes;
+}
+function cmykHex(a) {
+  const c = a[0] || 0, m = a[1] || 0, y = a[2] || 0, k = a[3] || 0;
+  return rgbHex((1 - c) * (1 - k), (1 - m) * (1 - k), (1 - y) * (1 - k));
+}
+function hexRgb2(hex) {
+  const m = /^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$/.exec(String(hex || "").trim());
+  if (!m) return null;
+  const h = m[1];
+  const p = h.length === 3 ? [h[0] + h[0], h[1] + h[1], h[2] + h[2]] : [h.slice(0, 2), h.slice(2, 4), h.slice(4, 6)];
+  return [parseInt(p[0], 16), parseInt(p[1], 16), parseInt(p[2], 16)];
+}
+function nodeFlat(n2) {
+  const v = n2.fill || (n2._vectorFill && n2._vectorFill !== "none" ? n2._vectorFill : "") || n2._gradient?.flat || "";
+  return hexRgb2(v) ? v : "";
+}
+function meanNodeColor(list2) {
+  let r3 = 0, g2 = 0, b = 0, wsum = 0;
+  for (const n2 of list2) {
+    const c = hexRgb2(nodeFlat(n2));
+    if (!c) continue;
+    const a = Math.max(0, n2.w) * Math.max(0, n2.h) * (clamp4(typeof n2.opacity === "number" ? n2.opacity : 100, 0, 100) / 100);
+    if (!(a > 0)) continue;
+    r3 += c[0] * a;
+    g2 += c[1] * a;
+    b += c[2] * a;
+    wsum += a;
+  }
+  if (!wsum) return "";
+  return rgbHex(r3 / wsum / 255, g2 / wsum / 255, b / wsum / 255);
+}
+function scColor(a) {
+  if (a.length === 1) return rgbHex(a[0], a[0], a[0]);
+  if (a.length === 3) return rgbHex(a[0], a[1], a[2]);
+  if (a.length >= 4) return cmykHex(a);
+  return null;
+}
+function polyCorners(segs) {
+  const pts = [];
+  for (const sg of segs) {
+    if (sg.op === "h") continue;
+    if (sg.op === "c") return null;
+    if (sg.op === "m" && pts.length) return null;
+    pts.push([sg.pts[0], sg.pts[1]]);
+  }
+  if (pts.length >= 2) {
+    const f = pts[0], l = pts[pts.length - 1];
+    if (Math.abs(f[0] - l[0]) < 0.01 && Math.abs(f[1] - l[1]) < 0.01) pts.pop();
+  }
+  return pts;
+}
+function asRectangle(segs) {
+  const c = polyCorners(segs);
+  if (!c || c.length !== 4) return null;
+  const p0 = c[0], p1 = c[1], p2 = c[2], p3 = c[3];
+  const sub = (a, b) => [b[0] - a[0], b[1] - a[1]];
+  const len2 = (v) => Math.hypot(v[0], v[1]);
+  const dot = (u, v) => u[0] * v[0] + u[1] * v[1];
+  const e0 = sub(p0, p1), e1 = sub(p1, p2), e2 = sub(p2, p3), e3 = sub(p3, p0);
+  const l0 = len2(e0), l1 = len2(e1), l2 = len2(e2), l3 = len2(e3);
+  if (l0 < 0.5 || l1 < 0.5) return null;
+  const tol = 0.03 * Math.max(l0, l1);
+  if (Math.abs(l0 - l2) > tol || Math.abs(l1 - l3) > tol) return null;
+  if (Math.abs(dot(e0, e1)) > tol * Math.max(l0, l1)) return null;
+  const edges = [e0, e1, e2, e3];
+  const axisAligned = edges.every((v) => Math.abs(v[0]) < tol || Math.abs(v[1]) < tol);
+  const xs = [p0[0], p1[0], p2[0], p3[0]], ys = [p0[1], p1[1], p2[1], p3[1]];
+  if (axisAligned) {
+    const minX = Math.min(...xs), minY = Math.min(...ys);
+    return { x: minX, y: minY, w: Math.max(...xs) - minX, h: Math.max(...ys) - minY, rot: 0 };
+  }
+  const cx = (p0[0] + p1[0] + p2[0] + p3[0]) / 4;
+  const cy = (p0[1] + p1[1] + p2[1] + p3[1]) / 4;
+  const rot = Math.atan2(e0[1], e0[0]) * 180 / Math.PI;
+  return { x: cx - l0 / 2, y: cy - l1 / 2, w: l0, h: l1, rot: Math.round(rot * 10) / 10 };
+}
+function asEllipse(segs) {
+  const moves = segs.filter((sg) => sg.op === "m").length;
+  const curves = segs.filter((sg) => sg.op === "c").length;
+  const lines = segs.filter((sg) => sg.op === "l").length;
+  if (moves !== 1 || curves !== 4 || lines > 1) return null;
+  let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+  for (const sg of segs) for (let k = 0; k < sg.pts.length; k += 2) {
+    minX = Math.min(minX, sg.pts[k]);
+    maxX = Math.max(maxX, sg.pts[k]);
+    minY = Math.min(minY, sg.pts[k + 1]);
+    maxY = Math.max(maxY, sg.pts[k + 1]);
+  }
+  const w = maxX - minX, h = maxY - minY;
+  if (w < 0.5 || h < 0.5) return null;
+  return { x: minX, y: minY, w, h };
+}
+function serializePath(segs) {
+  let d = "";
+  let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+  const track = (x, y) => {
+    if (x < minX) minX = x;
+    if (y < minY) minY = y;
+    if (x > maxX) maxX = x;
+    if (y > maxY) maxY = y;
+  };
+  const r3 = (v) => Math.round(v * 100) / 100;
+  for (const sg of segs) {
+    if (sg.op === "h") {
+      d += "Z";
+    } else if (sg.op === "m") {
+      track(sg.pts[0], sg.pts[1]);
+      d += `M${r3(sg.pts[0])} ${r3(sg.pts[1])}`;
+    } else if (sg.op === "l") {
+      track(sg.pts[0], sg.pts[1]);
+      d += `L${r3(sg.pts[0])} ${r3(sg.pts[1])}`;
+    } else {
+      track(sg.pts[0], sg.pts[1]);
+      track(sg.pts[2], sg.pts[3]);
+      track(sg.pts[4], sg.pts[5]);
+      d += `C${r3(sg.pts[0])} ${r3(sg.pts[1])} ${r3(sg.pts[2])} ${r3(sg.pts[3])} ${r3(sg.pts[4])} ${r3(sg.pts[5])}`;
+    }
+  }
+  if (!isFinite(minX)) return { d: "", x: 0, y: 0, w: 0, h: 0 };
+  return { d, x: minX, y: minY, w: maxX - minX, h: maxY - minY };
+}
+function ocgLabel(op, name, res) {
+  if (op === "BDC" && res.ocgs && name && res.ocgs[name]) return res.ocgs[name];
+  return "";
+}
+function hexToUtf16(hex) {
+  let out = "";
+  for (let i = 0; i + 3 < hex.length + 1 && i + 4 <= hex.length; i += 4) {
+    out += String.fromCharCode(parseInt(hex.substr(i, 4), 16) || 0);
+  }
+  if (!out && hex.length >= 2) out = String.fromCharCode(parseInt(hex.substr(0, hex.length), 16) || 0);
+  return out;
+}
+function parseToUnicode(cmap) {
+  const map = /* @__PURE__ */ new Map();
+  if (!cmap) return map;
+  const charBlock = /beginbfchar([\s\S]*?)endbfchar/g;
+  let mb;
+  const pair = /<([0-9A-Fa-f]+)>\s*<([0-9A-Fa-f]+)>/g;
+  while (mb = charBlock.exec(cmap)) {
+    let pm;
+    pair.lastIndex = 0;
+    while (pm = pair.exec(mb[1])) map.set(parseInt(pm[1], 16), hexToUtf16(pm[2]));
+  }
+  const rangeBlock = /beginbfrange([\s\S]*?)endbfrange/g;
+  const rangeSingle = /<([0-9A-Fa-f]+)>\s*<([0-9A-Fa-f]+)>\s*<([0-9A-Fa-f]+)>/g;
+  const rangeArray = /<([0-9A-Fa-f]+)>\s*<([0-9A-Fa-f]+)>\s*\[([\s\S]*?)\]/g;
+  while (mb = rangeBlock.exec(cmap)) {
+    const body = mb[1];
+    let rm2;
+    rangeArray.lastIndex = 0;
+    const arrSpans = [];
+    while (rm2 = rangeArray.exec(body)) {
+      const lo = parseInt(rm2[1], 16), hi = parseInt(rm2[2], 16);
+      arrSpans.push([rm2.index, rm2.index + rm2[0].length]);
+      const dsts = rm2[3].match(/<([0-9A-Fa-f]+)>/g) || [];
+      for (let k = 0; k <= hi - lo && k < dsts.length; k++) {
+        map.set(lo + k, hexToUtf16(dsts[k].replace(/[<>]/g, "")));
+      }
+    }
+    rangeSingle.lastIndex = 0;
+    while (rm2 = rangeSingle.exec(body)) {
+      if (arrSpans.some(([a, b]) => rm2.index >= a && rm2.index < b)) continue;
+      const lo = parseInt(rm2[1], 16), hi = parseInt(rm2[2], 16);
+      const baseHex = rm2[3];
+      const base = parseInt(baseHex, 16);
+      const span = Math.min(hi - lo, MAX_BF_RANGE - 1);
+      for (let k = 0; k <= span; k++) {
+        map.set(lo + k, String.fromCharCode(base + k & 65535));
+      }
+    }
+  }
+  return map;
+}
+function toUnicodeDecoder(map, twoByte) {
+  return (codes) => {
+    let out = "";
+    if (twoByte) {
+      for (let i = 0; i + 1 < codes.length; i += 2) {
+        const code = codes[i] << 8 | codes[i + 1];
+        out += map.has(code) ? map.get(code) : "";
+      }
+    } else {
+      for (const code of codes) out += map.has(code) ? map.get(code) : String.fromCharCode(code);
+    }
+    return out;
+  };
+}
+var IDENTITY2, WS, DELIM, WIN_ANSI_HIGH, MAX_BF_RANGE;
+var init_pdf_map = __esm({
+  "engine/src/pdf-map.ts"() {
+    "use strict";
+    init_design_map();
+    init_pdf_smask();
+    IDENTITY2 = { a: 1, b: 0, c: 0, d: 1, e: 0, f: 0 };
+    WS = /* @__PURE__ */ new Set([0, 9, 10, 12, 13, 32]);
+    DELIM = new Set("()<>[]{}/%".split("").map((c) => c.charCodeAt(0)));
+    WIN_ANSI_HIGH = {
+      128: "\u20AC",
+      130: "\u201A",
+      131: "\u0192",
+      132: "\u201E",
+      133: "\u2026",
+      134: "\u2020",
+      135: "\u2021",
+      136: "\u02C6",
+      137: "\u2030",
+      138: "\u0160",
+      139: "\u2039",
+      140: "\u0152",
+      142: "\u017D",
+      145: "\u2018",
+      146: "\u2019",
+      147: "\u201C",
+      148: "\u201D",
+      149: "\u2022",
+      150: "\u2013",
+      151: "\u2014",
+      152: "\u02DC",
+      153: "\u2122",
+      154: "\u0161",
+      155: "\u203A",
+      156: "\u0153",
+      158: "\u017E",
+      159: "\u0178"
+    };
+    MAX_BF_RANGE = 65536;
+  }
+});
+
+// engine/src/pdf-svg.ts
+function rectEl(n2, fillOverride) {
+  const fill = fillOverride || safeAttrColor(n2.fill, "none");
+  if (fill === "none") return "";
+  const rx = n2.radius ? ` rx="${r(n2.radius)}"` : "";
+  return `<rect x="${r(n2.x)}" y="${r(n2.y)}" width="${r(n2.w)}" height="${r(n2.h)}"${rx} fill="${fill}"${opacityAttr(n2)}${rotateAttr(n2)}/>`;
+}
+function ellipseEl(n2, fillOverride) {
+  const fill = fillOverride || safeAttrColor(n2.fill, "none");
+  if (fill === "none") return "";
+  return `<ellipse cx="${r(n2.x + n2.w / 2)}" cy="${r(n2.y + n2.h / 2)}" rx="${r(n2.w / 2)}" ry="${r(n2.h / 2)}" fill="${fill}"${opacityAttr(n2)}${rotateAttr(n2)}/>`;
+}
+function vectorPathD(n2) {
+  return String(n2._vectorPath ?? "").replace(/["<>&']/g, "");
+}
+function pathEl(n2, fillOverride) {
+  const d = vectorPathD(n2);
+  if (!d) return "";
+  const fill = fillOverride || safeAttrColor(n2._vectorFill, "none");
+  const st = n2._vectorStroke;
+  const stroke = st && st.color ? ` stroke="${safeAttrColor(st.color, "#000000")}" stroke-width="${r(Math.max(0.3, +st.width || 1))}"` + (st.cap === "round" || st.cap === "square" ? ` stroke-linecap="${st.cap}"` : "") + (st.join === "round" || st.join === "bevel" ? ` stroke-linejoin="${st.join}"` : "") : "";
+  if (fill === "none" && !stroke) return "";
+  const rule = n2._vectorFillRule === "evenodd" ? ' fill-rule="evenodd"' : stroke ? ' fill-rule="nonzero"' : "";
+  return `<path d="${d}" fill="${fill}"${stroke}${rule}${opacityAttr(n2)}/>`;
+}
+function imageEl(n2, images) {
+  const href = n2._imageXObject ? images[n2._imageXObject] : void 0;
+  if (!href || !/^data:image\//i.test(href)) return "";
+  if (r(n2.w) <= 0 || r(n2.h) <= 0) return "";
+  return `<image x="${r(n2.x)}" y="${r(n2.y)}" width="${r(n2.w)}" height="${r(n2.h)}" preserveAspectRatio="none" href="${escapeXml(href)}"${opacityAttr(n2)}${rotateAttr(n2)}/>`;
+}
+function leadOf(n2) {
+  const v = +(n2.lineHeight ?? 0);
+  return isFinite(v) && v > 0 ? v : 1.4;
+}
+function outlinedTextEl(n2) {
+  const lines = n2._outlinePath ?? [];
+  if (!lines.length) return "";
+  const size = Math.max(1, +(n2.fontSize ?? 0) || 12);
+  const lineH = leadOf(n2) * size;
+  const baseline0 = n2.y + size * 0.8;
+  const fill = safeAttrColor(n2.fg, "#000000");
+  const parts = [];
+  for (let i = 0; i < lines.length; i++) {
+    const d = lines[i];
+    if (!d) continue;
+    parts.push(`<g transform="translate(${r(n2.x)} ${r(baseline0 + i * lineH)})"><path d="${d}" fill="${fill}"${opacityAttr(n2)}/></g>`);
+  }
+  return parts.join("");
+}
+function textEl(n2) {
+  const text = String(n2.text ?? "");
+  if (!text.trim()) return "";
+  const size = Math.max(1, +(n2.fontSize ?? 0) || 12);
+  const lineH = leadOf(n2) * size;
+  const baseline0 = n2.y + size * 0.8;
+  const family = String(n2.fontFamily || "").trim();
+  const familyAttr = family ? ` font-family="${escapeXml(family)}, sans-serif"` : ` font-family="sans-serif"`;
+  const weight = n2.fontWeight != null && n2.fontWeight !== "" ? ` font-weight="${escapeXml(String(n2.fontWeight))}"` : "";
+  const rot = n2.rot ? ` transform="rotate(${r(n2.rot)} ${r(n2.x)} ${r(baseline0)})"` : "";
+  const spans = text.split("\n").map((line, i) => `<tspan x="${r(n2.x)}" y="${r(baseline0 + i * lineH)}">${escapeXml(line)}</tspan>`).join("");
+  return `<text xml:space="preserve" fill="${safeAttrColor(n2.fg, "#000000")}" font-size="${r(size)}"${familyAttr}${weight}${opacityAttr(n2)}${rot}>${spans}</text>`;
+}
+function gradientMarkup(g2, id, images) {
+  const m = g2.matrix;
+  if (!Array.isArray(m) || m.length < 6 || !m.every((v) => isFinite(v))) return "";
+  if (g2.type === 1) {
+    const key = g2.tileKey;
+    const href = key ? images[key] : void 0;
+    if (!href || !/^data:image\//i.test(href)) return "";
+    const d = g2.domain;
+    if (!Array.isArray(d) || d.length < 4 || !d.slice(0, 4).every((v) => isFinite(v))) return "";
+    const [x0, x1, y0, y1] = d;
+    const tw = x1 - x0, th = y1 - y0;
+    if (!(tw > 0) || !(th > 0)) return "";
+    const [a, b, c2, dd, e, f] = m;
+    const pt = [a, b, c2, dd, a * x0 + c2 * y0 + e, b * x0 + dd * y0 + f];
+    return `<pattern id="${id}" patternUnits="userSpaceOnUse" x="0" y="0" width="${g4(tw)}" height="${g4(th)}" patternTransform="matrix(${pt.map(g6).join(" ")})"><image x="0" y="0" width="${g4(tw)}" height="${g4(th)}" preserveAspectRatio="none" href="${escapeXml(href)}"/></pattern>`;
+  }
+  const stops = (g2.stops ?? []).filter((s) => s && isFinite(s.offset));
+  if (stops.length < 2) return "";
+  const gt = ` gradientTransform="matrix(${m.slice(0, 6).map(g6).join(" ")})"`;
+  const stopsXml = stops.map((s) => `<stop offset="${clamp015(s.offset)}" stop-color="${safeAttrColor(s.color, "#000000")}"/>`).join("");
+  const c = g2.coords ?? [];
+  if (g2.type === 2) {
+    if (c.length < 4 || !c.slice(0, 4).every((v) => isFinite(v))) return "";
+    return `<linearGradient id="${id}" gradientUnits="userSpaceOnUse" x1="${g4(c[0])}" y1="${g4(c[1])}" x2="${g4(c[2])}" y2="${g4(c[3])}"${gt}>${stopsXml}</linearGradient>`;
+  }
+  if (c.length < 6 || !c.slice(0, 6).every((v) => isFinite(v)) || !(c[5] > 0)) return "";
+  const fr = c[2] > 0 ? ` fr="${g4(c[2])}"` : "";
+  return `<radialGradient id="${id}" gradientUnits="userSpaceOnUse" cx="${g4(c[3])}" cy="${g4(c[4])}" r="${g4(c[5])}" fx="${g4(c[0])}" fy="${g4(c[1])}"${fr}${gt}>${stopsXml}</radialGradient>`;
+}
+function pdfNodeElementKind(n2) {
+  if (!n2) return "none";
+  if (n2._vectorPath) return "path";
+  if (n2._imageXObject) return "image";
+  if (n2._outlinePath?.length) return "outlined-text";
+  if (n2.kind === "text") return "text";
+  if (n2.kind === "box") return "box";
+  return "none";
+}
+function pdfNodesToSvg(nodes, opts) {
+  const idp = (opts.idPrefix ?? "p").replace(/[^A-Za-z0-9_-]/g, "") || "p";
+  const w = Math.max(1, Math.round(opts.width || 0));
+  const h = Math.max(1, Math.round(opts.height || 0));
+  const images = opts.images ?? {};
+  const body = [];
+  if (opts.background) {
+    const bg = safeAttrColor(opts.background, "none");
+    if (bg !== "none") body.push(`<rect x="0" y="0" width="${w}" height="${h}" fill="${bg}"/>`);
+  }
+  const clipDefs = /* @__PURE__ */ new Map();
+  const clipId = (c) => {
+    const key = `${c.evenOdd ? "e" : "n"}|${c.d}`;
+    let id = clipDefs.get(key);
+    if (!id) {
+      id = `${idp}clip${clipDefs.size}`;
+      clipDefs.set(key, id);
+    }
+    return id;
+  };
+  const clipWrap = (n2, el) => {
+    if (!el || !n2._clips?.length) return el;
+    const open = n2._clips.map((c) => `<g clip-path="url(#${clipId(c)})">`).join("");
+    return `${open}${el}${"</g>".repeat(n2._clips.length)}`;
+  };
+  const gradDefs = /* @__PURE__ */ new Map();
+  const gradientFill = (n2) => {
+    const g2 = n2._gradient;
+    if (!g2) return "";
+    const key = JSON.stringify([g2.type, g2.coords, g2.matrix, g2.extend, g2.stops, g2.domain, g2.tileKey]);
+    let entry = gradDefs.get(key);
+    if (!entry) {
+      const id = `${idp}grad${gradDefs.size}`;
+      entry = { id, markup: gradientMarkup(g2, id, images) };
+      gradDefs.set(key, entry);
+    }
+    return entry.markup ? `url(#${entry.id})` : "";
+  };
+  let openGroup = "";
+  const setGroup = (g2) => {
+    if (g2 === openGroup) return;
+    if (openGroup) body.push("</g>");
+    if (g2) body.push(`<g data-group="${escapeXml(g2)}">`);
+    openGroup = g2;
+  };
+  const usedGrads = /* @__PURE__ */ new Set();
+  const renderNode = (n2) => {
+    let el = "", gref = "";
+    switch (pdfNodeElementKind(n2)) {
+      case "path":
+        gref = gradientFill(n2);
+        el = pathEl(n2, gref);
+        break;
+      case "image":
+        el = imageEl(n2, images);
+        break;
+      case "outlined-text":
+        el = outlinedTextEl(n2);
+        break;
+      case "text":
+        el = textEl(n2);
+        break;
+      case "box":
+        gref = gradientFill(n2);
+        el = n2.shape === "ellipse" ? ellipseEl(n2, gref) : rectEl(n2, gref);
+        break;
+      case "none":
+        el = "";
+        break;
+    }
+    return { el, gref };
+  };
+  const maskDefs = /* @__PURE__ */ new Map();
+  const maskWrap = (n2, el) => {
+    const m = n2._softMask;
+    if (!el || !m || !(m.w > 0) || !(m.h > 0)) return el;
+    let entry = maskDefs.get(m.key);
+    if (!entry) {
+      const id = `${idp}mask${maskDefs.size}`;
+      const grefs = [];
+      let kids = "";
+      for (const k of m.nodes ?? []) {
+        if (!k || !(k.w > 0) || !(k.h > 0)) continue;
+        const got = renderNode(k);
+        if (!got.el) continue;
+        if (got.gref) grefs.push(got.gref.slice(5, -1));
+        kids += clipWrap(k, got.el);
+      }
+      const ty = m.subtype === "Alpha" ? ' mask-type="alpha"' : "";
+      entry = {
+        id,
+        grefs,
+        markup: kids ? `<mask id="${id}" maskUnits="userSpaceOnUse" x="${r(m.x)}" y="${r(m.y)}" width="${r(m.w)}" height="${r(m.h)}"${ty} style="color-interpolation:sRGB">${kids}</mask>` : ""
+      };
+      maskDefs.set(m.key, entry);
+    }
+    if (!entry.markup) return "";
+    for (const g2 of entry.grefs) usedGrads.add(g2);
+    return `<g mask="url(#${entry.id})">${el}</g>`;
+  };
+  const pathDefs = /* @__PURE__ */ new Map();
+  const useRef = (el) => {
+    if (!opts.dedupePaths || !el.startsWith("<path ") || el.includes("opacity=")) return el;
+    let d = pathDefs.get(el);
+    if (!d) {
+      d = { id: `${idp}use${pathDefs.size}`, markup: el, uses: 0, slot: body.length };
+      pathDefs.set(el, d);
+      d.uses++;
+      return el;
+    }
+    d.uses++;
+    return `<use href="#${d.id}"/>`;
+  };
+  for (const n2 of nodes ?? []) {
+    if (!n2 || !(n2.w > 0) || !(n2.h > 0)) continue;
+    const got = renderNode(n2);
+    const el = maskWrap(n2, got.el);
+    if (!el) continue;
+    if (got.gref) usedGrads.add(got.gref.slice(5, -1));
+    setGroup(n2.group ?? "");
+    body.push(clipWrap(n2, useRef(el)));
+  }
+  setGroup("");
+  const pathDefsXml = [...pathDefs.values()].filter((d) => d.uses > 1).map((d) => {
+    const inline = body[d.slot];
+    if (inline !== void 0) body[d.slot] = inline.replace(d.markup, `<use href="#${d.id}"/>`);
+    return d.markup.replace("<path ", `<path id="${d.id}" `);
+  }).join("");
+  const gradDefsXml = [...gradDefs.values()].filter((e) => usedGrads.has(e.id)).map((e) => e.markup).join("");
+  const maskDefsXml = [...maskDefs.values()].map((e) => e.markup).join("");
+  const clipDefsXml = [...clipDefs.entries()].map(([key, id]) => `<clipPath id="${id}"><path d="${escapeXml(key.slice(2))}"${key.startsWith("e|") ? ' clip-rule="evenodd"' : ""}/></clipPath>`).join("");
+  const defs = gradDefsXml || maskDefsXml || clipDefsXml || pathDefsXml ? `<defs>${gradDefsXml}${maskDefsXml}${clipDefsXml}${pathDefsXml}</defs>` : "";
+  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${w} ${h}" width="${w}" height="${h}">${defs}${body.join("")}</svg>`;
+}
+function windowPdfSvg(svg, win) {
+  const m = /^<svg ([^>]*?)viewBox="[^"]*" width="[^"]*" height="[^"]*">/.exec(svg);
+  if (!m) return svg;
+  const x = r(win.x), y = r(win.y);
+  const w = Math.max(1, r(win.width)), h = Math.max(1, r(win.height));
+  const ow = Math.max(1, r(win.outWidth ?? w)), oh = Math.max(1, r(win.outHeight ?? h));
+  return `<svg ${m[1]}viewBox="${x} ${y} ${w} ${h}" width="${ow}" height="${oh}">` + svg.slice(m[0].length);
+}
+function pathDataBox(d, maxLen) {
+  if (!d || d.length > maxLen) return null;
+  if (/[^MLCQZ0-9eE.,+\s-]/.test(d)) return null;
+  let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+  let i = 0;
+  for (const m of d.matchAll(/[-+]?(?:\d+\.?\d*|\.\d+)(?:[eE][-+]?\d+)?/g)) {
+    const v = +m[0];
+    if (!isFinite(v)) return null;
+    if ((i++ & 1) === 0) {
+      if (v < minX) minX = v;
+      if (v > maxX) maxX = v;
+    } else {
+      if (v < minY) minY = v;
+      if (v > maxY) maxY = v;
+    }
+  }
+  if (i < 2 || (i & 1) === 1 || !isFinite(minX) || !isFinite(minY)) return null;
+  return { x: minX, y: minY, w: maxX - minX, h: maxY - minY };
+}
+function clipExtent(c) {
+  if (!c) return null;
+  const bb = c.bbox;
+  if (bb && finite(bb.x) && finite(bb.y) && finite(bb.w) && finite(bb.h) && bb.w >= 0 && bb.h >= 0) return bb;
+  return pathDataBox(typeof c.d === "string" ? c.d : "", MAX_CLIP_D);
+}
+function intersectAa(box2, c) {
+  const x1 = Math.max(box2.x, c.x - AA_PAD), y1 = Math.max(box2.y, c.y - AA_PAD);
+  const x2 = Math.min(box2.x + box2.w, c.x + c.w + AA_PAD), y2 = Math.min(box2.y + box2.h, c.y + c.h + AA_PAD);
+  return { x: x1, y: y1, w: x2 - x1, h: y2 - y1 };
+}
+function rotatedAabb(b, deg2, ax, ay) {
+  const rad = deg2 * Math.PI / 180;
+  const cos = Math.cos(rad), sin = Math.sin(rad);
+  let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+  const xs = [b.x, b.x + b.w], ys = [b.y, b.y + b.h];
+  for (const x of xs) for (const y of ys) {
+    const dx = x - ax, dy = y - ay;
+    const px = ax + dx * cos - dy * sin;
+    const py = ay + dx * sin + dy * cos;
+    if (px < minX) minX = px;
+    if (px > maxX) maxX = px;
+    if (py < minY) minY = py;
+    if (py > maxY) maxY = py;
+  }
+  return { x: minX, y: minY, w: maxX - minX, h: maxY - minY };
+}
+function pdfNodeExtent(n2) {
+  try {
+    if (!n2 || typeof n2 !== "object") return EMPTY_EXTENT;
+    if (!finite(n2.x) || !finite(n2.y) || !finite(n2.w) || !finite(n2.h)) return null;
+    if (n2.rot != null && !finite(n2.rot)) return null;
+    if (Math.abs(n2.x) > MAX_COORD3 || Math.abs(n2.y) > MAX_COORD3 || Math.abs(n2.w) > MAX_COORD3 || Math.abs(n2.h) > MAX_COORD3) return null;
+    if (!(n2.w > 0) || !(n2.h > 0)) return EMPTY_EXTENT;
+    const kind = pdfNodeElementKind(n2);
+    const rot = n2.rot || 0;
+    let box2;
+    if (kind === "none") {
+      box2 = EMPTY_EXTENT;
+    } else if (kind === "outlined-text") {
+      const size = Math.max(1, +(n2.fontSize ?? 0) || 12);
+      const lineH = leadOf(n2) * size;
+      const baseline0 = n2.y + size * 0.8;
+      const lines = n2._outlinePath ?? [];
+      if (!Array.isArray(lines) || lines.length > 1e6) return null;
+      let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+      let budget = MAX_OUTLINE_D, scannable = true;
+      for (let i = 0; i < lines.length && scannable; i++) {
+        const d = lines[i];
+        if (!d) continue;
+        budget -= d.length;
+        const lb = budget < 0 ? null : pathDataBox(d, MAX_OUTLINE_D);
+        if (!lb) {
+          scannable = false;
+          break;
+        }
+        const dy = baseline0 + i * lineH;
+        if (n2.x + lb.x < minX) minX = n2.x + lb.x;
+        if (n2.x + lb.x + lb.w > maxX) maxX = n2.x + lb.x + lb.w;
+        if (dy + lb.y < minY) minY = dy + lb.y;
+        if (dy + lb.y + lb.h > maxY) maxY = dy + lb.y + lb.h;
+      }
+      if (!scannable) box2 = planeBox();
+      else if (!isFinite(minX)) box2 = EMPTY_EXTENT;
+      else box2 = { x: minX, y: minY, w: maxX - minX, h: maxY - minY };
+    } else if (kind === "text") {
+      const size = Math.max(1, +(n2.fontSize ?? 0) || 12);
+      const baseline0 = n2.y + size * 0.8;
+      const text = String(n2.text ?? "");
+      if (!text.trim()) {
+        box2 = EMPTY_EXTENT;
+      } else if (rot) {
+        box2 = planeBox();
+      } else {
+        const lineCount = Math.max(text.split("\n").length, 1);
+        if (!finite(lineCount) || lineCount > 1e6) return null;
+        const top = n2.y - size * 0.5;
+        const bottom = baseline0 + (lineCount - 1) * leadOf(n2) * size + size * 0.5;
+        box2 = { x: -PLANE, y: top, w: 2 * PLANE, h: bottom - top };
+      }
+    } else if (kind === "path") {
+      const d = vectorPathD(n2);
+      if (!d) {
+        box2 = EMPTY_EXTENT;
+      } else {
+        const hull = pathDataBox(d, MAX_PATH_D);
+        if (!hull) box2 = planeBox();
+        else {
+          box2 = {
+            x: Math.min(n2.x, hull.x),
+            y: Math.min(n2.y, hull.y),
+            w: Math.max(n2.x + n2.w, hull.x + hull.w) - Math.min(n2.x, hull.x),
+            h: Math.max(n2.y + n2.h, hull.y + hull.h) - Math.min(n2.y, hull.y)
+          };
+        }
+      }
+      const st = n2._vectorStroke;
+      if (st && st.color && box2 !== EMPTY_EXTENT) {
+        const sw = Math.max(0.3, +st.width || 1);
+        if (!finite(sw)) return null;
+        const o = 2 * sw;
+        box2 = { x: box2.x - o, y: box2.y - o, w: box2.w + 2 * o, h: box2.h + 2 * o };
+      }
+    } else {
+      box2 = { x: n2.x, y: n2.y, w: n2.w, h: n2.h };
+      if (rot) box2 = rotatedAabb(box2, rot, n2.x + n2.w / 2, n2.y + n2.h / 2);
+    }
+    if (!finite(box2.x) || !finite(box2.y) || !finite(box2.w) || !finite(box2.h)) return null;
+    const clips = n2._clips;
+    if (clips && clips.length) {
+      if (!Array.isArray(clips) || clips.length > MAX_CLIPS) return null;
+      for (const c of clips) {
+        const ce = clipExtent(c);
+        if (!ce) continue;
+        box2 = intersectAa(box2, ce);
+        if (!(box2.w > 0) || !(box2.h > 0)) return EMPTY_EXTENT;
+      }
+    }
+    const sm = n2._softMask;
+    if (sm && finite(sm.x) && finite(sm.y) && finite(sm.w) && finite(sm.h) && sm.w > 0 && sm.h > 0) {
+      box2 = intersectAa(box2, sm);
+      if (!(box2.w > 0) || !(box2.h > 0)) return EMPTY_EXTENT;
+    }
+    return box2;
+  } catch {
+    return null;
+  }
+}
+function cullPdfNodes(nodes, win) {
+  const list2 = Array.isArray(nodes) ? nodes : [];
+  const total = list2.length;
+  if (!win || !finite(win.x) || !finite(win.y) || !finite(win.width) || !finite(win.height) || !(win.width > 0) || !(win.height > 0)) {
+    return { nodes: list2, total, dropped: 0, unbounded: 0 };
+  }
+  const pad = finite(win.pad) ? Math.max(0, win.pad) : CULL_PAD_PT;
+  const wx = win.x - pad, wy = win.y - pad;
+  const wx2 = win.x + win.width + pad, wy2 = win.y + win.height + pad;
+  const out = [];
+  let unbounded = 0;
+  for (const n2 of list2) {
+    let keep = true;
+    try {
+      const e = pdfNodeExtent(n2);
+      if (e === null) unbounded++;
+      else keep = e.w > 0 && e.h > 0 && e.x < wx2 && e.x + e.w > wx && e.y < wy2 && e.y + e.h > wy;
+    } catch {
+      unbounded++;
+      keep = true;
+    }
+    if (keep) out.push(n2);
+  }
+  return { nodes: out, total, dropped: total - out.length, unbounded };
+}
+var r, escapeXml, safeAttrColor, opacityAttr, rotateAttr, g4, g6, clamp015, CULL_PAD_PT, EMPTY_EXTENT, finite, MAX_CLIPS, MAX_CLIP_D, MAX_PATH_D, MAX_OUTLINE_D, MAX_COORD3, PLANE, planeBox, AA_PAD;
+var init_pdf_svg = __esm({
+  "engine/src/pdf-svg.ts"() {
+    "use strict";
+    r = (v) => {
+      const n2 = Math.round((typeof v === "number" && isFinite(v) ? v : 0) * 100) / 100;
+      return isFinite(n2) ? n2 : 0;
+    };
+    escapeXml = (s) => String(s).replace(/[&<>"']/g, (c) => c === "&" ? "&amp;" : c === "<" ? "&lt;" : c === ">" ? "&gt;" : c === '"' ? "&quot;" : "&#39;");
+    safeAttrColor = (v, dflt) => {
+      const s = String(v ?? "").trim();
+      if (s.toLowerCase() === "none") return "none";
+      return /^#[0-9a-fA-F]{3,8}$/.test(s) ? s : dflt;
+    };
+    opacityAttr = (n2) => {
+      const v = typeof n2.opacity === "number" ? n2.opacity : 100;
+      return v >= 100 || v < 0 ? "" : ` opacity="${r(v / 100)}"`;
+    };
+    rotateAttr = (n2) => n2.rot ? ` transform="rotate(${r(n2.rot)} ${r(n2.x + n2.w / 2)} ${r(n2.y + n2.h / 2)})"` : "";
+    g4 = (v) => Math.round((typeof v === "number" && isFinite(v) ? v : 0) * 1e4) / 1e4;
+    g6 = (v) => Math.round((typeof v === "number" && isFinite(v) ? v : 0) * 1e6) / 1e6;
+    clamp015 = (v) => v < 0 ? 0 : v > 1 ? 1 : v;
+    CULL_PAD_PT = 2;
+    EMPTY_EXTENT = { x: 0, y: 0, w: 0, h: 0 };
+    finite = (v) => typeof v === "number" && isFinite(v);
+    MAX_CLIPS = 64;
+    MAX_CLIP_D = 64e3;
+    MAX_PATH_D = 4e5;
+    MAX_OUTLINE_D = 4e5;
+    MAX_COORD3 = 1e9;
+    PLANE = MAX_COORD3;
+    planeBox = () => ({ x: -PLANE, y: -PLANE, w: 2 * PLANE, h: 2 * PLANE });
+    AA_PAD = 1;
+  }
+});
+
+// engine/src/pdf-artwork.ts
+function isVectorPaint(n2) {
+  if (!n2 || n2.kind === "text") return false;
+  if (n2._vectorPath) return true;
+  return n2.kind === "box" && !!(n2.fill || n2._vectorFill);
+}
+function isPlainRect(n2) {
+  if (n2._vectorPath) return !hasCurve(n2);
+  return n2.kind === "box" && n2.shape !== "ellipse";
+}
+function fillOf(n2) {
+  return String(n2._vectorFill || n2.fill || "");
+}
+function expand(r3, by) {
+  return { x: r3.x - by, y: r3.y - by, w: r3.w + by * 2, h: r3.h + by * 2 };
+}
+function overlaps(a, b) {
+  return a.x < b.x + b.w && b.x < a.x + a.w && a.y < b.y + b.h && b.y < a.y + a.h;
+}
+function union(a, b) {
+  const x = Math.min(a.x, b.x);
+  const y = Math.min(a.y, b.y);
+  return { x, y, w: Math.max(a.x + a.w, b.x + b.w) - x, h: Math.max(a.y + a.h, b.y + b.h) - y };
+}
+function gapBetween(a, b) {
+  const dx = Math.max(0, Math.max(a.x, b.x) - Math.min(a.x + a.w, b.x + b.w));
+  const dy = Math.max(0, Math.max(a.y, b.y) - Math.min(a.y + a.h, b.y + b.h));
+  return Math.hypot(dx, dy);
+}
+function median(xs) {
+  if (!xs.length) return 0;
+  const s = [...xs].sort((a, b) => a - b);
+  const m = s.length >> 1;
+  return s.length % 2 ? s[m] : (s[m - 1] + s[m]) / 2;
+}
+function cluster(items) {
+  const parent = items.map((_, i) => i);
+  const find = (i) => {
+    while (parent[i] !== i) {
+      parent[i] = parent[parent[i]];
+      i = parent[i];
+    }
+    return i;
+  };
+  const join11 = (a, b) => {
+    const ra = find(a), rb = find(b);
+    if (ra !== rb) parent[ra] = rb;
+  };
+  const typical = median(items.map((it) => Math.min(it.rect.w, it.rect.h)));
+  const gap = Math.min(MAX_CLUSTER_GAP, Math.max(CLUSTER_GAP, typical * GAP_FACTOR));
+  for (let i = 0; i < items.length; i++) {
+    const a = expand(items[i].rect, gap);
+    for (let j = i + 1; j < items.length; j++) {
+      if (find(i) === find(j)) continue;
+      if (overlaps(a, items[j].rect)) join11(i, j);
+    }
+  }
+  const collect = () => {
+    const m = /* @__PURE__ */ new Map();
+    for (let i = 0; i < items.length; i++) {
+      const root = find(i);
+      const it = items[i];
+      const got = m.get(root);
+      if (got) {
+        got.idx.push(it.i);
+        got.rect = union(got.rect, it.rect);
+        got.group ||= it.group;
+      } else m.set(root, { idx: [it.i], rect: it.rect, group: it.group });
+    }
+    return m;
+  };
+  for (let pass = 0; pass < 4; pass++) {
+    const clusters = [...collect().entries()];
+    const byGroup = /* @__PURE__ */ new Map();
+    for (const [root, c] of clusters) {
+      if (!c.group) continue;
+      const list2 = byGroup.get(c.group);
+      if (list2) list2.push([root, c.rect]);
+      else byGroup.set(c.group, [[root, c.rect]]);
+    }
+    let merged = false;
+    for (const list2 of byGroup.values()) {
+      for (let a = 0; a < list2.length; a++) {
+        for (let b = a + 1; b < list2.length; b++) {
+          const [ra, rectA] = list2[a];
+          const [rb, rectB] = list2[b];
+          if (find(ra) === find(rb)) continue;
+          const reach = Math.min(diagonal(rectA), diagonal(rectB)) * GROUP_REACH;
+          if (gapBetween(rectA, rectB) <= Math.max(gap, reach)) {
+            join11(ra, rb);
+            merged = true;
+          }
+        }
+      }
+    }
+    if (!merged) break;
+  }
+  return [...collect().values()];
+}
+function findVectorArtwork(nodes, opts = {}) {
+  const out = [];
+  if (!Array.isArray(nodes) || !nodes.length) return out;
+  const pageArea = Math.max(1, (opts.width ?? 0) * (opts.height ?? 0));
+  const items = [];
+  for (let i = 0; i < nodes.length && items.length < MAX_NODES3; i++) {
+    const n2 = nodes[i];
+    if (!isVectorPaint(n2)) continue;
+    const e = pdfNodeExtent(n2);
+    if (!e || !(e.w > 0) || !(e.h > 0)) continue;
+    items.push({ i, rect: { x: e.x, y: e.y, w: e.w, h: e.h }, group: String(n2.group ?? "") });
+  }
+  if (items.length < MIN_SHAPES) return out;
+  for (const c of cluster(items)) {
+    if (out.length >= MAX_CANDIDATES) break;
+    const members = c.idx.map((i) => nodes[i]);
+    const { rect } = c;
+    if (members.length < MIN_SHAPES) continue;
+    if (rect.w < MIN_SIDE || rect.h < MIN_SIDE) continue;
+    if (pageArea > 1 && rect.w * rect.h / pageArea > MAX_PAGE_FRACTION) continue;
+    const long = Math.max(rect.w, rect.h);
+    const short = Math.max(1e-6, Math.min(rect.w, rect.h));
+    if (long / short > MAX_ASPECT) continue;
+    const curved = members.some((n2) => hasCurve(n2) || n2.shape === "ellipse");
+    const fillCounts = /* @__PURE__ */ new Map();
+    for (const n2 of members) {
+      const f = fillOf(n2);
+      if (f) fillCounts.set(f, (fillCounts.get(f) ?? 0) + 1);
+    }
+    const fills = [...fillCounts.entries()].sort((a, b) => b[1] - a[1]).map(([f]) => f);
+    const allRects = members.every(isPlainRect);
+    let reason;
+    if (curved) reason = "curved shapes";
+    else if (!allRects) reason = "non-rectangular shapes";
+    else if (fills.length >= 3) reason = "a multi-colour arrangement of rectangles";
+    else continue;
+    if (c.group) reason += ", grouped in the document";
+    out.push({
+      indices: [...c.idx].sort((a, b) => a - b),
+      // paint order
+      rect,
+      fills,
+      ...c.group ? { group: c.group } : {},
+      reason
+    });
+  }
+  out.sort((a, b) => b.rect.w * b.rect.h - a.rect.w * a.rect.h);
+  return out;
+}
+var CLUSTER_GAP, GAP_FACTOR, MAX_CLUSTER_GAP, GROUP_REACH, MIN_SHAPES, MIN_SIDE, MAX_PAGE_FRACTION, MAX_ASPECT, MAX_NODES3, MAX_CANDIDATES, hasCurve, diagonal;
+var init_pdf_artwork = __esm({
+  "engine/src/pdf-artwork.ts"() {
+    "use strict";
+    init_pdf_svg();
+    CLUSTER_GAP = 6;
+    GAP_FACTOR = 0.4;
+    MAX_CLUSTER_GAP = 48;
+    GROUP_REACH = 1.5;
+    MIN_SHAPES = 2;
+    MIN_SIDE = 8;
+    MAX_PAGE_FRACTION = 0.55;
+    MAX_ASPECT = 12;
+    MAX_NODES3 = 4e3;
+    MAX_CANDIDATES = 60;
+    hasCurve = (n2) => /C/.test(String(n2._vectorPath ?? ""));
+    diagonal = (r3) => Math.hypot(r3.w, r3.h);
+  }
+});
+
+// engine/src/pdf-redaction.ts
+function intersect(a, b) {
+  const x = Math.max(a.x, b.x);
+  const y = Math.max(a.y, b.y);
+  const r3 = Math.min(a.x + a.w, b.x + b.w);
+  const bt = Math.min(a.y + a.h, b.y + b.h);
+  return r3 > x && bt > y ? { x, y, w: r3 - x, h: bt - y } : null;
+}
+function unionArea(rects) {
+  if (!rects.length) return 0;
+  if (rects.length === 1) return rects[0].w * rects[0].h;
+  const xs = [...new Set(rects.flatMap((r3) => [r3.x, r3.x + r3.w]))].sort((a, b) => a - b);
+  const ys = [...new Set(rects.flatMap((r3) => [r3.y, r3.y + r3.h]))].sort((a, b) => a - b);
+  let area = 0;
+  for (let i = 0; i + 1 < xs.length; i++) {
+    const x0 = xs[i], x1 = xs[i + 1];
+    for (let j = 0; j + 1 < ys.length; j++) {
+      const y0 = ys[j], y1 = ys[j + 1];
+      const covered = rects.some((r3) => r3.x <= x0 && r3.x + r3.w >= x1 && r3.y <= y0 && r3.y + r3.h >= y1);
+      if (covered) area += (x1 - x0) * (y1 - y0);
+    }
+  }
+  return area;
+}
+function coverFill(n2) {
+  if (n2._softMask) return null;
+  if (typeof n2.opacity === "number" && n2.opacity < OPAQUE_MIN) return null;
+  if (n2.kind === "image") return "image";
+  if (n2.kind !== "box") return null;
+  const fill = n2._vectorFill || n2.fill;
+  return fill ? String(fill) : null;
+}
+function textRect(n2) {
+  if (n2.kind !== "text" || !n2.text || !n2.text.trim()) return null;
+  if (!isFinite(n2.x) || !isFinite(n2.y) || !(n2.w > 0) || !(n2.h > 0)) return null;
+  return { x: n2.x, y: n2.y, w: n2.w, h: n2.h };
+}
+function findHiddenText(nodes, opts = {}) {
+  const minCoverage = opts.minCoverage ?? DEFAULT_MIN_COVERAGE;
+  const out = [];
+  const covers = [];
+  for (let i = 0; i < nodes.length; i++) {
+    const n2 = nodes[i];
+    const fill = coverFill(n2);
+    if (!fill || !isFinite(n2.x) || !isFinite(n2.y) || !(n2.w > 0) || !(n2.h > 0)) continue;
+    covers.push({ i, rect: { x: n2.x, y: n2.y, w: n2.w, h: n2.h }, fill });
+  }
+  if (!covers.length) return out;
+  for (let i = 0; i < nodes.length; i++) {
+    const tr = textRect(nodes[i]);
+    if (!tr) continue;
+    const area = tr.w * tr.h;
+    if (area <= 0) continue;
+    const hits2 = [];
+    for (const c of covers) {
+      if (c.i <= i) continue;
+      const hit = intersect(tr, c.rect);
+      if (hit) hits2.push({ rect: hit, fill: c.fill });
+    }
+    if (!hits2.length) continue;
+    hits2.sort((a, b) => b.rect.w * b.rect.h - a.rect.w * a.rect.h);
+    const kept = hits2.slice(0, MAX_COVERS);
+    const coverage = Math.min(1, unionArea(kept.map((h) => h.rect)) / area);
+    if (coverage < minCoverage) continue;
+    out.push({
+      text: nodes[i].text.replace(/\s+/g, " ").trim(),
+      rect: tr,
+      coverage,
+      fullyHidden: coverage >= FULLY_HIDDEN,
+      fill: kept[0].fill
+    });
+  }
+  return out;
+}
+function findHiddenTextInPages(pages, opts = {}) {
+  return pages.flatMap((nodes, page2) => findHiddenText(nodes, opts).map((f) => ({ ...f, page: page2 })));
+}
+function describeHiddenText(findings) {
+  if (!findings.length) return "";
+  const words = findings.reduce((a, f) => a + (f.text.match(/\S+/g) ?? []).length, 0);
+  const pages = new Set(findings.map((f) => f.page ?? 0)).size;
+  const where = pages > 1 ? ` across ${pages} pages` : "";
+  return `${words} word${words === 1 ? "" : "s"} in ${findings.length} run${findings.length === 1 ? "" : "s"} sit behind opaque shapes${where} \u2014 present in the file, not visible on the page`;
+}
+var OPAQUE_MIN, DEFAULT_MIN_COVERAGE, FULLY_HIDDEN, MAX_COVERS;
+var init_pdf_redaction = __esm({
+  "engine/src/pdf-redaction.ts"() {
+    "use strict";
+    OPAQUE_MIN = 90;
+    DEFAULT_MIN_COVERAGE = 0.7;
+    FULLY_HIDDEN = 0.95;
+    MAX_COVERS = 64;
+  }
+});
+
+// engine/src/pdf-text.ts
+function median2(xs) {
+  if (!xs.length) return 0;
+  const s = [...xs].sort((a, b) => a - b);
+  const m = s.length >> 1;
+  return s.length % 2 ? s[m] : (s[m - 1] + s[m]) / 2;
+}
+function isBold(n2) {
+  const w = n2.fontWeight;
+  if (typeof w === "number") return w >= 600;
+  if (typeof w === "string") return /bold|black|heavy|semibold/i.test(w);
+  return /bold|black|heavy/i.test(String(n2.fontFamily ?? ""));
+}
+function escapeLeading(s) {
+  return s.replace(/^([#>|]|\d+[.)]\s|[-*+]\s)/, "\\$1");
+}
+function toItems(nodes) {
+  const items = [];
+  let rotated = 0;
+  for (const n2 of nodes) {
+    if (n2.kind !== "text") continue;
+    const raw = n2.text ?? "";
+    if (!raw.trim()) continue;
+    if (Math.abs(n2.rot ?? 0) > MAX_SKEW_DEG) {
+      rotated++;
+      continue;
+    }
+    const size = Math.max(1, n2.fontSize ?? 12);
+    const bold = isBold(n2);
+    const font = String(n2.fontFamily ?? "");
+    const lines = raw.split("\n");
+    for (let i = 0; i < lines.length; i++) {
+      const text = lines[i];
+      if (!text.trim()) continue;
+      items.push({
+        text,
+        x: n2.x,
+        // Undo pdf-map's box-top shift, then step down one line per split line
+        // at the node's REAL leading when the interpreter measured one.
+        baseline: n2.y + size * 0.8 + i * size * (typeof n2.lineHeight === "number" && isFinite(n2.lineHeight) && n2.lineHeight > 0 ? n2.lineHeight : 1.4),
+        // 0.55em per character is pdf-map's own estimate; reused so the two
+        // agree, and only ever consulted for gutter-width decisions.
+        right: n2.x + text.length * size * 0.55,
+        size,
+        font,
+        bold,
+        ...typeof n2.mcid === "number" ? { mcid: n2.mcid } : {}
+      });
+    }
+  }
+  return { items, rotated };
+}
+function joinFragments(acc, next, prevRight) {
+  if (!acc) return next.text;
+  if (/\s$/.test(acc) || /^\s/.test(next.text)) return acc + next.text;
+  return next.x - prevRight > next.size * 0.2 ? `${acc} ${next.text}` : acc + next.text;
+}
+function toLines(items) {
+  if (!items.length) return [];
+  const sorted = [...items].sort((a, b) => a.baseline - b.baseline || a.x - b.x);
+  const lines = [];
+  let bucket = [sorted[0]];
+  const flush = () => {
+    if (!bucket.length) return;
+    const byX = [...bucket].sort((a, b) => a.x - b.x);
+    let text = "";
+    let prevRight = -Infinity;
+    for (const it of byX) {
+      text = joinFragments(text, it, prevRight);
+      prevRight = it.right;
+    }
+    const weight = /* @__PURE__ */ new Map();
+    for (const it of byX) weight.set(it.size, (weight.get(it.size) ?? 0) + it.text.length);
+    let size = byX[0].size;
+    let best = -1;
+    for (const [s, w] of weight) if (w > best) {
+      best = w;
+      size = s;
+    }
+    const boldChars = byX.reduce((a, it) => a + (it.bold ? it.text.length : 0), 0);
+    const allChars = byX.reduce((a, it) => a + it.text.length, 0);
+    text = text.replace(/\s+/g, " ").trim();
+    if (text) {
+      lines.push({
+        text,
+        x: byX[0].x,
+        right: Math.max(...byX.map((i) => i.right)),
+        baseline: median2(byX.map((i) => i.baseline)),
+        size,
+        bold: allChars > 0 && boldChars / allChars > 0.6
+      });
+    }
+    bucket = [];
+  };
+  for (let i = 1; i < sorted.length; i++) {
+    const it = sorted[i];
+    const ref = bucket[bucket.length - 1];
+    const tol = Math.max(1, Math.min(ref.size, it.size) * LINE_TOLERANCE);
+    if (Math.abs(it.baseline - ref.baseline) <= tol) bucket.push(it);
+    else {
+      flush();
+      bucket = [it];
+    }
+  }
+  flush();
+  return lines;
+}
+function findGutters(items, bodySize) {
+  const spans = items.map((i) => [i.x, Math.max(i.right, i.x + 1)]).sort((a, b) => a[0] - b[0]);
+  if (!spans.length) return [];
+  const cuts = [];
+  let reach = spans[0][1];
+  for (const [x0, x1] of spans) {
+    const gap = x0 - reach;
+    if (gap >= bodySize * GUTTER_SIZES) cuts.push({ x: (reach + x0) / 2, gap });
+    reach = Math.max(reach, x1);
+  }
+  return cuts.slice(0, MAX_COLUMNS - 1);
+}
+function splitByCuts(items, cuts) {
+  const cols = Array.from({ length: cuts.length + 1 }, () => []);
+  for (const it of items) {
+    let i = 0;
+    while (i < cuts.length && it.x >= cuts[i]) i++;
+    cols[i].push(it);
+  }
+  return cols;
+}
+function believableColumns(cols, widestGutter) {
+  if (cols.length < 2) return false;
+  return cols.every((col) => {
+    if (col.length < MIN_COLUMN_LINES) return false;
+    const left = Math.min(...col.map((l) => l.x));
+    const right = Math.max(...col.map((l) => l.right));
+    const width = right - left;
+    if (width <= 0) return false;
+    if (width <= widestGutter) return false;
+    return median2(col.map((l) => (l.right - l.x) / width)) >= MIN_COLUMN_FILL;
+  });
+}
+function appendLine(acc, next) {
+  if (!acc) return next;
+  if (/[\p{Ll}]-$/u.test(acc) && /^[\p{Ll}]/u.test(next)) return acc.slice(0, -1) + next;
+  return `${acc} ${next}`;
+}
+function blocksFromColumn(lines, column) {
+  if (!lines.length) return [];
+  const ordered = [...lines].sort((a, b) => a.baseline - b.baseline);
+  const deltas = [];
+  for (let i = 1; i < ordered.length; i++) {
+    const d = ordered[i].baseline - ordered[i - 1].baseline;
+    if (d > 0) deltas.push(d);
+  }
+  deltas.sort((a, b) => a - b);
+  const p25 = deltas.length ? deltas[Math.floor(0.25 * (deltas.length - 1))] : 0;
+  const leading = Math.max(p25, ordered[0].size * 0.9) || ordered[0].size * 1.2;
+  const out = [];
+  let buf = [];
+  const flush = () => {
+    if (!buf.length) return;
+    const marker = LIST_MARKER.exec(buf[0].text)?.[0]?.trim();
+    let text = "";
+    for (const l of buf) text = appendLine(text, l.text);
+    if (marker) text = text.replace(LIST_MARKER, "");
+    const size = median2(buf.map((l) => l.size));
+    if (text.trim()) {
+      out.push({
+        kind: marker ? "list-item" : "paragraph",
+        text: text.trim(),
+        ...marker ? { marker } : {},
+        size,
+        bold: buf.every((l) => l.bold),
+        column
+      });
+    }
+    buf = [];
+  };
+  for (const line of ordered) {
+    if (buf.length) {
+      const prev = buf[buf.length - 1];
+      const gap = line.baseline - prev.baseline;
+      const sizeShift = Math.abs(line.size - prev.size) / Math.max(prev.size, 1) > SIZE_SHIFT;
+      if (gap > leading * PARA_GAP || sizeShift || line.bold !== prev.bold || LIST_MARKER.test(line.text)) flush();
+    }
+    buf.push(line);
+  }
+  flush();
+  return out;
+}
+function taggedBlocks(items, tagged) {
+  const byMcid = /* @__PURE__ */ new Map();
+  for (const it of items) {
+    if (typeof it.mcid !== "number") continue;
+    const bucket = byMcid.get(it.mcid);
+    if (bucket) bucket.push(it);
+    else byMcid.set(it.mcid, [it]);
+  }
+  const blocks = [];
+  const used = /* @__PURE__ */ new Set();
+  for (const el of tagged) {
+    const mine = [];
+    for (const id of el.mcids) for (const it of byMcid.get(id) ?? []) mine.push(it);
+    if (!mine.length) continue;
+    for (const it of mine) used.add(it);
+    const lines = toLines(mine);
+    if (!lines.length) continue;
+    let text = "";
+    for (const l of lines) text = appendLine(text, l.text);
+    const marker = LIST_MARKER.exec(text)?.[0]?.trim();
+    const { kind, level } = kindFromType(el.type);
+    if (marker) text = text.replace(LIST_MARKER, "");
+    text = text.trim();
+    if (!text) continue;
+    blocks.push({
+      kind,
+      ...level ? { level } : {},
+      text,
+      ...marker ? { marker } : {},
+      size: median2(lines.map((l) => l.size)),
+      bold: lines.every((l) => l.bold),
+      column: 0
+    });
+  }
+  return { blocks, used };
+}
+function markHeadings(blocks) {
+  const chars = /* @__PURE__ */ new Map();
+  for (const b of blocks) chars.set(b.size, (chars.get(b.size) ?? 0) + b.text.length);
+  let body = 0;
+  let best = -1;
+  for (const [size, n2] of chars) if (n2 > best) {
+    best = n2;
+    body = size;
+  }
+  if (!body) return;
+  const headingSizes = [...new Set(blocks.filter((b) => b.size >= body * HEADING_RATIO).map((b) => b.size))].sort((a, b) => b - a);
+  for (const b of blocks) {
+    if (b.kind === "list-item") continue;
+    const rank = headingSizes.indexOf(b.size);
+    if (rank >= 0) {
+      b.kind = "heading";
+      b.level = Math.min(6, rank + 1);
+    }
+  }
+}
+function joinBlocks(blocks, render2) {
+  let out = "";
+  for (let i = 0; i < blocks.length; i++) {
+    const b = blocks[i];
+    if (i) out += b.kind === "list-item" && blocks[i - 1].kind === "list-item" ? "\n" : "\n\n";
+    out += render2(b);
+  }
+  return out.trim();
+}
+function blocksToText(blocks) {
+  return joinBlocks(blocks, (b) => b.marker ? `${b.marker} ${b.text}` : b.text);
+}
+function blocksToMarkdown(blocks) {
+  return joinBlocks(blocks, (b) => {
+    if (b.kind === "heading") return `${"#".repeat(b.level ?? 1)} ${b.text}`;
+    if (b.kind === "list-item") return `- ${b.text}`;
+    return escapeLeading(b.text);
+  });
+}
+function kindFromType(type) {
+  const t = type.replace(/^\//, "");
+  const h = /^H([1-6])$/.exec(t);
+  if (h) return { kind: "heading", level: Number(h[1]) };
+  if (t === "H" || t === "Title") return { kind: "heading", level: 1 };
+  if (t === "LI" || t === "LBody" || t === "Lbl") return { kind: "list-item" };
+  return { kind: "paragraph" };
+}
+function extractPageText(nodes, opts = {}) {
+  const { items, rotated } = toItems(nodes);
+  if (!items.length) {
+    const pageArea = Math.max(1, (opts.width ?? 0) * (opts.height ?? 0));
+    const covered = nodes.some((n2) => n2.kind === "image" && n2.w * n2.h / pageArea >= SCAN_COVERAGE);
+    return {
+      blocks: [],
+      text: "",
+      markdown: "",
+      columns: 1,
+      scanned: covered,
+      rotated,
+      order: "geometric"
+    };
+  }
+  const sizeChars = /* @__PURE__ */ new Map();
+  for (const it of items) sizeChars.set(it.size, (sizeChars.get(it.size) ?? 0) + it.text.length);
+  let bodySize = items[0].size;
+  let bestChars = -1;
+  for (const [s, n2] of sizeChars) if (n2 > bestChars) {
+    bestChars = n2;
+    bodySize = s;
+  }
+  if (opts.tagged?.length) {
+    const { blocks: tb, used } = taggedBlocks(items, opts.tagged);
+    const totalChars = items.reduce((a, it) => a + it.text.length, 0);
+    const taggedChars = [...used].reduce((a, it) => a + it.text.length, 0);
+    if (totalChars > 0 && taggedChars / totalChars >= MIN_TAGGED_COVERAGE && tb.length) {
+      const leftovers = items.filter((it) => !used.has(it));
+      const extra = leftovers.length ? blocksFromColumn(toLines(leftovers), 0) : [];
+      const blocks2 = [...tb, ...extra];
+      return {
+        blocks: blocks2,
+        text: blocksToText(blocks2),
+        markdown: blocksToMarkdown(blocks2),
+        columns: 1,
+        scanned: false,
+        rotated,
+        untagged: leftovers.length,
+        order: "tagged"
+      };
+    }
+  }
+  const cuts = items.length >= MIN_COLUMN_LINES * 2 ? findGutters(items, bodySize) : [];
+  let columns = cuts.length ? splitByCuts(items, cuts.map((c) => c.x)).map(toLines) : [];
+  if (!believableColumns(columns, Math.max(...cuts.map((c) => c.gap), 0))) columns = [toLines(items)];
+  const blocks = columns.flatMap((col, i) => blocksFromColumn(col, i));
+  markHeadings(blocks);
+  return {
+    blocks,
+    text: blocksToText(blocks),
+    markdown: blocksToMarkdown(blocks),
+    columns: columns.length,
+    scanned: false,
+    rotated,
+    order: "geometric"
+  };
+}
+function joinPageText(pages, opts = {}) {
+  const md = opts.markdown !== false;
+  const parts = pages.map((p, i) => {
+    if (p.scanned) return md ? `> _Page ${i + 1} is a scanned image \u2014 no text layer to extract._` : `[Page ${i + 1}: scanned image, no text layer]`;
+    return md ? p.markdown : p.text;
+  });
+  return parts.filter((s) => s.trim()).join(md ? "\n\n---\n\n" : "\n\n").trim();
+}
+var LINE_TOLERANCE, PARA_GAP, SIZE_SHIFT, HEADING_RATIO, MAX_SKEW_DEG, GUTTER_SIZES, MIN_COLUMN_LINES, MIN_COLUMN_FILL, MAX_COLUMNS, SCAN_COVERAGE, LIST_MARKER, MIN_TAGGED_COVERAGE;
+var init_pdf_text = __esm({
+  "engine/src/pdf-text.ts"() {
+    "use strict";
+    LINE_TOLERANCE = 0.4;
+    PARA_GAP = 1.55;
+    SIZE_SHIFT = 0.15;
+    HEADING_RATIO = 1.15;
+    MAX_SKEW_DEG = 5;
+    GUTTER_SIZES = 1.8;
+    MIN_COLUMN_LINES = 4;
+    MIN_COLUMN_FILL = 0.25;
+    MAX_COLUMNS = 4;
+    SCAN_COVERAGE = 0.5;
+    LIST_MARKER = /^\s*(?:[•‣▪◦·–—*-]|\(?\d{1,3}[.)]|\(?[a-zA-Z][.)])\s+/;
+    MIN_TAGGED_COVERAGE = 0.6;
+  }
+});
+
 // engine/src/gamut-source.ts
 function rgbContains(name, l, c, h) {
   const hr = h * Math.PI / 180;
@@ -17384,7 +29868,7 @@ function fastRgbContains(src) {
     return inUnitCube(apply33(m, lin[0], lin[1], lin[2]));
   };
 }
-var apply33, SRGB_TO_P3, SRGB_TO_REC2020, EPS2, inUnitCube, gamutInputSane, rgbSource, SRGB_SOURCE, P3_SOURCE, REC2020_SOURCE, BUILTIN_GAMUT_SOURCES, NO_GAMUT_SOURCE, linearSrgbToLinearP3, gamutSourceId, GAMUT_PROBE_START, GAMUT_PROBE_MAX;
+var apply33, SRGB_TO_P3, SRGB_TO_REC2020, EPS2, inUnitCube, gamutInputSane, rgbSource, SRGB_SOURCE, P3_SOURCE, REC2020_SOURCE, BUILTIN_GAMUT_SOURCES, NO_GAMUT_SOURCE, linearSrgbToLinearP3, P3_TO_SRGB, linearP3ToLinearSrgb, gamutSourceId, GAMUT_PROBE_START, GAMUT_PROBE_MAX;
 var init_gamut_source = __esm({
   "engine/src/gamut-source.ts"() {
     "use strict";
@@ -17441,7 +29925,19 @@ var init_gamut_source = __esm({
       contains: () => false,
       inkCoverage: () => null
     };
-    linearSrgbToLinearP3 = (r, g2, b) => apply33(SRGB_TO_P3, r, g2, b);
+    linearSrgbToLinearP3 = (r3, g2, b) => apply33(SRGB_TO_P3, r3, g2, b);
+    P3_TO_SRGB = [
+      1.2249401,
+      -0.2249404,
+      0,
+      -0.0420569,
+      1.0420571,
+      0,
+      -0.0196376,
+      -0.0786361,
+      1.0982735
+    ];
+    linearP3ToLinearSrgb = (r3, g2, b) => apply33(P3_TO_SRGB, r3, g2, b);
     gamutSourceId = (limit) => typeof limit === "string" ? limit : limit.id;
     GAMUT_PROBE_START = 0.5;
     GAMUT_PROBE_MAX = 4;
@@ -17455,6 +29951,10 @@ function inGamut(l, c, h, limit) {
 function oklchGamut(l, c, h) {
   for (const g2 of GAMUTS) if (inGamut(l, c, h, g2)) return g2;
   return "none";
+}
+function gamutWithin(gamut, limit) {
+  if (gamut === "none") return false;
+  return GAMUTS.indexOf(gamut) <= GAMUTS.indexOf(limit);
 }
 function maxChroma(l, h, limit = "srgb") {
   if (!(l > 0) || l >= 1 || !Number.isFinite(h)) return 0;
@@ -17487,6 +29987,21 @@ function ceilingGrid(limit) {
   }
   CEILINGS.set(id, g2);
   return g2;
+}
+function gamutCeilingPeak(limit) {
+  const g2 = ceilingGrid(limit);
+  let best = 0, bi = 0, bj = 0;
+  for (let i = 0; i < GRID_L; i++) {
+    for (let j = 0; j < GRID_H; j++) {
+      const c = g2[i * GRID_H + j];
+      if (c > best) {
+        best = c;
+        bi = i;
+        bj = j;
+      }
+    }
+  }
+  return { c: best, l: bi / (GRID_L - 1), h: bj / (GRID_H - 1) * 360 };
 }
 function sampleCeiling(grid, l, h) {
   const fi = Math.min(GRID_L - 1, Math.max(0, l * (GRID_L - 1)));
@@ -17550,6 +30065,17 @@ function oklchSlice(opts) {
     }
   }
   return { data, width, height };
+}
+function encodeOklch(l, c, h, encode = "srgb") {
+  const cUse = Math.min(c, sampleCeiling(ceilingGrid(ENCODE_GAMUT[encode]), l, h));
+  const hr = h * Math.PI / 180;
+  let lin = oklabToLinearSrgb(l, cUse * Math.cos(hr), cUse * Math.sin(hr));
+  if (encode === "display-p3") lin = linearSrgbToLinearP3(lin[0], lin[1], lin[2]);
+  return [
+    linearToSrgb(Math.min(1, Math.max(0, lin[0]))),
+    linearToSrgb(Math.min(1, Math.max(0, lin[1]))),
+    linearToSrgb(Math.min(1, Math.max(0, lin[2])))
+  ];
 }
 function sliceGamutEdge(plane, fixed, limit = "srgb", steps = 96, cMax = SLICE_C_MAX) {
   const n2 = Math.max(2, Math.floor(steps));
@@ -17648,6 +30174,499 @@ var init_gamut = __esm({
   }
 });
 
+// engine/src/gamut-solid.ts
+function labSolidUnit(maxRadius) {
+  return Math.max(0.5, maxRadius || 0);
+}
+function labPoint(l, c, ang, unit2) {
+  return {
+    x: c * Math.cos(ang) / unit2,
+    z: c * Math.sin(ang) / unit2,
+    // Centred on 0.5 like every other embedding's vertical, and HALVED because
+    // the projector doubles the vertical on the way out (`(y − 0.5) · 2`). After
+    // that round trip one lightness unit and one chroma unit are the same length
+    // on screen, which is the whole claim this embedding makes.
+    y: 0.5 + (l - 0.5) / (2 * unit2)
+  };
+}
+function gamutSolid(limit = "srgb", hueSteps = 48, lightSteps = 28, embed = "cylinder") {
+  const H = Math.max(6, Math.floor(hueSteps));
+  const L = Math.max(3, Math.floor(lightSteps));
+  const radius = [];
+  for (let i = 0; i < L; i++) {
+    const l = i / (L - 1);
+    const row = [];
+    for (let j = 0; j < H; j++) row.push(maxChroma(l, j / H * 360, limit));
+    radius.push(row);
+  }
+  let maxR = 0;
+  for (const row of radius) for (const r3 of row) maxR = Math.max(maxR, r3);
+  const scaleR = maxR || 1;
+  const unit2 = labSolidUnit(maxR);
+  const at = (i, j) => {
+    const l = i / (L - 1);
+    const jj = (j % H + H) % H;
+    const r3 = radius[i][jj];
+    if (embed === "landscape") {
+      return { x: j / H * 2 - 1, z: l * 2 - 1, y: r3 / scaleR };
+    }
+    const ang = jj / H * TAU;
+    if (embed === "lab") return labPoint(l, r3, ang, unit2);
+    return { x: r3 * Math.cos(ang), z: r3 * Math.sin(ang), y: l };
+  };
+  const quads = [];
+  const maxRadius = maxR;
+  for (let i = 0; i < L - 1; i++) {
+    for (let j = 0; j < H; j++) {
+      const p0 = at(i, j), p1 = at(i, j + 1), p2 = at(i + 1, j + 1), p3 = at(i + 1, j);
+      const li = (i + 0.5) / (L - 1);
+      const hj = (j + 0.5) / H * 360;
+      const cl = Math.min(1, li);
+      const c = (radius[i][j % H] + radius[i + 1][j % H]) / 2;
+      const h = hj;
+      const oklch = { l: cl, c: c * 0.995, h };
+      const hex = oklchToHex(oklch);
+      const e1 = { x: p1.x - p0.x, z: p1.z - p0.z, y: p1.y - p0.y };
+      const e2 = { x: p3.x - p0.x, z: p3.z - p0.z, y: p3.y - p0.y };
+      const nx = e1.z * e2.y - e1.y * e2.z;
+      const ny = e1.x * e2.z - e1.z * e2.x;
+      const nz = e1.y * e2.x - e1.x * e2.y;
+      const nMag = Math.hypot(nx, ny, nz) || 1;
+      quads.push({ pts: [p0, p1, p2, p3], hex, oklch, up: ny / nMag });
+    }
+  }
+  if (embed === "landscape") {
+    for (const [j, x] of [[0, -1], [H, 1]]) {
+      quads.push(...capQuads(radius, L, H, j, x, scaleR));
+    }
+  }
+  return { limit, embed, hueSteps: H, lightSteps: L, quads, maxRadius };
+}
+function capQuads(radius, L, H, j, x, scaleR) {
+  const out = [];
+  const jj = (j % H + H) % H;
+  const hue = jj / H * 360;
+  for (let i = 0; i < L - 1; i++) {
+    const l0 = i / (L - 1);
+    const l1 = (i + 1) / (L - 1);
+    const r0 = radius[i][jj];
+    const r1 = radius[i + 1][jj];
+    for (let k = 0; k < CAP_STEPS; k++) {
+      const t0 = k / CAP_STEPS;
+      const t1 = (k + 1) / CAP_STEPS;
+      const pts = [
+        { x, z: l0 * 2 - 1, y: r0 * t0 / scaleR },
+        { x, z: l0 * 2 - 1, y: r0 * t1 / scaleR },
+        { x, z: l1 * 2 - 1, y: r1 * t1 / scaleR },
+        { x, z: l1 * 2 - 1, y: r1 * t0 / scaleR }
+      ];
+      const cl = (l0 + l1) / 2;
+      const c = (r0 + r1) / 2 * ((t0 + t1) / 2);
+      const oklch = { l: cl, c: c * 0.995, h: hue };
+      const hex = oklchToHex(oklch);
+      out.push({ pts, hex, oklch, up: 0 });
+    }
+  }
+  return out;
+}
+function makeProjector(solid, view) {
+  const yaw = view.yaw * Math.PI / 180;
+  const pitch = Math.max(-89, Math.min(89, view.pitch)) * Math.PI / 180;
+  const scale = view.scale && view.scale > 0 ? view.scale : 1;
+  const cy = Math.cos(yaw), sy = Math.sin(yaw);
+  const cp = Math.cos(pitch), sp = Math.sin(pitch);
+  const rad = solid.embed === "cylinder" ? solid.maxRadius || 1 : 1;
+  const raw = (p) => {
+    const px = p.x / rad, pz = p.z / rad, py = (p.y - 0.5) * 2;
+    const x = px * cy - pz * sy;
+    const zh = px * sy + pz * cy;
+    return {
+      x,
+      y: py * cp - zh * sp,
+      // tilt the vertical toward the viewer
+      z: py * sp + zh * cp
+    };
+  };
+  let extent2 = 1e-6;
+  for (const q of solid.quads) {
+    for (const p of q.pts) {
+      const r3 = raw(p);
+      extent2 = Math.max(extent2, Math.abs(r3.x), Math.abs(r3.y));
+    }
+  }
+  return (p) => {
+    const r3 = raw(p);
+    return {
+      x: 0.5 + r3.x / extent2 * (scale / 2),
+      y: 0.5 - r3.y / extent2 * (scale / 2),
+      z: r3.z
+    };
+  };
+}
+function projectGamutSolid(solid, view) {
+  const project = makeProjector(solid, view);
+  const out = [];
+  for (const q of solid.quads) {
+    const cam = q.pts.map(project);
+    let area = 0;
+    for (let i = 0; i < cam.length; i++) {
+      const p = cam[i], n2 = cam[(i + 1) % cam.length];
+      area += p.x * n2.y - n2.x * p.y;
+    }
+    if (solid.embed !== "landscape" && area <= 0) continue;
+    const depth = cam.reduce((s, p) => s + p.z, 0) / cam.length;
+    const shade = 0.82 + 0.18 * Math.max(0, Math.min(1, (q.up + 1) / 2));
+    out.push({
+      points: cam.map((p) => ({ x: p.x, y: p.y })),
+      hex: q.hex,
+      oklch: q.oklch,
+      depth,
+      shade
+    });
+  }
+  out.sort((p, q) => p.depth - q.depth);
+  return out;
+}
+function modelPoint(solid, o) {
+  const hr = o.h * Math.PI / 180;
+  const scaleR = solid.maxRadius || 1;
+  return solid.embed === "landscape" ? { x: (o.h % 360 + 360) % 360 / 360 * 2 - 1, z: o.l * 2 - 1, y: o.c / scaleR } : solid.embed === "lab" ? labPoint(o.l, o.c, hr, labSolidUnit(solid.maxRadius)) : { x: o.c * Math.cos(hr), z: o.c * Math.sin(hr), y: o.l };
+}
+function projectSolidPoints(solid, points, view) {
+  const project = makeProjector(solid, view);
+  return points.map((o) => {
+    const p = project(modelPoint(solid, o));
+    return { x: p.x, y: p.y, depth: p.z };
+  });
+}
+function projectSolidPoint(solid, o, view) {
+  const p = makeProjector(solid, view)(modelPoint(solid, o));
+  return {
+    x: p.x,
+    y: p.y,
+    depth: p.z,
+    inside: inGamut(o.l, o.c, o.h, solid.limit)
+  };
+}
+function solidPointOklch(solid, p) {
+  if (solid.embed === "landscape") {
+    return {
+      l: (p.z + 1) / 2,
+      c: p.y * (solid.maxRadius || 1),
+      h: (p.x + 1) / 2 * 360
+    };
+  }
+  const unit2 = solid.embed === "lab" ? labSolidUnit(solid.maxRadius) : 1;
+  const c = Math.hypot(p.x, p.z) * unit2;
+  const l = solid.embed === "lab" ? 0.5 + (p.y - 0.5) * 2 * unit2 : p.y;
+  const h = c < 1e-12 ? 0 : (Math.atan2(p.z, p.x) * 180 / Math.PI + 360) % 360;
+  return { l, c, h };
+}
+var TAU, CAP_STEPS;
+var init_gamut_solid = __esm({
+  "engine/src/gamut-solid.ts"() {
+    "use strict";
+    init_gamut();
+    init_brand_derive();
+    TAU = Math.PI * 2;
+    CAP_STEPS = 10;
+  }
+});
+
+// engine/src/image-cloud.ts
+function imageColorCloud(data, width, height, opts) {
+  const space = opts.space;
+  const w = Math.max(0, Math.floor(width));
+  const h = Math.max(0, Math.floor(height));
+  const total = w * h;
+  const stride = opts.stride && opts.stride > 0 ? Math.floor(opts.stride) : Math.max(1, Math.floor(total / DEFAULT_SAMPLE_TARGET));
+  const maxPoints = opts.maxPoints && opts.maxPoints > 0 ? Math.floor(opts.maxPoints) : 3e3;
+  const nearEdge = opts.nearEdge ?? 0.02;
+  const counts = /* @__PURE__ */ new Map();
+  const uniq2 = /* @__PURE__ */ new Set();
+  let sampled = 0, transparent = 0, clipped = 0;
+  const hueBins = new Float64Array(12);
+  let chromaSum = 0, atRisk = 0;
+  const cover = { srgb: 0, p3: 0, rec2020: 0, none: 0 };
+  for (let i = 0; i < total; i += stride) {
+    const o = i * 4;
+    const a = data[o + 3] ?? 255;
+    if (a === 0) {
+      transparent++;
+      continue;
+    }
+    const r3 = data[o] ?? 0, g2 = data[o + 1] ?? 0, b = data[o + 2] ?? 0;
+    sampled++;
+    if (uniq2.size < UNIQUE_CAP) uniq2.add(r3 << 16 | g2 << 8 | b);
+    if (r3 === 0 || r3 === 255 || g2 === 0 || g2 === 255 || b === 0 || b === 255) clipped++;
+    const key = r3 >> 8 - GRID_BITS << GRID_BITS * 2 | g2 >> 8 - GRID_BITS << GRID_BITS | b >> 8 - GRID_BITS;
+    counts.set(key, (counts.get(key) ?? 0) + 1);
+    const { l, c, hue, lin } = toOklch(r3, g2, b, space);
+    chromaSum += c;
+    if (c >= HUE_CHROMA_FLOOR) hueBins[Math.floor((hue % 360 + 360) % 360 / 30)] += 1;
+    const snapped = snapToCube(lin);
+    cover[snapped ? oklchOf(snapped).gamut : oklchGamut(l, c, hue)] += 1;
+    const own = space === "display-p3" ? "p3" : "srgb";
+    if (inGamut(l, c, hue, own) && !inGamut(l, c + nearEdge, hue, own)) atRisk++;
+  }
+  const points = [...counts.entries()].sort((a, b) => b[1] - a[1]).slice(0, maxPoints).map(([key, n2]) => {
+    const step = 256 / GRID;
+    const half = step / 2;
+    const r3 = Math.min(255, Math.round((key >> GRID_BITS * 2 & GRID - 1) * step + half));
+    const g2 = Math.min(255, Math.round((key >> GRID_BITS & GRID - 1) * step + half));
+    const b = Math.min(255, Math.round((key & GRID - 1) * step + half));
+    const { l, c, hue } = toOklch(r3, g2, b, space);
+    return { l, c, h: hue, n: n2, hex: hexOf(r3, g2, b, space) };
+  });
+  let dominantHue = null;
+  let bestBin = -1, bestN = 0;
+  for (let i = 0; i < hueBins.length; i++) {
+    if (hueBins[i] > bestN) {
+      bestN = hueBins[i];
+      bestBin = i;
+    }
+  }
+  if (bestBin >= 0 && bestN > 0) {
+    dominantHue = { h: bestBin * 30 + 15, share: bestN / Math.max(1, sampled) };
+  }
+  const per = (n2) => sampled ? n2 / sampled : 0;
+  return {
+    space,
+    points,
+    sampled,
+    transparent,
+    unique: uniq2.size,
+    uniqueCapped: uniq2.size >= UNIQUE_CAP,
+    coverage: {
+      srgb: per(cover.srgb),
+      p3: per(cover.p3),
+      rec2020: per(cover.rec2020),
+      none: per(cover.none)
+    },
+    clipped: per(clipped),
+    atRisk: per(atRisk),
+    dominantHue,
+    meanChroma: sampled ? chromaSum / sampled : 0
+  };
+}
+function snapToCube(lin) {
+  let hit = false;
+  const out = [lin[0], lin[1], lin[2]];
+  for (let i = 0; i < 3; i++) {
+    const v = out[i];
+    if (v > 1 && v <= 1 + LIN_SLOP) {
+      out[i] = 1;
+      hit = true;
+    } else if (v < 0 && v >= -LIN_SLOP) {
+      out[i] = 0;
+      hit = true;
+    }
+  }
+  return hit ? out : null;
+}
+function oklchOf(lin) {
+  const [l, A, B] = linearSrgbToOklab(lin[0], lin[1], lin[2]);
+  const c = Math.hypot(A, B);
+  const hue = c < 1e-9 ? 0 : (Math.atan2(B, A) * 180 / Math.PI + 360) % 360;
+  return { gamut: oklchGamut(l, c, hue) };
+}
+function toOklch(r3, g2, b, space) {
+  let lr = srgbToLinear(r3 / 255), lg = srgbToLinear(g2 / 255), lb = srgbToLinear(b / 255);
+  if (space === "display-p3") [lr, lg, lb] = linearP3ToLinearSrgb(lr, lg, lb);
+  const [l, A, B] = linearSrgbToOklab(lr, lg, lb);
+  const c = Math.hypot(A, B);
+  const hue = c < 1e-9 ? 0 : (Math.atan2(B, A) * 180 / Math.PI + 360) % 360;
+  return { l, c, hue, lin: [lr, lg, lb] };
+}
+function hexOf(r3, g2, b, space) {
+  if (space === "srgb") return `#${[r3, g2, b].map((v) => v.toString(16).padStart(2, "0")).join("")}`;
+  const [lr, lg, lb] = linearP3ToLinearSrgb(srgbToLinear(r3 / 255), srgbToLinear(g2 / 255), srgbToLinear(b / 255));
+  const ch = (v) => Math.round(Math.min(1, Math.max(0, linearToSrgb(v))) * 255).toString(16).padStart(2, "0");
+  return `#${ch(lr)}${ch(lg)}${ch(lb)}`;
+}
+var UNIQUE_CAP, GRID_BITS, GRID, DEFAULT_SAMPLE_TARGET, HUE_CHROMA_FLOOR, LIN_SLOP;
+var init_image_cloud = __esm({
+  "engine/src/image-cloud.ts"() {
+    "use strict";
+    init_gamut();
+    init_brand_derive();
+    init_gamut_source();
+    UNIQUE_CAP = 3e5;
+    GRID_BITS = 5;
+    GRID = 1 << GRID_BITS;
+    DEFAULT_SAMPLE_TARGET = 2e5;
+    HUE_CHROMA_FLOOR = 0.02;
+    LIN_SLOP = 1 - srgbToLinear(254 / 255);
+  }
+});
+
+// engine/src/color-describe.ts
+function fitsSpace(c, space) {
+  if (!BOUNDED.has(space)) return true;
+  const conv = convertColor(c, space);
+  const parts = space === "hsl" || space === "hwb" ? [conv.components[1] / 100, conv.components[2] / 100] : conv.components;
+  const SLACK = 1e-4;
+  return parts.every((v) => v >= -SLACK && v <= 1 + SLACK);
+}
+function describeColor(input) {
+  const trimmed = String(input ?? "").trim();
+  const parsed = parseColor(trimmed);
+  if (!parsed) return null;
+  const [L, a, b] = convertColor(parsed, "oklab").components;
+  const c = Math.hypot(a, b);
+  const h = c < 1e-7 ? 0 : (Math.atan2(b, a) * 180 / Math.PI % 360 + 360) % 360;
+  const oklch = { l: L, c, h };
+  const gamut = oklchGamut(L, c, h);
+  const ceiling = {
+    srgb: maxChroma(L, h, "srgb"),
+    p3: maxChroma(L, h, "p3"),
+    rec2020: maxChroma(L, h, "rec2020")
+  };
+  const srgb = colorToSrgb(parsed);
+  const byte = (v) => Math.round(Math.min(1, Math.max(0, v)) * 255).toString(16).padStart(2, "0");
+  const srgbHex = `#${byte(srgb[0])}${byte(srgb[1])}${byte(srgb[2])}`;
+  const notations = NOTATION_SPACES.map((space) => ({
+    space,
+    css: formatColor(convertColor(parsed, space)),
+    exact: fitsSpace(parsed, space)
+  }));
+  return {
+    input: trimmed,
+    parsed,
+    oklch,
+    gamut,
+    inSrgb: gamut === "srgb",
+    srgbHex,
+    headroom: ceiling.srgb - c,
+    ceiling,
+    notations,
+    alpha: parsed.alpha
+  };
+}
+function contrastVsExtremes(color) {
+  const d = describeColor(color);
+  if (!d) return null;
+  const hex = d.srgbHex;
+  const onBlack = contrastRatio(hex, "#000000");
+  const onWhite = contrastRatio(hex, "#ffffff");
+  const ratio = Math.max(onBlack, onWhite);
+  return {
+    against: onBlack >= onWhite ? "#000000" : "#ffffff",
+    ratio,
+    level: levelFor(ratio, false),
+    largeLevel: levelFor(ratio, true),
+    onBlack,
+    onWhite
+  };
+}
+function wcagLevel(ratio, opts = {}) {
+  return levelFor(ratio, !!opts.large);
+}
+var NOTATION_SPACES, BOUNDED, EXTREMES_CONTRAST_FLOOR, levelFor;
+var init_color_describe = __esm({
+  "engine/src/color-describe.ts"() {
+    "use strict";
+    init_css_color();
+    init_brand_derive();
+    init_gamut();
+    NOTATION_SPACES = [
+      "oklch",
+      "oklab",
+      "srgb",
+      "display-p3",
+      "rec2020",
+      "lab",
+      "lch",
+      "hsl",
+      "xyz-d65"
+    ];
+    BOUNDED = /* @__PURE__ */ new Set([
+      "srgb",
+      "srgb-linear",
+      "display-p3",
+      "a98-rgb",
+      "prophoto-rgb",
+      "rec2020",
+      "hsl",
+      "hwb"
+    ]);
+    EXTREMES_CONTRAST_FLOOR = Math.sqrt(21);
+    levelFor = (ratio, large) => {
+      const [aa, aaa] = large ? [3, 4.5] : [4.5, 7];
+      return ratio >= aaa ? "AAA" : ratio >= aa ? "AA" : "fail";
+    };
+  }
+});
+
+// engine/src/gamut-axis.ts
+function peakChroma(limit) {
+  const id = gamutSourceId(limit);
+  const hit = PEAK_CACHE.get(id);
+  if (hit !== void 0) return hit;
+  const coarse = gamutCeilingPeak(limit);
+  let best = coarse.c;
+  for (let i = -8; i <= 8; i++) {
+    const l = coarse.l + i * GAMUT_GRID_STEP.l / 8;
+    if (!(l > 0) || l >= 1) continue;
+    for (let j = -8; j <= 8; j++) {
+      const c = maxChroma(l, coarse.h + j * GAMUT_GRID_STEP.h / 8, limit);
+      if (c > best) best = c;
+    }
+  }
+  PEAK_CACHE.set(id, best);
+  return best;
+}
+function chromaAxisMax(limit) {
+  const peak = peakChroma(limit) * AXIS_HEADROOM;
+  if (!(peak > 0)) return AXIS_GRAIN;
+  const steps = Math.ceil(peak / AXIS_GRAIN - 1e-9);
+  return Number((steps * AXIS_GRAIN).toFixed(4));
+}
+function chromaTickStep(cMax) {
+  const want = (cMax > 0 ? cMax : AXIS_GRAIN) / TICK_TARGET;
+  for (const s of TICK_STEPS) if (s >= want) return s;
+  return TICK_STEPS[TICK_STEPS.length - 1];
+}
+var AXIS_HEADROOM, AXIS_GRAIN, TICK_STEPS, TICK_TARGET, PEAK_CACHE;
+var init_gamut_axis = __esm({
+  "engine/src/gamut-axis.ts"() {
+    "use strict";
+    init_gamut();
+    init_gamut_source();
+    AXIS_HEADROOM = 1.05;
+    AXIS_GRAIN = 0.02;
+    TICK_STEPS = [5e-3, 0.01, 0.02, 0.025, 0.05, 0.1, 0.2, 0.5, 1];
+    TICK_TARGET = 5;
+    PEAK_CACHE = /* @__PURE__ */ new Map();
+  }
+});
+
+// engine/src/gamut-tier.ts
+function gamutTierProbe(limit) {
+  const src = resolveGamutSource(limit);
+  const test = (s) => fastRgbContains(s) ?? ((l, c, h) => s.contains(l, c, h));
+  const inside = test(src);
+  const outer = GAMUT_TIER_LADDER.filter((g2) => g2.id !== src.id).map(test);
+  return (l, c, h) => {
+    if (!Number.isFinite(l) || !Number.isFinite(c) || !Number.isFinite(h)) return BEYOND_TIER;
+    if (inside(l, c, h)) return 0;
+    for (let i = 0; i < outer.length; i++) if (outer[i](l, c, h)) return i + 1;
+    return BEYOND_TIER;
+  };
+}
+function gamutTier(l, c, h, limit) {
+  return gamutTierProbe(limit)(l, c, h);
+}
+var BEYOND_TIER, GAMUT_TIER_LADDER;
+var init_gamut_tier = __esm({
+  "engine/src/gamut-tier.ts"() {
+    "use strict";
+    init_gamut_source();
+    BEYOND_TIER = -1;
+    GAMUT_TIER_LADDER = [SRGB_SOURCE, P3_SOURCE, REC2020_SOURCE];
+  }
+});
+
 // engine/src/icc.ts
 function u32(b, p, end) {
   if (p < 0 || p + 4 > end) return -1;
@@ -17661,7 +30680,7 @@ function u8(b, p, end) {
   if (p < 0 || p + 1 > end) return -1;
   return b[p];
 }
-function s15f16(b, p, end) {
+function s15f162(b, p, end) {
   const v = u32(b, p, end);
   if (v < 0) return null;
   return (v >= 2147483648 ? v - 4294967296 : v) / 65536;
@@ -17671,12 +30690,12 @@ function sig4(b, p, end) {
   return String.fromCharCode(b[p], b[p + 1], b[p + 2], b[p + 3]);
 }
 function evalCurve(c, x) {
-  const v = clamp014(x);
+  const v = clamp016(x);
   switch (c.kind) {
     case "identity":
       return v;
     case "gamma":
-      return clamp014(pow(v, c.g));
+      return clamp016(pow(v, c.g));
     case "table": {
       const n2 = c.t.length;
       if (n2 === 0) return v;
@@ -17690,15 +30709,15 @@ function evalCurve(c, x) {
       const [g2 = 1, a = 1, bb = 0, cc = 0, d = 0, e = 0, f = 0] = c.p;
       switch (c.fn) {
         case 0:
-          return clamp014(pow(v, g2));
+          return clamp016(pow(v, g2));
         case 1:
-          return clamp014(v >= (a === 0 ? 0 : -bb / a) ? pow(a * v + bb, g2) : 0);
+          return clamp016(v >= (a === 0 ? 0 : -bb / a) ? pow(a * v + bb, g2) : 0);
         case 2:
-          return clamp014(v >= (a === 0 ? 0 : -bb / a) ? pow(a * v + bb, g2) + cc : cc);
+          return clamp016(v >= (a === 0 ? 0 : -bb / a) ? pow(a * v + bb, g2) + cc : cc);
         case 3:
-          return clamp014(v >= d ? pow(a * v + bb, g2) : cc * v);
+          return clamp016(v >= d ? pow(a * v + bb, g2) : cc * v);
         case 4:
-          return clamp014(v >= d ? pow(a * v + bb, g2) + e : cc * v + f);
+          return clamp016(v >= d ? pow(a * v + bb, g2) + e : cc * v + f);
         default:
           return v;
       }
@@ -17708,8 +30727,8 @@ function evalCurve(c, x) {
   }
 }
 function invertCurve(c, y) {
-  if (c.kind === "identity") return clamp014(y);
-  const target = clamp014(y);
+  if (c.kind === "identity") return clamp016(y);
+  const target = clamp016(y);
   let lo = 0;
   let hi = 1;
   for (let i = 0; i < MAX_CURVE_INVERT_STEPS; i++) {
@@ -17750,7 +30769,7 @@ function parseCurve(b, off, end) {
     if (off + size > end) return null;
     const p = [];
     for (let i = 0; i < n2; i++) {
-      const v = s15f16(b, off + 12 + i * 4, end);
+      const v = s15f162(b, off + 12 + i * 4, end);
       if (v === null || !Number.isFinite(v)) return null;
       p.push(v);
     }
@@ -17771,7 +30790,7 @@ function evalClut(st, v) {
   const frac = new Array(nIn);
   for (let d = 0; d < nIn; d++) {
     const g2 = st.grid[d];
-    const u = clamp014(v[d]) * (g2 - 1);
+    const u = clamp016(v[d]) * (g2 - 1);
     const j = Math.min(Math.floor(u), g2 - 2);
     base[d] = j;
     frac[d] = u - j;
@@ -17796,7 +30815,7 @@ function evalClut(st, v) {
 }
 function evalPipeline(p, input) {
   if (input.length !== p.nIn) return null;
-  let v = input.map(clamp014);
+  let v = input.map(clamp016);
   for (const st of p.stages) {
     if (st.kind === "curves") {
       if (st.curves.length !== v.length) return null;
@@ -17818,7 +30837,7 @@ function evalPipeline(p, input) {
   }
   if (v.length !== p.nOut) return null;
   for (const x of v) if (!Number.isFinite(x)) return null;
-  return v.map(clamp014);
+  return v.map(clamp016);
 }
 function parseMft(b, off, end, bits, inputIsPcsXyz) {
   const nIn = u8(b, off + 8, end);
@@ -17828,7 +30847,7 @@ function parseMft(b, off, end, bits, inputIsPcsXyz) {
   if (g2 < 2) return null;
   const m = [];
   for (let i = 0; i < 9; i++) {
-    const v = s15f16(b, off + 12 + i * 4, end);
+    const v = s15f162(b, off + 12 + i * 4, end);
     if (v === null || !Number.isFinite(v)) return null;
     m.push(v);
   }
@@ -17950,7 +30969,7 @@ function parseMab(b, off, end, atoB) {
   if (offMat) {
     const m = [];
     for (let i = 0; i < 12; i++) {
-      const v = s15f16(b, off + offMat + i * 4, end);
+      const v = s15f162(b, off + offMat + i * 4, end);
       if (v === null || !Number.isFinite(v)) return null;
       m.push(v);
     }
@@ -17995,7 +31014,7 @@ function parseTextTag(b, off, size, fileEnd) {
   if (type === "mluc") {
     const n2 = u32(b, off + 8, end);
     const recSize = u32(b, off + 12, end);
-    if (n2 < 1 || recSize < 12 || n2 > MAX_TAGS) return "";
+    if (n2 < 1 || recSize < 12 || n2 > MAX_TAGS2) return "";
     let best = -1;
     for (let i = 0; i < n2; i++) {
       const rec = off + 16 + i * recSize;
@@ -18079,7 +31098,7 @@ function parseInner(b) {
   const nChannels = spaceChannels(dataColourSpace);
   if (nChannels === 0) return null;
   const tagCount = u32(b, 128, fileEnd);
-  if (tagCount < 0 || tagCount > MAX_TAGS) return null;
+  if (tagCount < 0 || tagCount > MAX_TAGS2) return null;
   if (132 + tagCount * 12 > fileEnd) return null;
   const tags = /* @__PURE__ */ new Map();
   for (let i = 0; i < tagCount; i++) {
@@ -18097,9 +31116,9 @@ function parseInner(b) {
   const wt = tags.get("wtpt");
   if (wt && wt.size >= 20) {
     const end = Math.min(wt.offset + wt.size, fileEnd);
-    const x = s15f16(b, wt.offset + 8, end);
-    const y = s15f16(b, wt.offset + 12, end);
-    const z = s15f16(b, wt.offset + 16, end);
+    const x = s15f162(b, wt.offset + 8, end);
+    const y = s15f162(b, wt.offset + 12, end);
+    const z = s15f162(b, wt.offset + 16, end);
     if (x !== null && y !== null && z !== null && y > 0) wtpt = [x, y, z];
   }
   const mediaWhite = major < 4 && deviceClass === "mntr" ? PCS_D50 : wtpt;
@@ -18135,21 +31154,21 @@ function parseInner(b) {
     const t = tags.get(s);
     if (!t || t.size < 20) return null;
     const end = Math.min(t.offset + t.size, fileEnd);
-    const x = s15f16(b, t.offset + 8, end);
-    const y = s15f16(b, t.offset + 12, end);
-    const z = s15f16(b, t.offset + 16, end);
+    const x = s15f162(b, t.offset + 8, end);
+    const y = s15f162(b, t.offset + 12, end);
+    const z = s15f162(b, t.offset + 16, end);
     return x === null || y === null || z === null ? null : [x, y, z];
   };
   let matrixTrc = null;
   if (dataColourSpace === "RGB " && pcs === "XYZ") {
-    const r = colOf("rXYZ");
+    const r3 = colOf("rXYZ");
     const g2 = colOf("gXYZ");
     const bl = colOf("bXYZ");
     const rt = trcOf("rTRC");
     const gt = trcOf("gTRC");
     const bt = trcOf("bTRC");
-    if (r && g2 && bl && rt && gt && bt) {
-      const m = [r[0], g2[0], bl[0], r[1], g2[1], bl[1], r[2], g2[2], bl[2]];
+    if (r3 && g2 && bl && rt && gt && bt) {
+      const m = [r3[0], g2[0], bl[0], r3[1], g2[1], bl[1], r3[2], g2[2], bl[2]];
       const inv = invert3(m);
       if (inv) matrixTrc = { m, inv, trc: [rt, gt, bt] };
     }
@@ -18169,14 +31188,14 @@ function parseInner(b) {
     if (pcs === "Lab") {
       const k = enc2 === "legacy16" ? 65280 / 65535 : 1;
       return [
-        clamp014(lab[0] / 100 * k),
-        clamp014((lab[1] + 128) / 255 * k),
-        clamp014((lab[2] + 128) / 255 * k)
+        clamp016(lab[0] / 100 * k),
+        clamp016((lab[1] + 128) / 255 * k),
+        clamp016((lab[2] + 128) / 255 * k)
       ];
     }
     const xyz = labToXyz(lab[0], lab[1], lab[2]);
     const s = 32768 / 65535;
-    return [clamp014(xyz[0] * s), clamp014(xyz[1] * s), clamp014(xyz[2] * s)];
+    return [clamp016(xyz[0] * s), clamp016(xyz[1] * s), clamp016(xyz[2] * s)];
   };
   const relToAbs = (lab, forward) => {
     if (!mediaWhite) return null;
@@ -18231,7 +31250,7 @@ function parseInner(b) {
         if (typeof channels[i] !== "number" || !Number.isFinite(channels[i])) return null;
       }
       if (!Object.hasOwn(INTENT_TAG, intent)) return null;
-      const dev = Array.from(channels, clamp014);
+      const dev = Array.from(channels, clamp016);
       let lab = null;
       const lut = pipeline(`A2B${INTENT_TAG[intent]}`, true);
       if (lut) {
@@ -18276,8 +31295,8 @@ function parseInner(b) {
         return evalPipeline(lut, enc2);
       }
       const raw = directLinear(want);
-      if (raw && matrixTrc) return raw.map((v, i) => invertCurve(matrixTrc.trc[i], clamp014(v)));
-      if (raw && grayTrc) return [invertCurve(grayTrc, clamp014(raw[0]))];
+      if (raw && matrixTrc) return raw.map((v, i) => invertCurve(matrixTrc.trc[i], clamp016(v)));
+      if (raw && grayTrc) return [invertCurve(grayTrc, clamp016(raw[0]))];
       return null;
     }
   };
@@ -18309,14 +31328,24 @@ function iccDevice(p, intent, l, c, h) {
   const dev = p.fromLab(intent, lab);
   return dev ? { dev, lab } : null;
 }
+function iccRoundTripDecides(p) {
+  return !DIRECT_LINEAR.has(p);
+}
+function iccRoundTripDeltaE(p, intent, l, c, h) {
+  if (!iccGamutIntent(p, intent)) return null;
+  const d = iccDevice(p, intent, l, c, h);
+  if (!d) return null;
+  const back = p.toLab(intent, d.dev);
+  return back ? deltaE76(d.lab, back) : null;
+}
 function iccGamutSource(p, intent) {
-  const digest = PROFILE_DIGEST.get(p) ?? fallbackId(p);
+  const digest2 = PROFILE_DIGEST.get(p) ?? fallbackId(p);
   const supported = iccGamutIntent(p, intent);
   const ink = isInkSpace(p.dataColourSpace);
   const direct = DIRECT_LINEAR.get(p);
   const device = (l, c, h) => supported ? iccDevice(p, intent, l, c, h) : null;
   return {
-    id: `icc:${digest}:${intent}`,
+    id: `icc:${digest2}:${intent}`,
     label: `${p.description || p.dataColourSpace.trim()} (${intent})`,
     contains(l, c, h) {
       const d = device(l, c, h);
@@ -18340,10 +31369,43 @@ function iccGamutSource(p, intent) {
       const d = device(l, c, h);
       if (!d) return null;
       let sum = 0;
-      for (const v of d.dev) sum += clamp014(v);
+      for (const v of d.dev) sum += clamp016(v);
       return sum;
     }
   };
+}
+function iccCharacterization(bytes) {
+  try {
+    if (!(bytes instanceof Uint8Array) || bytes.length < 132) return null;
+    const declared = u32(bytes, 0, bytes.length);
+    if (declared < 128 || declared > bytes.length) return null;
+    const fileEnd = declared;
+    if (sig4(bytes, 36, fileEnd) !== "acsp") return null;
+    const tagCount = u32(bytes, 128, fileEnd);
+    if (tagCount < 0 || tagCount > MAX_TAGS2) return null;
+    if (132 + tagCount * 12 > fileEnd) return null;
+    for (let i = 0; i < tagCount; i++) {
+      const p = 132 + i * 12;
+      if (sig4(bytes, p, fileEnd) !== "targ") continue;
+      const offset = u32(bytes, p + 4, fileEnd);
+      const size = u32(bytes, p + 8, fileEnd);
+      if (offset < 0 || size < 12 || offset + size > fileEnd) return null;
+      const body = offset + (sig4(bytes, offset, fileEnd) === "text" ? 8 : 0);
+      const end = Math.min(body + Math.min(size, TARG_SCAN), fileEnd);
+      let s = "";
+      for (let q = body; q < end; q++) {
+        const ch = u8(bytes, q, end);
+        if (ch < 0) break;
+        s += ch === 0 ? " " : String.fromCharCode(ch);
+      }
+      const m = /^[ \t]*FILE_DESCRIPTOR[ \t]+"?([^"\r\n]*?)"?[ \t]*$/mi.exec(s);
+      const v = m?.[1]?.trim();
+      return v && v.length <= 64 ? v : null;
+    }
+    return null;
+  } catch {
+    return null;
+  }
 }
 function sha256Prefix(data) {
   const h = [1779033703, 3144134277, 1013904242, 2773480762, 1359893119, 2600822924, 528734635, 1541459225];
@@ -18393,20 +31455,20 @@ function sha256Prefix(data) {
   }
   return h.slice(0, 2).map((x) => x.toString(16).padStart(8, "0")).join("");
 }
-var MAX_TAGS, MAX_CHANNELS2, MAX_TABLE_ENTRIES, MAX_CURVE_ENTRIES, MAX_CLUT_VALUES, MAX_PARA_PARAMS, MAX_CURVE_INVERT_STEPS, clamp014, IDENTITY_CURVE, pow, SPACE_CHANNELS, isInkSpace, INTENT_TAG, xyzToLab, labToXyz, PCS_D50, PROFILE_DIGEST, DIRECT_LINEAR, CUBE_EPS, deltaE76, ICC_GAMUT_DELTA_E, fallbackId, K256;
+var MAX_TAGS2, MAX_CHANNELS2, MAX_TABLE_ENTRIES, MAX_CURVE_ENTRIES, MAX_CLUT_VALUES, MAX_PARA_PARAMS, MAX_CURVE_INVERT_STEPS, clamp016, IDENTITY_CURVE, pow, SPACE_CHANNELS, isInkSpace, INTENT_TAG, xyzToLab, labToXyz, PCS_D50, PROFILE_DIGEST, DIRECT_LINEAR, CUBE_EPS, deltaE76, ICC_GAMUT_DELTA_E, fallbackId, TARG_SCAN, K256;
 var init_icc = __esm({
   "engine/src/icc.ts"() {
     "use strict";
     init_css_color();
     init_gamut_source();
-    MAX_TAGS = 512;
+    MAX_TAGS2 = 512;
     MAX_CHANNELS2 = 15;
     MAX_TABLE_ENTRIES = 4096;
     MAX_CURVE_ENTRIES = 65536;
     MAX_CLUT_VALUES = 1 << 22;
     MAX_PARA_PARAMS = 7;
     MAX_CURVE_INVERT_STEPS = 40;
-    clamp014 = (n2) => n2 < 0 ? 0 : n2 > 1 ? 1 : n2;
+    clamp016 = (n2) => n2 < 0 ? 0 : n2 > 1 ? 1 : n2;
     IDENTITY_CURVE = { kind: "identity" };
     pow = (x, g2) => x <= 0 ? 0 : x ** g2;
     SPACE_CHANNELS = {
@@ -18438,6 +31500,7 @@ var init_icc = __esm({
     deltaE76 = (a, c) => Math.hypot(a[0] - c[0], a[1] - c[1], a[2] - c[2]);
     ICC_GAMUT_DELTA_E = 3;
     fallbackId = (p) => `${p.deviceClass}-${p.dataColourSpace}-${p.nChannels}-${p.description}`;
+    TARG_SCAN = 4096;
     K256 = /* @__PURE__ */ (() => {
       const primes = [];
       for (let n2 = 2; primes.length < 64; n2++) {
@@ -18453,6 +31516,267 @@ var init_icc = __esm({
   }
 });
 
+// engine/src/icc-pixels.ts
+function iccResolvedIntent(profile, direction2, intent) {
+  try {
+    if (!profile || typeof profile.toLab !== "function" || typeof profile.fromLab !== "function") return null;
+    if (!Object.hasOwn(FALLBACK, intent)) return null;
+    const n2 = profile.nChannels;
+    if (!Number.isInteger(n2) || n2 < 1) return null;
+    const midDevice = new Array(n2).fill(0.5);
+    for (const cand of FALLBACK[intent]) {
+      const ok3 = direction2 === "toPcs" ? profile.toLab(cand, midDevice) !== null : profile.fromLab(cand, [50, 0, 0]) !== null;
+      if (ok3) return cand;
+    }
+    return null;
+  } catch {
+    return null;
+  }
+}
+function buildLattice(profile, direction2, intent) {
+  const s = LATTICE_N - 1;
+  const lat = new Float32Array(LATTICE_N * LATTICE_N * LATTICE_N * 3);
+  let p = 0;
+  for (let i = 0; i < LATTICE_N; i++) {
+    for (let j = 0; j < LATTICE_N; j++) {
+      for (let k = 0; k < LATTICE_N; k++) {
+        const res = direction2 === "toPcs" ? profile.toLab(intent, [i / s, j / s, k / s]) : profile.fromLab(intent, [i / s * 100, j / s * 255 - 128, k / s * 255 - 128]);
+        if (!res || res.length !== 3) return null;
+        if (!Number.isFinite(res[0]) || !Number.isFinite(res[1]) || !Number.isFinite(res[2])) return null;
+        lat[p++] = res[0];
+        lat[p++] = res[1];
+        lat[p++] = res[2];
+      }
+    }
+  }
+  return lat;
+}
+function getLattice(profile, direction2, intent) {
+  let byKey = LATTICES.get(profile);
+  if (!byKey) {
+    byKey = /* @__PURE__ */ new Map();
+    LATTICES.set(profile, byKey);
+  }
+  const key = `${direction2}:${intent}`;
+  if (byKey.has(key)) return byKey.get(key) ?? null;
+  const lat = buildLattice(profile, direction2, intent);
+  byKey.set(key, lat);
+  return lat;
+}
+function tetraEval(lat, u, v, w, out, o) {
+  const s = LATTICE_N - 1;
+  const x = clamp017(u) * s;
+  const y = clamp017(v) * s;
+  const z = clamp017(w) * s;
+  let i = Math.floor(x);
+  let j = Math.floor(y);
+  let k = Math.floor(z);
+  if (i >= s) i = s - 1;
+  if (j >= s) j = s - 1;
+  if (k >= s) k = s - 1;
+  const fx = x - i;
+  const fy = y - j;
+  const fz = z - k;
+  const p0 = i * L_S0 + j * L_S1 + k * L_S2;
+  let o1;
+  let o2;
+  let f1;
+  let f2;
+  let f3;
+  if (fx >= fy) {
+    if (fy >= fz) {
+      o1 = L_S0;
+      o2 = L_S0 + L_S1;
+      f1 = fx;
+      f2 = fy;
+      f3 = fz;
+    } else if (fx >= fz) {
+      o1 = L_S0;
+      o2 = L_S0 + L_S2;
+      f1 = fx;
+      f2 = fz;
+      f3 = fy;
+    } else {
+      o1 = L_S2;
+      o2 = L_S2 + L_S0;
+      f1 = fz;
+      f2 = fx;
+      f3 = fy;
+    }
+  } else if (fx >= fz) {
+    o1 = L_S1;
+    o2 = L_S1 + L_S0;
+    f1 = fy;
+    f2 = fx;
+    f3 = fz;
+  } else if (fy >= fz) {
+    o1 = L_S1;
+    o2 = L_S1 + L_S2;
+    f1 = fy;
+    f2 = fz;
+    f3 = fx;
+  } else {
+    o1 = L_S2;
+    o2 = L_S2 + L_S1;
+    f1 = fz;
+    f2 = fy;
+    f3 = fx;
+  }
+  const o3 = L_S0 + L_S1 + L_S2;
+  for (let c = 0; c < 3; c++) {
+    const a = lat[p0 + c];
+    const b1 = lat[p0 + o1 + c];
+    const b2 = lat[p0 + o2 + c];
+    const b3 = lat[p0 + o3 + c];
+    out[o + c] = a + f1 * (b1 - a) + f2 * (b2 - b1) + f3 * (b3 - b2);
+  }
+}
+function rowEvaluator(profile, direction2, intent) {
+  const n2 = profile.nChannels;
+  if (n2 !== 1 && n2 !== 3) return null;
+  const direct = !iccRoundTripDecides(profile);
+  if (!direct) {
+    if (n2 !== 3) return null;
+    const lat = getLattice(profile, direction2, intent);
+    if (!lat) return null;
+    if (direction2 === "toPcs") {
+      return (row) => {
+        for (let i = 0; i < row.length; i += 4) {
+          tetraEval(lat, san2(row[i]), san2(row[i + 1]), san2(row[i + 2]), row, i);
+        }
+        return true;
+      };
+    }
+    return (row) => {
+      for (let i = 0; i < row.length; i += 4) {
+        tetraEval(lat, san2(row[i]) / 100, (san2(row[i + 1]) + 128) / 255, (san2(row[i + 2]) + 128) / 255, row, i);
+      }
+      return true;
+    };
+  }
+  if (direction2 === "toPcs") {
+    return (row) => {
+      for (let i = 0; i < row.length; i += 4) {
+        const dev = n2 === 1 ? [san2(row[i])] : [san2(row[i]), san2(row[i + 1]), san2(row[i + 2])];
+        const lab = profile.toLab(intent, dev);
+        if (!lab) return false;
+        row[i] = lab[0];
+        row[i + 1] = lab[1];
+        row[i + 2] = lab[2];
+      }
+      return true;
+    };
+  }
+  return (row) => {
+    for (let i = 0; i < row.length; i += 4) {
+      const dev = profile.fromLab(intent, [san2(row[i]), san2(row[i + 1]), san2(row[i + 2])]);
+      if (!dev || dev.length !== n2) return false;
+      if (n2 === 1) {
+        row[i] = dev[0];
+        row[i + 1] = dev[0];
+        row[i + 2] = dev[0];
+      } else {
+        row[i] = dev[0];
+        row[i + 1] = dev[1];
+        row[i + 2] = dev[2];
+      }
+    }
+    return true;
+  };
+}
+function frameSane(frame) {
+  return !!frame && frame.data instanceof Float32Array && Number.isInteger(frame.width) && Number.isInteger(frame.height) && frame.width > 0 && frame.height > 0 && frame.data.length === frame.width * frame.height * 4;
+}
+function iccFrameRefusal(frame, direction2) {
+  if (!frameSane(frame)) return "not a well-formed DeepFrame: width, height and data length must agree";
+  if (direction2 !== "toPcs" && direction2 !== "fromPcs") return `unknown direction: ${String(direction2)}`;
+  if (direction2 === "toPcs") {
+    if (deviceInputOk(frame)) return null;
+    return `toPcs needs ENCODED device channels, but this frame is tagged '${String(frame.space)}' \u2014 a colorimetric space (linear light, or the PCS itself), whose channels are not this profile's device values. Tag a genuine device frame with ICC_DEVICE_SPACE ('${String(ICC_DEVICE_SPACE)}'); to transform colorimetric pixels, run the profile's other half with direction 'fromPcs' instead.`;
+  }
+  if (pcsInputOk(frame)) return null;
+  return `fromPcs needs a colorimetric frame (a real PixelSpace), but this frame is tagged '${String(frame.space)}' \u2014 device channels carry no colorimetry on their own. Run direction 'toPcs' with their profile first.`;
+}
+function applyIccToFrame(frame, profile, direction2, intent) {
+  try {
+    if (!profileSane(profile)) return null;
+    if (iccFrameRefusal(frame, direction2)) return null;
+    const resolved = iccResolvedIntent(profile, direction2, intent);
+    if (!resolved) return null;
+    const ev = rowEvaluator(profile, direction2, resolved);
+    if (!ev) return null;
+    const { width, height } = frame;
+    const stride = width * 4;
+    const out = new Float32Array(frame.data.length);
+    const needsLab = direction2 === "fromPcs" && frame.space !== "lab";
+    for (let y = 0; y < height; y++) {
+      const at = y * stride;
+      if (needsLab) {
+        const labRow = convertSpace(
+          { width, height: 1, data: frame.data.subarray(at, at + stride), space: frame.space },
+          "lab"
+        ).data;
+        out.set(labRow, at);
+      } else {
+        out.set(frame.data.subarray(at, at + stride), at);
+      }
+      if (!ev(out.subarray(at, at + stride))) return null;
+    }
+    return { width, height, data: out, space: direction2 === "toPcs" ? "lab" : ICC_DEVICE_SPACE };
+  } catch {
+    return null;
+  }
+}
+function convertViaIcc(frame, srcProfile, dstProfile, intent) {
+  try {
+    if (!profileSane(srcProfile) || !profileSane(dstProfile)) return null;
+    if (iccFrameRefusal(frame, "toPcs")) return null;
+    const inSrc = iccResolvedIntent(srcProfile, "toPcs", intent);
+    const inDst = iccResolvedIntent(dstProfile, "fromPcs", intent);
+    if (!inSrc || !inDst) return null;
+    const toPcs = rowEvaluator(srcProfile, "toPcs", inSrc);
+    const fromPcs = rowEvaluator(dstProfile, "fromPcs", inDst);
+    if (!toPcs || !fromPcs) return null;
+    const { width, height } = frame;
+    const stride = width * 4;
+    const out = new Float32Array(frame.data.length);
+    for (let y = 0; y < height; y++) {
+      const at = y * stride;
+      out.set(frame.data.subarray(at, at + stride), at);
+      const row = out.subarray(at, at + stride);
+      if (!toPcs(row) || !fromPcs(row)) return null;
+    }
+    return { width, height, data: out, space: ICC_DEVICE_SPACE };
+  } catch {
+    return null;
+  }
+}
+var ICC_DEVICE_SPACE, FALLBACK, LATTICE_N, L_S2, L_S1, L_S0, LATTICES, clamp017, san2, profileSane, deviceInputOk, pcsInputOk;
+var init_icc_pixels = __esm({
+  "engine/src/icc-pixels.ts"() {
+    "use strict";
+    init_icc();
+    init_pixels();
+    ICC_DEVICE_SPACE = "icc-device";
+    FALLBACK = {
+      perceptual: ["perceptual"],
+      relative: ["relative", "perceptual"],
+      saturation: ["saturation", "perceptual"],
+      absolute: ["absolute", "relative", "perceptual"]
+    };
+    LATTICE_N = 33;
+    L_S2 = 3;
+    L_S1 = LATTICE_N * 3;
+    L_S0 = LATTICE_N * LATTICE_N * 3;
+    LATTICES = /* @__PURE__ */ new WeakMap();
+    clamp017 = (v) => v <= 0 ? 0 : v >= 1 ? 1 : v;
+    san2 = (v) => Number.isFinite(v) ? v : 0;
+    profileSane = (p) => !!p && typeof p.toLab === "function" && typeof p.fromLab === "function";
+    deviceInputOk = (frame) => frame.space === ICC_DEVICE_SPACE;
+    pcsInputOk = (frame) => PIXEL_SPACES.includes(frame.space);
+  }
+});
+
 // engine/src/brand-schemes.ts
 function generateSchemeAccents(primaryHex, scheme) {
   const primary = hexToOklch(primaryHex) ?? FALLBACK_PRIMARY;
@@ -18463,7 +31787,7 @@ function generateSchemeAccents(primaryHex, scheme) {
     return { hex: oklchToHex(oklch), oklch, hue };
   });
 }
-var SCHEME_ROTATIONS, FALLBACK_PRIMARY, normHue3;
+var SCHEME_ROTATIONS, SCHEME_KINDS, FALLBACK_PRIMARY, normHue3;
 var init_brand_schemes = __esm({
   "engine/src/brand-schemes.ts"() {
     "use strict";
@@ -18477,13 +31801,22 @@ var init_brand_schemes = __esm({
       "free-3": [120, 240],
       "free-4": [90, 180, 270]
     };
+    SCHEME_KINDS = [
+      { id: "complement", label: "Complementary", count: 2 },
+      { id: "adjacent-3", label: "Adjacent", count: 3 },
+      { id: "triad-3", label: "Triad", count: 3 },
+      { id: "tetrad-4", label: "Tetrad", count: 4 },
+      { id: "free-2", label: "Free (2)", count: 2 },
+      { id: "free-3", label: "Free (3)", count: 3 },
+      { id: "free-4", label: "Free (4)", count: 4 }
+    ];
     FALLBACK_PRIMARY = { l: 0.62, c: 0.11, h: 250 };
     normHue3 = (h) => (h % 360 + 360) % 360;
   }
 });
 
 // engine/src/color-tools.ts
-function toOklch(input) {
+function toOklch2(input) {
   const s = String(input).trim();
   return s.startsWith("#") ? hexToOklch(s) : parseOklch(s);
 }
@@ -18496,7 +31829,7 @@ function labToOklch2(L, a, b) {
   return { l: L, c, h: c < 1e-7 ? 0 : normHue4(Math.atan2(b, a) * 180 / Math.PI) };
 }
 function toLab(input) {
-  const c = toOklch(input);
+  const c = toOklch2(input);
   return c ? oklchToLab(c) : null;
 }
 function deltaEOk(aColor, bColor) {
@@ -18511,10 +31844,10 @@ function toRgbBytes(input) {
   const c = parseOklch(s);
   return c ? parseHex(oklchToHex(c)) : null;
 }
-function apcaY(r, g2, b) {
+function apcaY(r3, g2, b) {
   const { mainTRC } = SA98G.exponents;
   const { sRco, sGco, sBco } = SA98G.colorSpace;
-  const y = sRco * (r / 255) ** mainTRC + sGco * (g2 / 255) ** mainTRC + sBco * (b / 255) ** mainTRC;
+  const y = sRco * (r3 / 255) ** mainTRC + sGco * (g2 / 255) ** mainTRC + sBco * (b / 255) ** mainTRC;
   const { blkThrs, blkClmp } = SA98G.clamps;
   return y > blkThrs ? y : y + (blkThrs - y) ** blkClmp;
 }
@@ -18537,6 +31870,23 @@ function apcaContrast(textColor, bgColor) {
   }
   sapc = (ybg ** revBG - ytxt ** revTXT) * scaleWoB;
   return sapc > -loClip ? 0 : (sapc + loWoBoffset) * 100;
+}
+function apcaUse(lc) {
+  const a = Math.abs(lc);
+  if (!Number.isFinite(a)) return "invisible";
+  return (APCA_BANDS.find((b) => a >= b.min) ?? APCA_BANDS[APCA_BANDS.length - 1]).use;
+}
+function apcaVerdict(text, bg) {
+  const lc = apcaContrast(text, bg);
+  if (!Number.isFinite(lc)) return null;
+  const use = apcaUse(lc);
+  return {
+    lc,
+    abs: Math.abs(lc),
+    reversed: lc < 0,
+    use,
+    label: (APCA_BANDS.find((b) => b.use === use) ?? APCA_BANDS[APCA_BANDS.length - 1]).label
+  };
 }
 function bezierAt(points, t) {
   const n2 = points.length - 1;
@@ -18585,7 +31935,7 @@ function rampOklab(stops, n2, opts = {}) {
   for (let i = 0; i < count2; i++) {
     const t = count2 === 1 ? 0 : i / (count2 - 1);
     const [L, a, b] = bezierAt(points, tFor(t));
-    out.push(oklchToHex(labToOklch2(clamp2(L, 0, 1), a, b)));
+    out.push(oklchToHex(labToOklch2(clamp5(L, 0, 1), a, b)));
   }
   return out;
 }
@@ -18617,10 +31967,10 @@ function classBreaks(data, mode, n2) {
 function distinctColors(n2, opts = {}) {
   const count2 = Math.floor(n2);
   if (count2 <= 0) return [];
-  const anchor = opts.anchorHex != null ? toOklch(opts.anchorHex) : null;
+  const anchor = opts.anchorHex != null ? toOklch2(opts.anchorHex) : null;
   const minDeltaE = Number.isFinite(opts.minDeltaE) ? Math.max(0, opts.minDeltaE) : 0.02;
-  const baseL = clamp2(anchor?.l ?? 0.65, 0.35, 0.8);
-  const baseC = clamp2(anchor?.c ?? 0.12, 0.08, 0.2);
+  const baseL = clamp5(anchor?.l ?? 0.65, 0.35, 0.8);
+  const baseC = clamp5(anchor?.c ?? 0.12, 0.08, 0.2);
   const baseH = anchor?.h ?? 250;
   const chosen = [];
   const add = (c) => {
@@ -18635,7 +31985,7 @@ function distinctColors(n2, opts = {}) {
     for (const dl of [0, -0.14, 0.14]) {
       for (let k = 0; k < 24; k++) {
         const c = {
-          l: clamp2(baseL + dl, 0.25, 0.9),
+          l: clamp5(baseL + dl, 0.25, 0.9),
           c: baseC * dc,
           h: normHue4(baseH + k * 15)
         };
@@ -18715,7 +32065,7 @@ function makeColorApi() {
     // ends. `gamut` takes a colour STRING like the rest of this API; the other
     // two are numeric because they run per-pixel/per-row.
     gamut: (color) => {
-      const o = toOklch(color);
+      const o = toOklch2(color);
       return o ? oklchGamut(o.l, o.c, o.h) : "none";
     },
     maxChroma: (l, h, limit = "srgb") => maxChroma(l, h, limit),
@@ -18724,7 +32074,7 @@ function makeColorApi() {
     // The perceptual axes themselves. Until 1.69 a tool could ask for ramps and
     // harmonies but could not read a colour's own lightness or chroma — the one
     // conversion every colour tool needs, and the one it had to reimplement.
-    oklch: (color) => toOklch(color),
+    oklch: (color) => toOklch2(color),
     fromOklch: (o) => oklchToHex(o),
     // v1.70: the user's own ICC profile as a gamut (icc.ts + gamut-source.ts).
     // The three queries go through gamut.ts exactly as the display gamuts do —
@@ -18747,7 +32097,7 @@ function makeColorApi() {
     }
   };
 }
-var normHue4, clamp2, SA98G, PROFILE_SOURCES, INTENTS, sourceFor;
+var normHue4, clamp5, SA98G, APCA_SRGB_ONLY, APCA_BANDS, PROFILE_SOURCES, INTENTS, sourceFor;
 var init_color_tools = __esm({
   "engine/src/color-tools.ts"() {
     "use strict";
@@ -18758,13 +32108,22 @@ var init_color_tools = __esm({
     init_gradient_spec();
     init_icc();
     normHue4 = (h) => (h % 360 + 360) % 360;
-    clamp2 = (n2, lo, hi) => Math.min(hi, Math.max(lo, n2));
+    clamp5 = (n2, lo, hi) => Math.min(hi, Math.max(lo, n2));
     SA98G = {
       exponents: { mainTRC: 2.4, normBG: 0.56, normTXT: 0.57, revTXT: 0.62, revBG: 0.65 },
       colorSpace: { sRco: 0.2126729, sGco: 0.7151522, sBco: 0.072175 },
       clamps: { blkThrs: 0.022, blkClmp: 1.414, loClip: 0.1, deltaYmin: 5e-4 },
       scalers: { scaleBoW: 1.14, loBoWoffset: 0.027, scaleWoB: 1.14, loWoBoffset: 0.027 }
     };
+    APCA_SRGB_ONLY = "APCA is defined for sRGB, so a wide-gamut colour is scored on its sRGB rendering.";
+    APCA_BANDS = [
+      { min: 90, use: "body-preferred", label: "Body text, comfortably" },
+      { min: 75, use: "body-minimum", label: "Body text, minimum" },
+      { min: 60, use: "large-text", label: "Large text \u2014 24px, or 16px bold" },
+      { min: 45, use: "headline", label: "Headlines \u2014 36px, or 24px bold" },
+      { min: 30, use: "non-text", label: "Icons and borders only" },
+      { min: 0, use: "invisible", label: "Not usable" }
+    ];
     PROFILE_SOURCES = /* @__PURE__ */ new WeakMap();
     INTENTS = ["perceptual", "relative", "saturation", "absolute"];
     sourceFor = (p) => p != null && typeof p === "object" ? PROFILE_SOURCES.get(p) ?? null : null;
@@ -18786,8 +32145,8 @@ function toBrandHex(input) {
   if (/^[0-9a-fA-F]{3,4}$/.test(s) || /^[0-9a-fA-F]{6}$/.test(s) || /^[0-9a-fA-F]{8}$/.test(s)) {
     s = `#${s}`;
   }
-  const hx = colorToHex(s);
-  return typeof hx === "string" && hx.startsWith("#") ? hx : null;
+  const hx2 = colorToHex(s);
+  return typeof hx2 === "string" && hx2.startsWith("#") ? hx2 : null;
 }
 function toCandidate(sw) {
   if (!sw || typeof sw !== "object") return null;
@@ -18801,9 +32160,9 @@ function toCandidate(sw) {
   return c;
 }
 function roleMatches(role, wanted) {
-  const r = role.trim().toLowerCase();
-  if (!r) return false;
-  return wanted.some((w) => r === w || r.includes(w));
+  const r3 = role.trim().toLowerCase();
+  if (!r3) return false;
+  return wanted.some((w) => r3 === w || r3.includes(w));
 }
 function nearestBrandColor(hex, swatches, opts = {}) {
   const srcHex = toBrandHex(hex);
@@ -18986,6 +32345,321 @@ var init_brand_map = __esm({
   }
 });
 
+// engine/src/brand-import.ts
+function stableStringify2(v) {
+  if (Array.isArray(v)) return `[${v.map(stableStringify2).join(",")}]`;
+  if (isRecord2(v)) {
+    const keys = Object.keys(v).sort();
+    return `{${keys.map((k) => `${JSON.stringify(k)}:${stableStringify2(v[k])}`).join(",")}}`;
+  }
+  return JSON.stringify(v) ?? "undefined";
+}
+function coerceTokensDoc(json) {
+  if (!isRecord2(json)) {
+    return {
+      doc: null,
+      warnings: [`tokens document is ${json === null ? "null" : Array.isArray(json) ? "an array" : `a ${typeof json}`}, expected an object`],
+      source: "dtcg"
+    };
+  }
+  const studio = "$themes" in json || "$metadata" in json;
+  return { doc: json, warnings: [], source: studio ? "tokens-studio" : "dtcg" };
+}
+function assembleTokenSetFiles(files) {
+  const warnings = [];
+  const doc = /* @__PURE__ */ Object.create(null);
+  let setCount = 0;
+  for (const [path, body] of Object.entries(files)) {
+    if (path === "$metadata.json") {
+      if (isRecord2(body)) doc.$metadata = body;
+      else warnings.push(`$metadata.json is not an object \u2014 ignored`);
+      continue;
+    }
+    if (path === "$themes.json") {
+      if (Array.isArray(body)) doc.$themes = body;
+      else warnings.push(`$themes.json is not an array \u2014 ignored`);
+      continue;
+    }
+    if (!path.endsWith(".json")) {
+      warnings.push(`${path}: not a .json file \u2014 ignored`);
+      continue;
+    }
+    if (!isRecord2(body)) {
+      warnings.push(`${path}: set body is not an object \u2014 ignored`);
+      continue;
+    }
+    doc[path.slice(0, -".json".length)] = body;
+    setCount++;
+  }
+  if (!setCount) {
+    warnings.push("no token set files found");
+    return { doc: null, warnings, source: "token-set-files" };
+  }
+  return { doc, warnings, source: "token-set-files" };
+}
+function parseEntry(entries, path, warnings) {
+  const raw = entries[path];
+  if (raw === void 0) return void 0;
+  try {
+    return JSON.parse(asText(raw));
+  } catch (e) {
+    warnings.push(`${path}: ${e instanceof Error ? e.message : "unparseable JSON"}`);
+    return void 0;
+  }
+}
+function extractPenpotProject(entries) {
+  const warnings = [];
+  let tokenPaths = [];
+  const manifest = parseEntry(entries, "manifest.json", warnings);
+  const manifestFiles = isRecord2(manifest) && Array.isArray(manifest.files) ? manifest.files : null;
+  if (manifestFiles) {
+    for (const f of manifestFiles) {
+      if (!isRecord2(f) || typeof f.id !== "string") continue;
+      const p = `files/${f.id}/tokens.json`;
+      if (p in entries) {
+        tokenPaths.push(p);
+      } else if (Array.isArray(f.features) && f.features.includes("design-tokens/v1")) {
+        warnings.push(`${p}: declared design-tokens/v1 but has no tokens.json`);
+      }
+    }
+  } else {
+    warnings.push(
+      manifest === void 0 ? "manifest.json missing or unparseable \u2014 scanning for files/*/tokens.json" : "manifest.json is not a penpot/export-files manifest \u2014 scanning for files/*/tokens.json"
+    );
+    tokenPaths = Object.keys(entries).filter((p) => /^files\/[^/]+\/tokens\.json$/.test(p)).sort();
+  }
+  let doc = null;
+  for (const path of tokenPaths) {
+    const parsed = parseEntry(entries, path, warnings);
+    if (parsed === void 0) continue;
+    if (!isRecord2(parsed)) {
+      warnings.push(`${path}: token document is not an object \u2014 ignored`);
+      continue;
+    }
+    if (!doc) {
+      doc = Object.assign(/* @__PURE__ */ Object.create(null), parsed);
+      continue;
+    }
+    for (const [key, value] of Object.entries(parsed)) {
+      if (key === "$themes" || key === "$metadata") {
+        const meaningful = (v) => key === "$themes" ? Array.isArray(v) && v.length > 0 : isRecord2(v) && Object.keys(v).length > 0;
+        if (!meaningful(doc[key])) doc[key] = value;
+        else if (meaningful(value) && stableStringify2(doc[key]) !== stableStringify2(value)) {
+          warnings.push(`${path}: ${key} differs from an earlier file's \u2014 keeping the first`);
+        }
+        continue;
+      }
+      if (Object.hasOwn(doc, key) && stableStringify2(doc[key]) !== stableStringify2(value)) {
+        warnings.push(`${path}: set "${key}" collides with an earlier file's \u2014 later file wins`);
+      }
+      doc[key] = value;
+    }
+  }
+  if (!doc) {
+    warnings.push("no tokens.json found in the project");
+    return { doc: null, warnings, source: "penpot-project" };
+  }
+  return { doc, warnings, source: "penpot-project" };
+}
+function pv(o, camel) {
+  if (!isRecord2(o)) return void 0;
+  if (o[camel] !== void 0) return o[camel];
+  const kb = kebabOf(camel);
+  if (o[kb] !== void 0) return o[kb];
+  if (o[`:${kb}`] !== void 0) return o[`:${kb}`];
+  return void 0;
+}
+function penpotPagePaths(entries) {
+  const warnings = [];
+  const pageShapeRe = /^[^/]+\/[^/]+\.json$/;
+  const manifest = parseEntry(entries, "manifest.json", warnings);
+  const manifestFiles = isRecord2(manifest) && Array.isArray(manifest.files) ? manifest.files : null;
+  if (!manifestFiles) {
+    return Object.keys(entries).filter((p) => /^files\/[^/]+\/pages\/[^/]+\/[^/]+\.json$/.test(p)).sort();
+  }
+  const pagePaths = [];
+  const sortedKeys = Object.keys(entries).sort();
+  for (const f of manifestFiles) {
+    if (!isRecord2(f) || typeof f.id !== "string") continue;
+    const prefix = `files/${f.id}/pages/`;
+    for (const p of sortedKeys) {
+      if (p.startsWith(prefix) && pageShapeRe.test(p.slice(prefix.length))) pagePaths.push(p);
+    }
+  }
+  return pagePaths;
+}
+function scanPenpotUsage(entries) {
+  const warnings = [];
+  const pagePaths = penpotPagePaths(entries);
+  const colors = /* @__PURE__ */ new Map();
+  const bump = (hex, key) => {
+    if (!hex) return;
+    let t = colors.get(hex);
+    if (!t) {
+      t = { fills: 0, strokes: 0, textRuns: 0, gradientStops: 0 };
+      colors.set(hex, t);
+    }
+    t[key]++;
+  };
+  const gradients = /* @__PURE__ */ new Map();
+  const seeGradient = (g2) => {
+    if (!isRecord2(g2)) return;
+    const rawStops = Array.isArray(g2.stops) ? g2.stops : [];
+    const stops = [];
+    let usable = rawStops.length >= 2;
+    for (const raw of rawStops) {
+      const st = isRecord2(raw) ? raw : null;
+      const color = normHex3(st ? pv(st, "color") : void 0);
+      if (color) bump(color, "gradientStops");
+      if (!st || !color) {
+        usable = false;
+        continue;
+      }
+      stops.push({ color, offset: numOr(pv(st, "offset"), 0), opacity: numOr(pv(st, "opacity"), 1) });
+    }
+    if (!usable) return;
+    const type = String(pv(g2, "type") ?? "") === "radial" ? "radial" : "linear";
+    const sig = `${type}|${stops.map((s) => `${s.color}@${s.offset.toFixed(4)}/${s.opacity.toFixed(4)}`).join("|")}`;
+    let angle = 0;
+    if (type === "linear") {
+      const dx = numOr(pv(g2, "endX"), 1) - numOr(pv(g2, "startX"), 0);
+      const dy = numOr(pv(g2, "endY"), 1) - numOr(pv(g2, "startY"), 0);
+      angle = Math.round((Math.atan2(dx, -dy) * 180 / Math.PI + 360) % 360) % 360;
+    }
+    let v = gradients.get(sig);
+    if (!v) {
+      v = { type, stops, count: 0, angles: /* @__PURE__ */ new Map() };
+      gradients.set(sig, v);
+    }
+    v.count++;
+    v.angles.set(angle, (v.angles.get(angle) ?? 0) + 1);
+  };
+  const seePaints = (list2, colorKey, gradKey, tally) => {
+    if (!Array.isArray(list2)) return;
+    for (const p of list2) {
+      if (!isRecord2(p)) continue;
+      bump(normHex3(pv(p, colorKey)), tally);
+      seeGradient(pv(p, gradKey));
+    }
+  };
+  const fonts = /* @__PURE__ */ new Map();
+  const walkText = (n2) => {
+    if (Array.isArray(n2)) {
+      for (const c of n2) walkText(c);
+      return;
+    }
+    if (!isRecord2(n2)) return;
+    if (pv(n2, "text") !== void 0 && Array.isArray(pv(n2, "fills"))) {
+      seePaints(pv(n2, "fills"), "fillColor", "fillColorGradient", "textRuns");
+    }
+    walkText(pv(n2, "children"));
+  };
+  for (const path of pagePaths) {
+    const shape = parseEntry(entries, path, warnings);
+    if (!isRecord2(shape)) continue;
+    seePaints(pv(shape, "fills"), "fillColor", "fillColorGradient", "fills");
+    seePaints(pv(shape, "strokes"), "strokeColor", "strokeColorGradient", "strokes");
+    const content = pv(shape, "content");
+    if (String(pv(shape, "type") ?? "") === "text" && content != null) {
+      walkText(content);
+      for (const u of collectPenpotFontUsage(content)) {
+        const key = `${u.fontId}|${u.fontVariantId}|${u.fontStyle}`;
+        const cur = fonts.get(key);
+        if (cur) cur.runs += u.runs;
+        else fonts.set(key, { ...u });
+      }
+    }
+  }
+  const colorRows = [...colors.entries()].map(([hex, t]) => ({ hex, ...t, total: t.fills + t.strokes + t.textRuns + t.gradientStops })).sort((a, b) => b.total - a.total || (a.hex < b.hex ? -1 : a.hex > b.hex ? 1 : 0));
+  const gradientRows = [...gradients.entries()].map(([sig, v]) => {
+    let angle = 0, best = -1;
+    for (const [a, n2] of v.angles) {
+      if (n2 > best || n2 === best && a < angle) {
+        angle = a;
+        best = n2;
+      }
+    }
+    return { sig, row: { type: v.type, stops: v.stops, count: v.count, angle } };
+  }).sort((a, b) => b.row.count - a.row.count || (a.sig < b.sig ? -1 : a.sig > b.sig ? 1 : 0)).map((e) => e.row);
+  return { colors: colorRows, gradients: gradientRows, fonts: [...fonts.values()] };
+}
+function appliedClassOf(attr2, isText) {
+  if (attr2 === "fill") return isText ? "text" : "fills";
+  if (attr2 === "strokeColor" || attr2 === "shadow") return "strokes";
+  if (TYPE_ATTRS.has(attr2)) return "type";
+  if (GEOMETRY_ATTRS.has(attr2)) return "geometry";
+  if (/^[rpm][1-4]$/.test(attr2)) return "geometry";
+  if (attr2.startsWith("padding") || attr2.startsWith("margin")) return "geometry";
+  return null;
+}
+function camelOf(k) {
+  return k.replace(/^:/, "").replace(/-([a-z])/g, (_, c) => c.toUpperCase());
+}
+function scanPenpotAppliedTokens(entries) {
+  const warnings = [];
+  const rows = /* @__PURE__ */ new Map();
+  const bump = (name, cls) => {
+    let r3 = rows.get(name);
+    if (!r3) {
+      r3 = { fills: 0, strokes: 0, text: 0, type: 0, geometry: 0 };
+      rows.set(name, r3);
+    }
+    r3[cls]++;
+  };
+  for (const path of penpotPagePaths(entries)) {
+    const shape = parseEntry(entries, path, warnings);
+    if (!isRecord2(shape)) continue;
+    const applied = pv(shape, "appliedTokens");
+    if (!isRecord2(applied)) continue;
+    const isText = String(pv(shape, "type") ?? "") === "text";
+    for (const [rawAttr, rawName] of Object.entries(applied)) {
+      if (typeof rawName !== "string" || !rawName) continue;
+      const cls = appliedClassOf(camelOf(rawAttr), isText);
+      if (cls) bump(rawName, cls);
+    }
+  }
+  return [...rows.entries()].map(([name, r3]) => ({ name, ...r3, total: r3.fills + r3.strokes + r3.text + r3.type + r3.geometry })).sort((a, b) => b.total - a.total || (a.name < b.name ? -1 : a.name > b.name ? 1 : 0));
+}
+function summarizeTokensDoc(doc) {
+  const sets = tokenSetNames(doc) ?? [];
+  const ts = createTokenSet(doc);
+  return { sets, themes: ts.themes(), tokenCount: ts.size, colorCount: ts.colors().length };
+}
+var isRecord2, decoder2, asText, HEX6_RE, normHex3, numOr, kebabOf, TYPE_ATTRS, GEOMETRY_ATTRS;
+var init_brand_import = __esm({
+  "engine/src/brand-import.ts"() {
+    "use strict";
+    init_tokens();
+    init_design_map();
+    isRecord2 = (v) => typeof v === "object" && v !== null && !Array.isArray(v);
+    decoder2 = /* lazily shared; TextDecoder is a web+node global */
+    new TextDecoder();
+    asText = (v) => typeof v === "string" ? v : decoder2.decode(v);
+    HEX6_RE = /^#[0-9a-fA-F]{6}$/;
+    normHex3 = (v) => {
+      const s = String(v ?? "").trim();
+      return HEX6_RE.test(s) ? s.toUpperCase() : null;
+    };
+    numOr = (v, d) => {
+      const n2 = Number(v);
+      return Number.isFinite(n2) ? n2 : d;
+    };
+    kebabOf = (k) => k.replace(/[A-Z]/g, (c) => `-${c.toLowerCase()}`);
+    TYPE_ATTRS = /* @__PURE__ */ new Set([
+      "typography",
+      "fontFamily",
+      "fontSize",
+      "fontWeight",
+      "fontStyle",
+      "lineHeight",
+      "letterSpacing",
+      "textCase",
+      "textDecoration"
+    ]);
+    GEOMETRY_ATTRS = /* @__PURE__ */ new Set(["rowGap", "columnGap", "spacing", "width", "height", "x", "y"]);
+  }
+});
+
 // engine/src/icon-theme.ts
 function parseThemedAssetId(id) {
   if (typeof id !== "string" || id.includes("://")) return { baseId: id, theme: null };
@@ -18995,6 +32669,11 @@ function parseThemedAssetId(id) {
   const theme = id.slice(i + THEME_SUFFIX.length);
   if (baseId.includes("?") || !THEME_ID_RE.test(theme)) return { baseId: id, theme: null };
   return { baseId, theme };
+}
+function buildThemedAssetId(baseId, themeId) {
+  if (!themeId) return baseId;
+  if (!THEME_ID_RE.test(themeId)) throw new Error(`Bad icon theme id: ${themeId}`);
+  return `${baseId}${THEME_SUFFIX}${themeId}`;
 }
 function isValidThemeId(themeId) {
   return typeof themeId === "string" && THEME_ID_RE.test(themeId);
@@ -19017,6 +32696,15 @@ function applyIconTheme(svgText, theme) {
   }
   return monochromeRecolor(svgText, c1);
 }
+function restyleIconTheme(svgText, theme) {
+  const c1 = safeCssColor(theme?.c1);
+  const c2 = safeCssColor(theme?.c2);
+  if (!c1 || !c2) return null;
+  if (isThemableIconSvg(svgText)) {
+    return svgText.replace(DEFAULT_STYLE_RE, `<defs><style>.c1{fill:${c1}}.c2{fill:${c2}}</style></defs>`);
+  }
+  return monochromeRecolor(svgText, c1);
+}
 function safeCssColor(v) {
   if (typeof v !== "string") return null;
   const s = v.trim();
@@ -19028,24 +32716,24 @@ function hexToRgb(hex) {
   if (h.length !== 6 || /[^0-9a-fA-F]/.test(h)) return null;
   return [parseInt(h.slice(0, 2), 16), parseInt(h.slice(2, 4), 16), parseInt(h.slice(4, 6), 16)];
 }
-function rgbToHsl(r, g2, b) {
-  r /= 255;
+function rgbToHsl(r3, g2, b) {
+  r3 /= 255;
   g2 /= 255;
   b /= 255;
-  const max = Math.max(r, g2, b), min = Math.min(r, g2, b), d = max - min;
+  const max = Math.max(r3, g2, b), min = Math.min(r3, g2, b), d = max - min;
   const l = (max + min) / 2;
   let h = 0, s = 0;
   if (d) {
     s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
-    h = max === r ? (g2 - b) / d + (g2 < b ? 6 : 0) : max === g2 ? (b - r) / d + 2 : (r - g2) / d + 4;
+    h = max === r3 ? (g2 - b) / d + (g2 < b ? 6 : 0) : max === g2 ? (b - r3) / d + 2 : (r3 - g2) / d + 4;
     h /= 6;
   }
   return [h, s, l];
 }
 function hslToHex(h, s, l) {
-  let r, g2, b;
+  let r3, g2, b;
   if (!s) {
-    r = g2 = b = l;
+    r3 = g2 = b = l;
   } else {
     const q = l < 0.5 ? l * (1 + s) : l + s - l * s;
     const p = 2 * l - q;
@@ -19056,12 +32744,12 @@ function hslToHex(h, s, l) {
       if (t < 2 / 3) return p + (q - p) * (2 / 3 - t) * 6;
       return p;
     };
-    r = hue(h + 1 / 3);
+    r3 = hue(h + 1 / 3);
     g2 = hue(h);
     b = hue(h - 1 / 3);
   }
   const to = (x) => Math.round(x * 255).toString(16).padStart(2, "0");
-  return `#${to(r)}${to(g2)}${to(b)}`;
+  return `#${to(r3)}${to(g2)}${to(b)}`;
 }
 function monochromeRecolor(svgText, baseColor) {
   if (typeof svgText !== "string" || !svgText.includes("<svg")) return null;
@@ -19096,8 +32784,18 @@ function parseTreatedAssetId(id) {
   if (baseId.includes("?") || !TREATMENT_ID_RE.test(treatment)) return { baseId: id, treatment: null };
   return { baseId, treatment };
 }
+function buildTreatedAssetId(baseId, treatmentId) {
+  if (!treatmentId) return baseId;
+  if (!TREATMENT_ID_RE.test(treatmentId)) throw new Error(`Bad photo treatment id: ${treatmentId}`);
+  return `${baseId}${TREATMENT_SUFFIX}${treatmentId}`;
+}
 function isValidTreatmentId(treatmentId) {
   return typeof treatmentId === "string" && TREATMENT_ID_RE.test(treatmentId);
+}
+function stripAssetModifiers(id) {
+  if (typeof id !== "string" || id.includes("://")) return id;
+  const i = id.indexOf("?");
+  return i > 0 ? id.slice(0, i) : id;
 }
 function parsePhotoTreatmentsDoc(doc) {
   if (!doc || !Array.isArray(doc.treatments)) return [];
@@ -19147,42 +32845,965 @@ var init_photo_treatment = __esm({
   }
 });
 
+// engine/src/brand-treatments.ts
+function roleScore(role) {
+  if (role.includes("semantic.primary")) return 3;
+  if (/(^|[^a-z])(primary|brand)([^a-z]|$)/.test(role)) return 2;
+  if (/(^|[^a-z])(accent|secondary|highlight)([^a-z]|$)/.test(role)) return 1;
+  return 0;
+}
+function toCandidates(source) {
+  let swatches;
+  if (Array.isArray(source)) {
+    swatches = source.slice(0, MAX_SWATCHES2);
+  } else {
+    swatches = createTokenSet(source).colors().slice(0, MAX_SWATCHES2).map((s) => ({ hex: s.value, name: s.name, role: s.path }));
+  }
+  const out = [];
+  const seen = /* @__PURE__ */ new Set();
+  for (const sw of swatches) {
+    if (!sw || typeof sw !== "object") continue;
+    const norm2 = colorToHex(sw.hex);
+    if (typeof norm2 !== "string" || !norm2.startsWith("#")) continue;
+    const ok3 = hexToOklch(norm2);
+    if (!ok3 || ok3.alpha != null && ok3.alpha < 1) continue;
+    const hex = (norm2.length === 9 ? norm2.slice(0, 7) : norm2).toLowerCase();
+    if (seen.has(hex)) continue;
+    seen.add(hex);
+    out.push({
+      hex,
+      l: ok3.l,
+      c: ok3.c,
+      h: ok3.h,
+      // Token path (or a BrandSwatch's declared role) — a swatch NAME scores
+      // only when no structural hint exists at all.
+      role: (sw.role ?? sw.name ?? "").toLowerCase()
+    });
+  }
+  return out;
+}
+function pickAccents(cands) {
+  const sorted = cands.filter((c) => c.c >= ACCENT_MIN_CHROMA).sort((a, b) => roleScore(b.role) - roleScore(a.role) || b.c - a.c || a.hex.localeCompare(b.hex));
+  const out = [];
+  for (const c of sorted) {
+    if (out.length >= MAX_ACCENTS) break;
+    if (out.every((o) => hueDist(o.h, c.h) >= HUE_APART_DEG)) out.push(c);
+  }
+  return out;
+}
+function pickInk(cands) {
+  const dark = cands.filter((c) => c.l <= 0.45);
+  if (!dark.length) return null;
+  return dark.sort((a, b) => a.l - b.l || b.c - a.c || a.hex.localeCompare(b.hex))[0];
+}
+function duotoneShadow(a) {
+  return oklchToHex({ l: 0.26, c: clamp6(a.c * 0.5, 0.02, 0.075), h: a.h });
+}
+function derivePhotoTreatmentsDoc(source) {
+  const accents = pickAccents(toCandidates(source));
+  const treatments = [
+    { id: "greyscale", label: "Greyscale", kind: "greyscale", previewBg: "#f0f0f0" }
+  ];
+  accents.forEach((a, i) => {
+    const id = i === 0 ? "brand" : hueName(a.h);
+    treatments.push({
+      id,
+      label: i === 0 ? "Brand" : titleCase(id),
+      kind: "duotone",
+      shadow: duotoneShadow(a),
+      highlight: oklchToHex({ l: 0.93, c: clamp6(a.c * 0.4, 0.015, 0.055), h: a.h })
+    });
+  });
+  if (accents.length) {
+    const p = accents[0];
+    const mid2 = duotoneShadow(p);
+    const highlight = p.l < 0.55 ? oklchToHex({ l: 0.62, c: p.c, h: p.h }) : p.hex;
+    treatments.push({
+      id: "deep",
+      label: "Deep",
+      kind: "duotone",
+      shadow: "#000000",
+      mid: mid2,
+      highlight,
+      previewBg: mid2
+    });
+  }
+  return {
+    name: "Photo Colour Treatments",
+    description: "Colour treatments for photo assets, derived from the brand palette: greyscale plus soft two-colour duotone washes (shadow maps to shadows, highlight to highlights) and a three-stop deep tritone. Chosen at pick time and baked into a self-contained SVG at resolve. 'None' is the plain photo (no id suffix).",
+    treatments
+  };
+}
+function deriveIconThemesDoc(source) {
+  const cands = toCandidates(source);
+  const accents = pickAccents(cands);
+  const themes = [];
+  if (accents.length) {
+    const p = accents[0];
+    const ink = pickInk(cands);
+    const inkHex = ink && ink.hex !== p.hex && p.l - ink.l >= 0.15 ? ink.hex : oklchToHex({ l: clamp6(p.l - 0.35, 0.14, 0.3), c: clamp6(p.c * 0.5, 0.01, 0.06), h: p.h });
+    themes.push({ id: "brand", label: "Brand", c1: p.hex, c2: inkHex });
+    if (p.l < 0.78) {
+      themes.push({
+        id: "tint",
+        label: "Tint",
+        c1: oklchToHex({ l: 0.87, c: clamp6(p.c * 0.8, 0.02, 0.1), h: p.h }),
+        c2: p.hex
+      });
+    }
+    for (const a of accents.slice(1)) {
+      const id = hueName(a.h);
+      themes.push({
+        id,
+        label: titleCase(id),
+        c1: a.hex,
+        c2: oklchToHex({ l: clamp6(a.l - 0.35, 0.14, 0.45), c: clamp6(a.c * 0.6, 0.01, 0.075), h: a.h })
+      });
+    }
+    themes.push({ id: "paper", label: "Paper", c1: "#ffffff", c2: "#f0f0f0", previewBg: inkHex });
+  }
+  return {
+    name: "Icon Duo Themes",
+    description: "Colour pairings for themable two-colour icons, derived from the brand palette: c1 = accent, c2 = base. 'brand' is the default pairing. previewBg is the surface a light pairing needs behind it to stay visible in pickers/previews.",
+    themes
+  };
+}
+var MAX_SWATCHES2, ACCENT_MIN_CHROMA, HUE_APART_DEG, MAX_ACCENTS, HUE_NAMES, clamp6, hueDist, hueName, titleCase;
+var init_brand_treatments = __esm({
+  "engine/src/brand-treatments.ts"() {
+    "use strict";
+    init_brand_derive();
+    init_tokens();
+    MAX_SWATCHES2 = 1024;
+    ACCENT_MIN_CHROMA = 0.06;
+    HUE_APART_DEG = 30;
+    MAX_ACCENTS = 4;
+    HUE_NAMES = [
+      "red",
+      "ember",
+      "amber",
+      "gold",
+      "green",
+      "jade",
+      "teal",
+      "sky",
+      "blue",
+      "indigo",
+      "violet",
+      "rose"
+    ];
+    clamp6 = (v, lo, hi) => Math.min(hi, Math.max(lo, v));
+    hueDist = (a, b) => {
+      const d = Math.abs(a - b) % 360;
+      return d > 180 ? 360 - d : d;
+    };
+    hueName = (h) => HUE_NAMES[Math.floor((h % 360 + 360) % 360 / 30) % 12];
+    titleCase = (s) => s.charAt(0).toUpperCase() + s.slice(1);
+  }
+});
+
+// engine/src/pdf-crypto-r6.ts
+async function digest(algo, data) {
+  return new Uint8Array(await subtle7.digest(algo, asBufferSource(data)));
+}
+async function aesCbcPkcs7(key, iv, data) {
+  const k = await subtle7.importKey("raw", asBufferSource(key), { name: "AES-CBC" }, false, ["encrypt"]);
+  return new Uint8Array(await subtle7.encrypt({ name: "AES-CBC", iv: asBufferSource(iv) }, k, asBufferSource(data)));
+}
+async function aesCbcNoPad(key, iv, data) {
+  const full = await aesCbcPkcs7(key, iv, data);
+  return full.subarray(0, full.length - 16);
+}
+async function aesEcbBlock(key, block16) {
+  return aesCbcNoPad(key, ZERO_IV, block16);
+}
+async function hashR6(password, salt, udata = new Uint8Array(0)) {
+  let K = await digest("SHA-256", concat3(password, salt, udata));
+  let round4 = 0;
+  for (; ; ) {
+    round4++;
+    const block = concat3(password, K, udata);
+    const K1 = new Uint8Array(block.length * 64);
+    for (let i = 0; i < 64; i++) K1.set(block, i * block.length);
+    const E = await aesCbcNoPad(K.subarray(0, 16), K.subarray(16, 32), K1);
+    let sum = 0;
+    for (let i = 0; i < 16; i++) sum += E[i];
+    const algo = sum % 3 === 0 ? "SHA-256" : sum % 3 === 1 ? "SHA-384" : "SHA-512";
+    K = await digest(algo, E);
+    if (round4 >= 64 && E[E.length - 1] <= round4 - 32) break;
+  }
+  return K.subarray(0, 32);
+}
+function preparePassword(pw) {
+  const bytes = new TextEncoder().encode(pw);
+  return bytes.length > 127 ? bytes.subarray(0, 127) : bytes;
+}
+async function buildEncryptDictValues(input) {
+  const { userPw, ownerPw, fileKey, salts, permsRandom, P, encryptMetadata } = input;
+  const userHash = await hashR6(userPw, salts.uvs);
+  const U = concat3(userHash, salts.uvs, salts.uks);
+  const ikeU = await hashR6(userPw, salts.uks);
+  const UE = await aesCbcNoPad(ikeU, ZERO_IV, fileKey);
+  const ownerHash = await hashR6(ownerPw, salts.ovs, U);
+  const O = concat3(ownerHash, salts.ovs, salts.oks);
+  const ikeO = await hashR6(ownerPw, salts.oks, U);
+  const OE = await aesCbcNoPad(ikeO, ZERO_IV, fileKey);
+  const perms16 = new Uint8Array(16);
+  const dv = new DataView(perms16.buffer);
+  dv.setInt32(0, P, true);
+  dv.setUint32(4, 4294967295, true);
+  perms16[8] = encryptMetadata ? 84 : 70;
+  perms16[9] = 97;
+  perms16[10] = 100;
+  perms16[11] = 98;
+  perms16.set(permsRandom.subarray(0, 4), 12);
+  const Perms = await aesEcbBlock(fileKey, perms16);
+  return { U, O, UE, OE, Perms };
+}
+async function encryptObjectBytes(fileKey, iv16, plaintext) {
+  const ct = await aesCbcPkcs7(fileKey, iv16, plaintext);
+  return concat3(iv16, ct);
+}
+var subtle7, ZERO_IV, concat3;
+var init_pdf_crypto_r6 = __esm({
+  "engine/src/pdf-crypto-r6.ts"() {
+    "use strict";
+    init_bytes();
+    subtle7 = globalThis.crypto.subtle;
+    ZERO_IV = new Uint8Array(16);
+    concat3 = (...parts) => concatBytes(parts);
+  }
+});
+
+// engine/src/fs-token.ts
+function encodeFsToken(name) {
+  const bytes = new TextEncoder().encode(String(name));
+  let out = "";
+  for (const b of bytes) {
+    const c = String.fromCharCode(b);
+    out += SAFE.test(c) ? c : "%" + b.toString(16).toUpperCase().padStart(2, "0");
+  }
+  return out;
+}
+function decodeFsToken(token2) {
+  return decodeURIComponent(token2);
+}
+var SAFE;
+var init_fs_token = __esm({
+  "engine/src/fs-token.ts"() {
+    "use strict";
+    SAFE = /[A-Za-z0-9\-_.]/;
+  }
+});
+
+// engine/src/session-record.ts
+function sessionVersionStamp() {
+  return { formatVersion: SESSION_FORMAT_VERSION, engineVersion: ENGINE_VERSION };
+}
+function migrateSessionRecord(record2, log) {
+  if (!record2 || typeof record2 !== "object") return null;
+  const data = record2.data;
+  if (data == null || typeof data !== "object") return null;
+  const raw = record2.formatVersion;
+  const fromVersion = typeof raw === "number" && Number.isFinite(raw) ? raw : 0;
+  if (fromVersion > SESSION_READER_VERSION) {
+    log?.("warn", "saved session was written by a newer version of the app \u2014 reading it as-is", {
+      slot: record2.slot,
+      recordFormatVersion: fromVersion,
+      readerFormatVersion: SESSION_READER_VERSION
+    });
+    return data;
+  }
+  return data;
+}
+var SESSION_FORMAT_VERSION, SESSION_READER_VERSION;
+var init_session_record = __esm({
+  "engine/src/session-record.ts"() {
+    "use strict";
+    init_version();
+    SESSION_FORMAT_VERSION = 1;
+    SESSION_READER_VERSION = 1;
+  }
+});
+
 // engine/src/index.ts
-var init_src = __esm({
+var src_exports = {};
+__export(src_exports, {
+  APCA_BANDS: () => APCA_BANDS,
+  APCA_SRGB_ONLY: () => APCA_SRGB_ONLY,
+  BEYOND_TIER: () => BEYOND_TIER,
+  BUILTIN_GAMUT_SOURCES: () => BUILTIN_GAMUT_SOURCES,
+  C2PA_CHECK: () => C2PA_CHECK,
+  C2PA_FORMATS: () => C2PA_FORMATS,
+  CAPTURE_SOURCE_TYPE: () => CAPTURE_SOURCE_TYPE,
+  CATALOG_SIGNED_TOOL_FILES: () => CATALOG_SIGNED_TOOL_FILES,
+  CATALOG_SIG_ALG: () => CATALOG_SIG_ALG,
+  CATALOG_SIG_PATH: () => CATALOG_SIG_PATH,
+  CMYK_CONDITIONS: () => CMYK_CONDITIONS,
+  COLOR_PROFILES: () => COLOR_PROFILES,
+  CONTENTSEAL_DEFAULT_TAU: () => CONTENTSEAL_DEFAULT_TAU,
+  CONTENTSEAL_MESSAGE_BITS: () => CONTENTSEAL_MESSAGE_BITS,
+  CSS_DPI: () => CSS_DPI,
+  CULL_PAD_PT: () => CULL_PAD_PT,
+  CUTS_FORMATS: () => CUTS_FORMATS,
+  ComposeGuardError: () => ComposeGuardError,
+  DEFAULT_CMYK_CONDITION: () => DEFAULT_CMYK_CONDITION,
+  DEFAULT_FILE_MAX_BYTES: () => DEFAULT_FILE_MAX_BYTES,
+  DEFAULT_GRADIENT_SPACE: () => DEFAULT_GRADIENT_SPACE,
+  DEFAULT_ROW_LIMIT: () => DEFAULT_ROW_LIMIT,
+  DEFAULT_STRENGTH: () => DEFAULT_STRENGTH,
+  DETECT_THRESHOLD: () => DETECT_THRESHOLD,
+  DIGITAL_SOURCE_TYPE: () => DIGITAL_SOURCE_TYPE,
+  DURABLE_FORMATS: () => DURABLE_FORMATS,
+  EMU_PER_INCH: () => EMU_PER_INCH,
+  EMU_PER_PX: () => EMU_PER_PX,
+  ENC_PARAM: () => ENC_PARAM,
+  ENGINE_VERSION: () => ENGINE_VERSION,
+  EXAMPLE_RATECARD_DIGEST: () => EXAMPLE_RATECARD_DIGEST,
+  EXTREMES_CONTRAST_FLOOR: () => EXTREMES_CONTRAST_FLOOR,
+  FINISH_MASK_CMYK: () => FINISH_MASK_CMYK,
+  GAMUTS: () => GAMUTS,
+  GAMUT_PROBE_MAX: () => GAMUT_PROBE_MAX,
+  GAMUT_PROBE_START: () => GAMUT_PROBE_START,
+  GAMUT_TIER_LADDER: () => GAMUT_TIER_LADDER,
+  GEOM_EPS: () => EPS,
+  GRADIENT_KINDS: () => GRADIENT_KINDS,
+  GeomLimitError: () => GeomLimitError,
+  HDR_DEFAULTS: () => HDR_DEFAULTS,
+  HDR_FORMATS: () => HDR_FORMATS,
+  HDR_PQ_CICP: () => HDR_PQ_CICP,
+  HOOK_BUDGET_MS: () => HOOK_BUDGET_MS,
+  ICC_DEVICE_SPACE: () => ICC_DEVICE_SPACE,
+  ICC_GAMUT_DELTA_E: () => ICC_GAMUT_DELTA_E,
+  IDENTITY_2D: () => IDENTITY_2D,
+  IMPRINT_FORMATS: () => IMPRINT_FORMATS,
+  JOIN_EPS: () => JOIN_EPS,
+  KNOWN_FINISHES: () => KNOWN_FINISHES,
+  LANGS: () => LANGS,
+  LANG_META: () => LANG_META,
+  LOLLY_CA_ROOT_PEM: () => LOLLY_CA_ROOT_PEM,
+  LOLLY_DURABLE_SCHEMA_VERSION: () => LOLLY_DURABLE_SCHEMA_VERSION,
+  LOLLY_EXPORT_ASSERTION: () => LOLLY_EXPORT_ASSERTION,
+  LOSSLESS_STRENGTH: () => LOSSLESS_STRENGTH,
+  MAX_BAKED_URL_CHARS: () => MAX_BAKED_URL_CHARS,
+  MAX_COMPOSE_DEPTH: () => MAX_COMPOSE_DEPTH,
+  MAX_GRADIENT_STOPS: () => MAX_GRADIENT_STOPS,
+  META_GROUP_LABEL: () => META_GROUP_LABEL,
+  META_GROUP_ORDER: () => META_GROUP_ORDER,
+  MIN_IMPRINT_BLOCKS: () => MIN_IMPRINT_BLOCKS,
+  MISSING_ALPHA: () => MISSING_ALPHA,
+  MISSING_C0: () => MISSING_C0,
+  MISSING_C1: () => MISSING_C1,
+  MISSING_C2: () => MISSING_C2,
+  MOTION_FORMATS: () => MOTION_FORMATS,
+  NAMED_COLORS: () => NAMED_COLORS,
+  NOTATION_SPACES: () => NOTATION_SPACES,
+  NO_GAMUT_SOURCE: () => NO_GAMUT_SOURCE,
+  P3_SOURCE: () => P3_SOURCE,
+  PACK_PARAM: () => PACK_PARAM,
+  PAGED_FORMATS: () => PAGED_FORMATS,
+  PDFX_VERSION: () => PDFX_VERSION,
+  PIXEL_SPACES: () => PIXEL_SPACES,
+  PRESETS: () => PRESETS,
+  PRINT_MARK_DEFAULTS: () => PRINT_MARK_DEFAULTS,
+  PRINT_MARK_FORMATS: () => PRINT_MARK_FORMATS,
+  RAMP_STEPS_DEFAULT: () => RAMP_STEPS_DEFAULT,
+  RAMP_STEPS_MAX: () => RAMP_STEPS_MAX,
+  RAMP_STEPS_MIN: () => RAMP_STEPS_MIN,
+  REC2020_SOURCE: () => REC2020_SOURCE,
+  RESERVED: () => RESERVED,
+  SCALES: () => SCALES,
+  SCHEME_KINDS: () => SCHEME_KINDS,
+  SCREEN_SOURCE_TYPE: () => SCREEN_SOURCE_TYPE,
+  SEARCH_DETECT_FLOOR: () => SEARCH_DETECT_FLOOR,
+  SEPARATING_FORMATS: () => SEPARATING_FORMATS,
+  SESSION_FORMAT_VERSION: () => SESSION_FORMAT_VERSION,
+  SESSION_READER_VERSION: () => SESSION_READER_VERSION,
+  SPOT_PLATE_FORMATS: () => SPOT_PLATE_FORMATS,
+  SRGB_SOURCE: () => SRGB_SOURCE,
+  TOKEN_EXT: () => TOKEN_EXT,
+  TRUSTMARK_MIN_SIDE: () => TRUSTMARK_MIN_SIDE,
+  TRUSTMARK_MODEL_RESOLUTION: () => TRUSTMARK_MODEL_RESOLUTION,
+  TRUSTMARK_PAYLOAD_BITS: () => TRUSTMARK_PAYLOAD_BITS,
+  TRUSTMARK_Q_WM_STRENGTH: () => TRUSTMARK_Q_WM_STRENGTH,
+  ToolLoadError: () => ToolLoadError,
+  UNIQUE_CAP: () => UNIQUE_CAP,
+  UNITS: () => UNITS,
+  V2_BAND_SIZE: () => V2_BAND_SIZE,
+  WATERMARK_VERSION: () => WATERMARK_VERSION,
+  ZZFXM_ARCHETYPES: () => ZZFXM_ARCHETYPES,
+  ZZFXM_SCHEME: () => ZZFXM_SCHEME,
+  adler32: () => adler32,
+  aesZipEncryptEntry: () => aesZipEncryptEntry,
+  aliasPath: () => aliasPath,
+  analysePcm: () => analysePcm,
+  analyzeLsb: () => analyzeLsb,
+  annotateTemplate: () => annotateTemplate,
+  apcaContrast: () => apcaContrast,
+  apcaUse: () => apcaUse,
+  apcaVerdict: () => apcaVerdict,
+  appendedIsExpected: () => appendedIsExpected,
+  applyIccToFrame: () => applyIccToFrame,
+  applyIconTheme: () => applyIconTheme,
+  applyManifestI18n: () => applyManifestI18n,
+  assembleSealMessage: () => assembleSealMessage,
+  assembleTokenSetFiles: () => assembleTokenSetFiles,
+  assertComposeStack: () => assertComposeStack,
+  assetIdForUrl: () => assetIdForUrl,
+  attachC2paStore: () => attachC2paStore,
+  bakeAssetRef: () => bakeAssetRef,
+  batchCsvTemplate: () => batchCsvTemplate,
+  batchCsvTemplateWithNotes: () => batchCsvTemplateWithNotes,
+  bilinearResampleRgba: () => bilinearResampleRgba,
+  blocksForUrl: () => blocksForUrl,
+  booleanPath: () => booleanPath,
+  boundsCubic: () => boundsCubic,
+  boxGeomFromBBox: () => boxGeomFromBBox,
+  boxesOverlap: () => boxesOverlap,
+  buildC2paManifest: () => buildC2paManifest,
+  buildCmykPaletteMap: () => buildCmykPaletteMap,
+  buildEmbedUrl: () => buildEmbedUrl,
+  buildEncryptDictValues: () => buildEncryptDictValues,
+  buildEncryptedZip: () => buildEncryptedZip,
+  buildExportMeta: () => buildExportMeta,
+  buildInputModel: () => buildInputModel,
+  buildLollyDurablePayload: () => buildLollyDurablePayload,
+  buildPdfXXmp: () => buildPdfXXmp,
+  buildPptxParts: () => buildPptxParts,
+  buildThemedAssetId: () => buildThemedAssetId,
+  buildTreatedAssetId: () => buildTreatedAssetId,
+  c2paDefaultOn: () => c2paDefaultOn,
+  c2paTrustAnchors: () => c2paTrustAnchors,
+  canCarryWatermark: () => canCarryWatermark,
+  canonicalJson: () => canonicalJson,
+  canonicalValue: () => canonicalValue,
+  chromaAxisMax: () => chromaAxisMax,
+  chromaTickStep: () => chromaTickStep,
+  classBreaks: () => classBreaks,
+  closeContour: () => closeContour,
+  cmykCondition: () => cmykCondition,
+  cmykKey: () => cmykKey,
+  cmykToRgbApprox: () => cmykToRgbApprox,
+  coerceTokensDoc: () => coerceTokensDoc,
+  collectPenpotComponents: () => collectPenpotComponents,
+  collectPenpotExportMarks: () => collectPenpotExportMarks,
+  collectPenpotFontUsage: () => collectPenpotFontUsage,
+  colorFaces: () => colorFaces,
+  colorRunsToText: () => colorRunsToText,
+  colorToHex: () => colorToHex,
+  colorToHexString: () => colorToHexString,
+  colorToSrgb: () => colorToSrgb,
+  colorToSrgb8: () => colorToSrgb8,
+  compactPath: () => compactPath,
+  composeSong: () => composeSong,
+  computeCost: () => computeCost,
+  computePrintGeometry: () => computePrintGeometry,
+  computeSealDigest: () => computeSealDigest,
+  constantMask: () => constantMask,
+  contentSealConsensus: () => contentSealConsensus,
+  contourArea: () => contourArea,
+  contourEnd: () => contourEnd,
+  contourPoint: () => contourPoint,
+  contourStart: () => contourStart,
+  contrastRatio: () => contrastRatio,
+  contrastVsExtremes: () => contrastVsExtremes,
+  convertColor: () => convertColor,
+  convertSpace: () => convertSpace,
+  convertViaIcc: () => convertViaIcc,
+  cornerRadii: () => cornerRadii,
+  crc32: () => crc322,
+  createDeepFrame: () => createDeepFrame,
+  createRuntime: () => createRuntime,
+  createTokenSet: () => createTokenSet,
+  cubicAsSource: () => cubicAsSource,
+  cubicRoots01: () => cubicRoots01,
+  cullPdfNodes: () => cullPdfNodes,
+  decodeAuthoredPath: () => decodeAuthoredPath,
+  decodeAuthoredPaths: () => decodeAuthoredPaths,
+  decodeAuthoredPathsResult: () => decodeAuthoredPathsResult,
+  decodeFigVectorPath: () => decodeFigVectorPath,
+  decodeFsToken: () => decodeFsToken,
+  decodeTableCompact: () => decodeTableCompact,
+  decodeTrustmarkPayload: () => decodeTrustmarkPayload,
+  decomposeMatrix: () => decomposeMatrix,
+  defaultTrustAnchors: () => defaultTrustAnchors,
+  deflateRaw: () => deflateRaw2,
+  deltaEOk: () => deltaEOk,
+  deltaEOkColor: () => deltaEOkColor,
+  derToPem: () => derToPem,
+  deriveAesZipKey: () => deriveAesZipKey,
+  deriveBrandTokens: () => deriveBrandTokens,
+  deriveIconThemesDoc: () => deriveIconThemesDoc,
+  derivePhotoTreatmentsDoc: () => derivePhotoTreatmentsDoc,
+  describeColor: () => describeColor,
+  describeHiddenText: () => describeHiddenText,
+  detectDelimiter: () => detectDelimiter,
+  detectWatermark: () => detectWatermark,
+  detectWatermarkSearch: () => detectWatermarkSearch,
+  detectionThreshold: () => detectionThreshold,
+  differencePath: () => differencePath,
+  distanceToPath: () => distanceToPath,
+  distinctColors: () => distinctColors,
+  embedC2pa: () => embedC2pa,
+  embedC2paInPdf: () => embedC2paInPdf,
+  embedDurableIntoRgba: () => embedDurableIntoRgba,
+  embedMp4Meta: () => embedMp4Meta,
+  embedWatermark: () => embedWatermark,
+  embedWebmMeta: () => embedWebmMeta,
+  emitDxf: () => emitDxf,
+  emitEmf: () => emitEmf,
+  emitEps: () => emitEps,
+  encodeAuthoredPath: () => encodeAuthoredPath,
+  encodeAuthoredPaths: () => encodeAuthoredPaths,
+  encodeFsToken: () => encodeFsToken,
+  encodeOklch: () => encodeOklch,
+  encodeTableCompact: () => encodeTableCompact,
+  encodeTrustmarkPayload: () => encodeTrustmarkPayload,
+  encryptObjectBytes: () => encryptObjectBytes,
+  enforceContinuity: () => enforceContinuity,
+  evalCubic: () => evalCubic,
+  expandGradientStops: () => expandGradientStops,
+  expandQuery: () => expandQuery,
+  exportActionSteps: () => exportActionSteps,
+  extractC2paFromPdf: () => extractC2paFromPdf,
+  extractC2paStore: () => extractC2paStore,
+  extractFileMetadata: () => extractFileMetadata,
+  extractPageText: () => extractPageText,
+  extractPenpotProject: () => extractPenpotProject,
+  extractSvgColors: () => extractSvgColors,
+  extremaCubic: () => extremaCubic,
+  faceDrift: () => faceDrift,
+  fastRgbContains: () => fastRgbContains,
+  fftInPlace: () => fftInPlace,
+  figmaNodesToNodes: () => figmaNodesToNodes,
+  figmaNodesToScenes: () => figmaNodesToScenes,
+  finalizeBoxes: () => finalizeBoxes,
+  findColorToken: () => findColorToken,
+  findHiddenText: () => findHiddenText,
+  findHiddenTextInPages: () => findHiddenTextInPages,
+  findVectorArtwork: () => findVectorArtwork,
+  fitCubic: () => fitCubic,
+  fitCubicMoment: () => fitCubicMoment,
+  fitError: () => fitError,
+  fitToCubics: () => fitToCubics,
+  flagEmoji: () => flagEmoji,
+  flatnessCubic: () => flatnessCubic,
+  flattenCubic: () => flattenCubic,
+  floatToHalf: () => floatToHalf,
+  formatColor: () => formatColor,
+  formatGradientSpec: () => formatGradientSpec,
+  formatOklch: () => formatOklch,
+  formatPdfDate: () => formatPdfDate,
+  formatZzfxmRef: () => formatZzfxmRef,
+  fromU16: () => fromU16,
+  fromU8Srgb: () => fromU8Srgb,
+  gamutMapSrgb: () => gamutMapSrgb,
+  gamutSolid: () => gamutSolid,
+  gamutSourceId: () => gamutSourceId,
+  gamutTier: () => gamutTier,
+  gamutTierProbe: () => gamutTierProbe,
+  gamutWithin: () => gamutWithin,
+  gaussianShadowBands: () => gaussianShadowBands,
+  gaussianShadowRings: () => gaussianShadowRings,
+  generateCaRoot: () => generateCaRoot,
+  generateSchemeAccents: () => generateSchemeAccents,
+  generatedSongSpec: () => generatedSongSpec,
+  gradientSpecStops: () => gradientSpecStops,
+  gradientSpecToCss: () => gradientSpecToCss,
+  gradientStops: () => gradientStops,
+  halfToFloat: () => halfToFloat,
+  hasEncryptedState: () => hasEncryptedState,
+  hasPackedState: () => hasPackedState,
+  hasResidualMetadata: () => hasResidualMetadata,
+  hashR6: () => hashR6,
+  hdrBoostToPQ: () => hdrBoostToPQ,
+  hdrViewTransform: () => hdrViewTransform,
+  hexToOklch: () => hexToOklch,
+  hullBounds: () => hullBounds,
+  hydrate: () => hydrate,
+  hyperbezierCubics: () => hyperbezierCubics,
+  iccCharacterization: () => iccCharacterization,
+  iccFrameRefusal: () => iccFrameRefusal,
+  iccGamutIntent: () => iccGamutIntent,
+  iccGamutSource: () => iccGamutSource,
+  iccProfileBytes: () => iccProfileBytes,
+  iccResolvedIntent: () => iccResolvedIntent,
+  iccRoundTripDecides: () => iccRoundTripDecides,
+  iccRoundTripDeltaE: () => iccRoundTripDeltaE,
+  imageColorCloud: () => imageColorCloud,
+  importSealKey: () => importSealKey,
+  importSpkiOrJwkPublicKey: () => importSpkiOrJwkPublicKey,
+  imprintDefaultOn: () => imprintDefaultOn,
+  inGamut: () => inGamut,
+  insetCorners: () => insetCorners,
+  interpolateColor: () => interpolateColor,
+  interpretPdfPage: () => interpretPdfPage,
+  intersectCubics: () => intersectCubics,
+  intersectLineCubic: () => intersectLineCubic,
+  intersectPath: () => intersectPath,
+  intersectSegments: () => intersectSegments,
+  isAlias: () => isAlias,
+  isAxisAlignedMat: () => isAxisAlignedMat,
+  isBakedRef: () => isBakedRef,
+  isEncryptAvailable: () => isEncryptAvailable,
+  isExpiredOnly: () => isExpiredOnly,
+  isImprintFormat: () => isImprintFormat,
+  isLang: () => isLang,
+  isLineCubic: () => isLineCubic,
+  isNamedColor: () => isNamedColor,
+  isPackAvailable: () => isPackAvailable,
+  isPhysical: () => isPhysical,
+  isPptx: () => isPptx,
+  isRateCardError: () => isRateCardError,
+  isShadowPlate: () => isShadowPlate,
+  isStrippableFormat: () => isStrippableFormat,
+  isThemableIconSvg: () => isThemableIconSvg,
+  isTokenValue: () => isTokenValue,
+  isToolUrl: () => isToolUrl,
+  isUnit: () => isUnit,
+  isValidThemeId: () => isValidThemeId,
+  isValidTreatmentId: () => isValidTreatmentId,
+  isZzfxmRef: () => isZzfxmRef,
+  issueLeafCert: () => issueLeafCert,
+  joinPageText: () => joinPageText,
+  jwkThumbprint: () => jwkThumbprint,
+  labSolidUnit: () => labSolidUnit,
+  lengthCubic: () => lengthCubic,
+  lineToCubic: () => lineToCubic,
+  linearToSrgb: () => linearToSrgb3,
+  loadTool: () => loadTool,
+  looksLikeTable: () => looksLikeTable,
+  makeColorApi: () => makeColorApi,
+  makeDocumentId: () => makeDocumentId,
+  makeGeomApi: () => makeGeomApi,
+  mapAlign: () => mapAlign,
+  mapFontFamily: () => mapFontFamily,
+  mapFontsToBrand: () => mapFontsToBrand,
+  mapPaletteToBrand: () => mapPaletteToBrand,
+  mapScanlines: () => mapScanlines,
+  mapWeight: () => mapWeight,
+  maskRegion: () => maskRegion,
+  matAboutPivot: () => matAboutPivot,
+  matToSvg: () => matToSvg,
+  maxChroma: () => maxChroma,
+  midiToSong: () => midiToSong,
+  midiToZzfxm: () => midiToZzfxm,
+  migrateSessionRecord: () => migrateSessionRecord,
+  mixOklch: () => mixOklch,
+  mulberry32: () => mulberry322,
+  multiplyMat: () => multiplyMat,
+  nearestBrandColor: () => nearestBrandColor,
+  nearestOnCubic: () => nearestOnCubic,
+  nodeToBox: () => nodeToBox,
+  normalizeLang: () => normalizeLang,
+  normalizeTableValue: () => normalizeTableValue,
+  offsetContour: () => offsetContour,
+  offsetCubic: () => offsetCubic,
+  offsetPath: () => offsetPath,
+  offsetSweep: () => offsetSweep,
+  oklchGamut: () => oklchGamut,
+  oklchSlice: () => oklchSlice,
+  oklchToHex: () => oklchToHex,
+  orientContour: () => orientContour,
+  packApng: () => packApng,
+  packEncrypted: () => packEncrypted,
+  packF16: () => packF16,
+  packNchwSigned: () => packNchwSigned,
+  packPng: () => packPng,
+  packQuery: () => packQuery,
+  packTiff: () => packTiff,
+  packWebpAnim: () => packWebpAnim,
+  paletteHasFinish: () => paletteHasFinish,
+  parseBatchCsv: () => parseBatchCsv,
+  parseBoxShadow: () => parseBoxShadow,
+  parseCertificate: () => parseCertificate,
+  parseClipShape: () => parseClipShape,
+  parseColor: () => parseColor,
+  parseColorToSrgb8: () => parseColorToSrgb8,
+  parseConicGradient: () => parseConicGradient,
+  parseCssLength: () => parseCssLength,
+  parseCssMatrix: () => parseCssMatrix,
+  parseDataRows: () => parseDataRows,
+  parseDelimited: () => parseDelimited,
+  parseDimension: () => parseDimension,
+  parseDropShadowFilter: () => parseDropShadowFilter,
+  parseEmbedUrl: () => parseEmbedUrl,
+  parseGradientAngle: () => parseGradientAngle,
+  parseGradientSpec: () => parseGradientSpec,
+  parseGradientStop: () => parseGradientStop,
+  parseIccProfile: () => parseIccProfile,
+  parseIconThemesDoc: () => parseIconThemesDoc,
+  parseMidi: () => parseMidi,
+  parseOklch: () => parseOklch,
+  parsePenpotContent: () => parsePenpotContent,
+  parsePhotoTreatmentsDoc: () => parsePhotoTreatmentsDoc,
+  parseRadialGradient: () => parseRadialGradient,
+  parseRateCard: () => parseRateCard,
+  parseSealRecord: () => parseSealRecord,
+  parseSealRecords: () => parseSealRecords,
+  parseSvgPath: () => parseSvgPath,
+  parseSvgPathArgs: () => parseSvgPathArgs,
+  parseTableText: () => parseTableText,
+  parseTextShadow: () => parseTextShadow,
+  parseThemedAssetId: () => parseThemedAssetId,
+  parseToUnicode: () => parseToUnicode,
+  parseToolUrl: () => parseToolUrl,
+  parseTreatedAssetId: () => parseTreatedAssetId,
+  parseUrlState: () => parseUrlState,
+  parseVersion: () => parseVersion,
+  parseWav: () => parseWav,
+  parseZzfxmRef: () => parseZzfxmRef,
+  pathBounds: () => pathBounds,
+  pathFromSubPaths: () => pathFromSubPaths,
+  patternSeconds: () => patternSeconds,
+  pdfNodeElementKind: () => pdfNodeElementKind,
+  pdfNodeExtent: () => pdfNodeExtent,
+  pdfNodesToSvg: () => pdfNodesToSvg,
+  pdfxOutputIntentSpec: () => pdfxOutputIntentSpec,
+  pdfxProfileEligibility: () => pdfxProfileEligibility,
+  peakChroma: () => peakChroma,
+  pemToDer: () => pemToDer,
+  penpotAnimationToTransition: () => penpotAnimationToTransition,
+  penpotBackgroundBlurPx: () => penpotBackgroundBlurPx,
+  penpotComponentSlots: () => penpotComponentSlots,
+  penpotDashArray: () => penpotDashArray,
+  penpotFlowOrder: () => penpotFlowOrder,
+  penpotGradientSvgDef: () => penpotGradientSvgDef,
+  penpotGradientToSpec: () => penpotGradientToSpec,
+  penpotGroupToSvg: () => penpotGroupToSvg,
+  penpotPathContentToD: () => penpotPathContentToD,
+  penpotShapeToNode: () => penpotShapeToNode,
+  pointInPath: () => pointInPath,
+  pptxMediaImages: () => pptxMediaImages,
+  pqBt2020IccProfile: () => pqBt2020IccProfile,
+  pqEncode: () => pqEncode,
+  pqEncodeFrame: () => pqEncodeFrame,
+  pqToU16: () => pqToU16,
+  preflight: () => preflight,
+  premultiply: () => premultiply,
+  prepareC2paIngredient: () => prepareC2paIngredient,
+  prepareC2paIngredientFromStore: () => prepareC2paIngredientFromStore,
+  preparePassword: () => preparePassword,
+  projectGamutSolid: () => projectGamutSolid,
+  projectSolidPoint: () => projectSolidPoint,
+  projectSolidPoints: () => projectSolidPoints,
+  quadratureMoments: () => quadratureMoments,
+  rampOklab: () => rampOklab,
+  readFaces: () => readFaces,
+  readLollyDurable: () => readLollyDurable,
+  readMpfIndex: () => readMpfIndex,
+  readPptx: () => readPptx,
+  readingOrder: () => readingOrder,
+  rebrandPptxParts: () => rebrandPptxParts,
+  relativeLuminance: () => relativeLuminance,
+  renderZzfxm: () => renderZzfxm,
+  resolveColorValue: () => resolveColorValue,
+  resolveGamutSource: () => resolveGamutSource,
+  resolveRanges: () => resolveRanges,
+  resolveVerdict: () => resolveVerdict,
+  restyleIconTheme: () => restyleIconTheme,
+  reverseContour: () => reverseContour,
+  rgbToCmyk: () => rgbToCmyk,
+  roundedRectPath: () => roundedRectPath,
+  safeColor: () => safeColor,
+  sampleBilinear: () => sampleBilinear,
+  satisfiesRange: () => satisfiesRange,
+  scanPenpotAppliedTokens: () => scanPenpotAppliedTokens,
+  scanPenpotUsage: () => scanPenpotUsage,
+  selfUnion: () => selfUnion,
+  serializeHdr: () => serializeHdr,
+  serializeUrlState: () => serializeUrlState,
+  sessionVersionStamp: () => sessionVersionStamp,
+  sha256Hex: () => sha256Hex,
+  signCatalogEnvelope: () => signCatalogEnvelope,
+  signedAreaCubic: () => signedAreaCubic,
+  signedBy: () => signedBy,
+  simplifyCubics: () => simplifyCubics,
+  sliceGamutEdge: () => sliceGamutEdge,
+  sliceGamutRegion: () => sliceGamutRegion,
+  sniffAnimatedRaster: () => sniffAnimatedRaster,
+  sniffVideoContainer: () => sniffVideoContainer,
+  solidPointOklch: () => solidPointOklch,
+  solveHyperbezier: () => solveHyperbezier,
+  sortedLangs: () => sortedLangs,
+  splitCssArgs: () => splitCssArgs,
+  splitCubic: () => splitCubic,
+  srgbIccProfile: () => srgbIccProfile,
+  srgbToLinear: () => srgbToLinear4,
+  stripAssetModifiers: () => stripAssetModifiers,
+  stripMetadata: () => stripMetadata,
+  strokeToPath: () => strokeToPath,
+  subCubic: () => subCubic,
+  subPathsFromPath: () => subPathsFromPath,
+  suggestRebrandTheme: () => suggestRebrandTheme,
+  summarizeInputs: () => summarizeInputs,
+  summarizeTokensDoc: () => summarizeTokensDoc,
+  svgArcToBeziers: () => svgArcToBeziers,
+  svgToCustGeomPaths: () => svgToCustGeomPaths,
+  tangentAt: () => tangentAt,
+  toCSV: () => toCSV,
+  toCssLength: () => toCssLength,
+  toCssPx: () => toCssPx,
+  toCubics: () => toCubics,
+  toHtmlTable: () => toHtmlTable,
+  toInches: () => toInches,
+  toMarkdown: () => toMarkdown,
+  toPixels: () => toPixels,
+  toPoints: () => toPoints,
+  toSvgPathData: () => toSvgPathData,
+  toTsv: () => toTsv,
+  toU16: () => toU16,
+  toU8Srgb: () => toU8Srgb,
+  toUnicodeDecoder: () => toUnicodeDecoder,
+  toUnit: () => toUnit,
+  tokenSetNames: () => tokenSetNames,
+  treatmentFilterSvg: () => treatmentFilterSvg,
+  typographyFamilies: () => typographyFamilies,
+  unfilterPng: () => unfilterPng,
+  uniformRadius: () => uniformRadius,
+  unionPath: () => unionPath,
+  unpackEncrypted: () => unpackEncrypted,
+  unpackF16: () => unpackF16,
+  unpackToken: () => unpackToken,
+  unpremultiply: () => unpremultiply,
+  validateManifest: () => validateManifest,
+  validateRateCard: () => validateRateCard,
+  verifyC2pa: () => verifyC2pa,
+  verifyC2paPdf: () => verifyC2paPdf,
+  verifyCatalogEnvelope: () => verifyCatalogEnvelope,
+  verifyEnvelopeSignature: () => verifyEnvelopeSignature,
+  verifySeal: () => verifySeal,
+  verifySealSignature: () => verifySealSignature,
+  verifyToolFile: () => verifyToolFile,
+  videoProvenanceTags: () => videoProvenanceTags,
+  wcagLevel: () => wcagLevel,
+  windingNumber: () => windingNumber,
+  windowPdfSvg: () => windowPdfSvg,
+  wrapRasterWithTreatment: () => wrapRasterWithTreatment,
+  writeFace: () => writeFace,
+  xorPath: () => xorPath,
+  zipCryptoEncrypt: () => zipCryptoEncrypt,
+  zlibCompress: () => zlibCompress,
+  zzfxG: () => zzfxG,
+  zzfxM: () => zzfxM,
+  zzfxR: () => zzfxR,
+  zzfxV: () => zzfxV
+});
+var init_src2 = __esm({
   "engine/src/index.ts"() {
     "use strict";
     init_loader();
+    init_catalog_integrity();
+    init_validate();
     init_runtime();
+    init_template();
+    init_media_sniff();
     init_inputs();
     init_url_mode();
+    init_table_text();
+    init_lang();
     init_url_pack();
+    init_url_pack();
+    init_embed();
     init_tool_url();
     init_bake();
+    init_batch();
+    init_metadata();
     init_file_metadata();
+    init_strip_metadata();
+    init_pixel_watermark();
+    init_watermark_search();
+    init_png_unfilter();
+    init_steganalysis();
+    init_trustmark();
+    init_trustmark();
+    init_contentseal();
     init_units();
+    init_color();
     init_cmyk_palette();
     init_css_color();
+    init_gradient_spec();
     init_pixels();
     init_hdr();
+    init_print_marks();
+    init_preflight2();
+    init_rate_card();
     init_svg_path();
+    init_svg_colors();
     init_zzfxm();
     init_audio_analyse();
     init_wav();
+    init_midi();
     init_zzfx_compose();
     init_zzfx_compose();
     init_zzfxm_ref();
+    init_css_box();
+    init_css_paint();
+    init_bezier();
+    init_intersect();
+    init_path();
+    init_boolean();
+    init_offset();
+    init_stroke();
+    init_fit();
+    init_spline();
+    init_authored_url();
     init_geom_api();
     init_emf();
     init_eps();
     init_dxf();
+    init_pptx();
+    init_svg_custgeom();
+    init_pptx_patch();
+    init_pptx_read();
+    init_pdfx();
     init_c2pa();
     init_c2pa_verify();
     init_c2pa_verdict();
+    init_c2pa_trust();
+    init_provenance_defaults();
+    init_seal();
+    init_x509();
+    init_apng();
+    init_webp_anim();
+    init_tiff();
+    init_png();
+    init_deflate();
+    init_video_meta();
+    init_data_import();
+    init_design_map();
+    init_design_components();
+    init_pdf_map();
+    init_pdf_smask();
+    init_pdf_svg();
+    init_pdf_artwork();
+    init_pdf_redaction();
+    init_pdf_text();
     init_tokens();
+    init_brand_derive();
+    init_gamut_solid();
+    init_color_faces();
+    init_image_cloud();
+    init_color_describe();
+    init_gamut();
+    init_gamut_source();
+    init_gamut_axis();
+    init_gamut_tier();
+    init_icc();
+    init_icc_pixels();
+    init_brand_schemes();
     init_color_tools();
+    init_brand_map();
+    init_brand_import();
     init_icon_theme();
     init_photo_treatment();
+    init_brand_treatments();
+    init_pdf_crypto_r6();
+    init_zip_crypto();
     init_version();
+    init_semver_range();
+    init_fs_token();
+    init_session_record();
   }
 });
 
@@ -19274,10 +33895,10 @@ function schemaForInput(item) {
   }
 }
 function toolInputSchema(manifest) {
-  const model = buildInputModel(manifest);
+  const model2 = buildInputModel(manifest);
   const properties = {};
   const required = [];
-  for (const item of model) {
+  for (const item of model2) {
     if (item.type === "file") continue;
     properties[item.id] = schemaForInput(item);
     if (item.required && !item.bindToProfile) required.push(item.id);
@@ -19290,7 +33911,7 @@ function fileInputId(manifest) {
 var init_schema = __esm({
   "services/mcp/src/schema.ts"() {
     "use strict";
-    init_src();
+    init_src2();
   }
 });
 
@@ -19366,9 +33987,9 @@ function packExr(frame, opts = {}) {
     if (RESERVED_ATTRS.has(k)) throw new Error(`packExr: attribute "${k}" is written by the encoder and cannot be overridden`);
     if (k.length === 0) throw new Error("packExr: attribute name must not be empty");
     if (/[\x00-\x1f\x7f]/.test(k)) throw new Error(`packExr: attribute name ${JSON.stringify(k)} contains a control byte`);
-    if (utf82(k).length > MAX_NAME_LEN) throw new Error(`packExr: attribute name "${k}" exceeds ${MAX_NAME_LEN} bytes`);
+    if (utf84(k).length > MAX_NAME_LEN) throw new Error(`packExr: attribute name "${k}" exceeds ${MAX_NAME_LEN} bytes`);
   }
-  const longNames = extras.some(([k]) => utf82(k).length > 31);
+  const longNames = extras.some(([k]) => utf84(k).length > 31);
   const h = new Sink(512);
   h.i32(EXR_MAGIC);
   h.i32(EXR_VERSION | (longNames ? FLAG_LONG_NAMES : 0));
@@ -19407,7 +34028,7 @@ function packExr(frame, opts = {}) {
   });
   attr(h, "screenWindowWidth", "float", (s) => s.f32(1));
   for (const [k, v] of extras) {
-    attr(h, k, "string", (s) => s.bytes(utf82(v)));
+    attr(h, k, "string", (s) => s.bytes(utf84(v)));
   }
   h.u8(0);
   const linesPerBlock = LINES_PER_BLOCK[compression];
@@ -19498,7 +34119,7 @@ function resolveChromaticities(mode, space) {
   if (mode === "auto" && space === "srgb-linear") return null;
   return known;
 }
-var EXR_MAGIC, EXR_VERSION, FLAG_LONG_NAMES, MAX_NAME_LEN, COMPRESSION_CODE, LINES_PER_BLOCK, PIXEL_TYPE_CODE, BYTES_PER_SAMPLE, DEFLATE_SLAB, CHROMATICITIES, Sink, utf82, RESERVED_ATTRS;
+var EXR_MAGIC, EXR_VERSION, FLAG_LONG_NAMES, MAX_NAME_LEN, COMPRESSION_CODE, LINES_PER_BLOCK, PIXEL_TYPE_CODE, BYTES_PER_SAMPLE, DEFLATE_SLAB, CHROMATICITIES, Sink, utf84, RESERVED_ATTRS;
 var init_exr = __esm({
   "engine/src/exr.ts"() {
     "use strict";
@@ -19559,14 +34180,14 @@ var init_exr = __esm({
       }
       /** Null-terminated name (File Layout uses C strings for every name field). */
       name(s) {
-        this.bytes(utf82(s));
+        this.bytes(utf84(s));
         this.u8(0);
       }
       take() {
         return this.buf.slice(0, this.len);
       }
     };
-    utf82 = (s) => {
+    utf84 = (s) => {
       const out = [];
       for (const ch of s) {
         const cp = ch.codePointAt(0);
@@ -19606,8 +34227,8 @@ function frexpExp(x) {
   }
   return biased - 1022;
 }
-function floatToRgbe(r, g2, b, out, o) {
-  const rr = Number.isNaN(r) ? 0 : r;
+function floatToRgbe(r3, g2, b, out, o) {
+  const rr = Number.isNaN(r3) ? 0 : r3;
   const gg = Number.isNaN(g2) ? 0 : g2;
   const bb = Number.isNaN(b) ? 0 : b;
   let max = rr > gg ? rr : gg;
@@ -19673,7 +34294,7 @@ function packRadiance(frame, opts = {}) {
   lines.push(`FORMAT=${RADIANCE_FORMAT}`);
   lines.push(`EXPOSURE=${exposure}`);
   if (opts.gamma !== void 0) lines.push(`GAMMA=${opts.gamma}`);
-  const prim = opts.primaries === void 0 || opts.primaries === "auto" ? PRIMARIES[space] ?? null : opts.primaries;
+  const prim = opts.primaries === void 0 || opts.primaries === "auto" ? PRIMARIES2[space] ?? null : opts.primaries;
   if (prim && (prim.length !== 8 || !prim.every((n2) => Number.isFinite(n2)))) {
     throw new Error("packRadiance: primaries must be 8 finite numbers (rx ry gx gy bx by wx wy)");
   }
@@ -19745,7 +34366,7 @@ function encodeRle(rgbe, width, height) {
   if (n2 > out.length) throw new Error(`packRadiance: RLE buffer overrun (${n2} > ${out.length})`);
   return out.subarray(0, n2);
 }
-var EXP_BIAS, MIN_LEVEL, MIN_RUN, RLE_MIN_WIDTH, RLE_MAX_WIDTH, MAX_HEADER_BYTES, MAX_PIXELS, FREXP_VIEW, PRIMARIES, RADIANCE_FORMAT;
+var EXP_BIAS, MIN_LEVEL, MIN_RUN, RLE_MIN_WIDTH, RLE_MAX_WIDTH, MAX_HEADER_BYTES, MAX_PIXELS, FREXP_VIEW, PRIMARIES2, RADIANCE_FORMAT;
 var init_radiance = __esm({
   "engine/src/radiance.ts"() {
     "use strict";
@@ -19757,7 +34378,7 @@ var init_radiance = __esm({
     MAX_HEADER_BYTES = 64 * 1024;
     MAX_PIXELS = 32 * 1024 * 1024;
     FREXP_VIEW = new DataView(new ArrayBuffer(8));
-    PRIMARIES = {
+    PRIMARIES2 = {
       "srgb-linear": [0.64, 0.33, 0.3, 0.6, 0.15, 0.06, 0.3127, 0.329],
       "display-p3-linear": [0.68, 0.32, 0.265, 0.69, 0.15, 0.06, 0.3127, 0.329],
       "rec2020-linear": [0.708, 0.292, 0.17, 0.797, 0.131, 0.046, 0.3127, 0.329]
@@ -19808,6 +34429,7 @@ __export(raster_exports, {
   isDeepFormat: () => isDeepFormat,
   matchedExportFormat: () => matchedExportFormat,
   pxDims: () => pxDims,
+  rasterizeSvgToImprintedPng: () => rasterizeSvgToImprintedPng,
   rasterizeSvgToPng: () => rasterizeSvgToPng,
   rasterizeSvgToRgba: () => rasterizeSvgToRgba,
   renderDeepRaster: () => renderDeepRaster
@@ -19834,11 +34456,11 @@ function pxDims(dims, manifest) {
 }
 async function rasterizeSvgToPng(svg, width, height) {
   const { Resvg } = await import("@resvg/resvg-js");
-  const r = new Resvg(sizeSvg(svg, width, height), {
+  const r3 = new Resvg(sizeSvg(svg, width, height), {
     fitTo: { mode: "original" },
     font: { fontDirs: [FONTS_DIR2], loadSystemFonts: true }
   });
-  return r.render().asPng();
+  return r3.render().asPng();
 }
 function sizeSvg(svg, width, height) {
   const w = Math.max(1, Math.round(width));
@@ -19856,11 +34478,11 @@ function sizeSvg(svg, width, height) {
 }
 async function rasterizeSvgToRgba(svg, width, height) {
   const { Resvg } = await import("@resvg/resvg-js");
-  const r = new Resvg(sizeSvg(svg, width, height), {
+  const r3 = new Resvg(sizeSvg(svg, width, height), {
     fitTo: { mode: "original" },
     font: { fontDirs: [FONTS_DIR2], loadSystemFonts: true }
   });
-  const img = r.render();
+  const img = r3.render();
   const src = img.pixels;
   const out = new Uint8Array(src.length);
   for (let i = 0; i < src.length; i += 4) {
@@ -19886,6 +34508,19 @@ async function rasterizeSvgToRgba(svg, width, height) {
   }
   return { data: out, width: img.width, height: img.height };
 }
+async function rasterizeSvgToImprintedPng(svg, width, height, dpi) {
+  const { embedWatermark: embedWatermark2, canCarryWatermark: canCarryWatermark2, LOSSLESS_STRENGTH: LOSSLESS_STRENGTH2, packPng: packPng2 } = await Promise.resolve().then(() => (init_src2(), src_exports));
+  const frame = await rasterizeSvgToRgba(svg, width, height);
+  if (!canCarryWatermark2(frame.width, frame.height)) return null;
+  const marked = embedWatermark2(frame.data, { width: frame.width, height: frame.height, strength: LOSSLESS_STRENGTH2 });
+  return packPng2(marked, {
+    width: frame.width,
+    height: frame.height,
+    channels: 4,
+    depth: 8,
+    ...dpi && dpi > 0 ? { dpi } : {}
+  });
+}
 function hasHeadroom(frame) {
   const d = frame.data;
   for (let i = 0; i < d.length; i += 4) {
@@ -19904,8 +34539,8 @@ function hdrTune(h) {
   const t = {};
   if (h.peakNits != null) t.peakNits = h.peakNits;
   if (h.reach != null) {
-    const r = Math.min(1, Math.max(0, h.reach / 100));
-    const center = 0.65 - 0.45 * r;
+    const r3 = Math.min(1, Math.max(0, h.reach / 100));
+    const center = 0.65 - 0.45 * r3;
     t.kneeLo = Math.max(0, center - 0.12);
     t.kneeHi = Math.min(1, center + 0.12);
   }
@@ -19949,10 +34584,10 @@ async function renderDeepRaster(req) {
     mime: deepFormatMime("exr")
   };
 }
-function matchedExportFormat(manifest, model) {
+function matchedExportFormat(manifest, model2) {
   const flagged = (manifest.inputs ?? []).find((i) => i.matchExportFormat);
   if (!flagged) return null;
-  const v = model.find((m) => m.id === flagged.id)?.value;
+  const v = model2.find((m) => m.id === flagged.id)?.value;
   if (!v || typeof v !== "object") return null;
   let f = (v.format ? String(v.format) : v.mime ? String(v.mime).split("/")[1] ?? "" : "").toLowerCase();
   if (f === "jpeg") f = "jpg";
@@ -19964,11 +34599,11 @@ var NODE_FORMATS, DEEP_FORMATS, FONTS_DIR2, DeepSourceError;
 var init_raster = __esm({
   "packages/node-shell/src/raster.ts"() {
     "use strict";
-    init_src();
+    init_src2();
     init_exr();
     init_radiance();
     init_repo_root();
-    NODE_FORMATS = ["svg", "emf", "eps", "eps-cmyk", "dxf", "exr", "hdr", "html", "json", "csv", "ics", "vcf", "txt", "md"];
+    NODE_FORMATS = ["svg", "emf", "eps", "eps-cmyk", "dxf", "exr", "hdr", "html", "json", "csv", "ics", "vcf", "md"];
     DEEP_FORMATS = ["exr", "hdr"];
     FONTS_DIR2 = join3(repoRoot(), "catalog", "fonts");
     DeepSourceError = class extends Error {
@@ -20007,7 +34642,7 @@ function dictOf(ctx, o) {
   const v = look(ctx, o);
   return v instanceof PDFRawStream ? v.dict : v instanceof PDFDict ? v : null;
 }
-function get(ctx, o, key) {
+function get2(ctx, o, key) {
   const d = dictOf(ctx, o);
   return d ? d.get(PDFName.of(key)) : void 0;
 }
@@ -20076,10 +34711,10 @@ function count(n2, one, many = `${one}s`) {
 }
 function walkNameTree(ctx, node, out, seen = /* @__PURE__ */ new Set(), depth = 0) {
   if (depth > MAX_DEPTH2 || out.length >= MAX_ITEMS) return out;
-  const tag = refTag(node);
-  if (tag) {
-    if (seen.has(tag)) return out;
-    seen.add(tag);
+  const tag2 = refTag(node);
+  if (tag2) {
+    if (seen.has(tag2)) return out;
+    seen.add(tag2);
   }
   const d = dictOf(ctx, node);
   if (!d) return out;
@@ -20099,13 +34734,13 @@ function readFilespec(ctx, spec, via, fallbackName = "") {
   const name = strOf(ctx, d.get(PDFName.of("UF"))) || strOf(ctx, d.get(PDFName.of("F"))) || strOf(ctx, d.get(PDFName.of("Desc"))) || fallbackName;
   const ef = dictOf(ctx, d.get(PDFName.of("EF")));
   const stream = ef ? ef.get(PDFName.of("UF")) ?? ef.get(PDFName.of("F")) : void 0;
-  const size = stream ? numOf(ctx, get(ctx, get(ctx, stream, "Params"), "Size")) ?? numOf(ctx, get(ctx, stream, "Length")) : null;
+  const size = stream ? numOf(ctx, get2(ctx, get2(ctx, stream, "Params"), "Size")) ?? numOf(ctx, get2(ctx, stream, "Length")) : null;
   if (!name && !stream) return null;
   return { name: name || "(unnamed)", bytes: size, via };
 }
 function collectAttachments(ctx, doc, pages) {
   const out = [];
-  const tree = get(ctx, doc.catalog.get(PDFName.of("Names")), "EmbeddedFiles");
+  const tree = get2(ctx, doc.catalog.get(PDFName.of("Names")), "EmbeddedFiles");
   for (const [key, val] of walkNameTree(ctx, tree, [])) {
     const a = readFilespec(ctx, val, "names", key);
     if (a) out.push(a);
@@ -20145,10 +34780,10 @@ function emptySink() {
 }
 function walkAction(ctx, action, sink, seen, depth = 0) {
   if (depth > MAX_DEPTH2) return;
-  const tag = refTag(action);
-  if (tag) {
-    if (seen.has(tag)) return;
-    seen.add(tag);
+  const tag2 = refTag(action);
+  if (tag2) {
+    if (seen.has(tag2)) return;
+    seen.add(tag2);
   }
   const d = dictOf(ctx, action);
   if (!d) return;
@@ -20165,20 +34800,20 @@ function walkAction(ctx, action, sink, seen, depth = 0) {
     }
     case "Launch": {
       const f = d.get(PDFName.of("F"));
-      const target = strOf(ctx, f) || strOf(ctx, get(ctx, f, "UF")) || strOf(ctx, get(ctx, f, "F")) || strOf(ctx, get(ctx, d.get(PDFName.of("Win")), "F"));
+      const target = strOf(ctx, f) || strOf(ctx, get2(ctx, f, "UF")) || strOf(ctx, get2(ctx, f, "F")) || strOf(ctx, get2(ctx, d.get(PDFName.of("Win")), "F"));
       sink.launches.push(target || "(unnamed target)");
       break;
     }
     case "SubmitForm": {
       const f = d.get(PDFName.of("F"));
-      const target = strOf(ctx, f) || strOf(ctx, get(ctx, f, "UF")) || strOf(ctx, get(ctx, f, "F"));
+      const target = strOf(ctx, f) || strOf(ctx, get2(ctx, f, "UF")) || strOf(ctx, get2(ctx, f, "F"));
       sink.submits.push(target || "(unnamed endpoint)");
       break;
     }
     case "GoToR":
     case "GoToE": {
       const f = d.get(PDFName.of("F"));
-      const target = strOf(ctx, f) || strOf(ctx, get(ctx, f, "UF")) || strOf(ctx, get(ctx, f, "F"));
+      const target = strOf(ctx, f) || strOf(ctx, get2(ctx, f, "UF")) || strOf(ctx, get2(ctx, f, "F"));
       sink.remotes.push(target || "(unnamed document)");
       break;
     }
@@ -20198,7 +34833,7 @@ function collectActions(ctx, doc, pages, fields) {
   const seen = /* @__PURE__ */ new Set();
   walkAction(ctx, doc.catalog.get(PDFName.of("OpenAction")), sink, seen);
   walkAdditionalActions(ctx, doc.catalog.get(PDFName.of("AA")), sink, seen);
-  const jsTree = get(ctx, doc.catalog.get(PDFName.of("Names")), "JavaScript");
+  const jsTree = get2(ctx, doc.catalog.get(PDFName.of("Names")), "JavaScript");
   for (const [, val] of walkNameTree(ctx, jsTree, [])) walkAction(ctx, val, sink, seen);
   for (const page2 of pages) walkAdditionalActions(ctx, page2.get(PDFName.of("AA")), sink, seen);
   for (const annot of eachAnnot(ctx, pages)) {
@@ -20216,18 +34851,18 @@ function fieldValue(ctx, v) {
   if (s != null) return s;
   const n2 = nameOf(ctx, v);
   if (n2 != null) return n2 === "Off" ? null : n2;
-  const num3 = numOf(ctx, v);
-  if (num3 != null) return String(num3);
+  const num5 = numOf(ctx, v);
+  if (num5 != null) return String(num5);
   const arr = arrOf(ctx, v);
   if (arr) return list(arr.map((x) => strOf(ctx, x) ?? "")) || null;
   return null;
 }
 function walkFields(ctx, node, out, seen, prefix = "", inheritedType = null, depth = 0) {
   if (depth > MAX_DEPTH2 || out.length >= MAX_ITEMS) return;
-  const tag = refTag(node);
-  if (tag) {
-    if (seen.has(tag)) return;
-    seen.add(tag);
+  const tag2 = refTag(node);
+  if (tag2) {
+    if (seen.has(tag2)) return;
+    seen.add(tag2);
   }
   const d = dictOf(ctx, node);
   if (!d) return;
@@ -20250,23 +34885,23 @@ function collectFields(ctx, doc) {
   const acro = doc.catalog.get(PDFName.of("AcroForm"));
   const out = [];
   const seen = /* @__PURE__ */ new Set();
-  for (const f of arrOf(ctx, get(ctx, acro, "Fields")) ?? []) walkFields(ctx, f, out, seen);
+  for (const f of arrOf(ctx, get2(ctx, acro, "Fields")) ?? []) walkFields(ctx, f, out, seen);
   return out;
 }
 function collectLayers(ctx, doc) {
   const ocp = doc.catalog.get(PDFName.of("OCProperties"));
   const byTag = /* @__PURE__ */ new Map();
   const names = [];
-  for (const g2 of arrOf(ctx, get(ctx, ocp, "OCGs")) ?? []) {
-    const n2 = strOf(ctx, get(ctx, g2, "Name")) ?? "(unnamed layer)";
+  for (const g2 of arrOf(ctx, get2(ctx, ocp, "OCGs")) ?? []) {
+    const n2 = strOf(ctx, get2(ctx, g2, "Name")) ?? "(unnamed layer)";
     names.push(n2);
-    const tag = refTag(g2);
-    if (tag) byTag.set(tag, n2);
+    const tag2 = refTag(g2);
+    if (tag2) byTag.set(tag2, n2);
   }
   const hidden2 = [];
-  for (const g2 of arrOf(ctx, get(ctx, get(ctx, ocp, "D"), "OFF")) ?? []) {
-    const tag = refTag(g2);
-    hidden2.push(tag && byTag.get(tag) || strOf(ctx, get(ctx, g2, "Name")) || "(unnamed layer)");
+  for (const g2 of arrOf(ctx, get2(ctx, get2(ctx, ocp, "D"), "OFF")) ?? []) {
+    const tag2 = refTag(g2);
+    hidden2.push(tag2 && byTag.get(tag2) || strOf(ctx, get2(ctx, g2, "Name")) || "(unnamed layer)");
   }
   return { names, hidden: hidden2 };
 }
@@ -20340,7 +34975,7 @@ function scanPdfStructure(doc) {
     if (signatures.length) {
       add("Digital signature", `${count(signatures.length, "signed field")} \u2014 re-saving this file invalidates it`);
     }
-    if (get(ctx, doc.catalog.get(PDFName.of("AcroForm")), "XFA")) {
+    if (get2(ctx, doc.catalog.get(PDFName.of("AcroForm")), "XFA")) {
       add("XFA form", "Carries an XFA form definition \u2014 an XML form layer beyond the visible page");
     }
   } catch {
@@ -20400,7 +35035,7 @@ function fail(id, code, message, data) {
 }
 
 // services/mcp/src/tools.ts
-init_src();
+init_src2();
 
 // packages/node-shell/src/verdict-slugs.ts
 var VERDICT_SLUGS = {
@@ -20415,7 +35050,7 @@ var VERDICT_SLUGS = {
 };
 
 // services/mcp/src/catalog.ts
-init_src();
+init_src2();
 import { readFile as readFile2 } from "node:fs/promises";
 
 // services/mcp/src/paths.ts
@@ -20476,7 +35111,7 @@ async function listTools(filter = {}) {
 init_schema();
 
 // services/mcp/src/render.ts
-init_src();
+init_src2();
 
 // packages/node-shell/src/render-integrity.ts
 var RenderIntegrityError = class extends Error {
@@ -20510,32 +35145,32 @@ function isSvgFormat(format) {
 }
 var NON_DRAWING = /<(?:title|desc|metadata|style|script|defs)\b[\s\S]*?<\/(?:title|desc|metadata|style|script|defs)>/gi;
 function isDegenerateSvg(bytes) {
-  const s = utf8(bytes);
+  const s = utf83(bytes);
   const open = s.match(/<svg\b[^>]*>/i);
   if (!open) return false;
-  const tag = open[0];
-  const vb = tag.match(/viewBox\s*=\s*["']([^"']*)["']/i);
+  const tag2 = open[0];
+  const vb = tag2.match(/viewBox\s*=\s*["']([^"']*)["']/i);
   let positiveViewBox = false;
   if (vb) {
     const nums = (vb[1].trim().match(/-?\d*\.?\d+(?:e[+-]?\d+)?/gi) ?? []).map(Number);
     positiveViewBox = nums.length === 4 && Number.isFinite(nums[2]) && Number.isFinite(nums[3]) && nums[2] > 0 && nums[3] > 0;
   }
   if (positiveViewBox) return false;
-  const w = attrNum(tag, "width");
-  const h = attrNum(tag, "height");
+  const w = attrNum(tag2, "width");
+  const h = attrNum(tag2, "height");
   if (w > 0 && h > 0) return false;
-  const body = s.slice((open.index ?? 0) + tag.length).replace(/<\/svg>[\s\S]*$/i, "");
+  const body = s.slice((open.index ?? 0) + tag2.length).replace(/<\/svg>[\s\S]*$/i, "");
   const stripped = body.replace(NON_DRAWING, "");
   const hasDrawable = /<[a-zA-Z]/.test(stripped);
   return !hasDrawable;
 }
-function attrNum(tag, name) {
-  const m = tag.match(new RegExp(`${name}\\s*=\\s*["']([^"']*)["']`, "i"));
+function attrNum(tag2, name) {
+  const m = tag2.match(new RegExp(`${name}\\s*=\\s*["']([^"']*)["']`, "i"));
   if (!m) return NaN;
   const n2 = parseFloat(m[1]);
   return Number.isFinite(n2) ? n2 : NaN;
 }
-function utf8(bytes) {
+function utf83(bytes) {
   return Buffer.from(bytes.buffer, bytes.byteOffset, bytes.byteLength).toString("utf8");
 }
 
@@ -20543,12 +35178,12 @@ function utf8(bytes) {
 init_raster();
 
 // packages/node-shell/src/c2pa-opts.ts
-init_src();
+init_src2();
 function buildExportC2paOpts(o) {
-  const { surface, manifest, model, format, dims = {}, profile = {} } = o;
+  const { surface, manifest, model: model2, format, dims = {}, profile = {} } = o;
   const days = o.days ?? 30;
   const name = manifest.name || manifest.id;
-  const inputs = summarizeInputs(model);
+  const inputs = summarizeInputs(model2);
   const unit2 = dims.unit || "px";
   const sizeLine = typeof dims.width === "number" && dims.width > 0 && typeof dims.height === "number" && dims.height > 0 ? unit2 !== "px" ? `${dims.width} \xD7 ${dims.height} ${unit2} @ ${dims.dpi || 300} DPI` : `${dims.width} \xD7 ${dims.height} px` : void 0;
   return {
@@ -20566,7 +35201,10 @@ function buildExportC2paOpts(o) {
       ...Object.keys(inputs).length ? { inputs } : {}
     },
     ...profile.useDetails === true && profile.firstname ? { author: { name: [profile.firstname, profile.lastname].filter(Boolean).join(" "), ...profile.email ? { email: profile.email } : {} } } : {},
-    dates: { notBefore: new Date(Date.now() - 6e4), notAfter: new Date(Date.now() + days * 864e5) }
+    ...o.signer ? { signer: o.signer } : {},
+    // With an identity, the dates ARE the certificate's — `dates` only ever fed the
+    // ephemeral certificate generator, and an enrolled signer brings its own.
+    dates: o.signer && o.signerValidity ? { notBefore: o.signerValidity.notBefore, notAfter: o.signerValidity.notAfter } : { notBefore: new Date(Date.now() - 6e4), notAfter: new Date(Date.now() + days * 864e5) }
   };
 }
 
@@ -20587,7 +35225,7 @@ function needsBrowserTier(err) {
 import { readFile as readFile7 } from "node:fs/promises";
 
 // shells/cli/src/bridge.ts
-init_src();
+init_src2();
 import { readFile as readFile5, writeFile, mkdir, readdir as readdir2, rm } from "node:fs/promises";
 import { join as join8 } from "node:path";
 
@@ -20870,16 +35508,16 @@ async function inflatePptx(bytes) {
     }
     return true;
   };
-  const guard = (data) => {
+  const guard2 = (data) => {
     if (bomb) throw new Error(`This file expands too large to open (${bomb}).`);
     return data;
   };
-  if (typeof Worker === "undefined") return Promise.resolve().then(() => guard(unzipSync(u82, { filter })));
+  if (typeof Worker === "undefined") return Promise.resolve().then(() => guard2(unzipSync(u82, { filter })));
   return new Promise((resolve3, reject) => {
     unzip(u82, { filter }, (err, data) => {
       if (err) return reject(err);
       try {
-        resolve3(guard(data));
+        resolve3(guard2(data));
       } catch (e) {
         reject(e);
       }
@@ -21049,10 +35687,10 @@ function capResponse(res, cap) {
   if (!res.body || typeof TransformStream !== "function") return res;
   let total = 0;
   const counted = res.body.pipeThrough(new TransformStream({
-    transform(chunk, controller) {
-      total += chunk.byteLength;
+    transform(chunk4, controller) {
+      total += chunk4.byteLength;
       if (total > cap) controller.error(new Error(`net: response exceeds the ${cap}-byte limit`));
-      else controller.enqueue(chunk);
+      else controller.enqueue(chunk4);
     }
   }));
   return new Response(counted, { status: res.status, statusText: res.statusText, headers: res.headers });
@@ -21067,7 +35705,7 @@ function matches(pattern, url) {
 }
 
 // shells/web/src/bridge/svg-ir.ts
-init_src();
+init_src2();
 init_css_box();
 
 // shells/web/src/bridge/text-svg.ts
@@ -21108,10 +35746,10 @@ function featureSettingsToHb(value) {
   return v.split(",").map((part) => {
     const m = part.trim().match(/^["']([A-Za-z0-9]{1,4})["']\s*(\d+|on|off)?$/);
     if (!m) return null;
-    const tag = m[1];
+    const tag2 = m[1];
     const raw = m[2];
     const val = raw == null || raw === "on" ? "1" : raw === "off" ? "0" : raw;
-    return `${tag}=${val}`;
+    return `${tag2}=${val}`;
   }).filter(Boolean);
 }
 function letterSpacingPx(value) {
@@ -21220,7 +35858,7 @@ async function openResilient() {
     } catch (e) {
       const code = e.code;
       if ((code === "DB_BLOCKED" || code === "DB_OPEN_TIMEOUT") && Date.now() < deadline) {
-        await new Promise((r) => setTimeout(r, 300));
+        await new Promise((r3) => setTimeout(r3, 300));
         continue;
       }
       throw e;
@@ -21354,18 +35992,18 @@ async function buildRegistry() {
   try {
     const db = await openDB();
     const records = await db.getAll("user-assets");
-    for (const r of records) {
-      if (r.type !== "font" || !r.id.startsWith(USER_FONT_PREFIX)) continue;
-      const family = String(r.meta?.family ?? "").trim();
+    for (const r3 of records) {
+      if (r3.type !== "font" || !r3.id.startsWith(USER_FONT_PREFIX)) continue;
+      const family = String(r3.meta?.family ?? "").trim();
       if (!family) continue;
       const key = family.toLowerCase();
       const list2 = byFamily.get(key)?.filter((f) => f.assetId) ?? [];
       list2.push({
-        assetId: r.id,
+        assetId: r3.id,
         staticUrl: "",
-        weight: String(r.meta?.weight ?? "400"),
-        style: String(r.meta?.style ?? "normal"),
-        unicodeRange: String(r.meta?.unicodeRange ?? "")
+        weight: String(r3.meta?.weight ?? "400"),
+        style: String(r3.meta?.style ?? "normal"),
+        unicodeRange: String(r3.meta?.unicodeRange ?? "")
       });
       byFamily.set(key, list2);
     }
@@ -21390,8 +36028,8 @@ async function fontUrlUsable(url) {
   if (!p) {
     p = (async () => {
       try {
-        const r = await fetch(url, { method: "HEAD" });
-        return r.ok && isFontContentType(r.headers.get("content-type") ?? "");
+        const r3 = await fetch(url, { method: "HEAD" });
+        return r3.ok && isFontContentType(r3.headers.get("content-type") ?? "");
       } catch {
         return false;
       }
@@ -21496,7 +36134,7 @@ function flatten(rgb, alpha, bg) {
     Math.round(rgb[2] * alpha + bg[2] * (1 - alpha))
   ];
 }
-var rgbObj = ([r, g2, b]) => ({ r, g: g2, b });
+var rgbObj = ([r3, g2, b]) => ({ r: r3, g: g2, b });
 function parseStyleAttr(el) {
   const s = el.getAttribute?.("style");
   if (!s) return {};
@@ -21526,10 +36164,10 @@ function rectPath(x, y, w, h, rx, ry) {
   }
   return `M${x},${y} H${x + w} V${y + h} H${x} Z`;
 }
-var circlePath = (cx, cy, r) => r <= 0 ? "" : `M${cx - r},${cy} A${r},${r} 0 1 0 ${cx + r},${cy} A${r},${r} 0 1 0 ${cx - r},${cy} Z`;
+var circlePath = (cx, cy, r3) => r3 <= 0 ? "" : `M${cx - r3},${cy} A${r3},${r3} 0 1 0 ${cx + r3},${cy} A${r3},${r3} 0 1 0 ${cx - r3},${cy} Z`;
 var ellipsePath = (cx, cy, rx, ry) => rx <= 0 || ry <= 0 ? "" : `M${cx - rx},${cy} A${rx},${ry} 0 1 0 ${cx + rx},${cy} A${rx},${ry} 0 1 0 ${cx - rx},${cy} Z`;
-function pointsPath(str2, close) {
-  const nums = (str2 || "").match(/[+-]?(?:\d+\.?\d*|\.\d+)(?:[eE][+-]?\d+)?/g);
+function pointsPath(str3, close) {
+  const nums = (str3 || "").match(/[+-]?(?:\d+\.?\d*|\.\d+)(?:[eE][+-]?\d+)?/g);
   if (!nums || nums.length < 4) return "";
   let d = `M${nums[0]},${nums[1]}`;
   for (let i = 2; i + 1 < nums.length; i += 2) d += ` L${nums[i]},${nums[i + 1]}`;
@@ -21601,7 +36239,7 @@ function parseSvgDropShadow(filt) {
     "fecomponenttransfer"
   ];
   if (kids.some((k) => UNEXPECTED.includes(k))) return null;
-  const num3 = (el, attr2, dflt) => {
+  const num5 = (el, attr2, dflt) => {
     const v = Number.parseFloat(el?.getAttribute(attr2) ?? "");
     return Number.isFinite(v) ? v : dflt;
   };
@@ -21612,11 +36250,11 @@ function parseSvgDropShadow(filt) {
     if (!rgb2) return null;
     const sd2 = (ds.getAttribute("stdDeviation") ?? "2").trim().split(/[\s,]+/).map(Number.parseFloat);
     return {
-      dx: num3(ds, "dx", 2),
-      dy: num3(ds, "dy", 2),
+      dx: num5(ds, "dx", 2),
+      dy: num5(ds, "dy", 2),
       stdDeviation: Math.max(...sd2.filter(Number.isFinite), 0),
       rgb: rgb2,
-      alpha: num3(ds, "flood-opacity", 1)
+      alpha: num5(ds, "flood-opacity", 1)
     };
   }
   const blur = find("fegaussianblur");
@@ -21626,14 +36264,14 @@ function parseSvgDropShadow(filt) {
   const off = find("feoffset");
   const flood = find("feflood");
   let rgb = flood ? parseColor2(flood.getAttribute("flood-color") ?? "#000") : null;
-  let alpha = flood ? num3(flood, "flood-opacity", 1) : 1;
+  let alpha = flood ? num5(flood, "flood-opacity", 1) : 1;
   if (!flood) {
     if (kids.includes("fecolormatrix")) return null;
     rgb = [0, 0, 0];
   }
   if (!rgb) return null;
   if (!(stdDeviation > 0) && !off) return null;
-  return { dx: num3(off, "dx", 0), dy: num3(off, "dy", 0), stdDeviation, rgb, alpha };
+  return { dx: num5(off, "dx", 0), dy: num5(off, "dy", 0), stdDeviation, rgb, alpha };
 }
 async function svgDomToIr(svgEl, ctx = {}) {
   const { host, getComputedStyle } = ctx;
@@ -21686,8 +36324,8 @@ async function svgDomToIr(svgEl, ctx = {}) {
   const warn = (m) => host?.log?.("warn", `${LABEL.toLowerCase()}: ${m}`);
   async function visit(el, t, inherited) {
     if (!el.tagName) return;
-    const tag = el.tagName.toLowerCase().replace(/^svg:/, "");
-    if (SKIP.has(tag)) return;
+    const tag2 = el.tagName.toLowerCase().replace(/^svg:/, "");
+    if (SKIP.has(tag2)) return;
     const et = applyElementTransform(el, t);
     const { tx, ty, sX, sY } = et;
     const PX = (v) => (tx + sX * v - vbX) * regX;
@@ -21695,7 +36333,7 @@ async function svgDomToIr(svgEl, ctx = {}) {
     const mapPt = (x, y) => ({ x: PX(x), y: PY(y) });
     const gAvg = (Math.abs(sX) + Math.abs(sY)) / 2;
     const rAvg = (regX + regY) / 2;
-    if (tag === "g" || tag === "a" || tag === "svg") {
+    if (tag2 === "g" || tag2 === "a" || tag2 === "svg") {
       const style2 = parseStyleAttr(el);
       const inh = {
         fill: prop(el, style2, "fill", inherited),
@@ -21715,8 +36353,8 @@ async function svgDomToIr(svgEl, ctx = {}) {
     if (elemOpacity < 0.01) return;
     let d = "";
     let forceStrokeOnly = false;
-    if (tag === "path") d = el.getAttribute("d") || "";
-    else if (tag === "rect") d = rectPath(
+    if (tag2 === "path") d = el.getAttribute("d") || "";
+    else if (tag2 === "rect") d = rectPath(
       len(prop(el, style, "x"), vbW),
       len(prop(el, style, "y"), vbH),
       len(prop(el, style, "width"), vbW),
@@ -21724,17 +36362,17 @@ async function svgDomToIr(svgEl, ctx = {}) {
       len(prop(el, style, "rx")),
       len(prop(el, style, "ry") ?? prop(el, style, "rx"))
     );
-    else if (tag === "circle") d = circlePath(len(prop(el, style, "cx"), vbW), len(prop(el, style, "cy"), vbH), len(prop(el, style, "r"), vbW));
-    else if (tag === "ellipse") d = ellipsePath(len(prop(el, style, "cx"), vbW), len(prop(el, style, "cy"), vbH), len(prop(el, style, "rx"), vbW), len(prop(el, style, "ry"), vbH));
-    else if (tag === "polygon") d = pointsPath(el.getAttribute("points"), true);
-    else if (tag === "polyline") d = pointsPath(el.getAttribute("points"), false);
-    else if (tag === "line") {
+    else if (tag2 === "circle") d = circlePath(len(prop(el, style, "cx"), vbW), len(prop(el, style, "cy"), vbH), len(prop(el, style, "r"), vbW));
+    else if (tag2 === "ellipse") d = ellipsePath(len(prop(el, style, "cx"), vbW), len(prop(el, style, "cy"), vbH), len(prop(el, style, "rx"), vbW), len(prop(el, style, "ry"), vbH));
+    else if (tag2 === "polygon") d = pointsPath(el.getAttribute("points"), true);
+    else if (tag2 === "polyline") d = pointsPath(el.getAttribute("points"), false);
+    else if (tag2 === "line") {
       d = `M${len(prop(el, style, "x1"), vbW)},${len(prop(el, style, "y1"), vbH)} L${len(prop(el, style, "x2"), vbW)},${len(prop(el, style, "y2"), vbH)}`;
       forceStrokeOnly = true;
-    } else if (tag === "text") {
+    } else if (tag2 === "text") {
       await emitText(el, style, { PX, PY, mapPt, gAvg, rAvg, elemOpacity });
       return;
-    } else if (tag === "image") {
+    } else if (tag2 === "image") {
       const href = el.getAttribute("href") || el.getAttribute("xlink:href") || el.getAttributeNS?.("http://www.w3.org/1999/xlink", "href") || "";
       if (!href) {
         warn("image with no href (skipped)");
@@ -21763,7 +36401,7 @@ async function svgDomToIr(svgEl, ctx = {}) {
       }
       prims.push({ type: "image", x, y, w, h, pxW: dec.w, pxH: dec.h, rgb: dec.rgb });
       return;
-    } else if (tag === "use") {
+    } else if (tag2 === "use") {
       warn("use elements are not supported (skipped)");
       return;
     } else {
@@ -21942,9 +36580,9 @@ async function loadFontBytes(fontUrl, repoRoot2) {
     return new Uint8Array(buf);
   }
   if (/^https?:\/\//i.test(fontUrl)) {
-    const r = await fetch(fontUrl);
-    if (!r.ok) throw new Error(`host.text (node): font fetch failed (${r.status}) ${fontUrl}`);
-    return new Uint8Array(await r.arrayBuffer());
+    const r3 = await fetch(fontUrl);
+    if (!r3.ok) throw new Error(`host.text (node): font fetch failed (${r3.status}) ${fontUrl}`);
+    return new Uint8Array(await r3.arrayBuffer());
   }
   let filePath;
   if (fontUrl.startsWith("file://")) {
@@ -22156,7 +36794,7 @@ function createNodeTextAPI({ repoRoot: repoRoot2 }) {
       const { face } = await loadFace(fontUrl, repoRoot2);
       const out = {};
       const infos = face.getAxisInfos();
-      for (const [tag, info] of Object.entries(infos)) out[tag] = info.default;
+      for (const [tag2, info] of Object.entries(infos)) out[tag2] = info.default;
       return out;
     },
     /**
@@ -22187,7 +36825,7 @@ function createNodeTextAPI({ repoRoot: repoRoot2 }) {
 }
 
 // packages/node-shell/src/audio.ts
-init_src();
+init_src2();
 import { readFile as readFile4 } from "node:fs/promises";
 import { fileURLToPath as fileURLToPath4 } from "node:url";
 import { isAbsolute, join as join5 } from "node:path";
@@ -22377,7 +37015,7 @@ async function runDriveSteps(page2, steps) {
     await page2.waitForTimeout(DRIVE_SETTLE_MS);
   }
 }
-var clamp015 = (n2) => Number.isFinite(n2) ? Math.min(0.9, Math.max(0, n2)) : 0;
+var clamp018 = (n2) => Number.isFinite(n2) ? Math.min(0.9, Math.max(0, n2)) : 0;
 function recolorCss(p) {
   switch (p.recolor) {
     case "invert":
@@ -22466,9 +37104,9 @@ async function captureUrl(params, format, dims) {
       });
       return { bytes: new Uint8Array(pdf), mime: "application/pdf" };
     }
-    const l = clamp015(params.cropLeft), r = clamp015(params.cropRight);
-    const t = clamp015(params.cropTop), b = clamp015(params.cropBottom);
-    const clipW = Math.max(1, Math.round(width * (1 - l - r)));
+    const l = clamp018(params.cropLeft), r3 = clamp018(params.cropRight);
+    const t = clamp018(params.cropTop), b = clamp018(params.cropBottom);
+    const clipW = Math.max(1, Math.round(width * (1 - l - r3)));
     const clipH = Math.max(1, Math.round(height * (1 - t - b)));
     const clip3 = { x: Math.round(width * l), y: Math.round(height * t), width: clipW, height: clipH };
     const shotType = fmt2 === "jpg" ? "jpeg" : "png";
@@ -22737,13 +37375,13 @@ async function outlineSvgText(svg, host, opts = {}) {
       if (!DROP_ON_PATH.has(attr2.name)) path.setAttribute(attr2.name, attr2.value);
     }
     const own = el.getAttribute("transform");
-    path.setAttribute("transform", `${own ? own + " " : ""}translate(${round2(tx)} ${round2(y)})`);
+    path.setAttribute("transform", `${own ? own + " " : ""}translate(${round3(tx)} ${round3(y)})`);
     el.replaceWith(path);
     result.outlined++;
   }
   return result;
 }
-var round2 = (n2) => Math.round(n2 * 100) / 100;
+var round3 = (n2) => Math.round(n2 * 100) / 100;
 
 // shells/cli/src/exit-codes.ts
 var EXIT = {
@@ -23133,7 +37771,8 @@ async function createCliBridge({ profile = {}, dom, networkAllowlist } = {}) {
         });
         return new Blob([bytes], { type: mime || deepFormatMime2(format) });
       }
-      throw new Error(`CLI shell does not support format "${format}" (needs a browser engine). Use a text/data format (html, svg, emf, eps, dxf, json, csv, ics, vcf), a pro float format (exr, hdr \u2014 with hdr=1), or run the Tauri-bundled CLI for raster/pdf/zip.`);
+      const { NODE_FORMATS: NODE_FORMATS2 } = await Promise.resolve().then(() => (init_raster(), raster_exports));
+      throw new Error(`CLI shell does not support format "${format}" (needs a browser engine). Use one of the browser-free formats (${NODE_FORMATS2.join(", ")}), a pro float format (exr, hdr \u2014 with hdr=1), install the render tier with \`lolly install-browser\`, or run the Tauri-bundled CLI for raster/pdf/zip.`);
     },
     async download() {
       throw new Error("CLI cannot trigger a browser download \u2014 pipe the blob to a file via --output");
@@ -23604,12 +38243,12 @@ async function svgToPng(svg, width, background) {
     throw new RenderError("SVG aspect ratio is too extreme to rasterise within the size cap \u2014 export svg instead.");
   }
   const fitTo = width && width > 0 && scale === wantScale ? { mode: "width", value: Math.round(width) } : { mode: "zoom", value: scale };
-  const r = new Resvg(svg, {
+  const r3 = new Resvg(svg, {
     ...background ? { background } : {},
     fitTo,
     font: { fontDirs: [FONTS_DIR], loadSystemFonts: true }
   });
-  return r.render().asPng();
+  return r3.render().asPng();
 }
 var browserPromise2 = null;
 async function getBrowser2() {
@@ -23759,8 +38398,8 @@ async function render(toolId, query, o = {}) {
   }
   let out;
   if (TIER_A.has(exportFmt)) {
-    const r = await renderTierA(toolId, values, exportFmt, exportOpts(merged), profile);
-    out = { ...r, tier: "A" };
+    const r3 = await renderTierA(toolId, values, exportFmt, exportOpts(merged), profile);
+    out = { ...r3, tier: "A" };
   } else if (exportFmt === "png" && formats.includes("svg")) {
     try {
       const svg = await renderTierA(toolId, values, "svg", exportOpts({ ...merged, width: void 0, height: void 0, unit: "px" }), profile);
@@ -23937,12 +38576,12 @@ function exportSettings(args) {
   const h = args["hdr"];
   const hdr = h && typeof h === "object" ? (() => {
     const o = h;
-    const num3 = (v, d) => typeof v === "number" && isFinite(v) ? v : d;
+    const num5 = (v, d) => typeof v === "number" && isFinite(v) ? v : d;
     return {
-      peakNits: num3(o["peakNits"], HDR_DEFAULTS.peakNits),
-      reach: num3(o["reach"], HDR_DEFAULTS.reach),
-      lift: num3(o["lift"], HDR_DEFAULTS.lift),
-      richness: num3(o["richness"], HDR_DEFAULTS.richness)
+      peakNits: num5(o["peakNits"], HDR_DEFAULTS.peakNits),
+      reach: num5(o["reach"], HDR_DEFAULTS.reach),
+      lift: num5(o["lift"], HDR_DEFAULTS.lift),
+      richness: num5(o["richness"], HDR_DEFAULTS.richness)
     };
   })() : void 0;
   const cuts = typeof args["cuts"] === "number" && args["cuts"] > 1 ? args["cuts"] : void 0;
@@ -24081,8 +38720,8 @@ function errorResult(message) {
   return { content: [{ type: "text", text: message }], isError: true };
 }
 function buildLinks(manifest, inputs, o) {
-  const model = buildInputModel(manifest, { initial: inputs });
-  const query = serializeUrlState(model, {
+  const model2 = buildInputModel(manifest, { initial: inputs });
+  const query = serializeUrlState(model2, {
     format: o.format ?? null,
     width: o.width ?? null,
     height: o.height ?? null,
@@ -24335,7 +38974,7 @@ ${links.renderUrl ?? "(unavailable)"}`);
         const file = args["file"];
         if (!file?.base64) return errorResult("file.base64 is required.");
         const bytes = Uint8Array.from(Buffer.from(file.base64, "base64"));
-        const report = await verifyC2pa(bytes, { trustAnchors: defaultTrustAnchors({ includeLollyRoot: false }) });
+        const report = await verifyC2pa(bytes, { trustAnchors: defaultTrustAnchors({ includeLollyRoot: true }) });
         let metadata = null;
         try {
           metadata = extractFileMetadata(bytes);
@@ -24445,7 +39084,7 @@ ${listing}`;
 }
 
 // services/mcp/src/resources.ts
-init_src();
+init_src2();
 import { readFile as readFile8 } from "node:fs/promises";
 import { join as join10 } from "node:path";
 init_schema();
@@ -24588,7 +39227,7 @@ async function dispatch(req) {
 }
 
 // services/mcp/src/render-get.ts
-init_src();
+init_src2();
 import { createHash } from "node:crypto";
 var PATH_RE = /\/tool\/([a-z0-9][a-z0-9-]*[a-z0-9])\.([a-z0-9-]{1,12})$/;
 function matchRenderGetPath(path) {
@@ -24704,18 +39343,18 @@ async function renderGet(path, query, opts) {
 }
 
 // services/mcp/src/sign.ts
-var te7 = new TextEncoder();
-var subtle5 = globalThis.crypto.subtle;
+var te8 = new TextEncoder();
+var subtle8 = globalThis.crypto.subtle;
 var bytesToB64u = (bytes) => Buffer.from(bytes).toString("base64url");
-var b64uToBytes = (str2) => new Uint8Array(Buffer.from(String(str2), "base64url"));
+var b64uToBytes = (str3) => new Uint8Array(Buffer.from(String(str3), "base64url"));
 var randomB64u = (n2 = 32) => bytesToB64u(globalThis.crypto.getRandomValues(new Uint8Array(n2)));
 async function hmac(secret, text) {
   if (!secret) throw new Error("signing secret is not set");
-  const key = await subtle5.importKey("raw", te7.encode(String(secret)), { name: "HMAC", hash: "SHA-256" }, false, ["sign"]);
-  return new Uint8Array(await subtle5.sign("HMAC", key, te7.encode(text)));
+  const key = await subtle8.importKey("raw", te8.encode(String(secret)), { name: "HMAC", hash: "SHA-256" }, false, ["sign"]);
+  return new Uint8Array(await subtle8.sign("HMAC", key, te8.encode(text)));
 }
 async function sha256B64u(text) {
-  return bytesToB64u(new Uint8Array(await subtle5.digest("SHA-256", te7.encode(text))));
+  return bytesToB64u(new Uint8Array(await subtle8.digest("SHA-256", te8.encode(text))));
 }
 async function signValue(payload, secret) {
   const body = Buffer.from(JSON.stringify(payload)).toString("base64url");
@@ -24903,11 +39542,11 @@ async function isAuthorized(authorizationHeader, env) {
   const tok = await verifyValue(bearer, signingSecret(env));
   return !!tok && tok.t === "access" && tok.exp >= now();
 }
-var esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]);
+var esc2 = (s) => String(s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]);
 function page(title, inner) {
   return `<!doctype html><html lang="en"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>${esc(title)}</title>
+<title>${esc2(title)}</title>
 <style>
   :root { color-scheme: light dark; }
   body { margin:0; min-height:100vh; display:grid; place-items:center;
@@ -24931,7 +39570,7 @@ function page(title, inner) {
 </style></head><body><div class="card">${inner}</div></body></html>`;
 }
 function hidden(params) {
-  const f = (k) => params[k] ? `<input type="hidden" name="${k}" value="${esc(String(params[k]))}">` : "";
+  const f = (k) => params[k] ? `<input type="hidden" name="${k}" value="${esc2(String(params[k]))}">` : "";
   return ["response_type", "client_id", "redirect_uri", "code_challenge", "code_challenge_method", "state", "scope", "resource"].map((k) => f(k)).join("");
 }
 function consentPage(params, error) {
@@ -24943,17 +39582,17 @@ function consentPage(params, error) {
   return page("Connect to Lolly", `
     <div class="dot">L</div>
     <h1>Connect to Lolly</h1>
-    <p><strong>${esc(host)}</strong> wants to use the Lolly tools on your behalf. Paste your Lolly access token to allow it.</p>
+    <p><strong>${esc2(host)}</strong> wants to use the Lolly tools on your behalf. Paste your Lolly access token to allow it.</p>
     <form method="post">
       ${hidden(params)}
       <label for="pp">Access token</label>
       <input id="pp" name="passphrase" type="password" autocomplete="off" autofocus required placeholder="LOLLY_MCP_TOKEN">
-      ${error ? `<p class="err">${esc(error)}</p>` : ""}
+      ${error ? `<p class="err">${esc2(error)}</p>` : ""}
       <button type="submit">Allow</button>
     </form>`);
 }
 function errorPage(message) {
-  return page("Cannot connect", `<div class="dot">L</div><h1>Cannot connect</h1><p>${esc(message)}</p>`);
+  return page("Cannot connect", `<div class="dot">L</div><h1>Cannot connect</h1><p>${esc2(message)}</p>`);
 }
 
 // services/mcp/src/gateway.ts
@@ -24992,22 +39631,22 @@ function baseUrlOf(req) {
   const proto = fwd || (/^(localhost|127\.)/.test(host) ? "http" : "https");
   return `${proto}://${host}`;
 }
-function send(res, r) {
-  const headers = { ...CORS, ...r.headers || {} };
-  if (r.redirect) {
-    res.writeHead(r.status, { ...headers, location: r.redirect });
+function send(res, r3) {
+  const headers = { ...CORS, ...r3.headers || {} };
+  if (r3.redirect) {
+    res.writeHead(r3.status, { ...headers, location: r3.redirect });
     res.end();
     return;
   }
-  if (r.json !== void 0) {
+  if (r3.json !== void 0) {
     headers["content-type"] = "application/json; charset=utf-8";
-    res.writeHead(r.status, headers);
-    res.end(JSON.stringify(r.json));
+    res.writeHead(r3.status, headers);
+    res.end(JSON.stringify(r3.json));
     return;
   }
   headers["content-type"] = "text/html; charset=utf-8";
-  res.writeHead(r.status, headers);
-  res.end(r.html || "");
+  res.writeHead(r3.status, headers);
+  res.end(r3.html || "");
   return;
 }
 var formToObject = (raw) => Object.fromEntries(new URLSearchParams(raw));
@@ -25024,14 +39663,14 @@ function createGateway(env = process.env) {
     const path = url.pathname.replace(/\/+$/, "") || "/";
     if ((method === "GET" || method === "HEAD") && matchRenderGetPath(path)) {
       const fwd = String(req.headers["x-forwarded-for"] || "").split(",")[0].trim();
-      const r = await renderGet(path, url.search.replace(/^\?/, ""), {
+      const r3 = await renderGet(path, url.search.replace(/^\?/, ""), {
         ip: fwd || req.socket?.remoteAddress || "unknown",
         ifNoneMatch: req.headers["if-none-match"],
         env
       });
-      res.writeHead(r.status, { ...CORS, ...r.headers });
-      if (method === "HEAD" || r.body === void 0) res.end();
-      else res.end(typeof r.body === "string" ? r.body : Buffer.from(r.body));
+      res.writeHead(r3.status, { ...CORS, ...r3.headers });
+      if (method === "HEAD" || r3.body === void 0) res.end();
+      else res.end(typeof r3.body === "string" ? r3.body : Buffer.from(r3.body));
       return;
     }
     if (!mcpEnabled) {

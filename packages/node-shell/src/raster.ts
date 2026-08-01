@@ -152,6 +152,43 @@ export async function rasterizeSvgToRgba(
   return { data: out, width: img.width, height: img.height };
 }
 
+/**
+ * Tier A + the Lolly Imprint: rasterise an SVG and embed the pixel watermark
+ * (engine/src/pixel-watermark.ts) WITHOUT a browser.
+ *
+ * Why it exists: the Imprint became a default-on mark for the terminal shells
+ * (plans/cli-ga-contract.md §12 O2, Andy 2026-08-01), and the only place it could be
+ * applied before was the web shell inside the scoped Chromium. Leaving it that way
+ * would have made an ordinary `lolly qr-code --export=png` demand a 200 MB browser
+ * download for a mark nobody asked for — a default that turns a working command into
+ * exit 3 is not a default, it is a regression. resvg already hands back straight-alpha
+ * RGBA (`rasterizeSvgToRgba`), the watermark maths is DOM-free engine code, and
+ * `packPng` writes the file, so the whole pass is three in-repo calls.
+ *
+ * Returns null when the frame is too small to carry a detectable mark
+ * (`canCarryWatermark`, the same floor the web shell's embed chokepoint applies) —
+ * the caller then writes the ordinary unmarked PNG. Never a browser escalation: the
+ * browser could not embed it either.
+ *
+ * The bytes differ from `rasterizeSvgToPng`'s beyond the mark itself, because this
+ * path encodes through the engine's writer rather than resvg's. That is why the plain
+ * path is kept intact and this one is entered only when a mark was actually asked for.
+ */
+export async function rasterizeSvgToImprintedPng(
+  svg: string, width: number, height: number, dpi?: number,
+): Promise<Uint8Array | null> {
+  const { embedWatermark, canCarryWatermark, LOSSLESS_STRENGTH, packPng } = await import('@lolly/engine');
+  const frame = await rasterizeSvgToRgba(svg, width, height);
+  if (!canCarryWatermark(frame.width, frame.height)) return null;
+  // PNG is lossless, so the gentler strength is enough — the same choice the web
+  // shell's renderRaster makes for png/tiff (shells/web/src/bridge/export.ts).
+  const marked = embedWatermark(frame.data, { width: frame.width, height: frame.height, strength: LOSSLESS_STRENGTH });
+  return packPng(marked, {
+    width: frame.width, height: frame.height, channels: 4, depth: 8,
+    ...(dpi && dpi > 0 ? { dpi } : {}),
+  });
+}
+
 // ─── the pro float formats (plans/deeprichpixels.md §6 B3, §10 item 4) ────────
 
 /** HDR view-transform request, in the author's 0–100 dial units (url-mode's

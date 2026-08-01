@@ -1867,3 +1867,84 @@ otherwise. The alternate is now 100% K, which changes nothing for a RIP that hon
 the plate and turns the flattened case into an unmistakable black mask a prepress
 operator catches. Overprint is still not implemented, so the plate knocks out the
 artwork beneath it; preflight says so rather than leaving it to be discovered.
+
+## 1.94.0 — one answer to "is this signed?", and one to "trusted by whom?"
+
+`src/provenance-defaults.ts` (`c2paDefaultOn`, `imprintDefaultOn`, `isImprintFormat`,
+`IMPRINT_FORMATS`) plus an `includeVendored` option on `defaultTrustAnchors`. No HostV1
+method or field was added — a tool can no more choose whether its own export is
+credentialed than it can preflight itself.
+
+Both are policy that was already being answered, just in more than one place. Whether an
+export carries Content Credentials is declared by the tool manifest — `render.c2pa`,
+documented in `schemas/tool.schema.json` as "Default TRUE", forced off for
+`privacy:'on-device'` — and the web shell read that declaration while the CLI did not,
+so the same tool produced a signed file in the app and a bare one from the terminal. The
+rule now lives here and both shells call it (`shells/web/src/lib/c2pa-policy.ts` is a
+delegating re-export). Same story for the format gate: `IMPRINT_FORMATS` is the web
+shell's `isImprintFmt` list, moved where the terminal shells can reach it.
+
+`defaultTrustAnchors({ includeVendored: false })` exists because "trust nothing except
+what I pinned" is a legitimate question a verifier should be able to ask, and the answer
+to it is an EMPTY anchor set, not a degenerate one. It pairs with the CLI's
+`--no-default-anchors`.
+
+The product decisions these enable are recorded in plans/cli-ga-contract.md §12 (Andy,
+2026-08-01): the terminal surfaces now pin the Lolly CA root by default, so "Verified"
+means the same thing in a browser and in a terminal; and a CLI render carries the same
+provenance marks an app export does, at the cost of byte-determinism, which
+`--no-provenance` buys back.
+
+1.95.0 — additive: the certificate read side becomes public API. `parseCertificate`
+and `signedBy` (and the `ParsedCertificate` / `DName` / `CertSigAlg` types) are
+re-exported from `src/index.ts`, alongside the `Signer` type as `C2paSigner`. Nothing
+new is implemented — these have backed the trust-chain walk in `c2pa-verify.ts` since
+1.11 — but a Node shell could not reach them, because the engine's package exports are
+`.` and `./bridge/v1` only.
+
+Why they are needed outside the engine: an ENROLLED SIGNING IDENTITY for the terminal
+(`packages/node-shell/src/signing-identity.ts`). Handing `embedC2pa` a real key + x5chain
+is the easy half; the half that has to be right is refusing a misconfigured one BEFORE it
+writes a file nobody can verify — the key's public half must equal the leaf's
+SubjectPublicKeyInfo, the certificate must be inside its validity window, and the chain
+must actually link leaf → issuer. That is exactly `parseCertificate` + `signedBy`, and a
+second implementation of certificate parsing living in a shell is precisely the drift
+this engine exists to prevent.
+
+## 1.95.0 — it multiplies your printer's rates; it never makes one up
+
+`src/rate-card.ts` — `parseRateCard` and the cost arithmetic over preflight counts —
+plus the money-object contract in `@lolly-tools/core` (`packages/core/src/money.ts`)
+and the `'ratecard'` user-asset type. No HostV1 method or field was added: a tool
+cannot cost its own export any more than it can preflight it.
+
+The whole surface exists to hold one line that must never move. Lolly may multiply a
+rate the USER attached — on a rate card their printer gave them — by a quantity Lolly
+COUNTED, and must show every multiplication so the user can check it. It may never
+originate, default, infer or round-up a price. A number Lolly invented and shown as
+money is worse than showing none, for the same reason invented dot-gain was worse than
+no simulation: it is trusted precisely because it looks measured.
+
+So the rules are load-bearing, not decorative. There is no default currency anywhere —
+the currency comes from the card, and a card without one prices nothing. A rate is stored
+at full precision and only the finished subtotal is rounded to the currency's own
+minor-unit resolution, so a sub-cent trade rate (routine — fractions of a cent per piece)
+is not rounded to zero before it multiplies. A total exists ONLY when every counted line
+is priced; one uncosted line and there is no scalar total at all, because a partial card
+under-estimates by an unbounded amount and the missing line is often the largest. A count
+that is a ceiling — the plate set is only known once the file is written — stays a ceiling
+through the multiplication: the money reads "up to", never a bare figure. The minimum
+charge is a visible adjustment row, never a silent floor, so the rows always sum to the
+headline. And the serialized object a client might be mailed carries its caveats as
+sibling fields — `kind:"estimate"`, `isQuote:false`, the disclaimer, whose rates and
+whether they had lapsed — because a caveat that lives only in a UI string is lost the
+moment the file travels. The field is `estimatedTotalFromSuppliedRates`, null unless
+coverage is complete; there is no field named `total`.
+
+The example card ships schema-INVALID on purpose (its rates are placeholder strings),
+`parseRateCard` refuses it by digest, and a repo scan forbids a numeric rate in any
+shipped `.json`, so a plausible-looking rate can never be copied into working money
+wearing the user's own card. Also in this minor: the 1.73 `AssetQuery.type` drift — it
+never gained `'profile'` — is fixed, and the asset-type guard now watches all four copies
+(both JSON schemas, `AssetQuery`, and `asset-kinds`' sets) instead of only the two
+schemas, which is how `'ratecard'` could be added without repeating the rot.

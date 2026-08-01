@@ -104,7 +104,7 @@ function decodeTime(b: Uint8Array, tlv: DerTlv): Date {
   return new Date(Date.UTC(yy, +s.slice(2 + o, 4 + o) - 1, +s.slice(4 + o, 6 + o), +s.slice(6 + o, 8 + o), +s.slice(8 + o, 10 + o), +s.slice(10 + o, 12 + o)));
 }
 
-interface DName { commonName?: string; organization?: string; }
+export interface DName { commonName?: string; organization?: string; }
 
 // Name → { commonName, organization } (first CN / O attribute found).
 function decodeName(cert: Uint8Array, nameTlv: DerTlv): DName {
@@ -156,7 +156,7 @@ function decodeExtensions(cert: Uint8Array, kids: DerTlv[], shift: number): { sa
   return out;
 }
 
-interface ParsedCertificate {
+export interface ParsedCertificate {
   subject: DName;
   issuer: DName;
   notBefore: Date;
@@ -177,7 +177,7 @@ interface ParsedCertificate {
 // DigiCert, SSL.com roots), RSA-PSS, and Ed25519 (Trufo). The digest is fixed
 // by the OID for ECDSA/RSA; RSA-PSS carries it in the AlgorithmIdentifier
 // parameters. Read from the CHILD cert (it names the algorithm the parent used).
-type CertSigAlg =
+export type CertSigAlg =
   | { scheme: 'ecdsa'; hash: string }
   | { scheme: 'rsa'; hash: string }
   | { scheme: 'rsa-pss'; hash: string; saltLength: number }
@@ -431,6 +431,26 @@ async function verifyCoseSignature(alg: CoseAlg, spki: Uint8Array, sigRaw: Uint8
 const HASHED_URI_PREFIX = 'self#jumbf=c2pa.assertions/';
 
 export interface C2paCheck { code: string; ok: boolean; explanation: string; }
+
+// Lolly's own ephemeral credential names itself (x509.ts's SIGNER_CN). Matching it is
+// what lets the untrusted row stay specific: see untrustedReason.
+const EPHEMERAL_CN = 'Lolly On-Device Credential';
+
+/**
+ * Why a signer is untrusted — THREE different facts, and conflating them was fine only
+ * while every unanchored file really was one of ours.
+ *
+ * An enrolled identity (the CLI's `--sign-key`, the browser's CA enrolment) can produce
+ * a CA-ISSUED certificate that simply chains to no anchor THIS verifier pinned, or a
+ * self-signed one an operator distributes as its own root. Telling either reader "an
+ * ephemeral on-device key" is false, and points them at the wrong fix. So: read the
+ * leaf, and only claim the ephemeral case when the certificate is literally ours.
+ */
+function untrustedReason(signer: C2paSigner | undefined): string {
+  if (signer?.selfSigned === false) return 'signing certificate untrusted — a CA-issued certificate that chains to no pinned trust anchor (pin its root to verify the identity)';
+  if (signer && signer.commonName !== EPHEMERAL_CN) return 'signing certificate untrusted — a self-signed certificate, which vouches only for itself (pin it as a trust anchor to verify the identity)';
+  return 'signing certificate untrusted — an ephemeral on-device key, not a CA-issued identity';
+}
 export interface C2paSignerIdentity { email: string | null; issuer: string | undefined; }
 export interface C2paSigner {
   commonName: string | undefined;
@@ -913,7 +933,12 @@ export async function verifyC2pa(bytes: Uint8Array, { trustAnchors }: { trustAnc
       ? `signing certificate chains to a pinned CA root — verified identity: ${who}`
       : `signing certificate chains to a pinned CA root — verified identity: ${who} (certificate has since expired; signing time cannot be proven — no timestamp authority yet)`);
   } else {
-    fail(C2PA_CHECK.signingCredentialUntrusted,'signing certificate untrusted — an ephemeral on-device key, not a CA-issued identity');
+    // TWO DIFFERENT FACTS, and conflating them was fine only while every unanchored
+    // file really was self-signed. An enrolled identity (the CLI's --sign-key, the
+    // browser's CA enrolment) produces a CA-ISSUED certificate that simply does not
+    // chain to any anchor THIS verifier pinned — telling that reader "an ephemeral
+    // on-device key" is false, and it points them at the wrong fix. Read the leaf.
+    fail(C2PA_CHECK.signingCredentialUntrusted, untrustedReason(report.signer));
   }
 
   report.state = checks.every((c) => c.ok || c.code === C2PA_CHECK.signingCredentialUntrusted) ? 'valid' : 'invalid';

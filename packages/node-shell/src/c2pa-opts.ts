@@ -4,11 +4,16 @@
  * made from / where / when / how big" record matching the web shell's
  * tools.lolly.export enrichment, so a CLI- or TUI-made asset inspects as richly as a
  * browser-made one. Author details ride along only with the profile's explicit
- * `useDetails` opt-in (same gate as the web shell). Ephemeral on-device signing only —
- * verifiers report it unverified; the enrolled-identity path is a browser feature.
+ * `useDetails` opt-in (same gate as the web shell).
+ *
+ * Signing: ephemeral on-device by default (verifiers report it unverified, which is
+ * the honest posture for an anonymous key). Pass `signer` — from
+ * `signing-identity.ts` — to sign with an enrolled identity instead; the engine then
+ * puts that chain in the manifest's x5chain and a verifier pinning the issuing root
+ * reads the file as trusted.
  */
 import { summarizeInputs, ENGINE_VERSION } from '@lolly/engine';
-import type { embedC2pa } from '@lolly/engine';
+import type { embedC2pa, C2paSigner } from '@lolly/engine';
 import type { Profile } from '@lolly-tools/core/host-v1';
 
 /** The (unexported-by-name) options bag `embedC2pa` accepts. */
@@ -27,6 +32,17 @@ export interface BuildExportC2paOpts {
   /** Credential validity window in days (URL mode's `c2pa=N`; default 30). */
   days?: number | null;
   profile?: Profile;
+  /**
+   * An enrolled signing identity (key + x5chain). Absent = the ephemeral
+   * self-signed on-device signer, byte-for-byte the behaviour that shipped before
+   * identities existed. Present, it also fixes the credential's validity window to
+   * the CERTIFICATE's own window: `days` cannot extend a certificate, and a
+   * manifest claiming a window its certificate does not have is exactly the kind of
+   * over-claim a credential must never make.
+   */
+  signer?: C2paSigner;
+  /** The identity certificate's own validity window, when `signer` is an identity. */
+  signerValidity?: { notBefore: Date; notAfter: Date };
 }
 
 /** Build the embedC2pa options for a shell export, INCLUDING author from the profile. */
@@ -53,6 +69,11 @@ export function buildExportC2paOpts(o: BuildExportC2paOpts): ExportC2paOpts {
     ...(profile.useDetails === true && profile.firstname
       ? { author: { name: [profile.firstname, profile.lastname].filter(Boolean).join(' '), ...(profile.email ? { email: profile.email } : {}) } }
       : {}),
-    dates: { notBefore: new Date(Date.now() - 60_000), notAfter: new Date(Date.now() + days * 86_400_000) },
+    ...(o.signer ? { signer: o.signer } : {}),
+    // With an identity, the dates ARE the certificate's — `dates` only ever fed the
+    // ephemeral certificate generator, and an enrolled signer brings its own.
+    dates: o.signer && o.signerValidity
+      ? { notBefore: o.signerValidity.notBefore, notAfter: o.signerValidity.notAfter }
+      : { notBefore: new Date(Date.now() - 60_000), notAfter: new Date(Date.now() + days * 86_400_000) },
   };
 }

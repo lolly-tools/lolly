@@ -157,7 +157,19 @@ let seq = 0;
 async function render(toolId: string, format: string, params: Record<string, string> = {}): Promise<Buffer> {
   const ext = format === 'eps-cmyk' ? 'eps' : format;
   const out = join(root, `out-${toolId}-${format}-${seq++}.${ext}`);
-  await runToolCli({ toolId, params, outputPath: out, format });
+  // PROVENANCE PINNED OFF, and this is the honest fix rather than a nuisance.
+  //
+  // A CLI render carries Content Credentials and the Lolly Imprint by default as of
+  // plans/cli-ga-contract.md §12 O2 (Andy, 2026-08-01). A credential is signed with a
+  // fresh key and a fresh timestamp, so with the default on these bytes would differ on
+  // every single run — the fixture could not be recorded at all, let alone reviewed as a
+  // diff. Re-recording it would have produced a golden that fails the next minute.
+  //
+  // What this file pins is therefore explicitly the BARE render: the SVG/EMF/EPS/DXF/CSV
+  // the emitters produce, with no signature bytes in the way. That is the thing worth
+  // byte-pinning; the credential has its own coverage in tests/c2pa*.test.ts, and the
+  // "does a default render carry one" question is covered by tests/cli-ga-contract.ts.
+  await runToolCli({ toolId, params: { 'no-provenance': '1', ...params }, outputPath: out, format });
   return readFile(out);
 }
 

@@ -39,6 +39,26 @@ export {
   SEVERITY_RANK, knownFact, unknownFact, PREFLIGHT_FORMAT, PREFLIGHT_FORMAT_VERSION,
 } from './preflight.ts';
 
+// Money — the currency-formatting helper and the serialised money-bearing artifact
+// shape. A SIBLING of the preflight vocabulary (never inside `PreflightReport`),
+// so a report can never carry a number that reads as a quote. There is no default
+// currency and no fallback symbol anywhere in it. See `plans/preflight-and-cost.md`
+// §6, and the header of `money.ts`.
+export {
+  formatMoney, formatFigure, monetaryFigure, minorUnitExponent,
+  CurrencyError, MinorUnitError, COST_DISCLAIMER, COST_MEMBER,
+} from './money.ts';
+export type {
+  MoneyInput, MonetaryFigure, SerializedCost, CostRatesFrom,
+  SerializedWorkingRow, SerializedAdjustmentRow, SerializedUncostedLine,
+} from './money.ts';
+
+// money-policy — the pure decide-money-or-counts predicate. Keyed on per-selection
+// provenance (own session vs reached-via-link), NOT on any URL param: the whole
+// design keeps card identity and money out of URL space. See `money-policy.ts`.
+export { canShowMoney } from './money-policy.ts';
+export type { MoneyContext } from './money-policy.ts';
+
 export { defineTool, defineHooks } from './define-tool.ts';
 export type {
   HookContext,

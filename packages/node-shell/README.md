@@ -10,6 +10,7 @@ that used to be forked per shell and drifted:
 | `webshell-render` | drive the built web shell in Chromium and capture its download — byte-identical to a web/desktop export (incl. the `password` PDF-lock param) |
 | `raster` | `NODE_FORMATS` (the DOM-free format split), `pxDims()`, and the resvg SVG→PNG fast path ("Tier A") |
 | `c2pa-opts` | `buildExportC2paOpts()` — the export Content-Credentials payload, including profile author under the `useDetails` opt-in |
+| `signing-identity` | `resolveSigningIdentity()` — load an operator's own P-256 key + certificate chain from a path or an env PEM and hand `embedC2pa` a real signer, so a terminal export carries a verifiable identity instead of an anonymous ephemeral key. Owns the refusals that keep a misconfiguration from becoming an unverifiable file: key/certificate match, validity window, chain order, curve. Takes no key material from argv, ever, and no error it raises contains any |
 | `net` | `createNetAPI()` — host.net's allowlisted fetch: the prefix matcher and the 64 MB counting-stream body cap |
 | `pptx` | `createPptxAPI()` (+ `inflatePptx`, `looksLikePptxFile`, `PPTX_MIME`) — host.pptx deck inspect + surgical rebrand, with the XML parser injected |
 | `pdf-pages` | `scanPdfPages()` — the pdf-lib walk (page content stream + resolved fonts/xobjects/extgstates/OCGs) that feeds the engine's pure `interpretPdfPage`, for EVERY page and never throwing. The first-page-only versions of this walk in `shells/web/src/views/pdf-import.ts` and `shells/tui/src/import/pdf.ts` should call it |

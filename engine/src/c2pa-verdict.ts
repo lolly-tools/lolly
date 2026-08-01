@@ -217,34 +217,37 @@ export function resolveVerdict(report: C2paVerdictInput): C2paVerdict {
  * `verifyC2pa(bytes, { trustAnchors })` — the one place the three surfaces'
  * hand-built arrays now live.
  *
- * CURRENT PER-SURFACE POLICY (preserved exactly — this helper makes the split
- * explicit, it does not resolve it):
- *   • web /valid            → { includeLollyRoot: true }
- *       pins the Lolly CA root FIRST, then the vendored C2PA lists — so
- *       Lolly-CA-enrolled exports read as CA-verified identities there.
- *   • CLI `lolly validate`  → { includeLollyRoot: false, extra: --trust-anchor PEMs }
- *       vendored lists + any explicitly pinned roots. Does NOT pin the Lolly
- *       root: a Lolly-CA-signed file that reads "Verified" on /valid reads
- *       plain "Credential intact" here unless the user pins the root by flag.
- *   • MCP `lolly_verify`    → { includeLollyRoot: false }
- *       vendored lists only — same gap as the CLI.
- * Whether the CLI/MCP omission of the Lolly root is deliberate posture or an
- * accident of parallel evolution is an open PRODUCT decision — flagged in
- * plans/maintainability-2026-07-18.md. Do not "fix" it here silently.
+ * PER-SURFACE POLICY. The split that used to live here — web pinned the Lolly
+ * CA root, the terminal surfaces did not — is CLOSED as of the GA CLI contract
+ * (plans/cli-ga-contract.md §12 O1, decided by Andy 2026-08-01): every surface
+ * that answers "is this verified?" pins the same roots, so one word means one
+ * thing everywhere.
+ *   • web /valid           → { includeLollyRoot: true }
+ *   • CLI `lolly validate` → { includeLollyRoot: true, extra: --trust-anchor PEMs }
+ *       …unless `--no-default-anchors`, which passes
+ *       { includeLollyRoot: false, includeVendored: false } so the ONLY trust is
+ *       what the caller pinned (none at all is a legitimate, documented answer).
+ *   • TUI verify panel     → { includeLollyRoot: true, extra: pinned PEMs }
+ *   • MCP `lolly_verify`   → { includeLollyRoot: true }
  *
  * `extra` entries are PEM certificate strings (e.g. the CLI's --trust-anchor
  * file contents), appended after the vendored list in order; a malformed PEM
  * throws (matching the CLI's previous inline pemToDer behaviour). The vendored
  * cache is never mutated — a fresh array is returned each call.
+ *
+ * `includeVendored: false` drops the vendored C2PA known-certificate list too,
+ * which is the bare-trust check: with no `extra` it returns an EMPTY anchor set,
+ * under which every signer reads untrusted by construction.
  */
 export function defaultTrustAnchors(
-  { includeLollyRoot = false, extra = [] }: { includeLollyRoot?: boolean; extra?: string[] } = {},
+  { includeLollyRoot = false, includeVendored = true, extra = [] }:
+  { includeLollyRoot?: boolean; includeVendored?: boolean; extra?: string[] } = {},
 ): Uint8Array[] {
   return [
     // Empty LOLLY_CA_ROOT_PEM = no root configured yet: degrade to vendored-only
     // (the same guard the web view had around its CA_ROOT_PEM import).
     ...(includeLollyRoot && LOLLY_CA_ROOT_PEM ? [pemToDer(LOLLY_CA_ROOT_PEM)] : []),
-    ...c2paTrustAnchors(),
+    ...(includeVendored ? c2paTrustAnchors() : []),
     ...extra.map((pem) => pemToDer(pem)),
   ];
 }

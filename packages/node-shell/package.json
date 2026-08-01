@@ -28,7 +28,8 @@
     "./inspect-render": "./src/inspect-render.ts",
     "./pdf-pages": "./src/pdf-pages.ts",
     "./verdict-slugs": "./src/verdict-slugs.ts",
-    "./trust-anchors": "./src/trust-anchors.ts"
+    "./trust-anchors": "./src/trust-anchors.ts",
+    "./signing-identity": "./src/signing-identity.ts"
   },
   "files": [
     "src",
