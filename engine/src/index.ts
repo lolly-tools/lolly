@@ -16,7 +16,7 @@ export {
 export type {
   CatalogSignatureEnvelope, UnsignedCatalogEnvelope, IntegrityResult,
 } from './catalog-integrity.ts';
-export { validateManifest } from './validate.ts';
+export { validateManifest, validateRateCard } from './validate.ts';
 export { createRuntime, HOOK_BUDGET_MS } from './runtime.ts';
 export { hydrate, annotateTemplate } from './template.ts';
 export { sniffAnimatedRaster, sniffVideoContainer } from './media-sniff.ts';
@@ -120,6 +120,17 @@ export type {
   Finding, FindingId, Severity, Count, Bound, QuantityKind, QuantityUnit,
   Fact, UnknownReason, Evidence,
 } from './preflight.ts';
+// Rate card — the printer's own card, stored and validated (never a source of
+// prices). parseRateCard is the pure reader; computeCost is the Phase 4 arithmetic
+// (integer minor units, no currency formatting) that multiplies the card's rates by
+// preflight's counts and emits a scalar total ONLY on full coverage (rule 2).
+// plans/preflight-and-cost.md §8.
+export { parseRateCard, isRateCardError, EXAMPLE_RATECARD_DIGEST, computeCost } from './rate-card.ts';
+export type {
+  RateCard, RateCardLine, RateCardError, DisabledReason,
+  CostWorking, CostRow, CostAdjustment, CostUncostedLine, CostUncostedReason,
+  CostInput, CostBreakApplied, CostRowQuantityKind,
+} from './rate-card.ts';
 export { parseSvgPath, parseSvgPathArgs, svgArcToBeziers } from './svg-path.ts';
 export { extractSvgColors } from './svg-colors.ts';
 export { renderZzfxm, zzfxG, zzfxM, zzfxR, zzfxV } from './zzfxm.ts';
@@ -255,11 +266,14 @@ export type {
 } from './pdfx.ts';
 export { buildC2paManifest, embedC2paInPdf, embedC2pa, attachC2paStore, exportActionSteps, C2PA_FORMATS, LOLLY_EXPORT_ASSERTION, DIGITAL_SOURCE_TYPE, CAPTURE_SOURCE_TYPE, SCREEN_SOURCE_TYPE } from './c2pa.ts';
 export type { C2paActionInput } from './c2pa.ts';
-export { verifyC2pa, verifyC2paPdf, extractC2paFromPdf, prepareC2paIngredient, prepareC2paIngredientFromStore, extractC2paStore } from './c2pa-verify.ts';
-export type { C2paIngredientData, C2paReport, C2paCheck, C2paSignerIdentity } from './c2pa-verify.ts';
+export { verifyC2pa, verifyC2paPdf, extractC2paFromPdf, prepareC2paIngredient, prepareC2paIngredientFromStore, extractC2paStore, parseCertificate, signedBy } from './c2pa-verify.ts';
+export type { C2paIngredientData, C2paReport, C2paCheck, C2paSignerIdentity, ParsedCertificate } from './c2pa-verify.ts';
+export type { Signer as C2paSigner } from './c2pa.ts';
 export { C2PA_CHECK, isExpiredOnly, resolveVerdict, defaultTrustAnchors } from './c2pa-verdict.ts';
 export type { C2paCheckCode, C2paVerdict, C2paVerdictInput, C2paVerdictState, C2paVerdictTone } from './c2pa-verdict.ts';
 export { c2paTrustAnchors, LOLLY_CA_ROOT_PEM } from './c2pa-trust.ts';
+export { c2paDefaultOn, imprintDefaultOn, isImprintFormat, IMPRINT_FORMATS } from './provenance-defaults.ts';
+export type { ProvenanceManifest } from './provenance-defaults.ts';
 export {
   verifySeal, parseSealRecord, parseSealRecords, computeSealDigest, assembleSealMessage,
   resolveRanges, verifySealSignature, importSealKey,

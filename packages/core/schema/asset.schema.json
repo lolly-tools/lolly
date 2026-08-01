@@ -16,7 +16,7 @@
     "description": { "type": "string" },
     "type": {
       "type": "string",
-      "enum": ["vector", "raster", "video", "audio", "lottie", "palette", "tokens", "font", "profile"]
+      "enum": ["vector", "raster", "video", "audio", "lottie", "palette", "tokens", "font", "profile", "ratecard"]
     },
     "version": {
       "type": "string",

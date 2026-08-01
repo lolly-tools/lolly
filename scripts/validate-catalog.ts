@@ -47,6 +47,7 @@ import { entryFromManifest } from './build-catalog-index.ts';
 // silently resolve such a clash by entry order.
 import { PALETTE } from '../shells/web/src/palette.ts';
 import { isThemableIconSvg, parseThemedAssetId, parseIconThemesDoc } from '../engine/src/icon-theme.ts';
+import { parseRateCard, isRateCardError } from '../engine/src/rate-card.ts';
 import { LANGS } from '../engine/src/lang.ts';
 // Shared-hook-region drift guard — the writer (npm run sync:shared) and this
 // check share one parser (same import-without-side-effect pattern as
@@ -76,11 +77,13 @@ const PROFILE_FIELDS = new Set([
 const toolSchema = readJson('schemas/tool.schema.json');
 const assetSchema = readJson('schemas/asset.schema.json');
 const tokensSchema = readJson('schemas/tokens.schema.json');
+const rateCardSchema = readJson('schemas/ratecard.schema.json');
 
 const ajv = new Ajv({ allErrors: true, strict: false });
 const validateTool = ajv.compile<any>(toolSchema);
 const validateAsset = ajv.compile<any>(assetSchema);
 const validateTokens = ajv.compile<any>(tokensSchema);
+const validateRateCard = ajv.compile<any>(rateCardSchema);
 
 // ─── Collect everything ─────────────────────────────────────────────────────
 
@@ -433,6 +436,23 @@ for (const asset of assetsIndex.assets) {
           for (const err of validateTokens.errors ?? []) {
             errors.push(`[asset ${asset.id}] tokens: ${err.instancePath || '/'} ${err.message}`);
           }
+        }
+      }
+
+      // A brand-shipped house rate card (Phase 5). Schema-valid is not the same as
+      // computable — run it through parseRateCard, the same reader the drop path
+      // uses (the parseIconThemesDoc lesson, below).
+      if (asset.type === 'ratecard' && fmt.format === 'json') {
+        const digest = createHash('sha256').update(bytes).digest('hex').slice(0, 16);
+        const card = parseRateCard(bytes, digest, validateRateCard);
+        if (isRateCardError(card)) {
+          errors.push(`[asset ${asset.id}] rate card "${fmt.url}" refused: ${card.error}`);
+        } else if (!card.confidential) {
+          // Phase 5: a brand/catalog-shipped house card ships trade rates to every
+          // brand user. It MUST be confidential:true so `canShowMoney` can only ever
+          // reveal it by the explicit per-device action, never automatically off a
+          // link. A non-confidential catalog card would leak the rates.
+          errors.push(`[asset ${asset.id}] rate card "${fmt.url}" is a catalog asset but is not confidential:true — a shipped house card must set confidential:true so its rates are protected`);
         }
       }
 

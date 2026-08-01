@@ -24,8 +24,9 @@
  */
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { readFileSync, readdirSync, existsSync } from 'node:fs';
+import { readFileSync, readdirSync, existsSync, mkdtempSync, writeFileSync, rmSync } from 'node:fs';
 import { join } from 'node:path';
+import { tmpdir } from 'node:os';
 import { readShotProvenance } from '../docs/shot-provenance.ts';
 import { readShotAnatomy } from '../docs/shot-anatomy.ts';
 
@@ -138,10 +139,18 @@ test('verify and download links point at the served file, same-origin', () => {
   const credFn = fnSource('shotCredential');
   // The verify view (shells/web/src/views/valid.ts) accepts ?src= ONLY when it starts
   // with a single slash — it must never be able to make a reader's browser fetch a
-  // third-party host. So the link is built from the /info/shots/ path, encoded.
-  assert.match(credFn, /const src = `\/info\/shots\/\$\{file\}`/);
+  // third-party host. A shot's src is its /info/shots/ path; a page asset (the AI
+  // stance hero) passes its own, and the caller that does so is asserted below to
+  // keep it domain-relative too.
+  assert.match(credFn, /const src = from\?\.src \?\? `\/info\/shots\/\$\{file\}`/);
   assert.match(credFn, /href="\/#\/verify\?src=\$\{encodeURIComponent\(src\)\}"/);
   assert.match(credFn, /href="\$\{src\}" download/);
+  // The page-asset caller: same-origin by construction (it is the matched /info/ src
+  // from the page's own markup) and read from the built site, never from a URL.
+  const asset = BUILD_TS.match(/const cred = shotCredential\(file, 'shot-cred--asset', \{ path, src \}\);/);
+  assert.ok(asset, 'the page-asset wrapper must credit the file it serves');
+  assert.match(BUILD_TS, /const path = resolve\(outDir, file\);/,
+    'a page asset is read from the built site, so the facts describe the served bytes');
 });
 
 test('an AI declaration is never hidden behind the hover', () => {
@@ -265,4 +274,90 @@ test('a search hit declares its own layout axis', () => {
   const hit = /\.docs-search-hit\{([^}]*)\}/.exec(BUILD_TS);
   assert.ok(hit, 'expected a .docs-search-hit rule');
   assert.match(hit[1]!, /flex-direction:column/, 'a hit must declare flex-direction:column');
+});
+
+test('nodes count anchor vertices per command, excluding control handles and Z', () => {
+  const dir = mkdtempSync(join(tmpdir(), 'anat-nodes-'));
+  try {
+    // M(1) + two implicit L via one L command with 4 numbers(2) + C's single anchor(1)
+    // + Z(0) = 4 nodes. A cubic contributes ONE node, never three: the handles are not
+    // vertices. H/V take a single coordinate; the arc's radii and flags are not points.
+    const f = join(dir, 'geo.svg');
+    writeFileSync(f, '<svg xmlns="http://www.w3.org/2000/svg" width="10" height="10">'
+      + '<path d="M0 0 L1 1 2 2 C3 3 4 4 5 5 Z"/>'                       // 1 + 2 + 1 = 4
+      + '<path d="M0 0 H5 V5 A2 2 0 0 1 4 4"/>'                          // 1 + 1 + 1 + 1 = 4
+      + '<polygon points="0,0 1,1 2,2"/>'                                // 3
+      + '</svg>');
+    const a = readShotAnatomy(f)!;
+    assert.equal(a.nodes, 11, `M/L×2/C/Z + M/H/V/A + 3 poly = 11, got ${a.nodes}`);
+
+    // `d=` inside `id="…"` must never be read as path data.
+    const g = join(dir, 'idtrap.svg');
+    writeFileSync(g, '<svg xmlns="http://www.w3.org/2000/svg" id="d-shaped" width="4" height="4">'
+      + '<rect id="mid" width="4" height="4"/></svg>');
+    assert.equal(readShotAnatomy(g)!.nodes, 0, 'no <path d>, so no nodes — id="…" is not path data');
+  } finally {
+    rmSync(dir, { recursive: true, force: true });
+  }
+});
+
+test('an SVG that is only a wrapped bitmap is called a raster, not "0 paths" vector', () => {
+  // The extension is not proof of vector. An .svg whose only drawing is one or more
+  // embedded <image> and no <path> geometry is a bitmap in an SVG wrapper (a locale
+  // shot embedding a JPEG); calling it vector and printing "0 paths" is the exact
+  // dishonesty shot-anatomy exists to avoid. Written to a temp file so the test owns
+  // its fixtures rather than depending on which shot happens to be shaped this way.
+  const dir = mkdtempSync(join(tmpdir(), 'anat-'));
+  try {
+    const wrapper = join(dir, 'wrap.svg');
+    writeFileSync(wrapper, '<svg xmlns="http://www.w3.org/2000/svg" width="10" height="10">'
+      + '<image href="data:image/png;base64,AAAA" width="10" height="10"/></svg>');
+    const w = readShotAnatomy(wrapper)!;
+    assert.equal(w.kind, 'raster', 'no <path> + an <image> is a raster, whatever the extension');
+    assert.equal(w.paths, 0);
+    assert.equal(w.images, 1);
+
+    // An SVG with real geometry AND an embedded bitmap stays vector, and the image is
+    // counted so the credential can say "134 paths, 2 images" rather than hide them.
+    const mixed = join(dir, 'mixed.svg');
+    writeFileSync(mixed, '<svg xmlns="http://www.w3.org/2000/svg" width="10" height="10">'
+      + '<path d="M0 0h10"/><image href="x" width="4" height="4"/></svg>');
+    const m = readShotAnatomy(mixed)!;
+    assert.equal(m.kind, 'vector');
+    assert.equal(m.paths, 1);
+    assert.equal(m.images, 1);
+  } finally {
+    rmSync(dir, { recursive: true, force: true });
+  }
+});
+
+test('the anatomy ROW never prints a zero count, and the dimension pill is not in it', () => {
+  const credFn = fnSource('shotCredential');
+  // The visible facts row is built from `facts`. Every push into it is guarded so a
+  // zero never renders: "0 paths" would unmake the vector claim the pill exists to make.
+  assert.match(credFn, /anat\.paths > 0.*paths/s, 'the paths pill is guarded on > 0');
+  assert.match(credFn, /anat\.groups > 0.*groups/s, 'the groups pill is guarded on > 0');
+  assert.match(credFn, /anat\.images > 0.*images/s, 'the images pill is guarded on > 0');
+  // The recipe's capture viewport describes the REQUEST, not the file, and disagrees
+  // with the shipped artwork on most shots — so it must not sit in a row of checkable
+  // file facts. It belongs in the accessible label. Assert `facts.push` never carries
+  // def.width, and that shotAt (the viewport string) is only ever put in `label`.
+  // The visible facts block runs from `const facts` to the label's `shotAt` — the
+  // recipe viewport must not appear in it.
+  const factsRegion = /const facts: string\[\][\s\S]*?const shotAt/.exec(credFn)?.[0] ?? credFn;
+  assert.doesNotMatch(factsRegion, /def[.?]\s*width/, 'the capture viewport must not be a visible fact pill');
+  assert.match(credFn, /const shotAt =[\s\S]*?def[.?]\s*width/, 'shotAt reads the recipe viewport');
+  assert.match(credFn, /shotAt[^\n]*\][^\n]*join\(. — .\)/s, 'and shotAt is only used in the label');
+});
+
+test('the credential glyph is bottom-anchored so the second row cannot move it', () => {
+  // .shot-cred-line is opacity-0, never display:none, so it keeps its box in the flex
+  // layout at rest. Centring the container against that box would shift the glyph
+  // upward the moment a second row made the line taller. flex-end pins the glyph to
+  // its corner regardless of the line's height.
+  const cred = /\n\.shot-cred\{([^}]*)\}/.exec(BUILD_TS);
+  assert.ok(cred, 'expected the .shot-cred rule');
+  assert.match(cred[1]!, /align-items:flex-end/,
+    'the credential container must bottom-align, not centre, or the anatomy row moves the resting glyph');
+  assert.doesNotMatch(cred[1]!, /align-items:center/);
 });

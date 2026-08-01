@@ -119,6 +119,23 @@ npm run profile:start    # blank starter brand — community tools only
 
 See `docs/authoring-tools.md` to build your first tool, and [Development](#development) below for the submodule workflow. A new brand pack can be generated from design tokens with `npm run ingest:brand` (DTCG / Tokens Studio / Penpot exports).
 
+## The CLI
+
+`lolly` runs any tool from the terminal through the same engine and the same render path as the web shell — it *is* URL mode under a different transport, so `--url=x` is the value the app reads from `?url=x`. That makes it the build-pipeline, CI and scripting surface: generate an OG card at build time, fan a CSV out into 400 badges, render-check the whole catalog as a gate.
+
+```bash
+npm run --silent cli -- qr-code --url=https://suse.com --export=png > qr.png
+```
+
+Every export carries Content Credentials by default, signed on-device. To sign as **you** — so a recipient who pins your root reads *Verified* with your address on it rather than an anonymous signer — point it at your own key and certificate chain:
+
+```bash
+npm run --silent cli -- qr-code --url=https://suse.com --output=./qr.svg \
+  --sign-key=~/.config/lolly/signing-key.pem --sign-cert=./signing-chain.pem
+```
+
+Full command surface in [`docs/cli.md`](docs/cli.md); the setup path from a clean machine to a working, trusted signing identity is [`docs/cli-signing.md`](docs/cli-signing.md).
+
 ## Development
 
 > **New contributor?** Start at **[CONTRIBUTING.md](CONTRIBUTING.md)** — it routes you through the recursive clone, content profiles, the `tools/`/`catalog/` symlink-view trap, which repo owns which file, and the commands to run before a PR. Auditors and anyone touching a parser or a crypto module should read **[docs/threat-model.md](docs/threat-model.md)** and **[docs/parser-inventory.md](docs/parser-inventory.md)**.

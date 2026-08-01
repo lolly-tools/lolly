@@ -297,9 +297,13 @@ test('an unmet capability refuses with the capability named, and writes nothing'
 
 test('a binary export piped to stdout is byte-identical to the same render written to a file', async () => {
   const file = join(root, 'ref.png');
-  const written = await cli(['run', 'vec-tool', '--label=Pipe', '--export=png', '--output=' + file]);
+  // --no-provenance, because this test is about the PIPE, not the clock. A default
+  // render carries Content Credentials and the Imprint (contract §12 O2), both of which
+  // embed a fresh timestamp, so two separate invocations legitimately differ and the
+  // comparison would be measuring the signature instead of the stdout discipline.
+  const written = await cli(['run', 'vec-tool', '--label=Pipe', '--export=png', '--no-provenance', '--output=' + file]);
   assert.equal(written.code, 0, written.stderr);
-  const piped = await cli(['run', 'vec-tool', '--label=Pipe', '--export=png']);
+  const piped = await cli(['run', 'vec-tool', '--label=Pipe', '--export=png', '--no-provenance']);
   assert.equal(piped.code, 0, piped.stderr);
   const onDisk = await readFile(file);
   assert.equal(piped.stdout.length, onDisk.length, 'the pipe was truncated or padded');
@@ -310,9 +314,11 @@ test('a binary export piped to stdout is byte-identical to the same render writt
 
 test("a hook's console.log cannot corrupt a binary pipe", async () => {
   const file = join(root, 'loud.png');
-  const written = await cli(['run', 'loud-tool', '--export=png', '--output=' + file]);
+  // --no-provenance for the same reason as the test above: two runs of a signed render
+  // differ by design, and what is under test here is where a hook's console.log lands.
+  const written = await cli(['run', 'loud-tool', '--export=png', '--no-provenance', '--output=' + file]);
   assert.equal(written.code, 0, written.stderr);
-  const piped = await cli(['run', 'loud-tool', '--export=png']);
+  const piped = await cli(['run', 'loud-tool', '--export=png', '--no-provenance']);
   assert.equal(piped.code, 0, piped.stderr);
   assert.ok(piped.stdout.equals(await readFile(file)));
   // The PNG signature must be the FIRST thing on stdout — a stray log line would land
@@ -332,17 +338,39 @@ test('--quiet silences the diagnostics but never the payload or an error', async
   assert.match(failed.stderr, /Tool not found/, 'an error survives --quiet');
 });
 
-test('the byte-determinism docs/cli.md promises for SVG actually holds', async () => {
+test('the byte-determinism docs/cli.md promises for SVG holds — with provenance off', async () => {
   // The docs used to claim "same inputs, same bytes" for everything. Measured, that is
   // true of SVG and the DOM-free formats and false of PDF (a /CreationDate), of the
   // browser tier, and of anything signed. Only the promise that survived is pinned here;
   // the browser tier is deliberately absent in this fixture, so it cannot be pinned at
   // all — which is itself the reason the claim was narrowed rather than tested wider.
+  //
+  // Narrowed once more by contract §12 O2: provenance is now DEFAULT-ON, so the
+  // deterministic thing is a render with the marks off. Both halves are asserted below,
+  // because the promise and the price it was bought at are one decision.
+  const a = await cli(['run', 'vec-tool', '--label=Same', '--export=svg', '--no-provenance']);
+  const b = await cli(['run', 'vec-tool', '--label=Same', '--export=svg', '--no-provenance']);
+  assert.equal(a.code, 0, a.stderr);
+  assert.ok(a.stdout.equals(b.stdout), 'two bare SVG renders of the same inputs differed');
+  assert.ok(a.stdout.length > 0);
+});
+
+test('a DEFAULT render is signed, and therefore NOT byte-identical run to run (§12 O2)', async () => {
+  // The other half of the trade, pinned so nobody re-reads the row above as "the CLI is
+  // deterministic". A defaulted render carries Content Credentials; the credential is
+  // signed with a fresh ephemeral key and timestamp, so the bytes move every run.
   const a = await cli(['run', 'vec-tool', '--label=Same', '--export=svg']);
   const b = await cli(['run', 'vec-tool', '--label=Same', '--export=svg']);
   assert.equal(a.code, 0, a.stderr);
-  assert.ok(a.stdout.equals(b.stdout), 'two SVG renders of the same inputs differed');
-  assert.ok(a.stdout.length > 0);
+  assert.ok(a.stdout.includes(Buffer.from('c2pa')), 'a default render must carry a credential');
+  assert.ok(!a.stdout.equals(b.stdout),
+    'two default renders were byte-identical — either the credential stopped being embedded, ' +
+    'or it stopped carrying a timestamp; both change what docs/cli.md promises');
+  // …and the bare render is the SAME bytes as before the default moved: the opt-out is a
+  // real escape hatch, not a differently-shaped output.
+  const bare = await cli(['run', 'vec-tool', '--label=Same', '--export=svg', '--no-provenance']);
+  assert.ok(!bare.stdout.includes(Buffer.from('c2pa')), '--no-provenance must leave no credential behind');
+  assert.ok(bare.stdout.length < a.stdout.length, 'the signed render must be the larger of the two');
 });
 
 // ── machine discovery (§5.2 result.environment) ──────────────────────────────

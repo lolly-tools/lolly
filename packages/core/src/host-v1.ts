@@ -1842,7 +1842,7 @@ export interface IngredientCredential {
 }
 
 export interface AssetQuery {
-  type?: 'vector' | 'raster' | 'video' | 'audio' | 'lottie' | 'palette' | 'tokens' | 'font';
+  type?: 'vector' | 'raster' | 'video' | 'audio' | 'lottie' | 'palette' | 'tokens' | 'font' | 'profile' | 'ratecard';
   namespace?: string; // e.g. 'suse/logo' matches everything under it
   tags?: string[];    // AND across tags
   includeDeprecated?: boolean; // default false
@@ -2470,7 +2470,7 @@ export interface AssetRef {
   // profile, `user/profiles/<digest>`). It has no visual form — it is a gamut to
   // compare against, not something to place — so image surfaces filter it out
   // the same way they filter 'font' and 'tokens'.
-  type: 'vector' | 'raster' | 'video' | 'audio' | 'lottie' | 'palette' | 'tokens' | 'font' | 'profile';
+  type: 'vector' | 'raster' | 'video' | 'audio' | 'lottie' | 'palette' | 'tokens' | 'font' | 'profile' | 'ratecard';
   format: string;
   url: string;
   width?: number;

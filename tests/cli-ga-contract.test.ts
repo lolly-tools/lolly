@@ -40,6 +40,19 @@ const TEXT_TEMPLATE =
   '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 80" width="240" height="80">' +
   '<rect width="240" height="80" fill="#ffffff"/>' +
   '<text x="12" y="50" font-family="Outfit" font-size="28" fill="#111111">{{label}}</text></svg>';
+// A textured render, for the Imprint case. The v2 watermark deliberately declines to
+// mark FLAT blocks (it would read as JPEG-like texture in a sky or a gradient), so a
+// single solid rectangle carries nothing detectable — that is the scheme working, not a
+// missing mark. Sixty overlapping shapes give it something to hide in.
+const BUSY_TEMPLATE = (() => {
+  let rects = '';
+  for (let i = 0; i < 60; i++) {
+    const x = (i * 37) % 200, y = (i * 53) % 140;
+    rects += `<rect x="${x}" y="${y}" width="${20 + (i % 13)}" height="${12 + (i % 9)}" fill="hsl(${(i * 17) % 360} 60% ${30 + (i % 5) * 10}%)"/>`;
+  }
+  return '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 160" width="240" height="160">'
+    + `<rect width="240" height="160" fill="#ffffff"/>${rects}</svg>`;
+})();
 const NOFONT_TEMPLATE =
   '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 80" width="240" height="80">' +
   '<text x="12" y="50" font-family="Nonexistent Face" font-size="28">{{label}}</text></svg>';
@@ -60,7 +73,7 @@ if (!SKIP_NO_FONT) await copyFile(OUTFIT_SRC, join(root, 'catalog', 'fonts', 'tt
 await writeFile(join(root, 'catalog', 'assets', 'index.json'), JSON.stringify({ assets: [] }));
 await writeFile(
   join(root, 'catalog', 'tools', 'index.json'),
-  JSON.stringify({ version: '1', tools: [{ id: 'vec-tool' }, { id: 'text-tool' }, { id: 'nofont-tool' }, { id: 'mic-tool' }, { id: 'shadow-tool' }, { id: 'ico-tool' }, { id: 'xform-tool' }] }),
+  JSON.stringify({ version: '1', tools: [{ id: 'vec-tool' }, { id: 'text-tool' }, { id: 'nofont-tool' }, { id: 'mic-tool' }, { id: 'shadow-tool' }, { id: 'ico-tool' }, { id: 'xform-tool' }, { id: 'data-tool' }, { id: 'busy-tool' }] }),
 );
 
 const TOOLS: Array<[string, string, string]> = [
@@ -91,12 +104,23 @@ const TOOLS: Array<[string, string, string]> = [
     hooks: { exportFile: true },
     inputs: [{ id: 'source', type: 'file', label: 'File' }],
   })],
+  ['busy-tool', BUSY_TEMPLATE, manifest('busy-tool')],
+  // A tool with a DATA format (csv, via a sibling template.csv). Data formats have no
+  // C2PA container at all, which is what makes it the fixture for "a provenance default
+  // nobody asked for must not warn, and therefore must not fail --strict" (§12 O2).
+  ['data-tool', '<svg xmlns="http://www.w3.org/2000/svg" width="10" height="10"><rect width="10" height="10" fill="#123"/></svg>',
+    JSON.stringify({
+      id: 'data-tool', name: 'data-tool', version: '1.0.0', engineVersion: '^1.0.0', status: 'community',
+      render: { width: 10, height: 10, formats: ['svg', 'csv'] },
+      inputs: [{ id: 'item', type: 'text', label: 'Item', default: 'widget' }],
+    })],
 ];
 for (const [id, template, json] of TOOLS) {
   await mkdir(join(root, 'tools', id), { recursive: true });
   await writeFile(join(root, 'tools', id, 'tool.json'), json);
   await writeFile(join(root, 'tools', id, 'template.html'), template);
 }
+await writeFile(join(root, 'tools', 'data-tool', 'template.csv'), 'item\n{{csvCell item}}\n');
 // The transform hook: uppercases the bytes it was given, so the output is verifiable.
 await writeFile(join(root, 'tools', 'xform-tool', 'hooks.js'),
   'function exportFile({ model }) {\n' +
@@ -229,7 +253,10 @@ test('--password-stdin reads the password off stdin and refuses to coexist with 
 });
 
 test('every value-taking reserved flag is in VALUE_FLAGS (so none of them can parse to "1")', () => {
-  for (const f of ['output', 'export', 'filename', 'width', 'height', 'unit', 'dpi', 'user-profile', 'press-profile', 'text']) {
+  // sign-key/sign-cert matter most of the whole list: a bare `--sign-key` parsing to "1"
+  // would report an unreadable key file literally named "1", which reads as "your key is
+  // broken" when the real problem is a typo (contract §1.3).
+  for (const f of ['output', 'export', 'filename', 'width', 'height', 'unit', 'dpi', 'user-profile', 'press-profile', 'text', 'sign-key', 'sign-cert']) {
     assert.ok(VALUE_FLAGS.has(f), `${f} must reject its bare form`);
   }
 });
@@ -707,4 +734,152 @@ test('a --json run gets its envelope even when the PARSER refuses (B20)', async 
   assert.equal(env.command, 'validate', 'the verb is recovered from a raw argv scan');
   assert.equal(env.error.kind, 'MISSING_FLAG_VALUE');
   assert.equal(env.error.exit, EXIT.USAGE);
+});
+
+// ── §12: the three decisions Andy made on 2026-08-01 ─────────────────────────
+//
+// O1 (pin the Lolly CA root by default, with --no-default-anchors for a bare-trust
+// check), O2 (provenance default-on, --no-provenance for a deterministic render) and
+// O3 (validate keeps its name). Each is visible in exit codes, in the `trusted` field
+// or in the bytes, so each is pinned here rather than left to a reading of the prose.
+
+test('§12 O1: the CLI verifies against the Lolly CA root by default', async () => {
+  const { defaultTrustAnchors, LOLLY_CA_ROOT_PEM, pemToDer, c2paTrustAnchors } = await import('@lolly/engine');
+  const dflt = defaultTrustAnchors({ includeLollyRoot: true });
+  assert.deepEqual(dflt[0], pemToDer(LOLLY_CA_ROOT_PEM), 'the Lolly root leads the default set');
+  assert.equal(dflt.length, c2paTrustAnchors().length + 1);
+  // --no-default-anchors is the OTHER end: neither built-in set survives, so with
+  // nothing pinned there is nothing to be trusted by. An empty set is a legitimate,
+  // documented answer, not a degenerate case to guard against.
+  assert.deepEqual(defaultTrustAnchors({ includeLollyRoot: false, includeVendored: false }), []);
+});
+
+test('§12 O1: the report says WHICH anchor set produced the verdict, in both modes', async () => {
+  const signed = join(root, 'anchored.svg');
+  const r0 = await cli(['run', 'vec-tool', '--label=Anchors', '--export=svg', `--output=${signed}`]);
+  assert.equal(r0.code, EXIT.OK, r0.stderr);
+
+  const dflt = await cli(['validate', signed]);
+  assert.equal(dflt.code, EXIT.OK, dflt.stderr);
+  assert.match(dflt.stdout.toString('utf8'), /Trust anchors: C2PA known-certificate list \(\d+\).*· Lolly CA root$/m);
+
+  const bare = await cli(['validate', signed, '--no-default-anchors']);
+  assert.match(bare.stdout.toString('utf8'), /Trust anchors: no built-in anchors .*Lolly CA root NOT pinned/);
+  // A self-signed on-device credential is untrusted either way — the anchor set changes
+  // WHAT COULD vouch for it, not whether these bytes match what was signed.
+  assert.equal(bare.code, EXIT.OK, bare.stderr);
+
+  // …and the same facts ride in the envelope, so an agent never parses the sentence.
+  const json = await cli(['validate', signed, '--json']);
+  const env = JSON.parse(json.stdout.toString('utf8')) as { result: { files: Array<{ anchors: { lollyRoot: boolean; vendored: number; pinned: string[] } }> } };
+  assert.equal(env.result.files[0]!.anchors.lollyRoot, true);
+  assert.ok(env.result.files[0]!.anchors.vendored > 0);
+  assert.deepEqual(env.result.files[0]!.anchors.pinned, []);
+});
+
+test('§12 O2: a default render carries a credential; --no-provenance is bare and repeatable', async () => {
+  const signed = await cli(['run', 'vec-tool', '--label=Prov', '--export=svg']);
+  assert.equal(signed.code, EXIT.OK, signed.stderr);
+  assert.ok(signed.stdout.includes(Buffer.from('c2pa')), 'the default must be ON, like the app');
+
+  const bare1 = await cli(['run', 'vec-tool', '--label=Prov', '--export=svg', '--no-provenance']);
+  const bare2 = await cli(['run', 'vec-tool', '--label=Prov', '--export=svg', '--no-provenance']);
+  assert.equal(bare1.code, EXIT.OK, bare1.stderr);
+  assert.ok(!bare1.stdout.includes(Buffer.from('c2pa')), '--no-provenance must leave no credential');
+  assert.ok(bare1.stdout.equals(bare2.stdout), 'a bare render is byte-identical run to run');
+  // The stated trade, asserted in both directions: signed renders move, bare ones do not.
+  const signed2 = await cli(['run', 'vec-tool', '--label=Prov', '--export=svg']);
+  assert.ok(!signed.stdout.equals(signed2.stdout), 'a signed render embeds a fresh timestamp by design');
+  // …and the flag is never reported as an unknown input of the tool.
+  assert.doesNotMatch(bare1.stderr, /no-provenance/);
+});
+
+test('§12 O2: --no-provenance plus an explicit mark is a usage error, not a guess', async () => {
+  const r = await cli(['run', 'vec-tool', '--export=svg', '--no-provenance', '--c2pa=30']);
+  assert.equal(r.code, EXIT.USAGE);
+  assert.match(r.stderr, /--no-provenance/);
+});
+
+test('§12 O2: a default nobody asked for never produces a warning (so --strict cannot fail on it)', async () => {
+  // csv has no C2PA container (nor do dxf/md/eps/exr). Under the old always-warn branch
+  // this printed on every such render and turned every --strict pipeline into an exit
+  // code for a default nobody chose.
+  const quiet = await cli(['run', 'data-tool', '--export=csv', '--strict']);
+  assert.equal(quiet.code, EXIT.OK, quiet.stderr);
+  assert.doesNotMatch(quiet.stderr, /Content Credentials skipped/);
+  // Asking for it explicitly still says so — the promise was made, so it must be kept
+  // or reported.
+  const asked = await cli(['run', 'data-tool', '--export=csv', '--c2pa']);
+  assert.match(asked.stderr, /has no C2PA container/);
+});
+
+test('§12 O2: the manifest opts a tool out on every surface at once', async () => {
+  const { c2paDefaultOn, imprintDefaultOn, isImprintFormat } = await import('@lolly/engine');
+  assert.equal(c2paDefaultOn({ render: { formats: ['png'] } }), true, 'on unless the tool says otherwise');
+  assert.equal(c2paDefaultOn({ render: { formats: ['png'], c2pa: false } }), false);
+  assert.equal(c2paDefaultOn({ render: { formats: ['png'] }, privacy: 'on-device' }), false,
+    "a privacy utility must never stamp provenance into the user's own file");
+  assert.equal(imprintDefaultOn({ render: { formats: ['png'] }, privacy: 'on-device' }), false);
+  assert.equal(isImprintFormat('png'), true);
+  assert.equal(isImprintFormat('svg'), false, 'the Imprint lives in pixels; svg has none');
+});
+
+test('§12 O3: `validate` keeps its name — no `inspect` verb exists or is reserved', () => {
+  assert.ok(RESERVED_SUBCOMMANDS.includes('validate'));
+  assert.equal(RESERVED_SUBCOMMANDS.includes('inspect' as never), false,
+    'the rename was declined; reserving the word would imply it is still coming');
+});
+
+test('§12 O2: a default PNG carries a REAL Lolly Imprint, embedded without a browser', async () => {
+  // The default-on Imprint is only honest if the Node tier can actually apply it: this
+  // fixture has no built web shell and no Chromium (LOLLY_WEB_DIST points at nothing),
+  // so a mark found here was embedded by resvg + the engine's watermark maths alone.
+  // Decoded from the PNG rather than inferred from the byte count, because "the file got
+  // bigger" is not evidence that a watermark is present and detectable.
+  const { unfilterPng, detectWatermark } = await import('@lolly/engine');
+  const { inflateSync } = await import('node:zlib');
+
+  const rgbaOf = (png: Buffer): { data: Uint8Array; width: number; height: number } => {
+    assert.deepEqual([...png.subarray(0, 4)], [0x89, 0x50, 0x4e, 0x47], 'not a PNG');
+    let off = 8;
+    let width = 0, height = 0, colorType = -1, depth = 0;
+    const idat: Buffer[] = [];
+    while (off < png.length) {
+      const len = png.readUInt32BE(off);
+      const type = png.toString('latin1', off + 4, off + 8);
+      const body = png.subarray(off + 8, off + 8 + len);
+      if (type === 'IHDR') {
+        width = body.readUInt32BE(0); height = body.readUInt32BE(4);
+        depth = body[8]!; colorType = body[9]!;
+      } else if (type === 'IDAT') idat.push(body);
+      else if (type === 'IEND') break;
+      off += 12 + len;
+    }
+    assert.equal(depth, 8, 'the fixture decoder only handles 8-bit');
+    const channels = colorType === 6 ? 4 : colorType === 2 ? 3 : 0;
+    assert.ok(channels, `unhandled PNG colour type ${colorType}`);
+    const raw = unfilterPng(new Uint8Array(inflateSync(Buffer.concat(idat))), width, height, channels)!;
+    assert.ok(raw, 'PNG unfilter failed');
+    if (channels === 4) return { data: raw, width, height };
+    const rgba = new Uint8Array(width * height * 4);
+    for (let i = 0, o = 0; i < raw.length; i += 3, o += 4) {
+      rgba[o] = raw[i]!; rgba[o + 1] = raw[i + 1]!; rgba[o + 2] = raw[i + 2]!; rgba[o + 3] = 255;
+    }
+    return { data: rgba, width, height };
+  };
+
+  const marked = join(root, 'imprinted.png');
+  const bare = join(root, 'bare.png');
+  const size = ['--width=768', '--height=512'];
+  const r1 = await cli(['run', 'busy-tool', '--export=png', ...size, `--output=${marked}`]);
+  assert.equal(r1.code, EXIT.OK, r1.stderr);
+  const r2 = await cli(['run', 'busy-tool', '--export=png', ...size, '--no-provenance', `--output=${bare}`]);
+  assert.equal(r2.code, EXIT.OK, r2.stderr);
+
+  const hit = rgbaOf(await readFile(marked));
+  const miss = rgbaOf(await readFile(bare));
+  const on = detectWatermark(hit.data, { width: hit.width, height: hit.height });
+  const off = detectWatermark(miss.data, { width: miss.width, height: miss.height });
+  assert.equal(on.present, true, `the default render carried no detectable Imprint (score ${on.score})`);
+  assert.equal(off.present, false, `--no-provenance left a mark behind (score ${off.score})`);
 });

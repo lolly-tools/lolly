@@ -84,14 +84,17 @@ test('pinned anchor: chain verifies → trusted, identity email, no untrusted ro
   assert.equal(report.signer.selfSigned, false);
 });
 
-test('no options: zero-options path unchanged — untrusted info row, valid state', async () => {
+test('no options: untrusted info row, valid state — CA-issued leaf names the real reason', async () => {
   const report: any = await verifyC2pa(stamped);
   assert.equal(report.state, 'valid');
   assert.equal(report.trusted, false);
   const untrusted = check(report, 'signingCredential.untrusted');
   assert.ok(untrusted, 'untrusted row present');
   assert.equal(untrusted.ok, false);
-  assert.match(untrusted.explanation, /ephemeral on-device key/);
+  // The stamped fixture is signed by a CA-ISSUED leaf (chain [leaf, root]) that
+  // chains to no pinned anchor — untrustedReason must say so, not claim an
+  // "ephemeral on-device key" (the old conflated copy this test used to pin).
+  assert.match(untrusted.explanation, /CA-issued certificate that chains to no pinned trust anchor/);
   assert.equal(check(report, 'signingCredential.trusted'), undefined);
   assert.equal(report.signer.identity, undefined);
 });

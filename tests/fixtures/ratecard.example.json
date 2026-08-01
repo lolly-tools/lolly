@@ -1,0 +1,26 @@
+{
+  "$format": "lolly-ratecard",
+  "formatVersion": 1,
+  "minReader": 1,
+  "issuer": {
+    "name": "EXAMPLE — NOT REAL RATES",
+    "url": "https://example.invalid",
+    "issued": "…",
+    "validUntil": "…",
+    "note": "Copy this file and type your printer's own numbers. Every rate below is a placeholder string and is refused on purpose."
+  },
+  "currency": "…",
+  "taxIncluded": false,
+  "minimumCharge": "<your minimum>",
+  "breakMode": "flat",
+  "sheet": { "width": 720, "height": 1020, "unit": "mm", "gripperMargin": 10 },
+  "lines": [
+    { "id": "plate-setup", "kind": "perPlate", "rate": "<your rate>" },
+    { "id": "foil-setup", "kind": "perPlate", "rate": "<your rate>", "finish": "foil" },
+    { "id": "run", "kind": "perSheet", "rate": "<your rate>",
+      "breaks": [ { "min": 1, "rate": "<your rate>" }, { "min": 500, "rate": "<your rate>" } ] },
+    { "id": "spot-uv", "kind": "perArea", "rate": "<your rate>", "unit": "m2-sheet", "finish": "spot-uv" },
+    { "id": "variant", "kind": "perQuantity", "quantityKind": "variantRows", "rate": "<your rate>" },
+    { "id": "artwork", "kind": "perJob", "rate": "<your rate>" }
+  ]
+}

@@ -29,6 +29,7 @@ import { fileURLToPath } from 'node:url';
 import Ajv from 'ajv/dist/2020.js';
 
 import { depthForFormat, localPathForUrl, sriForFile } from '../scripts/checksum-assets.ts';
+import { DATA_TYPES, VISUAL_TYPES } from '../shells/web/src/lib/asset-kinds.ts';
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 
@@ -118,7 +119,7 @@ test('depthForFormat is gated on type "raster" — no depth on non-raster assets
   // type. An SVG/video/font/palette has no bits-per-channel to report, and a
   // mislabelled row must not smuggle one in through its file.
   const deep = pngHead(16);
-  for (const type of ['vector', 'video', 'audio', 'lottie', 'palette', 'tokens', 'font', 'profile', undefined]) {
+  for (const type of ['vector', 'video', 'audio', 'lottie', 'palette', 'tokens', 'font', 'profile', 'ratecard', undefined]) {
     assert.equal(await depthForFormat(type, deep), null, `type ${String(type)} must not carry depth`);
   }
   assert.equal(await depthForFormat('raster', deep), 16, 'control: the same bytes DO answer as a raster');
@@ -126,7 +127,49 @@ test('depthForFormat is gated on type "raster" — no depth on non-raster assets
 
 // ── 2. the schema (both copies) ───────────────────────────────────────────────
 
-const SCHEMA_COPIES = ['schemas/asset.schema.json', 'packages/core/schema/asset.schema.json'];
+const SCHEMA_COPIES = ['schemas/asset.schema.json', 'packages/core/schema/asset.schema.json'] as const;
+
+// ── asset TYPE enum stays in sync across all FOUR copies ──────────────────────
+// Two JSON schemas + AssetQuery.type + asset-kinds' DATA_TYPES/VISUAL_TYPES.
+// 1.73 drifted here: AssetQuery.type never gained 'profile'. This is the guard
+// that would have caught it, and it forces every future type into all four.
+
+// Members that are intentionally in NEITHER kind set in asset-kinds.ts: audio is
+// tiled by the deny-list (isPlaceableAsset true) yet has no image thumbnail, so it
+// is neither VISUAL nor DATA. Any new "neither" member is a deliberate line here.
+const KIND_EXEMPT = new Set(['audio']);
+
+function schemaEnum(rel: string): string[] {
+  const schema = JSON.parse(readFileSync(join(ROOT, rel), 'utf8'));
+  return schema.properties.type.enum;
+}
+
+function assetQueryTypes(): string[] {
+  const src = readFileSync(join(ROOT, 'packages/core/src/host-v1.ts'), 'utf8');
+  const m = /interface AssetQuery \{\s*type\?:\s*([^;]+);/.exec(src);
+  assert.ok(m, 'could not find AssetQuery.type union');
+  return [...m![1]!.matchAll(/'([a-z]+)'/g)].map((x) => x[1]!);
+}
+
+test('the two asset schema copies declare the identical type enum', () => {
+  assert.deepEqual(schemaEnum(SCHEMA_COPIES[0]), schemaEnum(SCHEMA_COPIES[1]));
+});
+
+test('AssetQuery.type matches the schema type enum exactly (catches the 1.73 profile drift)', () => {
+  const schema = new Set(schemaEnum(SCHEMA_COPIES[0]));
+  const query = new Set(assetQueryTypes());
+  assert.deepEqual([...query].sort(), [...schema].sort(),
+    'AssetQuery.type and the asset schema enum must list the same asset types');
+});
+
+test('every asset type is classified in asset-kinds (visual, data, or an explicit exemption)', () => {
+  for (const t of schemaEnum(SCHEMA_COPIES[0])) {
+    const classified = VISUAL_TYPES.has(t) || DATA_TYPES.has(t) || KIND_EXEMPT.has(t);
+    assert.ok(classified, `asset type "${t}" is in no kind set and is not exempt — folder/catalog tiling would guess`);
+  }
+  // ratecard is engine data: it must be on the deny-list so nothing tiles it.
+  assert.ok(DATA_TYPES.has('ratecard'), 'ratecard must be a DATA type (nothing to tile)');
+});
 
 test('both asset schema copies declare the optional depth field', () => {
   for (const rel of SCHEMA_COPIES) {

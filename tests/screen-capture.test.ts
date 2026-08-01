@@ -148,9 +148,18 @@ test('ENGINE_VERSION is 1.90.0', () => {
   // — the rules-over-facts preflight evaluator, plus the Finding contract in
   // @lolly-tools/core and src/cmyk-palette.ts lifted so both shells build the spot
   // palette identically. Rules in the engine, facts collected per shell, exactly the
-  // print-marks split; no HostV1 method or field was added);
+  // print-marks split; no HostV1 method or field was added) and 1.94.0
+  // (src/provenance-defaults.ts — the manifest-read policy for "is this export
+  // credentialed / imprinted by default", previously private to the web shell, plus
+  // an `includeVendored` option on defaultTrustAnchors so a verifier can ask for an
+  // EMPTY anchor set. Both are shell-side policy; no HostV1 method or field was added,
+  // and a tool cannot see either) and 1.95.0 (src/rate-card.ts — parseRateCard + the
+  // cost arithmetic over preflight counts, the packages/core money.ts serialized shape,
+  // and the 'ratecard' user-asset type. It multiplies a rate the user supplied by a
+  // quantity Lolly counted and never originates a price; no HostV1 method was added, and
+  // a tool cannot cost itself any more than it can preflight itself);
   // the ^1.54.0 screencap floor below is unaffected (a minor bump still satisfies it).
-  assert.equal(ENGINE_VERSION, '1.93.0');
+  assert.equal(ENGINE_VERSION, '1.95.0');
 });
 
 // ─── loadTool: a ^1.54.0 tool loads against this engine ───────────────────────

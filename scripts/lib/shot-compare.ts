@@ -376,6 +376,13 @@ export interface ShotDef {
    * recipe can frame "just the Share dialog" without hand-computing fractions.
    * Overrides any explicit crop* values. Pipeline-only (resolved at capture).
    */
+  /**
+   * Pipeline-only: offer a link to the app route this shot was taken from, under
+   * the picture. Opt-in per recipe, because "you can go and do this yourself" is
+   * only true of some shots — a cropped control or an anatomy diagram is an
+   * illustration, and a link on every one of 150 shots is furniture, not an offer.
+   */
+  tryIt?: boolean;
   cropSelector?: string;
   /**
    * Per-shot changed-vs-unchanged tolerance (fraction of differing pixels),
@@ -595,6 +602,7 @@ export function parseShotRecipes(md: string): { recipes: ShotDef[]; problems: st
       waitMs: num('waitMs'), scrollDepth: num('scrollDepth'), zoom: num('zoom'),
       cropLeft: num('cropLeft'), cropRight: num('cropRight'),
       cropTop: num('cropTop'), cropBottom: num('cropBottom'),
+      tryIt: q.get('try') === '1' || q.get('try') === 'true',
       cropSelector: q.get('cropSelector') ?? undefined,
       waitSelector: q.get('waitSelector') ?? undefined,
       css: q.get('css') ?? undefined,
