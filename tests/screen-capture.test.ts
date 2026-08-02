@@ -157,9 +157,16 @@ test('ENGINE_VERSION is 1.90.0', () => {
   // cost arithmetic over preflight counts, the packages/core money.ts serialized shape,
   // and the 'ratecard' user-asset type. It multiplies a rate the user supplied by a
   // quantity Lolly counted and never originates a price; no HostV1 method was added, and
-  // a tool cannot cost itself any more than it can preflight itself);
+  // a tool cannot cost itself any more than it can preflight itself) and 1.96.0
+  // (HostV1.synthesize — on-device Kokoro TTS: text in, spoken PCM + word timings out,
+  // the dual of audio.analyse; a real additive HostV1 method) and 1.97.0 (the chrome
+  // extension contract — packages/core/src/extension-v1.ts, the host-v1 analog for named
+  // chrome SLOTS: core defines the doors + the enumerable SLOT_REGISTRY, components are
+  // hydrated at runtime through three channels (control-plane, community, local), empty
+  // doors render nothing. Its own EXTENSION_CONTRACT_VERSION; no HostV1 method was added,
+  // and a tool cannot fill a chrome slot any more than it can grant itself a capability);
   // the ^1.54.0 screencap floor below is unaffected (a minor bump still satisfies it).
-  assert.equal(ENGINE_VERSION, '1.95.0');
+  assert.equal(ENGINE_VERSION, '1.97.0');
 });
 
 // ─── loadTool: a ^1.54.0 tool loads against this engine ───────────────────────

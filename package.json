@@ -27,7 +27,7 @@
     "ingest:brand": "node scripts/ingest-brand.ts",
     "translate": "node scripts/translate.ts",
     "dev:web": "node scripts/dev-web.ts",
-    "build:ort": "node scripts/copy-ort.ts",
+    "build:ort": "node scripts/copy-ort.ts && node scripts/copy-transformers-ort.ts",
     "build:web": "npm run build:ort && npm run build:info && node scripts/build-tool-og.ts && node scripts/build-view-og.ts && npm --workspace shells/web run build",
     "build:info": "node docs/build.ts",
     "test": "node --import ./tests/css-stub.mjs --test \"tests/**/*.test.js\" \"tests/**/*.test.ts\" \"packages/core/test/**/*.test.ts\" \"shells/web/src/**/*.test.js\" \"shells/web/src/**/*.test.ts\" \"shells/tui/src/**/*.test.ts\" \"services/mcp/test/**/*.test.ts\"",
@@ -103,9 +103,10 @@
     "onnxruntime-node": "^1.27.0",
     "playwright": "^1.62.1",
     "sharp": "^0.35.3",
-    "svgo": "^4.0.1"
+    "svgo": "^4.0.2"
   },
   "overrides": {
-    "adm-zip": "^0.6.0"
+    "adm-zip": "^0.6.0",
+    "shell-quote": "^1.9.0"
   }
 }

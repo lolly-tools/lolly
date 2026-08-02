@@ -1948,3 +1948,66 @@ wearing the user's own card. Also in this minor: the 1.73 `AssetQuery.type` drif
 never gained `'profile'` — is fixed, and the asset-type guard now watches all four copies
 (both JSON schemas, `AssetQuery`, and `asset-kinds`' sets) instead of only the two
 schemas, which is how `'ratecard'` could be added without repeating the rot.
+
+## 1.96.0 — a tool can speak, and the same clip captions itself
+
+Additive: `host.speech`, on-device text-to-speech (Kokoro). Text in, mono Float32
+PCM out at 24kHz, plus per-word timings — the dual of 1.71's `host.audio`: where
+`analyse` turns a finished clip into numbers a tool can draw, `synthesize` turns
+a tool's own text into a clip, and the result feeds straight back into
+`audio.analyse` so a voiceover can drive the same reactive visuals as any other
+track. Optional/additive, feature-detected NOT capability-gated — a tool checks
+`host.speech` and hides its voiceover affordance where it is absent; the headless
+CLI omits it for now. The model weights are a one-time download the user consents
+to (`modelBytes` sizes the ask, `cached` answers without fetching); synthesis
+runs locally and the text is never uploaded.
+
+The word timings exist for captions, so the engine grows the module that consumes
+them: `src/captions.ts` — `groupWordsToCues` (greedy grouping on sentence
+punctuation, character/duration ceilings and spoken pauses), `cuesToVtt` /
+`cuesToSrt` (dot- vs comma-millisecond timestamps), and `cueAt` (binary search
+for a draw loop). Pure maths on the `analysePcm` pattern: the shell owns the
+model, the engine owns the grouping, so the browser and a headless export break
+caption lines at the same words. A result may be sentence-granular or carry no
+alignment at all — `granularity` says which, and a captioning tool reads it
+rather than guessing. No v1 method changed.
+
+## 1.97.0 — Lolly leaves a door open; everyone else brings their own furniture
+
+`packages/core/src/extension-v1.ts` — the chrome EXTENSION contract, the `host-v1`
+analog for the shell instead of the tool canvas. It is Lolly's founding thesis turned
+on its governance and chrome surfaces: tools are data hydrated into the canvas at
+runtime through community and brand channels; extensions are components hydrated into
+named chrome SLOTS at runtime through their own channels. Same idea, different surface.
+No HostV1 method or field was added — a tool cannot fill a chrome slot any more than it
+can grant itself a capability. The contract carries its own `EXTENSION_CONTRACT_VERSION`
+and is additive like HostV1: slots and fields are added in minors, never removed.
+
+Core defines the doors and nothing else. `SLOT_REGISTRY` is a plain, enumerable data
+constant — the chrome analog of the tool catalog index — so a control plane or a
+community author, each in a separate repo, can discover what doors exist to fill and
+compile against the spec without depending on the engine or the web shell. A slot has a
+`SlotHost` (what a component receives: the element it owns, a scoped typed context, `t`
+and `announce`, and which channel supplied it) and an `Extension` (what a component
+provides: an id, its slot, an optional contract-version floor checked at register time,
+and a mount lifecycle returning a disposer). The host surface is deliberately minimal
+and generic over the mount target, so a non-DOM shell could reuse the mechanism and so
+the base never grows per feature — slot-specific capability rides in the typed context.
+
+Three supply channels share one contract: `control-plane` (governed enterprise
+extensions), `community` (an OSS opt-in a self-hoster deploys at their own choice), and
+`local` (a deliberate power-user opt-in). The channel is carried for governance and an
+honest provenance chip, and it is NEVER a security boundary: a hydrated component runs
+in the shell realm exactly like a tool hook, which is not a sandbox. Control-plane
+furniture is org-trusted; community furniture is opt-in-at-the-deployer's-risk; Worker
+isolation is the same future hardening tools already await. Core states this plainly and
+claims no isolation it does not provide.
+
+Dormant by construction: an empty door renders nothing, importing the registry pulls in
+no furniture and no DOM, and a shell with zero extensions registered is byte-identical to
+before. The first door is `cost-authoring`. The rate-card AUTHORING UI — org and deployer
+config, not core-individual config, and already unwired in core — moves behind it, so the
+individual is never expected to author a supplier's price list. What stays in core is the
+honest, universal part: the preflight counts, the pure cost calculator, and card
+CONSUMPTION, so a card supplied by the CLI or a control-plane catalog asset still parses,
+stores and prices with no authoring UI present.

@@ -73,3 +73,19 @@ export const IMPRINT_FORMATS: readonly string[] = Object.freeze([
 export function isImprintFormat(format: string | undefined | null): boolean {
   return !!format && IMPRINT_FORMATS.includes(format.toLowerCase());
 }
+
+/**
+ * The CONTAINER subset of `IMPRINT_FORMATS`: pdf/pdf-cmyk/pptx. The mark rides only the
+ * raster images these containers embed, never their vector shapes or text — so a page of
+ * headings and boxes carries no detectable mark even with the Imprint on. The raster
+ * formats (png/jpg/…) are excluded because every one of their pixels can carry it. Kept
+ * beside `IMPRINT_FORMATS` so a UI can say "on · embedded images only" for a container
+ * rather than overstating an unconditional in-pixel mark.
+ */
+export const IMPRINT_CONTAINER_FORMATS: readonly string[] = Object.freeze(['pdf', 'pdf-cmyk', 'pptx']);
+
+/** True when the Imprint format is a container whose mark rides only embedded raster
+ *  images (so a vector-only page carries none). Case-insensitive. */
+export function isImprintContainerFormat(format: string | undefined | null): boolean {
+  return !!format && IMPRINT_CONTAINER_FORMATS.includes(format.toLowerCase());
+}
