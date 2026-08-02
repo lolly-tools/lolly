@@ -28,6 +28,7 @@
     "./inspect-render": "./src/inspect-render.ts",
     "./pdf-pages": "./src/pdf-pages.ts",
     "./verdict-slugs": "./src/verdict-slugs.ts",
+    "./verdict-report": "./src/verdict-report.ts",
     "./trust-anchors": "./src/trust-anchors.ts",
     "./signing-identity": "./src/signing-identity.ts"
   },

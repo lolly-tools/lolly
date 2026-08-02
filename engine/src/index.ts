@@ -142,6 +142,11 @@ export type {
 // the web shell and the CLI read identical numbers off the same clip.
 export { analysePcm, fftInPlace } from './audio-analyse.ts';
 export type { AudioAnalysis, AudioAnalyseOpts, AudioFrames } from './audio-analyse.ts';
+// Captions (host.speech, v1.96) — spoken-word timings in, subtitle cues out. The
+// grouping and VTT/SRT timestamp maths live here so the browser and a headless
+// export break caption lines at the same words.
+export { groupWordsToCues, cuesToVtt, cuesToSrt, cueAt } from './captions.ts';
+export type { CaptionCue, GroupWordsOpts } from './captions.ts';
 // The dependency-free WAV reader that backs host.audio where there is no platform
 // codec (the Node shells). Byte parsing, so it lives beside tiff.ts/apng.ts.
 export { parseWav } from './wav.ts';
@@ -272,7 +277,7 @@ export type { Signer as C2paSigner } from './c2pa.ts';
 export { C2PA_CHECK, isExpiredOnly, resolveVerdict, defaultTrustAnchors } from './c2pa-verdict.ts';
 export type { C2paCheckCode, C2paVerdict, C2paVerdictInput, C2paVerdictState, C2paVerdictTone } from './c2pa-verdict.ts';
 export { c2paTrustAnchors, LOLLY_CA_ROOT_PEM } from './c2pa-trust.ts';
-export { c2paDefaultOn, imprintDefaultOn, isImprintFormat, IMPRINT_FORMATS } from './provenance-defaults.ts';
+export { c2paDefaultOn, imprintDefaultOn, isImprintFormat, IMPRINT_FORMATS, isImprintContainerFormat, IMPRINT_CONTAINER_FORMATS } from './provenance-defaults.ts';
 export type { ProvenanceManifest } from './provenance-defaults.ts';
 export {
   verifySeal, parseSealRecord, parseSealRecords, computeSealDigest, assembleSealMessage,

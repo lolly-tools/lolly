@@ -84,14 +84,95 @@ export function pxDims(
  *  set the root's width/height to the exact target box and render at that intrinsic size —
  *  the SVG's own viewBox + preserveAspectRatio then place the content (letterbox/meet as the
  *  tool authored it), matching the web/desktop raster rather than dropping the height.
- *  Text renders from the catalog fonts; the SVG's own background/transparency is kept. */
-export async function rasterizeSvgToPng(svg: string, width: number, height: number): Promise<Uint8Array> {
+ *  Text renders from the catalog fonts; the SVG's own background/transparency is kept.
+ *
+ *  `dpi` (physical units only) embeds a pHYs DPI chunk so a printer places the PNG at the
+ *  requested physical size — the engine contract's "raster PNG embeds its DPI". resvg's own
+ *  `asPng()` writes no pHYs, so when a DPI is asked for we route the same RGBA through the
+ *  engine's `packPng` (as the imprinted path already does); with no DPI (px units) we keep
+ *  resvg's byte-identical `asPng()`. */
+export async function rasterizeSvgToPng(svg: string, width: number, height: number, dpi?: number): Promise<Uint8Array> {
+  if (dpi && dpi > 0) {
+    const { packPng } = await import('@lolly/engine');
+    const frame = await rasterizeSvgToRgba(svg, width, height);
+    return packPng(frame.data, { width: frame.width, height: frame.height, channels: 4, depth: 8, dpi });
+  }
   const { Resvg } = await import('@resvg/resvg-js');
   const r = new Resvg(sizeSvg(svg, width, height), {
     fitTo: { mode: 'original' },
     font: { fontDirs: [FONTS_DIR], loadSystemFonts: true },
   });
   return r.render().asPng();
+}
+
+/**
+ * The only formats that can carry `--bleed` / `--marks`. Derived from where
+ * computePrintGeometry is actually called in shells/web/src/bridge/export.ts (renderPdf,
+ * renderCmykPdf, renderCmykTiff) — NOT from what sounds print-ish. Nothing applies a bleed
+ * box or crop marks to a PNG/SVG/EPS on any tier (the web `renderRaster` ignores them too),
+ * so a print-prep request on any other format is a silent no-op unless it is refused. Shared
+ * by the CLI (run.ts) and TUI (engine-render.ts) so both refuse identically. If a fourth
+ * renderer ever grows print geometry, add it here.
+ */
+export const PRINT_PREP_FORMATS = new Set(['pdf', 'pdf-cmyk', 'cmyk-tiff']);
+
+/** True when `format` can carry bleed boxes / crop marks (page geometry). */
+export function canCarryPrintPrep(format: string): boolean {
+  return PRINT_PREP_FORMATS.has(format.toLowerCase());
+}
+
+/**
+ * The refusal text for `--bleed`/`--marks` on a format that cannot carry page geometry,
+ * in one place so the CLI and TUI say the same true thing. Print prep that cannot be
+ * applied is a refusal, not a shrug: accepting the flags would hand back a file
+ * byte-identical to one exported without them, exit 0, with nothing to say so — the worst
+ * failure mode for a print job (discovered at the press, on someone else's money).
+ */
+export function printPrepRefusal(format: string): string {
+  return (
+    `--bleed/--marks cannot be applied to "${format}". Bleed boxes and crop/registration marks are ` +
+    `page geometry, and only the page formats carry them: ${[...PRINT_PREP_FORMATS].join(', ')}. ` +
+    `Accepting the flags here would give you a file identical to one exported without them, with nothing to say so. ` +
+    'Export one of those formats, or drop the flags. No file was written.'
+  );
+}
+
+/**
+ * Tier-A resvg-PNG eligibility, shared by both Node shells so they never drift on which
+ * PNGs bypass the browser. True only for a plain `png` with no page geometry (bleed/marks —
+ * resvg cannot draw them) and no durable credential (the neural TrustMark encoder is a
+ * browser feature). Anything false falls through to the Tier-B browser. A png+bleed/marks
+ * is refused upstream by `printPrepRefusal` before reaching here, so the bleed/marks half
+ * of this predicate is a backstop that keeps the silent no-op from returning if that guard
+ * is ever moved.
+ */
+export function eligibleForResvgPng(
+  fmt: string, dims: { durable?: boolean; bleed?: unknown; marks?: unknown },
+): boolean {
+  return fmt.toLowerCase() === 'png' && !dims.durable && !dims.bleed && !dims.marks;
+}
+
+/**
+ * The whole Tier-A PNG rasterisation, shared by CLI and TUI so the two terminal shells
+ * emit byte-identical PNGs for the same input. Embeds the Imprint when asked (browser-free,
+ * via `rasterizeSvgToImprintedPng`, which returns null below the watermark's detection floor
+ * and then falls back to the plain path), and carries the physical-unit DPI onto BOTH the
+ * imprinted and plain paths (pHYs chunk) so neither shell drops print size. Call only when
+ * `eligibleForResvgPng` is true.
+ */
+export async function rasterizeTierAPng(
+  svg: string,
+  dims: PxDimsInput & { imprint?: boolean | null },
+  manifest: { render?: { width?: number; height?: number } },
+): Promise<{ bytes: Uint8Array; imprinted: boolean }> {
+  const { width, height } = pxDims(dims, manifest);
+  // Physical units only: px carries no DPI, matching resvg's plain output.
+  const idpi = dims.unit && dims.unit !== 'px' ? dims.dpi : undefined;
+  // `imprinted` is never guessed: it is true only when the mark actually embedded (a frame
+  // below the detection floor returns null and writes the plain PNG, reporting false).
+  const marked = dims.imprint ? await rasterizeSvgToImprintedPng(svg, width, height, idpi) : null;
+  if (marked) return { bytes: marked, imprinted: true };
+  return { bytes: await rasterizeSvgToPng(svg, width, height, idpi), imprinted: false };
 }
 
 /** Rewrite the root `<svg>` to render at exactly `width`×`height` px — see

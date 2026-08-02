@@ -167,6 +167,29 @@ export interface HostV1 {
   audio?: AudioAPI;
 
   /**
+   * Speech synthesis — text in, spoken PCM plus word timings out (on-device
+   * Kokoro TTS).
+   *
+   * The dual of `audio`: where `analyse` turns a finished clip into numbers a
+   * tool can draw, `synthesize` turns a tool's own text into a clip — mono PCM
+   * a shell can play, mix under a video export, or hand straight back to
+   * `audio.analyse`. The word timings are what a caption or karaoke-highlight
+   * tool keys off, so they ride in the same result rather than needing a
+   * second alignment pass.
+   *
+   * DOM-free CONTRACT, exactly like `audio`: a string in, plain typed arrays
+   * out. The SHELL owns the model runtime and the (one-time, consented — see
+   * `modelBytes`) weight download; the engine only ever sees Float32 samples
+   * and plain timing objects.
+   *
+   * Optional/additive (v1.96) and NOT gated by a `capabilities` flag — a tool
+   * feature-detects `host.speech` and hides its voiceover affordance where it
+   * is absent (the headless CLI provides none for now). Runs locally; text is
+   * never uploaded.
+   */
+  speech?: SpeechAPI;
+
+  /**
    * MilkDrop visualisation — availability and attribution, and deliberately
    * nothing else. A tool is data: it has no element to hand over and no business
    * holding a GL context, so it renders a `[data-lolly-viz]` placeholder carrying
@@ -1058,6 +1081,87 @@ export interface AudioAnalysis {
   bpm: number | null;
   /** Beat times in seconds relative to `start`. Empty when `bpm` is null. */
   beats: Float32Array;
+}
+
+// ─── Speech synthesis (optional, v1.96) ───────────────────────────────────────
+
+/** A voice the shell's model can speak in. */
+export interface SpeechVoiceInfo {
+  /** Stable voice id, the value `SpeechSynthesizeOpts.voice` takes. */
+  id: string;
+  /** Human-readable name for a picker. */
+  name: string;
+  /** BCP 47 language tag, e.g. 'en-US'. */
+  lang: string;
+  gender?: 'female' | 'male';
+  /** Model-reported quality grade, where the model publishes one. */
+  grade?: string;
+}
+
+/** One spoken word's span. Times are seconds, relative to the clip start. */
+export interface SpeechWordTiming {
+  text: string;
+  start: number;
+  end: number;
+}
+
+export interface SpeechResult {
+  /** Mono samples. */
+  pcm: Float32Array;
+  /** Sample rate in Hz — 24000 for Kokoro. */
+  sampleRate: number;
+  /** Clip length in seconds. */
+  duration: number;
+  /**
+   * Word spans for captioning. May be sentence-granular when the model only
+   * aligns at sentence level; empty when no alignment is available at all —
+   * check `granularity` rather than inferring it from span lengths.
+   */
+  words: SpeechWordTiming[];
+  /** What one entry of `words` spans. */
+  granularity: 'word' | 'sentence' | 'none';
+}
+
+/** Progress during the one-time model download or the synthesis itself. */
+export interface SpeechProgress {
+  phase: 'download' | 'synthesis';
+  /** Bytes so far (download phase). */
+  loaded?: number;
+  /** Total bytes, or null when the transport doesn't say. */
+  total?: number | null;
+  /** 0..1 where a fraction is knowable. */
+  fraction?: number;
+}
+
+export interface SpeechSynthesizeOpts {
+  /** A `SpeechVoiceInfo.id`. The shell's default voice when omitted. */
+  voice?: string;
+  /** Speaking rate multiplier, 1 = the voice's natural pace. */
+  speed?: number;
+  /**
+   * Abort a long synthesis: the promise rejects promptly (AbortError) and the
+   * shell stops synthesizing at the next sentence boundary. Aborting during
+   * the first-use model download also rejects promptly, but the download
+   * itself is not cancelled — it completes in the background and is cached,
+   * so the next request starts warm instead of re-downloading.
+   */
+  signal?: AbortSignal;
+  onProgress?: (p: SpeechProgress) => void;
+}
+
+export interface SpeechAPI {
+  /**
+   * Whether this shell can synthesise at all (possibly after a model download).
+   * Sync feature-detect — a tool uses it to decide whether to offer a voiceover
+   * affordance, before any bytes move.
+   */
+  isAvailable(): boolean;
+  /** Are the model bytes already on-device? Never downloads. */
+  cached(): Promise<boolean>;
+  /** Approximate one-time download size in bytes, for a consent UI. */
+  modelBytes(): number;
+  voices(): Promise<SpeechVoiceInfo[]>;
+  synthesize(text: string, opts?: SpeechSynthesizeOpts): Promise<SpeechResult>;
 }
 
 // ─── MilkDrop visualisation (optional, v1.72) ─────────────────────────────────

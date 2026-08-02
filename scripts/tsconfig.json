@@ -4,5 +4,5 @@
     "lib": ["ES2023", "DOM", "DOM.Iterable"],
     "types": ["node"]
   },
-  "include": ["./**/*", "../docs/build.ts", "../docs/og-image.ts"]
+  "include": ["./**/*", "../docs/build.ts", "../docs/og-image.ts", "../docs/player/**/*"]
 }

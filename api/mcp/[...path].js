@@ -1642,7 +1642,7 @@ var ENGINE_VERSION;
 var init_version = __esm({
   "engine/src/version.ts"() {
     "use strict";
-    ENGINE_VERSION = "1.95.0";
+    ENGINE_VERSION = "1.97.0";
   }
 });
 
@@ -15548,6 +15548,83 @@ var init_audio_analyse = __esm({
   }
 });
 
+// engine/src/captions.ts
+function groupWordsToCues(words, opts = {}) {
+  const maxChars = opts.maxChars ?? 42;
+  const maxDurationS = opts.maxDurationS ?? 5;
+  const gapS = opts.gapS ?? 0.6;
+  const cues = [];
+  let open = null;
+  for (const w of words) {
+    const text = w.text.trim();
+    if (!text) continue;
+    if (open) {
+      const joined = `${open.text} ${text}`;
+      const overflow = joined.length > maxChars || w.end - open.start > maxDurationS;
+      const paused = w.start - open.end >= gapS;
+      if (overflow || paused) {
+        cues.push(open);
+        open = null;
+      } else {
+        open.text = joined;
+        open.end = w.end;
+      }
+    }
+    if (!open) open = { start: w.start, end: w.end, text };
+    if (SENTENCE_END.test(text)) {
+      cues.push(open);
+      open = null;
+    }
+  }
+  if (open) cues.push(open);
+  return cues;
+}
+function stamp(seconds, sep) {
+  const ms = Math.max(0, Math.round(seconds * 1e3));
+  const h = Math.floor(ms / 36e5);
+  const m = Math.floor(ms % 36e5 / 6e4);
+  const s = Math.floor(ms % 6e4 / 1e3);
+  const frac = ms % 1e3;
+  const pad = (n2, w = 2) => String(n2).padStart(w, "0");
+  return `${pad(h)}:${pad(m)}:${pad(s)}${sep}${pad(frac, 3)}`;
+}
+function cuesToVtt(cues) {
+  const blocks = cues.map((c) => `${stamp(c.start, ".")} --> ${stamp(c.end, ".")}
+${c.text}`);
+  return `WEBVTT
+
+${blocks.join("\n\n")}
+`;
+}
+function cuesToSrt(cues) {
+  const blocks = cues.map(
+    (c, i) => `${i + 1}
+${stamp(c.start, ",")} --> ${stamp(c.end, ",")}
+${c.text}`
+  );
+  return `${blocks.join("\n\n")}
+`;
+}
+function cueAt(cues, t) {
+  let lo = 0;
+  let hi = cues.length - 1;
+  while (lo <= hi) {
+    const mid2 = lo + hi >> 1;
+    const c = cues[mid2];
+    if (t < c.start) hi = mid2 - 1;
+    else if (t >= c.end) lo = mid2 + 1;
+    else return c;
+  }
+  return null;
+}
+var SENTENCE_END;
+var init_captions = __esm({
+  "engine/src/captions.ts"() {
+    "use strict";
+    SENTENCE_END = /[.!?…][)\]"'”’]*$/;
+  }
+});
+
 // engine/src/wav.ts
 function parseWav(bytes) {
   const u82 = bytes instanceof Uint8Array ? bytes : new Uint8Array(bytes);
@@ -23322,7 +23399,10 @@ function imprintDefaultOn(manifest) {
 function isImprintFormat(format) {
   return !!format && IMPRINT_FORMATS.includes(format.toLowerCase());
 }
-var IMPRINT_FORMATS;
+function isImprintContainerFormat(format) {
+  return !!format && IMPRINT_CONTAINER_FORMATS.includes(format.toLowerCase());
+}
+var IMPRINT_FORMATS, IMPRINT_CONTAINER_FORMATS;
 var init_provenance_defaults = __esm({
   "engine/src/provenance-defaults.ts"() {
     "use strict";
@@ -23337,6 +23417,7 @@ var init_provenance_defaults = __esm({
       "pdf-cmyk",
       "pptx"
     ]);
+    IMPRINT_CONTAINER_FORMATS = Object.freeze(["pdf", "pdf-cmyk", "pptx"]);
   }
 });
 
@@ -33176,6 +33257,7 @@ __export(src_exports, {
   ICC_DEVICE_SPACE: () => ICC_DEVICE_SPACE,
   ICC_GAMUT_DELTA_E: () => ICC_GAMUT_DELTA_E,
   IDENTITY_2D: () => IDENTITY_2D,
+  IMPRINT_CONTAINER_FORMATS: () => IMPRINT_CONTAINER_FORMATS,
   IMPRINT_FORMATS: () => IMPRINT_FORMATS,
   JOIN_EPS: () => JOIN_EPS,
   KNOWN_FINISHES: () => KNOWN_FINISHES,
@@ -33317,6 +33399,9 @@ __export(src_exports, {
   createTokenSet: () => createTokenSet,
   cubicAsSource: () => cubicAsSource,
   cubicRoots01: () => cubicRoots01,
+  cueAt: () => cueAt,
+  cuesToSrt: () => cuesToSrt,
+  cuesToVtt: () => cuesToVtt,
   cullPdfNodes: () => cullPdfNodes,
   decodeAuthoredPath: () => decodeAuthoredPath,
   decodeAuthoredPaths: () => decodeAuthoredPaths,
@@ -33411,6 +33496,7 @@ __export(src_exports, {
   gradientSpecStops: () => gradientSpecStops,
   gradientSpecToCss: () => gradientSpecToCss,
   gradientStops: () => gradientStops,
+  groupWordsToCues: () => groupWordsToCues,
   halfToFloat: () => halfToFloat,
   hasEncryptedState: () => hasEncryptedState,
   hasPackedState: () => hasPackedState,
@@ -33447,6 +33533,7 @@ __export(src_exports, {
   isBakedRef: () => isBakedRef,
   isEncryptAvailable: () => isEncryptAvailable,
   isExpiredOnly: () => isExpiredOnly,
+  isImprintContainerFormat: () => isImprintContainerFormat,
   isImprintFormat: () => isImprintFormat,
   isLang: () => isLang,
   isLineCubic: () => isLineCubic,
@@ -33732,6 +33819,7 @@ var init_src2 = __esm({
     init_svg_colors();
     init_zzfxm();
     init_audio_analyse();
+    init_captions();
     init_wav();
     init_midi();
     init_zzfx_compose();
@@ -33804,6 +33892,37 @@ var init_src2 = __esm({
     init_semver_range();
     init_fs_token();
     init_session_record();
+  }
+});
+
+// packages/node-shell/src/repo-root.ts
+import { existsSync } from "node:fs";
+import { join, dirname } from "node:path";
+import { fileURLToPath } from "node:url";
+function hasMarker(root) {
+  return existsSync(join(root, "catalog", "tools", "index.json")) || existsSync(join(root, "catalog", "assets", "index.json"));
+}
+function repoRoot() {
+  if (!cached) cached = resolve();
+  return cached;
+}
+function resolve() {
+  if (process.env.LOLLY_ROOT && hasMarker(process.env.LOLLY_ROOT)) return process.env.LOLLY_ROOT;
+  let dir = dirname(fileURLToPath(import.meta.url));
+  for (; ; ) {
+    if (hasMarker(dir)) return dir;
+    const parent = dirname(dir);
+    if (parent === dir) break;
+    dir = parent;
+  }
+  if (hasMarker(process.cwd())) return process.cwd();
+  return join(dirname(fileURLToPath(import.meta.url)), "..", "..", "..");
+}
+var cached;
+var init_repo_root = __esm({
+  "packages/node-shell/src/repo-root.ts"() {
+    "use strict";
+    cached = null;
   }
 });
 
@@ -34387,51 +34506,25 @@ var init_radiance = __esm({
   }
 });
 
-// packages/node-shell/src/repo-root.ts
-import { existsSync as existsSync2 } from "node:fs";
-import { join as join2, dirname as dirname2 } from "node:path";
-import { fileURLToPath as fileURLToPath2 } from "node:url";
-function hasMarker(root) {
-  return existsSync2(join2(root, "catalog", "tools", "index.json")) || existsSync2(join2(root, "catalog", "assets", "index.json"));
-}
-function repoRoot() {
-  if (!cached) cached = resolve();
-  return cached;
-}
-function resolve() {
-  if (process.env.LOLLY_ROOT && hasMarker(process.env.LOLLY_ROOT)) return process.env.LOLLY_ROOT;
-  let dir = dirname2(fileURLToPath2(import.meta.url));
-  for (; ; ) {
-    if (hasMarker(dir)) return dir;
-    const parent = dirname2(dir);
-    if (parent === dir) break;
-    dir = parent;
-  }
-  if (hasMarker(process.cwd())) return process.cwd();
-  return join2(dirname2(fileURLToPath2(import.meta.url)), "..", "..", "..");
-}
-var cached;
-var init_repo_root = __esm({
-  "packages/node-shell/src/repo-root.ts"() {
-    "use strict";
-    cached = null;
-  }
-});
-
 // packages/node-shell/src/raster.ts
 var raster_exports = {};
 __export(raster_exports, {
   DEEP_FORMATS: () => DEEP_FORMATS,
   DeepSourceError: () => DeepSourceError,
   NODE_FORMATS: () => NODE_FORMATS,
+  PRINT_PREP_FORMATS: () => PRINT_PREP_FORMATS,
+  canCarryPrintPrep: () => canCarryPrintPrep,
   deepFormatMime: () => deepFormatMime,
   deepSourceRefusal: () => deepSourceRefusal,
+  eligibleForResvgPng: () => eligibleForResvgPng,
   isDeepFormat: () => isDeepFormat,
   matchedExportFormat: () => matchedExportFormat,
+  printPrepRefusal: () => printPrepRefusal,
   pxDims: () => pxDims,
   rasterizeSvgToImprintedPng: () => rasterizeSvgToImprintedPng,
   rasterizeSvgToPng: () => rasterizeSvgToPng,
   rasterizeSvgToRgba: () => rasterizeSvgToRgba,
+  rasterizeTierAPng: () => rasterizeTierAPng,
   renderDeepRaster: () => renderDeepRaster
 });
 import { join as join3 } from "node:path";
@@ -34454,13 +34547,34 @@ function pxDims(dims, manifest) {
   };
   return { width: toPx(dims.width, render2.width ?? 1280), height: toPx(dims.height, render2.height ?? 720), dpi };
 }
-async function rasterizeSvgToPng(svg, width, height) {
+async function rasterizeSvgToPng(svg, width, height, dpi) {
+  if (dpi && dpi > 0) {
+    const { packPng: packPng2 } = await Promise.resolve().then(() => (init_src2(), src_exports));
+    const frame = await rasterizeSvgToRgba(svg, width, height);
+    return packPng2(frame.data, { width: frame.width, height: frame.height, channels: 4, depth: 8, dpi });
+  }
   const { Resvg } = await import("@resvg/resvg-js");
   const r3 = new Resvg(sizeSvg(svg, width, height), {
     fitTo: { mode: "original" },
     font: { fontDirs: [FONTS_DIR2], loadSystemFonts: true }
   });
   return r3.render().asPng();
+}
+function canCarryPrintPrep(format) {
+  return PRINT_PREP_FORMATS.has(format.toLowerCase());
+}
+function printPrepRefusal(format) {
+  return `--bleed/--marks cannot be applied to "${format}". Bleed boxes and crop/registration marks are page geometry, and only the page formats carry them: ${[...PRINT_PREP_FORMATS].join(", ")}. Accepting the flags here would give you a file identical to one exported without them, with nothing to say so. Export one of those formats, or drop the flags. No file was written.`;
+}
+function eligibleForResvgPng(fmt2, dims) {
+  return fmt2.toLowerCase() === "png" && !dims.durable && !dims.bleed && !dims.marks;
+}
+async function rasterizeTierAPng(svg, dims, manifest) {
+  const { width, height } = pxDims(dims, manifest);
+  const idpi = dims.unit && dims.unit !== "px" ? dims.dpi : void 0;
+  const marked = dims.imprint ? await rasterizeSvgToImprintedPng(svg, width, height, idpi) : null;
+  if (marked) return { bytes: marked, imprinted: true };
+  return { bytes: await rasterizeSvgToPng(svg, width, height, idpi), imprinted: false };
 }
 function sizeSvg(svg, width, height) {
   const w = Math.max(1, Math.round(width));
@@ -34595,7 +34709,7 @@ function matchedExportFormat(manifest, model2) {
   const formats = (manifest.render?.formats ?? []).map((x) => x.toLowerCase());
   return f && formats.includes(f) ? f : null;
 }
-var NODE_FORMATS, DEEP_FORMATS, FONTS_DIR2, DeepSourceError;
+var NODE_FORMATS, DEEP_FORMATS, FONTS_DIR2, PRINT_PREP_FORMATS, DeepSourceError;
 var init_raster = __esm({
   "packages/node-shell/src/raster.ts"() {
     "use strict";
@@ -34606,6 +34720,7 @@ var init_raster = __esm({
     NODE_FORMATS = ["svg", "emf", "eps", "eps-cmyk", "dxf", "exr", "hdr", "html", "json", "csv", "ics", "vcf", "md"];
     DEEP_FORMATS = ["exr", "hdr"];
     FONTS_DIR2 = join3(repoRoot(), "catalog", "fonts");
+    PRINT_PREP_FORMATS = /* @__PURE__ */ new Set(["pdf", "pdf-cmyk", "cmyk-tiff"]);
     DeepSourceError = class extends Error {
       constructor(message) {
         super(message);
@@ -35049,31 +35164,60 @@ var VERDICT_SLUGS = {
   none: { verdict: "no-credential", headline: "No Content Credentials found" }
 };
 
+// packages/node-shell/src/verdict-report.ts
+function cleanControlChars(v) {
+  return String(v).replace(/[\u0000-\u001f\u007f-\u009f]/g, " ");
+}
+function verdictFacts(report) {
+  const c = report.claim;
+  if (!c) return [];
+  const s = report.signer ?? {};
+  const env = report.environment ?? {};
+  const signedAt = c.actions?.find((a) => a.when)?.when;
+  const generator = c.generatorInfo?.name ? `${c.generatorInfo.name}${c.generatorInfo.version ? " " + c.generatorInfo.version : ""}` : c.claimGenerator;
+  const id = report.signer?.identity;
+  const raw = [
+    ["Title", c.title],
+    ["Identity", report.trusted && id && `${id.email || s.commonName}${id.issuer ? ` \u2014 verified by ${id.issuer}` : ""}`],
+    ["Tool", env.tool],
+    ["Produced by", report.author && `${report.author.name}${report.author.email ? ` <${report.author.email}>` : ""}`],
+    [report.delivered ? "Delivered by" : "Made with", generator],
+    ["Signed", signedAt],
+    ["Where", [env.surface, env.engine, env.os].filter(Boolean).join(" \xB7 ")],
+    ["Signer", s.commonName],
+    ["Issuer", s.organization && `${s.organization}${s.selfSigned ? " (self-signed)" : ""}`],
+    ["Algorithm", s.alg],
+    ["Manifest", c.manifestLabel]
+  ];
+  const out = [];
+  for (const [k, v] of raw) if (v) out.push([k, cleanControlChars(v)]);
+  return out;
+}
+function verdictChecks(report) {
+  return report.checks.map((chk) => ({
+    mark: chk.ok ? "ok" : chk.code === "signingCredential.untrusted" ? "info" : "bad",
+    code: cleanControlChars(chk.code),
+    explanation: cleanControlChars(chk.explanation)
+  }));
+}
+
 // services/mcp/src/catalog.ts
 init_src2();
 import { readFile as readFile2 } from "node:fs/promises";
 
 // services/mcp/src/paths.ts
+init_repo_root();
 import { readFile } from "node:fs/promises";
-import { existsSync } from "node:fs";
-import { dirname, join } from "node:path";
-import { fileURLToPath } from "node:url";
-function resolveRoot() {
-  const marker = (root) => existsSync(join(root, "catalog", "tools", "index.json"));
-  if (process.env.LOLLY_ROOT && marker(process.env.LOLLY_ROOT)) return process.env.LOLLY_ROOT;
-  const rel = join(dirname(fileURLToPath(import.meta.url)), "..", "..", "..");
-  if (marker(rel)) return rel;
-  if (marker(process.cwd())) return process.cwd();
-  return process.env.LOLLY_ROOT || rel;
-}
-var REPO_ROOT = resolveRoot();
-var TOOLS_DIR = join(REPO_ROOT, "tools");
-var CATALOG_INDEX = join(REPO_ROOT, "catalog", "tools", "index.json");
-var ASSET_INDEX = join(REPO_ROOT, "catalog", "assets", "index.json");
-var FONTS_DIR = join(REPO_ROOT, "catalog", "fonts");
-var BROWSERS_DIR = join(dirname(fileURLToPath(import.meta.url)), "..", ".browsers");
+import { dirname as dirname2, join as join2 } from "node:path";
+import { fileURLToPath as fileURLToPath2 } from "node:url";
+var REPO_ROOT = repoRoot();
+var TOOLS_DIR = join2(REPO_ROOT, "tools");
+var CATALOG_INDEX = join2(REPO_ROOT, "catalog", "tools", "index.json");
+var ASSET_INDEX = join2(REPO_ROOT, "catalog", "assets", "index.json");
+var FONTS_DIR = join2(REPO_ROOT, "catalog", "fonts");
+var BROWSERS_DIR = join2(dirname2(fileURLToPath2(import.meta.url)), "..", ".browsers");
 function fetchToolFile(path) {
-  return readFile(join(TOOLS_DIR, path), "utf8");
+  return readFile(join2(TOOLS_DIR, path), "utf8");
 }
 
 // services/mcp/src/catalog.ts
@@ -36560,7 +36704,7 @@ init_repo_root();
 
 // packages/node-shell/src/text.ts
 import { readFile as readFile3, readdir } from "node:fs/promises";
-import { existsSync as existsSync3 } from "node:fs";
+import { existsSync as existsSync2 } from "node:fs";
 import { join as join4 } from "node:path";
 import { fileURLToPath as fileURLToPath3 } from "node:url";
 var _hb = null;
@@ -36589,7 +36733,7 @@ async function loadFontBytes(fontUrl, repoRoot2) {
     filePath = fileURLToPath3(fontUrl);
   } else if (fontUrl.startsWith("/")) {
     filePath = join4(repoRoot2, fontUrl.slice(1));
-    if (!existsSync3(filePath) && fontUrl.startsWith("/fonts/")) {
+    if (!existsSync2(filePath) && fontUrl.startsWith("/fonts/")) {
       filePath = join4(repoRoot2, "shells", "web", "public", fontUrl.slice(1));
     }
   } else {
@@ -36692,7 +36836,7 @@ function scanDiskFaces(repoRoot2) {
       const faces = [];
       for (const dir of FONT_DIRS) {
         const abs = join4(repoRoot2, dir.rel);
-        if (!existsSync3(abs)) continue;
+        if (!existsSync2(abs)) continue;
         let names;
         try {
           names = await readdir(abs);
@@ -36898,15 +37042,15 @@ function createNodeAudioAPI(opts) {
 // packages/node-shell/src/browsers.ts
 init_repo_root();
 import { join as join6 } from "node:path";
-import { existsSync as existsSync4 } from "node:fs";
+import { existsSync as existsSync3 } from "node:fs";
 var INSTALL_BROWSERS_DIR = join6(repoRoot(), ".browsers");
 var SIBLING_BROWSERS_DIR = join6(repoRoot(), "services", "mcp", ".browsers");
 var BrowserError = class extends Error {
 };
 function resolveBrowsersDir() {
   if (process.env.PLAYWRIGHT_BROWSERS_PATH) return process.env.PLAYWRIGHT_BROWSERS_PATH;
-  if (existsSync4(INSTALL_BROWSERS_DIR)) return INSTALL_BROWSERS_DIR;
-  if (existsSync4(SIBLING_BROWSERS_DIR)) return SIBLING_BROWSERS_DIR;
+  if (existsSync3(INSTALL_BROWSERS_DIR)) return INSTALL_BROWSERS_DIR;
+  if (existsSync3(SIBLING_BROWSERS_DIR)) return SIBLING_BROWSERS_DIR;
   return INSTALL_BROWSERS_DIR;
 }
 var browserPromise = null;
@@ -38029,7 +38173,7 @@ function withHost(profile, fn) {
 import { createServer } from "node:http";
 import { spawn } from "node:child_process";
 import { readFile as readFile6, stat } from "node:fs/promises";
-import { existsSync as existsSync5 } from "node:fs";
+import { existsSync as existsSync4 } from "node:fs";
 import { join as join9, resolve as resolve2, extname, normalize } from "node:path";
 var MIME2 = {
   ".html": "text/html; charset=utf-8",
@@ -38062,14 +38206,14 @@ async function webShellBase() {
 }
 async function buildAndServe() {
   const dist = process.env.LOLLY_WEB_DIST || join9(REPO_ROOT, "shells", "web", "dist");
-  if (!existsSync5(join9(dist, "index.html"))) {
-    if (!existsSync5(join9(REPO_ROOT, "shells", "web", "package.json"))) {
+  if (!existsSync4(join9(dist, "index.html"))) {
+    if (!existsSync4(join9(REPO_ROOT, "shells", "web", "package.json"))) {
       throw new Error(
         `No built web shell at ${dist}. Set LOLLY_WEB_DIST to a prebuilt shell, or LOLLY_WEB_BASE to a running one. Tier-B (pdf/video/HTML-raster) needs it; SVG/data formats render without it.`
       );
     }
     await buildWebShell();
-    if (!existsSync5(join9(dist, "index.html"))) throw new Error(`Web shell build produced no ${dist}/index.html`);
+    if (!existsSync4(join9(dist, "index.html"))) throw new Error(`Web shell build produced no ${dist}/index.html`);
   }
   return serveDist(dist);
 }
@@ -38094,7 +38238,7 @@ function serveDist(dist) {
         res.writeHead(403).end();
         return;
       }
-      if (urlPath === "/" || !existsSync5(filePath) || !(await stat(filePath)).isFile()) {
+      if (urlPath === "/" || !existsSync4(filePath) || !(await stat(filePath)).isFile()) {
         filePath = join9(root, "index.html");
       }
       const data = await readFile6(filePath);
@@ -38762,7 +38906,7 @@ function exampleLooks(m, cap) {
   const ex = t.examples?.length ? t.examples : t.featured?.variants ?? [];
   return ex.slice(0, cap).map((v) => ({ ...v.label ? { label: v.label } : {}, inputs: v.values }));
 }
-var clean = (v) => String(v).replace(/[\u0000-\u001f\u007f-\u009f]/g, " ");
+var clean = cleanControlChars;
 function verifyVerdict(report) {
   const resolved = resolveVerdict(report);
   return { ...VERDICT_SLUGS[resolved.state], resolved };
@@ -38773,28 +38917,7 @@ function verifyText(name, report, headline) {
   if (report.claim && !report.madeWithLolly) {
     lines.push(report.trusted ? "  (fields below are the CA-verified signer's own claim)" : "  (fields below are self-asserted by whoever signed the file)");
   }
-  if (report.claim) {
-    const c = report.claim;
-    const s = report.signer || {};
-    const env = report.environment || {};
-    const signedAt = c.actions?.find((a) => a.when)?.when;
-    const generator = c.generatorInfo?.name ? `${c.generatorInfo.name}${c.generatorInfo.version ? " " + c.generatorInfo.version : ""}` : c.claimGenerator;
-    const id = report.signer?.identity;
-    const facts = [
-      ["Title", c.title],
-      ["Identity", report.trusted && id && `${id.email || s.commonName}${id.issuer ? ` \u2014 verified by ${id.issuer}` : ""}`],
-      ["Tool", env.tool],
-      ["Produced by", report.author && `${report.author.name}${report.author.email ? ` <${report.author.email}>` : ""}`],
-      [report.delivered ? "Delivered by" : "Made with", generator],
-      ["Signed", signedAt],
-      ["Where", [env.surface, env.engine, env.os].filter(Boolean).join(" \xB7 ")],
-      ["Signer", s.commonName],
-      ["Issuer", s.organization && `${s.organization}${s.selfSigned ? " (self-signed)" : ""}`],
-      ["Algorithm", s.alg],
-      ["Manifest", c.manifestLabel]
-    ];
-    for (const [k, v] of facts) if (v) lines.push(`  ${k.padEnd(11)} ${clean(v)}`);
-  }
+  for (const [k, v] of verdictFacts(report)) lines.push(`  ${k.padEnd(11)} ${v}`);
   const history = report.history ?? [];
   if (history.length) {
     lines.push("Edit history (incl. ingredient/parent manifests):");
@@ -38803,9 +38926,9 @@ function verifyText(name, report, headline) {
       lines.push(`  \u2013 ${clean(h.action)}${h.when ? ` @ ${clean(h.when)}` : ""}${who ? ` (${clean(who)})` : ""}${h.description ? ` \u2014 ${clean(h.description)}` : ""}`);
     }
   }
-  for (const chk of report.checks) {
-    const mark = chk.ok ? "\u2713" : chk.code === "signingCredential.untrusted" ? "\u2139" : "\u2715";
-    lines.push(`  ${mark} ${clean(chk.code)} \u2014 ${clean(chk.explanation)}`);
+  for (const chk of verdictChecks(report)) {
+    const mark = chk.mark === "ok" ? "\u2713" : chk.mark === "info" ? "\u2139" : "\u2715";
+    lines.push(`  ${mark} ${chk.code} \u2014 ${chk.explanation}`);
   }
   return lines.join("\n");
 }

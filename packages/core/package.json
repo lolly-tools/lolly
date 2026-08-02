@@ -11,6 +11,7 @@
     ".": "./src/index.ts",
     "./contract": "./src/contract.ts",
     "./host-v1": "./src/host-v1.ts",
+    "./extension-v1": "./src/extension-v1.ts",
     "./preflight": "./src/preflight.ts",
     "./schema/tool.schema.json": "./schema/tool.schema.json",
     "./schema/asset.schema.json": "./schema/asset.schema.json",

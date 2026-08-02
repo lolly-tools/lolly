@@ -59,6 +59,16 @@ export type {
 export { canShowMoney } from './money-policy.ts';
 export type { MoneyContext } from './money-policy.ts';
 
+// extension-v1 — the chrome extension contract (the door + furniture-spec, and
+// the enumerable slot catalog). The host-v1 analog for chrome surfaces: a typed
+// contract both supply channels compile against without depending on the engine
+// or a shell. Types + one data constant only; no runtime, no DOM. See its header.
+export { SLOT_REGISTRY, EXTENSION_CONTRACT_VERSION } from './extension-v1.ts';
+export type {
+  ExtensionSlotId, SlotCardinality, ExtensionChannel, Disposer,
+  SlotManifest, SlotHost, Extension,
+} from './extension-v1.ts';
+
 export { defineTool, defineHooks } from './define-tool.ts';
 export type {
   HookContext,
