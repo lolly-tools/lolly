@@ -127,6 +127,10 @@ const tinyWebmStreaming = (): Uint8Array => concat([
   Uint8Array.of(0x1f, 0x43, 0xb6, 0x75), UNKNOWN_8, bytesOf('live-cluster-bytes'),
 ]);
 
+// Tagless MP3: a frame-sync start (0xFF 0xFB — MPEG-1 Layer III) and junk
+// audio. The placer prepends a fresh ID3v2.4 tag around the GEOB manifest.
+const tinyMp3 = (): Uint8Array => concat([Uint8Array.of(0xff, 0xfb, 0x90, 0x00), bytesOf('fake-mp3-audio-frames')]);
+
 const OPTS = {
   title: 'Fixture',
   claimGenerator: 'Lolly lolly.tools',
@@ -146,6 +150,7 @@ const CASES: Array<[string, Uint8Array]> = [
   ['webp', tinyWebp()],
   ['mp4', tinyMp4()],
   ['webm', tinyWebm()],
+  ['mp3', tinyMp3()],
 ];
 
 for (const [fmt, fixture] of CASES) {

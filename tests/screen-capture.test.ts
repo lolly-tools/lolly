@@ -164,9 +164,19 @@ test('ENGINE_VERSION is 1.90.0', () => {
   // chrome SLOTS: core defines the doors + the enumerable SLOT_REGISTRY, components are
   // hydrated at runtime through three channels (control-plane, community, local), empty
   // doors render nothing. Its own EXTENSION_CONTRACT_VERSION; no HostV1 method was added,
-  // and a tool cannot fill a chrome slot any more than it can grant itself a capability);
+  // and a tool cannot fill a chrome slot any more than it can grant itself a capability)
+  // and 1.98.0 (src/speech-text.ts — the pure half of Kokoro TTS moved into the
+  // engine under the one-synthesis-layer rule: text normalization, the phoneme
+  // pipeline, chunking and word-timing maths, model/voice constants; engine-only,
+  // no HostV1 method added) and 1.99.0 (host.speech transcription — on-device
+  // Whisper: transcribeAvailable/transcribeCached/transcribeModelBytes/transcribe
+  // over the host.audio AudioSource, returning a SpeechTranscript; contract only
+  // in this minor, no shell implements yet. The same minor adds the additive
+  // synthetic-audio provenance surface: GENERATED_SOURCE_TYPE, action
+  // `parameters` on the read side, wav/mp3 ingredient MIME and the mp3 ID3v2
+  // GEOB C2PA container);
   // the ^1.54.0 screencap floor below is unaffected (a minor bump still satisfies it).
-  assert.equal(ENGINE_VERSION, '1.97.0');
+  assert.equal(ENGINE_VERSION, '1.99.0');
 });
 
 // ─── loadTool: a ^1.54.0 tool loads against this engine ───────────────────────

@@ -368,6 +368,14 @@ export const CAPTURE_SOURCE_TYPE = 'http://cv.iptc.org/newscodes/digitalsourcety
 // that KNOWS it captured a display sets the flag.
 export const SCREEN_SOURCE_TYPE = 'http://cv.iptc.org/newscodes/digitalsourcetype/screenCapture';
 
+// IPTC DigitalSourceType for media produced wholly by a trained model — the
+// "artificially generated" mark EU AI Act Article 50 asks for, machine-readable.
+// The created step carries this when the essence came out of a generative model
+// (e.g. an on-device TTS clip: the voice is not a real person). The read side
+// already maps the slug to 'generated' (c2pa-extract aiKind), so an ingredient
+// chain built on this constant surfaces the AI flag without further wiring.
+export const GENERATED_SOURCE_TYPE = 'http://cv.iptc.org/newscodes/digitalsourcetype/trainedAlgorithmicMedia';
+
 // Output formats that are a genuine re-encode/render of the authored design
 // (so a c2pa.converted step is honest) vs vector-native / text serialisations
 // that ARE the created asset and warrant no conversion step.
@@ -379,6 +387,9 @@ const INGREDIENT_MIME: Record<string, string> = {
   png: 'image/png', apng: 'image/apng', jpg: 'image/jpeg', jpeg: 'image/jpeg', gif: 'image/gif',
   svg: 'image/svg+xml', tiff: 'image/tiff', webp: 'image/webp', pdf: 'application/pdf',
   mp4: 'video/mp4', webm: 'video/webm', mkv: 'video/x-matroska',
+  // Audio: a record-side credential (e.g. a TTS wav, whose container cannot
+  // embed) still names its format honestly when carried as an ingredient.
+  wav: 'audio/wav', mp3: 'audio/mpeg',
 };
 
 // Joins a list of human-readable fragments as "a, b and c" (Oxford-comma-free,

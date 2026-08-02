@@ -125,10 +125,23 @@ const seqMsOf = (html: string): number => {
 // append-only positional wire format (url-mode's compact block encoding indexes fields
 // by position), so appending field 50 must not fail these.
 
-test('manifest: still-first motion editor with the orientation size driver', () => {
+test('manifest: motion-first editor with the orientation size driver', () => {
   assert.equal(tool.manifest.id, 'sequence-studio');
-  assert.deepEqual(tool.manifest.render.formats, ['png', 'mp4', 'webm', 'gif', 'apng'],
-    'phase 3 adds the four motion formats; png stays FIRST because the still is the default poster of the playhead');
+  // MP4 FIRST, changed deliberately 2026-08-02. There is no `defaultFormat` in the
+  // tool schema: the export panel's initial format is `formats[0]` AFTER capability
+  // filtering (views/tool-actions.ts `keepFormat` -> `initialFmt`), so the array
+  // order IS the default. Phase 3 originally put png first, reasoning that the still
+  // is "the default poster of the playhead"; the product call is that a sequence
+  // editor's obvious output is the sequence, and a still is the deliberate choice.
+  // Ordering is graceful: a browser that cannot make mp4 filters it out and webm
+  // leads instead, so this never defaults to something the client cannot produce.
+  // The audio-only formats sit between the motion group and the still: they carry
+  // the timeline's sound, so they belong with motion, but a sequence's picture must
+  // never default away to a file with no picture in it.
+  assert.deepEqual(tool.manifest.render.formats,
+    ['mp4', 'webm', 'gif', 'apng', 'wav', 'mp3', 'm4a', 'opus', 'png'],
+    'mp4 leads so the motion editor defaults to motion; png stays available as the still');
+  assert.equal(tool.manifest.render.formats[0], 'mp4', 'formats[0] IS the panel default');
   assert.equal(tool.manifest.render.layout, 'editor');
   assert.equal(tool.manifest.render.video.wait, 0, 'a sequence never waits — frame 0 is t=0');
 

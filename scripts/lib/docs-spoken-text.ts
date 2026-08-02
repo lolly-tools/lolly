@@ -15,6 +15,9 @@
  *                     screenshot's alt text would double-speak the page)
  *   - links         → the link text only, never a URL
  *   - inline markup → the text inside it (bold/italic/backticks/HTML comments)
+ *   - a leading H1 that restates the page's build.ts title (exactly, or as a
+ *     "<title> - <subtitle>" metadata label) → skipped when the caller passes
+ *     `pageTitle` — the spoken page opens with real prose, not a filing label
  *
  * blockId parity: heading ids reuse the SAME slug rule docs/build.ts mints for
  * heading anchors (`headingId` there — build.ts deliberately has no exports, so
@@ -32,6 +35,30 @@ export interface SpokenBlock {
   /** Heading level (1–4) — headings only. */
   level?: number;
   text: string;
+}
+
+export interface ExtractOptions {
+  /**
+   * The page's title from docs/build.ts's pages[] entry. When the FIRST block
+   * of the document is a level-1 heading that merely restates it — exactly, or
+   * as a "<title> - <subtitle>" metadata pattern like site.md's
+   * "Lolly - Landing page copy" — that heading is a label for editors, not
+   * content, and narrating it opens the page with filing-cabinet noise. It is
+   * skipped so the spoken page opens with real prose. Only the first block is
+   * a candidate, and only a level-1 heading; every other heading (and its
+   * anchor id) is untouched. Callers must agree on this value: the pipeline
+   * reads it from pages[] and the player passes the same title build.ts stamped
+   * on the Listen button, so hashes and blockIds stay in lockstep.
+   */
+  pageTitle?: string;
+}
+
+/** Does a leading H1 merely restate the page title (see ExtractOptions)? */
+function isMetaTitle(spoken: string, pageTitle: string): boolean {
+  const title = pageTitle.trim().replace(/\s+/g, ' ');
+  if (!title) return false;
+  const escaped = title.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  return new RegExp(`^${escaped}(\\s*[-–—:]\\s+.+)?$`, 'i').test(spoken);
 }
 
 /** docs/build.ts's headingId, duplicated verbatim (it has no exports by design).
@@ -64,7 +91,7 @@ function speakInline(s: string): string {
  * Extract the spoken-text document from one docs page's markdown source.
  * Deterministic and pure — same source, same blocks, same ids.
  */
-export function extractSpokenText(markdown: string): SpokenBlock[] {
+export function extractSpokenText(markdown: string, opts: ExtractOptions = {}): SpokenBlock[] {
   const lines = markdown.split('\n');
   const out: SpokenBlock[] = [];
   let headingOrdinal = 0;
@@ -77,6 +104,15 @@ export function extractSpokenText(markdown: string): SpokenBlock[] {
     const spoken = speakInline(text);
     if (!spoken) return;
     if (kind === 'heading') {
+      // A leading meta-title H1 is never narrated (see ExtractOptions). The
+      // ordinal still advances — build.ts numbers every heading it renders, so
+      // skipping the emit must not shift later fallback ids out of parity —
+      // but sectionId stays 'intro': the following prose sits before the first
+      // NARRATED heading, which is what the id describes.
+      if (out.length === 0 && level === 1 && opts.pageTitle && isMetaTitle(spoken, opts.pageTitle)) {
+        headingOrdinal++;
+        return;
+      }
       headingOrdinal++;
       sectionId = headingId(spoken, headingOrdinal);
       paraIndex = 0;

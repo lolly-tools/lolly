@@ -81,6 +81,17 @@ const tinyWebp = (): Uint8Array => {
   return concat([bytesOf('RIFF'), u32le(body.length), body]);
 };
 
+// The smallest honest WAV: fmt (16-byte PCM header) + a 4-byte data chunk —
+// placeWav refuses a container with no data chunk, so the fixture carries one.
+const tinyWav = (): Uint8Array => {
+  const body = concat([
+    bytesOf('WAVE'),
+    bytesOf('fmt '), u32le(16), new Uint8Array(16),
+    bytesOf('data'), u32le(4), Uint8Array.of(1, 2, 3, 4),
+  ]);
+  return concat([bytesOf('RIFF'), u32le(body.length), body]);
+};
+
 const mp4box = (type: string, ...parts: Uint8Array[]): Uint8Array => {
   const p = concat(parts);
   return concat([u32be(8 + p.length), bytesOf(type), p]);
@@ -141,12 +152,13 @@ const FIXTURES: Array<[string, Uint8Array]> = [
   ['webp', tinyWebp()],
   ['mp4', tinyMp4()],
   ['webm', tinyWebm()],
+  ['wav', tinyWav()],
 ];
 
 // ─── dispatch table ───────────────────────────────────────────────────────────
 
 test('C2PA_FORMATS covers every dispatchable format and nothing else', () => {
-  assert.deepEqual([...C2PA_FORMATS], ['pdf', 'pdf-cmyk', 'png', 'apng', 'jpg', 'jpeg', 'gif', 'svg', 'tiff', 'cmyk-tiff', 'webp', 'mp4', 'webm']);
+  assert.deepEqual([...C2PA_FORMATS], ['pdf', 'pdf-cmyk', 'png', 'apng', 'jpg', 'jpeg', 'gif', 'svg', 'tiff', 'cmyk-tiff', 'webp', 'mp4', 'webm', 'mp3', 'wav']);
   assert.ok(Object.isFrozen(C2PA_FORMATS));
   for (const [fmt] of FIXTURES) assert.ok(C2PA_FORMATS.includes(fmt), `${fmt} is declared stampable`);
 });

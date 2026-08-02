@@ -2,7 +2,7 @@
 /**
  * C2PA structural extraction — the read side's format-sniffing, CBOR decoding,
  * JUMBF-store walking, and per-container manifest extraction (pdf/png/jpeg/gif/
- * svg/tiff/webp/mp4/webm), plus the ingredient-preparation helpers built on top.
+ * svg/tiff/webp/mp4/webm/mp3/wav), plus the ingredient-preparation helpers built on top.
  * Split out of c2pa-verify.ts so the cryptographic verification core (COSE
  * signature checks, X.509/trust-chain walking, the hard-binding hash check) is
  * reviewable in isolation — nothing in this file does or checks any cryptography;
@@ -277,16 +277,22 @@ export function extractC2paFromPdf(pdfBytes: Uint8Array): { manifest: Uint8Array
 
 const ascii = (b: Uint8Array, o: number, n: number): string => String.fromCharCode(...b.subarray(o, o + n));
 
-export type SniffFormat = 'pdf' | 'png' | 'jpeg' | 'gif' | 'svg' | 'tiff' | 'webp' | 'mp4' | 'webm' | 'mkv';
+export type SniffFormat = 'pdf' | 'png' | 'jpeg' | 'gif' | 'svg' | 'tiff' | 'webp' | 'mp4' | 'webm' | 'mkv' | 'mp3' | 'wav';
 
-/** Sniff the container format from magic bytes ('pdf'|'png'|'jpeg'|'gif'|'svg'|'tiff'|'webp'|'mp4'|'webm'|'mkv'|null). */
+/** Sniff the container format from magic bytes ('pdf'|'png'|'jpeg'|'gif'|'svg'|'tiff'|'webp'|'mp4'|'webm'|'mkv'|'mp3'|'wav'|null). */
 export function sniffFormat(bytes: Uint8Array): SniffFormat | null {
   if (bytes.length < 12) return null;
   if (bytes[0] === 0x89 && ascii(bytes, 1, 3) === 'PNG') return 'png';
   if (bytes[0] === 0xff && bytes[1] === 0xd8 && bytes[2] === 0xff) return 'jpeg';
   if (ascii(bytes, 0, 3) === 'GIF') return 'gif';
+  // MP3: a leading ID3v2 tag is the reliable signature (the credential's home).
+  // A bare frame-sync start is NOT sniffed — 0xFF 0xEx is too weak a magic to
+  // claim against every other unrecognised format, and a tagless MP3 cannot be
+  // carrying an ID3-resident credential anyway.
+  if (ascii(bytes, 0, 3) === 'ID3') return 'mp3';
   if (ascii(bytes, 0, 4) === '%PDF') return 'pdf';
   if (ascii(bytes, 0, 4) === 'RIFF' && ascii(bytes, 8, 4) === 'WEBP') return 'webp';
+  if (ascii(bytes, 0, 4) === 'RIFF' && ascii(bytes, 8, 4) === 'WAVE') return 'wav';
   if ((bytes[0] === 0x49 && bytes[1] === 0x49 && bytes[2] === 0x2a) ||
       (bytes[0] === 0x4d && bytes[1] === 0x4d && bytes[3] === 0x2a)) return 'tiff';
   if (ascii(bytes, 4, 4) === 'ftyp') {
@@ -467,12 +473,14 @@ function extractC2paFromTiff(tiff: Uint8Array): { manifest: Uint8Array } | null 
   return { manifest: tiff.slice(entry.valueOffset, entry.valueOffset + entry.count) };
 }
 
-function extractC2paFromWebp(webp: Uint8Array): { manifest: Uint8Array } | null {
-  const dv = new DataView(webp.buffer, webp.byteOffset);
-  for (let i = 12; i + 8 <= webp.length; ) {
+// RIFF family — WebP and WAV share the identical chunk grammar, so one walk
+// reads the top-level C2PA chunk out of either (write side placeRiff).
+function extractC2paFromRiff(riff: Uint8Array): { manifest: Uint8Array } | null {
+  const dv = new DataView(riff.buffer, riff.byteOffset);
+  for (let i = 12; i + 8 <= riff.length; ) {
     const size = dv.getUint32(i + 4, true);
-    if (i + 8 + size > webp.length) throw new Error('malformed WebP chunk');
-    if (ascii(webp, i, 4) === 'C2PA') return { manifest: webp.slice(i + 8, i + 8 + size) };
+    if (i + 8 + size > riff.length) throw new Error('malformed RIFF chunk');
+    if (ascii(riff, i, 4) === 'C2PA') return { manifest: riff.slice(i + 8, i + 8 + size) };
     i += 8 + size + (size & 1);
   }
   return null;
@@ -601,6 +609,50 @@ function extractC2paFromWebm(webm: Uint8Array): { manifest: Uint8Array } | null 
   return found.length ? { manifest: found[0]! } : null;
 }
 
+// MP3: the manifest store is the object data of a GEOB frame in the leading
+// ID3v2 tag, identified by MIME 'application/x-c2pa-manifest-store' (the C2PA
+// MPEG-1/2 audio binding — write side in c2pa-containers placeMp3). Matched on
+// the MIME alone; the GEOB's filename/description strings are naming, not
+// protocol. v2.3 (plain frame sizes) and v2.4 (syncsafe) both read; an
+// unsynchronised or extended-header tag throws (a declared credential we
+// cannot safely walk to), a file with no leading tag simply carries none.
+function extractC2paFromMp3(mp3: Uint8Array): { manifest: Uint8Array } | null {
+  if (!(mp3.length >= 10 && ascii(mp3, 0, 3) === 'ID3')) return null;
+  const ver = mp3[3]!;
+  if (ver !== 3 && ver !== 4) return null;
+  const flags = mp3[5]!;
+  if (flags & 0x80) throw new Error('unsynchronised ID3v2 tag');
+  if (flags & 0x40) throw new Error('ID3v2 extended header not supported');
+  const readSyncsafe = (off: number): number =>
+    ((mp3[off]! & 0x7f) << 21) | ((mp3[off + 1]! & 0x7f) << 14) | ((mp3[off + 2]! & 0x7f) << 7) | (mp3[off + 3]! & 0x7f);
+  const end = Math.min(10 + readSyncsafe(6), mp3.length);
+  const mime = 'application/x-c2pa-manifest-store';
+  const found: Uint8Array[] = [];
+  let off = 10;
+  while (off + 10 <= end && mp3[off] !== 0) {
+    const size = ver === 4 ? readSyncsafe(off + 4)
+      : ((mp3[off + 4]! << 24) | (mp3[off + 5]! << 16) | (mp3[off + 6]! << 8) | mp3[off + 7]!) >>> 0;
+    const next = off + 10 + size;
+    if (next > end || next <= off) throw new Error('malformed ID3v2 frame');
+    if (ascii(mp3, off, 4) === 'GEOB' && size > 1 + mime.length + 1 && ascii(mp3, off + 11, mime.length) === mime && mp3[off + 11 + mime.length] === 0) {
+      // Body: encoding byte, MIME (Latin-1, NUL), filename + description in the
+      // declared encoding (UTF-16 variants terminate with a double NUL), object.
+      const enc = mp3[off + 10]!;
+      const wide = enc === 1 || enc === 2;
+      let at = off + 11 + mime.length + 1;
+      for (let s = 0; s < 2; s++) {
+        while (at < next && !(mp3[at] === 0 && (!wide || mp3[at + 1] === 0))) at += wide ? 2 : 1;
+        at += wide ? 2 : 1;
+      }
+      if (at >= next) throw new Error('malformed C2PA GEOB frame');
+      found.push(mp3.slice(at, next));
+    }
+    off = next;
+  }
+  if (found.length > 1) throw new Error('MP3 file has more than one C2PA credential');
+  return found.length ? { manifest: found[0]! } : null;
+}
+
 export const EXTRACTORS: Record<SniffFormat, (bytes: Uint8Array) => { manifest: Uint8Array } | null> = {
   pdf: extractC2paFromPdf,
   png: extractC2paFromPng,
@@ -608,10 +660,12 @@ export const EXTRACTORS: Record<SniffFormat, (bytes: Uint8Array) => { manifest: 
   gif: extractC2paFromGif,
   svg: extractC2paFromSvg,
   tiff: extractC2paFromTiff,
-  webp: extractC2paFromWebp,
+  webp: extractC2paFromRiff,
   mp4: extractC2paFromMp4,
   webm: extractC2paFromWebm,
   mkv: extractC2paFromWebm,
+  mp3: extractC2paFromMp3,
+  wav: extractC2paFromRiff,
 };
 
 
@@ -684,6 +738,12 @@ export function collectActionChain(store: Uint8Array): C2paHistoryStep[] {
               softwareAgent: sa instanceof Map ? sa.get('name') : sa,
               digitalSourceType: act.get?.('digitalSourceType'),
               description: act.get?.('description'),
+              // Raw CBOR parameters — surfaced for readers that recover a step's
+              // machine-readable context (e.g. a TTS clip's recorded script).
+              // Deliberately NOT part of the dedupe key below: Maps stringify
+              // opaquely, and a parameters-only difference on an otherwise
+              // identical step is a re-record of the same event.
+              parameters: act.get?.('parameters'),
               generator,
             });
           }

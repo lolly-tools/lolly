@@ -129,6 +129,10 @@ function tinyWebm(): Uint8Array {
   ]);
 }
 
+// Tagless MP3 (frame sync + junk audio) — the placer prepends its ID3v2 tag,
+// and a stamped one seeds the ID3 frame walk on the extract side.
+const tinyMp3 = (): Uint8Array => concat([Uint8Array.of(0xff, 0xfb, 0x90, 0x00), bytesOf('fake-mp3-audio-frames')]);
+
 function buildTestPdf(): Uint8Array {
   let out = '%PDF-1.4\n%\xe2\xe3\xcf\xd3\n';
   const offsets: number[] = [];
@@ -150,9 +154,9 @@ export const c2paVerifyTarget: FuzzTarget = {
   async seeds() {
     const pdf = buildTestPdf();
     const stampedPdf = await embedC2paInPdf(pdf, { title: 'Fuzz', claimGenerator: 'LollyFuzz/1.0' });
-    const out: Uint8Array[] = [stampedPdf, pdf, tinyPng(), tinyJpeg(), tinyGif(2), tinySvg(), tinyWebp(), tinyMp4(), tinyWebm()];
-    // Credentialed rasters/video across formats exercise every extractor.
-    for (const [bytes, fmt] of [[tinyPng(), 'png'], [tinyJpeg(), 'jpg'], [tinyGif(1), 'gif'], [tinySvg(), 'svg'], [tinyMp4(), 'mp4'], [tinyWebm(), 'webm']] as const) {
+    const out: Uint8Array[] = [stampedPdf, pdf, tinyPng(), tinyJpeg(), tinyGif(2), tinySvg(), tinyWebp(), tinyMp4(), tinyWebm(), tinyMp3()];
+    // Credentialed rasters/video/audio across formats exercise every extractor.
+    for (const [bytes, fmt] of [[tinyPng(), 'png'], [tinyJpeg(), 'jpg'], [tinyGif(1), 'gif'], [tinySvg(), 'svg'], [tinyMp4(), 'mp4'], [tinyWebm(), 'webm'], [tinyMp3(), 'mp3']] as const) {
       try { out.push(await embedC2pa(bytes, fmt, { title: 'Fuzz', claimGenerator: 'LollyFuzz/1.0' })); } catch { /* format may be unsupported in this build */ }
     }
     return out;
@@ -712,14 +716,15 @@ export const c2paExtractTarget: FuzzTarget = {
 // ('pdf' is absent on purpose — it routes to embedC2paInPdf, not a placer.)
 const ATTACH_FORMAT: Record<Exclude<SniffFormat, 'pdf'>, string> = {
   png: 'png', jpeg: 'jpg', gif: 'gif', svg: 'svg',
-  tiff: 'tiff', webp: 'webp', mp4: 'mp4', webm: 'webm', mkv: 'webm',
+  tiff: 'tiff', webp: 'webp', mp4: 'mp4', webm: 'webm', mkv: 'webm', mp3: 'mp3',
+  wav: 'wav',
 };
 
 export const c2paContainersTarget: FuzzTarget = {
   name: 'c2pa-containers',
   async seeds() {
     return [
-      tinyPng(), tinyJpeg(), tinyGif(2), tinySvg(), tinyWebp(), tinyMp4(), faststartMp4(), tinyWebm(),
+      tinyPng(), tinyJpeg(), tinyGif(2), tinySvg(), tinyWebp(), tinyMp4(), faststartMp4(), tinyWebm(), tinyMp3(),
       packTiff(new Uint8Array(3), { width: 1, height: 1 }),
       buildTestPdf(),
     ];

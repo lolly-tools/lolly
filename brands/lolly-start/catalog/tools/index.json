@@ -1,6 +1,6 @@
 {
   "version": "1",
-  "generatedAt": "2026-08-01T15:35:33.592Z",
+  "generatedAt": "2026-08-02T12:18:05.995Z",
   "tools": [
     {
       "id": "compress-pdf",
@@ -4569,7 +4569,7 @@
       "id": "audiogram",
       "name": "Audiogram",
       "description": "Turn a voice clip or song into a branded video that actually moves with the sound — bars, spectrum, ring, ridgeline or scope, ready for social.",
-      "version": "2.2.3",
+      "version": "2.5.0",
       "status": "community",
       "category": "everyone",
       "tags": [
@@ -4591,7 +4591,11 @@
         "mp4",
         "gif",
         "webp-anim",
-        "html"
+        "html",
+        "wav",
+        "mp3",
+        "m4a",
+        "opus"
       ],
       "width": 1080,
       "height": 1080,
@@ -4931,11 +4935,15 @@
         "story"
       ],
       "formats": [
-        "png",
         "mp4",
         "webm",
         "gif",
-        "apng"
+        "apng",
+        "wav",
+        "mp3",
+        "m4a",
+        "opus",
+        "png"
       ],
       "width": 1920,
       "height": 1080,

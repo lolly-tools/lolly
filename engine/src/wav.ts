@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
- * WAV reader — RIFF bytes in, Float32 channel data out.
+ * WAV reader/writer — RIFF bytes in, Float32 channel data out, and back again.
  *
  * Exists so `host.audio` has a decoder that needs no platform codec at all. The web
  * shell hands its audio to `decodeAudioData` and gets MP3/AAC/Opus for free; Node
@@ -143,6 +143,121 @@ function sampleReader(view: DataView, tag: number, bits: number): (at: number) =
     };
     default: return (at) => view.getInt32(at, true) / 2147483648;
   }
+}
+
+/** How `packWav` stores each sample. */
+export type WavSampleFormat = 'int16' | 'float32';
+
+export interface PackWavOptions {
+  /**
+   * `int16` (default) — signed 16-bit PCM, what every player reads.
+   * `float32` — IEEE float, the lossless path. The pipeline is Float32 throughout,
+   * so a "save the audio" export must not quantise unless the caller asks for it.
+   */
+  format?: WavSampleFormat;
+}
+
+/**
+ * Encode Float32 channel data as a RIFF/WAVE file. The inverse of `parseWav` —
+ * it takes exactly what `parseWav` returns, so `parseWav(packWav(x))` round-trips
+ * (bit-exact for `float32`; for `int16`, exact for values already on the 1/32768
+ * grid, quantised otherwise).
+ *
+ * DOM-free and deterministic: same input, same bytes, on every shell.
+ *
+ * Sample policy:
+ *  - `int16` CLIPS. Out-of-range input is clamped to -1..1 before scaling, so a hot
+ *    mix distorts the way an int master would rather than wrapping into noise.
+ *    Scaling is symmetric (x32768, clamped to 32767), which is what makes the
+ *    round-trip exact; the cost is that +1.0 writes 32767, i.e. 0.99997.
+ *  - `float32` does NOT clip. Float WAVs may legitimately exceed -1..1 and the
+ *    reader passes them through, so the writer must too.
+ *
+ * A zero-sample buffer produces a valid, complete header with an empty data chunk.
+ * `parseWav` will REFUSE to read it back ("no complete frames") — deliberately, a
+ * silent zero-length decode is a worse answer than an error.
+ */
+export function packWav(audio: WavAudio, opts: PackWavOptions = {}): Uint8Array {
+  const format = opts.format ?? 'int16';
+  const channels = audio.channels;
+  const channelCount = channels.length;
+  if (!channelCount || channelCount > MAX_CHANNELS) throw new Error(`wav: unsupported channel count ${channelCount}`);
+  const sampleRate = audio.sampleRate;
+  if (!Number.isInteger(sampleRate) || sampleRate <= 0 || sampleRate > 0xffffffff) {
+    throw new Error('wav: invalid sample rate');
+  }
+  const frames = channels[0]!.length;
+  for (const ch of channels) {
+    if (ch.length !== frames) throw new Error('wav: channels differ in length');
+  }
+
+  const float = format === 'float32';
+  const bytesPerSample = float ? 4 : 2;
+  const blockAlign = bytesPerSample * channelCount;
+  const dataLen = frames * blockAlign;
+  // Non-PCM WAVE requires an extended fmt chunk (cbSize field => 18 bytes) and a
+  // `fact` chunk carrying the sample-frame count. Our own reader doesn't need
+  // either, but decoders that follow the spec do, so the float path emits both.
+  const fmtLen = float ? 18 : 16;
+  const factLen = float ? 12 : 0;
+  const headerLen = 12 + 8 + fmtLen + factLen + 8;
+  const total = headerLen + dataLen;
+
+  const u8 = new Uint8Array(total);
+  const view = new DataView(u8.buffer);
+  const put = (at: number, s: string): void => {
+    for (let i = 0; i < s.length; i++) u8[at + i] = s.charCodeAt(i);
+  };
+
+  // RIFF header (RIFF 1.0, "Multimedia Programming Interface and Data Specifications").
+  put(0, 'RIFF');
+  view.setUint32(4, total - 8, true); // ckSize: everything AFTER this field, i.e. file - 8
+  put(8, 'WAVE');
+
+  // fmt chunk (WAVEFORMATEX).
+  let at = 12;
+  put(at, 'fmt ');
+  view.setUint32(at + 4, fmtLen, true);          // ckSize: 16 for PCM, 18 with cbSize
+  view.setUint16(at + 8, float ? FMT_FLOAT : FMT_PCM, true); // wFormatTag
+  view.setUint16(at + 10, channelCount, true);   // nChannels
+  view.setUint32(at + 12, sampleRate, true);     // nSamplesPerSec
+  view.setUint32(at + 16, sampleRate * blockAlign, true); // nAvgBytesPerSec
+  view.setUint16(at + 20, blockAlign, true);     // nBlockAlign: bytes per frame
+  view.setUint16(at + 22, bytesPerSample * 8, true); // wBitsPerSample
+  if (float) view.setUint16(at + 24, 0, true);   // cbSize: no extension follows
+  at += 8 + fmtLen;
+
+  // fact chunk — required for non-PCM; dwSampleLength is frames per channel.
+  if (float) {
+    put(at, 'fact');
+    view.setUint32(at + 4, 4, true);
+    view.setUint32(at + 8, frames, true);
+    at += factLen;
+  }
+
+  // data chunk: frames interleaved, channel order as given.
+  put(at, 'data');
+  view.setUint32(at + 4, dataLen, true);
+  const dataStart = at + 8;
+
+  for (let c = 0; c < channelCount; c++) {
+    const src = channels[c]!;
+    let off = dataStart + c * bytesPerSample;
+    for (let f = 0; f < frames; f++, off += blockAlign) {
+      const s = src[f] as number;
+      if (float) view.setFloat32(off, s, true);
+      else view.setInt16(off, toInt16(s), true);
+    }
+  }
+
+  return u8;
+}
+
+/** −1..1 float to signed 16-bit, clipped. Non-finite input becomes silence. */
+function toInt16(s: number): number {
+  if (!Number.isFinite(s)) return 0;
+  const v = Math.round((s > 1 ? 1 : s < -1 ? -1 : s) * 32768);
+  return v > 32767 ? 32767 : v;
 }
 
 function str(u8: Uint8Array, at: number, n: number): string {

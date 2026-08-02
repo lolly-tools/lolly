@@ -46,7 +46,8 @@ const AUDIO = join(ROOT, 'docs', 'audio');
  * test yet, so a committed non-en directory must be listed here until it is.
  */
 const STALE_ALLOWED: Record<string, string> = {
-  // (empty — nothing narrated has drifted yet)
+  // (empty — the 2026-08-02 meta-title extraction drift was re-rendered the
+  // same day; the four entries it created expired here as the contract demands)
 };
 
 interface Committed { key: string; lang: string; slug: string; meta: AudioMeta }

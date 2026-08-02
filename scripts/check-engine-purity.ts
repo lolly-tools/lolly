@@ -46,7 +46,7 @@
  *
  * KNOWN-LEGAL import escapes (verified by reading the imports, not assumed):
  *   engine/src/geom/path.ts      → type-only `../svg-path.ts` (inside engine/src)
- *   engine/src/validate.ts       → the three JSON schemas in ../../schemas/
+ *   engine/src/validate.ts       → the four JSON schemas in ../../schemas/
  *   engine/src/template.ts       → handlebars             (engine/package.json dep)
  *   engine/src/validate.ts       → ajv/dist/2020.js       (engine/package.json dep)
  *   engine/src/bridge/host-v1.ts → @lolly-tools/core/host-v1 (the SDK contract)
@@ -87,6 +87,10 @@ const ALLOWED_ESCAPES = new Set([
   'schemas/tool.schema.json',
   'schemas/asset.schema.json',
   'schemas/asset-ref.schema.json',
+  // Same category as the three above: a parent-repo contract file the engine
+  // VALIDATES against, not a shell/tool/brand dependency. Added when the rate-card
+  // work landed (engine/src/validate.ts imports all four the same way).
+  'schemas/ratecard.schema.json',
 ]);
 
 /**

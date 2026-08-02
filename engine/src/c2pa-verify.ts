@@ -468,7 +468,7 @@ export interface C2paClaim {
   generatorInfo: Record<string, string | number | boolean> | null;
   instanceId: unknown;
   manifestLabel: string;
-  actions: Array<{ action: unknown; when: unknown; softwareAgent: unknown; digitalSourceType?: unknown; description?: unknown }>;
+  actions: Array<{ action: unknown; when: unknown; softwareAgent: unknown; digitalSourceType?: unknown; description?: unknown; parameters?: unknown }>;
 }
 // A file's provenance flagged as AI/ML-generated: `generated` = pixels produced
 // wholly by a trained model, `composite` = a human work with AI-generated parts
@@ -481,7 +481,11 @@ export interface C2paAiOrigin {
 // `generator` is the claim_generator(_info) of the manifest that RECORDED this
 // step — the "who did it" the view renders as a software pill (softwareAgent, a
 // per-action field many writers omit, takes precedence when present).
-export interface C2paHistoryStep { action: unknown; when: unknown; softwareAgent: unknown; digitalSourceType?: unknown; description?: unknown; generator?: unknown; }
+// `parameters` is the action's raw CBOR parameters value (a Map when written by
+// our own encoder) — surfaced so a reader can recover machine-readable context a
+// writer recorded on a step, e.g. the TTS script a synthetic-voice clip was
+// generated from ({ script, voice, model, lang } on its c2pa.created action).
+export interface C2paHistoryStep { action: unknown; when: unknown; softwareAgent: unknown; digitalSourceType?: unknown; description?: unknown; parameters?: unknown; generator?: unknown; }
 export interface C2paReport {
   found: boolean;
   state: 'valid' | 'invalid' | 'none';
@@ -563,7 +567,7 @@ export async function verifyC2pa(bytes: Uint8Array, { trustAnchors }: { trustAnc
     // for much more — the Lolly Imprint, SEAL, embedded metadata, appended data —
     // so this must never read as "unrecognised / can't inspect", only as "this
     // format doesn't carry Content Credentials".
-    report.reason = 'no Content Credentials — these are embedded only in pdf, png, jpg, gif, svg, tiff, webp, mp4 and webm files';
+    report.reason = 'no Content Credentials — these are embedded only in pdf, png, jpg, gif, svg, tiff, webp, mp4, webm, mp3 and wav files';
     return report;
   }
 
@@ -603,7 +607,7 @@ export async function verifyC2pa(bytes: Uint8Array, { trustAnchors }: { trustAnc
   // maps share the same shape for the fields read here (action/when), except
   // softwareAgent is a bare string in v1 and a generator-info map in v2.
   const actionsAssertion = parts.assertions.find((a) => a.label === 'c2pa.actions' || a.label === 'c2pa.actions.v2');
-  let actions: Array<{ action: unknown; when: unknown; softwareAgent: unknown; digitalSourceType?: unknown; description?: unknown }> = [];
+  let actions: Array<{ action: unknown; when: unknown; softwareAgent: unknown; digitalSourceType?: unknown; description?: unknown; parameters?: unknown }> = [];
   try {
     const decoded = actionsAssertion && (decodeCbor(actionsAssertion.content) as Map<unknown, unknown>).get('actions');
     if (Array.isArray(decoded)) {
@@ -618,6 +622,9 @@ export async function verifyC2pa(bytes: Uint8Array, { trustAnchors }: { trustAnc
           // trainedAlgorithmicMedia …) — the signal behind the AI-generated flag.
           digitalSourceType: a.get?.('digitalSourceType'),
           description: a.get?.('description'),
+          // Raw CBOR parameters (a Map from our decoder) — the machine-readable
+          // context a writer recorded on the step (e.g. a TTS clip's script).
+          parameters: a.get?.('parameters'),
         };
       });
     }

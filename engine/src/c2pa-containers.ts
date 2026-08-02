@@ -699,23 +699,24 @@ function placeTiff(tiff: Uint8Array, manifest: Uint8Array): PlaceResult {
   };
 }
 
-// WebP (RIFF): a top-level "C2PA" chunk appended as the LAST chunk (+0x00 pad
-// when the manifest length is odd — the pad is HASHED, only header+data are
-// excluded), with the RIFF size field at offset 4 updated. Any existing C2PA
-// chunk is removed first.
-function placeWebp(webp: Uint8Array, manifest: Uint8Array): PlaceResult {
-  const fourcc = (o: number) => String.fromCharCode(webp[o]!, webp[o + 1]!, webp[o + 2]!, webp[o + 3]!);
-  if (fourcc(0) !== 'RIFF' || fourcc(8) !== 'WEBP') throw new Error('C2PA embed: not a WebP');
-  const dv = new DataView(webp.buffer, webp.byteOffset);
+// RIFF family (WebP, WAV): a top-level "C2PA" chunk appended as the LAST chunk
+// (+0x00 pad when the manifest length is odd — the pad is HASHED, only
+// header+data are excluded), with the RIFF size field at offset 4 updated. Any
+// existing C2PA chunk is removed first. One placer serves both containers —
+// the chunk grammar is identical, only the form fourcc at offset 8 differs.
+function placeRiff(riff: Uint8Array, manifest: Uint8Array, form: string, label: string): PlaceResult {
+  const fourcc = (o: number) => String.fromCharCode(riff[o]!, riff[o + 1]!, riff[o + 2]!, riff[o + 3]!);
+  if (riff.length < 12 || fourcc(0) !== 'RIFF' || fourcc(8) !== form) throw new Error(`C2PA embed: not a ${label}`);
+  const dv = new DataView(riff.buffer, riff.byteOffset);
   let drop: { start: number; end: number } | null = null;
-  for (let i = 12; i + 8 <= webp.length; ) {
+  for (let i = 12; i + 8 <= riff.length; ) {
     const size = dv.getUint32(i + 4, true);
     const end = i + 8 + size + (size & 1);
-    if (end > webp.length + 1) throw new Error('C2PA embed: malformed WebP chunk');
-    if (fourcc(i) === 'C2PA') drop = { start: i, end: Math.min(end, webp.length) };
+    if (end > riff.length + 1) throw new Error(`C2PA embed: malformed ${label} chunk`);
+    if (fourcc(i) === 'C2PA') drop = { start: i, end: Math.min(end, riff.length) };
     i = end;
   }
-  const cleaned = drop ? concatBytes([webp.subarray(0, drop.start), webp.subarray(drop.end)]) : webp;
+  const cleaned = drop ? concatBytes([riff.subarray(0, drop.start), riff.subarray(drop.end)]) : riff;
   const chunk = concatBytes([
     asciiBytes('C2PA'), u32le(manifest.length), manifest,
     manifest.length & 1 ? Uint8Array.of(0) : new Uint8Array(0),
@@ -724,6 +725,30 @@ function placeWebp(webp: Uint8Array, manifest: Uint8Array): PlaceResult {
   const out = concatBytes([cleaned, chunk]);
   new DataView(out.buffer, out.byteOffset).setUint32(4, out.length - 8, true);
   return { out, exclusions: [{ start, length: manifest.length + 8 }] };
+}
+
+const placeWebp = (webp: Uint8Array, manifest: Uint8Array): PlaceResult => placeRiff(webp, manifest, 'WEBP', 'WebP');
+
+// WAV: the same RIFF binding (the C2PA spec's RIFF-family mapping — the route
+// for a generated narration clip's Article 50 mark to live IN the file, not
+// just on the asset record; plans/tts-stt-programme.md §2). The chunk lands
+// after 'fmt '/'data' (appended last), decoders skip unknown chunks (the
+// engine's own parseWav walks; verified against decodeAudioData manually), and
+// re-stamp replaces. A file with no 'data' chunk is not audio — refuse rather
+// than credential a container no player will read.
+function placeWav(wav: Uint8Array, manifest: Uint8Array): PlaceResult {
+  const fourcc = (o: number) => String.fromCharCode(wav[o]!, wav[o + 1]!, wav[o + 2]!, wav[o + 3]!);
+  if (wav.length >= 12 && fourcc(0) === 'RIFF' && fourcc(8) === 'WAVE') {
+    const dv = new DataView(wav.buffer, wav.byteOffset);
+    let hasData = false;
+    for (let i = 12; i + 8 <= wav.length; ) {
+      if (fourcc(i) === 'data') hasData = true;
+      const size = dv.getUint32(i + 4, true);
+      i += 8 + size + (size & 1);
+    }
+    if (!hasData) throw new Error('C2PA embed: WAV has no data chunk');
+  }
+  return placeRiff(wav, manifest, 'WAVE', 'WAV');
 }
 
 // ─── MP4 (ISO BMFF) ───────────────────────────────────────────────────────────
@@ -1049,6 +1074,99 @@ function seekHeadHasEntry(bytes: Uint8Array, scan: { elements: EbmlEl[] }, seekI
   return false;
 }
 
+// ─── MP3 (ID3v2 GEOB) ─────────────────────────────────────────────────────────
+// Per the C2PA spec's MPEG-1/2 audio binding: the manifest store is the object
+// data of a GEOB (General Encapsulated Object) frame in the leading ID3v2 tag,
+// identified by its MIME type; the hard-binding exclusion is the ENTIRE ID3v2
+// tag (start 0 through tag end), so retagging tools that rewrite other frames
+// still invalidate nothing outside the credential's home. The read side
+// (c2pa-extract extractC2paFromMp3) matches on the MIME alone, so the
+// filename/description strings are naming, not protocol.
+export const MP3_GEOB_MIME = 'application/x-c2pa-manifest-store';
+
+// 28-bit syncsafe integer (ID3v2 tag + v2.4 frame sizes): 7 bits per byte.
+const syncsafe = (n: number): Uint8Array =>
+  Uint8Array.of((n >>> 21) & 0x7f, (n >>> 14) & 0x7f, (n >>> 7) & 0x7f, n & 0x7f);
+const readSyncsafe = (b: Uint8Array, off: number): number =>
+  ((b[off]! & 0x7f) << 21) | ((b[off + 1]! & 0x7f) << 14) | ((b[off + 2]! & 0x7f) << 7) | (b[off + 3]! & 0x7f);
+
+// One GEOB frame carrying the store. Latin-1 text encoding (0x00) — every
+// string here is ASCII. `v4` picks the frame-size encoding to match the tag
+// version it lands in (v2.4 syncsafe, v2.3 plain 32-bit).
+function mp3GeobFrame(manifest: Uint8Array, v4: boolean): Uint8Array {
+  const nul = Uint8Array.of(0);
+  const body = concatBytes([
+    Uint8Array.of(0x00), asciiBytes(MP3_GEOB_MIME), nul, asciiBytes('c2pa'), nul, asciiBytes('c2pa'), nul, manifest,
+  ]);
+  if (v4 && body.length >= 1 << 28) throw new Error('C2PA embed: manifest too large for an ID3v2.4 frame');
+  return concatBytes([asciiBytes('GEOB'), v4 ? syncsafe(body.length) : u32be(body.length), Uint8Array.of(0, 0), body]);
+}
+
+// Is this frame OUR GEOB? (id GEOB, Latin-1-positioned MIME matches.)
+function isC2paGeob(bytes: Uint8Array, bodyStart: number, bodyEnd: number): boolean {
+  const mime = asciiBytes(MP3_GEOB_MIME);
+  if (bodyEnd - bodyStart < 1 + mime.length + 1) return false;
+  for (let j = 0; j < mime.length; j++) if (bytes[bodyStart + 1 + j] !== mime[j]) return false;
+  return bytes[bodyStart + 1 + mime.length] === 0;
+}
+
+// Walk the frames of a v2.3/v2.4 tag in [from, end): [{ start, end, keep }].
+// Stops at padding (a zero byte where a frame id should be). Bounds-checked
+// before every read — tags come out of attacker-controlled files.
+function walkId3Frames(bytes: Uint8Array, from: number, end: number, v4: boolean): { start: number; end: number; c2pa: boolean }[] {
+  const out: { start: number; end: number; c2pa: boolean }[] = [];
+  let off = from;
+  while (off + 10 <= end && bytes[off] !== 0) {
+    const size = v4 ? readSyncsafe(bytes, off + 4) : ((bytes[off + 4]! << 24) | (bytes[off + 5]! << 16) | (bytes[off + 6]! << 8) | bytes[off + 7]!) >>> 0;
+    const next = off + 10 + size;
+    if (next > end || next <= off) throw new Error('C2PA embed: malformed ID3v2 frame');
+    const isGeob = bytes[off] === 0x47 && bytes[off + 1] === 0x45 && bytes[off + 2] === 0x4f && bytes[off + 3] === 0x42;
+    out.push({ start: off, end: next, c2pa: isGeob && isC2paGeob(bytes, off + 10, next) });
+    off = next;
+  }
+  return out;
+}
+
+// MP3: rebuild ONE leading ID3v2 tag — the existing tag's frames (minus any
+// prior C2PA GEOB — re-stamp replaces, never duplicates) with our GEOB
+// prepended, or a fresh minimal ID3v2.4 tag when the file starts at a frame
+// sync. The audio bytes are never touched, and everything outside the tag
+// depends only on manifest LENGTH (the placer contract). Unsynchronised or
+// extended-header tags are rare enough to refuse rather than mis-walk.
+function placeMp3(mp3: Uint8Array, manifest: Uint8Array): PlaceResult {
+  const hasTag = mp3.length >= 10 && mp3[0] === 0x49 && mp3[1] === 0x44 && mp3[2] === 0x33;
+  if (!hasTag && !(mp3.length >= 4 && mp3[0] === 0xff && (mp3[1]! & 0xe0) === 0xe0)) {
+    throw new Error('C2PA embed: not an MP3 (no ID3v2 tag or frame sync)');
+  }
+  let ver = 4;
+  let audioStart = 0;
+  let kept: Uint8Array = new Uint8Array(0);
+  if (hasTag) {
+    ver = mp3[3]!;
+    if (ver !== 3 && ver !== 4) throw new Error(`C2PA embed: unsupported ID3v2.${ver} tag`);
+    const flags = mp3[5]!;
+    if (flags & 0x80) throw new Error('C2PA embed: unsynchronised ID3v2 tag');
+    if (flags & 0x40) throw new Error('C2PA embed: ID3v2 extended header not supported');
+    const size = readSyncsafe(mp3, 6);
+    audioStart = 10 + size + ((flags & 0x10) ? 10 : 0);
+    if (audioStart > mp3.length) throw new Error('C2PA embed: truncated ID3v2 tag');
+    // Existing frames ride verbatim (their bytes are already valid for `ver`);
+    // padding is dropped — the rebuilt tag is exactly as large as its frames.
+    const frames = walkId3Frames(mp3, 10, 10 + size, ver === 4);
+    kept = concatBytes(frames.filter((f) => !f.c2pa).map((f) => mp3.subarray(f.start, f.end)));
+  }
+  const geob = mp3GeobFrame(manifest, ver === 4);
+  const content = concatBytes([geob, kept]);
+  if (content.length >= 1 << 28) throw new Error('C2PA embed: ID3v2 tag too large');
+  // Rebuilt header: same major version, revision 0, no flags (any footer is
+  // dropped with the rest of the old envelope — the frames carry the meaning).
+  const tag = concatBytes([asciiBytes('ID3'), Uint8Array.of(ver, 0, 0), syncsafe(content.length), content]);
+  return {
+    out: concatBytes([tag, mp3.subarray(audioStart)]),
+    exclusions: [{ start: 0, length: tag.length }],
+  };
+}
+
 interface Container {
   place: (container: Uint8Array, manifest: Uint8Array) => PlaceResult;
   mime: string;
@@ -1067,6 +1185,8 @@ const CONTAINERS: Record<string, Container> = {
   webp: { place: placeWebp, mime: 'image/webp' },
   mp4: { place: placeMp4, mime: 'video/mp4', hash: 'bmff' },
   webm: { place: placeWebm, mime: 'video/webm' },
+  mp3: { place: placeMp3, mime: 'audio/mpeg' },
+  wav: { place: placeWav, mime: 'audio/wav' },
 };
 
 /** Formats embedC2pa can stamp (plus 'pdf'/'pdf-cmyk' via embedC2paInPdf). */
