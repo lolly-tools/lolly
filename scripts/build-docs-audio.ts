@@ -8,9 +8,9 @@
  *
  * ANDY-RUN ONLY. Like scripts/fetch-trustmark-models.ts and
  * scripts/fetch-kokoro-models.ts, this script needs things CI must never have —
- * the kokoro-js package (deliberately NOT in package.json), its ~92 MB
- * Kokoro-82M ONNX model (downloaded from huggingface.co on first use into the
- * transformers.js cache), and ffmpeg on PATH — and it is never invoked by
+ * the LOCAL Kokoro model staged at shells/web/public/models/kokoro/ (the ~92 MB
+ * timestamped q8 ONNX + tokenizer + voice matrices scripts/fetch-kokoro-models.ts
+ * downloads and sha256-pins), and ffmpeg on PATH — and it is never invoked by
  * `npm install`/`postinstall`/CI. CI's whole involvement is
  * tests/docs-audio-stale.test.ts, which only verifies COMMITTED artefacts
  * against the current docs source (plan §10). When any prerequisite is absent
@@ -32,18 +32,26 @@
  * re-renders only pages whose hash moved (or which are missing entirely).
  * Voice/model upgrades are a deliberate `--force`, never automatic.
  *
- * ── Synthesis (plan §4.2) ─────────────────────────────────────────────────
- * kokoro-js, one voice for the whole corpus (VOICE below — voice churn
- * re-renders everything, so it changes only with a corpus-wide --force pass).
- * Synthesised PER BLOCK and concatenated with authored gaps (700 ms before a
- * heading, 350 ms before a paragraph/list item), which keeps each chunk inside
- * Kokoro's comfortable input length and yields block start-times for free —
- * those are the launch cues. Whisper word alignment is explicitly deferred:
- * cues.json is `{ blocks: [{ blockId, start, end }] }` today, shaped so a
- * `words` array can land beside `blocks` later without touching a reader.
- * Loudness is normalised in the encode step (ffmpeg loudnorm, I=-19 — the
- * plan's ≈ −19 LUFS mono target) and the encode is Opus-in-Ogg at 24 kbps
- * voice profile (~180 KB/min).
+ * ── Synthesis (plan §4.2, roadmap §4's one-synthesis-layer rule) ──────────
+ * The SAME stack as host.speech's worker
+ * (shells/web/src/lib/speech-kokoro-worker.ts): @huggingface/transformers +
+ * phonemizer directly (both resolve from the shells/web workspace, hoisted to
+ * the root node_modules), loading the timestamped Kokoro q8 model from
+ * shells/web/public/models/kokoro with remote models disabled — the worker's
+ * privacy posture, no huggingface.co fetch ever — and the engine's shared pure
+ * logic (engine/src/speech-text.ts) for normalize/split/chunk/span/timing
+ * maths, so the docs narration speaks words exactly the way every shell does.
+ * One voice for the whole corpus (VOICE below — voice churn re-renders
+ * everything, so it changes only with a corpus-wide --force pass). Synthesised
+ * PER BLOCK and concatenated with authored gaps (700 ms before a heading,
+ * 350 ms before a paragraph/list item), which keeps each chunk inside Kokoro's
+ * input budget and yields block start-times for free — those are the launch
+ * cues. The timestamped model's `durations` output gives WORD timings too:
+ * cues.json is `{ blocks: [{ blockId, start, end }], words: [{ text, start,
+ * end }] }` — the reader-compat shape blocks-only launch promised. Loudness is
+ * normalised in the encode step (ffmpeg loudnorm, I=-19 — the plan's ≈ −19
+ * LUFS mono target) and the encode is Opus-in-Ogg at 24 kbps voice profile
+ * (~180 KB/min).
  *
  * ── viz.bin (plan §4.4) ───────────────────────────────────────────────────
  * The FINISHED opus is decoded back to PCM (ffmpeg → raw f32le mono 48 kHz)
@@ -63,13 +71,13 @@
  *                then count × samples raw wave bytes (already 0..255,
  *                centred on 128 — copied, never re-quantised)
  *
- * ── Verification state (2026-08-02) ───────────────────────────────────────
- * The kokoro-js call shape (KokoroTTS.from_pretrained → tts.generate(text,
- * { voice }) → { audio: Float32Array, sampling_rate }) matches the package's
- * published API but has NOT been executed in the environment that wrote this
- * file (kokoro-js was absent by design). The clean-exit paths and the
- * staleness maths are what tests cover; the first real render is a manual
- * checklist item in plans/docs-audio-listen.md §10.
+ * ── Captions ──────────────────────────────────────────────────────────────
+ * captions.vtt comes from the engine's own caption maths — groupWordsToCues
+ * over the word timings, serialised by cuesToVtt (engine/src/captions.ts) —
+ * so a docs caption breaks lines at the same words a host.speech caption
+ * does. When a block degrades to sentence granularity (durations shape
+ * mismatch), the grouper passes sentence spans through mostly unchanged, the
+ * documented fallback.
  */
 
 import { spawnSync } from 'node:child_process';
@@ -80,6 +88,15 @@ import { fileURLToPath } from 'node:url';
 
 import { extractSpokenText, spokenTextHash, type SpokenBlock } from './lib/docs-spoken-text.ts';
 import { analysePcm } from '../engine/src/audio-analyse.ts';
+import { groupWordsToCues, cuesToVtt } from '../engine/src/captions.ts';
+import {
+  KOKORO_SAMPLE_RATE, KOKORO_STYLE_DIM, KOKORO_MODEL_ID, KOKORO_VOICE_BYTES,
+  SENTENCE_GAP_S, splitSentences, splitWords, phonemeTokenSpans,
+  wordTimingsFromDurations, concatClips, normalizeText, phonemizeChunk,
+  chunkByPhonemeLength,
+} from '../engine/src/speech-text.ts';
+import type { EspeakFn, SentenceClip } from '../engine/src/speech-text.ts';
+import type { SpeechWordTiming } from '../packages/core/src/host-v1.ts';
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const DOCS = join(ROOT, 'docs');
@@ -91,14 +108,19 @@ const AUDIO_ROOT = join(DOCS, 'audio');
 export const LANG = 'en';
 
 /** One voice for the whole corpus (plan §4.2) — af_heart, the top-graded en-US
- *  voice in Kokoro's own table (see scripts/fetch-kokoro-models.ts's curation
- *  notes). Changing it stales EVERY page: that is a --force-everything day,
- *  chosen deliberately, not a hash-driven re-render. */
+ *  voice in Kokoro's own table (KOKORO_VOICES in engine/src/speech-text.ts).
+ *  Changing it stales EVERY page: that is a --force-everything day, chosen
+ *  deliberately, not a hash-driven re-render. */
 export const VOICE = 'af_heart';
 
-/** The model id kokoro-js resolves from Hugging Face. Recorded in meta.json as
- *  modelVersion so a model upgrade is visible per artefact. */
+/** The upstream model this local copy was fetched from (see
+ *  scripts/fetch-kokoro-models.ts). Recorded in meta.json as modelVersion so a
+ *  model upgrade is visible per artefact. */
 export const MODEL_ID = 'onnx-community/Kokoro-82M-v1.0-ONNX';
+
+/** The locally staged model directory (scripts/fetch-kokoro-models.ts) — the
+ *  same files the web worker loads from /models/kokoro/. */
+const MODEL_DIR = join(ROOT, 'shells', 'web', 'public', 'models', 'kokoro');
 
 /**
  * The launch set (plan §1/§11): the landing page plus the three pathway hubs —
@@ -195,17 +217,6 @@ function toByte(v: number): number {
   return n < 0 ? 0 : n > 255 ? 255 : n;
 }
 
-/** Seconds → a WebVTT timestamp (hh:mm:ss.mmm). */
-function vttTime(sec: number): string {
-  const ms = Math.max(0, Math.round(sec * 1000));
-  const h = Math.floor(ms / 3_600_000);
-  const m = Math.floor((ms % 3_600_000) / 60_000);
-  const s = Math.floor((ms % 60_000) / 1000);
-  const frac = ms % 1000;
-  const p = (n: number, w: number) => String(n).padStart(w, '0');
-  return `${p(h, 2)}:${p(m, 2)}:${p(s, 2)}.${p(frac, 3)}`;
-}
-
 /** The audiogram's `loudest()` — the poster frame is the peak-RMS instant,
  *  searched away from the fade-prone first/last 10%. */
 function posterFrame(rms: Float32Array, count: number): number {
@@ -238,42 +249,115 @@ interface Rendered {
   opus: Buffer;
   vtt: string;
   cues: Cue[];
+  words: SpeechWordTiming[];
   viz: Buffer;
   meta: AudioMeta;
 }
 
-/** kokoro-js's generate() result — typed here because the package is imported
- *  dynamically and is absent from package.json by design. */
-interface RawAudio { audio: Float32Array; sampling_rate: number }
-interface KokoroLike { generate(text: string, opts: { voice: string }): Promise<RawAudio> }
+// Minimal shapes for the transformers.js pieces we touch — the same four
+// operations (and the same rationale) as the web worker's KokoroRuntime:
+// the package's own typings are bundler-hostile generics.
+interface TensorLike { data: ArrayLike<number | bigint>; dims: number[] }
+type TensorCtor = new (type: string, data: Float32Array | number[], dims: number[]) => unknown;
+interface KokoroRuntime {
+  model: (inputs: Record<string, unknown>) => Promise<{ waveform: TensorLike; durations?: TensorLike }>;
+  tokenizer: (text: string, opts: { truncation: boolean }) => { input_ids: TensorLike };
+  Tensor: TensorCtor;
+  espeak: EspeakFn;
+  voiceData: Float32Array;
+}
 
-async function renderPage(slug: string, tts: KokoroLike, tmp: string): Promise<Rendered> {
+/**
+ * Synthesize one spoken block — the web worker's per-sentence loop
+ * (shells/web/src/lib/speech-kokoro-worker.ts synthesize()), minus the
+ * progress/abort machinery: normalize the whole block, split into sentences,
+ * phonemize per WORD so each word's token span is known by construction, chunk
+ * by the model's real phoneme budget, and read word timings off the
+ * timestamped model's `durations` output. Returns mono PCM at
+ * KOKORO_SAMPLE_RATE plus word timings relative to the block start (sentence
+ * spans when any chunk's alignment invariant fails — uniform granularity, like
+ * the worker).
+ */
+async function synthesizeBlock(rt: KokoroRuntime, text: string): Promise<{ pcm: Float32Array; words: SpeechWordTiming[] }> {
+  // af_/am_ voices are en-US — 'a' in Kokoro's accent scheme (b* = en-GB).
+  const language = VOICE.startsWith('b') ? 'b' as const : 'a' as const;
+  const sentences = splitSentences(normalizeText(text));
+  interface Piece { pcm: Float32Array; sentence: string; wordEntries: SpeechWordTiming[] | null }
+  const pieces: Piece[] = [];
+
+  for (const sentence of sentences) {
+    const words = splitWords(sentence);
+    const wordPhonemes: string[] = [];
+    for (const w of words) wordPhonemes.push(await phonemizeChunk(rt.espeak, w, language));
+
+    for (const chunk of chunkByPhonemeLength(words, wordPhonemes)) {
+      const phonemes = chunk.phonemes.join(' ');
+      const { input_ids } = rt.tokenizer(phonemes, { truncation: true });
+      const seqLen = input_ids.dims[input_ids.dims.length - 1] ?? 0;
+      // Style row is indexed by token count (rows 0..509) — the model was
+      // trained with a per-length style lookup.
+      const numTokens = Math.min(Math.max(seqLen - 2, 0), 509);
+      const style = rt.voiceData.slice(numTokens * KOKORO_STYLE_DIM, (numTokens + 1) * KOKORO_STYLE_DIM);
+      const outputs = await rt.model({
+        input_ids,
+        style: new rt.Tensor('float32', style, [1, KOKORO_STYLE_DIM]),
+        speed: new rt.Tensor('float32', [1], [1]),
+      });
+      const wave = outputs.waveform.data as Float32Array;
+
+      // Word alignment holds only when the char-level tokenizer invariant does
+      // (one token per phoneme char + BOS/EOS, nothing truncated) AND the
+      // durations output is present and one-per-token.
+      let wordEntries: SpeechWordTiming[] | null = null;
+      if (outputs.durations && seqLen === phonemes.length + 2) {
+        const spans = phonemeTokenSpans(chunk.phonemes);
+        const times = wordTimingsFromDurations(outputs.durations.data, spans, wave.length, KOKORO_SAMPLE_RATE);
+        if (times) wordEntries = chunk.words.map((t, j) => ({ text: t, start: times[j]!.start, end: times[j]!.end }));
+      }
+      pieces.push({ pcm: wave, sentence: chunk.words.join(' '), wordEntries });
+    }
+  }
+
+  const allAligned = pieces.length > 0 && pieces.every((p) => p.wordEntries !== null);
+  const clips: SentenceClip[] = pieces.map((p) => ({
+    pcm: p.pcm,
+    words: allAligned
+      ? (p.wordEntries as SpeechWordTiming[])
+      : [{ text: p.sentence, start: 0, end: p.pcm.length / KOKORO_SAMPLE_RATE }],
+  }));
+  const { pcm, words } = concatClips(clips, SENTENCE_GAP_S, KOKORO_SAMPLE_RATE);
+  return { pcm, words };
+}
+
+async function renderPage(slug: string, tts: KokoroRuntime, tmp: string): Promise<Rendered> {
   const spoken = currentSpoken(slug);
   if (!spoken) throw new Error(`${slug}: not listed in docs/build.ts pages[] — nothing to narrate`);
 
   // Per-block synthesis, concatenated with the authored gaps. Cue times come
-  // from sample positions — exact by construction, no alignment pass needed
-  // for block-level launch.
+  // from sample positions — exact by construction — and each block's word
+  // timings (from the timestamped model's durations output) are offset by its
+  // start into the page timeline.
+  const sr = KOKORO_SAMPLE_RATE;
   const pieces: Float32Array[] = [];
   const cues: Cue[] = [];
-  let sr = 0;
+  const words: SpeechWordTiming[] = [];
   let cursor = 0; // samples
   for (const block of spoken.blocks) {
-    const out = await tts.generate(block.text, { voice: VOICE });
-    if (!sr) sr = out.sampling_rate;
-    else if (sr !== out.sampling_rate) throw new Error(`${slug}: sample rate changed mid-corpus (${sr} → ${out.sampling_rate})`);
+    const out = await synthesizeBlock(tts, block.text);
     if (cursor > 0) {
       const gap = new Float32Array(Math.round((GAP_MS[block.kind] / 1000) * sr));
       pieces.push(gap);
       cursor += gap.length;
     }
-    cues.push({ blockId: block.blockId, start: cursor / sr, end: (cursor + out.audio.length) / sr });
-    pieces.push(out.audio);
-    cursor += out.audio.length;
+    const t0 = cursor / sr;
+    cues.push({ blockId: block.blockId, start: t0, end: t0 + out.pcm.length / sr });
+    for (const w of out.words) words.push({ text: w.text, start: t0 + w.start, end: t0 + w.end });
+    pieces.push(out.pcm);
+    cursor += out.pcm.length;
     process.stdout.write(`  ${slug}: ${cues.length}/${spoken.blocks.length} blocks\r`);
   }
   process.stdout.write('\n');
-  if (!sr || !cursor) throw new Error(`${slug}: synthesis produced no audio`);
+  if (!cursor) throw new Error(`${slug}: synthesis produced no audio`);
 
   const pcm = new Float32Array(cursor);
   let at = 0;
@@ -294,16 +378,10 @@ async function renderPage(slug: string, tts: KokoroLike, tmp: string): Promise<R
   ], `encoding ${slug}`);
   const opus = readFileSync(opusPath);
 
-  // Subtitles: block-level cues at launch, one per spoken block. The Whisper
-  // pass (plan §4.3, deferred) will replace this with sentence-ish ≤ 2-line
-  // groups and add word timings to cues.json — the VTT is regenerated then,
-  // nothing here needs to survive that upgrade.
-  const vtt = ['WEBVTT', '', ...cues.flatMap((c, i) => [
-    `${slug}-${i + 1}`,
-    `${vttTime(c.start)} --> ${vttTime(c.end)}`,
-    spoken.blocks[i]!.text,
-    '',
-  ])].join('\n');
+  // Subtitles: the engine's own caption maths over the word timings, so a
+  // docs caption breaks lines at the same words a host.speech caption does.
+  // Sentence-granular fallback words pass through the grouper mostly unchanged.
+  const vtt = cuesToVtt(groupWordsToCues(words));
 
   // viz.bin: decode the FINISHED opus (what listeners actually hear, loudnorm
   // included) and run the engine's shared analysis maths.
@@ -344,7 +422,7 @@ async function renderPage(slug: string, tts: KokoroLike, tmp: string): Promise<R
     generated: new Date().toISOString(),
   };
 
-  return { opus, vtt, cues, viz, meta };
+  return { opus, vtt, cues, words, viz, meta };
 }
 
 function writeArtefacts(slug: string, r: Rendered): void {
@@ -352,15 +430,16 @@ function writeArtefacts(slug: string, r: Rendered): void {
   mkdirSync(dir, { recursive: true });
   writeFileSync(join(dir, 'audio.opus'), r.opus);
   writeFileSync(join(dir, 'captions.vtt'), r.vtt);
-  // Shaped so a future Whisper pass adds `words` beside `blocks` (plan §4.3)
-  // without a reader change — the launch player only consumes blocks.
-  writeFileSync(join(dir, 'cues.json'), `${JSON.stringify({ blocks: r.cues }, null, 2)}\n`);
+  // The reader-compat shape the header promises: `words` beside `blocks`. The
+  // launch player only consumes blocks; word timings feed the captions and any
+  // future karaoke-style highlight without a reader change.
+  writeFileSync(join(dir, 'cues.json'), `${JSON.stringify({ blocks: r.cues, words: r.words }, null, 2)}\n`);
   writeFileSync(join(dir, 'viz.bin'), r.viz);
   writeFileSync(join(dir, 'meta.json'), `${JSON.stringify(r.meta, null, 2)}\n`);
   const kb = (n: number) => `${(n / 1024).toFixed(1)} KB`;
   process.stdout.write(
     `  wrote docs/audio/${LANG}/${slug}/ — ${r.meta.duration.toFixed(1)}s, `
-    + `opus ${kb(r.opus.length)}, viz ${kb(r.viz.length)}, ${r.cues.length} cues\n`,
+    + `opus ${kb(r.opus.length)}, viz ${kb(r.viz.length)}, ${r.cues.length} cues, ${r.words.length} words\n`,
   );
 }
 
@@ -371,35 +450,52 @@ function bail(lines: string[]): never {
   process.exit(0);
 }
 
-async function loadKokoro(): Promise<KokoroLike> {
-  let mod: { KokoroTTS: { from_pretrained(id: string, opts: { dtype: string }): Promise<KokoroLike> } };
-  try {
-    // Dynamic import so a clone without the package parses and runs this file
-    // fine — the miss is a printed recipe, not a crash at module load. The
-    // specifier goes through a widened variable on purpose: tsc must not try
-    // to resolve a package that is absent from package.json by design.
-    const specifier: string = 'kokoro-js';
-    mod = await import(specifier);
-  } catch {
+async function loadKokoro(): Promise<KokoroRuntime> {
+  // Prereq: the locally staged model. Everything loads from MODEL_DIR with
+  // remote models disabled — the worker's privacy posture, never a
+  // huggingface.co fetch — so an absent stage is a printed recipe, not a
+  // download.
+  const voicePath = join(MODEL_DIR, 'voices', `${VOICE}.bin`);
+  if (!existsSync(join(MODEL_DIR, 'onnx', 'model_quantized.onnx')) || !existsSync(voicePath)) {
     bail([
-      'kokoro-js is not installed (it is deliberately absent from package.json —',
-      'CI never runs models; see this script\'s header and plan §10).',
-      'To render narration on this machine:',
+      `The local Kokoro model is not staged (${MODEL_DIR}).`,
+      'Fetch it once (sha256-pinned, ~92 MB + voices):',
       '',
-      '  npm install --no-save kokoro-js',
-      '  node scripts/build-docs-audio.ts',
+      '  node scripts/fetch-kokoro-models.ts',
       '',
-      'The first run downloads the ~92 MB Kokoro-82M ONNX model from',
-      'huggingface.co into the transformers.js cache; later runs are offline.',
+      'then re-run. Synthesis is fully offline from there.',
     ]);
   }
   try {
-    return await mod.KokoroTTS.from_pretrained(MODEL_ID, { dtype: 'q8' });
+    const { env, AutoTokenizer, StyleTextToSpeech2Model, Tensor } = await import('@huggingface/transformers');
+    env.allowRemoteModels = false;
+    env.allowLocalModels = true;
+    env.localModelPath = dirname(MODEL_DIR); // model id KOKORO_MODEL_ID resolves to MODEL_DIR
+    const [model, tokenizer] = await Promise.all([
+      StyleTextToSpeech2Model.from_pretrained(KOKORO_MODEL_ID, { dtype: 'q8' }),
+      AutoTokenizer.from_pretrained(KOKORO_MODEL_ID),
+    ]);
+    const { phonemize } = await import('phonemizer');
+    // Buffer views are not guaranteed 4-byte aligned — copy before casting.
+    const raw = readFileSync(voicePath);
+    const voiceData = new Float32Array(raw.buffer.slice(raw.byteOffset, raw.byteOffset + raw.byteLength));
+    if (voiceData.byteLength !== KOKORO_VOICE_BYTES) {
+      throw new Error(`voice ${VOICE} is ${voiceData.byteLength} bytes, expected ${KOKORO_VOICE_BYTES} — re-run scripts/fetch-kokoro-models.ts`);
+    }
+    return {
+      model: model as unknown as KokoroRuntime['model'],
+      tokenizer: tokenizer as unknown as KokoroRuntime['tokenizer'],
+      Tensor: Tensor as unknown as TensorCtor,
+      espeak: phonemize as EspeakFn,
+      voiceData,
+    };
   } catch (err) {
     bail([
-      `Could not load the Kokoro model (${MODEL_ID}): ${(err as Error).message}`,
-      'The model downloads from huggingface.co on first use — check network',
-      'access, or pre-fetch it once on a connected machine and re-run.',
+      `Could not load the Kokoro model from ${MODEL_DIR}: ${(err as Error).message}`,
+      '(@huggingface/transformers and phonemizer resolve from the shells/web',
+      'workspace — run `npm install` at the repo root if node_modules is bare,',
+      'and re-stage the model with `node scripts/fetch-kokoro-models.ts` if its',
+      'files are damaged.)',
     ]);
   }
 }

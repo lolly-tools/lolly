@@ -2011,3 +2011,17 @@ individual is never expected to author a supplier's price list. What stays in co
 honest, universal part: the preflight counts, the pure cost calculator, and card
 CONSUMPTION, so a card supplied by the CLI or a control-plane catalog asset still parses,
 stores and prices with no authoring UI present.
+
+## 1.98.0 — the synthesis text maths moves into the engine
+
+`src/speech-text.ts` — the pure half of Kokoro TTS (formerly
+`shells/web/src/lib/speech-kokoro.ts`), moved under the inclusive-audio
+roadmap's one-synthesis-layer rule: normalizeText and the phoneme pipeline
+port, splitSentences/splitWords/chunkByPhonemeLength, phonemeTokenSpans,
+wordTimingsFromDurations, concatClips, and the voice/model constants. All
+plain math and string work with the model, tokenizer and phonemizer injected
+around it — the analysePcm split — so the web worker and Node scripts
+(scripts/build-docs-audio.ts renders the /info narration on it) speak the same
+words the same way. The web-shell module stays as a thin re-export, so no
+import site moved. New pure exports on the barrel; no HostV1 method added or
+changed.

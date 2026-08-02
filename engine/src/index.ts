@@ -147,6 +147,19 @@ export type { AudioAnalysis, AudioAnalyseOpts, AudioFrames } from './audio-analy
 // export break caption lines at the same words.
 export { groupWordsToCues, cuesToVtt, cuesToSrt, cueAt } from './captions.ts';
 export type { CaptionCue, GroupWordsOpts } from './captions.ts';
+// Speech synthesis text machinery (host.speech, v1.98) — the pure half of Kokoro
+// TTS: normalize/split/chunk maths, token-span bookkeeping, durations→word
+// timings and clip concatenation. The shell's worker and Node scripts inject the
+// model/phonemizer around it, so every surface speaks the same words the same way.
+export {
+  KOKORO_SAMPLE_RATE, KOKORO_STYLE_DIM, KOKORO_MODEL_ID, KOKORO_VOICE_BYTES,
+  KOKORO_MODEL_BYTES, KOKORO_VOICES, KOKORO_DEFAULT_VOICE, SENTENCE_GAP_S,
+  MAX_INPUT_CHARS, MAX_PHONEME_CHARS,
+  splitSentences, splitWords, phonemeTokenSpans, chunkByPhonemeLength,
+  wordTimingsFromDurations, concatClips, normalizeText, splitPunctuation,
+  postProcessPhonemes, phonemizeChunk,
+} from './speech-text.ts';
+export type { TokenSpan, PhonemeChunk, SentenceClip, EspeakFn } from './speech-text.ts';
 // The dependency-free WAV reader that backs host.audio where there is no platform
 // codec (the Node shells). Byte parsing, so it lives beside tiff.ts/apng.ts.
 export { parseWav } from './wav.ts';
