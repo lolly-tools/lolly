@@ -2025,3 +2025,31 @@ around it — the analysePcm split — so the web worker and Node scripts
 words the same way. The web-shell module stays as a thin re-export, so no
 import site moved. New pure exports on the barrel; no HostV1 method added or
 changed.
+
+## 1.99.0 — the speech contract learns to listen
+
+Additive: transcription on the optional `host.speech` (tts-stt-programme §8).
+`SpeechAPI` gains `transcribeAvailable()` (sync feature-detect, the mirror of
+`isAvailable`), `transcribeCached()`, `transcribeModelBytes()` and
+`transcribe(src, opts)` — on-device Whisper over the existing `AudioSource`
+type from host.audio, returning a `SpeechTranscript` (text + the same
+`SpeechWordTiming[]` shape synthesis emits, so caption plumbing reads either).
+Feature-detected, not capability-gated: audio never leaves the device, and the
+first use downloads the STT model once, gated by its own consent separate from
+the TTS download. The CLI omits transcription for now. Contract only in this
+minor — no shell implements it yet. No v1 method changed.
+
+Also in this minor (additive, synthetic-audio provenance — the EU AI Act
+Article 50 item in plans/tts-stt-programme.md §2): `GENERATED_SOURCE_TYPE`
+(IPTC trainedAlgorithmicMedia) joins the exported source-type constants beside
+digitalCreation/digitalCapture/screenCapture, so a shell stamping a generated
+clip's credential names the AI origin from one shared constant; the read side
+now surfaces each recorded action's raw `parameters` (on `C2paHistoryStep` and
+the claim's action list) so a reader can recover the machine-readable context a
+writer stored on a step — e.g. the exact script, voice and model a TTS clip was
+synthesized from; a preserved audio ingredient's `dc:format` resolves for
+wav/mp3; and mp3 joins `C2PA_FORMATS` — the C2PA MPEG-1/2 audio binding, the
+manifest store as a GEOB frame in the leading ID3v2 tag (existing frames kept,
+re-stamp replaces, the whole tag excluded from the hard binding), with sniff +
+extraction so verify reads it back. No signature changed and existing manifests
+hash identically.

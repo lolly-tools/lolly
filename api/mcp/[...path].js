@@ -120,7 +120,7 @@ var init_tool_schema = __esm({
             height: { type: "integer", minimum: 1 },
             formats: {
               type: "array",
-              items: { type: "string", enum: ["png", "jpg", "jpeg", "svg", "svg-anim", "emf", "eps", "eps-cmyk", "dxf", "pdf", "pdf-cmyk", "cmyk-tiff", "tiff", "pptx", "html", "md", "txt", "json", "csv", "ics", "vcf", "ico", "zip", "webp", "webp-anim", "avif", "webm", "mp4", "gif", "apng"] },
+              items: { type: "string", enum: ["png", "jpg", "jpeg", "svg", "svg-anim", "emf", "eps", "eps-cmyk", "dxf", "pdf", "pdf-cmyk", "cmyk-tiff", "tiff", "pptx", "html", "md", "txt", "json", "csv", "ics", "vcf", "ico", "zip", "webp", "webp-anim", "avif", "webm", "mp4", "gif", "apng", "wav", "mp3", "m4a", "opus"] },
               minItems: 1,
               description: "Output formats the tool supports. The host filters action buttons to these. Clipboard is an action (see render.actions), not a format."
             },
@@ -1642,7 +1642,7 @@ var ENGINE_VERSION;
 var init_version = __esm({
   "engine/src/version.ts"() {
     "use strict";
-    ENGINE_VERSION = "1.97.0";
+    ENGINE_VERSION = "1.99.0";
   }
 });
 
@@ -3449,8 +3449,8 @@ function resolveAliases(map) {
         if (tv !== void 0) {
           e.value = tv;
           if (e.type == null) {
-            const te9 = map.get(target);
-            if (te9) e.type = te9.type;
+            const te10 = map.get(target);
+            if (te10) e.type = te10.type;
           }
         }
       }
@@ -5396,19 +5396,19 @@ function placeTiff(tiff, manifest) {
     ]
   };
 }
-function placeWebp(webp, manifest) {
-  const fourcc3 = (o) => String.fromCharCode(webp[o], webp[o + 1], webp[o + 2], webp[o + 3]);
-  if (fourcc3(0) !== "RIFF" || fourcc3(8) !== "WEBP") throw new Error("C2PA embed: not a WebP");
-  const dv = new DataView(webp.buffer, webp.byteOffset);
+function placeRiff(riff, manifest, form, label) {
+  const fourcc3 = (o) => String.fromCharCode(riff[o], riff[o + 1], riff[o + 2], riff[o + 3]);
+  if (riff.length < 12 || fourcc3(0) !== "RIFF" || fourcc3(8) !== form) throw new Error(`C2PA embed: not a ${label}`);
+  const dv = new DataView(riff.buffer, riff.byteOffset);
   let drop = null;
-  for (let i = 12; i + 8 <= webp.length; ) {
+  for (let i = 12; i + 8 <= riff.length; ) {
     const size = dv.getUint32(i + 4, true);
     const end = i + 8 + size + (size & 1);
-    if (end > webp.length + 1) throw new Error("C2PA embed: malformed WebP chunk");
-    if (fourcc3(i) === "C2PA") drop = { start: i, end: Math.min(end, webp.length) };
+    if (end > riff.length + 1) throw new Error(`C2PA embed: malformed ${label} chunk`);
+    if (fourcc3(i) === "C2PA") drop = { start: i, end: Math.min(end, riff.length) };
     i = end;
   }
-  const cleaned = drop ? concatBytes([webp.subarray(0, drop.start), webp.subarray(drop.end)]) : webp;
+  const cleaned = drop ? concatBytes([riff.subarray(0, drop.start), riff.subarray(drop.end)]) : riff;
   const chunk4 = concatBytes([
     asciiBytes("C2PA"),
     u32le(manifest.length),
@@ -5419,6 +5419,20 @@ function placeWebp(webp, manifest) {
   const out = concatBytes([cleaned, chunk4]);
   new DataView(out.buffer, out.byteOffset).setUint32(4, out.length - 8, true);
   return { out, exclusions: [{ start, length: manifest.length + 8 }] };
+}
+function placeWav(wav, manifest) {
+  const fourcc3 = (o) => String.fromCharCode(wav[o], wav[o + 1], wav[o + 2], wav[o + 3]);
+  if (wav.length >= 12 && fourcc3(0) === "RIFF" && fourcc3(8) === "WAVE") {
+    const dv = new DataView(wav.buffer, wav.byteOffset);
+    let hasData = false;
+    for (let i = 12; i + 8 <= wav.length; ) {
+      if (fourcc3(i) === "data") hasData = true;
+      const size = dv.getUint32(i + 4, true);
+      i += 8 + size + (size & 1);
+    }
+    if (!hasData) throw new Error("C2PA embed: WAV has no data chunk");
+  }
+  return placeRiff(wav, manifest, "WAVE", "WAV");
 }
 async function bmffDigest(out) {
   const boxes = walkBoxes(out, 0, out.length);
@@ -5588,6 +5602,69 @@ function seekHeadHasEntry(bytes, scan, seekId) {
   }
   return false;
 }
+function mp3GeobFrame(manifest, v4) {
+  const nul = Uint8Array.of(0);
+  const body = concatBytes([
+    Uint8Array.of(0),
+    asciiBytes(MP3_GEOB_MIME),
+    nul,
+    asciiBytes("c2pa"),
+    nul,
+    asciiBytes("c2pa"),
+    nul,
+    manifest
+  ]);
+  if (v4 && body.length >= 1 << 28) throw new Error("C2PA embed: manifest too large for an ID3v2.4 frame");
+  return concatBytes([asciiBytes("GEOB"), v4 ? syncsafe(body.length) : u32be(body.length), Uint8Array.of(0, 0), body]);
+}
+function isC2paGeob(bytes, bodyStart, bodyEnd) {
+  const mime = asciiBytes(MP3_GEOB_MIME);
+  if (bodyEnd - bodyStart < 1 + mime.length + 1) return false;
+  for (let j = 0; j < mime.length; j++) if (bytes[bodyStart + 1 + j] !== mime[j]) return false;
+  return bytes[bodyStart + 1 + mime.length] === 0;
+}
+function walkId3Frames(bytes, from, end, v4) {
+  const out = [];
+  let off = from;
+  while (off + 10 <= end && bytes[off] !== 0) {
+    const size = v4 ? readSyncsafe(bytes, off + 4) : (bytes[off + 4] << 24 | bytes[off + 5] << 16 | bytes[off + 6] << 8 | bytes[off + 7]) >>> 0;
+    const next = off + 10 + size;
+    if (next > end || next <= off) throw new Error("C2PA embed: malformed ID3v2 frame");
+    const isGeob = bytes[off] === 71 && bytes[off + 1] === 69 && bytes[off + 2] === 79 && bytes[off + 3] === 66;
+    out.push({ start: off, end: next, c2pa: isGeob && isC2paGeob(bytes, off + 10, next) });
+    off = next;
+  }
+  return out;
+}
+function placeMp3(mp3, manifest) {
+  const hasTag = mp3.length >= 10 && mp3[0] === 73 && mp3[1] === 68 && mp3[2] === 51;
+  if (!hasTag && !(mp3.length >= 4 && mp3[0] === 255 && (mp3[1] & 224) === 224)) {
+    throw new Error("C2PA embed: not an MP3 (no ID3v2 tag or frame sync)");
+  }
+  let ver = 4;
+  let audioStart = 0;
+  let kept = new Uint8Array(0);
+  if (hasTag) {
+    ver = mp3[3];
+    if (ver !== 3 && ver !== 4) throw new Error(`C2PA embed: unsupported ID3v2.${ver} tag`);
+    const flags = mp3[5];
+    if (flags & 128) throw new Error("C2PA embed: unsynchronised ID3v2 tag");
+    if (flags & 64) throw new Error("C2PA embed: ID3v2 extended header not supported");
+    const size = readSyncsafe(mp3, 6);
+    audioStart = 10 + size + (flags & 16 ? 10 : 0);
+    if (audioStart > mp3.length) throw new Error("C2PA embed: truncated ID3v2 tag");
+    const frames = walkId3Frames(mp3, 10, 10 + size, ver === 4);
+    kept = concatBytes(frames.filter((f) => !f.c2pa).map((f) => mp3.subarray(f.start, f.end)));
+  }
+  const geob = mp3GeobFrame(manifest, ver === 4);
+  const content = concatBytes([geob, kept]);
+  if (content.length >= 1 << 28) throw new Error("C2PA embed: ID3v2 tag too large");
+  const tag2 = concatBytes([asciiBytes("ID3"), Uint8Array.of(ver, 0, 0), syncsafe(content.length), content]);
+  return {
+    out: concatBytes([tag2, mp3.subarray(audioStart)]),
+    exclusions: [{ start: 0, length: tag2.length }]
+  };
+}
 function attachC2paStore(bytes, format, store) {
   if (!(bytes instanceof Uint8Array)) throw new Error("C2PA attach: bytes must be a Uint8Array");
   if (!(store instanceof Uint8Array)) throw new Error("C2PA attach: store must be a Uint8Array");
@@ -5665,7 +5742,7 @@ async function embedC2pa(bytes, format, opts = {}) {
   }
   return final.out;
 }
-var te3, PDF_WS, PDF_DELIM, xrefEntryLine, asciiBytes, CRC_TABLE, PNG_SIG, JPEG_CHUNK, C2PA_XMLNS, C2PA_BMFF_UUID, bmffHashExclusions, isC2paUuidBox, bmffExcluded, u64be, ID_ATTACHMENTS, ID_ATTACHEDFILE, ID_FILENAME, ID_FILEMIMETYPE, ID_FILEUID, ID_FILEDATA, ATTACHMENTS_NUM, C2PA_ATTACHMENT_MIME, c2paAttachment, CONTAINERS, C2PA_FORMATS;
+var te3, PDF_WS, PDF_DELIM, xrefEntryLine, asciiBytes, CRC_TABLE, PNG_SIG, JPEG_CHUNK, C2PA_XMLNS, placeWebp, C2PA_BMFF_UUID, bmffHashExclusions, isC2paUuidBox, bmffExcluded, u64be, ID_ATTACHMENTS, ID_ATTACHEDFILE, ID_FILENAME, ID_FILEMIMETYPE, ID_FILEUID, ID_FILEDATA, ATTACHMENTS_NUM, C2PA_ATTACHMENT_MIME, c2paAttachment, MP3_GEOB_MIME, syncsafe, readSyncsafe, CONTAINERS, C2PA_FORMATS;
 var init_c2pa_containers = __esm({
   "engine/src/c2pa-containers.ts"() {
     "use strict";
@@ -5692,6 +5769,7 @@ var init_c2pa_containers = __esm({
     PNG_SIG = Uint8Array.of(137, 80, 78, 71, 13, 10, 26, 10);
     JPEG_CHUNK = 64e3;
     C2PA_XMLNS = ' xmlns:c2pa="http://c2pa.org/manifest"';
+    placeWebp = (webp, manifest) => placeRiff(webp, manifest, "WEBP", "WebP");
     C2PA_BMFF_UUID = Uint8Array.of(
       216,
       254,
@@ -5743,6 +5821,9 @@ var init_c2pa_containers = __esm({
       ebml(ID_FILEUID, beUint(1)),
       ebml(ID_FILEDATA, manifest)
     ])));
+    MP3_GEOB_MIME = "application/x-c2pa-manifest-store";
+    syncsafe = (n2) => Uint8Array.of(n2 >>> 21 & 127, n2 >>> 14 & 127, n2 >>> 7 & 127, n2 & 127);
+    readSyncsafe = (b, off) => (b[off] & 127) << 21 | (b[off + 1] & 127) << 14 | (b[off + 2] & 127) << 7 | b[off + 3] & 127;
     CONTAINERS = {
       png: { place: placePng, mime: "image/png" },
       apng: { place: placePng, mime: "image/png" },
@@ -5754,7 +5835,9 @@ var init_c2pa_containers = __esm({
       "cmyk-tiff": { place: placeTiff, mime: "image/tiff" },
       webp: { place: placeWebp, mime: "image/webp" },
       mp4: { place: placeMp4, mime: "video/mp4", hash: "bmff" },
-      webm: { place: placeWebm, mime: "video/webm" }
+      webm: { place: placeWebm, mime: "video/webm" },
+      mp3: { place: placeMp3, mime: "audio/mpeg" },
+      wav: { place: placeWav, mime: "audio/wav" }
     };
     C2PA_FORMATS = Object.freeze(["pdf", "pdf-cmyk", ...Object.keys(CONTAINERS)]);
   }
@@ -6045,7 +6128,7 @@ async function buildC2paManifest({
   const ingredientManifestBoxes = ingList.flatMap((ing) => ing.manifestBoxes);
   return jumbfSuperbox(UUID_C2PA_STORE, "c2pa", ...ingredientManifestBoxes, manifest);
 }
-var te4, subtle3, CborTag, JUMBF_UUID_SUFFIX, boxUuid, UUID_C2PA_STORE, UUID_MANIFEST, UUID_ASSERTION_STORE, UUID_CLAIM, UUID_SIGNATURE, UUID_CBOR_CONTENT, UUID_JSON_CONTENT, COSE_HEADER_ALG, COSE_HEADER_X5CHAIN, isoSeconds, DIGITAL_SOURCE_TYPE, CAPTURE_SOURCE_TYPE, SCREEN_SOURCE_TYPE, RASTER_OUTPUTS, VIDEO_OUTPUTS, INGREDIENT_MIME, LOLLY_EXPORT_ASSERTION, BMFF_HASH_LABEL2, CREATIVE_WORK_ASSERTION, METADATA_ASSERTION, DC_CONTEXT;
+var te4, subtle3, CborTag, JUMBF_UUID_SUFFIX, boxUuid, UUID_C2PA_STORE, UUID_MANIFEST, UUID_ASSERTION_STORE, UUID_CLAIM, UUID_SIGNATURE, UUID_CBOR_CONTENT, UUID_JSON_CONTENT, COSE_HEADER_ALG, COSE_HEADER_X5CHAIN, isoSeconds, DIGITAL_SOURCE_TYPE, CAPTURE_SOURCE_TYPE, SCREEN_SOURCE_TYPE, GENERATED_SOURCE_TYPE, RASTER_OUTPUTS, VIDEO_OUTPUTS, INGREDIENT_MIME, LOLLY_EXPORT_ASSERTION, BMFF_HASH_LABEL2, CREATIVE_WORK_ASSERTION, METADATA_ASSERTION, DC_CONTEXT;
 var init_c2pa = __esm({
   "engine/src/c2pa.ts"() {
     "use strict";
@@ -6078,6 +6161,7 @@ var init_c2pa = __esm({
     DIGITAL_SOURCE_TYPE = "http://cv.iptc.org/newscodes/digitalsourcetype/digitalCreation";
     CAPTURE_SOURCE_TYPE = "http://cv.iptc.org/newscodes/digitalsourcetype/digitalCapture";
     SCREEN_SOURCE_TYPE = "http://cv.iptc.org/newscodes/digitalsourcetype/screenCapture";
+    GENERATED_SOURCE_TYPE = "http://cv.iptc.org/newscodes/digitalsourcetype/trainedAlgorithmicMedia";
     RASTER_OUTPUTS = /* @__PURE__ */ new Set(["png", "apng", "jpg", "jpeg", "webp", "webp-anim", "tiff", "cmyk-tiff", "gif", "ico"]);
     VIDEO_OUTPUTS = /* @__PURE__ */ new Set(["mp4", "m4v", "mov", "webm"]);
     INGREDIENT_MIME = {
@@ -6092,7 +6176,11 @@ var init_c2pa = __esm({
       pdf: "application/pdf",
       mp4: "video/mp4",
       webm: "video/webm",
-      mkv: "video/x-matroska"
+      mkv: "video/x-matroska",
+      // Audio: a record-side credential (e.g. a TTS wav, whose container cannot
+      // embed) still names its format honestly when carried as an ingredient.
+      wav: "audio/wav",
+      mp3: "audio/mpeg"
     };
     LOLLY_EXPORT_ASSERTION = "tools.lolly.export";
     BMFF_HASH_LABEL2 = "c2pa.hash.bmff.v2";
@@ -7819,8 +7907,10 @@ function sniffFormat(bytes) {
   if (bytes[0] === 137 && ascii(bytes, 1, 3) === "PNG") return "png";
   if (bytes[0] === 255 && bytes[1] === 216 && bytes[2] === 255) return "jpeg";
   if (ascii(bytes, 0, 3) === "GIF") return "gif";
+  if (ascii(bytes, 0, 3) === "ID3") return "mp3";
   if (ascii(bytes, 0, 4) === "%PDF") return "pdf";
   if (ascii(bytes, 0, 4) === "RIFF" && ascii(bytes, 8, 4) === "WEBP") return "webp";
+  if (ascii(bytes, 0, 4) === "RIFF" && ascii(bytes, 8, 4) === "WAVE") return "wav";
   if (bytes[0] === 73 && bytes[1] === 73 && bytes[2] === 42 || bytes[0] === 77 && bytes[1] === 77 && bytes[3] === 42) return "tiff";
   if (ascii(bytes, 4, 4) === "ftyp") {
     const brand = ascii(bytes, 8, 4);
@@ -7965,12 +8055,12 @@ function extractC2paFromTiff(tiff) {
   if (entry.valueOffset + entry.count > tiff.length) throw new Error("TIFF C2PA value overruns the file");
   return { manifest: tiff.slice(entry.valueOffset, entry.valueOffset + entry.count) };
 }
-function extractC2paFromWebp(webp) {
-  const dv = new DataView(webp.buffer, webp.byteOffset);
-  for (let i = 12; i + 8 <= webp.length; ) {
+function extractC2paFromRiff(riff) {
+  const dv = new DataView(riff.buffer, riff.byteOffset);
+  for (let i = 12; i + 8 <= riff.length; ) {
     const size = dv.getUint32(i + 4, true);
-    if (i + 8 + size > webp.length) throw new Error("malformed WebP chunk");
-    if (ascii(webp, i, 4) === "C2PA") return { manifest: webp.slice(i + 8, i + 8 + size) };
+    if (i + 8 + size > riff.length) throw new Error("malformed RIFF chunk");
+    if (ascii(riff, i, 4) === "C2PA") return { manifest: riff.slice(i + 8, i + 8 + size) };
     i += 8 + size + (size & 1);
   }
   return null;
@@ -8060,6 +8150,38 @@ function extractC2paFromWebm(webm) {
   if (found.length > 1) throw new Error("Matroska file has more than one C2PA attachment");
   return found.length ? { manifest: found[0] } : null;
 }
+function extractC2paFromMp3(mp3) {
+  if (!(mp3.length >= 10 && ascii(mp3, 0, 3) === "ID3")) return null;
+  const ver = mp3[3];
+  if (ver !== 3 && ver !== 4) return null;
+  const flags = mp3[5];
+  if (flags & 128) throw new Error("unsynchronised ID3v2 tag");
+  if (flags & 64) throw new Error("ID3v2 extended header not supported");
+  const readSyncsafe2 = (off2) => (mp3[off2] & 127) << 21 | (mp3[off2 + 1] & 127) << 14 | (mp3[off2 + 2] & 127) << 7 | mp3[off2 + 3] & 127;
+  const end = Math.min(10 + readSyncsafe2(6), mp3.length);
+  const mime = "application/x-c2pa-manifest-store";
+  const found = [];
+  let off = 10;
+  while (off + 10 <= end && mp3[off] !== 0) {
+    const size = ver === 4 ? readSyncsafe2(off + 4) : (mp3[off + 4] << 24 | mp3[off + 5] << 16 | mp3[off + 6] << 8 | mp3[off + 7]) >>> 0;
+    const next = off + 10 + size;
+    if (next > end || next <= off) throw new Error("malformed ID3v2 frame");
+    if (ascii(mp3, off, 4) === "GEOB" && size > 1 + mime.length + 1 && ascii(mp3, off + 11, mime.length) === mime && mp3[off + 11 + mime.length] === 0) {
+      const enc2 = mp3[off + 10];
+      const wide = enc2 === 1 || enc2 === 2;
+      let at = off + 11 + mime.length + 1;
+      for (let s = 0; s < 2; s++) {
+        while (at < next && !(mp3[at] === 0 && (!wide || mp3[at + 1] === 0))) at += wide ? 2 : 1;
+        at += wide ? 2 : 1;
+      }
+      if (at >= next) throw new Error("malformed C2PA GEOB frame");
+      found.push(mp3.slice(at, next));
+    }
+    off = next;
+  }
+  if (found.length > 1) throw new Error("MP3 file has more than one C2PA credential");
+  return found.length ? { manifest: found[0] } : null;
+}
 function collectActionChain(store) {
   const chain2 = [];
   let root;
@@ -8124,6 +8246,12 @@ function collectActionChain(store) {
               softwareAgent: sa instanceof Map ? sa.get("name") : sa,
               digitalSourceType: act.get?.("digitalSourceType"),
               description: act.get?.("description"),
+              // Raw CBOR parameters — surfaced for readers that recover a step's
+              // machine-readable context (e.g. a TTS clip's recorded script).
+              // Deliberately NOT part of the dedupe key below: Maps stringify
+              // opaquely, and a parameters-only difference on an otherwise
+              // identical step is a re-record of the same event.
+              parameters: act.get?.("parameters"),
               generator
             });
           }
@@ -8217,10 +8345,12 @@ var init_c2pa_extract = __esm({
       gif: extractC2paFromGif,
       svg: extractC2paFromSvg,
       tiff: extractC2paFromTiff,
-      webp: extractC2paFromWebp,
+      webp: extractC2paFromRiff,
       mp4: extractC2paFromMp4,
       webm: extractC2paFromWebm,
-      mkv: extractC2paFromWebm
+      mkv: extractC2paFromWebm,
+      mp3: extractC2paFromMp3,
+      wav: extractC2paFromRiff
     };
     AI_SOURCE_TYPES = {
       trainedAlgorithmicMedia: "generated",
@@ -8487,7 +8617,7 @@ async function verifyC2pa(bytes, { trustAnchors } = {}) {
   const report = { found: false, state: "none", trusted: false, madeWithLolly: false, likelyMadeWithLolly: false, partsMadeWithLolly: false, delivered: false, format, checks };
   const pdfBytes = bytes;
   if (!format) {
-    report.reason = "no Content Credentials \u2014 these are embedded only in pdf, png, jpg, gif, svg, tiff, webp, mp4 and webm files";
+    report.reason = "no Content Credentials \u2014 these are embedded only in pdf, png, jpg, gif, svg, tiff, webp, mp4, webm, mp3 and wav files";
     return report;
   }
   let extracted;
@@ -8535,7 +8665,10 @@ async function verifyC2pa(bytes, { trustAnchors } = {}) {
           // IPTC provenance kind of this step (digitalCapture / digitalCreation /
           // trainedAlgorithmicMedia …) — the signal behind the AI-generated flag.
           digitalSourceType: a.get?.("digitalSourceType"),
-          description: a.get?.("description")
+          description: a.get?.("description"),
+          // Raw CBOR parameters (a Map from our decoder) — the machine-readable
+          // context a writer recorded on the step (e.g. a TTS clip's script).
+          parameters: a.get?.("parameters")
         };
       });
     }
@@ -15625,6 +15758,223 @@ var init_captions = __esm({
   }
 });
 
+// engine/src/speech-text.ts
+function splitSentences(text) {
+  const out = [];
+  for (const line of text.split(/\n+/)) {
+    const re = /[^.!?…]+(?:[.!?…]+["”»)\]']*|$)/g;
+    for (const m of line.match(re) ?? []) {
+      const s = m.trim();
+      if (s) out.push(...wrapLong(s));
+    }
+  }
+  return out;
+}
+function wrapLong(sentence) {
+  if (sentence.length <= MAX_SENTENCE_CHARS) return [sentence];
+  const words = sentence.split(/\s+/);
+  const chunks = [];
+  let cur = "";
+  for (const w of words) {
+    if (w.length > MAX_SENTENCE_CHARS) {
+      if (cur) {
+        chunks.push(cur);
+        cur = "";
+      }
+      let rest = w;
+      while (rest.length > MAX_SENTENCE_CHARS) {
+        chunks.push(rest.slice(0, MAX_SENTENCE_CHARS));
+        rest = rest.slice(MAX_SENTENCE_CHARS);
+      }
+      cur = rest;
+      continue;
+    }
+    if (cur && cur.length + 1 + w.length > MAX_SENTENCE_CHARS) {
+      chunks.push(cur);
+      cur = w;
+    } else cur = cur ? `${cur} ${w}` : w;
+  }
+  if (cur) chunks.push(cur);
+  return chunks;
+}
+function splitWords(sentence) {
+  return sentence.split(/\s+/).filter((w) => w.length > 0);
+}
+function phonemeTokenSpans(wordPhonemes) {
+  const spans = [];
+  let pos = 0;
+  for (const [i, ph] of wordPhonemes.entries()) {
+    if (i > 0) pos += 1;
+    spans.push({ start: 1 + pos, end: 1 + pos + ph.length });
+    pos += ph.length;
+  }
+  return spans;
+}
+function chunkByPhonemeLength(words, wordPhonemes, maxChars = MAX_PHONEME_CHARS) {
+  const chunks = [];
+  let curWords = [];
+  let curPhonemes = [];
+  let curLen = 0;
+  for (let i = 0; i < words.length; i++) {
+    const ph = wordPhonemes[i] ?? "";
+    if (curWords.length > 0 && curLen + 1 + ph.length > maxChars) {
+      chunks.push({ words: curWords, phonemes: curPhonemes });
+      curWords = [];
+      curPhonemes = [];
+      curLen = 0;
+    }
+    curWords.push(words[i]);
+    curPhonemes.push(ph);
+    curLen += (curWords.length > 1 ? 1 : 0) + ph.length;
+  }
+  if (curWords.length > 0) chunks.push({ words: curWords, phonemes: curPhonemes });
+  return chunks;
+}
+function wordTimingsFromDurations(durations, spans, waveformLength, sampleRate) {
+  const n2 = durations.length;
+  const last = spans.at(-1);
+  const expected = last ? last.end + 1 : 2;
+  if (n2 !== expected || waveformLength <= 0) return null;
+  const pre = new Float64Array(n2 + 1);
+  for (let i = 0; i < n2; i++) pre[i + 1] = pre[i] + Number(durations[i]);
+  const totalFrames = pre[n2];
+  if (!(totalFrames > 0)) return null;
+  const framesPerSecond = totalFrames / (waveformLength / sampleRate);
+  return spans.map((s) => ({
+    start: pre[s.start] / framesPerSecond,
+    end: pre[s.end] / framesPerSecond
+  }));
+}
+function concatClips(clips, gapS, sampleRate) {
+  const gap = Math.round(gapS * sampleRate);
+  let total = 0;
+  for (const [i, clip3] of clips.entries()) total += clip3.pcm.length + (i > 0 ? gap : 0);
+  const pcm = new Float32Array(total);
+  const words = [];
+  let offset = 0;
+  for (const [i, clip3] of clips.entries()) {
+    if (i > 0) offset += gap;
+    pcm.set(clip3.pcm, offset);
+    const t0 = offset / sampleRate;
+    for (const w of clip3.words) words.push({ text: w.text, start: t0 + w.start, end: t0 + w.end });
+    offset += clip3.pcm.length;
+  }
+  return { pcm, duration: total / sampleRate, words };
+}
+function splitNum(match) {
+  if (match.includes(".")) return match;
+  if (match.includes(":")) {
+    const [h = 0, m = 0] = match.split(":").map(Number);
+    if (m === 0) return `${h} o'clock`;
+    if (m < 10) return `${h} oh ${m}`;
+    return `${h} ${m}`;
+  }
+  const year = parseInt(match.slice(0, 4), 10);
+  if (year < 1100 || year % 1e3 < 10) return match;
+  const left = match.slice(0, 2);
+  const right = parseInt(match.slice(2, 4), 10);
+  const suffix = match.endsWith("s") ? "s" : "";
+  if (year % 1e3 >= 100 && year % 1e3 <= 999) {
+    if (right === 0) return `${left} hundred${suffix}`;
+    if (right < 10) return `${left} oh ${right}${suffix}`;
+  }
+  return `${left} ${right}${suffix}`;
+}
+function flipMoney(match) {
+  const bill = match[0] === "$" ? "dollar" : "pound";
+  if (Number.isNaN(Number(match.slice(1)))) return `${match.slice(1)} ${bill}s`;
+  if (!match.includes(".")) {
+    const suffix = match.slice(1) === "1" ? "" : "s";
+    return `${match.slice(1)} ${bill}${suffix}`;
+  }
+  const [b = "", c = ""] = match.slice(1).split(".");
+  const d = parseInt(c.padEnd(2, "0"), 10);
+  const coins = match[0] === "$" ? d === 1 ? "cent" : "cents" : d === 1 ? "penny" : "pence";
+  return `${b} ${bill}${b === "1" ? "" : "s"} and ${d} ${coins}`;
+}
+function pointNum(match) {
+  const [a = "", b = ""] = match.split(".");
+  return `${a} point ${b.split("").join(" ")}`;
+}
+function normalizeText(text) {
+  return text.replace(/[‘’]/g, "'").replace(/«/g, "\u201C").replace(/»/g, "\u201D").replace(/[“”]/g, '"').replace(/\(/g, "\xAB").replace(/\)/g, "\xBB").replace(/、/g, ", ").replace(/。/g, ". ").replace(/！/g, "! ").replace(/，/g, ", ").replace(/：/g, ": ").replace(/；/g, "; ").replace(/？/g, "? ").replace(/[^\S \n]/g, " ").replace(/ {2,}/g, " ").replace(/(?<=\n) +(?=\n)/g, "").replace(/\bD[Rr]\.(?= [A-Z])/g, "Doctor").replace(/\b(?:Mr\.|MR\.(?= [A-Z]))/g, "Mister").replace(/\b(?:Ms\.|MS\.(?= [A-Z]))/g, "Miss").replace(/\b(?:Mrs\.|MRS\.(?= [A-Z]))/g, "Mrs").replace(/\betc\.(?! [A-Z])/gi, "etc").replace(/\b(y)eah?\b/gi, "$1e'a").replace(/\d*\.\d+|\b\d{4}s?\b|(?<!:)\b(?:[1-9]|1[0-2]):[0-5]\d\b(?!:)/g, splitNum).replace(/(?<=\d),(?=\d)/g, "").replace(/[$£]\d+(?:\.\d+)?(?: hundred| thousand| (?:[bm]|tr)illion)*\b|[$£]\d+\.\d\d?\b/gi, flipMoney).replace(/\d*\.\d+/g, pointNum).replace(/(?<=\d)-(?=\d)/g, " to ").replace(/(?<=\d)S/g, " S").replace(/(?<=[BCDFGHJ-NP-TV-Z])'?s\b/g, "'S").replace(/(?<=X')S\b/g, "s").replace(/(?:[A-Za-z]\.){2,} [a-z]/g, (m) => m.replace(/\./g, "-")).replace(/(?<=[A-Z])\.(?=[A-Z])/gi, "-").trim();
+}
+function splitPunctuation(text) {
+  const result = [];
+  let prev = 0;
+  for (const m of text.matchAll(PUNCTUATION_PATTERN)) {
+    if (prev < m.index) result.push({ match: false, text: text.slice(prev, m.index) });
+    if (m[0].length > 0) result.push({ match: true, text: m[0] });
+    prev = m.index + m[0].length;
+  }
+  if (prev < text.length) result.push({ match: false, text: text.slice(prev) });
+  return result;
+}
+function postProcessPhonemes(ps, language) {
+  let processed = ps.replace(/kəkˈoːɹoʊ/g, "k\u02C8o\u028Ak\u0259\u0279o\u028A").replace(/kəkˈɔːɹəʊ/g, "k\u02C8\u0259\u028Ak\u0259\u0279\u0259\u028A").replace(/ʲ/g, "j").replace(/r/g, "\u0279").replace(/x/g, "k").replace(/ɬ/g, "l").replace(/(?<=[a-zɹː])(?=hˈʌndɹɪd)/g, " ").replace(/ z(?=[;:,.!?¡¿—…"«»“” ]|$)/g, "z");
+  if (language === "a") processed = processed.replace(/(?<=nˈaɪn)ti(?!ː)/g, "di");
+  return processed.trim();
+}
+async function phonemizeChunk(espeak, text, language) {
+  const sections = splitPunctuation(text);
+  const lang = language === "a" ? "en-us" : "en";
+  const ps = (await Promise.all(
+    sections.map(async ({ match, text: t }) => match ? t : (await espeak(t, lang)).join(" "))
+  )).join("");
+  return postProcessPhonemes(ps, language);
+}
+var KOKORO_SAMPLE_RATE, KOKORO_STYLE_DIM, KOKORO_MODEL_ID, KOKORO_VOICE_BYTES, KOKORO_MODEL_BYTES, KOKORO_VOICES, KOKORO_DEFAULT_VOICE, SENTENCE_GAP_S, MAX_SENTENCE_CHARS, MAX_INPUT_CHARS, MAX_PHONEME_CHARS, PUNCTUATION, PUNCTUATION_PATTERN;
+var init_speech_text = __esm({
+  "engine/src/speech-text.ts"() {
+    "use strict";
+    KOKORO_SAMPLE_RATE = 24e3;
+    KOKORO_STYLE_DIM = 256;
+    KOKORO_MODEL_ID = "kokoro";
+    KOKORO_VOICE_BYTES = 510 * KOKORO_STYLE_DIM * 4;
+    KOKORO_MODEL_BYTES = 92361055 + 44 + 3497 + 113 + KOKORO_VOICE_BYTES;
+    KOKORO_VOICES = [
+      { id: "af_heart", name: "Heart", lang: "en-US", gender: "female", grade: "A" },
+      { id: "af_bella", name: "Bella", lang: "en-US", gender: "female", grade: "A-" },
+      { id: "af_nicole", name: "Nicole", lang: "en-US", gender: "female", grade: "B-" },
+      { id: "af_aoede", name: "Aoede", lang: "en-US", gender: "female", grade: "C+" },
+      { id: "am_fenrir", name: "Fenrir", lang: "en-US", gender: "male", grade: "C+" },
+      { id: "af_kore", name: "Kore", lang: "en-US", gender: "female", grade: "C+" },
+      { id: "am_michael", name: "Michael", lang: "en-US", gender: "male", grade: "C+" },
+      { id: "am_puck", name: "Puck", lang: "en-US", gender: "male", grade: "C+" },
+      { id: "af_sarah", name: "Sarah", lang: "en-US", gender: "female", grade: "C+" },
+      { id: "af_alloy", name: "Alloy", lang: "en-US", gender: "female", grade: "C" },
+      { id: "af_nova", name: "Nova", lang: "en-US", gender: "female", grade: "C" },
+      { id: "af_sky", name: "Sky", lang: "en-US", gender: "female", grade: "C-" },
+      { id: "am_echo", name: "Echo", lang: "en-US", gender: "male", grade: "D" },
+      { id: "am_eric", name: "Eric", lang: "en-US", gender: "male", grade: "D" },
+      { id: "af_jessica", name: "Jessica", lang: "en-US", gender: "female", grade: "D" },
+      { id: "am_liam", name: "Liam", lang: "en-US", gender: "male", grade: "D" },
+      { id: "am_onyx", name: "Onyx", lang: "en-US", gender: "male", grade: "D" },
+      { id: "af_river", name: "River", lang: "en-US", gender: "female", grade: "D" },
+      { id: "am_santa", name: "Santa", lang: "en-US", gender: "male", grade: "D-" },
+      { id: "am_adam", name: "Adam", lang: "en-US", gender: "male", grade: "F+" },
+      { id: "bf_emma", name: "Emma", lang: "en-GB", gender: "female", grade: "B-" },
+      { id: "bm_fable", name: "Fable", lang: "en-GB", gender: "male", grade: "C" },
+      { id: "bm_george", name: "George", lang: "en-GB", gender: "male", grade: "C" },
+      { id: "bf_isabella", name: "Isabella", lang: "en-GB", gender: "female", grade: "C" },
+      { id: "bm_lewis", name: "Lewis", lang: "en-GB", gender: "male", grade: "D+" },
+      { id: "bf_alice", name: "Alice", lang: "en-GB", gender: "female", grade: "D" },
+      { id: "bm_daniel", name: "Daniel", lang: "en-GB", gender: "male", grade: "D" },
+      { id: "bf_lily", name: "Lily", lang: "en-GB", gender: "female", grade: "D" }
+    ];
+    KOKORO_DEFAULT_VOICE = "bf_lily";
+    SENTENCE_GAP_S = 0.35;
+    MAX_SENTENCE_CHARS = 400;
+    MAX_INPUT_CHARS = 1e5;
+    MAX_PHONEME_CHARS = 508;
+    PUNCTUATION = ';:,.!?\xA1\xBF\u2014\u2026"\xAB\xBB\u201C\u201D(){}[]';
+    PUNCTUATION_PATTERN = new RegExp(
+      `(\\s*[${PUNCTUATION.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}]+\\s*)+`,
+      "g"
+    );
+  }
+});
+
 // engine/src/wav.ts
 function parseWav(bytes) {
   const u82 = bytes instanceof Uint8Array ? bytes : new Uint8Array(bytes);
@@ -15706,6 +16056,71 @@ function sampleReader(view, tag2, bits) {
     default:
       return (at) => view.getInt32(at, true) / 2147483648;
   }
+}
+function packWav(audio, opts = {}) {
+  const format = opts.format ?? "int16";
+  const channels = audio.channels;
+  const channelCount = channels.length;
+  if (!channelCount || channelCount > MAX_CHANNELS) throw new Error(`wav: unsupported channel count ${channelCount}`);
+  const sampleRate = audio.sampleRate;
+  if (!Number.isInteger(sampleRate) || sampleRate <= 0 || sampleRate > 4294967295) {
+    throw new Error("wav: invalid sample rate");
+  }
+  const frames = channels[0].length;
+  for (const ch of channels) {
+    if (ch.length !== frames) throw new Error("wav: channels differ in length");
+  }
+  const float = format === "float32";
+  const bytesPerSample = float ? 4 : 2;
+  const blockAlign = bytesPerSample * channelCount;
+  const dataLen = frames * blockAlign;
+  const fmtLen = float ? 18 : 16;
+  const factLen = float ? 12 : 0;
+  const headerLen = 12 + 8 + fmtLen + factLen + 8;
+  const total = headerLen + dataLen;
+  const u82 = new Uint8Array(total);
+  const view = new DataView(u82.buffer);
+  const put = (at2, s) => {
+    for (let i = 0; i < s.length; i++) u82[at2 + i] = s.charCodeAt(i);
+  };
+  put(0, "RIFF");
+  view.setUint32(4, total - 8, true);
+  put(8, "WAVE");
+  let at = 12;
+  put(at, "fmt ");
+  view.setUint32(at + 4, fmtLen, true);
+  view.setUint16(at + 8, float ? FMT_FLOAT : FMT_PCM, true);
+  view.setUint16(at + 10, channelCount, true);
+  view.setUint32(at + 12, sampleRate, true);
+  view.setUint32(at + 16, sampleRate * blockAlign, true);
+  view.setUint16(at + 20, blockAlign, true);
+  view.setUint16(at + 22, bytesPerSample * 8, true);
+  if (float) view.setUint16(at + 24, 0, true);
+  at += 8 + fmtLen;
+  if (float) {
+    put(at, "fact");
+    view.setUint32(at + 4, 4, true);
+    view.setUint32(at + 8, frames, true);
+    at += factLen;
+  }
+  put(at, "data");
+  view.setUint32(at + 4, dataLen, true);
+  const dataStart = at + 8;
+  for (let c = 0; c < channelCount; c++) {
+    const src = channels[c];
+    let off = dataStart + c * bytesPerSample;
+    for (let f = 0; f < frames; f++, off += blockAlign) {
+      const s = src[f];
+      if (float) view.setFloat32(off, s, true);
+      else view.setInt16(off, toInt16(s), true);
+    }
+  }
+  return u82;
+}
+function toInt16(s) {
+  if (!Number.isFinite(s)) return 0;
+  const v = Math.round((s > 1 ? 1 : s < -1 ? -1 : s) * 32768);
+  return v > 32767 ? 32767 : v;
 }
 function str(u82, at, n2) {
   let s = "";
@@ -25529,6 +25944,59 @@ var init_png = __esm({
   }
 });
 
+// engine/src/riff-meta.ts
+function infoSub(id, value) {
+  const body = concatBytes([te8.encode(value), Uint8Array.of(0)]);
+  return concatBytes([
+    fourccBytes(id),
+    u32le2(body.length),
+    body,
+    body.length & 1 ? Uint8Array.of(0) : new Uint8Array(0)
+  ]);
+}
+function embedWavInfo(wav, tags) {
+  const fourcc3 = (o) => String.fromCharCode(wav[o], wav[o + 1], wav[o + 2], wav[o + 3]);
+  if (wav.length < 12 || fourcc3(0) !== "RIFF" || fourcc3(8) !== "WAVE") return wav;
+  const clean2 = (s) => s == null ? "" : String(s).trim();
+  const fields = [];
+  const title = clean2(tags.title);
+  const artist = clean2(tags.artist);
+  const comment = clean2(tags.comment);
+  const software = clean2(tags.software) || "lolly.tools";
+  if (title) fields.push(["INAM", title]);
+  if (artist) fields.push(["IART", artist]);
+  if (comment) fields.push(["ICMT", comment]);
+  fields.push(["ISFT", software]);
+  if (!fields.length) return wav;
+  const dv = new DataView(wav.buffer, wav.byteOffset);
+  let drop = null;
+  for (let i = 12; i + 8 <= wav.length; ) {
+    const size = dv.getUint32(i + 4, true);
+    const end = i + 8 + size + (size & 1);
+    if (end > wav.length + 1) return wav;
+    if (fourcc3(i) === "LIST" && size >= 4 && fourcc3(i + 8) === "INFO") {
+      drop = { start: i, end: Math.min(end, wav.length) };
+    }
+    i = end;
+  }
+  const payload = concatBytes([fourccBytes("INFO"), ...fields.map(([id, v]) => infoSub(id, v))]);
+  const list2 = concatBytes([fourccBytes("LIST"), u32le2(payload.length), payload]);
+  const cleaned = drop ? concatBytes([wav.subarray(0, drop.start), wav.subarray(drop.end)]) : wav;
+  const out = concatBytes([cleaned, list2]);
+  new DataView(out.buffer, out.byteOffset).setUint32(4, out.length - 8, true);
+  return out;
+}
+var te8, fourccBytes, u32le2;
+var init_riff_meta = __esm({
+  "engine/src/riff-meta.ts"() {
+    "use strict";
+    init_bytes();
+    te8 = new TextEncoder();
+    fourccBytes = (s) => Uint8Array.from(s, (c) => c.charCodeAt(0) & 255);
+    u32le2 = (n2) => Uint8Array.of(n2 & 255, n2 >>> 8 & 255, n2 >>> 16 & 255, n2 >>> 24 & 255);
+  }
+});
+
 // engine/src/data-import.ts
 function parseDataRows(text, opts = {}) {
   const fields = (opts.fields || []).filter((f) => f && f.id);
@@ -33247,6 +33715,7 @@ __export(src_exports, {
   GAMUT_PROBE_MAX: () => GAMUT_PROBE_MAX,
   GAMUT_PROBE_START: () => GAMUT_PROBE_START,
   GAMUT_TIER_LADDER: () => GAMUT_TIER_LADDER,
+  GENERATED_SOURCE_TYPE: () => GENERATED_SOURCE_TYPE,
   GEOM_EPS: () => EPS,
   GRADIENT_KINDS: () => GRADIENT_KINDS,
   GeomLimitError: () => GeomLimitError,
@@ -33261,6 +33730,13 @@ __export(src_exports, {
   IMPRINT_FORMATS: () => IMPRINT_FORMATS,
   JOIN_EPS: () => JOIN_EPS,
   KNOWN_FINISHES: () => KNOWN_FINISHES,
+  KOKORO_DEFAULT_VOICE: () => KOKORO_DEFAULT_VOICE,
+  KOKORO_MODEL_BYTES: () => KOKORO_MODEL_BYTES,
+  KOKORO_MODEL_ID: () => KOKORO_MODEL_ID,
+  KOKORO_SAMPLE_RATE: () => KOKORO_SAMPLE_RATE,
+  KOKORO_STYLE_DIM: () => KOKORO_STYLE_DIM,
+  KOKORO_VOICES: () => KOKORO_VOICES,
+  KOKORO_VOICE_BYTES: () => KOKORO_VOICE_BYTES,
   LANGS: () => LANGS,
   LANG_META: () => LANG_META,
   LOLLY_CA_ROOT_PEM: () => LOLLY_CA_ROOT_PEM,
@@ -33270,6 +33746,8 @@ __export(src_exports, {
   MAX_BAKED_URL_CHARS: () => MAX_BAKED_URL_CHARS,
   MAX_COMPOSE_DEPTH: () => MAX_COMPOSE_DEPTH,
   MAX_GRADIENT_STOPS: () => MAX_GRADIENT_STOPS,
+  MAX_INPUT_CHARS: () => MAX_INPUT_CHARS,
+  MAX_PHONEME_CHARS: () => MAX_PHONEME_CHARS,
   META_GROUP_LABEL: () => META_GROUP_LABEL,
   META_GROUP_ORDER: () => META_GROUP_ORDER,
   MIN_IMPRINT_BLOCKS: () => MIN_IMPRINT_BLOCKS,
@@ -33298,6 +33776,7 @@ __export(src_exports, {
   SCHEME_KINDS: () => SCHEME_KINDS,
   SCREEN_SOURCE_TYPE: () => SCREEN_SOURCE_TYPE,
   SEARCH_DETECT_FLOOR: () => SEARCH_DETECT_FLOOR,
+  SENTENCE_GAP_S: () => SENTENCE_GAP_S,
   SEPARATING_FORMATS: () => SEPARATING_FORMATS,
   SESSION_FORMAT_VERSION: () => SESSION_FORMAT_VERSION,
   SESSION_READER_VERSION: () => SESSION_READER_VERSION,
@@ -33361,6 +33840,7 @@ __export(src_exports, {
   canonicalValue: () => canonicalValue,
   chromaAxisMax: () => chromaAxisMax,
   chromaTickStep: () => chromaTickStep,
+  chunkByPhonemeLength: () => chunkByPhonemeLength,
   classBreaks: () => classBreaks,
   closeContour: () => closeContour,
   cmykCondition: () => cmykCondition,
@@ -33381,6 +33861,7 @@ __export(src_exports, {
   computeCost: () => computeCost,
   computePrintGeometry: () => computePrintGeometry,
   computeSealDigest: () => computeSealDigest,
+  concatClips: () => concatClips,
   constantMask: () => constantMask,
   contentSealConsensus: () => contentSealConsensus,
   contourArea: () => contourArea,
@@ -33434,6 +33915,7 @@ __export(src_exports, {
   embedDurableIntoRgba: () => embedDurableIntoRgba,
   embedMp4Meta: () => embedMp4Meta,
   embedWatermark: () => embedWatermark,
+  embedWavInfo: () => embedWavInfo,
   embedWebmMeta: () => embedWebmMeta,
   emitDxf: () => emitDxf,
   emitEmf: () => emitEmf,
@@ -33584,6 +34066,7 @@ __export(src_exports, {
   nodeToBox: () => nodeToBox,
   normalizeLang: () => normalizeLang,
   normalizeTableValue: () => normalizeTableValue,
+  normalizeText: () => normalizeText,
   offsetContour: () => offsetContour,
   offsetCubic: () => offsetCubic,
   offsetPath: () => offsetPath,
@@ -33599,6 +34082,7 @@ __export(src_exports, {
   packPng: () => packPng,
   packQuery: () => packQuery,
   packTiff: () => packTiff,
+  packWav: () => packWav,
   packWebpAnim: () => packWebpAnim,
   paletteHasFinish: () => paletteHasFinish,
   parseBatchCsv: () => parseBatchCsv,
@@ -33660,7 +34144,10 @@ __export(src_exports, {
   penpotGroupToSvg: () => penpotGroupToSvg,
   penpotPathContentToD: () => penpotPathContentToD,
   penpotShapeToNode: () => penpotShapeToNode,
+  phonemeTokenSpans: () => phonemeTokenSpans,
+  phonemizeChunk: () => phonemizeChunk,
   pointInPath: () => pointInPath,
+  postProcessPhonemes: () => postProcessPhonemes,
   pptxMediaImages: () => pptxMediaImages,
   pqBt2020IccProfile: () => pqBt2020IccProfile,
   pqEncode: () => pqEncode,
@@ -33715,6 +34202,9 @@ __export(src_exports, {
   sortedLangs: () => sortedLangs,
   splitCssArgs: () => splitCssArgs,
   splitCubic: () => splitCubic,
+  splitPunctuation: () => splitPunctuation,
+  splitSentences: () => splitSentences,
+  splitWords: () => splitWords,
   srgbIccProfile: () => srgbIccProfile,
   srgbToLinear: () => srgbToLinear4,
   stripAssetModifiers: () => stripAssetModifiers,
@@ -33766,6 +34256,7 @@ __export(src_exports, {
   wcagLevel: () => wcagLevel,
   windingNumber: () => windingNumber,
   windowPdfSvg: () => windowPdfSvg,
+  wordTimingsFromDurations: () => wordTimingsFromDurations,
   wrapRasterWithTreatment: () => wrapRasterWithTreatment,
   writeFace: () => writeFace,
   xorPath: () => xorPath,
@@ -33820,6 +34311,7 @@ var init_src2 = __esm({
     init_zzfxm();
     init_audio_analyse();
     init_captions();
+    init_speech_text();
     init_wav();
     init_midi();
     init_zzfx_compose();
@@ -33858,6 +34350,7 @@ var init_src2 = __esm({
     init_png();
     init_deflate();
     init_video_meta();
+    init_riff_meta();
     init_data_import();
     init_design_map();
     init_design_components();
@@ -39466,18 +39959,18 @@ async function renderGet(path, query, opts) {
 }
 
 // services/mcp/src/sign.ts
-var te8 = new TextEncoder();
+var te9 = new TextEncoder();
 var subtle8 = globalThis.crypto.subtle;
 var bytesToB64u = (bytes) => Buffer.from(bytes).toString("base64url");
 var b64uToBytes = (str3) => new Uint8Array(Buffer.from(String(str3), "base64url"));
 var randomB64u = (n2 = 32) => bytesToB64u(globalThis.crypto.getRandomValues(new Uint8Array(n2)));
 async function hmac(secret, text) {
   if (!secret) throw new Error("signing secret is not set");
-  const key = await subtle8.importKey("raw", te8.encode(String(secret)), { name: "HMAC", hash: "SHA-256" }, false, ["sign"]);
-  return new Uint8Array(await subtle8.sign("HMAC", key, te8.encode(text)));
+  const key = await subtle8.importKey("raw", te9.encode(String(secret)), { name: "HMAC", hash: "SHA-256" }, false, ["sign"]);
+  return new Uint8Array(await subtle8.sign("HMAC", key, te9.encode(text)));
 }
 async function sha256B64u(text) {
-  return bytesToB64u(new Uint8Array(await subtle8.digest("SHA-256", te8.encode(text))));
+  return bytesToB64u(new Uint8Array(await subtle8.digest("SHA-256", te9.encode(text))));
 }
 async function signValue(payload, secret) {
   const body = Buffer.from(JSON.stringify(payload)).toString("base64url");

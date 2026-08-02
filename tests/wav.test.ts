@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MPL-2.0
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { parseWav } from '../engine/src/wav.ts';
+import { packWav, parseWav } from '../engine/src/wav.ts';
 
 /**
  * Build a WAV file byte-for-byte. `write` receives a DataView over the data chunk
@@ -285,4 +285,186 @@ test('fuzz: random bytes never crash the parser in an unexpected way', () => {
       assert.ok(err instanceof Error && /^wav: /.test(err.message), `case ${i} threw an unowned error: ${String(err)}`);
     }
   }
+});
+
+// ---------------------------------------------------------------------------
+// packWav — the writer half. parseWav is the oracle: whatever we write, the
+// reader above must get back.
+// ---------------------------------------------------------------------------
+
+const ascii = (u8: Uint8Array, at: number, n: number): string =>
+  Array.from(u8.subarray(at, at + n), (b) => String.fromCharCode(b)).join('');
+
+test('packWav round-trips 16-bit mono through parseWav', () => {
+  // Values on the 1/32768 grid, so int16 quantisation is a no-op and the
+  // comparison can be exact rather than approximate.
+  const src = new Float32Array([0, 0.5, -0.5, 1024 / 32768, -1 / 32768]);
+  const out = parseWav(packWav({ channels: [src], sampleRate: 48000 }));
+  assert.equal(out.sampleRate, 48000);
+  assert.equal(out.channels.length, 1);
+  assert.deepEqual(Array.from(out.channels[0]!), Array.from(src));
+});
+
+test('packWav round-trips 16-bit stereo, keeping channels distinct', () => {
+  const left = new Float32Array([0.25, -0.25, 0]);
+  const right = new Float32Array([-0.75, 0.75, 0.5]);
+  const out = parseWav(packWav({ channels: [left, right], sampleRate: 44100 }));
+  assert.equal(out.channels.length, 2);
+  assert.deepEqual(Array.from(out.channels[0]!), Array.from(left));
+  assert.deepEqual(Array.from(out.channels[1]!), Array.from(right));
+});
+
+test('packWav round-trips float32 mono bit-exactly', () => {
+  // Deliberately NOT on the int16 grid — the point of the float path is that
+  // nothing is quantised.
+  const src = new Float32Array([0, 0.1, -0.1, 1 / 3, -0.0000001]);
+  const bytes = packWav({ channels: [src], sampleRate: 22050 }, { format: 'float32' });
+  const out = parseWav(bytes);
+  assert.equal(out.sampleRate, 22050);
+  assert.deepEqual(Array.from(out.channels[0]!), Array.from(src));
+});
+
+test('packWav round-trips float32 stereo', () => {
+  const left = new Float32Array([0.1, -0.2]);
+  const right = new Float32Array([1 / 3, -1 / 7]);
+  const out = parseWav(packWav({ channels: [left, right], sampleRate: 8000 }, { format: 'float32' }));
+  assert.equal(out.channels.length, 2);
+  assert.deepEqual(Array.from(out.channels[0]!), Array.from(left));
+  assert.deepEqual(Array.from(out.channels[1]!), Array.from(right));
+});
+
+test('packWav writes exact 16-bit header bytes (RIFF sizes are an off-by-8 trap)', () => {
+  const u8 = packWav({ channels: [new Float32Array([0, 0.5]), new Float32Array([0, -0.5])], sampleRate: 44100 });
+  const v = new DataView(u8.buffer, u8.byteOffset, u8.byteLength);
+  assert.equal(u8.byteLength, 44 + 2 * 2 * 2); // 44-byte header + 2 frames x 2ch x 2 bytes
+  assert.equal(ascii(u8, 0, 4), 'RIFF');
+  assert.equal(v.getUint32(4, true), u8.byteLength - 8); // NOT the file length
+  assert.equal(ascii(u8, 8, 4), 'WAVE');
+  assert.equal(ascii(u8, 12, 4), 'fmt ');
+  assert.equal(v.getUint32(16, true), 16);      // PCM fmt chunk size
+  assert.equal(v.getUint16(20, true), 1);       // wFormatTag = WAVE_FORMAT_PCM
+  assert.equal(v.getUint16(22, true), 2);       // nChannels
+  assert.equal(v.getUint32(24, true), 44100);   // nSamplesPerSec
+  assert.equal(v.getUint32(28, true), 44100 * 4); // nAvgBytesPerSec
+  assert.equal(v.getUint16(32, true), 4);       // nBlockAlign
+  assert.equal(v.getUint16(34, true), 16);      // wBitsPerSample
+  assert.equal(ascii(u8, 36, 4), 'data');
+  assert.equal(v.getUint32(40, true), 8);       // data payload only
+  // Interleaved: frame 0 = L,R then frame 1 = L,R.
+  assert.equal(v.getInt16(44, true), 0);
+  assert.equal(v.getInt16(46, true), 0);
+  assert.equal(v.getInt16(48, true), 16384);
+  assert.equal(v.getInt16(50, true), -16384);
+});
+
+test('packWav float32 carries the spec-required cbSize and fact chunk', () => {
+  const u8 = packWav({ channels: [new Float32Array([0.5])], sampleRate: 48000 }, { format: 'float32' });
+  const v = new DataView(u8.buffer, u8.byteOffset, u8.byteLength);
+  assert.equal(u8.byteLength, 58 + 4);
+  assert.equal(v.getUint32(4, true), u8.byteLength - 8);
+  assert.equal(ascii(u8, 12, 4), 'fmt ');
+  assert.equal(v.getUint32(16, true), 18);      // extended fmt: 16 + cbSize
+  assert.equal(v.getUint16(20, true), 3);       // wFormatTag = WAVE_FORMAT_IEEE_FLOAT
+  assert.equal(v.getUint16(34, true), 32);      // wBitsPerSample
+  assert.equal(v.getUint16(36, true), 0);       // cbSize: no extension follows
+  assert.equal(ascii(u8, 38, 4), 'fact');
+  assert.equal(v.getUint32(42, true), 4);
+  assert.equal(v.getUint32(46, true), 1);       // dwSampleLength = frames
+  assert.equal(ascii(u8, 50, 4), 'data');
+  assert.equal(v.getUint32(54, true), 4);
+  assert.equal(v.getFloat32(58, true), 0.5);
+});
+
+test('packWav accepts a 0-sample buffer; parseWav refuses to read it back', () => {
+  const u8 = packWav({ channels: [new Float32Array(0)], sampleRate: 44100 });
+  const v = new DataView(u8.buffer, u8.byteOffset, u8.byteLength);
+  assert.equal(u8.byteLength, 44);          // a complete, valid header
+  assert.equal(v.getUint32(4, true), 36);
+  assert.equal(v.getUint32(40, true), 0);   // empty data chunk
+  // Documented policy: an empty decode is a worse answer than an error.
+  assert.throws(() => parseWav(u8), /no complete frames/);
+});
+
+test('packWav clips int16 output rather than wrapping', () => {
+  // POLICY: out-of-range input clamps to -1..1 before scaling. Symmetric x32768
+  // with a 32767 ceiling, so +1.0 comes back as 0.99997 and -1.0 is exact.
+  const u8 = packWav({ channels: [new Float32Array([2, -2, 1, -1, 1.0001])], sampleRate: 8000 });
+  const v = new DataView(u8.buffer, u8.byteOffset, u8.byteLength);
+  assert.equal(v.getInt16(44, true), 32767);
+  assert.equal(v.getInt16(46, true), -32768);
+  assert.equal(v.getInt16(48, true), 32767);
+  assert.equal(v.getInt16(50, true), -32768);
+  assert.equal(v.getInt16(52, true), 32767);
+  const back = parseWav(u8).channels[0]!;
+  assert.ok(back.every((x) => x >= -1 && x <= 1), 'clipped output must stay in range');
+  assert.equal(back[3], -1);
+});
+
+test('packWav float32 does NOT clip — a hot master stays hot', () => {
+  const src = new Float32Array([2, -2]);
+  const out = parseWav(packWav({ channels: [src], sampleRate: 8000 }, { format: 'float32' }));
+  assert.deepEqual(Array.from(out.channels[0]!), [2, -2]);
+});
+
+test('packWav is byte-deterministic', () => {
+  const make = (): Float32Array => new Float32Array([0.1, -0.2, 0.3, 0.4]);
+  const audio = { channels: [make(), make()], sampleRate: 32000 };
+  assert.deepEqual(packWav(audio), packWav(audio));
+  assert.deepEqual(
+    packWav(audio, { format: 'float32' }),
+    packWav({ channels: [make(), make()], sampleRate: 32000 }, { format: 'float32' }),
+  );
+});
+
+test('packWav negative control: different samples produce different bytes', () => {
+  const a = packWav({ channels: [new Float32Array([0.5, 0.25])], sampleRate: 8000 });
+  const b = packWav({ channels: [new Float32Array([0.5, 0.26])], sampleRate: 8000 });
+  assert.equal(a.byteLength, b.byteLength);
+  assert.notDeepEqual(a, b);
+  // Rate and channel layout are in the header, so those differ too.
+  assert.notDeepEqual(a, packWav({ channels: [new Float32Array([0.5, 0.25])], sampleRate: 8001 }));
+});
+
+test('packWav rejects input it cannot honestly encode', () => {
+  assert.throws(() => packWav({ channels: [], sampleRate: 44100 }), /channel count/);
+  assert.throws(
+    () => packWav({ channels: [new Float32Array(2), new Float32Array(3)], sampleRate: 44100 }),
+    /differ in length/,
+  );
+  assert.throws(() => packWav({ channels: [new Float32Array(2)], sampleRate: 0 }), /sample rate/);
+  assert.throws(() => packWav({ channels: [new Float32Array(2)], sampleRate: 44100.5 }), /sample rate/);
+});
+
+// ── Chunk-walking under provenance chunks (C2PA + LIST/INFO) ─────────────────
+// A generated clip now carries a top-level C2PA chunk and LIST/INFO tags
+// (engine c2pa-containers placeWav + riff-meta embedWavInfo). The parser walks
+// chunks rather than assuming fmt-then-data adjacency, so a headless analyse
+// (CLI/MCP audiogram renders through packages/node-shell) must read the exact
+// same numbers off the extended file as off the bare one.
+
+test('C2PA + LIST/INFO chunks do not change a headless analyse by one bit', async () => {
+  const { embedC2pa } = await import('../engine/src/c2pa.ts');
+  const { embedWavInfo } = await import('../engine/src/riff-meta.ts');
+  const { createNodeAudioAPI } = await import('../packages/node-shell/src/audio.ts');
+  const { fileURLToPath } = await import('node:url');
+  const repoRoot = fileURLToPath(new URL('..', import.meta.url));
+
+  const bare = wav({
+    frames: 2048,
+    sampleRate: 24000,
+    write: (v) => {
+      for (let i = 0; i < 2048; i++) v.setInt16(i * 2, Math.round(Math.sin(i / 8) * 20000), true);
+    },
+  });
+  const extended = await embedC2pa(
+    embedWavInfo(bare, { title: 'Clip', comment: 'Synthetic voice' }),
+    'wav',
+    { title: 'Clip', claimGenerator: 'Lolly lolly.tools' },
+  );
+  assert.ok(extended.length > bare.length, 'the extended file really carries extra chunks');
+
+  const audio = createNodeAudioAPI({ repoRoot });
+  const a = await audio.analyse(bare, { fps: 10 });
+  const b = await audio.analyse(extended, { fps: 10 });
+  assert.deepEqual(JSON.parse(JSON.stringify(b)), JSON.parse(JSON.stringify(a)), 'identical analysis through the extra chunks');
 });

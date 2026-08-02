@@ -323,9 +323,14 @@ test('a declared-but-unreadable credential throws from the extractor and fails c
   assert.throws(() => EXTRACTORS.tiff(clippedTiff), /TIFF C2PA value overruns the file/);
   assert.equal(extractC2paStore(clippedTiff), null);
 
-  // WebP: a chunk size past EOF.
+  // WebP: a chunk size past EOF (the shared RIFF walk, so WAV reports the same way).
   const badWebp = concat([bytesOf('RIFF'), u32le(20), bytesOf('WEBP'), bytesOf('C2PA'), u32le(9999)]);
-  assert.throws(() => EXTRACTORS.webp(badWebp), /malformed WebP chunk/);
+  assert.throws(() => EXTRACTORS.webp(badWebp), /malformed RIFF chunk/);
+
+  // WAV: the identical truncation through the wav extractor route.
+  const badWav = concat([bytesOf('RIFF'), u32le(20), bytesOf('WAVE'), bytesOf('C2PA'), u32le(9999)]);
+  assert.throws(() => EXTRACTORS.wav(badWav), /malformed RIFF chunk/);
+  assert.equal(extractC2paStore(badWav), null);
 
   // Matroska: an attachment declared with our mime type but no data.
   const emptyAttachment = knownSegment(eb([0x19, 0x41, 0xa4, 0x69], eb([0x61, 0xa7], concat([

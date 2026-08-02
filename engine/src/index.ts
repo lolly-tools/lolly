@@ -162,8 +162,8 @@ export {
 export type { TokenSpan, PhonemeChunk, SentenceClip, EspeakFn } from './speech-text.ts';
 // The dependency-free WAV reader that backs host.audio where there is no platform
 // codec (the Node shells). Byte parsing, so it lives beside tiff.ts/apng.ts.
-export { parseWav } from './wav.ts';
-export type { WavAudio } from './wav.ts';
+export { parseWav, packWav } from './wav.ts';
+export type { WavAudio, PackWavOptions, WavSampleFormat } from './wav.ts';
 export { parseMidi, midiToSong, midiToZzfxm } from './midi.ts';
 export type { ParsedMidi, MidiToSongOptions } from './midi.ts';
 export { composeSong, PRESETS, SCALES, mulberry32, patternSeconds } from './zzfx-compose.ts';
@@ -282,7 +282,7 @@ export {
 export type {
   PdfXOutputIntentOptions, PdfXOutputIntentSpec, PdfXProfileFacts, PdfXXmpOptions,
 } from './pdfx.ts';
-export { buildC2paManifest, embedC2paInPdf, embedC2pa, attachC2paStore, exportActionSteps, C2PA_FORMATS, LOLLY_EXPORT_ASSERTION, DIGITAL_SOURCE_TYPE, CAPTURE_SOURCE_TYPE, SCREEN_SOURCE_TYPE } from './c2pa.ts';
+export { buildC2paManifest, embedC2paInPdf, embedC2pa, attachC2paStore, exportActionSteps, C2PA_FORMATS, LOLLY_EXPORT_ASSERTION, DIGITAL_SOURCE_TYPE, CAPTURE_SOURCE_TYPE, SCREEN_SOURCE_TYPE, GENERATED_SOURCE_TYPE } from './c2pa.ts';
 export type { C2paActionInput } from './c2pa.ts';
 export { verifyC2pa, verifyC2paPdf, extractC2paFromPdf, prepareC2paIngredient, prepareC2paIngredientFromStore, extractC2paStore, parseCertificate, signedBy } from './c2pa-verify.ts';
 export type { C2paIngredientData, C2paReport, C2paCheck, C2paSignerIdentity, ParsedCertificate } from './c2pa-verify.ts';
@@ -306,6 +306,8 @@ export type { PackPngOptions, PngCicp, PngTextEntry, PngSamples } from './png.ts
 export { deflateRaw, zlibCompress, adler32 } from './deflate.ts';
 export type { DeflateOptions } from './deflate.ts';
 export { videoProvenanceTags, embedMp4Meta, embedWebmMeta } from './video-meta.ts';
+export { embedWavInfo } from './riff-meta.ts';
+export type { WavInfoTags } from './riff-meta.ts';
 export { parseDataRows, DEFAULT_ROW_LIMIT } from './data-import.ts';
 export {
   decomposeMatrix, boxGeomFromBBox, mapWeight, mapFontFamily, mapAlign,

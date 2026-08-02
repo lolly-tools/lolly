@@ -97,6 +97,26 @@ test('layout chrome is never spoken: ::: fences and horizontal rules', () => {
   assert.equal(spokenTextHash(withoutHr), spokenTextHash(blocks), 'adding/removing an <hr> must not re-render narration');
 });
 
+test('a leading meta-title H1 is skipped when the page title is known', () => {
+  // site.md's real shape: an H1 that is a filing label, not content.
+  const md = '# Lolly - Landing page copy\n\nReal prose first.\n\n## Marketers\n\nBody.\n';
+  const blocks = extractSpokenText(md, { pageTitle: 'Lolly' });
+  assert.equal(blocks[0]!.text, 'Real prose first.', 'the spoken page opens with real prose');
+  assert.equal(blocks[0]!.blockId, 'intro:p1', 'prose before the first narrated heading anchors to intro');
+  assert.equal(blocks.find(b => b.kind === 'heading')!.blockId, 'marketers', 'later headings keep their anchors');
+  // an exact title match is skipped too (the hub pages' "# Lolly for Creators" shape)
+  const exact = extractSpokenText('# Lolly for Creators\n\nProse.\n', { pageTitle: 'Lolly for Creators' });
+  assert.equal(exact[0]!.text, 'Prose.');
+  // narrowness: an unrelated H1 speaks, no pageTitle means no skip, and only
+  // the document's FIRST block is ever a candidate
+  assert.equal(extractSpokenText('# Quickstart\n\nProse.\n', { pageTitle: 'Lolly' })[0]!.text, 'Quickstart');
+  assert.equal(extractSpokenText(md)[0]!.text, 'Lolly - Landing page copy');
+  const later = extractSpokenText('Opening para.\n\n# Lolly - Landing page copy\n\nBody.\n', { pageTitle: 'Lolly' });
+  assert.ok(later.some(b => b.text === 'Lolly - Landing page copy'), 'a mid-page H1 is content, not a label');
+  // and the skip moves the staleness hash — the narrated words changed
+  assert.notEqual(spokenTextHash(blocks), spokenTextHash(extractSpokenText(md)));
+});
+
 test('parity tripwire: headingId matches the implementation inside docs/build.ts', () => {
   const src = readFileSync(fileURLToPath(new URL('../docs/build.ts', import.meta.url)), 'utf8');
   const m = /function headingId\(text: string, ordinal: number\): string \{\n([\s\S]*?)\n\}/.exec(src);

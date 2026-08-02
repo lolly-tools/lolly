@@ -1149,6 +1149,29 @@ export interface SpeechSynthesizeOpts {
   onProgress?: (p: SpeechProgress) => void;
 }
 
+/** What on-device Whisper heard in a clip. */
+export interface SpeechTranscript {
+  /** The full transcription as one string. */
+  text: string;
+  /**
+   * Timed spans for captioning — the same shape synthesis emits, so caption
+   * plumbing built on `SpeechResult.words` reads a transcript unchanged.
+   */
+  words: SpeechWordTiming[];
+  /** BCP 47 tag of the language the model detected (or was told). */
+  lang: string;
+  /** What one entry of `words` spans — check this, not span lengths. */
+  granularity: 'word' | 'segment';
+}
+
+export interface SpeechTranscribeOpts {
+  /** BCP 47 hint. The model auto-detects when omitted. */
+  lang?: string;
+  /** Abort a long transcription: the promise rejects promptly (AbortError). */
+  signal?: AbortSignal;
+  onProgress?: (p: SpeechProgress) => void;
+}
+
 export interface SpeechAPI {
   /**
    * Whether this shell can synthesise at all (possibly after a model download).
@@ -1162,6 +1185,22 @@ export interface SpeechAPI {
   modelBytes(): number;
   voices(): Promise<SpeechVoiceInfo[]>;
   synthesize(text: string, opts?: SpeechSynthesizeOpts): Promise<SpeechResult>;
+
+  /**
+   * Transcription (v1.99) — audio in, text plus word timings out, via
+   * on-device Whisper. Feature-detected like synthesis, not capability-gated:
+   * audio never leaves the device, and the first use downloads the STT model
+   * once (a separate download from the TTS model — gate it with its own
+   * consent via `transcribeModelBytes`). Word timestamps feed the same
+   * caption cues synthesis produces. The CLI omits transcription for now —
+   * always check `transcribeAvailable()` first.
+   */
+  transcribeAvailable(): boolean;
+  /** Are the STT model bytes already on-device? Never downloads. */
+  transcribeCached(): Promise<boolean>;
+  /** Approximate one-time STT download size in bytes, for a consent UI. */
+  transcribeModelBytes(): number;
+  transcribe(src: AudioSource, opts?: SpeechTranscribeOpts): Promise<SpeechTranscript>;
 }
 
 // ─── MilkDrop visualisation (optional, v1.72) ─────────────────────────────────
@@ -2142,7 +2181,11 @@ export interface InputFile {
   url: string | null;
 }
 
-export type ExportFormat = 'png' | 'apng' | 'jpg' | 'svg' | 'emf' | 'eps' | 'eps-cmyk' | 'pdf' | 'pdf-cmyk' | 'cmyk-tiff' | 'html' | 'webm';
+export type ExportFormat =
+  | 'png' | 'apng' | 'jpg' | 'svg' | 'emf' | 'eps' | 'eps-cmyk' | 'pdf' | 'pdf-cmyk' | 'cmyk-tiff' | 'html' | 'webm'
+  // Audio-only exports. 'opus' is Opus in a WebM container (audio/webm), not Ogg —
+  // the shells already carry a WebM muxer and none can write an Ogg stream.
+  | 'wav' | 'mp3' | 'm4a' | 'opus';
 
 export interface ExportOpts {
   scale?: number;        // raster scale (1, 2, 3) — used when width/height absent

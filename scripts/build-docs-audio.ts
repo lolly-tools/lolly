@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
  * Renders the /info docs narration artefacts (plans/docs-audio-listen.md §4) —
- * per page: audio.opus + captions.vtt + cues.json + viz.bin + meta.json under
+ * per page: audio.opus + captions.vtt + cues.json + meta.json under
  * docs/audio/<lang>/<slug>/, committed like docs/shots and only *linked* by
  * docs/build.ts, which never runs TTS.
  *
@@ -53,23 +53,14 @@
  * LUFS mono target) and the encode is Opus-in-Ogg at 24 kbps voice profile
  * (~180 KB/min).
  *
- * ── viz.bin (plan §4.4) ───────────────────────────────────────────────────
- * The FINISHED opus is decoded back to PCM (ffmpeg → raw f32le mono 48 kHz)
- * and run through the engine's own analysePcm (engine/src/audio-analyse.ts —
- * the same maths every shell reads) with `samples` opted in, then packed per
- * the audiogram's vizWave/vizMeta contract (tools/audiogram/hooks.js ~line
- * 199): byte-quantised scalar tracks in the audiogram's section order, then
- * the raw Uint8 time-domain windows butterchurn's driven mode eats. Speech has
- * no beat grid — `bpm` comes back null and stays out of the file; the player
- * drives visuals from rms/flux, never a tempo. Layout:
- *
- *   bytes 0..3   'LVIZ' magic
- *   bytes 4..7   uint32 LE header length
- *   header       JSON { count, samples, fps, poster, tracks }
- *   payload      tracks.length × count bytes (0..255-quantised, track-major,
- *                audiogram order: rms, peak, bass, mid, treb, flux),
- *                then count × samples raw wave bytes (already 0..255,
- *                centred on 128 — copied, never re-quantised)
+ * ── No viz artefact (plan §4.4, decision 2026-08-02) ──────────────────────
+ * An earlier revision packed a precomputed reactivity track (viz.bin) beside
+ * the audio for the player's driven-mode visualizer. Measured on the first
+ * real render it came out at 27.5 MB PER PAGE — an order of magnitude over
+ * the narration itself — so the player now taps its own <audio> element with
+ * a live AnalyserNode instead (same-origin, zero shipped bytes). Precomputed
+ * reactivity tracks remain the right pattern for EXPORTED deterministic video
+ * (the audiogram), not for live listening.
  *
  * ── Captions ──────────────────────────────────────────────────────────────
  * captions.vtt comes from the engine's own caption maths — groupWordsToCues
@@ -87,7 +78,6 @@ import { join, resolve, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 import { extractSpokenText, spokenTextHash, type SpokenBlock } from './lib/docs-spoken-text.ts';
-import { analysePcm } from '../engine/src/audio-analyse.ts';
 import { groupWordsToCues, cuesToVtt } from '../engine/src/captions.ts';
 import {
   KOKORO_SAMPLE_RATE, KOKORO_STYLE_DIM, KOKORO_MODEL_ID, KOKORO_VOICE_BYTES,
@@ -107,11 +97,24 @@ const AUDIO_ROOT = join(DOCS, 'audio');
  *  voice coverage and the storage curve. */
 export const LANG = 'en';
 
-/** One voice for the whole corpus (plan §4.2) — af_heart, the top-graded en-US
- *  voice in Kokoro's own table (KOKORO_VOICES in engine/src/speech-text.ts).
- *  Changing it stales EVERY page: that is a --force-everything day, chosen
- *  deliberately, not a hash-driven re-render. */
-export const VOICE = 'af_heart';
+/** One voice for the whole corpus (plan §4.2). Changing it stales EVERY page:
+ *  that is a --force-everything day, chosen deliberately, not a hash-driven
+ *  re-render. The narration is one narrator, start to finish. */
+// bf_lily: Andy's final call (2026-08-02, by ear over three candidates) — the
+// narrator stays British ("lolly" is a British/Australian word; Kokoro has no
+// Australian voice), and Lily beats the higher-GRADED Emma because Emma reads
+// as robotic at docs length while Lily sounds more on brand. Kokoro's grade
+// measures acoustic fidelity, not fit — the ear outranks the table. Supersedes
+// bf_emma (accent rule) and af_jessica ("most lolly-sounding") from earlier
+// the same day.
+export const VOICE = 'bf_lily';
+
+/** Narration speed for the docs corpus. 0.8 is a DOCS-ONLY decision (2026-08-02):
+ *  long-form reading wants to sit under the reader rather than race them, unlike
+ *  a tool's one-line clip, which runs at 1.0 (KOKORO_DEFAULT_VOICE's callers).
+ *  The model's own `durations` output drives word alignment, so timings follow
+ *  this automatically — there is no second place to keep in step. */
+export const SPEED = 0.8;
 
 /** The upstream model this local copy was fetched from (see
  *  scripts/fetch-kokoro-models.ts). Recorded in meta.json as modelVersion so a
@@ -129,29 +132,22 @@ const MODEL_DIR = join(ROOT, 'shells', 'web', 'public', 'models', 'kokoro');
  * but the launch gate is storage (§7's budget maths), so the list stays this
  * small until real feedback argues for more. Expansion is editing this array.
  */
-export const LAUNCH_PAGES: string[] = ['index', 'creators', 'builders', 'operators'];
+export const LAUNCH_PAGES: string[] = ['index', 'quickstart', 'creators', 'builders', 'operators'];
 
 /** Every file a finished artefact directory carries (plan §4.5). */
-export const ARTEFACT_FILES = ['audio.opus', 'captions.vtt', 'cues.json', 'viz.bin', 'meta.json'] as const;
+export const ARTEFACT_FILES = ['audio.opus', 'captions.vtt', 'cues.json', 'meta.json'] as const;
 
 /** Inter-block gaps in ms, keyed by the kind of the block BEING INTRODUCED
  *  (plan §4.2: heading 700 ms, paragraph 350 ms). No gap before the first. */
 const GAP_MS: Record<SpokenBlock['kind'], number> = { heading: 700, para: 350, listItem: 350 };
 
-/** analysePcm settings for viz.bin — the audiogram's own numbers
- *  (tools/audiogram/hooks.js: FPS/BANDS/BUCKETS/VIZ_SAMPLES) so the docs
- *  player and the audiogram read frames of identical shape. */
-const VIZ = { fps: 30, bands: 48, buckets: 160, samples: 1024 } as const;
-/** Decode rate for the viz analysis pass — Opus's native output rate. */
-const VIZ_DECODE_HZ = 48_000;
-
-/** The scalar tracks packed into viz.bin, in the audiogram's section order. */
-const VIZ_TRACKS = ['rms', 'peak', 'bass', 'mid', 'treb', 'flux'] as const;
-
 export interface AudioMeta {
   slug: string;
   lang: string;
   voice: string;
+  /** Narration speed the artefact was rendered at. Optional for artefacts
+   *  written before speed was a corpus parameter; absent means 1. */
+  speed?: number;
   modelVersion: string;
   textHash: string;
   duration: number;
@@ -160,24 +156,27 @@ export interface AudioMeta {
 }
 
 /**
- * slug → markdown source file, read from docs/build.ts's own pages[] array.
- * build.ts deliberately has no exports (the spoken-text module documents the
- * same constraint for headingId), so this parses the literal — the same move
- * as tests/docs-spoken-text.test.ts's parity tripwire. Returns null for a slug
- * build.ts no longer lists, which is how a retired page's artefacts surface.
+ * slug → markdown source file + page title, read from docs/build.ts's own
+ * pages[] array. build.ts deliberately has no exports (the spoken-text module
+ * documents the same constraint for headingId), so this parses the literal —
+ * the same move as tests/docs-spoken-text.test.ts's parity tripwire. Returns
+ * null for a slug build.ts no longer lists, which is how a retired page's
+ * artefacts surface. The title feeds extraction's leading meta-title skip and
+ * must be the SAME string build.ts stamps on the Listen button, or the player's
+ * blockIds drift from the pipeline's.
  */
-export function pageSource(slug: string): string | null {
+export function pageSource(slug: string): { src: string; title: string } | null {
   const src = readFileSync(join(DOCS, 'build.ts'), 'utf8');
   const escaped = slug.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-  const m = new RegExp(`\\{\\s*slug:\\s*'${escaped}'\\s*,[^}]*?src:\\s*'([^']+)'`).exec(src);
-  return m ? m[1]! : null;
+  const m = new RegExp(`\\{\\s*slug:\\s*'${escaped}'\\s*,\\s*title:\\s*'([^']+)'\\s*,[^}]*?src:\\s*'([^']+)'`).exec(src);
+  return m ? { title: m[1]!, src: m[2]! } : null;
 }
 
 /** The current spoken-text document + staleness hash for a slug's source. */
 export function currentSpoken(slug: string): { blocks: SpokenBlock[]; hash: string } | null {
-  const src = pageSource(slug);
-  if (!src || !existsSync(join(DOCS, src))) return null;
-  const blocks = extractSpokenText(readFileSync(join(DOCS, src), 'utf8'));
+  const page = pageSource(slug);
+  if (!page || !existsSync(join(DOCS, page.src))) return null;
+  const blocks = extractSpokenText(readFileSync(join(DOCS, page.src), 'utf8'), { pageTitle: page.title });
   return { blocks, hash: spokenTextHash(blocks) };
 }
 
@@ -202,31 +201,23 @@ export function pageStatus(slug: string): { status: Status; committed?: AudioMet
   const spoken = currentSpoken(slug);
   if (!spoken) return { status: 'unlisted', committed };
   if (!committed) return { status: 'missing', currentHash: spoken.hash };
+  // A page is fresh only when the TEXT and the RENDER PARAMETERS both match. The
+  // text hash alone was not enough: this file's own header promises that changing
+  // the voice "stales EVERY page", but comparing only textHash left a voice or
+  // speed change silently un-rendered, so the corpus would drift into a mix of
+  // narrators. `speed` is optional on artefacts written before it existed; absent
+  // reads as the 1 they were rendered at.
+  const sameRender = committed.voice === VOICE
+    && (committed.speed ?? 1) === SPEED
+    && committed.modelVersion === MODEL_ID;
   return {
-    status: committed.textHash === spoken.hash ? 'fresh' : 'stale',
+    status: committed.textHash === spoken.hash && sameRender ? 'fresh' : 'stale',
     committed,
     currentHash: spoken.hash,
   };
 }
 
-// ── Synthesis + packing ─────────────────────────────────────────────────────
-
-/** 0..1 → one byte, clamped — audiogram hooks.js's byte(), same rounding. */
-function toByte(v: number): number {
-  const n = Math.round((Number.isFinite(v) ? v : 0) * 255);
-  return n < 0 ? 0 : n > 255 ? 255 : n;
-}
-
-/** The audiogram's `loudest()` — the poster frame is the peak-RMS instant,
- *  searched away from the fade-prone first/last 10%. */
-function posterFrame(rms: Float32Array, count: number): number {
-  const lo = Math.floor(count * 0.1);
-  const hi = Math.ceil(count * 0.9);
-  let best = lo;
-  let bv = -1;
-  for (let i = lo; i < hi && i < count; i++) if (rms[i]! > bv) { bv = rms[i]!; best = i; }
-  return best;
-}
+// ── Synthesis + encoding ────────────────────────────────────────────────────
 
 function ffmpegAvailable(): boolean {
   return spawnSync('ffmpeg', ['-version'], { stdio: 'ignore' }).status === 0;
@@ -250,7 +241,6 @@ interface Rendered {
   vtt: string;
   cues: Cue[];
   words: SpeechWordTiming[];
-  viz: Buffer;
   meta: AudioMeta;
 }
 
@@ -301,7 +291,7 @@ async function synthesizeBlock(rt: KokoroRuntime, text: string): Promise<{ pcm: 
       const outputs = await rt.model({
         input_ids,
         style: new rt.Tensor('float32', style, [1, KOKORO_STYLE_DIM]),
-        speed: new rt.Tensor('float32', [1], [1]),
+        speed: new rt.Tensor('float32', [SPEED], [1]),
       });
       const wave = outputs.waveform.data as Float32Array;
 
@@ -383,38 +373,11 @@ async function renderPage(slug: string, tts: KokoroRuntime, tmp: string): Promis
   // Sentence-granular fallback words pass through the grouper mostly unchanged.
   const vtt = cuesToVtt(groupWordsToCues(words));
 
-  // viz.bin: decode the FINISHED opus (what listeners actually hear, loudnorm
-  // included) and run the engine's shared analysis maths.
-  const decoded = runFfmpeg(
-    ['-i', opusPath, '-f', 'f32le', '-ac', '1', '-ar', String(VIZ_DECODE_HZ), '-'],
-    `decoding ${slug} for analysis`,
-  );
-  const aligned = decoded.buffer.slice(decoded.byteOffset, decoded.byteOffset + decoded.length - (decoded.length % 4));
-  const analysis = analysePcm([new Float32Array(aligned)], VIZ_DECODE_HZ, VIZ);
-  const f = analysis.frames;
-  const header = Buffer.from(JSON.stringify({
-    count: f.count,
-    samples: f.samples,
-    fps: VIZ.fps,
-    poster: posterFrame(f.rms, f.count),
-    tracks: VIZ_TRACKS,
-  }));
-  const viz = Buffer.alloc(8 + header.length + VIZ_TRACKS.length * f.count + f.count * f.samples);
-  viz.write('LVIZ', 0, 'ascii');
-  viz.writeUInt32LE(header.length, 4);
-  header.copy(viz, 8);
-  let vAt = 8 + header.length;
-  for (const track of VIZ_TRACKS) {
-    const src = f[track];
-    for (let i = 0; i < f.count; i++) viz[vAt++] = toByte(src[i]!);
-  }
-  // Wave windows are already 0..255 centred on 128 — copy, do not re-quantise.
-  viz.set(f.wave.subarray(0, f.count * f.samples), vAt);
-
   const meta: AudioMeta = {
     slug,
     lang: LANG,
     voice: VOICE,
+    speed: SPEED,
     modelVersion: MODEL_ID,
     textHash: spoken.hash,
     duration: Math.round((cursor / sr) * 1000) / 1000,
@@ -422,7 +385,7 @@ async function renderPage(slug: string, tts: KokoroRuntime, tmp: string): Promis
     generated: new Date().toISOString(),
   };
 
-  return { opus, vtt, cues, words, viz, meta };
+  return { opus, vtt, cues, words, meta };
 }
 
 function writeArtefacts(slug: string, r: Rendered): void {
@@ -434,12 +397,11 @@ function writeArtefacts(slug: string, r: Rendered): void {
   // launch player only consumes blocks; word timings feed the captions and any
   // future karaoke-style highlight without a reader change.
   writeFileSync(join(dir, 'cues.json'), `${JSON.stringify({ blocks: r.cues, words: r.words }, null, 2)}\n`);
-  writeFileSync(join(dir, 'viz.bin'), r.viz);
   writeFileSync(join(dir, 'meta.json'), `${JSON.stringify(r.meta, null, 2)}\n`);
   const kb = (n: number) => `${(n / 1024).toFixed(1)} KB`;
   process.stdout.write(
     `  wrote docs/audio/${LANG}/${slug}/ — ${r.meta.duration.toFixed(1)}s, `
-    + `opus ${kb(r.opus.length)}, viz ${kb(r.viz.length)}, ${r.cues.length} cues, ${r.words.length} words\n`,
+    + `opus ${kb(r.opus.length)}, ${r.cues.length} cues, ${r.words.length} words\n`,
   );
 }
 
@@ -563,9 +525,9 @@ async function main(): Promise<void> {
 
   if (!ffmpegAvailable()) {
     bail([
-      'ffmpeg is not on PATH — it does the Opus encode, the loudness pass, and',
-      'the PCM decode for viz.bin. Install it (macOS: `brew install ffmpeg`,',
-      'needs libopus, which the default build includes) and re-run.',
+      'ffmpeg is not on PATH — it does the Opus encode and the loudness pass.',
+      'Install it (macOS: `brew install ffmpeg`, needs libopus, which the',
+      'default build includes) and re-run.',
     ]);
   }
   const tts = await loadKokoro();

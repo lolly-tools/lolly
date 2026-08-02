@@ -76,7 +76,21 @@ export const KOKORO_VOICES: SpeechVoiceInfo[] = [
   { id: 'bf_lily', name: 'Lily', lang: 'en-GB', gender: 'female', grade: 'D' },
 ];
 
-export const KOKORO_DEFAULT_VOICE = 'af_heart';
+/**
+ * The default voice everywhere a caller does not name one.
+ *
+ * `bf_lily` (en-GB) is a BRAND decision, taken 2026-08-02: "lolly" is a
+ * British/Australian word, so Lolly's own voice should sound it. Kokoro ships no
+ * Australian voice, so en-GB is the closest available reading.
+ *
+ * Lily is graded D in the table above and Emma B-, and Emma was tried first on
+ * exactly that reasoning. It was rejected AFTER LISTENING: Emma reads as robotic
+ * at length, Lily sounds on brand. The grade measures acoustic fidelity, not fit,
+ * so it decides nothing on its own — see the same call, with the same reasoning,
+ * on the docs corpus in scripts/build-docs-audio.ts. Do not "fix" this back to a
+ * higher-graded voice from the table without listening to both.
+ */
+export const KOKORO_DEFAULT_VOICE = 'bf_lily';
 
 /** Silence inserted between sentence clips when concatenating, in seconds. */
 export const SENTENCE_GAP_S = 0.35;
