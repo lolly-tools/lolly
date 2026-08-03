@@ -1,0 +1,112 @@
+<div class="bs-wrap">
+  <svg xmlns="http://www.w3.org/2000/svg" class="bs-svg" viewBox="0 0 {{width}} {{height}}" width="{{width}}" height="{{height}}"
+       preserveAspectRatio="xMidYMid meet" style="width:100%;height:auto;display:block;">
+    {{#if outSrc}}
+    <!-- The whole composition (framed photo + colour pipeline + texture pass) is
+         baked into one bitmap by hooks.js — a deterministic canvas render so it
+         looks identical in every browser and every export path. The bitmap already
+         carries the export aspect, so it maps 1:1 over the viewBox.
+
+         Double-buffer: each render replaces this DOM wholesale, and the new
+         <image>'s data URL must decode before it paints — the previous bitmap
+         (browser-cached → instant) sits underneath while that happens; the inline
+         script below drops it once the top image has loaded. -->
+    {{#if prevSrc}}<image href="{{prevSrc}}" data-bs-base="1" x="0" y="0" width="{{width}}" height="{{height}}" preserveAspectRatio="none"/>{{/if}}
+    <image data-lolly-anno="{{preset}} {{treatment}}" href="{{outSrc}}" data-bs-top="1" x="0" y="0" width="{{width}}" height="{{height}}" preserveAspectRatio="none"/>
+    {{else}}
+    <rect width="{{width}}" height="{{height}}" fill="#101018"/>
+    <text x="50%" y="50%" text-anchor="middle" dominant-baseline="middle"
+          font-family="system-ui, sans-serif" font-size="34" fill="#9ca3af">{{default note "Choose an image to grade"}}</text>
+    {{/if}}
+  </svg>
+
+  <!-- Screen-only chrome: excluded from EVERY export via data-export-hide. -->
+  <div class="bs-hud" data-export-hide aria-hidden="true">
+    {{#if split}}
+    <span class="bs-chip bs-chip-left">Before</span>
+    <span class="bs-chip bs-chip-right">After</span>
+    {{/if}}
+    {{#if lutLabel}}<span class="bs-chip bs-chip-lut" title="Loaded LUT">{{lutLabel}}</span>{{/if}}
+    {{#if lutNote}}<span class="bs-chip bs-chip-err">{{lutNote}}</span>{{/if}}
+    {{#if histSvg}}<div class="bs-hist">{{{histSvg}}}</div>{{/if}}
+  </div>
+</div>
+<div data-img-key="{{#if image}}{{asset image}}{{/if}}" hidden aria-hidden="true"></div>
+<script>
+// Sync the SVG frame to the export dimension controls so non-square exports
+// compose correctly. IIFE + var: this <script> is re-created and re-run on every
+// paint, so top-level const/let would throw on the second render.
+(function () {
+  var svgs = document.querySelectorAll('svg.bs-svg');
+  var svg = svgs[svgs.length - 1];
+  if (!svg) return;
+  var vb = (svg.getAttribute('viewBox') || '0 0 1080 1080').split(/\s+/).map(Number);
+  var wEl = document.querySelector('[data-action="export-width"]');
+  var hEl = document.querySelector('[data-action="export-height"]');
+  var W = (wEl && parseFloat(wEl.value) > 0) ? parseFloat(wEl.value) : vb[2];
+  var H = (hEl && parseFloat(hEl.value) > 0) ? parseFloat(hEl.value) : vb[3];
+  svg.setAttribute('viewBox', '0 0 ' + W + ' ' + H);
+  svg.setAttribute('width', W);
+  svg.setAttribute('height', H);
+  var ims = svg.querySelectorAll('image[data-bs-top],image[data-bs-base]');
+  for (var i = 0; i < ims.length; i++) { ims[i].setAttribute('width', W); ims[i].setAttribute('height', H); }
+  // Drop the previous-frame base layer once the new (top) image has painted, so
+  // the settled DOM / export carries a single image.
+  var base = svg.querySelector('[data-bs-base]');
+  var top = svg.querySelector('[data-bs-top]');
+  if (base && top) {
+    var drop = function () { if (base && base.parentNode) base.parentNode.removeChild(base); };
+    top.addEventListener('load', drop, { once: true });
+    setTimeout(drop, 350);
+  }
+})();
+</script>
+<script>
+/* Auto-fit the canvas to a newly chosen image (native pixel dimensions) — the
+   same convention as the community filter-* tools: the template stamps the
+   user-picked image URL as data-img-key (empty for the demo scene); when the
+   key CHANGES to a new image we snap the export Width/Height fields to the
+   image's native size (probed, capped, aspect preserved). Keyed on the
+   #tool-canvas element (recreated per mount; absent for the off-screen export
+   canvas → never resizes the bar during an export). IIFE + var: re-run each
+   render, so top-level const/let would throw. */
+(function () {
+  var anchor = document.querySelector('[data-img-key]');
+  if (!anchor) return;
+  var canvas = anchor.closest('#tool-canvas');
+  if (!canvas) return;
+  var key = anchor.getAttribute('data-img-key') || '';
+  if (!('__filterFitKey' in canvas)) { canvas.__filterFitKey = key; return; }
+  if (canvas.__filterFitKey === key) return;
+  if (!key) { canvas.__filterFitKey = ''; return; }
+  var uEl = document.querySelector('[data-action="export-unit"]');
+  if (uEl && uEl.value && uEl.value !== 'px') return;
+  var wEl = document.querySelector('[data-action="export-width"]');
+  var hEl = document.querySelector('[data-action="export-height"]');
+  if (!wEl || !hEl) return;
+
+  var MAX = 8000;
+  function apply(nw, nh) {
+    if (!(nw > 0 && nh > 0)) return;
+    canvas.__filterFitKey = key;
+    var s = Math.min(1, MAX / Math.max(nw, nh));
+    var W = Math.max(1, Math.round(nw * s));
+    var H = Math.max(1, Math.round(nh * s));
+    var changed = false;
+    if (parseFloat(wEl.value) !== W) { wEl.value = String(W); changed = true; }
+    if (parseFloat(hEl.value) !== H) { hEl.value = String(H); changed = true; }
+    if (changed) {
+      wEl.dispatchEvent(new Event('input', { bubbles: true }));
+      hEl.dispatchEvent(new Event('input', { bubbles: true }));
+    }
+  }
+
+  if (canvas.__filterFitProbe === key) return;
+  canvas.__filterFitProbe = key;
+  var probe = new Image();
+  probe.onload = function () { apply(probe.naturalWidth, probe.naturalHeight); };
+  probe.onerror = function () { if (canvas.__filterFitProbe === key) canvas.__filterFitProbe = null; };
+  probe.src = key;
+  if (probe.complete && probe.naturalWidth > 0) apply(probe.naturalWidth, probe.naturalHeight);
+})();
+</script>
