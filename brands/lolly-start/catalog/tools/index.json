@@ -1,6 +1,6 @@
 {
   "version": "1",
-  "generatedAt": "2026-08-02T12:18:05.995Z",
+  "generatedAt": "2026-08-03T18:19:12.435Z",
   "tools": [
     {
       "id": "compress-pdf",
@@ -6074,6 +6074,224 @@
         "zh": {
           "name": "印后工艺预览",
           "description": "在作品上模拟烫金、局部UV、击凸和触感膜等工艺，并导出可直接交付印厂的版面。屏幕上的光泽只是演示，版面才是真正的交付物。"
+        }
+      }
+    },
+    {
+      "id": "bitmap-studio",
+      "name": "Bitmap Studio",
+      "description": "A pro photo-grading darkroom: film looks, third-party .cube LUTs, brand-seeded colour treatments and finishing texture — then bake your look as a LUT any editor can use.",
+      "version": "1.0.0",
+      "status": "community",
+      "category": "designer",
+      "tags": [
+        "photo",
+        "image",
+        "bitmap",
+        "grade",
+        "grading",
+        "color",
+        "colour",
+        "lut",
+        "cube",
+        "3dl",
+        "film",
+        "preset",
+        "duotone",
+        "gradient-map",
+        "split-tone",
+        "grain",
+        "vignette",
+        "halation",
+        "bloom",
+        "sharpen",
+        "filter",
+        "effect",
+        "darkroom",
+        "cinematic",
+        "brand"
+      ],
+      "formats": [
+        "png",
+        "jpg",
+        "webp",
+        "svg",
+        "webm",
+        "mp4"
+      ],
+      "width": 1080,
+      "height": 1080,
+      "exportable": true,
+      "icon": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><rect x=\"3\" y=\"3\" width=\"18\" height=\"18\" rx=\"3\"/><path d=\"M3 15.5 8 10l4.5 4.5L16 11l5 5\"/><circle cx=\"9\" cy=\"7.5\" r=\"1.4\"/><path d=\"M14.5 5.5h4M16.5 3.5v4\"/></svg>",
+      "preview": "/catalog/previews/bitmap-studio.svg",
+      "featured": {
+        "order": 3,
+        "blurb": "Grade photos with film looks, LUTs and your brand colours"
+      },
+      "examples": [
+        {
+          "label": "Teal & orange cinema",
+          "values": {
+            "preset": "teal-orange",
+            "vignette": 22,
+            "halation": 18
+          }
+        },
+        {
+          "label": "Faded matte + grain",
+          "values": {
+            "preset": "matte",
+            "grain": 45,
+            "vignette": 28
+          }
+        },
+        {
+          "label": "Brand duotone",
+          "values": {
+            "treatment": "duotone",
+            "treatmentAmount": 85
+          }
+        },
+        {
+          "label": "Classic black & white",
+          "values": {
+            "preset": "bw",
+            "grain": 35,
+            "vignette": 24,
+            "contrast": 12
+          }
+        }
+      ],
+      "i18n": {
+        "ar": {
+          "name": "Bitmap Studio",
+          "description": "غرفة مظلمة احترافية لتدريج الصور: إطلالات فيلمية، وجداول LUT بصيغة ‎.cube من جهات خارجية، ومعالجات لونية مستمدة من ألوان علامتك، وملمس نهائي — ثم صدِّر إطلالتك كملف LUT يمكن لأي محرر استخدامه.",
+          "blurb": "درِّج صورك بإطلالات فيلمية وجداول LUT وألوان علامتك"
+        },
+        "bg": {
+          "name": "Bitmap Studio",
+          "description": "Професионална тъмна стая за цветови корекции: филмови стилове, .cube LUT от трети страни, цветови обработки от палитрата на марката ти и финални текстури — после изпечи стила си като LUT, който всеки редактор може да ползва.",
+          "blurb": "Обработвай снимки с филмови стилове, LUT и цветовете на марката си"
+        },
+        "bn": {
+          "name": "Bitmap Studio",
+          "description": "একটি পেশাদার ফটো-গ্রেডিং ডার্করুম: ফিল্ম লুক, থার্ড-পার্টি .cube LUT, ব্র্যান্ডের রং থেকে নেওয়া কালার ট্রিটমেন্ট ও ফিনিশিং টেক্সচার — তারপর আপনার লুকটি এমন একটি LUT হিসেবে সংরক্ষণ করুন যা যেকোনো এডিটর ব্যবহার করতে পারে।",
+          "blurb": "ফিল্ম লুক, LUT ও আপনার ব্র্যান্ডের রঙে ফটো গ্রেড করুন"
+        },
+        "cs": {
+          "name": "Bitmap Studio",
+          "description": "Profesionální fotografická temná komora: filmové looky, .cube LUT třetích stran, barevné úpravy odvozené z palety vaší značky a finální textury — a nakonec si look vypečte jako LUT, kterou použije každý editor.",
+          "blurb": "Gradujte fotky filmovými looky, LUT a barvami své značky"
+        },
+        "de": {
+          "name": "Bitmap-Studio",
+          "description": "Eine professionelle Foto-Grading-Dunkelkammer: Film-Looks, .cube-LUTs von Drittanbietern, Farbbehandlungen aus Ihrer Markenpalette und Finishing-Texturen — und backen Sie Ihren Look als LUT, die jeder Editor nutzen kann.",
+          "blurb": "Graden Sie Fotos mit Film-Looks, LUTs und Ihren Markenfarben"
+        },
+        "es": {
+          "name": "Bitmap Studio",
+          "description": "Un cuarto oscuro profesional para gradar fotos: looks de película, LUTs .cube de terceros, tratamientos de color basados en tu marca y textura de acabado; después, hornea tu look como una LUT que cualquier editor puede usar.",
+          "blurb": "Grada fotos con looks de película, LUTs y los colores de tu marca"
+        },
+        "fr": {
+          "name": "Bitmap Studio",
+          "description": "Une chambre noire professionnelle pour l'étalonnage photo : looks argentiques, LUT .cube tierces, traitements couleur issus de votre marque et texture de finition — puis exportez votre look en LUT utilisable dans n'importe quel éditeur.",
+          "blurb": "Étalonnez vos photos avec des looks argentiques, des LUT et vos couleurs de marque"
+        },
+        "hi": {
+          "name": "Bitmap Studio",
+          "description": "एक पेशेवर फ़ोटो-ग्रेडिंग डार्करूम: फ़िल्म लुक, थर्ड-पार्टी .cube LUT, ब्रांड रंगों पर आधारित कलर ट्रीटमेंट और फ़िनिशिंग टेक्सचर — फिर अपने लुक को ऐसे LUT के रूप में सहेजें जिसे कोई भी एडिटर इस्तेमाल कर सके।",
+          "blurb": "फ़िल्म लुक, LUT और अपने ब्रांड रंगों से फ़ोटो ग्रेड करें"
+        },
+        "id": {
+          "name": "Bitmap Studio",
+          "description": "Kamar gelap grading foto profesional: film look, LUT .cube pihak ketiga, olahan warna dari palet merek Anda, dan tekstur finishing — lalu ekspor look Anda sebagai LUT yang bisa dipakai editor mana pun.",
+          "blurb": "Grading foto dengan film look, LUT, dan warna merek Anda"
+        },
+        "it": {
+          "name": "Bitmap Studio",
+          "description": "Una camera oscura professionale per il grading fotografico: look pellicola, LUT .cube di terze parti, trattamenti colore basati sul tuo brand e texture di finitura — poi esporta il tuo look come LUT utilizzabile in qualsiasi editor.",
+          "blurb": "Fai il grading delle foto con look pellicola, LUT e i colori del tuo brand"
+        },
+        "ja": {
+          "name": "ビットマップスタジオ",
+          "description": "プロ仕様のフォトグレーディング暗室：フィルムルック、サードパーティ製 .cube LUT、ブランドカラーに基づくカラートリートメント、仕上げのテクスチャ。さらに、どのエディタでも使える LUT としてルックを書き出せます。",
+          "blurb": "フィルムルック、LUT、ブランドカラーで写真をグレーディング"
+        },
+        "ko": {
+          "name": "비트맵 스튜디오",
+          "description": "전문가급 사진 그레이딩 암실: 필름 룩, 서드파티 .cube LUT, 브랜드 색상 기반 컬러 트리트먼트와 마감 텍스처 — 그리고 어떤 편집기에서도 쓸 수 있는 LUT로 룩을 구워냅니다.",
+          "blurb": "필름 룩, LUT, 브랜드 색상으로 사진을 그레이딩하세요"
+        },
+        "ms": {
+          "name": "Bitmap Studio",
+          "description": "Bilik gelap penggredan foto profesional: gaya filem, LUT .cube pihak ketiga, olahan warna daripada palet jenama anda dan tekstur kemasan — kemudian eksport gaya anda sebagai LUT yang boleh digunakan mana-mana editor.",
+          "blurb": "Gred foto dengan gaya filem, LUT dan warna jenama anda"
+        },
+        "nl": {
+          "name": "Bitmap Studio",
+          "description": "Een professionele donkere kamer voor fotogradatie: filmlooks, .cube-LUT's van derden, kleurbehandelingen op basis van je merkkleuren en afwerkingstextuur — bak daarna je look als LUT die elke editor kan gebruiken.",
+          "blurb": "Grade foto's met filmlooks, LUT's en je merkkleuren"
+        },
+        "no": {
+          "name": "Bitmap Studio",
+          "description": "Et profesjonelt mørkerom for fotogradering: filmlooker, .cube-LUT-er fra tredjepart, fargebehandlinger fra merkevarens palett og finish-teksturer — og bak looken din som en LUT alle redigeringsprogram kan bruke.",
+          "blurb": "Grader bilder med filmlooker, LUT-er og merkevarefargene dine"
+        },
+        "pl": {
+          "name": "Bitmap Studio",
+          "description": "Profesjonalna ciemnia do gradingu zdjęć: filmowe looki, zewnętrzne LUT-y .cube, obróbka koloru oparta na palecie marki i tekstury wykończeniowe — a potem wypal swój look jako LUT, którego użyje każdy edytor.",
+          "blurb": "Graduj zdjęcia z filmowymi lookami, LUT-ami i kolorami swojej marki"
+        },
+        "pt": {
+          "name": "Bitmap Studio",
+          "description": "Uma câmara escura profissional para gradação de fotos: looks de filme, LUTs .cube de terceiros, tratamentos de cor baseados na sua marca e textura de acabamento — depois exporte o seu look como uma LUT que qualquer editor pode usar.",
+          "blurb": "Grade fotos com looks de filme, LUTs e as cores da sua marca"
+        },
+        "ro": {
+          "name": "Bitmap Studio",
+          "description": "O cameră obscură profesională pentru gradarea fotografiilor: look-uri de film, LUT-uri .cube de la terți, tratamente de culoare pornind de la paleta brandului și texturi de finisare — apoi exportă look-ul ca LUT utilizabil în orice editor.",
+          "blurb": "Gradează fotografii cu look-uri de film, LUT-uri și culorile brandului tău"
+        },
+        "sv": {
+          "name": "Bitmap Studio",
+          "description": "Ett professionellt mörkrum för fotogradering: filmlooker, .cube-LUT:er från tredje part, färgbehandlingar utifrån ditt varumärkes palett och finish-texturer — baka sedan din look som en LUT som alla redigerare kan använda.",
+          "blurb": "Gradera foton med filmlooker, LUT:er och dina varumärkesfärger"
+        },
+        "tl": {
+          "name": "Bitmap Studio",
+          "description": "Isang propesyonal na photo-grading darkroom: mga film look, third-party na .cube LUT, mga color treatment mula sa mga kulay ng iyong brand, at finishing texture — pagkatapos ay i-bake ang iyong look bilang LUT na magagamit ng kahit anong editor.",
+          "blurb": "I-grade ang mga larawan gamit ang mga film look, LUT at kulay ng iyong brand"
+        },
+        "tr": {
+          "name": "Bitmap Studio",
+          "description": "Profesyonel bir fotoğraf renklendirme karanlık odası: film görünümleri, üçüncü taraf .cube LUT'lar, marka renklerinden türetilen renk işlemleri ve bitirme dokuları — ardından görünümünü her editörün kullanabileceği bir LUT olarak dışa aktar.",
+          "blurb": "Fotoğrafları film görünümleri, LUT'lar ve marka renklerinle renklendir"
+        },
+        "uk": {
+          "name": "Bitmap Studio",
+          "description": "Професійна темна кімната для грейдингу фото: плівкові луки, сторонні .cube LUT, колірні обробки на основі палітри вашого бренду та фінішні текстури — а потім запечіть свій лук як LUT, який відкриє будь-який редактор.",
+          "blurb": "Грейдьте фото з плівковими луками, LUT і кольорами вашого бренду"
+        },
+        "ur": {
+          "name": "Bitmap Studio",
+          "description": "ایک پیشہ ور فوٹو گریڈنگ ڈارک روم: فلم لُکس، تھرڈ پارٹی .cube LUTs، برانڈ کے رنگوں پر مبنی کلر ٹریٹمنٹ اور فنشنگ ٹیکسچر — پھر اپنا لُک ایسے LUT کے طور پر محفوظ کریں جسے کوئی بھی ایڈیٹر استعمال کر سکے۔",
+          "blurb": "فلم لُکس، LUTs اور اپنے برانڈ کے رنگوں سے تصاویر گریڈ کریں"
+        },
+        "vi": {
+          "name": "Bitmap Studio",
+          "description": "Phòng tối chỉnh màu ảnh chuyên nghiệp: phong cách phim, LUT .cube của bên thứ ba, xử lý màu dựa trên bảng màu thương hiệu và kết cấu hoàn thiện — rồi xuất phong cách của bạn thành LUT mà mọi trình biên tập đều dùng được.",
+          "blurb": "Chỉnh màu ảnh với phong cách phim, LUT và màu thương hiệu của bạn"
+        },
+        "zh-hant": {
+          "name": "位圖工作室",
+          "description": "專業的照片調色暗房：底片風格、第三方 .cube LUT、以品牌色彩為基礎的色彩處理與質感修飾——還能將你的調色烘焙成任何剪輯軟體都能使用的 LUT。",
+          "blurb": "用底片風格、LUT 與品牌色彩為照片調色"
+        },
+        "zh": {
+          "name": "位图工作室",
+          "description": "专业的照片调色暗房：胶片风格、第三方 .cube LUT、以品牌色彩为基础的色彩处理与质感修饰——还能将你的调色烘焙成任何剪辑软件都能使用的 LUT。",
+          "blurb": "用胶片风格、LUT 和品牌色为照片调色"
         }
       }
     }
