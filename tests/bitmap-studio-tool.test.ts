@@ -5,7 +5,7 @@
  * Run with: node --test tests/bitmap-studio-tool.test.ts
  * No test framework — node:test built-in.
  *
- * Loads the REAL tool straight from brands/lolly-start/tools/bitmap-studio and
+ * Loads the REAL tool straight from community/bitmap-studio and
  * drives it through the engine with a stubbed host — only the host is stubbed;
  * the code under test is the shipped manifest + hooks. Guards:
  *   - headless degradation: no canvas → the placeholder note, never a throw,
@@ -30,11 +30,11 @@ import { loadTool } from '../engine/src/loader.ts';
 import { createRuntime } from '../engine/src/runtime.ts';
 import { baseHost } from './helpers/host.ts';
 
-const TOOLS_DIR = join(dirname(fileURLToPath(import.meta.url)), '..', 'brands', 'lolly-start', 'tools');
+const TOOLS_DIR = join(dirname(fileURLToPath(import.meta.url)), '..', 'community');
 const fetchFile = (path: string) => readFile(join(TOOLS_DIR, path), 'utf8');
 
 assert.ok(existsSync(join(TOOLS_DIR, 'bitmap-studio', 'tool.json')),
-  'brands/lolly-start/tools/bitmap-studio/tool.json is missing — the tool was renamed or deleted');
+  'community/bitmap-studio/tool.json is missing — the tool was renamed or deleted');
 
 const tool: any = await loadTool('bitmap-studio', fetchFile);
 
