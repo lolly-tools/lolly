@@ -36,7 +36,7 @@
  */
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { readFileSync } from 'node:fs';
+import { existsSync, readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
 import { makeGeomApi } from '../engine/src/geom-api.ts';
@@ -51,8 +51,18 @@ import { isPackAvailable, packQuery, unpackToken } from '../engine/src/url-pack.
 const HERE = dirname(fileURLToPath(import.meta.url));
 const ROOT = join(HERE, '..');
 /** Both brand variants ship the tool; a manifest change has to land in both, so
- *  every manifest assertion runs over both rather than over "the" manifest. */
-const BRANDS = ['lolly-start', 'suse'] as const;
+ *  every manifest assertion runs over both rather than over "the" manifest.
+ *  Gate the private brands/suse copy on the SOURCE pack being mounted, per the
+ *  house rule (tests/README.md, "Private brand content"): a public CI /
+ *  lolly-start checkout skips the SUSE half cleanly, but with the pack mounted
+ *  a missing tool dir FAILS — a renamed/deleted variant can't silently turn
+ *  the suite green. */
+const SUSE_MOUNTED = existsSync(join(ROOT, 'brands', 'suse', 'tools'));
+if (SUSE_MOUNTED) {
+  assert.ok(existsSync(join(ROOT, 'brands', 'suse', 'tools', 'layout-studio', 'tool.json')),
+    'brands/suse/tools/layout-studio is missing — pack is mounted, so the tool was renamed or deleted');
+}
+const BRANDS: readonly string[] = SUSE_MOUNTED ? ['lolly-start', 'suse'] : ['lolly-start'];
 const toolDir = (brand: string): string => join(ROOT, 'brands', brand, 'tools', 'layout-studio');
 
 interface Row { [k: string]: unknown }
@@ -1114,7 +1124,8 @@ test('regression: every pre-existing kind computes byte-identically to before th
   }
 });
 
-test('regression: the SUSE variant is the same change, and its own extras still differ only by brand', () => {
+test('regression: the SUSE variant is the same change, and its own extras still differ only by brand',
+  { skip: SUSE_MOUNTED ? false : 'brands/suse not mounted (private pack)' }, () => {
   const start = withGeom('lolly-start').compute(REGRESSION_BOXES);
   const suse = withGeom('suse').compute(REGRESSION_BOXES);
   // Same keys, same lengths — the two variants diverge only in fonts and default
