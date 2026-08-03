@@ -46,6 +46,12 @@ var STILL_MAX = 1440; // working-canvas long edge for stills — snappy on slide
 var LIVE_MAX = 900;   // live camera frames trade a little size for frame rate
 var MAX_EDGE = 8000;
 var LUT_N = 33;       // grid size of the internal pipeline LUT (also the bake default)
+// Untrusted-input bounds (the lutFile bytes are user-supplied; fuzzed by
+// tests/fuzz — target 'lut-parse'). A grid of N costs N³ float triples, so the
+// cap is what bounds parse memory: 129³·3 floats ≈ 25 MB, the practical
+// ceiling shipping .cube files use; .3dl grids top out at 64+1 in the wild.
+var CUBE_MAX_N = 129;
+var TDL_MAX_N = 65;
 
 var _memoKey = null;
 var _memoResult = null;
@@ -320,7 +326,7 @@ function parseCube(text) {
     data.push(r, g, b);
   }
   if (!kind || !(size >= 2)) throw new Error('Not a .cube LUT (no LUT_1D_SIZE / LUT_3D_SIZE)');
-  if (size > 129) throw new Error('LUT grid too large (max 129)');
+  if (size > CUBE_MAX_N) throw new Error('LUT grid too large (max ' + CUBE_MAX_N + ')');
   var expect = kind === '3d' ? size * size * size * 3 : size * 3;
   if (data.length < expect) throw new Error('LUT is truncated (' + (data.length / 3) + ' of ' + (expect / 3) + ' rows)');
   return {
@@ -346,7 +352,7 @@ function parse3dl(text) {
   }
   var size = mesh ? mesh.length : Math.round(Math.pow(rows.length, 1 / 3));
   if (!(size >= 2) || rows.length < size * size * size) throw new Error('Not a .3dl LUT');
-  if (size > 65) throw new Error('LUT grid too large (max 65 for .3dl)');
+  if (size > TDL_MAX_N) throw new Error('LUT grid too large (max ' + TDL_MAX_N + ' for .3dl)');
   var peak = 0;
   for (i = 0; i < rows.length; i++) peak = Math.max(peak, rows[i][0], rows[i][1], rows[i][2]);
   var scale = peak > 4095 ? 65535 : peak > 1023 ? 4095 : peak > 255 ? 1023 : 255;
