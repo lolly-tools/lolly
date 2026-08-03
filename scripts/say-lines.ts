@@ -148,6 +148,11 @@ async function main(): Promise<void> {
   const gapMs = Number(arg('gap', '500'));
   // A blank line in the source is a longer rest — the stanza break, if the text has one.
   const stanzaMs = Number(arg('stanza-gap', String(gapMs * 2)));
+  // A line opening with '+' CONTINUES the one before it: the same breath, not a new
+  // line. Verse needs this. "But fixed in time / having been verified in proof" is one
+  // sentence broken across two lines, and giving it a line gap turns the resolution
+  // into a separate statement. Uniform spacing cannot express syncopation.
+  const contMs = Number(arg('cont-gap', String(Math.round(gapMs / 3))));
 
   const raw = readFileSync(inPath, 'utf8').replace(/\r\n/g, '\n').split('\n');
   const lines = raw.map((l) => l.trim());
@@ -163,10 +168,13 @@ async function main(): Promise<void> {
   let cursor = 0;      // samples
   let pendingGapMs = 0;
 
-  for (const line of lines) {
-    if (!line) { pendingGapMs = stanzaMs; continue; }   // blank line = a longer rest
+  for (const raw of lines) {
+    if (!raw) { pendingGapMs = stanzaMs; continue; }   // blank line = a longer rest
+    const isCont = raw.startsWith('+');
+    const line = isCont ? raw.slice(1).trim() : raw;
+    if (!line) continue;
     if (cursor > 0) {
-      const ms = pendingGapMs || gapMs;
+      const ms = pendingGapMs || (isCont ? contMs : gapMs);
       const gap = new Float32Array(Math.round((ms / 1000) * sr));
       pieces.push(gap);
       cursor += gap.length;
