@@ -18,6 +18,34 @@
  * Writes <out>/{audio.wav, cues.json, captions.vtt, meta.json}. WAV because this is a
  * master for further work (an audiogram, an mp4); transcode downstream.
  *
+ * ── Learning pacing from a human read (the reason this is kept) ────────────
+ * Kept as a research tool, not because the docs corpus needs it: the open question
+ * is how to TEACH pacing, both to users writing scripts and to ourselves. The model
+ * gives word timings for free; what it cannot give is where the silences belong, and
+ * silence is most of what makes a read sound composed rather than recited.
+ *
+ * The method that worked, 2026-08-03, deriving Andy's rhythm from a phone recording:
+ *
+ *   ffmpeg -v info -i read.mp3 -af "silencedetect=noise=-35dB:d=0.15" -f null -
+ *
+ * `-v info` is not optional — silencedetect logs at info level, so the usual
+ * `-v error` hides every result and the filter looks like it found nothing.
+ * Subtract the speech spans from the total to separate delivery rate from rests;
+ * they are independent problems and conflating them sends you tuning the wrong dial.
+ *
+ * What that measurement showed, and what it changed:
+ *   - His read: 34.5s total, ~26.1s speech, gaps spanning 0.16s to 0.92s.
+ *   - The first synthesis: 50.4s, with a FLAT 600ms after every line.
+ *   - Rate was ~1.6x too slow, but the flat gap was the bigger fault. Uniform
+ *     spacing reads as a list no matter how the rate is tuned; graded spacing reads
+ *     as verse. Hence the '+' continuation and the blank-line stanza rest.
+ *   - A line can also be a CONTINUATION rather than a new line ("But fixed in time"
+ *     / "having been verified in proof" is one sentence), which no amount of global
+ *     gap tuning can express. That is what the '+' prefix is for.
+ *
+ * Open: deriving the gap profile automatically from a reference recording and
+ * applying it per line, rather than by hand as above.
+ *
  * Fully offline: the locally staged Kokoro model with remote models disabled, the same
  * privacy posture as the worker. Nothing is uploaded, ever.
  */
