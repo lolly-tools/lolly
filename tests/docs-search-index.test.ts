@@ -29,7 +29,12 @@ const dirFor = (lang: string) => (lang === 'en' ? INFO : resolve(INFO, lang));
 const indexFor = (lang: string): Record_[] =>
   JSON.parse(readFileSync(resolve(dirFor(lang), 'search-index.json'), 'utf-8')) as Record_[];
 
-const built = existsSync(resolve(INFO, 'search-index.json'));
+// The index (search-index.json) is COMMITTED, but the rendered pages it is
+// validated against are build products (public/info/*.html is gitignored) — so
+// gating on the index alone passes in every fresh checkout and then fails on
+// the absent pages. A page file must be present too before this suite can
+// judge agreement between the two.
+const built = existsSync(resolve(INFO, 'search-index.json')) && existsSync(resolve(INFO, 'index.html'));
 
 describe('docs search index', { skip: built ? false : 'run `npm run build:info` first' }, () => {
   for (const lang of LOCALES) {

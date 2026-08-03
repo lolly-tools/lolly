@@ -139,6 +139,14 @@ jobs:
           # ANSI colour codes first, then surface the counts in the job log.
           sed $'s/\x1b\[[0-9;]*m//g' test-output.log \
             | grep -E '^(#|ℹ) (tests|pass|fail|skipped|todo) [0-9]+' || true
+          # Name the failures here at the END of the log: the full TAP stream
+          # runs to ~45k lines and the scattered "not ok" lines fall outside
+          # what the Actions UI / log APIs surface, which makes a red run
+          # undiagnosable from the summary alone. Capped so a catastrophic run
+          # can't flood the log.
+          echo "--- failing tests (first 50) ---"
+          sed $'s/\x1b\[[0-9;]*m//g' test-output.log \
+            | grep -E '^(not ok|✖|✗)' | head -50 || true
           skipped=$(sed $'s/\x1b\[[0-9;]*m//g' test-output.log \
             | grep -E '^(#|ℹ) skipped [0-9]+' | tail -1 | grep -oE '[0-9]+' | tail -1 || true)
           if [ -z "$skipped" ]; then
