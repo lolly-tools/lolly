@@ -40,6 +40,9 @@ import {
 import { unpackToken, expandQuery, hasPackedState, packQuery } from '../../engine/src/url-pack.ts';
 import { parseWav } from '../../engine/src/wav.ts';
 import { deflateRawSync } from 'node:zlib';
+import { readFileSync } from 'node:fs';
+import { join, dirname } from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { sniffAnimatedRaster, sniffVideoContainer } from '../../engine/src/media-sniff.ts';
 import { interpretPdfPage, parseToUnicode } from '../../engine/src/pdf-map.ts';
 import { extractFileMetadata } from '../../engine/src/file-metadata.ts';
@@ -888,11 +891,46 @@ export const depthHintTarget: FuzzTarget = {
   async invoke(bytes) { await depthHint(bytes); },
 };
 
+// The bitmap-studio tool's .cube/.3dl LUT readers (brands/lolly-start/tools/
+// bitmap-studio/hooks.js) — the one tool-data parser that reads untrusted
+// bytes (a user-picked LUT file). Hooks ship as plain script, not a module, so
+// the functions are lifted out the same way the engine runtime compiles them:
+// new Function with the source appended by a return of the parsers under test.
+// Declared bounds live in the hooks as CUBE_MAX_N / TDL_MAX_N; a controlled
+// "Not a … LUT" / "too large" throw is the desired outcome, and the runner's
+// finding classes are hangs and allocation blow-ups.
+const lutParsers = (() => {
+  const src = readFileSync(
+    join(dirname(fileURLToPath(import.meta.url)), '..', '..', 'brands', 'lolly-start', 'tools', 'bitmap-studio', 'hooks.js'),
+    'utf8',
+  );
+  type Parse = (text: string) => unknown;
+  return new Function('host', `${src}\nreturn { parseCube, parse3dl };`)({}) as { parseCube: Parse; parse3dl: Parse };
+})();
+
+export const lutParseTarget: FuzzTarget = {
+  name: 'lut-parse',
+  async seeds() {
+    const cube3d = [
+      'TITLE "Seed"', 'LUT_3D_SIZE 2', 'DOMAIN_MIN 0.0 0.0 0.0', 'DOMAIN_MAX 1.0 1.0 1.0',
+      '0 0 0', '1 0 0', '0 1 0', '1 1 0', '0 0 1', '1 0 1', '0 1 1', '1 1 1',
+    ].join('\n');
+    const cube1d = 'LUT_1D_SIZE 3\n0 0 0\n0.5 0.5 0.5\n1 1 1\n';
+    const tdl = ['0 512 1023', ...Array.from({ length: 27 }, (_, i) => `${(i * 37) % 1024} ${(i * 91) % 1024} ${(i * 53) % 1024}`)].join('\n');
+    return [cube3d, cube1d, tdl].map((s) => new TextEncoder().encode(s));
+  },
+  async invoke(bytes) {
+    const text = new TextDecoder('utf-8').decode(bytes);
+    try { lutParsers.parseCube(text); } catch { /* controlled reject — the tool falls through to .3dl */ }
+    lutParsers.parse3dl(text);
+  },
+};
+
 export const ALL_TARGETS: FuzzTarget[] = [
   c2paVerifyTarget, cborTarget, mediaSniffTarget, pdfMapTarget, x509Target,
   fileMetadataTarget, stripMetadataTarget, videoMetaTarget, dataImportTarget,
   pptxReadTarget, pptxPatchTarget, pptxBridgeTarget, iccTarget,
   derReadTarget, c2paExtractTarget, c2paContainersTarget, urlPackTarget, wavTarget,
-  depthHintTarget,
+  depthHintTarget, lutParseTarget,
 ];
 export const TARGETS_BY_NAME: Record<string, FuzzTarget> = Object.fromEntries(ALL_TARGETS.map((t) => [t.name, t]));
