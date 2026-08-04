@@ -65,7 +65,7 @@ function countOf(haystack: string, needle: string): number {
 test('first line is exactly the EPSF magic comment', () => {
   const eps = emitEps(IR, { width: 600, height: 600 });
   assert.equal(eps.split('\n')[0], '%!PS-Adobe-3.0 EPSF-3.0');
-  assert.match(eps, /^%%Creator: Lolly$/m);
+  assert.match(eps, /^%%Creator: Lolly lolly\.tools$/m); // names the source (safe ASCII, no scheme)
 });
 
 test('header declares integer %%BoundingBox + %%HiResBoundingBox + LL2', () => {

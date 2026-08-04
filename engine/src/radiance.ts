@@ -411,7 +411,9 @@ export function packRadiance(frame: DeepFrame, opts: PackRadianceOptions = {}): 
   // ── header ──
   const lines: string[] = ['#?RADIANCE'];
   for (const c of opts.comments ?? []) lines.push(`#${sanitize(c)}`);
-  if (opts.software !== undefined) lines.push(`SOFTWARE=${sanitize(opts.software)}`);
+  // SOFTWARE= is Radiance's own generator field — default it to Lolly so every .hdr
+  // names its source (caller can override). Same convention as EPS %%Creator / EXR software.
+  lines.push(`SOFTWARE=${sanitize(opts.software ?? 'Lolly lolly.tools')}`);
   lines.push(`FORMAT=${RADIANCE_FORMAT}`);
   lines.push(`EXPOSURE=${exposure}`);
   if (opts.gamma !== undefined) lines.push(`GAMMA=${opts.gamma}`);

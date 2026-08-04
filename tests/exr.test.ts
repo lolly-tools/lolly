@@ -308,7 +308,10 @@ test('every required attribute is present, correctly typed and correctly valued'
     pixelAspectRatio: 'float',
     screenWindowCenter: 'v2f',
     screenWindowWidth: 'float',
+    software: 'string',   // default source attribution — EXR's own generator field
   });
+  // The default `software` attribution names the source (safe ASCII, no scheme/params).
+  assert.equal(f.strings.software, 'Lolly lolly.tools');
   // box2i bounds are INCLUSIVE.
   assert.deepEqual(f.dataWindow, [0, 0, W - 1, H - 1]);
   assert.deepEqual(f.displayWindow, [0, 0, W - 1, H - 1]);
@@ -609,14 +612,15 @@ test('non-RGB spaces are refused rather than mis-tagged', () => {
 test('string attributes are written sorted, unterminated, and cannot shadow ours', () => {
   const bytes = packExr(makeFrame(), { attributes: { zed: 'last', comments: 'made with lolly', owner: 'andy' } });
   const f = parseExr(bytes);
-  assert.deepEqual(f.strings, { comments: 'made with lolly', owner: 'andy', zed: 'last' });
+  // The default `software` attribution rides alongside the caller's extras (sorted in).
+  assert.deepEqual(f.strings, { comments: 'made with lolly', owner: 'andy', software: 'Lolly lolly.tools', zed: 'last' });
   // A string attribute's size IS its length: no trailing NUL.
   const a = f.attr('owner')!;
   assert.equal(a.data.length, 4);
   assert.equal(a.data[3], 'y'.charCodeAt(0));
   // Extras come after the required set, in sorted order.
   const names = f.attrs.map((n) => n.name);
-  assert.deepEqual(names.slice(-3), ['comments', 'owner', 'zed']);
+  assert.deepEqual(names.slice(-4), ['comments', 'owner', 'software', 'zed']);
   assert.ok(names.indexOf('comments') > names.indexOf('screenWindowWidth'));
 
   assert.throws(() => packExr(makeFrame(), { attributes: { compression: 'nope' } }), /cannot be overridden/);

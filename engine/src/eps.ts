@@ -127,7 +127,7 @@ export function emitEps(ir: VectorIr, opts: EpsEmitOpts = {}): string {
 
   const L: string[] = [];
   L.push('%!PS-Adobe-3.0 EPSF-3.0');
-  L.push('%%Creator: Lolly');
+  L.push('%%Creator: Lolly lolly.tools');
   if (opts.meta && opts.meta.title) L.push('%%Title: ' + String(opts.meta.title).replace(/[\r\n]+/g, ' '));
   L.push('%%BoundingBox: 0 0 ' + Math.ceil(Wpt) + ' ' + Math.ceil(Hpt));
   L.push('%%HiResBoundingBox: 0 0 ' + n(Wpt) + ' ' + n(Hpt));

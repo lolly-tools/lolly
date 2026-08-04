@@ -277,7 +277,7 @@ export function extractC2paFromPdf(pdfBytes: Uint8Array): { manifest: Uint8Array
 
 const ascii = (b: Uint8Array, o: number, n: number): string => String.fromCharCode(...b.subarray(o, o + n));
 
-export type SniffFormat = 'pdf' | 'png' | 'jpeg' | 'gif' | 'svg' | 'tiff' | 'webp' | 'mp4' | 'webm' | 'mkv' | 'mp3' | 'wav';
+export type SniffFormat = 'pdf' | 'png' | 'jpeg' | 'gif' | 'svg' | 'tiff' | 'webp' | 'avif' | 'mp4' | 'webm' | 'mkv' | 'mp3' | 'wav';
 
 /** Sniff the container format from magic bytes ('pdf'|'png'|'jpeg'|'gif'|'svg'|'tiff'|'webp'|'mp4'|'webm'|'mkv'|'mp3'|'wav'|null). */
 export function sniffFormat(bytes: Uint8Array): SniffFormat | null {
@@ -296,11 +296,14 @@ export function sniffFormat(bytes: Uint8Array): SniffFormat | null {
   if ((bytes[0] === 0x49 && bytes[1] === 0x49 && bytes[2] === 0x2a) ||
       (bytes[0] === 0x4d && bytes[1] === 0x4d && bytes[3] === 0x2a)) return 'tiff';
   if (ascii(bytes, 4, 4) === 'ftyp') {
-    // ISO BMFF. Image-sequence brands (avif/heic) are photos, not videos —
-    // labelling them mp4 would misreport them, so they keep the honest
-    // 'unrecognised format' answer until they get their own support.
+    // ISO BMFF. AVIF is a still image but a genuine BMFF container, and it carries
+    // C2PA over the same c2pa.hash.bmff binding as MP4 — so it gets its own 'avif'
+    // format (major brand 'avif'/'avis'; the common encoders write it there). HEIC and
+    // the other image-sequence brands are photos we don't stamp yet, so they keep the
+    // honest 'unrecognised format' answer until they get their own support.
     const brand = ascii(bytes, 8, 4);
-    const image = ['avif', 'avis', 'heic', 'heix', 'hevc', 'heim', 'heis', 'hevm', 'hevs', 'mif1', 'mif2', 'msf1'];
+    if (brand === 'avif' || brand === 'avis') return 'avif';
+    const image = ['heic', 'heix', 'hevc', 'heim', 'heis', 'hevm', 'hevs', 'mif1', 'mif2', 'msf1'];
     return image.includes(brand) ? null : 'mp4';
   }
   if (bytes[0] === 0x1a && bytes[1] === 0x45 && bytes[2] === 0xdf && bytes[3] === 0xa3) {
@@ -662,6 +665,7 @@ export const EXTRACTORS: Record<SniffFormat, (bytes: Uint8Array) => { manifest: 
   tiff: extractC2paFromTiff,
   webp: extractC2paFromRiff,
   mp4: extractC2paFromMp4,
+  avif: extractC2paFromMp4, // same BMFF box walk — the C2PA uuid box is top-level
   webm: extractC2paFromWebm,
   mkv: extractC2paFromWebm,
   mp3: extractC2paFromMp3,

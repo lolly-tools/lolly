@@ -185,15 +185,18 @@ test('sniffFormat maps magic bytes to the extractor key, and refuses to guess', 
   assert.equal(sniffFormat(tinyMkv()), 'mkv');
   assert.equal(sniffFormat(buildTestPdf()), 'pdf');
   // Every sniffed name has an extractor: the two tables cannot drift apart.
-  for (const fmt of ['png', 'jpeg', 'gif', 'svg', 'tiff', 'webp', 'mp4', 'webm', 'mkv', 'pdf'] as const) {
+  for (const fmt of ['png', 'jpeg', 'gif', 'svg', 'tiff', 'webp', 'avif', 'mp4', 'webm', 'mkv', 'pdf'] as const) {
     assert.equal(typeof EXTRACTORS[fmt], 'function', `${fmt} is dispatchable`);
   }
   // No guessing: unknown bytes, and anything too short to hold magic at all.
   assert.equal(sniffFormat(bytesOf('definitely not any container we know')), null);
   assert.equal(sniffFormat(bytesOf('%PDF')), null, 'under 12 bytes is not sniffed');
   assert.equal(sniffFormat(new Uint8Array(0)), null);
-  // Image-sequence BMFF brands are photos, not mp4, so they keep the honest null.
-  assert.equal(sniffFormat(mp4box('ftyp', bytesOf('avif'), u32be(0))), null);
+  // AVIF is a still image but a genuine BMFF container that carries C2PA over the
+  // bmff binding, so it sniffs as its own 'avif' format (not mp4, not null).
+  assert.equal(sniffFormat(mp4box('ftyp', bytesOf('avif'), u32be(0))), 'avif');
+  assert.equal(sniffFormat(mp4box('ftyp', bytesOf('avis'), u32be(0))), 'avif');
+  // HEIC and the other image-sequence brands are photos we don't stamp yet → null.
   assert.equal(sniffFormat(mp4box('ftyp', bytesOf('heic'), u32be(0))), null);
 });
 
