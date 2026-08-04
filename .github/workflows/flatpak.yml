@@ -31,11 +31,11 @@ jobs:
     name: Build .deb (x86_64)
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           submodules: recursive   # shells/* + workspace deps live in submodules now
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v7
         with:
           node-version: '22'
           cache: npm
@@ -43,7 +43,7 @@ jobs:
       - uses: dtolnay/rust-toolchain@4cda84d5c5c54efe2404f9d843567869ab1699d4 # stable branch, pinned 2026-08-04
 
       - name: Cache cargo build
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           path: |
             ~/.cargo/registry
@@ -84,7 +84,7 @@ jobs:
           echo "Built: $deb"
           mkdir -p out && cp "$deb" out/
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: lolly-deb
           path: out/*.deb
@@ -98,12 +98,12 @@ jobs:
       image: ghcr.io/flathub-infra/flatpak-github-actions:gnome-47
       options: --privileged
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           submodules: recursive   # shells/* + workspace deps live in submodules now
 
       # Stage the .deb next to the manifest as the stable name it references.
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v8
         with:
           name: lolly-deb
           path: shells/tauri-desktop/flatpak
