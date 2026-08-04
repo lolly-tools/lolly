@@ -6,6 +6,24 @@ minors, never removed or signature-changed without a major bump.
 
 Moved verbatim from the comment block that used to live in `src/index.ts`.
 
+1.103.0 — additive: on-device background removal. New optional `host.matte`
+(MatteAPI: isAvailable/backend/models/modelBytes/cached/canRun/run — a plain RGBA
+frame in, the same frame with a model-computed straight-alpha matte out), the
+structural twin of `host.upscale`: the shell owns the onnxruntime-web runtime, the
+WebGPU→WASM backend, the one-time consented ONNX download (IndexedDB-cached), and
+the memory bound. Its provenance is DELIBERATELY not the upscale kind — a matte
+invents nothing (RGB is the original, only alpha is computed), so the result is
+disclosed as a C2PA edit step ("Background removed with <model> <version>") with
+the original preserved as an ingredient, and is NOT flagged AI-generated. Roster
+(all permissive, Apache-2.0/MIT; the popular BRIA/RMBG models are non-commercial
+and excluded): u2netp / isnet-general / birefnet-lite, each with its own
+normalization + activation (shell-side lib/matte-models.ts MATTE_MODEL_SPEC).
+Models ship STAGED-OFF until each licence + ONNX is human-verified
+(scripts/fetch-matte-models.ts). Also fixes a type drift: `exportStill` (engine
+1.100) was missing from `ToolHookFlags`; adding it lets the export panel open the
+pro float formats (exr/hdr) on the web for a tool that owns them through exportStill
++ host.codec (Bitmap Studio's EXR/Radiance masters — previously filtered out).
+
 1.102.0 — additive: layered-bitmap import/export. New engine exports (plain
 modules, consumed like pdf-map — no bridge surface): `readPsd`/`isPsd` (PSD v1
 AND v2/PSB; RGB + grayscale + CMYK-via-embedded-ICC with a naive warned
