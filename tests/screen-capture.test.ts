@@ -185,8 +185,10 @@ test('ENGINE_VERSION is 1.100.0', () => {
   // Then 1.101.0 (host.upscale — on-device AI upscaling + the c2paAiUpscale
   // provenance surface) and 1.102.0 (layered-bitmap import/export: readPsd/
   // writePsd/readXcf + packbits/raster-layers/sniffLayeredRaster — plain engine
-  // exports consumed like pdf-map; no HostV1 method added).
-  assert.equal(ENGINE_VERSION, '1.102.0');
+  // exports consumed like pdf-map; no HostV1 method added) and 1.103.0 (host.matte
+  // — on-device background removal, a real additive HostV1 method; plus the
+  // ToolHookFlags.exportStill type fix).
+  assert.equal(ENGINE_VERSION, '1.103.0');
 });
 
 // ─── loadTool: a ^1.54.0 tool loads against this engine ───────────────────────
