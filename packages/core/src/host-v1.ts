@@ -167,6 +167,29 @@ export interface HostV1 {
   audio?: AudioAPI;
 
   /**
+   * Deep image codecs — a float pixel frame in, finished image bytes out at real
+   * bit depth. The dual of `export.render` (which rasterises the DOM to 8-bit):
+   * a tool that computes its own high-precision pixels (a float grading pipeline,
+   * a renderer with genuine headroom) hands over a linear Float32 RGBA frame and
+   * gets back a 16-bit PNG, an OpenEXR / Radiance master, or an error-diffused
+   * 8-bit PNG — depths the browser's 8-bit canvas cannot originate. Pairs with a
+   * tool's `exportStill` hook to own its raster export end to end.
+   *
+   * DOM-free CONTRACT: a plain typed-array frame in, bytes out. The MATHS is the
+   * engine's own writers (packExr / packRadiance / packPng + the Floyd–Steinberg
+   * dither), so the SHELL only forwards — and web and CLI produce byte-identical
+   * output from the same frame. `data` is RGBA interleaved, LINEAR light,
+   * un-premultiplied (the engine `DeepFrame` contract); the SDR encoders
+   * (png16 / dither8) gamma-encode and clamp at their display boundary, EXR and
+   * Radiance keep the unbounded linear values.
+   *
+   * Optional/additive and NOT gated by a `capabilities` flag — a tool
+   * feature-detects `host.codec` and falls back to the ordinary 8-bit export
+   * where it is absent. Runs locally; pixels are never uploaded.
+   */
+  codec?: CodecAPI;
+
+  /**
    * Speech synthesis — text in, spoken PCM plus word timings out (on-device
    * Kokoro TTS).
    *
@@ -2652,4 +2675,38 @@ export interface AssetRef {
   //   fps        a lottie's frame rate (its `fr`), alongside its durationMs —
   //              not meaningful for video/audio.
   meta?: Record<string, unknown>;
+}
+
+/**
+ * A deep image frame handed to `host.codec` — the tool-facing mirror of the
+ * engine's `DeepFrame` (tools cannot import the engine, so the shape is restated
+ * here as the versioned contract). RGBA interleaved Float32, LINEAR light,
+ * un-premultiplied, unbounded; `space` travels WITH the buffer (babl's lesson).
+ * Default space is `'srgb-linear'`.
+ */
+export interface CodecFrame {
+  width: number;
+  height: number;
+  /** RGBA interleaved, length = width * height * 4. Linear, un-premultiplied, unbounded. */
+  data: Float32Array;
+  /** Working-space primaries + white point. Default `'srgb-linear'`. */
+  space?: 'srgb-linear' | 'display-p3-linear' | 'rec2020-linear';
+}
+
+/**
+ * Deep image codecs (see `HostV1.codec`). Each turns a linear {@link CodecFrame}
+ * into finished image bytes; the tool decides depth by picking the method. All
+ * async (a shell may offload to a Worker) and all pure with respect to the frame
+ * (never mutated). A shell without a given format resolves to the same bytes as
+ * its sibling — the maths is the engine's, not the shell's.
+ */
+export interface CodecAPI {
+  /** 16-bit sRGB PNG — real per-channel precision, no HDR. Smooth where 8-bit bands. */
+  png16(frame: CodecFrame, opts?: { dpi?: number; channels?: 3 | 4 }): Promise<Uint8Array>;
+  /** OpenEXR master. `'half'` (default) or `'float'` samples. */
+  exr(frame: CodecFrame, opts?: { pixelType?: 'half' | 'float'; channels?: 'rgba' | 'rgb' }): Promise<Uint8Array>;
+  /** Radiance RGBE (.hdr) master. */
+  radiance(frame: CodecFrame, opts?: { exposure?: number }): Promise<Uint8Array>;
+  /** Error-diffused (Floyd–Steinberg) 8-bit sRGB PNG from a deep source — smooth 8-bit. */
+  dither8(frame: CodecFrame, opts?: { dpi?: number; channels?: 3 | 4 }): Promise<Uint8Array>;
 }

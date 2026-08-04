@@ -79,6 +79,22 @@ export interface ExportFileResult {
   filename?: string;
 }
 
+/**
+ * What a tool's `exportStill` hook may return to OWN a raster still export — the
+ * tool computes its own encoded bytes for the requested format (e.g. a float
+ * grading pipeline → 16-bit PNG / OpenEXR the 8-bit DOM raster path cannot
+ * produce) and the runtime returns them verbatim, skipping host.export.render.
+ * Return null/undefined (or omit bytes) to decline and fall through to the
+ * normal DOM raster path for this format — so a tool owns only the formats it
+ * has real precision for and every other export is byte-identical to before.
+ * Like the exportFile transform path, tool-supplied bytes carry NO watermark and
+ * NO engine-stamped provenance (the tool owns what it wrote).
+ */
+export interface ExportStillResult {
+  bytes: Uint8Array | ArrayBuffer;
+  mime?: string;
+}
+
 /** What runtime.stopRecording resolves to — the captured media + its MIME type
  *  (the container the shell actually encoded, which may differ from the request). */
 export interface RecordResult {
@@ -120,6 +136,7 @@ export const HOOK_BUDGET_MS = {
   beforeExport: 5000,
   afterExport: 5000,
   exportFile: 10000,
+  exportStill: 10000,
 };
 
 /** The lifecycle context every hook receives. */
@@ -135,6 +152,7 @@ type OnLevelHook = (ctx: HookContext & { level: AudioLevel }) => unknown;
 type ExportLifecycleHook =
   (ctx: { node: unknown; format: string; opts: RuntimeExportOpts; host: HostV1 }) => unknown;
 type ExportFileHook = (ctx: HookContext & { opts: Record<string, unknown> }) => unknown;
+type ExportStillHook = ExportLifecycleHook; // same ctx as beforeExport; returns ExportStillResult | null
 
 /**
  * The hooks record produced by loading a tool's hooks.js — one entry per
@@ -148,6 +166,7 @@ interface Hooks {
   beforeExport: ExportLifecycleHook | null;
   afterExport: ExportLifecycleHook | null;
   exportFile: ExportFileHook | null;
+  exportStill: ExportStillHook | null;
 }
 
 /** The mounted-tool API createRuntime resolves to. Shells drive this. */
@@ -722,6 +741,45 @@ export async function createRuntime(
         // exporting an unstaged canvas silently would be worse than failing.
         await runHook('beforeExport', () => beforeExport({ node: renderedNode, format, opts, host }));
       }
+      // Tool-owned still: a tool that computes its own high-precision bytes for
+      // this format (e.g. a float grading pipeline → 16-bit PNG / OpenEXR the
+      // 8-bit DOM raster path cannot produce) intercepts HERE, before any of the
+      // provenance/render machinery. Errors propagate and fail the export
+      // visibly (like beforeExport). Returning bytes short-circuits to a Blob and
+      // skips host.export.render entirely; declining (null / no bytes) falls
+      // through to the normal path, so a tool owns only the formats it truly has
+      // depth for and every other export stays byte-identical.
+      const exportStill = hooks?.exportStill;
+      if (exportStill) {
+        // afterExport is the cleanup guarantee that pairs with a mutating
+        // beforeExport. Since the owned-bytes path returns before the normal
+        // try/finally below, run it here on EVERY exit — success OR a throw/
+        // timeout from exportStill — so a failed deep export can't leave the DOM
+        // stuck in the export configuration. (On decline we DON'T run it: the
+        // fall-through hits the normal finally, which runs it exactly once.)
+        const runAfterExport = async (): Promise<void> => {
+          const afterExport = hooks?.afterExport;
+          if (!afterExport) return;
+          try {
+            await runHook('afterExport', () => afterExport({ node: renderedNode, format, opts, host }));
+          } catch (e) {
+            host.log('warn', `afterExport ${(e as Error).message}`, { toolId: tool.manifest.id });
+          }
+        };
+        let still: ExportStillResult | null | undefined;
+        try {
+          still = await runHook('exportStill',
+            () => exportStill({ node: renderedNode, format, opts, host })) as ExportStillResult | null | undefined;
+        } catch (e) {
+          await runAfterExport();
+          throw e;
+        }
+        if (still && still.bytes) {
+          const bytes = (still.bytes instanceof Uint8Array ? still.bytes : new Uint8Array(still.bytes)) as BlobPart;
+          await runAfterExport();
+          return new Blob([bytes], { type: still.mime || 'application/octet-stream' });
+        }
+      }
       // Surface the 'Convert paths' export toggle (a synthetic export-group input)
       // to the bridge as opts.convertPaths, unless the caller set it explicitly.
       // When a tool suppresses the toggle (render.convertPaths:false) there's no
@@ -1087,7 +1145,8 @@ function getHookFactory(tool: LoadedTool): HookFactory {
       `onLevel: typeof onLevel !== 'undefined' ? onLevel : null,` +
       `beforeExport: typeof beforeExport !== 'undefined' ? beforeExport : null,` +
       `afterExport:  typeof afterExport  !== 'undefined' ? afterExport  : null,` +
-      `exportFile:   typeof exportFile   !== 'undefined' ? exportFile   : null` +
+      `exportFile:   typeof exportFile   !== 'undefined' ? exportFile   : null,` +
+      `exportStill:  typeof exportStill  !== 'undefined' ? exportStill  : null` +
       `};`,
     ) as HookFactory;
     hookFactoryCache.set(key, factory);
@@ -1113,6 +1172,7 @@ async function loadHooks(tool: LoadedTool, host: HostV1): Promise<Hooks> {
     beforeExport: hookFn<ExportLifecycleHook>(mod.beforeExport),
     afterExport:  hookFn<ExportLifecycleHook>(mod.afterExport),
     exportFile:   hookFn<ExportFileHook>(mod.exportFile),
+    exportStill:  hookFn<ExportStillHook>(mod.exportStill),
   };
 }
 

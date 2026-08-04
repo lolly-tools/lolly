@@ -6,6 +6,18 @@ minors, never removed or signature-changed without a major bump.
 
 Moved verbatim from the comment block that used to live in `src/index.ts`.
 
+1.100.0 — additive: real high-bit-depth raster output for tools. Two new,
+backwards-compatible surfaces: (1) the optional `host.codec` API (png16 / exr /
+radiance / dither8) — a linear Float32 `CodecFrame` in, finished deep image
+bytes out, wrapping the engine's own `deep-encode.ts` (packExr / packRadiance /
+packPng + a new Floyd–Steinberg dither) so web and CLI encode identically; (2)
+the `exportStill` hook + `manifest.hooks.exportStill` — intercepted in
+`runtime.export` before the DOM raster path, letting a tool return its own
+encoded bytes (`{ bytes, mime }`) for a format and skip host.export.render, or
+decline (null) and fall through unchanged. Non-declaring tools and every format
+a tool doesn't own stay byte-identical. Tool-supplied bytes carry no watermark /
+engine provenance (the exportFile precedent).
+
 1.1.0 — additive: `file` input type, the transform output path
 (host.export.file + the `exportFile` hook + runtime.exportFile), and the
 `privacy: 'on-device'` utility marker. All backwards-compatible with ^1.0.0

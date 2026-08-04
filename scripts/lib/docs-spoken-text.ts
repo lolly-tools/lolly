@@ -126,14 +126,29 @@ export function extractSpokenText(markdown: string, opts: ExtractOptions = {}): 
   while (i < lines.length) {
     const line = lines[i]!;
 
-    // Fenced code: swallow the fence, speak one omission line.
-    if (/^\s*```/.test(line)) {
-      if (!inFence) push('para', 'Code example omitted.');
+    // Fenced code: swallow the fence, speak one omission line — unless the fence
+    // opens with the `narrate-skip` info string, which drops it silently (for a
+    // block voiced elsewhere: the Beatrice manifesto poems are read by their own
+    // .opus players, so the body narration must not announce them). build.ts
+    // renders the info string as an invisible `language-*` CSS class, so it
+    // never shows on the page, and it survives verbatim into the twin the player
+    // re-extracts — keeping the audio and the follow-along highlight in lockstep.
+    const fence = /^\s*```(.*)$/.exec(line);
+    if (fence) {
+      if (!inFence && fence[1]!.trim() !== 'narrate-skip') push('para', 'Code example omitted.');
       inFence = !inFence;
       i++;
       continue;
     }
     if (inFence) { i++; continue; }
+
+    // Provenance credential lines (`%file{…} %entity{…} …`) render as pills on the
+    // page, not body copy, and would read as gibberish aloud. Skip any line that
+    // OPENS with a provenance macro — the credential lines always do. The
+    // published twin (docs/build.ts) drops the same lines entirely, so the audio
+    // (extracted from source) and the player's block map (re-extracted from the
+    // twin) exclude the identical set and stay in lockstep.
+    if (/^\s*%(?:file|entity|act|detail|sig)\{/.test(line)) { i++; continue; }
 
     // Tables: a run of |-rows. Spoken as the authored caption line immediately
     // above (already emitted as its own para) — if the previous emitted block
@@ -174,7 +189,8 @@ export function extractSpokenText(markdown: string, opts: ExtractOptions = {}): 
       const l = lines[i]!;
       if (l.trim() === '' || /^\s*```/.test(l) || /^#{1,4}\s/.test(l)
         || /^\s*(?:[-*]|\d+\.)\s+/.test(l) || /^\s*\|.*\|\s*$/.test(l)
-        || /^\s*:::/.test(l) || /^-{3,}$/.test(l.trim())) break;
+        || /^\s*:::/.test(l) || /^-{3,}$/.test(l.trim())
+        || /^\s*%(?:file|entity|act|detail|sig)\{/.test(l)) break;
       para.push(l.replace(/^\s*>\s?/, ''));
       i++;
     }

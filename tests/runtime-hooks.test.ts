@@ -203,7 +203,7 @@ test('every budgeted hook has a real invocation site, and the schema matches', a
     'the hooks block must stay closed, or an unknown hook name is accepted and silently ignored');
 
   assert.deepEqual(declarable,
-    ['afterExport', 'beforeExport', 'exportFile', 'onFrame', 'onInit', 'onInput', 'onLevel'],
+    ['afterExport', 'beforeExport', 'exportFile', 'exportStill', 'onFrame', 'onInit', 'onInput', 'onLevel'],
     'the declarable hook set changed — add the invocation site and a test with it, or drop it');
 
   // Every budget key must be a declarable hook. (The converse does NOT hold:

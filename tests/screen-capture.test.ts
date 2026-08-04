@@ -78,7 +78,7 @@ test('the sensor capabilities still validate (screen is additive, not a replacem
 
 // ─── version ─────────────────────────────────────────────────────────────────
 
-test('ENGINE_VERSION is 1.90.0', () => {
+test('ENGINE_VERSION is 1.100.0', () => {
   // A literal pin: the screencap surface shipped at 1.54, and tools declare
   // ^1.54.0 to require it. session-record only checks the stamp equals whatever
   // ENGINE_VERSION happens to be (tautological) — this catches an errant bump.
@@ -174,9 +174,15 @@ test('ENGINE_VERSION is 1.90.0', () => {
   // in this minor, no shell implements yet. The same minor adds the additive
   // synthetic-audio provenance surface: GENERATED_SOURCE_TYPE, action
   // `parameters` on the read side, wav/mp3 ingredient MIME and the mp3 ID3v2
-  // GEOB C2PA container);
+  // GEOB C2PA container)
+  // and 1.100.0 (deep raster output for tools: the additive host.codec API —
+  // png16/exr/radiance/dither8, a linear Float32 CodecFrame in, deep image bytes
+  // out, wrapping engine/src/deep-encode.ts — plus the exportStill hook +
+  // manifest.hooks.exportStill, intercepted in runtime.export before the DOM
+  // raster path so a tool can return its own encoded bytes for a format and skip
+  // host.export.render, or decline (null) and fall through byte-identical);
   // the ^1.54.0 screencap floor below is unaffected (a minor bump still satisfies it).
-  assert.equal(ENGINE_VERSION, '1.99.0');
+  assert.equal(ENGINE_VERSION, '1.100.0');
 });
 
 // ─── loadTool: a ^1.54.0 tool loads against this engine ───────────────────────

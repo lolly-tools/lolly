@@ -1,6 +1,6 @@
 {
   "version": "1",
-  "generatedAt": "2026-08-04T02:37:51.099Z",
+  "generatedAt": "2026-08-04T03:40:17.786Z",
   "tools": [
     {
       "id": "compress-pdf",
@@ -6117,7 +6117,9 @@
         "webp",
         "svg",
         "webm",
-        "mp4"
+        "mp4",
+        "exr",
+        "hdr"
       ],
       "width": 1080,
       "height": 1080,
