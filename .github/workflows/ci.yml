@@ -427,10 +427,14 @@ jobs:
   # scheme-checked) fired no upstream rule. Those run full-tree, not diff-only —
   # there is no backlog of them to grandfather in.
   sast:
-    name: opengrep (new findings only)
+    name: opengrep (custom rules + new findings)
     runs-on: ubuntu-latest
-    # PRs only: diff mode needs a base to compare against.
-    if: github.event_name == 'pull_request'
+    # Runs on PUSH as well as PR. It was PR-only, which sounds harmless until you
+    # notice this repo commits straight to main — so the security gate never saw a
+    # single one of the commits it was added to guard (SUSE assessment follow-up,
+    # 2026-08-04). The Lolly rules below are full-tree and need no baseline, so
+    # they work on either event; only the upstream diff step needs one, and it
+    # takes the pushed range on a push.
     steps:
       - uses: actions/checkout@v4
         with:
@@ -488,12 +492,20 @@ jobs:
       # The blocking half of this job is the Lolly rules above. Promote this step
       # to blocking once its output has been read on real PRs and the exclusions
       # are grounded in ids that actually exist.
-      - name: Upstream rules — new findings in this PR (advisory)
+      # On a push the baseline is the previous head of the branch; on a PR it is the
+      # merge base. A first push (all-zero `before`) has no baseline, so the step
+      # scans nothing rather than the whole tree.
+      - name: Upstream rules — new findings in this change (advisory)
         continue-on-error: true
+        env:
+          BASELINE: ${{ github.event_name == 'pull_request' && github.event.pull_request.base.sha || github.event.before }}
         run: |
+          if [ -z "$BASELINE" ] || [ "$BASELINE" = "0000000000000000000000000000000000000000" ]; then
+            echo "no baseline for this event — skipping the diff scan"; exit 0
+          fi
           opengrep scan \
             --config p/typescript --config p/javascript --config p/security-audit \
-            --baseline-commit "${{ github.event.pull_request.base.sha }}" \
+            --baseline-commit "$BASELINE" \
             --exclude '*.test.ts' --exclude '*.test.js' \
             --exclude node_modules --exclude dist \
             --error . || true
