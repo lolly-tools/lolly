@@ -162,6 +162,16 @@ export interface ToolHookFlags {
   beforeExport?: boolean;
   afterExport?: boolean;
   exportFile?: boolean;
+  /**
+   * The tool owns a raster still export at a bit depth the 8-bit DOM raster
+   * cannot originate (16-bit/HDR PNG, OpenEXR, Radiance). The runtime (engine
+   * 1.100+) calls it before host.export.render with { node, format, opts, host };
+   * returning { bytes, mime } short-circuits the export to those bytes (computed
+   * in float via host.codec), returning null declines and falls through. The
+   * export panel opens the pro float formats (exr/hdr) for a tool that declares
+   * this and has host.codec — see shells/web/src/views/tool-actions.ts.
+   */
+  exportStill?: boolean;
 }
 
 /** One route through a tool's {@link ToolGuide} — e.g. "on a computer" vs "on a phone". */

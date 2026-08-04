@@ -227,6 +227,30 @@ export interface HostV1 {
   upscale?: UpscaleAPI;
 
   /**
+   * On-device background removal — a plain RGBA frame in, the same frame with a
+   * model-computed alpha matte out (v1.103). A structural twin of `upscale`: the
+   * shell owns the ONNX runtime, the WebGPU→WASM backend, the one-time consented
+   * model download and the memory bound; the tool only ever sees pixels.
+   *
+   * Its PROVENANCE is deliberately NOT the upscale kind. Upscale INVENTS pixels
+   * (a trained-algorithm composite source type, `aiGenerated:'partial'`); a matte
+   * invents nothing — every RGB pixel is the original, and only the alpha channel
+   * (a selection, not image content) is computed. So the honest disclosure is an
+   * edit step, "Background removed with <model> <version>", with the original kept
+   * as a C2PA ingredient — NOT a generated/composite claim, and the asset is NOT
+   * flagged AI-generated. That distinction is the whole point of hosting this: a
+   * same-format cutout that keeps its metadata, colour and credential intact,
+   * where other removers strip all three.
+   *
+   * Optional/additive and NOT gated by a `capabilities` flag — a tool feature-
+   * detects `host.matte` and hides its Remove-Background affordance where it is
+   * absent. Like `upscale`, NOT driven from a time-boxed hook: a shell surfaces it
+   * as an explicit, cancellable, progress-bearing action whose result is an asset.
+   * Runs locally; pixels never leave the device.
+   */
+  matte?: MatteAPI;
+
+  /**
    * Speech synthesis — text in, spoken PCM plus word timings out (on-device
    * Kokoro TTS).
    *
@@ -2931,4 +2955,123 @@ export interface UpscaleAPI {
   canRun(src: { width: number; height: number }, opts?: UpscaleOpts): Promise<UpscaleFeasibility>;
   /** Upscale a frame. Rejects (AbortError) on `opts.signal`; never half-produces. */
   run(frame: UpscaleFrame, opts?: UpscaleOpts): Promise<UpscaleFrame>;
+}
+
+// ─── On-device background removal / matting (optional, v1.103) ─────────────────
+
+/**
+ * A plain 8-bit RGBA pixel frame handed to / returned from `host.matte` — the
+ * same shape a canvas `getImageData` gives and `putImageData` takes, so a tool
+ * never touches a tensor. On the way IN alpha is ignored (the model sees RGB); on
+ * the way OUT the RGB is BYTE-FOR-BYTE the input's and the alpha is the computed
+ * matte (straight, un-premultiplied) — a cutout you can composite directly.
+ */
+export interface MatteFrame {
+  width: number;
+  height: number;
+  /** RGBA interleaved, 8-bit, straight alpha, length = width * height * 4. */
+  data: Uint8ClampedArray;
+}
+
+/**
+ * A `host.matte` model an id can select — see `MatteAPI.models`. Three tiers: a
+ * tiny fast preview net, a general default, and a near-SOTA "pro" edge model. All
+ * ship under permissive licences (Apache-2.0 / MIT); the roster is deliberately
+ * free of the popular non-commercial models (BRIA RMBG et al.).
+ */
+export type MatteModelId = 'u2netp' | 'isnet-general' | 'birefnet-lite';
+
+/**
+ * One entry in the on-device matte catalogue. `license` + `attribution` carry the
+ * model's real obligation (permissive-licence notice, surfaced in credits);
+ * `version` lands verbatim in the C2PA edit step ("Background removed with <name>
+ * <version>"). `tier` orders the picker: fast preview → general → pro edges.
+ */
+export interface MatteModelInfo {
+  id: MatteModelId;
+  /** Human name for the picker, e.g. "IS-Net general". */
+  name: string;
+  /** Ordering + intent for the picker. */
+  tier: 'fast' | 'default' | 'pro';
+  /** Approximate one-time download in bytes, for the consent UI + offline manager. */
+  approxBytes: number;
+  /** SPDX id, e.g. 'Apache-2.0' | 'MIT'. Surfaced in credits + the edit step. */
+  license: string;
+  /** Copyright / notice line to carry in the app's credits (the licence obligation). */
+  attribution: string;
+  /** Model release string; lands verbatim in the C2PA edit step. */
+  version: string;
+  /** One-line quality/latency note the picker shows beside the option. */
+  note?: string;
+}
+
+export interface MatteProgress {
+  phase: 'download' | 'inference';
+  /** Bytes so far (download phase). */
+  loaded?: number;
+  /** Total bytes, or null when the transport doesn't say. */
+  total?: number | null;
+  /** 0..1 where a fraction is knowable. */
+  fraction?: number;
+}
+
+export interface MatteOpts {
+  /** A `MatteModelId`; defaults to the general model. */
+  model?: MatteModelId;
+  /**
+   * Hard cap on the OUTPUT's longest edge in pixels — the device/user lever. The
+   * matte net runs at its own fixed input size regardless, so this only bounds the
+   * full-resolution alpha buffer the mask is scaled back into (a phone need not
+   * allocate a 8000px cutout). Absent ⇒ the source's own size.
+   */
+  maxEdge?: number;
+  /**
+   * Abort a long run: the promise rejects promptly (AbortError). Aborting during
+   * the first-use download rejects promptly but the download completes in the
+   * background and is cached (like `upscale`/`speech`).
+   */
+  signal?: AbortSignal;
+  onProgress?: (p: MatteProgress) => void;
+}
+
+/**
+ * The honest answer to "can THIS device do THIS job?" before any bytes move (see
+ * `MatteAPI.canRun`). When `ok` is false the shell says so plainly and offers the
+ * concrete lever rather than attempting the run and crashing.
+ */
+export interface MatteFeasibility {
+  ok: boolean;
+  reason?: 'memory' | 'no-backend' | 'too-large';
+  /** Plain, non-blaming copy the shell can show as-is. */
+  message?: string;
+  /** A longest-edge that WOULD fit, when the ask was too big. */
+  suggestedMaxEdge?: number;
+  /** A lighter model that would fit, when the chosen one won't. */
+  suggestedModel?: MatteModelId;
+}
+
+/**
+ * On-device background removal (see `HostV1.matte`). A plain RGBA frame in, the
+ * same frame with a model-computed alpha matte out — the shell owns the ONNX
+ * runtime, the WebGPU→WASM backend, the one-time (consented — see `modelBytes`)
+ * download and the memory bound; the tool only ever sees pixels. The output's RGB
+ * is the input's, untouched; only the alpha is new. All async methods reject
+ * rather than half-produce; failures degrade to an honest message, never a stuck
+ * spinner.
+ */
+export interface MatteAPI {
+  /** Whether this shell can matte at all (a backend + Worker exist). Sync. */
+  isAvailable(): boolean;
+  /** The resolved execution backend, or null before one is probed / when none. */
+  backend(): 'webgpu' | 'wasm' | null;
+  /** The model catalogue — ids, tiers, sizes, licences. Sync + static. */
+  models(): MatteModelInfo[];
+  /** Approximate one-time download for a model, for a consent UI. Sync. */
+  modelBytes(id: MatteModelId): number;
+  /** Are a model's bytes already on-device? Never downloads. */
+  cached(id: MatteModelId): Promise<boolean>;
+  /** Honest feasibility of a job on this device, before any bytes move. */
+  canRun(src: { width: number; height: number }, opts?: MatteOpts): Promise<MatteFeasibility>;
+  /** Cut out the subject. Rejects (AbortError) on `opts.signal`; never half-produces. */
+  run(frame: MatteFrame, opts?: MatteOpts): Promise<MatteFrame>;
 }
