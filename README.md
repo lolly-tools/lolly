@@ -179,7 +179,7 @@ loldev help                              # every command
 ## Current tools
 
 <!-- tools-table:start -->
-The SUSE catalog ships **59 tools** today — 58 listed in the gallery, plus one unlisted helper (Asset Export). Generated from `catalog/tools/index.json` by `npm run build:readme-tools`:
+The SUSE catalog ships **64 tools** today — 63 listed in the gallery, plus one unlisted helper (Asset Export). Generated from `catalog/tools/index.json` by `npm run build:readme-tools`:
 
 | Tool | What it makes |
 |---|---|
@@ -187,6 +187,8 @@ The SUSE catalog ships **59 tools** today — 58 listed in the gallery, plus one
 | Animated Ad | Build animated ads from layered scenes for any standard size. |
 | Audiogram | Turn a voice clip or song into a branded video that actually moves with the sound — bars, spectrum, ring, ridgeline or scope, ready for social. |
 | Bag Video | An animated, on-brand video for bag visuals. |
+| Battlecards | Turn any table into a deck of cards — one card per row, ready as a multi-page PDF. Paste straight from your spreadsheet, doc, or chat. |
+| Bitmap Studio | A pro photo-grading darkroom: film looks, third-party .cube LUTs, brand-seeded colour treatments and finishing texture — then bake your look as a LUT any editor can use. |
 | Booth Studio | Dress a 3D event booth with sponsor artwork. Click any panel to drop an image on it, pick a booth design, and render a still or a turntable for a sponsor pitch. |
 | Brand Lockup | Official SUSE logo lockups — chameleon, wordmark and a name. |
 | Calendar ICS | Turn event details into a calendar (.ics) file for any calendar app. |
@@ -210,10 +212,12 @@ The SUSE catalog ships **59 tools** today — 58 listed in the gallery, plus one
 | Event Name Badge | Conference name badges with a colour-coded role and optional QR. |
 | Filter: Duotone | A two-color duotone for any photo — shadows one color, highlights another. |
 | Filter: Halftone | Vector halftone from any photo — dots sized by brightness. |
+| Filter: Imperfections | Deliberate print imperfections for any photo — offset ink plates, ink bleed, paper grain and photocopy wear. |
 | Filter: Pixel Stretch | Smear a column of pixels across a photo from a threshold line. Works live. |
 | Filter: Posterize Bitmap | Trace any photo into flat, screenprint-style vector colour separations. |
 | Filter: Scanline | Horizontal 'infinity lines' scanline vector effect from any photo |
 | Filter: Voronoi Cells | Shatter any photo into a Voronoi cell mosaic — each cell filled with the nearest colour, as flat vector. |
+| Finish Preview | Preview foil, spot UV, emboss and soft-touch finishes on your artwork — then export the printer-ready spot plate. The on-screen sheen is presentation only; the plate is the real deliverable your print house needs. |
 | Flow Chart | Build flow charts on an open canvas — drag cards, connect them, and the lines route and stick to the boxes. |
 | Layout Studio |  |
 | Logo | Place the SUSE logo — it auto-picks the right variant and exports vector. |
@@ -229,6 +233,7 @@ The SUSE catalog ships **59 tools** today — 58 listed in the gallery, plus one
 | Quote Card | On-brand quote cards for social posts and slides. |
 | Rebrand a Deck | Upload a PowerPoint deck and snap its colours and fonts to your brand — rebuilt on your device, nothing uploaded. |
 | Record | Design your own top and tail cards, then record a clip and Lolly wraps them around it automatically. |
+| Redact | Black out sensitive content by rebuilding the file, then verify the output before it downloads, all on your device. |
 | Screen Capture | Screenshot or record your whole screen, a window, or a browser tab. Drag on the canvas to crop — the export stays the exact pixels you captured. |
 | Sequence Studio | Arrange clips, cards, overlays and music on a timeline, then export the frame. |
 | Slides | Build a deck where every slide arranges other Lolly tools in a chosen layout, with its own title, background and speaker notes — then export to PowerPoint, PDF, GIF or MP4. |

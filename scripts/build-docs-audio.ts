@@ -132,7 +132,12 @@ const MODEL_DIR = join(ROOT, 'shells', 'web', 'public', 'models', 'kokoro');
  * but the launch gate is storage (§7's budget maths), so the list stays this
  * small until real feedback argues for more. Expansion is editing this array.
  */
-export const LAUNCH_PAGES: string[] = ['index', 'quickstart', 'creators', 'builders', 'operators'];
+export const LAUNCH_PAGES: string[] = [
+  'index', 'quickstart', 'creators', 'builders', 'operators',
+  // 2026-08-04: the high-traffic prose pages get read-aloud narration too — the
+  // manifestation of the Listen promise on the Inclusive Design page.
+  'about', 'trust', 'ai-stance', 'privacy', 'inclusive-design', 'beatrice-warde',
+];
 
 /** Every file a finished artefact directory carries (plan §4.5). */
 export const ARTEFACT_FILES = ['audio.opus', 'captions.vtt', 'cues.json', 'meta.json'] as const;
