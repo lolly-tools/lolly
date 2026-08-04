@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
- * Gain-map JPEG assembly — the container half of plans/deeprichpixels.md §6 B2.
+ * Gain-map JPEG assembly — the container half of plans/61-deeprichpixels.md §6 B2.
  *
  * {@link ../gainmap.ts} computes the map and its metadata; this module glues an
  * SDR base JPEG and a gain-map JPEG into ONE file that a gain-map-aware decoder

@@ -190,6 +190,43 @@ export interface HostV1 {
   codec?: CodecAPI;
 
   /**
+   * Layered-bitmap write-back (v1.102) — currently one method: serialise a set
+   * of positioned RGBA layers as a layered Photoshop PSD (the engine's own
+   * writer; opens in Photoshop, GIMP and Krita). The read side is NOT here:
+   * PSD/XCF *import* is a shell ingest flow (drop router → per-layer library
+   * assets), not something a running tool does. Optional/additive, feature-
+   * detected (`host.layers?.writePsd`); runs locally, bytes never leave the
+   * device, and like every `export.file` path the result is never watermarked
+   * or provenance-stamped — it is the user's own file.
+   */
+  layers?: LayersAPI;
+
+  /**
+   * On-device AI image upscaling — a low-resolution raster in, a larger one out,
+   * run entirely on the device (onnxruntime-web, WebGPU where present falling back
+   * to WASM). For the person whose headshot is 400px beside colleagues' 2000px
+   * photos: enlarge it offline, and — because the added pixels are model-inferred —
+   * the output carries a C2PA credential naming the model (the runtime sets
+   * `ExportOpts.c2paAiUpscale` from the upscaled asset's meta, disclosed as the
+   * IPTC `compositeWithTrainedAlgorithmicMedia` source type — a real photo,
+   * AI-enhanced, never claimed as fully generated).
+   *
+   * DOM-free CONTRACT: a plain RGBA frame in, a larger RGBA frame out. The SHELL
+   * owns the model runtime, the backend choice, the one-time (consented — see
+   * `modelBytes`) weight download and the memory-bounded tiling; the engine/tool
+   * only ever sees pixels. The models ship under permissive licences (BSD-3-Clause,
+   * Apache-2.0) whose attribution the shell carries in its credits.
+   *
+   * Optional/additive (v1.101) and NOT gated by a `capabilities` flag — a tool
+   * feature-detects `host.upscale` and hides its "Upscale" affordance where it is
+   * absent (the headless CLI provides none for now). Because the run can take many
+   * seconds on a weak device, it is NEVER driven from a time-boxed hook: a shell
+   * offers it as an explicit, cancellable, progress-bearing action whose result
+   * becomes an asset. Runs locally; the image is never uploaded.
+   */
+  upscale?: UpscaleAPI;
+
+  /**
    * Speech synthesis — text in, spoken PCM plus word timings out (on-device
    * Kokoro TTS).
    *
@@ -2130,7 +2167,7 @@ export interface SpotColor {
  *
  * The contract defines only how a finish is SPELLED. The *offered* set is brand
  * data: a brand declares the finishes it can actually buy, on its own colour
- * tokens (plans/tactile-brand-control.md). That is why the union is open — the
+ * tokens (plans/67-tactile-brand-control.md). That is why the union is open — the
  * listed ids are the canonical spellings (they become plate names), while the
  * trailing `(string & {})` lets a house process ('letterpress', 'thermography',
  * 'holographic-foil') exist with no type, schema, or engine release. Editor
@@ -2240,7 +2277,7 @@ export interface ExportOpts {
    * the HDR PNG path (16-bit cICP PNG). Optional/additive (engine 1.88+, with the
    * Phase B deep-pixel writers) — a field, not a method, and unset by default, so
    * a shell that ignores it behaves exactly as before.
-   * See plans/deeprichpixels.md §10.
+   * See plans/61-deeprichpixels.md §10.
    */
   depth?: 8 | 16 | 'float' | 'auto';
 
@@ -2338,6 +2375,17 @@ export interface ExportOpts {
    * teaser for the step label; the full copy is in the digest. Opaque to the shell.
    */
   c2paTextAdded?: { sample?: string };
+
+  /**
+   * AI-upscale provenance for the C2PA action history (added v1.101). Set by the
+   * runtime when the essence of this render is an on-device AI-upscaled asset
+   * (host.upscale, carried on the placed asset's `meta.aiUpscale`). The C2PA
+   * embedder marks the created step with the IPTC
+   * `compositeWithTrainedAlgorithmicMedia` source type and appends an honest
+   * "AI-upscaled with <model> <version>" edit step, so an inspected asset names the
+   * model that enlarged it. Opaque to the shell; ignored by non-C2PA exports.
+   */
+  c2paAiUpscale?: { model: string; version: string };
 }
 
 // Provenance attribution, auto-assembled from the profile + tool. The trailing two
@@ -2709,4 +2757,178 @@ export interface CodecAPI {
   radiance(frame: CodecFrame, opts?: { exposure?: number }): Promise<Uint8Array>;
   /** Error-diffused (Floyd–Steinberg) 8-bit sRGB PNG from a deep source — smooth 8-bit. */
   dither8(frame: CodecFrame, opts?: { dpi?: number; channels?: 3 | 4 }): Promise<Uint8Array>;
+}
+
+// ─── Layered-bitmap write-back (optional, v1.102) ────────────────────────────
+
+/**
+ * One layer of a {@link LayersAPI.writePsd} document — the tool-facing mirror
+ * of the engine's `PsdWriteLayer` (tools cannot import the engine, so the shape
+ * is restated here as the versioned contract). Pixels are plain 8-bit RGBA,
+ * un-premultiplied sRGB — exactly what a canvas `getImageData` gives.
+ */
+export interface LayerWrite {
+  name: string;
+  /** Document-space bounds; width/height must match the pixel buffer. */
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+  /** RGBA8, length width*height*4. */
+  pixels: Uint8Array;
+  /** 0..1, default 1. */
+  opacity?: number;
+  /** A CSS mix-blend-mode value ('normal' | 'multiply' | …), default 'normal'. */
+  blend?: string;
+  /** Default true. */
+  visible?: boolean;
+}
+
+/** A layered document for {@link LayersAPI.writePsd}; layers are bottom-to-top. */
+export interface LayeredWriteDoc {
+  width: number;
+  height: number;
+  layers: LayerWrite[];
+}
+
+/**
+ * Layered-bitmap serialisers (see `HostV1.layers`). Async so a shell may
+ * offload the encode; the maths is the engine's `psd-write.ts`, so web and CLI
+ * emit identical bytes for identical docs.
+ */
+export interface LayersAPI {
+  /** Serialise as a layered Photoshop PSD (8-bit RGB v1; see engine psd-write.ts). */
+  writePsd(doc: LayeredWriteDoc): Promise<Uint8Array>;
+}
+
+// ─── On-device AI upscaling (optional, v1.101) ────────────────────────────────
+
+/**
+ * A plain 8-bit RGBA pixel frame handed to / returned from `host.upscale` —
+ * straight (un-premultiplied) alpha, exactly what a canvas `getImageData` gives
+ * and `putImageData` takes, so a tool never has to touch a tensor. DOM-free: the
+ * shell owns the model runtime; the contract only ever sees typed arrays.
+ */
+export interface UpscaleFrame {
+  width: number;
+  height: number;
+  /** RGBA interleaved, 8-bit, straight alpha, length = width * height * 4. */
+  data: Uint8ClampedArray;
+}
+
+/** A `host.upscale` model an id can select — see `UpscaleAPI.models`. */
+export type UpscaleModelId = 'realesr-general-x4v3' | 'realesrgan-x4plus' | 'gfpgan-v1.4';
+
+/**
+ * One entry in the on-device model catalogue. `license` + `attribution` are not
+ * decoration: the models ship under permissive licences (BSD-3-Clause,
+ * Apache-2.0) whose one real obligation is carrying their copyright/notice, so a
+ * shell surfaces them in its credits (a "Larger Work" under those terms).
+ * `version` is the model release string and lands verbatim in the C2PA
+ * disclosure ("AI-upscaled with <name> <version>").
+ */
+export interface UpscaleModelInfo {
+  id: UpscaleModelId;
+  /** Human name for the picker, e.g. "Real-ESRGAN general (fast)". */
+  name: string;
+  /** Native output multiple. */
+  scale: 2 | 4;
+  /** Approximate one-time download in bytes, for the consent UI + offline manager. */
+  approxBytes: number;
+  /** SPDX id, e.g. 'BSD-3-Clause' | 'Apache-2.0'. Surfaced in credits + disclosure. */
+  license: string;
+  /** Copyright / notice line to carry in the app's credits (the licence obligation). */
+  attribution: string;
+  /** Model release string; lands verbatim in the C2PA disclosure. */
+  version: string;
+  /**
+   * A face RESTORER (GFPGAN) rather than a plain resolution enhancer — it can
+   * synthesise facial detail that was never in the source. The shell shows this
+   * string beside the option; for GFPGAN it reads exactly
+   * "warning can invent face details".
+   */
+  warning?: string;
+  /** True when the model only restores aligned face crops (needs the face path). */
+  facesOnly?: boolean;
+}
+
+export interface UpscaleProgress {
+  phase: 'download' | 'inference';
+  /** Bytes so far (download phase). */
+  loaded?: number;
+  /** Total bytes, or null when the transport doesn't say. */
+  total?: number | null;
+  /** Tile index / count (inference phase) — the run is tiled to bound memory. */
+  tile?: number;
+  tiles?: number;
+  /** 0..1 where a fraction is knowable. */
+  fraction?: number;
+}
+
+export interface UpscaleOpts {
+  /** A `UpscaleModelId`; defaults to the general fast model. */
+  model?: UpscaleModelId;
+  /** Target output multiple; clamped to what the model + device allow. */
+  scale?: 2 | 4;
+  /** 0..1 denoise strength (general model only — blends its WDN pair). */
+  denoise?: number;
+  /**
+   * Hard cap on the output's longest edge in pixels — the device/user lever. The
+   * run trims its plan to honour it, so a phone never attempts a 6000px master.
+   */
+  targetMaxEdge?: number;
+  /**
+   * Abort a long run: the promise rejects promptly (AbortError) at the next tile
+   * boundary. Aborting during the first-use download rejects promptly but the
+   * download completes in the background and is cached (like `speech`).
+   */
+  signal?: AbortSignal;
+  onProgress?: (p: UpscaleProgress) => void;
+}
+
+/**
+ * The honest answer to "can THIS device do THIS job?" — computed before any bytes
+ * move (see `UpscaleAPI.canRun`). When `ok` is false the shell tells the user
+ * plainly and offers the concrete lever (`suggestedMaxEdge` / `suggestedModel`)
+ * rather than attempting the run and crashing.
+ */
+export interface UpscaleFeasibility {
+  ok: boolean;
+  /** Why not, when `ok` is false. */
+  reason?: 'memory' | 'no-backend' | 'too-large';
+  /** Plain, non-blaming copy the shell can show as-is. */
+  message?: string;
+  /** A longest-edge that WOULD fit, when the ask was too big. */
+  suggestedMaxEdge?: number;
+  /** A lighter model that would fit, when the chosen one won't. */
+  suggestedModel?: UpscaleModelId;
+}
+
+/**
+ * On-device AI image upscaling (see `HostV1.upscale`). A plain RGBA frame in, a
+ * larger RGBA frame out — the shell owns the ONNX runtime, the WebGPU→WASM
+ * backend choice, the one-time (consented — see `modelBytes`) model download, and
+ * the memory-bounded tiling; the engine/tool only ever sees pixels.
+ *
+ * The heavy run is NOT driven from a tool hook (hooks are time-boxed and their
+ * late results discarded): a shell surfaces this through an explicit,
+ * progress-bearing, cancellable affordance whose result becomes an asset. All
+ * async methods reject rather than half-produce; failures degrade to an honest
+ * message, never a stuck spinner.
+ */
+export interface UpscaleAPI {
+  /** Whether this shell can upscale at all (a backend + Worker exist). Sync. */
+  isAvailable(): boolean;
+  /** The resolved execution backend, or null before one is probed / when none. */
+  backend(): 'webgpu' | 'wasm' | null;
+  /** The model catalogue — ids, sizes, licences, warnings. Sync + static. */
+  models(): UpscaleModelInfo[];
+  /** Approximate one-time download for a model, for a consent UI. Sync. */
+  modelBytes(id: UpscaleModelId): number;
+  /** Are a model's bytes already on-device? Never downloads. */
+  cached(id: UpscaleModelId): Promise<boolean>;
+  /** Honest feasibility of a job on this device, before any bytes move. */
+  canRun(src: { width: number; height: number }, opts?: UpscaleOpts): Promise<UpscaleFeasibility>;
+  /** Upscale a frame. Rejects (AbortError) on `opts.signal`; never half-produces. */
+  run(frame: UpscaleFrame, opts?: UpscaleOpts): Promise<UpscaleFrame>;
 }

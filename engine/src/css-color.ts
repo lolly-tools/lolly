@@ -12,7 +12,7 @@
  * and color() serialise in their own space, so a computed `color-mix(in oklab,
  * …)` (used across the deck tools) or a raw `oklch()` brand token arrived as
  * null and its paint was silently dropped from SVG/PDF/EMF. See
- * plans/color-spaces.md §4.
+ * plans/60-color-spaces.md §4.
  *
  * Shape follows linebender/color's `DynamicColor` (a CSS-Color-4-faithful Rust
  * crate — read as a design reference, not a dependency): a space tag, three

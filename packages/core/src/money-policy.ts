@@ -14,7 +14,7 @@
  * ambient "this was shared" boolean, and that is correct: the distinguishing fact is
  * how THIS card selection was made, not how the tool was opened.
  *
- * Consequences enforced here (see `plans/preflight-and-cost.md` §5 and Phase 5):
+ * Consequences enforced here (see `plans/65-preflight-and-cost.md` §5 and Phase 5):
  *   - Rule 1: possession on THIS device is necessary. No card → counts only.
  *   - `validUntil`: expired rates suppress money unless the user explicitly opts in
  *     to using them anyway this session.

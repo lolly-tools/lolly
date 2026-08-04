@@ -766,7 +766,7 @@ async function captureVector(baseUrl: string, shot: ShotDef): Promise<VectorCapt
       // Walk, then AUDIT the result in-page. The print path has elementCount,
       // warnings and a cull report; the walker had `svg.length < 64` and nothing
       // else, which is how a large file of invalid XML could be written, sized and
-      // committed as a baseline (plans/svg-snapshot-without-print.md §2.1c). The
+      // committed as a baseline (plans/69-svg-snapshot-without-print.md §2.1c). The
       // audit is pure string/DOM inspection of what the walker already returned —
       // it needs no change to renderSvgFromHtml or to the shipping loopback hook.
       const out = await page.evaluate(

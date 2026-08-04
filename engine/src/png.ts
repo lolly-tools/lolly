@@ -2,7 +2,7 @@
 /**
  * PNG encoder — 8-bit and 16-bit truecolour, pure bytes, DOM-free.
  *
- * plans/deeprichpixels.md §4.2 / §6 Phase B1: the first *own* PNG writer in the
+ * plans/61-deeprichpixels.md §4.2 / §6 Phase B1: the first *own* PNG writer in the
  * tree. Everything before this was chunk SURGERY on bytes a browser encoder
  * produced (shells/web/src/bridge/export-image-meta.ts splices pHYs / cICP /
  * iCCP / iTXt into `canvas.toBlob` output, and engine/src/apng.ts re-wraps whole

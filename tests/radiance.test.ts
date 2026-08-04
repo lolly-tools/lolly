@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
  * engine/src/radiance.ts — the Phase B3 Radiance RGBE (.hdr) writer + reader
- * (plans/deeprichpixels.md §4.2 / §6).
+ * (plans/61-deeprichpixels.md §4.2 / §6).
  *
  * The claims this suite is responsible for, and how each is checked:
  *

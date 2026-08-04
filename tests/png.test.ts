@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
- * engine/src/png.ts — the Phase B1 PNG writer (plans/deeprichpixels.md §4.2).
+ * engine/src/png.ts — the Phase B1 PNG writer (plans/61-deeprichpixels.md §4.2).
  *
  * Three independent ways of being right, because a writer with no reader is a
  * writer with no test:

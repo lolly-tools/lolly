@@ -19,8 +19,20 @@ export type {
 export { validateManifest, validateRateCard } from './validate.ts';
 export { createRuntime, HOOK_BUDGET_MS } from './runtime.ts';
 export { hydrate, annotateTemplate } from './template.ts';
-export { sniffAnimatedRaster, sniffVideoContainer } from './media-sniff.ts';
-export type { AnimatedRasterKind, VideoContainer } from './media-sniff.ts';
+export { sniffAnimatedRaster, sniffVideoContainer, sniffLayeredRaster } from './media-sniff.ts';
+export type { AnimatedRasterKind, VideoContainer, LayeredRasterKind } from './media-sniff.ts';
+// Layered bitmap import/export (1.102): PSD/PSB + XCF readers, PSD writer.
+export { isPsd, readPsd, PsdUnsupportedError } from './psd.ts';
+export type { PsdReadOptions } from './psd.ts';
+export { writePsd } from './psd-write.ts';
+export type { PsdWriteDoc, PsdWriteLayer } from './psd-write.ts';
+export { isXcf, readXcf, XcfUnsupportedError } from './xcf.ts';
+export type { XcfReadOptions } from './xcf.ts';
+export { packBitsEncode, packBitsDecode } from './packbits.ts';
+export {
+  PSD_BLEND_TO_CSS, CSS_TO_PSD_BLEND, XCF_MODE_TO_CSS, psdBlendToCss, xcfModeToCss,
+} from './raster-layers.ts';
+export type { CssBlendMode, RasterLayer, LayeredRasterDoc, InflateFn } from './raster-layers.ts';
 export { buildInputModel, summarizeInputs, normalizeTableValue, DEFAULT_FILE_MAX_BYTES } from './inputs.ts';
 export type { TableValue } from './inputs.ts';
 export { parseUrlState, serializeUrlState, serializeHdr, encodeTableCompact, decodeTableCompact, RESERVED, HDR_DEFAULTS } from './url-mode.ts';
@@ -87,7 +99,7 @@ export {
   GRADIENT_KINDS, DEFAULT_GRADIENT_SPACE, MAX_GRADIENT_STOPS,
 } from './gradient-spec.ts';
 export type { GradientSpec, GradientKind, GradientSpecStop } from './gradient-spec.ts';
-// Deep pixel buffers (plans/deeprichpixels.md §5.1) — the Float32Array
+// Deep pixel buffers (plans/61-deeprichpixels.md §5.1) — the Float32Array
 // linear-light working frame whose space travels with the data, plus every
 // converter between it and the byte world. Exported alongside hdr.ts because
 // hdrViewTransform/pqEncodeFrame consume and return DeepFrames — a caller of
@@ -107,7 +119,7 @@ export {
 // Preflight — pre-export findings over a plain job description. Sits beside
 // print-marks: the engine owns the RULES, each shell collects the FACTS from its
 // own platform. Counts and assertions only; there is no cost/currency concept
-// anywhere in it (plans/preflight-and-cost.md §8).
+// anywhere in it (plans/65-preflight-and-cost.md §8).
 export {
   preflight,
   PRINT_MARK_FORMATS, SEPARATING_FORMATS, SPOT_PLATE_FORMATS,
@@ -124,7 +136,7 @@ export type {
 // prices). parseRateCard is the pure reader; computeCost is the Phase 4 arithmetic
 // (integer minor units, no currency formatting) that multiplies the card's rates by
 // preflight's counts and emits a scalar total ONLY on full coverage (rule 2).
-// plans/preflight-and-cost.md §8.
+// plans/65-preflight-and-cost.md §8.
 export { parseRateCard, isRateCardError, EXAMPLE_RATECARD_DIGEST, computeCost } from './rate-card.ts';
 export type {
   RateCard, RateCardLine, RateCardError, DisabledReason,
@@ -282,7 +294,7 @@ export {
 export type {
   PdfXOutputIntentOptions, PdfXOutputIntentSpec, PdfXProfileFacts, PdfXXmpOptions,
 } from './pdfx.ts';
-export { buildC2paManifest, embedC2paInPdf, embedC2pa, attachC2paStore, exportActionSteps, C2PA_FORMATS, LOLLY_EXPORT_ASSERTION, DIGITAL_SOURCE_TYPE, CAPTURE_SOURCE_TYPE, SCREEN_SOURCE_TYPE, GENERATED_SOURCE_TYPE } from './c2pa.ts';
+export { buildC2paManifest, embedC2paInPdf, embedC2pa, attachC2paStore, exportActionSteps, C2PA_FORMATS, LOLLY_EXPORT_ASSERTION, DIGITAL_SOURCE_TYPE, CAPTURE_SOURCE_TYPE, SCREEN_SOURCE_TYPE, GENERATED_SOURCE_TYPE, COMPOSITE_SOURCE_TYPE } from './c2pa.ts';
 export type { C2paActionInput } from './c2pa.ts';
 export { verifyC2pa, verifyC2paPdf, extractC2paFromPdf, prepareC2paIngredient, prepareC2paIngredientFromStore, extractC2paStore, parseCertificate, signedBy } from './c2pa-verify.ts';
 export type { C2paIngredientData, C2paReport, C2paCheck, C2paSignerIdentity, ParsedCertificate } from './c2pa-verify.ts';

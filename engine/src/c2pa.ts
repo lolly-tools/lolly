@@ -376,6 +376,14 @@ export const SCREEN_SOURCE_TYPE = 'http://cv.iptc.org/newscodes/digitalsourcetyp
 // chain built on this constant surfaces the AI flag without further wiring.
 export const GENERATED_SOURCE_TYPE = 'http://cv.iptc.org/newscodes/digitalsourcetype/trainedAlgorithmicMedia';
 
+// IPTC DigitalSourceType for a COMPOSITE of trained-algorithmic media with other
+// media — the honest mark for a real photograph enlarged by an AI upscaler: real
+// pixels, model-inferred detail, never claimed as wholly generated. The created
+// step carries this (instead of digitalCreation) when the render's essence is an
+// on-device AI-upscaled asset. The read side already maps the slug to 'composite'
+// (c2pa-extract aiKind), so the AI flag surfaces on /verify without further wiring.
+export const COMPOSITE_SOURCE_TYPE = 'http://cv.iptc.org/newscodes/digitalsourcetype/compositeWithTrainedAlgorithmicMedia';
+
 // Output formats that are a genuine re-encode/render of the authored design
 // (so a c2pa.converted step is honest) vs vector-native / text serialisations
 // that ARE the created asset and warrant no conversion step.
@@ -415,13 +423,16 @@ function joinList(items: string[]): string {
  * already IS that file. Pass the result as `actions` to {@link embedC2pa} /
  * {@link buildC2paManifest}.
  *
- * Two `flags` make the origin honest rather than assumed: `capture` (a live
+ * Three `flags` make the origin honest rather than assumed: `capture` (a live
  * camera frame or a mic/AV recording produced the essence) swaps the created
  * step's source type to `digitalCapture` with a "captured/recorded live"
- * description; `textAdded` (rendered text placed OVER an opened asset — the
- * caller gates this on an ingredient being present) appends a `c2pa.edited`
- * "Added text" step. From-scratch text is content, not an edit — it belongs in
- * the input digest, so callers must NOT set `textAdded` without an ingredient.
+ * description; `aiUpscale` (the essence is an on-device AI-upscaled asset) swaps
+ * it to `compositeWithTrainedAlgorithmicMedia` — a real image with model-inferred
+ * detail — and appends an "AI-upscaled with <model> <version>" edit step naming
+ * the model; `textAdded` (rendered text placed OVER an opened asset — the caller
+ * gates this on an ingredient being present) appends a `c2pa.edited` "Added text"
+ * step. From-scratch text is content, not an edit — it belongs in the input
+ * digest, so callers must NOT set `textAdded` without an ingredient.
  */
 export function exportActionSteps(format: string, flags: {
   delivered?: boolean;
@@ -441,6 +452,9 @@ export function exportActionSteps(format: string, flags: {
   textAdded?: boolean;
   /** Short teaser of that text for the step label (full copy rides in the input digest). */
   textSample?: string;
+  /** The render's essence is an on-device AI-upscaled asset — created →
+   *  compositeWithTrainedAlgorithmicMedia, plus an edit step naming the model. */
+  aiUpscale?: { model: string; version: string };
 } = {}): C2paActionInput[] {
   if (flags.delivered) return [{ action: 'c2pa.published' }];
   const f = String(format || '').toLowerCase();
@@ -452,11 +466,18 @@ export function exportActionSteps(format: string, flags: {
   // real world. The screen is what the essence IS; the mic is a track laid over it.
   const screened = !!cap?.screen;
   const captured = !!(cap && (cap.camera || cap.microphone));
-  const created: C2paActionInput = screened
-    ? { action: 'c2pa.created', digitalSourceType: SCREEN_SOURCE_TYPE, description: captureDescription(cap!) }
-    : captured
-      ? { action: 'c2pa.created', digitalSourceType: CAPTURE_SOURCE_TYPE, description: captureDescription(cap!) }
-      : { action: 'c2pa.created', digitalSourceType: DIGITAL_SOURCE_TYPE };
+  // AI-upscale wins the source-type label: a photo that a trained model enlarged is a
+  // COMPOSITE of real + algorithmic media, which is the most complete honest claim even
+  // if the source was itself a capture. The capture/screen origin, when present, still
+  // rides the ingredient chain; here the composite mark leads.
+  const upscaled = flags.aiUpscale;
+  const created: C2paActionInput = upscaled
+    ? { action: 'c2pa.created', digitalSourceType: COMPOSITE_SOURCE_TYPE, description: 'Composited from a real image enhanced by a trained algorithm' }
+    : screened
+      ? { action: 'c2pa.created', digitalSourceType: SCREEN_SOURCE_TYPE, description: captureDescription(cap!) }
+      : captured
+        ? { action: 'c2pa.created', digitalSourceType: CAPTURE_SOURCE_TYPE, description: captureDescription(cap!) }
+        : { action: 'c2pa.created', digitalSourceType: DIGITAL_SOURCE_TYPE };
   const steps: C2paActionInput[] = [created];
   if (flags.cmyk) steps.push({ action: 'c2pa.color_adjustments', description: 'Converted colours to CMYK for print' });
   if (flags.paletteColors) steps.push({ action: 'c2pa.color_adjustments', description: `Snapped colours to the brand palette (${flags.paletteColors} colour${flags.paletteColors === 1 ? '' : 's'})` });
@@ -467,6 +488,10 @@ export function exportActionSteps(format: string, flags: {
   // Text over an opened asset is a genuine edit (the caller has already gated this
   // on an ingredient); its short teaser labels the step, the full copy is digested.
   if (flags.textAdded) steps.push({ action: 'c2pa.edited', description: flags.textSample ? `Added text — “${flags.textSample}”` : 'Added text' });
+  // The model that enlarged the image, named — so an inspected asset discloses not
+  // just THAT it was AI-upscaled but with what. Kept as its own step after the other
+  // edits, before the render/encode close.
+  if (upscaled) steps.push({ action: 'c2pa.edited', description: `AI-upscaled with ${upscaled.model} ${upscaled.version}` });
   if (RASTER_OUTPUTS.has(f)) steps.push({ action: 'c2pa.converted', description: `Rendered to ${f.toUpperCase()}` });
   else if (VIDEO_OUTPUTS.has(f)) steps.push({ action: 'c2pa.converted', description: `Encoded to ${f.toUpperCase()}` });
   else if (f === 'pdf' || f === 'pdf-cmyk') steps.push({ action: 'c2pa.converted', description: 'Rendered to PDF' });

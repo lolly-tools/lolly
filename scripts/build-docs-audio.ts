@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 // SPDX-License-Identifier: MPL-2.0
 /**
- * Renders the /info docs narration artefacts (plans/docs-audio-listen.md §4) —
+ * Renders the /info docs narration artefacts (plans/40-docs-audio-listen.md §4) —
  * per page: audio.opus + captions.vtt + cues.json + meta.json under
  * docs/audio/<lang>/<slug>/, committed like docs/shots and only *linked* by
  * docs/build.ts, which never runs TTS.

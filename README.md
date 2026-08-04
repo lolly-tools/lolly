@@ -15,7 +15,7 @@ It's also your personal DAM — every logo, palette, font and upload lives in an
 Tools can be used via a:
 * Web app - installable offline progressive web app 
 * Mobile and Desktop installable packages. 
-* and of course, the Command Line. 
+* and of course, the Command Line — plus a full-screen terminal UI (TUI). 
 
 
 
@@ -25,8 +25,8 @@ Tools can be used via a:
 * Free, open-source platform — the engine, every shell, the schemas and docs are MPL-2.0. Tools and assets are just data: bring your own brand content (SUSE's tool & asset packs are proprietary — see [Licensing & structure](#licensing--structure)).
 * Unlimited scale, No SaaS fees. 
 * Low-or-Zero server costs: Lolly uses local device compute. 
-* Builds for Mac, Linux, iOS, Android, web, and the command line. 
-* Huge format support: SVG · EMF · PDF · Print PDF (CMYK) · CMYK TIFF · PNG · JPEG · WebP · AVIF · ICO · WebM · MP4 · GIF · MP3 · M4A · HTML · MD · TXT · JSON · CSV · ICS · VCF · ZIP — plus audio and tracker input (WAV · OGG · FLAC · MIDI · MOD). 
+* Builds for Mac, Windows, Linux, iOS, Android, web, and the command line. 
+* Huge format support: SVG · EPS · EMF · DXF · PDF · Print PDF (CMYK) · PPTX · CMYK TIFF · PNG · APNG · JPEG · WebP · AVIF · ICO · EXR · Radiance HDR · WebM · MP4 · GIF · WAV · MP3 · M4A · HTML · MD · TXT · JSON · CSV · ICS · VCF · ZIP — plus audio and tracker input (WAV · OGG · FLAC · MIDI · MOD). 
 * Print-ready output: CMYK PDF & TIFF, physical units, bleed, crop/registration marks, colour bars, and press (FOGRA/SWOP) profiles. 
 * Infinite deterministic media creation.
 * Renders and exports 100% offline — the shells need no network at render time. (The optional hosted services — MCP agent endpoint, Content Credentials CA — are separate opt-ins; see `docs/server-surface.md`.)
@@ -50,6 +50,7 @@ off-brand output. See `docs/positioning.md` for the full landscape comparison.
 ```
 lolly/                              # umbrella — engine + glue (this repo)
 ├── engine/                         # platform-agnostic core (the open-source heart)
+├── packages/                       # @lolly-tools/core (tool-author SDK, the HostV1 contract) + node-shell
 ├── schemas/                        # JSON Schemas for tool.json, assets, AssetRef
 ├── scripts/                        # catalog build/validate + scripts/subrepo/ split toolkit
 ├── tests/                          # engine + contract tests
@@ -86,7 +87,7 @@ These decisions are settled. Changing any of them is a major undertaking:
 
 4. **Stable asset IDs forever.** `suse/logo/primary` is a contract. Never reuse, never rename. Version in the manifest, never in the path.
 
-5. **URL mode is first-class.** Every input must be expressible as URL params. CLI mode = hidden browser + URL mode + file output. One render path.
+5. **URL mode is first-class.** Every input must be expressible as URL params. CLI mode = headless DOM (jsdom) + URL mode + file output. One render path.
 
 6. **Storage via the bridge.** Tools call `host.state.save()` / `host.state.load()`. The bridge picks IndexedDB (web), filesystem (Tauri), or memory (CLI). Tools never know which.
 
@@ -114,7 +115,7 @@ npm run validate:catalog       # validate the catalog
 ```bash
 npm run profile          # show the active profile + what's available
 npm run profile:suse     # SUSE brand pack (needs: git submodule update --init --checkout brands/suse)
-npm run profile:start    # blank starter brand — community tools only
+npm run profile:start    # blank starter brand — community tools + neutral tokens
 ```
 
 See `docs/authoring-tools.md` to build your first tool, and [Development](#development) below for the submodule workflow. A new brand pack can be generated from design tokens with `npm run ingest:brand` (DTCG / Tokens Studio / Penpot exports).
@@ -179,7 +180,7 @@ loldev help                              # every command
 ## Current tools
 
 <!-- tools-table:start -->
-The SUSE catalog ships **64 tools** today — 63 listed in the gallery, plus one unlisted helper (Asset Export). Generated from `catalog/tools/index.json` by `npm run build:readme-tools`:
+The SUSE catalog ships **66 tools** today — 65 listed in the gallery, plus one unlisted helper (Asset Export). Generated from `catalog/tools/index.json` by `npm run build:readme-tools`:
 
 | Tool | What it makes |
 |---|---|
@@ -189,6 +190,7 @@ The SUSE catalog ships **64 tools** today — 63 listed in the gallery, plus one
 | Bag Video | An animated, on-brand video for bag visuals. |
 | Battlecards | Turn any table into a deck of cards — one card per row, ready as a multi-page PDF. Paste straight from your spreadsheet, doc, or chat. |
 | Bitmap Studio | A pro photo-grading darkroom: film looks, third-party .cube LUTs, brand-seeded colour treatments and finishing texture — then bake your look as a LUT any editor can use. |
+| Bitmap Upscale | Frame and export an AI-upscaled photo, keeping the render path that carries your credential. |
 | Booth Studio | Dress a 3D event booth with sponsor artwork. Click any panel to drop an image on it, pick a booth design, and render a still or a turntable for a sponsor pitch. |
 | Brand Lockup | Official SUSE logo lockups — chameleon, wordmark and a name. |
 | Calendar ICS | Turn event details into a calendar (.ics) file for any calendar app. |
@@ -219,7 +221,8 @@ The SUSE catalog ships **64 tools** today — 63 listed in the gallery, plus one
 | Filter: Voronoi Cells | Shatter any photo into a Voronoi cell mosaic — each cell filled with the nearest colour, as flat vector. |
 | Finish Preview | Preview foil, spot UV, emboss and soft-touch finishes on your artwork — then export the printer-ready spot plate. The on-screen sheen is presentation only; the plate is the real deliverable your print house needs. |
 | Flow Chart | Build flow charts on an open canvas — drag cards, connect them, and the lines route and stick to the boxes. |
-| Layout Studio |  |
+| Layers | Open a Photoshop or GIMP file as individual layers — lock each one down with exact X/Y coordinates, visibility, opacity and blend mode, then export flat images or a layered PSD. |
+| Layout Studio | An open canvas for free arrangement — text, images, shapes and live renders from your other Lolly tools, all held to your brand. |
 | Logo | Place the SUSE logo — it auto-picks the right variant and exports vector. |
 | Logo Lockup: Grid (NASCAR) | Arrange a pile of logos into a clean, even sponsor grid — the “NASCAR” wall. |
 | Logo Lockup: Partner | The SUSE logo beside a partner's, with a divider between — light or dark. |
@@ -228,7 +231,7 @@ The SUSE catalog ships **64 tools** today — 63 listed in the gallery, plus one
 | Mesh Gradient | Soft mesh-style gradients from your brand swatches. Drag the colour points right on the canvas. |
 | Multi-Page PDF | Build a multi-page PDF — a cover, flowing content blocks, and a back page. |
 | Pose Geeko | Pose the SUSE Geeko with sliders — eyes, blink and limbs. No animation, just a still you can dial in and export print-ready. |
-| Prompt to Image | AI models are cheaper at processing images than they are text |
+| Prompt to Image | Typeset a long prompt into one compact, legible image for a multimodal model — image input is often cheaper than the same words as text tokens. |
 | QR Code Generator | QR codes for any URL, with full color and style control. |
 | Quote Card | On-brand quote cards for social posts and slides. |
 | Rebrand a Deck | Upload a PowerPoint deck and snap its colours and fonts to your brand — rebuilt on your device, nothing uploaded. |
@@ -256,6 +259,6 @@ Every unit now lives in its own repo under [github.com/lolly-tools](https://gith
 
 - **Code** — `engine/`, `shells/*`, `services/*`, `docs/` — is **[MPL-2.0](LICENSE)**.
 - **Tool content ships as brand packs.** `community/` (public [`lolly-tools`](https://github.com/lolly-tools/lolly-tools)) holds the brand-agnostic tools; `brands/suse/` (private `suse-lolly`) holds the SUSE tools and catalog — including its licensed PremiumBeat music, which stays private with the pack. The repo-root `tools/` and `catalog/` are gitignored profile *views* assembled from those packs; see each pack's `NOTICE.md`.
-- **`catalog/fonts/`** ships the **SUSE** and **SUSE Mono** typefaces under the [SIL Open Font License 1.1](catalog/fonts/OFL.txt) — neither the MPL nor SUSE-proprietary ("SUSE" is a SUSE trademark).
+- **Fonts** ship inside each brand pack under the SIL Open Font License 1.1 — the SUSE pack carries the **SUSE** and **SUSE Mono** typefaces (neither the MPL nor SUSE-proprietary; "SUSE" is a SUSE trademark). They appear at `catalog/fonts/` in a built profile view.
 
 Bundled third-party attributions are listed in [THIRD-PARTY-NOTICES.md](THIRD-PARTY-NOTICES.md).

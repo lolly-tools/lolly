@@ -1,5 +1,5 @@
 # Lolly Render — composite GitHub Action, built in-tree and ready to split into
-# lolly-tools/render-action (plans/fable-new-potential.md §5.4).
+# lolly-tools/render-action (plans/48-fable-new-potential.md §5.4).
 #
 # Wraps the CLI shell's URL-mode render path: one `lolly <tool> --k=v` render, or a
 # `lolly batch rows.csv` CSV fan-out, on a pinned checkout of lolly-tools/lolly.

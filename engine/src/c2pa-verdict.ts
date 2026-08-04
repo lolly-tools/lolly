@@ -171,7 +171,7 @@ export function isExpiredOnly(report: Pick<C2paVerdictInput, 'checks'>): boolean
  * ladder it never drives the hero state (it surfaces as a scorecard pip
  * only), so a parts file resolves to 'valid' — or 'trusted' when anchored.
  * KNOWN SURFACE DIVERGENCE, preserved as-is and flagged in
- * plans/maintainability-2026-07-18.md: the CLI elevates the parts flag to its
+ * plans/archive/maintainability-2026-07-18.md: the CLI elevates the parts flag to its
  * headline (after likely, before expired — so its trusted+parts cell reads
  * "Parts made with Lolly" where the web reads "Verified"), while MCP has no
  * parts headline at all. Both keep their behaviour by layering the returned
@@ -219,7 +219,7 @@ export function resolveVerdict(report: C2paVerdictInput): C2paVerdict {
  *
  * PER-SURFACE POLICY. The split that used to live here — web pinned the Lolly
  * CA root, the terminal surfaces did not — is CLOSED as of the GA CLI contract
- * (plans/cli-ga-contract.md §12 O1, decided by Andy 2026-08-01): every surface
+ * (plans/73-cli-ga-contract.md §12 O1, decided by Andy 2026-08-01): every surface
  * that answers "is this verified?" pins the same roots, so one word means one
  * thing everywhere.
  *   • web /valid           → { includeLollyRoot: true }

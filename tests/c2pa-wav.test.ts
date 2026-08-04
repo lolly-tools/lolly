@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
  * WAV C2PA embedding (the RIFF-family binding — a top-level 'C2PA' chunk,
- * plans/tts-stt-programme.md §2: the Article 50 mark travels IN the generated
+ * plans/41-tts-stt-programme.md §2: the Article 50 mark travels IN the generated
  * clip, not just on its asset record). The generic embed → verify round-trip
  * rides the same machinery as the format matrix in c2pa-formats.test.ts; this
  * file pins the RIFF-specific behaviour: sniff + extraction read the chunk

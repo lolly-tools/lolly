@@ -115,7 +115,7 @@ export interface LoadToolOpts {
   integrity?: ToolIntegrityOpts;
   /**
    * UI/content language for this tool's manifest strings (see
-   * plans/localize.md §7). When set and not 'en', loadTool best-effort fetches
+   * plans/38-localize.md §7). When set and not 'en', loadTool best-effort fetches
    * a sibling `i18n/<lang>.json` overlay and merges it onto the returned
    * manifest's user-facing strings before anything downstream (buildInputModel,
    * every shell) ever sees it — one overlay point, every shell benefits.

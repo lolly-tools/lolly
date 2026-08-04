@@ -19,7 +19,7 @@
 # auth fail (health still answers). The Helm chart wires these from a Secret.
 # ============================================================================
 
-FROM node:24-bookworm-slim AS build
+FROM node:24-bookworm-slim@sha256:cd84903a12dbd26b46f1f3b8144a2568c41c5d37ddd0c7a80a34c7a19786b35f AS build
 WORKDIR /src
 ENV NODE_ENV=production
 
@@ -31,7 +31,7 @@ ENV PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=1
 RUN npm ci --omit=dev --no-audit --no-fund
 
 # ── runtime stage ───────────────────────────────────────────────────────────
-FROM node:24-bookworm-slim AS runtime
+FROM node:24-bookworm-slim@sha256:cd84903a12dbd26b46f1f3b8144a2568c41c5d37ddd0c7a80a34c7a19786b35f AS runtime
 WORKDIR /app
 ENV NODE_ENV=production
 ENV PORT=8787

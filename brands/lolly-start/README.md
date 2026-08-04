@@ -19,7 +19,7 @@ parent repo.
 
 - **Starter tokens** (`catalog/assets/lolly/tokens/brand.json`) — a neutral,
   OKLCH-native DTCG document that doubles as the reference example of the
-  brand token contract (`plans/brand-token-contract.md`): primary/neutral/
+  brand token contract (`plans/archive/brand-token-contract.md`): primary/neutral/
   secondary nine-step ramps and a six-hue spectrum in a shared `base` set,
   plus `light`/`dark` themes whose seven semantic slots (`color.semantic.
   primary`, `on-primary`, `secondary`, `surface`, `text`, `muted`, `edge`)

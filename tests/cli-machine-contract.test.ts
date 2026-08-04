@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
- * The CLI's MACHINE contract, pinned (plans/cli-ga-contract.md §5).
+ * The CLI's MACHINE contract, pinned (plans/73-cli-ga-contract.md §5).
  *
  * Three promises, and one test each for every way they can be broken:
  *

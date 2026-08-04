@@ -72,3 +72,24 @@ updates:
       github-actions:
         patterns:
           - "*"
+
+  # ── Docker: digest-pinned base images ─────────────────────────────────────
+  # Images are pinned by sha256 digest (SUSE assessment 2026-08, S7); this keeps
+  # the pins moving as upstream rebuilds, so a pin does not become a stale base
+  # nobody patches — the failure mode that makes digest pinning worse than tags.
+  #
+  # services/mcp is a SUBMODULE and carries no dependabot.yml of its own, so
+  # nothing here or there watches services/mcp/deploy/Dockerfile. Its base image
+  # is digest-pinned to the same node:24-bookworm-slim as the others, and it must
+  # be bumped BY HAND alongside these until that repo gains its own config.
+  # Do not assume the submodule is covered; it is not.
+  - package-ecosystem: "docker"
+    directory: "/deploy/docker"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+    open-pull-requests-limit: 5
+    labels:
+      - "dependencies"
+    commit-message:
+      prefix: "deploy"

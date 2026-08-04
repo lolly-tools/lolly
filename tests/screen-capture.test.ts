@@ -182,7 +182,11 @@ test('ENGINE_VERSION is 1.100.0', () => {
   // raster path so a tool can return its own encoded bytes for a format and skip
   // host.export.render, or decline (null) and fall through byte-identical);
   // the ^1.54.0 screencap floor below is unaffected (a minor bump still satisfies it).
-  assert.equal(ENGINE_VERSION, '1.100.0');
+  // Then 1.101.0 (host.upscale — on-device AI upscaling + the c2paAiUpscale
+  // provenance surface) and 1.102.0 (layered-bitmap import/export: readPsd/
+  // writePsd/readXcf + packbits/raster-layers/sniffLayeredRaster — plain engine
+  // exports consumed like pdf-map; no HostV1 method added).
+  assert.equal(ENGINE_VERSION, '1.102.0');
 });
 
 // ─── loadTool: a ^1.54.0 tool loads against this engine ───────────────────────

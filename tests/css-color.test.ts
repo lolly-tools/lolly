@@ -6,7 +6,7 @@
  *
  *   1. PARSING every form the spec defines, including the non-legacy ones whose
  *      absence silently dropped paint from SVG/PDF/EMF export (see
- *      plans/color-spaces.md §4). The reference hexes come from the spec's own
+ *      plans/60-color-spaces.md §4). The reference hexes come from the spec's own
  *      equivalence examples where it gives them, otherwise from converting a
  *      known sRGB colour into the space and back.
  *   2. CONVERSION being lossless: every one of the 14 spaces round-trips a set

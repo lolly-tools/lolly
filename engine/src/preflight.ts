@@ -26,7 +26,7 @@
  *    `readSpotColor`'s tolerance in `tokens.ts`.
  * 3. **It counts; it does not cost.** There is no currency, no rate and no
  *    monetary concept anywhere in this module, and none may be added.
- *    See `plans/preflight-and-cost.md` §6 and §8.
+ *    See `plans/65-preflight-and-cost.md` §6 and §8.
  *
  * The finding/count vocabulary lives in `@lolly-tools/core` (`preflight.ts`
  * there), beside the manifest contract, so a consumer can read a serialised
@@ -106,7 +106,7 @@ export const RASTER_FORMATS: ReadonlySet<string> = new Set([
  * The deep (float) pixel formats.
  *
  * These are admitted for ANY tool by the render path — `shells/cli/src/run.ts`
- * exempts them from the offered-formats gate, because `plans/deeprichpixels.md`
+ * exempts them from the offered-formats gate, because `plans/61-deeprichpixels.md`
  * §10 rules out per-tool depth declarations — so preflight must exempt them too.
  * Refusing a job that renders fine is the one failure that makes a CI gate built
  * on `lolly preflight` worse than none.

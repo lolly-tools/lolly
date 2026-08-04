@@ -20,7 +20,7 @@
  *     legal and MUST degrade to the flat fill instead of throwing or leaking the raw
  *     spec into a style attribute.
  *
- * See plans/color-spaces.md §10 and engine/CHANGELOG.md 1.68.0.
+ * See plans/60-color-spaces.md §10 and engine/CHANGELOG.md 1.68.0.
  */
 
 import { test } from 'node:test';

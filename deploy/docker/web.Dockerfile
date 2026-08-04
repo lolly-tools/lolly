@@ -23,7 +23,7 @@
 # ============================================================================
 
 # ── build stage ─────────────────────────────────────────────────────────────
-FROM node:24-bookworm AS build
+FROM node:24-bookworm@sha256:da4221677e02b54ef6335adfa447578d512ad14f251024fb92ea433c2c102760 AS build
 WORKDIR /src
 
 # Which brand/profile to bake into the static build (see header).
@@ -49,10 +49,13 @@ RUN npm run build:web
 
 # ── runtime stage ───────────────────────────────────────────────────────────
 # nginx-unprivileged runs as uid 101 (non-root) and listens on 8080 by default.
-FROM nginxinc/nginx-unprivileged:1.27-alpine AS runtime
+FROM nginxinc/nginx-unprivileged:1.27-alpine@sha256:65e3e85dbaed8ba248841d9d58a899b6197106c23cb0ff1a132b7bfe0547e4c0 AS runtime
 
 # Our server config replaces the stock default.conf.
 COPY deploy/docker/nginx.conf /etc/nginx/conf.d/default.conf
+# The security headers every location includes (nginx drops inherited
+# add_header in any location that sets one of its own).
+COPY deploy/docker/security-headers.conf /etc/nginx/security-headers.conf
 
 # Static site. nginx-unprivileged serves from /usr/share/nginx/html.
 COPY --from=build /src/shells/web/dist /usr/share/nginx/html

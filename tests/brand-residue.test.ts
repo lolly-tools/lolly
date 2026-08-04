@@ -5,7 +5,7 @@
  * Run with: npm test  (node --test over the tests/ globs)
  * No test framework — uses node:test built-in. Dependency-free fs walk.
  *
- * Three invariants from plans/brand-token-contract.md §3/§6:
+ * Three invariants from plans/archive/brand-token-contract.md §3/§6:
  *
  * 1. brands/lolly-start/** is brand-CLEAN: the starter pack (tokens + the
  *    de-SUSE'd tool copies) must carry none of the seven SUSE brand hexes and

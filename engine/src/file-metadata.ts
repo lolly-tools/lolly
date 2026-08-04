@@ -374,7 +374,7 @@ function readXmp(text: string, out: FileMetadata): void {
 // second JPEG there:
 //
 //   - an **HDR gain map** (ISO 21496-1 + Ultra HDR v1.1) — what Lolly's own
-//     `hdr=1` JPEG export writes (plans/deeprichpixels.md §4.2 / §6 B2), and
+//     `hdr=1` JPEG export writes (plans/61-deeprichpixels.md §4.2 / §6 B2), and
 //     what Apple, Adobe and Android 15 write. The primary is an ordinary SDR
 //     JPEG; the second image is a greyscale map an HDR-aware decoder applies.
 //   - a plain MPO (stereo pairs, Apple burst/depth companions).

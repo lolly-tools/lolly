@@ -2,7 +2,7 @@
 /**
  * Colour tools — perceptual metrics and ramp math on top of brand-derive's
  * OKLab core. The adopt/port decision behind this module is
- * plans/chroma-eval.md: the handful of load-bearing algorithms from chroma.js
+ * plans/archive/chroma-eval.md: the handful of load-bearing algorithms from chroma.js
  * are ported and re-based onto OKLab (better hue uniformity than the CIELAB
  * originals, and every emitted colour rides `oklchToHex`'s chroma-reduction
  * gamut mapping instead of channel clipping); everything the engine already
@@ -335,7 +335,7 @@ export function rampOklab(stops: string[], n: number, opts: RampOptions = {}): s
  * (linear interpolation between sorted ranks). Non-finite entries are
  * ignored; an empty (or all-non-finite) dataset returns `[]`. The upstream
  * k-means mode is deliberately not ported — its assignment loop counts every
- * point once per centroid (plans/chroma-eval.md §5).
+ * point once per centroid (plans/archive/chroma-eval.md §5).
  */
 export function classBreaks(data: number[], mode: 'e' | 'l' | 'q', n: number): number[] {
   const values = (Array.isArray(data) ? data : []).filter(v => Number.isFinite(v));
@@ -380,7 +380,7 @@ export interface DistinctColorsOptions {
  * Up to `n` visually distinct categorical colours (chart series), seeded from
  * a brand anchor. chroma.js has no equivalent (its categorical story is
  * ColorBrewer data) — this is the OKLCH generator sketched in
- * plans/chroma-eval.md: a structured candidate pool around the anchor's
+ * plans/archive/chroma-eval.md: a structured candidate pool around the anchor's
  * lightness/chroma (24 hues × 3 lightness × 2 chroma levels), picked by
  * greedy maximin ΔEOK. Deterministic: same inputs, same palette; the anchor
  * itself (gamut-mapped) is always the first colour.

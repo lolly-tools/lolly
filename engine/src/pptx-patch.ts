@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
  * pptx-patch.ts — SURGICAL rebrand of an unzipped .pptx part map (Pipeline A,
- * plans/fable-new-potential-pptx.md §2.2 / track E2).
+ * plans/49-fable-new-potential-pptx.md §2.2 / track E2).
  *
  * The winning architecture for "make rebranding an existing deck EASY" is NOT
  * "parse the whole deck into a model and regenerate it" (that silently strips

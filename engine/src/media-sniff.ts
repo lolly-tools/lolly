@@ -154,6 +154,30 @@ export function sniffAnimatedRaster(
   return null;
 }
 
+/** A layered raster container (routed to the layered import, not stored raw). */
+export type LayeredRasterKind = 'psd' | 'xcf';
+
+/**
+ * Classify a layered-bitmap container from its header, or null. PSD/PSB open
+ * with '8BPS' (version 1|2); XCF with the ASCII 'gimp xcf ' magic. Prefix-only
+ * — full validation belongs to engine/src/psd.ts / xcf.ts. This is what the
+ * drop router and the picker's flatten branch key off.
+ */
+export function sniffLayeredRaster(input: Uint8Array | ArrayBuffer): LayeredRasterKind | null {
+  const bytes = asBytes(input);
+  if (has(bytes, 0, 0x38, 0x42, 0x50, 0x53)) {              // '8BPS'
+    const version = bytes.length >= 6 ? (bytes[4]! << 8) | bytes[5]! : 0;
+    return version === 1 || version === 2 ? 'psd' : null;
+  }
+  const magic = 'gimp xcf ';
+  if (bytes.length >= magic.length) {
+    let ok = true;
+    for (let i = 0; i < magic.length; i++) if (bytes[i] !== magic.charCodeAt(i)) { ok = false; break; }
+    if (ok) return 'xcf';
+  }
+  return null;
+}
+
 /**
  * Recognise a short video container from its header, or null. MP4/MOV carry an
  * `ftyp` box at offset 4; WebM/MKV open with the EBML magic. Used as a byte-level

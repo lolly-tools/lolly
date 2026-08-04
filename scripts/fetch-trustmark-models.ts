@@ -5,7 +5,7 @@
  * shells/web/public/models/trustmark/ — the same-origin location
  * shells/web/src/lib/trustmark.ts fetches them from at runtime (see that
  * file's header for the full "Deep scan for watermarks" feature, and
- * plans/watermark-detectors.md for the plan behind it).
+ * plans/31-watermark-detectors.md for the plan behind it).
  *
  * ANDY-RUN ONLY. This script needs network access and is never invoked by
  * `npm install`/`postinstall`/CI — the decoder models are ~45 MB each, not

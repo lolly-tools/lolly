@@ -102,7 +102,7 @@ keys/
 # material can slip into history. (Verified: no .pem is tracked today.)
 *.pem
 # ...and any private key that happens to use a .key extension (symmetry with
-# *.pem; none tracked today — belt-and-suspenders, see plans/secrets-review.md).
+# *.pem; none tracked today — belt-and-suspenders, see plans/25-secrets-review.md).
 *.key
 
 # parcel-bundler cache (https://parceljs.org/)

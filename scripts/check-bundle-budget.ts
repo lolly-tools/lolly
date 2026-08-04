@@ -3,7 +3,7 @@
  * Bundle-budget regression guard for the web shell boot path.
  *
  * WHY THIS EXISTS
- * A large front-end perf effort (see plans/ui-perf-audit.md) moved the heavy
+ * A large front-end perf effort (see plans/archive/ui-perf-audit.md) moved the heavy
  * render/validation libraries (engine render path, handlebars, ajv, html2canvas)
  * OFF the initial boot path — they now load lazily only when a tool actually
  * renders. That win is *silent to lose*: a single careless top-level

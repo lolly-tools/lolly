@@ -27,7 +27,7 @@
  *     claims — and it also shows why gamut membership alone cannot catch it.
  *
  * Licence picture for these files (read out of their own `cprt` tags, recorded in
- * plans/color-spaces.md 11.8): the ICC's own two are shippable, the Elle Stone
+ * plans/60-color-spaces.md 11.8): the ICC's own two are shippable, the Elle Stone
  * four are CC-BY-SA, Apple's P3 is not redistributable, and the W3C's swapped
  * profile belongs in tests and nowhere else. Hence: fixtures by path, none
  * committed.
@@ -110,7 +110,7 @@ const round = (v: readonly number[], dp = 2): number[] => v.map(n => +n.toFixed(
 
 /**
  * What each file IS, per its header. Numbers read with this parser and
- * cross-checked against the table in plans/color-spaces.md 11.8, which was
+ * cross-checked against the table in plans/60-color-spaces.md 11.8, which was
  * written from the same files.
  */
 const HEADERS: Record<string, { cls: string; space: string; pcs: 'XYZ' | 'Lab'; version: string; desc: string; n: number }> = {

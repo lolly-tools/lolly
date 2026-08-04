@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
  * engine/src/jpeg-segments.ts — the one shared JPEG marker walker/writer
- * (plans/deeprichpixels.md §6 Phase B2, task F2).
+ * (plans/61-deeprichpixels.md §6 Phase B2, task F2).
  *
  * Three independent kinds of evidence, because this module both READS hostile
  * files and WRITES bytes a decoder has to keep accepting:

@@ -10,7 +10,7 @@
  *
  * Depth: 8-bit unsigned (the default, byte-identical to the original encoder),
  * 16-bit unsigned, or 32-bit IEEE float (`depth: 'float32'` — the deep/VFX
- * interchange depth, plans/deeprichpixels.md §6 Phase A). Deep samples are
+ * interchange depth, plans/61-deeprichpixels.md §6 Phase A). Deep samples are
  * written little-endian to match the file's "II" byte order. Non-8-bit files
  * carry the SampleFormat tag (339, TIFF 6.0 Section 19 "Data Sample Format"):
  * 1 = unsigned integer for 16-bit, 3 = IEEE floating point for float32. 8-bit

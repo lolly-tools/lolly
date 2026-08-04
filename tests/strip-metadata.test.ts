@@ -131,7 +131,7 @@ test('hasResidualMetadata(svg): flags editor cruft, clears the stripped copy', (
   assert.equal(hasResidualMetadata(stripMetadata(raw, 'svg'), 'svg'), null);
 });
 
-// ─── Multi-picture JPEGs (plans/deeprichpixels.md §6 B2 / task E2) ───────────
+// ─── Multi-picture JPEGs (plans/61-deeprichpixels.md §6 B2 / task E2) ───────────
 //
 // A gain-map HDR JPEG keeps its second image past the primary's EOI, described
 // by an APP2 MPF index. Dropping every APPn but APP0 deleted the index and left

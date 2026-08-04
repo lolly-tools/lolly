@@ -380,7 +380,7 @@ function toSwatch(e: TokenEntry): ColorSwatch {
     // is a non-null string) that a malformed colour value can never actually hit.
     //
     // An AUTHORED sRGB face wins over the automatic bake — this is Phase 9 of
-    // plans/color-spaces.md, and it is one line here rather than a change per
+    // plans/60-color-spaces.md, and it is one line here rather than a change per
     // export path because every consumer of a brand colour funnels through this
     // field. The reason it must win: the automatic §14.2 gamut map picks the
     // nearest reproducible colour by ΔE, and a brand will often prefer a
@@ -510,7 +510,7 @@ export function colorToHex(value: unknown): string | null | undefined {
     // is brand-derive.ts's (single source of truth), never duplicated here.
     // Deliberately NOT routed through css-color.ts: oklchToHex's chroma-reduction
     // gamut mapping is what every stored brand token was authored against, and
-    // unifying the two mappers is a decision of its own (plans/color-spaces.md
+    // unifying the two mappers is a decision of its own (plans/60-color-spaces.md
     // Phase 2), not a side effect of fixing the parsers.
     const ok = parseOklch(s);
     if (ok) return oklchToHex(ok);

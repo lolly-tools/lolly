@@ -50,7 +50,7 @@
  * nothing else. Trying every schema against noise is a real false-positive
  * amplifier (up to ~4x the chance some engine's syndrome accidentally
  * resolves) that conflicts with this codebase's hard "no false positives"
- * bar for a green detection pip (see plans/watermark-detectors.md) — the
+ * bar for a green detection pip (see plans/31-watermark-detectors.md) — the
  * Python reference (used for both encode AND decode, the more authoritative
  * half of Adobe's own repo) does not have this fallback either.
  *
@@ -700,7 +700,7 @@ export function decodeTrustmarkPayload(bits: ArrayLike<number | boolean>): Trust
  * framing a neural TrustMark ENCODER would then hide in pixels. That neural
  * encoder is NOT in this repo: Adobe ships ONNX for DECODE only; encoding lives
  * in their Python package's PyTorch weights, so embedding is a torch→ONNX
- * conversion job, not a model fetch (see plans/durable-content-credentials.md).
+ * conversion job, not a model fetch (see plans/28-durable-content-credentials.md).
  * Nothing here touches pixels — bits in, 100-bit packet out.
  *
  * Unlike the decoder (fed untrusted file bytes, never throws), this is fed our

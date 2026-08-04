@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
  * The `depth` reserved param, from URL/argv to the export options object
- * (plans/deeprichpixels.md §10 item 1).
+ * (plans/61-deeprichpixels.md §10 item 1).
  *
  * The parse/serialize contract lives in tests/engine.test.ts; this file covers the
  * two THREADING paths, which is where a reserved param usually rots: the value is

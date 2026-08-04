@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
  * Unit tests for engine/src/color-tools.ts — the perceptual metrics + ramp
- * math ported per plans/chroma-eval.md. Covers APCA against the published
+ * math ported per plans/archive/chroma-eval.md. Covers APCA against the published
  * apca-w3 reference pairs (APCA-1.0.98G), ΔEOK's metric properties, bezier
  * ramps (endpoints, counts, lightness correction), class breaks (equal /
  * log / quantile goldens), and the distinct-categorical generator (anchor

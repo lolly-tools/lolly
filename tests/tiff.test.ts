@@ -125,7 +125,7 @@ test('packTiff: rejects non-positive dimensions', () => {
 });
 
 // ---------------------------------------------------------------------------
-// Deep output (depth: 16 | 'float32') — plans/deeprichpixels.md Phase A.
+// Deep output (depth: 16 | 'float32') — plans/61-deeprichpixels.md Phase A.
 // Appended below the original 8-bit suite, which doubles as the byte-identical
 // characterization of the 8-bit path (nothing above this line was touched).
 // ---------------------------------------------------------------------------

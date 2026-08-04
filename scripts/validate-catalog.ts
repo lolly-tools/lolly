@@ -125,7 +125,7 @@ for (const dir of toolDirs) {
     errors.push(`[${dir}] duplicate tool id "${manifest.id}"`);
   }
 
-  // A tool id may never be a CLI subcommand word (plans/cli-ga-contract.md §1.1). The
+  // A tool id may never be a CLI subcommand word (plans/73-cli-ga-contract.md §1.1). The
   // verbs win the first positional, so `brands/acme/tools/run/` would ship, pass every
   // other check, appear in `lolly list`, and be unreachable by any spelling — with no
   // diagnostic. Post-GA the only fixes are renaming a tool id (a permanent-contract
@@ -315,7 +315,7 @@ for (const [toolId, manifest] of toolManifests) {
   }
 }
 
-// ─── i18n sidecars (plans/localize.md §7) ──────────────────────────────────
+// ─── i18n sidecars (plans/38-localize.md §7) ──────────────────────────────────
 // tools/<id>/i18n/<lang>.json is a flat, dotted-path overlay onto the
 // manifest's own user-facing strings (engine/src/loader.ts's
 // applyManifestI18n applies it at load time; build-catalog-index.ts folds
@@ -413,7 +413,7 @@ for (const asset of assetsIndex.assets) {
       }
 
       // Depth label matches a re-sniff of the actual bytes, in BOTH directions.
-      // `depth` is generated, never hand-authored (plans/deeprichpixels.md §10
+      // `depth` is generated, never hand-authored (plans/61-deeprichpixels.md §10
       // item 6): a present-but-wrong label would be exactly the "bits the
       // pipeline did not produce" the plan forbids, and a missing label on a
       // sniffable raster is a stale index. Same function the writer uses, so

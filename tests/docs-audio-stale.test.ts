@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
- * The docs-narration staleness contract (plans/docs-audio-listen.md §5), same
+ * The docs-narration staleness contract (plans/40-docs-audio-listen.md §5), same
  * pattern as tests/docs-shots-vector.test.ts: every committed
  * docs/audio/<lang>/<slug>/meta.json must carry the textHash of the CURRENT
  * spoken-text document, or sit in the allowlist below with a written reason and
@@ -46,8 +46,11 @@ const AUDIO = join(ROOT, 'docs', 'audio');
  * test yet, so a committed non-en directory must be listed here until it is.
  */
 const STALE_ALLOWED: Record<string, string> = {
-  // (empty — the 2026-08-02 meta-title extraction drift was re-rendered the
-  // same day; the four entries it created expired here as the contract demands)
+  // Empty, and that is the resting state. (The 2026-08-02 meta-title extraction
+  // drift was re-rendered the same day; the 2026-08-04 README-accuracy entry for
+  // en/about expired here when the privacy re-render swept it up — both left as
+  // the contract demands, since this test fails on a stale entry AND on one that
+  // is fresh again.)
 };
 
 interface Committed { key: string; lang: string; slug: string; meta: AudioMeta }

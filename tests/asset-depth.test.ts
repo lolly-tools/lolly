@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
- * Catalog assets carry depth (plans/deeprichpixels.md §10 item 6).
+ * Catalog assets carry depth (plans/61-deeprichpixels.md §10 item 6).
  *
  * Governing principle: depth follows provenance — never emit bits the pipeline
  * did not produce. A `depth` label on an asset format IS an emission, so this
