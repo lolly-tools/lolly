@@ -88,6 +88,18 @@ const tinyMp4 = (): Uint8Array => concat([
   mp4box('moov', mp4box('mvhd', new Uint8Array(100))),
   mp4box('mdat', bytesOf('fake-video-payload')),
 ]);
+// AVIF: an ISO BMFF still with an image major brand — same placer + bmff binding.
+const tinyAvif = (): Uint8Array => concat([
+  mp4box('ftyp', bytesOf('avif'), u32be(0), bytesOf('avifmif1')),
+  mp4box('meta', new Uint8Array(8)),
+  mp4box('mdat', bytesOf('fake-avif-payload')),
+]);
+// M4A: ISO BMFF audio — same placer + bmff binding; c2patool parses it like an mp4.
+const tinyM4a = (): Uint8Array => concat([
+  mp4box('ftyp', bytesOf('M4A '), u32be(0), bytesOf('M4A mp42isom')),
+  mp4box('moov', mp4box('mvhd', new Uint8Array(100))),
+  mp4box('mdat', bytesOf('fake-aac-payload')),
+]);
 
 // WebM fixtures (EBML). eb() emits id + minimal size VINT + payload.
 const ebVint = (n: number): Uint8Array => {
@@ -406,9 +418,9 @@ test('webm: EOF append is refused when an unmeasurable element would hide it', a
   await assert.rejects(() => embedC2pa(shape, 'webm', OPTS), /unmeasurable Segment tail/);
 });
 
-test('avif/heic sniff as unrecognised, not mp4', () => {
+test('avif sniffs as its own format; heic stays unrecognised', () => {
   const avif = concat([u32be(24), bytesOf('ftyp'), bytesOf('avif'), u32be(0), bytesOf('avifmif1')]);
-  assert.equal(sniffFormat(avif), null);
+  assert.equal(sniffFormat(avif), 'avif');
   const heic = concat([u32be(24), bytesOf('ftyp'), bytesOf('heic'), u32be(0), bytesOf('mif1heic')]);
   assert.equal(sniffFormat(heic), null);
 });
@@ -423,6 +435,36 @@ test('c2patool validates the mp4 BMFF binding end-to-end', { skip: !which('c2pat
   const text = ((res.stdout || '') + (res.stderr || '')).trim();
   t.diagnostic(`c2patool exit ${res.status}`);
   assert.match(text, /"validation_state":\s*"Valid"/, `c2patool did not validate the BMFF binding: ${text.slice(0, 2000)}`);
+  assert.match(text, /assertion\.bmffHash\.match/, 'BMFF hash was not checked');
+});
+
+// Unlike the synthetic tinyMp4, c2patool's AVIF parser needs a real image (a valid
+// meta/iloc structure), so this one encodes a genuine AVIF via sharp (a dev dep). The
+// SYNTHETIC tinyAvif still exercises our own placer/extractor in c2pa-containers.test.
+test('c2patool validates the avif BMFF binding end-to-end', { skip: !which('c2patool') && 'c2patool not installed' }, async (t) => {
+  let realAvif: Uint8Array;
+  try {
+    const sharp = (await import('sharp')).default;
+    realAvif = new Uint8Array(await sharp({ create: { width: 32, height: 32, channels: 3, background: { r: 48, g: 186, b: 120 } } }).avif({ quality: 60 }).toBuffer());
+  } catch { t.skip('sharp unavailable — cannot build a real AVIF fixture'); return; }
+  const out = await embedC2pa(realAvif, 'avif', OPTS);
+  const file = join(mkdtempSync(join(tmpdir(), 'c2pa-')), 'stamped.avif');
+  writeFileSync(file, out);
+  const res = spawnSync('c2patool', [file], { encoding: 'utf8' });
+  const text = ((res.stdout || '') + (res.stderr || '')).trim();
+  t.diagnostic(`c2patool exit ${res.status}`);
+  assert.match(text, /"validation_state":\s*"Valid"/, `c2patool did not validate the AVIF BMFF binding: ${text.slice(0, 2000)}`);
+  assert.match(text, /assertion\.bmffHash\.match/, 'BMFF hash was not checked');
+});
+
+test('c2patool validates the m4a BMFF binding end-to-end', { skip: !which('c2patool') && 'c2patool not installed' }, async (t) => {
+  const out = await embedC2pa(tinyM4a(), 'm4a', OPTS);
+  const file = join(mkdtempSync(join(tmpdir(), 'c2pa-')), 'stamped.m4a');
+  writeFileSync(file, out);
+  const res = spawnSync('c2patool', [file], { encoding: 'utf8' });
+  const text = ((res.stdout || '') + (res.stderr || '')).trim();
+  t.diagnostic(`c2patool exit ${res.status}`);
+  assert.match(text, /"validation_state":\s*"Valid"/, `c2patool did not validate the M4A BMFF binding: ${text.slice(0, 2000)}`);
   assert.match(text, /assertion\.bmffHash\.match/, 'BMFF hash was not checked');
 });
 

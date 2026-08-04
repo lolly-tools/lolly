@@ -101,6 +101,18 @@ const tinyMp4 = (): Uint8Array => concat([
   mp4box('moov', mp4box('mvhd', new Uint8Array(40))),
   mp4box('mdat', bytesOf('fake-video-payload')),
 ]);
+// AVIF is ISO BMFF with an image major brand — the same placer/binding as mp4.
+const tinyAvif = (): Uint8Array => concat([
+  mp4box('ftyp', bytesOf('avif'), u32be(0), bytesOf('avifmif1')),
+  mp4box('meta', new Uint8Array(8)),
+  mp4box('mdat', bytesOf('fake-avif-payload')),
+]);
+// M4A (AAC audio) is ISO BMFF too — same placer/binding as mp4.
+const tinyM4a = (): Uint8Array => concat([
+  mp4box('ftyp', bytesOf('M4A '), u32be(0), bytesOf('M4A mp42isom')),
+  mp4box('moov', mp4box('mvhd', new Uint8Array(40))),
+  mp4box('mdat', bytesOf('fake-aac-payload')),
+]);
 
 const ebVint = (n: number): Uint8Array => {
   let w = 1;
@@ -151,6 +163,8 @@ const FIXTURES: Array<[string, Uint8Array]> = [
   ['cmyk-tiff', tinyTiff()],
   ['webp', tinyWebp()],
   ['mp4', tinyMp4()],
+  ['avif', tinyAvif()],
+  ['m4a', tinyM4a()],
   ['webm', tinyWebm()],
   ['wav', tinyWav()],
 ];
@@ -158,7 +172,7 @@ const FIXTURES: Array<[string, Uint8Array]> = [
 // ─── dispatch table ───────────────────────────────────────────────────────────
 
 test('C2PA_FORMATS covers every dispatchable format and nothing else', () => {
-  assert.deepEqual([...C2PA_FORMATS], ['pdf', 'pdf-cmyk', 'png', 'apng', 'jpg', 'jpeg', 'gif', 'svg', 'tiff', 'cmyk-tiff', 'webp', 'mp4', 'webm', 'mp3', 'wav']);
+  assert.deepEqual([...C2PA_FORMATS], ['pdf', 'pdf-cmyk', 'png', 'apng', 'jpg', 'jpeg', 'gif', 'svg', 'tiff', 'cmyk-tiff', 'webp', 'mp4', 'avif', 'm4a', 'webm', 'mp3', 'wav']);
   assert.ok(Object.isFrozen(C2PA_FORMATS));
   for (const [fmt] of FIXTURES) assert.ok(C2PA_FORMATS.includes(fmt), `${fmt} is declared stampable`);
 });

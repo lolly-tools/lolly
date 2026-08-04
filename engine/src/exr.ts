@@ -331,7 +331,11 @@ export function packExr(frame: DeepFrame, opts: PackExrOptions = {}): Uint8Array
     : [{ name: 'B', srcIndex: 2 }, { name: 'G', srcIndex: 1 }, { name: 'R', srcIndex: 0 }];
 
   const chroma = resolveChromaticities(opts.chromaticities ?? 'auto', space);
-  const extras = Object.entries(opts.attributes ?? {}).sort((a, b) => (a[0] < b[0] ? -1 : a[0] > b[0] ? 1 : 0));
+  // Default `software` attribution (the EXR standard's own generator field) so every
+  // EXR names its source; a caller can override or drop it via opts.attributes. Same
+  // convention as EPS's %%Creator and PDF's Producer — a uniform export-time strip flag
+  // (plan 82) would suppress all of them together for a no-metadata export.
+  const extras = Object.entries({ software: 'Lolly lolly.tools', ...(opts.attributes ?? {}) }).sort((a, b) => (a[0] < b[0] ? -1 : a[0] > b[0] ? 1 : 0));
   for (const [k] of extras) {
     if (RESERVED_ATTRS.has(k)) throw new Error(`packExr: attribute "${k}" is written by the encoder and cannot be overridden`);
     if (k.length === 0) throw new Error('packExr: attribute name must not be empty');

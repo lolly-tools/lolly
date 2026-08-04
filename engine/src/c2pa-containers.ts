@@ -1184,6 +1184,16 @@ const CONTAINERS: Record<string, Container> = {
   'cmyk-tiff': { place: placeTiff, mime: 'image/tiff' },
   webp: { place: placeWebp, mime: 'image/webp' },
   mp4: { place: placeMp4, mime: 'video/mp4', hash: 'bmff' },
+  // AVIF is ISO BMFF too (a still or sequence of AV1 frames). It rides the SAME
+  // c2pa.hash.bmff.v2 binding as MP4 via the format-agnostic placeMp4 (append the
+  // C2PA box last, nothing before it moves — so the meta/iloc offsets into mdat stay
+  // valid). This is the C2PA-spec-native home for the credential, so an AI/upscaled
+  // AVIF keeps its provenance instead of losing it on export.
+  avif: { place: placeMp4, mime: 'image/avif', hash: 'bmff' },
+  // M4A (AAC audio) is ISO BMFF too — same placeMp4 + bmff binding as MP4/AVIF. This
+  // is how a synthetic/AI voice clip (the Voice Recorder, TTS, Audiogram) keeps a
+  // verifiable credential instead of shipping unattributed.
+  m4a: { place: placeMp4, mime: 'audio/mp4', hash: 'bmff' },
   webm: { place: placeWebm, mime: 'video/webm' },
   mp3: { place: placeMp3, mime: 'audio/mpeg' },
   wav: { place: placeWav, mime: 'audio/wav' },
