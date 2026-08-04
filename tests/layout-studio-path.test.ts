@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
  * Layout Studio path boxes — persistence + HEADLESS render (Stage C of
- * plans/pen-tool-and-vector-ops.md).
+ * plans/57-pen-tool-and-vector-ops.md).
  *
  * The point of the stage, and therefore of this suite, is that no editor is
  * involved anywhere: a pen shape is one row of the `boxes` blocks array, and a

@@ -400,7 +400,7 @@ export interface ShotDef {
    * type at all, so a `repeating-conic-gradient` — the transparency checkerboard
    * on every tool stage — comes back as a full-canvas PNG (measured: 49 KB inside
    * a 518 KB shot, and 3.08 MB across the committed baselines). The walker emits
-   * a real <pattern> instead, and plans/svg-snapshot-without-print.md measures it
+   * a real <pattern> instead, and plans/69-svg-snapshot-without-print.md measures it
    * 4-30x faster and 2-4x smaller with raster coverage on the tool fixtures cut
    * 86% -> 5%. What print still does better is anything the walker has not
    * implemented, so this stays opt-in per recipe until the corpus is migrated.

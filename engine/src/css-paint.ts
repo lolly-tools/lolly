@@ -246,7 +246,7 @@ export function parseGradientStop(raw: string, index: number, total: number): Gr
   // The wider net also fixed a silent drop: these used to return `colorStr: null`,
   // which callers read as "not a colour" and skip, so `linear-gradient(navy, white)`
   // lost BOTH stops and emitted no gradient at all. (Carrying wide gamut through
-  // instead of flattening is Phase 4 in plans/color-spaces.md.)
+  // instead of flattening is Phase 4 in plans/60-color-spaces.md.)
   const parsed = parseColor(colorRaw);
   if (!parsed) return { colorStr: null, opacity: 1, offset };
   return {

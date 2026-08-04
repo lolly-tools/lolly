@@ -4,7 +4,7 @@
  *
  * Run with: npm test  (node --test over the tests/ globs). No framework — node:test.
  *
- * Spec: plans/fable-timeline-phase-2.md §1. This file is the phase's real safety net:
+ * Spec: plans/53-fable-timeline-phase-2.md §1. This file is the phase's real safety net:
  * every interaction edge case (trim clamps, split boundaries, magnetic reorder,
  * overlay ripple, snapping) is asserted here rather than in the DOM controller, so
  * the panel only has to get its wiring right.

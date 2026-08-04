@@ -1,19 +1,19 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
- * Bulk machine-translation pipeline (plans/localize.md §4).
+ * Bulk machine-translation pipeline (plans/38-localize.md §4).
  *
  * Batch-translates UI strings via the Claude API, with a shared glossary,
  * content-hash incremental caching (only re-translates changed English
  * source), placeholder/structure validation, and a human-overrides layer
  * that always wins over machine output. Requires ANTHROPIC_API_KEY.
  *
- * Corpora (see plans/localize.md §10 for the rest still to come):
+ * Corpora (see plans/38-localize.md §10 for the rest still to come):
  *   spa   — shells/web/src/locales/<lang>.json, keyed by the exact English
  *           string used as a t() call site across shells/web/src (i18n.ts).
  *           Literal `t('...')` calls are found by scanning source; the small
  *           number of dynamically-keyed calls (t(FIELD_LABELS[f]), ternaries)
  *           are listed by hand in scripts/i18n/extra-keys.spa.json.
- *   tools — per-tool i18n sidecars (plans/localize.md §7), one
+ *   tools — per-tool i18n sidecars (plans/38-localize.md §7), one
  *           tools/<id>/i18n/<lang>.json per tool per language. Scoped to the
  *           three gallery-card-visible fields (`name`, `description`,
  *           `featured.blurb`) — NOT the full sidecar key grammar
@@ -45,7 +45,7 @@
  *   npm run translate -- --check              # exit non-zero on stale/missing, no API calls
  *
  * Future corpora (site.json chrome) plug into the generic runCorpus() shape —
- * see plans/localize.md §8.
+ * see plans/38-localize.md §8.
  */
 
 import { readFileSync, writeFileSync, existsSync, readdirSync, statSync, mkdirSync, rmSync } from 'node:fs';
@@ -84,7 +84,7 @@ const GLOSSARY_PATH = join(I18N_DIR, 'glossary.json');
 const LANGS = ['es', 'de', 'fr', 'zh', 'ja', 'vi', 'pt', 'zh-hant', 'cs', 'nl', 'tl', 'sv', 'ms', 'ro', 'hi', 'bn', 'ur', 'id', 'ar', 'it', 'no', 'ko', 'bg', 'tr', 'uk', 'pl'] as const;
 type Lang = (typeof LANGS)[number];
 
-// Chosen deliberately for this pipeline (see plans/localize.md §4) — not the
+// Chosen deliberately for this pipeline (see plans/38-localize.md §4) — not the
 // skill's default Opus-4.8 recommendation, which is for open-ended/reasoning
 // work. Bulk, high-volume, quality-sensitive-but-not-frontier-reasoning
 // translation is exactly what Sonnet-tier is priced and built for.

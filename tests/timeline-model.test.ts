@@ -4,7 +4,7 @@
  *
  * Run with: npm test  (node --test over the tests/ globs). No framework — node:test.
  *
- * Spec: plans/fable-timeline-phase-1.md §5. Phase 1 is inert data only — nothing
+ * Spec: plans/52-fable-timeline-phase-1.md §5. Phase 1 is inert data only — nothing
  * reads `data-t-*`/`data-sequence` yet (that's the phase-2 panel) — so these tests
  * only guard: the compact-blocks wire format stays positionally stable, the hook's
  * derived attributes/duration math is correct, and hostile input can never reach a

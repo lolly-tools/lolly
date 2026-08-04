@@ -17,7 +17,7 @@
 // throws instead of silently handing back an un-stripped original that a caller
 // would present as a "clean" copy (verify-after-strip; see hasResidualMetadata).
 
-// MULTI-PICTURE JPEGs (decided 2026-07-31, plans/deeprichpixels.md §6 B2).
+// MULTI-PICTURE JPEGs (decided 2026-07-31, plans/61-deeprichpixels.md §6 B2).
 // A gain-map HDR JPEG — the kind Lolly's own `hdr=1` export writes — is an
 // ordinary SDR JPEG whose second image (the gain map) rides past the EOI and is
 // described by an APP2 "MPF" index. Dropping every APPn but APP0 therefore used

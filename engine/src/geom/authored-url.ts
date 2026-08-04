@@ -85,7 +85,7 @@ const VERSION = '1';
 
 /**
  * Coordinate precision. Node coordinates are NORMALISED to the box frame (see
- * plans/pen-tool-and-vector-ops.md), so 1e-6 of a frame is a nanometre on an A4
+ * plans/57-pen-tool-and-vector-ops.md), so 1e-6 of a frame is a nanometre on an A4
  * page and well under a millionth of any canvas anyone renders. Fixing the
  * precision here rather than at render time is what keeps the wire form stable:
  * the same shape always encodes to the same bytes, so a link does not churn

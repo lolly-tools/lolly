@@ -2,7 +2,7 @@
 /**
  * JPEG marker-segment walker and writer — one shared primitive, DOM-free.
  *
- * plans/deeprichpixels.md §4.2 / §6 Phase B2. A gain-map JPEG is an ordinary
+ * plans/61-deeprichpixels.md §4.2 / §6 Phase B2. A gain-map JPEG is an ordinary
  * SDR JPEG carrying an MPF index (APP2), an XMP packet (APP1, possibly split
  * across an extended-XMP GUID chain), an ISO 21496-1 box and — still — EXIF and
  * an ICC profile. That is four or five metadata segments in ONE file, and their

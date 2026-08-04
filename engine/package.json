@@ -6,7 +6,7 @@
   "license": "MPL-2.0",
   "type": "module",
   "files": ["src", "CHANGELOG.md"],
-  "//sideEffects": "The engine is pure — every module only defines/exports; none patch globals or run required top-level effects. Declaring this lets the bundler tree-shake the barrel (src/index.ts) so importing e.g. `parseUrlState` no longer drags createRuntime→Handlebars and loadTool→Ajv onto the web shell's boot chunk. See plans/ui-perf-audit.md.",
+  "//sideEffects": "The engine is pure — every module only defines/exports; none patch globals or run required top-level effects. Declaring this lets the bundler tree-shake the barrel (src/index.ts) so importing e.g. `parseUrlState` no longer drags createRuntime→Handlebars and loadTool→Ajv onto the web shell's boot chunk. See plans/archive/ui-perf-audit.md.",
   "sideEffects": false,
   "main": "./src/index.ts",
   "exports": {

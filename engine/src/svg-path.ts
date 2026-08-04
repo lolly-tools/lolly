@@ -7,7 +7,7 @@
  * reflected cubic/quadratic, Q/T → cubic, A → cubic beziers (SVG appendix F.6).
  * This is the single source of truth for path parsing, shared by the PDF emitter
  * (drawSvgPathToPdf is now a thin adapter over it) and the EMF emitter
- * (engine/src/emf.js). One tokenizer, many sinks — see plans/emf-support.md.
+ * (engine/src/emf.js). One tokenizer, many sinks — see plans/63-emf-support.md.
  *
  * Output:
  *   parseSvgPath(d) → Array<{ segments: Segment[], closed: boolean }>

@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
- * The GA CLI contract, pinned (plans/cli-ga-contract.md §2, "BREAK NOW").
+ * The GA CLI contract, pinned (plans/73-cli-ga-contract.md §2, "BREAK NOW").
  *
  * Everything here is an INTERFACE promise, not an implementation detail: a flag name, a
  * default, an exit code, a refusal. Implementation quality can improve after GA; these

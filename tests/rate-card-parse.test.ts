@@ -4,7 +4,7 @@
  * and no currency is exercised here (there is none in the module yet, Phase 3);
  * this covers parsing, the injected-schema gate, the extra-schema invariants, the
  * three refusals, and rule 10 (no fixture/doc/brand-pack card carries a numeric
- * rate). plans/preflight-and-cost.md §5-6.
+ * rate). plans/65-preflight-and-cost.md §5-6.
  *
  * Run: node --test "tests/rate-card-parse.test.ts"
  */

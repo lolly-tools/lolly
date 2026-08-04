@@ -5,7 +5,7 @@
  * Turns a normalized vector IR into a classic-GDI EMF `Uint8Array` whose only
  * drawing primitive is the path (filled / stroked). Text is expected to be
  * outlined to paths upstream (the "always text-as-paths" rule — see
- * plans/emf-support.md), so this writes NO text or font records.
+ * plans/63-emf-support.md), so this writes NO text or font records.
  *
  * This is the format authority, the same way units.js owns dimension math and
  * color.js owns colour math. It imports only units.js. No Handlebars, no ajv,

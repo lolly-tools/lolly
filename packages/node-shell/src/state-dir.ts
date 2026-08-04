@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
- * Where the terminal shells keep on-device state (plans/cli-ga-contract.md §1.5, B14).
+ * Where the terminal shells keep on-device state (plans/73-cli-ga-contract.md §1.5, B14).
  *
  * ONE variable for both shells: `LOLLY_STATE_DIR`. It was `LOLLY_TUI_DIR`, which said
  * the wrong thing the moment the CLI grew persistent `host.state` — the directory is a

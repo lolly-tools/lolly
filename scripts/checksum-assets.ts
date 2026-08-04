@@ -17,7 +17,7 @@
  *
  * It also labels each raster format file with its `depth` (bits per channel),
  * sniffed from the container header — see `depthForFormat` below and
- * plans/deeprichpixels.md §10 item 6. Depth follows provenance: the label is a
+ * plans/61-deeprichpixels.md §10 item 6. Depth follows provenance: the label is a
  * SNIFF of the shipped bytes, never an assertion, and absent always means
  * "unknown", never "8".
  */
@@ -76,7 +76,7 @@ export function sriForFile(absPath: string): { checksum: string; size: number; b
  * cheaply and honestly.
  *
  * The gate is deliberately narrow, because the governing principle of
- * plans/deeprichpixels.md is "never emit bits the pipeline did not produce" —
+ * plans/61-deeprichpixels.md is "never emit bits the pipeline did not produce" —
  * and a label is an emission too:
  *   - only `type: 'raster'` assets are asked at all (an SVG has no channels; a
  *     video/lottie/font/palette depth would be a category error),

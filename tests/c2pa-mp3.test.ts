@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
  * MP3 C2PA embedding (ID3v2 GEOB — the C2PA spec's MPEG-1/2 audio binding,
- * plans/tts-stt-programme.md §2: the route for raw synthetic audio leaving
+ * plans/41-tts-stt-programme.md §2: the route for raw synthetic audio leaving
  * Lolly with its Article 50 mark attached). The generic embed → verify
  * round-trip and tamper case ride the format matrix in c2pa-formats.test.ts;
  * this file pins the ID3-specific behaviour: an existing tag's frames survive,

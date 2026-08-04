@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
  * Brand derivation — OKLCH-native colour math + the semantic-token generator
- * behind the lolly-start onboarding (plans/brand-token-contract.md).
+ * behind the lolly-start onboarding (plans/archive/brand-token-contract.md).
  *
  * Two halves, both pure and deterministic (no Date, no Math.random, no IO):
  *

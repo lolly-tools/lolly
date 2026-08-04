@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
- * The pro float formats through the REAL CLI mechanism (plans/deeprichpixels.md
+ * The pro float formats through the REAL CLI mechanism (plans/61-deeprichpixels.md
  * §6 Phase B3, §10 item 4 "CLI first for pro formats"): `--export=exr` and
  * `--export=hdr` on a native-<svg> fixture tool, driven by `runToolCli` exactly
  * as a terminal invocation would — jsdom, createCliBridge, resvg, the engine's

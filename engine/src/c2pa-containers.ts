@@ -459,7 +459,7 @@ function placePng(png: Uint8Array, manifest: Uint8Array): PlaceResult {
 // jpeg_io.rs writes and its reader strips. Placed after the LAST APP0 (or
 // right after SOI); the exclusion is one contiguous range over all segments.
 //
-// MPF-AWARE (plans/deeprichpixels.md §6 B2, task E1). A gain-map / Ultra HDR
+// MPF-AWARE (plans/61-deeprichpixels.md §6 B2, task E1). A gain-map / Ultra HDR
 // JPEG is two JPEGs in one file, and the primary carries a CIPA DC-007 MPF
 // index (APP2) recording the SIZE of the primary image and the OFFSET of the
 // second. The APP11 block above always lands ahead of that APP2 — APP0 sorts
@@ -731,7 +731,7 @@ const placeWebp = (webp: Uint8Array, manifest: Uint8Array): PlaceResult => place
 
 // WAV: the same RIFF binding (the C2PA spec's RIFF-family mapping — the route
 // for a generated narration clip's Article 50 mark to live IN the file, not
-// just on the asset record; plans/tts-stt-programme.md §2). The chunk lands
+// just on the asset record; plans/41-tts-stt-programme.md §2). The chunk lands
 // after 'fmt '/'data' (appended last), decoders skip unknown chunks (the
 // engine's own parseWav walks; verified against decodeAudioData manually), and
 // re-stamp replaces. A file with no 'data' chunk is not audio — refuse rather

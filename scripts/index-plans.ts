@@ -75,11 +75,22 @@ function table(plans: Plan[], base = ''): string {
   ].join('\n');
 }
 
+/** Leading `NN-` ordinal, or Infinity for unnumbered files (they sort last). */
+const ordinal = (name: string): number => {
+  const m = /^(\d+)-/.exec(name);
+  return m ? Number(m[1]) : Number.POSITIVE_INFINITY;
+};
+
 export function buildIndex(now: Date): string {
-  const plans = collect(PLANS);
+  // Since the 2026-08-04 reorganisation, active plans carry a `NN-` prefix that
+  // encodes the reading order (status → strategy → ops → security → provenance →
+  // utilities → docs/i18n → brand → editors → engine → rendering → shells →
+  // enterprise); historic plans live in archive/ under their original names.
+  const plans = collect(PLANS).sort(
+    (a, b) => ordinal(a.name) - ordinal(b.name) || a.name.localeCompare(b.name),
+  );
   const cutoff = now.getTime() - RECENT_DAYS * 86_400_000;
-  const recent = plans.filter((p) => p.mtime.getTime() >= cutoff);
-  const older = plans.filter((p) => p.mtime.getTime() < cutoff);
+  const recentCount = plans.filter((p) => p.mtime.getTime() >= cutoff).length;
 
   const archiveDir = join(PLANS, 'archive');
   const archived = existsSync(archiveDir) ? collect(archiveDir) : [];
@@ -91,17 +102,14 @@ export function buildIndex(now: Date): string {
     '(`scripts/index-plans.ts`). `plans/` is gitignored, so this file is not committed;',
     'the generator is, which is why the index can never be more than one command stale.',
     '',
-    `Sorted newest-first by modification time. "Recent" is the last ${RECENT_DAYS} days — a`,
-    'heuristic for what is probably still live, not a promise: a plan can be finished and',
-    'still recently touched, or dormant and still true. Read the file.',
+    'Sorted by the `NN-` reading-order prefix (status → strategy → ops → security →',
+    'provenance → utilities → docs/i18n → brand → editors → engine → rendering →',
+    'shells → enterprise). The Updated column is the staleness signal — a plan can be',
+    `finished and still recently touched, or dormant and still true. Read the file.`,
     '',
-    `## Recent (last ${RECENT_DAYS} days) — ${recent.length}`,
+    `## Active — ${plans.length} (${recentCount} touched in the last ${RECENT_DAYS} days)`,
     '',
-    recent.length ? table(recent) : '_none_',
-    '',
-    `## Older — ${older.length}`,
-    '',
-    older.length ? table(older) : '_none_',
+    plans.length ? table(plans) : '_none_',
   ];
 
   if (archived.length) {

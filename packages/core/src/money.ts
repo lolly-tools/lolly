@@ -29,7 +29,7 @@
  * There is NO default currency and NO fallback symbol in this file. `currency` is a
  * required argument on every entry point; a missing or invalid code THROWS a typed
  * `CurrencyError` rather than degrading to `$` or `0`. A currency always comes from
- * the rate card the user supplied. See `plans/preflight-and-cost.md` §6.
+ * the rate card the user supplied. See `plans/65-preflight-and-cost.md` §6.
  *
  * All amounts crossing this module are INTEGER minor units. No float ever touches a
  * subtotal: the only division is the display-time `minorUnits / 10 ** exponent`
@@ -194,7 +194,7 @@ export function monetaryFigure(minorUnits: number, currency: string): MonetaryFi
 /**
  * The rate card's issuer, as REPORTED SPEECH. `verified` is a frozen `false`: this
  * is a claim typed inside a file the user dropped, and Lolly verifies none of it.
- * `plans/preflight-and-cost.md` §5.
+ * `plans/65-preflight-and-cost.md` §5.
  */
 export interface CostRatesFrom {
   /** The issuer name the file claims. Reported, never asserted. */

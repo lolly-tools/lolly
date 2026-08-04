@@ -5,7 +5,7 @@
  * This is the read half of the PPTX story (`pptx.ts` is the mature *builder*).
  * It mirrors `pdf-map.ts`: a pure, DOM-free interpreter that turns an already-
  * unzipped OOXML part map into positioned nodes the rest of the platform can
- * rebrand / re-author. See plans/fable-new-potential-pptx.md track E1.
+ * rebrand / re-author. See plans/49-fable-new-potential-pptx.md track E1.
  *
  * ── DESIGN CONTRACT ──────────────────────────────────────────────────────────
  * • The CALLER inflates the zip and hands us a `Record<path, Uint8Array|string>`

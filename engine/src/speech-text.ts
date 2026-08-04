@@ -6,7 +6,7 @@
  * (shells/web/src/lib/speech-kokoro-worker.ts), in Node scripts
  * (scripts/build-docs-audio.ts) and under test. Same split as analysePcm: the
  * heavy runtime is injectable, the bookkeeping lives in the engine — the
- * roadmap's one-synthesis-layer rule (plans/inclusive-audio-roadmap.md §4).
+ * roadmap's one-synthesis-layer rule (plans/39-inclusive-audio-roadmap.md §4).
  *
  * The text→phoneme pipeline (normalizeText / splitPunctuation /
  * postProcessPhonemes) is a TypeScript port of hexgrad/kokoro's

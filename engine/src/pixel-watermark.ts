@@ -17,7 +17,7 @@
 // over every block, so cropping/overlay/partial loss degrades the score
 // gracefully instead of destroying it. Presence-only (yes/no + score); no payload.
 //
-// SECURITY POSTURE — read `plans/lollys-own-synth.md`. This is
+// SECURITY POSTURE — read `plans/30-lollys-own-synth.md`. This is
 // security-through-obscurity: the chip key ships in this (public) source and in
 // the on-device detector, so a motivated adversary who reads it can subtract the
 // mark out cleanly. It is honest cover against CASUAL stripping / re-encoding,

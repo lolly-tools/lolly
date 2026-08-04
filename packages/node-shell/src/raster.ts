@@ -10,7 +10,7 @@ import { parseDimension, toPixels, fromU8Srgb, hdrViewTransform } from '@lolly/e
 import type { DeepFrame } from '@lolly/engine';
 // DEEP RELATIVE IMPORTS, not the `@lolly/engine` barrel: exr.ts and radiance.ts are
 // deliberately engine-INTERNAL (their own module headers say so — the bytes.ts /
-// gainmap.ts precedent recorded in plans/deeprichpixels.md §9c). They are consumed by
+// gainmap.ts precedent recorded in plans/61-deeprichpixels.md §9c). They are consumed by
 // deep-path import, exactly the way packages/node-shell/src/pptx.ts reaches
 // engine/src/pptx-read.ts. Nothing was added to the barrel for this feature.
 import { packExr, type ExrPixelType } from '../../../engine/src/exr.ts';
@@ -31,7 +31,7 @@ import { repoRoot } from './repo-root.ts';
 export const NODE_FORMATS = ['svg', 'emf', 'eps', 'eps-cmyk', 'dxf', 'exr', 'hdr', 'html', 'json', 'csv', 'ics', 'vcf', 'md'];
 
 /**
- * The float interchange formats (plans/deeprichpixels.md §4.2 / §6 B3, surfaced
+ * The float interchange formats (plans/61-deeprichpixels.md §4.2 / §6 B3, surfaced
  * CLI-first per §10 item 4): OpenEXR and Radiance RGBE.
  *
  * These are deliberately NOT declared per tool in `tool.json`. §10's "deliberately
@@ -238,7 +238,7 @@ export async function rasterizeSvgToRgba(
  * (engine/src/pixel-watermark.ts) WITHOUT a browser.
  *
  * Why it exists: the Imprint became a default-on mark for the terminal shells
- * (plans/cli-ga-contract.md §12 O2, Andy 2026-08-01), and the only place it could be
+ * (plans/73-cli-ga-contract.md §12 O2, Andy 2026-08-01), and the only place it could be
  * applied before was the web shell inside the scoped Chromium. Leaving it that way
  * would have made an ordinary `lolly qr-code --export=png` demand a 200 MB browser
  * download for a mark nobody asked for — a default that turns a working command into
@@ -270,7 +270,7 @@ export async function rasterizeSvgToImprintedPng(
   });
 }
 
-// ─── the pro float formats (plans/deeprichpixels.md §6 B3, §10 item 4) ────────
+// ─── the pro float formats (plans/61-deeprichpixels.md §6 B3, §10 item 4) ────────
 
 /** HDR view-transform request, in the author's 0–100 dial units (url-mode's
  *  HdrSettings) plus the brand colours to boost. Absent ⇒ no float source. */
@@ -322,7 +322,7 @@ export function deepSourceRefusal(format: string, reason: 'no-hdr' | 'no-headroo
       'default, plus the brand colours), so a dark or fully-saturated design can pass hdr=1 and still ' +
       'produce no headroom. Try a render with near-white or brand-coloured areas, raise the dials ' +
       '(hdr=<peak>-<reach>-<lift>-<richness>), or export png/tiff instead. ' +
-      'See plans/deeprichpixels.md section 10 - depth follows provenance.'
+      'See plans/61-deeprichpixels.md section 10 - depth follows provenance.'
     );
   }
   return (
@@ -332,7 +332,7 @@ export function deepSourceRefusal(format: string, reason: 'no-hdr' | 'no-headroo
     'Add hdr=1 (--hdr=1) to route the render through the HDR view transform, which generates genuine ' +
     'above-1.0 float headroom from continuous float maths rather than padding. ' +
     'Deep sources from ingest (16-bit PNG/TIFF) and float vector rendering are later phases. ' +
-    'See plans/deeprichpixels.md section 10 - depth follows provenance.'
+    'See plans/61-deeprichpixels.md section 10 - depth follows provenance.'
   );
 }
 

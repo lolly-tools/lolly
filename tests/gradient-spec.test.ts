@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
  * CSS Color 4 interpolation (css-color.ts) and the Lolly gradient spec
- * (gradient-spec.ts) — see plans/color-spaces.md §10.
+ * (gradient-spec.ts) — see plans/60-color-spaces.md §10.
  *
  * The two properties worth defending here:
  *

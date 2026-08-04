@@ -2,7 +2,7 @@
 /**
  * OpenEXR encoder — scanline, HALF (float16) or FLOAT (32-bit), NONE/ZIPS/ZIP.
  *
- * plans/deeprichpixels.md §4.2 / §6 Phase B3, surfaced CLI-first per §10 item 4.
+ * plans/61-deeprichpixels.md §4.2 / §6 Phase B3, surfaced CLI-first per §10 item 4.
  * This is the "hand it to a video person" format: every VFX, compositing and
  * colour pipeline in existence reads OpenEXR (Nuke, Resolve, Flame, Fusion,
  * Blender, Houdini, RV, OIIO), and none of them is served by a browser format.

@@ -885,6 +885,41 @@ export async function createRuntime(
           c2paTextAdded = { sample: s.length > 48 ? s.slice(0, 47) + '…' : s };
         }
       }
+      // AI-upscale provenance: a placed asset produced on-device by host.upscale
+      // carries { model, version } on its meta (a user asset — toAssetRef passes
+      // its meta through verbatim). Declare it honestly so the OUTPUT's credential
+      // names the model that enlarged it (created → compositeWithTrainedAlgorithmicMedia
+      // + an "AI-upscaled with <model> <version>" edit step). Only when stamping; the
+      // ingredient path above independently chains the upscaled asset's OWN embedded
+      // credential where one is present, so the disclosure survives either way.
+      let c2paAiUpscale: { model: string; version: string } | undefined;
+      if (stampProvenance) {
+        const readUpscale = (v: unknown): { model: string; version: string } | undefined => {
+          const up = (v as { meta?: { aiUpscale?: { model?: unknown; version?: unknown } } } | null | undefined)?.meta?.aiUpscale;
+          return up && typeof up.model === 'string' && typeof up.version === 'string'
+            ? { model: up.model, version: up.version } : undefined;
+        };
+        // Walk top-level asset inputs AND blocks asset sub-fields — the same descent
+        // the ingredient collector above does — so an upscaled image placed into a
+        // repeating-field grid (logo wall, carousel) still declares its AI origin.
+        for (const input of model) {
+          if (input.type === 'asset') {
+            c2paAiUpscale = readUpscale(input.value);
+          } else if (input.type === 'blocks' && Array.isArray(input.value)) {
+            const assetFields = (input.fields ?? []).filter(f => f.type === 'asset').map(f => f.id);
+            for (const item of input.value) {
+              if (item && typeof item === 'object') {
+                for (const fid of assetFields) {
+                  c2paAiUpscale = readUpscale((item as Record<string, unknown>)[fid]);
+                  if (c2paAiUpscale) break;
+                }
+              }
+              if (c2paAiUpscale) break;
+            }
+          }
+          if (c2paAiUpscale) break;
+        }
+      }
       let blob;
       try {
         blob = await host.export.render(renderedNode as Element, format as ExportFormat, {
@@ -895,6 +930,7 @@ export async function createRuntime(
           ...(c2paInputs && Object.keys(c2paInputs).length ? { c2paInputs } : {}),
           ...(c2paCapture ? { c2paCapture } : {}),
           ...(c2paTextAdded ? { c2paTextAdded } : {}),
+          ...(c2paAiUpscale ? { c2paAiUpscale } : {}),
           // Tag output with a colour profile by default (sRGB for raster, the
           // default press condition for CMYK PDF). Thumbnails stay untagged.
           colorProfile: opts.colorProfile ?? (opts.thumbnail ? 'none' : 'srgb'),

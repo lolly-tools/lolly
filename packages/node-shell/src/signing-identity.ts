@@ -65,7 +65,7 @@ import { parseCertificate, signedBy } from '@lolly/engine';
 import { expandHome } from './trust-anchors.ts';
 import type { C2paSigner, ParsedCertificate } from '@lolly/engine';
 
-/** Environment variables this module reads. Frozen in plans/cli-ga-contract.md §1.5. */
+/** Environment variables this module reads. Frozen in plans/73-cli-ga-contract.md §1.5. */
 export const SIGN_ENV = {
   /** Path to the PKCS#8 (or SEC1) private key file. */
   key: 'LOLLY_SIGN_KEY',

@@ -107,6 +107,19 @@ function recorderTool(capabilities: string[]): any {
   };
 }
 
+// A plain image tool — the shape the bitmap-upscale tool has: one asset slot, no
+// hooks. The AI-upscale disclosure is driven purely by the placed asset's meta.
+function imageTool(): any {
+  return {
+    manifest: {
+      id: `prov-${++toolSeq}`, name: 'Image', version: '1.0.0', engineVersion: '^1.0.0', status: 'official',
+      render: { width: 10, height: 10, formats: ['png'] },
+      inputs: [{ id: 'image', type: 'asset' }],
+    },
+    template: '<b>x</b>',
+  };
+}
+
 test('a live camera frame marks the export as a camera capture', async () => {
   const { host, rendered, pushFrame } = makeHost();
   const rt = await createRuntime(filterTool(), host, {});
@@ -282,4 +295,65 @@ test('no capture and no c2pa → no provenance keys at all', async () => {
   await rt.export({} as any, 'png', {}); // c2pa off
   assert.equal(rendered[0].c2paCapture, undefined, 'capture is only derived when stamping credentials');
   assert.equal(rendered[0].c2paTextAdded, undefined);
+});
+
+// ─── AI upscale (v1.101) ──────────────────────────────────────────────────────
+// A placed asset produced on-device by host.upscale carries { model, version } on
+// its meta; the runtime surfaces that as opts.c2paAiUpscale so the export's
+// credential names the model that enlarged it (composite source type). The value
+// is read AFTER resolveAssetRefs, which re-resolves the placed id through
+// host.assets.get — the web get() returns a user asset via toAssetRef, carrying
+// its record.meta verbatim (assets.ts), so the disclosure survives resolution.
+// These tests stub host.assets.get to mirror that real behaviour.
+
+// A host.assets.get that echoes the given meta for a user id — the shape the web
+// bridge's toAssetRef produces (record.meta passed through verbatim).
+function withUserAsset(host: any, meta?: Record<string, unknown>) {
+  host.assets = {
+    get: async (id: string) => ({ id, source: 'user', type: 'raster', format: 'png', url: 'blob:x', ...(meta ? { meta } : {}) }),
+  };
+}
+
+test('a placed AI-upscaled asset surfaces opts.c2paAiUpscale when stamping', async () => {
+  const { host, rendered } = makeHost();
+  withUserAsset(host, { aiUpscale: { model: 'realesr-general-x4v3', version: 'v3' } });
+  const rt = await createRuntime(imageTool(), host, { image: { id: 'user/upscaled/1', source: 'user' } });
+  await rt.export({} as any, 'png', { c2pa: true });
+  assert.deepEqual(rendered[0].c2paAiUpscale, { model: 'realesr-general-x4v3', version: 'v3' });
+});
+
+test('c2paAiUpscale is only derived when stamping (off without c2pa)', async () => {
+  const { host, rendered } = makeHost();
+  withUserAsset(host, { aiUpscale: { model: 'realesr-general-x4v3', version: 'v3' } });
+  const rt = await createRuntime(imageTool(), host, { image: { id: 'user/upscaled/1', source: 'user' } });
+  await rt.export({} as any, 'png', {}); // c2pa off
+  assert.equal(rendered[0].c2paAiUpscale, undefined, 'no stamp → no AI-upscale disclosure');
+});
+
+test('a plain (non-upscaled) asset sets no c2paAiUpscale', async () => {
+  const { host, rendered } = makeHost();
+  withUserAsset(host); // no aiUpscale meta
+  const rt = await createRuntime(imageTool(), host, { image: { id: 'user/plain/1', source: 'user' } });
+  await rt.export({} as any, 'png', { c2pa: true });
+  assert.equal(rendered[0].c2paAiUpscale, undefined);
+});
+
+test('an upscaled asset placed in a BLOCKS sub-field still declares its AI origin', async () => {
+  // Logo Wall / Carousel place images into a repeating-field asset grid — the
+  // disclosure must descend into blocks, not only top-level asset inputs.
+  const { host, rendered } = makeHost();
+  withUserAsset(host, { aiUpscale: { model: 'realesr-general-x4v3', version: 'v3' } });
+  const blocksTool: any = {
+    manifest: {
+      id: `prov-${++toolSeq}`, name: 'Wall', version: '1.0.0', engineVersion: '^1.0.0', status: 'official',
+      render: { width: 10, height: 10, formats: ['png'] },
+      inputs: [{ id: 'logos', type: 'blocks', fields: [{ id: 'logo', type: 'asset' }] }],
+    },
+    template: '<b>x</b>',
+  };
+  const rt = await createRuntime(blocksTool, host, {
+    logos: [{ logo: { id: 'user/upscaled/1', source: 'user' } }],
+  });
+  await rt.export({} as any, 'png', { c2pa: true });
+  assert.deepEqual(rendered[0].c2paAiUpscale, { model: 'realesr-general-x4v3', version: 'v3' });
 });

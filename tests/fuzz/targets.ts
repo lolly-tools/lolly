@@ -39,7 +39,12 @@ import {
 } from '../../engine/src/c2pa-extract.ts';
 import { unpackToken, expandQuery, hasPackedState, packQuery } from '../../engine/src/url-pack.ts';
 import { parseWav } from '../../engine/src/wav.ts';
-import { deflateRawSync } from 'node:zlib';
+import { readPsd } from '../../engine/src/psd.ts';
+import { writePsd } from '../../engine/src/psd-write.ts';
+import { readXcf } from '../../engine/src/xcf.ts';
+import type { InflateFn } from '../../engine/src/raster-layers.ts';
+import { buildXcf } from '../helpers/xcf-fixture.ts';
+import { deflateRawSync, inflateSync } from 'node:zlib';
 import { readFileSync } from 'node:fs';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -926,11 +931,87 @@ export const lutParseTarget: FuzzTarget = {
   },
 };
 
+// PSD reader (engine/src/psd.ts): layered-bitmap import. Controlled outcomes
+// are the typed PsdUnsupportedError refusals; per-layer damage must degrade to
+// warnings. Seeds come from the engine's OWN writer (psd-write.ts) — the
+// "seed corpus from our writers" obligation — plus hand-tweaked variants.
+// Declared bounds: MAX_DIM 30k/300k, MAX_LAYERS 1024, 256 MiB decode budget
+// (fuzz invokes with a tight budget so a lying header can't slow the run).
+export const psdTarget: FuzzTarget = {
+  name: 'psd',
+  async seeds() {
+    const px = (w: number, h: number, seed: number): Uint8Array => {
+      const out = new Uint8Array(w * h * 4);
+      for (let i = 0; i < out.length; i++) out[i] = (i * seed + 7) & 0xff;
+      return out;
+    };
+    const flat = writePsd({
+      width: 12, height: 9,
+      layers: [{ name: 'seed', x: 0, y: 0, width: 12, height: 9, pixels: px(12, 9, 3) }],
+    });
+    const multi = writePsd({
+      width: 20, height: 16,
+      layers: [
+        { name: 'bottom ünïcode', x: -3, y: 2, width: 10, height: 8, pixels: px(10, 8, 5), blend: 'multiply', opacity: 0.4 },
+        { name: 'top', x: 4, y: -1, width: 8, height: 8, pixels: px(8, 8, 11), visible: false },
+      ],
+    });
+    return [flat, multi];
+  },
+  async invoke(bytes) {
+    const inflate: InflateFn = (b, maxOut) => {
+      const out = inflateSync(b, { maxOutputLength: maxOut });
+      return new Uint8Array(out.buffer, out.byteOffset, out.byteLength);
+    };
+    try { readPsd(bytes, { inflate, maxDecodedBytes: 8 << 20 }); } catch (e) {
+      if ((e as Error).name !== 'PsdUnsupportedError') throw e;
+    }
+  },
+};
+
+// XCF reader (engine/src/xcf.ts): the GIMP sibling. Same contract; seeds from
+// tests/helpers/xcf-fixture.ts's builder (v001 RLE + v011 zlib + groups).
+export const xcfTarget: FuzzTarget = {
+  name: 'xcf',
+  async seeds() {
+    const px = (w: number, h: number, seed: number): Uint8Array => {
+      const out = new Uint8Array(w * h * 4);
+      for (let i = 0; i < out.length; i++) out[i] = (i * seed + 40) & 0xff;
+      return out;
+    };
+    return [
+      buildXcf({
+        version: 1, width: 10, height: 8, compression: 1,
+        layers: [
+          { name: 'top', width: 6, height: 4, pixels: px(6, 4, 3), x: 2, y: 1, mode: 30, opacity255: 128 },
+          { name: 'bottom', width: 10, height: 8, pixels: px(10, 8, 1) },
+        ],
+      }),
+      buildXcf({
+        version: 11, width: 70, height: 65, compression: 2,
+        layers: [
+          { name: 'g', width: 4, height: 4, pixels: px(4, 4, 2), isGroup: true, itemPath: [0] },
+          { name: 'z', width: 70, height: 65, pixels: px(70, 65, 7), itemPath: [0, 0] },
+        ],
+      }),
+    ];
+  },
+  async invoke(bytes) {
+    const inflate: InflateFn = (b, maxOut) => {
+      const out = inflateSync(b, { maxOutputLength: maxOut });
+      return new Uint8Array(out.buffer, out.byteOffset, out.byteLength);
+    };
+    try { readXcf(bytes, { inflate, maxDecodedBytes: 8 << 20 }); } catch (e) {
+      if ((e as Error).name !== 'XcfUnsupportedError') throw e;
+    }
+  },
+};
+
 export const ALL_TARGETS: FuzzTarget[] = [
   c2paVerifyTarget, cborTarget, mediaSniffTarget, pdfMapTarget, x509Target,
   fileMetadataTarget, stripMetadataTarget, videoMetaTarget, dataImportTarget,
   pptxReadTarget, pptxPatchTarget, pptxBridgeTarget, iccTarget,
   derReadTarget, c2paExtractTarget, c2paContainersTarget, urlPackTarget, wavTarget,
-  depthHintTarget, lutParseTarget,
+  depthHintTarget, lutParseTarget, psdTarget, xcfTarget,
 ];
 export const TARGETS_BY_NAME: Record<string, FuzzTarget> = Object.fromEntries(ALL_TARGETS.map((t) => [t.name, t]));

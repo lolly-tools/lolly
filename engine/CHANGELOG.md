@@ -6,6 +6,41 @@ minors, never removed or signature-changed without a major bump.
 
 Moved verbatim from the comment block that used to live in `src/index.ts`.
 
+1.102.0 — additive: layered-bitmap import/export. New engine exports (plain
+modules, consumed like pdf-map — no bridge surface): `readPsd`/`isPsd` (PSD v1
+AND v2/PSB; RGB + grayscale + CMYK-via-embedded-ICC with a naive warned
+fallback; 8/16-bit folded to 8; RAW/RLE always, ZIP via an injected
+`InflateFn`; luni names, lsct groups, raster masks into alpha, merged
+composite, ICC resource 1039; typed `PsdUnsupportedError` refusals, per-layer
+warn+skip, `maxDecodedBytes` budget — default 256 MiB — reserved before every
+allocation), `writePsd` (8-bit RGB v1: PackBits channels with RAW fallback,
+luni names, opacity/blend/visibility, merged composite, ICC pass-through;
+read(write(doc)) pins name/rect/opacity/blend/visibility/pixels),
+`readXcf`/`isXcf` (v0–v011 + attempted v012+ with warning; 8/16-bit non-linear
+integer precision; none/GIMP-RLE/zlib tiles; offsets, float opacity, modes,
+groups via item paths, masks; same budget discipline; typed
+`XcfUnsupportedError`), shared `packbits.ts` + `raster-layers.ts`
+(`LayeredRasterDoc`/`RasterLayer`, blend tables PSD↔CSS and XCF→CSS pinned to
+GIMP 2.10 devel-docs/xcf.txt), and `sniffLayeredRaster` in media-sniff. An XCF
+WRITER is deliberately deferred (single strict consumer; the conversion story
+is XCF in → PSD out). Fuzz targets `psd` + `xcf` seeded from our own writers.
+
+1.101.0 — additive: on-device AI image upscaling. Two backwards-compatible
+surfaces: (1) the optional `host.upscale` API (isAvailable / backend / models /
+modelBytes / cached / canRun / run) — a plain RGBA `UpscaleFrame` in, a larger
+one out, run entirely on-device (onnxruntime-web, WebGPU→WASM) with a one-time
+consented model download and memory-bounded tiling; the models ship under
+permissive licences (BSD-3-Clause / Apache-2.0) whose attribution the shell
+carries. NOT capability-gated (feature-detect `host.upscale`); NOT driven from a
+time-boxed hook — a shell offers it as an explicit, cancellable, progress-bearing
+action whose result becomes an asset. (2) `ExportOpts.c2paAiUpscale` +
+`exportActionSteps({ aiUpscale })` + the `COMPOSITE_SOURCE_TYPE` constant — the
+runtime, when the render's essence is an AI-upscaled asset (carried on the placed
+asset's `meta.aiUpscale`), marks the created step with the IPTC
+`compositeWithTrainedAlgorithmicMedia` source type and appends an "AI-upscaled
+with <model> <version>" edit step. The read side already maps the slug to
+'composite' (c2pa-extract aiKind), so /verify surfaces the AI flag unchanged.
+
 1.100.0 — additive: real high-bit-depth raster output for tools. Two new,
 backwards-compatible surfaces: (1) the optional `host.codec` API (png16 / exr /
 radiance / dither8) — a linear Float32 `CodecFrame` in, finished deep image
@@ -382,7 +417,7 @@ re-encoded, or re-uploaded Lolly export). Always false when madeWithLolly is
 already true. No bridge change.
 
 1.38.0 — additive: color-tools.ts, the perceptual metrics + ramp math the
-chroma.js evaluation (plans/chroma-eval.md) chose to PORT rather than adopt:
+chroma.js evaluation (plans/archive/chroma-eval.md) chose to PORT rather than adopt:
 deltaEOk (OKLab distance), apcaContrast (APCA-1.0.98G Lc, advisory — WCAG
 2.1 stays the enforced number), rampOklab (bezier through OKLab with
 optional correctLightness bisection), classBreaks (equal/log/quantile bins),
@@ -538,7 +573,7 @@ they now accept the empty value (mirrored in scripts/validate-catalog.ts).
 No bridge signature change; hand-mirrored maps (web shell pre-paint
 HTML_LANG) must add the two new languages.
 
-1.53.0 — release-freeze hardening (plans/action-plan.md). (1) loadTool now
+1.53.0 — release-freeze hardening (plans/03-action-plan.md). (1) loadTool now
 ENFORCES a manifest's `engineVersion` range: a tool whose range excludes the
 running ENGINE_VERSION is REFUSED, not warned (P0-3) — the load-bearing floor
 of the fast-catalog / slow-binary model. New dependency-free range check in
@@ -794,7 +829,7 @@ input's `canvas` schema config — `startField`, `durField`, `clipInField`, `spe
 `enterField`, `exitField`, `enterMsField`, `exitMsField`, `muteField`, `laneField`.
 These are pure schema/documentation additions (optional string properties naming
 which box sub-fields hold timing data), phase 1 of the Fable timeline editing work
-(`plans/fable-timeline-phase-1.md`) — inert until a shell mounts a timeline panel
+(`plans/52-fable-timeline-phase-1.md`) — inert until a shell mounts a timeline panel
 that reads them; a manifest declaring none of them, or a template rendering an
 untimed box, is byte-identical to before. No v1 method changed, no runtime behaviour
 changed by this entry alone.
@@ -809,7 +844,7 @@ all-clips-ended state at t=duration. The value is clamped to 1…`CUTS_MAX` (64)
 junk input (non-numeric, 0, negative, NaN, Infinity) degrades to 1 rather than throwing.
 Default `cuts=1` is the playhead frame — byte-identical to a link without the param, so
 every existing URL and every untimed tool is unaffected. Phase 2.5 of the Fable timeline
-work (`plans/fable-timeline-editing.md` §4.6). No v1 method changed.
+work (`plans/51-fable-timeline-editing.md` §4.6). No v1 method changed.
 
 1.67.0 — additive: the `zzfxm:<seed>[:<style>]` asset-id scheme (`src/zzfxm-ref.ts`,
 exported as `ZZFXM_SCHEME`, `ZZFXM_ARCHETYPES`, `isZzfxmRef`, `parseZzfxmRef`,
@@ -1478,7 +1513,7 @@ rendered; existing callers are unaffected.
 
 Additive, engine-only (no HostV1 method added or changed — the minor names the
 pixel-pipeline foundation the deep encoders and filter migration will build on;
-plans/deeprichpixels.md Phase A):
+plans/61-deeprichpixels.md Phase A):
 
 `src/pixels.ts` — the `DeepFrame` buffer (`Float32Array` RGBA, LINEAR light,
 un-premultiplied, UNBOUNDED — >1.0 headroom and <0 out-of-gamut excursions are
@@ -1585,7 +1620,7 @@ itself is unchanged, and a background blur never reaches it.
 ## 1.88.0 — depth follows provenance: the `depth` param and our own PNG writer
 
 Also in 1.88.0, pure additions with no bridge surface (Penpot design-system
-import, plans/penpot-design-system.md):
+import, plans/46-penpot-design-system.md):
 
 `src/design-components.ts` (new) — `collectPenpotComponents` enumerates a
 Penpot file's component definitions, grouping a variant set into ONE logical
@@ -1611,7 +1646,7 @@ is a real 2.17.1-RC4 export authored for this purpose. It corrected two guesses
 already — the action type is `navigate`, not `navigate-to`, and the flow's
 start lives on the page record rather than a shape.
 
-The first slice of plans/deeprichpixels.md Phase B, plus the URL-mode plumbing
+The first slice of plans/61-deeprichpixels.md Phase B, plus the URL-mode plumbing
 its §10 calls for. Additive: one optional FIELD on `ExportOpts`, no HostV1
 method added or changed, so every existing shell behaves exactly as before.
 
@@ -1655,7 +1690,7 @@ on each format entry — schema-side only, no engine code reads it yet.
 
 ## 1.89.0 — the gain-map JPEG: one file, two renditions
 
-Phase B2 of plans/deeprichpixels.md (§4.2, §6 B2, §9c). Three new engine
+Phase B2 of plans/61-deeprichpixels.md (§4.2, §6 B2, §9c). Three new engine
 modules and one deliberate behaviour change; no HostV1 method was added or
 changed, so no shell had to move. `?hdr=1&format=jpeg` now writes an ISO
 21496-1 / Ultra HDR v1.1 gain-map JPEG instead of an 8-bit PQ-encoded,
@@ -1901,7 +1936,7 @@ what I pinned" is a legitimate question a verifier should be able to ask, and th
 to it is an EMPTY anchor set, not a degenerate one. It pairs with the CLI's
 `--no-default-anchors`.
 
-The product decisions these enable are recorded in plans/cli-ga-contract.md §12 (Andy,
+The product decisions these enable are recorded in plans/73-cli-ga-contract.md §12 (Andy,
 2026-08-01): the terminal surfaces now pin the Lolly CA root by default, so "Verified"
 means the same thing in a browser and in a terminal; and a CLI render carries the same
 provenance marks an app export does, at the cost of byte-determinism, which
@@ -2052,7 +2087,7 @@ the TTS download. The CLI omits transcription for now. Contract only in this
 minor — no shell implements it yet. No v1 method changed.
 
 Also in this minor (additive, synthetic-audio provenance — the EU AI Act
-Article 50 item in plans/tts-stt-programme.md §2): `GENERATED_SOURCE_TYPE`
+Article 50 item in plans/41-tts-stt-programme.md §2): `GENERATED_SOURCE_TYPE`
 (IPTC trainedAlgorithmicMedia) joins the exported source-type constants beside
 digitalCreation/digitalCapture/screenCapture, so a shell stamping a generated
 clip's credential names the AI origin from one shared constant; the read side

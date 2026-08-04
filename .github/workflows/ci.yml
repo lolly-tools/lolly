@@ -1,5 +1,5 @@
 # Quality gate — runs on every push to main and every PR.
-# Independent gates run in parallel (plans/qa-audit-2026-06-28.md #1):
+# Independent gates run in parallel (plans/archive/qa-audit-2026-06-28.md #1):
 #   test            — full repo suite (engine contract tests + core/web/mcp)
 #   typecheck       — tsc -p across every project, INCLUDING both Tauri shells'
 #                     bridge-overrides (this job installs those two shells,
@@ -317,7 +317,7 @@ jobs:
         run: git diff --exit-code -- api/
 
   # Self-test of the in-tree composite action (action/ — ready to split into
-  # lolly-tools/render-action, plans/fable-new-potential.md §5.4). Exercises the
+  # lolly-tools/render-action, plans/48-fable-new-potential.md §5.4). Exercises the
   # real consumer path end-to-end: the action checks out lolly at THIS commit,
   # npm ci builds the lolly-start fallback profile, and qr-code renders to SVG
   # browser-free (Tier A) — so the action stays green before the split.
@@ -406,3 +406,90 @@ jobs:
       # rather than carrying a stale legal verdict forward.
       - name: Cargo license map covers the crate graph (fail on stale map)
         run: npm run check:cargo-licenses
+
+  # Static analysis. Added after the SUSE assessment (2026-08, S4), which found
+  # the repo had no SAST gate at all. Two deliberate design choices:
+  #
+  #   1. DIFF MODE, not full-tree. A full-tree gate fails on ~7,500 pre-existing
+  #      findings and gets switched off within a week — the fate the advisory-only
+  #      Biome baseline already documents (~3,000 findings, see CLAUDE.md). Only
+  #      findings NEW in this PR block.
+  #   2. The two rules producing 5,197 of those findings are excluded: this
+  #      codebase uses English source strings AS i18n keys by design, and builds
+  #      templated HTML with escaping at the boundary. Neither rule models it.
+  #
+  # The custom rules in .github/opengrep/ are the more valuable half: the one real
+  # vulnerability in the assessment (a javascript: href that WAS escaped but not
+  # scheme-checked) fired no upstream rule. Those run full-tree, not diff-only —
+  # there is no backlog of them to grandfather in.
+  sast:
+    name: opengrep (new findings only)
+    runs-on: ubuntu-latest
+    # PRs only: diff mode needs a base to compare against.
+    if: github.event_name == 'pull_request'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+          # Full history so --baseline-commit can reach the merge base.
+          fetch-depth: 0
+
+      # Opengrep publishes NO PyPI package — `pipx install opengrep` cannot resolve
+      # (verified 2026-08-04: "No matching distribution found"). The release ships a
+      # self-contained binary per platform, so fetch that and pin the version.
+      - name: Install Opengrep
+        env:
+          OPENGREP_VERSION: '1.26.0'
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release download "v$OPENGREP_VERSION" --repo opengrep/opengrep \
+            --pattern opengrep_manylinux_x86 --output /usr/local/bin/opengrep
+          chmod +x /usr/local/bin/opengrep
+          opengrep --version
+
+      # Lolly's own rules — full-tree, blocking. No pre-existing backlog to absorb.
+      #
+      # `--no-git-ignore` is REQUIRED, not a preference: opengrep defaults to
+      # scanning only files git tracks, and every shell lives in a SUBMODULE, so
+      # from the parent repo their files are gitlinks rather than tracked paths.
+      # Without it this step scanned 1 file and reported success — a gate that
+      # silently does nothing, which is worse than no gate. Verified 2026-08-04:
+      # 1 file with the default, ~1000 with this flag.
+      #
+      # That flag also stops honouring .gitignore, so the excludes below are what
+      # keep node_modules/dist/vendored bundles out — and `.claude/worktrees`,
+      # which holds throwaway agent copies of the whole shell whose stale source
+      # would otherwise fail the build.
+      - name: Lolly custom rules (full tree)
+        run: |
+          opengrep scan --error --no-git-ignore \
+            --config .github/opengrep/lolly-rules.yml \
+            --exclude node_modules --exclude dist --exclude '.claude' \
+            --exclude vendor --exclude '*.min.js' --exclude '*.test.ts' \
+            shells/ community/ brands/ engine/ packages/ services/ scripts/
+
+      # Upstream packs are advisory (continue-on-error), NOT a gate. Three reasons,
+      # all learned the hard way rather than assumed:
+      #   - `--config p/<pack>` resolves over the network against a third-party
+      #     registry opengrep is not affiliated with, so a gate would go red on
+      #     someone else's outage or silently change meaning when a pack is edited.
+      #   - The two rule ids the assessment named as the 5,197-finding noise are
+      #     NOT present in these packs under those ids, so excluding them is a
+      #     no-op and the real noise level here is unknown until it has run a few
+      #     times. Blocking on an unmeasured backlog is how a gate gets deleted.
+      #   - `checkout` with fetch-depth: 0 already has full history, so the base
+      #     commit needs no extra fetch (the earlier `git fetch --depth=0` here was
+      #     a fatal git error — 0 is not a valid depth — which would have failed
+      #     the step before opengrep ever ran).
+      # The blocking half of this job is the Lolly rules above. Promote this step
+      # to blocking once its output has been read on real PRs and the exclusions
+      # are grounded in ids that actually exist.
+      - name: Upstream rules — new findings in this PR (advisory)
+        continue-on-error: true
+        run: |
+          opengrep scan \
+            --config p/typescript --config p/javascript --config p/security-audit \
+            --baseline-commit "${{ github.event.pull_request.base.sha }}" \
+            --exclude '*.test.ts' --exclude '*.test.js' \
+            --exclude node_modules --exclude dist \
+            --error . || true

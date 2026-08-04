@@ -12,7 +12,7 @@
  * for privacy:'on-device' tools". Before this module the web shell owned the
  * policy privately (shells/web/src/lib/c2pa-policy.ts) and the CLI simply never
  * asked, so a file made in the app and the same file made from the terminal
- * carried different provenance. plans/cli-ga-contract.md §12 O2 (decided by
+ * carried different provenance. plans/73-cli-ga-contract.md §12 O2 (decided by
  * Andy, 2026-08-01) closed that: the CLI matches the web shell, and the policy
  * has exactly one implementation so the two cannot drift again.
  *

@@ -12,7 +12,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 
-import { exportActionSteps, DIGITAL_SOURCE_TYPE, CAPTURE_SOURCE_TYPE, SCREEN_SOURCE_TYPE } from '../engine/src/index.ts';
+import { exportActionSteps, DIGITAL_SOURCE_TYPE, CAPTURE_SOURCE_TYPE, SCREEN_SOURCE_TYPE, COMPOSITE_SOURCE_TYPE } from '../engine/src/index.ts';
 
 const created = (steps: ReturnType<typeof exportActionSteps>) => steps[0]!;
 const codes = (steps: ReturnType<typeof exportActionSteps>) => steps.map((s) => s.action);
@@ -151,4 +151,50 @@ test('capture composes with the existing transform steps', () => {
   assert.deepEqual(codes(steps), [
     'c2pa.created', 'c2pa.color_adjustments', 'c2pa.edited' /* watermark */, 'c2pa.edited' /* text */, 'c2pa.converted',
   ]);
+});
+
+// ─── AI upscale (v1.101) ──────────────────────────────────────────────────────
+// A real photo enlarged by a trained model is a COMPOSITE of real + algorithmic
+// media (compositeWithTrainedAlgorithmicMedia), never claimed as wholly generated,
+// and the model that did it is named in an edit step so an inspected asset can see
+// with WHAT it was upscaled.
+
+test('COMPOSITE_SOURCE_TYPE is the IPTC compositeWithTrainedAlgorithmicMedia URI', () => {
+  assert.equal(COMPOSITE_SOURCE_TYPE, 'http://cv.iptc.org/newscodes/digitalsourcetype/compositeWithTrainedAlgorithmicMedia');
+  // Genuinely distinct from the fully-generated term — an upscale is not generation.
+  assert.notEqual(COMPOSITE_SOURCE_TYPE, DIGITAL_SOURCE_TYPE);
+});
+
+test('aiUpscale: created is compositeWithTrainedAlgorithmicMedia + names the model in an edit step', () => {
+  const steps = exportActionSteps('png', { aiUpscale: { model: 'realesr-general-x4v3', version: 'v3' } });
+  assert.equal(created(steps).action, 'c2pa.created');
+  assert.equal(created(steps).digitalSourceType, COMPOSITE_SOURCE_TYPE);
+  assert.match(created(steps).description!, /real image/i);
+  const edit = steps.find((s) => s.action === 'c2pa.edited');
+  assert.ok(edit, 'an edit step naming the model should be present');
+  assert.equal(edit!.description, 'AI-upscaled with realesr-general-x4v3 v3');
+  // Sequenced as an edit, before the render close.
+  const iEdit = steps.findIndex((s) => s.description?.startsWith('AI-upscaled'));
+  const iConvert = steps.findIndex((s) => s.action === 'c2pa.converted');
+  assert.ok(iEdit >= 0 && iEdit < iConvert, 'the AI-upscale edit precedes the render close');
+});
+
+test('aiUpscale wins the source-type label over a capture origin (composite is the fuller claim)', () => {
+  const steps = exportActionSteps('png', {
+    aiUpscale: { model: 'gfpgan-v1.4', version: 'v1.4' }, capture: { camera: true },
+  });
+  assert.equal(created(steps).digitalSourceType, COMPOSITE_SOURCE_TYPE);
+  assert.notEqual(created(steps).digitalSourceType, CAPTURE_SOURCE_TYPE);
+  assert.ok(steps.some((s) => s.description === 'AI-upscaled with gfpgan-v1.4 v1.4'));
+});
+
+test('no aiUpscale → no AI-upscale edit step, created stays digitalCreation', () => {
+  const steps = exportActionSteps('png', {});
+  assert.equal(created(steps).digitalSourceType, DIGITAL_SOURCE_TYPE);
+  assert.equal(steps.some((s) => s.description?.startsWith('AI-upscaled')), false);
+});
+
+test('delivered short-circuits, ignoring aiUpscale', () => {
+  const steps = exportActionSteps('png', { delivered: true, aiUpscale: { model: 'x', version: '1' } });
+  assert.deepEqual(steps, [{ action: 'c2pa.published' }]);
 });

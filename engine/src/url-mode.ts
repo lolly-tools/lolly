@@ -56,7 +56,7 @@
  *                  "made with Lolly" link survives a metadata strip and a
  *                  TrustMark-aware tool can recover it. Off by default (heavy
  *                  neural encode + a fetched model); `durable=1`/`on` turns it on.
- *                  See plans/durable-content-credentials.md.
+ *                  See plans/28-durable-content-credentials.md.
  *   - `hdr`      — OPT-IN HDR raster export for HDR-capable rasters (`png`/`jpg`).
  *                  `hdr=1`/`on`/`pq` encodes the output in Rec.2100 PQ (BT.2020 +
  *                  SMPTE ST 2084) with the brand's primary colours boosted toward
@@ -72,7 +72,7 @@
  *                  supports", mirroring the gamut rule in docs/color-spaces.md.
  *                  Junk (`depth=32`, `depth=deep`, empty) degrades to `auto`
  *                  rather than erroring — same total-function discipline as
- *                  `cuts`/`unit`. See plans/deeprichpixels.md §10.
+ *                  `cuts`/`unit`. See plans/61-deeprichpixels.md §10.
  *   - `cuts`     — CONTACT SHEET for a still export (`png`/`jpg`/`webp`/`svg`/`pdf`)
  *                  of a TIMED composition (a stage carrying `data-sequence`).
  *                  An integer, default `1`. `cuts=1` renders the frame at the
@@ -90,7 +90,7 @@
  *                  is unreadable and the render/zip cost stops being worth it. Any
  *                  junk value (non-numeric, 0, negative, NaN, Infinity, 1e9) falls
  *                  back to 1 rather than erroring. Ignored for non-still formats and
- *                  for stages with no sequence. See plans/fable-timeline-editing.md §4.6.
+ *                  for stages with no sequence. See plans/51-fable-timeline-editing.md §4.6.
  *   - `lang`     — UI/content language as a canonical short code (the full set
  *                  is engine/src/lang.ts's LANGS). Informal
  *                  aliases (`cn`, `jp`) are accepted on parse and normalized to
@@ -173,7 +173,7 @@ export const HDR_DEFAULTS: HdrSettings = { peakNits: 1000, reach: 45, lift: 0, r
  *  default) means "the deepest the provenance chain supports".
  *
  *  A REQUEST, not a promise. Consumers apply the depth-follows-provenance rule
- *  from plans/deeprichpixels.md §10: never emit bits the pipeline did not
+ *  from plans/61-deeprichpixels.md §10: never emit bits the pipeline did not
  *  produce — a 16-bit file made from an 8-bit render is padding. */
 export type DepthSetting = 8 | 16 | 'float' | 'auto';
 
@@ -208,7 +208,7 @@ export interface UrlState {
   /** Durable Content Credential toggle (the `durable` param) — an opt-in neural
    *  TrustMark-format watermark carrying Lolly's id (raster only). Off by default,
    *  so unlike `imprint` there is no null/absent distinction: true only for an
-   *  explicit `durable=1`/`on`. See the header + plans/durable-content-credentials.md. */
+   *  explicit `durable=1`/`on`. See the header + plans/28-durable-content-credentials.md. */
   durable: boolean;
   /** OPT-IN HDR raster export (the `hdr` param). An HdrSettings object ⇒ Rec.2100
    *  PQ encoding with brand-colour luminance boost (raster only), carrying the

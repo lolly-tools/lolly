@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
- * Machine-usable redaction instructions on the CLI (plans/redact-tool.md §3).
+ * Machine-usable redaction instructions on the CLI (plans/37-redact-tool.md §3).
  *
  * The bars array plus its options ARE the instruction format, and URL mode already
  * serialises them — so ONE canonical string has to survive a share link, an argv

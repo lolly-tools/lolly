@@ -2,7 +2,7 @@
 /**
  * Radiance RGBE (`.hdr` / `.pic`) reader + writer — pure bytes, DOM-free.
  *
- * plans/deeprichpixels.md §4.2 / §6 Phase B3, the small half: the OpenEXR writer
+ * plans/61-deeprichpixels.md §4.2 / §6 Phase B3, the small half: the OpenEXR writer
  * is the format a compositor wants, and this is the ~100-line one that every
  * renderer, every IBL/environment-map pipeline and every colour tool has read
  * since 1989. Written alongside EXR because a `DeepFrame` is already exactly the
