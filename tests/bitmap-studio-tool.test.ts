@@ -38,6 +38,22 @@ assert.ok(existsSync(join(TOOLS_DIR, 'bitmap-studio', 'tool.json')),
 
 const tool: any = await loadTool('bitmap-studio', fetchFile);
 
+// Serve the shipped preset .cube files to the tool's own fetch() from disk, so
+// the preset path runs end-to-end without an HTTP server. The id pattern is the
+// tool's own whitelist shape — anything else (incl. any traversal attempt) 404s.
+const LUT_DIR = join(TOOLS_DIR, 'bitmap-studio', 'assets', 'luts');
+const PRESET_IDS = ['slide-standard', 'slide-vivid', 'chrome-muted', 'mono-fine'];
+(globalThis as any).fetch = async (url: any) => {
+  const m = String(url).match(/\/tools\/bitmap-studio\/assets\/luts\/([a-z0-9-]+)\.cube$/);
+  if (!m) return { ok: false, status: 404, text: async () => '' };
+  try {
+    const text = await readFile(join(LUT_DIR, `${m[1]}.cube`), 'utf8');
+    return { ok: true, status: 200, text: async () => text };
+  } catch {
+    return { ok: false, status: 404, text: async () => '' };
+  }
+};
+
 const value = (rt: any, id: string) => rt.getModel().find((i: any) => i.id === id)?.value;
 
 function lutFile(name: string, text: string) {
@@ -104,6 +120,7 @@ test('a 3D .cube surfaces its title and grid in the LUT chip', async () => {
     '1 1 1', '0 1 1', '1 0 1', '0 0 1',
     '1 1 0', '0 1 0', '1 0 0', '0 0 0',
   ].join('\n');
+  await rt.setInput('lutSource', 'custom' as any);
   await rt.setInput('lutFile', lutFile('invert.cube', cube) as any);
   const html = rt.getHydrated() as string;
   assert.match(html, /Invert · 2³/);
@@ -112,6 +129,7 @@ test('a 3D .cube surfaces its title and grid in the LUT chip', async () => {
 test('a 1D .cube is labelled as a 1D ramp; junk is a friendly error', async () => {
   const { host } = makeHost();
   const rt = await createRuntime(tool, host, {});
+  await rt.setInput('lutSource', 'custom' as any);
   await rt.setInput('lutFile', lutFile('curve.cube', 'LUT_1D_SIZE 2\n0 0 0\n1 1 1\n') as any);
   assert.match(rt.getHydrated() as string, /2-step 1D/);
 
@@ -176,6 +194,7 @@ test('bake: a loaded LUT folds into the bake, and bakeSize is honoured', async (
     '1 1 1', '0 1 1', '1 0 1', '0 0 1',
     '1 1 0', '0 1 0', '1 0 0', '0 0 0',
   ].join('\n');
+  await rt.setInput('lutSource', 'custom' as any);
   await rt.setInput('lutFile', lutFile('invert.cube', cube) as any);
   await rt.setInput('bakeSize', '17' as any);
   await rt.setInput('bakeLut', true as any);
@@ -186,4 +205,89 @@ test('bake: a loaded LUT folds into the bake, and bakeSize is honoured', async (
   assert.equal(rows.length, 17 * 17 * 17);
   assert.deepEqual(rows[0], [1, 1, 1], 'black inverts to white');
   assert.deepEqual(rows[rows.length - 1], [0, 0, 0], 'white inverts to black');
+});
+
+// ── open preset LUTs (CC0, shipped) ──────────────────────────────────────────
+
+test('manifest: LUT source switch gates upload + preset library', () => {
+  const m = tool.manifest;
+  const src = m.inputs.find((i: any) => i.id === 'lutSource');
+  assert.equal(src.type, 'select');
+  assert.equal(src.default, 'none');
+  assert.deepEqual(src.options.map((o: any) => o.value), ['none', 'preset', 'custom']);
+
+  const preset = m.inputs.find((i: any) => i.id === 'lutPreset');
+  assert.deepEqual(preset.showIf, { lutSource: ['preset'] });
+  assert.deepEqual(preset.options.map((o: any) => o.value).sort(), [...PRESET_IDS].sort());
+
+  const file = m.inputs.find((i: any) => i.id === 'lutFile');
+  assert.deepEqual(file.showIf, { lutSource: ['custom'] }, 'upload only shows for the custom source');
+  const dl = m.inputs.find((i: any) => i.id === 'downloadPresetLut');
+  assert.equal(dl.type, 'boolean');
+  assert.deepEqual(dl.showIf, { lutSource: ['preset'] });
+});
+
+test('every shipped preset .cube is a valid 33³ LUT in range', async () => {
+  for (const id of PRESET_IDS) {
+    const text = await readFile(join(LUT_DIR, `${id}.cube`), 'utf8');
+    assert.match(text, /^TITLE "/m, `${id}: has a title`);
+    const { size, rows } = parseBaked(text);
+    assert.equal(size, 33, `${id}: 33³`);
+    assert.equal(rows.length, 33 * 33 * 33, `${id}: full grid`);
+    for (const [r, g, b] of [rows[0]!, rows[rows.length - 1]!, rows[(16 * 33 + 16) * 33 + 16]!]) {
+      for (const c of [r, g, b]) assert.ok(c >= 0 && c <= 1, `${id}: value in [0,1]`);
+    }
+  }
+});
+
+test('a preset LUT applies and labels the chip with its title + grid', async () => {
+  const { host } = makeHost();
+  const rt = await createRuntime(tool, host, {});
+  await rt.setInput('lutSource', 'preset' as any);
+  await rt.setInput('lutPreset', 'slide-vivid' as any);
+  assert.match(rt.getHydrated() as string, /Vivid slide · 33³/);
+});
+
+test('Download this LUT hands over the raw shipped .cube and resets the switch', async () => {
+  const { host, delivered } = makeHost();
+  const rt = await createRuntime(tool, host, {});
+  await rt.setInput('lutSource', 'preset' as any);
+  await rt.setInput('lutPreset', 'slide-vivid' as any);
+  await rt.setInput('downloadPresetLut', true as any);
+
+  assert.equal(delivered.length, 1, 'one .cube delivered');
+  assert.equal(delivered[0]!.filename, 'bitmap-studio-slide-vivid.cube');
+  const { size, rows } = parseBaked(await delivered[0]!.blob.text());
+  assert.equal(size, 33);
+  assert.equal(rows.length, 33 * 33 * 33);
+  assert.equal(value(rt, 'downloadPresetLut'), false, 'the switch flips itself back off');
+});
+
+test('an out-of-whitelist preset id falls back to the standard slide (no path escape)', async () => {
+  const { host } = makeHost();
+  const rt = await createRuntime(tool, host, {});
+  await rt.setInput('lutSource', 'preset' as any);
+  await rt.setInput('lutPreset', '../../../etc/passwd' as any);
+  // Coerced to the default id; the bad string never reaches the fetch URL.
+  assert.match(rt.getHydrated() as string, /Standard slide · 33³/);
+});
+
+test('bake folds an active preset LUT into the delivered .cube', async () => {
+  const { host, delivered } = makeHost();
+  const rt = await createRuntime(tool, host, {});
+  await rt.setInput('lutSource', 'preset' as any);
+  await rt.setInput('lutPreset', 'slide-vivid' as any);
+  await rt.setInput('bakeLut', true as any);
+
+  assert.equal(delivered.length, 1, 'one baked .cube delivered');
+  const { size, rows } = parseBaked(await delivered[0]!.blob.text());
+  assert.equal(size, 33);
+  assert.equal(rows.length, 33 * 33 * 33);
+  // The vivid slide preset is not an identity: at least one grid node must move
+  // away from its input value (compare each baked row to the identity grid).
+  const moved = rows.some((row, k) => {
+    const r = (k % 33) / 32, g = (Math.floor(k / 33) % 33) / 32, b = Math.floor(k / (33 * 33)) / 32;
+    return Math.abs(row[0]! - r) > 0.02 || Math.abs(row[1]! - g) > 0.02 || Math.abs(row[2]! - b) > 0.02;
+  });
+  assert.ok(moved, 'the baked cube reflects the preset, not an identity');
 });

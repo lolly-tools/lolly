@@ -1,6 +1,6 @@
 {
   "version": "1",
-  "generatedAt": "2026-08-03T18:19:12.435Z",
+  "generatedAt": "2026-08-04T02:37:51.099Z",
   "tools": [
     {
       "id": "compress-pdf",
@@ -6159,6 +6159,13 @@
             "grain": 35,
             "vignette": 24,
             "contrast": 12
+          }
+        },
+        {
+          "label": "Vivid slide LUT",
+          "values": {
+            "lutSource": "preset",
+            "lutPreset": "slide-vivid"
           }
         }
       ],
