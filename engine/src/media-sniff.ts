@@ -189,3 +189,34 @@ export function sniffVideoContainer(input: Uint8Array | ArrayBuffer): VideoConta
   if (fourcc(bytes, 4, 'ftyp')) return 'mp4';                 // ISO-BMFF (MP4/MOV/M4V)
   return null;
 }
+
+/** A still/container format the MIME/extension gate can't settle on its own. */
+export type SniffedContainer = 'bmp' | 'gzip' | 'ttf' | 'otf' | 'woff' | 'woff2';
+
+/** sfnt / WOFF magic (uint32 BE) — INLINED, not imported from font-convert.ts (which
+ *  pulls in fflate + deflate); this module stays allocation- and dependency-free. Kept
+ *  in lockstep with font-convert.sfntKind. */
+function fontKind(bytes: Uint8Array): 'ttf' | 'otf' | 'woff' | 'woff2' | null {
+  if (bytes.length < 4) return null;
+  const m = ((bytes[0]! << 24) | (bytes[1]! << 16) | (bytes[2]! << 8) | bytes[3]!) >>> 0;
+  if (m === 0x00010000 || m === 0x74727565) return 'ttf';   // 0x00010000 TrueType / 'true'
+  if (m === 0x4f54544f) return 'otf';                        // 'OTTO' (CFF)
+  if (m === 0x774f4646) return 'woff';                       // 'wOFF'
+  if (m === 0x774f4632) return 'woff2';                      // 'wOF2'
+  return null;
+}
+
+/**
+ * Recognise a still/container format from its header, or null — the byte-level
+ * backstop for the ingest/convert path. An uncompressed BMP ('BM' + a full 54-byte
+ * header, mirroring bmp.isBmp so a stray 'BM' can't false-positive); a gzip stream
+ * (an .svgz is gzip(SVG) — reported, NEVER inflated here; the caller gunzips and
+ * re-sniffs the inner bytes); and the four font containers. Prefix-only and
+ * allocation-free like its siblings.
+ */
+export function sniffContainer(input: Uint8Array | ArrayBuffer): SniffedContainer | null {
+  const bytes = asBytes(input);
+  if (bytes.length >= 54 && has(bytes, 0, 0x42, 0x4d)) return 'bmp';   // 'BM' + full BMP header
+  if (has(bytes, 0, 0x1f, 0x8b, 0x08)) return 'gzip';                  // gzip member (deflate CM)
+  return fontKind(bytes);
+}
