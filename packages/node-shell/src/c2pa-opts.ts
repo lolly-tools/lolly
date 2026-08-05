@@ -43,6 +43,13 @@ export interface BuildExportC2paOpts {
   signer?: C2paSigner;
   /** The identity certificate's own validity window, when `signer` is an identity. */
   signerValidity?: { notBefore: Date; notAfter: Date };
+  /** Source manifests to carry forward as ingredients — e.g. a genAI bitmap the
+   *  captured page contains, so its AI origin verifies independently on the output
+   *  (Verify walks every manifest in the store, ingredients included). */
+  ingredients?: ExportC2paOpts['ingredients'];
+  /** Optional extra provenance actions (e.g. a COMPOSITE c2pa.created when the framed
+   *  page shows AI-generated imagery). Omit to keep embedC2pa's default created step. */
+  actions?: ExportC2paOpts['actions'];
 }
 
 /** Build the embedC2pa options for a shell export, INCLUDING author from the profile. */
@@ -75,5 +82,8 @@ export function buildExportC2paOpts(o: BuildExportC2paOpts): ExportC2paOpts {
     dates: o.signer && o.signerValidity
       ? { notBefore: o.signerValidity.notBefore, notAfter: o.signerValidity.notAfter }
       : { notBefore: new Date(Date.now() - 60_000), notAfter: new Date(Date.now() + days * 86_400_000) },
+    // Carry a genAI source forward so the record stays accurate (default drops both).
+    ...(o.ingredients?.length ? { ingredients: o.ingredients } : {}),
+    ...(o.actions?.length ? { actions: o.actions } : {}),
   };
 }

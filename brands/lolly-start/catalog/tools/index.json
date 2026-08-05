@@ -1,6 +1,6 @@
 {
   "version": "1",
-  "generatedAt": "2026-08-04T19:24:47.585Z",
+  "generatedAt": "2026-08-05T14:37:52.788Z",
   "tools": [
     {
       "id": "compress-pdf",
@@ -6337,6 +6337,37 @@
       "exportable": true,
       "icon": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"m12 2 9 5-9 5-9-5Z\"/><path d=\"m3 12 9 5 9-5\"/><path d=\"m3 17 9 5 9-5\"/></svg>",
       "preview": "/catalog/previews/layer-stack.svg"
+    },
+    {
+      "id": "font-convert",
+      "name": "Convert Font",
+      "description": "Convert a font between TrueType, OpenType and WOFF — on your device.",
+      "version": "1.0.0",
+      "status": "official",
+      "category": "utility",
+      "privacy": "on-device",
+      "tags": [
+        "font",
+        "ttf",
+        "otf",
+        "woff",
+        "webfont",
+        "convert",
+        "truetype",
+        "opentype",
+        "typography",
+        "sfnt"
+      ],
+      "formats": [
+        "ttf",
+        "otf",
+        "woff"
+      ],
+      "width": 760,
+      "height": 560,
+      "exportable": false,
+      "icon": "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.6\" stroke-linecap=\"round\" stroke-linejoin=\"round\" xmlns=\"http://www.w3.org/2000/svg\"><path d=\"M5 5h9M9.5 5v11M7.5 16h4\"/><path d=\"M14.5 13l3.5 6 3.5-6\"/><path d=\"M15.5 16.5h5\"/></svg>",
+      "preview": "/catalog/previews/font-convert.webp"
     }
   ]
 }

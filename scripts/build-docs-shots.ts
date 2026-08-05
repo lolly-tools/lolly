@@ -72,7 +72,8 @@ import type { AddressInfo } from 'node:net';
 import { captureUrl, runDriveSteps, type CaptureParams, type PageLike } from '../packages/node-shell/src/url-capture.ts';
 import { resolveBrowsersDir, getBrowser, closeBrowser } from '../packages/node-shell/src/browsers.ts';
 import { buildExportC2paOpts } from '../packages/node-shell/src/c2pa-opts.ts';
-import { embedC2pa, windowPdfSvg, type summarizeInputs } from '../engine/src/index.ts';
+import { embedC2pa, windowPdfSvg, prepareC2paIngredient, type summarizeInputs } from '../engine/src/index.ts';
+import { aiKind } from '../engine/src/c2pa-extract.ts';
 import { embedWatermark, LOSSLESS_STRENGTH, DEFAULT_STRENGTH } from '../engine/src/pixel-watermark.ts';
 import {
   DEFAULT_THRESHOLDS, MAX_SHOT_PX, clampDpr, classifyShot, classifyVectorShot,
@@ -691,7 +692,7 @@ function vectorCropCssPx(
  * a vector has no pixels to watermark; C2PA is the provenance (Andy's call —
  * docs stay content-clean, raster only for performance reasons).
  */
-type VectorCapture = { bytes: Uint8Array; framed: { width: number; height: number } | null };
+type VectorCapture = { bytes: Uint8Array; framed: { width: number; height: number } | null; imageB64?: string[] };
 
 async function captureVector(baseUrl: string, shot: ShotDef): Promise<VectorCapture> {
   const { params, dims } = paramsFor(shot);
@@ -955,8 +956,40 @@ async function captureVector(baseUrl: string, shot: ShotDef): Promise<VectorCapt
             } finally { mountBox.remove(); }
           }
 
+          // The BYTES of the raster images the framed region shows, fetched HERE in the
+          // page — the Verify view (and others) hand an <img> a blob: URL that only
+          // resolves in this realm, so the Node driver cannot re-fetch it. We read each
+          // source's bytes (blob:/http/same-origin), base64-encode, and hand them out so
+          // Node can read their Content Credentials directly and carry a genAI origin
+          // forward as an ingredient — BEFORE the walker's canvas re-encode strips it.
+          const _scope = (target ?? document.body) as HTMLElement;
+          const _srcs = new Set<string>();
+          for (const im of Array.from(_scope.querySelectorAll('img'))) {
+            const cs = (im as HTMLImageElement).currentSrc;
+            if (cs && !cs.startsWith('data:')) _srcs.add(cs);
+          }
+          for (const nd of [_scope, ...Array.from(_scope.querySelectorAll('*'))]) {
+            const bi = getComputedStyle(nd as Element).backgroundImage || '';
+            const m = /url\(["']?([^"')]+)["']?\)/.exec(bi);
+            if (m && m[1] && !m[1].startsWith('data:')) {
+              try { _srcs.add(new URL(m[1], location.href).href); } catch { /* skip unparseable */ }
+            }
+          }
+          const imageB64: string[] = [];
+          for (const u of _srcs) {
+            try {
+              const ab = await (await fetch(u)).arrayBuffer();
+              if (ab.byteLength > 25_000_000) continue;   // guard against an absurd asset
+              const by = new Uint8Array(ab);
+              let bin = '';
+              for (let i = 0; i < by.length; i++) bin += String.fromCharCode(by[i]!);
+              imageB64.push(btoa(bin));
+            } catch { /* unfetchable — skip */ }
+          }
+
           return {
             svg: r.svg,
+            imageB64,
             parseErr,
             drawables: doc.querySelectorAll(DRAWABLE).length,
             texts: doc.querySelectorAll('text').length,
@@ -994,7 +1027,7 @@ async function captureVector(baseUrl: string, shot: ShotDef): Promise<VectorCapt
       if (out.winDropped) console.log(`    ✂ ${shot.slug}: windowed ${shot.cropSelector ? `${shot.cropSelector} walk` : 'body walk'} culled ${out.winDropped} off-frame node(s)`);
       if (out.texts) console.warn(`  ⚠ ${shot.slug}: ${out.texts} <text> node(s) — a font did not outline`);
       if (!out.opaque) console.warn(`  ⚠ ${shot.slug}: "${sel}" has no opaque background — the shot may read as an empty box on /info's dark theme (add &css= to paint one)`);
-      return { bytes: new TextEncoder().encode(out.svg), framed: out.framed };
+      return { bytes: new TextEncoder().encode(out.svg), framed: out.framed, imageB64: out.imageB64 };
     }
 
     // Print the FULL page height as one tall page — scroll/crop trim below, in
@@ -1074,8 +1107,9 @@ async function captureVector(baseUrl: string, shot: ShotDef): Promise<VectorCapt
 async function captureOneVector(baseUrl: string, shot: ShotDef): Promise<ShotResult> {
   let bytes: Uint8Array;
   let framed: { width: number; height: number } | null = null;
+  let imageB64: string[] | undefined;
   try {
-    ({ bytes, framed } = await captureVector(baseUrl, shot));
+    ({ bytes, framed, imageB64 } = await captureVector(baseUrl, shot));
   } catch (e) {
     return { slug: shot.slug, format: shot.format, error: (e as Error).message, wrote: false, bytes: 0 };
   }
@@ -1118,7 +1152,7 @@ async function captureOneVector(baseUrl: string, shot: ShotDef): Promise<ShotRes
 
   const verdict = classifyVectorShot({ newText, newBytes: bytes.byteLength, expected, oldText, oldBytes });
   const promote = opts.rebuild || verdict.kind === 'new' || (verdict.kind === 'changed' && opts.accept);
-  if (promote) writeFileSync(baselinePath, await stampC2pa(bytes, shot, dims));
+  if (promote) writeFileSync(baselinePath, await stampC2pa(bytes, shot, dims, imageB64));
   return { slug: shot.slug, format: shot.format, lang: shot.lang, theme: shot.theme, verdict, wrote: promote, bytes: bytes.byteLength };
 }
 
@@ -1141,7 +1175,29 @@ async function imprintRaster(sharp: Sharp, raster: Uint8Array, format: string): 
  * ride in the credential (same enrichment path as a CLI url-shot export), so a
  * /verify of the published image shows exactly how to reproduce it.
  */
-async function stampC2pa(bytes: Uint8Array, shot: ShotDef, dims: { width: number; height: number; dpi: number }): Promise<Uint8Array> {
+/**
+ * Ingredients for a genAI source the captured page shows. Fetches each live image
+ * URL, reads its Content Credentials, and — only when a source GENUINELY carries a
+ * genAI digitalSourceType — carries it forward as a `componentOf` ingredient. Verify
+ * walks every manifest in the store, so the GEN AI flag surfaces on the screenshot
+ * without ever claiming the screenshot itself is AI-generated. Silent + conservative:
+ * an unreachable or uncredentialed source is skipped.
+ */
+function genAiFromPage(imageB64: string[] = []): { ingredients?: NonNullable<Parameters<typeof buildExportC2paOpts>[0]['ingredients']> } {
+  const ingredients: NonNullable<Parameters<typeof buildExportC2paOpts>[0]['ingredients']> = [];
+  for (const b64 of imageB64) {
+    try {
+      const buf = new Uint8Array(Buffer.from(b64, 'base64'));
+      const ing = prepareC2paIngredient(buf);
+      if (ing && aiKind(ing.digitalSourceType) && !ingredients.some((p) => p.activeLabel === ing.activeLabel)) {
+        ingredients.push({ ...ing, relationship: 'componentOf' });
+      }
+    } catch { /* uncredentialed source — skip */ }
+  }
+  return ingredients.length ? { ingredients } : {};
+}
+
+async function stampC2pa(bytes: Uint8Array, shot: ShotDef, dims: { width: number; height: number; dpi: number }, imageB64?: string[]): Promise<Uint8Array> {
   type Model = Parameters<typeof summarizeInputs>[0];
   const row = (id: string, type: string, value: unknown): Record<string, unknown> => ({ id, type, value, isDirty: true, label: id });
   const model = [
@@ -1165,6 +1221,7 @@ async function stampC2pa(bytes: Uint8Array, shot: ShotDef, dims: { width: number
       .map((k) => row(k, 'number', shot[k])),
   ] as unknown as Model;
   try {
+    const genai = genAiFromPage(imageB64);   // {} unless a source bitmap is genuinely genAI
     return await embedC2pa(bytes, shot.format, buildExportC2paOpts({
       surface: 'docs',
       manifest: { id: 'url-shot', name: 'URL Screenshot' },
@@ -1172,6 +1229,7 @@ async function stampC2pa(bytes: Uint8Array, shot: ShotDef, dims: { width: number
       format: shot.format,
       dims: { width: dims.width, height: dims.height, unit: 'px', dpi: dims.dpi },
       days: 365,
+      ...genai,
     }));
   } catch (e) {
     console.warn(`⚠  ${shot.slug}: Content Credentials not attached — ${(e as Error).message}`);
