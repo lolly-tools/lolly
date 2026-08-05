@@ -68,6 +68,12 @@ test('first line is exactly the EPSF magic comment', () => {
   assert.match(eps, /^%%Creator: Lolly lolly\.tools$/m); // names the source (safe ASCII, no scheme)
 });
 
+test('attribution: false strips the %%Creator source field (metadata-stripped export)', () => {
+  const eps = emitEps(IR, { width: 600, height: 600, attribution: false });
+  assert.doesNotMatch(eps, /%%Creator/, 'no generator field when attribution is off');
+  assert.equal(eps.split('\n')[0], '%!PS-Adobe-3.0 EPSF-3.0', 'still a valid EPSF');
+});
+
 test('header declares integer %%BoundingBox + %%HiResBoundingBox + LL2', () => {
   const eps = emitEps(IR, { width: 600, height: 600 });
   const bb = boundingBox(eps);

@@ -81,6 +81,11 @@ export interface VectorEmitOpts {
   height?: string | number;
   unit?: string;
   dpi?: number;
+  /** Embed the source-attribution generator field (EPS %%Creator, DXF 999 comment).
+   *  Default true; the shell sets it false for a metadata-stripped export (URL `meta=off`).
+   *  This is a generated artifact's generator field — the user's own files go through the
+   *  transform path (host.export.file), which never adds metadata. */
+  attribution?: boolean;
 }
 
 interface Point {

@@ -161,7 +161,8 @@ export function emitDxf(ir: VectorIr, opts: VectorEmitOpts = {}): { text: string
   const out: string[] = [];
   // Group code 999 is a DXF comment (ignored by every reader). Plain ASCII, no scheme
   // or punctuation that a vintage R12 reader might choke on — just names the source.
-  g(out, 999, 'Created by Lolly lolly.tools');
+  // Gated: a metadata-stripped export (opts.attribution === false) omits it.
+  if (opts.attribution !== false) g(out, 999, 'Created by Lolly lolly.tools');
   // HEADER — version + drawing units + extents (min/max of the whole model box).
   g(out, 0, 'SECTION');
   g(out, 2, 'HEADER');
