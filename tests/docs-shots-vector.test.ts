@@ -61,7 +61,11 @@ const RASTER_ALLOWED: Record<string, string> = {
     + 'The raster path flattens the composite at display resolution instead, so it is both '
     + 'faithful and far smaller. Re-check if the walker ever downscales embedded rasters to '
     + 'their rendered box.',
-  'cc-verify-mobile': 'Same generated-photo subject as `cc-verify-masthead`, framed mobile-width.',
+  // cc-verify-mobile left this list 2026-08-05: the walker CAN now downscale an embedded
+  // raster to its box, via the `rasterDpi` recipe param (ExportOpts.rasterDpi). The mobile
+  // Verify shot is `walker=1&format=svg&rasterDpi=96` — vector chrome with the storm photo
+  // embedded at its rendered box, under the vector budget. The masthead is a wider frame of
+  // the same photo and could follow the same way.
   // incl-neuro-viz left this list 2026-07-31: the panel chrome is vector now, with only
   // the WebGL canvas embedded as a bitmap <image> (the honest hybrid — a fragment
   // shader's per-pixel field has no geometry to recover, but everything around it does).

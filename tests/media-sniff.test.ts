@@ -10,7 +10,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 
-import { sniffAnimatedRaster, sniffVideoContainer } from '../engine/src/media-sniff.ts';
+import { sniffAnimatedRaster, sniffVideoContainer, sniffContainer } from '../engine/src/media-sniff.ts';
 
 // ── GIF ──────────────────────────────────────────────────────────────────────
 // "GIF89a" + 7-byte Logical Screen Descriptor (no global colour table) + `frames`
@@ -99,4 +99,29 @@ test('WebM (EBML magic) is recognised', () => {
 
 test('a PNG is not mistaken for a video container', () => {
   assert.equal(sniffVideoContainer(png({ apng: false })), null);
+});
+
+// ── sniffContainer: BMP / gzip / fonts ─────────────────────────────────────────
+test('BMP is detected only with a full 54-byte header (a stray "BM" is not)', () => {
+  const bmp = new Uint8Array(54); bmp[0] = 0x42; bmp[1] = 0x4d;   // 'BM' + full header
+  assert.equal(sniffContainer(bmp), 'bmp');
+  assert.equal(sniffContainer(Uint8Array.from([0x42, 0x4d, 0, 0])), null); // too short
+});
+
+test('a gzip stream is reported (never inflated) — the .svgz wrapper', () => {
+  assert.equal(sniffContainer(Uint8Array.from([0x1f, 0x8b, 0x08, 0, 0, 0, 0, 0])), 'gzip');
+});
+
+test('the four font containers are detected by sfnt/WOFF magic', () => {
+  const magic = (b: number[]) => Uint8Array.from([...b, 0, 0, 0, 0]);
+  assert.equal(sniffContainer(magic([0x00, 0x01, 0x00, 0x00])), 'ttf');  // TrueType
+  assert.equal(sniffContainer(magic([0x74, 0x72, 0x75, 0x65])), 'ttf');  // 'true'
+  assert.equal(sniffContainer(magic([0x4f, 0x54, 0x54, 0x4f])), 'otf');  // 'OTTO'
+  assert.equal(sniffContainer(magic([0x77, 0x4f, 0x46, 0x46])), 'woff'); // 'wOFF'
+  assert.equal(sniffContainer(magic([0x77, 0x4f, 0x46, 0x32])), 'woff2');// 'wOF2'
+});
+
+test('sniffContainer returns null for unrelated bytes (PNG, empty)', () => {
+  assert.equal(sniffContainer(png({ apng: false })), null);
+  assert.equal(sniffContainer(new Uint8Array(0)), null);
 });

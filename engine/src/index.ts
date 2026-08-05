@@ -19,8 +19,8 @@ export type {
 export { validateManifest, validateRateCard } from './validate.ts';
 export { createRuntime, HOOK_BUDGET_MS } from './runtime.ts';
 export { hydrate, annotateTemplate } from './template.ts';
-export { sniffAnimatedRaster, sniffVideoContainer, sniffLayeredRaster } from './media-sniff.ts';
-export type { AnimatedRasterKind, VideoContainer, LayeredRasterKind } from './media-sniff.ts';
+export { sniffAnimatedRaster, sniffVideoContainer, sniffLayeredRaster, sniffContainer } from './media-sniff.ts';
+export type { AnimatedRasterKind, VideoContainer, LayeredRasterKind, SniffedContainer } from './media-sniff.ts';
 // Layered bitmap import/export (1.102): PSD/PSB + XCF readers, PSD writer.
 export { isPsd, readPsd, PsdUnsupportedError } from './psd.ts';
 export type { PsdReadOptions } from './psd.ts';

@@ -355,6 +355,15 @@ export interface ShotDef {
   width?: number;
   height?: number;
   dpi?: number;
+  /**
+   * Walker-SVG only: DPI ceiling for INLINED raster assets (`<img>` bitmaps), decoupled
+   * from `dpi` (the vector/own-paint resolution). Opt-in — when set, each embedded photo
+   * is downscaled to its display box at this DPI (1x floor), replacing the full-resolution
+   * source so a continuous-tone asset stops blowing the vector byte budget while the page
+   * chrome stays crisp vector. `rasterDpi=96` = embed at exactly the rendered box.
+   * Forwarded to renderSvgFromHtml via ExportOpts.rasterDpi; ignored on raster/print paths.
+   */
+  rasterDpi?: number;
   waitMs?: number;
   /**
    * Block the capture until this selector matches (after waitMs, before scroll or
@@ -598,7 +607,7 @@ export function parseShotRecipes(md: string): { recipes: ShotDef[]; problems: st
     recipes.push({
       slug, route, raw,
       format: format as ShotDef['format'],
-      width: num('width'), height: num('height'), dpi: num('dpi'),
+      width: num('width'), height: num('height'), dpi: num('dpi'), rasterDpi: num('rasterDpi'),
       waitMs: num('waitMs'), scrollDepth: num('scrollDepth'), zoom: num('zoom'),
       cropLeft: num('cropLeft'), cropRight: num('cropRight'),
       cropTop: num('cropTop'), cropBottom: num('cropBottom'),
