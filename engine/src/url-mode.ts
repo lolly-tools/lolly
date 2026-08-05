@@ -210,6 +210,12 @@ export interface UrlState {
    *  so unlike `imprint` there is no null/absent distinction: true only for an
    *  explicit `durable=1`/`on`. See the header + plans/28-durable-content-credentials.md. */
   durable: boolean;
+  /** Generator-metadata toggle (the `meta` param), default-on like `imprint`: whether a
+   *  generated export carries its source-attribution generator field (EPS %%Creator, DXF
+   *  999 comment, EXR/Radiance software, PDF Producer). `null` ⇒ absent (default on);
+   *  `false` ⇒ explicit `meta=off` (a metadata-stripped export). Not about the user's own
+   *  files — those go through the transform path, which never adds metadata. */
+  metadata: boolean | null;
   /** OPT-IN HDR raster export (the `hdr` param). An HdrSettings object ⇒ Rec.2100
    *  PQ encoding with brand-colour luminance boost (raster only), carrying the
    *  author's tuning dials; null ⇒ absent/off ⇒ SDR. `hdr=1` ⇒ HDR_DEFAULTS. */
@@ -259,6 +265,9 @@ export interface SerializeUrlOpts {
    *  false ⇒ explicit opt-out, written as `imprint=0`; true/undefined ⇒ the
    *  default, so the param is omitted (nothing to override). */
   imprint?: boolean;
+  /** Generator-metadata toggle (the `meta` param). Default-on like `imprint`:
+   *  false ⇒ `meta=off` (strip the source field); true/undefined ⇒ omitted. */
+  metadata?: boolean;
   /** Durable Content Credential (the `durable` param). Opt-in, off by default —
    *  serialised as `durable=1` only when true; omitted otherwise. */
   durable?: boolean;
@@ -280,7 +289,7 @@ export interface SerializeUrlOpts {
 // Param names that are NOT tool inputs (export/render controls). Exported so the
 // engine contract test can assert it stays in lock-step with the documented list
 // (the header comment above + docs/url-mode.md) and nothing drifts silently.
-export const RESERVED = new Set(['format', 'export', 'copy', 'slot', 'output', 'filename', '_v', 'width', 'height', 'w', 'h', 'unit', 'dpi', 'profile', 'password', 'bleed', 'marks', 'c2pa', 'imprint', 'durable', 'hdr', 'depth', 'cuts', 'lang', 'full', 'options', 'nostage', 'z', 'zx']);
+export const RESERVED = new Set(['format', 'export', 'copy', 'slot', 'output', 'filename', '_v', 'width', 'height', 'w', 'h', 'unit', 'dpi', 'profile', 'password', 'bleed', 'marks', 'c2pa', 'imprint', 'durable', 'meta', 'hdr', 'depth', 'cuts', 'lang', 'full', 'options', 'nostage', 'z', 'zx']);
 
 // Parse the `marks` param (csv: crop,reg,bleed,bars,prov) into a print-mark
 // toggle map. Returns null when absent so callers fall back to their own defaults.
@@ -311,6 +320,15 @@ function parseC2pa(raw: string | null): C2paSetting | null {
 // the caller applies the default-on behaviour; false for an explicit
 // `imprint=0`/`off`; true for on. Empty value (`?imprint`) reads as on.
 function parseImprint(raw: string | null): boolean | null {
+  if (raw == null) return null;
+  const v = String(raw).trim().toLowerCase();
+  if (v === 'off' || v === '0' || v === 'false' || v === 'no') return false;
+  return true;
+}
+
+// The `meta` param — default-on like `imprint`: absent ⇒ null (keep generator metadata),
+// an explicit opt-out (`meta=off`/`0`/`false`/`no`) ⇒ false (strip the source field).
+function parseMeta(raw: string | null): boolean | null {
   if (raw == null) return null;
   const v = String(raw).trim().toLowerCase();
   if (v === 'off' || v === '0' || v === 'false' || v === 'no') return false;
@@ -461,6 +479,7 @@ export function parseUrlState(searchParams: string | URLSearchParams, manifest: 
     c2pa:     parseC2pa(params.get('c2pa')),
     // Pixel-watermark opt-in for raster exports (see header).
     imprint:  parseImprint(params.get('imprint')),
+    metadata: parseMeta(params.get('meta')),
     // Opt-in durable Content Credential for raster exports (see header).
     durable:  parseDurable(params.get('durable')),
     // Opt-in HDR raster export (see header). null ⇒ SDR.
@@ -522,6 +541,8 @@ export function serializeUrlState(model: UrlSerializableInput[], opts: Serialize
   // Default-on, like c2pa: only an explicit opt-out needs a param — writing
   // `imprint=1` for the default state would just be noise on every link.
   if (opts.imprint === false) params.set('imprint', '0');
+  // Default-on like imprint: only an explicit strip writes the param.
+  if (opts.metadata === false) params.set('meta', 'off');
   // Opt-in, off by default: only an explicit request writes the param.
   if (opts.durable) params.set('durable', '1');
   if (opts.hdr) params.set('hdr', '1');

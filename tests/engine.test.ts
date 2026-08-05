@@ -150,7 +150,7 @@ test('url-mode: RESERVED set matches the documented reserved-param list', () => 
   const documented = [
     'format', 'export', 'copy', 'full', 'options', 'slot', 'output', 'filename',
     '_v', 'width', 'w', 'height', 'h', 'unit', 'dpi', 'profile', 'password',
-    'bleed', 'marks', 'c2pa', 'imprint', 'durable', 'hdr', 'depth', 'cuts', 'lang', 'nostage', 'z', 'zx',
+    'bleed', 'marks', 'c2pa', 'imprint', 'durable', 'meta', 'hdr', 'depth', 'cuts', 'lang', 'nostage', 'z', 'zx',
   ];
   assert.deepEqual([...RESERVED].sort(), [...documented].sort());
 
@@ -351,6 +351,23 @@ test('url-mode: imprint param — default-on parse/serialize round-trip', () => 
 
   // imprint is reserved — never mistaken for a tool input.
   assert.equal('imprint' in parseUrlState('imprint=0', tool).values, false);
+});
+
+test('url-mode: meta param — default-on generator-metadata strip round-trip', () => {
+  const tool = { inputs: [], render: {} };
+  // Absent ⇒ null (keep the source field by default).
+  assert.equal(parseUrlState('', tool).metadata, null);
+  // Explicit opt-out ⇒ false, and round-trips as `meta=off`.
+  assert.equal(parseUrlState('meta=off', tool).metadata, false);
+  assert.equal(parseUrlState('meta=0', tool).metadata, false);
+  const qs = serializeUrlState([], { metadata: false });
+  assert.equal(qs, 'meta=off');
+  assert.equal(parseUrlState(qs, tool).metadata, false);
+  // Default-on omits the param (a plain link stays clean); affirmative reads true.
+  assert.equal(serializeUrlState([], { metadata: true }), '');
+  assert.equal(parseUrlState('meta=1', tool).metadata, true);
+  // Reserved — never a tool input.
+  assert.equal('meta' in parseUrlState('meta=off', tool).values, false);
 });
 
 test('url-mode: hdr param — opt-in parse/serialize round-trip', () => {

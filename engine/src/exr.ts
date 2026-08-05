@@ -156,6 +156,9 @@ export interface PackExrOptions {
    * stays byte-deterministic. Reserved names are refused.
    */
   attributes?: Readonly<Record<string, string>>;
+  /** Write the default `software` source attribution (default true). The shell sets it
+   *  false for a metadata-stripped export (URL `meta=off`). Caller `attributes` still win. */
+  attribution?: boolean;
 }
 
 // ─── chromaticities ──────────────────────────────────────────────────────────
@@ -332,10 +335,10 @@ export function packExr(frame: DeepFrame, opts: PackExrOptions = {}): Uint8Array
 
   const chroma = resolveChromaticities(opts.chromaticities ?? 'auto', space);
   // Default `software` attribution (the EXR standard's own generator field) so every
-  // EXR names its source; a caller can override or drop it via opts.attributes. Same
-  // convention as EPS's %%Creator and PDF's Producer — a uniform export-time strip flag
-  // (plan 82) would suppress all of them together for a no-metadata export.
-  const extras = Object.entries({ software: 'Lolly lolly.tools', ...(opts.attributes ?? {}) }).sort((a, b) => (a[0] < b[0] ? -1 : a[0] > b[0] ? 1 : 0));
+  // EXR names its source; a metadata-stripped export sets `attribution: false` to drop
+  // it. Caller-supplied attributes always pass through (an explicit choice).
+  const base = opts.attribution === false ? {} : { software: 'Lolly lolly.tools' };
+  const extras = Object.entries({ ...base, ...(opts.attributes ?? {}) }).sort((a, b) => (a[0] < b[0] ? -1 : a[0] > b[0] ? 1 : 0));
   for (const [k] of extras) {
     if (RESERVED_ATTRS.has(k)) throw new Error(`packExr: attribute "${k}" is written by the encoder and cannot be overridden`);
     if (k.length === 0) throw new Error('packExr: attribute name must not be empty');

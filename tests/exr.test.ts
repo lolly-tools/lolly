@@ -312,6 +312,9 @@ test('every required attribute is present, correctly typed and correctly valued'
   });
   // The default `software` attribution names the source (safe ASCII, no scheme/params).
   assert.equal(f.strings.software, 'Lolly lolly.tools');
+  // attribution: false drops the default software field (metadata-stripped export).
+  const stripped = parseExr(packExr(makeFrame(), { attribution: false }));
+  assert.equal(stripped.attrs.find((a) => a.name === 'software'), undefined, 'no software field when stripped');
   // box2i bounds are INCLUSIVE.
   assert.deepEqual(f.dataWindow, [0, 0, W - 1, H - 1]);
   assert.deepEqual(f.displayWindow, [0, 0, W - 1, H - 1]);

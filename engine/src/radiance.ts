@@ -355,8 +355,11 @@ export interface PackRadianceOptions {
    * 8-number array is written verbatim; `null` omits the line.
    */
   primaries?: 'auto' | readonly number[] | null;
-  /** SOFTWARE header value. */
+  /** SOFTWARE header value. An explicit value always wins over the default attribution. */
   software?: string;
+  /** Write the default `SOFTWARE=Lolly` source attribution when no explicit `software`
+   *  is given (default true). The shell sets it false for a metadata-stripped export. */
+  attribution?: boolean;
   /** Extra `#` comment lines, after the magic. */
   comments?: readonly string[];
   /**
@@ -412,8 +415,10 @@ export function packRadiance(frame: DeepFrame, opts: PackRadianceOptions = {}): 
   const lines: string[] = ['#?RADIANCE'];
   for (const c of opts.comments ?? []) lines.push(`#${sanitize(c)}`);
   // SOFTWARE= is Radiance's own generator field — default it to Lolly so every .hdr
-  // names its source (caller can override). Same convention as EPS %%Creator / EXR software.
-  lines.push(`SOFTWARE=${sanitize(opts.software ?? 'Lolly lolly.tools')}`);
+  // names its source. An explicit opts.software always wins; a metadata-stripped export
+  // (opts.attribution === false) drops the default.
+  const sw = opts.software ?? (opts.attribution === false ? undefined : 'Lolly lolly.tools');
+  if (sw !== undefined) lines.push(`SOFTWARE=${sanitize(sw)}`);
   lines.push(`FORMAT=${RADIANCE_FORMAT}`);
   lines.push(`EXPOSURE=${exposure}`);
   if (opts.gamma !== undefined) lines.push(`GAMMA=${opts.gamma}`);
