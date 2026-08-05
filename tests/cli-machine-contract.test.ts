@@ -147,7 +147,9 @@ test('describe --json carries the input schema and the real flag spelling', asyn
   const env = envelope(r);
   assertEnvelopeShape(env, 'describe');
   assert.equal(env.result.tool.id, 'vec-tool');
-  assert.deepEqual(env.result.tool.formats, ['svg', 'png']);
+  // Derived export formats are expanded into the loaded manifest (loader.ts →
+  // expandDerivedFormats): svg→svgz, png→bmp. describe truthfully advertises them.
+  assert.deepEqual(env.result.tool.formats, ['svg', 'png', 'svgz', 'bmp']);
   const label = env.result.inputs.find((i: any) => i.id === 'label');
   assert.equal(label.flag, '--label=');
   assert.equal(label.type, 'text');
@@ -394,6 +396,9 @@ test('a tool that cannot run here says so in the listing, not only in an exit co
   const env = envelope(await cli(['list', '--json']));
   const byId = Object.fromEntries(env.result.tools.map((t: any) => [t.id, t]));
   assert.equal(byId['vec-tool'].runnableHere, true);
+  // `list` reads the catalog index (unexpanded), so its nativeFormats stay the raw
+  // declared DOM-free set; `describe` (which calls loadTool) is where svg→svgz/png→bmp
+  // expansion surfaces. The two paths intentionally differ (index = quick card data).
   assert.deepEqual(byId['vec-tool'].nativeFormats, ['svg']);
   assert.equal(byId['mic-tool'].runnableHere, false);
   assert.deepEqual(byId['mic-tool'].unmetCapabilities, ['microphone', 'screen']);

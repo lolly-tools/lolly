@@ -138,9 +138,11 @@ test('manifest: motion-first editor with the orientation size driver', () => {
   // The audio-only formats sit between the motion group and the still: they carry
   // the timeline's sound, so they belong with motion, but a sequence's picture must
   // never default away to a file with no picture in it.
+  // loadTool expands derived formats (engine/src/derived-formats.ts): png→bmp, so the
+  // LOADED manifest carries 'bmp' even though tool.json lists nine. formats[0] is unaffected.
   assert.deepEqual(tool.manifest.render.formats,
-    ['mp4', 'webm', 'gif', 'apng', 'wav', 'mp3', 'm4a', 'opus', 'png'],
-    'mp4 leads so the motion editor defaults to motion; png stays available as the still');
+    ['mp4', 'webm', 'gif', 'apng', 'wav', 'mp3', 'm4a', 'opus', 'png', 'bmp'],
+    'mp4 leads so the motion editor defaults to motion; png stays available as the still (bmp derived from png)');
   assert.equal(tool.manifest.render.formats[0], 'mp4', 'formats[0] IS the panel default');
   assert.equal(tool.manifest.render.layout, 'editor');
   assert.equal(tool.manifest.render.video.wait, 0, 'a sequence never waits — frame 0 is t=0');

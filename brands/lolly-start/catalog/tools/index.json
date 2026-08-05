@@ -1,6 +1,6 @@
 {
   "version": "1",
-  "generatedAt": "2026-08-04T10:19:58.370Z",
+  "generatedAt": "2026-08-04T19:24:47.585Z",
   "tools": [
     {
       "id": "compress-pdf",
@@ -6306,58 +6306,6 @@
       }
     },
     {
-      "id": "bitmap-upscale",
-      "name": "Bitmap Upscale",
-      "description": "Frame and export an AI-upscaled photo, keeping the render path that carries your credential.",
-      "version": "1.0.0",
-      "status": "community",
-      "category": "designer",
-      "tags": [
-        "photo",
-        "image",
-        "bitmap",
-        "upscale",
-        "upres",
-        "enlarge",
-        "resolution",
-        "ai",
-        "super-resolution",
-        "sharpen",
-        "print",
-        "resize"
-      ],
-      "formats": [
-        "png",
-        "jpg",
-        "webp"
-      ],
-      "width": 1080,
-      "height": 1080,
-      "exportable": true,
-      "icon": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M3 9V4h5\"/><path d=\"M21 9V4h-5\"/><path d=\"M3 15v5h5\"/><path d=\"M21 15v5h-5\"/><rect x=\"7.5\" y=\"7.5\" width=\"9\" height=\"9\" rx=\"1\"/><circle cx=\"10.2\" cy=\"10.2\" r=\"1\"/><path d=\"m9 15 2.3-2.6 1.7 1.6L15.5 11.5\"/></svg>",
-      "preview": "/catalog/previews/bitmap-upscale.webp",
-      "featured": {
-        "order": 8,
-        "blurb": "Enlarge a photo with AI upscaling, then export it clean"
-      },
-      "examples": [
-        {
-          "label": "Square export",
-          "values": {
-            "width": 2048,
-            "height": 2048
-          }
-        },
-        {
-          "label": "Wide export",
-          "values": {
-            "width": 2560,
-            "height": 1440
-          }
-        }
-      ]
-    },
-    {
       "id": "layer-stack",
       "name": "Layers",
       "description": "Open a Photoshop or GIMP file as individual layers — lock each one down with exact X/Y coordinates, visibility, opacity and blend mode, then export flat images or a layered PSD.",
@@ -6388,7 +6336,7 @@
       "height": 1080,
       "exportable": true,
       "icon": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"m12 2 9 5-9 5-9-5Z\"/><path d=\"m3 12 9 5 9-5\"/><path d=\"m3 17 9 5 9-5\"/></svg>",
-      "preview": "/catalog/previews/layer-stack.webp"
+      "preview": "/catalog/previews/layer-stack.svg"
     }
   ]
 }

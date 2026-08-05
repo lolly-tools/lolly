@@ -46,11 +46,17 @@ const AUDIO = join(ROOT, 'docs', 'audio');
  * test yet, so a committed non-en directory must be listed here until it is.
  */
 const STALE_ALLOWED: Record<string, string> = {
-  // Empty, and that is the resting state. (The 2026-08-02 meta-title extraction
-  // drift was re-rendered the same day; the 2026-08-04 README-accuracy entry for
-  // en/about expired here when the privacy re-render swept it up — both left as
-  // the contract demands, since this test fails on a stale entry AND on one that
-  // is fresh again.)
+  // 2026-08-05: three narrated pages drifted from copy edits committed on
+  // 2026-08-04 AFTER their last render, all part of the formats-register / docs
+  // pass — not the current convert work (docs/build.ts pages[] is untouched).
+  // Re-render needs Kokoro TTS + ffmpeg (plan §10, never in CI), so these are
+  // allowlisted until the next narration sweep rather than re-recorded today.
+  'en/about':
+    'README.md format-support + provenance copy updated (ae540d0/9254b2b) after render; re-render needs Kokoro TTS/ffmpeg — 2026-08-05',
+  'en/beatrice-warde':
+    'beatrice-warde.md trimmed in the formats/Warde docs pass (8163cac) after render; re-render needs Kokoro TTS/ffmpeg — 2026-08-05',
+  'en/privacy':
+    'privacy.md reworded in the /info formats docs pass (b4f8490) after render; re-render needs Kokoro TTS/ffmpeg — 2026-08-05',
 };
 
 interface Committed { key: string; lang: string; slug: string; meta: AudioMeta }

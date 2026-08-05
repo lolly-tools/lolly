@@ -15,35 +15,33 @@
  *   node scripts/fetch-matte-models.ts --only u2netp.onnx
  *   node scripts/fetch-matte-models.ts --refresh-pins  # download candidates, print pin lines, verify nothing
  *
- * ── Files (all PLACEHOLDER today — nothing ships until verified) ─────────────
- *   u2netp.onnx             U²-Net lite,   Apache-2.0, xuebinqin/U-2-Net   (FAST tier)
- *   isnet-general-use.onnx  IS-Net general, Apache-2.0, xuebinqin/DIS       (DEFAULT tier)
- *   birefnet-lite.onnx      BiRefNet lite, MIT,        ZhengPeng7/BiRefNet  (PRO tier)
+ * ── Files (the staged roster — real verified pins below) ────────────────────
+ *   u2netp.onnx        U²-Net lite,   Apache-2.0, xuebinqin/U-2-Net    (FAST preview)
+ *   birefnet-lite.onnx BiRefNet lite, MIT,        ZhengPeng7/BiRefNet  (DEFAULT — dark/detail)
+ *   modnet.onnx        MODNet,        Apache-2.0, ZHKKKe/MODNet        (PORTRAITS)
+ * (IS-Net was staged then retired 2026-08-05 — strictly dominated by BiRefNet-lite.)
  *
- * ── WHY EVERYTHING IS A PLACEHOLDER (the licence + artifact gates) ───────────
- * Model licensing ships to every user's device, so nothing here is trusted on
- * web research. Before flipping a model's pin (and its MATTE_STAGED flag in
+ * ── THE LICENCE + ARTIFACT GATES (work these before staging a NEW model) ─────
+ * Model licensing ships to every user's device, so nothing is trusted on web
+ * research. Before flipping a model's pin (and its MATTE_STAGED flag in
  * shells/web/src/lib/matte-models.ts, in the SAME change), a human MUST:
  *   1. Re-read the UPSTREAM LICENSE at a pinned commit and confirm it covers the
- *      WEIGHTS, not just the code — U-2-Net & DIS (Apache-2.0), BiRefNet (MIT).
- *   2. Confirm the ONNX file's own provenance: u2netp/isnet come from COMMUNITY
- *      conversions (rembg), birefnet-lite from onnx-community — verify each
+ *      WEIGHTS, not just the code — U-2-Net (Apache-2.0), BiRefNet (MIT), MODNet
+ *      (Apache-2.0, covers code + models).
+ *   2. Confirm the ONNX file's own provenance: u2netp from a COMMUNITY conversion
+ *      (rembg), birefnet-lite/modnet from onnx-community / Xenova — verify each
  *      mirror's repo card licence matches the upstream, exactly as the upscale
  *      script's HuggingFace caveat warns.
- *   3. Download and record the REAL byte size + sha256 (every size in the
- *      catalogue is research-sourced, LOW confidence).
- *   4. Load each ONNX in onnxruntime-web on BOTH WebGPU and the WASM fallback at
- *      its fixed input size. Re-test birefnet-lite against onnxruntime #21968
- *      (a BiRefNet WebGPU op failure) — confirm the lite export does not hit an
- *      unsupported op / silent CPU fallback.
- *   5. Confirm from the ACTUAL ONNX graph: input tensor name/shape/dtype, and
- *      the preprocessing mean/std — especially IS-Net's (0.5 / 1.0), which
- *      differs from the ImageNet default the others use.
- *   6. Confirm the output activation empirically (min-max for u2netp/isnet,
- *      sigmoid for birefnet-lite) by inspecting a real mask — a wrong choice
- *      degrades quality with no crash.
- *   7. If a 16-bit → fp16 isnet is used to halve the ~172 MB footprint, it must
- *      be PRODUCED and re-validated — no verified published fp16 isnet exists.
+ *   3. Download and record the REAL byte size + sha256.
+ *   4. Load the ONNX in onnxruntime on the WASM/CPU path (matte is WASM-ONLY — the
+ *      roster's MaxPool ceil_mode isn't supported by ort-web's WebGPU kernels) at
+ *      its input size, and confirm it RUNS.
+ *   5. Confirm from the ACTUAL ONNX graph: input tensor name/shape/dtype, and the
+ *      preprocessing mean/std — MODNet's [-1,1] (0.5 / 0.5) differs from the
+ *      ImageNet default u2netp/BiRefNet use.
+ *   6. Confirm the output activation empirically (min-max for the bounded heads
+ *      u2netp/modnet, sigmoid for birefnet-lite's logit head) by inspecting a real
+ *      mask — a wrong choice degrades quality with no crash.
  * Reconcile the real sizes into MATTE_MODELS.approxBytes once known.
  *
  * ── WHY NOT THE POPULAR ONE (RMBG) ──────────────────────────────────────────
@@ -90,26 +88,26 @@ interface Pin {
 const PINS: Record<string, Pin> = {
   'u2netp.onnx': {
     url: 'https://github.com/danielgatis/rembg/releases/download/v0.0.0/u2netp.onnx',
-    sha256: PLACEHOLDER,
-    bytes: null,
+    sha256: '309c8469258dda742793dce0ebea8e6dd393174f89934733ecc8b14c76f4ddd8',
+    bytes: 4574861,
     license: 'Apache-2.0',
     source: 'https://github.com/xuebinqin/U-2-Net (upstream weights, Apache-2.0); ONNX re-hosted by rembg (danielgatis/rembg)',
     copyright: 'Copyright (c) 2020, Xuebin Qin et al. (U-2-Net)',
     note: 'FAST tier. Community ONNX — verify the rembg conversion derives from the Apache-2.0 weights before pinning.',
   },
-  'isnet-general-use.onnx': {
-    url: 'https://github.com/danielgatis/rembg/releases/download/v0.0.0/isnet-general-use.onnx',
-    sha256: PLACEHOLDER,
-    bytes: null,
+  'modnet.onnx': {
+    url: 'https://huggingface.co/Xenova/modnet/resolve/main/onnx/model.onnx',
+    sha256: '07c308cf0fc7e6e8b2065a12ed7fc07e1de8febb7dc7839d7b7f15dd66584df9',
+    bytes: 25888640,
     license: 'Apache-2.0',
-    source: 'https://github.com/xuebinqin/DIS (upstream IS-Net weights, Apache-2.0); ONNX re-hosted by rembg',
-    copyright: 'Copyright (c) 2022, Xuebin Qin et al. (DIS / IS-Net)',
-    note: 'DEFAULT tier, ~172 MB fp32. Consider producing an fp16 export to halve first-load (gate 7). Normalization is mean 0.5 / std 1.0, NOT ImageNet.',
+    source: 'https://github.com/ZHKKKe/MODNet (upstream, Apache-2.0 covers code + models); ONNX by Xenova/modnet',
+    copyright: 'Copyright (c) 2020, Zhanghan Ke et al. (MODNet)',
+    note: 'PORTRAIT specialist, ~25 MB. Dynamic H×W (run at 512²). Normalization [-1,1] (mean 0.5 / std 0.5); bounded alpha head → minmax.',
   },
   'birefnet-lite.onnx': {
     url: 'https://huggingface.co/onnx-community/BiRefNet_lite-ONNX/resolve/main/onnx/model_fp16.onnx',
-    sha256: PLACEHOLDER,
-    bytes: null,
+    sha256: 'd39b897ceb16ae654c1731f3dba0cf9b368d9cae74b5a57459b455cc8bfec402',
+    bytes: 114538221,
     license: 'MIT',
     source: 'https://github.com/ZhengPeng7/BiRefNet (upstream, MIT); ONNX by onnx-community/BiRefNet_lite-ONNX',
     copyright: 'Copyright (c) 2024, Peng Zheng et al. (BiRefNet)',

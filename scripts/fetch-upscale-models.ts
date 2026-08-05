@@ -122,24 +122,16 @@ const PINS: Record<string, Pin> = {
     note: 'TODO(andy): needs a real ONNX conversion + hand-verified pin before this can ship.',
   },
   'realesrgan-x4plus.onnx': {
-    // TODO(andy): PLACEHOLDER. Every candidate checked 2026-08-04 had a
-    // problem: qualcomm/Real-ESRGAN-x4plus only exposes an S3 zip
-    // (real_esrgan_x4plus-onnx-float.zip) whose .onnx uses ONNX
-    // external-data — a SEPARATE ~64 MB .data file alongside a small
-    // ~440 KB .onnx graph, not the single self-contained file the on-disk
-    // name implies; yuvraj108c/vsgan and the Xenova/onnx-community orgs
-    // 401'd (gated/nonexistent) on an anonymous fetch; OwlMaster/AllFilesRope
-    // only has an fp16 export (RealESRGAN_x4plus.fp16.onnx), a different
-    // precision than the plain filename implies. Pick one deliberately
-    // (accepting the fp16 tradeoff, or repacking the Qualcomm external-data
-    // pair into one file) and refresh this pin by hand.
-    url: 'https://qaihub-public-assets.s3.us-west-2.amazonaws.com/qai-hub-models/models/real_esrgan_x4plus/releases/v0.59.0/real_esrgan_x4plus-onnx-float.zip', // NOTE: zip w/ external-data — placeholder target only, not fetchable as a single file
-    sha256: PLACEHOLDER,
-    bytes: null,
+    // Verified 2026-08-05: a SINGLE-FILE fp32 ONNX of the canonical RealESRGAN_x4plus
+    // (RRDBNet 23-block), dynamic H×W, opset 17, input `input`/output `output`, x4,
+    // [0,1] RGB. Ran in onnxruntime (64²→256², output clamps to [0,1] like the general
+    // net) → drop-in for the existing runModel contract. BSD-3-Clause (follows upstream).
+    url: 'https://huggingface.co/SceneWorks/real-esrgan-onnx/resolve/main/real_esrgan_x4.onnx',
+    sha256: '5c586662929cbc686c1a5c38d9c060dbdb4ea5863a1f7672b8c0761e6b89c033',
+    bytes: 67051616,
     license: 'BSD-3-Clause',
-    source: 'https://github.com/xinntao/Real-ESRGAN — no single-file ONNX export located yet (see TODO above)',
+    source: 'https://github.com/xinntao/Real-ESRGAN (upstream x4plus .pth); single-file ONNX re-hosted at https://huggingface.co/SceneWorks/real-esrgan-onnx',
     copyright: 'Copyright (c) 2021, Xintao Wang and contributors (xinntao/Real-ESRGAN)',
-    note: 'TODO(andy): decide fp16 vs external-data-repack, then hand-verify and paste a real pin.',
   },
   'gfpgan-v1.4.onnx': {
     url: 'https://huggingface.co/facefusion/models-3.0.0/resolve/main/gfpgan_1.4.onnx',
