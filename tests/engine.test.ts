@@ -310,7 +310,7 @@ test('url-mode: imprint param — default-on parse/serialize round-trip', () => 
   // raster formats the Lolly pixel watermark actually survives. Kept as an
   // inline list (like the RESERVED test above) so a drift in either real gate
   // has to be a deliberate, visible edit here too.
-  const IMPRINT_FORMATS = ['png', 'jpg', 'jpeg', 'webp', 'avif', 'tiff'];
+  const IMPRINT_FORMATS = ['png', 'jpg', 'jpeg', 'webp', 'avif', 'tiff', 'bmp'];
   const tool = { inputs: [], render: {} };
   // What the web shell's exportDefaults/headless-export logic does with the
   // parsed value: false ⇒ explicit opt-out; true/null (absent) ⇒ applied for

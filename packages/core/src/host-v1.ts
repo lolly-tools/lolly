@@ -2979,7 +2979,7 @@ export interface MatteFrame {
  * ship under permissive licences (Apache-2.0 / MIT); the roster is deliberately
  * free of the popular non-commercial models (BRIA RMBG et al.).
  */
-export type MatteModelId = 'u2netp' | 'isnet-general' | 'birefnet-lite';
+export type MatteModelId = 'u2netp' | 'birefnet-lite' | 'modnet';
 
 /**
  * One entry in the on-device matte catalogue. `license` + `attribution` carry the
@@ -2989,7 +2989,7 @@ export type MatteModelId = 'u2netp' | 'isnet-general' | 'birefnet-lite';
  */
 export interface MatteModelInfo {
   id: MatteModelId;
-  /** Human name for the picker, e.g. "IS-Net general". */
+  /** Human name for the picker, e.g. "BiRefNet lite". */
   name: string;
   /** Ordering + intent for the picker. */
   tier: 'fast' | 'default' | 'pro';

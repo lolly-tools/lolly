@@ -28,7 +28,7 @@ import { repoRoot } from './repo-root.ts';
 // `txt` is in neither — the web shell produces it by serialising the RENDERED DOM
 // (`renderPlainText`). So it is a browser-tier format like `ico`, and claiming otherwise
 // made `--export=txt` exit 3 with a message blaming a browser that was never consulted.
-export const NODE_FORMATS = ['svg', 'emf', 'eps', 'eps-cmyk', 'dxf', 'exr', 'hdr', 'html', 'json', 'csv', 'ics', 'vcf', 'md'];
+export const NODE_FORMATS = ['svg', 'svgz', 'emf', 'wmf', 'eps', 'eps-cmyk', 'dxf', 'bmp', 'exr', 'hdr', 'html', 'json', 'csv', 'ics', 'vcf', 'md'];
 
 /**
  * The float interchange formats (plans/61-deeprichpixels.md §4.2 / §6 B3, surfaced
@@ -268,6 +268,27 @@ export async function rasterizeSvgToImprintedPng(
     width: frame.width, height: frame.height, channels: 4, depth: 8,
     ...(dpi && dpi > 0 ? { dpi } : {}),
   });
+}
+
+/**
+ * BMP counterpart to {@link rasterizeSvgToImprintedPng}: the same browser-free
+ * resvg→straight-RGBA pass, encoded as an uncompressed Windows Bitmap by the
+ * engine's `encodeBmp` (24-bit BGR, or 32-bit BGRA the moment a pixel is
+ * translucent). BMP is lossless like TIFF, so the gentle `LOSSLESS_STRENGTH`
+ * imprint is enough — and it applies by default (`imprint !== false`) unless the
+ * frame is below the watermark's detection floor, matching the PNG path. BMP has
+ * no metadata box, so it carries no C2PA manifest — the pixel Imprint is the only
+ * provenance the format can hold, which is exactly why it is applied here.
+ */
+export async function rasterizeSvgToBmp(
+  svg: string, width: number, height: number, opts: { imprint?: boolean } = {},
+): Promise<Uint8Array> {
+  const { embedWatermark, canCarryWatermark, LOSSLESS_STRENGTH, encodeBmp } = await import('@lolly/engine');
+  const frame = await rasterizeSvgToRgba(svg, width, height);
+  const rgba = (opts.imprint !== false && canCarryWatermark(frame.width, frame.height))
+    ? embedWatermark(frame.data, { width: frame.width, height: frame.height, strength: LOSSLESS_STRENGTH })
+    : frame.data;
+  return encodeBmp(rgba, frame.width, frame.height);
 }
 
 // ─── the pro float formats (plans/61-deeprichpixels.md §6 B3, §10 item 4) ────────

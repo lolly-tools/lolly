@@ -18,6 +18,7 @@
 
 import { validateManifest } from './validate.ts';
 import type { ValidationIssue } from './validate.ts';
+import { expandDerivedFormats } from './derived-formats.ts';
 import type { InputSpec } from './inputs.ts';
 import type {
   RenderSpec,
@@ -333,6 +334,14 @@ export async function loadTool(toolId: string, fetchFile: ToolFetchFile, opts: L
   // apply). Once parsed, fire every declared file concurrently — template (the one
   // other required file), styles, hooks, and any sibling text templates — so the
   // mount isn't serialised on a chain of independent fetches.
+  // Expand derived export formats (svg→svgz, emf→wmf, png/tiff→bmp) into the loaded
+  // manifest so both shells' export menus and the CLI's format gate offer them without
+  // every tool.json having to list them. Runtime-only: the generated catalog index is
+  // left unexpanded on purpose (see engine/src/derived-formats.ts). After schema
+  // validation, so the added ids never have to be in the schema's formats enum.
+  if (manifest.render?.formats) {
+    manifest.render.formats = expandDerivedFormats(manifest.render.formats);
+  }
   const declared = manifest.render?.formats ?? [];
   // Sibling text templates for data formats (template.ics / .vcf / .csv / .md).
   // Only fetched when the manifest actually declares that format, so most tools

@@ -273,6 +273,7 @@ export { makeGeomApi } from './geom-api.ts';
 export { emitEmf } from './emf.ts';
 export { emitEps } from './eps.ts';
 export { emitDxf } from './dxf.ts';
+export { emitWmf } from './wmf.ts';
 export { buildPptxParts, EMU_PER_INCH, EMU_PER_PX } from './pptx.ts';
 export type {
   PptxSlide, PptxShape, PptxRect, PptxText, PptxPic, PptxRun, PptxPara, PptxFill, PptxMedia, PptxBuildOpts,
@@ -315,12 +316,26 @@ export { packWebpAnim } from './webp-anim.ts';
 export { packTiff } from './tiff.ts';
 export { packPng } from './png.ts';
 export type { PackPngOptions, PngCicp, PngTextEntry, PngSamples } from './png.ts';
+export { encodeBmp, decodeBmp, isBmp, BmpUnsupportedError } from './bmp.ts';
+export type { EncodeBmpOptions, DecodedBmp } from './bmp.ts';
+export { decodeIco, isIco, IcoDecodeError } from './ico-decode.ts';
+export type { IcoImage, IcoRgbaImage, IcoPngImage } from './ico-decode.ts';
 export { deflateRaw, zlibCompress, adler32 } from './deflate.ts';
 export type { DeflateOptions } from './deflate.ts';
+export { gzip, gunzip, inflateRaw } from './gzip.ts';
+export { packTar } from './tar.ts';
+export type { TarFile } from './tar.ts';
+export { sfntKind, sfntToWoff, woffToSfnt } from './font-convert.ts';
+export type { SfntKind } from './font-convert.ts';
 export { videoProvenanceTags, embedMp4Meta, embedWebmMeta } from './video-meta.ts';
 export { embedWavInfo } from './riff-meta.ts';
 export type { WavInfoTags } from './riff-meta.ts';
 export { parseDataRows, DEFAULT_ROW_LIMIT } from './data-import.ts';
+export { expandDerivedFormats } from './derived-formats.ts';
+export { readXlsx, DEFAULT_XLSX_ROW_LIMIT } from './xlsx-import.ts';
+export type { ReadXlsxOpts, ReadXlsxResult } from './xlsx-import.ts';
+export { writeEpub } from './epub.ts';
+export type { EpubDoc, EpubChapter } from './epub.ts';
 export {
   decomposeMatrix, boxGeomFromBBox, mapWeight, mapFontFamily, mapAlign,
   safeColor, nodeToBox, finalizeBoxes, parsePenpotContent, collectPenpotFontUsage, penpotShapeToNode, penpotGradientToSpec,

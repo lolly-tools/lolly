@@ -107,8 +107,8 @@ function recorderTool(capabilities: string[]): any {
   };
 }
 
-// A plain image tool — the shape the bitmap-upscale tool has: one asset slot, no
-// hooks. The AI-upscale disclosure is driven purely by the placed asset's meta.
+// A plain image tool — one asset slot, no hooks. The AI-upscale disclosure is
+// driven purely by the placed (upscaled) asset's meta, so this is all it takes.
 function imageTool(): any {
   return {
     manifest: {

@@ -66,7 +66,7 @@ export function imprintDefaultOn(manifest: ProvenanceManifest): boolean {
  * the mark, not a bug in the gate.
  */
 export const IMPRINT_FORMATS: readonly string[] = Object.freeze([
-  'png', 'jpg', 'jpeg', 'webp', 'avif', 'tiff', 'pdf', 'pdf-cmyk', 'pptx',
+  'png', 'jpg', 'jpeg', 'webp', 'avif', 'tiff', 'bmp', 'pdf', 'pdf-cmyk', 'pptx',
 ]);
 
 /** True when `format` is one the Imprint can be embedded into. Case-insensitive. */

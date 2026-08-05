@@ -724,7 +724,7 @@ export const c2paExtractTarget: FuzzTarget = {
 // ('pdf' is absent on purpose — it routes to embedC2paInPdf, not a placer.)
 const ATTACH_FORMAT: Record<Exclude<SniffFormat, 'pdf'>, string> = {
   png: 'png', jpeg: 'jpg', gif: 'gif', svg: 'svg',
-  tiff: 'tiff', webp: 'webp', mp4: 'mp4', webm: 'webm', mkv: 'webm', mp3: 'mp3',
+  tiff: 'tiff', webp: 'webp', avif: 'avif', mp4: 'mp4', webm: 'webm', mkv: 'webm', mp3: 'mp3',
   wav: 'wav',
 };
 
