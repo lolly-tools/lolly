@@ -78,7 +78,7 @@ test('the sensor capabilities still validate (screen is additive, not a replacem
 
 // ─── version ─────────────────────────────────────────────────────────────────
 
-test('ENGINE_VERSION is 1.100.0', () => {
+test('ENGINE_VERSION is 1.105.0', () => {
   // A literal pin: the screencap surface shipped at 1.54, and tools declare
   // ^1.54.0 to require it. session-record only checks the stamp equals whatever
   // ENGINE_VERSION happens to be (tautological) — this catches an errant bump.
@@ -187,8 +187,12 @@ test('ENGINE_VERSION is 1.100.0', () => {
   // writePsd/readXcf + packbits/raster-layers/sniffLayeredRaster — plain engine
   // exports consumed like pdf-map; no HostV1 method added) and 1.103.0 (host.matte
   // — on-device background removal, a real additive HostV1 method; plus the
-  // ToolHookFlags.exportStill type fix).
-  assert.equal(ENGINE_VERSION, '1.103.0');
+  // ToolHookFlags.exportStill type fix). Then 1.104.0 (host.c2pa.sign widened to
+  // C2paSignOpts for the any-media authorship path) and 1.105.0 (host.raster —
+  // canRaster/measure/decode/encode: the bridge home for the canRaster()/loadImage()
+  // probes tool hooks used to open-code against the DOM, plans/86 §6.1). The
+  // ^1.54.0 screencap floor below still holds (a minor bump satisfies it).
+  assert.equal(ENGINE_VERSION, '1.105.0');
 });
 
 // ─── loadTool: a ^1.54.0 tool loads against this engine ───────────────────────

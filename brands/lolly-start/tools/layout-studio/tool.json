@@ -48,8 +48,7 @@
       "share"
     ],
     "layout": "editor",
-    "transparentBg": true,
-    "printMarks": false
+    "transparentBg": true
   },
   "hooks": {
     "onInit": true,

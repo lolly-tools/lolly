@@ -171,7 +171,8 @@ test('exportFile builds the surgical plan and returns the rebranded deck', async
     { from: '#ED7D31', to: '#ED7D31' },
   ] as any);
 
-  const out = await rt.exportFile();
+  const outRes = await rt.exportFile();
+  const out = Array.isArray(outRes) ? outRes[0]! : outRes;
 
   assert.equal(calls.rebrand.length, 1);
   const [bytes, plan] = calls.rebrand[0]!;

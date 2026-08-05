@@ -620,3 +620,43 @@ test('bmffTopBoxes reads the sizes a foreign file may legitimately use', () => {
     /malformed MP4 box size/,
   );
 });
+
+// ─── collectIngredients: container-level + SVG-nested (v1.104) ─────────────────
+
+import { collectIngredients } from '../engine/src/c2pa-extract.ts';
+
+const b64 = (u: Uint8Array): string => Buffer.from(u).toString('base64');
+
+test('collectIngredients: a signed file yields its own credential as one ingredient; unsigned yields []', async () => {
+  const signedJpeg = await embedC2pa(tinyJpeg(), 'jpg', { title: 'Photo', claimGenerator: 'Lolly lolly.tools' });
+  const ings = collectIngredients(signedJpeg);
+  assert.equal(ings.length, 1);
+  assert.ok(ings[0]!.activeLabel);
+  assert.ok(ings[0]!.manifestBoxes.length >= 1);
+  // Nothing signed → nothing to preserve, and never a throw.
+  assert.deepEqual(collectIngredients(tinyJpeg()), []);
+  assert.deepEqual(collectIngredients('nope' as unknown as Uint8Array), []);
+});
+
+test('collectIngredients: an SVG that embeds a signed raster surfaces the NESTED credential', async () => {
+  const signedJpeg = await embedC2pa(tinyJpeg(), 'jpg', { title: 'Nested photo', claimGenerator: 'Lolly lolly.tools' });
+  const svg = bytesOf(
+    `<?xml version="1.0"?><svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="8" height="8">`
+    + `<image xlink:href="data:image/jpeg;base64,${b64(signedJpeg)}" width="8" height="8"/></svg>`);
+  const ings = collectIngredients(svg);
+  // The SVG itself is unsigned, but the raster it embeds is — its manifest travels forward.
+  assert.equal(ings.length, 1);
+  assert.ok(ings[0]!.activeLabel);
+});
+
+test('collectIngredients: a signed SVG embedding a signed raster yields BOTH, deduped by label', async () => {
+  const signedJpeg = await embedC2pa(tinyJpeg(), 'jpg', { title: 'Inner', claimGenerator: 'Lolly lolly.tools' });
+  const inner = bytesOf(
+    `<?xml version="1.0"?><svg xmlns="http://www.w3.org/2000/svg" width="8" height="8">`
+    + `<image href="data:image/jpeg;base64,${b64(signedJpeg)}" width="8" height="8"/></svg>`);
+  const signedSvg = await embedC2pa(inner, 'svg', { title: 'Outer', claimGenerator: 'Lolly lolly.tools' });
+  const ings = collectIngredients(signedSvg);
+  assert.equal(ings.length, 2);
+  const labels = new Set(ings.map((i) => i.activeLabel));
+  assert.equal(labels.size, 2, 'the container and the nested raster are distinct manifests');
+});

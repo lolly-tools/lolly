@@ -313,6 +313,33 @@ export interface HostV1 {
   images?: ImagesAPI;
 
   /**
+   * Raster primitives for tool hooks that do their own canvas pixel work — a
+   * realm-correct capability probe, decode a source to a drawable bitmap,
+   * measure it, and encode finished pixels back to bytes. The bridge home for
+   * the `canRaster()`/`loadImage()` probes tool hooks used to open-code against
+   * the DOM (`typeof document === 'undefined'`, `new Image`), which are WRONG
+   * inside a Worker: `document` is absent there even where `OffscreenCanvas`
+   * works. A tool asks the host, not the realm, so the same hook is correct on
+   * the main thread and inside a Worker (plans/86-worker-isolation-hooks.md §6.1).
+   *
+   * Distinct from `host.images`: that is the CONVERT path (encoded bytes in,
+   * encoded bytes out, no pixel access) for the upload/export pipeline. This is
+   * for tools that composite, sample or mutate pixels themselves (bitmap-studio,
+   * the filter-* family, the logo/lockup composers, redact) — so `decode`
+   * returns a drawable `ImageBitmap` (valid on a main-thread `<canvas>` AND a
+   * Worker `OffscreenCanvas`, unlike an `<img>`) and `encode` takes raw RGBA.
+   * Building/drawing INTO a canvas is deliberately NOT here: `new
+   * OffscreenCanvas(w, h)` is a realm global a hook constructs directly, so an
+   * RPC round-trip would buy nothing. DOM-free CONTRACT — no `HTMLImageElement`
+   * or `document` crosses this surface. Optional/additive (v1.105) and NOT gated
+   * by a `capabilities` flag: a tool feature-detects `host.raster` (undefined on
+   * the headless CLI/jsdom shell, which has no canvas) and degrades to its
+   * existing placeholder, exactly as `host.images`/`host.color`/`host.geom` do.
+   * Runs locally; the bytes are never uploaded.
+   */
+  raster?: RasterAPI;
+
+  /**
    * Exact vector geometry — path booleans, offsetting, stroke outlining,
    * authored-spline lowering, simplification and hit testing (see
    * engine/src/geom/). SVG path data in, SVG path data out; nothing flattens,
@@ -1037,6 +1064,87 @@ export interface ImageResult {
   height: number;
 }
 
+// ─── Raster primitives (optional, v1.105) ────────────────────────────────────
+
+/**
+ * On-device raster access for tool hooks — see the `raster?` field on HostV1
+ * for what this is and why it is separate from `host.images`. Every source it
+ * accepts and every value it returns is realm-portable (bytes, Blob, URL,
+ * AssetRef, ImageBitmap, RGBA frame); no `HTMLImageElement` and no `document`
+ * appear anywhere, so a hook written against it is unchanged when it moves from
+ * `new Function` closure-scope injection into a Worker.
+ */
+export interface RasterAPI {
+  /**
+   * Realm-correct, SYNCHRONOUS capability probe: can THIS realm rasterise (a 2D
+   * canvas context + `createImageBitmap` available)? True on the main thread and
+   * inside a Worker with `OffscreenCanvas`; the single honest replacement for
+   * every hand-rolled `typeof document === 'undefined'` guard, which reports
+   * false in a Worker even where rastering works fine. Synchronous so a hook can
+   * branch on it before deciding what to render (like `host.viz.isAvailable`),
+   * which is why it is attached eagerly and cannot hide behind a Promise.
+   */
+  canRaster(): boolean;
+
+  /**
+   * Decode enough of `src` to report its ORIENTED pixel dimensions (EXIF
+   * rotation applied, matching `decode`) and sniffed MIME. Rejects when `src`
+   * can't be read here. Reuses the `ImageInfo` shape `host.images.decode`
+   * already returns.
+   */
+  measure(src: RasterSource): Promise<ImageInfo>;
+
+  /**
+   * Decode `src` to a drawable `ImageBitmap` — EXIF orientation baked in,
+   * HEIC/AVIF handled via the shell's bundled fallback, SVG via the shell's
+   * reliable `<img>` path (decoding an SVG blob directly is unreliable), all
+   * behind a decode-bomb guard. Draw it with `ctx.drawImage(bitmap, …)` on a
+   * locally-built canvas/OffscreenCanvas exactly where an `<img>` was drawn
+   * before — the only call-site change is the object's type. `ImageBitmap` has
+   * `width`/`height` (no `naturalWidth`), and the shipped consumers already read
+   * `img.naturalWidth || img.width`, so they are unchanged. Call `.close()` when
+   * done to release the backing store eagerly (optional; GC'd otherwise). Rejects
+   * when `src` can't be read.
+   */
+  decode(src: RasterSource): Promise<ImageBitmap>;
+
+  /**
+   * Encode finished pixels to bytes — the sink side of every `toDataURL` /
+   * `toBlob` / `convertToBlob` a hook used to call. Accepts EITHER an
+   * `ImageBitmap` (the cheap path — a hook that only composited, no per-pixel
+   * read-back) OR a `RasterFrame` of raw RGBA (a hook that pulled pixels via
+   * `getImageData` to do its own maths; a live `MediaFrame` is structurally a
+   * `RasterFrame` and passes straight through). Mirrors `host.images`'
+   * `{ format, quality }` in / `{ bytes, mime, width, height }` out — read the
+   * result's actual mime back, since an encoder may fall back (PNG where WebP is
+   * unsupported).
+   */
+  encode(source: ImageBitmap | RasterFrame, opts: ImageEncodeOpts): Promise<ImageResult>;
+}
+
+/**
+ * What `host.raster` can decode/measure: a fetchable URL (including a `blob:` or
+ * `data:` one — the form every AssetRef.url in this app takes), an AssetRef
+ * directly (so a hook need not unwrap `.url` itself), or raw encoded bytes / a
+ * Blob (so a `file` input's in-memory upload is readable without being written
+ * anywhere first). Mirrors `AudioSource`, with `Blob` for `host.images` parity.
+ * A local `blob:`/`data:` URL needs no `network` capability.
+ */
+export type RasterSource = string | AssetRef | Uint8Array | Blob;
+
+/**
+ * Raw RGBA pixels — the DOM-free shape `getImageData`/`putImageData` deal in,
+ * and the encode-input sibling of `MediaFrame` (minus the timestamp a finished
+ * still has no use for). A `MediaFrame` value is structurally assignable here,
+ * so an `onFrame` frame hands straight to `encode()`.
+ */
+export interface RasterFrame {
+  width: number;
+  height: number;
+  /** Tightly-packed RGBA bytes, length width*height*4. */
+  data: Uint8ClampedArray;
+}
+
 // ─── Audio analysis (optional, v1.71) ─────────────────────────────────────────
 
 export interface AudioAPI {
@@ -1751,19 +1859,77 @@ export interface PdfPagesResult {
   failed?: number[];
 }
 
-// ─── Content Credentials signing (optional, v1.85) ───────────────────────────
+// ─── Content Credentials signing (optional, v1.85; widened v1.104) ────────────
+
+export interface C2paSignOpts {
+  /** Labels the primary edit step in the action history. */
+  description?: string;
+  /** dc:title for the manifest — usually the file's own name. */
+  title?: string;
+  /**
+   * Asserted authorship → the manifest's dc:creator. A bare string is shorthand
+   * for `{ name }`. This is how an artist claims their name over content they
+   * already have digitised, before uploading it anywhere.
+   */
+  author?: { name: string; email?: string } | string;
+  /** © notice + licence, combined into one line → the manifest's dc:rights. */
+  rights?: string;
+  /**
+   * Source manifests to PRESERVE as ingredients (relationship `parentOf`), so a
+   * credential already inside the bytes — or a signed element within a container
+   * (a C2PA raster embedded in a PDF/SVG, a signed track in an MP4) — survives
+   * and is referenced rather than orphaned. Read them with the engine's
+   * `extractC2paStore` / `prepareC2paIngredientFromStore` (and `extractC2paFromPdf`
+   * for a document-level PDF manifest). When present the engine prepends a
+   * `c2pa.opened` step per ingredient and the new claim reads as an edit of prior
+   * work, so the history must NOT also claim `c2pa.created`.
+   */
+  ingredients?: IngredientCredential[];
+  /**
+   * What Lolly did to the bytes, for an honest action history:
+   *  • `'imported'` — content authored elsewhere; authorship/rights/metadata added
+   *    here without re-rendering the essence (the any-media stamping path). The
+   *    default whenever `author`, `rights`, or `ingredients` is supplied.
+   *  • `'redacted'` — a fresh derivative with content removed (the redact path):
+   *    `c2pa.created` + a `c2pa.redacted` step. The default when none of the above
+   *    are given, preserving the original v1.85 contract.
+   */
+  action?: 'imported' | 'redacted';
+  /**
+   * The caller applied the durable Lolly pixel imprint to the essence before
+   * signing (raster only) — records an honest `c2pa.edited` watermark step.
+   * Ignored on `'redacted'`.
+   */
+  imprinted?: boolean;
+}
 
 export interface C2paAPI {
   /**
    * Embed a freshly signed C2PA manifest into `bytes` and return the stamped
-   * bytes. The manifest carries NO ingredients — this is for derivatives (a
-   * redacted file) where referencing the source would carry removed content
-   * forward. `format` is the output format key ('pdf', 'png', 'jpg', …);
-   * `opts.description` labels the redaction step in the action history.
-   * Throws when the format cannot carry a manifest or signing fails — the
-   * caller decides whether unsigned bytes may still ship.
+   * bytes. `format` is the output format key ('pdf', 'png', 'jpg', 'mp4', 'm4a',
+   * …) — see the engine's `C2PA_FORMATS` for the full set. Two modes, chosen by
+   * `opts` (see {@link C2paSignOpts}):
+   *  • the default derivative path (v1.85): a redacted file, no ingredients; and
+   *  • the any-media authorship path (v1.104): stamp an existing file with the
+   *    artist's author/copyright/licence, carrying any manifests already inside
+   *    it forward as ingredients so nested credentials are preserved, not lost.
+   * Throws when the format cannot carry a manifest or signing fails — the caller
+   * decides whether unsigned bytes may still ship.
    */
-  sign(bytes: Uint8Array, format: string, opts?: { description?: string }): Promise<Uint8Array>;
+  sign(bytes: Uint8Array, format: string, opts?: C2paSignOpts): Promise<Uint8Array>;
+
+  /**
+   * Read EVERY C2PA manifest a file already carries and package each as an
+   * ingredient ready to pass to `sign({ ingredients })` (v1.104). Collects the
+   * file's own container-level credential — for any supported format (PDF, PNG,
+   * JPEG, MP4, M4A, WebP, AVIF, TIFF, GIF, SVG, WebM, MP3, WAV) — plus the
+   * element-level credentials nested inside a container (today: signed rasters an
+   * SVG embeds via `<image href="data:…">`). This is how a tool that stamps an
+   * authorship claim onto an EXISTING file preserves what is already inside it,
+   * relationship `parentOf`, instead of orphaning it. Read-only; NEVER throws —
+   * a file with nothing signed resolves to `[]`.
+   */
+  readIngredients(bytes: Uint8Array): Promise<IngredientCredential[]>;
 }
 
 // ─── PPTX (optional) ──────────────────────────────────────────────────────────
@@ -2076,7 +2242,7 @@ export interface IngredientCredential {
 }
 
 export interface AssetQuery {
-  type?: 'vector' | 'raster' | 'video' | 'audio' | 'lottie' | 'palette' | 'tokens' | 'font' | 'profile' | 'ratecard';
+  type?: 'vector' | 'raster' | 'video' | 'audio' | 'lottie' | 'palette' | 'tokens' | 'font' | 'profile' | 'ratecard' | 'text';
   namespace?: string; // e.g. 'suse/logo' matches everything under it
   tags?: string[];    // AND across tags
   includeDeprecated?: boolean; // default false
@@ -2241,6 +2407,23 @@ export interface ExportAPI {
    * back to download().
    */
   file(blob: Blob, opts?: { filename?: string }): Promise<void>;
+
+  /**
+   * Apply Lolly's durable RASTER marks to finished image bytes — the transform-
+   * path counterpart to render()'s automatic marking, for a tool that stamps an
+   * EXISTING file (Embed, Imprint & Track) rather than rendering a DOM node.
+   * Embeds the pixel Imprint (a fast-to-read DCT watermark that survives re-
+   * encoding) always, plus the imperceptible neural durable mark when
+   * `opts.durable`, then re-encodes to the SAME raster format. Raster-only and
+   * best-effort: a non-raster format (pdf/mp4/audio/svg), undecodable bytes, or a
+   * sub-8px image returns the input UNCHANGED, and it NEVER throws — a marking
+   * hiccup returns the bytes, because losing the file is worse than a missing
+   * mark. Distinct from file(): callers combine it with host.c2pa.sign to layer
+   * the pixel/durable marks under the C2PA credential. Progressive enhancement:
+   * a shell without a rasteriser (headless CLI) returns the input unchanged.
+   * (v1.104)
+   */
+  imprint(bytes: Uint8Array, format: string, opts?: { durable?: boolean }): Promise<Uint8Array>;
 }
 
 /**
@@ -2719,7 +2902,7 @@ export interface AssetRef {
   // profile, `user/profiles/<digest>`). It has no visual form — it is a gamut to
   // compare against, not something to place — so image surfaces filter it out
   // the same way they filter 'font' and 'tokens'.
-  type: 'vector' | 'raster' | 'video' | 'audio' | 'lottie' | 'palette' | 'tokens' | 'font' | 'profile' | 'ratecard';
+  type: 'vector' | 'raster' | 'video' | 'audio' | 'lottie' | 'palette' | 'tokens' | 'font' | 'profile' | 'ratecard' | 'text';
   format: string;
   url: string;
   width?: number;

@@ -85,6 +85,9 @@ export interface BarCell {
   ink: 'rgb' | 'cmyk' | 'page';
   label?: string;
   spotName?: string;
+  /** Corner radius (pt) for the cell — 0 is a sharp square. Reflects the brand
+   *  `--radius`; the shell passes it as barRadiusPt and it is clamped to w/2 here. */
+  r: number;
   mark: 'colorbar';
 }
 
@@ -107,6 +110,17 @@ export interface PrintGeometryOpts {
   bleedPt?: number;
   marks?: PrintMarksFlags;
   palette?: PaletteSwatch[];
+  /** How a brand palette renders in the colour bar:
+   *  • 'cmyk-verify' (default) — the CMYK press bar: four process primaries then
+   *    each brand colour as an RGB reference cell touching its CMYK substitution,
+   *    so a press operator can check the RGB→CMYK swap. For the CMYK formats.
+   *  • 'rgb-swatches' — each brand colour as a single RGB cell, no process
+   *    primaries and no CMYK pair. For RGB output (RGB PDF / SVG / EPS), where a
+   *    CMYK cell would be meaningless. */
+  barStyle?: 'cmyk-verify' | 'rgb-swatches';
+  /** Corner radius (pt) applied to every colour-bar cell — from the brand
+   *  `--radius`. Clamped to half the cell size. 0 keeps sharp squares. */
+  barRadiusPt?: number;
 }
 
 export interface PrintGeometry {
@@ -163,9 +177,12 @@ export function cmykToRgbApprox([c, m, y, k]: Cmyk): RgbTriple {
  * a genuine spot plate, not a process substitution. Empty palette → the generic
  * process/overprint/tint control bar.
  */
-export function computePrintGeometry({ trimWpt, trimHpt, bleedPt = 0, marks = {}, palette = [] }: PrintGeometryOpts): PrintGeometry {
+export function computePrintGeometry({ trimWpt, trimHpt, bleedPt = 0, marks = {}, palette = [], barStyle = 'cmyk-verify', barRadiusPt = 0 }: PrintGeometryOpts): PrintGeometry {
   const m = { crop: false, registration: false, bleed: false, colorBars: false, provenance: false, ...marks };
   const { markLengthPt: L, markReachPt: R, regRadiusPt: rr, regCrossPt: rc, barCellPt: bc, barPairGapPt: bg, barGroupGapPt: bgap, barMaxCells: bmax, labelSizePt: ls, labelInsetPt: li } = PRINT_MARK_DEFAULTS;
+  // Cell corner radius from the brand --radius, clamped so it never exceeds a
+  // semicircle end on the square cell.
+  const cellR = Math.max(0, Math.min(barRadiusPt, bc / 2));
 
   const anyMark = m.crop || m.registration || m.bleed || m.colorBars || m.provenance;
   const reach = anyMark ? R : 0;            // margin band beyond the bleed for marks
@@ -218,23 +235,36 @@ export function computePrintGeometry({ trimWpt, trimHpt, bleedPt = 0, marks = {}
   }
 
   // Colour bar — a row of cells left-aligned in the bottom margin so it clears
-  // the centred bottom registration target. Two modes:
-  //  • Brand palette supplied → a verification bar: the four solid process
-  //    primaries (C, M, Y, K) for the press to calibrate against, a wider gap,
-  //    then each brand colour as an RGB reference swatch touching its CMYK
-  //    substitution so the RGB→CMYK swap is visible to check.
+  // the centred bottom registration target. Three modes:
+  //  • Brand palette + barStyle 'rgb-swatches' → each brand colour as ONE solid
+  //    RGB cell (for RGB output — RGB PDF / SVG / EPS; a CMYK cell would be moot).
+  //  • Brand palette + 'cmyk-verify' → the CMYK press bar: four process primaries
+  //    for the press to calibrate against, a wider gap, then each brand colour as
+  //    an RGB reference swatch touching its CMYK substitution so the RGB→CMYK swap
+  //    is visible to check.
   //  • No palette → the generic process/overprint/tint control bar.
   // Capped by the available margin width (the real limit) and a flat ceiling.
   if (m.colorBars) {
     const y = bB + reach / 2 - bc / 2;
     const maxX = m.registration ? (pageW / 2 - rc - 6) : (pageW - M);
     let x = trimL;
-    if (palette.length) {
+    if (palette.length && barStyle === 'rgb-swatches') {
+      // RGB output — one RGB cell per brand colour, a small gap between so the
+      // rounded cells read as distinct swatches. No process primaries, no CMYK.
+      let brandCells = 0;
+      for (const { rgb, cmyk, label, spotName } of palette) {
+        if (brandCells >= bmax) break;
+        if (x + bc > maxX) break;
+        bars.push({ x, y, w: bc, h: bc, cmyk, rgb, ink: 'rgb', label, spotName, mark: 'colorbar', r: cellR });
+        x += bc + bg;
+        brandCells += 1;
+      }
+    } else if (palette.length) {
       // Solid process primaries first — fixed calibration reference, DeviceCMYK
       // on the cmyk plate (the first four COLOR_BAR_CELLS are C, M, Y, K).
       for (const cmyk of COLOR_BAR_CELLS.slice(0, 4)) {
         if (x + bc > maxX) break;
-        bars.push({ x, y, w: bc, h: bc, cmyk, rgb: cmykToRgbApprox(cmyk), ink: 'cmyk', mark: 'colorbar' });
+        bars.push({ x, y, w: bc, h: bc, cmyk, rgb: cmykToRgbApprox(cmyk), ink: 'cmyk', mark: 'colorbar', r: cellR });
         x += bc;
       }
       if (bars.length) x += bgap;                  // wider gap before the brand pairs
@@ -244,8 +274,8 @@ export function computePrintGeometry({ trimWpt, trimHpt, bleedPt = 0, marks = {}
       for (const { rgb, cmyk, label, spotName } of palette) {
         if (brandCells + 2 > bmax) break;          // flat ceiling on brand cells
         if (x + 2 * bc > maxX) break;              // no room for the pair before the centre mark
-        bars.push({ x,        y, w: bc, h: bc, cmyk, rgb, ink: 'rgb',  label, spotName, mark: 'colorbar' });
-        bars.push({ x: x + bc, y, w: bc, h: bc, cmyk, rgb, ink: 'cmyk', label, spotName, mark: 'colorbar' });
+        bars.push({ x,        y, w: bc, h: bc, cmyk, rgb, ink: 'rgb',  label, spotName, mark: 'colorbar', r: cellR });
+        bars.push({ x: x + bc, y, w: bc, h: bc, cmyk, rgb, ink: 'cmyk', label, spotName, mark: 'colorbar', r: cellR });
         x += 2 * bc + bg;                          // gap separates one colour's pair from the next
         brandCells += 2;
       }
@@ -253,7 +283,7 @@ export function computePrintGeometry({ trimWpt, trimHpt, bleedPt = 0, marks = {}
       for (const cmyk of COLOR_BAR_CELLS) {
         if (bars.length >= bmax) break;
         if (x + bc > maxX) break;                  // ran out of room before the centre mark
-        bars.push({ x, y, w: bc, h: bc, cmyk, rgb: cmykToRgbApprox(cmyk), ink: 'page', mark: 'colorbar' });
+        bars.push({ x, y, w: bc, h: bc, cmyk, rgb: cmykToRgbApprox(cmyk), ink: 'page', mark: 'colorbar', r: cellR });
         x += bc;
       }
     }

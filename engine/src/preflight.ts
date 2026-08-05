@@ -46,7 +46,8 @@ import { normalizeTableValue } from './inputs.ts';
 import type { PrintMarksFlags } from './print-marks.ts';
 import { computePrintGeometry } from './print-marks.ts';
 import type { Dimension } from './units.ts';
-import { isPhysical, toCssPx, toPixels, toPoints } from './units.ts';
+import { isPhysical, toCssPx, toInches, toPixels, toPoints } from './units.ts';
+import { rgbToCmyk, cmykCondition, DEFAULT_CMYK_CONDITION } from './color.ts';
 import { ENGINE_VERSION } from './version.ts';
 
 /** Re-exported so a shell can import the whole preflight vocabulary from one
@@ -67,8 +68,10 @@ export type {
 // in `sequence-cuts.ts` now read from here. Two copies is how "the panel hides the
 // bleed card but the URL still carries bleed" happens, so do not reintroduce one.
 
-/** Formats to which bleed and print marks apply. (`isPrintFmt`.) */
-export const PRINT_MARK_FORMATS: ReadonlySet<string> = new Set(['pdf', 'pdf-cmyk', 'cmyk-tiff']);
+/** Formats to which bleed and print marks apply. (`isPrintFmt`.) The vector
+ *  formats svg/eps/eps-cmyk gained per-page marks + a colour bar drawn from the same
+ *  computePrintGeometry as the PDF path. */
+export const PRINT_MARK_FORMATS: ReadonlySet<string> = new Set(['pdf', 'pdf-cmyk', 'cmyk-tiff', 'svg', 'eps', 'eps-cmyk']);
 
 /** Formats that build a process (CMYK) separation. */
 export const SEPARATING_FORMATS: ReadonlySet<string> = new Set(['pdf-cmyk', 'cmyk-tiff', 'eps-cmyk']);
@@ -247,6 +250,14 @@ export interface PreflightSwatch {
   readonly path?: string;
   readonly name?: string;
   readonly spot: SpotColor | null;
+  /** The swatch's process build (0–100 per channel C,M,Y,K) from a DTCG
+   *  `$extensions` cmyk lock, when the brand set one. Drives the TAC measurement;
+   *  an explicit lock wins over the hex, exactly like buildCmykPaletteMap. */
+  readonly cmyk?: readonly number[];
+  /** The swatch's own colour (`#rrggbb`), the fallback the naive rgbToCmyk reads
+   *  for TAC when no cmyk lock is present. Finish swatches are excluded by the
+   *  check (their real build is 100% K), not by omitting data. */
+  readonly hex?: string;
 }
 
 /**
@@ -254,6 +265,17 @@ export interface PreflightSwatch {
  * pass `{ known: false, why: 'needs-mount' }`. This is the ONLY channel through
  * which a DOM truth reaches the engine, and it is plain data.
  */
+/** One raster `<img>` placed in the artwork, measured off the mounted DOM: its
+ *  intrinsic pixel size and its rendered CSS box. Feeds the per-image effective-DPI
+ *  check (checkImageEffectiveDpi). */
+export interface ImageFact {
+  readonly label: string;
+  readonly naturalW: number;
+  readonly naturalH: number;
+  readonly boxCssW: number;
+  readonly boxCssH: number;
+}
+
 export interface StageFacts {
   /** `isSequenceStage(node)`: the node is (or contains) a timed composition. */
   readonly isSequence: boolean;
@@ -261,6 +283,13 @@ export interface StageFacts {
   readonly durationMs?: number | null;
   /** `[data-pdf-page]` box count, or null when the stage has none. */
   readonly pageBoxes?: number | null;
+  /** Measured CSS-px width of the stage node, taken to span the physical trim
+   *  width — the px→physical scale for per-image effective DPI. */
+  readonly canvasCssW?: number | null;
+  /** Every raster `<img>` in the artwork, with its natural size + rendered box.
+   *  SVG inline `<image>` and CSS background-images are deliberately NOT collected
+   *  (no cheap natural size), a known blind spot. */
+  readonly rasterImages?: readonly ImageFact[] | null;
 }
 
 export interface PreflightJob {
@@ -465,6 +494,47 @@ const finishSpots = (c: Ctx): { name: string; spot: SpotColor; path: string; fin
     .filter(s => typeof s.spot.finish === 'string' && s.spot.finish !== '')
     .map(s => ({ ...s, finish: s.spot.finish as string }));
 
+// ─── Total ink coverage (TAC) ───────────────────────────────────────────────
+//
+// A brand SOLID's ink coverage is knowable — its CMYK build is data. A photo's or
+// gradient's is not without rendering the separation, so refuse.ink-coverage stays
+// (rescoped to 'needs-render') for that. We report the heaviest brand solid, clearly
+// scoped, against the chosen condition's limit — never as the whole file's number.
+
+/** `#rgb`/`#rrggbb` → 0–1 triple, or null. */
+const hexRgb01 = (hex: unknown): [number, number, number] | null => {
+  if (typeof hex !== 'string') return null;
+  const m = /^#?([0-9a-f]{3}|[0-9a-f]{6})$/i.exec(hex.trim());
+  if (!m) return null;
+  let h = m[1]!;
+  if (h.length === 3) h = h[0]! + h[0]! + h[1]! + h[1]! + h[2]! + h[2]!;
+  const n = parseInt(h, 16);
+  return [((n >> 16) & 255) / 255, ((n >> 8) & 255) / 255, (n & 255) / 255];
+};
+
+/** A brand solid's CMYK build (0–100 per channel) + its total area coverage (0–400),
+ *  or null for a finish swatch or one with no usable colour. An explicit DTCG cmyk
+ *  lock wins over the hex, exactly like buildCmykPaletteMap. */
+const swatchTac = (s: PreflightSwatch): { cmyk: [number, number, number, number]; tac: number; name: string } | null => {
+  if (s?.spot?.finish) return null;                                   // a finish is a 100% K mask, not a solid to weigh
+  let cmyk: [number, number, number, number] | null = null;
+  if (Array.isArray(s?.cmyk) && s.cmyk.length === 4 && s.cmyk.every(isFiniteNum)) {
+    cmyk = [s.cmyk[0]!, s.cmyk[1]!, s.cmyk[2]!, s.cmyk[3]!];          // DTCG lock, already 0–100
+  } else {
+    const rgb = hexRgb01(s?.hex);
+    if (rgb) { const [cc, mm, yy, kk] = rgbToCmyk(rgb[0], rgb[1], rgb[2]); cmyk = [cc * 100, mm * 100, yy * 100, kk * 100]; }
+  }
+  if (!cmyk) return null;
+  return { cmyk, tac: Math.round(cmyk[0] + cmyk[1] + cmyk[2] + cmyk[3]), name: (typeof s.name === 'string' && s.name) || 'a brand colour' };
+};
+
+/** The chosen press condition's TAC limit (default fogra39 / 330%). */
+const tacLimitFor = (c: Ctx): { name: string; limit: number } => {
+  const p = c.job?.settings?.pressProfile;
+  const name = p?.known === true && typeof p.value === 'string' && p.value ? p.value : DEFAULT_CMYK_CONDITION;
+  return { name, limit: cmykCondition(name).tac };
+};
+
 /**
  * A declared finish emitted as its own named plate, with no overprint.
  *
@@ -475,19 +545,21 @@ const finishSpots = (c: Ctx): { name: string; spot: SpotColor; path: string; fin
  * the named plate is unaffected, and one that flattens spots paints an
  * unmistakable black mask instead of a plausible metallic.
  *
- * What is still wrong, and what this finding is FOR: overprint is implemented
- * nowhere in this repo, so the finish plate KNOCKS OUT the process artwork
- * beneath it. That is the actual remaining defect, and it must be the sentence
- * the user reads — acting on "my foil will print gold" fixes nothing.
+ * The finish plate now OVERPRINTS (substitutePdfRgb selects an overprint graphics
+ * state for it in the pdf-cmyk path), so it sits ON the process artwork instead of
+ * cutting a hole in it. What remains is a HANDOFF question, not a defect: a printer
+ * may want the finish supplied as its own artwork/plate rather than as an
+ * overprinting named separation, so this is now an informational heads-up, not an
+ * error.
  */
 const checkFinishSeparatesAsInk: Check = c => {
   if (!SPOT_PLATE_FORMATS.has(c.fmt)) return;
   for (const s of finishSpots(c)) {
     c.add({
       id: 'print.finish-separates-as-ink',
-      severity: 'error',
-      message: `${s.name} is a ${s.finish} finish. Lolly writes it as its own named plate whose process fallback is a 100% black mask, and it is not overprinted, so the finish plate knocks out the artwork beneath it. Agree with your printer how they want the finish supplied before sending this.`,
-      evidence: { spotName: s.spot.name, swatch: s.name, finish: s.finish, tokenPath: s.path, format: c.fmt, overprint: false },
+      severity: 'info',
+      message: `${s.name} is a ${s.finish} finish. Lolly writes it as its own overprinting named plate, with a 100% black process fallback if a RIP flattens it. Confirm with your printer how they want the finish supplied (its own overprinting plate, or separate finish artwork).`,
+      evidence: { spotName: s.spot.name, swatch: s.name, finish: s.finish, tokenPath: s.path, format: c.fmt, overprint: true },
     });
   }
 };
@@ -561,7 +633,7 @@ const checkPrintMarksOnNonPrintFormat: Check = c => {
   c.add({
     id: 'settings.print-marks-on-non-print-format',
     severity: 'warn',
-    message: `Bleed and print marks are set, but ${c.fmt || 'this format'} ignores them. Only PDF, Print PDF and Print TIFF carry them.`,
+    message: `Bleed and print marks are set, but ${c.fmt || 'this format'} ignores them. Only PDF, Print PDF, Print TIFF, SVG and EPS carry them.`,
     evidence: { format: c.fmt, bleedSet: bleedIsSet(c), marksSet: marksAreSet(c) },
   });
 };
@@ -801,6 +873,97 @@ const physicalTrim = (c: Ctx): { w: Dimension; h: Dimension } | null => {
   return { w: s.width, h: s.height };
 };
 
+// ─── Effective resolution at print size ──────────────────────────────────────
+//
+// The number a press operator actually asks for: DPI (PPI) at the FINISHED size,
+// not a bare pixel count. Two questions with two honest answers:
+//  • The whole page's output DPI is `settings.size.dpi` exactly, by construction
+//    (the raster is rendered at toPixels(dim, dpi)) — measurable, needs nothing.
+//  • A single placed image's effective DPI (the "logo is 96 DPI here" case) needs
+//    the mounted DOM: the image's intrinsic pixels vs. how big it prints. When the
+//    stage is absent (headless) we say so (checkImageDpiNeedsStage), never guess.
+//
+// Thresholds vary by INTENT, derived from the trim's long edge, not a new control:
+// offset/sheet-fed wants 300 (250-300 acceptable, <150 a hard fault); large-format
+// viewed at distance tolerates 72-150, so it only warns below 72.
+const LARGE_FORMAT_LONG_EDGE_IN = 24;   // ≥ 24" (610 mm) long edge ⇒ large-format intent
+const OFFSET_MIN_DPI = 250;
+const OFFSET_HARD_DPI = 150;
+const LARGE_FORMAT_MIN_DPI = 72;
+
+/** Classify print intent by physical size and return the DPI floor + hard floor. */
+function dpiIntent(trim: { w: Dimension; h: Dimension }): {
+  intent: 'offset' | 'large-format'; floor: number; hard: number; longEdgeIn: number; longEdge: Dimension;
+} {
+  const wi = toInches(trim.w), hi = toInches(trim.h);
+  const longEdge = wi >= hi ? trim.w : trim.h;
+  const longEdgeIn = Math.max(wi, hi);
+  const intent = longEdgeIn >= LARGE_FORMAT_LONG_EDGE_IN ? 'large-format' : 'offset';
+  const floor = intent === 'offset' ? OFFSET_MIN_DPI : LARGE_FORMAT_MIN_DPI;
+  const hard = intent === 'offset' ? OFFSET_HARD_DPI : 50;
+  return { intent, floor, hard, longEdgeIn, longEdge };
+}
+
+const round0 = (n: number): number => Math.round(n);
+
+/** The whole page renders below the resolution its trim size wants. */
+const checkEffectiveDpi: Check = c => {
+  if (!RASTER_FORMATS.has(c.fmt)) return;              // DPI is a fact only where pixels are
+  const trim = physicalTrim(c);
+  if (!trim) return;
+  const dpi = c.job?.settings?.size?.dpi;
+  if (!isFiniteNum(dpi) || dpi <= 0) return;
+  const { intent, floor, hard, longEdge } = dpiIntent(trim);
+  if (dpi >= floor) return;                            // acceptable → no finding
+  const L = num(longEdge.value), U = longEdge.unit;
+  const message = intent === 'offset'
+    ? (dpi < hard
+        ? `This page is ${dpi} DPI at ${L} ${U}, below the 150 DPI floor for offset. It will look visibly soft.`
+        : `This page is ${dpi} DPI at ${L} ${U}. Offset presses want 250 to 300 DPI, so this will look soft.`)
+    : `This page is ${dpi} DPI at ${L} ${U}. Large-format print tolerates 72 to 150 DPI at viewing distance; below 72 it softens even at distance.`;
+  c.add({ id: 'print.effective-dpi', severity: 'warn', message,
+    evidence: { dpi, intent, floor, longEdge: Math.round(dpiIntent(trim).longEdgeIn * 100) / 100, unit: U, format: c.fmt } });
+};
+
+/** A placed raster image whose effective resolution where it sits is too low. */
+const checkImageEffectiveDpi: Check = c => {
+  if (!RASTER_FORMATS.has(c.fmt) && !PRINT_MARK_FORMATS.has(c.fmt)) return;   // rasters embedded in a PDF matter too
+  const trim = physicalTrim(c);
+  if (!trim) return;
+  const st = c.job?.stage;
+  if (st?.known !== true) return;
+  const imgs = st.value.rasterImages;
+  const cw = st.value.canvasCssW;
+  if (!Array.isArray(imgs) || !isFiniteNum(cw) || !(cw > 0)) return;
+  if ((st.value.pageBoxes ?? 1) > 1) return;           // one canvasCssW can't map many pages → withhold
+  const trimWin = toInches(trim.w), trimHin = toInches(trim.h);
+  if (!(trimWin > 0) || !(trimHin > 0)) return;
+  const ch = cw * (trimHin / trimWin);                 // implied canvas CSS height under the page aspect
+  const { intent, floor } = dpiIntent(trim);
+  for (const im of imgs) {
+    if (!(im.naturalW > 0) || !(im.naturalH > 0) || !(im.boxCssW > 0) || !(im.boxCssH > 0)) continue;
+    const physWin = (im.boxCssW / cw) * trimWin;
+    const physHin = (im.boxCssH / ch) * trimHin;
+    if (!(physWin > 0) || !(physHin > 0)) continue;
+    const eff = round0(Math.min(im.naturalW / physWin, im.naturalH / physHin));   // constraining axis, conservative
+    if (eff >= floor) continue;
+    const physMm = round0(physWin * 25.4);
+    c.add({ id: 'print.image-effective-dpi', severity: 'warn',
+      message: `${im.label} is ${eff} DPI where it sits (${physMm} mm wide). ${intent === 'offset' ? 'Offset print wants at least 250 DPI' : 'Large-format wants at least 72 DPI'}, so it will look soft. Replace it with a higher-resolution file.`,
+      evidence: { label: im.label, effectiveDpi: eff, placedMm: physMm, naturalW: im.naturalW, intent, floor, format: c.fmt } });
+  }
+};
+
+/** Headless: the placed-image resolution concept exists but can't be measured. */
+const checkImageDpiNeedsStage: Check = c => {
+  if (!RASTER_FORMATS.has(c.fmt) && !PRINT_MARK_FORMATS.has(c.fmt)) return;
+  if (!physicalTrim(c)) return;
+  if (c.job?.stage?.known !== false) return;           // only when there is NO mounted node
+  c.add({ id: 'print.image-dpi-needs-stage', severity: 'info', needs: 'needs-mount',
+    message: 'Lolly cannot check the resolution of images placed in the artwork without the artwork on screen.',
+    evidence: { format: c.fmt } });
+};
+
 /** Exactly one of the two dimensions was declared: a named gap, never a zero. */
 const checkTrimPartial: Check = c => {
   if (!PRINT_MARK_FORMATS.has(c.fmt)) return;
@@ -821,6 +984,12 @@ const checkTrimPartial: Check = c => {
 
 const checkTrimNotPhysical: Check = c => {
   if (!PRINT_MARK_FORMATS.has(c.fmt)) return;
+  // svg/eps/eps-cmyk are dual-use (screen + print), so a plain px-size export of one is
+  // a screen graphic, not a print job missing its trim — reporting "no physical page
+  // size" on every such row is batch noise (plans §6). Only speak up for them once
+  // there is PRINT INTENT (marks/bleed turned on). The dedicated print formats
+  // (pdf/pdf-cmyk/cmyk-tiff) are unchanged: px on those is always worth noting.
+  if ((c.fmt === 'svg' || c.fmt === 'eps' || c.fmt === 'eps-cmyk') && !marksAreSet(c)) return;
   if (physicalTrim(c)) return;
   const s = c.job.settings.size;
   if (!isDim(s?.width) || !isDim(s?.height)) return;
@@ -1112,6 +1281,58 @@ const checkNoSpotsDeclared: Check = c => {
   });
 };
 
+/** The heaviest brand solid's total ink coverage, scoped to brand fills and
+ *  measured against the chosen press condition's limit. NOT the whole render — the
+ *  rendered-content gap stays as refuse.ink-coverage (needs-render). */
+const checkInkCoverage: Check = c => {
+  if (!SEPARATING_FORMATS.has(c.fmt)) return;
+  if (c.job?.palette?.known !== true) return;
+  const pal = c.job.palette.value;
+  if (!Array.isArray(pal)) return;
+  const weighed = pal.map(swatchTac).filter((x): x is NonNullable<typeof x> => x !== null);
+  if (weighed.length === 0) return;
+  const heaviest = weighed.reduce((a, b) => (b.tac > a.tac ? b : a));
+  const { name, limit } = tacLimitFor(c);
+  const cond = name.toUpperCase();
+  c.add({
+    id: 'count.ink-coverage-palette',
+    severity: 'info',
+    message: `The heaviest brand solid, ${heaviest.name}, is ${heaviest.tac}% total ink under ${cond} (limit ${limit}%). This is the brand's solid fills only, and a photograph or gradient can lay down more.`,
+    evidence: { swatch: heaviest.name, tac: heaviest.tac, limit, condition: name, format: c.fmt },
+    count: { kind: 'inkCoverage', value: heaviest.tac, unit: 'pct', bound: 'exact', basis: 'palette.tac' },
+  });
+  if (heaviest.tac > limit) {
+    c.add({
+      id: 'print.ink-over-tac',
+      severity: 'warn',
+      message: `${heaviest.name} is ${heaviest.tac}% total ink, over the ${limit}% limit for ${cond}. On press it can fail to dry, set off onto the next sheet, or crack on the fold. Lighten the darkest build, or ask the printer for their ink limit.`,
+      evidence: { swatch: heaviest.name, tac: heaviest.tac, limit, over: heaviest.tac - limit, condition: name, format: c.fmt },
+    });
+  }
+};
+
+/** A brand black built RICH (heavy K plus real CMY) — deep, but it mis-registers on
+ *  fine text and thin rules, which want 100% K only. */
+const checkRichBlack: Check = c => {
+  if (!SEPARATING_FORMATS.has(c.fmt)) return;
+  if (c.job?.palette?.known !== true) return;
+  const pal = c.job.palette.value;
+  if (!Array.isArray(pal)) return;
+  for (const s of pal) {
+    const w = swatchTac(s);
+    if (!w) continue;
+    const [cc, mm, yy, kk] = w.cmyk;
+    if (kk >= 85 && (cc + mm + yy) >= 50) {
+      c.add({
+        id: 'print.rich-black',
+        severity: 'info',
+        message: `${w.name} is a rich black (${Math.round(kk)}% K plus ${Math.round(cc)}/${Math.round(mm)}/${Math.round(yy)} CMY). Rich black gives deep solids but mis-registers on small text and thin rules, so keep those 100% K only.`,
+        evidence: { swatch: w.name, k: Math.round(kk), c: Math.round(cc), m: Math.round(mm), y: Math.round(yy), format: c.fmt },
+      });
+    }
+  }
+};
+
 /**
  * The palette did not resolve, so the ceiling is WITHHELD.
  *
@@ -1236,8 +1457,8 @@ const checkRefusals: Check = c => {
   const motion = MOTION_FORMATS.has(c.fmt);
 
   if (separating) {
-    c.add(refusal('refuse.ink-coverage', 'not-computable',
-      'Lolly cannot measure ink coverage or total area coverage. Nothing in the platform computes it, and a guess would be worse than nothing.'));
+    c.add(refusal('refuse.ink-coverage', 'needs-render',
+      'Total ink coverage across the whole artwork (photographs, gradients and filters) is only known once the separation is rendered. The heaviest brand solid is reported separately, and a photo can lay down more.'));
     c.add(refusal('refuse.exact-separation', 'needs-render',
       'The exact set of plates is only known once the file is written. Ink substitution is an exact colour match against brand swatches; everything else falls through to process, and images inside a CMYK PDF are not converted at all.'));
   }
@@ -1264,8 +1485,12 @@ const checkRefusals: Check = c => {
 
   // Distinct from `print.trim-not-physical`: that one reports the pixels it CAN
   // see. This one fires when no size was declared anywhere, and says why the
-  // tool's pixel canvas is not being converted into millimetres.
-  if (PRINT_MARK_FORMATS.has(c.fmt) && c.job?.settings?.size?.declaredBy === 'manifest') {
+  // tool's pixel canvas is not being converted into millimetres. As with
+  // trim-not-physical, the dual-use vector formats (svg/eps/eps-cmyk) only speak up
+  // with print intent, so a plain screen-size SVG export isn't refused per row.
+  const svgLike = c.fmt === 'svg' || c.fmt === 'eps' || c.fmt === 'eps-cmyk';
+  if (PRINT_MARK_FORMATS.has(c.fmt) && c.job?.settings?.size?.declaredBy === 'manifest'
+      && (!svgLike || marksAreSet(c))) {
     c.add(refusal('refuse.trim-when-unset', 'not-set',
       'No page size was set, so the trim size is whatever the artwork measures on screen. Lolly is not converting the tool\'s pixel canvas into millimetres.'));
   }
@@ -1291,10 +1516,13 @@ const CHECKS: readonly Check[] = [
   checkDurableFormat,
   checkAspectGuard,
   checkNoBleed,
+  checkEffectiveDpi,
+  checkImageEffectiveDpi,
   // info: geometry & counts
   checkFinishUnknownKind,
   checkBleedUnknown,
   checkTrimPartial,
+  checkImageDpiNeedsStage,
   checkTrimNotPhysical,
   checkPrintGeometry,
   checkPagesPaginate,
@@ -1308,6 +1536,8 @@ const CHECKS: readonly Check[] = [
   checkSpotCeiling,
   checkFinishCeiling,
   checkNoSpotsDeclared,
+  checkInkCoverage,
+  checkRichBlack,
   checkPaletteUnresolved,
   checkCutsNeedsStage,
   checkCutsInert,

@@ -158,7 +158,7 @@ type ExportStillHook = ExportLifecycleHook; // same ctx as beforeExport; returns
  * The hooks record produced by loading a tool's hooks.js — one entry per
  * lifecycle point, null when the tool doesn't declare it.
  */
-interface Hooks {
+export interface Hooks {
   onInit: OnInitHook | null;
   onInput: OnInputHook | null;
   onFrame: OnFrameHook | null;
@@ -225,7 +225,7 @@ export interface Runtime {
   cancelRecording(): void;
   /** True when output flows through the transform path (exportFile hook). */
   hasExportFile: boolean;
-  exportFile(opts?: Record<string, unknown>): Promise<ExportFileResult>;
+  exportFile(opts?: Record<string, unknown>): Promise<ExportFileResult | ExportFileResult[]>;
   export(renderedNode: unknown, format: string, opts?: RuntimeExportOpts): Promise<Blob>;
 }
 
@@ -241,7 +241,7 @@ export async function createRuntime(
   tool: LoadedTool,
   host: HostV1,
   initialState: Record<string, InputValue> = {},
-  opts: { composeStack?: readonly string[] } = {},
+  opts: { composeStack?: readonly string[]; hookExecutor?: HookExecutor } = {},
 ): Promise<Runtime> {
   if (host.version !== '1') {
     throw new Error(`Tool requires host bridge v1, got v${host.version}`);
@@ -310,7 +310,12 @@ export async function createRuntime(
 
   let hooks: Hooks | null = null;
   if (tool.hooksSource && tool.manifest.hooks) {
-    hooks = await loadHooks(tool, host);
+    // The executor produces the Hooks object. Default = in-realm `new Function`
+    // (unchanged). A shell may inject a Worker-isolated one via opts.hookExecutor
+    // (plans/86-worker-isolation-hooks.md M2); its slots return Promises that
+    // runHook time-boxes exactly like async in-realm hooks. The engine never
+    // constructs a Worker — it only accepts an executor.
+    hooks = await (opts.hookExecutor ?? inRealmHookExecutor)(tool, host);
     const onInit = hooks.onInit;
     if (onInit) {
       try {
@@ -725,7 +730,16 @@ export async function createRuntime(
       // the transform's failure to the user; there's no degraded fallback here.
       const out = await runHook('exportFile',
         () => exportFileHook({ model: modelForHooks(model), host, opts }),
-      ) as ExportFileResult | null | undefined;
+      ) as ExportFileResult | ExportFileResult[] | null | undefined;
+      // Batch tools (a `multiple` file input) may return one result per input file;
+      // single-file tools return one record. Both are validated for bytes presence.
+      if (Array.isArray(out)) {
+        const items = out.filter((r): r is ExportFileResult => Boolean(r && r.bytes != null));
+        if (!items.length) {
+          throw new Error(`exportFile produced no bytes (${tool.manifest.id})`);
+        }
+        return items;
+      }
       if (!out || out.bytes == null) {
         throw new Error(`exportFile produced no bytes (${tool.manifest.id})`);
       }
@@ -1211,6 +1225,23 @@ async function loadHooks(tool: LoadedTool, host: HostV1): Promise<Hooks> {
     exportStill:  hookFn<ExportStillHook>(mod.exportStill),
   };
 }
+
+/**
+ * A hook executor produces a mounted tool's Hooks object from its hooks.js source
+ * + the host bridge. `inRealmHookExecutor` is today's path (compile with
+ * `new Function('host', src)` in this realm). A shell can inject an alternative
+ * through createRuntime's `opts.hookExecutor`: the web shell's Worker-isolated
+ * executor (plans/86-worker-isolation-hooks.md M2) returns the SAME Hooks shape,
+ * but each slot postMessages into a Worker and resolves a Promise — which
+ * `runHook` already time-boxes exactly like an async in-realm hook, so every
+ * downstream call site (runHook, hasFrameHook, driveLevels, the export path) is
+ * agnostic to which executor produced the Hooks. The engine stays DOM-free: it
+ * never constructs a Worker, it only accepts one.
+ */
+export type HookExecutor = (tool: LoadedTool, host: HostV1) => Promise<Hooks>;
+
+/** The default executor — compile + run hooks in this realm (behavior unchanged). */
+export const inRealmHookExecutor: HookExecutor = loadHooks;
 
 // Backstop for re-rendering a tool-URL asset on mount — mirrors the same bound on
 // the manifest-composes path (compose.ts) so a hung child render can't block the

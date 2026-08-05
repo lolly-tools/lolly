@@ -809,6 +809,56 @@ export function prepareC2paIngredient(bytes: Uint8Array): C2paIngredientData | n
   return ex ? prepareC2paIngredientFromStore(ex.store, ex.format) : null;
 }
 
+/**
+ * Read EVERY C2PA manifest a file already carries and package each as an
+ * ingredient — so a tool that stamps a fresh authorship claim onto an existing
+ * file can PRESERVE what is already inside it (relationship `parentOf`) instead
+ * of orphaning it. Collects:
+ *   1. the container's own document-level credential (all supported formats), and
+ *   2. element-level credentials nested inside a container — today, the signed
+ *      rasters an SVG embeds via `<image href="data:image/…;base64,…">` (an
+ *      artist's vector that places already-credentialed photos). Each embedded
+ *      raster's own C2PA travels forward as its own ingredient.
+ * Deduplicated by active-manifest label. Purely read-side and NEVER throws — a
+ * file with nothing signed returns `[]`. (PDF image-XObject and MP4 per-track
+ * element manifests are a future extension; the container-level manifest of a
+ * signed PDF/MP4 is already preserved by step 1.)
+ */
+export function collectIngredients(bytes: Uint8Array): C2paIngredientData[] {
+  const out: C2paIngredientData[] = [];
+  const seen = new Set<string>();
+  const push = (ing: C2paIngredientData | null): void => {
+    if (ing && ing.activeLabel && !seen.has(ing.activeLabel)) { seen.add(ing.activeLabel); out.push(ing); }
+  };
+  if (!(bytes instanceof Uint8Array)) return out;
+  // 1. The container's own manifest.
+  push(prepareC2paIngredient(bytes));
+  // 2. Nested rasters an SVG embeds as data URIs — each may carry its own C2PA.
+  if (sniffFormat(bytes) === 'svg') {
+    for (const raster of svgEmbeddedRasters(bytes)) push(prepareC2paIngredient(raster));
+  }
+  return out;
+}
+
+/** Decode the base64 data-URI rasters an SVG embeds via `<image href|xlink:href>`.
+ *  Best-effort: a malformed/oversized entry is skipped, never fatal. */
+function svgEmbeddedRasters(bytes: Uint8Array): Uint8Array[] {
+  const out: Uint8Array[] = [];
+  let text: string;
+  try { text = bytesToBin(bytes); } catch { return out; }
+  // href or xlink:href pointing at a base64 image data URI. Non-greedy, tolerant
+  // of single/double quotes and whitespace after the comma.
+  const re = /(?:xlink:)?href\s*=\s*(['"])\s*data:image\/[a-z0-9.+-]+;base64,\s*([A-Za-z0-9+/=\s]+?)\1/gi;
+  let m: RegExpExecArray | null;
+  while ((m = re.exec(text)) !== null) {
+    try {
+      const raster = base64ToBytes(m[2]!.replace(/\s+/g, ''));
+      if (raster.length) out.push(raster);
+    } catch { /* malformed data URI — skip */ }
+  }
+  return out;
+}
+
 /** As {@link prepareC2paIngredient}, but from an already-extracted manifest store
  *  (what ingest persists) plus the ingredient's original container format. */
 export function prepareC2paIngredientFromStore(store: Uint8Array, format: string): C2paIngredientData | null {

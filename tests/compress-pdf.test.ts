@@ -117,7 +117,8 @@ test('compress-pdf: onInit shows the file, a before→after saving and the level
 test('compress-pdf: exportFile returns a smaller, valid PDF with the page count preserved', async () => {
   const pdf = await compressiblePdf(40);
   const rt = await createRuntime(compressTool(), PDF_HOST, { source: pdfFile(pdf, 'report.pdf') });
-  const { bytes, mime, filename } = await rt.exportFile();
+  const res = await rt.exportFile();
+  const { bytes, mime, filename } = Array.isArray(res) ? res[0]! : res;
   assert.equal(mime, 'application/pdf');
   assert.equal(filename, 'report-compressed.pdf');
   assert.ok((bytes as Uint8Array).length <= pdf.length);

@@ -446,6 +446,14 @@ export function parseUrlState(searchParams: string | URLSearchParams, manifest: 
     }
     const input = inputsByKey[key];
     if (!input) continue;
+    // A `multiple` file input collects every repeated occurrence (CLI transport:
+    // --source=a.pdf --source=b.mp4) into an array of unresolved path refs; the
+    // CLI loads each one's bytes before createRuntime.
+    if (input.type === 'file' && input.multiple) {
+      const ref = coerceFromString(input, raw);
+      if (ref) ((values[input.id] ??= []) as InputValue[]).push(ref);
+      continue;
+    }
     values[input.id] = coerceFromString(input, raw);
   }
 

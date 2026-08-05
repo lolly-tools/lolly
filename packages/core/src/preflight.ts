@@ -139,6 +139,10 @@ export type QuantityKind =
   | 'sheets'
   | 'area'
   | 'pixels'
+  /** Total area coverage (sum of C+M+Y+K), %. A palette-scoped measurement — the
+   *  heaviest brand solid — never the whole render (a photo's TAC needs the
+   *  separation). Reported with an explicit scope, so it is never read as the file's. */
+  | 'inkCoverage'
   | 'seconds'
   | 'frames'
   | 'inputs';
@@ -154,6 +158,7 @@ export type QuantityKind =
 export type QuantityUnit =
   | 'file' | 'page' | 'plate' | 'row' | 'input'
   | 'px' | 'pt2' | 'mm2' | 'm2-sheet'
+  | 'pct'
   | 's' | 'frame';
 
 /**
@@ -210,6 +215,11 @@ export type FindingId =
   | 'print.trim-not-physical'
   | 'print.trim-partially-declared'
   | 'print.geometry'
+  | 'print.effective-dpi'
+  | 'print.image-effective-dpi'
+  | 'print.image-dpi-needs-stage'
+  | 'print.ink-over-tac'
+  | 'print.rich-black'
   // Settings coherence
   | 'settings.format-not-offered'
   | 'settings.print-marks-on-non-print-format'
@@ -230,6 +240,7 @@ export type FindingId =
   | 'count.pages.stage'
   | 'count.sequence-duration'
   | 'count.raster-pixels'
+  | 'count.ink-coverage-palette'
   | 'count.video-duration-declared'
   | 'count.cuts-needs-stage'
   | 'count.cuts-inert'
