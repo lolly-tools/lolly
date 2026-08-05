@@ -40,11 +40,10 @@ const RASTER_ALLOWED: Record<string, string> = {
   // refuses, so they fall to the axis-aligned-box path and some cover content mis-scales.
   // They are decorative, half-cropped at the frame edge, and everything else on the page
   // — nav, hero card, tiles, footer — is faithful.
-  'ov2-phone-audiogram':
-    'The audiogram paints to <canvas>. Vector-expressible in principle (all nine '
-    + 'non-MilkDrop styles use only the 2D subset that maps onto SVG) but it needs a '
-    + 'change to the TOOL, not to the pipeline.',
-  'um-asset-audiogram': 'Same canvas visualiser as `ov2-phone-audiogram`.',
+  // ov2-phone-audiogram + um-asset-audiogram left this list 2026-08-05: the walker now
+  // snapshots the <canvas> (export.ts, tag === 'canvas') and downscales it to its rendered
+  // box via the rasterDpi recipe param — walker=1&format=svg&rasterDpi=110 — so the audiogram
+  // ships as vector chrome with the canvas embedded as a smaller bitmap, under the budget.
   'seq-onion-ghosts':
     'Onion ghosts over the scene they ghost. Neither vector path can hold both at once: '
     + 'the ghost layer is [data-export-hide] (editor chrome is deliberately unreachable '
@@ -53,14 +52,12 @@ const RASTER_ALLOWED: Record<string, string> = {
     + 'and Chromium print flattens the ghost group opacity to opaque, hiding the live '
     + 'scene underneath. Re-check when the walker gains a docs-capture root that can opt '
     + 'INTO export-hidden chrome.',
-  'cc-verify-masthead':
-    'A Verify verdict whose subject is the generated storm PHOTOGRAPH (the-flood.webp, '
-    + '0.8 MB). The DOM->SVG walker inlines an <img> by embedding its source bytes verbatim, '
-    + 'so a vector capture carries the whole webp as base64 (~1 MB) and blows the 1024 KB '
-    + 'vector budget on the photo alone — the badges around it are cheap, the photo is not. '
-    + 'The raster path flattens the composite at display resolution instead, so it is both '
-    + 'faithful and far smaller. Re-check if the walker ever downscales embedded rasters to '
-    + 'their rendered box.',
+  // cc-verify-masthead left this list 2026-08-05: same fix as cc-verify-mobile — the masthead
+  // is a wider frame of the same storm photo, now walker=1&format=svg&rasterDpi=96 with the
+  // photo downscaled to its box (under the vector budget) AND its genAI credential preserved:
+  // the walker carries the source's C2PA forward as a componentOf ingredient, so a re-verify
+  // of the SVG still raises the GEN AI flag (trainedAlgorithmicMedia). That provenance-through-
+  // downscale fix is exactly why a raster masthead was no longer acceptable here.
   // cc-verify-mobile left this list 2026-08-05: the walker CAN now downscale an embedded
   // raster to its box, via the `rasterDpi` recipe param (ExportOpts.rasterDpi). The mobile
   // Verify shot is `walker=1&format=svg&rasterDpi=96` — vector chrome with the storm photo

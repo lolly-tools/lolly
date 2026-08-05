@@ -112,6 +112,25 @@ test('a gzip stream is reported (never inflated) — the .svgz wrapper', () => {
   assert.equal(sniffContainer(Uint8Array.from([0x1f, 0x8b, 0x08, 0, 0, 0, 0, 0])), 'gzip');
 });
 
+test('a zip is detected by its PK magic (local header and empty-archive EOCD)', () => {
+  const pad = (b: number[]) => Uint8Array.from([...b, 0, 0, 0, 0]);
+  assert.equal(sniffContainer(pad([0x50, 0x4b, 0x03, 0x04])), 'zip'); // 'PK\x03\x04' local file header
+  assert.equal(sniffContainer(pad([0x50, 0x4b, 0x05, 0x06])), 'zip'); // 'PK\x05\x06' empty-archive EOCD
+  // GENERIC verdict: an OOXML/OCF package (PK magic too) also sniffs as 'zip' —
+  // the ingest path must disambiguate before exploding it as a plain archive.
+  assert.equal(sniffContainer(pad([0x50, 0x4b, 0x03, 0x04])), 'zip');
+});
+
+test('a USTAR tar is detected by its magic at offset 257 (full header block)', () => {
+  const tar = new Uint8Array(512);
+  tar.set([0x75, 0x73, 0x74, 0x61, 0x72], 257); // 'ustar'
+  assert.equal(sniffContainer(tar), 'tar');
+  // The magic sits deep in the header — a short buffer must not false-positive.
+  const short = new Uint8Array(300);
+  short.set([0x75, 0x73, 0x74, 0x61, 0x72], 257);
+  assert.equal(sniffContainer(short), null);
+});
+
 test('the four font containers are detected by sfnt/WOFF magic', () => {
   const magic = (b: number[]) => Uint8Array.from([...b, 0, 0, 0, 0]);
   assert.equal(sniffContainer(magic([0x00, 0x01, 0x00, 0x00])), 'ttf');  // TrueType

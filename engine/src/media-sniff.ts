@@ -190,8 +190,12 @@ export function sniffVideoContainer(input: Uint8Array | ArrayBuffer): VideoConta
   return null;
 }
 
-/** A still/container format the MIME/extension gate can't settle on its own. */
-export type SniffedContainer = 'bmp' | 'gzip' | 'ttf' | 'otf' | 'woff' | 'woff2';
+/** A still/container format the MIME/extension gate can't settle on its own.
+ *  `zip` is a GENERIC verdict: every OOXML (xlsx/pptx/docx) and OCF (epub/odt)
+ *  package also begins with the PK local-header magic, so an ingest path must look
+ *  one level deeper (a `mimetype` entry, `[Content_Types].xml`) before it treats a
+ *  `zip` as a plain archive to explode — see sniffContainer's note. */
+export type SniffedContainer = 'bmp' | 'gzip' | 'zip' | 'tar' | 'ttf' | 'otf' | 'woff' | 'woff2';
 
 /** sfnt / WOFF magic (uint32 BE) — INLINED, not imported from font-convert.ts (which
  *  pulls in fflate + deflate); this module stays allocation- and dependency-free. Kept
@@ -211,12 +215,21 @@ function fontKind(bytes: Uint8Array): 'ttf' | 'otf' | 'woff' | 'woff2' | null {
  * backstop for the ingest/convert path. An uncompressed BMP ('BM' + a full 54-byte
  * header, mirroring bmp.isBmp so a stray 'BM' can't false-positive); a gzip stream
  * (an .svgz is gzip(SVG) — reported, NEVER inflated here; the caller gunzips and
- * re-sniffs the inner bytes); and the four font containers. Prefix-only and
- * allocation-free like its siblings.
+ * re-sniffs the inner bytes); a zip local-header / empty-archive EOCD (GENERIC —
+ * the ingest path must disambiguate OOXML/OCF before exploding, see below); a
+ * USTAR tar (its magic sits at offset 257, so a full header block is required);
+ * and the four font containers. Prefix-only and allocation-free like its siblings.
+ *
+ * A `.tar.gz` sniffs as 'gzip' first (its 1f 8b prefix) — correct: the caller
+ * gunzips, then re-sniffs the inner bytes, which then land on 'tar'.
  */
 export function sniffContainer(input: Uint8Array | ArrayBuffer): SniffedContainer | null {
   const bytes = asBytes(input);
   if (bytes.length >= 54 && has(bytes, 0, 0x42, 0x4d)) return 'bmp';   // 'BM' + full BMP header
   if (has(bytes, 0, 0x1f, 0x8b, 0x08)) return 'gzip';                  // gzip member (deflate CM)
+  // zip: 'PK\x03\x04' local file header, or 'PK\x05\x06' empty-archive EOCD.
+  if (has(bytes, 0, 0x50, 0x4b, 0x03, 0x04) || has(bytes, 0, 0x50, 0x4b, 0x05, 0x06)) return 'zip';
+  // tar: USTAR magic 'ustar' at header offset 257 (needs the full 512-byte block).
+  if (bytes.length >= 512 && has(bytes, 257, 0x75, 0x73, 0x74, 0x61, 0x72)) return 'tar';
   return fontKind(bytes);
 }

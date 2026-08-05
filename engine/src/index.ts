@@ -312,7 +312,11 @@ export {
 export type { SealRecord, SealRange, SealVerifyResult, SealPublicKeyResolver } from './seal.ts';
 export { pemToDer, derToPem, generateCaRoot, issueLeafCert } from './x509.ts';
 export { packApng } from './apng.ts';
+export { demuxApng } from './apng-decode.ts';
+export type { ApngFrame, DemuxApngResult } from './apng-decode.ts';
 export { packWebpAnim } from './webp-anim.ts';
+export { demuxWebpAnim } from './webp-anim-decode.ts';
+export type { WebpAnimFrame, DemuxedWebpAnim } from './webp-anim-decode.ts';
 export { packTiff } from './tiff.ts';
 export { packPng } from './png.ts';
 export type { PackPngOptions, PngCicp, PngTextEntry, PngSamples } from './png.ts';
@@ -323,7 +327,10 @@ export type { IcoImage, IcoRgbaImage, IcoPngImage } from './ico-decode.ts';
 export { deflateRaw, zlibCompress, adler32 } from './deflate.ts';
 export type { DeflateOptions } from './deflate.ts';
 export { gzip, gunzip, inflateRaw } from './gzip.ts';
+export { readZip, storeZip } from './zip.ts';
+export type { ZipEntry, ZipStoreEntry, StoreZipOptions } from './zip.ts';
 export { packTar } from './tar.ts';
+export { readTar, readTarGz } from './tar-read.ts';
 export type { TarFile } from './tar.ts';
 export { sfntKind, sfntToWoff, woffToSfnt } from './font-convert.ts';
 export type { SfntKind } from './font-convert.ts';
@@ -334,8 +341,16 @@ export { parseDataRows, DEFAULT_ROW_LIMIT } from './data-import.ts';
 export { expandDerivedFormats } from './derived-formats.ts';
 export { readXlsx, DEFAULT_XLSX_ROW_LIMIT } from './xlsx-import.ts';
 export type { ReadXlsxOpts, ReadXlsxResult } from './xlsx-import.ts';
+export { writeXlsx, colLetters } from './xlsx-write.ts';
+export type { XlsxSheet, XlsxCell } from './xlsx-write.ts';
 export { writeEpub } from './epub.ts';
 export type { EpubDoc, EpubChapter } from './epub.ts';
+export { readEpub } from './epub-read.ts';
+export type { EpubReadDoc, EpubReadChapter } from './epub-read.ts';
+export { writeOdt } from './odt.ts';
+export type { OdtDoc, OdtBlock } from './odt.ts';
+export { writeDocx } from './docx.ts';
+export type { DocxDoc, DocxBlock } from './docx.ts';
 export {
   decomposeMatrix, boxGeomFromBBox, mapWeight, mapFontFamily, mapAlign,
   safeColor, nodeToBox, finalizeBoxes, parsePenpotContent, collectPenpotFontUsage, penpotShapeToNode, penpotGradientToSpec,
