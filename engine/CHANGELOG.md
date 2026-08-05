@@ -6,6 +6,45 @@ minors, never removed or signature-changed without a major bump.
 
 Moved verbatim from the comment block that used to live in `src/index.ts`.
 
+1.105.0 — additive: on-device raster primitives. New optional `host.raster`
+(RasterAPI: canRaster/measure/decode/encode) — a source (bytes/Blob/URL/AssetRef)
+in, a drawable `ImageBitmap` or an `ImageInfo` out; raw RGBA or an `ImageBitmap`
+in, encoded bytes out. The bridge home for the `canRaster()`/`loadImage()` probes
+tool hooks used to open-code against the DOM (`typeof document`, `new Image`) —
+which are WRONG inside a Worker, where `document` is absent even though
+`OffscreenCanvas` works — so a hook asks the host, not the realm, and stays correct
+once isolated (plans/86 §6.1). DOM-free CONTRACT: no `HTMLImageElement`/`document`
+crosses the surface; `decode` returns an `ImageBitmap`, drawable on a main-thread
+canvas AND a Worker OffscreenCanvas. Distinct from `host.images` (the bytes-in/
+bytes-out convert path with no pixel access). Web (and Tauri, via the web bridge)
+only for now; undefined on the headless CLI, which a tool feature-detects and
+degrades past, exactly like `host.images`. No v1 method changed.
+
+1.104.0 — additive: `host.c2pa.sign` widened for the any-media authorship path.
+Its opts grow from `{ description }` to `C2paSignOpts` — `{ description, title,
+author, rights, ingredients, action, imprinted }` — so a tool can stamp an EXISTING
+file (made elsewhere) with the artist's asserted author (dc:creator), copyright +
+licence (dc:rights), and a title, and — crucially — carry any manifests already
+inside the bytes forward as C2PA **ingredients** (a document-level PDF manifest, a
+signed raster element in a PDF/SVG, a signed track in an MP4), so nested credentials
+are preserved and referenced, never orphaned. `action` picks an honest history:
+`'imported'` (default when author/rights/ingredients are given) preserves the essence
+byte-for-byte and claims c2pa.metadata (+ the engine's c2pa.opened per ingredient),
+NEVER c2pa.created; `'redacted'` (the default when none are given) keeps the original
+v1.85 redact behaviour byte-for-byte. Backward compatible: existing `sign(bytes, fmt,
+{ description })` callers (redact) are unchanged. Widened in `packages/core` (the
+contract), the web shell (`signFreshC2pa`), and — new — the CLI bridge (`host.c2pa`
+was web-only before; the DOM-free engine `embedC2pa` signs identically headless).
+Also adds `host.c2pa.readIngredients(bytes)` → `IngredientCredential[]`: reads every
+manifest a file already carries (its own container-level credential for every
+supported format, PLUS the signed rasters an SVG embeds as `<image href="data:…">`)
+so a tool can feed them straight to `sign({ ingredients })`. Backed by the new
+engine `collectIngredients` (exported from the barrel). Multi-file batch is also
+now expressible: a `file` input may set `multiple: true` (value becomes an
+`InputFile[]`, the web picker takes many, the CLI collects repeated `--id=path`),
+and an `exportFile` hook may return one `{ bytes, mime, filename }` per file, which
+each shell delivers as a single zip.
+
 1.103.0 — additive: on-device background removal. New optional `host.matte`
 (MatteAPI: isAvailable/backend/models/modelBytes/cached/canRun/run — a plain RGBA
 frame in, the same frame with a model-computed straight-alpha matte out), the

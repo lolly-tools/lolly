@@ -17,7 +17,8 @@ export type {
   CatalogSignatureEnvelope, UnsignedCatalogEnvelope, IntegrityResult,
 } from './catalog-integrity.ts';
 export { validateManifest, validateRateCard } from './validate.ts';
-export { createRuntime, HOOK_BUDGET_MS } from './runtime.ts';
+export { createRuntime, HOOK_BUDGET_MS, inRealmHookExecutor } from './runtime.ts';
+export type { HookExecutor, Hooks } from './runtime.ts';
 export { hydrate, annotateTemplate } from './template.ts';
 export { sniffAnimatedRaster, sniffVideoContainer, sniffLayeredRaster, sniffContainer } from './media-sniff.ts';
 export type { AnimatedRasterKind, VideoContainer, LayeredRasterKind, SniffedContainer } from './media-sniff.ts';
@@ -297,7 +298,7 @@ export type {
 } from './pdfx.ts';
 export { buildC2paManifest, embedC2paInPdf, embedC2pa, attachC2paStore, exportActionSteps, C2PA_FORMATS, LOLLY_EXPORT_ASSERTION, DIGITAL_SOURCE_TYPE, CAPTURE_SOURCE_TYPE, SCREEN_SOURCE_TYPE, GENERATED_SOURCE_TYPE, COMPOSITE_SOURCE_TYPE } from './c2pa.ts';
 export type { C2paActionInput } from './c2pa.ts';
-export { verifyC2pa, verifyC2paPdf, extractC2paFromPdf, prepareC2paIngredient, prepareC2paIngredientFromStore, extractC2paStore, parseCertificate, signedBy } from './c2pa-verify.ts';
+export { verifyC2pa, verifyC2paPdf, extractC2paFromPdf, prepareC2paIngredient, prepareC2paIngredientFromStore, collectIngredients, extractC2paStore, parseCertificate, signedBy } from './c2pa-verify.ts';
 export type { C2paIngredientData, C2paReport, C2paCheck, C2paSignerIdentity, ParsedCertificate } from './c2pa-verify.ts';
 export type { Signer as C2paSigner } from './c2pa.ts';
 export { C2PA_CHECK, isExpiredOnly, resolveVerdict, defaultTrustAnchors } from './c2pa-verdict.ts';

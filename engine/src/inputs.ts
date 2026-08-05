@@ -202,6 +202,12 @@ export interface InputSpec {
   // file
   accept?: string[];
   maxSize?: number;
+  /** A `file` input that accepts MANY files at once (batch tools). The value
+   *  becomes an `InputFile[]` (empty `[]` when none) instead of a single
+   *  `InputFile | null`, and an `exportFile` hook may return one result per file.
+   *  The web file-picker sets the `multiple` attribute; the CLI collects repeated
+   *  `--<id>=path` occurrences. See the embed-track tool. */
+  multiple?: boolean;
   // Presentation members the web shell reads (the engine only carries them —
   // they mirror schemas/tool.schema.json, same as the block sub-field members).
   /** Sidebar section (collapsible group) this input renders under. */
@@ -268,6 +274,12 @@ export function isFileValue(v: unknown): v is InputFile {
     '__file' in v && Boolean(v.__file) &&
     'bytes' in v && Boolean(v.bytes)
   );
+}
+
+/** A well-formed value for a `multiple` file input: an array of loaded FileRefs.
+ *  Stray non-file entries are not tolerated — the whole value must be clean. */
+export function isFileArrayValue(v: unknown): v is InputFile[] {
+  return Array.isArray(v) && v.every(isFileValue);
 }
 
 /**
@@ -380,6 +392,10 @@ function resolveInitialValue(
   // bytes directly. Binary content is never expressible in a shareable URL.)
   if (input.type === 'file') {
     const v = initial[input.id];
+    // A `multiple` file input holds an array of loaded FileRefs (empty when none);
+    // a single one holds one ref or null. Accept only clean values so the model
+    // never carries an unresolved {__file, path} ref or a stray string.
+    if (input.multiple) return isFileArrayValue(v) ? v : (isFileValue(v) ? [v] : []);
     return isFileValue(v) ? v : null;
   }
   // A table initial (URL/saved state) is normalized on the way in so the model
@@ -491,6 +507,14 @@ function constrain(input: InputModelItem, value: InputValue): InputValue {
     return n;
   }
   if (input.type === 'file') {
+    // A `multiple` input holds an array of FileRefs; keep only clean file entries
+    // (empty array when cleared), never garbage.
+    if (input.multiple) {
+      if (isFileArrayValue(value)) return value;
+      if (Array.isArray(value)) return value.filter(isFileValue);
+      if (value === null) return [];
+      return input.value;
+    }
     // A picked file is a FileRef object (bytes + metadata) or null (cleared).
     // Reject anything else (e.g. a stray string) so the model can't hold garbage.
     if (value === null) return null;

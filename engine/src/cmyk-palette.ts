@@ -57,11 +57,13 @@ export interface PaletteHit { cmyk: [number, number, number, number]; spot?: Pal
  * Never [0,0,0,0] (flattens to invisible — silent again) and never [1,1,1,1]
  * (400% TAC, and registration ink already means something else).
  *
- * NOT a correct finish plate: overprint is not implemented anywhere in this
- * repo, so a finish still knocks out the process artwork beneath it. That
- * remaining defect is what `print.finish-separates-as-ink` reports; this
- * constant only converts a silent, plausible colour error into a loud,
- * documented incompleteness.
+ * This is the RIP-FLATTEN FALLBACK, not the primary path: in the pdf-cmyk export
+ * the finish plate now OVERPRINTS (the export bridge selects an overprint graphics
+ * state for it), so on a RIP that honours the named plate it sits ON the artwork.
+ * This 100% K mask is what a RIP that DROPS the plate paints instead — loud and
+ * unmistakable, never a plausible metallic. `print.finish-separates-as-ink` now
+ * reports the handoff choice (own overprinting plate vs separate finish artwork),
+ * not a knockout defect.
  */
 export const FINISH_MASK_CMYK: [number, number, number, number] = [0, 0, 0, 1];
 

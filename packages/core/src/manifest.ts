@@ -236,4 +236,13 @@ export interface ToolManifest {
   /** Optional "now what?" walkthrough shown by the shell (see {@link ToolGuide}). */
   guide?: ToolGuide;
   hooks?: ToolHookFlags;
+  /**
+   * Opt this tool's hooks into a Worker-isolated execution context (engine
+   * 1.105+, plans/86-worker-isolation-hooks.md M2) instead of the default
+   * in-realm `new Function` path. Set only once hooks.js is verified never to
+   * touch DOM globals (document/window/Image/canvas); a shell without a
+   * Worker-backed executor silently runs the tool in-realm, so declaring it is
+   * always safe — a hint, not a hard requirement.
+   */
+  isolate?: boolean;
 }

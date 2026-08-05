@@ -112,8 +112,8 @@ const BRANDS: { name: string; tokens: string; expect: Record<string, string> }[]
   {
     name: 'suse',
     tokens: join(ROOT, 'brands/suse/catalog/assets/suse/tokens/brand.json'),
-    // Jungle on Pine and back — the pairing the seed was authored from.
-    expect: { hook: '#30ba78/#0c322c', reveal: '#0c322c/#30ba78', lower: '#30ba78/#0c322c' },
+    // Light type over the brand's two accents — Jungle then Pine, both under white.
+    expect: { hook: '#30ba78/#ffffff', reveal: '#0c322c/#ffffff', lower: '#30ba78/#ffffff' },
   },
   {
     name: 'lolly-start',
@@ -146,10 +146,12 @@ for (const brand of BRANDS) {
     for (const [id, pair] of Object.entries(brand.expect)) {
       assert.equal(`${byId[id].bg}/${byId[id].fg}`, pair, `box "${id}" under ${brand.name}`);
     }
-    // Whatever the pack's colours are, the inversion between the first two cards has to
-    // survive resolution — that contrast IS the composition.
-    assert.equal(byId.hook.bg, byId.reveal.fg, 'card 2 inverts card 1');
-    assert.equal(byId.hook.fg, byId.reveal.bg, 'card 2 inverts card 1');
+    // The two opening cards share light text (surface) over the brand's two accents
+    // (secondary, then primary). Saturated fill + light type is what makes the demo
+    // legible under EVERY pack — including a starter brand whose primary and secondary
+    // sit at the same lightness, where the old primary/secondary inversion had none.
+    assert.equal(byId.hook.fg, byId.reveal.fg, 'both opening cards carry the same light text');
+    assert.notEqual(byId.hook.bg, byId.reveal.bg, "the two cards fill with the brand's two distinct accents");
   });
 }
 

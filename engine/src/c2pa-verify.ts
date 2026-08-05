@@ -64,7 +64,7 @@ import type { DerTlv } from './der-read.ts';
 import {
   decodeCbor, parseC2paStore, sniffFormat, extractC2paFromPdf, EXTRACTORS,
   collectActionChain, aiKind, extractC2paStore, prepareC2paIngredient, prepareC2paIngredientFromStore,
-  bmffTopBoxes,
+  collectIngredients, bmffTopBoxes,
 } from './c2pa-extract.ts';
 import type { C2paStoreParts, SniffFormat, C2paIngredientData, BmffBox } from './c2pa-extract.ts';
 // Re-exported so every existing `from './c2pa-verify.ts'` import (index.ts, the
@@ -72,7 +72,7 @@ import type { C2paStoreParts, SniffFormat, C2paIngredientData, BmffBox } from '.
 // know these moved to c2pa-extract.ts.
 export {
   decodeCbor, parseC2paStore, sniffFormat, extractC2paFromPdf,
-  extractC2paStore, prepareC2paIngredient, prepareC2paIngredientFromStore, aiKind,
+  extractC2paStore, prepareC2paIngredient, prepareC2paIngredientFromStore, collectIngredients, aiKind,
 };
 export type { C2paIngredientData };
 

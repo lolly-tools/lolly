@@ -1,6 +1,6 @@
 {
   "version": "1",
-  "generatedAt": "2026-08-05T14:37:52.788Z",
+  "generatedAt": "2026-08-05T18:18:46.216Z",
   "tools": [
     {
       "id": "compress-pdf",
@@ -4766,9 +4766,9 @@
     },
     {
       "id": "embed-track-image",
-      "name": "Embed & Track Image",
-      "description": "Stamp your author, copyright and licence into any image — plus an invisible Lolly Imprint and Content Credentials — before you share it.",
-      "version": "1.0.0",
+      "name": "Embed, Imprint & Track",
+      "description": "Claim your name on any media you've already made — image, PDF, video or audio. Stamp your author, copyright and licence as Content Credentials (a durable raster Imprint too), preserving any credential already inside the file — all on your device, before you upload it anywhere.",
+      "version": "2.0.0",
       "status": "official",
       "category": "utility",
       "tags": [
@@ -4778,6 +4778,7 @@
         "license",
         "watermark",
         "imprint",
+        "durable",
         "c2pa",
         "content credentials",
         "metadata",
@@ -4785,20 +4786,33 @@
         "creative commons",
         "image",
         "photo",
+        "pdf",
+        "video",
+        "audio",
         "artist",
         "ip",
-        "rights"
+        "rights",
+        "batch"
       ],
       "formats": [
         "png",
         "jpg",
         "webp",
-        "svg"
+        "avif",
+        "tiff",
+        "gif",
+        "svg",
+        "pdf",
+        "mp4",
+        "webm",
+        "m4a",
+        "mp3",
+        "wav"
       ],
-      "width": 1080,
-      "height": 1080,
-      "exportable": true,
-      "icon": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.7\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><rect x=\"2.5\" y=\"4\" width=\"14\" height=\"11.5\" rx=\"2\"/><circle cx=\"6.8\" cy=\"8.3\" r=\"1.25\"/><path d=\"M2.5 12.8l3.4-2.9 2.6 2.1 3.2-3.1 4.3 4.2\"/><path d=\"M17.4 12.3l4.1 1.55v3.05c0 2.25-1.75 3.7-4.1 4.5-2.35-.8-4.1-2.25-4.1-4.5v-3.05z\"/><path d=\"M15.5 17.9l1.35 1.35 2.4-2.5\"/></svg>",
+      "width": 760,
+      "height": 620,
+      "exportable": false,
+      "icon": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.85\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M16 12.2V4.5q0-2-2-2H4q-2 0-2 2v9q0 2 2 2h9\"/><circle cx=\"6.5\" cy=\"7.3\" r=\"1.3\"/><path d=\"M2.4 13.6l3.2-2.9 2.5 2.1 2.7-2.6 1.9 1.85\"/><path d=\"M18 12l4.5 1.8v2.5c0 3.1-1.9 4.8-4.5 5.7-2.6-.9-4.5-2.6-4.5-5.7v-2.5z\"/><path d=\"M16.2 17.2l1.5 1.55 2.8-2.9\"/></svg>",
       "preview": "/catalog/previews/embed-track-image.svg",
       "i18n": {
         "ar": {
@@ -6366,7 +6380,7 @@
       "width": 760,
       "height": 560,
       "exportable": false,
-      "icon": "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.6\" stroke-linecap=\"round\" stroke-linejoin=\"round\" xmlns=\"http://www.w3.org/2000/svg\"><path d=\"M5 5h9M9.5 5v11M7.5 16h4\"/><path d=\"M14.5 13l3.5 6 3.5-6\"/><path d=\"M15.5 16.5h5\"/></svg>",
+      "icon": "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.6\" stroke-linecap=\"round\" stroke-linejoin=\"round\" xmlns=\"http://www.w3.org/2000/svg\"><path d=\"M4 6h8M8 6v10M6.3 16h3.4\"/><path d=\"M13.5 16l3.5-10 3.5 10M14.9 12.3h4.2\"/></svg>",
       "preview": "/catalog/previews/font-convert.webp"
     }
   ]

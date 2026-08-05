@@ -345,6 +345,10 @@ export interface CmykCondition {
   identifier: string;
   info: string;
   registry: string;
+  /** Maximum total area coverage (sum of C+M+Y+K, %) the condition is built for —
+   *  the "total ink limit" a press operator sets. Above it, ink can fail to dry,
+   *  set off onto the next sheet, or crack on the fold. */
+  tac: number;
 }
 
 /**
@@ -356,11 +360,16 @@ export interface CmykCondition {
  * and the shell only claims GTS_PDFXVersion where they were).
  * Keys are the values accepted by the `colorProfile` export option for pdf-cmyk.
  */
+// TAC limits are the coated-stock ceilings the characterization data is built for
+// (trade references, not the paywalled ISO/CGATS datasets): FOGRA39 330% (ISO Coated
+// v2; a separate "300" profile variant exists), FOGRA51 300% (PSO Coated v3), US SWOP
+// v2 300%, GRACoL 320-340% (TR006 ships at both — 340 is used as the profile ceiling
+// so we don't cry wolf; a shop targeting 320 can tighten via the profile picker).
 export const CMYK_CONDITIONS = {
-  fogra39: { identifier: 'FOGRA39', info: 'Coated FOGRA39 (ISO 12647-2:2004)', registry: 'http://www.color.org' },
-  fogra51: { identifier: 'FOGRA51', info: 'PSO Coated v3 (FOGRA51)', registry: 'http://www.color.org' },
-  swop:    { identifier: 'CGATS TR 001', info: 'U.S. Web Coated (SWOP) v2', registry: 'http://www.color.org' },
-  gracol:  { identifier: 'CGATS TR 006', info: 'GRACoL 2006 Coated', registry: 'http://www.color.org' },
+  fogra39: { identifier: 'FOGRA39', info: 'Coated FOGRA39 (ISO 12647-2:2004)', registry: 'http://www.color.org', tac: 330 },
+  fogra51: { identifier: 'FOGRA51', info: 'PSO Coated v3 (FOGRA51)', registry: 'http://www.color.org', tac: 300 },
+  swop:    { identifier: 'CGATS TR 001', info: 'U.S. Web Coated (SWOP) v2', registry: 'http://www.color.org', tac: 300 },
+  gracol:  { identifier: 'CGATS TR 006', info: 'GRACoL 2006 Coated', registry: 'http://www.color.org', tac: 340 },
 } satisfies Record<string, CmykCondition>;
 
 /** The default press condition for CMYK PDF output intents. */

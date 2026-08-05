@@ -100,7 +100,7 @@
         "height": { "type": "integer", "minimum": 1 },
         "formats": {
           "type": "array",
-          "items": { "type": "string", "enum": ["png", "jpg", "jpeg", "svg", "svg-anim", "emf", "eps", "eps-cmyk", "dxf", "pdf", "pdf-cmyk", "cmyk-tiff", "tiff", "exr", "hdr", "pptx", "html", "md", "txt", "json", "csv", "ics", "vcf", "ico", "zip", "webp", "webp-anim", "avif", "webm", "mp4", "gif", "apng", "wav", "mp3", "m4a", "opus", "ttf", "otf", "woff"] },
+          "items": { "type": "string", "enum": ["png", "jpg", "jpeg", "svg", "svg-anim", "emf", "eps", "eps-cmyk", "dxf", "pdf", "pdf-cmyk", "cmyk-tiff", "tiff", "exr", "hdr", "pptx", "docx", "odt", "html", "md", "txt", "json", "csv", "ics", "vcf", "ico", "zip", "webp", "webp-anim", "avif", "webm", "mp4", "gif", "apng", "wav", "mp3", "m4a", "opus", "ttf", "otf", "woff"] },
           "minItems": 1,
           "description": "Output formats the tool supports. The host filters action buttons to these. Clipboard is an action (see render.actions), not a format."
         },
@@ -360,9 +360,13 @@
         "onLevel": { "type": "boolean", "description": "The tool reacts to live audio levels while metering/recording (e.g. a mic recorder's VU meter + coaching). When the shell provides host.recorder the runtime drives this hook per level sample with { level, model, host }, where level is { rms, peak, dbfs, clipping, t }; the returned patch updates the render like onFrame (drop-overlap, not time-boxed). The tool declares the 'microphone' capability, so — unlike onFrame — it only runs where a mic can be recorded." },
         "beforeExport": { "type": "boolean" },
         "afterExport": { "type": "boolean" },
-        "exportFile": { "type": "boolean", "description": "The tool produces output via the transform path (file in → transformed file out) rather than rasterising the DOM. The hook reads the picked file's bytes (input.value.bytes) and returns a { bytes, mime, filename } record; the host wraps it in a Blob and delivers it via host.export.file (no watermark, no embedded provenance). Used by on-device utilities." },
+        "exportFile": { "type": "boolean", "description": "The tool produces output via the transform path (file in → transformed file out) rather than rasterising the DOM. The hook reads the picked file's bytes (input.value.bytes) and returns a { bytes, mime, filename } record; the host wraps it in a Blob and delivers it via host.export.file (no watermark, no embedded provenance). A batch tool (a `multiple` file input) may instead return an ARRAY of such records — one per file — which the host delivers as a single zip. Used by on-device utilities." },
         "exportStill": { "type": "boolean", "description": "The tool owns a raster still export at a bit depth the 8-bit DOM raster cannot originate (16-bit/HDR PNG, OpenEXR, Radiance). The runtime calls this hook (engine 1.100+) before host.export.render with { node, format, opts (depth/hdr/width/height/dpi), host }; returning { bytes, mime } short-circuits the export to those bytes (via host.codec, computed in float), while returning null declines and falls through to the normal path for that format. Tool-supplied bytes carry no watermark or engine provenance." }
       }
+    },
+    "isolate": {
+      "type": "boolean",
+      "description": "Opt this tool's hooks into a Worker-isolated execution context (engine 1.105+, plans/86-worker-isolation-hooks.md M2) instead of the default in-realm 'new Function' path. Set only once hooks.js is verified never to touch DOM globals (document/window/Image/canvas); a shell without a Worker-backed executor silently runs the tool in-realm, so declaring it is always safe (a hint, not a hard requirement)."
     }
   },
   "$defs": {
@@ -534,6 +538,10 @@
                 "type": "integer",
                 "minimum": 1,
                 "description": "Maximum accepted file size in bytes. The host rejects larger files at pick time. Omit for no limit."
+              },
+              "multiple": {
+                "type": "boolean",
+                "description": "Accept MANY files at once (batch tools). The input's value becomes an array of loaded files instead of a single one, the web file-picker sets the `multiple` attribute, and the CLI collects repeated --<id>=path occurrences. An `exportFile` hook may then return one { bytes, mime, filename } record per file (the host delivers them as a single zip). See the embed-track tool."
               }
             }
           }

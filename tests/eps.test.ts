@@ -12,6 +12,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 
 import { emitEps } from '../engine/src/eps.ts';
+import { computePrintGeometry } from '../engine/src/print-marks.ts';
 
 // A filled+stroked path with one cubic + line (nonzero), plus a fill-only
 // triangle (evenodd) — same shape as the EMF suite's fixture.
@@ -188,4 +189,55 @@ test('image + path prims coexist; CMYK variant keeps the image DeviceRGB', () =>
   const eps = emitEps(mixed, { width: 100, height: 80, cmyk: true });
   assert.match(eps, /setcmykcolor/, 'path still emits CMYK colour');
   assert.match(eps, /\/DeviceRGB setcolorspace/, 'image stays DeviceRGB even in the CMYK variant');
+});
+
+// ─── Print geometry (bleed + marks + colour bar) ─────────────────────────────
+
+const printGeo = () => computePrintGeometry({
+  trimWpt: 300, trimHpt: 200, bleedPt: 8.5,
+  marks: { crop: true, registration: true, colorBars: true },
+  palette: [{ rgb: [0.1, 0.2, 0.3], cmyk: [0.6, 0.4, 0.2, 0.1], label: 'Brand' }],
+  barStyle: 'cmyk-verify',
+});
+
+test('emitEps with geometry expands the BoundingBox to the media box', () => {
+  const geo = printGeo();
+  const bb = boundingBox(emitEps(IR, { geometry: geo }));
+  assert.equal(bb.w, Math.ceil(geo.page.w));
+  assert.equal(bb.h, Math.ceil(geo.page.h));
+  // The media box is bigger than the 300x200 trim (bleed + mark reach on every edge).
+  assert.ok(bb.w > 300 && bb.h > 200);
+});
+
+test('emitEps geometry path flips once at the page and places art into the bleed box', () => {
+  const geo = printGeo();
+  const eps = emitEps(IR, { geometry: geo });
+  assert.match(eps, /^1 -1 scale$/m, 'a single page-level y-flip');
+  assert.match(eps, new RegExp(`^${geo.artwork.x} ${geo.artwork.y} translate$`, 'm'), 'artwork translated to the bleed-box origin');
+});
+
+test('emitEps mark colour follows markSpace (registration on every plate for cmyk)', () => {
+  const geo = printGeo();
+  assert.match(emitEps(IR, { geometry: geo, markSpace: 'cmyk' }), /1 1 1 1 setcmykcolor/);
+  assert.match(emitEps(IR, { geometry: geo, markSpace: 'rgb' }), /0 0 0 setrgbcolor/);
+});
+
+test('emitEps registration rings emit a full arc; square cells rectfill', () => {
+  const eps = emitEps(IR, { geometry: printGeo(), markSpace: 'rgb' });
+  assert.match(eps, /0 360 arc/, 'a full-circle registration ring');
+  assert.match(eps, /rectfill/, 'a colour-bar cell fills (square by default, no arcto stack)');
+  assert.doesNotMatch(eps, /arcto/, 'no rounded cells without a brand --radius, so no arcto to leave the stack unbalanced');
+});
+
+test('emitEps cmyk-verify bar carries both a cmyk substitution and an rgb reference cell', () => {
+  const eps = emitEps(IR, { geometry: printGeo(), markSpace: 'cmyk' });
+  // process primaries + the brand pair → both colour ops appear among the bar cells.
+  assert.ok(countOf(eps, 'setcmykcolor') >= 2, 'process primaries + the brand CMYK substitution cell');
+  assert.match(eps, /setrgbcolor/, 'the brand RGB reference cell');
+});
+
+test('emitEps without geometry never emits the geometry-only CTM (byte-identical guard)', () => {
+  const eps = emitEps(IR, { width: 600, height: 600 });
+  assert.doesNotMatch(eps, /^1 -1 scale$/m, 'the geo page-flip is absent on the plain path');
+  assert.doesNotMatch(eps, /arc\b/, 'no marks on the plain path');
 });

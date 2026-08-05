@@ -24,6 +24,7 @@ import {
   DEPTH_FORMATS, RASTER_FORMATS,
 } from '../engine/src/preflight.ts';
 import { KNOWN_FINISH_KINDS } from '@lolly-tools/core';
+import { CMYK_CONDITIONS } from '../engine/src/color.ts';
 import type {
   PreflightJob, PreflightReport, PreflightInput, PreflightSwatch, Finding,
 } from '../engine/src/preflight.ts';
@@ -80,16 +81,18 @@ const input = (o: Partial<PreflightInput> & { id: string; type: PreflightInput['
 
 // ─── (A) the correctness fix: a declared finish is not an ink ───────────────
 
-test('finish: pdf-cmyk separates a declared finish as an ordinary ink plate (error)', () => {
+test('finish: pdf-cmyk emits a declared finish as its own OVERPRINTING named plate (info)', () => {
   const r = preflight(job({
     settings: { format: 'pdf-cmyk' },
     palette: { known: true, value: [swatch('Gold', 'Gold', 'foil')] },
   }));
   const f = one(r, 'print.finish-separates-as-ink');
-  assert.equal(f.severity, 'error');
+  assert.equal(f.severity, 'info', 'the finish now overprints, so this is a handoff heads-up not an error');
+  assert.equal(f.evidence?.overprint, true);
   assert.equal(f.evidence?.finish, 'foil');
   assert.equal(f.evidence?.spotName, 'Gold');
   assert.equal(f.evidence?.format, 'pdf-cmyk');
+  assert.ok(!f.message.includes('knocks out'), 'the finish no longer knocks out');
   assert.ok(!f.message.includes('—'), 'no em-dashes in finding copy');
   assert.ok(!/[$£€¥]/.test(f.message), 'no currency anywhere in preflight');
   // The sibling finding is for the OTHER failure mode and must not double up.
@@ -626,7 +629,7 @@ test('an experimental tool declares its forced watermark', () => {
 
 test('a separating format refuses ink coverage and the exact plate set', () => {
   const r = preflight(job({ settings: { format: 'pdf-cmyk' } }));
-  assert.equal(one(r, 'refuse.ink-coverage').needs, 'not-computable');
+  assert.equal(one(r, 'refuse.ink-coverage').needs, 'needs-render');
   assert.equal(one(r, 'refuse.exact-separation').needs, 'needs-render');
   const png = preflight(job({ settings: { format: 'png' } }));
   assert.equal(has(png, 'refuse.ink-coverage'), false);
@@ -925,7 +928,7 @@ test('a mounted timeline reports its length instead of being collected and dropp
 
 // ─── the finish findings describe the SHIPPED exporter ──────────────────────
 
-test('both finish findings name overprint, which is the defect that remains', () => {
+test('finish findings split: pdf-cmyk overprints (info), cmyk-tiff still flattens (error)', () => {
   const pdf = preflight(job({
     settings: { format: 'pdf-cmyk' },
     palette: { known: true, value: [swatch('Gold', 'Gold', 'foil')] },
@@ -934,15 +937,18 @@ test('both finish findings name overprint, which is the defect that remains', ()
     settings: { format: 'cmyk-tiff' },
     palette: { known: true, value: [swatch('Gold', 'Gold', 'foil')] },
   }));
-  for (const f of [one(pdf, 'print.finish-separates-as-ink'), one(tiff, 'print.finish-flattened-into-process')]) {
-    assert.match(f.message, /overprint/, 'the remaining defect must be the sentence the user reads');
-    assert.equal(f.evidence?.overprint, false);
-    // and it must NOT describe the pre-fix behaviour the mask removed
-    assert.ok(!/prints in colour/.test(f.message), f.message);
-    assert.ok(!/disappears/.test(f.message), f.message);
-  }
-  assert.match(one(pdf, 'print.finish-separates-as-ink').message, /100% black mask/);
-  assert.match(one(tiff, 'print.finish-flattened-into-process').message, /solid black/);
+  // pdf-cmyk: the finish is its own OVERPRINTING plate now — no longer a knockout defect.
+  const fp = one(pdf, 'print.finish-separates-as-ink');
+  assert.equal(fp.evidence?.overprint, true);
+  assert.equal(fp.severity, 'info');
+  assert.match(fp.message, /overprint/);
+  assert.ok(!/knocks out/.test(fp.message), fp.message);
+  // cmyk-tiff: no /Separation object, so it genuinely flattens and does NOT overprint.
+  const ft = one(tiff, 'print.finish-flattened-into-process');
+  assert.equal(ft.evidence?.overprint, false);
+  assert.equal(ft.severity, 'error');
+  assert.match(ft.message, /not overprinted/);
+  assert.match(ft.message, /solid black/);
 });
 
 // ─── the artifact carries what qualifies it ─────────────────────────────────
@@ -973,4 +979,141 @@ test('the report echoes the collection context, not just the tool and format', (
   // and it survives a JSON round trip, because the artifact is the copy that travels
   const back = JSON.parse(JSON.stringify(r)) as PreflightReport;
   assert.deepEqual(back.job, JSON.parse(JSON.stringify(r.job)));
+});
+
+// ─── Effective DPI at print size ─────────────────────────────────────────────
+
+const ev = (f: Finding): Record<string, unknown> => f.evidence as Record<string, unknown>;
+const physSize = (w: number, h: number, dpi: number) =>
+  ({ width: mm(w), height: mm(h), dpi, declaredBy: 'url' as const, unitDeclared: true });
+
+test('effective-dpi: warns on a raster at a physical trim below the offset floor', () => {
+  const r = preflight(job({ settings: { format: 'png', size: physSize(210, 297, 150) } }));
+  const f = one(r, 'print.effective-dpi');
+  assert.equal(f.severity, 'warn');
+  assert.equal(ev(f).intent, 'offset');
+  assert.equal(ev(f).floor, 250);
+  assert.match(f.message, /150 DPI/);
+  assert.match(f.message, /soft/);
+});
+
+test('effective-dpi: hard wording below the 150 floor', () => {
+  const r = preflight(job({ settings: { format: 'png', size: physSize(210, 297, 96) } }));
+  assert.match(one(r, 'print.effective-dpi').message, /150 DPI floor/);
+});
+
+test('effective-dpi: silent at 300 DPI, on a px size, and on vector formats', () => {
+  const ok = preflight(job({ settings: { format: 'png', size: physSize(210, 297, 300) } }));
+  assert.equal(has(ok, 'print.effective-dpi'), false);
+  const pxSize = preflight(job({ settings: { format: 'png', size: { width: px(600), height: px(800), dpi: 96, declaredBy: 'url', unitDeclared: true } } }));
+  assert.equal(has(pxSize, 'print.effective-dpi'), false, 'px is not a physical trim');
+  const svg = preflight(job({ manifest: { id: 't', render: { formats: ['svg'] } }, settings: { format: 'svg', size: physSize(210, 297, 96) } }));
+  assert.equal(has(svg, 'print.effective-dpi'), false, 'vector output has no DPI');
+});
+
+test('effective-dpi: large-format intent tolerates 72-150 DPI', () => {
+  const inside = preflight(job({ settings: { format: 'png', size: physSize(900, 600, 100) } }));
+  assert.equal(has(inside, 'print.effective-dpi'), false, '100 DPI is fine at 900mm viewed at distance');
+  const below = preflight(job({ settings: { format: 'png', size: physSize(900, 600, 60) } }));
+  assert.match(one(below, 'print.effective-dpi').message, /Large-format/);
+});
+
+test('image-effective-dpi: warns for a low-res placed image, silent for a high-res one', () => {
+  const stageWith = (naturalW: number) => ({
+    known: true as const,
+    value: { isSequence: false, canvasCssW: 800, rasterImages: [{ label: 'logo.png', naturalW, naturalH: naturalW, boxCssW: 800, boxCssH: 800 }] },
+  });
+  // 400 px across 210mm (8.27 in) ≈ 48 DPI — soft.
+  const low = preflight(job({ settings: { format: 'png', size: physSize(210, 210, 300) }, stage: stageWith(400) }));
+  const f = one(low, 'print.image-effective-dpi');
+  assert.equal(f.severity, 'warn');
+  assert.ok((ev(f).effectiveDpi as number) < 60);
+  assert.match(f.message, /logo\.png/);
+  // 2500 px across the same 210mm ≈ 302 DPI — fine.
+  const high = preflight(job({ settings: { format: 'png', size: physSize(210, 210, 300) }, stage: stageWith(2500) }));
+  assert.equal(has(high, 'print.image-effective-dpi'), false);
+});
+
+test('image-effective-dpi: withheld on a multi-page stage (one canvas width, many pages)', () => {
+  const r = preflight(job({
+    settings: { format: 'pdf', size: physSize(210, 297, 300) },
+    stage: { known: true, value: { isSequence: false, pageBoxes: 2, canvasCssW: 800, rasterImages: [{ label: 'x', naturalW: 80, naturalH: 80, boxCssW: 800, boxCssH: 800 }] } },
+  }));
+  assert.equal(has(r, 'print.image-effective-dpi'), false);
+});
+
+test('image-dpi-needs-stage: the honest gap fires only headless, at a physical trim', () => {
+  const headless = preflight(job({ settings: { format: 'png', size: physSize(210, 297, 300) }, stage: { known: false, why: 'needs-mount' } }));
+  const f = one(headless, 'print.image-dpi-needs-stage');
+  assert.equal(f.severity, 'info');
+  assert.equal(f.needs, 'needs-mount');
+  const mounted = preflight(job({ settings: { format: 'png', size: physSize(210, 297, 300) }, stage: { known: true, value: { isSequence: false, canvasCssW: 800, rasterImages: [] } } }));
+  assert.equal(has(mounted, 'print.image-dpi-needs-stage'), false);
+});
+
+// ─── Total ink coverage (TAC) ────────────────────────────────────────────────
+
+const solid = (name: string, over: { cmyk?: number[]; hex?: string } = {}): PreflightSwatch =>
+  ({ path: `brand.color.${name}`, name, spot: null, ...over });
+const paletteOf = (...sw: PreflightSwatch[]): PreflightJob['palette'] => ({ known: true, value: sw });
+
+test('palette TAC: reports the heaviest brand solid and the condition limit', () => {
+  const r = preflight(job({ settings: { format: 'pdf-cmyk' }, palette: paletteOf(solid('Light', { cmyk: [20, 20, 20, 20] }), solid('Heavy', { cmyk: [80, 70, 60, 90] })) }));
+  const f = one(r, 'count.ink-coverage-palette');
+  assert.equal(f.count?.value, 300);
+  assert.equal(f.count?.kind, 'inkCoverage');
+  assert.equal(f.count?.unit, 'pct');
+  assert.equal(ev(f).limit, 330);   // default fogra39
+  assert.match(f.message, /solid fills only/);
+  assert.equal(has(r, 'print.ink-over-tac'), false);
+});
+
+test('palette TAC: warns when a solid exceeds the condition limit', () => {
+  const r = preflight(job({ settings: { format: 'pdf-cmyk' }, palette: paletteOf(solid('Registration', { cmyk: [90, 90, 90, 90] })) }));
+  const w = one(r, 'print.ink-over-tac');
+  assert.equal(w.severity, 'warn');
+  assert.equal(ev(w).over, 30);      // 360 − 330
+  assert.equal(has(r, 'count.ink-coverage-palette'), true);
+});
+
+test('palette TAC: honours the chosen press condition', () => {
+  const heavy = solid('X', { cmyk: [80, 80, 80, 70] });   // 310
+  const f51 = preflight(job({ settings: { format: 'pdf-cmyk', pressProfile: { known: true, value: 'fogra51' } }, palette: paletteOf(heavy) }));
+  assert.equal(has(f51, 'print.ink-over-tac'), true, '310 > fogra51 300');
+  const f39 = preflight(job({ settings: { format: 'pdf-cmyk', pressProfile: { known: true, value: 'fogra39' } }, palette: paletteOf(heavy) }));
+  assert.equal(has(f39, 'print.ink-over-tac'), false, '310 < fogra39 330');
+});
+
+test('palette TAC: derives from hex when a swatch carries no cmyk lock', () => {
+  const r = preflight(job({ settings: { format: 'pdf-cmyk' }, palette: paletteOf(solid('Navy', { hex: '#003366' })) }));
+  // #003366 → rgbToCmyk → C100 M50 Y0 K60 = 210
+  assert.equal(one(r, 'count.ink-coverage-palette').count?.value, 210);
+});
+
+test('palette TAC: excludes finish swatches (their build is the finish mask, not a solid)', () => {
+  const r = preflight(job({ settings: { format: 'pdf-cmyk' }, palette: { known: true, value: [swatch('gold', 'Gold', 'foil'), solid('Ink', { cmyk: [10, 10, 10, 10] })] } }));
+  assert.equal(one(r, 'count.ink-coverage-palette').count?.value, 40);
+});
+
+test('palette TAC: absent on non-separating formats and when the palette is unresolved', () => {
+  const png = preflight(job({ settings: { format: 'png' }, palette: paletteOf(solid('X', { cmyk: [90, 90, 90, 90] })) }));
+  assert.equal(has(png, 'count.ink-coverage-palette'), false);
+  const unresolved = preflight(job({ settings: { format: 'pdf-cmyk' }, palette: { known: false, why: 'not-resolved' } }));
+  assert.equal(has(unresolved, 'count.ink-coverage-palette'), false);
+  assert.equal(has(unresolved, 'refuse.ink-coverage'), true, 'the rendered-content gap still stands');
+});
+
+test('rich black: flagged for a K-heavy solid with real CMY, not for pure K', () => {
+  const pure = preflight(job({ settings: { format: 'pdf-cmyk' }, palette: paletteOf(solid('K', { cmyk: [0, 0, 0, 100] })) }));
+  assert.equal(has(pure, 'print.rich-black'), false);
+  const rich = preflight(job({ settings: { format: 'pdf-cmyk' }, palette: paletteOf(solid('RichBlack', { cmyk: [40, 30, 30, 100] })) }));
+  const f = one(rich, 'print.rich-black');
+  assert.equal(f.severity, 'info');
+  assert.equal(ev(f).k, 100);
+});
+
+test('every CMYK condition declares a TAC limit in the documented 260-360 band', () => {
+  for (const [name, cond] of Object.entries(CMYK_CONDITIONS)) {
+    assert.ok(Number.isInteger(cond.tac) && cond.tac >= 260 && cond.tac <= 360, `${name} tac ${cond.tac}`);
+  }
 });

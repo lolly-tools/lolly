@@ -203,3 +203,37 @@ test('provenance alone reserves the margin band (counts as a mark)', () => {
   assert.ok(geo.page.w > TRIM.trimWpt && geo.page.h > TRIM.trimHpt);  // a reach band exists
   assert.equal(geo.primitives.labels.length, 3);
 });
+
+// ── RGB-swatch bar (RGB output: RGB PDF / SVG / EPS) ──────────────────────────
+
+test("barStyle 'rgb-swatches' → one RGB cell per brand colour, no primaries, no CMYK", () => {
+  const geo = computePrintGeometry({ ...TRIM, bleedPt: 8.5, marks: { colorBars: true }, palette: BRAND3, barStyle: 'rgb-swatches' });
+  const bars = geo.primitives.bars;
+  // Exactly one cell per brand colour — no leading C/M/Y/K primaries, no CMYK pair.
+  assert.equal(bars.length, BRAND3.length);
+  bars.forEach((b, i) => {
+    assert.equal(b.ink, 'rgb', 'every cell paints its RGB — a CMYK cell would be meaningless in an RGB doc');
+    assert.deepEqual(b.rgb, BRAND3[i]!.rgb);
+    assert.equal(b.label, BRAND3[i]!.label);
+    assert.ok(!strictlyInsideTrim(geo, b.x, b.y));
+  });
+  // No two cells touch — a small gap keeps the (optionally rounded) swatches distinct.
+  for (let i = 1; i < bars.length; i++) assert.ok(bars[i]!.x > bars[i - 1]!.x + bars[i - 1]!.w);
+  // None of the four process primaries leaked in.
+  assert.ok(!bars.some(b => b.ink === 'cmyk'));
+});
+
+// ── Brand --radius rounds the colour-bar cells ───────────────────────────────
+
+test('barRadiusPt sets each cell corner radius, clamped to half the cell', () => {
+  const geo = computePrintGeometry({ ...TRIM, bleedPt: 8.5, marks: { colorBars: true }, palette: BRAND3, barStyle: 'rgb-swatches', barRadiusPt: 4 });
+  assert.ok(geo.primitives.bars.length > 0);
+  for (const b of geo.primitives.bars) assert.equal(b.r, 4);
+  // A radius larger than the cell is clamped to half the cell size (no over-round).
+  const big = computePrintGeometry({ ...TRIM, bleedPt: 8.5, marks: { colorBars: true }, palette: BRAND3, barStyle: 'cmyk-verify', barRadiusPt: 999 });
+  const bc = PRINT_MARK_DEFAULTS.barCellPt;
+  for (const b of big.primitives.bars) assert.equal(b.r, bc / 2);
+  // Default (no radius) → sharp squares.
+  const sharp = computePrintGeometry({ ...TRIM, bleedPt: 8.5, marks: { colorBars: true }, palette: BRAND3 });
+  for (const b of sharp.primitives.bars) assert.equal(b.r, 0);
+});

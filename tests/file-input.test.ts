@@ -435,3 +435,67 @@ test('strip-data (pdf): degrades gracefully when the host has no PDF capability'
   assert.match(rt.getHydrated(), /isn't available/i);   // pdfUnavailable branch
   await assert.rejects(() => rt.exportFile(), /available/i);
 });
+
+// ─── multi-file (batch) input model + batch exportFile (v1.104) ────────────────
+
+const MULTI_MANIFEST: any = { inputs: [{ id: 'files', type: 'file', multiple: true, accept: ['image/jpeg'] }] };
+const mfile = (name: string): any => ({ __file: true, name, mime: 'image/jpeg', size: 3, bytes: new Uint8Array([1, 2, 3]), url: null });
+
+test('multi-file input: default value is an empty array, control is file-picker', () => {
+  const [m] = buildInputModel(MULTI_MANIFEST) as any;
+  assert.deepEqual(m.value, []);
+  assert.equal(m.control, 'file-picker');
+});
+
+test('multi-file input: an array of loaded FileRefs is kept; a lone FileRef is wrapped; junk → []', () => {
+  const arr = (buildInputModel(MULTI_MANIFEST, { initial: { files: [mfile('a.jpg'), mfile('b.jpg')] } }) as any)[0];
+  assert.equal(arr.value.length, 2);
+  assert.equal(arr.value[1].name, 'b.jpg');
+  const wrapped = (buildInputModel(MULTI_MANIFEST, { initial: { files: mfile('solo.jpg') } }) as any)[0];
+  assert.ok(Array.isArray(wrapped.value) && wrapped.value.length === 1 && wrapped.value[0].name === 'solo.jpg');
+  const junk = (buildInputModel(MULTI_MANIFEST, { initial: { files: ['not-a-file', { nope: 1 }] } }) as any)[0];
+  assert.deepEqual(junk.value, []);
+});
+
+test('multi-file input: updateInput keeps only clean file entries; null clears to []', () => {
+  const model = buildInputModel(MULTI_MANIFEST) as any;
+  const added = updateInput(model, 'files', [mfile('a.jpg'), 'garbage', mfile('b.jpg')] as any);
+  assert.equal((added[0]!.value as unknown[]).length, 2);
+  const cleared = updateInput(added, 'files', null as any);
+  assert.deepEqual(cleared[0]!.value, []);
+});
+
+test('multi-file URL transport: repeated file params collect into an array of path refs', () => {
+  // CLI transport: --files=a.pdf --files=b.mp4 → an array of unresolved {__file, path} refs.
+  const state = parseUrlState('files=a.pdf&files=b.mp4', MULTI_MANIFEST) as any;
+  assert.ok(Array.isArray(state.values.files));
+  assert.equal(state.values.files.length, 2);
+  assert.equal(state.values.files[0].path, 'a.pdf');
+  assert.equal(state.values.files[1].path, 'b.mp4');
+  // Binary files never serialise into a shareable URL, single or multiple.
+  assert.equal(serializeUrlState([{ id: 'files', type: 'file', multiple: true, value: [mfile('a.jpg')] } as any]).includes('files'), false);
+});
+
+test('batch exportFile: an array result is returned as-is; empty-bytes entries are dropped; all-empty throws', async () => {
+  const tool = toolWith({
+    manifest: {
+      id: 'batch', name: 'Batch', version: '1.0.0', engineVersion: '^1.0.0', status: 'community', privacy: 'on-device',
+      render: { width: 1, height: 1, formats: ['jpg'] }, hooks: { exportFile: true },
+      inputs: [{ id: 'files', type: 'file', multiple: true }],
+    },
+    hooksSource: `function exportFile({ model }) {
+      const files = (model.find(i => i.id === 'files') || {}).value || [];
+      const out = files.map((f, i) => ({ bytes: f.bytes, mime: 'image/jpeg', filename: 'out-' + i + '.jpg' }));
+      out.push({ bytes: null }); // a dropped entry
+      return out;
+    }`,
+  });
+  const rt = await createRuntime(tool, BARE_HOST, { files: [mfile('a.jpg'), mfile('b.jpg')] });
+  const out = await rt.exportFile() as any;
+  assert.ok(Array.isArray(out));
+  assert.equal(out.length, 2);                 // the null-bytes entry was filtered
+  assert.equal(out[0].filename, 'out-0.jpg');
+
+  const rtEmpty = await createRuntime(tool, BARE_HOST, { files: [] });
+  await assert.rejects(() => rtEmpty.exportFile(), /no bytes/);
+});

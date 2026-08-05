@@ -155,6 +155,11 @@ export function createMockHost(opts: CreateMockHostOpts = {}): MockHost {
       async file(blob: Blob, o?: { filename?: string }) {
         exports.push({ kind: 'file', filename: o?.filename, bytes: blob.size });
       },
+      async imprint(bytes: Uint8Array, _format: string, _o?: { durable?: boolean }) {
+        // No rasteriser in the mock — return the bytes unchanged (the progressive-
+        // enhancement contract), same as the headless CLI.
+        return bytes;
+      },
     },
 
     log(level, msg, ctx) {
