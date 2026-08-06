@@ -159,7 +159,6 @@
   "Minimal UI",
   "Fullscreen",
   "Browser tab",
-
   "Fade",
   "Pop",
   "Grow",
@@ -175,5 +174,8 @@
   "Swoop",
   "Spin",
   "Drift",
-  "Cut (no animation)"
+  "Cut (no animation)",
+  "Print preflight",
+  "prepress",
+  "Checks a print export before you download: bleed, resolution, ink coverage and plate counts appear above the Download button. It never blocks an export."
 ]

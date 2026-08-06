@@ -100,5 +100,6 @@
   "inputs.boxes.fields.imgpos.options.right center": "Derecha",
   "inputs.boxes.fields.imgpos.options.left bottom": "Abajo a la izquierda",
   "inputs.boxes.fields.imgpos.options.center bottom": "Abajo",
-  "inputs.boxes.fields.imgpos.options.right bottom": "Abajo a la derecha"
+  "inputs.boxes.fields.imgpos.options.right bottom": "Abajo a la derecha",
+  "description": "An open canvas for free arrangement — text, images, shapes and live renders from your other Lolly tools, all held to your brand."
 }

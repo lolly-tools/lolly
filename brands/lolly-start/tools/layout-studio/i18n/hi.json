@@ -100,5 +100,6 @@
   "inputs.boxes.fields.imgpos.options.right center": "दाएँ",
   "inputs.boxes.fields.imgpos.options.left bottom": "नीचे बाएँ",
   "inputs.boxes.fields.imgpos.options.center bottom": "नीचे",
-  "inputs.boxes.fields.imgpos.options.right bottom": "नीचे दाएँ"
+  "inputs.boxes.fields.imgpos.options.right bottom": "नीचे दाएँ",
+  "description": "An open canvas for free arrangement — text, images, shapes and live renders from your other Lolly tools, all held to your brand."
 }

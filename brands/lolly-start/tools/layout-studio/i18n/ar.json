@@ -100,5 +100,6 @@
   "inputs.boxes.fields.imgpos.options.right center": "يمين",
   "inputs.boxes.fields.imgpos.options.left bottom": "أسفل اليسار",
   "inputs.boxes.fields.imgpos.options.center bottom": "أسفل",
-  "inputs.boxes.fields.imgpos.options.right bottom": "أسفل اليمين"
+  "inputs.boxes.fields.imgpos.options.right bottom": "أسفل اليمين",
+  "description": "An open canvas for free arrangement — text, images, shapes and live renders from your other Lolly tools, all held to your brand."
 }

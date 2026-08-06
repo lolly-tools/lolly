@@ -100,5 +100,6 @@
   "inputs.boxes.fields.imgpos.options.right center": "Droite",
   "inputs.boxes.fields.imgpos.options.left bottom": "Bas gauche",
   "inputs.boxes.fields.imgpos.options.center bottom": "Bas",
-  "inputs.boxes.fields.imgpos.options.right bottom": "Bas droite"
+  "inputs.boxes.fields.imgpos.options.right bottom": "Bas droite",
+  "description": "An open canvas for free arrangement — text, images, shapes and live renders from your other Lolly tools, all held to your brand."
 }
