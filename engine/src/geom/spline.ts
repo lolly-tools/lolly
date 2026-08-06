@@ -42,6 +42,7 @@
  * and nothing else.
  */
 import { type Cubic, lineToCubic } from './bezier.ts';
+import { spiroCubics } from './spiro.ts';
 
 /**
  * How a node's handles behave when one is dragged. This is authoring intent, and it
@@ -84,8 +85,9 @@ export type SplineKind =
    *  solved globally for curvature continuity. The pen-tool default — see
    *  `solveHyperbezier`. */
   | 'hyperbezier'
-  /** Levien's Spiro: knots plus a curvature-continuity solve. Declared, not
-   *  implemented — see the file header. */
+  /** Levien's Spiro: the Euler-spiral interpolating spline Inkscape and FontForge
+   *  ship. Knot-only, G2 curvature-continuous, `'corner'` knots break the run. See
+   *  `spiroCubics` in geom/spiro.ts (a separate curve from hyperbezier by design). */
   | 'spiro';
 
 export interface AuthoredPath {
@@ -117,7 +119,7 @@ export function toCubics(path: AuthoredPath, warm?: HyperbezierSolution): Cubic[
     case 'hyperbezier':
       return hyperbezierCubics(n, path.closed, solveHyperbezier(n, path.closed, warm));
     case 'spiro':
-      throw new Error('spiro lowering is not implemented yet — see engine/src/geom/spline.ts');
+      return spiroCubics(n, path.closed);
     default:
       throw new Error(`unknown spline kind: ${String(path.kind)}`);
   }

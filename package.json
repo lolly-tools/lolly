@@ -96,7 +96,8 @@
     "build:ios": "cd shells/tauri-mobile && npm run build:ios"
   },
   "dependencies": {
-    "@resvg/resvg-js": "^2.6.2"
+    "@resvg/resvg-js": "^2.6.2",
+    "playwright-core": "^1.62.1"
   },
   "devDependencies": {
     "@anthropic-ai/sdk": "^0.111.0",
