@@ -31,6 +31,16 @@ shells/web/dist
 # anyway, so uploading the local copy every ship is pure waste. Byte-identical.
 shells/web/public/ort
 
+# Model STAGING dirs (~686 MB — the single biggest slice of the ~2 GB suse upload,
+# which is what makes the finalize-POST drop on flaky links). scripts/fetch-{matte,
+# upscale}-models.ts stage a candidate OUT of the served tree, in .candidates/, for
+# evaluation before it is promoted into its /models/<category>/ path. Nothing serves
+# or references them: they are NOT in the precache manifest (the dist listing scan
+# skips dot-dirs) and only the dev fetch scripts — which never run on Vercel — touch
+# them. They reach the live site today only because vite copies public/ wholesale, and
+# no client ever requests those URLs. Excluding them takes suse from ~2.0 GB to ~1.3 GB.
+**/models/*/.candidates
+
 # Profile views — derived from the packs (community/, brands/**), which DO ship.
 # postinstall (use-profile --auto) rebuilds them on Vercel as real copies, so
 # vercel.json's includeFiles globs and the web build's dist copy see real files.
