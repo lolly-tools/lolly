@@ -654,8 +654,10 @@ test('render: one unusable contour among several refuses the whole shape, visibl
   // Half a shape is exactly the confidently-wrong artwork the codec refuses to produce,
   // so the renderer must not draw the contours it CAN when one of them cannot lower.
   const { compute, logs } = withGeom();
-  const mixed = `${encodeAuthoredPath(RING[0]!)}*${encodeAuthoredPath({ ...RING[1]!, kind: 'spiro' })}`;
-  assertUndrawn(compute([pathBox({ path: mixed })]).pathHtml![0]!, logs, /unsupported|spiro/i);
+  // One contour carries a kind no engine can lower (spiro is now a real solver, so an
+  // unknown kind is the refusal case). Half a shape must never be drawn.
+  const mixed = `${encodeAuthoredPath(RING[0]!)}*${encodeAuthoredPath({ ...RING[1]!, kind: 'zigzag' as AuthoredPath['kind'] })}`;
+  assertUndrawn(compute([pathBox({ path: mixed })]).pathHtml![0]!, logs, /invalid-argument/);
 });
 
 test('render: stroke and fill-rule are honoured; an unfilled stroked path is possible', () => {
@@ -813,20 +815,17 @@ test('degrade: a partial host.geom (no fromNodes) is treated as absent, not as a
 });
 
 test('degrade: fromNodes returns ok:false — the code and message reach the log', () => {
-  // A real refusal from the real bridge: a kind the engine knows the name of but
-  // cannot lower answers 'unsupported'. This is the case the plan calls out.
+  // A real refusal from the real bridge: a kind no engine has ever heard of answers
+  // 'invalid-argument', which the tool degrades to an undrawn outline + a warning.
+  // (Spiro USED to be the "known but unimplemented" example — it is now a real solver,
+  // engine/src/geom/spiro.ts, so an unknown kind is the refusal case.)
   const { compute, logs } = withGeom();
-  const spiro = encodeAuthoredPath({ ...DIAMOND, kind: 'spiro' });
-  assertUndrawn(compute([pathBox({ path: spiro })]).pathHtml![0]!, logs, /unsupported|spiro/i);
-
-  // And a kind no engine has ever heard of answers 'invalid-argument'.
-  const alien = withGeom();
-  // Cast: 'zigzag' is deliberately not a SplineKind — the codec must carry an
-  // unknown kind through untouched so a LATER engine can be the one to name it.
-  const out = alien.compute([pathBox({
+  // Cast: 'zigzag' is deliberately not a SplineKind — the codec must carry an unknown
+  // kind through untouched so a LATER engine can be the one to name it.
+  const out = compute([pathBox({
     path: encodeAuthoredPath({ ...DIAMOND, kind: 'zigzag' as AuthoredPath['kind'] }),
   })]);
-  assertUndrawn(out.pathHtml![0]!, alien.logs, /invalid-argument/);
+  assertUndrawn(out.pathHtml![0]!, logs, /invalid-argument/);
 });
 
 test('degrade: an empty path field is an empty state, not an error', () => {

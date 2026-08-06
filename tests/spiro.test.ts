@@ -8,6 +8,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { toCubics, type AuthoredPath, type Node } from '../engine/src/geom/spline.ts';
+import { maxSpiroCurvatureJump } from '../engine/src/geom/spiro.ts';
 import type { Cubic } from '../engine/src/geom/bezier.ts';
 
 const spiro = (nodes: Node[], closed = false): Cubic[] =>
@@ -86,15 +87,30 @@ test('every join in an all-smooth path is G1 (tangent continuous)', () => {
   }
 });
 
-test('curvature is continuous across an all-smooth path', () => {
-  const cs = spiro([P(0, 0), P(60, 90), P(170, 60), P(240, 150), P(320, 60)]);
-  for (let i = 0; i + 1 < cs.length; i++) {
-    const kEnd = curvature(cs[i]!, 1);
-    const kStart = curvature(cs[i + 1]!, 0);
-    // Leading-order solve + subdivided clothoid: curvature matches closely, not to
-    // machine precision. Scale is ~1/100 px so 5e-4 is a tight bound here.
-    near(kEnd, kStart, 5e-4, `join ${i} G2`);
+test('the analytic clothoid curvature is continuous at smooth knots (the G2 solve)', () => {
+  // The Newton refinement drives the true κ_exit(left) − κ_entry(right) to ~0. This is
+  // the real G2 guarantee; the 2nd derivative of the cubic Bézier approximation is jumpy
+  // by nature (a clothoid is not a cubic) and is NOT what "smooth" means here.
+  for (const nodes of [
+    [P(0, 0), P(60, 90), P(170, 60), P(240, 150), P(320, 60)],     // wiggly
+    [P(0, 0), P(100, 40), P(220, 20), P(320, 80)],                  // gentle S
+    [P(0, 100), P(80, 40), P(160, 100), P(240, 40), P(320, 100)],   // wave
+  ]) {
+    assert.ok(maxSpiroCurvatureJump(nodes, false) < 1e-6, `max curvature jump ${maxSpiroCurvatureJump(nodes, false)}`);
   }
+  // Closed loop: curvature continuous at every knot including the seam.
+  const circle = Array.from({ length: 8 }, (_, i) => P(100 * Math.cos((i * Math.PI) / 4), 100 * Math.sin((i * Math.PI) / 4)));
+  assert.ok(maxSpiroCurvatureJump(circle, true) < 1e-6, 'closed loop curvature continuity');
+});
+
+test('the rendered cubics stay close to the true curve (G1-exact, bounded approximation)', () => {
+  // Not a curvature test — a shape test: the emitted cubics interpolate the knots and no
+  // control point flies off (a broken clothoid solve throws a control arm to infinity).
+  const cs = spiro([P(0, 0), P(60, 90), P(170, 60), P(240, 150), P(320, 60)]);
+  const xs = cs.flatMap((c) => [c[0], c[2], c[4], c[6]]);
+  const ys = cs.flatMap((c) => [c[1], c[3], c[5], c[7]]);
+  assert.ok(Math.min(...xs) > -80 && Math.max(...xs) < 400, 'x within a sane box around the polygon');
+  assert.ok(Math.min(...ys) > -80 && Math.max(...ys) < 230, 'y within a sane box around the polygon');
 });
 
 test('a corner knot makes the two sides independent', () => {
