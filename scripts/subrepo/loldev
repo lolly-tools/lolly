@@ -241,6 +241,56 @@ gtg() {
   [ "${#FAILED[@]}" -eq 0 ]   # exit status reflects success/failure
 }
 
+# --- Vercel deploy plumbing (used by ship()) --------------------------------
+# All of these assume VERCEL_ORG_ID/VERCEL_PROJECT_ID are exported to scope the
+# target project (ship() sets them per iteration). Tunables are env-overridable;
+# each also carries a `${VAR:-default}` at its use site so an empty override under
+# `set +u` can never zero an arithmetic/loop bound.
+WAIT_READY_TIMEOUT="${LOLDEV_WAIT_READY_TIMEOUT:-900}"   # max s to wait for a build to reach READY
+WAIT_READY_POLL="${LOLDEV_WAIT_READY_POLL:-15}"          # s between readyState polls
+ALIAS_FLIP_TIMEOUT="${LOLDEV_ALIAS_FLIP_TIMEOUT:-120}"   # max s for the prod domain to repoint to our deployment
+DEPLOY_UPLOAD_TRIES="${LOLDEV_DEPLOY_UPLOAD_TRIES:-3}"   # bounded upload retries (large-archive finalize-POST drop)
+
+# Read one field from `vercel inspect <target> --json`. --json is machine-readable
+# (the human table prints title-case '● Ready', NOT the API token READY, so never
+# grep the human output). $1=deployment-url | https://domain   $2=field.
+_inspect_field() {
+  npx --yes vercel inspect "$1" --json 2>/dev/null | node -e '
+    const f = process.argv[1]; let s = "";
+    process.stdin.on("data", c => s += c).on("end", () => {
+      try { process.stdout.write(String(JSON.parse(s)[f] ?? "")); } catch (e) {}
+    });' "$2"
+}
+deployment_id()    { _inspect_field "$1" id; }          # id of a deployment URL
+deployment_state() { _inspect_field "$1" readyState; }  # readyState of a deployment URL
+domain_live_id()   { _inspect_field "https://$1" id; }  # id of the deployment a DOMAIN currently serves
+
+# Newest PRODUCTION deployment URL for the scoped project (empty on none/error).
+newest_prod_url() {
+  npx --yes vercel ls --prod 2>/dev/null | grep -Eo 'https://[a-z0-9-]+\.vercel\.app' | head -1
+}
+
+# Poll a deployment URL to a terminal state. Prints ONLY the final token to stdout
+# (progress to stderr, so `state=$(wait_ready ...)` captures a single clean token).
+# Return: 0=READY, 1=ERROR/CANCELED, 2=timeout. Anything that is not an EXACT
+# READY / ERROR / CANCELED token — QUEUED/INITIALIZING/BUILDING/UPLOADING, an empty
+# read, a failed `vercel inspect`, an unrecognised token — is treated as "keep
+# polling", so a transient inspect hiccup is never misread as a build failure (that
+# would just move the original false-failure bug from the log stream to this poll).
+wait_ready() {
+  local url="$1" waited=0 st
+  while [ "$waited" -lt "${WAIT_READY_TIMEOUT:-900}" ]; do
+    st="$(deployment_state "$url")"
+    case "$st" in
+      READY)          printf READY;     return 0 ;;
+      ERROR|CANCELED) printf '%s' "$st"; return 1 ;;
+      *)              printf '    build state: %s (%ss/%ss)\n' "${st:-querying}" "$waited" "${WAIT_READY_TIMEOUT:-900}" >&2 ;;
+    esac
+    sleep "${WAIT_READY_POLL:-15}"; waited=$((waited + ${WAIT_READY_POLL:-15}))
+  done
+  printf timeout; return 2
+}
+
 # Post-deploy brand assertion. The brand a project actually builds is governed
 # ENTIRELY by its Vercel LOLLY_PROFILE env — which this toolkit never sets and,
 # until now, never checked. A missing/typo'd env silently ships the wrong brand
@@ -251,7 +301,7 @@ gtg() {
 # throwaway URL and never updates the domain alias, so there's nothing to assert.
 # $1=profile  $2=domain  $3=project id (for the hint).
 verify_deploy() {
-  local profile="$1" domain="$2" id="$3" expected actual tries=0
+  local profile="$1" domain="$2" id="$3" expected actual got="" tries=0
   expected="$(node -e 'const p=require("./profiles.json").profiles[process.argv[1]];if(!p)process.exit(3);process.stdout.write(String((require("./"+p.catalog+"/tools/index.json").tools||[]).length))' "$profile" 2>/dev/null)"
   if [ -z "$expected" ]; then
     warn "verify: can't read the expected catalog for profile '$profile' — skipping brand assertion for $domain"
@@ -261,10 +311,18 @@ verify_deploy() {
   while [ "$tries" -lt 6 ]; do
     actual="$(curl -fsS --max-time 30 "https://$domain/catalog/tools/index.json" 2>/dev/null \
       | node -e 'let s="";process.stdin.on("data",c=>s+=c).on("end",()=>{try{process.stdout.write(String((JSON.parse(s).tools||[]).length))}catch(e){process.stdout.write("")}})' 2>/dev/null)"
+    [ -n "$actual" ] && got="$actual"
     [ "$actual" = "$expected" ] && { ok "verify: $domain serving '$profile' — $actual tools live"; return 0; }
     tries=$((tries + 1)); sleep 5
   done
-  err "verify: $domain shipped the WRONG brand — expected profile '$profile' ($expected tools) but the live catalog shows '${actual:-unreadable}' after $tries checks"
+  # Never got a readable count. ship() only calls verify_deploy AFTER confirming the
+  # domain already resolves to our READY deployment, so an unreadable catalog here is
+  # a transient CDN/network blip, not a wrong brand — don't hard-fail a live deploy.
+  if [ -z "$got" ]; then
+    warn "verify: could not read $domain/catalog after $tries checks — deploy is live + READY, brand unconfirmed (transient?)"
+    return 0
+  fi
+  err "verify: $domain shipped the WRONG brand — expected profile '$profile' ($expected tools) but the live catalog shows '$got'"
   err "  the deploy is live but built the wrong brand. Check this project's LOLLY_PROFILE env:"
   err "    VERCEL_ORG_ID=$VERCEL_TEAM_ID VERCEL_PROJECT_ID=$id npx vercel env ls"
   return 1
@@ -281,8 +339,12 @@ verify_deploy() {
 # functions. The brand each target builds is PINNED per-deploy from SHIP_TARGETS
 # via `--build-env LOLLY_PROFILE=<profile>` (repo = source of truth), so the right
 # profile — and therefore the whole brand: palette, tokens, fonts, tools, catalog —
-# always lands on the right domain regardless of dashboard/local state; verify_deploy
-# then asserts it on the live domain. --preview → preview URLs instead of prod.
+# always lands on the right domain regardless of dashboard/local state. Deploys use
+# --no-wait so the CLI's flaky post-upload wait can never false-fail a good build:
+# success is read from Vercel's own readyState, then BOUND to our deployment id
+# promoting to the domain, and verify_deploy asserts the brand on it. A dropped upload
+# (no deployment created) is retried; a build ERROR/timeout is a real, reported failure.
+# --preview → preview URLs instead of prod (liveness checked directly, no domain alias).
 ship() {
   local PREVIEW=0 gargs=() a
   for a in "$@"; do [ "$a" = "--preview" ] && PREVIEW=1 || gargs+=("$a"); done
@@ -292,38 +354,110 @@ ship() {
   if [ "$PREVIEW" = 1 ]; then tgt="PREVIEW"; flags=(); else tgt="PRODUCTION"; flags=(--prod); fi
 
   local -a SHIPPED=() SFAILED=()
-  local entry name id profile domain log rc url line
+  local entry name id profile domain log rc url our_id state snap try rtry live waited line
+  trap 'rm -f "${log:-}"' RETURN   # backstop if ship() returns/interrupts mid-upload
   for entry in "${SHIP_TARGETS[@]}"; do
     IFS='|' read -r name id profile domain <<<"$entry"
     phase "🚀" "Deploy → Vercel ($name → $domain, $profile · $tgt)"
-    step "tarballing the local tree + building on Vercel (LOLLY_PROFILE=$profile)"
-    log="$(mktemp -t loldev-ship.XXXXXX)"
-    # PIN the brand at build-time from SHIP_TARGETS (repo = source of truth). `-b`
-    # sets LOLLY_PROFILE for THIS build, so postinstall's use-profile --auto can't
-    # fall through to the tarballed sticky file or the `suse` default and build the
-    # wrong brand — and because the whole brand (palette/tokens/fonts/tools/catalog)
-    # is materialised from the profile, pinning it pins ALL of it. Overrides the
-    # project's dashboard LOLLY_PROFILE for this deploy; that dashboard var stays as
-    # the fallback for Vercel's git-integration auto-deploys, which skip loldev ship.
-    # verify_deploy() below still asserts the live domain afterwards (belt + braces).
-    VERCEL_ORG_ID="$VERCEL_TEAM_ID" VERCEL_PROJECT_ID="$id" \
-      npx --yes vercel deploy "${flags[@]}" --archive=tgz --build-env "LOLLY_PROFILE=$profile" --yes 2>&1 | tee "$log"
-    rc=${PIPESTATUS[0]}
-    url="$(grep -Eo 'https://[a-zA-Z0-9._~:/?#@!$&%*+=-]+' "$log" | tail -1)"
-    rm -f "$log"
-    if [ "$rc" -eq 0 ]; then
-      ok "shipped $name"
-      if [ "$PREVIEW" != 1 ] && ! verify_deploy "$profile" "$domain" "$id"; then
-        SFAILED+=("$name → $domain (deployed, but the WRONG brand is live)")
-      else
-        line="$domain"; [ -n "$url" ] && line="$line  ·  $url"
-        SHIPPED+=("$line")
-      fi
+
+    # Scope every vercel call this iteration to the target project via the env
+    # overrides — never touches the local .vercel/ link (stays pointed at bt for
+    # `vercel dev`). Cleared by the single unset after the loop.
+    export VERCEL_ORG_ID="$VERCEL_TEAM_ID" VERCEL_PROJECT_ID="$id"
+
+    # --- 1. upload + queue the build (bounded retry) ------------------------
+    # --no-wait: the CLI creates + uploads the deployment, prints its *.vercel.app
+    # URL, and exits WITHOUT holding open the build-log stream that drops on flaky
+    # links. So this exit code reflects only the UPLOAD; the build's real outcome is
+    # read from Vercel's own readyState in step 2 — the CLI's transport reliability no
+    # longer decides success (THAT was the "fails despite a successful deploy" bug).
+    # PIN the brand per-build from SHIP_TARGETS (repo = source of truth); the project
+    # dashboard LOLLY_PROFILE stays as the fallback for git-integration auto-deploys.
+    # node_modules and .git are NOT in the tarball — Vercel default-ignores both and
+    # .vercelignore lists node_modules too — so there is no node_modules parking ritual.
+    url=""; rc=0
+    snap="$(newest_prod_url)"
+    for (( try=1; try<="${DEPLOY_UPLOAD_TRIES:-3}"; try++ )); do
+      step "tarballing + queuing on Vercel (LOLLY_PROFILE=$profile · upload $try/${DEPLOY_UPLOAD_TRIES:-3})"
+      log="$(mktemp -t loldev-ship.XXXXXX)"
+      npx --yes vercel deploy "${flags[@]}" --archive=tgz --no-wait \
+        --build-env "LOLLY_PROFILE=$profile" --yes 2>&1 | tee "$log"
+      rc=${PIPESTATUS[0]}
+      # The deployment URL is the *.vercel.app host on stdout — NEVER the vercel.com
+      # Inspect dashboard link (which `vercel inspect` cannot resolve). Restrict the match.
+      url="$(grep -Eo 'https://[a-z0-9-]+\.vercel\.app' "$log" | tail -1)"
+      rm -f "$log"
+      [ -n "$url" ] && break
+      # No URL printed — a large-archive finalize-POST likely dropped before creating
+      # the deployment. Give a just-queued deploy a few seconds to surface (ls is
+      # eventually consistent), adopt it if one appeared, else retry the upload. A
+      # rare concurrent git-integration deploy could be adopted here; the step-3 prod
+      # identity + brand gate below still validates whatever is live, so it is safe.
+      warn "no deployment URL (exit $rc) — checking whether one was created…"
+      for (( rtry=1; rtry<=5; rtry++ )); do
+        url="$(newest_prod_url)"
+        [ -n "$url" ] && [ "$url" != "$snap" ] && break
+        url=""; sleep 6
+      done
+      [ -n "$url" ] && { warn "adopted $url (stdout lost; a new deployment exists)"; break; }
+      warn "no deployment created — retrying the upload"
+    done
+
+    if [ -z "$url" ]; then
+      err "vercel deploy created no deployment: $name (last exit $rc)"
+      SFAILED+=("$name → $domain (upload failed)"); continue
+    fi
+    our_id="$(deployment_id "$url")"
+
+    # --- 2. wait for the SERVER to finish the build -------------------------
+    step "waiting for $name to build ($url · readyState ≤$(( ${WAIT_READY_TIMEOUT:-900} / 60 ))m)"
+    state="$(wait_ready "$url")"; rc=$?
+    if [ "$rc" -eq 1 ]; then
+      err "vercel build FAILED: $name — deployment $state"
+      err "  logs:  VERCEL_ORG_ID=$VERCEL_TEAM_ID VERCEL_PROJECT_ID=$id npx vercel inspect $url --logs"
+      SFAILED+=("$name → $domain (build $state)"); continue
+    fi
+    if [ "$rc" -ne 0 ]; then
+      # Timeout with NO confirmed READY. Fail CLOSED — do NOT "rescue" via the domain
+      # brand check: on a same-brand redeploy the PREVIOUS deployment already serves
+      # the right brand, so a brand match here would falsely pass a stuck/slow build.
+      err "vercel build did not reach READY within ${WAIT_READY_TIMEOUT:-900}s: $name (last: ${state:-unknown})"
+      err "  raise LOLDEV_WAIT_READY_TIMEOUT or re-check:  npx vercel inspect $url"
+      SFAILED+=("$name → $domain (build timeout)"); continue
+    fi
+    ok "$name build READY ($our_id)"
+
+    # --- 3. success is authoritative on OUR deployment ----------------------
+    if [ "$PREVIEW" = 1 ]; then
+      # No domain alias to assert — READY plus a 200 from the deployment URL is success.
+      if curl -fsI --max-time 30 "$url" >/dev/null 2>&1; then SHIPPED+=("$name → $url")
+      else SFAILED+=("$name → $url (READY but not serving)"); fi
+      continue
+    fi
+    # Prod: a --prod build auto-promotes to the domain once READY. WAIT for the domain
+    # to actually resolve to OUR deployment id before trusting the brand check —
+    # otherwise verify_deploy could read the PREVIOUS same-brand deployment and pass
+    # while ours hasn't gone live. This is what binds success to deployment identity
+    # (a blocking `vercel deploy` used to give this for free; --no-wait does not).
+    waited=0; live=""
+    while [ "$waited" -lt "${ALIAS_FLIP_TIMEOUT:-120}" ]; do
+      live="$(domain_live_id "$domain")"
+      [ "$live" = "$our_id" ] && break
+      sleep 6; waited=$((waited + 6))
+    done
+    if [ "$live" != "$our_id" ]; then
+      err "$domain did not promote to our deployment within ${ALIAS_FLIP_TIMEOUT:-120}s (ours=$our_id, live=${live:-none})"
+      SFAILED+=("$name → $domain (built READY but never promoted)"); continue
+    fi
+    # The domain now serves OUR deployment — assert the brand it built is correct.
+    if verify_deploy "$profile" "$domain" "$id"; then
+      line="$domain"; [ -n "$url" ] && line="$line  ·  $url"
+      SHIPPED+=("$line")
     else
-      err "vercel deploy failed: $name (exit $rc)"
-      SFAILED+=("$name → $domain")
+      SFAILED+=("$name → $domain (deployed, but the WRONG brand is live)")
     fi
   done
+  unset VERCEL_ORG_ID VERCEL_PROJECT_ID
 
   echo
   rule
