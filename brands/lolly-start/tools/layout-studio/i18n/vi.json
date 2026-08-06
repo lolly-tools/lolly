@@ -100,5 +100,6 @@
   "inputs.boxes.fields.imgpos.options.right center": "Phải",
   "inputs.boxes.fields.imgpos.options.left bottom": "Dưới trái",
   "inputs.boxes.fields.imgpos.options.center bottom": "Dưới",
-  "inputs.boxes.fields.imgpos.options.right bottom": "Dưới phải"
+  "inputs.boxes.fields.imgpos.options.right bottom": "Dưới phải",
+  "description": "An open canvas for free arrangement — text, images, shapes and live renders from your other Lolly tools, all held to your brand."
 }

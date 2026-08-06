@@ -100,5 +100,6 @@
   "inputs.boxes.fields.imgpos.options.right center": "Kanan",
   "inputs.boxes.fields.imgpos.options.left bottom": "Bawah kiri",
   "inputs.boxes.fields.imgpos.options.center bottom": "Bawah",
-  "inputs.boxes.fields.imgpos.options.right bottom": "Bawah kanan"
+  "inputs.boxes.fields.imgpos.options.right bottom": "Bawah kanan",
+  "description": "An open canvas for free arrangement — text, images, shapes and live renders from your other Lolly tools, all held to your brand."
 }

@@ -100,5 +100,6 @@
   "inputs.boxes.fields.imgpos.options.right center": "오른쪽",
   "inputs.boxes.fields.imgpos.options.left bottom": "왼쪽 아래",
   "inputs.boxes.fields.imgpos.options.center bottom": "아래",
-  "inputs.boxes.fields.imgpos.options.right bottom": "오른쪽 아래"
+  "inputs.boxes.fields.imgpos.options.right bottom": "오른쪽 아래",
+  "description": "An open canvas for free arrangement — text, images, shapes and live renders from your other Lolly tools, all held to your brand."
 }

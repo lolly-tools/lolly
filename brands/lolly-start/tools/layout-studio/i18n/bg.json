@@ -100,5 +100,6 @@
   "inputs.boxes.fields.imgpos.options.right center": "Вдясно",
   "inputs.boxes.fields.imgpos.options.left bottom": "Долу вляво",
   "inputs.boxes.fields.imgpos.options.center bottom": "Долу",
-  "inputs.boxes.fields.imgpos.options.right bottom": "Долу вдясно"
+  "inputs.boxes.fields.imgpos.options.right bottom": "Долу вдясно",
+  "description": "An open canvas for free arrangement — text, images, shapes and live renders from your other Lolly tools, all held to your brand."
 }

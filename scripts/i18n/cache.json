@@ -2462,7 +2462,10 @@
       "7d25747a200b6b3bfdbc1d534a2c028e721639cce1b552548459bde458c22334": "Modelos de voz",
       "01471f677752f168787127e6c7ac95adfe38c3b55fe30cd40cb1db0a6c721b19": "Modelos de voz para el audio del guion y la narración. Se descargan una vez (~{size}) y funcionan en el dispositivo.",
       "b99da59f7eff9bb979515ae1c43018a078c15454267cf6c3852ad56b25b521e0": "pdf · png · jpg · gif · svg · tiff · webp · mp4 · webm · mp3 · wav - marca uno o varios a la vez",
-      "48163b1ca93dcf3bd979a83c6c4ec4320a3d5adab37630e2af3a9103ea2b50d1": "{count} cajas de subtítulos añadidas. Cada una se edita como cualquier clip."
+      "48163b1ca93dcf3bd979a83c6c4ec4320a3d5adab37630e2af3a9103ea2b50d1": "{count} cajas de subtítulos añadidas. Cada una se edita como cualquier clip.",
+      "6ccca51af5e8aa33fcd507522914e23d9055a3c9fcc530a0276d43d37c98ff52": "Preflight de impresión",
+      "8386d7897da410ebb5955351340399f2789bcffa629ec0b7ed98c1606c1ca144": "preimpresión",
+      "7653eb8c1c288545cdb3cc1ea8290397458f6fc4a377ee33d3ffbe2b20c533bf": "Comprueba una exportación de impresión antes de descargar: sangrado, resolución, cobertura de tinta y número de planchas aparecen encima del botón Descargar. Nunca bloquea una exportación."
     },
     "de": {
       "3907fa7f80722a6fc58cd8c1bd30abf7638095d6774f183b6e831b7093957d1b": "Erscheinungsbild",
@@ -4926,7 +4929,10 @@
       "7d25747a200b6b3bfdbc1d534a2c028e721639cce1b552548459bde458c22334": "Stimmmodelle",
       "01471f677752f168787127e6c7ac95adfe38c3b55fe30cd40cb1db0a6c721b19": "Stimmmodelle für Skript-Audio und Erzählung. Einmaliger Download (~{size}), läuft auf dem Gerät.",
       "b99da59f7eff9bb979515ae1c43018a078c15454267cf6c3852ad56b25b521e0": "pdf · png · jpg · gif · svg · tiff · webp · mp4 · webm · mp3 · wav - eines oder mehrere gleichzeitig anhaken",
-      "48163b1ca93dcf3bd979a83c6c4ec4320a3d5adab37630e2af3a9103ea2b50d1": "{count} Untertitel-Boxen hinzugefügt. Jede lässt sich wie jeder Clip bearbeiten."
+      "48163b1ca93dcf3bd979a83c6c4ec4320a3d5adab37630e2af3a9103ea2b50d1": "{count} Untertitel-Boxen hinzugefügt. Jede lässt sich wie jeder Clip bearbeiten.",
+      "6ccca51af5e8aa33fcd507522914e23d9055a3c9fcc530a0276d43d37c98ff52": "Druck-Preflight",
+      "8386d7897da410ebb5955351340399f2789bcffa629ec0b7ed98c1606c1ca144": "Druckvorstufe",
+      "7653eb8c1c288545cdb3cc1ea8290397458f6fc4a377ee33d3ffbe2b20c533bf": "Prüft einen Druckexport, bevor Sie ihn herunterladen: Beschnitt, Auflösung, Farbauftrag und Plattenanzahl erscheinen über dem Button „Herunterladen“. Ein Export wird nie blockiert."
     },
     "fr": {
       "3907fa7f80722a6fc58cd8c1bd30abf7638095d6774f183b6e831b7093957d1b": "Apparence",
@@ -7390,7 +7396,10 @@
       "7d25747a200b6b3bfdbc1d534a2c028e721639cce1b552548459bde458c22334": "Modèles de voix",
       "01471f677752f168787127e6c7ac95adfe38c3b55fe30cd40cb1db0a6c721b19": "Modèles de voix pour l'audio du script et la narration. Téléchargés une fois (~{size}), exécutés sur l'appareil.",
       "b99da59f7eff9bb979515ae1c43018a078c15454267cf6c3852ad56b25b521e0": "pdf · png · jpg · gif · svg · tiff · webp · mp4 · webm · mp3 · wav - coche un ou plusieurs formats à la fois",
-      "48163b1ca93dcf3bd979a83c6c4ec4320a3d5adab37630e2af3a9103ea2b50d1": "{count} blocs de sous-titres ajoutés. Chacun se modifie comme n'importe quel clip."
+      "48163b1ca93dcf3bd979a83c6c4ec4320a3d5adab37630e2af3a9103ea2b50d1": "{count} blocs de sous-titres ajoutés. Chacun se modifie comme n'importe quel clip.",
+      "6ccca51af5e8aa33fcd507522914e23d9055a3c9fcc530a0276d43d37c98ff52": "Preflight d'impression",
+      "8386d7897da410ebb5955351340399f2789bcffa629ec0b7ed98c1606c1ca144": "prépresse",
+      "7653eb8c1c288545cdb3cc1ea8290397458f6fc4a377ee33d3ffbe2b20c533bf": "Vérifie un export d'impression avant le téléchargement : fond perdu, résolution, taux d'encrage et nombre de plaques s'affichent au-dessus du bouton Télécharger. L'export n'est jamais bloqué."
     },
     "zh": {
       "3907fa7f80722a6fc58cd8c1bd30abf7638095d6774f183b6e831b7093957d1b": "外观",
@@ -9854,7 +9863,10 @@
       "7d25747a200b6b3bfdbc1d534a2c028e721639cce1b552548459bde458c22334": "语音模型",
       "01471f677752f168787127e6c7ac95adfe38c3b55fe30cd40cb1db0a6c721b19": "用于脚本音频和旁白的语音模型。下载一次（~{size}），在设备端运行。",
       "b99da59f7eff9bb979515ae1c43018a078c15454267cf6c3852ad56b25b521e0": "pdf · png · jpg · gif · svg · tiff · webp · mp4 · webm · mp3 · wav — 可勾选一个或同时多个",
-      "48163b1ca93dcf3bd979a83c6c4ec4320a3d5adab37630e2af3a9103ea2b50d1": "已添加 {count} 个字幕框。每个都可像任何剪辑一样编辑。"
+      "48163b1ca93dcf3bd979a83c6c4ec4320a3d5adab37630e2af3a9103ea2b50d1": "已添加 {count} 个字幕框。每个都可像任何剪辑一样编辑。",
+      "6ccca51af5e8aa33fcd507522914e23d9055a3c9fcc530a0276d43d37c98ff52": "印前检查",
+      "8386d7897da410ebb5955351340399f2789bcffa629ec0b7ed98c1606c1ca144": "印前",
+      "7653eb8c1c288545cdb3cc1ea8290397458f6fc4a377ee33d3ffbe2b20c533bf": "在下载前检查印刷导出：出血、分辨率、油墨覆盖率和印版数会显示在“下载”按钮上方。绝不会阻止导出。"
     },
     "ja": {
       "3907fa7f80722a6fc58cd8c1bd30abf7638095d6774f183b6e831b7093957d1b": "外観",
@@ -12318,7 +12330,10 @@
       "7d25747a200b6b3bfdbc1d534a2c028e721639cce1b552548459bde458c22334": "音声モデル",
       "01471f677752f168787127e6c7ac95adfe38c3b55fe30cd40cb1db0a6c721b19": "Scriptの音声とナレーション用の音声モデルです。一度だけダウンロードし(約{size})、オンデバイスで動作します。",
       "b99da59f7eff9bb979515ae1c43018a078c15454267cf6c3852ad56b25b521e0": "pdf · png · jpg · gif · svg · tiff · webp · mp4 · webm · mp3 · wav — 1つまたは複数を同時にチェックできます",
-      "48163b1ca93dcf3bd979a83c6c4ec4320a3d5adab37630e2af3a9103ea2b50d1": "{count}個の字幕ボックスを追加しました。それぞれ他のクリップと同じように編集できます。"
+      "48163b1ca93dcf3bd979a83c6c4ec4320a3d5adab37630e2af3a9103ea2b50d1": "{count}個の字幕ボックスを追加しました。それぞれ他のクリップと同じように編集できます。",
+      "6ccca51af5e8aa33fcd507522914e23d9055a3c9fcc530a0276d43d37c98ff52": "印刷プリフライト",
+      "8386d7897da410ebb5955351340399f2789bcffa629ec0b7ed98c1606c1ca144": "プリプレス",
+      "7653eb8c1c288545cdb3cc1ea8290397458f6fc4a377ee33d3ffbe2b20c533bf": "ダウンロード前に印刷用エクスポートをチェックします。裁ち落とし、解像度、インキ総量、版数が「ダウンロード」ボタンの上に表示されます。エクスポートをブロックすることはありません。"
     },
     "vi": {
       "3907fa7f80722a6fc58cd8c1bd30abf7638095d6774f183b6e831b7093957d1b": "Giao diện",
@@ -14782,7 +14797,10 @@
       "7d25747a200b6b3bfdbc1d534a2c028e721639cce1b552548459bde458c22334": "Mô hình giọng đọc",
       "01471f677752f168787127e6c7ac95adfe38c3b55fe30cd40cb1db0a6c721b19": "Mô hình giọng đọc cho âm thanh Kịch bản và thuyết minh. Tải một lần (~{size}), chạy trên thiết bị.",
       "b99da59f7eff9bb979515ae1c43018a078c15454267cf6c3852ad56b25b521e0": "pdf · png · jpg · gif · svg · tiff · webp · mp4 · webm · mp3 · wav - chọn một hoặc nhiều cùng lúc",
-      "48163b1ca93dcf3bd979a83c6c4ec4320a3d5adab37630e2af3a9103ea2b50d1": "Đã thêm {count} ô phụ đề. Mỗi ô đều chỉnh sửa được như bất kỳ clip nào."
+      "48163b1ca93dcf3bd979a83c6c4ec4320a3d5adab37630e2af3a9103ea2b50d1": "Đã thêm {count} ô phụ đề. Mỗi ô đều chỉnh sửa được như bất kỳ clip nào.",
+      "6ccca51af5e8aa33fcd507522914e23d9055a3c9fcc530a0276d43d37c98ff52": "Kiểm tra trước in",
+      "8386d7897da410ebb5955351340399f2789bcffa629ec0b7ed98c1606c1ca144": "chế bản",
+      "7653eb8c1c288545cdb3cc1ea8290397458f6fc4a377ee33d3ffbe2b20c533bf": "Kiểm tra bản xuất in trước khi bạn tải xuống: tràn lề, độ phân giải, độ phủ mực và số bản kẽm hiển thị phía trên nút Tải xuống. Không bao giờ chặn việc xuất."
     },
     "pt": {
       "b8454e3fe8fc21d6b5a7213ac9b27e9baaa02a8ffee019284dc4c4f7709d098a": "Rasterizador 2D",
@@ -17246,7 +17264,10 @@
       "7d25747a200b6b3bfdbc1d534a2c028e721639cce1b552548459bde458c22334": "Modelos de voz",
       "01471f677752f168787127e6c7ac95adfe38c3b55fe30cd40cb1db0a6c721b19": "Modelos de voz para áudio de roteiro e narração. Baixa uma vez (~{size}), roda no dispositivo.",
       "b99da59f7eff9bb979515ae1c43018a078c15454267cf6c3852ad56b25b521e0": "pdf · png · jpg · gif · svg · tiff · webp · mp4 · webm · mp3 · wav - marque um ou vários de uma vez",
-      "48163b1ca93dcf3bd979a83c6c4ec4320a3d5adab37630e2af3a9103ea2b50d1": "{count} caixas de legenda adicionadas. Cada uma é editável como qualquer clipe."
+      "48163b1ca93dcf3bd979a83c6c4ec4320a3d5adab37630e2af3a9103ea2b50d1": "{count} caixas de legenda adicionadas. Cada uma é editável como qualquer clipe.",
+      "6ccca51af5e8aa33fcd507522914e23d9055a3c9fcc530a0276d43d37c98ff52": "Preflight de impressão",
+      "8386d7897da410ebb5955351340399f2789bcffa629ec0b7ed98c1606c1ca144": "pré-impressão",
+      "7653eb8c1c288545cdb3cc1ea8290397458f6fc4a377ee33d3ffbe2b20c533bf": "Verifica uma exportação de impressão antes de baixar: sangria, resolução, cobertura de tinta e número de chapas aparecem acima do botão Baixar. Nunca bloqueia uma exportação."
     },
     "zh-hant": {
       "b8454e3fe8fc21d6b5a7213ac9b27e9baaa02a8ffee019284dc4c4f7709d098a": "2D 點陣化器",
@@ -19710,7 +19731,10 @@
       "7d25747a200b6b3bfdbc1d534a2c028e721639cce1b552548459bde458c22334": "語音模型",
       "01471f677752f168787127e6c7ac95adfe38c3b55fe30cd40cb1db0a6c721b19": "用於腳本音訊與旁白的語音模型。下載一次（~{size}），在裝置端執行。",
       "b99da59f7eff9bb979515ae1c43018a078c15454267cf6c3852ad56b25b521e0": "pdf · png · jpg · gif · svg · tiff · webp · mp4 · webm · mp3 · wav — 可勾選一個或同時多個",
-      "48163b1ca93dcf3bd979a83c6c4ec4320a3d5adab37630e2af3a9103ea2b50d1": "已新增 {count} 個字幕框。每個都可像任何剪輯一樣編輯。"
+      "48163b1ca93dcf3bd979a83c6c4ec4320a3d5adab37630e2af3a9103ea2b50d1": "已新增 {count} 個字幕框。每個都可像任何剪輯一樣編輯。",
+      "6ccca51af5e8aa33fcd507522914e23d9055a3c9fcc530a0276d43d37c98ff52": "印前檢查",
+      "8386d7897da410ebb5955351340399f2789bcffa629ec0b7ed98c1606c1ca144": "印前",
+      "7653eb8c1c288545cdb3cc1ea8290397458f6fc4a377ee33d3ffbe2b20c533bf": "下載前檢查印刷匯出：出血、解析度、油墨總量與印版數會顯示在「下載」按鈕上方。絕不會阻止匯出。"
     },
     "cs": {
       "b8454e3fe8fc21d6b5a7213ac9b27e9baaa02a8ffee019284dc4c4f7709d098a": "2D rasterizér",
@@ -22174,7 +22198,10 @@
       "7d25747a200b6b3bfdbc1d534a2c028e721639cce1b552548459bde458c22334": "Hlasové modely",
       "01471f677752f168787127e6c7ac95adfe38c3b55fe30cd40cb1db0a6c721b19": "Hlasové modely pro zvuk scénáře a komentář. Stáhne se jednou (~{size}), běží v zařízení.",
       "b99da59f7eff9bb979515ae1c43018a078c15454267cf6c3852ad56b25b521e0": "pdf · png · jpg · gif · svg · tiff · webp · mp4 · webm · mp3 · wav - zaškrtni jeden nebo několik najednou",
-      "48163b1ca93dcf3bd979a83c6c4ec4320a3d5adab37630e2af3a9103ea2b50d1": "Přidáno {count} titulkových rámečků. Každý upravíš jako každý jiný klip."
+      "48163b1ca93dcf3bd979a83c6c4ec4320a3d5adab37630e2af3a9103ea2b50d1": "Přidáno {count} titulkových rámečků. Každý upravíš jako každý jiný klip.",
+      "7653eb8c1c288545cdb3cc1ea8290397458f6fc4a377ee33d3ffbe2b20c533bf": "Kontroluje tiskový export, než ho stáhneš: spadávka, rozlišení, krytí barev a počet tiskových desek se zobrazí nad tlačítkem Stáhnout. Export nikdy neblokuje.",
+      "6ccca51af5e8aa33fcd507522914e23d9055a3c9fcc530a0276d43d37c98ff52": "Předtisková kontrola",
+      "8386d7897da410ebb5955351340399f2789bcffa629ec0b7ed98c1606c1ca144": "prepress"
     },
     "nl": {
       "b8454e3fe8fc21d6b5a7213ac9b27e9baaa02a8ffee019284dc4c4f7709d098a": "2D-rasteriser",
@@ -24638,7 +24665,10 @@
       "7d25747a200b6b3bfdbc1d534a2c028e721639cce1b552548459bde458c22334": "Stemmodellen",
       "01471f677752f168787127e6c7ac95adfe38c3b55fe30cd40cb1db0a6c721b19": "Stemmodellen voor Script-audio en narratie. Eenmalige download (~{size}), draait op het apparaat.",
       "b99da59f7eff9bb979515ae1c43018a078c15454267cf6c3852ad56b25b521e0": "pdf · png · jpg · gif · svg · tiff · webp · mp4 · webm · mp3 · wav - vink er een of meerdere tegelijk aan",
-      "48163b1ca93dcf3bd979a83c6c4ec4320a3d5adab37630e2af3a9103ea2b50d1": "{count} ondertitelvakken toegevoegd. Elk vak is net als elke clip te bewerken."
+      "48163b1ca93dcf3bd979a83c6c4ec4320a3d5adab37630e2af3a9103ea2b50d1": "{count} ondertitelvakken toegevoegd. Elk vak is net als elke clip te bewerken.",
+      "7653eb8c1c288545cdb3cc1ea8290397458f6fc4a377ee33d3ffbe2b20c533bf": "Controleert een printexport voordat je downloadt: afloop, resolutie, inktdekking en het aantal drukplaten verschijnen boven de knop Downloaden. Het blokkeert nooit een export.",
+      "6ccca51af5e8aa33fcd507522914e23d9055a3c9fcc530a0276d43d37c98ff52": "Print-preflight",
+      "8386d7897da410ebb5955351340399f2789bcffa629ec0b7ed98c1606c1ca144": "prepress"
     },
     "tl": {
       "cd74053c54816e473883dede0ad3b152f38a41995409eade6b42704919bb1359": "Arkitektura",
@@ -27102,7 +27132,10 @@
       "7d25747a200b6b3bfdbc1d534a2c028e721639cce1b552548459bde458c22334": "Mga voice model",
       "01471f677752f168787127e6c7ac95adfe38c3b55fe30cd40cb1db0a6c721b19": "Mga voice model para sa Script audio at narration. Isang beses lang ang download (~{size}), tumatakbo sa device.",
       "b99da59f7eff9bb979515ae1c43018a078c15454267cf6c3852ad56b25b521e0": "pdf · png · jpg · gif · svg · tiff · webp · mp4 · webm · mp3 · wav - pumili ng isa o ilan nang sabay-sabay",
-      "48163b1ca93dcf3bd979a83c6c4ec4320a3d5adab37630e2af3a9103ea2b50d1": "{count} caption box ang naidagdag. Bawat isa ay puwedeng i-edit tulad ng kahit anong clip."
+      "48163b1ca93dcf3bd979a83c6c4ec4320a3d5adab37630e2af3a9103ea2b50d1": "{count} caption box ang naidagdag. Bawat isa ay puwedeng i-edit tulad ng kahit anong clip.",
+      "7653eb8c1c288545cdb3cc1ea8290397458f6fc4a377ee33d3ffbe2b20c533bf": "Sinusuri ang print export bago ka mag-download: lumalabas ang bleed, resolution, ink coverage at bilang ng plate sa itaas ng button na I-download. Hindi nito kailanman hinaharang ang export.",
+      "6ccca51af5e8aa33fcd507522914e23d9055a3c9fcc530a0276d43d37c98ff52": "Print preflight",
+      "8386d7897da410ebb5955351340399f2789bcffa629ec0b7ed98c1606c1ca144": "prepress"
     },
     "sv": {
       "b8454e3fe8fc21d6b5a7213ac9b27e9baaa02a8ffee019284dc4c4f7709d098a": "2D-rastrerare",
@@ -29566,7 +29599,10 @@
       "7d25747a200b6b3bfdbc1d534a2c028e721639cce1b552548459bde458c22334": "Röstmodeller",
       "01471f677752f168787127e6c7ac95adfe38c3b55fe30cd40cb1db0a6c721b19": "Röstmodeller för manusljud och berättarröst. Laddas ner en gång (~{size}), körs på enheten.",
       "b99da59f7eff9bb979515ae1c43018a078c15454267cf6c3852ad56b25b521e0": "pdf · png · jpg · gif · svg · tiff · webp · mp4 · webm · mp3 · wav - bocka för ett eller flera samtidigt",
-      "48163b1ca93dcf3bd979a83c6c4ec4320a3d5adab37630e2af3a9103ea2b50d1": "{count} textrutor tillagda. Var och en kan redigeras som vilket klipp som helst."
+      "48163b1ca93dcf3bd979a83c6c4ec4320a3d5adab37630e2af3a9103ea2b50d1": "{count} textrutor tillagda. Var och en kan redigeras som vilket klipp som helst.",
+      "7653eb8c1c288545cdb3cc1ea8290397458f6fc4a377ee33d3ffbe2b20c533bf": "Kontrollerar en tryckexport innan du laddar ner: utfall, upplösning, färgtäckning och antal tryckplåtar visas ovanför knappen Ladda ner. Exporten blockeras aldrig.",
+      "6ccca51af5e8aa33fcd507522914e23d9055a3c9fcc530a0276d43d37c98ff52": "Preflight för tryck",
+      "8386d7897da410ebb5955351340399f2789bcffa629ec0b7ed98c1606c1ca144": "prepress"
     },
     "ms": {
       "b8454e3fe8fc21d6b5a7213ac9b27e9baaa02a8ffee019284dc4c4f7709d098a": "Peraster 2D",
@@ -32030,7 +32066,10 @@
       "7d25747a200b6b3bfdbc1d534a2c028e721639cce1b552548459bde458c22334": "Model suara",
       "01471f677752f168787127e6c7ac95adfe38c3b55fe30cd40cb1db0a6c721b19": "Model suara untuk audio Script dan narasi. Dimuat turun sekali (~{size}), berjalan pada peranti.",
       "b99da59f7eff9bb979515ae1c43018a078c15454267cf6c3852ad56b25b521e0": "pdf · png · jpg · gif · svg · tiff · webp · mp4 · webm · mp3 · wav - tandakan satu atau beberapa serentak",
-      "48163b1ca93dcf3bd979a83c6c4ec4320a3d5adab37630e2af3a9103ea2b50d1": "{count} kotak sari kata ditambah. Setiap satu boleh diedit seperti mana-mana klip."
+      "48163b1ca93dcf3bd979a83c6c4ec4320a3d5adab37630e2af3a9103ea2b50d1": "{count} kotak sari kata ditambah. Setiap satu boleh diedit seperti mana-mana klip.",
+      "7653eb8c1c288545cdb3cc1ea8290397458f6fc4a377ee33d3ffbe2b20c533bf": "Menyemak eksport cetakan sebelum anda memuat turun: bleed, resolusi, liputan dakwat dan bilangan plat dipaparkan di atas butang Muat turun. Ia tidak pernah menyekat eksport.",
+      "6ccca51af5e8aa33fcd507522914e23d9055a3c9fcc530a0276d43d37c98ff52": "Preflight cetakan",
+      "8386d7897da410ebb5955351340399f2789bcffa629ec0b7ed98c1606c1ca144": "pracetak"
     },
     "ro": {
       "b8454e3fe8fc21d6b5a7213ac9b27e9baaa02a8ffee019284dc4c4f7709d098a": "Rasterizator 2D",
@@ -34494,7 +34533,10 @@
       "7d25747a200b6b3bfdbc1d534a2c028e721639cce1b552548459bde458c22334": "Modele de voce",
       "01471f677752f168787127e6c7ac95adfe38c3b55fe30cd40cb1db0a6c721b19": "Modele de voce pentru audio de scenariu și narațiune. Se descarcă o dată (~{size}), rulează pe dispozitiv.",
       "b99da59f7eff9bb979515ae1c43018a078c15454267cf6c3852ad56b25b521e0": "pdf · png · jpg · gif · svg · tiff · webp · mp4 · webm · mp3 · wav - bifează unul sau mai multe deodată",
-      "48163b1ca93dcf3bd979a83c6c4ec4320a3d5adab37630e2af3a9103ea2b50d1": "{count} casete de subtitrare adăugate. Fiecare poate fi editată ca orice clip."
+      "48163b1ca93dcf3bd979a83c6c4ec4320a3d5adab37630e2af3a9103ea2b50d1": "{count} casete de subtitrare adăugate. Fiecare poate fi editată ca orice clip.",
+      "6ccca51af5e8aa33fcd507522914e23d9055a3c9fcc530a0276d43d37c98ff52": "Preflight pentru tipar",
+      "8386d7897da410ebb5955351340399f2789bcffa629ec0b7ed98c1606c1ca144": "pretipar",
+      "7653eb8c1c288545cdb3cc1ea8290397458f6fc4a377ee33d3ffbe2b20c533bf": "Verifică un export pentru tipar înainte să descarci: bleed-ul, rezoluția, acoperirea cu cerneală și numărul de plăci apar deasupra butonului Descarcă. Nu blochează niciodată un export."
     },
     "ar": {
       "b8454e3fe8fc21d6b5a7213ac9b27e9baaa02a8ffee019284dc4c4f7709d098a": "مُنقّط ثنائي الأبعاد",
@@ -36958,7 +37000,10 @@
       "7d25747a200b6b3bfdbc1d534a2c028e721639cce1b552548459bde458c22334": "نماذج الأصوات",
       "01471f677752f168787127e6c7ac95adfe38c3b55fe30cd40cb1db0a6c721b19": "نماذج أصوات لصوت النص والسرد. تنزل مرة واحدة (~{size}) وتعمل على الجهاز.",
       "b99da59f7eff9bb979515ae1c43018a078c15454267cf6c3852ad56b25b521e0": "pdf · png · jpg · gif · svg · tiff · webp · mp4 · webm · mp3 · wav — حدد صيغة واحدة أو عدة صيغ معا",
-      "48163b1ca93dcf3bd979a83c6c4ec4320a3d5adab37630e2af3a9103ea2b50d1": "تمت إضافة {count} مربع تسمية. كل واحد قابل للتحرير مثل أي مقطع."
+      "48163b1ca93dcf3bd979a83c6c4ec4320a3d5adab37630e2af3a9103ea2b50d1": "تمت إضافة {count} مربع تسمية. كل واحد قابل للتحرير مثل أي مقطع.",
+      "7653eb8c1c288545cdb3cc1ea8290397458f6fc4a377ee33d3ffbe2b20c533bf": "يفحص تصدير الطباعة قبل التنزيل: تظهر المتلاشيات والدقة وتغطية الحبر وعدد الألواح فوق زر «تنزيل». ولا يمنع التصدير أبدا.",
+      "6ccca51af5e8aa33fcd507522914e23d9055a3c9fcc530a0276d43d37c98ff52": "الفحص المسبق للطباعة",
+      "8386d7897da410ebb5955351340399f2789bcffa629ec0b7ed98c1606c1ca144": "قبل الطباعة"
     },
     "it": {
       "b8454e3fe8fc21d6b5a7213ac9b27e9baaa02a8ffee019284dc4c4f7709d098a": "Rasterizzatore 2D",
@@ -39425,7 +39470,10 @@
       "7d25747a200b6b3bfdbc1d534a2c028e721639cce1b552548459bde458c22334": "Modelli vocali",
       "01471f677752f168787127e6c7ac95adfe38c3b55fe30cd40cb1db0a6c721b19": "Modelli vocali per l'audio Script e la narrazione. Si scarica una volta (~{size}) e funziona on-device.",
       "b99da59f7eff9bb979515ae1c43018a078c15454267cf6c3852ad56b25b521e0": "pdf · png · jpg · gif · svg · tiff · webp · mp4 · webm · mp3 · wav - selezionane uno o più insieme",
-      "48163b1ca93dcf3bd979a83c6c4ec4320a3d5adab37630e2af3a9103ea2b50d1": "{count} riquadri di sottotitoli aggiunti. Ognuno è modificabile come qualsiasi clip."
+      "48163b1ca93dcf3bd979a83c6c4ec4320a3d5adab37630e2af3a9103ea2b50d1": "{count} riquadri di sottotitoli aggiunti. Ognuno è modificabile come qualsiasi clip.",
+      "6ccca51af5e8aa33fcd507522914e23d9055a3c9fcc530a0276d43d37c98ff52": "Preflight di stampa",
+      "8386d7897da410ebb5955351340399f2789bcffa629ec0b7ed98c1606c1ca144": "prestampa",
+      "7653eb8c1c288545cdb3cc1ea8290397458f6fc4a377ee33d3ffbe2b20c533bf": "Controlla un'esportazione di stampa prima di scaricare: abbondanza, risoluzione, copertura di inchiostro e numero di lastre compaiono sopra il pulsante Scarica. Non blocca mai un'esportazione."
     },
     "no": {
       "b8454e3fe8fc21d6b5a7213ac9b27e9baaa02a8ffee019284dc4c4f7709d098a": "2D-rasterisering",
@@ -41889,7 +41937,10 @@
       "7d25747a200b6b3bfdbc1d534a2c028e721639cce1b552548459bde458c22334": "Stemmemodeller",
       "01471f677752f168787127e6c7ac95adfe38c3b55fe30cd40cb1db0a6c721b19": "Stemmemodeller for manuslyd og fortellerstemme. Lastes ned én gang (~{size}), kjører på enheten.",
       "b99da59f7eff9bb979515ae1c43018a078c15454267cf6c3852ad56b25b521e0": "pdf · png · jpg · gif · svg · tiff · webp · mp4 · webm · mp3 · wav - kryss av én eller flere samtidig",
-      "48163b1ca93dcf3bd979a83c6c4ec4320a3d5adab37630e2af3a9103ea2b50d1": "{count} tekstbokser lagt til. Hver av dem kan redigeres som ethvert klipp."
+      "48163b1ca93dcf3bd979a83c6c4ec4320a3d5adab37630e2af3a9103ea2b50d1": "{count} tekstbokser lagt til. Hver av dem kan redigeres som ethvert klipp.",
+      "7653eb8c1c288545cdb3cc1ea8290397458f6fc4a377ee33d3ffbe2b20c533bf": "Kontrollerer en trykkeksport før du laster ned: utfallende, oppløsning, fargedekning og antall trykkplater vises over knappen Last ned. Eksporten blokkeres aldri.",
+      "6ccca51af5e8aa33fcd507522914e23d9055a3c9fcc530a0276d43d37c98ff52": "Preflight for trykk",
+      "8386d7897da410ebb5955351340399f2789bcffa629ec0b7ed98c1606c1ca144": "førtrykk"
     },
     "ko": {
       "b8454e3fe8fc21d6b5a7213ac9b27e9baaa02a8ffee019284dc4c4f7709d098a": "2D 래스터라이저",
@@ -44353,7 +44404,10 @@
       "7d25747a200b6b3bfdbc1d534a2c028e721639cce1b552548459bde458c22334": "음성 모델",
       "01471f677752f168787127e6c7ac95adfe38c3b55fe30cd40cb1db0a6c721b19": "Script 오디오와 내레이션용 음성 모델이에요. 한 번만 다운로드하고(~{size}) 온디바이스에서 실행돼요.",
       "b99da59f7eff9bb979515ae1c43018a078c15454267cf6c3852ad56b25b521e0": "pdf · png · jpg · gif · svg · tiff · webp · mp4 · webm · mp3 · wav — 하나 또는 여러 개를 한 번에 선택하세요",
-      "48163b1ca93dcf3bd979a83c6c4ec4320a3d5adab37630e2af3a9103ea2b50d1": "{count}개의 자막 상자를 추가했어요. 각각 다른 클립처럼 편집할 수 있어요."
+      "48163b1ca93dcf3bd979a83c6c4ec4320a3d5adab37630e2af3a9103ea2b50d1": "{count}개의 자막 상자를 추가했어요. 각각 다른 클립처럼 편집할 수 있어요.",
+      "6ccca51af5e8aa33fcd507522914e23d9055a3c9fcc530a0276d43d37c98ff52": "인쇄 프리플라이트",
+      "8386d7897da410ebb5955351340399f2789bcffa629ec0b7ed98c1606c1ca144": "프리프레스",
+      "7653eb8c1c288545cdb3cc1ea8290397458f6fc4a377ee33d3ffbe2b20c533bf": "다운로드 전에 인쇄용 내보내기를 검사해요. 도련, 해상도, 잉크 총량, 판수가 다운로드 버튼 위에 표시돼요. 내보내기를 막지는 않아요."
     },
     "hi": {
       "e3ee915a8e8c7aa02d2fced443314522b20824abd2535d5959c41dc8ab8a09e4": " और ",
@@ -46831,7 +46885,10 @@
       "7d25747a200b6b3bfdbc1d534a2c028e721639cce1b552548459bde458c22334": "आवाज़ मॉडल",
       "01471f677752f168787127e6c7ac95adfe38c3b55fe30cd40cb1db0a6c721b19": "Script ऑडियो और नैरेशन के लिए आवाज़ मॉडल। एक बार डाउनलोड (~{size}), ऑन-डिवाइस चलता है।",
       "b99da59f7eff9bb979515ae1c43018a078c15454267cf6c3852ad56b25b521e0": "pdf · png · jpg · gif · svg · tiff · webp · mp4 · webm · mp3 · wav — एक या कई एक साथ चुनें",
-      "48163b1ca93dcf3bd979a83c6c4ec4320a3d5adab37630e2af3a9103ea2b50d1": "{count} कैप्शन बॉक्स जोड़े गए। हर एक किसी भी क्लिप की तरह संपादन योग्य है।"
+      "48163b1ca93dcf3bd979a83c6c4ec4320a3d5adab37630e2af3a9103ea2b50d1": "{count} कैप्शन बॉक्स जोड़े गए। हर एक किसी भी क्लिप की तरह संपादन योग्य है।",
+      "7653eb8c1c288545cdb3cc1ea8290397458f6fc4a377ee33d3ffbe2b20c533bf": "डाउनलोड से पहले प्रिंट एक्सपोर्ट की जाँच करता है: ब्लीड, रेज़ोल्यूशन, इंक कवरेज और प्लेटों की संख्या 'डाउनलोड करें' बटन के ऊपर दिखाई देती हैं। यह एक्सपोर्ट को कभी नहीं रोकता।",
+      "6ccca51af5e8aa33fcd507522914e23d9055a3c9fcc530a0276d43d37c98ff52": "प्रिंट प्रीफ़्लाइट",
+      "8386d7897da410ebb5955351340399f2789bcffa629ec0b7ed98c1606c1ca144": "प्रीप्रेस"
     },
     "bg": {
       "e3ee915a8e8c7aa02d2fced443314522b20824abd2535d5959c41dc8ab8a09e4": " и ",
@@ -49309,7 +49366,10 @@
       "7d25747a200b6b3bfdbc1d534a2c028e721639cce1b552548459bde458c22334": "Гласови модели",
       "01471f677752f168787127e6c7ac95adfe38c3b55fe30cd40cb1db0a6c721b19": "Гласови модели за аудио по скрипт и разказ. Изтегля се еднократно (~{size}), работи на устройството.",
       "b99da59f7eff9bb979515ae1c43018a078c15454267cf6c3852ad56b25b521e0": "pdf · png · jpg · gif · svg · tiff · webp · mp4 · webm · mp3 · wav — избери един или няколко наведнъж",
-      "48163b1ca93dcf3bd979a83c6c4ec4320a3d5adab37630e2af3a9103ea2b50d1": "Добавени са {count} полета с надписи. Всяко се редактира като всеки клип."
+      "48163b1ca93dcf3bd979a83c6c4ec4320a3d5adab37630e2af3a9103ea2b50d1": "Добавени са {count} полета с надписи. Всяко се редактира като всеки клип.",
+      "7653eb8c1c288545cdb3cc1ea8290397458f6fc4a377ee33d3ffbe2b20c533bf": "Проверява експорта за печат, преди да го изтеглиш: блийд, резолюция, мастилено покритие и брой пластини се показват над бутона Изтегли. Никога не блокира експорта.",
+      "6ccca51af5e8aa33fcd507522914e23d9055a3c9fcc530a0276d43d37c98ff52": "Предпечатна проверка",
+      "8386d7897da410ebb5955351340399f2789bcffa629ec0b7ed98c1606c1ca144": "предпечат"
     },
     "id": {
       "c92a7237efe670ff9662c053dac56e1242c50c4b7b11040223dc83c778d4c25d": "Penutur",
@@ -51789,7 +51849,10 @@
       "7d25747a200b6b3bfdbc1d534a2c028e721639cce1b552548459bde458c22334": "Model suara",
       "01471f677752f168787127e6c7ac95adfe38c3b55fe30cd40cb1db0a6c721b19": "Model suara untuk audio Script dan narasi. Diunduh sekali (~{size}), berjalan on-device.",
       "b99da59f7eff9bb979515ae1c43018a078c15454267cf6c3852ad56b25b521e0": "pdf · png · jpg · gif · svg · tiff · webp · mp4 · webm · mp3 · wav - centang satu atau beberapa sekaligus",
-      "48163b1ca93dcf3bd979a83c6c4ec4320a3d5adab37630e2af3a9103ea2b50d1": "{count} kotak takarir ditambahkan. Masing-masing bisa diedit seperti klip lainnya."
+      "48163b1ca93dcf3bd979a83c6c4ec4320a3d5adab37630e2af3a9103ea2b50d1": "{count} kotak takarir ditambahkan. Masing-masing bisa diedit seperti klip lainnya.",
+      "7653eb8c1c288545cdb3cc1ea8290397458f6fc4a377ee33d3ffbe2b20c533bf": "Memeriksa ekspor cetak sebelum Anda mengunduh: bleed, resolusi, cakupan tinta dan jumlah pelat muncul di atas tombol Unduh. Ekspor tidak pernah diblokir.",
+      "6ccca51af5e8aa33fcd507522914e23d9055a3c9fcc530a0276d43d37c98ff52": "Preflight cetak",
+      "8386d7897da410ebb5955351340399f2789bcffa629ec0b7ed98c1606c1ca144": "pracetak"
     },
     "bn": {
       "c92a7237efe670ff9662c053dac56e1242c50c4b7b11040223dc83c778d4c25d": "ভাষাভাষী",
@@ -54269,7 +54332,10 @@
       "7d25747a200b6b3bfdbc1d534a2c028e721639cce1b552548459bde458c22334": "ভয়েস মডেল",
       "01471f677752f168787127e6c7ac95adfe38c3b55fe30cd40cb1db0a6c721b19": "স্ক্রিপ্ট অডিও ও ধারাবর্ণনার জন্য ভয়েস মডেল। একবারই ডাউনলোড হয় (~{size}), ডিভাইসেই চলে।",
       "b99da59f7eff9bb979515ae1c43018a078c15454267cf6c3852ad56b25b521e0": "pdf · png · jpg · gif · svg · tiff · webp · mp4 · webm · mp3 · wav — একটি বা একসাথে কয়েকটি বেছে নিন",
-      "48163b1ca93dcf3bd979a83c6c4ec4320a3d5adab37630e2af3a9103ea2b50d1": "{count}টি ক্যাপশন বক্স যোগ হয়েছে। প্রতিটি যেকোনো ক্লিপের মতোই সম্পাদনাযোগ্য।"
+      "48163b1ca93dcf3bd979a83c6c4ec4320a3d5adab37630e2af3a9103ea2b50d1": "{count}টি ক্যাপশন বক্স যোগ হয়েছে। প্রতিটি যেকোনো ক্লিপের মতোই সম্পাদনাযোগ্য।",
+      "7653eb8c1c288545cdb3cc1ea8290397458f6fc4a377ee33d3ffbe2b20c533bf": "ডাউনলোডের আগে প্রিন্ট এক্সপোর্ট যাচাই করে: ব্লিড, রেজোলিউশন, কালির কভারেজ ও প্লেটের সংখ্যা ডাউনলোড বোতামের উপরে দেখা যায়। এটি কখনও এক্সপোর্ট আটকায় না।",
+      "6ccca51af5e8aa33fcd507522914e23d9055a3c9fcc530a0276d43d37c98ff52": "প্রিন্ট প্রিফ্লাইট",
+      "8386d7897da410ebb5955351340399f2789bcffa629ec0b7ed98c1606c1ca144": "প্রিপ্রেস"
     },
     "ur": {
       "c92a7237efe670ff9662c053dac56e1242c50c4b7b11040223dc83c778d4c25d": "بولنے والے",
@@ -56749,7 +56815,10 @@
       "7d25747a200b6b3bfdbc1d534a2c028e721639cce1b552548459bde458c22334": "وائس ماڈلز",
       "01471f677752f168787127e6c7ac95adfe38c3b55fe30cd40cb1db0a6c721b19": "اسکرپٹ آڈیو اور بیانیے کے لیے وائس ماڈلز۔ ایک بار ڈاؤن لوڈ ہوتا ہے (~{size})، ڈیوائس پر چلتا ہے۔",
       "b99da59f7eff9bb979515ae1c43018a078c15454267cf6c3852ad56b25b521e0": "pdf · png · jpg · gif · svg · tiff · webp · mp4 · webm · mp3 · wav — ایک یا ایک ساتھ کئی منتخب کریں",
-      "48163b1ca93dcf3bd979a83c6c4ec4320a3d5adab37630e2af3a9103ea2b50d1": "{count} کیپشن باکس شامل ہو گئے۔ ہر ایک کسی بھی کلپ کی طرح ایڈٹ ہو سکتا ہے۔"
+      "48163b1ca93dcf3bd979a83c6c4ec4320a3d5adab37630e2af3a9103ea2b50d1": "{count} کیپشن باکس شامل ہو گئے۔ ہر ایک کسی بھی کلپ کی طرح ایڈٹ ہو سکتا ہے۔",
+      "7653eb8c1c288545cdb3cc1ea8290397458f6fc4a377ee33d3ffbe2b20c533bf": "ڈاؤن لوڈ سے پہلے پرنٹ ایکسپورٹ کی جانچ کرتا ہے: بلیڈ، ریزولوشن، انک کوریج اور پلیٹوں کی تعداد ڈاؤن لوڈ بٹن کے اوپر دکھائی دیتی ہے۔ یہ ایکسپورٹ کو کبھی نہیں روکتا۔",
+      "6ccca51af5e8aa33fcd507522914e23d9055a3c9fcc530a0276d43d37c98ff52": "پرنٹ پری فلائٹ",
+      "8386d7897da410ebb5955351340399f2789bcffa629ec0b7ed98c1606c1ca144": "پری پریس"
     },
     "tr": {
       "e3ee915a8e8c7aa02d2fced443314522b20824abd2535d5959c41dc8ab8a09e4": " ve ",
@@ -59213,7 +59282,10 @@
       "7d25747a200b6b3bfdbc1d534a2c028e721639cce1b552548459bde458c22334": "Ses modelleri",
       "01471f677752f168787127e6c7ac95adfe38c3b55fe30cd40cb1db0a6c721b19": "Senaryo sesi ve seslendirme için ses modelleri. Bir kez indirilir (~{size}), cihaz üzerinde çalışır.",
       "b99da59f7eff9bb979515ae1c43018a078c15454267cf6c3852ad56b25b521e0": "pdf · png · jpg · gif · svg · tiff · webp · mp4 · webm · mp3 · wav - birini veya birkaçını birden işaretle",
-      "48163b1ca93dcf3bd979a83c6c4ec4320a3d5adab37630e2af3a9103ea2b50d1": "{count} altyazı kutusu eklendi. Her biri herhangi bir klip gibi düzenlenebilir."
+      "48163b1ca93dcf3bd979a83c6c4ec4320a3d5adab37630e2af3a9103ea2b50d1": "{count} altyazı kutusu eklendi. Her biri herhangi bir klip gibi düzenlenebilir.",
+      "7653eb8c1c288545cdb3cc1ea8290397458f6fc4a377ee33d3ffbe2b20c533bf": "İndirmeden önce baskı dışa aktarımını kontrol eder: taşma payı, çözünürlük, mürekkep kaplaması ve kalıp sayısı İndir düğmesinin üzerinde görünür. Dışa aktarmayı asla engellemez.",
+      "6ccca51af5e8aa33fcd507522914e23d9055a3c9fcc530a0276d43d37c98ff52": "Baskı öncesi kontrol",
+      "8386d7897da410ebb5955351340399f2789bcffa629ec0b7ed98c1606c1ca144": "prepress"
     },
     "uk": {
       "e3ee915a8e8c7aa02d2fced443314522b20824abd2535d5959c41dc8ab8a09e4": " і ",
@@ -61677,7 +61749,10 @@
       "7d25747a200b6b3bfdbc1d534a2c028e721639cce1b552548459bde458c22334": "Голосові моделі",
       "01471f677752f168787127e6c7ac95adfe38c3b55fe30cd40cb1db0a6c721b19": "Голосові моделі для озвучення сценарію та нарації. Завантажується один раз (~{size}), працює на пристрої.",
       "b99da59f7eff9bb979515ae1c43018a078c15454267cf6c3852ad56b25b521e0": "pdf · png · jpg · gif · svg · tiff · webp · mp4 · webm · mp3 · wav — позначте один або кілька одразу",
-      "48163b1ca93dcf3bd979a83c6c4ec4320a3d5adab37630e2af3a9103ea2b50d1": "{count} блоків субтитрів додано. Кожен можна редагувати як будь-який кліп."
+      "48163b1ca93dcf3bd979a83c6c4ec4320a3d5adab37630e2af3a9103ea2b50d1": "{count} блоків субтитрів додано. Кожен можна редагувати як будь-який кліп.",
+      "7653eb8c1c288545cdb3cc1ea8290397458f6fc4a377ee33d3ffbe2b20c533bf": "Перевіряє експорт для друку перед завантаженням: виліт, роздільна здатність, покриття фарбою та кількість друкарських форм з’являються над кнопкою Завантажити. Експорт ніколи не блокується.",
+      "6ccca51af5e8aa33fcd507522914e23d9055a3c9fcc530a0276d43d37c98ff52": "Додрукарська перевірка",
+      "8386d7897da410ebb5955351340399f2789bcffa629ec0b7ed98c1606c1ca144": "препрес"
     },
     "pl": {
       "e3ee915a8e8c7aa02d2fced443314522b20824abd2535d5959c41dc8ab8a09e4": " i ",
@@ -64141,7 +64216,10 @@
       "7d25747a200b6b3bfdbc1d534a2c028e721639cce1b552548459bde458c22334": "Modele głosów",
       "01471f677752f168787127e6c7ac95adfe38c3b55fe30cd40cb1db0a6c721b19": "Modele głosów dla audio scenariusza i narracji. Pobierane raz (~{size}), działają na urządzeniu.",
       "b99da59f7eff9bb979515ae1c43018a078c15454267cf6c3852ad56b25b521e0": "pdf · png · jpg · gif · svg · tiff · webp · mp4 · webm · mp3 · wav - zaznacz jeden lub kilka naraz",
-      "48163b1ca93dcf3bd979a83c6c4ec4320a3d5adab37630e2af3a9103ea2b50d1": "Dodano {count} pól napisów. Każde z nich można edytować jak każdy klip."
+      "48163b1ca93dcf3bd979a83c6c4ec4320a3d5adab37630e2af3a9103ea2b50d1": "Dodano {count} pól napisów. Każde z nich można edytować jak każdy klip.",
+      "7653eb8c1c288545cdb3cc1ea8290397458f6fc4a377ee33d3ffbe2b20c533bf": "Sprawdza eksport do druku, zanim go pobierzesz: spad, rozdzielczość, pokrycie farbą i liczba płyt pojawiają się nad przyciskiem Pobierz. Nigdy nie blokuje eksportu.",
+      "6ccca51af5e8aa33fcd507522914e23d9055a3c9fcc530a0276d43d37c98ff52": "Preflight druku",
+      "8386d7897da410ebb5955351340399f2789bcffa629ec0b7ed98c1606c1ca144": "prepress"
     }
   },
   "caps": {

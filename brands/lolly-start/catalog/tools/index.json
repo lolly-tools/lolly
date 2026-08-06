@@ -1,6 +1,6 @@
 {
   "version": "1",
-  "generatedAt": "2026-08-06T07:36:29.798Z",
+  "generatedAt": "2026-08-06T12:31:43.591Z",
   "tools": [
     {
       "id": "compress-pdf",
@@ -269,7 +269,7 @@
       "id": "filter-duotone",
       "name": "Filter: Duotone",
       "description": "A two-color duotone for any photo — shadows one color, highlights another.",
-      "version": "1.1.0",
+      "version": "1.2.0",
       "status": "official",
       "category": "designer",
       "tags": [
@@ -2157,106 +2157,132 @@
       "i18n": {
         "ar": {
           "name": "استوديو التخطيط",
+          "description": "An open canvas for free arrangement — text, images, shapes and live renders from your other Lolly tools, all held to your brand.",
           "blurb": "تخطيطات حرة على لوحة مفتوحة"
         },
         "bg": {
           "name": "Студио за оформление",
+          "description": "An open canvas for free arrangement — text, images, shapes and live renders from your other Lolly tools, all held to your brand.",
           "blurb": "Свободни оформления върху отворено платно"
         },
         "bn": {
           "name": "লেআউট স্টুডিও",
+          "description": "An open canvas for free arrangement — text, images, shapes and live renders from your other Lolly tools, all held to your brand.",
           "blurb": "খোলা ক্যানভাসে ফ্রি-ফর্ম লেআউট"
         },
         "cs": {
           "name": "Studio rozložení",
+          "description": "An open canvas for free arrangement — text, images, shapes and live renders from your other Lolly tools, all held to your brand.",
           "blurb": "Volná rozložení na otevřeném plátně"
         },
         "de": {
           "name": "Layout-Studio",
+          "description": "An open canvas for free arrangement — text, images, shapes and live renders from your other Lolly tools, all held to your brand.",
           "blurb": "Frei gestaltbare Layouts auf einer offenen Zeichenfläche"
         },
         "es": {
           "name": "Estudio de maquetación",
+          "description": "An open canvas for free arrangement — text, images, shapes and live renders from your other Lolly tools, all held to your brand.",
           "blurb": "Maquetas libres sobre un lienzo abierto"
         },
         "fr": {
           "name": "Studio de mise en page",
+          "description": "An open canvas for free arrangement — text, images, shapes and live renders from your other Lolly tools, all held to your brand.",
           "blurb": "Des mises en page libres sur un canevas ouvert"
         },
         "hi": {
           "name": "लेआउट स्टूडियो",
+          "description": "An open canvas for free arrangement — text, images, shapes and live renders from your other Lolly tools, all held to your brand.",
           "blurb": "खुले कैनवास पर फ़्री-फ़ॉर्म लेआउट"
         },
         "id": {
           "name": "Studio Tata Letak",
+          "description": "An open canvas for free arrangement — text, images, shapes and live renders from your other Lolly tools, all held to your brand.",
           "blurb": "Tata letak bebas di atas kanvas terbuka"
         },
         "it": {
           "name": "Layout Studio",
+          "description": "An open canvas for free arrangement — text, images, shapes and live renders from your other Lolly tools, all held to your brand.",
           "blurb": "Layout in piena libertà su una tela aperta"
         },
         "ja": {
           "name": "レイアウトスタジオ",
+          "description": "An open canvas for free arrangement — text, images, shapes and live renders from your other Lolly tools, all held to your brand.",
           "blurb": "自由なキャンバスで作るフリーフォームレイアウト"
         },
         "ko": {
           "name": "Layout Studio",
+          "description": "An open canvas for free arrangement — text, images, shapes and live renders from your other Lolly tools, all held to your brand.",
           "blurb": "열린 캔버스에서 자유롭게 만드는 레이아웃"
         },
         "ms": {
           "name": "Studio Susun Atur",
+          "description": "An open canvas for free arrangement — text, images, shapes and live renders from your other Lolly tools, all held to your brand.",
           "blurb": "Susun atur bebas bentuk pada kanvas terbuka"
         },
         "nl": {
           "name": "Lay-outstudio",
+          "description": "An open canvas for free arrangement — text, images, shapes and live renders from your other Lolly tools, all held to your brand.",
           "blurb": "Vrije lay-outs op een open canvas"
         },
         "no": {
           "name": "Layout Studio",
+          "description": "An open canvas for free arrangement — text, images, shapes and live renders from your other Lolly tools, all held to your brand.",
           "blurb": "Fritt utformbare layouter på et åpent lerret"
         },
         "pl": {
           "name": "Layout Studio",
+          "description": "An open canvas for free arrangement — text, images, shapes and live renders from your other Lolly tools, all held to your brand.",
           "blurb": "Swobodne układy na otwartym płótnie"
         },
         "pt": {
           "name": "Estúdio de Layout",
+          "description": "An open canvas for free arrangement — text, images, shapes and live renders from your other Lolly tools, all held to your brand.",
           "blurb": "Layouts livres em uma tela aberta"
         },
         "ro": {
           "name": "Studio de layout",
+          "description": "An open canvas for free arrangement — text, images, shapes and live renders from your other Lolly tools, all held to your brand.",
           "blurb": "Layout-uri libere pe un canvas deschis"
         },
         "sv": {
           "name": "Layoutstudio",
+          "description": "An open canvas for free arrangement — text, images, shapes and live renders from your other Lolly tools, all held to your brand.",
           "blurb": "Fria layouter på en öppen yta"
         },
         "tl": {
           "name": "Studio ng Layout",
+          "description": "An open canvas for free arrangement — text, images, shapes and live renders from your other Lolly tools, all held to your brand.",
           "blurb": "Malayang layout sa bukas na canvas"
         },
         "tr": {
           "name": "Düzen Stüdyosu",
+          "description": "An open canvas for free arrangement — text, images, shapes and live renders from your other Lolly tools, all held to your brand.",
           "blurb": "Açık bir kanvasta serbest biçimli düzenler"
         },
         "uk": {
           "name": "Студія макетів",
+          "description": "An open canvas for free arrangement — text, images, shapes and live renders from your other Lolly tools, all held to your brand.",
           "blurb": "Довільні макети на відкритому канвасі"
         },
         "ur": {
           "name": "لے آؤٹ اسٹوڈیو",
+          "description": "An open canvas for free arrangement — text, images, shapes and live renders from your other Lolly tools, all held to your brand.",
           "blurb": "کھلے کینوس پر آزاد شکل کے لے آؤٹس"
         },
         "vi": {
           "name": "Xưởng Bố Cục",
+          "description": "An open canvas for free arrangement — text, images, shapes and live renders from your other Lolly tools, all held to your brand.",
           "blurb": "Bố cục tự do trên khung vẽ mở"
         },
         "zh-hant": {
           "name": "版面工作室",
+          "description": "An open canvas for free arrangement — text, images, shapes and live renders from your other Lolly tools, all held to your brand.",
           "blurb": "在開放畫布上自由排版"
         },
         "zh": {
           "name": "版面工作室",
+          "description": "An open canvas for free arrangement — text, images, shapes and live renders from your other Lolly tools, all held to your brand.",
           "blurb": "在开放画布上自由排版"
         }
       }
@@ -3413,107 +3439,107 @@
       "i18n": {
         "ar": {
           "name": "من نص إلى صورة",
-          "description": "نماذج الذكاء الاصطناعي أرخص في معالجة الصور منها في معالجة النص"
+          "description": "Typeset a long prompt into one compact, legible image for a multimodal model — image input is often cheaper than the same words as text tokens."
         },
         "bg": {
           "name": "Промпт към изображение",
-          "description": "AI моделите обработват изображения по-евтино, отколкото текст"
+          "description": "Typeset a long prompt into one compact, legible image for a multimodal model — image input is often cheaper than the same words as text tokens."
         },
         "bn": {
           "name": "প্রম্পট থেকে ছবি",
-          "description": "AI মডেলগুলোর জন্য টেক্সটের চেয়ে ছবি প্রসেস করা সস্তা"
+          "description": "Typeset a long prompt into one compact, legible image for a multimodal model — image input is often cheaper than the same words as text tokens."
         },
         "cs": {
           "name": "Prompt na obrázek",
-          "description": "AI modely zpracovávají obrázky levněji než text"
+          "description": "Typeset a long prompt into one compact, legible image for a multimodal model — image input is often cheaper than the same words as text tokens."
         },
         "de": {
           "name": "Prompt zu Bild",
-          "description": "KI-Modelle sind beim Verarbeiten von Bildern günstiger als bei Text."
+          "description": "Typeset a long prompt into one compact, legible image for a multimodal model — image input is often cheaper than the same words as text tokens."
         },
         "es": {
           "name": "Prompt a imagen",
-          "description": "Los modelos de IA son más baratos procesando imágenes que texto"
+          "description": "Typeset a long prompt into one compact, legible image for a multimodal model — image input is often cheaper than the same words as text tokens."
         },
         "fr": {
           "name": "Prompt vers image",
-          "description": "Les modèles d'IA coûtent moins cher pour traiter des images que du texte."
+          "description": "Typeset a long prompt into one compact, legible image for a multimodal model — image input is often cheaper than the same words as text tokens."
         },
         "hi": {
           "name": "Prompt to Image",
-          "description": "AI मॉडल टेक्स्ट की तुलना में इमेज प्रोसेस करने में सस्ते होते हैं"
+          "description": "Typeset a long prompt into one compact, legible image for a multimodal model — image input is often cheaper than the same words as text tokens."
         },
         "id": {
           "name": "Prompt ke Gambar",
-          "description": "Model AI lebih murah memproses gambar daripada teks"
+          "description": "Typeset a long prompt into one compact, legible image for a multimodal model — image input is often cheaper than the same words as text tokens."
         },
         "it": {
           "name": "Prompt a immagine",
-          "description": "I modelli IA costano meno per elaborare immagini che testo"
+          "description": "Typeset a long prompt into one compact, legible image for a multimodal model — image input is often cheaper than the same words as text tokens."
         },
         "ja": {
           "name": "プロンプトから画像",
-          "description": "AIモデルはテキストより画像の処理の方が低コストです"
+          "description": "Typeset a long prompt into one compact, legible image for a multimodal model — image input is often cheaper than the same words as text tokens."
         },
         "ko": {
           "name": "프롬프트를 이미지로",
-          "description": "AI 모델은 텍스트보다 이미지를 처리하는 비용이 더 저렴해요"
+          "description": "Typeset a long prompt into one compact, legible image for a multimodal model — image input is often cheaper than the same words as text tokens."
         },
         "ms": {
           "name": "Prompt to Image",
-          "description": "Model AI lebih murah untuk memproses imej berbanding teks"
+          "description": "Typeset a long prompt into one compact, legible image for a multimodal model — image input is often cheaper than the same words as text tokens."
         },
         "nl": {
           "name": "Prompt naar afbeelding",
-          "description": "AI-modellen verwerken afbeeldingen goedkoper dan tekst"
+          "description": "Typeset a long prompt into one compact, legible image for a multimodal model — image input is often cheaper than the same words as text tokens."
         },
         "no": {
           "name": "Prompt til bilde",
-          "description": "AI-modeller er billigere til å behandle bilder enn tekst"
+          "description": "Typeset a long prompt into one compact, legible image for a multimodal model — image input is often cheaper than the same words as text tokens."
         },
         "pl": {
           "name": "Prompt na obraz",
-          "description": "Modele AI taniej przetwarzają obrazy niż tekst"
+          "description": "Typeset a long prompt into one compact, legible image for a multimodal model — image input is often cheaper than the same words as text tokens."
         },
         "pt": {
           "name": "Prompt para Imagem",
-          "description": "Modelos de IA são mais baratos para processar imagens do que texto"
+          "description": "Typeset a long prompt into one compact, legible image for a multimodal model — image input is often cheaper than the same words as text tokens."
         },
         "ro": {
           "name": "Prompt la imagine",
-          "description": "Modelele AI procesează imaginile mai ieftin decât textul"
+          "description": "Typeset a long prompt into one compact, legible image for a multimodal model — image input is often cheaper than the same words as text tokens."
         },
         "sv": {
           "name": "Prompt till bild",
-          "description": "AI-modeller är billigare på att bearbeta bilder än text"
+          "description": "Typeset a long prompt into one compact, legible image for a multimodal model — image input is often cheaper than the same words as text tokens."
         },
         "tl": {
           "name": "Prompt to Image",
-          "description": "Mas mura para sa mga AI model ang pagproseso ng larawan kaysa text"
+          "description": "Typeset a long prompt into one compact, legible image for a multimodal model — image input is often cheaper than the same words as text tokens."
         },
         "tr": {
           "name": "Prompt'tan Görsele",
-          "description": "Yapay zeka modelleri görüntüleri işlemekte metinden daha ucuzdur"
+          "description": "Typeset a long prompt into one compact, legible image for a multimodal model — image input is often cheaper than the same words as text tokens."
         },
         "uk": {
           "name": "Промпт → зображення",
-          "description": "ШІ-моделям дешевше обробляти зображення, ніж текст"
+          "description": "Typeset a long prompt into one compact, legible image for a multimodal model — image input is often cheaper than the same words as text tokens."
         },
         "ur": {
           "name": "پرامپٹ سے تصویر",
-          "description": "AI ماڈلز کے لیے متن کے مقابلے تصاویر پروسیس کرنا سستا ہے"
+          "description": "Typeset a long prompt into one compact, legible image for a multimodal model — image input is often cheaper than the same words as text tokens."
         },
         "vi": {
           "name": "Prompt sang Ảnh",
-          "description": "Mô hình AI xử lý ảnh rẻ hơn xử lý văn bản"
+          "description": "Typeset a long prompt into one compact, legible image for a multimodal model — image input is often cheaper than the same words as text tokens."
         },
         "zh-hant": {
           "name": "提示轉圖片",
-          "description": "AI 模型處理圖片比處理文字更便宜"
+          "description": "Typeset a long prompt into one compact, legible image for a multimodal model — image input is often cheaper than the same words as text tokens."
         },
         "zh": {
           "name": "提示生成图像",
-          "description": "AI 模型处理图片比处理文本更便宜"
+          "description": "Typeset a long prompt into one compact, legible image for a multimodal model — image input is often cheaper than the same words as text tokens."
         }
       }
     },
@@ -4816,108 +4842,108 @@
       "preview": "/catalog/previews/embed-track-image.svg",
       "i18n": {
         "ar": {
-          "name": "تضمين وتتبع الصورة",
-          "description": "اطبع اسم المؤلف وحقوق النشر والترخيص على أي صورة - بالإضافة إلى Lolly Imprint غير مرئي و Content Credentials - قبل مشاركتها."
+          "name": "Embed, Imprint & Track",
+          "description": "Claim your name on any media you've already made — image, PDF, video or audio. Stamp your author, copyright and licence as Content Credentials (a durable raster Imprint too), preserving any credential already inside the file — all on your device, before you upload it anywhere."
         },
         "bg": {
-          "name": "Вграждане и проследяване на изображение",
-          "description": "Впечатай автор, авторски права и лиценз във всяко изображение - плюс невидим Lolly Imprint и Content Credentials - преди да го споделиш."
+          "name": "Embed, Imprint & Track",
+          "description": "Claim your name on any media you've already made — image, PDF, video or audio. Stamp your author, copyright and licence as Content Credentials (a durable raster Imprint too), preserving any credential already inside the file — all on your device, before you upload it anywhere."
         },
         "bn": {
-          "name": "এমবেড & ট্র্যাক ইমেজ",
-          "description": "শেয়ার করার আগে যেকোনো ছবিতে আপনার লেখক, কপিরাইট ও লাইসেন্স স্ট্যাম্প করুন - সাথে একটি অদৃশ্য Lolly Imprint এবং Content Credentials।"
+          "name": "Embed, Imprint & Track",
+          "description": "Claim your name on any media you've already made — image, PDF, video or audio. Stamp your author, copyright and licence as Content Credentials (a durable raster Imprint too), preserving any credential already inside the file — all on your device, before you upload it anywhere."
         },
         "cs": {
-          "name": "Vložit & sledovat obrázek",
-          "description": "Vlož autora, copyright a licenci do libovolného obrázku - plus neviditelný Lolly Imprint a Content Credentials - než ho sdílíš."
+          "name": "Embed, Imprint & Track",
+          "description": "Claim your name on any media you've already made — image, PDF, video or audio. Stamp your author, copyright and licence as Content Credentials (a durable raster Imprint too), preserving any credential already inside the file — all on your device, before you upload it anywhere."
         },
         "de": {
-          "name": "Bild einbetten & verfolgen",
-          "description": "Stempelt Ihren Autor, Ihr Copyright und Ihre Lizenz in jedes Bild ein - plus einen unsichtbaren Lolly Imprint und Content Credentials - bevor Sie es teilen."
+          "name": "Embed, Imprint & Track",
+          "description": "Claim your name on any media you've already made — image, PDF, video or audio. Stamp your author, copyright and licence as Content Credentials (a durable raster Imprint too), preserving any credential already inside the file — all on your device, before you upload it anywhere."
         },
         "es": {
-          "name": "Incrustar y rastrear imagen",
-          "description": "Estampa tu autor, derechos de autor y licencia en cualquier imagen - además de un Lolly Imprint invisible y Content Credentials - antes de compartirla."
+          "name": "Embed, Imprint & Track",
+          "description": "Claim your name on any media you've already made — image, PDF, video or audio. Stamp your author, copyright and licence as Content Credentials (a durable raster Imprint too), preserving any credential already inside the file — all on your device, before you upload it anywhere."
         },
         "fr": {
-          "name": "Intégrer et suivre une image",
-          "description": "Intègre ton auteur, ton copyright et ta licence dans n'importe quelle image - plus un Lolly Imprint invisible et des Content Credentials - avant de la partager."
+          "name": "Embed, Imprint & Track",
+          "description": "Claim your name on any media you've already made — image, PDF, video or audio. Stamp your author, copyright and licence as Content Credentials (a durable raster Imprint too), preserving any credential already inside the file — all on your device, before you upload it anywhere."
         },
         "hi": {
-          "name": "इमेज एम्बेड & ट्रैक करें",
-          "description": "शेयर करने से पहले किसी भी इमेज में अपना लेखक, कॉपीराइट और लाइसेंस स्टैंप करें - साथ ही एक अदृश्य Lolly Imprint और Content Credentials भी।"
+          "name": "Embed, Imprint & Track",
+          "description": "Claim your name on any media you've already made — image, PDF, video or audio. Stamp your author, copyright and licence as Content Credentials (a durable raster Imprint too), preserving any credential already inside the file — all on your device, before you upload it anywhere."
         },
         "id": {
-          "name": "Sematkan & Lacak Gambar",
-          "description": "Bubuhkan nama pembuat, hak cipta, dan lisensi Anda ke gambar apa pun - plus Lolly Imprint tak terlihat dan Content Credentials - sebelum Anda membagikannya."
+          "name": "Embed, Imprint & Track",
+          "description": "Claim your name on any media you've already made — image, PDF, video or audio. Stamp your author, copyright and licence as Content Credentials (a durable raster Imprint too), preserving any credential already inside the file — all on your device, before you upload it anywhere."
         },
         "it": {
-          "name": "Incorpora & traccia immagine",
-          "description": "Imprimi il tuo autore, copyright e licenza in qualsiasi immagine - più un Lolly Imprint invisibile e i Content Credentials - prima di condividerla."
+          "name": "Embed, Imprint & Track",
+          "description": "Claim your name on any media you've already made — image, PDF, video or audio. Stamp your author, copyright and licence as Content Credentials (a durable raster Imprint too), preserving any credential already inside the file — all on your device, before you upload it anywhere."
         },
         "ja": {
-          "name": "画像を埋め込んで追跡",
-          "description": "作者名・著作権・ライセンスを画像に刻印します - さらに目に見えないLolly ImprintとContent Credentialsも - 共有前に。"
+          "name": "Embed, Imprint & Track",
+          "description": "Claim your name on any media you've already made — image, PDF, video or audio. Stamp your author, copyright and licence as Content Credentials (a durable raster Imprint too), preserving any credential already inside the file — all on your device, before you upload it anywhere."
         },
         "ko": {
-          "name": "이미지 삽입 & 추적",
-          "description": "공유하기 전에 이미지에 작성자, 저작권, 라이선스를 새겨요 - 보이지 않는 Lolly Imprint와 Content Credentials도 함께 넣어요."
+          "name": "Embed, Imprint & Track",
+          "description": "Claim your name on any media you've already made — image, PDF, video or audio. Stamp your author, copyright and licence as Content Credentials (a durable raster Imprint too), preserving any credential already inside the file — all on your device, before you upload it anywhere."
         },
         "ms": {
-          "name": "Benam & Jejak Imej",
-          "description": "Cop pengarang, hak cipta dan lesen anda ke atas mana-mana imej - ditambah Lolly Imprint dan Content Credentials yang tidak kelihatan - sebelum anda kongsikannya."
+          "name": "Embed, Imprint & Track",
+          "description": "Claim your name on any media you've already made — image, PDF, video or audio. Stamp your author, copyright and licence as Content Credentials (a durable raster Imprint too), preserving any credential already inside the file — all on your device, before you upload it anywhere."
         },
         "nl": {
-          "name": "Afbeelding insluiten & volgen",
-          "description": "Stempel je auteur, copyright en licentie in elke afbeelding - plus een onzichtbare Lolly Imprint en Content Credentials - voordat je hem deelt."
+          "name": "Embed, Imprint & Track",
+          "description": "Claim your name on any media you've already made — image, PDF, video or audio. Stamp your author, copyright and licence as Content Credentials (a durable raster Imprint too), preserving any credential already inside the file — all on your device, before you upload it anywhere."
         },
         "no": {
-          "name": "Bygg inn og spor bilde",
-          "description": "Stemple forfatter, opphavsrett og lisens inn i et hvilket som helst bilde - pluss et usynlig Lolly Imprint og Content Credentials - før du deler det."
+          "name": "Embed, Imprint & Track",
+          "description": "Claim your name on any media you've already made — image, PDF, video or audio. Stamp your author, copyright and licence as Content Credentials (a durable raster Imprint too), preserving any credential already inside the file — all on your device, before you upload it anywhere."
         },
         "pl": {
-          "name": "Osadź & śledź obraz",
-          "description": "Umieść swojego autora, prawa autorskie i licencję w dowolnym obrazie - wraz z niewidocznym Lolly Imprint i Content Credentials - zanim się nim podzielisz."
+          "name": "Embed, Imprint & Track",
+          "description": "Claim your name on any media you've already made — image, PDF, video or audio. Stamp your author, copyright and licence as Content Credentials (a durable raster Imprint too), preserving any credential already inside the file — all on your device, before you upload it anywhere."
         },
         "pt": {
-          "name": "Incorporar e Rastrear Imagem",
-          "description": "Grave seu autor, direitos autorais e licença em qualquer imagem - além de um Lolly Imprint invisível e Content Credentials - antes de compartilhar."
+          "name": "Embed, Imprint & Track",
+          "description": "Claim your name on any media you've already made — image, PDF, video or audio. Stamp your author, copyright and licence as Content Credentials (a durable raster Imprint too), preserving any credential already inside the file — all on your device, before you upload it anywhere."
         },
         "ro": {
-          "name": "Încorporează & Urmărește Imagine",
-          "description": "Imprimă autorul, drepturile de autor și licența în orice imagine - plus un Lolly Imprint invizibil și Content Credentials - înainte să o distribui."
+          "name": "Embed, Imprint & Track",
+          "description": "Claim your name on any media you've already made — image, PDF, video or audio. Stamp your author, copyright and licence as Content Credentials (a durable raster Imprint too), preserving any credential already inside the file — all on your device, before you upload it anywhere."
         },
         "sv": {
-          "name": "Bädda in & spåra bild",
-          "description": "Stämpla in upphovsperson, upphovsrätt och licens i valfri bild - plus en osynlig Lolly Imprint och Content Credentials - innan du delar den."
+          "name": "Embed, Imprint & Track",
+          "description": "Claim your name on any media you've already made — image, PDF, video or audio. Stamp your author, copyright and licence as Content Credentials (a durable raster Imprint too), preserving any credential already inside the file — all on your device, before you upload it anywhere."
         },
         "tl": {
-          "name": "Embed & Track Image",
-          "description": "I-stamp ang iyong may-akda, copyright, at lisensya sa anumang larawan - kasama ang invisible na Lolly Imprint at Content Credentials - bago mo ito ibahagi."
+          "name": "Embed, Imprint & Track",
+          "description": "Claim your name on any media you've already made — image, PDF, video or audio. Stamp your author, copyright and licence as Content Credentials (a durable raster Imprint too), preserving any credential already inside the file — all on your device, before you upload it anywhere."
         },
         "tr": {
-          "name": "Görsel Göm & İzle",
-          "description": "Paylaşmadan önce yazarını, telif hakkını ve lisansını - ayrıca görünmez bir Lolly Imprint ve Content Credentials'ı - herhangi bir görsele damgala."
+          "name": "Embed, Imprint & Track",
+          "description": "Claim your name on any media you've already made — image, PDF, video or audio. Stamp your author, copyright and licence as Content Credentials (a durable raster Imprint too), preserving any credential already inside the file — all on your device, before you upload it anywhere."
         },
         "uk": {
-          "name": "Вбудувати та відстежувати зображення",
-          "description": "Впишіть автора, авторське право та ліцензію в будь-яке зображення - а також невидимий Lolly Imprint і Content Credentials - перш ніж поділитися ним."
+          "name": "Embed, Imprint & Track",
+          "description": "Claim your name on any media you've already made — image, PDF, video or audio. Stamp your author, copyright and licence as Content Credentials (a durable raster Imprint too), preserving any credential already inside the file — all on your device, before you upload it anywhere."
         },
         "ur": {
-          "name": "ایمبیڈ & ٹریک تصویر",
-          "description": "شیئر کرنے سے پہلے کسی بھی تصویر میں اپنا مصنف، کاپی رائٹ اور لائسنس شامل کریں - ساتھ ہی ایک پوشیدہ Lolly Imprint اور Content Credentials بھی۔"
+          "name": "Embed, Imprint & Track",
+          "description": "Claim your name on any media you've already made — image, PDF, video or audio. Stamp your author, copyright and licence as Content Credentials (a durable raster Imprint too), preserving any credential already inside the file — all on your device, before you upload it anywhere."
         },
         "vi": {
-          "name": "Nhúng & Theo dõi Ảnh",
-          "description": "Đóng dấu tác giả, bản quyền và giấy phép của bạn vào bất kỳ hình ảnh nào - cùng với Lolly Imprint vô hình và Content Credentials - trước khi bạn chia sẻ."
+          "name": "Embed, Imprint & Track",
+          "description": "Claim your name on any media you've already made — image, PDF, video or audio. Stamp your author, copyright and licence as Content Credentials (a durable raster Imprint too), preserving any credential already inside the file — all on your device, before you upload it anywhere."
         },
         "zh-hant": {
-          "name": "嵌入並追蹤圖片",
-          "description": "把作者、版權和授權標記進任何圖片 - 並加上隱形的 Lolly Imprint 與 Content Credentials - 然後再分享。"
+          "name": "Embed, Imprint & Track",
+          "description": "Claim your name on any media you've already made — image, PDF, video or audio. Stamp your author, copyright and licence as Content Credentials (a durable raster Imprint too), preserving any credential already inside the file — all on your device, before you upload it anywhere."
         },
         "zh": {
-          "name": "嵌入并追踪图像",
-          "description": "在分享之前，将你的作者信息、版权和许可证盖印到任意图像中 - 同时加入不可见的 Lolly Imprint 和 Content Credentials。"
+          "name": "Embed, Imprint & Track",
+          "description": "Claim your name on any media you've already made — image, PDF, video or audio. Stamp your author, copyright and licence as Content Credentials (a durable raster Imprint too), preserving any credential already inside the file — all on your device, before you upload it anywhere."
         }
       }
     },
@@ -5707,7 +5733,113 @@
       "height": 620,
       "exportable": false,
       "icon": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z\"/><path d=\"M14 2v6h6\"/><path d=\"M8 13.5h8\" stroke-width=\"3.4\" stroke-linecap=\"butt\"/><path d=\"M8 18h5\"/></svg>",
-      "preview": "/catalog/previews/redact.svg"
+      "preview": "/catalog/previews/redact.svg",
+      "i18n": {
+        "ar": {
+          "name": "Redact",
+          "description": "Black out sensitive content by rebuilding the file, then verify the output before it downloads, all on your device."
+        },
+        "bg": {
+          "name": "Redact",
+          "description": "Black out sensitive content by rebuilding the file, then verify the output before it downloads, all on your device."
+        },
+        "bn": {
+          "name": "Redact",
+          "description": "Black out sensitive content by rebuilding the file, then verify the output before it downloads, all on your device."
+        },
+        "cs": {
+          "name": "Redact",
+          "description": "Black out sensitive content by rebuilding the file, then verify the output before it downloads, all on your device."
+        },
+        "de": {
+          "name": "Redact",
+          "description": "Black out sensitive content by rebuilding the file, then verify the output before it downloads, all on your device."
+        },
+        "es": {
+          "name": "Redact",
+          "description": "Black out sensitive content by rebuilding the file, then verify the output before it downloads, all on your device."
+        },
+        "fr": {
+          "name": "Redact",
+          "description": "Black out sensitive content by rebuilding the file, then verify the output before it downloads, all on your device."
+        },
+        "hi": {
+          "name": "Redact",
+          "description": "Black out sensitive content by rebuilding the file, then verify the output before it downloads, all on your device."
+        },
+        "id": {
+          "name": "Redact",
+          "description": "Black out sensitive content by rebuilding the file, then verify the output before it downloads, all on your device."
+        },
+        "it": {
+          "name": "Redact",
+          "description": "Black out sensitive content by rebuilding the file, then verify the output before it downloads, all on your device."
+        },
+        "ja": {
+          "name": "Redact",
+          "description": "Black out sensitive content by rebuilding the file, then verify the output before it downloads, all on your device."
+        },
+        "ko": {
+          "name": "Redact",
+          "description": "Black out sensitive content by rebuilding the file, then verify the output before it downloads, all on your device."
+        },
+        "ms": {
+          "name": "Redact",
+          "description": "Black out sensitive content by rebuilding the file, then verify the output before it downloads, all on your device."
+        },
+        "nl": {
+          "name": "Redact",
+          "description": "Black out sensitive content by rebuilding the file, then verify the output before it downloads, all on your device."
+        },
+        "no": {
+          "name": "Redact",
+          "description": "Black out sensitive content by rebuilding the file, then verify the output before it downloads, all on your device."
+        },
+        "pl": {
+          "name": "Redact",
+          "description": "Black out sensitive content by rebuilding the file, then verify the output before it downloads, all on your device."
+        },
+        "pt": {
+          "name": "Redact",
+          "description": "Black out sensitive content by rebuilding the file, then verify the output before it downloads, all on your device."
+        },
+        "ro": {
+          "name": "Redact",
+          "description": "Black out sensitive content by rebuilding the file, then verify the output before it downloads, all on your device."
+        },
+        "sv": {
+          "name": "Redact",
+          "description": "Black out sensitive content by rebuilding the file, then verify the output before it downloads, all on your device."
+        },
+        "tl": {
+          "name": "Redact",
+          "description": "Black out sensitive content by rebuilding the file, then verify the output before it downloads, all on your device."
+        },
+        "tr": {
+          "name": "Redact",
+          "description": "Black out sensitive content by rebuilding the file, then verify the output before it downloads, all on your device."
+        },
+        "uk": {
+          "name": "Redact",
+          "description": "Black out sensitive content by rebuilding the file, then verify the output before it downloads, all on your device."
+        },
+        "ur": {
+          "name": "Redact",
+          "description": "Black out sensitive content by rebuilding the file, then verify the output before it downloads, all on your device."
+        },
+        "vi": {
+          "name": "Redact",
+          "description": "Black out sensitive content by rebuilding the file, then verify the output before it downloads, all on your device."
+        },
+        "zh-hant": {
+          "name": "Redact",
+          "description": "Black out sensitive content by rebuilding the file, then verify the output before it downloads, all on your device."
+        },
+        "zh": {
+          "name": "Redact",
+          "description": "Black out sensitive content by rebuilding the file, then verify the output before it downloads, all on your device."
+        }
+      }
     },
     {
       "id": "filter-imperfections",
@@ -5796,108 +5928,134 @@
       ],
       "i18n": {
         "ar": {
-          "name": "مرشح: عيوب الطباعة",
-          "description": "عيوب طباعة مقصودة لأي صورة: ألواح حبر مزاحة، وحبر ينزف، وحبيبات ورق، وتآكل آلة النسخ."
+          "name": "Filter: Imperfections",
+          "description": "Deliberate print imperfections for any photo — offset ink plates, ink bleed, paper grain and photocopy wear.",
+          "blurb": "Risograph, misregistration and photocopy wear, on purpose"
         },
         "bg": {
-          "name": "Филтър: Несъвършенства",
-          "description": "Умишлени печатни несъвършенства за всяка снимка: разместени печатни форми, разтичащо се мастило, зърно на хартията и износване от копирна машина."
+          "name": "Filter: Imperfections",
+          "description": "Deliberate print imperfections for any photo — offset ink plates, ink bleed, paper grain and photocopy wear.",
+          "blurb": "Risograph, misregistration and photocopy wear, on purpose"
         },
         "bn": {
-          "name": "ফিল্টার: ছাপার খুঁত",
-          "description": "যেকোনো ছবিতে ইচ্ছাকৃত ছাপার খুঁত: সরে যাওয়া কালির প্লেট, কালি ছড়ানো, কাগজের গ্রেইন ও ফটোকপির ক্ষয়।"
+          "name": "Filter: Imperfections",
+          "description": "Deliberate print imperfections for any photo — offset ink plates, ink bleed, paper grain and photocopy wear.",
+          "blurb": "Risograph, misregistration and photocopy wear, on purpose"
         },
         "cs": {
-          "name": "Filtr: Nedokonalosti",
-          "description": "Záměrné tiskové nedokonalosti pro jakoukoli fotku: posunuté tiskové desky, roztékající se barva, zrnění papíru a opotřebení kopírky."
+          "name": "Filter: Imperfections",
+          "description": "Deliberate print imperfections for any photo — offset ink plates, ink bleed, paper grain and photocopy wear.",
+          "blurb": "Risograph, misregistration and photocopy wear, on purpose"
         },
         "de": {
-          "name": "Filter: Druckfehler",
-          "description": "Gewollte Druckfehler für jedes Foto: versetzte Druckplatten, ausblutende Farbe, Papierkorn und Kopierer-Abnutzung."
+          "name": "Filter: Imperfections",
+          "description": "Deliberate print imperfections for any photo — offset ink plates, ink bleed, paper grain and photocopy wear.",
+          "blurb": "Risograph, misregistration and photocopy wear, on purpose"
         },
         "es": {
-          "name": "Filtro: Imperfecciones",
-          "description": "Imperfecciones de impresión intencionadas para cualquier foto: planchas desalineadas, tinta que se corre, grano de papel y desgaste de fotocopia."
+          "name": "Filter: Imperfections",
+          "description": "Deliberate print imperfections for any photo — offset ink plates, ink bleed, paper grain and photocopy wear.",
+          "blurb": "Risograph, misregistration and photocopy wear, on purpose"
         },
         "fr": {
-          "name": "Filtre : Imperfections",
-          "description": "Des imperfections d'impression assumées sur n'importe quelle photo : plaques décalées, encre qui bave, grain du papier et usure de photocopie."
+          "name": "Filter: Imperfections",
+          "description": "Deliberate print imperfections for any photo — offset ink plates, ink bleed, paper grain and photocopy wear.",
+          "blurb": "Risograph, misregistration and photocopy wear, on purpose"
         },
         "hi": {
-          "name": "फ़िल्टर: प्रिंट खामियाँ",
-          "description": "किसी भी फ़ोटो के लिए जानबूझकर दी गई प्रिंट खामियाँ: खिसकी हुई इंक प्लेटें, फैलती इंक, कागज़ का ग्रेन और फ़ोटोकॉपी की घिसाई।"
+          "name": "Filter: Imperfections",
+          "description": "Deliberate print imperfections for any photo — offset ink plates, ink bleed, paper grain and photocopy wear.",
+          "blurb": "Risograph, misregistration and photocopy wear, on purpose"
         },
         "id": {
-          "name": "Filter: Cacat cetak",
-          "description": "Cacat cetak yang disengaja untuk foto apa pun: pelat tinta bergeser, tinta merembes, grain kertas, dan aus fotokopi."
+          "name": "Filter: Imperfections",
+          "description": "Deliberate print imperfections for any photo — offset ink plates, ink bleed, paper grain and photocopy wear.",
+          "blurb": "Risograph, misregistration and photocopy wear, on purpose"
         },
         "it": {
-          "name": "Filtro: Imperfezioni",
-          "description": "Imperfezioni di stampa volute su qualsiasi foto: lastre fuori registro, inchiostro che sborda, grana della carta e usura da fotocopia."
+          "name": "Filter: Imperfections",
+          "description": "Deliberate print imperfections for any photo — offset ink plates, ink bleed, paper grain and photocopy wear.",
+          "blurb": "Risograph, misregistration and photocopy wear, on purpose"
         },
         "ja": {
-          "name": "フィルター: 印刷の粗さ",
-          "description": "どんな写真にも意図的な印刷の粗さを加えます。版ズレ、インクのにじみ、紙の粒状感、コピー機の劣化。"
+          "name": "Filter: Imperfections",
+          "description": "Deliberate print imperfections for any photo — offset ink plates, ink bleed, paper grain and photocopy wear.",
+          "blurb": "Risograph, misregistration and photocopy wear, on purpose"
         },
         "ko": {
-          "name": "필터: 인쇄 결함",
-          "description": "어떤 사진에도 의도적인 인쇄 결함을 더해요. 판 어긋남, 잉크 번짐, 종이 결, 복사기 마모."
+          "name": "Filter: Imperfections",
+          "description": "Deliberate print imperfections for any photo — offset ink plates, ink bleed, paper grain and photocopy wear.",
+          "blurb": "Risograph, misregistration and photocopy wear, on purpose"
         },
         "ms": {
-          "name": "Penapis: Kecacatan cetak",
-          "description": "Kecacatan cetakan yang disengajakan untuk mana-mana foto: plat dakwat terpesong, dakwat meresap, butiran kertas dan haus fotokopi."
+          "name": "Filter: Imperfections",
+          "description": "Deliberate print imperfections for any photo — offset ink plates, ink bleed, paper grain and photocopy wear.",
+          "blurb": "Risograph, misregistration and photocopy wear, on purpose"
         },
         "nl": {
-          "name": "Filter: Imperfecties",
-          "description": "Bewuste drukfouten voor elke foto: verschoven inktplaten, uitlopende inkt, papierkorrel en kopieerslijtage."
+          "name": "Filter: Imperfections",
+          "description": "Deliberate print imperfections for any photo — offset ink plates, ink bleed, paper grain and photocopy wear.",
+          "blurb": "Risograph, misregistration and photocopy wear, on purpose"
         },
         "no": {
-          "name": "Filter: Trykkfeil",
-          "description": "Bevisste trykkfeil for et hvilket som helst foto: forskjøvne trykkplater, blødende trykkfarge, papirkorn og kopimaskinslitasje."
+          "name": "Filter: Imperfections",
+          "description": "Deliberate print imperfections for any photo — offset ink plates, ink bleed, paper grain and photocopy wear.",
+          "blurb": "Risograph, misregistration and photocopy wear, on purpose"
         },
         "pl": {
-          "name": "Filtr: Niedoskonałości",
-          "description": "Zamierzone niedoskonałości druku dla każdego zdjęcia: przesunięte formy drukowe, rozlewająca się farba, ziarno papieru i zużycie kserokopii."
+          "name": "Filter: Imperfections",
+          "description": "Deliberate print imperfections for any photo — offset ink plates, ink bleed, paper grain and photocopy wear.",
+          "blurb": "Risograph, misregistration and photocopy wear, on purpose"
         },
         "pt": {
-          "name": "Filtro: Imperfeições",
-          "description": "Imperfeições de impressão intencionais para qualquer foto: chapas fora de registro, tinta escorrendo, grão do papel e desgaste de fotocópia."
+          "name": "Filter: Imperfections",
+          "description": "Deliberate print imperfections for any photo — offset ink plates, ink bleed, paper grain and photocopy wear.",
+          "blurb": "Risograph, misregistration and photocopy wear, on purpose"
         },
         "ro": {
-          "name": "Filtru: Imperfecțiuni",
-          "description": "Imperfecțiuni de tipar intenționate pentru orice fotografie: plăci decalate, cerneală care se întinde, granulație de hârtie și uzură de fotocopiator."
+          "name": "Filter: Imperfections",
+          "description": "Deliberate print imperfections for any photo — offset ink plates, ink bleed, paper grain and photocopy wear.",
+          "blurb": "Risograph, misregistration and photocopy wear, on purpose"
         },
         "sv": {
-          "name": "Filter: Tryckfel",
-          "description": "Medvetna tryckfel för vilket foto som helst: förskjutna tryckplåtar, blödande färg, papperskorn och kopiatorslitage."
+          "name": "Filter: Imperfections",
+          "description": "Deliberate print imperfections for any photo — offset ink plates, ink bleed, paper grain and photocopy wear.",
+          "blurb": "Risograph, misregistration and photocopy wear, on purpose"
         },
         "tl": {
-          "name": "Filter: Mga imperpeksiyon",
-          "description": "Sinadyang mga imperpeksiyon sa print para sa kahit anong larawan: naka-offset na ink plates, tumatagos na tinta, grain ng papel at pagkaluma ng photocopy."
+          "name": "Filter: Imperfections",
+          "description": "Deliberate print imperfections for any photo — offset ink plates, ink bleed, paper grain and photocopy wear.",
+          "blurb": "Risograph, misregistration and photocopy wear, on purpose"
         },
         "tr": {
-          "name": "Filtre: Kusurlar",
-          "description": "Her fotoğraf için bilinçli baskı kusurları: kayık mürekkep kalıpları, dağılan mürekkep, kağıt tanesi ve fotokopi aşınması."
+          "name": "Filter: Imperfections",
+          "description": "Deliberate print imperfections for any photo — offset ink plates, ink bleed, paper grain and photocopy wear.",
+          "blurb": "Risograph, misregistration and photocopy wear, on purpose"
         },
         "uk": {
-          "name": "Фільтр: Недосконалості",
-          "description": "Навмисні друкарські недосконалості для будь-якого фото: зміщені друкарські форми, розтікання фарби, зернистість паперу та зношення копіювального апарата."
+          "name": "Filter: Imperfections",
+          "description": "Deliberate print imperfections for any photo — offset ink plates, ink bleed, paper grain and photocopy wear.",
+          "blurb": "Risograph, misregistration and photocopy wear, on purpose"
         },
         "ur": {
-          "name": "فلٹر: طباعتی نقائص",
-          "description": "کسی بھی تصویر کے لیے جان بوجھ کر طباعتی نقائص: کھسکی ہوئی سیاہی پلیٹیں، پھیلتی سیاہی، کاغذ کا دانہ اور فوٹو کاپی کی گھساوٹ۔"
+          "name": "Filter: Imperfections",
+          "description": "Deliberate print imperfections for any photo — offset ink plates, ink bleed, paper grain and photocopy wear.",
+          "blurb": "Risograph, misregistration and photocopy wear, on purpose"
         },
         "vi": {
-          "name": "Bộ lọc: Khiếm khuyết in",
-          "description": "Khiếm khuyết in có chủ ý cho mọi bức ảnh: bản kẽm lệch, mực loang, hạt giấy và hao mòn máy photo."
+          "name": "Filter: Imperfections",
+          "description": "Deliberate print imperfections for any photo — offset ink plates, ink bleed, paper grain and photocopy wear.",
+          "blurb": "Risograph, misregistration and photocopy wear, on purpose"
         },
         "zh-hant": {
-          "name": "濾鏡：印刷瑕疵",
-          "description": "為任何照片加上刻意的印刷瑕疵：套印偏移、油墨暈開、紙張顆粒與影印磨損。"
+          "name": "Filter: Imperfections",
+          "description": "Deliberate print imperfections for any photo — offset ink plates, ink bleed, paper grain and photocopy wear.",
+          "blurb": "Risograph, misregistration and photocopy wear, on purpose"
         },
         "zh": {
-          "name": "滤镜：印刷瑕疵",
-          "description": "为任意照片添加刻意的印刷瑕疵：套印偏移、油墨扩散、纸张颗粒与复印磨损。"
+          "name": "Filter: Imperfections",
+          "description": "Deliberate print imperfections for any photo — offset ink plates, ink bleed, paper grain and photocopy wear.",
+          "blurb": "Risograph, misregistration and photocopy wear, on purpose"
         }
       }
     },
@@ -5987,108 +6145,134 @@
       ],
       "i18n": {
         "ar": {
-          "name": "معاينة التشطيبات",
-          "description": "حاكِ رقائق الفويل وورنيش UV الموضعي والنقش البارز واللمسة الناعمة على عملك الفني، وصدّر لوح الطباعة الجاهز للمطبعة. اللمعان على الشاشة عرض فقط، واللوح هو الملف الفعلي للتسليم."
+          "name": "Finish Preview",
+          "description": "Preview foil, spot UV, emboss and soft-touch finishes on your artwork — then export the printer-ready spot plate. The on-screen sheen is presentation only; the plate is the real deliverable your print house needs.",
+          "blurb": "Foil, spot UV and emboss — with the plate your printer needs"
         },
         "bg": {
-          "name": "Преглед на облагородявания",
-          "description": "Симулирайте фолио, UV лак, релеф и soft-touch върху вашата графика и експортирайте готовата за печат плака. Блясъкът на екрана е само презентация, плаката е истинският резултат."
+          "name": "Finish Preview",
+          "description": "Preview foil, spot UV, emboss and soft-touch finishes on your artwork — then export the printer-ready spot plate. The on-screen sheen is presentation only; the plate is the real deliverable your print house needs.",
+          "blurb": "Foil, spot UV and emboss — with the plate your printer needs"
         },
         "bn": {
-          "name": "ফিনিশ প্রিভিউ",
-          "description": "আপনার আর্টওয়ার্কে ফয়েল, স্পট UV, এমবস ও সফট-টাচ ফিনিশ সিমুলেট করুন এবং প্রিন্ট-প্রস্তুত প্লেট রপ্তানি করুন। পর্দার চাকচিক্য শুধুই উপস্থাপনা, প্লেটই আসল ডেলিভারেবল।"
+          "name": "Finish Preview",
+          "description": "Preview foil, spot UV, emboss and soft-touch finishes on your artwork — then export the printer-ready spot plate. The on-screen sheen is presentation only; the plate is the real deliverable your print house needs.",
+          "blurb": "Foil, spot UV and emboss — with the plate your printer needs"
         },
         "cs": {
-          "name": "Náhled povrchové úpravy",
-          "description": "Simulujte fólii, parciální UV lak, ražbu a soft-touch na svém návrhu a exportujte tiskovou desku připravenou pro tiskárnu. Lesk na obrazovce je jen prezentace, deska je skutečný výstup."
+          "name": "Finish Preview",
+          "description": "Preview foil, spot UV, emboss and soft-touch finishes on your artwork — then export the printer-ready spot plate. The on-screen sheen is presentation only; the plate is the real deliverable your print house needs.",
+          "blurb": "Foil, spot UV and emboss — with the plate your printer needs"
         },
         "de": {
-          "name": "Veredelungs-Vorschau",
-          "description": "Folienprägung, Spot-UV, Prägung und Soft-Touch auf deinem Artwork simulieren und die druckfertige Plattenvorlage exportieren. Der Glanz am Bildschirm ist nur Präsentation, die Platte ist die eigentliche Druckvorlage."
+          "name": "Finish Preview",
+          "description": "Preview foil, spot UV, emboss and soft-touch finishes on your artwork — then export the printer-ready spot plate. The on-screen sheen is presentation only; the plate is the real deliverable your print house needs.",
+          "blurb": "Foil, spot UV and emboss — with the plate your printer needs"
         },
         "es": {
-          "name": "Vista previa de acabados",
-          "description": "Simula estampado metálico, barniz UV, relieve y soft-touch sobre tu arte y exporta la plancha lista para imprenta. El brillo en pantalla es solo presentación, la plancha es el entregable real."
+          "name": "Finish Preview",
+          "description": "Preview foil, spot UV, emboss and soft-touch finishes on your artwork — then export the printer-ready spot plate. The on-screen sheen is presentation only; the plate is the real deliverable your print house needs.",
+          "blurb": "Foil, spot UV and emboss — with the plate your printer needs"
         },
         "fr": {
-          "name": "Aperçu de finitions",
-          "description": "Simulez dorure, vernis UV, gaufrage et soft-touch sur votre visuel puis exportez la plaque prête pour l’imprimeur. Le rendu brillant est une présentation, la plaque est le vrai livrable."
+          "name": "Finish Preview",
+          "description": "Preview foil, spot UV, emboss and soft-touch finishes on your artwork — then export the printer-ready spot plate. The on-screen sheen is presentation only; the plate is the real deliverable your print house needs.",
+          "blurb": "Foil, spot UV and emboss — with the plate your printer needs"
         },
         "hi": {
-          "name": "फ़िनिश पूर्वावलोकन",
-          "description": "अपनी आर्टवर्क पर फ़ॉइल, स्पॉट UV, एम्बॉस और सॉफ़्ट-टच फ़िनिश का सिमुलेशन देखें और प्रिंट-तैयार प्लेट निर्यात करें। स्क्रीन की चमक सिर्फ़ प्रस्तुति है, असली डिलिवरेबल प्लेट है।"
+          "name": "Finish Preview",
+          "description": "Preview foil, spot UV, emboss and soft-touch finishes on your artwork — then export the printer-ready spot plate. The on-screen sheen is presentation only; the plate is the real deliverable your print house needs.",
+          "blurb": "Foil, spot UV and emboss — with the plate your printer needs"
         },
         "id": {
-          "name": "Pratinjau Finishing",
-          "description": "Simulasikan foil, spot UV, emboss, dan soft-touch pada karya Anda lalu ekspor pelat siap cetak. Kilau di layar hanyalah presentasi, pelatnya adalah hasil akhir yang sebenarnya."
+          "name": "Finish Preview",
+          "description": "Preview foil, spot UV, emboss and soft-touch finishes on your artwork — then export the printer-ready spot plate. The on-screen sheen is presentation only; the plate is the real deliverable your print house needs.",
+          "blurb": "Foil, spot UV and emboss — with the plate your printer needs"
         },
         "it": {
-          "name": "Anteprima finiture",
-          "description": "Simula lamina, UV spot, rilievo e soft-touch sul tuo artwork ed esporta la lastra pronta per la stampa. La lucentezza a schermo è solo presentazione, la lastra è il vero deliverable."
+          "name": "Finish Preview",
+          "description": "Preview foil, spot UV, emboss and soft-touch finishes on your artwork — then export the printer-ready spot plate. The on-screen sheen is presentation only; the plate is the real deliverable your print house needs.",
+          "blurb": "Foil, spot UV and emboss — with the plate your printer needs"
         },
         "ja": {
-          "name": "加工プレビュー",
-          "description": "箔押し、スポットUV、エンボス、ソフトタッチをアートワーク上でシミュレートし、印刷所に渡せる版下プレートを書き出します。画面上の輝きはプレゼンテーション用で、実際の納品物はプレートです。"
+          "name": "Finish Preview",
+          "description": "Preview foil, spot UV, emboss and soft-touch finishes on your artwork — then export the printer-ready spot plate. The on-screen sheen is presentation only; the plate is the real deliverable your print house needs.",
+          "blurb": "Foil, spot UV and emboss — with the plate your printer needs"
         },
         "ko": {
-          "name": "후가공 미리보기",
-          "description": "아트워크 위에 박, 부분 UV, 엠보싱, 소프트터치 후가공을 시뮬레이션하고 인쇄소에 보낼 판을 내보냅니다. 화면의 광택은 프레젠테이션일 뿐, 실제 납품물은 판입니다."
+          "name": "Finish Preview",
+          "description": "Preview foil, spot UV, emboss and soft-touch finishes on your artwork — then export the printer-ready spot plate. The on-screen sheen is presentation only; the plate is the real deliverable your print house needs.",
+          "blurb": "Foil, spot UV and emboss — with the plate your printer needs"
         },
         "ms": {
-          "name": "Pratonton Kemasan",
-          "description": "Simulasikan foil, UV spot, emboss dan soft-touch pada karya anda dan eksport plat sedia cetak. Kilauan pada skrin hanyalah persembahan, plat itulah hasil sebenar."
+          "name": "Finish Preview",
+          "description": "Preview foil, spot UV, emboss and soft-touch finishes on your artwork — then export the printer-ready spot plate. The on-screen sheen is presentation only; the plate is the real deliverable your print house needs.",
+          "blurb": "Foil, spot UV and emboss — with the plate your printer needs"
         },
         "nl": {
-          "name": "Afwerkingsvoorbeeld",
-          "description": "Simuleer folie, spot-UV, reliëf en soft-touch op je artwork en exporteer de drukklare plaat. De glans op het scherm is alleen presentatie, de plaat is het echte eindproduct."
+          "name": "Finish Preview",
+          "description": "Preview foil, spot UV, emboss and soft-touch finishes on your artwork — then export the printer-ready spot plate. The on-screen sheen is presentation only; the plate is the real deliverable your print house needs.",
+          "blurb": "Foil, spot UV and emboss — with the plate your printer needs"
         },
         "no": {
-          "name": "Forhåndsvisning av finish",
-          "description": "Simuler folie, spot-UV, preging og soft-touch på kunstverket ditt og eksporter den trykkeklare platen. Glansen på skjermen er bare presentasjon, platen er den egentlige leveransen."
+          "name": "Finish Preview",
+          "description": "Preview foil, spot UV, emboss and soft-touch finishes on your artwork — then export the printer-ready spot plate. The on-screen sheen is presentation only; the plate is the real deliverable your print house needs.",
+          "blurb": "Foil, spot UV and emboss — with the plate your printer needs"
         },
         "pl": {
-          "name": "Podgląd uszlachetnień",
-          "description": "Symuluj folię, lakier UV, tłoczenie i soft-touch na swojej grafice i eksportuj gotową do druku matrycę. Połysk na ekranie to tylko prezentacja, matryca jest właściwym plikiem produkcyjnym."
+          "name": "Finish Preview",
+          "description": "Preview foil, spot UV, emboss and soft-touch finishes on your artwork — then export the printer-ready spot plate. The on-screen sheen is presentation only; the plate is the real deliverable your print house needs.",
+          "blurb": "Foil, spot UV and emboss — with the plate your printer needs"
         },
         "pt": {
-          "name": "Pré-visualização de acabamentos",
-          "description": "Simule foil, verniz UV, relevo e soft-touch na sua arte e exporte a chapa pronta para a gráfica. O brilho na tela é só apresentação, a chapa é a entrega real."
+          "name": "Finish Preview",
+          "description": "Preview foil, spot UV, emboss and soft-touch finishes on your artwork — then export the printer-ready spot plate. The on-screen sheen is presentation only; the plate is the real deliverable your print house needs.",
+          "blurb": "Foil, spot UV and emboss — with the plate your printer needs"
         },
         "ro": {
-          "name": "Previzualizare finisaje",
-          "description": "Simulează folio, lac UV selectiv, embosare și soft-touch pe grafica ta și exportă placa gata de tipar. Strălucirea de pe ecran e doar prezentare, placa este livrabilul real."
+          "name": "Finish Preview",
+          "description": "Preview foil, spot UV, emboss and soft-touch finishes on your artwork — then export the printer-ready spot plate. The on-screen sheen is presentation only; the plate is the real deliverable your print house needs.",
+          "blurb": "Foil, spot UV and emboss — with the plate your printer needs"
         },
         "sv": {
-          "name": "Förhandsvisning av finish",
-          "description": "Simulera folie, spot-UV, prägling och soft-touch på ditt konstverk och exportera den tryckfärdiga plåten. Glansen på skärmen är bara presentation, plåten är den riktiga leveransen."
+          "name": "Finish Preview",
+          "description": "Preview foil, spot UV, emboss and soft-touch finishes on your artwork — then export the printer-ready spot plate. The on-screen sheen is presentation only; the plate is the real deliverable your print house needs.",
+          "blurb": "Foil, spot UV and emboss — with the plate your printer needs"
         },
         "tl": {
-          "name": "Preview ng Finish",
-          "description": "I-simulate ang foil, spot UV, emboss at soft-touch sa iyong artwork at i-export ang print-ready na plate. Ang kinang sa screen ay presentasyon lamang, ang plate ang tunay na deliverable."
+          "name": "Finish Preview",
+          "description": "Preview foil, spot UV, emboss and soft-touch finishes on your artwork — then export the printer-ready spot plate. The on-screen sheen is presentation only; the plate is the real deliverable your print house needs.",
+          "blurb": "Foil, spot UV and emboss — with the plate your printer needs"
         },
         "tr": {
-          "name": "Kaplama Önizleme",
-          "description": "Yaldız, spot UV lak, kabartma ve soft-touch kaplamaları çalışmanız üzerinde simüle edin ve baskıya hazır kalıbı dışa aktarın. Ekrandaki parlaklık yalnızca sunumdur, kalıp asıl teslim edilecek dosyadır."
+          "name": "Finish Preview",
+          "description": "Preview foil, spot UV, emboss and soft-touch finishes on your artwork — then export the printer-ready spot plate. The on-screen sheen is presentation only; the plate is the real deliverable your print house needs.",
+          "blurb": "Foil, spot UV and emboss — with the plate your printer needs"
         },
         "uk": {
-          "name": "Попередній перегляд оздоблень",
-          "description": "Симулюйте фольгу, вибірковий УФ-лак, тиснення та soft-touch на вашій графіці й експортуйте готову до друку форму. Блиск на екрані лише презентація, форма є справжнім результатом."
+          "name": "Finish Preview",
+          "description": "Preview foil, spot UV, emboss and soft-touch finishes on your artwork — then export the printer-ready spot plate. The on-screen sheen is presentation only; the plate is the real deliverable your print house needs.",
+          "blurb": "Foil, spot UV and emboss — with the plate your printer needs"
         },
         "ur": {
-          "name": "فنش پیش منظر",
-          "description": "اپنے آرٹ ورک پر فوائل، اسپاٹ UV، ابھار اور سافٹ ٹچ فنش کی نقل دیکھیں اور پرنٹ کے لیے تیار پلیٹ برآمد کریں۔ اسکرین کی چمک صرف پیشکش ہے، اصل ڈیلیوری پلیٹ ہے۔"
+          "name": "Finish Preview",
+          "description": "Preview foil, spot UV, emboss and soft-touch finishes on your artwork — then export the printer-ready spot plate. The on-screen sheen is presentation only; the plate is the real deliverable your print house needs.",
+          "blurb": "Foil, spot UV and emboss — with the plate your printer needs"
         },
         "vi": {
-          "name": "Xem trước hiệu ứng gia công",
-          "description": "Mô phỏng ép kim, phủ UV định hình, dập nổi và soft-touch trên tác phẩm của bạn rồi xuất bản kẽm sẵn sàng in. Độ bóng trên màn hình chỉ là trình bày, bản kẽm mới là sản phẩm bàn giao thật."
+          "name": "Finish Preview",
+          "description": "Preview foil, spot UV, emboss and soft-touch finishes on your artwork — then export the printer-ready spot plate. The on-screen sheen is presentation only; the plate is the real deliverable your print house needs.",
+          "blurb": "Foil, spot UV and emboss — with the plate your printer needs"
         },
         "zh-hant": {
-          "name": "印後加工預覽",
-          "description": "在作品上模擬燙金、局部UV、擊凸與觸感膜等加工，並匯出可直接交付印刷廠的版面。螢幕上的光澤只是展示，版面才是真正的交付物。"
+          "name": "Finish Preview",
+          "description": "Preview foil, spot UV, emboss and soft-touch finishes on your artwork — then export the printer-ready spot plate. The on-screen sheen is presentation only; the plate is the real deliverable your print house needs.",
+          "blurb": "Foil, spot UV and emboss — with the plate your printer needs"
         },
         "zh": {
-          "name": "印后工艺预览",
-          "description": "在作品上模拟烫金、局部UV、击凸和触感膜等工艺，并导出可直接交付印厂的版面。屏幕上的光泽只是演示，版面才是真正的交付物。"
+          "name": "Finish Preview",
+          "description": "Preview foil, spot UV, emboss and soft-touch finishes on your artwork — then export the printer-ready spot plate. The on-screen sheen is presentation only; the plate is the real deliverable your print house needs.",
+          "blurb": "Foil, spot UV and emboss — with the plate your printer needs"
         }
       }
     },
@@ -6189,133 +6373,133 @@
       "i18n": {
         "ar": {
           "name": "Bitmap Studio",
-          "description": "غرفة مظلمة احترافية لتدريج الصور: إطلالات فيلمية، وجداول LUT بصيغة ‎.cube من جهات خارجية، ومعالجات لونية مستمدة من ألوان علامتك، وملمس نهائي — ثم صدِّر إطلالتك كملف LUT يمكن لأي محرر استخدامه.",
-          "blurb": "درِّج صورك بإطلالات فيلمية وجداول LUT وألوان علامتك"
+          "description": "A pro photo-grading darkroom: film looks, third-party .cube LUTs, brand-seeded colour treatments and finishing texture — then bake your look as a LUT any editor can use.",
+          "blurb": "Grade photos with film looks, LUTs and your brand colours"
         },
         "bg": {
           "name": "Bitmap Studio",
-          "description": "Професионална тъмна стая за цветови корекции: филмови стилове, .cube LUT от трети страни, цветови обработки от палитрата на марката ти и финални текстури — после изпечи стила си като LUT, който всеки редактор може да ползва.",
-          "blurb": "Обработвай снимки с филмови стилове, LUT и цветовете на марката си"
+          "description": "A pro photo-grading darkroom: film looks, third-party .cube LUTs, brand-seeded colour treatments and finishing texture — then bake your look as a LUT any editor can use.",
+          "blurb": "Grade photos with film looks, LUTs and your brand colours"
         },
         "bn": {
           "name": "Bitmap Studio",
-          "description": "একটি পেশাদার ফটো-গ্রেডিং ডার্করুম: ফিল্ম লুক, থার্ড-পার্টি .cube LUT, ব্র্যান্ডের রং থেকে নেওয়া কালার ট্রিটমেন্ট ও ফিনিশিং টেক্সচার — তারপর আপনার লুকটি এমন একটি LUT হিসেবে সংরক্ষণ করুন যা যেকোনো এডিটর ব্যবহার করতে পারে।",
-          "blurb": "ফিল্ম লুক, LUT ও আপনার ব্র্যান্ডের রঙে ফটো গ্রেড করুন"
+          "description": "A pro photo-grading darkroom: film looks, third-party .cube LUTs, brand-seeded colour treatments and finishing texture — then bake your look as a LUT any editor can use.",
+          "blurb": "Grade photos with film looks, LUTs and your brand colours"
         },
         "cs": {
           "name": "Bitmap Studio",
-          "description": "Profesionální fotografická temná komora: filmové looky, .cube LUT třetích stran, barevné úpravy odvozené z palety vaší značky a finální textury — a nakonec si look vypečte jako LUT, kterou použije každý editor.",
-          "blurb": "Gradujte fotky filmovými looky, LUT a barvami své značky"
+          "description": "A pro photo-grading darkroom: film looks, third-party .cube LUTs, brand-seeded colour treatments and finishing texture — then bake your look as a LUT any editor can use.",
+          "blurb": "Grade photos with film looks, LUTs and your brand colours"
         },
         "de": {
-          "name": "Bitmap-Studio",
-          "description": "Eine professionelle Foto-Grading-Dunkelkammer: Film-Looks, .cube-LUTs von Drittanbietern, Farbbehandlungen aus Ihrer Markenpalette und Finishing-Texturen — und backen Sie Ihren Look als LUT, die jeder Editor nutzen kann.",
-          "blurb": "Graden Sie Fotos mit Film-Looks, LUTs und Ihren Markenfarben"
+          "name": "Bitmap Studio",
+          "description": "A pro photo-grading darkroom: film looks, third-party .cube LUTs, brand-seeded colour treatments and finishing texture — then bake your look as a LUT any editor can use.",
+          "blurb": "Grade photos with film looks, LUTs and your brand colours"
         },
         "es": {
           "name": "Bitmap Studio",
-          "description": "Un cuarto oscuro profesional para gradar fotos: looks de película, LUTs .cube de terceros, tratamientos de color basados en tu marca y textura de acabado; después, hornea tu look como una LUT que cualquier editor puede usar.",
-          "blurb": "Grada fotos con looks de película, LUTs y los colores de tu marca"
+          "description": "A pro photo-grading darkroom: film looks, third-party .cube LUTs, brand-seeded colour treatments and finishing texture — then bake your look as a LUT any editor can use.",
+          "blurb": "Grade photos with film looks, LUTs and your brand colours"
         },
         "fr": {
           "name": "Bitmap Studio",
-          "description": "Une chambre noire professionnelle pour l'étalonnage photo : looks argentiques, LUT .cube tierces, traitements couleur issus de votre marque et texture de finition — puis exportez votre look en LUT utilisable dans n'importe quel éditeur.",
-          "blurb": "Étalonnez vos photos avec des looks argentiques, des LUT et vos couleurs de marque"
+          "description": "A pro photo-grading darkroom: film looks, third-party .cube LUTs, brand-seeded colour treatments and finishing texture — then bake your look as a LUT any editor can use.",
+          "blurb": "Grade photos with film looks, LUTs and your brand colours"
         },
         "hi": {
           "name": "Bitmap Studio",
-          "description": "एक पेशेवर फ़ोटो-ग्रेडिंग डार्करूम: फ़िल्म लुक, थर्ड-पार्टी .cube LUT, ब्रांड रंगों पर आधारित कलर ट्रीटमेंट और फ़िनिशिंग टेक्सचर — फिर अपने लुक को ऐसे LUT के रूप में सहेजें जिसे कोई भी एडिटर इस्तेमाल कर सके।",
-          "blurb": "फ़िल्म लुक, LUT और अपने ब्रांड रंगों से फ़ोटो ग्रेड करें"
+          "description": "A pro photo-grading darkroom: film looks, third-party .cube LUTs, brand-seeded colour treatments and finishing texture — then bake your look as a LUT any editor can use.",
+          "blurb": "Grade photos with film looks, LUTs and your brand colours"
         },
         "id": {
           "name": "Bitmap Studio",
-          "description": "Kamar gelap grading foto profesional: film look, LUT .cube pihak ketiga, olahan warna dari palet merek Anda, dan tekstur finishing — lalu ekspor look Anda sebagai LUT yang bisa dipakai editor mana pun.",
-          "blurb": "Grading foto dengan film look, LUT, dan warna merek Anda"
+          "description": "A pro photo-grading darkroom: film looks, third-party .cube LUTs, brand-seeded colour treatments and finishing texture — then bake your look as a LUT any editor can use.",
+          "blurb": "Grade photos with film looks, LUTs and your brand colours"
         },
         "it": {
           "name": "Bitmap Studio",
-          "description": "Una camera oscura professionale per il grading fotografico: look pellicola, LUT .cube di terze parti, trattamenti colore basati sul tuo brand e texture di finitura — poi esporta il tuo look come LUT utilizzabile in qualsiasi editor.",
-          "blurb": "Fai il grading delle foto con look pellicola, LUT e i colori del tuo brand"
+          "description": "A pro photo-grading darkroom: film looks, third-party .cube LUTs, brand-seeded colour treatments and finishing texture — then bake your look as a LUT any editor can use.",
+          "blurb": "Grade photos with film looks, LUTs and your brand colours"
         },
         "ja": {
-          "name": "ビットマップスタジオ",
-          "description": "プロ仕様のフォトグレーディング暗室：フィルムルック、サードパーティ製 .cube LUT、ブランドカラーに基づくカラートリートメント、仕上げのテクスチャ。さらに、どのエディタでも使える LUT としてルックを書き出せます。",
-          "blurb": "フィルムルック、LUT、ブランドカラーで写真をグレーディング"
+          "name": "Bitmap Studio",
+          "description": "A pro photo-grading darkroom: film looks, third-party .cube LUTs, brand-seeded colour treatments and finishing texture — then bake your look as a LUT any editor can use.",
+          "blurb": "Grade photos with film looks, LUTs and your brand colours"
         },
         "ko": {
-          "name": "비트맵 스튜디오",
-          "description": "전문가급 사진 그레이딩 암실: 필름 룩, 서드파티 .cube LUT, 브랜드 색상 기반 컬러 트리트먼트와 마감 텍스처 — 그리고 어떤 편집기에서도 쓸 수 있는 LUT로 룩을 구워냅니다.",
-          "blurb": "필름 룩, LUT, 브랜드 색상으로 사진을 그레이딩하세요"
+          "name": "Bitmap Studio",
+          "description": "A pro photo-grading darkroom: film looks, third-party .cube LUTs, brand-seeded colour treatments and finishing texture — then bake your look as a LUT any editor can use.",
+          "blurb": "Grade photos with film looks, LUTs and your brand colours"
         },
         "ms": {
           "name": "Bitmap Studio",
-          "description": "Bilik gelap penggredan foto profesional: gaya filem, LUT .cube pihak ketiga, olahan warna daripada palet jenama anda dan tekstur kemasan — kemudian eksport gaya anda sebagai LUT yang boleh digunakan mana-mana editor.",
-          "blurb": "Gred foto dengan gaya filem, LUT dan warna jenama anda"
+          "description": "A pro photo-grading darkroom: film looks, third-party .cube LUTs, brand-seeded colour treatments and finishing texture — then bake your look as a LUT any editor can use.",
+          "blurb": "Grade photos with film looks, LUTs and your brand colours"
         },
         "nl": {
           "name": "Bitmap Studio",
-          "description": "Een professionele donkere kamer voor fotogradatie: filmlooks, .cube-LUT's van derden, kleurbehandelingen op basis van je merkkleuren en afwerkingstextuur — bak daarna je look als LUT die elke editor kan gebruiken.",
-          "blurb": "Grade foto's met filmlooks, LUT's en je merkkleuren"
+          "description": "A pro photo-grading darkroom: film looks, third-party .cube LUTs, brand-seeded colour treatments and finishing texture — then bake your look as a LUT any editor can use.",
+          "blurb": "Grade photos with film looks, LUTs and your brand colours"
         },
         "no": {
           "name": "Bitmap Studio",
-          "description": "Et profesjonelt mørkerom for fotogradering: filmlooker, .cube-LUT-er fra tredjepart, fargebehandlinger fra merkevarens palett og finish-teksturer — og bak looken din som en LUT alle redigeringsprogram kan bruke.",
-          "blurb": "Grader bilder med filmlooker, LUT-er og merkevarefargene dine"
+          "description": "A pro photo-grading darkroom: film looks, third-party .cube LUTs, brand-seeded colour treatments and finishing texture — then bake your look as a LUT any editor can use.",
+          "blurb": "Grade photos with film looks, LUTs and your brand colours"
         },
         "pl": {
           "name": "Bitmap Studio",
-          "description": "Profesjonalna ciemnia do gradingu zdjęć: filmowe looki, zewnętrzne LUT-y .cube, obróbka koloru oparta na palecie marki i tekstury wykończeniowe — a potem wypal swój look jako LUT, którego użyje każdy edytor.",
-          "blurb": "Graduj zdjęcia z filmowymi lookami, LUT-ami i kolorami swojej marki"
+          "description": "A pro photo-grading darkroom: film looks, third-party .cube LUTs, brand-seeded colour treatments and finishing texture — then bake your look as a LUT any editor can use.",
+          "blurb": "Grade photos with film looks, LUTs and your brand colours"
         },
         "pt": {
           "name": "Bitmap Studio",
-          "description": "Uma câmara escura profissional para gradação de fotos: looks de filme, LUTs .cube de terceiros, tratamentos de cor baseados na sua marca e textura de acabamento — depois exporte o seu look como uma LUT que qualquer editor pode usar.",
-          "blurb": "Grade fotos com looks de filme, LUTs e as cores da sua marca"
+          "description": "A pro photo-grading darkroom: film looks, third-party .cube LUTs, brand-seeded colour treatments and finishing texture — then bake your look as a LUT any editor can use.",
+          "blurb": "Grade photos with film looks, LUTs and your brand colours"
         },
         "ro": {
           "name": "Bitmap Studio",
-          "description": "O cameră obscură profesională pentru gradarea fotografiilor: look-uri de film, LUT-uri .cube de la terți, tratamente de culoare pornind de la paleta brandului și texturi de finisare — apoi exportă look-ul ca LUT utilizabil în orice editor.",
-          "blurb": "Gradează fotografii cu look-uri de film, LUT-uri și culorile brandului tău"
+          "description": "A pro photo-grading darkroom: film looks, third-party .cube LUTs, brand-seeded colour treatments and finishing texture — then bake your look as a LUT any editor can use.",
+          "blurb": "Grade photos with film looks, LUTs and your brand colours"
         },
         "sv": {
           "name": "Bitmap Studio",
-          "description": "Ett professionellt mörkrum för fotogradering: filmlooker, .cube-LUT:er från tredje part, färgbehandlingar utifrån ditt varumärkes palett och finish-texturer — baka sedan din look som en LUT som alla redigerare kan använda.",
-          "blurb": "Gradera foton med filmlooker, LUT:er och dina varumärkesfärger"
+          "description": "A pro photo-grading darkroom: film looks, third-party .cube LUTs, brand-seeded colour treatments and finishing texture — then bake your look as a LUT any editor can use.",
+          "blurb": "Grade photos with film looks, LUTs and your brand colours"
         },
         "tl": {
           "name": "Bitmap Studio",
-          "description": "Isang propesyonal na photo-grading darkroom: mga film look, third-party na .cube LUT, mga color treatment mula sa mga kulay ng iyong brand, at finishing texture — pagkatapos ay i-bake ang iyong look bilang LUT na magagamit ng kahit anong editor.",
-          "blurb": "I-grade ang mga larawan gamit ang mga film look, LUT at kulay ng iyong brand"
+          "description": "A pro photo-grading darkroom: film looks, third-party .cube LUTs, brand-seeded colour treatments and finishing texture — then bake your look as a LUT any editor can use.",
+          "blurb": "Grade photos with film looks, LUTs and your brand colours"
         },
         "tr": {
           "name": "Bitmap Studio",
-          "description": "Profesyonel bir fotoğraf renklendirme karanlık odası: film görünümleri, üçüncü taraf .cube LUT'lar, marka renklerinden türetilen renk işlemleri ve bitirme dokuları — ardından görünümünü her editörün kullanabileceği bir LUT olarak dışa aktar.",
-          "blurb": "Fotoğrafları film görünümleri, LUT'lar ve marka renklerinle renklendir"
+          "description": "A pro photo-grading darkroom: film looks, third-party .cube LUTs, brand-seeded colour treatments and finishing texture — then bake your look as a LUT any editor can use.",
+          "blurb": "Grade photos with film looks, LUTs and your brand colours"
         },
         "uk": {
           "name": "Bitmap Studio",
-          "description": "Професійна темна кімната для грейдингу фото: плівкові луки, сторонні .cube LUT, колірні обробки на основі палітри вашого бренду та фінішні текстури — а потім запечіть свій лук як LUT, який відкриє будь-який редактор.",
-          "blurb": "Грейдьте фото з плівковими луками, LUT і кольорами вашого бренду"
+          "description": "A pro photo-grading darkroom: film looks, third-party .cube LUTs, brand-seeded colour treatments and finishing texture — then bake your look as a LUT any editor can use.",
+          "blurb": "Grade photos with film looks, LUTs and your brand colours"
         },
         "ur": {
           "name": "Bitmap Studio",
-          "description": "ایک پیشہ ور فوٹو گریڈنگ ڈارک روم: فلم لُکس، تھرڈ پارٹی .cube LUTs، برانڈ کے رنگوں پر مبنی کلر ٹریٹمنٹ اور فنشنگ ٹیکسچر — پھر اپنا لُک ایسے LUT کے طور پر محفوظ کریں جسے کوئی بھی ایڈیٹر استعمال کر سکے۔",
-          "blurb": "فلم لُکس، LUTs اور اپنے برانڈ کے رنگوں سے تصاویر گریڈ کریں"
+          "description": "A pro photo-grading darkroom: film looks, third-party .cube LUTs, brand-seeded colour treatments and finishing texture — then bake your look as a LUT any editor can use.",
+          "blurb": "Grade photos with film looks, LUTs and your brand colours"
         },
         "vi": {
           "name": "Bitmap Studio",
-          "description": "Phòng tối chỉnh màu ảnh chuyên nghiệp: phong cách phim, LUT .cube của bên thứ ba, xử lý màu dựa trên bảng màu thương hiệu và kết cấu hoàn thiện — rồi xuất phong cách của bạn thành LUT mà mọi trình biên tập đều dùng được.",
-          "blurb": "Chỉnh màu ảnh với phong cách phim, LUT và màu thương hiệu của bạn"
+          "description": "A pro photo-grading darkroom: film looks, third-party .cube LUTs, brand-seeded colour treatments and finishing texture — then bake your look as a LUT any editor can use.",
+          "blurb": "Grade photos with film looks, LUTs and your brand colours"
         },
         "zh-hant": {
-          "name": "位圖工作室",
-          "description": "專業的照片調色暗房：底片風格、第三方 .cube LUT、以品牌色彩為基礎的色彩處理與質感修飾——還能將你的調色烘焙成任何剪輯軟體都能使用的 LUT。",
-          "blurb": "用底片風格、LUT 與品牌色彩為照片調色"
+          "name": "Bitmap Studio",
+          "description": "A pro photo-grading darkroom: film looks, third-party .cube LUTs, brand-seeded colour treatments and finishing texture — then bake your look as a LUT any editor can use.",
+          "blurb": "Grade photos with film looks, LUTs and your brand colours"
         },
         "zh": {
-          "name": "位图工作室",
-          "description": "专业的照片调色暗房：胶片风格、第三方 .cube LUT、以品牌色彩为基础的色彩处理与质感修饰——还能将你的调色烘焙成任何剪辑软件都能使用的 LUT。",
-          "blurb": "用胶片风格、LUT 和品牌色为照片调色"
+          "name": "Bitmap Studio",
+          "description": "A pro photo-grading darkroom: film looks, third-party .cube LUTs, brand-seeded colour treatments and finishing texture — then bake your look as a LUT any editor can use.",
+          "blurb": "Grade photos with film looks, LUTs and your brand colours"
         }
       }
     },
@@ -6350,7 +6534,113 @@
       "height": 1080,
       "exportable": true,
       "icon": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"m12 2 9 5-9 5-9-5Z\"/><path d=\"m3 12 9 5 9-5\"/><path d=\"m3 17 9 5 9-5\"/></svg>",
-      "preview": "/catalog/previews/layer-stack.svg"
+      "preview": "/catalog/previews/layer-stack.svg",
+      "i18n": {
+        "ar": {
+          "name": "Layers",
+          "description": "Open a Photoshop or GIMP file as individual layers — lock each one down with exact X/Y coordinates, visibility, opacity and blend mode, then export flat images or a layered PSD."
+        },
+        "bg": {
+          "name": "Layers",
+          "description": "Open a Photoshop or GIMP file as individual layers — lock each one down with exact X/Y coordinates, visibility, opacity and blend mode, then export flat images or a layered PSD."
+        },
+        "bn": {
+          "name": "Layers",
+          "description": "Open a Photoshop or GIMP file as individual layers — lock each one down with exact X/Y coordinates, visibility, opacity and blend mode, then export flat images or a layered PSD."
+        },
+        "cs": {
+          "name": "Layers",
+          "description": "Open a Photoshop or GIMP file as individual layers — lock each one down with exact X/Y coordinates, visibility, opacity and blend mode, then export flat images or a layered PSD."
+        },
+        "de": {
+          "name": "Layers",
+          "description": "Open a Photoshop or GIMP file as individual layers — lock each one down with exact X/Y coordinates, visibility, opacity and blend mode, then export flat images or a layered PSD."
+        },
+        "es": {
+          "name": "Layers",
+          "description": "Open a Photoshop or GIMP file as individual layers — lock each one down with exact X/Y coordinates, visibility, opacity and blend mode, then export flat images or a layered PSD."
+        },
+        "fr": {
+          "name": "Layers",
+          "description": "Open a Photoshop or GIMP file as individual layers — lock each one down with exact X/Y coordinates, visibility, opacity and blend mode, then export flat images or a layered PSD."
+        },
+        "hi": {
+          "name": "Layers",
+          "description": "Open a Photoshop or GIMP file as individual layers — lock each one down with exact X/Y coordinates, visibility, opacity and blend mode, then export flat images or a layered PSD."
+        },
+        "id": {
+          "name": "Layers",
+          "description": "Open a Photoshop or GIMP file as individual layers — lock each one down with exact X/Y coordinates, visibility, opacity and blend mode, then export flat images or a layered PSD."
+        },
+        "it": {
+          "name": "Layers",
+          "description": "Open a Photoshop or GIMP file as individual layers — lock each one down with exact X/Y coordinates, visibility, opacity and blend mode, then export flat images or a layered PSD."
+        },
+        "ja": {
+          "name": "Layers",
+          "description": "Open a Photoshop or GIMP file as individual layers — lock each one down with exact X/Y coordinates, visibility, opacity and blend mode, then export flat images or a layered PSD."
+        },
+        "ko": {
+          "name": "Layers",
+          "description": "Open a Photoshop or GIMP file as individual layers — lock each one down with exact X/Y coordinates, visibility, opacity and blend mode, then export flat images or a layered PSD."
+        },
+        "ms": {
+          "name": "Layers",
+          "description": "Open a Photoshop or GIMP file as individual layers — lock each one down with exact X/Y coordinates, visibility, opacity and blend mode, then export flat images or a layered PSD."
+        },
+        "nl": {
+          "name": "Layers",
+          "description": "Open a Photoshop or GIMP file as individual layers — lock each one down with exact X/Y coordinates, visibility, opacity and blend mode, then export flat images or a layered PSD."
+        },
+        "no": {
+          "name": "Layers",
+          "description": "Open a Photoshop or GIMP file as individual layers — lock each one down with exact X/Y coordinates, visibility, opacity and blend mode, then export flat images or a layered PSD."
+        },
+        "pl": {
+          "name": "Layers",
+          "description": "Open a Photoshop or GIMP file as individual layers — lock each one down with exact X/Y coordinates, visibility, opacity and blend mode, then export flat images or a layered PSD."
+        },
+        "pt": {
+          "name": "Layers",
+          "description": "Open a Photoshop or GIMP file as individual layers — lock each one down with exact X/Y coordinates, visibility, opacity and blend mode, then export flat images or a layered PSD."
+        },
+        "ro": {
+          "name": "Layers",
+          "description": "Open a Photoshop or GIMP file as individual layers — lock each one down with exact X/Y coordinates, visibility, opacity and blend mode, then export flat images or a layered PSD."
+        },
+        "sv": {
+          "name": "Layers",
+          "description": "Open a Photoshop or GIMP file as individual layers — lock each one down with exact X/Y coordinates, visibility, opacity and blend mode, then export flat images or a layered PSD."
+        },
+        "tl": {
+          "name": "Layers",
+          "description": "Open a Photoshop or GIMP file as individual layers — lock each one down with exact X/Y coordinates, visibility, opacity and blend mode, then export flat images or a layered PSD."
+        },
+        "tr": {
+          "name": "Layers",
+          "description": "Open a Photoshop or GIMP file as individual layers — lock each one down with exact X/Y coordinates, visibility, opacity and blend mode, then export flat images or a layered PSD."
+        },
+        "uk": {
+          "name": "Layers",
+          "description": "Open a Photoshop or GIMP file as individual layers — lock each one down with exact X/Y coordinates, visibility, opacity and blend mode, then export flat images or a layered PSD."
+        },
+        "ur": {
+          "name": "Layers",
+          "description": "Open a Photoshop or GIMP file as individual layers — lock each one down with exact X/Y coordinates, visibility, opacity and blend mode, then export flat images or a layered PSD."
+        },
+        "vi": {
+          "name": "Layers",
+          "description": "Open a Photoshop or GIMP file as individual layers — lock each one down with exact X/Y coordinates, visibility, opacity and blend mode, then export flat images or a layered PSD."
+        },
+        "zh-hant": {
+          "name": "Layers",
+          "description": "Open a Photoshop or GIMP file as individual layers — lock each one down with exact X/Y coordinates, visibility, opacity and blend mode, then export flat images or a layered PSD."
+        },
+        "zh": {
+          "name": "Layers",
+          "description": "Open a Photoshop or GIMP file as individual layers — lock each one down with exact X/Y coordinates, visibility, opacity and blend mode, then export flat images or a layered PSD."
+        }
+      }
     },
     {
       "id": "font-convert",
@@ -6381,7 +6671,113 @@
       "height": 560,
       "exportable": false,
       "icon": "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.6\" stroke-linecap=\"round\" stroke-linejoin=\"round\" xmlns=\"http://www.w3.org/2000/svg\"><path d=\"M4 6h8M8 6v10M6.3 16h3.4\"/><path d=\"M13.5 16l3.5-10 3.5 10M14.9 12.3h4.2\"/></svg>",
-      "preview": "/catalog/previews/font-convert.svg"
+      "preview": "/catalog/previews/font-convert.svg",
+      "i18n": {
+        "ar": {
+          "name": "Convert Font",
+          "description": "Convert a font between TrueType, OpenType and WOFF — on your device."
+        },
+        "bg": {
+          "name": "Convert Font",
+          "description": "Convert a font between TrueType, OpenType and WOFF — on your device."
+        },
+        "bn": {
+          "name": "Convert Font",
+          "description": "Convert a font between TrueType, OpenType and WOFF — on your device."
+        },
+        "cs": {
+          "name": "Convert Font",
+          "description": "Convert a font between TrueType, OpenType and WOFF — on your device."
+        },
+        "de": {
+          "name": "Convert Font",
+          "description": "Convert a font between TrueType, OpenType and WOFF — on your device."
+        },
+        "es": {
+          "name": "Convert Font",
+          "description": "Convert a font between TrueType, OpenType and WOFF — on your device."
+        },
+        "fr": {
+          "name": "Convert Font",
+          "description": "Convert a font between TrueType, OpenType and WOFF — on your device."
+        },
+        "hi": {
+          "name": "Convert Font",
+          "description": "Convert a font between TrueType, OpenType and WOFF — on your device."
+        },
+        "id": {
+          "name": "Convert Font",
+          "description": "Convert a font between TrueType, OpenType and WOFF — on your device."
+        },
+        "it": {
+          "name": "Convert Font",
+          "description": "Convert a font between TrueType, OpenType and WOFF — on your device."
+        },
+        "ja": {
+          "name": "Convert Font",
+          "description": "Convert a font between TrueType, OpenType and WOFF — on your device."
+        },
+        "ko": {
+          "name": "Convert Font",
+          "description": "Convert a font between TrueType, OpenType and WOFF — on your device."
+        },
+        "ms": {
+          "name": "Convert Font",
+          "description": "Convert a font between TrueType, OpenType and WOFF — on your device."
+        },
+        "nl": {
+          "name": "Convert Font",
+          "description": "Convert a font between TrueType, OpenType and WOFF — on your device."
+        },
+        "no": {
+          "name": "Convert Font",
+          "description": "Convert a font between TrueType, OpenType and WOFF — on your device."
+        },
+        "pl": {
+          "name": "Convert Font",
+          "description": "Convert a font between TrueType, OpenType and WOFF — on your device."
+        },
+        "pt": {
+          "name": "Convert Font",
+          "description": "Convert a font between TrueType, OpenType and WOFF — on your device."
+        },
+        "ro": {
+          "name": "Convert Font",
+          "description": "Convert a font between TrueType, OpenType and WOFF — on your device."
+        },
+        "sv": {
+          "name": "Convert Font",
+          "description": "Convert a font between TrueType, OpenType and WOFF — on your device."
+        },
+        "tl": {
+          "name": "Convert Font",
+          "description": "Convert a font between TrueType, OpenType and WOFF — on your device."
+        },
+        "tr": {
+          "name": "Convert Font",
+          "description": "Convert a font between TrueType, OpenType and WOFF — on your device."
+        },
+        "uk": {
+          "name": "Convert Font",
+          "description": "Convert a font between TrueType, OpenType and WOFF — on your device."
+        },
+        "ur": {
+          "name": "Convert Font",
+          "description": "Convert a font between TrueType, OpenType and WOFF — on your device."
+        },
+        "vi": {
+          "name": "Convert Font",
+          "description": "Convert a font between TrueType, OpenType and WOFF — on your device."
+        },
+        "zh-hant": {
+          "name": "Convert Font",
+          "description": "Convert a font between TrueType, OpenType and WOFF — on your device."
+        },
+        "zh": {
+          "name": "Convert Font",
+          "description": "Convert a font between TrueType, OpenType and WOFF — on your device."
+        }
+      }
     }
   ]
 }

@@ -100,5 +100,6 @@
   "inputs.boxes.fields.font.label": "Font",
   "inputs.boxes.fields.font.options.mono": "Mono",
   "inputs.boxes.fields.tracking.label": "Kerning",
-  "inputs.boxes.fields.shadow.options.text": "Text"
+  "inputs.boxes.fields.shadow.options.text": "Text",
+  "description": "An open canvas for free arrangement — text, images, shapes and live renders from your other Lolly tools, all held to your brand."
 }
