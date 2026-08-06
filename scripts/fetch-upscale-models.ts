@@ -31,6 +31,13 @@
  * with --no-face-detect, or never vendored) the runtime falls back to a
  * center crop instead of a detected face box for GFPGAN alignment.
  *
+ * NOT fetched here: realesrgan-x4plus-anime.onnx (the illustration/line-art
+ * intent's engine). Its upstream RealESRGAN_x4plus_anime_6B ships only as a
+ * .pth with no license-clean ONNX mirror, so it is CONVERSION-SOURCED — produced
+ * on-device from the BSD-3 .pth by scripts/convert-anime-upscale-onnx.py, which
+ * writes it straight into this same /models/upscale/ tree. Run that script (not
+ * this one) to vendor it.
+ *
  * ── HuggingFace community-upload caveat ──────────────────────────────────
  * None of these five models are published as ONNX by their own upstream
  * authors — xinntao's Real-ESRGAN releases and TencentARC's GFPGAN releases
@@ -52,11 +59,11 @@
  * Every file with a real pin is SHA-256 + byte-length verified BEFORE it is
  * written — a mismatch exits non-zero with nothing written. A file already
  * on disk whose hash matches its pin is skipped without touching the
- * network. realesr-general-wdn-x4v3.onnx and realesrgan-x4plus.onnx below
- * are PLACEHOLDER pins (see TODO(andy) comments) — no unauthenticated,
- * single-file ONNX export of either could be found/verified when this script
- * was written (2026-08-04); see the TODOs for what was tried and why it
- * didn't resolve cleanly. A normal run (no --refresh-pins) SKIPS a
+ * network. realesr-general-wdn-x4v3.onnx below is a PLACEHOLDER pin (see the
+ * TODO(andy) comment) — no unauthenticated, single-file ONNX export of the WDN
+ * denoise partner could be found/verified (realesrgan-x4plus.onnx WAS a
+ * placeholder too but is a real, verified pin as of 2026-08-05). A normal run
+ * (no --refresh-pins) SKIPS a
  * placeholder entry with a loud warning rather than downloading it
  * unverified — nothing is trusted on a fake-looking hash. Run
  * --refresh-pins to fetch a candidate, inspect it, and hand-verify before

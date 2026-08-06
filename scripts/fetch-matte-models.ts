@@ -18,6 +18,7 @@
  * ── Files (the staged roster — real verified pins below) ────────────────────
  *   u2netp.onnx        U²-Net lite,   Apache-2.0, xuebinqin/U-2-Net    (FAST preview)
  *   birefnet-lite.onnx BiRefNet lite, MIT,        ZhengPeng7/BiRefNet  (DEFAULT — dark/detail)
+ *   birefnet.onnx      BiRefNet full, MIT,        ZhengPeng7/BiRefNet  (MAX quality — ~490 MB fp16)
  *   modnet.onnx        MODNet,        Apache-2.0, ZHKKKe/MODNet        (PORTRAITS)
  * (IS-Net was staged then retired 2026-08-05 — strictly dominated by BiRefNet-lite.)
  *
@@ -82,9 +83,12 @@ interface Pin {
   note?: string;
 }
 
-// All three are PLACEHOLDER: the pins below are the research-sourced CANDIDATE
-// URLs, not verified. Run --refresh-pins to fetch each, then work the gate list
-// in the header before pasting a real pin over the placeholder.
+// All four pins below are REAL and verified (downloaded, sha256 + byte-length
+// checked, ONNX graph inspected — see the gate list in the header and each
+// entry's note). To add a NEW model: paste its CANDIDATE url with sha256:
+// PLACEHOLDER, run --refresh-pins to fetch + print the real line, work the gate
+// list, then paste the real pin over the placeholder in the SAME change that
+// flips its MATTE_STAGED flag in matte-models.ts.
 const PINS: Record<string, Pin> = {
   'u2netp.onnx': {
     url: 'https://github.com/danielgatis/rembg/releases/download/v0.0.0/u2netp.onnx',
@@ -112,6 +116,22 @@ const PINS: Record<string, Pin> = {
     source: 'https://github.com/ZhengPeng7/BiRefNet (upstream, MIT); ONNX by onnx-community/BiRefNet_lite-ONNX',
     copyright: 'Copyright (c) 2024, Peng Zheng et al. (BiRefNet)',
     note: 'PRO tier, ~115 MB fp16. Validate against onnxruntime #21968 (BiRefNet WebGPU op failure) on BOTH WebGPU and WASM. Output head is a LOGIT → sigmoid.',
+  },
+  'birefnet.onnx': {
+    // The FULL BiRefNet (Swin-L backbone) — the "max quality / willing to wait"
+    // tier over birefnet-lite. Same MIT upstream, same exporter, same 1024² /
+    // ImageNet / sigmoid contract as the lite; fp16 for a ~half-size download and
+    // parity with the lite's proven float32 I/O boundary. WASM-only like the rest
+    // of the roster (MaxPool ceil_mode). Pin verified 2026-08-06: downloaded +
+    // sha256/byte-checked, ONNX graph inspected in onnxruntime-node (input
+    // input_image f32 [1,3,1024,1024], output a LOGIT → sigmoid; ran clean, 18 s CPU).
+    url: 'https://huggingface.co/onnx-community/BiRefNet-ONNX/resolve/main/onnx/model_fp16.onnx',
+    sha256: '3654c741eb80bd926ada8fed1713b506ccf8d30eb1f6487e87eb9f234f33df09',
+    bytes: 489666272,
+    license: 'MIT',
+    source: 'https://github.com/ZhengPeng7/BiRefNet (upstream, MIT); ONNX by onnx-community/BiRefNet-ONNX',
+    copyright: 'Copyright (c) 2024, Peng Zheng et al. (BiRefNet)',
+    note: 'MAX-quality PRO tier, ~490 MB fp16 (full Swin-L backbone). 1024² input, ImageNet norm, LOGIT head → sigmoid. Big/slow on WASM — best on a powerful machine or the native path.',
   },
 };
 

@@ -412,6 +412,22 @@
         "attachTo": {
           "type": "string",
           "description": "Id of a sibling input. Renders THIS input's control inside that input's control row (leading) instead of on its own labelled row — for a compact modifier belonging to another control, e.g. a fit toggle on an asset slot. It stays an ordinary input everywhere else (URL params, hooks, state, undo); only its placement changes. Pair with display:'icon-toggle' to keep it to one button. Ignored if the target id does not exist."
+        },
+        "dataSource": {
+          "type": "object",
+          "description": "Adds a unified 'Add data' affordance to this input: the user picks a file (csv/json/txt/md/xlsx) or a catalog text/boilerplate asset, and its content fills the field. For a text/longtext input the content is applied as text (an .xlsx is serialised to CSV, first sheet). Replaces per-tool paste buttons / 'paste your CSV here' instructions. See plan 87.",
+          "additionalProperties": false,
+          "properties": {
+            "tags": {
+              "type": "array",
+              "items": { "type": "string" },
+              "description": "Catalog text-asset tags to offer from the library, AND-matched. Default [\"boilerplate\"]."
+            },
+            "accept": {
+              "type": "string",
+              "description": "Override the file-input accept filter (default covers csv/json/txt/md/xlsx)."
+            }
+          }
         }
       },
       "allOf": [

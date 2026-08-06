@@ -2242,7 +2242,7 @@ export interface IngredientCredential {
 }
 
 export interface AssetQuery {
-  type?: 'vector' | 'raster' | 'video' | 'audio' | 'lottie' | 'palette' | 'tokens' | 'font' | 'profile' | 'ratecard' | 'text';
+  type?: 'vector' | 'raster' | 'video' | 'audio' | 'lottie' | 'palette' | 'tokens' | 'font' | 'profile' | 'ratecard' | 'text' | 'data';
   namespace?: string; // e.g. 'suse/logo' matches everything under it
   tags?: string[];    // AND across tags
   includeDeprecated?: boolean; // default false
@@ -2902,7 +2902,7 @@ export interface AssetRef {
   // profile, `user/profiles/<digest>`). It has no visual form — it is a gamut to
   // compare against, not something to place — so image surfaces filter it out
   // the same way they filter 'font' and 'tokens'.
-  type: 'vector' | 'raster' | 'video' | 'audio' | 'lottie' | 'palette' | 'tokens' | 'font' | 'profile' | 'ratecard' | 'text';
+  type: 'vector' | 'raster' | 'video' | 'audio' | 'lottie' | 'palette' | 'tokens' | 'font' | 'profile' | 'ratecard' | 'text' | 'data';
   format: string;
   url: string;
   width?: number;
@@ -3023,8 +3023,14 @@ export interface UpscaleFrame {
   data: Uint8ClampedArray;
 }
 
-/** A `host.upscale` model an id can select — see `UpscaleAPI.models`. */
-export type UpscaleModelId = 'realesr-general-x4v3' | 'realesrgan-x4plus' | 'gfpgan-v1.4';
+/** A `host.upscale` model an id can select — see `UpscaleAPI.models`. Two general
+ *  Real-ESRGAN nets (fast + quality), an illustration/line-art net
+ *  (`realesrgan-x4plus-anime`, the 6-block anime model) and a face restorer. */
+export type UpscaleModelId =
+  | 'realesr-general-x4v3'
+  | 'realesrgan-x4plus'
+  | 'realesrgan-x4plus-anime'
+  | 'gfpgan-v1.4';
 
 /**
  * One entry in the on-device model catalogue. `license` + `attribution` are not
@@ -3157,12 +3163,13 @@ export interface MatteFrame {
 }
 
 /**
- * A `host.matte` model an id can select — see `MatteAPI.models`. Three tiers: a
- * tiny fast preview net, a general default, and a near-SOTA "pro" edge model. All
- * ship under permissive licences (Apache-2.0 / MIT); the roster is deliberately
- * free of the popular non-commercial models (BRIA RMBG et al.).
+ * A `host.matte` model an id can select — see `MatteAPI.models`. A tiny fast
+ * preview net, a general default, a portrait specialist, and the full-size
+ * "max quality" edge model (`birefnet`) for when the user will wait on a large
+ * (~490 MB) download. All ship under permissive licences (Apache-2.0 / MIT); the
+ * roster is deliberately free of the popular non-commercial models (BRIA RMBG et al.).
  */
-export type MatteModelId = 'u2netp' | 'birefnet-lite' | 'modnet';
+export type MatteModelId = 'u2netp' | 'birefnet-lite' | 'birefnet' | 'modnet';
 
 /**
  * One entry in the on-device matte catalogue. `license` + `attribution` carry the
