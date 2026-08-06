@@ -607,9 +607,12 @@ test('the other spline kinds lower unchanged', () => {
   }
 });
 
-test('spiro is still declared and still refuses, and an unknown kind is distinguishable', () => {
+test('spiro now lowers (a real Euler-spiral solver), and an unknown kind still throws', () => {
   const nodes: Node[] = [{ x: 0, y: 0 }, { x: 10, y: 10 }];
-  assert.throws(() => toCubics({ kind: 'spiro', nodes, closed: false }), /not implemented/);
+  // Spiro is implemented (see engine/src/geom/spiro.ts + tests/spiro.test.ts); two knots
+  // lower to a single straight segment rather than throwing.
+  const cs = toCubics({ kind: 'spiro', nodes, closed: false });
+  assert.equal(cs.length, 1);
   assert.throws(
     () => toCubics({ kind: 'nonsense' as AuthoredPath['kind'], nodes, closed: false }),
     /unknown spline kind/,

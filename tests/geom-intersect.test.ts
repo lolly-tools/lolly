@@ -622,9 +622,9 @@ test('a b-spline does NOT pass through its control points', () => {
     'a b-spline that touches its control points is really a catmull-rom');
 });
 
-test('spiro is declared but refuses rather than silently drawing something else', () => {
-  assert.throws(() => toCubics({ kind: 'spiro', closed: false, nodes: [{ x: 0, y: 0 }, { x: 10, y: 10 }] }),
-    /not implemented/);
+test('spiro is implemented and lowers to cubics (see tests/spiro.test.ts for the contract)', () => {
+  const cs = toCubics({ kind: 'spiro', closed: false, nodes: [{ x: 0, y: 0 }, { x: 10, y: 10 }] });
+  assert.equal(cs.length, 1); // two knots → one straight segment
 });
 
 test('enforceContinuity: corner leaves the other handle alone', () => {

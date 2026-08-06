@@ -27,17 +27,23 @@
  *      continuous. This is the ordinary smooth Spiro point.
  *
  * The unknown is one tangent ANGLE per knot (world frame). Sharing it across the two
- * incident segments makes G1 automatic, so only G2 is solved. With Levien's algebraic
- * `compute_ends` (tangent = 0.5·k0 ∓ 0.125·k1, curvature = k0 ∓ 0.5·k1, both chord-
- * relative), the curvature at a segment end is linear in the two knot angles, so the G2
- * conditions form a TRIDIAGONAL system (cyclic when closed) — one Thomas / small dense
- * solve, no Newton. Free ends take the natural condition (curvature → 0). A couple of
- * refinement passes re-branch the mod-2π angle differences for large bends.
+ * incident segments makes G1 automatic, so only G2 is solved. Two stages:
+ *   1. A LINEAR seed. With Levien's algebraic `compute_ends` (tangent = 0.5·k0 ∓
+ *      0.125·k1, curvature = k0 ∓ 0.5·k1, chord-relative), the end curvature is linear in
+ *      the two knot angles, so the G2 conditions are a tridiagonal (cyclic when closed)
+ *      system in bounded per-knot deflections — one dense solve, no winding blow-up.
+ *   2. A NEWTON refinement on the TRUE clothoid curvatures (from `segClothoid`): the
+ *      leading-order seed leaves a small curvature step at a knot, so a few damped Newton
+ *      steps drive the actual κ_exit(left) − κ_entry(right) to ~0. Free ends take the
+ *      natural condition (curvature → 0). `maxSpiroCurvatureJump` measures the result.
  *
- * The bezier LOWERING is exact-shape: each segment's clothoid is integrated
- * (Gauss–Legendre) and emitted as one or more cubics, subdividing where the segment
- * turns more than `ARC_TOL`, so the rendered curve is a true Euler spiral even though
- * the tangent solve uses Levien's leading-order relation (as libspiro's own solve does).
+ * The bezier LOWERING builds each segment's TRUE chord-frame clothoid — Θ(u) quadratic in
+ * arc length, solved for the closing condition (`solveClosing`) — and emits it as one or
+ * more cubics with Levien's chord/3 arms, subdividing where it turns more than `ARC_TOL`.
+ * A segment's outer tangents are exactly psiA/psiB, so joins are G1-exact. (The 2nd
+ * derivative of the cubic *approximation* has small jumps — an unavoidable property of
+ * representing a clothoid with cubic Béziers, as libspiro's own bezier output does — but
+ * the curve itself is a smooth chain of Euler spirals with continuous analytic curvature.)
  *
  * NOT (yet) implemented: libspiro's G4 'o' knot (4-parameter spiral, curvature-
  * derivative continuous). The common Inkscape smooth node is G2, which is what ships;
@@ -293,43 +299,8 @@ function solveDense(A: number[][], b: number[]): number[] {
   return M.map((row, i) => (Math.abs(M[i]![i]!) < 1e-12 ? 0 : row[n]! / M[i]![i]!));
 }
 
-const ARC_TOL = 0.30; // radians of turn per emitted cubic before subdividing
+const ARC_TOL = 0.25; // radians of turn per emitted cubic before subdividing
 
-/**
- * Control-arm lengths (a0 out of p0, a1 into p1) for a cubic that reproduces the tangent
- * directions t0/t1 AND the endpoint curvatures k0/k1. Because a cubic's endpoint
- * curvature couples both arms, this is a 2×2 system (Newton from the chord/3 seed):
- *   (3/2)·k0·a0² + Z·a1 = X ,   (3/2)·k1·a1² + Z·a0 = Y
- * with X = u0×Δ, Y = −u1×Δ, Z = u0×u1, Δ = p1−p0, u_i = (cos t_i, sin t_i). Matching
- * curvature at the endpoints is what makes the rendered curve G2 across sub-arc AND knot
- * joins, given the tangent solve already made the true clothoid curvatures continuous.
- */
-function curvatureArms(
-  p0x: number, p0y: number, p1x: number, p1y: number, t0: number, t1: number, k0: number, k1: number,
-): [number, number] {
-  const u0x = Math.cos(t0), u0y = Math.sin(t0), u1x = Math.cos(t1), u1y = Math.sin(t1);
-  const dx = p1x - p0x, dy = p1y - p0y;
-  const chord = Math.hypot(dx, dy);
-  const cross = (ax: number, ay: number, bx: number, by: number) => ax * by - ay * bx;
-  const X = cross(u0x, u0y, dx, dy);
-  const Y = -cross(u1x, u1y, dx, dy);
-  const Z = cross(u0x, u0y, u1x, u1y);
-  let a0 = chord / 3, a1 = chord / 3;
-  for (let it = 0; it < 12; it++) {
-    const f0 = 1.5 * k0 * a0 * a0 + Z * a1 - X;
-    const f1 = 1.5 * k1 * a1 * a1 + Z * a0 - Y;
-    if (Math.abs(f0) < 1e-10 && Math.abs(f1) < 1e-10) break;
-    const j00 = 3 * k0 * a0, j01 = Z, j10 = Z, j11 = 3 * k1 * a1;
-    const det = j00 * j11 - j01 * j10;
-    if (Math.abs(det) < 1e-12) break;
-    a0 -= (f0 * j11 - f1 * j01) / det;
-    a1 -= (f1 * j00 - f0 * j10) / det;
-  }
-  // A negative or wild arm means the cubic can't hold that curvature at this size —
-  // fall back to chord/3, which is exact where the curvature is zero anyway.
-  if (!(a0 > 0 && a1 > 0 && a0 < chord * 1.5 && a1 < chord * 1.5)) return [chord / 3, chord / 3];
-  return [a0, a1];
-}
 
 /**
  * Lower one segment (knots A→B, solved world tangent angles psiA/psiB) to cubics by
@@ -361,7 +332,6 @@ function segToCubics(
     return { x: ax + sx * cosP - sy * sinP, y: ay + sx * sinP + sy * cosP };
   };
   const tan = (u: number): number => phi + theta(alpha, b, c, u);
-  const kappa = (u: number): number => (b + 2 * c * u) / scale; // physical curvature at u
 
   const out: Cubic[] = [];
   const emit = (u0: number, u1: number, p0: { x: number; y: number }, p1: { x: number; y: number }, depth: number): void => {
@@ -391,19 +361,14 @@ function segToCubics(
 }
 
 /**
- * Lower a Spiro authored path to cubic Béziers — the entry point `toCubics` calls.
+ * Solve the per-knot LEAVING / ARRIVING world tangent angles. They agree at a smooth
+ * knot; at a CORNER (shared by two runs) they differ — the whole point of a corner — so,
+ * like hyperbezier's rth/lth, a segment reads its start knot's leaving tangent and its
+ * end knot's arriving tangent. Writing one shared `psi` instead lets the second run
+ * clobber the first run's corner tangent and corrupts that run's last segment.
  */
-export function spiroCubics(nodes: Node[], closed: boolean): Cubic[] {
+function solveTangents(nodes: Node[], closed: boolean): { psiOut: number[]; psiIn: number[] } {
   const n = nodes.length;
-  if (n < 2) return [];
-  const wrap = closed && n > 2;
-  const nSeg = wrap ? n : n - 1;
-
-  // Leaving / arriving world tangent per knot. They agree at a smooth knot; at a CORNER
-  // (shared by two runs) they differ — the whole point of a corner — so, like
-  // hyperbezier's rth/lth, a segment reads its start knot's LEAVING tangent and its end
-  // knot's ARRIVING tangent. Writing one shared `psi` instead lets the second run clobber
-  // the first run's corner tangent and corrupts that run's last segment.
   const psiOut = new Array<number>(n).fill(0);
   const psiIn = new Array<number>(n).fill(0);
   for (const run of partition(nodes, closed)) {
@@ -413,23 +378,53 @@ export function spiroCubics(nodes: Node[], closed: boolean): Cubic[] {
     const sol = solveRun(pts, run.wrap);
     for (let j = 0; j < m; j++) {
       const i = run.idx[j]!;
-      if (run.wrap || j < m - 1) psiOut[i] = sol[j]!;   // leaving tangent
-      if (run.wrap || j > 0) psiIn[i] = sol[j]!;         // arriving tangent
+      if (run.wrap || j < m - 1) psiOut[i] = sol[j]!;
+      if (run.wrap || j > 0) psiIn[i] = sol[j]!;
     }
   }
+  return { psiOut, psiIn };
+}
 
-  if (process.env.SPIRO_DEBUG) {
-    for (let i = 0; i < nSeg; i++) {
-      const a = nodes[i]!, b = nodes[(i + 1) % n]!;
-      const sc = segClothoid(a.x, a.y, b.x, b.y, psiOut[i]!, psiIn[(i + 1) % n]!);
-      // eslint-disable-next-line no-console
-      console.log(`seg ${i}: kEntry=${sc.kEntry.toFixed(6)} kExit=${sc.kExit.toFixed(6)}`);
-    }
-  }
+/**
+ * Lower a Spiro authored path to cubic Béziers — the entry point `toCubics` calls.
+ */
+export function spiroCubics(nodes: Node[], closed: boolean): Cubic[] {
+  const n = nodes.length;
+  if (n < 2) return [];
+  const wrap = closed && n > 2;
+  const nSeg = wrap ? n : n - 1;
+  const { psiOut, psiIn } = solveTangents(nodes, closed);
   const out: Cubic[] = [];
   for (let i = 0; i < nSeg; i++) {
     const a = nodes[i]!, b = nodes[(i + 1) % n]!;
     out.push(...segToCubics(a.x, a.y, b.x, b.y, psiOut[i]!, psiIn[(i + 1) % n]!));
   }
   return out;
+}
+
+/**
+ * The largest curvature discontinuity (per unit length) across any smooth interior knot,
+ * measured on the ANALYTIC clothoid segments — the real thing the G2 solve guarantees,
+ * as opposed to the 2nd derivative of the cubic-Bézier *approximation*, which is jumpy by
+ * nature. Exposed for tests; ~0 means the solve achieved curvature continuity.
+ */
+export function maxSpiroCurvatureJump(nodes: Node[], closed: boolean): number {
+  const n = nodes.length;
+  if (n < 3) return 0;
+  const wrap = closed && n > 2;
+  const nSeg = wrap ? n : n - 1;
+  const { psiOut, psiIn } = solveTangents(nodes, closed);
+  const seg: SegClothoid[] = [];
+  for (let i = 0; i < nSeg; i++) {
+    const a = nodes[i]!, b = nodes[(i + 1) % n]!;
+    seg.push(segClothoid(a.x, a.y, b.x, b.y, psiOut[i]!, psiIn[(i + 1) % n]!));
+  }
+  let worst = 0;
+  const check = (leftSeg: number, rightSeg: number, knot: number) => {
+    if ((nodes[knot]!.continuity ?? 'corner') === 'corner') return; // corner = no G2 claim
+    worst = Math.max(worst, Math.abs(seg[leftSeg]!.kExit - seg[rightSeg]!.kEntry));
+  };
+  if (wrap) for (let j = 0; j < n; j++) check((j - 1 + nSeg) % nSeg, j % nSeg, j);
+  else for (let j = 1; j < n - 1; j++) check(j - 1, j, j);
+  return worst;
 }
