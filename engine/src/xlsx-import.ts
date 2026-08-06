@@ -39,9 +39,12 @@ import { unzipSync } from 'fflate';
 export interface ReadXlsxOpts {
   /** max rows to return (default {@link DEFAULT_XLSX_ROW_LIMIT}). */
   limit?: number;
+  /** Which worksheet to read: a 0-based index into {@link listXlsxSheets}, or an
+   *  exact sheet name. Defaults to the first sheet (byte-identical to omitting it). */
+  sheet?: number | string;
 }
 
-/** Result of {@link readXlsx}: the first sheet's cells + a truncation flag. */
+/** Result of {@link readXlsx}: the chosen sheet's cells + a truncation flag. */
 export interface ReadXlsxResult {
   /** ragged grid, row-major; gaps between populated cells are filled with ''. */
   rows: string[][];
@@ -49,6 +52,16 @@ export interface ReadXlsxResult {
   truncated: boolean;
   /** the resolved part path we read, e.g. "xl/worksheets/sheet1.xml". */
   sheetPath: string;
+  /** the human sheet name of the part read (from workbook.xml), when known. */
+  sheetName?: string;
+}
+
+/** One worksheet of a workbook, in workbook (tab) order. */
+export interface XlsxSheetInfo {
+  /** Human sheet name (the tab label). */
+  name: string;
+  /** 0-based position in workbook order — the value to pass as {@link ReadXlsxOpts.sheet}. */
+  index: number;
 }
 
 /** Hard cap on returned rows — mirrors `data-import.ts`'s CSV cap. A runaway
@@ -125,16 +138,55 @@ export function readXlsx(bytes: Uint8Array, opts: ReadXlsxOpts = {}): ReadXlsxRe
     throw new Error('This workbook is macro-enabled (.xlsm) — open it as a plain .xlsx.');
   }
 
-  const sheetPath = firstSheetPath(store);
-  if (!sheetPath) throw new Error('The workbook has no readable worksheet.');
-  const sheetXml = store.text(sheetPath);
-  if (sheetXml == null) throw new Error('The workbook’s first sheet is missing or too large.');
+  const chosen = resolveSheet(store, opts.sheet);
+  if (!chosen) {
+    throw new Error(
+      opts.sheet === undefined
+        ? 'The workbook has no readable worksheet.'
+        : `The workbook has no sheet ${typeof opts.sheet === 'number' ? `at index ${opts.sheet}` : `named “${opts.sheet}”`}.`,
+    );
+  }
+  const sheetXml = store.text(chosen.path);
+  if (sheetXml == null) throw new Error('The chosen sheet is missing or too large.');
 
   const shared = readSharedStrings(store);
 
   const { rows, truncated } = readSheet(sheetXml, shared, limit);
-  if (!rows.length) throw new Error('The first sheet has no cells.');
-  return { rows, truncated, sheetPath };
+  if (!rows.length) throw new Error('That sheet has no cells.');
+  return { rows, truncated, sheetPath: chosen.path, sheetName: chosen.name || undefined };
+}
+
+/**
+ * List a workbook's worksheets in tab order — names + indices — WITHOUT inflating
+ * any worksheet part (only workbook.xml + its rels are decoded), so a sheet-picker
+ * is cheap even for a large book. Returns [] when the file carries no enumerable
+ * sheets (the caller can still `readXlsx` the first-sheet fallback).
+ *
+ * @throws if the bytes are not a zip, the zip is corrupt, or it is macro-enabled.
+ */
+export function listXlsxSheets(bytes: Uint8Array): XlsxSheetInfo[] {
+  if (!(bytes instanceof Uint8Array) || bytes.length === 0) throw new Error('The file is empty.');
+  if (!(bytes[0] === 0x50 && bytes[1] === 0x4b)) throw new Error('This isn’t an .xlsx file (not a zip archive).');
+
+  let entries: Record<string, Uint8Array>;
+  try {
+    // Inflate ONLY workbook.xml + its rels (+ the VBA marker for the .xlsm refusal);
+    // every worksheet part is filtered out, so listing stays cheap on a big book.
+    entries = unzipSync(bytes, {
+      filter: (f) =>
+        f.originalSize <= MAX_PART_BYTES
+        && (f.name === 'xl/workbook.xml'
+          || f.name === 'xl/_rels/workbook.xml.rels'
+          || f.name === 'xl/vbaProject.bin'),
+    });
+  } catch {
+    throw new Error('Could not read the .xlsx — the file is corrupt or truncated.');
+  }
+  const store = makeStore(entries);
+  if (store.has('xl/vbaProject.bin')) {
+    throw new Error('This workbook is macro-enabled (.xlsm) — open it as a plain .xlsx.');
+  }
+  return allSheets(store).map((s, index) => ({ name: s.name || `Sheet ${index + 1}`, index }));
 }
 
 // ─── part store ──────────────────────────────────────────────────────────────
@@ -180,27 +232,59 @@ function makeStore(entries: Record<string, Uint8Array>): PartStore {
 
 // ─── sheet ordering ──────────────────────────────────────────────────────────
 
-/** The part path of the FIRST worksheet, resolved workbook.xml → rels. Falls
- *  back to `xl/worksheets/sheet1.xml`, then the lowest-numbered sheet part. */
-function firstSheetPath(store: PartStore): string | null {
+/** One worksheet with its name + resolved part path, in workbook order. */
+interface SheetEntry { name: string; path: string }
+
+/** Every worksheet declared in workbook (tab) order: name from the `<sheet>` tag,
+ *  path resolved workbook.xml → rels. Does NOT require the worksheet part to be
+ *  present (so it works over a workbook-only unzip for sheet LISTING); callers that
+ *  read a sheet verify the part separately. Sheets with no resolvable rel target are
+ *  skipped. Returns [] when there is no workbook.xml (the caller falls back). */
+function allSheets(store: PartStore): SheetEntry[] {
   const wb = store.text('xl/workbook.xml');
-  if (wb) {
-    const firstSheet = firstTag(wb, 'sheet');
-    const rid = firstSheet ? attr(firstSheet, 'r:id') || attr(firstSheet, 'id') : null;
-    if (rid) {
-      const target = relTarget(store, rid);
-      if (target) {
-        const resolved = resolveTarget('xl', target);
-        if (store.has(resolved)) return resolved;
-      }
-    }
+  if (!wb) return [];
+  const out: SheetEntry[] = [];
+  // Every <sheet name="…" r:id="…"> under <sheets>, in document (= tab) order.
+  const re = /<sheet\b[^>]*\/?>/gi;
+  let m: RegExpExecArray | null;
+  while ((m = re.exec(wb)) !== null) {
+    const tag = m[0];
+    const rid = attr(tag, 'r:id') || attr(tag, 'id');
+    if (!rid) continue;
+    const target = relTarget(store, rid);
+    if (!target) continue;
+    out.push({ name: attr(tag, 'name') || '', path: resolveTarget('xl', target) });
   }
+  return out;
+}
+
+/** The part path of the FIRST readable worksheet, resolved workbook.xml → rels.
+ *  Falls back to `xl/worksheets/sheet1.xml`, then the lowest-numbered sheet part. */
+function firstSheetPath(store: PartStore): string | null {
+  const declared = allSheets(store).find((s) => store.has(s.path));
+  if (declared) return declared.path;
   if (store.has('xl/worksheets/sheet1.xml')) return 'xl/worksheets/sheet1.xml';
   const sheets = store
     .keys()
     .filter((k) => /^xl\/worksheets\/sheet\d+\.xml$/i.test(k))
     .sort((a, b) => sheetNum(a) - sheetNum(b));
   return sheets[0] ?? null;
+}
+
+/** Resolve the requested sheet (index or name) to a present { path, name }. Returns
+ *  the first readable sheet when `want` is undefined; null when the named/indexed
+ *  sheet is absent or its part is missing. */
+function resolveSheet(store: PartStore, want: number | string | undefined): SheetEntry | null {
+  const sheets = allSheets(store);
+  if (want === undefined) {
+    const first = sheets.find((s) => store.has(s.path));
+    if (first) return first;
+    const path = firstSheetPath(store);
+    return path ? { name: '', path } : null;
+  }
+  const entry = typeof want === 'number' ? sheets[want] : sheets.find((s) => s.name === want);
+  if (!entry || !store.has(entry.path)) return null;
+  return entry;
 }
 
 /** Resolve an r:id against xl/_rels/workbook.xml.rels → the (xl-relative) target. */

@@ -54,6 +54,18 @@ export const DEFAULT_ROW_LIMIT = 1000;
  *  allocations. 8M chars is ~40× the largest real import seen. */
 export const MAX_IMPORT_CHARS = 8 * 1024 * 1024;
 
+/**
+ * Serialise a ragged grid (row 0 = header) to RFC-4180 CSV — the inverse the
+ * spreadsheet importers round-trip through: a cell is quoted iff it holds a comma,
+ * double-quote, CR or LF, with internal quotes doubled. This is the canonical
+ * `readXlsx().rows → CSV → parseDataRows` bridge, shared by the web data-source
+ * affordance and the CLI so both convert a spreadsheet the same way.
+ */
+export function rowsToCsv(rows: string[][]): string {
+  const cell = (v: string): string => (/[",\r\n]/.test(v) ? `"${v.replace(/"/g, '""')}"` : v);
+  return rows.map((r) => r.map(cell).join(',')).join('\n');
+}
+
 // A single record is either a keyed JSON object or a positional cell array.
 type Rec = Record<string, unknown> | unknown[];
 // One accessor per field: reads its value out of a single record.

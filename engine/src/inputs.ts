@@ -230,6 +230,10 @@ export interface InputSpec {
   /** Adds a "Paste Markdown" button to the blocks toolbar (splits clipboard
    *  Markdown into one block per heading). See schema `mdPaste`. */
   mdPaste?: boolean;
+  /** Adds a unified "Add data" affordance: pick a file (csv/json/txt/md/xlsx) or a
+   *  catalog text/boilerplate asset, and its content fills the field. See schema
+   *  `dataSource` and plan 87. `tags` selects which catalog text assets to offer. */
+  dataSource?: { tags?: string[]; accept?: string };
   /** Marks a blocks array as the editor-layout canvas (schema `canvas`). */
   canvas?: Record<string, unknown>;
 }

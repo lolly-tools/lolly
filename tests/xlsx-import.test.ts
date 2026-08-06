@@ -13,7 +13,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { zipSync, strToU8 } from 'fflate';
 
-import { readXlsx, DEFAULT_XLSX_ROW_LIMIT } from '../engine/src/xlsx-import.ts';
+import { readXlsx, listXlsxSheets, DEFAULT_XLSX_ROW_LIMIT } from '../engine/src/xlsx-import.ts';
 
 const WORKBOOK = `<?xml version="1.0"?>
 <workbook xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships">
@@ -117,6 +117,70 @@ test('resolves the first sheet via workbook order, not just sheet1', () => {
   const { rows, sheetPath } = readXlsx(zipSync(files));
   assert.equal(sheetPath, 'xl/worksheets/sheet2.xml');
   assert.deepEqual(rows, [['real']]);
+});
+
+// ── multi-sheet: listXlsxSheets + the readXlsx sheet selector (plan 87 Phase 2) ──
+
+/** A 3-sheet workbook in tab order Summary, Q1, Q2 (rId order intentionally not
+ *  matching tab order, to prove listing follows the <sheets> document order). */
+function threeSheetBook(): Uint8Array {
+  const wb = `<workbook xmlns:r="http://x"><sheets>`
+    + `<sheet name="Summary" sheetId="1" r:id="rId3"/>`
+    + `<sheet name="Q1" sheetId="2" r:id="rId1"/>`
+    + `<sheet name="Q2" sheetId="3" r:id="rId2"/>`
+    + `</sheets></workbook>`;
+  const rels = `<Relationships>`
+    + `<Relationship Id="rId1" Target="worksheets/sheetA.xml"/>`
+    + `<Relationship Id="rId2" Target="worksheets/sheetB.xml"/>`
+    + `<Relationship Id="rId3" Target="worksheets/sheetC.xml"/>`
+    + `</Relationships>`;
+  return zipSync({
+    'xl/workbook.xml': strToU8(wb),
+    'xl/_rels/workbook.xml.rels': strToU8(rels),
+    'xl/worksheets/sheetC.xml': strToU8(SHEET('<row r="1"><c r="A1"><v>summary</v></c></row>')),
+    'xl/worksheets/sheetA.xml': strToU8(SHEET('<row r="1"><c r="A1"><v>q1</v></c></row>')),
+    'xl/worksheets/sheetB.xml': strToU8(SHEET('<row r="1"><c r="A1"><v>q2</v></c></row>')),
+  });
+}
+
+test('listXlsxSheets returns names + indices in workbook (tab) order', () => {
+  assert.deepEqual(listXlsxSheets(threeSheetBook()), [
+    { name: 'Summary', index: 0 },
+    { name: 'Q1', index: 1 },
+    { name: 'Q2', index: 2 },
+  ]);
+});
+
+test('readXlsx defaults to the first sheet (unchanged) and reports its name', () => {
+  const { rows, sheetName } = readXlsx(threeSheetBook());
+  assert.deepEqual(rows, [['summary']]);
+  assert.equal(sheetName, 'Summary');
+});
+
+test('readXlsx selects a sheet by index', () => {
+  assert.deepEqual(readXlsx(threeSheetBook(), { sheet: 1 }).rows, [['q1']]);
+  assert.deepEqual(readXlsx(threeSheetBook(), { sheet: 2 }).rows, [['q2']]);
+});
+
+test('readXlsx selects a sheet by exact name', () => {
+  const { rows, sheetName } = readXlsx(threeSheetBook(), { sheet: 'Q2' });
+  assert.deepEqual(rows, [['q2']]);
+  assert.equal(sheetName, 'Q2');
+});
+
+test('readXlsx throws a clear error for a missing sheet index or name', () => {
+  assert.throws(() => readXlsx(threeSheetBook(), { sheet: 9 }), /no sheet at index 9/i);
+  assert.throws(() => readXlsx(threeSheetBook(), { sheet: 'Nope' }), /named .Nope./i);
+});
+
+test('listXlsxSheets refuses a macro-enabled workbook', () => {
+  const book = zipSync({
+    'xl/workbook.xml': strToU8(`<workbook xmlns:r="http://x"><sheets><sheet name="S" r:id="rId1"/></sheets></workbook>`),
+    'xl/_rels/workbook.xml.rels': strToU8(`<Relationships><Relationship Id="rId1" Target="worksheets/sheet1.xml"/></Relationships>`),
+    'xl/worksheets/sheet1.xml': strToU8(SHEET('<row r="1"><c r="A1"><v>x</v></c></row>')),
+    'xl/vbaProject.bin': new Uint8Array([1, 2, 3]),
+  });
+  assert.throws(() => listXlsxSheets(book), /macro-enabled/i);
 });
 
 test('non-zip bytes are refused cleanly', () => {

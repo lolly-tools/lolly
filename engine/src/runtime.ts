@@ -167,6 +167,14 @@ export interface Hooks {
   afterExport: ExportLifecycleHook | null;
   exportFile: ExportFileHook | null;
   exportStill: ExportStillHook | null;
+  /**
+   * Optional teardown an executor may attach — called from runtime.destroy() when
+   * the shell unmounts the tool. The in-realm executor has nothing to release (GC
+   * reclaims the compiled closure); the Worker executor uses it to tell its worker
+   * to drop this mount's run and to release the main-side host reference, so a
+   * shared singleton worker doesn't accumulate one run per mount for the session.
+   */
+  dispose?: () => void;
 }
 
 /** The mounted-tool API createRuntime resolves to. Shells drive this. */
@@ -227,6 +235,10 @@ export interface Runtime {
   hasExportFile: boolean;
   exportFile(opts?: Record<string, unknown>): Promise<ExportFileResult | ExportFileResult[]>;
   export(renderedNode: unknown, format: string, opts?: RuntimeExportOpts): Promise<Blob>;
+  /** Release resources held for this mount (currently: a Worker-isolated executor's
+   *  run). Idempotent; safe to call even with no executor teardown. The shell calls
+   *  it from the tool view's unmount cleanup. */
+  destroy(): void;
 }
 
 /**
@@ -967,6 +979,13 @@ export async function createRuntime(
         }
       }
       return blob;
+    },
+
+    // Release per-mount executor resources. In-realm hooks have no teardown
+    // (`hooks?.dispose` is undefined); the Worker executor drops its run. Guarded
+    // so a shell that never wired destroy — or calls it twice — is harmless.
+    destroy() {
+      try { hooks?.dispose?.(); } catch (e) { host.log('warn', `hook dispose ${(e as Error).message}`, { toolId: tool.manifest.id }); }
     },
   };
 }
