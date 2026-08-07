@@ -1,6 +1,6 @@
 {
   "version": "1",
-  "generatedAt": "2026-08-06T20:16:22.140Z",
+  "generatedAt": "2026-08-07T15:44:05.071Z",
   "tools": [
     {
       "id": "compress-pdf",
@@ -6782,8 +6782,8 @@
     {
       "id": "run-web-code",
       "name": "Run Web Code",
-      "description": "Paste HTML, CSS and JavaScript and watch it run in a private, offline sandbox — perfect for previewing code from an AI assistant.",
-      "version": "1.0.0",
+      "description": "Paste HTML, CSS, JS — or a JSX/TypeScript component — and watch it run in a private, offline sandbox. Perfect for previewing code from an AI assistant.",
+      "version": "1.2.0",
       "status": "official",
       "category": "utility",
       "tags": [
@@ -6792,6 +6792,11 @@
         "css",
         "javascript",
         "js",
+        "jsx",
+        "typescript",
+        "tsx",
+        "react",
+        "component",
         "playground",
         "sandbox",
         "preview",
@@ -6811,8 +6816,8 @@
       "width": 1200,
       "height": 820,
       "exportable": false,
-      "icon": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><rect x=\"2.5\" y=\"4\" width=\"19\" height=\"16\" rx=\"2.5\"/><path d=\"M2.5 8.5h19\"/><path d=\"M9.8 11.4l4.4 2.6-4.4 2.6z\"/></svg>",
-      "preview": "/catalog/previews/run-web-code.webp"
+      "icon": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M9.5 7 4.5 12l5 5\"/><path d=\"M14.5 7l5 5-5 5\"/><path d=\"M13.6 5.5 10.4 18.5\"/></svg>",
+      "preview": "/catalog/previews/run-web-code.svg"
     }
   ]
 }

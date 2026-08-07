@@ -64,7 +64,7 @@ const BASE_PACK = 'community';
  *  rather than ship a silent partial tool. */
 class OverlayError extends Error {}
 
-interface Profile { label?: string; tools: string[]; catalog: string }
+interface Profile { label?: string; tools: string[]; catalog: string; exclude?: string[] }
 interface ProfilesFile { default: string; profiles: Record<string, Profile> }
 
 function loadProfiles(): ProfilesFile {
@@ -158,6 +158,15 @@ function planTools(profile: Profile): Map<string, ToolPlan> {
         );
       }
       plan.set(entry, { src, base });
+    }
+  }
+  // Per-profile exclusions: drop these tool ids from the merged farm (e.g. a
+  // community tool this brand doesn't want to ship). Applied AFTER the merge so it
+  // removes the resolved tool whichever root won it. A miss is warned, not fatal —
+  // an id that is not present is a no-op (likely a typo), never a build failure.
+  for (const id of profile.exclude ?? []) {
+    if (!plan.delete(id)) {
+      console.warn(`⚠ profile exclude: "${id}" is not among the profile's tools — nothing to drop (typo?)`);
     }
   }
   return plan;
