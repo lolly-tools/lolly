@@ -69,6 +69,14 @@ export interface SelectOption {
   /** Icon name (shells/web/src/lib/icons.ts) shown instead of the label when the
    *  input renders as `display: 'icon-toggle'`. The engine only carries it. */
   icon?: string;
+  /** Short pill shown beside this option's label. Any option carrying a badge
+   *  switches the select to a badged picker in the web shell (a radiogroup of
+   *  labelled pills). A discovery hint, e.g. 'vector' / 'raster'. Engine only carries it. */
+  badge?: string;
+  /** Export formats to offer while THIS option is selected — a subset of
+   *  render.formats. Lets a select (e.g. an effect picker) drive the export bar.
+   *  Engine only carries it; the web shell intersects it with render.formats. */
+  formats?: string[];
 }
 
 /** One field of a `vector` compound input. */

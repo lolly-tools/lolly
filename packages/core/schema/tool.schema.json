@@ -185,6 +185,10 @@
           "minimum": 1,
           "description": "For onFrame (live camera) tools only: the requested longest edge, in pixels, of the working camera frame handed to the hook. The shell downscales the source camera to a small default that suits a vector trace; a raster-output tool (whose result is a bitmap, not traced shapes — e.g. pixel-stretch) sets this higher for sharper output. The shell clamps it to the native camera frame (never upscales) and to its own ceiling. Ignored by tools without onFrame and by shells without a camera."
         },
+        "liveMaxEdgeInput": {
+          "type": "string",
+          "description": "For onFrame (live camera) tools: id of a number input whose value overrides liveMaxEdge, exposing camera resolution as a user-facing control (e.g. a slider). The runtime reads it at go-live and re-applies to the running stream whenever the input changes — no camera stop/start — so the working frame resolution follows the control. Falls back to liveMaxEdge when the input is unset or absent."
+        },
         "convertPaths": {
           "type": "boolean",
           "default": true,
@@ -511,6 +515,8 @@
                     "value": { "type": "string" },
                     "label": { "type": "string" },
                     "icon": { "type": "string", "description": "Icon name from the web shell's registry (shells/web/src/lib/icons.ts), shown instead of the label when display is 'icon-toggle'. Falls back to the label if the name is unknown." },
+                    "badge": { "type": "string", "description": "Short pill shown beside this option's label. If ANY option carries a badge, the web shell renders the select as a badged picker (a radiogroup of labelled pills) instead of a native dropdown — so the badge is visible while choosing, not only after. For discovery/evaluation hints, e.g. 'vector' / 'raster' on a filter-effect picker. Keep it to one short word." },
+                    "formats": { "type": "array", "items": { "type": "string" }, "description": "Export formats to offer while THIS option is selected — a subset of render.formats. Lets one select (e.g. an effect picker) drive the export format bar so each choice offers only the formats it produces well, while render.formats stays the union. Intersected with the tool's render.formats and the device's capability filter. Ignored unless the shell wires the option to the format bar." },
                     "width": { "type": "number", "exclusiveMinimum": 0, "description": "Export width this option implies, in `unit`. With `height`, selecting the option sets the export dimensions (so a 'size' select drives the printed page size). The shell applies it to the export bar; the user can still override." },
                     "height": { "type": "number", "exclusiveMinimum": 0, "description": "Export height this option implies, in `unit`." },
                     "unit": { "type": "string", "enum": ["px", "mm", "cm", "in", "pt"], "description": "Unit for this option's width/height. Defaults to 'mm' when width/height are present." }

@@ -32,8 +32,8 @@ test('accepts the hash share route (what the Share dialog produces)', () => {
 });
 
 test('accepts the hash route on any host (localhost / preview deploys)', () => {
-  const r = parseToolUrl('http://localhost:5173/#/tool/filter-duotone?image=x');
-  assert.deepEqual(r, { toolId: 'filter-duotone', format: null, query: 'image=x' });
+  const r = parseToolUrl('http://localhost:5173/#/tool/filter?image=x');
+  assert.deepEqual(r, { toolId: 'filter', format: null, query: 'image=x' });
 });
 
 test('accepts the pretty path shortcut, with and without /tool/', () => {

@@ -366,8 +366,25 @@ export async function createRuntime(
   // are DROPPED (a new frame is processed only once the previous onFrame settled),
   // so a slow per-frame trace self-throttles instead of piling up.
   let liveUnsub: (() => void) | null = null;
+  // Re-applies the live working-frame resolution while the camera is running, when the
+  // input named by `render.liveMaxEdgeInput` changes (a user resolution slider). Set in
+  // startLive, cleared in stopLive; null when not live.
+  let liveResubscribe: (() => void) | null = null;
   let framePending = false;
   const isLive = () => liveUnsub != null;
+
+  // Working long-edge (px) for live-camera frames. A tool can expose it as a normal
+  // input via `render.liveMaxEdgeInput` so the user scrubs resolution live; otherwise
+  // the static `render.liveMaxEdge` hint. Undefined → the shell's own default. The
+  // shell clamps whatever we pass to the native frame and its own ceiling.
+  const liveEdge = (): number | undefined => {
+    const inputId = tool.manifest.render?.liveMaxEdgeInput as string | undefined;
+    if (inputId) {
+      const v = Number(model.find(i => i.id === inputId)?.value);
+      if (Number.isFinite(v) && v > 0) return Math.round(v);
+    }
+    return tool.manifest.render?.liveMaxEdge;
+  };
 
   // ── Live-capture provenance (C2PA) ────────────────────────────────────────────
   // Whether the CURRENT render's essence came from a device sensor, so the export
@@ -540,6 +557,10 @@ export async function createRuntime(
       const priorType = model.find(i => i.id === id)?.type;
       if (priorType === 'asset' || priorType === 'file' || priorType === 'url') liveCameraShown = false;
       model = updateInput(model, id, value);
+      // A live-camera resolution slider (render.liveMaxEdgeInput) re-applies to the
+      // running stream without a camera stop/start — the grab loop just starts
+      // producing frames at the new working edge. No-op unless currently live.
+      if (liveResubscribe && id === tool.manifest.render?.liveMaxEdgeInput) liveResubscribe();
       const seq = ++setInputSeq;
       // Paint the keystroke immediately, BEFORE awaiting the onInput hook (which may
       // do IndexedDB asset reads). Blocking the visible update on the hook made every
@@ -607,9 +628,10 @@ export async function createRuntime(
       if (liveUnsub || !onFrame || !media) return false;
       await media.start(); // may reject (permission/no camera) — the shell catches
       // A raster-output tool can ask for higher-resolution frames than the shell's
-      // default vector-trace working size (render.liveMaxEdge); the shell clamps it
-      // to the native camera frame. Shells that ignore the opt fall back to default.
-      liveUnsub = media.subscribe((frame) => {
+      // default vector-trace working size (render.liveMaxEdge, or a live slider via
+      // render.liveMaxEdgeInput — see liveEdge()); the shell clamps it to the native
+      // camera frame. Shells that ignore the opt fall back to default.
+      const subscribeLive = () => media.subscribe((frame) => {
         if (framePending) return; // still tracing the previous frame → drop this one
         framePending = true;
         Promise.resolve(onFrame({ frame, model: modelForHooks(model), host }))
@@ -620,7 +642,12 @@ export async function createRuntime(
           })
           .catch((e: unknown) => host.log('warn', `onFrame ${(e as Error).message}`, { toolId: tool.manifest.id }))
           .finally(() => { framePending = false; });
-      }, { maxEdge: tool.manifest.render?.liveMaxEdge });
+      }, { maxEdge: liveEdge() });
+      liveUnsub = subscribeLive();
+      // Re-subscribe with the current working edge when the resolution input changes.
+      // The grab loop sizes frames to the largest edge any subscriber wants, so simply
+      // swapping our subscription re-sizes the stream live — no stop/start of the camera.
+      liveResubscribe = () => { if (liveUnsub) { liveUnsub(); liveUnsub = subscribeLive(); } };
       return true;
     },
 
@@ -632,6 +659,7 @@ export async function createRuntime(
       if (!liveUnsub) return;
       liveUnsub();
       liveUnsub = null;
+      liveResubscribe = null;
       try { host.media?.stop(); } catch { /* already torn down */ }
     },
 

@@ -181,6 +181,70 @@ test('time-box: onFrame is NOT time-boxed — a slow frame still applies its pat
   } finally { setBudgets(); }
 });
 
+// ─── live-camera resolution follows render.liveMaxEdgeInput ───────────────────
+
+// A media double that records the maxEdge of each subscribe() and counts teardowns.
+function resHost() {
+  const edges: Array<number | undefined> = [];
+  let subCount = 0, unsubCount = 0;
+  const frameCbs: Array<(f: unknown) => void> = [];
+  const { host, logs } = logHost({
+    media: {
+      start: async () => {},
+      stop: () => {},
+      subscribe: (cb: (f: unknown) => void, opts?: { maxEdge?: number }) => {
+        subCount++; edges.push(opts?.maxEdge); frameCbs.push(cb);
+        return () => { unsubCount++; };
+      },
+    },
+  });
+  return { host, logs, edges, frameCbs, get subCount() { return subCount; }, get unsubCount() { return unsubCount; } };
+}
+
+function liveResTool(render: Record<string, unknown>): any {
+  return {
+    manifest: {
+      id: `live-res-${++toolSeq}`, name: 'LiveRes', version: '1.0.0', engineVersion: '^1.0.0', status: 'official',
+      render: { width: 10, height: 10, formats: ['png'], ...render },
+      inputs: [{ id: 'liveRes', type: 'number', default: 960 }, { id: 'msg', type: 'text', default: 'hi' }],
+      hooks: { onFrame: true },
+    },
+    template: '<b>{{msg}}</b>',
+    hooksSource: 'function onFrame() { return {}; }',
+  };
+}
+
+test('live camera: liveMaxEdgeInput overrides the hint at go-live and re-subscribes on change', async () => {
+  const h = resHost();
+  const rt = await createRuntime(liveResTool({ liveMaxEdge: 480, liveMaxEdgeInput: 'liveRes' }), h.host, {});
+  assert.equal(await rt.startLive(), true);
+  assert.equal(h.subCount, 1);
+  assert.equal(h.edges[0], 960, 'go-live uses the input value (960), overriding the 480 hint');
+
+  await rt.setInput('liveRes', 1600);
+  assert.equal(h.unsubCount, 1, 'the old subscription is torn down');
+  assert.equal(h.subCount, 2, 're-subscribed at the new resolution');
+  assert.equal(h.edges[1], 1600);
+
+  await rt.setInput('msg', 'yo'); // a NON-resolution input must not churn the stream
+  assert.equal(h.subCount, 2, 'unrelated input change does not re-subscribe');
+
+  rt.stopLive();
+  assert.equal(h.unsubCount, 2, 'stopLive tears the live subscription down');
+});
+
+test('live camera: falls back to liveMaxEdge, and a resolution change while not live is a no-op', async () => {
+  const h = resHost();
+  const rt = await createRuntime(liveResTool({ liveMaxEdge: 720 }), h.host, {}); // no liveMaxEdgeInput
+
+  await rt.setInput('liveRes', 1200); // not live yet → nothing subscribed
+  assert.equal(h.subCount, 0, 'no subscription while the camera is off');
+
+  assert.equal(await rt.startLive(), true);
+  assert.equal(h.edges[0], 720, 'with no input named, the static liveMaxEdge hint is used');
+  rt.stopLive();
+});
+
 // ─── the hook set is closed ──────────────────────────────────────────────────
 
 test('every budgeted hook has a real invocation site, and the schema matches', async () => {
