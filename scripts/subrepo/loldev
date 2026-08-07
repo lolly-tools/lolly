@@ -367,6 +367,72 @@ vercel_publish() {
   printf '%s' "$url"
 }
 
+# --- internal_it driver (REFERENCE for the SUSE-IT migration) ---------------
+# Dormant until a SHIP_TARGET's 5th field is `internal_it`. It implements the SAME
+# contract the vercel driver does, so ship() drives it unchanged. Model: build dist/
+# LOCALLY with the brand pinned, rsync it to a fresh release dir on the host over SSH,
+# then atomically swap the `current` symlink nginx serves (zero-downtime; rollback =
+# repoint the symlink to a prior release). Readiness + IDENTITY come from the site's
+# OWN /precache.json `version` (the web build already emits it) — there is no server-
+# side build to wait on, so the poll just confirms the live version is ours (covers
+# rsync/CDN propagation), which is exactly the identity-binding the contract wants.
+# Configure via env (REQUIRED where marked):
+#   LOLLY_IT_SSH       ssh target/alias, e.g. deploy@web01.suse.internal   [required]
+#   LOLLY_IT_RELEASES  absolute releases dir on the host, e.g. /srv/lolly/releases  [required]
+#   LOLLY_IT_CURRENT   the `current` symlink nginx serves, e.g. /srv/lolly/current  [required]
+# TODO(IT): (1) the api/ functions (mcp, ca) need a Node runtime on the host — a systemd
+#   unit or a container; this driver ships the STATIC site, so wire the functions into
+#   _publish after the rsync and reload their service. (2) _publish switches the local
+#   profile view to build the right brand, which MUTATES it — for multi-target ships
+#   restore afterwards (`loldev profile <default>`). (3) a push-swap model has no
+#   throwaway preview URL, so --preview just 200-checks the domain; refine if IT offers previews.
+internal_it_setup()    { IT_DOMAIN="$2"; }       # $1=id(unused) $2=domain — stash for readiness/liveness
+internal_it_teardown() { unset IT_DOMAIN; }
+internal_it_identity() { printf '%s' "$1"; }     # the handle already IS the release id
+internal_it_logs_hint(){ printf '  logs:  ssh %s -- journalctl -u lolly --since -10min\n' "${LOLLY_IT_SSH:-<host>}" >&2; }
+
+# The release id a DOMAIN currently serves — read the live site's own version stamp.
+internal_it_promoted_id() {   # $1=domain
+  curl -fsS --max-time 20 "https://$1/precache.json" 2>/dev/null \
+    | node -e 'let s="";process.stdin.on("data",c=>s+=c).on("end",()=>{try{process.stdout.write(String(JSON.parse(s).version||""))}catch(e){}})'
+}
+
+# Build → rsync to a fresh release → atomically swap `current`. stdout = the release id
+# (dist/precache.json version); progress → stderr; non-0 if any step fails.
+internal_it_publish() {   # $1=name $2=profile $3=mode
+  local profile="$2" rid dest
+  if [ -z "${LOLLY_IT_SSH:-}" ] || [ -z "${LOLLY_IT_RELEASES:-}" ] || [ -z "${LOLLY_IT_CURRENT:-}" ]; then
+    err "internal_it: set LOLLY_IT_SSH / LOLLY_IT_RELEASES / LOLLY_IT_CURRENT"; return 1
+  fi
+  step "switching to profile '$profile' + building dist/ locally" >&2
+  node scripts/use-profile.ts "$profile" 1>&2 || return 1     # NOTE: mutates the local active profile view
+  ( export LOLLY_PROFILE="$profile"; npm run build:web ) 1>&2 || return 1
+  rid="$(node -e 'process.stdout.write(String(require("./shells/web/dist/precache.json").version||""))' 2>/dev/null)"
+  [ -z "$rid" ] && { err "internal_it: no dist/precache.json version — build incomplete"; return 1; }
+  dest="$LOLLY_IT_RELEASES/$rid"
+  step "rsync dist/ → $LOLLY_IT_SSH:$dest" >&2
+  rsync -a --delete shells/web/dist/ "$LOLLY_IT_SSH:$dest/" 1>&2 || return 1
+  # TODO(IT): deploy api/ functions + reload their service here, if this target serves them.
+  step "atomic swap $LOLLY_IT_CURRENT → $dest" >&2
+  ssh "$LOLLY_IT_SSH" -- "ln -sfn '$dest' '$LOLLY_IT_CURRENT'" 1>&2 || return 1
+  printf '%s' "$rid"
+}
+
+# Poll until the DOMAIN serves OUR release id (covers rsync/CDN propagation). Same
+# 0/1/2 contract as vercel_wait_ready; a push deploy has no async build to ERROR, so
+# only 0 (served) or 2 (timeout) occur.
+internal_it_wait_ready() {   # $1=handle(release id)
+  local rid="$1" waited=0 live
+  while [ "$waited" -lt "${WAIT_READY_TIMEOUT:-900}" ]; do
+    live="$(internal_it_promoted_id "${IT_DOMAIN:-}")"
+    [ "$live" = "$rid" ] && { printf READY; return 0; }
+    printf '    live version %s (want %s · %ss)\n' "${live:-none}" "$rid" "$waited" >&2
+    sleep "${WAIT_READY_POLL:-15}"; waited=$((waited + ${WAIT_READY_POLL:-15}))
+  done
+  printf timeout; return 2
+}
+internal_it_liveness() { curl -fsI --max-time 30 "https://${IT_DOMAIN:-}" >/dev/null 2>&1; }
+
 # Post-deploy brand assertion. The brand a project actually builds is governed
 # ENTIRELY by its Vercel LOLLY_PROFILE env — which this toolkit never sets and,
 # until now, never checked. A missing/typo'd env silently ships the wrong brand
@@ -508,7 +574,7 @@ ship() {
   echo
   rule
   if [ "${#SFAILED[@]}" -eq 0 ]; then
-    printf "  ${c_bold}${c_grn}🎉  Shipped!${c_reset}  ${c_gray}·  %s site(s) live on Vercel${c_reset}\n" "${#SHIP_TARGETS[@]}"
+    printf "  ${c_bold}${c_grn}🎉  Shipped!${c_reset}  ${c_gray}·  %s site(s) live${c_reset}\n" "${#SHIP_TARGETS[@]}"
   else
     printf "  ${c_bold}${c_red}✗  %s/%s site(s) failed to deploy${c_reset}\n" "${#SFAILED[@]}" "${#SHIP_TARGETS[@]}"
   fi
