@@ -18,7 +18,7 @@ GIT_HOST="https://github.com"
 
 # Vercel deploy targets — every one of these gets built+validated by `loldev gtg`'s
 # build gate and shipped by `loldev ship`, uniformly. Each entry is
-# name|project-id|profile|domain: `name`/`id` target a specific Vercel project via
+# name|project-id|profile|domain[|driver]: `name`/`id` target a specific Vercel project via
 # VERCEL_ORG_ID/VERCEL_PROJECT_ID env overrides (so the local `.vercel/project.json`
 # link, which stays pointed at `bt` for `vercel dev`/inspect, is never touched);
 # `profile` must be a key in profiles.json. It drives the brand at three points:
@@ -28,6 +28,9 @@ GIT_HOST="https://github.com"
 # (3) verify_deploy asserts the live domain serves it afterwards.
 # The project's dashboard LOLLY_PROFILE remains as the fallback for Vercel's own
 # git-integration auto-deploys (which don't run through loldev ship).
+# The OPTIONAL 5th field picks the deploy DRIVER (default 'vercel'); ship() dispatches
+# every host-specific step to `<driver>_*` functions (see the driver contract in loldev),
+# so moving a target to internal IT is an adapter + this field, not a ship() rewrite.
 VERCEL_TEAM_ID="team_6XAaRitEb6CnNoNPwI3pI6hb"
 SHIP_TARGETS=(
   "bt|prj_13zlzrOV2VHeK0CGUCyHGx4cPLu7|suse|lolly.tools"
