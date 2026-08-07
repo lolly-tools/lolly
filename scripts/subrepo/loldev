@@ -291,6 +291,82 @@ wait_ready() {
   printf timeout; return 2
 }
 
+# --- Deploy DRIVER contract -------------------------------------------------
+# ship() is host-agnostic: it orchestrates  publish → wait-for-ready → bind
+# success to deployment IDENTITY → verify the live brand,  and dispatches every
+# host-specific step to a driver picked per SHIP_TARGET (optional 5th field,
+# default 'vercel'; see config.sh). To add a target — e.g. when deployment moves
+# to internal IT — implement these functions with a `<name>_` prefix and put
+# `|<name>` on that target's SHIP_TARGETS entry; NOTHING in ship() changes.
+# Contract (all progress → stderr; the single stdout value is noted):
+#   <drv>_setup <id> <domain>       scope creds/host for this target (may no-op)
+#   <drv>_publish <name> <profile> <mode>  deploy the local tree; mode=prod|preview;
+#                                   stdout = an opaque deployment HANDLE; exit 0 iff a
+#                                   deployment was CREATED (non-0 = upload failed). Owns
+#                                   transport + any retry.
+#   <drv>_identity <handle>         stdout = the handle's canonical deployment id
+#   <drv>_wait_ready <handle>       poll to terminal; stdout = a token; return
+#                                   0=ready 1=failed 2=timeout (transient errors keep polling)
+#   <drv>_promoted_id <domain>      stdout = the deployment id the DOMAIN currently serves
+#                                   (the prod identity-flip gate)
+#   <drv>_liveness <handle>         return 0 iff the handle serves 200 (the preview gate)
+#   <drv>_teardown                  clear whatever _setup set (may no-op)
+#   <drv>_logs_hint <handle>        OPTIONAL: print a "how to see the failed build" line
+# verify_deploy() below is SHARED across drivers (a plain HTTPS catalog check).
+
+# --- vercel driver (the primitives above are its internals) -----------------
+vercel_setup()       { export VERCEL_ORG_ID="$VERCEL_TEAM_ID" VERCEL_PROJECT_ID="$1"; }
+vercel_teardown()    { unset VERCEL_ORG_ID VERCEL_PROJECT_ID; }
+vercel_identity()    { deployment_id "$1"; }
+vercel_wait_ready()  { wait_ready "$1"; }
+vercel_promoted_id() { domain_live_id "$1"; }
+vercel_liveness()    { curl -fsI --max-time 30 "$1" >/dev/null 2>&1; }
+vercel_logs_hint()   { printf '  logs:  VERCEL_ORG_ID=%s VERCEL_PROJECT_ID=%s npx vercel inspect %s --logs\n' "$VERCEL_TEAM_ID" "${VERCEL_PROJECT_ID:-<id>}" "$1" >&2; }
+
+# Upload + queue a build with --no-wait: the CLI creates + uploads the deployment,
+# prints its *.vercel.app URL, and exits WITHOUT holding the build-log stream that
+# drops on flaky links — so this exit reflects only the UPLOAD; the build's real
+# outcome is read from readyState by vercel_wait_ready (THAT decoupling is the
+# "fails despite a successful deploy" fix). --archive=tgz ships the local tree incl.
+# submodule content; --build-env pins the brand (repo = source of truth); node_modules
+# and .git are NOT in the tarball (Vercel default-ignores both; .vercelignore lists
+# node_modules too) — no parking ritual. A dropped finalize-POST creates no deployment:
+# detected by the missing URL and retried; if only the URL PRINT was lost, a freshly-
+# created deployment is adopted instead of re-uploading (the prod identity+brand gate
+# in ship() still validates whatever ends up live, so adoption is safe).
+# $1=name $2=profile $3=mode(prod|preview).  stdout = the deployment URL; progress → stderr.
+vercel_publish() {
+  local name="$1" profile="$2" mode="$3" url="" rc=0 snap try rtry log
+  local prod_flag=(); [ "$mode" = prod ] && prod_flag=(--prod)
+  trap 'rm -f "${log:-}"' RETURN   # temp-log cleanup even on interrupt
+  snap="$(newest_prod_url)"
+  for (( try=1; try<="${DEPLOY_UPLOAD_TRIES:-3}"; try++ )); do
+    step "tarballing + queuing on Vercel (LOLLY_PROFILE=$profile · upload $try/${DEPLOY_UPLOAD_TRIES:-3})" >&2
+    log="$(mktemp -t loldev-ship.XXXXXX)"
+    npx --yes vercel deploy "${prod_flag[@]}" --archive=tgz --no-wait \
+      --build-env "LOLLY_PROFILE=$profile" --yes 2>&1 | tee "$log" >&2
+    rc=${PIPESTATUS[0]}
+    # The deployment URL is the *.vercel.app host — NEVER the vercel.com Inspect
+    # dashboard link (which `vercel inspect` cannot resolve). Restrict the match.
+    url="$(grep -Eo 'https://[a-z0-9-]+\.vercel\.app' "$log" | tail -1)"
+    rm -f "$log"
+    [ -n "$url" ] && break
+    # No URL — a large-archive finalize-POST likely dropped before creating the
+    # deployment. Give a just-queued deploy a few seconds to surface (ls is eventually
+    # consistent), adopt it if one appeared, else retry the upload.
+    warn "no deployment URL (exit $rc) — checking whether one was created…" >&2
+    for (( rtry=1; rtry<=5; rtry++ )); do
+      url="$(newest_prod_url)"
+      [ -n "$url" ] && [ "$url" != "$snap" ] && break
+      url=""; sleep 6
+    done
+    [ -n "$url" ] && { warn "adopted $url (stdout lost; a new deployment exists)" >&2; break; }
+    warn "no deployment created — retrying the upload" >&2
+  done
+  [ -z "$url" ] && return 1
+  printf '%s' "$url"
+}
+
 # Post-deploy brand assertion. The brand a project actually builds is governed
 # ENTIRELY by its Vercel LOLLY_PROFILE env — which this toolkit never sets and,
 # until now, never checked. A missing/typo'd env silently ships the wrong brand
@@ -345,119 +421,89 @@ verify_deploy() {
 # promoting to the domain, and verify_deploy asserts the brand on it. A dropped upload
 # (no deployment created) is retried; a build ERROR/timeout is a real, reported failure.
 # --preview → preview URLs instead of prod (liveness checked directly, no domain alias).
+# The host-specific steps run through a DRIVER (default 'vercel'; see the driver contract
+# above the helpers), selected per SHIP_TARGET — so a new target (e.g. internal IT) is an
+# adapter + a SHIP_TARGETS field, not a ship() rewrite. The orchestration here is host-agnostic.
 ship() {
   local PREVIEW=0 gargs=() a
   for a in "$@"; do [ "$a" = "--preview" ] && PREVIEW=1 || gargs+=("$a"); done
   gtg "${gargs[@]}" || { err "gtg failed — not deploying"; return 1; }
 
-  local tgt flags
-  if [ "$PREVIEW" = 1 ]; then tgt="PREVIEW"; flags=(); else tgt="PRODUCTION"; flags=(--prod); fi
+  local tgt mode
+  if [ "$PREVIEW" = 1 ]; then tgt="PREVIEW"; mode="preview"; else tgt="PRODUCTION"; mode="prod"; fi
 
   local -a SHIPPED=() SFAILED=()
-  local entry name id profile domain log rc url our_id state snap try rtry live waited line
-  trap 'rm -f "${log:-}"' RETURN   # backstop if ship() returns/interrupts mid-upload
+  local entry name id profile domain driver rc url our_id state live waited line
   for entry in "${SHIP_TARGETS[@]}"; do
-    IFS='|' read -r name id profile domain <<<"$entry"
-    phase "🚀" "Deploy → Vercel ($name → $domain, $profile · $tgt)"
+    IFS='|' read -r name id profile domain driver <<<"$entry"
+    driver="${driver:-vercel}"                                # SHIP_TARGETS 5th field, default vercel
+    phase "🚀" "Deploy → $driver ($name → $domain, $profile · $tgt)"
 
-    # Scope every vercel call this iteration to the target project via the env
-    # overrides — never touches the local .vercel/ link (stays pointed at bt for
-    # `vercel dev`). Cleared by the single unset after the loop.
-    export VERCEL_ORG_ID="$VERCEL_TEAM_ID" VERCEL_PROJECT_ID="$id"
+    # Per-target scope for this driver (vercel: export the project env — never touches
+    # the local .vercel/ link, which stays pointed at bt for `vercel dev`). Every path
+    # out of the loop body calls _teardown, so the scope never leaks between targets.
+    "${driver}_setup" "$id" "$domain"
 
-    # --- 1. upload + queue the build (bounded retry) ------------------------
-    # --no-wait: the CLI creates + uploads the deployment, prints its *.vercel.app
-    # URL, and exits WITHOUT holding open the build-log stream that drops on flaky
-    # links. So this exit code reflects only the UPLOAD; the build's real outcome is
-    # read from Vercel's own readyState in step 2 — the CLI's transport reliability no
-    # longer decides success (THAT was the "fails despite a successful deploy" bug).
-    # PIN the brand per-build from SHIP_TARGETS (repo = source of truth); the project
-    # dashboard LOLLY_PROFILE stays as the fallback for git-integration auto-deploys.
-    # node_modules and .git are NOT in the tarball — Vercel default-ignores both and
-    # .vercelignore lists node_modules too — so there is no node_modules parking ritual.
-    url=""; rc=0
-    snap="$(newest_prod_url)"
-    for (( try=1; try<="${DEPLOY_UPLOAD_TRIES:-3}"; try++ )); do
-      step "tarballing + queuing on Vercel (LOLLY_PROFILE=$profile · upload $try/${DEPLOY_UPLOAD_TRIES:-3})"
-      log="$(mktemp -t loldev-ship.XXXXXX)"
-      npx --yes vercel deploy "${flags[@]}" --archive=tgz --no-wait \
-        --build-env "LOLLY_PROFILE=$profile" --yes 2>&1 | tee "$log"
-      rc=${PIPESTATUS[0]}
-      # The deployment URL is the *.vercel.app host on stdout — NEVER the vercel.com
-      # Inspect dashboard link (which `vercel inspect` cannot resolve). Restrict the match.
-      url="$(grep -Eo 'https://[a-z0-9-]+\.vercel\.app' "$log" | tail -1)"
-      rm -f "$log"
-      [ -n "$url" ] && break
-      # No URL printed — a large-archive finalize-POST likely dropped before creating
-      # the deployment. Give a just-queued deploy a few seconds to surface (ls is
-      # eventually consistent), adopt it if one appeared, else retry the upload. A
-      # rare concurrent git-integration deploy could be adopted here; the step-3 prod
-      # identity + brand gate below still validates whatever is live, so it is safe.
-      warn "no deployment URL (exit $rc) — checking whether one was created…"
-      for (( rtry=1; rtry<=5; rtry++ )); do
-        url="$(newest_prod_url)"
-        [ -n "$url" ] && [ "$url" != "$snap" ] && break
-        url=""; sleep 6
-      done
-      [ -n "$url" ] && { warn "adopted $url (stdout lost; a new deployment exists)"; break; }
-      warn "no deployment created — retrying the upload"
-    done
-
-    if [ -z "$url" ]; then
-      err "vercel deploy created no deployment: $name (last exit $rc)"
-      SFAILED+=("$name → $domain (upload failed)"); continue
+    # --- 1. publish -------------------------------------------------------
+    # The driver owns transport + retry. stdout is the deployment HANDLE; its exit code
+    # reflects only whether a deployment was CREATED, never the build outcome — so a
+    # flaky link during the CLI's post-upload wait can't false-fail a good build (that
+    # was the "fails despite a successful deploy" bug). The brand is pinned per-build via
+    # the profile (repo = source of truth); the build's real outcome is read in step 2.
+    url="$("${driver}_publish" "$name" "$profile" "$mode")"; rc=$?
+    if [ "$rc" -ne 0 ] || [ -z "$url" ]; then
+      err "$driver published no deployment: $name (exit $rc)"
+      SFAILED+=("$name → $domain (upload failed)"); "${driver}_teardown"; continue
     fi
-    our_id="$(deployment_id "$url")"
+    our_id="$("${driver}_identity" "$url")"
 
-    # --- 2. wait for the SERVER to finish the build -------------------------
+    # --- 2. wait for the build to finish, on the driver's own SERVER STATE --
     step "waiting for $name to build ($url · readyState ≤$(( ${WAIT_READY_TIMEOUT:-900} / 60 ))m)"
-    state="$(wait_ready "$url")"; rc=$?
+    state="$("${driver}_wait_ready" "$url")"; rc=$?
     if [ "$rc" -eq 1 ]; then
-      err "vercel build FAILED: $name — deployment $state"
-      err "  logs:  VERCEL_ORG_ID=$VERCEL_TEAM_ID VERCEL_PROJECT_ID=$id npx vercel inspect $url --logs"
-      SFAILED+=("$name → $domain (build $state)"); continue
+      err "build FAILED: $name — deployment $state"
+      command -v "${driver}_logs_hint" >/dev/null 2>&1 && "${driver}_logs_hint" "$url"
+      SFAILED+=("$name → $domain (build $state)"); "${driver}_teardown"; continue
     fi
     if [ "$rc" -ne 0 ]; then
       # Timeout with NO confirmed READY. Fail CLOSED — do NOT "rescue" via the domain
-      # brand check: on a same-brand redeploy the PREVIOUS deployment already serves
-      # the right brand, so a brand match here would falsely pass a stuck/slow build.
-      err "vercel build did not reach READY within ${WAIT_READY_TIMEOUT:-900}s: $name (last: ${state:-unknown})"
-      err "  raise LOLDEV_WAIT_READY_TIMEOUT or re-check:  npx vercel inspect $url"
-      SFAILED+=("$name → $domain (build timeout)"); continue
+      # brand check: on a same-brand redeploy the PREVIOUS deployment already serves the
+      # right brand, so a brand match here would falsely pass a stuck/slow build.
+      err "build did not reach READY within ${WAIT_READY_TIMEOUT:-900}s: $name (last: ${state:-unknown}) — raise LOLDEV_WAIT_READY_TIMEOUT"
+      command -v "${driver}_logs_hint" >/dev/null 2>&1 && "${driver}_logs_hint" "$url"
+      SFAILED+=("$name → $domain (build timeout)"); "${driver}_teardown"; continue
     fi
     ok "$name build READY ($our_id)"
 
-    # --- 3. success is authoritative on OUR deployment ----------------------
-    if [ "$PREVIEW" = 1 ]; then
-      # No domain alias to assert — READY plus a 200 from the deployment URL is success.
-      if curl -fsI --max-time 30 "$url" >/dev/null 2>&1; then SHIPPED+=("$name → $url")
+    # --- 3. success is authoritative on OUR deployment, never a CLI exit code
+    if [ "$mode" = preview ]; then
+      # No domain alias to assert — READY plus a 200 from the deployment handle is success.
+      if "${driver}_liveness" "$url"; then SHIPPED+=("$name → $url")
       else SFAILED+=("$name → $url (READY but not serving)"); fi
-      continue
+      "${driver}_teardown"; continue
     fi
-    # Prod: a --prod build auto-promotes to the domain once READY. WAIT for the domain
-    # to actually resolve to OUR deployment id before trusting the brand check —
-    # otherwise verify_deploy could read the PREVIOUS same-brand deployment and pass
-    # while ours hasn't gone live. This is what binds success to deployment identity
-    # (a blocking `vercel deploy` used to give this for free; --no-wait does not).
+    # Prod: wait for the domain to actually resolve to OUR deployment id before the brand
+    # check — otherwise verify_deploy could read the PREVIOUS same-brand deployment and
+    # pass while ours hasn't gone live. This binds success to deployment IDENTITY.
     waited=0; live=""
     while [ "$waited" -lt "${ALIAS_FLIP_TIMEOUT:-120}" ]; do
-      live="$(domain_live_id "$domain")"
+      live="$("${driver}_promoted_id" "$domain")"
       [ "$live" = "$our_id" ] && break
       sleep 6; waited=$((waited + 6))
     done
     if [ "$live" != "$our_id" ]; then
       err "$domain did not promote to our deployment within ${ALIAS_FLIP_TIMEOUT:-120}s (ours=$our_id, live=${live:-none})"
-      SFAILED+=("$name → $domain (built READY but never promoted)"); continue
+      SFAILED+=("$name → $domain (built READY but never promoted)"); "${driver}_teardown"; continue
     fi
-    # The domain now serves OUR deployment — assert the brand it built is correct.
+    # The domain now serves OUR deployment — assert the brand it built is correct (shared).
     if verify_deploy "$profile" "$domain" "$id"; then
       line="$domain"; [ -n "$url" ] && line="$line  ·  $url"
       SHIPPED+=("$line")
     else
       SFAILED+=("$name → $domain (deployed, but the WRONG brand is live)")
     fi
+    "${driver}_teardown"
   done
-  unset VERCEL_ORG_ID VERCEL_PROJECT_ID
 
   echo
   rule
