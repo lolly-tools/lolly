@@ -607,6 +607,28 @@ test('inputs: text maxLength truncates on update', () => {
   assert.equal(model[0].value, 'TooLo');
 });
 
+test('inputs: select options carry badge + formats through to the model', () => {
+  // The badged picker + effect-reactive format bar read these off the model; the
+  // model is `{...input}`, so they must survive verbatim (a regression here would
+  // silently drop the pill and the per-effect format narrowing).
+  const model: any = buildInputModel({
+    render: { formats: ['png', 'svg', 'pdf'] },
+    inputs: [{
+      id: 'effect', type: 'select', default: 'halftone',
+      options: [
+        { value: 'halftone', label: 'Halftone', badge: 'vector', formats: ['svg', 'pdf', 'png'] },
+        { value: 'duotone', label: 'Duotone', badge: 'raster', formats: ['png'] },
+      ],
+    }],
+  });
+  const eff = model.find((i: any) => i.id === 'effect');
+  assert.equal(eff.control, 'select');
+  assert.equal(eff.options[0].badge, 'vector');
+  assert.deepEqual(eff.options[0].formats, ['svg', 'pdf', 'png']);
+  assert.equal(eff.options[1].badge, 'raster');
+  assert.deepEqual(eff.options[1].formats, ['png']);
+});
+
 test('inputs: convertPaths toggle is auto-injected for vector-format tools', () => {
   const model: any = buildInputModel({ render: { formats: ['png', 'svg'] }, inputs: [{ id: 'name', type: 'text' }] });
   const cp = model.find((i: any) => i.id === 'convertPaths');

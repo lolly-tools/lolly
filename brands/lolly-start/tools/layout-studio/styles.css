@@ -9,6 +9,28 @@
   overflow: hidden;
 }
 
+/* Connector / line / arrow layer (plan 90): one artboard-sized inline <svg> whose paths
+   are built by the engine (host.connectors) from the current box geometry. It sits BEHIND
+   the boxes (first child) and never steals the editor's drag/select pointer events. The
+   <svg> is CSS-stretched to the artboard (preserveAspectRatio="none" on a viewBox in native
+   px), so its coordinates map 1:1 with the boxes' inline left/top. Wrapped in a plain <div>
+   so the artboard's first child is not an <svg> (see template.html). */
+.lolly-conn-wrap {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+.lolly-connectors {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+  overflow: visible;
+  pointer-events: none;
+}
+
 .lolly-box {
   position: absolute;
   box-sizing: border-box;

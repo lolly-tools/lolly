@@ -762,6 +762,38 @@ function seqDurationMs(boxes) {
   return timedBoxes.length ? DEFAULT_SEQ_S * 1000 : 0;
 }
 
+// Connectors (plan 90) — the committed connector / line / arrow layer, rendered by the
+// engine via the host bridge (host.connectors, v1.106) so the SAME geometry lands in the
+// editor's live preview, the export, and a headless CLI. Feature-detected: '' on an older
+// engine (the lines still author + preview in the editor; only the committed/export layer
+// waits for the bridge). CONN_W/H are the artboard's native coordinate space (render size),
+// and the <svg> is CSS-stretched to the artboard (styles.css .lolly-connectors), so the
+// viewBox maps box x/y 1:1 the same way org-chart's oc-connectors does.
+var CONN_W = 1080, CONN_H = 1080;
+function connectorSvgFor(inp, boxes) {
+  var api = (typeof host !== 'undefined' && host && host.connectors) || null;
+  if (!api || typeof api.build !== 'function') return '';
+  var edges = Array.isArray(inp.connectors) ? inp.connectors : [];
+  if (!edges.length) return '';
+  var rectById = new Map();
+  boxes.forEach(function (b, i) {
+    var id = (b && b.id != null && b.id !== '') ? String(b.id) : String(i);
+    rectById.set(id, { x: num(b && b.x, 0), y: num(b && b.y, 0), w: Math.max(1, num(b && b.w, 1)), h: Math.max(1, num(b && b.h, 1)) });
+  });
+  try {
+    return api.build(edges, rectById, {
+      fromField: 'from', toField: 'to', styleField: 'style', arrowField: 'arrow',
+      headField: 'head', colorField: 'color', dashField: 'dash', widthField: 'width',
+      defaultStyle: 'straight', defaultArrow: 'end', defaultHead: 'triangle',
+      defaultColor: '#64748b', defaultWidth: 3,
+      width: CONN_W, height: CONN_H, layerClass: 'lolly-connectors',
+    });
+  } catch (e) {
+    pathWarn('connector render failed: ' + e);
+    return '';
+  }
+}
+
 function compute(model) {
   var inp = inputsFrom(model);
   var boxes = Array.isArray(inp.boxes) ? inp.boxes : [];
@@ -800,6 +832,7 @@ function compute(model) {
     timeAttrs: timeAttrs,
     seqAttrs: seqAttrs,
     bgStyle: [transparent ? 'transparent' : safeColor(inp.background, '#ffffff')],
+    connectorSvg: connectorSvgFor(inp, boxes),
   };
 }
 

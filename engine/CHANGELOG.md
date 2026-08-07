@@ -6,6 +6,19 @@ minors, never removed or signature-changed without a major bump.
 
 Moved verbatim from the comment block that used to live in `src/index.ts`.
 
+1.106.0 — additive: committed connector/line/arrow render. New optional
+`host.connectors` (ConnectorsAPI: `build(edges, rectById, opts) → string`) — a thin,
+verbatim wrapper over the engine's `buildConnectorSvg` (engine/src/connectors.ts), the
+ONE source for connector geometry (routing, arrowheads, the `id | @x,y` endpoint model)
+that also drives the editor's live preview. A canvas tool's hooks.js renders its
+committed, export-safe connector layer in one line (`host.connectors.build(...)`), and
+because every shell attaches the SAME engine function, a headless CLI `--export` keeps
+the lines — no shell-only geometry. Export-safe by construction: filled `<path>`/`<line>`
+heads (never `<marker>`/`<polygon>`), real `<line>` dash segments (never
+stroke-dasharray). Attached beside `host.color`/`host.geom` (web via installToolApis,
+CLI verbatim). Optional/additive, not capability-gated: feature-detect `host.connectors`.
+Plan 90 R1.
+
 1.105.0 — additive: on-device raster primitives. New optional `host.raster`
 (RasterAPI: canRaster/measure/decode/encode) — a source (bytes/Blob/URL/AssetRef)
 in, a drawable `ImageBitmap` or an `ImageInfo` out; raw RGBA or an `ImageBitmap`

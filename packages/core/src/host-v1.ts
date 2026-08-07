@@ -353,6 +353,17 @@ export interface HostV1 {
   geom?: GeomAPI;
 
   /**
+   * Committed, export-safe connector / line / arrow SVG builder (v1.106). The
+   * engine's connector geometry behind a tool-facing surface — every shell attaches
+   * `{ build: buildConnectorSvg }` verbatim, so web / Tauri / CLI emit identical
+   * geometry: a canvas tool's hooks.js renders its connectors in one line and a
+   * headless `--export` keeps them. Pure + synchronous, like `color`/`geom`.
+   * Optional/additive and NOT gated by a `capabilities` flag: feature-detect
+   * `host.connectors`.
+   */
+  connectors?: ConnectorsAPI;
+
+  /**
    * Content Credentials signing — embed a FRESH signed C2PA manifest into
    * finished bytes, with NO ingredients and no ingredient thumbnails. This is
    * the redacted-derivative path: carrying the source's manifest forward would
@@ -379,6 +390,31 @@ export interface HostV1 {
  * take; metrics return NaN on unparseable input, `ramp` throws (an authoring
  * error). Every emitted colour is a gamut-mapped `#rrggbb`.
  */
+/** A native-px rectangle carrying a connector endpoint (a box, or a 0×0 free point).
+ *  Structurally identical to the engine's EdgeRect; kept as its own copy so
+ *  @lolly-tools/core carries no dependency on @lolly/engine. */
+export interface ConnectorRect { x: number; y: number; w: number; h: number }
+
+/** Field names + per-field defaults an edge is read through, plus the wrapping `<svg>`
+ *  size. Mirrors the engine's ConnectorRenderOpts exactly. */
+export interface ConnectorRenderOpts {
+  fromField?: string; toField?: string;
+  styleField?: string; arrowField?: string; headField?: string;
+  colorField?: string; dashField?: string; widthField?: string;
+  defaultStyle?: string; defaultArrow?: string; defaultHead?: string;
+  defaultColor?: string; defaultWidth?: number;
+  width: number; height: number;   // canvas size for the wrapping <svg> viewBox
+  layerClass?: string;             // class on the <svg> (default 'lolly-connectors')
+}
+
+/** Committed connector/line/arrow render (v1.106) — see {@link HostV1.connectors}. */
+export interface ConnectorsAPI {
+  /** Render the committed connector layer as an export-safe SVG string: every edge
+   *  routed + decorated, wrapped in a canvas-sized `<svg>`. `rectById` maps a box id to
+   *  its native rect; a free-point endpoint (`@x,y`) resolves without it. Pure + sync. */
+  build(edges: Record<string, unknown>[], rectById: Map<string, ConnectorRect>, opts: ConnectorRenderOpts): string;
+}
+
 export interface ColorAPI {
   /** ΔEOK — Euclidean distance in OKLab (0 identical … ≈1 black↔white; ~0.02 is a JND). */
   deltaE(a: string, b: string): number;

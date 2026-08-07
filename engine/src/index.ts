@@ -271,6 +271,14 @@ export {
 // codes rather than thrown — because a throw out of a hook is logged and discarded,
 // which would make a pen tool go quiet instead of telling the user anything.
 export { makeGeomApi } from './geom-api.ts';
+// Connector / line / arrow geometry (plan 90 R1) — one source for the editor preview, the
+// committed/export render, and the CLI. The host bridge primitive exposes buildConnectorSvg.
+export {
+  edgeAnchor, edgeBorderPt, edgeWaypoints, edgeNested, connectorRoute,
+  roundedEdgePath, smoothEdgePath, edgeArrowHead, edgeHeadInset,
+  isEdgePoint, parseEdgePoint, formatEdgePoint, edgeEndRect, buildConnectorSvg,
+} from './connectors.ts';
+export type { EdgeRect, EdgeAnchor, ConnectorRoute, ConnectorRenderOpts } from './connectors.ts';
 export { emitEmf } from './emf.ts';
 export { emitEps } from './eps.ts';
 export { emitDxf } from './dxf.ts';

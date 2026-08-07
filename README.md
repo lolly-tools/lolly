@@ -95,7 +95,15 @@ These decisions are settled. Changing any of them is a major undertaking:
 
 ## Getting started
 
-Because the shippable units are submodules, **clone recursively**:
+**Fresh macOS or openSUSE machine? One command does it all:**
+
+```bash
+git clone https://github.com/lolly-tools/lolly.git && cd lolly && ./setup.sh
+```
+
+`./setup.sh` installs the prerequisites (git, Node), checks out the submodules, runs `npm install`, and builds a content profile — then tells you what to run next. SUSE devs add `--suse` to mount the private brand pack. Full details, the manual path, and troubleshooting are in **[INSTALL.md](INSTALL.md)**.
+
+Prefer to do it by hand? Because the shippable units are submodules, **clone recursively**:
 
 ```bash
 git clone --recurse-submodules https://github.com/lolly-tools/lolly.git

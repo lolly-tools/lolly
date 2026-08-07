@@ -36,6 +36,12 @@ export type InputType =
 export interface SelectOption {
   value: string;
   label?: string;
+  /** Short pill shown beside the option (e.g. 'vector'/'raster'). Any option with a
+   *  badge switches the select to a badged picker in the web shell. */
+  badge?: string;
+  /** Export formats offered while this option is selected — a subset of
+   *  render.formats, letting the option drive the export format bar. */
+  formats?: string[];
 }
 
 /**
@@ -119,6 +125,10 @@ export interface RenderSpec {
   capture?: 'audio' | 'video' | 'av' | 'screen';
   /** Requested longest edge (px) for live-camera frames (see `MediaAPI`). */
   liveMaxEdge?: number;
+  /** id of a number input whose value overrides `liveMaxEdge` — a user-facing
+   *  resolution control. The runtime reads it at go-live and re-applies to the live
+   *  stream whenever it changes, so the camera resolution follows a slider. */
+  liveMaxEdgeInput?: string;
   convertPaths?: boolean;
   /** Multi-page ("carousel") editor config; names the number-input ids driving page count/size. */
   pages?: { count: string; width: string; height: string; gap?: number; min?: number; max?: number };
