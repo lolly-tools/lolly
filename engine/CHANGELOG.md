@@ -6,6 +6,20 @@ minors, never removed or signature-changed without a major bump.
 
 Moved verbatim from the comment block that used to live in `src/index.ts`.
 
+1.107.0 — additive: inverse APCA on host.color. New optional
+`host.color.solveApca(hue, chroma, targetLc, bgHex, opts?)` — a verbatim wrapper
+over the engine's `solveLightnessForApca` (engine/src/color-tools.ts): at a fixed
+hue/chroma it returns the OKLCH lightness whose FORWARD APCA Lc against `bgHex` is
+closest to `|targetLc|`, plus the signed Lc it achieves and a `reachable` flag
+(false past the branch's ceiling — then the closest achievable colour is returned).
+Polarity is fixed from the background, never the sign of the argument. The other
+direction of the forward `apca` metric, and the one move a contrast-first ramp needs
+(the color-palette tool's Contrast mode is the first caller). Attached inside
+`makeColorApi()`, so every shell (web via installToolApis, Worker, Tauri, CLI
+verbatim) gets it with no shell-file edit. Optional/additive, feature-detect
+`host.color.solveApca`. `ColorApcaSolveOptions`/`ColorApcaSolveResult` mirrored into
+`@lolly-tools/core`'s host-v1 contract.
+
 1.106.0 — additive: committed connector/line/arrow render. New optional
 `host.connectors` (ConnectorsAPI: `build(edges, rectById, opts) → string`) — a thin,
 verbatim wrapper over the engine's `buildConnectorSvg` (engine/src/connectors.ts), the

@@ -28,7 +28,7 @@
  * Pure and deterministic: no Date, no Math.random, no IO.
  */
 
-import { maxChroma, inGamut } from './gamut.ts';
+import { maxChroma, inGamut, encodeOklch, type EncodeSpace } from './gamut.ts';
 import type { GamutLimit } from './gamut-source.ts';
 import { oklchToHex } from './brand-derive.ts';
 
@@ -500,6 +500,101 @@ export function projectSolidPoint(
  * a shell hit-test and the tests all need it, and an embedding's scale factor
  * living in two places is how the marker drifts off the surface.
  */
+// ─── SVG emission ───────────────────────────────────────────────────────────
+
+/**
+ * One solid patch's CSS fill: its OKLCH encoded for the target space, times the
+ * soft top-light `k`.
+ *
+ * This is the SAME operation the web shell's canvas painter runs (`shadedFill`
+ * in shells/web/src/views/color-lab.ts) — `encodeOklch` is the engine's own
+ * painter path, so a quad drawn to a canvas and the same quad emitted to SVG
+ * cannot name different colours. The multiply lands on the ENCODED channels, not
+ * on L, because shading is a lighting effect on the drawing, not a claim about
+ * the colour. Factored here so the vector and canvas renderings share one source.
+ */
+export function shadedSolidFill(
+  o: { l: number; c: number; h: number },
+  k: number,
+  encode: EncodeSpace = 'srgb',
+): string {
+  const [r, g, b] = encodeOklch(o.l, o.c, o.h, encode);
+  const n = (v: number): string => Math.min(1, Math.max(0, v * k)).toFixed(4);
+  return encode === 'display-p3'
+    ? `color(display-p3 ${n(r)} ${n(g)} ${n(b)})`
+    : `rgb(${Math.round(+n(r) * 255)} ${Math.round(+n(g) * 255)} ${Math.round(+n(b) * 255)})`;
+}
+
+export interface GamutSolidSvgOptions {
+  /** Side length of the square viewport in px. Default 512. The projected quads
+   *  live in a 0–1 box, so this is the only scale the SVG needs. */
+  size?: number;
+  /** Colour space the fills are encoded for. 'srgb' (default) emits plain
+   *  `rgb(...)`; 'display-p3' emits `color(display-p3 …)` for a wide-gamut view. */
+  encode?: EncodeSpace;
+  /** Optional background rect fill (e.g. a page colour behind the solid). When
+   *  omitted the SVG is transparent. */
+  background?: string;
+  /** Numeric precision (decimal places) for point coordinates. Default 2. */
+  precision?: number;
+}
+
+/**
+ * Emit a self-contained SVG of one projected gamut solid.
+ *
+ * Walks the SAME depth-sorted `ProjectedQuad[]` that {@link projectGamutSolid}
+ * returns and writes one `<polygon>` per quad IN DOCUMENT ORDER — document order
+ * is the painter's algorithm here, so a nearer quad's markup comes after (and
+ * paints over) the far quads it occludes, with no z-fighting and no need for a
+ * depth buffer. The array arrives already sorted far-to-near, so the emitter
+ * simply preserves that order.
+ *
+ * Each polygon is filled AND stroked in its own colour — the same trick the
+ * canvas painter uses to close the hairline antialiasing gap between abutting
+ * fills that would otherwise make a dense mesh read as chicken wire.
+ *
+ * No external references (no defs, no gradients, no fonts): geometry is fully
+ * recoverable from the projection, so this is pure string assembly.
+ */
+export function gamutSolidToSvg(
+  projected: ProjectedQuad[],
+  opts: GamutSolidSvgOptions = {},
+): string {
+  const size = opts.size && opts.size > 0 ? opts.size : 512;
+  const encode = opts.encode ?? 'srgb';
+  const dp = Math.max(0, Math.floor(opts.precision ?? 2));
+  const fmt = (v: number): string => {
+    // Guard against a NaN/Infinity slipping into markup — clamp non-finite to 0
+    // so the emitted SVG is always well-formed. Trim a trailing '.00' etc.
+    const n = Number.isFinite(v) ? v : 0;
+    return parseFloat(n.toFixed(dp)).toString();
+  };
+
+  const polys: string[] = [];
+  for (const q of projected) {
+    const pts = q.points
+      .map(p => `${fmt(p.x * size)},${fmt(p.y * size)}`)
+      .join(' ');
+    const fill = shadedSolidFill(q.oklch, q.shade, encode);
+    // Fill and a matching stroke, to seal the sub-pixel seam between neighbours.
+    polys.push(
+      `<polygon points="${pts}" fill="${fill}" stroke="${fill}" stroke-width="1" stroke-linejoin="round"/>`,
+    );
+  }
+
+  const bg = opts.background
+    ? `<rect width="${fmt(size)}" height="${fmt(size)}" fill="${opts.background}"/>`
+    : '';
+
+  return (
+    `<svg xmlns="http://www.w3.org/2000/svg" width="${fmt(size)}" height="${fmt(size)}" ` +
+    `viewBox="0 0 ${fmt(size)} ${fmt(size)}">` +
+    bg +
+    polys.join('') +
+    `</svg>`
+  );
+}
+
 export function solidPointOklch(
   solid: GamutSolid,
   p: SolidPoint,

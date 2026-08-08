@@ -78,7 +78,7 @@ test('the sensor capabilities still validate (screen is additive, not a replacem
 
 // ─── version ─────────────────────────────────────────────────────────────────
 
-test('ENGINE_VERSION is 1.106.0', () => {
+test('ENGINE_VERSION is 1.107.0', () => {
   // A literal pin: the screencap surface shipped at 1.54, and tools declare
   // ^1.54.0 to require it. session-record only checks the stamp equals whatever
   // ENGINE_VERSION happens to be (tautological) — this catches an errant bump.
@@ -193,9 +193,12 @@ test('ENGINE_VERSION is 1.106.0', () => {
   // probes tool hooks used to open-code against the DOM, plans/86 §6.1) and 1.106.0
   // (host.connectors — the engine's committed connector/line/arrow SVG builder behind a
   // tool-facing surface, so a canvas tool renders its connectors in one line and a headless
-  // --export keeps them; plan 90). The ^1.54.0 screencap floor below still holds (a minor
-  // bump satisfies it).
-  assert.equal(ENGINE_VERSION, '1.106.0');
+  // --export keeps them; plan 90) and 1.107.0 (host.color.solveApca — the APCA INVERSE
+  // solver: the OKLCH lightness that hits a target Lc on a background, the generative dual
+  // of the forward apcaContrast, behind the contrast-first palette generation; a real
+  // additive HostV1 method, so every existing shell is unaffected). The ^1.54.0 screencap
+  // floor below still holds (a minor bump satisfies it).
+  assert.equal(ENGINE_VERSION, '1.107.0');
 });
 
 // ─── loadTool: a ^1.54.0 tool loads against this engine ───────────────────────

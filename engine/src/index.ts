@@ -397,7 +397,7 @@ export {
   RAMP_STEPS_MIN, RAMP_STEPS_MAX, RAMP_STEPS_DEFAULT,
 } from './brand-derive.ts';
 export type { Oklch, BrandDeriveOptions } from './brand-derive.ts';
-export { gamutSolid, projectGamutSolid, projectSolidPoint, projectSolidPoints, solidPointOklch, labSolidUnit } from './gamut-solid.ts';
+export { gamutSolid, projectGamutSolid, projectSolidPoint, projectSolidPoints, solidPointOklch, labSolidUnit, gamutSolidToSvg, shadedSolidFill } from './gamut-solid.ts';
 // A brand colour's faces: one canonical value plus per-space/per-profile
 // overrides. The generalisation of PrintLock — the export walkers consult it, so
 // it is engine-side rather than living in the brand editor.
@@ -406,12 +406,12 @@ export type { ColorFace, StoredFace, FaceTarget, FaceOrigin } from './color-face
 // An image's colours as a cloud in the same space the solid is drawn in.
 export { imageColorCloud, UNIQUE_CAP } from './image-cloud.ts';
 export type { ImageCloud, ImageCloudOpts, CloudPoint, CloudSpace } from './image-cloud.ts';
-export type { GamutSolid, SolidQuad, SolidPoint, SolidView, ProjectedQuad, SolidEmbed } from './gamut-solid.ts';
+export type { GamutSolid, SolidQuad, SolidPoint, SolidView, ProjectedQuad, SolidEmbed, GamutSolidSvgOptions } from './gamut-solid.ts';
 export { describeColor, contrastVsExtremes, wcagLevel, NOTATION_SPACES, EXTREMES_CONTRAST_FLOOR } from './color-describe.ts';
 export type { ColorDescription, ColorNotation, ContrastVerdict, WcagLevel } from './color-describe.ts';
 
 export type { EncodeSpace } from './gamut.ts';
-export { GAMUTS, oklchGamut, inGamut, gamutWithin, maxChroma, oklchSlice, encodeOklch, sliceGamutEdge, sliceGamutRegion } from './gamut.ts';
+export { GAMUTS, oklchGamut, inGamut, gamutWithin, maxChroma, clipToGamut, oklchSlice, encodeOklch, sliceGamutEdge, sliceGamutRegion } from './gamut.ts';
 export type { GamutName, SlicePlane, SliceOptions, SliceImage } from './gamut.ts';
 export {
   BUILTIN_GAMUT_SOURCES, P3_SOURCE, REC2020_SOURCE, SRGB_SOURCE, NO_GAMUT_SOURCE,
@@ -440,16 +440,31 @@ export type { IccProfile } from './icc.ts';
 // like the reader it never throws — null on malformed/unusable input.
 export { ICC_DEVICE_SPACE, iccFrameRefusal, iccResolvedIntent, applyIccToFrame, convertViaIcc } from './icc-pixels.ts';
 export type { IccDirection } from './icc-pixels.ts';
-export { SCHEME_KINDS, generateSchemeAccents } from './brand-schemes.ts';
-export type { SchemeKind, AccentCandidate } from './brand-schemes.ts';
+export { SCHEME_KINDS, generateSchemeAccents, rotateHue, generateAnalogous, rotateRampHue } from './brand-schemes.ts';
+export type { SchemeKind, AccentCandidate, AnalogousParams } from './brand-schemes.ts';
 export {
   deltaEOk, apcaContrast, rampOklab, classBreaks, distinctColors, makeColorApi,
   // APCA's band interpretation, alongside WCAG 2's AA/AAA — carried together
   // because conformance is still measured against the ratio while APCA is the one
   // that models polarity.
   apcaUse, apcaVerdict, APCA_BANDS, APCA_SRGB_ONLY,
+  // Inverse APCA: solve the OKLCH lightness that hits a target Lc on a given
+  // background — the generative half of the forward apcaContrast eval.
+  solveLightnessForApca,
 } from './color-tools.ts';
-export type { RampOptions, DistinctColorsOptions, ApcaUse, ApcaVerdict } from './color-tools.ts';
+export type { RampOptions, DistinctColorsOptions, ApcaUse, ApcaVerdict, ApcaSolveResult, ApcaSolveOptions } from './color-tools.ts';
+// Tonal-curve model: a ramp as three editable L/C/H curves over tone position.
+// Defaults reproduce the derived primary ramp byte-for-byte; the serializable
+// form persists a hand-edited ramp under a token's $extensions.
+export {
+  defaultColorCurve, evalChannel, sampleCurve, bakeCurve, curveFromRamp,
+  serializeCurve, deserializeCurve,
+} from './color-curve.ts';
+export type { CurvePoint, ChannelCurve, ColorCurve, ColorCurveJSON } from './color-curve.ts';
+// Colour-vision-deficiency simulation (Machado 2009) + Rec.709 grayscale, for
+// the Colour Lab's accessibility preview. Pure matrix math, DOM-free.
+export { simulateCvd, toGrayscale, simulateCvdHex, toGrayscaleHex } from './color-vision.ts';
+export type { CvdType, Rgb } from './color-vision.ts';
 export { nearestBrandColor, mapPaletteToBrand, mapFontsToBrand, suggestRebrandTheme } from './brand-map.ts';
 export type { BrandSwatch, RoleHint, NearestBrandColorOptions, NearestBrandColor, BrandFonts } from './brand-map.ts';
 export {
