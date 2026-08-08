@@ -794,6 +794,128 @@ function connectorSvgFor(inp, boxes) {
   }
 }
 
+// ── frame grouping (plan 93 F1a-part-2) ───────────────────────────────────────
+//
+// A box with kind==='frame' is a PAGE. Every OTHER box carries a STORED `frame`
+// field = the id of its parent frame ("" = top-level scratch/pasteboard). When at
+// least one frame-kind box exists we emit `frameGroups`: one entry per frame, ordered
+// (order asc, then x asc — matching seedFrameOrder in free-canvas-math.ts), each
+// holding the page's own style plus its member boxes re-wrapped at FRAME-LOCAL
+// coordinates (left = box.x - frame.x, top = box.y - frame.y). Membership is READ from
+// the stored box.frame — geometry is never re-resolved here (that resolution lives in
+// the shell overlay, F1b). The per-box markup/style REUSES the same index-aligned
+// arrays the artboard path already computed (boxStyle/textStyle/… in `ext`); only the
+// wrapping and the frame-local left/top override are new. A scratch box (frame === "",
+// or a frame id matching no page) is NOT put in any page here — it renders LOOSE on the
+// editor pasteboard via pasteboardFor() (F1b-2), and a frame-kind box is the page
+// container, never also rendered as a child. When NO frame exists we return undefined so
+// the template's {{#if frameGroups}} is false and {{else}} renders today's single
+// .artboard byte-for-byte.
+function frameGroupsFor(boxes, ext) {
+  var hasFrame = false;
+  for (var i = 0; i < boxes.length; i++) {
+    if (boxes[i] && String(boxes[i].kind) === 'frame') { hasFrame = true; break; }
+  }
+  if (!hasFrame) return undefined;
+
+  var frameEntries = [];
+  for (var f = 0; f < boxes.length; f++) {
+    var fb = boxes[f];
+    if (!fb || String(fb.kind) !== 'frame') continue;
+    frameEntries.push({ box: fb, idx: f, order: num(fb.order, 0), x: num(fb.x, 0) });
+  }
+  // Page order: ascending `order`, tie-break ascending x (left→right) — the exact rule
+  // seedFrameOrder() uses so a headless render matches the editor's frame numbering.
+  frameEntries.sort(function (a, b) { return (a.order - b.order) || (a.x - b.x); });
+
+  return frameEntries.map(function (fe) {
+    var fb = fe.box;
+    // Round exactly as boxCss does, so a child's frame-local left/top lines up with the
+    // global left/top the reused boxStyle string already carries.
+    var fx = Math.round(num(fb.x, 0));
+    var fy = Math.round(num(fb.y, 0));
+    var fw = Math.max(1, Math.round(num(fb.w, 1)));
+    var fh = Math.max(1, Math.round(num(fb.h, 1)));
+    var fid = (fb.id != null && fb.id !== '') ? String(fb.id) : String(fe.idx);
+    var clip = boolVal(fb.clipChildren, true);
+    // Free-placed pages: each frame is absolutely positioned at its authored (x,y) so
+    // multi-frame docs render side by side / anywhere (not stacked in block flow). The
+    // overlay reads back these offsetLeft/offsetTop to drive frame-local drag (F1b). fx/fy
+    // are already rounded, matching the frame-local left/top baked onto member boxes.
+    var pageStyle =
+      'position:absolute;left:' + fx + 'px;top:' + fy + 'px;' +
+      'width:' + fw + 'px;height:' + fh + 'px;' +
+      'background:' + safeColor(fb.bg, 'transparent') + ';' +
+      (clip ? 'overflow:hidden;' : 'overflow:visible;');
+    var children = [];
+    for (var j = 0; j < boxes.length; j++) {
+      var cb = boxes[j];
+      if (!cb || String(cb.kind) === 'frame') continue;              // a frame is a page, never a child
+      if (String(cb.frame == null ? '' : cb.frame) !== fid) continue; // scratch / other frame omitted
+      // Frame-local position OVERRIDES the global left/top already in boxStyle[j]: a
+      // later same-property declaration wins in an inline style attribute.
+      var lx = Math.round(num(cb.x, 0)) - fx;
+      var ly = Math.round(num(cb.y, 0)) - fy;
+      children.push({
+        flatIndex: j,
+        id: (cb.id != null && cb.id !== '') ? cb.id : j,
+        fit: ext.boxFit[j],
+        boxStyle: ext.boxStyle[j] + 'left:' + lx + 'px;top:' + ly + 'px;',
+        timeAttrs: ext.timeAttrs[j],
+        pathHtml: ext.pathHtml[j],
+        mediaHtml: ext.mediaHtml[j],
+        textStyle: ext.textStyle[j],
+        textHtml: ext.textHtml[j],
+      });
+    }
+    // Frames-as-scenes (plan 92): when a frame has been SEQUENCED (lane==='seq' or a
+    // finite start — the same scenery guard timeAttrsFor uses), stamp the timeline
+    // attributes onto the frame PAGE div so the sequence clock's [data-t-start] selector
+    // gates it: the page whose [start,start+dur) contains the playhead stays visible, the
+    // rest get .seq-off (display:none) — one slide at a time. A frame with NO timing emits
+    // '' → no data-t-start → never selected → every frame shows (spatial view). fb carries
+    // the timeline fields already, so this is the same emission the artboard boxes get.
+    var pageTimeAttrs = timeAttrsFor(fb);
+    return { pageStyle: pageStyle, pageTimeAttrs: pageTimeAttrs, children: children };
+  });
+}
+
+// Editor pasteboard (plan 93 F1b-2): the scratch boxes frameGroupsFor omits from every
+// page. A non-frame box is loose when its stored `frame` matches NO existing frame id
+// (frame === "", or an orphan id whose frame was deleted). It renders at its GLOBAL x/y —
+// ext.boxStyle[j] already carries the global left/top from boxCss, so (unlike a page
+// child) NO frame-local override is appended. The template drops these directly under
+// .lolly-frames, OUTSIDE every [data-pdf-page]; the per-page export path walks
+// [data-pdf-page] nodes only, so a pasteboard box is visible in the editor and excluded
+// from the exported pages by construction. Frame ids are derived exactly as the children
+// loop derives `fid` (own id, else flat index as a string) so membership agrees.
+function pasteboardFor(boxes, ext) {
+  var frameIds = Object.create(null);   // null-proto: a frame id like "constructor" can't leak a truthy hit
+  for (var f = 0; f < boxes.length; f++) {
+    var fb = boxes[f];
+    if (!fb || String(fb.kind) !== 'frame') continue;
+    frameIds[(fb.id != null && fb.id !== '') ? String(fb.id) : String(f)] = true;
+  }
+  var loose = [];
+  for (var j = 0; j < boxes.length; j++) {
+    var cb = boxes[j];
+    if (!cb || String(cb.kind) === 'frame') continue;           // a frame is a page, never loose
+    if (frameIds[String(cb.frame == null ? '' : cb.frame)]) continue; // belongs to a page → rendered inside it
+    loose.push({
+      flatIndex: j,
+      id: (cb.id != null && cb.id !== '') ? cb.id : j,
+      fit: ext.boxFit[j],
+      boxStyle: ext.boxStyle[j],   // GLOBAL left/top from boxCss — no frame-local override
+      timeAttrs: ext.timeAttrs[j],
+      pathHtml: ext.pathHtml[j],
+      mediaHtml: ext.mediaHtml[j],
+      textStyle: ext.textStyle[j],
+      textHtml: ext.textHtml[j],
+    });
+  }
+  return loose;
+}
+
 function compute(model) {
   var inp = inputsFrom(model);
   var boxes = Array.isArray(inp.boxes) ? inp.boxes : [];
@@ -822,6 +944,17 @@ function compute(model) {
   var timeAttrs = boxes.map(function (b) { return timeAttrsFor(b || {}); });
   var seqMs = seqDurationMs(boxes);
   var seqAttrs = [seqMs > 0 ? ' data-sequence data-seq-ms="' + seqMs + '"' : ''];
+  // Hand-authored frames (plan 93 F1a-part-2). undefined when no kind:'frame' box
+  // exists → {{#if frameGroups}} false → the template's {{else}} renders today's single
+  // artboard byte-identically. Reuses the index-aligned per-box arrays above.
+  var frameArrays = {
+    boxStyle: boxStyle, textStyle: textStyle, textHtml: textHtml,
+    mediaHtml: mediaHtml, pathHtml: pathHtml, boxFit: boxFit, timeAttrs: timeAttrs,
+  };
+  var frameGroups = frameGroupsFor(boxes, frameArrays);
+  // Pasteboard only when frames exist: without a frame the single {{else}} artboard
+  // renders every box already, so it stays undefined and no loose copy is emitted.
+  var pasteboard = frameGroups ? pasteboardFor(boxes, frameArrays) : undefined;
   return {
     boxStyle: boxStyle,
     textStyle: textStyle,
@@ -833,6 +966,8 @@ function compute(model) {
     seqAttrs: seqAttrs,
     bgStyle: [transparent ? 'transparent' : safeColor(inp.background, '#ffffff')],
     connectorSvg: connectorSvgFor(inp, boxes),
+    frameGroups: frameGroups,
+    pasteboard: pasteboard,
   };
 }
 

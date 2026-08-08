@@ -18,6 +18,12 @@
  *   - `options`  — presence flag: open with the export-settings panel expanded
  *                  (web shell only; ignored by CLI). `full` wins if both are set.
  *   - `slot`     — saved state slot to load
+ *   - `template` — id of a manifest `templates[]` entry to direct-seed the tool
+ *                  from on a fresh open, SKIPPING the "New from template" chooser
+ *                  (for retired-id launchers, e.g. `?template=carousel`). The
+ *                  entry's `values` are read in-process by the shell (never packed
+ *                  into the URL). Unknown/absent id falls through to the normal
+ *                  fresh-open flow. Web shell only; ignored by the CLI.
  *   - `output`   — output filename (CLI only)
  *   - `filename` — download filename (web shell)
  *   - `_v`       — tool version pinning (optional)
@@ -289,7 +295,7 @@ export interface SerializeUrlOpts {
 // Param names that are NOT tool inputs (export/render controls). Exported so the
 // engine contract test can assert it stays in lock-step with the documented list
 // (the header comment above + docs/url-mode.md) and nothing drifts silently.
-export const RESERVED = new Set(['format', 'export', 'copy', 'slot', 'output', 'filename', '_v', 'width', 'height', 'w', 'h', 'unit', 'dpi', 'profile', 'password', 'bleed', 'marks', 'c2pa', 'imprint', 'durable', 'meta', 'hdr', 'depth', 'cuts', 'lang', 'full', 'options', 'nostage', 'z', 'zx']);
+export const RESERVED = new Set(['format', 'export', 'copy', 'slot', 'output', 'filename', '_v', 'width', 'height', 'w', 'h', 'unit', 'dpi', 'profile', 'password', 'bleed', 'marks', 'c2pa', 'imprint', 'durable', 'meta', 'hdr', 'depth', 'cuts', 'lang', 'full', 'options', 'nostage', 'template', 'z', 'zx']);
 
 // Parse the `marks` param (csv: crop,reg,bleed,bars,prov) into a print-mark
 // toggle map. Returns null when absent so callers fall back to their own defaults.

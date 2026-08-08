@@ -90,6 +90,11 @@
       "description": "Example input value-sets that demonstrate the tool's range. They render live on the client (the same off-screen engine path an export takes) and are shown as the gallery tile's horizontally-scrollable preview strip — after the most-recent saved-session preview — and, when the tool is `featured`, as the hero row's cross-fade. Each is memoised so later visits are instant. Omit for a tool whose single committed preview says enough.",
       "items": { "$ref": "#/$defs/exampleVariant" }
     },
+    "templates": {
+      "type": "array",
+      "description": "Named starting points offered by the web shell's \"New from template\" chooser on a blank fresh open (no `?slot`, no URL values, no in-process seed, no `?template`). Unlike `examples` (illustrative previews), a template's `values` are a full input seed read directly into the fresh session — any size (a free-canvas comp can be many KB), so it is seeded in-process, never packed into the URL. A retired tool id can launch straight into one by id via the reserved `?template=<id>` param, which skips the chooser. Adding this field never changes a tool that lacks it, and never affects the manifest `default` composition (URL-mode / CLI / deep links still render with no chooser).",
+      "items": { "$ref": "#/$defs/templateVariant" }
+    },
     "render": {
       "type": "object",
       "required": ["width", "height", "formats"],
@@ -100,7 +105,7 @@
         "height": { "type": "integer", "minimum": 1 },
         "formats": {
           "type": "array",
-          "items": { "type": "string", "enum": ["png", "jpg", "jpeg", "svg", "svg-anim", "emf", "eps", "eps-cmyk", "dxf", "pdf", "pdf-cmyk", "cmyk-tiff", "tiff", "exr", "hdr", "pptx", "docx", "odt", "html", "md", "txt", "json", "csv", "ics", "vcf", "ico", "zip", "webp", "webp-anim", "avif", "webm", "mp4", "gif", "apng", "wav", "mp3", "m4a", "opus", "ttf", "otf", "woff"] },
+          "items": { "type": "string", "enum": ["png", "jpg", "jpeg", "svg", "svg-anim", "emf", "eps", "eps-cmyk", "dxf", "pdf", "pdf-cmyk", "cmyk-tiff", "tiff", "exr", "hdr", "pptx", "docx", "odt", "html", "md", "txt", "json", "csv", "css", "scss", "gpl", "ase", "ics", "vcf", "ico", "zip", "webp", "webp-anim", "avif", "webm", "mp4", "gif", "apng", "wav", "mp3", "m4a", "opus", "ttf", "otf", "woff"] },
           "minItems": 1,
           "description": "Output formats the tool supports. The host filters action buttons to these. Clipboard is an action (see render.actions), not a format."
         },
@@ -874,6 +879,23 @@
         "values": {
           "type": "object",
           "description": "Map of input id -> value seeded into the render — the same shape URL params resolve to. Scalar inputs (select/color/text/number/boolean/url) plus block arrays (e.g. chart data, badge tracks — an array of field objects) are supported; rely on the tool's default for asset inputs unless referencing a catalog asset id."
+        }
+      }
+    },
+    "templateVariant": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "name", "values"],
+      "description": "One named starting point in the \"New from template\" chooser: an id, a display name, and a full input seed. Like an exampleVariant's `values` but read directly into a fresh session rather than rendered as an illustrative preview.",
+      "properties": {
+        "id": { "type": "string", "description": "Stable id, unique within this tool's `templates[]`. Addressable via the reserved `?template=<id>` param, so treat it as a permanent contract like a tool/asset id." },
+        "name": { "type": "string", "description": "Display name shown on the chooser tile." },
+        "description": { "type": "string", "description": "Optional one-line description shown under the name on the tile." },
+        "category": { "type": "string", "description": "Optional grouping label; tiles sharing a category are grouped together in the chooser." },
+        "thumb": { "type": "string", "description": "Optional thumbnail: a tool-relative asset path or data URI. Absent → the chooser draws a glyph tile." },
+        "values": {
+          "type": "object",
+          "description": "Map of input id -> value read directly into the fresh session — the same shape URL params resolve to, and the same shape a `default` composition uses. Any size (a free-canvas `boxes` array can be many KB), because it is seeded in-process, never serialised into a URL."
         }
       }
     }
