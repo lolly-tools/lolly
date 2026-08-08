@@ -528,6 +528,24 @@ export interface ColorAPI {
    */
   fromOklch?(o: { l: number; c: number; h: number; alpha?: number }): string;
   /**
+   * Invert {@link ColorAPI.apca}: at a fixed `hue`/`chroma`, the OKLCH lightness
+   * whose forward APCA Lc against `bgHex` is closest to `|targetLc|`. Returns the
+   * solved colour as gamut-mapped hex plus the signed Lc it ACTUALLY achieves.
+   *
+   * `apca` scores a pair; this is the other direction — "give me a tone of this
+   * hue that reads at Lc 60 on this background" — the one move a contrast-first
+   * ramp needs and that no forward call can do. Polarity is taken from the
+   * background (dark text on a light bg, light on a dark one), never from the
+   * sign of `targetLc`; a negative argument is the same request as its magnitude.
+   *
+   * `reachable` is false when the target magnitude is beyond what this hue/chroma
+   * can carry against this background (e.g. past APCA's near-black ceiling) — then
+   * `hex`/`lc` are the closest achievable, not a guess. Chroma is clamped into
+   * `opts.limit`'s gamut (default `'srgb'`) at the solved lightness, so the colour
+   * is real. Optional/additive (v1.107); feature-detect on older hosts.
+   */
+  solveApca?(hue: number, chroma: number, targetLc: number, bgHex: string, opts?: ColorApcaSolveOptions): ColorApcaSolveResult;
+  /**
    * Read an ICC profile's bytes into a handle the three methods below take, or
    * null when the bytes are not a profile that can be evaluated.
    *
@@ -577,6 +595,42 @@ export interface ColorAPI {
    * would recognise. Optional/additive (v1.70).
    */
   inkCoverage?(profile: ColorProfileGamut, l: number, c: number, h: number): number | null;
+}
+
+/**
+ * Options for {@link ColorAPI.solveApca}. Mirrored locally (packages/core carries
+ * no engine dependency) from the engine's `ApcaSolveOptions`.
+ */
+export interface ColorApcaSolveOptions {
+  /** Gamut the solved chroma is clamped into (default `'srgb'`). */
+  limit?: Exclude<ColorGamut, 'none'>;
+  /** Lightness-scan resolution for locating the contrast maximum (default 512).
+   *  Higher tightens the max on the unreachable path; the reachable path is exact
+   *  by bisection regardless. */
+  samples?: number;
+}
+
+/**
+ * The result of {@link ColorAPI.solveApca}. Mirrored locally (packages/core carries
+ * no engine dependency) from the engine's `ApcaSolveResult`.
+ */
+export interface ColorApcaSolveResult {
+  /** Solved OKLCH lightness (0–1). */
+  l: number;
+  /** Chroma actually used at `l`, clamped into `limit`'s gamut (≤ the request). */
+  chroma: number;
+  /** The hue passed through, unchanged (normalised to 0–360). */
+  hue: number;
+  /** The solved colour, gamut-mapped hex. */
+  hex: string;
+  /** Signed forward APCA Lc this colour ACTUALLY achieves (positive dark-on-light,
+   *  negative light-on-dark). */
+  lc: number;
+  /** Signed target: `|targetLc|` carrying the polarity forced by the background. */
+  target: number;
+  /** False when the target magnitude exceeds the most this hue/chroma can reach
+   *  against this background — then `hex`/`lc` are the closest achievable. */
+  reachable: boolean;
 }
 
 /**

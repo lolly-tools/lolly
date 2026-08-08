@@ -514,7 +514,7 @@ const BLACK: Oklch = { l: 0, c: 0, h: 0 };
 // (endpoints fixed), with the MIDDLE step pulled to the primary's exact L when
 // it's mid-range (0.45–0.75) — neighbours re-spaced so the ramp stays monotonic.
 // n = 9 reproduces the original RAMP_L (and its step-5 anchor pull) verbatim.
-function rampLightnesses(primaryL: number, n: number): number[] {
+export function rampLightnesses(primaryL: number, n: number): number[] {
   const src = RAMP_L;
   const Ls: number[] = [];
   for (let i = 0; i < n; i++) {
@@ -534,7 +534,7 @@ function rampLightnesses(primaryL: number, n: number): number[] {
 
 // Chroma bell over L: exactly 1 at the peak (so the anchor step keeps the
 // input chroma verbatim), tapering toward both lightness extremes.
-function chromaBell(L: number, peak: number): number {
+export function chromaBell(L: number, peak: number): number {
   const lo = 0.02;
   const hi = 1.0;
   const t = L <= peak ? (L - lo) / Math.max(peak - lo, 1e-9) : (hi - L) / Math.max(hi - peak, 1e-9);

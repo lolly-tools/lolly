@@ -1,6 +1,6 @@
 {
   "version": "1",
-  "generatedAt": "2026-08-07T20:15:01.715Z",
+  "generatedAt": "2026-08-08T06:23:45.934Z",
   "tools": [
     {
       "id": "compress-pdf",
@@ -1427,7 +1427,7 @@
       "id": "color-palette",
       "name": "Palette Lab",
       "description": "Grow a palette from one seed colour — harmony accents, perceptual OKLab ramps and WCAG/APCA readability badges, with DTCG tokens and CSV export.",
-      "version": "2.0.1",
+      "version": "2.1.0",
       "status": "community",
       "category": "utility",
       "tags": [
@@ -1494,112 +1494,148 @@
             "steps": 11,
             "neutrals": true
           }
+        },
+        {
+          "label": "Contrast ramp on white",
+          "values": {
+            "seed": "#2563eb",
+            "harmony": "triad-3",
+            "steps": 6,
+            "neutrals": true,
+            "mode": "contrast",
+            "bg": "#ffffff",
+            "contrastCurve": "even"
+          }
+        },
+        {
+          "label": "Text-first on ink",
+          "values": {
+            "seed": "#22d3ee",
+            "harmony": "adjacent-3",
+            "steps": 5,
+            "neutrals": false,
+            "mode": "contrast",
+            "bg": "#0b1220",
+            "contrastCurve": "text"
+          }
+        },
+        {
+          "label": "Custom Lc steps",
+          "values": {
+            "seed": "#16a34a",
+            "harmony": "complement",
+            "steps": 6,
+            "neutrals": true,
+            "mode": "contrast",
+            "bg": "#f8fafc",
+            "lcTargets": "15,30,45,60,75,90"
+          }
         }
       ],
       "i18n": {
         "ar": {
-          "name": "Color Picker",
-          "description": "A handy color picker for the SUSE brand palette — click any swatch to copy it."
+          "name": "Palette Lab",
+          "description": "Grow a palette from one seed colour — harmony accents, perceptual OKLab ramps and WCAG/APCA readability badges, with DTCG tokens and CSV export."
         },
         "bg": {
-          "name": "Color Picker",
-          "description": "A handy color picker for the SUSE brand palette — click any swatch to copy it."
+          "name": "Palette Lab",
+          "description": "Grow a palette from one seed colour — harmony accents, perceptual OKLab ramps and WCAG/APCA readability badges, with DTCG tokens and CSV export."
         },
         "bn": {
-          "name": "Color Picker",
-          "description": "A handy color picker for the SUSE brand palette — click any swatch to copy it."
+          "name": "Palette Lab",
+          "description": "Grow a palette from one seed colour — harmony accents, perceptual OKLab ramps and WCAG/APCA readability badges, with DTCG tokens and CSV export."
         },
         "cs": {
-          "name": "Color Picker",
-          "description": "A handy color picker for the SUSE brand palette — click any swatch to copy it."
+          "name": "Palette Lab",
+          "description": "Grow a palette from one seed colour — harmony accents, perceptual OKLab ramps and WCAG/APCA readability badges, with DTCG tokens and CSV export."
         },
         "de": {
-          "name": "Color Picker",
-          "description": "A handy color picker for the SUSE brand palette — click any swatch to copy it."
+          "name": "Palette Lab",
+          "description": "Grow a palette from one seed colour — harmony accents, perceptual OKLab ramps and WCAG/APCA readability badges, with DTCG tokens and CSV export."
         },
         "es": {
-          "name": "Color Picker",
-          "description": "A handy color picker for the SUSE brand palette — click any swatch to copy it."
+          "name": "Palette Lab",
+          "description": "Grow a palette from one seed colour — harmony accents, perceptual OKLab ramps and WCAG/APCA readability badges, with DTCG tokens and CSV export."
         },
         "fr": {
-          "name": "Color Picker",
-          "description": "A handy color picker for the SUSE brand palette — click any swatch to copy it."
+          "name": "Palette Lab",
+          "description": "Grow a palette from one seed colour — harmony accents, perceptual OKLab ramps and WCAG/APCA readability badges, with DTCG tokens and CSV export."
         },
         "hi": {
-          "name": "Color Picker",
-          "description": "A handy color picker for the SUSE brand palette — click any swatch to copy it."
+          "name": "Palette Lab",
+          "description": "Grow a palette from one seed colour — harmony accents, perceptual OKLab ramps and WCAG/APCA readability badges, with DTCG tokens and CSV export."
         },
         "id": {
-          "name": "Color Picker",
-          "description": "A handy color picker for the SUSE brand palette — click any swatch to copy it."
+          "name": "Palette Lab",
+          "description": "Grow a palette from one seed colour — harmony accents, perceptual OKLab ramps and WCAG/APCA readability badges, with DTCG tokens and CSV export."
         },
         "it": {
-          "name": "Color Picker",
-          "description": "A handy color picker for the SUSE brand palette — click any swatch to copy it."
+          "name": "Palette Lab",
+          "description": "Grow a palette from one seed colour — harmony accents, perceptual OKLab ramps and WCAG/APCA readability badges, with DTCG tokens and CSV export."
         },
         "ja": {
-          "name": "Color Picker",
-          "description": "A handy color picker for the SUSE brand palette — click any swatch to copy it."
+          "name": "Palette Lab",
+          "description": "Grow a palette from one seed colour — harmony accents, perceptual OKLab ramps and WCAG/APCA readability badges, with DTCG tokens and CSV export."
         },
         "ko": {
-          "name": "Color Picker",
-          "description": "A handy color picker for the SUSE brand palette — click any swatch to copy it."
+          "name": "Palette Lab",
+          "description": "Grow a palette from one seed colour — harmony accents, perceptual OKLab ramps and WCAG/APCA readability badges, with DTCG tokens and CSV export."
         },
         "ms": {
-          "name": "Color Picker",
-          "description": "A handy color picker for the SUSE brand palette — click any swatch to copy it."
+          "name": "Palette Lab",
+          "description": "Grow a palette from one seed colour — harmony accents, perceptual OKLab ramps and WCAG/APCA readability badges, with DTCG tokens and CSV export."
         },
         "nl": {
-          "name": "Color Picker",
-          "description": "A handy color picker for the SUSE brand palette — click any swatch to copy it."
+          "name": "Palette Lab",
+          "description": "Grow a palette from one seed colour — harmony accents, perceptual OKLab ramps and WCAG/APCA readability badges, with DTCG tokens and CSV export."
         },
         "no": {
-          "name": "Color Picker",
-          "description": "A handy color picker for the SUSE brand palette — click any swatch to copy it."
+          "name": "Palette Lab",
+          "description": "Grow a palette from one seed colour — harmony accents, perceptual OKLab ramps and WCAG/APCA readability badges, with DTCG tokens and CSV export."
         },
         "pl": {
-          "name": "Color Picker",
-          "description": "A handy color picker for the SUSE brand palette — click any swatch to copy it."
+          "name": "Palette Lab",
+          "description": "Grow a palette from one seed colour — harmony accents, perceptual OKLab ramps and WCAG/APCA readability badges, with DTCG tokens and CSV export."
         },
         "pt": {
-          "name": "Color Picker",
-          "description": "A handy color picker for the SUSE brand palette — click any swatch to copy it."
+          "name": "Palette Lab",
+          "description": "Grow a palette from one seed colour — harmony accents, perceptual OKLab ramps and WCAG/APCA readability badges, with DTCG tokens and CSV export."
         },
         "ro": {
-          "name": "Color Picker",
-          "description": "A handy color picker for the SUSE brand palette — click any swatch to copy it."
+          "name": "Palette Lab",
+          "description": "Grow a palette from one seed colour — harmony accents, perceptual OKLab ramps and WCAG/APCA readability badges, with DTCG tokens and CSV export."
         },
         "sv": {
-          "name": "Color Picker",
-          "description": "A handy color picker for the SUSE brand palette — click any swatch to copy it."
+          "name": "Palette Lab",
+          "description": "Grow a palette from one seed colour — harmony accents, perceptual OKLab ramps and WCAG/APCA readability badges, with DTCG tokens and CSV export."
         },
         "tl": {
-          "name": "Color Picker",
-          "description": "A handy color picker for the SUSE brand palette — click any swatch to copy it."
+          "name": "Palette Lab",
+          "description": "Grow a palette from one seed colour — harmony accents, perceptual OKLab ramps and WCAG/APCA readability badges, with DTCG tokens and CSV export."
         },
         "tr": {
-          "name": "Color Picker",
-          "description": "A handy color picker for the SUSE brand palette — click any swatch to copy it."
+          "name": "Palette Lab",
+          "description": "Grow a palette from one seed colour — harmony accents, perceptual OKLab ramps and WCAG/APCA readability badges, with DTCG tokens and CSV export."
         },
         "uk": {
-          "name": "Color Picker",
-          "description": "A handy color picker for the SUSE brand palette — click any swatch to copy it."
+          "name": "Palette Lab",
+          "description": "Grow a palette from one seed colour — harmony accents, perceptual OKLab ramps and WCAG/APCA readability badges, with DTCG tokens and CSV export."
         },
         "ur": {
-          "name": "Color Picker",
-          "description": "A handy color picker for the SUSE brand palette — click any swatch to copy it."
+          "name": "Palette Lab",
+          "description": "Grow a palette from one seed colour — harmony accents, perceptual OKLab ramps and WCAG/APCA readability badges, with DTCG tokens and CSV export."
         },
         "vi": {
-          "name": "Color Picker",
-          "description": "A handy color picker for the SUSE brand palette — click any swatch to copy it."
+          "name": "Palette Lab",
+          "description": "Grow a palette from one seed colour — harmony accents, perceptual OKLab ramps and WCAG/APCA readability badges, with DTCG tokens and CSV export."
         },
         "zh-hant": {
-          "name": "Color Picker",
-          "description": "A handy color picker for the SUSE brand palette — click any swatch to copy it."
+          "name": "Palette Lab",
+          "description": "Grow a palette from one seed colour — harmony accents, perceptual OKLab ramps and WCAG/APCA readability badges, with DTCG tokens and CSV export."
         },
         "zh": {
-          "name": "Color Picker",
-          "description": "A handy color picker for the SUSE brand palette — click any swatch to copy it."
+          "name": "Palette Lab",
+          "description": "Grow a palette from one seed colour — harmony accents, perceptual OKLab ramps and WCAG/APCA readability badges, with DTCG tokens and CSV export."
         }
       }
     },

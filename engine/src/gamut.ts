@@ -135,6 +135,30 @@ export function maxChroma(l: number, h: number, limit: GamutLimit = 'srgb'): num
   return lo;
 }
 
+/**
+ * Reduce an OKLCH colour into `limit`, holding LIGHTNESS and HUE constant and
+ * giving up CHROMA — CSS Color 4 §14.2's shape of "keep the request, yield the
+ * only channel that can give". An already-in-gamut colour is returned UNCHANGED
+ * (the same object reference), so this is safe to call unconditionally.
+ *
+ * The ceiling is {@link maxChroma}, which is `GamutLimit`-parameterised, so this
+ * works for `srgb`/`p3`/`rec2020` and for any {@link GamutSource} (an ICC print
+ * profile) alike. Against `srgb` the result is bit-for-bit the shell's former
+ * `clampIntoGamut` (shells/web/src/lib/gamut-slider.ts) — `{...o, c:
+ * Math.min(o.c, maxChroma(o.l, o.h, 'srgb'))}` — which now delegates here.
+ *
+ * `mode` is reserved for a future MINDE (min-ΔE) refinement; only the default
+ * `'exact'` ceiling is implemented today (see the note in the test file).
+ */
+export function clipToGamut(
+  o: { l: number; c: number; h: number },
+  limit: GamutLimit,
+  _mode: 'exact' = 'exact',
+): { l: number; c: number; h: number } {
+  if (inGamut(o.l, o.c, o.h, limit)) return o;
+  return { ...o, c: Math.min(o.c, maxChroma(o.l, o.h, limit)) };
+}
+
 // ─── Slice rendering ──────────────────────────────────────────────────────────
 
 /**

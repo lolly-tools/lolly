@@ -44,7 +44,7 @@ import { oklchGamut, inGamut, maxChroma, oklchSlice, sliceGamutRegion } from './
 import { parseColor, colorToHexString, interpolateColor } from './css-color.ts';
 import { gradientSpecToCss } from './gradient-spec.ts';
 import { parseIccProfile, iccGamutSource, iccGamutIntent } from './icc.ts';
-import type { GamutSource } from './gamut-source.ts';
+import type { GamutSource, GamutLimit } from './gamut-source.ts';
 import type { ColorAPI, ColorProfileGamut, ColorRenderingIntent } from './bridge/host-v1.ts';
 
 // ─── Input parsing / OKLab plumbing ───────────────────────────────────────────
@@ -236,6 +236,142 @@ export function apcaVerdict(text: string, bg: string): ApcaVerdict | null {
     use,
     label: (APCA_BANDS.find(b => b.use === use) ?? APCA_BANDS[APCA_BANDS.length - 1]!).label,
   };
+}
+
+/** The result of {@link solveLightnessForApca}. */
+export interface ApcaSolveResult {
+  /** Solved OKLCH lightness (0–1) — the colour whose forward APCA Lc is closest
+   *  to the requested magnitude within the correct polarity branch. */
+  l: number;
+  /** Chroma actually used at `l`, clamped into `limit`'s gamut (≤ the request). */
+  chroma: number;
+  /** The hue passed through, unchanged. */
+  hue: number;
+  /** The solved colour, gamut-mapped hex (via `oklchToHex`). */
+  hex: string;
+  /** Signed forward `apcaContrast(hex, bgHex)` this colour ACTUALLY achieves —
+   *  positive for dark-on-light, negative for light-on-dark. */
+  lc: number;
+  /** Signed target: `|targetLc|` carrying the polarity forced by the background. */
+  target: number;
+  /** False when the target magnitude exceeds the most this hue/chroma can reach
+   *  against this background — then `hex`/`lc` are the closest achievable. */
+  reachable: boolean;
+}
+
+export interface ApcaSolveOptions {
+  /** Gamut the solved chroma is clamped into (default 'srgb'). */
+  limit?: GamutLimit;
+  /** Initial lightness-scan resolution (default 512). More = a tighter max on
+   *  the unreachable path; the reachable path is exact by bisection regardless. */
+  samples?: number;
+}
+
+/**
+ * Invert `apcaContrast`: the OKLCH lightness at a fixed `hue`/`chroma` whose
+ * forward APCA Lc against `bgHex` is closest to `|targetLc|`.
+ *
+ * APCA is NOT monotonic across the whole [0,1] lightness range — it flips
+ * polarity where text luminance crosses the background's, and its soft
+ * black-level clamp bends contrast back DOWN for near-black text, so a naive
+ * bisection over all of L lands in the wrong place. So the polarity is fixed up
+ * front from the background (dark text on a light bg, light text on a dark one),
+ * the maximum achievable contrast is located by a lightness scan, and the target
+ * is then reached by bisection on the single monotonic stretch between that
+ * maximum and the zero-contrast boundary — never across the near-black dip. The
+ * gentle side is chosen deliberately: the LEAST extreme lightness that meets the
+ * target, i.e. the one nearest the background's own lightness.
+ *
+ * Chroma is clamped to `maxChroma(l, hue, limit)` at the solved lightness (the
+ * `nudged()` precedent in brand-derive.ts), so the returned colour is real.
+ *
+ * When `|targetLc|` is beyond what this hue/chroma can carry against this
+ * background (e.g. a target past the near-black floor), `reachable` is false and
+ * the closest achievable colour — the contrast maximum — is returned.
+ */
+export function solveLightnessForApca(
+  hue: number,
+  chroma: number,
+  targetLc: number,
+  bgHex: string,
+  opts: ApcaSolveOptions = {},
+): ApcaSolveResult {
+  const h = normHue(hue);
+  const cReq = Math.max(0, chroma);
+  const limit = opts.limit ?? 'srgb';
+  const wantMag = Math.abs(targetLc);
+
+  const hexAt = (L: number): string => {
+    const cl = clamp(L, 0, 1);
+    const c = Math.min(cReq, maxChroma(cl, h, limit));
+    return oklchToHex({ l: cl, c, h });
+  };
+  const build = (L: number, reachable: boolean, sign: number): ApcaSolveResult => {
+    const cl = clamp(L, 0, 1);
+    const chr = Math.min(cReq, maxChroma(cl, h, limit));
+    const hex = oklchToHex({ l: cl, c: chr, h });
+    return {
+      l: cl, chroma: chr, hue: h, hex,
+      lc: apcaContrast(hex, bgHex),
+      target: sign * wantMag,
+      reachable,
+    };
+  };
+
+  // Background unparseable → nothing to solve against; report unreachable.
+  if (!toRgbBytes(bgHex)) {
+    return { l: NaN, chroma: NaN, hue: h, hex: '', lc: NaN, target: NaN, reachable: false };
+  }
+
+  // Fix polarity from the background: whichever extreme (black or white text)
+  // carries MORE contrast is the branch we solve in. On a light bg that is black
+  // (dark-on-light, positive Lc); on a dark bg it is white (light-on-dark,
+  // negative Lc). This is the luminance question apcaContrast already answers, so
+  // we ask it rather than re-deriving a threshold.
+  const cBlack = apcaContrast('#000000', bgHex);
+  const cWhite = apcaContrast('#ffffff', bgHex);
+  const s = Math.abs(cBlack) >= Math.abs(cWhite)
+    ? (cBlack < 0 ? -1 : 1)
+    : (cWhite < 0 ? -1 : 1);
+
+  // Signed contrast projected onto our polarity: positive throughout the correct
+  // branch, ≤ 0 once we cross the background's lightness into the wrong polarity.
+  const g = (L: number): number => s * apcaContrast(hexAt(L), bgHex);
+
+  // Locate the contrast MAXIMUM by scan, then refine locally. The scan is what
+  // steps over the near-black dip instead of bisecting into it.
+  const N = Math.max(16, Math.floor(opts.samples ?? 512));
+  const argmax = (lo: number, hi: number, steps: number): { L: number; v: number } => {
+    let bL = lo, bV = -Infinity;
+    for (let i = 0; i <= steps; i++) {
+      const L = lo + ((hi - lo) * i) / steps;
+      const v = g(L);
+      if (Number.isFinite(v) && v > bV) { bV = v; bL = L; }
+    }
+    return { L: bL, v: bV };
+  };
+  const coarse = argmax(0, 1, N);
+  const span = 1 / N;
+  const fine = argmax(Math.max(0, coarse.L - span), Math.min(1, coarse.L + span), 64);
+  const peak = fine.v >= coarse.v ? fine : coarse;
+  const maxContrast = peak.v;
+
+  // Target beyond the branch's ceiling → closest achievable is the maximum.
+  const TOL = 1e-3;
+  if (!(maxContrast > 0) || wantMag > maxContrast + TOL) {
+    return build(peak.L, false, s);
+  }
+
+  // Reachable: g is monotonic-decreasing from the peak out to the wrong-polarity
+  // endpoint (L=1 for dark text, L=0 for light), passing through the target once.
+  // Bisect only that stretch — never the near-black side of the peak.
+  let a = peak.L;                 // g(a) = max ≥ wantMag
+  let b = s > 0 ? 1 : 0;          // g(b) ≤ 0 ≤ wantMag
+  for (let k = 0; k < 80; k++) {
+    const mid = (a + b) / 2;
+    if (g(mid) > wantMag) a = mid; else b = mid;
+  }
+  return build((a + b) / 2, true, s);
 }
 
 // ─── Perceptual ramps — bezier through OKLab + lightness correction ───────────
@@ -525,6 +661,11 @@ export function makeColorApi(): ColorAPI {
       return colorToHexString(interpolateColor(ca, cb, t, opts));
     },
     gradientCss: spec => gradientSpecToCss(spec),
+    // v1.107: the APCA inverse-solver (solveLightnessForApca), attached verbatim.
+    // The forward `apca` scores a pair; this is the other direction — a tone of a
+    // given hue that reads at a target Lc on a background — the one move a
+    // contrast-first ramp needs. Same engine math on web, Worker, Tauri and CLI.
+    solveApca: (hue, chroma, targetLc, bgHex, opts = {}) => solveLightnessForApca(hue, chroma, targetLc, bgHex, opts),
     // v1.69: display-gamut classification + the OKLCH slice planes (gamut.ts).
     // The brand studio's gamut charts and the Colour Lab tool both paint from
     // `slice`, so the studio and the tool can never disagree about where sRGB

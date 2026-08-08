@@ -96,3 +96,71 @@ export function generateSchemeAccents(primaryHex: string, scheme: SchemeKind): A
     return { hex: oklchToHex(oklch), oklch, hue };
   });
 }
+
+// ─── Parametric hue rotation ────────────────────────────────────────────────
+
+/**
+ * Rotate an OKLCH colour's hue by `degrees` while HOLDING its lightness and
+ * chroma fixed, then emit through `oklchToHex` — the same gamut-mapped path
+ * `generateSchemeAccents` uses. Keeping L and C untouched (rather than
+ * pre-clipping chroma to the new hue's ceiling) means saturated colours stay
+ * punchy at the sRGB corners and the emitted hex only degrades where the hue
+ * genuinely can't carry the chroma, via CSS Color 4 gamut mapping — never a
+ * flat channel clip.
+ *
+ * Pure. An unparseable `hex` falls back to the neutral mid-blue primary. The
+ * degrees are taken mod 360 (via `normHue`), so a 0° or ±360° rotation is a
+ * true identity (hexToOklch → oklchToHex is bit-perfect for an in-gamut colour).
+ */
+export function rotateHue(hex: string, degrees: number): string {
+  return oklchToHex(rotateOklchHue(hexToOklch(hex) ?? FALLBACK_PRIMARY, degrees));
+}
+
+/** The fixed-L, fixed-C hue rotation, as an OKLCH (shared by rotateHue, the
+ *  parametric analogous generator, and rotateRampHue). Chroma is left intact;
+ *  `oklchToHex` performs the gamut mapping at emit time, matching
+ *  `generateSchemeAccents`. */
+function rotateOklchHue(o: Oklch, degrees: number): Oklch {
+  return { l: o.l, c: o.c, h: normHue(o.h + degrees) };
+}
+
+/** Params for {@link generateAnalogous}: how many accents, and the hue step
+ *  between each (degrees). */
+export interface AnalogousParams {
+  /** Number of ACCENTS to produce (primary excluded). Clamped to ≥ 0. */
+  count: number;
+  /** Hue step in degrees between consecutive accents (and from the primary to
+   *  the first). Typically small (analogous ⇒ neighbours on the wheel). */
+  angle: number;
+}
+
+/**
+ * A TRUE parametric analogous generator — distinct from the fixed `adjacent-3`
+ * scheme (which is hardwired to ±30°). Produces `count` accents at evenly
+ * spaced hues: primary + angle, primary + 2·angle, … primary + count·angle,
+ * each holding the primary's L and C (gamut-mapped at emit time by
+ * `oklchToHex`). So consecutive accent hues always differ by exactly `angle`
+ * (mod 360).
+ *
+ * An unparseable `primaryHex` falls back to the neutral mid-blue primary.
+ */
+export function generateAnalogous(primaryHex: string, params: AnalogousParams): AccentCandidate[] {
+  const primary = hexToOklch(primaryHex) ?? FALLBACK_PRIMARY;
+  const count = Math.max(0, Math.floor(params.count));
+  const out: AccentCandidate[] = [];
+  for (let i = 1; i <= count; i++) {
+    const oklch = rotateOklchHue(primary, params.angle * i);
+    out.push({ hex: oklchToHex(oklch), oklch, hue: oklch.h });
+  }
+  return out;
+}
+
+/**
+ * Apply the same fixed-L, gamut-clipped-C hue rotation across a whole ramp's
+ * stops — rotating every stop by the SAME `degrees` shifts the ramp bodily
+ * around the hue wheel without touching its lightness/chroma structure. Returns
+ * a new hex array; unparseable stops fall back to the neutral primary.
+ */
+export function rotateRampHue(stops: readonly string[], degrees: number): string[] {
+  return stops.map(stop => rotateHue(stop, degrees));
+}
