@@ -143,6 +143,13 @@ export function entryFromManifest(manifest: Manifest): Record<string, unknown> {
   // `featured` above, it's an object/array excluded from INDEX_FIELDS' scalar drift
   // check; the copy here is deterministic, so re-running build:catalog is idempotent.
   if (Array.isArray(manifest.examples)) entry.examples = manifest.examples;
+  // "New from template" starting points (manifest.templates) — carried verbatim like
+  // `examples` above so a launcher/deep-link can resolve `?template=<id>` without a
+  // per-tool manifest fetch. An array/object excluded from INDEX_FIELDS' scalar drift
+  // check; the copy is deterministic, so re-running build:catalog stays idempotent.
+  // (The chooser itself reads templates off the LOADED tool.manifest at mount time —
+  // this index copy exists for the drift-guarded two-copies invariant + future readers.)
+  if (Array.isArray(manifest.templates)) entry.templates = manifest.templates;
   // Paged tools (render.paged) lay out multiple [data-pdf-page] boxes; the gallery
   // shows each page as its own preview slide instead of input-variant looks.
   if (manifest.render?.paged === true) entry.paged = true;

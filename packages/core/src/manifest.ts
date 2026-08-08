@@ -180,6 +180,10 @@ export interface ToolHookFlags {
    * in float via host.codec), returning null declines and falls through. The
    * export panel opens the pro float formats (exr/hdr) for a tool that declares
    * this and has host.codec — see shells/web/src/views/tool-actions.ts.
+   *
+   * The bytes need not be a raster: the hook may own any tool-authored format for
+   * a declared `format` — e.g. color-palette returns an Adobe `.ase` swatch file
+   * (host.color.paletteExportBytes) for `format === 'ase'` and declines the rest.
    */
   exportStill?: boolean;
 }
@@ -237,6 +241,13 @@ export interface ToolManifest {
    *  top-level `examples` (which wins when both are present). */
   featured?: { blurb?: string; order?: number; variants?: unknown[] };
   examples?: unknown[];
+  /** Named starting points for the web shell's "New from template" chooser (shown
+   *  only on a blank fresh open). Each entry is `{ id, name, description?, category?,
+   *  thumb?, values }`; `values` is a full input seed read in-process (never packed
+   *  into the URL), and the reserved `?template=<id>` param launches one directly,
+   *  skipping the chooser. Additive — a tool without it is unchanged, and the
+   *  manifest `default` composition still renders on URL-mode/CLI/deep-link opens. */
+  templates?: unknown[];
   capabilities?: Capability[];
   /** `'network'`-capability config: the https URL allowlist the host builds `host.net`
    *  from. A trailing `*` on an entry is a prefix wildcard; otherwise it permits that

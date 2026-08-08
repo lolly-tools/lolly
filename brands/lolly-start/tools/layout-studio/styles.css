@@ -91,3 +91,18 @@
    just "•"-prefixed lines (see hooks.js richText), so no list styling is needed. */
 .lolly-box-text strong { font-weight: bolder; }
 .lolly-box-text em { font-style: italic; }
+
+/* Hand-authored frames (plan 93): when >=1 kind:"frame" box exists the render swaps the
+   single .artboard for one .lolly-frame-page per frame — each a [data-pdf-page] the export
+   path sizes independently. The page's width/height/background/overflow are inline (from the
+   hook, so a headless render matches), so these rules carry only the structural essentials:
+   the wrapper flows its pages, and each page is the positioned containing block its member
+   .lolly-box children (position:absolute) resolve their frame-local left/top against. Only
+   present in frames mode; the no-frame path never emits these, so its .artboard is untouched. */
+.lolly-frames {
+  position: absolute;
+  inset: 0;
+}
+.lolly-frame-page {
+  position: relative;
+}
