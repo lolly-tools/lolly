@@ -595,7 +595,49 @@ export interface ColorAPI {
    * would recognise. Optional/additive (v1.70).
    */
   inkCoverage?(profile: ColorProfileGamut, l: number, c: number, h: number): number | null;
+  /**
+   * Serialise a flat list of named swatches as a design-interchange TEXT file —
+   * a DTCG design-tokens JSON (`'tokens-json'`, nested by each swatch's dotted
+   * key), a plain CSS custom-properties block (`'css-vars'`), a set of bg/text/
+   * border utility classes (`'css-classes'`), an SCSS `$var` block (`'scss'`), or
+   * a GIMP `.gpl` palette (`'gpl'`). Swatches whose `hex` is empty or an
+   * unresolved alias are dropped; `opts.paletteName` names the `.gpl` header.
+   *
+   * The same serializers the web shell's Swatches download uses, so a palette a
+   * tool exports and one the brand editor downloads are byte-identical. Pure +
+   * synchronous. The binary Adobe `.ase` is {@link ColorAPI.paletteExportBytes}
+   * (bytes, not text). Optional/additive (v1.108); feature-detect on older hosts.
+   */
+  paletteExport?(swatches: ColorPaletteSwatch[], format: ColorPaletteTextFormat, opts?: { paletteName?: string }): string;
+  /**
+   * The binary counterpart to {@link ColorAPI.paletteExport}: the same swatch list
+   * as an Adobe Swatch Exchange (`.ase`) file — RGB colour-entry blocks readable by
+   * Illustrator, Photoshop and Affinity. `format` is `'ase'` (the one binary
+   * palette format), taken for symmetry with the text call and forward room.
+   * Optional/additive (v1.108); feature-detect on older hosts.
+   */
+  paletteExportBytes?(swatches: ColorPaletteSwatch[], format: 'ase'): Uint8Array;
 }
+
+/**
+ * A single swatch for {@link ColorAPI.paletteExport} / `paletteExportBytes`: a
+ * canonical dotted key (slugged into CSS identifiers / JSON path segments and
+ * nested for the tokens tree), a display name, a group label (prefixed onto the
+ * .gpl / .ase entry names), and a resolved sRGB hex. A swatch whose `hex` is
+ * empty or a non-hex value (an unresolved alias, `transparent`) is dropped by the
+ * serializers. Mirrored locally — packages/core carries no engine dependency —
+ * from the engine's `PaletteSwatch`.
+ */
+export interface ColorPaletteSwatch {
+  key: string;
+  name: string;
+  group: string;
+  hex: string;
+}
+
+/** The TEXT palette formats {@link ColorAPI.paletteExport} produces (the binary
+ *  `.ase` goes through `paletteExportBytes`). */
+export type ColorPaletteTextFormat = 'tokens-json' | 'css-vars' | 'css-classes' | 'scss' | 'gpl';
 
 /**
  * Options for {@link ColorAPI.solveApca}. Mirrored locally (packages/core carries

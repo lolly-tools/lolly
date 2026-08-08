@@ -453,6 +453,15 @@ export {
   solveLightnessForApca,
 } from './color-tools.ts';
 export type { RampOptions, DistinctColorsOptions, ApcaUse, ApcaVerdict, ApcaSolveResult, ApcaSolveOptions } from './color-tools.ts';
+// Palette exchange — a flat swatch list serialised as DTCG tokens JSON, CSS
+// custom properties / classes, SCSS variables, a GIMP .gpl, or a binary Adobe
+// .ase. Pure + DOM-free; attached to host.color (paletteExport/paletteExportBytes)
+// and reused by the web shell's Swatches download, so both paths are byte-identical.
+export {
+  paletteTokensJson, paletteCssVariables, paletteCssClasses,
+  paletteScssVariables, paletteGpl, paletteAse,
+} from './palette-export.ts';
+export type { PaletteSwatch } from './palette-export.ts';
 // Tonal-curve model: a ramp as three editable L/C/H curves over tone position.
 // Defaults reproduce the derived primary ramp byte-for-byte; the serializable
 // form persists a hand-edited ramp under a token's $extensions.

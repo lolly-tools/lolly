@@ -6,6 +6,23 @@ minors, never removed or signature-changed without a major bump.
 
 Moved verbatim from the comment block that used to live in `src/index.ts`.
 
+1.108.0 — additive: palette exchange on host.color. Two new optional methods —
+`host.color.paletteExport(swatches, format, opts?)` and
+`host.color.paletteExportBytes(swatches, 'ase')` — attached verbatim from the new
+pure module `engine/src/palette-export.ts`. A flat `PaletteSwatch[]` (`{ key, name,
+group, hex }`) serialises to a DTCG design-tokens JSON, a CSS custom-properties
+block, bg/text/border utility classes, an SCSS `$var` block, a GIMP `.gpl`
+(all TEXT, via `paletteExport`), or a binary Adobe Swatch Exchange `.ase`
+(via `paletteExportBytes`). Unresolved / non-hex swatches are dropped. The six
+serializers were LIFTED out of the web shell's `shells/web/src/lib/swatch-export.ts`
+(now a thin re-export over the engine), so the brand editor's Swatches download and a
+tool's palette export produce byte-identical files across web, Worker, Tauri and CLI.
+The `color-palette` community tool uses them to export DTCG JSON / CSS / SCSS / GIMP /
+Adobe swatches (the `.ase` rides the `exportStill` hook). Also additive at the runtime
+seam: `json` becomes a per-tool opt-in sibling `template.json` (model-dump default
+unchanged when a tool ships none), and `css`/`scss`/`gpl` join the model-derived
+data-export formats (`DATA_FORMATS` + the loader's `textExts`). No v1 method changed.
+
 1.107.0 — additive: inverse APCA on host.color. New optional
 `host.color.solveApca(hue, chroma, targetLc, bgHex, opts?)` — a verbatim wrapper
 over the engine's `solveLightnessForApca` (engine/src/color-tools.ts): at a fixed
