@@ -78,7 +78,7 @@ test('the sensor capabilities still validate (screen is additive, not a replacem
 
 // ─── version ─────────────────────────────────────────────────────────────────
 
-test('ENGINE_VERSION is 1.107.0', () => {
+test('ENGINE_VERSION is 1.108.0', () => {
   // A literal pin: the screencap surface shipped at 1.54, and tools declare
   // ^1.54.0 to require it. session-record only checks the stamp equals whatever
   // ENGINE_VERSION happens to be (tautological) — this catches an errant bump.
@@ -196,9 +196,14 @@ test('ENGINE_VERSION is 1.107.0', () => {
   // --export keeps them; plan 90) and 1.107.0 (host.color.solveApca — the APCA INVERSE
   // solver: the OKLCH lightness that hits a target Lc on a background, the generative dual
   // of the forward apcaContrast, behind the contrast-first palette generation; a real
-  // additive HostV1 method, so every existing shell is unaffected). The ^1.54.0 screencap
-  // floor below still holds (a minor bump satisfies it).
-  assert.equal(ENGINE_VERSION, '1.107.0');
+  // additive HostV1 method, so every existing shell is unaffected). Then 1.108.0
+  // (host.color.paletteExport + paletteExportBytes — palette exchange lifted into
+  // engine/src/palette-export.ts: a flat swatch list → DTCG tokens JSON / CSS vars /
+  // CSS classes / SCSS / GIMP .gpl as text, or a binary Adobe .ase; the color-palette
+  // tool's parity with the Swatches download. Two real additive HostV1 methods, plus
+  // json-as-sibling-template + css/scss/gpl data-export formats at the runtime seam).
+  // The ^1.54.0 screencap floor below still holds (a minor bump satisfies it).
+  assert.equal(ENGINE_VERSION, '1.108.0');
 });
 
 // ─── loadTool: a ^1.54.0 tool loads against this engine ───────────────────────
