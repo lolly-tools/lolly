@@ -232,3 +232,50 @@ test('spatial (untimed) frames emit NO data-t-* on their pages — every frame s
     assert.equal((page as HTMLElement).getAttribute('data-t-start'), null);
   }
 });
+
+// ── FRAME (ARTBOARD) STROKE — a real exported border, ISSUE 2b ─────────────────────
+
+test('a frame with stroke+strokeW renders a REAL border on its [data-pdf-page] page', async () => {
+  const html = await mount([
+    { id: 'f1', kind: 'frame', x: 0, y: 0, w: 800, h: 600, shape: 'rect', bg: '#ffffff', stroke: '#123456', strokeW: 3 },
+    { id: 't', kind: 'text', x: 40, y: 40, w: 200, h: 80, text: 'Hi', fontSize: 32, frame: 'f1' },
+  ]);
+  // The page div carries a solid border from stroke/strokeW, inside-box (border-box).
+  assert.match(html, /data-pdf-page[^>]*style="[^"]*border:3px solid #123456/,
+    'the artboard page renders its stroke as a CSS border (exported by the walkers)');
+  assert.match(html, /data-pdf-page[^>]*style="[^"]*box-sizing:border-box/,
+    'the border is an inside stroke, so children keep their frame-local coords');
+  // The inside border insets the page's PADDING box (the containing block for its abs
+  // children) by border-width. The child's frame-local origin is therefore reduced by the
+  // stroke width so it paints at its MODEL coordinate, not model+strokeW. text 't' is at
+  // model (40,40) in a frame at (0,0) with a 3px stroke → 40-0-3 = 37.
+  assert.match(html, /data-box-id="t"[^>]*style="[^"]*left:37px;top:37px;"/,
+    'a member of a stroked frame is compensated by the border width (no strokeW drift)');
+});
+
+test('a strokeless frame does NOT compensate its members (left = box.x - frame.x)', async () => {
+  const html = await mount([
+    { id: 'f1', kind: 'frame', x: 0, y: 0, w: 800, h: 600, shape: 'rect', bg: '#ffffff' },
+    { id: 't', kind: 'text', x: 40, y: 40, w: 200, h: 80, text: 'Hi', fontSize: 32, frame: 'f1' },
+  ]);
+  // No border → no containing-block inset → no compensation: 40-0-0 = 40.
+  assert.match(html, /data-box-id="t"[^>]*style="[^"]*left:40px;top:40px;"/,
+    'a member of an unstroked frame keeps its plain frame-local coords');
+});
+
+test('a frame with NO stroke renders no border (fill only)', async () => {
+  const html = await mount([
+    { id: 'f1', kind: 'frame', x: 0, y: 0, w: 800, h: 600, shape: 'rect', bg: '#ffffff' },
+    { id: 't', kind: 'text', x: 40, y: 40, w: 200, h: 80, text: 'Hi', fontSize: 32, frame: 'f1' },
+  ]);
+  const page = /(<[^>]*data-pdf-page[^>]*>)/.exec(html)?.[1] ?? '';
+  assert.ok(page, 'a page div exists');
+  assert.ok(!/border:/.test(page), 'no border emitted when the frame declares no stroke');
+});
+
+test('a frame stroke honours the dashed style', async () => {
+  const html = await mount([
+    { id: 'f1', kind: 'frame', x: 0, y: 0, w: 800, h: 600, shape: 'rect', stroke: '#000000', strokeW: 2, strokeDash: 'dashed' },
+  ]);
+  assert.match(html, /data-pdf-page[^>]*style="[^"]*border:2px dashed #000000/, 'dashed frame border');
+});

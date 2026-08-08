@@ -226,10 +226,11 @@ test('manifest: the four new sub-fields are APPENDED, in order, and `path` is hi
       byId.get('fillRule')!.options!.map((o) => o.value), ['nonzero', 'evenodd'],
     );
     // stroke/strokeW also serve box/image kinds since the design importer began
-    // mapping Penpot strokes onto CSS borders (boxCss); fillRule remains a
-    // path-geometry concept and stays path-only.
+    // mapping Penpot strokes onto CSS borders (boxCss), and `frame` since artboards
+    // gained a fill/stroke like any shape; fillRule remains a path-geometry concept
+    // and stays path-only.
     for (const id of ['stroke', 'strokeW']) {
-      assert.deepEqual(byId.get(id)!.showFor, ['path', 'box', 'image'], `${brand}: ${id} showFor`);
+      assert.deepEqual(byId.get(id)!.showFor, ['path', 'box', 'image', 'frame'], `${brand}: ${id} showFor`);
     }
     assert.deepEqual(byId.get('fillRule')!.showFor, ['path'], `${brand}: fillRule showFor`);
   }
@@ -939,7 +940,7 @@ test('manifest: strokeDash / strokeCap / strokeJoin are appended after the exist
     // dashed/dotted); cap/join are stroked-path geometry and stay path-only.
     for (const id of ['strokeDash', 'strokeCap', 'strokeJoin']) {
       assert.equal(byId.get(id)!.type, 'select', `${brand}: ${id} type`);
-      assert.deepEqual(byId.get(id)!.showFor, id === 'strokeDash' ? ['path', 'box', 'image'] : ['path'], `${brand}: ${id} showFor`);
+      assert.deepEqual(byId.get(id)!.showFor, id === 'strokeDash' ? ['path', 'box', 'image', 'frame'] : ['path'], `${brand}: ${id} showFor`);
     }
   }
 });

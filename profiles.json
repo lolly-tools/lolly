@@ -5,7 +5,7 @@
     "suse": {
       "label": "SUSE",
       "tools": ["community", "brands/suse/tools"],
-      "exclude": ["rebrand-deck"],
+      "exclude": ["rebrand-deck", "street-map"],
       "catalog": "brands/suse/catalog"
     },
     "lolly-start": {

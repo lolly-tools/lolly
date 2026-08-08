@@ -1,4 +1,12 @@
 {{#if frameGroups}}
+{{!-- Native PowerPoint deck model (plan 95 route-a): when frames exist the hook emits
+      one SLIDE per frame with each child box lowered to a deck element, so a pptx export
+      becomes an EDITABLE deck (real text boxes / rects / pictures) via export-pptx.ts's
+      readDeckModel, instead of a rasterised DOM walk. Sits OUTSIDE .lolly-frames and every
+      [data-pdf-page]; the SVG/PDF/PNG/video walkers skip <script>, so it is inert for every
+      other format. Absent in the {{else}} (no-frames) branch → that pptx uses the DOM-walk
+      fallback. Mirrors deck-studio/template.html line 2. --}}
+<script type="application/json" data-pptx-deck>{{{deckJson}}}</script>
 {{!-- Hand-authored frames (plan 93 F1a-part-2): each kind:"frame" box becomes its own
       [data-pdf-page], sized to the frame's own w×h with the frame's bg, and its member
       boxes (box.frame === frame.id) sit at frame-LOCAL coordinates inside it. Scratch
