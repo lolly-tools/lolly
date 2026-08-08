@@ -49,11 +49,11 @@ jobs:
     name: test
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           submodules: recursive   # tools/catalog/shells/services/docs are submodules; workspaces need every package.json
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v7
         with:
           node-version: '22'
           cache: npm
@@ -69,7 +69,7 @@ jobs:
 
       - name: Cache c2patool
         id: c2patool-cache
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           path: ~/.cache/c2patool
           key: c2patool-v0.26.70-x86_64-unknown-linux-gnu
@@ -170,11 +170,11 @@ jobs:
     name: typecheck
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           submodules: recursive
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v7
         with:
           node-version: '22'
           cache: npm
@@ -232,11 +232,11 @@ jobs:
     name: validate catalog
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           submodules: recursive
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v7
         with:
           node-version: '22'
           cache: npm
@@ -257,11 +257,11 @@ jobs:
     name: smoke (render every tool)
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           submodules: recursive
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v7
         with:
           node-version: '22'
           cache: npm
@@ -276,11 +276,11 @@ jobs:
     name: build + bundle budget
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           submodules: recursive
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v7
         with:
           node-version: '22'
           cache: npm
@@ -302,11 +302,11 @@ jobs:
     name: api bundle drift
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           submodules: recursive
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v7
         with:
           node-version: '22'
           cache: npm
@@ -331,7 +331,7 @@ jobs:
     steps:
       # No submodules: this job only needs action/ itself — the action performs
       # its own pinned lolly checkout into a work dir.
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - name: Render qr-code via the composite action (svg, no browser)
         id: render
@@ -360,11 +360,11 @@ jobs:
     name: npm audit (high+critical)
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           submodules: recursive
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v7
         with:
           node-version: '22'
           cache: npm
@@ -436,7 +436,7 @@ jobs:
     # they work on either event; only the upstream diff step needs one, and it
     # takes the pushed range on a push.
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           submodules: recursive
           # Full history so --baseline-commit can reach the merge base.
