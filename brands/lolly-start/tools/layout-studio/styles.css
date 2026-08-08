@@ -105,4 +105,22 @@
 }
 .lolly-frame-page {
   position: relative;
+  /* Default board surface for a frame with NO authored bg — hooks.js emits
+     `background: var(--lolly-frame-surface, #ffffff)`. This is REAL, exported page fill
+     (unlike the editor-only shadow/ring), so a bg-less frame reads as a board on any
+     canvas theme. Light context → paper; an authored bg overrides it entirely. */
+  --lolly-frame-surface: #ffffff;
+}
+@media (prefers-color-scheme: dark) {
+  /* Anchor: scopeCss() leaves the FIRST selector inside an @media block unscoped, so a
+     bare .lolly-frame-page here would lose to the scoped light rule above. This no-op
+     absorbs that slot; the real override below is scoped and wins on source order.
+     (Keep NOTHING between the previous } and this @media — a comment there breaks the
+     whole block through the scoper.) */
+  .lolly-frame-surface-dm-anchor { color: inherit; }
+  /* Dark canvas → a subtle RAISED neutral that contrasts with the near-black backdrop
+     (deliberately NOT --brand-surface, whose dark value is ink = the backdrop, which
+     would leave the frame invisible). CLI has no media query, so the #ffffff hook
+     fallback stands there and the export stays deterministic. */
+  .lolly-frame-page { --lolly-frame-surface: #2a2f3a; }
 }

@@ -66,6 +66,15 @@ function esc(s) {
 }
 // === /lolly:shared esc ===
 
+// JSON safe to drop verbatim into <script type="application/json">: kill the only
+// tag-closing sequence ("</script") by escaping '<', plus the two JS line
+// terminators U+2028/U+2029. esc() above is HTML-escaping and would corrupt the
+// JSON (e.g. turn `"` into `&quot;`), so the deck model is serialised through THIS,
+// exactly like deck-studio's own safeJson. (plan 95 route-a native-pptx emit.)
+function safeJson(o) {
+  return JSON.stringify(o).replace(/</g, '\\u003c').replace(/\u2028/g, '\\u2028').replace(/\u2029/g, '\\u2029');
+}
+
 // Inline emphasis on an ALREADY-escaped fragment: **bold** first, then *italic* /
 // _italic_. The markers are literal chars in the escaped text and we only ever inject
 // our own fixed <strong>/<em> tags, so this can't smuggle markup through.
@@ -143,6 +152,11 @@ function radiusFor(shape, radius) {
 
 var H_JUSTIFY = { left: 'flex-start', center: 'center', right: 'flex-end' };
 var V_ALIGN = { top: 'flex-start', middle: 'center', bottom: 'flex-end' };
+// The deck-model equivalents (plan 95 route-a): a box's horizontal align → a deck
+// paragraph align token, its vertical align → a deck text-box anchor. Same keys as
+// the CSS maps above so the native pptx text box lands where the canvas paints it.
+var DECK_ALIGN = { left: 'l', center: 'ctr', right: 'r' };
+var DECK_ANCHOR = { top: 't', middle: 'ctr', bottom: 'b' };
 // Any 100-step weight in the variable font's range. Sans stacks commonly cover
 // 100–900; mono cuts rarely ship a Black, so cap mono at 800 — this keeps the
 // browser render and the static-TTF vector export in agreement.
@@ -166,6 +180,18 @@ function fontFamily(v) {
   if (FONTS[key]) return FONTS[key];
   var safe = key.replace(/[^\w \-]/g, '').trim(); // letters/digits/space/hyphen only
   return safe ? ("'" + safe + "', " + FONTS.sans) : FONTS.sans;
+}
+// A box font → a PLAIN PowerPoint typeface NAME for the deck model (NOT fontFamily's
+// CSS stack, which is a var()/fallback list unusable as a pptx font). The built-in
+// 'sans'/'mono' keywords resolve to CSS custom properties with no single static face
+// name in the blank profile, so they are OMITTED (undefined) — the deck theme's minor
+// font then applies. A brand family the user added carries a real name; sanitise it
+// exactly as fontFamily() does before it reaches the pptx run.
+function deckFont(b) {
+  var key = String(b && b.font == null ? '' : b.font);
+  if (key === '' || key === 'sans' || key === 'mono') return undefined;
+  var safe = key.replace(/[^\w \-]/g, '').trim();
+  return safe || undefined;
 }
 var FITS = { cover: 1, contain: 1, fill: 1, none: 1, 'scale-down': 1 };
 // Whitelisted CSS object-position anchors — the free-canvas 3×3 picker writes one of
@@ -842,10 +868,43 @@ function frameGroupsFor(boxes, ext) {
     // multi-frame docs render side by side / anywhere (not stacked in block flow). The
     // overlay reads back these offsetLeft/offsetTop to drive frame-local drag (F1b). fx/fy
     // are already rounded, matching the frame-local left/top baked onto member boxes.
+    // A frame is a BOARD, so a frame with NO authored bg must still read as a surface —
+    // not the transparent hole it used to be, which on a dark canvas showed only the
+    // editor's shadow/ring (chrome that never exports). The default is the theme-aware
+    // --lolly-frame-surface token (styles.css: light paper / dark raised surface) with a
+    // concrete #ffffff fallback so a headless/CLI render, which has no brand vars, still
+    // gets a visible board deterministically. This is REAL page fill, so the SVG/PDF/raster
+    // walkers export it faithfully. An authored bg still wins — safeColor returns it and
+    // the token is never emitted.
+    // A frame is a BOARD, so like a box shape it can carry a REAL border (stroke colour
+    // + width), not just the editor-only shadow/ring. Same safeColor/num/dash discipline
+    // boxCss uses, with box-sizing:border-box so it is an INSIDE stroke — the border sits
+    // within fw/fh, keeping the frame's OUTER box (fw×fh at fx,fy) unmoved. Emitted only
+    // when authored (colour + positive width); the SVG/PDF/raster walkers export it
+    // faithfully.
+    //   box-sizing keeps the frame's outer size right, but it does NOT stop the border
+    // from insetting the CONTAINING BLOCK of the page's absolutely-positioned children:
+    // an abs child resolves left/top against the page's PADDING box, which the border
+    // pushes in by border-width on every side. So a child authored at frame-local (lx,ly)
+    // would paint at (lx+bw, ly+bw) — a persistent strokeW-px drift off the model
+    // coordinate that selection chrome, live drag and connectors all anchor at. We cancel
+    // it by subtracting the border width (frameBW) from each child's frame-local origin
+    // below, so painted position == model position for any strokeW. (An edge-flush child's
+    // stroke-band is then covered/clipped by the inside stroke — the correct semantics of
+    // an inside stroke — instead of the whole child sliding inward.)
+    var fsw = num(fb.strokeW, 0);
+    var fsc = safeColor(fb.stroke, '');
+    var frameBW = (fsc && fsw > 0) ? (Math.round(fsw * 100) / 100) : 0;
+    var frameBorder = frameBW > 0
+      ? 'box-sizing:border-box;border:' + frameBW + 'px ' +
+        (String(fb.strokeDash) === 'dashed' ? 'dashed' : String(fb.strokeDash) === 'dotted' ? 'dotted' : 'solid') +
+        ' ' + fsc + ';'
+      : '';
     var pageStyle =
       'position:absolute;left:' + fx + 'px;top:' + fy + 'px;' +
       'width:' + fw + 'px;height:' + fh + 'px;' +
-      'background:' + safeColor(fb.bg, 'transparent') + ';' +
+      'background:' + safeColor(fb.bg, 'var(--lolly-frame-surface, #ffffff)') + ';' +
+      frameBorder +
       (clip ? 'overflow:hidden;' : 'overflow:visible;');
     var children = [];
     for (var j = 0; j < boxes.length; j++) {
@@ -853,9 +912,11 @@ function frameGroupsFor(boxes, ext) {
       if (!cb || String(cb.kind) === 'frame') continue;              // a frame is a page, never a child
       if (String(cb.frame == null ? '' : cb.frame) !== fid) continue; // scratch / other frame omitted
       // Frame-local position OVERRIDES the global left/top already in boxStyle[j]: a
-      // later same-property declaration wins in an inline style attribute.
-      var lx = Math.round(num(cb.x, 0)) - fx;
-      var ly = Math.round(num(cb.y, 0)) - fy;
+      // later same-property declaration wins in an inline style attribute. frameBW cancels
+      // the inside border's containing-block inset (see the frameBorder note above) so the
+      // child paints at its model coordinate, not model+strokeW.
+      var lx = Math.round(num(cb.x, 0)) - fx - frameBW;
+      var ly = Math.round(num(cb.y, 0)) - fy - frameBW;
       children.push({
         flatIndex: j,
         id: (cb.id != null && cb.id !== '') ? cb.id : j,
@@ -916,6 +977,138 @@ function pasteboardFor(boxes, ext) {
   return loose;
 }
 
+// ── native PowerPoint deck model (plan 95 route-a, "route a") ──────────────────
+//
+// The DUAL of frameGroupsFor: when frames exist, lower the SAME frames + members to
+// a deck-studio-shaped model { size:{w,h}, slides:[{ bg, elements:[…] }] }. The
+// export bridge (shells/web/src/bridge/export-pptx.ts → pptx-deck.ts, UNCHANGED)
+// reads it off <script data-pptx-deck> and builds an EDITABLE .pptx — real text
+// boxes / rects / pictures, not a rasterised picture of the DOM (which needs a live
+// browser). Because it re-runs frameGroupsFor's frame filter, the SAME
+// order-asc-then-x sort, the SAME fid derivation and the SAME lx/ly frame-local
+// arithmetic, every slide stays 1:1 with the rendered [data-pdf-page]. Only the
+// lowering differs: RAW numbers + css-colour strings (pptx-deck.ts does px→EMU and
+// parses hex/rgb), never the CSS strings the artboard arrays carry.
+//
+// v1 maps the kinds the flat deck model can EXPRESS: text → an editable text box,
+// box → a rect, a still image → a picture. Anything the model cannot carry emits
+// NOTHING native here — a path (pen) box, a lottie/video image, and any box wearing
+// rotation, a gradient fill, a clip mask, layer/backdrop blur, a blend mode or a
+// shadow. Rasterise-to-image for those is a documented FOLLOW-UP; it does NOT block
+// the deck (the missing element just isn't in the .pptx). A single no-frames design
+// emits no model at all and still exports via export-pptx's DOM-walk fallback.
+
+// Effects/transforms the axis-aligned, solid-fill deck element cannot represent.
+// A box wearing any of these is skipped native in v1 (rasterise follow-up), so it is
+// never emitted mispositioned/mis-styled. Mirrors the CSS the artboard would apply
+// (boxCss rotation + opacity, gradCssFor, clipCss, blurCss, BLENDS, shadowCss) so
+// "expressible natively" and "plain enough to have no extra CSS" stay the same predicate.
+function deckInexpressible(b, byId) {
+  if (!b) return true;
+  if (num(b.rot, 0) !== 0) return true;
+  if (clamp(num(b.opacity, 100), 0, 100) !== 100) return true; // boxCss emits opacity:<1 — the flat deck element carries no alpha (rasterise follow-up)
+  if (b.grad != null && String(b.grad).trim() !== '') return true;
+  if (num(b.blur, 0) > 0 || num(b.bgBlur, 0) > 0) return true;
+  if (BLENDS[String(b.blend)]) return true;
+  if (SHADOW_TARGETS[String(b.shadow)]) return true;
+  var mid = b.clip != null ? String(b.clip) : '';
+  var selfId = b.id != null ? String(b.id) : '';
+  if (mid && mid !== selfId && byId[mid]) return true; // an actual clip mask (matches clipCss)
+  return false;
+}
+
+// One non-frame member box → one deck element at frame-LOCAL (lx, ly), or null to
+// emit nothing native (a skipped kind/effect). RAW numbers + css colours only.
+function deckElementFor(cb, byId, lx, ly) {
+  if (deckInexpressible(cb, byId)) return null;
+  var cw = Math.max(1, Math.round(num(cb.w, 1)));
+  var ch = Math.max(1, Math.round(num(cb.h, 1)));
+  var kind = String(cb.kind);
+  if (kind === 'path') return null; // pen/vector shape → rasterise FOLLOW-UP
+  if (kind === 'text') {
+    // One paragraph, one run (v1). sizePt = px * 0.75 (matches export-pptx's
+    // pptxRunStyle and deck-studio's pt↔cqw inverse); colour/weight/font reuse the
+    // exact reads textCss/weightOf/deckFont use, so the run matches the preview.
+    var run = {
+      text: cb.text == null ? '' : String(cb.text),
+      sizePt: f2(num(cb.fontSize, 48) * 0.75),
+      color: safeColor(cb.fg, '#11141f'),
+      bold: Number(weightOf(cb)) >= 600,
+    };
+    var fnt = deckFont(cb);
+    if (fnt) run.font = fnt;
+    var al = H_JUSTIFY[cb.align] ? String(cb.align) : 'center';
+    return {
+      t: 'text', x: lx, y: ly, w: cw, h: ch,
+      anchor: DECK_ANCHOR[String(cb.valign)] || 'ctr',
+      paras: [{ align: DECK_ALIGN[al], runs: [run] }],
+    };
+  }
+  if (kind === 'image') {
+    // Asset refs are resolved by the runtime BEFORE this hook, so cb.image already
+    // carries { type, url } — the same shape mediaHtmlFor reads. STILL images only:
+    // a lottie/video source is skipped (rasterise-to-image FOLLOW-UP), reusing
+    // mediaHtmlFor's own motion test so the deck's decision matches the canvas.
+    var img = cb.image;
+    var url = img && img.url ? String(img.url) : '';
+    if (!url) return null;
+    var isLottie = (img && img.type === 'lottie') || /\.json($|\?|#)/i.test(url);
+    var isVideo = (img && img.type === 'video') || /\.(mp4|m4v|mov|webm)($|\?|#)/i.test(url);
+    if (isLottie || isVideo) return null;
+    return { t: 'image', x: lx, y: ly, w: cw, h: ch, src: url, fit: FITS[String(cb.fit)] ? String(cb.fit) : 'contain' };
+  }
+  // kind 'box' (the rectangle; 'circle' is a box+shape) → a deck rect. 'transparent'
+  // fill is dropped by deckFill (no fill), matching boxCss. Only a 'rounded' shape
+  // carries a numeric radius the deck can express; pill/ellipse/circle round in CSS
+  // to values (9999px/50%) the flat px radius can't carry, so they lower to a plain
+  // rect in v1 (documented). A stroke → the rect's line.
+  var rect = { t: 'rect', x: lx, y: ly, w: cw, h: ch, fill: safeColor(cb.bg, 'transparent') };
+  if (String(cb.shape) === 'rounded') rect.radius = num(cb.radius, 0);
+  var sw = num(cb.strokeW, 0);
+  var sc = safeColor(cb.stroke, '');
+  if (sc && sw > 0) rect.line = { color: sc, w: sw };
+  return rect;
+}
+
+// Build the whole deck model, or undefined when no frame exists (same gate as
+// frameGroupsFor). Re-runs the frame filter + order-asc-then-x sort + fid derivation
+// so slide order == page order; a pptx deck has ONE slide size, taken from the first
+// frame (matches export-pptx reading page 0's size). The slide bg uses a CONCRETE hex
+// fallback (#ffffff), never the var(--lolly-frame-surface,…) CSS string the page
+// render uses — deckColor parses only hex/rgb.
+function deckModelFor(boxes, byId) {
+  var frameEntries = [];
+  for (var f = 0; f < boxes.length; f++) {
+    var fb = boxes[f];
+    if (!fb || String(fb.kind) !== 'frame') continue;
+    frameEntries.push({ box: fb, idx: f, order: num(fb.order, 0), x: num(fb.x, 0) });
+  }
+  if (!frameEntries.length) return undefined;
+  frameEntries.sort(function (a, b) { return (a.order - b.order) || (a.x - b.x); });
+
+  var first = frameEntries[0].box;
+  var size = { w: Math.max(1, Math.round(num(first.w, 1))), h: Math.max(1, Math.round(num(first.h, 1))) };
+
+  var slides = frameEntries.map(function (fe) {
+    var fbx = fe.box;
+    var fx = Math.round(num(fbx.x, 0));
+    var fy = Math.round(num(fbx.y, 0));
+    var fid = (fbx.id != null && fbx.id !== '') ? String(fbx.id) : String(fe.idx);
+    var elements = [];
+    for (var j = 0; j < boxes.length; j++) {
+      var cb = boxes[j];
+      if (!cb || String(cb.kind) === 'frame') continue;               // a frame is a page, never a child
+      if (String(cb.frame == null ? '' : cb.frame) !== fid) continue; // scratch / other frame omitted
+      var lx = Math.round(num(cb.x, 0)) - fx;
+      var ly = Math.round(num(cb.y, 0)) - fy;
+      var el = deckElementFor(cb, byId, lx, ly);
+      if (el) elements.push(el);
+    }
+    return { bg: safeColor(fbx.bg, '#ffffff'), elements: elements };
+  });
+  return { size: size, slides: slides };
+}
+
 function compute(model) {
   var inp = inputsFrom(model);
   var boxes = Array.isArray(inp.boxes) ? inp.boxes : [];
@@ -955,6 +1148,12 @@ function compute(model) {
   // Pasteboard only when frames exist: without a frame the single {{else}} artboard
   // renders every box already, so it stays undefined and no loose copy is emitted.
   var pasteboard = frameGroups ? pasteboardFor(boxes, frameArrays) : undefined;
+  // Native-pptx deck model (plan 95 route-a): emitted ONLY when frames exist, so a
+  // no-frames design stays byte-identical and uses export-pptx's DOM-walk fallback.
+  // `deckJson` collides with no input id (inputs: background/transparentBg/connectors/
+  // boxes + box fields) so the runtime routes it to extras; the template reads
+  // {{{deckJson}}} into <script data-pptx-deck>, exactly like deck-studio.
+  var deckJson = frameGroups ? safeJson(deckModelFor(boxes, byId)) : undefined;
   return {
     boxStyle: boxStyle,
     textStyle: textStyle,
@@ -968,6 +1167,7 @@ function compute(model) {
     connectorSvg: connectorSvgFor(inp, boxes),
     frameGroups: frameGroups,
     pasteboard: pasteboard,
+    deckJson: deckJson,
   };
 }
 

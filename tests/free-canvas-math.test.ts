@@ -541,12 +541,46 @@ test('sequenceFramesInOrder: cumulative starts, default dur in SECONDS, order re
   assert.equal(byId.F1.start, 0); assert.equal(byId.F1.dur, 3);
   assert.equal(byId.F2.start, 3); assert.equal(byId.F2.dur, 3);
   assert.equal(byId.F3.start, 6); assert.equal(byId.F3.dur, 3);
-  // every frame lands on the scenes lane, with the default transition.
+  // every frame lands on the scenes lane, with the default exit.
   for (const id of ['F1', 'F2', 'F3']) {
     assert.equal(byId[id].lane, 'seq');
-    assert.equal(byId[id].enter, 'fade');
     assert.equal(byId[id].exit, 'fade');
   }
+  // The FIRST frame in play order opens the deck, so it appears instantly (enter 'none');
+  // later frames keep the default enter so transitions happen BETWEEN slides.
+  assert.equal(byId.F1.enter, 'none');
+  assert.equal(byId.F2.enter, 'fade');
+  assert.equal(byId.F3.enter, 'fade');
+});
+
+test('sequenceFramesInOrder: first frame in play order gets enter "none" (instant), regardless of array position', () => {
+  // F1 (order 0) is LAST in the array but FIRST in play order → it is the one that gets 'none'.
+  const boxes: any[] = [
+    { id: 'F3', kind: 'frame', x: 1000, order: 2 },
+    { id: 'F2', kind: 'frame', x: 500, order: 1 },
+    { id: 'F1', kind: 'frame', x: 0, order: 0 },
+  ];
+  const next: any = sequenceFramesInOrder(boxes, SEQ_OPTS);
+  const byId: Record<string, any> = {};
+  for (const b of next) byId[b.id] = b;
+  assert.equal(byId.F1.start, 0, 'F1 is first in play order (cumulative start 0)');
+  assert.equal(byId.F1.enter, 'none', 'the play-order-first frame appears instantly');
+  assert.equal(byId.F2.enter, 'fade', 'later frames keep the default enter');
+  assert.equal(byId.F3.enter, 'fade');
+  // The first frame still fades OUT into the second (transitions BETWEEN slides).
+  assert.equal(byId.F1.exit, 'fade');
+});
+
+test('sequenceFramesInOrder: an explicitly-authored enter on the first frame is NOT overridden with "none"', () => {
+  const boxes: any[] = [
+    { id: 'A', kind: 'frame', x: 0, order: 0, enter: 'slide' },  // authored → survives
+    { id: 'B', kind: 'frame', x: 100, order: 1 },
+  ];
+  const next: any = sequenceFramesInOrder(boxes, SEQ_OPTS);
+  const byId: Record<string, any> = {};
+  for (const b of next) byId[b.id] = b;
+  assert.equal(byId.A.enter, 'slide', 'authored enter on the first frame is kept, not forced to none');
+  assert.equal(byId.B.enter, 'fade');
 });
 
 test('sequenceFramesInOrder: existing dur>0 is kept; order ties break by x asc', () => {

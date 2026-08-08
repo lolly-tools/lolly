@@ -25,7 +25,7 @@ import {
   DEFAULT_TRANSITION_MS, MAX_SPEED, MAX_TIME_MS, MIN_SPEED,
   MAX_TRANSITION_MS, MIN_TRANSITION_MS, SEQ_ERROR_CODES, TRUNCATION_TOLERANCE_FRAMES,
   activeFrameWindow, activeSpanTimestamps, crossfadeExtensions, crossfadeJunctions, endOf, frameTimestamps,
-  layerKind, parseSequenceStage, readLayer, reconcileDecoded, rotationOf, sequenceDrawPlan,
+  layerKind, normalizeFrameScene, parseSequenceStage, readLayer, reconcileDecoded, rotationOf, sequenceDrawPlan,
   sequenceError, toCodedError,
   type PlanItem, type SeqLayer,
 } from '../shells/web/src/bridge/sequence-plan.ts';
@@ -70,7 +70,7 @@ function fakeLayer(over: Partial<SeqLayer> & { idx: number }): SeqLayer {
     enterEase: '', exitEase: '',
     lane: 'seq', kind: 'static',
     rect: { x: 0, y: 0, w: 100, h: 100, rot: 0 },
-    opacity: 1, blend: '', radius: '', clipPath: '', openEnded: false,
+    opacity: 1, blend: '', radius: '', clipPath: '', openEnded: false, frameScene: false,
     ...over,
   };
 }
@@ -105,6 +105,69 @@ test('parseSequenceStage keeps DOM order as z order', () => {
   assert.ok(stage);
   assert.deepEqual(stage.layers.map((l) => l.idx), [0, 1, 2]);
   assert.deepEqual(stage.layers.map((l) => l.startMs), [0, 1000, 2000]);
+});
+
+// ── frames-as-scenes (Layout Studio "Design", plan 92) ────────────────────────
+//
+// A "Design" doc times whole FRAME PAGES ([data-pdf-page] carrying data-t-*) end to
+// end, rather than individual .lolly-box clips. The planner must treat each timed
+// frame page as ONE full-frame scene layer — photographed whole, gated so exactly one
+// shows at the playhead — and must NOT double-count the .lolly-box children inside it.
+
+/** A `.lolly-frames` stage of N timed frame pages, each `durMs` long, back to back. */
+function framesStage(count: number, durMs: number, seqMs: number): HTMLElement {
+  const wrap = doc.createElement('div');
+  let pages = '';
+  for (let i = 0; i < count; i++) {
+    const start = i * durMs;
+    // Each page carries a .lolly-box child (a real Design doc always does) precisely to
+    // prove those children are NOT enumerated as their own open-ended layers.
+    pages += `<div class="lolly-frame-page" data-pdf-page data-t-lane="seq" data-t-start="${start}" data-t-dur="${durMs}" `
+      + `style="position:absolute;left:0px;top:0px;width:1080px;height:1080px;background:#ffffff;overflow:hidden;">`
+      + `<div class="lolly-box" style="left:40px;top:40px;width:200px;height:80px;background:#123456;"></div>`
+      + `</div>`;
+  }
+  wrap.innerHTML = `<div class="lolly-frames" data-sequence data-seq-ms="${seqMs}">${pages}</div>`;
+  return wrap;
+}
+
+test('a timed 3-frame stage plans exactly one frame-scene layer per window', () => {
+  const stage = parseSequenceStage(framesStage(3, 3000, 9000));
+  assert.ok(stage);
+  // Three scene layers — the frame PAGES — and nothing else: the .lolly-box children
+  // are part of each frame's picture, never separate open-ended layers stacked on top.
+  assert.equal(stage.layers.length, 3);
+  assert.deepEqual(stage.layers.map((l) => l.startMs), [0, 3000, 6000]);
+  assert.deepEqual(stage.layers.map((l) => l.durMs), [3000, 3000, 3000]);
+  // A frame page is a STATIC scene (photographed whole), not classified by a child.
+  assert.deepEqual(stage.layers.map((l) => l.kind), ['static', 'static', 'static']);
+  assert.deepEqual(stage.layers.map((l) => l.rect.w), [1080, 1080, 1080]);
+
+  // Exactly ONE frame is drawn at each window's midpoint, and it is the right one.
+  const activeAt = (t: number): number[] =>
+    sequenceDrawPlan(stage.layers, t, stage.totalMs).map((p: PlanItem) => p.layer.idx);
+  assert.deepEqual(activeAt(1500), [0]); // frame 1 in [0, 3000)
+  assert.deepEqual(activeAt(4500), [1]); // frame 2 in [3000, 6000)
+  assert.deepEqual(activeAt(7500), [2]); // frame 3 in [6000, 9000)
+});
+
+test('an object-clip stage still plans as .lolly-box layers (frames branch is inert)', () => {
+  // No [data-pdf-page] anywhere → the enumeration falls through to .lolly-box exactly
+  // as before: three timed clips, kept in DOM (z) order, none dropped.
+  const stage = parseSequenceStage(stageOf(
+    boxHtml({ time: 'data-t-lane="seq" data-t-start="0" data-t-dur="3000"' })
+    + boxHtml({ time: 'data-t-lane="seq" data-t-start="3000" data-t-dur="3000"' })
+    + boxHtml({ time: 'data-t-lane="seq" data-t-start="6000" data-t-dur="3000"' }),
+    9000,
+  ));
+  assert.ok(stage);
+  assert.equal(stage.layers.length, 3);
+  assert.deepEqual(stage.layers.map((l) => l.startMs), [0, 3000, 6000]);
+  const activeAt = (t: number): number[] =>
+    sequenceDrawPlan(stage.layers, t, stage.totalMs).map((p: PlanItem) => p.layer.idx);
+  assert.deepEqual(activeAt(1500), [0]);
+  assert.deepEqual(activeAt(4500), [1]);
+  assert.deepEqual(activeAt(7500), [2]);
 });
 
 test('scenery (no data-t-start, no lane) spans the whole sequence', () => {
@@ -982,4 +1045,81 @@ test('PARITY: and an authored curve is not a no-op in either of them', () => {
   assert.equal(bare.plan, bare.clock);
   assert.equal(linear.plan, linear.clock);
   assert.notEqual(linear.plan, bare.plan, 'the authored curve really did change the geometry');
+});
+
+// ── ISSUE 1: frames-as-scenes slideshow normalises every slide to the viewport ──
+//
+// A "Design" frames slideshow places its pages side by side on the pasteboard
+// (x = 0, 1120, 2240 …). The video output is one slide wide, so without normalising
+// the draw rect, slides 2..N land off-canvas and only slide 1 ever appears. The pure
+// planner's job is: (a) a timed [data-pdf-page] page reads back frameScene=true, a
+// plain .lolly-box reads false; (b) normalizeFrameScene re-anchors a frameScene
+// layer's draw rect to (0,0,nativeW,nativeH) and leaves a .lolly-box untouched.
+
+/** A [data-pdf-page] frames stage: three side-by-side pages, each timed to its window. */
+function framesStageOf(): HTMLElement {
+  const wrap = doc.createElement('div');
+  const page = (id: string, x: number, start: number): string =>
+    `<div class="lolly-box" data-pdf-page data-t-start="${start}" data-t-dur="2000" ` +
+    `style="left:${x}px;top:0px;width:1080px;height:1080px;"></div>`;
+  wrap.innerHTML =
+    `<div class="artboard" data-sequence data-seq-ms="6000">` +
+    page('s1', 0, 0) + page('s2', 1120, 2000) + page('s3', 2240, 4000) +
+    `</div>`;
+  return wrap;
+}
+
+test('frames stage: each timed [data-pdf-page] is a frameScene layer', () => {
+  const stage = parseSequenceStage(framesStageOf())!;
+  assert.equal(stage.layers.length, 3);
+  for (const l of stage.layers) {
+    assert.equal(l.frameScene, true, 'a [data-pdf-page] page is a frameScene');
+    assert.equal(l.kind, 'static', 'a frame page is photographed whole → static');
+  }
+  // The authored x/y are still read verbatim — the committed geometry is untouched.
+  assert.deepEqual(stage.layers.map((l) => l.rect.x), [0, 1120, 2240]);
+});
+
+test('object-clip .lolly-box is NOT a frameScene', () => {
+  const stage = parseSequenceStage(stageOf(boxHtml({ time: 'data-t-start="0" data-t-dur="2000"' }), 6000))!;
+  assert.equal(stage.layers[0]!.frameScene, false);
+});
+
+test('normalizeFrameScene re-anchors a frame page to (0,0,nativeW,nativeH)', () => {
+  const stage = parseSequenceStage(framesStageOf())!;
+  const nativeW = stage.layers[0]!.rect.w;   // 1080 — the first frame's own size
+  const nativeH = stage.layers[0]!.rect.h;
+  for (const l of stage.layers) {
+    const n = normalizeFrameScene(l, nativeW, nativeH);
+    assert.equal(n.rect.x, 0, 'slide re-anchored to the output origin');
+    assert.equal(n.rect.y, 0);
+    assert.equal(n.rect.w, nativeW, 'slide fills the viewport width');
+    assert.equal(n.rect.h, nativeH, 'slide fills the viewport height');
+    assert.equal(n.rect.rot, 0);
+  }
+  // Frames-mode output size is the first frame's box, not the side-by-side strip.
+  assert.equal(stage.layers.some((l) => l.frameScene), true);
+});
+
+test('normalizeFrameScene leaves an object-clip .lolly-box untouched', () => {
+  const stage = parseSequenceStage(stageOf(
+    boxHtml({ style: 'left:320px;top:180px;width:640px;height:360px;', time: 'data-t-start="0" data-t-dur="2000"' }),
+    6000,
+  ))!;
+  const l = stage.layers[0]!;
+  const n = normalizeFrameScene(l, 640, 360);
+  assert.equal(n, l, 'a non-frameScene layer is returned verbatim (same reference)');
+  assert.equal(n.rect.x, 320);
+  assert.equal(n.rect.y, 180);
+});
+
+test('normalized slides gate one-at-a-time across the sequence', () => {
+  const stage = parseSequenceStage(framesStageOf())!;
+  // Exactly one slide is active in each window (gating is by time, unaffected by the
+  // spatial normalisation — so with the off-canvas anchor gone, every slide shows).
+  for (const [t, wantIdx] of [[500, 0], [2500, 1], [4500, 2]] as const) {
+    const active = sequenceDrawPlan(stage.layers, t, 6000);
+    assert.equal(active.length, 1, `one slide active at t=${t}`);
+    assert.equal(active[0]!.layer.idx, wantIdx);
+  }
 });
