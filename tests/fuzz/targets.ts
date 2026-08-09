@@ -725,7 +725,7 @@ export const c2paExtractTarget: FuzzTarget = {
 const ATTACH_FORMAT: Record<Exclude<SniffFormat, 'pdf'>, string> = {
   png: 'png', jpeg: 'jpg', gif: 'gif', svg: 'svg',
   tiff: 'tiff', webp: 'webp', avif: 'avif', mp4: 'mp4', webm: 'webm', mkv: 'webm', mp3: 'mp3',
-  wav: 'wav',
+  wav: 'wav', ogg: 'opus',
 };
 
 export const c2paContainersTarget: FuzzTarget = {

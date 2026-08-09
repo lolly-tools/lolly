@@ -12,6 +12,7 @@
 import { C2PA_BMFF_UUID, C2PA_ATTACHMENT_MIME } from './c2pa.ts';
 import { EBML_ID, SEGMENT_ID, readId, readVint, idAt } from './video-meta.ts';
 import { concatBytes, bytesToHex as hexOf, bytesToBin, base64ToBytes } from './bytes.ts';
+import { locateOpusComment, parseOpusTags, commentKey, commentValue, OGG_C2PA_KEY } from './ogg.ts';
 // Type-only — no runtime cycle: c2pa-verify.ts imports VALUES from this file,
 // this file imports only a TYPE back (erased at compile time).
 import type { C2paHistoryStep } from './c2pa-verify.ts';
@@ -277,14 +278,18 @@ export function extractC2paFromPdf(pdfBytes: Uint8Array): { manifest: Uint8Array
 
 const ascii = (b: Uint8Array, o: number, n: number): string => String.fromCharCode(...b.subarray(o, o + n));
 
-export type SniffFormat = 'pdf' | 'png' | 'jpeg' | 'gif' | 'svg' | 'tiff' | 'webp' | 'avif' | 'mp4' | 'webm' | 'mkv' | 'mp3' | 'wav';
+export type SniffFormat = 'pdf' | 'png' | 'jpeg' | 'gif' | 'svg' | 'tiff' | 'webp' | 'avif' | 'mp4' | 'webm' | 'mkv' | 'mp3' | 'wav' | 'ogg';
 
-/** Sniff the container format from magic bytes ('pdf'|'png'|'jpeg'|'gif'|'svg'|'tiff'|'webp'|'mp4'|'webm'|'mkv'|'mp3'|'wav'|null). */
+/** Sniff the container format from magic bytes ('pdf'|'png'|'jpeg'|'gif'|'svg'|'tiff'|'webp'|'mp4'|'webm'|'mkv'|'mp3'|'wav'|'ogg'|null). */
 export function sniffFormat(bytes: Uint8Array): SniffFormat | null {
   if (bytes.length < 12) return null;
   if (bytes[0] === 0x89 && ascii(bytes, 1, 3) === 'PNG') return 'png';
   if (bytes[0] === 0xff && bytes[1] === 0xd8 && bytes[2] === 0xff) return 'jpeg';
   if (ascii(bytes, 0, 3) === 'GIF') return 'gif';
+  // Ogg — only Opus is claimed (its C2PA field lives in the OpusTags comment
+  // header). OpusHead is the first packet on the BOS page (body at offset 28 for
+  // the usual one-segment page); a short scan of the header region finds it.
+  if (ascii(bytes, 0, 4) === 'OggS') return bytesToBin(bytes.subarray(0, 64)).includes('OpusHead') ? 'ogg' : null;
   // MP3: a leading ID3v2 tag is the reliable signature (the credential's home).
   // A bare frame-sync start is NOT sniffed — 0xFF 0xEx is too weak a magic to
   // claim against every other unrecognised format, and a tagless MP3 cannot be
@@ -656,6 +661,21 @@ function extractC2paFromMp3(mp3: Uint8Array): { manifest: Uint8Array } | null {
   return found.length ? { manifest: found[0]! } : null;
 }
 
+// Ogg Opus: the store is the base64 value of a `C2PA=` VorbisComment field in the
+// OpusTags comment header (write side in c2pa-containers placeOgg; the binding
+// grammar in ogg.ts). No comment field ⇒ the file carries no credential.
+function extractC2paFromOgg(ogg: Uint8Array): { manifest: Uint8Array } | null {
+  const loc = locateOpusComment(ogg);
+  if (!loc) return null;
+  const tags = parseOpusTags(loc.packet);
+  if (!tags) return null;
+  const field = tags.comments.find((c) => commentKey(c) === OGG_C2PA_KEY);
+  if (!field) return null;
+  const b64 = bytesToBin(commentValue(field)).replace(/\s+/g, '');
+  if (!b64) return null;
+  try { return { manifest: base64ToBytes(b64) }; } catch { return null; }
+}
+
 export const EXTRACTORS: Record<SniffFormat, (bytes: Uint8Array) => { manifest: Uint8Array } | null> = {
   pdf: extractC2paFromPdf,
   png: extractC2paFromPng,
@@ -670,6 +690,7 @@ export const EXTRACTORS: Record<SniffFormat, (bytes: Uint8Array) => { manifest: 
   mkv: extractC2paFromWebm,
   mp3: extractC2paFromMp3,
   wav: extractC2paFromRiff,
+  ogg: extractC2paFromOgg,
 };
 
 

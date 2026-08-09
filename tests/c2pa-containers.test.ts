@@ -34,6 +34,7 @@ import {
 } from '../engine/src/c2pa-containers.ts';
 import { extractC2paStore, sniffFormat, EXTRACTORS, extractC2paFromPdf } from '../engine/src/c2pa-extract.ts';
 import { packTiff } from '../engine/src/tiff.ts';
+import { walkOggPages } from '../engine/src/ogg.ts';
 
 // ─── fixture helpers (structure-valid minimal containers) ─────────────────────
 
@@ -134,6 +135,38 @@ const tinyWebm = (): Uint8Array => knownSegment(concat([
   eb([0x1f, 0x43, 0xb6, 0x75], bytesOf('fake-cluster-data')),     // Cluster
 ]));
 
+// Ogg Opus: OpusHead (BOS) + OpusTags (the comment header where the credential
+// lands) + one audio page. Pages carry a real libogg CRC (non-reflected, poly
+// 0x04c11db7), so the fixture is a structurally valid, decodable stream.
+const u16le = (n: number): Uint8Array => Uint8Array.of(n & 0xff, (n >>> 8) & 0xff);
+const OGG_CRC_T = (() => {
+  const t = new Uint32Array(256);
+  for (let i = 0; i < 256; i++) { let r = i << 24; for (let j = 0; j < 8; j++) r = (r & 0x80000000) ? ((r << 1) ^ 0x04c11db7) : (r << 1); t[i] = r >>> 0; }
+  return t;
+})();
+const oggCrc = (b: Uint8Array): number => { let c = 0; for (const x of b) c = ((c << 8) ^ OGG_CRC_T[((c >>> 24) ^ x) & 0xff]!) >>> 0; return c >>> 0; };
+const oggPage = (htype: number, seq: number, packet: Uint8Array): Uint8Array => {
+  const nseg = Math.floor(packet.length / 255) + 1;
+  const seg = new Uint8Array(nseg);
+  for (let i = 0; i < nseg - 1; i++) seg[i] = 255;
+  seg[nseg - 1] = packet.length % 255;
+  const head = new Uint8Array(27);
+  head.set(bytesOf('OggS'), 0); head[5] = htype; head[26] = nseg;
+  const dvh = new DataView(head.buffer);
+  dvh.setUint32(14, 0xcafe, true); // serial
+  dvh.setUint32(18, seq, true);    // page sequence
+  const page = concat([head, seg, packet]);
+  new DataView(page.buffer, page.byteOffset).setUint32(22, oggCrc(page), true);
+  return page;
+};
+const OPUS_HEAD = concat([bytesOf('OpusHead'), Uint8Array.of(1, 1), u16le(0), u32le(48000), u16le(0), Uint8Array.of(0)]);
+const OPUS_TAGS = concat([bytesOf('OpusTags'), u32le(0), u32le(0)]); // empty vendor + 0 comments
+const tinyOpus = (): Uint8Array => concat([
+  oggPage(0x02, 0, OPUS_HEAD),               // BOS
+  oggPage(0x00, 1, OPUS_TAGS),               // comment header
+  oggPage(0x04, 2, bytesOf('fake-opus-audio')), // EOS audio
+]);
+
 // A JUMBF store shaped like a real c2pa manifest store: the outer 'jumb' box
 // with a 'jumd' description whose UUID begins with the ASCII bytes "c2pa" (the
 // JPEG reader identifies its start segment by that marker), plus filler long
@@ -167,12 +200,14 @@ const FIXTURES: Array<[string, Uint8Array]> = [
   ['m4a', tinyM4a()],
   ['webm', tinyWebm()],
   ['wav', tinyWav()],
+  ['ogg', tinyOpus()],
+  ['opus', tinyOpus()],
 ];
 
 // ─── dispatch table ───────────────────────────────────────────────────────────
 
 test('C2PA_FORMATS covers every dispatchable format and nothing else', () => {
-  assert.deepEqual([...C2PA_FORMATS], ['pdf', 'pdf-cmyk', 'png', 'apng', 'jpg', 'jpeg', 'gif', 'svg', 'tiff', 'cmyk-tiff', 'webp', 'mp4', 'avif', 'm4a', 'webm', 'mp3', 'wav']);
+  assert.deepEqual([...C2PA_FORMATS], ['pdf', 'pdf-cmyk', 'png', 'apng', 'jpg', 'jpeg', 'gif', 'svg', 'tiff', 'cmyk-tiff', 'webp', 'mp4', 'avif', 'm4a', 'webm', 'mp3', 'wav', 'ogg', 'opus']);
   assert.ok(Object.isFrozen(C2PA_FORMATS));
   for (const [fmt] of FIXTURES) assert.ok(C2PA_FORMATS.includes(fmt), `${fmt} is declared stampable`);
 });
@@ -316,6 +351,37 @@ test('webm: the attachment declares application/c2pa and nothing before it moves
   assert.equal(indexOfBytes(out, bytesOf('fake-cluster-data')), indexOfBytes(fixture, bytesOf('fake-cluster-data')));
 });
 
+test('ogg: the store rides in the OpusTags comment header, audio pages untouched, every page CRC valid', () => {
+  const fixture = tinyOpus();
+  const store = fakeStore(300);
+  const out = attachC2paStore(fixture, 'opus', store);
+  // The credential lands between OpusTags and the audio — i.e. inside the rebuilt
+  // comment page, never in the BOS header or the sound.
+  const tagsAt = indexOfBytes(out, bytesOf('OpusTags'));
+  const audioAt = indexOfBytes(out, bytesOf('fake-opus-audio'));
+  const credAt = indexOfBytes(out, bytesOf('C2PA='));
+  assert.ok(tagsAt >= 0 && credAt > tagsAt && audioAt > credAt, 'C2PA field sits in the comment header, before the audio');
+  // The OpusHead BOS page (page 0) is byte-identical, and the audio page is
+  // present verbatim — only the comment page changed.
+  const inPages = walkOggPages(fixture);
+  const outPages = walkOggPages(out);
+  assert.equal(outPages.length, inPages.length, 'page count preserved (comment rebuilt in place, no renumber)');
+  assert.ok(sameBytes(out.subarray(0, inPages[1]!.start), fixture.subarray(0, inPages[1]!.start)), 'OpusHead page unchanged');
+  assert.ok(indexOfBytes(out, fixture.subarray(inPages[2]!.start)) === out.length - (fixture.length - inPages[2]!.start), 'audio pages carried verbatim as the tail');
+  // Every rebuilt page still checksums — the file stays a valid, playable Ogg.
+  const OGG = (() => { const t = new Uint32Array(256); for (let i = 0; i < 256; i++) { let r = i << 24; for (let j = 0; j < 8; j++) r = (r & 0x80000000) ? ((r << 1) ^ 0x04c11db7) : (r << 1); t[i] = r >>> 0; } return t; })();
+  const crc = (b: Uint8Array): number => { let c = 0; for (const x of b) c = ((c << 8) ^ OGG[((c >>> 24) ^ x) & 0xff]!) >>> 0; return c >>> 0; };
+  for (const p of outPages) {
+    const page = out.slice(p.start, p.end);
+    const stored = new DataView(page.buffer, page.byteOffset).getUint32(22, true);
+    new DataView(page.buffer, page.byteOffset).setUint32(22, 0, true);
+    assert.equal(crc(page), stored, `page seq ${p.seq} CRC valid`);
+  }
+  // ...and the store reads straight back out.
+  const ex = extractC2paStore(out);
+  assert.ok(ex && ex.format === 'ogg' && sameBytes(ex.store, store), 'store extracts back byte-for-byte, sniffed as ogg');
+});
+
 // ─── malformed / truncated containers (every placer refuses) ──────────────────
 
 test('malformed and truncated containers are refused, per format, with a named reason', () => {
@@ -344,6 +410,8 @@ test('malformed and truncated containers are refused, per format, with a named r
     ['webm', 'not EBML', bytesOf('no ebml magic here'), /not a WebM\/Matroska file/],
     ['webm', 'Segment size overruns EOF', concat([EBML_HEAD, SEG_ID, Uint8Array.of(0x41, 0x00), bytesOf('x')]), /truncated Matroska Segment/],
     ['webm', 'no Segment after the header', concat([EBML_HEAD, bytesOf('junk')]), /no Matroska Segment/],
+    ['opus', 'not an Ogg stream', bytesOf('not an ogg stream at all!!'), /not an Ogg Opus stream/],
+    ['opus', 'Ogg but not Opus', concat([oggPage(0x02, 0, bytesOf('\x01vorbis fake id header')), oggPage(0x00, 1, bytesOf('\x03vorbis'))]), /not an Ogg Opus stream/],
   ];
   for (const [fmt, why, bytes, want] of cases) {
     assert.throws(() => attachC2paStore(bytes, fmt, store), want, `${fmt}: ${why}`);

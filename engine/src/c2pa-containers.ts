@@ -21,6 +21,7 @@ import {
 } from './video-meta.ts';
 import { generateSigner } from './x509.ts';
 import { concatBytes, sha256, bytesToBin } from './bytes.ts';
+import { locateOpusComment, parseOpusTags, buildOpusTags, buildOggPage, commentKey, OGG_C2PA_KEY } from './ogg.ts';
 import { buildC2paManifest, urnUuid, BMFF_HASH_LABEL } from './c2pa.ts';
 import type { Signer, Exclusion, EmbedOptions, PlaceResult } from './c2pa.ts';
 // Runtime-light: gainmap-jpeg's only value imports are bytes.ts + jpeg-segments.ts
@@ -751,6 +752,34 @@ function placeWav(wav: Uint8Array, manifest: Uint8Array): PlaceResult {
   return placeRiff(wav, manifest, 'WAVE', 'WAV');
 }
 
+// ─── Ogg (Opus) ────────────────────────────────────────────────────────────────
+// Opus in Ogg (the .opus/.ogg files ffmpeg's libopus writes) has no C2PA-spec
+// container binding — c2pa-rs can't read it — so this is Lolly's own home for the
+// credential, the same "our verifier only" caveat as the WebM attachment path.
+// The JUMBF store rides as a base64 `C2PA=` VorbisComment field in the OpusTags
+// comment header (the lone packet on the second Ogg page). We rebuild that ONE
+// page (a fresh segment table + a recomputed Ogg CRC) and exclude its whole byte
+// range from the hard binding, so OpusHead + every audio page — the actual sound
+// — hashes identically across the two-pass embed. Unknown comment fields are
+// ignored by decoders, so the file still plays everywhere (incl. Safari's Web
+// Audio, the reason these loops are Ogg/Opus rather than WebM in the first place).
+// See engine/src/ogg.ts for the page grammar. Re-stamp strips any prior C2PA
+// field first, so it replaces rather than accumulates.
+function placeOgg(ogg: Uint8Array, manifest: Uint8Array): PlaceResult {
+  const loc = locateOpusComment(ogg);
+  if (!loc) throw new Error('C2PA embed: not an Ogg Opus stream (no OpusHead/OpusTags)');
+  if (loc.pageCount !== 1) throw new Error('C2PA embed: multi-page Opus comment header not supported');
+  const tags = parseOpusTags(loc.packet);
+  if (!tags) throw new Error('C2PA embed: malformed OpusTags comment header');
+  const kept = tags.comments.filter((c) => commentKey(c) !== OGG_C2PA_KEY);
+  const field = concatBytes([te.encode(`${OGG_C2PA_KEY}=`), te.encode(btoa(bytesToBin(manifest)))]);
+  const page = buildOggPage(loc.first22, buildOpusTags(tags.vendor, [...kept, field]));
+  return {
+    out: concatBytes([ogg.subarray(0, loc.commentStart), page, ogg.subarray(loc.commentEnd)]),
+    exclusions: [{ start: loc.commentStart, length: page.length }],
+  };
+}
+
 // ─── MP4 (ISO BMFF) ───────────────────────────────────────────────────────────
 
 interface Box {
@@ -1197,6 +1226,11 @@ const CONTAINERS: Record<string, Container> = {
   webm: { place: placeWebm, mime: 'video/webm' },
   mp3: { place: placeMp3, mime: 'audio/mpeg' },
   wav: { place: placeWav, mime: 'audio/wav' },
+  // Ogg Opus — the JUMBF store lives in the OpusTags comment header, byte-range
+  // excluded (Lolly-only binding; c2pa-rs has no Ogg reader). 'opus' and 'ogg'
+  // are the same container; both map to the export/asset format strings in use.
+  ogg: { place: placeOgg, mime: 'audio/ogg' },
+  opus: { place: placeOgg, mime: 'audio/ogg' },
 };
 
 /** Formats embedC2pa can stamp (plus 'pdf'/'pdf-cmyk' via embedC2paInPdf). */
