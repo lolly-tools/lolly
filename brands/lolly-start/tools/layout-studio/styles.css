@@ -58,6 +58,12 @@
 .lolly-box-lottie { pointer-events: none; }
 .lolly-box-lottie > svg { display: block; width: 100%; height: 100%; }
 
+/* An audio box (a music bed / voiceover) is a TIMELINE citizen, not an artboard one: it
+   carries the src for the shell compositor's waveform + audio mix and nothing visible.
+   display:none rather than opacity/visibility so it takes no space and no export walker
+   (SVG/PDF/raster) ever visits it — a still export can never show a mark where it sits. */
+.lolly-box-audio { display: none; }
+
 /* A vector path box's inline <svg>: fills the box frame exactly (its viewBox is the
    box's own px size, so the mapping is 1:1 and the stroke keeps a uniform width).
    Non-interactive like the Lottie player, so it never steals the editor's
@@ -91,3 +97,36 @@
    just "•"-prefixed lines (see hooks.js richText), so no list styling is needed. */
 .lolly-box-text strong { font-weight: bolder; }
 .lolly-box-text em { font-style: italic; }
+
+/* Hand-authored frames (plan 93): when >=1 kind:"frame" box exists the render swaps the
+   single .artboard for one .lolly-frame-page per frame — each a [data-pdf-page] the export
+   path sizes independently. The page's width/height/background/overflow are inline (from the
+   hook, so a headless render matches), so these rules carry only the structural essentials:
+   the wrapper flows its pages, and each page is the positioned containing block its member
+   .lolly-box children (position:absolute) resolve their frame-local left/top against. Only
+   present in frames mode; the no-frame path never emits these, so its .artboard is untouched. */
+.lolly-frames {
+  position: absolute;
+  inset: 0;
+}
+.lolly-frame-page {
+  position: relative;
+  /* Default board surface for a frame with NO authored bg — hooks.js emits
+     `background: var(--lolly-frame-surface, #ffffff)`. This is REAL, exported page fill
+     (unlike the editor-only shadow/ring), so a bg-less frame reads as a board on any
+     canvas theme. Light context → paper; an authored bg overrides it entirely. */
+  --lolly-frame-surface: #ffffff;
+}
+@media (prefers-color-scheme: dark) {
+  /* Anchor: scopeCss() leaves the FIRST selector inside an @media block unscoped, so a
+     bare .lolly-frame-page here would lose to the scoped light rule above. This no-op
+     absorbs that slot; the real override below is scoped and wins on source order.
+     (Keep NOTHING between the previous } and this @media — a comment there breaks the
+     whole block through the scoper.) */
+  .lolly-frame-surface-dm-anchor { color: inherit; }
+  /* Dark canvas → a subtle RAISED neutral that contrasts with the near-black backdrop
+     (deliberately NOT --brand-surface, whose dark value is ink = the backdrop, which
+     would leave the frame invisible). CLI has no media query, so the #ffffff hook
+     fallback stands there and the export stays deterministic. */
+  .lolly-frame-page { --lolly-frame-surface: #2a2f3a; }
+}

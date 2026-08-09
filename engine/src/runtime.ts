@@ -89,6 +89,11 @@ export interface ExportFileResult {
  * has real precision for and every other export is byte-identical to before.
  * Like the exportFile transform path, tool-supplied bytes carry NO watermark and
  * NO engine-stamped provenance (the tool owns what it wrote).
+ *
+ * Not only deep RASTER: the bytes are whatever the requested format is, so a tool
+ * may own a non-raster binary here too — e.g. the color-palette tool returns an
+ * Adobe `.ase` swatch file for `format === 'ase'` (host.color.paletteExportBytes)
+ * and declines every other format. The runtime just wraps the bytes with `mime`.
  */
 export interface ExportStillResult {
   bytes: Uint8Array | ArrayBuffer;
@@ -1020,10 +1025,12 @@ export async function createRuntime(
 
 // Text/data export formats and their MIME types. These are produced from the
 // model rather than the rendered DOM, so the engine assembles the payload and
-// the host just wraps it in a Blob. JSON is derived from the resolved input
-// values; ICS/VCF/CSV come from a sibling text template (template.<ext>).
+// the host just wraps it in a Blob. JSON defaults to the resolved input values,
+// but a tool that ships a sibling template.json owns it instead (see below);
+// ICS/VCF/CSV/CSS/SCSS/GPL all come from a sibling text template (template.<ext>).
 const DATA_FORMATS: Record<string, string> =
-  { json: 'application/json', csv: 'text/csv', ics: 'text/calendar', vcf: 'text/vcard' };
+  { json: 'application/json', csv: 'text/csv', ics: 'text/calendar', vcf: 'text/vcard',
+    css: 'text/css', scss: 'text/x-scss', gpl: 'text/plain' };
 
 // Returns { dataText, dataMime } for a data/text format, or {} for render
 // formats (png/svg/pdf/…) so the host takes its normal DOM path.
@@ -1043,6 +1050,13 @@ function buildDataPayload(
   const dataMime = DATA_FORMATS[format];
   if (!dataMime) return {};
   if (format === 'json') {
+    // `json` is opt-in per tool, exactly like `md`: a sibling template.json →
+    // model-derived JSON (e.g. a tool's own DTCG token document); with no
+    // template.json, the built-in {tool,version,inputs} model dump as before, so
+    // every existing json-exporting tool is unchanged. getHydratedText already
+    // hydrates raw (no HTML escaping), which a JSON payload needs.
+    const jsonTpl = tool.textTemplates?.json;
+    if (jsonTpl != null) return { dataText: getHydratedText(jsonTpl), dataMime };
     const dataText = JSON.stringify(
       { tool: tool.manifest.id, version: tool.manifest.version, inputs: modelToValues(model) },
       null, 2,
@@ -1326,6 +1340,12 @@ function mergePatch(
   const modelPatch: Record<string, InputValue> = {};
   let hasModelPatch = false;
   for (const [k, v] of Object.entries(patch as Record<string, unknown>)) {
+    // A key whose value is undefined is a hook MENTIONING an input, not
+    // setting it (`{ boxes: migrated || undefined }` is the shipped bug this
+    // guards: key presence used to blank the input to undefined and every
+    // consumer downstream saw nothing). Skipping is safe for extras too — an
+    // undefined extra is indistinguishable from an absent one in templates.
+    if (v === undefined) continue;
     // Hook trust boundary: a patched input value is whatever the tool
     // computed — the same latitude the untyped runtime always gave hooks.
     if (ids.has(k)) { modelPatch[k] = v as InputValue; hasModelPatch = true; }

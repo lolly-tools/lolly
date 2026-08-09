@@ -39,7 +39,16 @@
       "pdf-cmyk",
       "cmyk-tiff",
       "jpg",
-      "webp"
+      "webp",
+      "mp4",
+      "webm",
+      "gif",
+      "apng",
+      "wav",
+      "mp3",
+      "m4a",
+      "opus",
+      "pptx"
     ],
     "actions": [
       "copy",
@@ -48,7 +57,11 @@
       "share"
     ],
     "layout": "editor",
-    "transparentBg": true
+    "transparentBg": true,
+    "video": {
+      "wait": 0,
+      "duration": 12
+    }
   },
   "hooks": {
     "onInit": true,
@@ -65,7 +78,8 @@
     {
       "id": "connectors",
       "type": "blocks",
-      "label": "Connectors",
+      "label": "Connectors (retired)",
+      "help": "Retired. Connector rows are converted to path boxes the moment this tool loads, so an older share link still opens and nothing is written here again. A connector is an ordinary path with one end attached to a box: draw one with the line tool, then drag an end onto a card.",
       "labelledFields": true,
       "fields": [
         { "id": "id", "type": "text" },
@@ -173,6 +187,14 @@
         "groupField": "group",
         "clipField": "clip",
         "pathField": "path",
+        "headStartField": "headStart",
+        "headEndField": "headEnd",
+        "bindStartField": "bindStart",
+        "bindEndField": "bindEnd",
+        "routeField": "route",
+        "pathLayerClass": "lolly-connectors",
+        "strokeDashArrayField": "strokeDashArray",
+        "dashFitField": "dashFit",
         "shadowField": "shadow",
         "shadowColorField": "shadowColor",
         "shadowXField": "shadowX",
@@ -190,23 +212,10 @@
         "exitEaseField": "exitEase",
         "muteField": "mute",
         "laneField": "lane",
-        "connect": {
-          "input": "connectors",
-          "fromField": "from",
-          "toField": "to",
-          "styleField": "style",
-          "arrowField": "arrow",
-          "headField": "head",
-          "colorField": "color",
-          "dashField": "dash",
-          "widthField": "width",
-          "layerClass": "lolly-connectors",
-          "defaultStyle": "straight",
-          "defaultArrow": "end",
-          "defaultHead": "triangle",
-          "defaultColor": "#64748b",
-          "defaultWidth": 3
-        },
+        "frameField": "frame",
+        "orderField": "order",
+        "clipChildrenField": "clipChildren",
+        "frameKind": "frame",
         "minSize": 8,
         "import": {
           "formats": [
@@ -303,6 +312,24 @@
               "h": 400,
               "path": "1!catmull-rom!1_.5!0_1!.5_.5!1_0!.5"
             }
+          },
+          {
+            "id": "audio",
+            "label": "Audio",
+            "seed": {
+              "kind": "audio"
+            }
+          },
+          {
+            "id": "frame",
+            "label": "Artboard",
+            "seed": {
+              "kind": "frame",
+              "bg": "#fafbfe",
+              "shape": "rect",
+              "stroke": "#dfe3ec",
+              "strokeW": 2
+            }
           }
         ]
       },
@@ -335,6 +362,16 @@
             {
               "value": "path",
               "label": "Path",
+              "repeatable": true
+            },
+            {
+              "value": "audio",
+              "label": "Audio",
+              "repeatable": true
+            },
+            {
+              "value": "frame",
+              "label": "Artboard",
               "repeatable": true
             }
           ]
@@ -828,7 +865,8 @@
           "showFor": [
             "path",
             "box",
-            "image"
+            "image",
+            "frame"
           ]
         },
         {
@@ -841,7 +879,8 @@
           "showFor": [
             "path",
             "box",
-            "image"
+            "image",
+            "frame"
           ]
         },
         {
@@ -1097,7 +1136,8 @@
           "showFor": [
             "path",
             "box",
-            "image"
+            "image",
+            "frame"
           ],
           "options": [
             {
@@ -1234,68 +1274,209 @@
           "label": "Out easing",
           "default": "",
           "help": "The same curve control for the animate-out preset. Same wire format, same geometry-only reach."
+        },
+        {
+          "id": "frame",
+          "type": "text",
+          "label": "Artboard",
+          "default": ""
+        },
+        {
+          "id": "order",
+          "type": "number",
+          "label": "Order",
+          "default": 0,
+          "showFor": [
+            "frame"
+          ]
+        },
+        {
+          "id": "clipChildren",
+          "type": "boolean",
+          "label": "Clip children",
+          "default": true,
+          "showFor": [
+            "frame"
+          ]
+        },
+        {
+          "id": "headStart",
+          "type": "select",
+          "label": "Path start",
+          "default": "none",
+          "showFor": [
+            "path"
+          ],
+          "options": [
+            {
+              "value": "none",
+              "label": "None"
+            },
+            {
+              "value": "triangle",
+              "label": "Arrow"
+            },
+            {
+              "value": "open",
+              "label": "Open arrow"
+            },
+            {
+              "value": "circle",
+              "label": "Circle"
+            },
+            {
+              "value": "diamond",
+              "label": "Diamond"
+            },
+            {
+              "value": "bar",
+              "label": "Bar"
+            }
+          ],
+          "help": "An arrowhead at the path's FIRST point, pointing back out along the curve's own tangent. A spline, a line and a connector are one shape here, so they all take the same six heads."
+        },
+        {
+          "id": "headEnd",
+          "type": "select",
+          "label": "Path end",
+          "default": "none",
+          "showFor": [
+            "path"
+          ],
+          "options": [
+            {
+              "value": "none",
+              "label": "None"
+            },
+            {
+              "value": "triangle",
+              "label": "Arrow"
+            },
+            {
+              "value": "open",
+              "label": "Open arrow"
+            },
+            {
+              "value": "circle",
+              "label": "Circle"
+            },
+            {
+              "value": "diamond",
+              "label": "Diamond"
+            },
+            {
+              "value": "bar",
+              "label": "Bar"
+            }
+          ],
+          "help": "An arrowhead at the path's LAST point, pointing out along the curve's own tangent. The line tool sets this to Arrow; every other path starts with None."
+        },
+        {
+          "id": "strokeDashArray",
+          "type": "text",
+          "label": "Dash array",
+          "default": "",
+          "showFor": [
+            "path"
+          ],
+          "help": "The dash pattern as plain numbers, space separated, in the same units as the stroke width: 6 4 is a 6 long dash with a 4 long gap. Set, it wins over Stroke style. Empty keeps the width proportional pattern that Stroke style derives."
+        },
+        {
+          "id": "dashFit",
+          "type": "boolean",
+          "label": "Fit dashes to corners",
+          "default": false,
+          "showFor": [
+            "path"
+          ],
+          "help": "Stretch the dash pattern a little so a whole number of dashes fits between each corner and each end of the path, instead of a half dash landing on a corner. Applies to an authored Dash array."
+        },
+        {
+          "id": "bindStart",
+          "type": "text",
+          "label": "Start attached to",
+          "default": "",
+          "showFor": [],
+          "help": "The id of the box this path's first point is attached to, empty for a free point. Written by the editor, never typed: a path with an attached end is a connector, routed to that box's border and re-routed when it moves."
+        },
+        {
+          "id": "bindEnd",
+          "type": "text",
+          "label": "End attached to",
+          "default": "",
+          "showFor": [],
+          "help": "The id of the box this path's last point is attached to, empty for a free point. Written by the editor, never typed."
+        },
+        {
+          "id": "route",
+          "type": "select",
+          "label": "Route",
+          "default": "",
+          "showFor": [
+            "path"
+          ],
+          "options": [
+            {
+              "value": "",
+              "label": "Auto, from the spline type"
+            },
+            {
+              "value": "straight",
+              "label": "Straight"
+            },
+            {
+              "value": "elbow",
+              "label": "Elbow, auto"
+            },
+            {
+              "value": "elbow-v",
+              "label": "Elbow, vertical"
+            },
+            {
+              "value": "elbow-h",
+              "label": "Elbow, horizontal"
+            },
+            {
+              "value": "elbow-src",
+              "label": "Elbow, bend at the start"
+            },
+            {
+              "value": "elbow-tgt",
+              "label": "Elbow, bend at the end"
+            },
+            {
+              "value": "curved",
+              "label": "Curved, auto S"
+            },
+            {
+              "value": "curved-v",
+              "label": "Curved, vertical S"
+            },
+            {
+              "value": "curved-h",
+              "label": "Curved, horizontal S"
+            },
+            {
+              "value": "arc",
+              "label": "Arc, bow"
+            },
+            {
+              "value": "arc-wide",
+              "label": "Arc, wide bow"
+            },
+            {
+              "value": "arc-flip",
+              "label": "Arc, reverse bow"
+            },
+            {
+              "value": "arc-flip-wide",
+              "label": "Arc, wide reverse bow"
+            }
+          ],
+          "help": "How a path with an attached end is routed between the boxes. Auto reads it off the spline type: straight lines route straight, a polyline of three or more points routes as an elbow, spiro bows, and every other spline type routes as a smooth S. Pick one here for the bends auto cannot name. Ignored while both ends are free."
         }
       ],
-      "default": [
-        {
-          "id": "paper",
-          "kind": "box",
-          "x": 0,
-          "y": 0,
-          "w": 1080,
-          "h": 1080,
-          "rot": 0,
-          "shape": "rect",
-          "bg": "#fafbfe"
-        },
-        {
-          "id": "accent",
-          "kind": "box",
-          "x": 700,
-          "y": -220,
-          "w": 680,
-          "h": 680,
-          "rot": 18,
-          "shape": "ellipse",
-          "bg": "#d4e5ff"
-        },
-        {
-          "id": "head",
-          "kind": "text",
-          "x": 120,
-          "y": 430,
-          "w": 840,
-          "h": 280,
-          "rot": 0,
-          "shape": "rect",
-          "text": "Design once,\n{#5283d5|ship everywhere}",
-          "fg": "#11141f",
-          "fontSize": 92,
-          "align": "left",
-          "valign": "top",
-          "weight": "700",
-          "font": "sans",
-          "lineHeight": 1.1
-        },
-        {
-          "id": "sub",
-          "kind": "text",
-          "x": 120,
-          "y": 735,
-          "w": 840,
-          "h": 120,
-          "rot": 0,
-          "shape": "rect",
-          "text": "Your brand, on every canvas.",
-          "fg": "#666978",
-          "fontSize": 34,
-          "align": "left",
-          "valign": "top",
-          "weight": "400",
-          "font": "sans",
-          "lineHeight": 1.3
-        }
-      ]
+      "default": []
     }
   ]
 }

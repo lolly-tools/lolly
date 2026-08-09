@@ -143,6 +143,33 @@ export function entryFromManifest(manifest: Manifest): Record<string, unknown> {
   // `featured` above, it's an object/array excluded from INDEX_FIELDS' scalar drift
   // check; the copy here is deterministic, so re-running build:catalog is idempotent.
   if (Array.isArray(manifest.examples)) entry.examples = manifest.examples;
+  // "New from template" starting points. SOURCE OF TRUTH = per-template files at
+  // tools/<id>/templates/<tid>.json ({ id, name, category?, description?, thumb?, values }).
+  // The index carries METADATA ONLY (id/name/category/description/thumb) — never the
+  // heavy `values` seed, which a client fetches on demand (chooser-select and the
+  // reserved `?template=<id>` launcher). This keeps the synced index lean no matter how
+  // many templates land or how large a free-canvas `boxes` blob grows. The scan mirrors
+  // the i18n subdir walk below (same ROOT/tools/<id>/<subdir> join + existsSync guard +
+  // sorted readdir for a deterministic, idempotent order); it is excluded from
+  // INDEX_FIELDS' scalar drift check, and validate-catalog re-derives + asserts it.
+  const templatesDir = join(ROOT, 'tools', manifest.id, 'templates');
+  if (existsSync(templatesDir)) {
+    const templates: Array<Record<string, unknown>> = [];
+    for (const file of readdirSync(templatesDir).sort()) {
+      if (!file.endsWith('.json')) continue;
+      let t: Record<string, unknown>;
+      try { t = JSON.parse(readFileSync(join(templatesDir, file), 'utf8')); } catch { continue; }
+      if (typeof t.id !== 'string' || !t.id) continue;
+      if (typeof t.name !== 'string' || !t.name) continue;
+      const meta: Record<string, unknown> = {};
+      // METADATA ONLY — `values` is deliberately excluded so the index stays lean.
+      for (const k of ['id', 'name', 'category', 'description', 'thumb']) {
+        if (t[k] !== undefined) meta[k] = t[k];
+      }
+      templates.push(meta);
+    }
+    if (templates.length) entry.templates = templates;
+  }
   // Paged tools (render.paged) lay out multiple [data-pdf-page] boxes; the gallery
   // shows each page as its own preview slide instead of input-variant looks.
   if (manifest.render?.paged === true) entry.paged = true;

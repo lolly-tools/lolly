@@ -150,7 +150,7 @@ test('url-mode: RESERVED set matches the documented reserved-param list', () => 
   const documented = [
     'format', 'export', 'copy', 'full', 'options', 'slot', 'output', 'filename',
     '_v', 'width', 'w', 'height', 'h', 'unit', 'dpi', 'profile', 'password',
-    'bleed', 'marks', 'c2pa', 'imprint', 'durable', 'meta', 'hdr', 'depth', 'cuts', 'lang', 'nostage', 'z', 'zx',
+    'bleed', 'marks', 'c2pa', 'imprint', 'durable', 'meta', 'hdr', 'depth', 'cuts', 'lang', 'designv', 'nostage', 'template', 'z', 'zx',
   ];
   assert.deepEqual([...RESERVED].sort(), [...documented].sort());
 
@@ -171,6 +171,26 @@ test('url-mode: RESERVED set matches the documented reserved-param list', () => 
   // a name that is not a reserved param has no row key either.
   assert.equal(rowKeys.has('depth'), true);
   assert.equal(rowKeys.has('bitdepth'), false);
+});
+
+test('url-mode: designv is the design-system version override, read-only', () => {
+  // plans/97 §6a. Carried verbatim: only the caller knows which versions the
+  // device holds, so url-mode extracts the string and the ladder in
+  // design-version.ts decides what it means.
+  const s = parseUrlState('heading=Hi&designv=jupiter', SAMPLE_MANIFEST);
+  assert.equal(s.designVersion, 'jupiter');
+  assert.equal(s.values.designv, undefined);         // reserved — never a tool input
+  assert.equal(parseUrlState('designv=latest', SAMPLE_MANIFEST).designVersion, 'latest');
+
+  // Absent (and empty) read as null, which is the "no override" rung of the
+  // ladder — so a link written before versions existed resolves exactly as before.
+  assert.equal(parseUrlState('heading=Hi', SAMPLE_MANIFEST).designVersion, null);
+  assert.equal(parseUrlState('designv=', SAMPLE_MANIFEST).designVersion, null);
+
+  // NEVER serialised. A share link that pinned its recipient to a version of a
+  // design system they don't have would resolve to something else on their device
+  // anyway; worse, it would silently freeze their own system out of their render.
+  assert.equal(new URLSearchParams(serializeUrlState([], {})).has('designv'), false);
 });
 
 test('url-mode: depth param — requested export bit depth (8/16/float/auto)', () => {
@@ -1036,4 +1056,34 @@ test('runtime: resolves asset sub-fields inside blocks (CLI/URL parity)', async 
   assert.equal(val[1].img, null);                            // left alone
   assert.deepEqual(fetched, ['suse/logo/primary']);          // only the real ref fetched
   assert.match(rt.getHydrated(), /\[blob:suse\/logo\/primary\]\[\]/);  // template sees the url
+});
+
+test('runtime: a hook patch key with an undefined value never blanks the input', async () => {
+  // The shipped shape of this bug: `return { boxes: migrated || undefined }` —
+  // key present, value undefined — used to overwrite the input with undefined
+  // via key-presence merging. mergePatch now skips undefined values entirely,
+  // for inputs and extras alike.
+  const { loadTool, createRuntime } = await import('../engine/src/index.ts');
+  const tool = await loadTool('tt', async (p) => {
+    if (p.endsWith('tool.json')) return JSON.stringify({
+      id: 'tt', name: 'T', version: '1.0.0', engineVersion: '^1.0.0', status: 'community',
+      render: { formats: ['svg'], width: 100, height: 100 },
+      inputs: [{ id: 'msg', type: 'text', label: 'M', default: 'kept' }],
+      hooks: { onInit: true },
+    });
+    if (p.endsWith('template.html')) return '<svg xmlns="http://www.w3.org/2000/svg"><text>{{msg}}</text></svg>';
+    if (p.endsWith('hooks.js')) return 'function onInit() { return { msg: undefined, ghost: undefined }; }';
+    throw new Error('tool-not-found');
+  });
+  const host = {
+    version: '1', shell: 'cli', capabilities: [], log: () => {},
+    profile: { get: async () => ({}) },
+    assets: { get: async () => null, query: async () => [] },
+    state: { load: async () => null, save: async () => {}, list: async () => [] },
+    clipboard: {}, export: {},
+  } as never;
+  const rt = await createRuntime(tool, host, {});
+  const msg = rt.getModel().find((i) => i.id === 'msg');
+  assert.equal(msg?.value, 'kept');
+  assert.equal(rt.hookErrors.length, 0);
 });

@@ -1,6 +1,6 @@
 {
   "version": "1",
-  "generatedAt": "2026-08-08T06:23:45.934Z",
+  "generatedAt": "2026-08-09T07:28:46.116Z",
   "tools": [
     {
       "id": "compress-pdf",
@@ -1111,7 +1111,16 @@
         "pdf-cmyk",
         "cmyk-tiff",
         "jpg",
-        "webp"
+        "webp",
+        "mp4",
+        "webm",
+        "gif",
+        "apng",
+        "wav",
+        "mp3",
+        "m4a",
+        "opus",
+        "pptx"
       ],
       "width": 1080,
       "height": 1080,
@@ -1122,6 +1131,32 @@
         "order": 1,
         "blurb": "Free-form layouts on an open canvas"
       },
+      "templates": [
+        {
+          "id": "carousel",
+          "name": "Carousel",
+          "category": "Carousel",
+          "description": "Three frames in a row — one slide each — proving the frame primitive backs a carousel."
+        },
+        {
+          "id": "poster",
+          "name": "Poster",
+          "category": "Poster",
+          "description": "One frame filling the canvas, with a headline and a supporting line."
+        },
+        {
+          "id": "slide-deck",
+          "name": "Slide deck",
+          "category": "Slide deck",
+          "description": "Frames as slides — export as editable PowerPoint or PDF."
+        },
+        {
+          "id": "video",
+          "name": "Video",
+          "category": "Video",
+          "description": "A short motion clip — boxes animate in and out on a timeline."
+        }
+      ],
       "i18n": {
         "ar": {
           "name": "استوديو التخطيط",
@@ -1427,7 +1462,7 @@
       "id": "color-palette",
       "name": "Palette Lab",
       "description": "Grow a palette from one seed colour — harmony accents, perceptual OKLab ramps and WCAG/APCA readability badges, with DTCG tokens and CSV export.",
-      "version": "2.1.0",
+      "version": "2.2.0",
       "status": "community",
       "category": "utility",
       "tags": [
@@ -1442,7 +1477,12 @@
         "png",
         "jpg",
         "webp",
-        "csv"
+        "csv",
+        "json",
+        "css",
+        "scss",
+        "gpl",
+        "ase"
       ],
       "width": 1600,
       "height": 1000,
@@ -2822,8 +2862,8 @@
     },
     {
       "id": "deck-studio",
-      "name": "Deck Studio",
-      "description": "Build a native, editable PowerPoint deck — real text, bullets, tables and brand theme — from a simple slide builder, pasted Markdown, or a JSON spec. Charts and diagrams come from your other Lolly tools. Exports .pptx (editable), plus PDF and PNG.",
+      "name": "Markdown Slides",
+      "description": "Turn Markdown or a JSON spec into a native, editable PowerPoint deck — real text, bullets, tables and brand theme — in seconds. The fast text-first path to a deck; reach for the Design canvas when you want to lay slides out by hand or animate them. Charts and diagrams come from your other Lolly tools. Exports .pptx (editable), plus PDF and PNG.",
       "version": "1.0.0",
       "status": "community",
       "category": "designer",

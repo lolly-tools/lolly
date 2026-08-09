@@ -18,7 +18,7 @@ export type * from './contract.ts';
  *  spelling cannot drift apart. */
 export { KNOWN_FINISH_KINDS } from './host-v1.ts';
 
-export { validateTool } from './validate.ts';
+export { validateTool, validateCanvasOp } from './validate.ts';
 export type { ValidationIssue, ValidationResult } from './validate.ts';
 
 export { createMockHost } from './mock-host.ts';
@@ -68,6 +68,27 @@ export type {
   ExtensionSlotId, SlotCardinality, ExtensionChannel, Disposer,
   SlotManifest, SlotHost, Extension,
 } from './extension-v1.ts';
+
+// canvas-op-v1 — the canvas op/awareness/params contract (plans/99). The
+// host-v1 analog for the live canvas: a typed seam the OSS shell's
+// Scene/presenter and lolly-work's Yjs adapter both compile against without
+// either depending on the engine or on yjs. Canonical in this repo (the op
+// SHAPE is decided here; the transport lives in lolly-work). The OSS side's
+// dormant `org/` seam registers a `CanvasSyncAdapter` against it — with
+// nothing registered the path is dead and behaviour is byte-identical to
+// single-player. `ReferenceCanvasDoc` is a dependency-free reference CRDT used
+// to prove convergence in this repo's tests without a yjs dependency. See
+// canvas-op-v1.ts's header and plans/99-canvas-op-contract.md.
+export {
+  CANVAS_OP_VERSION, DEFAULT_GEOMETRY_FIELDS, laneForField, damageToOps,
+  opsToDamage, isCompatibleOpVersion, ReferenceCanvasDoc,
+} from './canvas-op-v1.ts';
+export type {
+  BoxId, Scalar, BoxRow, GeometryField, OpOrigin, Damage, CanvasOp, GeomOp,
+  FieldOp, AddOp, RemoveOp, OrderOp, ParamOp, ParamValue, ParamLiteral,
+  ParamBinding, ProviderRef, Awareness, Presence, CanvasDocState,
+  CanvasSyncAdapter,
+} from './canvas-op-v1.ts';
 
 export { defineTool, defineHooks } from './define-tool.ts';
 export type {
