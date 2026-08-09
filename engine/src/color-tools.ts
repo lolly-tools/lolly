@@ -44,6 +44,10 @@ import { oklchGamut, inGamut, maxChroma, oklchSlice, sliceGamutRegion } from './
 import { parseColor, colorToHexString, interpolateColor } from './css-color.ts';
 import { gradientSpecToCss } from './gradient-spec.ts';
 import { parseIccProfile, iccGamutSource, iccGamutIntent } from './icc.ts';
+import {
+  paletteTokensJson, paletteCssVariables, paletteCssClasses,
+  paletteScssVariables, paletteGpl, paletteAse,
+} from './palette-export.ts';
 import type { GamutSource, GamutLimit } from './gamut-source.ts';
 import type { ColorAPI, ColorProfileGamut, ColorRenderingIntent } from './bridge/host-v1.ts';
 
@@ -703,5 +707,21 @@ export function makeColorApi(): ColorAPI {
       const src = sourceFor(profile);
       return src?.inkCoverage?.(l, c, h) ?? null;
     },
+    // v1.108: palette exchange (palette-export.ts), attached verbatim. A flat
+    // swatch list → an interchange file: DTCG tokens JSON, CSS custom properties /
+    // classes, SCSS variables, or a GIMP .gpl as TEXT; the binary Adobe .ase goes
+    // through paletteExportBytes. The web shell's Swatches download calls the same
+    // serializers, so a palette a tool exports and one the brand editor downloads
+    // are byte-identical. Pure + sync, like the rest of this API.
+    paletteExport: (swatches, format, opts = {}) => {
+      switch (format) {
+        case 'tokens-json': return paletteTokensJson(swatches);
+        case 'css-vars': return paletteCssVariables(swatches);
+        case 'css-classes': return paletteCssClasses(swatches);
+        case 'scss': return paletteScssVariables(swatches);
+        case 'gpl': return paletteGpl(swatches, opts.paletteName);
+      }
+    },
+    paletteExportBytes: (swatches, _format) => paletteAse(swatches),
   };
 }

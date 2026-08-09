@@ -189,3 +189,141 @@ test('contrast mode falls back to the perceptual ramp when the host cannot solve
     'without solveApca the tool must degrade to OKLab, not fake solve metadata');
   assert.match(html, /class="pl-svg"/); // the sheet still rendered
 });
+
+// ── palette exchange: parity with the catalog Swatches download ───────────────
+// The tool ships json/css/scss/gpl/ase, driven by the flat paletteSwatches extra
+// through host.color.paletteExport / paletteExportBytes (engine 1.108). A
+// wrapping export.render (like the CLI bridge) lets us read the engine-hydrated
+// bytes; the binary .ase rides the exportStill hook and skips render entirely.
+
+function exportHost(): any {
+  const host: any = makeHost();
+  host.export = {
+    render: async (_n: unknown, _f: string, opts: any) =>
+      new Blob([opts.dataText ?? '<no-data>'], { type: opts.dataMime ?? 'text/plain' }),
+  };
+  return host;
+}
+
+async function mountExport(initialState: any) {
+  const rt = await createRuntime(tool, exportHost(), initialState);
+  return rt;
+}
+
+// Walk a dotted key ('color.ramp.seed.100') into the parsed tokens tree, return
+// the leaf's $value or undefined.
+function tokenValueAt(tokens: any, key: string): string | undefined {
+  let node = tokens;
+  for (const seg of key.split('.')) {
+    if (node == null || typeof node !== 'object') return undefined;
+    node = node[seg];
+  }
+  return node && typeof node === 'object' ? node.$value : undefined;
+}
+
+test('palette exchange: paletteSwatches keys + hexes mirror the tokens tree exactly', { skip: SKIP }, async () => {
+  const rt = await mountExport({ seed: '#2563eb', harmony: 'triad-3', steps: 5, neutrals: true });
+  const tokens = JSON.parse(rt.getHydratedString('{{{tokensJson}}}') as string);
+  // Read the flat swatch list the exchange serializers consume.
+  const probe = rt.getHydratedString('{{#each paletteSwatches}}{{key}}\t{{hex}}\t{{group}}\t{{name}}\n{{/each}}') as string;
+  const rows = probe.split('\n').filter(Boolean).map((l) => {
+    const [key, hex, group, name] = l.split('\t');
+    return { key, hex, group, name };
+  });
+  assert.ok(rows.length >= 4, 'expected base swatches + ramp cells');
+
+  for (const r of rows) {
+    assert.match(r.key!, /^color\.(ramp\.[a-z0-9-]+\.\d+|[a-z0-9-]+)$/, `unexpected key shape ${r.key}`);
+    assert.equal(tokenValueAt(tokens, r.key!), r.hex,
+      `${r.key}: paletteSwatches hex ${r.hex} must equal the tokens tree $value`);
+  }
+  // Base rows are grouped 'Palette'; ramp cells are '<name> ramp'.
+  assert.ok(rows.some(r => r.group === 'Palette'), 'a base swatch must be grouped Palette');
+  assert.ok(rows.some(r => r.group!.endsWith(' ramp')), 'ramp cells must be grouped "<name> ramp"');
+});
+
+test('palette exchange: json export is the DTCG tokens document (template.json)', { skip: SKIP }, async () => {
+  const rt = await mountExport({ seed: '#16a34a', harmony: 'complement', steps: 4, neutrals: false });
+  const blob = await rt.export({}, 'json', { embedMeta: false });
+  assert.equal(blob.type, 'application/json');
+  const doc = JSON.parse(await blob.text());
+  // The tool's own rich DTCG fragment, not the built-in {tool,version,inputs} dump.
+  assert.equal(doc.color?.$type, 'color');
+  assert.ok(doc.color?.seed?.$value, 'the seed colour must be a DTCG leaf');
+  assert.equal(doc.tool, undefined, 'json must be the tokens document, not the model dump');
+});
+
+test('palette exchange: css / scss / gpl carry the resolved palette', { skip: SKIP }, async () => {
+  const rt = await mountExport({ seed: '#2563eb', harmony: 'triad-3', steps: 5, neutrals: true });
+
+  const css = await rt.export({}, 'css', { embedMeta: false });
+  assert.equal(css.type, 'text/css');
+  const cssText = await css.text();
+  assert.match(cssText, /^:root \{/, 'default cssStyle is custom properties');
+  assert.match(cssText, /--color-seed: #[0-9a-f]{6};/);
+
+  const scss = await rt.export({}, 'scss', { embedMeta: false });
+  assert.equal(scss.type, 'text/x-scss');
+  assert.match(await scss.text(), /\$color-seed: #[0-9a-f]{6};/);
+
+  const gpl = await rt.export({}, 'gpl', { embedMeta: false });
+  assert.equal(gpl.type, 'text/plain');
+  const gplText = await gpl.text();
+  assert.match(gplText, /^GIMP Palette\nName: Palette Lab\n/);
+  assert.match(gplText, /\d+ +\d+ +\d+\tPalette Seed/, 'a space-padded RGB row for the seed');
+});
+
+test('palette exchange: cssStyle=classes switches the CSS export to utility classes', { skip: SKIP }, async () => {
+  const rt = await mountExport({ seed: '#7c3aed', harmony: 'complement', steps: 4, neutrals: false, cssStyle: 'classes' });
+  const cssText = await (await rt.export({}, 'css', { embedMeta: false })).text();
+  assert.match(cssText, /\.bg-color-seed \{ background-color: #[0-9a-f]{6}; \}/);
+  assert.match(cssText, /\.text-color-seed \{ color: #[0-9a-f]{6}; \}/);
+  assert.ok(!cssText.startsWith(':root'), 'classes mode must not emit a :root block');
+});
+
+test('palette exchange: ase export is a real ASEF file via exportStill (render skipped)', { skip: SKIP }, async () => {
+  const rt = await createRuntime(tool, (() => {
+    const host: any = makeHost();
+    let renderCalls = 0;
+    host.export = { render: async () => { renderCalls++; return new Blob(['x'], { type: 'text/plain' }); } };
+    (host as any)._renderCalls = () => renderCalls;
+    return host;
+  })(), { seed: '#2563eb', harmony: 'triad-3', steps: 5, neutrals: true });
+
+  const blob = await rt.export({}, 'ase', { embedMeta: false });
+  const bytes = new Uint8Array(await blob.arrayBuffer());
+  assert.equal(String.fromCharCode(...bytes.slice(0, 4)), 'ASEF', 'ASE signature');
+  const dv = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
+  const blocks = dv.getUint32(8, false);
+  assert.ok(blocks > 0, 'at least one colour-entry block');
+  // Block count == the number of resolved swatches (base + every ramp cell).
+  const probe = rt.getHydratedString('{{#each paletteSwatches}}{{hex}}\n{{/each}}') as string;
+  const resolved = probe.split('\n').filter(h => /^#[0-9a-f]{6}$/i.test(h)).length;
+  assert.equal(blocks, resolved, 'one ASE block per resolved swatch');
+});
+
+test('palette exchange: exportStill declines every non-ase format', { skip: SKIP }, async () => {
+  // If exportStill hijacked css, the bytes would be ASEF, not CSS text.
+  const rt = await mountExport({ seed: '#2563eb', harmony: 'triad-3', steps: 4, neutrals: false });
+  for (const fmt of ['json', 'css', 'scss', 'gpl']) {
+    const bytes = new Uint8Array(await (await rt.export({}, fmt, { embedMeta: false })).arrayBuffer());
+    assert.notEqual(String.fromCharCode(...bytes.slice(0, 4)), 'ASEF', `${fmt} must not be hijacked into an ASE file`);
+  }
+});
+
+test('palette exchange: an older shell (no paletteExport) degrades CSS/SCSS/GPL to empty, declines ase', { skip: SKIP }, async () => {
+  const rt = await createRuntime(tool, (() => {
+    const color: any = makeColorApi();
+    delete color.paletteExport; delete color.paletteExportBytes; // pre-1.108 shell
+    const host: any = baseHost({ color });
+    host.export = { render: async (_n: unknown, _f: string, opts: any) => new Blob([opts.dataText ?? ''], { type: opts.dataMime ?? 'text/plain' }) };
+    return host;
+  })(), { seed: '#2563eb', harmony: 'triad-3', steps: 4, neutrals: true });
+
+  assert.equal((await (await rt.export({}, 'css', { embedMeta: false })).text()).trim(), '',
+    'without host.color.paletteExport the CSS export is empty, never a thrown hook');
+  // ase declines (exportStill returns null) → falls through to the wrapping render,
+  // which produced no dataText → an empty, non-ASEF blob. The point: no throw.
+  const ase = new Uint8Array(await (await rt.export({}, 'ase', { embedMeta: false })).arrayBuffer());
+  assert.notEqual(String.fromCharCode(...ase.slice(0, 4)), 'ASEF', 'no ASE without paletteExportBytes');
+});

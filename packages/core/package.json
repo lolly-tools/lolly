@@ -12,10 +12,13 @@
     "./contract": "./src/contract.ts",
     "./host-v1": "./src/host-v1.ts",
     "./extension-v1": "./src/extension-v1.ts",
+    "./canvas-op-v1": "./src/canvas-op-v1.ts",
+    "./canvas-op-testkit": "./src/canvas-op-testkit.ts",
     "./preflight": "./src/preflight.ts",
     "./schema/tool.schema.json": "./schema/tool.schema.json",
     "./schema/asset.schema.json": "./schema/asset.schema.json",
-    "./schema/asset-ref.schema.json": "./schema/asset-ref.schema.json"
+    "./schema/asset-ref.schema.json": "./schema/asset-ref.schema.json",
+    "./schema/canvas-op.schema.json": "./schema/canvas-op.schema.json"
   },
   "files": [
     "src",

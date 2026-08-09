@@ -343,12 +343,13 @@ export async function loadTool(toolId: string, fetchFile: ToolFetchFile, opts: L
     manifest.render.formats = expandDerivedFormats(manifest.render.formats);
   }
   const declared = manifest.render?.formats ?? [];
-  // Sibling text templates for data formats (template.ics / .vcf / .csv / .md).
-  // Only fetched when the manifest actually declares that format, so most tools
-  // incur no extra requests. The runtime hydrates these from the input model on
-  // export. `md` is opt-in per tool: with a template.md the export is model-derived
-  // markdown; without one, the host falls back to serialising the rendered DOM.
-  const textExts = ['ics', 'vcf', 'csv', 'md'].filter(ext => declared.includes(ext));
+  // Sibling text templates for data formats (template.ics / .vcf / .csv / .md /
+  // .css / .scss / .gpl / .json). Only fetched when the manifest actually declares
+  // that format, so most tools incur no extra requests. The runtime hydrates these
+  // from the input model on export. `md` and `json` are opt-in per tool: with a
+  // template.md/.json the export is model-derived; without one, `md` falls back to
+  // serialising the rendered DOM and `json` to the built-in {tool,version,inputs} dump.
+  const textExts = ['ics', 'vcf', 'csv', 'md', 'css', 'scss', 'gpl', 'json'].filter(ext => declared.includes(ext));
 
   // Module hooks (hooks.module) aren't fetched as text at all — the runtime
   // imports them natively, so sibling imports resolve and the browser/node

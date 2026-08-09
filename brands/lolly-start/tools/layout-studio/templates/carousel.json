@@ -1,0 +1,19 @@
+{
+  "id": "carousel",
+  "name": "Carousel",
+  "category": "Carousel",
+  "description": "Three frames in a row — one slide each — proving the frame primitive backs a carousel.",
+  "values": {
+    "boxes": [
+      { "id": "slide1", "kind": "frame", "x": 0, "y": 0, "w": 1080, "h": 1080, "rot": 0, "shape": "rect", "bg": "#fafbfe", "order": 0, "clipChildren": true },
+      { "id": "s1num", "kind": "text", "x": 100, "y": 120, "w": 300, "h": 150, "rot": 0, "shape": "rect", "text": "01", "fg": "#5283d5", "fontSize": 120, "align": "left", "valign": "top", "weight": "700", "font": "sans", "lineHeight": 1.0 },
+      { "id": "s1title", "kind": "text", "x": 100, "y": 460, "w": 880, "h": 260, "rot": 0, "shape": "rect", "text": "First slide", "fg": "#11141f", "fontSize": 80, "align": "left", "valign": "top", "weight": "700", "font": "sans", "lineHeight": 1.05 },
+      { "id": "slide2", "kind": "frame", "x": 1120, "y": 0, "w": 1080, "h": 1080, "rot": 0, "shape": "rect", "bg": "#eef3fb", "order": 1, "clipChildren": true },
+      { "id": "s2num", "kind": "text", "x": 1220, "y": 120, "w": 300, "h": 150, "rot": 0, "shape": "rect", "text": "02", "fg": "#5283d5", "fontSize": 120, "align": "left", "valign": "top", "weight": "700", "font": "sans", "lineHeight": 1.0 },
+      { "id": "s2title", "kind": "text", "x": 1220, "y": 460, "w": 880, "h": 260, "rot": 0, "shape": "rect", "text": "Second slide", "fg": "#11141f", "fontSize": 80, "align": "left", "valign": "top", "weight": "700", "font": "sans", "lineHeight": 1.05 },
+      { "id": "slide3", "kind": "frame", "x": 2240, "y": 0, "w": 1080, "h": 1080, "rot": 0, "shape": "rect", "bg": "#e3ecf9", "order": 2, "clipChildren": true },
+      { "id": "s3num", "kind": "text", "x": 2340, "y": 120, "w": 300, "h": 150, "rot": 0, "shape": "rect", "text": "03", "fg": "#5283d5", "fontSize": 120, "align": "left", "valign": "top", "weight": "700", "font": "sans", "lineHeight": 1.0 },
+      { "id": "s3title", "kind": "text", "x": 2340, "y": 460, "w": 880, "h": 260, "rot": 0, "shape": "rect", "text": "Third slide", "fg": "#11141f", "fontSize": 80, "align": "left", "valign": "top", "weight": "700", "font": "sans", "lineHeight": 1.05 }
+    ]
+  }
+}

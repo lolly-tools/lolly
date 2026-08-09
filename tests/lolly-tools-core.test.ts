@@ -13,7 +13,12 @@ import { validateTool } from '../packages/core/src/index.ts';
 const read = (rel: string): unknown =>
   JSON.parse(readFileSync(fileURLToPath(new URL(rel, import.meta.url)), 'utf8'));
 
-for (const name of ['tool.schema.json', 'asset.schema.json', 'asset-ref.schema.json']) {
+for (const name of [
+  'tool.schema.json',
+  'asset.schema.json',
+  'asset-ref.schema.json',
+  'canvas-op.schema.json',
+]) {
   test(`@lolly-tools/core bundles an identical ${name} (no drift)`, () => {
     const source = read(`../schemas/${name}`);
     const bundled = read(`../packages/core/schema/${name}`);

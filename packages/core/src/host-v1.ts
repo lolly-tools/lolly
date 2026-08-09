@@ -353,13 +353,13 @@ export interface HostV1 {
   geom?: GeomAPI;
 
   /**
-   * Committed, export-safe connector / line / arrow SVG builder (v1.106). The
-   * engine's connector geometry behind a tool-facing surface — every shell attaches
-   * `{ build: buildConnectorSvg }` verbatim, so web / Tauri / CLI emit identical
-   * geometry: a canvas tool's hooks.js renders its connectors in one line and a
-   * headless `--export` keeps them. Pure + synchronous, like `color`/`geom`.
-   * Optional/additive and NOT gated by a `capabilities` flag: feature-detect
-   * `host.connectors`.
+   * Committed, export-safe connector / line / arrow geometry (v1.106; the path
+   * decorations + dash fitting added v1.110). The engine's connector module behind a
+   * tool-facing surface — every shell attaches `makeConnectorsApi()` verbatim, so
+   * web / Tauri / CLI emit identical geometry: a canvas tool's hooks.js renders its
+   * connectors in one line and a headless `--export` keeps them. Pure + synchronous,
+   * like `color`/`geom`. Optional/additive and NOT gated by a `capabilities` flag:
+   * feature-detect `host.connectors`.
    */
   connectors?: ConnectorsAPI;
 
@@ -401,18 +401,110 @@ export interface ConnectorRenderOpts {
   fromField?: string; toField?: string;
   styleField?: string; arrowField?: string; headField?: string;
   colorField?: string; dashField?: string; widthField?: string;
+  /** v1.111 — per-END head shapes (an `AuthoredPath` box's `headStart`/`headEnd`). Naming
+   *  either switches a row off the `arrow` + shared-`head` edge reading onto the path one,
+   *  so a bound path and a legacy edge render through one builder. */
+  headStartField?: string; headEndField?: string;
+  /** v1.111 — an AUTHORED dash pattern (array, or a space/comma-separated string). Set →
+   *  the shaft is drawn as real `<line>` dash segments fitted to the route's corners, and
+   *  the `dash` keyword is not read for that row. */
+  dashArrayField?: string;
+  /** v1.111 — opt out of the corner FIT while keeping the authored pattern (default on). */
+  dashFitField?: string;
   defaultStyle?: string; defaultArrow?: string; defaultHead?: string;
   defaultColor?: string; defaultWidth?: number;
   width: number; height: number;   // canvas size for the wrapping <svg> viewBox
   layerClass?: string;             // class on the <svg> (default 'lolly-connectors')
 }
 
-/** Committed connector/line/arrow render (v1.106) — see {@link HostV1.connectors}. */
+/** A head at the tip of an authored path (v1.110) — see {@link ConnectorsAPI.pathHeadSvg}.
+ *  Structurally identical to the engine's PathHeadOpts; a copy, so @lolly-tools/core
+ *  carries no dependency on @lolly/engine. */
+export interface PathHeadOpts {
+  tipX: number; tipY: number;
+  /** Tangent at the tip in RADIANS, pointing OUT of the path — `Math.atan2(dy, dx)` of
+   *  the last segment at an end head, of the REVERSED first segment at a start head. */
+  angle: number;
+  /** none · open · triangle · diamond · circle · bar (anything else draws a triangle). */
+  head: string;
+  color: string;
+  /** The path's stroke width; the head size derives from it (`max(9, width × 4)`). */
+  width: number;
+}
+
+/** A dash interval in absolute distance along a path, in native px (v1.110). */
+export interface DashSegment { start: number; end: number }
+
+/** Scale band for the per-span corner fit (v1.110). Outside it a span keeps the
+ *  authored pattern unscaled. */
+export interface DashFitOpts {
+  /** Most the pattern may shrink, default 0.66 (clamped into (0, 1]). */
+  minScale?: number;
+  /** Most the pattern may grow, default 1.5 (clamped into [1, 16]). */
+  maxScale?: number;
+}
+
+/**
+ * Dash entry + Illustrator-style corner fitting (v1.110) — see
+ * {@link ConnectorsAPI.dashFit}. Pure + synchronous.
+ */
+export interface DashFitAPI {
+  /**
+   * Parse a user-typed dash string (`"6 4"`, `"6,4,2,4"`) into a canonical, even-length
+   * array of NUMBERS, or `null` when it is not one. At most 16 numbers, each 0…1000, at
+   * least one above zero; an odd-length list is doubled (the SVG rule). Numbers only, by
+   * contract: never put the user's raw text on `stroke-dasharray` — serialize THIS.
+   */
+  parse(text: string): number[] | null;
+  /**
+   * One explicit dash array covering the WHOLE path, with the pattern grown/shrunk
+   * slightly per span so a dash lands centred on every corner (Illustrator's "align
+   * dashes to corners and path ends"). `spanLengths` are the path's corner-to-corner run
+   * lengths in order — include the closing span for a closed path. Even-length and
+   * summing to exactly the path length, so the pattern never wraps.
+   */
+  cornerFitDashArray(spanLengths: number[], pattern: number[], opts?: DashFitOpts): number[];
+  /**
+   * The same fit as absolute `[start, end]` dash intervals along the path — for the
+   * committed/export render, which draws real geometry and never `stroke-dasharray`.
+   * Inked length agrees exactly with `cornerFitDashArray`'s dash entries.
+   */
+  dashSegments(spanLengths: number[], pattern: number[], opts?: DashFitOpts): DashSegment[];
+}
+
+/** Committed connector/line/arrow render (v1.106; path decorations + dash fit v1.110) —
+ *  see {@link HostV1.connectors}. */
 export interface ConnectorsAPI {
   /** Render the committed connector layer as an export-safe SVG string: every edge
    *  routed + decorated, wrapped in a canvas-sized `<svg>`. `rectById` maps a box id to
    *  its native rect; a free-point endpoint (`@x,y`) resolves without it. Pure + sync. */
   build(edges: Record<string, unknown>[], rectById: Map<string, ConnectorRect>, opts: ConnectorRenderOpts): string;
+  /**
+   * An arrowhead/decoration SVG fragment for ONE path tip (v1.110): the same shapes
+   * `build` draws on a connector, addressed by tip + outward tangent, so a spline, a
+   * line and a connector decorate identically. Baked coordinates, no transform, no
+   * `<marker>` — it drops into any `<svg>` and survives the vector walkers.
+   * Optional/additive: feature-detect it.
+   */
+  pathHeadSvg?(opts: PathHeadOpts): string;
+  /** How far to pull the shaft back off `head` at stroke `width`, so a filled head is
+   *  not stabbed through by its own line (v1.110). The pair for `pathHeadSvg`. */
+  pathHeadInset?(head: string, width: number): number;
+  /** Manual dash entry + corner-fit dash geometry (v1.110). Optional/additive. */
+  dashFit?: DashFitAPI;
+  /**
+   * The route a BOUND path is drawn with, from its own spline kind (v1.111). A path box
+   * with an endpoint attached to another box is a connector, and connector management
+   * picks its route — `line`→straight (an authored polyline of 3+ nodes→elbow),
+   * `spiro`→arc, every other kind→the smooth curved S. `override` is the box's explicit
+   * `route` field and wins whenever it names one of `routeStyles`; that override is what
+   * makes the plan-90 edge migration lossless (six kinds cannot name thirteen routes).
+   * Pure; feature-detect it.
+   */
+  routeStyleForKind?(kind: string, override?: string, nodeCount?: number): string;
+  /** The thirteen route styles `build` understands, in menu order (v1.111) — so a pack
+   *  control and the editor offer one list rather than each spelling it out. */
+  routeStyles?: string[];
 }
 
 export interface ColorAPI {
@@ -595,7 +687,49 @@ export interface ColorAPI {
    * would recognise. Optional/additive (v1.70).
    */
   inkCoverage?(profile: ColorProfileGamut, l: number, c: number, h: number): number | null;
+  /**
+   * Serialise a flat list of named swatches as a design-interchange TEXT file —
+   * a DTCG design-tokens JSON (`'tokens-json'`, nested by each swatch's dotted
+   * key), a plain CSS custom-properties block (`'css-vars'`), a set of bg/text/
+   * border utility classes (`'css-classes'`), an SCSS `$var` block (`'scss'`), or
+   * a GIMP `.gpl` palette (`'gpl'`). Swatches whose `hex` is empty or an
+   * unresolved alias are dropped; `opts.paletteName` names the `.gpl` header.
+   *
+   * The same serializers the web shell's Swatches download uses, so a palette a
+   * tool exports and one the brand editor downloads are byte-identical. Pure +
+   * synchronous. The binary Adobe `.ase` is {@link ColorAPI.paletteExportBytes}
+   * (bytes, not text). Optional/additive (v1.108); feature-detect on older hosts.
+   */
+  paletteExport?(swatches: ColorPaletteSwatch[], format: ColorPaletteTextFormat, opts?: { paletteName?: string }): string;
+  /**
+   * The binary counterpart to {@link ColorAPI.paletteExport}: the same swatch list
+   * as an Adobe Swatch Exchange (`.ase`) file — RGB colour-entry blocks readable by
+   * Illustrator, Photoshop and Affinity. `format` is `'ase'` (the one binary
+   * palette format), taken for symmetry with the text call and forward room.
+   * Optional/additive (v1.108); feature-detect on older hosts.
+   */
+  paletteExportBytes?(swatches: ColorPaletteSwatch[], format: 'ase'): Uint8Array;
 }
+
+/**
+ * A single swatch for {@link ColorAPI.paletteExport} / `paletteExportBytes`: a
+ * canonical dotted key (slugged into CSS identifiers / JSON path segments and
+ * nested for the tokens tree), a display name, a group label (prefixed onto the
+ * .gpl / .ase entry names), and a resolved sRGB hex. A swatch whose `hex` is
+ * empty or a non-hex value (an unresolved alias, `transparent`) is dropped by the
+ * serializers. Mirrored locally — packages/core carries no engine dependency —
+ * from the engine's `PaletteSwatch`.
+ */
+export interface ColorPaletteSwatch {
+  key: string;
+  name: string;
+  group: string;
+  hex: string;
+}
+
+/** The TEXT palette formats {@link ColorAPI.paletteExport} produces (the binary
+ *  `.ase` goes through `paletteExportBytes`). */
+export type ColorPaletteTextFormat = 'tokens-json' | 'css-vars' | 'css-classes' | 'scss' | 'gpl';
 
 /**
  * Options for {@link ColorAPI.solveApca}. Mirrored locally (packages/core carries
@@ -2230,6 +2364,13 @@ export interface Profile {
   /** Tool ids the user has starred — the gallery's "Favourites" collection. Rides
    *  the profile so it persists across reloads and travels in the portable backup. */
   favourites?: string[];
+  /** Tool ids the user has hidden from the gallery/utilities grids ("Hide tool").
+   *  Same per-user overlay idea as `hiddenAssets`: the tool stays installed and
+   *  deep links keep working — this only removes its tile from the browse surfaces,
+   *  behind a "Show hidden tools" reveal. Utility VIEW cards (app routes, not tools)
+   *  share the store under their `view:<id>` namespaced key, mirroring how
+   *  `favourites` stars them. Tolerant of ids that no longer resolve. */
+  hiddenTools?: string[];
   /** Asset ids the user has starred — the Catalog's asset "Favourites", surfaced as a
    *  pinned collapsible section at the top of every asset picker. Distinct from
    *  `favourites` (TOOL ids). Keyed by the base asset id (theme suffix stripped). */
