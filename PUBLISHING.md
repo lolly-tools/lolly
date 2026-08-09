@@ -13,19 +13,24 @@ load-unpacked development.)
 - **Category:** Developer Tools
 - **Description:**
 
-  Lets the Lolly web app (lolly.tools) capture a screenshot of any URL — at the size
-  and scroll position you choose, with optional custom CSS — without leaving your
-  browser. Captures run locally via the DevTools Protocol; nothing is uploaded.
+  Lets the Lolly web app (lolly.tools) read one web page you name, on your command,
+  without leaving your browser: a screenshot at the size and scroll position you
+  choose (with optional custom CSS), or the page's own markup, stylesheets and icons
+  so Lolly can pick up its colours, typefaces and logo. Everything runs locally in
+  your browser; nothing is uploaded.
 
 ## Single purpose
 
-Capture a screenshot of a user-specified web page on behalf of the Lolly app.
+Take one reading of a web page the user names, on behalf of the Lolly app: a
+screenshot of it, or its markup, stylesheets and icon files.
 
 ## Permission justifications
 
 - **debugger** — captures the rendered page via `Page.captureScreenshot` (DevTools Protocol). It's the only way to get an accurate full-page screenshot at a chosen viewport and device-pixel-ratio.
+- **scripting** — runs one collector function in the temporary background tab to read that page's markup, its stylesheet text and its icon/logo files, which is what Lolly turns into a design system. Nothing is injected into pages the user is browsing: the script runs only in the tab this extension opened, for the URL the user typed, and the tab is closed straight after.
 - **tabs** — opens a temporary background tab to load the target URL, then closes it.
-- **host_permissions (`<all_urls>`)** — the user supplies the URL to capture, which may be on any site.
+- **storage** — remembers the id of that one temporary tab, in session storage only, so it is still closed if Chrome shuts the extension's service worker down mid-reading. Nothing else is stored, and nothing survives the browser session.
+- **host_permissions (`<all_urls>`)** — the user supplies the URL to read, which may be on any site.
 
 ## Data use
 

@@ -1,7 +1,9 @@
 /**
  * Lolly URL Screenshot — isolated-world content script (relay).
  *
- * Bridges the Lolly web page and the extension background:
+ * Relays both readings the background worker offers — `capture` (a PNG of a page)
+ * and `lolly-capture/site` (a page's markup, stylesheets and icon bytes) — between
+ * the Lolly web page and the extension background:
  *   page  ⇄ content  via window.postMessage (crosses the isolated/main boundary)
  *   content ⇄ background via chrome.runtime messaging (extension APIs)
  *
@@ -36,6 +38,30 @@ window.addEventListener('message', (event) => {
         dataUrl: resp?.dataUrl,
         error: err || resp?.error,
       }, '*');
+    });
+    return;
+  }
+
+  // Site read (design-system website source). Same relay shape as capture, one
+  // request id, one reply. The reply carries a whole page's markup, so it is
+  // posted back to the exact origin this request came from rather than '*' —
+  // the origin is already validated above, and nothing else needs to see it.
+  if (msg.type === 'lolly-capture/site') {
+    const origin = event.origin;
+    chrome.runtime.sendMessage({ type: 'lolly-capture/site', url: msg.url, options: msg.options }, (resp) => {
+      const err = chrome.runtime.lastError?.message;
+      window.postMessage({
+        source: 'lolly-capture/ext',
+        type: 'lolly-capture/site-result',
+        requestId: msg.requestId,
+        ok: !err && !!resp?.ok,
+        html: resp?.html,
+        cssTexts: resp?.cssTexts,
+        assets: resp?.assets,
+        finalUrl: resp?.finalUrl,
+        screenshotBase64: resp?.screenshotBase64,
+        reason: err || resp?.reason,
+      }, origin);
     });
   }
 });
