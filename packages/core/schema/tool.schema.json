@@ -38,6 +38,11 @@
       "type": "string",
       "description": "SemVer range of engine versions this tool is compatible with, e.g. '^1.0.0'."
     },
+    "designVersion": {
+      "type": "string",
+      "pattern": "^[a-z0-9][a-z0-9-]*$",
+      "description": "Optional design-system version this tool renders against (plans/97 §6a): a published version's slug, or 'latest' for the edit head. Author-controlled stability - a pinned tool keeps rendering against its version whatever gets republished. Unlike engineVersion this is NOT enforced at load: a pin naming a version this device does not have falls through to the active version, then to the head, so a tool always draws. Overridden per render by ?designv=. On a device that never published a version it has no effect at all."
+    },
     "status": {
       "type": "string",
       "enum": ["official", "community", "experimental"],
@@ -92,7 +97,7 @@
     },
     "templates": {
       "type": "array",
-      "description": "Named starting points offered by the web shell's \"New from template\" chooser on a blank fresh open (no `?slot`, no URL values, no in-process seed, no `?template`). Unlike `examples` (illustrative previews), a template's `values` are a full input seed read directly into the fresh session — any size (a free-canvas comp can be many KB), so it is seeded in-process, never packed into the URL. A retired tool id can launch straight into one by id via the reserved `?template=<id>` param, which skips the chooser. Adding this field never changes a tool that lacks it, and never affects the manifest `default` composition (URL-mode / CLI / deep links still render with no chooser).",
+      "description": "Named starting points offered by the web shell's \"New from template\" chooser on a blank fresh open (no `?slot`, no URL values, no in-process seed, no `?template`). SOURCE OF TRUTH is the per-template files tools/<id>/templates/<tid>.json (each { id, name, category?, description?, thumb?, values }); build-catalog-index.ts scans that dir and the synced index carries METADATA ONLY (id/name/category/description/thumb) — the heavy `values` seed lives in the external file and is fetched on demand (chooser-select and the reserved `?template=<id>` launcher), never packed into the URL. This inline `templates[]` field is an OPTIONAL fallback for a tool that prefers inline metadata; when present the same items apply. Adding templates never changes a tool that lacks them, and never affects the manifest `default` composition (URL-mode / CLI / deep links still render with no chooser).",
       "items": { "$ref": "#/$defs/templateVariant" }
     },
     "render": {
@@ -885,8 +890,8 @@
     "templateVariant": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["id", "name", "values"],
-      "description": "One named starting point in the \"New from template\" chooser: an id, a display name, and a full input seed. Like an exampleVariant's `values` but read directly into a fresh session rather than rendered as an illustrative preview.",
+      "required": ["id", "name"],
+      "description": "One named starting point in the \"New from template\" chooser: an id, a display name, and (in the external per-template file) a full input seed. Two shapes validate against this def: the EXTERNAL file tools/<id>/templates/<tid>.json, which carries `values`; and the METADATA-ONLY entry the synced index carries, which strips `values` (hence `values` is optional). Like an exampleVariant's `values` but read directly into a fresh session rather than rendered as an illustrative preview.",
       "properties": {
         "id": { "type": "string", "description": "Stable id, unique within this tool's `templates[]`. Addressable via the reserved `?template=<id>` param, so treat it as a permanent contract like a tool/asset id." },
         "name": { "type": "string", "description": "Display name shown on the chooser tile." },
@@ -895,7 +900,7 @@
         "thumb": { "type": "string", "description": "Optional thumbnail: a tool-relative asset path or data URI. Absent → the chooser draws a glyph tile." },
         "values": {
           "type": "object",
-          "description": "Map of input id -> value read directly into the fresh session — the same shape URL params resolve to, and the same shape a `default` composition uses. Any size (a free-canvas `boxes` array can be many KB), because it is seeded in-process, never serialised into a URL."
+          "description": "Map of input id -> value read directly into the fresh session — the same shape URL params resolve to, and the same shape a `default` composition uses. Authored in the EXTERNAL per-template file tools/<id>/templates/<tid>.json (not the synced index, which carries metadata only). Any size (a free-canvas `boxes` array can be many KB), because it is fetched on demand and seeded in-process, never serialised into a URL."
         }
       }
     }

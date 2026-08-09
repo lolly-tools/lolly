@@ -47,6 +47,10 @@ import { entryFromManifest } from './build-catalog-index.ts';
 // silently resolve such a clash by entry order.
 import { PALETTE } from '../shells/web/src/palette.ts';
 import { isThemableIconSvg, parseThemedAssetId, parseIconThemesDoc } from '../engine/src/icon-theme.ts';
+// The head-vs-version asset rule and the reserved head slug (plans/97 §6a). Imported
+// rather than re-stated: if the validator's idea of "this is a version asset" drifts
+// from the shells', it either passes a pack that cannot resolve or fails one that can.
+import { isVersionAssetId, readVersionIndex, DESIGN_VERSION_LATEST } from '../engine/src/design-version.ts';
 import { parseRateCard, isRateCardError } from '../engine/src/rate-card.ts';
 import { LANGS } from '../engine/src/lang.ts';
 // Shared-hook-region drift guard — the writer (npm run sync:shared) and this
@@ -155,6 +159,35 @@ for (const dir of toolDirs) {
     errors.push(`[${dir}] manifest declares hooks but hooks.js is missing`);
   }
 
+  // "New from template" files (tools/<id>/templates/<tid>.json) — the SOURCE OF TRUTH
+  // for the chooser + the reserved ?template=<id> launcher. Shape gate: each file must
+  // parse, carry a non-empty string `id` and `name`, a plain-object `values` seed, the
+  // basename must equal `id` (so <tid>.json ↔ id stays a stable, addressable contract),
+  // and ids must be unique within the dir. (Like example looks, this does NOT resolve
+  // the values map's asset refs — that scope matches the historical example validator.)
+  const templatesDir = join(ROOT, `tools/${dir}/templates`);
+  if (existsSync(templatesDir)) {
+    const seenTemplateIds = new Set<string>();
+    for (const file of readdirSync(templatesDir).sort()) {
+      if (!file.endsWith('.json')) continue;
+      const rel = `tools/${dir}/templates/${file}`;
+      let t: any;
+      try { t = JSON.parse(readFileSync(join(templatesDir, file), 'utf8')); } catch (e) {
+        errors.push(`[${dir}] template ${file}: invalid JSON (${(e as Error).message})`);
+        continue;
+      }
+      if (typeof t.id !== 'string' || !t.id) { errors.push(`[${dir}] template ${file}: missing/empty "id"`); continue; }
+      if (typeof t.name !== 'string' || !t.name) errors.push(`[${dir}] template ${file}: missing/empty "name"`);
+      if (!t.values || typeof t.values !== 'object' || Array.isArray(t.values)) {
+        errors.push(`[${dir}] template ${file}: "values" must be a plain object (the input-id → value seed)`);
+      }
+      const base = file.replace(/\.json$/, '');
+      if (t.id !== base) errors.push(`[${dir}] template ${file}: id "${t.id}" must match the file basename "${base}" (${rel})`);
+      if (seenTemplateIds.has(t.id)) errors.push(`[${dir}] template ${file}: duplicate template id "${t.id}"`);
+      seenTemplateIds.add(t.id);
+    }
+  }
+
   // On-device utility conventions (privacy:'on-device'): the tool processes the
   // user's OWN content, so its output must never be watermarked or stamped with
   // provenance. An experimental tool force-watermarks its exports, which directly
@@ -239,6 +272,21 @@ for (const entry of toolsIndex.tools) {
     existsSync(join(ROOT, derived.preview.replace(/^\//, '')))
   ) {
     errors.push(`tools/index.json: "${entry.id}" preview ${entry.preview} ≠ derived ${derived.preview} — run \`npm run build:catalog\` (after \`npm run previews\`)`);
+  }
+  // "New from template" metadata. THE WHOLE-POINT INVARIANT: the synced index must carry
+  // template METADATA ONLY — never the heavy `values` seed (that's fetched on demand). A
+  // stray `values` key here would re-bloat every client's index, defeating the lazy-file
+  // storage entirely.
+  for (const tmpl of (entry.templates ?? []) as Array<Record<string, unknown>>) {
+    if (tmpl && typeof tmpl === 'object' && 'values' in tmpl) {
+      errors.push(`tools/index.json: "${entry.id}" template "${tmpl.id}" carries "values" — the index must be metadata-only (values live in tools/<id>/templates/<tid>.json); run \`npm run build:catalog\``);
+    }
+  }
+  // Drift guard: entryFromManifest re-scans tools/<id>/templates/*.json, so a forgotten
+  // build:catalog after adding/editing/removing a template file fails CI. Compare the
+  // (deterministic) derived metadata against the committed index copy.
+  if (JSON.stringify(entry.templates ?? null) !== JSON.stringify(derived.templates ?? null)) {
+    errors.push(`tools/index.json: "${entry.id}" templates drifted from tools/${entry.id}/templates/*.json — run \`npm run build:catalog\``);
   }
 }
 // Every tool with a manifest must appear in the index.
@@ -543,6 +591,90 @@ if (assetsIndex.defaultFavourites !== undefined) {
         errors.push(`assets/index.json: defaultFavourites entry "${id}" is not a known asset id`);
       }
     }
+  }
+}
+
+// ─── Design-system version pins (plans/97 §6a) ──────────────────────────────
+
+// The version assets this catalog ships, by slug. A tokens asset is a VERSION when
+// another tokens asset is its proper ancestor (`user/tokens/brand/jupiter` under
+// `user/tokens/brand`) — the same descendant rule the shells' discovery applies, so
+// the validator and the runtime cannot disagree about what is a head and what is a
+// version. Only a single extra segment counts: a deeper id is not addressable by a
+// slug, so it is not a version anything could pin to.
+const tokensAssets = assetsIndex.assets.filter((a: { type?: string }) => a.type === 'tokens');
+const tokensAssetIds = tokensAssets.map((a: { id: string }) => a.id);
+const shippedVersionSlugs = new Set<string>();
+for (const id of tokensAssetIds) {
+  for (const head of tokensAssetIds) {
+    if (head === id || !isVersionAssetId(id, head)) continue;
+    const slug = id.slice(head.length + 1);
+    if (!slug.includes('/')) shippedVersionSlugs.add(slug);
+  }
+}
+
+// …and the slugs the HEAD document's ledger actually lists. This is the set that
+// decides a pin at runtime: `resolveDesignVersion` reads `readVersionIndex(head)`
+// and nothing consults the asset list at all (shells/cli/src/bridge.ts,
+// shells/web/src/bridge/tokens.ts). A pack can drift either way — an asset with
+// no ledger entry, or a ledger entry with no asset — and both make a pin fall
+// silently through the ladder, which is precisely what this section exists to
+// stop. So a slug has to be in BOTH.
+const ledgerVersionSlugs = new Set<string>();
+for (const head of tokensAssets) {
+  // A head, not a version of another one.
+  if (tokensAssetIds.some((other: string) => other !== head.id && isVersionAssetId(head.id, other))) continue;
+  const url: string | undefined = head.formats?.[0]?.url;
+  if (!url) continue;
+  try {
+    const doc: unknown = JSON.parse(readFileSync(join(ROOT, url.replace(/^\//, '')), 'utf8'));
+    for (const entry of readVersionIndex(doc).versions) ledgerVersionSlugs.add(entry.slug);
+  } catch { /* an unreadable/absent tokens file is already an error elsewhere */ }
+}
+
+for (const slug of shippedVersionSlugs) {
+  if (!ledgerVersionSlugs.has(slug)) {
+    errors.push(
+      `assets/index.json: design-system version "${slug}" ships a tokens asset but the head ` +
+      `document's version ledger does not list it — nothing can resolve it, since every shell ` +
+      `reads the ledger, not the asset list`,
+    );
+  }
+}
+for (const slug of ledgerVersionSlugs) {
+  if (!shippedVersionSlugs.has(slug)) {
+    errors.push(
+      `assets/index.json: the head document's version ledger lists "${slug}" but this catalog ` +
+      `ships no tokens asset for it — a tool resolving to that version would render the edit head`,
+    );
+  }
+}
+/** What a `designVersion` pin can actually resolve to in this pack. */
+const resolvableVersionSlugs = new Set([...shippedVersionSlugs].filter(s => ledgerVersionSlugs.has(s)));
+
+// A tool's `designVersion` is a resolution hint, never a load gate (engine/src/
+// loader.ts deliberately ignores it — an unresolvable pin falls through the ladder
+// so the tool still draws). That leniency is exactly why a pack has to be checked
+// here: at runtime a typo'd slug is invisible, and the tool quietly renders against
+// a different design system than its author pinned it to.
+for (const [toolId, manifest] of toolManifests) {
+  const pin: unknown = manifest.designVersion;
+  if (typeof pin !== 'string' || !pin || pin === DESIGN_VERSION_LATEST) continue;
+  if (!resolvableVersionSlugs.size) {
+    // A community tool pinned for another pack must not fail every pack that does
+    // not ship versions — that would make one brand's pin everyone else's error.
+    warnings.push(
+      `[${toolId}] designVersion "${pin}" but this catalog ships no design-system versions — ` +
+      `the pin falls through to the active version, then to the edit head`,
+    );
+    continue;
+  }
+  if (!resolvableVersionSlugs.has(pin)) {
+    errors.push(
+      `[${toolId}] designVersion "${pin}" names no version this catalog can resolve ` +
+      `(available: ${[...resolvableVersionSlugs].sort().join(', ')}) — publish that version into the ` +
+      `pack, fix the slug, or drop the pin so the tool follows the active version`,
+    );
   }
 }
 

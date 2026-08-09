@@ -1,0 +1,19 @@
+{
+  "id": "slide-deck",
+  "name": "Slide deck",
+  "category": "Slide deck",
+  "description": "Frames as slides — export as editable PowerPoint or PDF.",
+  "values": {
+    "boxes": [
+      { "id": "slide1", "kind": "frame", "x": 0, "y": 0, "w": 1080, "h": 1080, "rot": 0, "shape": "rect", "bg": "#0b1220", "order": 0, "clipChildren": true },
+      { "id": "s1title", "kind": "text", "x": 100, "y": 380, "w": 880, "h": 240, "rot": 0, "shape": "rect", "text": "Your title here", "fg": "#e8f0ff", "fontSize": 96, "align": "left", "valign": "top", "weight": "700", "font": "sans", "lineHeight": 1.05, "frame": "slide1" },
+      { "id": "s1body", "kind": "text", "x": 100, "y": 660, "w": 880, "h": 160, "rot": 0, "shape": "rect", "text": "A supporting line for the opening slide.", "fg": "#8fb3ff", "fontSize": 40, "align": "left", "valign": "top", "weight": "400", "font": "sans", "lineHeight": 1.3, "frame": "slide1" },
+      { "id": "slide2", "kind": "frame", "x": 1160, "y": 0, "w": 1080, "h": 1080, "rot": 0, "shape": "rect", "bg": "#fafbfe", "order": 1, "clipChildren": true },
+      { "id": "s2title", "kind": "text", "x": 1260, "y": 140, "w": 880, "h": 200, "rot": 0, "shape": "rect", "text": "A point worth making", "fg": "#11141f", "fontSize": 72, "align": "left", "valign": "top", "weight": "700", "font": "sans", "lineHeight": 1.1, "frame": "slide2" },
+      { "id": "s2body", "kind": "text", "x": 1260, "y": 400, "w": 880, "h": 520, "rot": 0, "shape": "rect", "text": "- First supporting idea\n- Second supporting idea\n- Third supporting idea", "fg": "#666978", "fontSize": 40, "align": "left", "valign": "top", "weight": "400", "font": "sans", "lineHeight": 1.5, "frame": "slide2" },
+      { "id": "slide3", "kind": "frame", "x": 2320, "y": 0, "w": 1080, "h": 1080, "rot": 0, "shape": "rect", "bg": "#5283d5", "order": 2, "clipChildren": true },
+      { "id": "s3title", "kind": "text", "x": 2420, "y": 420, "w": 880, "h": 240, "rot": 0, "shape": "rect", "text": "Thank you", "fg": "#ffffff", "fontSize": 104, "align": "left", "valign": "top", "weight": "700", "font": "sans", "lineHeight": 1.05, "frame": "slide3" },
+      { "id": "s3body", "kind": "text", "x": 2420, "y": 700, "w": 880, "h": 140, "rot": 0, "shape": "rect", "text": "yourname@example.com", "fg": "#dce8fb", "fontSize": 40, "align": "left", "valign": "top", "weight": "400", "font": "sans", "lineHeight": 1.3, "frame": "slide3" }
+    ]
+  }
+}

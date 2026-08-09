@@ -7,12 +7,28 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { existsSync, readFileSync } from 'node:fs';
+import { readFile } from 'node:fs/promises';
+import { fileURLToPath } from 'node:url';
+import { dirname, join } from 'node:path';
+import { loadTool } from '../engine/src/loader.ts';
+import { createRuntime } from '../engine/src/runtime.ts';
+import { makeGeomApi } from '../engine/src/geom-api.ts';
+import { baseHost } from './helpers/host.ts';
 import {
   edgeWaypoints, edgeBorderPt, edgeNested, roundedEdgePath, smoothEdgePath,
   edgeArrowHead, edgeHeadInset,
   isEdgePoint, parseEdgePoint, formatEdgePoint, edgeEndRect, buildConnectorSvg,
 } from '../shells/web/src/views/free-canvas-math.ts';
 import type { EdgeRect } from '../shells/web/src/views/free-canvas-math.ts';
+// The unified path primitive's own decorations (plan 96 P1) + the host.connectors factory
+// come straight from the engine module: the shell re-export above is the free-canvas
+// surface, while these are what the PATH renderer and both bridges call.
+import {
+  pathHeadSvg, pathHeadInset, pathHeadSize, makeConnectorsApi,
+  // plan 96 P3/P5 — the kind→route mapping and the ONE routed-line renderer.
+  pathRouteStyle, isConnectorRouteStyle, CONNECTOR_ROUTE_STYLES, routedLineSvg,
+} from '../engine/src/connectors.ts';
+import { cornerFitDashArray } from '../engine/src/dash-fit.ts';
 
 // org-chart ships in the (private) SUSE brand pack; the hook↔shell parity
 // tests can only run when the pack is mounted (see profiles.json). Gate on the
@@ -92,15 +108,19 @@ test('smoothEdgePath: renders a single cubic S-curve (golden)', () => {
   assert.equal(smoothEdgePath(pts), 'M50 50C50 125 50 125 50 200');
 });
 
-test('parity: the tool hook and the shell math share the elbow fractions', { skip: SKIP_SUSE }, () => {
-  // org-chart/hooks.js (committed render) and free-canvas-math.ts (editor preview)
-  // hand-mirror the routing. If someone re-tunes the elbow bend in one, this fails.
-  const hook = readFileSync(HOOK_URL, 'utf8');
-  const shell = readFileSync(new URL('../engine/src/connectors.ts', import.meta.url), 'utf8');
+test('the elbow fractions live in the engine, and ONLY in the engine', { skip: SKIP_SUSE }, () => {
+  // These three parity tests used to check that org-chart/hooks.js hand-mirrored the
+  // engine's routing constants. Plan 96 P4 deleted that mirror: the hook builds decoration
+  // ROWS and hands them to host.connectors.build, so there is one implementation and the
+  // question is no longer "do the two agree" but "is there still only one". A re-appearing
+  // copy of the routing maths in a pack hook is what these now catch.
+  const engine = readFileSync(new URL('../engine/src/connectors.ts', import.meta.url), 'utf8');
   for (const frac of ['0.18', '0.82']) {
-    assert.ok(hook.includes(frac), `hooks.js should encode elbow fraction ${frac}`);
-    assert.ok(shell.includes(frac), `engine/connectors.ts should encode elbow fraction ${frac}`);
+    assert.ok(engine.includes(frac), `engine/connectors.ts should encode elbow fraction ${frac}`);
   }
+  const hook = readFileSync(HOOK_URL, 'utf8');
+  assert.doesNotMatch(hook, /elbowFrac|function waypoints\(/,
+    'org-chart/hooks.js must not route on its own — that is host.connectors.build');
 });
 
 // ── Arc family (a sampled quadratic bow; the render draws a real Q) ────────────
@@ -120,13 +140,14 @@ test('edgeWaypoints: arc-flip bows the opposite side; arc-wide bows deeper', () 
   assert.ok(Math.abs(m('arc-wide')) > Math.abs(m('arc')), 'wide bows deeper than the plain arc');
 });
 
-test('parity: the tool hook and the shell math share the arc variants', { skip: SKIP_SUSE }, () => {
-  const hook = readFileSync(HOOK_URL, 'utf8');
-  const shell = readFileSync(new URL('../engine/src/connectors.ts', import.meta.url), 'utf8');
+test('the arc variants live in the engine, and the hook only NAMES them', { skip: SKIP_SUSE }, () => {
+  const engine = readFileSync(new URL('../engine/src/connectors.ts', import.meta.url), 'utf8');
   for (const key of ['arc-wide', 'arc-flip', 'arc-flip-wide']) {
-    assert.ok(hook.includes(key), `hooks.js should encode arc variant ${key}`);
-    assert.ok(shell.includes(key), `free-canvas-math.ts should encode arc variant ${key}`);
+    assert.ok(engine.includes(key), `engine/connectors.ts should encode arc variant ${key}`);
   }
+  const hook = readFileSync(HOOK_URL, 'utf8');
+  assert.doesNotMatch(hook, /ARC_VARIANTS/,
+    'org-chart/hooks.js must not carry its own arc table');
 });
 
 // ── Arrowheads (export-safe geometry — plan 90 thread A) ───────────────────────
@@ -257,13 +278,306 @@ test('buildConnectorSvg: dashed edges use real <line> segments, never stroke-das
   assert.doesNotMatch(svg, /stroke-dasharray/, 'never a dash-array in the committed layer');
 });
 
-test('parity: the tool hook and the shell math share the arrowhead shapes + inset constants', { skip: SKIP_SUSE }, () => {
-  // arrowHead()/headInset() in org-chart/hooks.js and edgeArrowHead()/edgeHeadInset() here
-  // hand-mirror each other until plan 90 R1 makes the shell the sole committed renderer.
-  const hook = readFileSync(HOOK_URL, 'utf8');
-  const shell = readFileSync(new URL('../engine/src/connectors.ts', import.meta.url), 'utf8');
-  for (const token of ['diamond', 'circle', 'bar', "'open'", '0.52', '0.5523', '0.42']) {
-    assert.ok(hook.includes(token), `hooks.js should encode ${token}`);
-    assert.ok(shell.includes(token), `free-canvas-math.ts should encode ${token}`);
+// ── Heads on an authored PATH (plan 96 P1) ────────────────────────────────────
+// The unified path primitive (spline = line = connector) decorates its own ends. The
+// head-for-a-tip primitive takes tip + OUTWARD tangent in radians instead of a unit
+// vector, and must draw the very same shapes a routed connector does — one geometry
+// source, so a spline, a line and a connector are indistinguishable in the export.
+
+test('pathHeadSvg: an angle drives the same shapes as the unit-vector form', () => {
+  const size = pathHeadSize(3);                       // the shared width → head-size rule
+  for (const head of ['triangle', 'diamond', 'circle', 'bar', 'open']) {
+    for (const [ang, ux, uy] of [[0, 1, 0], [Math.PI / 2, 0, 1], [Math.PI, -1, 0]] as const) {
+      assert.equal(
+        pathHeadSvg({ tipX: 40, tipY: 25, angle: ang, head, color: '#30ba78', width: 3 }),
+        edgeArrowHead({ x: 40, y: 25 }, Math.cos(ang), Math.sin(ang), size, '#30ba78', head),
+        `${head} @ ${ang}`,
+      );
+      // …and the unit vector the angle stands for is the one a caller would pass.
+      assert.ok(Math.abs(Math.cos(ang) - ux) < 1e-9 && Math.abs(Math.sin(ang) - uy) < 1e-9);
+    }
   }
+});
+
+test('pathHeadSvg: golden — a tip at the origin pointing +x matches the connector head', () => {
+  // Same numbers as the edgeArrowHead goldens above, reached through the path surface:
+  // width 2.5 → size max(9, 10) = 10.
+  assert.equal(pathHeadSvg({ tipX: 0, tipY: 0, angle: 0, head: 'triangle', color: '#30ba78', width: 2.5 }),
+    '<path d="M0 0L-10 5.2L-10 -5.2Z" fill="#30ba78"/>');
+  assert.equal(pathHeadSvg({ tipX: 0, tipY: 0, angle: 0, head: 'diamond', color: '#30ba78', width: 2.5 }),
+    '<path d="M0 0L-10 5.2L-20 0L-10 -5.2Z" fill="#30ba78"/>');
+});
+
+test('pathHeadSvg: none (or junk width/angle/colour) never emits anything unsafe', () => {
+  assert.equal(pathHeadSvg({ tipX: 0, tipY: 0, angle: 0, head: 'none', color: '#30ba78', width: 3 }), '');
+  assert.equal(pathHeadSvg({ tipX: 0, tipY: 0, angle: 0, head: '', color: '#30ba78', width: 3 }), '');
+  const junk = pathHeadSvg({
+    tipX: NaN, tipY: undefined as unknown as number, angle: NaN,
+    head: 'triangle', color: '#f00"onload=alert(1)', width: NaN,
+  });
+  assert.match(junk, /&quot;/, 'the colour is attribute-escaped, as on a connector');
+  assert.doesNotMatch(junk, /NaN|undefined/, 'junk numbers fall back, they do not leak');
+  assert.doesNotMatch(junk, /<marker|<polygon|transform=/, 'export-safe');
+});
+
+test('pathHeadSize / pathHeadInset: the head sizing is the connector rule, clamped', () => {
+  assert.equal(pathHeadSize(2.5), 10);
+  assert.equal(pathHeadSize(1), 9, 'the 9px floor');
+  assert.equal(pathHeadSize(1000), 80, 'stroke width clamps at 20');
+  assert.equal(pathHeadSize(NaN), 10, 'a junk width falls back to the connector default');
+  // The inset is edgeHeadInset at that size — filled heads pull the shaft back, open/bar
+  // do not, and 'none' never does.
+  assert.equal(pathHeadInset('none', 2.5), 0);
+  assert.equal(pathHeadInset('open', 2.5), 0);
+  assert.equal(pathHeadInset('triangle', 2.5), edgeHeadInset('triangle', 10));
+  assert.equal(pathHeadInset('diamond', 2.5), edgeHeadInset('diamond', 10));
+});
+
+test('makeConnectorsApi: the factory every shell attaches carries the whole surface', () => {
+  const api = makeConnectorsApi();
+  assert.equal(typeof api.build, 'function');
+  assert.equal(typeof api.pathHeadSvg, 'function');
+  assert.equal(typeof api.pathHeadInset, 'function');
+  assert.equal(typeof api.dashFit?.parse, 'function');
+  assert.equal(typeof api.dashFit?.cornerFitDashArray, 'function');
+  assert.equal(typeof api.dashFit?.dashSegments, 'function');
+  // The members are the engine functions themselves, not re-wrapped copies.
+  assert.equal(api.build, buildConnectorSvg);
+  assert.equal(api.pathHeadSvg, pathHeadSvg);
+  assert.deepEqual(api.dashFit!.parse('6 4'), [6, 4]);
+});
+
+test('the arrowhead SHAPES are the engine\'s; the hook keeps only the inset it must', { skip: SKIP_SUSE }, () => {
+  const engine = readFileSync(new URL('../engine/src/connectors.ts', import.meta.url), 'utf8');
+  for (const token of ['diamond', 'circle', 'bar', "'open'", '0.52', '0.5523', '0.42']) {
+    assert.ok(engine.includes(token), `engine/connectors.ts should encode ${token}`);
+  }
+  const hook = readFileSync(HOOK_URL, 'utf8');
+  // No head DRAWING in the hook — every shape comes back from host.connectors.pathHeadSvg.
+  assert.doesNotMatch(hook, /function arrowHead\(|function circlePath\(/,
+    'org-chart/hooks.js must not draw its own arrowheads');
+  // The one number it legitimately still mirrors is the shaft PULL-BACK: the head is drawn
+  // by the engine and the trim is applied here, so the two formulas have to agree. They are
+  // written to agree, and this is the check that they still do — the constants, and the
+  // pairing, are asserted against the engine's own edgeHeadInset below.
+  assert.match(hook, /function headInsetFor\(/, 'the hook keeps its pull-back mirror');
+  assert.equal(edgeHeadInset('triangle', 10), 9);
+  assert.equal(edgeHeadInset('diamond', 10), 20);
+  for (const [kind, expected] of [['triangle', 10 * 0.9], ['diamond', 20], ['open', 0], ['bar', 0], ['none', 0]] as const) {
+    assert.equal(edgeHeadInset(kind, 10), expected, `${kind} inset`);
+  }
+});
+
+// ── the spline kind → route mapping (plan 96 P3) ──────────────────────────────
+// A BOUND path is drawn by connector management, and what picks the route is the shape the
+// user already asked for: the path's own spline kind. Six kinds cannot name thirteen
+// routes, so a box also carries an explicit `route` override — which is the thing that
+// makes the plan-90 edge migration lossless, and therefore the thing worth pinning.
+
+test('pathRouteStyle: each spline kind maps to its documented route', () => {
+  assert.equal(pathRouteStyle('line', '', 2), 'straight', 'two points stay straight');
+  assert.equal(pathRouteStyle('line', '', 4), 'elbow', 'an authored polyline TURNS → elbow');
+  assert.equal(pathRouteStyle('spiro', '', 2), 'arc', "spiro's signature is one clean bow");
+  for (const k of ['cubic', 'hyperbezier', 'catmull-rom', 'bspline']) {
+    assert.equal(pathRouteStyle(k, '', 2), 'curved', `${k} → the smooth S`);
+  }
+  assert.equal(pathRouteStyle('no-such-kind', '', 2), 'straight', 'an unknown kind is not guessed at');
+  assert.equal(pathRouteStyle(undefined, undefined, undefined), 'straight');
+});
+
+test('pathRouteStyle: an explicit route override wins, and only a REAL one', () => {
+  for (const style of CONNECTOR_ROUTE_STYLES) {
+    assert.equal(pathRouteStyle('line', style, 2), style, `${style} overrides the kind`);
+    assert.equal(isConnectorRouteStyle(style), true);
+  }
+  // Junk, an empty string and a prototype key all fall through to the kind — the last of
+  // those is why the membership test is an own-property one and not a bare index.
+  for (const junk of ['', 'nope', 'constructor', 'toString', '__proto__', null, 7]) {
+    assert.equal(pathRouteStyle('spiro', junk as never, 2), 'arc', `${String(junk)} is not a route`);
+    assert.equal(isConnectorRouteStyle(junk), false);
+  }
+});
+
+test('CONNECTOR_ROUTE_STYLES is exactly the set connectorRoute understands', () => {
+  assert.equal(CONNECTOR_ROUTE_STYLES.length, 13);
+  // Every listed style must route to at least two distinct points — i.e. it is a style the
+  // router really implements, not a menu entry with nothing behind it.
+  for (const style of CONNECTOR_ROUTE_STYLES) {
+    const pts = edgeWaypoints(aTop, bDiag, style);
+    assert.ok(pts.length >= 2, `${style} routes`);
+    assert.notDeepEqual(pts[0], pts[pts.length - 1], `${style} goes somewhere`);
+  }
+});
+
+// ── routedLineSvg: ONE committed geometry for an edge and for a bound path ─────
+
+test('routedLineSvg: a bound path with two heads draws a shaft + both heads, export-safe', () => {
+  const a = { x: 0, y: 0, w: 100, h: 50 }, b = { x: 0, y: 300, w: 100, h: 50 };
+  const out = routedLineSvg(a, b, {
+    style: 'straight', headStart: 'circle', headEnd: 'triangle',
+    dash: 'solid', color: '#30ba78', width: 3,
+  });
+  assert.match(out, /<path d="M[^"]*" fill="none" stroke="#30ba78"/, 'the shaft');
+  assert.equal((out.match(/fill="#30ba78"\/>/g) || []).length, 2, 'a head at each end');
+  assert.doesNotMatch(out, /<marker|<polygon|stroke-dasharray|transform=/, 'export-safe');
+});
+
+test('routedLineSvg: the edge reading and the path reading are the SAME drawing', () => {
+  // This is the migration invariant in one line: `arrow:'end'` + `head:'open'` IS
+  // `headStart:'none'` + `headEnd:'open'`, byte for byte, because buildConnectorSvg reduces
+  // the first to the second before any geometry happens.
+  const rectById = new Map<string, EdgeRect>([
+    ['a', { x: 0, y: 0, w: 100, h: 50 }], ['b', { x: 300, y: 400, w: 100, h: 50 }],
+  ]);
+  const body = (svg: string): string => svg.replace(/^<svg[^>]*>|<\/svg>$/g, '');
+  for (const style of CONNECTOR_ROUTE_STYLES) {
+    for (const [arrow, hs, he] of [['end', 'none', 'open'], ['both', 'open', 'open'], ['none', 'none', 'none']] as const) {
+      const legacy = buildConnectorSvg([{ from: 'a', to: 'b', style, arrow, head: 'open', dash: 'solid', color: '#30ba78', width: 3.5 }],
+        rectById, { width: 800, height: 600 });
+      const path = buildConnectorSvg([{ from: 'a', to: 'b', style, headStart: hs, headEnd: he, dash: 'solid', color: '#30ba78', width: 3.5 }],
+        rectById, { width: 800, height: 600, headStartField: 'headStart', headEndField: 'headEnd' });
+      assert.equal(body(path), body(legacy), `${style} / arrow=${arrow}`);
+    }
+  }
+});
+
+test('routedLineSvg: an AUTHORED dash pattern is real <line> segments, never a dasharray', () => {
+  const a = { x: 0, y: 0, w: 100, h: 50 }, b = { x: 0, y: 400, w: 100, h: 50 };
+  const out = routedLineSvg(a, b, {
+    style: 'straight', headStart: 'none', headEnd: 'none',
+    dash: 'solid', dashArray: [10, 6], dashFit: true, color: '#30ba78', width: 2,
+  });
+  const lines = out.match(/<line /g) || [];
+  assert.ok(lines.length >= 10, `the 350px run is cut into dashes (got ${lines.length})`);
+  assert.doesNotMatch(out, /stroke-dasharray|<path/, 'no dasharray and no continuous shaft');
+  // The fit divides the span so a whole number of periods lands on it: the inked total is
+  // the same ink cornerFitDashArray reports for the same span.
+  const inked = [...out.matchAll(/x1="([\d.-]+)" y1="([\d.-]+)" x2="([\d.-]+)" y2="([\d.-]+)"/g)]
+    .reduce((acc, m) => acc + Math.hypot(Number(m[3]) - Number(m[1]), Number(m[4]) - Number(m[2])), 0);
+  const fit = cornerFitDashArray([350], [10, 6]);
+  const want = fit.filter((_, i) => i % 2 === 0).reduce((x, y) => x + y, 0);
+  assert.ok(Math.abs(inked - want) < 0.5, `inked ${inked} vs the fit's ${want}`);
+});
+
+test('routedLineSvg: an elbow route corner-fits its dashes per span', () => {
+  const a = { x: 0, y: 0, w: 100, h: 50 }, b = { x: 400, y: 400, w: 100, h: 50 };
+  const fitted = routedLineSvg(a, b, {
+    style: 'elbow', headStart: 'none', headEnd: 'none',
+    dash: 'solid', dashArray: [12, 8], dashFit: true, color: '#000', width: 2,
+  });
+  const plain = routedLineSvg(a, b, {
+    style: 'elbow', headStart: 'none', headEnd: 'none',
+    dash: 'solid', dashArray: [12, 8], dashFit: false, color: '#000', width: 2,
+  });
+  assert.notEqual(fitted, plain, 'the corner fit changes where the dashes land');
+  for (const out of [fitted, plain]) assert.doesNotMatch(out, /stroke-dasharray/);
+});
+
+// ── Layout Studio: the unified render, end to end (plan 96 P3/P5) ──────────────
+//
+// The pieces above are the engine's. This drives the REAL parent-owned pack (brands/
+// lolly-start, present in every public checkout) through the engine, because the thing
+// worth guarding is the SEAM: a free path draws inside its own box <svg>, a bound one
+// steps aside and is drawn by connector management in the canvas-sized layer, and both
+// carry the same decorations from the same primitives. Getting that wrong draws a
+// connector twice, or not at all.
+
+const LS_PACK = join(dirname(fileURLToPath(import.meta.url)), '..', 'brands', 'lolly-start', 'tools');
+const lsTool: any = await loadTool('layout-studio', (p: string) => readFile(join(LS_PACK, p), 'utf8'));
+const LS_HOST = (): unknown => baseHost({ connectors: makeConnectorsApi(), geom: makeGeomApi() });
+
+async function layoutStudio(boxes: unknown[]): Promise<{ html: string; layer: string }> {
+  const rt = await createRuntime(lsTool, LS_HOST() as never, { boxes } as never);
+  assert.deepEqual(rt.hookErrors ?? [], [], 'no hook errors');
+  const html = rt.getHydrated() as string;
+  const m = /<svg class="lolly-connectors"[\s\S]*?<\/svg>/.exec(html);
+  return { html, layer: m ? m[0] : '' };
+}
+
+/** A two-node line box, free unless a binding is passed. */
+const lineBox = (extra: Record<string, unknown> = {}): Record<string, unknown> => ({
+  id: 'ln', kind: 'path', x: 200, y: 200, w: 400, h: 300, rot: 0, shape: 'rect', bg: '',
+  path: '1!line!0_0!0_1!1', stroke: '#c8102e', strokeW: 5,
+  strokeCap: 'round', strokeJoin: 'round', headStart: 'none', headEnd: 'triangle',
+  bindStart: '', bindEnd: '', ...extra,
+});
+const card = (id: string, x: number, y: number): Record<string, unknown> =>
+  ({ id, kind: 'box', x, y, w: 240, h: 120, rot: 0, shape: 'rounded', radius: 12, bg: '#5283d5', text: id });
+
+test('layout-studio: a FREE path draws in its own box svg and no connector layer appears', async () => {
+  const { html, layer } = await layoutStudio([lineBox()]);
+  assert.match(html, /class="lolly-box-path"/, 'the box draws its own shape');
+  assert.equal(layer, '', 'nothing bound → no layer at all, so an ordinary doc is unchanged');
+});
+
+test('layout-studio: binding an end hands the SAME box to connector management', async () => {
+  const { html, layer } = await layoutStudio([card('a', 80, 80), card('b', 700, 640), lineBox({ bindStart: 'a', bindEnd: 'b' })]);
+  assert.doesNotMatch(html, /class="lolly-box-path"/, 'the box svg steps aside');
+  assert.match(layer, /^<svg class="lolly-connectors" width="1080" height="1080"/);
+  assert.match(layer, /<path d="M[^"]*" fill="none" stroke="#c8102e" stroke-width="5"/, 'the shaft, in the path\'s own ink');
+  assert.match(layer, /Z" fill="#c8102e"\/>/, 'and its arrowhead');
+  assert.doesNotMatch(layer, /<marker|<polygon|stroke-dasharray/, 'export-safe committed layer');
+});
+
+test('layout-studio: the SPLINE KIND picks the route, and `route` overrides it', async () => {
+  const both = { bindStart: 'a', bindEnd: 'b' };
+  const cards = [card('a', 80, 80), card('b', 700, 640)];
+  // A two-node `line` routes straight: one M…L, no corner quadratics.
+  const straight = await layoutStudio([...cards, lineBox(both)]);
+  assert.match(straight.layer, /d="M[\d.]+ [\d.]+L[\d.]+ [\d.]+"/, 'line → straight');
+  // A smooth kind routes as the curved S: one cubic.
+  const curved = await layoutStudio([...cards, lineBox({ ...both, path: '1!hyperbezier!0_0!0_1!1' })]);
+  assert.match(curved.layer, /d="M[^"]*C[^"]*"/, 'hyperbezier → curved S');
+  // …and the override wins over both, with the bend fraction the style names.
+  const src = await layoutStudio([...cards, lineBox({ ...both, route: 'elbow-src' })]);
+  assert.match(src.layer, /Q/, 'elbow-src → a rounded orthogonal elbow');
+  assert.notEqual(src.layer, straight.layer);
+  assert.notEqual(src.layer, curved.layer);
+});
+
+test('layout-studio: a HALF-bound path routes from the box to its own free node', async () => {
+  const { layer } = await layoutStudio([card('a', 80, 80), lineBox({ bindStart: 'a' })]);
+  // The free end is the last node in canvas px: x + 1·w, y + 1·h = (600, 500).
+  const tip = /L([\d.]+) ([\d.]+)"/.exec(layer);
+  assert.ok(tip, `the shaft ends somewhere: ${layer}`);
+  // The SHAFT stops a gap plus the head's inset short of the endpoint — 16 + 18 at width 5,
+  // i.e. 34px back along the route — because a routed head sits in clear space rather than
+  // jammed against its own tip. So "reaches it" means within that, and nowhere near the card.
+  assert.ok(Math.hypot(Number(tip[1]) - 600, Number(tip[2]) - 500) < 40,
+    `it reaches the free node (600,500), got ${tip[1]},${tip[2]}`);
+});
+
+test('layout-studio: an authored dash pattern on a BOUND path is real <line> segments', async () => {
+  const { layer } = await layoutStudio([
+    card('a', 80, 80), card('b', 700, 640),
+    lineBox({ bindStart: 'a', bindEnd: 'b', headEnd: 'none', strokeDashArray: '14 8', dashFit: true }),
+  ]);
+  assert.ok((layer.match(/<line /g) || []).length >= 8, 'the run is cut into dashes');
+  assert.doesNotMatch(layer, /stroke-dasharray/, 'never a dasharray in the committed layer');
+});
+
+test('layout-studio: a dangling binding draws nothing rather than guessing', async () => {
+  const { html, layer } = await layoutStudio([card('a', 80, 80), lineBox({ bindStart: 'a', bindEnd: 'gone' })]);
+  assert.equal(layer, '<svg class="lolly-connectors" width="1080" height="1080" viewBox="0 0 1080 1080" preserveAspectRatio="none" aria-hidden="true"></svg>',
+    'an empty layer, not a line to nowhere');
+  assert.doesNotMatch(html, /class="lolly-box-path"/, 'and the box does not draw it either — it IS bound');
+});
+
+test('layout-studio: the retired `connectors` input still converts on load', async () => {
+  // An old share link carries edges. They become bound path boxes, and the render is the
+  // one the edge layer drew — the same guarantee tests/org-chart-migration.test.ts pins in
+  // depth, checked here on the parent-owned pack so a public checkout covers it too.
+  const cards = [card('a', 80, 80), card('b', 700, 640)];
+  const edges = [{ id: 'e1', from: 'a', to: 'b', style: 'elbow', arrow: 'end', head: 'triangle', dash: 'solid', color: '#64748b', width: 3 }];
+  const rt = await createRuntime(lsTool, LS_HOST() as never, { boxes: cards, connectors: edges } as never);
+  assert.deepEqual(rt.hookErrors ?? [], []);
+  const html = rt.getHydrated() as string;
+  const layer = /<svg class="lolly-connectors"[\s\S]*?<\/svg>/.exec(html)![0];
+  const golden = buildConnectorSvg(edges, new Map([
+    ['a', { x: 80, y: 80, w: 240, h: 120 }], ['b', { x: 700, y: 640, w: 240, h: 120 }],
+  ]), { width: 1080, height: 1080, layerClass: 'lolly-connectors', defaultStyle: 'straight', defaultArrow: 'end', defaultHead: 'triangle', defaultColor: '#64748b', defaultWidth: 3 });
+  assert.equal(layer, golden, 'render-identical after the migration');
+  const model = (rt.getModel() as Array<{ id: string; value: unknown }>);
+  assert.deepEqual(model.find((i) => i.id === 'connectors')!.value, [], 'the input is drained');
+  assert.equal((model.find((i) => i.id === 'boxes')!.value as unknown[]).length, 3, 'one path box was minted');
 });

@@ -104,6 +104,15 @@
  *                  back to the profile/localStorage/browser-default chain). A
  *                  `lang` on a shared URL applies for that session only — it is
  *                  never written back to the recipient's saved profile.
+ *   - `designv`  — the DESIGN-SYSTEM VERSION this render resolves against: a
+ *                  published version's slug, or `latest` for the edit head
+ *                  (plans/97 §6a). The top rung of the resolution ladder — it beats
+ *                  a tool's `designVersion` manifest pin and the active version,
+ *                  and a slug naming nothing this device holds falls through to the
+ *                  next rung rather than failing the render. The author's testing
+ *                  lever ("check against `latest`, fix, then publish"), which is why
+ *                  serializeUrlState never writes it: a share link must not pin its
+ *                  recipient to a version of a system that isn't theirs.
  *   - `z`        — a PACKED whole-state token (raw DEFLATE + base64url) that carries
  *                  the entire query for complex tools whose readable form would blow
  *                  past practical URL limits. Expanded back into a plain query by
@@ -239,6 +248,11 @@ export interface UrlState {
   /** UI/content language (the `lang` param), alias-normalized. null ⇒ absent or
    *  unrecognized — caller falls back to profile/localStorage/browser default. */
   lang: Lang | null;
+  /** Design-system version override (the `designv` param): a published version's
+   *  slug, `latest` for the edit head, or null when absent. Carried verbatim — the
+   *  ladder in engine/src/design-version.ts decides what it resolves to, since only
+   *  the caller knows which versions this device holds. See the header. */
+  designVersion: string | null;
 }
 
 /** The slice of an input model item serializeUrlState reads. */
@@ -295,7 +309,7 @@ export interface SerializeUrlOpts {
 // Param names that are NOT tool inputs (export/render controls). Exported so the
 // engine contract test can assert it stays in lock-step with the documented list
 // (the header comment above + docs/url-mode.md) and nothing drifts silently.
-export const RESERVED = new Set(['format', 'export', 'copy', 'slot', 'output', 'filename', '_v', 'width', 'height', 'w', 'h', 'unit', 'dpi', 'profile', 'password', 'bleed', 'marks', 'c2pa', 'imprint', 'durable', 'meta', 'hdr', 'depth', 'cuts', 'lang', 'full', 'options', 'nostage', 'template', 'z', 'zx']);
+export const RESERVED = new Set(['format', 'export', 'copy', 'slot', 'output', 'filename', '_v', 'width', 'height', 'w', 'h', 'unit', 'dpi', 'profile', 'password', 'bleed', 'marks', 'c2pa', 'imprint', 'durable', 'meta', 'hdr', 'depth', 'cuts', 'lang', 'designv', 'full', 'options', 'nostage', 'template', 'z', 'zx']);
 
 // Parse the `marks` param (csv: crop,reg,bleed,bars,prov) into a print-mark
 // toggle map. Returns null when absent so callers fall back to their own defaults.
@@ -506,6 +520,9 @@ export function parseUrlState(searchParams: string | URLSearchParams, manifest: 
     cuts:     parseCuts(params.get('cuts')),
     // UI/content language, alias-normalized (see header). null ⇒ absent/unrecognized.
     lang:     normalizeLang(params.get('lang')),
+    // Design-system version override (see header). Verbatim, never validated here:
+    // whether a slug names a real version is a question about the device's ledger.
+    designVersion: params.get('designv') || null,
   };
 }
 

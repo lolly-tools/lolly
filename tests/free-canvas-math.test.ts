@@ -20,6 +20,9 @@ import {
   gradientLine, gradientPosAt, gradientAngleAt,
   resolveFrame, frameLocalXY, cascadeFrameMove, seedFrameOrder, renumberFrameOrder,
   sequenceFramesInOrder, framesAreSequenced,
+  parseDashArray, formatDashArray, DASH_ARRAY_MAX,
+  routedLineSvg, pathRouteStyle, isConnectorRouteStyle, CONNECTOR_ROUTE_STYLES,
+  edgeWaypoints, buildConnectorSvg,
 } from '../shells/web/src/views/free-canvas-math.ts';
 
 const CFG: any = {
@@ -665,4 +668,90 @@ test('framesAreSequenced: false for spatial frames, true once any frame has dur>
 test('framesAreSequenced: a doc with no frames at all is never sequenced', () => {
   assert.equal(framesAreSequenced([{ id: 'a', kind: 'box', x: 0 }] as any[], SEQ_CFG), false);
   assert.equal(framesAreSequenced([], SEQ_CFG), false);
+});
+
+// ── authored dash arrays (plan 96 P0) ────────────────────────────────────────
+// The power-user "Dash array" field's validator. What matters here is that it
+// REFUSES rather than repairs — the panel's answer to null is to show the error
+// and write nothing — and that what it stores can survive the compact blocks URL.
+
+test('parseDashArray takes a plain space- or comma-separated list', () => {
+  assert.deepEqual(parseDashArray('6 4'), [6, 4]);
+  assert.deepEqual(parseDashArray('6,4'), [6, 4]);
+  assert.deepEqual(parseDashArray('  8   4  2 4 '), [8, 4, 2, 4]);
+  assert.deepEqual(parseDashArray('2.5 1.25'), [2.5, 1.25]);
+  assert.deepEqual(parseDashArray('0 6'), [0, 6]);       // a round-cap dot pattern
+  assert.deepEqual(parseDashArray('10'), [10]);
+});
+
+test('parseDashArray: blank is "no array", not an error', () => {
+  assert.deepEqual(parseDashArray(''), []);
+  assert.deepEqual(parseDashArray('   '), []);
+  assert.deepEqual(parseDashArray(null), []);
+  assert.deepEqual(parseDashArray(undefined), []);
+});
+
+test('parseDashArray rejects anything that is not a list of non-negative numbers', () => {
+  for (const bad of [
+    '6 x', 'abc', '-4 2', '6 -4', '1e3 2', '0x10 4', 'Infinity 2', 'NaN 3',
+    '6..4 2', '.', '6 4;', '<script> 4', '6 4 ~ 2',
+  ]) {
+    assert.equal(parseDashArray(bad), null, `${bad} is not a dash pattern`);
+  }
+});
+
+test('parseDashArray rejects an all-zero pattern (an invisible stroke is not a style)', () => {
+  assert.equal(parseDashArray('0'), null);
+  assert.equal(parseDashArray('0 0 0'), null);
+});
+
+test('parseDashArray bounds the entry count', () => {
+  const ok = Array.from({ length: DASH_ARRAY_MAX }, () => '2').join(' ');
+  assert.equal(parseDashArray(ok)?.length, DASH_ARRAY_MAX);
+  assert.equal(parseDashArray(ok + ' 2'), null);
+});
+
+test('formatDashArray stores the canonical space-separated form (no comma, no tilde)', () => {
+  assert.equal(formatDashArray([6, 4]), '6 4');
+  assert.equal(formatDashArray([2.5, 1.256]), '2.5 1.26');
+  // The two separators the compact blocks URL cannot escape must never appear.
+  const s = formatDashArray(parseDashArray('6, 4, 2')!);
+  assert.equal(s, '6 4 2');
+  assert.ok(!s.includes(','), 'no comma');
+  assert.ok(!s.includes('~'), 'no tilde');
+});
+
+test('parse → format → parse is a fixed point', () => {
+  for (const src of ['6 4', '6,4', '8 4 2 4', '2.5 1.25', '0 6']) {
+    const once = formatDashArray(parseDashArray(src)!);
+    assert.equal(formatDashArray(parseDashArray(once)!), once, src);
+  }
+});
+
+// ── the connector surface this module re-exports (plan 90 R1 + plan 96 P3/P5) ──
+//
+// free-canvas.ts imports its whole connector/bound-path vocabulary from HERE, not from the
+// engine directly, so this module's re-export list is a real contract: drop a name from it
+// and the overlay stops compiling, keep a name that the engine has renamed and the overlay
+// silently loses a feature. The behaviour is the engine's and is tested in
+// tests/connector-geometry.test.ts; what this pins is that the surface arrives intact and
+// is the engine's own function rather than a local re-implementation.
+
+test('the engine connector surface is re-exported whole, and is live', () => {
+  for (const fn of [routedLineSvg, pathRouteStyle, isConnectorRouteStyle, edgeWaypoints, buildConnectorSvg]) {
+    assert.equal(typeof fn, 'function');
+  }
+  assert.ok(Array.isArray(CONNECTOR_ROUTE_STYLES) && CONNECTOR_ROUTE_STYLES.length === 13);
+  // Live, not just present: the kind→route mapping the overlay drives the bind gesture with.
+  assert.equal(pathRouteStyle('line', '', 2), 'straight');
+  assert.equal(pathRouteStyle('line', 'arc-wide', 2), 'arc-wide', 'an override wins');
+  assert.equal(isConnectorRouteStyle('elbow-src'), true);
+  assert.equal(isConnectorRouteStyle('nope'), false);
+  // …and the committed renderer the live overlay draws bound paths with, which is what
+  // makes "nothing jumps on release" a property rather than a hope.
+  const out = routedLineSvg({ x: 0, y: 0, w: 100, h: 50 }, { x: 0, y: 300, w: 100, h: 50 }, {
+    style: 'straight', headStart: 'none', headEnd: 'triangle', dash: 'solid', color: '#30ba78', width: 3,
+  });
+  assert.match(out, /<path d="M/);
+  assert.doesNotMatch(out, /<marker|<polygon|stroke-dasharray/, 'export-safe');
 });

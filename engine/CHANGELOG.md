@@ -6,6 +6,72 @@ minors, never removed or signature-changed without a major bump.
 
 Moved verbatim from the comment block that used to live in `src/index.ts`.
 
+1.111.0 — additive: endpoint binding, one routed-line renderer, real dash segments on the
+committed connector layer (plans/96 P3–P5). `engine/src/connectors.ts` grows the plan-96
+BOUND-path half of the unified primitive. `pathRouteStyle(kind, override, nodeCount)` is
+the ONE mapping from a path's spline kind to the route connector management draws it with
+— `line`→`straight` (a 3+-node authored polyline→`elbow`), `spiro`→`arc`, every other kind
+→the smooth `curved` S — with `override` (a box's explicit `route` field) winning whenever
+it names one of the thirteen `CONNECTOR_ROUTE_STYLES`, which is what keeps the plan-90 edge
+migration lossless: six kinds cannot name thirteen routes, so `elbow-src` survives as an
+override rather than collapsing to `elbow`. `routedLineSvg(a, b, decor)` is now the single
+committed-geometry function; `buildConnectorSvg` reduces a row to a `ConnectorDecor` and
+calls it, so a legacy `{arrow,head}` edge and a plan-96 `{headStart,headEnd}` path are the
+same drawing by construction. `ConnectorRenderOpts` therefore gains `headStartField` /
+`headEndField` (naming either switches a row onto the path reading) plus `dashArrayField` /
+`dashFitField`: an AUTHORED dash pattern on the committed layer is emitted as real `<line>`
+segments through `dashFit.dashSegments`, corner-fitted per route span (elbow bends get a
+whole dash; a sampled curve or arc is one span), never `stroke-dasharray`. `host.connectors`
+gains `routeStyleForKind` and `routeStyles` so a pack hook and the editor agree about which
+route a bound path takes. No existing method changed signature and no existing output moved
+— the legacy edge reading maps `arrow:'end'`→`{headStart:'none', headEnd:head}` and
+`arrow:'both'`→both, byte-for-byte what it drew before.
+
+1.110.0 — additive: path decorations + dash fitting on host.connectors (plans/96 P1).
+`host.connectors` grows three optional members, all attached from the engine by the new
+`makeConnectorsApi()` factory (which every shell now calls instead of naming `{ build }`
+itself, the way `makeColorApi`/`makeGeomApi` already work, so the surface cannot drift):
+`pathHeadSvg({ tipX, tipY, angle, head, color, width })` — an arrowhead for ONE tip of an
+authored path, addressed by tip + outward tangent in RADIANS and drawn by the SAME
+`edgeArrowHead` shapes a routed connector uses, so a spline, a line and a connector
+decorate identically in the editor, the export and the CLI; `pathHeadInset(head, width)`,
+its shaft-trim pair; and `dashFit`, the new pure module `engine/src/dash-fit.ts`.
+`dashFit.parse(text)` is manual dash entry for power users — whitespace/comma separated
+non-negative numbers, ≤16 of them, each 0…1000, odd lists doubled per the SVG rule, and
+NUMBERS ONLY on the way out, which is the injection boundary (a hook serializes the array;
+it never puts typed text on `stroke-dasharray`). `dashFit.cornerFitDashArray(spanLengths,
+pattern)` is Illustrator's "align dashes to corners and path ends": each corner-to-corner
+span carries half a dash at each end, so the two halves either side of a corner join into
+one dash centred on it, with the pattern scaled by `L / (n · cycle)`, `n = max(1,
+round(L / cycle))` — clamped to [0.66, 1.5], beyond which the span keeps the authored
+pattern unscaled so a 2px stub cannot mint absurd dashes. `dashFit.dashSegments(…)` is the
+same fit as absolute `[start, end]` intervals for the committed/export render, which draws
+real geometry and never `stroke-dasharray`; both read one assembly, so their inked length
+agrees to 2dp. No existing method changed and no existing output moved.
+
+1.109.0 — additive: versioned design systems (plans/97 §6a). New pure module
+`engine/src/design-version.ts` — the version ledger (`readVersionIndex` /
+`withVersionIndex` / `stripVersionIndex`), the slug grammar (`slugifyVersion`,
+`isVersionSlug` — the id-segment charset, the 48-character bound and the reserved
+`latest`, enforced at BOTH the mint and the read, so an imported pack cannot post a
+slug nobody typed, `suggestNextLabel`), the asset-id scheme (`versionAssetId`,
+`isVersionAssetId`, and `pickHeadAssetId`, the descendant-exclusion rule every
+shell's tokens discovery now applies), the `resolveDesignVersion` ladder (explicit
+override → the tool's manifest pin → the active version → the head), `docChecksum`
+/ `diffTokenDocs` for publish-time compat diffs, and the pinned-asset helpers
+(`collectAssetTokens`, `collectFontFamilies`, `frozenAssetId`, `applyPinnedAssets`).
+All re-exported from the barrel so the web bridge, the CLI and the MCP server
+resolve a version identically instead of each inventing the rule; the web shell's
+`lib/design-system/versions.ts` became a re-export of it. Reserved param `designv`
+joins `RESERVED` in url-mode (the per-render override; `designv=latest` previews the
+edit head) and `UrlState` gains `designVersion`; it is deliberately absent from
+`serializeUrlState`, so a share link never pins its recipient to your version.
+`tool.json` gains an optional `designVersion` pin, admitted by both schema copies
+and NOT enforced at load: unlike `engineVersion`, an unresolvable pin falls through
+the ladder rather than refusing the tool, and `validate:catalog` checks that a pack
+tool's pin names a version that pack actually ships. No v1 method changed, and a
+design system that never publishes resolves exactly as it did before.
+
 1.108.0 — additive: palette exchange on host.color. Two new optional methods —
 `host.color.paletteExport(swatches, format, opts?)` and
 `host.color.paletteExportBytes(swatches, 'ase')` — attached verbatim from the new

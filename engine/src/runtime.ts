@@ -1340,6 +1340,12 @@ function mergePatch(
   const modelPatch: Record<string, InputValue> = {};
   let hasModelPatch = false;
   for (const [k, v] of Object.entries(patch as Record<string, unknown>)) {
+    // A key whose value is undefined is a hook MENTIONING an input, not
+    // setting it (`{ boxes: migrated || undefined }` is the shipped bug this
+    // guards: key presence used to blank the input to undefined and every
+    // consumer downstream saw nothing). Skipping is safe for extras too — an
+    // undefined extra is indistinguishable from an absent one in templates.
+    if (v === undefined) continue;
     // Hook trust boundary: a patched input value is whatever the tool
     // computed — the same latitude the untyped runtime always gave hooks.
     if (ids.has(k)) { modelPatch[k] = v as InputValue; hasModelPatch = true; }

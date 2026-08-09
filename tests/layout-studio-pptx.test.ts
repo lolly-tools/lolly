@@ -171,12 +171,12 @@ test('a box with opacity<100 is inexpressible → skipped native (no opaque drif
 });
 
 test('the Slide deck TEMPLATE seeds a deck of 3 slides, each with a title + body', async () => {
-  // Read the tool.json template values directly and drive them through the hook — the
-  // path the gallery "Slide deck" tile takes.
-  const raw = await fetchFile('layout-studio/tool.json');
-  const tj = JSON.parse(raw);
-  const tpl = tj.templates.find((t: any) => t.id === 'slide-deck');
-  assert.ok(tpl, 'the slide-deck template exists');
+  // Read the external template file's values directly and drive them through the hook —
+  // the path the gallery "Slide deck" tile takes (templates are per-file now:
+  // tools/<id>/templates/<tid>.json, not inline in tool.json).
+  const raw = await fetchFile('layout-studio/templates/slide-deck.json');
+  const tpl = JSON.parse(raw);
+  assert.equal(tpl.id, 'slide-deck', 'the slide-deck template file exists and is self-identifying');
   const html = await mount(tpl.values.boxes);
   const deck = deckOf(html);
   assert.ok(deck, 'the template emits a deck model');

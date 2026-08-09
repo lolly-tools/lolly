@@ -1,0 +1,245 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://lolly.tools/schemas/canvas-op.schema.json",
+  "title": "Canvas Op",
+  "description": "One persisted collaboration operation on a live canvas (plans/99-canvas-op-contract.md). Mirrors the CanvasOp discriminated union in packages/core/src/canvas-op-v1.ts field-for-field — keep the two in sync by hand; there is no schema-from-types generator here. A discriminated union on `k`, expressed as allOf/if-then (not oneOf) so each branch is its own fully-closed (`additionalProperties: false`) object rather than an ambiguous alternative list. Every op carries `origin` — the Lamport-clock + client-id stamp the reference CRDT (ReferenceCanvasDoc) orders by; lolly-work's real Yjs adapter may ignore it.",
+  "type": "object",
+  "required": ["k", "origin"],
+  "properties": {
+    "k": {
+      "type": "string",
+      "enum": ["geom", "field", "add", "remove", "order", "param"],
+      "description": "The op kind. Deliberately small and append-only (plans/99 §9) — geometry/field/structural/order, plus `param` for the params document lane (plans/99 §6)."
+    },
+    "origin": { "$ref": "#/$defs/origin" }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": { "k": { "const": "geom" } },
+        "required": ["k"]
+      },
+      "then": {
+        "description": "Set a subset of geometry fields on one box — the geometry lane (plans/99 §4.1 `moved`). Never invalidates a raster/tile (plans/99 §4.3).",
+        "type": "object",
+        "required": ["k", "id", "fields", "origin"],
+        "additionalProperties": false,
+        "properties": {
+          "k": { "const": "geom" },
+          "id": { "$ref": "#/$defs/boxId" },
+          "fields": {
+            "type": "object",
+            "description": "At least one geometry field to set. Field NAMES are the shipped defaults (x,y,w,h,rot); a tool with renamed BoxFieldConfig roles must resolve to these before crossing the seam.",
+            "minProperties": 1,
+            "additionalProperties": false,
+            "properties": {
+              "x": { "type": "number" },
+              "y": { "type": "number" },
+              "w": { "type": "number" },
+              "h": { "type": "number" },
+              "rot": { "type": "number" }
+            }
+          },
+          "origin": { "$ref": "#/$defs/origin" }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": { "k": { "const": "field" } },
+        "required": ["k"]
+      },
+      "then": {
+        "description": "Set one content field on one box — the content lane (plans/99 §4.1 `restyled`). `frame`/`group`/`order` membership are ordinary field writes too (plans/99 §3).",
+        "type": "object",
+        "required": ["k", "id", "field", "value", "origin"],
+        "additionalProperties": false,
+        "properties": {
+          "k": { "const": "field" },
+          "id": { "$ref": "#/$defs/boxId" },
+          "field": { "type": "string", "minLength": 1 },
+          "value": { "$ref": "#/$defs/scalar" },
+          "origin": { "$ref": "#/$defs/origin" }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": { "k": { "const": "add" } },
+        "required": ["k"]
+      },
+      "then": {
+        "description": "Insert a new box with its full row + a paint-order key (plans/99 §4.1 `added`).",
+        "type": "object",
+        "required": ["k", "id", "row", "orderKey", "origin"],
+        "additionalProperties": false,
+        "properties": {
+          "k": { "const": "add" },
+          "id": { "$ref": "#/$defs/boxId" },
+          "row": {
+            "type": "object",
+            "description": "The box's flat row of fields — a BoxRow. Every value is a Scalar; file bytes, live frames, and unresolved bindings never enter an op (plans/99 §7).",
+            "additionalProperties": { "$ref": "#/$defs/scalar" }
+          },
+          "orderKey": {
+            "type": "string",
+            "description": "LWW fractional-index paint-order key (see ReferenceCanvasDoc). lolly-work's adapter uses Y.Array<BoxId> instead — documented order-model divergence (plans/99 §3, §8)."
+          },
+          "origin": { "$ref": "#/$defs/origin" }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": { "k": { "const": "remove" } },
+        "required": ["k"]
+      },
+      "then": {
+        "description": "Delete a box (plans/99 §4.1 `removed`). The id is never reused.",
+        "type": "object",
+        "required": ["k", "id", "origin"],
+        "additionalProperties": false,
+        "properties": {
+          "k": { "const": "remove" },
+          "id": { "$ref": "#/$defs/boxId" },
+          "origin": { "$ref": "#/$defs/origin" }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": { "k": { "const": "order" } },
+        "required": ["k"]
+      },
+      "then": {
+        "description": "Set a box's paint-order key (plans/99 §4.1 `zChanged`, order move).",
+        "type": "object",
+        "required": ["k", "id", "orderKey", "origin"],
+        "additionalProperties": false,
+        "properties": {
+          "k": { "const": "order" },
+          "id": { "$ref": "#/$defs/boxId" },
+          "orderKey": { "type": "string" },
+          "origin": { "$ref": "#/$defs/origin" }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": { "k": { "const": "param" } },
+        "required": ["k"]
+      },
+      "then": {
+        "description": "Set a `params` entry — a separate document lane (`Y.Map<CanonicalId, ParamValue>`), not a box field (plans/99 §6).",
+        "type": "object",
+        "required": ["k", "key", "value", "origin"],
+        "additionalProperties": false,
+        "properties": {
+          "k": { "const": "param" },
+          "key": { "type": "string", "minLength": 1 },
+          "value": { "$ref": "#/$defs/paramValue" },
+          "origin": { "$ref": "#/$defs/origin" }
+        }
+      }
+    }
+  ],
+  "$defs": {
+    "origin": {
+      "$anchor": "origin",
+      "type": "object",
+      "description": "The Lamport-clock + client-id stamp every op carries (plans/99 §8). Higher `clock` wins the LWW merge; on a tie, the higher `client` id wins.",
+      "required": ["client", "clock"],
+      "additionalProperties": false,
+      "properties": {
+        "client": { "type": "string", "minLength": 1, "description": "Client id — also the LWW tiebreak on equal clock." },
+        "clock": { "type": "integer", "minimum": 0, "description": "Lamport clock. Higher wins." }
+      }
+    },
+    "boxId": {
+      "$anchor": "boxId",
+      "type": "string",
+      "minLength": 1,
+      "description": "A stable, client-generated ULID (plans/99 §2). Everything keys on this, never an array index."
+    },
+    "scalar": {
+      "$anchor": "scalar",
+      "description": "The CRDT-syncable value of a single box field (plans/99 §7). Deliberately narrow — no file bytes, no live frames.",
+      "type": ["string", "number", "boolean", "null"]
+    },
+    "providerRef": {
+      "$anchor": "providerRef",
+      "type": "object",
+      "description": "A descriptor of WHICH dataset/query a binding reads — never the resolved datum (plans/99 §6).",
+      "required": ["provider"],
+      "additionalProperties": false,
+      "properties": {
+        "provider": { "type": "string", "minLength": 1 },
+        "query": { "type": "string" },
+        "version": { "type": "string", "description": "Optionally pins the provider so a schema change doesn't silently re-resolve differently across clients (plans/99 §11)." }
+      }
+    },
+    "paramBinding": {
+      "$anchor": "paramBinding",
+      "type": "object",
+      "description": "A param binding syncs as a descriptor, never the resolved datum — live data does not travel through the CRDT (plans/99 §6).",
+      "required": ["bind"],
+      "additionalProperties": false,
+      "properties": {
+        "bind": { "$ref": "#/$defs/providerRef" }
+      }
+    },
+    "paramValue": {
+      "$anchor": "paramValue",
+      "description": "The reactive/data-bus value stored per canonical id in `params` (plans/99 §3, §6): either a literal scalar or a binding descriptor.",
+      "oneOf": [
+        { "$ref": "#/$defs/scalar" },
+        { "$ref": "#/$defs/paramBinding" }
+      ]
+    },
+    "presence": {
+      "$anchor": "presence",
+      "type": "object",
+      "title": "Awareness / Presence",
+      "description": "Ephemeral presence — the Yjs awareness channel, NEVER written to the doc (plans/99 §5). Carries no origin/clock: it is not an op and never converges. Broadcast at pointer-move rate.",
+      "required": ["userId", "name", "color", "cursor", "selection"],
+      "additionalProperties": false,
+      "properties": {
+        "userId": { "type": "string", "minLength": 1 },
+        "name": { "type": "string" },
+        "color": { "type": "string" },
+        "cursor": {
+          "type": "object",
+          "description": "Normalized 0..1 of the design's unit space, so every zoom level and every presenter renders it identically (plans/99 §5).",
+          "required": ["x", "y"],
+          "additionalProperties": false,
+          "properties": {
+            "x": { "type": "number", "minimum": 0, "maximum": 1 },
+            "y": { "type": "number", "minimum": 0, "maximum": 1 }
+          }
+        },
+        "selection": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/boxId" }
+        },
+        "drag": {
+          "type": "object",
+          "description": "In-flight drag delta (also normalized unit space) — never persisted.",
+          "required": ["ids", "dxy"],
+          "additionalProperties": false,
+          "properties": {
+            "ids": {
+              "type": "array",
+              "items": { "$ref": "#/$defs/boxId" }
+            },
+            "dxy": {
+              "type": "array",
+              "items": { "type": "number" },
+              "minItems": 2,
+              "maxItems": 2
+            }
+          }
+        }
+      }
+    }
+  }
+}

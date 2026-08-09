@@ -11,6 +11,7 @@ import type { ErrorObject } from 'ajv/dist/2020.js';
 import toolSchema from '../schema/tool.schema.json' with { type: 'json' };
 import assetSchema from '../schema/asset.schema.json' with { type: 'json' };
 import assetRefSchema from '../schema/asset-ref.schema.json' with { type: 'json' };
+import canvasOpSchema from '../schema/canvas-op.schema.json' with { type: 'json' };
 
 /** One human-readable schema violation. */
 export interface ValidationIssue {
@@ -32,8 +33,10 @@ const ajv = new (Ajv as any)({ allErrors: true, strict: false });
 ajv.addSchema(toolSchema);
 ajv.addSchema(assetSchema);
 ajv.addSchema(assetRefSchema);
+ajv.addSchema(canvasOpSchema);
 
 const validate = ajv.compile(toolSchema);
+const validateOp = ajv.compile(canvasOpSchema);
 
 /** Validate a `tool.json` manifest object against the bundled schema. */
 export function validateTool(manifest: unknown): ValidationResult {
@@ -41,6 +44,21 @@ export function validateTool(manifest: unknown): ValidationResult {
   return {
     valid: Boolean(ok),
     errors: ok ? [] : ((validate.errors ?? []) as ErrorObject[]).map(formatError),
+  };
+}
+
+/**
+ * Validate one `CanvasOp` (plans/99 §4) against the bundled canvas-op schema —
+ * the same shape-check lolly-work's collaboration gateway runs on every inbound
+ * op before applying it (the veto in plans/99 §7 is a separate policy layer).
+ * The bundled schema is kept byte-identical to `schemas/canvas-op.schema.json`
+ * by the same drift-guard test that covers the manifest schema.
+ */
+export function validateCanvasOp(op: unknown): ValidationResult {
+  const ok = validateOp(op);
+  return {
+    valid: Boolean(ok),
+    errors: ok ? [] : ((validateOp.errors ?? []) as ErrorObject[]).map(formatError),
   };
 }
 
