@@ -164,9 +164,16 @@ async function signTbs(tbs: Uint8Array, privateKey: CryptoKey): Promise<Uint8Arr
  * X.509 v3 cert (issuer == subject CN, basicConstraints CA:false, keyUsage
  * digitalSignature). dates = { notBefore, notAfter } as Date | ISO string;
  * defaults to now ± 1 year. → { privateKey: CryptoKey, certDer: Uint8Array }
+ *
+ * `subject` overrides the cert's O/CN — default `O=Lolly, CN=Lolly On-Device
+ * Credential`. Set it to sign AS SOMEONE ELSE: a credential attesting an asset
+ * Lolly did not author (e.g. a CC0 GenAI loop from an upstream project) should
+ * carry the upstream's name so the verifier never reads it as Lolly's own work.
+ * Still self-signed, so the verdict stays valid-but-untrusted either way.
  */
 export async function generateSigner(
   dates: { notBefore?: DateInput; notAfter?: DateInput } = {},
+  subject: { organization?: string; commonName?: string } = {},
 ): Promise<{ privateKey: CryptoKey; certDer: Uint8Array }> {
   const notBefore = asDate(dates.notBefore, Date.now() - 60_000);
   const notAfter = asDate(dates.notAfter, notBefore.getTime() + 365 * 24 * 3600 * 1000);
@@ -176,7 +183,7 @@ export async function generateSigner(
   // BIT STRING value — which for EC is exactly the raw uncompressed point.
   const keyId = new Uint8Array(await subtle.digest('SHA-1', new Uint8Array(await subtle.exportKey('raw', pair.publicKey))));
   const serial = randomSerial();
-  const name = x501Name(SIGNER_O, SIGNER_CN);
+  const name = x501Name(subject.organization ?? SIGNER_O, subject.commonName ?? SIGNER_CN);
   const algId = derSeq(derOid(OID_ECDSA_WITH_SHA256));
   // The C2PA certificate profile (spec §14.5.1, enforced by c2pa-rs) requires,
   // beyond basicConstraints + keyUsage: an EKU that is present and allowed

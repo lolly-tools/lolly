@@ -22,11 +22,18 @@
  * seasonal for variety in the picker. Re-encoded to opus @64k — ~half the size of mp3/aac, loops
  * gaplessly via Web Audio, and (unlike vorbis) decodes in Safari.
  *
- * A one-shot generator (like previews): run locally (needs ffmpeg), commit the output, then
- * `npm run build:catalog` (fills checksum + size) and `npm run validate:catalog`. Idempotent:
- * strips any prior `lolly/loops/*` from the index before re-adding.
+ * These are GenAI (Suno), so both surfaces disclose it: each entry carries
+ * `aiGenerated: 'full'` (the catalog's violet "GEN AI" pill), and the matching
+ * C2PA `trainedAlgorithmicMedia` credential is embedded into the .opus files by
+ * scripts/credential-lofi.ts — signed as "Open Lo-Fi (Suno)", NOT as Lolly. Run
+ * that AFTER this script (and after re-ingesting), then build:catalog.
  *
- * Usage:  node scripts/ingest-lofi.ts
+ * A one-shot generator (like previews): run locally (needs ffmpeg), commit the output, then
+ * node scripts/credential-lofi.ts, then `npm run build:catalog` (fills checksum + size) and
+ * `npm run validate:catalog`. Idempotent: strips any prior `lolly/loops/*` from the index
+ * before re-adding.
+ *
+ * Usage:  node scripts/ingest-lofi.ts   (then: node scripts/credential-lofi.ts)
  */
 import { execFileSync } from 'node:child_process';
 import { mkdirSync, readFileSync, writeFileSync, existsSync } from 'node:fs';
@@ -62,7 +69,7 @@ const SELECTION = [
 
 interface Track { title: string; filename: string; category: string }
 interface AssetFormat { format: string; url: string; checksum: string; size: number }
-interface AssetEntry { id: string; name: string; description: string; type: string; version: string; tier: string; tags: string[]; formats: AssetFormat[]; license: string }
+interface AssetEntry { id: string; name: string; description: string; type: string; version: string; tier: string; tags: string[]; formats: AssetFormat[]; license: string; aiGenerated?: string }
 
 const CATEGORY_LABEL: Record<string, string> = {
   chillhop: 'chillhop', jazzhop: 'jazz-lounge', 'ambient-lofi': 'ambient', 'soul-rnb': 'soul & slow-jam',
@@ -89,13 +96,17 @@ for (const file of SELECTION) {
   entries.push({
     id: ID_PREFIX + slug,
     name,
-    description: `Looping lo-fi beat (${label}) — a focus track for Neurospicy Mode, also selectable as a video music bed. Public domain (CC0).`,
+    description: `Looping lo-fi beat (${label}) — a focus track for Neurospicy Mode, also selectable as a video music bed. AI-generated with Suno (the Open Lo-Fi project, github.com/btahir/open-lofi); released to the public domain (CC0).`,
     type: 'audio',
     version: '1.0.0',
     tier: 'on-demand',
     tags: ['audio', 'loop', 'beat', 'neurospicy', 'lofi', ...(cat ? [cat] : [])],
     formats: [{ format: 'opus', url: `${OUT_URL}/${slug}.opus`, checksum: 'sha256-PLACEHOLDER', size: 0 }],
     license: LICENSE,
+    // These tracks were generated with Suno, so they disclose that origin: the
+    // violet "GEN AI" catalog pill + a matching C2PA `trainedAlgorithmicMedia`
+    // credential embedded by scripts/credential-lofi.ts (run it after this).
+    aiGenerated: 'full',
   });
   console.log(`  ✓ ${ID_PREFIX + slug}  (${label})`);
 }
