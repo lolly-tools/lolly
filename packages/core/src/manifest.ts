@@ -223,6 +223,18 @@ export interface ToolManifest {
   name: string;
   version: string;
   engineVersion: string;
+  /**
+   * Optional design-system version this tool renders against (plans/97 §6a): a
+   * published version's slug, or `'latest'` for the edit head. Author-controlled
+   * stability — a pinned tool keeps rendering against its version whatever gets
+   * republished.
+   *
+   * Unlike {@link ToolManifest.engineVersion} this is NOT enforced at load. A pin
+   * naming a version the device does not have falls through to the active version
+   * and then to the head, so a tool always draws; a render can override it with
+   * `?designv=`. On a device that never published a version it has no effect.
+   */
+  designVersion?: string;
   status: 'official' | 'community' | 'experimental';
   render: RenderSpec;
   inputs: InputSpec[];

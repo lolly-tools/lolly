@@ -89,10 +89,12 @@
 </div>
 {{else}}
 <div class="artboard" style="background:{{lookup bgStyle 0}}"{{{lookup seqAttrs 0}}}>
-  {{!-- Connector / line / arrow layer (plan 90): one artboard-sized <svg> built by the
-        engine via host.connectors (hooks.js connectorSvgFor), BEHIND the boxes. Wrapped in
-        a plain <div> so the artboard's first child is not an <svg> — otherwise the SVG/PDF
-        exporter would treat the whole artboard as one SVG and drop the boxes. --}}
+  {{!-- Bound-path layer (plan 96 P5): one artboard-sized <svg> built by the engine via
+        host.connectors (hooks.js lineLayerFor), holding every path box with an end attached
+        to another box, BEHIND the boxes. A FREE path draws inside its own box instead
+        (pathHtml). Wrapped in a plain <div> so the artboard's first child is not an <svg> —
+        otherwise the SVG/PDF exporter would treat the whole artboard as one SVG and drop
+        the boxes. --}}
   <div class="lolly-conn-wrap">{{{connectorSvg}}}</div>
   {{#each boxes}}
   <div class="lolly-box" data-canvas-input="boxes:{{@index}}" data-box-id="{{default id @index}}" data-fit="{{lookup ../boxFit @index}}" style="{{lookup ../boxStyle @index}}"{{{lookup ../timeAttrs @index}}}>

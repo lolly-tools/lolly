@@ -79,9 +79,9 @@ test('no timed boxes → still artboard: ZERO data-sequence, ZERO data-t-*', asy
 // ── The shipped "video" template is all-timed on a single artboard ──────────────────
 
 test('the shipped "video" template seeds a single-artboard, all-timed sequence', async () => {
-  const manifest = JSON.parse(await readFile(TOOL_JSON, 'utf8'));
-  const video = (manifest.templates ?? []).find((t: any) => t.id === 'video');
-  assert.ok(video, 'a template with id "video" exists');
+  // Templates are per-file now (tools/<id>/templates/<tid>.json, not inline in tool.json).
+  const video = JSON.parse(await fetchFile('layout-studio/templates/video.json'));
+  assert.equal(video.id, 'video', 'the video template file exists and is self-identifying');
   const boxes = video.values?.boxes ?? [];
   assert.ok(Array.isArray(boxes) && boxes.length >= 2, 'the video template has multiple boxes');
   // No kind:'frame' box — keeps frameGroups undefined so the {{else}} artboard carries the marker.

@@ -21,6 +21,8 @@
  * segments (never `stroke-dasharray`) in the committed output. This is what survives the
  * SVG/PDF/EMF vector walkers unchanged.
  */
+import type { ConnectorsAPI } from './bridge/host-v1.ts';
+import { cornerFitDashArray, dashSegments, parseDashArray } from './dash-fit.ts';
 
 /** A point in native px. */
 export interface Point { x: number; y: number }
@@ -82,6 +84,57 @@ export function edgeBorderPt(a: EdgeAnchor, tx: number, ty: number): Point {
 }
 
 // ── routing ──────────────────────────────────────────────────────────────────────
+/**
+ * The thirteen route styles `connectorRoute` understands, in menu order. Exported so a
+ * shell control and a pack manifest offer the same list rather than each spelling it out.
+ */
+export const CONNECTOR_ROUTE_STYLES: readonly string[] = [
+  'straight',
+  'elbow', 'elbow-v', 'elbow-h', 'elbow-src', 'elbow-tgt',
+  'curved', 'curved-v', 'curved-h',
+  'arc', 'arc-wide', 'arc-flip', 'arc-flip-wide',
+];
+const ROUTE_SET: Record<string, 1> = Object.create(null);
+for (const s of CONNECTOR_ROUTE_STYLES) ROUTE_SET[s] = 1;
+/** True when `v` names one of the thirteen routes (own-property test — a bare index
+ *  would accept `constructor`/`toString` off Object.prototype). */
+export function isConnectorRouteStyle(v: unknown): boolean {
+  return typeof v === 'string' && Object.prototype.hasOwnProperty.call(ROUTE_SET, v);
+}
+
+/**
+ * The route a BOUND path is drawn with, from its own spline kind (plan 96 P3).
+ *
+ * A bound path is a connector, and connector management picks the route — but the user
+ * already said what shape they wanted when they picked a spline kind, so that is what
+ * chooses it. The mapping, and why each pair goes together:
+ *
+ * | spline kind    | nodes | route      | why                                              |
+ * |----------------|-------|------------|--------------------------------------------------|
+ * | `line`         | 2     | `straight` | a two-point straight segment stays straight      |
+ * | `line`         | ≥3    | `elbow`    | an authored polyline TURNS; the elbow is the routed polyline |
+ * | `cubic`        | any   | `curved`   | authored bezier handles → the smooth S           |
+ * | `hyperbezier`  | any   | `curved`   | the pen's default smooth kind → the smooth S     |
+ * | `catmull-rom`  | any   | `curved`   | a curve through the points → the smooth S        |
+ * | `bspline`      | any   | `curved`   | a curve near the points → the smooth S           |
+ * | `spiro`        | any   | `arc`      | spiro's signature is one clean bow → the arc     |
+ * | anything else  | any   | `straight` | an unknown kind cannot be guessed at             |
+ *
+ * The sub-variants (`-v` / `-h` / `-src` / `-tgt` / `-wide` / `-flip`) are NOT reachable
+ * from a kind — six kinds cannot name thirteen routes — so a path box carries an explicit
+ * `route` override for them. `override` wins whenever it names a real route, which is also
+ * what makes the plan-90 edge migration lossless: an `elbow-src` edge keeps bending at its
+ * source. An empty/unknown override falls through to the kind, i.e. "auto".
+ */
+export function pathRouteStyle(kind: unknown, override?: unknown, nodeCount?: number): string {
+  if (isConnectorRouteStyle(override)) return String(override);
+  const k = String(kind ?? '');
+  if (k === 'line') return (Number(nodeCount) || 0) >= 3 ? 'elbow' : 'straight';
+  if (k === 'spiro') return 'arc';
+  if (k === 'cubic' || k === 'hyperbezier' || k === 'catmull-rom' || k === 'bspline') return 'curved';
+  return 'straight';
+}
+
 // Arc variants — [depth × chord, side sign, px cap].
 const ARC_VARIANTS: Record<string, [number, number, number]> = {
   arc: [0.22, 1, 70], 'arc-wide': [0.42, 1, 220], 'arc-flip': [0.22, -1, 70], 'arc-flip-wide': [0.42, -1, 220],
@@ -268,13 +321,76 @@ export function edgeArrowHead(tip: Point, ux: number, uy: number, s: number, fil
     `L${ef2(B.x - px * hw)} ${ef2(B.y - py * hw)}Z" fill="${col}"/>`;
 }
 
+// ── heads on an authored PATH (plan 96 P1) ───────────────────────────────────────
+/**
+ * How big a head is for a given stroke width — the ONE formula, so an arrowhead on a
+ * hand-drawn spline is the same size as one on a routed connector of the same weight.
+ */
+export function pathHeadSize(width: number): number {
+  return Math.max(9, clamp(numOr(width, 2.5), 0.5, 20) * 4);
+}
+
+/** A head at the tip of an authored path: tip point, OUTWARD tangent, shape, colour, weight. */
+export interface PathHeadOpts {
+  tipX: number; tipY: number;
+  /** Tangent at the tip in RADIANS, pointing OUT of the path — i.e. `Math.atan2(dy, dx)`
+   *  of the last segment at an end head, and of the REVERSED first segment at a start head. */
+  angle: number;
+  /** none · open · triangle · diamond · circle · bar (anything else draws a triangle). */
+  head: string;
+  color: string;
+  /** The path's stroke width; the head size derives from it via {@link pathHeadSize}. */
+  width: number;
+}
+
+/**
+ * The head-for-a-tip primitive the unified path renderer calls (plan 96 P1): the SAME
+ * shapes `edgeArrowHead` draws for a connector, addressed by tip + angle instead of a unit
+ * vector, so a spline, a line and a connector all decorate identically in the editor, the
+ * export and the CLI. Coordinates are baked in — no transform — so the fragment drops
+ * straight into any `<svg>`.
+ */
+export function pathHeadSvg(o: PathHeadOpts): string {
+  const kind = String(o?.head ?? 'none');
+  if (!kind || kind === 'none') return '';
+  const a = numOr(o?.angle, 0);
+  return edgeArrowHead(
+    { x: numOr(o?.tipX, 0), y: numOr(o?.tipY, 0) },
+    Math.cos(a), Math.sin(a),
+    pathHeadSize(o?.width), String(o?.color ?? '#000'), kind,
+  );
+}
+
+/** How far to pull an authored path's shaft back off `head` at stroke `width`, so a filled
+ *  head is not stabbed through by its own line. The `edgeHeadInset` pair for `pathHeadSvg`. */
+export function pathHeadInset(head: string, width: number): number {
+  const kind = String(head ?? 'none');
+  return kind === 'none' ? 0 : edgeHeadInset(kind, pathHeadSize(width));
+}
+
 // ── committed render (the exported connector layer) ──────────────────────────────
 /** Field names + defaults an edge is read through, mirroring the manifest `canvas.connect`
- *  block so one tool's edges render identically in the editor, the export, and the CLI. */
+ *  block so one tool's edges render identically in the editor, the export, and the CLI.
+ *
+ *  The `headStartField`/`headEndField`/`dashArrayField` trio is the plan-96 PATH form: a
+ *  bound `AuthoredPath` box carries a shape at each end (and, optionally, an authored dash
+ *  pattern) instead of the edge model's `arrow` + one shared `head`. Naming either head
+ *  field switches a row onto that reading; naming neither keeps the legacy edge reading, so
+ *  the two models render through one builder and one geometry source. */
 export interface ConnectorRenderOpts {
   fromField?: string; toField?: string;
   styleField?: string; arrowField?: string; headField?: string;
   colorField?: string; dashField?: string; widthField?: string;
+  /** Plan 96: per-END head shapes (a path's `headStart`/`headEnd`). When either is named,
+   *  `arrowField`/`headField` are not read for that row. */
+  headStartField?: string; headEndField?: string;
+  /** Plan 96: an AUTHORED dash pattern (an array of numbers, or a space/comma-separated
+   *  string). Set → the shaft is drawn as real `<line>` dash segments fitted to the
+   *  route's corners, and the `dash` keyword is not read. */
+  dashArrayField?: string;
+  /** Plan 96: opt out of the corner FIT while keeping the authored pattern (default on —
+   *  a routed connector's corners are exactly where a half dash reads as a mistake). */
+  dashFitField?: string;
   defaultStyle?: string; defaultArrow?: string; defaultHead?: string;
   defaultColor?: string; defaultWidth?: number;
   width: number; height: number;   // canvas size for the wrapping <svg> viewBox
@@ -282,38 +398,133 @@ export interface ConnectorRenderOpts {
 }
 type Edge = Record<string, unknown>;
 
-/** One committed connector: shaft (real curve / rounded elbow / real-segment dashes) plus
- *  arrowhead(s), with the shaft pulled back off an arrow end by a gap + head inset. */
-function drawCommittedConnector(a: EdgeRect, b: EdgeRect, e: Edge, o: Required<Pick<ConnectorRenderOpts,
-  'styleField' | 'arrowField' | 'headField' | 'colorField' | 'dashField' | 'widthField' |
-  'defaultStyle' | 'defaultArrow' | 'defaultHead' | 'defaultColor' | 'defaultWidth'>>): string {
-  const style = String(e[o.styleField] ?? o.defaultStyle);
-  const arrow = String(e[o.arrowField] ?? o.defaultArrow);
-  const head = String(e[o.headField] ?? o.defaultHead);
-  const dash = String(e[o.dashField] ?? 'solid');
-  const col = escAttr(String(e[o.colorField] ?? o.defaultColor).trim() || o.defaultColor);
-  const width = clamp(numOr(e[o.widthField], o.defaultWidth), 0.5, 20);
-  const route = connectorRoute(a, b, style);
+/**
+ * One committed line's resolved decoration — the ONE record both readings reduce to before
+ * any geometry happens, so an edge `{arrow:'end', head:'open'}` and a path
+ * `{headStart:'none', headEnd:'open'}` are the same drawing by construction rather than by
+ * two code paths agreeing.
+ */
+export interface ConnectorDecor {
+  style: string;
+  /** Head shape at each end; `'none'` draws no head AND takes no gap/inset pull-back. */
+  headStart: string; headEnd: string;
+  /** Keyword dash: `solid` · `dashed` · `dotted`. Ignored when `dashArray` is set. */
+  dash: string;
+  /** An AUTHORED pattern. Set → real `<line>` segments, corner-fitted unless `dashFit`
+   *  is false. Never `stroke-dasharray`: this is the committed layer. */
+  dashArray?: readonly number[] | null;
+  dashFit?: boolean;
+  /** Already attribute-escaped (see `escAttr`) — this is baked straight into markup. */
+  color: string;
+  width: number;
+}
+
+/** Sample a route into the polyline the dash walk measures, plus which vertices are real
+ *  CORNERS (a dash gets centred on those). A sampled curve has none — its whole run is one
+ *  span, exactly as `dashSpanLengths` treats a smooth spline in the pack hooks. */
+function routePolyline(route: ConnectorRoute, pts: Point[]): { pts: Point[]; corners: boolean } {
+  if (route.arc && route.cpt) return { pts: sampleQuad(pts[0]!, route.cpt, pts[pts.length - 1]!, 48), corners: false };
+  if (route.curved && pts.length >= 3) {
+    // The same cubic `smoothEdgePath` draws, sampled — so the dashes sit on the drawn curve
+    // rather than on the polyline the curve only passes near.
+    const s = pts[0]!, t = pts[pts.length - 1]!;
+    const vert = route.orient ? route.orient === 'v' : Math.abs(t.y - s.y) >= Math.abs(t.x - s.x);
+    const c1 = vert ? { x: s.x, y: (s.y + t.y) / 2 } : { x: (s.x + t.x) / 2, y: s.y };
+    const c2 = vert ? { x: t.x, y: (s.y + t.y) / 2 } : { x: (s.x + t.x) / 2, y: t.y };
+    const out: Point[] = [];
+    for (let i = 0; i <= 48; i++) {
+      const u = i / 48, m = 1 - u;
+      out.push({
+        x: m * m * m * s.x + 3 * m * m * u * c1.x + 3 * m * u * u * c2.x + u * u * u * t.x,
+        y: m * m * m * s.y + 3 * m * m * u * c1.y + 3 * m * u * u * c2.y + u * u * u * t.y,
+      });
+    }
+    return { pts: out, corners: false };
+  }
+  return { pts, corners: true };
+}
+
+/**
+ * An AUTHORED dash pattern along a route, as real `<line>` segments (plan 96 P5).
+ *
+ * The keyword path (`dashRun`) synthesises its pattern from the stroke width and tiles it
+ * per segment; this one takes the user's numbers and hands the span lengths to the engine's
+ * own corner fit, so a dashed elbow lands a whole dash on each bend instead of whatever the
+ * tiling happened to leave there. Segments are emitted in path order and clipped to the
+ * polyline, so nothing is ever drawn past an end.
+ */
+function dashArrayRun(poly: Point[], corners: boolean, pattern: readonly number[], fit: boolean, col: string, width: number): string {
+  if (poly.length < 2) return '';
+  const segLen: number[] = [];
+  let total = 0;
+  for (let i = 0; i < poly.length - 1; i++) {
+    const L = dist(poly[i]!, poly[i + 1]!);
+    segLen.push(L);
+    total += L;
+  }
+  if (!(total > 0.5)) return '';
+  // Corner fit divides the run at every vertex; without corners (or with the fit off) the
+  // whole path is one span, which is the un-fitted tiling `dashSegments` falls back to.
+  const spans = corners && fit ? segLen.filter((L) => L > 0) : [total];
+  const runs = dashSegments(spans, pattern.slice());
+  let out = '';
+  for (const seg of runs) {
+    // Walk the polyline once per dash — a dash may straddle several vertices.
+    let acc = 0;
+    for (let i = 0; i < segLen.length; i++) {
+      const L = segLen[i]!;
+      const a0 = Math.max(seg.start, acc), b0 = Math.min(seg.end, acc + L);
+      if (b0 > a0 + 1e-6 && L > 0) {
+        const p = poly[i]!, q = poly[i + 1]!;
+        const t0 = (a0 - acc) / L, t1 = (b0 - acc) / L;
+        out += `<line x1="${ef2(p.x + (q.x - p.x) * t0)}" y1="${ef2(p.y + (q.y - p.y) * t0)}"` +
+          ` x2="${ef2(p.x + (q.x - p.x) * t1)}" y2="${ef2(p.y + (q.y - p.y) * t1)}"` +
+          ` stroke="${col}" stroke-width="${ef2(width)}" stroke-linecap="butt"/>`;
+      }
+      acc += L;
+      if (acc >= seg.end) break;
+    }
+  }
+  return out;
+}
+
+/**
+ * One committed line between two rects: shaft (real curve / rounded elbow / real-segment
+ * dashes) plus head(s), with the shaft pulled back off a decorated end by a gap + the
+ * head's inset. THE committed geometry — a plan-90 edge and a plan-96 bound path both
+ * arrive here, so they cannot drift.
+ */
+export function routedLineSvg(a: EdgeRect, b: EdgeRect, decor: ConnectorDecor): string {
+  const route = connectorRoute(a, b, decor.style);
   const pts = route.pts.map((p) => ({ x: p.x, y: p.y }));
   const n = pts.length;
   if (n < 2) return '';
-  const headSize = Math.max(9, width * 4);
+  const col = decor.color;
+  const width = clamp(numOr(decor.width, 2.5), 0.5, 20);
+  const headStart = String(decor.headStart || 'none');
+  const headEnd = String(decor.headEnd || 'none');
+  const headSize = pathHeadSize(width);
   const gap = Math.max(8, headSize * 0.8);
   const last = { x: pts[n - 1]!.x, y: pts[n - 1]!.y }, first = { x: pts[0]!.x, y: pts[0]!.y };
   const lastNbr = pts[n - 2]!, firstNbr = pts[1]!;
   let endTip = last, startTip = first;
-  if (arrow === 'end' || arrow === 'both') {
+  if (headEnd !== 'none') {
     const ge = Math.min(gap, dist(last, lastNbr) * 0.55);
     endTip = along(last, lastNbr, ge);
-    pts[n - 1] = along(last, lastNbr, Math.min(ge + edgeHeadInset(head, headSize), dist(last, lastNbr) * 0.9));
+    pts[n - 1] = along(last, lastNbr, Math.min(ge + edgeHeadInset(headEnd, headSize), dist(last, lastNbr) * 0.9));
   }
-  if (arrow === 'both') {
+  if (headStart !== 'none') {
     const gs = Math.min(gap, dist(first, firstNbr) * 0.55);
     startTip = along(first, firstNbr, gs);
-    pts[0] = along(first, firstNbr, Math.min(gs + edgeHeadInset(head, headSize), dist(first, firstNbr) * 0.9));
+    pts[0] = along(first, firstNbr, Math.min(gs + edgeHeadInset(headStart, headSize), dist(first, firstNbr) * 0.9));
   }
+  const dash = String(decor.dash || 'solid');
+  const pattern = decor.dashArray && decor.dashArray.length ? decor.dashArray : null;
   let line = '';
-  if (dash === 'dashed' || dash === 'dotted') {
+  if (pattern) {
+    const poly = routePolyline(route, pts);
+    line = dashArrayRun(poly.pts, poly.corners, pattern, decor.dashFit !== false, col, width);
+  } else if (dash === 'dashed' || dash === 'dotted') {
     for (let i = 0; i < pts.length - 1; i++) line += dashRun(pts[i]!.x, pts[i]!.y, pts[i + 1]!.x, pts[i + 1]!.y, dash, col, width);
   } else if (route.arc && route.cpt) {
     line = `<path d="${arcPath(pts[0]!, pts[pts.length - 1]!, route.cpt)}" fill="none" stroke="${col}" stroke-width="${ef2(width)}" stroke-linecap="round"/>`;
@@ -323,12 +534,52 @@ function drawCommittedConnector(a: EdgeRect, b: EdgeRect, e: Edge, o: Required<P
     line = `<path d="${roundedEdgePath(pts, Math.min(16, width * 4 + 6))}" fill="none" stroke="${col}" stroke-width="${ef2(width)}" stroke-linejoin="round" stroke-linecap="round"/>`;
   }
   let heads = '';
-  if (arrow === 'end' || arrow === 'both') heads += edgeArrowHead(endTip, route.tux, route.tuy, headSize, col, head);
-  if (arrow === 'both') {
+  if (headEnd !== 'none') heads += edgeArrowHead(endTip, route.tux, route.tuy, headSize, col, headEnd);
+  if (headStart !== 'none') {
     const seg = pts[1]!, L = dist(startTip, seg) || 1;
-    heads += edgeArrowHead(startTip, (startTip.x - seg.x) / L, (startTip.y - seg.y) / L, headSize, col, head);
+    heads += edgeArrowHead(startTip, (startTip.x - seg.x) / L, (startTip.y - seg.y) / L, headSize, col, headStart);
   }
   return line + heads;
+}
+
+/** An authored dash value off a row: a real array, or a space/comma-separated string run
+ *  through the engine's own parse. Anything else is "no authored pattern". */
+function rowDashArray(v: unknown): number[] | null {
+  if (Array.isArray(v)) {
+    const out = v.map((x) => numOr(x, -1));
+    return out.length && out.every((x) => x >= 0) && out.some((x) => x > 0) ? out : null;
+  }
+  return typeof v === 'string' ? parseDashArray(v) : null;
+}
+
+/** Read one row's decoration through the caller's field names. Two readings, one record:
+ *  the plan-96 PATH form when a head field is named, the plan-90 EDGE form otherwise. */
+function decorFromRow(e: Edge, o: Required<Pick<ConnectorRenderOpts,
+  'styleField' | 'arrowField' | 'headField' | 'colorField' | 'dashField' | 'widthField' |
+  'defaultStyle' | 'defaultArrow' | 'defaultHead' | 'defaultColor' | 'defaultWidth'>>
+  & Pick<ConnectorRenderOpts, 'headStartField' | 'headEndField' | 'dashArrayField' | 'dashFitField'>): ConnectorDecor {
+  const style = String(e[o.styleField] ?? o.defaultStyle);
+  const col = escAttr(String(e[o.colorField] ?? o.defaultColor).trim() || o.defaultColor);
+  const width = clamp(numOr(e[o.widthField], o.defaultWidth), 0.5, 20);
+  const dash = String(e[o.dashField] ?? 'solid');
+  const dashArray = o.dashArrayField ? rowDashArray(e[o.dashArrayField]) : null;
+  const dashFit = o.dashFitField ? e[o.dashFitField] !== false && String(e[o.dashFitField]) !== 'false' : true;
+  if (o.headStartField || o.headEndField) {
+    return {
+      style, dash, dashArray, dashFit, color: col, width,
+      headStart: o.headStartField ? String(e[o.headStartField] ?? 'none') : 'none',
+      headEnd: o.headEndField ? String(e[o.headEndField] ?? 'none') : 'none',
+    };
+  }
+  // Legacy edge reading: one shape plus WHERE it goes. `arrow:'end'` is a head at the end
+  // and nothing at the start; `'both'` is the same shape at each; anything else is neither.
+  const arrow = String(e[o.arrowField] ?? o.defaultArrow);
+  const head = String(e[o.headField] ?? o.defaultHead);
+  return {
+    style, dash, dashArray, dashFit, color: col, width,
+    headStart: arrow === 'both' ? head : 'none',
+    headEnd: arrow === 'end' || arrow === 'both' ? head : 'none',
+  };
 }
 
 /**
@@ -345,6 +596,8 @@ export function buildConnectorSvg(edges: Edge[], rectById: Map<string, EdgeRect>
     styleField: opts.styleField ?? 'style', arrowField: opts.arrowField ?? 'arrow',
     headField: opts.headField ?? 'head', colorField: opts.colorField ?? 'color',
     dashField: opts.dashField ?? 'dash', widthField: opts.widthField ?? 'width',
+    headStartField: opts.headStartField, headEndField: opts.headEndField,
+    dashArrayField: opts.dashArrayField, dashFitField: opts.dashFitField,
     defaultStyle: opts.defaultStyle ?? 'straight', defaultArrow: opts.defaultArrow ?? 'end',
     defaultHead: opts.defaultHead ?? 'triangle', defaultColor: opts.defaultColor ?? '#94a3b8',
     defaultWidth: opts.defaultWidth ?? 2.5,
@@ -358,8 +611,30 @@ export function buildConnectorSvg(edges: Edge[], rectById: Map<string, EdgeRect>
     const b = edgeEndRect(toV, rectById);
     if (!a || !b) continue;                          // dangling id → renders to nothing
     if (!isEdgePoint(fromV) && !isEdgePoint(toV) && edgeNested(a, b)) continue;
-    body += drawCommittedConnector(a, b, e, o);
+    body += routedLineSvg(a, b, decorFromRow(e, o));
   }
   const cls = opts.layerClass ?? 'lolly-connectors';
   return `<svg class="${escAttr(cls)}" width="${opts.width}" height="${opts.height}" viewBox="0 0 ${opts.width} ${opts.height}" preserveAspectRatio="none" aria-hidden="true">${body}</svg>`;
+}
+
+// ── the host.connectors factory ──────────────────────────────────────────────────
+/**
+ * The `host.connectors` bridge implementation (HostV1 v1.106, extended v1.110/v1.111).
+ * Every shell attaches THIS (`host.connectors = makeConnectorsApi()`) instead of naming
+ * the members itself, so the surface can never drift between web, CLI and Tauri — the way
+ * `makeColorApi`/`makeGeomApi` already work. Pure + synchronous throughout.
+ */
+export function makeConnectorsApi(): ConnectorsAPI {
+  return {
+    build: buildConnectorSvg,
+    // v1.110 — the unified path primitive's decoration + dash maths (plan 96).
+    pathHeadSvg,
+    pathHeadInset,
+    dashFit: { parse: parseDashArray, cornerFitDashArray, dashSegments },
+    // v1.111 — a BOUND path is routed by its own spline kind (plan 96 P3), and a pack hook
+    // has to agree with the editor about which route that is, so the mapping is the
+    // engine's rather than each surface's.
+    routeStyleForKind: pathRouteStyle,
+    routeStyles: CONNECTOR_ROUTE_STYLES.slice(),
+  };
 }

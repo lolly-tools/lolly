@@ -213,6 +213,25 @@ var BLENDS = {
   hue: 1, saturation: 1, color: 1, luminosity: 1,
 };
 
+// ONE answer to "is this box audio?", shared by every place that has to leave no mark
+// on the frame: the fill (boxCss), the shadow/clip/blur (compute), the text (compute)
+// and the media element (mediaHtmlFor). Mirrors sequence-studio's predicate verbatim so
+// Design and Sequence Studio decide identically. A box is audio when it SAYS so
+// (kind:'audio' — what the Audio add-kind seeds and what the shell's timeline compositor
+// keys its waveform lane off), or when the asset it carries is audio by type/extension.
+// Both, because a catalog ref's url is an opaque `asset:`/blob id with no extension and a
+// resolver may not fill in .type, so the kind is the only reliable signal for a library
+// track — while the extension test still catches an audio file dropped onto an ordinary box.
+function isAudioBox(b) {
+  if (!b) return false;
+  if (String(b.kind) === 'audio') return true;
+  var img = b.image;
+  if (!img) return false;
+  if (img.type === 'audio') return true;
+  var re = /\.(mp3|wav|ogg|m4a|flac)($|\?|#)/i;
+  return re.test(String(img.url == null ? '' : img.url)) || re.test(String(img.id == null ? '' : img.id));
+}
+
 function boxCss(b, grad) {
   var x = Math.round(num(b.x, 0));
   var y = Math.round(num(b.y, 0));
@@ -222,8 +241,10 @@ function boxCss(b, grad) {
   var op = clamp(num(b.opacity, 100), 0, 100) / 100;
   // A path box's `bg` is the PATH's fill (see pathHtmlFor), so the div behind it
   // stays transparent — otherwise every pen shape would sit on an opaque rectangle
-  // of its own fill colour.
-  var fill = String(b.kind) === 'path' ? 'transparent' : safeColor(b.bg, 'transparent');
+  // of its own fill colour. An audio box paints nothing at all (see mediaHtmlFor),
+  // so its fill is dropped for the same reason: it must leave no mark on the frame.
+  var audio = isAudioBox(b);
+  var fill = (String(b.kind) === 'path' || audio) ? 'transparent' : safeColor(b.bg, 'transparent');
   var blend = BLENDS[String(b.blend)] ? String(b.blend) : '';
   var css =
     'left:' + x + 'px;top:' + y + 'px;width:' + w + 'px;height:' + h + 'px;' +
@@ -249,7 +270,7 @@ function boxCss(b, grad) {
   // SVG path itself (pathHtmlFor), never the div.
   var sw = num(b.strokeW, 0);
   var sc = safeColor(b.stroke, '');
-  if (String(b.kind) !== 'path' && sc && sw > 0) {
+  if (String(b.kind) !== 'path' && !audio && sc && sw > 0) {
     var dash = String(b.strokeDash) === 'dashed' ? 'dashed' : String(b.strokeDash) === 'dotted' ? 'dotted' : 'solid';
     css += 'border:' + (Math.round(sw * 100) / 100) + 'px ' + dash + ' ' + sc + ';';
   }
@@ -263,7 +284,7 @@ function boxCss(b, grad) {
   // PDF and video paths cannot see a backdrop through their serialiser and export
   // the box frostless. The export panel warns when the chosen format drops it.
   var bgb = clamp(num(b.bgBlur, 0), 0, 300);
-  if (String(b.kind) !== 'path' && bgb > 0) {
+  if (String(b.kind) !== 'path' && !audio && bgb > 0) {
     var bgbPx = (Math.round(bgb * 10) / 10) + 'px';
     css += 'backdrop-filter:blur(' + bgbPx + ');-webkit-backdrop-filter:blur(' + bgbPx + ');';
   }
@@ -292,6 +313,20 @@ function mediaHtmlFor(b) {
   var isLottie = (img && img.type === 'lottie') || /\.json($|\?|#)/i.test(url);
   var isVideo = (img && img.type === 'video') || /\.(mp4|m4v|mov|webm)($|\?|#)/i.test(url);
   var style = imgCss(b);
+  // An audio box is a TIMELINE citizen, not an artboard one: a music bed or a voiceover
+  // has no picture, so it paints nothing and a still export can never show a stray
+  // rectangle where it sits (styles.css hides the marker; boxCss keeps the box
+  // transparent and compute() drops its text). The marker div is the only trace, carrying
+  // the src for the shell compositor's waveform + audio mix — inert in the CLI and a plain
+  // browser render, exactly like the Lottie marker below. Checked BEFORE the lottie/video
+  // branches so an asset typed 'audio' can never fall through to a broken <img>. Mirrors
+  // sequence-studio's marker verbatim: class + data-audio-src (always), data-audio-dur
+  // (only when the source's own length in ms is known — a procedural zzfxm bed omits it).
+  if (isAudioBox(b)) {
+    var adur = img && img.meta && Number(img.meta.durationMs);
+    var adurAttr = (isFinite(adur) && adur > 0) ? ' data-audio-dur="' + Math.round(adur) + '"' : '';
+    return '<div class="lolly-box-audio" data-audio-src="' + esc(url) + '"' + adurAttr + ' aria-hidden="true"></div>';
+  }
   if (isLottie) {
     var fit = String(b.fit) === 'cover' ? 'cover' : 'contain';
     return '<div class="lolly-box-img lolly-box-lottie" data-lottie-src="' + esc(url) +
@@ -377,7 +412,8 @@ function pathWarn(msg) {
 function gradCssFor(b) {
   // A path box's `bg` is the PATH's fill, not the div's (see pathHtmlFor), so a
   // gradient on it would paint a rectangle behind the curve. Shapes only for now.
-  if (!b || String(b.kind) === 'path') return '';
+  // An audio box is invisible, so a gradient on it would print a stray rectangle.
+  if (!b || String(b.kind) === 'path' || isAudioBox(b)) return '';
   var spec = b.grad == null ? '' : String(b.grad).trim();
   if (!spec) return '';
   var api = typeof host !== 'undefined' && host && host.color ? host.color : null;
@@ -437,10 +473,231 @@ function dashArrayFor(style, w, cap, dashLen, gapLen) {
   return f2(w * 3) + ' ' + f2(w * 2);
 }
 
+// ── plan 96: one path primitive, so a path carries connector decorations ─────
+//
+// A spline, a line and a connector are the SAME thing here — an authored path — so the
+// arrowheads that used to belong to a connector edge belong to any path box. The shapes
+// and their geometry are the engine's (`edgeArrowHead`), reached through the host bridge
+// so the editor, the export and a headless CLI draw one head, not three.
+//
+// Everything below is feature-detected and degrades to "no decoration", never to a throw:
+// a path box on an engine that predates the primitive renders exactly the markup it
+// rendered before these fields existed.
+
+// The head vocabulary, whitelisted for the same reason the cap/join/dash keywords are:
+// the value reaches a bridge call and, through it, an attribute in {{{ }}} markup.
+var HEAD_KINDS = { none: 1, triangle: 1, open: 1, circle: 1, diamond: 1, bar: 1 };
+function headKind(v) {
+  var s = String(v == null ? '' : v);
+  return HEAD_KINDS[s] ? s : 'none';
+}
+
+// host.connectors is OPTIONAL and additive — feature-detect exactly like geomApi().
+function connApi() {
+  return typeof host !== 'undefined' && host && host.connectors ? host.connectors : null;
+}
+
+// The head's SIZE from the stroke width, and how far the SHAFT is pulled back so a filled
+// head is not pierced by the line it terminates. Both mirror engine/src/connectors.ts
+// (`Math.max(9, width * 4)` and `edgeHeadInset`) EXACTLY, because the head is drawn by that
+// engine code and the pull-back is computed here: two formulas that must agree, so they are
+// written to agree rather than guessed. An open chevron and a bar are strokes across the
+// tip with nothing to pierce, so they pull back by nothing.
+// The width is clamped to the SAME [0.5, 20] band `pathHeadSize` clamps it to before the
+// engine sizes the head. Without that, a 40px stroke draws an 80px head (the engine's) and
+// pulls its shaft back 144px (this one's), leaving the line visibly short of its own arrow.
+function headSizeFor(w) { return Math.max(9, clamp(num(w, 2.5), 0.5, 20) * 4); }
+function headInsetFor(kind, s) {
+  if (kind === 'none' || kind === 'open' || kind === 'bar') return 0;
+  if (kind === 'diamond') return 2 * s;
+  if (kind === 'circle') return 2 * (0.42 * s);
+  return s * 0.9;   // triangle
+}
+
+// One arrowhead as an SVG fragment, via the bridge. `angle` is RADIANS about the +x axis —
+// atan2 order — and the primitive derives the head size from `width` the same way
+// headSizeFor does. Absent primitive (older engine) → '' and the path simply has no head.
+function headSvgFor(tip, ux, uy, kind, color, width) {
+  var api = connApi();
+  if (kind === 'none' || !api || typeof api.pathHeadSvg !== 'function') return '';
+  try {
+    return api.pathHeadSvg({
+      tipX: tip.x, tipY: tip.y, angle: Math.atan2(uy, ux),
+      head: kind, color: color, width: width,
+    }) || '';
+  } catch (e) {
+    pathWarn('arrowhead render failed: ' + e);
+    return '';
+  }
+}
+
+// ── end tangents ─────────────────────────────────────────────────────────────
+// A head needs a tip and a direction. On a routed connector the direction falls out of the
+// route; on an AUTHORED path there is none, so it is read off the LOWERED curve — the only
+// honest source, since the same nodes lower to different tangents under different spline
+// kinds. Both vectors point OUT of the path: the way a head at that end faces.
+// `curves` is the engine's cubic form: [x0,y0, c1x,c1y, c2x,c2y, x3,y3].
+function unitBetween(ax, ay, bx, by) {
+  var dx = bx - ax, dy = by - ay, L = Math.sqrt(dx * dx + dy * dy);
+  return L > 1e-9 ? { x: dx / L, y: dy / L } : null;
+}
+function endTangents(curves) {
+  var s = null, e = null, i, c, legs, k;
+  // A zero-length control leg is ordinary (a straight segment out of fromNodes has one), so
+  // step over it rather than normalise it; only a wholly degenerate segment moves the walk
+  // into its neighbour.
+  for (i = 0; i < curves.length && !s; i++) {
+    c = curves[i]; legs = [[2, 3], [4, 5], [6, 7]];
+    for (k = 0; k < legs.length && !s; k++) s = unitBetween(c[legs[k][0]], c[legs[k][1]], c[0], c[1]);
+  }
+  for (i = curves.length - 1; i >= 0 && !e; i--) {
+    c = curves[i]; legs = [[4, 5], [2, 3], [0, 1]];
+    for (k = 0; k < legs.length && !e; k++) e = unitBetween(c[legs[k][0]], c[legs[k][1]], c[6], c[7]);
+  }
+  return s && e ? { start: s, end: e } : null;
+}
+function endPoints(curves) {
+  var a = curves[0], z = curves[curves.length - 1];
+  return { start: { x: a[0], y: a[1] }, end: { x: z[6], y: z[7] } };
+}
+
+// Pull the two END POINTS back along their own tangents, so the shaft stops short of a
+// filled head instead of running out through its tip. Only the endpoint and the control
+// point beside it move, by the same delta, so the tangent direction is untouched and the
+// curve keeps its shape; the pull-back is capped at 40% of the segment's chord so a very
+// short final segment cannot be turned inside out. Returns a NEW curves array.
+function insetCurveEnds(curves, dirs, insetStart, insetEnd) {
+  var out = [], i;
+  for (i = 0; i < curves.length; i++) out.push(curves[i].slice());
+  var first = out[0], last = out[out.length - 1];
+  var capOf = function (c) {
+    var dx = c[6] - c[0], dy = c[7] - c[1];
+    return Math.sqrt(dx * dx + dy * dy) * 0.4;
+  };
+  if (insetStart > 0) {
+    var ds = Math.min(insetStart, capOf(first));
+    // start tangent points OUT of the path, so moving IN is +ds along it reversed.
+    first[0] -= dirs.start.x * ds; first[1] -= dirs.start.y * ds;
+    first[2] -= dirs.start.x * ds; first[3] -= dirs.start.y * ds;
+  }
+  if (insetEnd > 0) {
+    var de = Math.min(insetEnd, capOf(last));
+    last[6] -= dirs.end.x * de; last[7] -= dirs.end.y * de;
+    last[4] -= dirs.end.x * de; last[5] -= dirs.end.y * de;
+  }
+  return out;
+}
+
+// ── authored dash arrays + corner fit ────────────────────────────────────────
+//
+// The keyword style (dashArrayFor above) derives its pattern from the stroke width. A power
+// user wants the numbers, so `strokeDashArray` carries them as a SPACE-separated string —
+// space because the compact blocks URL splits rows on '~' and fields on ',', and neither
+// can be escaped inside a value. When it is set it WINS over the keyword.
+//
+// The parse is the engine's when the engine has one (host.connectors.dashFit.parse is the
+// authority the editor validates against too), and this local one otherwise, so a hand-
+// edited URL param is checked either way. Nothing but finite non-negative NUMBERS ever
+// reaches the attribute — which is the whole reason a keyword was the only option before.
+var DASH_MAX = 16;
+function parseDashArrayText(v) {
+  var text = String(v == null ? '' : v).trim();
+  if (!text) return null;
+  var api = connApi();
+  if (api && api.dashFit && typeof api.dashFit.parse === 'function') {
+    try { return api.dashFit.parse(text) || null; } catch (e) { /* fall through to the local parse */ }
+  }
+  var parts = text.split(/[\s,]+/), out = [], i, n;
+  if (!parts.length || parts.length > DASH_MAX) return null;
+  for (i = 0; i < parts.length; i++) {
+    if (!/^\d*\.?\d+$/.test(parts[i])) return null;
+    n = Number(parts[i]);
+    if (!isFinite(n) || n < 0) return null;
+    out.push(n);
+  }
+  for (i = 0; i < out.length; i++) if (out[i] > 0) return out;
+  return null;   // all zeros paints nothing — not a pattern
+}
+
+// The length of one cubic, by chord sampling. Exact arc length of a cubic has no closed
+// form; 16 chords is well inside a pixel at any size a layout canvas holds, and the number
+// only ever feeds a dash-period fit, where being a fraction of a percent out is invisible.
+function cubicLength(c) {
+  var n = 16, prevX = c[0], prevY = c[1], total = 0, i, t, mt, x, y;
+  for (i = 1; i <= n; i++) {
+    t = i / n; mt = 1 - t;
+    x = mt * mt * mt * c[0] + 3 * mt * mt * t * c[2] + 3 * mt * t * t * c[4] + t * t * t * c[6];
+    y = mt * mt * mt * c[1] + 3 * mt * mt * t * c[3] + 3 * mt * t * t * c[5] + t * t * t * c[7];
+    total += Math.sqrt((x - prevX) * (x - prevX) + (y - prevY) * (y - prevY));
+    prevX = x; prevY = y;
+  }
+  return total;
+}
+
+// The lengths the dash pattern has to come out even over — Illustrator's "align dashes to
+// corners and path ends". A CORNER is a node the curve actually turns at: every node on a
+// polyline (`kind:'line'`), and a node marked `corner` on any other kind. A smooth spline
+// has none, so its whole run is one span between its two ends; a CLOSED path has no ends,
+// so a closed smooth loop is one span all the way round and a closed polyline is one span
+// per side. Segment i runs node i → node i+1 (the engine's own indexing), wrapping on the
+// last segment of a closed path.
+function dashSpanLengths(curves, nodes, kind, closed) {
+  if (!curves.length || nodes.length < 2) return [];
+  var isCorner = [], i;
+  for (i = 0; i < nodes.length; i++) {
+    isCorner.push(kind === 'line' || String(nodes[i].continuity) === 'corner');
+  }
+  var spans = [], acc = 0, endNode;
+  for (i = 0; i < curves.length; i++) {
+    acc += cubicLength(curves[i]);
+    endNode = (i + 1) % nodes.length;
+    if (i === curves.length - 1 || isCorner[endNode]) { spans.push(acc); acc = 0; }
+  }
+  if (acc > 0) spans.push(acc);
+  // On a closed path the run that starts at node 0 and the one that ends there are the SAME
+  // span unless node 0 is itself a corner — otherwise a smooth loop would report a seam the
+  // curve does not have.
+  if (closed && !isCorner[0] && spans.length > 1) spans[0] += spans.pop();
+  var out = [];
+  for (i = 0; i < spans.length; i++) if (spans[i] > 0) out.push(spans[i]);
+  return out;
+}
+
+// The pattern actually emitted: the authored one, adjusted so a whole number of periods
+// fits each span when "Fit dashes to corners" is on. The fit is the ENGINE's arithmetic
+// (host.connectors.dashFit.cornerFitDashArray) — absent, or refusing, and the authored
+// pattern is emitted unchanged, which is the same drawing minus the corner alignment.
+function fittedDashArray(pattern, spans) {
+  var api = connApi();
+  if (!spans.length || !api || !api.dashFit || typeof api.dashFit.cornerFitDashArray !== 'function') return pattern;
+  try {
+    var fit = api.dashFit.cornerFitDashArray(spans, pattern);
+    return (fit && fit.length) ? fit : pattern;
+  } catch (e) {
+    pathWarn('corner-fit dashes failed: ' + e);
+    return pattern;
+  }
+}
+
+// numbers -> the attribute value. f2() is the only thing that ever writes it.
+function dashArrayToAttr(nums) {
+  var out = [], i;
+  for (i = 0; i < nums.length; i++) {
+    var n = num(nums[i], -1);
+    if (!(n >= 0)) return '';        // a non-number anywhere voids the whole pattern
+    out.push(f2(clamp(n, 0, 4000)));
+  }
+  return out.join(' ');
+}
+
 // A path box's inline <svg>, or '' for every other kind. Pure/string-only like
 // mediaHtmlFor, so the CLI emits identical markup.
 function pathHtmlFor(b) {
   if (String(b.kind) !== 'path') return '';
+  // A BOUND path is a connector: its shape is the route between two live rects, in CANVAS
+  // coordinates, and a box <svg> can only draw inside its own frame. So it is drawn by
+  // lineLayerFor() instead and nothing is emitted here — see the plan 96 P3 block below.
+  if (isBoundPath(b)) return '';
   var w = Math.max(1, Math.round(num(b.w, 1)));
   var h = Math.max(1, Math.round(num(b.h, 1)));
   var raw = b.path == null ? '' : String(b.path);
@@ -463,6 +720,7 @@ function pathHtmlFor(b) {
   // never subtract, and one <path> with two subpaths does it for free.
   var srcs = dec.value;
   var ds = [];
+  var soleNodes = null;   // the box-local nodes of a SINGLE-contour path (see below)
   for (var pi = 0; pi < srcs.length; pi++) {
     var src = srcs[pi];
     var nodes = [];
@@ -476,6 +734,7 @@ function pathHtmlFor(b) {
       if (n.continuity) out.continuity = n.continuity;
       nodes.push(out);
     }
+    if (srcs.length === 1) soleNodes = nodes;
     var res = geom.fromNodes({
       kind: src.kind, nodes: nodes, closed: src.closed === true,
       tension: src.tension, decimals: 3,
@@ -505,6 +764,69 @@ function pathHtmlFor(b) {
   var dash = dashArrayFor(String(b.strokeDash == null ? '' : b.strokeDash), sw, cap,
     num(b.strokeDashLen, 0), num(b.strokeGapLen, 0));
 
+  // ── plan 96 decorations: arrowheads + the authored dash pattern ────────────
+  //
+  // Both need the LOWERED curve — the tangent a head points along, and the arc lengths a
+  // corner fit divides — and both are meaningful only on a path with two ends, so they
+  // apply to a SINGLE OPEN contour. A closed loop has no ends; a multi-contour result (a
+  // boolean, a traced glyph) has no single pair of them, and picking one arbitrarily would
+  // put an arrow on whichever subpath happened to be first. Those keep today's markup.
+  var headStart = headKind(b.headStart);
+  var headEnd = headKind(b.headEnd);
+  var authored = parseDashArrayText(b.strokeDashArray);
+  var wantHeads = !!stroke && sw > 0 && (headStart !== 'none' || headEnd !== 'none');
+  var wantFit = !!authored && boolVal(b.dashFit, false);
+  var sole = (srcs.length === 1 && soleNodes) ? srcs[0] : null;
+  var curves = null;
+  if ((wantHeads || wantFit) && sole && typeof geom.parse === 'function') {
+    var pr = geom.parse(d);
+    if (pr && pr.ok && pr.value && pr.value.length === 1) curves = pr.value[0].curves;
+  }
+
+  // An authored array WINS over the keyword: the numbers are the more specific statement,
+  // and the keyword's control stays where it is so the pattern can be dropped again.
+  if (authored) {
+    var pattern = (wantFit && curves && curves.length)
+      ? fittedDashArray(authored, dashSpanLengths(curves, soleNodes, String(sole.kind), sole.closed === true))
+      : authored;
+    var attr = dashArrayToAttr(pattern);
+    if (attr) dash = attr;
+  }
+
+  var heads = '';
+  var headReach = 0;
+  if (wantHeads && curves && curves.length && !(sole.closed === true)) {
+    var dirs = endTangents(curves);
+    if (dirs) {
+      var tips = endPoints(curves);
+      var hsz = headSizeFor(sw);
+      // Each head is BUILT FIRST and the shaft is pulled back only where one actually came
+      // back. The primitive is feature-detected, so "no head" is a real outcome on an older
+      // engine — and trimming for a head that was never drawn would leave the line visibly
+      // short of its own endpoint with nothing there to explain it.
+      var hs = headSvgFor(tips.start, dirs.start.x, dirs.start.y, headStart, stroke, sw);
+      var he = headSvgFor(tips.end, dirs.end.x, dirs.end.y, headEnd, stroke, sw);
+      heads = hs + he;
+      if (heads) {
+        var trimmed = insetCurveEnds(curves, dirs,
+          hs ? headInsetFor(headStart, hsz) : 0,
+          he ? headInsetFor(headEnd, hsz) : 0);
+        // Re-serialising the pulled-back curve is the engine's job too, so the `d` the
+        // browser reads is the `d` the SVG/PDF walkers read. No toPathData (or a refusal)
+        // leaves the shaft at full length under its head — a cosmetic loss, not a wrong
+        // drawing, so it is not worth a placeholder.
+        if (typeof geom.toPathData === 'function') {
+          var td = geom.toPathData([{ curves: trimmed, closed: false }], { decimals: 3 });
+          if (td && td.ok && td.d) d = td.d;
+        }
+        // A head sits ON the frame edge and spreads across the tangent (a bar reaches
+        // 0.62·size either side, the widest of the six), so the pad below has to cover it
+        // or the outer <svg> clips the arrow off the shape it belongs to.
+        headReach = hsz * 0.7 + sw / 2;
+      }
+    }
+  }
+
   // The STROKE PAD. The frame is the curve's tight bounding box (the pen tool refits it to
   // exactly that), so a stroke straddles the frame edge and half of it falls outside — and
   // an outer <svg> clips to its viewport, so without a pad every stroked pen shape loses
@@ -525,8 +847,11 @@ function pathHtmlFor(b) {
   //
   // The inline geometry also has to override styles.css's `inset: 0; width/height: 100%`,
   // which would otherwise pull the element back to the frame — hence `inset:auto` first.
+  //   - an ARROWHEAD (plan 96) is the third: it sits ON the frame edge and spreads across
+  //     the tangent, so `headReach` above sizes the pad for whichever head is on. A path
+  //     with no head contributes 0 and the pad is byte-identical to what it was.
   var reach = Math.max(cap === 'square' ? Math.SQRT2 / 2 : 0.5, join === 'miter' ? MITER_LIMIT / 2 : 0.5);
-  var pad = stroke && sw > 0 ? sw * reach : 0;
+  var pad = Math.max(stroke && sw > 0 ? sw * reach : 0, headReach);
   var vw = f2(w + pad * 2), vh = f2(h + pad * 2), o = f2(-pad);
   // Everything interpolated is esc()'d even though each value is already reduced to a
   // validated colour, a whitelisted keyword or a number: the extra is emitted through
@@ -542,7 +867,12 @@ function pathHtmlFor(b) {
         (join === 'miter' ? ' stroke-miterlimit="' + esc(MITER_LIMIT) + '"' : '') +
         (dash ? ' stroke-dasharray="' + esc(dash) + '"' : '')
       : '') +
-    '></path></svg>';
+    '></path>' +
+    // The heads follow the shaft so they paint over its end, and they are NOT esc()'d:
+    // they are engine-built SVG fragments, not values — the engine escapes the one thing
+    // in them that came from the box (the colour), exactly as it does for a connector.
+    heads +
+    '</svg>';
 }
 
 function rot2(px, py, deg) {
@@ -788,36 +1118,210 @@ function seqDurationMs(boxes) {
   return timedBoxes.length ? DEFAULT_SEQ_S * 1000 : 0;
 }
 
-// Connectors (plan 90) — the committed connector / line / arrow layer, rendered by the
-// engine via the host bridge (host.connectors, v1.106) so the SAME geometry lands in the
-// editor's live preview, the export, and a headless CLI. Feature-detected: '' on an older
-// engine (the lines still author + preview in the editor; only the committed/export layer
-// waits for the bridge). CONN_W/H are the artboard's native coordinate space (render size),
-// and the <svg> is CSS-stretched to the artboard (styles.css .lolly-connectors), so the
-// viewBox maps box x/y 1:1 the same way org-chart's oc-connectors does.
+// ── plan 96 P3–P5: bound paths, and ONE committed line layer ──────────────
+//
+// A path box with an endpoint ATTACHED to another box is a connector, and connector
+// management takes over drawing it: the engine routes from the bound box's border toward
+// the other end (another bound box, or the path's own free node as an `@x,y` point) and
+// re-solves that route every render, so the line sticks to the boxes wherever they move.
+//
+// The route is chosen by the path's own SPLINE KIND — host.connectors.routeStyleForKind,
+// the engine's single mapping (line→straight, a 3+-node polyline→elbow, spiro→arc, every
+// other kind→the curved S) — overridden by the box's `route` field for the nine variants
+// six kinds cannot name (elbow-v/-h/-src/-tgt, curved-v/-h, the arc bows). Heads, dashes
+// and colour ride along as the box's own decoration fields.
+//
+// Everything below is feature-detected and degrades to "no layer", never to a throw:
+// CONN_W/H are the artboard's native coordinate space, and the <svg> is CSS-stretched to
+// the artboard (styles.css .lolly-connectors), so the viewBox maps box x/y 1:1.
 var CONN_W = 1080, CONN_H = 1080;
-function connectorSvgFor(inp, boxes) {
-  var api = (typeof host !== 'undefined' && host && host.connectors) || null;
+// What a bound path falls back to when it carries no stroke of its own. Same pair the
+// retired `canvas.connect` block declared, so a migrated edge with no colour looks the
+// same as it did.
+var CONN_COLOR = '#64748b', CONN_WIDTH = 3;
+
+// One end's binding: the id of the box it is attached to, '' for a free end.
+function bindOf(b, which) {
+  var v = which === 'start' ? b.bindStart : b.bindEnd;
+  return v == null ? '' : String(v).trim();
+}
+// Is this box a connector? One binding is enough — a path pinned at one end and loose at
+// the other still routes, from the border toward the loose point.
+function isBoundPath(b) {
+  return String(b.kind) === 'path' && (bindOf(b, 'start') !== '' || bindOf(b, 'end') !== '');
+}
+// A free end as the engine's point sentinel. 2dp, like every other coordinate here.
+function ptRef(p) { return '@' + f2(p.x) + ',' + f2(p.y); }
+
+// A path box's spline kind, node count, and its two END POINTS in CANVAS coordinates.
+// Nodes are stored NORMALISED to the frame, so the canvas position is the frame origin
+// plus the normalised coordinate times the frame size. Rotation is deliberately ignored:
+// a bound path is drawn between two rects and the router re-solves both ends anyway, so a
+// rotated frame would only move a point that is about to be recomputed.
+// null when there is no readable two-node-or-more path (an empty field, an older engine
+// with no host.geom, an unreadable value).
+function pathGeomFor(b) {
+  var geom = geomApi();
+  var raw = b.path == null ? '' : String(b.path);
+  if (!geom || typeof geom.decodeAuthored !== 'function' || !raw) return null;
+  var dec = geom.decodeAuthored(raw);
+  if (!dec || !dec.ok || !dec.value || !dec.value.length) return null;
+  var src = dec.value[0];
+  var ns = src && src.nodes;
+  if (!ns || ns.length < 2) return null;
+  var x = num(b.x, 0), y = num(b.y, 0);
+  var w = Math.max(1, num(b.w, 1)), h = Math.max(1, num(b.h, 1));
+  var a = ns[0], z = ns[ns.length - 1];
+  return {
+    kind: String(src.kind == null ? '' : src.kind),
+    nodes: ns.length,
+    start: { x: x + num(a.x, 0) * w, y: y + num(a.y, 0) * h },
+    end: { x: x + num(z.x, 0) * w, y: y + num(z.y, 0) * h },
+  };
+}
+
+// One bound path as a row the engine's committed-line builder reads. null for anything
+// that is not a connector, and for a HALF-bound path whose free end cannot be read: half a
+// connector is worse than none, and guessing where the loose end goes would invent
+// geometry. A both-ends-bound path needs no local geometry at all.
+function boundPathRow(b) {
+  if (!isBoundPath(b)) return null;
+  var bs = bindOf(b, 'start'), be = bindOf(b, 'end');
+  var g = pathGeomFor(b);
+  if ((!bs || !be) && !g) return null;
+  var api = connApi();
+  var route = (api && typeof api.routeStyleForKind === 'function')
+    ? api.routeStyleForKind(g ? g.kind : '', b.route, g ? g.nodes : 2)
+    : 'straight';
+  var sw = clamp(num(b.strokeW, 0), 0, 400);
+  return {
+    from: bs || ptRef(g.start),
+    to: be || ptRef(g.end),
+    style: route,
+    headStart: headKind(b.headStart),
+    headEnd: headKind(b.headEnd),
+    dash: DASH_STYLES[String(b.strokeDash)] ? String(b.strokeDash) : 'solid',
+    dashArray: parseDashArrayText(b.strokeDashArray),
+    dashFit: boolVal(b.dashFit, false),
+    color: safeColor(b.stroke, CONN_COLOR),
+    width: sw > 0 ? clamp(sw, 0.5, 20) : CONN_WIDTH,
+  };
+}
+
+// The committed line layer: every bound path in the document, routed + decorated by the
+// engine (host.connectors.build, v1.106/v1.111) so the SAME geometry lands in the editor's
+// live preview, the export, and a headless CLI. Export-safe by the engine's contract —
+// filled <path> / chevron <line> heads and real <line> dash segments, never a <marker>,
+// a <polygon> or a stroke-dasharray. '' on an older engine, and '' when nothing is bound,
+// so a document with no connectors emits exactly the markup it always did.
+function lineLayerFor(boxes) {
+  var api = connApi();
   if (!api || typeof api.build !== 'function') return '';
-  var edges = Array.isArray(inp.connectors) ? inp.connectors : [];
-  if (!edges.length) return '';
+  var rows = [], i, row;
+  for (i = 0; i < boxes.length; i++) {
+    row = boundPathRow(boxes[i] || {});
+    if (row) rows.push(row);
+  }
+  if (!rows.length) return '';
   var rectById = new Map();
-  boxes.forEach(function (b, i) {
-    var id = (b && b.id != null && b.id !== '') ? String(b.id) : String(i);
+  boxes.forEach(function (b, k) {
+    var id = (b && b.id != null && b.id !== '') ? String(b.id) : String(k);
     rectById.set(id, { x: num(b && b.x, 0), y: num(b && b.y, 0), w: Math.max(1, num(b && b.w, 1)), h: Math.max(1, num(b && b.h, 1)) });
   });
   try {
-    return api.build(edges, rectById, {
-      fromField: 'from', toField: 'to', styleField: 'style', arrowField: 'arrow',
-      headField: 'head', colorField: 'color', dashField: 'dash', widthField: 'width',
-      defaultStyle: 'straight', defaultArrow: 'end', defaultHead: 'triangle',
-      defaultColor: '#64748b', defaultWidth: 3,
+    return api.build(rows, rectById, {
+      fromField: 'from', toField: 'to', styleField: 'style',
+      headStartField: 'headStart', headEndField: 'headEnd',
+      colorField: 'color', dashField: 'dash', dashArrayField: 'dashArray',
+      dashFitField: 'dashFit', widthField: 'width',
+      defaultStyle: 'straight', defaultColor: CONN_COLOR, defaultWidth: CONN_WIDTH,
       width: CONN_W, height: CONN_H, layerClass: 'lolly-connectors',
     });
   } catch (e) {
-    pathWarn('connector render failed: ' + e);
+    pathWarn('bound path render failed: ' + e);
     return '';
   }
+}
+
+// ── plan 96 P4: the plan-90 `connectors` edge input, migrated on load ─────────
+//
+// An edge {from,to,style,arrow,head,dash,color,width} becomes a TWO-NODE AuthoredPath box
+// bound at both ends, carrying the same decorations. The input stays DECLARED so an old
+// share link still parses, but nothing writes it again: this runs in compute(), returns
+// the rewritten `boxes` plus an emptied `connectors` as an input patch, and is a no-op
+// from the next render on.
+//
+// Lossless by construction. The edge's own `style` is written to the box's `route`
+// override — six spline kinds cannot name thirteen routes, so an elbow-src edge would
+// otherwise collapse to a plain elbow — and `arrow` + one shared `head` map onto the two
+// per-end heads exactly as the engine's own edge reading does (`end` → a head at the end
+// and none at the start, `both` → the same shape at each, anything else → neither). The
+// result routes through the very same host.connectors.build call the edge layer used, so
+// the migration is render-identical rather than nearly so (tests/org-chart-migration).
+var MIGRATED_ID_PREFIX = 'ln';
+
+// The wire form of a two-node straight AuthoredPath (engine/src/geom/authored-url.ts):
+// `1` format version, the kind, `0` = open, then one `x!y` record per node, `_`-separated.
+// Written here rather than through host.geom.encodeAuthored so the migration runs on any
+// engine and produces a byte-stable value the tests can pin.
+function twoNodePathValue(n0, n1) {
+  return '1!line!0_' + f2(n0.x) + '!' + f2(n0.y) + '_' + f2(n1.x) + '!' + f2(n1.y);
+}
+
+// One edge → one path box, or null when either endpoint names no box (a dangling id drew
+// nothing before the migration and draws nothing after it).
+function edgeToPathBox(e, byId, id) {
+  var a = byId[String(e.from == null ? '' : e.from)];
+  var b = byId[String(e.to == null ? '' : e.to)];
+  if (!a || !b) return null;
+  // The FRAME spans the two card centres. Nothing reads it while both ends are bound (the
+  // route owns the geometry), but it is what the editor selects, marqueees and node-edits,
+  // so it has to be a real rectangle between the two things the line joins.
+  var ax = num(a.x, 0) + Math.max(1, num(a.w, 1)) / 2, ay = num(a.y, 0) + Math.max(1, num(a.h, 1)) / 2;
+  var bx = num(b.x, 0) + Math.max(1, num(b.w, 1)) / 2, by = num(b.y, 0) + Math.max(1, num(b.h, 1)) / 2;
+  var x = Math.min(ax, bx), y = Math.min(ay, by);
+  var w = Math.max(1, Math.abs(bx - ax)), h = Math.max(1, Math.abs(by - ay));
+  var arrow = String(e.arrow == null ? 'end' : e.arrow);
+  var head = headKind(e.head == null ? 'triangle' : e.head);
+  var dash = String(e.dash == null ? 'solid' : e.dash);
+  return {
+    id: id, kind: 'path', shape: 'rect',
+    x: x, y: y, w: w, h: h, rot: 0,
+    bg: '',
+    path: twoNodePathValue({ x: (ax - x) / w, y: (ay - y) / h }, { x: (bx - x) / w, y: (by - y) / h }),
+    stroke: safeColor(e.color, CONN_COLOR),
+    strokeW: clamp(num(e.width, CONN_WIDTH), 0.5, 20),
+    strokeCap: 'round', strokeJoin: 'round',
+    strokeDash: DASH_STYLES[dash] ? dash : '',
+    headStart: arrow === 'both' ? head : 'none',
+    headEnd: (arrow === 'end' || arrow === 'both') ? head : 'none',
+    bindStart: String(e.from), bindEnd: String(e.to),
+    route: String(e.style == null ? '' : e.style),
+  };
+}
+
+// The whole migration: null when there is nothing to do (the overwhelmingly common case,
+// and the one that keeps compute() from writing inputs on every render), else the new
+// `boxes` array with one path box appended per resolvable edge.
+function migrateEdges(inp, boxes) {
+  var edges = Array.isArray(inp.connectors) ? inp.connectors : [];
+  if (!edges.length) return null;
+  var byId = {}, used = {}, i, k, id, made;
+  for (i = 0; i < boxes.length; i++) {
+    if (boxes[i] && boxes[i].id != null && boxes[i].id !== '') {
+      byId[String(boxes[i].id)] = boxes[i];
+      used[String(boxes[i].id)] = 1;
+    }
+  }
+  var out = boxes.slice();
+  for (i = 0, k = 1; i < edges.length; i++) {
+    if (!edges[i]) continue;
+    do { id = MIGRATED_ID_PREFIX + k; k++; } while (used[id]);
+    used[id] = 1;
+    made = edgeToPathBox(edges[i], byId, id);
+    if (made) out.push(made);
+  }
+  return out;
 }
 
 // ── frame grouping (plan 93 F1a-part-2) ───────────────────────────────────────
@@ -1020,6 +1524,10 @@ function deckInexpressible(b, byId) {
 // One non-frame member box → one deck element at frame-LOCAL (lx, ly), or null to
 // emit nothing native (a skipped kind/effect). RAW numbers + css colours only.
 function deckElementFor(cb, byId, lx, ly) {
+  // An audio box is invisible and has no picture, so it lowers to NOTHING native — never
+  // the fallback deck rect below (which would print a stray rectangle where the bed sits).
+  // A .pptx has no audio track in this model, so a music bed simply isn't in the deck.
+  if (isAudioBox(cb)) return null;
   if (deckInexpressible(cb, byId)) return null;
   var cw = Math.max(1, Math.round(num(cb.w, 1)));
   var ch = Math.max(1, Math.round(num(cb.h, 1)));
@@ -1112,20 +1620,33 @@ function deckModelFor(boxes, byId) {
 function compute(model) {
   var inp = inputsFrom(model);
   var boxes = Array.isArray(inp.boxes) ? inp.boxes : [];
+  // plan 96 P4 — any plan-90 `connectors` edge becomes a bound path box before anything
+  // else reads `boxes`, so every surface below (the per-box arrays, the frame groups, the
+  // deck model, the committed line layer) sees ONE model with no edges in it.
+  var migrated = migrateEdges(inp, boxes);
+  if (migrated) boxes = migrated;
   var transparent = inp.transparentBg === true;
   var byId = {};
   boxes.forEach(function (b) { if (b && b.id != null && b.id !== '') byId[String(b.id)] = b; });
-  var shadows = boxes.map(function (b) { return shadowCss(b || {}); });
+  // An audio box renders NOTHING visible: no fill (boxCss), no media (mediaHtmlFor emits a
+  // display:none marker), no text, and — the part that is easy to miss — no shadow, no clip
+  // and no blur either. `shadow`/`blur` are plain sidebar fields with no showFor restriction,
+  // so an audio box can carry one, and box-shadow/drop-shadow/blur paint OUTSIDE the
+  // (transparent) box: without this they would print a stray rectangle of colour exactly
+  // where the music bed sits, which is the one thing this contract promises never happens.
+  var NO_SHADOW = { box: '', text: '', filterFn: '' };
+  var shadows = boxes.map(function (b) { return isAudioBox(b) ? NO_SHADOW : shadowCss(b || {}); });
   var boxStyle = boxes.map(function (b, i) {
+    var audio = isAudioBox(b);
     var fx = [];
-    var bl = blurCss(b || {});
+    var bl = audio ? '' : blurCss(b || {});
     if (bl) fx.push(bl);
     if (shadows[i].filterFn) fx.push(shadows[i].filterFn);
-    return boxCss(b || {}, gradCssFor(b || {})) + clipCss(b || {}, byId) + shadows[i].box +
+    return boxCss(b || {}, audio ? '' : gradCssFor(b || {})) + (audio ? '' : clipCss(b || {}, byId)) + shadows[i].box +
       (fx.length ? 'filter:' + fx.join(' ') + ';' : '');
   });
   var textStyle = boxes.map(function (b, i) { return textCss(b || {}) + shadows[i].text; });
-  var textHtml = boxes.map(function (b) { return richText((b && b.text) || ''); });
+  var textHtml = boxes.map(function (b) { return isAudioBox(b) ? '' : richText((b && b.text) || ''); });
   var mediaHtml = boxes.map(function (b) { return mediaHtmlFor(b || {}); });
   var pathHtml = boxes.map(function (b) { return pathHtmlFor(b || {}); });
   // Which boxes opted into shrink-to-fit ("1" marks a fit root for the template's fit
@@ -1154,7 +1675,7 @@ function compute(model) {
   // boxes + box fields) so the runtime routes it to extras; the template reads
   // {{{deckJson}}} into <script data-pptx-deck>, exactly like deck-studio.
   var deckJson = frameGroups ? safeJson(deckModelFor(boxes, byId)) : undefined;
-  return {
+  var out = {
     boxStyle: boxStyle,
     textStyle: textStyle,
     textHtml: textHtml,
@@ -1164,11 +1685,22 @@ function compute(model) {
     timeAttrs: timeAttrs,
     seqAttrs: seqAttrs,
     bgStyle: [transparent ? 'transparent' : safeColor(inp.background, '#ffffff')],
-    connectorSvg: connectorSvgFor(inp, boxes),
+    connectorSvg: lineLayerFor(boxes),
     frameGroups: frameGroups,
     pasteboard: pasteboard,
     deckJson: deckJson,
   };
+  // The migration's INPUT patch (plan 96 P4). `boxes` and `connectors` are declared input
+  // ids, so the runtime WRITES them rather than treating them as extras — which is what
+  // makes this a one-time conversion: the next compute() sees no edges and adds neither
+  // key. The keys are ASSIGNED, never set to undefined: the runtime's patch merge keys off
+  // key PRESENCE, so `{ boxes: undefined }` does not mean "no opinion", it blanks the
+  // input — and a hook that blanks `boxes` on every render empties the whole document.
+  if (migrated) {
+    out.boxes = migrated;
+    out.connectors = [];
+  }
+  return out;
 }
 
 function onInit(ctx) { return compute(ctx.model); }

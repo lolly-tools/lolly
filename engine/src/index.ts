@@ -189,6 +189,19 @@ export { generatedSongSpec } from './zzfx-compose.ts';
 export { ZZFXM_SCHEME, ZZFXM_ARCHETYPES, isZzfxmRef, parseZzfxmRef, formatZzfxmRef } from './zzfxm-ref.ts';
 export type { ZzfxmRef, ZzfxmArchetype } from './zzfxm-ref.ts';
 export type { SongSpec, Archetype, PresetName, ScaleName } from './zzfx-compose.ts';
+// Versioned design systems (plans/97 §6a) — here for the same reason as the two
+// id schemes above: the head/version asset-id scheme, the discovery-exclusion
+// predicate and the resolution ladder must resolve IDENTICALLY in the web bridge,
+// the MCP server and the CLI, so there is one implementation, not three.
+// `sha256Hex` belongs to this surface too but is NOT re-listed here — the module
+// re-exports catalog-integrity.ts's, already exported at the top of this barrel.
+export {
+  DESIGN_VERSION_LATEST, readVersionIndex, withVersionIndex, stripVersionIndex,
+  slugifyVersion, isVersionSlug, suggestNextLabel, versionAssetId, isVersionAssetId,
+  pickHeadAssetId, frozenAssetId, resolveDesignVersion, docChecksum,
+  diffTokenDocs, collectAssetTokens, collectFontFamilies, applyPinnedAssets,
+} from './design-version.ts';
+export type { PinnedAsset, VersionEntry, VersionIndex } from './design-version.ts';
 export {
   parseCssLength, cornerRadii, uniformRadius, insetCorners, roundedRectPath, parseBoxShadow, parseTextShadow, gaussianShadowBands, gaussianShadowRings,
   parseCssMatrix, multiplyMat, matAboutPivot, isAxisAlignedMat, matToSvg, IDENTITY_2D,
@@ -277,8 +290,19 @@ export {
   edgeAnchor, edgeBorderPt, edgeWaypoints, edgeNested, connectorRoute,
   roundedEdgePath, smoothEdgePath, edgeArrowHead, edgeHeadInset,
   isEdgePoint, parseEdgePoint, formatEdgePoint, edgeEndRect, buildConnectorSvg,
+  // plan 96 P1 — heads on the unified path primitive, and the host.connectors factory.
+  pathHeadSvg, pathHeadInset, pathHeadSize, makeConnectorsApi,
+  // plan 96 P3/P5 — a BOUND path is routed by its own spline kind, and ONE routed-line
+  // renderer serves both that and the legacy edge model.
+  pathRouteStyle, isConnectorRouteStyle, CONNECTOR_ROUTE_STYLES, routedLineSvg,
 } from './connectors.ts';
-export type { EdgeRect, EdgeAnchor, ConnectorRoute, ConnectorRenderOpts } from './connectors.ts';
+export type { EdgeRect, EdgeAnchor, ConnectorRoute, ConnectorRenderOpts, ConnectorDecor, PathHeadOpts } from './connectors.ts';
+// Dash fitting (plan 96) — manual `stroke-dasharray` entry (numbers only, the injection
+// boundary) and Illustrator-style corner-fit dashes, as an array for a live preview or as
+// absolute segments for the committed/export render. Reached by tools via
+// host.connectors.dashFit.
+export { parseDashArray, cornerFitDashArray, dashSegments } from './dash-fit.ts';
+export type { DashSegment, DashFitOpts } from './dash-fit.ts';
 export { emitEmf } from './emf.ts';
 export { emitEps } from './eps.ts';
 export { emitDxf } from './dxf.ts';

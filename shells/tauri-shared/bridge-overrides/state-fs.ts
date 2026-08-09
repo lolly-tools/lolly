@@ -76,6 +76,9 @@ interface FsStateRecord {
   data: SavedStateData;
   thumb: string | null;
   updatedAt: string;
+  /** First-save time, carried forward across re-saves (mirrors the web bridge) —
+   *  the "Date added" sort key. Optional: older files have none. */
+  createdAt?: string;
   formatVersion?: number;
   engineVersion?: string;
 }
@@ -225,6 +228,16 @@ export function createFsStateAPI(fs: StateFs): WebStateAPI {
   return {
     async save(slot, data, thumb = null) {
       await ensureMigrated();
+      // Re-saves reuse the slot: carry the original creation time forward off the
+      // existing file (matching the web bridge's IndexedDB read-before-write).
+      let priorCreated: string | undefined;
+      try {
+        const path = slotPath(slot);
+        if (await fs.exists(path)) {
+          priorCreated = (JSON.parse(await fs.readTextFile(path)) as ParsedRecord).createdAt;
+        }
+      } catch { /* unreadable prior record — stamp fresh */ }
+      const now = new Date().toISOString();
       const record: FsStateRecord = {
         slot,
         toolId: data.__toolId,
@@ -232,7 +245,8 @@ export function createFsStateAPI(fs: StateFs): WebStateAPI {
         label: data.__label,
         data,
         thumb,
-        updatedAt: new Date().toISOString(),
+        updatedAt: now,
+        createdAt: priorCreated ?? now,
         ...sessionVersionStamp(),
       };
       await fs.writeTextFile(slotPath(slot), JSON.stringify(record, null, 2));
@@ -269,6 +283,7 @@ export function createFsStateAPI(fs: StateFs): WebStateAPI {
           filename: raw.data?.__export_filename || null,
           thumb: raw.thumb ?? null,
           updatedAt: raw.updatedAt ?? '',
+          ...(raw.createdAt ? { createdAt: raw.createdAt } : {}),
         }))
         .sort((a, b) => (b.updatedAt ?? '').localeCompare(a.updatedAt ?? ''));
     },

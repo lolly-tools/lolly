@@ -78,7 +78,7 @@ test('the sensor capabilities still validate (screen is additive, not a replacem
 
 // ─── version ─────────────────────────────────────────────────────────────────
 
-test('ENGINE_VERSION is 1.108.0', () => {
+test('ENGINE_VERSION is 1.110.0', () => {
   // A literal pin: the screencap surface shipped at 1.54, and tools declare
   // ^1.54.0 to require it. session-record only checks the stamp equals whatever
   // ENGINE_VERSION happens to be (tautological) — this catches an errant bump.
@@ -202,8 +202,24 @@ test('ENGINE_VERSION is 1.108.0', () => {
   // CSS classes / SCSS / GIMP .gpl as text, or a binary Adobe .ase; the color-palette
   // tool's parity with the Swatches download. Two real additive HostV1 methods, plus
   // json-as-sibling-template + css/scss/gpl data-export formats at the runtime seam).
+  // Then 1.109.0 (versioned design systems, plans/97 §6a — the pure design-version.ts
+  // module: the version ledger, the head/version asset-id scheme and its
+  // discovery-exclusion rule, the resolution ladder, and the pinned-asset helpers, all
+  // shared by the web bridge, the CLI and the MCP server; plus the reserved `designv`
+  // param and the optional `designVersion` manifest pin. No HostV1 method changed).
+  // Then 1.110.0 (plan 96 P1 — host.connectors.pathHeadSvg/pathHeadInset put a connector's
+  // arrowhead on ANY authored path by tip + tangent, and host.connectors.dashFit adds
+  // manual dash entry plus Illustrator-style corner-fit dashes, as an array for a preview
+  // or as absolute segments for the committed render; new pure module dash-fit.ts, and
+  // every shell now attaches the engine's makeConnectorsApi() factory).
+  // Then 1.111.0 (plan 96 P3-P5 — endpoint binding: pathRouteStyle maps a bound path's
+  // SPLINE KIND to the route connector management draws it with, host.connectors gains
+  // routeStyleForKind/routeStyles, routedLineSvg becomes the ONE committed-geometry
+  // function a legacy edge and a bound path both reach, and ConnectorRenderOpts grows
+  // headStartField/headEndField/dashArrayField/dashFitField so an authored dash pattern
+  // lands on the committed layer as real corner-fitted <line> segments).
   // The ^1.54.0 screencap floor below still holds (a minor bump satisfies it).
-  assert.equal(ENGINE_VERSION, '1.108.0');
+  assert.equal(ENGINE_VERSION, '1.111.0');
 });
 
 // ─── loadTool: a ^1.54.0 tool loads against this engine ───────────────────────

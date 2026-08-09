@@ -58,6 +58,12 @@
 .lolly-box-lottie { pointer-events: none; }
 .lolly-box-lottie > svg { display: block; width: 100%; height: 100%; }
 
+/* An audio box (a music bed / voiceover) is a TIMELINE citizen, not an artboard one: it
+   carries the src for the shell compositor's waveform + audio mix and nothing visible.
+   display:none rather than opacity/visibility so it takes no space and no export walker
+   (SVG/PDF/raster) ever visits it — a still export can never show a mark where it sits. */
+.lolly-box-audio { display: none; }
+
 /* A vector path box's inline <svg>: fills the box frame exactly (its viewBox is the
    box's own px size, so the mapping is 1:1 and the stroke keeps a uniform width).
    Non-interactive like the Lottie player, so it never steals the editor's
