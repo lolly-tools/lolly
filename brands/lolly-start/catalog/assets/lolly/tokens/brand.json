@@ -88,6 +88,17 @@
           }
         }
       }
+    },
+    "font": {
+      "$type": "fontFamily",
+      "brand": {
+        "$value": "SUSE",
+        "$description": "UI & body — SUSE, the platform's default face. Shell-served from the web shell's public/fonts/ (not this catalog), so it resolves on every profile without the pack shipping font binaries. SIL OFL 1.1 — see this pack's README for the licence finding. Replace it by adding your own face in the #/start Type room."
+      },
+      "mono": {
+        "$value": "SUSE Mono",
+        "$description": "Code, readouts & data — SUSE Mono, also shell-served and the platform's default mono on every profile. SIL OFL 1.1."
+      }
     }
   },
   "light": {

@@ -14,9 +14,9 @@
  *
  * Scope (deliberate first increment): sfnt fonts only (ttf/otf), which is every
  * font a headless shell can reach — brand-lockup's tool-local SUSE-*.otf, the catalog
- * SUSE-*.ttf statics, and the Outfit platform face. woff2 (browser IndexedDB / Google
- * Fonts) is unreachable headlessly and rejected with a clear error rather than silently
- * shaping .notdef.
+ * SUSE-*.ttf statics, and the shell's platform faces (SUSE variable, Outfit). woff2
+ * (browser IndexedDB / Google Fonts) is unreachable headlessly and rejected with a clear
+ * error rather than silently shaping .notdef.
  */
 
 import { readFile, readdir } from 'node:fs/promises';
@@ -65,8 +65,8 @@ const fontCache = new Map<string, FontEntry>();
  *   • `http(s)://`           → global fetch (Node ≥18)
  *   • `file://`              → the pointed-at file
  *   • rooted `/tools/…`, `/catalog/…`, `/fonts/…` → disk under the repo root
- *     (`/fonts/…` also falls back to the web shell's public dir — where the Outfit
- *      platform face lives — mirroring shells/cli/src/bridge.ts's asset resolution)
+ *     (`/fonts/…` also falls back to the web shell's public dir — where the platform
+ *      faces live — mirroring shells/cli/src/bridge.ts's asset resolution)
  *   • bare relative          → resolved under the repo root
  */
 async function loadFontBytes(fontUrl: string, repoRoot: string): Promise<Uint8Array> {
@@ -165,10 +165,13 @@ function fmt(n: number): number {
 // ── Family → font file (host.text.fontUrl, v1.60) ────────────────────────────
 // The headless registry: the SAME disk locations loadFontBytes already reads —
 // the active catalog's static sfnts and the web shell's public fonts dir (where
-// the Outfit platform face lives). Filenames follow the FamilyName-FaceName
-// convention (`SUSE-SemiBold.ttf`, `SUSEMono-BoldItalic.ttf`) with variable
-// faces carrying an axis suffix (`Outfit[wght].ttf`); woff2 siblings are
-// skipped (loadFace rejects them anyway). Scanned once per repo root.
+// the platform faces live: SUSE upright + italic as of 2026-08-10, and Outfit,
+// which is no longer the default but stays resolvable). Filenames follow the
+// FamilyName-FaceName convention (`SUSE-SemiBold.ttf`, `SUSEMono-BoldItalic.ttf`)
+// with variable faces carrying an axis suffix (`SUSE[wght].ttf`,
+// `SUSE-Italic[wght].ttf`); woff2 siblings are skipped (loadFace rejects them
+// anyway). Scanned once per repo root, catalog dir first — so a brand's own
+// statics still shadow the shell's variable face.
 
 const FONT_DIRS: Array<{ rel: string; url: string }> = [
   { rel: join('catalog', 'fonts', 'ttf'), url: '/catalog/fonts/ttf/' },

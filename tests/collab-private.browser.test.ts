@@ -120,6 +120,169 @@ async function shot(page: Page, name: string): Promise<void> {
   }
 }
 
+// ── Docs capture (LOLLY_DRILL_DOCS=1) ─────────────────────────────────────────
+//
+// A handful of /info screenshots document states that exist ONLY downstream of a real
+// pairing — the connection plate (derived from the two DTLS fingerprints the handshake
+// validated), the peer-focus ring, the beam consent card. No url-shot recipe can reach
+// them, so docs/collaborate.md marks them DRILL-ASSISTED and this is the capture pass.
+//
+// Two rules it follows, both from the docs pipeline it is feeding:
+//   • VECTOR, via the shell's own walker (`__lollyWalkerShot` → renderSvgFromHtml), not
+//     the drill's PNG. Same serialiser every committed baseline goes through.
+//   • It can never fail the drill. Everything below is try/caught and only `note()`s —
+//     the drill's job is to prove the feature works, and a docs artefact that did not
+//     write is a missing picture, not a broken feature.
+// Off unless LOLLY_DRILL_DOCS=1, so an ordinary drill run writes nothing outside .drills.
+const DOCS_CAPTURE = process.env.LOLLY_DRILL_DOCS === '1';
+const DOCS_SHOTS_DIR = join(repoRoot(), 'docs', 'shots');
+
+/** The same neutral pins the docs pipeline seeds (scripts/build-docs-shots.ts's
+ *  captureInit): first-run overlays pre-dismissed and `lolly-capture-neutral` set, so a
+ *  published frame shows the app's plain chrome rather than jelly controls. Applied to
+ *  the whole context, and only under the docs gate, so plain drill runs are unchanged. */
+const DOCS_NEUTRAL_INIT =
+  "try{localStorage.setItem('lolly-welcome-dismissed','1');" +
+  "localStorage.setItem('lolly-tips-dismissed','1');" +
+  "localStorage.setItem('lolly-privacy-ack','1');" +
+  "localStorage.setItem('theme','light');" +
+  "localStorage.setItem('lolly-capture-neutral','1')}catch(_){}";
+
+/** Freeze animation/transition and hide the caret, exactly as the pipeline does. */
+const DOCS_FREEZE_CSS =
+  '*,*::before,*::after{animation-duration:0s!important;animation-delay:0s!important;' +
+  'transition-duration:0s!important;transition-delay:0s!important;caret-color:transparent!important}' +
+  'html{scrollbar-width:none!important}::-webkit-scrollbar{display:none!important}' +
+  '*{content-visibility:visible!important}';
+
+/** Walk one subtree to SVG through the shell's own exporter. Null on any failure. */
+async function walkSvg(page: Page, selector: string): Promise<string | null> {
+  try {
+    await page.addStyleTag({ content: DOCS_FREEZE_CSS }).catch(() => {});
+    const svg = await page.evaluate(async (sel: string) => {
+      const hook = (window as unknown as {
+        __lollyWalkerShot?: (s?: string, o?: Record<string, unknown>) => Promise<{ svg: string }>;
+      }).__lollyWalkerShot;
+      if (!hook) return null;
+      const target = document.querySelector(sel) as HTMLElement | null;
+      if (!target) return null;
+      // Paint the page's backdrop onto a transparent crop root, or the shot reads as an
+      // empty box on /info's dark theme — the same guard the pipeline's walker branch has.
+      const own = getComputedStyle(target).backgroundColor;
+      const clear = !own || own === 'transparent'
+        || (/^rgba\(/.test(own) && parseFloat(own.split(',')[3] as string) < 0.99);
+      const prior = target.style.backgroundColor;
+      if (clear) {
+        const bg = getComputedStyle(document.body).backgroundColor;
+        if (bg && bg !== 'transparent') target.style.backgroundColor = bg;
+      }
+      const r = await hook(sel, {});
+      if (clear) { if (prior) target.style.backgroundColor = prior; else target.style.removeProperty('background-color'); }
+      return r?.svg ?? null;
+    }, selector);
+    return svg && svg.length > 64 ? svg : null;
+  } catch (e) {
+    note(`walk ${selector} failed: ${(e as Error).message}`);
+    return null;
+  }
+}
+
+/** Root width/height (or viewBox) of a standalone SVG document, in user units. */
+function svgSize(svg: string): { w: number; h: number } {
+  const root = /<svg[^>]*>/.exec(svg)?.[0] ?? '';
+  const vb = /viewBox="([-\d.eE\s,]+)"/.exec(root)?.[1]?.trim().split(/[\s,]+/).map(Number);
+  if (vb?.length === 4) return { w: vb[2]!, h: vb[3]! };
+  const num = (a: string) => Number((new RegExp(`${a}="([\\d.]+)`).exec(root)?.[1]) ?? 0);
+  return { w: num('width') || 600, h: num('height') || 400 };
+}
+
+/**
+ * Content Credentials, the same ones every recipe-driven baseline carries.
+ *
+ * tests/docs-shot-credentials.test.ts holds the whole corpus to "signed, readable,
+ * dated" — a drill shot is a committed baseline like any other, so an unsigned one is
+ * not a special case, it is a hole in the claim. Where a recipe puts its url-shot
+ * parameters in the credential ("here is how to reproduce this"), a drill shot puts the
+ * thing that actually produced it: the drill, the milestone and the framed selector.
+ * Imported lazily so an ordinary drill run never loads the C2PA stack.
+ */
+async function credential(svg: string, file: string, selector: string, how: string): Promise<Uint8Array> {
+  const bytes = new TextEncoder().encode(svg);
+  try {
+    const [{ embedC2pa }, { buildExportC2paOpts }] = await Promise.all([
+      import('../engine/src/index.ts'),
+      import('../packages/node-shell/src/c2pa-opts.ts'),
+    ]);
+    const { w, h } = svgSize(svg);
+    const row = (id: string, value: unknown) => ({ id, type: 'text', value, isDirty: true, label: id });
+    return await embedC2pa(bytes, 'svg', buildExportC2paOpts({
+      surface: 'docs',
+      manifest: { id: 'collab-drill', name: 'Collab drill capture' },
+      model: [
+        row('drill', 'tests/collab-private.browser.test.ts (LOLLY_BROWSER_DRILLS=1 LOLLY_DRILL_DOCS=1)'),
+        row('milestone', how),
+        row('frame', selector),
+      ] as unknown as Parameters<typeof buildExportC2paOpts>[0]['model'],
+      format: 'svg',
+      dims: { width: Math.round(w), height: Math.round(h), unit: 'px', dpi: 96 },
+      days: 365,
+    }));
+  } catch (e) {
+    note(`DOCS ${file}: Content Credentials not attached — ${(e as Error).message}`);
+    return bytes;
+  }
+}
+
+/** Write a walked subtree as a committed docs baseline. */
+async function docShot(page: Page, file: string, selector: string, how = 'walker-in-page'): Promise<void> {
+  if (!DOCS_CAPTURE) return;
+  const svg = await walkSvg(page, selector);
+  if (!svg) { note(`DOCS ${file}: nothing captured for "${selector}"`); return; }
+  try {
+    mkdirSync(DOCS_SHOTS_DIR, { recursive: true });
+    writeFileSync(join(DOCS_SHOTS_DIR, file), await credential(svg, file, selector, how));
+    const { w, h } = svgSize(svg);
+    note(`DOCS ${file}: ${Math.round(svg.length / 1024)} KB, ${Math.round(w)}x${Math.round(h)} (${selector})`);
+  } catch (e) {
+    note(`DOCS ${file}: write failed — ${(e as Error).message}`);
+  }
+}
+
+/**
+ * TWO screens, one picture. The plate shot only says what it means when both devices
+ * are in it: "matching" is a relation, and a single screen cannot show a relation.
+ *
+ * Composition is two REAL walks placed side by side in one root — no re-render, no
+ * mock-up, nothing drawn that neither screen showed. Each child keeps its own
+ * coordinate space inside a `<svg>` element with an explicit x/width, which is why this
+ * needs no transform arithmetic and cannot mis-scale either half.
+ */
+async function docShotPair(
+  a: { page: Page; selector: string }, b: { page: Page; selector: string }, file: string, gap = 32,
+): Promise<boolean> {
+  if (!DOCS_CAPTURE) return false;
+  const [sa, sb] = [await walkSvg(a.page, a.selector), await walkSvg(b.page, b.selector)];
+  if (!sa || !sb) { note(`DOCS ${file}: need both halves (A=${Boolean(sa)} B=${Boolean(sb)})`); return false; }
+  const [da, db] = [svgSize(sa), svgSize(sb)];
+  const W = da.w + gap + db.w, H = Math.max(da.h, db.h);
+  // Strip the XML prolog off each child: only the OUTER document may carry one.
+  const inner = (s: string, x: number) =>
+    s.replace(/^<\?xml[^>]*\?>\s*/, '').replace(/^<svg\b/, `<svg x="${x}" y="0"`);
+  const out = `<?xml version="1.0" standalone="no"?>\n`
+    + `<svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${H}" viewBox="0 0 ${W} ${H}">`
+    + `<rect x="0" y="0" width="${W}" height="${H}" fill="#ffffff"/>`
+    + `${inner(sa, 0)}${inner(sb, da.w + gap)}</svg>`;
+  try {
+    mkdirSync(DOCS_SHOTS_DIR, { recursive: true });
+    writeFileSync(join(DOCS_SHOTS_DIR, file), await credential(out, file, `${a.selector} + ${b.selector}`, 'two live screens, walked and placed side by side'));
+    note(`DOCS ${file}: ${Math.round(out.length / 1024)} KB, ${Math.round(W)}x${Math.round(H)} (two screens)`);
+    return true;
+  } catch (e) {
+    note(`DOCS ${file}: write failed — ${(e as Error).message}`);
+    return false;
+  }
+}
+
 /** Attach the log collectors a page is judged on. */
 function watch(page: Page, label: string): PageLog {
   const log: PageLog = { page: label, console: [], errors: [] };
@@ -584,6 +747,8 @@ describe('private collab — real-browser ceremony drills', { skip: GATE ?? fals
       browser = await launch(channel);
       context = await browser.newContext({ viewport: { width: 1280, height: 900 } });
       await context.addInitScript(RTC_PROBE);
+      // Docs pass only: pin the same neutral chrome every committed baseline is shot in.
+      if (DOCS_CAPTURE) await context.addInitScript({ content: DOCS_NEUTRAL_INIT });
       browserLabel = channel ? `channel:${channel}` : (executablePath ? `path:${executablePath}` : 'bundled chromium');
     };
     await open(wanted);
@@ -767,6 +932,11 @@ describe('private collab — real-browser ceremony drills', { skip: GATE ?? fals
     assert.match(answerLink, /#\/join-reply\?ans=/, 'the reply must be a #/join-reply?ans= link');
     await shot(pageB, '07-answer-minted');
     note('B: answer minted');
+    // NO DOCS SHOT HERE, deliberately — see docs/collaborate.md's "SHOTS DROPPED" note.
+    // This screen is a one-time secret wearing three hats: the reply link carries the
+    // capture origin (`http://localhost:<drill port>/#/join-reply?ans=…`), and the code
+    // and the QR are two more renderings of the same single-use payload. The drill cannot
+    // fix the first (its base IS a dev server) and nothing should fake it.
 
     // The LINK leg (§11.25): a third tab in the same context hands the payload to A's
     // waiting dialog over the ceremony BroadcastChannel. Falls back to the paste leg.
@@ -857,6 +1027,30 @@ describe('private collab — real-browser ceremony drills', { skip: GATE ?? fals
     plateB = readB.text;
     plateSources = `A:${readA.source} B:${readB.source}`;
     if (plateA) await shot(pageA, '09b-A-plate');
+    // DOCS: docs/collaborate.md "The matching plates" — captured HERE, at the connected
+    // step, because this is the only instant both screens are showing it: the acceptor's
+    // live mount tears its Connected screen down inside the task that painted it, so a
+    // capture in the PLATE drill below would find one screen and have to invent the other.
+    const paired = plateA && plateB
+      ? await docShotPair(
+        { page: pageA, selector: '.collab-ceremony' },
+        { page: pageB, selector: '.collab-ceremony' },
+        'collab-plate.svg',
+      )
+      : false;
+    if (paired) {
+      /* both screens were live — the picture the page asks for */
+    } else if (plateA) {
+      // ONE screen, and the file says so. The acceptor's Connected screen is torn down by
+      // its own live mount inside the task that painted it (see readPlate's fallback to
+      // the mutation record), so on the handoff path there is no instant when both
+      // screens are live to photograph. A side-by-side would have to reconstruct B's
+      // half from a record, which is a drawing of a screenshot, not a screenshot.
+      await docShot(pageA, 'collab-plate.svg', '.collab-ceremony', '09-A-connected (inviter Connected screen)');
+      note('DOCS collab-plate.svg: inviter screen only — the acceptor never held a live Connected screen (completed by handoff)');
+    } else {
+      note(`DOCS collab-plate.svg: skipped — plate on A=${JSON.stringify(plateA)} B=${JSON.stringify(plateB)}`);
+    }
     note(`plates at connect: A=${JSON.stringify(plateA)} (${readA.source}) B=${JSON.stringify(plateB)} (${readB.source})`);
 
     // The INVITER half is measured before any verdict on the pair. It is a separate
@@ -1203,6 +1397,28 @@ describe('private collab — real-browser ceremony drills', { skip: GATE ?? fals
     }
     await shot(pageA, '15-A-pill');
     await shot(pageB, '16-B-pill');
+    // DOCS: docs/collaborate.md "Editing together" — the pill WITH its roster open, which
+    // is the state the prose describes ("Open it for the roster"). The popover is body-
+    // mounted, so the frame has to be the pill and the roster together; `.collab-pill` and
+    // `.collab-roster` are siblings under <body>, so walk the common parent and let the
+    // walker's own bounds do the framing.
+    if (DOCS_CAPTURE) {
+      const opened = await pageA.evaluate(() => {
+        const stack = document.querySelector<HTMLButtonElement>('.collab-pill .collab-stack');
+        if (!stack) return 'no .collab-stack';
+        try { stack.click(); } catch (e) { return `click threw: ${String(e)}`; }
+        return `expanded=${stack.getAttribute('aria-expanded')} rosters=${document.querySelectorAll('.collab-roster').length}`;
+      });
+      await pageA.waitForTimeout(400);
+      const live = await pageA.evaluate(() => document.querySelectorAll('.collab-roster').length);
+      if (live) {
+        await docShot(pageA, 'collab-pill-roster.svg', '.collab-roster', '15-A-pill, roster open');
+      } else {
+        note(`DOCS collab-pill-roster.svg: roster did not open (${opened})`);
+      }
+      // The pill itself is worth having either way — it is the thing the prose names.
+      await docShot(pageA, 'collab-pill.svg', '.collab-pill', '15-A-pill, two participants');
+    }
     // The wire behind the pills. The discovery announcer (lib/collab-session.ts) exists
     // because a serverless pair starts with two empty rosters and the engine's occupancy
     // rule would keep both politely silent, so the frames that broke that silence — and
@@ -1231,7 +1447,69 @@ describe('private collab — real-browser ceremony drills', { skip: GATE ?? fals
     );
     assert.equal(found, true);
     await shot(pageA, '17-A-focus-ring');
+    // DOCS: docs/collaborate.md "Where the other person is working". The page's own
+    // capture note is explicit that the PAIRING is the picture — the sidebar row and the
+    // canvas outline together — so the frame is the tool layout, not either one of them.
+    await docShot(pageA, 'collab-focus-ring.svg', '.tool-layout', "17-A-focus-ring (peer's focus painted on A)");
     note('peer focus ring: OK');
+  });
+
+  /**
+   * BEAM — the consent card, and the only drill that presses a control which MOVES
+   * something rather than reflecting something.
+   *
+   * Added 2026-08-10 for docs/collaborate.md's `collab-beam-consent` shot, which its own
+   * capture note says is not reachable any other way: `beam-toast.ts` paints only from an
+   * `offer-received` event, so a live pair with both tools mounted is the whole
+   * precondition. It is deliberately the SMALLEST step that produces the card — offer,
+   * card, DECLINE — so nothing is transferred, nothing is written to either library, and
+   * the pair is left exactly as the FOCUS drill left it for the hygiene drills below.
+   *
+   * GATED ON THE CONTROL, NOT ASSUMED. "Send this session" is rendered only while the bulk
+   * channel is actually open (the pill's action slots), so its absence is a state this
+   * feature has by design, not a failure — that path notes and returns. Past the gate the
+   * assertion is real: an offer that never becomes a card on the other device is a broken
+   * consent step, and consent is the part of a beam that must not be quiet.
+   */
+  it('BEAM: "Send this session" raises a consent card on the other device, and Decline ends it', async () => {
+    requirePair();
+    const sendable = await pageA.evaluate(() => {
+      const btn = document.querySelector<HTMLButtonElement>('.collab-pill .collab-action[data-action="send-session"]');
+      return Boolean(btn && !btn.hidden && !btn.disabled && btn.getClientRects().length);
+    });
+    if (!sendable) {
+      note('BEAM: no "Send this session" control on A — the bulk channel is not open, which is a state the pill has by design; consent card not exercised');
+      return;
+    }
+    await pageA.click('.collab-pill .collab-action[data-action="send-session"]');
+    await until(
+      () => pageB.evaluate(() => Boolean(document.querySelector('.beam-toast [data-action="accept"]'))),
+      30_000,
+      "B's beam consent card (offer-received → beam-toast with Accept/Decline)",
+    );
+    await shot(pageB, '19-B-beam-consent');
+    // DOCS: docs/collaborate.md "Sending files and sessions". Both halves of the moment,
+    // because the page describes both: B's card, and A's "waiting for … to accept".
+    const paired = await docShotPair(
+      { page: pageA, selector: '.beam-toast' },   // the sender, waiting to be let in
+      { page: pageB, selector: '.beam-toast' },   // the receiver, holding the consent
+      'collab-beam-consent.svg',
+    );
+    if (!paired) await docShot(pageB, 'collab-beam-consent.svg', '.beam-toast', 'BEAM: offer-received consent card');
+    // DECLINE, always: the card is the picture, and accepting would file a session into
+    // B's library and leave the drill's later hygiene checks reading a device that has
+    // changed underneath them.
+    await pageB.click('.beam-toast [data-action="decline"]');
+    const ended = await until(
+      () => pageB.evaluate(() => {
+        const t = document.querySelector('.beam-toast');
+        if (!t) return 'card gone';
+        return t.querySelector('[data-action="accept"]') ? false : 'card settled (terminal state)';
+      }),
+      20_000,
+      "B's consent card to resolve after Decline",
+    );
+    note(`BEAM: offer → consent card on B → declined (${ended}); nothing transferred`);
   });
 
   // ── 4. hygiene ──────────────────────────────────────────────────────────────
