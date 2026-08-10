@@ -23,7 +23,7 @@
 # ============================================================================
 
 # ── build stage ─────────────────────────────────────────────────────────────
-FROM node:26-bookworm@sha256:057896e7e3f542ff82f7e65f106ac04e646775316449e676dfe8fb053d3b43ef AS build
+FROM node:26-bookworm@sha256:0353e48e0e8a993db87b720c242f54b207059d1bcc0106534896e8a11054c837 AS build
 WORKDIR /src
 
 # Which brand/profile to bake into the static build (see header).
