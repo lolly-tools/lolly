@@ -131,6 +131,22 @@ test('a live camera frame marks the export as a camera capture', async () => {
   assert.deepEqual(rendered[0].c2paCapture, { camera: true });
 });
 
+test('an animated-asset frame drive (startLive source:asset) never claims a camera capture', async () => {
+  // The web shell replays an animated asset (SVG/GIF/APNG/video) through the SAME
+  // onFrame loop as the camera (live-controls.ts + media.ts anim source). The
+  // frames render identically, but they are decoded file content — an export
+  // claiming digitalCapture for them would be a false statement in a signed
+  // manifest, so the 'asset' source must leave c2paCapture unset (engine 1.113).
+  const { host, rendered, pushFrame } = makeHost();
+  const rt = await createRuntime(filterTool(), host, {});
+  assert.equal(await rt.startLive({ source: 'asset' }), true);
+  pushFrame(FRAME);
+  await sleep(10); // let onFrame's async patch/merge settle
+  await rt.export({} as any, 'png', { c2pa: true });
+  assert.equal(rendered.length, 1);
+  assert.equal(rendered[0].c2paCapture, undefined, 'replayed asset frames are not a sensor capture');
+});
+
 test('swapping the image source retires the live-camera flag (no over-claim)', async () => {
   const { host, rendered, pushFrame } = makeHost();
   const rt = await createRuntime(filterTool(), host, {});

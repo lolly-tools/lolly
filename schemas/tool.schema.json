@@ -817,30 +817,7 @@
                       "default": { "type": "boolean", "description": "Whether snap-to-grid starts on." }
                     }
                   },
-                  "fixedCanvas": { "type": "boolean", "description": "Lock the canvas to render.width/height: the shell withholds setCanvasSize and ignores reserved ?width/?height, so box coordinates stay 1:1 with the render size (required when a hook draws into a fixed-viewBox overlay, e.g. connectors)." },
-                  "connect": {
-                    "type": "object",
-                    "description": "Opt into connector authoring: a Connect-mode rail button (click a source card, then targets), a live connector preview, and an Auto-arrange (tidy-tree) button. Edges are stored as rows of a SECOND blocks input named by `input`; each *Field below names a sub-field of that connectors block.",
-                    "required": ["input"],
-                    "additionalProperties": false,
-                    "properties": {
-                      "input":        { "type": "string", "description": "Input id of the connectors blocks array edges are written to." },
-                      "fromField":    { "type": "string", "description": "Edge sub-field holding the source box id. Default 'from'." },
-                      "toField":      { "type": "string", "description": "Edge sub-field holding the target box id. Default 'to'." },
-                      "styleField":   { "type": "string", "description": "Edge select sub-field: route flavour (straight/elbow/elbow-v/elbow-h/elbow-src/elbow-tgt/curved)." },
-                      "arrowField":   { "type": "string", "description": "Edge select sub-field: which ends carry an arrow (none/end/both)." },
-                      "headField":    { "type": "string", "description": "Edge select sub-field: arrowhead SHAPE (triangle/open/circle/diamond/bar)." },
-                      "colorField":   { "type": "string", "description": "Edge color sub-field: line colour." },
-                      "dashField":    { "type": "string", "description": "Edge select sub-field: line dash (solid/dashed/dotted)." },
-                      "widthField":   { "type": "string", "description": "Edge number sub-field: line width in px." },
-                      "layerClass":   { "type": "string", "description": "CSS class of the tool's rendered connector <svg>, hidden mid-drag while the shell paints a live preview." },
-                      "defaultStyle": { "type": "string", "description": "Route flavour a new edge starts at." },
-                      "defaultArrow": { "type": "string", "description": "Arrow ends a new edge starts at." },
-                      "defaultHead":  { "type": "string", "description": "Arrowhead shape a new edge starts at." },
-                      "defaultColor": { "type": "string", "description": "Colour a new edge starts at." },
-                      "defaultWidth": { "type": "number", "description": "Width (px) a new edge starts at." }
-                    }
-                  }
+                  "fixedCanvas": { "type": "boolean", "description": "Lock the canvas to render.width/height: the shell withholds setCanvasSize and ignores reserved ?width/?height, so box coordinates stay 1:1 with the render size (required when a hook draws into a fixed-viewBox overlay, e.g. connectors)." }
                 }
               }
             }

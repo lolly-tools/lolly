@@ -6,6 +6,17 @@ minors, never removed or signature-changed without a major bump.
 
 Moved verbatim from the comment block that used to live in `src/index.ts`.
 
+1.113.0 — additive: `runtime.startLive(opts?)` gains `{ source?: 'camera' | 'asset' }`.
+The live frame loop was built for the camera, but a shell can equally feed it a
+decoded ANIMATED ASSET (an SVG with CSS/SMIL animation, a GIF/APNG, a video) —
+same onFrame hook, same drop-overlap throttle, same render path. What must differ
+is provenance: only `source: 'camera'` (the default, so every existing caller is
+unchanged) marks rendered frames as a live device capture (`liveCameraShown` →
+IPTC digitalCapture in the export's C2PA capture signal); `source: 'asset'`
+renders identically but never sets that flag, because claiming a sensor capture
+for replayed file content would be a false statement in a signed manifest. No v1
+method changed; the zero-arg call keeps its exact behaviour.
+
 1.112.0 — additive: `runtime.applyPatch(values)` — an atomic multi-input apply with ONE
 render (plans/100 §5, wave 0.4). The batch counterpart to `setInput`, for a remote
 collaboration op that arrives as a set of values (and equally for `/multi` and URL

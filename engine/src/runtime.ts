@@ -210,9 +210,35 @@ export interface Runtime {
   refresh(): void;
   /** True when this tool declares an `onFrame` hook. */
   hasFrameHook: boolean;
-  /** Whether the camera-driven loop is currently running. */
+  /** Whether the live frame loop (camera or animated-asset) is currently running. */
   isLive(): boolean;
-  startLive(): Promise<boolean>;
+  /**
+   * DETERMINISTIC export drive: run `onFrame` once with a caller-supplied frame and return
+   * the freshly hydrated output (the same string a live render would paint), WITHOUT the rAF
+   * loop and WITHOUT notifying subscribers — the caller paints it and captures. This is the
+   * frame-accurate render the live preview showed: the shell walks the source frame-by-frame
+   * (host.media.renderFrameAt) and feeds each through here. Returns null with no onFrame hook.
+   * Mutates the render's `extras` (the effect output), so trigger a normal render afterwards
+   * to restore the live preview.
+   */
+  applyFrameForExport(frame: MediaFrame): Promise<string | null>;
+  /**
+   * Pause / resume the live repaint loop WITHOUT tearing down the media source (unlike
+   * stopLive, which calls host.media.stop()). Holds the preview still while a deterministic
+   * export drive owns the canvas — `renderFrameAt` keeps working because the source stays
+   * armed and running. isLive() stays true. Idempotent; harmless when not live.
+   */
+  pauseLive(): void;
+  resumeLive(): void;
+  /**
+   * Start driving `onFrame` from the host frame source. `source` declares what is
+   * feeding the frames: 'camera' (default) marks each rendered frame as a live
+   * device capture for export provenance; 'asset' — a shell replaying an animated
+   * asset (SVG/GIF/APNG/video) through the same loop — must NOT, because claiming
+   * digitalCapture for a decoded file would be a false statement in a signed
+   * manifest (1.113).
+   */
+  startLive(opts?: { source?: 'camera' | 'asset' }): Promise<boolean>;
   stopLive(): void;
   /** True when this tool declares an `onLevel` hook (it CAN react to live audio levels). */
   hasLevelHook: boolean;
@@ -386,6 +412,11 @@ export async function createRuntime(
   // startLive, cleared in stopLive; null when not live.
   let liveResubscribe: (() => void) | null = null;
   let framePending = false;
+  // Set while a deterministic export DRIVE runs (applyFrameForExport per frame): the live
+  // subscribe stays wired (media source + refcount intact, so renderFrameAt still works)
+  // but its callback stops repainting, so a real-time frame can't clobber the exact frame
+  // the export is capturing. isLive() stays true throughout — this is a pause, not a stop.
+  let livePaused = false;
   const isLive = () => liveUnsub != null;
 
   // Working long-edge (px) for live-camera frames. A tool can expose it as a normal
@@ -563,6 +594,24 @@ export async function createRuntime(
     // instead of a silently-blank canvas. Empty when every hook ran cleanly.
     hookErrors,
 
+    // Deterministic export drive (see the interface doc): onFrame → mergePatch → hydrate,
+    // with no rAF loop and no subscriber emit. Mirrors the live onFrame handling in
+    // startLive, minus the drop-guard and the provenance flag (never a sensor here).
+    async applyFrameForExport(frame) {
+      const onFrame = hooks?.onFrame;
+      if (!onFrame) return null;
+      try {
+        const patch = await onFrame({ frame, model: modelForHooks(model), host });
+        if (patch) ({ model, extras } = mergePatch(model, extras, patch, inputIds));
+        return getHydrated();
+      } catch (e) {
+        host.log('warn', `onFrame (export) ${(e as Error).message}`, { toolId: tool.manifest.id });
+        return null;
+      }
+    },
+    pauseLive() { livePaused = true; },
+    resumeLive() { livePaused = false; },
+
     async setInput(id, value) {
       // Swapping the image SOURCE retires any live-camera capture flag — the render
       // no longer shows camera essence. Scalar tweaks keep it (while live, the next
@@ -708,30 +757,36 @@ export async function createRuntime(
     isLive,
 
     /**
-     * Start driving the tool's `onFrame` hook from the host camera. Resolves once
-     * the camera is live; rejects if permission is denied or there's no camera (the
-     * shell shows that error). No-op (returns false) if already live, the tool has
-     * no onFrame, or the shell provides no host.media.
+     * Start driving the tool's `onFrame` hook from the host frame source — the
+     * camera by default, or (source:'asset') a shell-armed animated asset replayed
+     * through the same loop. Resolves once frames can flow; rejects if permission
+     * is denied or there's no camera (the shell shows that error). No-op (returns
+     * false) if already live, the tool has no onFrame, or there's no host.media.
      */
-    async startLive() {
+    async startLive(opts?: { source?: 'camera' | 'asset' }) {
       // Capture the hook + media locals so the deferred subscribe callback keeps
       // its narrowed (non-null) types; `hooks` is a mutable closure variable.
       const onFrame = hooks?.onFrame;
       const media = host.media;
       if (liveUnsub || !onFrame || !media) return false;
+      // Provenance: only a real sensor feed may mark renders as a live camera
+      // capture. A shell replaying an ANIMATED ASSET through the same frame loop
+      // passes source:'asset' so the export never over-claims digitalCapture.
+      const sensorSource = opts?.source !== 'asset';
       await media.start(); // may reject (permission/no camera) — the shell catches
       // A raster-output tool can ask for higher-resolution frames than the shell's
       // default vector-trace working size (render.liveMaxEdge, or a live slider via
       // render.liveMaxEdgeInput — see liveEdge()); the shell clamps it to the native
       // camera frame. Shells that ignore the opt fall back to default.
       const subscribeLive = () => media.subscribe((frame) => {
-        if (framePending) return; // still tracing the previous frame → drop this one
+        if (framePending || livePaused) return; // busy, or an export drive owns the canvas → drop
         framePending = true;
         Promise.resolve(onFrame({ frame, model: modelForHooks(model), host }))
           .then((patch) => {
             // Guard liveUnsub so a frame in flight when stopLive() ran can't repaint.
-            // A frame drove the render → its essence is now a live camera capture.
-            if (patch && liveUnsub) { ({ model, extras } = mergePatch(model, extras, patch, inputIds)); liveCameraShown = true; emit(); }
+            // A SENSOR frame drove the render → its essence is now a live camera
+            // capture; an animated-asset frame is decoded file content and is not.
+            if (patch && liveUnsub) { ({ model, extras } = mergePatch(model, extras, patch, inputIds)); if (sensorSource) liveCameraShown = true; emit(); }
           })
           .catch((e: unknown) => host.log('warn', `onFrame ${(e as Error).message}`, { toolId: tool.manifest.id }))
           .finally(() => { framePending = false; });

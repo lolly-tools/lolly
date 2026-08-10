@@ -23,6 +23,7 @@ import {
   parseDashArray, formatDashArray, DASH_ARRAY_MAX,
   routedLineSvg, pathRouteStyle, isConnectorRouteStyle, CONNECTOR_ROUTE_STYLES,
   edgeWaypoints, buildConnectorSvg,
+  pathEndTangents, pathEndPoints,
 } from '../shells/web/src/views/free-canvas-math.ts';
 
 const CFG: any = {
@@ -754,4 +755,44 @@ test('the engine connector surface is re-exported whole, and is live', () => {
   });
   assert.match(out, /<path d="M/);
   assert.doesNotMatch(out, /<marker|<polygon|stroke-dasharray/, 'export-safe');
+});
+
+// ── path end tangents (plan 96 P1 — the arrowhead ANGLE on a drawn path) ──────
+// pathEndTangents feeds the head angle: the hook/shell lower a path to cubics, take the
+// OUTWARD unit tangent at each end (Math.atan2 of it), and hand that to
+// host.connectors.pathHeadSvg. If the tangent points the wrong way the arrowhead faces
+// into the shaft. A CubicTuple is [x0,y0, c1x,c1y, c2x,c2y, x3,y3].
+
+test('pathEndTangents: an L-path points each head OUT of its own end', () => {
+  const L = [
+    [0, 0, 33, 0, 66, 0, 100, 0],          // →  the first segment leaves rightward
+    [100, 0, 100, 33, 100, 66, 100, 100],  // ↓  the last segment arrives downward
+  ];
+  const t = pathEndTangents(L)!;
+  assert.deepEqual(t.start, { x: -1, y: 0 }, 'start head points back LEFT, out of a rightward start');
+  assert.deepEqual(t.end, { x: 0, y: 1 }, 'end head points DOWN, along a downward finish');
+});
+
+test('pathEndTangents: a degenerate END segment is stepped over, not trusted', () => {
+  // A fully-coincident first cubic has no direction of its own; the walk continues into
+  // the neighbour so the head still faces the way the path actually leaves.
+  const stepped = [
+    [0, 0, 0, 0, 0, 0, 0, 0],       // degenerate: every control point on the start
+    [0, 0, 10, 0, 20, 0, 30, 0],    // the real segment, rightward
+  ];
+  assert.deepEqual(pathEndTangents(stepped)!.start, { x: -1, y: 0 });
+});
+
+test('pathEndTangents: a wholly degenerate path has no direction anywhere → null', () => {
+  assert.equal(pathEndTangents([[5, 5, 5, 5, 5, 5, 5, 5]]), null);
+  assert.equal(pathEndTangents([]), null);
+});
+
+test('pathEndPoints: the two points the heads sit on are the first + last lowered points', () => {
+  const L = [
+    [0, 0, 33, 0, 66, 0, 100, 0],
+    [100, 0, 100, 33, 100, 66, 100, 100],
+  ];
+  assert.deepEqual(pathEndPoints(L), { start: { x: 0, y: 0 }, end: { x: 100, y: 100 } });
+  assert.equal(pathEndPoints([]), null);
 });

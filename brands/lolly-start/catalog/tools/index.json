@@ -1,6 +1,6 @@
 {
   "version": "1",
-  "generatedAt": "2026-08-10T07:26:15.870Z",
+  "generatedAt": "2026-08-10T10:31:06.577Z",
   "tools": [
     {
       "id": "compress-pdf",
@@ -5757,7 +5757,7 @@
       "id": "filter",
       "name": "Filter",
       "description": "One tool for photo effects: pick halftone, scanline, posterize or voronoi (vector) or duotone, pixel-stretch or print imperfections (raster). Brand overlays, live camera, and exports to as many formats as each effect supports.",
-      "version": "1.2.0",
+      "version": "1.3.0",
       "status": "official",
       "category": "designer",
       "tags": [

@@ -562,22 +562,3 @@ test('layout-studio: a dangling binding draws nothing rather than guessing', asy
     'an empty layer, not a line to nowhere');
   assert.doesNotMatch(html, /class="lolly-box-path"/, 'and the box does not draw it either — it IS bound');
 });
-
-test('layout-studio: the retired `connectors` input still converts on load', async () => {
-  // An old share link carries edges. They become bound path boxes, and the render is the
-  // one the edge layer drew — the same guarantee tests/org-chart-migration.test.ts pins in
-  // depth, checked here on the parent-owned pack so a public checkout covers it too.
-  const cards = [card('a', 80, 80), card('b', 700, 640)];
-  const edges = [{ id: 'e1', from: 'a', to: 'b', style: 'elbow', arrow: 'end', head: 'triangle', dash: 'solid', color: '#64748b', width: 3 }];
-  const rt = await createRuntime(lsTool, LS_HOST() as never, { boxes: cards, connectors: edges } as never);
-  assert.deepEqual(rt.hookErrors ?? [], []);
-  const html = rt.getHydrated() as string;
-  const layer = /<svg class="lolly-connectors"[\s\S]*?<\/svg>/.exec(html)![0];
-  const golden = buildConnectorSvg(edges, new Map([
-    ['a', { x: 80, y: 80, w: 240, h: 120 }], ['b', { x: 700, y: 640, w: 240, h: 120 }],
-  ]), { width: 1080, height: 1080, layerClass: 'lolly-connectors', defaultStyle: 'straight', defaultArrow: 'end', defaultHead: 'triangle', defaultColor: '#64748b', defaultWidth: 3 });
-  assert.equal(layer, golden, 'render-identical after the migration');
-  const model = (rt.getModel() as Array<{ id: string; value: unknown }>);
-  assert.deepEqual(model.find((i) => i.id === 'connectors')!.value, [], 'the input is drained');
-  assert.equal((model.find((i) => i.id === 'boxes')!.value as unknown[]).length, 3, 'one path box was minted');
-});
