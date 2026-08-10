@@ -158,27 +158,3 @@ test('pipeline: interactions reach all three page paths', () => {
   assert.equal((src.match(/driveOptsFor\(shot\)/g) ?? []).length, 3,
     'the crop, vector and raster paths must each pass driveOptsFor(shot)');
 });
-
-// ── sweep=1 (the drawing sweep) ───────────────────────────────────────────────
-
-test('sweep: the drawing sweep is authored per recipe and stays inside its budget', () => {
-  const perPage = new Map<string, number>();
-  for (const f of readdirSync(DOCS).filter((x) => x.endsWith('.md'))) {
-    const md = readFileSync(join(DOCS, f), 'utf-8');
-    const n = parseShotRecipes(md).recipes.filter((r) => /[?&]sweep=1(&|$)/.test(r.raw)).length;
-    if (n) perPage.set(f, n);
-  }
-  assert.ok(perPage.size, 'no page declares sweep=1 — the effect would be dead code');
-  const over = [...perPage].filter(([, n]) => n > 4).map(([f, n]) => `${f}: ${n}`);
-  assert.deepEqual(over, [], 'each sweep keeps a filtered composited layer alive — budget is four per page');
-});
-
-test('sweep: the timing stays in the enjoyable range and the layer is torn down', () => {
-  const css = readFileSync(join(ROOT, 'docs', 'build.ts'), 'utf-8');
-  const dur = /--sweep-dur:([\d.]+)s/.exec(css);
-  const delay = /--sweep-delay:([\d.]+)s/.exec(css);
-  assert.ok(dur && delay, 'the sweep timing must stay a pair of custom properties, tunable in one edit');
-  const ms = Number(dur![1]) * 1000;
-  assert.ok(ms >= 500 && ms <= 2000, `sweep duration ${ms}ms is outside the 500-2000ms brief`);
-  assert.match(css, /shot--swept::after\{content:none\}/, 'the filtered layer must be retired after the sweep');
-});

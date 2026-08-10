@@ -80,6 +80,7 @@ import {
   ineffectiveTolerance, parseShotRecipes,
   type RawImage, type ShotDef, type ShotVerdict,
 } from './lib/shot-compare.ts';
+import { optimizeShotSvg, svgFidelityGate } from './lib/svgo-shots.ts';
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const DIST = join(ROOT, 'shells', 'web', 'dist');
@@ -1165,6 +1166,16 @@ async function captureOneVector(baseUrl: string, shot: ShotDef): Promise<ShotRes
     return { slug: shot.slug, format: shot.format, error: (e as Error).message, wrote: false, bytes: 0 };
   }
 
+  // Optimise BEFORE compare and BEFORE credentialing: baselines are stored
+  // optimised, so a fresh capture must be optimised too or the vector exact
+  // compare reports every shot changed forever. The C2PA stamp then covers
+  // the optimised bytes — nothing is stripped after signing. On svgo failure
+  // the original capture proceeds unoptimised (never block a shot on it).
+  const rawBytes = bytes;
+  try { bytes = optimizeShotSvg(bytes); } catch (e) {
+    console.warn(`  svgo failed for ${shot.slug} — keeping unoptimised capture (${(e as Error).message})`);
+  }
+
   const { dims } = paramsFor(shot);
   // Expected output dims. The print path renders the whole page and WINDOWS it, so
   // the frame is derivable from the viewport minus the crop insets — and a mismatch
@@ -1203,7 +1214,21 @@ async function captureOneVector(baseUrl: string, shot: ShotDef): Promise<ShotRes
 
   const verdict = classifyVectorShot({ newText, newBytes: bytes.byteLength, expected, oldText, oldBytes });
   const promote = opts.rebuild || verdict.kind === 'new' || (verdict.kind === 'changed' && opts.accept);
-  if (promote) writeFileSync(baselinePath, await stampC2pa(bytes, shot, dims, imageB64));
+  if (promote) {
+    // The "damn sure" gate, paid only at write time: rasterise original vs
+    // optimised and pixel-compare. A breach writes the ORIGINAL capture and
+    // says so — optimisation is only ever a no-op or a win.
+    let finalBytes = bytes;
+    if (bytes !== rawBytes) {
+      const gate = await svgFidelityGate(rawBytes, bytes);
+      if (!gate.ok) {
+        console.warn(`  FIDELITY GATE: svgo altered ${shot.slug} beyond tolerance `
+          + `(maxΔ ${gate.maxChannelDelta}/255, ${(gate.overFrac * 100).toFixed(3)}% px >2) — keeping unoptimised bytes`);
+        finalBytes = rawBytes;
+      }
+    }
+    writeFileSync(baselinePath, await stampC2pa(finalBytes, shot, dims, imageB64));
+  }
   return { slug: shot.slug, format: shot.format, lang: shot.lang, theme: shot.theme, verdict, wrote: promote, bytes: bytes.byteLength };
 }
 

@@ -103,8 +103,8 @@ The table is generated. Run `node scripts/gen-engine-modules.ts` after adding, r
 | `c2pa-extract.ts` | 917 | C2PA structural extraction — the read side's format-sniffing, CBOR decoding, JUMBF-store walking, and per-container manifest extraction (pdf/png/jpeg/gif/ svg/tiff/webp/mp4/webm/mp3/wav), plus the ingredient-preparation… | no | `tests/c2pa-extract.test.ts` | yes |
 | `c2pa-trust.ts` | 1496 | Vendored C2PA trust anchors — the root/anchor certificates whose signing chains verifyC2pa() upgrades from "valid" to TRUSTED (a named, CA-verified signer). | yes | `tests/c2pa-trust.test.ts` | – |
 | `c2pa-verdict.ts` | 257 | C2PA verdict resolution — the single source of truth for (a) the check-code vocabulary verifyC2pa emits, (b) the flags→verdict ladder every surface renders, and (c) trust-anchor assembly. | yes | `tests/c2pa-verdict.test.ts` | – |
-| `c2pa-verify.ts` | 989 | C2PA (Content Credentials) verifier — pure, DOM-free. | yes | `tests/c2pa-verify.test.ts` | yes |
-| `c2pa.ts` | 799 | C2PA (Content Credentials) manifest builder + PDF embedder — pure, DOM-free. | yes | `tests/c2pa.test.ts` | – |
+| `c2pa-verify.ts` | 1031 | C2PA (Content Credentials) verifier — pure, DOM-free. | yes | `tests/c2pa-verify.test.ts` | yes |
+| `c2pa.ts` | 809 | C2PA (Content Credentials) manifest builder + PDF embedder — pure, DOM-free. | yes | `tests/c2pa.test.ts` | – |
 | `captions.ts` | 129 | Captions — spoken-word timings in, subtitle cues out. | yes | `tests/captions.test.ts` | – |
 | `catalog-integrity.ts` | 241 | Catalog signing + runtime integrity verification — the SOVEREIGNTY.md "catalog origin is a trust anchor" gap, closed. | yes | `tests/catalog-integrity.test.ts` | – |
 | `cmyk-palette.ts` | 120 | The brand-swatch → CMYK lookup every CMYK sink shares. | yes | none | – |
@@ -202,7 +202,7 @@ The table is generated. Run `node scripts/gen-engine-modules.ts` after adding, r
 | `raster-layers.ts` | 235 | The shared vocabulary of layered raster import — what psd.ts and xcf.ts both decode INTO, and the blend-mode bridges between the source formats and the one blend vocabulary the platform actually renders: CSS… | yes | indirect | – |
 | `rate-card.ts` | 689 | The printer's own rate card — stored, validated, never a source of prices. | yes | indirect | – |
 | `riff-meta.ts` | 94 | WAV provenance tags — the RIFF LIST/INFO chunk, the container's native equivalent of the mp4 ilst / WebM Tags the video exports already carry (video-meta.ts). | yes | `tests/riff-meta.test.ts` | – |
-| `runtime.ts` | 1446 | Runtime — orchestrates the 5-step lifecycle for a single mounted tool. | yes | indirect | – |
+| `runtime.ts` | 1460 | Runtime — orchestrates the 5-step lifecycle for a single mounted tool. | yes | indirect | – |
 | `seal.ts` | 728 | SEAL (hackerfactor.com) signature verifier — pure, DOM-free (globalThis.crypto only, like c2pa-verify.ts / x509.ts). | yes | `tests/seal.test.ts` | – |
 | `semver-range.ts` | 112 | Minimal SemVer range satisfaction — just enough to enforce a tool manifest's `engineVersion` against the running ENGINE_VERSION (loader.ts, P0-3). | yes | `tests/semver-range.test.ts` | – |
 | `session-record.ts` | 99 | Saved-session record envelope — the version stamps a shell's state bridge writes for one saved tool session, and the migrate-or-warn branch it runs on load. | yes | `tests/session-record.test.ts` | – |

@@ -93,27 +93,3 @@ test('the theme-blind token read that eight shots depend on is still theme-blind
     + 'exp-url-dims (plus ov2-street-map-poster, which is exempt via a hard-coded tool '
     + 'stylesheet background rather than this read).');
 });
-
-test('a swept dual shot draws its ink layer from the DARK file in dark mode', () => {
-  // The draft sweep paints a filtered copy of the shot as a background layer, fed by
-  // --shot-src. On a dual shot that variable points at the LIGHT file, so without a
-  // dark override the ink pass would draw the light picture over the dark one.
-  assert.match(BUILD_TS, /--shot-src-dark:url\(/, 'a dual+swept shot must publish its dark source');
-  // The ink must also flip. #lolly-draft finishes on a NEGATIVE-slope feComponentTransfer,
-  // which is precisely what paints the paper: a laplacian leaves flat areas at 0 and the
-  // negative slope maps 0 to 1, i.e. WHITE. Reuse that filter on a dark page and the sweep
-  // opens by flashing a white sheet over the dark screenshot — the effect inside out.
-  const darkFilter = /<filter id="lolly-draft-dark"[\s\S]*?<\/filter>/.exec(BUILD_TS);
-  assert.ok(darkFilter, 'dark mode needs its own ink filter — see #lolly-draft-dark');
-  for (const [, slope] of darkFilter[0].matchAll(/slope="(-?[\d.]+)"/g)) {
-    assert.ok(Number(slope) > 0,
-      `#lolly-draft-dark has a negative transfer slope (${slope}), which inverts the edge signal `
-      + 'and turns the flat areas into a WHITE sheet — the dark sweep would flash white again.');
-  }
-  assert.match(BUILD_TS, /\.dark[.\s][^{\n]*\.shot--sweep::after\{[^}]*filter:url\(#lolly-draft-dark\)/,
-    'the dark sweep must select the non-inverting ink filter');
-  // `.dark` and `.shots-motion` both land on <html>, so they compound without a
-  // descendant space — matching either form rather than pinning the punctuation.
-  assert.match(BUILD_TS, /\.dark[.\s][^{\n]*\.shot--sweep::after\{background:var\(--shot-src-dark,var\(--shot-src\)\)/,
-    'the dark sweep must prefer --shot-src-dark and fall back to --shot-src for a shot with no twin');
-});

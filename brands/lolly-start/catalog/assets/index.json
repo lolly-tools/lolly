@@ -821,7 +821,7 @@
     {
       "id": "lolly/demo/lolly-spin",
       "name": "Lolly Spin (animated)",
-      "description": "The Lolly swirl as a self-contained animated SVG — three nested spirals slowly rotating with a gentle hue drift on a brand-tinted gradient, calmed under prefers-reduced-motion. The swirl and the background inherit the active brand's colours when placed live, and it makes a handy default subject for testing filters, grading and animation. A removable example — delete it any time.",
+      "description": "The Lolly swirl as a self-contained animated SVG — three nested spirals rotating at a calm 9/18/27s cadence (the mark's own motion, slowed for comfort) with a slow hue drift on a brand-tinted gradient, calmed under prefers-reduced-motion. The swirl and the background inherit the active brand's colours when placed live, and it makes a handy default subject for testing filters, grading and animation. A removable example — delete it any time.",
       "type": "vector",
       "version": "1.2.0",
       "tier": "core",

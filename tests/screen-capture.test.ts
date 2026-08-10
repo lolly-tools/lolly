@@ -78,7 +78,7 @@ test('the sensor capabilities still validate (screen is additive, not a replacem
 
 // ─── version ─────────────────────────────────────────────────────────────────
 
-test('ENGINE_VERSION is 1.112.0', () => {
+test('ENGINE_VERSION is 1.113.0', () => {
   // A literal pin: the screencap surface shipped at 1.54, and tools declare
   // ^1.54.0 to require it. session-record only checks the stamp equals whatever
   // ENGINE_VERSION happens to be (tautological) — this catches an errant bump.
@@ -221,8 +221,12 @@ test('ENGINE_VERSION is 1.112.0', () => {
   // Then 1.112.0 (plan 100 wave 0.4 — runtime.applyPatch: an atomic multi-input apply
   // with one render, for a remote collaboration op that arrives as a set of values;
   // onInput still runs per changed id in insertion order, only the emit coalesces).
+  // Then 1.113.0 (runtime.startLive gains { source?: 'camera' | 'asset' } — the web
+  // shell replays an ANIMATED ASSET through the same onFrame loop as the camera, and
+  // the 'asset' source renders identically but never sets the live-camera provenance
+  // flag, so a decoded file can't claim digitalCapture in a signed manifest).
   // The ^1.54.0 screencap floor below still holds (a minor bump satisfies it).
-  assert.equal(ENGINE_VERSION, '1.112.0');
+  assert.equal(ENGINE_VERSION, '1.113.0');
 });
 
 // ─── loadTool: a ^1.54.0 tool loads against this engine ───────────────────────

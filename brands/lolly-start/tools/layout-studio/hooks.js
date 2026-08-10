@@ -1290,59 +1290,10 @@ function twoNodePathValue(n0, n1) {
 
 // One edge → one path box, or null when either endpoint names no box (a dangling id drew
 // nothing before the migration and draws nothing after it).
-function edgeToPathBox(e, byId, id) {
-  var a = byId[String(e.from == null ? '' : e.from)];
-  var b = byId[String(e.to == null ? '' : e.to)];
-  if (!a || !b) return null;
-  // The FRAME spans the two card centres. Nothing reads it while both ends are bound (the
-  // route owns the geometry), but it is what the editor selects, marqueees and node-edits,
-  // so it has to be a real rectangle between the two things the line joins.
-  var ax = num(a.x, 0) + Math.max(1, num(a.w, 1)) / 2, ay = num(a.y, 0) + Math.max(1, num(a.h, 1)) / 2;
-  var bx = num(b.x, 0) + Math.max(1, num(b.w, 1)) / 2, by = num(b.y, 0) + Math.max(1, num(b.h, 1)) / 2;
-  var x = Math.min(ax, bx), y = Math.min(ay, by);
-  var w = Math.max(1, Math.abs(bx - ax)), h = Math.max(1, Math.abs(by - ay));
-  var arrow = String(e.arrow == null ? 'end' : e.arrow);
-  var head = headKind(e.head == null ? 'triangle' : e.head);
-  var dash = String(e.dash == null ? 'solid' : e.dash);
-  return {
-    id: id, kind: 'path', shape: 'rect',
-    x: x, y: y, w: w, h: h, rot: 0,
-    bg: '',
-    path: twoNodePathValue({ x: (ax - x) / w, y: (ay - y) / h }, { x: (bx - x) / w, y: (by - y) / h }),
-    stroke: safeColor(e.color, CONN_COLOR),
-    strokeW: clamp(num(e.width, CONN_WIDTH), 0.5, 20),
-    strokeCap: 'round', strokeJoin: 'round',
-    strokeDash: DASH_STYLES[dash] ? dash : '',
-    headStart: arrow === 'both' ? head : 'none',
-    headEnd: (arrow === 'end' || arrow === 'both') ? head : 'none',
-    bindStart: String(e.from), bindEnd: String(e.to),
-    route: String(e.style == null ? '' : e.style),
-  };
-}
 
 // The whole migration: null when there is nothing to do (the overwhelmingly common case,
 // and the one that keeps compute() from writing inputs on every render), else the new
 // `boxes` array with one path box appended per resolvable edge.
-function migrateEdges(inp, boxes) {
-  var edges = Array.isArray(inp.connectors) ? inp.connectors : [];
-  if (!edges.length) return null;
-  var byId = {}, used = {}, i, k, id, made;
-  for (i = 0; i < boxes.length; i++) {
-    if (boxes[i] && boxes[i].id != null && boxes[i].id !== '') {
-      byId[String(boxes[i].id)] = boxes[i];
-      used[String(boxes[i].id)] = 1;
-    }
-  }
-  var out = boxes.slice();
-  for (i = 0, k = 1; i < edges.length; i++) {
-    if (!edges[i]) continue;
-    do { id = MIGRATED_ID_PREFIX + k; k++; } while (used[id]);
-    used[id] = 1;
-    made = edgeToPathBox(edges[i], byId, id);
-    if (made) out.push(made);
-  }
-  return out;
-}
 
 // ── frame grouping (plan 93 F1a-part-2) ───────────────────────────────────────
 //
@@ -1643,8 +1594,6 @@ function compute(model) {
   // plan 96 P4 — any plan-90 `connectors` edge becomes a bound path box before anything
   // else reads `boxes`, so every surface below (the per-box arrays, the frame groups, the
   // deck model, the committed line layer) sees ONE model with no edges in it.
-  var migrated = migrateEdges(inp, boxes);
-  if (migrated) boxes = migrated;
   var transparent = inp.transparentBg === true;
   var byId = {};
   boxes.forEach(function (b) { if (b && b.id != null && b.id !== '') byId[String(b.id)] = b; });
@@ -1716,10 +1665,6 @@ function compute(model) {
   // key. The keys are ASSIGNED, never set to undefined: the runtime's patch merge keys off
   // key PRESENCE, so `{ boxes: undefined }` does not mean "no opinion", it blanks the
   // input — and a hook that blanks `boxes` on every render empties the whole document.
-  if (migrated) {
-    out.boxes = migrated;
-    out.connectors = [];
-  }
   return out;
 }
 

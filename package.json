@@ -56,7 +56,7 @@
     "docs:shots": "node scripts/build-docs-shots.ts",
     "previews": "node scripts/build-previews.ts && node scripts/optimize-preview-webp.ts && node scripts/build-preview-bundle.ts",
     "previews:animated": "node scripts/build-animated-previews.ts",
-    "icons": "node scripts/build-app-icons.ts",
+    "icons": "node scripts/build-app-icons.ts && node scripts/gen-shutter-mark.ts",
     "og:base": "node scripts/build-og-base.ts",
     "og": "node scripts/build-tool-og.ts && node scripts/build-view-og.ts",
     "og:all": "node scripts/build-og-all.ts",
