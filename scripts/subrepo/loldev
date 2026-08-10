@@ -343,7 +343,9 @@ vercel_publish() {
   for (( try=1; try<="${DEPLOY_UPLOAD_TRIES:-3}"; try++ )); do
     step "tarballing + queuing on Vercel (LOLLY_PROFILE=$profile · upload $try/${DEPLOY_UPLOAD_TRIES:-3})" >&2
     log="$(mktemp -t loldev-ship.XXXXXX)"
-    npx --yes vercel deploy "${prod_flag[@]}" --archive=tgz --no-wait \
+    # --force: bypass the project-level Ignored Build Step (bt skips git-integration
+    # builds by design since 2026-08-10; the CLI archive path must always build).
+    npx --yes vercel deploy "${prod_flag[@]}" --archive=tgz --no-wait --force \
       --build-env "LOLLY_PROFILE=$profile" --yes 2>&1 | tee "$log" >&2
     rc=${PIPESTATUS[0]}
     # The deployment URL is the *.vercel.app host — NEVER the vercel.com Inspect
