@@ -94,6 +94,8 @@ export interface Signer {
 interface Author {
   name?: string;
   email?: string;
+  /** Licensing-contact site (the claim form's "Email or site" when it isn't an email). */
+  url?: string;
 }
 
 export interface Exclusion {
@@ -726,8 +728,9 @@ export async function buildC2paManifest({
   if (!v2 && author?.name) {
     // Profile authorship (opt-in upstream): a schema.org Person on the
     // CreativeWork. JSON assertion — jumd UUID 'json', content box 'json'.
-    const person: { '@type': string; name: string; email?: string } = { '@type': 'Person', name: String(author.name) };
+    const person: { '@type': string; name: string; email?: string; url?: string } = { '@type': 'Person', name: String(author.name) };
     if (author.email) person.email = String(author.email);
+    if (author.url) person.url = String(author.url);
     const work = { '@context': 'http://schema.org/', '@type': 'CreativeWork', author: [person] };
     authorBox = jumbfSuperbox(UUID_JSON_CONTENT, CREATIVE_WORK_ASSERTION, isoBox('json', te.encode(JSON.stringify(work))));
     storeBoxes.push(authorBox);
@@ -738,8 +741,15 @@ export async function buildC2paManifest({
   if (v2 && (author?.name || rights)) {
     // JSON-LD cawg.metadata: dc:creator (author) + dc:rights (user-asserted
     // copyright/licence). Either one alone is enough to emit the assertion.
+    // The licensing contact rides inside the creator entry npm-style —
+    // `Name <email> (site)` — Dublin Core has no contact term of its own, and a
+    // composed string stays a single dc:creator any external viewer displays
+    // verbatim; the verifier's parseCreatorEntry unpicks it on read.
     const metaLd: Record<string, unknown> = { '@context': DC_CONTEXT };
-    if (author?.name) metaLd['dc:creator'] = [String(author.name)];
+    if (author?.name) {
+      const contact = [author.email ? `<${String(author.email)}>` : '', author.url ? `(${String(author.url)})` : ''].filter(Boolean).join(' ');
+      metaLd['dc:creator'] = [contact ? `${String(author.name)} ${contact}` : String(author.name)];
+    }
     if (rights) metaLd['dc:rights'] = String(rights);
     metadataBox = jumbfSuperbox(UUID_JSON_CONTENT, METADATA_ASSERTION, isoBox('json', te.encode(JSON.stringify(metaLd))));
     storeBoxes.push(metadataBox);

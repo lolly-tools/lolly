@@ -2093,9 +2093,10 @@ export interface C2paSignOpts {
   /**
    * Asserted authorship → the manifest's dc:creator. A bare string is shorthand
    * for `{ name }`. This is how an artist claims their name over content they
-   * already have digitised, before uploading it anywhere.
+   * already have digitised, before uploading it anywhere. `email`/`url` are the
+   * licensing contact — both survive in the manifest and /verify shows them.
    */
-  author?: { name: string; email?: string } | string;
+  author?: { name: string; email?: string; url?: string } | string;
   /** © notice + licence, combined into one line → the manifest's dc:rights. */
   rights?: string;
   /**

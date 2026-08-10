@@ -1087,3 +1087,23 @@ test('runtime: a hook patch key with an undefined value never blanks the input',
   assert.equal(msg?.value, 'kept');
   assert.equal(rt.hookErrors.length, 0);
 });
+
+test('url-mode: bleed and marks are null unless explicitly in the URL — physical units do not imply them', () => {
+  // Print prep is opt-in everywhere (web panel, CLI, TUI, MCP). The engine's half:
+  // an absent ?bleed=/?marks= parses to null — including on a fully physical job
+  // (mm + dpi), which is a size statement, not print intent. Shells key "apply
+  // print geometry" off these values, so null-by-default is what keeps an everyday
+  // SVG or RGB PDF trim-sized and unmarked.
+  const plain = parseUrlState('heading=Hi&format=pdf', SAMPLE_MANIFEST);
+  assert.equal(plain.bleed, null);
+  assert.equal(plain.marks, null);
+
+  const physical = parseUrlState('heading=Hi&format=svg&w=210&h=297&unit=mm&dpi=300', SAMPLE_MANIFEST);
+  assert.equal(physical.bleed, null, 'an A4-sized svg is not a print order');
+  assert.equal(physical.marks, null);
+
+  // ...and the explicit path still works, exactly as documented.
+  const explicit = parseUrlState('heading=Hi&format=pdf&bleed=3mm&marks=crop,reg', SAMPLE_MANIFEST);
+  assert.equal(explicit.bleed, '3mm');
+  assert.deepEqual(explicit.marks, { crop: true, registration: true, bleed: false, colorBars: false, provenance: false });
+});

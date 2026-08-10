@@ -116,6 +116,11 @@ export interface RenderSpec {
    *  `'bottom'` is the deck-strip shape, for tools whose pages are wide and few
    *  (cards, slides), where a left rail eats the width the page needs. */
   filmstrip?: 'left' | 'bottom';
+  /** `false` hides the 'Print marks & bleed' card (multi-page tools). `true`
+   *  DECLARES PRINT INTENT — the card's master toggle defaults ON for every
+   *  print-capable format. Unset: card offered, but marks/bleed default OFF for
+   *  the RGB vector formats (pdf/svg/eps) and ON only for the separating press
+   *  formats (pdf-cmyk/cmyk-tiff/eps-cmyk). */
   printMarks?: boolean;
   transparentBg?: boolean;
   c2pa?: boolean;

@@ -446,6 +446,25 @@ const EPHEMERAL_CN = 'Lolly On-Device Credential';
  * ephemeral on-device key" is false, and points them at the wrong fix. So: read the
  * leaf, and only claim the ephemeral case when the certificate is literally ours.
  */
+/**
+ * Unpick a Dublin Core creator entry written npm-style — `Name <email> (site)`,
+ * either part optional — back into structured fields. A plain name (or any
+ * string that doesn't match the conventions) comes back as just { name }, so
+ * third-party creator strings are never mangled.
+ */
+function parseCreatorEntry(entry: string): { name: string; email?: string; url?: string } {
+  let name = entry;
+  const em = name.match(/<([^<>\s]+@[^<>\s]+)>/);
+  if (em) name = name.replace(em[0], '');
+  const ur = name.match(/\(([^()\s]+\.[^()\s]+)\)/);
+  if (ur) name = name.replace(ur[0], '');
+  name = name.replace(/\s+/g, ' ').trim();
+  // A contact-only entry ("<a@b.c>") still needs a non-empty name — reuse the
+  // contact itself rather than inventing one.
+  if (!name) name = em?.[1] ?? ur?.[1] ?? entry.trim();
+  return { name, ...(em ? { email: em[1] } : {}), ...(ur ? { url: ur[1] } : {}) };
+}
+
 function untrustedReason(signer: C2paSigner | undefined): string {
   if (signer?.selfSigned === false) return 'signing certificate untrusted — a CA-issued certificate that chains to no pinned trust anchor (pin its root to verify the identity)';
   if (signer && signer.commonName !== EPHEMERAL_CN) return 'signing certificate untrusted — a self-signed certificate, which vouches only for itself (pin it as a trust anchor to verify the identity)';
@@ -506,7 +525,10 @@ export interface C2paReport {
   // optional nested `inputs` digest (id → short string) — the scalar inputs the
   // asset was rendered from, recorded by the writer's tools.lolly.export assertion.
   environment?: (Record<string, string | number | boolean> & { inputs?: Record<string, string> }) | null;
-  author?: { name: string; email?: string };
+  author?: { name: string; email?: string; url?: string };
+  // User-asserted copyright + licence, read back from the credential's own
+  // metadata (v2 cawg.metadata dc:rights; v1 CreativeWork copyrightNotice/license).
+  rights?: string;
   signer?: C2paSigner;
   aiGenerated?: C2paAiOrigin;
   // The full provenance chain — every manifest's actions (parent/ingredient →
@@ -698,16 +720,36 @@ export async function verifyC2pa(bytes: Uint8Array, { trustAnchors }: { trustAnc
   const metaAssertion = parts.assertions.find((a) => a.label === 'cawg.metadata' || a.label === 'c2pa.metadata');
   if (metaAssertion) {
     try {
-      const creator = JSON.parse(td.decode(metaAssertion.content))?.['dc:creator'];
+      const meta = JSON.parse(td.decode(metaAssertion.content));
+      const creator = meta?.['dc:creator'];
       const name = Array.isArray(creator) ? creator[0] : creator;
-      if (name) report.author = { name: String(name) };
+      // Lolly writes the licensing contact into the creator entry npm-style —
+      // `Name <email> (site)` — so it survives in a single Dublin Core term that
+      // any external viewer displays verbatim; unpick it here so /verify (and the
+      // terminal report) can show the contact as its own fact.
+      if (name) report.author = parseCreatorEntry(String(name));
+      const rights = meta?.['dc:rights'];
+      if (typeof rights === 'string' && rights.trim()) report.rights = rights.trim();
     } catch { /* display nicety only */ }
   }
   const creativeWork = parts.assertions.find((a) => a.label === 'stds.schema-org.CreativeWork');
-  if (!report.author && creativeWork) {
+  if (creativeWork && (!report.author || !report.rights)) {
     try {
-      const person = JSON.parse(td.decode(creativeWork.content))?.author?.[0];
-      if (person?.name) report.author = { name: String(person.name), ...(person.email ? { email: String(person.email) } : {}) };
+      const work = JSON.parse(td.decode(creativeWork.content));
+      const person = work?.author?.[0];
+      if (!report.author && person?.name) {
+        report.author = {
+          name: String(person.name),
+          ...(person.email ? { email: String(person.email) } : {}),
+          ...(person.url ? { url: String(person.url) } : {}),
+        };
+      }
+      // Third-party v1 writers put rights on the CreativeWork itself
+      // (schema.org copyrightNotice and/or license — either may be present).
+      if (!report.rights) {
+        const notice = [work?.copyrightNotice, work?.license].filter((v: unknown) => typeof v === 'string' && v.trim()).join(' · ');
+        if (notice) report.rights = notice;
+      }
     } catch { /* display nicety only */ }
   }
 

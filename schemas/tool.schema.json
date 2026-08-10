@@ -178,7 +178,7 @@
         "printMarks": {
           "type": "boolean",
           "default": true,
-          "description": "Set false to hide the 'Print marks & bleed' card from the download bar. The print-finishing path (crop/registration marks, bleed box, page boxes) applies to a single trim-sized artwork, so multi-page documents (which emit per-page boxes) opt out of it."
+          "description": "Set false to hide the 'Print marks & bleed' card from the download bar. The print-finishing path (crop/registration marks, bleed box, page boxes) applies to a single trim-sized artwork, so multi-page documents (which emit per-page boxes) opt out of it. Set true to DECLARE PRINT INTENT: the card's master toggle then defaults ON for every print-capable format. Left unset, the card is offered but starts OFF for the RGB vector formats (pdf/svg/eps) and ON only for the separating press formats (pdf-cmyk/cmyk-tiff/eps-cmyk) — marks and bleed are never a side effect of picking a physical unit or an everyday PDF/SVG."
         },
         "transparentBg": {
           "type": "boolean",

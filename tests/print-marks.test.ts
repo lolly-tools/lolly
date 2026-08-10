@@ -237,3 +237,29 @@ test('barRadiusPt sets each cell corner radius, clamped to half the cell', () =>
   const sharp = computePrintGeometry({ ...TRIM, bleedPt: 8.5, marks: { colorBars: true }, palette: BRAND3 });
   for (const b of sharp.primitives.bars) assert.equal(b.r, 0);
 });
+
+// ── The default is nothing: no request → no print geometry at all ─────────────
+// The RGB vector formats (SVG / plain PDF) reach the export bridges with no bleed
+// and no marks unless the user, an explicit ?bleed=/?marks= param, or a declared
+// print intent asked for them — and the engine's half of that contract is that an
+// empty request degenerates to the bare trim box: no margin, no primitives, no
+// page growth. A regression here would silently put press furniture on everyday
+// screen-bound exports.
+
+test('no bleed and no marks: page == trim, no margin, zero primitives', () => {
+  const geo = computePrintGeometry({ ...TRIM });
+  assert.deepEqual(geo.page, { w: TRIM.trimWpt, h: TRIM.trimHpt });
+  assert.deepEqual(geo.boxes.trim,  { x: 0, y: 0, w: TRIM.trimWpt, h: TRIM.trimHpt });
+  assert.deepEqual(geo.boxes.bleed, geo.boxes.trim);
+  assert.deepEqual(geo.boxes.media, geo.boxes.trim);
+  assert.deepEqual(geo.artwork,     geo.boxes.trim);
+  const p = geo.primitives;
+  assert.equal(p.lines.length + p.circles.length + p.bars.length + p.labels.length, 0);
+});
+
+test('an all-false marks object is the same as no marks at all', () => {
+  const geo = computePrintGeometry({ ...TRIM, marks: { crop: false, registration: false, bleed: false, colorBars: false, provenance: false } });
+  assert.deepEqual(geo.page, { w: TRIM.trimWpt, h: TRIM.trimHpt });
+  const p = geo.primitives;
+  assert.equal(p.lines.length + p.circles.length + p.bars.length + p.labels.length, 0);
+});
