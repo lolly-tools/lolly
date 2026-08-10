@@ -53,6 +53,29 @@ const FORBIDDEN_BOOT_CHUNK = /(engine-render|engine-c2pa|handlebars|ajv|html2can
 // Kokoro model-bytes constant reads from a leaf (engine/src/speech-model-bytes.ts) not
 // the speech-text barrel, the view-topbar language menu lazy-loads its dropdown, and the
 // sfx VOICES synthesis split into a lazy shells/web/src/lib/sfx-voices.ts. Landed 134.2.
+// 2026-08-10: 140.9 on CI (the collab work landed on top of that 134.2 measurement).
+// Back to 129.9, again without moving the ceiling, by restoring four lazy boundaries.
+// The collab boot imports were NOT the offender — private-opener / collab-share-private /
+// collab-mount / collab-launch / the live-mount install are ~7.8 KB of minified registry
+// between them, with every heavy body (ceremony, RTC, beam, QR) already behind a dynamic
+// import. What was actually on the critical path:
+//   - engine/src/design-version.ts re-exported the two-line `sha256Hex` FROM
+//     catalog-integrity.ts. design-version is first-paint work (bridge/assets.ts), so
+//     that edge carried catalog-integrity + x509 + der-read along. sha256Hex now lives
+//     in the engine/src/bytes.ts leaf; catalog-integrity re-exports it (unchanged barrel).
+//   - bytes.ts then co-located INTO the engine-x509 chunk, which kept the cert parser on
+//     boot anyway — the same trap the engine-util note above describes. It has its own
+//     `engine-bytes` chunk group now (vite.config.js), ahead of engine-x509.
+//   - shells/web/src/catalog/integrity.ts imported the verifier statically for a feature
+//     that is INERT unless a build pins VITE_CATALOG_PUBLIC_KEY_JWK. Dynamic now.
+//   - host.media + host.recorder were the last EAGER impls on the bridge (media.ts,
+//     recorder.ts, video-mime.ts). Now lazy facades like capture/net/text/pdf, with the
+//     synchronous isAvailable() answered from a shared probe leaf, bridge/capture-support.ts.
+//   - lib/offline-manager.ts (the "Available offline" download manager) reached boot from
+//     catalog/sync.ts and views/offline-nudge.ts; all three call sites were already async.
+//   - bridge/capture-extension.ts's two-line "is the extension here?" probe split into
+//     bridge/capture-extension-probe.ts, so the boot-time impl choice no longer pulls the
+//     postMessage transport in behind it.
 const MAX_PRELOAD_JS_GZ = 135 * 1024;
 // -----------------------------------------------------------------------------
 

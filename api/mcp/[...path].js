@@ -1289,6 +1289,9 @@ function concatBytes(parts) {
 async function sha256(bytes) {
   return new Uint8Array(await globalThis.crypto.subtle.digest("SHA-256", asBufferSource(bytes)));
 }
+async function sha256Hex(bytes) {
+  return bytesToHex(await sha256(bytes));
+}
 function base64ToBytes(b64) {
   const bin = atob(b64);
   const out = new Uint8Array(bin.length);
@@ -1629,9 +1632,6 @@ function canonicalJson(value) {
   }
   return "{" + parts.join(",") + "}";
 }
-async function sha256Hex(bytes) {
-  return bytesToHex(await sha256(bytes));
-}
 async function jwkThumbprint(jwk) {
   if (jwk.kty !== "EC" || !jwk.crv || !jwk.x || !jwk.y) {
     throw new Error("catalog integrity: keyId needs an EC JWK with crv/x/y");
@@ -1702,6 +1702,7 @@ var init_catalog_integrity = __esm({
   "engine/src/catalog-integrity.ts"() {
     "use strict";
     init_x509();
+    init_bytes();
     init_bytes();
     te2 = new TextEncoder();
     subtle2 = globalThis.crypto.subtle;
@@ -44567,7 +44568,7 @@ async function getBrowser() {
 // packages/node-shell/src/url-capture.ts
 var DRIVE_TIMEOUT_MS = 15e3;
 var DRIVE_SETTLE_MS = 250;
-async function runDriveSteps(page2, steps) {
+async function runDriveSteps(page2, steps, opts = {}) {
   for (const step of steps) {
     if (step.kind === "wait") {
       await page2.waitForTimeout(Math.min(15e3, Math.max(0, step.ms)));
@@ -44586,11 +44587,22 @@ async function runDriveSteps(page2, steps) {
     const position = box2 && at ? { x: box2.width * at[0], y: box2.height * at[1] } : void 0;
     switch (step.kind) {
       case "click":
-        await target.click({
-          button: step.button === "right" ? "right" : "left",
-          clickCount: step.count && step.count > 1 ? step.count : 1,
-          ...position ? { position } : {}
-        });
+        try {
+          await target.click({
+            button: step.button === "right" ? "right" : "left",
+            clickCount: step.count && step.count > 1 ? step.count : 1,
+            ...position ? { position } : {}
+          });
+        } catch (e) {
+          const msg = String(e?.message ?? "");
+          const actionabilityTimeout = /timeout|exceeded/i.test(msg);
+          const pointerSpecific = step.button === "right" || (step.count ?? 1) > 1 || Boolean(position);
+          if (!opts.clickFallback || pointerSpecific || !actionabilityTimeout) throw e;
+          opts.onClickFallback?.(selector, msg.split("\n")[0].trim());
+          await target.evaluate((el) => {
+            el.click();
+          });
+        }
         break;
       case "hover":
         await target.hover(position ? { position } : {});
@@ -44692,7 +44704,7 @@ async function captureUrl(params, format, dims) {
         if (settled && attempt2 >= 1) break;
       }
     }
-    if (params.actions?.length) await runDriveSteps(page2, params.actions);
+    if (params.actions?.length) await runDriveSteps(page2, params.actions, params.driveOpts ?? {});
     if (fmt2 === "pdf") {
       const pdf = await page2.pdf({
         width: `${width}px`,

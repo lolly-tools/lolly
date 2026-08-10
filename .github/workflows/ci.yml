@@ -126,7 +126,15 @@ jobs:
       #    3  ImageMagick not installed (optional external check)
       #    2  perf/timing tests gated behind BENCH=1
       #    2  LOLLY_ICC_TARG / misc fixtures not set
-      # Re-counted 2026-08-04 against run on 54c3bdd (292 observed). The growth
+      # Re-counted 2026-08-10 against the collab-era main (308 observed after the
+      # variable-font golden repoint made 4 fvar cases run everywhere): the growth
+      # since 292 (2026-08-04) is accumulated environment-gated tests that never
+      # raised the baseline in their own PRs - the 'SUSE brand pack not mounted'
+      # bucket 31->44, 'suse is not mounted' x3, suse tokens brand.json x2,
+      # 'skera not installed' x2, the LOLLY_BROWSER_DRILLS private-collab drill
+      # gate x1, penpot-start example materials x1.
+      # Prior note (2026-08-04, kept for the trail): re-counted against 54c3bdd
+      # (292 observed). The growth
       # since the 216 baseline is new environment-gated tests from the upscale,
       # matte, PSD/XCF and docs-site work, not tests that stopped running.
       # If a PR legitimately adds environment-gated tests, raise the baseline in
@@ -136,7 +144,7 @@ jobs:
       - name: Skipped tests must not exceed the CI baseline
         if: always()
         env:
-          EXPECTED_SKIPS: 292
+          EXPECTED_SKIPS: 308
         run: |
           # node:test prints a run summary — "ℹ skipped N" (spec reporter) or
           # "# skipped N" (tap, the non-TTY default on some Node lines). Strip
@@ -356,6 +364,23 @@ jobs:
   # vulnerable dep can't land silently (readiness for the security audit). Moderate/
   # low are surfaced but don't block. A false alarm can be pinned via package.json
   # `overrides` (as adm-zip is, forced to ^0.6.0 past onnxruntime-node's ^0.5.16).
+  #
+  # Most advisories clear with `npm update --package-lock-only <pkg>`, because the
+  # fixed version already satisfies the range its parent declares — no package.json
+  # edit, no `npm audit fix --force`, which is never the answer here. An override is
+  # for the other case: the parent's declared range EXCLUDES the fix. Two live now,
+  # both scoped as narrowly as the syntax allows:
+  #   - ip-address ^10.3.1 / nanoid ^3.3.17 — floors, not pins. Both were already
+  #     satisfiable (express-rate-limit wants ^10.2.0, postcss wants ^3.3.16); the
+  #     entries stop a future resolve from walking back under the advisory.
+  #   - @huggingface/transformers > sharp: "$sharp" — transformers pins sharp
+  #     ^0.34.1 and every published version of it still does, including 4.x, so
+  #     upgrading transformers does NOT clear GHSA-f88m-g3jw-g9cj. `$sharp` reuses
+  #     the root's own sharp spec, which keeps ONE sharp (and one libvips binary)
+  #     in the tree instead of two. Verified against transformers' actual sharp
+  #     usage: it calls metadata/rotate/raw/toBuffer/affine/resize/extract, none of
+  #     the APIs 0.35.0 removed (failOnError, paletteBitDepth, jp2k, sharpen opts).
+  #     Revisit when transformers widens its range — then this can just go.
   audit:
     name: npm audit (high+critical)
     runs-on: ubuntu-latest
