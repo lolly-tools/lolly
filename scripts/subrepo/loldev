@@ -343,10 +343,12 @@ vercel_publish() {
   for (( try=1; try<="${DEPLOY_UPLOAD_TRIES:-3}"; try++ )); do
     step "tarballing + queuing on Vercel (LOLLY_PROFILE=$profile · upload $try/${DEPLOY_UPLOAD_TRIES:-3})" >&2
     log="$(mktemp -t loldev-ship.XXXXXX)"
-    # LOLLY_CLI_DEPLOY=1 satisfies the project-level Ignored Build Step, which
-    # cancels every build without it (bt skips git-integration builds by design
-    # since 2026-08-10; only this CLI archive path may build). --force alone does
-    # NOT bypass the ignore step — it only busts the build cache.
+    # bt has NO git integration (disconnected 2026-08-10: a git clone can't mount
+    # the private suse submodule, so a git build would silently ship the wrong
+    # brand to lolly.tools) — this CLI archive path is the only way bt deploys.
+    # Never re-add an Ignored Build Step to bt: it cancels CLI builds too, and
+    # per-deploy --build-env vars are invisible to it. LOLLY_CLI_DEPLOY=1 is a
+    # harmless marker distinguishing loldev deploys in build logs.
     npx --yes vercel deploy "${prod_flag[@]}" --archive=tgz --no-wait --force \
       --build-env "LOLLY_PROFILE=$profile" --build-env "LOLLY_CLI_DEPLOY=1" \
       --yes 2>&1 | tee "$log" >&2
