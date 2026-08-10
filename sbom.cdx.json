@@ -1,10 +1,10 @@
 {
   "bomFormat": "CycloneDX",
   "specVersion": "1.5",
-  "serialNumber": "urn:uuid:6aea8374-f5eb-4d03-8875-088d74468be3",
+  "serialNumber": "urn:uuid:2bdb11b9-303f-4d47-8f07-686cfa530241",
   "version": 1,
   "metadata": {
-    "timestamp": "2026-08-10T06:10:36.355Z",
+    "timestamp": "2026-08-10T06:54:03.164Z",
     "tools": [
       {
         "vendor": "lolly",
@@ -24025,7 +24025,7 @@
       "properties": [
         {
           "name": "lolly:vendored",
-          "value": "tools/meeting-planner/lib/d3.min.js"
+          "value": "tools/street-map/lib/d3.min.js"
         }
       ]
     },
@@ -33197,33 +33197,6 @@
         {
           "name": "cdx:npm:package:development",
           "value": "true"
-        }
-      ]
-    },
-    {
-      "type": "library",
-      "bom-ref": "pkg:npm/topojson-client@3.1.0",
-      "name": "topojson-client",
-      "version": "3.1.0",
-      "purl": "pkg:npm/topojson-client@3.1.0",
-      "scope": "required",
-      "licenses": [
-        {
-          "license": {
-            "id": "ISC"
-          }
-        }
-      ],
-      "hashes": [
-        {
-          "alg": "SHA-512",
-          "content": "17a2d16f2c3565d104d8b7f0f095cf7aab0f925e2097765d8f17d0f9303d0b026e65307e3790c035bd2a42d10d922f97dc83005499d1b1cdcd4e0047df3728ac"
-        }
-      ],
-      "properties": [
-        {
-          "name": "lolly:vendored",
-          "value": "tools/meeting-planner/lib/topojson.min.js"
         }
       ]
     },
