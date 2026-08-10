@@ -44,6 +44,13 @@ concurrency:
   group: ci-${{ github.ref }}
   cancel-in-progress: true
 
+# onnxruntime-node's postinstall attempts a CUDA EP download on linux runners and
+# dies on an unhandled rejection (macOS never takes that path). No job here needs
+# CUDA; skip it so `npm ci` survives. Node is 24 to match the repo target — and
+# npm 11's audit, which resolves override floors the way the lockfile intends.
+env:
+  ONNXRUNTIME_NODE_INSTALL_CUDA: skip
+
 jobs:
   test:
     name: test
@@ -55,7 +62,7 @@ jobs:
 
       - uses: actions/setup-node@v7
         with:
-          node-version: '22'
+          node-version: '24'
           cache: npm
 
       - name: Install (workspaces)
@@ -184,7 +191,7 @@ jobs:
 
       - uses: actions/setup-node@v7
         with:
-          node-version: '22'
+          node-version: '24'
           cache: npm
 
       - name: Install (workspaces)
@@ -246,7 +253,7 @@ jobs:
 
       - uses: actions/setup-node@v7
         with:
-          node-version: '22'
+          node-version: '24'
           cache: npm
 
       - name: Install (workspaces)
@@ -271,7 +278,7 @@ jobs:
 
       - uses: actions/setup-node@v7
         with:
-          node-version: '22'
+          node-version: '24'
           cache: npm
 
       - name: Install (workspaces)
@@ -290,7 +297,7 @@ jobs:
 
       - uses: actions/setup-node@v7
         with:
-          node-version: '22'
+          node-version: '24'
           cache: npm
 
       - name: Install (workspaces)
@@ -316,7 +323,7 @@ jobs:
 
       - uses: actions/setup-node@v7
         with:
-          node-version: '22'
+          node-version: '24'
           cache: npm
 
       - name: Install (workspaces)
@@ -391,7 +398,7 @@ jobs:
 
       - uses: actions/setup-node@v7
         with:
-          node-version: '22'
+          node-version: '24'
           cache: npm
 
       - name: Install (workspaces)
