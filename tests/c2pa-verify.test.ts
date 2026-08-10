@@ -273,6 +273,33 @@ test('author profile → cawg.metadata dc:creator → report.author round-trips'
   assert.ok(!r.checks.some((c: any) => !c.ok && c.code === 'assertion.hashedURI.mismatch'));
 });
 
+// The full "Add your credential" claim: contact (email + site) rides inside the
+// dc:creator entry npm-style, rights in dc:rights — and ALL of it must read back
+// out, because /verify shows what the credential records (Contact and
+// Rights / licence facts), not just the name.
+test('author contact + rights → cawg.metadata → report.author/{email,url} + report.rights round-trip', async () => {
+  const pdf = await embedC2paInPdf(buildTestPdf(), {
+    title: 'Licensed Asset', claimGenerator: 'Lolly',
+    author: { name: 'Andy Fitzsimon', email: 'andy@example.com', url: 'suse.com' },
+    rights: '© 2026 Andy Fitzsimon · CC BY 4.0 · https://creativecommons.org/licenses/by/4.0/',
+  });
+  const r: any = await verifyC2pa(pdf);
+  assert.equal(r.state, 'valid');
+  assert.deepEqual(r.author, { name: 'Andy Fitzsimon', email: 'andy@example.com', url: 'suse.com' });
+  assert.equal(r.rights, '© 2026 Andy Fitzsimon · CC BY 4.0 · https://creativecommons.org/licenses/by/4.0/');
+});
+
+// rights WITHOUT an author: the metadata assertion is emitted for either alone.
+test('rights alone → report.rights, no invented author', async () => {
+  const pdf = await embedC2paInPdf(buildTestPdf(), {
+    title: 'Rights Only', claimGenerator: 'Lolly', rights: 'CC0 1.0',
+  });
+  const r: any = await verifyC2pa(pdf);
+  assert.equal(r.state, 'valid');
+  assert.equal(r.rights, 'CC0 1.0');
+  assert.equal(r.author, undefined);
+});
+
 // The manifest profile a catalog "modified download" writes (web shell
 // downloadSigned → stampDerivedC2pa): custom edit actions with NO c2pa.created
 // — the engine prepends c2pa.opened for the preserved source ingredient — plus

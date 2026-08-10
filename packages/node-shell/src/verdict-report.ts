@@ -91,7 +91,7 @@ export function verdictHeadline(v: C2paVerdict, opts: { elevateParts?: boolean }
 }
 
 /**
- * The claim facts table: the same 11 rows in the same key order all three surfaces
+ * The claim facts table: the same 13 rows in the same key order all three surfaces
  * built by hand, already scrubbed and already filtered to the truthy rows. The
  * caller pads/paints the label and prints `${label} ${value}`.
  */
@@ -111,6 +111,8 @@ export function verdictFacts(report: C2paReport): Array<[label: string, value: s
       && `${id.email || s.commonName}${id.issuer ? ` — verified by ${id.issuer}` : ''}`],
     ['Tool', env.tool],
     ['Produced by', report.author && `${report.author.name}${report.author.email ? ` <${report.author.email}>` : ''}`],
+    ['Contact', report.author?.url],
+    ['Rights / licence', report.rights],
     [report.delivered ? 'Delivered by' : 'Made with', generator],
     ['Signed', signedAt],
     ['Where', [env.surface, env.engine, env.os].filter(Boolean).join(' · ')],

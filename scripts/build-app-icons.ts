@@ -45,6 +45,27 @@ import { createSvgRasterizer } from './lib/rasterize-svg-browser.ts';
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const SOURCE = resolve(ROOT, 'icon.svg');
+
+/**
+ * The signed source carries a `<style>` block that spins the shutter blades (3/6/9s)
+ * and drifts the hue. Derived rasters are STATIC by decision (2026-08-10): a Chromium
+ * screenshot would otherwise capture whatever animation frame the page happened to be
+ * on (the 0% keyframe alone applies a 15° hue shift), making every derivative
+ * nondeterministic and tinted. Strip the style block (and any SMIL animation elements)
+ * from the STRING we rasterise — the signed file itself is never modified, and the
+ * verbatim `shells/web/public/icon.svg` copy below stays byte-identical so its C2PA +
+ * RDF provenance survives.
+ */
+export function staticIconSvg(svg: string): string {
+  let out = svg;
+  // Repeat until no opening tag remains — the signed source nests an empty <style>
+  // inside the animation block, so one non-greedy pass leaves an orphan close tag.
+  while (/<style\b/.test(out)) out = out.replace(/<style\b[^>]*>[\s\S]*?<\/style>/, '');
+  return out
+    .replace(/<\/style>/g, '') // orphan close tags left by nested blocks
+    .replace(/<(animate|animateTransform|animateMotion|set)\b[^>]*\/>/g, '')
+    .replace(/<(animate|animateTransform|animateMotion|set)\b[\s\S]*?<\/\1>/g, '');
+}
 // The transparent raster master every sharp resize below derives from. 1024² is the
 // largest output (the Tauri master), so nothing upscales.
 const MASTER = 1024;
@@ -113,7 +134,7 @@ async function main(): Promise<void> {
   }
   let master: Buffer;
   try {
-    master = await rasterizer.rasterize(readFileSync(SOURCE, 'utf8'), { width: MASTER, height: MASTER, background: 'transparent' });
+    master = await rasterizer.rasterize(staticIconSvg(readFileSync(SOURCE, 'utf8')), { width: MASTER, height: MASTER, background: 'transparent' });
   } finally {
     await rasterizer.close();
   }

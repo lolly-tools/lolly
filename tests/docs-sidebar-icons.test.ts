@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
- * Sidebar glyphs (SIDEBAR_ICON in docs/build.ts).
+ * Sidebar glyphs (SIDEBAR_ICON in docs/build.ts) — and the footer sitemap, which
+ * renders the SAME mapping so a destination wears one landmark everywhere.
  *
  * These are an accessibility feature, not decoration: a column of same-length
  * link text is slow to scan, and a stable picture per destination gives a second,
@@ -40,10 +41,23 @@ const iconKeys = new Set([
   ...[...BUILD_TS.matchAll(/^DOC_ICONS\.([a-zA-Z-]+)\s*=/gm)].map((m) => m[1]!),
 ]);
 
+/**
+ * The footer sitemap's destinations: every row slug in FOOTER_SECTIONS plus the
+ * pathway hubs the column headings link to (PATHWAY_HUB). footerSitemap() renders
+ * SIDEBAR_ICON for each of these, so a slug missing from the mapping is the same
+ * failure the sidebar tests guard against — a blank where a landmark goes.
+ */
+const footerSlugs = [...new Set([
+  ...[...sliceDeclaration(BUILD_TS, 'FOOTER_SECTIONS').matchAll(/slugs:\s*\[([^\]]*)\]/g)]
+    .flatMap((m) => [...m[1]!.matchAll(/'([a-z-]+)'/g)].map((x) => x[1]!)),
+  ...[...sliceDeclaration(BUILD_TS, 'PATHWAY_HUB').matchAll(/:\s*'([a-z-]+)'/g)].map((m) => m[1]!),
+])];
+
 test('the scan found real data (the parse did not silently return nothing)', () => {
   assert.ok(sidebarSlugs.length > 30, `expected the full sidebar tree, got ${sidebarSlugs.length} slugs`);
   assert.ok(iconMap.size > 30, `expected an icon per page, got ${iconMap.size} entries`);
   assert.ok(iconKeys.size > 20, `expected the doc icon set, got ${iconKeys.size} keys`);
+  assert.ok(footerSlugs.length > 40, `expected the full site map, got ${footerSlugs.length} slugs`);
 });
 
 test('every sidebar entry has an icon', () => {
@@ -58,9 +72,29 @@ test('every icon name resolves to a real glyph', () => {
   assert.deepEqual(unknown, [], 'unknown DOC_ICONS key — docIcon would emit nothing');
 });
 
-test('SIDEBAR_ICON has no entry for a page that is not in a sidebar', () => {
-  const stale = [...iconMap.keys()].filter((s) => !sidebarSlugs.includes(s));
-  assert.deepEqual(stale, [], 'stale mapping for a slug no sidebar lists');
+test('every footer sitemap destination has an icon', () => {
+  // The build throws on a miss (the guard beside SIDEBAR_ICON); this is the same
+  // check without needing a build, and it names the slug.
+  const missing = footerSlugs.filter((s) => !iconMap.has(s));
+  assert.deepEqual(missing, [], 'a footer link would fail the build-time icon guard');
+});
+
+test('the footer renders SIDEBAR_ICON itself, not a second mapping', () => {
+  // ONE data source. The footer link's glyph must be a lookup into the sidebar's
+  // own table — a copied table drifts the first time one of them is edited — and
+  // it must be decorative: the label is the link, the icon is aria-hidden.
+  const start = BUILD_TS.indexOf('function footerSitemap(');
+  assert.ok(start >= 0, 'docs/build.ts no longer declares footerSitemap()');
+  const next = BUILD_TS.slice(start + 1).search(/\n(?:function |const [A-Z])/);
+  const fn = BUILD_TS.slice(start, next < 0 ? undefined : start + 1 + next);
+  assert.ok(fn.length > 100, 'footerSitemap() source looks empty — the slice is wrong');
+  assert.match(fn, /SIDEBAR_ICON\[/, 'footer glyphs must come from the sidebar mapping');
+  assert.match(fn, /class="sitemap-ic" aria-hidden="true"/, 'footer glyphs are decorative and CSS-sized');
+});
+
+test('SIDEBAR_ICON has no entry for a page that is not in a sidebar or the footer sitemap', () => {
+  const stale = [...iconMap.keys()].filter((s) => !sidebarSlugs.includes(s) && !footerSlugs.includes(s));
+  assert.deepEqual(stale, [], 'stale mapping for a slug no nav lists');
 });
 
 test('only the two deliberate colour landmarks exist', () => {
