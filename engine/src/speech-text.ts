@@ -23,20 +23,14 @@
 import type { SpeechVoiceInfo, SpeechWordTiming } from './bridge/host-v1.ts';
 
 export const KOKORO_SAMPLE_RATE = 24000;
-export const KOKORO_STYLE_DIM = 256;
 /** transformers.js model id under env.localModelPath ('/models/' in the web shell) — /models/kokoro/. */
 export const KOKORO_MODEL_ID = 'kokoro';
-/** Voice style matrices are a fixed 510x256 float32 — one row per input-token count. */
-export const KOKORO_VOICE_BYTES = 510 * KOKORO_STYLE_DIM * 4;
 
-/**
- * The one-time download `host.speech.modelBytes()` reports for a consent UI:
- * q8 model + config + tokenizer + tokenizer_config (observed 2026-08-02,
- * pinned warn-only in scripts/fetch-kokoro-models.ts) plus ONE voice matrix —
- * voices past the first download lazily per pick (worker getVoiceData), so the
- * consent number stays the model-download story, not 28 voices' worth.
- */
-export const KOKORO_MODEL_BYTES = 92_361_055 + 44 + 3_497 + 113 + KOKORO_VOICE_BYTES;
+// The download-size constants (KOKORO_STYLE_DIM / KOKORO_VOICE_BYTES /
+// KOKORO_MODEL_BYTES) live in the dependency-free leaf ./speech-model-bytes.ts so the
+// web shell's boot-path bridge can read KOKORO_MODEL_BYTES without pulling this whole
+// module in. Re-exported here so every existing importer of speech-text keeps working.
+export { KOKORO_STYLE_DIM, KOKORO_VOICE_BYTES, KOKORO_MODEL_BYTES } from './speech-model-bytes.ts';
 
 /**
  * The full English voice set staged by scripts/fetch-kokoro-models.ts (keep

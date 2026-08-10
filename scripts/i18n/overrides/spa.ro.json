@@ -188,5 +188,7 @@
   "{family} now serves h1/h2 headings": "{family} servește acum titlurile h1/h2",
   "{family} now serves italic text": "{family} servește acum textul cursiv",
   "← All team projects": "← Toate proiectele de echipă",
-  "Home": "Acasă"
+  "Home": "Acasă",
+  "Live now - 1 person editing": "Live acum - 1 persoană editează",
+  "Live now - {n} people editing": "Live acum - {n} persoane editează"
 }

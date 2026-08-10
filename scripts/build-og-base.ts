@@ -8,9 +8,9 @@
  * per-page card is missing. It used to be a hand-made PNG that carried an OLD lollipop
  * long after the app icon and the OG cards had moved to the current pine swirl.
  *
- * This regenerates it from the SINGLE source of truth, icon.avif (via the derived
- * chrome.mark), through the same Chromium card path as every other card — so the default
- * card can never drift from the app icon again.
+ * This regenerates it from the SINGLE source of truth, icon.svg (via chrome.mark, which
+ * embeds the signed source SVG), through the same Chromium card path as every other card —
+ * so the default card can never drift from the app icon again.
  *
  *   npm run og:base
  *
@@ -48,7 +48,7 @@ async function main(): Promise<void> {
     // C2PA credential before committing it (see scripts/lib/stamp-media.ts).
     const stamped = await stampBitmap(new Uint8Array(png), 'png', { id: 'og', name: 'Lolly' });
     writeFileSync(OUT, Buffer.from(stamped));
-    console.log('✓ og:base — shells/web/public/og.png regenerated from icon.avif');
+    console.log('✓ og:base — shells/web/public/og.png regenerated from icon.svg');
   } finally {
     await rasterizer.close();
   }

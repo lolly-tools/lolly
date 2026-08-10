@@ -78,7 +78,7 @@ test('the sensor capabilities still validate (screen is additive, not a replacem
 
 // ─── version ─────────────────────────────────────────────────────────────────
 
-test('ENGINE_VERSION is 1.110.0', () => {
+test('ENGINE_VERSION is 1.112.0', () => {
   // A literal pin: the screencap surface shipped at 1.54, and tools declare
   // ^1.54.0 to require it. session-record only checks the stamp equals whatever
   // ENGINE_VERSION happens to be (tautological) — this catches an errant bump.
@@ -218,8 +218,11 @@ test('ENGINE_VERSION is 1.110.0', () => {
   // function a legacy edge and a bound path both reach, and ConnectorRenderOpts grows
   // headStartField/headEndField/dashArrayField/dashFitField so an authored dash pattern
   // lands on the committed layer as real corner-fitted <line> segments).
+  // Then 1.112.0 (plan 100 wave 0.4 — runtime.applyPatch: an atomic multi-input apply
+  // with one render, for a remote collaboration op that arrives as a set of values;
+  // onInput still runs per changed id in insertion order, only the emit coalesces).
   // The ^1.54.0 screencap floor below still holds (a minor bump satisfies it).
-  assert.equal(ENGINE_VERSION, '1.111.0');
+  assert.equal(ENGINE_VERSION, '1.112.0');
 });
 
 // ─── loadTool: a ^1.54.0 tool loads against this engine ───────────────────────

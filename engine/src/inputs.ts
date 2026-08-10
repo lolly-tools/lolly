@@ -503,7 +503,60 @@ export function updateInput(model: InputModelItem[], id: string, value: InputVal
   });
 }
 
+/**
+ * The input model's value gate — every write through `updateInput` (a keystroke, a
+ * canvas commit, a `/multi` fan-out, `runtime.applyPatch`) passes here, and a value
+ * the declared constraints reject keeps the input's PRIOR value rather than entering
+ * the model. That "rejection = the old value" convention is what lets applyPatch
+ * detect a rejected key (plans/100 §11.11) without a second validation pass.
+ *
+ * NOT a policy engine: it enforces what the manifest DECLARES (an enum's options, a
+ * number's range, a string's maxLength) and the value SHAPE each type is defined to
+ * hold. Two types are deliberately shape-blind, because their legitimate values are
+ * object-shaped and resolved elsewhere in the lifecycle: `asset` (an AssetRef, or a
+ * `{_unresolved}` stub that resolveAssetRefs completes) and `color` (a plain hex, or
+ * a `{ref}` token value that resolveTokenRefs completes). A caller that accepts
+ * values from a peer must therefore still gate those two by declared type at ITS
+ * boundary — the web shell's collab plumbing does, in lib/collab-plumbing.ts.
+ *
+ * Hook patches do NOT come through here (runtime.ts's mergePatch is the tool's own
+ * trust boundary — a hook may compute anything for its own tool).
+ */
 function constrain(input: InputModelItem, value: InputValue): InputValue {
+  if (input.type === 'select') {
+    // The enum whitelist (plans/100 §11.11's first named case). Only when the
+    // manifest actually declares the options AND does not extend them at runtime:
+    // a `brandFonts` select is appended to by the shell with the user's installed
+    // families, so its declared list is not the whole truth — the same carve-out
+    // engine/src/preflight.ts's checkSelectValue makes. Compared as strings because
+    // a shell's select control hands back the option's value as text.
+    const options = input.options;
+    if (!Array.isArray(options) || options.length === 0 || input.brandFonts === true) return value;
+    if (typeof value === 'object' && value !== null) return input.value;   // never an object
+    return options.some(o => String(o?.value) === String(value)) ? value : input.value;
+  }
+  if (input.type === 'boolean') {
+    if (typeof value === 'boolean') return value;
+    // The canonical wire spellings a URL/CLI param carries (`?flag=1`), normalised
+    // rather than rejected so those transports keep working. Anything else — an
+    // object, an array, an arbitrary string — is not a boolean and is refused.
+    if (value === 1 || value === '1' || value === 'true') return true;
+    if (value === 0 || value === '0' || value === 'false' || value === '' || value === null) return false;
+    return input.value;
+  }
+  if (input.type === 'date' || input.type === 'time' || input.type === 'datetime-local' || input.type === 'url') {
+    // Plain-string types: the format is the control's business (and the tool's), but
+    // an object or an array in one of them is garbage no writer legitimately sends.
+    // `null` passes as the shell's "cleared" marker (a clear button hands it to every
+    // type), and hydrates as empty exactly as it did before this gate existed.
+    return typeof value === 'string' || value === null ? value : input.value;
+  }
+  if (input.type === 'blocks') {
+    // A repeating field group is an ARRAY of rows, always. A non-array would break
+    // every consumer that iterates it (template `{{#each}}`, the sidebar panel, the
+    // collab row projection), so it keeps the prior value.
+    return Array.isArray(value) ? value : input.value;
+  }
   if (input.type === 'text' || input.type === 'longtext') {
     if (typeof value !== 'string') return input.value;
     if (input.maxLength && value.length > input.maxLength) {

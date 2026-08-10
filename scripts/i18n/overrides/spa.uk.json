@@ -186,5 +186,15 @@
   "{family} now serves h1/h2 headings": "{family} тепер використовується для заголовків h1/h2",
   "{family} now serves italic text": "{family} тепер використовується для курсивного тексту",
   "← All team projects": "← Усі командні проєкти",
-  "Home": "Головна"
+  "Home": "Головна",
+  "Private collab": "Приватна співпраця",
+  "beta": "бета",
+  "Lets you invite one other device to co-edit a tool session directly - no account, no server, works offline on the same network. Anyone with the invite can join and edit until you close the session.": "Дає змогу запросити ще один пристрій редагувати сеанс інструмента разом з вами напряму — без облікового запису, без сервера, працює офлайн у тій самій мережі. Будь-хто із запрошенням може приєднатися й редагувати, доки ви не закриєте сеанс.",
+  "Invite one other device to co-edit this session directly - no account, no server.": "Запросіть ще один пристрій редагувати цей сеанс разом з вами напряму — без облікового запису, без сервера.",
+  "Start a collab": "Почати співпрацю",
+  "Starting a collab": "Початок співпраці",
+  "Work collab": "Робоча співпраця",
+  "Invite others on this instance to co-edit this session, live.": "Запросіть інших на цьому інстансі редагувати цей сеанс разом з вами наживо.",
+  "Live now - 1 person editing": "Наживо зараз — 1 людина редагує",
+  "Live now - {n} people editing": "Наживо зараз — {n} людей редагують"
 }

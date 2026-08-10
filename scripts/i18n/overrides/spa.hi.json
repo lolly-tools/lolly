@@ -188,5 +188,15 @@
   "{family} now serves h1/h2 headings": "{family} अब h1/h2 हेडिंग के लिए इस्तेमाल हो रहा है",
   "{family} now serves italic text": "{family} अब इटैलिक टेक्स्ट के लिए इस्तेमाल हो रहा है",
   "← All team projects": "← सभी टीम प्रोजेक्ट्स",
-  "Home": "होम"
+  "Home": "होम",
+  "Private collab": "निजी कोलैब",
+  "beta": "बीटा",
+  "Lets you invite one other device to co-edit a tool session directly - no account, no server, works offline on the same network. Anyone with the invite can join and edit until you close the session.": "इससे आप किसी दूसरे डिवाइस को सीधे टूल सेशन साथ में एडिट करने के लिए आमंत्रित कर सकते हैं — न कोई अकाउंट, न कोई सर्वर, यह एक ही नेटवर्क पर ऑफ़लाइन भी काम करता है। इनवाइट रखने वाला कोई भी व्यक्ति सेशन बंद होने तक जुड़ सकता है और एडिट कर सकता है।",
+  "Invite one other device to co-edit this session directly - no account, no server.": "किसी दूसरे डिवाइस को सीधे इस सेशन को साथ में एडिट करने के लिए आमंत्रित करें — न कोई अकाउंट, न कोई सर्वर।",
+  "Start a collab": "कोलैब शुरू करें",
+  "Starting a collab": "कोलैब शुरू हो रहा है",
+  "Work collab": "कार्य कोलैब",
+  "Invite others on this instance to co-edit this session, live.": "इस इंस्टेंस पर दूसरों को इस सेशन को लाइव साथ में एडिट करने के लिए आमंत्रित करें।",
+  "Live now - 1 person editing": "अभी लाइव - 1 व्यक्ति एडिट कर रहा है",
+  "Live now - {n} people editing": "अभी लाइव - {n} लोग एडिट कर रहे हैं"
 }

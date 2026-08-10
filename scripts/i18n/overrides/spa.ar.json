@@ -188,5 +188,15 @@
   "{family} now serves h1/h2 headings": "أصبح {family} يستخدم لعناوين h1/h2",
   "{family} now serves italic text": "أصبح {family} يستخدم للنص المائل",
   "← All team projects": "← جميع مشاريع الفريق",
-  "Home": "الرئيسية"
+  "Home": "الرئيسية",
+  "Private collab": "التعاون الخاص",
+  "beta": "تجريبي",
+  "Lets you invite one other device to co-edit a tool session directly - no account, no server, works offline on the same network. Anyone with the invite can join and edit until you close the session.": "يتيح لك دعوة جهاز آخر لتعديل جلسة أداة معك مباشرة — بلا حساب، بلا خادم، ويعمل بلا اتصال بالإنترنت على نفس الشبكة. يمكن لأي شخص يملك الدعوة الانضمام والتعديل حتى تغلق الجلسة.",
+  "Invite one other device to co-edit this session directly - no account, no server.": "دعوة جهاز آخر لتعديل هذه الجلسة معك مباشرة — بلا حساب، بلا خادم.",
+  "Start a collab": "بدء تعاون",
+  "Starting a collab": "جاري بدء التعاون",
+  "Work collab": "تعاون العمل",
+  "Invite others on this instance to co-edit this session, live.": "دعوة آخرين على هذا المثيل لتعديل هذه الجلسة معك مباشرة.",
+  "Live now - 1 person editing": "مباشر الآن - شخص واحد يحرر",
+  "Live now - {n} people editing": "مباشر الآن - {n} أشخاص يحررون"
 }

@@ -199,6 +199,11 @@
           "type": "string",
           "description": "For onFrame (live camera) tools: id of a number input whose value overrides liveMaxEdge, exposing camera resolution as a user-facing control (e.g. a slider). The runtime reads it at go-live and re-applies to the running stream whenever the input changes — no camera stop/start — so the working frame resolution follows the control. Falls back to liveMaxEdge when the input is unset or absent."
         },
+        "liveDefault": {
+          "type": "string",
+          "pattern": "^[a-z0-9]+(/[a-z0-9][a-z0-9-]*)+$",
+          "description": "For onFrame tools: catalog id of an ANIMATED SVG asset the shell plays as a live, no-camera source (an off-screen <img> of the animation, sampled into onFrame like a camera would be) so the tool can show off its effect on a moving subject without a webcam. The shell auto-plays it when present; a still export still captures the current frame. Ignored by tools without onFrame."
+        },
         "convertPaths": {
           "type": "boolean",
           "default": true,

@@ -1,6 +1,6 @@
 {
   "version": "1",
-  "generatedAt": "2026-08-09T07:28:46.116Z",
+  "generatedAt": "2026-08-09T23:28:07.282Z",
   "tools": [
     {
       "id": "compress-pdf",
@@ -1574,108 +1574,108 @@
       ],
       "i18n": {
         "ar": {
-          "name": "Palette Lab",
-          "description": "Grow a palette from one seed colour — harmony accents, perceptual OKLab ramps and WCAG/APCA readability badges, with DTCG tokens and CSV export."
+          "name": "Color Picker",
+          "description": "A handy color picker for the SUSE brand palette — click any swatch to copy it."
         },
         "bg": {
-          "name": "Palette Lab",
-          "description": "Grow a palette from one seed colour — harmony accents, perceptual OKLab ramps and WCAG/APCA readability badges, with DTCG tokens and CSV export."
+          "name": "Color Picker",
+          "description": "A handy color picker for the SUSE brand palette — click any swatch to copy it."
         },
         "bn": {
-          "name": "Palette Lab",
-          "description": "Grow a palette from one seed colour — harmony accents, perceptual OKLab ramps and WCAG/APCA readability badges, with DTCG tokens and CSV export."
+          "name": "Color Picker",
+          "description": "A handy color picker for the SUSE brand palette — click any swatch to copy it."
         },
         "cs": {
-          "name": "Palette Lab",
-          "description": "Grow a palette from one seed colour — harmony accents, perceptual OKLab ramps and WCAG/APCA readability badges, with DTCG tokens and CSV export."
+          "name": "Color Picker",
+          "description": "A handy color picker for the SUSE brand palette — click any swatch to copy it."
         },
         "de": {
-          "name": "Palette Lab",
-          "description": "Grow a palette from one seed colour — harmony accents, perceptual OKLab ramps and WCAG/APCA readability badges, with DTCG tokens and CSV export."
+          "name": "Color Picker",
+          "description": "A handy color picker for the SUSE brand palette — click any swatch to copy it."
         },
         "es": {
-          "name": "Palette Lab",
-          "description": "Grow a palette from one seed colour — harmony accents, perceptual OKLab ramps and WCAG/APCA readability badges, with DTCG tokens and CSV export."
+          "name": "Color Picker",
+          "description": "A handy color picker for the SUSE brand palette — click any swatch to copy it."
         },
         "fr": {
-          "name": "Palette Lab",
-          "description": "Grow a palette from one seed colour — harmony accents, perceptual OKLab ramps and WCAG/APCA readability badges, with DTCG tokens and CSV export."
+          "name": "Color Picker",
+          "description": "A handy color picker for the SUSE brand palette — click any swatch to copy it."
         },
         "hi": {
-          "name": "Palette Lab",
-          "description": "Grow a palette from one seed colour — harmony accents, perceptual OKLab ramps and WCAG/APCA readability badges, with DTCG tokens and CSV export."
+          "name": "Color Picker",
+          "description": "A handy color picker for the SUSE brand palette — click any swatch to copy it."
         },
         "id": {
-          "name": "Palette Lab",
-          "description": "Grow a palette from one seed colour — harmony accents, perceptual OKLab ramps and WCAG/APCA readability badges, with DTCG tokens and CSV export."
+          "name": "Color Picker",
+          "description": "A handy color picker for the SUSE brand palette — click any swatch to copy it."
         },
         "it": {
-          "name": "Palette Lab",
-          "description": "Grow a palette from one seed colour — harmony accents, perceptual OKLab ramps and WCAG/APCA readability badges, with DTCG tokens and CSV export."
+          "name": "Color Picker",
+          "description": "A handy color picker for the SUSE brand palette — click any swatch to copy it."
         },
         "ja": {
-          "name": "Palette Lab",
-          "description": "Grow a palette from one seed colour — harmony accents, perceptual OKLab ramps and WCAG/APCA readability badges, with DTCG tokens and CSV export."
+          "name": "Color Picker",
+          "description": "A handy color picker for the SUSE brand palette — click any swatch to copy it."
         },
         "ko": {
-          "name": "Palette Lab",
-          "description": "Grow a palette from one seed colour — harmony accents, perceptual OKLab ramps and WCAG/APCA readability badges, with DTCG tokens and CSV export."
+          "name": "Color Picker",
+          "description": "A handy color picker for the SUSE brand palette — click any swatch to copy it."
         },
         "ms": {
-          "name": "Palette Lab",
-          "description": "Grow a palette from one seed colour — harmony accents, perceptual OKLab ramps and WCAG/APCA readability badges, with DTCG tokens and CSV export."
+          "name": "Color Picker",
+          "description": "A handy color picker for the SUSE brand palette — click any swatch to copy it."
         },
         "nl": {
-          "name": "Palette Lab",
-          "description": "Grow a palette from one seed colour — harmony accents, perceptual OKLab ramps and WCAG/APCA readability badges, with DTCG tokens and CSV export."
+          "name": "Color Picker",
+          "description": "A handy color picker for the SUSE brand palette — click any swatch to copy it."
         },
         "no": {
-          "name": "Palette Lab",
-          "description": "Grow a palette from one seed colour — harmony accents, perceptual OKLab ramps and WCAG/APCA readability badges, with DTCG tokens and CSV export."
+          "name": "Color Picker",
+          "description": "A handy color picker for the SUSE brand palette — click any swatch to copy it."
         },
         "pl": {
-          "name": "Palette Lab",
-          "description": "Grow a palette from one seed colour — harmony accents, perceptual OKLab ramps and WCAG/APCA readability badges, with DTCG tokens and CSV export."
+          "name": "Color Picker",
+          "description": "A handy color picker for the SUSE brand palette — click any swatch to copy it."
         },
         "pt": {
-          "name": "Palette Lab",
-          "description": "Grow a palette from one seed colour — harmony accents, perceptual OKLab ramps and WCAG/APCA readability badges, with DTCG tokens and CSV export."
+          "name": "Color Picker",
+          "description": "A handy color picker for the SUSE brand palette — click any swatch to copy it."
         },
         "ro": {
-          "name": "Palette Lab",
-          "description": "Grow a palette from one seed colour — harmony accents, perceptual OKLab ramps and WCAG/APCA readability badges, with DTCG tokens and CSV export."
+          "name": "Color Picker",
+          "description": "A handy color picker for the SUSE brand palette — click any swatch to copy it."
         },
         "sv": {
-          "name": "Palette Lab",
-          "description": "Grow a palette from one seed colour — harmony accents, perceptual OKLab ramps and WCAG/APCA readability badges, with DTCG tokens and CSV export."
+          "name": "Color Picker",
+          "description": "A handy color picker for the SUSE brand palette — click any swatch to copy it."
         },
         "tl": {
-          "name": "Palette Lab",
-          "description": "Grow a palette from one seed colour — harmony accents, perceptual OKLab ramps and WCAG/APCA readability badges, with DTCG tokens and CSV export."
+          "name": "Color Picker",
+          "description": "A handy color picker for the SUSE brand palette — click any swatch to copy it."
         },
         "tr": {
-          "name": "Palette Lab",
-          "description": "Grow a palette from one seed colour — harmony accents, perceptual OKLab ramps and WCAG/APCA readability badges, with DTCG tokens and CSV export."
+          "name": "Color Picker",
+          "description": "A handy color picker for the SUSE brand palette — click any swatch to copy it."
         },
         "uk": {
-          "name": "Palette Lab",
-          "description": "Grow a palette from one seed colour — harmony accents, perceptual OKLab ramps and WCAG/APCA readability badges, with DTCG tokens and CSV export."
+          "name": "Color Picker",
+          "description": "A handy color picker for the SUSE brand palette — click any swatch to copy it."
         },
         "ur": {
-          "name": "Palette Lab",
-          "description": "Grow a palette from one seed colour — harmony accents, perceptual OKLab ramps and WCAG/APCA readability badges, with DTCG tokens and CSV export."
+          "name": "Color Picker",
+          "description": "A handy color picker for the SUSE brand palette — click any swatch to copy it."
         },
         "vi": {
-          "name": "Palette Lab",
-          "description": "Grow a palette from one seed colour — harmony accents, perceptual OKLab ramps and WCAG/APCA readability badges, with DTCG tokens and CSV export."
+          "name": "Color Picker",
+          "description": "A handy color picker for the SUSE brand palette — click any swatch to copy it."
         },
         "zh-hant": {
-          "name": "Palette Lab",
-          "description": "Grow a palette from one seed colour — harmony accents, perceptual OKLab ramps and WCAG/APCA readability badges, with DTCG tokens and CSV export."
+          "name": "Color Picker",
+          "description": "A handy color picker for the SUSE brand palette — click any swatch to copy it."
         },
         "zh": {
-          "name": "Palette Lab",
-          "description": "Grow a palette from one seed colour — harmony accents, perceptual OKLab ramps and WCAG/APCA readability badges, with DTCG tokens and CSV export."
+          "name": "Color Picker",
+          "description": "A handy color picker for the SUSE brand palette — click any swatch to copy it."
         }
       }
     },
@@ -2932,108 +2932,108 @@
       "paged": true,
       "i18n": {
         "ar": {
-          "name": "استوديو العروض",
-          "description": "أنشئ عرض PowerPoint أصليا وقابلا للتعديل - نص حقيقي ونقاط وجداول وسمة علامة تجارية - من منشئ شرائح بسيط، أو Markdown ملصق، أو مواصفات JSON. تأتي المخططات والرسوم البيانية من أدوات Lolly الأخرى لديك. يصدر إلى .pptx (قابل للتعديل)، بالإضافة إلى PDF وPNG."
+          "name": "Markdown Slides",
+          "description": "Turn Markdown or a JSON spec into a native, editable PowerPoint deck — real text, bullets, tables and brand theme — in seconds. The fast text-first path to a deck; reach for the Design canvas when you want to lay slides out by hand or animate them. Charts and diagrams come from your other Lolly tools. Exports .pptx (editable), plus PDF and PNG."
         },
         "bg": {
-          "name": "Студио за презентации",
-          "description": "Създай нативна, редактируема презентация за PowerPoint - истински текст, точки, таблици и брандирана тема - от прост конструктор на слайдове, поставен Markdown или JSON спецификация. Графиките и диаграмите идват от другите ти инструменти на Lolly. Експортира .pptx (редактируем), плюс PDF и PNG."
+          "name": "Markdown Slides",
+          "description": "Turn Markdown or a JSON spec into a native, editable PowerPoint deck — real text, bullets, tables and brand theme — in seconds. The fast text-first path to a deck; reach for the Design canvas when you want to lay slides out by hand or animate them. Charts and diagrams come from your other Lolly tools. Exports .pptx (editable), plus PDF and PNG."
         },
         "bn": {
-          "name": "ডেক স্টুডিও",
-          "description": "একটি সাধারণ স্লাইড বিল্ডার, পেস্ট করা Markdown, বা একটি JSON স্পেক থেকে নেটিভ, এডিটেবল PowerPoint ডেক তৈরি করুন - আসল টেক্সট, বুলেট, টেবিল ও ব্র্যান্ড থিমসহ। চার্ট ও ডায়াগ্রাম আসে আপনার অন্যান্য Lolly টুল থেকে। .pptx (এডিটেবল), সাথে PDF ও PNG এক্সপোর্ট করে।"
+          "name": "Markdown Slides",
+          "description": "Turn Markdown or a JSON spec into a native, editable PowerPoint deck — real text, bullets, tables and brand theme — in seconds. The fast text-first path to a deck; reach for the Design canvas when you want to lay slides out by hand or animate them. Charts and diagrams come from your other Lolly tools. Exports .pptx (editable), plus PDF and PNG."
         },
         "cs": {
-          "name": "Studio prezentací",
-          "description": "Vytvoř nativní, editovatelnou prezentaci PowerPoint - skutečný text, odrážky, tabulky a motiv značky - pomocí jednoduchého tvůrce snímků, vloženého Markdownu nebo specifikace JSON. Grafy a diagramy pocházejí z dalších nástrojů Lolly. Export do .pptx (editovatelné), plus PDF a PNG."
+          "name": "Markdown Slides",
+          "description": "Turn Markdown or a JSON spec into a native, editable PowerPoint deck — real text, bullets, tables and brand theme — in seconds. The fast text-first path to a deck; reach for the Design canvas when you want to lay slides out by hand or animate them. Charts and diagrams come from your other Lolly tools. Exports .pptx (editable), plus PDF and PNG."
         },
         "de": {
-          "name": "Deck Studio",
-          "description": "Erstellen Sie eine native, bearbeitbare PowerPoint-Präsentation - echter Text, Aufzählungen, Tabellen und Markendesign - mit einem einfachen Folien-Builder, eingefügtem Markdown oder einer JSON-Spezifikation. Diagramme und Grafiken stammen aus Ihren anderen Lolly-Tools. Exportiert .pptx (bearbeitbar), sowie PDF und PNG."
+          "name": "Markdown Slides",
+          "description": "Turn Markdown or a JSON spec into a native, editable PowerPoint deck — real text, bullets, tables and brand theme — in seconds. The fast text-first path to a deck; reach for the Design canvas when you want to lay slides out by hand or animate them. Charts and diagrams come from your other Lolly tools. Exports .pptx (editable), plus PDF and PNG."
         },
         "es": {
-          "name": "Estudio de presentaciones",
-          "description": "Crea una presentación PowerPoint nativa y editable - texto real, viñetas, tablas y tema de marca - desde un creador de diapositivas sencillo, Markdown pegado o una especificación JSON. Los gráficos y diagramas vienen de tus otras herramientas de Lolly. Exporta a .pptx (editable), además de PDF y PNG."
+          "name": "Markdown Slides",
+          "description": "Turn Markdown or a JSON spec into a native, editable PowerPoint deck — real text, bullets, tables and brand theme — in seconds. The fast text-first path to a deck; reach for the Design canvas when you want to lay slides out by hand or animate them. Charts and diagrams come from your other Lolly tools. Exports .pptx (editable), plus PDF and PNG."
         },
         "fr": {
-          "name": "Deck Studio",
-          "description": "Crée un diaporama PowerPoint natif et modifiable - texte réel, puces, tableaux et thème de marque - à partir d'un simple générateur de diapositives, de Markdown collé ou d'une spec JSON. Les graphiques et diagrammes proviennent de tes autres outils Lolly. Exporte en .pptx (modifiable), plus PDF et PNG."
+          "name": "Markdown Slides",
+          "description": "Turn Markdown or a JSON spec into a native, editable PowerPoint deck — real text, bullets, tables and brand theme — in seconds. The fast text-first path to a deck; reach for the Design canvas when you want to lay slides out by hand or animate them. Charts and diagrams come from your other Lolly tools. Exports .pptx (editable), plus PDF and PNG."
         },
         "hi": {
-          "name": "डेक स्टूडियो",
-          "description": "एक नेटिव, एडिटेबल PowerPoint डेक बनाएं - असली टेक्स्ट, बुलेट्स, टेबल्स और ब्रांड थीम - एक सिंपल स्लाइड बिल्डर, पेस्ट किए गए Markdown, या JSON स्पेक से। चार्ट और डायग्राम आपके अन्य Lolly टूल्स से आते हैं। .pptx (एडिटेबल), साथ ही PDF और PNG एक्सपोर्ट करता है।"
+          "name": "Markdown Slides",
+          "description": "Turn Markdown or a JSON spec into a native, editable PowerPoint deck — real text, bullets, tables and brand theme — in seconds. The fast text-first path to a deck; reach for the Design canvas when you want to lay slides out by hand or animate them. Charts and diagrams come from your other Lolly tools. Exports .pptx (editable), plus PDF and PNG."
         },
         "id": {
-          "name": "Studio Presentasi",
-          "description": "Buat deck PowerPoint native yang bisa diedit - teks asli, bullet, tabel, dan tema brand - dari pembuat slide sederhana, Markdown yang ditempel, atau spesifikasi JSON. Chart dan diagram berasal dari tool Lolly lainnya. Mengekspor .pptx (bisa diedit), plus PDF dan PNG."
+          "name": "Markdown Slides",
+          "description": "Turn Markdown or a JSON spec into a native, editable PowerPoint deck — real text, bullets, tables and brand theme — in seconds. The fast text-first path to a deck; reach for the Design canvas when you want to lay slides out by hand or animate them. Charts and diagrams come from your other Lolly tools. Exports .pptx (editable), plus PDF and PNG."
         },
         "it": {
-          "name": "Studio deck",
-          "description": "Crea un deck PowerPoint nativo e modificabile - testo reale, elenchi puntati, tabelle e tema del brand - da un semplice generatore di slide, Markdown incollato o una specifica JSON. I grafici e i diagrammi provengono dai tuoi altri strumenti Lolly. Esporta .pptx (modificabile), oltre a PDF e PNG."
+          "name": "Markdown Slides",
+          "description": "Turn Markdown or a JSON spec into a native, editable PowerPoint deck — real text, bullets, tables and brand theme — in seconds. The fast text-first path to a deck; reach for the Design canvas when you want to lay slides out by hand or animate them. Charts and diagrams come from your other Lolly tools. Exports .pptx (editable), plus PDF and PNG."
         },
         "ja": {
-          "name": "デッキスタジオ",
-          "description": "ネイティブで編集可能なPowerPointデッキを作成します - 実際のテキスト、箇条書き、表、ブランドテーマ - を、シンプルなスライドビルダー、貼り付けたMarkdown、またはJSON仕様から生成できます。チャートや図表は他のLollyツールから取得します。.pptx（編集可能）に加え、PDFとPNGでもエクスポートできます。"
+          "name": "Markdown Slides",
+          "description": "Turn Markdown or a JSON spec into a native, editable PowerPoint deck — real text, bullets, tables and brand theme — in seconds. The fast text-first path to a deck; reach for the Design canvas when you want to lay slides out by hand or animate them. Charts and diagrams come from your other Lolly tools. Exports .pptx (editable), plus PDF and PNG."
         },
         "ko": {
-          "name": "덱 스튜디오",
-          "description": "네이티브 편집 가능한 PowerPoint 덱을 만드세요 - 실제 텍스트, 글머리 기호, 표, 브랜드 테마까지 - 간단한 슬라이드 빌더, 붙여넣은 Markdown, 또는 JSON 스펙으로요. 차트와 다이어그램은 다른 Lolly 도구에서 가져와요. .pptx(편집 가능)로 내보내고, PDF와 PNG도 함께 내보내요."
+          "name": "Markdown Slides",
+          "description": "Turn Markdown or a JSON spec into a native, editable PowerPoint deck — real text, bullets, tables and brand theme — in seconds. The fast text-first path to a deck; reach for the Design canvas when you want to lay slides out by hand or animate them. Charts and diagrams come from your other Lolly tools. Exports .pptx (editable), plus PDF and PNG."
         },
         "ms": {
-          "name": "Studio Dek",
-          "description": "Bina dek PowerPoint asli yang boleh disunting - teks sebenar, bulet, jadual dan tema jenama - daripada pembina slaid mudah, Markdown yang ditampal, atau spesifikasi JSON. Carta dan gambar rajah datang daripada alat Lolly anda yang lain. Mengeksport .pptx (boleh disunting), serta PDF dan PNG."
+          "name": "Markdown Slides",
+          "description": "Turn Markdown or a JSON spec into a native, editable PowerPoint deck — real text, bullets, tables and brand theme — in seconds. The fast text-first path to a deck; reach for the Design canvas when you want to lay slides out by hand or animate them. Charts and diagrams come from your other Lolly tools. Exports .pptx (editable), plus PDF and PNG."
         },
         "nl": {
-          "name": "Deck Studio",
-          "description": "Bouw een native, bewerkbare PowerPoint-deck - echte tekst, opsommingstekens, tabellen en merkthema - vanuit een eenvoudige diabouwer, geplakte Markdown of een JSON-spec. Grafieken en diagrammen komen van je andere Lolly-tools. Exporteert .pptx (bewerkbaar), plus PDF en PNG."
+          "name": "Markdown Slides",
+          "description": "Turn Markdown or a JSON spec into a native, editable PowerPoint deck — real text, bullets, tables and brand theme — in seconds. The fast text-first path to a deck; reach for the Design canvas when you want to lay slides out by hand or animate them. Charts and diagrams come from your other Lolly tools. Exports .pptx (editable), plus PDF and PNG."
         },
         "no": {
-          "name": "Presentasjonsstudio",
-          "description": "Bygg en fullverdig, redigerbar PowerPoint-presentasjon - ekte tekst, punktlister, tabeller og merkevaretema - fra en enkel lysbildebygger, limt inn Markdown, eller en JSON-spesifikasjon. Diagrammer og figurer kommer fra dine andre Lolly-verktøy. Eksporterer .pptx (redigerbar), pluss PDF og PNG."
+          "name": "Markdown Slides",
+          "description": "Turn Markdown or a JSON spec into a native, editable PowerPoint deck — real text, bullets, tables and brand theme — in seconds. The fast text-first path to a deck; reach for the Design canvas when you want to lay slides out by hand or animate them. Charts and diagrams come from your other Lolly tools. Exports .pptx (editable), plus PDF and PNG."
         },
         "pl": {
-          "name": "Studio prezentacji",
-          "description": "Twórz natywną, edytowalną prezentację PowerPoint - prawdziwy tekst, punktory, tabele i motyw marki - za pomocą prostego kreatora slajdów, wklejonego Markdown lub specyfikacji JSON. Wykresy i diagramy pochodzą z innych narzędzi Lolly. Eksportuje .pptx (edytowalny), a także PDF i PNG."
+          "name": "Markdown Slides",
+          "description": "Turn Markdown or a JSON spec into a native, editable PowerPoint deck — real text, bullets, tables and brand theme — in seconds. The fast text-first path to a deck; reach for the Design canvas when you want to lay slides out by hand or animate them. Charts and diagrams come from your other Lolly tools. Exports .pptx (editable), plus PDF and PNG."
         },
         "pt": {
-          "name": "Estúdio de Deck",
-          "description": "Crie um deck nativo e editável do PowerPoint - com texto real, marcadores, tabelas e tema da marca - a partir de um criador de slides simples, Markdown colado ou uma especificação JSON. Gráficos e diagramas vêm das suas outras ferramentas da Lolly. Exporta em .pptx (editável), além de PDF e PNG."
+          "name": "Markdown Slides",
+          "description": "Turn Markdown or a JSON spec into a native, editable PowerPoint deck — real text, bullets, tables and brand theme — in seconds. The fast text-first path to a deck; reach for the Design canvas when you want to lay slides out by hand or animate them. Charts and diagrams come from your other Lolly tools. Exports .pptx (editable), plus PDF and PNG."
         },
         "ro": {
-          "name": "Studio prezentări",
-          "description": "Creează o prezentare PowerPoint nativă, editabilă - text real, buline, tabele și tema brandului - dintr-un generator simplu de slide-uri, Markdown lipit sau o specificație JSON. Graficele și diagramele provin din celelalte instrumente Lolly. Exportă .pptx (editabil), plus PDF și PNG."
+          "name": "Markdown Slides",
+          "description": "Turn Markdown or a JSON spec into a native, editable PowerPoint deck — real text, bullets, tables and brand theme — in seconds. The fast text-first path to a deck; reach for the Design canvas when you want to lay slides out by hand or animate them. Charts and diagrams come from your other Lolly tools. Exports .pptx (editable), plus PDF and PNG."
         },
         "sv": {
-          "name": "Bildspelsstudio",
-          "description": "Bygg ett nativt, redigerbart PowerPoint-bildspel - riktig text, punktlistor, tabeller och varumärkestema - från en enkel bildbyggare, inklistrad Markdown eller en JSON-specifikation. Diagram kommer från dina andra Lolly-verktyg. Exporterar .pptx (redigerbar), samt PDF och PNG."
+          "name": "Markdown Slides",
+          "description": "Turn Markdown or a JSON spec into a native, editable PowerPoint deck — real text, bullets, tables and brand theme — in seconds. The fast text-first path to a deck; reach for the Design canvas when you want to lay slides out by hand or animate them. Charts and diagrams come from your other Lolly tools. Exports .pptx (editable), plus PDF and PNG."
         },
         "tl": {
-          "name": "Deck Studio",
-          "description": "Gumawa ng native, nae-edit na PowerPoint deck - tunay na text, bullets, tables, at brand theme - mula sa simpleng slide builder, na-paste na Markdown, o JSON spec. Ang mga chart at diagram ay galing sa iba mong Lolly tools. Nag-e-export ng .pptx (nae-edit), kasama ang PDF at PNG."
+          "name": "Markdown Slides",
+          "description": "Turn Markdown or a JSON spec into a native, editable PowerPoint deck — real text, bullets, tables and brand theme — in seconds. The fast text-first path to a deck; reach for the Design canvas when you want to lay slides out by hand or animate them. Charts and diagrams come from your other Lolly tools. Exports .pptx (editable), plus PDF and PNG."
         },
         "tr": {
-          "name": "Sunum Stüdyosu",
-          "description": "Basit bir slayt oluşturucudan, yapıştırılan Markdown'dan veya bir JSON spesifikasyonundan gerçek metin, madde işaretleri, tablolar ve marka temasıyla yerel, düzenlenebilir bir PowerPoint sunumu oluştur. Grafikler ve diyagramlar diğer Lolly araçlarından gelir. .pptx (düzenlenebilir), ayrıca PDF ve PNG olarak dışa aktarır."
+          "name": "Markdown Slides",
+          "description": "Turn Markdown or a JSON spec into a native, editable PowerPoint deck — real text, bullets, tables and brand theme — in seconds. The fast text-first path to a deck; reach for the Design canvas when you want to lay slides out by hand or animate them. Charts and diagrams come from your other Lolly tools. Exports .pptx (editable), plus PDF and PNG."
         },
         "uk": {
-          "name": "Студія презентацій",
-          "description": "Створіть нативну, редаговану колоду PowerPoint - справжній текст, списки, таблиці й тему бренду - за допомогою простого конструктора слайдів, вставленого Markdown або специфікації JSON. Діаграми та графіки беруться з ваших інших інструментів Lolly. Експортує .pptx (редаговані), а також PDF і PNG."
+          "name": "Markdown Slides",
+          "description": "Turn Markdown or a JSON spec into a native, editable PowerPoint deck — real text, bullets, tables and brand theme — in seconds. The fast text-first path to a deck; reach for the Design canvas when you want to lay slides out by hand or animate them. Charts and diagrams come from your other Lolly tools. Exports .pptx (editable), plus PDF and PNG."
         },
         "ur": {
-          "name": "ڈیک اسٹوڈیو",
-          "description": "ایک نیٹو، قابل ترمیم PowerPoint ڈیک بنائیں - اصل متن، بلٹس، جداول اور برانڈ تھیم - ایک سادہ سلائیڈ بلڈر، پیسٹ کیے گئے Markdown، یا JSON اسپیک سے۔ چارٹس اور ڈایاگرامز آپ کے دوسرے Lolly ٹولز سے آتے ہیں۔ .pptx (قابل ترمیم) کے ساتھ ساتھ PDF اور PNG بھی ایکسپورٹ کرتا ہے۔"
+          "name": "Markdown Slides",
+          "description": "Turn Markdown or a JSON spec into a native, editable PowerPoint deck — real text, bullets, tables and brand theme — in seconds. The fast text-first path to a deck; reach for the Design canvas when you want to lay slides out by hand or animate them. Charts and diagrams come from your other Lolly tools. Exports .pptx (editable), plus PDF and PNG."
         },
         "vi": {
-          "name": "Deck Studio",
-          "description": "Tạo bộ slide PowerPoint gốc, có thể chỉnh sửa - văn bản thật, gạch đầu dòng, bảng và theme thương hiệu - từ trình tạo slide đơn giản, Markdown dán vào, hoặc JSON spec. Biểu đồ và sơ đồ lấy từ các công cụ Lolly khác. Xuất .pptx (có thể chỉnh sửa), cùng PDF và PNG."
+          "name": "Markdown Slides",
+          "description": "Turn Markdown or a JSON spec into a native, editable PowerPoint deck — real text, bullets, tables and brand theme — in seconds. The fast text-first path to a deck; reach for the Design canvas when you want to lay slides out by hand or animate them. Charts and diagrams come from your other Lolly tools. Exports .pptx (editable), plus PDF and PNG."
         },
         "zh-hant": {
-          "name": "簡報工作室",
-          "description": "從簡易投影片建立工具、貼上的 Markdown 或 JSON 規格,建立原生、可編輯的 PowerPoint 投影片集 - 真實文字、項目符號、表格與品牌主題。圖表與圖示來自您其他的 Lolly 工具。匯出為 .pptx(可編輯),另加 PDF 與 PNG。"
+          "name": "Markdown Slides",
+          "description": "Turn Markdown or a JSON spec into a native, editable PowerPoint deck — real text, bullets, tables and brand theme — in seconds. The fast text-first path to a deck; reach for the Design canvas when you want to lay slides out by hand or animate them. Charts and diagrams come from your other Lolly tools. Exports .pptx (editable), plus PDF and PNG."
         },
         "zh": {
-          "name": "演示文稿工作室",
-          "description": "从简单的幻灯片构建器、粘贴的 Markdown 或 JSON 规范,构建原生可编辑的 PowerPoint 演示文稿 - 真正的文本、项目符号、表格和品牌主题。图表和示意图来自你的其他 Lolly 工具。导出 .pptx(可编辑),以及 PDF 和 PNG。"
+          "name": "Markdown Slides",
+          "description": "Turn Markdown or a JSON spec into a native, editable PowerPoint deck — real text, bullets, tables and brand theme — in seconds. The fast text-first path to a deck; reach for the Design canvas when you want to lay slides out by hand or animate them. Charts and diagrams come from your other Lolly tools. Exports .pptx (editable), plus PDF and PNG."
         }
       }
     },
@@ -4889,7 +4889,7 @@
       "id": "finish-preview",
       "name": "Finish Preview",
       "description": "Preview foil, spot UV, emboss and soft-touch finishes on your artwork — then export the printer-ready spot plate. The on-screen sheen is presentation only; the plate is the real deliverable your print house needs.",
-      "version": "1.0.0",
+      "version": "1.1.0",
       "status": "official",
       "category": "designer",
       "tags": [
@@ -5106,7 +5106,7 @@
       "id": "bitmap-studio",
       "name": "Bitmap Studio",
       "description": "A pro photo-grading darkroom: film looks, third-party .cube LUTs, brand-seeded colour treatments and finishing texture — then bake your look as a LUT any editor can use.",
-      "version": "1.0.0",
+      "version": "1.1.0",
       "status": "community",
       "category": "designer",
       "tags": [
@@ -5609,7 +5609,7 @@
       "id": "run-web-code",
       "name": "Run Web Code",
       "description": "Paste HTML, CSS, JS — or a JSX/TypeScript component — and watch it run in a private, offline sandbox. Perfect for previewing code from an AI assistant.",
-      "version": "1.3.0",
+      "version": "1.4.0",
       "status": "official",
       "category": "utility",
       "tags": [
@@ -5645,13 +5645,119 @@
       "height": 800,
       "exportable": true,
       "icon": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M9.5 7 4.5 12l5 5\"/><path d=\"M14.5 7l5 5-5 5\"/><path d=\"M13.6 5.5 10.4 18.5\"/></svg>",
-      "preview": "/catalog/previews/run-web-code.svg"
+      "preview": "/catalog/previews/run-web-code.svg",
+      "i18n": {
+        "ar": {
+          "name": "Run Web Code",
+          "description": "Paste HTML, CSS, JS — or a JSX/TypeScript component — and watch it run in a private, offline sandbox. Perfect for previewing code from an AI assistant."
+        },
+        "bg": {
+          "name": "Run Web Code",
+          "description": "Paste HTML, CSS, JS — or a JSX/TypeScript component — and watch it run in a private, offline sandbox. Perfect for previewing code from an AI assistant."
+        },
+        "bn": {
+          "name": "Run Web Code",
+          "description": "Paste HTML, CSS, JS — or a JSX/TypeScript component — and watch it run in a private, offline sandbox. Perfect for previewing code from an AI assistant."
+        },
+        "cs": {
+          "name": "Run Web Code",
+          "description": "Paste HTML, CSS, JS — or a JSX/TypeScript component — and watch it run in a private, offline sandbox. Perfect for previewing code from an AI assistant."
+        },
+        "de": {
+          "name": "Run Web Code",
+          "description": "Paste HTML, CSS, JS — or a JSX/TypeScript component — and watch it run in a private, offline sandbox. Perfect for previewing code from an AI assistant."
+        },
+        "es": {
+          "name": "Run Web Code",
+          "description": "Paste HTML, CSS, JS — or a JSX/TypeScript component — and watch it run in a private, offline sandbox. Perfect for previewing code from an AI assistant."
+        },
+        "fr": {
+          "name": "Run Web Code",
+          "description": "Paste HTML, CSS, JS — or a JSX/TypeScript component — and watch it run in a private, offline sandbox. Perfect for previewing code from an AI assistant."
+        },
+        "hi": {
+          "name": "Run Web Code",
+          "description": "Paste HTML, CSS, JS — or a JSX/TypeScript component — and watch it run in a private, offline sandbox. Perfect for previewing code from an AI assistant."
+        },
+        "id": {
+          "name": "Run Web Code",
+          "description": "Paste HTML, CSS, JS — or a JSX/TypeScript component — and watch it run in a private, offline sandbox. Perfect for previewing code from an AI assistant."
+        },
+        "it": {
+          "name": "Run Web Code",
+          "description": "Paste HTML, CSS, JS — or a JSX/TypeScript component — and watch it run in a private, offline sandbox. Perfect for previewing code from an AI assistant."
+        },
+        "ja": {
+          "name": "Run Web Code",
+          "description": "Paste HTML, CSS, JS — or a JSX/TypeScript component — and watch it run in a private, offline sandbox. Perfect for previewing code from an AI assistant."
+        },
+        "ko": {
+          "name": "Run Web Code",
+          "description": "Paste HTML, CSS, JS — or a JSX/TypeScript component — and watch it run in a private, offline sandbox. Perfect for previewing code from an AI assistant."
+        },
+        "ms": {
+          "name": "Run Web Code",
+          "description": "Paste HTML, CSS, JS — or a JSX/TypeScript component — and watch it run in a private, offline sandbox. Perfect for previewing code from an AI assistant."
+        },
+        "nl": {
+          "name": "Run Web Code",
+          "description": "Paste HTML, CSS, JS — or a JSX/TypeScript component — and watch it run in a private, offline sandbox. Perfect for previewing code from an AI assistant."
+        },
+        "no": {
+          "name": "Run Web Code",
+          "description": "Paste HTML, CSS, JS — or a JSX/TypeScript component — and watch it run in a private, offline sandbox. Perfect for previewing code from an AI assistant."
+        },
+        "pl": {
+          "name": "Run Web Code",
+          "description": "Paste HTML, CSS, JS — or a JSX/TypeScript component — and watch it run in a private, offline sandbox. Perfect for previewing code from an AI assistant."
+        },
+        "pt": {
+          "name": "Run Web Code",
+          "description": "Paste HTML, CSS, JS — or a JSX/TypeScript component — and watch it run in a private, offline sandbox. Perfect for previewing code from an AI assistant."
+        },
+        "ro": {
+          "name": "Run Web Code",
+          "description": "Paste HTML, CSS, JS — or a JSX/TypeScript component — and watch it run in a private, offline sandbox. Perfect for previewing code from an AI assistant."
+        },
+        "sv": {
+          "name": "Run Web Code",
+          "description": "Paste HTML, CSS, JS — or a JSX/TypeScript component — and watch it run in a private, offline sandbox. Perfect for previewing code from an AI assistant."
+        },
+        "tl": {
+          "name": "Run Web Code",
+          "description": "Paste HTML, CSS, JS — or a JSX/TypeScript component — and watch it run in a private, offline sandbox. Perfect for previewing code from an AI assistant."
+        },
+        "tr": {
+          "name": "Run Web Code",
+          "description": "Paste HTML, CSS, JS — or a JSX/TypeScript component — and watch it run in a private, offline sandbox. Perfect for previewing code from an AI assistant."
+        },
+        "uk": {
+          "name": "Run Web Code",
+          "description": "Paste HTML, CSS, JS — or a JSX/TypeScript component — and watch it run in a private, offline sandbox. Perfect for previewing code from an AI assistant."
+        },
+        "ur": {
+          "name": "Run Web Code",
+          "description": "Paste HTML, CSS, JS — or a JSX/TypeScript component — and watch it run in a private, offline sandbox. Perfect for previewing code from an AI assistant."
+        },
+        "vi": {
+          "name": "Run Web Code",
+          "description": "Paste HTML, CSS, JS — or a JSX/TypeScript component — and watch it run in a private, offline sandbox. Perfect for previewing code from an AI assistant."
+        },
+        "zh-hant": {
+          "name": "Run Web Code",
+          "description": "Paste HTML, CSS, JS — or a JSX/TypeScript component — and watch it run in a private, offline sandbox. Perfect for previewing code from an AI assistant."
+        },
+        "zh": {
+          "name": "Run Web Code",
+          "description": "Paste HTML, CSS, JS — or a JSX/TypeScript component — and watch it run in a private, offline sandbox. Perfect for previewing code from an AI assistant."
+        }
+      }
     },
     {
       "id": "filter",
       "name": "Filter",
       "description": "One tool for photo effects: pick halftone, scanline, posterize or voronoi (vector) or duotone, pixel-stretch or print imperfections (raster). Brand overlays, live camera, and exports to as many formats as each effect supports.",
-      "version": "1.0.0",
+      "version": "1.2.0",
       "status": "official",
       "category": "designer",
       "tags": [
@@ -5730,7 +5836,139 @@
             "effect": "imperfections"
           }
         }
-      ]
+      ],
+      "i18n": {
+        "ar": {
+          "name": "الفلتر",
+          "description": "One tool for photo effects: pick halftone, scanline, posterize or voronoi (vector) or duotone, pixel-stretch or print imperfections (raster). Brand overlays, live camera, and exports to as many formats as each effect supports.",
+          "blurb": "Seven photo effects, vector or raster, in one tool"
+        },
+        "bg": {
+          "name": "Филтър",
+          "description": "One tool for photo effects: pick halftone, scanline, posterize or voronoi (vector) or duotone, pixel-stretch or print imperfections (raster). Brand overlays, live camera, and exports to as many formats as each effect supports.",
+          "blurb": "Seven photo effects, vector or raster, in one tool"
+        },
+        "bn": {
+          "name": "ফিল্টার",
+          "description": "One tool for photo effects: pick halftone, scanline, posterize or voronoi (vector) or duotone, pixel-stretch or print imperfections (raster). Brand overlays, live camera, and exports to as many formats as each effect supports.",
+          "blurb": "Seven photo effects, vector or raster, in one tool"
+        },
+        "cs": {
+          "name": "Filtr",
+          "description": "One tool for photo effects: pick halftone, scanline, posterize or voronoi (vector) or duotone, pixel-stretch or print imperfections (raster). Brand overlays, live camera, and exports to as many formats as each effect supports.",
+          "blurb": "Seven photo effects, vector or raster, in one tool"
+        },
+        "de": {
+          "name": "Filter",
+          "description": "One tool for photo effects: pick halftone, scanline, posterize or voronoi (vector) or duotone, pixel-stretch or print imperfections (raster). Brand overlays, live camera, and exports to as many formats as each effect supports.",
+          "blurb": "Seven photo effects, vector or raster, in one tool"
+        },
+        "es": {
+          "name": "Filtro",
+          "description": "One tool for photo effects: pick halftone, scanline, posterize or voronoi (vector) or duotone, pixel-stretch or print imperfections (raster). Brand overlays, live camera, and exports to as many formats as each effect supports.",
+          "blurb": "Seven photo effects, vector or raster, in one tool"
+        },
+        "fr": {
+          "name": "Filtre",
+          "description": "One tool for photo effects: pick halftone, scanline, posterize or voronoi (vector) or duotone, pixel-stretch or print imperfections (raster). Brand overlays, live camera, and exports to as many formats as each effect supports.",
+          "blurb": "Seven photo effects, vector or raster, in one tool"
+        },
+        "hi": {
+          "name": "फ़िल्टर",
+          "description": "One tool for photo effects: pick halftone, scanline, posterize or voronoi (vector) or duotone, pixel-stretch or print imperfections (raster). Brand overlays, live camera, and exports to as many formats as each effect supports.",
+          "blurb": "Seven photo effects, vector or raster, in one tool"
+        },
+        "id": {
+          "name": "Filter",
+          "description": "One tool for photo effects: pick halftone, scanline, posterize or voronoi (vector) or duotone, pixel-stretch or print imperfections (raster). Brand overlays, live camera, and exports to as many formats as each effect supports.",
+          "blurb": "Seven photo effects, vector or raster, in one tool"
+        },
+        "it": {
+          "name": "Filtro",
+          "description": "One tool for photo effects: pick halftone, scanline, posterize or voronoi (vector) or duotone, pixel-stretch or print imperfections (raster). Brand overlays, live camera, and exports to as many formats as each effect supports.",
+          "blurb": "Seven photo effects, vector or raster, in one tool"
+        },
+        "ja": {
+          "name": "フィルター",
+          "description": "One tool for photo effects: pick halftone, scanline, posterize or voronoi (vector) or duotone, pixel-stretch or print imperfections (raster). Brand overlays, live camera, and exports to as many formats as each effect supports.",
+          "blurb": "Seven photo effects, vector or raster, in one tool"
+        },
+        "ko": {
+          "name": "필터",
+          "description": "One tool for photo effects: pick halftone, scanline, posterize or voronoi (vector) or duotone, pixel-stretch or print imperfections (raster). Brand overlays, live camera, and exports to as many formats as each effect supports.",
+          "blurb": "Seven photo effects, vector or raster, in one tool"
+        },
+        "ms": {
+          "name": "Penapis",
+          "description": "One tool for photo effects: pick halftone, scanline, posterize or voronoi (vector) or duotone, pixel-stretch or print imperfections (raster). Brand overlays, live camera, and exports to as many formats as each effect supports.",
+          "blurb": "Seven photo effects, vector or raster, in one tool"
+        },
+        "nl": {
+          "name": "Filter",
+          "description": "One tool for photo effects: pick halftone, scanline, posterize or voronoi (vector) or duotone, pixel-stretch or print imperfections (raster). Brand overlays, live camera, and exports to as many formats as each effect supports.",
+          "blurb": "Seven photo effects, vector or raster, in one tool"
+        },
+        "no": {
+          "name": "Filter",
+          "description": "One tool for photo effects: pick halftone, scanline, posterize or voronoi (vector) or duotone, pixel-stretch or print imperfections (raster). Brand overlays, live camera, and exports to as many formats as each effect supports.",
+          "blurb": "Seven photo effects, vector or raster, in one tool"
+        },
+        "pl": {
+          "name": "Filtr",
+          "description": "One tool for photo effects: pick halftone, scanline, posterize or voronoi (vector) or duotone, pixel-stretch or print imperfections (raster). Brand overlays, live camera, and exports to as many formats as each effect supports.",
+          "blurb": "Seven photo effects, vector or raster, in one tool"
+        },
+        "pt": {
+          "name": "Filtro",
+          "description": "One tool for photo effects: pick halftone, scanline, posterize or voronoi (vector) or duotone, pixel-stretch or print imperfections (raster). Brand overlays, live camera, and exports to as many formats as each effect supports.",
+          "blurb": "Seven photo effects, vector or raster, in one tool"
+        },
+        "ro": {
+          "name": "Filtru",
+          "description": "One tool for photo effects: pick halftone, scanline, posterize or voronoi (vector) or duotone, pixel-stretch or print imperfections (raster). Brand overlays, live camera, and exports to as many formats as each effect supports.",
+          "blurb": "Seven photo effects, vector or raster, in one tool"
+        },
+        "sv": {
+          "name": "Filter",
+          "description": "One tool for photo effects: pick halftone, scanline, posterize or voronoi (vector) or duotone, pixel-stretch or print imperfections (raster). Brand overlays, live camera, and exports to as many formats as each effect supports.",
+          "blurb": "Seven photo effects, vector or raster, in one tool"
+        },
+        "tl": {
+          "name": "Filter",
+          "description": "One tool for photo effects: pick halftone, scanline, posterize or voronoi (vector) or duotone, pixel-stretch or print imperfections (raster). Brand overlays, live camera, and exports to as many formats as each effect supports.",
+          "blurb": "Seven photo effects, vector or raster, in one tool"
+        },
+        "tr": {
+          "name": "Filter",
+          "description": "One tool for photo effects: pick halftone, scanline, posterize or voronoi (vector) or duotone, pixel-stretch or print imperfections (raster). Brand overlays, live camera, and exports to as many formats as each effect supports.",
+          "blurb": "Seven photo effects, vector or raster, in one tool"
+        },
+        "uk": {
+          "name": "Фільтр",
+          "description": "One tool for photo effects: pick halftone, scanline, posterize or voronoi (vector) or duotone, pixel-stretch or print imperfections (raster). Brand overlays, live camera, and exports to as many formats as each effect supports.",
+          "blurb": "Seven photo effects, vector or raster, in one tool"
+        },
+        "ur": {
+          "name": "فلٹر",
+          "description": "One tool for photo effects: pick halftone, scanline, posterize or voronoi (vector) or duotone, pixel-stretch or print imperfections (raster). Brand overlays, live camera, and exports to as many formats as each effect supports.",
+          "blurb": "Seven photo effects, vector or raster, in one tool"
+        },
+        "vi": {
+          "name": "Bộ lọc",
+          "description": "One tool for photo effects: pick halftone, scanline, posterize or voronoi (vector) or duotone, pixel-stretch or print imperfections (raster). Brand overlays, live camera, and exports to as many formats as each effect supports.",
+          "blurb": "Seven photo effects, vector or raster, in one tool"
+        },
+        "zh-hant": {
+          "name": "濾鏡",
+          "description": "One tool for photo effects: pick halftone, scanline, posterize or voronoi (vector) or duotone, pixel-stretch or print imperfections (raster). Brand overlays, live camera, and exports to as many formats as each effect supports.",
+          "blurb": "Seven photo effects, vector or raster, in one tool"
+        },
+        "zh": {
+          "name": "滤镜",
+          "description": "One tool for photo effects: pick halftone, scanline, posterize or voronoi (vector) or duotone, pixel-stretch or print imperfections (raster). Brand overlays, live camera, and exports to as many formats as each effect supports.",
+          "blurb": "Seven photo effects, vector or raster, in one tool"
+        }
+      }
     }
   ]
 }

@@ -188,5 +188,15 @@
   "{family} now serves h1/h2 headings": "{family} ora serve i titoli h1/h2",
   "{family} now serves italic text": "{family} ora serve il testo in corsivo",
   "← All team projects": "← Tutti i progetti di team",
-  "Home": "Home"
+  "Home": "Home",
+  "Private collab": "Collaborazione privata",
+  "beta": "beta",
+  "Lets you invite one other device to co-edit a tool session directly - no account, no server, works offline on the same network. Anyone with the invite can join and edit until you close the session.": "Ti permette di invitare un altro dispositivo a modificare direttamente con te una sessione di uno strumento - senza account, senza server, funziona offline sulla stessa rete. Chiunque abbia l'invito può partecipare e modificare finché non chiudi la sessione.",
+  "Invite one other device to co-edit this session directly - no account, no server.": "Invita un altro dispositivo a modificare direttamente con te questa sessione - senza account, senza server.",
+  "Start a collab": "Avvia una collaborazione",
+  "Starting a collab": "Avvio di una collaborazione in corso",
+  "Work collab": "Collaborazione di lavoro",
+  "Invite others on this instance to co-edit this session, live.": "Invita altre persone su questa istanza a modificare questa sessione dal vivo.",
+  "Live now - 1 person editing": "Dal vivo ora - 1 persona sta modificando",
+  "Live now - {n} people editing": "Dal vivo ora - {n} persone stanno modificando"
 }

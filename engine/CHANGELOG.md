@@ -6,6 +6,39 @@ minors, never removed or signature-changed without a major bump.
 
 Moved verbatim from the comment block that used to live in `src/index.ts`.
 
+1.112.0 — additive: `runtime.applyPatch(values)` — an atomic multi-input apply with ONE
+render (plans/100 §5, wave 0.4). The batch counterpart to `setInput`, for a remote
+collaboration op that arrives as a set of values (and equally for `/multi` and URL
+hydration). Every value passes through EXACTLY `setInput`'s constraint path
+(`updateInput` → `constrain`), so a batch can never put anything in the model a keystroke
+couldn't; a key naming no declared input — version skew between peers — or one whose value
+the constraints reject is dropped ON ITS OWN, leaving the rest of the batch to apply, and
+nothing throws mid-apply (§11.11). `onInput` still runs per CHANGED id, sequentially in the
+object's insertion order, under the same `HOOK_BUDGET_MS` time-box and warn-don't-throw
+handling `setInput` uses — the hook contract is per-input and does not change meaning
+because the values arrived together. What coalesces is the RENDER: subscribers are notified
+exactly once, after the last hook, instead of once per key (a batch where nothing landed
+emits nothing at all). Each hook is told the value that actually entered the model
+(post-constrain, flattened), captured at apply time so an earlier hook's patch cannot change
+what a later id reports. `setInput` is untouched, and the live-capture retirement + nested
+`composes` re-resolution tails behave exactly as they do there (both paths share the one
+`setInputSeq` counter, so neither can clobber the other's newer values).
+
+Same minor, and what makes the sentence above mean something: `constrain` (`src/inputs.ts`)
+now covers the types it used to fall through — a `select` value must be one of the
+manifest's declared `options` (§11.11's "enum outside whitelist"; skipped for a
+`brandFonts` select, whose list the shell extends at runtime, and for a select that
+declares none, exactly as `preflight`'s `checkSelectValue` already carved out), a `boolean`
+must be a boolean (the URL/CLI spellings `1`/`0`/`true`/`false`/`''` still normalise,
+anything else is refused), `date`/`time`/`datetime-local`/`url` must be strings, and a
+`blocks` value must be an array. Rejection is the existing convention — the input keeps its
+prior value — so this tightens every write path (keystroke, canvas commit, `/multi`,
+`applyPatch`) identically. `asset` and `color` stay shape-blind on purpose: their
+legitimate values are object-shaped and completed later in the lifecycle (`resolveAssetRefs`
+/ `resolveTokenRefs`), so a caller taking values from an untrusted peer gates those two by
+declared type at its own boundary. Hook patches are unaffected — `mergePatch` is the tool's
+own trust boundary and never passed through `constrain`.
+
 1.111.0 — additive: endpoint binding, one routed-line renderer, real dash segments on the
 committed connector layer (plans/96 P3–P5). `engine/src/connectors.ts` grows the plan-96
 BOUND-path half of the unified primitive. `pathRouteStyle(kind, override, nodeCount)` is

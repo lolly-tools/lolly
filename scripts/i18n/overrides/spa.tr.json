@@ -186,5 +186,15 @@
   "{family} now serves h1/h2 headings": "{family} artık h1/h2 başlıklarında kullanılıyor",
   "{family} now serves italic text": "{family} artık italik metinde kullanılıyor",
   "← All team projects": "← Tüm ekip projeleri",
-  "Home": "Ana sayfa"
+  "Home": "Ana sayfa",
+  "Private collab": "Özel iş birliği",
+  "beta": "beta",
+  "Lets you invite one other device to co-edit a tool session directly - no account, no server, works offline on the same network. Anyone with the invite can join and edit until you close the session.": "Başka bir cihazı doğrudan seninle birlikte bir araç oturumunu düzenlemeye davet etmeni sağlar - hesap yok, sunucu yok, aynı ağda çevrimdışı da çalışır. Davete sahip olan herkes, sen oturumu kapatana kadar katılıp düzenleyebilir.",
+  "Invite one other device to co-edit this session directly - no account, no server.": "Başka bir cihazı doğrudan seninle birlikte bu oturumu düzenlemeye davet et - hesap yok, sunucu yok.",
+  "Start a collab": "İş birliği başlat",
+  "Starting a collab": "İş birliği başlatılıyor",
+  "Work collab": "Ekip iş birliği",
+  "Invite others on this instance to co-edit this session, live.": "Bu örnekteki diğer kişileri bu oturumu canlı olarak birlikte düzenlemeye davet et.",
+  "Live now - 1 person editing": "Şu anda canlı - 1 kişi düzenliyor",
+  "Live now - {n} people editing": "Şu anda canlı - {n} kişi düzenliyor"
 }

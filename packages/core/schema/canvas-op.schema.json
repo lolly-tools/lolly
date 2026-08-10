@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://lolly.tools/schemas/canvas-op.schema.json",
   "title": "Canvas Op",
-  "description": "One persisted collaboration operation on a live canvas (plans/99-canvas-op-contract.md). Mirrors the CanvasOp discriminated union in packages/core/src/canvas-op-v1.ts field-for-field — keep the two in sync by hand; there is no schema-from-types generator here. A discriminated union on `k`, expressed as allOf/if-then (not oneOf) so each branch is its own fully-closed (`additionalProperties: false`) object rather than an ambiguous alternative list. Every op carries `origin` — the Lamport-clock + client-id stamp the reference CRDT (ReferenceCanvasDoc) orders by; lolly-work's real Yjs adapter may ignore it.",
+  "description": "One persisted collaboration operation on a live canvas (plans/99-canvas-op-contract.md). Mirrors the CanvasOp discriminated union in packages/core/src/canvas-op-v1.ts field-for-field — keep the two in sync by hand; there is no schema-from-types generator here. A discriminated union on `k`, expressed as allOf/if-then (not oneOf) so each branch is its own fully-closed (`additionalProperties: false`) object rather than an ambiguous alternative list. Every op carries `origin` — the Lamport-clock + client-id stamp the reference CRDT (ReferenceCanvasDoc) orders by; lolly-work's real Yjs adapter may ignore it. v1.1 (plans/100 §3, additive): every box op takes an optional `col` (blocks-input collection scoping — never `param`, whose lane is collection-blind), and the presence $def gains focus/location/following/viewport/chat.",
   "type": "object",
   "required": ["k", "origin"],
   "properties": {
@@ -27,6 +27,7 @@
         "properties": {
           "k": { "const": "geom" },
           "id": { "$ref": "#/$defs/boxId" },
+          "col": { "$ref": "#/$defs/collectionId" },
           "fields": {
             "type": "object",
             "description": "At least one geometry field to set. Field NAMES are the shipped defaults (x,y,w,h,rot); a tool with renamed BoxFieldConfig roles must resolve to these before crossing the seam.",
@@ -57,6 +58,7 @@
         "properties": {
           "k": { "const": "field" },
           "id": { "$ref": "#/$defs/boxId" },
+          "col": { "$ref": "#/$defs/collectionId" },
           "field": { "type": "string", "minLength": 1 },
           "value": { "$ref": "#/$defs/scalar" },
           "origin": { "$ref": "#/$defs/origin" }
@@ -76,6 +78,7 @@
         "properties": {
           "k": { "const": "add" },
           "id": { "$ref": "#/$defs/boxId" },
+          "col": { "$ref": "#/$defs/collectionId" },
           "row": {
             "type": "object",
             "description": "The box's flat row of fields — a BoxRow. Every value is a Scalar; file bytes, live frames, and unresolved bindings never enter an op (plans/99 §7).",
@@ -102,6 +105,7 @@
         "properties": {
           "k": { "const": "remove" },
           "id": { "$ref": "#/$defs/boxId" },
+          "col": { "$ref": "#/$defs/collectionId" },
           "origin": { "$ref": "#/$defs/origin" }
         }
       }
@@ -119,6 +123,7 @@
         "properties": {
           "k": { "const": "order" },
           "id": { "$ref": "#/$defs/boxId" },
+          "col": { "$ref": "#/$defs/collectionId" },
           "orderKey": { "type": "string" },
           "origin": { "$ref": "#/$defs/origin" }
         }
@@ -161,6 +166,12 @@
       "minLength": 1,
       "description": "A stable, client-generated ULID (plans/99 §2). Everything keys on this, never an array index."
     },
+    "collectionId": {
+      "$anchor": "collectionId",
+      "type": "string",
+      "minLength": 1,
+      "description": "v1.1 (plans/100 §3): the blocks-input collection an op targets; absent = the default canvas collection, so every v1.0 op stays valid. Never on `param` — the params lane is collection-blind."
+    },
     "scalar": {
       "$anchor": "scalar",
       "description": "The CRDT-syncable value of a single box field (plans/99 §7). Deliberately narrow — no file bytes, no live frames.",
@@ -200,7 +211,7 @@
       "$anchor": "presence",
       "type": "object",
       "title": "Awareness / Presence",
-      "description": "Ephemeral presence — the Yjs awareness channel, NEVER written to the doc (plans/99 §5). Carries no origin/clock: it is not an op and never converges. Broadcast at pointer-move rate.",
+      "description": "Ephemeral presence — the Yjs awareness channel, NEVER written to the doc (plans/99 §5). Carries no origin/clock: it is not an op and never converges. Broadcast at pointer-move rate. v1.1 (plans/100 §3, §4) adds focus/location/following/viewport/chat — all optional, all still never persisted.",
       "required": ["userId", "name", "color", "cursor", "selection"],
       "additionalProperties": false,
       "properties": {
@@ -238,6 +249,34 @@
               "maxItems": 2
             }
           }
+        },
+        "focus": {
+          "type": "string",
+          "description": "v1.1 (plans/100 §3, §4.1): the focused input — an input id, or \"<blocksId>:<rowId>\" for a blocks row. Drives the focus-ring presence primitive on every tool."
+        },
+        "location": {
+          "type": "string",
+          "description": "v1.1 (plans/100 §4.2): which slide/page/scene the user is on (big tools) — presence-bar grouping and the follow-mode target."
+        },
+        "following": {
+          "type": "string",
+          "description": "v1.1 (plans/100 §4.2): the userId this user is following — follow is a pure presence field, never a mode."
+        },
+        "viewport": {
+          "type": "object",
+          "description": "v1.1 (plans/100 §4.2): the follower-adoptable camera.",
+          "required": ["x", "y", "zoom"],
+          "additionalProperties": false,
+          "properties": {
+            "x": { "type": "number" },
+            "y": { "type": "number" },
+            "zoom": { "type": "number" }
+          }
+        },
+        "chat": {
+          "type": "string",
+          "maxLength": 64,
+          "description": "v1.1 (plans/100 §3): cursor chat — max 64 chars, rides the awareness channel only, never persisted."
         }
       }
     }

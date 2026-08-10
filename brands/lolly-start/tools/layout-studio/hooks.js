@@ -345,6 +345,26 @@ function mediaHtmlFor(b) {
     return '<video class="lolly-box-img lolly-box-video" src="' + esc(url) +
       '" data-video-key="' + vkey + '" muted loop autoplay playsinline style="' + style + '"></video>';
   }
+  // An ANIMATED SVG (a CSS/SMIL-animated vector) is a motion source like Lottie, so it
+  // earns the same live-marker treatment instead of a frozen <img>: emit the anim marker
+  // div the web shell's anim-svg enhancer inlines as a LIVE sanitized <svg> (plays in
+  // preview, seekable for frame-accurate export). A STATIC svg stays the <img> below —
+  // inlining every svg would risk id collisions across boxes and a perf hit. This hook is
+  // pure/sync and cannot fetch the file, so "animated" is gated on a signal the resolved
+  // ref already carries: an svg (type 'vector' / format 'svg' / .svg url) whose meta says
+  // so (meta.animated === true, or an 'animated' tag on meta.tags / the ref's own tags).
+  // Mirrors the lottie marker above — fit → cover|meet (the anim enhancer's vocabulary),
+  // url esc()'d, style shared with the other branches (data-anim-fit carries the real fit).
+  var isSvg = (img && (img.type === 'vector' || img.format === 'svg')) || /\.svg($|\?|#)/i.test(url);
+  var animTags = (img && (img.meta && img.meta.tags || img.tags)) || [];
+  var isAnimSvg = isSvg && (
+    !!(img && img.meta && img.meta.animated === true) ||
+    (Array.isArray(animTags) && animTags.indexOf('animated') >= 0));
+  if (isAnimSvg) {
+    var afit = String(b.fit) === 'cover' ? 'cover' : 'meet';
+    return '<div class="lolly-box-img lolly-box-anim" data-anim-src="' + esc(url) +
+      '" data-anim-fit="' + afit + '" style="' + style + '"></div>';
+  }
   return '<img class="lolly-box-img" src="' + esc(url) + '" style="' + style + '" alt="" draggable="false">';
 }
 

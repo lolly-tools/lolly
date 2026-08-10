@@ -188,5 +188,15 @@
   "{family} now serves h1/h2 headings": "{family} giờ dùng cho tiêu đề h1/h2",
   "{family} now serves italic text": "{family} giờ dùng cho văn bản in nghiêng",
   "← All team projects": "← Tất cả dự án nhóm",
-  "Home": "Trang chủ"
+  "Home": "Trang chủ",
+  "Private collab": "Cộng tác riêng tư",
+  "beta": "beta",
+  "Lets you invite one other device to co-edit a tool session directly - no account, no server, works offline on the same network. Anyone with the invite can join and edit until you close the session.": "Cho phép bạn mời một thiết bị khác cùng chỉnh sửa trực tiếp một phiên công cụ - không cần tài khoản, không cần máy chủ, hoạt động ngoại tuyến trên cùng mạng. Bất kỳ ai có lời mời đều có thể tham gia và chỉnh sửa cho đến khi bạn đóng phiên.",
+  "Work collab": "Cộng tác công việc",
+  "Start a collab": "Bắt đầu cộng tác",
+  "Starting a collab": "Đang bắt đầu cộng tác",
+  "Invite one other device to co-edit this session directly - no account, no server.": "Mời một thiết bị khác cùng chỉnh sửa trực tiếp phiên này - không cần tài khoản, không cần máy chủ.",
+  "Invite others on this instance to co-edit this session, live.": "Mời người khác trên phiên bản này cùng chỉnh sửa trực tiếp phiên này.",
+  "Live now - 1 person editing": "Đang trực tiếp - 1 người đang chỉnh sửa",
+  "Live now - {n} people editing": "Đang trực tiếp - {n} người đang chỉnh sửa"
 }

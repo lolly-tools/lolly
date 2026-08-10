@@ -1,50 +1,64 @@
 #!/usr/bin/env node
 // SPDX-License-Identifier: MPL-2.0
 /**
- * App-icon pipeline — ONE source of truth: `icon.avif` at the repo root.
+ * App-icon pipeline — ONE source of truth: `icon.svg` at the repo root.
  *
- * The Lolly mark lives in exactly one place, `icon.avif` (2048², transparent). Every
- * other icon in the repo is DERIVED from it by this script, so they can never drift the
- * way they had (the app icons + og.png shipped an old lime-in-a-wrapper lollipop while
- * the OG cards already used the current pine swirl). Re-run whenever icon.avif changes:
+ * The Lolly mark lives in exactly one place: `icon.svg` (a hand-drawn, C2PA- + RDF-signed
+ * vector, viewBox 541.87², transparent — the green + white glossy swirl). Every other icon
+ * in the repo is DERIVED from it by this script, so they can never drift. Re-run whenever
+ * icon.svg changes:
  *
  *   npm run icons
  *
+ * The source is a vector, so we first rasterise it to a transparent master through our OWN
+ * render path (Playwright/Chromium — the SAME engine the OG cards, previews and exports use),
+ * NOT sharp's librsvg or resvg: the mark leans on `mix-blend-mode` and blur filters that the
+ * standalone SVG interpreters drop (a fill collapses to solid black). sharp then does the
+ * pure raster resizes from that master.
+ *
  * What it regenerates (all committed — commit the diff like any other asset):
- *   • icon.webp                              — root, the web-friendly derived copy the OG
- *                                              cards' mark + the /info og:logo read
+ *   • shells/web/public/icon.svg             — a byte copy of the signed source, so the web
+ *                                              shell (favicon, PWA, /info) can serve the SVG
+ *                                              itself with its C2PA + RDF provenance intact
  *   • shells/web/public/icons/*              — PWA icon-192/512, 512-maskable, apple-touch
  *   • shells/web/public/favicon.ico          — 16/32/48 multi-size
  *   • shells/tauri-desktop/src-tauri/icons/* — via `tauri icon` (icns/ico/png/android/ios)
  *   • shells/tauri-mobile/src-tauri/icons/*  — same, when the shell is mounted + installed
  *
- * og.png (the landing / default share card) is ALSO derived from icon.avif, but it carries
+ * og.png (the landing / default share card) is ALSO derived from icon.svg, but it carries
  * the wordmark + tagline in the brand font, so it is rendered through the Chromium card
- * path in scripts/build-og-base.ts — not here, where everything is a pure sharp resize.
+ * path in scripts/build-og-base.ts — not here, where everything after the master is a pure
+ * sharp resize.
  *
- * sharp (native libvips) is a build-time-only dep, same as the preview/OG pipeline.
+ * Degrades like the OG scripts: if Playwright / a render browser is unavailable, it keeps the
+ * committed icons rather than failing a plain clone. sharp (native libvips) is a build-time
+ * dep, same as the preview/OG pipeline.
  */
 
 import { execFileSync } from 'node:child_process';
-import { existsSync, mkdirSync, writeFileSync, rmSync } from 'node:fs';
+import { existsSync, mkdirSync, writeFileSync, rmSync, readFileSync, copyFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import sharp, { type Color } from 'sharp';
+import { createSvgRasterizer } from './lib/rasterize-svg-browser.ts';
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
-const SOURCE = resolve(ROOT, 'icon.avif');
+const SOURCE = resolve(ROOT, 'icon.svg');
+// The transparent raster master every sharp resize below derives from. 1024² is the
+// largest output (the Tauri master), so nothing upscales.
+const MASTER = 1024;
 
 // Backgrounds for the icons that must be OPAQUE (a masked/rounded platform icon shows
 // its own corner fill, and iOS composites a transparent icon onto black). Pine is the
-// brand field — the current pine swirl reads well on it, and it matches the app chrome.
+// brand field — the green swirl reads well on it, and it matches the app chrome.
 const PINE = { r: 12, g: 50, b: 44, alpha: 1 };        // #0c322c
 const TRANSPARENT = { r: 0, g: 0, b: 0, alpha: 0 };
 
-/** Square PNG buffer of the source at `size`, `contain`-fit on `bg`, inset by `pad` (0..0.5). */
-async function iconPng(size: number, bg: Color, pad = 0): Promise<Buffer> {
+/** Square PNG buffer of the master at `size`, `contain`-fit on `bg`, inset by `pad` (0..0.5). */
+async function iconPng(master: Buffer, size: number, bg: Color, pad = 0): Promise<Buffer> {
   const inner = Math.round(size * (1 - 2 * pad));
-  const mark = await sharp(SOURCE)
+  const mark = await sharp(master)
     .resize(inner, inner, { fit: 'contain', background: TRANSPARENT })
     .png()
     .toBuffer();
@@ -84,40 +98,54 @@ function encodeIco(frames: Array<{ size: number; png: Buffer }>): Buffer {
 
 async function main(): Promise<void> {
   if (!existsSync(SOURCE)) {
-    console.error(`✗ ${SOURCE} not found — the icon pipeline needs icon.avif at the repo root.`);
+    console.error(`✗ ${SOURCE} not found — the icon pipeline needs icon.svg at the repo root.`);
     process.exit(1);
   }
-  const meta = await sharp(SOURCE).metadata();
-  console.log(`source: icon.avif ${meta.width}×${meta.height} (${meta.format}, alpha=${meta.hasAlpha})`);
 
-  // ── Root icon.webp — the web-friendly derived copy (OG mark, /info og:logo). ──
-  await sharp(SOURCE).resize(1024, 1024, { fit: 'contain', background: TRANSPARENT })
-    .webp({ quality: 90, effort: 6 })
-    .toFile(resolve(ROOT, 'icon.webp'));
-  console.log('✓ icon.webp');
+  // Rasterise the signed source to a transparent master through our own Chromium path.
+  // A missing browser degrades to the committed icons (a plain clone isn't punished).
+  let rasterizer: Awaited<ReturnType<typeof createSvgRasterizer>>;
+  try {
+    rasterizer = await createSvgRasterizer(ROOT);
+  } catch (e) {
+    console.log(`icons — skipped (${(e as Error).message}); kept the committed app icons.`);
+    return;
+  }
+  let master: Buffer;
+  try {
+    master = await rasterizer.rasterize(readFileSync(SOURCE, 'utf8'), { width: MASTER, height: MASTER, background: 'transparent' });
+  } finally {
+    await rasterizer.close();
+  }
+  const meta = await sharp(master).metadata();
+  console.log(`source: icon.svg → ${meta.width}×${meta.height} transparent master (alpha=${meta.hasAlpha})`);
+
+  // ── Serve the signed SVG itself — a byte copy, so its C2PA + RDF provenance travels. ──
+  copyFileSync(SOURCE, resolve(ROOT, 'shells/web/public/icon.svg'));
+  console.log('✓ shells/web/public/icon.svg (signed source, verbatim copy)');
 
   // ── Web PWA icons + apple-touch. ──
   const webIcons = resolve(ROOT, 'shells/web/public/icons');
   mkdirSync(webIcons, { recursive: true });
   // "any"-purpose icons keep the round mark transparent (the launcher frames it);
   // maskable + apple-touch are opaque pine with the mark inset into the safe zone.
-  writeFileSync(join(webIcons, 'icon-192.png'), await iconPng(192, TRANSPARENT));
-  writeFileSync(join(webIcons, 'icon-512.png'), await iconPng(512, TRANSPARENT));
-  writeFileSync(join(webIcons, 'icon-512-maskable.png'), await iconPng(512, PINE, 0.14));
-  writeFileSync(join(webIcons, 'apple-touch-icon.png'), await iconPng(180, PINE, 0.06));
+  writeFileSync(join(webIcons, 'icon-192.png'), await iconPng(master, 192, TRANSPARENT));
+  writeFileSync(join(webIcons, 'icon-512.png'), await iconPng(master, 512, TRANSPARENT));
+  writeFileSync(join(webIcons, 'icon-512-maskable.png'), await iconPng(master, 512, PINE, 0.14));
+  writeFileSync(join(webIcons, 'apple-touch-icon.png'), await iconPng(master, 180, PINE, 0.06));
   console.log('✓ web icons (192, 512, 512-maskable, apple-touch)');
 
   // ── favicon.ico — 16/32/48, transparent. ──
   const favSizes = [16, 32, 48];
   const frames = await Promise.all(
-    favSizes.map(async (size) => ({ size, png: await iconPng(size, TRANSPARENT) })),
+    favSizes.map(async (size) => ({ size, png: await iconPng(master, size, TRANSPARENT) })),
   );
   writeFileSync(resolve(ROOT, 'shells/web/public/favicon.ico'), encodeIco(frames));
   console.log('✓ favicon.ico (16/32/48)');
 
   // ── Tauri shells — `tauri icon` regenerates icns/ico/png/android/ios from one master. ──
-  const master = join(tmpdir(), `lolly-icon-master-${meta.width}.png`);
-  await sharp(SOURCE).resize(1024, 1024, { fit: 'contain', background: TRANSPARENT }).png().toFile(master);
+  const masterFile = join(tmpdir(), `lolly-icon-master-${MASTER}.png`);
+  await sharp(master).resize(MASTER, MASTER, { fit: 'contain', background: TRANSPARENT }).png().toFile(masterFile);
   for (const shell of ['shells/tauri-desktop', 'shells/tauri-mobile']) {
     const dir = resolve(ROOT, shell);
     const bin = join(dir, 'node_modules/.bin/tauri');
@@ -126,15 +154,15 @@ async function main(): Promise<void> {
       continue;
     }
     try {
-      execFileSync(bin, ['icon', master], { cwd: dir, stdio: 'pipe' });
+      execFileSync(bin, ['icon', masterFile], { cwd: dir, stdio: 'pipe' });
       console.log(`✓ ${shell} icons (via tauri icon)`);
     } catch (e) {
       console.log(`⚠ ${shell}: tauri icon failed (${(e as Error).message.split('\n')[0]})`);
     }
   }
-  rmSync(master, { force: true });
+  rmSync(masterFile, { force: true });
 
-  console.log('\n✓ app icons regenerated from icon.avif');
+  console.log('\n✓ app icons regenerated from icon.svg');
 }
 
 main().catch((e) => { console.error(e); process.exit(1); });

@@ -190,5 +190,15 @@
   "← All team projects": "← Lahat ng team project",
   "Home": "Home",
   "Catalogue": "Katalogo",
-  "Verify deep scan": "Malalim na pag-scan ng Verify"
+  "Verify deep scan": "Malalim na pag-scan ng Verify",
+  "Private collab": "Pribadong Collab",
+  "beta": "beta",
+  "Lets you invite one other device to co-edit a tool session directly - no account, no server, works offline on the same network. Anyone with the invite can join and edit until you close the session.": "Nagbibigay-daan sa iyong mag-imbita ng isa pang device para sama-samang mag-edit ng tool session nang direkta - walang account, walang server, gumagana offline sa parehong network. Kahit sino na may imbitasyon ay puwedeng sumali at mag-edit hanggang isara mo ang session.",
+  "Work collab": "Collab sa Trabaho",
+  "Start a collab": "Simulan ang collab",
+  "Starting a collab": "Sinisimulan ang collab",
+  "Invite one other device to co-edit this session directly - no account, no server.": "Mag-imbita ng isa pang device para sama-samang mag-edit ng session na ito nang direkta - walang account, walang server.",
+  "Invite others on this instance to co-edit this session, live.": "Mag-imbita ng iba sa instance na ito para sama-samang mag-edit ng session na ito, live.",
+  "Live now - 1 person editing": "Live ngayon - 1 taong nag-e-edit",
+  "Live now - {n} people editing": "Live ngayon - {n} taong nag-e-edit"
 }
