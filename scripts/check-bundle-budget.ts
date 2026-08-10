@@ -44,6 +44,15 @@ const FORBIDDEN_BOOT_CHUNK = /(engine-render|engine-c2pa|handlebars|ajv|html2can
 // What remains on boot is index, engine-util and bridge — all first-paint work, so
 // the ceiling moved rather than the measurement. Do NOT raise this again to make a
 // failing build pass; the point of the number is that a regression has to be argued.
+// 2026-08-09: boot had drifted to 173.3 (an engine barrel re-dragged onto boot via
+// org/index.ts, since fixed to a leaf import, plus accumulated feature weight). A diet
+// took it back under WITHOUT moving the ceiling: gallery bulk-bar / context-menu /
+// tile-select / confirm-dialog inject on their first gesture, the filter popover's
+// sound toggle + the whole ambient-audio cluster (atmosphere/neurospicy/sound-toggle)
+// defer together, drop-router / custom-slider / the user-fonts chain idle-defer, the
+// Kokoro model-bytes constant reads from a leaf (engine/src/speech-model-bytes.ts) not
+// the speech-text barrel, the view-topbar language menu lazy-loads its dropdown, and the
+// sfx VOICES synthesis split into a lazy shells/web/src/lib/sfx-voices.ts. Landed 134.2.
 const MAX_PRELOAD_JS_GZ = 135 * 1024;
 // -----------------------------------------------------------------------------
 

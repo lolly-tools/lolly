@@ -105,6 +105,11 @@ export async function createSvgRasterizer(repoRoot: string): Promise<SvgRasteriz
 
   return {
     async rasterize(svg: string, { width, height, background = '#ffffff' }: RasterizeOpts): Promise<Buffer> {
+      // `background: 'transparent'` yields a real alpha PNG (the app-icon path needs the
+      // round mark's corners transparent). Playwright composites an opaque white backdrop
+      // unless `omitBackground` is set, so pair the two — every other caller passes a solid
+      // card field and keeps the opaque screenshot it always got.
+      const transparent = background === 'transparent';
       const html =
         '<!doctype html><html><head><meta charset="utf-8"><style>' +
         fontFaceCss +
@@ -121,7 +126,7 @@ export async function createSvgRasterizer(repoRoot: string): Promise<SvgRasteriz
         await (document as unknown as { fonts: { ready: Promise<unknown> } }).fonts.ready;
         await new Promise<void>((r) => requestAnimationFrame(() => requestAnimationFrame(() => r())));
       });
-      return await page.screenshot({ type: 'png', clip: { x: 0, y: 0, width, height } });
+      return await page.screenshot({ type: 'png', clip: { x: 0, y: 0, width, height }, omitBackground: transparent });
     },
     async close(): Promise<void> {
       await context.close().catch(() => {});

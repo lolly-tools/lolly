@@ -274,14 +274,18 @@ const BUILD_TS_PATH = join(REPO_ROOT, 'docs', 'build.ts');
  * Strings are skipped BEFORE comments, which is not interchangeable: a `//`
  * inside a string - an `https://` href in a nav entry - would otherwise be read
  * as a line comment and truncate the slice.
+ *
+ * `where` names the file in the error messages only. It defaults to docs/build.ts
+ * because that is what this was written for; the `collab` corpus passes each of its
+ * own source files so a rename there is reported against the file it broke.
  */
-export function sliceDataLiteral(src: string, decl: RegExp, what: string): string {
+export function sliceDataLiteral(src: string, decl: RegExp, what: string, where = 'docs/build.ts'): string {
   const m = decl.exec(src);
-  if (!m) throw new Error(`site corpus: no \`${what}\` declaration in docs/build.ts - the chrome key set cannot be extracted`);
+  if (!m) throw new Error(`no \`${what}\` declaration in ${where} - its key set cannot be extracted`);
   let i = m.index + m[0].length;
   while (i < src.length && src[i] !== '[' && src[i] !== '{') i++;
   const open = src[i];
-  if (!open) throw new Error(`site corpus: \`${what}\` in docs/build.ts is not initialised with an array/object literal`);
+  if (!open) throw new Error(`\`${what}\` in ${where} is not initialised with an array/object literal`);
   const close = open === '[' ? ']' : '}';
   const start = i;
   let depth = 0;
@@ -298,7 +302,7 @@ export function sliceDataLiteral(src: string, decl: RegExp, what: string): strin
     if (c === open) depth++;
     else if (c === close && --depth === 0) return src.slice(start, i + 1);
   }
-  throw new Error(`site corpus: \`${what}\` in docs/build.ts has an unbalanced literal`);
+  throw new Error(`\`${what}\` in ${where} has an unbalanced literal`);
 }
 
 /**
@@ -307,9 +311,9 @@ export function sliceDataLiteral(src: string, decl: RegExp, what: string): strin
  * is worth asserting: the moment one stops being pure data this throws instead
  * of quietly yielding a shorter key list.
  */
-function evalDataLiteral<T>(text: string, what: string): T {
+function evalDataLiteral<T>(text: string, what: string, where = 'docs/build.ts'): T {
   try { return new Function(`return (${text});`)() as T; } catch (err) {
-    throw new Error(`site corpus: \`${what}\` in docs/build.ts is no longer a plain data literal (${(err as Error).message})`);
+    throw new Error(`\`${what}\` in ${where} is no longer a plain data literal (${(err as Error).message})`);
   }
 }
 
@@ -398,7 +402,93 @@ const SITE_CORPUS: CorpusDef = {
   outPath: (lang) => join(REPO_ROOT, 'docs', 'i18n', lang, 'site.json'),
 };
 
-const CORPORA: Record<string, CorpusDef> = { spa: SPA_CORPUS, caps: CAPS_CORPUS, site: SITE_CORPUS };
+// ─── collab corpus: the private-collab surface (a lazy string NAMESPACE) ───
+// The invite/join ceremony, the #/join and #/join-reply routes, the beam consent
+// toast, the beam pack's own labels, the collaborator pill and the focus rings.
+// Same two reasons as `caps` for being its own corpus rather than more keys in
+// `spa`, plus a third that is specific to it:
+//   1. Register. This is a mix of step headings, refusal sentences and live-region
+//      announcements about a person on another device — read by someone mid-task,
+//      often anxious that a connection is not working. The spa prompt's "button
+//      labels and one-line descriptions" is the wrong brief for it.
+//   2. Weight. Its catalog loads on demand (i18n.ts's loadNamespace('collab')) and
+//      the whole feature sits behind the default-OFF `private-collab` flag, so a
+//      boot catalog must not carry a beta's copy.
+//   3. Reach. These strings were UNSCANNABLE, not merely unlisted: the modules keep
+//      their copy in an exported STRINGS map and render it through t()/tRaw(<a
+//      reference>), and extractSpaKeys only sees a quote immediately after `t(`.
+//      Every one of them would have been silently missed by a `spa` run.
+// Like the `site` corpus, the source cannot be imported (these are DOM modules on
+// the web shell's lazy chunks), so each STRINGS declaration's initializer is sliced
+// out by brace matching and EVALUATED — the same mechanism, and the same inverted
+// failure mode: renaming or moving a map THROWS naming the file, rather than
+// quietly shrinking the key set.
+//
+// The eight strings that render on ORDINARY chrome even with the flag off — the
+// profile Feature-flags row (extra-keys.spa.json) and the two Share-dialog rows
+// (literal `t('…')` call sites) — are deliberately in `spa`, not here: they are a
+// few hundred bytes and every user sees them.
+const COLLAB_SOURCES = [
+  join('shells', 'web', 'src', 'components', 'collab-ceremony.ts'),
+  join('shells', 'web', 'src', 'collab', 'join-route.ts'),
+  join('shells', 'web', 'src', 'components', 'beam-toast.ts'),
+  join('shells', 'web', 'src', 'lib', 'beam-pack.ts'),
+  join('shells', 'web', 'src', 'components', 'collab-pill.ts'),
+  join('shells', 'web', 'src', 'components', 'collab-focus.ts'),
+  // The work (server-room) half of the same feature: the inbox "Open the collab"
+  // affordance and every sentence a work collab can fail with. Same register, same
+  // lazy namespace — it is `collab` copy that happens to live under org/.
+  join('shells', 'web', 'src', 'org', 'collab-work-opener.ts'),
+  // The five storage failures a received beam can die of. They were left out while
+  // `BeamSinkError.userMessage` had no reader — which is not a reason for copy to be
+  // untranslatable, only a reason nobody noticed: the map already had the shape of
+  // user copy, and a render site arriving later would have shipped it in English.
+  join('shells', 'web', 'src', 'lib', 'beam-sink.ts'),
+];
+
+/** Every string leaf of a sliced STRINGS map, in source order (ceremony's `fail`
+ *  screens are one nested level down; nothing else nests today). */
+function stringLeaves(value: unknown, out: string[] = []): string[] {
+  if (typeof value === 'string') out.push(value);
+  else if (value && typeof value === 'object') for (const v of Object.values(value)) stringLeaves(v, out);
+  return out;
+}
+
+export function extractCollabKeys(): string[] {
+  const keys = new Set<string>();
+  for (const rel of COLLAB_SOURCES) {
+    const abs = join(REPO_ROOT, rel);
+    if (!existsSync(abs)) throw new Error(`collab corpus: ${rel} is missing - its copy would ship untranslated`);
+    const src = readFileSync(abs, 'utf8');
+    const literal = sliceDataLiteral(src, /\bexport\s+const\s+STRINGS\s*(?::[^=]*)?=/, 'STRINGS', rel);
+    const map = evalDataLiteral<Record<string, unknown>>(literal, 'STRINGS', rel);
+    const leaves = stringLeaves(map);
+    if (!leaves.length) throw new Error(`collab corpus: \`STRINGS\` in ${rel} yielded no strings`);
+    for (const leaf of leaves) keys.add(leaf);
+  }
+  // Source order, not sorted: the catalog then reads screen by screen, which is what
+  // a human reviewing a diff of it wants (the `caps` corpus does the same).
+  return [...keys];
+}
+
+const COLLAB_CORPUS: CorpusDef = {
+  id: 'collab',
+  keys: extractCollabKeys,
+  context:
+    'These strings are the private-collab surface of a design-tool web app called Lolly: a three-step invite/join '
+    + 'ceremony between two devices, the page a shared invite link opens, the consent prompt and progress for '
+    + 'transferring files between them, and the labels on the little cluster showing who else is here. Register: calm, '
+    + 'plain, second person, present tense — short declarative sentences a person reads mid-task, often while something '
+    + 'is not working. Say what happened and what to do next; never blame the reader, never apologise, never use '
+    + 'exclamation marks. Keep each string about as long as the source: several are headings in a narrow dialog, and a '
+    + 'sentence that doubles in length wraps over the button below it. `{name}`, `{peer}`, `{tool}`, `{time}`, `{n}` and '
+    + 'the rest are filled in at runtime with a person\'s chosen name, a tool id, a count or a countdown — keep every '
+    + 'one exactly as written, and put it where the target language needs it. "Step 1 of 3" style headings keep their '
+    + 'numbers. Do not translate Lolly, QR, or the format and protocol names.',
+  outPath: (lang) => join(REPO_ROOT, 'shells', 'web', 'src', 'locales', 'collab', `${lang}.json`),
+};
+
+const CORPORA: Record<string, CorpusDef> = { spa: SPA_CORPUS, caps: CAPS_CORPUS, site: SITE_CORPUS, collab: COLLAB_CORPUS };
 
 // ─── tools corpus: gallery-card fields (name/description/featured.blurb) ───
 // Every tool pack this corpus covers — community (public, shared across every

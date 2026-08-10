@@ -188,5 +188,7 @@
   "{family} now serves h1/h2 headings": "{family} teď slouží pro nadpisy h1/h2",
   "{family} now serves italic text": "{family} teď slouží pro text kurzívou",
   "← All team projects": "← Všechny týmové projekty",
-  "Home": "Domů"
+  "Home": "Domů",
+  "Live now - 1 person editing": "Právě živě - upravuje 1 člověk",
+  "Live now - {n} people editing": "Právě živě - upravuje {n} lidí"
 }

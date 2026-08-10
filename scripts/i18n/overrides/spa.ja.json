@@ -188,5 +188,15 @@
   "{family} now serves h1/h2 headings": "{family}がh1/h2の見出しに使われます",
   "{family} now serves italic text": "{family}がイタリック体のテキストに使われます",
   "← All team projects": "← すべてのチームプロジェクト",
-  "Home": "ホーム"
+  "Home": "ホーム",
+  "Private collab": "プライベートコラボ",
+  "beta": "ベータ",
+  "Lets you invite one other device to co-edit a tool session directly - no account, no server, works offline on the same network. Anyone with the invite can join and edit until you close the session.": "もう1台の端末を招待して、直接ツールのセッションを共同編集できます — アカウントもサーバーも不要で、同じネットワーク内ならオフラインでも動作します。招待を持つ人は、セッションを終了するまで参加して編集できます。",
+  "Invite one other device to co-edit this session directly - no account, no server.": "もう1台の端末を招待して、このセッションを直接共同編集します — アカウントもサーバーも不要です。",
+  "Start a collab": "コラボを開始",
+  "Starting a collab": "コラボを開始しています",
+  "Work collab": "ワークコラボ",
+  "Invite others on this instance to co-edit this session, live.": "このインスタンスの他のメンバーを招待して、このセッションをライブで共同編集します。",
+  "Live now - 1 person editing": "現在ライブ：1人が編集中",
+  "Live now - {n} people editing": "現在ライブ：{n}人が編集中"
 }

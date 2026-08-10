@@ -146,12 +146,15 @@ for (const brand of BRANDS) {
     for (const [id, pair] of Object.entries(brand.expect)) {
       assert.equal(`${byId[id].bg}/${byId[id].fg}`, pair, `box "${id}" under ${brand.name}`);
     }
-    // The two opening cards share light text (surface) over the brand's two accents
-    // (secondary, then primary). Saturated fill + light type is what makes the demo
-    // legible under EVERY pack — including a starter brand whose primary and secondary
-    // sit at the same lightness, where the old primary/secondary inversion had none.
+    // The two opening cards share light text (surface) over the brand's accent roles
+    // (secondary, then primary). The minimal starter points secondary AT primary, so the
+    // two fills coincide until the user adds a distinct secondary; a pack with its own
+    // secondary (e.g. SUSE) fills them with two different accents. Either way both resolve
+    // to real brand colours under light type — saturated fill + light type is what keeps
+    // the demo legible under EVERY pack.
     assert.equal(byId.hook.fg, byId.reveal.fg, 'both opening cards carry the same light text');
-    assert.notEqual(byId.hook.bg, byId.reveal.bg, "the two cards fill with the brand's two distinct accents");
+    assert.match(byId.hook.bg, HEX, 'the secondary card fills with a resolved brand accent');
+    assert.match(byId.reveal.bg, HEX, 'the primary card fills with a resolved brand accent');
   });
 }
 

@@ -18,8 +18,8 @@
         {
           "format": "json",
           "url": "/catalog/assets/lolly/tokens/brand.json",
-          "checksum": "sha256-4ygNmtPa7LiLukkkLgvmzjlFv8kqJomMlqoJCgrQNs0=",
-          "size": 14135
+          "checksum": "sha256-0cwapOiM+GSb3R4dYNY15UwuwIrUQIk/AIz7lJbMji8=",
+          "size": 4181
         }
       ]
     },
@@ -38,8 +38,8 @@
         {
           "format": "json",
           "url": "/catalog/assets/lolly/palette/photo-treatments.json",
-          "checksum": "sha256-Qg85yvLVPVu/SLk/Ge1WRkn53XiekhpN6ujvSlLiLLE=",
-          "size": 1256
+          "checksum": "sha256-qDBb03iaRSWlriTJSmKpA9cM7aYlJDfkznNtPOfE4jA=",
+          "size": 839
         }
       ]
     },
@@ -58,8 +58,8 @@
         {
           "format": "json",
           "url": "/catalog/assets/lolly/palette/icon-themes.json",
-          "checksum": "sha256-SwzcXzppLNjpD3ePXdq5dd1Mh2ZR2ALa4Js5fr0OQb8=",
-          "size": 945
+          "checksum": "sha256-Qrbw9Y3AESMwRkHQ/q0BAR8x5ZmnwbJbh6lcWN29gqE=",
+          "size": 636
         }
       ]
     },
@@ -817,6 +817,34 @@
         }
       ],
       "license": "CC-PDDC"
+    },
+    {
+      "id": "lolly/demo/lolly-spin",
+      "name": "Lolly Spin (animated)",
+      "description": "The Lolly swirl as a self-contained animated SVG — three nested spirals counter-rotating with a slow hue drift on a brand-tinted gradient. The swirl and the background inherit the active brand's colours when placed live, and it makes a handy default subject for testing filters, grading and animation. A removable example — delete it any time.",
+      "type": "vector",
+      "version": "1.0.0",
+      "tier": "core",
+      "tags": [
+        "animation",
+        "motion",
+        "svg",
+        "lolly",
+        "swirl",
+        "demo",
+        "example",
+        "placeholder"
+      ],
+      "formats": [
+        {
+          "format": "svg",
+          "url": "/catalog/assets/lolly/demo/lolly-spin.svg",
+          "checksum": "sha256-o9XgbTVXd5UwjnRNPtjqcyY/kSbIcOTb/sNekgcSAfM=",
+          "width": 542,
+          "height": 542,
+          "size": 12668
+        }
+      ]
     }
   ]
 }

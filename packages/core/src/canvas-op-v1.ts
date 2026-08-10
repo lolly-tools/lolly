@@ -48,8 +48,13 @@
  * state (plans/99 §9). Independent of ENGINE_VERSION, CONTRACT_VERSION (host-v1),
  * and EXTENSION_CONTRACT_VERSION — this surface owns its own version, exactly like
  * extension-v1's EXTENSION_CONTRACT_VERSION.
+ *
+ * v1.1 (plans/100 §3, additive): every box op takes an optional `col` — the
+ * blocks-input collection it targets; absent = the default canvas collection, so
+ * every v1.0 op stays valid (`param` stays collection-blind). Presence gains
+ * focus/location/following/viewport/chat; CanvasDocState gains `collections`.
  */
-export const CANVAS_OP_VERSION = '1.0.0';
+export const CANVAS_OP_VERSION = '1.1.0';
 
 // ── Identity (plans/99 §2) ─────────────────────────────────────────────────────
 
@@ -157,6 +162,9 @@ export type GeometryField = 'x' | 'y' | 'w' | 'h' | 'rot';
 export interface GeomOp {
   readonly k: 'geom';
   readonly id: BoxId;
+  /** v1.1 (plans/100 §3): the blocks-input collection this op targets; absent =
+   *  the default canvas collection. Additive — every v1.0 op stays valid. */
+  readonly col?: string;
   readonly fields: Partial<Record<GeometryField, number>>;
   readonly origin: OpOrigin;
 }
@@ -166,6 +174,8 @@ export interface GeomOp {
 export interface FieldOp {
   readonly k: 'field';
   readonly id: BoxId;
+  /** v1.1: collection scope — see GeomOp.col. */
+  readonly col?: string;
   readonly field: string;
   readonly value: Scalar;
   readonly origin: OpOrigin;
@@ -175,6 +185,8 @@ export interface FieldOp {
 export interface AddOp {
   readonly k: 'add';
   readonly id: BoxId;
+  /** v1.1: collection scope — see GeomOp.col. */
+  readonly col?: string;
   readonly row: BoxRow;
   /** The box's paint-order position as an LWW fractional-index string (see
    *  ReferenceCanvasDoc). lolly-work's adapter uses `Y.Array<BoxId>` instead —
@@ -187,6 +199,8 @@ export interface AddOp {
 export interface RemoveOp {
   readonly k: 'remove';
   readonly id: BoxId;
+  /** v1.1: collection scope — see GeomOp.col. */
+  readonly col?: string;
   readonly origin: OpOrigin;
 }
 
@@ -194,13 +208,16 @@ export interface RemoveOp {
 export interface OrderOp {
   readonly k: 'order';
   readonly id: BoxId;
+  /** v1.1: collection scope — see GeomOp.col. */
+  readonly col?: string;
   readonly orderKey: string;
   readonly origin: OpOrigin;
 }
 
 /** Set a `params` entry (plans/99 §6). The one op beyond the four §9 kinds because
  *  params is a separate document lane (`Y.Map<CanonicalId, ParamValue>`), not a box
- *  field. */
+ *  field. Deliberately NOT collection-scoped in v1.1 — the params lane is
+ *  collection-blind (plans/100 §3). */
 export interface ParamOp {
   readonly k: 'param';
   readonly key: string;
@@ -229,6 +246,21 @@ export interface Presence {
   readonly selection: BoxId[];
   /** In-flight drag delta (also normalized unit space) — never persisted. */
   readonly drag?: { readonly ids: BoxId[]; readonly dxy: readonly [number, number] };
+  /** v1.1 (plans/100 §3, §4.1): the focused input — an input id, or
+   *  `"<blocksId>:<rowId>"` for a blocks row. Drives the focus-ring presence
+   *  primitive on every tool. */
+  readonly focus?: string;
+  /** v1.1 (plans/100 §4.2): which slide/page/scene the user is on (big tools) —
+   *  presence-bar grouping and the follow-mode target. */
+  readonly location?: string;
+  /** v1.1 (plans/100 §4.2): the userId this user is following — follow is a pure
+   *  presence field, never a mode. */
+  readonly following?: string;
+  /** v1.1 (plans/100 §4.2): the follower-adoptable camera. */
+  readonly viewport?: { readonly x: number; readonly y: number; readonly zoom: number };
+  /** v1.1 (plans/100 §3): cursor chat — ≤64 chars (schema-enforced), rides the
+   *  awareness channel only, never persisted. */
+  readonly chat?: string;
 }
 
 /** Alias — the value carried on the awareness channel is a Presence (plans/99 §5). */
@@ -270,39 +302,69 @@ function isParamBinding(v: ParamValue): v is ParamBinding {
  * content field is one FieldOp, appearing/disappearing ids are AddOp/RemoveOp. The
  * geometry-vs-content split is the §4.3 lane discipline in code.
  *
- * `next` iteration order defines paint order for added boxes; each added box gets an
- * ascending fractional-index `orderKey` threaded through that order. A plain row map
- * cannot distinguish a true z-reorder from a `frame`/`group`/`order` field edit, so
- * this helper emits those as content FieldOps (never OrderOp); the shell's Scene,
- * which knows a gesture was a reorder, emits OrderOp explicitly.
+ * ORDER (v1.1, plans/100 §3 — `blocks` collections made this load-bearing, because
+ * for a blocks input row order IS the content): `next` iteration order is the paint
+ * order the ops must reproduce. The order keys are minted from ONE ascending
+ * sequence over the whole of `next`, and they are STAMPED on every row — the added
+ * ones through their AddOp, the surviving ones through an OrderOp — whenever the
+ * sequence actually changed (something was added, or the survivors' relative order
+ * moved). That whole-sequence rewrite is the only correct answer available to a
+ * helper that sees rows but not their current keys: minting an add's key from a
+ * restarted sequence made it COLLIDE with a key a prior gesture had already given
+ * another row, and both peers then converged on the wrong order (the tie broke by
+ * BoxId, and ULIDs sort by creation time, so a new row always lost). A gesture that
+ * only edits fields — the common case — still emits no order op at all, and a
+ * removal alone leaves the survivors' keys correctly sorted, so neither pays for it.
+ * The precise-insert alternative (a `keyBetween` over the neighbours' existing keys)
+ * needs those keys at the seam; it is a v1.2 signature question, not a fix.
+ *
+ * A plain row map still cannot distinguish a `frame`/`group`/`order` FIELD edit from
+ * a z-move, so those stay content FieldOps.
  *
  * @param prev       box state before the gesture (keyed by stable BoxId)
  * @param next       box state after the gesture
  * @param origin     the op origin stamp for every op produced here
  * @param geomFields resolved geometry field names (defaults to the shipped roles)
+ * @param col        v1.1 (plans/100 §3): the blocks-input collection the gesture
+ *                   targets; default undefined = the canvas collection, in which
+ *                   case every emitted op is byte-identical to its v1.0 shape
  */
 export function damageToOps(
   prev: Map<BoxId, BoxRow>,
   next: Map<BoxId, BoxRow>,
   origin: OpOrigin,
   geomFields: readonly string[] = DEFAULT_GEOMETRY_FIELDS,
+  col?: string,
 ): CanvasOp[] {
   const ops: CanvasOp[] = [];
+  // Stamp the collection scope only when present — a default-canvas op must carry
+  // no `col` key at all (the v1.0 shape, plans/100 §3).
+  const scope: { col?: string } = col === undefined ? {} : { col };
 
   // Removed: in prev, gone from next.
   for (const id of prev.keys()) {
-    if (!next.has(id)) ops.push({ k: 'remove', id, origin });
+    if (!next.has(id)) ops.push({ k: 'remove', id, origin, ...scope });
   }
 
-  // Walk next in paint order, threading an ascending orderKey for added boxes.
+  // Did the sequence itself change? Survivors compared in each map's own iteration
+  // order: an insert anywhere, or any relative move, means every row's key is
+  // restated below; a pure field edit (and a pure removal) means none is.
+  const nextIds = [...next.keys()];
+  const survivorsNext = nextIds.filter(id => prev.has(id));
+  const survivorsPrev = [...prev.keys()].filter(id => next.has(id));
+  const rewriteOrder = nextIds.length > survivorsNext.length
+    || survivorsNext.some((id, i) => id !== survivorsPrev[i]);
+
+  // Walk next in paint order, threading one ascending orderKey sequence.
   let orderKey = '';
   for (const [id, nextRow] of next) {
     orderKey = keyAfter(orderKey);
     const prevRow = prev.get(id);
     if (prevRow === undefined) {
-      ops.push({ k: 'add', id, row: { ...nextRow }, orderKey, origin });
+      ops.push({ k: 'add', id, row: { ...nextRow }, orderKey, origin, ...scope });
       continue;
     }
+    if (rewriteOrder) ops.push({ k: 'order', id, orderKey, origin, ...scope });
     // Existing box: collect changed fields, split by lane.
     const geom: Partial<Record<GeometryField, number>> = {};
     let geomChanged = false;
@@ -315,7 +377,7 @@ export function damageToOps(
         geom[field as GeometryField] = Number(nv);
         geomChanged = true;
       } else {
-        ops.push({ k: 'field', id, field, value: nv, origin });
+        ops.push({ k: 'field', id, field, value: nv, origin, ...scope });
       }
     }
     // A field removed from the row reads as clearing it to null (content lane).
@@ -325,10 +387,10 @@ export function damageToOps(
         geom[field as GeometryField] = Number(prevRow[field]);
         geomChanged = true;
       } else {
-        ops.push({ k: 'field', id, field, value: null, origin });
+        ops.push({ k: 'field', id, field, value: null, origin, ...scope });
       }
     }
-    if (geomChanged) ops.push({ k: 'geom', id, fields: geom, origin });
+    if (geomChanged) ops.push({ k: 'geom', id, fields: geom, origin, ...scope });
   }
 
   return ops;
@@ -340,14 +402,20 @@ export function damageToOps(
  * path. Ids are de-duplicated per lane. `frames` is left empty — a frame is a box
  * (`kind:"frame"`), which only the shell's Scene can tell from `kind`. ParamOps
  * carry no box damage (params is a separate lane).
+ *
+ * @param col v1.1 (plans/100 §3): the collection context this damage set is FOR;
+ *            default undefined = the canvas collection. An op targets exactly one
+ *            collection, so ops scoped elsewhere carry no damage in this context —
+ *            a v1.0 call site (no col anywhere) behaves exactly as before.
  */
-export function opsToDamage(ops: readonly CanvasOp[]): Damage {
+export function opsToDamage(ops: readonly CanvasOp[], col?: string): Damage {
   const moved = new Set<BoxId>();
   const restyled = new Set<BoxId>();
   const added = new Set<BoxId>();
   const removed = new Set<BoxId>();
   const zChanged = new Set<BoxId>();
   for (const op of ops) {
+    if (op.k !== 'param' && op.col !== col) continue;
     switch (op.k) {
       case 'geom':
         moved.add(op.id);
@@ -380,15 +448,63 @@ export function opsToDamage(ops: readonly CanvasOp[]): Damage {
 
 // ── Version compatibility (plans/99 §9) ────────────────────────────────────────
 
-/** Same major ⇒ compatible; else the client joins observer-only rather than
- *  corrupting state (plans/99 §9). Append-only minors are always compatible. */
+/**
+ * Same major ⇒ compatible; else the client joins observer-only rather than
+ * corrupting state (plans/99 §9). Append-only minors are always compatible.
+ *
+ * NECESSARY, NOT SUFFICIENT, per op. A minor may add a field that changes an op's
+ * PAYLOAD, which an older peer can ignore — but `col` (v1.1) changes an op's
+ * ROUTING: to a v1.0 peer a collection-scoped op is either invalid (its schema
+ * closes every branch) or, worse, a canvas-box write, which breaks the plans/99 §8
+ * "identical boxes ⇒ identical render" invariant. So a sender ALSO gates each op on
+ * what the receiver's version can honour — `isOpSendableTo` — and PWA staleness
+ * (plans/100 §11.19) makes that pair routine, not exotic.
+ */
 export function isCompatibleOpVersion(remote: string, local: string = CANVAS_OP_VERSION): boolean {
   return majorOf(remote) === majorOf(local);
+}
+
+/** The version that introduced collection-scoped ops (`col`) — plans/100 §3. */
+export const COLLECTIONS_SINCE = '1.1.0';
+
+/** Can a peer on `version` honour `col`? False for every v1.0 peer, which is why a
+ *  blocks-collection edit must not be sent to one (see `isOpSendableTo`). */
+export function supportsCollections(version: string): boolean {
+  return atLeast(version, COLLECTIONS_SINCE);
+}
+
+/**
+ * The send-side gate: may this op go to a peer running `remoteVersion`? A transport
+ * calls it per op and treats `false` as "this edit cannot cross to that peer" —
+ * dropping it and telling the user their collaborator is on an older build, never
+ * sending it and hoping. Ops with no version-gated field always pass, so a v1.0-only
+ * session is unaffected.
+ */
+export function isOpSendableTo(op: CanvasOp, remoteVersion: string): boolean {
+  if (!isCompatibleOpVersion(remoteVersion)) return false;
+  if (op.k !== 'param' && op.col !== undefined && !supportsCollections(remoteVersion)) return false;
+  return true;
 }
 
 function majorOf(version: string): string {
   const dot = version.indexOf('.');
   return dot === -1 ? version : version.slice(0, dot);
+}
+
+/** `version >= floor`, comparing major then minor numerically ('1.10.0' > '1.9.0').
+ *  Patch is deliberately ignored — the contract never gates on it. */
+function atLeast(version: string, floor: string): boolean {
+  const [vMaj, vMin] = numericParts(version);
+  const [fMaj, fMin] = numericParts(floor);
+  if (vMaj !== fMaj) return vMaj > fMaj;
+  return vMin >= fMin;
+}
+
+function numericParts(version: string): [number, number] {
+  const parts = version.split('.');
+  const maj = Number(parts[0]);
+  const min = Number(parts[1]);
+  return [Number.isFinite(maj) ? maj : -1, Number.isFinite(min) ? min : -1];
 }
 
 // ── The document + the sync-provider seam (plans/99 §3, §1) ─────────────────────
@@ -405,6 +521,11 @@ export interface CanvasDocState {
   boxes: Map<BoxId, BoxRow>;
   /** The reactive/data bus (plans/99 §3 `params: Y.Map<CanonicalId, ParamValue>`). */
   params: Map<string, ParamValue>;
+  /** v1.1 (plans/100 §3): per-blocks-input collections — each a boxes-shaped doc
+   *  of its own (own order, own rows), keyed by the blocks input id. Absent when
+   *  no collection-scoped op has been applied, so a v1.0 op log yields a
+   *  v1.0-shaped state. */
+  collections?: Map<string, { order: BoxId[]; boxes: Map<BoxId, BoxRow> }>;
 }
 
 /**
@@ -417,13 +538,21 @@ export interface CanvasDocState {
 export interface CanvasSyncAdapter {
   /** Local edit → ops to broadcast (plans/99 §4.1). Applies them locally too; the
    *  returned ops are what a transport would send. `damage` is an advisory hint —
-   *  `rows` is the post-gesture box state the ops are derived against. */
-  onLocalChange(damage: Damage, rows: Map<BoxId, BoxRow>): CanvasOp[];
+   *  `rows` is the post-gesture box state the ops are derived against. v1.1
+   *  (plans/100 §3): `col` scopes the gesture to a blocks-input collection
+   *  (absent = the canvas collection). A pre-v1.1 two-arg implementation still
+   *  TYPE-checks against this interface, but it does not pass the v1.1 conformance
+   *  suite — the collection cases assert that a scoped op lands in `collections`
+   *  and never in `boxes`. Honouring `col` is the work, not the signature (the
+   *  cross-repo sequencing for that is plans/100 wave 3.2). */
+  onLocalChange(damage: Damage, rows: Map<BoxId, BoxRow>, col?: string): CanvasOp[];
   /** Apply one op to the document (LWW / convergent). Idempotent and
-   *  order-independent within this adapter's model. */
+   *  order-independent within this adapter's model. v1.1: honours `op.col` —
+   *  per-collection registers and order, default collection when absent. */
   apply(op: CanvasOp): void;
   /** Remote ops → Damage for the presenter (plans/99 §4.2). Applies them, then
-   *  classifies. */
+   *  classifies. Returns the CANVAS collection's damage; a caller presenting a
+   *  blocks collection computes its own via `opsToDamage(ops, col)` (v1.1). */
   applyRemotePatch(ops: readonly CanvasOp[]): Damage;
   /** Ephemeral presence — never written to the doc (plans/99 §5). */
   presence(a: Awareness): void;
@@ -471,7 +600,12 @@ function put<T>(current: Reg<T> | null | undefined, value: T, origin: OpOrigin):
  * bytes against `() => new YjsAdapter()`.
  */
 export class ReferenceCanvasDoc implements CanvasSyncAdapter {
+  /** The default canvas collection's box registers. */
   private readonly boxes = new Map<BoxId, BoxState>();
+  /** v1.1 (plans/100 §3): per-blocks-collection box registers, keyed by the blocks
+   *  input id. Each collection is an independent boxes-shaped doc — same registers,
+   *  same order model — materialized on first op, never on read. */
+  private readonly collections = new Map<string, Map<BoxId, BoxState>>();
   private readonly params = new Map<string, Reg<ParamValue>>();
   private readonly clientId: string;
   private clock = 0;
@@ -482,11 +616,12 @@ export class ReferenceCanvasDoc implements CanvasSyncAdapter {
     this.clientId = clientId;
   }
 
-  onLocalChange(_damage: Damage, rows: Map<BoxId, BoxRow>): CanvasOp[] {
+  onLocalChange(_damage: Damage, rows: Map<BoxId, BoxRow>, col?: string): CanvasOp[] {
     // Diff the incoming rows against our own converged state and emit minimal ops
     // (the `damage` arg is an advisory scope hint the reference does not need).
+    // v1.1: `col` scopes both the diff base and the emitted ops to one collection.
     const origin: OpOrigin = { client: this.clientId, clock: ++this.clock };
-    const ops = damageToOps(this.currentRows(), rows, origin);
+    const ops = damageToOps(this.currentRows(col), rows, origin, DEFAULT_GEOMETRY_FIELDS, col);
     for (const op of ops) this.apply(op);
     return ops;
   }
@@ -499,7 +634,7 @@ export class ReferenceCanvasDoc implements CanvasSyncAdapter {
     if (op.origin.clock > this.clock) this.clock = op.origin.clock;
     switch (op.k) {
       case 'geom': {
-        const box = this.ensure(op.id);
+        const box = this.ensure(op.id, op.col);
         for (const field of Object.keys(op.fields)) {
           const v = op.fields[field as GeometryField];
           if (v !== undefined) box.fields.set(field, put(box.fields.get(field), v, op.origin));
@@ -507,12 +642,12 @@ export class ReferenceCanvasDoc implements CanvasSyncAdapter {
         break;
       }
       case 'field': {
-        const box = this.ensure(op.id);
+        const box = this.ensure(op.id, op.col);
         box.fields.set(op.field, put(box.fields.get(op.field), op.value, op.origin));
         break;
       }
       case 'add': {
-        const box = this.ensure(op.id);
+        const box = this.ensure(op.id, op.col);
         box.alive = put(box.alive, true, op.origin);
         box.order = put(box.order, op.orderKey, op.origin);
         for (const field of Object.keys(op.row)) {
@@ -521,12 +656,12 @@ export class ReferenceCanvasDoc implements CanvasSyncAdapter {
         break;
       }
       case 'remove': {
-        const box = this.ensure(op.id);
+        const box = this.ensure(op.id, op.col);
         box.alive = put(box.alive, false, op.origin);
         break;
       }
       case 'order': {
-        const box = this.ensure(op.id);
+        const box = this.ensure(op.id, op.col);
         box.order = put(box.order, op.orderKey, op.origin);
         break;
       }
@@ -550,54 +685,82 @@ export class ReferenceCanvasDoc implements CanvasSyncAdapter {
   state(): CanvasDocState {
     // Emit boxes and params in CANONICAL key order (sorted), not apply order, so
     // state() is interleaving-independent and directly comparable across clients
-    // (plans/99 §8). `order` is already deterministically sorted.
-    const boxes = new Map<BoxId, BoxRow>();
-    for (const id of this.aliveIds().sort()) boxes.set(id, this.rowOf(id));
+    // (plans/99 §8). `order` is already deterministically sorted. v1.1: collections
+    // likewise — sorted collection ids, each snapshotted the same canonical way —
+    // and the key is ABSENT when no collection-scoped op has ever applied, so a
+    // v1.0 op log yields a v1.0-shaped state.
     const params = new Map<string, ParamValue>();
     for (const key of [...this.params.keys()].sort()) {
       const reg = this.params.get(key);
       if (reg !== undefined) params.set(key, reg.value);
     }
-    return { order: this.order(), boxes, params };
+    const state: CanvasDocState = {
+      order: this.orderOf(this.boxes),
+      boxes: this.snapshot(this.boxes),
+      params,
+    };
+    if (this.collections.size > 0) {
+      const collections = new Map<string, { order: BoxId[]; boxes: Map<BoxId, BoxRow> }>();
+      for (const colId of [...this.collections.keys()].sort()) {
+        const store = this.collections.get(colId);
+        if (store !== undefined) {
+          collections.set(colId, { order: this.orderOf(store), boxes: this.snapshot(store) });
+        }
+      }
+      state.collections = collections;
+    }
+    return state;
   }
 
-  /** The deterministic serialization of the converged doc — rows in paint order.
-   *  The render-hash proxy for the §8 assertion: the plans/98 §11 determinism
-   *  invariant guarantees identical `boxes` input ⇒ identical render. */
+  /** The deterministic serialization of the converged doc — rows in paint order
+   *  (the default canvas collection). The render-hash proxy for the §8 assertion:
+   *  the plans/98 §11 determinism invariant guarantees identical `boxes` input ⇒
+   *  identical render. */
   canonicalBoxes(): BoxRow[] {
-    return this.order().map((id) => this.rowOf(id));
+    return this.orderOf(this.boxes).map((id) => this.rowOf(this.boxes, id));
   }
 
   // — internals —
 
-  private ensure(id: BoxId): BoxState {
-    let box = this.boxes.get(id);
+  private ensure(id: BoxId, col?: string): BoxState {
+    let store: Map<BoxId, BoxState>;
+    if (col === undefined) {
+      store = this.boxes;
+    } else {
+      let m = this.collections.get(col);
+      if (m === undefined) {
+        m = new Map();
+        this.collections.set(col, m);
+      }
+      store = m;
+    }
+    let box = store.get(id);
     if (box === undefined) {
       box = { fields: new Map(), order: null, alive: null };
-      this.boxes.set(id, box);
+      store.set(id, box);
     }
     return box;
   }
 
-  private aliveIds(): BoxId[] {
+  private aliveIds(store: Map<BoxId, BoxState>): BoxId[] {
     const ids: BoxId[] = [];
-    for (const [id, box] of this.boxes) {
+    for (const [id, box] of store) {
       if (box.alive?.value === true) ids.push(id);
     }
     return ids;
   }
 
   /** Converged paint order: alive boxes, stable-sorted by (orderKey, BoxId). */
-  private order(): BoxId[] {
-    return this.aliveIds().sort((a, b) => {
-      const ka = this.boxes.get(a)?.order?.value ?? '';
-      const kb = this.boxes.get(b)?.order?.value ?? '';
+  private orderOf(store: Map<BoxId, BoxState>): BoxId[] {
+    return this.aliveIds(store).sort((a, b) => {
+      const ka = store.get(a)?.order?.value ?? '';
+      const kb = store.get(b)?.order?.value ?? '';
       return ka < kb ? -1 : ka > kb ? 1 : a < b ? -1 : a > b ? 1 : 0;
     });
   }
 
-  private rowOf(id: BoxId): BoxRow {
-    const box = this.boxes.get(id);
+  private rowOf(store: Map<BoxId, BoxState>, id: BoxId): BoxRow {
+    const box = store.get(id);
     const row: BoxRow = {};
     if (box) {
       // Sort keys so the row serialization is CANONICAL — field insertion order
@@ -612,9 +775,21 @@ export class ReferenceCanvasDoc implements CanvasSyncAdapter {
     return row;
   }
 
-  private currentRows(): Map<BoxId, BoxRow> {
+  /** Alive rows keyed by id, in canonical order — the snapshot both `state()`
+   *  collections and the canvas `boxes` map are built from. */
+  private snapshot(store: Map<BoxId, BoxState>): Map<BoxId, BoxRow> {
+    const boxes = new Map<BoxId, BoxRow>();
+    for (const id of this.aliveIds(store).sort()) boxes.set(id, this.rowOf(store, id));
+    return boxes;
+  }
+
+  private currentRows(col?: string): Map<BoxId, BoxRow> {
+    // Read path: an untouched collection has no store and must NOT materialize one.
+    const store = col === undefined ? this.boxes : this.collections.get(col);
     const rows = new Map<BoxId, BoxRow>();
-    for (const id of this.order()) rows.set(id, this.rowOf(id));
+    if (store !== undefined) {
+      for (const id of this.orderOf(store)) rows.set(id, this.rowOf(store, id));
+    }
     return rows;
   }
 }

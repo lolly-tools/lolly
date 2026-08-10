@@ -188,5 +188,15 @@
   "{family} now serves h1/h2 headings": "이제 {family}이(가) h1/h2 제목에 사용돼요",
   "{family} now serves italic text": "이제 {family}이(가) 기울임꼴 텍스트에 사용돼요",
   "← All team projects": "← 모든 팀 프로젝트",
-  "Home": "홈"
+  "Home": "홈",
+  "Private collab": "비공개 협업",
+  "beta": "베타",
+  "Lets you invite one other device to co-edit a tool session directly - no account, no server, works offline on the same network. Anyone with the invite can join and edit until you close the session.": "다른 기기 한 대를 초대해서 도구 세션을 직접 함께 편집할 수 있어요. 계정도, 서버도 필요 없고 같은 네트워크에서는 오프라인으로도 작동해요. 초대장이 있는 사람은 누구나 세션을 닫기 전까지 참여해서 편집할 수 있어요.",
+  "Work collab": "업무 협업",
+  "Start a collab": "협업 시작",
+  "Starting a collab": "협업을 시작하고 있어요",
+  "Invite one other device to co-edit this session directly - no account, no server.": "다른 기기 한 대를 초대해서 이 세션을 직접 함께 편집하세요. 계정도, 서버도 필요 없어요.",
+  "Invite others on this instance to co-edit this session, live.": "이 인스턴스의 다른 사람들을 초대해서 이 세션을 실시간으로 함께 편집하세요.",
+  "Live now - 1 person editing": "지금 실시간 - 1명이 편집 중",
+  "Live now - {n} people editing": "지금 실시간 - {n}명이 편집 중"
 }

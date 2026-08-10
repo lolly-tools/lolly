@@ -177,5 +177,12 @@
   "Cut (no animation)",
   "Print preflight",
   "prepress",
-  "Checks a print export before you download: bleed, resolution, ink coverage and plate counts appear above the Download button. It never blocks an export."
+  "Checks a print export before you download: bleed, resolution, ink coverage and plate counts appear above the Download button. It never blocks an export.",
+  "Private collab",
+  "beta",
+  "Lets you invite one other device to co-edit a tool session directly - no account, no server, works offline on the same network. It starts on, and nothing is shared until you start a collab. Anyone with the invite can join and edit until you close the session.",
+  "Live now - 1 person editing",
+  "Live now - {n} people editing",
+  "Collaborator",
+  "{name} (away)"
 ]

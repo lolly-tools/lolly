@@ -188,5 +188,15 @@
   "{family} now serves h1/h2 headings": "{family} 現在用於 h1/h2 標題",
   "{family} now serves italic text": "{family} 現在用於斜體文字",
   "← All team projects": "← 所有團隊專案",
-  "Home": "首頁"
+  "Home": "首頁",
+  "Private collab": "私人協作",
+  "beta": "測試版",
+  "Lets you invite one other device to co-edit a tool session directly - no account, no server, works offline on the same network. Anyone with the invite can join and edit until you close the session.": "讓你直接邀請另一部裝置共同編輯工具階段——不需帳號，不需伺服器，在同一網路下離線也能使用。持有邀請的任何人都可以加入並編輯，直到你關閉該工作階段。",
+  "Invite one other device to co-edit this session directly - no account, no server.": "邀請另一部裝置直接共同編輯此工作階段——不需帳號，不需伺服器。",
+  "Start a collab": "開始協作",
+  "Starting a collab": "正在開始協作",
+  "Work collab": "團隊協作",
+  "Invite others on this instance to co-edit this session, live.": "邀請此執行個體上的其他人即時共同編輯此工作階段。",
+  "Live now - 1 person editing": "正在即時協作：1 人在編輯",
+  "Live now - {n} people editing": "正在即時協作：{n} 人在編輯"
 }

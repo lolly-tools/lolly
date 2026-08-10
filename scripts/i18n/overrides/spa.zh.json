@@ -188,5 +188,15 @@
   "{family} now serves h1/h2 headings": "{family}现用于 h1/h2 标题",
   "{family} now serves italic text": "{family}现用于斜体文字",
   "← All team projects": "← 所有团队项目",
-  "Home": "首页"
+  "Home": "首页",
+  "Private collab": "私密协作",
+  "beta": "测试版",
+  "Lets you invite one other device to co-edit a tool session directly - no account, no server, works offline on the same network. Anyone with the invite can join and edit until you close the session.": "让你直接邀请另一台设备共同编辑工具会话——无需账号，无需服务器，在同一网络下离线也可使用。持有邀请的任何人都可以加入并编辑，直到你关闭该会话。",
+  "Invite one other device to co-edit this session directly - no account, no server.": "邀请另一台设备直接共同编辑此会话——无需账号，无需服务器。",
+  "Start a collab": "开始协作",
+  "Starting a collab": "正在开始协作",
+  "Work collab": "团队协作",
+  "Invite others on this instance to co-edit this session, live.": "邀请此实例上的其他人实时共同编辑此会话。",
+  "Live now - 1 person editing": "正在实时协作：1 人在编辑",
+  "Live now - {n} people editing": "正在实时协作：{n} 人在编辑"
 }

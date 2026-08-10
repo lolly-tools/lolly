@@ -188,5 +188,15 @@
   "{family} now serves h1/h2 headings": "{family} kini digunakan untuk tajuk h1/h2",
   "{family} now serves italic text": "{family} kini digunakan untuk teks condong",
   "← All team projects": "← Semua projek pasukan",
-  "Home": "Laman utama"
+  "Home": "Laman utama",
+  "Private collab": "Kolaborasi peribadi",
+  "beta": "beta",
+  "Lets you invite one other device to co-edit a tool session directly - no account, no server, works offline on the same network. Anyone with the invite can join and edit until you close the session.": "Membolehkan anda menjemput satu peranti lain untuk mengedit sesi alat bersama secara langsung - tanpa akaun, tanpa pelayan, berfungsi secara luar talian pada rangkaian yang sama. Sesiapa yang mempunyai jemputan boleh menyertai dan mengedit sehingga anda menutup sesi.",
+  "Work collab": "Kolaborasi kerja",
+  "Start a collab": "Mulakan kolaborasi",
+  "Starting a collab": "Memulakan kolaborasi",
+  "Invite one other device to co-edit this session directly - no account, no server.": "Jemput satu peranti lain untuk mengedit sesi ini bersama secara langsung - tanpa akaun, tanpa pelayan.",
+  "Invite others on this instance to co-edit this session, live.": "Jemput orang lain pada instans ini untuk mengedit sesi ini bersama secara langsung.",
+  "Live now - 1 person editing": "Secara langsung sekarang - 1 orang sedang menyunting",
+  "Live now - {n} people editing": "Secara langsung sekarang - {n} orang sedang menyunting"
 }

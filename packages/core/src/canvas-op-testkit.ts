@@ -65,19 +65,34 @@ export function mulberry32(seed: number): Rng {
 
 /** The full converged document as a stable string. `state()` already emits boxes and
  *  params in canonical (sorted) key order, so this string is interleaving-independent
- *  for a convergent adapter. */
+ *  for a convergent adapter. v1.1: collections serialize too — sorted HERE by
+ *  collection id (emission order is not part of the contract) and normalized so an
+ *  absent map and an empty map compare equal. */
 function serializeState(s: CanvasDocState): string {
+  const colEntries = s.collections === undefined ? [] : [...s.collections.entries()];
+  const collections = colEntries
+    .map(([id, c]) => [id, { order: c.order, boxes: [...c.boxes.entries()] }] as const)
+    .sort(([a], [b]) => (a < b ? -1 : a > b ? 1 : 0));
   return JSON.stringify({
     order: s.order,
     boxes: [...s.boxes.entries()],
     params: [...s.params.entries()],
+    collections,
   });
 }
 
 /** The render-hash proxy (plans/99 §8): box rows in paint order, from the
- *  CanvasSyncAdapter interface alone (not the reference-only `canonicalBoxes()`). */
+ *  CanvasSyncAdapter interface alone (not the reference-only `canonicalBoxes()`).
+ *  v1.1: each collection's rows ride in ITS paint order, keyed by collection id. */
 function renderHash(s: CanvasDocState): string {
-  return JSON.stringify(s.order.map((id) => s.boxes.get(id) ?? null));
+  const colEntries = s.collections === undefined ? [] : [...s.collections.entries()];
+  const collections = colEntries
+    .map(([id, c]) => [id, c.order.map((bid) => c.boxes.get(bid) ?? null)] as const)
+    .sort(([a], [b]) => (a < b ? -1 : a > b ? 1 : 0));
+  return JSON.stringify({
+    canvas: s.order.map((id) => s.boxes.get(id) ?? null),
+    collections,
+  });
 }
 
 /** Fisher–Yates over a seeded PRNG — a reproducible client apply-order. */
@@ -314,10 +329,61 @@ function caseEmitApplyLoop(makeAdapter: () => CanvasSyncAdapter, label: string):
   assert.equal(serializeState(b.state()), serializeState(a.state()), `${label}: emit→apply (move+restyle) diverged`);
 }
 
-/** §5: awareness/presence is ephemeral and must NEVER mutate the persisted doc. */
+/**
+ * §4.1 + plans/100 §3: a gesture's row ORDER survives the emit → remote-apply loop,
+ * including the two cases a row-map diff is blind to — an insert at the TOP, and a
+ * pure reorder that touches no field.
+ *
+ * This is the case that was missing while `damageToOps` minted every added row's
+ * order key from a sequence that restarted per call: the second gesture handed a new
+ * row a key an EXISTING row already held, the tie broke by BoxId (and ULIDs sort by
+ * creation time, so the new row always lost), and both peers converged — on an order
+ * neither user asked for. For a `blocks` collection that is not cosmetic: row order
+ * is the content.
+ */
+function caseLocalOrderRoundTrips(makeAdapter: () => CanvasSyncAdapter, label: string): void {
+  const a = makeAdapter();
+  const b = makeAdapter();
+  const row = (id: BoxId, text: string): BoxRow => ({ id, x: 0, y: 0, w: 10, h: 10, rot: 0, text });
+  const damageOf = (added: BoxId[], zChanged: BoxId[]): Damage =>
+    ({ moved: [], restyled: [], added, removed: [], zChanged, frames: [] });
+  const sync = (rows: Map<BoxId, BoxRow>, damage: Damage): CanvasOp[] => {
+    const ops = a.onLocalChange(damage, rows);
+    b.applyRemotePatch(ops);
+    return ops;
+  };
+  const expectOrder = (expected: BoxId[], what: string): void => {
+    assert.deepEqual(a.state().order, expected, `${label}: ${what} — author's own order is wrong`);
+    assert.deepEqual(b.state().order, expected, `${label}: ${what} — peer's order diverged`);
+  };
+
+  const g1 = new Map<BoxId, BoxRow>([['r01', row('r01', 'one')], ['r02', row('r02', 'two')]]);
+  sync(g1, damageOf(['r01', 'r02'], []));
+  expectOrder(['r01', 'r02'], 'initial adds');
+
+  // Insert at the TOP of an existing collection — the collision case.
+  const g2 = new Map<BoxId, BoxRow>([['r03', row('r03', 'three')], ...g1]);
+  sync(g2, damageOf(['r03'], []));
+  expectOrder(['r03', 'r01', 'r02'], 'insert at the top');
+
+  // A pure reorder: same rows, same fields, different sequence.
+  const g3 = new Map<BoxId, BoxRow>([['r01', row('r01', 'one')], ['r03', row('r03', 'three')], ['r02', row('r02', 'two')]]);
+  const ops = sync(g3, damageOf([], ['r01', 'r02', 'r03']));
+  assert.ok(ops.length > 0, `${label}: a pure reorder emitted nothing at all`);
+  expectOrder(['r01', 'r03', 'r02'], 'pure reorder');
+
+  // And the next gesture diffs against THAT order, not a stale one.
+  const g4 = new Map<BoxId, BoxRow>([...g3, ['r04', row('r04', 'four')]]);
+  sync(g4, damageOf(['r04'], []));
+  expectOrder(['r01', 'r03', 'r02', 'r04'], 'append after a reorder');
+}
+
+/** §5: awareness/presence is ephemeral and must NEVER mutate the persisted doc —
+ *  including every v1.1 field (focus/location/following/viewport/chat, plans/100 §3). */
 function caseAwarenessNeverMutatesDoc(makeAdapter: () => CanvasSyncAdapter, label: string): void {
   const d = makeAdapter();
   d.apply({ k: 'add', id: 'b1', row: { id: 'b1', x: 0, y: 0, w: 1, h: 1, rot: 0 }, orderKey: '001', origin: { client: 'a', clock: 1 } });
+  d.apply({ k: 'add', id: 'r1', col: 'list', row: { id: 'r1', label: 'one' }, orderKey: '001', origin: { client: 'a', clock: 2 } });
   const before = serializeState(d.state());
   const presence: Awareness = {
     userId: 'u1',
@@ -326,9 +392,78 @@ function caseAwarenessNeverMutatesDoc(makeAdapter: () => CanvasSyncAdapter, labe
     cursor: { x: 0.5, y: 0.5 },
     selection: ['b1'],
     drag: { ids: ['b1'], dxy: [0.1, 0.2] },
+    focus: 'list:r1',
+    location: 'slide-2',
+    following: 'u2',
+    viewport: { x: 0.25, y: 0.5, zoom: 1.5 },
+    chat: 'look here',
   };
   d.presence(presence);
   assert.equal(serializeState(d.state()), before, `${label}: awareness mutated the persisted doc`);
+}
+
+// ── v1.1 focused cases (plans/100 §3 — collections + presence, additive) ─────────
+
+/** plans/100 §3: collection-scoped ops converge exactly like canvas ops — per-
+ *  collection registers, per-collection order — and land in `collections`, never
+ *  the canvas box map. */
+function caseCollectionOpsConverge(makeAdapter: () => CanvasSyncAdapter, label: string): void {
+  const rng = mulberry32(0xc0111d);
+  const ops = genOps(rng, 60).map((op) => (op.k === 'param' ? op : { ...op, col: 'rows' }));
+  assertConverges(makeAdapter, ops, rng, 4, `${label} col=rows`);
+
+  const d = makeAdapter();
+  applyAll(d, ops);
+  const s = d.state();
+  assert.equal(s.boxes.size, 0, `${label}: collection-scoped ops leaked into the canvas collection`);
+  const rows = s.collections?.get('rows');
+  assert.ok(rows !== undefined && rows.boxes.size > 0, `${label}: collection 'rows' missing from state()`);
+
+  // A mixed log — canvas + two collections interleaved — converges the same way.
+  const rng2 = mulberry32(0x5c07ed);
+  const base = genOps(rng2, 60);
+  const cols = [undefined, 'a', 'b'] as const;
+  const mixed = base.map((op) => {
+    if (op.k === 'param') return op;
+    const col = rng2.pick(cols);
+    return col === undefined ? op : { ...op, col };
+  });
+  assertConverges(makeAdapter, mixed, rng2, 4, `${label} mixed-collections`);
+}
+
+/** plans/100 §3: the same BoxId in the canvas collection and in a blocks collection
+ *  are INDEPENDENT documents — writes and removes on one never touch the other. */
+function caseCollectionsIndependent(makeAdapter: () => CanvasSyncAdapter, label: string): void {
+  const addCanvas: CanvasOp = { k: 'add', id: 'b1', row: { id: 'b1', x: 0, y: 0, w: 10, h: 10, rot: 0, fill: 'red' }, orderKey: '001', origin: { client: 'a', clock: 1 } };
+  const addList: CanvasOp = { k: 'add', id: 'b1', col: 'list', row: { id: 'b1', label: 'one' }, orderKey: '001', origin: { client: 'a', clock: 2 } };
+  const editList: CanvasOp = { k: 'field', id: 'b1', col: 'list', field: 'label', value: 'two', origin: { client: 'b', clock: 3 } };
+  const removeCanvas: CanvasOp = { k: 'remove', id: 'b1', origin: { client: 'b', clock: 4 } };
+  const ops = [addCanvas, addList, editList, removeCanvas];
+  for (const order of [ops, [...ops].reverse(), [addList, removeCanvas, addCanvas, editList]]) {
+    const d = makeAdapter();
+    applyAll(d, order);
+    const s = d.state();
+    assert.equal(s.boxes.has('b1'), false, `${label}: canvas remove lost, or leaked in from the collection`);
+    const list = s.collections?.get('list');
+    assert.ok(list !== undefined, `${label}: collection 'list' missing`);
+    assert.equal(list.boxes.get('b1')?.label, 'two', `${label}: collection row lost or cross-written`);
+    assert.deepEqual(list.order, ['b1'], `${label}: collection order wrong`);
+  }
+}
+
+/** The additive guarantee (plans/100 §3): a v1.0 op stream — no `col` anywhere —
+ *  still applies to the default canvas collection and yields a v1.0-shaped state
+ *  (`collections` absent or empty). */
+function caseV10OpsUnscoped(makeAdapter: () => CanvasSyncAdapter, label: string): void {
+  const d = makeAdapter();
+  d.apply({ k: 'add', id: 'b1', row: { id: 'b1', x: 1, y: 2, w: 3, h: 4, rot: 0 }, orderKey: '001', origin: { client: 'a', clock: 1 } });
+  d.apply({ k: 'field', id: 'b1', field: 'fill', value: 'red', origin: { client: 'a', clock: 2 } });
+  const s = d.state();
+  assert.equal(s.boxes.get('b1')?.fill, 'red', `${label}: a v1.0 op no longer applies to the canvas`);
+  assert.ok(
+    s.collections === undefined || s.collections.size === 0,
+    `${label}: a v1.0 op stream materialized a collection`,
+  );
 }
 
 // ── The exported shared suite (plans/99 §8) ─────────────────────────────────────
@@ -363,5 +498,10 @@ export function runConvergenceSuite(makeAdapter: () => CanvasSyncAdapter, label:
   caseLockedFieldFiltered(makeAdapter, label);
   caseRemoveReAdd(makeAdapter, label);
   caseEmitApplyLoop(makeAdapter, label);
+  caseLocalOrderRoundTrips(makeAdapter, label);
   caseAwarenessNeverMutatesDoc(makeAdapter, label);
+  // v1.1 (plans/100 §3) — appended, never reordered; the suite signature is pinned.
+  caseCollectionOpsConverge(makeAdapter, label);
+  caseCollectionsIndependent(makeAdapter, label);
+  caseV10OpsUnscoped(makeAdapter, label);
 }

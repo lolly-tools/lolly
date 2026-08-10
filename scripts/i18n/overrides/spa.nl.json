@@ -188,5 +188,7 @@
   "{family} now serves h1/h2 headings": "{family} verzorgt nu de h1/h2-koppen",
   "{family} now serves italic text": "{family} verzorgt nu de cursieve tekst",
   "← All team projects": "← Alle teamprojecten",
-  "Home": "Home"
+  "Home": "Home",
+  "Live now - 1 person editing": "Nu live - 1 persoon aan het bewerken",
+  "Live now - {n} people editing": "Nu live - {n} personen aan het bewerken"
 }

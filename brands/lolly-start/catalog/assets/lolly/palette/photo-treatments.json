@@ -16,27 +16,6 @@
       "highlight": "#d2eaff"
     },
     {
-      "id": "jade",
-      "label": "Jade",
-      "kind": "duotone",
-      "shadow": "#002e17",
-      "highlight": "#c9f4dc"
-    },
-    {
-      "id": "violet",
-      "label": "Violet",
-      "kind": "duotone",
-      "shadow": "#2a1b40",
-      "highlight": "#ede0ff"
-    },
-    {
-      "id": "green",
-      "label": "Green",
-      "kind": "duotone",
-      "shadow": "#1e2900",
-      "highlight": "#e1efc7"
-    },
-    {
       "id": "deep",
       "label": "Deep",
       "kind": "duotone",

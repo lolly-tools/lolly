@@ -188,5 +188,15 @@
   "{family} now serves h1/h2 headings": "{family} brukes nå for h1/h2-overskrifter",
   "{family} now serves italic text": "{family} brukes nå for kursiv tekst",
   "← All team projects": "← Alle teamprosjekter",
-  "Home": "Hjem"
+  "Home": "Hjem",
+  "Private collab": "Privat samarbeid",
+  "beta": "beta",
+  "Lets you invite one other device to co-edit a tool session directly - no account, no server, works offline on the same network. Anyone with the invite can join and edit until you close the session.": "Lar deg invitere én annen enhet til å redigere en verktøyøkt sammen med deg direkte - ingen konto, ingen server, virker uten nett på samme nettverk. Alle som har invitasjonen, kan bli med og redigere til du lukker økten.",
+  "Invite one other device to co-edit this session directly - no account, no server.": "Inviter én annen enhet til å redigere denne økten sammen med deg direkte - ingen konto, ingen server.",
+  "Start a collab": "Start et samarbeid",
+  "Starting a collab": "Starter et samarbeid",
+  "Work collab": "Teamsamarbeid",
+  "Invite others on this instance to co-edit this session, live.": "Inviter andre på denne instansen til å redigere denne økten sammen med deg, live.",
+  "Live now - 1 person editing": "Live nå - 1 person redigerer",
+  "Live now - {n} people editing": "Live nå - {n} personer redigerer"
 }

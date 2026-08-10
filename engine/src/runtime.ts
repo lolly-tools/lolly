@@ -195,6 +195,16 @@ export interface Runtime {
   /** Hook failures (currently onInit); empty when every hook ran cleanly. */
   hookErrors: HookError[];
   setInput(id: string, value: InputValue): Promise<void>;
+  /**
+   * Apply MANY input values as ONE batch — the multi-input counterpart to
+   * setInput (plans/100 §5: a remote collaboration op arrives as a set of values;
+   * also useful to /multi and URL hydration). Unknown ids and values the
+   * constraints reject are dropped key by key — never the batch, never a throw
+   * mid-apply. `onInput` still runs per changed id, sequentially in the object's
+   * insertion order; what coalesces is the render: subscribers are notified
+   * exactly once, after the last hook.
+   */
+  applyPatch(values: Record<string, unknown>): Promise<void>;
   subscribe(fn: (state: RuntimeState) => void): () => void;
   /** Re-notify subscribers with the CURRENT model — no value change. */
   refresh(): void;
@@ -588,6 +598,84 @@ export async function createRuntime(
       // Re-resolve nested renders OFF the critical path. Commit + re-emit only if
       // this is still the latest setInput (so an out-of-order child render can't
       // clobber a newer value, M5) and the resolved refs actually changed.
+      if (host.compose && tool.manifest.composes?.length) {
+        const composeOut = await resolveNestedRenders(tool, model, extras, host, composeStack, composeMemo);
+        const changed = Object.keys(composeOut).some(k => extras[k] !== composeOut[k]);
+        if (seq === setInputSeq && changed) {
+          extras = { ...extras, ...composeOut };
+          emit();
+        }
+      }
+    },
+
+    /**
+     * Atomic multi-input apply (plans/100 §5). Every value goes through EXACTLY
+     * setInput's constraint path (updateInput → constrain), so a batch can never
+     * put anything in the model a keystroke couldn't. A key naming no declared
+     * input — version skew between peers — or one whose value the constraints
+     * reject is DROPPED on its own; the rest of the batch still applies and
+     * nothing throws mid-apply (§11.11).
+     *
+     * What "reject" covers is exactly what the input model can decide from the
+     * MANIFEST (see constrain in inputs.ts): a select value outside its declared
+     * options, a non-boolean boolean, NaN/out-of-range numbers, an over-long
+     * string, a non-array `blocks`, a malformed table/vector/file. It does NOT
+     * type-check `asset` or `color`, whose legitimate values are object-shaped and
+     * completed later in the lifecycle — a caller taking values from an untrusted
+     * peer gates those at its own boundary (the web shell's collab plumbing does).
+     * Nor is it a size/depth cap on hostile payloads: that is inbound-transport
+     * hardening (§11.21, wave 2.4), which belongs where the bytes arrive.
+     *
+     * `onInput` runs per CHANGED id, sequentially in the object's insertion
+     * order, under setInput's time-box and warn-don't-throw handling: the hook
+     * contract is per-input and must not change meaning just because the values
+     * arrived together. Only the RENDER coalesces — one emit after the last
+     * hook instead of one per key (a batch where nothing landed emits nothing).
+     * Each hook is told the value that actually entered the model (post-constrain,
+     * flattened), captured at apply time so an earlier hook's patch can't change
+     * what a later id reports. One deliberate divergence from setInput, which
+     * hands its hook the caller's RAW argument: a batch arrives from a peer, a URL
+     * or `/multi`, where "what the user typed" has no meaning and the model value
+     * is the honest one. A hook that branches on out-of-range input sees it on the
+     * keystroke path only.
+     */
+    async applyPatch(values) {
+      const applied: { id: string; value: InputValue }[] = [];
+      for (const [id, value] of Object.entries(values ?? {})) {
+        const before = model.find(i => i.id === id);
+        if (!before) continue; // no such input on this build — dropped, not an error
+        // Trust boundary, the one setInput already has: the value is whatever the
+        // caller (a peer, a URL, /multi) sent; constrain() decides what may enter.
+        const next = updateInput(model, id, value as InputValue);
+        const after = next.find(i => i.id === id)!;
+        // constrain() returns the PRIOR value when it rejects one, so an unchanged
+        // value is exactly the rejected case (and a genuine no-op write): leave the
+        // model alone rather than churn isDirty and run a hook for nothing.
+        if (Object.is(after.value, before.value)) continue;
+        // Same live-capture retirement as setInput — swapping the image SOURCE
+        // means the render no longer shows camera essence.
+        if (before.type === 'asset' || before.type === 'file' || before.type === 'url') liveCameraShown = false;
+        model = next;
+        applied.push({ id, value: flattenValue(after.value) });
+      }
+      if (!applied.length) return;
+      const liveEdgeInput = tool.manifest.render?.liveMaxEdgeInput;
+      if (liveResubscribe && liveEdgeInput && applied.some(a => a.id === liveEdgeInput)) liveResubscribe();
+      const seq = ++setInputSeq;
+      const onInput = hooks?.onInput;
+      if (onInput) {
+        for (const { id, value } of applied) {
+          try {
+            const patch = await runHook('onInput', () => onInput({ id, value, model: modelForHooks(model), host }));
+            if (patch) ({ model, extras } = mergePatch(model, extras, patch, inputIds));
+          } catch (e) {
+            host.log('warn', `onInput ${(e as Error).message}`, { toolId: tool.manifest.id });
+          }
+        }
+      }
+      emit(); // ONE render for the whole batch, hooks included
+      // Nested renders off the critical path, superseded by any newer
+      // setInput/applyPatch — the same tail (and the same later emit) setInput has.
       if (host.compose && tool.manifest.composes?.length) {
         const composeOut = await resolveNestedRenders(tool, model, extras, host, composeStack, composeMemo);
         const changed = Object.keys(composeOut).some(k => extras[k] !== composeOut[k]);
