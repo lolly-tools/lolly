@@ -36,6 +36,23 @@ export async function sha256(bytes: Uint8Array): Promise<Uint8Array> {
 /** Bytes → lowercase hex, two digits per byte. */
 export const bytesToHex = (b: Uint8Array): string => Array.from(b, (x) => x.toString(16).padStart(2, '0')).join('');
 
+/**
+ * Lowercase sha256 hex of the given bytes — `bytesToHex(await sha256(bytes))`,
+ * the one spelling of that pair in the engine.
+ *
+ * It LIVES here rather than in `catalog-integrity.ts` (its original home, which
+ * still re-exports it so the barrel surface is unchanged) for a boot-path reason:
+ * `design-version.ts` re-exports it too, and `design-version.ts` is on the web
+ * shell's first-paint graph via `bridge/assets.ts`. Sourcing a two-line helper
+ * from `catalog-integrity.ts` dragged that module — and, through it, `x509.ts` +
+ * `der-read.ts` — onto the boot chunk set for a feature (catalog signature
+ * verification) that is inert unless a build pins a public key. Same leaf-import
+ * discipline the `engine-util` / `engine-version` chunk groups exist to protect.
+ */
+export async function sha256Hex(bytes: Uint8Array): Promise<string> {
+  return bytesToHex(await sha256(bytes));
+}
+
 /** Strict standard base64 → bytes (atob semantics: throws on invalid input).
  *  Callers own any massaging — PEM armor / whitespace stripping, padding
  *  fixes, base64url alphabet translation — BEFORE calling this. */

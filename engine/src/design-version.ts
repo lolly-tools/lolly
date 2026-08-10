@@ -310,13 +310,16 @@ export function resolveDesignVersion(
  * one `frozenAssetId` keys a preserved copy on, and the one `docChecksum` below
  * takes over a document's canonical JSON.
  *
- * Re-exported rather than written again: `catalog-integrity.ts` has owned exactly
- * this function since catalog signing landed, over the same `bytes.ts` primitive.
- * A second `sha256Hex` in the engine would be two spellings of one contract (and
- * the barrel cannot export both), so the version model borrows the incumbent and
- * the barrel keeps exporting it from its original home.
+ * Re-exported rather than written again: one spelling of that contract exists in
+ * the engine, and it is the `bytes.ts` leaf. It used to be sourced from
+ * `catalog-integrity.ts` (its original home, which still re-exports it, so the
+ * barrel surface is unchanged) — but this module is on the web shell's FIRST-PAINT
+ * graph via `bridge/assets.ts`, and that edge dragged catalog-integrity + `x509.ts`
+ * + `der-read.ts` (~3.6 KB gz of boot chunks) along for a two-line helper, to serve
+ * a catalog-signature feature that is inert unless a build pins a public key.
+ * Import the leaf, not the module that happens to re-export from it.
  */
-export { sha256Hex } from './catalog-integrity.ts';
+export { sha256Hex } from './bytes.ts';
 
 /** How much of the digest names a frozen copy. 48 bits of content key: short
  *  enough to read in a listing, far past any collision a personal library can

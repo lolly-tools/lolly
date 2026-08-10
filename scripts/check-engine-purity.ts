@@ -80,6 +80,12 @@ const ALLOWED_PACKAGES = new Set([
   'ajv/dist/2020.js',           // engine/src/validate.ts — engine/package.json dep
   '@lolly-tools/core/host-v1',  // engine/src/bridge/host-v1.ts — the SDK contract
   '@lolly-tools/core',          // engine/src/loader.ts — type-only manifest/render specs
+  // engine/package.json dep (declared 2026-08-05, allowlist missed at the time).
+  // Pure JS zip/gzip codec, no DOM/fs/network — same platform-agnostic bar as
+  // handlebars/ajv above. Used directly by epub.ts (zipSync), font-convert.ts
+  // (unzlibSync) and xlsx-import.ts (unzipSync); every other engine module that
+  // mentions fflate in comments hands bytes to a SHELL to (de)compress instead.
+  'fflate',
 ]);
 
 /** Relative imports that leave engine/src and are nonetheless legal, repo-relative. */

@@ -34,7 +34,7 @@
  */
 
 import { pemToDer } from './x509.ts';
-import { asBufferSource, base64ToBytes, bytesToHex, sha256 } from './bytes.ts';
+import { asBufferSource, base64ToBytes, sha256Hex } from './bytes.ts';
 
 const te = new TextEncoder();
 const subtle = globalThis.crypto.subtle;
@@ -116,10 +116,11 @@ export function canonicalJson(value: unknown): string {
   return '{' + parts.join(',') + '}';
 }
 
-/** Lowercase sha256 hex of the given bytes. */
-export async function sha256Hex(bytes: Uint8Array): Promise<string> {
-  return bytesToHex(await sha256(bytes));
-}
+/** Lowercase sha256 hex of the given bytes. Implemented in `bytes.ts` (the leaf
+ *  every consumer can import without pulling this module's x509 dependency in
+ *  behind it) and re-exported here, which is where the barrel and the signing
+ *  script have always read it from. */
+export { sha256Hex } from './bytes.ts';
 
 /**
  * RFC 7638 JWK thumbprint (base64url of sha256 over the canonical required

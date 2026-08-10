@@ -17,10 +17,16 @@
  *
  * Design notes:
  *   - Self-contained on purpose (mirrors scripts/build-sbom.ts). No network, no
- *     new dependency. The npm half is read straight from node_modules: each
- *     component's installed package.json (version + license) and its LICENSE
- *     file text, verbatim. We don't re-derive license text — we copy what npm
- *     actually installed, so this file cannot disagree with the install.
+ *     new dependency. License TEXT is read straight from node_modules — each
+ *     component's LICENSE file, verbatim — so this file cannot disagree with
+ *     what npm actually installed.
+ *   - VERSIONS come from package-lock.json, not from the installed tree (same
+ *     source of truth as build-sbom.ts). CI regenerates this file after a clean
+ *     `npm ci` and fails on any diff, so a version read from a working copy's
+ *     node_modules turns "my install is a few days stale" into a red drift gate
+ *     for whoever regenerates next. The lock is committed; node_modules is not.
+ *     Only the version moves — text and SPDX still come from the install, which
+ *     is what keeps the notice honest about the bytes we ship.
  *   - The non-npm half (vendored d3 / topojson, the Lucide icons, the upstream
  *     HarfBuzz WASM, the SUSE OFL fonts, and the bundled map data) cannot be
  *     discovered from node_modules, so it lives in a small hand-maintained
@@ -67,6 +73,20 @@ const NODE_MODULES = join(ROOT, 'node_modules');
 
 const MD_OUT = join(ROOT, 'THIRD-PARTY-NOTICES.md');
 const TXT_OUT = join(ROOT, 'shells', 'web', 'public', 'THIRD-PARTY-LICENSES.txt');
+
+// package-lock.json is the version source of truth (see the header note).
+// lockfileVersion 3 keys every installed node by its path, so a top-level
+// component is `node_modules/<pkg>`; anything npm nested elsewhere returns
+// undefined here and falls back to the installed package.json.
+const LOCK_PACKAGES = (
+  JSON.parse(readFileSync(join(ROOT, 'package-lock.json'), 'utf8')) as {
+    packages?: Record<string, { version?: string }>;
+  }
+).packages ?? {};
+
+function lockedVersion(pkg: string): string | undefined {
+  return LOCK_PACKAGES[`node_modules/${pkg}`]?.version;
+}
 
 // ─── LGPL-3.0 dynamic-loading note ───────────────────────────────────────────
 // Two web components are LGPL-3.0. Both are loaded exclusively via dynamic
@@ -177,6 +197,14 @@ const NPM_COMPONENTS: NpmComponent[] = [
   { pkg: 'woff2-encoder', where: 'web' },
   { pkg: 'fzstd', where: 'web' },
   { pkg: 'kiwi-schema', where: 'web', fallbackText: KIWI_SCHEMA_TEXT },
+
+  // On-device speech (Apache-2.0, both from the transformers.js author). Lazy-
+  // imported by the Kokoro TTS and Whisper workers — a user who never asks for
+  // speech never fetches them, but they ship in the PWA all the same. Declared
+  // dependencies of shells/web since 2026-08-02; they were absent from this
+  // list, which is what the coverage gate below exists to catch.
+  { pkg: '@huggingface/transformers', where: 'web' },
+  { pkg: 'phonemizer', where: 'web' },
 
   // LGPL-3.0 components — dynamically imported, self-contained modules. Each
   // carries the LGPL dynamic-loading note (see LGPL_DYNAMIC_NOTE).
@@ -455,6 +483,9 @@ function loadNpmComponent({ pkg, where, elect, transitiveVia, note, fallbackText
     license?: unknown;
     author?: unknown;
   };
+  // Version from the LOCK (see the header note); the install is only the
+  // fallback, for a component npm hoisted somewhere other than the root.
+  const version = lockedVersion(pkg) ?? meta.version;
   const spdx = elect
     ? `${elect} (elected from "${spdxString(meta.license)}")`
     : spdxString(meta.license);
@@ -471,7 +502,7 @@ function loadNpmComponent({ pkg, where, elect, transitiveVia, note, fallbackText
 
   return {
     name: pkg,
-    version: meta.version,
+    version,
     spdx,
     copyright,
     text,
