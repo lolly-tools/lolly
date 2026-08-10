@@ -349,8 +349,14 @@ vercel_publish() {
     # Never re-add an Ignored Build Step to bt: it cancels CLI builds too, and
     # per-deploy --build-env vars are invisible to it. LOLLY_CLI_DEPLOY=1 is a
     # harmless marker distinguishing loldev deploys in build logs.
+    # ONNXRUNTIME_NODE_INSTALL_CUDA=skip: onnxruntime-node's postinstall fetches a
+    # CUDA payload from a Microsoft CDN that Vercel's build network can't always
+    # reach (ETIMEDOUT killed a prod build 2026-08-10); the GPU EP is useless in a
+    # serverless build anyway. Also set as project env on both projects — this
+    # flag is the backstop if that ever gets lost.
     npx --yes vercel deploy "${prod_flag[@]}" --archive=tgz --no-wait --force \
       --build-env "LOLLY_PROFILE=$profile" --build-env "LOLLY_CLI_DEPLOY=1" \
+      --build-env "ONNXRUNTIME_NODE_INSTALL_CUDA=skip" \
       --yes 2>&1 | tee "$log" >&2
     rc=${PIPESTATUS[0]}
     # The deployment URL is the *.vercel.app host — NEVER the vercel.com Inspect
