@@ -34,6 +34,48 @@ parent repo.
 - **`tools/voice-recorder`** — the live level-meter recording card
   (experimental), with dark/light card styles and a neutral accent.
 
+## Typefaces — SUSE + SUSE Mono, and why this pack ships no font files
+
+As of **2026-08-10** this pack's `base.font` tokens name **SUSE** (UI/body) and
+**SUSE Mono** (code), the same pair `brands/suse` uses. They replaced Outfit,
+which read less well and — being an upright-only family — could not outline
+italic text on vector export at all.
+
+`catalog/fonts/` here is still empty (a `.gitkeep`), deliberately. Both faces are
+**shell-served** from `shells/web/public/fonts/`, the shared location that already
+held SUSE Mono for exactly this reason: a platform default must not 404 on a
+profile whose catalog ships no fonts. Duplicating the binaries into this pack
+would give two copies to keep in sync for no gain. `styles/fonts.css` lists the
+shell copy first and the brand catalog second, so a pack that *does* ship its own
+SUSE (i.e. `brands/suse`) keeps using its own bytes.
+
+### Licence finding (verified 2026-08-10, from the files themselves)
+
+The SUSE typeface family is under the **SIL Open Font License 1.1**, so it is
+redistributable in this OSS pack. Evidence, taken from the binaries and the file
+beside them rather than from documentation:
+
+| Source | Evidence |
+|---|---|
+| `brands/suse/catalog/fonts/OFL.txt` | Full OFL 1.1 text, headed `Copyright 2025 The SUSE Project Authors (https://github.com/SUSE/suse-font)`. Byte-identical to the `OFL-SUSE-Mono.txt` already shipped in the public web shell. |
+| `SUSE[wght].ttf`, `SUSE-Italic[wght].ttf`, `SUSEMono[wght].ttf` — `name` ID 13 | "This Font Software is licensed under the SIL Open Font License, Version 1.1." |
+| same files — `name` ID 14 | `https://openfontlicense.org` |
+| same files — `name` ID 0 | `Copyright 2025 The SUSE Project Authors (https://github.com/SUSE/suse-font)` |
+
+**No Reserved Font Name.** The copyright line carries no `with Reserved Font Name`
+suffix, so OFL §3 does not restrict redistribution under the original family
+names — we may ship these files as "SUSE" and "SUSE Mono" unmodified.
+
+Two OFL obligations, both already met: the licence travels with the fonts
+(`shells/web/public/fonts/OFL-SUSE.txt` and `OFL-SUSE-Mono.txt` sit beside the
+binaries, and the Platform/Catalog typeface views link the former), and the fonts
+are never sold on their own.
+
+Note `name` ID 7: *"SUSE is a trademark of SUSE"*. The OFL covers the software,
+not the mark — reusing the **font** is fine, using the **name** to brand a
+derived product is a separate trademark question. Nothing here does that; the
+starter pack merely sets a default face.
+
 The starter tools consume brand colour only through the semantic CSS vars
 (always with a neutral fallback) or plain starter-palette hexes, so swapping
 the tokens re-skins them without touching the tool files —

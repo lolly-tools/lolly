@@ -15,7 +15,7 @@
  *
  * Contract mirrors the old resvg call so callers degrade the same way: constructing the
  * rasteriser THROWS when Playwright (a devDependency) or every needed font is unavailable
- * (brand catalog faces, falling back per-weight to the platform Outfit variable face),
+ * (brand catalog faces, falling back per-weight to the platform SUSE variable face),
  * so a caller wraps it in try/catch and keeps its committed bytes rather than crashing
  * the build (exactly the resvg-missing behaviour). Launches ONE browser; reuse the
  * returned `rasterize` across many cards, then `close()`.
@@ -45,16 +45,21 @@ export interface SvgRasterizer {
 // so `font-family="SUSE"` (with font-weight 400/500/700) shapes with the real face
 // rather than a Chromium fallback. Read from the active profile's catalog VIEW — the
 // same path resvg loaded from — so this is profile-consistent. A brand catalog with no
-// fonts (lolly-start ships only a .gitkeep) falls back per-weight to the platform's
-// neutral Outfit variable face — the same last resort the web shell's font-registry
-// uses — so a fontless brand still renders cards instead of aborting the whole run.
+// fonts (lolly-start ships only a .gitkeep) falls back per-weight to the platform face,
+// the same last resort the web shell's font-registry uses, so a fontless brand still
+// renders cards instead of aborting the whole run.
+//
+// That fallback is the SUSE variable TTF as of 2026-08-10. It used to be Outfit, which
+// meant a card whose SVG said `font-family="SUSE"` was quietly PAINTED IN OUTFIT on any
+// profile without the brand catalog — the OG cards under lolly-start were mislabelled,
+// not just unstyled. Now the family name and the bytes agree on every profile.
 const FONT_WEIGHTS: ReadonlyArray<readonly [number, string]> = [
   [400, 'Regular'],
   [500, 'Medium'],
   [700, 'Bold'],
 ];
 
-const FALLBACK_FONT = 'shells/web/public/fonts/Outfit[wght].ttf';
+const FALLBACK_FONT = 'shells/web/public/fonts/SUSE[wght].ttf';
 
 /**
  * Build a rasteriser bound to the repo's SUSE fonts, launching one headless Chromium.
@@ -75,9 +80,11 @@ export async function createSvgRasterizer(repoRoot: string): Promise<SvgRasteriz
 
   // @font-face blocks with the brand faces inlined as data-URIs — resolved BEFORE the
   // browser launches so a truly unreadable font fails fast (caller degrades to committed
-  // bytes). A weight the brand catalog doesn't ship resolves to the Outfit variable font
-  // pinned to that weight (Chromium sets the wght axis from the face's font-weight), so
-  // the family stays 'SUSE' and the card SVGs need no per-brand markup.
+  // bytes). A weight the brand catalog doesn't ship resolves to the platform SUSE variable
+  // font pinned to that weight (Chromium sets the wght axis from the face's font-weight —
+  // which matters, because the file's own fvar default is 100/Thin, not 400), so the family
+  // stays 'SUSE' and the card SVGs need no per-brand markup. Until 2026-08-10 this fallback
+  // was Outfit, so a card declaring 'SUSE' was painted in Outfit on any fontless profile.
   let fallbackB64: string | null = null;
   const fontFaceCss = FONT_WEIGHTS.map(([weight, name]) => {
     const brandPath = resolve(repoRoot, `catalog/fonts/ttf/SUSE-${name}.ttf`);

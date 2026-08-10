@@ -43507,6 +43507,10 @@ function discoverFontFaces() {
 
 // shells/web/src/bridge/font-registry.ts
 var PLATFORM_FACES = {
+  suse: [
+    { assetId: "", staticUrl: "/fonts/SUSE[wght].ttf", weight: "100 900", style: "normal", unicodeRange: "" },
+    { assetId: "", staticUrl: "/fonts/SUSE-Italic[wght].ttf", weight: "100 900", style: "italic", unicodeRange: "" }
+  ],
   outfit: [{ assetId: "", staticUrl: "/fonts/Outfit[wght].ttf", weight: "100 900", style: "normal", unicodeRange: "" }]
 };
 var USER_FONT_PREFIX = "user/fonts/";

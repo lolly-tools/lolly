@@ -69,7 +69,7 @@ import { readFile, stat } from 'node:fs/promises';
 import { join, resolve, dirname, extname, normalize } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import type { AddressInfo } from 'node:net';
-import { captureUrl, runDriveSteps, type CaptureParams, type PageLike } from '../packages/node-shell/src/url-capture.ts';
+import { captureUrl, runDriveSteps, type CaptureParams, type DriveOpts, type PageLike } from '../packages/node-shell/src/url-capture.ts';
 import { resolveBrowsersDir, getBrowser, closeBrowser } from '../packages/node-shell/src/browsers.ts';
 import { buildExportC2paOpts } from '../packages/node-shell/src/c2pa-opts.ts';
 import { embedC2pa, windowPdfSvg, prepareC2paIngredient, type summarizeInputs } from '../engine/src/index.ts';
@@ -106,6 +106,32 @@ const FREEZE_CSS =
   '*{content-visibility:visible!important}';
 
 const VIEWPORT_DEFAULTS = { width: 1440, height: 900, dpi: 192 };
+
+/**
+ * Drive behaviour for a DOCS capture: when a click's actionability retries run out
+ * on an element Playwright reports as "outside of the viewport", dispatch it in the
+ * page instead and say so.
+ *
+ * The class this exists for: the tool view is a fixed-height shell (`.tool-view` is
+ * `overflow: hidden` and the document never scrolls), and its closed export panel is
+ * a `position: fixed` host holding a child pushed off the bottom with a `transform`.
+ * Nothing scrollIntoView can do reaches that, so Playwright is right to refuse a real
+ * pointer and wrong about what a docs shot needs — the walker serialises DOM STATE,
+ * not pointer history, so a click that lands through the handler produces exactly the
+ * picture a user's own click would.
+ *
+ * Kept honest three ways: the real click is always tried first with its full retry
+ * budget; `waitFor({ state: 'visible' })` still runs ahead of it, so recipe drift (a
+ * selector matching nothing) fails as loudly as before; and every fallback prints a
+ * line naming the recipe, because a click that only lands this way usually means the
+ * recipe is missing the step that opens the thing — which is what it meant here (the
+ * collab recipes were clicking Share without opening the export panel first).
+ */
+const driveOptsFor = (shot: ShotDef): DriveOpts => ({
+  clickFallback: true,
+  onClickFallback: (selector, why) =>
+    console.log(`    ⇢ ${shot.slug}: "${selector}" refused a real click (${why}) — dispatched in-page instead`),
+});
 
 interface Opts {
   accept: boolean;
@@ -292,6 +318,30 @@ function knownLocales(): string[] {
   return readdirSync(dir, { withFileTypes: true }).filter((d) => d.isDirectory()).map((d) => d.name);
 }
 
+/**
+ * Baselines a page references DIRECTLY — `![alt](/info/shots/<file>)` — rather than
+ * through a url-shot recipe. The DRILL-ASSISTED shots: states that exist only
+ * downstream of something no URL can reach (a real WebRTC pairing's connection
+ * plate, the peer-focus ring, the beam consent card). They are captured once, by
+ * hand or by the browser drill, and committed like any other baseline; docs/build.ts
+ * already treats them identically from the `/info/shots/` rewrite onward.
+ *
+ * They are listed here for ONE reason: `--rebuild` prunes every file in docs/shots
+ * that no recipe claims, and a drill shot is by definition unclaimable that way. So
+ * "claimed" means claimed by a recipe OR referenced by a page — scanned from the
+ * markdown, never a hand-kept list, so deleting the reference is still what retires
+ * the file (which is the property the orphan sweep exists to give).
+ */
+function staticShotRefs(): Set<string> {
+  const out = new Set<string>();
+  for (const f of readdirSync(DOCS_DIR).sort()) {
+    if (!f.endsWith('.md')) continue;
+    const md = readFileSync(join(DOCS_DIR, f), 'utf-8');
+    for (const m of md.matchAll(/!\[[^\]]*\]\(\/info\/shots\/([^)\s]+)\)/g)) out.add(m[1]!);
+  }
+  return out;
+}
+
 /** Baselines on disk that no recipe declares any more — stale, safe to delete. */
 /** Baselines on disk that no recipe claims. Warned about on a normal run; DELETED
  *  under --rebuild, because a full refresh that leaves the retired files behind
@@ -300,7 +350,7 @@ function knownLocales(): string[] {
 function warnOrphans(shots: ShotDef[], prune = false): void {
   if (!existsSync(SHOTS_DIR)) return;
   const locales = knownLocales();
-  const expected = new Set<string>();
+  const expected = staticShotRefs();
   for (const s of shots) {
     // The full cross-product of both variant axes — a name missing here is a file
     // `--rebuild` DELETES, so the expectation set has to grow in the same commit
@@ -341,6 +391,7 @@ function paramsFor(shot: ShotDef): { params: Omit<CaptureParams, 'url'>; dims: {
       hue: 0,
       zoom: shot.zoom ?? 1,
       actions: shot.drive,
+      driveOpts: driveOptsFor(shot),
     },
     dims: clampDims({
       width: shot.width ?? VIEWPORT_DEFAULTS.width,
@@ -572,7 +623,7 @@ async function resolveSelectorCrop(baseUrl: string, shot: ShotDef): Promise<Part
     // Drive the same interactions the capture will, or the box measured here is
     // the box BEFORE the menu opened — and the shot would be framed on furniture
     // that has since moved. Same order as captureUrl: settle, scroll, then act.
-    if (shot.drive?.length) await runDriveSteps(page as unknown as PageLike, shot.drive);
+    if (shot.drive?.length) await runDriveSteps(page as unknown as PageLike, shot.drive, driveOptsFor(shot));
 
     const PAD = 24;
     const box = await page.evaluate(({ sel, pad }: { sel: string; pad: number }) => {
@@ -737,7 +788,7 @@ async function captureVector(baseUrl: string, shot: ShotDef): Promise<VectorCapt
     }
     // Interactions, in the same place in the sequence as the raster path and the
     // crop measurement — three pages per recipe, one state.
-    if (shot.drive?.length) await runDriveSteps(page as unknown as PageLike, shot.drive);
+    if (shot.drive?.length) await runDriveSteps(page as unknown as PageLike, shot.drive, driveOptsFor(shot));
 
     // M5: the walker path. Ask the shell to serialise the live DOM itself rather
     // than round-tripping through Chromium's PDF printer. The crop is applied by

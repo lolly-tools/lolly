@@ -528,19 +528,63 @@ test('crafted claims with malformed assertion refs report invalid, never throw',
   }
 });
 
+// Ogg Opus — OpusHead (BOS) + OpusTags (where the credential rides) + one audio
+// page, each with a real libogg CRC so the fixture is a decodable stream. This is
+// what Firefox's MediaRecorder hands back for an audio-only take.
+const OGG_CRC_T = (() => {
+  const t = new Uint32Array(256);
+  for (let i = 0; i < 256; i++) { let r = i << 24; for (let j = 0; j < 8; j++) r = (r & 0x80000000) ? ((r << 1) ^ 0x04c11db7) : (r << 1); t[i] = r >>> 0; }
+  return t;
+})();
+const oggCrc = (b: Uint8Array): number => { let c = 0; for (const x of b) c = ((c << 8) ^ OGG_CRC_T[((c >>> 24) ^ x) & 0xff]!) >>> 0; return c >>> 0; };
+const u16le = (n: number): Uint8Array => Uint8Array.of(n & 0xff, (n >>> 8) & 0xff);
+function oggPage(htype: number, seq: number, packet: Uint8Array): Uint8Array {
+  const nseg = Math.floor(packet.length / 255) + 1;
+  const seg = new Uint8Array(nseg);
+  for (let i = 0; i < nseg - 1; i++) seg[i] = 255;
+  seg[nseg - 1] = packet.length % 255;
+  const head = new Uint8Array(27);
+  head.set(bytesOf('OggS'), 0); head[5] = htype; head[26] = nseg;
+  const dvh = new DataView(head.buffer);
+  dvh.setUint32(14, 0xcafe, true);  // serial
+  dvh.setUint32(18, seq, true);     // page sequence
+  const page = concat([head, seg, packet]);
+  new DataView(page.buffer, page.byteOffset).setUint32(22, oggCrc(page), true);
+  return page;
+}
+const tinyOgg = (): Uint8Array => concat([
+  oggPage(0x02, 0, concat([bytesOf('OpusHead'), Uint8Array.of(1, 1), u16le(0), u32le(48000), u16le(0), Uint8Array.of(0)])),
+  oggPage(0x00, 1, concat([bytesOf('OpusTags'), u32le(0), u32le(0)])),
+  oggPage(0x04, 2, bytesOf('fake-opus-audio')),
+]);
+
 // ─── recorded-clip provenance (the recorder bridge's self-asserting capture) ──
 // A recorder tool signs its take at capture time (shells/web stampCaptureClip):
-// a c2pa.created step with the digitalCapture source type embedded into the mp4/
-// webm bytes. This proves the engine half end-to-end for BOTH containers: the
-// clip verifies, its created step round-trips digitalCapture, and the store
-// extracts back out as a preparable INGREDIENT — so the signed take both
+// a c2pa.created step with the digitalCapture source type embedded into the take's
+// own bytes. This proves the engine half end-to-end for every container a capture
+// can arrive in — footage (mp4/webm) AND a voice take (m4a for the `audio/mp4` AAC
+// MediaRecorder writes, ogg for Firefox's Ogg Opus, mp3 for the on-device
+// transcode): the clip verifies, its created step round-trips digitalCapture, and
+// the store extracts back out as a preparable INGREDIENT — so the signed take both
 // self-asserts AND chains when composited into a top-&-tail / record video.
-for (const [fmt, fixture] of [['mp4', tinyMp4()], ['webm', tinyWebm()]] as Array<[string, Uint8Array]>) {
+//
+// The audio legs are why the shell-side type had to widen: the embedder could
+// always sign them, `stampCaptureClip`'s signature just didn't say so, and voice
+// takes were the one capture shipping uncredentialed. The shell half is pinned in
+// shells/web/src/bridge/capture-clip-c2pa.test.ts.
+const RECORDED: Array<[string, Uint8Array, string]> = [
+  ['mp4', tinyMp4(), 'Recorded live from the camera and microphone'],
+  ['webm', tinyWebm(), 'Recorded live from the camera and microphone'],
+  ['m4a', tinyM4a(), 'Recorded live from the microphone'],
+  ['ogg', tinyOgg(), 'Recorded live from the microphone'],
+  ['mp3', tinyMp3(), 'Recorded live from the microphone'],
+];
+for (const [fmt, fixture, description] of RECORDED) {
   test(`recorded ${fmt} clip: digitalCapture created step verifies + extracts as a chainable ingredient`, async () => {
     const out = await embedC2pa(fixture, fmt, {
       ...OPTS,
       environment: { ...OPTS.environment, format: fmt },
-      actions: [{ action: 'c2pa.created', digitalSourceType: CAPTURE_SOURCE_TYPE, description: 'Recorded live from the camera and microphone' }],
+      actions: [{ action: 'c2pa.created', digitalSourceType: CAPTURE_SOURCE_TYPE, description }],
     });
     // The clip file self-asserts: it verifies, and its created action is a capture.
     const report = await verifyC2pa(out);
@@ -548,11 +592,14 @@ for (const [fmt, fixture] of [['mp4', tinyMp4()], ['webm', tinyWebm()]] as Array
     const created = report.claim?.actions?.find((a) => a.action === 'c2pa.created');
     assert.ok(created, `${fmt} clip carries a c2pa.created action`);
     assert.equal(created!.digitalSourceType, CAPTURE_SOURCE_TYPE, 'created step declares digitalCapture');
+    assert.equal(created!.description, description, 'the created step names the sensors that actually ran');
     // The store extracts back out (what storeRecordingAsset persists as the asset's
-    // credential) and prepares as an ingredient (what the composition chains).
+    // credential) and prepares as an ingredient (what the composition chains). The
+    // extract side names the container by SNIFF, and ISO BMFF audio shares mp4's
+    // magic bytes, so an m4a take reads back as 'mp4' — same container, same placer.
     const ex = extractC2paStore(out);
     assert.ok(ex, `a store extracts from the signed ${fmt} clip`);
-    assert.equal(ex!.format, fmt);
+    assert.equal(ex!.format, fmt === 'm4a' ? 'mp4' : fmt);
     const ingredient = prepareC2paIngredientFromStore(ex!.store, ex!.format);
     assert.ok(ingredient, `the ${fmt} clip credential prepares as an ingredient`);
     assert.equal(typeof ingredient!.activeLabel, 'string');

@@ -146,9 +146,17 @@ test('pipeline: interactions reach all three page paths', () => {
   // crop measurement, vector walk, raster capture. Miss one and the frame is
   // measured on a page in a different state from the one photographed.
   const src = readFileSync(join(ROOT, 'scripts', 'build-docs-shots.ts'), 'utf-8');
-  assert.equal((src.match(/runDriveSteps\(page as unknown as PageLike, shot\.drive\)/g) ?? []).length, 2,
+  // The trailing argument is optional in the pattern: the two direct paths now hand
+  // runDriveSteps a DriveOpts (the in-page click fallback), and pinning the call to a
+  // literal two-argument form made an honest addition look like a removed drive.
+  assert.equal((src.match(/runDriveSteps\(page as unknown as PageLike, shot\.drive[,)]/g) ?? []).length, 2,
     'resolveSelectorCrop and captureVector must both drive the page');
   assert.match(src, /actions: shot\.drive/, 'the raster path passes the steps through captureUrl');
+  // …and all THREE must carry the same drive options, or the frame is measured on a
+  // page whose click was refused while the photographed page's click landed (or the
+  // reverse). One helper, three call sites.
+  assert.equal((src.match(/driveOptsFor\(shot\)/g) ?? []).length, 3,
+    'the crop, vector and raster paths must each pass driveOptsFor(shot)');
 });
 
 // ── sweep=1 (the drawing sweep) ───────────────────────────────────────────────

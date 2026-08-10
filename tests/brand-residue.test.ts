@@ -20,6 +20,11 @@
  *    The build:catalog aggregation catalog/tools/index.json is excluded: it
  *    embeds COMMUNITY manifests verbatim (filter examples, …) whose de-SUSE
  *    sweep is deferred (contract §8), not lolly-start authored content.
+ *    REVISED 2026-07-09 → 2026-08-10: the pack's default TYPEFACES are now SUSE +
+ *    SUSE Mono (OFL 1.1, no Reserved Font Name), so two enumerated files may name
+ *    the families — see TYPEFACE_EXEMPT below for the reason per file. The hex
+ *    check and a new asset-path check still run on them; only the bare-name
+ *    check is skipped, so `suse/logo/…` is still caught everywhere.
  *
  * 2. Semantic brand vars are never consumed bare: templates get
  *    --brand-primary, --brand-on-primary, --brand-secondary, --brand-surface,
@@ -85,20 +90,72 @@ const SUSE_HEX = /#(?:30ba78|0c322c|90ebcd|fe7c3f|2453ff|192072|efefef)/i;
 // (derive-generated docs embed it in $extensions — see the header comment).
 const ALLOWED_SUSE = 'com.suse.lolly';
 
+// THE TYPEFACE EXEMPTION (2026-08-10) — two files, each with a reason.
+//
+// Andy's call: the platform's default faces are SUSE + SUSE Mono on BOTH profiles.
+// They are SIL OFL 1.1 (Copyright 2025 The SUSE Project Authors,
+// github.com/SUSE/suse-font) with NO Reserved Font Name — verified from name IDs
+// 13/14 in the binaries and the OFL.txt beside them, and recorded in the pack's
+// README. SUSE Mono was already the shell's default mono on every profile; SUSE
+// joined it because Outfit reads worse AND is upright-only, so italic runs could
+// not outline on vector export at all.
+//
+// Naming an OFL FAMILY is not brand residue. Naming a SUSE asset, colour or logo
+// still is, and that is what this guard exists to catch — a dangling `suse/logo/…`
+// id 404s under lolly-start, because no suse/* assets exist in this catalog. So
+// these two files skip ONLY the bare-name check; the brand-hex check and the
+// asset-id check below still run on them, unchanged.
+//
+// Do not add a third file without a reason written here, and do not widen this to
+// a directory: the whole point is that the exemption stays enumerable.
+const TYPEFACE_EXEMPT = new Set([
+  // The licence finding + the "why this pack ships no font binaries" note.
+  join(PACK, 'README.md'),
+  // base.font.brand = "SUSE", base.font.mono = "SUSE Mono" (+ their $descriptions).
+  join(PACK, 'catalog', 'assets', 'lolly', 'tokens', 'brand.json'),
+]);
+
+// A SUSE ASSET reference — the residue class that actually breaks under
+// lolly-start (a 404), as opposed to a typeface family name. Checked in EVERY
+// file including the two exempt ones.
+//
+// Two forms are stripped first, because neither is an asset id:
+//   • absolute URLs — an asset id is always a rooted path
+//     (`/catalog/assets/suse/logo/…`, which survives the strip), never a scheme'd
+//     URL, so `https://github.com/SUSE/suse-font` (the OFL upstream the README
+//     must cite for the licence finding to be checkable) is not a reference;
+//   • the REPO path `brands/suse/…` — where the private pack lives on disk, cited
+//     by the README's evidence table (`brands/suse/catalog/fonts/OFL.txt`). A
+//     catalog asset id never carries a `brands/` prefix, so this cannot mask one.
+// Both strips apply to the asset check ONLY. The bare-name check below still sees
+// the unstripped text, so a stray `brands/suse/` in any non-exempt file fails.
+const SUSE_ASSET = /\bsuse\//i;
+const withoutPaths = (s: string): string =>
+  s.replace(/https?:\/\/\S+/gi, '').replaceAll('brands/suse/', '');
+
 test('brands/lolly-start carries no SUSE brand hexes or SUSE references', () => {
   const files = walk(PACK).filter(
     f => TEXT_EXTS.has(extname(f).toLowerCase()) && !isGenerated(f),
   );
   // Sanity: the pack has real content (README, tokens, two tool dirs).
   assert.ok(files.length >= 8, `expected the starter pack's text files, found ${files.length}`);
+  // Sanity: the exemption must name files that EXIST, or a rename would silently
+  // retire the guard for content that is still there.
+  for (const f of TYPEFACE_EXEMPT) {
+    assert.ok(files.includes(f), `TYPEFACE_EXEMPT names a file the scan doesn't see: ${relative(ROOT, f)}`);
+  }
   for (const f of files) {
     const text = readFileSync(f, 'utf8');
     const rel = relative(ROOT, f);
     const hex = text.match(SUSE_HEX);
     assert.equal(hex, null, `${rel} contains SUSE brand hex ${hex?.[0]}`);
+    const scrubbed = text.replaceAll(ALLOWED_SUSE, '');
+    const asset = withoutPaths(scrubbed).match(SUSE_ASSET);
+    assert.equal(asset, null, `${rel} references a SUSE asset path "${asset?.[0]}" — it would 404 under lolly-start`);
+    if (TYPEFACE_EXEMPT.has(f)) continue; // family names only — see TYPEFACE_EXEMPT
     // Case-insensitive, with surrounding word-ish context in the failure
     // message so a dangling "suse/logo/…" asset id is identifiable at a glance.
-    const name = text.replaceAll(ALLOWED_SUSE, '').match(/[\w./-]*suse[\w./-]*/i);
+    const name = scrubbed.match(/[\w./-]*suse[\w./-]*/i);
     assert.equal(name, null, `${rel} contains SUSE residue "${name?.[0]}"`);
   }
 });

@@ -75,6 +75,8 @@ export interface CaptureParams {
    * app's own handlers do the work and the captured DOM is the DOM a user gets.
    */
   actions?: DriveStep[];
+  /** Pipeline-only drive behaviour (the in-page click fallback). See DriveOpts. */
+  driveOpts?: DriveOpts;
 }
 
 /**
@@ -95,6 +97,37 @@ const DRIVE_TIMEOUT_MS = 15_000;
 const DRIVE_SETTLE_MS = 250;
 
 /**
+ * Options for a drive run. Pipeline-only, like `initScript` and `contextPrefs`:
+ * the end-user url-shot tool leaves them unset and keeps pointer realism.
+ */
+export interface DriveOpts {
+  /**
+   * When a click's ACTIONABILITY retries are exhausted — the element is visible,
+   * enabled and stable but Playwright still refuses because it is "outside of the
+   * viewport" — dispatch the click in the page instead (`el.click()`), and report
+   * it through `onClickFallback`.
+   *
+   * WHY THIS IS SOUND HERE AND NOT EVERYWHERE. Playwright's viewport check exists
+   * to guarantee that a real pointer could have landed on the element; the app
+   * shells this pipeline drives park closed panels off-screen with a `transform`
+   * on a `position: fixed` host, which no amount of scrollIntoView can bring back
+   * (the page itself does not scroll — the tool view is a fixed-height shell). A
+   * docs capture does not need pointer realism: it needs the DOM STATE the click
+   * produces, because that state is what the walker serialises into the picture.
+   *
+   * It is a FALLBACK, never the first move: the real click is tried first with all
+   * its retries, and `waitFor({ state: 'visible' })` still runs ahead of both, so a
+   * selector that matches nothing (recipe drift — the thing this pipeline most needs
+   * to hear about) still fails loudly. A recipe whose click only lands through the
+   * fallback is a recipe worth re-reading, which is what the log line is for.
+   */
+  clickFallback?: boolean;
+  /** Called when `clickFallback` actually fires, with the selector and the first
+   *  line of the refusal, so the caller can put it in the run log. */
+  onClickFallback?: (selector: string, reason: string) => void;
+}
+
+/**
  * Run a capture's interaction steps against a live page.
  *
  * Exported because the docs pipeline drives THREE pages per recipe — the crop
@@ -105,7 +138,7 @@ const DRIVE_SETTLE_MS = 250;
  * A step that cannot run throws: a docs baseline that silently skipped the click
  * would publish the wrong picture, which is worse than a failed run.
  */
-export async function runDriveSteps(page: PageLike, steps: readonly DriveStep[]): Promise<void> {
+export async function runDriveSteps(page: PageLike, steps: readonly DriveStep[], opts: DriveOpts = {}): Promise<void> {
   for (const step of steps) {
     if (step.kind === 'wait') {
       await page.waitForTimeout(Math.min(15_000, Math.max(0, step.ms)));
@@ -130,11 +163,27 @@ export async function runDriveSteps(page: PageLike, steps: readonly DriveStep[])
     const position = box && at ? { x: box.width * at[0], y: box.height * at[1] } : undefined;
     switch (step.kind) {
       case 'click':
-        await target.click({
-          button: step.button === 'right' ? 'right' : 'left',
-          clickCount: step.count && step.count > 1 ? step.count : 1,
-          ...(position ? { position } : {}),
-        });
+        try {
+          await target.click({
+            button: step.button === 'right' ? 'right' : 'left',
+            clickCount: step.count && step.count > 1 ? step.count : 1,
+            ...(position ? { position } : {}),
+          });
+        } catch (e) {
+          const msg = String((e as Error)?.message ?? '');
+          // Only the ACTIONABILITY exhaustion, which Playwright reports as a timeout.
+          // Anything else — a detached node, a navigation mid-click, a closed page — is
+          // a different failure, and swallowing it would turn a real break into a
+          // quietly wrong picture.
+          const actionabilityTimeout = /timeout|exceeded/i.test(msg);
+          // A right-click / multi-click / positioned press is ABOUT the pointer —
+          // el.click() would dispatch a plain left click and quietly document the
+          // wrong interaction, so those keep failing loudly. See DriveOpts.
+          const pointerSpecific = step.button === 'right' || (step.count ?? 1) > 1 || Boolean(position);
+          if (!opts.clickFallback || pointerSpecific || !actionabilityTimeout) throw e;
+          opts.onClickFallback?.(selector, msg.split('\n')[0]!.trim());
+          await target.evaluate((el) => { (el as HTMLElement).click(); });
+        }
         break;
       case 'hover':
         await target.hover(position ? { position } : {});
@@ -182,6 +231,8 @@ export interface PageLike {
       hover(opts?: { position?: { x: number; y: number } }): Promise<void>;
       focus(): Promise<void>;
       boundingBox(): Promise<{ x: number; y: number; width: number; height: number } | null>;
+      /** In-page dispatch — no actionability checks. Only the click fallback uses it. */
+      evaluate(fn: (el: Element) => void): Promise<void>;
     };
   };
 }
@@ -293,7 +344,7 @@ export async function captureUrl(
     // (the docs pipeline drives its own pages the same way). A menu opened before
     // the page settled gets closed by the app's late layout, and a drag has to
     // measure the geometry it is about to drag.
-    if (params.actions?.length) await runDriveSteps(page as unknown as PageLike, params.actions);
+    if (params.actions?.length) await runDriveSteps(page as unknown as PageLike, params.actions, params.driveOpts ?? {});
 
     // ── Vector PDF: a real print of the page, not an embedded screenshot ──
     if (fmt === 'pdf') {
