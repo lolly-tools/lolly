@@ -343,10 +343,13 @@ vercel_publish() {
   for (( try=1; try<="${DEPLOY_UPLOAD_TRIES:-3}"; try++ )); do
     step "tarballing + queuing on Vercel (LOLLY_PROFILE=$profile · upload $try/${DEPLOY_UPLOAD_TRIES:-3})" >&2
     log="$(mktemp -t loldev-ship.XXXXXX)"
-    # --force: bypass the project-level Ignored Build Step (bt skips git-integration
-    # builds by design since 2026-08-10; the CLI archive path must always build).
+    # LOLLY_CLI_DEPLOY=1 satisfies the project-level Ignored Build Step, which
+    # cancels every build without it (bt skips git-integration builds by design
+    # since 2026-08-10; only this CLI archive path may build). --force alone does
+    # NOT bypass the ignore step — it only busts the build cache.
     npx --yes vercel deploy "${prod_flag[@]}" --archive=tgz --no-wait --force \
-      --build-env "LOLLY_PROFILE=$profile" --yes 2>&1 | tee "$log" >&2
+      --build-env "LOLLY_PROFILE=$profile" --build-env "LOLLY_CLI_DEPLOY=1" \
+      --yes 2>&1 | tee "$log" >&2
     rc=${PIPESTATUS[0]}
     # The deployment URL is the *.vercel.app host — NEVER the vercel.com Inspect
     # dashboard link (which `vercel inspect` cannot resolve). Restrict the match.
