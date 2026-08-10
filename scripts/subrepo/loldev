@@ -27,6 +27,12 @@
 #   loldev shots --rebuild             full refresh: rebuild the shell, re-shoot EVERY recipe, write every baseline (even
 #                                      unchanged) and prune retired files. What you want after an engine/renderer change.
 #   loldev verify [--clone]            full post-split build/run verification
+#   loldev setup <persona>             first-run bootstrap for a fresh clone (pairs with
+#                                      `git clone --filter=blob:none`): init just the
+#                                      submodules a persona needs, shallow where presence
+#                                      is all npm wants. Personas: tool-author · engine-dev
+#                                      · full. Re-run with a bigger persona to upgrade in
+#                                      place. See docs/contributing-setup.md.
 #   loldev profile [name] [--copy]     show or switch the content profile (suse / lolly-start):
 #                                      rebuilds the tools/ + catalog/ views from the packs
 #   loldev pull | up                   pull parent + update all submodules + refresh the profile views
@@ -34,6 +40,15 @@
 #   loldev cli -- <args>               run a tool headlessly (npm run cli)
 #   loldev help
 
+# $LOLLY_ROOT wins; otherwise prefer the checkout this script itself lives in, so
+# a fresh clone at ANY path can run `scripts/subrepo/loldev setup …` before
+# anything is installed. The historical ~/Build/lolly default stays as the
+# fallback for a PATH-installed copy that resolves outside a checkout.
+if [ -z "${LOLLY_ROOT:-}" ]; then
+  _self="$(readlink -f "${BASH_SOURCE[0]}" 2>/dev/null || printf '%s' "${BASH_SOURCE[0]}")"
+  _cand="$(cd "$(dirname "$_self")/../.." 2>/dev/null && pwd)"
+  [ -n "$_cand" ] && [ -f "$_cand/scripts/subrepo/config.sh" ] && LOLLY_ROOT="$_cand"
+fi
 LOLLY_ROOT="${LOLLY_ROOT:-$HOME/Build/lolly}"
 SUB="$LOLLY_ROOT/scripts/subrepo"
 if [ ! -f "$SUB/config.sh" ]; then
@@ -597,6 +612,116 @@ ship() {
   [ "${#SFAILED[@]}" -eq 0 ]
 }
 
+# --- slim clone bootstrap (loldev setup) ------------------------------------
+# Most contributors never need the whole recursive clone (the docs history alone
+# is ~270M of screenshot churn). But npm workspaces need EVERY workspace
+# package.json on disk before `npm install` resolves, and the bootstrap guard
+# (scripts/check-bootstrap.ts) also sentinels docs/ + community/ — so no persona
+# can simply omit those. Slimness comes from DEPTH, not absence: full history
+# where the persona actually develops, `--depth 1` where presence is all npm
+# wants. Only the tauri shells + the chrome extension are skippable outright
+# (not workspaces, not sentinels). brands/suse is `update = none` in .gitmodules,
+# so every path here skips it and the blank lolly-start profile applies — exactly
+# like any public clone. Pairs with a `--filter=blob:none` PARENT clone (partial
+# clone: old parent blobs fetch on demand, so history spelunking needs network).
+# See docs/contributing-setup.md for the user-facing walkthrough.
+
+# init the given paths at --depth 1. Shallow-fetching the exact recorded SHA is
+# fine on GitHub (it allows unadvertised-SHA fetches); if a host ever refuses,
+# fall back to a full init rather than failing the bootstrap.
+setup_shallow() {
+  local p out
+  for p in "$@"; do
+    [ -e "$p/.git" ] && { info "$p — already present"; continue; }
+    step "init $p (--depth 1)"
+    if out=$(git submodule update --init --depth 1 "$p" 2>&1); then
+      ok "$p (shallow)"
+    else
+      warn "$p: shallow init failed — retrying with full history"
+      out=$(git submodule update --init "$p" 2>&1) && ok "$p (full)" \
+        || { printf '%s\n' "$out" | sed "s/^/        ${c_red}│${c_reset} /"; err "could not init $p"; return 1; }
+    fi
+  done
+}
+
+# init the given paths with FULL history. An already-inited path is never
+# re-checked-out (that would move a developer's HEAD); it is only deepened if a
+# previous slim setup left it shallow.
+setup_full_history() {
+  local p out gd
+  for p in "$@"; do
+    if [ -e "$p/.git" ]; then
+      gd="$(git -C "$p" rev-parse --absolute-git-dir 2>/dev/null)"
+      if [ -n "$gd" ] && [ -f "$gd/shallow" ]; then
+        step "$p — fetching full history (was shallow)"
+        git -C "$p" fetch --unshallow >/dev/null 2>&1 && ok "$p unshallowed" \
+          || { err "could not unshallow $p"; return 1; }
+      else
+        info "$p — already present with full history"
+      fi
+      continue
+    fi
+    step "init $p (full history)"
+    out=$(git submodule update --init "$p" 2>&1) && ok "$p" \
+      || { printf '%s\n' "$out" | sed "s/^/        ${c_red}│${c_reset} /"; err "could not init $p"; return 1; }
+  done
+}
+
+setup() {
+  local persona="${1:-}" p
+  local -a deep=() shallow=() skipped=()
+  case "$persona" in
+    tool-author)
+      deep=(community)
+      shallow=(docs shells/web shells/cli shells/tui services/mcp services/ca)
+      skipped=(shells/tauri-desktop shells/tauri-mobile shells/chrome-extension)
+      ;;
+    engine-dev)
+      deep=(community shells/web shells/cli)
+      shallow=(docs shells/tui services/mcp services/ca)
+      skipped=(shells/tauri-desktop shells/tauri-mobile shells/chrome-extension)
+      ;;
+    full) ;;
+    *)
+      err "usage: loldev setup <tool-author|engine-dev|full>"
+      info "tool-author  — write/edit tools: full community/ history, everything else shallow"
+      info "engine-dev   — engine + shells work: adds full shells/web + shells/cli history"
+      info "full         — everything public, full history (upgrades a slim clone in place)"
+      return 2 ;;
+  esac
+
+  banner "🧳" "loldev setup $persona" "slim clone · init just the submodules this persona needs"
+
+  if [ "$persona" = full ]; then
+    phase "📦" "Submodules (everything public, full history)"
+    while read -r p; do
+      [ "$p" = "brands/suse" ] && { info "$p — private, opt-in (git submodule update --init --checkout brands/suse)"; continue; }
+      setup_full_history "$p" || return 1
+    done < <(subrepo_paths)
+  else
+    phase "📦" "Full history where this persona develops"
+    setup_full_history "${deep[@]}" || return 1
+    phase "📦" "Present for npm workspaces (--depth 1)"
+    info "npm install needs every workspace package.json on disk, and the bootstrap"
+    info "guard also wants docs/ + community/ — so these are shallow, not absent."
+    setup_shallow "${shallow[@]}" || return 1
+    phase "⏭️ " "Skipped for this persona"
+    for p in "${skipped[@]}"; do info "$p — get it later with: loldev setup full"; done
+  fi
+
+  phase "🍭" "Profile views"
+  step "node scripts/use-profile.ts --auto"
+  if node scripts/use-profile.ts --auto >/dev/null 2>&1; then
+    ok "tools/ + catalog/ views ready (lolly-start unless brands/suse is mounted)"
+  else
+    warn "profile views not built yet — 'npm install' builds them (postinstall)"
+  fi
+
+  echo
+  ok "setup '$persona' complete — next: npm install, then npm run dev:web (or npm run cli)"
+  return 0
+}
+
 cmd="${1:-help}"; [ $# -gt 0 ] && shift
 case "$cmd" in
   gtg)          gtg "$@" ;;
@@ -609,6 +734,7 @@ case "$cmd" in
   og)           case " $* " in *" --preserve "*) export LOLLY_PRESERVE=1 ;; esac; npm run og:all ;;
   shots)        npm run docs:shots -- "$@" ;;
   verify)       bash "$SUB/verify.sh" "$@" ;;
+  setup)        setup "$@" ;;
   profile|brand) node scripts/use-profile.ts "$@" ;;
   pull|up)      git pull --ff-only origin main && git submodule update --init --recursive \
                   && node scripts/use-profile.ts --auto \
