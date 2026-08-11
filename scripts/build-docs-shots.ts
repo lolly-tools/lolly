@@ -272,17 +272,38 @@ async function main(): Promise<void> {
     }
     const url = baseUrl; // non-null here (set above); pinned so the pool closure keeps the narrowing
     const width = Math.max(1, Math.min(Number(process.env.SHOTS_CONCURRENCY) || 4, jobs.length || 1));
+    // Job-indexed (not push-order) so a flake can be retried in place below.
+    const out: (ShotResult | undefined)[] = new Array(jobs.length);
     let cursor = 0;
     const drain = async (): Promise<void> => {
       // cursor++ is atomic between awaits (single-threaded event loop), so every
       // worker claims a distinct index and no job runs twice.
       for (let i = cursor++; i < jobs.length; i = cursor++) {
         const r = await captureOne(sharp, url, jobs[i]!);
-        results.push(r);
+        out[i] = r;
         reportLine(r);
       }
     };
     await Promise.all(Array.from({ length: width }, () => drain()));
+    // A parallel capture shares the CPU, so a heavy page can still be rendering when
+    // its fixed waitMs budget elapses — the cropSelector's target isn't in the DOM
+    // yet and the shot fails with a false "matched nothing". That is a scheduling
+    // artefact, not a broken recipe, and it clears once the page has a core to
+    // itself. So retry every failure ONCE, sequentially, after the pool drains: a
+    // contention flake recovers, a genuinely broken recipe fails both times and
+    // stays failed. Skipped at width 1 — with no pool there is no contention, so a
+    // failure there is real and a blind retry would only hide it.
+    if (width > 1) {
+      for (let i = 0; i < jobs.length; i++) {
+        if (!out[i]?.error) continue;
+        const job = jobs[i]!;
+        const r = await captureOne(sharp, url, job);
+        if (!r.error) console.log(`  ↻ recovered ${job.slug}${job.lang ? `.${job.lang}` : ''}${job.theme ? `.${job.theme}` : ''} on sequential retry`);
+        out[i] = r;
+        reportLine(r);
+      }
+    }
+    for (const r of out) if (r) results.push(r);
   } finally {
     // getBrowser()'s Chromium is shared across captures and would otherwise hold
     // the event loop open past the summary (the CLI leans on process exit for this).
