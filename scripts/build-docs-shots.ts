@@ -248,28 +248,41 @@ async function main(): Promise<void> {
     mkdirSync(SHOTS_DIR, { recursive: true });
     const sharp = (await import('sharp')).default;
 
+    // Every capture is one job. A recipe expands to its base shot, its opted-in
+    // per-locale variants (`?lang=<loc>` → `<slug>.<loc>.<format>`), and the dark
+    // twin of each (app + OS preference pinned dark → `<slug>[.<loc>].dark.<format>`;
+    // the twin is crossed with the locale axis so a translated page's dark shot
+    // stays in its own language). Each job is an INDEPENDENT capture — its own
+    // route, theme and baseline file — so they were only run in series for want of
+    // a scheduler. Flatten them and drain through a bounded pool: captureOne opens
+    // its own browser context per job, so N run truly in parallel on the single
+    // shared Chromium. SHOTS_CONCURRENCY tunes the width (default 4 — roughly
+    // quarters the wall-clock while keeping a dev laptop responsive). Order becomes
+    // completion-order, which is fine: reportLine names each shot, and summarize()
+    // plus the exit code are pure counts over `results`, never its sequence.
+    const jobs: ShotDef[] = [];
     for (const shot of shots) {
-      const r = await captureOne(sharp, baseUrl, shot);
-      results.push(r);
-      reportLine(r);
-      // Per-locale variants: same recipe, `?lang=<loc>` injected into the route,
-      // written to `<slug>.<loc>.<format>`. Only for recipes that opted in.
+      jobs.push(shot);
       const variants: ShotDef[] = [];
       if (shot.localize && opts.locales.length) {
         for (const lang of opts.locales) variants.push({ ...shot, route: localizeRoute(shot.route, lang), lang });
       }
-      // Dark twins: same recipe, same interactions, captured with the app and the
-      // OS preference both pinned dark, written to `<slug>[.<loc>].dark.<format>`.
-      // Crossed with the locale axis so a translated page's dark twin is still in
-      // its own language — a swap that changed the language would be a bug the
-      // reader sees, not a variant.
       if (shot.dark) for (const base of [shot, ...variants]) variants.push({ ...base, theme: 'dark' });
-      for (const variant of variants) {
-        const rv = await captureOne(sharp, baseUrl, variant);
-        results.push(rv);
-        reportLine(rv);
-      }
+      jobs.push(...variants);
     }
+    const url = baseUrl; // non-null here (set above); pinned so the pool closure keeps the narrowing
+    const width = Math.max(1, Math.min(Number(process.env.SHOTS_CONCURRENCY) || 4, jobs.length || 1));
+    let cursor = 0;
+    const drain = async (): Promise<void> => {
+      // cursor++ is atomic between awaits (single-threaded event loop), so every
+      // worker claims a distinct index and no job runs twice.
+      for (let i = cursor++; i < jobs.length; i = cursor++) {
+        const r = await captureOne(sharp, url, jobs[i]!);
+        results.push(r);
+        reportLine(r);
+      }
+    };
+    await Promise.all(Array.from({ length: width }, () => drain()));
   } finally {
     // getBrowser()'s Chromium is shared across captures and would otherwise hold
     // the event loop open past the summary (the CLI leans on process exit for this).
