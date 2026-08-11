@@ -49,6 +49,11 @@ const STALE_ALLOWED: Record<string, string> = {
   // (Empty since the 2026-08-09 narration sweep re-rendered every stale launch
   // page — en/about, en/beatrice-warde and en/privacy came off the list because
   // their artefacts are fresh again, per this test's own second direction.)
+  'en/ai-stance':
+    'textHash drifted 2026-08-11: the pull-quote attribution changed from ' +
+    '"Architect of Lolly" to "Lolly Contributor" — a three-word byline edit ' +
+    'that does not warrant a full TTS re-render. Re-render (node ' +
+    'scripts/build-docs-audio.ts) at the next narration sweep to clear this.',
 };
 
 interface Committed { key: string; lang: string; slug: string; meta: AudioMeta }
