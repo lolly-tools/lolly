@@ -6,6 +6,85 @@ minors, never removed or signature-changed without a major bump.
 
 Moved verbatim from the comment block that used to live in `src/index.ts`.
 
+1.114.0 — additive: `engine/src/keyframes.ts` — keyframe tracks, the `kf` wire grammar,
+and the depth-camera projection (plans/104 P0). No HostV1 method changed; this is a new
+pure module on the public surface, which is where the engine already keeps wire formats
+(url-mode, blocks) and where the plan put it (§12 Q9) so the goldens live at the repo root
+and a future CLI posed-still path is free.
+
+What it owns. **The wire**: `parseKf`/`serialiseKf` over the LOCKED §5.1 grammar —
+keyframes separated by `*`, tokens by `_`, first token `t<ms>` in local box time, charset
+`A–Z a–z 0–9 - . _ * ( )` and nothing else (every member is encodeURIComponent-unescaped
+and safe inside double quotes in bash/zsh, because "the CLI is URL mode under a different
+transport" is law; `!` is out for exactly that reason, which is why a custom bezier is
+paren-delimited `eb(0.32)(0)(0.67)(1)`). A channel token matches the LONGEST channel name
+whose suffix parses as a strict decimal, so `rx-8` is `rx` at −8 and never `r` followed by
+junk; anything that matches nothing is skipped, never thrown. Parse caps are the
+untrusted-input posture, since a `kf` value is free text that can arrive from a
+hand-edited share URL: 256 keyframes, `KF_MAX_CHARS` chars, `t` clamped to an hour, every
+channel clamped (`b` 0…300, `o`/`a` 0…1, `s` 0.01…100, degrees and `p` likewise; `z`
+±12000, because one `kf` grammar carries both a box's lift and the CAMERA's dolly, and
+`camZ` is the only zoom control there is — the per-box field's own −300…900 is
+`KF_Z_FIELD_CLAMP`, applied where that field is read) and quantised at the §4.6 quanta —
+`t` integer ms, px 0.01, unit-ish 0.001. Parse applies the clamps and quanta too, which is
+what makes the round-trip law `parse(serialise(parse(s))) === parse(s)` true by
+construction rather than by luck — and the char cap is DERIVED from the key cap
+(`KF_MAX_KEYS` × the widest a keyframe can serialise to, 40 960 > 39 679) so that stays
+true at full density instead of only for short tracks: two caps that cannot both be met
+would mean the module emitting a wire it then truncates. That is also what lets the hooks
+hold their strict-emission rule: parse, re-serialise, emit, so raw user text never reaches
+a `data-t-kf` attribute.
+
+**Easing**: eight named preset tokens that round-trip BY NAME — `el ei eo eio ev ea es ek`
+(linear, ease-in, ease-out, ease-in-out, overshoot, anticipate, smooth, snappy) — plus
+`eh` hold and the custom `eb(...)`. The first six are byte-identical to the web shell's
+`EASING_POINTS`, so an ease authored on a transition and one authored on a keyframe are
+the same curve; `smooth` is `cubic-bezier(0.4,0,0.2,1)` as the plan specifies and `snappy`
+is `cubic-bezier(0.4,0,0.6,1)` (Material's "sharp": the same in-ramp as smooth, a much
+later out-handle). `kfEaseToken` ⇄ `kfEaseCss` is the mandatory bidirectional adapter
+between a track token and the canonical `cubic-bezier(a,b,c,d)` wire the easing editor
+speaks — the canonical spelling uses commas, which the charset bans, so without the
+adapter the two vocabularies could not meet. `cubicBezierAt` is a deliberate local copy of
+the shell's (the engine must not import from a shell), pinned by golden tables on both
+sides.
+
+**Evaluation**: `evaluateKf(track, t, channels?)` is sparse per channel — each channel
+interpolates between the nearest keyframes that MENTION it, so a diamond in between that
+says nothing about it is transparent, using the earlier mentioning keyframe's ease, and
+clamp-holds outside the authored range. A channel the track never mentions is ABSENT from
+the result, so a consumer can tell "not authored" from "authored 0". The segment ease
+governs every channel EXCEPT `o`, which always interpolates linearly (a fade that tracks a
+slow curve turns to mud once the frame has been through video compression) — `eh` still
+holds it, like any channel. Tracks are plain data (arrays of `{t, ease, v}`), so a track
+survives `structuredClone` to a worker; the bezier cache is a module-level Map keyed on
+the token string, per thread, never a compiled closure inside the cloned form.
+
+**The projection**: `projectLayer` is the §4.1 fold verbatim — `cx = bx + dxT + dxK`,
+`eff = P/(P − (z − camZ))`, `cx' = W/2 + (cx − camX − W/2)·eff`, returning
+`{dx: cx' − bx, dy, scale: eff, alphaGuard}` in stage-native px BEFORE the export scale S.
+The transition and keyframe offsets sit INSIDE the projection and therefore scale by eff,
+which is the whole point: the naive reading (camera displacement added to an unscaled
+offset) makes a slide enter land short on a lifted layer. Rotation is untouched because a
+uniform scale commutes with it. `projectDepth` carries the §4.5 behind-camera guard as
+formula, part of the byte-stable contract: `u = (z − camZ)/P`, eff uses `min(u, 0.9)` so
+`eff_max = 10`, `alphaGuard = clamp((0.9 − u)/0.1, 0, 1)` — eff FREEZES at its clamp while
+alpha ramps, so the pole is unreachable and everything stays continuous. eff is evaluated
+in P-space (`P/(P − min(dz, 0.9P))`) and held to `KF_EFF_MAX`, so the clamp returns exactly
+10: `1/(1 − 0.9)` is 10.000000000000002, and a declared maximum the function can exceed is
+no use to the plate buckets and λ budget that measure themselves against it. `dofBlur` is the
+§4.4 corrected formula `a·K·|z − f|·eff(z)·eff(f)/P` with `K = 40` px at `P = 1200`
+exported as `DOF_K`; the `eff(z)·eff(f)` factor is the correction, since without it
+dollying toward an out-of-focus layer SHARPENED it. `resolveCamera(cameras, t)` is the
+§5.4 cuts rule — latest-in-array clip whose half-open window covers t, folded to a pose —
+and with no camera covering t it returns the DEFAULT camera (P = 1200, pose 0), never a
+literal identity: an identity would swallow z, while the default projects z = 0 at eff = 1
+so every existing document renders byte-identically. Every channel of the resolved pose is
+re-held to its declared range on the way out (not just `p`): `ev`/`ea` overshoot by design,
+so a segment between two in-range keys leaves the range mid-flight, and the resolved pose
+is the public contract the camera panel and the plate budget read. `p` is perspective
+strength (FOV), never magnification: `eff(z = camZ) === 1` for every value of it, which is
+why a dolly is `camZ` and why `p` is a no-op on a flat scene.
+
 1.113.0 — additive: `runtime.startLive(opts?)` gains `{ source?: 'camera' | 'asset' }`.
 The live frame loop was built for the camera, but a shell can equally feed it a
 decoded ANIMATED ASSET (an SVG with CSS/SMIL animation, a GIF/APNG, a video) —

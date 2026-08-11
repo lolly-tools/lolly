@@ -64,6 +64,11 @@
    (SVG/PDF/raster) ever visits it — a still export can never show a mark where it sits. */
 .lolly-box-audio { display: none; }
 
+/* A camera box (plan 104 §5.4) is the same kind of citizen: a marker carrying the
+   scene's pose, never a picture. Hidden for the same reasons, and its wrapper is kept
+   transparent by boxCss, so a camera contributes nothing to any frame. */
+.lolly-box-cam { display: none; }
+
 /* A vector path box's inline <svg>: fills the box frame exactly (its viewBox is the
    box's own px size, so the mapping is 1:1 and the stroke keeps a uniform width).
    Non-interactive like the Lottie player, so it never steals the editor's

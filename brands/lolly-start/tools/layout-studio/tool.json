@@ -2,7 +2,7 @@
   "id": "layout-studio",
   "name": "Layout Studio",
   "description": "An open canvas for free arrangement — text, images, shapes and live renders from your other Lolly tools, all held to your brand.",
-  "version": "1.10.0",
+  "version": "1.11.0",
   "engineVersion": "^1.12.0",
   "status": "community",
   "category": "designer",
@@ -141,6 +141,8 @@
         "exitEaseField": "exitEase",
         "muteField": "mute",
         "laneField": "lane",
+        "zField": "z",
+        "kfField": "kf",
         "frameField": "frame",
         "orderField": "order",
         "clipChildrenField": "clipChildren",
@@ -296,6 +298,11 @@
             {
               "value": "audio",
               "label": "Audio",
+              "repeatable": true
+            },
+            {
+              "value": "camera",
+              "label": "Camera",
               "repeatable": true
             },
             {
@@ -677,7 +684,7 @@
           "type": "select",
           "label": "Shadow",
           "default": "none",
-          "help": "What the drop shadow applies to: the box outline, the text, or the visible content (image alpha). Raster export only — SVG/PDF flatten it.",
+          "help": "What the drop shadow applies to: the box outline, the text, the visible content (image alpha), or Depth — a soft shadow derived from the box's own depth, so lifting a box off the surface casts further. Raster and SVG export are faithful; PDF carries it partially.",
           "options": [
             {
               "value": "none",
@@ -694,6 +701,10 @@
             {
               "value": "content",
               "label": "Content"
+            },
+            {
+              "value": "depth",
+              "label": "Depth"
             }
           ]
         },
@@ -1194,7 +1205,7 @@
           "type": "text",
           "label": "In easing",
           "default": "",
-          "help": "The timing curve the animate-in preset's GEOMETRY follows: a preset name (linear, ease-out, ease-in, ease-in-out, overshoot, anticipate) or a CSS cubic-bezier(a,b,c,d). Empty leaves the preset on its own built-in curve, which is what every composition authored before this control existed still renders with. Opacity is not governed by it."
+          "help": "The timing curve the animate-in preset's GEOMETRY follows: a preset name (linear, ease-out, ease-in, ease-in-out, overshoot, anticipate, smooth, snappy) or a CSS cubic-bezier(a,b,c,d). Empty leaves the preset on its own built-in curve, which is what every composition authored before this control existed still renders with. Opacity is not governed by it."
         },
         {
           "id": "exitEase",
@@ -1403,6 +1414,24 @@
             }
           ],
           "help": "How a path with an attached end is routed between the boxes. Auto reads it off the spline type: straight lines route straight, a polyline of three or more points routes as an elbow, spiro bows, and every other spline type routes as a smooth S. Pick one here for the bends auto cannot name. Ignored while both ends are free."
+        },
+        {
+          "id": "z",
+          "showFor": [],
+          "type": "number",
+          "label": "Depth",
+          "default": 0,
+          "min": -300,
+          "max": 900,
+          "help": "How far this box sits above the surface, in px — 0 is on the surface, negative sinks it below. Depth drives the camera's parallax and the Depth shadow. Machine-managed by the depth slider, so showFor:[] keeps it out of the sidebar."
+        },
+        {
+          "id": "kf",
+          "showFor": [],
+          "type": "text",
+          "label": "Keyframes",
+          "default": "",
+          "help": "This box's keyframe track: poses over its own local time, written compactly (t0_z0_b4*t1500_eo_z140). Machine-written by the timeline panel, never typed; anything outside the token grammar is dropped when the box renders."
         }
       ],
       "default": []

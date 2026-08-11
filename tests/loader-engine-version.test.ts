@@ -69,6 +69,55 @@ test('loadTool REFUSES a tilde range that excludes this engine', async () => {
   await assert.rejects(loadTool('demo', makeFetchFile('~1.30.0')), ToolLoadError);
 });
 
+// The diagnostic order, which is not cosmetic. A tool built against a newer engine will
+// often ALSO carry manifest vocabulary this build's schema has never seen — the canvas
+// key set is `additionalProperties: false` — and that is an Ajv error, so validating
+// first answers a correctly-authored future tool with "failed validation / canvas must
+// NOT have additional properties" (reads as a broken tool) instead of the designed
+// "requires engine X, this build implements Y". The fast-catalog / slow-binary model
+// only works if the refusal names the version.
+test('a future tool that ALSO uses unknown manifest vocabulary reports the VERSION, not a schema error', async () => {
+  const future = {
+    id: 'demo',
+    name: 'Demo',
+    version: '1.0.0',
+    engineVersion: '^99.0.0',
+    status: 'official',
+    render: { width: 10, height: 10, formats: ['svg'], layout: 'editor' },
+    inputs: [{
+      id: 'boxes', type: 'blocks', label: 'Boxes', fields: [{ id: 'x', type: 'number', label: 'X' }],
+      // A canvas key from an engine that does not exist yet — exactly what P1/P2 add.
+      canvas: { xField: 'x', lensField: 'lens' },
+    }],
+  };
+  const fetchFile = async (path: string): Promise<string> => {
+    if (path === 'demo/tool.json') return JSON.stringify(future);
+    throw new Error(`404: ${path}`);
+  };
+  await assert.rejects(loadTool('demo', fetchFile), (err: unknown) => {
+    assert.ok(err instanceof ToolLoadError);
+    assert.match((err as Error).message, /requires engine \^99\.0\.0/);
+    assert.doesNotMatch((err as Error).message, /failed validation/);
+    return true;
+  });
+});
+
+test('a manifest with no usable engineVersion still fails validation, with the schema errors', async () => {
+  for (const engineVersion of [undefined, 42, null] as unknown[]) {
+    const bad: Record<string, unknown> = {
+      id: 'demo', name: 'Demo', version: '1.0.0', status: 'official',
+      render: { width: 10, height: 10, formats: ['svg'] }, inputs: [],
+    };
+    if (engineVersion !== undefined) bad.engineVersion = engineVersion;
+    const fetchFile = async (): Promise<string> => JSON.stringify(bad);
+    await assert.rejects(loadTool('demo', fetchFile), (err: unknown) => {
+      assert.ok(err instanceof ToolLoadError);
+      assert.match((err as Error).message, /failed validation/);
+      return true;
+    });
+  }
+});
+
 test('the engineVersion refusal happens BEFORE the template is fetched', async () => {
   // fetchFile has no template.html, so a load that proceeded to fetch it would
   // throw "404: demo/template.html". Getting the engineVersion error instead

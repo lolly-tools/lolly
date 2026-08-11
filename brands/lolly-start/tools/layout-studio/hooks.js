@@ -177,7 +177,10 @@ var FONTS = {
 };
 function fontFamily(v) {
   var key = String(v);
-  if (FONTS[key]) return FONTS[key];
+  // Own-property, not bare truthiness — the SHADOW_TARGETS rule, applied to every enum
+  // whitelist in this file: `font=constructor` from a hand-edited URL would otherwise
+  // return Object and emit its source text as a font-family.
+  if (Object.prototype.hasOwnProperty.call(FONTS, key)) return FONTS[key];
   var safe = key.replace(/[^\w \-]/g, '').trim(); // letters/digits/space/hyphen only
   return safe ? ("'" + safe + "', " + FONTS.sans) : FONTS.sans;
 }
@@ -232,6 +235,22 @@ function isAudioBox(b) {
   return re.test(String(img.url == null ? '' : img.url)) || re.test(String(img.id == null ? '' : img.id));
 }
 
+// plan 104 §5.4 — "is this box a camera?". A camera is a non-visual TIMELINE citizen
+// like an audio bed: it carries the scene's pose (its own `kf` track and `z`) and paints
+// nothing at all. Keyed off `kind` ALONE, unlike isAudioBox: no asset can imply a camera,
+// so there is no second signal to reconcile — a box is a camera because the Camera
+// add-kind seeded it (or a hand-edited URL says so).
+function isCameraBox(b) {
+  return !!b && String(b.kind) === 'camera';
+}
+
+// The boxes that leave NO MARK on the frame: an audio bed and a camera marker. One
+// predicate so every "paints nothing" site (fill, gradient, clip, blur, shadow, text)
+// stays in one vocabulary and a new bare kind is added in exactly one place.
+function isBareBox(b) {
+  return isAudioBox(b) || isCameraBox(b);
+}
+
 function boxCss(b, grad) {
   var x = Math.round(num(b.x, 0));
   var y = Math.round(num(b.y, 0));
@@ -241,11 +260,12 @@ function boxCss(b, grad) {
   var op = clamp(num(b.opacity, 100), 0, 100) / 100;
   // A path box's `bg` is the PATH's fill (see pathHtmlFor), so the div behind it
   // stays transparent — otherwise every pen shape would sit on an opaque rectangle
-  // of its own fill colour. An audio box paints nothing at all (see mediaHtmlFor),
-  // so its fill is dropped for the same reason: it must leave no mark on the frame.
-  var audio = isAudioBox(b);
-  var fill = (String(b.kind) === 'path' || audio) ? 'transparent' : safeColor(b.bg, 'transparent');
-  var blend = BLENDS[String(b.blend)] ? String(b.blend) : '';
+  // of its own fill colour. An audio box or a camera marker paints nothing at all (see
+  // mediaHtmlFor), so their fill is dropped for the same reason: they must leave no mark
+  // on the frame.
+  var bare = isBareBox(b);
+  var fill = (String(b.kind) === 'path' || bare) ? 'transparent' : safeColor(b.bg, 'transparent');
+  var blend = Object.prototype.hasOwnProperty.call(BLENDS, String(b.blend)) ? String(b.blend) : '';
   var css =
     'left:' + x + 'px;top:' + y + 'px;width:' + w + 'px;height:' + h + 'px;' +
     (rot ? 'transform:rotate(' + (Math.round(rot * 10) / 10) + 'deg);' : '') +
@@ -270,7 +290,7 @@ function boxCss(b, grad) {
   // SVG path itself (pathHtmlFor), never the div.
   var sw = num(b.strokeW, 0);
   var sc = safeColor(b.stroke, '');
-  if (String(b.kind) !== 'path' && !audio && sc && sw > 0) {
+  if (String(b.kind) !== 'path' && !bare && sc && sw > 0) {
     var dash = String(b.strokeDash) === 'dashed' ? 'dashed' : String(b.strokeDash) === 'dotted' ? 'dotted' : 'solid';
     css += 'border:' + (Math.round(sw * 100) / 100) + 'px ' + dash + ' ' + sc + ';';
   }
@@ -284,7 +304,7 @@ function boxCss(b, grad) {
   // PDF and video paths cannot see a backdrop through their serialiser and export
   // the box frostless. The export panel warns when the chosen format drops it.
   var bgb = clamp(num(b.bgBlur, 0), 0, 300);
-  if (String(b.kind) !== 'path' && !audio && bgb > 0) {
+  if (String(b.kind) !== 'path' && !bare && bgb > 0) {
     var bgbPx = (Math.round(bgb * 10) / 10) + 'px';
     css += 'backdrop-filter:blur(' + bgbPx + ');-webkit-backdrop-filter:blur(' + bgbPx + ');';
   }
@@ -307,6 +327,17 @@ function imgCss(b) {
 // marker div is simply inert there (no browser enhancer). The url is esc()'d for
 // parity with the {{asset image}} Handlebars escaping it replaces.
 function mediaHtmlFor(b) {
+  // plan 104 §5.4 — a CAMERA box is a bare marker and nothing else: no fill (boxCss), no
+  // media, no text, no shadow (compute). It exists so the scene's pose has somewhere to
+  // live — the pose itself rides on the wrapper's data-t-kf/data-t-z, exactly like every
+  // other timing attribute — and the marker is what the evaluators key their camera
+  // branch off. Checked FIRST, before the `url` guard: a camera carries no image, so an
+  // early return on "no url" would swallow the marker entirely. data-export-hide keeps it
+  // out of every export walk (the same tag the editor's own chrome carries), on top of
+  // styles.css hiding it.
+  if (isCameraBox(b)) {
+    return '<div class="lolly-box-cam" data-cam="1" data-export-hide aria-hidden="true"></div>';
+  }
   var img = b && b.image;
   var url = img && img.url ? String(img.url) : '';
   if (!url) return '';
@@ -432,8 +463,9 @@ function pathWarn(msg) {
 function gradCssFor(b) {
   // A path box's `bg` is the PATH's fill, not the div's (see pathHtmlFor), so a
   // gradient on it would paint a rectangle behind the curve. Shapes only for now.
-  // An audio box is invisible, so a gradient on it would print a stray rectangle.
-  if (!b || String(b.kind) === 'path' || isAudioBox(b)) return '';
+  // An audio box or camera marker is invisible, so a gradient on it would print a stray
+  // rectangle.
+  if (!b || String(b.kind) === 'path' || isBareBox(b)) return '';
   var spec = b.grad == null ? '' : String(b.grad).trim();
   if (!spec) return '';
   var api = typeof host !== 'undefined' && host && host.color ? host.color : null;
@@ -936,13 +968,35 @@ function clipCss(b, byId) {
 // Drop shadow. The `shadow` field picks WHAT the shadow follows, which decides the
 // CSS property: 'box' → box-shadow (the box outline / radius), 'text' → text-shadow
 // (on the text run), 'content' → filter:drop-shadow (the visible alpha silhouette,
-// e.g. a transparent PNG / icon). Returns the fragments for each target element.
-// Raster-faithful (PNG/JPG/WebP); the SVG/PDF vector walkers don't model shadows, so
-// they flatten there — same caveat as blend modes.
-var SHADOW_TARGETS = { box: 1, text: 1, content: 1 };
+// e.g. a transparent PNG / icon), 'depth' → the same drop-shadow, but DERIVED from the
+// box's own `z` instead of the manual offsets (plan 104 §5.3). Returns the fragments for
+// each target element. Raster and SVG export are faithful; PDF carries it partially.
+//
+// An own-property lookup, not the bare `SHADOW_TARGETS[tgt]` truthiness test: every
+// object literal inherits truthy `constructor`/`__proto__`/`toString`/`valueOf` from
+// Object.prototype, so `shadow=constructor` in a hand-edited URL would otherwise select
+// a shadow target that does not exist and fall through to the content branch. Same
+// posture as isTransition below — one rule for every enum whitelist in this file.
+var SHADOW_TARGETS = { box: 1, text: 1, content: 1, depth: 1 };
+function isShadowTarget(v) {
+  return Object.prototype.hasOwnProperty.call(SHADOW_TARGETS, v);
+}
 function shadowCss(b) {
   var tgt = String(b.shadow || 'none');
-  if (!SHADOW_TARGETS[tgt]) return { box: '', text: '', filterFn: '' };
+  if (!isShadowTarget(tgt)) return { box: '', text: '', filterFn: '' };
+  // The depth shadow is a pure function of `z` — straight overhead light, alpha and
+  // spread growing with the lift, so raising a box off the surface reads as height
+  // rather than as a light direction (a baked down-right offset is an LTR assumption
+  // that would be wrong in half of the 26 locales). The manual shadowColor/X/Y/Blur
+  // stay as the OVERRIDE tier: pick 'box'/'text'/'content' to drive them by hand.
+  // Blur is floored at 0 because a sunken box (z < 0) drives 10 + z·0.2 negative,
+  // which is not a legal CSS length.
+  if (tgt === 'depth') {
+    var dz = clamp(num(b.z, 0), -300, 900);
+    var dy = f2(dz * 0.15);
+    var dbl = f2(clamp(10 + dz * 0.2, 0, 300));
+    return { box: '', text: '', filterFn: 'drop-shadow(0px ' + dy + 'px ' + dbl + 'px #00000055)' };
+  }
   var col = safeColor(b.shadowColor, '#00000055');
   var x = Math.round(clamp(num(b.shadowX, 0), -300, 300));
   var y = Math.round(clamp(num(b.shadowY, 0), -300, 300));
@@ -1041,9 +1095,14 @@ function isTransition(v) {
     && Object.prototype.hasOwnProperty.call(TRANSITIONS, v);
 }
 
-// The named easing curves the shell implements (lib/transitions.ts EASINGS).
+// The named easing curves the shell implements (lib/transitions.ts EASINGS). 'smooth'
+// and 'snappy' arrived with the keyframe grammar (plan 104 §5.1) and are listed here for
+// the same reason the other six are: the ease select offers every name in that table, and
+// a name this whitelist did not know would be dropped on the way to the attribute and
+// silently revert to the preset's built-in curve. One vocabulary, three copies of it.
 var EASINGS = {
   linear: 1, 'ease-out': 1, 'ease-in': 1, 'ease-in-out': 1, overshoot: 1, anticipate: 1,
+  smooth: 1, snappy: 1,
 };
 
 // An authored easing, canonicalised for the attribute: a whitelisted preset name, or
@@ -1079,42 +1138,223 @@ function startSeconds(b) {
   return clamp(num(b.start, 0), 0, MAX_TIME_S);
 }
 
-// A box's time attributes, or '' for scenery (a box with no lane/start authored).
-// Pure; every value lands in an HTML attribute via {{{ }}}, so every emitted value
-// is either a clamped NUMBER or a whitelisted enum token — never raw user text.
+// ── plan 104 §5.1: the keyframe track ──────────────────────────────────────────
+//
+// `kf` is a per-box TEXT field carrying a whole animation as one compact string:
+// keyframes separated by '*', tokens within a keyframe by '_', the first token that
+// keyframe's LOCAL time in ms (t1500), the rest channel values (x-40, s1.2, rx-8) plus
+// at most one ease token for the segment leaving it (eo, or eb(0.32)(0)(0.67)(1)).
+//
+// It is free text, authorable from a hand-edited share URL, and it lands in an HTML
+// attribute through {{{ }}} — so this hook NEVER emits the authored string. It PARSES the
+// value and re-serialises its own: the easeAttr posture, one step further out. A track
+// carrying `"><img` leaves no surviving token, so the attribute is omitted entirely
+// rather than escaped — the same answer this file gives a non-whitelisted transition.
+//
+// The tables below are TRANSCRIBED from engine/src/keyframes.ts (KF_CHANNELS, KF_CLAMPS,
+// KF_QUANTA, KF_EASE_PRESETS and the parse caps), because a hook cannot import the
+// engine. So the grammar has two implementations — and tests/timeline-model.test.ts pins
+// them to each other by asserting the emitted attribute equals the engine's own
+// serialiseKf(parseKf(raw)) for a corpus of hostile and ordinary tracks. Change one side
+// without the other and that test fails, which is exactly what it is for.
+var KF_CHANNEL_ORDER = ['x', 'y', 'z', 's', 'r', 'rx', 'ry', 'o', 'b', 'f', 'a', 'p'];
+// The same names LONGEST-FIRST, which is what makes 'rx-8' channel rx at −8 rather than
+// channel r followed by junk. No channel is named 'e', so an ease token can never be read
+// as a channel.
+var KF_CHANNELS_BY_LEN = ['rx', 'ry', 'a', 'b', 'f', 'o', 'p', 'r', 's', 'x', 'y', 'z'];
+// `z` spans ±12000 on the WIRE, which is NOT the z field's own −300…900: one kf grammar
+// carries both a box's lift and the CAMERA's dolly, and camZ is the only zoom control
+// there is. The field clamp still governs the z FIELD — see data-t-z below.
+var KF_CLAMPS = {
+  x: [-100000, 100000], y: [-100000, 100000], z: [-12000, 12000], s: [0.01, 100],
+  r: [-3600, 3600], rx: [-180, 180], ry: [-180, 180], o: [0, 1], b: [0, 300],
+  f: [-3000, 3000], a: [0, 1], p: [50, 12000],
+};
+var KF_QUANTA = {
+  x: 0.01, y: 0.01, z: 0.01, s: 0.001, r: 0.01, rx: 0.01, ry: 0.01,
+  o: 0.001, b: 0.01, f: 0.01, a: 0.001, p: 0.01,
+};
+// The eight named curves, by their wire token: linear, ease-in, ease-out, ease-in-out,
+// overshoot, anticipate, smooth, snappy. 'eh' (hold) is an ease too but has no points.
+var KF_EASES = {
+  el: [0, 0, 1, 1], ei: [0.32, 0, 0.67, 0], eo: [0.33, 1, 0.68, 1],
+  eio: [0.65, 0, 0.35, 1], ev: [0.34, 1.56, 0.64, 1], ea: [0.36, -0.4, 0.66, 1],
+  es: [0.4, 0, 0.2, 1], ek: [0.4, 0, 0.6, 1],
+};
+var KF_HOLD_EASE = 'eh';
+var KF_DEFAULT_EASE = 'eio'; // absent from the wire means this curve
+var KF_BEZIER_Q = 0.001;
+var KF_BEZIER_Y_MAX = 10;
+var KF_MAX_KEYS = 256;   // parse caps — a blocks sub-field has no length limit of its own
+// DERIVED from KF_MAX_KEYS, not picked: 256 keyframes at the widest a keyframe can
+// serialise to (154 chars) plus separators is 39 679, so a full-density track always
+// fits and the two caps can never disagree. The engine pins the derivation.
+var KF_MAX_CHARS = 40960;
+var KF_NUM = /^-?(?:\d+(?:\.\d+)?|\.\d+)$/; // no exponent, no '+', no NaN/Infinity
+var KF_T = /^t(-?(?:\d+(?:\.\d+)?|\.\d+))$/;
+var KF_EB = /^eb\(([^()]*)\)\(([^()]*)\)\(([^()]*)\)\(([^()]*)\)$/;
+
+// Round to a quantum whose inverse is an exact power of ten, so String() of the result is
+// its shortest round-tripping spelling — and −0 never reaches the wire.
+function kfQuant(v, q) {
+  var inv = Math.round(1 / q);
+  var n = Math.round(v * inv) / inv;
+  return n === 0 ? 0 : n;
+}
+
+// Strict decimal parse, matching the engine's: null for anything else.
+function kfNum(s) {
+  if (!KF_NUM.test(s)) return null;
+  var n = Number(s);
+  return isFinite(n) ? n : null;
+}
+
+// An ease token in canonical spelling, or '' when it is not an ease at all. A custom
+// bezier landing exactly on a preset's points comes back as that preset's name.
+function kfEase(tok) {
+  if (tok === KF_HOLD_EASE) return tok;
+  if (Object.prototype.hasOwnProperty.call(KF_EASES, tok)) return tok;
+  var m = KF_EB.exec(tok);
+  if (!m) return '';
+  var p = [];
+  for (var i = 1; i <= 4; i++) {
+    var n = kfNum(m[i]);
+    if (n === null) return '';
+    // The odd positions are the x controls: TIME, which must stay inside 0..1 or the
+    // curve is not a function of progress (the rule easeAttr applies to cubic-bezier).
+    // y is bounded only to keep the attribute finite — the overshoot family lives
+    // outside 0..1 by design. Clamped, never rejected: the engine's parser clamps too,
+    // and the two must agree on every input.
+    var odd = (i % 2) === 1;
+    p.push(kfQuant(clamp(n, odd ? 0 : -KF_BEZIER_Y_MAX, odd ? 1 : KF_BEZIER_Y_MAX), KF_BEZIER_Q));
+  }
+  for (var name in KF_EASES) {
+    if (!Object.prototype.hasOwnProperty.call(KF_EASES, name)) continue;
+    var q = KF_EASES[name];
+    if (q[0] === p[0] && q[1] === p[1] && q[2] === p[2] && q[3] === p[3]) return name;
+  }
+  return 'eb(' + p[0] + ')(' + p[1] + ')(' + p[2] + ')(' + p[3] + ')';
+}
+
+// The whole track, parsed and re-serialised, or '' to omit the attribute entirely.
+// Never throws: junk tokens are skipped, and a keyframe whose first token is not
+// t<number> is skipped whole (the grammar puts time first, always).
+function kfAttr(v) {
+  if (typeof v !== 'string' || v === '') return '';
+  var src = v.length > KF_MAX_CHARS ? v.slice(0, KF_MAX_CHARS) : v; // the excess is ignored
+  var segs = src.split('*');
+  var keys = [];
+  for (var s = 0; s < segs.length && keys.length < KF_MAX_KEYS; s++) {
+    if (segs[s] === '') continue;
+    var raw = segs[s].split('_');
+    var toks = [];
+    for (var r = 0; r < raw.length; r++) { if (raw[r] !== '') toks.push(raw[r]); }
+    if (!toks.length) continue;
+    var tm = KF_T.exec(toks[0]);
+    if (!tm) continue;
+    var tRaw = kfNum(tm[1]);
+    if (tRaw === null) continue;
+    var ease = KF_DEFAULT_EASE;
+    var vals = {};
+    for (var i = 1; i < toks.length; i++) {
+      var tok = toks[i];
+      if (tok.charAt(0) === 'e') {
+        // Later tokens overwrite earlier ones — the wire reads as a list of assignments.
+        var e = kfEase(tok);
+        if (e) { ease = e; continue; }
+      }
+      for (var c = 0; c < KF_CHANNELS_BY_LEN.length; c++) {
+        var ch = KF_CHANNELS_BY_LEN[c];
+        if (tok.slice(0, ch.length) !== ch) continue;
+        var n = kfNum(tok.slice(ch.length));
+        if (n === null) continue; // a shorter channel name may still match
+        vals[ch] = kfQuant(clamp(n, KF_CLAMPS[ch][0], KF_CLAMPS[ch][1]), KF_QUANTA[ch]);
+        break;
+      }
+    }
+    keys.push({ t: Math.round(clamp(tRaw, 0, MAX_TIME_S * 1000)), ease: ease, v: vals });
+  }
+  // Sorted by time, then last-wins at equal times: a re-keyed pose replaces the one it was
+  // written over rather than leaving an unreachable twin behind. Array.sort is stable.
+  keys.sort(function (a, b) { return a.t - b.t; });
+  var out = [];
+  for (var k = 0; k < keys.length; k++) {
+    if (out.length && out[out.length - 1].t === keys[k].t) out[out.length - 1] = keys[k];
+    else out.push(keys[k]);
+  }
+  var wire = [];
+  for (var w = 0; w < out.length; w++) {
+    var key = out[w];
+    var parts = ['t' + key.t];
+    if (key.ease !== KF_DEFAULT_EASE) parts.push(key.ease);
+    for (var o = 0; o < KF_CHANNEL_ORDER.length; o++) {
+      var cn = KF_CHANNEL_ORDER[o];
+      if (!Object.prototype.hasOwnProperty.call(key.v, cn)) continue;
+      parts.push(cn + key.v[cn]);
+    }
+    wire.push(parts.join('_'));
+  }
+  return wire.join('*');
+}
+
+// A box's time attributes, or '' for a box with no timing, no depth and no keyframes.
+// Pure; every value lands in an HTML attribute via {{{ }}}, so every emitted value is
+// either a clamped NUMBER or a whitelisted enum token — never raw user text. `kf` is the
+// one free-text field among them, and kfAttr parses and re-serialises it rather than
+// passing it through, so the invariant holds unchanged.
 // Each attribute string starts with a leading space so concatenation into a tag is
 // safe with no manual separator bookkeeping.
 function timeAttrsFor(b) {
-  if (b.lane !== 'seq' && !isFiniteNum(b.start)) return ''; // scenery
   var parts = [];
-  parts.push(' data-t-start="' + Math.round(startSeconds(b) * 1000) + '"');
-  if (isFiniteNum(b.dur)) {
-    parts.push(' data-t-dur="' + Math.round(clamp(num(b.dur, 0), 0.1, MAX_TIME_S) * 1000) + '"');
+  // SCENERY (no lane, no start authored) carries no TIMING attributes — the contract
+  // every document written before the time model still renders under. Depth and
+  // keyframes are not timing: a scenery box on a sequence stage is visible throughout
+  // and can still be lifted off the surface or animated, and an always-on camera is
+  // exactly that box, so those two are emitted below for timed and untimed alike.
+  if (b.lane === 'seq' || isFiniteNum(b.start)) {
+    parts.push(' data-t-start="' + Math.round(startSeconds(b) * 1000) + '"');
+    if (isFiniteNum(b.dur)) {
+      parts.push(' data-t-dur="' + Math.round(clamp(num(b.dur, 0), 0.1, MAX_TIME_S) * 1000) + '"');
+    }
+    if (num(b.clipIn, 0) > 0) {
+      parts.push(' data-clip-in="' + Math.round(clamp(num(b.clipIn, 0), 0, MAX_TIME_S) * 1000) + '"');
+    }
+    // f2 so an accumulated slider value (0.30000000000000004) doesn't leak float noise
+    // into the attribute; re-test against 1 AFTER rounding so a no-op speed stays absent.
+    var speed = f2(clamp(num(b.speed, 1), 0.25, 4));
+    if (speed !== 1) {
+      parts.push(' data-t-speed="' + speed + '"');
+    }
+    if (isTransition(b.enter)) {
+      parts.push(' data-t-enter="' + b.enter + '" data-t-enter-ms="' + Math.round(clamp(num(b.enterMs, 400), 100, 3000)) + '"');
+      // Only ever alongside a kind, and only when it survives easeAttr — an unauthored
+      // or unparseable curve leaves the attribute absent, which is what every reader
+      // treats as "the preset's own curve".
+      var enterEase = easeAttr(b.enterEase);
+      if (enterEase) parts.push(' data-t-enter-ease="' + enterEase + '"');
+    }
+    if (isTransition(b.exit)) {
+      parts.push(' data-t-exit="' + b.exit + '" data-t-exit-ms="' + Math.round(clamp(num(b.exitMs, 400), 100, 3000)) + '"');
+      var exitEase = easeAttr(b.exitEase);
+      if (exitEase) parts.push(' data-t-exit-ease="' + exitEase + '"');
+    }
+    if (boolVal(b.mute, false)) parts.push(' data-t-mute="1"');
+    if (b.lane === 'seq') parts.push(' data-t-lane="seq"');
   }
-  if (num(b.clipIn, 0) > 0) {
-    parts.push(' data-clip-in="' + Math.round(clamp(num(b.clipIn, 0), 0, MAX_TIME_S) * 1000) + '"');
+  // plan 104 §5.3 / §5.1 — depth as a clamped number (the ±300 house clamp on one side,
+  // 900 on the other so a deep lift stays clear of the behind-camera guard), and the
+  // keyframe track as re-serialised tokens. Both stay absent unless authored, so a
+  // document using neither renders byte-identically to before the feature landed.
+  // NOT on a FRAME: §5.4 scopes v1 to boxes on a [data-sequence] stage — "frame pages
+  // are excluded from projection and cannot carry kf" — and frameGroupsFor stamps this
+  // same string onto the [data-pdf-page] div. Excluded HERE, at the one place the
+  // attribute is written, rather than left for every future reader to remember to skip.
+  if (String(b.kind) !== 'frame') {
+    var z = Math.round(clamp(num(b.z, 0), -300, 900));
+    if (z !== 0) parts.push(' data-t-z="' + z + '"');
+    var kf = kfAttr(b.kf);
+    if (kf) parts.push(' data-t-kf="' + kf + '"');
   }
-  // f2 so an accumulated slider value (0.30000000000000004) doesn't leak float noise
-  // into the attribute; re-test against 1 AFTER rounding so a no-op speed stays absent.
-  var speed = f2(clamp(num(b.speed, 1), 0.25, 4));
-  if (speed !== 1) {
-    parts.push(' data-t-speed="' + speed + '"');
-  }
-  if (isTransition(b.enter)) {
-    parts.push(' data-t-enter="' + b.enter + '" data-t-enter-ms="' + Math.round(clamp(num(b.enterMs, 400), 100, 3000)) + '"');
-    // Only ever alongside a kind, and only when it survives easeAttr — an unauthored
-    // or unparseable curve leaves the attribute absent, which is what every reader
-    // treats as "the preset's own curve".
-    var enterEase = easeAttr(b.enterEase);
-    if (enterEase) parts.push(' data-t-enter-ease="' + enterEase + '"');
-  }
-  if (isTransition(b.exit)) {
-    parts.push(' data-t-exit="' + b.exit + '" data-t-exit-ms="' + Math.round(clamp(num(b.exitMs, 400), 100, 3000)) + '"');
-    var exitEase = easeAttr(b.exitEase);
-    if (exitEase) parts.push(' data-t-exit-ease="' + exitEase + '"');
-  }
-  if (boolVal(b.mute, false)) parts.push(' data-t-mute="1"');
-  if (b.lane === 'seq') parts.push(' data-t-lane="seq"');
   return parts.join('');
 }
 
@@ -1408,9 +1648,11 @@ function frameGroupsFor(boxes, ext) {
     // finite start — the same scenery guard timeAttrsFor uses), stamp the timeline
     // attributes onto the frame PAGE div so the sequence clock's [data-t-start] selector
     // gates it: the page whose [start,start+dur) contains the playhead stays visible, the
-    // rest get .seq-off (display:none) — one slide at a time. A frame with NO timing emits
-    // '' → no data-t-start → never selected → every frame shows (spatial view). fb carries
-    // the timeline fields already, so this is the same emission the artboard boxes get.
+    // rest get .seq-off (display:none) — one slide at a time. A frame with NO timing gets
+    // no data-t-start → never selected → every frame shows (spatial view); the depth and
+    // keyframe attributes are outside that guard (plan 104) but the CLOCK gates on
+    // data-t-start alone, so an untimed frame is still never selected. fb carries the
+    // timeline fields already, so this is the same emission the artboard boxes get.
     var pageTimeAttrs = timeAttrsFor(fb);
     return { pageStyle: pageStyle, pageTimeAttrs: pageTimeAttrs, children: children };
   });
@@ -1484,8 +1726,10 @@ function deckInexpressible(b, byId) {
   if (clamp(num(b.opacity, 100), 0, 100) !== 100) return true; // boxCss emits opacity:<1 — the flat deck element carries no alpha (rasterise follow-up)
   if (b.grad != null && String(b.grad).trim() !== '') return true;
   if (num(b.blur, 0) > 0 || num(b.bgBlur, 0) > 0) return true;
-  if (BLENDS[String(b.blend)]) return true;
-  if (SHADOW_TARGETS[String(b.shadow)]) return true;
+  if (Object.prototype.hasOwnProperty.call(BLENDS, String(b.blend))) return true;
+  // Every shadow target, 'depth' included: a .pptx element carries no filter, so a
+  // depth shadow is skipped native exactly like the other three (rasterise follow-up).
+  if (isShadowTarget(String(b.shadow))) return true;
   var mid = b.clip != null ? String(b.clip) : '';
   var selfId = b.id != null ? String(b.id) : '';
   if (mid && mid !== selfId && byId[mid]) return true; // an actual clip mask (matches clipCss)
@@ -1498,7 +1742,8 @@ function deckElementFor(cb, byId, lx, ly) {
   // An audio box is invisible and has no picture, so it lowers to NOTHING native — never
   // the fallback deck rect below (which would print a stray rectangle where the bed sits).
   // A .pptx has no audio track in this model, so a music bed simply isn't in the deck.
-  if (isAudioBox(cb)) return null;
+  // A camera marker is invisible for the same reason, and a deck has no camera either.
+  if (isBareBox(cb)) return null;
   if (deckInexpressible(cb, byId)) return null;
   var cw = Math.max(1, Math.round(num(cb.w, 1)));
   var ch = Math.max(1, Math.round(num(cb.h, 1)));
@@ -1597,25 +1842,26 @@ function compute(model) {
   var transparent = inp.transparentBg === true;
   var byId = {};
   boxes.forEach(function (b) { if (b && b.id != null && b.id !== '') byId[String(b.id)] = b; });
-  // An audio box renders NOTHING visible: no fill (boxCss), no media (mediaHtmlFor emits a
-  // display:none marker), no text, and — the part that is easy to miss — no shadow, no clip
-  // and no blur either. `shadow`/`blur` are plain sidebar fields with no showFor restriction,
-  // so an audio box can carry one, and box-shadow/drop-shadow/blur paint OUTSIDE the
-  // (transparent) box: without this they would print a stray rectangle of colour exactly
-  // where the music bed sits, which is the one thing this contract promises never happens.
+  // An audio box or a camera marker renders NOTHING visible: no fill (boxCss), no media
+  // (mediaHtmlFor emits a display:none marker), no text, and — the part that is easy to
+  // miss — no shadow, no clip and no blur either. `shadow`/`blur` are plain sidebar fields
+  // with no showFor restriction, so a bare box can carry one, and box-shadow/drop-shadow/
+  // blur paint OUTSIDE the (transparent) box: without this they would print a stray
+  // rectangle of colour exactly where the music bed or the camera sits, which is the one
+  // thing this contract promises never happens.
   var NO_SHADOW = { box: '', text: '', filterFn: '' };
-  var shadows = boxes.map(function (b) { return isAudioBox(b) ? NO_SHADOW : shadowCss(b || {}); });
+  var shadows = boxes.map(function (b) { return isBareBox(b) ? NO_SHADOW : shadowCss(b || {}); });
   var boxStyle = boxes.map(function (b, i) {
-    var audio = isAudioBox(b);
+    var bare = isBareBox(b);
     var fx = [];
-    var bl = audio ? '' : blurCss(b || {});
+    var bl = bare ? '' : blurCss(b || {});
     if (bl) fx.push(bl);
     if (shadows[i].filterFn) fx.push(shadows[i].filterFn);
-    return boxCss(b || {}, audio ? '' : gradCssFor(b || {})) + (audio ? '' : clipCss(b || {}, byId)) + shadows[i].box +
+    return boxCss(b || {}, bare ? '' : gradCssFor(b || {})) + (bare ? '' : clipCss(b || {}, byId)) + shadows[i].box +
       (fx.length ? 'filter:' + fx.join(' ') + ';' : '');
   });
   var textStyle = boxes.map(function (b, i) { return textCss(b || {}) + shadows[i].text; });
-  var textHtml = boxes.map(function (b) { return isAudioBox(b) ? '' : richText((b && b.text) || ''); });
+  var textHtml = boxes.map(function (b) { return isBareBox(b) ? '' : richText((b && b.text) || ''); });
   var mediaHtml = boxes.map(function (b) { return mediaHtmlFor(b || {}); });
   var pathHtml = boxes.map(function (b) { return pathHtmlFor(b || {}); });
   // Which boxes opted into shrink-to-fit ("1" marks a fit root for the template's fit

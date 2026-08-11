@@ -25,11 +25,17 @@ import { dirname, join } from 'node:path';
 import { loadTool } from '../engine/src/loader.ts';
 import { createRuntime } from '../engine/src/runtime.ts';
 import { parseUrlState } from '../engine/src/url-mode.ts';
+import { KF_CHARSET_RE, parseKf, serialiseKf } from '../engine/src/keyframes.ts';
 import { baseHost } from './helpers/host.ts';
 
 // Parent-owned pack — present in every checkout (brands/suse is private + CI-skipped).
 const PACK_DIR = join(dirname(fileURLToPath(import.meta.url)), '..', 'brands', 'lolly-start', 'tools');
 const fetchFile = (path: string) => readFile(join(PACK_DIR, path), 'utf8');
+
+// The private SUSE pack carries the second copy of this same tool. Gate on the pack —
+// never skip silently when it IS mounted (the canvas-schema-contract.test.ts pattern).
+const SUSE_PACK = join(dirname(fileURLToPath(import.meta.url)), '..', 'brands', 'suse', 'tools');
+const SKIP_SUSE = !existsSync(SUSE_PACK) && 'SUSE brand pack not mounted (see profiles.json)';
 
 assert.ok(existsSync(join(PACK_DIR, 'layout-studio', 'tool.json')),
   'brands/lolly-start/tools/layout-studio/tool.json is missing — the tool was renamed or deleted');
@@ -92,6 +98,14 @@ test('wire order: compact-blocks encode/decode round-trips every field (id..fill
     'the 10 time fields occupy slots 39..48, immediately after fillRule (a bounded slice, '
       + 'so appending a 50th field stays legal)',
   );
+  // plan 104 §5.1/§5.3: the depth + keyframe fields append at 69/70. Same rule, same
+  // reason — a bounded slice, so a 72nd field stays legal, but an INSERT in front of
+  // these two (which is what silently re-columns every shared link) fails right here.
+  assert.deepEqual(ids.slice(69, 71), ['z', 'kf'], 'z/kf appended at slots 69/70');
+  for (const id of ['z', 'kf']) {
+    assert.deepEqual(fields.find((f: any) => f.id === id).showFor, [], `${id} is machine-managed`);
+  }
+  assert.equal(new Set(ids).size, ids.length, 'no duplicate sub-field ids');
 
   // One sentinel value per field, keyed by its position (not its id) — this is what
   // catches a positional shift: if field N's declared slot moved, its decoded value
@@ -111,6 +125,19 @@ test('wire order: compact-blocks encode/decode round-trips every field (id..fill
     if (f.type === 'asset') expected = { source: 'library', id: raw, _unresolved: true };
     assert.deepEqual(obj[f.id], expected, `field ${i} ("${f.id}") landed in slot ${i}, not shifted`);
   });
+});
+
+// `boxes` is ONE positional wire shared by both brand copies of layout-studio, so a share
+// link written under one profile is decoded under the other. A single field of drift
+// between the copies mis-decodes every value after the drift point — and the copies are
+// edited independently BY ANCHOR (plan §2), which is exactly the discipline that lets one
+// side gain a field the other lacks. Nothing else in the suite compares them.
+test('wire order: the SUSE copy of layout-studio declares the identical boxes.fields sequence', { skip: SKIP_SUSE }, async () => {
+  const suse = JSON.parse(await readFile(join(SUSE_PACK, 'layout-studio', 'tool.json'), 'utf8'));
+  const suseIds = suse.inputs.find((i: any) => i.id === 'boxes').fields.map((f: any) => f.id);
+  assert.deepEqual(suseIds, boxSubFields().map((f: any) => f.id),
+    'the two brand copies must agree field-for-field, in order — the fonts and the '
+    + 'animated-SVG block may diverge, the WIRE may not');
 });
 
 // The case that actually carries the regression risk: a link SHARED BEFORE the time
@@ -432,4 +459,177 @@ test('easing: a non-string curve is ignored and never aborts compute()', async (
   ]);
   assert.ok(!/-ease=/.test(boxTag(html, 'a')), 'array / object curves → attributes omitted');
   assert.match(boxTag(html, 'b'), /style="[^"]*#112233/, 'the rest of the document still computed');
+});
+
+// ── 7. depth + keyframes (plan 104 §5.1/§5.3) ──────────────────────────────────────
+//
+// `z` is an ordinary clamped number, so it needs no more than the usual guards. `kf` is
+// the harder one: it is the second free-text sub-field (after the easings above) and it
+// carries a whole animation, so the hook parses it and RE-SERIALISES its own text rather
+// than passing the author's through. The engine owns the canonical grammar
+// (engine/src/keyframes.ts); the hook cannot import it, so the two implementations are
+// pinned to each other here — anything else is a divergence waiting for a share link.
+
+test('depth: an authored z rides through as a clamped integer, and 0 emits nothing', async () => {
+  const on = boxTag(await mount([timed({ z: 140 })]), 'a');
+  assert.match(on, /data-t-z="140"/, 'the authored depth reaches the attribute');
+
+  for (const z of [0, undefined, '', 'abc', Number.NaN]) {
+    const tag = boxTag(await mount([timed({ z })]), 'a');
+    assert.ok(!/data-t-z=/.test(tag), `z=${JSON.stringify(z)} → attribute absent (the on-surface default)`);
+  }
+});
+
+test('depth: z is clamped to [-300, 900] — the field range, not whatever a URL says', async () => {
+  assert.match(boxTag(await mount([timed({ z: 1e9 })]), 'a'), /data-t-z="900"/, 'clamps to the ceiling');
+  assert.match(boxTag(await mount([timed({ z: -1e9 })]), 'a'), /data-t-z="-300"/, 'clamps to the floor');
+  assert.match(boxTag(await mount([timed({ z: 1e308 })]), 'a'), /data-t-z="900"/, 'no Infinity, no exponent notation');
+});
+
+// Depth and keyframes are NOT timing: a scenery box on a sequence stage is visible
+// throughout and can still be lifted or animated (an always-on camera is exactly that
+// box). So these two attributes escape the scenery guard — and nothing else does.
+test('depth: a scenery box carries z/kf but still no timing attributes', async () => {
+  const tag = boxTag(await mount([{ id: 'a', kind: 'box', x: 0, y: 0, w: 100, h: 100, z: 40, kf: 't0_x0*t500_x20' }]), 'a');
+  assert.match(tag, /data-t-z="40"/);
+  assert.match(tag, /data-t-kf="t0_x0\*t500_x20"/);
+  assert.ok(!/data-t-start=/.test(tag), 'scenery gains no start');
+  assert.ok(!/data-t-dur=|data-t-lane=/.test(tag), 'and no other timing attribute: ' + tag);
+});
+
+test('keyframes: the emitted track is the ENGINE\'s canonical serialisation, byte for byte', async () => {
+  // The hook has its own transcription of the grammar (a tool hook cannot import the
+  // engine). This is what stops the two drifting: for every input, the attribute the
+  // hook writes must equal serialiseKf(parseKf(input)) exactly.
+  const corpus = [
+    't0_z0_b4*t1500_eo_z140_b0*t4000_eh_z140_x-60',   // the plan's own example
+    't0_rx-8_ry20_r15',                                // longest-channel-match
+    't0_eb(0.32)(0)(0.67)(1)_x10',                     // a custom bezier
+    't0_eb(2)(0)(0.67)(1)_x10',                        // x out of range → clamped, not dropped
+    't0_eb(0.4)(0)(0.6)(1)_x1',                        // a bezier that IS a preset
+    't0_el_ei_eo_eio_ev_ea_es_ek_eh',                  // every named curve, last wins
+    't500_x1*t100_y2*t500_z3',                         // out of order, duplicate time
+    't-500_x1', 't12.5_x1', 't.5_x1',                  // the time token's full number form
+    '_t0_x1', 't0__x1___y2', '*_*_*',                  // empty tokens and segments
+    't0_zzz_x1.2345678', 't0_constructor_x1',          // junk and prototype keys
+    't99999999_x1', 't0_x1e21', 't0_z-9999*t10_z99999', // caps and clamps
+    't0_x1.0049999', 't0_s1.0005_o0.12345',            // quantisation
+    't0_p1200_f800_a0.4',                              // camera channels
+    't0_z-5000*t2000_z-600',                           // a camera DOLLY, past the z field's range
+    Array.from({ length: 400 }, (_v, i) => `t${i}_x${i}`).join('*'),  // the 256 cap
+    't0_x1*'.repeat(3000),                             // the char cap
+    // Full density: 256 full poses, the shape §8's UI writes. This is what the char cap
+    // has to be derived from — at 8 KB the two sides truncated at different points.
+    Array.from({ length: 256 }, (_v, i) => `t${i * 100}_x${i}.5_y-${i}.25_z${i}_s1.${i}_o0.${i}_b${i % 300}`).join('*'),
+  ];
+  for (const kf of corpus) {
+    const tag = boxTag(await mount([timed({ kf })]), 'a');
+    const m = tag.match(/data-t-kf="([^"]*)"/);
+    const emitted = m ? m[1]! : '';
+    assert.equal(emitted, serialiseKf(parseKf(kf)),
+      `hook emission == engine canonical form for ${JSON.stringify(kf.slice(0, 60))}`);
+    if (emitted) {
+      assert.match(emitted, KF_CHARSET_RE, 'and it stays inside the locked charset');
+    }
+  }
+});
+
+// The reason strict emission exists at all. `kf` is settable from a hand-edited share
+// URL and lands in an attribute through {{{ }}}: a value carrying a quote or an angle
+// bracket must produce NO attribute, not an escaped one.
+test('keyframes: hostile tracks never reach the attribute', async () => {
+  const hostile = [
+    '"><img src=x onerror=alert(1)>',
+    't0_x1"><img src=x onerror=alert(1)>',
+    't0_x"><script>alert(1)</script>',
+    'javascript:alert(1)',
+    'constructor', '__proto__', 'toString', 'valueOf',
+    't0_x1;background:url(x)',
+    't0_x1,y2',        // a comma is a blocks delimiter and is banned from the charset
+    't0_x1~y2',        // as is a tilde
+    't0_x1!y2',        // '!' was dropped at grammar lock (shell history expansion)
+  ];
+  for (const kf of hostile) {
+    const tag = boxTag(await mount([timed({ kf })]), 'a');
+    assert.ok(!tag.includes('onerror') && !tag.includes('<img') && !tag.includes('<script'),
+      `nothing leaked for ${JSON.stringify(kf)}: ${tag}`);
+    assert.equal((tag.match(/"/g) || []).length % 2, 0, `quoting stays balanced: ${tag}`);
+    const m = tag.match(/data-t-kf="([^"]*)"/);
+    if (m) {
+      assert.match(m[1]!, KF_CHARSET_RE, `whatever survived is charset-clean: ${m[1]}`);
+      assert.ok(!/[",;<>~!]/.test(m[1]!), `and carries none of the dangerous bytes: ${m[1]}`);
+    }
+  }
+});
+
+// §5.4 scopes v1 to boxes on a [data-sequence] stage: "frame pages are excluded from
+// projection and cannot carry kf". frameGroupsFor stamps timeAttrsFor's string onto the
+// [data-pdf-page] div, so the exclusion has to live in the emitter — otherwise it becomes
+// a rule every future reader of data-t-kf must remember, which is not a rule.
+test('depth/keyframes: a FRAME page carries neither data-t-z nor data-t-kf', async () => {
+  const html = await mount([
+    { id: 'f', kind: 'frame', x: 0, y: 0, w: 400, h: 300, z: 120, kf: 't0_x0*t900_x50', lane: 'seq', start: 0, dur: 3 },
+    { id: 'a', kind: 'box', frame: 'f', x: 10, y: 10, w: 50, h: 50, z: 40, kf: 't0_x0*t900_x50' },
+  ]);
+  const page = html.match(/<div[^>]*data-pdf-page[^>]*>/);
+  assert.ok(page, 'the frame renders a page div');
+  assert.ok(!/data-t-z=/.test(page[0]), `no depth on a page: ${page[0]}`);
+  assert.ok(!/data-t-kf=/.test(page[0]), `no keyframes on a page: ${page[0]}`);
+  assert.match(page[0], /data-t-start=/, 'but the page keeps its timing — frames-as-scenes still works');
+  // A child box on that page is unaffected: the exclusion is the frame's, not the page's.
+  assert.match(boxTag(html, 'a'), /data-t-z="40"/);
+  assert.match(boxTag(html, 'a'), /data-t-kf="t0_x0\*t900_x50"/);
+});
+
+test('keyframes: a non-string / unparseable track emits no attribute and never aborts compute()', async () => {
+  const html = await mount([
+    timed({ kf: ['t0_x1'] as unknown as string }),
+    { id: 'b', kind: 'box', x: 0, y: 150, w: 100, h: 100, bg: '#112233' },
+  ]);
+  assert.ok(!/data-t-kf=/.test(boxTag(html, 'a')), 'an array track → attribute omitted');
+  assert.match(boxTag(html, 'b'), /style="[^"]*#112233/, 'the rest of the document still computed');
+
+  for (const kf of [undefined, '', '   ', 'nonsense', '*', '_']) {
+    const tag = boxTag(await mount([timed({ kf })]), 'a');
+    assert.ok(!/data-t-kf=/.test(tag), `${JSON.stringify(kf)} → attribute omitted`);
+  }
+});
+
+// ── 8. the camera kind (plan 104 §5.4) ─────────────────────────────────────────────
+//
+// A camera is a timeline citizen with no artboard footprint: it holds the scene's pose
+// and paints nothing. The audio box is the precedent, and the contract is the same one —
+// a still export can never show a mark where it sits.
+
+test('camera: a camera box renders a bare marker and paints nothing', async () => {
+  const html = await mount([
+    { id: 'cam', kind: 'camera', x: 100, y: 100, w: 300, h: 200, bg: '#ff0000', text: 'nope',
+      shadow: 'box', blur: 8, start: 0, dur: 4, kf: 't0_z0*t2000_z300' },
+  ]);
+  const tag = boxTag(html, 'cam');
+  assert.match(html, /<div class="lolly-box-cam" data-cam="1" data-export-hide aria-hidden="true"><\/div>/,
+    'the marker is what a camera renders');
+  assert.match(tag, /background:transparent/, 'no fill');
+  assert.ok(!/box-shadow|drop-shadow|blur\(/.test(tag), 'no shadow and no blur: ' + tag);
+  assert.ok(!html.includes('nope'), 'and no text');
+  assert.match(tag, /data-t-kf="t0_z0\*t2000_z300"/, 'but it does carry the pose');
+});
+
+test('camera: the depth shadow is derived from z, and never from the manual offsets', async () => {
+  // (0, z·0.15px, (10 + z·0.2)px, #00000055) — straight overhead, §5.3.
+  const tag = boxTag(await mount([timed({ shadow: 'depth', z: 140, shadowColor: '#ff0000', shadowX: 99, shadowY: 99 })]), 'a');
+  assert.match(tag, /filter:drop-shadow\(0px 21px 38px #00000055\)/, 'derived from z alone: ' + tag);
+  assert.ok(!tag.includes('#ff0000') && !tag.includes('99px'), 'the manual override tier is not consulted');
+
+  // A sunken box drives the blur term negative; it floors at 0 rather than emitting an
+  // illegal CSS length.
+  const sunk = boxTag(await mount([timed({ shadow: 'depth', z: -300 })]), 'a');
+  assert.match(sunk, /filter:drop-shadow\(0px -45px 0px #00000055\)/, 'blur floors at 0: ' + sunk);
+});
+
+test('shadow: the target whitelist is an own-property test (a prototype key is not a shadow)', async () => {
+  for (const shadow of ['constructor', '__proto__', 'toString', 'valueOf', 'hasOwnProperty']) {
+    const tag = boxTag(await mount([timed({ shadow })]), 'a');
+    assert.ok(!/box-shadow|drop-shadow|text-shadow/.test(tag), `shadow="${shadow}" paints nothing: ${tag}`);
+  }
 });
