@@ -78,7 +78,7 @@ test('the sensor capabilities still validate (screen is additive, not a replacem
 
 // ─── version ─────────────────────────────────────────────────────────────────
 
-test('ENGINE_VERSION is 1.113.0', () => {
+test('ENGINE_VERSION is 1.114.0', () => {
   // A literal pin: the screencap surface shipped at 1.54, and tools declare
   // ^1.54.0 to require it. session-record only checks the stamp equals whatever
   // ENGINE_VERSION happens to be (tautological) — this catches an errant bump.
@@ -225,8 +225,11 @@ test('ENGINE_VERSION is 1.113.0', () => {
   // shell replays an ANIMATED ASSET through the same onFrame loop as the camera, and
   // the 'asset' source renders identically but never sets the live-camera provenance
   // flag, so a decoded file can't claim digitalCapture in a signed manifest).
+  // Then 1.114.0 (plans/104 P0 — engine/src/keyframes.ts: the `kf` wire grammar,
+  // per-channel sparse evaluation, the ease adapter, and the affine depth-camera
+  // projection/DOF both sequence evaluators fold; no HostV1 method changed).
   // The ^1.54.0 screencap floor below still holds (a minor bump satisfies it).
-  assert.equal(ENGINE_VERSION, '1.113.0');
+  assert.equal(ENGINE_VERSION, '1.114.0');
 });
 
 // ─── loadTool: a ^1.54.0 tool loads against this engine ───────────────────────

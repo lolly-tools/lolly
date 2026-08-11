@@ -459,8 +459,11 @@ test('canvas: the A/V link sub-field is declared, and the field is panel-owned',
   const ids = f.map((x: any) => x.id);
   assert.equal(ids.indexOf('linkOf'), 49,
     'a SLOT is permanent: later fields append PAST linkOf, they never displace it');
-  assert.deepEqual(ids.slice(-2), ['enterEase', 'exitEase'],
-    'APPENDED — `boxes` is a positional wire format, so a new field goes on the end');
+  // Pin the SLOTS, not the tail: `boxes` is a positional wire format and appending is
+  // the one safe edit, so an assertion that these two are LAST would forbid exactly the
+  // change it exists to protect (plan 104 appends `z`/`kf` at 52/53 behind them).
+  assert.deepEqual(ids.slice(50, 52), ['enterEase', 'exitEase'],
+    'APPENDED at 50/51 — a new field goes past them, never in front of them');
 });
 
 test('a detached sound: kind audio + a VIDEO asset still renders the mix marker, and paints nothing', async () => {
@@ -483,4 +486,66 @@ test('a detached sound: kind audio + a VIDEO asset still renders the mix marker,
   // The source keeps its picture and is silenced by attribute — the clock's own language.
   assert.match(boxTag(html, 'v'), /data-t-mute="1"/, 'the muted source declares itself muted');
   assert.match(boxInner(html, 'v'), /<video/, 'the picture is untouched');
+});
+
+// ── the camera kind + depth/keyframes (plan 104 §5.3/§5.4) ─────────────────────
+//
+// Sequence Studio carries its own copy of the layout-studio hook, so the third copy of
+// the emission rules needs its own proof. The exhaustive grammar/injection coverage
+// lives in tests/timeline-model.test.ts (which drives the lolly-start copy end to end);
+// these pin that THIS copy answers identically.
+
+test('canvas: the depth + keyframe sub-fields are declared, panel-owned, and appended at 52/53', () => {
+  const c = canvasCfg();
+  assert.equal(c.zField, 'z', 'the manifest opts this tool into depth');
+  assert.equal(c.kfField, 'kf', 'and into keyframes');
+  const f = boxesField().fields;
+  const ids = f.map((x: any) => x.id);
+  assert.deepEqual(ids.slice(52, 54), ['z', 'kf'], 'appended past exitEase, never in front of it');
+  for (const id of ['z', 'kf']) {
+    assert.deepEqual(f.find((x: any) => x.id === id).showFor, [],
+      `${id} is machine-managed — showFor:[] keeps it out of the sidebar`);
+  }
+});
+
+test('a camera box renders a bare marker, paints nothing, and carries the pose', async () => {
+  const html = await mount([
+    { id: 'clip', kind: 'box', lane: 'seq', start: 0, dur: 3, x: 0, y: 0, w: 400, h: 400, bg: '#00ff00', z: 120 },
+    { id: 'cam', kind: 'camera', start: 0, dur: 3, x: 10, y: 10, w: 100, h: 100,
+      bg: '#ff0000', text: 'nope', shadow: 'box', kf: 't0_z0*t2000_z-40' },
+  ]);
+  const inner = boxInner(html, 'cam');
+  assert.match(inner, /<div class="lolly-box-cam" data-cam="1" data-export-hide aria-hidden="true"><\/div>/,
+    'the marker is the whole of a camera');
+  assert.ok(!/<img|<video/.test(inner), 'no media');
+  assert.equal(inner.match(/<div class="lolly-box-text"[^>]*>([\s\S]*?)<\/div>/)![1], '', 'no text');
+  const tag = boxTag(html, 'cam');
+  assert.match(tag, /background:transparent/, 'no fill');
+  assert.ok(!/box-shadow|drop-shadow/.test(tag), 'and no shadow: ' + tag);
+  assert.match(tag, /data-t-kf="t0_z0\*t2000_z-40"/, 'but it does carry the pose');
+  assert.match(boxTag(html, 'clip'), /data-t-z="120"/, 'an ordinary box carries its depth');
+});
+
+test('a hostile keyframe track never reaches the attribute', async () => {
+  const html = await mount([
+    { id: 'a', kind: 'text', start: 0, dur: 2, x: 0, y: 0, w: 100, h: 100, text: 'x',
+      kf: 't0_x1"><img src=x onerror=alert(1)>' },
+  ]);
+  const tag = boxTag(html, 'a');
+  assert.ok(!tag.includes('onerror') && !tag.includes('<img'), 'nothing leaked: ' + tag);
+  assert.equal((tag.match(/"/g) || []).length % 2, 0, 'attribute quoting stays balanced: ' + tag);
+});
+
+test('the depth shadow is derived from z alone, and floors its blur at 0', async () => {
+  const lifted = boxTag(await mount([
+    { id: 'a', kind: 'box', start: 0, dur: 2, x: 0, y: 0, w: 100, h: 100, shadow: 'depth', z: 140,
+      shadowColor: '#ff0000', shadowX: 99, shadowY: 99 },
+  ]), 'a');
+  assert.match(lifted, /filter:drop-shadow\(0px 21px 38px #00000055\);/, 'straight overhead: ' + lifted);
+  assert.ok(!lifted.includes('#ff0000'), 'the manual override tier is not consulted');
+
+  const sunk = boxTag(await mount([
+    { id: 'a', kind: 'box', start: 0, dur: 2, x: 0, y: 0, w: 100, h: 100, shadow: 'depth', z: -300 },
+  ]), 'a');
+  assert.match(sunk, /filter:drop-shadow\(0px -45px 0px #00000055\);/, 'blur floors at 0: ' + sunk);
 });

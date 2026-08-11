@@ -16,6 +16,9 @@
  *   - Every asset checksum matches the file's actual SHA-256 on disk
  *   - Every asset `depth` label matches a re-sniff of the file's own header
  *     (and no unsniffable/non-raster format carries one)
+ *   - Every `canvas.*Field` names a real sub-field id in the sibling `fields`
+ *     array (an unknown canvas KEY is caught by the schema, which closes the
+ *     set; a broken reference can only be caught here)
  *   - Default `bindToProfile` values reference real profile fields
  *   - `palette` references on color inputs point to real palette assets
  *   - `replacedBy` on deprecated assets points to a real, non-deprecated asset
@@ -65,6 +68,10 @@ import { depthForFormat } from './checksum-assets.ts';
 // The frozen CLI verb list has exactly one home (shells/cli/src/args.ts); a tool id that
 // collides with one is unreachable from the terminal. See §1.1 of the GA contract.
 import { RESERVED_SUBCOMMANDS } from '../shells/cli/src/args.ts';
+// `canvas.*Field` → sub-field-id existence. The schema closes the canvas key SET;
+// this closes the reference side, which no JSON Schema can (it has to look at a
+// SIBLING array). Pure module so tests can drive it without running the script.
+import { canvasFieldRefErrors } from './lib/canvas-refs.ts';
 
 // Fields tools/index.json mirrors from each manifest — kept in sync with
 // scripts/build-catalog-index.ts.
@@ -203,6 +210,17 @@ for (const dir of toolDirs) {
     if (input.bindToProfile && !PROFILE_FIELDS.has(input.bindToProfile)) {
       warnings.push(`[${dir}] input "${input.id}" bindToProfile "${input.bindToProfile}" is not a known profile field`);
     }
+  }
+
+  // Free-canvas field references. `canvas` itself is a CLOSED set in the schema
+  // (additionalProperties:false), so a typo'd KEY is already an Ajv error above.
+  // This is the half a JSON Schema cannot express: every `canvas.*Field` VALUE has
+  // to name a real sub-field id in the sibling `fields` array, because nothing at
+  // runtime notices when it doesn't — the overlay's write no-ops and the compact
+  // blocks URL drops the undeclared field, so a mis-named control ships as one that
+  // silently does nothing. An error, not a warning: the manifest is the contract.
+  for (const msg of canvasFieldRefErrors(manifest)) {
+    errors.push(`[${dir}] ${msg}`);
   }
 
   // composes: ids must be unique within the manifest (they key {{asset <id>}} +

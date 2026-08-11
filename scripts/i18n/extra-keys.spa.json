@@ -175,6 +175,8 @@
   "Spin",
   "Drift",
   "Cut (no animation)",
+  "Smooth",
+  "Snappy",
   "Print preflight",
   "prepress",
   "Checks a print export before you download: bleed, resolution, ink coverage and plate counts appear above the Download button. It never blocks an export.",

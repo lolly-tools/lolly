@@ -526,6 +526,25 @@ export {
 } from './zip-crypto.ts';
 export type { ZipTier, ZipEntryInput, AesZipKeys } from './zip-crypto.ts';
 
+// Keyframe tracks + the depth camera (1.114, plans/104): the `kf` wire grammar,
+// per-channel sparse evaluation, the ease adapter, and the affine projection
+// (fold, guard, DOF) every consumer of the feature shares.
+export {
+  KF_CHANNELS, KF_CAMERA_CHANNELS, KF_CLAMPS, KF_Z_FIELD_CLAMP, KF_QUANTA, KF_BEZIER_QUANTUM,
+  KF_MAX_KEYS, KF_MAX_CHARS, KF_MAX_TIME_MS, KF_MAX_BLUR, KF_CHARSET_RE,
+  KF_EASE_TOKENS, KF_EASE_PRESETS, KF_HOLD_EASE, KF_DEFAULT_EASE, KF_LINEAR_EASE, KF_HOLD_CSS,
+  KF_GUARD_U, KF_GUARD_BAND, KF_EFF_MAX, DOF_K, DEFAULT_CAMERA, DEFAULT_PERSPECTIVE,
+  isKfChannel, isKfSafe, cubicBezierAt, normaliseKfEase, kfEasePoints, kfEaseAt,
+  kfEaseCss, kfEaseName, kfEaseToken,
+  parseKf, serialiseKf, evaluateKf, kfChannelsUsed,
+  projectDepth, projectLayer, dofBlur, resolveCamera,
+} from './keyframes.ts';
+export type {
+  KfChannel, KfCameraChannel, KfPose, KfEasePresetToken, KfEasePreset,
+  KfKey, KfKeyInput, KfTrack, KfParseOptions,
+  KfCameraPose, KfCameraView, KfCameraClip, KfDepth, KfLayerPose, KfProjection,
+} from './keyframes.ts';
+
 // Per-minor contract changelog: engine/CHANGELOG.md (one entry per ENGINE_VERSION
 // minor, moved out of this barrel so prose edits stop conflicting with exports).
 export { ENGINE_VERSION } from './version.ts';

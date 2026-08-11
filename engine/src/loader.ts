@@ -281,6 +281,27 @@ export async function loadTool(toolId: string, fetchFile: ToolFetchFile, opts: L
   if (integrity) await assertFileIntegrity(integrity, toolId, 'tool.json', manifestText);
   const parsed: unknown = JSON.parse(manifestText);
 
+  // Engine-compatibility floor (P0-3) runs BEFORE schema validation, and the order is
+  // load-bearing rather than incidental. A tool built against a newer engine will often
+  // ALSO use manifest vocabulary this build's schema has never heard of — a new canvas
+  // key, a new input type — and `additionalProperties: false` turns that into an Ajv
+  // error. Validate first and the diagnostic is "failed validation / must NOT have
+  // additional properties", which reads as a broken tool; check the range first and the
+  // same tool reports the actionable, designed answer: it needs an engine this build
+  // does not implement. The range is read defensively off the unparsed JSON (a pure
+  // string comparison, no trust extended) — anything missing or non-string falls
+  // through to validation, which requires `engineVersion` and reports it properly.
+  const declaredRange = parsed && typeof parsed === 'object'
+    && typeof (parsed as { engineVersion?: unknown }).engineVersion === 'string'
+    ? (parsed as { engineVersion: string }).engineVersion
+    : null;
+  if (declaredRange !== null && !satisfiesRange(ENGINE_VERSION, declaredRange)) {
+    throw new ToolLoadError(
+      `"${toolId}" requires engine ${declaredRange}, but this build implements ${ENGINE_VERSION} — refusing to load`,
+      [],
+    );
+  }
+
   const { valid, errors } = validateManifest(parsed);
   if (!valid) {
     throw new ToolLoadError(`Manifest for "${toolId}" failed validation`, errors);
@@ -295,20 +316,12 @@ export async function loadTool(toolId: string, fetchFile: ToolFetchFile, opts: L
     );
   }
 
-  // Engine-compatibility floor (P0-3). Tools sync to clients as data, ahead of
-  // the binary; a tool needing a newer engine than this build implements must be
-  // REFUSED here — before its template/hooks are even fetched — not half-loaded
-  // to call a method that isn't there and die. `engineVersion` is schema-required
-  // (validateManifest ran above), so it's present; the range is matched against
-  // the running ENGINE_VERSION with a dependency-free caret/tilde/comparator
-  // check (semver-range.ts). This is the load-bearing element of the whole
-  // fast-catalog / slow-binary model — it fails closed, deliberately.
-  if (!satisfiesRange(ENGINE_VERSION, manifest.engineVersion)) {
-    throw new ToolLoadError(
-      `"${toolId}" requires engine ${manifest.engineVersion}, but this build implements ${ENGINE_VERSION} — refusing to load`,
-      [],
-    );
-  }
+  // (The engine-compatibility floor — the load-bearing element of the whole
+  // fast-catalog / slow-binary model, which fails closed deliberately — was
+  // checked above, before validation. Tools sync to clients as data, ahead of
+  // the binary; a tool needing a newer engine than this build implements is
+  // REFUSED before its template/hooks are even fetched, never half-loaded to
+  // call a method that isn't there and die.)
 
   // Translation overlay (see LoadToolOpts.lang / applyManifestI18n above).
   // Under integrity the sidecar must match its signed digest (sign-catalog.ts

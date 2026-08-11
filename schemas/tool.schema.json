@@ -745,7 +745,8 @@
               },
               "canvas": {
                 "type": "object",
-                "description": "Marks this blocks array as a free-form WYSIWYG canvas of positioned 'boxes' (requires render.layout:'editor'). The web shell mounts a direct-manipulation overlay — select, drag, resize, rotate, re-stack (z-order = array order, later rows paint on top), align and distribute — that reads and writes this flat array through the normal input path. The fields named below give the overlay the geometry to manipulate; every field remains an ordinary block sub-field, so the layout stays flat, URL-expressible, and renders identically headless (CLI/URL) with no overlay. Field ORDER in `fields` is the compact-URL wire format — never reorder or remove once shipped.",
+                "description": "Marks this blocks array as a free-form WYSIWYG canvas of positioned 'boxes' (requires render.layout:'editor'). The web shell mounts a direct-manipulation overlay — select, drag, resize, rotate, re-stack (z-order = array order, later rows paint on top), align and distribute — that reads and writes this flat array through the normal input path. The fields named below give the overlay the geometry to manipulate; every field remains an ordinary block sub-field, so the layout stays flat, URL-expressible, and renders identically headless (CLI/URL) with no overlay. Field ORDER in `fields` is the compact-URL wire format — never reorder or remove once shipped. CLOSED SET: unknown keys are rejected, because a typo'd `*Field` name is silently inert at runtime (the overlay reads a field nothing writes) — so the schema, not a bug report, has to catch it. Every `*Field` value must also name a real sub-field id in the SIBLING `fields` array; scripts/validate-catalog.ts enforces that half. Adding a key here is therefore a BREAKING change for older shells: the same schema is what engine/src/loader.ts validates a manifest against at load time, so a manifest carrying a key an older engine's copy does not list is refused whole, not partially ignored. Ship a new canvas key together with an `engineVersion` floor that names the engine which introduced it — the loader checks that range BEFORE validating, so an old shell reports the version, not a schema error.",
+                "additionalProperties": false,
                 "properties": {
                   "idField":       { "type": "string", "description": "Sub-field holding each box's stable id (used to track selection across re-stacking). Default 'id'." },
                   "xField":        { "type": "string", "description": "Number sub-field: box left, in canvas (native render) pixels. Default 'x'." },
@@ -756,6 +757,7 @@
                   "shapeField":    { "type": "string", "description": "Select sub-field: box shape (e.g. rectangle/rounded/ellipse)." },
                   "radiusField":   { "type": "string", "description": "Number sub-field: corner radius in px (used when shape is rounded)." },
                   "fillField":     { "type": "string", "description": "Color sub-field: box background fill (empty = transparent)." },
+                  "gradField":     { "type": "string", "description": "Text sub-field: a gradient fill as a Lolly gradient spec (kind_angle_colour-pos_colour-pos, e.g. lin_90_30ba78-0_efefef-100). Painted OVER the flat fill, so a translucent stop composites onto it; empty = no gradient. The hook lowers it through host.color.gradientCss, so an engine that predates that primitive degrades to the flat fill." },
                   "opacityField":  { "type": "string", "description": "Number sub-field: box opacity 0–100." },
                   "imageField":    { "type": "string", "description": "Asset sub-field: image drawn inside the box." },
                   "fitField":      { "type": "string", "description": "Select sub-field: how the image fills the box (object-fit: cover/contain/fill)." },
@@ -770,17 +772,33 @@
                   "fontField":     { "type": "string", "description": "Select sub-field: text font family." },
                   "lineHeightField":{ "type": "string", "description": "Number sub-field: text line-height (unitless multiplier)." },
                   "padField":      { "type": "string", "description": "Number sub-field: inner padding in px between the box edge and its text." },
+                  "fitTextField":  { "type": "string", "description": "Boolean sub-field: shrink the text until it fits inside the box (shrink-ONLY — never larger than the authored size). Off = the box is expected to grow to its text instead." },
                   "groupField":    { "type": "string", "description": "Text sub-field: id of the group this box belongs to (empty = ungrouped). Boxes sharing a group id move / scale / rotate together; purely an editor concept (no render effect)." },
                   "clipField":     { "type": "string", "description": "Text sub-field: id of another box whose shape clips this one (a clip-path mask). Faithful in raster + SVG export; flattened in PDF/EMF." },
                   "pathField":     { "type": "string", "description": "Text sub-field holding a VECTOR path box's authored path — the pen tool's own form (nodes + handles + spline kind), encoded as one delimiter-safe value by host.geom.encodeAuthored. Node coordinates are NORMALISED to the box frame (fractions of w/h, values outside 0..1 legal), so the ordinary move / resize / rotate gestures act on a path box through x/y/w/h/rot without rewriting a single node. Machine-written and machine-read only: the field carries showFor:[] so it never renders as a sidebar control. The tool's hook lowers it via host.geom.fromNodes and emits an inline <svg><path>, which vector-exports with no extra export code." },
+                  "strokeField":      { "type": "string", "description": "Color sub-field: stroke paint for a path/box/image outline (empty = no stroke). Defaults to 'stroke' when the canvas omits it, so the overlay and the vector operations read the same sub-field." },
+                  "strokeWField":     { "type": "string", "description": "Number sub-field: stroke width in canvas px. Default 'strokeW'." },
+                  "fillRuleField":    { "type": "string", "description": "Select sub-field: a path's fill rule — nonzero or evenodd. Default 'fillRule'." },
+                  "strokeDashField":  { "type": "string", "description": "Select sub-field: dash STYLE as a keyword ('' solid / dashed / dotted). The pattern is derived from the stroke width so it keeps its proportions when the width changes; an authored `strokeDashArrayField` wins over it. Default 'strokeDash'." },
+                  "strokeCapField":   { "type": "string", "description": "Select sub-field: line cap — round, butt or square. Default 'strokeCap'." },
+                  "strokeJoinField":  { "type": "string", "description": "Select sub-field: line join — round, miter or bevel. Default 'strokeJoin'." },
+                  "strokeDashArrayField": { "type": "string", "description": "Text sub-field: an AUTHORED dash pattern as SPACE-separated numbers in stroke-width units (\"6 4\" = a 6-long dash, a 4-long gap). A string, not a list, and space-separated rather than comma-separated, because one block sub-field is one scalar and a comma would split the compact blocks URL row. Set, it wins over the `strokeDashField` keyword. Default 'strokeDashArray'." },
+                  "dashFitField":     { "type": "string", "description": "Boolean sub-field: stretch the authored dash pattern slightly so a whole number of dashes fits between each corner and each end of the path (Illustrator's corner-aligned dashes) instead of a half dash landing on a corner. Applied by the tool's hook. Default 'dashFit'." },
+                  "headStartField":   { "type": "string", "description": "Select sub-field: the decoration drawn at the path's FIRST point, along that end's own tangent — none · triangle · open · circle · diamond · bar. Same vocabulary as the connector heads, because a spline, a line and a connector are one primitive carrying one decoration set. Default 'headStart'." },
+                  "headEndField":     { "type": "string", "description": "Select sub-field: the same decoration at the path's LAST point. Default 'headEnd'." },
+                  "bindStartField":   { "type": "string", "description": "Text sub-field: the id of the box this path's FIRST point is attached to, '' for a free end. Machine-written by the bind gesture (carries showFor:[]), never typed; a bound end is what hands the path to connector routing. Default 'bindStart'." },
+                  "bindEndField":     { "type": "string", "description": "Text sub-field: the same binding for the path's LAST point. Default 'bindEnd'." },
+                  "routeField":       { "type": "string", "description": "Select sub-field: how a path with a BOUND end routes between its boxes (straight, elbow-*, curved-*, arc-*). '' = auto, read off the path's own spline kind — the explicit value exists because six spline kinds cannot name the engine's thirteen routes. Default 'route'." },
+                  "pathLayerClass":   { "type": "string", "description": "Class the tool's hook puts on its committed BOUND-PATH <svg> layer. The overlay hides that layer for the duration of a drag so the live preview doesn't double up with the stale committed one — only the manifest knows what its own hook emits. Default 'lolly-connectors'." },
                   "trackingField":    { "type": "string", "description": "Number sub-field: letter-spacing in px." },
                   "ligaturesField":   { "type": "string", "description": "Boolean sub-field: enable common ligatures." },
                   "alternatesField":  { "type": "string", "description": "Boolean/select sub-field: stylistic alternates." },
-                  "shadowField":      { "type": "string", "description": "Boolean sub-field: whether the box casts a drop shadow." },
+                  "shadowField":      { "type": "string", "description": "SELECT sub-field (not a Boolean — a shadow has a target, and the value names it): 'none' · 'box' (the frame's own silhouette, a box-shadow) · 'text' (the type only, a text-shadow) · 'content' (the artwork's alpha silhouette, a filter: drop-shadow). The vocabulary is additive: a depth-capable tool may extend it with 'depth', whose offset/blur are DERIVED from the box's `zField` rather than authored. Whatever the value, the x/y/blur/colour sub-fields below supply the geometry." },
                   "shadowColorField": { "type": "string", "description": "Color sub-field: drop-shadow colour." },
                   "shadowXField":     { "type": "string", "description": "Number sub-field: drop-shadow x offset in px." },
                   "shadowYField":     { "type": "string", "description": "Number sub-field: drop-shadow y offset in px." },
                   "shadowBlurField":  { "type": "string", "description": "Number sub-field: drop-shadow blur radius in px." },
+                  "zField":        { "type": "string", "description": "Number sub-field: the box's DEPTH — how far it sits in front of (positive) or behind (negative) the stage plane, in canvas px. Layers stay parallel to the screen, so a camera turns z into a per-layer uniform scale + translate (parallax, push-in, depth-of-field) and the render stays affine end-to-end. Absent field or 0 = the flat, unlifted board; the authored slider runs 0–300 and the value clamps to −300…900." },
                   "startField":    { "type": "string", "description": "Number sub-field: when this box appears, in SECONDS from the start of the sequence. Empty = the box is 'scenery' (always visible). Timing is inert unless a shell mounts a timeline panel; static exports ignore it." },
                   "durField":      { "type": "string", "description": "Number sub-field: how long the box stays visible, in SECONDS. Empty = runs to the end of the sequence." },
                   "clipInField":   { "type": "string", "description": "Number sub-field: trim in-point WITHIN the box's own media (video/lottie/audio), in SECONDS from the media's start. Ignored for non-media boxes." },
@@ -794,6 +812,11 @@
                   "muteField":     { "type": "string", "description": "Boolean sub-field: silence this box's own audio track when the sequence is mixed." },
                   "linkField":     { "type": "string", "description": "String sub-field: the id of the box this one is A/V-linked to (written on BOTH sides when audio is detached from a video). Absent or naming a missing box reads as unlinked." },
                   "laneField":     { "type": "string", "description": "Select sub-field: '' places the box on a free overlay lane; 'seq' places it on the magnetic main sequence row, where clips are kept gapless and edits ripple." },
+                  "kfField":       { "type": "string", "description": "Text sub-field: the box's KEYFRAME TRACK — its whole authored animation as one compact, delimiter-safe string (times in ms, per-channel values at the pinned quanta, per-segment easing). Machine-written by the timeline, so the sub-field carries showFor:[] and never renders as a sidebar control. Absent or empty = the box is not keyframed and every keyframe path is inert for it." },
+                  "frameField":    { "type": "string", "description": "Text sub-field: the id of the FRAME (page/artboard container) box this box belongs to; '' = it sits on the open board. Declaring it turns on the frame primitive — the overlay drives gestures in frame-local space via each frame's DOM offset, and re-buckets a moved/created/resized box into whichever frame its centre lands in on drop. Absent leaves every frame-aware path dead (byte-identical to a frameless editor)." },
+                  "frameKind":     { "type": "string", "description": "NOT a field name: the literal `kind` VALUE that marks a box as a frame rather than ordinary content (e.g. 'frame'). Frames render as free-placed [data-pdf-page] pages at their authored x/y." },
+                  "orderField":    { "type": "string", "description": "Number sub-field on a FRAME box: its page order in a multi-page export. Read by the tool's hook; the overlay's frame-reorder control writes it. Absent = no reorder affordance." },
+                  "clipChildrenField": { "type": "string", "description": "Boolean sub-field on a FRAME box: whether content overflowing the frame is clipped to it. Absent = the overlay offers no clip toggle." },
                   "minSize":       { "type": "number", "description": "Smallest box width/height the overlay will create or resize to, in canvas px. Default 8." },
                   "addKinds": {
                     "type": "array",
@@ -807,6 +830,46 @@
                         "icon":   { "type": "string", "description": "Optional inline SVG or glyph for the menu entry." },
                         "seed":   { "type": "object", "description": "Field values a newly-added box of this kind starts at (merged over the block's declared defaults).", "additionalProperties": true }
                       }
+                    }
+                  },
+                  "import": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "description": "Opt into design-file IMPORT on this canvas: the editor's Lolly menu gains an 'Import a design' entry that maps an imported file's frames/shapes onto boxes of THIS array, using the tool's own font-select values and addKinds seed colours so the result is indistinguishable from natively-authored boxes. Absent (Layout Studio's historical state) = no import control at all.",
+                    "properties": {
+                      "formats": {
+                        "type": "array",
+                        "items": { "type": "string" },
+                        "description": "The design formats this canvas advertises accepting (today: svg, penpot, pdf, ai, idml). Documents intent for the import panel; the engine's importer is the authority on what it can actually parse."
+                      },
+                      "mode": {
+                        "type": "string",
+                        "enum": ["scenes"],
+                        "description": "'scenes' (Sequence Studio): an imported design's frames land as timed clips APPENDED to the main sequence instead of replacing the canvas. Requires the full time model to be mapped; omit for editors whose import replaces the board."
+                      }
+                    }
+                  },
+                  "connect": {
+                    "type": "object",
+                    "required": ["input"],
+                    "additionalProperties": false,
+                    "description": "Opt into connector authoring (Org Chart): a SECOND blocks input holding {from,to} edges between boxes, plus a 'Connect' rail mode to author them (click a source card, then targets). The overlay reads/writes that array and draws a live preview; the tool's hooks.js owns the real routed geometry. Absent = the editor's toolbar and gestures are unchanged.",
+                    "properties": {
+                      "input":        { "type": "string", "description": "id of the blocks input storing the connector edges. Its sub-fields — not this canvas's `fields` — are what the *Field names below refer to." },
+                      "fromField":    { "type": "string", "description": "Edge sub-field holding the SOURCE box id. Default 'from'." },
+                      "toField":      { "type": "string", "description": "Edge sub-field holding the TARGET box id. Default 'to'." },
+                      "styleField":   { "type": "string", "description": "Edge sub-field: route style (elbow, straight, curved …)." },
+                      "arrowField":   { "type": "string", "description": "Edge sub-field: which ENDS carry an arrowhead (none/end/both)." },
+                      "headField":    { "type": "string", "description": "Edge sub-field: arrowhead SHAPE (triangle/open/circle/diamond/bar) — same vocabulary as the path decorations." },
+                      "colorField":   { "type": "string", "description": "Edge sub-field: line colour." },
+                      "dashField":    { "type": "string", "description": "Edge sub-field: dash style keyword." },
+                      "widthField":   { "type": "string", "description": "Edge sub-field: line width in canvas px." },
+                      "layerClass":   { "type": "string", "description": "Class of the tool's rendered connector <svg>, hidden mid-drag so the live preview doesn't double up with the committed one. Default 'oc-connectors'." },
+                      "defaultStyle": { "type": "string", "description": "Route style a newly-authored edge starts at. Default 'elbow'." },
+                      "defaultArrow": { "type": "string", "description": "Arrow ends a newly-authored edge starts at. Default 'end'." },
+                      "defaultHead":  { "type": "string", "description": "Arrowhead shape a newly-authored edge starts at. Default 'triangle'." },
+                      "defaultColor": { "type": "string", "description": "Line colour a newly-authored edge starts at. Default '#94a3b8'." },
+                      "defaultWidth": { "type": "number", "description": "Line width a newly-authored edge starts at. Default 2.5." }
                     }
                   },
                   "grid": {
