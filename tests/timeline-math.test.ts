@@ -34,12 +34,16 @@ import {
   KF_NEUTRAL, KF_POSE_SEED, clearKfTrack, kfDiamondAt, kfDiamondTimes, kfDuplicateMs,
   kfFormatChannel, kfLocalMs, kfSeekDiamond, kfSlideMs, kfTimelineSec, kfTrackDelete,
   kfTrackDuplicate, kfTrackRetime, kfTrackSetEase, kfWriteMs, setKfTrack, writeKfPose,
+  // The motion path (plans/104 §8's overlay bullet) — sampled through the engine.
+  MOTION_PATH_MAX_SAMPLES, kfCameraClips, kfMotionPath,
   type Box, type TimeCfg,
 } from '../shells/web/src/views/timeline-math.ts';
 // The rebase is asserted through the ENGINE's own reader: a track that only
 // timeline-math could evaluate would prove nothing about what the shells replay.
-import { KF_CHARSET_RE, evaluateKf, kfChannelsUsed, parseKf, serialiseKf } from '../engine/src/keyframes.ts';
-import type { KfTrack } from '../engine/src/keyframes.ts';
+import {
+  KF_CHARSET_RE, evaluateKf, kfChannelsUsed, parseKf, projectLayer, resolveCamera, serialiseKf,
+} from '../engine/src/keyframes.ts';
+import type { KfCameraClip, KfTrack } from '../engine/src/keyframes.ts';
 
 // The field names phase 1 locked into BOTH brand copies of layout-studio's canvas cfg.
 const cfg: TimeCfg = {
@@ -1983,4 +1987,147 @@ test('the rebase is channel-agnostic, so `w`/`h` split, trim and join like every
   minted = 0;
   const trimmed = trimClip(kfClip(SIZE_TRACK), kfCfg, 'x', 'in', 0.8, null);
   assertContinuity(orig, trackOf(byId(trimmed, 'x')), 800, 0, 2000, 'trim-in (size)');
+});
+
+// ══ the motion path (plans/104 §8's overlay, under §6.5's projection rule) ══════
+//
+// The overlay's DOM half is pinned in shells/web/src/views/motion-path.test.ts. What
+// is pinned HERE is the only claim that matters for correctness: the samples are the
+// engine's own arithmetic, not a second implementation of the fold that happens to
+// look right. Every assertion below recomputes the expected point from
+// `evaluateKf` → `resolveCamera` → `projectLayer` directly and demands equality — so
+// if `kfMotionPath` ever grew a shortcut, an approximation, or its own idea of what a
+// camera does, this fails rather than the picture quietly drifting from the export.
+
+/** The layout-studio field set, plus the two P0 appended in slots 69/70. */
+const pathCfg: TimeCfg = { ...cfg, kfField: 'kf', zField: 'z' };
+const STAGE = { stageW: 1920, stageH: 1080 };
+
+/** The engine's own answer for one box at one TIMELINE instant — the reference. */
+function enginePoint(
+  track: KfTrack, cams: KfCameraClip[], startMs: number, bx: number, by: number, baseZ: number, tMs: number,
+): { x: number; y: number; a: number } {
+  const cam = resolveCamera(cams, tMs);
+  const pose = evaluateKf(track, tMs - startMs);
+  const z = typeof pose.z === 'number' ? pose.z : baseZ;
+  const p = projectLayer({ ...cam, w: STAGE.stageW, h: STAGE.stageH },
+    { bx, by, dxK: pose.x ?? 0, dyK: pose.y ?? 0, z });
+  return { x: bx + p.dx, y: by + p.dy, a: p.alphaGuard };
+}
+
+test('kfCameraClips derives the same shape stageCameras does, from the model instead', () => {
+  const rows: Box[] = [
+    { id: 'art', x: 0, y: 0, w: 100, h: 100, start: 0, dur: 4, kf: 't0_x0*t1000_x50' },
+    // A TIMED camera: a butted, half-open window.
+    { id: 'c1', kind: 'camera', start: 0, dur: 2, z: 0, kf: 't0_z0*t2000_z-100' },
+    // The implicit scene camera: untimed ("Always on"), with an authored depth base.
+    { id: 'c2', kind: 'camera', start: '', dur: '', z: 120, kf: '' },
+  ] as unknown as Box[];
+  const cams = kfCameraClips(rows, pathCfg);
+  assert.equal(cams.length, 2, 'only the camera-kind boxes');
+  assert.equal(cams[0]!.start, 0);
+  assert.equal(cams[0]!.end, 2000, 'end = start + dur, in ms, EXCLUSIVE');
+  assert.ok(cams[0]!.track && cams[0]!.track.length === 2, 'the parsed track travels, not the wire');
+  assert.equal(cams[0]!.base, null, 'a z of 0 is the default dolly, so no base is written');
+  assert.equal(cams[1]!.start, 0);
+  assert.equal(cams[1]!.end, null, 'an untimed camera never ends');
+  assert.deepEqual(cams[1]!.base, { z: 120 }, 'the camera’s own z FIELD is the scene-default dolly');
+  assert.equal(cams[1]!.track, null);
+  // Latest-in-array wins — cuts, not blends. Inside c1's window, c2 (declared later)
+  // is the one `resolveCamera` picks, which is the engine's rule, not this function's.
+  assert.equal(resolveCamera(cams, 500).z, 120);
+});
+
+test('the sampled path IS the engine’s arithmetic — checked at three instants', () => {
+  const rows: Box[] = [
+    // 400×200 at (200, 300) → centre (400, 400). Lifted 160px off the surface.
+    { id: 'art', x: 200, y: 300, w: 400, h: 200, rot: 0, start: 1, dur: 3, z: 160,
+      kf: 't0_x0_y0*t1500_eo_x120_y-60*t3000_x0_y0' },
+    { id: 'cam', kind: 'camera', start: 0, dur: 10, z: 0, kf: 't0_x0_z0*t4000_el_x-280_z-220' },
+  ] as unknown as Box[];
+  const cams = kfCameraClips(rows, pathCfg);
+  const track = parseKf('t0_x0_y0*t1500_eo_x120_y-60*t3000_x0_y0');
+  const out = kfMotionPath(rows, pathCfg, 'art', { x: 400, y: 400 }, { ...STAGE, cameras: cams });
+
+  assert.ok(out.pts.length >= 2, 'the box travels, so there is a path');
+  // The window is the clip's own: [1s, 4s]. First and last samples land ON its ends.
+  assert.equal(out.pts[0]!.t, 1000);
+  assert.equal(out.pts[out.pts.length - 1]!.t, 4000);
+
+  // THREE instants, chosen to exercise all three things that can go wrong: the start
+  // (camera at rest, box at rest), mid-ease (both moving, `eo` in flight), and the
+  // out-point (the last sample, where an accumulated step would have drifted).
+  for (const i of [0, Math.floor(out.pts.length / 2), out.pts.length - 1]) {
+    const got = out.pts[i]!;
+    const want = enginePoint(track, cams, 1000, 400, 400, 160, got.t);
+    assert.equal(got.x, want.x, `x at t=${got.t}`);
+    assert.equal(got.y, want.y, `y at t=${got.t}`);
+    assert.equal(got.a, want.a, `alphaGuard at t=${got.t}`);
+  }
+  // …and the projection is really DOING something: a flat reading (ignoring the
+  // camera and the depth) would put the last sample back at the authored centre.
+  assert.notEqual(out.pts[out.pts.length - 1]!.x, 400);
+
+  // One mark per keyframe, at the same projected pose — the diamonds and the line
+  // cannot disagree, because they come out of the same expression.
+  assert.deepEqual(out.keys.map((k) => k.t), [1000, 2500, 4000]);
+  for (const k of out.keys) {
+    const want = enginePoint(track, cams, 1000, 400, 400, 160, k.t);
+    assert.equal(k.x, want.x, `key x at t=${k.t}`);
+    assert.equal(k.y, want.y, `key y at t=${k.t}`);
+  }
+});
+
+test('a kf `z` token REPLACES the depth field for its segment, and the path shows it', () => {
+  const base: Box[] = [
+    { id: 'art', x: 0, y: 0, w: 200, h: 200, rot: 0, start: 0, dur: 2, z: 0,
+      kf: 't0_x0*t2000_el_x100' },
+    { id: 'cam', kind: 'camera', start: 0, dur: 10, z: 0, kf: 't0_x0*t4000_el_x-200' },
+  ] as unknown as Box[];
+  const flat = kfMotionPath(base, pathCfg, 'art', { x: 100, y: 100 },
+    { ...STAGE, cameras: kfCameraClips(base, pathCfg) });
+
+  // Same document, same camera, one keyed `z` — the parallax has to change, because
+  // eff = P/(P − (z − camZ)) is what the whole feature rests on.
+  const lifted = base.map((b) => (b.id === 'art' ? { ...b, kf: 't0_x0_z240*t2000_el_x100_z240' } : b));
+  const out = kfMotionPath(lifted, pathCfg, 'art', { x: 100, y: 100 },
+    { ...STAGE, cameras: kfCameraClips(lifted, pathCfg) });
+  assert.notEqual(out.pts[out.pts.length - 1]!.x, flat.pts[flat.pts.length - 1]!.x,
+    'a lifted layer travels further under the same pan');
+  const want = enginePoint(parseKf('t0_x0_z240*t2000_el_x100_z240'),
+    kfCameraClips(lifted, pathCfg), 0, 100, 100, 0, out.pts[out.pts.length - 1]!.t);
+  assert.equal(out.pts[out.pts.length - 1]!.x, want.x);
+});
+
+test('no track, one key, or no travel: there is no path, and the caller draws nothing', () => {
+  const box = (kf: string): Box[] =>
+    ([{ id: 'a', x: 0, y: 0, w: 100, h: 100, rot: 0, start: 0, dur: 2, kf }] as unknown as Box[]);
+  for (const kf of ['', 't0_x40', 't0_o1*t2000_o0', 't0_b0*t2000_b20']) {
+    const out = kfMotionPath(box(kf), pathCfg, 'a', { x: 50, y: 50 }, STAGE);
+    assert.deepEqual(out.pts, [], `kf=${JSON.stringify(kf)} draws no path`);
+    assert.deepEqual(out.keys, [], `kf=${JSON.stringify(kf)} draws no marks`);
+  }
+  // A tool with no kf field is not keyframable at all.
+  assert.deepEqual(kfMotionPath(box('t0_x0*t2000_x99'), { ...pathCfg, kfField: '' }, 'a', { x: 50, y: 50 }, STAGE).pts, []);
+  // …and an unknown id is not a crash.
+  assert.deepEqual(kfMotionPath(box('t0_x0*t2000_x99'), pathCfg, 'nope', { x: 50, y: 50 }, STAGE).pts, []);
+});
+
+test('the sample count is bounded, and an UNTIMED animated box uses the sequence length', () => {
+  const long: Box[] = [
+    { id: 'a', x: 0, y: 0, w: 10, h: 10, rot: 0, start: 0, dur: 600, kf: 't0_x0*t600000_x900' },
+  ] as unknown as Box[];
+  const out = kfMotionPath(long, pathCfg, 'a', { x: 5, y: 5 }, STAGE);
+  assert.equal(out.pts.length, MOTION_PATH_MAX_SAMPLES,
+    'a ten-minute move samples coarser rather than minting ten thousand vertices');
+  assert.equal(out.pts[out.pts.length - 1]!.t, 600000, 'and still ends exactly on the out-point');
+
+  // Untimed ("Always on"): no dur of its own, so the window is the sequence's.
+  const scenery: Box[] = [
+    { id: 'a', x: 0, y: 0, w: 10, h: 10, rot: 0, start: '', dur: '', kf: 't0_x0*t2000_x200' },
+    { id: 'clip', x: 0, y: 0, w: 10, h: 10, start: 0, dur: 5 },
+  ] as unknown as Box[];
+  const sc = kfMotionPath(scenery, pathCfg, 'a', { x: 5, y: 5 }, { ...STAGE, totalMs: 5000 });
+  assert.equal(sc.pts[sc.pts.length - 1]!.t, 5000, 'the whole run, because it is on screen for it');
+  assert.deepEqual(sc.keys.map((k) => k.t), [0, 2000]);
 });

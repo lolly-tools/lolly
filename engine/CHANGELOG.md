@@ -6,6 +6,41 @@ minors, never removed or signature-changed without a major bump.
 
 Moved verbatim from the comment block that used to live in `src/index.ts`.
 
+1.119.0 — additive: `engine/src/svg-layers.ts` — "Lift layers" (plans/104 §7 P3).
+`enumerateSvgLayers(markup)` reads a sanitised SVG and returns one standalone `<svg>`
+document per layer: the root's direct children in paint order, every `<g>` a layer, stray
+leaves clustered SPATIALLY with `pdf-artwork.ts`'s posture verbatim (group is a hint, never
+a requirement), a lone wrapping `<g id="Layer_1">` descended through unless its own
+attributes composite its children as a unit. Each derived document carries the root's
+attributes and the WHOLE of every non-rendering sibling (`<defs>`, `<style>`, paint
+servers), which is what makes the layers a byte-exact PARTITION of the original: `<defs>`
+paints nothing, `source-over` is associative, so stacking the N documents in order
+reproduces the source — §7's identity property, asserted structurally in
+`tests/svg-layers.test.ts` and as rendered pixels in `tests/svg-lift-identity.browser.test.ts`.
+⚑ Measured amendment to §7's wording: the STRUCTURAL identity is byte-exact, the RENDERED
+one is exact to within compositing rounding — a browser rasterises each layer into its own
+8-bit premultiplied buffer, so it rounds twice where one pass rounds once (Chromium,
+320×240: every channel within ±1 except ≤ 0.025 % of them, worst single channel 56/255 at a
+near-zero-coverage spike). Not a lift defect and not removable from here; the numbers and
+the bounds live in that test's header.
+Two hazards are handled rather than hoped about: a cluster that another layer paints
+through is split back into contiguous runs (paint order is never reordered), and a
+`<use href="#p">` whose referent now lives in a DIFFERENT layer has that element copied
+into the borrowing layer's own `<defs>`, where it cannot double-draw. Names stay stripped
+— labels are `Layer 1..N` by index, and `<title>`/`<desc>`/`<metadata>` are dropped from
+the derived roots, so the ingest-time PII strip is not undone by a lift. DOM-free by
+design (bounds are analytic, from geometry attributes and path control points via
+`parseSvgPath`), so the CLI can lift too. Untrusted-input caps are named and exported:
+`SVG_LAYERS_MAX_CHARS` 4 MB, `SVG_LAYERS_MAX_TAGS` 40 000, `SVG_LAYERS_MAX` 64 layers,
+`SVG_LAYERS_MAX_CANDIDATES` 4 000 root children clustered (the clustering is a pairwise
+union-find, so its cost is quadratic — measured before the cap: 10 000 leaves 0.7 s,
+20 000 leaves 4.3 s, 39 000 leaves 16 s, i.e. a hang on markup a stranger sends),
+`SVG_LAYERS_MAX_DEPTH` 64, `SVG_LAYERS_MAX_DESCENT` 8, `SVG_LAYERS_MAX_REFS` 64. BOTH
+count caps merge the TAIL rather than truncating — a contiguous run at the end of the
+document folds into one layer, so paint order is preserved and a cap can never drop
+artwork. Nothing throws; junk yields fewer layers and more warnings. No HostV1 method
+changed.
+
 1.118.0 — additive: the `kf` wire grammar gains the `w` and `h` channels
 (`engine/src/keyframes.ts`; plans/104 §5.2, the P1 reversal — Andy, 2026-08-12 hands-on:
 "I can't change width and height of elements and have them tween"). Both are ABSOLUTE px
