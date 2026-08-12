@@ -356,7 +356,7 @@ vercel_publish() {
   trap 'rm -f "${log:-}"' RETURN   # temp-log cleanup even on interrupt
   snap="$(newest_prod_url)"
   for (( try=1; try<="${DEPLOY_UPLOAD_TRIES:-3}"; try++ )); do
-    step "tarballing + queuing on Vercel (LOLLY_PROFILE=$profile · upload $try/${DEPLOY_UPLOAD_TRIES:-3})" >&2
+    step "uploading + queuing on Vercel (LOLLY_PROFILE=$profile · upload $try/${DEPLOY_UPLOAD_TRIES:-3})" >&2
     log="$(mktemp -t loldev-ship.XXXXXX)"
     # bt has NO git integration (disconnected 2026-08-10: a git clone can't mount
     # the private suse submodule, so a git build would silently ship the wrong
@@ -369,7 +369,17 @@ vercel_publish() {
     # reach (ETIMEDOUT killed a prod build 2026-08-10); the GPU EP is useless in a
     # serverless build anyway. Also set as project env on both projects — this
     # flag is the backstop if that ever gets lost.
-    npx --yes vercel deploy "${prod_flag[@]}" --archive=tgz --no-wait --force \
+    # NO --archive=tgz: an archive is one opaque blob Vercel cannot content-dedupe,
+    # so the ~1.3 GB of gitignored ONNX models under shells/web/public/models (matte,
+    # upscale, trustmark, kokoro, whisper) re-uploaded in full EVERY deploy even though
+    # they never change — the bulk of the ~1.5 GB/site upload and what dropped on flaky
+    # links. Per-file upload lets Vercel skip blobs it already has: the models upload
+    # once, then a typical ship sends only the files that actually changed. The models
+    # still ship (they are gitignored but NOT in .vercelignore, and Vercel ignores
+    # .gitignore whenever a .vercelignore exists); .git and node_modules stay excluded
+    # (Vercel default + .vercelignore). --no-wait still decouples upload from the build
+    # wait, and the missing-URL adoption/retry below is unchanged.
+    npx --yes vercel deploy "${prod_flag[@]}" --no-wait --force \
       --build-env "LOLLY_PROFILE=$profile" --build-env "LOLLY_CLI_DEPLOY=1" \
       --build-env "ONNXRUNTIME_NODE_INSTALL_CUDA=skip" \
       --yes 2>&1 | tee "$log" >&2
