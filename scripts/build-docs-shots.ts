@@ -54,6 +54,12 @@
  *   --rebuild      full refresh: rebuild the shell, re-shoot EVERY recipe, write
  *                  every baseline (even unchanged ones) and prune retired files.
  *                  Implies --accept. Use after a renderer/engine change.
+ *   --changed      capture ONLY recipes whose docs source page changed vs
+ *                  origin/main (committed origin/main...HEAD ∪ uncommitted, *.md);
+ *                  no changed page ⇒ capture nothing (near-instant); docs/git
+ *                  unreadable ⇒ fall back to the full set. Ignored under --rebuild.
+ *                  The gate path (loldev do_build) — a renderer change that alters
+ *                  an UNCHANGED recipe needs an explicit --rebuild to recapture.
  *   --only=a,b     limit to these filenames
  *   --url=...      capture against a running server (skips profile pin + build + serve)
  *   --no-build     reuse shells/web/dist (still pins the profile for the view check)
@@ -142,6 +148,14 @@ interface Opts {
    *  redo the lot" button — after an engine fix, `unchanged` verdicts are not
    *  something to preserve, they are something to overwrite. */
   rebuild: boolean;
+  /** Capture ONLY recipes whose docs source page changed vs origin/main (committed
+   *  origin/main...HEAD ∪ uncommitted working-tree edits, filtered to top-level
+   *  *.md). No changed page → nothing to capture (near-instant); the docs dir or
+   *  git unreadable → fall back to the full set, never silently capture nothing.
+   *  Ignored under --rebuild, which always re-shoots everything. This is the gate
+   *  path (loldev do_build) — an app/engine change that alters an UNCHANGED
+   *  recipe's render won't recapture until an explicit --rebuild. */
+  changed: boolean;
   list: boolean;
   noBuild: boolean;
   url: string | null;
@@ -153,10 +167,11 @@ interface Opts {
 }
 
 function parseOpts(argv: string[]): Opts {
-  const o: Opts = { accept: false, rebuild: false, list: false, noBuild: false, url: null, only: [], locales: [] };
+  const o: Opts = { accept: false, rebuild: false, changed: false, list: false, noBuild: false, url: null, only: [], locales: [] };
   for (const a of argv) {
     if (a === '--accept') o.accept = true;
     else if (a === '--rebuild') { o.rebuild = true; o.accept = true; }
+    else if (a === '--changed') o.changed = true;
     else if (a === '--list') o.list = true;
     else if (a === '--no-build') o.noBuild = true;
     else if (a.startsWith('--url=')) o.url = a.slice(6);
@@ -211,6 +226,23 @@ async function main(): Promise<void> {
     shots = shots.filter((s) => opts.only.includes(s.slug));
   }
 
+  // --changed narrows to recipes declared on a docs page that differs from
+  // origin/main. --rebuild always re-shoots everything, so --changed is inert
+  // there. The narrowing happens HERE — before the concurrency pool, the retry
+  // pass and the browser/build steps below — so a run with no changed page does
+  // no work at all.
+  if (opts.changed && !opts.rebuild) {
+    const changed = changedDocsPages();
+    if (changed) {
+      shots = shots.filter((s) => changed.has(s.file));
+      console.log(changed.size
+        ? `--changed: ${shots.length} recipe(s) from ${changed.size} changed docs page(s) (${[...changed].join(', ')})`
+        : '--changed: no docs page changed vs origin/main');
+    } else {
+      console.warn('⚠  --changed: docs dir or git history unreadable — capturing the FULL set (never nothing on error)');
+    }
+  }
+
   const moot = ineffectiveTolerance(shots);
   if (moot.length) {
     console.warn(`\u26a0  tolerance= has no effect on a vector shot (they compare exactly, not by pixels): ${moot.join(', ')}`);
@@ -219,6 +251,14 @@ async function main(): Promise<void> {
 
   if (opts.list) {
     for (const s of shots) console.log(`${s.slug.padEnd(18)} ${SITE_URL}${s.raw}`);
+    return;
+  }
+
+  // Nothing to capture (an empty --changed set): skip the build + serve + browser
+  // entirely so the gate path is near-instant. Only reachable via --changed —
+  // --only asserts its names exist, and the full scan throws on an empty corpus.
+  if (!shots.length) {
+    console.log('No shots to capture.');
     return;
   }
 
@@ -323,7 +363,7 @@ async function main(): Promise<void> {
  * recipe may appear on several pages (they share one baseline); the same filename
  * with a DIFFERENT query is a conflict.
  */
-function scanDocs(): ShotDef[] {
+function scanDocs(): Array<ShotDef & { file: string }> {
   const byName = new Map<string, ShotDef & { file: string }>();
   const problems: string[] = [];
   for (const f of readdirSync(DOCS_DIR).sort()) {
@@ -342,6 +382,50 @@ function scanDocs(): ShotDef[] {
   if (problems.length) throw new Error(`Bad screenshot recipes:\n  - ${problems.join('\n  - ')}`);
   if (!byName.size) throw new Error('No url-shot recipe images found in docs/*.md.');
   return [...byName.values()];
+}
+
+/**
+ * The top-level docs/*.md pages that differ from origin/main — the union of
+ * committed changes (`git diff --name-only origin/main...HEAD`) and uncommitted
+ * working-tree edits (`git status --porcelain`), filtered to `*.md` files at the
+ * docs root. `docs/` is its own submodule, so both git invocations run with
+ * `-C DOCS_DIR` and report paths relative to that submodule's root — the same bare
+ * basenames scanDocs keys `ShotDef.file` on (it only reads top-level *.md, never
+ * the i18n/ translations, so nested paths are irrelevant to recipe mapping).
+ *
+ * Returns `null`, NOT an empty set, when the docs dir is absent or either git
+ * command fails (no origin/main, not a repo, git missing): the caller falls back
+ * to the full set so an error never silently captures nothing. An empty SET means
+ * git answered and genuinely nothing changed.
+ */
+function changedDocsPages(): Set<string> | null {
+  if (!existsSync(DOCS_DIR)) return null;
+  const git = (args: string[]): string | null => {
+    const r = spawnSync('git', ['-C', DOCS_DIR, ...args], { encoding: 'utf-8' });
+    if (r.error || r.status !== 0 || typeof r.stdout !== 'string') return null;
+    return r.stdout;
+  };
+  const committed = git(['diff', '--name-only', 'origin/main...HEAD']);
+  const uncommitted = git(['status', '--porcelain']);
+  if (committed === null || uncommitted === null) return null;
+
+  const out = new Set<string>();
+  const addIfMd = (path: string): void => {
+    const p = path.trim().replace(/^"|"$/g, '');
+    // Top-level *.md only: that is the domain scanDocs discovers recipes in.
+    if (p.endsWith('.md') && !p.includes('/')) out.add(p);
+  };
+  for (const line of committed.split('\n')) if (line) addIfMd(line);
+  for (const line of uncommitted.split('\n')) {
+    if (!line) continue;
+    // Porcelain v1: `XY <path>` (XY = 2 status chars + a space); a rename is
+    // `R  <old> -> <new>` — take the destination.
+    let p = line.slice(3);
+    const arrow = p.indexOf(' -> ');
+    if (arrow >= 0) p = p.slice(arrow + 4);
+    addIfMd(p);
+  }
+  return out;
 }
 
 /** The locales a page can be published in (docs/i18n/<loc>/). A `localize=1` recipe

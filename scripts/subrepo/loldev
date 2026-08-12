@@ -142,8 +142,14 @@ do_build() {
   # changed: warn but keep going — the committed (still-valid) baselines ship;
   # promoting new pixels is a deliberate `npm run docs:shots -- --accept`. Any
   # other failure blocks the gate.
+  #
+  # --changed narrows to recipes whose docs page differs from origin/main, so a
+  # gate run only re-shoots what a commit could have altered (no changed page =>
+  # near-instant, no vite build). The tradeoff: an app/engine change that alters an
+  # UNCHANGED recipe's render won't recapture here — that needs a deliberate
+  # `npm run docs:shots -- --rebuild` after a renderer change (as the shots help says).
   step "docs screenshots (capture + compare, lolly-start brand)"
-  npm run --silent docs:shots
+  npm run --silent docs:shots -- --changed
   local shotrc=$?
   if [ "$shotrc" = 0 ]; then ok "docs screenshots verified"
   elif [ "$shotrc" = 2 ]; then warn "docs screenshots CHANGED — review, then promote with: npm run docs:shots -- --accept"
