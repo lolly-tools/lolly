@@ -28,6 +28,19 @@
  * failure mode ios-build had one layer deeper. Both lists are checked, each with
  * its own declared exceptions.
  *
+ * AND IT CHECKS THE README INDEX. docs/README.md opens by promising its sections
+ * "mirror the pathways declared in docs/build.ts, so the index cannot drift from
+ * the site" — but nothing enforced that, and by 2026-08-11 nine registered pages
+ * (the whole Trust pathway among them: trust, status-quo, ai-stance, ai-features,
+ * beatrice-warde, inclusive-design, input-not-impersonation, plus cli-signing and
+ * contributing-setup) had no row at all. A contributor reading the index would
+ * conclude those pages did not exist. So every `pages` entry must be NAMED in
+ * docs/README.md — in one of the pathway tables, in the "Not in the site nav"
+ * table, or in the prose that covers a page the tables cannot hold (the About
+ * entry, which renders `../README.md`). The match is on the page's own source
+ * path or its slug, not on table structure, so the index can be reorganised
+ * freely; a mention in passing satisfies it, a page nobody wrote down does not.
+ *
  * EXCEPTIONS ARE DECLARED, NOT INFERRED
  * Two files legitimately are not pages, and each is listed below with its reason
  * rather than pattern-matched. That is the point: an exception has to be a
@@ -43,6 +56,7 @@ import { fileURLToPath, pathToFileURL } from 'node:url';
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const DOCS_DIR = join(ROOT, 'docs');
 const BUILD_TS = join(DOCS_DIR, 'build.ts');
+const DOCS_README = join(DOCS_DIR, 'README.md');
 
 /**
  * `docs/*.md` files that are deliberately NOT `/info` pages, each with the reason
@@ -84,6 +98,8 @@ export interface NavReport {
   /** NOT_IN_SIDEBAR entries for slugs that are not pages, or that DO have a
    *  sidebar item — stale or contradictory either way. */
   staleSidebarExceptions: string[];
+  /** Registered pages that docs/README.md never names, as `slug (src)`. */
+  unindexed: string[];
   registeredCount: number;
 }
 
@@ -114,6 +130,38 @@ export function sliceDeclaration(buildTs: string, name: string): string {
 
 const slugsIn = (block: string): string[] =>
   [...block.matchAll(/\bslug:\s*'([^']+)'/g)].map((m) => m[1] as string);
+
+/**
+ * The `pages` entries as `{ slug, src }` pairs — the README check needs both,
+ * since the index links files (`[using.md](using.md)`) while the site is keyed
+ * by slug. One entry is one object literal on one line, which is how the array
+ * is written; a reshaped entry simply yields fewer pairs than there are slugs,
+ * and checkDocsNav treats that mismatch as a hard failure rather than quietly
+ * checking a subset.
+ */
+export function pageEntries(pagesBlock: string): Array<{ slug: string; src: string }> {
+  return [...pagesBlock.matchAll(/\{[^{}]*?\bslug:\s*'([^']+)'[^{}]*?\bsrc:\s*'([^']+)'[^{}]*?\}/g)]
+    .map((m) => ({ slug: m[1] as string, src: m[2] as string }));
+}
+
+/**
+ * Does docs/README.md name this page at all? Matched on the page's SOURCE PATH,
+ * which is the identifier the index actually uses, and deliberately
+ * structure-agnostic: a markdown link (`](using.md)`), a bare filename in a table
+ * cell, or a mention in prose all count, so the index can be regrouped without
+ * touching this guard. Boundary-anchored so `cli.md` is not satisfied by
+ * `cli-signing.md`, and so `../README.md` (the About page) is not satisfied by the
+ * bare `README.md` row that stands for this index itself.
+ *
+ * NOT matched on the slug: too many slugs are ordinary English (`trust`, `about`,
+ * `search`, `index`), and a prose coincidence would let a missing row pass — the
+ * exact failure this check exists to catch. A `.md` path in the text is always a
+ * reference to the doc.
+ */
+export function readmeNames(readme: string, page: { slug: string; src: string }): boolean {
+  const esc = page.src.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  return new RegExp(`(?<![\\w./-])${esc}(?![\\w-])`).test(readme);
+}
 
 export function checkDocsNav(): NavReport {
   const buildTs = readFileSync(BUILD_TS, 'utf8');
@@ -150,12 +198,29 @@ export function checkDocsNav(): NavReport {
     .filter((s) => !allPageSlugs.has(s) || sidebarSlugs.has(s))
     .sort();
 
+  // The README index. Same vacuity discipline as the slices above: if the entry
+  // matcher recovers fewer pages than there are `slug:` keys, the array has been
+  // reshaped and this check would silently cover only part of it.
+  const entries = pageEntries(pagesBlock);
+  if (entries.length !== pageSlugs.length) {
+    throw new Error(
+      `recovered ${entries.length} of ${pageSlugs.length} \`pages\` entries from docs/build.ts — ` +
+        'the README-index check would cover only a subset. Update pageEntries() to match the new layout.',
+    );
+  }
+  const readme = readFileSync(DOCS_README, 'utf8');
+  const unindexed = entries
+    .filter((p) => !readmeNames(readme, p))
+    .map((p) => `${p.slug} (docs/${p.src})`)
+    .sort();
+
   return {
     orphaned,
     missing,
     staleExceptions,
     unreachable,
     staleSidebarExceptions,
+    unindexed,
     contradictoryExceptions,
     registeredCount: inDocs.size,
   };
@@ -178,7 +243,8 @@ function main(): void {
     report.staleExceptions.length +
     report.contradictoryExceptions.length +
     report.unreachable.length +
-    report.staleSidebarExceptions.length;
+    report.staleSidebarExceptions.length +
+    report.unindexed.length;
 
   if (process.argv.includes('--json')) {
     console.log(JSON.stringify(report, null, 2));
@@ -243,6 +309,20 @@ function main(): void {
     console.error('\n  Remove the exception so the list keeps meaning something.');
   }
 
+  if (report.unindexed.length) {
+    failed = true;
+    console.error(
+      `\n✗ ${report.unindexed.length} registered page(s) are missing from the docs/README.md index, ` +
+        'which says it mirrors the pathways in docs/build.ts:\n',
+    );
+    for (const s of report.unindexed) console.error(`    ${s}`);
+    console.error(
+      '\n  Add a row to the matching pathway table in docs/README.md (Doc | Audience | What it\n' +
+        '  covers), linking the file by name. A page the index never mentions reads to a\n' +
+        '  contributor as a page that does not exist.',
+    );
+  }
+
   if (failed) process.exit(1);
 
   const exempt = Object.keys(NOT_PAGES).length;
@@ -250,7 +330,7 @@ function main(): void {
   console.log(
     `✓ docs nav complete — ${report.registeredCount} page(s) registered, ` +
       `${exempt} declared non-page(s), 0 orphans; every page reachable from a sidebar ` +
-      `(${sidebarExempt} declared exception(s))`,
+      `(${sidebarExempt} declared exception(s)) and indexed in docs/README.md`,
   );
 }
 

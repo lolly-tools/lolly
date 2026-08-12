@@ -18,8 +18,9 @@
  */
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { readFileSync, readdirSync, existsSync } from 'node:fs';
+import { readFileSync, readdirSync, existsSync, statSync } from 'node:fs';
 import { join } from 'node:path';
+import { extractC2paStore } from '../engine/src/c2pa-extract.ts';
 
 const REPO = new URL('..', import.meta.url).pathname;
 const DOCS = join(REPO, 'docs');
@@ -104,4 +105,53 @@ test('the markdown twin unwraps markers instead of shipping them', { skip: built
     const inner = /%entity\{([^{}]+)\}/.exec(src)?.[1];
     if (inner) assert.ok(text.includes(inner), `${f}'s twin lost the text inside a marker`);
   }
+});
+
+// ── The bytes behind the claim ───────────────────────────────────────────────
+// A `%sig{}` pill is a statement ABOUT A FILE, and the two checks above only read
+// the prose. docs/beatrice-warde.md ended the Warde narration's pill with "signed
+// by Lolly" from the day it shipped while the .opus itself carried no C2PA store
+// at all - the sentence was true of the page and false of the file, and every test
+// here passed. Its sibling mp4 on the same page had been signed all along, so
+// nothing looked odd either.
+//
+// So: whatever a signed pill names AND the page actually serves must carry a
+// credential a reader can extract. A name that appears ONLY inside `%file{}` is an
+// upstream source that ships nowhere (`iykyk.png`, a `Gemini_Generated_Image_*`) -
+// the pill records where the bytes came from, and there is no file here to check.
+
+/** Every non-page file under the built /info tree, indexed by basename. */
+function indexBuiltMedia(dir: string, into = new Map<string, string>()): Map<string, string> {
+  for (const name of readdirSync(dir)) {
+    const path = join(dir, name);
+    if (statSync(path).isDirectory()) indexBuiltMedia(path, into);
+    else if (!/\.(html|md|json|txt|js|css)$/.test(name) && !into.has(name)) into.set(name, path);
+  }
+  return into;
+}
+
+const builtMedia = existsSync(BUILT) ? indexBuiltMedia(BUILT) : new Map<string, string>();
+
+test('every file a signed pill names and the page serves carries a Content Credential',
+  { skip: builtMedia.size ? false : 'no built /info on disk' }, () => {
+  const unsigned: string[] = [];
+  const missing: string[] = [];
+  for (const f of mdFiles) {
+    const src = readFileSync(join(DOCS, f), 'utf-8');
+    // "Served by the page" = named somewhere OTHER than inside a %file{} marker,
+    // i.e. in an <audio>/<video> src, an image path or a /info/ link.
+    const outsidePills = src.replace(/%file\{[^{}]*\}/g, '');
+    for (const [i, line] of src.split('\n').entries()) {
+      if (!line.includes('%sig{')) continue;
+      for (const m of line.matchAll(/%file\{([^{}]+)\}/g)) {
+        const name = m[1]!.trim();
+        if (!outsidePills.includes(name)) continue;   // upstream source, not shipped
+        const path = builtMedia.get(name);
+        if (!path) { missing.push(`${f}:${i + 1} ${name}`); continue; }
+        if (!extractC2paStore(new Uint8Array(readFileSync(path)))) unsigned.push(`${f}:${i + 1} ${name}`);
+      }
+    }
+  }
+  assert.deepEqual(missing, [], 'a signed pill names a file the built /info does not ship');
+  assert.deepEqual(unsigned, [], 'a pill says the file is signed but the file carries no C2PA store');
 });

@@ -606,3 +606,35 @@ for (const [fmt, fixture, description] of RECORDED) {
     assert.ok(ingredient!.manifestBoxes.length >= 1, 'ingredient carries the manifest boxes verbatim');
   });
 }
+
+// ─── coverage guard for the dispatch table (APPENDED 2026-08-11) ──────────────
+
+test('every stampable format is round-tripped by SOME suite, none silently untested', () => {
+  // CASES above is this file's own coverage. The C2PA 2.4 text bindings (§A.7
+  // HTML documents, §A.9 structured text, and the Lolly html-fragment profile)
+  // live in tests/c2pa-text-write.test.ts because their fixtures are text and
+  // their tamper offsets sit at the FRONT of the file — the armour exclusion runs
+  // to EOF, so this file's shared `out.length - 1` target would land inside the
+  // exclusion and prove nothing.
+  //
+  // The point of the list is that it must be EXHAUSTIVE: a format added to
+  // C2PA_FORMATS with no round-trip anywhere fails here, which is the only thing
+  // standing between a new dispatch entry and shipping untested. Formats covered
+  // by a sibling suite go in ELSEWHERE with the file that covers them.
+  const ELSEWHERE: Record<string, string> = {
+    pdf: 'tests/c2pa.test.ts', 'pdf-cmyk': 'tests/c2pa.test.ts',
+    apng: 'placer-identical to png (CASES)', jpeg: 'placer-identical to jpg (CASES)',
+    avif: 'tests/c2pa-containers.test.ts', m4a: 'tests/c2pa-containers.test.ts',
+    wav: 'tests/c2pa-containers.test.ts', ogg: 'tests/c2pa-containers.test.ts',
+    opus: 'tests/c2pa-containers.test.ts',
+    html: 'tests/c2pa-text-write.test.ts', js: 'tests/c2pa-text-write.test.ts',
+    css: 'tests/c2pa-text-write.test.ts', md: 'tests/c2pa-text-write.test.ts',
+    'html-fragment': 'tests/c2pa-text-write.test.ts',
+  };
+  const here = new Set(CASES.map(([fmt]) => fmt));
+  const orphans = C2PA_FORMATS.filter((fmt) => !here.has(fmt) && !ELSEWHERE[fmt]);
+  assert.deepEqual(orphans, [], `these formats are dispatchable but round-tripped nowhere: ${orphans.join(', ')}`);
+  // …and the reverse, so ELSEWHERE cannot rot into a list of formats that no
+  // longer exist.
+  assert.deepEqual(Object.keys(ELSEWHERE).filter((fmt) => !C2PA_FORMATS.includes(fmt)), []);
+});

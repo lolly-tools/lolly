@@ -78,7 +78,7 @@ test('the sensor capabilities still validate (screen is additive, not a replacem
 
 // ─── version ─────────────────────────────────────────────────────────────────
 
-test('ENGINE_VERSION is 1.114.0', () => {
+test('ENGINE_VERSION is 1.117.0', () => {
   // A literal pin: the screencap surface shipped at 1.54, and tools declare
   // ^1.54.0 to require it. session-record only checks the stamp equals whatever
   // ENGINE_VERSION happens to be (tautological) — this catches an errant bump.
@@ -228,8 +228,22 @@ test('ENGINE_VERSION is 1.114.0', () => {
   // Then 1.114.0 (plans/104 P0 — engine/src/keyframes.ts: the `kf` wire grammar,
   // per-channel sparse evaluation, the ease adapter, and the affine depth-camera
   // projection/DOF both sequence evaluators fold; no HostV1 method changed).
+  // Then 1.115.0 (plans/105 M1 — the C2PA 2.4 text-binding READ side: SniffFormat
+  // gains 'html' | 'text' | 'code', extractC2paDetailed with the HTML/armour/
+  // variation-selector extractors, the NFC-normalised §15.12.1.3 text hash pipeline,
+  // and c2pa.ai-disclosure read for every format; read-only, no HostV1 method changed).
+  // Then 1.116.0 (plans/105 M2 §7 — verifyC2pa gains an optional `externalManifest`:
+  // the CALLER resolves a §A.7.1.2/§A.9.3 external credential reference under its own
+  // network policy and passes the bytes in, so a document whose manifest lives beside
+  // it can finally be checked; the engine still never fetches, the option is only read
+  // when the asset carries no store, and report.textBinding.externalManifestUsed marks
+  // every report that used it. No HostV1 method changed).
+  // Then 1.117.0 (plans/105 M3 — the C2PA 2.4 text-binding WRITE side: C2PA_FORMATS
+  // gains html/js/css/md, placeHtml (§A.7 inline) + placeArmor (§A.9 armoured block),
+  // and the documented `html-fragment` Lolly profile; write-only, no HostV1 method
+  // changed).
   // The ^1.54.0 screencap floor below still holds (a minor bump satisfies it).
-  assert.equal(ENGINE_VERSION, '1.114.0');
+  assert.equal(ENGINE_VERSION, '1.117.0');
 });
 
 // ─── loadTool: a ^1.54.0 tool loads against this engine ───────────────────────

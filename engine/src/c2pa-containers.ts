@@ -285,7 +285,7 @@ const xrefEntryLine = (offset: number, gen: number): string => `${String(offset)
  * table (jsPDF-style); cross-reference streams throw a clear Error the
  * shell treats as "cannot attach".
  */
-export async function embedC2paInPdf(pdfBytes: Uint8Array, { title, claimGenerator, generatorInfo, environment, author, authorship, rights, actions, ingredients, dates = {}, signer }: EmbedOptions = {}): Promise<Uint8Array> {
+export async function embedC2paInPdf(pdfBytes: Uint8Array, { title, claimGenerator, generatorInfo, environment, author, authorship, rights, actions, ingredients, aiDisclosure, specVersion, dates = {}, signer }: EmbedOptions = {}): Promise<Uint8Array> {
   if (!(pdfBytes instanceof Uint8Array)) throw new Error('C2PA embed: pdfBytes must be a Uint8Array');
   const bin = bytesToBin(pdfBytes);
   const info = parsePdf(bin);
@@ -333,7 +333,7 @@ export async function embedC2paInPdf(pdfBytes: Uint8Array, { title, claimGenerat
   const pad = new Uint8Array(8);
   const dummyHash = new Uint8Array(32);
   const build = (hash: Uint8Array, exclusions: Exclusion[], padBytes: Uint8Array): Promise<Uint8Array> => buildC2paManifest({
-    title, claimGenerator, generatorInfo, environment, author, authorship, rights, actions, ingredients, dates, format: 'application/pdf',
+    title, claimGenerator, generatorInfo, environment, author, authorship, rights, actions, ingredients, aiDisclosure, specVersion, dates, format: 'application/pdf',
     assetHash: { exclusions, hash, pad: padBytes },
     ...internals,
   });
@@ -1196,6 +1196,500 @@ function placeMp3(mp3: Uint8Array, manifest: Uint8Array): PlaceResult {
   };
 }
 
+// ─── C2PA 2.4 text bindings (§A.7 HTML documents, §A.9 structured text) ───────
+//
+// Two placers, both pure byte-splicing in placeSvg's spirit: find the carrier's
+// home in the host's own bytes, splice, and report the exclusion range the hard
+// binding must carve out. No DOM, no canonicalisation — §A.7.1.3 hashes "the byte
+// representation of the document as stored", and §A.9.4 says files "shall be read
+// in binary mode to preserve the exact byte representation of line terminators".
+//
+// Both satisfy the driver's two-pass contract MORE strongly than the binary
+// containers do: every byte outside the exclusion is a function of the HOST alone
+// (not even of the manifest's length), because the manifest only ever grows a
+// region that is entirely inside the exclusion. embedC2pa's convergence loop
+// therefore settles on the first probe.
+//
+// SPEC DELTAS worth knowing when reading this:
+//   * §A.7's exclusion is the WHOLE `<script>` element, `<script` through
+//     `</script>` inclusive — wider than placeSvg's base64-text-only rule. Both
+//     are legal for their own binding; neither is a canonicalisation.
+//   * §A.9's block is a SINGLE COMMENT LINE (§A.9.3.1). The multi-line shape in
+//     §A.9.3.2 is the FRONT MATTER form — and the spec contradicts itself about
+//     when it is mandatory. §A.9.3 opens "For structured text formats that support
+//     front matter, the C2PA Manifest block SHALL appear inside that front
+//     matter"; §A.9.3.2 then downgrades the identical rule to "MAY use a
+//     multi-line manifest block … claim generators SHOULD prefer the front matter
+//     form when possible". Markdown (YAML front matter) is one of the two formats
+//     §A.9.3.2 names, so for an md host that already HAS front matter this placer
+//     takes the weaker reading and writes the single-line comment form at EOF.
+//     Say it plainly: that is a KNOWN DEVIATION from §A.9.3's `shall`, taken
+//     because §A.9.3.2 restates the same rule as a `should` and because one
+//     exclusion formula for all four hosts is the thing that keeps writer and
+//     reader byte-exact. Scheduled, not settled — see
+//     plans/105-m345/findings-spec-conformance.md F4.
+//   * §A.9.3.1 recommends placing the block at the start of the file, and REQUIRES
+//     the end when line 1 is reserved by the host (a `#!` shebang, an `<?xml?>`
+//     declaration). We place at the end ALWAYS: it is the one position that is
+//     correct for every host, it never disturbs line 1 whatever that line is, and
+//     it keeps one exclusion formula for all four formats. Spec-legal, because the
+//     start-of-file preference is a "strongly recommended", not a "shall".
+//
+// AN UNRESOLVED CONFLICT INSIDE 2.4, worth knowing before anyone reads an interop
+// failure as our bug: §15.12.1.1 tells a validator it "shall ensure that the data
+// contained within the exclusion range containing the C2PA Manifest Store consists
+// of ONLY the C2PA Manifest Store and any appropriate padding", on pain of
+// `assertion.dataHash.mismatch` — but §A.7.1.3 REQUIRES the exclusion to cover
+// "the entire element from the opening `<script` tag through the closing
+// `</script>` tag, inclusive", and §A.9.4 requires it to cover a comment line. In
+// both cases the excluded range is markup plus base64, never raw store bytes. 2.4
+// added the text bindings without reconciling them with §15.12.1.1, so a third
+// party implementing that clause literally will reject every §A.7/§A.9 file —
+// ours and everyone else's — and be right by one reading. Our existing SVG carrier
+// has the identical shape and c2patool accepts it, which is the only empirical
+// answer available so far.
+//
+// THE LOLLY HTML-FRAGMENT PROFILE (`html-fragment`) is ours, not the spec's, and
+// is labelled as such wherever it surfaces. A masthead/figure artifact is markup +
+// script with no `<head>` element, so §A.7's method — "a `script` element … placed
+// in the `head` of the HTML document" — has nowhere to go. §A.9.2 excludes
+// `text/html` from structured text only because §A.7 already covers HTML
+// DOCUMENTS, and the same clause explicitly admits XML-based formats "with XML
+// comment syntax". So a fragment carries the §A.9 armour block in an HTML comment.
+// The manifest is real C2PA and the binding is a real `c2pa.hash.data`; only the
+// carrier convention is Lolly's. The signal a reader can key on is exactly this
+// pair: an asset whose claim format is `text/html` carrying a §A.9 armour block
+// instead of a §A.7 element. Never report it as §A.7 conformance.
+
+/** §A.9.3 fixed ASCII-armour delimiters (modelled on OpenPGP, RFC 4880 §6.2). */
+const ARMOR_BEGIN = '-----BEGIN C2PA MANIFEST-----';
+const ARMOR_END = '-----END C2PA MANIFEST-----';
+/** §A.9.3.1's embedded reference form, RFC 2397. */
+const C2PA_DATA_URI = 'data:application/c2pa;base64,';
+/** §A.7.1.1's carrier. Written with no surrounding whitespace so the excluded
+ *  range is exactly the element and nothing else. */
+const C2PA_SCRIPT_OPEN = '<script type="application/c2pa">';
+const C2PA_SCRIPT_CLOSE = '</script>';
+
+// ── §A.7: HTML documents ──────────────────────────────────────────────────────
+
+/** ASCII-case-insensitive tag-name match at `at`, followed by a name delimiter.
+ *  Deliberately identical to the reader's `tagNameAt` (c2pa-extract.ts) so writer
+ *  and validator agree on what counts as a tag. Bounds-safe: charCodeAt past the
+ *  end is NaN, which matches nothing. */
+function htmlTagNameAt(bin: string, at: number, name: string): boolean {
+  for (let k = 0; k < name.length; k++) {
+    if ((bin.charCodeAt(at + k) | 0x20) !== name.charCodeAt(k)) return false;
+  }
+  const d = bin.charCodeAt(at + name.length);
+  return d === 0x20 || d === 0x09 || d === 0x0a || d === 0x0d || d === 0x0c || d === 0x2f || d === 0x3e;
+}
+
+/**
+ * One past the `>` that closes an open tag whose attributes start at `from`, or
+ * -1 when it never closes. Quote-aware — unlike the reader, which documents its
+ * plain `indexOf('>')` as a known limit. The asymmetry is deliberate: a wrong
+ * answer costs the reader a failed binding, but costs the WRITER a splice into
+ * the middle of an attribute value, which corrupts the host. Each call scans
+ * forward once and every caller stops the walk on -1, so this stays linear.
+ */
+function htmlTagEnd(bin: string, from: number): number {
+  let q = '';
+  for (let i = from; i < bin.length; i++) {
+    const ch = bin[i]!;
+    if (q) { if (ch === q) q = ''; }
+    else if (ch === '"' || ch === "'") q = ch;
+    else if (ch === '>') return i + 1;
+  }
+  return -1;
+}
+
+/**
+ * §13.2.5 of the HTML spec's raw-text elements (plus `title`, which is escapable
+ * raw text): everything between their tags is TEXT, so a `<head` written inside
+ * one is not a tag and must not attract the splice. Skipped in the same walk and
+ * for the same reason comments are.
+ */
+const HTML_RAW_TEXT = ['script', 'style', 'textarea', 'title'] as const;
+
+interface HtmlAnchors {
+  /** One past `<head …>`'s `>`, or -1. */ head: number;
+  /** One past `<html …>`'s `>`, or -1. */ html: number;
+  /** One past `<!doctype html …>`'s `>`, or -1. */ doctype: number;
+  headSelfClosed: boolean;
+  htmlSelfClosed: boolean;
+}
+
+/**
+ * Where a manifest element could go: the first `<head>`, else the first `<html>`,
+ * else the doctype — in ONE linear walk that skips comments and stops at `<body`.
+ *
+ * Comments and RAW-TEXT ELEMENTS are both skipped here (a `<!-- <html> -->` in a
+ * licence header, or a `var t = "<head>"` inside a `<script>`, must not attract
+ * the splice), which is the opposite of the stripper below. That asymmetry is the
+ * point: strip whatever the VALIDATOR would count, insert where a PARSER would
+ * put it. Splicing into raw text costs twice — the host's own script or style is
+ * corrupted (our `</script>` closes THEIR element early), and the manifest lands
+ * outside the `head` where §A.7.1.1 requires it and §A.7.1.4 looks for it.
+ */
+function htmlAnchors(bin: string): HtmlAnchors {
+  const a: HtmlAnchors = { head: -1, html: -1, doctype: -1, headSelfClosed: false, htmlSelfClosed: false };
+  for (let at = bin.indexOf('<'); at >= 0; at = bin.indexOf('<', at + 1)) {
+    if (bin.charCodeAt(at + 1) === 0x21 /* ! */) {
+      if (bin.startsWith('<!--', at)) {
+        const close = bin.indexOf('-->', at + 4);
+        // An unterminated comment swallows the rest of the file, exactly as a
+        // parser reads it — there is nothing left to anchor to.
+        if (close < 0) break;
+        at = close + 2;
+        continue;
+      }
+      if (a.doctype < 0 && /^doctype\s+html\b/i.test(bin.slice(at + 2, at + 16))) {
+        const end = htmlTagEnd(bin, at + 2);
+        if (end < 0) break;
+        a.doctype = end;
+        at = end - 1;
+      }
+      continue;
+    }
+    // A real `<body>` ends the head region: a `<head>` found after it is not one.
+    if (htmlTagNameAt(bin, at + 1, 'body')) break;
+    // Raw text: jump the whole element. An unterminated one swallows the rest of
+    // the file exactly as a parser reads it, so there is nothing left to anchor to.
+    const raw = HTML_RAW_TEXT.find((n) => htmlTagNameAt(bin, at + 1, n));
+    if (raw) {
+      const open = htmlTagEnd(bin, at + 1 + raw.length);
+      if (open < 0) break;
+      const close = findHtmlCloseTag(bin, raw, open);
+      if (close < 0) break;
+      at = close - 1;
+      continue;
+    }
+    const isHead = htmlTagNameAt(bin, at + 1, 'head');
+    if (!isHead && !htmlTagNameAt(bin, at + 1, 'html')) continue;
+    const end = htmlTagEnd(bin, at + 1 + 4);
+    if (end < 0) break;
+    if (isHead) { a.head = end; a.headSelfClosed = bin[end - 2] === '/'; break; }
+    if (a.html < 0) { a.html = end; a.htmlSelfClosed = bin[end - 2] === '/'; }
+    at = end - 1;
+  }
+  return a;
+}
+
+const MAX_HTML_ATTRS = 64;
+/** The reader's attribute grammar, verbatim (c2pa-extract.ts `htmlAttrs`): first
+ *  occurrence wins, a Map so an attribute named `__proto__` is a key and not a
+ *  prototype write, and the zero-length-match nudge that keeps `exec` advancing. */
+function htmlAttrValues(src: string): Map<string, string> {
+  const attrs = new Map<string, string>();
+  const re = /([^\s=/>]+)(?:\s*=\s*(?:"([^"]*)"|'([^']*)'|([^\s"'=<>`]*)))?/g;
+  for (let m: RegExpExecArray | null; (m = re.exec(src)) !== null; ) {
+    if (!m[0]) { re.lastIndex++; continue; }
+    const key = m[1]!.toLowerCase();
+    if (!attrs.has(key)) attrs.set(key, m[2] ?? m[3] ?? m[4] ?? '');
+    if (attrs.size >= MAX_HTML_ATTRS) break;
+  }
+  return attrs;
+}
+
+/** One past the `>` of the first `</name…>` at or after `from`, or -1. */
+function findHtmlCloseTag(bin: string, name: string, from: number): number {
+  for (let at = bin.indexOf('</', from); at >= 0; at = bin.indexOf('</', at + 2)) {
+    if (!htmlTagNameAt(bin, at + 2, name)) continue;
+    const gt = bin.indexOf('>', at + 2 + name.length);
+    return gt < 0 ? -1 : gt + 1;
+  }
+  return -1;
+}
+
+/**
+ * Remove every C2PA association the host already carries — `<script
+ * type="application/c2pa">` elements AND `<link rel="c2pa-manifest">` tags, since
+ * §A.7.1 forbids a document from holding "both a script element and a link
+ * element referencing a C2PA Manifest Store". Re-placing is therefore replace,
+ * not append, and placing twice with the same manifest is byte-identical.
+ *
+ * NOT comment-aware, on purpose: the reader counts a carrier inside an HTML
+ * comment as an association (its `scanHtmlTags` does not mask comments either),
+ * so leaving one behind would produce a document the validator refuses with
+ * manifest.html.multipleManifests. Stripping what the validator counts is the
+ * only way to guarantee the file we hand back has exactly one association.
+ *
+ * Linear: the tag walk only moves forward, and the one scan that can run to EOF
+ * (`htmlTagEnd` on a tag that never closes) ends the walk.
+ */
+function stripHtmlC2paCarriers(bin: string): string {
+  let out = '';
+  let copied = 0;
+  for (let at = bin.indexOf('<'); at >= 0; at = bin.indexOf('<', at + 1)) {
+    const isScript = htmlTagNameAt(bin, at + 1, 'script');
+    if (!isScript && !htmlTagNameAt(bin, at + 1, 'link')) continue;
+    const name = isScript ? 'script' : 'link';
+    const end = htmlTagEnd(bin, at + 1 + name.length);
+    if (end < 0) break;
+    const attrs = htmlAttrValues(bin.slice(at + 1 + name.length, end - 1));
+    let cutEnd = -1;
+    if (isScript) {
+      if ((attrs.get('type') ?? '').trim().toLowerCase() === 'application/c2pa') {
+        cutEnd = findHtmlCloseTag(bin, 'script', end);
+        // §A.7.1.4 reads this document as truncated; a writer that guessed where
+        // the element ended would either destroy content or leave a second
+        // association behind. Refuse, and say which.
+        if (cutEnd < 0) throw new Error('C2PA embed: the HTML host has an unterminated <script type="application/c2pa"> element — it looks truncated');
+      }
+    } else if ((attrs.get('rel') ?? '').trim().toLowerCase().split(/\s+/).includes('c2pa-manifest')) {
+      cutEnd = end;
+    }
+    if (cutEnd < 0) { at = end - 1; continue; }
+    out += bin.slice(copied, at);
+    copied = cutEnd;
+    at = cutEnd - 1;
+  }
+  return copied ? out + bin.slice(copied) : bin;
+}
+
+/**
+ * §A.7.1.1: the C2PA Manifest Store, base64 (RFC 4648 §4), as the content of a
+ * `<script type="application/c2pa">` in the document's `head`. §A.7.1.3: ONE
+ * exclusion covering the entire element, `<script` through `</script>` inclusive.
+ *
+ * Insertion is immediately after the `<head …>` open tag, with no added
+ * whitespace, so the excluded range is exactly the element. A document that only
+ * IMPLIES a head (`<html>` or a bare doctype and no `<head>` tag) gets a real
+ * `<head></head>` synthesised around the element, so the validator's §A.7.1.4
+ * step 1 — "parse the head element" — finds it where the spec says to look.
+ */
+function placeHtml(html: Uint8Array, manifest: Uint8Array): PlaceResult {
+  const bin = stripHtmlC2paCarriers(bytesToBin(html));
+  const a = htmlAnchors(bin);
+  let at = a.head;
+  let before = '';
+  let after = '';
+  if (at < 0) {
+    if (a.html >= 0 && a.htmlSelfClosed) throw new Error('C2PA embed: self-closing <html/> cannot hold a manifest');
+    at = a.html >= 0 ? a.html : a.doctype;
+    if (at < 0) throw new Error('C2PA embed: not an HTML document (no <head>, <html> or <!doctype html>)');
+    before = '<head>';
+    after = '</head>';
+  } else if (a.headSelfClosed) {
+    throw new Error('C2PA embed: self-closing <head/> cannot hold a manifest');
+  }
+  // base64: standard alphabet with padding, one unbroken run (as placeSvg). The
+  // alphabet has no '-' and no '<', so neither the §A.9 delimiters nor a closing
+  // tag can ever appear inside a payload.
+  const element = C2PA_SCRIPT_OPEN + btoa(bytesToBin(manifest)) + C2PA_SCRIPT_CLOSE;
+  return {
+    out: binToBytes(bin.slice(0, at) + before + element + after + bin.slice(at)),
+    exclusions: [{ start: at + before.length, length: element.length }],
+  };
+}
+
+// ── §A.9: structured text ─────────────────────────────────────────────────────
+
+/** The host's comment syntax around the single-line manifest block (§A.9.3.1). */
+interface ArmorSyntax { prefix: string; suffix: string; label: string }
+
+const ARMOR_SYNTAX: Record<'js' | 'css' | 'md' | 'html-fragment', ArmorSyntax> = {
+  // JavaScript uses the PRESERVATION-HINT comment, not `//`. §A.9.3.1's example
+  // table shows `//` for JavaScript, but the same clause's normative sentence is
+  // "When host formats define comment conventions that signal toolchains to
+  // preserve specific comments (e.g., comments beginning with /*! in JavaScript
+  // AND CSS), claim generators should use them for the reference line." The
+  // example is illustrative; the SHOULD is aimed at exactly this pair, and the
+  // failure it exists to prevent is real — every minifier that honours `/*!`
+  // drops `//`, so a signed .js would lose its credential the first time it went
+  // through a build. CSS already complied, which left the file inconsistent with
+  // itself. Safe because the base64 alphabet contains no `*` or `/`, so `*/`
+  // cannot occur inside the payload (the CSS placer already relies on that).
+  js: { prefix: '/*! ', suffix: ' */', label: 'JavaScript file' },
+  css: { prefix: '/*! ', suffix: ' */', label: 'CSS file' },
+  md: { prefix: '<!-- ', suffix: ' -->', label: 'Markdown file' },
+  'html-fragment': { prefix: '<!-- ', suffix: ' -->', label: 'HTML fragment' },
+};
+
+/** Up to `cap` occurrences of `needle`. Capped because the only question §A.9.3
+ *  asks is "zero, one, or more than one", and an uncapped scan of a hostile file
+ *  full of delimiters is work for nothing. */
+function armorIndices(bin: string, needle: string, cap: number): number[] {
+  const out: number[] = [];
+  for (let at = bin.indexOf(needle); at >= 0 && out.length < cap; at = bin.indexOf(needle, at + needle.length)) out.push(at);
+  return out;
+}
+
+/** §A.9.3.1's two reference forms: a `data:` URI or a URL. Used only to tell a
+ *  real manifest block apart from prose that quotes the delimiters. */
+const isManifestReference = (ref: string): boolean =>
+  /^data:/i.test(ref) || /^https?:\/\//i.test(ref) || ref.startsWith('/') || ref.startsWith('./') || ref.startsWith('../');
+
+/** §A.9.3.1's own list of comment introducers (hash, slash-slash, slash-star,
+ *  double-dash, semicolon, percent, HTML open) and their terminators (star-slash,
+ *  HTML close), plus the slash-star-bang preservation hint the same clause
+ *  recommends. Used ONLY to tell a line that IS a manifest block from
+ *  a line of prose that happens to quote the delimiters — never to decide what to
+ *  write. The empty alternative covers §A.9.3.2's front-matter form, where the
+ *  delimiters sit on a bare line. */
+const ARMOR_COMMENT_OPEN = /^[ \t]*(?:\/\/!?|\/\*!?|<!--|--|#|;|%|')?[ \t]*$/;
+const ARMOR_COMMENT_CLOSE = /^[ \t]*(?:\*\/|-->)?[ \t]*$/;
+
+/**
+ * Remove the host's existing manifest block, so re-placing replaces (and is
+ * idempotent) instead of producing the two blocks §A.9.3 forbids.
+ *
+ * Removes the block's whole LINE — the same span §A.9.4 calls the manifest block
+ * — which for our own output restores the host byte-for-byte.
+ *
+ * DELETING HOST CONTENT IS NOT A TRADE A WRITER GETS TO MAKE, so this strips only
+ * a line that is a manifest block *where §A.9.3.1 allows one to be*, and refuses
+ * everything else rather than guessing:
+ *
+ *   - more than one delimiter of either kind, or an END before its BEGIN —
+ *     §A.9.3 already makes that file unreadable, and picking one to keep would be
+ *     a guess about which;
+ *   - a pair that is NOT on the file's first or last line — §A.9.3.1 puts the
+ *     block at the start of the file, or at the end when line 1 is reserved, and
+ *     nowhere else, so a pair in the middle is prose (a spec digest, this repo's
+ *     own plans and briefs);
+ *   - a pair whose line carries anything but comment syntax around it — same
+ *     reason, one level finer: a delimiter quoted inside a sentence or a `<pre>`
+ *     is not a comment line;
+ *   - a pair whose content is not a manifest reference at all.
+ *
+ * The narrowness is what makes this a true inverse of {@link placeArmor}: the
+ * only lines it can remove are lines that placer could have written. Before this,
+ * ANY well-formed pair around reference-shaped text was deleted wherever it sat —
+ * so a document that merely DOCUMENTED the armour form (this wave's own brief
+ * did) lost the line its author wrote, silently, under a valid signature, with
+ * the deletion outside every exclusion where no reader could ever notice.
+ */
+function stripArmorBlock(bin: string, label: string): string {
+  const begins = armorIndices(bin, ARMOR_BEGIN, 2);
+  const ends = armorIndices(bin, ARMOR_END, 2);
+  if (!begins.length && !ends.length) return bin;
+  const begin = begins[0]!;
+  const end = ends[0]!;
+  if (begins.length !== 1 || ends.length !== 1 || end < begin + ARMOR_BEGIN.length) {
+    throw new Error(`C2PA embed: this ${label} already carries more than one — or a malformed — C2PA manifest block (§A.9.3 allows at most one)`);
+  }
+  const refuse = (what: string): never => {
+    throw new Error(`C2PA embed: this ${label} quotes the §A.9 armour delimiters ${what} — refusing to delete it, and a second block would make the file unreadable`);
+  };
+  const lineStart = bin.lastIndexOf('\n', begin) + 1;
+  const nl = bin.indexOf('\n', end);
+  const lineEnd = nl < 0 ? bin.length : nl + 1;
+  // "At the end" the way §A.9.4 and the reader's own armorExclusion mean it: the
+  // block's line is the last one that carries anything.
+  if (lineStart !== 0 && bin.slice(lineEnd).trim()) refuse('in the middle of the file, where §A.9.3.1 never places a manifest block');
+  if (!ARMOR_COMMENT_OPEN.test(bin.slice(lineStart, begin))
+    || !ARMOR_COMMENT_CLOSE.test(bin.slice(end + ARMOR_END.length, lineEnd).replace(/\r?\n$/, ''))) {
+    refuse('inside a line that is not a comment');
+  }
+  if (!isManifestReference(bin.slice(begin + ARMOR_BEGIN.length, end).trim())) {
+    refuse('around something that is not a manifest reference');
+  }
+  return bin.slice(0, lineStart) + bin.slice(lineEnd);
+}
+
+/**
+ * §A.9.3.1 single-line form at the end of the file, §A.9.4 hard binding:
+ *
+ *     <prefix> -----BEGIN C2PA MANIFEST----- data:application/c2pa;base64,… -----END C2PA MANIFEST----- <suffix>
+ *
+ * with ONE exclusion "from the byte offset of the newline character preceding the
+ * manifest block" to end of file. That newline is guaranteed: when the host does
+ * not already end with one, the placer adds it, and it is inside the exclusion
+ * either way, so the host's own bytes are bound exactly as they arrived.
+ *
+ * §A.9.4 on line terminators: LF or CRLF only, and "a claim generator shall not
+ * alter the line ending convention of the file content outside the manifest
+ * block". Nothing here rewrites the host, and the terminator this placer
+ * INTRODUCES follows the host — CRLF only when every newline in the host is
+ * already CRLF, so a mixed file gets LF rather than a third convention. A host
+ * with bare-CR line endings is refused: §A.9.4 says such files "shall be
+ * converted to LF or CRLF before embedding", and converting them here would be
+ * exactly the alteration the same clause forbids.
+ */
+function placeArmor(bytes: Uint8Array, manifest: Uint8Array, syntax: ArmorSyntax): PlaceResult {
+  const bin = bytesToBin(bytes);
+  if (/\r(?!\n)/.test(bin)) {
+    throw new Error(`C2PA embed: this ${syntax.label} uses bare CR line endings, which §A.9.4 does not support — convert it to LF or CRLF first`);
+  }
+  const base = stripArmorBlock(bin, syntax.label);
+  // An empty host would put the block at BOTH the start and the end of the file,
+  // which is §A.9.4's "the file contains only the manifest block" case: exclusion
+  // {0, whole file}, i.e. a hard binding whose hash covers no content at all and
+  // therefore matches every other such file. Refuse rather than mint one.
+  if (!base.trim()) {
+    throw new Error(`C2PA embed: refusing to place a manifest block in an empty ${syntax.label} — the exclusion would cover the whole file and the hard binding would bind nothing`);
+  }
+  const eol = bin.includes('\r\n') && !/(^|[^\r])\n/.test(bin) ? '\r\n' : '\n';
+  // Whether the terminator before the block is the HOST's or one this placer had
+  // to add decides where the exclusion starts (below).
+  const introduced = !base.endsWith('\n');
+  const head = introduced ? base + eol : base;
+  const block = `${syntax.prefix}${ARMOR_BEGIN} ${C2PA_DATA_URI}${btoa(bytesToBin(manifest))} ${ARMOR_END}${syntax.suffix}`;
+  const out = head + block + eol;
+  // §A.9.4: "start: byte offset of the newline character preceding the manifest
+  // block". When that newline is the host's own, this is head.length - 1 — the LF
+  // on a CRLF host, leaving the host's CR hashed, which is spec-literal and the
+  // reading our reader returns as primary.
+  //
+  // When the placer INTRODUCED the terminator, the whole terminator is part of
+  // what the writer added, so the exclusion starts at its FIRST byte. Otherwise a
+  // CRLF host with no trailing newline gets a bare CR inside the hashed content —
+  // a byte the host never had, in the one convention §A.9.4 declares unsupported,
+  // and outside every exclusion where nothing downstream could see it. The reader
+  // offers the CR reading as an equally-valid alternate (armorExclusion), so both
+  // stay conformant.
+  const start = head.length - (introduced ? eol.length : 1);
+  return { out: binToBytes(out), exclusions: [{ start, length: out.length - start }] };
+}
+
+/**
+ * Remove the armour line {@link placeArmor} wrote, or return the text UNCHANGED.
+ * The inverse of that placer, exported because two places outside the engine have
+ * to undo it — the docs bank's lint (which reads an artifact's source, not its
+ * base64) and the docs build's presentation copy (an inlined artifact must not
+ * carry a credential whose binding covers a file, not a DOM). Two hand-written
+ * copies of this rule had already drifted apart and each was looser than the
+ * placer, so both cut host content the placer never added; one owner, beside the
+ * writer it inverts, is the fix.
+ *
+ * Removes ONLY what this placer could have written: a single-line block, on the
+ * file's last line, with comment syntax around it and a real manifest reference
+ * between the delimiters. Anything else — prose quoting the delimiters, a block
+ * spanning lines, a second pair — is left exactly where it is, for the caller to
+ * refuse. Unlike {@link stripArmorBlock} (which is about to write a second block,
+ * so ambiguity is fatal), this one never throws: its callers have their own
+ * policy for text they cannot account for.
+ *
+ * NOT byte-exact in one case, by construction: when the placer had to INTRODUCE
+ * the terminator before the block (a host that did not end in a newline), that
+ * terminator is indistinguishable from the host's own afterwards, so
+ * `strip(place(x))` is `x` plus one line ending. Bank artifacts are
+ * newline-terminated text files, where the identity holds byte-for-byte.
+ */
+export function stripPlacedArmorLine(text: string): string {
+  const begin = text.indexOf(ARMOR_BEGIN);
+  if (begin < 0) return text;
+  if (text.indexOf(ARMOR_BEGIN, begin + ARMOR_BEGIN.length) >= 0) return text;
+  const end = text.indexOf(ARMOR_END, begin + ARMOR_BEGIN.length);
+  if (end < 0 || text.indexOf(ARMOR_END, end + ARMOR_END.length) >= 0) return text;
+  if (text.slice(begin, end).includes('\n')) return text;
+  const lineStart = text.lastIndexOf('\n', begin) + 1;
+  const nl = text.indexOf('\n', end);
+  const lineEnd = nl < 0 ? text.length : nl + 1;
+  if (text.slice(lineEnd).trim()) return text;
+  if (!ARMOR_COMMENT_OPEN.test(text.slice(lineStart, begin))) return text;
+  if (!ARMOR_COMMENT_CLOSE.test(text.slice(end + ARMOR_END.length, lineEnd).replace(/\r?\n$/, ''))) return text;
+  if (!isManifestReference(text.slice(begin + ARMOR_BEGIN.length, end).trim())) return text;
+  return text.slice(0, lineStart) + text.slice(lineEnd);
+}
+
+/** The Lolly HTML-fragment profile's registered ids, for the surfaces that have
+ *  to name it honestly (it is Lolly's carrier convention, not §A.7 conformance —
+ *  see the block comment above). */
+export const C2PA_FRAGMENT_PROFILE = Object.freeze({ format: 'html-fragment', mime: 'text/html' });
+
 interface Container {
   place: (container: Uint8Array, manifest: Uint8Array) => PlaceResult;
   mime: string;
@@ -1231,6 +1725,15 @@ const CONTAINERS: Record<string, Container> = {
   // are the same container; both map to the export/asset format strings in use.
   ogg: { place: placeOgg, mime: 'audio/ogg' },
   opus: { place: placeOgg, mime: 'audio/ogg' },
+  // C2PA 2.4 text bindings. `html` is the §A.7 inline form (a whole HTML
+  // DOCUMENT); js/css/md are §A.9 structured text; `html-fragment` is the Lolly
+  // profile — §A.9's armour in an HTML comment, for markup that has no `<head>`
+  // for §A.7 to use. See the block comment above the placers.
+  html: { place: placeHtml, mime: 'text/html' },
+  js: { place: (b, m) => placeArmor(b, m, ARMOR_SYNTAX.js), mime: 'text/javascript' },
+  css: { place: (b, m) => placeArmor(b, m, ARMOR_SYNTAX.css), mime: 'text/css' },
+  md: { place: (b, m) => placeArmor(b, m, ARMOR_SYNTAX.md), mime: 'text/markdown' },
+  'html-fragment': { place: (b, m) => placeArmor(b, m, ARMOR_SYNTAX['html-fragment']), mime: C2PA_FRAGMENT_PROFILE.mime },
 };
 
 /** Formats embedC2pa can stamp (plus 'pdf'/'pdf-cmyk' via embedC2paInPdf). */
@@ -1273,7 +1776,7 @@ export async function embedC2pa(bytes: Uint8Array, format: string, opts: EmbedOp
   if (!container) throw new Error(`C2PA embed: no embedding for format '${format}'`);
   const isBmff = container.hash === 'bmff';
 
-  const { title, claimGenerator, generatorInfo, environment, author, authorship, rights, actions, ingredients, dates = {}, signer } = opts;
+  const { title, claimGenerator, generatorInfo, environment, author, authorship, rights, actions, ingredients, aiDisclosure, specVersion, dates = {}, signer } = opts;
   // As in embedC2paInPdf: signer + chain bytes frozen once per embed so every
   // pass across the two-pass layout signs identical protected-header bytes.
   const sig: Signer = signer ?? (await generateSigner(dates));
@@ -1285,7 +1788,7 @@ export async function embedC2pa(bytes: Uint8Array, format: string, opts: EmbedOp
   const pad = new Uint8Array(8);
   const dummyHash = new Uint8Array(32);
   const build = (hash: Uint8Array, exclusions: Exclusion[], padBytes: Uint8Array): Promise<Uint8Array> => buildC2paManifest({
-    title, claimGenerator, generatorInfo, environment, author, authorship, rights, actions, ingredients, dates, format: container.mime,
+    title, claimGenerator, generatorInfo, environment, author, authorship, rights, actions, ingredients, aiDisclosure, specVersion, dates, format: container.mime,
     assetHash: isBmff ? { bmff: true, hash, pad: padBytes } : { exclusions, hash, pad: padBytes },
     ...internals,
   });

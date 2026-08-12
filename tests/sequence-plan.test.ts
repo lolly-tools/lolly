@@ -22,17 +22,26 @@ import assert from 'node:assert/strict';
 import { JSDOM } from 'jsdom'; // typed by tests/jsdom.d.ts (no @types/jsdom exists)
 
 import {
-  DEFAULT_TRANSITION_MS, MAX_SPEED, MAX_TIME_MS, MIN_SPEED,
+  DEFAULT_TRANSITION_MS, EMPTY_KF_TRACK, MAX_SPEED, MAX_TIME_MS, MIN_SPEED,
   MAX_TRANSITION_MS, MIN_TRANSITION_MS, SEQ_ERROR_CODES, TRUNCATION_TOLERANCE_FRAMES,
   activeFrameWindow, activeSpanTimestamps, crossfadeExtensions, crossfadeJunctions, endOf, frameTimestamps,
   layerKind, normalizeFrameScene, parseSequenceStage, readLayer, reconcileDecoded, rotationOf, sequenceDrawPlan,
   sequenceError, toCodedError,
-  type PlanItem, type SeqLayer,
+  composeFilter, foldKfPose, kfTrackOf, planCameraView, readDepthZ, splitFilterBlur,
+  type PlanItem, type SeqLayer, type SeqPlanEnv,
 } from '../shells/web/src/bridge/sequence-plan.ts';
 import { recTransition } from '../shells/web/src/lib/transitions.ts';
 import {
-  isActiveAt, readTiming, transitionAt,
+  applyTimeToElements, authoredStyleOf, borrowAuthoredPose, createAuthoredStore,
+  isActiveAt, readTiming, transitionAt, withAuthoredDom,
+  type ApplyCtx,
 } from '../shells/web/src/views/sequence-clock.ts';
+// The session form of the applier — a live per-frame writer, which is what the
+// export-time read/restore seam at the end of this file exists to stand down.
+import { createSequenceTime } from '../shells/web/src/bridge/sequence-dom.ts';
+import {
+  KF_EFF_MAX, KF_Z_FIELD_CLAMP, dofBlur, evaluateKf, projectLayer,
+} from '@lolly/engine';
 
 // ── DOM helpers ─────────────────────────────────────────────────────────────
 
@@ -71,6 +80,7 @@ function fakeLayer(over: Partial<SeqLayer> & { idx: number }): SeqLayer {
     lane: 'seq', kind: 'static',
     rect: { x: 0, y: 0, w: 100, h: 100, rot: 0 },
     opacity: 1, blend: '', radius: '', clipPath: '', openEnded: false, frameScene: false,
+    z: 0, kf: EMPTY_KF_TRACK, blur: 0, shadowFilter: '',
     ...over,
   };
 }
@@ -1122,4 +1132,885 @@ test('normalized slides gate one-at-a-time across the sequence', () => {
     assert.equal(active.length, 1, `one slide active at t=${t}`);
     assert.equal(active[0]!.layer.idx, wantIdx);
   }
+});
+
+// ── plans/104 — depth, keyframes, and the two evaluators ────────────────────
+//
+// The feature adds two attributes (`data-t-z`, `data-t-kf`) that BOTH readers have
+// to read the same way, a fold (§4.1) that both have to compose in the same order,
+// and a paint order (§4.2) that both have to resolve to the same sequence. Everything
+// below exists because the alternative is a preview that disagrees with the file.
+//
+// The floor under all of it: a document that authors NEITHER attribute must come out
+// of both paths exactly as it did before any of this existed. That is asserted first.
+
+/** A [data-sequence] stage sized like a real artboard, so the projection has a centre. */
+function depthStage(boxesHtml: string, seqMs = 4000): HTMLElement {
+  const wrap = doc.createElement('div');
+  wrap.innerHTML = `<div class="artboard" data-sequence data-seq-ms="${seqMs}"`
+    + ` style="width:1920px;height:1080px;">${boxesHtml}</div>`;
+  return wrap;
+}
+
+/** One box, with geometry the two readers both take off the inline style. */
+function depthBox(o: {
+  left?: number; top?: number; w?: number; h?: number;
+  style?: string; time?: string; inner?: string;
+} = {}): string {
+  const style = `left:${o.left ?? 200}px;top:${o.top ?? 100}px;`
+    + `width:${o.w ?? 640}px;height:${o.h ?? 360}px;${o.style ?? ''}`;
+  return `<div class="lolly-box" style="${style}" ${o.time ?? ''}>${o.inner ?? ''}</div>`;
+}
+
+/** The stage size both evaluators are told about. Same numbers, two shapes. */
+const STAGE = { w: 1920, h: 1080 };
+const PLAN_ENV: SeqPlanEnv = { stageW: STAGE.w, stageH: STAGE.h };
+const applyCtx = (seqMs: number): ApplyCtx => ({
+  seqMs, store: createAuthoredStore(), stage: () => ({ ...STAGE }),
+});
+
+/** The DOM path's own quantum for transforms (`n3` in sequence-dom.ts). */
+const n3 = (v: number): number => Math.round(v * 1000) / 1000;
+/** …and for opacity (composeOpacity). */
+const n4 = (v: number): number => Math.round(v * 10000) / 10000;
+
+/**
+ * The numbers the applier actually WROTE, read back off the element.
+ *
+ * `composeTransform` emits `translate(dx,dy) <authored> rotate(anim) scale(sc)`, and
+ * the authored transform is rotate-only by the planner's own contract, so summing
+ * every rotate term recovers exactly the planner's `rect.rot + fold.rot`.
+ */
+function written(el: HTMLElement): { dx: number; dy: number; sc: number; rot: number; alpha: number } {
+  const t = el.style.transform || '';
+  const tr = /translate\(\s*(-?[\d.]+)px,\s*(-?[\d.]+)px\s*\)/.exec(t);
+  const sc = /scale\(\s*(-?[\d.]+)\s*\)/.exec(t);
+  let rot = 0;
+  for (const m of t.matchAll(/rotate\(\s*(-?[\d.]+)deg\s*\)/g)) rot += parseFloat(m[1] as string);
+  const op = el.style.opacity;
+  return {
+    dx: tr ? parseFloat(tr[1] as string) : 0,
+    dy: tr ? parseFloat(tr[2] as string) : 0,
+    sc: sc ? parseFloat(sc[1] as string) : 1,
+    rot,
+    alpha: op === '' || op == null ? 1 : parseFloat(op),
+  };
+}
+
+// ── the byte-identity floor ────────────────────────────────────────────────
+
+test('DEPTH FLOOR: a document with no z and no kf writes not one new property', () => {
+  const html = depthBox({
+    style: 'transform:rotate(-6deg);opacity:0.9;filter:blur(4px) drop-shadow(0px 2px 10px #00000055);',
+    time: 'data-t-start="0" data-t-dur="2000" data-t-enter="rise" data-t-enter-ms="600"',
+  });
+  const node = depthStage(html);
+  const el = node.querySelector('.lolly-box') as HTMLElement;
+  const ctx = applyCtx(4000);
+  for (const t of [0, 120, 300, 900, 1900]) applyTimeToElements([el], t, ctx);
+  // The two new per-frame properties are the whole of what plans/104 adds to the
+  // surface, and neither may appear on a stage that authors no depth.
+  assert.equal(el.style.filter, 'blur(4px) drop-shadow(0px 2px 10px #00000055)',
+    'the authored filter is left spelled exactly as the hook wrote it');
+  assert.equal(el.style.zIndex, '', 'no z-index is invented');
+  // And the plan's own numbers are the transition\'s, untouched by the fold.
+  const stage = parseSequenceStage(node)!;
+  const layer = stage.layers[0] as SeqLayer;
+  assert.equal(layer.z, 0);
+  assert.equal(layer.kf.length, 0);
+  assert.equal(layer.blur, 4, 'the authored blur is read, not invented');
+  assert.equal(layer.shadowFilter, 'drop-shadow(0px 2px 10px #00000055)');
+  for (const t of [0, 120, 300, 900, 1900]) {
+    const withEnv = sequenceDrawPlan(stage.layers, t, 4000, PLAN_ENV)[0] as PlanItem;
+    const without = sequenceDrawPlan(stage.layers, t, 4000)[0] as PlanItem;
+    assert.deepEqual(withEnv, without, `a camera-ready env changes nothing at t=${t}`);
+    const tr = transitionAt(readTiming(el), t, 4000);
+    const off = tr ? recTransition(tr.kind, tr.p, 640, 360, tr.ease) : { dx: 0, dy: 0, sc: 1, alpha: 1, rot: 0 };
+    // Exact equality, not a tolerance: the projection must not round-trip these
+    // through `W/2 + (cx + dx − W/2)`, which is identity in ℝ and not in IEEE-754.
+    assert.equal(withEnv.dx, off.dx, `dx at ${t}`);
+    assert.equal(withEnv.dy, off.dy, `dy at ${t}`);
+    assert.equal(withEnv.scale, off.sc, `scale at ${t}`);
+    assert.equal(withEnv.rot, -6 + off.rot, `rot at ${t}`);
+    assert.equal(withEnv.blur, 4, 'total blur is the authored blur and nothing else');
+    assert.equal(withEnv.resolvedZ, 0);
+  }
+});
+
+test('DEPTH FLOOR: the fold at eff = 1 is the transition offset EXACTLY, not within epsilon', () => {
+  // The naive `projectLayer` answer for this case is 0.10000000000002274. A document
+  // that uses no depth may not move by that much, so the fold short-circuits — and
+  // this is the assertion that says so out loud.
+  const view = planCameraView(PLAN_ENV, 0);
+  const fold = foldKfPose({
+    view, cx: 10, cy: 7, tr: { dx: 0.1, dy: -0.3, sc: 1, alpha: 1, rot: 0 },
+    pose: {}, zField: 0, authoredBlur: 0,
+  });
+  assert.equal(fold.dx, 0.1);
+  assert.equal(fold.dy, -0.3);
+  assert.equal(fold.scale, 1);
+  assert.equal(fold.z, 0);
+  // …and it really is the same number the engine would have produced, to a hair.
+  const proj = projectLayer(view, { bx: 10, by: 7, dxT: 0.1, dyT: -0.3, z: 0 });
+  assert.ok(Math.abs(proj.dx - fold.dx) < 1e-9 && proj.dx !== fold.dx,
+    'the short-circuit agrees with projectLayer while being the exact value');
+});
+
+// ── the readers ────────────────────────────────────────────────────────────
+
+test('both readers read data-t-z through the ENGINE clamp, not a re-typed one', () => {
+  const [lo, hi] = KF_Z_FIELD_CLAMP;
+  for (const [raw, want] of [['0', 0], ['140', 140], ['-140', -140], ['99999', hi], ['-99999', lo], ['', 0], ['nope', 0], ['Infinity', 0]] as const) {
+    const node = depthStage(depthBox({ time: `data-t-start="0" data-t-dur="1000" data-t-z="${raw}"` }));
+    const el = node.querySelector('.lolly-box') as HTMLElement;
+    assert.equal(readTiming(el).z, want, `clock z for "${raw}"`);
+    assert.equal((parseSequenceStage(node)!.layers[0] as SeqLayer).z, want, `plan z for "${raw}"`);
+  }
+  assert.equal(readDepthZ('99999'), hi);
+  assert.equal(hi, 900, 'the field clamp is still the plan\'s 900 — if this moves, the engine moved it');
+});
+
+test('both readers parse data-t-kf through ONE cache, junk and all', () => {
+  const track = 't0_z0_x-40*t1000_eo_z140_x0';
+  const node = depthStage(depthBox({ time: `data-t-start="0" data-t-dur="2000" data-t-kf="${track}"` }));
+  const el = node.querySelector('.lolly-box') as HTMLElement;
+  const fromClock = readTiming(el).kf;
+  const fromPlan = (parseSequenceStage(node)!.layers[0] as SeqLayer).kf;
+  assert.equal(fromClock.length, 2);
+  // The SAME frozen array, not merely an equal one: that is what lets the engine
+  // memoise the per-track channel index instead of rebuilding it on both sides.
+  assert.equal(fromClock, fromPlan);
+  assert.equal(fromClock, kfTrackOf(track));
+  // Junk is skipped, never thrown, and an attribute that parses to nothing reads as
+  // "not keyframed" rather than as a broken track.
+  for (const junk of ['', '   ', 'wobble', '"><img src=x>', 'constructor', '*_*_*']) {
+    const j = depthStage(depthBox({ time: `data-t-start="0" data-t-dur="1000" data-t-kf="${junk}"` }));
+    const jel = j.querySelector('.lolly-box') as HTMLElement;
+    assert.equal(readTiming(jel).kf.length, 0, `junk "${junk}"`);
+    assert.equal((parseSequenceStage(j)!.layers[0] as SeqLayer).kf.length, 0, `junk "${junk}"`);
+  }
+});
+
+test('splitFilterBlur takes the authored blur apart and composeFilter puts it back', () => {
+  assert.deepEqual(splitFilterBlur('blur(4.5px) drop-shadow(0px 21px 46px #00000055)'),
+    { blur: 4.5, rest: 'drop-shadow(0px 21px 46px #00000055)' });
+  assert.deepEqual(splitFilterBlur('drop-shadow(0px 2px 10px #00000055)'),
+    { blur: 0, rest: 'drop-shadow(0px 2px 10px #00000055)' });
+  assert.deepEqual(splitFilterBlur(''), { blur: 0, rest: '' });
+  assert.deepEqual(splitFilterBlur('none'), { blur: 0, rest: '' });
+  assert.equal(composeFilter(4.5, 'drop-shadow(0px 21px 46px #00000055)'),
+    'blur(4.5px) drop-shadow(0px 21px 46px #00000055)');
+  assert.equal(composeFilter(0, 'drop-shadow(0px 21px 46px #00000055)'),
+    'drop-shadow(0px 21px 46px #00000055)', 'a zero blur leaves no blur() behind');
+  assert.equal(composeFilter(0, ''), '');
+});
+
+// ── §4.1: the fold, and the reading that gets it wrong ─────────────────────
+
+test('§4.1 FOLD: a transition offset on a LIFTED layer is scaled by eff, not added beside it', () => {
+  // The defect this exists to catch: adding the camera displacement to an UNSCALED
+  // transition offset, which makes a slide enter land short on a lifted layer.
+  const time = 'data-t-start="0" data-t-dur="2000" data-t-enter="slide-left" data-t-enter-ms="800"'
+    + ' data-t-z="220" data-t-kf="t0_x-120*t2000_el_x40"';
+  const node = depthStage(depthBox({ time }));
+  const stage = parseSequenceStage(node)!;
+  const layer = stage.layers[0] as SeqLayer;
+  const t = 300;                                  // mid-enter, so dxT is non-zero
+  const item = sequenceDrawPlan(stage.layers, t, 4000, PLAN_ENV)[0] as PlanItem;
+  const timing = readTiming(layer.el);
+  const tr = transitionAt(timing, t, 4000)!;
+  const off = recTransition(tr.kind, tr.p, 640, 360, tr.ease);
+  const pose = evaluateKf(layer.kf, t);
+  assert.ok(off.dx !== 0, 'the transition really is mid-flight');
+  assert.ok((pose.x ?? 0) !== 0, 'the keyframe really does offset');
+  // The engine's own answer, with BOTH offsets inside the projection.
+  const view = planCameraView(PLAN_ENV, t);
+  const proj = projectLayer(view, {
+    bx: 200 + 320, by: 100 + 180, dxT: off.dx, dyT: off.dy, dxK: pose.x ?? 0, dyK: pose.y ?? 0, z: 220,
+  });
+  assert.equal(item.dx, proj.dx);
+  assert.equal(item.dy, proj.dy);
+  assert.equal(item.scale, off.sc * proj.scale, 'eff multiplies the transition scale');
+  assert.equal(item.resolvedZ, 220);
+  // …and it is emphatically NOT the naive sum.
+  assert.notEqual(n3(item.dx), n3(off.dx + (pose.x ?? 0)));
+  assert.ok(proj.scale > 1.2, 'a 220px lift at P = 1200 is a real magnification');
+});
+
+test('§4.1 FOLD: the same scene FLAT is exactly the naive sum — the fold is not a no-op', () => {
+  // The companion. Same box, same transition, same track, z = 0: now the projection
+  // is an identity and the two readings coincide, which is what proves the previous
+  // test was measuring the projection rather than an arithmetic slip.
+  const time = 'data-t-start="0" data-t-dur="2000" data-t-enter="slide-left" data-t-enter-ms="800"'
+    + ' data-t-kf="t0_x-120*t2000_el_x40"';
+  const node = depthStage(depthBox({ time }));
+  const stage = parseSequenceStage(node)!;
+  const layer = stage.layers[0] as SeqLayer;
+  const t = 300;
+  const item = sequenceDrawPlan(stage.layers, t, 4000, PLAN_ENV)[0] as PlanItem;
+  const tr = transitionAt(readTiming(layer.el), t, 4000)!;
+  const off = recTransition(tr.kind, tr.p, 640, 360, tr.ease);
+  const pose = evaluateKf(layer.kf, t);
+  assert.equal(item.dx, off.dx + (pose.x as number));
+  assert.equal(item.scale, off.sc, 'eff is exactly 1 on the flat board');
+  assert.equal(item.resolvedZ, 0);
+});
+
+test('§5.2 CHANNELS: s multiplies, r adds, o multiplies, b adds over the authored blur, z replaces the field', () => {
+  const time = 'data-t-start="0" data-t-dur="2000" data-t-z="60"'
+    + ' data-t-kf="t0_eh_s1.5_r30_o0.5_b3_z-40*t2000_s1.5_r30_o0.5_b3_z-40"';
+  const node = depthStage(depthBox({
+    style: 'transform:rotate(-6deg);opacity:0.8;filter:blur(2px);', time,
+  }));
+  const stage = parseSequenceStage(node)!;
+  const item = sequenceDrawPlan(stage.layers, 500, 4000, PLAN_ENV)[0] as PlanItem;
+  const view = planCameraView(PLAN_ENV, 500);
+  const eff = projectLayer(view, { bx: 520, by: 280, z: -40 }).scale;
+  assert.equal(item.resolvedZ, -40, 'a keyed z REPLACES the box\'s own field');
+  assert.equal(item.scale, 1.5 * eff);
+  assert.equal(item.rot, -6 + 30);
+  assert.ok(Math.abs(item.alpha - 0.8 * 0.5) < 1e-12);
+  assert.equal(item.blur, 2 + 3, 'b is additive over the authored blur');
+});
+
+// ── §4.2: paint order is depth order ───────────────────────────────────────
+
+test('§4.2 Z-ORDER: crossing z curves swap the paint order, and tie on DOM order', () => {
+  const a = depthBox({ left: 0, time: 'data-t-start="0" data-t-dur="4000" data-t-kf="t0_el_z0*t1000_el_z200"' });
+  const b = depthBox({ left: 700, time: 'data-t-start="0" data-t-dur="4000" data-t-kf="t0_el_z200*t1000_el_z0"' });
+  const stage = parseSequenceStage(depthStage(a + b))!;
+  const order = (t: number): number[] =>
+    sequenceDrawPlan(stage.layers, t, 4000, PLAN_ENV).map((i) => i.layer.idx);
+  assert.deepEqual(order(0), [0, 1], 'A at z 0 paints under B at z 200');
+  assert.deepEqual(order(1000), [1, 0], 'the curves crossed — so does the paint order');
+  // Exactly at the crossing both resolve to 100; the stable sort keeps DOM order.
+  const mid = sequenceDrawPlan(stage.layers, 500, 4000, PLAN_ENV);
+  assert.equal(mid[0]!.resolvedZ, mid[1]!.resolvedZ);
+  assert.deepEqual(mid.map((i) => i.layer.idx), [0, 1]);
+});
+
+test('§4.2 Z-ORDER: an unlifted stage is not re-ordered at all', () => {
+  const a = depthBox({ time: 'data-t-start="0" data-t-dur="4000" data-t-kf="t0_x0*t1000_x80"' });
+  const b = depthBox({ left: 700, time: 'data-t-start="0" data-t-dur="4000"' });
+  const stage = parseSequenceStage(depthStage(a + b))!;
+  for (const t of [0, 500, 1000, 3000]) {
+    assert.deepEqual(sequenceDrawPlan(stage.layers, t, 4000, PLAN_ENV).map((i) => i.layer.idx), [0, 1], `t=${t}`);
+  }
+});
+
+test('§4.2 Z-ORDER: the DOM expresses the same order as z-index, and only when lifted', () => {
+  const a = depthBox({ left: 0, time: 'data-t-start="0" data-t-dur="4000" data-t-kf="t0_el_z0*t1000_el_z200"' });
+  const b = depthBox({ left: 700, time: 'data-t-start="0" data-t-dur="4000" data-t-kf="t0_el_z200*t1000_el_z0"' });
+  const node = depthStage(a + b);
+  const els = [...node.querySelectorAll<HTMLElement>('.lolly-box')];
+  const ctx = applyCtx(4000);
+  applyTimeToElements(els, 0, ctx);
+  assert.deepEqual(els.map((e) => e.style.zIndex), ['1', '2'], 'A (z 0) under B (z 200)');
+  applyTimeToElements(els, 1000, ctx);
+  assert.deepEqual(els.map((e) => e.style.zIndex), ['2', '1'], 'the order swapped with the curves');
+  // Restoring hands the authored `auto` back — the write is reversible like every other.
+  ctx.store.restoreAll();
+  assert.deepEqual(els.map((e) => e.style.zIndex), ['', '']);
+});
+
+test('§4.2 Z-ORDER: the DOM ranks the SAME SET the planner sorts — flat boxes included', () => {
+  // THE COUNTER-EXAMPLE THAT FORCED THIS. In CSS a positioned box with an integer
+  // `z-index` paints in a HIGHER stacking level than every `auto` sibling, so ranking
+  // only the boxes the fold touched means "everything lifted floats above everything
+  // flat" — which is the opposite of a depth sort the moment a box is SUNKEN. A flat
+  // box (DOM idx 0) and a `z: -200` one (idx 1): the planner paints the sunken one
+  // FIRST, and a projecting-only rank painted it last.
+  const flat = depthBox({ left: 0, time: 'data-t-start="0" data-t-dur="4000"' });
+  const sunk = depthBox({ left: 700, time: 'data-t-start="0" data-t-dur="4000" data-t-z="-200"' });
+  const node = depthStage(flat + sunk);
+  const stage = parseSequenceStage(node)!;
+  const plan = sequenceDrawPlan(stage.layers, 0, 4000, PLAN_ENV);
+  assert.deepEqual(plan.map((i) => i.layer.idx), [1, 0], 'the planner paints the SUNKEN box first');
+  assert.deepEqual(plan.map((i) => i.resolvedZ), [-200, 0]);
+
+  const els = [...node.querySelectorAll<HTMLElement>('.lolly-box')];
+  const ctx = applyCtx(4000);
+  applyTimeToElements(els, 0, ctx);
+  // The rank IS the plan's order: rank 1 paints lowest, and the plan's first item is
+  // the lowest. Read the DOM back as an order and compare the two directly, so this
+  // cannot pass on a coincidence of numbers.
+  const byRank = els
+    .map((e, i) => ({ i, z: parseInt(e.style.zIndex || '0', 10) }))
+    .sort((a, b) => a.z - b.z || a.i - b.i)
+    .map((r) => r.i);
+  assert.deepEqual(byRank, plan.map((i) => i.layer.idx), 'DOM paint order === plan paint order');
+  assert.deepEqual(els.map((e) => e.style.zIndex), ['2', '1'],
+    'and the flat box is RANKED, not left on `auto` above everything');
+
+  // Three boxes, flat / sunken / flat — the case where a subset rank re-orders two
+  // boxes that never authored anything at all.
+  const three = depthStage(
+    depthBox({ left: 0, time: 'data-t-start="0" data-t-dur="4000"' })
+    + depthBox({ left: 700, time: 'data-t-start="0" data-t-dur="4000" data-t-z="-100"' })
+    + depthBox({ left: 1300, time: 'data-t-start="0" data-t-dur="4000"' }),
+  );
+  const plan3 = sequenceDrawPlan(parseSequenceStage(three)!.layers, 0, 4000, PLAN_ENV);
+  const els3 = [...three.querySelectorAll<HTMLElement>('.lolly-box')];
+  applyTimeToElements(els3, 0, applyCtx(4000));
+  const byRank3 = els3
+    .map((e, i) => ({ i, z: parseInt(e.style.zIndex || '0', 10) }))
+    .sort((a, b) => a.z - b.z || a.i - b.i)
+    .map((r) => r.i);
+  assert.deepEqual(byRank3, plan3.map((i) => i.layer.idx));
+});
+
+test('§4.2 Z-ORDER: a foreign writer owns the slot — a dragged box keeps its hoist', () => {
+  // free-canvas hoists the box under a gesture to `z-index: 9999` straight on the
+  // element, with no model write and no repaint. The rank pass must not fight it: the
+  // inline value is not the one we last wrote, so the slot is not ours to move.
+  const a = depthBox({ left: 0, time: 'data-t-start="0" data-t-dur="4000" data-t-z="100"' });
+  const b = depthBox({ left: 700, time: 'data-t-start="0" data-t-dur="4000" data-t-z="-100"' });
+  const node = depthStage(a + b);
+  const els = [...node.querySelectorAll<HTMLElement>('.lolly-box')];
+  const ctx = applyCtx(4000);
+  applyTimeToElements(els, 0, ctx);
+  assert.deepEqual(els.map((e) => e.style.zIndex), ['2', '1']);
+  els[0]!.style.zIndex = '9999';                   // the gesture takes the slot
+  applyTimeToElements(els, 100, ctx);
+  assert.equal(els[0]!.style.zIndex, '9999', 'the hoist survives the next frame');
+  assert.equal(els[1]!.style.zIndex, '1', 'and every other box is still ranked');
+});
+
+test('the projection anchor follows a LIVE gesture, not the pre-drag centre', () => {
+  // `applyLiveRect` moves a box during a drag by writing `left`/`top` onto the element
+  // — no model write, no repaint. `left`/`top` are never part of the composed surface,
+  // so the inline value is always the authored one and must be re-read every frame.
+  const node = depthStage(depthBox({ left: 200, time: 'data-t-start="0" data-t-dur="4000" data-t-z="300"' }));
+  const el = node.querySelector('.lolly-box') as HTMLElement;
+  const ctx = applyCtx(4000);
+  applyTimeToElements([el], 0, ctx);
+  const before = written(el).dx;
+  el.style.left = '900px';                          // the gesture drags it
+  applyTimeToElements([el], 0, ctx);
+  const after = written(el).dx;
+  assert.notEqual(after, before, 'the parallax offset moved with the pointer');
+  // …and it is exactly the offset the planner computes for the box where it now is.
+  const stage = parseSequenceStage(node)!;
+  const item = sequenceDrawPlan(stage.layers, 0, 4000, PLAN_ENV)[0] as PlanItem;
+  assert.equal(after, n3(item.dx));
+});
+
+test('§4.2 Z-ORDER: a track that never lifts anything grows no z-index', () => {
+  const node = depthStage(depthBox({ time: 'data-t-start="0" data-t-dur="4000" data-t-kf="t0_x0_o1*t1000_x80_o0.4"' }));
+  const els = [...node.querySelectorAll<HTMLElement>('.lolly-box')];
+  const ctx = applyCtx(4000);
+  for (const t of [0, 500, 1000]) applyTimeToElements(els, t, ctx);
+  assert.equal(els[0]!.style.zIndex, '');
+  assert.ok(els[0]!.style.transform.includes('translate'), 'the track really is moving it');
+});
+
+// ── §5.4: the exclusions ───────────────────────────────────────────────────
+
+test('§5.4 EXCLUSIONS: an audio bed carrying z and kf is still never posed', () => {
+  const html = depthBox({
+    time: 'data-t-start="0" data-t-dur="2000" data-t-z="300" data-t-kf="t0_x-200_z300*t2000_x200"',
+    inner: '<div class="lolly-box-audio" data-audio-src="x.mp3"></div>',
+  });
+  const node = depthStage(html);
+  const stage = parseSequenceStage(node)!;
+  assert.equal(stage.layers[0]!.kind, 'audio');
+  const item = sequenceDrawPlan(stage.layers, 500, 4000, PLAN_ENV)[0] as PlanItem;
+  assert.equal(item.dx, 0);
+  assert.equal(item.dy, 0);
+  assert.equal(item.scale, 1);
+  assert.equal(item.resolvedZ, 0, 'excluded from the depth sort as well as the pose');
+  const el = node.querySelector('.lolly-box') as HTMLElement;
+  applyTimeToElements([el], 500, applyCtx(4000));
+  assert.equal(el.style.transform, '', 'no transform');
+  assert.equal(el.style.filter, '', 'no filter');
+  assert.equal(el.style.zIndex, '', 'no z-index');
+});
+
+test('§5.4 EXCLUSIONS: a camera marker is its own kind, contributes no pose and no source', () => {
+  const html = depthBox({
+    time: 'data-t-start="0" data-t-dur="2000" data-t-z="200" data-t-kf="t0_x-200_z200*t2000_x200"',
+    inner: '<div class="lolly-box-cam" data-cam="1" data-export-hide aria-hidden="true"></div>',
+  });
+  const node = depthStage(html);
+  const el = node.querySelector('.lolly-box') as HTMLElement;
+  assert.equal(layerKind(el), 'camera');
+  const stage = parseSequenceStage(node)!;
+  const item = sequenceDrawPlan(stage.layers, 500, 4000, PLAN_ENV)[0] as PlanItem;
+  assert.equal(item.sourceSec, null, 'a camera is a pose over time, not a source');
+  assert.equal(item.dx, 0);
+  assert.equal(item.scale, 1);
+  assert.equal(item.resolvedZ, 0);
+  // …and nothing to decode: a camera must never open a provider.
+  assert.deepEqual(activeFrameWindow(stage.layers[0] as SeqLayer, [0, 250, 500, 750]).span, []);
+  applyTimeToElements([el], 500, applyCtx(4000));
+  assert.equal(el.style.transform, '');
+  assert.equal(el.style.filter, '');
+  assert.equal(el.style.zIndex, '');
+});
+
+test('§5.4 EXCLUSIONS: a frame page is out of scope for the projection, transitions and all', () => {
+  const wrap = doc.createElement('div');
+  wrap.innerHTML = '<div class="artboard" data-sequence data-seq-ms="4000" style="width:1080px;height:1080px;">'
+    + '<div class="lolly-box" data-pdf-page data-t-start="0" data-t-dur="2000" data-t-z="240"'
+    + ' data-t-kf="t0_x-200_z240*t2000_x200" data-t-enter="fade" data-t-enter-ms="400"'
+    + ' style="left:0px;top:0px;width:1080px;height:1080px;"></div></div>';
+  const stage = parseSequenceStage(wrap)!;
+  assert.equal(stage.layers[0]!.frameScene, true);
+  const item = sequenceDrawPlan(stage.layers, 800, 4000, PLAN_ENV)[0] as PlanItem;
+  assert.equal(item.dx, 0, 'the kf x never reaches a frame page');
+  assert.equal(item.scale, 1, 'nor does the lift');
+  assert.equal(item.resolvedZ, 0);
+  const el = wrap.querySelector('.lolly-box') as HTMLElement;
+  const ctx = applyCtx(4000);
+  applyTimeToElements([el], 200, ctx);           // mid-fade: the transition still applies
+  assert.ok(Number(el.style.opacity) < 1, 'a frame page keeps its ordinary transitions');
+  assert.equal(el.style.transform, '', 'but is never posed');
+  assert.equal(el.style.zIndex, '');
+});
+
+test('§5.4 EXCLUSIONS: a FRAMES document is out of depth scope whole — in both evaluators', () => {
+  // Not only its pages. A frames-as-scenes slideshow lays its slides side by side on
+  // the pasteboard, so the exporter sizes its output to the FIRST TIMED FRAME's box
+  // while the applier measures the artboard — two different W's, and the projection's
+  // principal point is W/2. Both readers therefore refuse the whole document rather
+  // than one of them guessing the other's number (§5.4: "camera + kf apply only to
+  // boxes on a [data-sequence] stage; frame pages are excluded").
+  const wrap = doc.createElement('div');
+  wrap.innerHTML = '<div class="artboard" data-sequence data-seq-ms="4000" style="width:3240px;height:1080px;">'
+    + '<div class="lolly-box" data-pdf-page data-t-start="0" data-t-dur="2000"'
+    + ' style="left:0px;top:0px;width:1080px;height:1080px;"></div>'
+    + '<div class="lolly-box" data-t-start="0" data-t-dur="4000" data-t-z="240"'
+    + ' data-t-kf="t0_x0*t2000_x120" style="left:100px;top:100px;width:400px;height:300px;"></div>'
+    + '</div>';
+  // The planner never even SEES the ordinary box: on a frames document the scene
+  // layers ARE the pages, and a `.lolly-box` belongs to the frame's own picture.
+  const stage = parseSequenceStage(wrap)!;
+  assert.deepEqual(stage.layers.map((l) => l.frameScene), [true],
+    'the frame page is the only layer the exporter draws');
+  // Which is exactly why the DOM applier — whose element list is every `[data-t-start]`
+  // on the stage, boxes included — must not pose that box either. Posed in the preview
+  // and baked flat into the frame's plate is the divergence this gate closes.
+  const els = [...wrap.querySelectorAll<HTMLElement>('.lolly-box')];
+  applyTimeToElements(els, 1000, applyCtx(4000));
+  assert.equal(els[1]!.style.transform, '', 'the box on a frames stage is never posed');
+  assert.equal(els[1]!.style.zIndex, '');
+  assert.equal(els[1]!.style.filter, '');
+});
+
+// ── §4.4: depth of field is a SCREEN-space number ──────────────────────────
+
+test('§4.4 DOF: the blur the viewer sees is the engine\'s number — not eff² of it', () => {
+  // `dofBlur` already carries `eff(z)·eff(f)` and is defined as "px at stage-native
+  // scale", i.e. what the viewer sees. But BOTH executors apply `PlanItem.blur` in the
+  // LAYER's own space and then magnify by `item.scale` — the canvas blurs a
+  // plate-resolution scratch and draws it under `ctx.scale(item.scale)`; CSS applies
+  // `filter` before `transform`. So the DOF term has to be divided by the projection's
+  // own eff on the way in, or it lands squared (up to 100× at the guard).
+  const cams = [{ base: { a: 0.6, f: 0, p: 1200, z: 0 } }];
+  const env: SeqPlanEnv = { ...PLAN_ENV, cameras: cams };
+  const node = depthStage(depthBox({ left: 200, time: 'data-t-start="0" data-t-dur="4000" data-t-z="400"' }));
+  const stage = parseSequenceStage(node)!;
+  const item = sequenceDrawPlan(stage.layers, 0, 4000, env)[0] as PlanItem;
+  const eff = projectLayer(planCameraView(env, 0), { bx: 0, by: 0, z: 400 }).scale;
+  assert.ok(eff > 1.4, `the fixture really is magnified (eff ${eff})`);
+  const want = dofBlur({ a: 0.6, f: 0, p: 1200, z: 0 }, 400);
+  assert.ok(want > 0, 'and really is out of focus');
+  // The number a viewer measures is `PlanItem.blur × item.scale` (both executors), and
+  // it must equal the engine's screen-space figure.
+  assert.ok(Math.abs(item.blur * item.scale - want) < 1e-9,
+    `screen blur ${item.blur * item.scale} should be ${want}`);
+  assert.ok(Math.abs(item.blur - want) > 1e-6, 'which is NOT the raw term (the vacuity guard)');
+  // The authored blur is a layer-space number and keeps its eff magnification — that
+  // is what a CSS `filter: blur()` under a `transform: scale()` has always done.
+  const withAuthored = sequenceDrawPlan(
+    parseSequenceStage(depthStage(depthBox({
+      left: 200, style: 'filter:blur(4px);',
+      time: 'data-t-start="0" data-t-dur="4000" data-t-z="400"',
+    })))!.layers, 0, 4000, env,
+  )[0] as PlanItem;
+  assert.ok(Math.abs(withAuthored.blur - (item.blur + 4)) < 1e-9,
+    'the authored term is added raw; only the DOF term is un-scaled');
+});
+
+// ── §5.5: the planner owns the blur ────────────────────────────────────────
+
+test('§5.5 BLUR: the DOM rewrites only the blur term, keeps the shadow, and restores both', () => {
+  const node = depthStage(depthBox({
+    style: 'filter:blur(2px) drop-shadow(0px 21px 46px #00000055);',
+    time: 'data-t-start="0" data-t-dur="2000" data-t-z="140" data-t-kf="t0_eh_b6*t2000_b6"',
+  }));
+  const el = node.querySelector('.lolly-box') as HTMLElement;
+  // The stage is parsed BEFORE the applier touches it, and that ordering is the
+  // point: `readLayer` reads the authored blur off the LIVE element, so parsing a
+  // stage the playhead has already posed would read a composed filter as if it were
+  // authored and blur it twice (2 + 6 → 8, then 8 + 6 → 14). That is the export-time
+  // read/restore seam plan §6 point 0 exists to close — pinned here so a future edit
+  // that removes the restore trips a test rather than shipping a soft picture.
+  const stage = parseSequenceStage(node)!;
+  const ctx = applyCtx(4000);
+  applyTimeToElements([el], 500, ctx);
+  assert.equal(el.style.filter, 'blur(8px) drop-shadow(0px 21px 46px #00000055)',
+    'authored 2 + keyframed 6, blur first so the shadow follows the blurred silhouette');
+  // The planner reached the same total.
+  assert.equal((sequenceDrawPlan(stage.layers, 500, 4000, PLAN_ENV)[0] as PlanItem).blur, 8);
+  assert.equal(parseSequenceStage(node)!.layers[0]!.blur, 8,
+    'and a re-parse of the POSED stage reads 8 as authored — the seam, demonstrated');
+  ctx.store.restoreAll();
+  assert.equal(el.style.filter, 'blur(2px) drop-shadow(0px 21px 46px #00000055)');
+});
+
+// ── the load-bearing one: DOM writes == plan numbers, with kf active ────────
+
+test('PARITY: with keyframes and a lift active, the applier writes exactly what the planner planned', () => {
+  const cases: { name: string; style: string; time: string }[] = [
+    {
+      name: 'lifted + full pose + a transition',
+      style: 'transform:rotate(-6deg);opacity:0.9;filter:blur(2px);',
+      time: 'data-t-start="200" data-t-dur="3000" data-t-enter="slide" data-t-enter-ms="700"'
+        + ' data-t-exit="rise" data-t-exit-ms="500" data-t-z="180"'
+        + ' data-t-kf="t0_x-120_y40_s0.8_r-12_o0.4_b0*t1200_eo_x60_y-30_s1.15_r18_o1_b5*t2600_ei_x0_y0_s1_r0_o0.6_b0"',
+    },
+    {
+      name: 'sunken, sparse channels, a hold and a custom bezier',
+      style: 'opacity:0.75;',
+      time: 'data-t-start="0" data-t-dur="3000" data-t-z="-220"'
+        + ' data-t-kf="t0_eh_x-80*t900_eb(0.32)(0)(0.67)(1)_x0_z-40*t2400_x120_o0.3"',
+    },
+    {
+      name: 'a z curve that crosses the surface',
+      style: 'transform:rotate(11deg);',
+      time: 'data-t-start="0" data-t-dur="3000" data-t-z="0"'
+        + ' data-t-kf="t0_ev_z-300_s1*t1500_ea_z300_s1.4*t3000_el_z0_s1"',
+    },
+  ];
+  for (const c of cases) {
+    const node = depthStage(depthBox({ style: c.style, time: c.time }));
+    const el = node.querySelector('.lolly-box') as HTMLElement;
+    const stage = parseSequenceStage(node)!;
+    const ctx = applyCtx(4000);
+    let posed = 0;
+    for (let t = 0; t < 3400; t += 17) {
+      const item = sequenceDrawPlan(stage.layers, t, 4000, PLAN_ENV)[0];
+      applyTimeToElements([el], t, ctx);
+      if (!item) {
+        assert.equal(el.classList.contains('seq-off'), true, `${c.name}: off screen at ${t}`);
+        continue;
+      }
+      posed++;
+      const w = written(el);
+      const authoredRot = stage.layers[0]!.rect.rot;
+      assert.equal(w.dx, n3(item.dx), `${c.name}: dx at ${t}`);
+      assert.equal(w.dy, n3(item.dy), `${c.name}: dy at ${t}`);
+      assert.equal(w.sc, n3(item.scale), `${c.name}: scale at ${t}`);
+      assert.equal(w.rot, n3(item.rot - authoredRot) + authoredRot, `${c.name}: rot at ${t}`);
+      assert.equal(w.alpha, n4(item.alpha), `${c.name}: alpha at ${t}`);
+      const total = Math.round(item.blur * 1000) / 1000;
+      const wantFilter = total === stage.layers[0]!.blur
+        ? (stage.layers[0]!.blur ? `blur(${stage.layers[0]!.blur}px)` : '')
+        : (total > 0 ? `blur(${total}px)` : '');
+      assert.equal(el.style.filter, wantFilter, `${c.name}: filter at ${t}`);
+    }
+    assert.ok(posed > 100, `${c.name}: the sweep actually posed the box`);
+  }
+});
+
+test('PARITY: and the keyframe track is not a no-op in either evaluator', () => {
+  // The vacuity guard, the shape the ease sweep above it already uses: if `kf` never
+  // reached the fold at all, every assertion in the parity sweep would hold trivially.
+  const time = 'data-t-start="0" data-t-dur="3000" data-t-z="180"';
+  const bare = depthStage(depthBox({ time }));
+  const keyed = depthStage(depthBox({ time: `${time} data-t-kf="t0_x-90_s0.7*t3000_el_x90_s1.3"` }));
+  const at = (node: HTMLElement): { plan: PlanItem; dom: ReturnType<typeof written> } => {
+    const el = node.querySelector('.lolly-box') as HTMLElement;
+    const stage = parseSequenceStage(node)!;
+    applyTimeToElements([el], 1000, applyCtx(4000));
+    return { plan: sequenceDrawPlan(stage.layers, 1000, 4000, PLAN_ENV)[0] as PlanItem, dom: written(el) };
+  };
+  const a = at(bare);
+  const b = at(keyed);
+  assert.notEqual(n3(a.plan.dx), n3(b.plan.dx), 'the track really did move the planner');
+  assert.notEqual(a.dom.dx, b.dom.dx, 'and the applier');
+  assert.notEqual(n3(a.plan.scale), n3(b.plan.scale));
+  // The lift itself is not a no-op either — eff is a real magnification at 180px.
+  assert.ok(a.plan.scale > 1.15, 'a 180px lift magnifies');
+  assert.ok(a.plan.scale < KF_EFF_MAX);
+});
+
+test('PARITY: the behind-camera guard ramps the same alpha on both sides', () => {
+  // z past 0.8P is the guard band (§4.5): eff freezes, alpha ramps to 0. The wire
+  // clamp is wide enough for a camera dolly, so a hand-edited URL can reach it.
+  const node = depthStage(depthBox({ time: 'data-t-start="0" data-t-dur="3000" data-t-kf="t0_el_z900*t3000_el_z1180"' }));
+  const el = node.querySelector('.lolly-box') as HTMLElement;
+  const stage = parseSequenceStage(node)!;
+  const ctx = applyCtx(4000);
+  let sawRamp = false;
+  for (let t = 0; t < 3000; t += 25) {
+    const item = sequenceDrawPlan(stage.layers, t, 4000, PLAN_ENV)[0] as PlanItem;
+    applyTimeToElements([el], t, ctx);
+    assert.equal(written(el).alpha, n4(item.alpha), `alpha at ${t}`);
+    assert.ok(item.scale <= KF_EFF_MAX, `eff is held at the clamp at ${t}`);
+    if (item.alpha > 0 && item.alpha < 1) sawRamp = true;
+  }
+  assert.ok(sawRamp, 'the sweep really did cross the guard band');
+});
+
+test('§4.2 Z-ORDER: a z curve returning to the board takes its z-index with it', () => {
+  // The stale-rank case. Ranks are written while the layers are lifted; once every
+  // curve is back at 0 the paint order is DOM order again, and a frozen rank from the
+  // lifted part of the move would quietly keep the wrong one.
+  const a = depthBox({ left: 0, time: 'data-t-start="0" data-t-dur="4000" data-t-kf="t0_el_z0*t1000_el_z200*t2000_el_z0"' });
+  const b = depthBox({ left: 700, time: 'data-t-start="0" data-t-dur="4000" data-t-kf="t0_el_z200*t1000_el_z0*t2000_el_z0"' });
+  const node = depthStage(a + b);
+  const els = [...node.querySelectorAll<HTMLElement>('.lolly-box')];
+  const ctx = applyCtx(4000);
+  applyTimeToElements(els, 0, ctx);
+  assert.deepEqual(els.map((e) => e.style.zIndex), ['1', '2']);
+  applyTimeToElements(els, 2000, ctx);
+  assert.deepEqual(els.map((e) => e.style.zIndex), ['', ''], 'flat again → auto again');
+  // …and the plan agrees: nothing lifted, nothing re-ordered.
+  const stage = parseSequenceStage(node)!;
+  assert.deepEqual(sequenceDrawPlan(stage.layers, 2000, 4000, PLAN_ENV).map((i) => i.layer.idx), [0, 1]);
+});
+
+// ── §6 POINT 0: the export-time read/restore seam ──────────────────────────
+//
+// `renderSequence` parses and photographs the LIVE artboard, and the preview clock has
+// been writing on it. Every geometry read `readLayer` takes is an AUTHORED read — the
+// rotation off `style.transform`, the opacity off `style.opacity`, the blur off
+// `style.filter` — so with the playhead parked mid-keyframe those reads come back
+// pre-posed, and the export then poses them again. The playhead can be parked anywhere
+// when an export starts; that is what makes this the seam and not an edge case.
+
+/** A box carrying no authored transform, so a composed `rotate()` IS the first one. */
+const SEAM_TIME = 'data-t-start="0" data-t-dur="3000" data-t-z="180"'
+  + ' data-t-kf="t0_x-120_y40_s0.8_r-12_o0.5_b0*t3000_el_x120_y-40_s1.2_r18_o1_b6"';
+const SEAM_STYLE = 'opacity:0.9;filter:blur(2px) drop-shadow(0px 2px 10px #00000055);';
+
+test('§6 POINT 0: a parse of a POSED stage reads the applier\'s composition as authored', () => {
+  // The defect, stated as a test so the fix below has something to be the fix OF.
+  const pristine = parseSequenceStage(depthStage(depthBox({ style: SEAM_STYLE, time: SEAM_TIME })))!.layers[0]!;
+  const node = depthStage(depthBox({ style: SEAM_STYLE, time: SEAM_TIME }));
+  const session = createSequenceTime(node);
+  session.apply(1500);
+  const naive = parseSequenceStage(node)!.layers[0]!;
+  assert.notEqual(naive.rect.rot, pristine.rect.rot, 'the keyframed rotation read as the authored one');
+  assert.notEqual(naive.opacity, pristine.opacity, 'the composed alpha read as the authored opacity');
+  assert.notEqual(naive.blur, pristine.blur, 'the composed blur read as the authored blur');
+  session.restore();
+});
+
+test('§6 POINT 0: withAuthoredDom hands an export the authored stage, mid-keyframe or not', async () => {
+  const pristine = parseSequenceStage(depthStage(depthBox({ style: SEAM_STYLE, time: SEAM_TIME })))!.layers[0]!;
+  const node = depthStage(depthBox({ style: SEAM_STYLE, time: SEAM_TIME }));
+  const el = node.querySelector('.lolly-box') as HTMLElement;
+  const session = createSequenceTime(node);
+  // Parked ANYWHERE — the sweep is the test. Every one of these is a frame the user
+  // could have left the playhead on when they pressed Export.
+  for (const t of [0, 240, 750, 1500, 2100, 2999]) {
+    session.apply(t);
+    const posed = { transform: el.style.transform, opacity: el.style.opacity, filter: el.style.filter };
+    const seen = await withAuthoredDom(node, () => parseSequenceStage(node)!.layers[0]!);
+    assert.equal(seen.rect.rot, pristine.rect.rot, `rot at ${t}`);
+    assert.equal(seen.rect.x, pristine.rect.x, `x at ${t}`);
+    assert.equal(seen.rect.y, pristine.rect.y, `y at ${t}`);
+    assert.equal(seen.opacity, pristine.opacity, `opacity at ${t}`);
+    assert.equal(seen.blur, pristine.blur, `blur at ${t}`);
+    assert.equal(seen.shadowFilter, pristine.shadowFilter, `shadow at ${t}`);
+    // …and the editor is handed back the frame it was showing, not frame 0.
+    assert.equal(el.style.transform, posed.transform, `transform restored at ${t}`);
+    assert.equal(el.style.opacity, posed.opacity, `opacity restored at ${t}`);
+    assert.equal(el.style.filter, posed.filter, `filter restored at ${t}`);
+  }
+  session.restore();
+});
+
+test('§6 POINT 0: the writer stays stood down for the WHOLE scope, not just the parse', async () => {
+  // A plate capture is a sequence of awaits. An rAF tick landing between two of them
+  // would re-pose the stage half way through the shoot, and the export would ship two
+  // layers photographed at different playhead positions.
+  const node = depthStage(depthBox({ style: SEAM_STYLE, time: SEAM_TIME }));
+  const el = node.querySelector('.lolly-box') as HTMLElement;
+  const session = createSequenceTime(node);
+  session.apply(1500);
+  let inside: { transform: string; filter: string } | null = null;
+  await withAuthoredDom(node, async () => {
+    session.apply(2400);                       // the tick that used to land mid-shoot
+    await Promise.resolve();
+    session.apply(600);
+    inside = { transform: el.style.transform, filter: el.style.filter };
+  });
+  assert.deepEqual(inside, { transform: '', filter: 'blur(2px) drop-shadow(0px 2px 10px #00000055)' },
+    'nothing the clock asked for reached the DOM while the scope was held');
+  // On the way out it re-asserts the LATEST time it was asked for, not the one it was
+  // suspended at — a clock that kept running catches up rather than jumping back.
+  const at600 = el.style.transform;
+  session.apply(600);
+  assert.equal(el.style.transform, at600, 'resumed at t=600, the last frame requested');
+  session.restore();
+});
+
+test('§6 POINT 0: nested scopes compose, and a throw still restores', async () => {
+  const node = depthStage(depthBox({ style: SEAM_STYLE, time: SEAM_TIME }));
+  const el = node.querySelector('.lolly-box') as HTMLElement;
+  const session = createSequenceTime(node);
+  session.apply(1500);
+  const posed = el.style.opacity;
+  await withAuthoredDom(node, async () => {
+    await withAuthoredDom(node, async () => {
+      assert.equal(el.style.opacity, '0.9', 'authored, two scopes deep');
+    });
+    assert.equal(el.style.opacity, '0.9', 'the OUTER scope still holds it down');
+  });
+  assert.equal(el.style.opacity, posed);
+  await assert.rejects(withAuthoredDom(node, () => { throw new Error('export failed'); }), /export failed/);
+  assert.equal(el.style.opacity, posed, 'a failed export leaves the editor where the user left it');
+  session.restore();
+});
+
+test('§6 POINT 0: a CONTACT SHEET opens its own session on an authored stage', async () => {
+  // `renderSequenceCuts` creates a second `createSequenceTime` on the SAME root the
+  // preview clock is posing, and `AuthoredStore.get()` captures whatever is on the
+  // element at first touch. Without the scope, every one of the N stills carries the
+  // frame the user happened to be parked on, baked in — the module's own "cut 2 would
+  // re-capture what cut 1 wrote" comment, one level up.
+  const node = depthStage(depthBox({ style: SEAM_STYLE, time: SEAM_TIME }));
+  const el = node.querySelector('.lolly-box') as HTMLElement;
+  const clock = createSequenceTime(node);
+  clock.apply(1500);                                // the playhead, parked mid-keyframe
+  const parked = el.style.transform;
+  assert.ok(parked.includes('translate'), 'the clock really has posed it');
+
+  // What renderSequenceCuts does, in the order it does it.
+  const shots: string[] = [];
+  await withAuthoredDom(node, () => {
+    const session = createSequenceTime(node);
+    try {
+      for (const t of [500, 1500, 2500]) { session.apply(t); shots.push(el.style.transform); }
+    } finally { session.restore(); }
+  });
+  // The reference: the same three cuts taken on a stage nobody ever played.
+  const clean = depthStage(depthBox({ style: SEAM_STYLE, time: SEAM_TIME }));
+  const cleanEl = clean.querySelector('.lolly-box') as HTMLElement;
+  const ref = createSequenceTime(clean);
+  const want: string[] = [];
+  for (const t of [500, 1500, 2500]) { ref.apply(t); want.push(cleanEl.style.transform); }
+  ref.restore();
+  assert.deepEqual(shots, want, 'each cut is the frame it asks for, not that frame ON the parked one');
+  assert.equal(el.style.transform, parked, 'and the editor is handed its playhead back');
+  clock.restore();
+});
+
+test('§6 POINT 0: a LIVE TAKE holds the scope from start to stop', async () => {
+  // `driveSequenceTime` (renderLive) is the same shape with no `fn` to wrap: its
+  // authored window opens at start() and closes at stop(), because a clock tick landing
+  // between two of its frames would re-pose the stage mid-recording.
+  const { driveSequenceTime } = await import('../shells/web/src/bridge/sequence-dom.ts');
+  const node = depthStage(depthBox({ style: SEAM_STYLE, time: SEAM_TIME }));
+  const el = node.querySelector('.lolly-box') as HTMLElement;
+  const clock = createSequenceTime(node);
+  clock.apply(1500);
+  const parked = el.style.transform;
+
+  let now = 0;
+  const pending: (() => void)[] = [];
+  const drive = driveSequenceTime(node, {
+    durationMs: 3000,
+    fps: 2,
+    now: () => now,
+    schedule: (fn) => { pending.push(fn); return () => { /* never cancelled here */ }; },
+  });
+  drive.start();
+  const first = el.style.transform;
+  clock.apply(2400);                                // the tick that used to land mid-take
+  assert.equal(el.style.transform, first, 'the preview clock cannot reach the stage during a take');
+  now = 500;
+  pending.shift()?.();
+  const half = el.style.transform;
+  drive.stop();
+
+  // Every frame of the take is the frame a never-played stage would have produced…
+  const clean = depthStage(depthBox({ style: SEAM_STYLE, time: SEAM_TIME }));
+  const cleanEl = clean.querySelector('.lolly-box') as HTMLElement;
+  const ref = createSequenceTime(clean);
+  ref.apply(0);
+  assert.equal(first, cleanEl.style.transform, 't=0 of the take');
+  ref.apply(500);
+  assert.equal(half, cleanEl.style.transform, 't=500 of the take');
+  assert.notEqual(half, parked, 'and the take really moved off where the playhead was');
+  // …and on stop the editor is handed back the LATEST frame its clock asked for, the
+  // same catch-up `withAuthoredDom` gives an export.
+  ref.apply(2400);
+  assert.equal(el.style.transform, cleanEl.style.transform, 'the preview resumes at t=2400');
+  ref.restore();
+  clock.restore();
+});
+
+test('§6 POINT 0 FLOOR: a document with no live writer takes the identical path', async () => {
+  // No clock, no session — a CLI render, a headless test, an export of a stage nobody
+  // ever played. The scope must be transparent, down to the parse being the same one.
+  const node = depthStage(depthBox({ style: SEAM_STYLE, time: SEAM_TIME }));
+  const el = node.querySelector('.lolly-box') as HTMLElement;
+  const before = el.getAttribute('style');
+  const direct = parseSequenceStage(node)!.layers[0]!;
+  const scoped = await withAuthoredDom(node, () => parseSequenceStage(node)!.layers[0]!);
+  assert.equal(scoped.rect.rot, direct.rect.rot);
+  assert.equal(scoped.opacity, direct.opacity);
+  assert.equal(scoped.blur, direct.blur);
+  assert.equal(el.getAttribute('style'), before, 'not one declaration rewritten');
+  assert.equal(authoredStyleOf(el), null, 'and nothing claims to be composing over it');
+});
+
+test('§6 POINT 0 FLOOR: a clean document parses the same posed or not', async () => {
+  // The byte-identity floor for the seam itself: no z, no kf, no transition running.
+  // The applier writes nothing, so the scope has nothing to hand back and the parse is
+  // the parse it always was.
+  const html = depthBox({
+    style: 'transform:rotate(-6deg);opacity:0.9;filter:blur(4px);',
+    time: 'data-t-start="0" data-t-dur="3000"',
+  });
+  const pristine = parseSequenceStage(depthStage(html))!.layers[0]!;
+  const node = depthStage(html);
+  const el = node.querySelector('.lolly-box') as HTMLElement;
+  const before = el.getAttribute('style');
+  const session = createSequenceTime(node);
+  session.apply(1500);
+  assert.equal(el.getAttribute('style'), before, 'a clean document is never written to at all');
+  const seen = await withAuthoredDom(node, () => parseSequenceStage(node)!.layers[0]!);
+  assert.equal(seen.rect.rot, pristine.rect.rot);
+  assert.equal(seen.opacity, pristine.opacity);
+  assert.equal(seen.blur, pristine.blur);
+  assert.equal(el.getAttribute('style'), before);
+  session.restore();
+});
+
+test('§6.5: a thumbnail sees the authored pose, mid-keyframe exactly as at rest', () => {
+  // `authoredStyleOf` is what clip-thumbs photographs through (it cannot import this
+  // module — see the seam note there). At rest it answers null and the shot changes
+  // nothing; mid-keyframe it answers the SAME authored values, which is the whole of
+  // "a shot mid-keyframe equals a shot at rest".
+  const node = depthStage(depthBox({ style: SEAM_STYLE, time: SEAM_TIME }));
+  const el = node.querySelector('.lolly-box') as HTMLElement;
+  const session = createSequenceTime(node);
+  assert.equal(authoredStyleOf(el), null, 'nothing composed yet: nothing to neutralise');
+  const poses: string[] = [];
+  for (const t of [0, 900, 1500, 2600]) {
+    session.apply(t);
+    const authored = authoredStyleOf(el);
+    assert.ok(authored, `a writer claims the box at ${t}`);
+    poses.push(JSON.stringify(authored));
+  }
+  assert.equal(new Set(poses).size, 1, 'every playhead position yields ONE authored pose');
+  assert.deepEqual(JSON.parse(poses[0] as string), {
+    transform: '', opacity: '0.9', filter: 'blur(2px) drop-shadow(0px 2px 10px #00000055)',
+    zIndex: '', written: true,
+  });
+  // And the in-place borrow (the vector twin's path) puts them on the element itself.
+  session.apply(1500);
+  const posed = el.style.filter;
+  const release = borrowAuthoredPose(el);
+  assert.equal(el.style.filter, 'blur(2px) drop-shadow(0px 2px 10px #00000055)');
+  assert.equal(el.style.opacity, '0.9');
+  release();
+  assert.equal(el.style.filter, posed, 'and the playhead\'s frame is put straight back');
+  session.restore();
 });

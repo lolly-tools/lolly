@@ -1,0 +1,6 @@
+{
+  "generator": { "name": "Claude Code", "version": "opus-5" },
+  "model": { "name": "Claude Opus 5" },
+  "oversight": "prompt_guided",
+  "source": "trainedAlgorithmicMedia"
+}

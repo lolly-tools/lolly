@@ -1,0 +1,15 @@
+{
+  "id": "launch-teaser",
+  "name": "Launch teaser",
+  "category": "Video",
+  "description": "Three timed beats — hook, reveal, call to action — with a lower-third tag.",
+  "values": {
+    "background": "#0b1220",
+    "boxes": [
+      { "id": "hook", "kind": "box", "x": 0, "y": 0, "w": 1080, "h": 1080, "rot": 0, "shape": "rect", "bg": "#0b1220", "text": "Three days to go", "fg": "#8fb3ff", "fontSize": 104, "align": "center", "valign": "middle", "weight": "600", "font": "sans", "lineHeight": 1.1, "lane": "seq", "start": 0, "dur": 2, "exit": "fade", "exitMs": 500 },
+      { "id": "reveal", "kind": "box", "x": 0, "y": 0, "w": 1080, "h": 1080, "rot": 0, "shape": "rect", "bg": "#10243a", "text": "Something new\nis coming", "fg": "#e8f0ff", "fontSize": 128, "align": "center", "valign": "middle", "weight": "700", "font": "sans", "lineHeight": 1.1, "lane": "seq", "start": 2, "dur": 2.4, "enter": "rise", "enterMs": 500, "exit": "fade", "exitMs": 400 },
+      { "id": "cta", "kind": "box", "x": 0, "y": 0, "w": 1080, "h": 1080, "rot": 0, "shape": "rect", "bg": "#f3f6fb", "text": "**Launch day**\nFriday", "fg": "#0b1220", "fontSize": 120, "align": "center", "valign": "middle", "weight": "700", "font": "sans", "lineHeight": 1.1, "lane": "seq", "start": 4.4, "dur": 2.6, "enter": "fade", "enterMs": 500 },
+      { "id": "lower", "kind": "text", "x": 90, "y": 812, "w": 900, "h": 132, "rot": 0, "shape": "pill", "bg": "#0b1220", "text": "lolly.tools", "fg": "#8fb3ff", "fontSize": 52, "align": "center", "valign": "middle", "weight": "600", "font": "sans", "lineHeight": 1.2, "pad": 32, "start": 4.6, "dur": 2.4, "enter": "rise", "enterMs": 450, "exit": "fade", "exitMs": 300 }
+    ]
+  }
+}

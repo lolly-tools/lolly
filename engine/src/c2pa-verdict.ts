@@ -63,6 +63,35 @@ export const C2PA_CHECK = {
   assertionBmffHashMatch: 'assertion.bmffHash.match',
   /** The BMFF hard binding does not match / could not be checked. */
   assertionBmffHashMismatch: 'assertion.bmffHash.mismatch',
+
+  // ── C2PA 2.4 text bindings (§A.7 HTML / §A.8 unstructured / §A.9 structured).
+  // Every string below is the SPEC'S OWN status code, copied from §15.2.2's
+  // standard-status-code table, not invented here — same posture as the rows
+  // above. They are only ever emitted for the three text formats, so no existing
+  // report's rows change.
+  /** §15.12.1.3.3 — the data-hash assertion itself is malformed: for §A.8 text
+   *  that means its exclusions match no C2PATextManifestWrapper in the asset. */
+  assertionDataHashMalformed: 'assertion.dataHash.malformed',
+  /** §15.2.2 — "a data hash specified exclusion ranges other than the C2PA
+   *  Manifest Store". §A.7.1.3 / §A.9.4 each mandate ONE exclusion covering
+   *  exactly the carrier; anything else is unbound content inside a "valid" file. */
+  assertionDataHashAdditionalExclusions: 'assertion.dataHash.additionalExclusionsPresent',
+  /** §A.7.1 / §A.7.1.4 — more than one C2PA manifest element in one HTML document. */
+  manifestHtmlMultipleManifests: 'manifest.html.multipleManifests',
+  /** §A.9.3 — more than one armour block in one structured-text file. */
+  manifestStructuredTextMultipleReferences: 'manifest.structuredText.multipleReferences',
+  /** §A.9.5 — the block's reference is empty or whitespace-only. */
+  manifestStructuredTextEmptyReference: 'manifest.structuredText.emptyReference',
+  /** §A.9.5 — the reference is neither a valid URL nor a data: URI. */
+  manifestStructuredTextMalformedReference: 'manifest.structuredText.malformedReference',
+  /** §A.8.7.1 / §15.12.1.3.2 — a wrapper magic matched but the wrapper is malformed. */
+  manifestTextCorruptedWrapper: 'manifest.text.corruptedWrapper',
+  /** §15.12.1.3.1 — more than one wrapper matches the assertion's exclusions. */
+  manifestTextMultipleWrappers: 'manifest.text.multipleWrappers',
+  /** §15.2.2 — "a non-embedded (remote) manifest was inaccessible at the time of
+   *  validation". The engine NEVER fetches, so every §A.7.1.2 `<link>` / §A.9.3
+   *  URL reference lands here: the credential exists, just not in these bytes. */
+  manifestInaccessible: 'manifest.inaccessible',
 } as const;
 
 export type C2paCheckCode = (typeof C2PA_CHECK)[keyof typeof C2PA_CHECK];

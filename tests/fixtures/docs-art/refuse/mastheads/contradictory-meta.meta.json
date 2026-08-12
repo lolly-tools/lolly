@@ -1,0 +1,5 @@
+{
+  "generator": { "name": "Claude Code" },
+  "model": { "name": "Claude Opus 5" },
+  "source": "digitalCreation"
+}

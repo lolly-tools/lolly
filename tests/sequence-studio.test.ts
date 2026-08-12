@@ -30,6 +30,8 @@ import { dirname, join } from 'node:path';
 
 import { loadTool } from '../engine/src/loader.ts';
 import { createRuntime } from '../engine/src/runtime.ts';
+import { makeGeomApi } from '../engine/src/geom-api.ts';
+import { makeConnectorsApi } from '../engine/src/connectors.ts';
 import { deriveDuration, type Box, type TimeCfg } from '../shells/web/src/views/timeline-math.ts';
 import { baseHost } from './helpers/host.ts';
 
@@ -534,6 +536,110 @@ test('a hostile keyframe track never reaches the attribute', async () => {
   const tag = boxTag(html, 'a');
   assert.ok(!tag.includes('onerror') && !tag.includes('<img'), 'nothing leaked: ' + tag);
   assert.equal((tag.match(/"/g) || []).length % 2, 0, 'attribute quoting stays balanced: ' + tag);
+});
+
+// ── path arrowheads (plan 96 P1, ported from Layout Studio) ────────────────────
+//
+// The free-canvas stroke panel gates its head controls on `cv.headStartField ||
+// cv.headEndField` and needs no code of its own, so DECLARING the two sub-fields is what
+// turns the controls on — which makes the declaration the contract, and a declaration
+// whose hook cannot draw the decoration is worse than no control at all (the box would
+// store a head the render silently ignores). So the manifest half and the markup half are
+// pinned together here.
+
+test('canvas: the path head sub-fields are declared, user-facing, and appended at 54/55', () => {
+  const c = canvasCfg();
+  assert.equal(c.headStartField, 'headStart', 'declaring this is what un-gates the head controls');
+  assert.equal(c.headEndField, 'headEnd');
+
+  const f = boxesField().fields;
+  const ids = f.map((x: any) => x.id);
+  // `boxes` is an append-only positional wire format: the heads go PAST z/kf (52/53),
+  // never in front of them, whatever position the Layout Studio copy keeps them at.
+  assert.deepEqual(ids.slice(54, 56), ['headStart', 'headEnd'],
+    'appended at 54/55, past the plan-104 z/kf pair');
+
+  for (const id of ['headStart', 'headEnd']) {
+    const def = f.find((x: any) => x.id === id);
+    // NOT showFor:[] — unlike the panel-owned time/depth fields these are things a user
+    // picks, and only on a path box.
+    assert.deepEqual(def.showFor, ['path'], `${id} is a sidebar control on path boxes only`);
+    assert.equal(def.type, 'select');
+    assert.equal(def.default, 'none', 'a path arrives undecorated');
+    assert.deepEqual(def.options.map((o: any) => o.value),
+      ['none', 'triangle', 'open', 'circle', 'diamond', 'bar'],
+      `${id} carries the closed six-head vocabulary, in the connector order`);
+  }
+});
+
+/** A two-node diagonal line, in the wire codec hooks.js decodes (same fixture shape as
+ *  tests/connector-geometry.test.ts's `lineBox`). */
+const PATH_LINE = '1!line!0_0!0_1!1';
+
+/** Mount one path box with the REAL geometry + connector primitives behind the bridge —
+ *  baseHost() carries neither, and a head is drawn by `host.connectors.pathHeadSvg`, so
+ *  without them the hook's feature detection correctly draws nothing and the test would
+ *  pass against a tool that cannot decorate at all. */
+async function mountPath(box: Record<string, unknown>): Promise<string> {
+  const host = baseHost({ geom: makeGeomApi(), connectors: makeConnectorsApi() });
+  const rt = await createRuntime(tool, host, {
+    boxes: [{
+      id: 'p1', kind: 'path', x: 10, y: 20, w: 200, h: 100, rot: 0,
+      path: PATH_LINE, bg: '', stroke: '#c8102e', strokeW: 5, opacity: 100, ...box,
+    }] as never,
+  } as never);
+  assert.deepEqual(rt.hookErrors ?? [], [], 'no hook errors');
+  const m = /<svg class="lolly-box-path"[\s\S]*?<\/svg>/.exec(rt.getHydrated() as string);
+  assert.ok(m, 'the path box drew its own <svg>');
+  return m![0];
+}
+
+/** The head fragments: everything the engine appended after the shaft `<path>`. */
+const headsOf = (svg: string): string => svg.slice(svg.indexOf('</path>') + '</path>'.length, -'</svg>'.length);
+
+test('a path box with headEnd triangle emits the engine arrowhead after its shaft', async () => {
+  const svg = await mountPath({ headEnd: 'triangle' });
+  const heads = headsOf(svg);
+  // The engine bakes each head's coordinates into a self-contained filled <path> — no
+  // <marker>, so there is no id to collide between two path boxes in one document.
+  assert.match(heads, /^<path d="M[\d.-]+ [\d.-]+L[\d.-]+ [\d.-]+L[\d.-]+ [\d.-]+Z" fill="#c8102e"\/>$/,
+    'exactly one head, in the path\'s own ink: ' + heads);
+  assert.doesNotMatch(svg, /<marker|url\(#/, 'nothing referencing a document-scoped id');
+
+  // The shaft is pulled BACK off the filled head, and the <svg> is padded to fit it —
+  // both are what make the arrow land on the shape rather than through/outside it.
+  const bare = await mountPath({});
+  assert.equal(headsOf(bare), '', 'an undecorated path is unchanged');
+  assert.ok(svg.length > bare.length);
+  const vb = (s: string) => /viewBox="([^"]+)"/.exec(s)![1]!.split(' ').map(Number);
+  assert.ok(vb(svg)[2]! > vb(bare)[2]!, 'the viewport grew to cover the head');
+  const dOf = (s: string) => /<path d="([^"]+)"/.exec(s)![1]!;
+  assert.notEqual(dOf(svg), dOf(bare), 'the shaft was trimmed back under the head');
+});
+
+test('headStart and headEnd decorate their own end, independently', async () => {
+  assert.equal((headsOf(await mountPath({ headStart: 'circle', headEnd: 'diamond' })).match(/<path|<circle/g) || []).length, 2,
+    'both ends decorated');
+  assert.equal(headsOf(await mountPath({ headStart: 'triangle' })).length > 0, true, 'start alone');
+  assert.equal(headsOf(await mountPath({ headStart: 'none', headEnd: 'none' })), '', 'neither');
+});
+
+test('a head value outside the closed six emits no marker at all', async () => {
+  // Junk, a near-miss, and the Object.prototype keys a hand-edited URL can carry: a bare
+  // `HEAD_KINDS[v]` truthiness test would let `constructor` through to the engine, which
+  // draws a triangle for any name it does not recognise — so a URL could decorate a path
+  // the manifest's own option list has no way to express.
+  for (const junk of ['zzz', 'arrow', 'Triangle', 'constructor', '__proto__', 'toString', 'valueOf', '<script>']) {
+    assert.equal(headsOf(await mountPath({ headEnd: junk })), '',
+      `headEnd=${junk} must draw nothing`);
+  }
+});
+
+test('a head needs a stroke to be drawn in — no stroke, no arrow', async () => {
+  // The head takes the shaft's ink and its size from the stroke width, so an unstroked
+  // path has nothing to make one out of; drawing one anyway would invent a colour.
+  assert.equal(headsOf(await mountPath({ headEnd: 'triangle', stroke: '' })), '');
+  assert.equal(headsOf(await mountPath({ headEnd: 'triangle', strokeW: 0 })), '');
 });
 
 test('the depth shadow is derived from z alone, and floors its blur at 0', async () => {

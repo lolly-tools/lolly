@@ -54,6 +54,44 @@ const STALE_ALLOWED: Record<string, string> = {
     '"Architect of Lolly" to "Lolly Contributor" — a three-word byline edit ' +
     'that does not warrant a full TTS re-render. Re-render (node ' +
     'scripts/build-docs-audio.ts) at the next narration sweep to clear this.',
+  // The six below are one in-flight docs copy sweep (2026-08-11), still
+  // uncommitted in the docs/ submodule — its files were being rewritten while
+  // this list was assembled. Re-rendering mid-edit would burn a
+  // model-and-ffmpeg pass on words that are still moving, so they are held
+  // together and clear together: run `node scripts/build-docs-audio.ts` once
+  // the sweep lands, then delete these six entries.
+  'en/creators':
+    'textHash drifted 2026-08-11 (docs copy sweep, in flight): Neurospicy Mode ' +
+    'is now described as the focus-music dock, a new Accessibility-switches ' +
+    'bullet was added, and the "where next" list gained Ask Lolly and the ' +
+    'Dashboard. Real new sentences — re-render once the sweep settles.',
+  'en/inclusive-design':
+    'textHash drifted 2026-08-11 (docs copy sweep, in flight): the Listen ' +
+    'paragraph now says eleven core pages rather than every page, and adds ' +
+    'that narration is English-only for now. The page that promises Listen ' +
+    'should not be the stale one — re-render as soon as the sweep settles.',
+  'en/index':
+    'textHash drifted 2026-08-11 (docs copy sweep, in flight): docs/site.md ' +
+    'swapped street maps for QR codes in the self-serve bullet, rewrote the ' +
+    'PowerPoint bullet around slide reuse plus a Markdown rebuild, changed a ' +
+    'CLI example from quotes to wordmark, and dropped the hard 31/29 format ' +
+    'counts. Re-render once the sweep settles.',
+  'en/operators':
+    'textHash drifted 2026-08-11 (docs copy sweep, in flight): the governance ' +
+    'bullet now spells out the session-to-template hand-off, the SEAL line ' +
+    'describes the injected key resolver, and the interop note covers Ogg/Opus ' +
+    'alongside WebM. Re-render once the sweep settles.',
+  'en/privacy':
+    'textHash drifted 2026-08-11 (docs copy sweep, in flight): the enrolment ' +
+    'section now distinguishes the throwaway per-export key from the lasting ' +
+    'non-extractable one, SUSE Okta became id.suse.com, and the last-updated ' +
+    'date moved. A privacy page must be re-rendered, not left stale for long — ' +
+    'it is first in the queue once the sweep settles.',
+  'en/quickstart':
+    'textHash drifted 2026-08-11 (docs copy sweep, in flight): first run now ' +
+    'opens the gallery with a three-way welcome dialog, the Brand Studio is ' +
+    'described as six rooms rather than five tabs, and token import moved to ' +
+    '"Add from…". Re-render once the sweep settles.',
 };
 
 interface Committed { key: string; lang: string; slug: string; meta: AudioMeta }

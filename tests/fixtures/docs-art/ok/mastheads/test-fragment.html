@@ -1,0 +1,37 @@
+<div class="test-fragment">
+  <svg viewBox="0 0 400 120" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+    <rect x="0" y="0" width="400" height="120" fill="currentColor" opacity=".06" />
+    <circle class="pulse" cx="200" cy="60" r="24" fill="currentColor" opacity=".5" />
+  </svg>
+</div>
+<script>
+/* A complete, correct static state is already painted above; this only adds motion. */
+(function () {
+  var host = document.currentScript.previousElementSibling;
+  var dot = host.querySelector('.pulse');
+  var reduce = matchMedia('(prefers-reduced-motion: reduce)');
+  var visible = false;
+  var running = false;
+  var t0 = 0;
+
+  function tick(t) {
+    if (!running) return;
+    if (!t0) t0 = t;
+    dot.setAttribute('r', String(24 + Math.sin((t - t0) / 900) * 4));
+    requestAnimationFrame(tick);
+  }
+  function sync() {
+    var want = visible && !reduce.matches && !document.hidden;
+    if (want === running) return;
+    running = want;
+    t0 = 0;
+    if (want) requestAnimationFrame(tick);
+  }
+  new IntersectionObserver(function (rows) {
+    visible = rows.some(function (r) { return r.isIntersecting; });
+    sync();
+  }).observe(host);
+  document.addEventListener('visibilitychange', sync);
+  reduce.addEventListener('change', sync);
+})();
+</script>

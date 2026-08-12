@@ -27,6 +27,13 @@
           "value": "camera=(self), microphone=(self), display-capture=(self), geolocation=()"
         }
       ]
+    },
+    {
+      "source": "/info/(.*)\\.c2pa",
+      "headers": [
+        { "key": "Content-Type", "value": "application/c2pa" },
+        { "key": "Cache-Control", "value": "public, max-age=0, must-revalidate" }
+      ]
     }
   ],
   "redirects": [

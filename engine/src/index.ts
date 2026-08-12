@@ -535,12 +535,12 @@ export {
   KF_EASE_TOKENS, KF_EASE_PRESETS, KF_HOLD_EASE, KF_DEFAULT_EASE, KF_LINEAR_EASE, KF_HOLD_CSS,
   KF_GUARD_U, KF_GUARD_BAND, KF_EFF_MAX, DOF_K, DEFAULT_CAMERA, DEFAULT_PERSPECTIVE,
   isKfChannel, isKfSafe, cubicBezierAt, normaliseKfEase, kfEasePoints, kfEaseAt,
-  kfEaseCss, kfEaseName, kfEaseToken,
+  kfEaseCss, kfEaseName, kfEaseToken, subdivideKfEase,
   parseKf, serialiseKf, evaluateKf, kfChannelsUsed,
   projectDepth, projectLayer, dofBlur, resolveCamera,
 } from './keyframes.ts';
 export type {
-  KfChannel, KfCameraChannel, KfPose, KfEasePresetToken, KfEasePreset,
+  KfChannel, KfCameraChannel, KfPose, KfEasePresetToken, KfEasePreset, KfEaseSubdivision,
   KfKey, KfKeyInput, KfTrack, KfParseOptions,
   KfCameraPose, KfCameraView, KfCameraClip, KfDepth, KfLayerPose, KfProjection,
 } from './keyframes.ts';

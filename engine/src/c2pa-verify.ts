@@ -64,9 +64,12 @@ import type { DerTlv } from './der-read.ts';
 import {
   decodeCbor, parseC2paStore, sniffFormat, extractC2paFromPdf, EXTRACTORS,
   collectActionChain, aiKind, extractC2paStore, prepareC2paIngredient, prepareC2paIngredientFromStore,
-  collectIngredients, bmffTopBoxes,
+  collectIngredients, bmffTopBoxes, extractC2paDetailed, C2PA_TEXT_STATUS,
 } from './c2pa-extract.ts';
-import type { C2paStoreParts, SniffFormat, C2paIngredientData, BmffBox } from './c2pa-extract.ts';
+import type {
+  C2paStoreParts, SniffFormat, C2paIngredientData, BmffBox,
+  C2paTextCarrier, C2paTextWrapper, C2paExclusion,
+} from './c2pa-extract.ts';
 // Re-exported so every existing `from './c2pa-verify.ts'` import (index.ts, the
 // test suite, the fuzz harness) keeps working unchanged — callers never need to
 // know these moved to c2pa-extract.ts.
@@ -78,6 +81,10 @@ export type { C2paIngredientData };
 
 const td = new TextDecoder();
 const te = new TextEncoder();
+// §A.8's hash input is TEXT, and a leading U+FEFF in it is DATA, not an encoding
+// hint. The default decoder silently eats one, which would shift the whole hash
+// input by three bytes for any signed text that legitimately begins with a BOM.
+const tdText = new TextDecoder('utf-8', { ignoreBOM: true });
 const subtle = globalThis.crypto.subtle;
 
 // ─── DER / X.509 (read side) ──────────────────────────────────────────────────
@@ -505,6 +512,109 @@ export interface C2paAiOrigin {
 // writer recorded on a step, e.g. the TTS script a synthetic-voice clip was
 // generated from ({ script, voice, model, lang } on its c2pa.created action).
 export interface C2paHistoryStep { action: unknown; when: unknown; softwareAgent: unknown; digitalSourceType?: unknown; description?: unknown; parameters?: unknown; generator?: unknown; }
+
+/**
+ * §18.28 `c2pa.ai-disclosure` — the claim generator's own machine-readable AI
+ * transparency statement, read for EVERY format (this is not a text-binding
+ * feature; it upgrades existing image/video verification the day any generator
+ * adopts it).
+ *
+ * Read LIBERALLY and NEVER as a failure: the CDDL requires `modelType`, but a
+ * writer that omits it — or that ships one of the fields the CDDL still has
+ * commented out as pending — must not turn a good file into a broken one. Every
+ * field is optional here, unknown keys are ignored, and a malformed assertion
+ * leaves `report.aiDisclosure` absent rather than emitting a check row.
+ *
+ * Like every other claim fact this is SELF-ASSERTED: it says what the signer
+ * declared, not what a model actually did. `oversight` is
+ * `contentProfile.humanOversightLevel` (§18.28.4:
+ * fully_autonomous / prompt_guided / human_validated), lifted to the top level
+ * because it is the only field of that sub-map the spec defines.
+ */
+export interface C2paAiDisclosure {
+  modelType?: string;
+  modelName?: string;
+  modelIdentifier?: string;
+  oversight?: string;
+  /** arXiv taxonomy terms. The CDDL says a list; §18.28.4's own example ships a
+   *  bare string, so both are accepted and normalized to a list. */
+  scientificDomain?: string[];
+}
+
+/** Which C2PA 2.4 text binding carried (or merely referenced) the credential. */
+export type C2paTextBindingKind = 'html' | 'structuredText' | 'text';
+
+/**
+ * The text-binding posture, present ONLY for the three 2.4 text formats.
+ *
+ * Its whole job is to keep "there is no credential here" distinguishable from
+ * the several ways a text carrier can be present and unusable — a truncated
+ * paste, a document with two manifest elements, a reference to a manifest that
+ * lives on someone else's server. Each of those also emits a failed check row
+ * with the spec's own status code; this record is the machine-readable detail a
+ * surface needs to write the honest sentence.
+ */
+export interface C2paTextBinding {
+  kind: C2paTextBindingKind;
+  /** The extraction status (C2PA_TEXT_STATUS) when the carrier is present but
+   *  unusable — the spec's own code where it defines one. */
+  status?: string;
+  /** Human-readable specifics for `status`. */
+  detail?: string;
+  /** §A.7.1.2 `<link rel="c2pa-manifest">` / §A.9.3 URL reference. THE ENGINE
+   *  NEVER FETCHES: this is handed up so the shell can resolve it under its own
+   *  network policy, which is why the row reads `manifest.inaccessible` and not
+   *  "no credential". */
+  manifestUrl?: string;
+  /** The store used for this report came from `verifyC2pa`'s `externalManifest`
+   *  option, not from the asset — i.e. the caller resolved `manifestUrl` itself.
+   *  A `state: 'valid'` report with this set means "these bytes match a
+   *  credential fetched from elsewhere", which is NOT "the credential inside
+   *  this document is intact". Absent on every embedded-credential report. */
+  externalManifestUsed?: boolean;
+  /** §A.8: how many C2PATextManifestWrappers the asset holds… */
+  wrappers?: number;
+  /** …and how many of them the assertion's exclusions actually selected
+   *  (§15.12.1.3.1 step 2: 0 → malformed, >1 → multipleWrappers). */
+  matchedWrappers?: number;
+  /** The wrapper walk stopped at its cap, so `wrappers` is a floor, not a count
+   *  — and "no wrapper matches this exclusion" may only mean "we stopped
+   *  looking". Absent on every asset within the cap. */
+  wrappersTruncated?: boolean;
+  /** §A.8.4.1: which wrapper (1-based, in document order) the assertion's own
+   *  exclusions selected, when there was more than one to choose from. Absent on
+   *  the ordinary single-wrapper asset. */
+  selectedWrapper?: number;
+  /**
+   * §A.7.1.3 / §A.9.4 say the exclusion "shall" cover exactly the carrier. Set
+   * when it does not — and the two ways it can differ are not the same fact:
+   *
+   *   'other'    the exclusion reaches OUTSIDE the carrier, so bytes the
+   *              credential does not cover are being carved out of the hash.
+   *              That is the forgery shape, and it fails the report.
+   *   'narrower' the exclusion is INSIDE the carrier, so the carrier's own bytes
+   *              are in the hash — non-conforming, but strictly more strongly
+   *              bound, not less. Reported, never accused.
+   *
+   * Absent when the exclusion conforms (including under §A.9.4's alternate
+   * end-of-file readings).
+   */
+  exclusionsConform?: 'narrower' | 'other';
+  /**
+   * §15.12.1.3.4 — this looks like a FRAGMENT of a larger signed text, not an
+   * edit of a whole one. Set on the two machine-derivable partial-copy shapes:
+   * a wrapper whose magic decoded but whose body ran out of selectors, and an
+   * exclusion range that points past the end of the text we were given. Both
+   * mean the signed original was longer than this copy.
+   */
+  fragment?: boolean;
+  /** §A.8's unresolved boundary question, answered per asset: whether the
+   *  assertion excluded the U+FEFF prefix ('wrapper') or started at the first
+   *  variation selector ('selectors'). Both are accepted — see the
+   *  §15.12.1.3.1 block in verifyC2pa for why neither is the looser reading. */
+  exclusionsFrom?: 'wrapper' | 'selectors';
+}
+
 export interface C2paReport {
   found: boolean;
   state: 'valid' | 'invalid' | 'none';
@@ -531,9 +641,236 @@ export interface C2paReport {
   rights?: string;
   signer?: C2paSigner;
   aiGenerated?: C2paAiOrigin;
+  // §18.28 c2pa.ai-disclosure, read for every format. Self-asserted claim
+  // content, liberal read, never a failure — see C2paAiDisclosure.
+  aiDisclosure?: C2paAiDisclosure;
+  // Every disclosure when the claim made MORE THAN ONE (a pipeline that used
+  // two models and disclosed both, labelled `c2pa.ai-disclosure__1`, `__2`).
+  // `aiDisclosure` is always the first of these; this field is absent on the
+  // ordinary single-model claim.
+  aiDisclosures?: C2paAiDisclosure[];
+  // The C2PA specification version the claim generator declared it wrote to
+  // (SemVer, e.g. "2.4.0"). 2.4 moved this from the claim into
+  // claim_generator_info; the deprecated claim-level field is still read.
+  // §10.2.3.1: "validators should treat this field as purely informational and
+  // should not change their validation logic based on this value" — so nothing
+  // here branches on it.
+  specVersion?: string;
+  // Present only for the C2PA 2.4 text bindings (html/code/text formats).
+  textBinding?: C2paTextBinding;
   // The full provenance chain — every manifest's actions (parent/ingredient →
   // active), flattened in store order with adjacent duplicates collapsed.
   history?: C2paHistoryStep[];
+}
+
+// ─── C2PA 2.4 text bindings: read-side helpers ────────────────────────────────
+
+/** sniffed format → which appendix binding it is. Absent = an ordinary binary
+ *  container, which keeps the pre-2.4 extraction path byte-for-byte. */
+const TEXT_BINDING_KIND: Partial<Record<SniffFormat, C2paTextBindingKind>> = {
+  html: 'html',
+  code: 'structuredText',
+  text: 'text',
+};
+
+/**
+ * An extraction status → the check code a report row carries.
+ *
+ * The spec defines a status code for most of these; where it does not (a
+ * base64 payload that isn't base64, a `<script>` with no closing tag, an asset
+ * past the reader's size cap) the row falls back to `credential.unreadable`,
+ * which is exactly what those are, and the precise state stays visible in
+ * `report.textBinding.status`.
+ */
+function textStatusCheck(kind: C2paTextBindingKind, status: string): string {
+  switch (status) {
+    case C2PA_TEXT_STATUS.htmlMultipleManifests: return C2PA_CHECK.manifestHtmlMultipleManifests;
+    case C2PA_TEXT_STATUS.structuredTextMultipleReferences: return C2PA_CHECK.manifestStructuredTextMultipleReferences;
+    case C2PA_TEXT_STATUS.structuredTextEmptyReference: return C2PA_CHECK.manifestStructuredTextEmptyReference;
+    case C2PA_TEXT_STATUS.textCorruptedWrapper: return C2PA_CHECK.manifestTextCorruptedWrapper;
+    case C2PA_TEXT_STATUS.textMultipleWrappers: return C2PA_CHECK.manifestTextMultipleWrappers;
+    // §A.9.5 names this one; §A.7 names none for a bad href, so an HTML link we
+    // refuse to hand a fetcher reads as "the remote manifest was not obtained".
+    case C2PA_TEXT_STATUS.unsupportedReference:
+      return kind === 'structuredText'
+        ? C2PA_CHECK.manifestStructuredTextMalformedReference
+        : C2PA_CHECK.manifestInaccessible;
+    default: return C2PA_CHECK.credentialUnreadable;
+  }
+}
+
+/**
+ * §15.12.1.3.4 — is this wrapper the shape a PARTIAL COPY leaves behind?
+ *
+ * True when the magic decoded (so a wrapper really was here) but the body did
+ * not: the selector run, or the text, ran out before the declared manifest did.
+ * Deliberately NOT true for an unsupported VERSION — a v2 wrapper may be
+ * perfectly complete and simply newer than this verifier, and telling that
+ * reader "your text looks truncated" would be a guess dressed as a finding.
+ * Version 0 is the "ran out before the version byte" sentinel, so it counts.
+ */
+const isCutWrapper = (w: C2paTextWrapper): boolean =>
+  w.store === null && w.status === C2PA_TEXT_STATUS.textCorruptedWrapper && (w.version === 1 || w.version === 0);
+
+/** Does this exclusion name this wrapper, under either §A.8 boundary reading? */
+const excludesWrapper = (e: C2paExclusion, w: C2paTextWrapper): boolean =>
+  (e.start === w.start && e.length === w.end - w.start)
+  || (e.start === w.selectorStart && e.length === w.end - w.selectorStart);
+
+/** How many candidate stores a multi-wrapper text is worth parsing. §A.8.4.1
+ *  expects ONE; more than a couple is already a hostile shape. */
+const MAX_WRAPPER_CANDIDATES = 8;
+
+/**
+ * §A.8.4.1 + §15.12.1.3.1 steps 1–2: when a text carries MORE THAN ONE wrapper,
+ * the assertion's exclusions choose which one binds this copy.
+ *
+ * §A.8.4.1, verbatim: "Validators may encounter multiple wrappers; selection of
+ * the intended wrapper is governed by the exclusions field of the c2pa.hash.data
+ * assertion." Extraction cannot do that — it has no assertion yet — so it hands
+ * back the first valid wrapper and the selection happens here, by asking each
+ * candidate's OWN store which range it signed and keeping the one that names
+ * itself.
+ *
+ * The case this exists for is a re-signed text: sign, edit, re-sign by appending
+ * a new wrapper without removing the stale one — spec-legal (the new signer
+ * hashes everything except its own wrapper, stale wrapper included) and exactly
+ * what "validators may encounter multiple wrappers" anticipates. Taking the
+ * first wrapper instead reported an intact credential as INVALID *and* printed
+ * the stale manifest's claim — its title, its signer, its date — as facts about
+ * the current text.
+ *
+ * → the wrapper whose store's exclusions name it, or null to keep extraction's
+ * answer (which is also what a forged "select me" store gets: the hard binding
+ * still has to pass over the real bytes).
+ */
+function selectWrapperByExclusions(carrier: C2paTextCarrier): C2paTextWrapper | null {
+  const valid = carrier.wrappers.filter((w) => w.store);
+  if (valid.length < 2) return null;
+  for (const w of valid.slice(0, MAX_WRAPPER_CANDIDATES)) {
+    try {
+      const hd = parseC2paStore(w.store!).assertions.find((a) => a.label === 'c2pa.hash.data');
+      if (!hd) continue;
+      const decoded = decodeCbor(hd.content);
+      if (!(decoded instanceof Map)) continue;
+      if (readExclusions(decoded).some((e) => excludesWrapper(e, w))) return w;
+    } catch { /* an unparseable candidate simply is not the selected one */ }
+  }
+  return null;
+}
+
+/** The declared exclusions of a c2pa.hash.data assertion, structurally
+ *  validated (integers only) and sorted. A crafted assertion can put anything
+ *  in here, so every field is checked before it is used as an offset. */
+function readExclusions(hd: Map<unknown, unknown>): C2paExclusion[] {
+  const raw = hd.get('exclusions');
+  return (Array.isArray(raw) ? raw : [])
+    .map((e) => ({
+      start: (e instanceof Map ? e.get('start') : undefined) as number,
+      length: (e instanceof Map ? e.get('length') : undefined) as number,
+    }))
+    .sort((a, b) => a.start - b.start);
+}
+
+/**
+ * §A.7.1.3 / §A.9.4 conformance: an HTML document's or a structured-text file's
+ * `c2pa.hash.data` "shall include a SINGLE exclusion range covering the entire
+ * element/block". Compare what the assertion declares against the range the
+ * document's own bytes say the carrier occupies.
+ *
+ * TWO DIFFERENT FACTS, and one message for both was a factual inversion. These
+ * bindings hash raw bytes at absolute offsets with no canonicalisation, so every
+ * byte outside the exclusion is bound — that is the entire guarantee.
+ *
+ *   'other'    the declared range reaches OUTSIDE the carrier. That IS a hole in
+ *              the guarantee: a signed page could carve out a paragraph and
+ *              still verify "intact". Refused, with
+ *              assertion.dataHash.additionalExclusionsPresent — the code §15.2.2
+ *              defines as "exclusion ranges other than the C2PA Manifest Store".
+ *   'narrower' the declared range sits INSIDE the carrier, so the carrier's own
+ *              bytes are part of the hash — which is Lolly's own SVG placer
+ *              convention (c2pa-containers.ts placeSvg), and it binds the file
+ *              MORE strongly, not less. Nothing additional was excluded, so the
+ *              additionalExclusions code was wrong, and "content outside the
+ *              credential is not covered by the binding" said the opposite of
+ *              what the file shows. Reported as non-conformance, never accused.
+ *
+ * Either way the hash now RUNS: short-circuiting it meant a non-conforming file
+ * could not be told apart from a changed one, and §A.9.4's end-of-file rule is
+ * one byte ambiguous (CRLF, trailing blank line — see armorExclusion), so a
+ * conformant producer on the other reading got an accusation instead of a
+ * result. `alternates` carry those equally-valid readings.
+ *
+ * NEVER applies to binary containers (the existing walker keeps its behaviour
+ * byte-for-byte) nor to §A.8 text, whose exclusions are checked against real
+ * wrapper boundaries by the text pipeline instead.
+ */
+const sameRanges = (a: C2paExclusion[], b: C2paExclusion[]): boolean =>
+  a.length === b.length && a.every((x, i) => x.start === b[i]!.start && x.length === b[i]!.length);
+
+function htmlCodeExclusionConformance(
+  binding: C2paTextBinding | undefined,
+  advisory: C2paExclusion[] | null,
+  alternates: C2paExclusion[][] | null,
+  declared: C2paExclusion[],
+): { kind: 'narrower' | 'other'; message: string } | null {
+  if (!binding || binding.kind === 'text' || !advisory) return null;
+  const want = [...advisory].sort((a, b) => a.start - b.start);
+  const readings = [want, ...(alternates ?? []).map((a) => [...a].sort((x, y) => x.start - y.start))];
+  if (readings.some((r) => sameRanges(r, declared))) return null;
+  // Every declared byte inside some conformant reading of the carrier → nothing
+  // extra was excluded; the difference is narrowness, not a carve.
+  const inside = declared.every((d) =>
+    readings.some((r) => r.some((w) => d.start >= w.start && d.start + d.length <= w.start + w.length)));
+  const shown = (list: C2paExclusion[]): string =>
+    list.length ? list.map((e) => `${e.start}+${e.length}`).join(', ') : 'none';
+  const where = binding.kind === 'html'
+    ? 'the <script type="application/c2pa"> element (§A.7.1.3)'
+    : 'the -----BEGIN/END C2PA MANIFEST----- block (§A.9.4)';
+  return inside
+    ? {
+      kind: 'narrower',
+      message: `the data hash excludes ${shown(declared)}, inside ${where} at ${shown(want)} — narrower than the spec requires, so the carrier's own bytes are part of the hash`,
+    }
+    : {
+      kind: 'other',
+      message: `the data hash excludes ${shown(declared)} but ${where} occupies ${shown(want)} — content outside the credential is not covered by the binding`,
+    };
+}
+
+/**
+ * §18.28, liberal read. Returns undefined for anything that isn't a map with at
+ * least one field we recognise; never throws, never fails a report.
+ */
+function readAiDisclosure(content: Uint8Array): C2paAiDisclosure | undefined {
+  try {
+    let m: unknown = decodeCbor(content);
+    // The CDDL says CBOR, but a JSON-serialized copy is cheap to tolerate and a
+    // reader that refused one would be reporting "no disclosure" about a file
+    // that made one.
+    if (!(m instanceof Map)) {
+      const json = JSON.parse(td.decode(content)) as Record<string, unknown>;
+      m = json && typeof json === 'object' && !Array.isArray(json) ? new Map(Object.entries(json)) : null;
+    }
+    if (!(m instanceof Map)) return undefined;
+    const str = (v: unknown): string | undefined => (typeof v === 'string' && v.trim() ? v.trim() : undefined);
+    const profile = m.get('contentProfile');
+    const oversight = profile instanceof Map ? str(profile.get('humanOversightLevel'))
+      : profile && typeof profile === 'object' ? str((profile as Record<string, unknown>).humanOversightLevel)
+        : undefined;
+    // The CDDL says a 1+ list; §18.28.4's own example ships a bare string.
+    const rawDomain = m.get('scientificDomain');
+    const domains = (Array.isArray(rawDomain) ? rawDomain : [rawDomain])
+      .map(str).filter((s): s is string => !!s);
+    const out: C2paAiDisclosure = {
+      ...(str(m.get('modelType')) ? { modelType: str(m.get('modelType'))! } : {}),
+      ...(str(m.get('modelName')) ? { modelName: str(m.get('modelName'))! } : {}),
+      ...(str(m.get('modelIdentifier')) ? { modelIdentifier: str(m.get('modelIdentifier'))! } : {}),
+      ...(oversight ? { oversight } : {}),
+      ...(domains.length ? { scientificDomain: domains } : {}),
+    };
+    return Object.keys(out).length ? out : undefined;
+  } catch { return undefined; }
 }
 
 
@@ -545,6 +882,17 @@ export interface C2paReport {
  * the claim signature's full x5chain is checked against each anchor
  * (issuer-name bytes + ECDSA P-256/SHA-256 over the tbsCertificate, directly
  * or through one CA:TRUE intermediate). Zero-options behaviour is unchanged.
+ *
+ * `externalManifest` is the ONLY way a manifest that is not inside `bytes` can
+ * be verified, and it exists because §A.7.1.2 / §A.9.3 let a text asset point at
+ * its credential instead of carrying it. THE ENGINE STILL NEVER FETCHES: the
+ * caller resolves the `report.textBinding.manifestUrl` it was handed on a
+ * previous (fetch-free) call, under its own network policy, and passes the bytes
+ * back in. Only consulted when the asset itself carries no store, so an embedded
+ * credential can never be shadowed by a caller-supplied one; when it IS used,
+ * `report.textBinding.externalManifestUsed` says so, because "these bytes match
+ * a credential served from over there" is a different sentence from "these bytes
+ * match the credential inside them".
  *
  * → {
  *     found, state: 'valid'|'invalid'|'none', trusted, reason?,
@@ -575,7 +923,10 @@ export interface C2paReport {
  * `madeWithLolly` is likewise an integrity-plus-claims statement, not an
  * identity proof.
  */
-export async function verifyC2pa(bytes: Uint8Array, { trustAnchors }: { trustAnchors?: Uint8Array[] } = {}): Promise<C2paReport> {
+export async function verifyC2pa(
+  bytes: Uint8Array,
+  { trustAnchors, externalManifest }: { trustAnchors?: Uint8Array[]; externalManifest?: Uint8Array } = {},
+): Promise<C2paReport> {
   if (!(bytes instanceof Uint8Array)) throw new Error('verifyC2pa: bytes must be a Uint8Array');
   const checks: C2paCheck[] = [];
   const fail = (code: string, explanation: string): void => { checks.push({ code, ok: false, explanation }); };
@@ -589,25 +940,128 @@ export async function verifyC2pa(bytes: Uint8Array, { trustAnchors }: { trustAnc
     // for much more — the Lolly Imprint, SEAL, embedded metadata, appended data —
     // so this must never read as "unrecognised / can't inspect", only as "this
     // format doesn't carry Content Credentials".
-    report.reason = 'no Content Credentials — these are embedded only in pdf, png, jpg, gif, svg, tiff, webp, mp4, webm, mp3 and wav files';
+    report.reason = 'no Content Credentials — these are embedded only in pdf, png, jpg, gif, svg, tiff, webp, avif, mp4, webm, mkv, mp3, wav and ogg files, in HTML documents, and in text carrying a C2PA manifest block or wrapper';
     return report;
   }
 
+  // §A.8's hard binding hashes the NFC-NORMALIZED TEXT, not the bytes handed in,
+  // so the text path needs the carrier extraction produced. Null for every other
+  // format, which keeps the pre-2.4 path byte-for-byte identical.
+  let carrier: C2paTextCarrier | null = null;
+  // What §A.7.1.3 / §A.9.4 say this carrier's exclusion SHOULD be, derived from
+  // the document itself — the cross-check that keeps a signed HTML page from
+  // declaring a hole anywhere other than over its own manifest element.
+  let advisoryExclusions: C2paExclusion[] | null = null;
+  // Equally-conformant readings of the SAME carrier — §A.9.4's end-of-file
+  // newline is one byte ambiguous on a CRLF file and on one with a trailing
+  // blank line. A producer on the other reading must get a hash result.
+  let advisoryAlternates: C2paExclusion[][] | null = null;
   let extracted: { manifest: Uint8Array } | null;
-  try {
-    extracted = EXTRACTORS[format]!(bytes);
-  } catch (err) {
-    const msg = (err as Error).message;
-    report.reason = msg;
-    if (/not a PDF/.test(msg)) return report;
-    report.found = true;
-    report.state = 'invalid';
-    fail(C2PA_CHECK.credentialUnreadable,msg);
-    return report;
-  }
-  if (!extracted) {
-    report.reason = 'no Content Credentials found';
-    return report;
+  const bindingKind = TEXT_BINDING_KIND[format];
+  if (bindingKind) {
+    // The three 2.4 text bindings. extractC2paDetailed never throws and never
+    // fetches; it is the only path that surfaces an external reference, the
+    // §A.8 wrapper list, and a present-but-unusable carrier's status — all three
+    // of which the legacy `{ manifest } | null | throw` contract cannot carry.
+    const detailed = extractC2paDetailed(bytes, format)!;
+    carrier = detailed.text ?? null;
+    advisoryExclusions = detailed.exclusions ?? null;
+    advisoryAlternates = detailed.exclusionAlternates ?? null;
+    const binding: C2paTextBinding = { kind: bindingKind };
+    report.textBinding = binding;
+    if (detailed.externalUrl) binding.manifestUrl = detailed.externalUrl;
+    if (carrier) binding.wrappers = carrier.wrappers.length;
+    if (carrier?.truncated) binding.wrappersTruncated = true;
+    if (detailed.status) binding.status = detailed.status;
+    if (detailed.detail) binding.detail = detailed.detail;
+    // §15.12.1.3.4: a wrapper whose magic decoded but whose body ran out is the
+    // signature of a partial copy, whatever the hash later says.
+    if (carrier?.wrappers.some(isCutWrapper)) binding.fragment = true;
+
+    if (detailed.status === C2PA_TEXT_STATUS.tooLarge) {
+      // "We declined to look", NOT "we looked and it is broken". The size refusal
+      // used to land in the invalid-credential arm, so a 17 MiB saved web page
+      // with no C2PA anywhere in it — or any long text that merely QUOTED the
+      // armour delimiter — was reported as a credential that failed to read. A
+      // verdict manufactured from file size alone is the same false positive the
+      // §A.9.5 branch below refuses to make, and plan 105 §2 turns on not making
+      // it. The status stays on report.textBinding, so nothing is hidden.
+      report.reason = detailed.detail
+        ? `no Content Credentials read — ${detailed.detail}`
+        : 'no Content Credentials read — this asset is past the size limit for on-device text inspection';
+      return report;
+    }
+    if (detailed.store) {
+      // NB a `manifest.text.multipleWrappers` status here is a NOTICE, not yet a
+      // failure: §15.12.1.3.1 only rejects when more than one wrapper matches
+      // the ASSERTION's exclusions, which the hard-binding step below decides.
+      // It stays visible on report.textBinding.status either way.
+      //
+      // §A.8.4.1 gives wrapper SELECTION to the exclusions, so when there is more
+      // than one to choose from, ask them (see selectWrapperByExclusions) before
+      // this store — the first one in document order — becomes the manifest whose
+      // claim the whole report describes.
+      const picked = carrier ? selectWrapperByExclusions(carrier) : null;
+      if (picked) {
+        binding.selectedWrapper = carrier!.wrappers.indexOf(picked) + 1;
+        extracted = { manifest: picked.store! };
+      } else {
+        extracted = { manifest: detailed.store };
+      }
+    } else if (detailed.externalUrl && externalManifest?.length) {
+      // The caller already read `manifestUrl` off a previous report and fetched
+      // it under its own policy (the web shell only does this same-origin, on an
+      // explicit click). The engine's no-network rule is untouched — these bytes
+      // arrived as an argument. Flagged on the binding so no surface can print
+      // "the credential inside this document" about a credential that was not.
+      binding.externalManifestUsed = true;
+      extracted = { manifest: externalManifest };
+    } else if (detailed.externalUrl) {
+      // §A.7.1.2 / §A.9.3: the credential exists, it just is not in these bytes.
+      // Resolution is explicitly OPTIONAL for a validator (§A.7.1.4), and this
+      // engine never performs network I/O, so the honest answer is the spec's
+      // own "remote manifest not obtained" — never "no Content Credentials".
+      report.found = true;
+      report.state = 'invalid';
+      report.reason = `this ${bindingKind === 'html' ? 'document' : 'file'} references an external C2PA manifest at ${detailed.externalUrl} — the engine never fetches, so it could not be checked against these bytes`;
+      fail(C2PA_CHECK.manifestInaccessible, `references an external manifest (${detailed.externalUrl}); fetch it and verify it against these bytes`);
+      return report;
+    } else if (detailed.status === C2PA_TEXT_STATUS.structuredTextNoManifest) {
+      // §A.9.5 asks for a manifest.structuredText.noManifest FAILURE here.
+      // DELIBERATE DEVIATION, and the reason is that this file sniffed as 'code'
+      // purely because one armour delimiter appeared in it: prose that quotes
+      // `-----BEGIN C2PA MANIFEST-----` (this repo's own plans do) is
+      // indistinguishable from a damaged block, and calling it a broken
+      // credential would be the louder lie. The status is still reported on
+      // report.textBinding, so nothing is hidden — only the verdict is withheld.
+      report.reason = 'no Content Credentials found — the §A.9 manifest block delimiters are not both present';
+      return report;
+    } else if (detailed.status) {
+      report.found = true;
+      report.state = 'invalid';
+      report.reason = detailed.detail || `C2PA text binding unusable: ${detailed.status}`;
+      fail(textStatusCheck(bindingKind, detailed.status), report.reason);
+      return report;
+    } else {
+      report.reason = 'no Content Credentials found';
+      return report;
+    }
+  } else {
+    try {
+      extracted = EXTRACTORS[format]!(bytes);
+    } catch (err) {
+      const msg = (err as Error).message;
+      report.reason = msg;
+      if (/not a PDF/.test(msg)) return report;
+      report.found = true;
+      report.state = 'invalid';
+      fail(C2PA_CHECK.credentialUnreadable,msg);
+      return report;
+    }
+    if (!extracted) {
+      report.reason = 'no Content Credentials found';
+      return report;
+    }
   }
   report.found = true;
 
@@ -672,6 +1126,33 @@ export async function verifyC2pa(bytes: Uint8Array, { trustAnchors }: { trustAnc
     manifestLabel: parts.manifestLabel,
     actions,
   };
+  // C2PA 2.4 moved specVersion out of the claim and into claim_generator_info;
+  // the claim-level field is deprecated but "a validator should read it", so
+  // both are tolerated, generator-info first. Purely informational per
+  // §10.2.3.1 — nothing below branches on the value.
+  const declaredSpec = report.claim.generatorInfo?.specVersion ?? claim.get('specVersion');
+  if (typeof declaredSpec === 'string' && declaredSpec.trim()) report.specVersion = declaredSpec.trim();
+
+  // §18.28 c2pa.ai-disclosure — read for EVERY format, not just the text
+  // bindings. Integrity of the assertion is covered by the hashed-URI check like
+  // any other; a malformed one is simply absent here.
+  //
+  // ALL of them, not the first: §18.28's stated purpose is "full disclosure of
+  // the AI MODELS used" (plural), and §1558 labels repeats `label__1`, `label__2`
+  // — so a two-model pipeline that disclosed both had its second disclosure
+  // dropped silently. §1560 also makes a version part of the label, so a future
+  // `c2pa.ai-disclosure.v2` has to match, or it reads as no disclosure at all.
+  const AI_DISCLOSURE_LABEL = /^c2pa\.ai-disclosure(\.v\d+)?(__\d+)?$/;
+  const disclosures = parts.assertions
+    .filter((a) => AI_DISCLOSURE_LABEL.test(a.label))
+    .map((a) => readAiDisclosure(a.content))
+    .filter((d): d is C2paAiDisclosure => !!d);
+  if (disclosures.length) {
+    report.aiDisclosure = disclosures[0];
+    // The extra ones only appear when there ARE extra ones, so the common
+    // single-model report keeps exactly the shape its consumers already read.
+    if (disclosures.length > 1) report.aiDisclosures = disclosures;
+  }
 
   // The whole provenance chain across every manifest (the active manifest's own
   // `actions` above is just its last link) — used for the edit-history timeline
@@ -919,6 +1400,108 @@ export async function verifyC2pa(bytes: Uint8Array, { trustAnchors }: { trustAnc
     }
   } else if (!hashData) {
     fail(C2PA_CHECK.assertionDataHashMismatch,'no hard binding (c2pa.hash.data or c2pa.hash.bmff) in the manifest');
+  } else if (carrier && report.textBinding?.kind === 'text') {
+    // ── §15.12.1.3.1: validating a text data hash ─────────────────────────────
+    //
+    // The ONE place in this file where the hard binding does not hash the bytes
+    // that were handed in. §A.8.7.3 is explicit: "the exclusions field … uses
+    // byte offsets in the NFC-normalized UTF-8 encoded text … perform
+    // normalization before calculating offsets". So the asset is decoded,
+    // NFC-normalized ONCE by the extractor (carrier.nfc), and every offset —
+    // both the wrappers' and the assertion's — is read in that encoding.
+    //
+    // §A.8.6.1 and §15.12.1.3.1 then give the removal and the re-normalization
+    // in opposite orders ("the NFC-normalized text AFTER removing the excluded
+    // bytes" vs "remove → normalize → encode → hash"). Only one reading is
+    // self-consistent with offsets living in NFC space, and this implements
+    // BOTH literally: normalize first (so the offsets mean something), remove,
+    // then normalize the remainder again. That second pass is a no-op for every
+    // conformant asset — §A.8.4.1 puts the wrapper in a single contiguous block
+    // at the END of the visible text — and only bites when a splice puts a base
+    // character next to a following combining mark, which the spec's own step
+    // list says to fix. Pinned by test either way.
+    const binding = report.textBinding;
+    try {
+      const hd = decodeCbor(hashData.content) as Map<unknown, unknown>;
+      if ((hd.get('alg') || 'sha256') !== 'sha256') throw new Error(`unsupported hash alg ${String(hd.get('alg'))}`);
+      const nfcBytes = te.encode(carrier.nfc);
+      const exclusions = readExclusions(hd);
+      let at = 0;
+      for (const e of exclusions) {
+        if (!(Number.isInteger(e.start) && Number.isInteger(e.length)) || e.start < at || e.length < 0) {
+          throw new Error('exclusion ranges are out of order or out of range');
+        }
+        // §15.12.1.3.4: an exclusion that runs past the end of the text we were
+        // given means the signed original was LONGER than this copy — the
+        // machine-checkable half of "this looks like a fragment".
+        //
+        // Gated on a wrapper actually being here: a self-signed assertion can
+        // declare `start: 1e15` on a text carrying no wrapper at all, and the
+        // verdict is `invalid` either way — but "looks like a fragment of a
+        // larger signed text" would then be a sentence the ATTACKER wrote, not
+        // one the evidence supports.
+        if (e.start + e.length > nfcBytes.length) {
+          if (carrier.wrappers.length) binding.fragment = true;
+          throw new Error('an exclusion range runs past the end of the text — the signed text was longer than this copy');
+        }
+        at = e.start + e.length;
+      }
+      // Step 2: select the wrapper(s) the exclusions name. §A.8 never settles
+      // whether an exclusion starts at the U+FEFF prefix or at the first
+      // variation selector (§A.8.6.1 says "the location of the wrapper";
+      // §A.8.4.1 calls U+FEFF a prefix TO the wrapper; §A.8.2.2's struct starts
+      // at the magic), so BOTH conventions are accepted and which one matched is
+      // reported. Neither is more permissive than the other: each removes only
+      // wrapper bytes, and the producer had to hash whichever it chose.
+      const matched: C2paTextWrapper[] = [];
+      for (const e of exclusions) {
+        const w = carrier.wrappers.find((c) => e.start === c.start && e.length === c.end - c.start)
+          ?? carrier.wrappers.find((c) => e.start === c.selectorStart && e.length === c.end - c.selectorStart);
+        if (!w) {
+          // §A.8.7.3: "validate that excluded regions correspond exactly to
+          // C2PATextManifestWrapper boundaries". An exclusion that does not is
+          // how a forged assertion would carve unbound content out of a signed
+          // text, so it is refused rather than honoured.
+          //
+          // …unless the wrapper walk hit its cap, in which case the range may
+          // correspond perfectly to a wrapper we never got to. Same refusal
+          // (nothing here can be checked), but the sentence stays true.
+          throw new Error(carrier.truncated
+            ? `an exclusion range matches none of the first ${carrier.wrappers.length} C2PATextManifestWrappers, and this text carries more than the reader will walk`
+            : 'an exclusion range does not correspond to a C2PATextManifestWrapper');
+        }
+        if (!matched.includes(w)) matched.push(w);
+        binding.exclusionsFrom = e.start === w.start ? 'wrapper' : 'selectors';
+      }
+      binding.matchedWrappers = matched.length;
+      // §15.12.1.3.1 step 3/4 — the two named rejections.
+      if (!matched.length) throw new Error('the data hash declares no exclusion matching any C2PATextManifestWrapper');
+      if (matched.length > 1) {
+        fail(C2PA_CHECK.manifestTextMultipleWrappers, `${matched.length} C2PATextManifestWrappers match the assertion's exclusions; §15.12.1.3.1 allows one`);
+      } else {
+        const spans: Uint8Array[] = [];
+        let cut = 0;
+        for (const e of exclusions) {
+          spans.push(nfcBytes.subarray(cut, e.start));
+          cut = e.start + e.length;
+        }
+        spans.push(nfcBytes.subarray(cut));
+        // Steps 6–7. Removing a whole wrapper always cuts on code-point
+        // boundaries (its range came from a decode of this same string), so the
+        // remainder is valid UTF-8 and the round-trip is lossless.
+        const remaining = te.encode(tdText.decode(concatBytes(spans)).normalize('NFC'));
+        if (hexOf(await sha256(remaining)) === hexOf(hd.get('hash') as Uint8Array)) {
+          pass(C2PA_CHECK.assertionDataHashMatch,'data hash valid (NFC-normalized text, §15.12.1.3.1)');
+        } else {
+          fail(C2PA_CHECK.assertionDataHashMismatch,'the text does not match the credential — it changed after signing');
+        }
+      }
+    } catch (err) {
+      // §15.12.1.3.1 steps 3 and §A.8.7.3: a text data hash whose exclusions do
+      // not name a wrapper is MALFORMED, a distinct thing from "the bytes
+      // changed" — and the distinction is the whole point for a pasted fragment.
+      fail(C2PA_CHECK.assertionDataHashMalformed,`the text hard binding could not be checked: ${(err as Error).message}`);
+    }
   } else {
     try {
       const hd = decodeCbor(hashData.content) as Map<unknown, unknown>;
@@ -930,19 +1513,48 @@ export async function verifyC2pa(bytes: Uint8Array, { trustAnchors }: { trustAnc
       let at = 0;
       for (const e of exclusions) {
         if (!(Number.isInteger(e.start) && Number.isInteger(e.length)) || e.start < at || e.start + e.length > pdfBytes.length) {
-          throw new Error('exclusion ranges are out of order or out of range');
+          // §15.12.1: out-of-order, overlapping or negative ranges are
+          // assertion.dataHash.MALFORMED, which is a different fact from "the
+          // bytes changed". The binary containers keep reporting `mismatch` (that
+          // is pre-existing behaviour on a path this wave must not move), but the
+          // two new text formats are new arrivals here, so they get the code the
+          // spec names.
+          throw Object.assign(new Error('exclusion ranges are out of order or out of range'), { malformed: true });
         }
         spans.push(pdfBytes.subarray(at, e.start));
         at = e.start + e.length;
       }
       spans.push(pdfBytes.subarray(at));
+      // §A.7.1.3 / §A.9.4: an HTML document's or a structured-text file's data
+      // hash "shall include a SINGLE exclusion range covering the entire
+      // element/block". The whole point of a raw-byte binding is that the bytes
+      // outside the credential are bound; an exclusion that covers anything else
+      // is a hole in exactly that guarantee, so it is reported rather than
+      // honoured silently. Only checked for the two 2.4 byte-range text
+      // bindings, where the spec pins the range exactly; binary containers keep
+      // their existing behaviour untouched.
+      const carve = htmlCodeExclusionConformance(report.textBinding, advisoryExclusions, advisoryAlternates, exclusions);
+      if (carve) {
+        report.textBinding!.exclusionsConform = carve.kind;
+        // Only the 'other' shape is a hole in the binding. A narrower exclusion
+        // leaves the carrier INSIDE the hash — non-conforming, but more strongly
+        // bound — and failing it would be accusing a file whose bytes we can
+        // show are intact.
+        if (carve.kind === 'other') fail(C2PA_CHECK.assertionDataHashAdditionalExclusions, carve.message);
+      }
+      // The hash RUNS either way: "non-conforming but intact" and
+      // "non-conforming and changed" are different answers, and the reader
+      // deserves the one that is true of their file.
+      const qualifier = carve ? ` (the declared exclusion does not match the carrier: ${carve.message})` : '';
       if (hexOf(await sha256(concatBytes(spans))) === hexOf(hd.get('hash') as Uint8Array)) {
-        pass(C2PA_CHECK.assertionDataHashMatch,'data hash valid');
+        pass(C2PA_CHECK.assertionDataHashMatch, `data hash valid${qualifier}`);
       } else {
-        fail(C2PA_CHECK.assertionDataHashMismatch,'the file bytes do not match the credential — the file changed after signing');
+        fail(C2PA_CHECK.assertionDataHashMismatch, `the file bytes do not match the credential — the file changed after signing${qualifier}`);
       }
     } catch (err) {
-      fail(C2PA_CHECK.assertionDataHashMismatch,`hard binding could not be checked: ${(err as Error).message}`);
+      const malformed = !!(err as { malformed?: boolean }).malformed && !!report.textBinding;
+      fail(malformed ? C2PA_CHECK.assertionDataHashMalformed : C2PA_CHECK.assertionDataHashMismatch,
+        `hard binding could not be checked: ${(err as Error).message}`);
     }
   }
 

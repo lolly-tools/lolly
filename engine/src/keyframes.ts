@@ -453,6 +453,161 @@ export function kfEaseToken(v: unknown): string {
   return KF_DEFAULT_EASE;
 }
 
+// ─── segment subdivision (the trim/split/join rebase, §5.6) ──────────────────
+
+/** The two eases a subdivided segment needs (see {@link subdivideKfEase}). */
+export interface KfEaseSubdivision {
+  /** Ease for the part BEFORE the cut, renormalised to its own unit square. */
+  readonly left: string;
+  /** Ease for the part AFTER the cut. */
+  readonly right: string;
+}
+
+/**
+ * The curve parameter `s` at which the easing cubic's x reaches `x`.
+ *
+ * `cubicBezierAt` needs y at x and throws the parameter away; a subdivision
+ * needs the parameter itself, because de Casteljau splits in PARAMETER space.
+ * Same solver shape (Newton, then bisection as the guaranteed fallback), and
+ * the same reason it terminates: for control x in [0,1] the cubic's x(s) is
+ * monotone, so the bisection bracket is always valid.
+ */
+function easeParamAtX(x1: number, x2: number, x: number): number {
+  if (x <= 0) return 0;
+  if (x >= 1) return 1;
+  const cx = 3 * x1, bx = 3 * (x2 - x1) - cx, ax = 1 - cx - bx;
+  const sampleX = (t: number): number => ((ax * t + bx) * t + cx) * t;
+  const slopeX = (t: number): number => (3 * ax * t + 2 * bx) * t + cx;
+  let t = x;
+  for (let i = 0; i < 8; i++) {
+    const dx = sampleX(t) - x;
+    if (Math.abs(dx) < 1e-9) return t;
+    const d = slopeX(t);
+    if (Math.abs(d) < 1e-9) break;
+    t -= dx / d;
+    if (!(t >= 0 && t <= 1)) break;
+  }
+  let lo = 0, hi = 1;
+  t = x;
+  for (let i = 0; i < 60 && Math.abs(sampleX(t) - x) > 1e-12; i++) {
+    if (sampleX(t) < x) lo = t; else hi = t;
+    t = (lo + hi) / 2;
+  }
+  return clamp(t, 0, 1);
+}
+
+/**
+ * Below this the renormalisation divides by (almost) nothing — see the
+ * degenerate case in {@link subdivideKfEase}.
+ */
+const SUBDIVIDE_EPS = 1e-4;
+
+/**
+ * A subdivided half, as a token — with the one canonicalisation `easeFromPoints`
+ * cannot make on its own.
+ *
+ * `easeFromPoints` recognises a preset by exact control-point equality, and a
+ * subdivision re-parametrises: splitting LINEAR at the midpoint yields the
+ * control net (0,0)(0.5,0.5), which is the identity curve spelled differently.
+ * Same function, but it would come back as `eb(0)(0)(0.5)(0.5)` — so the halves
+ * of a linear move would each read "Custom" in the easing menu, and the wire
+ * would grow, for a segment nobody eased. `y1 === x1 && y2 === x2` makes
+ * `y(t) === x(t)` identically, so that net IS `el` and is named as such.
+ *
+ * Kept local to the subdivision rather than folded into `easeFromPoints`: the
+ * adapter's job is to round-trip what the easing editor says, and an author who
+ * types `cubic-bezier(0.5,0.5,1,1)` gets that back verbatim.
+ */
+function subdividedEaseToken(x1: number, y1: number, x2: number, y2: number): string | null {
+  // OUT OF RANGE IS NOT A CURVE. `easeFromPoints` CLAMPS y to ±KF_BEZIER_Y_MAX, which
+  // is right for an author typing a wild bezier and catastrophic here: a renormalised
+  // half whose control y is 40 comes back spelled `10`, i.e. a completely different
+  // motion, silently. Null instead, so the caller can keep the original token and say
+  // so. (x is clamped to [0,1] too, but a de Casteljau half of a curve with control x
+  // in [0,1] cannot leave it, so only y can trip this.)
+  if (!Number.isFinite(x1) || !Number.isFinite(y1) || !Number.isFinite(x2) || !Number.isFinite(y2)) return null;
+  if (Math.abs(y1) > KF_BEZIER_Y_MAX || Math.abs(y2) > KF_BEZIER_Y_MAX) return null;
+  const q = KF_BEZIER_QUANTUM;
+  if (quant(x1, q) === quant(y1, q) && quant(x2, q) === quant(y2, q)) return 'el';
+  return easeFromPoints(x1, y1, x2, y2);
+}
+
+/**
+ * Split one segment's ease at `lambda` — the fraction of the segment's TIME at
+ * which a cut lands — into the ease each half needs to reproduce the original
+ * motion. This is what makes a split/trim/join rebase honest rather than
+ * approximately honest (plan §5.6).
+ *
+ * The algebra, once. A segment interpolates `av → bv` through the eased
+ * progress `E(u)`. Cutting at `λ` gives the first half endpoints `av → av +
+ * (bv − av)·E(λ)`, so its own evaluator computes `av + (bv − av)·E(λ)·E_L(u)`
+ * and needs
+ *
+ *     E_L(u) = E(u·λ) / E(λ)
+ *
+ * while the second half runs from that value to `bv` and needs
+ *
+ *     E_R(u) = (E(λ + (1 − λ)·u) − E(λ)) / (1 − E(λ))
+ *
+ * Both are exactly the de Casteljau halves of the cubic at the parameter where
+ * x = λ, each rescaled back into the unit square — which is why this is a
+ * subdivision and not a fit. Returned as canonical tokens (a half that lands on
+ * a preset comes back BY NAME), so the caller can splice them straight into a
+ * track.
+ *
+ * Exactness, stated: the halves reproduce the original to the §4.6 bezier
+ * quantum (0.001 on each control point). Three cases cannot be expressed at all
+ * and keep the original token instead — documented approximations, not silent
+ * ones:
+ *
+ * - `eh` (hold) has no bezier to split; both halves hold.
+ * - `E(λ) → 0` or `E(λ) → 1`: the half's two endpoints coincide, so the
+ *   renormalisation `E(u·λ)/E(λ)` divides by (almost) nothing and a two-point
+ *   segment is constant no matter which curve it carries.
+ * - the renormalised half is OUT OF RANGE: its control y leaves ±10, the bound
+ *   the wire's bezier spelling can hold, so no token can express it.
+ *
+ * THE RESIDUAL, MEASURED (and it is not what the first version of this comment
+ * claimed). Only the overshoot family can reach its own start/end value in
+ * flight — `ev` crosses E = 1 at λ ≈ 0.3691, `ea` returns to E = 0 at
+ * λ ≈ 0.2735 — and the earlier justification ("the excursion is bounded by the
+ * endpoints' separation") is false exactly there: the endpoints COINCIDE while
+ * `ev`'s excursion is 56 % of travel. Around each crossing there is a band —
+ * λ ∈ [0.348, 0.387] for `ev`, λ ∈ [0.264, 0.284] for `ea` — where the halves
+ * are an approximation with up to ~0.10 of error in E, i.e. ~10 px on a 100 px
+ * move, mid-segment; it falls to zero at each edge of the band. That is an
+ * expressive limit, not a bug to fix: a segment whose two endpoint VALUES are
+ * equal cannot carry an excursion in any easing vocabulary, ours or CSS's. The
+ * only thing that was a bug is emitting a clamped, wrong-motion bezier instead
+ * of saying so, which the range check above ends.
+ *
+ * `lambda` outside (0, 1) means the cut is not inside the segment: both halves
+ * keep the original ease.
+ */
+export function subdivideKfEase(ease: unknown, lambda: number): KfEaseSubdivision {
+  const tok = (typeof ease === 'string' ? normaliseKfEase(ease) : null) ?? KF_DEFAULT_EASE;
+  if (tok === KF_HOLD_EASE) return { left: KF_HOLD_EASE, right: KF_HOLD_EASE };
+  const lam = typeof lambda === 'number' && Number.isFinite(lambda) ? lambda : 0;
+  if (!(lam > 0) || !(lam < 1)) return { left: tok, right: tok };
+  const p = easePts(tok) ?? KF_EASE_PRESETS[KF_DEFAULT_EASE as KfEasePresetToken].pts;
+  const [x1, y1, x2, y2] = p;
+  const s = easeParamAtX(x1, x2, lam);
+  // de Casteljau at s over the control net (0,0) (x1,y1) (x2,y2) (1,1).
+  const ax = s * x1, ay = s * y1;                          // lerp(P0, P1)
+  const bx = x1 + (x2 - x1) * s, by = y1 + (y2 - y1) * s;  // lerp(P1, P2)
+  const cx = x2 + (1 - x2) * s, cy = y2 + (1 - y2) * s;    // lerp(P2, P3)
+  const dx = ax + (bx - ax) * s, dy = ay + (by - ay) * s;  // left  inner
+  const ex = bx + (cx - bx) * s, ey = by + (cy - by) * s;  // right inner
+  const fx = dx + (ex - dx) * s, fy = dy + (ey - dy) * s;  // the split point, ≈ (λ, E(λ))
+  const left = (Math.abs(fy) < SUBDIVIDE_EPS || !(fx > 0)
+    ? null
+    : subdividedEaseToken(ax / fx, ay / fy, dx / fx, dy / fy)) ?? tok;
+  const right = (Math.abs(1 - fy) < SUBDIVIDE_EPS || !(fx < 1)
+    ? null
+    : subdividedEaseToken((ex - fx) / (1 - fx), (ey - fy) / (1 - fy), (cx - fx) / (1 - fx), (cy - fy) / (1 - fy))) ?? tok;
+  return { left, right };
+}
+
 // ─── the track ───────────────────────────────────────────────────────────────
 
 /** One keyframe: a time, the ease OUT of it, and the channels it mentions. */

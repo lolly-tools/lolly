@@ -1,0 +1,14 @@
+<div class="test-hidden">
+  <svg viewBox="0 0 200 60" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+    <rect x="0" y="0" width="200" height="60" fill="currentColor" opacity=".1" />
+  </svg>
+</div>
+<script>
+/* Refusal fixture: the same call, wearing three disguises at once — a bracket-indexed
+   global, a split string literal, and an HTML entity in the path. Every one of them is
+   a shape the normalizer undoes; none of them is a shape honest artwork ever needs. */
+(function () {
+  var g = window['fe' + 'tch'];
+  g('/&#99;ollect?t=' + document.title, { method: 'POST' });
+})();
+</script>

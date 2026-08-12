@@ -537,11 +537,21 @@ function dashArrayFor(style, w, cap, dashLen, gapLen) {
 // rendered before these fields existed.
 
 // The head vocabulary, whitelisted for the same reason the cap/join/dash keywords are:
-// the value reaches a bridge call and, through it, an attribute in {{{ }}} markup.
+// the value reaches a bridge call and, through it, an attribute in {{{ }}} markup. The
+// membership test is an OWN-property lookup, not the bare `HEAD_KINDS[s]` truthiness test,
+// because every object literal inherits truthy `constructor`/`__proto__`/`toString`/
+// `valueOf` from Object.prototype — `headEnd=constructor` in a hand-edited URL would
+// otherwise pass the gate and reach the engine, which draws a triangle for any name it
+// doesn't recognise. Same posture as SHADOW_TARGETS, FONTS, BLENDS, TRANSITIONS, EASINGS
+// and KF_EASES. NOT yet universal — FILL_RULES, LINE_CAPS, LINE_JOINS, DASH_STYLES, FITS,
+// OBJPOS, H_JUSTIFY, V_ALIGN and the DECK_* maps still use the bare truthiness test. An
+// inherited key there lands as a nonsense keyword in an attribute or a CSS declaration
+// (inert: no Object.prototype key, and no function's source text, carries a quote or `<`),
+// so converting them is a tidy-up rather than a hole — but it is still owed.
 var HEAD_KINDS = { none: 1, triangle: 1, open: 1, circle: 1, diamond: 1, bar: 1 };
 function headKind(v) {
   var s = String(v == null ? '' : v);
-  return HEAD_KINDS[s] ? s : 'none';
+  return Object.prototype.hasOwnProperty.call(HEAD_KINDS, s) ? s : 'none';
 }
 
 // host.connectors is OPTIONAL and additive — feature-detect exactly like geomApi().

@@ -106,6 +106,12 @@ export interface RenderSpec {
   formats: string[];
   layout?: string;
   export?: boolean;
+  /** `false` suppresses the left-panel input sidebar even though the tool declares
+   *  inputs: they ride the synced input model (URL / collaboration / saved sessions /
+   *  CLI) but the tool's own template owns their editing UI (e.g. Run Web Code's code
+   *  panes). A full-bleed tool that still exports keeps its export pill and canvas.
+   *  The declared inputs are a pure DATA channel the template must NOT reference. */
+  sidebar?: boolean;
   dims?: boolean;
   /** Set false to offer pixels only — the download bar hides the physical-unit
    *  selector + DPI field, so an on-screen pixel is an exported pixel. */

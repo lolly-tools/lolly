@@ -125,6 +125,11 @@
           "default": true,
           "description": "Set false for utility/interactive tools that have no export. Hides download, copy, format, and dimension controls. Shows Save only when the tool has inputs. Hides the sidebar entirely when there are no inputs."
         },
+        "sidebar": {
+          "type": "boolean",
+          "default": true,
+          "description": "Set false to declare inputs that are NOT presented as a left-panel sidebar: the inputs live only in the synced input model (URL params, collaboration, saved sessions, CLI/URL mode) and the tool's own template owns their editing UI. A full-bleed tool that still exports (render.export:true) keeps its export pill and canvas — the input aside is simply suppressed, exactly as for a no-input full-bleed tool. Use this for an interactive editor whose controls belong on the canvas (e.g. Run Web Code's code panes) rather than in a sidebar. Distinct from render.layout:'canvas' (which is for a single file drop-zone and forces export off) and from the chromeless 'editor'/'document' layouts (which keep a fixed render canvas)."
+        },
         "layout": {
           "type": "string",
           "enum": ["sidebar", "canvas", "editor", "document", "deck"],
