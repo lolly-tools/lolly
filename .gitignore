@@ -260,8 +260,14 @@ api/ca/[...path].js.map
 tests/fuzz/current-*.bin
 
 # Translation work files: the offline path's scratch (npm run translate -- --export-pending).
-# Intermediate by design - the durable artefacts are scripts/i18n/cache.json and the catalogs.
+# Intermediate by design - the durable artefacts are the shipped locale catalogs.
 scripts/i18n/pending/
+
+# Translation-memory cache (~17 MB) written by scripts/translate.ts (saveCache -> CACHE_PATH).
+# A dev-only tool artefact: nothing in the build:web chain or the node:test suite reads it
+# (locales.test.ts reads glossary/extra-keys/catalogs, never this), and .vercelignore already
+# excludes it from deploys. Untracked so re-translating stops bloating .git history on every edit.
+scripts/i18n/cache.json
 
 # Real-browser drill artefacts (tests/collab-private.browser.test.ts, LOLLY_DRILL_BASE /
 # LOLLY_DRILL_OUT). One numbered PNG per milestone plus the run's JSON logs — evidence
