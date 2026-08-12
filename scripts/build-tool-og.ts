@@ -49,6 +49,7 @@
  */
 
 import { readFileSync, writeFileSync, mkdirSync, rmSync, existsSync } from 'node:fs';
+import { createHash } from 'node:crypto';
 import { resolve, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { createToolCardRenderer, loadBrandChrome } from '../docs/og-image.ts';
@@ -93,6 +94,17 @@ const STUB_DIR = resolve(PUBLIC, 't');         // → /t/<id>.html        (exact
 // browser (Playwright/Chromium) isn't installed on the Vercel build. Locally, where the
 // browser is available, build:web refreshes these; commit the changes like previews.
 const OG_DIR   = resolve(ROOT, 'catalog/og');  // → /catalog/og/<id>.png (committed)
+// Input-hash gate: a card is re-rendered only when its render inputs change. The render
+// path is non-deterministic (Playwright + Imprint/C2PA stamp → new bytes for identical
+// input), so an ungated build churned ~21MB of PNGs every push. We persist, per tool id,
+// a sha256 over the exact fields passed to renderer.render() plus OG_RENDER_VERSION, in a
+// COMMITTED sidecar manifest (OG_DIR/.og-sigs.json). A card whose stored sig matches AND
+// whose file already exists is skipped. BUMP OG_RENDER_VERSION after any change to the
+// card template / stamp (docs/og-image.ts, stamp-media.ts) — otherwise unchanged inputs
+// keep their old cards. `loldev og` (no --preserve) still forces a full re-render.
+const OG_RENDER_VERSION = 1;
+const SIGS_FILE = resolve(OG_DIR, '.og-sigs.json');
+const sha256 = (s: string): string => createHash('sha256').update(s).digest('hex');
 // --preserve (or LOLLY_PRESERVE=1, which loldev sets so the flag survives the npm chain):
 // keep an already-committed card and skip re-rendering it. Default overwrites every card.
 const PRESERVE = process.argv.includes('--preserve') || process.env.LOLLY_PRESERVE === '1';
@@ -203,6 +215,14 @@ async function main(): Promise<void> {
   mkdirSync(STUB_DIR, { recursive: true });
   mkdirSync(OG_DIR, { recursive: true });
 
+  // Load the committed input-hash manifest (id → sig). Missing/corrupt → empty map, so a
+  // first run (or a bumped OG_RENDER_VERSION) re-renders everything.
+  let sigs: Record<string, string> = {};
+  try {
+    const parsed = JSON.parse(readFileSync(SIGS_FILE, 'utf8'));
+    if (parsed && typeof parsed === 'object') sigs = parsed as Record<string, string>;
+  } catch { /* no manifest yet — treat every card as stale */ }
+
   let cards = 0, stubs = 0, withPreview = 0, overrides = 0;
   for (const t of tools) {
     if (!t.id || !t.name) continue;
@@ -217,16 +237,23 @@ async function main(): Promise<void> {
       overrides++;
     } else {
       // Refresh the committed card when the browser is available (local build:web / dev:web).
-      // With --preserve, keep an existing committed card and skip the re-render.
-      if (renderer && !(PRESERVE && existsSync(resolve(OG_DIR, `${t.id}.png`)))) {
+      // With --preserve, keep an existing committed card and skip the re-render. Also skip
+      // when the input-hash gate says the render inputs are unchanged AND the card exists.
+      const cardPath = resolve(OG_DIR, `${t.id}.png`);
+      const preview = previewDataUri(t.preview);
+      const sig = sha256(JSON.stringify([
+        OG_RENDER_VERSION, t.name, t.description ?? null, t.icon ?? null, preview ?? null,
+      ]));
+      const gated = sigs[t.id] === sig && existsSync(cardPath);
+      if (renderer && !(PRESERVE && existsSync(cardPath)) && !gated) {
         try {
-          const preview = previewDataUri(t.preview);
           if (preview) withPreview++;
           const png = await renderer.render({ name: t.name, description: t.description as string, iconSvg: t.icon as string, previewDataUri: preview ?? undefined });
           // Walk the talk: stamp our own share card with the Lolly Imprint + a "made with
           // Lolly" C2PA credential before committing it (see scripts/lib/stamp-media.ts).
           const stamped = await stampBitmap(png, 'png', { id: t.id, name: t.name });
-          writeFileSync(resolve(OG_DIR, `${t.id}.png`), stamped);
+          writeFileSync(cardPath, stamped);
+          sigs[t.id] = sig;
           cards++;
         } catch (e) {
           console.log(`tool-og: ${t.id} card failed (${(e as Error).message})`);
@@ -248,6 +275,18 @@ async function main(): Promise<void> {
   }
 
   await rasterizer?.close();
+
+  // Persist the input-hash manifest (committed). Deterministic (sorted keys) so an
+  // unchanged build leaves no diff. Prune ids no longer in the catalog so it can't grow
+  // unboundedly, but only when a renderer ran — a browser-less/Vercel build must not drop
+  // sigs for tools whose committed cards it can't re-render.
+  if (renderer) {
+    const live = new Set(tools.filter(t => t.id && t.name).map(t => t.id as string));
+    for (const id of Object.keys(sigs)) if (!live.has(id)) delete sigs[id];
+  }
+  const ordered: Record<string, string> = {};
+  for (const id of Object.keys(sigs).sort()) ordered[id] = sigs[id] as string;
+  writeFileSync(SIGS_FILE, `${JSON.stringify(ordered, null, 2)}\n`);
 
   const total = tools.filter(t => t.id && t.name).length;
   console.log(`✓ tool-og: ${stubs} stub${stubs === 1 ? '' : 's'}, ${cards} card${cards === 1 ? '' : 's'} refreshed (${withPreview} with preview, ${overrides} author override${overrides === 1 ? '' : 's'}); ${total - overrides} tools point at committed cards`);
