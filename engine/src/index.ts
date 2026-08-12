@@ -146,6 +146,15 @@ export type {
 } from './rate-card.ts';
 export { parseSvgPath, parseSvgPathArgs, svgArcToBeziers } from './svg-path.ts';
 export { extractSvgColors } from './svg-colors.ts';
+// Lift layers (1.119, plans/104 §7): an SVG's own layers enumerated into one
+// standalone document each, so a flat drawing becomes a stack of boxes with real
+// depth. DOM-free, so the CLI lifts the same way the editor does.
+export {
+  enumerateSvgLayers,
+  SVG_LAYERS_MAX, SVG_LAYERS_MAX_CHARS, SVG_LAYERS_MAX_TAGS, SVG_LAYERS_MAX_CANDIDATES,
+  SVG_LAYERS_MAX_DEPTH, SVG_LAYERS_MAX_DESCENT, SVG_LAYERS_MAX_REFS,
+} from './svg-layers.ts';
+export type { SvgLayer, SvgLayerBox, SvgLayersResult, SvgLayerOptions } from './svg-layers.ts';
 export { renderZzfxm, zzfxG, zzfxM, zzfxR, zzfxV } from './zzfxm.ts';
 export type {
   ZzfxSong, ZzfxInstrument, ZzfxChannel, ZzfxPattern, RenderedPcm,

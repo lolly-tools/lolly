@@ -24,7 +24,9 @@ import {
   routedLineSvg, pathRouteStyle, isConnectorRouteStyle, CONNECTOR_ROUTE_STYLES,
   edgeWaypoints, buildConnectorSvg,
   pathEndTangents, pathEndPoints,
+  liftRows, applyLift, LIFT_Z_STEP,
 } from '../shells/web/src/views/free-canvas-math.ts';
+import { KF_Z_FIELD_CLAMP } from '../engine/src/keyframes.ts';
 
 const CFG: any = {
   idField: 'id', xField: 'x', yField: 'y', wField: 'w', hField: 'h', rotationField: 'rot',
@@ -795,4 +797,109 @@ test('pathEndPoints: the two points the heads sit on are the first + last lowere
   ];
   assert.deepEqual(pathEndPoints(L), { start: { x: 0, y: 0 }, end: { x: 100, y: 100 } });
   assert.equal(pathEndPoints([]), null);
+});
+
+// ── Lift layers: the replacement rows (plans/104 §7 P3) ─────────────────────
+//
+// The engine decides WHAT the layers are (`enumerateSvgLayers`, goldens in
+// tests/svg-layers.test.ts). These pin what a lift does to the MODEL: geometry
+// held, depth staggered, the source's own paint redistributed so the stack
+// paints in the order the single box did.
+
+const LIFT_CFG: any = {
+  ...CFG,
+  imageField: 'image', groupField: 'group', zField: 'z', shadowField: 'shadow',
+  kindField: 'kind', textField: 'text', fillField: 'bg', gradField: 'grad',
+};
+
+const liftSrc = (o: any = {}): any => ({
+  id: 'b1', kind: 'image', x: 40, y: 60, w: 300, h: 200, rot: 12, opacity: 0.9, shadow: 'none',
+  image: 'data:image/svg+xml,whole', text: 'Caption', bg: '#101418', grad: 'lin',
+  fit: 'contain', blend: 'normal', frame: 'f1', start: 2, dur: 3,
+  ...o,
+});
+
+const LAYERS = [
+  { src: 'data:image/svg+xml,L1', id: 'b2' },
+  { src: 'data:image/svg+xml,L2', id: 'b3' },
+  { src: 'data:image/svg+xml,L3', id: 'b4' },
+];
+
+test('liftRows: one row per layer, each holding its own derived SVG', () => {
+  const rows = liftRows(liftSrc(), LAYERS, LIFT_CFG, { group: 'g9', zClamp: KF_Z_FIELD_CLAMP });
+  assert.equal(rows.length, 3);
+  assert.deepEqual(rows.map((r: any) => r.image), LAYERS.map((l) => l.src));
+  assert.deepEqual(rows.map((r: any) => r.id), ['b2', 'b3', 'b4']);
+});
+
+test('liftRows: geometry is IDENTICAL on every row — a lift moves nothing', () => {
+  const src = liftSrc();
+  for (const r of liftRows(src, LAYERS, LIFT_CFG, { group: 'g9' }) as any[]) {
+    for (const k of ['x', 'y', 'w', 'h', 'rot', 'opacity', 'fit', 'blend', 'frame', 'start', 'dur']) {
+      assert.equal(r[k], src[k], `${k} must survive the lift unchanged`);
+    }
+  }
+});
+
+test('liftRows: depth auto-staggers 0/40/80 and every row shares one group', () => {
+  const rows = liftRows(liftSrc(), LAYERS, LIFT_CFG, { group: 'g9' }) as any[];
+  assert.deepEqual(rows.map((r) => r.z), [0, LIFT_Z_STEP, LIFT_Z_STEP * 2]);
+  assert.deepEqual(rows.map((r) => r.group), ['g9', 'g9', 'g9']);
+});
+
+test('liftRows: `shadow: depth` is pre-set, and can be opted out of', () => {
+  assert.deepEqual((liftRows(liftSrc(), LAYERS, LIFT_CFG) as any[]).map((r) => r.shadow), ['depth', 'depth', 'depth']);
+  assert.deepEqual((liftRows(liftSrc(), LAYERS, LIFT_CFG, { shadow: '' }) as any[]).map((r) => r.shadow),
+    ['none', 'none', 'none'], 'shadow:"" leaves the source\'s own value alone');
+});
+
+test('liftRows: the depth clamp is the engine\'s, not a re-typed number', () => {
+  const many = Array.from({ length: 40 }, (_, i) => ({ src: `s${i}`, id: `b${i}` }));
+  const rows = liftRows(liftSrc(), many, LIFT_CFG, { zClamp: KF_Z_FIELD_CLAMP }) as any[];
+  assert.equal(rows[rows.length - 1]!.z, KF_Z_FIELD_CLAMP[1], 'a deep stack clamps at the field ceiling');
+  assert.ok(rows.every((r) => r.z >= KF_Z_FIELD_CLAMP[0] && r.z <= KF_Z_FIELD_CLAMP[1]));
+});
+
+test('liftRows: paint order survives — bg on the bottom row, text on the top, artwork on each', () => {
+  const rows = liftRows(liftSrc(), LAYERS, LIFT_CFG, { group: 'g9' }) as any[];
+  assert.equal(rows[0]!.bg, '#101418', 'the background paints first, so it rides the bottom row');
+  assert.equal(rows[0]!.grad, 'lin');
+  assert.deepEqual([rows[1]!.bg, rows[2]!.bg], ['', ''], 'and is not composited N times over');
+  assert.equal(rows[2]!.text, 'Caption', 'the text paints last, so it rides the top row');
+  assert.deepEqual([rows[0]!.text, rows[1]!.text], ['', ''], 'and is not printed N times');
+});
+
+test('liftRows: a single-layer lift keeps the whole source row intact', () => {
+  const rows = liftRows(liftSrc(), [LAYERS[0]!], LIFT_CFG) as any[];
+  assert.equal(rows.length, 1);
+  assert.equal(rows[0]!.bg, '#101418');
+  assert.equal(rows[0]!.text, 'Caption');
+  assert.equal(rows[0]!.z, 0);
+});
+
+test('liftRows: no layers is a no-op, not a box that lost its artwork', () => {
+  assert.deepEqual(liftRows(liftSrc(), [], LIFT_CFG), []);
+});
+
+test('liftRows: the source object is never mutated', () => {
+  const src = liftSrc();
+  const snapshot = JSON.stringify(src);
+  liftRows(src, LAYERS, LIFT_CFG, { group: 'g9' });
+  assert.equal(JSON.stringify(src), snapshot);
+});
+
+test('applyLift: the rows land WHERE the source was — array order is z-order here', () => {
+  const boxes: any[] = [{ id: 'a' }, liftSrc(), { id: 'c' }];
+  const rows = liftRows(boxes[1], LAYERS, LIFT_CFG, { group: 'g9' });
+  const out = applyLift(boxes, 1, rows) as any[];
+  assert.deepEqual(out.map((b) => b.id), ['a', 'b2', 'b3', 'b4', 'c']);
+  assert.equal(out.length, 5, 'the source row is replaced, never kept alongside');
+  assert.deepEqual(boxes.map((b) => b.id), ['a', 'b1', 'c'], 'and the input array is untouched');
+});
+
+test('applyLift: an out-of-range index changes nothing', () => {
+  const boxes: any[] = [{ id: 'a' }];
+  assert.equal(applyLift(boxes, 5, [{ id: 'x' }]), boxes);
+  assert.equal(applyLift(boxes, -1, [{ id: 'x' }]), boxes);
+  assert.equal(applyLift(boxes, 0, []), boxes);
 });

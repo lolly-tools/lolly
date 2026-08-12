@@ -78,7 +78,7 @@ test('the sensor capabilities still validate (screen is additive, not a replacem
 
 // ─── version ─────────────────────────────────────────────────────────────────
 
-test('ENGINE_VERSION is 1.118.0', () => {
+test('ENGINE_VERSION is 1.119.0', () => {
   // A literal pin: the screencap surface shipped at 1.54, and tools declare
   // ^1.54.0 to require it. session-record only checks the stamp equals whatever
   // ENGINE_VERSION happens to be (tautological) — this catches an errant bump.
@@ -246,8 +246,12 @@ test('ENGINE_VERSION is 1.118.0', () => {
   // that REPLACE the box's size for their segment, so a tween can reflow text.
   // `KF_MAX_CHARS` moved 40960 → 49152 because it is DERIVED from KF_MAX_KEYS and
   // two more channels are 20 chars a key; no HostV1 method changed).
+  // Then 1.119.0 (plans/104 §7 P3 — `engine/src/svg-layers.ts`: "Lift layers"
+  // enumerates a sanitised SVG's own layers into one standalone document each,
+  // DOM-free so the CLI lifts the same way the editor does; read-only, no HostV1
+  // method changed).
   // The ^1.54.0 screencap floor below still holds (a minor bump satisfies it).
-  assert.equal(ENGINE_VERSION, '1.118.0');
+  assert.equal(ENGINE_VERSION, '1.119.0');
 });
 
 // ─── loadTool: a ^1.54.0 tool loads against this engine ───────────────────────
