@@ -1890,6 +1890,10 @@ test('the neutral table IS what an absent channel composes to (the foldKfPose re
   // from this table would silently move the box.
   assert.deepEqual({ ...KF_NEUTRAL }, {
     x: 0, y: 0, z: 0, s: 1, r: 0, rx: 0, ry: 0, o: 1, b: 0, f: 0, a: 0, p: 1200,
+    // `w`/`h` are the `z` case: 0 stands for "unauthored", and the fold reads that as
+    // the box's own size. Never seeded (see KF_POSE_SEED) — a size in every diamond
+    // would reflow every keyed box.
+    w: 0, h: 0,
   });
 });
 
@@ -1950,4 +1954,33 @@ test('clearKfTrack / setKfTrack write the ONE field and nothing else', () => {
   assert.equal(cleared[0]!.clipIn, 0.5, 'nor is anything else the box carried');
   assert.equal(clearKfTrack(rows, cfg, 'x'), rows, 'a tool with no kf field has nothing to clear');
   assert.equal(String(setKfTrack(rows, zCfg, 'x', kfTrackDelete(parseKf('t0_x0*t1500_x40'), 0))[0]!.kf), 't1500_x40');
+});
+
+// ── P1a: the size channels ride the rebase (plans/104 §5.2 + §5.6) ──────────
+
+test('the rebase is channel-agnostic, so `w`/`h` split, trim and join like everything else', () => {
+  // §5.6 rewrites the TRACK, not a list of channels — which is exactly why adding two
+  // to the grammar (§5.2, P1) needs no rebase change. This is the assertion that keeps
+  // it that way: the same continuity harness, driven by the new channels alone, over
+  // the same eased cut the full-pose case uses.
+  minted = 0;
+  const SIZE_TRACK = 't0_eo_w640_h360*t1200_ei_w1280_h720*t3000_w640_h360';
+  const rows = kfClip(SIZE_TRACK);
+  const orig = trackOf(rows[0]);
+  assert.deepEqual(kfChannelsUsed(orig), ['w', 'h'], 'the fixture really does key only the size');
+
+  const out = splitBox(rows, kfCfg, 'x', 1.5, mintId)!;
+  const a = trackOf(byId(out, 'x'));
+  const b = trackOf(byId(out, 'new-1'));
+  assertContinuity(orig, a, 0, 0, 1500, 'A half (size)');
+  assertContinuity(orig, b, 1500, 0, 1500, 'B half (size)');
+  assert.deepEqual(evaluateKf(a, 1500), evaluateKf(b, 0), 'the halves meet at the cut');
+  // …and the crossing segment really was SUBDIVIDED, not copied to both halves — the
+  // vacuity guard, restated for the channels that arrived last.
+  assert.notEqual(a.find((k) => k.t === 1200)?.ease, 'ei');
+
+  // An IN trim shifts the size track by the head it removed, exactly as it shifts x.
+  minted = 0;
+  const trimmed = trimClip(kfClip(SIZE_TRACK), kfCfg, 'x', 'in', 0.8, null);
+  assertContinuity(orig, trackOf(byId(trimmed, 'x')), 800, 0, 2000, 'trim-in (size)');
 });

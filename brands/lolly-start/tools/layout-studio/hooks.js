@@ -980,7 +980,10 @@ function clipCss(b, byId) {
 // (on the text run), 'content' → filter:drop-shadow (the visible alpha silhouette,
 // e.g. a transparent PNG / icon), 'depth' → the same drop-shadow, but DERIVED from the
 // box's own `z` instead of the manual offsets (plan 104 §5.3). Returns the fragments for
-// each target element. Raster and SVG export are faithful; PDF carries it partially.
+// each target element. Raster and SVG export are faithful. PDF reaches all four too, but
+// by two different routes: 'box' and 'text' are true vector (the walker's Gaussian-CDF
+// band fan), while 'content' and 'depth' follow the alpha silhouette, which no PDF
+// operator describes, so that box takes the per-element raster escape hatch.
 //
 // An own-property lookup, not the bare `SHADOW_TARGETS[tgt]` truthiness test: every
 // object literal inherits truthy `constructor`/`__proto__`/`toString`/`valueOf` from

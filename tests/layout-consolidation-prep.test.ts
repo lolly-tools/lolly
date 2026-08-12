@@ -181,6 +181,52 @@ test('G2 — canvas.import lists the full design-format set, and scenes mode sta
   }
 });
 
+test('P1 — the CAMERA add-kind is back, inside the timed group, seeding kind:"camera"', () => {
+  // M0 gated it out of all three manifests on purpose (§9.2): the wire and the hooks'
+  // marker shipped, but no affordance could CREATE a camera until P1 wired the
+  // inspector and the canvas gestures. This is that re-add, and it is the only thing
+  // standing between a user and the depth camera.
+  //
+  // Placed at the END of the timed group (audio, clip, card, camera) rather than
+  // immediately after `audio` as §9.2 sketched: the sketch predates the clip/card pair
+  // the safe-pack inserted, and G3 below pins those three as one adjacent group because
+  // the timeline's add menu reads in manifest order. Same group, same reading, no pin
+  // broken.
+  for (const brand of BRANDS) {
+    const kinds = addKindsOf(brand);
+    const cam = kinds.find((k) => k.id === 'camera');
+    assert.ok(cam, `${brand}: no "camera" add-kind — nothing in the UI can create a scene camera`);
+    assert.equal(cam!.label, 'Camera');
+    assert.deepEqual(cam!.seed, { kind: 'camera' }, `${brand}: a camera is its KIND and nothing else`);
+    assert.ok(optionValues(brand, 'kind').includes('camera'),
+      `${brand}: the camera add-kind seeds a kind the manifest's own select does not declare`);
+    const ids = kinds.map((k) => k.id);
+    assert.equal(ids.indexOf('camera') - ids.indexOf('card'), 1,
+      `${brand}: the camera sits with the timed kinds — order was ${ids.join(',')}`);
+  }
+
+  // THE THIRD COPY. §9.2 says three manifests, and the loop above reads two — it walks
+  // brand PACKS, and Sequence Studio lives in `community/`. It is also the tool the
+  // timeline feature is for: without this entry neither the canvas add-menu nor the
+  // timeline `+` could create a camera there, so §5.4's "a SECOND camera is how you cut"
+  // had no affordance in the one place it matters most. (The implicit scene camera still
+  // worked — `ensureSceneCameraRows` needs no seed — so CUTS were the lost capability.)
+  const ss = JSON.parse(readFileSync(join(ROOT, 'community', 'sequence-studio', 'tool.json'), 'utf8'));
+  const ssBoxes = (ss.inputs as BoxesInput[]).find((x) => x.id === 'boxes');
+  assert.ok(ssBoxes, 'sequence-studio: no boxes input');
+  const ssKinds = (ssBoxes!.canvas?.addKinds ?? []) as AddKind[];
+  const ssCam = ssKinds.find((k) => k.id === 'camera');
+  assert.ok(ssCam, 'sequence-studio: no "camera" add-kind — the timeline tool cannot create a camera');
+  assert.equal(ssCam!.label, 'Camera');
+  assert.deepEqual(ssCam!.seed, { kind: 'camera' }, 'sequence-studio: a camera is its KIND and nothing else');
+  const ssOpts = ((ssBoxes!.fields || []).find((f) => f.id === 'kind') as { options?: { value: string }[] } | undefined)?.options ?? [];
+  assert.ok(ssOpts.map((o) => String(o.value)).includes('camera'),
+    'sequence-studio: the seed names a kind its own select does not declare');
+  const ssIds = ssKinds.map((k) => k.id);
+  assert.equal(ssIds.indexOf('camera') - ssIds.indexOf('audio'), 1,
+    `sequence-studio: the camera follows audio, as §9.2 sketched — order was ${ssIds.join(',')}`);
+});
+
 test('G3 — the magnetic-row seeds (clip, card) ship beside the existing media kinds', () => {
   for (const brand of BRANDS) {
     const kinds = addKindsOf(brand);

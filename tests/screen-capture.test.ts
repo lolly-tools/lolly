@@ -78,7 +78,7 @@ test('the sensor capabilities still validate (screen is additive, not a replacem
 
 // ─── version ─────────────────────────────────────────────────────────────────
 
-test('ENGINE_VERSION is 1.117.0', () => {
+test('ENGINE_VERSION is 1.118.0', () => {
   // A literal pin: the screencap surface shipped at 1.54, and tools declare
   // ^1.54.0 to require it. session-record only checks the stamp equals whatever
   // ENGINE_VERSION happens to be (tautological) — this catches an errant bump.
@@ -242,8 +242,12 @@ test('ENGINE_VERSION is 1.117.0', () => {
   // gains html/js/css/md, placeHtml (§A.7 inline) + placeArmor (§A.9 armoured block),
   // and the documented `html-fragment` Lolly profile; write-only, no HostV1 method
   // changed).
+  // Then 1.118.0 (plans/104 §5.2 P1 — the `kf` grammar gains `w`/`h`: absolute px
+  // that REPLACE the box's size for their segment, so a tween can reflow text.
+  // `KF_MAX_CHARS` moved 40960 → 49152 because it is DERIVED from KF_MAX_KEYS and
+  // two more channels are 20 chars a key; no HostV1 method changed).
   // The ^1.54.0 screencap floor below still holds (a minor bump satisfies it).
-  assert.equal(ENGINE_VERSION, '1.117.0');
+  assert.equal(ENGINE_VERSION, '1.118.0');
 });
 
 // ─── loadTool: a ^1.54.0 tool loads against this engine ───────────────────────

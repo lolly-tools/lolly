@@ -6,6 +6,26 @@ minors, never removed or signature-changed without a major bump.
 
 Moved verbatim from the comment block that used to live in `src/index.ts`.
 
+1.118.0 — additive: the `kf` wire grammar gains the `w` and `h` channels
+(`engine/src/keyframes.ts`; plans/104 §5.2, the P1 reversal — Andy, 2026-08-12 hands-on:
+"I can't change width and height of elements and have them tween"). Both are ABSOLUTE px
+and REPLACE the box's own size for their segment, exactly as `z` replaces the `z` field —
+a multiplier reading is what `s` already is, and `s` does not reflow. Clamped to
+[0, 16384] (twice `PLATE_LONG_SIDE_LARGE`: this is the untrusted-input backstop, the
+operative limit is the plate budget's long-side cap, which knows the export scale),
+quantised at 0.01 like every other px channel. The vocabulary stays append-only — the two
+names are added at the TAIL of `KF_CHANNELS`, because that array is the canonical
+serialisation order and inserting in the middle would re-spell tracks already on the wire.
+Consequence, and the reason this is a minor rather than a footnote: `KF_MAX_CHARS` is
+DERIVED from `KF_MAX_KEYS`, and two more channels are 20 chars per key — the widest key
+goes 154 → 174 chars and a full-density track 39 679 → 44 799 — so the cap moves
+40 960 → 49 152 to keep dominating (`tests/keyframes.test.ts` re-derives it and would have
+failed otherwise). No HostV1 method changed. Consumers: the sequence DOM applier writes
+`width`/`height` per frame — the one deliberate exception to the no-layout-writes rule,
+because text REFLOWING is the whole point — and the canvas compositor treats a w/h-tweened
+layer like a live Lottie (per-frame re-capture), since a stretched plate would diverge from
+the preview's reflow and parity beats speed.
+
 1.117.0 — additive: C2PA 2.4 text-binding WRITE side (`engine/src/c2pa-containers.ts`,
 `engine/src/c2pa.ts`; plans/105 M3 — `plans/105-m345-brief.md`,
 `plans/105-c2pa-text-bindings-and-docs-mastheads.md` §5). `C2PA_FORMATS` gains `html`, `js`,

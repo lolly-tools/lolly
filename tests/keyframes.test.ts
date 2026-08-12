@@ -202,6 +202,12 @@ test('the char cap DOMINATES the key cap: a full-density track always fits', () 
     fullDensity <= KF_MAX_CHARS,
     `KF_MAX_KEYS × ${widestKey} + separators = ${fullDensity} must fit KF_MAX_CHARS = ${KF_MAX_CHARS}`,
   );
+  // The two numbers KF_MAX_CHARS's own docblock PRINTS. A cap whose whole claim is
+  // "derived, not picked" has to have a derivation that reproduces, so the prose is
+  // pinned here rather than left to be read: change a clamp, a quantum or the channel
+  // list and this fails beside the headroom assertion above, naming both figures.
+  assert.equal(widestKey, 174, 'the widest single keyframe, as the docblock states it');
+  assert.equal(fullDensity, 44_799, 'a full-density 256-key track, as the docblock states it');
 
   // …and empirically, on the worst track the grammar can express.
   const worst = Array.from({ length: KF_MAX_KEYS }, (_v, i) => ({
@@ -827,7 +833,11 @@ test('EVERY resolved channel is held to its range, not just p (an overshoot ease
 // ─── surface invariants ──────────────────────────────────────────────────────
 
 test('the channel vocabulary, its clamps and its quanta are all declared together', () => {
-  assert.deepEqual([...KF_CHANNELS], ['x', 'y', 'z', 's', 'r', 'rx', 'ry', 'o', 'b', 'f', 'a', 'p']);
+  // APPEND-ONLY, and the order IS the serialisation order: `w`/`h` (plans/104 §5.2, P1)
+  // joined at the TAIL, never beside x/y where they read better, because inserting in
+  // the middle would re-spell every track already on the wire.
+  assert.deepEqual([...KF_CHANNELS],
+    ['x', 'y', 'z', 's', 'r', 'rx', 'ry', 'o', 'b', 'f', 'a', 'p', 'w', 'h']);
   for (const ch of KF_CHANNELS) {
     assert.ok(isKfChannel(ch));
     assert.ok(Object.hasOwn(KF_CLAMPS, ch), `${ch} has a clamp`);
@@ -839,8 +849,13 @@ test('the channel vocabulary, its clamps and its quanta are all declared togethe
   assert.deepEqual([...KF_CLAMPS.o], [0, 1]);
   assert.deepEqual([...KF_CLAMPS.a], [0, 1]);
   assert.deepEqual([...KF_CLAMPS.s], [0.01, 100]);
+  // Size is a CONTENT-box channel: a camera has no width, and `KF_CAMERA_CHANNELS` is
+  // what `resolveCamera` iterates, so a stray `w` token on a camera track is inert.
   assert.deepEqual([...KF_CAMERA_CHANNELS], ['x', 'y', 'z', 'rx', 'ry', 'f', 'a', 'p']);
-  for (const bad of ['w', 'h', 'q', '', 'toString', '__proto__', 1, null] as unknown[]) {
+  assert.deepEqual([...KF_CLAMPS.w], [0, 16384], 'absolute px, non-negative');
+  assert.deepEqual([...KF_CLAMPS.h], [0, 16384]);
+  assert.equal(KF_QUANTA.w, 0.01);
+  for (const bad of ['q', 'wh', '', 'toString', '__proto__', 1, null] as unknown[]) {
     assert.equal(isKfChannel(bad), false, String(bad));
   }
   // A prototype key can never be read as a channel through the wire either.

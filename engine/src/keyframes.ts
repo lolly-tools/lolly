@@ -50,7 +50,9 @@
  *
  * On a CONTENT box, `x/y/s/r/o/b` are relative (offsets/multipliers over the
  * authored + transition values — the consumer folds them, §5.2), and a keyed
- * `z` REPLACES the box's `z` field for that segment. On a CAMERA, that same
+ * `z` REPLACES the box's `z` field for that segment — as do `w`/`h`, which are
+ * absolute px and replace the box's own size (a multiplier there would be `s`,
+ * which already exists and does not reflow). On a CAMERA, that same
  * replace rule is generalised to the whole pose: a keyed channel replaces the
  * base pose, and the base is the value wherever no token is authored. There is
  * no sensible additive reading of a focal length.
@@ -58,8 +60,15 @@
 
 // ─── channels ────────────────────────────────────────────────────────────────
 
-/** Every channel the grammar knows, in canonical serialisation order. */
-export const KF_CHANNELS = ['x', 'y', 'z', 's', 'r', 'rx', 'ry', 'o', 'b', 'f', 'a', 'p'] as const;
+/**
+ * Every channel the grammar knows, in canonical serialisation order.
+ *
+ * APPEND-ONLY. `w`/`h` joined at the tail (plans/104 §5.2, the P1 reversal) rather
+ * than beside `x`/`y` where they read better, because the order IS the serialisation
+ * order: inserting one in the middle would re-spell every track already on the wire
+ * and break the §4.6 round-trip law for links that are already shared.
+ */
+export const KF_CHANNELS = ['x', 'y', 'z', 's', 'r', 'rx', 'ry', 'o', 'b', 'f', 'a', 'p', 'w', 'h'] as const;
 
 export type KfChannel = (typeof KF_CHANNELS)[number];
 
@@ -119,6 +128,15 @@ export const KF_CLAMPS = Object.freeze({
   f: [-3000, 3000],
   a: [0, 1],
   p: [50, 12000],
+  // ABSOLUTE px, and non-negative: a keyed `w`/`h` REPLACES the box's own size for
+  // that segment (§5.2), so there is no additive reading to allow a negative for.
+  // 16384 is deliberately twice `PLATE_LONG_SIDE_LARGE`, the widest plate any shell
+  // will actually capture: this is the untrusted-input backstop (a hand-edited share
+  // URL), and the operative limit on a stretched layer is the plate budget's own
+  // long-side cap, which is measured in device px and knows the export scale. A wire
+  // clamp tighter than that would silently disagree with the budget on big boards.
+  w: [0, 16384],
+  h: [0, 16384],
 } as const) satisfies Readonly<Record<KfChannel, readonly [number, number]>>;
 
 /**
@@ -139,6 +157,7 @@ export const KF_QUANTA = Object.freeze({
   r: 0.01, rx: 0.01, ry: 0.01,
   s: 0.001, o: 0.001, a: 0.001,
   f: 0.01, p: 0.01,
+  w: 0.01, h: 0.01,
 } as const) satisfies Readonly<Record<KfChannel, number>>;
 
 /** Bezier control points quantise finer than px (§4.6). */
@@ -158,20 +177,24 @@ export const KF_MAX_KEYS = 256;
  * This is the untrusted-input BACKSTOP, and it is deliberately derived from
  * `KF_MAX_KEYS` rather than picked: the two caps have to be mutually
  * satisfiable or the module produces a wire it then mangles. The widest a
- * single keyframe can serialise to is `t` at its cap + the widest custom bezier
- * + all 12 channels at the widest spelling their clamp and quantum allow + the
- * separators = 154 chars, so a full-density track is 256 × 154 + 255 = 39 679.
- * 40 960 clears that, which is what makes the §4.6 round-trip law
+ * single keyframe can serialise to is `t` at its cap (8) + the separator + the
+ * widest custom bezier (32) + all 14 channels at the widest spelling their
+ * clamp and quantum allow (119) + one separator per channel (14) = 174 chars,
+ * so a full-density track is 256 × 174 + 255 = 44 799.
+ * 49 152 (48 KiB) clears that, which is what makes the §4.6 round-trip law
  * `parse(serialise(parse(s))) === parse(s)` hold BY CONSTRUCTION for every
  * input: the key cap dominates, so `serialiseKf` can never hand back a string
- * `parseKf` would truncate. `tests/keyframes.test.ts` re-derives the 154 from
+ * `parseKf` would truncate. `tests/keyframes.test.ts` re-derives the 174 from
  * `KF_CLAMPS`/`KF_QUANTA` and fails if a widened clamp ever eats the headroom —
- * re-derive this constant then, don't paper over it.
+ * re-derive this constant then, don't paper over it. It has already happened
+ * once, which is why the test exists: `w`/`h` (plans/104 §5.2, P1) added two
+ * channels worth 20 chars per key, i.e. 5 120 chars of full-density track, and
+ * 40 960 stopped dominating.
  *
  * (Plan §5.1 said 8 KB, written before anyone measured a full-pose track: at
  * 8 KB a 256-key camera track loses ~148 of its keyframes on the way out.)
  */
-export const KF_MAX_CHARS = 40960;
+export const KF_MAX_CHARS = 49152;
 
 /** `t` is clamped to this (MAX_TIME_S · 1000). */
 export const KF_MAX_TIME_MS = 3_600_000;
