@@ -71,7 +71,9 @@ function trackedFiles(cwd: string): string[] {
 function globToRegExp(glob: string): RegExp {
   let out = '';
   for (let i = 0; i < glob.length; i++) {
-    const c = glob[i];
+    // `noUncheckedIndexedAccess` types a string index as `string | undefined`; `i` is
+    // bounded by the loop, so the coalesce is a typing formality, not a guard.
+    const c = glob[i] ?? '';
     if (c === '*') {
       if (glob[i + 1] === '*') {
         if (glob[i + 2] === '/') {

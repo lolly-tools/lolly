@@ -28,6 +28,12 @@ import { HIGH_WATER } from '../../shells/web/src/bridge/video-encode-core.ts';
 import { MAX_LIVE_PROVIDERS } from '../../shells/web/src/bridge/sequence-render.ts';
 import { createExportAPI } from '../../shells/web/src/bridge/export.ts';
 import { applyTimeToElements, createAuthoredStore, OFF_CLASS } from '../../shells/web/src/views/sequence-clock.ts';
+// The SESSION entry point, imported from the bridge module that owns it: it enumerates
+// its own element set (`POSED_SEL`, which includes the untimed scene camera), so a still
+// taken through it is the one the editor's preview actually shows — the divergence the
+// P1 review's HIGH-1 was about. `applyTimeToElements` above is hand-fed the planner's
+// list, which cannot see that difference.
+import { createSequenceTime } from '../../shells/web/src/bridge/sequence-dom.ts';
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 type Any = any;
@@ -254,6 +260,27 @@ export interface BoxSpec {
   exit?: string | null;
   exitMs?: number;
   lane?: 'seq' | '';
+  /**
+   * plans/104 §5.3 — the per-box depth field, emitted as `data-t-z` exactly the way
+   * `timeAttrsFor` does (a clamped integer, absent at 0).
+   */
+  z?: number | null;
+  /** plans/104 §5.1 — the keyframe track, emitted as `data-t-kf`. */
+  kf?: string | null;
+  /**
+   * plans/104 §5.4 — a CAMERA box: the non-visual `[data-cam]` marker and nothing
+   * else, exactly what `mediaHtmlFor` emits for `kind: 'camera'`. The pose rides on
+   * the wrapper's `data-t-kf`/`data-t-z` like every other box's timing.
+   */
+  camera?: boolean;
+  /**
+   * plans/104 §5.3 — `shadow: depth`, derived from `z` by the same straight-overhead
+   * formula the three `hooks.js` copies share:
+   * `drop-shadow(0px z·0.15px (10 + z·0.2)px #00000055)`.
+   */
+  depthShadow?: boolean;
+  /** A raw `filter` for the box (the authored-filter tier the plates bake). */
+  filter?: string;
 }
 
 export interface StageSpec {
@@ -270,8 +297,13 @@ function buildStage(spec: StageSpec): HTMLElement {
     st.id = 'seq-test-css';
     // The panel's own stylesheet owns what seq-off means; the export tier only needs
     // the one rule so an off-playhead box is genuinely absent from a still capture.
+    // `.lolly-box-cam` is hidden here because BOTH layout-studio copies hide it in
+    // their own styles.css — the camera marker is a model element the evaluators
+    // read, and it must never paint. Omitting the rule would make this stage more
+    // permissive than the tool it stands in for.
     st.textContent = `.seq-off{display:none!important}.lolly-box{position:absolute;box-sizing:border-box;overflow:hidden}
       .artboard{position:relative;overflow:hidden}
+      .lolly-box-cam{display:none}
       body{margin:0}`;
     document.head.append(st);
   }
@@ -328,6 +360,27 @@ function buildStage(spec: StageSpec): HTMLElement {
     if (b.enter) { el.setAttribute('data-t-enter', b.enter); el.setAttribute('data-t-enter-ms', String(b.enterMs ?? 400)); }
     if (b.exit) { el.setAttribute('data-t-exit', b.exit); el.setAttribute('data-t-exit-ms', String(b.exitMs ?? 400)); }
     if (b.lane) el.setAttribute('data-t-lane', b.lane);
+    // plans/104 — depth, the keyframe track and the camera marker, emitted the way
+    // `timeAttrsFor` / `mediaHtmlFor` emit them so the evaluators see the same DOM
+    // the real tool produces.
+    const z = Number(b.z ?? 0);
+    if (Number.isFinite(z) && z !== 0) el.setAttribute('data-t-z', String(Math.round(z)));
+    if (b.kf) el.setAttribute('data-t-kf', b.kf);
+    if (b.depthShadow) {
+      const dy = Math.round(z * 0.15 * 100) / 100;
+      const dbl = Math.round(Math.max(0, Math.min(300, 10 + z * 0.2)) * 100) / 100;
+      el.style.filter = `drop-shadow(0px ${dy}px ${dbl}px #00000055)`;
+    }
+    if (b.filter) el.style.filter = b.filter;
+    if (b.camera) {
+      el.style.background = 'transparent';
+      const m = document.createElement('div');
+      m.className = 'lolly-box-cam';
+      m.setAttribute('data-cam', '1');
+      m.setAttribute('data-export-hide', '');
+      m.setAttribute('aria-hidden', 'true');
+      el.append(m);
+    }
     art.append(el);
   }
   target.append(art);
@@ -564,6 +617,32 @@ async function exportSeq(spec: StageSpec, format: 'mp4' | 'webm' | 'gif' | 'apng
       error: toCodedError(err), stack: (err as Error)?.stack ?? '', beat: { ...beat }, counters: { ...counters },
       frames: stage ? frameTimestamps(stage.totalMs, fps).length : 0, fps,
     };
+  }
+}
+
+/**
+ * The same export, but through the PUBLIC funnel — `createExportAPI(host).render()`
+ * — instead of calling `renderSequence` directly.
+ *
+ * `exportSeq` above deliberately skips that funnel so the compositor can be tested on
+ * its own. But the funnel is not a thin wrapper: it detaches every `[data-export-hide]`
+ * node from the live tree for the duration, freezes video, adds the watermark overlay
+ * and holds the thumbnail rasteriser down. Anything that reads the DOM *inside* the
+ * render sees the tree in that state, and this is the entry point every real export in
+ * the app actually takes — so a pipeline verified only through `exportSeq` is verified
+ * one layer below where users live.
+ */
+async function exportViaApi(spec: StageSpec, format: string, opts: Any = {}): Promise<Any> {
+  const target = buildStage(spec);
+  const art = target.querySelector('.artboard') as HTMLElement;
+  const logs: string[] = [];
+  const api = createExportAPI({ log: (l: string, m: string) => { logs.push(`${l}: ${m}`); } } as Any);
+  const t0 = performance.now();
+  try {
+    const blob = await api.render(art, format, opts);
+    return { key: put(blob), type: blob.type, size: blob.size, ms: performance.now() - t0, logs, error: null };
+  } catch (err) {
+    return { key: null, type: '', size: 0, ms: performance.now() - t0, logs, error: toCodedError(err), stack: (err as Error)?.stack ?? '' };
   }
 }
 
@@ -840,37 +919,57 @@ async function cutsAt(spec: StageSpec, cuts: number, format: string, probes: { x
   // Restored? Nothing may be left hidden, and the markup must be as it was found.
   const leftOff = boxes.filter((b) => b.classList.contains(OFF_CLASS)).length;
   const restored = leftOff === 0 && art.innerHTML === before;
+  // Kept in the registry so a caller can WRITE the sheet out (`blobBytes`) rather than
+  // only probe it — the P1 demo hands the archive itself back.
+  const key = put(blob);
 
   if (format === 'pdf') {
     const { PDFDocument } = await import('pdf-lib');
     const doc = await PDFDocument.load(bytes);
-    return { type: blob.type, size: blob.size, pages: doc.getPageCount(), restored, progress };
+    return { key, type: blob.type, size: blob.size, pages: doc.getPageCount(), restored, progress };
   }
 
   const { unzipSync } = await import('fflate');
   // A non-archive here means the dispatch never took the contact-sheet branch; say
   // so with the evidence rather than dying inside fflate.
   if (blob.type !== 'application/zip') {
-    return { type: blob.type, size: blob.size, names: [], at: [], restored, progress, head: [...bytes.slice(0, 8)] };
+    return { key, type: blob.type, size: blob.size, names: [], at: [], restored, progress, head: [...bytes.slice(0, 8)] };
   }
   const files = unzipSync(bytes);
   const names = Object.keys(files).sort();
   const at: Any[] = [];
+  /** SVG members' markup — the only way to interrogate a member the page cannot raster. */
+  const texts: string[] = [];
+  /** Why a member could not be probed, per member ('' when it was). */
+  const notes: string[] = [];
   for (const name of names) {
-    const member = new Blob([files[name] as Any], { type: format === 'svg' ? 'image/svg+xml' : `image/${format}` });
-    const bmp = await createImageBitmap(member);
-    const cvs = new OffscreenCanvas(bmp.width, bmp.height);
-    const ctx = cvs.getContext('2d', { willReadFrequently: true }) as Any;
-    ctx.drawImage(bmp, 0, 0);
-    bmp.close();
-    const px = ctx.getImageData(0, 0, cvs.width, cvs.height).data;
-    const k = cvs.width / Math.max(1, art.offsetWidth);
-    at.push(probes.map(({ x, y }) => {
-      const i = (Math.round(y * k) * cvs.width + Math.round(x * k)) * 4;
-      return [px[i], px[i + 1], px[i + 2], px[i + 3]];
-    }));
+    const raw = files[name] as Uint8Array;
+    if (format === 'svg') texts.push(new TextDecoder().decode(raw));
+    const member = new Blob([raw as Any], { type: format === 'svg' ? 'image/svg+xml' : `image/${format}` });
+    // BEST-EFFORT. `createImageBitmap` on an SVG blob is not universally available
+    // (Chromium refuses one whose root carries no intrinsic width/height, which the
+    // walker's viewBox-only output is), and a probe that cannot be taken must not
+    // destroy the member list, the restore check and the archive itself — those are
+    // what the caller came for. The reason is reported instead of thrown.
+    try {
+      const bmp = await createImageBitmap(member);
+      const cvs = new OffscreenCanvas(bmp.width, bmp.height);
+      const ctx = cvs.getContext('2d', { willReadFrequently: true }) as Any;
+      ctx.drawImage(bmp, 0, 0);
+      bmp.close();
+      const px = ctx.getImageData(0, 0, cvs.width, cvs.height).data;
+      const k = cvs.width / Math.max(1, art.offsetWidth);
+      at.push(probes.map(({ x, y }) => {
+        const i = (Math.round(y * k) * cvs.width + Math.round(x * k)) * 4;
+        return [px[i], px[i + 1], px[i + 2], px[i + 3]];
+      }));
+      notes.push('');
+    } catch (err) {
+      at.push(probes.map(() => null));
+      notes.push((err as { message?: string })?.message ?? String(err));
+    }
   }
-  return { type: blob.type, size: blob.size, names, at, restored, progress };
+  return { key, type: blob.type, size: blob.size, names, at, texts, notes, restored, progress };
 }
 
 // ── compositor vs preview (the drift guard) ──────────────────────────────────
@@ -939,6 +1038,230 @@ async function firstFramePixels(key: string, probes: { x: number; y: number }[],
   });
 }
 
+// ── plans/104 P1: the flythrough demo's own instruments ─────────────────────
+
+/**
+ * A stored blob's bytes, base64, so the Node side can WRITE the artefact.
+ *
+ * Chunked because `String.fromCharCode(...bytes)` on a multi-megabyte mp4 blows the
+ * argument limit — the failure mode is a RangeError deep inside the page, which reads
+ * as "the export broke" rather than "the transfer did".
+ */
+async function blobBytes(key: string): Promise<string> {
+  const buf = await (blobs.get(key) as Blob).arrayBuffer();
+  const bytes = new Uint8Array(buf);
+  let out = '';
+  const CHUNK = 0x8000;
+  for (let i = 0; i < bytes.length; i += CHUNK) {
+    out += String.fromCharCode(...bytes.subarray(i, i + CHUNK));
+  }
+  return btoa(out);
+}
+
+/**
+ * WHERE two exports of the same scene differ, byte for byte.
+ *
+ * "Byte-stable across two runs" is a claim about the RENDER, and a sha mismatch alone
+ * cannot tell a nondeterministic compositor apart from a container that stamps the
+ * wall clock. This returns the actual differing ranges (capped), so the caller can say
+ * which it is with evidence instead of adjectives.
+ */
+async function blobDiff(keyA: string, keyB: string, maxRanges = 64): Promise<Any> {
+  const A = new Uint8Array(await (blobs.get(keyA) as Blob).arrayBuffer());
+  const B = new Uint8Array(await (blobs.get(keyB) as Blob).arrayBuffer());
+  const n = Math.min(A.length, B.length);
+  const ranges: [number, number][] = [];
+  let bytes = 0;
+  let truncated = false;
+  let i = 0;
+  while (i < n) {
+    if (A[i] !== B[i]) {
+      const s = i;
+      while (i < n && A[i] !== B[i]) i++;
+      bytes += i - s;
+      if (ranges.length < maxRanges) ranges.push([s, i]);
+      else { truncated = true; }
+    } else i++;
+  }
+  return { sizeA: A.length, sizeB: B.length, ranges, bytes: bytes + Math.abs(A.length - B.length), truncated };
+}
+
+/**
+ * Where each tracked colour's pixels sit in output frame `n`, and how many there are.
+ *
+ * The flythrough demo's parallax number. Each layer is a flat, well-separated colour, so
+ * a per-channel threshold survives H.264 4:2:0 without a tolerance argument doing the
+ * work — the four targets are ≥130 apart on their nearest channel and `tol` is 48. The
+ * CENTROID is what moves: a layer's projected centre is `W/2 + (c − camX − W/2)·eff`,
+ * so the displacement between two frames is exactly `|offset|·Δeff` and nothing else.
+ *
+ * Coordinates come back in OUTPUT pixels; the caller divides by `outW/stageW`.
+ */
+async function trackColors(
+  key: string, frameIdx: number[], fps: number,
+  targets: [number, number, number][], tol = 48,
+): Promise<{ w: number; h: number; frames: { n: number; cx: number; cy: number }[][] }> {
+  const { mb, formats } = await MB_FORMATS();
+  const blob = blobs.get(key) as Blob;
+  const input = new mb.Input({ formats, source: new mb.BlobSource(blob) });
+  const frames: { n: number; cx: number; cy: number }[][] = [];
+  let W = 0;
+  let H = 0;
+  try {
+    const track = await input.getPrimaryVideoTrack();
+    if (!track) return { w: 0, h: 0, frames: [] };
+    W = await track.getDisplayWidth();
+    H = await track.getDisplayHeight();
+    const cvs = new OffscreenCanvas(W, H);
+    const ctx = cvs.getContext('2d', { willReadFrequently: true }) as Any;
+    const sink = new mb.VideoSampleSink(track);
+    for (const idx of frameIdx) {
+      const s = await sink.getSample((idx + 0.5) / fps);
+      if (!s) { frames.push(targets.map(() => ({ n: 0, cx: Number.NaN, cy: Number.NaN }))); continue; }
+      ctx.clearRect(0, 0, W, H);
+      s.draw(ctx, 0, 0, W, H);
+      s.close();
+      const px = ctx.getImageData(0, 0, W, H).data;
+      const acc = targets.map(() => ({ n: 0, sx: 0, sy: 0 }));
+      for (let y = 0; y < H; y++) {
+        for (let x = 0; x < W; x++) {
+          const i = (y * W + x) * 4;
+          const r = px[i] as number;
+          const g = px[i + 1] as number;
+          const b = px[i + 2] as number;
+          for (let t = 0; t < targets.length; t++) {
+            const tg = targets[t] as [number, number, number];
+            if (Math.abs(r - tg[0]) <= tol && Math.abs(g - tg[1]) <= tol && Math.abs(b - tg[2]) <= tol) {
+              const a = acc[t] as { n: number; sx: number; sy: number };
+              a.n++; a.sx += x; a.sy += y;
+              break;
+            }
+          }
+        }
+      }
+      frames.push(acc.map((a) => ({ n: a.n, cx: a.n ? a.sx / a.n : Number.NaN, cy: a.n ? a.sy / a.n : Number.NaN })));
+    }
+  } finally {
+    input.dispose();
+  }
+  return { w: W, h: H, frames };
+}
+
+/**
+ * How many pixels of `target` a single scanline holds in output frame `n`.
+ *
+ * The BACKGROUND instrument. The stage's own paint is a two-tone plane with one hard
+ * vertical edge; the run length of the left tone along a clear row IS the edge's x. A
+ * camera pan moves the whole plane (§5.5's "the bg is an implicit z = 0 layer"), so the
+ * run changes — and a bg that is NOT projected leaves it constant, which is the failure
+ * this number is here to make visible.
+ */
+async function rowRun(
+  key: string, frameIdx: number[], fps: number, yFrac: number,
+  target: [number, number, number], tol = 48,
+): Promise<{ w: number; runs: number[]; span: [number, number][]; head: (number | undefined)[][] }> {
+  const { mb, formats } = await MB_FORMATS();
+  const input = new mb.Input({ formats, source: new mb.BlobSource(blobs.get(key) as Blob) });
+  const runs: number[] = [];
+  /**
+   * The LONGEST CONTIGUOUS run of the tone, as `[start, endExclusive)` — the tone's
+   * real edges, and the only reading of them that survives two things the naive ones
+   * do not. The COUNT stops being the edge as soon as a pan pushes the plane's own
+   * left edge off-canvas (at camX = −140 the frame's first 140 px are outside it);
+   * and the LAST match is worse still, because wherever the plane's other edge meets
+   * the export background the compressed ramp between the two passes *through* the
+   * tone's colour and plants a two-pixel false match hundreds of px away. A stray
+   * couple of pixels cannot outrun a several-hundred-pixel band.
+   */
+  const span: [number, number][] = [];
+  /** The pixel at x = 2, so a caller can say what fills a revealed strip. */
+  const head: (number | undefined)[][] = [];
+  let W = 0;
+  try {
+    const track = await input.getPrimaryVideoTrack();
+    if (!track) return { w: 0, runs: [], span: [], head: [] };
+    W = await track.getDisplayWidth();
+    const H = await track.getDisplayHeight();
+    const cvs = new OffscreenCanvas(W, H);
+    const ctx = cvs.getContext('2d', { willReadFrequently: true }) as Any;
+    const sink = new mb.VideoSampleSink(track);
+    const y = Math.min(H - 1, Math.max(0, Math.round(yFrac * H)));
+    for (const idx of frameIdx) {
+      const s = await sink.getSample((idx + 0.5) / fps);
+      if (!s) { runs.push(Number.NaN); span.push([-1, -1]); head.push([]); continue; }
+      ctx.clearRect(0, 0, W, H);
+      s.draw(ctx, 0, 0, W, H);
+      s.close();
+      const px = ctx.getImageData(0, y, W, 1).data;
+      let n = 0;
+      let best: [number, number] = [-1, -1];
+      let runFrom = -1;
+      for (let x = 0; x <= W; x++) {
+        const i = x * 4;
+        const hit = x < W
+          && Math.abs((px[i] as number) - target[0]) <= tol
+          && Math.abs((px[i + 1] as number) - target[1]) <= tol
+          && Math.abs((px[i + 2] as number) - target[2]) <= tol;
+        if (hit) { n++; if (runFrom < 0) runFrom = x; continue; }
+        if (runFrom >= 0) {
+          if (x - runFrom > best[1] - best[0]) best = [runFrom, x];
+          runFrom = -1;
+        }
+      }
+      runs.push(n);
+      span.push(best);
+      head.push([px[8], px[9], px[10], px[11]]);
+    }
+  } finally {
+    input.dispose();
+  }
+  return { w: W, runs, span, head };
+}
+
+/**
+ * Photograph the live DOM at `tMs` as a VECTOR export, through the real funnel.
+ *
+ * The still half of P1's exit criteria: "the still-at-playhead is real SVG". The clock
+ * runs through `createSequenceTime`, which enumerates its OWN element set — so the
+ * untimed scene camera is inside the picture, and this is the preview's frame rather
+ * than a hand-assembled approximation of it.
+ *
+ * Returns the markup itself: everything asserted about it (matrix transforms, the DOF
+ * `feGaussianBlur`, a `parseCssMatrix` round-trip) is decided on the Node side, where
+ * the engine's own parser is importable.
+ */
+async function vectorStillAt(spec: StageSpec, tMs: number, format: 'svg' | 'pdf' = 'svg'): Promise<Any> {
+  const target = buildStage(spec);
+  const art = target.querySelector('.artboard') as HTMLElement;
+  const session = createSequenceTime(art);
+  let text = '';
+  let size = 0;
+  let type = '';
+  let key: string | null = null;
+  try {
+    session.apply(tMs);
+    // What the applier composed onto each box at this instant — reported so a failing
+    // assertion about the MARKUP can be told apart from a failing projection.
+    const posed = [...art.querySelectorAll<HTMLElement>('.lolly-box')].map((el) => ({
+      z: el.getAttribute('data-t-z'),
+      transform: el.style.transform || '',
+      filter: el.style.filter || '',
+      opacity: el.style.opacity || '',
+      zIndex: el.style.zIndex || '',
+      off: el.classList.contains(OFF_CLASS),
+    }));
+    const api = createExportAPI({ log: (): void => {} } as Any);
+    const blob = await api.render(art, format, {});
+    size = blob.size;
+    type = blob.type;
+    key = put(blob);
+    if (format === 'svg') text = await blob.text();
+    return { text, size, type, key, posed };
+  } finally {
+    session.restore();
+  }
+}
+
 // ── capability probe (what this browser build can actually do) ───────────────
 
 async function probe(): Promise<Any> {
@@ -969,6 +1292,7 @@ async function probe(): Promise<Any> {
   probe, makeClip, truncate, makeBed, exportSeq, buildStage,
   decodeCodes, frameHashes, blobSha, frameDelta, audioRms, hasAudioTrack,
   driveProvider, stalledProvider, stillAt, cutsAt, fidelity, resetCounters, firstFramePixels,
+  blobBytes, blobDiff, trackColors, rowRun, vectorStillAt, exportViaApi,
   constants: { HIGH_WATER, MAX_LIVE_PROVIDERS, CODE_BITS },
 };
 (globalThis as Any).__SEQ_READY = true;

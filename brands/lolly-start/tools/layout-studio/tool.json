@@ -2,7 +2,7 @@
   "id": "layout-studio",
   "name": "Layout Studio",
   "description": "An open canvas for free arrangement — text, images, shapes and live renders from your other Lolly tools, all held to your brand.",
-  "version": "1.12.0",
+  "version": "1.13.0",
   "engineVersion": "^1.12.0",
   "status": "community",
   "category": "designer",
@@ -462,6 +462,13 @@
             }
           },
           {
+            "id": "camera",
+            "label": "Camera",
+            "seed": {
+              "kind": "camera"
+            }
+          },
+          {
             "id": "frame",
             "label": "Artboard",
             "seed": {
@@ -894,7 +901,7 @@
           "type": "select",
           "label": "Shadow",
           "default": "none",
-          "help": "What the drop shadow applies to: the box outline, the text, the visible content (image alpha), or Depth — a soft shadow derived from the box's own depth, so lifting a box off the surface casts further. Raster and SVG export are faithful; PDF carries it partially.",
+          "help": "What the drop shadow applies to: the box outline, the text, the visible content (image alpha), or Depth — a soft shadow derived from the box's own depth, so lifting a box off the surface casts further. Raster and SVG export are faithful. In PDF, box and text shadows stay vector; content and Depth follow the shape of the artwork, so those boxes export as an embedded image.",
           "options": [
             {
               "value": "none",
@@ -1365,7 +1372,7 @@
           "default": 0,
           "min": 0,
           "max": 300,
-          "help": "Gaussian blur of the whole box (layer blur), px. 0 = off. Raster-faithful; carried as a real SVG filter in vector export."
+          "help": "Gaussian blur of the whole box (layer blur), px. 0 = off. Raster-faithful; carried as a real SVG filter in SVG export, and as an embedded image in PDF."
         },
         {
           "id": "strokeDashLen",

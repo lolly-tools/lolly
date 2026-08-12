@@ -528,7 +528,8 @@ export type { ZipTier, ZipEntryInput, AesZipKeys } from './zip-crypto.ts';
 
 // Keyframe tracks + the depth camera (1.114, plans/104): the `kf` wire grammar,
 // per-channel sparse evaluation, the ease adapter, and the affine projection
-// (fold, guard, DOF) every consumer of the feature shares.
+// (fold, guard, DOF) every consumer of the feature shares. 1.118 added the `w`/`h`
+// channels (absolute px, replace-for-segment) — see engine/CHANGELOG.md.
 export {
   KF_CHANNELS, KF_CAMERA_CHANNELS, KF_CLAMPS, KF_Z_FIELD_CLAMP, KF_QUANTA, KF_BEZIER_QUANTUM,
   KF_MAX_KEYS, KF_MAX_CHARS, KF_MAX_TIME_MS, KF_MAX_BLUR, KF_CHARSET_RE,
