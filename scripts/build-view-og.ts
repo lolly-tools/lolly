@@ -33,7 +33,8 @@
  * stubs still point at them. Stubs (HTML, no rasteriser) are git-ignored, rebuilt each run.
  */
 
-import { writeFileSync, mkdirSync, rmSync, existsSync } from 'node:fs';
+import { readFileSync, writeFileSync, mkdirSync, rmSync, existsSync } from 'node:fs';
+import { createHash } from 'node:crypto';
 import { resolve, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { createViewCardRenderer, loadBrandChrome } from '../docs/og-image.ts';
@@ -53,6 +54,15 @@ const STUB_DIR = resolve(PUBLIC, 'view');            // → /view/<slug>.html   
 // tool cards + catalog/previews — so a git deploy ships them even though the render browser
 // isn't installed on the Vercel build. Locally, build:web refreshes these; commit them.
 const OG_DIR   = resolve(ROOT, 'catalog/og/views');  // → /catalog/og/views/<slug>.png (committed)
+// Input-hash gate (see build-tool-og.ts for the full rationale): a card is re-rendered
+// only when its render inputs change, so the non-deterministic render path (Playwright +
+// Imprint/C2PA stamp) stops churning identical-looking PNGs every push. We persist, per
+// view slug, a sha256 over the card's render inputs plus OG_RENDER_VERSION in a COMMITTED
+// sidecar (OG_DIR/.og-sigs.json); a card whose sig matches AND whose file exists is
+// skipped. BUMP OG_RENDER_VERSION after any card template / stamp change.
+const OG_RENDER_VERSION = 1;
+const SIGS_FILE = resolve(OG_DIR, '.og-sigs.json');
+const sha256 = (s: string): string => createHash('sha256').update(s).digest('hex');
 // --preserve (or LOLLY_PRESERVE=1): keep an already-committed card, skip its re-render.
 const PRESERVE = process.argv.includes('--preserve') || process.env.LOLLY_PRESERVE === '1';
 
@@ -257,17 +267,32 @@ async function main(): Promise<void> {
   mkdirSync(STUB_DIR, { recursive: true });
   mkdirSync(OG_DIR, { recursive: true });
 
+  // Load the committed input-hash manifest (slug → sig). Missing/corrupt → empty map, so a
+  // first run (or a bumped OG_RENDER_VERSION) re-renders everything.
+  let sigs: Record<string, string> = {};
+  try {
+    const parsed = JSON.parse(readFileSync(SIGS_FILE, 'utf8'));
+    if (parsed && typeof parsed === 'object') sigs = parsed as Record<string, string>;
+  } catch { /* no manifest yet — treat every card as stale */ }
+
   let cards = 0, stubs = 0;
   for (const v of VIEWS) {
     // Refresh the committed card when the browser is available (local build:web / dev:web).
-    // With --preserve, keep an existing committed card and skip the re-render.
-    if (renderer && !(PRESERVE && existsSync(resolve(OG_DIR, `${v.slug}.png`)))) {
+    // With --preserve, keep an existing committed card and skip the re-render. Also skip
+    // when the input-hash gate says the render inputs are unchanged AND the card exists.
+    const cardPath = resolve(OG_DIR, `${v.slug}.png`);
+    const sig = sha256(JSON.stringify([
+      OG_RENDER_VERSION, v.title, v.description, v.icon, v.hash,
+    ]));
+    const gated = sigs[v.slug] === sig && existsSync(cardPath);
+    if (renderer && !(PRESERVE && existsSync(cardPath)) && !gated) {
       try {
         const png = await renderer.render({ title: v.title, description: v.description, iconSvg: v.icon });
         // Stamp our own share card with the Lolly Imprint + "made with Lolly" C2PA
         // before committing (see scripts/lib/stamp-media.ts).
         const stamped = await stampBitmap(png, 'png', { id: v.slug, name: v.title });
-        writeFileSync(resolve(OG_DIR, `${v.slug}.png`), stamped);
+        writeFileSync(cardPath, stamped);
+        sigs[v.slug] = sig;
         cards++;
       } catch (e) {
         console.log(`view-og: ${v.slug} card failed (${(e as Error).message})`);
@@ -284,6 +309,18 @@ async function main(): Promise<void> {
   }
 
   await rasterizer?.close();
+
+  // Persist the input-hash manifest (committed). Deterministic (sorted keys) so an
+  // unchanged build leaves no diff. Prune slugs no longer in VIEWS, but only when a
+  // renderer ran — a browser-less/Vercel build must not drop sigs for committed cards it
+  // can't re-render.
+  if (renderer) {
+    const live = new Set(VIEWS.map(v => v.slug));
+    for (const slug of Object.keys(sigs)) if (!live.has(slug)) delete sigs[slug];
+  }
+  const ordered: Record<string, string> = {};
+  for (const slug of Object.keys(sigs).sort()) ordered[slug] = sigs[slug] as string;
+  writeFileSync(SIGS_FILE, `${JSON.stringify(ordered, null, 2)}\n`);
 
   console.log(`✓ view-og: ${stubs} stub${stubs === 1 ? '' : 's'}, ${cards} card${cards === 1 ? '' : 's'} refreshed`);
   if (!renderer && !process.env.VERCEL) console.log('view-og: browser unavailable — kept committed catalog/og/views cards (regenerate locally with build:web/dev:web).');
