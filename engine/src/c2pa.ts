@@ -35,6 +35,12 @@
  * 64-byte raw signature) differ between passes, so the length holds by
  * construction; the hash assertion's `pad` field absorbs any residual drift.
  *
+ * Not every asset can carry its store: §11.4 allows the manifest to live BESIDE
+ * the asset instead (a `.c2pa` sidecar served as application/c2pa), and §A.7.1.2
+ * gives HTML documents a `<link rel="c2pa-manifest">` to point at one.
+ * buildExternalC2paStore is that path — a whole-asset hash with no exclusion
+ * range, so it needs neither container surgery nor the two-pass layout below.
+ *
  * ISO BMFF (mp4) is the one container with its own binding: the spec forbids
  * byte-range c2pa.hash.data there, so mp4 carries c2pa.hash.bmff.v2 — the
  * manifest rides in a top-level `uuid` box and the hash walks top-level boxes
@@ -165,6 +171,26 @@ interface BuildC2paManifestOptions {
   actions?: C2paActionInput[];
   /** Credentialed ingredients to preserve into the store (multi-manifest). */
   ingredients?: C2paIngredient[];
+  /**
+   * §18.28 machine-readable AI transparency, emitted as a `c2pa.ai-disclosure`
+   * CBOR assertion and referenced from `created_assertions` (§2776 — created
+   * assertions are the ones attributed to the signer, which is exactly what a
+   * disclosure is). Absent → no assertion and byte-identical output, so nothing
+   * that never asks for it changes.
+   */
+  aiDisclosure?: C2paAiDisclosureInput;
+  /**
+   * The C2PA specification version this manifest declares it was produced to
+   * (SemVer). C2PA 2.4 moved the field OUT of the claim and INTO
+   * `claim_generator_info`, which is where this writes it; the claim-level field
+   * is deprecated and never written. v2 claims only.
+   *
+   * Not stamped on each action's `softwareAgent` (also a generator-info map):
+   * §10.2.3.1 scopes the declaration to the MANIFEST, and repeating it per step
+   * would inflate every action for no added fact. {@link C2PA_SPEC_VERSION}
+   * carries the value this module was written against.
+   */
+  specVersion?: string;
   assetHash?: AssetHash;
   format?: string;
   dates?: Dates;
@@ -192,6 +218,16 @@ export interface EmbedOptions {
   rights?: string;
   actions?: C2paActionInput[];
   ingredients?: C2paIngredient[];
+  /**
+   * §18.28 AI transparency, forwarded verbatim to {@link buildC2paManifest} by
+   * both embedders. An EMBEDDED store is the only place a component that ships
+   * as its own file (a signed docs masthead, an inline logo) can disclose the
+   * model that made it, so the option has to survive the container path, not
+   * just the external-store one. Absent → byte-identical output.
+   */
+  aiDisclosure?: C2paAiDisclosureInput;
+  /** `claim_generator_info.specVersion` (SemVer) — see {@link C2PA_SPEC_VERSION}. */
+  specVersion?: string;
   dates?: Dates;
   signer?: Signer;
 }
@@ -540,6 +576,163 @@ export const CREATIVE_WORK_ASSERTION = 'stds.schema-org.CreativeWork';
 export const METADATA_ASSERTION = 'cawg.metadata';
 const DC_CONTEXT = { dc: 'http://purl.org/dc/elements/1.1/' };
 
+// ─── §18.28 AI disclosure (C2PA 2.4) ──────────────────────────────────────────
+
+// The assertion label §18.28.2 fixes: "The AI Disclosure assertion shall have a
+// label of c2pa.ai-disclosure." Read back by the verifier for EVERY format
+// (c2pa-verify's readAiDisclosure), which is this writer's round-trip check.
+export const AI_DISCLOSURE_ASSERTION = 'c2pa.ai-disclosure';
+
+// Table 12's generic entry — "AI/ML model which is not described by any other
+// model type". §18.28.2 makes modelType the one REQUIRED field, and Table 12's
+// other entries name model FORMATS (tensorflow, onnx, coreml…), none of which
+// honestly describes "a chat assistant wrote this SVG". So the generic term is
+// the default: it is the only value that neither guesses a framework nor leaves
+// out a field the CDDL requires.
+export const AI_MODEL_TYPE_GENERIC = 'c2pa.types.model';
+
+/**
+ * Table 12, "Model type values", transcribed — the enumeration §18.28.2 requires:
+ * "The value of the modelType field is an enumeration of AI model types defined
+ * in Table 12 … and it shall be present in the ai-model-disclosure-map object."
+ *
+ * §18.28.4's CDDL widens the socket to `$model-type-choice /= tstr`, which is why
+ * this is a validation and not a hard closed set: an entity may name its own type
+ * in its own namespace, the way §18.21.1 spells out for the neighbouring asset
+ * type ("or use an entity-specific namespace (e.g., com.litware.types.abc),
+ * conforming to the syntax defined for assertion labels in §6.2.2"). So the rule
+ * enforced below is: a Table 12 value, or a well-formed label in someone else's
+ * namespace — and NEVER an invented `c2pa.*` value, because squatting the
+ * specification's own namespace is the one case that is simply wrong.
+ */
+export const AI_MODEL_TYPES = Object.freeze([
+  'c2pa.types.model',
+  'c2pa.types.model.caffe',
+  'c2pa.types.model.caffe2',
+  'c2pa.types.model.catboost',
+  'c2pa.types.model.coreml',
+  'c2pa.types.model.flax',
+  'c2pa.types.model.huggingface.transformers',
+  'c2pa.types.model.jax',
+  'c2pa.types.model.keras',
+  'c2pa.types.model.lightgbm',
+  'c2pa.types.model.ml_net',
+  'c2pa.types.model.mxnet',
+  'c2pa.types.model.onnx',
+  'c2pa.types.model.openvino',
+  'c2pa.types.model.openvino.parameter',
+  'c2pa.types.model.openvino.topology',
+  'c2pa.types.model.paddle',
+  'c2pa.types.model.pytorch',
+  'c2pa.types.model.sklearn',
+  'c2pa.types.model.tensorflow',
+  'c2pa.types.model.tensorrt',
+  'c2pa.types.model.tflite',
+  'c2pa.types.model.torchscript',
+  'c2pa.types.model.xgboost',
+] as const);
+
+// §6.2.2's ABNF for namespaced labels, transcribed:
+//   namespaced-label = qualified-namespace label
+//   entity           = entity-component *( "." entity-component )
+//   entity-component = 1( DIGIT / ALPHA ) *( DIGIT / ALPHA / "-" / "_" )
+//   label            = 1*( "." label-component )
+const NAMESPACED_LABEL_RE = /^[A-Za-z0-9][A-Za-z0-9_-]*(?:\.[A-Za-z0-9][A-Za-z0-9_-]*)+$/;
+
+// §18.28.4's human-oversight-enum, verbatim and in the spec's own order:
+//   fully_autonomous — no human review after model output
+//   prompt_guided    — human provided prompts/config but no final approval
+//   human_validated  — human reviewed/approved the final output before release
+// §18.28.3 pairs these with digitalSourceType rather than replacing it, so a
+// disclosure normally travels WITH a trainedAlgorithmicMedia created action.
+export const HUMAN_OVERSIGHT_LEVELS = Object.freeze(['fully_autonomous', 'prompt_guided', 'human_validated'] as const);
+export type HumanOversightLevel = (typeof HUMAN_OVERSIGHT_LEVELS)[number];
+
+/**
+ * A §18.28 AI transparency statement, as a caller states it. Flattened where the
+ * spec nests: `oversight` becomes `contentProfile.humanOversightLevel`, which is
+ * the only field of that sub-map the spec defines — and the same flattening the
+ * read side does (`C2paAiDisclosure.oversight`), so a value written here comes
+ * back under the same name.
+ *
+ * SELF-ASSERTED, like every claim fact: it records what the signer declared, not
+ * what a model did. Only claim it for content a model actually produced.
+ */
+export interface C2paAiDisclosureInput {
+  /** Table 12 model type; defaults to {@link AI_MODEL_TYPE_GENERIC}. */
+  modelType?: string;
+  /** Human-readable model name, e.g. 'Claude Fable 5'. */
+  modelName?: string;
+  /** Stable identifier where one exists (URI, PURL, …). */
+  modelIdentifier?: string;
+  /** §18.28.4 contentProfile.humanOversightLevel. */
+  oversight?: HumanOversightLevel;
+  /** arXiv taxonomy term(s), e.g. 'cs.AI' or ['cs.AI', 'physics.optics']. */
+  scientificDomain?: string | string[];
+}
+
+// §18.28.4: `$scientific-domain-string /= tstr .regexp
+// "^[A-Za-z0-9-]+(\\.[A-Za-z0-9-]+)+$"` — transcribed, not approximated.
+const SCIENTIFIC_DOMAIN_RE = /^[A-Za-z0-9-]+(\.[A-Za-z0-9-]+)+$/;
+
+// §10.2.3's `semver-string` regexp, transcribed from the CDDL (the canonical
+// SemVer 2.0.0 pattern). Used to refuse a malformed specVersion at write time:
+// a version string is a conformance DECLARATION, and one the CDDL rejects is
+// worse than none at all.
+const SEMVER_RE = /^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(?:-((?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\.(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?(?:\+([0-9a-zA-Z-]+(?:\.[0-9a-zA-Z-]+)*))?$/;
+
+/**
+ * The version of the C2PA specification this module was written against — the
+ * value a caller passes as `specVersion` when it wants the manifest to declare
+ * one (§10.2.3.1: "A specVersion field SHOULD be present").
+ *
+ * Deliberately NOT a default. Setting it says "this manifest contains no
+ * construct deprecated in 2.4" (§10.2.2), which is a claim about the whole
+ * builder, and no credential should make a claim its author did not choose to
+ * make. It also keeps every manifest written before this option byte-identical.
+ */
+export const C2PA_SPEC_VERSION = '2.4.0';
+
+/**
+ * §18.28's `ai-model-disclosure-map`, CDDL key order preserved (the CBOR encoder
+ * writes objects in insertion order, so the map's bytes are stable across calls
+ * with the same input — which the two-pass container embedders require).
+ *
+ * Validates rather than coerces, because all three constrained fields are enums a
+ * config file can typo: an unknown oversight level, a domain the taxonomy regexp
+ * rejects, or a model type outside Table 12 would produce a non-conformant
+ * assertion that our own liberal reader would happily echo back, hiding the
+ * mistake. Fail at write time.
+ */
+function aiDisclosureMap(d: C2paAiDisclosureInput): Record<string, unknown> {
+  const modelType = String(d.modelType ?? AI_MODEL_TYPE_GENERIC).trim();
+  if (!modelType) throw new Error('c2pa: aiDisclosure.modelType cannot be empty (§18.28.2 requires it; omit the field to get the generic c2pa.types.model)');
+  // §18.28.2's enumeration, or an entity's own namespaced label (§18.21.1 +
+  // §6.2.2) — never an invented value in the c2pa namespace.
+  if (!(AI_MODEL_TYPES as readonly string[]).includes(modelType)
+    && (modelType.startsWith('c2pa.') || !NAMESPACED_LABEL_RE.test(modelType))) {
+    throw new Error(`c2pa: aiDisclosure.modelType '${modelType}' is neither a Table 12 model type (§18.28.2) nor an entity-specific namespaced label (§6.2.2, e.g. 'com.litware.types.abc') — omit the field to get the generic ${AI_MODEL_TYPE_GENERIC}`);
+  }
+  if (d.oversight != null && !(HUMAN_OVERSIGHT_LEVELS as readonly string[]).includes(String(d.oversight))) {
+    throw new Error(`c2pa: aiDisclosure.oversight must be one of ${HUMAN_OVERSIGHT_LEVELS.join(' / ')} (§18.28.4), got '${String(d.oversight)}'`);
+  }
+  const raw = d.scientificDomain == null ? [] : Array.isArray(d.scientificDomain) ? d.scientificDomain : [d.scientificDomain];
+  const domains = raw.map((s) => String(s).trim()).filter(Boolean);
+  for (const s of domains) {
+    if (!SCIENTIFIC_DOMAIN_RE.test(s)) throw new Error(`c2pa: aiDisclosure.scientificDomain '${s}' is not an arXiv taxonomy term (§18.28.4 e.g. 'cs.AI', 'physics.optics')`);
+  }
+  return {
+    modelType,
+    ...(d.modelName ? { modelName: String(d.modelName) } : {}),
+    ...(d.modelIdentifier ? { modelIdentifier: String(d.modelIdentifier) } : {}),
+    ...(d.oversight ? { contentProfile: { humanOversightLevel: String(d.oversight) } } : {}),
+    // The CDDL says a list (`1* $scientific-domain-string`) even though
+    // §18.28.4's own example ships a bare string. Write the conformant list;
+    // the read side accepts both.
+    ...(domains.length ? { scientificDomain: domains } : {}),
+  };
+}
+
 /**
  * Build a complete C2PA JUMBF store (→ Uint8Array). Emits a C2PA 2.x claim
  * (`c2pa.claim.v2`) by default; `claimVersion: 1` builds the legacy
@@ -557,8 +750,16 @@ const DC_CONTEXT = { dc: 'http://purl.org/dc/elements/1.1/' };
  * recording the export context (tool, format, surface, browser engine, OS…).
  * `generatorInfo` ({ name, version, operating_system? }) becomes the claim's
  * claim_generator_info (a single REQUIRED map in v2; an optional array
- * alongside the free-text claim_generator string in v1). The v2 claim drops
- * dc:format and the schema.org CreativeWork author assertion per the 2.x spec.
+ * alongside the free-text claim_generator string in v1), with `specVersion`
+ * added to the CLAIM's copy when the caller declares one (2.4 moved that field
+ * out of the claim). The v2 claim drops dc:format and the schema.org
+ * CreativeWork author assertion per the 2.x spec.
+ *
+ * `aiDisclosure` adds the §18.28 `c2pa.ai-disclosure` assertion (model type/
+ * name/identifier and the human-oversight level), referenced from
+ * created_assertions like every other assertion authored here. Both of these
+ * are optional and absent by default, so a caller that does not ask for them
+ * gets byte-identical output to before they existed.
  *
  * The claim references each assertion by hashed URI — a JUMBF URI relative to
  * the manifest plus sha256 over the assertion superbox's payload (jumd +
@@ -581,6 +782,8 @@ export async function buildC2paManifest({
   rights,
   actions: actionSteps,
   ingredients,
+  aiDisclosure,
+  specVersion,
   assetHash,
   format = 'application/pdf',
   dates = {},
@@ -606,6 +809,17 @@ export async function buildC2paManifest({
     generatorInfo && typeof generatorInfo === 'object' && Object.keys(generatorInfo as object).length
       ? { name: generatorName, ...(generatorInfo as Record<string, unknown>) }
       : { name: generatorName };
+  // 2.4's specVersion lives in claim_generator_info — but only the CLAIM's copy,
+  // never the per-action softwareAgent (same map type, different subject: the
+  // manifest was produced to a spec version; a single edit step was not). A
+  // caller that omits it gets `genInfoMap` itself, so the claim's bytes are
+  // unchanged from before this option existed.
+  if (specVersion != null && !SEMVER_RE.test(String(specVersion))) {
+    throw new Error(`c2pa: specVersion must be a SemVer string (§10.2.3, e.g. '${C2PA_SPEC_VERSION}'), got '${String(specVersion)}'`);
+  }
+  const claimGenInfo: Record<string, unknown> = specVersion != null
+    ? { ...genInfoMap, specVersion: String(specVersion) }
+    : genInfoMap;
 
   // A creation claim carries the digitalCreation source type; a delivery claim
   // (distributing an existing asset, the standard c2pa.published action)
@@ -701,7 +915,14 @@ export async function buildC2paManifest({
     hash: assetHash.hash,
     pad: assetHash.pad || new Uint8Array(0),
   } : {
-    exclusions: assetHash.exclusions!.map((e) => ({ start: e.start, length: e.length })),
+    // §11.4's external form (and §A.7.1.3's link element) hash the asset WHOLE:
+    // "the data hash assertion shall have no exclusion range". The CDDL is
+    // `? "exclusions": [1* EXCLUSION_RANGE-map]` — optional, but non-empty when
+    // present — so an empty list is written as NO KEY, not as `[]`. Every
+    // embedded caller passes at least one range, so their bytes are unchanged.
+    ...(assetHash.exclusions!.length
+      ? { exclusions: assetHash.exclusions!.map((e) => ({ start: e.start, length: e.length })) }
+      : {}),
     name: assetHash.name || 'jumbf manifest',
     alg: assetHash.alg || 'sha256',
     hash: assetHash.hash,
@@ -754,6 +975,14 @@ export async function buildC2paManifest({
     metadataBox = jumbfSuperbox(UUID_JSON_CONTENT, METADATA_ASSERTION, isoBox('json', te.encode(JSON.stringify(metaLd))));
     storeBoxes.push(metadataBox);
   }
+  // §18.28: the AI transparency statement, a CBOR assertion like the actions and
+  // hash ones. Written for BOTH claim versions — the label is version-neutral
+  // and a v1 store's `assertions` array references it the same way.
+  let aiBox: Uint8Array | null = null;
+  if (aiDisclosure) {
+    aiBox = jumbfSuperbox(UUID_CBOR_CONTENT, AI_DISCLOSURE_ASSERTION, isoBox('cbor', encodeCbor(aiDisclosureMap(aiDisclosure))));
+    storeBoxes.push(aiBox);
+  }
   // The ingredient assertions were built up-front (their hashes feed the opened
   // action's parameters.ingredients); add them to the assertion store here so
   // they sit after the standard assertions.
@@ -770,6 +999,7 @@ export async function buildC2paManifest({
     ...(exportBox ? [{ url: `self#jumbf=c2pa.assertions/${LOLLY_EXPORT_ASSERTION}`, hash: await sha256(exportBox.subarray(8)) }] : []),
     ...(authorBox ? [{ url: `self#jumbf=c2pa.assertions/${CREATIVE_WORK_ASSERTION}`, hash: await sha256(authorBox.subarray(8)) }] : []),
     ...(metadataBox ? [{ url: `self#jumbf=c2pa.assertions/${METADATA_ASSERTION}`, hash: await sha256(metadataBox.subarray(8)) }] : []),
+    ...(aiBox ? [{ url: `self#jumbf=c2pa.assertions/${AI_DISCLOSURE_ASSERTION}`, hash: await sha256(aiBox.subarray(8)) }] : []),
     ...ingredientRefs,
   ];
 
@@ -781,7 +1011,7 @@ export async function buildC2paManifest({
   const claim = v2 ? {
     ...(title ? { 'dc:title': String(title) } : {}),
     instanceID: instanceId || urnUuid(),
-    claim_generator_info: genInfoMap,
+    claim_generator_info: claimGenInfo,
     created_assertions: assertionRefs,
     signature: 'self#jumbf=c2pa.signature',
     alg: 'sha256',
@@ -805,5 +1035,64 @@ export async function buildC2paManifest({
   // every manifest, so a preserved ingredient's full provenance chain surfaces.
   const ingredientManifestBoxes = ingList.flatMap((ing) => ing.manifestBoxes);
   return jumbfSuperbox(UUID_C2PA_STORE, 'c2pa', ...ingredientManifestBoxes, manifest);
+}
+
+// ─── external (sidecar) manifests — §11.4 / §A.7.1.2 ──────────────────────────
+
+/** {@link buildExternalC2paStore}'s options: everything {@link embedC2pa} takes,
+ *  plus the two 2.4 writer additions and the hash assertion's display name. */
+export interface ExternalC2paStoreOptions extends EmbedOptions {
+  /** §18.28 AI transparency statement — see {@link C2paAiDisclosureInput}. */
+  aiDisclosure?: C2paAiDisclosureInput;
+  /** SemVer spec version declared in claim_generator_info (§10.2.3). */
+  specVersion?: string;
+  /**
+   * The data-hash assertion's human-readable `name`. Defaults to
+   * 'whole document' — the embedded default ('jumbf manifest') describes an
+   * excluded region this binding does not have.
+   */
+  hashName?: string;
+}
+
+/**
+ * Build + sign a C2PA Manifest Store that binds the WHOLE of `bytes`, and return
+ * the JUMBF store on its own — nothing is placed in, appended to, or spliced
+ * into the asset. This is §11.4's external manifest: "keeping the C2PA Manifests
+ * externally to the asset is an acceptable model for providing provenance",
+ * served as `application/c2pa` from a location the asset points at.
+ *
+ * The hard binding is what makes it work without a container: §A.7.1.3, for an
+ * HTML document that references its manifest with
+ * `<link rel="c2pa-manifest" href="…">`, says "the data hash assertion shall
+ * have no exclusion range; the hash shall be computed over the entire document"
+ * — so there is no circular dependency between the manifest's length and the
+ * offsets it declares, no two-pass layout, and no bytes added to the asset
+ * beyond the one `<link>` element the caller wrote before hashing.
+ *
+ * Which means the ORDER matters and is the caller's responsibility: hash the
+ * FINAL bytes, after the last serialization step and with the reference element
+ * already in place (§A.7.1.3's note — any later re-serialization is, by design,
+ * a modification). What comes back is written beside the asset as its `.c2pa`
+ * sidecar.
+ *
+ * `ingredients` works exactly as it does for an embedded manifest: pass
+ * `prepareC2paIngredient()` / `prepareC2paIngredientFromStore()` results and
+ * each ingredient's own signed manifest is carried into this store beneath the
+ * active claim, so a page's credential CONTAINS the components' credentials and
+ * the verifier's existing chain walk derives their AI origin without new logic.
+ *
+ * Verified by handing both halves back to the reader:
+ * `verifyC2pa(bytes, { externalManifest: store })`.
+ */
+export async function buildExternalC2paStore(bytes: Uint8Array, opts: ExternalC2paStoreOptions = {}): Promise<Uint8Array> {
+  if (!(bytes instanceof Uint8Array)) throw new Error('c2pa: buildExternalC2paStore needs the asset bytes as a Uint8Array');
+  const { hashName, ...rest } = opts;
+  return buildC2paManifest({
+    ...rest,
+    // No exclusions: the whole asset is inside the hash, because the manifest is
+    // outside the asset. buildC2paManifest omits the CDDL-empty `exclusions` key
+    // entirely for this case rather than writing a non-conformant `[]`.
+    assetHash: { exclusions: [], name: hashName || 'whole document', hash: await sha256(bytes) },
+  });
 }
 

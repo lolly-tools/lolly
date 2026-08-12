@@ -291,3 +291,53 @@ test('bake folds an active preset LUT into the delivered .cube', async () => {
   });
   assert.ok(moved, 'the baked cube reflects the preset, not an identity');
 });
+
+// ── Screen-only overlays: histogram + before/after divider ───────────────────
+// These are the static-source contracts that keep the two review overlays out of
+// the export. The interactive drag/rotate/resize itself is DOM-only (verified in a
+// real browser), but the invariants below are the ones a regression would trip:
+//   - the histogram + drag grips live under the single [data-export-hide] HUD, so
+//     they are NEVER part of any render (the "still never rendered" guarantee), and
+//   - the before/after divider (before-image + seam) is part of the SVG artwork,
+//     NOT export-hidden, so a raster export bakes it exactly as placed, and
+//   - the split is no longer baked into the composed bitmap (that made the
+//     histogram read a half-before/half-after frankenframe and forced the seam
+//     into every export at a fixed midpoint).
+
+test('overlays: histogram + split grips are export-hidden; the divider is not', async () => {
+  const tpl = await fetchFile('bitmap-studio/template.html');
+  // Anchor on the actual HUD attribute (not the prose mentions in comments/scripts).
+  const attr = /\sdata-export-hide(?=[\s>])/g;
+  const hud = tpl.search(attr);
+  assert.ok(hud > 0, 'template has a [data-export-hide] HUD');
+  assert.equal((tpl.match(attr) || []).length, 1,
+    'exactly one export-hidden container — a second would be an unaudited export leak');
+
+  // Screen-only chrome sits inside the HUD (appears after it in document order).
+  for (const marker of ['data-bs-hist', 'data-bs-split-move', 'data-bs-split-rot']) {
+    const at = tpl.indexOf(marker);
+    assert.ok(at > hud, `${marker} must live inside the export-hidden HUD (never exported)`);
+  }
+  // The divider composite is artwork inside the <svg>, ABOVE the HUD → it exports.
+  for (const marker of ['data-bs-before', 'data-bs-seam', 'data-bs-clip']) {
+    const at = tpl.indexOf(marker);
+    assert.ok(at > 0 && at < hud, `${marker} must be SVG artwork, not export-hidden chrome`);
+  }
+});
+
+test('overlays: the split is composited, not baked into the bitmap', async () => {
+  const hooks = await fetchFile('bitmap-studio/hooks.js');
+  // The framed source is handed back for the "before" layer, and the paths emit it.
+  assert.ok(hooks.includes('out.__bsFramed = framed'),
+    'renderFrame must expose the framed source for the before layer');
+  assert.ok(hooks.includes('beforeSrc'), 'the render paths must emit a beforeSrc');
+  // The old in-bitmap seam bake (a fixed midpoint white bar) must be gone — its
+  // return would put the seam into EVERY export at a fixed position again.
+  assert.ok(!/fillRect\(\s*half\b/.test(hooks),
+    'the split must not be painted into the composed bitmap');
+
+  const styles = await fetchFile('bitmap-studio/styles.css');
+  for (const cls of ['.bs-split-grip', '.bs-hist-resize']) {
+    assert.ok(styles.includes(cls), `styles must define ${cls} for the drag/resize affordance`);
+  }
+});

@@ -1,0 +1,4 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 60" aria-hidden="true">
+  <title>Refusal fixture: lints clean, says nothing about where it came from</title>
+  <rect x="0" y="0" width="200" height="60" fill="currentColor" opacity=".1" />
+</svg>

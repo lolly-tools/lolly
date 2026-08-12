@@ -721,8 +721,16 @@ export const c2paExtractTarget: FuzzTarget = {
 // Attach format per sniffed container, so a mutated seed reaches the placer that
 // actually walks its grammar (the shell knows the format from the asset; a
 // header-mutated file that sniffs as nothing still gets fed to a placer).
-// ('pdf' is absent on purpose — it routes to embedC2paInPdf, not a placer.)
-const ATTACH_FORMAT: Record<Exclude<SniffFormat, 'pdf'>, string> = {
+// ('pdf' is absent on purpose — it routes to embedC2paInPdf, not a placer; so
+// are the C2PA 2.4 text bindings 'html'/'code'/'text', which are READ-only — no
+// container in c2pa-containers.ts can place one. A missing key falls through to
+// the 'png' default below, which is the intent for every unplaceable sniff.)
+//
+// The exclusion is spelled out rather than `Partial<>` ON PURPOSE: this type is
+// a GUARD. Adding a placeable format to SniffFormat without adding its placer
+// row has to be a compile error — under `Partial<>` it is silent, and the new
+// format gets fuzzed against the PNG placer forever.
+const ATTACH_FORMAT: Record<Exclude<SniffFormat, 'pdf' | 'html' | 'code' | 'text'>, string> = {
   png: 'png', jpeg: 'jpg', gif: 'gif', svg: 'svg',
   tiff: 'tiff', webp: 'webp', avif: 'avif', mp4: 'mp4', webm: 'webm', mkv: 'webm', mp3: 'mp3',
   wav: 'wav', ogg: 'opus',
@@ -745,7 +753,10 @@ export const c2paContainersTarget: FuzzTarget = {
     const store = (await cachedStoreSeeds())[0]!;
     const fmt = sniffFormat(bytes);
     if (fmt === 'pdf') { await embedC2paInPdf(bytes, { title: 'Fuzz', signer: await sharedSigner() }); return; }
-    attachC2paStore(bytes, (fmt && ATTACH_FORMAT[fmt]) || 'png', store);
+    // Own keys only, and the cast is confined to this one lookup so the map's
+    // exhaustiveness guard above keeps its teeth.
+    const placer = fmt && Object.hasOwn(ATTACH_FORMAT, fmt) ? ATTACH_FORMAT[fmt as keyof typeof ATTACH_FORMAT] : undefined;
+    attachC2paStore(bytes, placer || 'png', store);
   },
 };
 

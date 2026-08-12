@@ -20,7 +20,7 @@ import {
   KF_EASE_TOKENS, KF_EASE_PRESETS, KF_HOLD_EASE, KF_DEFAULT_EASE, KF_HOLD_CSS,
   KF_GUARD_U, KF_GUARD_BAND, KF_EFF_MAX, DOF_K, DEFAULT_CAMERA, DEFAULT_PERSPECTIVE,
   isKfChannel, isKfSafe, cubicBezierAt, normaliseKfEase, kfEasePoints, kfEaseAt,
-  kfEaseCss, kfEaseName, kfEaseToken,
+  kfEaseCss, kfEaseName, kfEaseToken, subdivideKfEase,
   parseKf, serialiseKf, evaluateKf, kfChannelsUsed,
   projectDepth, projectLayer, dofBlur, resolveCamera,
 } from '../engine/src/keyframes.ts';
@@ -355,6 +355,148 @@ test('cubicBezierAt: endpoints, the linear identity, and an overshoot above 1', 
   assert.equal(kfEaseAt(KF_HOLD_EASE, 0.999), 0);
   assert.equal(kfEaseAt(KF_HOLD_EASE, 1), 1);
   assert.equal(kfEaseAt('el', 0), 0);
+});
+
+// ─── segment subdivision (the §5.6 rebase's ease half) ───────────────────────
+
+/**
+ * The defining property, straight off `subdivideKfEase`'s own doc block: a
+ * segment cut at the time fraction λ is reproduced by its two halves.
+ *
+ *   left:   E(u·λ)                    === E_L(u) · E(λ)
+ *   right:  E(λ + (1 − λ)·u)          === E(λ) + E_R(u) · (1 − E(λ))
+ *
+ * Checked as VALUES, which is what a rebased track actually replays — the
+ * control points are an implementation detail, and only the composed progress
+ * has to survive the 0.001 quantisation.
+ */
+function assertSubdivides(ease: string, lam: number, tol = 3e-3): void {
+  const { left, right } = subdivideKfEase(ease, lam);
+  const eLam = kfEaseAt(ease, lam);
+  for (const u of [0, 0.1, 0.25, 0.4, 0.5, 0.6, 0.75, 0.9, 1]) {
+    near(kfEaseAt(left, u) * eLam, kfEaseAt(ease, u * lam), `${ease}@${lam} left u=${u}`, tol);
+    near(
+      eLam + kfEaseAt(right, u) * (1 - eLam),
+      kfEaseAt(ease, lam + (1 - lam) * u),
+      `${ease}@${lam} right u=${u}`,
+      tol,
+    );
+  }
+}
+
+test('subdivideKfEase reproduces the original curve on both sides of the cut', () => {
+  // The six monotone presets are exact to the quantum at every cut.
+  for (const tok of ['el', 'ei', 'eo', 'eio', 'es', 'ek']) {
+    for (const lam of [0.1, 0.25, 0.5, 0.618, 0.9]) assertSubdivides(tok, lam);
+  }
+  // …and so is a custom curve.
+  assertSubdivides('eb(0.2)(0.9)(0.8)(0.1)', 0.37);
+});
+
+test('subdivideKfEase: the overshoot family too, away from its own self-crossings', () => {
+  // Both overshoot curves cross their OWN endpoint value in flight — `ev` reaches
+  // E = 1 at λ ≈ 0.369, `ea` returns to E = 0 at λ ≈ 0.274 — and around each
+  // crossing the halves' endpoints coincide, which no easing vocabulary can
+  // express (see the band test below). Away from those bands both are exact.
+  for (const lam of [0.2, 0.5, 0.8]) assertSubdivides('ev', lam, 5e-3);
+  for (const lam of [0.15, 0.7, 0.9]) assertSubdivides('ea', lam, 5e-3);
+});
+
+test('subdivideKfEase: near a self-crossing it NEVER emits a clamped, wrong-motion curve', () => {
+  // THE DEFECT. `easeFromPoints` clamps a control y to ±10, which is right for an
+  // author typing a wild bezier and catastrophic for a renormalised half: a half whose
+  // control y works out at −40 came back spelled −10, i.e. a completely different
+  // motion, silently. `ev` at λ = 0.37 was the measured case. The fix is not to make
+  // the band exact — a segment whose two endpoint VALUES are equal cannot carry an
+  // excursion in ANY easing vocabulary — but to detect the clamp and keep the original
+  // token, which is the documented approximation.
+  //
+  // Swept densely across both bands: every token that comes back must be one this
+  // module can hand straight to the wire AND must reproduce the segment at least as
+  // well as the fallback does.
+  for (const tok of ['ev', 'ea']) {
+    for (let i = 0; i <= 400; i++) {
+      const lam = 0.2 + (i / 400) * 0.3;             // covers λ ≈ 0.274 and λ ≈ 0.369
+      const { left, right } = subdivideKfEase(tok, lam);
+      for (const half of [left, right]) {
+        assert.ok(KF_CHARSET_RE.test(half), `${tok}@${lam} → ${half}`);
+        assert.equal(normaliseKfEase(half), half, `${tok}@${lam} → ${half} is canonical`);
+        const pts = kfEasePoints(half);
+        if (!pts) continue;
+        // The clamp is the tell: a control point sitting exactly on ±10 is a value
+        // that was truncated to fit, not a curve anybody computed.
+        assert.ok(Math.abs(pts[1]) < 10 && Math.abs(pts[3]) < 10,
+          `${tok}@${lam} → ${half} carries a clamped control point`);
+      }
+    }
+  }
+  // And the residual is stated rather than claimed away: inside the band the halves
+  // are an approximation, bounded by the excursion the coinciding endpoints cannot
+  // carry — up to ~0.10 in E, falling to 0 at each edge.
+  const err = (tok: string, lam: number): number => {
+    const { right } = subdivideKfEase(tok, lam);
+    const eLam = kfEaseAt(tok, lam);
+    let worst = 0;
+    for (let u = 0; u <= 1; u += 0.02) {
+      const got = eLam + kfEaseAt(right, u) * (1 - eLam);
+      worst = Math.max(worst, Math.abs(got - kfEaseAt(tok, lam + (1 - lam) * u)));
+    }
+    return worst;
+  };
+  assert.ok(err('ev', 0.37) > 0.02, 'the band really is approximate (the vacuity guard)');
+  assert.ok(err('ev', 0.37) < 0.12, 'and bounded where the doc block says it is');
+  assert.ok(err('ev', 0.25) < 5e-3, 'outside the band it is exact again');
+});
+
+test('subdivideKfEase: linear stays linear, and a preset half comes back BY NAME', () => {
+  assert.deepEqual(subdivideKfEase('el', 0.5), { left: 'el', right: 'el' });
+  assert.deepEqual(subdivideKfEase('el', 0.137), { left: 'el', right: 'el' });
+  for (const lam of [0.25, 0.5, 0.75]) {
+    const { left, right } = subdivideKfEase('eio', lam);
+    // Charset-clean and re-parseable — these tokens are spliced straight into a
+    // track by the rebase, so they must survive the wire unchanged.
+    for (const tok of [left, right]) {
+      assert.ok(KF_CHARSET_RE.test(tok), tok);
+      assert.equal(normaliseKfEase(tok), tok, `${tok} is already canonical`);
+    }
+  }
+});
+
+test('subdivideKfEase: the inexpressible cases keep the original token, and say so', () => {
+  // hold has no bezier to split.
+  assert.deepEqual(subdivideKfEase(KF_HOLD_EASE, 0.5), { left: KF_HOLD_EASE, right: KF_HOLD_EASE });
+  // A cut outside the segment is not a cut.
+  for (const lam of [0, 1, -0.5, 1.5, Number.NaN, Number.POSITIVE_INFINITY]) {
+    assert.deepEqual(subdivideKfEase('eo', lam), { left: 'eo', right: 'eo' }, String(lam));
+  }
+  // Junk resolves to the default curve rather than throwing.
+  assert.deepEqual(subdivideKfEase('wobble', 0.5), subdivideKfEase(KF_DEFAULT_EASE, 0.5));
+  assert.deepEqual(subdivideKfEase(null, 0.5), subdivideKfEase(KF_DEFAULT_EASE, 0.5));
+  // `ea` passes back through its own start value; at that λ the first half's two
+  // endpoints coincide, so no curve can express it and the original is kept.
+  let cross = 0.5;
+  for (let lo = 0.2, hi = 0.6, i = 0; i < 60; i++) {
+    cross = (lo + hi) / 2;
+    if (kfEaseAt('ea', cross) < 0) lo = cross; else hi = cross;
+  }
+  assert.ok(Math.abs(kfEaseAt('ea', cross)) < 1e-6, 'found the zero crossing');
+  assert.equal(subdivideKfEase('ea', cross).left, 'ea', 'left keeps the original at the crossing');
+});
+
+test('subdivideKfEase: subdivision is NOT a no-op (the vacuity guard)', () => {
+  // If the halves just echoed the input, the property above would hold for a
+  // linear curve and nothing else. An asymmetric cut on a strongly-eased curve
+  // must move both control nets.
+  const { left, right } = subdivideKfEase('eo', 0.25);
+  assert.notEqual(left, 'eo');
+  assert.notEqual(right, 'eo');
+  // And keeping the original ease (the naive rebase) would visibly miss.
+  const lam = 0.25;
+  const eLam = kfEaseAt('eo', lam);
+  const naive = Math.abs(kfEaseAt('eo', 0.5) * eLam - kfEaseAt('eo', 0.5 * lam));
+  const exact = Math.abs(kfEaseAt(left, 0.5) * eLam - kfEaseAt('eo', 0.5 * lam));
+  assert.ok(naive > 0.05, `the naive rebase is off by ${naive}`);
+  assert.ok(exact < naive / 20, `the subdivision is off by only ${exact}`);
 });
 
 // ─── evaluation ──────────────────────────────────────────────────────────────

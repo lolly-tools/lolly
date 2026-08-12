@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 200" aria-hidden="true">
+  <title>Test band</title>
+  <style>
+    .band { fill: currentColor; opacity: .08 }
+    .dot  { fill: currentColor; opacity: .55 }
+    /* Motion is opt-in: the whole animation block sits behind the query, so with
+       reduced motion set the artwork is simply the first frame. */
+    @media (prefers-reduced-motion: no-preference) {
+      .dot { animation: drift 9s ease-in-out infinite alternate }
+      @keyframes drift { from { transform: translateX(0) } to { transform: translateX(48px) } }
+    }
+  </style>
+  <rect class="band" x="0" y="0" width="640" height="200" />
+  <circle class="dot" cx="120" cy="100" r="18" />
+  <circle class="dot" cx="320" cy="100" r="26" />
+  <circle class="dot" cx="520" cy="100" r="14" />
+</svg>

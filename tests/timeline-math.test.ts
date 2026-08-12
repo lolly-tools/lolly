@@ -29,8 +29,17 @@ import {
   detachAudio, isThroughEdit, joinClips, reattachAudio, splitAll,
   onionNeighbours, ONION_MAX_STEPS,
   snapTime, splitBox, trimClip,
+  // The keyframe EDITING surface (plans/104 §8) — the arithmetic the panel is
+  // forbidden from doing itself.
+  KF_NEUTRAL, KF_POSE_SEED, clearKfTrack, kfDiamondAt, kfDiamondTimes, kfDuplicateMs,
+  kfFormatChannel, kfLocalMs, kfSeekDiamond, kfSlideMs, kfTimelineSec, kfTrackDelete,
+  kfTrackDuplicate, kfTrackRetime, kfTrackSetEase, kfWriteMs, setKfTrack, writeKfPose,
   type Box, type TimeCfg,
 } from '../shells/web/src/views/timeline-math.ts';
+// The rebase is asserted through the ENGINE's own reader: a track that only
+// timeline-math could evaluate would prove nothing about what the shells replay.
+import { KF_CHARSET_RE, evaluateKf, kfChannelsUsed, parseKf, serialiseKf } from '../engine/src/keyframes.ts';
+import type { KfTrack } from '../engine/src/keyframes.ts';
 
 // The field names phase 1 locked into BOTH brand copies of layout-studio's canvas cfg.
 const cfg: TimeCfg = {
@@ -1336,4 +1345,609 @@ test('onionNeighbours: an open-ended seq clip runs to the DERIVED sequence end',
   const bare = [clip('a', { start: 0, dur: 3 }), clip('b', { start: 3 })];
   assert.deepEqual(onionNeighbours(bare, cfg, 3.05, 1, 1), { past: ['a'], future: [] });
   assert.deepEqual(onionNeighbours(bare, cfg, 3.5, 1, 1), { past: [], future: [] });
+});
+
+// ── keyframe rebase (plans/104 §5.6) ──────────────────────────────────────────
+//
+// A keyframe track lives in the box's OWN local time, so every edit that moves the
+// clip's head has to move the track with it. The property under test is always the
+// same one, and it is a CONTINUITY property rather than a wire property: whatever the
+// rebase writes, evaluating the result at a given instant must return the pose the
+// original returned at that same instant of the clip's content. The wire is allowed
+// to change (a subdivided ease is a different token); the motion is not.
+
+/** The track a box carries, parsed the way every consumer will parse it. */
+const trackOf = (box: Box | undefined): KfTrack => parseKf(String(box?.kf ?? ''));
+
+/**
+ * Continuity across a rebase: `half(t)` must equal `orig(t + shiftMs)` for every
+ * channel, sampled densely enough to catch a wrong ease and not just a wrong endpoint.
+ *
+ * The tolerance is stated per channel as a fraction of that channel's own authored
+ * SPREAD, because the error a correct rebase can still carry is the §4.6 wire
+ * quantisation (0.001 on a bezier control point, 0.01 px / 0.001 unit on a value)
+ * scaled by how far the channel travels — not an absolute number of pixels. A tenth
+ * of a percent of the travel plus one quantum is what that works out to, and it is
+ * deliberately snug: the worst error across the split/trim/join cases below is
+ * 0.024 px on a 120 px move, so a rebase that dropped the ease subdivision (tens of
+ * px out — see the vacuity guard) could not hide inside it.
+ */
+function assertContinuity(
+  orig: KfTrack, half: KfTrack, shiftMs: number, from: number, to: number, label: string,
+  opts: { frac?: number; only?: string[] } = {},
+): void {
+  const frac = opts.frac ?? 0.001;
+  const spread = new Map<string, number>();
+  for (const ch of kfChannelsUsed(orig)) {
+    let lo = Infinity;
+    let hi = -Infinity;
+    for (const k of orig) {
+      const v = k.v[ch as keyof typeof k.v];
+      if (typeof v !== 'number') continue;
+      lo = Math.min(lo, v);
+      hi = Math.max(hi, v);
+    }
+    spread.set(ch, Number.isFinite(hi - lo) ? hi - lo : 0);
+  }
+  for (let t = from; t <= to; t += 25) {
+    const want = evaluateKf(orig, t + shiftMs);
+    const got = evaluateKf(half, t);
+    for (const [ch, v] of Object.entries(want)) {
+      if (opts.only && !opts.only.includes(ch)) continue;
+      const tol = 0.011 + frac * (spread.get(ch) ?? 0);
+      const g = got[ch as keyof typeof got];
+      assert.ok(
+        typeof g === 'number' && Math.abs(g - v) <= tol,
+        `${label}: ${ch} at local ${t}ms — want ${v}, got ${String(g)} (tol ${tol})`,
+      );
+    }
+  }
+}
+
+/** Every diamond poses every channel — what the UI writes (plan §8), and the exact case. */
+const FULL_TRACK = 't0_eo_x0_y0_s1_r0_o1_b0_z0'
+  + '*t1200_ei_x120_y-40_s1.4_r15_o0.5_b6_z80'
+  + '*t3000_x0_y0_s1_r0_o1_b0_z0';
+
+const kfCfg: TimeCfg = { ...cfg, kfField: 'kf' };
+const kfClip = (kf: string, extra: Box = {}): Box[] => [
+  clip('x', { start: 0, dur: 3, clipIn: 0, speed: 1, kf, ...extra }),
+];
+
+test('splitBox: the halves REPLAY the original — every channel, across an eased cut', () => {
+  minted = 0;
+  const rows = kfClip(FULL_TRACK);
+  const orig = trackOf(rows[0]);
+  // 1.5s lands inside the second segment, whose ease (`ei`) therefore has to be
+  // subdivided rather than copied to both halves.
+  const out = splitBox(rows, kfCfg, 'x', 1.5, mintId)!;
+  const a = trackOf(byId(out, 'x'));
+  const b = trackOf(byId(out, 'new-1'));
+  assertContinuity(orig, a, 0, 0, 1500, 'A half');
+  assertContinuity(orig, b, 1500, 0, 1500, 'B half');
+  // The pose AT the cut is the same object on both sides — that is the seam.
+  assert.deepEqual(evaluateKf(a, 1500), evaluateKf(b, 0), 'the halves meet at the cut');
+});
+
+test('splitBox: the crossing segment is SUBDIVIDED, not copied (the vacuity guard)', () => {
+  minted = 0;
+  const out = splitBox(kfClip(FULL_TRACK), kfCfg, 'x', 1.5, mintId)!;
+  const a = trackOf(byId(out, 'x'));
+  const b = trackOf(byId(out, 'new-1'));
+  const crossing = a.find((k) => k.t === 1200)!;
+  assert.ok(crossing, 'A still carries the key the crossing segment starts at');
+  assert.notEqual(crossing.ease, 'ei', 'its ease is the left half of ei, not ei');
+  assert.notEqual(b[0]!.ease, 'ei', 'and B opens on the right half');
+  // What copying would have cost. One long eased move, cut three quarters of the way
+  // through: keeping the ease (the naive rebase) replays the WHOLE curve inside the
+  // first half, so the picture arrives somewhere else entirely at the same instant.
+  minted = 0;
+  const one = [clip('x', { start: 0, dur: 2, clipIn: 0, speed: 1, kf: 't0_eo_x0*t2000_x100' })];
+  const orig = trackOf(one[0]);
+  const half = trackOf(byId(splitBox(one, kfCfg, 'x', 1.5, mintId)!, 'x'));
+  const naive: KfTrack = half.map((k) => (k.t === 0 ? { t: 0, ease: 'eo', v: k.v } : k));
+  const at = 750;
+  const want = evaluateKf(orig, at).x!;
+  const exact = Math.abs(evaluateKf(half, at).x! - want);
+  const copied = Math.abs(evaluateKf(naive, at).x! - want);
+  assert.ok(copied > 5, `the naive rebase is ${copied}px out`);
+  assert.ok(exact < copied / 20, `the subdivision is only ${exact}px out`);
+});
+
+test('splitBox: a cut ON a keyframe leaves the eases alone, and a cut outside the keys still holds', () => {
+  minted = 0;
+  // Cut exactly on the middle diamond: no segment crosses, so nothing is subdivided.
+  const onKey = splitBox(kfClip(FULL_TRACK), kfCfg, 'x', 1.2, mintId)!;
+  const a = trackOf(byId(onKey, 'x'));
+  assert.equal(a[0]!.ease, 'eo', 'the first key keeps its authored ease');
+  assert.equal(a[a.length - 1]!.t, 1200, 'the synthesised key IS the cut');
+  assertContinuity(trackOf(kfClip(FULL_TRACK)[0]), a, 0, 0, 1200, 'A on-key');
+
+  // A track that finishes long before the cut: both halves are a clamp-hold.
+  minted = 0;
+  const early = splitBox(kfClip('t0_x0*t400_x60'), kfCfg, 'x', 2, mintId)!;
+  assert.equal(evaluateKf(trackOf(byId(early, 'new-1')), 0).x, 60);
+  assert.equal(evaluateKf(trackOf(byId(early, 'new-1')), 99999).x, 60, 'B holds it forever');
+  assert.equal(evaluateKf(trackOf(byId(early, 'x')), 2000).x, 60, 'A ends holding it too');
+
+  // …and one that only starts after it.
+  minted = 0;
+  const late = splitBox(kfClip('t2500_x0*t2900_x60'), kfCfg, 'x', 1, mintId)!;
+  assert.equal(evaluateKf(trackOf(byId(late, 'x')), 0).x, 0, 'A is a constant hold');
+  assertContinuity(trackOf(kfClip('t2500_x0*t2900_x60')[0]), trackOf(byId(late, 'new-1')), 1000, 0, 2000, 'B late');
+});
+
+test('splitBox: a SPARSE channel keeps its endpoints exactly (the stated approximation)', () => {
+  // `z` is mentioned at 0 and 2400 only, so its segment spans a diamond that never
+  // names it — two different crossing segments meet at one cut, and a keyframe carries
+  // one ease. The contract is: exact at the cut and at every key, shape approximate.
+  minted = 0;
+  const sparse = 't0_eo_x0_z0*t1200_x100*t2400_x0_z90';
+  const rows = kfClip(sparse);
+  const orig = trackOf(rows[0]);
+  const out = splitBox(rows, kfCfg, 'x', 1.8, mintId)!;
+  const a = trackOf(byId(out, 'x'));
+  const b = trackOf(byId(out, 'new-1'));
+  for (const [ch, v] of Object.entries(evaluateKf(orig, 1800))) {
+    const key = ch as 'x' | 'z';
+    assert.ok(Math.abs((evaluateKf(a, 1800)[key] as number) - v) <= 0.011, `A at the cut: ${ch}`);
+    assert.ok(Math.abs((evaluateKf(b, 0)[key] as number) - v) <= 0.011, `B at the cut: ${ch}`);
+  }
+  // x's crossing segment starts at the last key before the cut, so IT is exact.
+  assertContinuity(orig, a, 0, 1200, 1800, 'A sparse x', { only: ['x'] });
+  // z's does not, and is allowed to differ in shape — but never by more than the
+  // segment it lives on (a bound, so a future regression that inverts it still fails).
+  const zErr = Math.abs((evaluateKf(a, 1500).z as number) - (evaluateKf(orig, 1500).z as number));
+  assert.ok(zErr < 12, `the sparse channel stays near its curve (off by ${zErr})`);
+});
+
+test('trimClip: an IN trim rebases the track by the head it removed; an OUT trim never does', () => {
+  const rows = kfClip(FULL_TRACK);
+  const orig = trackOf(rows[0]);
+  const trimmed = trimClip(rows, kfCfg, 'x', 'in', 0.8, null);
+  assertContinuity(orig, trackOf(byId(trimmed, 'x')), 800, 0, 2200, 'trim-in');
+  assert.equal(byId(trimmed, 'x').dur, 2.2, 'the clip really did lose 0.8s');
+
+  const out = trimClip(rows, kfCfg, 'x', 'out', -0.5, null);
+  assert.equal(byId(out, 'x').kf, FULL_TRACK, 'an out trim leaves the track byte-identical');
+  const longer = trimClip(rows, kfCfg, 'x', 'out', 1, null);
+  assert.equal(byId(longer, 'x').kf, FULL_TRACK, 'and so does growing it');
+});
+
+test('trimClip: a NEGATIVE in trim gives the head back, motion and all', () => {
+  // A clip already cut into its source: dragging the in edge left restores 0.5s.
+  const rows = [clip('x', { start: 0, dur: 3, clipIn: 1, speed: 1, kf: FULL_TRACK })];
+  const orig = trackOf(rows[0]);
+  const out = trimClip(rows, kfCfg, 'x', 'in', -0.5, null);
+  const back = trackOf(byId(out, 'x'));
+  assert.equal(byId(out, 'x').dur, 3.5);
+  // Everything slid 0.5s later, and the revealed head holds the opening pose.
+  assertContinuity(orig, back, -500, 500, 3500, 'negative trim-in');
+  assert.equal(evaluateKf(back, 0).x, 0, 'the revealed head clamp-holds the first pose');
+  assert.equal(back.length, orig.length, 'nothing was synthesised and nothing dropped');
+});
+
+test('the media-only edits do NOT rebase: speed, trim-in-point and length leave the track alone', () => {
+  // `speed` remaps which frame of the FILE plays when; the box's own animation runs in
+  // the clip's local timeline, which a rate change does not move. Same for the Trim-in
+  // FIELD (the clip keeps its length and position) and for Length.
+  const rows = kfClip(FULL_TRACK, { clipIn: 2 });
+  for (const out of [
+    setSpeed(rows, kfCfg, 'x', 2, 20),
+    setSpeed(rows, kfCfg, 'x', 0.5, 20),
+    setClipIn(rows, kfCfg, 'x', 4, 20),
+    setDuration(rows, kfCfg, 'x', 1.5, 20),
+    setDuration(rows, kfCfg, 'x', 6, 20),
+    moveOverlay([overlay('y', 0, { dur: 2, kf: FULL_TRACK })], kfCfg, 'y', 3),
+    packSeq(rows, kfCfg),
+    moveSeqClip([...rows, clip('b', { start: 3, dur: 1 })], kfCfg, 'x', 1),
+  ]) {
+    const box = out.find((r) => r && (r.id === 'x' || r.id === 'y'))!;
+    assert.equal(box.kf, FULL_TRACK, 'the track is byte-identical');
+  }
+});
+
+test('joinClips: split then join replays the original, with ONE key at the seam', () => {
+  minted = 0;
+  const rows = kfClip(FULL_TRACK);
+  const orig = trackOf(rows[0]);
+  const halves = splitBox(rows, kfCfg, 'x', 1.5, mintId)!;
+  const out = joinClips(halves, kfCfg, 'x', 'new-1')!;
+  const merged = trackOf(byId(out, 'x'));
+  assert.equal(byId(out, 'x').dur, 3, 'the clip is whole again');
+  assert.equal(merged.filter((k) => k.t === 1500).length, 1, 'the seam is one keyframe, never two');
+  assertContinuity(orig, merged, 0, 0, 3000, 'rejoined');
+});
+
+test('joinClips: B\'s track moves to where B now plays, and B\'s opening pose wins the seam', () => {
+  const rows = [
+    clip('a', { start: 0, dur: 2, clipIn: 0, speed: 1, kf: 't0_x0*t2000_x50' }),
+    clip('b', { start: 2, dur: 2, clipIn: 0, speed: 1, kf: 't0_x200*t2000_x300' }),
+  ];
+  const out = joinClips(rows, kfCfg, 'a', 'b')!;
+  const merged = trackOf(byId(out, 'a'));
+  assert.equal(byId(out, 'a').dur, 4);
+  assert.deepEqual(merged.map((k) => k.t), [0, 2000, 4000], 'B\'s keys land at +A.dur');
+  assert.equal(evaluateKf(merged, 2000).x, 200, 'the seam plays B\'s opening pose');
+  assert.equal(evaluateKf(merged, 4000).x, 300);
+  assertContinuity(trackOf(rows[1]), merged, -2000, 2000, 4000, 'B inside the join');
+});
+
+test('joinClips: an unanimated B leaves A\'s track byte-identical', () => {
+  const rows = [
+    clip('a', { start: 0, dur: 2, kf: FULL_TRACK }),
+    clip('b', { start: 2, dur: 2 }),
+  ];
+  const out = joinClips(rows, kfCfg, 'a', 'b')!;
+  assert.equal(byId(out, 'a').kf, FULL_TRACK, 'nothing to merge, nothing rewritten');
+});
+
+test('joinClips: an animated B onto an unanimated A keeps the motion (and poses the seam back)', () => {
+  // The documented lossy case: one clip has one track, and a track clamp-holds its
+  // first pose backwards. Preserving B's animation is worth that; dropping it is not.
+  const rows = [
+    clip('a', { start: 0, dur: 2 }),
+    clip('b', { start: 2, dur: 2, kf: 't0_o0*t1000_o1' }),
+  ];
+  const merged = trackOf(byId(joinClips(rows, kfCfg, 'a', 'b')!, 'a'));
+  assert.deepEqual(merged.map((k) => k.t), [2000, 3000]);
+  assert.equal(evaluateKf(merged, 2000).o, 0, 'B\'s fade still starts where B starts');
+  assert.equal(evaluateKf(merged, 0).o, 0, 'and A\'s span holds it — stated, not accidental');
+});
+
+test('splitAll routes through exactly the same rebase', () => {
+  minted = 0;
+  const rows = [
+    clip('x', { start: 0, dur: 3, clipIn: 0, speed: 1, kf: FULL_TRACK }),
+    clip('y', { start: 3, dur: 3, clipIn: 0, speed: 1, kf: 't0_x0*t2000_x40' }),
+  ];
+  minted = 0;
+  const one = splitBox(rows, kfCfg, 'x', 1.5, mintId)!;
+  minted = 0;
+  const all = splitAll(rows, kfCfg, ['x'], 1.5, mintId);
+  assert.equal(byId(all.next, 'x').kf, byId(one, 'x').kf);
+  assert.equal(byId(all.next, 'new-1').kf, byId(one, 'new-1').kf);
+  // And a multi-clip cut rebases each clip against its OWN local time.
+  minted = 0;
+  const both = splitAll(rows, kfCfg, ['x', 'y'], 4, mintId);
+  assert.deepEqual(both.skipped, ['x'], 'the playhead is outside x');
+  assert.equal(evaluateKf(trackOf(byId(both.next, 'new-1')), 0).x, 20, 'y was cut at ITS local 1s');
+});
+
+test('the rebase rewrites the kf field and NOTHING else (the field-copy contracts hold)', () => {
+  minted = 0;
+  const src: Box = {
+    id: 'x', lane: 'seq', start: 0, dur: 3, clipIn: 0, speed: 1,
+    kf: FULL_TRACK, ref: 'asset://clip.mp4', text: 'hello', link: 'snd', group: 'g1', z: 40,
+  };
+  const out = splitBox([src], kfCfg, 'x', 1.5, mintId)!;
+  for (const half of out) {
+    for (const f of ['ref', 'text', 'link', 'group', 'z'] as const) {
+      assert.equal(half![f], src[f], `${f} is copied verbatim`);
+    }
+  }
+  // detachAudio's link survival is the contract most at risk from a field rewrite.
+  const linkCfg: TimeCfg = { ...kfCfg, linkField: 'link' };
+  const det = detachAudio([{ ...src, link: '' }], linkCfg, 'x', () => 'snd')!;
+  assert.equal(det[0]!.link, 'snd');
+  assert.equal(det[1]!.link, 'x');
+  assert.equal(det[1]!.kf, FULL_TRACK, 'a detach still COPIES the track — no local time moved');
+});
+
+test('a tool with no kf field is byte-identical through every edit (the floor)', () => {
+  minted = 0;
+  const rows = kfClip(FULL_TRACK);
+  // `cfg` declares no kfField at all: the whole rebase is unreachable.
+  const halves = splitBox(rows, cfg, 'x', 1.5, mintId)!;
+  assert.equal(halves[0]!.kf, FULL_TRACK);
+  assert.equal(halves[1]!.kf, FULL_TRACK, 'the verbatim copy this module has always made');
+  assert.equal(byId(trimClip(rows, cfg, 'x', 'in', 0.8, null), 'x').kf, FULL_TRACK);
+  const pair = [clip('a', { start: 0, dur: 2, kf: 't0_x0' }), clip('b', { start: 2, dur: 2, kf: 't0_x9' })];
+  assert.equal(byId(joinClips(pair, cfg, 'a', 'b')!, 'a').kf, 't0_x0');
+
+  // And a box with NO track never grows one, even where the field IS declared.
+  minted = 0;
+  const bare = [clip('x', { start: 0, dur: 3, clipIn: 0, speed: 1 })];
+  const cut = splitBox(bare, kfCfg, 'x', 1.5, mintId)!;
+  assert.ok(!('kf' in cut[0]!), 'A gained no kf key');
+  assert.ok(!('kf' in cut[1]!), 'B gained no kf key');
+  assert.ok(!('kf' in byId(trimClip(bare, kfCfg, 'x', 'in', 0.5, null), 'x')));
+});
+
+test('a hostile kf value can never be rewritten into something worse', () => {
+  minted = 0;
+  // Junk plus one real keyframe: the rebase re-serialises through the grammar, so
+  // whatever comes out is charset-clean by construction.
+  const rows = kfClip('"><img src=x>*t0_x0*t2000_x80');
+  const out = splitBox(rows, kfCfg, 'x', 1, mintId)!;
+  for (const half of out) {
+    assert.ok(KF_CHARSET_RE.test(String(half!.kf)), `${String(half!.kf)} is charset-clean`);
+  }
+  assert.equal(evaluateKf(trackOf(byId(out, 'new-1')), 0).x, 40, 'and the real key still rebased');
+
+  // A value with nothing parseable in it is left exactly as found: this module rewrites
+  // a track, it does not sanitise a field it has no motion for (the hooks refuse to
+  // emit it, which is where that guarantee belongs).
+  minted = 0;
+  const junk = splitBox(kfClip('"><img src=x>'), kfCfg, 'x', 1, mintId)!;
+  assert.equal(junk[0]!.kf, '"><img src=x>');
+  assert.equal(junk[1]!.kf, '"><img src=x>');
+});
+
+test('rebase fuzz: 300 random tracks × random cuts meet exactly at the seam', () => {
+  // Structural property rather than a shape one, so it can afford to be random:
+  // whatever the track and wherever the cut, the two halves must MEET (A's last
+  // instant is B's first), the wire must stay charset-clean and re-parseable, and no
+  // key may land out of order or before zero. Deterministic PRNG — a fuzz case that
+  // cannot be reproduced is a rumour, not a test.
+  let seed = 0x104f00d;
+  const rnd = (): number => {
+    seed = (seed * 1664525 + 1013904223) >>> 0;
+    return seed / 0x100000000;
+  };
+  const eases = ['el', 'ei', 'eo', 'eio', 'ev', 'ea', 'es', 'ek', 'eh', 'eb(0.2)(1.4)(0.7)(0.3)'];
+  for (let i = 0; i < 300; i++) {
+    const keys: string[] = [];
+    const n = 1 + Math.floor(rnd() * 5);
+    let t = Math.floor(rnd() * 400);
+    for (let k = 0; k < n; k++) {
+      const parts = [`t${t}`, eases[Math.floor(rnd() * eases.length)]!];
+      if (rnd() < 0.9) parts.push(`x${(rnd() * 400 - 200).toFixed(2)}`);
+      if (rnd() < 0.6) parts.push(`o${rnd().toFixed(3)}`);
+      if (rnd() < 0.5) parts.push(`z${(rnd() * 300).toFixed(2)}`);
+      keys.push(parts.join('_'));
+      t += 1 + Math.floor(rnd() * 900);
+    }
+    const kf = keys.join('*');
+    const dur = 3;
+    const cut = 0.2 + rnd() * 2.6;
+    minted = 0;
+    const out = splitBox([clip('x', { start: 0, dur, clipIn: 0, speed: 1, kf })], kfCfg, 'x', cut, mintId);
+    if (!out) continue;                       // refused (too close to an edge) — fine
+    const label = `seed case ${i}: "${kf}" cut at ${cut}`;
+    const a = trackOf(byId(out, 'x'));
+    const b = trackOf(byId(out, 'new-1'));
+    for (const half of [byId(out, 'x'), byId(out, 'new-1')]) {
+      assert.ok(KF_CHARSET_RE.test(String(half.kf)), `${label}: charset`);
+    }
+    for (const half of [a, b]) {
+      let prev = -1;
+      for (const k of half) {
+        assert.ok(k.t >= 0 && k.t > prev, `${label}: keys ascend from zero`);
+        prev = k.t;
+      }
+    }
+    const cutMs = Math.round(cut * 1000);
+    const orig = parseKf(kf);
+    const atCut = evaluateKf(a, cutMs) as Record<string, number>;
+    const atZero = evaluateKf(b, 0) as Record<string, number>;
+    for (const [ch, v] of Object.entries(evaluateKf(orig, cutMs) as Record<string, number>)) {
+      assert.ok(Math.abs((atCut[ch] as number) - v) <= 0.011, `${label}: A meets ${ch}`);
+      assert.ok(Math.abs((atZero[ch] as number) - v) <= 0.011, `${label}: B meets ${ch}`);
+    }
+  }
+});
+
+// ── the keyframe EDITING primitives (plans/104 §8, workstream I2) ─────────────
+//
+// The surface's arithmetic, asserted with no DOM anywhere near it. The panel is
+// editing glue and calls exactly these; timeline-panel.test.ts pins the wiring, this
+// pins the numbers. Where the two could disagree — what a "full pose" contains, where
+// a dragged diamond lands, which token an ease splice touches — this file is right.
+
+const zCfg: TimeCfg = { ...cfg, kfField: 'kf', zField: 'z' };
+
+test('kfLocalMs / kfTimelineSec: a keyframe lives in the CLIP\'s own time, unscaled by speed', () => {
+  const box = clip('x', { start: 2, dur: 3, clipIn: 0.75, speed: 2, kf: 't0_x0*t1000_x9' });
+  // The DOM evaluator reads `tMs - timing.start` (sequence-dom.ts) and the trim rebase
+  // shifts by the same number. `clipIn` and `speed` remap the MEDIA inside a clip, never
+  // the clip's own animation, so neither may appear in this conversion.
+  assert.equal(kfLocalMs(box, zCfg, 2), 0);
+  assert.equal(kfLocalMs(box, zCfg, 3.25), 1250);
+  assert.equal(kfLocalMs(box, zCfg, 1.5), -500, 'before the clip is a negative local time, not a clamp');
+  assert.equal(kfTimelineSec(box, zCfg, 1250), 3.25, 'and the round trip is exact on the ms grid');
+  // Scenery: no start at all reads as 0, so an untimed box's track is still addressable.
+  assert.equal(kfLocalMs({ id: 'y', start: '', dur: '' }, zCfg, 1.5), 1500);
+});
+
+test('kfDiamondAt is EXACT — one millisecond off a keyframe is off it', () => {
+  const box = clip('x', { start: 1, dur: 3, kf: 't0_x0*t1500_x40' });
+  assert.equal(kfDiamondAt(box, zCfg, 1), 0);
+  assert.equal(kfDiamondAt(box, zCfg, 2.5), 1500);
+  assert.equal(kfDiamondAt(box, zCfg, 2.501), null,
+    'the latch has already snapped the playhead onto the diamond, so "near" is a state '
+    + 'the user cannot be left in by accident — a tolerance here would let an edit land '
+    + 'on a keyframe the header says you are not on');
+  assert.equal(kfDiamondAt(clip('x', { start: 0, dur: 3 }), zCfg, 0), null, 'no track, no diamonds');
+  assert.deepEqual(kfDiamondTimes(box, zCfg), [1, 2.5], 'and the latch candidates are TIMELINE seconds');
+});
+
+test('the latch candidate is the ROUND TRIP of the latch test, on and off the ms grid', () => {
+  // `kfDiamondTimes` emits what the ruler snaps the playhead to and what Alt+←/→ seeks
+  // to; `kfDiamondAt` decides whether the header says "Keyframe @ …" and whether a
+  // canvas drag poses. If the two round differently the playhead can land EXACTLY on a
+  // diamond that the panel then denies being on — pose fields disabled, drag moving the
+  // box — which is the one lie this model cannot afford. A start is not required to sit
+  // on the millisecond grid anywhere in `TimeCfg`, the schema or `boxTiming`: an
+  // authored, imported or URL-supplied document can carry any float.
+  const kf = 't0_x0*t500_x10*t2000_x20';
+  for (const start of [0, 0.0005, 0.1235, 1 / 3, 2.7182818, 59.9999, 1234.5678]) {
+    const box = clip('x', { start, dur: 3600, kf });
+    const cands = kfDiamondTimes(box, zCfg);
+    assert.deepEqual(cands.map((s) => kfDiamondAt(box, zCfg, s)), [0, 500, 2000],
+      `start ${start}: every candidate reads back as its own keyframe`);
+    // …and the write lands on that same key rather than forking a twin beside it.
+    for (const s of cands) {
+      const out = writeKfPose([box], zCfg, 'x', s, { y: 1 }, 'add');
+      assert.equal(parseKf(String(out[0]!.kf)).length, 3, `start ${start}: no fourth keyframe at ${s}`);
+    }
+  }
+  // Seeking is the same set, so it inherits the property.
+  const odd = clip('x', { start: 0.1235, dur: 3600, kf });
+  const first = kfSeekDiamond([odd], zCfg, ['x'], -1, 1);
+  assert.equal(kfDiamondAt(odd, zCfg, first as number), 0, 'Alt+→ lands ON the diamond it announces');
+});
+
+test('a keyframe never lands past the out-point — but an existing one is posed where it is', () => {
+  // The tail clamp is the drag path's own stated law ("a keyframe past the out-point is
+  // unreachable without a trim, and a drag that silently parks one there looks exactly
+  // like a drag that did nothing"), and "+Keyframe"/K go through the same door.
+  const box = clip('x', { start: 0, dur: 3, kf: 't0_x0*t1000_x50' });
+  assert.equal(kfWriteMs(box, zCfg, 10), 3000, 'past the out-point clamps to the clip end');
+  assert.equal(kfWriteMs(box, zCfg, -4), 0, 'before the in-point clamps to the clip start');
+  assert.equal(kfWriteMs(box, zCfg, 1), 1000, 'inside, it is simply the playhead');
+  const late = writeKfPose([box], zCfg, 'x', 10, {}, 'set');
+  assert.deepEqual(parseKf(String(late[0]!.kf)).map((k) => k.t), [0, 1000, 3000],
+    'so the dot is on the bar the user is looking at, not seven seconds past its right edge');
+
+  // An open-ended clip has no out-point to clamp against, so it keeps the full range.
+  const openEnded = clip('y', { start: 0, dur: '', kf: 't0_x0' });
+  assert.equal(kfWriteMs(openEnded, zCfg, 10), 10000);
+
+  // And a key already sitting past the end — reachable by hand-editing a share URL, or
+  // by trimming the clip shorter afterwards — is EDITED, never forked: the latch's whole
+  // claim is that the header names the keyframe a gesture will write.
+  const stale = clip('z', { start: 0, dur: 3, kf: 't0_x0*t9000_x50' });
+  assert.equal(kfWriteMs(stale, zCfg, 9), 9000);
+  const posed = writeKfPose([stale], zCfg, 'z', 9, { x: 5 }, 'add');
+  assert.deepEqual(parseKf(String(posed[0]!.kf)).map((k) => k.t), [0, 9000]);
+});
+
+test('kfFormatChannel prints a channel at ITS OWN quantum, never a hardcoded 1e-3', () => {
+  // §4.6: x/y/z/b/r are hundredths, s/o/a thousandths. A single 1e-3 in the inspector
+  // printed five significant decimals for a depth the wire could never hold.
+  assert.equal(kfFormatChannel('z', 140.23456), '140.23');
+  assert.equal(kfFormatChannel('b', 2.5), '2.5', 'and never pads to the quantum');
+  assert.equal(kfFormatChannel('s', 1.23456), '1.235');
+  assert.equal(kfFormatChannel('o', 0.5), '0.5');
+  assert.equal(kfFormatChannel('x', 0.1 + 0.2), '0.3', 'no binary artefacts in a field');
+  assert.equal(kfFormatChannel('z', 0), '0');
+  assert.equal(kfFormatChannel('z', Number.NaN), '0', 'junk reads as the neutral, never "NaN"');
+});
+
+test('writeKfPose composes a FULL pose over the active channel set, at the §4.6 quanta', () => {
+  const rows = [clip('x', { start: 0, dur: 4, z: 140, kf: 't0_x0_s1*t2000_eo_x60_s1.5' })];
+  // 'add' — a gesture's delta, on top of what the box is already doing there.
+  const moved = writeKfPose(rows, zCfg, 'x', 2, { x: 12.345, y: -4 }, 'add');
+  const t = parseKf(String(moved[0]!.kf));
+  assert.equal(t.length, 2, 'the diamond was UPDATED, never duplicated');
+  assert.deepEqual({ ...t[1]!.v }, { x: 72.35, y: -4, s: 1.5 },
+    'x carried its own value + the delta, s came along because the track animates it, '
+    + 'and y joined the set because this edit touched it');
+  assert.equal(t[1]!.ease, 'eo', 'the curve out of the keyframe is not an edit');
+  assert.deepEqual({ ...t[0]!.v }, { x: 0, s: 1 }, 'and every other keyframe is byte-identical');
+
+  // 0.01px for x/y/z/b, 0.001 for s/o/a, integer ms for t — the wire's own quanta, and
+  // the round-trip law `parse(serialise(parse(s))) === parse(s)` holds through an edit.
+  assert.equal(String(moved[0]!.kf), 't0_x0_s1*t2000_eo_x72.35_y-4_s1.5');
+  assert.deepEqual(parseKf(serialiseKf(parseKf(String(moved[0]!.kf)))), parseKf(String(moved[0]!.kf)));
+
+  // 'set' — a typed number IS the value, and it still writes a full pose around itself.
+  const typed = writeKfPose(rows, zCfg, 'x', 2, { o: 0.5 }, 'set');
+  assert.deepEqual({ ...parseKf(String(typed[0]!.kf))[1]!.v }, { x: 60, s: 1.5, o: 0.5 });
+});
+
+test('a pose\'s unauthored `z` is the box\'s own depth FIELD, never a neutral zero', () => {
+  // §5.2: a keyed `z` REPLACES the field for its segment. A full pose that wrote 0 over
+  // an authored 140 would drop the box to the floor the instant it was keyed.
+  const rows = [clip('x', { start: 0, dur: 4, z: 140, kf: 't0_x0*t2000_x60' })];
+  const out = writeKfPose(rows, zCfg, 'x', 2, { z: 200 }, 'set');
+  assert.deepEqual({ ...parseKf(String(out[0]!.kf))[1]!.v }, { x: 60, z: 200 });
+  const nudged = writeKfPose(rows, zCfg, 'x', 2, { z: 10 }, 'add');
+  assert.deepEqual({ ...parseKf(String(nudged[0]!.kf))[1]!.v }, { x: 60, z: 150 }, '140 + 10');
+  // A tool that declares no depth field has no authored depth to preserve.
+  const noZ = writeKfPose(rows, { ...cfg, kfField: 'kf' }, 'x', 2, { z: 10 }, 'add');
+  assert.deepEqual({ ...parseKf(String(noZ[0]!.kf))[1]!.v }, { x: 60, z: 10 });
+});
+
+test('writeKfPose returns the array by IDENTITY when the pose it would write is the one already there', () => {
+  // The caller's "did this write anything?" test is `next === boxes`, and `Array.map`
+  // mints a new array even when nothing changed. Without this, "+Keyframe" on a diamond
+  // already holding that pose would be an undo step that undoes nothing visible.
+  const rows = [clip('x', { start: 0, dur: 4, kf: 't0_x0*t2000_eo_x60' })];
+  assert.equal(writeKfPose(rows, zCfg, 'x', 2, {}, 'set'), rows);
+  assert.notEqual(writeKfPose(rows, zCfg, 'x', 2, { x: 1 }, 'add'), rows);
+  assert.equal(writeKfPose(rows, cfg, 'x', 2, { x: 1 }, 'add'), rows, 'a tool with no kf field writes nothing');
+});
+
+test('a brand-new track is born with the SEED pose — five neutral channels, so nothing moves', () => {
+  const rows = [clip('x', { start: 1, dur: 4 })];
+  const out = writeKfPose(rows, zCfg, 'x', 1, {}, 'set');
+  const t = parseKf(String(out[0]!.kf));
+  assert.deepEqual(t.map((k) => k.t), [0]);
+  assert.deepEqual({ ...t[0]!.v }, { x: 0, y: 0, s: 1, r: 0, o: 1 });
+  assert.deepEqual([...KF_POSE_SEED], ['x', 'y', 's', 'r', 'o'],
+    'z and b are deliberately NOT seeded: both have an authored base of their own, and '
+    + 'seeding them would write a value the user never touched into every keyframe');
+  // A camera is nothing but animation, so its pose IS the camera channels.
+  const cam = writeKfPose([clip('c', { start: 0, dur: 4, kind: 'camera' })], zCfg, 'c', 0, {}, 'set');
+  assert.deepEqual(kfChannelsUsed(parseKf(String(cam[0]!.kf))), ['x', 'y', 'z', 'rx', 'ry', 'f', 'a', 'p']);
+});
+
+test('the neutral table IS what an absent channel composes to (the foldKfPose reading)', () => {
+  // Pinned against the multiplicative/additive split the fold applies, not restated
+  // prose: if the fold ever changes what an absent channel means, a "full pose" written
+  // from this table would silently move the box.
+  assert.deepEqual({ ...KF_NEUTRAL }, {
+    x: 0, y: 0, z: 0, s: 1, r: 0, rx: 0, ry: 0, o: 1, b: 0, f: 0, a: 0, p: 1200,
+  });
+});
+
+test('retime / duplicate / delete / re-ease each touch exactly what they name', () => {
+  const track = parseKf('t0_x0*t1500_eo_x40*t2500_el_x0');
+
+  // A drag lands on the ms grid, never before the clip's start nor past its end.
+  assert.equal(kfSlideMs(1500, 1.0, 3), 2500);
+  assert.equal(kfSlideMs(1500, -9, 3), 0, 'clamped at the head');
+  assert.equal(kfSlideMs(1500, 9, 3), 3000, 'and at the clip\'s own length, not the track\'s');
+  assert.equal(kfSlideMs(1500, 0.0004, 3), 1500, 'integer ms — the wire has no finer grid');
+
+  const moved = kfTrackRetime(track, 1500, 2000);
+  assert.deepEqual(moved.map((k) => k.t).sort((a, b) => a - b), [0, 2000, 2500]);
+  assert.equal(serialiseKf(moved), 't0_x0*t2000_eo_x40*t2500_el_x0', 'pose AND ease travelled with it');
+  assert.deepEqual(kfTrackRetime(track, 1500, 2500).map((k) => k.t).sort((a, b) => a - b), [0, 2500],
+    'landing on another diamond REPLACES it — the wire cannot hold two poses at one instant');
+  assert.deepEqual(kfTrackRetime(track, 1234, 2000).map((k) => k.t), [0, 1500, 2500],
+    'and retiming a keyframe that is not there is not an edit');
+
+  // Duplicate: halfway to the next diamond, so a copy never lands on top of one.
+  assert.equal(kfDuplicateMs(track, 1500, 3), 2000);
+  assert.equal(kfDuplicateMs(track, 2500, 3), 3000, 'past the last one, half a second on, clamped to the clip');
+  const dup = kfTrackDuplicate(track, 1500, kfDuplicateMs(track, 1500, 3));
+  assert.equal(serialiseKf(dup), 't0_x0*t1500_eo_x40*t2000_eo_x40*t2500_el_x0');
+
+  assert.equal(serialiseKf(kfTrackDelete(track, 1500)), 't0_x0*t2500_el_x0');
+  assert.equal(serialiseKf(kfTrackDelete(track, 9999)), serialiseKf(track), 'deleting nothing changes nothing');
+
+  // Ease: ONE token, spliced through the engine's own adapter — the canonical CSS wire
+  // uses commas, which the kf charset bans, so a raw hand-off would emit junk.
+  assert.equal(serialiseKf(kfTrackSetEase(track, 0, 'ease-out')), 't0_eo_x0*t1500_eo_x40*t2500_el_x0');
+  assert.equal(serialiseKf(kfTrackSetEase(track, 1500, 'cubic-bezier(0.2,0,0.3,1)')),
+    't0_x0*t1500_eb(0.2)(0)(0.3)(1)_x40*t2500_el_x0');
+  assert.ok(KF_CHARSET_RE.test(serialiseKf(kfTrackSetEase(track, 1500, 'cubic-bezier(0.2,0,0.3,1)'))));
+  assert.equal(serialiseKf(kfTrackSetEase(track, 1500, '<script>')), 't0_x0*t1500_x40*t2500_el_x0',
+    'junk normalises to the grammar\'s default rather than reaching the wire');
+});
+
+test('kfSeekDiamond walks the union of the given boxes and stops at the ends', () => {
+  const rows = [
+    clip('a', { start: 0, dur: 3, kf: 't0_x0*t1500_x40' }),
+    clip('b', { start: 3, dur: 3, kf: 't0_x0*t500_x9' }),
+  ];
+  assert.equal(kfSeekDiamond(rows, zCfg, ['a', 'b'], 0, 1), 1.5);
+  assert.equal(kfSeekDiamond(rows, zCfg, ['a', 'b'], 1.5, 1), 3);
+  assert.equal(kfSeekDiamond(rows, zCfg, ['a', 'b'], 3.5, 1), null, 'no wrap — you keep your place');
+  assert.equal(kfSeekDiamond(rows, zCfg, ['a', 'b'], 3.5, -1), 3, 'and backwards across the boundary');
+  assert.equal(kfSeekDiamond(rows, zCfg, ['a'], 3.5, 1), null, 'only the boxes asked about');
+  assert.equal(kfSeekDiamond(rows, zCfg, [], 0, 1), null);
+});
+
+test('clearKfTrack / setKfTrack write the ONE field and nothing else', () => {
+  const rows = [clip('x', { start: 0, dur: 3, z: 140, clipIn: 0.5, kf: 't0_x0*t1500_x40' })];
+  const cleared = clearKfTrack(rows, zCfg, 'x');
+  assert.equal(cleared[0]!.kf, '');
+  assert.equal(cleared[0]!.z, 140, 'the depth field is not a keyframe');
+  assert.equal(cleared[0]!.clipIn, 0.5, 'nor is anything else the box carried');
+  assert.equal(clearKfTrack(rows, cfg, 'x'), rows, 'a tool with no kf field has nothing to clear');
+  assert.equal(String(setKfTrack(rows, zCfg, 'x', kfTrackDelete(parseKf('t0_x0*t1500_x40'), 0))[0]!.kf), 't1500_x40');
 });

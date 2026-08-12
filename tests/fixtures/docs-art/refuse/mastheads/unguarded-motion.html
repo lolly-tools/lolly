@@ -1,0 +1,17 @@
+<div class="test-motion">
+  <svg viewBox="0 0 200 60" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+    <circle class="spin" cx="100" cy="30" r="12" fill="currentColor" />
+  </svg>
+</div>
+<script>
+/* Refusal fixture: a loop that never asks whether motion is wanted and never stops —
+   it keeps painting in a hidden tab and off-screen. */
+(function () {
+  var dot = document.currentScript.previousElementSibling.querySelector('.spin');
+  function tick(t) {
+    dot.setAttribute('cx', String(100 + Math.sin(t / 400) * 60));
+    requestAnimationFrame(tick);
+  }
+  requestAnimationFrame(tick);
+})();
+</script>

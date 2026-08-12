@@ -2,7 +2,7 @@
   "id": "layout-studio",
   "name": "Layout Studio",
   "description": "An open canvas for free arrangement — text, images, shapes and live renders from your other Lolly tools, all held to your brand.",
-  "version": "1.11.0",
+  "version": "1.12.0",
   "engineVersion": "^1.12.0",
   "status": "community",
   "category": "designer",
@@ -29,6 +29,195 @@
     "order": 1,
     "blurb": "Free-form layouts on an open canvas"
   },
+  "examples": [
+    {
+      "label": "Three steps",
+      "values": {
+        "background": "#fdf6ec",
+        "boxes": [
+          {
+            "id": "s1",
+            "kind": "box",
+            "x": 0,
+            "y": 0,
+            "w": 1080,
+            "h": 1080,
+            "rot": 0,
+            "shape": "rect",
+            "bg": "#fdf6ec",
+            "text": "**1**\nWarm the pan",
+            "fg": "#3a2a17",
+            "fontSize": 116,
+            "align": "center",
+            "valign": "middle",
+            "weight": "600",
+            "font": "sans",
+            "lineHeight": 1.1,
+            "lane": "seq",
+            "start": 0,
+            "dur": 2,
+            "exit": "slide-left",
+            "exitMs": 400
+          },
+          {
+            "id": "s2",
+            "kind": "box",
+            "x": 0,
+            "y": 0,
+            "w": 1080,
+            "h": 1080,
+            "rot": 0,
+            "shape": "rect",
+            "bg": "#f6e6cd",
+            "text": "**2**\nFold it twice",
+            "fg": "#3a2a17",
+            "fontSize": 116,
+            "align": "center",
+            "valign": "middle",
+            "weight": "600",
+            "font": "sans",
+            "lineHeight": 1.1,
+            "lane": "seq",
+            "start": 2,
+            "dur": 2,
+            "enter": "slide-right",
+            "enterMs": 400,
+            "exit": "slide-left",
+            "exitMs": 400
+          },
+          {
+            "id": "s3",
+            "kind": "box",
+            "x": 0,
+            "y": 0,
+            "w": 1080,
+            "h": 1080,
+            "rot": 0,
+            "shape": "rect",
+            "bg": "#e8d3ad",
+            "text": "**3**\nRest, then serve",
+            "fg": "#3a2a17",
+            "fontSize": 116,
+            "align": "center",
+            "valign": "middle",
+            "weight": "600",
+            "font": "sans",
+            "lineHeight": 1.1,
+            "lane": "seq",
+            "start": 4,
+            "dur": 2.4,
+            "enter": "slide-right",
+            "enterMs": 400
+          },
+          {
+            "id": "kicker",
+            "kind": "text",
+            "x": 90,
+            "y": 150,
+            "w": 900,
+            "h": 120,
+            "rot": 0,
+            "shape": "rounded",
+            "radius": 14,
+            "bg": "#3a2a17",
+            "text": "Weeknight omelette",
+            "fg": "#fdf6ec",
+            "fontSize": 54,
+            "align": "center",
+            "valign": "middle",
+            "weight": "600",
+            "font": "sans",
+            "lineHeight": 1.2,
+            "pad": 28
+          }
+        ]
+      }
+    },
+    {
+      "label": "Quote cutaway",
+      "values": {
+        "background": "#111417",
+        "boxes": [
+          {
+            "id": "setup",
+            "kind": "box",
+            "x": 0,
+            "y": 0,
+            "w": 1080,
+            "h": 1080,
+            "rot": 0,
+            "shape": "rect",
+            "bg": "#111417",
+            "text": "We asked one question.",
+            "fg": "#9aa7b2",
+            "fontSize": 78,
+            "align": "center",
+            "valign": "middle",
+            "weight": "500",
+            "font": "sans",
+            "lineHeight": 1.1,
+            "lane": "seq",
+            "start": 0,
+            "dur": 1.8,
+            "exit": "fade",
+            "exitMs": 400
+          },
+          {
+            "id": "quote",
+            "kind": "box",
+            "x": 0,
+            "y": 0,
+            "w": 1080,
+            "h": 1080,
+            "rot": 0,
+            "shape": "rect",
+            "bg": "#1b2228",
+            "text": "\"It just felt\nlike ours.\"",
+            "fg": "#f2f5f7",
+            "fontSize": 104,
+            "align": "center",
+            "valign": "middle",
+            "weight": "700",
+            "font": "sans",
+            "lineHeight": 1.1,
+            "lane": "seq",
+            "start": 1.8,
+            "dur": 3.2,
+            "enter": "zoom-in",
+            "enterMs": 600,
+            "exit": "fade",
+            "exitMs": 400
+          },
+          {
+            "id": "attrib",
+            "kind": "text",
+            "x": 90,
+            "y": 830,
+            "w": 900,
+            "h": 110,
+            "rot": 0,
+            "shape": "rect",
+            "bg": "transparent",
+            "text": "Ada, three months in",
+            "fg": "#7fd6a8",
+            "fontSize": 44,
+            "align": "center",
+            "valign": "middle",
+            "weight": "500",
+            "font": "sans",
+            "lineHeight": 1.2,
+            "pad": 8,
+            "start": 2.4,
+            "dur": 2.6,
+            "enter": "rise",
+            "enterMs": 450,
+            "exit": "fade",
+            "exitMs": 300
+          }
+        ]
+      }
+    }
+  ],
   "render": {
     "width": 1080,
     "height": 1080,
@@ -140,6 +329,7 @@
         "enterEaseField": "enterEase",
         "exitEaseField": "exitEase",
         "muteField": "mute",
+        "linkField": "linkOf",
         "laneField": "lane",
         "zField": "z",
         "kfField": "kf",
@@ -249,6 +439,26 @@
             "label": "Audio",
             "seed": {
               "kind": "audio"
+            }
+          },
+          {
+            "id": "clip",
+            "label": "Clip",
+            "seed": {
+              "kind": "image",
+              "lane": "seq",
+              "fit": "cover"
+            }
+          },
+          {
+            "id": "card",
+            "label": "Card",
+            "seed": {
+              "kind": "box",
+              "lane": "seq",
+              "dur": 2.5,
+              "bg": "#14181d",
+              "text": ""
             }
           },
           {
@@ -1432,6 +1642,14 @@
           "label": "Keyframes",
           "default": "",
           "help": "This box's keyframe track: poses over its own local time, written compactly (t0_z0_b4*t1500_eo_z140). Machine-written by the timeline panel, never typed; anything outside the token grammar is dropped when the box renders."
+        },
+        {
+          "id": "linkOf",
+          "showFor": [],
+          "type": "text",
+          "label": "Linked to",
+          "default": "",
+          "help": "The id of the box this one is A/V-linked to — written on BOTH sides when a clip's audio is detached onto its own lane, so re-attaching works from either side. Machine-written by the timeline panel, never typed; showFor:[] keeps it out of the sidebar."
         }
       ],
       "default": []

@@ -6,6 +6,70 @@ minors, never removed or signature-changed without a major bump.
 
 Moved verbatim from the comment block that used to live in `src/index.ts`.
 
+1.117.0 — additive: C2PA 2.4 text-binding WRITE side (`engine/src/c2pa-containers.ts`,
+`engine/src/c2pa.ts`; plans/105 M3 — `plans/105-m345-brief.md`,
+`plans/105-c2pa-text-bindings-and-docs-mastheads.md` §5). `C2PA_FORMATS` gains `html`, `js`,
+`css`, `md`: `placeHtml` (§A.7 inline form) inserts/replaces `<script type="application/c2pa">`
+in `<head>`, excluding the WHOLE element (opening tag through closing tag inclusive) — wider
+than the SVG placer's base64-only exclusion, because that is what §A.7.1.3 requires; `placeArmor`
+(§A.9) writes the `-----BEGIN/END C2PA MANIFEST-----` block as a `data:application/c2pa;base64,…`
+URI inside each host language's comment syntax (`//` js, `/*! … */` css with the preservation
+hint, `<!-- -->` md), end-of-file, one exclusion over the whole block, LF/CRLF only. A new
+`html-fragment` format registers a documented Lolly profile — markup+script fragments (no
+`<head>`, so §A.7 does not apply) carry the same §A.9 armour mechanics in an HTML comment; it is
+real C2PA, spec-adjacent only in its carrier convention, and reports itself as exactly that, never
+as §A.7. The two-pass placer contract holds for all four: bytes outside the exclusion depend only
+on manifest length. `buildC2paManifest` gains an optional `aiDisclosure` input — assertion label
+`c2pa.ai-disclosure` (§18.28), CBOR map `{modelType, modelName?, modelIdentifier?,
+contentProfile?: {humanOversightLevel}}`, `modelType` defaulting to the generic
+`c2pa.types.model` — referenced from `created_assertions`, plus `specVersion` (`'2.4.0'`) inside
+`claim_generator_info` (the 2.4 move off the claim). M1's `report.aiDisclosure` reader round-trips
+every new field. Also new: an external-store build path (for M5) that signs bytes with a
+whole-document hash (no exclusions) and returns the JUMBF store without placing it in any
+container — the §A.7 link form / §11.4 external-manifest shape — with optional ingredients via
+the existing `prepareC2paIngredientFromStore` machinery. No shipping library (c2pa-rs v0.90.10)
+implements §A.7/§A.9 yet, so this write path is validated by spec-literal fixtures and our own
+M1 read path, not third-party interop — flagged, not hidden. No existing signature or export
+behaviour changed; a call that never sets `aiDisclosure`/`specVersion` and never targets the new
+formats is byte-for-byte the 1.116.0 behaviour.
+
+1.116.0 — additive: `verifyC2pa(bytes, { externalManifest })` (plans/105 M2 §7). C2PA 2.4
+§A.7.1.2 (`<link rel="c2pa-manifest">`) and §A.9.3 let a text asset REFERENCE its credential
+instead of carrying it; 1.115.0 reports that honestly (`manifest.inaccessible` + the URL on
+`report.textBinding.manifestUrl`) but could never check such a document, because resolving the
+reference is network I/O and the engine does none. The new option closes that loop without
+moving the rule: the CALLER fetches the sidecar under its own policy — the web shell only for a
+same-origin URL, only on an explicit "Fetch and check" click — and hands the bytes back in. The
+store is then verified against the document exactly as an embedded one would be (the link form's
+binding is the whole document, no exclusions, so the existing hash pipeline runs unchanged).
+It is consulted ONLY when the asset carries no store of its own, so a caller-supplied manifest
+can never shadow an embedded one, and `report.textBinding.externalManifestUsed` marks every
+report that used it — "these bytes match a credential served from over there" must not be able to
+print as "the credential inside this document is intact". No existing signature or report field
+changed; a call without the option is byte-for-byte the 1.115.0 behaviour.
+
+1.115.0 — additive: C2PA 2.4 text-binding READ side (`engine/src/c2pa-extract.ts`,
+`engine/src/c2pa-verify.ts`; plans/105 M1 — `plans/105-m1-brief.md`, `plans/105-c2pa-text-bindings-and-docs-mastheads.md`
+§1-3). `SniffFormat` gains `'html' | 'text' | 'code'`, sniffed in a fixed order (binary
+magics → html → svg → code → text) ahead of the existing loose `<svg` scan, so a pasted
+HTML document with an early inline `<svg>` no longer mis-sniffs as `'svg'`. Three new
+extractors — `extractC2paFromHtml` (§A.7: `<script type="application/c2pa">` in `<head>`
+or `<link rel="c2pa-manifest">`, at most one association), `extractC2paFromArmor` (§A.9:
+the `-----BEGIN/END C2PA MANIFEST-----` comment-armour block, `data:` URI or external URL
+ref), and `extractC2paFromTextVS` (§A.8: the U+FEFF + variation-selector wrapper, magic
+`C2PATXT\0`, version 1 only) — all implementing a new `extractC2paDetailed(bytes, format)`
+that returns `{ store, externalUrl? }`; the engine never fetches an external ref, that's
+the shell's call. Hash validation in `c2pa-verify.ts` gets an `html`/`code` branch reusing
+the existing raw-byte exclusion walk, and a distinct §15.12.1.3 pipeline for `text`: locate
+every wrapper, NFC-normalize (`String.prototype.normalize('NFC')`) before UTF-8 encoding
+and hashing, match the wrapper whose byte range exactly equals the assertion's exclusions,
+and report a fragment-honest status when a wrapper decodes but doesn't hash-match (pinned
+against a composed-vs-decomposed é fixture). `report.aiDisclosure` now reads the
+`c2pa.ai-disclosure` assertion (§18.28: `modelType`/`modelName`/`modelIdentifier`/
+`oversight`) for ALL formats, and `claim_generator_info.specVersion` is read alongside the
+tolerated claim-level field. Read-only: no writer/placer, `C2PA_FORMATS` untouched — write
+side is M3. New suite `tests/c2pa-text-bindings.test.ts`.
+
 1.114.0 — additive: `engine/src/keyframes.ts` — keyframe tracks, the `kf` wire grammar,
 and the depth-camera projection (plans/104 P0). No HostV1 method changed; this is a new
 pure module on the public surface, which is where the engine already keeps wire formats
@@ -47,6 +111,28 @@ speaks — the canonical spelling uses commas, which the charset bans, so withou
 adapter the two vocabularies could not meet. `cubicBezierAt` is a deliberate local copy of
 the shell's (the engine must not import from a shell), pinned by golden tables on both
 sides.
+
+`subdivideKfEase(ease, λ)` is the segment-splitting half of the same vocabulary, and the
+reason a trim/split/join rebase (§5.6) can be honest rather than approximately honest: a
+segment interpolating `av → bv` through eased progress `E`, cut at the time fraction λ,
+needs `E_L(u) = E(u·λ)/E(λ)` before the cut and `E_R(u) = (E(λ + (1 − λ)u) − E(λ))/(1 −
+E(λ))` after it — exactly the de Casteljau halves of the cubic at the parameter where
+x = λ, each rescaled back into the unit square, returned as canonical tokens (a half that
+lands on a preset comes back BY NAME). It reproduces the original to the bezier quantum;
+the THREE inexpressible cases keep the original token and say so — `eh` has no bezier to
+split; `E(λ) → 0`/`→ 1` make the half's endpoints coincide, so a two-point segment is
+constant whatever curve it carries; and a renormalised half whose control y leaves ±10
+cannot be spelled on the wire at all. That third case is the one the M1 review found:
+`easeFromPoints` CLAMPS y to ±10, which is right for an author typing a wild bezier and
+catastrophic for a subdivision — a half computed at y = −40 came back spelled −10, a
+completely different motion, silently. Detected and refused now, which also states the
+residual honestly: only the overshoot family reaches its own endpoint value in flight
+(`ev` crosses E = 1 at λ ≈ 0.369, `ea` returns to 0 at λ ≈ 0.274), and around each
+crossing there is a narrow band — λ ∈ [0.348, 0.387] and [0.264, 0.284] — where the halves
+are an approximation with up to ~0.10 of error in E, falling to zero at each edge. The
+earlier claim that "the excursion is bounded by the endpoints' separation" was false
+exactly there: `ev`'s endpoints COINCIDE while its excursion is 56 % of travel. That is an
+expressive limit of any easing vocabulary, ours or CSS's, and the tests sweep both bands.
 
 **Evaluation**: `evaluateKf(track, t, channels?)` is sparse per channel — each channel
 interpolates between the nearest keyframes that MENTION it, so a diamond in between that
