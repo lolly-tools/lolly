@@ -1,0 +1,70 @@
+# Dependabot auto-merge — the "instant, trivial, no-AI" layer of the two-part
+# Dependabot triage setup (the other part is a weekly cloud routine that handles
+# bumps needing artifact regeneration or judgment — see the routine on
+# https://claude.ai/code/routines).
+#
+# What it does: when Dependabot opens a PR and CI goes green, this approves it and
+# enables GitHub auto-merge for the LOW-RISK update types only. Auto-merge then
+# completes the merge itself once every required check passes — so a red PR (e.g.
+# one that still needs its api-bundle/SBOM regenerated) is never merged here; it
+# simply waits, and the weekly routine picks it up.
+#
+# ── PREREQUISITES (both required for this to do anything) ─────────────────────
+#   1. Repo setting "Allow auto-merge" = ON.        (already enabled 2026-08-14)
+#   2. Branch protection on `main` with >= 1 required status check.
+#      Without it GitHub REFUSES to enable auto-merge (the branch has no green-gate
+#      to wait on), so `gh pr merge --auto` errors and nothing merges. Suggested,
+#      with admins still able to push directly (keeps the direct-to-main workflow):
+#
+#        gh api -X PUT repos/lolly-tools/lolly/branches/main/protection \
+#          --input - <<'JSON'
+#        { "required_status_checks": { "strict": true,
+#            "contexts": ["test","typecheck","validate catalog","build + bundle budget",
+#                         "api bundle drift","npm audit (high+critical)"] },
+#          "enforce_admins": false,
+#          "required_pull_request_reviews": null,
+#          "restrictions": null }
+#        JSON
+#
+#      NB: turning this on blocks ALL PRs (not just Dependabot's) until CI is green,
+#      and `main`'s CI is currently red on pre-existing generated-artifact drift
+#      (engine/README table + lolly-start catalog previews). Land that fix first.
+#
+# What it will NOT auto-merge: major bumps, and anything Dependabot is configured to
+# hold (e.g. onnxruntime-node majors, per .github/dependabot.yml). Those wait for a
+# human or the weekly routine.
+
+name: Dependabot auto-merge
+
+on: pull_request
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  auto-merge:
+    runs-on: ubuntu-latest
+    # Only ever act on Dependabot's own PRs.
+    if: ${{ github.actor == 'dependabot[bot]' }}
+    steps:
+      - name: Fetch Dependabot metadata
+        id: meta
+        uses: dependabot/fetch-metadata@v2
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Approve + enable auto-merge for low-risk bumps
+        # npm: patch/minor only. docker (digest) + github-actions: any, they are
+        # digest/action-ref bumps. Majors fall through → left for the routine/human.
+        if: >-
+          steps.meta.outputs.update-type == 'version-update:semver-patch' ||
+          steps.meta.outputs.update-type == 'version-update:semver-minor' ||
+          steps.meta.outputs.package-ecosystem == 'docker' ||
+          steps.meta.outputs.package-ecosystem == 'github_actions'
+        run: |
+          gh pr review --approve "$PR_URL"
+          gh pr merge --auto --squash "$PR_URL"
+        env:
+          PR_URL: ${{ github.event.pull_request.html_url }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
