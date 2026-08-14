@@ -149,10 +149,18 @@ export { extractSvgColors } from './svg-colors.ts';
 // Lift layers (1.119, plans/104 §7): an SVG's own layers enumerated into one
 // standalone document each, so a flat drawing becomes a stack of boxes with real
 // depth. DOM-free, so the CLI lifts the same way the editor does.
+// 1.121 (plans/104 P3.2) adds the two pieces that make a lift a STACK rather than
+// a partition: a layer holding nearly all the ink is descended into and
+// re-clustered (the hero problem), and a derived document is cropped to its own
+// ink where that is provably safe — so a 16 px icon's depth shadow costs a 16 px
+// gaussian instead of a full-frame one.
 export {
-  enumerateSvgLayers,
+  enumerateSvgLayers, svgRootViewBox,
   SVG_LAYERS_MAX, SVG_LAYERS_MAX_CHARS, SVG_LAYERS_MAX_TAGS, SVG_LAYERS_MAX_CANDIDATES,
   SVG_LAYERS_MAX_DEPTH, SVG_LAYERS_MAX_DESCENT, SVG_LAYERS_MAX_REFS,
+  SVG_LAYERS_HEAVY_BYTES,
+  SVG_LAYERS_HERO_SHARE, SVG_LAYERS_HERO_ROUNDS, SVG_LAYERS_HERO_MIN_INK,
+  SVG_LAYERS_HERO_BUDGET, SVG_LAYERS_HERO_GAP_SCALES, SVG_LAYERS_PEER_AREA_RATIO,
 } from './svg-layers.ts';
 export type { SvgLayer, SvgLayerBox, SvgLayersResult, SvgLayerOptions } from './svg-layers.ts';
 export { renderZzfxm, zzfxG, zzfxM, zzfxR, zzfxV } from './zzfxm.ts';
@@ -213,7 +221,7 @@ export {
 export type { PinnedAsset, VersionEntry, VersionIndex } from './design-version.ts';
 export {
   parseCssLength, cornerRadii, uniformRadius, insetCorners, roundedRectPath, parseBoxShadow, parseTextShadow, gaussianShadowBands, gaussianShadowRings,
-  parseCssMatrix, multiplyMat, matAboutPivot, isAxisAlignedMat, matToSvg, IDENTITY_2D,
+  parseCssMatrix, isNonAffineTransform, multiplyMat, matAboutPivot, isAxisAlignedMat, matToSvg, IDENTITY_2D,
 } from './css-box.ts';
 export type { Mat2D } from './css-box.ts';
 export {
@@ -547,12 +555,16 @@ export {
   isKfChannel, isKfSafe, cubicBezierAt, normaliseKfEase, kfEasePoints, kfEaseAt,
   kfEaseCss, kfEaseName, kfEaseToken, subdivideKfEase,
   parseKf, serialiseKf, evaluateKf, kfChannelsUsed,
-  projectDepth, projectLayer, dofBlur, resolveCamera,
+  projectDepth, depthForEff, projectLayer, dofBlur, resolveCamera,
+  // 1.121 (plans/104 P2) — the tilt tier. `projectLayer` grows a `m` homography when
+  // (and only when) the camera authors an angle; `cameraTilted` is the exact-zero gate
+  // that keeps every screen-parallel document on the path it always took.
+  cameraTilted, kfMatrix3dCss, projectSurfacePoint,
 } from './keyframes.ts';
 export type {
   KfChannel, KfCameraChannel, KfPose, KfEasePresetToken, KfEasePreset, KfEaseSubdivision,
   KfKey, KfKeyInput, KfTrack, KfParseOptions,
-  KfCameraPose, KfCameraView, KfCameraClip, KfDepth, KfLayerPose, KfProjection,
+  KfCameraPose, KfCameraView, KfCameraClip, KfDepth, KfLayerPose, KfProjection, KfMatrix3,
 } from './keyframes.ts';
 
 // Per-minor contract changelog: engine/CHANGELOG.md (one entry per ENGINE_VERSION

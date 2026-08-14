@@ -37,6 +37,7 @@ import {
   resolveDocsArt, inlineDocsArt, stripArtForInline, parseFigureFence, mastheadArtBand, figureBlock,
 } from '../docs/docs-art.ts';
 import { readShotProvenance } from '../docs/shot-provenance.ts';
+import { unwrapFigureFences } from '../packages/docs-render/src/index.ts';
 
 const ROOT = new URL('..', import.meta.url).pathname;
 const BUILD_TS = readFileSync(join(ROOT, 'docs/build.ts'), 'utf8');
@@ -373,9 +374,13 @@ test('the served bank is byte-identical to the bank', () => {
 });
 
 test('a figure degrades to its caption in the markdown twin', () => {
-  const fn = BUILD_TS.slice(BUILD_TS.indexOf('function unwrapFigureFences'), BUILD_TS.indexOf('function unwrapProvenanceMarkers'));
-  assert.ok(fn.includes('replace('), 'the twin no longer unwraps figure fences');
-  // Applied, not merely defined.
+  // The unwrap now lives in @lolly-tools/docs-render (shared with the in-app docs
+  // view), so test the real function behaviourally instead of string-slicing build.ts:
+  // a `::: figure <id>` fence collapses to its caption prose, dropping the id.
+  const twin = unwrapFigureFences('::: figure trust-chain\nThe caption reads as a sentence.\n:::\n');
+  assert.equal(twin.trim(), 'The caption reads as a sentence.',
+    'the twin no longer unwraps figure fences to their caption');
+  // Applied, not merely defined: the twin pipeline in build.ts still runs the unwrap.
   assert.match(BUILD_TS, /unwrapFigureFences\(unwrapProvenanceMarkers\(/,
     'the twin pipeline does not run the figure unwrap');
 });

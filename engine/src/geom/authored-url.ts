@@ -17,7 +17,7 @@
  * the way in — which is exactly why `encodeBlocksCompact` refuses to emit a
  * compact string at all when any value contains `,` or `~`. `AuthoredPath` JSON
  * is nothing but commas, so a JSON path field would silently force every
- * layout-studio link that contains one pen shape onto the JSON fallback: the
+ * design link that contains one pen shape onto the JSON fallback: the
  * whole `boxes` array, every field of every box, re-encoded as JSON. On a
  * 30-box poster that is several kilobytes of collateral damage for one shape.
  *

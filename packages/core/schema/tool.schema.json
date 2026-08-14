@@ -522,9 +522,9 @@
             "properties": {
               "display": {
                 "type": "string",
-                "enum": ["select", "icon-toggle"],
+                "enum": ["select", "icon-toggle", "segmented"],
                 "default": "select",
-                "description": "'icon-toggle' renders the select as ONE compact button that cycles its options, showing the current option's `icon` instead of a dropdown. Intended for 2-state modifiers (with attachTo); a longer option list still cycles, but a dropdown reads better past ~3."
+                "description": "'icon-toggle' renders the select as ONE compact button that cycles its options, showing the current option's `icon` instead of a dropdown. Intended for 2-state modifiers (with attachTo); a longer option list still cycles, but a dropdown reads better past ~3. 'segmented' renders the options as a row of side-by-side tabs (a radiogroup) instead of a dropdown — for a small, mutually-exclusive mode switch (2–4 options) like Hue/Saturation/Luminance; past ~4 a dropdown reads better."
               },
               "options": {
                 "type": "array",
@@ -605,6 +605,11 @@
                 "type": "boolean",
                 "default": false,
                 "description": "Show a text label above each sub-field (the layout typed/addMenu blocks always use). Turn on for untyped blocks whose controls aren't self-evident, or that carry several optional fields."
+              },
+              "rowActions": {
+                "type": "boolean",
+                "default": false,
+                "description": "Add copy / paste / clear buttons to each block's header (next to collapse + remove): copy a row's values, paste them onto another row to make the two match, or clear a row to its field defaults. Useful when rows are many-field states people want to duplicate (e.g. flythrough poses)."
               },
               "fields": {
                 "type": "array",

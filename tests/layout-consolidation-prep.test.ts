@@ -57,8 +57,8 @@ const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
  *  variant must not be able to turn this suite green. */
 const SUSE_MOUNTED = existsSync(join(ROOT, 'brands', 'suse', 'tools'));
 if (SUSE_MOUNTED) {
-  assert.ok(existsSync(join(ROOT, 'brands', 'suse', 'tools', 'layout-studio', 'tool.json')),
-    'brands/suse/tools/layout-studio is missing — the pack is mounted, so the tool was renamed or deleted');
+  assert.ok(existsSync(join(ROOT, 'brands', 'suse', 'tools', 'design', 'tool.json')),
+    'brands/suse/tools/design is missing — the pack is mounted, so the tool was renamed or deleted');
 }
 const BRANDS: readonly string[] = SUSE_MOUNTED ? ['lolly-start', 'suse'] : ['lolly-start'];
 const packDir = (brand: string): string => join(ROOT, 'brands', brand, 'tools');
@@ -72,7 +72,7 @@ interface BoxesInput {
 }
 
 function boxesInput(brand: string): BoxesInput {
-  const raw = JSON.parse(readFileSync(join(packDir(brand), 'layout-studio', 'tool.json'), 'utf8'));
+  const raw = JSON.parse(readFileSync(join(packDir(brand), 'design', 'tool.json'), 'utf8'));
   const i = (raw.inputs as BoxesInput[]).find((x) => x.id === 'boxes');
   assert.ok(i, `${brand}: no boxes input`);
   return i!;
@@ -99,15 +99,20 @@ function optionValues(brand: string, fieldId: string): string[] {
 // 1. The wire format — linkOf is APPENDED, at slot 71
 // ─────────────────────────────────────────────────────────────────────────────
 
-test('boxes.fields slots 69-71 are z, kf, linkOf — appended, never reordered', () => {
+test('boxes.fields tail: z/kf/linkOf then the deck fields — appended, never reordered', () => {
   for (const brand of BRANDS) {
     const fields = fieldsOf(brand);
+    // The historical wire-format tail (pre-presentation): z/kf/linkOf at 69-71, UNMOVED —
+    // so every link shared before the deck fields still decodes into the same columns.
     assert.deepEqual(fields.slice(69, 72).map((f) => f.id), ['z', 'kf', 'linkOf'],
       `${brand}: the compact-blocks tail moved — every link ever shared decodes into the wrong columns`);
-    // Append-only means the new field is LAST, not merely present at 71: a later field
-    // squeezed in behind it would pass the slice above on the next edit but shift on this one.
-    assert.equal(fields.length, 72, `${brand}: expected 72 sub-fields, got ${fields.length}`);
-    assert.equal(fields[fields.length - 1]!.id, 'linkOf', `${brand}: linkOf is not the tail`);
+    // The presentation-mode deck fields (plan 112) were APPENDED after linkOf — slots 72-76,
+    // never squeezed in behind it — so `notes` is now the tail. This pin extends the same
+    // append-only guard to them: a later field must land at 77, not shift these.
+    assert.deepEqual(fields.slice(72).map((f) => f.id), ['presentAudio', 'build', 'state', 'matchOf', 'notes'],
+      `${brand}: a deck field was inserted out of order — appended slots must stay put`);
+    assert.equal(fields.length, 77, `${brand}: expected 77 sub-fields, got ${fields.length}`);
+    assert.equal(fields[fields.length - 1]!.id, 'notes', `${brand}: notes is not the tail`);
     // Ids are unique — an accidental second `linkOf` would give the codec two columns of
     // the same name and the shell would read whichever it found first.
     assert.equal(new Set(fields.map((f) => f.id)).size, fields.length, `${brand}: duplicate sub-field id`);
@@ -205,26 +210,8 @@ test('P1 — the CAMERA add-kind is back, inside the timed group, seeding kind:"
       `${brand}: the camera sits with the timed kinds — order was ${ids.join(',')}`);
   }
 
-  // THE THIRD COPY. §9.2 says three manifests, and the loop above reads two — it walks
-  // brand PACKS, and Sequence Studio lives in `community/`. It is also the tool the
-  // timeline feature is for: without this entry neither the canvas add-menu nor the
-  // timeline `+` could create a camera there, so §5.4's "a SECOND camera is how you cut"
-  // had no affordance in the one place it matters most. (The implicit scene camera still
-  // worked — `ensureSceneCameraRows` needs no seed — so CUTS were the lost capability.)
-  const ss = JSON.parse(readFileSync(join(ROOT, 'community', 'sequence-studio', 'tool.json'), 'utf8'));
-  const ssBoxes = (ss.inputs as BoxesInput[]).find((x) => x.id === 'boxes');
-  assert.ok(ssBoxes, 'sequence-studio: no boxes input');
-  const ssKinds = (ssBoxes!.canvas?.addKinds ?? []) as AddKind[];
-  const ssCam = ssKinds.find((k) => k.id === 'camera');
-  assert.ok(ssCam, 'sequence-studio: no "camera" add-kind — the timeline tool cannot create a camera');
-  assert.equal(ssCam!.label, 'Camera');
-  assert.deepEqual(ssCam!.seed, { kind: 'camera' }, 'sequence-studio: a camera is its KIND and nothing else');
-  const ssOpts = ((ssBoxes!.fields || []).find((f) => f.id === 'kind') as { options?: { value: string }[] } | undefined)?.options ?? [];
-  assert.ok(ssOpts.map((o) => String(o.value)).includes('camera'),
-    'sequence-studio: the seed names a kind its own select does not declare');
-  const ssIds = ssKinds.map((k) => k.id);
-  assert.equal(ssIds.indexOf('camera') - ssIds.indexOf('audio'), 1,
-    `sequence-studio: the camera follows audio, as §9.2 sketched — order was ${ssIds.join(',')}`);
+  // (The THIRD COPY was Sequence Studio in `community/`. It has been RETIRED into Design
+  // (plans/104), so §9.2's "three manifests" is now the two brand copies above.)
 });
 
 test('G3 — the magnetic-row seeds (clip, card) ship beside the existing media kinds', () => {
@@ -288,7 +275,7 @@ async function mountPath(brand: string, box: Record<string, unknown>): Promise<s
   // loadTool validates against schemas/tool.schema.json AND enforces the manifest's
   // engineVersion range against the running ENGINE_VERSION — so this call is also the
   // "the edited manifest still loads" assertion.
-  const tool: any = await loadTool('layout-studio', fetchFile);
+  const tool: any = await loadTool('design', fetchFile);
   const host = baseHost({ geom: makeGeomApi(), connectors: makeConnectorsApi() });
   const rt = await createRuntime(tool, host, {
     boxes: [{
@@ -364,7 +351,7 @@ test('a head value outside the closed six draws nothing — including Object.pro
 
 /** Canvas the compositions must fit: the tool's own declared render box. */
 function renderBoxOf(brand: string): { width: number; height: number } {
-  const raw = JSON.parse(readFileSync(join(packDir(brand), 'layout-studio', 'tool.json'), 'utf8'));
+  const raw = JSON.parse(readFileSync(join(packDir(brand), 'design', 'tool.json'), 'utf8'));
   const r = raw.render ?? {};
   assert.equal(typeof r.width, 'number', `${brand}: render.width`);
   assert.equal(typeof r.height, 'number', `${brand}: render.height`);
@@ -372,17 +359,17 @@ function renderBoxOf(brand: string): { width: number; height: number } {
 }
 
 const inputIdsOf = (brand: string): string[] => {
-  const raw = JSON.parse(readFileSync(join(packDir(brand), 'layout-studio', 'tool.json'), 'utf8'));
+  const raw = JSON.parse(readFileSync(join(packDir(brand), 'design', 'tool.json'), 'utf8'));
   return (raw.inputs as { id: string }[]).map((i) => i.id);
 };
 
 const examplesOf = (brand: string): { label?: string; values: Record<string, any> }[] => {
-  const raw = JSON.parse(readFileSync(join(packDir(brand), 'layout-studio', 'tool.json'), 'utf8'));
+  const raw = JSON.parse(readFileSync(join(packDir(brand), 'design', 'tool.json'), 'utf8'));
   return (raw.examples ?? []) as { label?: string; values: Record<string, any> }[];
 };
 
 const templateOf = (brand: string, tid: string): Record<string, any> => {
-  const p = join(packDir(brand), 'layout-studio', 'templates', `${tid}.json`);
+  const p = join(packDir(brand), 'design', 'templates', `${tid}.json`);
   assert.ok(existsSync(p), `${brand}: templates/${tid}.json is missing`);
   // Parses as JSON or this throws — that IS the "it still parses" assertion.
   return JSON.parse(readFileSync(p, 'utf8')) as Record<string, any>;
@@ -442,7 +429,7 @@ test('the two migrated Video templates ship in both packs, in the Video category
   }
 });
 
-test('layout-studio ships exactly the two migrated example looks, in both packs', () => {
+test('design ships exactly the two migrated example looks, in both packs', () => {
   const EXPECTED: { label: string; boxes: number }[] = [
     { label: 'Three steps', boxes: 4 },
     { label: 'Quote cutaway', boxes: 3 },

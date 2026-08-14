@@ -483,7 +483,7 @@ test('routedLineSvg: an elbow route corner-fits its dashes per span', () => {
 // connector twice, or not at all.
 
 const LS_PACK = join(dirname(fileURLToPath(import.meta.url)), '..', 'brands', 'lolly-start', 'tools');
-const lsTool: any = await loadTool('layout-studio', (p: string) => readFile(join(LS_PACK, p), 'utf8'));
+const lsTool: any = await loadTool('design', (p: string) => readFile(join(LS_PACK, p), 'utf8'));
 const LS_HOST = (): unknown => baseHost({ connectors: makeConnectorsApi(), geom: makeGeomApi() });
 
 async function layoutStudio(boxes: unknown[]): Promise<{ html: string; layer: string }> {
@@ -504,13 +504,13 @@ const lineBox = (extra: Record<string, unknown> = {}): Record<string, unknown> =
 const card = (id: string, x: number, y: number): Record<string, unknown> =>
   ({ id, kind: 'box', x, y, w: 240, h: 120, rot: 0, shape: 'rounded', radius: 12, bg: '#5283d5', text: id });
 
-test('layout-studio: a FREE path draws in its own box svg and no connector layer appears', async () => {
+test('design: a FREE path draws in its own box svg and no connector layer appears', async () => {
   const { html, layer } = await layoutStudio([lineBox()]);
   assert.match(html, /class="lolly-box-path"/, 'the box draws its own shape');
   assert.equal(layer, '', 'nothing bound → no layer at all, so an ordinary doc is unchanged');
 });
 
-test('layout-studio: binding an end hands the SAME box to connector management', async () => {
+test('design: binding an end hands the SAME box to connector management', async () => {
   const { html, layer } = await layoutStudio([card('a', 80, 80), card('b', 700, 640), lineBox({ bindStart: 'a', bindEnd: 'b' })]);
   assert.doesNotMatch(html, /class="lolly-box-path"/, 'the box svg steps aside');
   assert.match(layer, /^<svg class="lolly-connectors" width="1080" height="1080"/);
@@ -519,7 +519,7 @@ test('layout-studio: binding an end hands the SAME box to connector management',
   assert.doesNotMatch(layer, /<marker|<polygon|stroke-dasharray/, 'export-safe committed layer');
 });
 
-test('layout-studio: the SPLINE KIND picks the route, and `route` overrides it', async () => {
+test('design: the SPLINE KIND picks the route, and `route` overrides it', async () => {
   const both = { bindStart: 'a', bindEnd: 'b' };
   const cards = [card('a', 80, 80), card('b', 700, 640)];
   // A two-node `line` routes straight: one M…L, no corner quadratics.
@@ -535,7 +535,7 @@ test('layout-studio: the SPLINE KIND picks the route, and `route` overrides it',
   assert.notEqual(src.layer, curved.layer);
 });
 
-test('layout-studio: a HALF-bound path routes from the box to its own free node', async () => {
+test('design: a HALF-bound path routes from the box to its own free node', async () => {
   const { layer } = await layoutStudio([card('a', 80, 80), lineBox({ bindStart: 'a' })]);
   // The free end is the last node in canvas px: x + 1·w, y + 1·h = (600, 500).
   const tip = /L([\d.]+) ([\d.]+)"/.exec(layer);
@@ -547,7 +547,7 @@ test('layout-studio: a HALF-bound path routes from the box to its own free node'
     `it reaches the free node (600,500), got ${tip[1]},${tip[2]}`);
 });
 
-test('layout-studio: an authored dash pattern on a BOUND path is real <line> segments', async () => {
+test('design: an authored dash pattern on a BOUND path is real <line> segments', async () => {
   const { layer } = await layoutStudio([
     card('a', 80, 80), card('b', 700, 640),
     lineBox({ bindStart: 'a', bindEnd: 'b', headEnd: 'none', strokeDashArray: '14 8', dashFit: true }),
@@ -556,7 +556,7 @@ test('layout-studio: an authored dash pattern on a BOUND path is real <line> seg
   assert.doesNotMatch(layer, /stroke-dasharray/, 'never a dasharray in the committed layer');
 });
 
-test('layout-studio: a dangling binding draws nothing rather than guessing', async () => {
+test('design: a dangling binding draws nothing rather than guessing', async () => {
   const { html, layer } = await layoutStudio([card('a', 80, 80), lineBox({ bindStart: 'a', bindEnd: 'gone' })]);
   assert.equal(layer, '<svg class="lolly-connectors" width="1080" height="1080" viewBox="0 0 1080 1080" preserveAspectRatio="none" aria-hidden="true"></svg>',
     'an empty layer, not a line to nowhere');

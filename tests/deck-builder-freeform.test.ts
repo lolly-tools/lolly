@@ -154,7 +154,7 @@ test('text box: valign reads compact codes AND full words, defaults to top', asy
     mode: 'freeform',
     boxes: [
       { kind: 'text', x: 0, y: 0, w: 400, h: 400, text: 'a', valign: 'b' },
-      { kind: 'text', x: 0, y: 500, w: 400, h: 400, text: 'b', valign: 'middle' },   // layout-studio's spelling
+      { kind: 'text', x: 0, y: 500, w: 400, h: 400, text: 'b', valign: 'middle' },   // design's spelling
       { kind: 'text', x: 0, y: 1000, w: 400, h: 400, text: 'c' },                    // absent → top
       { kind: 'text', x: 0, y: 1400, w: 400, h: 400, text: 'd', valign: 'sideways' },// junk → top
     ],

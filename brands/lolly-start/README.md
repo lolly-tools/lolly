@@ -27,7 +27,7 @@ parent repo.
   web shell's token bridge discovers it generically (the first catalog asset
   with `type: "tokens"`), and the shells project the semantic slots onto the
   tool canvas as `--primary`, `--surface`, … custom properties.
-- **`tools/layout-studio`** — the free-form WYSIWYG canvas, starting from a
+- **`tools/design`** — the free-form WYSIWYG canvas, starting from a
   blank artboard (the web shell's blank-canvas invite takes over) with
   brand-agnostic font stacks (`var(--font-brand, system-ui, …)`) and neutral
   example layouts.

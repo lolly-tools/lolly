@@ -24,7 +24,7 @@ import assert from 'node:assert/strict';
 import {
   enumerateSvgLayers,
   SVG_LAYERS_MAX, SVG_LAYERS_MAX_CHARS, SVG_LAYERS_MAX_TAGS, SVG_LAYERS_MAX_CANDIDATES,
-  SVG_LAYERS_MAX_DESCENT, SVG_LAYERS_MAX_REFS,
+  SVG_LAYERS_MAX_DESCENT, SVG_LAYERS_MAX_REFS, SVG_LAYERS_HEAVY_BYTES,
 } from '../engine/src/svg-layers.ts';
 
 const NS = 'http://www.w3.org/2000/svg';
@@ -296,6 +296,93 @@ test('a dangling reference is left dangling — a lift does not invent artwork',
   assert.ok(r.layers[0]!.markup.includes('#nope'));
 });
 
+test('a DESCENDED WRAPPER\'s own reference is repaired for every layer, not just the body\'s', () => {
+  // `referencedIds` used to see the layer body ONLY. A wrapper the enumerator
+  // descended through is reproduced in every derived document and can point at an
+  // id that now lives inside ONE of the layers — measured on Chromium before this
+  // fix: layer 1 painted a 200x200 rect where the original painted a clipped
+  // 120x120 one (76 800 channels different) with `warnings` empty, because an
+  // unresolvable `clip-path` renders as no clip at all.
+  const inner1 = '<g><rect width="50" height="50"/></g>';
+  const inner2 = '<g><clipPath id="c"><rect width="30" height="30"/></clipPath><rect x="60" width="20" height="20"/></g>';
+  const r = enumerateSvgLayers(doc(`<g clip-path="url(#c)">${inner1}${inner2}</g>`));
+  assert.equal(r.layers.length, 2);
+  assert.ok(/<defs><clipPath id="c">/.test(r.layers[0]!.markup), r.layers[0]!.markup);
+  assert.equal((r.layers[1]!.markup.match(/id="c"/g) ?? []).length, 1, 'the owning layer is not given a duplicate');
+  assert.ok(r.warnings.some((w) => w.includes('layer 1')), r.warnings.join(' | '));
+  assertPartition(r.layers, inner1 + inner2, { wrapOpen: '<g clip-path="url(#c)">', wrapClose: '</g>' });
+});
+
+test('a CARRIED node\'s reference into a layer is repaired too — the Illustrator <clipPath><use> shape', () => {
+  const carry = '<clipPath id="c"><use href="#shape"/></clipPath>';
+  const body = '<g clip-path="url(#c)"><rect width="50" height="50"/></g><g><rect id="shape" x="60" width="20" height="20"/></g>';
+  const r = enumerateSvgLayers(doc(carry + body));
+  assert.equal(r.layers.length, 2);
+  assert.ok(/<defs><rect id="shape"/.test(r.layers[0]!.markup), r.layers[0]!.markup);
+  assert.equal((r.layers[1]!.markup.match(/id="shape"/g) ?? []).length, 1);
+  assertPartition(r.layers, body, { carry });
+});
+
+test('references PAST the repair cap are named, not silently unrepaired', () => {
+  // The cap has always existed; being told about it has not. Past it the repair
+  // simply stops looking, so a layer keeps a `url(#…)` whose target now lives in a
+  // different document and paints nothing — the same silent-difference class as
+  // the wrapper case above, arrived at by a different route.
+  const defs: string[] = [];
+  const uses: string[] = [];
+  for (let i = 0; i < SVG_LAYERS_MAX_REFS + 4; i++) {
+    defs.push(`<clipPath id="c${i}"><rect width="5" height="5"/></clipPath>`);
+    uses.push(`<rect clip-path="url(#c${i})" x="${i}" width="1" height="1"/>`);
+  }
+  const r = enumerateSvgLayers(doc(`<g id="src">${defs.join('')}</g><g id="dst">${uses.join('')}</g>`));
+  assert.equal(r.layers.length, 2);
+  const copies = (r.layers[1]!.markup.match(/<clipPath id="c/g) ?? []).length;
+  assert.equal(copies, SVG_LAYERS_MAX_REFS, 'the cap still bounds the work');
+  assert.ok(r.warnings.some((w) => /left unrepaired/.test(w)), r.warnings.join(' | '));
+});
+
+test('a document sitting EXACTLY on the repair cap is not accused of overflowing it', () => {
+  const defs: string[] = [];
+  const uses: string[] = [];
+  for (let i = 0; i < SVG_LAYERS_MAX_REFS; i++) {
+    defs.push(`<clipPath id="c${i}"><rect width="5" height="5"/></clipPath>`);
+    uses.push(`<rect clip-path="url(#c${i})" x="${i}" width="1" height="1"/>`);
+  }
+  const r = enumerateSvgLayers(doc(`<g id="src">${defs.join('')}</g><g id="dst">${uses.join('')}</g>`));
+  assert.ok(!r.warnings.some((w) => /left unrepaired/.test(w)), r.warnings.join(' | '));
+});
+
+// ─── the root composites as a unit ──────────────────────────────────────────
+
+for (const [attrs, why] of [
+  [' opacity="0.55"', 'opacity'],
+  [' filter="url(#f)"', 'filter'],
+  [' style="mix-blend-mode:multiply"', 'mix-blend-mode'],
+  [' mask="url(#m)"', 'mask'],
+  [' style="isolation:isolate"', 'isolation'],
+] as const) {
+  test(`a root whose \`${why}\` applies to the whole picture is REFUSED, not split silently`, () => {
+    // The same test the descent already ran on a wrapper `<g>`, run on the element
+    // that wraps everything. `rootAttributes()` re-emits the root verbatim into
+    // every layer, so `opacity="0.55"` up here is applied N times over instead of
+    // once over the composite — measured on Chromium at 45 203 channels beyond
+    // ±1 against the browser suite's 154-channel budget, with zero warnings.
+    const r = enumerateSvgLayers(doc(
+      '<g><rect width="60" height="60" fill="#c00"/></g><g><rect x="30" width="60" height="60" fill="#06c"/></g>',
+      ` viewBox="0 0 100 100"${attrs}`,
+    ));
+    assert.deepEqual(r.layers, []);
+    assert.ok(r.warnings[0]!.includes(why) && r.warnings[0]!.includes('whole'), r.warnings.join(' | '));
+  });
+}
+
+test('a root carrying only NO-OP unit properties still lifts', () => {
+  const body = '<g><rect width="5" height="5"/></g><g><rect x="60" width="5" height="5"/></g>';
+  const r = enumerateSvgLayers(doc(body, ' viewBox="0 0 100 100" opacity="1" filter="none" style="mix-blend-mode:normal;isolation:auto"'));
+  assert.equal(r.layers.length, 2);
+  assertPartition(r.layers, body);
+});
+
 // ─── the walker identity passthrough ────────────────────────────────────────
 
 test('data-box-id survives onto the layer as boxId — ids, never names', () => {
@@ -347,6 +434,54 @@ test('the candidate cap bounds the QUADRATIC clustering — and merges the tail'
   assertPartition(r.layers, body);
 });
 
+test('the reference repair is bounded by the DOCUMENT, not by layers x refs', () => {
+  // The companion to the clustering golden above, on the other axis. Both counts
+  // are capped, but the id resolution used to run a fresh RegExp per (layer, ref)
+  // over the whole layer body AND the whole carried markup: 64 x 64 x ~4 MB is
+  // ~16 GB of character scanning, every byte of it inside the declared caps.
+  // Measured on the shipped code, single-threaded, on the main thread behind the
+  // dialog's "Reading the artwork..." panel: 1 832 ms with plain filler and
+  // 10 682 ms when the filler NEAR-MISSES the regex — against 1 ms for the same
+  // document with no references at all. The filler below is the near-miss case,
+  // because it is the one that ran 10 seconds.
+  const unit = ' id="nope-63-63z"';
+  const filler = unit.repeat(Math.floor(3_400_000 / unit.length));
+  const parts: string[] = [];
+  for (let g = 0; g < SVG_LAYERS_MAX; g++) {
+    const uses: string[] = [];
+    for (let r = 0; r < SVG_LAYERS_MAX_REFS; r++) uses.push(`<use href="#nope-${g}-${r}"/>`);
+    parts.push(`<g><rect x="${g}" width="1" height="1"/>${uses.join('')}</g>`);
+  }
+  const src = `<svg xmlns="${NS}" viewBox="0 0 100 100"><defs><!--${filler}--></defs>${parts.join('')}</svg>`;
+  assert.ok(src.length < SVG_LAYERS_MAX_CHARS, 'the fixture has to sit INSIDE the size cap to prove anything');
+  const t0 = performance.now();
+  const r = enumerateSvgLayers(src);
+  const ms = performance.now() - t0;
+  assert.equal(r.layers.length, SVG_LAYERS_MAX);
+  assert.ok(ms < 2000, `reference resolution must stay bounded, took ${ms.toFixed(0)}ms`);
+});
+
+test('a lift that multiplies the bytes says so BEFORE the caller writes them', () => {
+  // Carrying the whole <defs> into every layer is free in pixels and not free in
+  // bytes: one embedded raster in a <pattern> (Illustrator and Figma both emit
+  // these) plus 24 groups derives 24x the source, and the shell writes every byte
+  // of that into IndexedDB on one confirm click.
+  const b64 = 'A'.repeat(1_000_000);
+  const defs = `<defs><pattern id="p" width="10" height="10"><image href="data:image/png;base64,${b64}" width="10" height="10"/></pattern></defs>`;
+  const gs: string[] = [];
+  for (let i = 0; i < 24; i++) gs.push(`<g><rect x="${i * 4}" width="3" height="3" fill="url(#p)"/></g>`);
+  const r = enumerateSvgLayers(doc(defs + gs.join('')));
+  const total = r.layers.reduce((a, l) => a + l.markup.length, 0);
+  assert.ok(total > SVG_LAYERS_HEAVY_BYTES, `${total} bytes should trip the threshold`);
+  assert.ok(r.warnings.some((w) => w.includes('MB from a')), r.warnings.join(' | '));
+});
+
+test('an ordinary lift is NOT accused of being heavy', () => {
+  const body = '<g><rect width="5" height="5"/></g><g><rect x="60" width="5" height="5"/></g>';
+  const r = enumerateSvgLayers(doc(body));
+  assert.deepEqual(r.warnings, []);
+});
+
 test('an oversized document is refused with words, not an exception', () => {
   const huge = doc(`<g><rect width="1" height="1"/></g>${' '.repeat(SVG_LAYERS_MAX_CHARS)}`);
   const r = enumerateSvgLayers(huge);
@@ -359,7 +494,16 @@ test('a document with too many tags is refused, not walked', () => {
   for (let i = 0; i < SVG_LAYERS_MAX_TAGS + 10; i++) parts.push('<rect width="1" height="1"/>');
   const r = enumerateSvgLayers(doc(parts.join('')));
   assert.deepEqual(r.layers, []);
-  assert.ok(r.warnings[0]!.includes('elements'), r.warnings.join(' | '));
+  assert.ok(r.warnings[0]!.includes('tags'), r.warnings.join(' | '));
+  // The refusal must name what is actually counted. `scanTags` emits one entry per
+  // OPEN tag and one per CLOSE tag, so a wall of `<g>…</g>` hits the cap at half the
+  // element count the old wording ("more than 40 000 elements") promised.
+  assert.ok(!/\belements\b/.test(r.warnings[0]!), r.warnings[0]!);
+  const pairs: string[] = [];
+  for (let i = 0; i < SVG_LAYERS_MAX_TAGS / 2 + 10; i++) pairs.push('<g></g>');
+  const paired = enumerateSvgLayers(doc(pairs.join('')));
+  assert.deepEqual(paired.layers, [], 'open+close is two tags, so ~20 000 <g></g> pairs already refuse');
+  assert.ok(paired.warnings[0]!.includes('tags'), paired.warnings.join(' | '));
 });
 
 test('junk in, warnings out — never a throw', () => {
@@ -390,6 +534,43 @@ test('a <script> never reaches a derived layer, even if one got this far', () =>
   const r = enumerateSvgLayers(doc('<script>alert(1)</script><g><rect width="5" height="5"/></g><g><rect x="60" width="5" height="5"/></g>'));
   assert.equal(r.layers.length, 2);
   for (const l of r.layers) assert.ok(!/<script/i.test(l.markup), l.markup);
+});
+
+test('a NESTED <script> is dropped too — a layer body is a slice, and the slice has holes', () => {
+  // This test used to place the <script> at the root ONLY, which is where the
+  // enumerator's filter looked, so it read as a stronger guarantee than the code
+  // gave: a layer body is a verbatim slice, and anything nested inside one rode
+  // through whole.
+  const r = enumerateSvgLayers(doc(
+    '<g><rect width="5" height="5"/><script>alert(1)</script></g><g><rect x="60" width="5" height="5"/></g>',
+  ));
+  assert.equal(r.layers.length, 2);
+  for (const l of r.layers) assert.ok(!/<script/i.test(l.markup), l.markup);
+  assertPartition(r.layers, '<g><rect width="5" height="5"/></g><g><rect x="60" width="5" height="5"/></g>');
+});
+
+test('a NESTED <title>/<desc> is dropped too — that is where a name actually hides', () => {
+  const r = enumerateSvgLayers(doc(
+    '<g><title>Andy Fitzsimon draft</title><desc>internal only</desc><rect width="5" height="5"/></g>'
+    + '<g><metadata>x</metadata><rect x="60" width="5" height="5"/></g>',
+  ));
+  assert.equal(r.layers.length, 2);
+  for (const l of r.layers) {
+    assert.ok(!/<title|<desc|<metadata/i.test(l.markup), l.markup);
+    assert.ok(!/Andy|internal only/.test(l.markup), l.markup);
+  }
+});
+
+test('a nested drop inside a CARRIED node goes too — the prologue is a slice as well', () => {
+  const r = enumerateSvgLayers(doc(
+    '<defs><linearGradient id="g1"><title>secret</title><stop offset="0"/></linearGradient></defs>'
+    + '<g><rect width="5" height="5" fill="url(#g1)"/></g><g><rect x="60" width="5" height="5"/></g>',
+  ));
+  assert.equal(r.layers.length, 2);
+  for (const l of r.layers) {
+    assert.ok(l.markup.includes('id="g1"'), 'the gradient itself still rides along');
+    assert.ok(!/secret/.test(l.markup), l.markup);
+  }
 });
 
 test('the reference-repair cap bounds the work a hostile document can ask for', () => {

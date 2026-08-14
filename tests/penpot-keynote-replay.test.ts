@@ -9,7 +9,7 @@
  * + 14 big glow circles inside maskedGroup "Mask" groups). These assert the
  * blur survives shape→node→box mapping, that the group flatten now bakes a
  * real feGaussianBlur def WITHOUT losing the mask clip, and that the real
- * layout-studio tool hydrates the blur into its box style.
+ * design tool hydrates the blur into its box style.
  *
  * Spec 2 (fonts): the deck's 110 text shapes use Work Sans (300–700),
  * Spline Sans Mono (700) — both `gfont-` — and the non-Google `sourcesanspro`.
@@ -151,7 +151,7 @@ test('keynote: every Mask group holding blurred circles flattens with feGaussian
 
 // ── 4. end to end: a blurred board box hydrates through the REAL tool ────────
 
-test('keynote: a mapped blur-2 box hydrates to filter:blur(2px) via the real layout-studio', { skip: SKIP }, async () => {
+test('keynote: a mapped blur-2 box hydrates to filter:blur(2px) via the real design', { skip: SKIP }, async () => {
   const { all } = await loadDeck();
   const glow = all.find((s) => isLayerBlur(s) && String(s.type || '') === 'path');
   assert.ok(glow, 'a blur-2 path exists');
@@ -161,7 +161,7 @@ test('keynote: a mapped blur-2 box hydrates to filter:blur(2px) via the real lay
   assert.equal(boxes[0]!.blur, 2, 'the box row carries blur 2');
 
   const PACK_DIR = join(ROOT, 'brands', 'lolly-start', 'tools');
-  const tool: any = await loadTool('layout-studio', (p: string) => readFile(join(PACK_DIR, p), 'utf8'));
+  const tool: any = await loadTool('design', (p: string) => readFile(join(PACK_DIR, p), 'utf8'));
   const rt = await createRuntime(tool, baseHost(), { boxes: boxes as never });
   assert.deepEqual(rt.hookErrors ?? [], [], 'no hook errors');
   const html = rt.getHydrated() as string;
@@ -233,7 +233,7 @@ test('keynote: finalizeBoxes with knownFamilies keeps the deck families on text 
 
 // ── 7. fonts: the real hooks hydrate the passthrough family ──────────────────
 
-test('keynote: a Work Sans box hydrates to font-family:\'Work Sans\' via the real layout-studio', { skip: SKIP }, async () => {
+test('keynote: a Work Sans box hydrates to font-family:\'Work Sans\' via the real design', { skip: SKIP }, async () => {
   const { all } = await loadDeck();
   const map = { fonts: { knownFamilies: ['Work Sans', 'Spline Sans Mono'] } };
   const shape = all.find((s) => String(s.type || '') === 'text' && s.content
@@ -244,7 +244,7 @@ test('keynote: a Work Sans box hydrates to font-family:\'Work Sans\' via the rea
   assert.equal(boxes[0]!.font, 'Work Sans');
 
   const PACK_DIR = join(ROOT, 'brands', 'lolly-start', 'tools');
-  const tool: any = await loadTool('layout-studio', (p: string) => readFile(join(PACK_DIR, p), 'utf8'));
+  const tool: any = await loadTool('design', (p: string) => readFile(join(PACK_DIR, p), 'utf8'));
   const rt = await createRuntime(tool, baseHost(), { boxes: boxes as never });
   assert.deepEqual(rt.hookErrors ?? [], [], 'no hook errors');
   const html = rt.getHydrated() as string;
@@ -697,7 +697,7 @@ test('keynote: zero backgroundBlur keys anywhere (the negative pin)', { skip: SK
   // This deck was written by penpot/2.17.1-RC4, which HAS the attribute, but the
   // designer never used it: every one of the 23 blur entries is a layer blur, and the
   // dedicated key never appears. The pin is what makes the positive cases in
-  // layout-studio-bgblur.test.ts honestly synthetic rather than accidentally
+  // design-bgblur.test.ts honestly synthetic rather than accidentally
   // contradicted by the one real file we hold — and it will fail loudly the day a
   // background-blur fixture lands, which is exactly when the mapping wants revisiting.
   const { all } = await loadDeck();
@@ -883,7 +883,7 @@ test('keynote: the external-library census is 6 instances across 3 files', { ski
   assert.equal(linked.filter((s) => s.componentFile !== fileId).length, 6);
 });
 
-test('keynote: PERSON INTRO’s master hydrates through the real layout-studio', { skip: SKIP }, async () => {
+test('keynote: PERSON INTRO’s master hydrates through the real design', { skip: SKIP }, async () => {
   const { fileId, pages } = await loadDeck();
   const out = collectPenpotComponents(await componentRecords(), pages, { fileId });
   const c = out.components.find((x) => x.name === 'PERSON INTRO')!;
@@ -905,7 +905,7 @@ test('keynote: PERSON INTRO’s master hydrates through the real layout-studio',
   assert.equal(boxes.length, 537);
 
   const PACK_DIR = join(ROOT, 'brands', 'lolly-start', 'tools');
-  const tool: any = await loadTool('layout-studio', (p: string) => readFile(join(PACK_DIR, p), 'utf8'));
+  const tool: any = await loadTool('design', (p: string) => readFile(join(PACK_DIR, p), 'utf8'));
   const rt = await createRuntime(tool, baseHost(), { boxes: boxes as never });
   assert.deepEqual(rt.hookErrors ?? [], [], 'no hook errors');
   const html = rt.getHydrated() as string;

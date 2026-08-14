@@ -130,6 +130,10 @@ export interface BlockFieldSpec extends VectorFieldSpec {
   /** Multi-line text entry for these discriminator values; `rows` sets its height. */
   multilineFor?: string[];
   rows?: number;
+  /** Icon name (shells/web/src/lib/icons.ts) shown inline to the left of this field's
+   *  control instead of a stacked text label (on a `labelledFields` block). The engine
+   *  only carries it; the web shell resolves + renders the glyph. */
+  icon?: string;
 }
 
 /** Typed "+ Add" menu on a blocks input (one sub-field is the discriminator). */
@@ -190,8 +194,9 @@ export interface InputSpec {
   /** `slider` is a number-input variant; `icon-toggle` is a select variant (a
    *  compact button that cycles its options, labelled by each option's `icon`);
    *  `pill` is a boolean variant rendered as an inline chip toggle (the web shell
-   *  flows consecutive pill booleans into one wrapped chip bar). */
-  display?: 'input' | 'slider' | 'icon-toggle' | 'pill';
+   *  flows consecutive pill booleans into one wrapped chip bar); `segmented`
+   *  renders a select as labelled tabs (a radiogroup of pills). */
+  display?: 'input' | 'slider' | 'icon-toggle' | 'pill' | 'segmented';
   // color
   palette?: string;
   swatchesOnly?: boolean;
@@ -233,6 +238,11 @@ export interface InputSpec {
   // blocks presentation/behaviour
   addMenu?: BlocksAddMenu;
   labelledFields?: boolean;
+  /** Adds copy / paste / clear buttons to each block's header (next to collapse +
+   *  remove) — copy a row's values, paste them onto another row to make the two
+   *  match, or clear a row to its field defaults. The engine only carries it; the
+   *  web shell renders + wires it. See schema `rowActions`. */
+  rowActions?: boolean;
   nesting?: BlocksNesting;
   dropToAdd?: BlocksDropToAdd;
   /** Adds a "Paste Markdown" button to the blocks toolbar (splits clipboard

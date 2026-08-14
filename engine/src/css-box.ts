@@ -40,18 +40,88 @@ export function parseCssMatrix(transform: string | null | undefined): Mat2D | nu
     if (p.length < 6 || p.some((v) => !Number.isFinite(v))) return null;
     return { a: p[0]!, b: p[1]!, c: p[2]!, d: p[3]!, e: p[4]!, f: p[5]! };
   }
-  const m3 = /matrix3d\(([^)]+)\)/.exec(transform);
-  if (m3) {
-    const p = m3[1]!.split(',').map((s) => parseFloat(s));
-    if (p.length < 16 || p.some((v) => !Number.isFinite(v))) return null;
-    // Column-major m11..m44. The 2-D affine is m11,m12,m21,m22,m41,m42. Reject
-    // anything with a z/perspective component (m13/m14/m23/m24/m31..m34/m43, or a
-    // non-identity m33/m44) — it isn't a plane-preserving 2-D transform.
-    const z = [p[2]!, p[3]!, p[6]!, p[7]!, p[8]!, p[9]!, p[11]!, p[14]!];
-    if (z.some((v) => Math.abs(v) > 1e-6) || Math.abs(p[10]! - 1) > 1e-6 || Math.abs(p[15]! - 1) > 1e-6) return null;
+  const p = matrix3dParts(transform);
+  if (p) {
+    // Column-major m11..m44. The 2-D affine is m11,m12,m21,m22,m41,m42; a real z or
+    // perspective component means it isn't a plane-preserving 2-D transform.
+    if (has3dComponent(p)) return null;
     return { a: p[0]!, b: p[1]!, c: p[4]!, d: p[5]!, e: p[12]!, f: p[13]! };
   }
   return null;
+}
+
+/** The 16 column-major values of a `matrix3d(...)`, or null when it is not one / is junk. */
+function matrix3dParts(transform: string): number[] | null {
+  const m3 = /matrix3d\(([^)]+)\)/.exec(transform);
+  if (!m3) return null;
+  const p = m3[1]!.split(',').map((s) => parseFloat(s));
+  if (p.length < 16 || p.some((v) => !Number.isFinite(v))) return null;
+  return p;
+}
+
+/**
+ * Does this 4x4 carry a z or PERSPECTIVE component — m13/m14/m23/m24/m31..m34/m43, or a
+ * non-identity m33/m44?
+ *
+ * {@link parseCssMatrix}'s refusal, and deliberately broader than
+ * {@link isNonAffineTransform}'s test: this one asks "is the MATRIX 3-D", that one asks
+ * "does the picture a FLAT element paints through it need a perspective divide". The
+ * second is the smaller set (see its comment for the algebra), and the two are separate
+ * because they answer different questions for different callers.
+ */
+function has3dComponent(p: readonly number[]): boolean {
+  const z = [p[2]!, p[3]!, p[6]!, p[7]!, p[8]!, p[9]!, p[11]!, p[14]!];
+  return z.some((v) => Math.abs(v) > 1e-6) || Math.abs(p[10]! - 1) > 1e-6 || Math.abs(p[15]! - 1) > 1e-6;
+}
+
+/**
+ * Does this computed `transform` PERSPECTIVE-DIVIDE — i.e. is the picture it paints a
+ * homography that no 2-D affine can reproduce, so a caller must raster it rather than
+ * emit geometry?
+ *
+ * Why the predicate exists: `parseCssMatrix` returning null is AMBIGUOUS, and both
+ * export walkers were reading it as "nothing to do". `none` really is nothing to do and
+ * the AABB path is correct for it; a `matrix3d` carrying a perspective row also comes
+ * back null, and there the AABB path is a WRONG PICTURE — the trapezoid the user is
+ * looking at gets emitted as an axis-aligned rectangle stretched to fill its projected
+ * bounding box, silently (plans/104 §12 Q2, measured: a tilted card exported to SVG as a
+ * `<rect>` with no notice). This tells those two apart.
+ *
+ * ⚑ AND IT IS NARROWER THAN "REFUSED BY parseCssMatrix", from the algebra rather than
+ * from caution. A flat element's own points are all at z = 0, so under
+ * `matrix3d(m11…m44)` (column-major) they land at
+ *
+ *     x' = m11·x + m21·y + m41      w' = m14·x + m24·y + m44
+ *     y' = m12·x + m22·y + m42
+ *
+ * and the screen point is `(x'/w', y'/w')`. Every z-coupling term — m13, m23, m31…m34,
+ * m43 — drops out. So the painted result of a flat element is a 2-D AFFINE unless the
+ * perspective row `(m14, m24, m44)` is non-trivial, and only that case needs a raster.
+ * A `translateZ(50px)` with no perspective paints exactly what its 2-D part paints; a
+ * GPU-promotion `translate3d(0,0,0)` likewise. Gating on "any 3-D component" would
+ * convert those to rasters for nothing, which on a `url-shot` of somebody else's page is
+ * a real fidelity loss in the name of fixing one that was not there.
+ *
+ * KNOWN GAP, separate and pre-existing: an ORTHOGRAPHIC 3-D rotation (`rotateX(45deg)`
+ * with no perspective anywhere) paints its 2-D affine part — which `parseCssMatrix`
+ * already computes and then throws away, so the walkers still emit it on the AABB path
+ * unsquashed. That is a `parseCssMatrix` contract question with many callers, not this
+ * predicate's, and it is not what §12 Q2 is about.
+ *
+ * DOM-free like everything here: the caller passes `getComputedStyle(el).transform`.
+ */
+export function isNonAffineTransform(transform: string | null | undefined): boolean {
+  if (!transform) return false;
+  const t = transform.trim();
+  if (!t || t === 'none') return false;
+  // A computed transform is only ever `none`, `matrix(…)` or `matrix3d(…)`. Anything
+  // else here — a hand-written `perspective(800px) rotateX(40deg)`, a malformed
+  // `matrix3d(1,2,3)` — is a string this module does not read, and "unparseable" is not
+  // the same claim as "perspective": say no rather than send a caller down the raster
+  // hatch on a value nobody measured.
+  const p = matrix3dParts(t);
+  if (!p) return false;
+  return Math.abs(p[3]!) > 1e-9 || Math.abs(p[7]!) > 1e-9 || Math.abs(p[15]! - 1) > 1e-9;
 }
 
 /** Compose two 2-D affines: `multiplyMat(P, C)` applies C first, then P

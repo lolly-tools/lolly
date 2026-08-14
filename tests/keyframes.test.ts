@@ -572,7 +572,10 @@ test('the DEFAULT camera is a no-op on a z = 0 layer — every existing document
   assert.equal(DEFAULT_PERSPECTIVE, 1200);
   for (const [bx, by] of [[0, 0], [100, 200], [1920, 1080], [-40, 4000]] as const) {
     const pr = projectLayer(CAM0, { bx, by, z: 0 });
-    assert.deepEqual(pr, { dx: 0, dy: 0, scale: 1, alphaGuard: 1 }, `${bx},${by}`);
+    // `m: null` is P2's additive field: the screen-parallel tier hands back no
+    // homography at all, which is what keeps every pre-tilt document on the exact path
+    // it was always on (plans/104 §6.4, engine 1.121).
+    assert.deepEqual(pr, { dx: 0, dy: 0, scale: 1, alphaGuard: 1, m: null }, `${bx},${by}`);
   }
 });
 

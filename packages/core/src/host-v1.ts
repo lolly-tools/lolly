@@ -127,6 +127,29 @@ export interface HostV1 {
   media?: MediaAPI;
 
   /**
+   * Lift — enumerate an SVG's own layers into standalone documents (the engine's
+   * `enumerateSvgLayers`). The shell fetches + sanitises the SVG through its one
+   * untrusted-SVG path; the engine owns what a "layer" is, so web and CLI agree. The
+   * maths that turns layers into DEPTH is the CALLER's, not this primitive's — it returns
+   * geometry (documents + ink boxes + viewBox), never a scene. Optional/additive (v1.123):
+   * a shell without a safe SVG fetch/sanitise path omits it, and NOT gated by a capability
+   * — it is progressive enhancement (the dedicated Flythrough tool lifts a screenshot into
+   * depth planes where `host.lift` is present, and flies one flat plane where it is not).
+   */
+  lift?: LiftAPI;
+
+  /**
+   * Keyframes — evaluate the engine's `kf` wire (the same track format the Design tool's
+   * camera and every keyframed input use) into concrete pose samples, for a tool TEMPLATE
+   * that cannot import the engine. The engine owns the parse + interpolation + easing (the
+   * drift-prone part), so a template's motion matches the Design tool's exactly; the
+   * template owns only how it maps the pose CHANNELS onto its own scene. Optional/additive
+   * (v1.124); a shell without it omits it (the Flythrough tool then uses its built-in
+   * parametric moves and ignores a custom `camera` track).
+   */
+  keyframes?: KeyframesAPI;
+
+  /**
    * Device capture — record the microphone (and optionally the camera) to a file,
    * plus a DOM-free live audio-level meter. Where `media` is a read-only camera
    * frame *source*, `recorder` is a *sink*: the shell owns getUserMedia({audio}),
@@ -2330,6 +2353,11 @@ export interface Profile {
    *  card tools (which today take it as a per-tool input). Optional like every
    *  field here; a deployment with a directory/IdP may populate it centrally. */
   title?: string;
+  /** Organisation / company line — the creator's org, used for shared-file
+   *  provenance (the `.lolly` creator block, plans/114). Optional like every field
+   *  here; on a control-plane instance the shell derives it from the instance name
+   *  when unset. Gated by `useDetails` at the point it is embedded, same as name. */
+  org?: string;
   /** "Use my details" opt-in — gates embedding author/contact into export
    *  provenance (see engine/src/metadata.ts). */
   useDetails?: boolean;
@@ -2361,6 +2389,17 @@ export interface Profile {
     highContrast?: boolean;
     /** Larger app-chrome type (never scales the tool canvas or exports). */
     largeText?: boolean;
+  };
+  /** Nearby-discovery preferences (plans/110). Additive + optional, so a profile
+   *  without it is byte-identical to today. The only PERSISTED visibility mode is
+   *  `standing` ("always visible on networks I join") — an opt-in for trusted LANs;
+   *  the ordinary timed "visible for 10 minutes" window is runtime state and never
+   *  stored. Even `standing` advertises only while the app is running. */
+  nearby?: {
+    /** Keep advertising discoverable whenever the app runs, without re-arming a
+     *  timed window each time. Default (unset) is off — a device is discoverable
+     *  only during an explicit timed window. */
+    standing?: boolean;
   };
   /** Tool ids the user has starred — the gallery's "Favourites" collection. Rides
    *  the profile so it persists across reloads and travels in the portable backup. */
@@ -3032,6 +3071,68 @@ export interface CaptureSpec {
    * field ignore it (the caller reads the result dims either way). (v1.45)
    */
   crop?: { top?: number; right?: number; bottom?: number; left?: number };
+}
+
+// ─── Lift (optional) ────────────────────────────────────────────────────────────
+
+/** One lifted layer: a standalone SVG document plus its ink extent (v1.123). */
+export interface LiftLayer {
+  /**
+   * The layer as a complete, standalone `<svg>…</svg>` document. It keeps the source's
+   * ROOT coordinate system, so every layer overlays the others exactly — ready to
+   * rasterise to a texture or store as an asset with no fix-up. (The engine's
+   * `SvgLayer.markup`.)
+   */
+  svg: string;
+  /**
+   * The layer's analytic ink bounding box in the SOURCE viewBox's user units, or null
+   * when nothing in it could be measured without a renderer. Advisory — for clustering
+   * and placement hints, never a pixel-exact crop.
+   */
+  bbox: { x: number; y: number; w: number; h: number } | null;
+  /** How many of the source's top-level nodes this layer gathered — a hint for telling a
+   *  real layer from a cluster of stray leaves. */
+  nodes: number;
+}
+
+/**
+ * The result of lifting an SVG: its layers in PAINT ORDER (background first, so a caller
+ * placing planes back-to-front can walk the array), plus the source document's own
+ * viewBox (the denominator for every layer's bbox).
+ */
+export interface LiftResult {
+  layers: LiftLayer[];
+  viewBox: { x: number; y: number; w: number; h: number } | null;
+  /** Anything the enumerator refused, repaired or capped, in plain words. Never thrown. */
+  warnings: string[];
+}
+
+export interface LiftAPI {
+  /**
+   * Lift an SVG — named by URL (a catalog/library asset, an uploaded `blob:`, or a
+   * `data:` URL) — into its own layers. The shell fetches + sanitises the markup through
+   * its one untrusted-SVG path, then runs the engine's `enumerateSvgLayers`. Returns the
+   * layers in paint order as standalone SVG documents + their ink boxes, and the source
+   * viewBox. A source that is not an SVG, or has fewer than two layers, comes back with
+   * `layers: []` (the caller then treats the shot as a single plane) — this method never
+   * throws on "nothing to lift", only on a fetch/parse failure the caller should surface.
+   */
+  svg(source: string): Promise<LiftResult>;
+}
+
+// ─── Keyframes (optional) ───────────────────────────────────────────────────────
+
+export interface KeyframesAPI {
+  /**
+   * Evaluate a `kf` track at `count` times evenly spaced across its OWN span (first to last
+   * keyframe), returning each pose as a channel→value map (`x`, `y`, `z`, `rx`, `ry`, `p`,
+   * `f`, `a`, …). Runs the engine's `parseKf` + `evaluateKf`, so the interpolation and
+   * easing are canonical — a template's motion matches the Design tool's exactly. An
+   * empty / parse-failed track returns `[]`. The caller maps the channels onto its own
+   * camera or transform (a real-3D tool interprets `rx`/`ry`/`z` differently from the
+   * Design tool's 2.5D homography, which is why the mapping stays with the caller).
+   */
+  sample(kf: string, count: number): Promise<Record<string, number>[]>;
 }
 
 // ─── Compose ──────────────────────────────────────────────────────────────────

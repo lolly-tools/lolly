@@ -1,0 +1,10 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    // Renderer-agnostic string-in/string-out; no DOM lib needed. `node` types
+    // cover the test harness (node:test) and any process globals.
+    "lib": ["ES2023"],
+    "types": ["node"]
+  },
+  "include": ["src/**/*", "test/**/*"]
+}

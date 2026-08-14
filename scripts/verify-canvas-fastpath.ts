@@ -54,7 +54,7 @@ async function main(): Promise<void> {
   const { base, close } = await serveDist();
   const browser = await chromium.launch({ channel: 'chrome', headless: true });
 
-  const url = (boxes: unknown) => `${base}/?canvasfastpath=1#/tool/layout-studio?boxes=${encodeURIComponent(JSON.stringify(boxes))}`;
+  const url = (boxes: unknown) => `${base}/?canvasfastpath=1#/tool/design?boxes=${encodeURIComponent(JSON.stringify(boxes))}`;
   const styles = (pg: Page) => pg.evaluate(() => {
     const o: Record<string, string> = {};
     for (const el of document.querySelectorAll('.lolly-box[data-box-id]')) {

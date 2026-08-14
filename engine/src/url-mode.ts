@@ -113,6 +113,21 @@
  *                  lever ("check against `latest`, fix, then publish"), which is why
  *                  serializeUrlState never writes it: a share link must not pin its
  *                  recipient to a version of a system that isn't theirs.
+ *   - `present`  — presence flag (web shell only): open a frame document's frames as
+ *                  a fullscreen click-advanced DECK (design presentation mode,
+ *                  plan 112). A frame doc opens the presenter; a non-frame TIMED doc
+ *                  mounts normally and starts its sequence transport. The CLI
+ *                  documents it as a no-op (CLI is URL mode under a different
+ *                  transport, and there is no fullscreen to present into).
+ *   - `s`        — the STATE ADDRESS of a deck: `s=2` is the 1-based position in
+ *                  presentation order, anything else (`s=slide1`, a ULID) is a frame
+ *                  id, and an `.N` suffix (`s=2.3`) names a build step. With
+ *                  `present` it deep-links that slide; without it the editor centres
+ *                  that frame on mount. Read raw by the shell (the `template`
+ *                  pattern) — its still-export meaning (`?s=2&format=png` = the one
+ *                  slide) lives in the export fan-out, not in the typed UrlState.
+ *                  (The signage flag `loop` is NOT reserved — see the RESERVED set
+ *                  below for why — but travels alongside these as `?present&loop`.)
  *   - `z`        — a PACKED whole-state token (raw DEFLATE + base64url) that carries
  *                  the entire query for complex tools whose readable form would blow
  *                  past practical URL limits. Expanded back into a plain query by
@@ -309,7 +324,14 @@ export interface SerializeUrlOpts {
 // Param names that are NOT tool inputs (export/render controls). Exported so the
 // engine contract test can assert it stays in lock-step with the documented list
 // (the header comment above + docs/url-mode.md) and nothing drifts silently.
-export const RESERVED = new Set(['format', 'export', 'copy', 'slot', 'output', 'filename', '_v', 'width', 'height', 'w', 'h', 'unit', 'dpi', 'profile', 'password', 'bleed', 'marks', 'c2pa', 'imprint', 'durable', 'meta', 'hdr', 'depth', 'cuts', 'lang', 'designv', 'full', 'options', 'nostage', 'template', 'z', 'zx']);
+export const RESERVED = new Set(['format', 'export', 'copy', 'slot', 'output', 'filename', '_v', 'width', 'height', 'w', 'h', 'unit', 'dpi', 'profile', 'password', 'bleed', 'marks', 'c2pa', 'imprint', 'durable', 'meta', 'hdr', 'depth', 'cuts', 'lang', 'designv', 'full', 'options', 'nostage', 'template', 'present', 's', 'z', 'zx']);
+// NOTE on the presentation-mode kiosk flag `loop` (plan 112): it is deliberately
+// NOT in this set. `loop` is a live *input* id in several tools (slides, deck-builder,
+// 3d, digi-ad, lottie-digi-ad — a GIF-playback / animation control), so reserving it
+// would strip their `?loop=…` value on parse. The presenter reads `loop` as a raw
+// presence flag only in design, which has no `loop` input, so there is no
+// ambiguity there; the shell keeps it through shrinkUrl via RESERVED_KEEP instead.
+// If design ever gains a `loop` input, rename the signage flag (e.g. `kiosk`).
 
 // Parse the `marks` param (csv: crop,reg,bleed,bars,prov) into a print-mark
 // toggle map. Returns null when absent so callers fall back to their own defaults.

@@ -9,7 +9,7 @@
  * overlay ripple, snapping) is asserted here rather than in the DOM controller, so
  * the panel only has to get its wiring right.
  *
- * The parity block below loads the REAL layout-studio hooks.js off disk and runs its
+ * The parity block below loads the REAL design hooks.js off disk and runs its
  * seqDurationMs against deriveDuration for the same rows — the artboard's data-seq-ms
  * and the panel's ruler length disagreeing is a real bug class, not a hypothetical.
  */
@@ -33,7 +33,7 @@ import {
   // forbidden from doing itself.
   KF_NEUTRAL, KF_POSE_SEED, clearKfTrack, kfDiamondAt, kfDiamondTimes, kfDuplicateMs,
   kfFormatChannel, kfLocalMs, kfSeekDiamond, kfSlideMs, kfTimelineSec, kfTrackDelete,
-  kfTrackDuplicate, kfTrackRetime, kfTrackSetEase, kfWriteMs, setKfTrack, writeKfPose,
+  kfTrackDuplicate, kfTrackRetime, kfTrackSetEase, kfWriteMs, rescaleKfTrack, setKfTrack, writeKfPose,
   // The motion path (plans/104 §8's overlay bullet) — sampled through the engine.
   MOTION_PATH_MAX_SAMPLES, kfCameraClips, kfMotionPath,
   type Box, type TimeCfg,
@@ -45,7 +45,7 @@ import {
 } from '../engine/src/keyframes.ts';
 import type { KfCameraClip, KfTrack } from '../engine/src/keyframes.ts';
 
-// The field names phase 1 locked into BOTH brand copies of layout-studio's canvas cfg.
+// The field names phase 1 locked into BOTH brand copies of design's canvas cfg.
 const cfg: TimeCfg = {
   idField: 'id',
   startField: 'start', durField: 'dur', clipInField: 'clipIn', speedField: 'speed',
@@ -149,10 +149,10 @@ test('deriveDuration: hand-computed cases (milliseconds, matching data-seq-ms)',
   assert.equal(deriveDuration([clip('a', { start: 0, dur: 2 }), clip('b', { start: 2 })], cfg), 2000);
 });
 
-test('deriveDuration: byte-identical to layout-studio hooks.js seqDurationMs', () => {
+test('deriveDuration: byte-identical to design hooks.js seqDurationMs', () => {
   // Load the REAL hook off disk and lift its internal seqDurationMs out. brands/
   // lolly-start is parent-owned (brands/suse is a private, CI-skipped submodule).
-  const hooksPath = join(dirname(fileURLToPath(import.meta.url)), '..', 'brands', 'lolly-start', 'tools', 'layout-studio', 'hooks.js');
+  const hooksPath = join(dirname(fileURLToPath(import.meta.url)), '..', 'brands', 'lolly-start', 'tools', 'design', 'hooks.js');
   const src = readFileSync(hooksPath, 'utf8');
   const seqDurationMs = new Function('host', `${src}\n;return seqDurationMs;`)(
     { log: () => {} },
@@ -1937,6 +1937,27 @@ test('retime / duplicate / delete / re-ease each touch exactly what they name', 
     'junk normalises to the grammar\'s default rather than reaching the wire');
 });
 
+test('rescaleKfTrack stretches a track to a target span, tempo only — never its shape (A1#5)', () => {
+  const track = parseKf('t0_x0*t1000_eo_x40*t4000_el_x0'); // last key at 4 s
+
+  // Stretch to 8 s: every time doubles, ratios and eases and values ride along.
+  const up = rescaleKfTrack(track, 8000);
+  assert.deepEqual(up.map((k) => k.t), [0, 2000, 8000], 'first stays at 0, last lands on the target, mid scales');
+  assert.equal(serialiseKf(up), 't0_x0*t2000_eo_x40*t8000_el_x0', 'eases and poses are untouched — only the tempo');
+
+  // Compress to 2 s: same shape, half again.
+  assert.deepEqual(rescaleKfTrack(track, 2000).map((k) => k.t), [0, 500, 2000], 'compression is the same map, other way');
+
+  // Degenerate inputs are returned unchanged — nothing to stretch.
+  assert.equal(serialiseKf(rescaleKfTrack(track, 0)), serialiseKf(track), 'a zero target leaves the authored track');
+  assert.equal(serialiseKf(rescaleKfTrack(track, -5)), serialiseKf(track), 'a negative target too');
+  assert.equal(serialiseKf(rescaleKfTrack(track, Number.NaN)), serialiseKf(track), 'and a non-finite target');
+  const single = parseKf('t0_x0');
+  assert.equal(serialiseKf(rescaleKfTrack(single, 5000)), serialiseKf(single),
+    'a single key at 0 has a zero natural end — nothing to scale against');
+  assert.deepEqual(rescaleKfTrack([], 5000), [], 'an empty track is empty');
+});
+
 test('kfSeekDiamond walks the union of the given boxes and stops at the ends', () => {
   const rows = [
     clip('a', { start: 0, dur: 3, kf: 't0_x0*t1500_x40' }),
@@ -1999,7 +2020,7 @@ test('the rebase is channel-agnostic, so `w`/`h` split, trim and join like every
 // if `kfMotionPath` ever grew a shortcut, an approximation, or its own idea of what a
 // camera does, this fails rather than the picture quietly drifting from the export.
 
-/** The layout-studio field set, plus the two P0 appended in slots 69/70. */
+/** The design field set, plus the two P0 appended in slots 69/70. */
 const pathCfg: TimeCfg = { ...cfg, kfField: 'kf', zField: 'z' };
 const STAGE = { stageW: 1920, stageH: 1080 };
 

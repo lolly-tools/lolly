@@ -37,14 +37,13 @@ const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
 const geom = makeGeomApi();
 
 /**
- * The pen's hosts. `layout-studio` is loaded from brands/lolly-start (parent-owned and
+ * The pen's hosts. `design` is loaded from brands/lolly-start (parent-owned and
  * present in every checkout — brands/suse is a private submodule CI skips, and its copy
  * of hooks.js is byte-identical in this region); `sequence-studio` from the public
  * community pack.
  */
 const HOSTS = [
-  { id: 'layout-studio', dir: join(ROOT, 'brands', 'lolly-start', 'tools') },
-  { id: 'sequence-studio', dir: join(ROOT, 'community') },
+  { id: 'design', dir: join(ROOT, 'brands', 'lolly-start', 'tools') },
 ] as const;
 
 for (const h of HOSTS) {
@@ -152,7 +151,7 @@ for (const h of HOSTS) {
  * cannot explain. Sequence Studio hard-codes round/round (it has no such sub-fields), so
  * this claim is Layout Studio's alone rather than part of the table above.
  */
-test('layout-studio: a square cap and a miter join size the pad up for themselves', async () => {
+test('design: a square cap and a miter join size the pad up for themselves', async () => {
   const h = HOSTS[0];
   const sw = 40;
   // A square cap's corner sits sw/2 along the tangent AND sw/2 across it: sw/2·√2.

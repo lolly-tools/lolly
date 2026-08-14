@@ -10,7 +10,7 @@ import assert from 'node:assert/strict';
 
 import {
   parseCssLength, cornerRadii, uniformRadius, insetCorners, roundedRectPath, parseBoxShadow, parseTextShadow, gaussianShadowBands,
-  parseCssMatrix, multiplyMat, matAboutPivot, isAxisAlignedMat, matToSvg,
+  parseCssMatrix, isNonAffineTransform, multiplyMat, matAboutPivot, isAxisAlignedMat, matToSvg,
 } from '../engine/src/css-box.ts';
 import type { CornerInputs, CornerRadii, Mat2D } from '../engine/src/css-box.ts';
 
@@ -207,6 +207,64 @@ test('parseCssMatrix: matrix3d flattens to its 2-D affine', () => {
 test('parseCssMatrix: matrix3d with real perspective/z → null (falls back to raster)', () => {
   assert.equal(parseCssMatrix('matrix3d(1,0,0,0.001, 0,1,0,0, 0,0,1,0, 0,0,0,1)'), null); // m14 perspective
   assert.equal(parseCssMatrix('matrix3d(1,0,0,0, 0,1,0,0, 0,0,1,0, 0,0,50,1)'), null);    // m43 z-translate
+});
+
+test('isNonAffineTransform tells "nothing to do" apart from "cannot be drawn"', () => {
+  // ⚑ THE AMBIGUITY THIS RESOLVES, and what it cost: `parseCssMatrix` returns null for
+  // `none`, for a 2-D affine it cannot parse, AND for a real perspective matrix. Both
+  // export walkers read that single null as "nothing to do" and fell through to the AABB
+  // path — which is CORRECT for `none` and a WRONG PICTURE for a perspective pose (a
+  // tilted card emitted as an axis-aligned rect stretched to fill its projected bounding
+  // box, silently; plans/104 §12 Q2). This predicate is the gate that separates them.
+  //
+  // NOT tilted: nothing authored, or an affine (however it is spelled).
+  assert.equal(isNonAffineTransform('none'), false);
+  assert.equal(isNonAffineTransform(''), false);
+  assert.equal(isNonAffineTransform(null), false);
+  assert.equal(isNonAffineTransform(undefined), false);
+  assert.equal(isNonAffineTransform('matrix(0.866, 0.5, -0.5, 0.866, 12, 34)'), false);
+  assert.equal(isNonAffineTransform('matrix3d(0.7071,0.7071,0,0, -0.7071,0.7071,0,0, 0,0,1,0, 20,40,0,1)'), false,
+    'a matrix3d that FLATTENS to a 2-D affine is expressible, and stays vector');
+
+  // TILTED: a non-trivial perspective row (m14, m24, m44) — the only thing that makes a
+  // FLAT element's painted result something no `matrix(a,b,c,d,e,f)` can reproduce.
+  assert.equal(isNonAffineTransform('matrix3d(1,0,0,0.001, 0,1,0,0, 0,0,1,0, 0,0,0,1)'), true, 'm14');
+  assert.equal(isNonAffineTransform('matrix3d(1,0,0,0, 0,1,0,0.001, 0,0,1,0, 0,0,0,1)'), true, 'm24');
+  assert.equal(isNonAffineTransform('matrix3d(1,0,0,0, 0,1,0,0, 0,0,1,0, 0,0,0,0.5)'), true, 'm44');
+  // The applier's own output shape, verbatim from a measured `rx −45` render.
+  assert.equal(
+    isNonAffineTransform('matrix3d(1, 0, 0, 0, 0, 0.659966, 0, -0.000589256, 0, 0, 1, 0, 0, 25.9781, 0, 1)'),
+    true,
+  );
+
+  // ⚑ AND NARROWER THAN "parseCssMatrix REFUSED IT", from the algebra: a flat element's
+  // points are all at z = 0, so every z-coupling term (m13, m23, m31..m34, m43) drops
+  // out of `(x'/w', y'/w')`. A z translation with no perspective paints exactly what its
+  // 2-D part paints, and rasterising it would be a fidelity loss in the name of fixing
+  // one that was not there — on a `url-shot` of somebody else's page, `translateZ` is a
+  // GPU-promotion hack, not a pose.
+  assert.equal(isNonAffineTransform('matrix3d(1,0,0,0, 0,1,0,0, 0,0,1,0, 0,0,50,1)'), false,
+    'a z translation with no perspective row is visually the identity');
+  assert.equal(parseCssMatrix('matrix3d(1,0,0,0, 0,1,0,0, 0,0,1,0, 0,0,50,1)'), null,
+    '…and parseCssMatrix still refuses it, which is exactly the ambiguity this predicate resolves');
+  assert.equal(isNonAffineTransform('matrix3d(1,0,0,0, 0,0.7071,-0.7071,0, 0,0.7071,0.7071,0, 0,0,0,1)'), false,
+    'an ORTHOGRAPHIC rotateX paints its 2-D affine part — a separate, pre-existing gap in the walkers');
+
+  // "Unparseable" is NOT the same claim as "perspective": a hand-written or authored
+  // value this module does not read must not send a caller down the raster hatch.
+  assert.equal(isNonAffineTransform('rotate(12deg)'), false, 'an un-computed value is not a verdict');
+  assert.equal(isNonAffineTransform('perspective(800px) rotateX(40deg)'), false);
+  assert.equal(isNonAffineTransform('matrix3d(1,2,3)'), false, 'a malformed matrix3d is junk, not a pose');
+
+  // And the two agree by construction, which is the property that keeps the walkers'
+  // branches mutually exclusive: a value is non-affine iff parseCssMatrix refuses it.
+  for (const v of [
+    'none', 'matrix(1,0,0,1,0,0)', 'matrix3d(1,0,0,0, 0,1,0,0, 0,0,1,0, 0,0,0,1)',
+    'matrix3d(1,0,0,0.002, 0,1,0,0, 0,0,1,0, 0,0,0,1)',
+    'matrix3d(1,0,0,0, 0,1,0,0, 0,0,1,0, 0,0,50,1)',
+  ]) {
+    if (isNonAffineTransform(v)) assert.equal(parseCssMatrix(v), null, `${v}: gate says perspective, parser must refuse`);
+  }
 });
 
 test('multiplyMat: applies C then P; identity is neutral', () => {

@@ -38,6 +38,12 @@
   ],
   "redirects": [
     {
+      "comment": "Design tool renamed layout-studio→design (id-break window). Old path links redirect to the vanity path; the hash form #/tool/layout-studio is aliased client-side in main.ts.",
+      "source": "/t/layout-studio",
+      "destination": "/design",
+      "permanent": true
+    },
+    {
       "source": "/:path*",
       "has": [{ "type": "host", "value": "www\\.lolly\\.tools" }],
       "destination": "https://lolly.tools/:path*",
@@ -58,6 +64,7 @@
   ],
   "rewrites": [
     { "source": "/t/:id", "destination": "/t/:id.html" },
+    { "source": "/design", "destination": "/t/design.html" },
     { "source": "/tools", "destination": "/view/tools.html" },
     { "source": "/utilities", "destination": "/view/utilities.html" },
     { "source": "/u", "destination": "/view/utilities.html" },

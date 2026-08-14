@@ -25,7 +25,7 @@ import {
 const close = (a: number, b: number, eps = 1e-9) => Math.abs(a - b) <= eps;
 
 // The SUSE profile's vocabulary, as its web shell threads it in (from the SUSE
-// layout-studio manifest's font select + addKinds seeds) — the engine itself no
+// design manifest's font select + addKinds seeds) — the engine itself no
 // longer knows these names.
 const SUSE_FONTS = { defaultFamily: 'SUSE', monoFamily: 'SUSE Mono', monoMaxWeight: 800 };
 const SUSE_SEEDS = { boxBg: '#30BA78', textFg: '#0c322c', imageBg: '#eef1f0' };

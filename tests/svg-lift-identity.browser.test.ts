@@ -46,6 +46,17 @@
  * three orders of magnitude outside these bounds — which is exactly what the
  * vacuity guard at the bottom demonstrates.
  *
+ * ## ⚑ Every fixture above is k = 1, and that is why 1.121 over-claimed
+ *
+ * 320×240 into a 320×240 box is the one configuration in which snapping a crop to
+ * whole USER units also lands it on whole ROW pixels — so the crop-to-ink of
+ * 1.121 measured neutral here and cost 88 675 channels beyond ±1 on real content
+ * at k = 0.694. The `k = 1.5625` block below is the missing configuration: the
+ * same fixtures in a 500×375 box, with `liftCropScale` feeding the engine the
+ * scale the rows will actually be placed at, plus a test that the SAME box
+ * cropped in user units blows the budget by 14× — so the claim cannot be made
+ * again from the easy case alone.
+ *
  * GATING follows the rest of the browser tier (`sequence-render.browser.test.ts`,
  * `canvas-filter-probe.browser.test.ts`): with no browser installed the whole
  * suite skips naming the install command, so `npm test` stays green on a bare
@@ -56,7 +67,10 @@ import assert from 'node:assert/strict';
 import type { Browser, BrowserContext, Page } from 'playwright-core';
 import { getBrowser, closeBrowser } from '../packages/node-shell/src/browsers.ts';
 import { browserGate } from './helpers/sequence-browser.ts';
-import { enumerateSvgLayers } from '../engine/src/svg-layers.ts';
+import { enumerateSvgLayers, svgRootViewBox } from '../engine/src/svg-layers.ts';
+import type { SvgLayer, SvgLayerBox } from '../engine/src/svg-layers.ts';
+import { liftRows, liftCropScale } from '../shells/web/src/views/free-canvas-math.ts';
+import type { Box } from '../shells/web/src/views/free-canvas-math.ts';
 
 const gate = browserGate();
 
@@ -82,10 +96,18 @@ const MAX_MEAN_ABS = 0.5;
 /**
  * The fixtures, chosen to exercise the ways a split could go wrong rather than
  * to look like anything: overlapping fills (compositing order), a shared
- * gradient (the carried `<defs>`), a cross-group `<use>` (the repair), curves
- * and strokes (anti-aliased edges everywhere), translucency (alpha, not just
- * coverage), ungrouped strays (the spatial clustering), and a lone wrapper group
- * (the descent).
+ * gradient (the carried `<defs>`), a cross-group `<use>` (the repair), a
+ * descended wrapper and a carried `<clipPath>` that each point INTO a layer (the
+ * other two halves of the repair), curves and strokes (anti-aliased edges
+ * everywhere), translucency (alpha, not just coverage), ungrouped strays (the
+ * spatial clustering), and a lone wrapper group (the descent).
+ *
+ * ⚑ What the original set had in common, and what it cost: not one fixture put
+ * anything on the ROOT `<svg>`, so a root `opacity`/`filter` — applied N times
+ * over by a split, 45 203 channels beyond ±1 against a 154-channel budget — was
+ * invisible to a suite whose entire job is to see that. The refusal cases at the
+ * bottom of this file exist so the gap cannot reopen: they measure what the
+ * refused split WOULD have cost, rather than asserting that a rule is a rule.
  */
 const FIXTURES: Array<[name: string, markup: string]> = [
   ['overlapping opaque groups', `<svg xmlns="${NS}" viewBox="0 0 ${W} ${H}">
@@ -113,6 +135,25 @@ const FIXTURES: Array<[name: string, markup: string]> = [
     <g id="c"><rect x="220" y="20" width="80" height="80" fill="#2f6fb4" opacity="0.8"/></g>
   </svg>`],
 
+  // The two reference shapes the repair used to MISS, because it only ever read
+  // the layer body: a descended wrapper pointing at an id inside one of the
+  // layers, and a carried paint server pointing the same way. Both rendered a
+  // visibly different picture with an empty `warnings` — Chromium paints an
+  // unresolvable `clip-path` as no clip at all, so the first one measured 76 800
+  // channels different before the fix and 0 after it.
+  ['a descended wrapper whose clip lives inside a layer', `<svg xmlns="${NS}" viewBox="0 0 ${W} ${H}">
+    <g clip-path="url(#c)">
+      <g><rect x="0" y="0" width="200" height="200" fill="#c8352b"/></g>
+      <g><clipPath id="c"><rect x="20" y="20" width="120" height="120"/></clipPath><circle cx="250" cy="180" r="50" fill="#2f6fb4"/></g>
+    </g>
+  </svg>`],
+
+  ['a carried <clipPath> whose <use> points into a layer', `<svg xmlns="${NS}" viewBox="0 0 ${W} ${H}">
+    <clipPath id="c2"><use href="#shape"/></clipPath>
+    <g clip-path="url(#c2)"><rect x="0" y="0" width="200" height="200" fill="#c8352b"/></g>
+    <g><rect id="shape" x="20" y="20" width="120" height="120" fill="#2f6fb4"/></g>
+  </svg>`],
+
   ['curves and strokes — anti-aliased edges everywhere', `<svg xmlns="${NS}" viewBox="0 0 ${W} ${H}">
     <g><path d="M10 200 C 60 40, 120 40, 170 200" fill="none" stroke="#c8352b" stroke-width="9"/></g>
     <g><path d="M60 210 C 110 60, 180 60, 250 210" fill="none" stroke="#2f6fb4" stroke-width="7"/></g>
@@ -137,20 +178,60 @@ const FIXTURES: Array<[name: string, markup: string]> = [
 
 const dataUrl = (svg: string): string => `data:image/svg+xml;utf8,${encodeURIComponent(svg)}`;
 
+/** One layer as the editor would place it: its document, and the row it lands in. */
+interface Placed { markup: string; x: number; y: number; w: number; h: number }
+
+/** The canvas block a lift writes, narrowed to what placement reads. */
+const LIFT_CFG = {
+  idField: 'id', xField: 'x', yField: 'y', wField: 'w', hField: 'h', rotationField: 'rot',
+  imageField: 'image', fitField: 'fit', zField: 'z', shadowField: 'shadow',
+};
+
+/**
+ * Where the shell would put each layer — through `liftRows` itself, not through
+ * a copy of its arithmetic.
+ *
+ * Since 1.121 a derived document may be CROPPED to its own ink, and a cropped
+ * document is only the same picture in the row that crop maps to. That makes
+ * placement part of the identity property rather than a detail beside it, so
+ * the harness asks the real function and paints the answer: if `liftRows` and
+ * `enumerateSvgLayers` ever disagree about which rectangle a layer is, this
+ * suite sees it as a moved picture, which is what it is.
+ */
+function placed(layers: SvgLayer[], viewBox: SvgLayerBox | null, bw = W, bh = H): Placed[] {
+  const rows = liftRows(
+    liftBox(bw, bh),
+    layers.map((l, i) => ({ src: '', id: i, crop: l.viewBox ?? null, bbox: l.bbox })),
+    LIFT_CFG,
+    { viewBox, fit: 'fill' },
+  ) as Array<Record<string, number>>;
+  return layers.map((l, i) => ({
+    markup: l.markup,
+    x: Number(rows[i]!.x), y: Number(rows[i]!.y), w: Number(rows[i]!.w), h: Number(rows[i]!.h),
+  }));
+}
+
+/** The source box a lift replaces — the one both `liftCropScale` and `liftRows` read. */
+const liftBox = (bw: number, bh: number): Box => ({ id: 'a', x: 0, y: 0, w: bw, h: bh, rot: 0 } as Box);
+
+/** Full-stage placement, for the hand-split fixtures that never went near a crop. */
+const wholeStage = (markup: string[]): Placed[] => markup.map((m) => ({ markup: m, x: 0, y: 0, w: W, h: H }));
+
 /**
  * The page: one `<img>` for the original, N absolutely-positioned `<img>` for
  * the layers, both in a `W×H` box on the same white ground — which is exactly
- * what the editor does with lifted boxes at identical geometry and z = 0.
+ * what the editor does with lifted boxes at z = 0.
  */
-function pageFor(original: string, layers: string[]): string {
+function pageFor(original: string, layers: Placed[], bw = W, bh = H): string {
   const stack = layers
-    .map((l) => `<img src="${dataUrl(l)}" style="position:absolute;left:0;top:0;width:${W}px;height:${H}px">`)
+    .map((l) => `<img src="${dataUrl(l.markup)}" style="position:absolute;left:${l.x}px;top:${l.y}px;`
+      + `width:${l.w}px;height:${l.h}px">`)
     .join('');
   return `<!doctype html><html><body style="margin:0;background:#fff">
-    <div id="one" style="position:relative;width:${W}px;height:${H}px;background:#fff">
-      <img src="${dataUrl(original)}" style="position:absolute;left:0;top:0;width:${W}px;height:${H}px">
+    <div id="one" style="position:relative;width:${bw}px;height:${bh}px;background:#fff">
+      <img src="${dataUrl(original)}" style="position:absolute;left:0;top:0;width:${bw}px;height:${bh}px">
     </div>
-    <div id="many" style="position:relative;width:${W}px;height:${H}px;background:#fff">${stack}</div>
+    <div id="many" style="position:relative;width:${bw}px;height:${bh}px;background:#fff">${stack}</div>
   </body></html>`;
 }
 
@@ -174,8 +255,9 @@ describe('lift identity: N layers at z = 0 == the un-lifted original', { skip: g
   });
 
   /** Screenshot both boxes, decode both, and diff them channel by channel. */
-  async function compare(original: string, layers: string[]): Promise<Diff> {
-    await page.setContent(pageFor(original, layers));
+  async function compare(original: string, layers: Placed[], bw = W, bh = H): Promise<Diff> {
+    if (bw !== W || bh !== H) await page.setViewportSize({ width: bw + 40, height: bh * 2 + 60 });
+    await page.setContent(pageFor(original, layers, bw, bh));
     // Every <img> must have decoded before either shot, or a race decides the
     // answer instead of the compositor.
     await page.evaluate(async () => {
@@ -208,15 +290,15 @@ describe('lift identity: N layers at z = 0 == the un-lifted original', { skip: g
         sum += d;
       }
       return { differing, beyondOne, max, meanAbs: sum / A.length };
-    }, { w: W, h: H, a: Buffer.from(one).toString('base64'), b: Buffer.from(many).toString('base64') });
+    }, { w: bw, h: bh, a: Buffer.from(one).toString('base64'), b: Buffer.from(many).toString('base64') });
   }
 
   for (const [name, markup] of FIXTURES) {
     test(name, async () => {
-      const { layers, warnings } = enumerateSvgLayers(markup);
+      const { layers, warnings, viewBox } = enumerateSvgLayers(markup);
       assert.ok(layers.length >= 2, `needs at least two layers to be a lift (${warnings.join('; ')})`);
 
-      const d = await compare(markup, layers.map((l) => l.markup));
+      const d = await compare(markup, placed(layers, viewBox));
       table.push(`${name}: ${layers.length} layers, ${d.differing}/${CHANNELS} channels differ, ` +
         `${d.beyondOne} beyond ±1, max ${d.max}, mean ${d.meanAbs.toFixed(6)}`);
 
@@ -228,13 +310,118 @@ describe('lift identity: N layers at z = 0 == the un-lifted original', { skip: g
     });
   }
 
+  // ── k ≠ 1: the configuration this suite did not have, and what it cost ────
+  //
+  // ⚑ Every fixture above is 320×240 into a 320×240 box. That is k = 1 with an
+  // integer viewBox — the SINGLE configuration in which snapping a crop to whole
+  // USER units also lands it on whole ROW pixels — and 1.121 published
+  // "fidelity-neutral, measured" off exactly this suite. A lifted box on a canvas
+  // is any size, so k is arbitrary and a user-unit crop lands between device
+  // pixels: the browser then bilinear-filters the WHOLE layer back onto the grid
+  // and every anti-aliased edge in it moves. Measured on real content at k = 0.694
+  // (`docs/shots/brand-colours.svg` in a 1000×625 box): 88 675 channels beyond ±1
+  // with the crop on against 1 758 with it off, max 189 vs 63.
+  //
+  // So the box here is 500×375 — k = 1.5625 on both axes, exactly proportional to
+  // the fixtures' viewBox so nothing letterboxes, and an INTEGER container so the
+  // reference itself is on the pixel grid. `liftCropScale` answers the scale from
+  // the same `liftContentRect` that places the rows, which is the point: one k,
+  // read once, or the dialog and the write disagree about which rectangle a layer
+  // is. The bounds are the same fractions as above, against this frame's channels.
+  const SCALED_W = 500;
+  const SCALED_H = 375;
+  const SCALED_CHANNELS = SCALED_W * SCALED_H * 4;
+  const scaledBudget = Math.round(SCALED_CHANNELS * MAX_BEYOND_ONE_FRACTION);
+
+  for (const [name, markup] of FIXTURES) {
+    test(`${name} — at k = 1.5625, cropped to whole ROW px`, async () => {
+      const box = liftBox(SCALED_W, SCALED_H);
+      const cropScale = liftCropScale(box, LIFT_CFG, { viewBox: svgRootViewBox(markup), fit: 'fill' });
+      assert.ok(cropScale && cropScale.x !== 1 && cropScale.y !== 1,
+        'precondition: this case only means anything at a scale of not-1');
+      const { layers, viewBox } = enumerateSvgLayers(markup, { cropScale });
+      assert.ok(layers.length >= 2, 'needs at least two layers to be a lift');
+
+      const d = await compare(markup, placed(layers, viewBox, SCALED_W, SCALED_H), SCALED_W, SCALED_H);
+      table.push(`${name} @${SCALED_W}×${SCALED_H} (k=1.5625): ${layers.length} layers, ` +
+        `${d.differing}/${SCALED_CHANNELS} channels differ, ${d.beyondOne} beyond ±1, ` +
+        `max ${d.max}, mean ${d.meanAbs.toFixed(6)}`);
+
+      assert.ok(d.beyondOne <= scaledBudget,
+        `${name} at k≠1: ${d.beyondOne} channels differ by more than 1 (allowed ${scaledBudget})`);
+      assert.ok(d.max <= MAX_CHANNEL_DELTA, `${name} at k≠1: max channel delta ${d.max}`);
+      assert.ok(d.meanAbs <= MAX_MEAN_ABS, `${name} at k≠1: mean absolute error ${d.meanAbs}`);
+    });
+  }
+
+  test('and the snap is load-bearing: crop the SAME box in user units and the bounds blow', async () => {
+    // The half that makes the case above an assertion rather than a coincidence.
+    // Omitting `cropScale` is 1.121's arithmetic exactly (it defaults to 1:1), so
+    // this measures the shipped defect in the shipped harness. Run on the fixture
+    // whose every edge is anti-aliased along its whole length, which is where a
+    // resample shows up.
+    const markup = FIXTURES.find(([n]) => n.includes('the descent'))![1];
+    const naive = enumerateSvgLayers(markup);                        // whole USER units
+    const snapped = enumerateSvgLayers(markup, {                     // whole ROW px
+      cropScale: liftCropScale(liftBox(SCALED_W, SCALED_H), LIFT_CFG,
+        { viewBox: svgRootViewBox(markup), fit: 'fill' })!,
+    });
+    assert.notDeepEqual(naive.layers.map((l) => l.viewBox), snapped.layers.map((l) => l.viewBox),
+      'precondition: the two snaps must actually differ, or this test proves nothing');
+
+    const bad = await compare(markup, placed(naive.layers, naive.viewBox, SCALED_W, SCALED_H), SCALED_W, SCALED_H);
+    table.push(`user-unit snap at k=1.5625 (the 1.121 defect): ${bad.beyondOne} beyond ±1, ` +
+      `max ${bad.max}, mean ${bad.meanAbs.toFixed(6)}`);
+    assert.ok(bad.beyondOne > scaledBudget * 4,
+      `a user-unit crop at k≠1 must be unmistakably worse, got ${bad.beyondOne} beyond ±1 ` +
+      `against a ${scaledBudget} budget — if this ever passes, the snap stopped mattering ` +
+      'and the k≠1 cases above are no longer proving anything');
+  });
+
+  // ── the refusals, measured in the same harness ────────────────────────────
+  //
+  // A refusal is only defensible if the thing it refuses would really have been
+  // wrong, so these two fixtures prove the cost rather than assert the rule.
+  // Each is split BY HAND the way the enumerator used to (root attributes
+  // reproduced verbatim on every layer — the exact bytes `rootAttributes()`
+  // emits) and measured against the same bounds every fixture above passes.
+  // No fixture in FIXTURES puts anything on the root, which is precisely why
+  // this suite did not catch either of them at 1.119.0.
+  const ROOT_UNIT: Array<[name: string, rootAttrs: string, defs: string]> = [
+    ['root opacity', ' opacity="0.55"', ''],
+    ['root filter', ' filter="url(#f)"',
+      '<defs><filter id="f" x="-20%" y="-20%" width="150%" height="150%"><feGaussianBlur stdDeviation="4"/></filter></defs>'],
+  ];
+  for (const [name, rootAttrs, defs] of ROOT_UNIT) {
+    test(`${name}: refused BECAUSE splitting it moves tens of thousands of channels`, async () => {
+      const kids = [
+        '<g><rect x="20" y="20" width="180" height="150" fill="#c8352b"/></g>',
+        '<g><circle cx="150" cy="120" r="80" fill="#2f6fb4"/></g>',
+      ];
+      const open = `<svg xmlns="${NS}" viewBox="0 0 ${W} ${H}"${rootAttrs}>`;
+      const original = `${open}${defs}${kids.join('')}</svg>`;
+
+      const { layers, warnings } = enumerateSvgLayers(original);
+      assert.deepEqual(layers, [], 'a root that composites as a unit must not lift');
+      assert.ok(warnings.some((w) => w.includes('whole')), warnings.join(' | '));
+
+      // …and here is what it would have cost.
+      const naive = kids.map((k) => `${open}${defs}${k}</svg>`);
+      const d = await compare(original, wholeStage(naive));
+      table.push(`${name} (REFUSED; naive split would have been): ${d.differing}/${CHANNELS} channels differ, ` +
+        `${d.beyondOne} beyond ±1, max ${d.max}, mean ${d.meanAbs.toFixed(6)}`);
+      assert.ok(d.beyondOne > MAX_BEYOND_ONE * 20,
+        `the refusal has to be earning its keep, got ${d.beyondOne} channels beyond ±1`);
+    });
+  }
+
   test('the bounds are not vacuous — dropping one layer blows through every one of them', async () => {
     // Without this, a stack that rendered the same whatever it contained (a
     // blank page, a failed decode) would pass every assertion above while
     // proving nothing.
     const [, markup] = FIXTURES[0]!;
-    const { layers } = enumerateSvgLayers(markup);
-    const d = await compare(markup, layers.slice(0, -1).map((l) => l.markup));
+    const { layers, viewBox } = enumerateSvgLayers(markup);
+    const d = await compare(markup, placed(layers.slice(0, -1), viewBox));
     assert.ok(d.beyondOne > MAX_BEYOND_ONE * 20,
       `a missing layer must be unmistakable, got ${d.beyondOne} channels beyond ±1`);
     assert.ok(d.max > MAX_CHANNEL_DELTA, `and unmistakably large, got max ${d.max}`);

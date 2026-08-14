@@ -24,9 +24,9 @@ import {
   routedLineSvg, pathRouteStyle, isConnectorRouteStyle, CONNECTOR_ROUTE_STYLES,
   edgeWaypoints, buildConnectorSvg,
   pathEndTangents, pathEndPoints,
-  liftRows, applyLift, LIFT_Z_STEP,
+  liftRows, applyLift, liftDepths, liftSlots, liftCanCrop, LIFT_EFF_STEP, LIFT_EFF_CEIL, LIFT_STRENGTH,
 } from '../shells/web/src/views/free-canvas-math.ts';
-import { KF_Z_FIELD_CLAMP } from '../engine/src/keyframes.ts';
+import { KF_Z_FIELD_CLAMP, depthForEff } from '../engine/src/keyframes.ts';
 
 const CFG: any = {
   idField: 'id', xField: 'x', yField: 'y', wField: 'w', hField: 'h', rotationField: 'rot',
@@ -841,10 +841,105 @@ test('liftRows: geometry is IDENTICAL on every row — a lift moves nothing', ()
   }
 });
 
-test('liftRows: depth auto-staggers 0/40/80 and every row shares one group', () => {
+test('liftRows: depth climbs the eff band and every row shares one group', () => {
   const rows = liftRows(liftSrc(), LAYERS, LIFT_CFG, { group: 'g9' }) as any[];
-  assert.deepEqual(rows.map((r) => r.z), [0, LIFT_Z_STEP, LIFT_Z_STEP * 2]);
+  // Three layers, so three full rungs of LIFT_EFF_STEP: eff 1.00 / 1.02 / 1.04.
+  assert.deepEqual(rows.map((r) => r.z), liftDepths([0, 1, 2]));
+  assert.deepEqual(rows.map((r) => r.z), [0, 23.53, 46.15]);
   assert.deepEqual(rows.map((r) => r.group), ['g9', 'g9', 'g9']);
+});
+
+test('liftDepths: the band is a CEILING — N layers never climb past it', () => {
+  for (const n of [2, 3, 5, 14, 25, 35, 54, 64]) {
+    const slots = Array.from({ length: n }, (_, i) => i);
+    const z = liftDepths(slots, KF_Z_FIELD_CLAMP);
+    const top = depthForEff(LIFT_EFF_CEIL);
+    assert.ok(z[n - 1]! <= top + 0.01, `${n} layers must stay under the band (${z[n - 1]} > ${top})`);
+    assert.ok(z.every((v, i) => i === 0 || v > z[i - 1]!), `${n} layers must stay strictly increasing`);
+    assert.ok(z.every((v) => v > KF_Z_FIELD_CLAMP[0] && v < KF_Z_FIELD_CLAMP[1]),
+      `${n} layers must not touch the field clamp`);
+    assert.equal(z[0], 0, 'the bottom layer rests on the surface');
+  }
+  // Under ~11 layers there is room for a full rung each; past it the rung shrinks
+  // so the TOP still lands on the ceiling.
+  // …at the ladder's own 0.01 px quantum (§4.6), which is what gets stored.
+  const q = (v: number): number => Math.round(v * 100) / 100;
+  assert.equal(liftDepths([0, 1, 2])[1], q(depthForEff(1 + LIFT_EFF_STEP)));
+  assert.equal(liftDepths(Array.from({ length: 40 }, (_, i) => i))[39], q(depthForEff(LIFT_EFF_CEIL)));
+});
+
+test('liftDepths: strength scales the parallax, and its default moves nothing (A5#2)', () => {
+  const slots = [0, 1, 2, 3, 4];
+  const base = liftDepths(slots, KF_Z_FIELD_CLAMP);
+
+  // Opt-in: omitting strength, passing an explicit 1, and passing Medium all reproduce the
+  // SHIPPED ladder exactly — the control's default is byte-identical to every prior lift.
+  assert.deepEqual(liftDepths(slots, KF_Z_FIELD_CLAMP, 1), base, 'explicit 1 == default');
+  assert.deepEqual(liftDepths(slots, KF_Z_FIELD_CLAMP, LIFT_STRENGTH.medium), base, 'Medium == the shipped ceiling');
+  // A junk value can never zero or invert the ladder — it falls back to 1.
+  for (const junk of [0, -1, Number.NaN, Number.POSITIVE_INFINITY]) {
+    assert.deepEqual(liftDepths(slots, KF_Z_FIELD_CLAMP, junk), base, `junk strength ${junk} falls back to 1`);
+  }
+
+  const dramatic = liftDepths(slots, KF_Z_FIELD_CLAMP, LIFT_STRENGTH.dramatic);
+  const subtle = liftDepths(slots, KF_Z_FIELD_CLAMP, LIFT_STRENGTH.subtle);
+  const top = (z: number[]): number => z[z.length - 1]!;
+  assert.ok(top(dramatic) > top(base), 'Dramatic stands the stack further off the board');
+  assert.ok(top(subtle) < top(base), 'Subtle flattens it');
+
+  // Shape is preserved at every strength: bottom on the surface, distinct + increasing.
+  for (const z of [subtle, dramatic]) {
+    assert.equal(z[0], 0, 'the bottom layer still rests on the surface');
+    assert.equal(new Set(z).size, z.length, 'every depth distinct');
+    assert.ok(z.every((v, i) => i === 0 || v > z[i - 1]!), 'strictly increasing');
+  }
+});
+
+test('liftSlots: geometric PEERS share a rung, so a grid stays a grid', () => {
+  // A 3x3 block of same-sized cards, painted row by row, plus a header above it.
+  const card = (x: number, y: number) => ({ x, y, w: 100, h: 60 });
+  const crops = [
+    { x: 0, y: 0, w: 300, h: 20 },
+    card(0, 40), card(110, 40), card(220, 40),
+    card(0, 110), card(110, 110), card(220, 110),
+    card(0, 180), card(110, 180), card(220, 180),
+  ];
+  const slots = liftSlots(crops);
+  assert.equal(slots[0], 0, 'the header is its own surface');
+  assert.deepEqual(slots.slice(1), Array(9).fill(1), 'all nine cards sit on ONE rung');
+  const z = liftDepths(slots);
+  // One rung, a whisper apart: distinct depths (so the depth sort has an order of
+  // its own) inside a single band step (so the grid still reads as one surface).
+  assert.equal(new Set(z).size, z.length, 'every depth is distinct');
+  const eff = z.map((v) => 1200 / (1200 - v));
+  const spread = Math.max(...eff.slice(1)) - Math.min(...eff.slice(1));
+  assert.ok(spread <= LIFT_EFF_STEP + 1e-9, `the nine cards spread ${spread}, more than one band step`);
+  assert.ok(z[1]! > z[0]!, 'above the header, which paints before them');
+  assert.ok(z[9]! - z[1]! < z[1]! - z[0]!, 'the whole grid is closer together than one rung');
+});
+
+test('liftSlots: same size but nowhere near each other is not a grid', () => {
+  const slots = liftSlots([
+    { x: 0, y: 0, w: 40, h: 40 },
+    { x: 500, y: 700, w: 40, h: 40 },
+  ]);
+  assert.deepEqual(slots, [0, 1], 'two icons in opposite corners are two surfaces');
+});
+
+test('liftSlots: coherence gives way where it would repaint overlapping ink', () => {
+  // A and C are peers (same size, same column) with B between them — and B
+  // overlaps C, so sharing a rung would sort C's ink under B's.
+  const slots = liftSlots([
+    { x: 0, y: 0, w: 50, h: 50 },
+    { x: 0, y: 100, w: 200, h: 200 },
+    { x: 0, y: 200, w: 50, h: 50 },
+  ]);
+  assert.deepEqual(slots, [0, 1, 2], 'the picture wins; the ladder goes back to one rung each');
+});
+
+test('liftSlots: a row with no measurable crop is always its own rung', () => {
+  assert.deepEqual(liftSlots([null, null, null]), [0, 1, 2]);
+  assert.deepEqual(liftSlots([undefined, { x: 0, y: 0, w: 10, h: 10 }]), [0, 1]);
 });
 
 test('liftRows: `shadow: depth` is pre-set, and can be opted out of', () => {
@@ -853,11 +948,19 @@ test('liftRows: `shadow: depth` is pre-set, and can be opted out of', () => {
     ['none', 'none', 'none'], 'shadow:"" leaves the source\'s own value alone');
 });
 
-test('liftRows: the depth clamp is the engine\'s, not a re-typed number', () => {
+test('liftRows: a deep stack never reaches the clamp — the band gets there first', () => {
+  // The P3.1 acceptance failure, as a test: a 40-layer lift used to pin 24 rows at
+  // the field ceiling with no parallax between them. The band means the clamp is
+  // now unreachable by construction, and the clamp is still honoured if a caller
+  // hands one that bites.
   const many = Array.from({ length: 40 }, (_, i) => ({ src: `s${i}`, id: `b${i}` }));
   const rows = liftRows(liftSrc(), many, LIFT_CFG, { zClamp: KF_Z_FIELD_CLAMP }) as any[];
-  assert.equal(rows[rows.length - 1]!.z, KF_Z_FIELD_CLAMP[1], 'a deep stack clamps at the field ceiling');
-  assert.ok(rows.every((r) => r.z >= KF_Z_FIELD_CLAMP[0] && r.z <= KF_Z_FIELD_CLAMP[1]));
+  assert.ok(rows.every((r) => r.z > KF_Z_FIELD_CLAMP[0] && r.z < KF_Z_FIELD_CLAMP[1]),
+    'no row sits at either end of the field clamp');
+  assert.equal(new Set(rows.map((r) => r.z)).size, 40, 'forty distinct depths, none merged by a clamp');
+  assert.ok(rows[39]!.z <= depthForEff(LIFT_EFF_CEIL) + 0.01, 'and the top of the stack is the band ceiling');
+  const tight = liftRows(liftSrc(), many, LIFT_CFG, { zClamp: [0, 10] }) as any[];
+  assert.ok(tight.every((r) => r.z <= 10), 'a clamp that does bite is still applied');
 });
 
 test('liftRows: paint order survives — bg on the bottom row, text on the top, artwork on each', () => {

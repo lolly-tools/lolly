@@ -117,7 +117,7 @@ The table is generated. Run `node scripts/gen-engine-modules.ts` after adding, r
 | `compose.ts` | 177 | Compose — resolve a tool's manifest `composes` entries into embeddable assets. | no | `tests/compose.test.ts` | – |
 | `connectors.ts` | 640 | Connector / line / arrow geometry — the ONE source (plan 90 R1). | yes | indirect | – |
 | `contentseal.ts` | 168 | Meta Content Seal (Pixel Seal / Video Seal, IMAGE mode) — the pure, message-free consensus decision (DOM-free, no ONNX, no network). | yes | `tests/contentseal.test.ts` | – |
-| `css-box.ts` | 429 | Pure, DOM-free CSS box-model + border-radius geometry. | yes | `tests/css-box.test.ts` | – |
+| `css-box.ts` | 480 | Pure, DOM-free CSS box-model + border-radius geometry. | yes | `tests/css-box.test.ts` | – |
 | `css-color.ts` | 972 | One CSS Color 4 colour value — the engine's single source of truth for parsing, converting, gamut-mapping and serialising colour. | yes | `tests/css-color.test.ts` | – |
 | `css-paint.ts` | 465 | Pure, DOM-free CSS "paint" value parsers: clip-path basic shapes, gradient stops + radial-gradient geometry, and drop-shadow filters. | yes | `tests/css-paint.test.ts` | – |
 | `dash-fit.ts` | 263 | Dash fitting — manual dash entry, and Illustrator-style corner-fit dashes (plan 96). | yes | `tests/dash-fit.test.ts` | – |
@@ -168,7 +168,7 @@ The table is generated. Run `node scripts/gen-engine-modules.ts` after adding, r
 | `image-cloud.ts` | 272 | An image's colours as a point cloud in OKLCH, plus what the distribution says. | yes | `tests/image-cloud.test.ts` | – |
 | `inputs.ts` | 692 | Builds a runtime input model from a tool manifest. | yes | indirect | – |
 | `jpeg-segments.ts` | 372 | JPEG marker-segment walker and writer — one shared primitive, DOM-free. | no | `tests/jpeg-segments.test.ts` | – |
-| `keyframes.ts` | 1164 | Keyframe tracks, the `kf` wire grammar, and the depth-camera projection — the shared, DOM-free maths every consumer of plans/104 trusts. | yes | `tests/keyframes.test.ts` | – |
+| `keyframes.ts` | 1596 | Keyframe tracks, the `kf` wire grammar, and the depth-camera projection — the shared, DOM-free maths every consumer of plans/104 trusts. | yes | `tests/keyframes.test.ts` | – |
 | `lang.ts` | 171 | Supported UI/content languages, shared by the `lang` reserved URL param (url-mode.ts), `Profile.lang`, tool-manifest i18n sidecars, and every shell's language picker. | yes | indirect | – |
 | `loader.ts` | 470 | Tool loader. | yes | indirect | – |
 | `media-sniff.ts` | 235 | Pure, DOM-free media classification from header bytes. | yes | `tests/media-sniff.test.ts` | yes |
@@ -213,7 +213,7 @@ The table is generated. Run `node scripts/gen-engine-modules.ts` after adding, r
 | `strip-metadata.ts` | 365 | Embedded-metadata stripper | yes | `tests/strip-metadata.test.ts` | yes |
 | `svg-colors.ts` | 115 | Pure, DOM-free colour extraction from raw SVG source text. | yes | `tests/svg-colors.test.ts` | – |
 | `svg-custgeom.ts` | 338 | Flat-SVG → NATIVE PowerPoint custom geometry — pure, DOM-free, platform-agnostic. | yes | `tests/svg-custgeom.test.ts` | – |
-| `svg-layers.ts` | 927 | Lift layers — enumerate an SVG's own layers and derive a standalone document for each one (plans/104 §7). | yes | `tests/svg-layers.test.ts` | – |
+| `svg-layers.ts` | 1790 | Lift layers — enumerate an SVG's own layers and derive a standalone document for each one (plans/104 §7). | yes | `tests/svg-layers.test.ts` | – |
 | `svg-path.ts` | 307 | SVG path `d` tokenizer — pure, DOM-free, platform-agnostic. | yes | `tests/svg-path.test.ts` | – |
 | `table-text.ts` | 113 | Text ⇄ table parsing/serialising for the `table` input (the clipboard and file round-trip) — the batch-editing story is "edit in the spreadsheet you already have", so paste-in and copy-out must be lossless against the… | yes | `tests/table-text.test.ts` | – |
 | `tar-read.ts` | 187 | tar (USTAR / POSIX 1003.1-1988) reader — the import half of tar.ts's writer, so `.tar` (and, gunzipped, `.tar.gz`) becomes round-trip. | yes | `tests/tar-read.test.ts` | – |

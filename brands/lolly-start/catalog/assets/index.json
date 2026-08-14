@@ -845,6 +845,32 @@
           "size": 10628
         }
       ]
+    },
+    {
+      "id": "lolly/demo/app-screenshot",
+      "name": "App screenshot (demo)",
+      "description": "A real Lolly screenshot — the brand studio's Colours tab, captured as vector by the app's own DOM-to-SVG walker. A demo subject for flythroughs, filters and layered animation. A removable example — delete it any time.",
+      "type": "vector",
+      "version": "1.0.0",
+      "tier": "core",
+      "tags": [
+        "screenshot",
+        "demo",
+        "example",
+        "verify",
+        "svg",
+        "placeholder"
+      ],
+      "formats": [
+        {
+          "format": "svg",
+          "url": "/catalog/assets/lolly/demo/app-screenshot.svg",
+          "checksum": "sha256-iVon4bUv+aUDjT1wb3AHbbLBS7J2x1XY85qKUXDWU8o=",
+          "width": 1440,
+          "height": 900,
+          "size": 618013
+        }
+      ]
     }
   ]
 }

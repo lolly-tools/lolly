@@ -21,12 +21,19 @@
  * exported file with a threshold, not a tolerance.
  */
 
-import { renderSequence, _setSequenceWorkerFactory } from '../../shells/web/src/bridge/sequence-render.ts';
+import { renderSequence, _setSequenceWorkerFactory, _setFxCacheBytes } from '../../shells/web/src/bridge/sequence-render.ts';
 import { createVideoProvider } from '../../shells/web/src/bridge/sequence-providers.ts';
 import { parseSequenceStage, frameTimestamps, activeSpanTimestamps, toCodedError } from '../../shells/web/src/bridge/sequence-plan.ts';
 import { HIGH_WATER } from '../../shells/web/src/bridge/video-encode-core.ts';
 import { MAX_LIVE_PROVIDERS } from '../../shells/web/src/bridge/sequence-render.ts';
-import { createExportAPI } from '../../shells/web/src/bridge/export.ts';
+// `createExportAPI` is also the plans/104 §7 P3 funnel's front door: `walkToSvg` renders
+// SVG through it, which is how `main.ts`'s `__lollyWalkerShot` reaches the walker too —
+// the demo has to PRODUCE its layered SVG the honest way, by walking a real page with
+// `layerIds` on, rather than by hand-writing markup that happens to enumerate well.
+import { createExportAPI, rasterizeNodeToDataUrl, rasterizePosedNodeToDataUrl } from '../../shells/web/src/bridge/export.ts';
+// The same sanitiser an SVG upload goes through (`picker.ts` sanitizeSvgFile): a derived
+// layer is still bytes that arrived from a stranger, so the harness must not shortcut it.
+import DOMPurify from 'dompurify';
 import { applyTimeToElements, createAuthoredStore, OFF_CLASS } from '../../shells/web/src/views/sequence-clock.ts';
 // The SESSION entry point, imported from the bridge module that owns it: it enumerates
 // its own element set (`POSED_SEL`, which includes the untimed scene camera), so a still
@@ -281,6 +288,17 @@ export interface BoxSpec {
   depthShadow?: boolean;
   /** A raw `filter` for the box (the authored-filter tier the plates bake). */
   filter?: string;
+  /**
+   * plans/104 §7 — a LIFTED LAYER's artwork: standalone SVG markup, mounted the way
+   * the tool mounts an image field (an `<img>` whose src is the stored asset), so the
+   * walker's `inlineSvgFromImg` path is the one under test rather than a hand-inlined
+   * `<svg>` the real tool never produces.
+   *
+   * Sanitised HERE, with the picker's own DOMPurify configuration, because that is
+   * where the real lift sanitises: `runLift` hands each derived document to
+   * `storeUserUpload`, and the byte that reaches a box has already been through it.
+   */
+  svg?: string;
 }
 
 export interface StageSpec {
@@ -297,7 +315,7 @@ function buildStage(spec: StageSpec): HTMLElement {
     st.id = 'seq-test-css';
     // The panel's own stylesheet owns what seq-off means; the export tier only needs
     // the one rule so an off-playhead box is genuinely absent from a still capture.
-    // `.lolly-box-cam` is hidden here because BOTH layout-studio copies hide it in
+    // `.lolly-box-cam` is hidden here because BOTH design copies hide it in
     // their own styles.css — the camera marker is a model element the evaluators
     // read, and it must never paint. Omitting the rule would make this stage more
     // permissive than the tool it stands in for.
@@ -345,6 +363,23 @@ function buildStage(spec: StageSpec): HTMLElement {
       v.style.height = '100%';
       v.style.objectFit = 'fill';
       el.append(v);
+    }
+    if (b.svg) {
+      // Sanitise → serialise → data URL, the shape an uploaded asset arrives in. The
+      // URL is percent-encoded rather than base64 because `inlineSvgFromImg`'s base64
+      // branch is `atob`, which is Latin-1: a label carrying any non-ASCII character
+      // would decode to mojibake on the way back in.
+      const dom = DOMPurify.sanitize(b.svg, { USE_PROFILES: { svg: true, svgFilters: true }, RETURN_DOM: true }) as unknown as ParentNode;
+      const svgEl = dom.querySelector('svg');
+      const clean = svgEl ? new XMLSerializer().serializeToString(svgEl) : '';
+      const img = document.createElement('img');
+      img.className = 'lolly-box-img';
+      img.src = `data:image/svg+xml;charset=utf-8,${encodeURIComponent(clean || b.svg)}`;
+      img.style.width = '100%';
+      img.style.height = '100%';
+      img.style.objectFit = 'contain';
+      img.setAttribute('alt', '');
+      el.append(img);
     }
     if (b.audioSrc) {
       const m = document.createElement('div');
@@ -515,8 +550,15 @@ async function exportSeq(spec: StageSpec, format: 'mp4' | 'webm' | 'gif' | 'apng
   instrument();
   resetCounters();
   const target = buildStage(spec);
-  const { applyClockAtMs, freezeVideos, deviceMemory, worker, breakWorker, heartbeat, ...renderOpts } = opts as Any;
+  const { applyClockAtMs, freezeVideos, deviceMemory, worker, gl, breakWorker, heartbeat, fxCacheBytes, ...renderOpts } = opts as Any;
   const undo: (() => void)[] = [];
+  if (fxCacheBytes != null) {
+    // plans/104 P3.1: the cached-shadow allowance, pinned. 0 renders the scene the way
+    // it rendered before the cache existed, which is what a pixel-identity golden
+    // compares the cached render against.
+    _setFxCacheBytes(Number(fxCacheBytes));
+    undo.push(() => _setFxCacheBytes(null));
+  }
   if (worker != null) {
     // Phase 4 Track B: the composite+encode Worker offload is opt-in behind the
     // `lolly.workerEncode` flag, so the SAME sequence can be exported down both
@@ -527,6 +569,18 @@ async function exportSeq(spec: StageSpec, format: 'mp4' | 'webm' | 'gif' | 'apng
     undo.push(() => {
       if (prev == null) localStorage.removeItem('lolly.workerEncode');
       else localStorage.setItem('lolly.workerEncode', prev);
+    });
+  }
+  if (gl != null) {
+    // plans/104 P2b: the WebGL2 tilt compositor is opt-in behind `lolly.glCompositor`,
+    // so the SAME tilted sequence can be exported down BOTH the GPU path and the P2a
+    // capture path in one page and the two outputs compared frame-for-frame.
+    const prev = localStorage.getItem('lolly.glCompositor');
+    if (gl) localStorage.setItem('lolly.glCompositor', '1');
+    else localStorage.removeItem('lolly.glCompositor');
+    undo.push(() => {
+      if (prev == null) localStorage.removeItem('lolly.glCompositor');
+      else localStorage.setItem('lolly.glCompositor', prev);
     });
   }
   if (breakWorker) {
@@ -730,6 +784,23 @@ async function frameHashes(key: string, frameIdx: number[], fps: number): Promis
 async function frameDelta(keyA: string, keyB: string, frameIdx: number, fps: number): Promise<number> {
   const a = await framePixels(keyA, frameIdx, fps);
   const b = await framePixels(keyB, frameIdx, fps);
+  if (!a || !b || a.w !== b.w || a.h !== b.h) return Number.NaN;
+  let sum = 0;
+  for (let i = 0; i < a.data.length; i += 4) {
+    const la = 0.299 * (a.data[i] as number) + 0.587 * (a.data[i + 1] as number) + 0.114 * (a.data[i + 2] as number);
+    const lb = 0.299 * (b.data[i] as number) + 0.587 * (b.data[i + 1] as number) + 0.114 * (b.data[i + 2] as number);
+    sum += Math.abs(la - lb);
+  }
+  return sum / (a.data.length / 4);
+}
+
+/** Mean |luma difference| between two frames of the SAME export, 0..255 — the
+ * temporal-jitter measure. On a CONSTANT-pose scene P2b (one plate texture resampled
+ * identically every frame) reads ~0, while P2a (an independent dom-to-image serialise
+ * per frame) drifts. This is the flicker made into a number. */
+async function frameSelfDelta(key: string, frameA: number, frameB: number, fps: number): Promise<number> {
+  const a = await framePixels(key, frameA, fps);
+  const b = await framePixels(key, frameB, fps);
   if (!a || !b || a.w !== b.w || a.h !== b.h) return Number.NaN;
   let sum = 0;
   for (let i = 0; i < a.data.length; i += 4) {
@@ -1262,6 +1333,51 @@ async function vectorStillAt(spec: StageSpec, tMs: number, format: 'svg' | 'pdf'
   }
 }
 
+/**
+ * plans/104 §7 — STEP ONE OF THE LIFT FUNNEL: walk a real page to SVG with the
+ * identity passthrough on.
+ *
+ * This is `main.ts`'s `__lollyWalkerShot` hook reproduced call for call — the same
+ * `export.render(node, 'svg', …)` funnel, the same option bag
+ * (`convertPaths`/`elementScopedRaster`/`stackingOrder`/`backdropBlur`/`layerIds`) —
+ * because that hook IS the capture path: `scripts/build-docs-shots.ts` calls it for
+ * every `walker=1&format=svg` recipe, which is how url-shot takes a vector screenshot.
+ * The hook itself is unreachable here (it is installed by the web shell's boot, and
+ * the built shell is untracked build output), so the body is reproduced rather than
+ * driven — the walker, the funnel and the flag are the real ones either way.
+ *
+ * The page is mounted VISIBLE. The walker reads a live layout through
+ * `getBoundingClientRect` + `getComputedStyle`, so a hidden or zero-opacity subtree
+ * would be walked as a page of empty boxes.
+ */
+async function walkToSvg(html: string, opts: Any = {}): Promise<Any> {
+  document.body.querySelectorAll('.seq-walk-target').forEach((n) => n.remove());
+  const holder = document.createElement('div');
+  holder.className = 'seq-walk-target';
+  holder.innerHTML = html;
+  document.body.append(holder);
+  const node = holder.firstElementChild as HTMLElement;
+  const logs: string[] = [];
+  const api = createExportAPI({ log: (l: string, m: string) => { logs.push(`${l}: ${m}`); } } as Any);
+  const t0 = performance.now();
+  try {
+    const blob = await api.render(node, 'svg', {
+      convertPaths: true, elementScopedRaster: true, stackingOrder: true, backdropBlur: true,
+      layerIds: true, ...opts,
+    } as Any);
+    const svg = await blob.text();
+    return {
+      svg, bytes: svg.length, type: blob.type, ms: performance.now() - t0, logs,
+      // What the page itself carried, so a missing id in the lifted layers can be told
+      // apart from a page that never had one.
+      ids: [...node.querySelectorAll('[data-box-id]')].map((e) => e.getAttribute('data-box-id')),
+      rect: { w: node.offsetWidth, h: node.offsetHeight },
+    };
+  } finally {
+    holder.remove();
+  }
+}
+
 // ── capability probe (what this browser build can actually do) ───────────────
 
 async function probe(): Promise<Any> {
@@ -1288,11 +1404,45 @@ async function probe(): Promise<Any> {
   };
 }
 
+/**
+ * plans/104 §12 Q2 / spike S2 §4 — the two captures of ONE tilted element, side by side.
+ *
+ * S2 measured `rasterizeNodeToDataUrl` DESTROYING a 3-D pose: it overwrites the clone
+ * root's transform with its own fit translate/scale and resizes the root to
+ * `getBoundingClientRect()`, which on a tilted element is the projected AABB — so the
+ * card comes back untilted and stretched (mean 35/255, IoU 0.88, "trapezoid →
+ * rectangle"). `rasterizePosedNodeToDataUrl` is the wrapper-shaped capture that exists
+ * because of that finding, and the two must never converge. Lives in the harness rather
+ * than in a page-side dynamic import because this page is an esbuild bundle: there is no
+ * module graph to `import()` at runtime.
+ */
+async function posedVsHatch(): Promise<Any> {
+  const host = document.createElement('div');
+  host.style.cssText = 'position:fixed;left:0;top:0;width:400px;height:300px;background:#fff';
+  const card = document.createElement('div');
+  card.style.cssText = 'position:absolute;left:80px;top:100px;width:240px;height:80px;'
+    + 'background:linear-gradient(90deg,#e63c5a,#3cbee6);'
+    + 'transform:matrix3d(1,0,0,0,0,0.7071,0,-0.000589,0,0,1,0,0,0,0,1)';
+  host.appendChild(card);
+  document.body.appendChild(host);
+  try {
+    const posed = await rasterizePosedNodeToDataUrl(card, 1);
+    const r0 = card.getBoundingClientRect();
+    const hatch = await rasterizeNodeToDataUrl(card, Math.round(r0.width), Math.round(r0.height));
+    return {
+      posed: posed?.dataUrl ?? null,
+      posedRect: posed ? { x: posed.x, y: posed.y, w: posed.w, h: posed.h } : null,
+      hatch,
+      aabb: { x: r0.left, y: r0.top, w: r0.width, h: r0.height },
+    };
+  } finally { host.remove(); }
+}
+
 (globalThis as Any).SEQ = {
   probe, makeClip, truncate, makeBed, exportSeq, buildStage,
-  decodeCodes, frameHashes, blobSha, frameDelta, audioRms, hasAudioTrack,
+  decodeCodes, frameHashes, blobSha, frameDelta, frameSelfDelta, audioRms, hasAudioTrack,
   driveProvider, stalledProvider, stillAt, cutsAt, fidelity, resetCounters, firstFramePixels,
-  blobBytes, blobDiff, trackColors, rowRun, vectorStillAt, exportViaApi,
+  blobBytes, blobDiff, trackColors, rowRun, vectorStillAt, exportViaApi, walkToSvg, posedVsHatch,
   constants: { HIGH_WATER, MAX_LIVE_PROVIDERS, CODE_BITS },
 };
 (globalThis as Any).__SEQ_READY = true;
