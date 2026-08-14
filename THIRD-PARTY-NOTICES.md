@@ -1979,7 +1979,7 @@ FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 OTHER DEALINGS IN THE SOFTWARE.
 ```
 
-### core-js 3.49.0
+### core-js 3.50.0
 
 - SPDX-License-Identifier: `MIT`
 - Copyright: Copyright (c) 2013–2025 Denis Pushkarev (zloirock.ru); Copyright (c) 2025–2026 CoreJS Company (core-js.io)
