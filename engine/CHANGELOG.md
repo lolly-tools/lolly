@@ -6,6 +6,172 @@ minors, never removed or signature-changed without a major bump.
 
 Moved verbatim from the comment block that used to live in `src/index.ts`.
 
+1.124.0 — additive (plans/111 M2, the Flythrough tool's camera): a new optional bridge API
+**`host.keyframes`** with one method, `keyframes.sample(kf, count)`. It runs the engine's
+`parseKf` + `evaluateKf` at `count` times evenly spaced across the track's own span and hands
+back each pose as a channel→value map. This lets a tool TEMPLATE (which cannot import the
+engine) drive motion from the SAME `kf` wire the Design tool's camera uses — the interpolation
+and easing stay canonical in the engine, and only the mapping of channels onto the scene is the
+caller's. The Flythrough tool uses it for a URL-shareable custom `camera` track; without it, the
+tool falls back to its built-in parametric moves.
+
+1.123.0 — additive (plans/111 M1, the dedicated Flythrough tool): a new optional bridge API
+**`host.lift`** with one method, `lift.svg(source)`. The shell fetches + sanitises an SVG named
+by URL and runs the engine's `enumerateSvgLayers`, returning each layer as a standalone SVG
+document + its ink bbox (in paint order) plus the source viewBox (`LiftLayer` / `LiftResult`).
+It exposes the CANONICAL layer enumeration — the same the Design tool's Lift and the CLI Tier-A
+path use — to any tool TEMPLATE, which cannot `import` the engine (it runs as an IIFE / a hook's
+`new Function`). NOT gated by a capability: a shell without a safe SVG fetch/sanitise path simply
+omits it (the Flythrough tool then flies one flat plane instead of depth layers). The DEPTH maths
+that turns layers into a scene stays the caller's — this primitive returns geometry, not a scene.
+
+1.122.0 — additive + corrective (the plans/104 P3.2 adversarial review): `enumerateSvgLayers`
+gains **`cropScale`**, the per-axis scale — user units → destination px — at which the caller is
+about to place the cropped rows, and `cropFor` snaps each crop outwards to whole px of **that
+ROW** instead of whole USER units.
+⚑ **The two are the same thing only at scale 1, and that was the only configuration 1.121
+measured.** Every fixture in `tests/svg-lift-identity.browser.test.ts` was 320×240 into a
+320×240 box — k = 1 with an integer viewBox, where whole user units are also whole row px — so
+1.121's "fidelity-neutral, measured" claim was made on the single case that could not see the
+defect. A lifted box on a canvas is any size, so k is arbitrary: `docs/shots/brand-colours.svg`
+in a 1000×625 box measured **88 675** channels beyond ±1 with the crop on against **1 758** with
+it off (max 189 vs 63), and `seq-studio-timeline` 48 355 against 518 with a MEAN of 1.54 — the
+whole layer bilinear-filtered back onto the pixel grid, i.e. every anti-aliased edge, which on
+dense UI screenshots is all the text and every hairline. With `cropScale` supplied those two land
+**exactly on the uncropped floor** (1 758 vs 1 758; 521 vs 518). The derived viewBox is now
+usually fractional, which is the right way round — a viewBox only has to be a superset of the
+ink, a row has to be a rectangle of pixels.
+⚑ **The honest boundary, measured, because 1.121's sentence is what this entry is fixing:** a
+crop is fidelity-neutral when the row it maps to lands on the pixel grid. When the SOURCE box's
+own content rect is FRACTIONAL (a 443.78-unit-tall shot drawn 550.625 px tall), the browser
+rasterises that fractional container into a rounded bitmap and scales it, while an integer-sized
+cropped row escapes that filtering — so the two disagree by a fraction of a pixel over the whole
+ink no matter how the crop is snapped (isolated: shortening one layer's viewport from 443.78 to
+266 at scale 1 and origin 0, 283 px beyond ±1, max 89). That residue is the renderer's container
+rounding, not the crop's arithmetic, and it is measured in the identity suite's new
+fractional-container case rather than claimed away.
+`cropScale` is optional and defaults to 1:1, so a caller that says nothing gets 1.121's exact
+arithmetic. Shell side: `liftCropScale` (free-canvas-math) answers it from the same
+`liftContentRect` that places the rows, so the dialog and the write cannot disagree about k.
+⚑ **Also corrective, in prose only:** 1.121 described `dofBlur`'s tilted branch as "effᴰ re-read
+at `D = P − κ(z − camZ)`" as though that were the LAYER's depth. It is the aim column's. `dofBlur`
+takes a depth and no position, so under tilt every layer gets the on-axis number: at `rx = −40`,
+`f = 600`, `a = 1`, a layer at frame centre wants 24.83 px and gets it, one in the near field
+(centre y 918, D 957) wants 46.35 and still gets 24.83, one in the far field (D 1443) wants 15.55.
+Up to ~1.9× out on the near side. The approximation is unchanged — correcting it is a signature
+change plus a matching edit in both evaluators, so it wants a measured pass with its own goldens —
+but it is now written down where the branch is, instead of implied away.
+⚑ **`KF_MATRIX3_IDENTITY` is no longer exported from the barrel.** 1.121 added it and nothing in
+`engine/`, `shells/`, `tests/` or `packages/` read it; since a minor's additions are permanent, an
+unused export is a forever commitment made by accident. The untilted tier returns `m: null` rather
+than an identity (that IS the byte-identity gate), so there was no caller to give it.
+
+1.121.0 — additive (plans/104 P2, the tilt tier): `rx`/`ry` stop being channels that merely
+parse. `engine/src/keyframes.ts` grows the homography half of the projection — `cameraTilted`
+(the gate), `KfMatrix3` + `kfMatrix3dCss` (a 2D homography as the one CSS transform that
+performs a perspective divide), `projectSurfacePoint`, and a `m: KfMatrix3 | null` field on
+`KfProjection`. `KfLayerPose` gains optional `w`/`h` (the layer's surface extent, read only by
+the tilted branch). No HostV1 method changed.
+⚑ **The camera ORBITS its aim point; it does not swivel in place.** `C = Q + R·(0,0,P)` with
+`Q` the point the untilted camera was already looking at, so the first degree of tilt pitches
+the artwork about the centre of frame instead of sending it out of the bottom of it. At
+`rx = ry = 0` the camera is exactly where it always was and every formula reduces
+algebraically to the affine fold — including the element-local matrix, which collapses to the
+`translate(dx, dy)` the DOM path has always written (pinned as a golden, and the reason
+`KfProjection.scale` still carries eff: the matrix has the centre magnification divided back
+out so no other consumer has to know about tilt).
+⚑ **The behind-camera guard moves from the layer's PLANE to its nearest CORNER.** A pitched
+camera puts one edge of a screen-parallel layer closer than the other, so the plane ramp would
+let a corner cross `w = 0` — which is not a soft failure, a homography with a sign change in
+its denominator paints garbage. Ramping on `Dmin` over the four posed corners means the layer
+is fully faded before any part of it can get there, and the matrix handed out always has a
+positive denominator over the whole box. Identical expression to the affine ramp in ℝ; the
+untilted path still evaluates the original spelling, so it is identical in IEEE-754 too.
+⚑ **DOF reads distance along the VIEW AXIS.** `blur = a·K·|z−f|·effᴰ(z)·effᴰ(f)·κ/P` with
+`effᴰ` re-read at `D = P − κ·(z − camZ)` and `κ = cos(rx)·cos(ry)` — the orbit lowers the
+camera's height above the surface, so both the layer's and the focal plane's depths move and
+their separation picks up its own κ. κ = 1 is the shipped expression, evaluated in the shipped
+order.
+The exact-zero test on both angles is the byte-identity gate throughout: an epsilon would make
+a track keyframing `rx` from 0 to 40 change tiers mid-move, at whatever threshold was picked.
+
+**Also in 1.121.0 (plans/104 P3.2, lift intelligence — one milestone, one minor):**
+`engine/src/svg-layers.ts` learns two things the P3.1 acceptance pass measured the lack of,
+and `keyframes.ts` gains `depthForEff`, the inverse of `projectDepth` (`z = camZ + P(1 − 1/eff)`)
+— because depth is the wire and MAGNIFICATION is the taste, and the two are only the same
+sentence at one perspective.
+⚑ **A layer holding nearly all the artwork is opened up.** `docs/shots/brand-colours.svg`
+enumerated into 5 layers of which ONE held 472 of the document's 492 paint elements — a picture
+with a frame around it, not a stack. A candidate over `SVG_LAYERS_HERO_SHARE` (⅔) is now
+descended into and re-clustered, up to `SVG_LAYERS_HERO_ROUNDS` times. Two things differ one
+level down: groups cluster too (at the root a `<g>` is a layer because the author said so;
+below a hero that signal has just been MEASURED as uninformative), and the count is budgeted —
+a raw descent of that file yields 80 candidates, so the merge distance walks up
+`SVG_LAYERS_HERO_GAP_SCALES` until the level fits `SVG_LAYERS_HERO_BUDGET`, and merging is
+bounded by `SVG_LAYERS_PEER_AREA_RATIO` so a content pane cannot absorb every card on it.
+Measured: 5 → 16 layers on brand-colours, every other banked shot unchanged.
+⚑ **A derived document is CROPPED to its own ink**, and `SvgLayer.viewBox` reports the rect
+(`SvgLayersResult.viewBox` carries the source's, `svgRootViewBox` reads it without enumerating).
+A full-stage document made every lifted layer a full-stage box, so `shadow: depth` on a 16 px
+icon cost a full-frame gaussian — which is what aborted the encoder watchdog on three of the six
+acceptance shots. Measured after: the filtered area falls to 6–32 % of the full-stage cost, and
+the P3 demo's shadow cache goes from 1.2× to 5.6× faster than uncached.
+A viewBox is also a CLIP, so the crop is a stack of refusals: every member measured, no
+percentage length (tested per element, so a gradient's `offset="100%"` in a carried `<defs>`
+cannot refuse a crop it has nothing to do with), no `marker`, no carried `<style>` at all, filter
+regions RESOLVED through `filterUnits="userSpaceOnUse"` and unioned in (which is exactly what our
+own walker emits for a CSS box-shadow) rather than guessed at, a pad for stroke half-widths times
+the worst legal miter, the result intersected with the source viewBox and snapped outward to whole
+user units. ⚑ **The "fidelity-neutral, measured" claim this entry made is WITHDRAWN — see
+1.122.0.** It rested on `tests/svg-lift-identity.browser.test.ts` matching its pre-crop channel
+count exactly, and every fixture in that suite is k = 1 with an integer viewBox, the one
+configuration in which snapping to whole user units also lands on whole row px. Both behaviours
+are opt-out (`heroDescent`,
+`cropToInk`), and opting out reproduces 1.119/1.120 byte for byte.
+
+1.120.0 — corrective (+ one additive constant): `engine/src/svg-layers.ts`, the adversarial
+review of the 1.119.0 lift. Five things that were true of the prose and not of the code.
+⚑ **A root that composites AS A UNIT is now refused, not split silently.** `UNIT_PROPS`
+(`opacity` below 1, `filter`, `mask`, `mix-blend-mode`, `isolation`) was tested on a descended
+wrapper `<g>` and never on the `<svg>` itself, while `rootAttributes()` re-emits the root
+verbatim into every derived document — so `<svg opacity="0.55">` had its opacity applied N
+times over instead of once over the composite. Measured in Chromium against the browser
+suite's own harness (320×240, two overlapping groups): 45 203 channels beyond ±1 where the
+suite allows 154, mean absolute error 5.70; a root `filter` moved 12 952. Both produced zero
+warnings. There is no split that preserves either picture, so the answer is the wrapper's:
+`kept the artwork whole — its \`opacity\` applies to all of it at once`, layers `[]`.
+⚑ **Cross-layer references are resolved from the WRAPPERS and the CARRIED markup too.** The
+repair scanned the layer body only, so a descended `<g clip-path="url(#c)">` whose `<clipPath>`
+lives inside one of the layers left every other layer unclipped — Chromium renders an
+unresolvable `clip-path` as no clip at all: 76 800 channels different, warnings empty. Same
+omission for a carried `<clipPath><use href="#…"/></clipPath>` (the shape Illustrator emits).
+Both now repair to 0 channels different. References past `SVG_LAYERS_MAX_REFS` are named in a
+warning rather than quietly dropped.
+⚑ **Id resolution is off the caps' PRODUCT.** "Already resolvable here?" was a fresh `RegExp`
+per (layer × reference) over the whole body and the whole carried markup: 64 layers × 64 refs
+× ~4 MB is ~16 GB of scanning, all of it inside the declared caps. Measured on the shipped
+code, on the main thread, behind the dialog's "Reading the artwork…" panel: 1 832 ms for plain
+filler and 10 682 ms when the filler near-missed the regex, against 1 ms with no references at
+all — the same hazard `SVG_LAYERS_MAX_CANDIDATES` exists to close, on a different axis. Now a
+byte-span query against one id index: 6 ms and 9 ms, and the module's "work is linear in the
+input length" is true again (with the one documented exception, the quadratic clustering the
+candidate cap bounds).
+⚑ **`DROP_TAGS` applies at ANY depth.** `<title>`, `<desc>`, `<metadata>` and `<script>` were
+filtered out of the nodes the enumerator ENUMERATES, but a layer body is a verbatim slice, so
+`<g><script>…</script></g>` and `<g><title>Andy's draft</title>` rode through whole while the
+header, this changelog and a test all read as though they could not. The spans are spliced out
+of the slice now — every emitted fragment is still verbatim, it just has holes.
+⚑ **Correction to 1.119.0's own wording**: "the ingest-time PII strip is not undone by a lift"
+described a guarantee nothing implements. `stripMetadata` runs on PNG/JPEG only and behind an
+opt-in flag; an uploaded SVG takes the DOMPurify branch, which keeps `data-*`. Dropping the
+three metadata ELEMENTS is a property this module owns; `data-name`/`inkscape:label` survive an
+upload today, lift or no lift, and the module header now says so.
+Additive: `SVG_LAYERS_HEAVY_BYTES` (8 MB), exported and barrelled. Carrying the whole `<defs>`
+into every layer is free in pixels and not free in bytes, and only the layer COUNT was bounded:
+an ordinary 1.0 MB file (one `<pattern>` holding a PNG, 24 groups) derives 24.0 MB, and the
+shell writes every byte into IndexedDB on one confirm click — ~256 MB at the caps, silently.
+The enumerator now prices the result and warns, so the dialog can say so before the click.
+
 1.119.0 — additive: `engine/src/svg-layers.ts` — "Lift layers" (plans/104 §7 P3).
 `enumerateSvgLayers(markup)` reads a sanitised SVG and returns one standalone `<svg>`
 document per layer: the root's direct children in paint order, every `<g>` a layer, stray

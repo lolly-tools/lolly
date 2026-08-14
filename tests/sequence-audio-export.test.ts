@@ -265,15 +265,18 @@ test('the audio-only path and the video path share ONE mixer', async () => {
     'one length derivation, used by both');
 });
 
-test('the manifest offers all four audio formats, after the motion group', async () => {
+test('Design offers the four audio formats, after the motion group', async () => {
+  // Migrated from Sequence Studio (retired into Design, plans/104): the audio-export
+  // formats now live on Design's manifest. Design is design-first (formats[0] is a
+  // still, not mp4), so the old motion-first ordering no longer applies — only that
+  // the audio set sits after the motion group.
   const manifest = JSON.parse(
-    await readFile(join(ROOT, 'community', 'sequence-studio', 'tool.json'), 'utf8'),
+    await readFile(join(ROOT, 'brands', 'lolly-start', 'tools', 'design', 'tool.json'), 'utf8'),
   ) as { render: { formats: string[] } };
   const f = manifest.render.formats;
-  assert.equal(f[0], 'mp4', 'formats[0] IS the panel default and stays motion');
+  for (const m of ['mp4', 'webm', 'gif', 'apng']) assert.ok(f.includes(m), `${m} (motion) is offered`);
   for (const a of ['wav', 'mp3', 'm4a', 'opus']) {
     assert.ok(f.includes(a), `${a} is offered`);
     assert.ok(f.indexOf(a) > f.indexOf('apng'), `${a} sits after the motion group`);
-    assert.ok(f.indexOf(a) < f.indexOf('png'), `${a} sits before the still`);
   }
 });

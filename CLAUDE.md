@@ -142,7 +142,7 @@ tools/<id>/
 | `shells/tauri-shared/` | parent-owned `bridge-overrides/state-fs.ts` — the filesystem state logic BOTH Tauri shells call into, over an injected `fs` adapter |
 | `community/` | 28 brand-agnostic tool dirs (qr-code, street-map, strip-data, text-helper, mesh-gradient, chart-creator, d3, color-palette, compress-pdf, countdown-timer, url-shot, filter-*) — public submodule `lolly-tools` |
 | `brands/suse/` | PRIVATE submodule `suse-lolly`: `tools/` (32 SUSE tool dirs) + `catalog/` (assets incl. `assets/suse/tokens/brand.json`, fonts, previews, og, generated `tools/index.json`) |
-| `brands/lolly-start/` | parent-owned blank brand: `tools/` (3 tool dirs: layout-studio, voice-recorder, bitmap-studio) + a neutral `catalog/` (assets/fonts/og/previews + generated `tools/index.json`) — where the brand-import (DTCG) experience gets built |
+| `brands/lolly-start/` | parent-owned blank brand: `tools/` (3 tool dirs: design, voice-recorder, bitmap-studio) + a neutral `catalog/` (assets/fonts/og/previews + generated `tools/index.json`) — where the brand-import (DTCG) experience gets built |
 | `tools/`, `catalog/` | gitignored profile VIEWS of the above (scripts/use-profile.ts + profiles.json) — what every script/shell actually reads |
 | `packages/` | `core` (`@lolly-tools/core` — canonical `host-v1.ts` contract + tool-author SDK), `node-shell` (shared Node host pieces for CLI/TUI) |
 | `schemas/` | `tool.schema.json`, `asset.schema.json`, `asset-ref.schema.json`, `tokens.schema.json`, `canonical-inputs.json` |

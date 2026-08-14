@@ -102,11 +102,26 @@ test('a showIf visibility change forces a rebuild even when values are reflected
   assert.equal(canSkipInputsRebuild(el, model, prev), false);
 });
 
-test('a structural control (slider) change always rebuilds', () => {
-  const el = makePanel('<div class="custom-slider" data-input-id="scale"></div>');
+test('a slider whose DOM already shows the value skips the rebuild (drag/keyboard)', () => {
+  // The thumb led the model: mountCustomSlider set aria-valuenow to the committed
+  // value, so a rebuild would only flash the panel. Skipping it is what stops the
+  // whole section jumping on every slider release.
+  const el = makePanel('<div class="custom-slider" data-input-id="scale" aria-valuenow="2"></div>');
+  const prev = [inp('scale', 'slider', 1)];
+  const model = [inp('scale', 'slider', 2)];
+  assert.equal(canSkipInputsRebuild(el, model, prev), true);
+});
+
+test('a slider whose DOM does NOT yet show the value rebuilds (programmatic / clamp)', () => {
+  // aria-valuenow still reads the old value (URL/undo/hook set the model), so the
+  // DOM must be repainted — a full rebuild, exactly as before.
+  const el = makePanel('<div class="custom-slider" data-input-id="scale" aria-valuenow="1"></div>');
   const prev = [inp('scale', 'slider', 1)];
   const model = [inp('scale', 'slider', 2)];
   assert.equal(canSkipInputsRebuild(el, model, prev), false);
+  // A slider with no aria-valuenow at all is never "reflected".
+  const bare = makePanel('<div class="custom-slider" data-input-id="scale"></div>');
+  assert.equal(canSkipInputsRebuild(bare, model, prev), false);
 });
 
 test('a model-length change rebuilds (e.g. a block was added)', () => {
@@ -153,9 +168,17 @@ test('a blurred block number field does NOT defer (normal structural rebuild)', 
   assert.equal(canSkipInputsRebuild(el, model, prev), false);
 });
 
-test('domReflectsValue: structural controls never report reflected', () => {
-  const el = makePanel('<div class="custom-slider" data-input-id="scale"></div>');
-  assert.equal(domReflectsValue(el, inp('scale', 'slider', 2)), false);
+test('domReflectsValue: a slider reflects via aria-valuenow; other structural controls never do', () => {
+  // Slider: aria-valuenow is the authoritative DOM value (numeric compare).
+  const match = makePanel('<div class="custom-slider" data-input-id="scale" aria-valuenow="2"></div>');
+  assert.equal(domReflectsValue(match, inp('scale', 'slider', 2)), true);
+  const stale = makePanel('<div class="custom-slider" data-input-id="scale" aria-valuenow="1"></div>');
+  assert.equal(domReflectsValue(stale, inp('scale', 'slider', 2)), false);
+  const bare = makePanel('<div class="custom-slider" data-input-id="scale"></div>');
+  assert.equal(domReflectsValue(bare, inp('scale', 'slider', 2)), false);
+  // A genuinely structural control (colour picker) still never reports reflected.
+  const color = makePanel('<div class="color-trigger" data-input-id="tint"></div>');
+  assert.equal(domReflectsValue(color, inp('tint', 'color-picker', '#abc')), false);
 });
 
 test('visibleInputKey: hides export-group rows and showIf rows that fail their condition', () => {

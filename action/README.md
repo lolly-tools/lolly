@@ -57,7 +57,7 @@ link carries, so anything you can render in the browser you can regenerate in CI
 ## Example 1 — OG image on release
 
 Renders a 1200×630 social card when a release publishes and attaches it to the release.
-`layout-studio` is SVG-native, so PNG renders browser-free (Tier A).
+`design` is SVG-native, so PNG renders browser-free (Tier A).
 
 ```yaml
 name: Release OG image
@@ -75,7 +75,7 @@ jobs:
       - uses: lolly-tools/lolly/action@main
         id: render
         with:
-          tool: layout-studio
+          tool: design
           args: --width=1200 --height=630
           format: png
           out-dir: ./og
@@ -83,7 +83,7 @@ jobs:
       - name: Attach to the release
         env:
           GH_TOKEN: ${{ github.token }}
-        run: gh release upload "$GITHUB_REF_NAME" --repo "$GITHUB_REPOSITORY" --clobber "${{ steps.render.outputs.out-dir }}/layout-studio.png"
+        run: gh release upload "$GITHUB_REF_NAME" --repo "$GITHUB_REPOSITORY" --clobber "${{ steps.render.outputs.out-dir }}/design.png"
 ```
 
 Any input the tool declares is overridable through `args` — copy the query string out of
@@ -177,7 +177,7 @@ jobs:
 The CLI renders in two tiers:
 
 - **Tier A (default, browser-free):** SVG/EMF/EPS/DXF, the data formats (ics/vcf/csv),
-  and raster/PDF of SVG-native tools (qr-code, wordmark, layout-studio, mesh-gradient, …)
+  and raster/PDF of SVG-native tools (qr-code, wordmark, design, mesh-gradient, …)
   render headlessly via jsdom + resvg. No browser, fast.
 - **Tier B (`browser: 'true'`):** raster/pdf/video exports of HTML-*layout* tools need a
   real browser. Setting `browser: 'true'` runs `lolly install-browser --with-deps`

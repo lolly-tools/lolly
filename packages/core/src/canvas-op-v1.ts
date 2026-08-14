@@ -271,7 +271,7 @@ export type Awareness = Presence;
 /**
  * The default geometry field NAMES. Grounded in the runtime BoxFieldConfig defaults
  * in shells/web/src/views/free-canvas.ts (idField 'id', xField 'x', yField 'y',
- * wField 'w', hField 'h', rotationField 'rot') and the shipped layout-studio
+ * wField 'w', hField 'h', rotationField 'rot') and the shipped design
  * manifests. Field names are runtime-configurable via BoxFieldConfig, so the shell
  * must resolve its config to these ROLES before crossing the seam and pass the
  * resolved set to `laneForField`/`damageToOps` when a tool renames them.

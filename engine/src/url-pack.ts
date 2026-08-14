@@ -10,8 +10,8 @@
  *
  * This module packs the ENTIRE readable query string into a single `z` param:
  *
- *   /t/layout-studio?background=…&boxes=…&format=png      (readable, 2729 chars)
- *   /t/layout-studio?z=1eJyFkc…                           (packed,   1059 chars)
+ *   /t/design?background=…&boxes=…&format=png      (readable, 2729 chars)
+ *   /t/design?z=1eJyFkc…                           (packed,   1059 chars)
  *
  * Design decisions that make this SAFE and STABLE:
  *

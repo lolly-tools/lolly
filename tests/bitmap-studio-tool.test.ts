@@ -185,6 +185,46 @@ test('bake: duotone bakes the shadow stop into the black entry', async () => {
   assert.ok(Math.abs(black[2] - 0x78 / 255) < 0.03, `shadow B ≈ #78 (got ${black[2]})`);
 });
 
+test('manifest: the HSL mixer declares a mode + 24 banded sliders', () => {
+  const hsl = tool.manifest.inputs.filter((i: any) => i.section === 'HSL / Colour');
+  const mode = hsl.find((i: any) => i.id === 'hslMode');
+  assert.ok(mode && mode.type === 'select', 'a Hue/Saturation/Luminance mode select');
+  assert.deepEqual(mode.options.map((o: any) => o.value), ['hue', 'saturation', 'luminance']);
+  const sliders = hsl.filter((i: any) => i.display === 'slider');
+  assert.equal(sliders.length, 24, '8 bands × 3 properties');
+  // Every band slider is gated to exactly one mode and carries a compact urlKey.
+  for (const s of sliders) {
+    assert.ok(s.showIf && s.showIf.hslMode && s.showIf.hslMode.length === 1, `${s.id} gated by mode`);
+    assert.equal(s.min, -100); assert.equal(s.max, 100); assert.equal(s.default, 0);
+    assert.ok(/^m[hsl]\d$/.test(s.urlKey), `${s.id} has a compact urlKey (got ${s.urlKey})`);
+  }
+  assert.equal(new Set(sliders.map((s: any) => s.urlKey)).size, 24, 'urlKeys are unique');
+});
+
+test('bake: the HSL mixer folds into the .cube, and protects greys', async () => {
+  const { host, delivered } = makeHost();
+  const rt = await createRuntime(tool, host, {});
+  // Fully desaturate the red band: pure red should bake out to neutral grey,
+  // while a grey grid point (no hue) must stay exactly put.
+  await rt.setInput('hslSatRed', -100 as any);
+  await rt.setInput('bakeLut', true as any);
+
+  const { rows } = parseBaked(await delivered[0]!.blob.text());
+  const N = 33;
+  const red = rows[N - 1]!;                       // corner (r=1, g=0, b=0), red-fastest
+  for (const c of red) assert.ok(Math.abs(c - 0.5) < 0.02, `red desaturates to grey (got ${c})`);
+  const mid = rows[(16 * N + 16) * N + 16]!;      // mid-grey grid point — no hue, untouched
+  for (const c of mid) assert.ok(Math.abs(c - 0.5) < 0.005, `grey is protected from the mixer (got ${c})`);
+
+  // A hue rotation on the red band moves the red corner off pure red.
+  const rt2 = await createRuntime(tool, host, {});
+  delivered.length = 0;
+  await rt2.setInput('hslHueRed', 100 as any);    // +40° → toward orange
+  await rt2.setInput('bakeLut', true as any);
+  const red2 = parseBaked(await delivered[0]!.blob.text()).rows[N - 1]!;
+  assert.ok(red2[1] > red2[2] + 0.15, `red band rotates toward orange — G lifts above B (got G=${red2[1]}, B=${red2[2]})`);
+});
+
 test('bake: a loaded LUT folds into the bake, and bakeSize is honoured', async () => {
   const { host, delivered } = makeHost();
   const rt = await createRuntime(tool, host, {});

@@ -1,0 +1,77 @@
+{
+  "id": "pull-quote",
+  "name": "Pull quote",
+  "category": "Slides",
+  "description": "A large quotation with attribution — spare, in your brand colours.",
+  "values": {
+    "boxes": [
+      {
+        "id": "frame",
+        "kind": "frame",
+        "x": 0,
+        "y": 0,
+        "w": 1920,
+        "h": 1080,
+        "rot": 0,
+        "shape": "rect",
+        "bg": "var(--brand-surface, #ffffff)",
+        "order": 0,
+        "clipChildren": true
+      },
+      {
+        "id": "mark",
+        "kind": "text",
+        "frame": "frame",
+        "x": 150,
+        "y": 150,
+        "w": 400,
+        "h": 260,
+        "rot": 0,
+        "shape": "rect",
+        "text": "“",
+        "fg": "var(--brand-primary, #1e293b)",
+        "fontSize": 260,
+        "align": "left",
+        "valign": "top",
+        "weight": "700",
+        "lineHeight": 1.0
+      },
+      {
+        "id": "quote",
+        "kind": "text",
+        "frame": "frame",
+        "x": 160,
+        "y": 380,
+        "w": 1600,
+        "h": 460,
+        "rot": 0,
+        "shape": "rect",
+        "text": "A short, memorable line worth setting large.",
+        "fg": "var(--brand-text, #0f172a)",
+        "fontSize": 88,
+        "align": "left",
+        "valign": "top",
+        "weight": "600",
+        "lineHeight": 1.15
+      },
+      {
+        "id": "attrib",
+        "kind": "text",
+        "frame": "frame",
+        "x": 160,
+        "y": 880,
+        "w": 1600,
+        "h": 90,
+        "rot": 0,
+        "shape": "rect",
+        "text": "- Name, role",
+        "fg": "var(--brand-muted, #64748b)",
+        "fontSize": 44,
+        "align": "left",
+        "valign": "top",
+        "weight": "400",
+        "lineHeight": 1.3
+      }
+    ]
+  }
+}

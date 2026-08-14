@@ -13,14 +13,14 @@
  * and asset storage; this module only does the maths and field defaulting, so the
  * mapping is unit-testable and identical everywhere the engine runs.
  *
- * Field defaults mirror tools/layout-studio (its addKinds seeds + field defaults),
+ * Field defaults mirror tools/design (its addKinds seeds + field defaults),
  * and the colour/weight guards mirror its hooks.js — the imported box looks exactly
  * like a natively-authored one. The editor's font select is a closed vocabulary, so
  * every imported font remaps onto it (monospace family names → the mono family).
  * WHICH families those are is brand data, not engine knowledge: the shell threads a
  * `DesignMapOptions` (from the target tool's manifest — its font select values and
  * addKinds seed colours) through `finalizeBoxes`/`nodeToBox`; the built-in defaults
- * below mirror the neutral blank-brand (brands/lolly-start) layout-studio fork.
+ * below mirror the neutral blank-brand (brands/lolly-start) design fork.
  */
 
 import { cornerRadii, roundedRectPath } from './css-box.ts';
@@ -79,7 +79,7 @@ export interface DesignMapOptions {
   seedColors?: DesignMapSeedColors;
 }
 
-// Neutral defaults — mirror brands/lolly-start/tools/layout-studio (the blank
+// Neutral defaults — mirror brands/lolly-start/tools/design (the blank
 // brand's font select values and addKinds seed colours), NOT any real brand's.
 const DEFAULT_FONTS: Required<Omit<DesignMapFonts, 'knownFamilies'>> = {
   defaultFamily: 'sans',
@@ -194,7 +194,7 @@ interface Box {
   bgBlur: number;
 }
 
-// ── small numeric helpers (mirrors of tools/layout-studio/hooks.js) ──────────
+// ── small numeric helpers (mirrors of tools/design/hooks.js) ──────────
 function num(v: unknown, d: number): number;
 function num(v: unknown, d: number | undefined): number | undefined;
 function num(v: unknown, d: number | undefined): number | undefined {
@@ -211,7 +211,7 @@ function get(o: unknown, k: string): unknown {
 }
 
 /**
- * Colour guard — identical to tools/layout-studio/hooks.js safeColor. Only lets a
+ * Colour guard — identical to tools/design/hooks.js safeColor. Only lets a
  * value through if it's unambiguously a CSS colour (hex / rgb(a) / hsl(a) / a bare
  * name); anything else (which could smuggle a `;` into a style="" attribute) falls
  * back. Imported fills flow through here before they ever reach the editor/output.
@@ -278,7 +278,7 @@ export function boxGeomFromBBox(
 /**
  * Snap an arbitrary font weight onto the variable font's 100-step axis.
  * Mono cuts rarely ship a Black, so the mono family is capped at its declared
- * `monoMaxWeight` (default 800) — matching tools/layout-studio/hooks.js weightOf
+ * `monoMaxWeight` (default 800) — matching tools/design/hooks.js weightOf
  * so the browser render and the static-TTF vector export agree.
  * @param {number|string} weight
  * @param {string} [font] a font-select wire value (see mapFontFamily).
@@ -362,7 +362,7 @@ export function colorRunsToText(runs: ReadonlyArray<ColorRun>, defaultHex: strin
 }
 
 // Per-kind non-geometry seeds. Colours mirror the NEUTRAL (lolly-start)
-// layout-studio addKinds; a branded shell overrides them via seedColors.
+// design addKinds; a branded shell overrides them via seedColors.
 const SEED: Record<'box' | 'text' | 'image', KindSeed> = {
   box: { bg: '#4f84ba' },
   text: { bg: '', fg: '#0e1217', fontSize: 64, valign: 'top', lineHeight: 1.12 },

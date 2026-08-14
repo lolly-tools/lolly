@@ -1,0 +1,59 @@
+{
+  "id": "title",
+  "name": "Title slide",
+  "category": "Slides",
+  "description": "A bold opening slide — big title and a supporting line, in your brand colours.",
+  "values": {
+    "boxes": [
+      {
+        "id": "frame",
+        "kind": "frame",
+        "x": 0,
+        "y": 0,
+        "w": 1920,
+        "h": 1080,
+        "rot": 0,
+        "shape": "rect",
+        "bg": "var(--brand-primary, #1e293b)",
+        "order": 0,
+        "clipChildren": true
+      },
+      {
+        "id": "title",
+        "kind": "text",
+        "frame": "frame",
+        "x": 160,
+        "y": 400,
+        "w": 1600,
+        "h": 300,
+        "rot": 0,
+        "shape": "rect",
+        "text": "Presentation title",
+        "fg": "var(--brand-on-primary, #ffffff)",
+        "fontSize": 128,
+        "align": "left",
+        "valign": "top",
+        "weight": "700",
+        "lineHeight": 1.05
+      },
+      {
+        "id": "subtitle",
+        "kind": "text",
+        "frame": "frame",
+        "x": 160,
+        "y": 720,
+        "w": 1600,
+        "h": 100,
+        "rot": 0,
+        "shape": "rect",
+        "text": "Subtitle or date",
+        "fg": "var(--brand-on-primary, #ffffff)",
+        "fontSize": 44,
+        "align": "left",
+        "valign": "top",
+        "weight": "400",
+        "lineHeight": 1.3
+      }
+    ]
+  }
+}

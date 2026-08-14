@@ -392,7 +392,7 @@ export async function createRuntime(
   const listeners = new Set<(state: RuntimeState) => void>();
   // Hydrate ONCE per change, not once per subscriber: every listener gets the same
   // immutable snapshot (both current subscribers are read-only). A two-subscriber
-  // editor (layout-studio, carousel-maker) otherwise ran a full template render twice.
+  // editor (design, carousel-maker) otherwise ran a full template render twice.
   const emit = () => {
     const state = { model, hydrated: getHydrated() };
     listeners.forEach(fn => fn(state));

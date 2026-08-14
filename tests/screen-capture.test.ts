@@ -78,7 +78,7 @@ test('the sensor capabilities still validate (screen is additive, not a replacem
 
 // ─── version ─────────────────────────────────────────────────────────────────
 
-test('ENGINE_VERSION is 1.119.0', () => {
+test('ENGINE_VERSION is 1.124.0', () => {
   // A literal pin: the screencap surface shipped at 1.54, and tools declare
   // ^1.54.0 to require it. session-record only checks the stamp equals whatever
   // ENGINE_VERSION happens to be (tautological) — this catches an errant bump.
@@ -250,8 +250,30 @@ test('ENGINE_VERSION is 1.119.0', () => {
   // enumerates a sanitised SVG's own layers into one standalone document each,
   // DOM-free so the CLI lifts the same way the editor does; read-only, no HostV1
   // method changed).
+  // Then 1.120.0 (the P3 adversarial-review fixes to that same module — root-level
+  // unit compositing refused instead of split silently, cross-layer references
+  // resolved from the wrappers and the carried markup too, id resolution taken off
+  // the layers x refs product, DROP_TAGS applied at any depth, and the new
+  // `SVG_LAYERS_HEAVY_BYTES` warning; still read-only, no HostV1 method changed).
+  // Then 1.121.0 (plans/104 P2 — the TILT tier in keyframes.ts: `rx`/`ry` stop being
+  // channels that only parse. `cameraTilted` gates an exact zero, `projectLayer` grows
+  // a `m: KfMatrix3 | null` element-local homography, `kfMatrix3dCss` spells it as the
+  // one CSS transform that divides by w, the behind-camera guard moves from the layer's
+  // plane to its nearest corner and DOF reads distance along the view axis; additive,
+  // no HostV1 method changed).
+  // Then 1.122.0 (the P3.2/P2 adversarial-review fix to svg-layers.ts: `cropScale`,
+  // so a crop is snapped to whole px of the ROW it will be drawn into rather than to
+  // whole USER units — the two are the same thing only at scale 1, which is the one
+  // configuration 1.121's "fidelity-neutral" measurement had. Additive and defaulted
+  // to 1:1, so omitting it reproduces 1.121 exactly; no HostV1 method changed).
+  // Then 1.123.0 (plans/111 M1 — `host.lift` with `lift.svg(source)`, the CANONICAL
+  // SVG layer enumeration (enumerateSvgLayers) exposed to a tool template; additive,
+  // NOT capability-gated, no HostV1 method changed).
+  // Then 1.124.0 (plans/111 M2 — `host.keyframes` with `keyframes.sample(kf, count)`,
+  // running the engine's parseKf + evaluateKf so a tool template can drive motion from
+  // the same `kf` wire the Design tool's camera uses; additive, no HostV1 method changed).
   // The ^1.54.0 screencap floor below still holds (a minor bump satisfies it).
-  assert.equal(ENGINE_VERSION, '1.119.0');
+  assert.equal(ENGINE_VERSION, '1.124.0');
 });
 
 // ─── loadTool: a ^1.54.0 tool loads against this engine ───────────────────────

@@ -4,7 +4,7 @@
  *
  * The gap this closes, measured 2026-08-11: `canvas` had no
  * `additionalProperties`, and its `properties` list had fallen 21 keys behind the
- * shipped manifests (layout-studio's frame/vector/decoration keys, org-chart's six
+ * shipped manifests (design's frame/vector/decoration keys, org-chart's six
  * stroke keys, sequence-studio's `linkField`, `import` on five tools). An open
  * object with a stale property list validates ANY key, so a typo'd `shadowBlrField`
  * shipped clean — and stayed silent at runtime too, because the overlay's write
@@ -21,7 +21,7 @@
  *
  * So this file proves it bites both ways AND that it doesn't bite the real
  * manifests: a typo'd key fails, a `*Field` pointing at a missing id fails, and the
- * shipped org-chart / layout-studio manifests pass both halves unchanged.
+ * shipped org-chart / design manifests pass both halves unchanged.
  *
  * The last test is the anti-regression one: it re-derives the canvas-key union
  * across every MOUNTED pack and asserts the schema still covers it. That is the
@@ -214,14 +214,14 @@ test('the real org-chart manifest passes the schema AND the reference check', { 
   assert.deepEqual(canvasFieldRefErrors(m), [], 'org-chart canvas.*Field values must all resolve');
 });
 
-test('the parent-owned layout-studio manifest passes the schema AND the reference check', () => {
+test('the parent-owned design manifest passes the schema AND the reference check', () => {
   // brands/lolly-start is parent-owned, so this half runs on a public clone too —
   // and it is the widest canvas block in the tree (63 keys).
-  const path = join(ROOT, 'brands/lolly-start/tools/layout-studio/tool.json');
+  const path = join(ROOT, 'brands/lolly-start/tools/design/tool.json');
   const m = JSON.parse(readFileSync(path, 'utf8'));
   const eng = validateManifest(m);
-  assert.equal(eng.valid, true, `layout-studio must validate: ${JSON.stringify(eng.errors)}`);
-  assert.equal(validateTool(m).valid, true, 'layout-studio must validate against the core schema copy too');
+  assert.equal(eng.valid, true, `design must validate: ${JSON.stringify(eng.errors)}`);
+  assert.equal(validateTool(m).valid, true, 'design must validate against the core schema copy too');
   assert.deepEqual(canvasFieldRefErrors(m), []);
 });
 

@@ -100,14 +100,38 @@ function claimFacts(bytes: Uint8Array): { labels: string[]; created: Map<unknown
 test('meta: the full shape is accepted and unknown keys are not', () => {
   const good = {
     generator: { name: 'Claude Code', version: 'opus-5' },
-    model: { name: 'Claude Opus 5', identifier: 'claude-opus-5' },
+    model: {
+      name: 'Claude Opus 5', identifier: 'claude-opus-5',
+      vendor: 'Anthropic', region: { city: 'London', state: 'England', country: 'United Kingdom' },
+    },
     oversight: 'prompt_guided', source: 'trainedAlgorithmicMedia', locale: 'pt-BR',
+    author: { name: 'Andy Fitzsimon', email: 'andy@example.com' },
   };
   assert.ok('meta' in validateArtMeta(good));
   // A typo'd key that was quietly ignored would ship a credential saying less than
-  // its author believed — the one failure mode a hand-authored sidecar has.
+  // its author believed — the one failure mode a hand-authored sidecar has. This
+  // must hold at every level, not only the top.
   const typo = validateArtMeta({ ...good, overisght: 'prompt_guided' });
   assert.ok('problems' in typo && typo.problems.some((p) => p.includes('overisght')));
+  const modelTypo = validateArtMeta({ ...good, model: { ...good.model, vender: 'Anthropic' } });
+  assert.ok('problems' in modelTypo && modelTypo.problems.some((p) => p.includes('unknown model key "vender"')));
+  const regionTypo = validateArtMeta({ ...good, model: { ...good.model, region: { country: 'UK', provice: 'x' } } });
+  assert.ok('problems' in regionTypo && regionTypo.problems.some((p) => p.includes('unknown model.region key "provice"')));
+  const authorTypo = validateArtMeta({ ...good, author: { name: 'A', emial: 'x@y.z' } });
+  assert.ok('problems' in authorTypo && authorTypo.problems.some((p) => p.includes('unknown author key "emial"')));
+  // region requires a country; author requires a name.
+  assert.ok('problems' in validateArtMeta({ ...good, model: { ...good.model, region: { city: 'London' } } }));
+  assert.ok('problems' in validateArtMeta({ ...good, author: { email: 'x@y.z' } }));
+});
+
+test('meta: a human author is allowed even with digitalCreation (it is not a model claim)', () => {
+  // §18.28.3 forbids a MODEL beside digitalCreation, but a person directing a
+  // hand-made artifact is an ordinary, honest fact — refusing it would be wrong.
+  const r = validateArtMeta({
+    generator: { name: 'A human, in a text editor' }, source: 'digitalCreation',
+    author: { name: 'Andy Fitzsimon' },
+  });
+  assert.ok('meta' in r);
 });
 
 test('meta: generator and source are required, and their values are checked', () => {
@@ -540,8 +564,12 @@ test('artDims reads the viewBox and refuses to guess', () => {
 test('claim: the options carry the source type, the disclosure and the spec version', () => {
   const meta: ArtMeta = {
     generator: { name: 'Claude Code', version: 'opus-5' },
-    model: { name: 'Claude Opus 5', identifier: 'claude-opus-5' },
+    model: {
+      name: 'Claude Opus 5', identifier: 'claude-opus-5',
+      vendor: 'Anthropic', region: { city: 'London', country: 'United Kingdom' },
+    },
     oversight: 'prompt_guided', source: 'trainedAlgorithmicMedia',
+    author: { name: 'Andy Fitzsimon' },
   };
   const opts = artC2paOpts(meta, { id: 'x', kind: 'masthead', format: 'svg' });
   assert.equal(opts.actions?.[0]?.action, 'c2pa.created');
@@ -551,11 +579,17 @@ test('claim: the options carry the source type, the disclosure and the spec vers
   assert.match(String(opts.actions?.[0]?.description), /Claude Code opus-5/);
   assert.equal((opts.generatorInfo as { name: string }).name, 'Lolly');
   assert.equal(opts.specVersion, '2.4.0');
+  // The §18.28 disclosure stays spec-clean — vendor/region are NOT grafted onto it.
   assert.deepEqual(opts.aiDisclosure, { modelName: 'Claude Opus 5', modelIdentifier: 'claude-opus-5', oversight: 'prompt_guided' });
+  // The director is the C2PA human author; vendor + serving region are Lolly-namespaced
+  // environment facts beside `generator`.
+  assert.deepEqual(opts.author, { name: 'Andy Fitzsimon' });
   const env = opts.environment as Record<string, unknown>;
   assert.equal(env.surface, 'docs');
   assert.equal(env.artifact, 'masthead');
   assert.equal(env.generator, 'Claude Code opus-5');
+  assert.equal(env.modelVendor, 'Anthropic');
+  assert.equal(env.modelRegion, 'London, United Kingdom');
   // The credential window outlives the artifact's usefulness on purpose (see the
   // script): a file that never changed must never read "expired" to a reader.
   assert.ok(ART_CREDENTIAL_DAYS >= 365 * 5);

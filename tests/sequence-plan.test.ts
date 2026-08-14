@@ -699,7 +699,11 @@ test('an already-coded error survives a round trip unchanged', () => {
 });
 
 test('every published code is reachable and the list is frozen', () => {
-  assert.equal(SEQ_ERROR_CODES.length, 6);
+  // 7 since plans/104 P2: `SEQ_TILT_UNSUPPORTED` — a tilted camera composites by
+  // CAPTURING the live DOM, and dom-to-image cannot photograph a playing <video>, so
+  // that one combination refuses with a visible notice instead of exporting a frozen
+  // frame under the whole move (§6.4).
+  assert.equal(SEQ_ERROR_CODES.length, 7);
   assert.ok(Object.isFrozen(SEQ_ERROR_CODES));
   for (const code of SEQ_ERROR_CODES) {
     assert.equal(toCodedError(sequenceError(code, 'x')).code, code);

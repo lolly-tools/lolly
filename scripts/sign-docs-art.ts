@@ -102,10 +102,24 @@ export const ART_FORMATS: Record<string, string> = { '.svg': 'svg', '.html': C2P
 
 export interface ArtMeta {
   generator: { name: string; version?: string };
-  model?: { name: string; identifier?: string };
+  model?: {
+    name: string;
+    identifier?: string;
+    /** The organisation that produced the model (e.g. "Google", "Anthropic") —
+     *  model-vendor provenance. Rides in Lolly's own environment assertion. */
+    vendor?: string;
+    /** Where the request was processed — the datacenter's city/state/country, as
+     *  the vendor discloses it. `country` is the one required part; city/state are
+     *  filled when known. Best-effort: many vendors won't say. */
+    region?: { city?: string; state?: string; country: string };
+  };
   oversight?: (typeof HUMAN_OVERSIGHT_LEVELS)[number];
   source: 'trainedAlgorithmicMedia' | 'digitalCreation' | 'compositeWithTrainedAlgorithmicMedia';
   locale?: string;
+  /** The person who directed the work (the prompter). Emitted as the C2PA human
+   *  author — a `dc:creator` in the v2 cawg.metadata assertion. Independent of
+   *  the model, so it is allowed even with `source: digitalCreation`. */
+  author?: { name: string; email?: string; url?: string };
 }
 
 /**
@@ -121,7 +135,10 @@ export const ART_SOURCE_TYPES: Record<ArtMeta['source'], string> = {
 };
 
 const BCP47 = /^[A-Za-z]{2,3}(-[A-Za-z0-9]{2,8})*$/;
-const META_KEYS = new Set(['generator', 'model', 'oversight', 'source', 'locale']);
+const META_KEYS = new Set(['generator', 'model', 'oversight', 'source', 'locale', 'author']);
+const MODEL_KEYS = new Set(['name', 'identifier', 'vendor', 'region']);
+const REGION_KEYS = new Set(['city', 'state', 'country']);
+const AUTHOR_KEYS = new Set(['name', 'email', 'url']);
 
 const isObj = (v: unknown): v is Record<string, unknown> => !!v && typeof v === 'object' && !Array.isArray(v);
 const isStr = (v: unknown): v is string => typeof v === 'string' && v.trim().length > 0;
@@ -148,8 +165,41 @@ export function validateArtMeta(raw: unknown): { meta: ArtMeta } | { problems: s
   }
   const model = raw.model;
   if (model !== undefined) {
-    if (!isObj(model) || !isStr(model.name)) problems.push('model.name is required when model is present');
-    else if (model.identifier !== undefined && !isStr(model.identifier)) problems.push('model.identifier must be a non-empty string when present');
+    if (!isObj(model)) problems.push('model must be an object when present');
+    else {
+      for (const k of Object.keys(model)) {
+        if (!MODEL_KEYS.has(k)) problems.push(`unknown model key "${k}" — allowed: ${[...MODEL_KEYS].join(', ')}`);
+      }
+      if (!isStr(model.name)) problems.push('model.name is required when model is present');
+      if (model.identifier !== undefined && !isStr(model.identifier)) problems.push('model.identifier must be a non-empty string when present');
+      if (model.vendor !== undefined && !isStr(model.vendor)) problems.push('model.vendor must be a non-empty string when present (the organisation that produced the model, e.g. "Google")');
+      const region = model.region;
+      if (region !== undefined) {
+        if (!isObj(region)) problems.push('model.region must be an object { city?, state?, country }');
+        else {
+          for (const k of Object.keys(region)) {
+            if (!REGION_KEYS.has(k)) problems.push(`unknown model.region key "${k}" — allowed: ${[...REGION_KEYS].join(', ')}`);
+          }
+          if (!isStr(region.country)) problems.push('model.region.country is required when region is present (where the request was processed)');
+          for (const k of ['city', 'state'] as const) {
+            if (region[k] !== undefined && !isStr(region[k])) problems.push(`model.region.${k} must be a non-empty string when present`);
+          }
+        }
+      }
+    }
+  }
+  const author = raw.author;
+  if (author !== undefined) {
+    if (!isObj(author)) problems.push('author must be an object { name, email?, url? }');
+    else {
+      for (const k of Object.keys(author)) {
+        if (!AUTHOR_KEYS.has(k)) problems.push(`unknown author key "${k}" — allowed: ${[...AUTHOR_KEYS].join(', ')}`);
+      }
+      if (!isStr(author.name)) problems.push('author.name is required when author is present (the person who directed the work)');
+      for (const k of ['email', 'url'] as const) {
+        if (author[k] !== undefined && !isStr(author[k])) problems.push(`author.${k} must be a non-empty string when present`);
+      }
+    }
   }
   const oversight = raw.oversight;
   if (oversight !== undefined && !(HUMAN_OVERSIGHT_LEVELS as readonly string[]).includes(oversight as string)) {
@@ -663,15 +713,30 @@ export function artC2paOpts(meta: ArtMeta, ctx: ArtClaimContext): ExportC2paOpts
       }
       : {}),
   });
+  // The person who directed the work → the C2PA human author (a v2 dc:creator in
+  // the cawg.metadata assertion). Independent of the model, so it rides for a
+  // hand-made artifact too; buildExportC2paOpts only sets author from a profile,
+  // which the docs bank has none of, so this is the sole source of it here.
+  const author = meta.author;
+  // Model-provenance facts the §18.28 ai-disclosure assertion has no field for:
+  // the vendor that produced the model, and the datacenter region the request ran
+  // in. They are Lolly-namespaced facts, not spec assertions — so they belong in
+  // the environment beside `generator`, never grafted onto the spec-clean disclosure.
+  const modelRegion = meta.model?.region
+    ? [meta.model.region.city, meta.model.region.state, meta.model.region.country].filter(Boolean).join(', ')
+    : undefined;
   // The environment assertion is Lolly's own namespace, and the only place the
   // artifact's editorial role and its authoring tool are recorded as plain facts
   // (claim_generator_info is reserved by §10.2.3.2 for the claim's own generator).
   return {
     ...opts,
+    ...(author ? { author } : {}),
     environment: {
       ...(opts.environment as Record<string, unknown>),
       artifact: ctx.kind,
       generator,
+      ...(meta.model?.vendor ? { modelVendor: meta.model.vendor } : {}),
+      ...(modelRegion ? { modelRegion } : {}),
       ...(meta.locale ? { locale: meta.locale } : {}),
     },
   };

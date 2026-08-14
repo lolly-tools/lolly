@@ -12,7 +12,7 @@
  *
  * Loads the REAL tool from disk (brands/lolly-start — parent-owned, always present
  * in a public checkout; brands/suse is a private submodule CI skips) and drives it
- * through the engine with a stub host, exactly like layout-studio-fit-circle.test.ts.
+ * through the engine with a stub host, exactly like design-fit-circle.test.ts.
  */
 
 import { test } from 'node:test';
@@ -37,10 +37,10 @@ const fetchFile = (path: string) => readFile(join(PACK_DIR, path), 'utf8');
 const SUSE_PACK = join(dirname(fileURLToPath(import.meta.url)), '..', 'brands', 'suse', 'tools');
 const SKIP_SUSE = !existsSync(SUSE_PACK) && 'SUSE brand pack not mounted (see profiles.json)';
 
-assert.ok(existsSync(join(PACK_DIR, 'layout-studio', 'tool.json')),
-  'brands/lolly-start/tools/layout-studio/tool.json is missing — the tool was renamed or deleted');
+assert.ok(existsSync(join(PACK_DIR, 'design', 'tool.json')),
+  'brands/lolly-start/tools/design/tool.json is missing — the tool was renamed or deleted');
 
-const tool: any = await loadTool('layout-studio', fetchFile);
+const tool: any = await loadTool('design', fetchFile);
 
 const boxesField = () => tool.manifest.inputs.find((i: any) => i.id === 'boxes');
 const boxSubFields = () => boxesField().fields as any[];
@@ -127,13 +127,13 @@ test('wire order: compact-blocks encode/decode round-trips every field (id..fill
   });
 });
 
-// `boxes` is ONE positional wire shared by both brand copies of layout-studio, so a share
+// `boxes` is ONE positional wire shared by both brand copies of design, so a share
 // link written under one profile is decoded under the other. A single field of drift
 // between the copies mis-decodes every value after the drift point — and the copies are
 // edited independently BY ANCHOR (plan §2), which is exactly the discipline that lets one
 // side gain a field the other lacks. Nothing else in the suite compares them.
-test('wire order: the SUSE copy of layout-studio declares the identical boxes.fields sequence', { skip: SKIP_SUSE }, async () => {
-  const suse = JSON.parse(await readFile(join(SUSE_PACK, 'layout-studio', 'tool.json'), 'utf8'));
+test('wire order: the SUSE copy of design declares the identical boxes.fields sequence', { skip: SKIP_SUSE }, async () => {
+  const suse = JSON.parse(await readFile(join(SUSE_PACK, 'design', 'tool.json'), 'utf8'));
   const suseIds = suse.inputs.find((i: any) => i.id === 'boxes').fields.map((f: any) => f.id);
   assert.deepEqual(suseIds, boxSubFields().map((f: any) => f.id),
     'the two brand copies must agree field-for-field, in order — the fonts and the '
@@ -210,7 +210,7 @@ test('no-regression: an untimed model renders no data-sequence and no data-t- an
   // A second render of the same untimed input is identical — the time-model code
   // path is a pure no-op for documents that don't use it (structural equality,
   // not a stored golden blob — this repo has no snapshot-file convention, see
-  // tests/README.md / layout-studio-fit-circle.test.ts).
+  // tests/README.md / design-fit-circle.test.ts).
   const html2 = await mount([
     { id: 'a', kind: 'box', x: 0, y: 0, w: 300, h: 200, bg: '#ff0000' },
     { id: 'b', kind: 'text', x: 0, y: 250, w: 300, h: 100, text: 'untimed' },
