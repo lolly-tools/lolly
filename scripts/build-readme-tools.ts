@@ -75,7 +75,7 @@ const label = activeCatalogLabel();
 const unlistedClause =
   unlisted.length === 0
     ? ', all listed in the gallery'
-    : ` — ${listed.length} listed in the gallery, plus ${unlisted.length === 1 ? 'one unlisted helper' : `${unlisted.length} unlisted helpers`} (${unlisted.map(t => t.name ?? t.id).join(', ')})`;
+    : ` - ${listed.length} listed in the gallery, plus ${unlisted.length === 1 ? 'one unlisted helper' : `${unlisted.length} unlisted helpers`} (${unlisted.map(t => t.name ?? t.id).join(', ')})`;
 const sentence = `The ${label} catalog ships **${tools.length} tools** today${unlistedClause}. Generated from \`catalog/tools/index.json\` by \`npm run build:readme-tools\`:`;
 
 const table = [

@@ -485,10 +485,11 @@ test('the viz stays the ambient backdrop (no inline reparent) and right-click op
   dock.destroy();
 });
 
-test('the visualiser settings menu carries on/off + theme + presets and delegates', async () => {
+test('the visualiser menu carries brand themes + presets + transition timing, all delegating', async () => {
   let enabled = true;
   let picked = '';
   let theme = 't1';
+  let timing = '0';
   const richViz = {
     supported: () => true,
     getAnalyser: () => null,
@@ -499,29 +500,68 @@ test('the visualiser settings menu carries on/off + theme + presets and delegate
     presets: () => [{ id: 'a', name: 'Aurora' }, { id: 'b', name: 'Nova', group: 'Geiss' }],
     currentPreset: () => 'a',
     selectPreset: (id: string) => { picked = id; },
-    themes: () => [{ id: 't1', name: 'Jungle' }, { id: 't2', name: 'Persimmon' }],
+    themes: () => [{ id: 't1', name: 'Jungle' }, { id: 't2', name: 'Waterhole' }],
     currentTheme: () => theme,
     selectTheme: (id: string) => { theme = id; },
+    transitions: () => [{ id: '0', name: 'Off' }, { id: '20', name: '20s' }],
+    currentTransition: () => timing,
+    selectTransition: (id: string) => { timing = id; },
   };
   const host = makeHost({ viz: richViz }, true);
   const dock = createAudioDock({ host, capabilities: { music: true, viz: true }, mount: document.body });
   const root = dock.el;
-  // rebuildVisualiser awaits the (here-sync) presets/themes; let the microtasks flush.
+  // rebuildVisualiser awaits the (here-sync) themes/transitions/presets; flush microtasks.
   await new Promise((r) => setTimeout(r, 0));
   const menu = root.querySelector<HTMLElement>('[data-vizmenu]')!;
 
   const themePills = [...menu.querySelectorAll<HTMLElement>('[data-viz-theme]')].map((b) => b.textContent);
-  assert.deepEqual(themePills, ['Jungle', 'Persimmon'], 'theme pills built (in the menu)');
+  assert.deepEqual(themePills, ['Jungle', 'Waterhole'], 'brand-tint colour-scheme pills built');
+  const transitionPills = [...menu.querySelectorAll<HTMLElement>('[data-viz-transition]')].map((b) => b.textContent);
+  assert.deepEqual(transitionPills, ['Off', '20s'], 'transition-timing pills built');
   const presetRows = [...menu.querySelectorAll<HTMLElement>('[data-viz-preset]')].map((b) => b.dataset.vizPreset);
-  assert.deepEqual(presetRows, ['a', 'b'], 'preset rows built (in the menu)');
+  assert.deepEqual(presetRows, ['a', 'b'], 'preset rows built');
 
   menu.querySelector<HTMLButtonElement>('[data-viz-preset="b"]')!.click();
   assert.equal(picked, 'b', 'preset selection delegates');
+  menu.querySelector<HTMLButtonElement>('[data-viz-theme="t2"]')!.click();
+  assert.equal(theme, 't2', 'theme (brand influence) delegates');
+  menu.querySelector<HTMLButtonElement>('[data-viz-transition="20"]')!.click();
+  assert.equal(timing, '20', 'transition timing delegates');
 
   const toggle = menu.querySelector<HTMLButtonElement>('[data-viz-toggle]')!;
   assert.equal(toggle.hidden, false);
   toggle.click();
   assert.equal(enabled, false, 'viz on/off delegated to setEnabled');
+  dock.destroy();
+});
+
+test('the narration block collapses from its own header, folding its body to the title row', () => {
+  const narrationBlock = {
+    isPlaying: () => false,
+    togglePlay: () => {},
+    currentTime: () => 0,
+    duration: () => 30,
+    nowPlaying: () => ({ title: 'Quickstart', subtitle: 'AI narration', kind: 'narration' } as DockNowPlaying),
+    onChange: () => () => {},
+    narration: {
+      getFollow: () => true, setFollow: () => {}, getSpeed: () => 1, setSpeed: () => {},
+      speeds: () => [1, 1.5], caption: () => 'A line.', disclosure: () => 'AI narration.',
+    },
+  };
+  const host = makeHost({ narrationBlock });
+  const dock = createAudioDock({ host, capabilities: { music: true } });
+  const block = dock.el.querySelector<HTMLElement>('[data-narrblock]')!;
+  const toggle = dock.el.querySelector<HTMLButtonElement>('[data-narr-collapse]')!;
+  assert.equal(block.getAttribute('data-narrblock-open'), 'true', 'open by default');
+  assert.equal(toggle.getAttribute('aria-expanded'), 'true');
+  toggle.click();
+  assert.equal(block.getAttribute('data-narrblock-open'), 'false', 'collapsed — body folds to the header (CSS)');
+  assert.equal(toggle.getAttribute('aria-expanded'), 'false');
+  // The title row (and its own play button) stay; the body is what the CSS folds.
+  assert.ok(dock.el.querySelector('[data-narr-title]'), 'title row stays');
+  assert.ok(dock.el.querySelector('[data-narr-play]'), 'play stays in the header');
+  toggle.click();
+  assert.equal(block.getAttribute('data-narrblock-open'), 'true', 'expands again');
   dock.destroy();
 });
 

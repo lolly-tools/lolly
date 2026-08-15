@@ -33,6 +33,7 @@ export type {
   DockViz,
   DockVizPreset,
   DockVizTheme,
+  DockVizTransition,
   DockVolume,
   DockRepeat,
   DockPlacement,

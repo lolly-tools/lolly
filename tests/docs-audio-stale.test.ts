@@ -87,6 +87,28 @@ const STALE_ALLOWED: Record<string, string> = {
     '"Why this is free" section carrying the sceptic paragraph ("We built ' +
     'Lolly for ourselves…"). One new section - re-render at the next audio ' +
     'sweep alongside en/index.',
+  // The six below are the 2026-08-15 AI-vernacular sweep: banned phrases and
+  // fingerprint unicode were taken out of the copy across the docs set. The
+  // pages still say the same things, so they clear together at the next
+  // narration sweep (node scripts/build-docs-audio.ts).
+  'en/about':
+    'textHash drifted 2026-08-15 (AI-vernacular sweep): wording de-ticced; ' +
+    're-render at the next audio sweep.',
+  'en/beatrice-warde':
+    'textHash drifted 2026-08-15 (AI-vernacular sweep): wording de-ticced; ' +
+    're-render at the next audio sweep.',
+  'en/builders':
+    'textHash drifted 2026-08-15 (AI-vernacular sweep): wording de-ticced; ' +
+    're-render at the next audio sweep.',
+  'en/creators':
+    'textHash drifted 2026-08-15 (AI-vernacular sweep): wording de-ticced; ' +
+    're-render at the next audio sweep.',
+  'en/operators':
+    'textHash drifted 2026-08-15 (AI-vernacular sweep): wording de-ticced; ' +
+    're-render at the next audio sweep.',
+  'en/quickstart':
+    'textHash drifted 2026-08-15 (AI-vernacular sweep): wording de-ticced; ' +
+    're-render at the next audio sweep.',
 };
 
 interface Committed { key: string; lang: string; slug: string; meta: AudioMeta }
