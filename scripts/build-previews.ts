@@ -212,8 +212,8 @@ async function main(): Promise<void> {
     for (const tool of tools) {
       // A committed authored override (tools/<id>/card.svg|png) wins over a generated
       // DEFAULT preview (see entryFromManifest), so there's nothing to render there — but
-      // the tool's example LOOKS still need pre-rendering (an animated card tool like
-      // bag-video still has a live example carousel), so we fall through to captureLooks.
+      // the tool's example LOOKS still need pre-rendering (an authored-card tool like
+      // pose-geeko still has a live example carousel), so we fall through to captureLooks.
       if (tool.hasCard) {
         results.push({ ok: false, reason: 'card override' });
         console.log(`  · ${tool.id.padEnd(20)} skipped (card override)`);

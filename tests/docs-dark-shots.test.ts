@@ -42,9 +42,9 @@ test('a dark twin carries its own Content Credential', () => {
 test('the light/dark swap holds with no JS and cannot be out-specified', () => {
   // Ungated on purpose: no .shots-motion, no media query. Which file is correct to show
   // is not an enhancement — a reader with JS disabled still has a theme, and the site's
-  // dark mode is a CLASS they toggled, so a prefers-color-scheme source would follow
-  // the OS and contradict them.
-  const rules = [...BUILD_TS.matchAll(/^(\.(?:dark )?\.?[^{\n]*shot--dual[^{\n]*)\{([^}]*)\}/gm)];
+  // dark mode is the [data-theme="dark"] attribute they toggled (unified with the web
+  // shell, M1), so a prefers-color-scheme source would follow the OS and contradict them.
+  const rules = [...BUILD_TS.matchAll(/^([^{\n]*shot--dual[^{\n]*)\{([^}]*)\}/gm)];
   assert.ok(rules.length >= 4, `expected the .shot--dual swap rules, found ${rules.length}`);
   for (const [, sel] of rules) {
     assert.doesNotMatch(sel!, /\.shots-motion|@media/,
@@ -56,12 +56,12 @@ test('the light/dark swap holds with no JS and cannot be out-specified', () => {
   // twins render, one stacked under the other.
   assert.match(BUILD_TS, /\.shot--dual>img\.shot-alt,[^{]*\{display:none\}/,
     'the light-mode rule must hide the twin via an element-qualified selector');
-  assert.match(BUILD_TS, /\.dark \.shot--dual>img\.shot-alt\{display:block\}/,
+  assert.match(BUILD_TS, /\[data-theme="dark"\] \.shot--dual>img\.shot-alt\{display:block\}/,
     'the dark-mode rule must out-specify the light one it overrides');
   // And the credential line has to follow the image it describes, or a dark-mode reader
   // reads the LIGHT file's signature under the dark picture.
-  assert.match(BUILD_TS, /\.dark \.shot--dual \.shot-cred--alt\{display:flex\}/);
-  assert.match(BUILD_TS, /\.dark \.shot--dual[^{]*\.shot-cred:not\(\.shot-cred--alt\)\{display:none\}/);
+  assert.match(BUILD_TS, /\[data-theme="dark"\] \.shot--dual \.shot-cred--alt\{display:flex\}/);
+  assert.match(BUILD_TS, /\[data-theme="dark"\] \.shot--dual[^{]*\.shot-cred:not\(\.shot-cred--alt\)\{display:none\}/);
 });
 
 test('the theme-blind token read that eight shots depend on is still theme-blind', () => {

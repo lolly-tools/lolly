@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
- * Layout Studio — the consolidation-prep parity gaps (plans/104 §9.2's P1 side-fix note +
- * the retirement inventory: Sequence Studio retires into Layout Studio, so Layout Studio
+ * Design — the consolidation-prep parity gaps (plans/104 §9.2's P1 side-fix note +
+ * the retirement inventory: Sequence Studio retires into Design, so Design
  * has to grow the three capabilities its manifest was missing BEFORE the tool goes away).
  *
  * Run with: node --import ./tests/css-stub.mjs --test "tests/layout-consolidation-prep.test.ts"
@@ -23,7 +23,7 @@
  *    manifest alone, so the declaration IS the feature. Each is asserted to be coherent
  *    (a linkField that names a declared field; seeds whose kind/lane are values the
  *    manifest's own selects can express), not merely present. The ONE declaration held
- *    back is `import.mode: 'scenes'` — it is not inert, it would replace Layout Studio's
+ *    back is `import.mode: 'scenes'` — it is not inert, it would replace Design's
  *    editable design import outright, so G2 pins its ABSENCE and says why.
  * 3. **Both packs, independently.** The two brand copies diverge legitimately (fonts, an
  *    animated-SVG block), so every assertion runs over each copy rather than over "the"
@@ -165,8 +165,8 @@ test('G2 — canvas.import lists the full design-format set, and scenes mode sta
       assert.ok((imp.formats || []).includes(f), `${brand}: import.formats lost "${f}"`);
     }
     // `import.mode: "scenes"` is the ONE prep declaration that is not inert: free-canvas
-    // gates on it alone (`importScenesMode`, views/free-canvas.ts) and Layout Studio's
-    // timeCfg is always non-null, so declaring it here would flip EVERY Layout Studio
+    // gates on it alone (`importScenesMode`, views/free-canvas.ts) and Design's
+    // timeCfg is always non-null, so declaring it here would flip EVERY Design
     // design import — timed or not — from "editable boxes + artboard resize + the Penpot
     // components-as-templates offer" to "one flat image clip per frame". That is the
     // tool's flagship import path and the shipped docs promise it by name
@@ -325,15 +325,15 @@ test('a head value outside the closed six draws nothing — including Object.pro
 // ─────────────────────────────────────────────────────────────────────────────
 //
 // Sequence Studio taught its motion model through four example looks. Two of them became
-// Layout Studio TEMPLATES (launch-teaser, feature-tour — "New from template" starting
+// Design TEMPLATES (launch-teaser, feature-tour — "New from template" starting
 // points, values in tools/<id>/templates/<tid>.json) and two became manifest EXAMPLES
 // (the gallery's preview strip). Three things about that port can silently rot, and none
 // of them is covered by validate-catalog:
 //
 //   • **The dropped `orientation`.** Sequence Studio carried an `orientation` select that
-//     sized its canvas; Layout Studio has no such input, and NEITHER a template seed nor an
+//     sized its canvas; Design has no such input, and NEITHER a template seed nor an
 //     example look can express canvas dimensions (a template's `values` is patched into the
-//     runtime by input id — views/tool.ts — and Layout Studio declares only `background` +
+//     runtime by input id — views/tool.ts — and Design declares only `background` +
 //     `boxes`; the canvas comes from `render.width/height`). So every composition was
 //     re-laid-out against the 1080×1080 default, exactly as templates/video.json already
 //     was. A box that drifts back outside that box is content the user never sees, and

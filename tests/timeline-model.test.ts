@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
- * Layout Studio — timeline time-model contract tests (Fable timeline, phase 1).
+ * Design — timeline time-model contract tests (Fable timeline, phase 1).
  *
  * Run with: npm test  (node --test over the tests/ globs). No framework — node:test.
  *

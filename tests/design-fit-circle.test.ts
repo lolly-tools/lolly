@@ -1,11 +1,11 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
- * Layout Studio — text-fit + circle-shape contract tests.
+ * Design — text-fit + circle-shape contract tests.
  *
  * Run with: npm test  (node --test over the tests/ globs). No framework — node:test.
  *
  * Loads the REAL tool from disk and drives it through the engine with a stub host, so
- * these guard the tool's actual render. Layout Studio ships in two packs — the private
+ * these guard the tool's actual render. Design ships in two packs — the private
  * brands/suse one and the parent-owned brands/lolly-start one — with byte-identical
  * hooks.js/template.html and only brand differences in tool.json. We load from
  * brands/lolly-start (always present in a public checkout; brands/suse is a private

@@ -2799,19 +2799,3 @@ WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
 ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
 OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 ```
-
-### daily-card world map (SVG path, provenance unconfirmed)
-
-- SPDX-License-Identifier: `public-domain (likely Natural Earth, unconfirmed)`
-- Files: `tools/daily-card/world-map.txt`
-- Copyright: No embedded copyright; likely Natural Earth (public domain)
-
-```text
-tools/daily-card/world-map.txt is a low-resolution SVG-path outline of the
-world's coastlines. The file carries no embedded provenance. Its resolution
-and geometry are consistent with Natural Earth public-domain data (the same
-source as the bundled world-atlas TopoJSON above), so it is most likely
-derived from Natural Earth and therefore public domain. This provenance is
-UNCONFIRMED from the file alone and is recorded here honestly as a best
-estimate pending confirmation.
-```

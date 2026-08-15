@@ -35,7 +35,7 @@
   "“{name}” is ready to import.": "“{name}” جاهز للاستيراد.",
   "“{name}” isn’t a format Lolly can import directly.": "“{name}” ليس تنسيقا يمكن لـ Lolly استيراده مباشرة.",
   "{n} files are ready to import.": "{n} ملفات جاهزة للاستيراد.",
-  "Edit in Layout Studio": "التحرير في Layout Studio",
+  "Edit in Design": "التحرير في Design",
   "Add pages to your library": "إضافة الصفحات إلى مكتبتك",
   "Add slides to your library": "إضافة الشرائح إلى مكتبتك",
   "Compress this PDF": "ضغط ملف PDF هذا",

@@ -33,7 +33,7 @@
   "“{name}” is ready to import.": "„{name}” jest gotowy do importu.",
   "“{name}” isn’t a format Lolly can import directly.": "„{name}” to format, którego Lolly nie może zaimportować bezpośrednio.",
   "{n} files are ready to import.": "{n} plików jest gotowych do importu.",
-  "Edit in Layout Studio": "Edytuj w Layout Studio",
+  "Edit in Design": "Edytuj w Design",
   "Add pages to your library": "Dodaj strony do biblioteki",
   "Add slides to your library": "Dodaj slajdy do biblioteki",
   "Compress this PDF": "Skompresuj ten PDF",

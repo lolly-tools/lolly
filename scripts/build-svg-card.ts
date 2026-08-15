@@ -4,7 +4,7 @@
  * Animated SVG card generator.
  *
  * A handful of tools are, at heart, a self-contained animated inline SVG driven by
- * pure CSS `@keyframes` (no JS, no hooks, no assets) — e.g. bag-video's posed Geeko
+ * pure CSS `@keyframes` (no JS, no hooks, no assets) — e.g. pose-geeko's posed Geeko
  * and digi-ad's scene loop. For those, the most PERFORMANT gallery preview isn't a
  * raster APNG/GIF or a <video>, but the tool's own vector artwork shipped as a
  * committed `tools/<id>/card.svg`: it animates natively inside the gallery's <img>
@@ -45,10 +45,9 @@ const ROOT = new URL('..', import.meta.url).pathname;
 // belongs in the tool.
 //
 // ONLY for tools whose canvas is a self-contained animated inline <svg> with no JS/hooks/
-// assets. bag-video qualifies. digi-ad does NOT — it's HTML/CSS <div> scenes + hooks.js,
+// assets. pose-geeko qualifies. digi-ad does NOT — it's HTML/CSS <div> scenes + hooks.js,
 // so it has no <svg> to lift; it ships its real `html` export instead (build-html-card.ts).
 const CARDS: Record<string, { looks?: boolean }> = {
-  'bag-video': { looks: true },
   // Pose Geeko: the default pose composites on the tile and gently breathes (its `idle`
   // default is on). Card only — its example carousel keeps its manual-pose looks.
   'pose-geeko': {},

@@ -938,7 +938,7 @@ function unresolvedSidecarKey(manifest: any, key: string): string | null {
   const input = (manifest.inputs ?? []).find((i: any) => i.id === inputId);
   if (!input) return `references unknown input "${inputId}"`;
 
-  if (['label', 'help', 'placeholder', 'section', 'suffix'].includes(rest)) return null;
+  if (['label', 'help', 'notice', 'placeholder', 'section', 'suffix'].includes(rest)) return null;
   // (.*) not (.+): mirrors applyManifestI18n — an option's value may be ''.
   const optMatch = /^options\.(.*)$/.exec(rest);
   if (optMatch) {

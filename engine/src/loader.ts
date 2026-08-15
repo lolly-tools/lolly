@@ -131,7 +131,7 @@ export interface LoadToolOpts {
  *  onto its own manifest fields — sparse (only the strings a translator
  *  touched), same identity-fallback contract as the SPA's i18n.ts catalogs.
  *  Keys: "name", "description", "a11yLabel", "inputs.<id>.label",
- *  "inputs.<id>.help", "inputs.<id>.placeholder", "inputs.<id>.section",
+ *  "inputs.<id>.help", "inputs.<id>.notice", "inputs.<id>.placeholder", "inputs.<id>.section",
  *  "inputs.<id>.suffix", "inputs.<id>.options.<value>" (select option label),
  *  "inputs.<id>.addMenu.label", "inputs.<id>.fields.<fieldId>.label" /
  *  ".help" / ".placeholder" (blocks/vector sub-fields), and
@@ -161,7 +161,7 @@ export function applyManifestI18n(manifest: ToolManifest, overlay: ToolI18nOverl
     const input = manifest.inputs?.find(i => i.id === inputId);
     if (!input) continue;
 
-    if (rest === 'label' || rest === 'help' || rest === 'placeholder' || rest === 'section' || rest === 'suffix') {
+    if (rest === 'label' || rest === 'help' || rest === 'notice' || rest === 'placeholder' || rest === 'section' || rest === 'suffix') {
       (input as unknown as Record<string, string>)[rest] = value;
       continue;
     }

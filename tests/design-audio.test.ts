@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
- * Layout Studio ("Design") — the audio subsystem mirror-ported from sequence-studio.
+ * Design ("Design") — the audio subsystem mirror-ported from sequence-studio.
  *
  * Run with: node --test tests/design-audio.test.ts  (node:test, no framework).
  *

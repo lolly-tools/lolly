@@ -1,11 +1,11 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
- * Layout Studio — hand-authored frames render as per-frame [data-pdf-page] (plan 93 F1a-part-2).
+ * Design — hand-authored frames render as per-frame [data-pdf-page] (plan 93 F1a-part-2).
  *
  * Run with: npm test  (node --test over the tests/ globs). No framework — node:test.
  *
  * Loads the REAL tool from disk and drives it through the engine with a stub host, so
- * these guard the tool's actual render. Layout Studio ships in two packs — the private
+ * these guard the tool's actual render. Design ships in two packs — the private
  * brands/suse one and the parent-owned brands/lolly-start one — with byte-identical
  * hooks.js/template.html (only tool.json + brand fonts differ). We load from
  * brands/lolly-start (always present in a public checkout; brands/suse is a private

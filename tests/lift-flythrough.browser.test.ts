@@ -175,7 +175,7 @@ const CARDS = [
   { id: 'b1', cx: 356, cy: 200, rgb: [200, 60, 60] as [number, number, number], label: 'QR Code' },
   { id: 'b2', cx: 604, cy: 200, rgb: [60, 180, 90] as [number, number, number], label: 'Street Map' },
   { id: 'b3', cx: 356, cy: 340, rgb: [230, 190, 40] as [number, number, number], label: 'Mesh Gradient' },
-  { id: 'b4', cx: 604, cy: 340, rgb: [110, 90, 220] as [number, number, number], label: 'Layout Studio' },
+  { id: 'b4', cx: 604, cy: 340, rgb: [110, 90, 220] as [number, number, number], label: 'Design' },
 ] as const;
 
 /** Every card centre is this far from the stage centre — the lever the parallax uses. */

@@ -146,10 +146,10 @@ for (const h of HOSTS) {
 }
 
 /**
- * Layout Studio also ships the stroke DECORATIONS, and two of them reach further than
+ * Design also ships the stroke DECORATIONS, and two of them reach further than
  * half the width — a pad that is merely usually right is a clipped outline the user
  * cannot explain. Sequence Studio hard-codes round/round (it has no such sub-fields), so
- * this claim is Layout Studio's alone rather than part of the table above.
+ * this claim is Design's alone rather than part of the table above.
  */
 test('design: a square cap and a miter join size the pad up for themselves', async () => {
   const h = HOSTS[0];

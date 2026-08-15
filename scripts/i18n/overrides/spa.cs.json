@@ -35,7 +35,7 @@
   "“{name}” is ready to import.": "„{name}“ je připraven k importu.",
   "“{name}” isn’t a format Lolly can import directly.": "„{name}“ není formát, který umí Lolly importovat přímo.",
   "{n} files are ready to import.": "{n} souborů je připraveno k importu.",
-  "Edit in Layout Studio": "Upravit v nástroji Layout Studio",
+  "Edit in Design": "Upravit v nástroji Design",
   "Add pages to your library": "Přidat stránky do knihovny",
   "Add slides to your library": "Přidat snímky do knihovny",
   "Compress this PDF": "Zkomprimovat toto PDF",

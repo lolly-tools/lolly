@@ -35,7 +35,7 @@
   "“{name}” is ready to import.": "«{name}» er klar til å importeres.",
   "“{name}” isn’t a format Lolly can import directly.": "«{name}» er ikke et format Lolly kan importere direkte.",
   "{n} files are ready to import.": "{n} filer er klare til å importeres.",
-  "Edit in Layout Studio": "Rediger i Layout Studio",
+  "Edit in Design": "Rediger i Design",
   "Add pages to your library": "Legg til sidene i biblioteket ditt",
   "Add slides to your library": "Legg til lysbildene i biblioteket ditt",
   "Compress this PDF": "Komprimer denne PDF-en",

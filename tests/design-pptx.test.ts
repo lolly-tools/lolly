@@ -1,10 +1,10 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
- * Layout Studio — the native-PPTX deck model emitter (plan 95 route-a).
+ * Design — the native-PPTX deck model emitter (plan 95 route-a).
  *
  * Run with: npm test  (node --test over the tests/ globs). No framework — node:test.
  *
- * "Design" is Layout Studio. A SLIDE is a FRAME; a slide deck is N frames. When frames
+ * "Design" is Design. A SLIDE is a FRAME; a slide deck is N frames. When frames
  * exist the hook emits, ALONGSIDE the unchanged [data-pdf-page] HTML render, a
  * <script type="application/json" data-pptx-deck> carrying a deck-studio-shaped model
  * ({ size, slides:[{ bg, elements }] }). export-pptx.ts reads that off the export node

@@ -35,7 +35,7 @@
   "“{name}” is ready to import.": "Handa nang i-import ang “{name}”.",
   "“{name}” isn’t a format Lolly can import directly.": "Ang “{name}” ay hindi format na direktang ma-i-import ng Lolly.",
   "{n} files are ready to import.": "{n} file ang handa nang i-import.",
-  "Edit in Layout Studio": "I-edit sa Layout Studio",
+  "Edit in Design": "I-edit sa Design",
   "Add pages to your library": "Idagdag ang mga pahina sa iyong library",
   "Add slides to your library": "Idagdag ang mga slide sa iyong library",
   "Compress this PDF": "I-compress ang PDF na ito",

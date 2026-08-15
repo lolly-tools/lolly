@@ -34,13 +34,17 @@ import { embedC2pa } from '../engine/src/c2pa.ts';
 import { verifyC2pa } from '../engine/src/c2pa-verify.ts';
 import { buildExportC2paOpts } from '../packages/node-shell/src/c2pa-opts.ts';
 import {
-  resolveDocsArt, inlineDocsArt, stripArtForInline, parseFigureFence, mastheadArtBand, figureBlock,
+  resolveDocsArt, inlineDocsArt, stripArtForInline, mastheadArtBand,
 } from '../docs/docs-art.ts';
 import { readShotProvenance } from '../docs/shot-provenance.ts';
-import { unwrapFigureFences } from '../packages/docs-render/src/index.ts';
+// parseFigureFence + figureBlock moved to the shared renderer package (M0b).
+import { unwrapFigureFences, parseFigureFence, figureBlock } from '../packages/docs-render/src/index.ts';
 
 const ROOT = new URL('..', import.meta.url).pathname;
 const BUILD_TS = readFileSync(join(ROOT, 'docs/build.ts'), 'utf8');
+// The body renderer (inline/mdToHtml/buildFigure) now lives here; some assertions that used
+// to slice it out of build.ts now read the package source instead.
+const RENDER_TS = readFileSync(join(ROOT, 'packages/docs-render/src/render.ts'), 'utf8');
 
 const MODEL_NAME = 'Claude Fable 5';
 
@@ -309,20 +313,26 @@ test('the MASTHEADS table ships empty, and every entry it ever gains is banked',
 });
 
 test('the build inlines through the shared fn and credits the file it inlined', () => {
-  // The two callers, and what they must not do: re-derive the served path from the
-  // id (the same-file rule), or read the credential from anywhere but art.path.
-  for (const fn of ['mastheadArt', 'buildFigure']) {
-    const start = BUILD_TS.indexOf(`function ${fn}(`);
-    assert.ok(start > 0, `docs/build.ts no longer declares ${fn}()`);
-    const body = BUILD_TS.slice(start, BUILD_TS.indexOf('\nfunction ', start + 1));
-    assert.match(body, /resolveDocsArt\(/, `${fn} does not resolve through docs-art.ts`);
-    assert.match(body, /inlineDocsArt\(art\)/, `${fn} strips the artifact some other way`);
-    assert.match(body, /path: art\.path, src: art\.src/, `${fn} credits a file other than the one it inlined`);
-    assert.match(body, /console\.warn/, `${fn} fails silently on a missing artifact`);
-  }
-  // …and the fence reaches buildFigure at all. mdToHtml's dispatch is one `else if`
-  // away from a page rendering its figure fence as a paragraph of raw markdown.
-  assert.match(BUILD_TS, /\} else if \(parseFigureFence\(label\)\) \{/, 'mdToHtml no longer dispatches ::: figure');
+  // The masthead band stays in build.ts (page-shell); it resolves through docs-art.ts and
+  // credits art.file/art.src — the same-file rule (never the id resolved twice).
+  const mastStart = BUILD_TS.indexOf('function mastheadArt(');
+  assert.ok(mastStart > 0, 'docs/build.ts no longer declares mastheadArt()');
+  const mast = BUILD_TS.slice(mastStart, BUILD_TS.indexOf('\nfunction ', mastStart + 1));
+  assert.match(mast, /resolveDocsArt\(/, 'mastheadArt does not resolve through docs-art.ts');
+  assert.match(mast, /inlineDocsArt\(art\)/, 'mastheadArt strips the artifact some other way');
+  assert.match(mast, /path: art\.path, src: art\.src/, 'mastheadArt credits a file other than the one it inlined');
+  assert.match(mast, /console\.warn/, 'mastheadArt fails silently on a missing artifact');
+  // The figure builder moved into the shared renderer: it resolves through ctx.art (one
+  // resolve, same file) and credits art.file with art.src — the same-file rule, preserved.
+  const figStart = RENDER_TS.indexOf('function buildFigure(');
+  assert.ok(figStart > 0, 'packages/docs-render no longer declares buildFigure()');
+  const fig = RENDER_TS.slice(figStart, RENDER_TS.indexOf('export function mdToHtml', figStart));
+  assert.match(fig, /ctx\.art\('figures', id\)/, 'buildFigure does not resolve through ctx.art');
+  assert.match(fig, /ctx\.credential\(art\.file, \{ assetSrc: art\.src, art: true \}\)/,
+    'buildFigure credits a file other than the one it inlined');
+  assert.match(fig, /console\.warn/, 'buildFigure fails silently on a missing artifact');
+  // …and mdToHtml still dispatches the ::: figure fence to it.
+  assert.match(RENDER_TS, /\} else if \(parseFigureFence\(label\)\) \{/, 'mdToHtml no longer dispatches ::: figure');
   assert.match(BUILD_TS, /const mast = isLanding \? null : docsMasthead\(content, page\.slug\);/,
     'the masthead band no longer knows which page it is building, so MASTHEADS can never apply');
 });

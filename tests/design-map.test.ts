@@ -3,7 +3,7 @@
  * Unit tests for the pure design-file → boxes mapper (engine/src/design-map.js).
  *
  * The web shell walks a sanitized Figma/Penpot/SVG DOM into normalized DesignNodes;
- * this module (DOM-free) turns those into Layout Studio box rows. These cover the
+ * this module (DOM-free) turns those into Design box rows. These cover the
  * matrix maths, the font/weight/align remaps (neutral defaults + shell-supplied
  * brand vocabulary via DesignMapOptions), box defaulting, id/degenerate handling
  * and the Penpot content flattener end to end.

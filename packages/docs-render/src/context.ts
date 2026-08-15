@@ -125,6 +125,14 @@ export interface DocsRenderContext {
    *  For the English static build the catalog is empty, so `t` is the identity — the
    *  in-app English render must match that to stay byte-identical. */
   t(en: string): string;
+  /** A doc bullet/credential icon SVG by key (`<!--i:key-->`, and the credential imprint).
+   *  Injected so the icon registry (DOC_ICONS) can live wherever each host keeps it; the
+   *  registry is static and identical for both hosts. Unknown key → '' (with a warning). */
+  docIcon(key: string): string;
+  /** An inline technology mark SVG by key (`<!--l:key-->`). Unknown key → '' (warned). */
+  docLogo(key: string): string;
+  /** A whole-line block of technology marks (`<!--lb:a b-->`). */
+  docLogoBlock(keys: string[]): string;
   /**
    * A unique credential-line id ("shot-cred-N"). The BUILD impl closes over ONE
    * process-global counter reused across every page and locale, reproducing today's

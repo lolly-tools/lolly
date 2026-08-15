@@ -131,8 +131,8 @@ The «id».html value is the COMPLETE fragment shown above — it MUST start wit
 <script> whose IIFE opens by grabbing its own element (root/canvas/ctx). Do NOT
 output only the JavaScript body — the loose script the runtime needs its tags and
 element lookups. NO <!doctype>/<html>/<head>/<body> — and do not write those literal
-tag names even inside the comment (the shape linter flags the text; say "html-class
-changes", not "<html> class changes").
+tag names even inside the comment (the shape linter flags the text; say "root
+data-theme changes", not "<html> data-theme changes").
 
 ===== FILE: «id».meta.json =====
 {
@@ -182,27 +182,38 @@ standalone preview still looks right:
     return v || fallback;
   }
 
-Available docs tokens (CSS custom properties on :root, some overridden under .dark):
-  TOKEN       LIGHT (:root)   DARK (.dark)   ROLE
-  --page      #ffffff         #061816        page ground / your base fill
-  --pale      #f0fbf5         #0d2419        faint tint of the ground
-  --text      #1d2726         #cce8da        body text colour
-  --muted     #5a7067         #7aaa90        secondary / quiet marks
-  --border    #d8ede4         #1b3d2c        hairlines, faint chips
-  --green     #30ba78         #30ba78        the ACCENT — reads on both themes
-  --dark      #0c322c         #0c322c        deep pine (headings on light)
-  --orange    #fe7c3f         (same)         brand hue
-  --navy      #192072         (same)         brand hue
-  --blue      #2453ff         (same)         brand hue
-  --light     #90ebcd         (same)         brand hue (mint)
-  --red       #c8102e         (same)         brand hue
-Prefer --green for the accent (it works in both themes). Base your ground on
---page. Use the brand hues sparingly and intentionally.
+Available tokens. The docs share the WEB SHELL's design tokens (shells/web/src/styles/
+tokens.css), themed by the [data-theme] attribute on <html>: light is the default, dark is
+[data-theme="dark"], and inside the app shell the active brand is [data-theme="brand"]. The
+app's tokens are shadcn HSL TRIPLES — bare "H S% L%" — so a raw app slot must be wrapped:
+hsl(var(--primary)) or hsl(var(--primary) / <alpha>). The docs' legacy names below are BRIDGED
+onto those slots and, read through getComputedStyle, resolve to COMPLETE hsl(...) colours you can
+pass straight to canvas. The app slots are the source of truth; the legacy aliases are stable and
+already hsl()-wrapped, so PREFER the aliases for canvas fills.
+
+  APP SLOT (source)    LEGACY ALIAS   ROLE
+  --background         --page         page ground / your base fill
+  --foreground         --text, --dark body text / strong ink (follows the theme, dark↔light)
+  --muted-foreground   --muted        secondary / quiet marks
+  --muted              --pale         faint tint of the ground / soft surface
+  --border             --border       hairlines, faint chips
+  --primary            --green        the ACCENT (deep teal in light, pine green in dark)
+  --card               (none)         a lifted surface one step off the ground
+  --destructive        --red          error / danger hue
+  --orange #fe7c3f · --navy #192072 · --blue #2453ff · --light (mint)  — fixed brand hues, no
+                                        semantic slot; use sparingly and intentionally.
+Prefer --primary (aka --green) for the accent — it reads on both themes. Base your ground on
+--background (aka --page). Values you read via getComputedStyle are already resolved to full
+colours, e.g. `--page` reads "hsl(224 71% 4%)"; a BARE app slot reads the raw triple, e.g.
+`--primary` → "151 57% 46%", so wrap it yourself: `'hsl(' + tok('--primary','151 57% 46%') + ')'`.
+The bridged aliases already include the wrapper, so `tok('--page','#061816')` is canvas-ready.
 
 Detect dark, and repaint when it changes, via BOTH signals:
-  • .dark class on <html>: `document.documentElement.classList.contains('dark')`,
+  • the [data-theme] attribute on <html>: `document.documentElement.dataset.theme === 'dark'`,
     plus a MutationObserver on document.documentElement with
-    { attributes:true, attributeFilter:['class'] }.
+    { attributes:true, attributeFilter:['data-theme'] }. (A legacy `.dark` class is kept in
+    lock-step with the attribute for older art, so filtering on 'class' also fires — but read
+    and filter on 'data-theme', which is the real switch, and treat 'brand' as dark too.)
   • OS "system" setting: window.matchMedia('(prefers-color-scheme: dark)') and
     listen to its 'change' event.
 On either change: re-read the tokens and REPAINT immediately. If your effect is
@@ -264,8 +275,8 @@ Confirm: the «id».html value STARTS with the <!-- comment and contains <div> +
 <canvas>/<svg> + <style> + a COMPLETE <script> (its IIFE grabs root/canvas/ctx) —
 NOT just the JavaScript body; no ``` anywhere in the reply; fragment (no
 <html>/<head>/<body>); one class prefix, everything scoped;
-reads --page/--green etc. live with fallbacks; repaints on BOTH .dark-class and
-prefers-color-scheme change; if animated, has a reduced-motion static frame + an
+reads --page/--green etc. live with fallbacks; repaints on BOTH the [data-theme]
+attribute and prefers-color-scheme change; if animated, has a reduced-motion static frame + an
 off-screen/hidden suspend; no forbidden token anywhere; every <svg> has a viewBox;
 ≤ 48 KB; no C2PA/manifest text; you SELF-IDENTIFIED the model fields (name, exact
 identifier, vendor, region — or dropped region) rather than copying the examples;
@@ -344,8 +355,8 @@ and the credential then makes no location claim rather than a guessed one.
 **Default band — the floating-format chip field** (`docs/build.ts`).
 `CHIP_FIELD_JS` is the engine; `DOCS_MASTHEAD_SCRIPT` is its docs instance. It is
 the template for the theme rules: it reads `--green` / `--border` live via a
-`tok(name, fallback)` helper, decides dark from the `.dark` class, and **re-bakes**
-its chips on a `MutationObserver` for `<html>` class changes and a
+`tok(name, fallback)` helper, decides dark from the `[data-theme]` attribute, and **re-bakes**
+its chips on a `MutationObserver` for that attribute's changes and a
 `matchMedia('(prefers-color-scheme:dark)')` change. Blend/opacity are the band's
 CSS job (`.docs-mast-canvas` uses `mix-blend-mode:color-dodge` in dark), so the JS
 "only ever decides two colours." It also `pause`s off-screen and honours
@@ -356,7 +367,7 @@ The inclusive-design page's thesis rendered as artwork: a stimulation dial the
 reader runs calm→spicy. It is the shape the prompt asks the model to produce:
 a `.ism` fragment (`<div aria-hidden>` + `<canvas>` + scoped `<style>` + one IIFE),
 `position:absolute; inset:0` to fill the band, palette read live from `--page`
-(with hex fallbacks) and re-read on the `.dark` toggle **and** on
+(with hex fallbacks) and re-read on the `[data-theme]` toggle **and** on
 `prefers-color-scheme`, a single static calm frame under reduced motion, and a
 loop that idles when parked and suspends via `IntersectionObserver` /
 `visibilitychange`. Its `.meta.json` is the exact shape the prompt emits

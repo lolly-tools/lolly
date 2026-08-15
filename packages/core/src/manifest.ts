@@ -56,6 +56,9 @@ export interface InputSpec {
   type: InputType;
   label?: string;
   help?: string;
+  /** Always-visible fine print above the control (help hides behind an info
+   *  button) — e.g. the consent disclosure on a network-triggering input. */
+  notice?: string;
   required?: boolean;
   default?: unknown;
   /** Pre-fill from the user profile, e.g. `"firstname"`. */

@@ -127,7 +127,7 @@ The table is generated. Run `node scripts/gen-engine-modules.ts` after adding, r
 | `der-read.ts` | 120 | DER/ASN.1 read-side authority — the bounds-checked TLV walker plus the ECDSA signature-shape conversions and the EC named-curve table, shared by the certificate/signature modules (c2pa-verify.ts, x509.ts, seal.ts). | no | `tests/der-read.test.ts` | yes |
 | `derived-formats.ts` | 45 | Derived export formats — the ones that are a trivial, lossless transform of a format a tool already declares, so a tool that can emit the parent can emit the child for free. | yes | `tests/derived-formats.test.ts` | – |
 | `design-components.ts` | 326 | Penpot component definitions → template descriptors (pure collectors). | yes | `tests/design-components.test.ts` | – |
-| `design-map.ts` | 2156 | Design-file → Layout Studio boxes (pure mapper). | yes | `tests/design-map.test.ts` | – |
+| `design-map.ts` | 2156 | Design-file → Design boxes (pure mapper). | yes | `tests/design-map.test.ts` | – |
 | `design-version.ts` | 485 | design-version.ts — the pure model behind versioned design systems (plans/97 §6a). | yes | `tests/design-version.test.ts` | – |
 | `docx.ts` | 177 | DOCX (Word / WordprocessingML OOXML) builder — pure, DOM-free, platform-agnostic. | yes | `tests/docx.test.ts` | – |
 | `dxf.ts` | 189 | DXF (AutoCAD Drawing Interchange) emitter — pure, DOM-free, platform-agnostic. | yes | `tests/dxf.test.ts` | – |
@@ -198,7 +198,7 @@ The table is generated. Run `node scripts/gen-engine-modules.ts` after adding, r
 | `print-marks.ts` | 315 | Print-marks & bleed geometry — platform-agnostic, no DOM. | yes | `tests/print-marks.test.ts` | – |
 | `provenance-defaults.ts` | 91 | Whether an export carries provenance marks WHEN NOBODY SAID — the one home for the two default-on answers every shell needs before it exports anything: | yes | none | – |
 | `psd-write.ts` | 285 | Photoshop PSD writer — the write-back half of layered import (psd.ts reads). | yes | indirect | – |
-| `psd.ts` | 812 | Photoshop PSD/PSB reader — layered import for the layer-stack tool, Layout Studio and the picker's flatten path. | yes | `tests/psd.test.ts` | yes |
+| `psd.ts` | 812 | Photoshop PSD/PSB reader — layered import for the layer-stack tool, Design and the picker's flatten path. | yes | `tests/psd.test.ts` | yes |
 | `radiance.ts` | 646 | Radiance RGBE (`.hdr` / `.pic`) reader + writer — pure bytes, DOM-free. | no | `tests/radiance.test.ts` | – |
 | `raster-layers.ts` | 235 | The shared vocabulary of layered raster import — what psd.ts and xcf.ts both decode INTO, and the blend-mode bridges between the source formats and the one blend vocabulary the platform actually renders: CSS… | yes | indirect | – |
 | `rate-card.ts` | 689 | The printer's own rate card — stored, validated, never a source of prices. | yes | indirect | – |

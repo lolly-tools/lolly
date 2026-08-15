@@ -272,8 +272,12 @@ test('ENGINE_VERSION is 1.124.0', () => {
   // Then 1.124.0 (plans/111 M2 — `host.keyframes` with `keyframes.sample(kf, count)`,
   // running the engine's parseKf + evaluateKf so a tool template can drive motion from
   // the same `kf` wire the Design tool's camera uses; additive, no HostV1 method changed).
+  // Then 1.125.0 (plans/116 — inputs gain the optional `notice` fine-print string;
+  // manifest + i18n sidecar surface, no HostV1 method changed).
+  // Then 1.126.0 (plans/114 Wave 3 — `host.export` gains optional `share`/`canShare`
+  // for the OS share sheet; additive verbs on an existing API).
   // The ^1.54.0 screencap floor below still holds (a minor bump satisfies it).
-  assert.equal(ENGINE_VERSION, '1.124.0');
+  assert.equal(ENGINE_VERSION, '1.126.0');
 });
 
 // ─── loadTool: a ^1.54.0 tool loads against this engine ───────────────────────

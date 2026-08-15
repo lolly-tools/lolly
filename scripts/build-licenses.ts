@@ -368,15 +368,6 @@ Bundled internal codecs, statically linked into the same WASM (all permissive):
   * miniz — MIT, © 2013-2014 RAD Game Tools & Valve, © 2010-2014 Rich Geldreich
 The Emscripten runtime glue in libopenmpt.mjs is MIT (© Emscripten authors).`;
 
-// The orphan SVG-path world map used by the daily-card tool.
-const WORLD_MAP_TXT_TEXT = `tools/daily-card/world-map.txt is a low-resolution SVG-path outline of the
-world's coastlines. The file carries no embedded provenance. Its resolution
-and geometry are consistent with Natural Earth public-domain data (the same
-source as the bundled world-atlas TopoJSON above), so it is most likely
-derived from Natural Earth and therefore public domain. This provenance is
-UNCONFIRMED from the file alone and is recorded here honestly as a best
-estimate pending confirmation.`;
-
 // Each manifest entry sets `where`: 'web' means it ships in the web build, so it
 // appears in BOTH the full notices and the web-scoped THIRD-PARTY-LICENSES.txt.
 // (Anything web-only-excluded would use another value; today every entry ships
@@ -447,15 +438,6 @@ const MANIFEST: {
       copyright: 'Copyright Mike Bostock; underlying data © Natural Earth (public domain)',
       files: 'tools/meeting-planner/lib/countries-110m.json',
       text: WORLD_ATLAS_TEXT,
-      where: 'web',
-    },
-    {
-      name: 'daily-card world map',
-      version: '(SVG path, provenance unconfirmed)',
-      spdx: 'public-domain (likely Natural Earth, unconfirmed)',
-      copyright: 'No embedded copyright; likely Natural Earth (public domain)',
-      files: 'tools/daily-card/world-map.txt',
-      text: WORLD_MAP_TXT_TEXT,
       where: 'web',
     },
   ],

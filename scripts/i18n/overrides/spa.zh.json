@@ -35,7 +35,7 @@
   "“{name}” is ready to import.": "“{name}”已准备好导入。",
   "“{name}” isn’t a format Lolly can import directly.": "“{name}”不是 Lolly 能直接导入的格式。",
   "{n} files are ready to import.": "{n} 个文件已准备好导入。",
-  "Edit in Layout Studio": "在 Layout Studio 中编辑",
+  "Edit in Design": "在 Design 中编辑",
   "Add pages to your library": "将页面添加到你的素材库",
   "Add slides to your library": "将幻灯片添加到你的素材库",
   "Compress this PDF": "压缩此 PDF",

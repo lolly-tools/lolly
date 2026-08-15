@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
- * Layout Studio — gradient-fill contract tests.
+ * Design — gradient-fill contract tests.
  *
  * Run with: npm test  (node --test over the tests/ globs). No framework — node:test.
  *

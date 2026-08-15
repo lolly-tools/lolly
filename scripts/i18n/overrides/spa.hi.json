@@ -35,7 +35,7 @@
   "“{name}” is ready to import.": "“{name}” इंपोर्ट के लिए तैयार है।",
   "“{name}” isn’t a format Lolly can import directly.": "“{name}” ऐसा फ़ॉर्मैट नहीं है जिसे Lolly सीधे इंपोर्ट कर सके।",
   "{n} files are ready to import.": "{n} फ़ाइलें इंपोर्ट के लिए तैयार हैं।",
-  "Edit in Layout Studio": "Layout Studio में एडिट करें",
+  "Edit in Design": "Design में एडिट करें",
   "Add pages to your library": "पेज अपनी लाइब्रेरी में जोड़ें",
   "Add slides to your library": "स्लाइड अपनी लाइब्रेरी में जोड़ें",
   "Compress this PDF": "इस PDF को कंप्रेस करें",

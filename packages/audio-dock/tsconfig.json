@@ -1,0 +1,11 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    // Unlike docs-render (string-in/string-out), the dock shell builds DOM and
+    // reads Web Audio / rAF, so it needs the DOM libs. `node` types cover the
+    // node:test harness + jsdom-driven test.
+    "lib": ["ES2023", "DOM", "DOM.Iterable"],
+    "types": ["node"]
+  },
+  "include": ["src/**/*", "test/**/*"]
+}

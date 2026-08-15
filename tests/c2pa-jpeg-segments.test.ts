@@ -8,7 +8,7 @@
  * counter (Z). The reader must reassemble by (En, Z) order — NOT by scanning for
  * the "c2pa" store-UUID marker on every segment, because an assertion URL such
  * as `self#jumbf=/c2pa/…` plants the bytes "c2pa" at that exact offset inside a
- * *continuation* chunk. Reading a real 24-manifest export (Layout Studio.jpg)
+ * *continuation* chunk. Reading a real 24-manifest export (Design.jpg)
  * used to reject that as "JPEG has more than one manifest store". These craft
  * that exact byte pattern so the regression can't silently return.
  */

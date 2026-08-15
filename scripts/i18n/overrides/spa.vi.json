@@ -35,7 +35,7 @@
   "“{name}” is ready to import.": "“{name}” đã sẵn sàng để nhập.",
   "“{name}” isn’t a format Lolly can import directly.": "“{name}” không phải là định dạng Lolly có thể nhập trực tiếp.",
   "{n} files are ready to import.": "{n} tệp đã sẵn sàng để nhập.",
-  "Edit in Layout Studio": "Chỉnh sửa trong Layout Studio",
+  "Edit in Design": "Chỉnh sửa trong Design",
   "Add pages to your library": "Thêm các trang vào thư viện của bạn",
   "Add slides to your library": "Thêm các trang chiếu vào thư viện của bạn",
   "Compress this PDF": "Nén tệp PDF này",
