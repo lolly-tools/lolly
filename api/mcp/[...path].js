@@ -145,6 +145,11 @@ var init_tool_schema = __esm({
               default: true,
               description: "Set false for utility/interactive tools that have no export. Hides download, copy, format, and dimension controls. Shows Save only when the tool has inputs. Hides the sidebar entirely when there are no inputs."
             },
+            sidebar: {
+              type: "boolean",
+              default: true,
+              description: "Set false to declare inputs that are NOT presented as a left-panel sidebar: the inputs live only in the synced input model (URL params, collaboration, saved sessions, CLI/URL mode) and the tool's own template owns their editing UI. A full-bleed tool that still exports (render.export:true) keeps its export pill and canvas \u2014 the input aside is simply suppressed, exactly as for a no-input full-bleed tool. Use this for an interactive editor whose controls belong on the canvas (e.g. Run Web Code's code panes) rather than in a sidebar. Distinct from render.layout:'canvas' (which is for a single file drop-zone and forces export off) and from the chromeless 'editor'/'document' layouts (which keep a fixed render canvas)."
+            },
             layout: {
               type: "string",
               enum: ["sidebar", "canvas", "editor", "document", "deck"],
@@ -198,7 +203,7 @@ var init_tool_schema = __esm({
             printMarks: {
               type: "boolean",
               default: true,
-              description: "Set false to hide the 'Print marks & bleed' card from the download bar. The print-finishing path (crop/registration marks, bleed box, page boxes) applies to a single trim-sized artwork, so multi-page documents (which emit per-page boxes) opt out of it."
+              description: "Set false to hide the 'Print marks & bleed' card from the download bar. The print-finishing path (crop/registration marks, bleed box, page boxes) applies to a single trim-sized artwork, so multi-page documents (which emit per-page boxes) opt out of it. Set true to DECLARE PRINT INTENT: the card's master toggle then defaults ON for every print-capable format. Left unset, the card is offered but starts OFF for the RGB vector formats (pdf/svg/eps) and ON only for the separating press formats (pdf-cmyk/cmyk-tiff/eps-cmyk) \u2014 marks and bleed are never a side effect of picking a physical unit or an everyday PDF/SVG."
             },
             transparentBg: {
               type: "boolean",
@@ -537,9 +542,9 @@ var init_tool_schema = __esm({
                 properties: {
                   display: {
                     type: "string",
-                    enum: ["select", "icon-toggle"],
+                    enum: ["select", "icon-toggle", "segmented"],
                     default: "select",
-                    description: "'icon-toggle' renders the select as ONE compact button that cycles its options, showing the current option's `icon` instead of a dropdown. Intended for 2-state modifiers (with attachTo); a longer option list still cycles, but a dropdown reads better past ~3."
+                    description: "'icon-toggle' renders the select as ONE compact button that cycles its options, showing the current option's `icon` instead of a dropdown. Intended for 2-state modifiers (with attachTo); a longer option list still cycles, but a dropdown reads better past ~3. 'segmented' renders the options as a row of side-by-side tabs (a radiogroup) instead of a dropdown \u2014 for a small, mutually-exclusive mode switch (2\u20134 options) like Hue/Saturation/Luminance; past ~4 a dropdown reads better."
                   },
                   options: {
                     type: "array",
@@ -620,6 +625,11 @@ var init_tool_schema = __esm({
                     type: "boolean",
                     default: false,
                     description: "Show a text label above each sub-field (the layout typed/addMenu blocks always use). Turn on for untyped blocks whose controls aren't self-evident, or that carry several optional fields."
+                  },
+                  rowActions: {
+                    type: "boolean",
+                    default: false,
+                    description: "Add copy / paste / clear buttons to each block's header (next to collapse + remove): copy a row's values, paste them onto another row to make the two match, or clear a row to its field defaults. Useful when rows are many-field states people want to duplicate (e.g. flythrough poses)."
                   },
                   fields: {
                     type: "array",
@@ -765,7 +775,8 @@ var init_tool_schema = __esm({
                   },
                   canvas: {
                     type: "object",
-                    description: "Marks this blocks array as a free-form WYSIWYG canvas of positioned 'boxes' (requires render.layout:'editor'). The web shell mounts a direct-manipulation overlay \u2014 select, drag, resize, rotate, re-stack (z-order = array order, later rows paint on top), align and distribute \u2014 that reads and writes this flat array through the normal input path. The fields named below give the overlay the geometry to manipulate; every field remains an ordinary block sub-field, so the layout stays flat, URL-expressible, and renders identically headless (CLI/URL) with no overlay. Field ORDER in `fields` is the compact-URL wire format \u2014 never reorder or remove once shipped.",
+                    description: "Marks this blocks array as a free-form WYSIWYG canvas of positioned 'boxes' (requires render.layout:'editor'). The web shell mounts a direct-manipulation overlay \u2014 select, drag, resize, rotate, re-stack (z-order = array order, later rows paint on top), align and distribute \u2014 that reads and writes this flat array through the normal input path. The fields named below give the overlay the geometry to manipulate; every field remains an ordinary block sub-field, so the layout stays flat, URL-expressible, and renders identically headless (CLI/URL) with no overlay. Field ORDER in `fields` is the compact-URL wire format \u2014 never reorder or remove once shipped. CLOSED SET: unknown keys are rejected, because a typo'd `*Field` name is silently inert at runtime (the overlay reads a field nothing writes) \u2014 so the schema, not a bug report, has to catch it. Every `*Field` value must also name a real sub-field id in the SIBLING `fields` array; scripts/validate-catalog.ts enforces that half. Adding a key here is therefore a BREAKING change for older shells: the same schema is what engine/src/loader.ts validates a manifest against at load time, so a manifest carrying a key an older engine's copy does not list is refused whole, not partially ignored. Ship a new canvas key together with an `engineVersion` floor that names the engine which introduced it \u2014 the loader checks that range BEFORE validating, so an old shell reports the version, not a schema error.",
+                    additionalProperties: false,
                     properties: {
                       idField: { type: "string", description: "Sub-field holding each box's stable id (used to track selection across re-stacking). Default 'id'." },
                       xField: { type: "string", description: "Number sub-field: box left, in canvas (native render) pixels. Default 'x'." },
@@ -776,6 +787,7 @@ var init_tool_schema = __esm({
                       shapeField: { type: "string", description: "Select sub-field: box shape (e.g. rectangle/rounded/ellipse)." },
                       radiusField: { type: "string", description: "Number sub-field: corner radius in px (used when shape is rounded)." },
                       fillField: { type: "string", description: "Color sub-field: box background fill (empty = transparent)." },
+                      gradField: { type: "string", description: "Text sub-field: a gradient fill as a Lolly gradient spec (kind_angle_colour-pos_colour-pos, e.g. lin_90_30ba78-0_efefef-100). Painted OVER the flat fill, so a translucent stop composites onto it; empty = no gradient. The hook lowers it through host.color.gradientCss, so an engine that predates that primitive degrades to the flat fill." },
                       opacityField: { type: "string", description: "Number sub-field: box opacity 0\u2013100." },
                       imageField: { type: "string", description: "Asset sub-field: image drawn inside the box." },
                       fitField: { type: "string", description: "Select sub-field: how the image fills the box (object-fit: cover/contain/fill)." },
@@ -790,17 +802,33 @@ var init_tool_schema = __esm({
                       fontField: { type: "string", description: "Select sub-field: text font family." },
                       lineHeightField: { type: "string", description: "Number sub-field: text line-height (unitless multiplier)." },
                       padField: { type: "string", description: "Number sub-field: inner padding in px between the box edge and its text." },
+                      fitTextField: { type: "string", description: "Boolean sub-field: shrink the text until it fits inside the box (shrink-ONLY \u2014 never larger than the authored size). Off = the box is expected to grow to its text instead." },
                       groupField: { type: "string", description: "Text sub-field: id of the group this box belongs to (empty = ungrouped). Boxes sharing a group id move / scale / rotate together; purely an editor concept (no render effect)." },
                       clipField: { type: "string", description: "Text sub-field: id of another box whose shape clips this one (a clip-path mask). Faithful in raster + SVG export; flattened in PDF/EMF." },
                       pathField: { type: "string", description: "Text sub-field holding a VECTOR path box's authored path \u2014 the pen tool's own form (nodes + handles + spline kind), encoded as one delimiter-safe value by host.geom.encodeAuthored. Node coordinates are NORMALISED to the box frame (fractions of w/h, values outside 0..1 legal), so the ordinary move / resize / rotate gestures act on a path box through x/y/w/h/rot without rewriting a single node. Machine-written and machine-read only: the field carries showFor:[] so it never renders as a sidebar control. The tool's hook lowers it via host.geom.fromNodes and emits an inline <svg><path>, which vector-exports with no extra export code." },
+                      strokeField: { type: "string", description: "Color sub-field: stroke paint for a path/box/image outline (empty = no stroke). Defaults to 'stroke' when the canvas omits it, so the overlay and the vector operations read the same sub-field." },
+                      strokeWField: { type: "string", description: "Number sub-field: stroke width in canvas px. Default 'strokeW'." },
+                      fillRuleField: { type: "string", description: "Select sub-field: a path's fill rule \u2014 nonzero or evenodd. Default 'fillRule'." },
+                      strokeDashField: { type: "string", description: "Select sub-field: dash STYLE as a keyword ('' solid / dashed / dotted). The pattern is derived from the stroke width so it keeps its proportions when the width changes; an authored `strokeDashArrayField` wins over it. Default 'strokeDash'." },
+                      strokeCapField: { type: "string", description: "Select sub-field: line cap \u2014 round, butt or square. Default 'strokeCap'." },
+                      strokeJoinField: { type: "string", description: "Select sub-field: line join \u2014 round, miter or bevel. Default 'strokeJoin'." },
+                      strokeDashArrayField: { type: "string", description: "Text sub-field: an AUTHORED dash pattern as SPACE-separated numbers in stroke-width units (\"6 4\" = a 6-long dash, a 4-long gap). A string, not a list, and space-separated rather than comma-separated, because one block sub-field is one scalar and a comma would split the compact blocks URL row. Set, it wins over the `strokeDashField` keyword. Default 'strokeDashArray'." },
+                      dashFitField: { type: "string", description: "Boolean sub-field: stretch the authored dash pattern slightly so a whole number of dashes fits between each corner and each end of the path (Illustrator's corner-aligned dashes) instead of a half dash landing on a corner. Applied by the tool's hook. Default 'dashFit'." },
+                      headStartField: { type: "string", description: "Select sub-field: the decoration drawn at the path's FIRST point, along that end's own tangent \u2014 none \xB7 triangle \xB7 open \xB7 circle \xB7 diamond \xB7 bar. Same vocabulary as the connector heads, because a spline, a line and a connector are one primitive carrying one decoration set. Default 'headStart'." },
+                      headEndField: { type: "string", description: "Select sub-field: the same decoration at the path's LAST point. Default 'headEnd'." },
+                      bindStartField: { type: "string", description: "Text sub-field: the id of the box this path's FIRST point is attached to, '' for a free end. Machine-written by the bind gesture (carries showFor:[]), never typed; a bound end is what hands the path to connector routing. Default 'bindStart'." },
+                      bindEndField: { type: "string", description: "Text sub-field: the same binding for the path's LAST point. Default 'bindEnd'." },
+                      routeField: { type: "string", description: "Select sub-field: how a path with a BOUND end routes between its boxes (straight, elbow-*, curved-*, arc-*). '' = auto, read off the path's own spline kind \u2014 the explicit value exists because six spline kinds cannot name the engine's thirteen routes. Default 'route'." },
+                      pathLayerClass: { type: "string", description: "Class the tool's hook puts on its committed BOUND-PATH <svg> layer. The overlay hides that layer for the duration of a drag so the live preview doesn't double up with the stale committed one \u2014 only the manifest knows what its own hook emits. Default 'lolly-connectors'." },
                       trackingField: { type: "string", description: "Number sub-field: letter-spacing in px." },
                       ligaturesField: { type: "string", description: "Boolean sub-field: enable common ligatures." },
                       alternatesField: { type: "string", description: "Boolean/select sub-field: stylistic alternates." },
-                      shadowField: { type: "string", description: "Boolean sub-field: whether the box casts a drop shadow." },
+                      shadowField: { type: "string", description: "SELECT sub-field (not a Boolean \u2014 a shadow has a target, and the value names it): 'none' \xB7 'box' (the frame's own silhouette, a box-shadow) \xB7 'text' (the type only, a text-shadow) \xB7 'content' (the artwork's alpha silhouette, a filter: drop-shadow). The vocabulary is additive: a depth-capable tool may extend it with 'depth', whose offset/blur are DERIVED from the box's `zField` rather than authored. Whatever the value, the x/y/blur/colour sub-fields below supply the geometry." },
                       shadowColorField: { type: "string", description: "Color sub-field: drop-shadow colour." },
                       shadowXField: { type: "string", description: "Number sub-field: drop-shadow x offset in px." },
                       shadowYField: { type: "string", description: "Number sub-field: drop-shadow y offset in px." },
                       shadowBlurField: { type: "string", description: "Number sub-field: drop-shadow blur radius in px." },
+                      zField: { type: "string", description: "Number sub-field: the box's DEPTH \u2014 how far it sits in front of (positive) or behind (negative) the stage plane, in canvas px. Layers stay parallel to the screen, so a camera turns z into a per-layer uniform scale + translate (parallax, push-in, depth-of-field) and the render stays affine end-to-end. Absent field or 0 = the flat, unlifted board; the authored slider runs 0\u2013300 and the value clamps to \u2212300\u2026900." },
                       startField: { type: "string", description: "Number sub-field: when this box appears, in SECONDS from the start of the sequence. Empty = the box is 'scenery' (always visible). Timing is inert unless a shell mounts a timeline panel; static exports ignore it." },
                       durField: { type: "string", description: "Number sub-field: how long the box stays visible, in SECONDS. Empty = runs to the end of the sequence." },
                       clipInField: { type: "string", description: "Number sub-field: trim in-point WITHIN the box's own media (video/lottie/audio), in SECONDS from the media's start. Ignored for non-media boxes." },
@@ -814,6 +842,11 @@ var init_tool_schema = __esm({
                       muteField: { type: "string", description: "Boolean sub-field: silence this box's own audio track when the sequence is mixed." },
                       linkField: { type: "string", description: "String sub-field: the id of the box this one is A/V-linked to (written on BOTH sides when audio is detached from a video). Absent or naming a missing box reads as unlinked." },
                       laneField: { type: "string", description: "Select sub-field: '' places the box on a free overlay lane; 'seq' places it on the magnetic main sequence row, where clips are kept gapless and edits ripple." },
+                      kfField: { type: "string", description: "Text sub-field: the box's KEYFRAME TRACK \u2014 its whole authored animation as one compact, delimiter-safe string (times in ms, per-channel values at the pinned quanta, per-segment easing). Machine-written by the timeline, so the sub-field carries showFor:[] and never renders as a sidebar control. Absent or empty = the box is not keyframed and every keyframe path is inert for it." },
+                      frameField: { type: "string", description: "Text sub-field: the id of the FRAME (page/artboard container) box this box belongs to; '' = it sits on the open board. Declaring it turns on the frame primitive \u2014 the overlay drives gestures in frame-local space via each frame's DOM offset, and re-buckets a moved/created/resized box into whichever frame its centre lands in on drop. Absent leaves every frame-aware path dead (byte-identical to a frameless editor)." },
+                      frameKind: { type: "string", description: "NOT a field name: the literal `kind` VALUE that marks a box as a frame rather than ordinary content (e.g. 'frame'). Frames render as free-placed [data-pdf-page] pages at their authored x/y." },
+                      orderField: { type: "string", description: "Number sub-field on a FRAME box: its page order in a multi-page export. Read by the tool's hook; the overlay's frame-reorder control writes it. Absent = no reorder affordance." },
+                      clipChildrenField: { type: "string", description: "Boolean sub-field on a FRAME box: whether content overflowing the frame is clipped to it. Absent = the overlay offers no clip toggle." },
                       minSize: { type: "number", description: "Smallest box width/height the overlay will create or resize to, in canvas px. Default 8." },
                       addKinds: {
                         type: "array",
@@ -829,6 +862,46 @@ var init_tool_schema = __esm({
                           }
                         }
                       },
+                      import: {
+                        type: "object",
+                        additionalProperties: false,
+                        description: "Opt into design-file IMPORT on this canvas: the editor's Lolly menu gains an 'Import a design' entry that maps an imported file's frames/shapes onto boxes of THIS array, using the tool's own font-select values and addKinds seed colours so the result is indistinguishable from natively-authored boxes. Absent (Layout Studio's historical state) = no import control at all.",
+                        properties: {
+                          formats: {
+                            type: "array",
+                            items: { type: "string" },
+                            description: "The design formats this canvas advertises accepting (today: svg, penpot, pdf, ai, idml). Documents intent for the import panel; the engine's importer is the authority on what it can actually parse."
+                          },
+                          mode: {
+                            type: "string",
+                            enum: ["scenes"],
+                            description: "'scenes' (Sequence Studio): an imported design's frames land as timed clips APPENDED to the main sequence instead of replacing the canvas. Requires the full time model to be mapped; omit for editors whose import replaces the board."
+                          }
+                        }
+                      },
+                      connect: {
+                        type: "object",
+                        required: ["input"],
+                        additionalProperties: false,
+                        description: "Opt into connector authoring (Org Chart): a SECOND blocks input holding {from,to} edges between boxes, plus a 'Connect' rail mode to author them (click a source card, then targets). The overlay reads/writes that array and draws a live preview; the tool's hooks.js owns the real routed geometry. Absent = the editor's toolbar and gestures are unchanged.",
+                        properties: {
+                          input: { type: "string", description: "id of the blocks input storing the connector edges. Its sub-fields \u2014 not this canvas's `fields` \u2014 are what the *Field names below refer to." },
+                          fromField: { type: "string", description: "Edge sub-field holding the SOURCE box id. Default 'from'." },
+                          toField: { type: "string", description: "Edge sub-field holding the TARGET box id. Default 'to'." },
+                          styleField: { type: "string", description: "Edge sub-field: route style (elbow, straight, curved \u2026)." },
+                          arrowField: { type: "string", description: "Edge sub-field: which ENDS carry an arrowhead (none/end/both)." },
+                          headField: { type: "string", description: "Edge sub-field: arrowhead SHAPE (triangle/open/circle/diamond/bar) \u2014 same vocabulary as the path decorations." },
+                          colorField: { type: "string", description: "Edge sub-field: line colour." },
+                          dashField: { type: "string", description: "Edge sub-field: dash style keyword." },
+                          widthField: { type: "string", description: "Edge sub-field: line width in canvas px." },
+                          layerClass: { type: "string", description: "Class of the tool's rendered connector <svg>, hidden mid-drag so the live preview doesn't double up with the committed one. Default 'oc-connectors'." },
+                          defaultStyle: { type: "string", description: "Route style a newly-authored edge starts at. Default 'elbow'." },
+                          defaultArrow: { type: "string", description: "Arrow ends a newly-authored edge starts at. Default 'end'." },
+                          defaultHead: { type: "string", description: "Arrowhead shape a newly-authored edge starts at. Default 'triangle'." },
+                          defaultColor: { type: "string", description: "Line colour a newly-authored edge starts at. Default '#94a3b8'." },
+                          defaultWidth: { type: "number", description: "Line width a newly-authored edge starts at. Default 2.5." }
+                        }
+                      },
                       grid: {
                         type: "object",
                         description: "Opt into snap-to-grid: the overlay rounds drag/resize to this lattice (per-axis alignment smart-guides still win; Alt disables).",
@@ -837,30 +910,7 @@ var init_tool_schema = __esm({
                           default: { type: "boolean", description: "Whether snap-to-grid starts on." }
                         }
                       },
-                      fixedCanvas: { type: "boolean", description: "Lock the canvas to render.width/height: the shell withholds setCanvasSize and ignores reserved ?width/?height, so box coordinates stay 1:1 with the render size (required when a hook draws into a fixed-viewBox overlay, e.g. connectors)." },
-                      connect: {
-                        type: "object",
-                        description: "Opt into connector authoring: a Connect-mode rail button (click a source card, then targets), a live connector preview, and an Auto-arrange (tidy-tree) button. Edges are stored as rows of a SECOND blocks input named by `input`; each *Field below names a sub-field of that connectors block.",
-                        required: ["input"],
-                        additionalProperties: false,
-                        properties: {
-                          input: { type: "string", description: "Input id of the connectors blocks array edges are written to." },
-                          fromField: { type: "string", description: "Edge sub-field holding the source box id. Default 'from'." },
-                          toField: { type: "string", description: "Edge sub-field holding the target box id. Default 'to'." },
-                          styleField: { type: "string", description: "Edge select sub-field: route flavour (straight/elbow/elbow-v/elbow-h/elbow-src/elbow-tgt/curved)." },
-                          arrowField: { type: "string", description: "Edge select sub-field: which ends carry an arrow (none/end/both)." },
-                          headField: { type: "string", description: "Edge select sub-field: arrowhead SHAPE (triangle/open/circle/diamond/bar)." },
-                          colorField: { type: "string", description: "Edge color sub-field: line colour." },
-                          dashField: { type: "string", description: "Edge select sub-field: line dash (solid/dashed/dotted)." },
-                          widthField: { type: "string", description: "Edge number sub-field: line width in px." },
-                          layerClass: { type: "string", description: "CSS class of the tool's rendered connector <svg>, hidden mid-drag while the shell paints a live preview." },
-                          defaultStyle: { type: "string", description: "Route flavour a new edge starts at." },
-                          defaultArrow: { type: "string", description: "Arrow ends a new edge starts at." },
-                          defaultHead: { type: "string", description: "Arrowhead shape a new edge starts at." },
-                          defaultColor: { type: "string", description: "Colour a new edge starts at." },
-                          defaultWidth: { type: "number", description: "Width (px) a new edge starts at." }
-                        }
-                      }
+                      fixedCanvas: { type: "boolean", description: "Lock the canvas to render.width/height: the shell withholds setCanvasSize and ignores reserved ?width/?height, so box coordinates stay 1:1 with the render size (required when a hook draws into a fixed-viewBox overlay, e.g. connectors)." }
                     }
                   }
                 }
@@ -1728,7 +1778,7 @@ var ENGINE_VERSION;
 var init_version = __esm({
   "engine/src/version.ts"() {
     "use strict";
-    ENGINE_VERSION = "1.112.0";
+    ENGINE_VERSION = "1.124.0";
   }
 });
 
@@ -1932,6 +1982,13 @@ async function loadTool(toolId, fetchFile, opts = {}) {
   const manifestText = await fetchFile(`${toolId}/tool.json`);
   if (integrity) await assertFileIntegrity(integrity, toolId, "tool.json", manifestText);
   const parsed = JSON.parse(manifestText);
+  const declaredRange = parsed && typeof parsed === "object" && typeof parsed.engineVersion === "string" ? parsed.engineVersion : null;
+  if (declaredRange !== null && !satisfiesRange(ENGINE_VERSION, declaredRange)) {
+    throw new ToolLoadError(
+      `"${toolId}" requires engine ${declaredRange}, but this build implements ${ENGINE_VERSION} \u2014 refusing to load`,
+      []
+    );
+  }
   const { valid, errors } = validateManifest(parsed);
   if (!valid) {
     throw new ToolLoadError(`Manifest for "${toolId}" failed validation`, errors);
@@ -1940,12 +1997,6 @@ async function loadTool(toolId, fetchFile, opts = {}) {
   if (manifest.id !== toolId) {
     throw new ToolLoadError(
       `Manifest id "${manifest.id}" doesn't match directory "${toolId}"`,
-      []
-    );
-  }
-  if (!satisfiesRange(ENGINE_VERSION, manifest.engineVersion)) {
-    throw new ToolLoadError(
-      `"${toolId}" requires engine ${manifest.engineVersion}, but this build implements ${ENGINE_VERSION} \u2014 refusing to load`,
       []
     );
   }
@@ -5267,16 +5318,16 @@ function parsePdf(bin) {
   return { startxref, entries, root, maxNum, infoRaw: infoM ? infoM[0] : null, idRaw: idM ? idM[0] : null };
 }
 function catalogSource(bin, info) {
-  const { num: num5, gen } = info.root;
-  const headRe = new RegExp(`^${num5}\\s+${gen}\\s+obj\\b`);
+  const { num: num6, gen } = info.root;
+  const headRe = new RegExp(`^${num6}\\s+${gen}\\s+obj\\b`);
   let at = -1;
-  const entry = info.entries.get(num5);
+  const entry = info.entries.get(num6);
   if (entry && entry.type === "n") {
     const i2 = skipWs(bin, entry.offset);
     if (headRe.test(bin.slice(i2, i2 + 32))) at = i2;
   }
   if (at < 0) {
-    const re = new RegExp(`(?:^|[^0-9])(${num5}\\s+${gen}\\s+obj)\\b`, "g");
+    const re = new RegExp(`(?:^|[^0-9])(${num6}\\s+${gen}\\s+obj)\\b`, "g");
     for (let m2; m2 = re.exec(bin); ) at = m2.index + m2[0].length - m2[1].length;
   }
   if (at < 0) throw new Error("C2PA embed: cannot locate the PDF Catalog object");
@@ -5314,7 +5365,7 @@ function catalogWithAttachment(src, fsRef) {
   for (const e of edits.sort((a, b) => b.at - a.at)) out = out.slice(0, e.at) + e.text + out.slice(e.at);
   return out;
 }
-async function embedC2paInPdf(pdfBytes, { title, claimGenerator, generatorInfo, environment, author, authorship, rights, actions, ingredients, dates = {}, signer } = {}) {
+async function embedC2paInPdf(pdfBytes, { title, claimGenerator, generatorInfo, environment, author, authorship, rights, actions, ingredients, aiDisclosure, specVersion, dates = {}, signer } = {}) {
   if (!(pdfBytes instanceof Uint8Array)) throw new Error("C2PA embed: pdfBytes must be a Uint8Array");
   const bin = bytesToBin(pdfBytes);
   const info = parsePdf(bin);
@@ -5372,6 +5423,8 @@ ${xrefOff}
     rights,
     actions,
     ingredients,
+    aiDisclosure,
+    specVersion,
     dates,
     format: "application/pdf",
     assetHash: { exclusions: exclusions2, hash, pad: padBytes },
@@ -5930,6 +5983,187 @@ function placeMp3(mp3, manifest) {
     exclusions: [{ start: 0, length: tag2.length }]
   };
 }
+function htmlTagNameAt(bin, at, name) {
+  for (let k = 0; k < name.length; k++) {
+    if ((bin.charCodeAt(at + k) | 32) !== name.charCodeAt(k)) return false;
+  }
+  const d = bin.charCodeAt(at + name.length);
+  return d === 32 || d === 9 || d === 10 || d === 13 || d === 12 || d === 47 || d === 62;
+}
+function htmlTagEnd(bin, from) {
+  let q = "";
+  for (let i = from; i < bin.length; i++) {
+    const ch = bin[i];
+    if (q) {
+      if (ch === q) q = "";
+    } else if (ch === '"' || ch === "'") q = ch;
+    else if (ch === ">") return i + 1;
+  }
+  return -1;
+}
+function htmlAnchors(bin) {
+  const a = { head: -1, html: -1, doctype: -1, headSelfClosed: false, htmlSelfClosed: false };
+  for (let at = bin.indexOf("<"); at >= 0; at = bin.indexOf("<", at + 1)) {
+    if (bin.charCodeAt(at + 1) === 33) {
+      if (bin.startsWith("<!--", at)) {
+        const close = bin.indexOf("-->", at + 4);
+        if (close < 0) break;
+        at = close + 2;
+        continue;
+      }
+      if (a.doctype < 0 && /^doctype\s+html\b/i.test(bin.slice(at + 2, at + 16))) {
+        const end2 = htmlTagEnd(bin, at + 2);
+        if (end2 < 0) break;
+        a.doctype = end2;
+        at = end2 - 1;
+      }
+      continue;
+    }
+    if (htmlTagNameAt(bin, at + 1, "body")) break;
+    const raw = HTML_RAW_TEXT.find((n2) => htmlTagNameAt(bin, at + 1, n2));
+    if (raw) {
+      const open = htmlTagEnd(bin, at + 1 + raw.length);
+      if (open < 0) break;
+      const close = findHtmlCloseTag(bin, raw, open);
+      if (close < 0) break;
+      at = close - 1;
+      continue;
+    }
+    const isHead = htmlTagNameAt(bin, at + 1, "head");
+    if (!isHead && !htmlTagNameAt(bin, at + 1, "html")) continue;
+    const end = htmlTagEnd(bin, at + 1 + 4);
+    if (end < 0) break;
+    if (isHead) {
+      a.head = end;
+      a.headSelfClosed = bin[end - 2] === "/";
+      break;
+    }
+    if (a.html < 0) {
+      a.html = end;
+      a.htmlSelfClosed = bin[end - 2] === "/";
+    }
+    at = end - 1;
+  }
+  return a;
+}
+function htmlAttrValues(src) {
+  const attrs = /* @__PURE__ */ new Map();
+  const re = /([^\s=/>]+)(?:\s*=\s*(?:"([^"]*)"|'([^']*)'|([^\s"'=<>`]*)))?/g;
+  for (let m2; (m2 = re.exec(src)) !== null; ) {
+    if (!m2[0]) {
+      re.lastIndex++;
+      continue;
+    }
+    const key = m2[1].toLowerCase();
+    if (!attrs.has(key)) attrs.set(key, m2[2] ?? m2[3] ?? m2[4] ?? "");
+    if (attrs.size >= MAX_HTML_ATTRS) break;
+  }
+  return attrs;
+}
+function findHtmlCloseTag(bin, name, from) {
+  for (let at = bin.indexOf("</", from); at >= 0; at = bin.indexOf("</", at + 2)) {
+    if (!htmlTagNameAt(bin, at + 2, name)) continue;
+    const gt = bin.indexOf(">", at + 2 + name.length);
+    return gt < 0 ? -1 : gt + 1;
+  }
+  return -1;
+}
+function stripHtmlC2paCarriers(bin) {
+  let out = "";
+  let copied = 0;
+  for (let at = bin.indexOf("<"); at >= 0; at = bin.indexOf("<", at + 1)) {
+    const isScript = htmlTagNameAt(bin, at + 1, "script");
+    if (!isScript && !htmlTagNameAt(bin, at + 1, "link")) continue;
+    const name = isScript ? "script" : "link";
+    const end = htmlTagEnd(bin, at + 1 + name.length);
+    if (end < 0) break;
+    const attrs = htmlAttrValues(bin.slice(at + 1 + name.length, end - 1));
+    let cutEnd = -1;
+    if (isScript) {
+      if ((attrs.get("type") ?? "").trim().toLowerCase() === "application/c2pa") {
+        cutEnd = findHtmlCloseTag(bin, "script", end);
+        if (cutEnd < 0) throw new Error('C2PA embed: the HTML host has an unterminated <script type="application/c2pa"> element \u2014 it looks truncated');
+      }
+    } else if ((attrs.get("rel") ?? "").trim().toLowerCase().split(/\s+/).includes("c2pa-manifest")) {
+      cutEnd = end;
+    }
+    if (cutEnd < 0) {
+      at = end - 1;
+      continue;
+    }
+    out += bin.slice(copied, at);
+    copied = cutEnd;
+    at = cutEnd - 1;
+  }
+  return copied ? out + bin.slice(copied) : bin;
+}
+function placeHtml(html, manifest) {
+  const bin = stripHtmlC2paCarriers(bytesToBin(html));
+  const a = htmlAnchors(bin);
+  let at = a.head;
+  let before = "";
+  let after = "";
+  if (at < 0) {
+    if (a.html >= 0 && a.htmlSelfClosed) throw new Error("C2PA embed: self-closing <html/> cannot hold a manifest");
+    at = a.html >= 0 ? a.html : a.doctype;
+    if (at < 0) throw new Error("C2PA embed: not an HTML document (no <head>, <html> or <!doctype html>)");
+    before = "<head>";
+    after = "</head>";
+  } else if (a.headSelfClosed) {
+    throw new Error("C2PA embed: self-closing <head/> cannot hold a manifest");
+  }
+  const element = C2PA_SCRIPT_OPEN + btoa(bytesToBin(manifest)) + C2PA_SCRIPT_CLOSE;
+  return {
+    out: binToBytes(bin.slice(0, at) + before + element + after + bin.slice(at)),
+    exclusions: [{ start: at + before.length, length: element.length }]
+  };
+}
+function armorIndices(bin, needle, cap) {
+  const out = [];
+  for (let at = bin.indexOf(needle); at >= 0 && out.length < cap; at = bin.indexOf(needle, at + needle.length)) out.push(at);
+  return out;
+}
+function stripArmorBlock(bin, label) {
+  const begins = armorIndices(bin, ARMOR_BEGIN, 2);
+  const ends = armorIndices(bin, ARMOR_END, 2);
+  if (!begins.length && !ends.length) return bin;
+  const begin = begins[0];
+  const end = ends[0];
+  if (begins.length !== 1 || ends.length !== 1 || end < begin + ARMOR_BEGIN.length) {
+    throw new Error(`C2PA embed: this ${label} already carries more than one \u2014 or a malformed \u2014 C2PA manifest block (\xA7A.9.3 allows at most one)`);
+  }
+  const refuse = (what) => {
+    throw new Error(`C2PA embed: this ${label} quotes the \xA7A.9 armour delimiters ${what} \u2014 refusing to delete it, and a second block would make the file unreadable`);
+  };
+  const lineStart = bin.lastIndexOf("\n", begin) + 1;
+  const nl = bin.indexOf("\n", end);
+  const lineEnd = nl < 0 ? bin.length : nl + 1;
+  if (lineStart !== 0 && bin.slice(lineEnd).trim()) refuse("in the middle of the file, where \xA7A.9.3.1 never places a manifest block");
+  if (!ARMOR_COMMENT_OPEN.test(bin.slice(lineStart, begin)) || !ARMOR_COMMENT_CLOSE.test(bin.slice(end + ARMOR_END.length, lineEnd).replace(/\r?\n$/, ""))) {
+    refuse("inside a line that is not a comment");
+  }
+  if (!isManifestReference(bin.slice(begin + ARMOR_BEGIN.length, end).trim())) {
+    refuse("around something that is not a manifest reference");
+  }
+  return bin.slice(0, lineStart) + bin.slice(lineEnd);
+}
+function placeArmor(bytes, manifest, syntax) {
+  const bin = bytesToBin(bytes);
+  if (/\r(?!\n)/.test(bin)) {
+    throw new Error(`C2PA embed: this ${syntax.label} uses bare CR line endings, which \xA7A.9.4 does not support \u2014 convert it to LF or CRLF first`);
+  }
+  const base = stripArmorBlock(bin, syntax.label);
+  if (!base.trim()) {
+    throw new Error(`C2PA embed: refusing to place a manifest block in an empty ${syntax.label} \u2014 the exclusion would cover the whole file and the hard binding would bind nothing`);
+  }
+  const eol = bin.includes("\r\n") && !/(^|[^\r])\n/.test(bin) ? "\r\n" : "\n";
+  const introduced = !base.endsWith("\n");
+  const head = introduced ? base + eol : base;
+  const block = `${syntax.prefix}${ARMOR_BEGIN} ${C2PA_DATA_URI}${btoa(bytesToBin(manifest))} ${ARMOR_END}${syntax.suffix}`;
+  const out = head + block + eol;
+  const start = head.length - (introduced ? eol.length : 1);
+  return { out: binToBytes(out), exclusions: [{ start, length: out.length - start }] };
+}
 function attachC2paStore(bytes, format, store) {
   if (!(bytes instanceof Uint8Array)) throw new Error("C2PA attach: bytes must be a Uint8Array");
   if (!(store instanceof Uint8Array)) throw new Error("C2PA attach: store must be a Uint8Array");
@@ -5939,12 +6173,12 @@ function attachC2paStore(bytes, format, store) {
 }
 async function embedC2pa(bytes, format, opts = {}) {
   if (!(bytes instanceof Uint8Array)) throw new Error("C2PA embed: bytes must be a Uint8Array");
-  const fmt2 = String(format || "").toLowerCase();
-  if (fmt2 === "pdf" || fmt2 === "pdf-cmyk") return embedC2paInPdf(bytes, opts);
-  const container = CONTAINERS[fmt2];
+  const fmt3 = String(format || "").toLowerCase();
+  if (fmt3 === "pdf" || fmt3 === "pdf-cmyk") return embedC2paInPdf(bytes, opts);
+  const container = CONTAINERS[fmt3];
   if (!container) throw new Error(`C2PA embed: no embedding for format '${format}'`);
   const isBmff = container.hash === "bmff";
-  const { title, claimGenerator, generatorInfo, environment, author, authorship, rights, actions, ingredients, dates = {}, signer } = opts;
+  const { title, claimGenerator, generatorInfo, environment, author, authorship, rights, actions, ingredients, aiDisclosure, specVersion, dates = {}, signer } = opts;
   const sig = signer ?? await generateSigner(dates);
   const internals = {
     signer: { ...sig, sign: sig.sign && sig.sign.bind(sig), chain: sig.chain ?? [sig.certDer] },
@@ -5963,6 +6197,8 @@ async function embedC2pa(bytes, format, opts = {}) {
     rights,
     actions,
     ingredients,
+    aiDisclosure,
+    specVersion,
     dates,
     format: container.mime,
     assetHash: isBmff ? { bmff: true, hash, pad: padBytes } : { exclusions, hash, pad: padBytes },
@@ -6007,7 +6243,7 @@ async function embedC2pa(bytes, format, opts = {}) {
   }
   return final.out;
 }
-var te4, PDF_WS, PDF_DELIM, xrefEntryLine, asciiBytes, CRC_TABLE, PNG_SIG, JPEG_CHUNK, C2PA_XMLNS, placeWebp, C2PA_BMFF_UUID, bmffHashExclusions, isC2paUuidBox, bmffExcluded, u64be, ID_ATTACHMENTS, ID_ATTACHEDFILE, ID_FILENAME, ID_FILEMIMETYPE, ID_FILEUID, ID_FILEDATA, ATTACHMENTS_NUM, C2PA_ATTACHMENT_MIME, c2paAttachment, MP3_GEOB_MIME, syncsafe, readSyncsafe, CONTAINERS, C2PA_FORMATS;
+var te4, PDF_WS, PDF_DELIM, xrefEntryLine, asciiBytes, CRC_TABLE, PNG_SIG, JPEG_CHUNK, C2PA_XMLNS, placeWebp, C2PA_BMFF_UUID, bmffHashExclusions, isC2paUuidBox, bmffExcluded, u64be, ID_ATTACHMENTS, ID_ATTACHEDFILE, ID_FILENAME, ID_FILEMIMETYPE, ID_FILEUID, ID_FILEDATA, ATTACHMENTS_NUM, C2PA_ATTACHMENT_MIME, c2paAttachment, MP3_GEOB_MIME, syncsafe, readSyncsafe, ARMOR_BEGIN, ARMOR_END, C2PA_DATA_URI, C2PA_SCRIPT_OPEN, C2PA_SCRIPT_CLOSE, HTML_RAW_TEXT, MAX_HTML_ATTRS, ARMOR_SYNTAX, isManifestReference, ARMOR_COMMENT_OPEN, ARMOR_COMMENT_CLOSE, C2PA_FRAGMENT_PROFILE, CONTAINERS, C2PA_FORMATS;
 var init_c2pa_containers = __esm({
   "engine/src/c2pa-containers.ts"() {
     "use strict";
@@ -6090,6 +6326,34 @@ var init_c2pa_containers = __esm({
     MP3_GEOB_MIME = "application/x-c2pa-manifest-store";
     syncsafe = (n2) => Uint8Array.of(n2 >>> 21 & 127, n2 >>> 14 & 127, n2 >>> 7 & 127, n2 & 127);
     readSyncsafe = (b, off) => (b[off] & 127) << 21 | (b[off + 1] & 127) << 14 | (b[off + 2] & 127) << 7 | b[off + 3] & 127;
+    ARMOR_BEGIN = "-----BEGIN C2PA MANIFEST-----";
+    ARMOR_END = "-----END C2PA MANIFEST-----";
+    C2PA_DATA_URI = "data:application/c2pa;base64,";
+    C2PA_SCRIPT_OPEN = '<script type="application/c2pa">';
+    C2PA_SCRIPT_CLOSE = "</script>";
+    HTML_RAW_TEXT = ["script", "style", "textarea", "title"];
+    MAX_HTML_ATTRS = 64;
+    ARMOR_SYNTAX = {
+      // JavaScript uses the PRESERVATION-HINT comment, not `//`. §A.9.3.1's example
+      // table shows `//` for JavaScript, but the same clause's normative sentence is
+      // "When host formats define comment conventions that signal toolchains to
+      // preserve specific comments (e.g., comments beginning with /*! in JavaScript
+      // AND CSS), claim generators should use them for the reference line." The
+      // example is illustrative; the SHOULD is aimed at exactly this pair, and the
+      // failure it exists to prevent is real — every minifier that honours `/*!`
+      // drops `//`, so a signed .js would lose its credential the first time it went
+      // through a build. CSS already complied, which left the file inconsistent with
+      // itself. Safe because the base64 alphabet contains no `*` or `/`, so `*/`
+      // cannot occur inside the payload (the CSS placer already relies on that).
+      js: { prefix: "/*! ", suffix: " */", label: "JavaScript file" },
+      css: { prefix: "/*! ", suffix: " */", label: "CSS file" },
+      md: { prefix: "<!-- ", suffix: " -->", label: "Markdown file" },
+      "html-fragment": { prefix: "<!-- ", suffix: " -->", label: "HTML fragment" }
+    };
+    isManifestReference = (ref) => /^data:/i.test(ref) || /^https?:\/\//i.test(ref) || ref.startsWith("/") || ref.startsWith("./") || ref.startsWith("../");
+    ARMOR_COMMENT_OPEN = /^[ \t]*(?:\/\/!?|\/\*!?|<!--|--|#|;|%|')?[ \t]*$/;
+    ARMOR_COMMENT_CLOSE = /^[ \t]*(?:\*\/|-->)?[ \t]*$/;
+    C2PA_FRAGMENT_PROFILE = Object.freeze({ format: "html-fragment", mime: "text/html" });
     CONTAINERS = {
       png: { place: placePng, mime: "image/png" },
       apng: { place: placePng, mime: "image/png" },
@@ -6118,7 +6382,16 @@ var init_c2pa_containers = __esm({
       // excluded (Lolly-only binding; c2pa-rs has no Ogg reader). 'opus' and 'ogg'
       // are the same container; both map to the export/asset format strings in use.
       ogg: { place: placeOgg, mime: "audio/ogg" },
-      opus: { place: placeOgg, mime: "audio/ogg" }
+      opus: { place: placeOgg, mime: "audio/ogg" },
+      // C2PA 2.4 text bindings. `html` is the §A.7 inline form (a whole HTML
+      // DOCUMENT); js/css/md are §A.9 structured text; `html-fragment` is the Lolly
+      // profile — §A.9's armour in an HTML comment, for markup that has no `<head>`
+      // for §A.7 to use. See the block comment above the placers.
+      html: { place: placeHtml, mime: "text/html" },
+      js: { place: (b, m2) => placeArmor(b, m2, ARMOR_SYNTAX.js), mime: "text/javascript" },
+      css: { place: (b, m2) => placeArmor(b, m2, ARMOR_SYNTAX.css), mime: "text/css" },
+      md: { place: (b, m2) => placeArmor(b, m2, ARMOR_SYNTAX.md), mime: "text/markdown" },
+      "html-fragment": { place: (b, m2) => placeArmor(b, m2, ARMOR_SYNTAX["html-fragment"]), mime: C2PA_FRAGMENT_PROFILE.mime }
     };
     C2PA_FORMATS = Object.freeze(["pdf", "pdf-cmyk", ...Object.keys(CONTAINERS)]);
   }
@@ -6262,6 +6535,31 @@ function captureDescription(cap) {
   if (cap.camera) return "Captured live from the camera";
   return "Recorded live from the microphone";
 }
+function aiDisclosureMap(d) {
+  const modelType = String(d.modelType ?? AI_MODEL_TYPE_GENERIC).trim();
+  if (!modelType) throw new Error("c2pa: aiDisclosure.modelType cannot be empty (\xA718.28.2 requires it; omit the field to get the generic c2pa.types.model)");
+  if (!AI_MODEL_TYPES.includes(modelType) && (modelType.startsWith("c2pa.") || !NAMESPACED_LABEL_RE.test(modelType))) {
+    throw new Error(`c2pa: aiDisclosure.modelType '${modelType}' is neither a Table 12 model type (\xA718.28.2) nor an entity-specific namespaced label (\xA76.2.2, e.g. 'com.litware.types.abc') \u2014 omit the field to get the generic ${AI_MODEL_TYPE_GENERIC}`);
+  }
+  if (d.oversight != null && !HUMAN_OVERSIGHT_LEVELS.includes(String(d.oversight))) {
+    throw new Error(`c2pa: aiDisclosure.oversight must be one of ${HUMAN_OVERSIGHT_LEVELS.join(" / ")} (\xA718.28.4), got '${String(d.oversight)}'`);
+  }
+  const raw = d.scientificDomain == null ? [] : Array.isArray(d.scientificDomain) ? d.scientificDomain : [d.scientificDomain];
+  const domains = raw.map((s) => String(s).trim()).filter(Boolean);
+  for (const s of domains) {
+    if (!SCIENTIFIC_DOMAIN_RE.test(s)) throw new Error(`c2pa: aiDisclosure.scientificDomain '${s}' is not an arXiv taxonomy term (\xA718.28.4 e.g. 'cs.AI', 'physics.optics')`);
+  }
+  return {
+    modelType,
+    ...d.modelName ? { modelName: String(d.modelName) } : {},
+    ...d.modelIdentifier ? { modelIdentifier: String(d.modelIdentifier) } : {},
+    ...d.oversight ? { contentProfile: { humanOversightLevel: String(d.oversight) } } : {},
+    // The CDDL says a list (`1* $scientific-domain-string`) even though
+    // §18.28.4's own example ships a bare string. Write the conformant list;
+    // the read side accepts both.
+    ...domains.length ? { scientificDomain: domains } : {}
+  };
+}
 async function buildC2paManifest({
   title,
   claimGenerator,
@@ -6272,6 +6570,8 @@ async function buildC2paManifest({
   rights,
   actions: actionSteps,
   ingredients,
+  aiDisclosure,
+  specVersion,
   assetHash,
   format = "application/pdf",
   dates = {},
@@ -6289,6 +6589,10 @@ async function buildC2paManifest({
   const sig = signer || await generateSigner(dates);
   const generatorName = String(claimGenerator || "Lolly");
   const genInfoMap = generatorInfo && typeof generatorInfo === "object" && Object.keys(generatorInfo).length ? { name: generatorName, ...generatorInfo } : { name: generatorName };
+  if (specVersion != null && !SEMVER_RE.test(String(specVersion))) {
+    throw new Error(`c2pa: specVersion must be a SemVer string (\xA710.2.3, e.g. '${C2PA_SPEC_VERSION}'), got '${String(specVersion)}'`);
+  }
+  const claimGenInfo = specVersion != null ? { ...genInfoMap, specVersion: String(specVersion) } : genInfoMap;
   const softwareAgent = v2 ? genInfoMap : generatorName;
   const delivered = authorship === "delivered";
   const baseSteps = actionSteps && actionSteps.length ? actionSteps : [delivered ? { action: "c2pa.published" } : { action: "c2pa.created", digitalSourceType: DIGITAL_SOURCE_TYPE }];
@@ -6346,7 +6650,12 @@ async function buildC2paManifest({
     hash: assetHash.hash,
     pad: assetHash.pad || new Uint8Array(0)
   } : {
-    exclusions: assetHash.exclusions.map((e) => ({ start: e.start, length: e.length })),
+    // §11.4's external form (and §A.7.1.3's link element) hash the asset WHOLE:
+    // "the data hash assertion shall have no exclusion range". The CDDL is
+    // `? "exclusions": [1* EXCLUSION_RANGE-map]` — optional, but non-empty when
+    // present — so an empty list is written as NO KEY, not as `[]`. Every
+    // embedded caller passes at least one range, so their bytes are unchanged.
+    ...assetHash.exclusions.length ? { exclusions: assetHash.exclusions.map((e) => ({ start: e.start, length: e.length })) } : {},
     name: assetHash.name || "jumbf manifest",
     alg: assetHash.alg || "sha256",
     hash: assetHash.hash,
@@ -6365,6 +6674,7 @@ async function buildC2paManifest({
   if (!v2 && author?.name) {
     const person = { "@type": "Person", name: String(author.name) };
     if (author.email) person.email = String(author.email);
+    if (author.url) person.url = String(author.url);
     const work = { "@context": "http://schema.org/", "@type": "CreativeWork", author: [person] };
     authorBox = jumbfSuperbox(UUID_JSON_CONTENT, CREATIVE_WORK_ASSERTION, isoBox("json", te5.encode(JSON.stringify(work))));
     storeBoxes.push(authorBox);
@@ -6372,10 +6682,18 @@ async function buildC2paManifest({
   let metadataBox = null;
   if (v2 && (author?.name || rights)) {
     const metaLd = { "@context": DC_CONTEXT };
-    if (author?.name) metaLd["dc:creator"] = [String(author.name)];
+    if (author?.name) {
+      const contact = [author.email ? `<${String(author.email)}>` : "", author.url ? `(${String(author.url)})` : ""].filter(Boolean).join(" ");
+      metaLd["dc:creator"] = [contact ? `${String(author.name)} ${contact}` : String(author.name)];
+    }
     if (rights) metaLd["dc:rights"] = String(rights);
     metadataBox = jumbfSuperbox(UUID_JSON_CONTENT, METADATA_ASSERTION, isoBox("json", te5.encode(JSON.stringify(metaLd))));
     storeBoxes.push(metadataBox);
+  }
+  let aiBox = null;
+  if (aiDisclosure) {
+    aiBox = jumbfSuperbox(UUID_CBOR_CONTENT, AI_DISCLOSURE_ASSERTION, isoBox("cbor", encodeCbor(aiDisclosureMap(aiDisclosure))));
+    storeBoxes.push(aiBox);
   }
   for (const box2 of ingredientBoxes) storeBoxes.push(box2);
   const assertionStore = jumbfSuperbox(UUID_ASSERTION_STORE, "c2pa.assertions", ...storeBoxes);
@@ -6385,12 +6703,13 @@ async function buildC2paManifest({
     ...exportBox ? [{ url: `self#jumbf=c2pa.assertions/${LOLLY_EXPORT_ASSERTION}`, hash: await sha256(exportBox.subarray(8)) }] : [],
     ...authorBox ? [{ url: `self#jumbf=c2pa.assertions/${CREATIVE_WORK_ASSERTION}`, hash: await sha256(authorBox.subarray(8)) }] : [],
     ...metadataBox ? [{ url: `self#jumbf=c2pa.assertions/${METADATA_ASSERTION}`, hash: await sha256(metadataBox.subarray(8)) }] : [],
+    ...aiBox ? [{ url: `self#jumbf=c2pa.assertions/${AI_DISCLOSURE_ASSERTION}`, hash: await sha256(aiBox.subarray(8)) }] : [],
     ...ingredientRefs
   ];
   const claim = v2 ? {
     ...title ? { "dc:title": String(title) } : {},
     instanceID: instanceId || urnUuid(),
-    claim_generator_info: genInfoMap,
+    claim_generator_info: claimGenInfo,
     created_assertions: assertionRefs,
     signature: "self#jumbf=c2pa.signature",
     alg: "sha256"
@@ -6411,7 +6730,7 @@ async function buildC2paManifest({
   const ingredientManifestBoxes = ingList.flatMap((ing) => ing.manifestBoxes);
   return jumbfSuperbox(UUID_C2PA_STORE, "c2pa", ...ingredientManifestBoxes, manifest);
 }
-var te5, subtle3, CborTag, JUMBF_UUID_SUFFIX, boxUuid, UUID_C2PA_STORE, UUID_MANIFEST, UUID_ASSERTION_STORE, UUID_CLAIM, UUID_SIGNATURE, UUID_CBOR_CONTENT, UUID_JSON_CONTENT, COSE_HEADER_ALG, COSE_HEADER_X5CHAIN, isoSeconds, DIGITAL_SOURCE_TYPE, CAPTURE_SOURCE_TYPE, SCREEN_SOURCE_TYPE, GENERATED_SOURCE_TYPE, COMPOSITE_SOURCE_TYPE, RASTER_OUTPUTS, VIDEO_OUTPUTS, INGREDIENT_MIME, LOLLY_EXPORT_ASSERTION, BMFF_HASH_LABEL2, CREATIVE_WORK_ASSERTION, METADATA_ASSERTION, DC_CONTEXT;
+var te5, subtle3, CborTag, JUMBF_UUID_SUFFIX, boxUuid, UUID_C2PA_STORE, UUID_MANIFEST, UUID_ASSERTION_STORE, UUID_CLAIM, UUID_SIGNATURE, UUID_CBOR_CONTENT, UUID_JSON_CONTENT, COSE_HEADER_ALG, COSE_HEADER_X5CHAIN, isoSeconds, DIGITAL_SOURCE_TYPE, CAPTURE_SOURCE_TYPE, SCREEN_SOURCE_TYPE, GENERATED_SOURCE_TYPE, COMPOSITE_SOURCE_TYPE, RASTER_OUTPUTS, VIDEO_OUTPUTS, INGREDIENT_MIME, LOLLY_EXPORT_ASSERTION, BMFF_HASH_LABEL2, CREATIVE_WORK_ASSERTION, METADATA_ASSERTION, DC_CONTEXT, AI_DISCLOSURE_ASSERTION, AI_MODEL_TYPE_GENERIC, AI_MODEL_TYPES, NAMESPACED_LABEL_RE, HUMAN_OVERSIGHT_LEVELS, SCIENTIFIC_DOMAIN_RE, SEMVER_RE, C2PA_SPEC_VERSION;
 var init_c2pa = __esm({
   "engine/src/c2pa.ts"() {
     "use strict";
@@ -6471,6 +6790,39 @@ var init_c2pa = __esm({
     CREATIVE_WORK_ASSERTION = "stds.schema-org.CreativeWork";
     METADATA_ASSERTION = "cawg.metadata";
     DC_CONTEXT = { dc: "http://purl.org/dc/elements/1.1/" };
+    AI_DISCLOSURE_ASSERTION = "c2pa.ai-disclosure";
+    AI_MODEL_TYPE_GENERIC = "c2pa.types.model";
+    AI_MODEL_TYPES = Object.freeze([
+      "c2pa.types.model",
+      "c2pa.types.model.caffe",
+      "c2pa.types.model.caffe2",
+      "c2pa.types.model.catboost",
+      "c2pa.types.model.coreml",
+      "c2pa.types.model.flax",
+      "c2pa.types.model.huggingface.transformers",
+      "c2pa.types.model.jax",
+      "c2pa.types.model.keras",
+      "c2pa.types.model.lightgbm",
+      "c2pa.types.model.ml_net",
+      "c2pa.types.model.mxnet",
+      "c2pa.types.model.onnx",
+      "c2pa.types.model.openvino",
+      "c2pa.types.model.openvino.parameter",
+      "c2pa.types.model.openvino.topology",
+      "c2pa.types.model.paddle",
+      "c2pa.types.model.pytorch",
+      "c2pa.types.model.sklearn",
+      "c2pa.types.model.tensorflow",
+      "c2pa.types.model.tensorrt",
+      "c2pa.types.model.tflite",
+      "c2pa.types.model.torchscript",
+      "c2pa.types.model.xgboost"
+    ]);
+    NAMESPACED_LABEL_RE = /^[A-Za-z0-9][A-Za-z0-9_-]*(?:\.[A-Za-z0-9][A-Za-z0-9_-]*)+$/;
+    HUMAN_OVERSIGHT_LEVELS = Object.freeze(["fully_autonomous", "prompt_guided", "human_validated"]);
+    SCIENTIFIC_DOMAIN_RE = /^[A-Za-z0-9-]+(\.[A-Za-z0-9-]+)+$/;
+    SEMVER_RE = /^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(?:-((?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\.(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?(?:\+([0-9a-zA-Z-]+(?:\.[0-9a-zA-Z-]+)*))?$/;
+    C2PA_SPEC_VERSION = "2.4.0";
   }
 });
 
@@ -7982,7 +8334,35 @@ var init_c2pa_verdict = __esm({
       /** The BMFF (mp4/webm-family) hard binding matches. */
       assertionBmffHashMatch: "assertion.bmffHash.match",
       /** The BMFF hard binding does not match / could not be checked. */
-      assertionBmffHashMismatch: "assertion.bmffHash.mismatch"
+      assertionBmffHashMismatch: "assertion.bmffHash.mismatch",
+      // ── C2PA 2.4 text bindings (§A.7 HTML / §A.8 unstructured / §A.9 structured).
+      // Every string below is the SPEC'S OWN status code, copied from §15.2.2's
+      // standard-status-code table, not invented here — same posture as the rows
+      // above. They are only ever emitted for the three text formats, so no existing
+      // report's rows change.
+      /** §15.12.1.3.3 — the data-hash assertion itself is malformed: for §A.8 text
+       *  that means its exclusions match no C2PATextManifestWrapper in the asset. */
+      assertionDataHashMalformed: "assertion.dataHash.malformed",
+      /** §15.2.2 — "a data hash specified exclusion ranges other than the C2PA
+       *  Manifest Store". §A.7.1.3 / §A.9.4 each mandate ONE exclusion covering
+       *  exactly the carrier; anything else is unbound content inside a "valid" file. */
+      assertionDataHashAdditionalExclusions: "assertion.dataHash.additionalExclusionsPresent",
+      /** §A.7.1 / §A.7.1.4 — more than one C2PA manifest element in one HTML document. */
+      manifestHtmlMultipleManifests: "manifest.html.multipleManifests",
+      /** §A.9.3 — more than one armour block in one structured-text file. */
+      manifestStructuredTextMultipleReferences: "manifest.structuredText.multipleReferences",
+      /** §A.9.5 — the block's reference is empty or whitespace-only. */
+      manifestStructuredTextEmptyReference: "manifest.structuredText.emptyReference",
+      /** §A.9.5 — the reference is neither a valid URL nor a data: URI. */
+      manifestStructuredTextMalformedReference: "manifest.structuredText.malformedReference",
+      /** §A.8.7.1 / §15.12.1.3.2 — a wrapper magic matched but the wrapper is malformed. */
+      manifestTextCorruptedWrapper: "manifest.text.corruptedWrapper",
+      /** §15.12.1.3.1 — more than one wrapper matches the assertion's exclusions. */
+      manifestTextMultipleWrappers: "manifest.text.multipleWrappers",
+      /** §15.2.2 — "a non-embedded (remote) manifest was inaccessible at the time of
+       *  validation". The engine NEVER fetches, so every §A.7.1.2 `<link>` / §A.9.3
+       *  URL reference lands here: the credential exists, just not in these bytes. */
+      manifestInaccessible: "manifest.inaccessible"
     };
   }
 });
@@ -8186,6 +8566,32 @@ function extractC2paFromPdf(pdfBytes) {
   if (start + length > pdfBytes.length) throw new Error("C2PA manifest stream overruns the file");
   return { manifest: pdfBytes.slice(start, start + length), start };
 }
+function maskMarkupNoise(head) {
+  if (!head.includes("<!--") && !head.includes("<?")) return head;
+  let out = "";
+  let at = 0;
+  while (at < head.length) {
+    const c = head.indexOf("<!--", at);
+    const p = head.indexOf("<?", at);
+    const next = c < 0 ? p : p < 0 ? c : Math.min(c, p);
+    if (next < 0) {
+      out += head.slice(at);
+      break;
+    }
+    out += head.slice(at, next);
+    const comment = next === c;
+    const close = head.indexOf(comment ? "-->" : "?>", next + (comment ? 4 : 2));
+    if (!comment && close < 0) {
+      out += head.slice(next, next + 2);
+      at = next + 2;
+      continue;
+    }
+    const end = close < 0 ? head.length : close + (comment ? 3 : 2);
+    out += " ".repeat(end - next);
+    at = end;
+  }
+  return out;
+}
 function sniffFormat(bytes) {
   if (bytes.length < 12) return null;
   if (bytes[0] === 137 && ascii(bytes, 1, 3) === "PNG") return "png";
@@ -8206,8 +8612,28 @@ function sniffFormat(bytes) {
   if (bytes[0] === 26 && bytes[1] === 69 && bytes[2] === 223 && bytes[3] === 163) {
     return bytesToBin(bytes.subarray(0, 64)).includes("matroska") ? "mkv" : "webm";
   }
-  const headBin = bytesToBin(bytes.subarray(0, 4096));
-  if (/<svg[\s>]/.test(headBin)) return "svg";
+  const headBin = bytesToBin(bytes.subarray(0, SNIFF_HEAD_BYTES));
+  const headMarkup = maskMarkupNoise(headBin);
+  const htmlAt = headMarkup.search(HTML_MARKER);
+  const svgAt = headMarkup.search(/<svg[\s>]/);
+  const tailBin = bytes.length > SNIFF_HEAD_BYTES ? bytesToBin(bytes.subarray(Math.max(0, bytes.length - SNIFF_TAIL_BYTES))) : "";
+  const inWindows = (needle) => headBin.includes(needle) || tailBin.includes(needle);
+  const armorBegin = inWindows(ARMOR_BEGIN2);
+  const armorEnd = inWindows(ARMOR_END2);
+  if (armorBegin && armorEnd && !hasHtmlC2paCarrier(headBin, tailBin)) return "code";
+  if (htmlAt >= 0 && (svgAt < 0 || htmlAt < svgAt)) return "html";
+  if (svgAt >= 0) return "svg";
+  if (armorBegin && armorEnd) return "code";
+  if (inWindows(TEXT_WRAPPER_SIGNATURE)) return "text";
+  if (armorBegin || armorEnd) return "code";
+  if (bytes.length > SNIFF_HEAD_BYTES + SNIFF_TAIL_BYTES && bytes.length <= MAX_FULL_SCAN_BYTES && !bytes.subarray(0, SNIFF_HEAD_BYTES).includes(0)) {
+    const bin = bytesToBin(bytes);
+    const begin = bin.includes(ARMOR_BEGIN2);
+    const end = bin.includes(ARMOR_END2);
+    if (begin && end) return "code";
+    if (bin.includes(TEXT_WRAPPER_SIGNATURE)) return "text";
+    if (begin || end) return "code";
+  }
   return null;
 }
 function extractC2paFromPng(png) {
@@ -8483,6 +8909,342 @@ function extractC2paFromOgg(ogg) {
     return null;
   }
 }
+function safeExternalUrl(raw) {
+  const url = raw.trim();
+  if (!url || url.length > 2048 || /[\u0000-\u0020\u007f]/.test(url)) return void 0;
+  const scheme = /^([A-Za-z][A-Za-z0-9+.-]*):/.exec(url);
+  if (scheme) return /^https?$/i.test(scheme[1]) ? url : void 0;
+  if (url.startsWith("//")) return void 0;
+  return url;
+}
+function indicesOf(hay, needle, cap) {
+  const out = [];
+  for (let at = hay.indexOf(needle); at >= 0 && out.length < cap; at = hay.indexOf(needle, at + needle.length)) {
+    out.push(at);
+  }
+  return out;
+}
+function tagNameAt(bin, at, name) {
+  for (let k = 0; k < name.length; k++) {
+    const c = bin.charCodeAt(at + k);
+    if ((c | 32) !== name.charCodeAt(k)) return false;
+  }
+  const d = bin.charCodeAt(at + name.length);
+  return SPACE.has(d) || d === 47 || d === 62;
+}
+function htmlAttrs(src) {
+  const attrs = /* @__PURE__ */ new Map();
+  const re = /([^\s=/>]+)(?:\s*=\s*(?:"([^"]*)"|'([^']*)'|([^\s"'=<>`]*)))?/g;
+  for (let m2; (m2 = re.exec(src)) !== null; ) {
+    if (!m2[0]) {
+      re.lastIndex++;
+      continue;
+    }
+    const key = m2[1].toLowerCase();
+    if (!attrs.has(key)) attrs.set(key, m2[2] ?? m2[3] ?? m2[4] ?? "");
+    if (attrs.size >= MAX_HTML_ATTRS2) break;
+  }
+  return attrs;
+}
+function scanHtmlTags(bin, name, emit) {
+  let gt = -1;
+  for (let at = bin.indexOf("<"); at >= 0; at = bin.indexOf("<", at + 1)) {
+    if (!tagNameAt(bin, at + 1, name)) continue;
+    const after = at + 1 + name.length;
+    if (gt < after) {
+      gt = bin.indexOf(">", after);
+      if (gt < 0) return;
+    }
+    if (!emit({ start: at, afterOpen: gt + 1, attrs: htmlAttrs(bin.slice(after, gt)) })) return;
+    at = gt;
+  }
+}
+function findCloseTag(bin, name, from) {
+  for (let at = bin.indexOf("</", from); at >= 0; at = bin.indexOf("</", at + 2)) {
+    if (!tagNameAt(bin, at + 2, name)) continue;
+    const gt = bin.indexOf(">", at + 2 + name.length);
+    if (gt < 0) return null;
+    return { start: at, end: gt + 1 };
+  }
+  return null;
+}
+function headRegionEnd(bin) {
+  const close = bin.search(/<\/head\s*>/i);
+  if (close >= 0) return close;
+  const body = bin.search(/<body(?=[\s/>])/i);
+  return body >= 0 ? body : bin.length;
+}
+function readHtml(bytes) {
+  if (bytes.length > MAX_TEXT_BYTES) return tooLarge("HTML document", bytes.length);
+  const bin = bytesToBin(bytes);
+  const headEnd = headRegionEnd(bin);
+  const refs = [];
+  scanHtmlTags(bin, "script", (tag2) => {
+    if ((tag2.attrs.get("type") ?? "").trim().toLowerCase() !== C2PA_ATTACHMENT_MIME) return true;
+    const close = findCloseTag(bin, "script", tag2.afterOpen);
+    refs.push(close ? { kind: "inline", start: tag2.start, end: close.end, base64: bin.slice(tag2.afterOpen, close.start), inHead: tag2.start < headEnd } : { kind: "inline", start: tag2.start, end: bin.length, inHead: tag2.start < headEnd, unterminated: true });
+    return refs.length < MAX_HTML_REFS;
+  });
+  scanHtmlTags(bin, "link", (tag2) => {
+    const rel = (tag2.attrs.get("rel") ?? "").trim().toLowerCase();
+    if (!rel.split(/\s+/).includes("c2pa-manifest")) return true;
+    refs.push({ kind: "link", start: tag2.start, end: tag2.afterOpen, href: tag2.attrs.get("href") ?? "", inHead: tag2.start < headEnd });
+    return refs.length < MAX_HTML_REFS;
+  });
+  refs.sort((a, b) => a.start - b.start);
+  if (!refs.length) return { store: null };
+  const head = refs.filter((r3) => r3.inHead);
+  const chosen = head.length ? head : refs;
+  if (chosen.length > 1) {
+    return {
+      store: null,
+      status: C2PA_TEXT_STATUS.htmlMultipleManifests,
+      fatal: `HTML document declares ${chosen.length}${chosen.length === MAX_HTML_REFS ? "+" : ""} C2PA manifest associations${head.length ? " in <head>" : ""}; \xA7A.7.1 allows at most one`
+    };
+  }
+  const ref = chosen[0];
+  const note = ref.inHead ? {} : { detail: "the C2PA element is outside <head> (\xA7A.7.1.1 places it in the head)" };
+  if (ref.kind === "link") {
+    const url = safeExternalUrl(ref.href ?? "");
+    if (!url) {
+      return {
+        store: null,
+        exclusions: [],
+        status: C2PA_TEXT_STATUS.unsupportedReference,
+        detail: `<link rel="c2pa-manifest"> href is not an http(s) URL or a relative reference`
+      };
+    }
+    return { store: null, externalUrl: url, exclusions: [], ...note };
+  }
+  if (ref.unterminated) {
+    return {
+      store: null,
+      status: C2PA_TEXT_STATUS.htmlUnterminatedScript,
+      fatal: '<script type="application/c2pa"> has no closing tag \u2014 the document looks truncated'
+    };
+  }
+  const exclusions = [{ start: ref.start, length: ref.end - ref.start }];
+  const b64 = (ref.base64 ?? "").replace(/\s+/g, "");
+  if (!b64) return { store: null, exclusions, ...note };
+  if (!BASE64_ONLY.test(b64)) {
+    return { store: null, exclusions, status: C2PA_TEXT_STATUS.malformedBase64, fatal: "HTML inline C2PA manifest is not valid base64" };
+  }
+  try {
+    return { store: base64ToBytes(b64), exclusions, ...note };
+  } catch {
+    return { store: null, exclusions, status: C2PA_TEXT_STATUS.malformedBase64, fatal: "HTML inline C2PA manifest is not valid base64" };
+  }
+}
+function armorExclusion(bin, begin, end) {
+  const lineStart = bin.lastIndexOf("\n", begin) + 1;
+  const nl = bin.indexOf("\n", end);
+  const lineEnd = nl < 0 ? bin.length : nl + 1;
+  const alternates = [];
+  const tailIsBlank = lineEnd >= bin.length || !bin.slice(lineEnd).trim();
+  if (lineStart === 0 && lineEnd >= bin.length) return { primary: { start: 0, length: bin.length }, alternates };
+  if (lineStart === 0) return { primary: { start: 0, length: lineEnd }, alternates };
+  const fromNewline = (at) => ({ start: at, length: bin.length - at });
+  if (lineEnd >= bin.length) {
+    if (bin.charCodeAt(lineStart - 2) === 13) alternates.push(fromNewline(lineStart - 2));
+    return { primary: fromNewline(lineStart - 1), alternates };
+  }
+  const primary = { start: lineStart, length: lineEnd - lineStart };
+  if (tailIsBlank) {
+    alternates.push(fromNewline(lineStart - 1));
+    if (bin.charCodeAt(lineStart - 2) === 13) alternates.push(fromNewline(lineStart - 2));
+  }
+  return { primary, alternates };
+}
+function c2paDataUriPayload(ref) {
+  if (!/^data:/i.test(ref)) return null;
+  const comma = ref.indexOf(",");
+  if (comma < 0) return null;
+  const params = ref.slice(5, comma).split(";");
+  if ((params[0] ?? "").trim().toLowerCase() !== C2PA_ATTACHMENT_MIME) return null;
+  if ((params[params.length - 1] ?? "").trim().toLowerCase() !== "base64") return null;
+  return ref.slice(comma + 1);
+}
+function readArmor(bytes) {
+  if (bytes.length > MAX_TEXT_BYTES) return tooLarge("structured text file", bytes.length);
+  const bin = bytesToBin(bytes);
+  const begins = indicesOf(bin, ARMOR_BEGIN2, 4);
+  const ends = indicesOf(bin, ARMOR_END2, 4);
+  if (begins.length > 1 || ends.length > 1) {
+    return {
+      store: null,
+      status: C2PA_TEXT_STATUS.structuredTextMultipleReferences,
+      fatal: `file carries ${Math.max(begins.length, ends.length)} C2PA manifest blocks; \xA7A.9.3 allows at most one`
+    };
+  }
+  const begin = begins[0];
+  const end = ends[0];
+  if (begin === void 0 || end === void 0 || end < begin + ARMOR_BEGIN2.length) {
+    return {
+      store: null,
+      status: C2PA_TEXT_STATUS.structuredTextNoManifest,
+      detail: "the \xA7A.9 armour delimiters are not both present, in order"
+    };
+  }
+  const { primary, alternates } = armorExclusion(bin, begin, end);
+  const exclusions = [primary];
+  const alt = alternates.length ? { exclusionAlternates: alternates.map((e) => [e]) } : {};
+  const ref = bin.slice(begin + ARMOR_BEGIN2.length, end).trim();
+  if (!ref) {
+    return { store: null, exclusions, ...alt, status: C2PA_TEXT_STATUS.structuredTextEmptyReference, detail: "the manifest block is empty" };
+  }
+  const b64 = c2paDataUriPayload(ref);
+  if (b64 !== null) {
+    const packed = b64.replace(/\s+/g, "");
+    if (!packed || !BASE64_ONLY.test(packed)) {
+      return { store: null, exclusions, ...alt, status: C2PA_TEXT_STATUS.malformedBase64, fatal: "C2PA manifest block data: URI is not valid base64" };
+    }
+    try {
+      return { store: base64ToBytes(packed), exclusions, ...alt };
+    } catch {
+      return { store: null, exclusions, ...alt, status: C2PA_TEXT_STATUS.malformedBase64, fatal: "C2PA manifest block data: URI is not valid base64" };
+    }
+  }
+  const url = safeExternalUrl(ref);
+  if (!url) {
+    return {
+      store: null,
+      exclusions,
+      ...alt,
+      status: C2PA_TEXT_STATUS.unsupportedReference,
+      detail: "the manifest reference is neither a data:application/c2pa URI nor an http(s) URL or relative reference"
+    };
+  }
+  return { store: null, externalUrl: url, exclusions, ...alt };
+}
+function runEndFrom(nfc, unit2, byteOff) {
+  let i = unit2;
+  let off = byteOff;
+  while (i < nfc.length) {
+    const cp = nfc.codePointAt(i);
+    if (variationSelectorToByte(cp) < 0) break;
+    off += utf8Len(cp);
+    i += cp > 65535 ? 2 : 1;
+  }
+  return { unit: i, off };
+}
+function decodeWrapperAt(nfc, unit2, byteOff) {
+  const selectorStart = byteOff + utf8Len(BOM_CP);
+  let i = unit2 + 1;
+  let off = selectorStart;
+  const nextByte = () => {
+    if (i >= nfc.length) return -1;
+    const cp = nfc.codePointAt(i);
+    const b = variationSelectorToByte(cp);
+    if (b < 0) return -1;
+    off += utf8Len(cp);
+    i += cp > 65535 ? 2 : 1;
+    return b;
+  };
+  for (const want of WRAPPER_MAGIC) if (nextByte() !== want) return null;
+  const at = (status, reason, version2 = 0) => {
+    const run2 = runEndFrom(nfc, i, off);
+    return { start: byteOff, selectorStart, end: off, runEnd: run2.off, version: version2, store: null, status, reason };
+  };
+  const version = nextByte();
+  if (version < 0) return at(C2PA_TEXT_STATUS.textCorruptedWrapper, "the wrapper ends immediately after its magic number");
+  const len2 = [];
+  for (let k = 0; k < 4; k++) {
+    const b = nextByte();
+    if (b < 0) break;
+    len2.push(b);
+  }
+  if (len2.length < 4) {
+    return at(C2PA_TEXT_STATUS.textCorruptedWrapper, `the wrapper ends inside manifestLength (${len2.length} of 4 bytes)`, version);
+  }
+  const manifestLength = (len2[0] << 24 | len2[1] << 16 | len2[2] << 8 | len2[3]) >>> 0;
+  if (version !== 1) {
+    return at(C2PA_TEXT_STATUS.textCorruptedWrapper, `wrapper version ${version} is not supported (\xA7A.8.2.3 defines version 1)`, version);
+  }
+  if (manifestLength > nfc.length - i) {
+    return at(C2PA_TEXT_STATUS.textCorruptedWrapper, `the wrapper declares ${manifestLength} manifest bytes, more than the remaining text can hold`, version);
+  }
+  const payloadRun = runEndFrom(nfc, i, off);
+  if (manifestLength > payloadRun.unit - i) {
+    return {
+      start: byteOff,
+      selectorStart,
+      end: off,
+      runEnd: payloadRun.off,
+      version,
+      store: null,
+      status: C2PA_TEXT_STATUS.textCorruptedWrapper,
+      reason: `the wrapper declares ${manifestLength} manifest bytes but its selector run carries at most ${payloadRun.unit - i}`
+    };
+  }
+  const store = new Uint8Array(manifestLength);
+  for (let k = 0; k < manifestLength; k++) {
+    const b = nextByte();
+    if (b < 0) return at(C2PA_TEXT_STATUS.textCorruptedWrapper, `the wrapper is truncated at manifest byte ${k} of ${manifestLength}`, version);
+    store[k] = b;
+  }
+  const run = runEndFrom(nfc, i, off);
+  return { start: byteOff, selectorStart, end: off, runEnd: run.off, version, store };
+}
+function readTextVs(bytes) {
+  if (bytes.length > MAX_TEXT_BYTES) return tooLarge("text asset", bytes.length);
+  const raw = new TextDecoder("utf-8", { ignoreBOM: true }).decode(bytes);
+  const nfc = raw.normalize("NFC");
+  const wrappers = [];
+  let i = 0;
+  let off = 0;
+  while (i < nfc.length && wrappers.length < MAX_TEXT_WRAPPERS) {
+    const cp = nfc.codePointAt(i);
+    const width = cp > 65535 ? 2 : 1;
+    if (cp === BOM_CP) {
+      const wrapper = decodeWrapperAt(nfc, i, off);
+      if (wrapper) {
+        wrappers.push(wrapper);
+        const run = runEndFrom(nfc, i + width, off + utf8Len(cp));
+        i = run.unit;
+        off = run.off;
+        continue;
+      }
+    }
+    off += utf8Len(cp);
+    i += width;
+  }
+  const text = { nfc, wrappers, ...wrappers.length >= MAX_TEXT_WRAPPERS && i < nfc.length ? { truncated: true } : {} };
+  if (!wrappers.length) return { store: null, text };
+  const valid = wrappers.filter((w) => w.store);
+  if (!valid.length) {
+    const first = wrappers[0];
+    return { store: null, text, status: first.status, fatal: `C2PA text wrapper found but unreadable: ${first.reason ?? "malformed"}` };
+  }
+  const chosen = valid[0];
+  return {
+    store: chosen.store,
+    text,
+    // The U+FEFF-inclusive range — see C2paTextWrapper for why this is a choice
+    // and not a reading. `selectorStart` is on the wrapper for the other one.
+    exclusions: [{ start: chosen.start, length: chosen.end - chosen.start }],
+    // §A.8.4.1 hands wrapper SELECTION to the assertion's exclusions, and
+    // §15.12.1.3.1 only fails on multipleWrappers when more than one wrapper
+    // MATCHES those exclusions — which extraction cannot know. So this is a
+    // notice for the validator, not a refusal here.
+    ...valid.length > 1 ? { status: C2PA_TEXT_STATUS.textMultipleWrappers, detail: `${valid.length} valid wrappers; \xA715.12.1.3.1 selects by the assertion's exclusions` } : {}
+  };
+}
+function extractC2paDetailed(bytes, format) {
+  if (!(bytes instanceof Uint8Array)) return null;
+  const fmt3 = format ?? sniffFormat(bytes);
+  if (!fmt3) return null;
+  if (!Object.hasOwn(TEXT_READERS, fmt3) && !Object.hasOwn(EXTRACTORS, fmt3)) return null;
+  if (Object.hasOwn(TEXT_READERS, fmt3)) {
+    const { fatal, ...rest } = TEXT_READERS[fmt3](bytes);
+    return { ...rest, ...fatal && !rest.detail ? { detail: fatal } : {}, format: fmt3 };
+  }
+  try {
+    const ex = EXTRACTORS[fmt3](bytes) ?? null;
+    return { store: ex ? ex.manifest : null, format: fmt3 };
+  } catch (err) {
+    return { store: null, format: fmt3, status: C2PA_TEXT_STATUS.credentialUnreadable, detail: err.message };
+  }
+}
 function collectActionChain(store) {
   const chain2 = [];
   let root;
@@ -8655,7 +9417,7 @@ function prepareC2paIngredientFromStore(store, format) {
   }
   return { manifestBoxes, activeLabel, title, format, digitalSourceType };
 }
-var td, te6, CBOR_BREAK, MAX_CBOR_DEPTH, contentOf, ascii, u32At, isC2paBmffBox, MKV_ATTACHMENTS, MKV_ATTACHEDFILE, MKV_FILEMIMETYPE, MKV_FILEDATA, EXTRACTORS, AI_SOURCE_TYPES, aiKind;
+var td, te6, CBOR_BREAK, MAX_CBOR_DEPTH, contentOf, ascii, SNIFF_HEAD_BYTES, SNIFF_TAIL_BYTES, MAX_FULL_SCAN_BYTES, MAX_TEXT_BYTES, HTML_MARKER, ARMOR_BEGIN2, ARMOR_END2, HTML_C2PA_SCRIPT, HTML_C2PA_LINK, hasHtmlC2paCarrier, TEXT_WRAPPER_SIGNATURE, u32At, isC2paBmffBox, MKV_ATTACHMENTS, MKV_ATTACHEDFILE, MKV_FILEMIMETYPE, MKV_FILEDATA, C2PA_TEXT_STATUS, tooLarge, BASE64_ONLY, MAX_HTML_REFS, MAX_HTML_ATTRS2, SPACE, BOM_CP, VS_LOW_START, VS_LOW_END, VS_HIGH_START, VS_HIGH_END, WRAPPER_MAGIC, MAX_TEXT_WRAPPERS, variationSelectorToByte, utf8Len, TEXT_READERS, asExtractor, EXTRACTORS, AI_SOURCE_TYPES, aiKind;
 var init_c2pa_extract = __esm({
   "engine/src/c2pa-extract.ts"() {
     "use strict";
@@ -8669,12 +9431,80 @@ var init_c2pa_extract = __esm({
     MAX_CBOR_DEPTH = 64;
     contentOf = (bytes, sub) => bytes.slice(sub.children[0].payloadStart, sub.children[0].end);
     ascii = (b, o, n2) => String.fromCharCode(...b.subarray(o, o + n2));
+    SNIFF_HEAD_BYTES = 4096;
+    SNIFF_TAIL_BYTES = 64 * 1024;
+    MAX_FULL_SCAN_BYTES = 4 * 1024 * 1024;
+    MAX_TEXT_BYTES = 16 * 1024 * 1024;
+    HTML_MARKER = /<!doctype\s+html\b|<html(?=[\s/>])/i;
+    ARMOR_BEGIN2 = "-----BEGIN C2PA MANIFEST-----";
+    ARMOR_END2 = "-----END C2PA MANIFEST-----";
+    HTML_C2PA_SCRIPT = /<script[^>]{0,300}type\s*=\s*["']?\s*application\/c2pa/i;
+    HTML_C2PA_LINK = /<link[^>]{0,300}rel\s*=\s*["']?[^"'>]{0,80}c2pa-manifest/i;
+    hasHtmlC2paCarrier = (...windows) => windows.some((w) => HTML_C2PA_SCRIPT.test(w) || HTML_C2PA_LINK.test(w));
+    TEXT_WRAPPER_SIGNATURE = String.fromCharCode(239, 187, 191, 243, 160, 132, 179);
     u32At = (b, o) => (b[o] << 24 | b[o + 1] << 16 | b[o + 2] << 8 | b[o + 3]) >>> 0;
     isC2paBmffBox = (bytes, b) => b.type === "uuid" && b.size >= b.hdr + 16 && C2PA_BMFF_UUID.every((v, i) => bytes[b.off + b.hdr + i] === v);
     MKV_ATTACHMENTS = 423732329;
     MKV_ATTACHEDFILE = 24999;
     MKV_FILEMIMETYPE = 18016;
     MKV_FILEDATA = 18012;
+    C2PA_TEXT_STATUS = Object.freeze({
+      /** §A.7.1.4 — more than one C2PA association in one HTML document. */
+      htmlMultipleManifests: "manifest.html.multipleManifests",
+      /** §A.9.3 — more than one armour block in one file. */
+      structuredTextMultipleReferences: "manifest.structuredText.multipleReferences",
+      /** §A.9.5 — no delimiters, or only one of the pair. */
+      structuredTextNoManifest: "manifest.structuredText.noManifest",
+      /** §A.9.5 — a block whose reference is empty or whitespace-only. */
+      structuredTextEmptyReference: "manifest.structuredText.emptyReference",
+      /** §A.8.7.1 / §15.12.1.3.2 — magic matched, the rest of the wrapper did not. */
+      textCorruptedWrapper: "manifest.text.corruptedWrapper",
+      /** §A.8.7.1 — more than one valid wrapper. NOT fatal at extraction time:
+       *  §A.8.4.1 hands wrapper selection to the assertion's exclusions. */
+      textMultipleWrappers: "manifest.text.multipleWrappers",
+      /** Matches C2PA_CHECK.credentialUnreadable (c2pa-verdict.ts) — spelled out
+       *  rather than imported, so this module keeps its leaf-import discipline and
+       *  never drags the x509/trust graph onto a boot chunk. */
+      credentialUnreadable: "credential.unreadable",
+      /** A reference we will not even report: a non-http(s) scheme, or the
+       *  protocol-relative `//host/path` form. Relative references ARE reported —
+       *  resolving them is the shell's job, not the engine's. */
+      unsupportedReference: "lolly.manifest.unsupportedReference",
+      /** A base64 payload that is not base64. */
+      malformedBase64: "lolly.manifest.malformedBase64",
+      /** `<script type="application/c2pa">` with no closing tag — a truncated paste. */
+      htmlUnterminatedScript: "lolly.html.unterminatedScript",
+      /** Bigger than the text readers will decode. */
+      tooLarge: "lolly.text.tooLarge"
+    });
+    tooLarge = (what, n2) => ({
+      store: null,
+      status: C2PA_TEXT_STATUS.tooLarge,
+      detail: `${what} is ${n2} bytes; the text readers cap at ${MAX_TEXT_BYTES}`
+    });
+    BASE64_ONLY = /^[A-Za-z0-9+/]+={0,2}$/;
+    MAX_HTML_REFS = 8;
+    MAX_HTML_ATTRS2 = 64;
+    SPACE = /* @__PURE__ */ new Set([32, 9, 10, 13, 12]);
+    BOM_CP = 65279;
+    VS_LOW_START = 65024;
+    VS_LOW_END = 65039;
+    VS_HIGH_START = 917760;
+    VS_HIGH_END = 917999;
+    WRAPPER_MAGIC = [67, 50, 80, 65, 84, 88, 84, 0];
+    MAX_TEXT_WRAPPERS = 32;
+    variationSelectorToByte = (cp) => cp >= VS_LOW_START && cp <= VS_LOW_END ? cp - VS_LOW_START : cp >= VS_HIGH_START && cp <= VS_HIGH_END ? cp - VS_HIGH_START + 16 : -1;
+    utf8Len = (cp) => cp < 128 ? 1 : cp < 2048 ? 2 : cp < 65536 ? 3 : 4;
+    TEXT_READERS = Object.freeze({
+      html: readHtml,
+      code: readArmor,
+      text: readTextVs
+    });
+    asExtractor = (read) => (bytes) => {
+      const r3 = read(bytes);
+      if (r3.fatal) throw new Error(r3.fatal);
+      return r3.store ? { manifest: r3.store } : null;
+    };
     EXTRACTORS = {
       pdf: extractC2paFromPdf,
       png: extractC2paFromPng,
@@ -8690,7 +9520,13 @@ var init_c2pa_extract = __esm({
       mkv: extractC2paFromWebm,
       mp3: extractC2paFromMp3,
       wav: extractC2paFromRiff,
-      ogg: extractC2paFromOgg
+      ogg: extractC2paFromOgg,
+      // C2PA 2.4 text bindings. `html` and `code` return null for the REFERENCE
+      // forms (§A.7.1.2 `<link>`, §A.9.3 URL) — nothing is embedded, so there is no
+      // store to hand back; extractC2paDetailed carries the URL instead.
+      html: asExtractor(readHtml),
+      code: asExtractor(readArmor),
+      text: asExtractor(readTextVs)
     };
     AI_SOURCE_TYPES = {
       trainedAlgorithmicMedia: "generated",
@@ -8939,12 +9775,105 @@ async function verifyCoseSignature(alg, spki, sigRaw, sigStructure) {
   const key = await subtle4.importKey("spki", asBufferSource(spki), { name: "Ed25519" }, false, ["verify"]);
   return subtle4.verify({ name: "Ed25519" }, key, asBufferSource(sigRaw), asBufferSource(sigStructure));
 }
+function parseCreatorEntry(entry) {
+  let name = entry;
+  const em = name.match(/<([^<>\s]+@[^<>\s]+)>/);
+  if (em) name = name.replace(em[0], "");
+  const ur = name.match(/\(([^()\s]+\.[^()\s]+)\)/);
+  if (ur) name = name.replace(ur[0], "");
+  name = name.replace(/\s+/g, " ").trim();
+  if (!name) name = em?.[1] ?? ur?.[1] ?? entry.trim();
+  return { name, ...em ? { email: em[1] } : {}, ...ur ? { url: ur[1] } : {} };
+}
 function untrustedReason(signer) {
   if (signer?.selfSigned === false) return "signing certificate untrusted \u2014 a CA-issued certificate that chains to no pinned trust anchor (pin its root to verify the identity)";
   if (signer && signer.commonName !== EPHEMERAL_CN) return "signing certificate untrusted \u2014 a self-signed certificate, which vouches only for itself (pin it as a trust anchor to verify the identity)";
   return "signing certificate untrusted \u2014 an ephemeral on-device key, not a CA-issued identity";
 }
-async function verifyC2pa(bytes, { trustAnchors } = {}) {
+function textStatusCheck(kind, status) {
+  switch (status) {
+    case C2PA_TEXT_STATUS.htmlMultipleManifests:
+      return C2PA_CHECK.manifestHtmlMultipleManifests;
+    case C2PA_TEXT_STATUS.structuredTextMultipleReferences:
+      return C2PA_CHECK.manifestStructuredTextMultipleReferences;
+    case C2PA_TEXT_STATUS.structuredTextEmptyReference:
+      return C2PA_CHECK.manifestStructuredTextEmptyReference;
+    case C2PA_TEXT_STATUS.textCorruptedWrapper:
+      return C2PA_CHECK.manifestTextCorruptedWrapper;
+    case C2PA_TEXT_STATUS.textMultipleWrappers:
+      return C2PA_CHECK.manifestTextMultipleWrappers;
+    // §A.9.5 names this one; §A.7 names none for a bad href, so an HTML link we
+    // refuse to hand a fetcher reads as "the remote manifest was not obtained".
+    case C2PA_TEXT_STATUS.unsupportedReference:
+      return kind === "structuredText" ? C2PA_CHECK.manifestStructuredTextMalformedReference : C2PA_CHECK.manifestInaccessible;
+    default:
+      return C2PA_CHECK.credentialUnreadable;
+  }
+}
+function selectWrapperByExclusions(carrier) {
+  const valid = carrier.wrappers.filter((w) => w.store);
+  if (valid.length < 2) return null;
+  for (const w of valid.slice(0, MAX_WRAPPER_CANDIDATES)) {
+    try {
+      const hd = parseC2paStore(w.store).assertions.find((a) => a.label === "c2pa.hash.data");
+      if (!hd) continue;
+      const decoded = decodeCbor(hd.content);
+      if (!(decoded instanceof Map)) continue;
+      if (readExclusions(decoded).some((e) => excludesWrapper(e, w))) return w;
+    } catch {
+    }
+  }
+  return null;
+}
+function readExclusions(hd) {
+  const raw = hd.get("exclusions");
+  return (Array.isArray(raw) ? raw : []).map((e) => ({
+    start: e instanceof Map ? e.get("start") : void 0,
+    length: e instanceof Map ? e.get("length") : void 0
+  })).sort((a, b) => a.start - b.start);
+}
+function htmlCodeExclusionConformance(binding, advisory, alternates, declared) {
+  if (!binding || binding.kind === "text" || !advisory) return null;
+  const want = [...advisory].sort((a, b) => a.start - b.start);
+  const readings = [want, ...(alternates ?? []).map((a) => [...a].sort((x, y) => x.start - y.start))];
+  if (readings.some((r3) => sameRanges(r3, declared))) return null;
+  const inside = declared.every((d) => readings.some((r3) => r3.some((w) => d.start >= w.start && d.start + d.length <= w.start + w.length)));
+  const shown = (list2) => list2.length ? list2.map((e) => `${e.start}+${e.length}`).join(", ") : "none";
+  const where = binding.kind === "html" ? 'the <script type="application/c2pa"> element (\xA7A.7.1.3)' : "the -----BEGIN/END C2PA MANIFEST----- block (\xA7A.9.4)";
+  return inside ? {
+    kind: "narrower",
+    message: `the data hash excludes ${shown(declared)}, inside ${where} at ${shown(want)} \u2014 narrower than the spec requires, so the carrier's own bytes are part of the hash`
+  } : {
+    kind: "other",
+    message: `the data hash excludes ${shown(declared)} but ${where} occupies ${shown(want)} \u2014 content outside the credential is not covered by the binding`
+  };
+}
+function readAiDisclosure(content) {
+  try {
+    let m2 = decodeCbor(content);
+    if (!(m2 instanceof Map)) {
+      const json = JSON.parse(td2.decode(content));
+      m2 = json && typeof json === "object" && !Array.isArray(json) ? new Map(Object.entries(json)) : null;
+    }
+    if (!(m2 instanceof Map)) return void 0;
+    const str4 = (v) => typeof v === "string" && v.trim() ? v.trim() : void 0;
+    const profile = m2.get("contentProfile");
+    const oversight = profile instanceof Map ? str4(profile.get("humanOversightLevel")) : profile && typeof profile === "object" ? str4(profile.humanOversightLevel) : void 0;
+    const rawDomain = m2.get("scientificDomain");
+    const domains = (Array.isArray(rawDomain) ? rawDomain : [rawDomain]).map(str4).filter((s) => !!s);
+    const out = {
+      ...str4(m2.get("modelType")) ? { modelType: str4(m2.get("modelType")) } : {},
+      ...str4(m2.get("modelName")) ? { modelName: str4(m2.get("modelName")) } : {},
+      ...str4(m2.get("modelIdentifier")) ? { modelIdentifier: str4(m2.get("modelIdentifier")) } : {},
+      ...oversight ? { oversight } : {},
+      ...domains.length ? { scientificDomain: domains } : {}
+    };
+    return Object.keys(out).length ? out : void 0;
+  } catch {
+    return void 0;
+  }
+}
+async function verifyC2pa(bytes, { trustAnchors, externalManifest } = {}) {
   if (!(bytes instanceof Uint8Array)) throw new Error("verifyC2pa: bytes must be a Uint8Array");
   const checks = [];
   const fail3 = (code, explanation) => {
@@ -8957,24 +9886,77 @@ async function verifyC2pa(bytes, { trustAnchors } = {}) {
   const report = { found: false, state: "none", trusted: false, madeWithLolly: false, likelyMadeWithLolly: false, partsMadeWithLolly: false, delivered: false, format, checks };
   const pdfBytes = bytes;
   if (!format) {
-    report.reason = "no Content Credentials \u2014 these are embedded only in pdf, png, jpg, gif, svg, tiff, webp, mp4, webm, mp3 and wav files";
+    report.reason = "no Content Credentials \u2014 these are embedded only in pdf, png, jpg, gif, svg, tiff, webp, avif, mp4, webm, mkv, mp3, wav and ogg files, in HTML documents, and in text carrying a C2PA manifest block or wrapper";
     return report;
   }
+  let carrier = null;
+  let advisoryExclusions = null;
+  let advisoryAlternates = null;
   let extracted;
-  try {
-    extracted = EXTRACTORS[format](bytes);
-  } catch (err) {
-    const msg = err.message;
-    report.reason = msg;
-    if (/not a PDF/.test(msg)) return report;
-    report.found = true;
-    report.state = "invalid";
-    fail3(C2PA_CHECK.credentialUnreadable, msg);
-    return report;
-  }
-  if (!extracted) {
-    report.reason = "no Content Credentials found";
-    return report;
+  const bindingKind = TEXT_BINDING_KIND[format];
+  if (bindingKind) {
+    const detailed = extractC2paDetailed(bytes, format);
+    carrier = detailed.text ?? null;
+    advisoryExclusions = detailed.exclusions ?? null;
+    advisoryAlternates = detailed.exclusionAlternates ?? null;
+    const binding = { kind: bindingKind };
+    report.textBinding = binding;
+    if (detailed.externalUrl) binding.manifestUrl = detailed.externalUrl;
+    if (carrier) binding.wrappers = carrier.wrappers.length;
+    if (carrier?.truncated) binding.wrappersTruncated = true;
+    if (detailed.status) binding.status = detailed.status;
+    if (detailed.detail) binding.detail = detailed.detail;
+    if (carrier?.wrappers.some(isCutWrapper)) binding.fragment = true;
+    if (detailed.status === C2PA_TEXT_STATUS.tooLarge) {
+      report.reason = detailed.detail ? `no Content Credentials read \u2014 ${detailed.detail}` : "no Content Credentials read \u2014 this asset is past the size limit for on-device text inspection";
+      return report;
+    }
+    if (detailed.store) {
+      const picked = carrier ? selectWrapperByExclusions(carrier) : null;
+      if (picked) {
+        binding.selectedWrapper = carrier.wrappers.indexOf(picked) + 1;
+        extracted = { manifest: picked.store };
+      } else {
+        extracted = { manifest: detailed.store };
+      }
+    } else if (detailed.externalUrl && externalManifest?.length) {
+      binding.externalManifestUsed = true;
+      extracted = { manifest: externalManifest };
+    } else if (detailed.externalUrl) {
+      report.found = true;
+      report.state = "invalid";
+      report.reason = `this ${bindingKind === "html" ? "document" : "file"} references an external C2PA manifest at ${detailed.externalUrl} \u2014 the engine never fetches, so it could not be checked against these bytes`;
+      fail3(C2PA_CHECK.manifestInaccessible, `references an external manifest (${detailed.externalUrl}); fetch it and verify it against these bytes`);
+      return report;
+    } else if (detailed.status === C2PA_TEXT_STATUS.structuredTextNoManifest) {
+      report.reason = "no Content Credentials found \u2014 the \xA7A.9 manifest block delimiters are not both present";
+      return report;
+    } else if (detailed.status) {
+      report.found = true;
+      report.state = "invalid";
+      report.reason = detailed.detail || `C2PA text binding unusable: ${detailed.status}`;
+      fail3(textStatusCheck(bindingKind, detailed.status), report.reason);
+      return report;
+    } else {
+      report.reason = "no Content Credentials found";
+      return report;
+    }
+  } else {
+    try {
+      extracted = EXTRACTORS[format](bytes);
+    } catch (err) {
+      const msg = err.message;
+      report.reason = msg;
+      if (/not a PDF/.test(msg)) return report;
+      report.found = true;
+      report.state = "invalid";
+      fail3(C2PA_CHECK.credentialUnreadable, msg);
+      return report;
+    }
+    if (!extracted) {
+      report.reason = "no Content Credentials found";
+      return report;
+    }
   }
   report.found = true;
   let parts;
@@ -9030,6 +10012,14 @@ async function verifyC2pa(bytes, { trustAnchors } = {}) {
     manifestLabel: parts.manifestLabel,
     actions
   };
+  const declaredSpec = report.claim.generatorInfo?.specVersion ?? claim.get("specVersion");
+  if (typeof declaredSpec === "string" && declaredSpec.trim()) report.specVersion = declaredSpec.trim();
+  const AI_DISCLOSURE_LABEL = /^c2pa\.ai-disclosure(\.v\d+)?(__\d+)?$/;
+  const disclosures = parts.assertions.filter((a) => AI_DISCLOSURE_LABEL.test(a.label)).map((a) => readAiDisclosure(a.content)).filter((d) => !!d);
+  if (disclosures.length) {
+    report.aiDisclosure = disclosures[0];
+    if (disclosures.length > 1) report.aiDisclosures = disclosures;
+  }
   const chain2 = collectActionChain(extracted.manifest);
   if (chain2.length) report.history = chain2;
   for (const s of chain2) {
@@ -9059,17 +10049,31 @@ async function verifyC2pa(bytes, { trustAnchors } = {}) {
   const metaAssertion = parts.assertions.find((a) => a.label === "cawg.metadata" || a.label === "c2pa.metadata");
   if (metaAssertion) {
     try {
-      const creator = JSON.parse(td2.decode(metaAssertion.content))?.["dc:creator"];
+      const meta = JSON.parse(td2.decode(metaAssertion.content));
+      const creator = meta?.["dc:creator"];
       const name = Array.isArray(creator) ? creator[0] : creator;
-      if (name) report.author = { name: String(name) };
+      if (name) report.author = parseCreatorEntry(String(name));
+      const rights = meta?.["dc:rights"];
+      if (typeof rights === "string" && rights.trim()) report.rights = rights.trim();
     } catch {
     }
   }
   const creativeWork = parts.assertions.find((a) => a.label === "stds.schema-org.CreativeWork");
-  if (!report.author && creativeWork) {
+  if (creativeWork && (!report.author || !report.rights)) {
     try {
-      const person = JSON.parse(td2.decode(creativeWork.content))?.author?.[0];
-      if (person?.name) report.author = { name: String(person.name), ...person.email ? { email: String(person.email) } : {} };
+      const work = JSON.parse(td2.decode(creativeWork.content));
+      const person = work?.author?.[0];
+      if (!report.author && person?.name) {
+        report.author = {
+          name: String(person.name),
+          ...person.email ? { email: String(person.email) } : {},
+          ...person.url ? { url: String(person.url) } : {}
+        };
+      }
+      if (!report.rights) {
+        const notice = [work?.copyrightNotice, work?.license].filter((v) => typeof v === "string" && v.trim()).join(" \xB7 ");
+        if (notice) report.rights = notice;
+      }
     } catch {
     }
   }
@@ -9199,6 +10203,55 @@ async function verifyC2pa(bytes, { trustAnchors } = {}) {
     }
   } else if (!hashData) {
     fail3(C2PA_CHECK.assertionDataHashMismatch, "no hard binding (c2pa.hash.data or c2pa.hash.bmff) in the manifest");
+  } else if (carrier && report.textBinding?.kind === "text") {
+    const binding = report.textBinding;
+    try {
+      const hd = decodeCbor(hashData.content);
+      if ((hd.get("alg") || "sha256") !== "sha256") throw new Error(`unsupported hash alg ${String(hd.get("alg"))}`);
+      const nfcBytes = te7.encode(carrier.nfc);
+      const exclusions = readExclusions(hd);
+      let at = 0;
+      for (const e of exclusions) {
+        if (!(Number.isInteger(e.start) && Number.isInteger(e.length)) || e.start < at || e.length < 0) {
+          throw new Error("exclusion ranges are out of order or out of range");
+        }
+        if (e.start + e.length > nfcBytes.length) {
+          if (carrier.wrappers.length) binding.fragment = true;
+          throw new Error("an exclusion range runs past the end of the text \u2014 the signed text was longer than this copy");
+        }
+        at = e.start + e.length;
+      }
+      const matched = [];
+      for (const e of exclusions) {
+        const w = carrier.wrappers.find((c) => e.start === c.start && e.length === c.end - c.start) ?? carrier.wrappers.find((c) => e.start === c.selectorStart && e.length === c.end - c.selectorStart);
+        if (!w) {
+          throw new Error(carrier.truncated ? `an exclusion range matches none of the first ${carrier.wrappers.length} C2PATextManifestWrappers, and this text carries more than the reader will walk` : "an exclusion range does not correspond to a C2PATextManifestWrapper");
+        }
+        if (!matched.includes(w)) matched.push(w);
+        binding.exclusionsFrom = e.start === w.start ? "wrapper" : "selectors";
+      }
+      binding.matchedWrappers = matched.length;
+      if (!matched.length) throw new Error("the data hash declares no exclusion matching any C2PATextManifestWrapper");
+      if (matched.length > 1) {
+        fail3(C2PA_CHECK.manifestTextMultipleWrappers, `${matched.length} C2PATextManifestWrappers match the assertion's exclusions; \xA715.12.1.3.1 allows one`);
+      } else {
+        const spans = [];
+        let cut = 0;
+        for (const e of exclusions) {
+          spans.push(nfcBytes.subarray(cut, e.start));
+          cut = e.start + e.length;
+        }
+        spans.push(nfcBytes.subarray(cut));
+        const remaining = te7.encode(tdText.decode(concatBytes(spans)).normalize("NFC"));
+        if (bytesToHex(await sha256(remaining)) === bytesToHex(hd.get("hash"))) {
+          pass(C2PA_CHECK.assertionDataHashMatch, "data hash valid (NFC-normalized text, \xA715.12.1.3.1)");
+        } else {
+          fail3(C2PA_CHECK.assertionDataHashMismatch, "the text does not match the credential \u2014 it changed after signing");
+        }
+      }
+    } catch (err) {
+      fail3(C2PA_CHECK.assertionDataHashMalformed, `the text hard binding could not be checked: ${err.message}`);
+    }
   } else {
     try {
       const hd = decodeCbor(hashData.content);
@@ -9208,19 +10261,29 @@ async function verifyC2pa(bytes, { trustAnchors } = {}) {
       let at = 0;
       for (const e of exclusions) {
         if (!(Number.isInteger(e.start) && Number.isInteger(e.length)) || e.start < at || e.start + e.length > pdfBytes.length) {
-          throw new Error("exclusion ranges are out of order or out of range");
+          throw Object.assign(new Error("exclusion ranges are out of order or out of range"), { malformed: true });
         }
         spans.push(pdfBytes.subarray(at, e.start));
         at = e.start + e.length;
       }
       spans.push(pdfBytes.subarray(at));
+      const carve = htmlCodeExclusionConformance(report.textBinding, advisoryExclusions, advisoryAlternates, exclusions);
+      if (carve) {
+        report.textBinding.exclusionsConform = carve.kind;
+        if (carve.kind === "other") fail3(C2PA_CHECK.assertionDataHashAdditionalExclusions, carve.message);
+      }
+      const qualifier = carve ? ` (the declared exclusion does not match the carrier: ${carve.message})` : "";
       if (bytesToHex(await sha256(concatBytes(spans))) === bytesToHex(hd.get("hash"))) {
-        pass(C2PA_CHECK.assertionDataHashMatch, "data hash valid");
+        pass(C2PA_CHECK.assertionDataHashMatch, `data hash valid${qualifier}`);
       } else {
-        fail3(C2PA_CHECK.assertionDataHashMismatch, "the file bytes do not match the credential \u2014 the file changed after signing");
+        fail3(C2PA_CHECK.assertionDataHashMismatch, `the file bytes do not match the credential \u2014 the file changed after signing${qualifier}`);
       }
     } catch (err) {
-      fail3(C2PA_CHECK.assertionDataHashMismatch, `hard binding could not be checked: ${err.message}`);
+      const malformed = !!err.malformed && !!report.textBinding;
+      fail3(
+        malformed ? C2PA_CHECK.assertionDataHashMalformed : C2PA_CHECK.assertionDataHashMismatch,
+        `hard binding could not be checked: ${err.message}`
+      );
     }
   }
   if (anchorMatch && claimSigValid === true) {
@@ -9253,7 +10316,7 @@ async function verifyC2pa(bytes, { trustAnchors } = {}) {
   report.delivered = report.state === "valid" && !created && acts.some((a) => a.action === "c2pa.published");
   return report;
 }
-var td2, te7, subtle4, SIG_ALGS, SIG_OID_RSA_PSS, SIG_OID_ED25519, HASH_OIDS, MAX_CHAIN_INTERMEDIATES, COSE_ALGS, OID_RSASSA_PSS, ALGID_RSA_ENCRYPTION, HASHED_URI_PREFIX, EPHEMERAL_CN, verifyC2paPdf;
+var td2, te7, tdText, subtle4, SIG_ALGS, SIG_OID_RSA_PSS, SIG_OID_ED25519, HASH_OIDS, MAX_CHAIN_INTERMEDIATES, COSE_ALGS, OID_RSASSA_PSS, ALGID_RSA_ENCRYPTION, HASHED_URI_PREFIX, EPHEMERAL_CN, TEXT_BINDING_KIND, isCutWrapper, excludesWrapper, MAX_WRAPPER_CANDIDATES, sameRanges, verifyC2paPdf;
 var init_c2pa_verify = __esm({
   "engine/src/c2pa-verify.ts"() {
     "use strict";
@@ -9264,6 +10327,7 @@ var init_c2pa_verify = __esm({
     init_c2pa_extract();
     td2 = new TextDecoder();
     te7 = new TextEncoder();
+    tdText = new TextDecoder("utf-8", { ignoreBOM: true });
     subtle4 = globalThis.crypto.subtle;
     SIG_ALGS = {
       "2a8648ce3d040302": { scheme: "ecdsa", hash: "SHA-256" },
@@ -9301,6 +10365,15 @@ var init_c2pa_verify = __esm({
     ALGID_RSA_ENCRYPTION = Uint8Array.of(48, 13, 6, 9, 42, 134, 72, 134, 247, 13, 1, 1, 1, 5, 0);
     HASHED_URI_PREFIX = "self#jumbf=c2pa.assertions/";
     EPHEMERAL_CN = "Lolly On-Device Credential";
+    TEXT_BINDING_KIND = {
+      html: "html",
+      code: "structuredText",
+      text: "text"
+    };
+    isCutWrapper = (w) => w.store === null && w.status === C2PA_TEXT_STATUS.textCorruptedWrapper && (w.version === 1 || w.version === 0);
+    excludesWrapper = (e, w) => e.start === w.start && e.length === w.end - w.start || e.start === w.selectorStart && e.length === w.end - w.selectorStart;
+    MAX_WRAPPER_CANDIDATES = 8;
+    sameRanges = (a, b) => a.length === b.length && a.every((x, i) => x.start === b[i].start && x.length === b[i].length);
     verifyC2paPdf = verifyC2pa;
   }
 });
@@ -9358,6 +10431,7 @@ async function createRuntime(tool, host, initialState = {}, opts = {}) {
   let liveUnsub = null;
   let liveResubscribe = null;
   let framePending = false;
+  let livePaused = false;
   const isLive = () => liveUnsub != null;
   const liveEdge = () => {
     const inputId = tool.manifest.render?.liveMaxEdgeInput;
@@ -9467,6 +10541,27 @@ async function createRuntime(tool, host, initialState = {}, opts = {}) {
     // Hook failures (currently onInit) so a shell can show a canvas-error banner
     // instead of a silently-blank canvas. Empty when every hook ran cleanly.
     hookErrors,
+    // Deterministic export drive (see the interface doc): onFrame → mergePatch → hydrate,
+    // with no rAF loop and no subscriber emit. Mirrors the live onFrame handling in
+    // startLive, minus the drop-guard and the provenance flag (never a sensor here).
+    async applyFrameForExport(frame) {
+      const onFrame = hooks?.onFrame;
+      if (!onFrame) return null;
+      try {
+        const patch = await onFrame({ frame, model: modelForHooks(model2), host });
+        if (patch) ({ model: model2, extras } = mergePatch(model2, extras, patch, inputIds));
+        return getHydrated();
+      } catch (e) {
+        host.log("warn", `onFrame (export) ${e.message}`, { toolId: tool.manifest.id });
+        return null;
+      }
+    },
+    pauseLive() {
+      livePaused = true;
+    },
+    resumeLive() {
+      livePaused = false;
+    },
     async setInput(id, value) {
       const priorType = model2.find((i) => i.id === id)?.type;
       if (priorType === "asset" || priorType === "file" || priorType === "url") liveCameraShown = false;
@@ -9581,23 +10676,25 @@ async function createRuntime(tool, host, initialState = {}, opts = {}) {
     /** Whether the camera-driven loop is currently running. */
     isLive,
     /**
-     * Start driving the tool's `onFrame` hook from the host camera. Resolves once
-     * the camera is live; rejects if permission is denied or there's no camera (the
-     * shell shows that error). No-op (returns false) if already live, the tool has
-     * no onFrame, or the shell provides no host.media.
+     * Start driving the tool's `onFrame` hook from the host frame source — the
+     * camera by default, or (source:'asset') a shell-armed animated asset replayed
+     * through the same loop. Resolves once frames can flow; rejects if permission
+     * is denied or there's no camera (the shell shows that error). No-op (returns
+     * false) if already live, the tool has no onFrame, or there's no host.media.
      */
-    async startLive() {
+    async startLive(opts2) {
       const onFrame = hooks?.onFrame;
       const media = host.media;
       if (liveUnsub || !onFrame || !media) return false;
+      const sensorSource = opts2?.source !== "asset";
       await media.start();
       const subscribeLive = () => media.subscribe((frame) => {
-        if (framePending) return;
+        if (framePending || livePaused) return;
         framePending = true;
         Promise.resolve(onFrame({ frame, model: modelForHooks(model2), host })).then((patch) => {
           if (patch && liveUnsub) {
             ({ model: model2, extras } = mergePatch(model2, extras, patch, inputIds));
-            liveCameraShown = true;
+            if (sensorSource) liveCameraShown = true;
             emit();
           }
         }).catch((e) => host.log("warn", `onFrame ${e.message}`, { toolId: tool.manifest.id })).finally(() => {
@@ -13727,7 +14824,7 @@ var init_url_mode = __esm({
     init_inputs();
     HDR_DEFAULTS = { peakNits: 1e3, reach: 45, lift: 0, richness: 40 };
     DEPTH_VALUES = /* @__PURE__ */ new Map([["8", 8], ["16", 16], ["float", "float"], ["auto", "auto"]]);
-    RESERVED = /* @__PURE__ */ new Set(["format", "export", "copy", "slot", "output", "filename", "_v", "width", "height", "w", "h", "unit", "dpi", "profile", "password", "bleed", "marks", "c2pa", "imprint", "durable", "meta", "hdr", "depth", "cuts", "lang", "designv", "full", "options", "nostage", "template", "z", "zx"]);
+    RESERVED = /* @__PURE__ */ new Set(["format", "export", "copy", "slot", "output", "filename", "_v", "width", "height", "w", "h", "unit", "dpi", "profile", "password", "bleed", "marks", "c2pa", "imprint", "durable", "meta", "hdr", "depth", "cuts", "lang", "designv", "full", "options", "nostage", "template", "present", "s", "z", "zx"]);
     CUTS_MAX = 64;
   }
 });
@@ -14082,8 +15179,8 @@ function parseBatchCsv(text) {
       const reserved = RESERVED_HEADERS[h.toLowerCase()];
       if (reserved === "toolId") row.toolId = raw;
       else if (reserved === "width" || reserved === "height" || reserved === "dpi") {
-        const num5 = Number(raw);
-        if (Number.isFinite(num5) && num5 > 0) row[reserved] = num5;
+        const num6 = Number(raw);
+        if (Number.isFinite(num6) && num6 > 0) row[reserved] = num6;
       } else if (reserved) row[reserved] = raw;
       else row.params[h] = raw;
     });
@@ -14192,8 +15289,8 @@ function scalar(dv, e) {
     if (e.type === 4) return dv.getUint32(e.valueOffset, e.le);
     if (e.type === 5) {
       if (e.valueOffset + 8 > dv.byteLength) return null;
-      const num5 = dv.getUint32(e.valueOffset, e.le), den = dv.getUint32(e.valueOffset + 4, e.le);
-      return den ? num5 / den : 0;
+      const num6 = dv.getUint32(e.valueOffset, e.le), den = dv.getUint32(e.valueOffset + 4, e.le);
+      return den ? num6 / den : 0;
     }
   } catch {
   }
@@ -14205,8 +15302,8 @@ function rationals(dv, e, want) {
   for (let i = 0; i < Math.min(e.count, want); i++) {
     const o = e.valueOffset + i * 8;
     if (o + 8 > dv.byteLength) return null;
-    const num5 = dv.getUint32(o, e.le), den = dv.getUint32(o + 4, e.le);
-    out.push(den ? num5 / den : 0);
+    const num6 = dv.getUint32(o, e.le), den = dv.getUint32(o + 4, e.le);
+    out.push(den ? num6 / den : 0);
   }
   return out.length === want ? out : null;
 }
@@ -16374,9 +17471,9 @@ function pqEotfNorm(code) {
   const m1 = 2610 / 16384, m2 = 2523 / 4096 * 128;
   const c1 = 3424 / 4096, c2 = 2413 / 4096 * 32, c3 = 2392 / 4096 * 32;
   const p = code ** (1 / m2);
-  const num5 = Math.max(p - c1, 0);
+  const num6 = Math.max(p - c1, 0);
   const den = c2 - c3 * p;
-  return (num5 / den) ** (1 / m1);
+  return (num6 / den) ** (1 / m1);
 }
 function pqBt2020IccProfile() {
   if (_pqCache) return _pqCache;
@@ -16560,9 +17657,9 @@ function formatGradientSpec(g2) {
     g2.hue && g2.hue !== "shorter" ? g2.hue : ""
   ].filter(Boolean).join(".");
   const head = KIND_SHORT[g2.kind] + (mods ? `.${mods}` : "");
-  const num5 = (n2) => String(Math.round(n2 * 100) / 100);
-  const stops = g2.stops.map((s) => `${wireColor(s.color)}-${num5(clampPos(s.pos))}`);
-  return [head, num5(normAngle(g2.angle)), ...stops].join("_");
+  const num6 = (n2) => String(Math.round(n2 * 100) / 100);
+  const stops = g2.stops.map((s) => `${wireColor(s.color)}-${num6(clampPos(s.pos))}`);
+  return [head, num6(normAngle(g2.angle)), ...stops].join("_");
 }
 function gradientSpecStops(g2) {
   const authored = [];
@@ -16995,8 +18092,8 @@ var init_preflight = __esm({
 function minorUnitExponent(currency, locale) {
   return exponentOf(currencyFormatter(currency, locale), currency);
 }
-function exponentOf(fmt2, currency) {
-  const exp = fmt2.resolvedOptions().maximumFractionDigits;
+function exponentOf(fmt3, currency) {
+  const exp = fmt3.resolvedOptions().maximumFractionDigits;
   if (typeof exp !== "number") throw new CurrencyError(currency);
   return exp;
 }
@@ -17084,18 +18181,18 @@ function preflight(job) {
     gaps: findings.filter((f) => !!f.needs)
   };
 }
-function safeReportedJob(job, fmt2, rowIndex) {
+function safeReportedJob(job, fmt3, rowIndex) {
   try {
-    return reportedJob(job, fmt2, rowIndex);
+    return reportedJob(job, fmt3, rowIndex);
   } catch {
     return {
       toolId: "",
-      format: fmt2,
+      format: fmt3,
       ...rowIndex === void 0 ? {} : { rowIndex },
       stageMounted: false,
       paletteResolved: false,
       settings: {
-        format: fmt2,
+        format: fmt3,
         size: { width: { value: 0, unit: "px" }, height: { value: 0, unit: "px" }, dpi: 0, declaredBy: "manifest", unitDeclared: false },
         bleed: { known: false, why: "not-set" },
         marks: { known: false, why: "not-set" },
@@ -17104,7 +18201,7 @@ function safeReportedJob(job, fmt2, rowIndex) {
     };
   }
 }
-function reportedJob(job, fmt2, rowIndex) {
+function reportedJob(job, fmt3, rowIndex) {
   const dim = (d) => isDim(d) ? { value: d.value, unit: d.unit } : { value: 0, unit: "px" };
   const s = job?.settings;
   const size = {
@@ -17117,10 +18214,10 @@ function reportedJob(job, fmt2, rowIndex) {
   const bleed = s?.bleed?.known === true ? { known: true, value: isDim(s.bleed.value) ? dim(s.bleed.value) : null } : { known: false, why: s?.bleed?.known === false ? s.bleed.why : "not-set" };
   const marks = s?.marks?.known === true ? { known: true, value: s.marks.value ?? null } : { known: false, why: s?.marks?.known === false ? s.marks.why : "not-set" };
   const pressProfile = s?.pressProfile?.known === true ? { known: true, value: typeof s.pressProfile.value === "string" ? s.pressProfile.value : null } : { known: false, why: s?.pressProfile?.known === false ? s.pressProfile.why : "not-set" };
-  const settings = { format: fmt2, size, bleed, marks, pressProfile };
+  const settings = { format: fmt3, size, bleed, marks, pressProfile };
   return {
     toolId: typeof job?.manifest?.id === "string" && job.manifest.id || "",
-    format: fmt2,
+    format: fmt3,
     ...rowIndex === void 0 ? {} : { rowIndex },
     ...typeof job?.source === "string" ? { source: job.source } : {},
     ...typeof job?.modelPhase === "string" ? { modelPhase: job.modelPhase } : {},
@@ -18516,9 +19613,9 @@ function svgArcToBeziers(x1, y1, rx, ry, phi, fa, fs, x2, y2) {
     rx2 = rx * rx;
     ry2 = ry * ry;
   }
-  const num5 = Math.max(0, rx2 * ry2 - rx2 * y1p2 - ry2 * x1p2);
+  const num6 = Math.max(0, rx2 * ry2 - rx2 * y1p2 - ry2 * x1p2);
   const den = rx2 * y1p2 + ry2 * x1p2;
-  const coef = (fa === fs ? -1 : 1) * Math.sqrt(num5 / den);
+  const coef = (fa === fs ? -1 : 1) * Math.sqrt(num6 / den);
   const cxp = coef * rx * y1p / ry;
   const cyp = -coef * ry * x1p / rx;
   const cx = cosP * cxp - sinP * cyp + (x1 + x2) / 2;
@@ -18623,6 +19720,943 @@ var init_svg_colors = __esm({
   }
 });
 
+// engine/src/svg-layers.ts
+function localName(raw) {
+  const c = raw.indexOf(":");
+  return (c > 0 ? raw.slice(c + 1) : raw).toLowerCase();
+}
+function scanTags(s) {
+  const tags = [];
+  const n2 = s.length;
+  let i = 0;
+  while (i < n2) {
+    const lt = s.indexOf("<", i);
+    if (lt < 0) break;
+    if (s.startsWith("<!--", lt)) {
+      const e = s.indexOf("-->", lt + 4);
+      i = e < 0 ? n2 : e + 3;
+      continue;
+    }
+    if (s.startsWith("<![CDATA[", lt)) {
+      const e = s.indexOf("]]>", lt + 9);
+      i = e < 0 ? n2 : e + 3;
+      continue;
+    }
+    if (s.startsWith("<!", lt)) {
+      const e = s.indexOf(">", lt);
+      i = e < 0 ? n2 : e + 1;
+      continue;
+    }
+    if (s.startsWith("<?", lt)) {
+      const e = s.indexOf("?>", lt);
+      i = e < 0 ? n2 : e + 2;
+      continue;
+    }
+    let j = lt + 1;
+    let quote = "";
+    while (j < n2) {
+      const c = s[j];
+      if (quote) {
+        if (c === quote) quote = "";
+      } else if (c === '"' || c === "'") quote = c;
+      else if (c === ">") break;
+      j++;
+    }
+    const end = j < n2 ? j + 1 : n2;
+    const inner = s.slice(lt + 1, j < n2 ? j : n2);
+    if (inner[0] === "/") {
+      const q = inner.slice(1).trim();
+      tags.push({ name: localName(q), qname: q, attrs: "", kind: "close", start: lt, end });
+    } else {
+      const self = inner.endsWith("/");
+      const body = self ? inner.slice(0, -1) : inner;
+      const m2 = /^\s*([^\s/>]+)/.exec(body);
+      const q = m2 ? m2[1] : "";
+      tags.push({
+        name: localName(q),
+        qname: q,
+        attrs: m2 ? body.slice(m2[0].length) : "",
+        kind: self ? "self" : "open",
+        start: lt,
+        end
+      });
+    }
+    if (tags.length > SVG_LAYERS_MAX_TAGS) return null;
+    i = end;
+  }
+  return tags;
+}
+function attrOf(attrs, name) {
+  if (!attrs) return void 0;
+  const re = new RegExp(`(?:^|\\s)${escapeRe(name)}\\s*=\\s*("([^"]*)"|'([^']*)')`, "i");
+  const m2 = re.exec(attrs);
+  return m2 ? m2[2] ?? m2[3] : void 0;
+}
+function idOf(attrs) {
+  if (!attrs) return void 0;
+  const m2 = ID_ATTR_RE.exec(attrs);
+  return m2 ? m2[2] ?? m2[3] : void 0;
+}
+function styleProps(attrs) {
+  const out = {};
+  const s = attrOf(attrs, "style");
+  if (!s) return out;
+  for (const decl of s.split(";")) {
+    const i = decl.indexOf(":");
+    if (i < 0) continue;
+    out[decl.slice(0, i).trim().toLowerCase()] = decl.slice(i + 1).trim().toLowerCase();
+  }
+  return out;
+}
+function unitCompositing(attrs) {
+  const style = styleProps(attrs);
+  for (const prop3 of UNIT_PROPS) {
+    const v = (style[prop3] ?? attrOf(attrs, prop3) ?? "").trim().toLowerCase();
+    if (v === "" || v === "none" || v === "normal" || v === "auto") continue;
+    if (prop3 === "opacity") {
+      const n2 = parseFloat(v);
+      if (Number.isFinite(n2) && n2 >= 1) continue;
+    }
+    return prop3;
+  }
+  return "";
+}
+function skipSubtree(tags, i) {
+  if (tags[i].kind === "self") return i + 1;
+  let depth = 0;
+  for (let j = i; j < tags.length; j++) {
+    const t = tags[j];
+    if (t.kind === "open") {
+      depth++;
+      if (depth > SVG_LAYERS_MAX_DEPTH) return null;
+    } else if (t.kind === "close") {
+      depth--;
+      if (depth === 0) return j + 1;
+      if (depth < 0) return null;
+    }
+  }
+  return null;
+}
+function directChildren(tags, openIdx) {
+  if (tags[openIdx]?.kind !== "open") return [];
+  const children = [];
+  for (let i = openIdx + 1; i < tags.length; i++) {
+    const t = tags[i];
+    if (t.kind === "close") return children;
+    if (t.kind === "self") {
+      children.push({ tag: t, ti: i, start: t.start, end: t.end });
+      continue;
+    }
+    const after = skipSubtree(tags, i);
+    if (after == null) return null;
+    children.push({ tag: t, ti: i, start: t.start, end: tags[after - 1].end });
+    i = after - 1;
+  }
+  return null;
+}
+function matMul(m1, m2) {
+  const [a1, b1, c1, d1, e1, f1] = m1;
+  const [a2, b2, c2, d2, e2, f2] = m2;
+  return [
+    a1 * a2 + c1 * b2,
+    b1 * a2 + d1 * b2,
+    a1 * c2 + c1 * d2,
+    b1 * c2 + d1 * d2,
+    a1 * e2 + c1 * f2 + e1,
+    b1 * e2 + d1 * f2 + f1
+  ];
+}
+function parseTransform(v) {
+  if (v == null) return IDENTITY;
+  const trimmed = v.trim();
+  if (trimmed === "" || trimmed.toLowerCase() === "none") return IDENTITY;
+  let acc = IDENTITY;
+  const re = /([a-zA-Z]+)\s*\(([^)]*)\)/g;
+  let m2;
+  let saw = false;
+  while ((m2 = re.exec(trimmed)) !== null) {
+    saw = true;
+    const name = m2[1].toLowerCase();
+    const a = (m2[2] ?? "").trim().split(/[\s,]+/).filter((x) => x !== "").map(Number);
+    if (a.some((x) => !Number.isFinite(x))) return null;
+    let t;
+    if (name === "translate") t = [1, 0, 0, 1, a[0] ?? 0, a[1] ?? 0];
+    else if (name === "scale") t = [a[0] ?? 1, 0, 0, a[1] ?? a[0] ?? 1, 0, 0];
+    else if (name === "matrix" && a.length >= 6) t = [a[0], a[1], a[2], a[3], a[4], a[5]];
+    else if (name === "rotate") {
+      const rad = (a[0] ?? 0) * Math.PI / 180;
+      const cos = Math.cos(rad), sin = Math.sin(rad);
+      const rot = [cos, sin, -sin, cos, 0, 0];
+      if (a.length >= 3) {
+        const cx = a[1], cy = a[2];
+        t = matMul(matMul([1, 0, 0, 1, cx, cy], rot), [1, 0, 0, 1, -cx, -cy]);
+      } else t = rot;
+    } else if (name === "skewx") t = [1, 0, Math.tan((a[0] ?? 0) * Math.PI / 180), 1, 0, 0];
+    else if (name === "skewy") t = [1, Math.tan((a[0] ?? 0) * Math.PI / 180), 0, 1, 0, 0];
+    else return null;
+    acc = matMul(acc, t);
+  }
+  return saw ? acc : null;
+}
+function boxUnion(a, b) {
+  if (!a) return b;
+  if (!b) return a;
+  const x = Math.min(a.x, b.x), y = Math.min(a.y, b.y);
+  return { x, y, w: Math.max(a.x + a.w, b.x + b.w) - x, h: Math.max(a.y + a.h, b.y + b.h) - y };
+}
+function boxOfPoints(pts, m2) {
+  let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+  for (const p of pts) {
+    const x = m2[0] * p[0] + m2[2] * p[1] + m2[4];
+    const y = m2[1] * p[0] + m2[3] * p[1] + m2[5];
+    if (!Number.isFinite(x) || !Number.isFinite(y)) return null;
+    if (x < minX) minX = x;
+    if (y < minY) minY = y;
+    if (x > maxX) maxX = x;
+    if (y > maxY) maxY = y;
+  }
+  if (minX > maxX) return null;
+  return { x: minX, y: minY, w: maxX - minX, h: maxY - minY };
+}
+function elementBox(tags, node, depth) {
+  const tag2 = node.tag;
+  const m2 = parseTransform(attrOf(tag2.attrs, "transform"));
+  if (!m2) return null;
+  const name = tag2.name;
+  if (CONTAINER_TAGS.has(name)) {
+    if (depth >= SVG_LAYERS_MAX_DEPTH) return null;
+    const kids = directChildren(tags, node.ti);
+    if (!kids) return null;
+    let acc = null;
+    for (const k of kids) {
+      if (DROP_TAGS.has(k.tag.name) || CARRY_TAGS.has(k.tag.name)) continue;
+      const b = elementBox(tags, k, depth + 1);
+      if (!b) return null;
+      acc = boxUnion(acc, b);
+    }
+    return acc ? transformBox(acc, m2) : null;
+  }
+  if (name === "rect" || name === "image" || name === "foreignobject" || name === "svg") {
+    const w = numAttr(tag2.attrs, "width", NaN), h = numAttr(tag2.attrs, "height", NaN);
+    if (!(w > 0 && h > 0)) return null;
+    return boxOfPoints(rectPts(numAttr(tag2.attrs, "x", 0), numAttr(tag2.attrs, "y", 0), w, h), m2);
+  }
+  if (name === "circle") {
+    const r3 = numAttr(tag2.attrs, "r", NaN);
+    if (!(r3 > 0)) return null;
+    const cx = numAttr(tag2.attrs, "cx", 0), cy = numAttr(tag2.attrs, "cy", 0);
+    return boxOfPoints(rectPts(cx - r3, cy - r3, 2 * r3, 2 * r3), m2);
+  }
+  if (name === "ellipse") {
+    const rx = numAttr(tag2.attrs, "rx", NaN), ry = numAttr(tag2.attrs, "ry", NaN);
+    if (!(rx > 0 && ry > 0)) return null;
+    const cx = numAttr(tag2.attrs, "cx", 0), cy = numAttr(tag2.attrs, "cy", 0);
+    return boxOfPoints(rectPts(cx - rx, cy - ry, 2 * rx, 2 * ry), m2);
+  }
+  if (name === "line") {
+    return boxOfPoints([
+      [numAttr(tag2.attrs, "x1", 0), numAttr(tag2.attrs, "y1", 0)],
+      [numAttr(tag2.attrs, "x2", 0), numAttr(tag2.attrs, "y2", 0)]
+    ], m2);
+  }
+  if (name === "polyline" || name === "polygon") {
+    const nums = (attrOf(tag2.attrs, "points") ?? "").trim().split(/[\s,]+/).map(Number).filter((x) => Number.isFinite(x));
+    if (nums.length < 4) return null;
+    const pts = [];
+    for (let i = 0; i + 1 < nums.length; i += 2) pts.push([nums[i], nums[i + 1]]);
+    return boxOfPoints(pts, m2);
+  }
+  if (name === "path") {
+    const d = attrOf(tag2.attrs, "d");
+    if (!d) return null;
+    const pts = [];
+    for (const sub of parseSvgPath(d)) {
+      for (const seg of sub.segments) {
+        if (seg.op === "C") pts.push([seg.x1, seg.y1], [seg.x2, seg.y2], [seg.x, seg.y]);
+        else pts.push([seg.x, seg.y]);
+      }
+    }
+    if (!pts.length) return null;
+    return boxOfPoints(pts, m2);
+  }
+  return null;
+}
+function transformBox(b, m2) {
+  return boxOfPoints(rectPts(b.x, b.y, b.w, b.h), m2);
+}
+function median(xs) {
+  if (!xs.length) return 0;
+  const s = [...xs].sort((a, b) => a - b);
+  const m2 = s.length >> 1;
+  return s.length % 2 ? s[m2] : (s[m2 - 1] + s[m2]) / 2;
+}
+function clusterLeaves(idx, boxes, gapScale = 1, sizeRatio = Infinity) {
+  const measurable = idx.filter((i) => boxes[i]);
+  const alone = idx.filter((i) => !boxes[i]).map((i) => [i]);
+  if (measurable.length < 2) return [...alone, ...measurable.map((i) => [i])];
+  const parent = measurable.map((_, i) => i);
+  const find = (i) => {
+    while (parent[i] !== i) {
+      parent[i] = parent[parent[i]];
+      i = parent[i];
+    }
+    return i;
+  };
+  const join11 = (a, b) => {
+    const ra = find(a), rb = find(b);
+    if (ra !== rb) parent[ra] = rb;
+  };
+  const typical = median(measurable.map((i) => Math.min(boxes[i].w, boxes[i].h)));
+  const gap = Math.min(MAX_CLUSTER_GAP, Math.max(CLUSTER_GAP, typical * GAP_FACTOR)) * gapScale;
+  const area = (r3) => Math.max(1e-6, r3.w * r3.h);
+  for (let a = 0; a < measurable.length; a++) {
+    const ba = boxes[measurable[a]];
+    const grown = expandBox(ba, gap);
+    for (let b = a + 1; b < measurable.length; b++) {
+      if (find(a) === find(b)) continue;
+      const bb = boxes[measurable[b]];
+      if (Number.isFinite(sizeRatio)) {
+        const [lo, hi] = area(ba) < area(bb) ? [area(ba), area(bb)] : [area(bb), area(ba)];
+        if (hi > lo * sizeRatio) continue;
+      }
+      if (boxesOverlap(grown, bb)) join11(a, b);
+    }
+  }
+  const byRoot = /* @__PURE__ */ new Map();
+  for (let a = 0; a < measurable.length; a++) {
+    const r3 = find(a);
+    const got = byRoot.get(r3);
+    if (got) got.push(measurable[a]);
+    else byRoot.set(r3, [measurable[a]]);
+  }
+  return [...alone, ...byRoot.values()];
+}
+function splitUnsafeClusters(clusters, boxes, count2) {
+  const out = [];
+  for (const c of clusters) {
+    if (c.length < 2) {
+      out.push(c);
+      continue;
+    }
+    const sorted = [...c].sort((a, b) => a - b);
+    const member = new Set(sorted);
+    let bb = null;
+    for (const i of sorted) bb = boxUnion(bb, boxes[i] ?? null);
+    let unsafe = false;
+    for (let i = sorted[0] + 1; i < sorted[sorted.length - 1] && i < count2; i++) {
+      if (member.has(i)) continue;
+      const ob = boxes[i];
+      if (!ob || !bb || boxesOverlap(ob, bb)) {
+        unsafe = true;
+        break;
+      }
+    }
+    if (!unsafe) {
+      out.push(sorted);
+      continue;
+    }
+    let run = [sorted[0]];
+    for (let k = 1; k < sorted.length; k++) {
+      if (sorted[k] === sorted[k - 1] + 1) run.push(sorted[k]);
+      else {
+        out.push(run);
+        run = [sorted[k]];
+      }
+    }
+    out.push(run);
+  }
+  return out;
+}
+function inkOf(tags, node) {
+  const end = node.tag.kind === "self" ? node.ti + 1 : skipSubtree(tags, node.ti) ?? tags.length;
+  let n2 = 0;
+  for (let i = node.ti; i < end; i++) {
+    const t = tags[i];
+    if (t.kind === "close") continue;
+    if (DROP_TAGS.has(t.name) || CARRY_TAGS.has(t.name)) {
+      const after = t.kind === "self" ? i + 1 : skipSubtree(tags, i) ?? end;
+      i = after - 1;
+      continue;
+    }
+    if (PAINT_TAGS.has(t.name)) n2++;
+  }
+  return n2;
+}
+function matScale(m2) {
+  if (!m2) return 1;
+  return Math.max(Math.hypot(m2[0], m2[1]), Math.hypot(m2[2], m2[3])) || 1;
+}
+function buildLevel(tags, nodes, mat, wrappers, clusterGroups, budget, onSplit) {
+  const boxes = nodes.map((nd) => {
+    const local = elementBox(tags, nd, 0);
+    return local && mat ? transformBox(local, mat) : null;
+  });
+  const groupIdx = [];
+  const leafIdx = [];
+  nodes.forEach((nd, i) => {
+    (!clusterGroups && CONTAINER_TAGS.has(nd.tag.name) ? groupIdx : leafIdx).push(i);
+  });
+  let clusters = [];
+  const steps = budget > 0 ? SVG_LAYERS_HERO_GAP_SCALES : [1];
+  for (let s = 0; s < steps.length; s++) {
+    const raw = [
+      ...groupIdx.map((i) => [i]),
+      ...clusterLeaves(leafIdx, boxes, steps[s], budget > 0 ? SVG_LAYERS_PEER_AREA_RATIO : Infinity)
+    ];
+    const before = raw.length;
+    clusters = splitUnsafeClusters(raw, boxes, nodes.length);
+    if (clusters.length > before) onSplit();
+    if (budget <= 0 || clusters.length <= budget) break;
+  }
+  return clusters.map((members) => {
+    const sorted = [...members].sort((a, b) => a - b);
+    let bb = null;
+    for (const i of sorted) bb = boxUnion(bb, boxes[i] ?? null);
+    const nds = sorted.map((i) => nodes[i]);
+    return {
+      members: nds,
+      bbox: bb,
+      order: sorted[0],
+      wrappers,
+      mat,
+      measured: sorted.every((i) => boxes[i] != null),
+      ink: nds.reduce((a, nd) => a + inkOf(tags, nd), 0)
+    };
+  }).sort((a, b) => a.order - b.order);
+}
+function descendInto(tags, c, onSplit) {
+  if (c.members.length !== 1) return null;
+  let node = c.members[0];
+  let mat = c.mat;
+  const chain2 = [...c.wrappers];
+  const carry = [];
+  for (let d = 0; d < SVG_LAYERS_MAX_DESCENT; d++) {
+    if (node.tag.kind !== "open" || !CONTAINER_TAGS.has(node.tag.name)) return null;
+    if (unitCompositing(node.tag.attrs)) return null;
+    const kids = directChildren(tags, node.ti);
+    if (!kids) return null;
+    const inner = [];
+    for (const k of kids) {
+      if (DROP_TAGS.has(k.tag.name)) continue;
+      if (CARRY_TAGS.has(k.tag.name)) {
+        carry.push(k);
+        continue;
+      }
+      inner.push(k);
+    }
+    if (!inner.length) return null;
+    const m2 = parseTransform(attrOf(node.tag.attrs, "transform"));
+    mat = mat && m2 ? matMul(mat, m2) : null;
+    chain2.push(node.tag);
+    if (inner.length === 1) {
+      node = inner[0];
+      continue;
+    }
+    return { candidates: buildLevel(tags, inner, mat, chain2, true, SVG_LAYERS_HERO_BUDGET, onSplit), carry };
+  }
+  return null;
+}
+function enumerateSvgLayers(markup, opts = {}) {
+  const warnings = [];
+  try {
+    return enumerate(markup, opts, warnings);
+  } catch {
+    warnings.push("could not read this SVG");
+    return { layers: [], warnings, viewBox: null };
+  }
+}
+function enumerate(markup, opts, warnings) {
+  const empty = (why, viewBox = null) => {
+    warnings.push(why);
+    return { layers: [], warnings, viewBox };
+  };
+  if (typeof markup !== "string" || markup.length === 0) return empty("no SVG markup");
+  if (markup.length > SVG_LAYERS_MAX_CHARS) {
+    return empty(`SVG is too large to lift (over ${Math.round(SVG_LAYERS_MAX_CHARS / 1e6)} MB)`);
+  }
+  const tags = scanTags(markup);
+  if (!tags) return empty(`SVG has more than ${SVG_LAYERS_MAX_TAGS} tags (an opening and a closing tag count as two)`);
+  const rootIdx = tags.findIndex((t) => t.name === "svg" && t.kind !== "close");
+  if (rootIdx < 0) return empty("no <svg> root");
+  const root = tags[rootIdx];
+  if (root.kind === "self") return empty("this SVG is empty");
+  const rootUnit = unitCompositing(root.attrs);
+  if (rootUnit) return empty(`kept the artwork whole \u2014 its \`${rootUnit}\` applies to all of it at once`);
+  const rootKids = directChildren(tags, rootIdx);
+  if (!rootKids) return empty("this SVG is not well-formed enough to lift");
+  const carry = [];
+  let candidateNodes = [];
+  for (const k of rootKids) {
+    if (DROP_TAGS.has(k.tag.name)) continue;
+    if (CARRY_TAGS.has(k.tag.name)) {
+      carry.push(k);
+      continue;
+    }
+    candidateNodes.push(k);
+  }
+  if (!candidateNodes.length) return empty("nothing to lift \u2014 this SVG draws nothing at its root");
+  const wrappers = [];
+  for (let d = 0; d < SVG_LAYERS_MAX_DESCENT; d++) {
+    if (candidateNodes.length !== 1) break;
+    const only = candidateNodes[0];
+    if (only.tag.name !== "g" || only.tag.kind !== "open") break;
+    const unit2 = unitCompositing(only.tag.attrs);
+    if (unit2) {
+      warnings.push(`kept the outer group whole \u2014 its \`${unit2}\` applies to all of it at once`);
+      break;
+    }
+    const kids = directChildren(tags, only.ti);
+    if (!kids) break;
+    const inner = [];
+    const innerCarry = [];
+    for (const k of kids) {
+      if (DROP_TAGS.has(k.tag.name)) continue;
+      if (CARRY_TAGS.has(k.tag.name)) {
+        innerCarry.push(k);
+        continue;
+      }
+      inner.push(k);
+    }
+    if (!inner.length) break;
+    carry.push(...innerCarry);
+    wrappers.push(only.tag);
+    candidateNodes = inner;
+  }
+  let overflow = [];
+  if (candidateNodes.length > SVG_LAYERS_MAX_CANDIDATES) {
+    overflow = candidateNodes.slice(SVG_LAYERS_MAX_CANDIDATES - 1);
+    candidateNodes = candidateNodes.slice(0, SVG_LAYERS_MAX_CANDIDATES - 1);
+    warnings.push(
+      `this SVG has more than ${SVG_LAYERS_MAX_CANDIDATES} shapes at its root; everything past the first ${SVG_LAYERS_MAX_CANDIDATES - 1} is one layer`
+    );
+  }
+  let wrapperMat = IDENTITY;
+  for (const w of wrappers) {
+    if (!wrapperMat) break;
+    const m2 = parseTransform(attrOf(w.attrs, "transform"));
+    wrapperMat = m2 ? matMul(wrapperMat, m2) : null;
+  }
+  let splitWarned = false;
+  const onSplit = () => {
+    if (splitWarned) return;
+    splitWarned = true;
+    warnings.push("split a cluster that another layer paints through, to keep the stacking order");
+  };
+  const candidates2 = buildLevel(tags, candidateNodes, wrapperMat, wrappers, false, 0, onSplit);
+  if (overflow.length) {
+    candidates2.push({
+      members: overflow,
+      bbox: null,
+      order: Number.MAX_SAFE_INTEGER,
+      wrappers,
+      mat: wrapperMat,
+      measured: false,
+      ink: overflow.reduce((a, nd) => a + inkOf(tags, nd), 0)
+    });
+  }
+  const cap = Math.max(1, Math.min(SVG_LAYERS_MAX, opts.maxLayers ?? SVG_LAYERS_MAX));
+  if (opts.heroDescent !== false) {
+    for (let round4 = 0; round4 < SVG_LAYERS_HERO_ROUNDS && candidates2.length < cap; round4++) {
+      const total2 = candidates2.reduce((a, c) => a + c.ink, 0);
+      if (total2 < SVG_LAYERS_HERO_MIN_INK) break;
+      let at = -1;
+      let most = 0;
+      candidates2.forEach((c, i) => {
+        if (c.ink > most) {
+          most = c.ink;
+          at = i;
+        }
+      });
+      if (at < 0 || most <= total2 * SVG_LAYERS_HERO_SHARE) break;
+      const sub = descendInto(tags, candidates2[at], onSplit);
+      if (!sub || sub.candidates.length < 2) break;
+      if (candidates2.length - 1 + sub.candidates.length > cap) break;
+      candidates2.splice(at, 1, ...sub.candidates);
+      carry.push(...sub.carry);
+      warnings.push(
+        `one layer held ${Math.round(most / total2 * 100)}% of this artwork, so it was opened up into ${sub.candidates.length}`
+      );
+    }
+  }
+  let final = candidates2;
+  if (candidates2.length > cap) {
+    const tail = candidates2.slice(cap - 1);
+    final = [...candidates2.slice(0, cap - 1), {
+      members: tail.flatMap((c) => c.members).sort((a, b) => a.start - b.start),
+      bbox: tail.reduce((acc, c) => boxUnion(acc, c.bbox), null),
+      order: tail[0].order,
+      wrappers: tail.every((c) => c.wrappers === tail[0].wrappers) ? tail[0].wrappers : wrappers,
+      mat: wrapperMat,
+      measured: false,
+      ink: tail.reduce((a, c) => a + c.ink, 0)
+    }];
+    warnings.push(`found ${candidates2.length} layers; the last ${tail.length} were merged into one (the limit is ${cap})`);
+  }
+  const drops = dropSpans(tags);
+  const carryMarkup = carry.map((c) => sliceKeeping(markup, drops, c.start, c.end)).join("");
+  const srcViewBox = viewBoxOf(root.attrs);
+  const cropping = opts.cropToInk !== false && !!srcViewBox && !/<style\b/i.test(carryMarkup);
+  const cropScale = {
+    x: opts.cropScale && Number.isFinite(opts.cropScale.x) && opts.cropScale.x > 0 ? opts.cropScale.x : 1,
+    y: opts.cropScale && Number.isFinite(opts.cropScale.y) && opts.cropScale.y > 0 ? opts.cropScale.y : 1
+  };
+  const carryRefs = referencedIds(carryMarkup);
+  let index = null;
+  let carryIds = null;
+  const idIndex = () => index ??= buildIdIndex(tags);
+  const carryDefined = () => carryIds ??= idsInSpans(
+    idIndex(),
+    carry.map((c) => [c.start, c.end])
+  );
+  const layers = final.map((c, i) => {
+    const spans = c.members.map((m2) => [m2.start, m2.end]);
+    const body = spans.map(([s, e]) => sliceKeeping(markup, drops, s, e)).join("");
+    const openWrappers = c.wrappers.map((w) => `<${w.qname}${w.attrs}>`).join("");
+    const closeWrappers = c.wrappers.map((w) => `</${w.qname}>`).reverse().join("");
+    const wanted = mergeRefs(referencedIds(body + openWrappers), carryRefs);
+    let fixups = "";
+    if (wanted.ids.length) {
+      const here = idsInSpans(idIndex(), spans);
+      const shared = carryDefined();
+      const inWrappers = idsInSpans(idIndex(), c.wrappers.map((w) => [w.start, w.end]));
+      fixups = borrowedDefs(
+        wanted,
+        (id) => here.has(id) || shared.has(id) || inWrappers.has(id),
+        idIndex().first,
+        tags,
+        markup,
+        drops,
+        warnings,
+        i + 1
+      );
+    }
+    const boxId = c.members.length === 1 ? attrOf(c.members[0].tag.attrs, "data-box-id") : void 0;
+    const crop = cropping ? cropFor(tags, c, srcViewBox, idIndex(), cropScale) : null;
+    return {
+      markup: `<${root.qname}${rootAttributes(root.attrs, crop)}>${carryMarkup}${fixups}${openWrappers}${body}${closeWrappers}</${root.qname}>`,
+      bbox: c.bbox,
+      ...crop ? { viewBox: crop } : {},
+      label: `Layer ${i + 1}`,
+      index: i,
+      nodes: c.members.length,
+      ...boxId ? { boxId } : {}
+    };
+  });
+  const total = layers.reduce((sum, l) => sum + l.markup.length, 0);
+  if (total > SVG_LAYERS_HEAVY_BYTES && total > markup.length * 2) {
+    warnings.push(
+      `each of these ${layers.length} layers repeats this file's shared definitions, so together they are ${(total / 1e6).toFixed(1)} MB from a ${(markup.length / 1e6).toFixed(1)} MB file`
+    );
+  }
+  return { layers, warnings, viewBox: srcViewBox };
+}
+function rootAttributes(attrs, crop) {
+  let out = attrOf(attrs, "xmlns") != null ? attrs : ` xmlns="http://www.w3.org/2000/svg"${attrs}`;
+  if (!crop) return out;
+  out = out.replace(/(?:^|\s)(?:viewBox|width|height)\s*=\s*(?:"[^"]*"|'[^']*')/gi, "");
+  const n2 = (v) => String(Math.round(v * 1e3) / 1e3);
+  return `${out} viewBox="${n2(crop.x)} ${n2(crop.y)} ${n2(crop.w)} ${n2(crop.h)}" width="${n2(crop.w)}" height="${n2(crop.h)}"`;
+}
+function svgRootViewBox(markup) {
+  if (typeof markup !== "string" || !markup) return null;
+  const m2 = /<svg\b([^>]*)>/i.exec(markup);
+  return m2 ? viewBoxOf(m2[1]) : null;
+}
+function viewBoxOf(attrs) {
+  const raw = attrOf(attrs, "viewBox");
+  if (raw) {
+    const n2 = raw.trim().split(/[\s,]+/).map(Number);
+    if (n2.length >= 4 && n2.every((v) => Number.isFinite(v)) && n2[2] > 0 && n2[3] > 0) {
+      return { x: n2[0], y: n2[1], w: n2[2], h: n2[3] };
+    }
+    return null;
+  }
+  const w = numAttr(attrs, "width", NaN);
+  const h = numAttr(attrs, "height", NaN);
+  return w > 0 && h > 0 ? { x: 0, y: 0, w, h } : null;
+}
+function spillOf(tags, node, base, index) {
+  const NO = { ok: false, box: null, stroke: 0 };
+  const end = node.tag.kind === "self" ? node.ti + 1 : skipSubtree(tags, node.ti) ?? tags.length;
+  const stack = [base];
+  let box2 = null;
+  let stroke = 0;
+  for (let i = node.ti; i < end; i++) {
+    const t = tags[i];
+    if (t.kind === "close") {
+      if (stack.length > 1) stack.pop();
+      continue;
+    }
+    if (DROP_TAGS.has(t.name) || CARRY_TAGS.has(t.name)) {
+      const after = t.kind === "self" ? i + 1 : skipSubtree(tags, i) ?? end;
+      i = after - 1;
+      continue;
+    }
+    const own = parseTransform(attrOf(t.attrs, "transform"));
+    if (!own) return NO;
+    const m2 = matMul(stack[stack.length - 1], own);
+    if (t.kind === "open") stack.push(m2);
+    const attrs = ` ${t.attrs}`;
+    if (VIEWPORT_PCT_RE.test(attrs) || VIEWPORT_PCT_STYLE_RE.test(attrs)) return NO;
+    if (MARKER_RE.test(attrs)) return NO;
+    const style = styleProps(t.attrs);
+    const fx = (style.filter ?? attrOf(t.attrs, "filter") ?? "").trim();
+    if (fx && fx.toLowerCase() !== "none") {
+      const region = filterRegion(tags, index, fx);
+      if (!region) return NO;
+      const r3 = transformBox(region, m2);
+      if (!r3) return NO;
+      box2 = boxUnion(box2, r3);
+    }
+    const sw = style["stroke-width"] ?? attrOf(t.attrs, "stroke-width");
+    const painted = (style.stroke ?? attrOf(t.attrs, "stroke") ?? "").trim().toLowerCase();
+    if (sw != null || painted && painted !== "none") {
+      const v = sw != null ? parseFloat(sw) : 1;
+      if (sw != null && !Number.isFinite(v)) return NO;
+      stroke = Math.max(stroke, (Number.isFinite(v) ? v : 1) / 2 * matScale(m2));
+    }
+  }
+  return { ok: true, box: box2, stroke };
+}
+function filterRegion(tags, index, value) {
+  const id = /url\(\s*['"]?#([^)'"\s]+)/.exec(value)?.[1];
+  if (!id) return null;
+  const at = index.first.get(id);
+  if (at == null) return null;
+  const f = tags[at];
+  if (f.name !== "filter") return null;
+  if ((attrOf(f.attrs, "filterUnits") ?? "").trim().toLowerCase() !== "userspaceonuse") return null;
+  const x = numAttr(f.attrs, "x", NaN);
+  const y = numAttr(f.attrs, "y", NaN);
+  const w = numAttr(f.attrs, "width", NaN);
+  const h = numAttr(f.attrs, "height", NaN);
+  if (!(Number.isFinite(x) && Number.isFinite(y) && w > 0 && h > 0)) return null;
+  return { x, y, w, h };
+}
+function cropFor(tags, c, src, index, scale) {
+  if (!c.bbox || !c.measured || !c.mat) return null;
+  let box2 = c.bbox;
+  let half = 0;
+  for (const nd of c.members) {
+    const s = spillOf(tags, nd, c.mat, index);
+    if (!s.ok) return null;
+    box2 = boxUnion(box2, s.box);
+    half = Math.max(half, s.stroke);
+  }
+  const chainScale = matScale(c.mat);
+  for (const w2 of c.wrappers) {
+    STROKE_W_RE.lastIndex = 0;
+    const m2 = STROKE_W_RE.exec(` ${w2.attrs}`);
+    const v = m2 ? parseFloat(m2[1]) : NaN;
+    if (Number.isFinite(v)) half = Math.max(half, v / 2 * chainScale);
+  }
+  if (!box2) return null;
+  const pad = CROP_PAD + half * STROKE_MITER_LIMIT;
+  const kx = Number.isFinite(scale.x) && scale.x > 0 ? scale.x : 1;
+  const ky = Number.isFinite(scale.y) && scale.y > 0 ? scale.y : 1;
+  const lo = (v, origin, k) => origin + Math.floor((v - origin) * k) / k;
+  const hi = (v, origin, k) => origin + Math.ceil((v - origin) * k) / k;
+  const x = Math.max(src.x, lo(box2.x - pad, src.x, kx));
+  const y = Math.max(src.y, lo(box2.y - pad, src.y, ky));
+  const w = Math.min(src.x + src.w, hi(box2.x + box2.w + pad, src.x, kx)) - x;
+  const h = Math.min(src.y + src.h, hi(box2.y + box2.h + pad, src.y, ky)) - y;
+  if (!(w > 0 && h > 0)) return null;
+  if (w * h >= src.w * src.h * CROP_MIN_GAIN) return null;
+  return { x, y, w, h };
+}
+function mergeRefs(own, shared) {
+  if (!shared.ids.length) return own;
+  const ids = [...own.ids];
+  const seen = new Set(ids);
+  let more = own.more || shared.more;
+  for (const id of shared.ids) {
+    if (seen.has(id)) continue;
+    if (ids.length >= SVG_LAYERS_MAX_REFS) {
+      more = true;
+      break;
+    }
+    seen.add(id);
+    ids.push(id);
+  }
+  return { ids, more };
+}
+function referencedIds(body) {
+  const out = [];
+  const seen = /* @__PURE__ */ new Set();
+  let more = false;
+  const re = /(?:url\(\s*['"]?#([^)'"\s]+)|(?:xlink:)?href\s*=\s*["']#([^"']+)["'])/g;
+  let m2;
+  while ((m2 = re.exec(body)) !== null) {
+    const id = (m2[1] ?? m2[2] ?? "").trim();
+    if (!id || seen.has(id)) continue;
+    if (out.length >= SVG_LAYERS_MAX_REFS) {
+      more = true;
+      break;
+    }
+    seen.add(id);
+    out.push(id);
+  }
+  return { ids: out, more };
+}
+function buildIdIndex(tags) {
+  const first = /* @__PURE__ */ new Map();
+  const at = [];
+  for (let i = 0; i < tags.length; i++) {
+    const t = tags[i];
+    if (t.kind === "close") continue;
+    const id = idOf(t.attrs);
+    if (!id) continue;
+    if (!first.has(id)) first.set(id, i);
+    at.push({ start: t.start, id });
+  }
+  return { first, at };
+}
+function lowerBound(at, from) {
+  let lo = 0, hi = at.length;
+  while (lo < hi) {
+    const mid3 = lo + hi >> 1;
+    if (at[mid3].start < from) lo = mid3 + 1;
+    else hi = mid3;
+  }
+  return lo;
+}
+function idsInSpans(index, spans) {
+  const out = /* @__PURE__ */ new Set();
+  for (const [from, to] of spans) {
+    for (let i = lowerBound(index.at, from); i < index.at.length && index.at[i].start < to; i++) {
+      out.add(index.at[i].id);
+    }
+  }
+  return out;
+}
+function dropSpans(tags) {
+  const out = [];
+  let guard2 = -1;
+  for (let i = 0; i < tags.length; i++) {
+    const t = tags[i];
+    if (t.kind === "close" || t.start < guard2 || !DROP_TAGS.has(t.name)) continue;
+    const after = t.kind === "self" ? i + 1 : skipSubtree(tags, i);
+    if (after == null) continue;
+    const end = tags[after - 1].end;
+    out.push([t.start, end]);
+    guard2 = end;
+  }
+  return out;
+}
+function sliceKeeping(markup, drops, from, to) {
+  if (!drops.length) return markup.slice(from, to);
+  let out = "";
+  let at = from;
+  let lo = 0, hi = drops.length;
+  while (lo < hi) {
+    const mid3 = lo + hi >> 1;
+    if (drops[mid3][1] <= from) lo = mid3 + 1;
+    else hi = mid3;
+  }
+  for (let i = lo; i < drops.length && drops[i][0] < to; i++) {
+    const [s, e] = drops[i];
+    if (s > at) out += markup.slice(at, s);
+    if (e > at) at = e;
+  }
+  return at < to ? out + markup.slice(at, to) : out;
+}
+function borrowedDefs(wanted, resolvable, first, tags, markup, drops, warnings, layerNo) {
+  const out = [];
+  for (const id of wanted.ids) {
+    if (resolvable(id)) continue;
+    const at = first.get(id);
+    if (at == null) continue;
+    const after = skipSubtree(tags, at);
+    if (after == null) continue;
+    out.push(sliceKeeping(markup, drops, tags[at].start, tags[after - 1].end));
+  }
+  if (wanted.more) {
+    warnings.push(`layer ${layerNo}: more than ${SVG_LAYERS_MAX_REFS} shared references \u2014 the rest were left unrepaired`);
+  }
+  if (!out.length) return "";
+  warnings.push(`layer ${layerNo}: copied ${out.length} referenced ${out.length === 1 ? "element" : "elements"} it shares with another layer`);
+  return `<defs>${out.join("")}</defs>`;
+}
+function escapeRe(s) {
+  return s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+var SVG_LAYERS_MAX_CHARS, SVG_LAYERS_MAX_TAGS, SVG_LAYERS_MAX, SVG_LAYERS_MAX_CANDIDATES, SVG_LAYERS_MAX_DEPTH, SVG_LAYERS_MAX_DESCENT, SVG_LAYERS_MAX_REFS, SVG_LAYERS_HEAVY_BYTES, SVG_LAYERS_HERO_SHARE, SVG_LAYERS_HERO_ROUNDS, SVG_LAYERS_HERO_MIN_INK, SVG_LAYERS_HERO_BUDGET, SVG_LAYERS_HERO_GAP_SCALES, SVG_LAYERS_PEER_AREA_RATIO, CLUSTER_GAP, GAP_FACTOR, MAX_CLUSTER_GAP, DROP_TAGS, CARRY_TAGS, CONTAINER_TAGS, UNIT_PROPS, PAINT_TAGS, VIEWPORT_PCT_RE, VIEWPORT_PCT_STYLE_RE, MARKER_RE, STROKE_W_RE, STROKE_MITER_LIMIT, CROP_PAD, CROP_MIN_GAIN, ID_ATTR_RE, numAttr, IDENTITY, rectPts, expandBox, boxesOverlap;
+var init_svg_layers = __esm({
+  "engine/src/svg-layers.ts"() {
+    "use strict";
+    init_svg_path();
+    SVG_LAYERS_MAX_CHARS = 4e6;
+    SVG_LAYERS_MAX_TAGS = 4e4;
+    SVG_LAYERS_MAX = 64;
+    SVG_LAYERS_MAX_CANDIDATES = 4e3;
+    SVG_LAYERS_MAX_DEPTH = 64;
+    SVG_LAYERS_MAX_DESCENT = 8;
+    SVG_LAYERS_MAX_REFS = 64;
+    SVG_LAYERS_HEAVY_BYTES = 8e6;
+    SVG_LAYERS_HERO_SHARE = 2 / 3;
+    SVG_LAYERS_HERO_ROUNDS = 4;
+    SVG_LAYERS_HERO_MIN_INK = 8;
+    SVG_LAYERS_HERO_BUDGET = 20;
+    SVG_LAYERS_HERO_GAP_SCALES = Object.freeze([1 / 8, 1 / 4, 1 / 2, 1, 2, 4, 8, 16]);
+    SVG_LAYERS_PEER_AREA_RATIO = 16;
+    CLUSTER_GAP = 6;
+    GAP_FACTOR = 0.4;
+    MAX_CLUSTER_GAP = 48;
+    DROP_TAGS = /* @__PURE__ */ new Set(["title", "desc", "metadata", "script"]);
+    CARRY_TAGS = /* @__PURE__ */ new Set([
+      "defs",
+      "style",
+      "symbol",
+      "marker",
+      "pattern",
+      "filter",
+      "mask",
+      "clippath",
+      "lineargradient",
+      "radialgradient",
+      "meshgradient",
+      "solidcolor",
+      "font",
+      "font-face",
+      "color-profile",
+      "cursor",
+      "view"
+    ]);
+    CONTAINER_TAGS = /* @__PURE__ */ new Set(["g", "a", "switch"]);
+    UNIT_PROPS = ["opacity", "filter", "mask", "mix-blend-mode", "isolation"];
+    PAINT_TAGS = /* @__PURE__ */ new Set([
+      "path",
+      "rect",
+      "circle",
+      "ellipse",
+      "line",
+      "polyline",
+      "polygon",
+      "text",
+      "image",
+      "use",
+      "foreignobject"
+    ]);
+    VIEWPORT_PCT_RE = /\s(?:x|y|width|height|cx|cy|r|rx|ry|x1|y1|x2|y2|dx|dy|stroke-width|font-size|stroke-dasharray)\s*=\s*(?:"[^"]*%|'[^']*%)/i;
+    VIEWPORT_PCT_STYLE_RE = /(?:^|[;{\s])(?:width|height|font-size|stroke-width|stroke-dasharray|x|y|r|rx|ry|cx|cy)\s*:\s*[^;"'}]*%/i;
+    MARKER_RE = /\smarker(?:-start|-mid|-end)?\s*=|(?:^|[;{\s])marker(?:-start|-mid|-end)?\s*:/i;
+    STROKE_W_RE = /stroke-width\s*[=:]\s*["']?\s*([0-9]*\.?[0-9]+)/gi;
+    STROKE_MITER_LIMIT = 4;
+    CROP_PAD = 1;
+    CROP_MIN_GAIN = 0.9;
+    ID_ATTR_RE = /(?:^|\s)id\s*=\s*("([^"]*)"|'([^']*)')/i;
+    numAttr = (attrs, name, def) => {
+      const v = attrOf(attrs, name);
+      const x = v != null ? parseFloat(v) : NaN;
+      return Number.isFinite(x) ? x : def;
+    };
+    IDENTITY = [1, 0, 0, 1, 0, 0];
+    rectPts = (x, y, w, h) => [[x, y], [x + w, y], [x + w, y + h], [x, y + h]];
+    expandBox = (r3, by) => ({ x: r3.x - by, y: r3.y - by, w: r3.w + by * 2, h: r3.h + by * 2 });
+    boxesOverlap = (a, b) => a.x < b.x + b.w && b.x < a.x + a.w && a.y < b.y + b.h && b.y < a.y + a.h;
+  }
+});
+
 // engine/src/zzfxm.ts
 function zzfxG(volume = 1, randomness = 0.05, frequency = 220, attack = 0, sustain = 0, release = 0.1, shape = 0, shapeCurve = 1, slide = 0, deltaSlide = 0, pitchJump = 0, pitchJumpTime = 0, repeatTime = 0, noise = 0, modulation = 0, bitCrush = 0, delay = 0, sustainVolume = 1, decay = 0, tremolo = 0, filter = 0) {
   const sampleRate = zzfxR;
@@ -18709,18 +20743,18 @@ function zzfxM(instruments, patterns, sequence, BPM = 125) {
   let sampleBuffer = [];
   const leftChannelBuffer = [];
   const rightChannelBuffer = [];
-  let channelIndex = 0;
+  let channelIndex2 = 0;
   let panning = 0;
   let hasMore = 1;
   const sampleCache = {};
   const beatLength = zzfxR / BPM * 60 >> 2;
   const genG = zzfxG;
-  for (; hasMore; channelIndex++) {
+  for (; hasMore; channelIndex2++) {
     sampleBuffer = [hasMore = notFirstBeat = outSampleOffset = 0];
     sequence.forEach((patternIndex, sequenceIndex) => {
       const pattern = patterns[patternIndex];
-      patternChannel = pattern[channelIndex] || [0, 0, 0];
-      hasMore |= pattern[channelIndex] ? 1 : 0;
+      patternChannel = pattern[channelIndex2] || [0, 0, 0];
+      hasMore |= pattern[channelIndex2] ? 1 : 0;
       nextSampleOffset = outSampleOffset + (pattern[0].length - 2 - (notFirstBeat ? 0 : 1)) * beatLength;
       isSequenceEnd = sequenceIndex === sequence.length - 1 ? 1 : 0;
       for (i = 2, k = outSampleOffset; i < patternChannel.length + isSequenceEnd; notFirstBeat = ++i) {
@@ -19651,13 +21685,13 @@ function midiToSong(parsed, opts = {}) {
   if (!notes.length) throw new Error("no notes in MIDI");
   if (!division || division & 32768) throw new Error("unsupported MIDI time division (SMPTE)");
   const stepTicks = division / stepsPerQuarter;
-  const quant = (tick) => Math.round(tick / stepTicks);
+  const quant2 = (tick) => Math.round(tick / stepTicks);
   const minMidi = notes.reduce((m2, n2) => Math.min(m2, n2.midi), Infinity);
   const K = minMidi - 1;
   const baseFreq = 440 * 2 ** ((K - 57) / 12);
   const piano = [...PIANO];
   piano[2] = baseFreq;
-  const events = notes.map((n2) => ({ s: quant(n2.start), e: Math.max(quant(n2.start) + 1, quant(n2.end)), z: n2.midi - K })).filter((ev) => ev.s < MAX_STEPS).sort((a, b) => a.s - b.s || b.z - a.z);
+  const events = notes.map((n2) => ({ s: quant2(n2.start), e: Math.max(quant2(n2.start) + 1, quant2(n2.end)), z: n2.midi - K })).filter((ev) => ev.s < MAX_STEPS).sort((a, b) => a.s - b.s || b.z - a.z);
   if (!events.length) throw new Error("no notes in MIDI");
   const totalSteps = Math.min(events.reduce((m2, e) => Math.max(m2, e.e), 1), MAX_STEPS);
   const voiceEnd = [];
@@ -20374,19 +22408,35 @@ function parseCssMatrix(transform2) {
   if (!transform2 || transform2 === "none") return null;
   const m2 = /matrix\(([^)]+)\)/.exec(transform2);
   if (m2) {
-    const p = m2[1].split(",").map((s) => parseFloat(s));
-    if (p.length < 6 || p.some((v) => !Number.isFinite(v))) return null;
-    return { a: p[0], b: p[1], c: p[2], d: p[3], e: p[4], f: p[5] };
+    const p2 = m2[1].split(",").map((s) => parseFloat(s));
+    if (p2.length < 6 || p2.some((v) => !Number.isFinite(v))) return null;
+    return { a: p2[0], b: p2[1], c: p2[2], d: p2[3], e: p2[4], f: p2[5] };
   }
-  const m3 = /matrix3d\(([^)]+)\)/.exec(transform2);
-  if (m3) {
-    const p = m3[1].split(",").map((s) => parseFloat(s));
-    if (p.length < 16 || p.some((v) => !Number.isFinite(v))) return null;
-    const z = [p[2], p[3], p[6], p[7], p[8], p[9], p[11], p[14]];
-    if (z.some((v) => Math.abs(v) > 1e-6) || Math.abs(p[10] - 1) > 1e-6 || Math.abs(p[15] - 1) > 1e-6) return null;
+  const p = matrix3dParts(transform2);
+  if (p) {
+    if (has3dComponent(p)) return null;
     return { a: p[0], b: p[1], c: p[4], d: p[5], e: p[12], f: p[13] };
   }
   return null;
+}
+function matrix3dParts(transform2) {
+  const m3 = /matrix3d\(([^)]+)\)/.exec(transform2);
+  if (!m3) return null;
+  const p = m3[1].split(",").map((s) => parseFloat(s));
+  if (p.length < 16 || p.some((v) => !Number.isFinite(v))) return null;
+  return p;
+}
+function has3dComponent(p) {
+  const z = [p[2], p[3], p[6], p[7], p[8], p[9], p[11], p[14]];
+  return z.some((v) => Math.abs(v) > 1e-6) || Math.abs(p[10] - 1) > 1e-6 || Math.abs(p[15] - 1) > 1e-6;
+}
+function isNonAffineTransform(transform2) {
+  if (!transform2) return false;
+  const t = transform2.trim();
+  if (!t || t === "none") return false;
+  const p = matrix3dParts(t);
+  if (!p) return false;
+  return Math.abs(p[3]) > 1e-9 || Math.abs(p[7]) > 1e-9 || Math.abs(p[15] - 1) > 1e-9;
 }
 function multiplyMat(P, C) {
   return {
@@ -21035,7 +23085,7 @@ function hullBounds(c) {
     y1: Math.max(c[1], c[3], c[5], c[7])
   };
 }
-function boxesOverlap(a, b, eps = 0) {
+function boxesOverlap2(a, b, eps = 0) {
   return a.x0 - eps <= b.x1 && b.x0 - eps <= a.x1 && a.y0 - eps <= b.y1 && b.y0 - eps <= a.y1;
 }
 function flatnessCubic(c) {
@@ -21364,7 +23414,7 @@ function clipToFatLine(c, fat) {
 function clipIntersect(c1, c2, t1lo, t1hi, t2lo, t2hi, tol, depth, out, swap = false) {
   const emit = (t1, t2, x, y) => out.push(swap ? { t1: t2, t2: t1, x, y } : { t1, t2, x, y });
   if (out.length > 128 || depth > 60) return;
-  if (!boxesOverlap(hullBounds(c1), hullBounds(c2), tol)) return;
+  if (!boxesOverlap2(hullBounds(c1), hullBounds(c2), tol)) return;
   const s1 = Math.hypot(c1[6] - c1[0], c1[7] - c1[1]) + flatnessCubic(c1);
   const s2 = Math.hypot(c2[6] - c2[0], c2[7] - c2[1]) + flatnessCubic(c2);
   if (s1 <= tol && s2 <= tol) {
@@ -21433,7 +23483,7 @@ function chordFractionToParam(c, u) {
   return best;
 }
 function intersectCubics(c1, c2, tol = EPS2) {
-  if (!boxesOverlap(boundsCubic(c1), boundsCubic(c2), tol)) return [];
+  if (!boxesOverlap2(boundsCubic(c1), boundsCubic(c2), tol)) return [];
   const l1 = isLineCubic(c1, tol), l2 = isLineCubic(c2, tol);
   if (l1 && l2) {
     const hit = intersectSegments(c1[0], c1[1], c1[6], c1[7], c2[0], c2[1], c2[6], c2[7]);
@@ -23378,8 +25428,8 @@ function offsetCuspParams(c, d) {
     if (!(t > MIN_SPAN) || !(t < 1 - MIN_SPAN)) continue;
     const speed2 = (((dPoly[4] * t + dPoly[3]) * t + dPoly[2]) * t + dPoly[1]) * t + dPoly[0];
     if (!(speed2 > 0)) continue;
-    const num5 = (a[2] * t + a[1]) * t + a[0];
-    if (Math.abs(1 - d * num5 / (speed2 * Math.sqrt(speed2))) < 0.5) out.push(t);
+    const num6 = (a[2] * t + a[1]) * t + a[0];
+    if (Math.abs(1 - d * num6 / (speed2 * Math.sqrt(speed2))) < 0.5) out.push(t);
   }
   return out;
 }
@@ -23818,10 +25868,10 @@ function reparameterise(pts, u, curve) {
   return u.map((t, i) => {
     const p = evalCubic(curve, t), d1 = tangentAt(curve, t), d2 = secondDeriv(curve, t);
     const dx = p.x - pts[i].x, dy = p.y - pts[i].y;
-    const num5 = dx * d1.x + dy * d1.y;
+    const num6 = dx * d1.x + dy * d1.y;
     const den = d1.x * d1.x + d1.y * d1.y + dx * d2.x + dy * d2.y;
     if (Math.abs(den) < 1e-14) return t;
-    return Math.min(1, Math.max(0, t - num5 / den));
+    return Math.min(1, Math.max(0, t - num6 / den));
   });
 }
 function secondDeriv(c, t) {
@@ -27244,7 +29294,7 @@ var init_pptx = __esm({
 });
 
 // engine/src/svg-custgeom.ts
-function matMul(m1, m2) {
+function matMul2(m1, m2) {
   const [a1, b1, c1, d1, e1, f1] = m1;
   const [a2, b2, c2, d2, e2, f2] = m2;
   return [
@@ -27256,11 +29306,11 @@ function matMul(m1, m2) {
     b1 * e2 + d1 * f2 + f1
   ];
 }
-function parseTransform(v) {
-  if (!v) return IDENTITY;
+function parseTransform2(v) {
+  if (!v) return IDENTITY2;
   const trimmed = v.trim();
-  if (trimmed === "" || trimmed.toLowerCase() === "none") return IDENTITY;
-  let acc = IDENTITY;
+  if (trimmed === "" || trimmed.toLowerCase() === "none") return IDENTITY2;
+  let acc = IDENTITY2;
   const re = /([a-zA-Z]+)\s*\(([^)]*)\)/g;
   let m2;
   let saw = false;
@@ -27274,11 +29324,11 @@ function parseTransform(v) {
     else if (name === "scale") t = [n2[0] ?? 1, 0, 0, n2[1] ?? n2[0] ?? 1, 0, 0];
     else if (name === "matrix" && n2.length >= 6) t = [n2[0], n2[1], n2[2], n2[3], n2[4], n2[5]];
     else return null;
-    acc = matMul(acc, t);
+    acc = matMul2(acc, t);
   }
   return saw ? acc : null;
 }
-function attrOf(attrs, name) {
+function attrOf2(attrs, name) {
   const re = new RegExp(`(?:^|[\\s])${name}\\s*=\\s*("([^"]*)"|'([^']*)')`, "i");
   const m2 = re.exec(attrs);
   return m2 ? m2[2] ?? m2[3] : void 0;
@@ -27312,10 +29362,10 @@ function resolvePaint(v) {
 }
 function primitiveToD(tag2, attrs) {
   if (tag2 === "rect") {
-    const x = numAttr(attrs, "x", 0), y = numAttr(attrs, "y", 0);
-    const w = numAttr(attrs, "width", 0), h = numAttr(attrs, "height", 0);
+    const x = numAttr2(attrs, "x", 0), y = numAttr2(attrs, "y", 0);
+    const w = numAttr2(attrs, "width", 0), h = numAttr2(attrs, "height", 0);
     if (!(w > 0 && h > 0)) return null;
-    let rx = numAttr(attrs, "rx", NaN), ry = numAttr(attrs, "ry", NaN);
+    let rx = numAttr2(attrs, "rx", NaN), ry = numAttr2(attrs, "ry", NaN);
     if (!Number.isFinite(rx) && !Number.isFinite(ry)) rx = ry = 0;
     else {
       if (!Number.isFinite(rx)) rx = ry;
@@ -27327,23 +29377,23 @@ function primitiveToD(tag2, attrs) {
     return `M${x + rx} ${y}H${x + w - rx}A${rx} ${ry} 0 0 1 ${x + w} ${y + ry}V${y + h - ry}A${rx} ${ry} 0 0 1 ${x + w - rx} ${y + h}H${x + rx}A${rx} ${ry} 0 0 1 ${x} ${y + h - ry}V${y + ry}A${rx} ${ry} 0 0 1 ${x + rx} ${y}Z`;
   }
   if (tag2 === "circle") {
-    const cx = numAttr(attrs, "cx", 0), cy = numAttr(attrs, "cy", 0), r3 = numAttr(attrs, "r", 0);
+    const cx = numAttr2(attrs, "cx", 0), cy = numAttr2(attrs, "cy", 0), r3 = numAttr2(attrs, "r", 0);
     if (!(r3 > 0)) return null;
     return `M${cx - r3} ${cy}A${r3} ${r3} 0 1 0 ${cx + r3} ${cy}A${r3} ${r3} 0 1 0 ${cx - r3} ${cy}Z`;
   }
   if (tag2 === "ellipse") {
-    const cx = numAttr(attrs, "cx", 0), cy = numAttr(attrs, "cy", 0);
-    const rx = numAttr(attrs, "rx", 0), ry = numAttr(attrs, "ry", 0);
+    const cx = numAttr2(attrs, "cx", 0), cy = numAttr2(attrs, "cy", 0);
+    const rx = numAttr2(attrs, "rx", 0), ry = numAttr2(attrs, "ry", 0);
     if (!(rx > 0 && ry > 0)) return null;
     return `M${cx - rx} ${cy}A${rx} ${ry} 0 1 0 ${cx + rx} ${cy}A${rx} ${ry} 0 1 0 ${cx - rx} ${cy}Z`;
   }
   if (tag2 === "line") {
-    const x1 = numAttr(attrs, "x1", 0), y1 = numAttr(attrs, "y1", 0);
-    const x2 = numAttr(attrs, "x2", 0), y2 = numAttr(attrs, "y2", 0);
+    const x1 = numAttr2(attrs, "x1", 0), y1 = numAttr2(attrs, "y1", 0);
+    const x2 = numAttr2(attrs, "x2", 0), y2 = numAttr2(attrs, "y2", 0);
     return `M${x1} ${y1}L${x2} ${y2}`;
   }
   if (tag2 === "polygon" || tag2 === "polyline") {
-    const pts = (attrOf(attrs, "points") ?? "").trim().split(/[\s,]+/).map(Number).filter((x) => Number.isFinite(x));
+    const pts = (attrOf2(attrs, "points") ?? "").trim().split(/[\s,]+/).map(Number).filter((x) => Number.isFinite(x));
     if (pts.length < 4) return null;
     let d = `M${pts[0]} ${pts[1]}`;
     for (let i = 2; i + 1 < pts.length; i += 2) d += `L${pts[i]} ${pts[i + 1]}`;
@@ -27352,15 +29402,15 @@ function primitiveToD(tag2, attrs) {
   return null;
 }
 function rootMap(rootAttrs, targetW, targetH) {
-  const vb = attrOf(rootAttrs, "viewBox");
+  const vb = attrOf2(rootAttrs, "viewBox");
   let vx = 0, vy = 0, vw = 0, vh = 0;
   if (vb) {
     const p = vb.trim().split(/[\s,]+/).map(Number);
     if (p.length < 4 || p.some((x) => !Number.isFinite(x))) return null;
     [vx, vy, vw, vh] = p;
   } else {
-    vw = parseFloat(attrOf(rootAttrs, "width") ?? "");
-    vh = parseFloat(attrOf(rootAttrs, "height") ?? "");
+    vw = parseFloat(attrOf2(rootAttrs, "width") ?? "");
+    vh = parseFloat(attrOf2(rootAttrs, "height") ?? "");
   }
   if (!(vw > 0 && vh > 0)) return null;
   const sx = targetW / vw, sy = targetH / vh;
@@ -27371,7 +29421,7 @@ function svgToCustGeomPaths(svgText, targetW, targetH) {
   if (!(Number.isFinite(targetW) && Number.isFinite(targetH) && targetW > 0 && targetH > 0)) return null;
   const cx = Math.round(targetW), cy = Math.round(targetH);
   const shapes = [];
-  const base = { g: IDENTITY, fill: "#000000", stroke: "none", strokeWidth: 1, defs: false };
+  const base = { g: IDENTITY2, fill: "#000000", stroke: "none", strokeWidth: 1, defs: false };
   const stack = [base];
   let mVb = null;
   let sawSvg = false;
@@ -27381,7 +29431,7 @@ function svgToCustGeomPaths(svgText, targetW, targetH) {
     const fill = forceNoFill ? "none" : f.fill;
     const stroke = f.stroke;
     if ((fill === "none" || fill == null) && (stroke === "none" || stroke == null)) return;
-    const final = matMul(mVb, f.g);
+    const final = matMul2(mVb, f.g);
     const subs = parseSvgPath(d);
     if (!subs.length) return;
     let out = "";
@@ -27405,7 +29455,7 @@ function svgToCustGeomPaths(svgText, targetW, targetH) {
     if (!out) return;
     const shape = { kind: "path", x: 0, y: 0, cx, cy, paths: [{ d: out }] };
     if (fill !== "none" && fill != null) shape.fill = { solid: fill };
-    if (stroke !== "none" && stroke != null) shape.line = { color: stroke, w: Math.max(1, Math.round(f.strokeWidth * matScale(final))) };
+    if (stroke !== "none" && stroke != null) shape.line = { color: stroke, w: Math.max(1, Math.round(f.strokeWidth * matScale2(final))) };
     shapes.push(shape);
   };
   const tagRe = /<(\/?)\s*([a-zA-Z][\w:.-]*)((?:"[^"]*"|'[^']*'|[^"'>])*)>/g;
@@ -27423,25 +29473,25 @@ function svgToCustGeomPaths(svgText, targetW, targetH) {
     const selfClose = /\/\s*$/.test(attrsRaw);
     if (BAIL_TAGS.has(tag2)) return null;
     const parent = stack[stack.length - 1];
-    const style = parseStyle(attrOf(attrsRaw, "style"));
+    const style = parseStyle(attrOf2(attrsRaw, "style"));
     const opq = (k) => {
-      const raw = style[k] ?? attrOf(attrsRaw, k);
+      const raw = style[k] ?? attrOf2(attrsRaw, k);
       return raw != null && Number.isFinite(parseFloat(raw)) && parseFloat(raw) < 0.999;
     };
     if (opq("opacity") || opq("fill-opacity") || opq("stroke-opacity")) return null;
     for (const k of ["filter", "mask", "clip-path", "mix-blend-mode"]) {
-      const raw = style[k] ?? attrOf(attrsRaw, k);
+      const raw = style[k] ?? attrOf2(attrsRaw, k);
       if (raw != null && raw.trim() !== "" && raw.trim().toLowerCase() !== "none") return null;
     }
-    const tm = parseTransform(style["transform"] ?? attrOf(attrsRaw, "transform"));
+    const tm = parseTransform2(style["transform"] ?? attrOf2(attrsRaw, "transform"));
     if (tm === null) return null;
-    const fillR = resolvePaint(style["fill"] ?? attrOf(attrsRaw, "fill"));
-    const strokeR = resolvePaint(style["stroke"] ?? attrOf(attrsRaw, "stroke"));
+    const fillR = resolvePaint(style["fill"] ?? attrOf2(attrsRaw, "fill"));
+    const strokeR = resolvePaint(style["stroke"] ?? attrOf2(attrsRaw, "stroke"));
     if (fillR === null || strokeR === null) return null;
-    const swRaw = style["stroke-width"] ?? attrOf(attrsRaw, "stroke-width");
+    const swRaw = style["stroke-width"] ?? attrOf2(attrsRaw, "stroke-width");
     const sw = swRaw != null && Number.isFinite(parseFloat(swRaw)) ? parseFloat(swRaw) : void 0;
     const frame = {
-      g: matMul(parent.g, tm),
+      g: matMul2(parent.g, tm),
       fill: fillR ?? parent.fill,
       stroke: strokeR ?? parent.stroke,
       strokeWidth: sw ?? parent.strokeWidth,
@@ -27452,9 +29502,9 @@ function svgToCustGeomPaths(svgText, targetW, targetH) {
       mVb = rootMap(attrsRaw, targetW, targetH);
       if (!mVb) return null;
     }
-    const hidden2 = (style["display"] ?? attrOf(attrsRaw, "display"))?.trim().toLowerCase() === "none";
+    const hidden2 = (style["display"] ?? attrOf2(attrsRaw, "display"))?.trim().toLowerCase() === "none";
     if (DRAW_TAGS.has(tag2) && !frame.defs && !hidden2) {
-      const d = tag2 === "path" ? attrOf(attrsRaw, "d") : primitiveToD(tag2, attrsRaw);
+      const d = tag2 === "path" ? attrOf2(attrsRaw, "d") : primitiveToD(tag2, attrsRaw);
       if (d) emit(d, frame, tag2 === "line");
       if (shapes.length > MAX_SHAPES) return null;
     }
@@ -27462,7 +29512,7 @@ function svgToCustGeomPaths(svgText, targetW, targetH) {
   }
   return shapes.length ? shapes : null;
 }
-var MAX_SVG_LEN, MAX_TAGS2, MAX_SHAPES, BAIL_TAGS, DRAW_TAGS, IDENTITY, applyMat, matScale, numAttr, NAMED_COLOR_HEX;
+var MAX_SVG_LEN, MAX_TAGS2, MAX_SHAPES, BAIL_TAGS, DRAW_TAGS, IDENTITY2, applyMat, matScale2, numAttr2, NAMED_COLOR_HEX;
 var init_svg_custgeom = __esm({
   "engine/src/svg-custgeom.ts"() {
     "use strict";
@@ -27495,11 +29545,11 @@ var init_svg_custgeom = __esm({
       "set"
     ]);
     DRAW_TAGS = /* @__PURE__ */ new Set(["path", "rect", "circle", "ellipse", "line", "polygon", "polyline"]);
-    IDENTITY = [1, 0, 0, 1, 0, 0];
+    IDENTITY2 = [1, 0, 0, 1, 0, 0];
     applyMat = (m2, x, y) => [m2[0] * x + m2[2] * y + m2[4], m2[1] * x + m2[3] * y + m2[5]];
-    matScale = (m2) => Math.sqrt(Math.abs(m2[0] * m2[3] - m2[1] * m2[2])) || 1;
-    numAttr = (attrs, name, def) => {
-      const v = attrOf(attrs, name);
+    matScale2 = (m2) => Math.sqrt(Math.abs(m2[0] * m2[3] - m2[1] * m2[2])) || 1;
+    numAttr2 = (attrs, name, def) => {
+      const v = attrOf2(attrs, name);
       const n2 = v != null ? parseFloat(v) : NaN;
       return Number.isFinite(n2) ? n2 : def;
     };
@@ -27875,13 +29925,13 @@ __export(pptx_read_exports, {
   pptxMediaImages: () => pptxMediaImages,
   readPptx: () => readPptx
 });
-function localName(nodeName, localHint) {
+function localName2(nodeName, localHint) {
   const raw = localHint || nodeName || "";
   const i = raw.indexOf(":");
   return i >= 0 ? raw.slice(i + 1) : raw;
 }
 function elemLocal(el) {
-  return localName(el.nodeName, el.localName ?? null);
+  return localName2(el.nodeName, el.localName ?? null);
 }
 function isElement(n2) {
   return n2 != null && n2.nodeType === ELEMENT_NODE;
@@ -27928,7 +29978,7 @@ function attrByLocal(el, local) {
   if (!attrs) return null;
   for (let i = 0; i < attrs.length; i++) {
     const a = attrs[i];
-    if (localName(a.name, a.localName ?? null) === local) return a.value;
+    if (localName2(a.name, a.localName ?? null) === local) return a.value;
   }
   return null;
 }
@@ -29431,15 +31481,15 @@ function packApng(frames, opts = {}) {
   let seq = 0;
   const fctl = (frameIndex) => {
     const raw = Array.isArray(delayMs) ? delayMs[frameIndex] : delayMs;
-    const num5 = Number.isFinite(raw) && raw >= 0 ? Math.min(65535, Math.round(raw)) : 67;
+    const num6 = Number.isFinite(raw) && raw >= 0 ? Math.min(65535, Math.round(raw)) : 67;
     const d = new Uint8Array(26);
     writeU322(d, 0, seq++);
     writeU322(d, 4, width);
     writeU322(d, 8, height);
     writeU322(d, 12, 0);
     writeU322(d, 16, 0);
-    d[20] = num5 >>> 8 & 255;
-    d[21] = num5 & 255;
+    d[20] = num6 >>> 8 & 255;
+    d[21] = num6 & 255;
     d[22] = 1e3 >>> 8 & 255;
     d[23] = 1e3 & 255;
     d[24] = 0;
@@ -29550,9 +31600,9 @@ function concat3(parts) {
   }
   return out;
 }
-function delayToMs(num5, den) {
+function delayToMs(num6, den) {
   const d = den === 0 ? 100 : den;
-  return num5 / d * 1e3;
+  return num6 / d * 1e3;
 }
 function demuxApng(bytes) {
   if (!(bytes instanceof Uint8Array)) throw new Error("demuxApng: input is not a Uint8Array");
@@ -29924,7 +31974,7 @@ function packTiff(pixels, opts = { width: 0, height: 0 }) {
   const description = opts.description ?? meta.description;
   const enc4 = new TextEncoder();
   const entries = [];
-  const num5 = (tag2, type, n2) => entries.push({ tag: tag2, type, count: 1, n: n2 });
+  const num6 = (tag2, type, n2) => entries.push({ tag: tag2, type, count: 1, n: n2 });
   const asciiTag = (tag2, s) => {
     if (!s) return;
     const a = enc4.encode(String(s));
@@ -29945,19 +31995,19 @@ function packTiff(pixels, opts = { width: 0, height: 0 }) {
     return d;
   };
   const res = Math.max(1, Math.round(opts.dpi || 72));
-  num5(256, LONG, W);
-  num5(257, LONG, H);
+  num6(256, LONG, W);
+  num6(257, LONG, H);
   entries.push({ tag: 258, type: SHORT, count: spp, data: bps });
-  num5(259, SHORT, 1);
-  num5(262, SHORT, photometric);
+  num6(259, SHORT, 1);
+  num6(262, SHORT, photometric);
   asciiTag(270, description);
-  num5(273, LONG, 0);
-  num5(277, SHORT, spp);
-  num5(278, LONG, H);
-  num5(279, LONG, stripBytes);
+  num6(273, LONG, 0);
+  num6(277, SHORT, spp);
+  num6(278, LONG, H);
+  num6(279, LONG, stripBytes);
   entries.push({ tag: 282, type: RATIONAL, count: 1, data: rational(res, 1) });
   entries.push({ tag: 283, type: RATIONAL, count: 1, data: rational(res, 1) });
-  num5(296, SHORT, 2);
+  num6(296, SHORT, 2);
   asciiTag(305, meta.software);
   asciiTag(315, meta.author);
   if (depth !== 8) {
@@ -33710,10 +35760,10 @@ function penpotTransformBaked(t) {
 }
 function pathDBounds(d) {
   const s = String(d ?? "");
-  const NUM_RE2 = /-?(?:\d+\.?\d*|\.\d+)(?:[eE][+-]?\d+)?/g;
-  const cmds = s.replace(NUM_RE2, " ").match(/[A-Za-z]/g) || [];
+  const NUM_RE3 = /-?(?:\d+\.?\d*|\.\d+)(?:[eE][+-]?\d+)?/g;
+  const cmds = s.replace(NUM_RE3, " ").match(/[A-Za-z]/g) || [];
   if (!cmds.length || cmds.some((c) => c !== "M" && c !== "L" && c !== "C" && c !== "Z")) return null;
-  const nums = s.match(NUM_RE2) || [];
+  const nums = s.match(NUM_RE3) || [];
   let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
   for (let i = 0; i + 1 < nums.length; i += 2) {
     const px = parseFloat(nums[i]), py = parseFloat(nums[i + 1]);
@@ -34345,7 +36395,7 @@ function figMatrix(node) {
   const t = node && node.transform || {};
   return { a: num4(t.m00, 1), b: num4(t.m10, 0), c: num4(t.m01, 0), d: num4(t.m11, 1), e: num4(t.m02, 0), f: num4(t.m12, 0) };
 }
-function matMul2(P, C) {
+function matMul3(P, C) {
   return {
     a: P.a * C.a + P.c * C.b,
     b: P.b * C.a + P.d * C.b,
@@ -34523,7 +36573,7 @@ function figmaNodesToNodes(nodeChanges, blobs) {
   const out = [];
   const visit = (node, pabs) => {
     if (!node || node.visible === false) return;
-    const abs = matMul2(pabs, figMatrix(node));
+    const abs = matMul3(pabs, figMatrix(node));
     const dn = figmaNode(node, abs, blobs);
     if (dn) out.push(dn);
     const cs = kids[key(node.guid)];
@@ -34586,7 +36636,7 @@ function figmaNodesToScenes(nodeChanges, blobs) {
     const collect = (root, into) => {
       const visit = (node, pabs) => {
         if (!node || node.visible === false) return;
-        const abs = matMul2(pabs, figMatrix(node));
+        const abs = matMul3(pabs, figMatrix(node));
         const dn = figmaNode(node, abs, blobs);
         if (dn) into.push(dn);
         const cs = kids[key(node.guid)];
@@ -34605,7 +36655,7 @@ function figmaNodesToScenes(nodeChanges, blobs) {
         if (!nodes.length) continue;
         const geom = boxGeomFromBBox(
           { x: 0, y: 0, width: num4(child.size.x, 0), height: num4(child.size.y, 0) },
-          matMul2(pageAbs, figMatrix(child))
+          matMul3(pageAbs, figMatrix(child))
         );
         for (const n2 of nodes) {
           n2.x = num4(n2.x, 0) - geom.x;
@@ -34936,7 +36986,7 @@ function hx(v) {
 function rgbHex(r3, g2, b) {
   return "#" + hx(r3) + hx(g2) + hx(b);
 }
-function matMul3(P, C) {
+function matMul4(P, C) {
   return {
     a: P.a * C.a + P.c * C.b,
     b: P.b * C.a + P.d * C.b,
@@ -35337,7 +37387,7 @@ function interpretPdfPage(page2) {
       for (const id of gstack) if (id) out.push(id);
       return out;
     };
-    let tm = IDENTITY2, tlm = IDENTITY2;
+    let tm = IDENTITY3, tlm = IDENTITY3;
     let textBuf = "";
     let originSet = false;
     let origin = { x: 0, y: 0 };
@@ -35384,12 +37434,12 @@ function interpretPdfPage(page2) {
       return outS;
     };
     const onTextMove = () => {
-      const trm = matMul3(s.ctm, tm);
+      const trm = matMul4(s.ctm, tm);
       const p = apply(trm, 0, 0);
       if (!originSet) {
         origin = p;
         originSet = true;
-        textSize = Math.max(1, (s.fontSize || 1) * scaleMag(matMul3(s.ctm, { ...tm, e: 0, f: 0 })));
+        textSize = Math.max(1, (s.fontSize || 1) * scaleMag(matMul4(s.ctm, { ...tm, e: 0, f: 0 })));
         textRot = rotationOf(trm);
         textFill = s.fill;
         textFont = s.font;
@@ -35437,11 +37487,11 @@ function interpretPdfPage(page2) {
       for (const code of codes) {
         const proc = t3.encoding[code] ? t3.charProcs[t3.encoding[code]] : void 0;
         if (proc && sink.count < sink.max) {
-          const glyphCtm = matMul3(matMul3(matMul3(s.ctm, tm), scale), fmMat);
+          const glyphCtm = matMul4(matMul4(matMul4(s.ctm, tm), scale), fmMat);
           run(proc, t3.resources, glyphCtm, depth + 1, [...gpath(), gid], s.clips, s.fill, sink, s, true);
         }
         const adv = (t3.widths[code] ?? 0) * (fm[0] ?? 1e-3) * (s.fontSize || 0);
-        tm = matMul3(tm, { a: 1, b: 0, c: 0, d: 1, e: adv, f: 0 });
+        tm = matMul4(tm, { a: 1, b: 0, c: 0, d: 1, e: adv, f: 0 });
       }
     };
     const latchMcid = () => {
@@ -35464,7 +37514,7 @@ function interpretPdfPage(page2) {
       if (fi?.type3) {
         for (const el of arr) {
           if (el.t === "str") drawType3(el.v, fi.type3);
-          else if (el.t === "num") tm = matMul3(tm, { a: 1, b: 0, c: 0, d: 1, e: -(el.v / 1e3) * (s.fontSize || 0), f: 0 });
+          else if (el.t === "num") tm = matMul4(tm, { a: 1, b: 0, c: 0, d: 1, e: -(el.v / 1e3) * (s.fontSize || 0), f: 0 });
         }
         return;
       }
@@ -35644,7 +37694,7 @@ function interpretPdfPage(page2) {
     const collapseTiling = (pat, tl, name, patMat, tint) => {
       s.fillMask = null;
       s.fillScale = 1;
-      const base = matMul3(baseCtm, patMat);
+      const base = matMul4(baseCtm, patMat);
       const paintTint = tl.paintType === 2 ? tint ?? s.fill : "";
       const key = `${name}|${[base.a, base.b, base.c, base.d, base.e, base.f].map((v) => Math.round(v * 1e4)).join(",")}|${paintTint}`;
       let out = collapseCache.get(key);
@@ -35747,8 +37797,8 @@ function interpretPdfPage(page2) {
       const patMat = fromArr(pat.matrix && pat.matrix.length >= 6 ? pat.matrix : [1, 0, 0, 1, 0, 0]);
       if (pat.shading) {
         const sh = pat.shading;
-        const mat = matMul3(
-          matMul3(baseCtm, patMat),
+        const mat = matMul4(
+          matMul4(baseCtm, patMat),
           fromArr(sh.shadingMatrix && sh.shadingMatrix.length >= 6 ? sh.shadingMatrix : [1, 0, 0, 1, 0, 0])
         );
         s.fillGradient = { ...sh, mat };
@@ -35808,7 +37858,7 @@ function interpretPdfPage(page2) {
           if (gstack.length) gstack.pop();
           break;
         case "cm":
-          if (args.length >= 6) s.ctm = matMul3(s.ctm, fromArr(args));
+          if (args.length >= 6) s.ctm = matMul4(s.ctm, fromArr(args));
           break;
         case "w":
           s.lineWidth = args[0] ?? s.lineWidth;
@@ -35955,7 +38005,7 @@ function interpretPdfPage(page2) {
           if (sink.count < sink.max) {
             const mp = maskPaint("raw");
             if (!mp) break;
-            const sm = matMul3(s.ctm, fromArr(sd.shadingMatrix && sd.shadingMatrix.length >= 6 ? sd.shadingMatrix : [1, 0, 0, 1, 0, 0]));
+            const sm = matMul4(s.ctm, fromArr(sd.shadingMatrix && sd.shadingMatrix.length >= 6 ? sd.shadingMatrix : [1, 0, 0, 1, 0, 0]));
             sink.nodes.push({
               kind: "box",
               x: 0,
@@ -36082,8 +38132,8 @@ function interpretPdfPage(page2) {
           pendingClip = "evenodd";
           break;
         case "BT":
-          tm = IDENTITY2;
-          tlm = IDENTITY2;
+          tm = IDENTITY3;
+          tlm = IDENTITY3;
           textBuf = "";
           originSet = false;
           break;
@@ -36098,13 +38148,13 @@ function interpretPdfPage(page2) {
           s.fontSize = args[0] ?? s.fontSize;
           break;
         case "Td":
-          tlm = matMul3(tlm, { a: 1, b: 0, c: 0, d: 1, e: args[0] ?? 0, f: args[1] ?? 0 });
+          tlm = matMul4(tlm, { a: 1, b: 0, c: 0, d: 1, e: args[0] ?? 0, f: args[1] ?? 0 });
           tm = tlm;
           onTextMove();
           break;
         case "TD":
           s.leading = -(args[1] ?? 0);
-          tlm = matMul3(tlm, { a: 1, b: 0, c: 0, d: 1, e: args[0] ?? 0, f: args[1] ?? 0 });
+          tlm = matMul4(tlm, { a: 1, b: 0, c: 0, d: 1, e: args[0] ?? 0, f: args[1] ?? 0 });
           tm = tlm;
           onTextMove();
           break;
@@ -36114,7 +38164,7 @@ function interpretPdfPage(page2) {
           onTextMove();
           break;
         case "T*":
-          tlm = matMul3(tlm, { a: 1, b: 0, c: 0, d: 1, e: 0, f: -s.leading });
+          tlm = matMul4(tlm, { a: 1, b: 0, c: 0, d: 1, e: 0, f: -s.leading });
           tm = tlm;
           onTextMove();
           break;
@@ -36122,13 +38172,13 @@ function interpretPdfPage(page2) {
           showString(strArg);
           break;
         case "'":
-          tlm = matMul3(tlm, { a: 1, b: 0, c: 0, d: 1, e: 0, f: -s.leading });
+          tlm = matMul4(tlm, { a: 1, b: 0, c: 0, d: 1, e: 0, f: -s.leading });
           tm = tlm;
           onTextMove();
           showString(strArg);
           break;
         case '"':
-          tlm = matMul3(tlm, { a: 1, b: 0, c: 0, d: 1, e: 0, f: -s.leading });
+          tlm = matMul4(tlm, { a: 1, b: 0, c: 0, d: 1, e: 0, f: -s.leading });
           tm = tlm;
           onTextMove();
           showString(strArg);
@@ -36158,7 +38208,7 @@ function interpretPdfPage(page2) {
             });
             sink.count++;
           } else if (xo && xo.kind === "form") {
-            const fm = xo.matrix && xo.matrix.length >= 6 ? matMul3(s.ctm, fromArr(xo.matrix)) : s.ctm;
+            const fm = xo.matrix && xo.matrix.length >= 6 ? matMul4(s.ctm, fromArr(xo.matrix)) : s.ctm;
             if (sink.count < sink.max && tokensSpent < TOKEN_BUDGET) {
               run(xo.content || "", xo.resources || {}, fm, depth + 1, [...gpath(), "g" + ++gseq], s.clips, "", sink, s, glyphRun);
             }
@@ -36201,7 +38251,7 @@ function interpretPdfPage(page2) {
       onWarn("smask.group.unevaluated", "bc");
       return null;
     }
-    const base = matMul3(sm.ctm, fromArr(def.matrix && def.matrix.length >= 6 ? def.matrix : [1, 0, 0, 1, 0, 0]));
+    const base = matMul4(sm.ctm, fromArr(def.matrix && def.matrix.length >= 6 ? def.matrix : [1, 0, 0, 1, 0, 0]));
     const key = `${def.id}|${[base.a, base.b, base.c, base.d, base.e, base.f].map((v) => Math.round(v * 1e4)).join(",")}`;
     const hit = maskCache.get(key);
     if (hit !== void 0) return hit;
@@ -36463,13 +38513,13 @@ function toUnicodeDecoder(map, twoByte) {
     return out;
   };
 }
-var IDENTITY2, WS, DELIM, WIN_ANSI_HIGH, MAX_BF_RANGE;
+var IDENTITY3, WS, DELIM, WIN_ANSI_HIGH, MAX_BF_RANGE;
 var init_pdf_map = __esm({
   "engine/src/pdf-map.ts"() {
     "use strict";
     init_design_map();
     init_pdf_smask();
-    IDENTITY2 = { a: 1, b: 0, c: 0, d: 1, e: 0, f: 0 };
+    IDENTITY3 = { a: 1, b: 0, c: 0, d: 1, e: 0, f: 0 };
     WS = /* @__PURE__ */ new Set([0, 9, 10, 12, 13, 32]);
     DELIM = new Set("()<>[]{}/%".split("").map((c) => c.charCodeAt(0)));
     WIN_ANSI_HIGH = {
@@ -36985,7 +39035,7 @@ function gapBetween(a, b) {
   const dy = Math.max(0, Math.max(a.y, b.y) - Math.min(a.y + a.h, b.y + b.h));
   return Math.hypot(dx, dy);
 }
-function median(xs) {
+function median2(xs) {
   if (!xs.length) return 0;
   const s = [...xs].sort((a, b) => a - b);
   const m2 = s.length >> 1;
@@ -37004,8 +39054,8 @@ function cluster(items) {
     const ra = find(a), rb = find(b);
     if (ra !== rb) parent[ra] = rb;
   };
-  const typical = median(items.map((it) => Math.min(it.rect.w, it.rect.h)));
-  const gap = Math.min(MAX_CLUSTER_GAP, Math.max(CLUSTER_GAP, typical * GAP_FACTOR));
+  const typical = median2(items.map((it) => Math.min(it.rect.w, it.rect.h)));
+  const gap = Math.min(MAX_CLUSTER_GAP2, Math.max(CLUSTER_GAP2, typical * GAP_FACTOR2));
   for (let i = 0; i < items.length; i++) {
     const a = expand(items[i].rect, gap);
     for (let j = i + 1; j < items.length; j++) {
@@ -37104,14 +39154,14 @@ function findVectorArtwork(nodes, opts = {}) {
   out.sort((a, b) => b.rect.w * b.rect.h - a.rect.w * a.rect.h);
   return out;
 }
-var CLUSTER_GAP, GAP_FACTOR, MAX_CLUSTER_GAP, GROUP_REACH, MIN_SHAPES, MIN_SIDE, MAX_PAGE_FRACTION, MAX_ASPECT, MAX_NODES3, MAX_CANDIDATES, hasCurve, diagonal;
+var CLUSTER_GAP2, GAP_FACTOR2, MAX_CLUSTER_GAP2, GROUP_REACH, MIN_SHAPES, MIN_SIDE, MAX_PAGE_FRACTION, MAX_ASPECT, MAX_NODES3, MAX_CANDIDATES, hasCurve, diagonal;
 var init_pdf_artwork = __esm({
   "engine/src/pdf-artwork.ts"() {
     "use strict";
     init_pdf_svg();
-    CLUSTER_GAP = 6;
-    GAP_FACTOR = 0.4;
-    MAX_CLUSTER_GAP = 48;
+    CLUSTER_GAP2 = 6;
+    GAP_FACTOR2 = 0.4;
+    MAX_CLUSTER_GAP2 = 48;
     GROUP_REACH = 1.5;
     MIN_SHAPES = 2;
     MIN_SIDE = 8;
@@ -37220,7 +39270,7 @@ var init_pdf_redaction = __esm({
 });
 
 // engine/src/pdf-text.ts
-function median2(xs) {
+function median3(xs) {
   if (!xs.length) return 0;
   const s = [...xs].sort((a, b) => a - b);
   const m2 = s.length >> 1;
@@ -37306,7 +39356,7 @@ function toLines(items) {
         text,
         x: byX[0].x,
         right: Math.max(...byX.map((i) => i.right)),
-        baseline: median2(byX.map((i) => i.baseline)),
+        baseline: median3(byX.map((i) => i.baseline)),
         size,
         bold: allChars > 0 && boldChars / allChars > 0.6
       });
@@ -37356,7 +39406,7 @@ function believableColumns(cols, widestGutter) {
     const width = right - left;
     if (width <= 0) return false;
     if (width <= widestGutter) return false;
-    return median2(col.map((l) => (l.right - l.x) / width)) >= MIN_COLUMN_FILL;
+    return median3(col.map((l) => (l.right - l.x) / width)) >= MIN_COLUMN_FILL;
   });
 }
 function appendLine(acc, next) {
@@ -37383,7 +39433,7 @@ function blocksFromColumn(lines, column) {
     let text = "";
     for (const l of buf) text = appendLine(text, l.text);
     if (marker) text = text.replace(LIST_MARKER, "");
-    const size = median2(buf.map((l) => l.size));
+    const size = median3(buf.map((l) => l.size));
     if (text.trim()) {
       out.push({
         kind: marker ? "list-item" : "paragraph",
@@ -37437,7 +39487,7 @@ function taggedBlocks(items, tagged) {
       ...level ? { level } : {},
       text,
       ...marker ? { marker } : {},
-      size: median2(lines.map((l) => l.size)),
+      size: median3(lines.map((l) => l.size)),
       bold: lines.every((l) => l.bold),
       column: 0
     });
@@ -37993,20 +40043,20 @@ function gamutSolidToSvg(projected, opts = {}) {
   const size = opts.size && opts.size > 0 ? opts.size : 512;
   const encode = opts.encode ?? "srgb";
   const dp = Math.max(0, Math.floor(opts.precision ?? 2));
-  const fmt2 = (v) => {
+  const fmt3 = (v) => {
     const n2 = Number.isFinite(v) ? v : 0;
     return parseFloat(n2.toFixed(dp)).toString();
   };
   const polys = [];
   for (const q of projected) {
-    const pts = q.points.map((p) => `${fmt2(p.x * size)},${fmt2(p.y * size)}`).join(" ");
+    const pts = q.points.map((p) => `${fmt3(p.x * size)},${fmt3(p.y * size)}`).join(" ");
     const fill = shadedSolidFill(q.oklch, q.shade, encode);
     polys.push(
       `<polygon points="${pts}" fill="${fill}" stroke="${fill}" stroke-width="1" stroke-linejoin="round"/>`
     );
   }
-  const bg = opts.background ? `<rect width="${fmt2(size)}" height="${fmt2(size)}" fill="${opts.background}"/>` : "";
-  return `<svg xmlns="http://www.w3.org/2000/svg" width="${fmt2(size)}" height="${fmt2(size)}" viewBox="0 0 ${fmt2(size)} ${fmt2(size)}">` + bg + polys.join("") + `</svg>`;
+  const bg = opts.background ? `<rect width="${fmt3(size)}" height="${fmt3(size)}" fill="${opts.background}"/>` : "";
+  return `<svg xmlns="http://www.w3.org/2000/svg" width="${fmt3(size)}" height="${fmt3(size)}" viewBox="0 0 ${fmt3(size)} ${fmt3(size)}">` + bg + polys.join("") + `</svg>`;
 }
 function solidPointOklch(solid, p) {
   if (solid.embed === "landscape") {
@@ -40349,6 +42399,681 @@ var init_pdf_crypto_r6 = __esm({
   }
 });
 
+// engine/src/keyframes.ts
+function isKfChannel(v) {
+  return typeof v === "string" && CHANNEL_SET.has(v);
+}
+function isKfSafe(s) {
+  return typeof s === "string" && KF_CHARSET_RE.test(s);
+}
+function clamp10(v, lo, hi) {
+  return v < lo ? lo : v > hi ? hi : v;
+}
+function quant(v, q) {
+  const inv = Math.round(1 / q);
+  const n2 = Math.round(v * inv) / inv;
+  return Object.is(n2, -0) ? 0 : n2;
+}
+function num5(s) {
+  if (!NUM_RE2.test(s)) return null;
+  const n2 = Number(s);
+  return Number.isFinite(n2) ? n2 : null;
+}
+function snip(s) {
+  return s.length > 40 ? `${s.slice(0, 40)}\u2026` : s;
+}
+function fmt(v) {
+  return String(Object.is(v, -0) ? 0 : v);
+}
+function cubicBezierAt(x1, y1, x2, y2, x) {
+  if (x <= 0) return 0;
+  if (x >= 1) return 1;
+  const cx = 3 * x1, bx = 3 * (x2 - x1) - cx, ax = 1 - cx - bx;
+  const cy = 3 * y1, by = 3 * (y2 - y1) - cy, ay = 1 - cy - by;
+  const sampleX = (t2) => ((ax * t2 + bx) * t2 + cx) * t2;
+  const sampleY = (t2) => ((ay * t2 + by) * t2 + cy) * t2;
+  const slopeX = (t2) => (3 * ax * t2 + 2 * bx) * t2 + cx;
+  let t = x;
+  for (let i = 0; i < 8; i++) {
+    const dx = sampleX(t) - x;
+    if (Math.abs(dx) < 1e-6) return sampleY(t);
+    const d = slopeX(t);
+    if (Math.abs(d) < 1e-6) break;
+    t -= dx / d;
+  }
+  let lo = 0, hi = 1;
+  t = x;
+  for (let i = 0; i < 24 && Math.abs(sampleX(t) - x) > 1e-6; i++) {
+    if (sampleX(t) < x) lo = t;
+    else hi = t;
+    t = (lo + hi) / 2;
+  }
+  return sampleY(t);
+}
+function easeFromPoints(x1, y1, x2, y2) {
+  const p = [
+    quant(clamp10(x1, 0, 1), KF_BEZIER_QUANTUM),
+    quant(clamp10(y1, -KF_BEZIER_Y_MAX, KF_BEZIER_Y_MAX), KF_BEZIER_QUANTUM),
+    quant(clamp10(x2, 0, 1), KF_BEZIER_QUANTUM),
+    quant(clamp10(y2, -KF_BEZIER_Y_MAX, KF_BEZIER_Y_MAX), KF_BEZIER_QUANTUM)
+  ];
+  for (const tok of KF_EASE_TOKENS) {
+    const q = KF_EASE_PRESETS[tok].pts;
+    if (q[0] === p[0] && q[1] === p[1] && q[2] === p[2] && q[3] === p[3]) return tok;
+  }
+  return `eb(${fmt(p[0])})(${fmt(p[1])})(${fmt(p[2])})(${fmt(p[3])})`;
+}
+function normaliseKfEase(tok) {
+  if (typeof tok !== "string" || tok === "") return null;
+  if (tok === KF_HOLD_EASE) return KF_HOLD_EASE;
+  if (Object.hasOwn(KF_EASE_PRESETS, tok)) return tok;
+  const m2 = EB_RE.exec(tok);
+  if (!m2) return null;
+  const a = num5(m2[1] ?? ""), b = num5(m2[2] ?? ""), c = num5(m2[3] ?? ""), d = num5(m2[4] ?? "");
+  if (a === null || b === null || c === null || d === null) return null;
+  return easeFromPoints(a, b, c, d);
+}
+function easePts(ease) {
+  if (Object.hasOwn(KF_EASE_PRESETS, ease)) return KF_EASE_PRESETS[ease].pts;
+  const hit = EASE_PTS_CACHE.get(ease);
+  if (hit !== void 0) return hit;
+  const norm2 = normaliseKfEase(ease);
+  let pts = null;
+  if (norm2 !== null && norm2 !== KF_HOLD_EASE) {
+    if (Object.hasOwn(KF_EASE_PRESETS, norm2)) pts = KF_EASE_PRESETS[norm2].pts;
+    else {
+      const m2 = EB_RE.exec(norm2);
+      if (m2) {
+        const a = num5(m2[1] ?? ""), b = num5(m2[2] ?? ""), c = num5(m2[3] ?? ""), d = num5(m2[4] ?? "");
+        if (a !== null && b !== null && c !== null && d !== null) pts = Object.freeze([a, b, c, d]);
+      }
+    }
+  }
+  if (EASE_PTS_CACHE.size >= 256) EASE_PTS_CACHE.clear();
+  EASE_PTS_CACHE.set(ease, pts);
+  return pts;
+}
+function kfEasePoints(ease) {
+  if (typeof ease !== "string") return null;
+  const p = easePts(ease);
+  return p ? [p[0], p[1], p[2], p[3]] : null;
+}
+function kfEaseAt(ease, u) {
+  if (!(u > 0)) return 0;
+  if (u >= 1) return 1;
+  if (ease === KF_HOLD_EASE) return 0;
+  const p = easePts(ease) ?? KF_EASE_PRESETS[KF_DEFAULT_EASE].pts;
+  return cubicBezierAt(p[0], p[1], p[2], p[3], u);
+}
+function kfEaseCss(ease) {
+  if (ease === KF_HOLD_EASE) return KF_HOLD_CSS;
+  const p = (typeof ease === "string" ? easePts(ease) : null) ?? KF_EASE_PRESETS[KF_DEFAULT_EASE].pts;
+  return `cubic-bezier(${p.map((n2) => fmt(quant(n2, KF_BEZIER_QUANTUM))).join(",")})`;
+}
+function kfEaseName(ease) {
+  if (typeof ease !== "string") return "";
+  const norm2 = normaliseKfEase(ease);
+  if (norm2 === null || norm2 === KF_HOLD_EASE) return "";
+  return Object.hasOwn(KF_EASE_PRESETS, norm2) ? KF_EASE_PRESETS[norm2].name : "";
+}
+function kfEaseToken(v) {
+  if (typeof v !== "string") return KF_DEFAULT_EASE;
+  const s = v.trim();
+  if (s === KF_HOLD_CSS || s === KF_HOLD_EASE) return KF_HOLD_EASE;
+  const byName = NAME_TO_TOKEN.get(s);
+  if (byName) return byName;
+  const direct = normaliseKfEase(s);
+  if (direct !== null) return direct;
+  const m2 = CSS_BEZIER_RE.exec(s);
+  if (m2) {
+    const parts = (m2[1] ?? "").split(",").map((x) => num5(x.trim()));
+    if (parts.length === 4 && parts.every((n2) => n2 !== null)) {
+      return easeFromPoints(parts[0], parts[1], parts[2], parts[3]);
+    }
+  }
+  return KF_DEFAULT_EASE;
+}
+function easeParamAtX(x1, x2, x) {
+  if (x <= 0) return 0;
+  if (x >= 1) return 1;
+  const cx = 3 * x1, bx = 3 * (x2 - x1) - cx, ax = 1 - cx - bx;
+  const sampleX = (t2) => ((ax * t2 + bx) * t2 + cx) * t2;
+  const slopeX = (t2) => (3 * ax * t2 + 2 * bx) * t2 + cx;
+  let t = x;
+  for (let i = 0; i < 8; i++) {
+    const dx = sampleX(t) - x;
+    if (Math.abs(dx) < 1e-9) return t;
+    const d = slopeX(t);
+    if (Math.abs(d) < 1e-9) break;
+    t -= dx / d;
+    if (!(t >= 0 && t <= 1)) break;
+  }
+  let lo = 0, hi = 1;
+  t = x;
+  for (let i = 0; i < 60 && Math.abs(sampleX(t) - x) > 1e-12; i++) {
+    if (sampleX(t) < x) lo = t;
+    else hi = t;
+    t = (lo + hi) / 2;
+  }
+  return clamp10(t, 0, 1);
+}
+function subdividedEaseToken(x1, y1, x2, y2) {
+  if (!Number.isFinite(x1) || !Number.isFinite(y1) || !Number.isFinite(x2) || !Number.isFinite(y2)) return null;
+  if (Math.abs(y1) > KF_BEZIER_Y_MAX || Math.abs(y2) > KF_BEZIER_Y_MAX) return null;
+  const q = KF_BEZIER_QUANTUM;
+  if (quant(x1, q) === quant(y1, q) && quant(x2, q) === quant(y2, q)) return "el";
+  return easeFromPoints(x1, y1, x2, y2);
+}
+function subdivideKfEase(ease, lambda) {
+  const tok = (typeof ease === "string" ? normaliseKfEase(ease) : null) ?? KF_DEFAULT_EASE;
+  if (tok === KF_HOLD_EASE) return { left: KF_HOLD_EASE, right: KF_HOLD_EASE };
+  const lam = typeof lambda === "number" && Number.isFinite(lambda) ? lambda : 0;
+  if (!(lam > 0) || !(lam < 1)) return { left: tok, right: tok };
+  const p = easePts(tok) ?? KF_EASE_PRESETS[KF_DEFAULT_EASE].pts;
+  const [x1, y1, x2, y2] = p;
+  const s = easeParamAtX(x1, x2, lam);
+  const ax = s * x1, ay = s * y1;
+  const bx = x1 + (x2 - x1) * s, by = y1 + (y2 - y1) * s;
+  const cx = x2 + (1 - x2) * s, cy = y2 + (1 - y2) * s;
+  const dx = ax + (bx - ax) * s, dy = ay + (by - ay) * s;
+  const ex = bx + (cx - bx) * s, ey = by + (cy - by) * s;
+  const fx = dx + (ex - dx) * s, fy = dy + (ey - dy) * s;
+  const left = (Math.abs(fy) < SUBDIVIDE_EPS || !(fx > 0) ? null : subdividedEaseToken(ax / fx, ay / fy, dx / fx, dy / fy)) ?? tok;
+  const right = (Math.abs(1 - fy) < SUBDIVIDE_EPS || !(fx < 1) ? null : subdividedEaseToken((ex - fx) / (1 - fx), (ey - fy) / (1 - fy), (cx - fx) / (1 - fx), (cy - fy) / (1 - fy))) ?? tok;
+  return { left, right };
+}
+function channelValue(ch, raw) {
+  if (!Number.isFinite(raw)) return null;
+  const [lo, hi] = KF_CLAMPS[ch];
+  return quant(clamp10(raw, lo, hi), KF_QUANTA[ch]);
+}
+function normaliseTrack(keys, onWarn) {
+  let src = keys;
+  if (src.length > KF_MAX_KEYS) {
+    onWarn?.(`kf: track has ${src.length} keyframes; keeping the first ${KF_MAX_KEYS}`);
+    src = src.slice(0, KF_MAX_KEYS);
+  }
+  const out = [];
+  for (const k of src) {
+    if (!k || typeof k !== "object") continue;
+    const rawT = typeof k.t === "number" && Number.isFinite(k.t) ? k.t : 0;
+    const t = Math.round(clamp10(rawT, 0, KF_MAX_TIME_MS));
+    const v = {};
+    const kv = k.v ?? {};
+    for (const ch of KF_CHANNELS) {
+      if (!Object.hasOwn(kv, ch)) continue;
+      const raw = kv[ch];
+      if (typeof raw !== "number") continue;
+      const val = channelValue(ch, raw);
+      if (val !== null) v[ch] = val;
+    }
+    out.push({ t, ease: normaliseKfEase(k.ease) ?? KF_DEFAULT_EASE, v: Object.freeze(v) });
+  }
+  out.sort((a, b) => a.t - b.t);
+  const deduped = [];
+  for (const k of out) {
+    const prev = deduped[deduped.length - 1];
+    if (prev && prev.t === k.t) deduped[deduped.length - 1] = k;
+    else deduped.push(k);
+  }
+  for (const k of deduped) Object.freeze(k);
+  return Object.freeze(deduped);
+}
+function parseKf(s, opts) {
+  if (typeof s !== "string" || s === "") return EMPTY_TRACK;
+  const warn = opts?.onWarn;
+  let src = s;
+  if (src.length > KF_MAX_CHARS) {
+    warn?.(`kf: value is ${src.length} chars; reading the first ${KF_MAX_CHARS}`);
+    src = src.slice(0, KF_MAX_CHARS);
+  }
+  const keys = [];
+  for (const seg of src.split("*")) {
+    if (seg === "") continue;
+    if (keys.length >= KF_MAX_KEYS) {
+      warn?.(`kf: more than ${KF_MAX_KEYS} keyframes; the excess is ignored`);
+      break;
+    }
+    const toks = seg.split("_").filter((x) => x !== "");
+    const head = toks[0];
+    if (head === void 0) continue;
+    const tm = T_RE.exec(head);
+    if (!tm) {
+      warn?.(`kf: keyframe "${snip(seg)}" does not start with t<ms>; skipped`);
+      continue;
+    }
+    const tRaw = num5(tm[1] ?? "");
+    if (tRaw === null) continue;
+    const v = {};
+    let ease;
+    for (let i = 1; i < toks.length; i++) {
+      const tok = toks[i];
+      if (tok.charCodeAt(0) === 101) {
+        const norm2 = normaliseKfEase(tok);
+        if (norm2 !== null) {
+          ease = norm2;
+          continue;
+        }
+      }
+      let matched = false;
+      for (const ch of CHANNELS_BY_LENGTH) {
+        if (!tok.startsWith(ch)) continue;
+        const n2 = num5(tok.slice(ch.length));
+        if (n2 === null) continue;
+        v[ch] = n2;
+        matched = true;
+        break;
+      }
+      if (!matched) warn?.(`kf: junk token "${snip(tok)}" skipped`);
+    }
+    keys.push({ t: tRaw, ease, v });
+  }
+  return normaliseTrack(keys, warn);
+}
+function keyToWire(k) {
+  const parts = [`t${fmt(k.t)}`];
+  if (k.ease !== KF_DEFAULT_EASE) parts.push(k.ease);
+  for (const ch of KF_CHANNELS) {
+    if (!Object.hasOwn(k.v, ch)) continue;
+    const val = k.v[ch];
+    if (typeof val !== "number") continue;
+    parts.push(`${ch}${fmt(val)}`);
+  }
+  return parts.join("_");
+}
+function serialiseKf(track, opts) {
+  if (!Array.isArray(track) || track.length === 0) return "";
+  return normaliseTrack(track, opts?.onWarn).map(keyToWire).join("*");
+}
+function channelIndex(track) {
+  const hit = CHANNEL_INDEX.get(track);
+  if (hit) return hit;
+  const m2 = /* @__PURE__ */ new Map();
+  for (let i = 0; i < track.length; i++) {
+    const k = track[i];
+    if (!k) continue;
+    for (const ch of KF_CHANNELS) {
+      if (!Object.hasOwn(k.v, ch)) continue;
+      const list2 = m2.get(ch);
+      if (list2) list2.push(i);
+      else m2.set(ch, [i]);
+    }
+  }
+  CHANNEL_INDEX.set(track, m2);
+  return m2;
+}
+function kfChannelsUsed(track) {
+  if (!track || track.length === 0) return [];
+  const idx = channelIndex(track);
+  return KF_CHANNELS.filter((ch) => (idx.get(ch)?.length ?? 0) > 0);
+}
+function sampleChannel(track, ks, ch, t) {
+  const first = track[ks[0]];
+  if (t <= first.t) return first.v[ch];
+  const last = track[ks[ks.length - 1]];
+  if (t >= last.t) return last.v[ch];
+  let lo = 0, hi = ks.length - 1;
+  while (lo < hi) {
+    const mid3 = lo + hi + 1 >> 1;
+    if (track[ks[mid3]].t <= t) lo = mid3;
+    else hi = mid3 - 1;
+  }
+  const a = track[ks[lo]];
+  const b = track[ks[lo + 1]];
+  const av = a.v[ch];
+  const bv = b.v[ch];
+  const span = b.t - a.t;
+  if (!(span > 0)) return bv;
+  const u = (t - a.t) / span;
+  const ease = ch === "o" ? a.ease === KF_HOLD_EASE ? KF_HOLD_EASE : KF_LINEAR_EASE : a.ease;
+  return av + (bv - av) * kfEaseAt(ease, u);
+}
+function evaluateKf(track, tMs, channels) {
+  const out = {};
+  if (!track || track.length === 0) return out;
+  const t = Number.isFinite(tMs) ? tMs : 0;
+  const idx = channelIndex(track);
+  for (const ch of channels ?? KF_CHANNELS) {
+    if (!isKfChannel(ch)) continue;
+    const ks = idx.get(ch);
+    if (!ks || ks.length === 0) continue;
+    out[ch] = sampleChannel(track, ks, ch, t);
+  }
+  return out;
+}
+function sanePerspective(p) {
+  const [lo, hi] = KF_CLAMPS.p;
+  return typeof p === "number" && Number.isFinite(p) ? clamp10(p, lo, hi) : DEFAULT_PERSPECTIVE;
+}
+function projectDepth(cam, z) {
+  const P = sanePerspective(cam.p);
+  const camZ = typeof cam.z === "number" && Number.isFinite(cam.z) ? cam.z : 0;
+  const zz = Number.isFinite(z) ? z : 0;
+  const dz = zz - camZ;
+  const u = dz / P;
+  const eff = Math.min(P / (P - Math.min(dz, KF_GUARD_U * P)), KF_EFF_MAX);
+  const alphaGuard = clamp10((KF_GUARD_U - u) / KF_GUARD_BAND, 0, 1);
+  return { u, eff, alphaGuard };
+}
+function depthForEff(eff, cam = DEFAULT_CAMERA) {
+  const P = sanePerspective(cam.p);
+  const camZ = typeof cam.z === "number" && Number.isFinite(cam.z) ? cam.z : 0;
+  if (!Number.isFinite(eff) || eff <= 0) return camZ;
+  return camZ + P * (1 - 1 / Math.min(eff, KF_EFF_MAX));
+}
+function cameraTilted(cam) {
+  if (!cam) return false;
+  const rx = cam.rx;
+  const ry = cam.ry;
+  return typeof rx === "number" && Number.isFinite(rx) && rx !== 0 || typeof ry === "number" && Number.isFinite(ry) && ry !== 0;
+}
+function camRotationT(rxDeg, ryDeg) {
+  const t = rxDeg * DEG;
+  const f = ryDeg * DEG;
+  const ct = Math.cos(t), st = Math.sin(t);
+  const cf = Math.cos(f), sf = Math.sin(f);
+  return [
+    cf,
+    0,
+    -sf,
+    sf * st,
+    ct,
+    cf * st,
+    sf * ct,
+    -st,
+    cf * ct
+  ];
+}
+function mul32(a, b) {
+  const out = new Array(9);
+  for (let r3 = 0; r3 < 3; r3++) {
+    for (let c = 0; c < 3; c++) {
+      out[r3 * 3 + c] = a[r3 * 3] * b[c] + a[r3 * 3 + 1] * b[3 + c] + a[r3 * 3 + 2] * b[6 + c];
+    }
+  }
+  return out;
+}
+function surfaceMatrix(cam, z) {
+  if (!cameraTilted(cam)) return null;
+  const P = sanePerspective(cam.p);
+  const camZ = Number.isFinite(cam.z) ? cam.z : 0;
+  const zz = Number.isFinite(z) ? z : 0;
+  const W = Number.isFinite(cam.w) ? cam.w : 0;
+  const H = Number.isFinite(cam.h) ? cam.h : 0;
+  const cx0 = (Number.isFinite(cam.x) ? cam.x : 0) + W / 2;
+  const cy0 = (Number.isFinite(cam.y) ? cam.y : 0) + H / 2;
+  const zeta = zz - camZ;
+  const rx = typeof cam.rx === "number" && Number.isFinite(cam.rx) ? cam.rx : 0;
+  const ry = typeof cam.ry === "number" && Number.isFinite(cam.ry) ? cam.ry : 0;
+  const M2 = camRotationT(rx, ry);
+  const [m00, m01, m02, m10, m11, m12, m20, m21, m22] = M2;
+  const h6 = -m20;
+  const h7 = -m21;
+  const h8 = P + m20 * cx0 + m21 * cy0 - m22 * zeta;
+  const gx0 = -(m00 * cx0) - m01 * cy0 + m02 * zeta;
+  const gy0 = -(m10 * cx0) - m11 * cy0 + m12 * zeta;
+  const m2 = [
+    P * m00 + W / 2 * h6,
+    P * m01 + W / 2 * h7,
+    P * gx0 + W / 2 * h8,
+    P * m10 + H / 2 * h6,
+    P * m11 + H / 2 * h7,
+    P * gy0 + H / 2 * h8,
+    h6,
+    h7,
+    h8
+  ];
+  return { m: m2, m2: [m20, m21, m22], cx0, cy0, zeta, kappa: m22, P };
+}
+function localMatrix(hs, ox, oy, cpx, cpy, effc) {
+  const e = effc > 0 && Number.isFinite(effc) ? effc : 1;
+  const inv = 1 / e;
+  const B = [inv, 0, cpx, 0, inv, cpy, 0, 0, 1];
+  const A = [1, 0, -ox, 0, 1, -oy, 0, 0, 1];
+  return mul32(A, mul32(hs, B));
+}
+function fmt9(v) {
+  if (!Number.isFinite(v)) return "0";
+  const n2 = Math.round(v * 1e9) / 1e9;
+  return String(Object.is(n2, -0) ? 0 : n2);
+}
+function kfMatrix3dCss(m2) {
+  const i = m2[8];
+  const k = Number.isFinite(i) && i !== 0 ? 1 / i : 1;
+  const n2 = m2.map((v) => v * k);
+  return `matrix3d(${[
+    n2[0],
+    n2[3],
+    0,
+    n2[6],
+    n2[1],
+    n2[4],
+    0,
+    n2[7],
+    0,
+    0,
+    1,
+    0,
+    n2[2],
+    n2[5],
+    0,
+    n2[8]
+  ].map((v) => fmt9(v)).join(", ")})`;
+}
+function projectSurfacePoint(cam, x, y, z = 0) {
+  const s = surfaceMatrix(cam, z);
+  if (!s) return null;
+  const [a, b, c, d, e, f, g2, h, i] = s.m;
+  const w = g2 * x + h * y + i;
+  if (!(w > 0)) return null;
+  return { x: (a * x + b * y + c) / w, y: (d * x + e * y + f) / w, d: w };
+}
+function projectLayer(cam, layer) {
+  const bx = Number.isFinite(layer.bx) ? layer.bx : 0;
+  const by = Number.isFinite(layer.by) ? layer.by : 0;
+  const cx = bx + (layer.dxT ?? 0) + (layer.dxK ?? 0);
+  const cy = by + (layer.dyT ?? 0) + (layer.dyK ?? 0);
+  if (cameraTilted(cam)) {
+    const t = projectLayerTilted(cam, layer, cx, cy, bx, by);
+    if (t) return t;
+  }
+  const { eff, alphaGuard } = projectDepth(cam, layer.z ?? 0);
+  const w = Number.isFinite(cam.w) ? cam.w : 0;
+  const h = Number.isFinite(cam.h) ? cam.h : 0;
+  const camX = Number.isFinite(cam.x) ? cam.x : 0;
+  const camY = Number.isFinite(cam.y) ? cam.y : 0;
+  const px = w / 2 + (cx - camX - w / 2) * eff;
+  const py = h / 2 + (cy - camY - h / 2) * eff;
+  return { dx: px - bx, dy: py - by, scale: eff, alphaGuard, m: null };
+}
+function projectLayerTilted(cam, layer, cx, cy, bx, by) {
+  const s = surfaceMatrix(cam, layer.z ?? 0);
+  if (!s) return null;
+  const [m20, m21, m22] = s.m2;
+  const zTerm = m22 * s.zeta;
+  const depthAt = (px, py) => s.P - (m20 * (px - s.cx0) + m21 * (py - s.cy0) + zTerm);
+  const dC = depthAt(cx, cy);
+  const eff = Math.min(s.P / Math.max(dC, (1 - KF_GUARD_U) * s.P), KF_EFF_MAX);
+  const hw = Math.max(0, Number.isFinite(layer.w) ? layer.w : 0) / 2;
+  const hh = Math.max(0, Number.isFinite(layer.h) ? layer.h : 0) / 2;
+  let dMin = dC;
+  if (hw > 0 || hh > 0) {
+    for (const sx of [-1, 1]) {
+      for (const sy of [-1, 1]) {
+        const d = depthAt(cx + sx * hw, cy + sy * hh);
+        if (d < dMin) dMin = d;
+      }
+    }
+  }
+  const alphaGuard = clamp10(dMin / (KF_GUARD_BAND * s.P) - 1, 0, 1);
+  const [h0, h1, h2, h3, h4, h5, h6, h7, h8] = s.m;
+  const wC = h6 * cx + h7 * cy + h8;
+  const ok3 = wC > 0;
+  return {
+    dx: ok3 ? (h0 * cx + h1 * cy + h2) / wC - bx : 0,
+    dy: ok3 ? (h3 * cx + h4 * cy + h5) / wC - by : 0,
+    scale: eff,
+    alphaGuard,
+    // A layer the guard has already faded out gets no matrix: its denominator may have
+    // changed sign somewhere across the box, and there is nothing to look at anyway.
+    m: alphaGuard > 0 ? localMatrix(s.m, bx, by, cx, cy, eff) : null
+  };
+}
+function dofBlur(cam, z) {
+  const a = clamp10(typeof cam.a === "number" && Number.isFinite(cam.a) ? cam.a : 0, 0, 1);
+  if (!(a > 0)) return 0;
+  const P = sanePerspective(cam.p);
+  const f = typeof cam.f === "number" && Number.isFinite(cam.f) ? cam.f : 0;
+  const zz = Number.isFinite(z) ? z : 0;
+  if (cameraTilted(cam)) {
+    const kappa = Math.cos((cam.rx ?? 0) * DEG) * Math.cos((cam.ry ?? 0) * DEG);
+    const camZ = typeof cam.z === "number" && Number.isFinite(cam.z) ? cam.z : 0;
+    const near = (1 - KF_GUARD_U) * P;
+    const effAt = (v) => Math.min(P / Math.max(P - kappa * (v - camZ), near), KF_EFF_MAX);
+    return clamp10(a * DOF_K * Math.abs(zz - f) * effAt(zz) * effAt(f) * Math.abs(kappa) / P, 0, KF_MAX_BLUR);
+  }
+  const blur = a * DOF_K * Math.abs(zz - f) * projectDepth(cam, zz).eff * projectDepth(cam, f).eff / P;
+  return clamp10(blur, 0, KF_MAX_BLUR);
+}
+function resolveCamera(cameras, tMs) {
+  const t = Number.isFinite(tMs) ? tMs : 0;
+  let pick = null;
+  if (Array.isArray(cameras)) {
+    for (const c of cameras) {
+      if (!c || typeof c !== "object") continue;
+      const start = typeof c.start === "number" && Number.isFinite(c.start) ? c.start : null;
+      const end = typeof c.end === "number" && Number.isFinite(c.end) ? c.end : null;
+      if (start !== null && t < start) continue;
+      if (end !== null && t >= end) continue;
+      pick = c;
+    }
+  }
+  const pose = { ...DEFAULT_CAMERA };
+  if (!pick) return pose;
+  const base = pick.base;
+  if (base && typeof base === "object") {
+    for (const ch of KF_CAMERA_CHANNELS) {
+      if (!Object.hasOwn(base, ch)) continue;
+      const raw = base[ch];
+      if (typeof raw !== "number") continue;
+      const val = channelValue(ch, raw);
+      if (val !== null) pose[ch] = val;
+    }
+  }
+  const track = pick.track;
+  if (track && track.length > 0) {
+    const start = typeof pick.start === "number" && Number.isFinite(pick.start) ? pick.start : 0;
+    const local = t - start;
+    const keyed = evaluateKf(track, local, KF_CAMERA_CHANNELS);
+    for (const ch of KF_CAMERA_CHANNELS) {
+      const val = keyed[ch];
+      if (typeof val === "number") pose[ch] = val;
+    }
+  }
+  for (const ch of KF_CAMERA_CHANNELS) {
+    const val = pose[ch];
+    if (typeof val !== "number" || !Number.isFinite(val)) continue;
+    const [lo, hi] = KF_CLAMPS[ch];
+    pose[ch] = clamp10(val, lo, hi);
+  }
+  pose.p = sanePerspective(pose.p);
+  return pose;
+}
+var KF_CHANNELS, KF_CAMERA_CHANNELS, CHANNEL_SET, CHANNELS_BY_LENGTH, KF_CLAMPS, KF_Z_FIELD_CLAMP, KF_QUANTA, KF_BEZIER_QUANTUM, KF_BEZIER_Y_MAX, KF_MAX_KEYS, KF_MAX_CHARS, KF_MAX_TIME_MS, KF_MAX_BLUR, KF_CHARSET_RE, KF_EASE_TOKENS, KF_EASE_PRESETS, KF_HOLD_EASE, KF_DEFAULT_EASE, KF_LINEAR_EASE, KF_HOLD_CSS, EB_RE, NUM_RE2, T_RE, CSS_BEZIER_RE, EASE_PTS_CACHE, NAME_TO_TOKEN, SUBDIVIDE_EPS, EMPTY_TRACK, CHANNEL_INDEX, DEFAULT_CAMERA, DEFAULT_PERSPECTIVE, KF_GUARD_U, KF_GUARD_BAND, KF_EFF_MAX, DEG, DOF_K;
+var init_keyframes = __esm({
+  "engine/src/keyframes.ts"() {
+    "use strict";
+    KF_CHANNELS = ["x", "y", "z", "s", "r", "rx", "ry", "o", "b", "f", "a", "p", "w", "h"];
+    KF_CAMERA_CHANNELS = Object.freeze(
+      ["x", "y", "z", "rx", "ry", "f", "a", "p"]
+    );
+    CHANNEL_SET = new Set(KF_CHANNELS);
+    CHANNELS_BY_LENGTH = Object.freeze(
+      [...KF_CHANNELS].sort((a, b) => b.length - a.length || (a < b ? -1 : 1))
+    );
+    KF_CLAMPS = Object.freeze({
+      x: [-1e5, 1e5],
+      y: [-1e5, 1e5],
+      z: [-12e3, 12e3],
+      s: [0.01, 100],
+      r: [-3600, 3600],
+      rx: [-180, 180],
+      ry: [-180, 180],
+      o: [0, 1],
+      b: [0, 300],
+      f: [-3e3, 3e3],
+      a: [0, 1],
+      p: [50, 12e3],
+      // ABSOLUTE px, and non-negative: a keyed `w`/`h` REPLACES the box's own size for
+      // that segment (§5.2), so there is no additive reading to allow a negative for.
+      // 16384 is deliberately twice `PLATE_LONG_SIDE_LARGE`, the widest plate any shell
+      // will actually capture: this is the untrusted-input backstop (a hand-edited share
+      // URL), and the operative limit on a stretched layer is the plate budget's own
+      // long-side cap, which is measured in device px and knows the export scale. A wire
+      // clamp tighter than that would silently disagree with the budget on big boards.
+      w: [0, 16384],
+      h: [0, 16384]
+    });
+    KF_Z_FIELD_CLAMP = Object.freeze([-300, 900]);
+    KF_QUANTA = Object.freeze({
+      x: 0.01,
+      y: 0.01,
+      z: 0.01,
+      b: 0.01,
+      r: 0.01,
+      rx: 0.01,
+      ry: 0.01,
+      s: 1e-3,
+      o: 1e-3,
+      a: 1e-3,
+      f: 0.01,
+      p: 0.01,
+      w: 0.01,
+      h: 0.01
+    });
+    KF_BEZIER_QUANTUM = 1e-3;
+    KF_BEZIER_Y_MAX = 10;
+    KF_MAX_KEYS = 256;
+    KF_MAX_CHARS = 49152;
+    KF_MAX_TIME_MS = 36e5;
+    KF_MAX_BLUR = 300;
+    KF_CHARSET_RE = /^[A-Za-z0-9._*()-]*$/;
+    KF_EASE_TOKENS = ["el", "ei", "eo", "eio", "ev", "ea", "es", "ek"];
+    KF_EASE_PRESETS = Object.freeze({
+      el: { name: "linear", pts: [0, 0, 1, 1] },
+      ei: { name: "ease-in", pts: [0.32, 0, 0.67, 0] },
+      eo: { name: "ease-out", pts: [0.33, 1, 0.68, 1] },
+      eio: { name: "ease-in-out", pts: [0.65, 0, 0.35, 1] },
+      ev: { name: "overshoot", pts: [0.34, 1.56, 0.64, 1] },
+      ea: { name: "anticipate", pts: [0.36, -0.4, 0.66, 1] },
+      es: { name: "smooth", pts: [0.4, 0, 0.2, 1] },
+      ek: { name: "snappy", pts: [0.4, 0, 0.6, 1] }
+    });
+    KF_HOLD_EASE = "eh";
+    KF_DEFAULT_EASE = "eio";
+    KF_LINEAR_EASE = "el";
+    KF_HOLD_CSS = "hold";
+    EB_RE = /^eb\(([^()]*)\)\(([^()]*)\)\(([^()]*)\)\(([^()]*)\)$/;
+    NUM_RE2 = /^-?(?:\d+(?:\.\d+)?|\.\d+)$/;
+    T_RE = /^t(-?(?:\d+(?:\.\d+)?|\.\d+))$/;
+    CSS_BEZIER_RE = /^\s*cubic-bezier\(([^()]*)\)\s*$/i;
+    EASE_PTS_CACHE = /* @__PURE__ */ new Map();
+    NAME_TO_TOKEN = new Map(
+      KF_EASE_TOKENS.map((tok) => [KF_EASE_PRESETS[tok].name, tok])
+    );
+    SUBDIVIDE_EPS = 1e-4;
+    EMPTY_TRACK = Object.freeze([]);
+    CHANNEL_INDEX = /* @__PURE__ */ new WeakMap();
+    DEFAULT_CAMERA = Object.freeze({ x: 0, y: 0, z: 0, p: 1200, f: 0, a: 0 });
+    DEFAULT_PERSPECTIVE = 1200;
+    KF_GUARD_U = 0.9;
+    KF_GUARD_BAND = 0.1;
+    KF_EFF_MAX = 10;
+    DEG = Math.PI / 180;
+    DOF_K = 40;
+  }
+});
+
 // engine/src/fs-token.ts
 function encodeFsToken(name) {
   const bytes = new TextEncoder().encode(String(name));
@@ -40425,15 +43150,18 @@ __export(src_exports, {
   CULL_PAD_PT: () => CULL_PAD_PT,
   CUTS_FORMATS: () => CUTS_FORMATS,
   ComposeGuardError: () => ComposeGuardError,
+  DEFAULT_CAMERA: () => DEFAULT_CAMERA,
   DEFAULT_CMYK_CONDITION: () => DEFAULT_CMYK_CONDITION,
   DEFAULT_FILE_MAX_BYTES: () => DEFAULT_FILE_MAX_BYTES,
   DEFAULT_GRADIENT_SPACE: () => DEFAULT_GRADIENT_SPACE,
+  DEFAULT_PERSPECTIVE: () => DEFAULT_PERSPECTIVE,
   DEFAULT_ROW_LIMIT: () => DEFAULT_ROW_LIMIT,
   DEFAULT_STRENGTH: () => DEFAULT_STRENGTH,
   DEFAULT_XLSX_ROW_LIMIT: () => DEFAULT_XLSX_ROW_LIMIT,
   DESIGN_VERSION_LATEST: () => DESIGN_VERSION_LATEST,
   DETECT_THRESHOLD: () => DETECT_THRESHOLD,
   DIGITAL_SOURCE_TYPE: () => DIGITAL_SOURCE_TYPE,
+  DOF_K: () => DOF_K,
   DURABLE_FORMATS: () => DURABLE_FORMATS,
   EMU_PER_INCH: () => EMU_PER_INCH,
   EMU_PER_PX: () => EMU_PER_PX,
@@ -40461,6 +43189,26 @@ __export(src_exports, {
   IMPRINT_FORMATS: () => IMPRINT_FORMATS,
   IcoDecodeError: () => IcoDecodeError,
   JOIN_EPS: () => JOIN_EPS,
+  KF_BEZIER_QUANTUM: () => KF_BEZIER_QUANTUM,
+  KF_CAMERA_CHANNELS: () => KF_CAMERA_CHANNELS,
+  KF_CHANNELS: () => KF_CHANNELS,
+  KF_CHARSET_RE: () => KF_CHARSET_RE,
+  KF_CLAMPS: () => KF_CLAMPS,
+  KF_DEFAULT_EASE: () => KF_DEFAULT_EASE,
+  KF_EASE_PRESETS: () => KF_EASE_PRESETS,
+  KF_EASE_TOKENS: () => KF_EASE_TOKENS,
+  KF_EFF_MAX: () => KF_EFF_MAX,
+  KF_GUARD_BAND: () => KF_GUARD_BAND,
+  KF_GUARD_U: () => KF_GUARD_U,
+  KF_HOLD_CSS: () => KF_HOLD_CSS,
+  KF_HOLD_EASE: () => KF_HOLD_EASE,
+  KF_LINEAR_EASE: () => KF_LINEAR_EASE,
+  KF_MAX_BLUR: () => KF_MAX_BLUR,
+  KF_MAX_CHARS: () => KF_MAX_CHARS,
+  KF_MAX_KEYS: () => KF_MAX_KEYS,
+  KF_MAX_TIME_MS: () => KF_MAX_TIME_MS,
+  KF_QUANTA: () => KF_QUANTA,
+  KF_Z_FIELD_CLAMP: () => KF_Z_FIELD_CLAMP,
   KNOWN_FINISHES: () => KNOWN_FINISHES,
   KOKORO_DEFAULT_VOICE: () => KOKORO_DEFAULT_VOICE,
   KOKORO_MODEL_BYTES: () => KOKORO_MODEL_BYTES,
@@ -40516,6 +43264,20 @@ __export(src_exports, {
   SESSION_READER_VERSION: () => SESSION_READER_VERSION,
   SPOT_PLATE_FORMATS: () => SPOT_PLATE_FORMATS,
   SRGB_SOURCE: () => SRGB_SOURCE,
+  SVG_LAYERS_HEAVY_BYTES: () => SVG_LAYERS_HEAVY_BYTES,
+  SVG_LAYERS_HERO_BUDGET: () => SVG_LAYERS_HERO_BUDGET,
+  SVG_LAYERS_HERO_GAP_SCALES: () => SVG_LAYERS_HERO_GAP_SCALES,
+  SVG_LAYERS_HERO_MIN_INK: () => SVG_LAYERS_HERO_MIN_INK,
+  SVG_LAYERS_HERO_ROUNDS: () => SVG_LAYERS_HERO_ROUNDS,
+  SVG_LAYERS_HERO_SHARE: () => SVG_LAYERS_HERO_SHARE,
+  SVG_LAYERS_MAX: () => SVG_LAYERS_MAX,
+  SVG_LAYERS_MAX_CANDIDATES: () => SVG_LAYERS_MAX_CANDIDATES,
+  SVG_LAYERS_MAX_CHARS: () => SVG_LAYERS_MAX_CHARS,
+  SVG_LAYERS_MAX_DEPTH: () => SVG_LAYERS_MAX_DEPTH,
+  SVG_LAYERS_MAX_DESCENT: () => SVG_LAYERS_MAX_DESCENT,
+  SVG_LAYERS_MAX_REFS: () => SVG_LAYERS_MAX_REFS,
+  SVG_LAYERS_MAX_TAGS: () => SVG_LAYERS_MAX_TAGS,
+  SVG_LAYERS_PEER_AREA_RATIO: () => SVG_LAYERS_PEER_AREA_RATIO,
   TOKEN_EXT: () => TOKEN_EXT,
   TRUSTMARK_MIN_SIDE: () => TRUSTMARK_MIN_SIDE,
   TRUSTMARK_MODEL_RESOLUTION: () => TRUSTMARK_MODEL_RESOLUTION,
@@ -40558,7 +43320,7 @@ __export(src_exports, {
   booleanPath: () => booleanPath,
   boundsCubic: () => boundsCubic,
   boxGeomFromBBox: () => boxGeomFromBBox,
-  boxesOverlap: () => boxesOverlap,
+  boxesOverlap: () => boxesOverlap2,
   buildC2paManifest: () => buildC2paManifest,
   buildCmykPaletteMap: () => buildCmykPaletteMap,
   buildConnectorSvg: () => buildConnectorSvg,
@@ -40574,6 +43336,7 @@ __export(src_exports, {
   buildTreatedAssetId: () => buildTreatedAssetId,
   c2paDefaultOn: () => c2paDefaultOn,
   c2paTrustAnchors: () => c2paTrustAnchors,
+  cameraTilted: () => cameraTilted,
   canCarryWatermark: () => canCarryWatermark,
   canonicalJson: () => canonicalJson,
   canonicalValue: () => canonicalValue,
@@ -40625,6 +43388,7 @@ __export(src_exports, {
   createRuntime: () => createRuntime,
   createTokenSet: () => createTokenSet,
   cubicAsSource: () => cubicAsSource,
+  cubicBezierAt: () => cubicBezierAt,
   cubicRoots01: () => cubicRoots01,
   cueAt: () => cueAt,
   cuesToSrt: () => cuesToSrt,
@@ -40649,6 +43413,7 @@ __export(src_exports, {
   deltaEOkColor: () => deltaEOkColor,
   demuxApng: () => demuxApng,
   demuxWebpAnim: () => demuxWebpAnim,
+  depthForEff: () => depthForEff,
   derToPem: () => derToPem,
   deriveAesZipKey: () => deriveAesZipKey,
   deriveBrandTokens: () => deriveBrandTokens,
@@ -40666,6 +43431,7 @@ __export(src_exports, {
   distanceToPath: () => distanceToPath,
   distinctColors: () => distinctColors,
   docChecksum: () => docChecksum,
+  dofBlur: () => dofBlur,
   edgeAnchor: () => edgeAnchor,
   edgeArrowHead: () => edgeArrowHead,
   edgeBorderPt: () => edgeBorderPt,
@@ -40693,8 +43459,10 @@ __export(src_exports, {
   encodeTrustmarkPayload: () => encodeTrustmarkPayload,
   encryptObjectBytes: () => encryptObjectBytes,
   enforceContinuity: () => enforceContinuity,
+  enumerateSvgLayers: () => enumerateSvgLayers,
   evalChannel: () => evalChannel,
   evalCubic: () => evalCubic,
+  evaluateKf: () => evaluateKf,
   expandDerivedFormats: () => expandDerivedFormats,
   expandGradientStops: () => expandGradientStops,
   expandQuery: () => expandQuery,
@@ -40796,9 +43564,12 @@ __export(src_exports, {
   isIco: () => isIco,
   isImprintContainerFormat: () => isImprintContainerFormat,
   isImprintFormat: () => isImprintFormat,
+  isKfChannel: () => isKfChannel,
+  isKfSafe: () => isKfSafe,
   isLang: () => isLang,
   isLineCubic: () => isLineCubic,
   isNamedColor: () => isNamedColor,
+  isNonAffineTransform: () => isNonAffineTransform,
   isPackAvailable: () => isPackAvailable,
   isPhysical: () => isPhysical,
   isPptx: () => isPptx,
@@ -40819,6 +43590,13 @@ __export(src_exports, {
   issueLeafCert: () => issueLeafCert,
   joinPageText: () => joinPageText,
   jwkThumbprint: () => jwkThumbprint,
+  kfChannelsUsed: () => kfChannelsUsed,
+  kfEaseAt: () => kfEaseAt,
+  kfEaseCss: () => kfEaseCss,
+  kfEaseName: () => kfEaseName,
+  kfEasePoints: () => kfEasePoints,
+  kfEaseToken: () => kfEaseToken,
+  kfMatrix3dCss: () => kfMatrix3dCss,
   labSolidUnit: () => labSolidUnit,
   lengthCubic: () => lengthCubic,
   lineToCubic: () => lineToCubic,
@@ -40849,6 +43627,7 @@ __export(src_exports, {
   nearestBrandColor: () => nearestBrandColor,
   nearestOnCubic: () => nearestOnCubic,
   nodeToBox: () => nodeToBox,
+  normaliseKfEase: () => normaliseKfEase,
   normalizeLang: () => normalizeLang,
   normalizeTableValue: () => normalizeTableValue,
   normalizeText: () => normalizeText,
@@ -40900,6 +43679,7 @@ __export(src_exports, {
   parseGradientStop: () => parseGradientStop,
   parseIccProfile: () => parseIccProfile,
   parseIconThemesDoc: () => parseIconThemesDoc,
+  parseKf: () => parseKf,
   parseMidi: () => parseMidi,
   parseOklch: () => parseOklch,
   parsePenpotContent: () => parsePenpotContent,
@@ -40959,9 +43739,12 @@ __export(src_exports, {
   prepareC2paIngredient: () => prepareC2paIngredient,
   prepareC2paIngredientFromStore: () => prepareC2paIngredientFromStore,
   preparePassword: () => preparePassword,
+  projectDepth: () => projectDepth,
   projectGamutSolid: () => projectGamutSolid,
+  projectLayer: () => projectLayer,
   projectSolidPoint: () => projectSolidPoint,
   projectSolidPoints: () => projectSolidPoints,
+  projectSurfacePoint: () => projectSurfacePoint,
   psdBlendToCss: () => psdBlendToCss,
   quadratureMoments: () => quadratureMoments,
   rampOklab: () => rampOklab,
@@ -40981,6 +43764,7 @@ __export(src_exports, {
   rebrandPptxParts: () => rebrandPptxParts,
   relativeLuminance: () => relativeLuminance,
   renderZzfxm: () => renderZzfxm,
+  resolveCamera: () => resolveCamera,
   resolveColorValue: () => resolveColorValue,
   resolveDesignVersion: () => resolveDesignVersion,
   resolveGamutSource: () => resolveGamutSource,
@@ -41002,6 +43786,7 @@ __export(src_exports, {
   scanPenpotAppliedTokens: () => scanPenpotAppliedTokens,
   scanPenpotUsage: () => scanPenpotUsage,
   selfUnion: () => selfUnion,
+  serialiseKf: () => serialiseKf,
   serializeCurve: () => serializeCurve,
   serializeHdr: () => serializeHdr,
   serializeUrlState: () => serializeUrlState,
@@ -41042,11 +43827,13 @@ __export(src_exports, {
   strokeToPath: () => strokeToPath,
   subCubic: () => subCubic,
   subPathsFromPath: () => subPathsFromPath,
+  subdivideKfEase: () => subdivideKfEase,
   suggestNextLabel: () => suggestNextLabel,
   suggestRebrandTheme: () => suggestRebrandTheme,
   summarizeInputs: () => summarizeInputs,
   summarizeTokensDoc: () => summarizeTokensDoc,
   svgArcToBeziers: () => svgArcToBeziers,
+  svgRootViewBox: () => svgRootViewBox,
   svgToCustGeomPaths: () => svgToCustGeomPaths,
   tangentAt: () => tangentAt,
   toCSV: () => toCSV,
@@ -41155,6 +43942,7 @@ var init_src2 = __esm({
     init_rate_card();
     init_svg_path();
     init_svg_colors();
+    init_svg_layers();
     init_zzfxm();
     init_audio_analyse();
     init_captions();
@@ -41251,6 +44039,7 @@ var init_src2 = __esm({
     init_brand_treatments();
     init_pdf_crypto_r6();
     init_zip_crypto();
+    init_keyframes();
     init_version();
     init_semver_range();
     init_fs_token();
@@ -41894,11 +44683,11 @@ __export(raster_exports, {
   renderDeepRaster: () => renderDeepRaster
 });
 import { join as join3 } from "node:path";
-function deepFormatMime(fmt2) {
-  return fmt2.toLowerCase() === "exr" ? "image/x-exr" : "image/vnd.radiance";
+function deepFormatMime(fmt3) {
+  return fmt3.toLowerCase() === "exr" ? "image/x-exr" : "image/vnd.radiance";
 }
-function isDeepFormat(fmt2) {
-  const f = fmt2.toLowerCase();
+function isDeepFormat(fmt3) {
+  const f = fmt3.toLowerCase();
   return f === "exr" || f === "hdr";
 }
 function pxDims(dims, manifest) {
@@ -41932,8 +44721,8 @@ function canCarryPrintPrep(format) {
 function printPrepRefusal(format) {
   return `--bleed/--marks cannot be applied to "${format}". Bleed boxes and crop/registration marks are page geometry, and only the page formats carry them: ${[...PRINT_PREP_FORMATS].join(", ")}. Accepting the flags here would give you a file identical to one exported without them, with nothing to say so. Export one of those formats, or drop the flags. No file was written.`;
 }
-function eligibleForResvgPng(fmt2, dims) {
-  return fmt2.toLowerCase() === "png" && !dims.durable && !dims.bleed && !dims.marks;
+function eligibleForResvgPng(fmt3, dims) {
+  return fmt3.toLowerCase() === "png" && !dims.durable && !dims.bleed && !dims.marks;
 }
 async function rasterizeTierAPng(svg, dims, manifest) {
   const { width, height } = pxDims(dims, manifest);
@@ -42035,17 +44824,17 @@ function hdrTune(h) {
   return t;
 }
 async function renderDeepRaster(req) {
-  const fmt2 = req.format.toLowerCase();
-  if (!isDeepFormat(fmt2)) throw new DeepSourceError(`renderDeepRaster: unsupported format "${req.format}"`);
-  if (!req.hdr) throw new DeepSourceError(deepSourceRefusal(fmt2));
+  const fmt3 = req.format.toLowerCase();
+  if (!isDeepFormat(fmt3)) throw new DeepSourceError(`renderDeepRaster: unsupported format "${req.format}"`);
+  if (!req.hdr) throw new DeepSourceError(deepSourceRefusal(fmt3));
   const raster = await rasterizeSvgToRgba(req.svg, req.width, req.height);
   const sdr = fromU8Srgb(raster.data, raster.width, raster.height);
   const frame = hdrViewTransform(sdr, {
     targets: req.hdr.targets ?? [],
     ...hdrTune(req.hdr)
   });
-  if (!hasHeadroom(frame)) throw new DeepSourceError(deepSourceRefusal(fmt2, "no-headroom"));
-  if (fmt2 === "hdr") {
+  if (!hasHeadroom(frame)) throw new DeepSourceError(deepSourceRefusal(fmt3, "no-headroom"));
+  if (fmt3 === "hdr") {
     if (req.depth === "float" || req.depth === 16 || req.depth === 8) {
       req.log?.("info", `Note: depth=${req.depth} is not a Radiance .hdr option \u2014 RGBE is 8-bit mantissas with one shared exponent per pixel. Wrote RGBE.`);
     }
@@ -42338,8 +45127,8 @@ function fieldValue(ctx, v) {
   if (s != null) return s;
   const n2 = nameOf(ctx, v);
   if (n2 != null) return n2 === "Off" ? null : n2;
-  const num5 = numOf(ctx, v);
-  if (num5 != null) return String(num5);
+  const num6 = numOf(ctx, v);
+  if (num6 != null) return String(num6);
   const arr = arrOf(ctx, v);
   if (arr) return list(arr.map((x) => strOf(ctx, x) ?? "")) || null;
   return null;
@@ -42553,6 +45342,8 @@ function verdictFacts(report) {
     ["Identity", report.trusted && id && `${id.email || s.commonName}${id.issuer ? ` \u2014 verified by ${id.issuer}` : ""}`],
     ["Tool", env.tool],
     ["Produced by", report.author && `${report.author.name}${report.author.email ? ` <${report.author.email}>` : ""}`],
+    ["Contact", report.author?.url],
+    ["Rights / licence", report.rights],
     [report.delivered ? "Delivered by" : "Made with", generator],
     ["Signed", signedAt],
     ["Where", [env.surface, env.engine, env.os].filter(Boolean).join(" \xB7 ")],
@@ -42723,7 +45514,9 @@ function buildExportC2paOpts(o) {
     dates: o.signer && o.signerValidity ? { notBefore: o.signerValidity.notBefore, notAfter: o.signerValidity.notAfter } : { notBefore: new Date(Date.now() - 6e4), notAfter: new Date(Date.now() + days * 864e5) },
     // Carry a genAI source forward so the record stays accurate (default drops both).
     ...o.ingredients?.length ? { ingredients: o.ingredients } : {},
-    ...o.actions?.length ? { actions: o.actions } : {}
+    ...o.actions?.length ? { actions: o.actions } : {},
+    ...o.aiDisclosure ? { aiDisclosure: o.aiDisclosure } : {},
+    ...o.specVersion ? { specVersion: o.specVersion } : {}
   };
 }
 
@@ -43773,23 +46566,50 @@ function pointsPath(str4, close) {
   for (let i = 2; i + 1 < nums.length; i += 2) d += ` L${nums[i]},${nums[i + 1]}`;
   return d + (close ? " Z" : "");
 }
-function applyElementTransform(el, t) {
-  const nt = { ...t };
-  const transform2 = el.getAttribute?.("transform") || "";
-  if (transform2) {
-    const { sX, sY } = t;
-    const tm = transform2.match(/translate\(\s*([+-]?\d*\.?\d+)[,\s]\s*([+-]?\d*\.?\d+)\s*\)/) ?? transform2.match(/translate\(\s*([+-]?\d*\.?\d+)\s*\)/);
-    const sm = transform2.match(/scale\(\s*([+-]?\d*\.?\d+)(?:[,\s]\s*([+-]?\d*\.?\d+))?\s*\)/);
-    if (tm) {
-      nt.tx += sX * parseFloat(tm[1]);
-      nt.ty += sY * parseFloat(tm[2] ?? "0");
-    }
-    if (sm) {
-      nt.sX = sX * parseFloat(sm[1]);
-      nt.sY = sY * parseFloat(sm[2] ?? sm[1]);
-    }
+var IDENTITY4 = { a: 1, b: 0, c: 0, d: 1, e: 0, f: 0 };
+function matMul5(m2, n2) {
+  return {
+    a: m2.a * n2.a + m2.c * n2.b,
+    b: m2.b * n2.a + m2.d * n2.b,
+    c: m2.a * n2.c + m2.c * n2.d,
+    d: m2.b * n2.c + m2.d * n2.d,
+    e: m2.a * n2.e + m2.c * n2.f + m2.e,
+    f: m2.b * n2.e + m2.d * n2.f + m2.f
+  };
+}
+function parseTransformList(str4) {
+  let m2 = IDENTITY4;
+  const re = /(matrix|translate|scale|rotate|skewX|skewY)\s*\(([^)]*)\)/gi;
+  let hit;
+  while (hit = re.exec(str4)) {
+    const fn = (hit[1] ?? "").toLowerCase();
+    const a = (hit[2] ?? "").split(/[\s,]+/).map(parseFloat).filter((n2) => !Number.isNaN(n2));
+    const g2 = (i, d) => {
+      const v = a[i];
+      return typeof v === "number" && Number.isFinite(v) ? v : d;
+    };
+    let local = null;
+    if (fn === "translate") local = { ...IDENTITY4, e: g2(0, 0), f: g2(1, 0) };
+    else if (fn === "scale") {
+      const sx = g2(0, 1);
+      local = { ...IDENTITY4, a: sx, d: a.length > 1 ? g2(1, sx) : sx };
+    } else if (fn === "rotate") {
+      const rad = g2(0, 0) * Math.PI / 180, cos = Math.cos(rad), sin = Math.sin(rad);
+      const rot = { a: cos, b: sin, c: -sin, d: cos, e: 0, f: 0 };
+      if (a.length >= 3) {
+        const cx = g2(1, 0), cy = g2(2, 0);
+        local = matMul5(matMul5({ ...IDENTITY4, e: cx, f: cy }, rot), { ...IDENTITY4, e: -cx, f: -cy });
+      } else local = rot;
+    } else if (fn === "matrix" && a.length >= 6) local = { a: g2(0, 1), b: g2(1, 0), c: g2(2, 0), d: g2(3, 1), e: g2(4, 0), f: g2(5, 0) };
+    else if (fn === "skewx") local = { ...IDENTITY4, c: Math.tan(g2(0, 0) * Math.PI / 180) };
+    else if (fn === "skewy") local = { ...IDENTITY4, b: Math.tan(g2(0, 0) * Math.PI / 180) };
+    if (local) m2 = matMul5(m2, local);
   }
-  return nt;
+  return m2;
+}
+function applyElementTransform(el, t) {
+  const transform2 = el.getAttribute?.("transform") || "";
+  return transform2 ? matMul5(t, parseTransformList(transform2)) : t;
 }
 async function decodeImageToRgb(href, bg) {
   if (typeof document === "undefined" || typeof createImageBitmap !== "function") return null;
@@ -43839,7 +46659,7 @@ function parseSvgDropShadow(filt) {
     "fecomponenttransfer"
   ];
   if (kids.some((k) => UNEXPECTED.includes(k))) return null;
-  const num5 = (el, attr4, dflt) => {
+  const num6 = (el, attr4, dflt) => {
     const v = Number.parseFloat(el?.getAttribute(attr4) ?? "");
     return Number.isFinite(v) ? v : dflt;
   };
@@ -43850,11 +46670,11 @@ function parseSvgDropShadow(filt) {
     if (!rgb2) return null;
     const sd2 = (ds.getAttribute("stdDeviation") ?? "2").trim().split(/[\s,]+/).map(Number.parseFloat);
     return {
-      dx: num5(ds, "dx", 2),
-      dy: num5(ds, "dy", 2),
+      dx: num6(ds, "dx", 2),
+      dy: num6(ds, "dy", 2),
       stdDeviation: Math.max(...sd2.filter(Number.isFinite), 0),
       rgb: rgb2,
-      alpha: num5(ds, "flood-opacity", 1)
+      alpha: num6(ds, "flood-opacity", 1)
     };
   }
   const blur = find("fegaussianblur");
@@ -43864,14 +46684,14 @@ function parseSvgDropShadow(filt) {
   const off = find("feoffset");
   const flood = find("feflood");
   let rgb = flood ? parseColor2(flood.getAttribute("flood-color") ?? "#000") : null;
-  let alpha = flood ? num5(flood, "flood-opacity", 1) : 1;
+  let alpha = flood ? num6(flood, "flood-opacity", 1) : 1;
   if (!flood) {
     if (kids.includes("fecolormatrix")) return null;
     rgb = [0, 0, 0];
   }
   if (!rgb) return null;
   if (!(stdDeviation > 0) && !off) return null;
-  return { dx: num5(off, "dx", 0), dy: num5(off, "dy", 0), stdDeviation, rgb, alpha };
+  return { dx: num6(off, "dx", 0), dy: num6(off, "dy", 0), stdDeviation, rgb, alpha };
 }
 async function svgDomToIr(svgEl, ctx = {}) {
   const { host, getComputedStyle } = ctx;
@@ -43927,11 +46747,13 @@ async function svgDomToIr(svgEl, ctx = {}) {
     const tag2 = el.tagName.toLowerCase().replace(/^svg:/, "");
     if (SKIP.has(tag2)) return;
     const et = applyElementTransform(el, t);
-    const { tx, ty, sX, sY } = et;
-    const PX = (v) => (tx + sX * v - vbX) * regX;
-    const PY = (v) => (ty + sY * v - vbY) * regY;
-    const mapPt = (x, y) => ({ x: PX(x), y: PY(y) });
-    const gAvg = (Math.abs(sX) + Math.abs(sY)) / 2;
+    const mapPt = (x, y) => ({
+      x: (et.a * x + et.c * y + et.e - vbX) * regX,
+      y: (et.b * x + et.d * y + et.f - vbY) * regY
+    });
+    const sxLen = Math.hypot(et.a, et.b);
+    const syLen = Math.hypot(et.c, et.d);
+    const gAvg = (sxLen + syLen) / 2;
     const rAvg = (regX + regY) / 2;
     if (tag2 === "g" || tag2 === "a" || tag2 === "svg") {
       const style2 = parseStyleAttr(el);
@@ -43970,7 +46792,7 @@ async function svgDomToIr(svgEl, ctx = {}) {
       d = `M${len(prop(el, style, "x1"), vbW)},${len(prop(el, style, "y1"), vbH)} L${len(prop(el, style, "x2"), vbW)},${len(prop(el, style, "y2"), vbH)}`;
       forceStrokeOnly = true;
     } else if (tag2 === "text") {
-      await emitText(el, style, { PX, PY, mapPt, gAvg, rAvg, elemOpacity });
+      await emitText(el, style, { mapPt, gAvg, rAvg, elemOpacity });
       return;
     } else if (tag2 === "image") {
       const href = el.getAttribute("href") || el.getAttribute("xlink:href") || el.getAttributeNS?.("http://www.w3.org/1999/xlink", "href") || "";
@@ -43983,10 +46805,9 @@ async function svgDomToIr(svgEl, ctx = {}) {
         warn("image could not be rasterised for this format (skipped)");
         return;
       }
-      const bx = PX(len(prop(el, style, "x"), vbW));
-      const by = PY(len(prop(el, style, "y"), vbH));
-      const bw = len(prop(el, style, "width"), vbW) * Math.abs(sX) * regX;
-      const bh = len(prop(el, style, "height"), vbH) * Math.abs(sY) * regY;
+      const { x: bx, y: by } = mapPt(len(prop(el, style, "x"), vbW), len(prop(el, style, "y"), vbH));
+      const bw = len(prop(el, style, "width"), vbW) * sxLen * regX;
+      const bh = len(prop(el, style, "height"), vbH) * syLen * regY;
       if (bw < 0.5 || bh < 0.5) return;
       const par = (prop(el, style, "preserveAspectRatio") || "xMidYMid meet").trim();
       let x = bx, y = by, w = bw, h = bh;
@@ -44029,7 +46850,7 @@ async function svgDomToIr(svgEl, ctx = {}) {
     const shadow = resolveDropShadow(el);
     if (shadow) {
       const rings = gaussianShadowRings(shadow.stdDeviation * 2, shadow.alpha);
-      const sdx = shadow.dx * sX * regX, sdy = shadow.dy * sY * regY;
+      const sdx = (et.a * shadow.dx + et.c * shadow.dy) * regX, sdy = (et.b * shadow.dx + et.d * shadow.dy) * regY;
       const shifted = subpaths.map((sub) => ({
         closed: sub.closed,
         segments: sub.segments.map((seg) => shiftSeg(seg, sdx, sdy))
@@ -44130,7 +46951,7 @@ async function svgDomToIr(svgEl, ctx = {}) {
     }
     prims.push({ type: "path", subpaths, fill: rgbObj(rgb), stroke, fillRule: "nonzero" });
   }
-  await visit(svgEl, { tx: 0, ty: 0, sX: 1, sY: 1 }, null);
+  await visit(svgEl, IDENTITY4, null);
   return { width: Math.round(canvasW), height: Math.round(canvasH), prims };
 }
 function mapSeg(seg, mapPt) {
@@ -44240,7 +47061,7 @@ function segmentByFace(text, chain2) {
   }
   return segs;
 }
-function fmt(n2) {
+function fmt2(n2) {
   return Math.round(n2 * 100) / 100;
 }
 var FONT_DIRS = [
@@ -44319,7 +47140,7 @@ function transformPath(pathStr, offsetX, offsetY, scale) {
     const out = [];
     for (let i = 0; i + 1 < nums.length; i += 2) {
       out.push(
-        `${fmt((+nums[i] + offsetX) * scale)},${fmt(-(+nums[i + 1] + offsetY) * scale)}`
+        `${fmt2((+nums[i] + offsetX) * scale)},${fmt2(-(+nums[i + 1] + offsetY) * scale)}`
       );
     }
     return cmd + out.join(" ");
@@ -44644,12 +47465,12 @@ function recolorCss(p) {
   }
 }
 async function captureUrl(params, format, dims) {
-  const fmt2 = format.toLowerCase() === "jpeg" ? "jpg" : format.toLowerCase();
+  const fmt3 = format.toLowerCase() === "jpeg" ? "jpg" : format.toLowerCase();
   if (!params.url) throw new BrowserError("Enter a URL to capture.");
-  if (!["png", "jpg", "pdf", "svg", "webp"].includes(fmt2)) {
+  if (!["png", "jpg", "pdf", "svg", "webp"].includes(fmt3)) {
     throw new BrowserError(`url-shot can't produce "${format}" \u2014 use png, jpg, pdf, or svg.`);
   }
-  if (fmt2 === "webp") {
+  if (fmt3 === "webp") {
     throw new BrowserError("WebP capture needs the desktop app \u2014 in the terminal use png, jpg, pdf, or svg.");
   }
   const width = Math.max(1, Math.round(dims.width || 1280));
@@ -44705,7 +47526,7 @@ async function captureUrl(params, format, dims) {
       }
     }
     if (params.actions?.length) await runDriveSteps(page2, params.actions, params.driveOpts ?? {});
-    if (fmt2 === "pdf") {
+    if (fmt3 === "pdf") {
       const pdf = await page2.pdf({
         width: `${width}px`,
         height: `${height}px`,
@@ -44720,18 +47541,18 @@ async function captureUrl(params, format, dims) {
     const clipW = Math.max(1, Math.round(width * (1 - l - r3)));
     const clipH = Math.max(1, Math.round(height * (1 - t - b)));
     const clip3 = { x: Math.round(width * l), y: Math.round(height * t), width: clipW, height: clipH };
-    const shotType = fmt2 === "jpg" ? "jpeg" : "png";
+    const shotType = fmt3 === "jpg" ? "jpeg" : "png";
     const png = await page2.screenshot({
       type: shotType,
       ...shotType === "jpeg" ? { quality: 97 } : {},
       clip: clip3
     });
-    if (fmt2 === "svg") {
+    if (fmt3 === "svg") {
       const b64 = Buffer.from(png).toString("base64");
       const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${clipW}" height="${clipH}" viewBox="0 0 ${clipW} ${clipH}"><image width="${clipW}" height="${clipH}" href="data:image/png;base64,${b64}"/></svg>`;
       return { bytes: new TextEncoder().encode(svg), mime: "image/svg+xml" };
     }
-    return { bytes: new Uint8Array(png), mime: fmt2 === "jpg" ? "image/jpeg" : "image/png" };
+    return { bytes: new Uint8Array(png), mime: fmt3 === "jpg" ? "image/jpeg" : "image/png" };
   } finally {
     await ctx.close();
   }
@@ -44782,9 +47603,9 @@ function createNodeImagesAPI() {
     return { img: sharp(buf), buf };
   }
   async function finish(img, format, quality) {
-    const fmt2 = format === "jpg" ? "jpeg" : format;
-    const opts = q100(quality) !== void 0 && fmt2 !== "png" ? { quality: q100(quality) } : void 0;
-    const { data, info } = await img.toFormat(fmt2, opts).toBuffer({ resolveWithObject: true });
+    const fmt3 = format === "jpg" ? "jpeg" : format;
+    const opts = q100(quality) !== void 0 && fmt3 !== "png" ? { quality: q100(quality) } : void 0;
+    const { data, info } = await img.toFormat(fmt3, opts).toBuffer({ resolveWithObject: true });
     return {
       bytes: new Uint8Array(data.buffer, data.byteOffset, data.byteLength),
       mime: MIME[info.format] ?? `image/${info.format}`,
@@ -44799,11 +47620,11 @@ function createNodeImagesAPI() {
       if (!meta.width || !meta.height) {
         throw new Error("host.images: these bytes are not a decodable image here.");
       }
-      const fmt2 = (meta.format ?? "").toLowerCase();
+      const fmt3 = (meta.format ?? "").toLowerCase();
       return {
         width: meta.width,
         height: meta.height,
-        mime: MIME[fmt2] ?? (fmt2 ? `image/${fmt2}` : "application/octet-stream"),
+        mime: MIME[fmt3] ?? (fmt3 ? `image/${fmt3}` : "application/octet-stream"),
         // `pages` is how sharp reports multi-frame containers (GIF/APNG/animated WebP).
         // Absent for formats it doesn't page, which is why `animated` is optional.
         ...meta.pages !== void 0 ? { animated: meta.pages > 1 } : {}
@@ -45186,11 +48007,11 @@ async function createCliBridge({ profile = {}, dom, networkAllowlist, designVers
       const baseId = theme ? themedBase : treatedBase;
       const meta = assetById.get(baseId);
       if (!meta) throw new Error(`Asset not in catalog: ${baseId}`);
-      const fmt2 = meta.type === "lottie" ? meta.formats.find((f) => f.format === "json") ?? meta.formats[0] : meta.formats[0];
-      const localPath = join8(REPO_ROOT2, fmt2.url.replace(/^\//, ""));
+      const fmt3 = meta.type === "lottie" ? meta.formats.find((f) => f.format === "json") ?? meta.formats[0] : meta.formats[0];
+      const localPath = join8(REPO_ROOT2, fmt3.url.replace(/^\//, ""));
       let buf = await readFile5(localPath);
       let extraMeta = { name: meta.name, tags: meta.tags };
-      if (meta.type === "palette" && fmt2.format === "json") {
+      if (meta.type === "palette" && fmt3.format === "json") {
         try {
           const parsed = JSON.parse(buf.toString("utf8"));
           extraMeta = { ...extraMeta, ...parsed };
@@ -45207,33 +48028,33 @@ async function createCliBridge({ profile = {}, dom, networkAllowlist, designVers
       }
       if (treatment && meta.type === "raster") {
         const def = (await photoTreatments()).find((t) => t.id === treatment);
-        const dimSrc = fmt2.width && fmt2.height ? fmt2 : meta.formats.find((f) => f.width && f.height);
+        const dimSrc = fmt3.width && fmt3.height ? fmt3 : meta.formats.find((f) => f.width && f.height);
         const w2 = dimSrc?.width, h = dimSrc?.height;
         if (def && w2 && h) {
-          const href = `data:${mimeFor(fmt2.format)};base64,${buf.toString("base64")}`;
+          const href = `data:${mimeFor(fmt3.format)};base64,${buf.toString("base64")}`;
           const svg = wrapRasterWithTreatment({ href, width: w2, height: h, treatment: def });
           return {
             source: "library",
             id,
             type: meta.type,
-            format: fmt2.format,
+            format: fmt3.format,
             url: `data:image/svg+xml;base64,${Buffer.from(svg, "utf8").toString("base64")}`,
             version: meta.version,
-            checksum: fmt2.checksum,
+            checksum: fmt3.checksum,
             meta: { ...extraMeta, treatment, baseId }
           };
         }
       }
-      const mime = mimeFor(fmt2.format);
+      const mime = mimeFor(fmt3.format);
       const url = `data:${mime};base64,${buf.toString("base64")}`;
       return {
         source: "library",
         id,
         type: meta.type,
-        format: fmt2.format,
+        format: fmt3.format,
         url,
         version: meta.version,
-        checksum: fmt2.checksum,
+        checksum: fmt3.checksum,
         meta: extraMeta
       };
     },
@@ -45560,17 +48381,17 @@ async function createCliBridge({ profile = {}, dom, networkAllowlist, designVers
       const el = w.document.createElement("div");
       el.innerHTML = childRuntime.getHydrated();
       await applyBrandVars(el, host);
-      const fmt2 = format ?? childTool.manifest.render.formats[0];
+      const fmt3 = format ?? childTool.manifest.render.formats[0];
       const u = unit2 || "px";
       const qual = (v) => typeof v === "number" && v > 0 ? u !== "px" ? `${v}${u}` : v : void 0;
-      const blob = await host.export.render(el, fmt2, { width: qual(width), height: qual(height), dpi, embedMeta: false, watermark: false });
+      const blob = await host.export.render(el, fmt3, { width: qual(width), height: qual(height), dpi, embedMeta: false, watermark: false });
       const buf = Buffer.from(await blob.arrayBuffer());
       return {
         source: "remote",
         id: `compose:${toolId}`,
-        type: fmt2 === "svg" ? "vector" : "raster",
-        format: fmt2,
-        url: `data:${mimeFor(fmt2)};base64,${buf.toString("base64")}`
+        type: fmt3 === "svg" ? "vector" : "raster",
+        format: fmt3,
+        url: `data:${mimeFor(fmt3)};base64,${buf.toString("base64")}`
       };
     },
     // Render a pasted/stored Lolly tool URL to an AssetRef whose id is the
@@ -45867,8 +48688,8 @@ function normFormat(f) {
   const x = String(f ?? "").toLowerCase();
   return x === "jpeg" ? "jpg" : x;
 }
-function mimeForFormat(fmt2) {
-  switch (normFormat(fmt2)) {
+function mimeForFormat(fmt3) {
+  switch (normFormat(fmt3)) {
     case "svg":
       return "image/svg+xml";
     case "png":
@@ -45928,8 +48749,8 @@ function mimeForFormat(fmt2) {
       return "application/octet-stream";
   }
 }
-function isTextFormat(fmt2) {
-  return ["svg", "html", "md", "txt", "json", "csv", "ics", "vcf", "eps", "eps-cmyk", "dxf"].includes(normFormat(fmt2));
+function isTextFormat(fmt3) {
+  return ["svg", "html", "md", "txt", "json", "csv", "ics", "vcf", "eps", "eps-cmyk", "dxf"].includes(normFormat(fmt3));
 }
 function targetPx(width, unit2, dpi) {
   if (!width || width <= 0) return void 0;
@@ -45949,7 +48770,7 @@ function exportOpts(o) {
   if (o.hdr) opts.hdr = { targets: [], peakNits: o.hdr.peakNits, reach: o.hdr.reach, lift: o.hdr.lift, richness: o.hdr.richness };
   return opts;
 }
-async function renderTierA(toolId, values, fmt2, opts, profile) {
+async function renderTierA(toolId, values, fmt3, opts, profile) {
   return withHost(profile, async (dom, host) => {
     const tool = await loadToolCached(toolId);
     const runtime = await createRuntime(tool, host, values);
@@ -45958,19 +48779,19 @@ async function renderTierA(toolId, values, fmt2, opts, profile) {
     canvas.innerHTML = runtime.getHydrated();
     let blob;
     try {
-      blob = await runtime.export(canvas, fmt2, opts);
+      blob = await runtime.export(canvas, fmt3, opts);
     } catch (e) {
       if (e instanceof DeepSourceError) throw new RenderError(e.message);
       throw e;
     }
     const bytes = new Uint8Array(await blob.arrayBuffer());
     try {
-      assertRenderOk({ hookErrors: runtime.hookErrors, format: fmt2, bytes });
+      assertRenderOk({ hookErrors: runtime.hookErrors, format: fmt3, bytes });
     } catch (e) {
       if (e instanceof RenderIntegrityError) throw new RenderError(e.message);
       throw e;
     }
-    return { bytes, mime: blob.type || mimeForFormat(fmt2) };
+    return { bytes, mime: blob.type || mimeForFormat(fmt3) };
   });
 }
 async function svgToPng(svg, width, background) {
@@ -46033,10 +48854,10 @@ async function getBrowser2() {
   return browserPromise2;
 }
 var EXPORT_URL_RESERVED = ["format", "export", "copy", "width", "w", "height", "h", "unit", "dpi", "password", "profile", "c2pa", "preview", "options"];
-function exportUrl(base, toolId, query, fmt2, o) {
+function exportUrl(base, toolId, query, fmt3, o) {
   const p = new URLSearchParams(query);
   for (const k of EXPORT_URL_RESERVED) p.delete(k);
-  p.set("format", fmt2);
+  p.set("format", fmt3);
   const unit2 = o.unit || "px";
   if (o.width && o.width > 0) p.set("width", String(o.width));
   if (o.height && o.height > 0) p.set("height", String(o.height));
@@ -46045,21 +48866,21 @@ function exportUrl(base, toolId, query, fmt2, o) {
     p.set("dpi", String(o.dpi || 300));
   }
   if (o.colorProfile) p.set("profile", o.colorProfile);
-  if (o.password && fmt2 === "pdf") p.set("password", o.password);
+  if (o.password && fmt3 === "pdf") p.set("password", o.password);
   p.set("export", "1");
   const q = p.toString();
   const tmpl = process.env.LOLLY_TOOL_URL_TEMPLATE || `${base}/#/tool/{id}?{query}`;
   return tmpl.replace("{id}", encodeURIComponent(toolId)).replace("{query}", q);
 }
-function exportTimeoutMs(fmt2) {
-  const f = normFormat(fmt2);
+function exportTimeoutMs(fmt3) {
+  const f = normFormat(fmt3);
   if (f === "webm" || f === "mp4" || f === "gif" || f === "apng") return 18e4;
   if (f === "pdf" || f === "pdf-cmyk" || f === "cmyk-tiff" || f === "tiff") return 9e4;
   return 6e4;
 }
-async function renderTierB(toolId, query, fmt2, o) {
+async function renderTierB(toolId, query, fmt3, o) {
   const base = await webShellBase();
-  const url = exportUrl(base, toolId, query, fmt2, o);
+  const url = exportUrl(base, toolId, query, fmt3, o);
   let browser;
   try {
     browser = await getBrowser2();
@@ -46070,14 +48891,14 @@ async function renderTierB(toolId, query, fmt2, o) {
   const ctx = await browser.newContext({ serviceWorkers: "block", acceptDownloads: true });
   try {
     const page2 = await ctx.newPage();
-    const downloadP = page2.waitForEvent("download", { timeout: exportTimeoutMs(fmt2) });
+    const downloadP = page2.waitForEvent("download", { timeout: exportTimeoutMs(fmt3) });
     await page2.goto(url, { waitUntil: "commit", timeout: 3e4 });
     let download;
     try {
       download = await downloadP;
     } catch {
       throw new RenderError(
-        `Tool "${toolId}" produced no "${fmt2}" export within the time limit \u2014 the tool may have failed to render, or the format isn't supported in the browser. Check the inputs.`
+        `Tool "${toolId}" produced no "${fmt3}" export within the time limit \u2014 the tool may have failed to render, or the format isn't supported in the browser. Check the inputs.`
       );
     }
     const path = await download.path();
@@ -46085,22 +48906,22 @@ async function renderTierB(toolId, query, fmt2, o) {
     const bytes = new Uint8Array(await readFile7(path));
     await download.delete().catch(() => {
     });
-    return { bytes, mime: mimeForFormat(fmt2) };
+    return { bytes, mime: mimeForFormat(fmt3) };
   } finally {
     await ctx.close();
   }
 }
-async function stampC2pa(bytes, fmt2, manifest, values, o) {
+async function stampC2pa(bytes, fmt3, manifest, values, o) {
   const opts = buildExportC2paOpts({
     surface: "mcp",
     manifest,
     model: buildInputModel(manifest, { initial: values }),
-    format: fmt2,
+    format: fmt3,
     dims: { width: o.width ?? null, height: o.height ?? null, unit: o.unit ?? null, dpi: o.dpi ?? null },
     days: o.c2pa?.days,
     profile: o.profile
   });
-  return embedC2pa(bytes, fmt2, opts);
+  return embedC2pa(bytes, fmt3, opts);
 }
 async function render(toolId, query, o = {}) {
   const tool = await loadToolCached(toolId);
@@ -46113,11 +48934,11 @@ async function render(toolId, query, o = {}) {
   }
   const q = await expandQuery(query);
   const st = parseUrlState(q, tool.manifest);
-  const fmt2 = normFormat(o.format ?? st.format ?? formats[0] ?? "svg");
-  if (!supported.has(fmt2) && !isDeepFormat(fmt2)) {
-    throw new RenderError(`Tool "${toolId}" does not support format "${fmt2}". Supported: ${formats.join(", ")} (plus the pro float formats exr, hdr, which need hdr=1)`);
+  const fmt3 = normFormat(o.format ?? st.format ?? formats[0] ?? "svg");
+  if (!supported.has(fmt3) && !isDeepFormat(fmt3)) {
+    throw new RenderError(`Tool "${toolId}" does not support format "${fmt3}". Supported: ${formats.join(", ")} (plus the pro float formats exr, hdr, which need hdr=1)`);
   }
-  const exportFmt = fmt2 === "jpg" && !formats.includes("jpg") ? "jpg" : fmt2;
+  const exportFmt = fmt3 === "jpg" && !formats.includes("jpg") ? "jpg" : fmt3;
   const values = { ...st.values };
   if (o.transparentBg !== void 0) values["transparentBg"] = o.transparentBg;
   if (o.convertPaths !== void 0) values["convertPaths"] = o.convertPaths;
@@ -46157,7 +48978,7 @@ async function render(toolId, query, o = {}) {
     }
   } else {
     if (o.noBrowser) {
-      throw new RenderError(`Format "${fmt2}" needs the browser render tier, which is not available for this request.`);
+      throw new RenderError(`Format "${fmt3}" needs the browser render tier, which is not available for this request.`);
     }
     out = { ...await renderTierB(toolId, q, exportFmt, merged), tier: "B" };
   }
@@ -46169,9 +48990,9 @@ async function render(toolId, query, o = {}) {
       warnings.push(`Content Credentials not attached \u2014 ${e.message}`);
     }
   } else if (merged.c2pa?.on) {
-    warnings.push(`Format "${fmt2}" cannot carry Content Credentials \u2014 skipped.`);
+    warnings.push(`Format "${fmt3}" cannot carry Content Credentials \u2014 skipped.`);
   }
-  return { bytes, mime: out.mime, format: fmt2, tier: out.tier, warnings };
+  return { bytes, mime: out.mime, format: fmt3, tier: out.tier, warnings };
 }
 async function transformTierB(toolId, fileInputId2, file, query) {
   const base = await webShellBase();
@@ -46318,12 +49139,12 @@ function exportSettings(args) {
   const h = args["hdr"];
   const hdr = h && typeof h === "object" ? (() => {
     const o = h;
-    const num5 = (v, d) => typeof v === "number" && isFinite(v) ? v : d;
+    const num6 = (v, d) => typeof v === "number" && isFinite(v) ? v : d;
     return {
-      peakNits: num5(o["peakNits"], HDR_DEFAULTS.peakNits),
-      reach: num5(o["reach"], HDR_DEFAULTS.reach),
-      lift: num5(o["lift"], HDR_DEFAULTS.lift),
-      richness: num5(o["richness"], HDR_DEFAULTS.richness)
+      peakNits: num6(o["peakNits"], HDR_DEFAULTS.peakNits),
+      reach: num6(o["reach"], HDR_DEFAULTS.reach),
+      lift: num6(o["lift"], HDR_DEFAULTS.lift),
+      richness: num6(o["richness"], HDR_DEFAULTS.richness)
     };
   })() : void 0;
   const cuts = typeof args["cuts"] === "number" && args["cuts"] > 1 ? args["cuts"] : void 0;
@@ -46632,21 +49453,21 @@ ${links.renderUrl ?? "(unavailable)"}`);
         ].filter(Boolean).join("\n");
         const content = [{ type: "text", text: header }];
         const b64 = Buffer.from(result.bytes).toString("base64");
-        const fmt2 = normFormat(result.format);
+        const fmt3 = normFormat(result.format);
         const RASTER = ["png", "jpg", "webp", "avif", "gif", "apng"];
-        if (RASTER.includes(fmt2)) {
+        if (RASTER.includes(fmt3)) {
           content.push({ type: "image", data: b64, mimeType: result.mime });
-        } else if (fmt2 === "svg") {
+        } else if (fmt3 === "svg") {
           try {
             const preview = await render(toolId, links.query, { ...opts, format: "png" });
             content.push({ type: "image", data: Buffer.from(preview.bytes).toString("base64"), mimeType: "image/png" });
           } catch {
           }
           content.push({ type: "resource", resource: { uri: `${links.renderUrl ?? `lolly://render/${toolId}.svg`}`, mimeType: "image/svg+xml", text: new TextDecoder().decode(result.bytes) } });
-        } else if (isTextFormat(fmt2)) {
-          content.push({ type: "resource", resource: { uri: links.renderUrl ?? `lolly://render/${toolId}.${fmt2}`, mimeType: result.mime, text: new TextDecoder().decode(result.bytes) } });
+        } else if (isTextFormat(fmt3)) {
+          content.push({ type: "resource", resource: { uri: links.renderUrl ?? `lolly://render/${toolId}.${fmt3}`, mimeType: result.mime, text: new TextDecoder().decode(result.bytes) } });
         } else {
-          content.push({ type: "resource", resource: { uri: links.renderUrl ?? `lolly://render/${toolId}.${fmt2}`, mimeType: result.mime, blob: b64 } });
+          content.push({ type: "resource", resource: { uri: links.renderUrl ?? `lolly://render/${toolId}.${fmt3}`, mimeType: result.mime, blob: b64 } });
         }
         return { content };
       }
@@ -47018,10 +49839,10 @@ async function renderGet(path, query, opts) {
   if (env.LOLLY_DISABLE_RENDER_GET === "1") return errorResponse(404, "not_found");
   const match = matchRenderGetPath(path);
   if (!match) return errorResponse(404, "not_found");
-  const fmt2 = normFormat(match.ext);
-  const pngRequested = fmt2 === "png";
-  if (!TIER_A.has(fmt2) && !pngRequested) {
-    return errorResponse(400, `Format "${fmt2}" needs the browser render tier, which this public endpoint does not run. Available here: ${[...TIER_A].join(", ")} \u2014 plus png for SVG-native tools.`);
+  const fmt3 = normFormat(match.ext);
+  const pngRequested = fmt3 === "png";
+  if (!TIER_A.has(fmt3) && !pngRequested) {
+    return errorResponse(400, `Format "${fmt3}" needs the browser render tier, which this public endpoint does not run. Available here: ${[...TIER_A].join(", ")} \u2014 plus png for SVG-native tools.`);
   }
   if (query.length > MAX_QUERY) return errorResponse(400, `Query too long (max ${MAX_QUERY} characters).`);
   const expanded = await expandQuery(query);
@@ -47037,7 +49858,7 @@ async function renderGet(path, query, opts) {
   if (pngRequested && !formats.includes("svg")) {
     return errorResponse(400, "png is only served for SVG-native tools on this endpoint \u2014 request svg, or use the app for full raster.");
   }
-  const etag = `"${createHash("sha256").update(`${ENGINE_VERSION}|${index.version}|${index.generatedAt}|${match.toolId}.${fmt2}?${expanded}`).digest("hex").slice(0, 32)}"`;
+  const etag = `"${createHash("sha256").update(`${ENGINE_VERSION}|${index.version}|${index.generatedAt}|${match.toolId}.${fmt3}?${expanded}`).digest("hex").slice(0, 32)}"`;
   const cacheHeaders = {
     "cache-control": "public, s-maxage=86400, stale-while-revalidate=604800",
     etag,
@@ -47049,20 +49870,20 @@ async function renderGet(path, query, opts) {
   if (!rl.ok) return errorResponse(429, "Too many renders from this address \u2014 slow down.", { "retry-after": String(rl.retryAfter) });
   let result;
   try {
-    result = await render(match.toolId, expanded, { format: fmt2, c2pa: { on: false, days: null }, noBrowser: true });
+    result = await render(match.toolId, expanded, { format: fmt3, c2pa: { on: false, days: null }, noBrowser: true });
   } catch (e) {
     if (e instanceof RenderError) return errorResponse(400, e.message);
     return errorResponse(500, `Render failed: ${e.message}`);
   }
-  const mime = result.mime || mimeForFormat(fmt2);
+  const mime = result.mime || mimeForFormat(fmt3);
   return {
     status: 200,
     headers: {
       ...cacheHeaders,
-      "content-type": isTextFormat(fmt2) && !mime.includes("charset") ? `${mime}; charset=utf-8` : mime,
+      "content-type": isTextFormat(fmt3) && !mime.includes("charset") ? `${mime}; charset=utf-8` : mime,
       "content-security-policy": "sandbox",
       "x-content-type-options": "nosniff",
-      "content-disposition": `inline; filename="${match.toolId}.${fmt2}"`
+      "content-disposition": `inline; filename="${match.toolId}.${fmt3}"`
     },
     body: result.bytes
   };
