@@ -117,7 +117,7 @@ The table is generated. Run `node scripts/gen-engine-modules.ts` after adding, r
 | `compose.ts` | 177 | Compose — resolve a tool's manifest `composes` entries into embeddable assets. | no | `tests/compose.test.ts` | – |
 | `connectors.ts` | 640 | Connector / line / arrow geometry — the ONE source (plan 90 R1). | yes | indirect | – |
 | `contentseal.ts` | 168 | Meta Content Seal (Pixel Seal / Video Seal, IMAGE mode) — the pure, message-free consensus decision (DOM-free, no ONNX, no network). | yes | `tests/contentseal.test.ts` | – |
-| `css-box.ts` | 480 | Pure, DOM-free CSS box-model + border-radius geometry. | yes | `tests/css-box.test.ts` | – |
+| `css-box.ts` | 499 | Pure, DOM-free CSS box-model + border-radius geometry. | yes | `tests/css-box.test.ts` | – |
 | `css-color.ts` | 972 | One CSS Color 4 colour value — the engine's single source of truth for parsing, converting, gamut-mapping and serialising colour. | yes | `tests/css-color.test.ts` | – |
 | `css-paint.ts` | 465 | Pure, DOM-free CSS "paint" value parsers: clip-path basic shapes, gradient stops + radial-gradient geometry, and drop-shadow filters. | yes | `tests/css-paint.test.ts` | – |
 | `dash-fit.ts` | 263 | Dash fitting — manual dash entry, and Illustrator-style corner-fit dashes (plan 96). | yes | `tests/dash-fit.test.ts` | – |
@@ -166,7 +166,7 @@ The table is generated. Run `node scripts/gen-engine-modules.ts` after adding, r
 | `ico-decode.ts` | 273 | Windows ICO / CUR reader — picks the LARGEST image in the directory and decodes it to RGBA. | yes | `tests/ico-decode.test.ts` | – |
 | `icon-theme.ts` | 204 | Two-colour themable icons. | yes | `tests/icon-theme.test.ts` | – |
 | `image-cloud.ts` | 272 | An image's colours as a point cloud in OKLCH, plus what the distribution says. | yes | `tests/image-cloud.test.ts` | – |
-| `inputs.ts` | 692 | Builds a runtime input model from a tool manifest. | yes | indirect | – |
+| `inputs.ts` | 702 | Builds a runtime input model from a tool manifest. | yes | indirect | – |
 | `jpeg-segments.ts` | 372 | JPEG marker-segment walker and writer — one shared primitive, DOM-free. | no | `tests/jpeg-segments.test.ts` | – |
 | `keyframes.ts` | 1596 | Keyframe tracks, the `kf` wire grammar, and the depth-camera projection — the shared, DOM-free maths every consumer of plans/104 trusts. | yes | `tests/keyframes.test.ts` | – |
 | `lang.ts` | 171 | Supported UI/content languages, shared by the `lang` reserved URL param (url-mode.ts), `Profile.lang`, tool-manifest i18n sidecars, and every shell's language picker. | yes | indirect | – |
@@ -224,7 +224,7 @@ The table is generated. Run `node scripts/gen-engine-modules.ts` after adding, r
 | `tool-url.ts` | 133 | Lolly tool-URL recognition — the END-USER surface of tool composition. | yes | `tests/tool-url.test.ts` | – |
 | `trustmark.ts` | 971 | Adobe TrustMark — BCH data-layer decode (pure GF(2^7) math, DOM-free). | yes | `tests/trustmark.test.ts` | – |
 | `units.ts` | 98 | Physical unit conversions for output dimensions — platform-agnostic, no DOM. | yes | `tests/units.test.ts` | – |
-| `url-mode.ts` | 749 | URL mode. | yes | indirect | – |
+| `url-mode.ts` | 771 | URL mode. | yes | indirect | – |
 | `url-pack.ts` | 308 | Packed URL state — the compact transport for large tool state. | yes | `tests/url-pack.test.ts` | yes |
 | `validate.ts` | 78 | Validates a tool manifest against the JSON Schema. | yes | indirect | – |
 | `version.ts` | 16 | The engine's HostV1 contract version. | yes | indirect | – |
