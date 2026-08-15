@@ -78,7 +78,18 @@ export const DOCK_CSS = `
 }
 
 /* ── layer 3: the controls face ─────────────────────────────────────────────── */
+/* A media-player column: the header + narration block at the TOP, a flexible viz/free
+   space that GROWS to fill a tall window, then the music controls ANCHORED to the BOTTOM.
+   In the default (auto-height) dock there is no slack, so the viz-space collapses to 0 and
+   the controls sit directly under the header — no dangling empty area either way. */
 .audio-dock-face { position: relative; display: flex; flex-direction: column; }
+.audio-dock-main { display: flex; flex-direction: column; flex: 1 1 auto; min-height: 0; }
+.audio-dock-vizspace { flex: 1 1 auto; min-height: 0; }   /* the free/viz region (grows) */
+/* Windowed / fullscreen: the face fills the window height so the flex slack lands in the
+   viz-space and the music controls pin to the bottom edge. */
+.audio-dock[data-windowed] .audio-dock-face,
+.audio-dock:fullscreen .audio-dock-face,
+.audio-dock[data-fullscreen] .audio-dock-face { height: 100%; min-height: 0; }
 
 /* buttons (shared) */
 .audio-dock-btn {
@@ -226,16 +237,30 @@ html[data-a11y-contrast="high"] .audio-dock input[type="range"] { border: 1px so
 /* Coexists with the music player: voice can sound over an optional bed. Shown only when
    the host exposes a narrationBlock. */
 .audio-dock-narrblock[hidden] { display: none; }
-.audio-dock-narrblock { display: flex; flex-direction: column; gap: 8px; padding: 8px 14px 10px;
-  border-bottom: 1px solid var(--dock-border); background: var(--dock-panel); }
+.audio-dock-narrblock { flex: 0 0 auto; display: flex; flex-direction: column; gap: 8px;
+  padding: 8px 14px 10px; border-bottom: 1px solid var(--dock-border); background: var(--dock-panel); }
 .audio-dock-narrblock-head { display: flex; align-items: center; gap: 8px; }
+/* The title row IS the collapse toggle (a ▾ chevron folds the body — scrub, caption,
+   Follow-along, Speed, disclosure — to just this row, like Tracks/Atmosphere). */
+.audio-dock-narrblock-toggle { flex: 1; min-width: 0; display: flex; align-items: center; gap: 8px;
+  border: none; background: transparent; color: inherit; cursor: pointer; text-align: left; padding: 0; font: inherit; }
+.audio-dock-narrblock-toggle:focus-visible { outline: 2px solid var(--dock-accent); outline-offset: 2px; }
+.audio-dock-narrblock-toggle .audio-dock-np { display: block; flex: 1; min-width: 0; }
+.audio-dock-narrblock-toggle .audio-dock-title,
+.audio-dock-narrblock-toggle .audio-dock-sub { display: block; }
+.audio-dock-narrblock-toggle .audio-dock-caret { flex: 0 0 auto; margin-left: 4px; transition: transform .15s ease; }
+.audio-dock-narrblock[data-narrblock-open="false"] .audio-dock-narrblock-toggle .audio-dock-caret { transform: rotate(-90deg); }
+.audio-dock-narrblock[data-narrblock-open="false"] .audio-dock-narrblock-body { display: none; }
+.audio-dock-narrblock-body { display: flex; flex-direction: column; gap: 8px; }
 .audio-dock-play-sm { width: 38px; height: 38px; }
 .audio-dock-narrblock[data-narr-seekable="false"] .audio-dock-scrub { display: none; }
 .audio-dock[data-collapse="compact"] .audio-dock-narrblock .audio-dock-disclosure,
 .audio-dock[data-collapse="compact"] .audio-dock-narrblock .audio-dock-caption { display: none; }
 
-/* The MUSIC block wraps the transport + mixer + Tracks/Atmosphere; hidden for a
-   narration-block-only dock. */
+/* The MUSIC block wraps the transport + mixer + Tracks/Atmosphere, ANCHORED to the bottom
+   of the window (a solid footer over the viz-space); hidden for a narration-block-only
+   dock. flex:0 0 auto so it keeps its natural height while the viz-space above it grows. */
+.audio-dock-musicblock { flex: 0 0 auto; background: var(--dock-panel); }
 .audio-dock-musicblock[hidden] { display: none; }
 
 /* ── visualiser RIGHT-CLICK settings menu (on/off + theme pills + preset picker) ── */
@@ -249,8 +274,8 @@ html[data-a11y-contrast="high"] .audio-dock input[type="range"] { border: 1px so
 .audio-dock-vizmenu[hidden] { display: none; }
 .audio-dock-vizmenu-label { font: 700 .62rem/1 var(--font-mono, ui-monospace, monospace);
   text-transform: uppercase; letter-spacing: .06em; color: var(--dock-muted); padding-top: 2px; }
-.audio-dock-viz-themes { display: flex; flex-wrap: wrap; gap: 4px; }
-.audio-dock-viz-themes:empty { display: none; }
+.audio-dock-viz-themes, .audio-dock-viz-transitions { display: flex; flex-wrap: wrap; gap: 4px; }
+.audio-dock-viz-themes:empty, .audio-dock-viz-transitions:empty { display: none; }
 .audio-dock-pill { border: none; border-radius: 999px; padding: 3px 10px; cursor: pointer;
   background: hsl(0 0% 100% / .08); color: var(--dock-muted);
   font: 600 .68rem/1.3 var(--font-mono, ui-monospace, monospace); letter-spacing: .01em; }

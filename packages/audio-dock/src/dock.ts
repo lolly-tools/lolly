@@ -27,6 +27,7 @@ import type {
   DockSource,
   DockVizPreset,
   DockVizTheme,
+  DockVizTransition,
 } from './types.ts';
 import { DOCK_CSS, DOCK_STYLE_ID } from './styles.ts';
 
@@ -159,7 +160,11 @@ export function createAudioDock(opts: AudioDockOptions): DockController {
   // Viz picker state (feeds the right-click menu), cached so re-marks don't re-fetch.
   let vizPresets: DockVizPreset[] = [];
   let vizThemes: DockVizTheme[] = [];
+  let vizTransitions: DockVizTransition[] = [];
   let vizBuilt = false;
+  // The narration block collapses from its own header (like Tracks/Atmosphere). Session
+  // state, matching the sections (which also don't persist across reloads).
+  let narrBlockOpen = opts.openSections?.narration ?? true;
 
   let wasFullscreen = false;
 
@@ -192,25 +197,32 @@ export function createAudioDock(opts: AudioDockOptions): DockController {
           <button type="button" class="audio-dock-btn" data-close-btn aria-label="Close player" hidden>${ICON.close}</button>
         </div>
 
-        <div class="audio-dock-narrblock" data-narrblock hidden>
+        <div class="audio-dock-narrblock" data-narrblock data-narrblock-open="true" hidden>
           <div class="audio-dock-narrblock-head">
-            <div class="audio-dock-np">
-              <div class="audio-dock-title" data-narr-title></div>
-              <div class="audio-dock-sub" data-narr-sub></div>
-            </div>
+            <button type="button" class="audio-dock-narrblock-toggle" data-narr-collapse aria-expanded="true" aria-label="Collapse narration">
+              <span class="audio-dock-np">
+                <span class="audio-dock-title" data-narr-title></span>
+                <span class="audio-dock-sub" data-narr-sub></span>
+              </span>
+              <span class="audio-dock-caret">${ICON.caret}</span>
+            </button>
             <button type="button" class="audio-dock-btn audio-dock-play audio-dock-play-sm" data-narr-play aria-label="Play">${ICON.play}</button>
           </div>
-          <div class="audio-dock-scrub">
-            <input type="range" data-narr-scrub min="0" max="1000" step="1" value="0" aria-label="Seek within narration">
-            <div class="audio-dock-time"><span data-narr-cur>0:00</span><span data-narr-dur>0:00</span></div>
+          <div class="audio-dock-narrblock-body">
+            <div class="audio-dock-scrub">
+              <input type="range" data-narr-scrub min="0" max="1000" step="1" value="0" aria-label="Seek within narration">
+              <div class="audio-dock-time"><span data-narr-cur>0:00</span><span data-narr-dur>0:00</span></div>
+            </div>
+            <div class="audio-dock-caption" data-narr-caption aria-live="off"></div>
+            <div class="audio-dock-narr-controls">
+              <button type="button" class="audio-dock-toggle" data-narr-follow aria-pressed="true">${ICON.follow}<span>Follow along</span></button>
+              <label class="audio-dock-speed">Speed <select data-narr-speed aria-label="Playback speed"></select></label>
+            </div>
+            <p class="audio-dock-disclosure" data-narr-disclosure></p>
           </div>
-          <div class="audio-dock-caption" data-narr-caption aria-live="off"></div>
-          <div class="audio-dock-narr-controls">
-            <button type="button" class="audio-dock-toggle" data-narr-follow aria-pressed="true">${ICON.follow}<span>Follow along</span></button>
-            <label class="audio-dock-speed">Speed <select data-narr-speed aria-label="Playback speed"></select></label>
-          </div>
-          <p class="audio-dock-disclosure" data-narr-disclosure></p>
         </div>
+
+        <div class="audio-dock-vizspace" data-vizspace aria-hidden="true"></div>
 
         <div class="audio-dock-musicblock" data-musicblock>
           <div class="audio-dock-transport">
@@ -262,9 +274,11 @@ export function createAudioDock(opts: AudioDockOptions): DockController {
     </div>
     <div class="audio-dock-vizmenu" data-vizmenu hidden role="menu" aria-label="Visualiser settings">
       <button type="button" class="audio-dock-toggle" data-viz-toggle aria-pressed="true">${ICON.viz}<span>On</span></button>
-      <div class="audio-dock-vizmenu-label">Theme</div>
-      <div class="audio-dock-viz-themes" data-viz-themes role="group" aria-label="Visualiser theme"></div>
-      <div class="audio-dock-vizmenu-label">Preset</div>
+      <div class="audio-dock-vizmenu-label" data-viz-theme-label hidden>Brand colour</div>
+      <div class="audio-dock-viz-themes" data-viz-themes role="group" aria-label="Brand colour scheme"></div>
+      <div class="audio-dock-vizmenu-label" data-viz-transition-label hidden>Timing</div>
+      <div class="audio-dock-viz-transitions" data-viz-transitions role="group" aria-label="Preset transition timing"></div>
+      <div class="audio-dock-vizmenu-label" data-viz-preset-label hidden>Preset</div>
       <label class="audio-dock-viz-searchbox">${ICON.search}<input type="search" class="audio-dock-search" data-viz-search placeholder="Search presets…" aria-label="Search presets"></label>
       <ul class="audio-dock-list audio-dock-viz-presets" data-viz-presets aria-label="Presets"></ul>
     </div>
@@ -290,6 +304,7 @@ export function createAudioDock(opts: AudioDockOptions): DockController {
   const atmoRows = q<HTMLElement>('[data-atmo-rows]')!;
   const volumesEl = q<HTMLElement>('[data-volumes]')!;
   const vizThemesEl = q<HTMLElement>('[data-viz-themes]')!;
+  const vizTransitionsEl = q<HTMLElement>('[data-viz-transitions]')!;
   const vizPresetsEl = q<HTMLElement>('[data-viz-presets]')!;
   const vizSearchEl = q<HTMLInputElement>('[data-viz-search]')!;
   const vizMenu = q<HTMLElement>('[data-vizmenu]')!;
@@ -612,13 +627,26 @@ export function createAudioDock(opts: AudioDockOptions): DockController {
   }
   function paintVizThemes(): void {
     const cur = host.viz?.currentTheme?.() ?? '';
+    const label = q<HTMLElement>('[data-viz-theme-label]');
+    if (label) label.hidden = !vizThemes.length;
     if (!vizThemes.length) { vizThemesEl.innerHTML = ''; return; }
     vizThemesEl.innerHTML = vizThemes.map((t) =>
       `<button type="button" class="audio-dock-pill${t.id === cur ? ' is-on' : ''}" data-viz-theme="${esc(t.id)}" aria-pressed="${t.id === cur}">${esc(t.name)}</button>`,
     ).join('');
   }
+  function paintVizTransitions(): void {
+    const cur = host.viz?.currentTransition?.() ?? '';
+    const label = q<HTMLElement>('[data-viz-transition-label]');
+    if (label) label.hidden = !vizTransitions.length;
+    if (!vizTransitions.length) { vizTransitionsEl.innerHTML = ''; return; }
+    vizTransitionsEl.innerHTML = vizTransitions.map((t) =>
+      `<button type="button" class="audio-dock-pill${t.id === cur ? ' is-on' : ''}" data-viz-transition="${esc(t.id)}" aria-pressed="${t.id === cur}">${esc(t.name)}</button>`,
+    ).join('');
+  }
   function paintVizPresets(query = ''): void {
     const cur = host.viz?.currentPreset?.() ?? '';
+    const label = q<HTMLElement>('[data-viz-preset-label]');
+    if (label) label.hidden = !vizPresets.length;
     const qq = query.trim().toLowerCase();
     const rows = vizPresets.filter((p) => !qq
       || p.name.toLowerCase().includes(qq) || (p.group ?? '').toLowerCase().includes(qq));
@@ -635,12 +663,15 @@ export function createAudioDock(opts: AudioDockOptions): DockController {
     for (const b of vizPresetsEl.querySelectorAll<HTMLElement>('[data-viz-preset]')) {
       b.setAttribute('aria-current', String(b.dataset.vizPreset === curP));
     }
-    const curT = host.viz?.currentTheme?.() ?? '';
-    for (const b of vizThemesEl.querySelectorAll<HTMLElement>('[data-viz-theme]')) {
-      const on = b.dataset.vizTheme === curT;
-      b.classList.toggle('is-on', on);
-      b.setAttribute('aria-pressed', String(on));
-    }
+    const mark = (el: HTMLElement, attr: 'vizTheme' | 'vizTransition', cur: string): void => {
+      for (const b of el.querySelectorAll<HTMLElement>(`[data-${attr === 'vizTheme' ? 'viz-theme' : 'viz-transition'}]`)) {
+        const on = b.dataset[attr] === cur;
+        b.classList.toggle('is-on', on);
+        b.setAttribute('aria-pressed', String(on));
+      }
+    };
+    mark(vizThemesEl, 'vizTheme', host.viz?.currentTheme?.() ?? '');
+    mark(vizTransitionsEl, 'vizTransition', host.viz?.currentTransition?.() ?? '');
   }
   async function rebuildVisualiser(): Promise<void> {
     if (!hasRichViz() || !host.viz) return;
@@ -650,6 +681,10 @@ export function createAudioDock(opts: AudioDockOptions): DockController {
       try { const t = await Promise.resolve(host.viz.themes()); if (!destroyed) vizThemes = t; } catch { /* keep */ }
       paintVizThemes();
     }
+    if (typeof host.viz.transitions === 'function') {
+      try { const t = await Promise.resolve(host.viz.transitions()); if (!destroyed) vizTransitions = t; } catch { /* keep */ }
+      paintVizTransitions();
+    }
     if (typeof host.viz.presets === 'function') {
       try { const p = await Promise.resolve(host.viz.presets()); if (!destroyed) vizPresets = p; } catch { /* keep */ }
       paintVizPresets(vizSearchEl.value);
@@ -657,7 +692,9 @@ export function createAudioDock(opts: AudioDockOptions): DockController {
   }
   function openVizMenu(clientX: number, clientY: number): void {
     if (!hasRichViz()) return;
-    if (!vizBuilt) void rebuildVisualiser();
+    // Always refresh so the brand schemes + presets + timing are current (and recover from
+    // a slow first load) every time the menu opens.
+    void rebuildVisualiser();
     paintVizToggle();
     markVizCurrent();
     vizMenu.hidden = false;
@@ -694,6 +731,17 @@ export function createAudioDock(opts: AudioDockOptions): DockController {
     narrSpeedSel.innerHTML = speeds
       .map((r) => `<option value="${r}"${r === cur ? ' selected' : ''}>${r}×</option>`)
       .join('');
+  }
+  // Collapse the narration block from its own header — like Tracks/Atmosphere fold to their
+  // heads. A collapsed block shrinks to its title row, so the viz/free space + the bottom-
+  // anchored music controls reflow around it.
+  function applyNarrBlockOpen(): void {
+    narrBlock.setAttribute('data-narrblock-open', String(narrBlockOpen));
+    const btn = q<HTMLButtonElement>('[data-narr-collapse]');
+    if (btn) {
+      btn.setAttribute('aria-expanded', String(narrBlockOpen));
+      btn.setAttribute('aria-label', narrBlockOpen ? 'Collapse narration' : 'Expand narration');
+    }
   }
   function updateNarrScrub(): void {
     const nb = host.narrationBlock;
@@ -1066,8 +1114,12 @@ export function createAudioDock(opts: AudioDockOptions): DockController {
     if (Number.isFinite(dur)) setText('[data-time-cur]', fmtTime((Number(scrub.value) / 1000) * dur));
   });
 
-  // narration block: play / scrub / follow / speed
-  q<HTMLButtonElement>('[data-narr-play]')?.addEventListener('click', () => { void host.narrationBlock?.togglePlay(); refresh(); });
+  // narration block: collapse from its header, play / scrub / follow / speed
+  q<HTMLButtonElement>('[data-narr-collapse]')?.addEventListener('click', () => {
+    narrBlockOpen = !narrBlockOpen;
+    applyNarrBlockOpen();
+  });
+  q<HTMLButtonElement>('[data-narr-play]')?.addEventListener('click', (e) => { e.stopPropagation(); void host.narrationBlock?.togglePlay(); refresh(); });
   narrScrub.addEventListener('pointerdown', () => { narrSeeking = true; });
   narrScrub.addEventListener('change', () => {
     const nb = host.narrationBlock;
@@ -1128,6 +1180,12 @@ export function createAudioDock(opts: AudioDockOptions): DockController {
     const b = (e.target as HTMLElement).closest?.<HTMLElement>('[data-viz-theme]');
     if (!b) return;
     host.viz?.selectTheme?.(b.dataset.vizTheme ?? '');
+    markVizCurrent();
+  });
+  vizTransitionsEl.addEventListener('click', (e) => {
+    const b = (e.target as HTMLElement).closest?.<HTMLElement>('[data-viz-transition]');
+    if (!b) return;
+    host.viz?.selectTransition?.(b.dataset.vizTransition ?? '');
     markVizCurrent();
   });
   vizPresetsEl.addEventListener('click', (e) => {
@@ -1218,6 +1276,7 @@ export function createAudioDock(opts: AudioDockOptions): DockController {
   applyCaps();
   applyCollapse();
   applySections();
+  applyNarrBlockOpen();
   rebuildNarration();
   rebuildSources();
   rebuildAtmosphere();

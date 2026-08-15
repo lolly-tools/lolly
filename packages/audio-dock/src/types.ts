@@ -143,8 +143,15 @@ export interface DockVizPreset {
   group?: string;
 }
 
-/** One colour scheme / theme the visualiser can recolour to. */
+/** One colour scheme / theme the visualiser can recolour to (a brand-tinted palette). */
 export interface DockVizTheme {
+  id: string;
+  name: string;
+}
+
+/** One preset-transition timing option (how often / how the visualiser moves between
+ *  presets — e.g. Off / 8s / 15s / 30s auto-cycle). */
+export interface DockVizTransition {
   id: string;
   name: string;
 }
@@ -202,10 +209,14 @@ export interface DockViz {
   presets?(): DockVizPreset[] | Promise<DockVizPreset[]>;
   currentPreset?(): string;
   selectPreset?(id: string): void;
-  /** The colour schemes/themes, for the visualiser section's theme control. */
+  /** The colour schemes/themes (brand-tinted palettes), for the settings menu. */
   themes?(): DockVizTheme[] | Promise<DockVizTheme[]>;
   currentTheme?(): string;
   selectTheme?(id: string): void;
+  /** The preset-transition timing options (auto-cycle interval), for the settings menu. */
+  transitions?(): DockVizTransition[] | Promise<DockVizTransition[]>;
+  currentTransition?(): string;
+  selectTransition?(id: string): void;
 }
 
 /**
