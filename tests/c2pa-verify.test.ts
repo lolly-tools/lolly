@@ -78,7 +78,7 @@ test('surfaces the enriched tools.lolly.export environment (date, dimensions, ne
     title: 'Enriched Asset',
     claimGenerator: 'LollyTest/1.0',
     environment: {
-      tool: 'Layout Studio', format: 'pdf', surface: 'web', engine: 'Chromium 149', os: 'macOS',
+      tool: 'Design', format: 'pdf', surface: 'web', engine: 'Chromium 149', os: 'macOS',
       date: '2026-07-08T11:14:40.000Z', dimensions: '1080 × 1080 px',
       // Nested map — dropped by the flat scalar reader, lifted separately as the
       // input digest; a non-string value must be filtered out defensively.
@@ -87,7 +87,7 @@ test('surfaces the enriched tools.lolly.export environment (date, dimensions, ne
   });
   const report: any = await verifyC2pa(withEnv);
   assert.equal(report.state, 'valid');
-  assert.equal(report.environment.tool, 'Layout Studio');
+  assert.equal(report.environment.tool, 'Design');
   assert.equal(report.environment.date, '2026-07-08T11:14:40.000Z');
   assert.equal(report.environment.dimensions, '1080 × 1080 px');
   assert.deepEqual(report.environment.inputs, { color: '#ffffff', headline: 'short text here' });

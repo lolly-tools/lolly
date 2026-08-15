@@ -166,6 +166,11 @@ export interface InputSpec {
   urlKey?: string;
   label?: string;
   help?: string;
+  /** Always-visible fine print rendered above the control (unlike `help`, which
+   *  sits behind an info button). For what the user should read BEFORE typing —
+   *  e.g. the consent disclosure on an input whose value triggers a network
+   *  lookup. */
+  notice?: string;
   required?: boolean;
   default?: InputValue;
   bindToProfile?: string;

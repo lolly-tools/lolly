@@ -405,6 +405,7 @@
         },
         "label": { "type": "string" },
         "help": { "type": "string" },
+        "notice": { "type": "string", "description": "Always-visible fine print rendered above the control (unlike help, which sits behind an info button). For what the user should read before typing — e.g. the consent disclosure on an input whose value triggers a network lookup." },
         "type": {
           "type": "string",
           "enum": ["text", "longtext", "number", "boolean", "color", "select", "asset", "date", "time", "datetime-local", "url", "blocks", "vector", "file", "table"]
@@ -845,7 +846,7 @@
                   "import": {
                     "type": "object",
                     "additionalProperties": false,
-                    "description": "Opt into design-file IMPORT on this canvas: the editor's Lolly menu gains an 'Import a design' entry that maps an imported file's frames/shapes onto boxes of THIS array, using the tool's own font-select values and addKinds seed colours so the result is indistinguishable from natively-authored boxes. Absent (Layout Studio's historical state) = no import control at all.",
+                    "description": "Opt into design-file IMPORT on this canvas: the editor's Lolly menu gains an 'Import a design' entry that maps an imported file's frames/shapes onto boxes of THIS array, using the tool's own font-select values and addKinds seed colours so the result is indistinguishable from natively-authored boxes. Absent (Design's historical state) = no import control at all.",
                     "properties": {
                       "formats": {
                         "type": "array",

@@ -2680,6 +2680,31 @@ export interface ExportAPI {
   file(blob: Blob, opts?: { filename?: string }): Promise<void>;
 
   /**
+   * Hand a finished blob to the host's OS share sheet — the Web Share API
+   * (`navigator.share`) on web, or a Tauri shell's native share (Android `ACTION_SEND`).
+   * Used by the Share modal's "Send to…" to hand over a `.lolly` file or a rendered
+   * export. UNLIKE render(), this NEVER watermarks or re-encodes. Resolves `true` when
+   * the sheet handled it (INCLUDING a deliberate user-cancel — so the caller does not
+   * then also trigger a download), `false` when it could not share so the caller falls
+   * back to download(). IMPORTANT: web Web Share only accepts an allowlisted set of file
+   * types, so a caller MUST gate its "Send to…" affordance on canShare() below rather
+   * than assume share() will succeed. Progressive enhancement — older shells lack it.
+   * (v1.126)
+   */
+  share?(blob: Blob, opts?: { filename?: string; mime?: string; title?: string }): Promise<boolean>;
+
+  /**
+   * Synchronous capability probe: will share() actually reach an OS share sheet for a
+   * file of this type on THIS shell? Web returns whether `navigator.canShare` accepts a
+   * file of `opts.mime` — Chromium enforces a fixed type/extension safelist, and a
+   * private `application/vnd.lolly+zip` / `.lolly` is NOT on it, so this is `false`
+   * there; a Tauri native-share shell returns whether its native bridge is present. The
+   * "Send to…" button is rendered only when this is true, so it never silently degrades
+   * to a download while claiming a share. (v1.126)
+   */
+  canShare?(opts?: { mime?: string; filename?: string }): boolean;
+
+  /**
    * Apply Lolly's durable RASTER marks to finished image bytes — the transform-
    * path counterpart to render()'s automatic marking, for a tool that stamps an
    * EXISTING file (Embed, Imprint & Track) rather than rendering a DOM node.

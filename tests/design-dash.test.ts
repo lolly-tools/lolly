@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
- * Layout Studio — authored dash/gap lengths on a path box's stroke.
+ * Design — authored dash/gap lengths on a path box's stroke.
  *
  * Run with: npm test (node --test over the tests/ globs). No framework.
  *

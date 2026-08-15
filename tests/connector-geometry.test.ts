@@ -473,7 +473,7 @@ test('routedLineSvg: an elbow route corner-fits its dashes per span', () => {
   for (const out of [fitted, plain]) assert.doesNotMatch(out, /stroke-dasharray/);
 });
 
-// ── Layout Studio: the unified render, end to end (plan 96 P3/P5) ──────────────
+// ── Design: the unified render, end to end (plan 96 P3/P5) ──────────────
 //
 // The pieces above are the engine's. This drives the REAL parent-owned pack (brands/
 // lolly-start, present in every public checkout) through the engine, because the thing

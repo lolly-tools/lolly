@@ -6,6 +6,27 @@ minors, never removed or signature-changed without a major bump.
 
 Moved verbatim from the comment block that used to live in `src/index.ts`.
 
+1.126.0 — additive (plans/114 Wave 3, the OS share sheet): `host.export` gains two optional verbs —
+**`share(blob, opts?)`** hands finished bytes to the platform share sheet (the Web Share API
+`navigator.share` on web; native Android `ACTION_SEND` on the Tauri mobile shell — desktop/iOS
+native is a later draw-down), resolving `true` when the sheet handled it (a deliberate user-cancel
+counts, so the caller does not then also dump a download) and `false` when it could not share so the
+caller falls back to `download()`; and **`canShare(opts?)`** — a synchronous probe for whether
+share() will actually reach a sheet on this shell (web Web Share enforces a fixed file-type safelist
+that excludes the private `application/vnd.lolly+zip` / `.lolly`, so it is `false` on Chromium). The
+Share modal's "Send to…" is rendered ONLY when `canShare` is true, so it never silently degrades to a
+download while claiming a share. First use: sending a `.lolly` file from the Share modal. Never
+watermarks or re-encodes. Older shells simply lack both.
+
+1.125.0 — additive (plans/116, the consent gate): inputs gain an optional **`notice`**
+string — always-visible fine print a shell renders above the control, unlike `help`
+(which sits behind an info button). Reserved for what the user should read BEFORE
+typing; its first use is the network disclosure on an input whose value triggers a
+lookup (meeting-planner's host city → open-meteo geocoding). Schema (both copies),
+`InputSpec`, the i18n sidecar overlay (`inputs.<id>.notice`) and the catalog
+validator all learn the key. Old engines tolerate the field (the input def is
+permissive), so tools using it need no engineVersion floor.
+
 1.124.0 — additive (plans/111 M2, the Flythrough tool's camera): a new optional bridge API
 **`host.keyframes`** with one method, `keyframes.sample(kf, count)`. It runs the engine's
 `parseKf` + `evaluateKf` at `count` times evenly spaced across the track's own span and hands

@@ -39,7 +39,7 @@ Tools can be used via a:
 
 - A general-purpose design tool
 
-It *does* include an open canvas — Layout Studio — but even there, colours, type
+It *does* include an open canvas — the Design tool — but even there, colours, type
 and assets conform to the brand globals, so free arrangement never becomes
 off-brand output. See `docs/positioning.md` for the full landscape comparison.
 
@@ -195,7 +195,6 @@ The SUSE catalog ships **66 tools** today — 65 listed in the gallery, plus one
 | 3D | Load a 3D model into a lit scene, orbit and pose the camera, and render a still or a turntable animation. |
 | Animated Ad | Build animated ads from layered scenes for any standard size. |
 | Audiogram | Turn a voice clip or song into a branded video that actually moves with the sound — bars, spectrum, ring, ridgeline or scope, ready for social. |
-| Bag Video | An animated, on-brand video for bag visuals. |
 | Battlecards | Turn any table into a deck of cards — one card per row, ready as a multi-page PDF. Paste straight from your spreadsheet, doc, or chat. |
 | Bitmap Studio | A pro photo-grading darkroom: film looks, third-party .cube LUTs, brand-seeded colour treatments and finishing texture — then bake your look as a LUT any editor can use. |
 | Bitmap Upscale | Frame and export an AI-upscaled photo, keeping the render path that carries your credential. |
@@ -211,7 +210,6 @@ The SUSE catalog ships **66 tools** today — 65 listed in the gallery, plus one
 | Convert Image | Turn HEIC, TIFF or any photo into WebP, JPEG or PNG — on your device. |
 | Countdown Timer | A focused countdown with a live progress ring. Click to pause. |
 | D3 Chart Studio | Powerful data-driven charts with D3 — paste a table and it charts itself. Bars, lines, areas, scatter, pie, radar, treemap, heatmap and more, on-brand and vector-clean. |
-| Day Brief | Quote of the day with live weather, time and a map for any city. |
 | Deck Builder | Build a slide deck with a live on-canvas editor — edit text, colours and images directly on each slide. |
 | Deck Studio | Build a native, editable PowerPoint deck — real text, bullets, tables and brand theme — from a simple slide builder, pasted Markdown, or a JSON spec. Charts and diagrams come from your other Lolly tools. Exports .pptx (editable), plus PDF and PNG. |
 | Diagram Builder | Org charts, flowcharts, timelines and more — from cards, text, Mermaid or CSV. |
@@ -230,7 +228,7 @@ The SUSE catalog ships **66 tools** today — 65 listed in the gallery, plus one
 | Finish Preview | Preview foil, spot UV, emboss and soft-touch finishes on your artwork — then export the printer-ready spot plate. The on-screen sheen is presentation only; the plate is the real deliverable your print house needs. |
 | Flow Chart | Build flow charts on an open canvas — drag cards, connect them, and the lines route and stick to the boxes. |
 | Layers | Open a Photoshop or GIMP file as individual layers — lock each one down with exact X/Y coordinates, visibility, opacity and blend mode, then export flat images or a layered PSD. |
-| Layout Studio | An open canvas for free arrangement — text, images, shapes and live renders from your other Lolly tools, all held to your brand. |
+| Design | An open canvas for free arrangement — text, images, shapes and live renders from your other Lolly tools, all held to your brand. |
 | Logo | Place the SUSE logo — it auto-picks the right variant and exports vector. |
 | Logo Lockup: Grid (NASCAR) | Arrange a pile of logos into a clean, even sponsor grid — the “NASCAR” wall. |
 | Logo Lockup: Partner | The SUSE logo beside a partner's, with a divider between — light or dark. |

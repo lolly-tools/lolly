@@ -60,11 +60,6 @@ const STALE_ALLOWED: Record<string, string> = {
   // model-and-ffmpeg pass on words that are still moving, so they are held
   // together and clear together: run `node scripts/build-docs-audio.ts` once
   // the sweep lands, then delete these six entries.
-  'en/creators':
-    'textHash drifted 2026-08-11 (docs copy sweep, in flight): Neurospicy Mode ' +
-    'is now described as the focus-music dock, a new Accessibility-switches ' +
-    'bullet was added, and the "where next" list gained Ask Lolly and the ' +
-    'Dashboard. Real new sentences — re-render once the sweep settles.',
   'en/inclusive-design':
     'textHash drifted 2026-08-11 (docs copy sweep, in flight): the Listen ' +
     'paragraph now says eleven core pages rather than every page, and adds ' +
@@ -75,23 +70,23 @@ const STALE_ALLOWED: Record<string, string> = {
     'swapped street maps for QR codes in the self-serve bullet, rewrote the ' +
     'PowerPoint bullet around slide reuse plus a Markdown rebuild, changed a ' +
     'CLI example from quotes to wordmark, and dropped the hard 31/29 format ' +
-    'counts. Re-render once the sweep settles.',
-  'en/operators':
-    'textHash drifted 2026-08-11 (docs copy sweep, in flight): the governance ' +
-    'bullet now spells out the session-to-template hand-off, the SEAL line ' +
-    'describes the injected key resolver, and the interop note covers Ogg/Opus ' +
-    'alongside WebM. Re-render once the sweep settles.',
+    'counts. Re-render once the sweep settles. WIDER NOW (2026-08-15, plan 117): ' +
+    'the landing was rebuilt block by block - a new hero line, three new blocks ' +
+    '(worked examples, the sovereignty statement, AI on your terms), a new row ' +
+    'set in the era contrast, and the formats and design-import bands moved to ' +
+    'their own pages. The narration is a whole page behind, not a few sentences, ' +
+    'so re-render this one FIRST at the next sweep.',
   'en/privacy':
     'textHash drifted 2026-08-11 (docs copy sweep, in flight): the enrolment ' +
     'section now distinguishes the throwaway per-export key from the lasting ' +
     'non-extractable one, SUSE Okta became id.suse.com, and the last-updated ' +
     'date moved. A privacy page must be re-rendered, not left stale for long — ' +
     'it is first in the queue once the sweep settles.',
-  'en/quickstart':
-    'textHash drifted 2026-08-11 (docs copy sweep, in flight): first run now ' +
-    'opens the gallery with a three-way welcome dialog, the Brand Studio is ' +
-    'described as six rooms rather than five tabs, and token import moved to ' +
-    '"Add from…". Re-render once the sweep settles.',
+  'en/trust':
+    'textHash drifted 2026-08-15 (plan 116 Workstream C): trust.md gained the ' +
+    '"Why this is free" section carrying the sceptic paragraph ("We built ' +
+    'Lolly for ourselves…"). One new section - re-render at the next audio ' +
+    'sweep alongside en/index.',
 };
 
 interface Committed { key: string; lang: string; slug: string; meta: AudioMeta }

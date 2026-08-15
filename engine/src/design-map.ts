@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
- * Design-file → Layout Studio boxes (pure mapper).
+ * Design-file → Design boxes (pure mapper).
  *
  * The counterpart to the free-canvas editor: the web shell walks a sanitized
  * Figma/Penpot/SVG DOM into normalized `DesignNode`s (geometry in world px +
@@ -152,7 +152,7 @@ interface DesignNode {
   _vectorSize?: { w: number; h: number; x?: number; y?: number };
 }
 
-/** A full Layout Studio box row (every field present and defaulted). */
+/** A full Design box row (every field present and defaulted). */
 interface Box {
   id: string;
   kind: 'box' | 'text' | 'image';
@@ -379,7 +379,7 @@ const BLENDS: Record<string, number> = {
 function has(o: unknown, k: string): boolean { return o != null && Object.hasOwn(o, k); }
 
 /**
- * Turn one normalized DesignNode into a full Layout Studio box row — every field
+ * Turn one normalized DesignNode into a full Design box row — every field
  * present and defaulted (mirroring the addKinds seeds + field defaults), with the
  * font/weight/align/colour remaps applied. `kind` drives which fields carry
  * meaning, but all fields are emitted so the row is self-describing.

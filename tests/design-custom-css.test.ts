@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
- * Layout Studio — doc-level Custom CSS (plan 112 M4): the hook sanitises the `customCss`
+ * Design — doc-level Custom CSS (plan 112 M4): the hook sanitises the `customCss`
  * input into a `<style>` (the shell scopes it to the canvas; present re-scopes onto clones).
  * Loads the REAL tool from disk and drives it through the engine, so this guards the actual
  * render + the security posture (mirrors tests/deck-builder-style.test.ts).

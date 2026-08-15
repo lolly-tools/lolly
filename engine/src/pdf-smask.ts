@@ -149,7 +149,7 @@ export function constantMask(nodes: PdfNode[], region: { w: number; h: number },
  * Is this node a print engine's box-shadow plate — a translucent achromatic fill
  * whose only shape came from a soft mask?
  *
- * Used by the SHELL's Layout Studio boxes path, which has no way to express a mask:
+ * Used by the SHELL's Design boxes path, which has no way to express a mask:
  * a shadow there is not editable content, so it is dropped rather than imported as
  * a grey rectangle. (The page-SVG path keeps it and renders the real mask.) This is
  * exactly the behaviour the engine's paint-time placeholder heuristic used to give

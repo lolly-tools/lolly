@@ -5,7 +5,7 @@
  * Takes the PdfNodes the content-stream interpreter (pdf-map.ts) produced for one
  * page — BEFORE finalizeBoxes, so the `_vector*` / `_imageXObject` placeholders are
  * still present — and emits one self-contained SVG document for the whole page.
- * This is the "PDF page as an asset" sibling of the Layout Studio import path: the
+ * This is the "PDF page as an asset" sibling of the Design import path: the
  * SAME interpreted nodes either become editable boxes (design-import) or this flat
  * SVG (asset upload), so the two ingest surfaces can never disagree about what a
  * page contains.
@@ -17,7 +17,7 @@
  *
  * Group ids (OCG layers / form XObjects / q…Q blocks, resolved by the interpreter
  * onto contiguous paint-order runs) are kept as <g data-group="…"> wrappers, so a
- * page SVG re-imported into Layout Studio yields the same grouping.
+ * page SVG re-imported into Design yields the same grouping.
  *
  * The page background is transparent by design — PDF "paper" is a viewer
  * convention, not page content, and vector art (the .ai logo case) should land on

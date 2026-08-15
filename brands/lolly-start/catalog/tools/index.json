@@ -1,6 +1,6 @@
 {
   "version": "1",
-  "generatedAt": "2026-08-14T19:51:15.035Z",
+  "generatedAt": "2026-08-15T11:48:29.007Z",
   "tools": [
     {
       "id": "compress-pdf",
@@ -943,7 +943,7 @@
       "name": "URL Screenshot",
       "description": "Any web page, at any scroll-depth, with custom CSS",
       "version": "0.1.0",
-      "status": "experimental",
+      "status": "official",
       "category": "utility",
       "capabilities": [
         "capture"

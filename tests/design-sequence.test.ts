@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
- * Layout Studio — a timed single-artboard model stamps the [data-sequence] stage marker
+ * Design — a timed single-artboard model stamps the [data-sequence] stage marker
  * + per-box data-t-* attrs (M1-a: Design exports video from its timeline).
  *
  * Run with: npm test  (node --test over the tests/ globs). No framework — node:test.

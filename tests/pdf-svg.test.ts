@@ -4,7 +4,7 @@
  *
  * pdfNodesToSvg takes the interpreter's PdfNodes (pre-finalizeBoxes, placeholders
  * intact) and emits one self-contained SVG document — the asset-upload sibling of
- * the Layout Studio boxes path. These tests feed hand-built nodes AND real
+ * the Design boxes path. These tests feed hand-built nodes AND real
  * interpreter output (via interpretPdfPage on hand-written content streams), so the
  * two modules are proven to compose.
  *

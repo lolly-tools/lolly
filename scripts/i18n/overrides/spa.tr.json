@@ -33,7 +33,7 @@
   "“{name}” is ready to import.": "“{name}” içe aktarılmaya hazır.",
   "“{name}” isn’t a format Lolly can import directly.": "“{name}” Lolly'nin doğrudan içe aktarabileceği bir biçim değil.",
   "{n} files are ready to import.": "{n} dosya içe aktarılmaya hazır.",
-  "Edit in Layout Studio": "Layout Studio'da düzenle",
+  "Edit in Design": "Design'da düzenle",
   "Add pages to your library": "Sayfaları kitaplığına ekle",
   "Add slides to your library": "Slaytları kitaplığına ekle",
   "Compress this PDF": "Bu PDF'yi sıkıştır",

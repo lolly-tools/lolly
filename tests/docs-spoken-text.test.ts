@@ -12,6 +12,7 @@ import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 
 import { extractSpokenText, spokenTextHash, headingId } from '../scripts/lib/docs-spoken-text.ts';
+import { headingId as pkgHeadingId } from '../packages/docs-render/src/index.ts';
 
 const MD = `# Quickstart
 
@@ -117,14 +118,14 @@ test('a leading meta-title H1 is skipped when the page title is known', () => {
   assert.notEqual(spokenTextHash(blocks), spokenTextHash(extractSpokenText(md)));
 });
 
-test('parity tripwire: headingId matches the implementation inside docs/build.ts', () => {
-  const src = readFileSync(fileURLToPath(new URL('../docs/build.ts', import.meta.url)), 'utf8');
-  const m = /function headingId\(text: string, ordinal: number\): string \{\n([\s\S]*?)\n\}/.exec(src);
-  assert.ok(m, 'docs/build.ts still defines headingId(text, ordinal)');
-  // Evaluate the extracted body and compare behaviour across representative inputs.
-  const theirs = new Function('text', 'ordinal', m![1]!) as (t: string, o: number) => string;
+test('parity tripwire: headingId matches @lolly-tools/docs-render (the copy build.ts uses)', () => {
+  // build.ts's headingId now lives in the shared package (docs/build.ts imports it, and
+  // the in-app docs view will too). This module keeps its own leaner copy because it runs
+  // headingId on ALREADY-stripped spoken text; the package copy additionally strips
+  // `<!--l:key-->` marks, which is a no-op on the (mark-free) text this module ever passes.
+  // The two must still agree on real inputs, which is what this tripwire guards.
   for (const [text, ordinal] of [['1. Make it yours', 2], ['Verify — engineering', 3], ['中文標題', 4], ['  ', 5]] as const) {
-    assert.equal(headingId(text, ordinal), theirs(text, ordinal), `divergence on ${JSON.stringify(text)}`);
+    assert.equal(headingId(text, ordinal), pkgHeadingId(text, ordinal), `divergence on ${JSON.stringify(text)}`);
   }
 });
 

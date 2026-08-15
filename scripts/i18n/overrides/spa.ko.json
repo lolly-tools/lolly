@@ -35,7 +35,7 @@
   "“{name}” is ready to import.": "“{name}”을(를) 가져올 준비가 됐어요.",
   "“{name}” isn’t a format Lolly can import directly.": "“{name}”은(는) Lolly가 바로 가져올 수 있는 형식이 아니에요.",
   "{n} files are ready to import.": "파일 {n}개를 가져올 준비가 됐어요.",
-  "Edit in Layout Studio": "Layout Studio에서 편집",
+  "Edit in Design": "Design에서 편집",
   "Add pages to your library": "페이지를 라이브러리에 추가",
   "Add slides to your library": "슬라이드를 라이브러리에 추가",
   "Compress this PDF": "이 PDF 압축하기",

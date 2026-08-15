@@ -17,7 +17,7 @@ import {
 import { parseUrlState } from '../engine/src/url-mode.ts';
 import type { InputManifest } from '../engine/src/inputs.ts';
 
-// A representative large Layout-Studio-style query: compact tilde/comma blocks with
+// A representative large Design-style query: compact tilde/comma blocks with
 // %-encoded text values and hex colours. This is exactly the shape url-mode.js emits.
 const BOXES = Array.from({ length: 24 }, (_, i) =>
   [`b${i}`, ['box', 'text', 'image'][i % 3], 90 + i * 37, 120 + i * 29, 320, 200,

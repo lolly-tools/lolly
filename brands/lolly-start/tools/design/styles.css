@@ -1,4 +1,4 @@
-/* Layout Studio — a free-form WYSIWYG canvas of positioned boxes.
+/* Design — a free-form WYSIWYG canvas of positioned boxes.
    Almost all per-box styling is computed in hooks.js and applied inline (so the
    same output renders headless in CLI/URL mode). These classes carry only the
    structural layout the inline styles build on. Auto-scoped to #tool-canvas. */

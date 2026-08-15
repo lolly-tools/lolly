@@ -35,7 +35,7 @@
   "“{name}” is ready to import.": "「{name}」はインポートの準備ができています。",
   "“{name}” isn’t a format Lolly can import directly.": "「{name}」は Lolly が直接インポートできる形式ではありません。",
   "{n} files are ready to import.": "{n}個のファイルのインポート準備ができています。",
-  "Edit in Layout Studio": "Layout Studio で編集",
+  "Edit in Design": "Design で編集",
   "Add pages to your library": "ページをライブラリに追加",
   "Add slides to your library": "スライドをライブラリに追加",
   "Compress this PDF": "この PDF を圧縮",

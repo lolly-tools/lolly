@@ -1,7 +1,7 @@
 /* global onInit, onInput, beforeExport, host */
 
 /**
- * Layout Studio — a free-form WYSIWYG canvas of positioned "boxes".
+ * Design — a free-form WYSIWYG canvas of positioned "boxes".
  *
  * The tool is DATA: each box is one row of the `boxes` blocks input, carrying flat
  * geometry (x/y/w/h/rot) + decoration (shape/radius/fill/opacity/image/text/…).

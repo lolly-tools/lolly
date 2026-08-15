@@ -58,8 +58,6 @@ const MATRIX: { id: string; formats: string[] }[] = [
   { id: 'chart-creator',  formats: ['png', 'pdf', 'pptx', 'tiff', 'svg'] },   // fills + shapes
   { id: 'code-canvas',    formats: ['png', 'svg', 'pdf'] },                    // text-as-paths heavy (pdf pixel-hashed: its byte-level nondeterminism is invisible in the render)
   { id: 'multi-page-pdf', formats: ['pdf', 'pptx'] },                          // multipage geometry
-  // (daily-card intentionally excluded — its weather/date/map content is live-varying,
-  //  so it's noise for a regression net; png/pdf coverage comes from the tools above.)
   { id: 'web-icon',       formats: ['ico', 'png'] },
   { id: 'filter',        formats: ['png', 'avif'] },                          // unified filter (default effect: halftone) — photo → raster (gif dropped: slow, motion covered by digi-ad)
   // Animation encoders (expect smoke). webm/mp4 are omitted by default — each has

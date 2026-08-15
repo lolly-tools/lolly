@@ -29,10 +29,37 @@ import { join } from 'node:path';
 import { tmpdir } from 'node:os';
 import { readShotProvenance } from '../docs/shot-provenance.ts';
 import { readShotAnatomy } from '../docs/shot-anatomy.ts';
+import { renderCredential } from '../packages/docs-render/src/index.ts';
+import type { CredentialFacts, DocsRenderContext, CredentialRenderOpts } from '../packages/docs-render/src/index.ts';
 
 const ROOT = new URL('..', import.meta.url).pathname;
 const BUILD_TS = readFileSync(join(ROOT, 'docs/build.ts'), 'utf8');
+// inline() and buildShowcase() now live in the shared renderer package (M0b); the two
+// source-scanning tests below read it there instead of build.ts.
+const RENDER_TS = readFileSync(join(ROOT, 'packages/docs-render/src/render.ts'), 'utf8');
 const SHOTS_DIR = join(ROOT, 'docs/shots');
+
+// The credential line's HTML assembly moved to @lolly-tools/docs-render's renderCredential
+// (docs/build.ts's shotCredential is now a thin adapter that feeds it facts). These provenance
+// tests now assert on the renderer's OUTPUT with synthetic facts — behaviour, not source text.
+let credSeq = 0;
+const stubCtx: Pick<DocsRenderContext, 't' | 'htmlLang' | 'nextCredId' | 'docIcon'> = {
+  t: (s) => s,
+  htmlLang: 'en',
+  nextCredId: () => `shot-cred-${++credSeq}`,
+  docIcon: (k) => `<svg data-icon="${k}"></svg>`,
+};
+function renderCred(factsOverrides: Partial<CredentialFacts> = {}, opts: Partial<CredentialRenderOpts> = {}): string {
+  const facts: CredentialFacts = {
+    signer: 'Lolly', generator: 'Lolly 1.90.0', when: '2026-08-14T09:00:00Z',
+    dimensions: '1440 × 1200 px', ai: undefined, model: null, oversight: null,
+    anat: { kind: 'vector', paths: 134, nodes: 4200, groups: 12, images: 2, elements: 400, bytes: 41_000 },
+    recipe: { width: 1440, height: 1200, dpi: 192, walker: true },
+    src: '/info/shots/gallery.svg', canCopySource: false,
+    ...factsOverrides,
+  };
+  return renderCredential(facts, { file: 'gallery.svg', extraClass: '', fromPresent: false, ...opts }, stubCtx);
+}
 
 /**
  * One function's source, from its declaration to the next top-level one. Slicing
@@ -57,9 +84,9 @@ test('every shot img is emitted with width/height, or the lazy-load deadlock ret
   // class), and a test that pins the string fails on every honest refactor while
   // saying nothing about the thing that matters. What matters is that no <img> for a
   // shot is ever emitted without measured dimensions.
-  const start = BUILD_TS.indexOf('A screenshot gets a wrapper');
+  const start = RENDER_TS.indexOf('A screenshot gets a wrapper');
   assert.ok(start > 0, 'the shot wrapper rewrite is gone — has inline() been restructured?');
-  const region = BUILD_TS.slice(start, BUILD_TS.indexOf('External links (absolute http/https)', start));
+  const region = RENDER_TS.slice(start, RENDER_TS.indexOf('External links (absolute http/https)', start));
   // Only real emissions. The region also contains the word "<img>" in prose comments
   // and the SEARCH pattern the rewrite matches against (a regex literal, not output);
   // an emission is the one that interpolates, so require a `${`.
@@ -72,8 +99,8 @@ test('every shot img is emitted with width/height, or the lazy-load deadlock ret
       + '0x0, never loads, and never settles — every screenshot on the site goes invisible.');
   }
   // And the dimensions must come from the file, per image (a twin is a different file).
-  assert.match(region, /size = shotSize\(/);
-  assert.equal((region.match(/shotSize\(/g) ?? []).length, imgs.length,
+  assert.match(region, /size = ctx\.shotSize\(/);
+  assert.equal((region.match(/ctx\.shotSize\(/g) ?? []).length, imgs.length,
     'each emitted <img> needs its OWN shotSize() call — reusing one file\'s dims for another '
     + 'reserves the wrong box and can reintroduce the deadlock for the odd one out');
 });
@@ -130,35 +157,40 @@ test('the credential line reports the signer the file actually names', () => {
   assert.match(p!.generator!, /^Lolly \d+\.\d+\.\d+$/);
   assert.equal(p?.tool, 'URL Screenshot');
   assert.equal(p?.surface, 'docs');
-  // The builder must not carry a literal signer/date it could state without reading.
-  const credFn = fnSource('shotCredential');
-  assert.doesNotMatch(credFn, /'Lolly'/, 'shotCredential must not hardcode a signer — read it from the manifest');
+  // The renderer must not carry a literal signer — it comes from the facts. Render with a
+  // distinctive signer and find it verbatim; render with none and get no signer pill.
+  assert.match(renderCred({ signer: 'Signer-From-Manifest-XYZ' }), /Signer-From-Manifest-XYZ/,
+    'the signer pill must come from the facts, not a literal in the renderer');
+  assert.doesNotMatch(renderCred({ signer: null }), /prov-sig/, 'no signer in the facts → no signer pill');
 });
 
 test('verify and download links point at the served file, same-origin', () => {
-  const credFn = fnSource('shotCredential');
-  // The verify view (shells/web/src/views/valid.ts) accepts ?src= ONLY when it starts
-  // with a single slash — it must never be able to make a reader's browser fetch a
-  // third-party host. A shot's src is its /info/shots/ path; a page asset (the AI
-  // stance hero) passes its own, and the caller that does so is asserted below to
-  // keep it domain-relative too.
-  assert.match(credFn, /const src = from\?\.src \?\? `\/info\/shots\/\$\{file\}`/);
-  assert.match(credFn, /href="\/#\/verify\?src=\$\{encodeURIComponent\(src\)\}"/);
-  assert.match(credFn, /href="\$\{src\}" download/);
-  // The page-asset caller: same-origin by construction (it is the matched /info/ src
-  // from the page's own markup) and read from the built site, never from a URL.
-  const asset = BUILD_TS.match(/const cred = shotCredential\(file, 'shot-cred--asset', \{ path, src \}\);/);
-  assert.ok(asset, 'the page-asset wrapper must credit the file it serves');
-  assert.match(BUILD_TS, /const path = resolve\(outDir, file\);/,
-    'a page asset is read from the built site, so the facts describe the served bytes');
+  // The verify view (shells/web/src/views/valid.ts) accepts ?src= ONLY when it starts with
+  // a single slash — it must never make a reader's browser fetch a third-party host. A shot's
+  // src is its /info/shots/ path; a page asset passes its own /info/ URL. Both stay relative.
+  const html = renderCred({ src: '/info/shots/gallery.svg' });
+  assert.match(html, /href="\/#\/verify\?src=%2Finfo%2Fshots%2Fgallery\.svg"/,
+    'the verify link must encode the domain-relative served src');
+  assert.match(html, /href="\/info\/shots\/gallery\.svg" download/, 'the download link points at the served file');
+  // A page asset's own /info/ src flows through unchanged and stays same-origin.
+  const asset = renderCred({ src: '/info/the-flood.webp' }, { file: 'the-flood.webp', fromPresent: true });
+  assert.match(asset, /href="\/#\/verify\?src=%2Finfo%2Fthe-flood\.webp"/, 'a page asset stays domain-relative');
+  assert.doesNotMatch(asset, /verify\?src=https?/, 'no credential may point verify at a third-party host');
+  // And the build.ts adapter that feeds these facts reads a page asset from the BUILT site,
+  // so the credential describes the served bytes (the src derivation is covered byte-for-byte
+  // by the build gate; this pins the read path the adapter uses).
+  assert.match(BUILD_TS, /path = art \? resolve\(__dirname, rel\) : resolve\(outDir, rel\)/,
+    'docCtx.credential reads a page asset from outDir (the served bytes)');
 });
 
 test('an AI declaration is never hidden behind the hover', () => {
-  const credFn = fnSource('shotCredential');
   // It must reach the always-available accessible label, not only the revealed line.
-  const label = /const label = \[([^\]]*)\]/.exec(credFn);
+  const html = renderCred({ ai: 'generated' });
+  const label = /aria-label="([^"]*)"/.exec(html);
   assert.ok(label, 'the trigger must build an aria-label');
-  assert.match(label[1]!, /p\.ai/, 'the AI declaration must be in the trigger label, not only the hover line');
+  assert.match(label[1]!, /AI generated/, 'the AI declaration must be in the trigger label, not only the hover line');
+  // …and it flags the wrapper so the glyph can be promoted (styled via .shot-cred--ai below).
+  assert.match(html, /class="shot-cred shot-cred--ai/, 'an AI-declaring credential marks itself for the louder glyph');
   // Promoted by CONTRAST, not by opacity. The glyph no longer rests at partial opacity
   // (that faded its strokes into the screenshot behind it), so "louder" now means a
   // filled puck and a ring rather than opacity:1 — which would be a no-op today and a
@@ -184,10 +216,13 @@ test('the showcase strips the manifest it inlines, and keeps the file it points 
     'the fetched SVG must have its <metadata> stripped before injection');
   assert.ok(script.includes("'id=\"sc-$1\"'"), 'inlined ids must be namespaced — an inline SVG shares the page id space');
   // The block still emits an <img> of the real file (the no-JS fallback AND the thing
-  // the credential is about).
-  const fn = fnSource('buildShowcase');
+  // the credential is about). buildShowcase moved to the shared renderer (M0b).
+  const fnStart = RENDER_TS.indexOf('function buildShowcase(');
+  assert.ok(fnStart > 0, 'packages/docs-render no longer declares buildShowcase()');
+  const fn = RENDER_TS.slice(fnStart, RENDER_TS.indexOf('function buildFigure(', fnStart));
   assert.match(fn, /class="showcase-fallback"/);
-  assert.match(fn, /shotCredential\(file\)/, 'the showcase must carry the same credential line as any other shot');
+  assert.match(fn, /renderCredential\(ctx\.credential\(show\.file\)/,
+    'the showcase must carry the same credential line as any other shot');
 });
 
 test('a showcase recipe names a captured vector baseline', () => {
@@ -238,14 +273,15 @@ test('the anatomy reader counts a real vector shot and never throws on a bad one
 });
 
 test('the anatomy row lives inside the expanded line, and only when there is something to say', () => {
-  const credFn = fnSource('shotCredential');
   // Inside .shot-cred-line — NOT between the button and the line. The reveal is
   // `.shot-cred-btn:hover + .shot-cred-line`, an adjacency, so anything emitted
   // between those two siblings stops every credential opening on hover.
-  const line = /<span class="shot-cred-line" id="\$\{id\}">([\s\S]*?)`;/.exec(credFn);
+  const html = renderCred();
+  const line = /<span class="shot-cred-line"[^>]*>([\s\S]*)<\/span><\/span>$/.exec(html);
   assert.ok(line, 'the credential must still emit its .shot-cred-line');
   assert.match(line[1]!, /shot-cred-row shot-cred-anat/, 'the anatomy row belongs inside the line');
-  assert.match(credFn, /facts\.length \?/, 'a shot with no readable file must get the line it had before');
+  // A shot whose file cannot be read for anatomy gets the line it had before — no anat row.
+  assert.doesNotMatch(renderCred({ anat: null }), /shot-cred-anat/, 'no anatomy facts → no anatomy row');
   // The row is a second ROW, so the line stacks; a row that still declared nowrap on
   // the line itself would put the anatomy facts back on the end of the first one.
   const lineCss = /\n\.shot-cred-line\{([^}]*)\}/.exec(BUILD_TS);
@@ -332,22 +368,20 @@ test('an SVG that is only a wrapped bitmap is called a raster, not "0 paths" vec
 });
 
 test('the anatomy ROW never prints a zero count, and the dimension pill is not in it', () => {
-  const credFn = fnSource('shotCredential');
-  // The visible facts row is built from `facts`. Every push into it is guarded so a
-  // zero never renders: "0 paths" would unmake the vector claim the pill exists to make.
-  assert.match(credFn, /anat\.paths > 0.*paths/s, 'the paths pill is guarded on > 0');
-  assert.match(credFn, /anat\.groups > 0.*groups/s, 'the groups pill is guarded on > 0');
-  assert.match(credFn, /anat\.images > 0.*images/s, 'the images pill is guarded on > 0');
-  // The recipe's capture viewport describes the REQUEST, not the file, and disagrees
-  // with the shipped artwork on most shots — so it must not sit in a row of checkable
-  // file facts. It belongs in the accessible label. Assert `facts.push` never carries
-  // def.width, and that shotAt (the viewport string) is only ever put in `label`.
-  // The visible facts block runs from `const facts` to the label's `shotAt` — the
-  // recipe viewport must not appear in it.
-  const factsRegion = /const facts: string\[\][\s\S]*?const shotAt/.exec(credFn)?.[0] ?? credFn;
-  assert.doesNotMatch(factsRegion, /def[.?]\s*width/, 'the capture viewport must not be a visible fact pill');
-  assert.match(credFn, /const shotAt =[\s\S]*?def[.?]\s*width/, 'shotAt reads the recipe viewport');
-  assert.match(credFn, /shotAt[^\n]*\][^\n]*join\(. — .\)/s, 'and shotAt is only used in the label');
+  // A zero count never renders: "0 paths" would unmake the vector claim the pill makes.
+  // With paths=0 and groups=0 the row falls back to the element count instead of a blank.
+  const zeros = renderCred({ anat: { kind: 'vector', paths: 0, nodes: 0, groups: 0, images: 0, elements: 5, bytes: 2000 } });
+  assert.doesNotMatch(zeros, /0 paths|0 groups|0 images|0 nodes/, 'a zero count must never render as a pill');
+  assert.match(zeros, /5 elements/, 'a geometry-free vector still states its element count');
+  // The recipe's capture viewport describes the REQUEST, not the file, and disagrees with the
+  // shipped artwork on most shots — so it must not sit in the row of checkable file facts. It
+  // belongs in the accessible label only.
+  const html = renderCred();
+  const anatRow = /<span class="shot-cred-row shot-cred-anat">(.*)<\/span><\/span><\/span>$/s.exec(html)?.[1] ?? '';
+  assert.ok(anatRow.length > 0, 'expected a visible anatomy row for a real vector shot');
+  assert.doesNotMatch(anatRow, /dpi|× 1/, 'the capture viewport must not be a visible fact pill');
+  const label = /aria-label="([^"]*)"/.exec(html)?.[1] ?? '';
+  assert.match(label, /@ 192 dpi/, 'the capture viewport (with dpi) belongs in the accessible label');
 });
 
 test('the credential glyph is bottom-anchored so the second row cannot move it', () => {

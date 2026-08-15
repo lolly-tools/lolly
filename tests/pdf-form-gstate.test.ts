@@ -299,7 +299,7 @@ test('page → SVG: a masked form and a muted label both survive to markup', () 
 // ── the boxes path must not mistake masked TEXT for a shadow plate ────────────
 
 test('isShadowPlate never claims a text node', () => {
-  // The Layout Studio boxes path drops every node isShadowPlate() accepts. A text
+  // The Design boxes path drops every node isShadowPlate() accepts. A text
   // node keeps its colour in `fg`, which the fill probe cannot see, so a masked
   // muted label looked exactly like a translucent achromatic plate — and vanished.
   const masked: PdfNode = {

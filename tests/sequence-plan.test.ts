@@ -122,7 +122,7 @@ test('parseSequenceStage keeps DOM order as z order', () => {
   assert.deepEqual(stage.layers.map((l) => l.startMs), [0, 1000, 2000]);
 });
 
-// ── frames-as-scenes (Layout Studio "Design", plan 92) ────────────────────────
+// ── frames-as-scenes (Design, plan 92) ────────────────────────
 //
 // A "Design" doc times whole FRAME PAGES ([data-pdf-page] carrying data-t-*) end to
 // end, rather than individual .lolly-box clips. The planner must treat each timed

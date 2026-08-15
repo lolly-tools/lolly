@@ -24,3 +24,15 @@ export type {
   ArtResolution,
   ShowcaseResolution,
 } from './context.ts';
+export {
+  PROV_SEAL,
+  parseCells,
+  headingId,
+  CONTENT_TOKEN,
+  stripAuthoringComments,
+  localeNum,
+  approxCount,
+} from './markdown.ts';
+export { renderCredential, type CredentialRenderOpts } from './credential.ts';
+export { inline, mdToHtml } from './render.ts';
+export { parseFigureFence, figureBlock } from './art.ts';

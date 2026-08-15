@@ -4,7 +4,7 @@
  *
  * URL mode (url-mode.ts) is first-class and deliberately human-readable: a simple
  * tool link like `?color=336699&theme=dark` can be hand-edited. But a complex tool
- * (Layout Studio, with dozens of boxes carrying coords / colours / text) serialises
+ * (Design, with dozens of boxes carrying coords / colours / text) serialises
  * to thousands of characters — past the ~2000-char ceiling that pasted links, social
  * crawlers, QR codes and some servers still enforce.
  *

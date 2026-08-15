@@ -70,7 +70,7 @@ test('parseRadialGradient: default ellipse farthest-corner at centre', () => {
   assert.equal(g!.stops.length, 2);
 });
 
-test('parseRadialGradient: explicit ellipse size (percent) + position — the quotes/daily-card form', () => {
+test('parseRadialGradient: explicit ellipse size (percent) + position — the quotes form', () => {
   const g = parseRadialGradient('radial-gradient(42% 48% at 30% 28%, rgb(48, 186, 120), transparent 70%)', 500, 300);
   assert.ok(g);
   assert.ok(close(g!.cx, 150));         // 30% of 500

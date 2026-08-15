@@ -5,7 +5,7 @@
  *
  * Run as: node scripts/build-animated-previews.ts [--url=http://localhost:5173] [--only=id1,id2]
  *
- * Some tools ANIMATE (bag-video's Geeko sways + blinks; the digi-ad scenes play; the
+ * Some tools ANIMATE (pose-geeko's Geeko idles; the digi-ad scenes play; the
  * filters drift). A static SVG/PNG gallery tile freezes them mid-motion. This script gives
  * such a tool a LOOPING APNG instead — a valid `.png` that the gallery <img> animates
  * natively — by driving the tool in a real browser and exporting via the app's OWN apng
@@ -24,7 +24,7 @@
  * frames (no inter-frame delta), so size scales with width × fps × duration. Each job below
  * picks a modest size / low fps / short loop; the console prints the resulting KB so a job
  * that balloons is obvious. Prefer a card-only APNG over animating every example unless the
- * tool's whole point is the motion (bag-video).
+ * tool's whole point is the motion.
  *
  * Needs a running web shell — point --url at `npm run dev:web` (default localhost:5173). The
  * generator relies on the app's __lollyCaptureMotion hook (shells/web/src/views/tool.ts).
@@ -66,11 +66,11 @@ interface Job {
   colors?: number;
 }
 
-// The catalog's animated tiles. bag-video animates ALL four example looks (its whole point
-// is the moving mascot); everything else should prefer a single card APNG (kind:'card') to
-// avoid a pile of big files. Add Part-2 tools here as card jobs.
+// The catalog's animated tiles. Prefer a single card APNG (kind:'card') per tool to
+// avoid a pile of big files; kind:'looks' is for a tool whose whole point is the moving
+// mascot (the retired bag-video was the canon case). Currently empty — pose-geeko's
+// animated card is an authored CSS SVG (build-svg-card.ts), not a capture.
 const JOBS: Job[] = [
-  { tool: 'bag-video', kind: 'looks', width: 288, height: 288, duration: 2.2, fps: 10, wait: 0.5 },
 ];
 
 interface Opts { url: string; only: string[] }
