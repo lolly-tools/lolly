@@ -4,7 +4,7 @@
  * Run with: node --test tests/pptx.test.ts
  *
  * buildPptxParts returns the pre-zip OOXML part tree (path → bytes/string). These
- * assert the tree is complete and internally consistent — required parts, one
+ * assert the tree is complete and internally consistent - required parts, one
  * media/rels per slide, resolvable relationships, and correct DrawingML for the
  * three shape kinds (rect / text / pic incl. the SVG-blip vector embed).
  */
@@ -148,7 +148,7 @@ test('a noted slide emits a notesSlide + the shared notesMaster, and the slide r
   assert.match(rels, /Id="rId2" Type="[^"]*\/notesSlide" Target="\.\.\/notesSlides\/notesSlide1\.xml"/);
   // The notesSlide relates back to its own slide and to the shared master. ECMA-376
   // §13.3.5 permits the back-rel rather than requiring it, but every real producer
-  // emits it — don't be the one deck that doesn't.
+  // emits it - don't be the one deck that doesn't.
   const nRels = parts['ppt/notesSlides/_rels/notesSlide1.xml.rels'] as string;
   assert.match(nRels, /Id="rId1" Type="[^"]*\/slide" Target="\.\.\/slides\/slide1\.xml"/);
   assert.match(nRels, /Id="rId2" Type="[^"]*\/notesMaster" Target="\.\.\/notesMasters\/notesMaster1\.xml"/);
@@ -157,7 +157,7 @@ test('a noted slide emits a notesSlide + the shared notesMaster, and the slide r
 test('notes wire the presentation: notesMasterIdLst precedes sldIdLst, rel + content types resolve', () => {
   const parts = buildPptxParts([{ shapes: [], media: [], notes: 'note' }], {});
   const pres = parts['ppt/presentation.xml'] as string;
-  // CT_Presentation is an xsd:sequence — notesMasterIdLst AFTER sldIdLst is invalid
+  // CT_Presentation is an xsd:sequence - notesMasterIdLst AFTER sldIdLst is invalid
   // XML that PowerPoint repairs. Assert the real order, not just presence.
   assert.match(pres, /<\/p:sldMasterIdLst><p:notesMasterIdLst><p:notesMasterId r:id="rId4"\/><\/p:notesMasterIdLst><p:sldIdLst>/);
   const presRels = parts['ppt/_rels/presentation.xml.rels'] as string;
@@ -174,7 +174,7 @@ test('the notes master gets its OWN theme part, not the slide master\'s', () => 
   assert.ok('ppt/theme/theme2.xml' in parts, 'notes master theme written');
   assert.match(parts['ppt/notesMasters/_rels/notesMaster1.xml.rels'] as string, /Target="\.\.\/theme\/theme2\.xml"/);
   assert.match(parts['[Content_Types].xml'] as string, /PartName="\/ppt\/theme\/theme2\.xml" ContentType="[^"]*\.theme\+xml"/);
-  // The slide master keeps theme1 — the two must not cross.
+  // The slide master keeps theme1 - the two must not cross.
   assert.match(parts['ppt/slideMasters/_rels/slideMaster1.xml.rels'] as string, /Target="\.\.\/theme\/theme1\.xml"/);
 });
 
@@ -208,7 +208,7 @@ test('only the noted slides get notes parts; indices and rels stay aligned', () 
   assert.ok(!('ppt/notesSlides/notesSlide1.xml' in parts), 'un-noted slide 1');
   assert.ok(!('ppt/notesSlides/notesSlide3.xml' in parts), 'un-noted slide 3');
   assert.match(parts['ppt/notesSlides/notesSlide2.xml'] as string, /<a:t>only me<\/a:t>/);
-  // The back-rel is keyed off the same index — pointing it at slide1 would attach the
+  // The back-rel is keyed off the same index - pointing it at slide1 would attach the
   // note to the wrong slide in any reader that follows it.
   assert.match(parts['ppt/notesSlides/_rels/notesSlide2.xml.rels'] as string, /Type="[^"]*\/slide" Target="\.\.\/slides\/slide2\.xml"/);
   // Exactly one master for the whole deck, and the rel only on the noted slide.
@@ -342,7 +342,7 @@ test('colSpan/rowSpan produce a rectangular hMerge/vMerge grid', () => {
     media: [],
   };
   const xml = buildPptxParts([slide], {})['ppt/slides/slide1.xml'] as string;
-  // Every row has exactly 2 <a:tc> — the grid stays rectangular.
+  // Every row has exactly 2 <a:tc> - the grid stays rectangular.
   const rows = [...xml.matchAll(/<a:tr [^>]*>([\s\S]*?)<\/a:tr>/g)].map(m => m[1]!);
   assert.equal(rows.length, 3);
   for (const r of rows) assert.equal((r.match(/<a:tc[ >]/g) || []).length, 2, 'each row has 2 cells');

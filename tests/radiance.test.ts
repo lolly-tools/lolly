@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
- * engine/src/radiance.ts — the Phase B3 Radiance RGBE (.hdr) writer + reader
+ * engine/src/radiance.ts - the Phase B3 Radiance RGBE (.hdr) writer + reader
  * (plans/61-deeprichpixels.md §4.2 / §6).
  *
  * The claims this suite is responsible for, and how each is checked:
@@ -8,7 +8,7 @@
  *  1. THE ERROR BOUND IS DERIVED, NOT PICKED. RGBE stores `floor(v / f)` with
  *     `f = 2^(e-8)` and decodes `(byte + 0.5) * f`, so the worst case is half a
  *     bucket, and since `2^(e-1) <= max(r,g,b)`, half a bucket is at most
- *     `max/256`. Every assertion below uses `max/256` — computed per pixel from
+ *     `max/256`. Every assertion below uses `max/256` - computed per pixel from
  *     the format's own arithmetic, never a number tuned until the test went
  *     green. The suite also re-measures the statistics the module header quotes
  *     and fails if the doc drifts.
@@ -16,7 +16,7 @@
  *     doubles the worst case AND biases every sample low); a bound tightened one
  *     notch is shown to FAIL, so the bound is tight rather than generous; a
  *     one-sample edit changes the bytes.
- *  3. AN EXTERNAL ORACLE — ImageMagick (Q16 HDRI), which has an independent
+ *  3. AN EXTERNAL ORACLE - ImageMagick (Q16 HDRI), which has an independent
  *     Radiance codec, in BOTH directions. Ours-in: `magick t.hdr out.pfm` must
  *     reproduce our samples EXACTLY under IM's decode convention. Theirs-in: a
  *     file ImageMagick wrote (new-style RLE, its own header) must decode within
@@ -26,14 +26,14 @@
  *     Convention divergence, recorded rather than papered over: ImageMagick (and
  *     Ward's later `rgbe.c`) decode `byte * 2^(exp-136)` with NO half-bucket
  *     offset, which is why the "exactly" above is against the offset-free
- *     decode. Radiance's own `color.c colr_color` — what this module follows —
+ *     decode. Radiance's own `color.c colr_color` - what this module follows - 
  *     adds 0.5, which is the unbiased choice. Cross-implementation error is
  *     therefore a full bucket (`max/128`), not half.
  *  4. RLE. Flat and RLE scanlines must produce IDENTICAL pixels; a constant
  *     scanline must actually compress (proving the encoder engages); noise must
  *     not expand beyond the format's own literal-block overhead; and the
  *     width < 8 case must fall back to flat because the format forbids RLE there.
- *  5. HOSTILE INPUT. `readRadiance` follows `unfilterPng`'s engine convention —
+ *  5. HOSTILE INPUT. `readRadiance` follows `unfilterPng`'s engine convention - 
  *     null on anything malformed, never a throw. Fourteen malformed inputs plus
  *     a byte-level fuzz sweep.
  *
@@ -58,7 +58,7 @@ import type { DeepFrame, PixelSpace } from '../engine/src/pixels.ts';
 
 // ── helpers ──────────────────────────────────────────────────────────────────
 
-/** Deterministic LCG (glibc constants) — every "random" input here is reproducible. */
+/** Deterministic LCG (glibc constants) - every "random" input here is reproducible. */
 function lcg(seed: number): () => number {
   let s = seed >>> 0;
   return () => {
@@ -141,7 +141,7 @@ test('floatToRgbe/rgbeToFloat: the reference formulation, sample by sample', () 
 
 test('round-trip: every sample within max(r,g,b)/256, the derived half-bucket bound', () => {
   const rnd = lcg(12345);
-  // 200k pixels, each channel independently log-uniform over 1e-6..1e4 — i.e.
+  // 200k pixels, each channel independently log-uniform over 1e-6..1e4 - i.e.
   // deliberately mixed magnitudes WITHIN a pixel, the case the shared exponent
   // is worst at.
   const w = 500, h = 400;
@@ -169,14 +169,14 @@ test('round-trip: every sample within max(r,g,b)/256, the derived half-bucket bo
     assert.equal(decoded.data[i + 3], 1, 'alpha is 1 (RGBE has none)');
   }
 
-  // The numbers quoted in the module header — re-measured here so the doc
+  // The numbers quoted in the module header - re-measured here so the doc
   // cannot drift away from the code. Deterministic: the PRNG is seeded.
   assert.ok(Math.abs(maxRelMax - 0.0039062) < 5e-6, `max err/max-channel ${maxRelMax}`);
   assert.ok(Math.abs(sumRelMax / n - 0.0018849) < 5e-6, `mean err/max-channel ${sumRelMax / n}`);
   // The signed mean is POSITIVE here (+0.00105), and that is not a bug to hide:
   // with independent per-channel magnitudes, most channels are far below their
   // pixel's max, quantise to byte 0, and come back as half a bucket. Bias is
-  // only ~0 where a channel is near the max — asserted in the next test, which
+  // only ~0 where a channel is near the max - asserted in the next test, which
   // is the regime the +0.5 was designed for.
   assert.ok(signedSum / n > 5e-4, `dark-channel lift shows as a positive bias, got ${signedSum / n}`);
   // The honesty claim in the module header: relative to the CHANNEL's own value
@@ -384,7 +384,7 @@ test('extreme values follow the documented policy', () => {
       assert.ok(Math.abs(v[0]! - 1e30) <= bound(1e30), `1e30 round-trips, got ${v[0]}`);
       // The 1.0 channel is 30 decades below the exponent the pixel shares, so it
       // encodes to byte 0 and decodes to half a (gigantic) bucket. It is not
-      // preserved in any sense — recorded, not smoothed over.
+      // preserved in any sense - recorded, not smoothed over.
       assert.ok(v[2]! > 1e26, `a channel 30 decades down is destroyed, got ${v[2]}`);
       assert.ok(v[2]! <= bound(1e30));
     }],
@@ -399,7 +399,7 @@ test('extreme values follow the documented policy', () => {
     }],
     ['-Infinity', [Number.NEGATIVE_INFINITY, 0, 0], (v) => assert.equal(v[0], 0)],
   ];
-  // The policies are stated in BYTES, so assert them there too — decoding always
+  // The policies are stated in BYTES, so assert them there too - decoding always
   // adds half a bucket, which would otherwise blur "clamped to 0" into "small".
   const enc = new Uint8Array(4);
   floatToRgbe(Number.NaN, 1, 1, enc, 0);
@@ -486,7 +486,7 @@ test('header text is sanitised — a newline cannot be injected into a comment',
   const lines = headerText(bytes).split('\n');
   assert.equal(lines.filter((l) => l.startsWith('FORMAT=')).length, 1, 'exactly one FORMAT line');
   assert.equal(lines.filter((l) => l.startsWith('EXPOSURE=')).length, 1, 'exactly one EXPOSURE line');
-  // The injected text survives as inert payload ON the SOFTWARE line — the
+  // The injected text survives as inert payload ON the SOFTWARE line - the
   // newlines that would have made it a header line are what got neutralised.
   assert.ok(lines.some((l) => l.startsWith('SOFTWARE=') && l.includes('xyze')), 'injection is inert, on one line');
   assert.ok(head.software!.includes('evil'), 'the harmless part survives');
@@ -670,7 +670,7 @@ test('external oracle: ImageMagick decodes our file to EXACTLY our samples', { s
 
     // ImageMagick decodes byte * 2^(exp-136) with NO half-bucket offset (see the
     // file header). So reconstruct the RGBE bytes we wrote and compare against
-    // THAT convention — the comparison is then exact, which is a far stronger
+    // THAT convention - the comparison is then exact, which is a far stronger
     // statement about our bytes than any tolerance would be.
     const rgbe = new Uint8Array(4);
     let checked = 0;
@@ -722,7 +722,7 @@ test('external oracle: we read a file ImageMagick wrote (its RLE, its header)', 
     writeFileSync(pfm, Buffer.concat([Buffer.from(`PF\n${w} ${h}\n1.0\n`, 'latin1'), buf]));
     // `-set colorspace RGB` declares the input already linear; without it IM
     // applies an sRGB decode on the way in and the comparison is meaningless
-    // (verified — it produced srgbToLinear(0.5) = 0.2144 for our 0.5s).
+    // (verified - it produced srgbToLinear(0.5) = 0.2144 for our 0.5s).
     execFileSync('magick', [pfm, '-set', 'colorspace', 'RGB', hdr]);
 
     const bytes = new Uint8Array(readFileSync(hdr));
@@ -751,7 +751,7 @@ test('external oracle: we read a file ImageMagick wrote (its RLE, its header)', 
       }
     }
     // IM's own PRIMARIES line is all zeros (it writes a placeholder), which must
-    // not be mistaken for a real gamut — we fall back to the documented default.
+    // not be mistaken for a real gamut - we fall back to the documented default.
     assert.equal(frame.space, 'srgb-linear');
   } finally {
     rmSync(dir, { recursive: true, force: true });

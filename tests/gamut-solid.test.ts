@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
- * The gamut solid (engine/src/gamut-solid.ts) — a display's colour volume as a
+ * The gamut solid (engine/src/gamut-solid.ts) - a display's colour volume as a
  * rotatable 3D surface.
  *
  * The invariant worth the most here is 'the surface we see is the near one'. A
@@ -8,7 +8,7 @@
  * plausible, pretty solid rendered from the inside, and the only way to notice
  * by eye is to realise the hues are on the wrong sides. That bug shipped into
  * the first render of this module and was caught by asking which hue faces the
- * camera at a known angle — so that check lives here permanently.
+ * camera at a known angle - so that check lives here permanently.
  */
 
 import test from 'node:test';
@@ -77,7 +77,7 @@ test('the surface we see is the NEAR one, not the inside of the far wall', () =>
     const hue = hexToOklch(centreQuad(quads).hex)!.h;
     assert.ok(hueGap(hue, expected) < 35,
       `yaw ${yaw}: centre shows hue ${hue.toFixed(1)}, expected ~${expected}`);
-    // And the nearest-drawn quad must have positive depth — it faces us.
+    // And the nearest-drawn quad must have positive depth - it faces us.
     assert.ok(quads[quads.length - 1]!.depth > 0, `yaw ${yaw}: the nearest quad is in front`);
   }
 });
@@ -120,8 +120,8 @@ test('a wider gamut makes a bigger solid', () => {
   assert.ok(p3.maxRadius > solid.maxRadius, `P3 ${p3.maxRadius} > sRGB ${solid.maxRadius}`);
   assert.ok(wide.maxRadius > solid.maxRadius, `Rec.2020 ${wide.maxRadius} > sRGB ${solid.maxRadius}`);
   // Every vertex of the sRGB solid is inside P3 at the same lightness and hue.
-  // (sRGB ⊂ P3 genuinely holds; P3 ⊂ Rec.2020 does NOT — see the deep-red sliver
-  // test in gamut.test.ts — so that pair is deliberately not asserted.)
+  // (sRGB ⊂ P3 genuinely holds; P3 ⊂ Rec.2020 does NOT - see the deep-red sliver
+  // test in gamut.test.ts - so that pair is deliberately not asserted.)
   for (const q of solid.quads) {
     for (const p of q.pts) {
       const { l, c, h } = cylOklch(p);
@@ -137,7 +137,7 @@ test('the marker lands in register with the mesh and reports its own gamut', () 
   assert.ok(inside.x > 0 && inside.x < 1 && inside.y > 0 && inside.y < 1);
 
   // A colour past the surface is reported as outside rather than silently
-  // clamped onto it — a marker floating off the solid needs explaining, not hiding.
+  // clamped onto it - a marker floating off the solid needs explaining, not hiding.
   const outside = projectSolidPoint(solid, { l: 0.6, c: 0.35, h: 250 }, view);
   assert.equal(outside.inside, false);
 
@@ -183,7 +183,7 @@ test('the landscape embedding lays hue flat and stands chroma up', () => {
     }
   }
   // The tallest point is the most chromatic colour in the gamut, and it should be
-  // in the yellows/greens rather than the blues — that asymmetry is the whole
+  // in the yellows/greens rather than the blues - that asymmetry is the whole
   // reason this view beats a cylinder for reading.
   let peak = land.quads[0]!, best = -1;
   for (const q of land.quads.filter(q => q.up !== 0)) {
@@ -195,7 +195,7 @@ test('the landscape embedding lays hue flat and stands chroma up', () => {
   assert.ok(peakHue > 240 && peakHue < 340, `sRGB's chroma peak is in the blues/magentas, got ${peakHue.toFixed(0)}°`);
 
   // The caps stand at the two hue-seam edges and nowhere else, spanning chroma 0 up
-  // to the surface — so the sheet reads as a body rather than a ribbon.
+  // to the surface - so the sheet reads as a body rather than a ribbon.
   for (const q of wall) {
     const xs = q.pts.map(p => p.x);
     assert.ok(xs.every(x => Math.abs(Math.abs(x) - 1) < 1e-9),
@@ -220,7 +220,7 @@ test('the landscape embedding lays hue flat and stands chroma up', () => {
 test('the lab embedding stands lightness up over the a/b floor, in true proportion', () => {
   const lab = gamutSolid('srgb', 48, 28, 'lab');
   assert.equal(lab.embed, 'lab');
-  // A closed hull, exactly like the cylinder — same grid, different axes — so it
+  // A closed hull, exactly like the cylinder - same grid, different axes - so it
   // needs no seam caps and every quad is part of the surface.
   assert.equal(lab.quads.length, solid.quads.length, 'same surface grid, no caps');
 
@@ -237,7 +237,7 @@ test('the lab embedding stands lightness up over the a/b floor, in true proporti
   }
 
   // The near surface is still the one we see (a flipped cull is invisible to the
-  // eye — see the cylinder's version of this check above).
+  // eye - see the cylinder's version of this check above).
   for (const [yaw, expected] of [[0, 90], [90, 0], [180, 270]] as [number, number][]) {
     const quads = projectGamutSolid(lab, { yaw, pitch: 0 });
     assert.ok(quads.length > 0 && quads.length < lab.quads.length, `yaw ${yaw} culls a back face`);
@@ -325,7 +325,7 @@ test('solidPointOklch inverts every embedding', () => {
 /**
  * Every quad carries the colour it was AUTHORED with, not only its sRGB bake.
  *
- * The bake is what a caller must not paint a wide-gamut surface from — on a P3
+ * The bake is what a caller must not paint a wide-gamut surface from - on a P3
  * canvas it shows the chart's own subject as the fallback it is supposed to be
  * demonstrating you do not need. The test is written on a P3 solid because that
  * is where the two values are allowed to differ: on an sRGB solid they agree by
@@ -340,7 +340,7 @@ test('a wide-gamut solid carries chroma its sRGB hex cannot hold', () => {
     // The bake preserves L and H and reduces C (CSS Color 4 §14.2), so the hex can
     // never be MORE chromatic than what it was baked from. Checked only above
     // c 0.05: the hex is 8-bit, and down near the achromatic axis one quantisation
-    // step is a large FRACTION of the chroma — a near-grey can round to 0.017 from
+    // step is a large FRACTION of the chroma - a near-grey can round to 0.017 from
     // an authored 0.013 without anything being wrong.
     const baked = hexToOklch(q.hex)!;
     if (q.oklch.c >= 0.05) {

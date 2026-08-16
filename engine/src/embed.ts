@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
- * Embed URL grammar — the portable surface of tool composition.
+ * Embed URL grammar - the portable surface of tool composition.
  *
  * An author can write a literal, real-looking image URL in a template:
  *
@@ -14,7 +14,7 @@
  * client interceptor and any future server route.
  *
  * This module is pure and DOM-free: it only parses a string. The strict matcher
- * is the security boundary — anything that is not exactly this shape returns
+ * is the security boundary - anything that is not exactly this shape returns
  * null, and the caller then treats the src as an ordinary image (no local
  * render, so no way to coerce an arbitrary URL into "render this as a tool").
  */
@@ -22,8 +22,8 @@
 const EMBED_HOST = 'lolly.tools';
 
 /** A child render format an embed URL extension can name. Still formats plus the
- *  motion formats — webm/mp4 (video) and gif/apng (animated raster) — so a tool
- *  with movement can be embedded as a MOVING image, not just a frozen frame. The
+ *  motion formats: webm/mp4 (video) and gif/apng (animated raster). This lets a tool
+ *  with movement be embedded as a moving image, not just a frozen frame. The
  *  motion extensions must live here (not only in the liberal recogniser) because
  *  buildEmbedUrl mints `…/tool/<id>.webm?…` as the asset's persistent identity and
  *  that URL has to re-parse through THIS gate on reload. */
@@ -43,13 +43,13 @@ export interface EmbedRef {
 const EXT_FORMAT: Record<string, EmbedFormat> = { png: 'png', jpg: 'jpg', jpeg: 'jpeg', webp: 'webp', svg: 'svg', pdf: 'pdf', webm: 'webm', mp4: 'mp4', gif: 'gif', apng: 'apng' };
 
 // Same grammar as a tool id on disk / in the manifest schema: lowercase, digits,
-// hyphens, no leading/trailing hyphen, ≥2 chars. Anchored — no slashes, no `..`.
+// hyphens, no leading/trailing hyphen, ≥2 chars. Anchored - no slashes, no `..`.
 const ID_RE = /^[a-z0-9][a-z0-9-]*[a-z0-9]$/;
 
 /**
  * Parse a Lolly embed URL. Returns { toolId, ext, format, query } for a valid
  * `https://lolly.tools/tool/<id>.<ext>?<query>`, or null for anything else.
- * `src` is whatever a template put in an attribute — narrowed immediately.
+ * `src` is whatever a template put in an attribute - narrowed immediately.
  */
 export function parseEmbedUrl(src: unknown): EmbedRef | null {
   if (typeof src !== 'string' || src.length > 4096) return null;

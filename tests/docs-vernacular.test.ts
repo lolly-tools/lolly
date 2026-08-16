@@ -1,8 +1,8 @@
 /**
  * Deterministic vernacular + hidden-unicode gate over the English docs
- * sources. The scanner is a plain script (scripts/check-docs-vernacular.ts) —
+ * sources. The scanner is a plain script (scripts/check-docs-vernacular.ts) - 
  * character and substring matching with a literal allowlist, no judgment
- * anywhere — so what this test enforces is exactly what the standalone CLI
+ * anywhere - so what this test enforces is exactly what the standalone CLI
  * enforces, and neither depends on a model or a reviewer noticing.
  *
  * If this fails: fix the copy, never the ban list. Adding an ALLOW entry is a

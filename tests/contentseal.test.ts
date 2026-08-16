@@ -3,10 +3,10 @@
  * Content Seal message-free consensus tests (engine/src/contentseal.ts).
  * Run with: node --test tests/contentseal.test.ts
  *
- * These test the PURE 4-views unanimity rule — the bit math only — against
+ * These test the PURE 4-views unanimity rule - the bit math only - against
  * inputs whose unanimity count is known BY CONSTRUCTION, not against the
  * module's own ONNX output (there is no ONNX runtime, model, image, or browser
- * in this environment; the neural half is UNVERIFIED — see
+ * in this environment; the neural half is UNVERIFIED - see
  * shells/web/src/lib/contentseal.ts's header). The independent expectation is
  * the number of unanimous positions I build into each input by hand, so this is
  * not mock-theater: identical messages must read PRESENT, disagreeing noise must
@@ -21,7 +21,7 @@ import {
   CONTENTSEAL_DEFAULT_TAU,
 } from '../engine/src/contentseal.ts';
 
-// Deterministic PRNG — tests must not depend on Math.random (project convention;
+// Deterministic PRNG - tests must not depend on Math.random (project convention;
 // see tests/trustmark.test.ts / tests/steganalysis.test.ts).
 function lcg(seed: number): () => number {
   let s = seed;
@@ -36,7 +36,7 @@ function randomBits(rnd: () => number, len = N): number[] {
 
 // Build four views with EXACTLY `k` unanimous positions: the first k positions
 // are all-1 across every view (unanimous); the rest set view3=0 while views 0-2
-// are 1, so those positions are 3-vs-1 splits — never unanimous. U === k exactly.
+// are 1, so those positions are 3-vs-1 splits - never unanimous. U === k exactly.
 function viewsWithUnanimity(k: number, V = 4, len = N): number[][] {
   const views: number[][] = Array.from({ length: V }, () => new Array<number>(len).fill(1));
   for (let i = k; i < len; i++) views[V - 1]![i] = 0;
@@ -66,7 +66,7 @@ test('identical messages across all views ⇒ PRESENT, fully unanimous, message 
 
 test('four independent random messages ⇒ ABSENT, unanimity well below tau', () => {
   // Four mutually-independent noise vectors are the idealized null: per-position
-  // unanimity chance 1/8, so U ~ Binomial(256, 1/8) (mean 32, sd ≈ 5.29) — far
+  // unanimity chance 1/8, so U ~ Binomial(256, 1/8) (mean 32, sd ≈ 5.29) - far
   // under tau=72. Checked across several seeds so it isn't a lucky single draw.
   for (const seed of [1, 7, 42, 99, 2024, 31337]) {
     const rnd = lcg(seed);
@@ -98,7 +98,7 @@ test('a custom tau is honoured (calibration knob)', () => {
   const views = viewsWithUnanimity(40); // U = 40
   assert.equal(contentSealConsensus(views, { tau: 40 }).present, true, 'U=40 >= tau=40');
   assert.equal(contentSealConsensus(views, { tau: 41 }).present, false, 'U=40 < tau=41');
-  // The default tau (72) would reject U=40 — confirms the override actually moved it.
+  // The default tau (72) would reject U=40 - confirms the override actually moved it.
   assert.equal(contentSealConsensus(views).present, false);
 });
 

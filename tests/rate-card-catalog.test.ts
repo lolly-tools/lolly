@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
- * Catalog-shipped house rate card (Phase 5) — the validation the `validate-catalog`
+ * Catalog-shipped house rate card (Phase 5) - the validation the `validate-catalog`
  * ratecard branch composes: schema-valid is NOT the same as computable, so the branch
  * runs the SAME reader the drop path uses (parseRateCard), and additionally requires a
  * catalog card to be `confidential:true` so its trade rates are protected.
@@ -45,7 +45,7 @@ function catalogVerdict(obj: unknown): { ok: true } | { ok: false; reason: strin
 }
 
 /** A synthetic, schema-valid, non-example house card. Rates are fictional test
- *  numbers, present only in this test file — never shipped as a catalog asset. */
+ *  numbers, present only in this test file - never shipped as a catalog asset. */
 function houseCard(over: Record<string, unknown> = {}) {
   return {
     $format: 'lolly-ratecard',

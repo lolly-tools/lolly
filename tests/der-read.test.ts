@@ -6,7 +6,7 @@
  * Run with: node --test tests/der-read.test.ts
  *
  * CONTRACT (discovered by reading the module, asserted below): every entry
- * point is SYNCHRONOUS and THROWS on malformed input — it is the "throws
+ * point is SYNCHRONOUS and THROWS on malformed input - it is the "throws
  * promptly" contract of docs/parser-inventory.md, not the house
  * never-throw/return-null reader contract. `derTlv` never returns a TLV whose
  * `end` reaches past the buffer, and it never returns a NaN offset.
@@ -14,10 +14,10 @@
  * THE INVARIANT under test (the module header calls it "the GIF lesson"): a
  * multi-byte length head must be bounds-checked BEFORE its bytes are read,
  * because an out-of-range Uint8Array read yields `undefined`, `undefined`
- * NaN-poisons the accumulated length, and `j + NaN > b.length` is false — so a
+ * NaN-poisons the accumulated length, and `j + NaN > b.length` is false - so a
  * naive walker's overrun guard passes silently and hands its caller a TLV with
  * end === NaN. `naiveDerTlv` below is that naive walker (it is deliberately the
- * shape of the in-file helper tests/x509.test.ts uses), and the pair of
+ * structure of the in-file helper tests/x509.test.ts uses), and the pair of
  * assertions in "the NaN-poison read" pins the difference.
  *
  * DER inputs reach this module straight out of attacker-controlled files (an
@@ -29,7 +29,7 @@ import assert from 'node:assert/strict';
 
 import { derTlv, derChildren, ecdsaDerToRaw, ecdsaRawToDer, EC_CURVES } from '../engine/src/der-read.ts';
 
-// ─── local DER writer (fixtures only — never the module under test) ───────────
+// ─── local DER writer (fixtures only - never the module under test) ───────────
 
 /** Minimal-form DER length: short form under 0x80, else 0x8k + k big-endian bytes. */
 function derLen(n: number): Uint8Array {
@@ -193,7 +193,7 @@ test('the NaN-poison read: a truncated long-form length HEAD throws, where a nai
 
 test('no reachable input yields a NaN or out-of-range span (sweep over truncations of a real structure)', () => {
   // Every prefix of a nested structure either parses to an in-bounds TLV or
-  // throws. Nothing in between — that is the whole contract in one loop.
+  // throws. Nothing in between - that is the whole contract in one loop.
   const full = tlv(SEQUENCE, concat([
     tlv(INTEGER, Uint8Array.of(0x01)),
     tlv(OCTET_STRING, new Uint8Array(200).fill(0x5a)),
@@ -237,7 +237,7 @@ test('a child may overrun its parent when the buffer continues past it', () => {
   // derTlv bounds-checks against the BUFFER, and derChildren stops at the
   // parent's end without re-checking that the last child fitted inside it. A
   // hostile inner length can therefore report a span that reaches past the
-  // container it was read from (still inside the buffer — never out of bounds).
+  // container it was read from (still inside the buffer - never out of bounds).
   // Pinned as behaviour, not endorsed: callers that slice by a child's span
   // must not assume the parent bounded it.
   const bytes = concat([Uint8Array.of(SEQUENCE, 0x02, OCTET_STRING, 0x06), new Uint8Array(6).fill(0xcc)]);
@@ -252,7 +252,7 @@ test('a child may overrun its parent when the buffer continues past it', () => {
 // ─── depth ────────────────────────────────────────────────────────────────────
 
 test('deep nesting: no declared depth cap, and no stack growth to blow', () => {
-  // The module declares NO MAX_DEPTH — deliberately, per its header: derTlv
+  // The module declares NO MAX_DEPTH - deliberately, per its header: derTlv
   // reads one TLV and derChildren iterates one level, so neither recurses and
   // depth costs a caller's loop, not stack frames. 5000 levels (well past any
   // certificate) walk clean; a depth cap would have to live in the caller.
@@ -337,7 +337,7 @@ test('EC_CURVES pins the OID → curve/hash/field-width table', () => {
   assert.deepEqual(EC_CURVES['2b81040023'], { curve: 'P-521', hash: 'SHA-512', size: 66 });
   assert.equal(Object.keys(EC_CURVES).length, 3, 'a new curve needs its paired SHA and field width checked here');
   // The size column is what ecdsaDerToRaw pads to: it must match the field size
-  // (P-521 is 66 bytes, not 64 — the classic off-by-two in this table).
+  // (P-521 is 66 bytes, not 64 - the classic off-by-two in this table).
   for (const [oid, { size }] of Object.entries(EC_CURVES)) {
     const raw = new Uint8Array(size * 2).fill(0x5a);
     assert.deepEqual(ecdsaDerToRaw(ecdsaRawToDer(raw), size), raw, oid);

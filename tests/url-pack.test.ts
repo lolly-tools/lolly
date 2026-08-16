@@ -2,7 +2,7 @@
 // Contract tests for packed URL state (engine/src/url-pack.js).
 //
 // The invariant that matters: decode(encode(x)) === x for ANY query string, so a
-// packed link is a lossless carrier of the exact readable query — including the
+// packed link is a lossless carrier of the exact readable query - including the
 // compact block encoding (`~`/`,` delimiters, %-escaped values) that the sync
 // parser later depends on. Packing is threshold-gated by the caller, so these also
 // pin the "packing loses on tiny inputs" reality that makes the gate necessary.
@@ -37,7 +37,7 @@ test('packQuery/unpackToken round-trips a large query byte-for-byte', async () =
   assert.equal(await unpackToken(token!), BIG_QUERY);
 });
 
-// --- Encrypted links (`zx`) — password-gated, client-side, no server -----------
+// --- Encrypted links (`zx`) - password-gated, client-side, no server -----------
 
 test('packEncrypted/unpackEncrypted round-trips with the right password', async () => {
   assert.ok(isEncryptAvailable(), 'WebCrypto should be available in the test runtime');
@@ -75,7 +75,7 @@ test('the password never appears in the token; zx is not expanded by expandQuery
   assert.ok(!token!.includes('sup3r'), 'no plaintext password fragment in the token');
   assert.ok(hasEncryptedState(`${ENC_PARAM}=${token}`));
   assert.ok(!hasEncryptedState('color=30BA78'));
-  // Only the interactive load boundary decrypts zx — expandQuery leaves it untouched.
+  // Only the interactive load boundary decrypts zx - expandQuery leaves it untouched.
   assert.equal(await expandQuery(`${ENC_PARAM}=${token}`), `${ENC_PARAM}=${token}`);
 });
 
@@ -84,14 +84,14 @@ test('packEncrypted returns null without a password', async () => {
 });
 
 test('packEncrypted caps the UNCOMPRESSED input (symmetric with the inflate cap)', async () => {
-  // A >256KB query DEFLATEs tiny, but must still be refused — otherwise it mints a
+  // A >256KB query DEFLATEs tiny, but must still be refused - otherwise it mints a
   // token the decoder's inflate cap would reject, i.e. an undecryptable "protected" link.
   const huge = 'a=' + 'x'.repeat(300 * 1024);
   assert.equal(await packEncrypted(huge, 'pw'), null);
 });
 
 test('round-trip preserves compact block delimiters and %-encoded values exactly', async () => {
-  // Decode the packed form, then parse it — the boxes must come back intact, proving
+  // Decode the packed form, then parse it - the boxes must come back intact, proving
   // the pack layer is transparent to the compact-block encoding the parser relies on.
   const token = await packQuery(BIG_QUERY);
   const decoded = await unpackToken(token!);
@@ -157,7 +157,7 @@ test('hasPackedState / isPackAvailable', async () => {
 
 test('packQuery refuses input over the size cap (encode/decode limits stay symmetric)', async () => {
   // A large-but-compressible query would pack to a tiny token, but its inflated output
-  // exceeds unpackToken's cap — so packQuery must NOT mint it, or the app would produce
+  // exceeds unpackToken's cap - so packQuery must NOT mint it, or the app would produce
   // a link it cannot reopen (silent, unrecoverable state loss). The caller then falls
   // back to the readable URL, which round-trips unpacked.
   const huge = 'a=' + 'x'.repeat(400 * 1024);

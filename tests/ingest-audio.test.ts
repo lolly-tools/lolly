@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
- * Unit tests for the pure halves of scripts/ingest-audio.ts — header title
+ * Unit tests for the pure halves of scripts/ingest-audio.ts - header title
  * extraction, slugging, the checksum convention, tagging, and (most importantly)
  * the licence refusal. Run with: node --test tests/ingest-audio.test.ts
  *
@@ -66,7 +66,7 @@ test('an unknown extension has no title layout', () => {
 
 test('every MODULE_FORMATS entry has a title reader (no silent fallthrough)', () => {
   // A format libopenmpt decodes but whose header we cannot read would silently fall
-  // back to the filename for every file — worth failing on if the list ever grows.
+  // back to the filename for every file - worth failing on if the list ever grows.
   const probes: Record<string, Uint8Array> = {
     mod: buf(1084, [0, 'title']),
     xm: buf(336, [0, 'Extended Module: '], [17, 'title']),

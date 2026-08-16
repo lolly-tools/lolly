@@ -7,7 +7,7 @@
  *
  * Regenerates the count sentence + tool table between the
  * `<!-- tools-table:start -->` / `<!-- tools-table:end -->` markers in
- * README.md from `catalog/tools/index.json` — the ACTIVE-profile view, so the
+ * README.md from `catalog/tools/index.json` - the ACTIVE-profile view, so the
  * table reflects whatever `npm run profile:<name>` last built. The table lists
  * LISTED tools only (alphabetical); unlisted helpers are called out in the
  * sentence, mirroring how the section was hand-maintained before it was

@@ -6,9 +6,9 @@
  * shell's re-export at shells/web/src/bridge/pptx.ts, so this suite also proves
  * that re-export still exposes the full surface.
  *
- * The part map mirrors tests/pptx-read.test.ts: hand-written OOXML —
+ * The part map mirrors tests/pptx-read.test.ts: hand-written OOXML - 
  * presentation.xml + rels + theme1.xml + slide1.xml carrying one literal
- * srgbClr, one schemeClr reference, and one explicit a:latin typeface — zipped
+ * srgbClr, one schemeClr reference, and one explicit a:latin typeface - zipped
  * with fflate, the same library the bridge inflates with. In node there is no
  * Worker, so the bridge's async unzip takes its unzipSync fallback; that IS the
  * CLI-shell path, exercised for real. The injected parseXml is a jsdom
@@ -77,7 +77,7 @@ const THEME = `${XML_DECL}
 </a:theme>`;
 
 // One text run in a LITERAL srgbClr (with an explicit a:latin), and one rect
-// whose fill is a schemeClr REFERENCE — inspect must list only the literal.
+// whose fill is a schemeClr REFERENCE - inspect must list only the literal.
 const SLIDE1 = `${XML_DECL}
 <p:sld xmlns:a="${NS_A}" xmlns:r="${NS_R}" xmlns:p="${NS_P}">
   <p:cSld>
@@ -164,7 +164,7 @@ test('inspect lists literal colours only, fonts, and the theme as #RRGGBB', asyn
   const res = await api.inspect(zipDeck());
   assert.equal(res.ok, true);
   assert.equal(res.slideCount, 1);
-  // the schemeClr accent1 fill follows the theme swap — only the literal remains
+  // the schemeClr accent1 fill follows the theme swap - only the literal remains
   assert.deepEqual(res.colors, [{ hex: '#FF0000' }]);
   // run typeface first-appearance, then the theme faces
   assert.deepEqual(res.fonts.map((f) => f.family), ['Georgia', 'Calibri Light', 'Calibri']);
@@ -197,7 +197,7 @@ test('inspect with brand swatches + fonts suggests replacements and a theme', as
   assert.equal(res.themeSuggestion!.minorFont, 'Poppins');
 });
 
-// A slide that is ONE full-bleed picture and nothing else — what "export the
+// A slide that is ONE full-bleed picture and nothing else - what "export the
 // deck to PDF, import the pages back" produces. There is no literal colour and
 // no typeface on it, so a rebrand cannot change a pixel; `content` is the
 // signal a tool uses to say so before the user spends a download.
@@ -258,7 +258,7 @@ test('rebrand normalises colorMap keys and passes untouched parts byte-identical
   const slide = strFromU8(files['ppt/slides/slide1.xml']!);
   assert.ok(slide.includes('val="30BA78"'));
   assert.ok(!slide.includes('FF0000'));
-  // the schemeClr reference is not a literal — it stays
+  // the schemeClr reference is not a literal - it stays
   assert.ok(slide.includes('<a:schemeClr val="accent1"/>'));
   assert.equal(report.colorsRemapped, 1);
   assert.deepEqual(report.slidesTouched, ['ppt/slides/slide1.xml']);
@@ -278,14 +278,14 @@ test('rebrand accepts a "#"-prefixed theme slot (engine hexNorm strips the hash)
 });
 
 test('rebrand colorMap keys accept alpha hex forms; near-hex garbage still drops', async () => {
-  // #RGBA expands like #RGB and #RRGGBBAA slices — both must match FF0000
+  // #RGBA expands like #RGB and #RRGGBBAA slices - both must match FF0000
   for (const key of ['#F00A', '#FF0000CC', 'ff0000cc']) {
     const { bytes, report } = await api.rebrand(zipDeck(), { colorMap: { [key]: '0C322C' } });
     const slide = strFromU8(unzipSync(bytes)['ppt/slides/slide1.xml']!);
     assert.ok(slide.includes('val="0C322C"'), key);
     assert.equal(report.colorsRemapped, 1, key);
   }
-  // 5-hex would zero-pad into a real colour in the engine — it must be no key at all
+  // 5-hex would zero-pad into a real colour in the engine - it must be no key at all
   const { report } = await api.rebrand(zipDeck(), { colorMap: { '#F0000': '0C322C' } });
   assert.equal(report.colorsRemapped, 0);
 });

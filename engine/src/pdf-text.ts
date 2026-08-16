@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
- * PDF text reconstruction — positioned glyph runs → reading-ordered prose.
+ * PDF text reconstruction: positioned glyph runs to reading-ordered prose.
  *
  * `interpretPdfPage` (pdf-map.ts) hands back what the page PAINTS: a flat list of
  * text nodes, each one BT…ET block's worth of glyphs at a position. That is not
@@ -16,14 +16,14 @@
  * ### What the geometry can and cannot be trusted for
  *
  * `x`, `y` and `fontSize` come straight from the text matrix and are exact. `w`
- * is NOT — pdf-map estimates it as `chars × size × 0.55` because it never
+ * is NOT: pdf-map estimates it as `chars × size × 0.55` because it never
  * measures glyphs. So every decision here keys off x-positions, baselines and
  * font sizes, and treats width as a soft hint (column gutters, which is the one
  * place a rough width is good enough, because a gutter is wide by definition).
  *
  * A node's `text` can already contain newlines: the interpreter breaks a line
  * when the pen drops within one BT…ET. Those become separate lines here, sharing
- * the node's x — an approximation, since the interpreter does not keep each
+ * the node's x. This is an approximation, since the interpreter does not keep each
  * line's own origin, and a harmless one because a pen-drop inside one text object
  * is nearly always a left-aligned continuation.
  *
@@ -37,7 +37,7 @@
  *
  * Column detection is deliberately CONSERVATIVE. Splitting a page into columns
  * that are not there scrambles prose far worse than leaving real columns
- * interleaved, and the shape of a two-column page is not reliably distinguishable
+ * interleaved, and the layout of a two-column page is not reliably distinguishable
  * from a two-column table. The thresholds below (wide gutter, several lines a
  * side, lines that fill their column) err toward "one column".
  */
@@ -70,12 +70,12 @@ const SCAN_COVERAGE = 0.5;
 
 // ── shapes ────────────────────────────────────────────────────────────────────
 
-/** One positioned fragment of text — a node, or one line of a multi-line node. */
+/** One positioned fragment of text: a node, or one line of a multi-line node. */
 export interface TextItem {
   text: string;
   /** Left edge, in the page's top-left y-down box space. */
   x: number;
-  /** Baseline, not the box top — mixed sizes on one line share a baseline, not a top. */
+  /** Baseline, not the box top: mixed sizes on one line share a baseline, not a top. */
   baseline: number;
   /** Estimated right edge. Soft: pdf-map does not measure glyphs. */
   right: number;
@@ -123,12 +123,12 @@ export interface PageText {
   blocks: TextBlock[];
   /** Plain text: blocks separated by blank lines, in reading order. */
   text: string;
-  /** The same content as markdown — headings and list items marked up. */
+  /** The same content as markdown: headings and list items marked up. */
   markdown: string;
   /** How many columns the page was read as (1 when no split was believed). */
   columns: number;
   /**
-   * The page paints no text but is mostly covered by an image — i.e. a SCAN.
+   * The page paints no text but is mostly covered by an image: a SCAN.
    * There is nothing to extract without OCR, and callers must say so rather
    * than present an empty result as "this page is blank".
    */
@@ -248,7 +248,7 @@ function toLines(items: TextItem[]): TextLine[] {
       text = joinFragments(text, it, prevRight);
       prevRight = it.right;
     }
-    // The dominant size is the one carrying the most characters — a line ending
+    // The dominant size is the one carrying the most characters: a line ending
     // in a small footnote marker is still a body line.
     const weight = new Map<number, number>();
     for (const it of byX) weight.set(it.size, (weight.get(it.size) ?? 0) + it.text.length);
@@ -293,7 +293,7 @@ function toLines(items: TextItem[]): TextLine[] {
  * grid, so assembling lines first splices the left and right columns into single
  * lines spanning the page, and by then there is no gutter left to find.
  *
- * The test is a merged-interval sweep over horizontal extents — a gap no item
+ * The test is a merged-interval sweep over horizontal extents: a gap no item
  * crosses is a candidate gutter.
  */
 interface Gutter { x: number; gap: number }
@@ -328,7 +328,7 @@ function splitByCuts(items: TextItem[], cuts: number[]): TextItem[][] {
  * Judged on the assembled LINES rather than the items, because that is where the
  * distinction actually shows: a column of prose has lines that fill their
  * measure, whereas table cells stay short no matter how wide the column is. The
- * guard is deliberately strict — reading one column as two destroys the prose,
+ * guard is deliberately strict: reading one column as two destroys the prose,
  * whereas reading two columns as one merely interleaves them, so ambiguity must
  * resolve to "one column".
  */
@@ -392,7 +392,7 @@ function blocksFromColumn(lines: TextLine[], column: number): TextBlock[] {
     const marker = LIST_MARKER.exec(buf[0]!.text)?.[0]?.trim();
     let text = '';
     for (const l of buf) text = appendLine(text, l.text);
-    // The marker is recorded once, here, and removed from the prose — so no
+    // The marker is recorded once, here, and removed from the prose, so no
     // renderer downstream has to know what a bullet looks like.
     if (marker) text = text.replace(LIST_MARKER, '');
     const size = median(buf.map((l) => l.size));
@@ -427,8 +427,8 @@ function blocksFromColumn(lines: TextLine[], column: number): TextBlock[] {
 /**
  * Build blocks from the structure tree instead of from geometry.
  *
- * Geometry is still used INSIDE an element — to join its runs into lines and
- * repair hyphenation — because that part is not a guess: within one paragraph,
+ * Geometry is still used INSIDE an element, to join its runs into lines and
+ * repair hyphenation, because that part is not a guess: within one paragraph,
  * position really does say what follows what. What the structure tree replaces
  * is everything geometry cannot know: which paragraph comes next, where one
  * block ends and the next begins, and whether something is a heading.
@@ -459,7 +459,7 @@ function taggedBlocks(items: TextItem[], tagged: TaggedElement[]): {
     if (!mine.length) continue;
     for (const it of mine) used.add(it);
 
-    // Lines within the element, then one block per element — a /P IS a paragraph.
+    // Lines within the element, then one block per element: a /P IS a paragraph.
     const lines = toLines(mine);
     if (!lines.length) continue;
     let text = '';
@@ -489,7 +489,7 @@ function taggedBlocks(items: TextItem[], tagged: TaggedElement[]): {
 /**
  * Promote larger-than-body blocks to headings, levelled by size rank.
  *
- * Body size is the size carrying the most CHARACTERS, not the most blocks — a
+ * Body size is the size carrying the most CHARACTERS, not the most blocks. A
  * page of one long paragraph under six big headings still has body text at the
  * paragraph's size.
  */
@@ -614,7 +614,7 @@ export function extractPageText(nodes: PdfNode[], opts: PdfTextOptions = {}): Pa
     };
   }
 
-  // Body size sets the gutter threshold, so it is measured from the raw items —
+  // Body size sets the gutter threshold, so it is measured from the raw items,
   // before any grouping that a wrong threshold could distort.
   const sizeChars = new Map<number, number>();
   for (const it of items) sizeChars.set(it.size, (sizeChars.get(it.size) ?? 0) + it.text.length);
@@ -634,7 +634,7 @@ export function extractPageText(nodes: PdfNode[], opts: PdfTextOptions = {}): Pa
     // Below the floor the tree is not trusted at all and geometry runs instead.
     if (totalChars > 0 && taggedChars / totalChars >= MIN_TAGGED_COVERAGE && tb.length) {
       // Whatever the tree did not claim is usually an artifact (a running head, a
-      // page number) that genuinely sits outside the flow — appended, and counted
+      // page number) that genuinely sits outside the flow. It is appended, and counted
       // so a caller can say so rather than imply the page was fully tagged.
       const leftovers = items.filter((it) => !used.has(it));
       const extra = leftovers.length ? blocksFromColumn(toLines(leftovers), 0) : [];
@@ -653,7 +653,7 @@ export function extractPageText(nodes: PdfNode[], opts: PdfTextOptions = {}): Pa
   }
 
   // Cut columns on items, assemble lines inside each, then check the split was
-  // real. If it was not, fall back to assembling every item as one column — the
+  // real. If it was not, fall back to assembling every item as one column. The
   // lines have to be rebuilt, because lines built per-column are not the lines a
   // single-column page has.
   const cuts = items.length >= MIN_COLUMN_LINES * 2 ? findGutters(items, bodySize) : [];
@@ -679,7 +679,7 @@ export function extractPageText(nodes: PdfNode[], opts: PdfTextOptions = {}): Pa
  *
  * Pages are separated by a rule in markdown and a blank line in plain text.
  * Scanned pages become an explicit note rather than silently contributing
- * nothing — a reader must be able to tell a gap from an absence.
+ * nothing. A reader must be able to tell a gap from an absence.
  */
 export function joinPageText(pages: PageText[], opts: { markdown?: boolean } = {}): string {
   const md = opts.markdown !== false;

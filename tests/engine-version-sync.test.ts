@@ -5,7 +5,7 @@
  *
  * The published package version IS the engine version (see engine/package.json's
  * `//version` note), and scripts/pack-engine.ts REFUSES to pack when they differ.
- * That guard only fires at pack time, which is downstream and rare — so the two
+ * That guard only fires at pack time, which is downstream and rare - so the two
  * silently drifted (package.json sat at 1.61.0 while ENGINE_VERSION advanced past
  * 1.100), and every attempt to re-pin a vendored consumer (e.g. the lolly-work
  * control plane) was blocked with no signal in normal CI. This test moves that

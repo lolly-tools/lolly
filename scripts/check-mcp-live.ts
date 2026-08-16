@@ -4,7 +4,7 @@
  *
  * WHY THIS EXISTS
  * The MCP handler is bundled into a single Vercel function (see build-mcp-fn.ts);
- * the repo's explicit `.ts` import specifiers make that bundling fragile — a
+ * the repo's explicit `.ts` import specifiers make that bundling fragile - a
  * botched build makes the function throw at import time and return 500, or vanish
  * so the SPA rewrite answers with 405/HTML. Either way the MCP endpoint is dead
  * but the site still "works", so it goes unnoticed. This check asserts the

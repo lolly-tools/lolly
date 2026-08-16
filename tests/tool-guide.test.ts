@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MPL-2.0
-// The manifest `guide` block — a tool's short "now what?" walkthrough (schema +
+// The manifest `guide` block - a tool's short "now what?" walkthrough (schema +
 // packages/core types + the shell dialog in shells/web/src/components/tool-guide.ts).
 // Covered here: the schema contract every shell trusts, and the i18n sidecar
 // overlay (engine/src/loader.ts's applyManifestI18n), whose guide traversal is
@@ -96,7 +96,7 @@ test('the email-signature guide points at the export path the shell provides', (
   const path = new URL('../brands/suse/tools/email-signature/tool.json', import.meta.url);
   let manifest: Record<string, any>;
   try { manifest = JSON.parse(readFileSync(fileURLToPath(path), 'utf8')); }
-  catch { return; }   // private brand pack not mounted (public clone / CI) — nothing to check
+  catch { return; }   // private brand pack not mounted (public clone / CI) - nothing to check
 
   assert.equal(validateManifest(manifest).valid, true);
   const guide = manifest.guide;

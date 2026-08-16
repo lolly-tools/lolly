@@ -6,21 +6,21 @@
  *
  * Three oracles, in order of strength, matching `geom-intersect.test.ts`:
  *
- * 1. **Analytic** — answers known in closed form. Overlapping unit squares give exact
+ * 1. **Analytic** - answers known in closed form. Overlapping unit squares give exact
  *    rationals; a pentagram's nonzero and even-odd fills are shoelace areas of a 10-gon
  *    and a pentagon whose radii are R and R/φ²; a self-intersecting cubic's two lobes
  *    are integrated over the sub-ranges its loop parameters bracket. Circles-as-cubics
- *    are checked against *their own* area, never against πr² — the fixture is the cubic
+ *    are checked against *their own* area, never against πr² - the fixture is the cubic
  *    APPROXIMATION of a circle and encloses 2.8e-4 more, so an idealised expectation
  *    makes exact code look broken. Where a circle appears in an exact test it is via set
  *    algebra that holds whatever the shape is: area(A∪B) + area(A∩B) = area(A) + area(B).
- * 2. **Residual** — every point of every output curve must lie ON an input curve to
+ * 2. **Residual** - every point of every output curve must lie ON an input curve to
  *    machine precision, measured with `nearestOnCubic` against every input. This is the
  *    oracle a flattening implementation fails by construction: it would be off by its
  *    flattening tolerance, ~1e-3, not the ~1e-14 measured here. Paired with a curve-count
  *    ceiling, because silently turning eight curves into four hundred line segments is
  *    the exact failure the module exists to prevent.
- * 3. **Dense** — an independent brute-force region test built on `flattenCubic`: rings of
+ * 3. **Dense** - an independent brute-force region test built on `flattenCubic`: rings of
  *    line segments, a crossing-count winding number, and a grid of sample points. That is
  *    the thing the module refuses to do internally, which is precisely what makes it a
  *    good reference for it.
@@ -31,7 +31,7 @@
  * from path.ts cannot excuse a wrong answer from boolean.ts. ∮x dy per curve by 3-point
  * Gauss-Legendre: the integrand is degree 5 for a cubic and the rule is exact to degree 5,
  * so it is a closed form and not a sample. The two are then asserted to agree on a curved
- * contour, which is also the regression guard on path.ts's own correction — `contourArea`
+ * contour, which is also the regression guard on path.ts's own correction - `contourArea`
  * used to assemble itself from `signedAreaCubic` plus a chord term of the opposite sign
  * and reported 85.75 for a circle of 314.25, exact for straight contours and wrong for
  * every curved one.
@@ -73,7 +73,7 @@ const near = (a: number, b: number, eps = 1e-9, what = '') =>
 
 // ── fixtures ──────────────────────────────────────────────────────────────────
 
-/** A closed polygon as cubics with collinear controls — the module's "a line is a
+/** A closed polygon as cubics with collinear controls - the module's "a line is a
  *  cubic" premise exercised rather than special-cased. */
 function poly(pts: readonly (readonly [number, number])[]): Contour {
   const curves: Cubic[] = [];
@@ -207,7 +207,7 @@ function assertClosedContours(p: GeomPath, eps = JOIN_EPS) {
 
 // ── oracle 3: dense flattening ────────────────────────────────────────────────
 
-/** Polyline rings from the real curves. Only ever an oracle — the module doing this
+/** Polyline rings from the real curves. Only ever an oracle - the module doing this
  *  internally is the failure everything above is guarding against.
  *
  *  Every flattened point is kept and only exact duplicates at the joins are dropped. An
@@ -299,8 +299,8 @@ test('the area oracle is exact, checked against a dense numeric integral', () =>
 test('the local oracle and contourArea agree on a CURVED contour', () => {
   // Two independent closed forms for the same integral. They diverge the moment either
   // side regresses, and path.ts's has: contourArea used to add `signedAreaCubic`'s bulge
-  // to a chord term of the opposite sign and returned 85.75 here. Polygons hide it —
-  // a straight curve has no bulge — so the check has to be on curves.
+  // to a chord term of the opposite sign and returned 85.75 here. Polygons hide it - 
+  // a straight curve has no bulge - so the check has to be on curves.
   const c = circle(0, 0, 10);
   near(contourArea(c), pathArea([c]), 1e-9);
   near(contourArea(reverse(c)), -pathArea([c]), 1e-9);
@@ -313,7 +313,7 @@ test('the local oracle and contourArea agree on a CURVED contour', () => {
 
 test('the cubic circle is NOT a circle, and the tests must expect its own area', () => {
   // 2.8e-4 too large. Every circle expectation below is derived from this number, never
-  // from pi r^2 — checking an exact algorithm against an idealised fixture reads as a bug
+  // from pi r^2 - checking an exact algorithm against an idealised fixture reads as a bug
   // in the algorithm.
   const own = pathArea([circle(0, 0, 10)]);
   const ideal = Math.PI * 100;
@@ -610,8 +610,8 @@ test('selfUnion collapses a retraced spur', () => {
   const slit = poly([[0, 0], [10, 0], [10, 10], [5, 10], [5, 5], [5, 10], [0, 10]]);
   const s = selfUnion([slit]);
   near(pathArea(s), 100, 1e-12);
-  // Counting curves would over-specify — the top edge may legitimately stay in two
-  // pieces — but a surviving retraced pair is unambiguous.
+  // Counting curves would over-specify - the top edge may legitimately stay in two
+  // pieces - but a surviving retraced pair is unambiguous.
   const curves = allCurves(s);
   for (let i = 0; i < curves.length; i++) {
     for (let j = i + 1; j < curves.length; j++) {
@@ -662,7 +662,7 @@ test('the same circle cut into eight curves instead of four still coincides', ()
   // Geometrically identical, parametrically not: each of B's curves covers half of one of
   // A's. `coincidence` proves identity by agreeing at four fixed parameters and cannot see
   // this, so the overlap has to be found by projecting endpoints instead. It is not an
-  // exotic input — it is what an offset produces the moment its output is recombined.
+  // exotic input - it is what an offset produces the moment its output is recombined.
   const four = circle(0, 0, 10);
   const eight: Contour = { closed: true, curves: four.curves.flatMap((k) => splitCubic(k, 0.5)) };
   const own = pathArea([four]);
@@ -874,7 +874,7 @@ test('a tangency at a shared vertex does not merge or lose anything', () => {
 test('a straight edge tangent to a curve at an interior point', () => {
   // The line x + y = 10*sqrt(2) sits at distance 10 from the origin, and the cubic circle
   // passes exactly through its 45 degree point, so the contact is exact rather than an
-  // artefact of the approximation. That point is t=0.5 of an arc — the exact midpoint at
+  // artefact of the approximation. That point is t=0.5 of an arc - the exact midpoint at
   // which that piece gets classified.
   const d = 10 * Math.SQRT2;
   const tri = [poly([[d, 0], [0, d], [60, 60]])];
@@ -886,7 +886,7 @@ test('a straight edge tangent to a curve at an interior point', () => {
 test('two curves tangent at an interior point keep both boundaries', () => {
   // Contact without crossing must not toggle the winding, and must not delete an edge
   // either. The contact here is at 45 degrees, which is the exact midpoint of an arc on
-  // both circles — so the piece being classified is decided AT the ambiguous point.
+  // both circles - so the piece being classified is decided AT the ambiguous point.
   const s = Math.SQRT1_2 * 20;
   const a = [circle(0, 0, 10)], b = [circle(s, s, 10)];
   const u = unionPath(a, b);
@@ -925,12 +925,12 @@ test('a tangency is not a coincident run — internal contact, at four scales', 
   // point, so every operator is settled by the operands' own areas: A∪B = A, A∩B = B,
   // A−B = A⊕B = A−B's ring. Read as a coincident run instead, the shared "overlap" was
   // decided once and the contact point's edges went the wrong way: 1285.550741 /
-  // 428.494467 / 1057.056275 against the 1256.988933 / 314.247233 / 942.741700 below —
+  // 428.494467 / 1057.056275 against the 1256.988933 / 314.247233 / 942.741700 below - 
   // 36% wrong on the intersection.
   //
   // Contact at the 45° point, where kappa makes the cubic circle exact. A tangency
   // anywhere else is a shallow double crossing of the APPROXIMATION, and an exact
-  // expectation there would be wrong by ~0.009 — ratifying an error instead of testing one.
+  // expectation there would be wrong by ~0.009 - ratifying an error instead of testing one.
   //
   // Four scales, because that is the property rather than the instance: the old code was
   // wrong at 12 of 80 such cases with relative errors to 377%, so a single-scale fixture
@@ -1091,7 +1091,7 @@ test('near-coincident operands do not spin', () => {
 });
 
 test('input past the ceiling degrades to a finite valid answer, not a hang', () => {
-  // Untrusted path data is ordinary input here — an imported SVG, a pasted glyph — so the
+  // Untrusted path data is ordinary input here - an imported SVG, a pasted glyph - so the
   // documented degradation is part of the contract: over the curve ceiling the pairwise
   // pass is skipped and the disjoint answer is returned. It must still be a path.
   const many: GeomPath = [];
@@ -1109,7 +1109,7 @@ test('input past the ceiling degrades to a finite valid answer, not a hang', () 
 test('over the ceiling, the three operators with nothing honest to return THROW', () => {
   // 3000 axis-aligned 2×2 squares (12000 curves, past the 8000 ceiling) minus a rectangle
   // that contains every one of them. The true difference is EMPTY, and the answer a
-  // disjoint pair would give is the whole of the first operand — 12000 units of area that
+  // disjoint pair would give is the whole of the first operand - 12000 units of area that
   // is a valid path, is silently wrong, and that no caller can tell from the real answer.
   // That is what the old fallback returned. It now refuses.
   const many: GeomPath = [];
@@ -1133,7 +1133,7 @@ test('over the ceiling, the three operators with nothing honest to return THROW'
   assert.throws(() => differencePath(many, big), (e: unknown) => e instanceof GeomLimitError);
   // Union is the exception, and it is exact rather than a shrug: both operands are
   // canonical and interior-left, so the concatenation's nonzero region IS A∪B. What it
-  // gives up is canonical FORM — the contours still overlap where the operands did.
+  // gives up is canonical FORM - the contours still overlap where the operands did.
   const u = unionPath(many, big);
   assert.equal(u.length, 3001, `union concatenates the operands, got ${u.length} contours`);
   for (const k of allCurves(u)) for (const v of k) assert.ok(Number.isFinite(v));
@@ -1145,7 +1145,7 @@ test('over the ceiling, the three operators with nothing honest to return THROW'
 
 test('the same answer at coordinates where an absolute epsilon is below one ulp', () => {
   // castRay's hit tolerance used to be an absolute 1e-9. At x ≈ 1e7 one ulp is 1.9e-9, so
-  // the ray's own origin — which sits ON the curve being classified, at exactly u = 0 —
+  // the ray's own origin - which sits ON the curve being classified, at exactly u = 0 - 
   // landed a couple of ulps the wrong side of it, the curve vanished from the count, the
   // edge was classified 0/0 and deleted, and the operation returned non-closed geometry
   // with half the area.
@@ -1173,13 +1173,13 @@ test('the same answer at coordinates where an absolute epsilon is below one ulp'
 
 test('a query point that defeats every ray direction is still inside the shape', () => {
   // `windingNumber` tries twelve directions and gives up on any that hits a curve
-  // endpoint. Its fallback used to be the last cast's `far`, which is a PREFIX SUM — the
-  // curves the failing cast never reached are simply missing from it — so a point deep
+  // endpoint. Its fallback used to be the last cast's `far`, which is a PREFIX SUM - the
+  // curves the failing cast never reached are simply missing from it - so a point deep
   // inside a shape came back outside it.
   //
   // The fixture defeats all twelve at once: a 12-gon whose vertices sit exactly along the
   // module's own ray directions from the query point, so every ray leaves through a vertex.
-  // The directions are reconstructed here rather than imported, which is the point — if
+  // The directions are reconstructed here rather than imported, which is the point - if
   // the module's list changes, this fixture stops being adversarial and says so by the
   // count below.
   const dirs: [number, number][] = [[1, 0], [0, 1]];
@@ -1198,7 +1198,7 @@ test('a query point that defeats every ray direction is still inside the shape',
     assert.equal(windingNumber(gon, qx, qy), 1, `(${qx},${qy}) is strictly inside: winding must be 1`);
     assert.equal(pointInPath(gon, qx, qy), true, 'and pointInPath must agree');
     assert.equal(pointInPath(gon, qx, qy, 'evenodd'), true, 'under either rule');
-    // Reversed, the same point is wound the other way — not zero.
+    // Reversed, the same point is wound the other way - not zero.
     assert.equal(windingNumber([reverse(poly(verts))], qx, qy), -1, 'reversed winding');
     // Every vertex really is on a ray from the query point, or the fixture is not
     // adversarial and this test proves nothing.
@@ -1225,13 +1225,13 @@ test('a non-finite tolerance falls back to the default instead of returning empt
     near(pathArea(selfUnion(a, { tol })), 100, 1e-9, `selfUnion at tol ${tol}`);
     assert.equal(unionPath(a, b, { tol }).length, 1, `tol ${tol}: one contour`);
   }
-  // A usable tolerance is still honoured — the conditioning must not swallow every value.
+  // A usable tolerance is still honoured - the conditioning must not swallow every value.
   near(pathArea(unionPath(a, b, { tol: 1e-6 })), 150, 1e-6);
 });
 
 test('a curve recombined with a sub-range of itself is exact, and fast', () => {
   // The composition Stage 3 lives on: an offset is self-unioned and then combined again,
-  // so an operand's boundary is routinely a PIECE of the other's — geometrically the same
+  // so an operand's boundary is routinely a PIECE of the other's - geometrically the same
   // curve, differently parameterised. Asking an intersector for isolated crossings that do
   // not exist is what makes this composition grind, so the time is asserted too.
   const arch: Cubic = [0, 0, 30, 90, 70, 90, 100, 0];
@@ -1274,7 +1274,7 @@ test('the identities hold on curved operands', () => {
 
 test('a shared edge broken into a weld-scale piece still unions to the whole rectangle', () => {
   // The shared edge between the two squares carries a sub-piece 1.5e-5 long, which for a
-  // 100-unit span is one and a half weld radii — short enough that `coincidence` cannot tell
+  // 100-unit span is one and a half weld radii - short enough that `coincidence` cannot tell
   // "the same curve running the other way" from "the same curve running the same way", since
   // both are decided by positions known only to that radius. `dedupeEdges` therefore leaves
   // such a pair alone instead of annihilating it on the strength of a rounding, and the
@@ -1292,7 +1292,7 @@ test('a shared edge broken into a weld-scale piece still unions to the whole rec
   assertClosedContours(out);
   near(pathArea(out), 20000, 1e-6, 'two squares sharing a broken edge');
   assert.equal(out.length, 1, 'the union of two squares meeting along an edge is one region');
-  // And the shared edge itself is gone from the interior — nothing survives across y = 0
+  // And the shared edge itself is gone from the interior - nothing survives across y = 0
   // except the two outer verticals.
   assert.ok(pointInPath(out, 50, 0.5, 'nonzero') && pointInPath(out, 50, -0.5, 'nonzero'),
     'both halves are filled');

@@ -7,15 +7,15 @@
  * two THREADING paths, which is where a reserved param usually rots: the value is
  * parsed by the engine and then quietly dropped by a shell.
  *
- *   • CLI — end-to-end through the REAL runToolCli path (jsdom, createCliBridge,
+ *   • CLI - end-to-end through the REAL runToolCli path (jsdom, createCliBridge,
  *     runtime.export). A fixture tool's `beforeExport` hook receives the very
  *     ExportOpts object shells/cli/src/run.ts assembled, and stamps what it sees
- *     onto the rendered <svg> — so the exported bytes report whether `--depth=`
+ *     onto the rendered <svg> - so the exported bytes report whether `--depth=`
  *     survived the trip. Hermetic like tests/cli-smoke.test.ts: a self-contained
  *     fixture repo with LOLLY_ROOT pinned BEFORE the dynamic import, so the whole
  *     run → bridge chain resolves against the fixture whatever profile is active.
  *
- *   • Web — shells/web/src/views/tool.ts is a DOM-bound module with no headless
+ *   • Web - shells/web/src/views/tool.ts is a DOM-bound module with no headless
  *     entry point, so its threading is asserted by scanning the source for the
  *     three links in the chain (destructure → view opts → export opts), the same
  *     technique shells/web/src/lib/a11y-prefs-contract.test.ts uses for CSS. Each
@@ -23,7 +23,7 @@
  *     of the source with that line deleted must fail, so the assertion can't be a
  *     regex that matches anything.
  *
- * NOTE there is deliberately no consumer of `depth` yet — nothing reads it and
+ * NOTE there is deliberately no consumer of `depth` yet - nothing reads it and
  * decides a bit depth. These tests pin the plumbing only; when the first consumer
  * lands (the 16-bit cICP PNG path) it brings its own depth-follows-provenance
  * tests.
@@ -99,13 +99,13 @@ test('CLI: --depth= reaches the export opts (8/16/float), junk and auto thread n
   assert.equal(await seenDepth({ depth: '8' }), '8');
   assert.equal(await seenDepth({ depth: 'float' }), 'float');
 
-  // NEGATIVE CONTROL — no param at all: the opts object is exactly what it was
+  // NEGATIVE CONTROL - no param at all: the opts object is exactly what it was
   // before this param existed. `absent` (not 'auto', not 'undefined') proves the
   // probe distinguishes "not threaded" from "threaded a value".
   assert.equal(await seenDepth({}), 'absent');
 
   // 'auto' IS the default, so an explicit --depth=auto is indistinguishable from
-  // no flag — nothing is written onto the opts.
+  // no flag - nothing is written onto the opts.
   assert.equal(await seenDepth({ depth: 'auto' }), 'absent');
 
   // Junk degrades to auto in the engine parser, so it likewise threads nothing:
@@ -120,19 +120,19 @@ const TOOL_VIEW = readFileSync(new URL('../shells/web/src/views/tool.ts', import
 const TOOL_ACTIONS = readFileSync(new URL('../shells/web/src/views/tool-actions.ts', import.meta.url), 'utf8');
 
 test('web: ?depth= is destructured, carried on the view opts, and set on the export opts', () => {
-  // Link 1 — parseUrlState's `depth` is actually taken out of the parsed state,
+  // Link 1 - parseUrlState's `depth` is actually taken out of the parsed state,
   // alongside the `hdr` it mirrors.
   const destructured = /parseUrlState\(/.test(TOOL_VIEW) && /depth: urlDepth\b/.test(TOOL_VIEW);
   assert.equal(destructured, true, 'views/tool.ts must destructure `depth: urlDepth` from parseUrlState');
 
-  // Link 2 — it reaches the export-panel defaults (so the manual export path can
+  // Link 2 - it reaches the export-panel defaults (so the manual export path can
   // see a link's request), with 'auto' carrying nothing.
   assert.match(TOOL_VIEW, /depth:\s+urlDepth !== 'auto' \? urlDepth : undefined/);
 
-  // Link 3 — and the auto-export path sets it on the opts handed to runtime.export.
+  // Link 3 - and the auto-export path sets it on the opts handed to runtime.export.
   assert.match(TOOL_VIEW, /if \(urlDepth !== 'auto'\) expOpts\.depth = urlDepth;/);
 
-  // Link 4 — the export panel's own opts builder passes a link's request through.
+  // Link 4 - the export panel's own opts builder passes a link's request through.
   assert.match(TOOL_ACTIONS, /exportDefaults\.depth \? \{ depth: exportDefaults\.depth \} : \{\}/);
 
   // The types that carry it exist on both hops (ExportDefaults and RunExportOpts).

@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 // SPDX-License-Identifier: MPL-2.0
 /**
- * Profile switcher — builds the repo-root `tools/` and `catalog/` VIEWS.
+ * Profile switcher - builds the repo-root `tools/` and `catalog/` VIEWS.
  *
  * Run as:
  *   npm run profile                 # show the active profile + what's available
@@ -13,9 +13,9 @@
  *
  * Since the repo split, tool/catalog content lives in mounted packs:
  *
- *   community/            (submodule lolly-tools/lolly-tools — brand-agnostic tools)
- *   brands/suse/          (submodule lolly-tools/suse-lolly  — PRIVATE: SUSE tools + catalog)
- *   brands/lolly-start/   (parent-owned — the blank starter brand)
+ *   community/            (submodule lolly-tools/lolly-tools - brand-agnostic tools)
+ *   brands/suse/          (submodule lolly-tools/suse-lolly - PRIVATE: SUSE tools + catalog)
+ *   brands/lolly-start/   (parent-owned - the blank starter brand)
  *
  * Everything else in the platform (scripts, shells, deploy, the /tools/ and
  * /catalog/ URL namespaces) still consumes the single repo-root `tools/` and
@@ -26,23 +26,23 @@
  * views land in the real pack checkouts, so the edit→commit workflow per
  * submodule is unchanged.
  *
- * --copy (implied by $VERCEL) materialises real copies instead of symlinks —
+ * --copy (implied by $VERCEL) materialises real copies instead of symlinks - 
  * Vercel's function-bundling globs (vercel.json includeFiles) and the tgz
  * archive path are not symlink-safe, and the views are .vercelignore'd, so the
  * Vercel build reconstructs them from the shipped packs at install time.
  *
  * A view is only ever deleted when it is recognisably ours (a symlink, a
- * symlink farm, or a copy carrying the .lolly-view.json marker) — real content
+ * symlink farm, or a copy carrying the .lolly-view.json marker) - real content
  * at tools/ or catalog/ aborts the switch instead of being clobbered.
  *
  * Brand overlays (`"extends": "community"` in a brand-pack tool.json): instead
  * of the brand pack carrying a whole fork of a community tool, it may carry
- * only the files that differ. The view dir for that id is then COMPOSED — the
+ * only the files that differ. The view dir for that id is then COMPOSED - the
  * per-file union of the community base and the overlay, overlay winning on
- * filename collision, recursing one level into subdirs (i18n/, assets/) — and
+ * filename collision, recursing one level into subdirs (i18n/, assets/) - and
  * the `extends` marker itself is stripped from the composed tool.json so view
  * consumers (engine, shells, catalog scripts) see a plain tool. A declared
- * overlay whose base is missing fails the build loudly — even under --auto —
+ * overlay whose base is missing fails the build loudly - even under --auto - 
  * never a silent partial tool.
  */
 
@@ -60,7 +60,7 @@ const STATE_FILE = join(ROOT, '.lolly-profile');
 const BASE_PACK = 'community';
 
 /** Overlay (extends) authoring errors are fail-closed even under --auto:
- *  a missing/invalid base must fail the build loudly — postinstall included —
+ *  a missing/invalid base must fail the build loudly - postinstall included - 
  *  rather than ship a silent partial tool. */
 class OverlayError extends Error {}
 
@@ -80,7 +80,7 @@ function activeProfile(): string | null {
   try { return readFileSync(STATE_FILE, 'utf8').trim() || null; } catch { return null; }
 }
 
-/** lstat that doesn't throw — null when the path doesn't exist. */
+/** lstat that doesn't throw - null when the path doesn't exist. */
 function lstatOrNull(p: string) {
   try { return lstatSync(p); } catch { return null; }
 }
@@ -110,7 +110,7 @@ function removeView(path: string, what: string): void {
 interface ToolPlan { src: string; base?: string } // base set ⇒ overlay compose
 
 /** The overlay marker, if the manifest parses and declares one. A malformed
- *  tool.json is NOT an overlay — link the dir plainly and let validate:catalog
+ *  tool.json is NOT an overlay - link the dir plainly and let validate:catalog
  *  report the JSON error with proper context. */
 function readExtends(manifestPath: string): string | null {
   try {
@@ -122,7 +122,7 @@ function readExtends(manifestPath: string): string | null {
 /**
  * Resolve the profile's tool roots into a per-id plan BEFORE touching the
  * existing views, so an overlay error (missing base, extends declared in
- * community/) aborts with the previous views fully intact — never a
+ * community/) aborts with the previous views fully intact - never a
  * half-built farm. Later roots still win on id collisions.
  */
 function planTools(profile: Profile): Map<string, ToolPlan> {
@@ -131,7 +131,7 @@ function planTools(profile: Profile): Map<string, ToolPlan> {
     const rootAbs = join(ROOT, root);
     for (const entry of readdirSync(rootAbs)) {
       if (entry.startsWith('.') || entry === 'node_modules') continue;
-      // Underscore-prefixed dirs are pack infrastructure, not tools — e.g.
+      // Underscore-prefixed dirs are pack infrastructure, not tools - e.g.
       // community/_shared/, the canonical helper corpus that sync-shared-hooks.ts
       // copies into tool hooks.js. Linking it into the view would make the
       // catalog validator flag it as a tool with a missing tool.json.
@@ -162,7 +162,7 @@ function planTools(profile: Profile): Map<string, ToolPlan> {
   }
   // Per-profile exclusions: drop these tool ids from the merged farm (e.g. a
   // community tool this brand doesn't want to ship). Applied AFTER the merge so it
-  // removes the resolved tool whichever root won it. A miss is warned, not fatal —
+  // removes the resolved tool whichever root won it. A miss is warned, not fatal - 
   // an id that is not present is a no-op (likely a typo), never a build failure.
   for (const id of profile.exclude ?? []) {
     if (!plan.delete(id)) {
@@ -174,7 +174,7 @@ function planTools(profile: Profile): Map<string, ToolPlan> {
 
 /** Byte offset of the top-level "extends" KEY in raw manifest JSON, or -1.
  *  A one-pass string- and depth-aware scan (not a parse) so a nested member
- *  that happens to be named "extends" — e.g. inside an input's config object —
+ *  that happens to be named "extends" - e.g. inside an input's config object - 
  *  is never matched. A depth-1 string only counts when a `:` follows it
  *  (a key, not a member's string value). */
 function topLevelExtendsKeyOffset(raw: string): number {
@@ -197,13 +197,13 @@ function topLevelExtendsKeyOffset(raw: string): number {
 }
 
 /** Remove the top-level "extends" member from raw manifest JSON while
- *  preserving every other byte — so a converted overlay's composed tool.json
+ *  preserving every other byte - so a converted overlay's composed tool.json
  *  stays byte-identical to the pre-conversion fork. The member's line is
- *  located depth-aware (topLevelExtendsKeyOffset — a NESTED key named
+ *  located depth-aware (topLevelExtendsKeyOffset - a NESTED key named
  *  "extends" is never touched) and stripped whole; if the author formatted
  *  the member unusually (same line as another member or the opening brace,
  *  last member with no trailing comma), the stringify-equality guard rejects
- *  the strip and we fall back to a canonical re-serialise — still correct
+ *  the strip and we fall back to a canonical re-serialise - still correct
  *  JSON, just reformatted. */
 function stripExtendsField(raw: string): string {
   const manifest = JSON.parse(raw);
@@ -216,7 +216,7 @@ function stripExtendsField(raw: string): string {
     const stripped = raw.slice(0, lineStart) + (nextNl === -1 ? '' : raw.slice(nextNl + 1));
     try {
       if (JSON.stringify(JSON.parse(stripped)) === JSON.stringify(manifest)) return stripped;
-    } catch { /* dangling comma etc. — fall through */ }
+    } catch { /* dangling comma etc. - fall through */ }
   }
   return JSON.stringify(manifest, null, 2) + '\n';
 }
@@ -226,7 +226,7 @@ function stripExtendsField(raw: string): string {
  * base + overlay, overlay winning on filename collision. Recurses ONE level
  * into subdirs (i18n/, assets/); anything deeper is taken wholesale from the
  * winning side. The composed tool.json is always a REAL file with the
- * `extends` marker stripped — edits to IT in the view do not write through
+ * `extends` marker stripped - edits to IT in the view do not write through
  * (edit the pack source instead); every other composed file keeps the normal
  * write-through symlink behaviour in symlink mode.
  */
@@ -234,7 +234,7 @@ function composeToolDir(baseDir: string, overlayDir: string, dest: string, copyM
   mkdirSync(dest, { recursive: true });
   const names = [...new Set([...readdirSync(baseDir), ...readdirSync(overlayDir)])].sort();
   for (const name of names) {
-    if (name.startsWith('.')) continue; // .DS_Store & co — never tool data
+    if (name.startsWith('.')) continue; // .DS_Store & co - never tool data
     const basePath = join(baseDir, name);
     const overlayPath = join(overlayDir, name);
     const destPath = join(dest, name);
@@ -256,7 +256,7 @@ function composeToolDir(baseDir: string, overlayDir: string, dest: string, copyM
 }
 
 function buildViews(name: string, profile: Profile, copyMode: boolean): void {
-  // Plan first (validates overlay declarations), mutate second — an overlay
+  // Plan first (validates overlay declarations), mutate second - an overlay
   // error must abort while the previous views are still intact.
   const plan = planTools(profile);
 

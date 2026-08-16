@@ -17,14 +17,14 @@
  *     runs with --locked, so the graph is exactly what Cargo.lock pins. It may
  *     download registry metadata on first run; the OUTPUT is committed, so CI
  *     and airgapped checkouts never need cargo at all.
- *   - DETERMINISTIC: keys sorted, no timestamp — re-running with an unchanged
+ *   - DETERMINISTIC: keys sorted, no timestamp - re-running with an unchanged
  *     Cargo.lock produces a byte-identical file (git diff is the drift signal).
  *   - Legacy `A/B` license syntax (Cargo's documented shorthand for OR) is
  *     normalized to an SPDX `A OR B` expression.
  *   - Crates declaring only `license-file` (no SPDX expression) are resolved by
  *     hand in LICENSE_FILE_OVERRIDES (id read off the file + why it's shippable,
  *     both emitted to `licenseFileNotes`). Anything not in that table is left OUT
- *     of the map — build-sbom.ts keeps it `unknown` and warns, so an unreviewed
+ *     of the map - build-sbom.ts keeps it `unknown` and warns, so an unreviewed
  *     non-SPDX license stays a visible audit item instead of being papered over.
  *   - The workspace's own crates (lolly-desktop, lolly-mobile; `source: null`)
  *     carry no license field in their Cargo.toml but are first-party code under
@@ -52,24 +52,24 @@ const CRATE_DIRS = [
 const FIRST_PARTY_LICENSE = 'MPL-2.0';
 
 // Crates that ship a `license-file` instead of an SPDX `license` field, read by
-// hand and pinned here. Without this they stay `unknown` in the SBOM — which is
+// hand and pinned here. Without this they stay `unknown` in the SBOM - which is
 // the worst outcome for the one category that most needs an explicit answer, so
 // each entry records the SPDX id read off the file plus WHY it is acceptable.
 // Re-verify an entry when its version changes (the key is version-pinned).
 const LICENSE_FILE_OVERRIDES: Record<string, { spdx: string; note: string }> = {
-  // GPL-3.0 — the only strong-copyleft crate in either graph. It is a
+  // GPL-3.0 - the only strong-copyleft crate in either graph. It is a
   // BUILD-dependency of headless_chrome (`[build-dependencies.auto_generate_cdp]`),
   // a code generator that runs in that crate's build.rs to emit DevTools Protocol
   // bindings from Chrome's protocol.json. It is never linked into the shipped
   // desktop binary, so it does not place the distributed artifact under the GPL.
-  // Desktop graph only — absent from tauri-mobile. Flagged for OSS-office sign-off.
+  // Desktop graph only - absent from tauri-mobile. Flagged for OSS-office sign-off.
   'auto_generate_cdp@0.4.6': {
     spdx: 'GPL-3.0-only',
     note: 'build-time code generator (headless_chrome build.rs); not linked into the shipped binary',
   },
 };
 
-// Minimal shape of the `cargo metadata` output we read.
+// Minimal structure of the `cargo metadata` output we read.
 interface CargoPackage {
   name: string;
   version: string;

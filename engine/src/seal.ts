@@ -1,19 +1,19 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
- * SEAL (hackerfactor.com) signature verifier — pure, DOM-free (globalThis.crypto
+ * SEAL (hackerfactor.com) signature verifier - pure, DOM-free (globalThis.crypto
  * only, like c2pa-verify.ts / x509.ts). VERIFICATION ONLY: this reads a SEAL
  * record out of a file's raw bytes, reassembles exactly the byte ranges the
  * record says were signed, and checks the signature against a public key.
  *
  * SEAL is a DISTINCT format from Meta's "Content Seal" (Pixel Seal / Video Seal,
- * a neural pixel watermark — see contentseal.ts). SEAL is a cryptographic
+ * a neural pixel watermark - see contentseal.ts). SEAL is a cryptographic
  * signature over the FILE BYTES: the signer embeds a tiny XML-like record in the
  * file and publishes the matching public key in DNS. A valid SEAL proves the
  * covered bytes are unmodified since signing AND that the signer controlled DNS
- * for the record's domain — domain-level attribution + integrity, NOT a
+ * for the record's domain - domain-level attribution + integrity, NOT a
  * CA-verified legal identity, and NOT a statement about the visual content.
  *
- * Ethos: on-device verify. The image never leaves the device — the ONLY thing
+ * Ethos: on-device verify. The image never leaves the device - the ONLY thing
  * that can leave is a public-key DNS lookup for the record's domain, and even
  * that is the caller's concern: this module takes an INJECTED `resolveKey`
  * (DNS-over-HTTPS lives in the shell, host.net-allowlisted) so the engine stays
@@ -25,10 +25,10 @@
  *
  * SCOPE / honesty (see the module tests and the caller's UI copy):
  *   - Algorithms: `ka=rsa` (RSASSA-PKCS1-v1_5) and `ka=ec` (ECDSA P-256/384/521)
- *     — the two the SEAL spec defines. (SEAL has NO Ed25519 `ka`; the crypto
+ *     - the two the SEAL spec defines. (SEAL has NO Ed25519 `ka`; the crypto
  *     round-trip test therefore exercises ECDSA + RSA, real signatures from
  *     WebCrypto, not a mock.)
- *   - Digest: sha256 (default) / sha384 / sha512. `da=sha224` is refused —
+ *   - Digest: sha256 (default) / sha384 / sha512. `da=sha224` is refused -
  *     WebCrypto's SubtleCrypto has no SHA-224.
  *   - Byte ranges: the default `F~S,s~f` and simple marker+offset forms
  *     (`s+4~f`, `F+n~S`, …). Multi-signature append chains (`P`/`p` markers) and
@@ -83,9 +83,9 @@ export interface SealRange { start: number; stop: number; }
 export interface SealRecord {
   /** `seal=` format version (currently 1). */
   version: number;
-  /** `d=` — the domain whose DNS TXT record holds the public key. */
+  /** `d=` - the domain whose DNS TXT record holds the public key. */
   domain: string;
-  /** `ka=` — key/signature algorithm. */
+  /** `ka=` - key/signature algorithm. */
   keyAlg: 'rsa' | 'ec';
   /** `da=` mapped to a WebCrypto digest name ('SHA-256'|'SHA-384'|'SHA-512'),
    *  or null when the digest is unsupported here (e.g. sha224). */
@@ -119,12 +119,12 @@ export interface SealRecord {
   recordStart: number;
   /** Absolute file offset just past the record's terminator. */
   recordEnd: number;
-  /** `S` — absolute file offset of the first byte INSIDE the `s="…"` value. */
+  /** `S` - absolute file offset of the first byte INSIDE the `s="…"` value. */
   sigValueStart: number;
-  /** `s` — absolute file offset of the `s="…"` value's closing delimiter. */
+  /** `s` - absolute file offset of the `s="…"` value's closing delimiter. */
   sigValueEnd: number;
   /** Set when the record was located and had the required fields but something
-   *  downstream (signature decode, byte-range resolve) failed — surfaced as the
+   *  downstream (signature decode, byte-range resolve) failed - surfaced as the
    *  verify reason rather than thrown. */
   parseError?: string;
 }
@@ -165,7 +165,7 @@ function locateRecords(bin: string, length: number): Array<{ start: number; end:
         if (at < 0 || at >= wEnd) break;
         from = at + 1;
         // The char right after the needle's `seal` must be a space or `=`
-        // (attribute form) — reject `<sealed>` and similar false hits.
+        // (attribute form) - reject `<sealed>` and similar false hits.
         const after = bin[at + needle.length];
         if (after !== ' ' && after !== '=' && after !== ':') continue;
         if (seen.has(at)) continue;
@@ -193,7 +193,7 @@ function locateRecords(bin: string, length: number): Array<{ start: number; end:
 }
 
 // Entity-decode the XMP/HTML embedding of attribute VALUES (never touches
-// offsets — those are computed from the raw record before decoding).
+// offsets - those are computed from the raw record before decoding).
 function entityDecode(s: string): string {
   return s.replace(/&quot;/g, '"').replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&amp;/g, '&');
 }
@@ -248,7 +248,7 @@ function findSigValueSpan(rec: string): { valStart: number; valEnd: number } | n
 
 /**
  * Parse every SEAL record embedded in a file's raw bytes. Bounds-checked and
- * NEVER throws — a malformed or hostile file yields [] (or records carrying a
+ * NEVER throws - a malformed or hostile file yields [] (or records carrying a
  * `parseError` when they were located but couldn't be fully resolved). A record
  * missing any of the required fields (`seal`,`d`,`ka`,`s`) is skipped.
  */
@@ -270,7 +270,7 @@ export function parseSealRecords(bytes: Uint8Array): SealRecord[] {
     try {
       const rec = bin.slice(span.start, span.end);
       const sigSpan = findSigValueSpan(rec);
-      if (!sigSpan) continue; // no locatable signature value — not a usable record
+      if (!sigSpan) continue; // no locatable signature value - not a usable record
 
       // Strip wrapper + terminator to get the attribute interior for parsing.
       let interior = rec;
@@ -496,7 +496,7 @@ export async function computeSealDigest(bytes: Uint8Array, ranges: SealRange[], 
   return new Uint8Array(await subtle.digest(digestAlg, asBufferSource(msg)));
 }
 
-// Does the range set protect essentially the WHOLE file — i.e. it reaches byte
+// Does the range set protect essentially the WHOLE file - i.e. it reaches byte
 // 0 and EOF with exactly one gap, and that gap begins at the signature value
 // (default `F~S,s~f`, or `F~S,s+4~f` where a trailing checksum is also skipped)?
 function coversWholeFile(ranges: SealRange[], sigStart: number, len: number): boolean {
@@ -534,7 +534,7 @@ function ecCurveOf(spki: Uint8Array): { curve: string; size: number } | null {
     if (top.tag !== 0x30) return EC_SPKI_LEN[spki.length] ?? null;
     const algId = derChildren(spki, top)[0];
     if (!algId || algId.tag !== 0x30) return EC_SPKI_LEN[spki.length] ?? null;
-    // Skip the first OID (ecPublicKey — not in the curve table), match the curve OID.
+    // Skip the first OID (ecPublicKey - not in the curve table), match the curve OID.
     for (const kid of derChildren(spki, algId)) {
       if (kid.tag !== 0x06) continue;
       const byOid = EC_CURVES[bytesToHex(spki.subarray(kid.contentStart, kid.end))];
@@ -562,12 +562,12 @@ export async function importSealKey(spki: Uint8Array, keyAlg: 'rsa' | 'ec', dige
 
 /**
  * Verify a SEAL signature. `message` is the exact pre-image WebCrypto hashes
- * with `digestAlg` — the assembled byte ranges in the basic case, or
+ * with `digestAlg` - the assembled byte ranges in the basic case, or
  * utf8(prepend)||digest1 in the id/date "double-digest" case (the caller builds
  * that; see verifySeal). `signature` is the decoded value (DER for `ka=ec`).
  *
  * NOTE: WebCrypto hashes `message` internally, so callers pass the MESSAGE, not
- * a precomputed hash — the single most load-bearing correctness point of SEAL.
+ * a precomputed hash - the single most essential correctness point of SEAL.
  * Returns false (never throws) on any import/convert/verify failure.
  */
 export async function verifySealSignature(
@@ -594,7 +594,7 @@ export async function verifySealSignature(
 
 // ─── top-level verify ─────────────────────────────────────────────────────────
 
-/** Resolve a record's DNS public key (SPKI DER) — INJECTED by the shell so the
+/** Resolve a record's DNS public key (SPKI DER) - INJECTED by the shell so the
  *  engine stays network-free. Return null when no key is available/selected
  *  (e.g. a revoked selector), which surfaces as an honest "unverified" result. */
 export type SealPublicKeyResolver = (record: SealRecord) => Promise<Uint8Array | null> | Uint8Array | null;
@@ -604,7 +604,7 @@ export interface SealVerifyResult {
   found: boolean;
   /** The signature cryptographically verified against the resolved key. */
   valid: boolean;
-  /** `d=` — the domain the record attributes the signature to. */
+  /** `d=` - the domain the record attributes the signature to. */
   domain: string | null;
   /** The signature protects the whole file (only the signature value is excluded). */
   coversWholeFile: boolean;
@@ -633,7 +633,7 @@ const NONE: SealVerifyResult = {
 /**
  * Verify a file's SEAL signature entirely on-device. Parses the record(s) from
  * raw bytes (no network); only if a record is found AND has no usable inline
- * key does it call the injected `resolveKey` (the DNS/DoH lookup — the sole
+ * key does it call the injected `resolveKey` (the DNS/DoH lookup - the sole
  * thing that ever leaves the device, and never the file itself).
  *
  * v1 verifies a single embedded RSA/ECDSA signature over the default/simple

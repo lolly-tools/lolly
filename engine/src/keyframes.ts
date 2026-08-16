@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
- * Keyframe tracks, the `kf` wire grammar, and the depth-camera projection —
+ * Keyframe tracks, the `kf` wire grammar, and the depth-camera projection - 
  * the shared, DOM-free maths every consumer of plans/104 trusts.
  *
  * Three separable pieces live here, and nothing else may:
@@ -8,12 +8,12 @@
  * 1. **The `kf` wire** (plan §5.1, LOCKED 2026-08-11). One per-box text field
  *    holds a whole animation track: keyframes separated by `*`, tokens inside a
  *    keyframe by `_`, first token `t<ms>` (local box time). The charset is
- *    `A–Z a–z 0–9 - . _ * ( )` — every member is encodeURIComponent-unescaped
+ *    `A–Z a–z 0–9 - . _ * ( )` - every member is encodeURIComponent-unescaped
  *    and safe inside double quotes in bash/zsh, because "the CLI is URL mode
  *    under a different transport" is law. `!` is deliberately NOT in it (shell
  *    history expansion), which is why a custom bezier is paren-delimited
  *    (`eb(0.32)(0)(0.67)(1)`) and why the canonical CSS `cubic-bezier(a,b,c,d)`
- *    spelling — commas — can only reach the track through the ease adapter.
+ *    spelling - commas - can only reach the track through the ease adapter.
  *    The vocabulary is append-only: new channels and ease tokens may be ADDED,
  *    existing token meanings never change.
  *
@@ -22,11 +22,11 @@
  *    earlier mentioning keyframe's ease, clamp-held outside the authored range.
  *    The segment ease governs every channel EXCEPT `o`, which always
  *    interpolates linearly (a fade that tracks a slow curve turns to mud once
- *    the frame has been through video compression) — `eh` still holds it, like
+ *    the frame has been through video compression) - `eh` still holds it, like
  *    any channel.
  *
  * 3. **The projection** (plan §4). A perspective projection of a
- *    screen-parallel plane is a uniform scale + translate — pure affine — so
+ *    screen-parallel plane is a uniform scale + translate - pure affine - so
  *    the camera never needs CSS `perspective`/`preserve-3d`: this module
  *    computes numbers and every consumer applies them. `projectLayer` is the
  *    §4.1 fold verbatim, `dofBlur` the §4.4 corrected blur, `resolveCamera` the
@@ -34,19 +34,19 @@
  *
  * 4. **Tilt** (plan §6.4, P2). The one thing that is NOT affine: pitch or yaw
  *    the camera and a screen-parallel plane's image becomes a homography. That
- *    tier lives beside the affine one rather than replacing it — `cameraTilted`
+ *    tier lives beside the affine one rather than replacing it - `cameraTilted`
  *    is an exact zero test, and everything the affine tier ever computed is
  *    computed by the same expressions in the same order when it answers false.
  *    A tilted layer additionally gets `KfProjection.m`, an element-local 3×3 a
- *    DOM consumer spells as `matrix3d(...)` (per element, always FLAT — never a
+ *    DOM consumer spells as `matrix3d(...)` (per element, always FLAT - never a
  *    `perspective`/`preserve-3d` ancestor: that is the Cover Flow rule, and
  *    `parseCssMatrix` refuses a real 3D context, so a walker still of one comes
  *    out blank). The canvas compositor cannot draw a homography at all, which
  *    is why a tilted export is captured off the live DOM instead (§6.4's P2a).
  *
  * Zero dependencies, no DOM, no logging side effects (callers pass `onWarn`).
- * Everything a consumer needs to talk about the wire — clamps, quanta, caps,
- * the guard constants, `DOF_K` — is exported as a named constant so the DOM
+ * Everything a consumer needs to talk about the wire - clamps, quanta, caps,
+ * the guard constants, `DOF_K` - is exported as a named constant so the DOM
  * path, the plan path, the worker and the goldens all read the same numbers
  * instead of re-deriving them.
  *
@@ -55,14 +55,14 @@
  * `eff = P / (P − (z − camZ))` (§4.1). A layer's `z` is px ABOVE the surface,
  * so raising a layer brings it toward the camera and magnifies it; raising
  * `camZ` moves the whole scene away and shrinks it. `eff(z = camZ) === 1` for
- * EVERY `p` — so `p` is perspective strength (FOV), never magnification, and a
+ * EVERY `p` - so `p` is perspective strength (FOV), never magnification, and a
  * dolly is `camZ` (§4.3).
  *
  * ## Relative vs absolute channels
  *
  * On a CONTENT box, `x/y/s/r/o/b` are relative (offsets/multipliers over the
- * authored + transition values — the consumer folds them, §5.2), and a keyed
- * `z` REPLACES the box's `z` field for that segment — as do `w`/`h`, which are
+ * authored + transition values - the consumer folds them, §5.2), and a keyed
+ * `z` REPLACES the box's `z` field for that segment - as do `w`/`h`, which are
  * absolute px and replace the box's own size (a multiplier there would be `s`,
  * which already exists and does not reflow). On a CAMERA, that same
  * replace rule is generalised to the whole pose: a keyed channel replaces the
@@ -91,7 +91,7 @@ export const KF_CAMERA_CHANNELS: readonly KfCameraChannel[] = Object.freeze(
   ['x', 'y', 'z', 'rx', 'ry', 'f', 'a', 'p'] as const,
 );
 
-/** A sparse set of channel values — what an evaluation returns. */
+/** A sparse set of channel values - what an evaluation returns. */
 export type KfPose = Partial<Record<KfChannel, number>>;
 
 const CHANNEL_SET: ReadonlySet<string> = new Set<string>(KF_CHANNELS);
@@ -113,19 +113,19 @@ const CHANNELS_BY_LENGTH: readonly KfChannel[] = Object.freeze(
  * Per-channel value clamps (untrusted-input posture: a `kf` field is free text
  * that can arrive from a hand-edited share URL).
  *
- * These are the WIRE clamps — what a `kf` token may say — and the `z` row is
+ * These are the WIRE clamps - what a `kf` token may say - and the `z` row is
  * deliberately NOT the per-box field's −300…900 (that is `KF_Z_FIELD_CLAMP`,
  * below). One `kf` grammar carries both a content box's lift and the CAMERA's
  * dolly (§5.4: camera channels are `x y z rx ry f a p`), and `camZ` is the only
  * zoom control there is (§4.3: "Uniform zoom/dolly is `camZ` … there is
  * deliberately no separate zoom channel"). Held to the field's 900 ceiling the
- * whole flat-scene zoom range would be eff ∈ [0.571, 1.333] at P = 1200 — a
+ * whole flat-scene zoom range would be eff ∈ [0.571, 1.333] at P = 1200 - a
  * push-in past 1.33× would not be expressible, and §4.3's Vertigo recipe
  * (`camZ = P·(1/c − 1) + z_s`, so camZ = −600 to pin a 2× subject plane) would
  * clamp silently and desync the dolly from `p`. So `z` spans ±12000, matching
- * `p`'s own ceiling — a few multiples of any usable perspective.
+ * `p`'s own ceiling - a few multiples of any usable perspective.
  *
- * `p` stays well clear of 0 in both directions — the projection divides by it.
+ * `p` stays well clear of 0 in both directions - the projection divides by it.
  */
 export const KF_CLAMPS = Object.freeze({
   x: [-100000, 100000],
@@ -158,12 +158,12 @@ export const KF_CLAMPS = Object.freeze({
  *
  * This is the clamp on the NUMBER a box stores, applied where that number is
  * read (the hooks' `data-t-z`, the manifest field's min/max, the inspector
- * slider) — not on the `kf` wire, which has to be wide enough for a camera
+ * slider) - not on the `kf` wire, which has to be wide enough for a camera
  * dolly (see `KF_CLAMPS` above). Exported so the one number has one home.
  */
 export const KF_Z_FIELD_CLAMP: readonly [number, number] = Object.freeze([-300, 900] as const);
 
-/** Serialisation quanta (§4.6). Parse applies them too — that is the round-trip law. */
+/** Serialisation quanta (§4.6). Parse applies them too - that is the round-trip law. */
 export const KF_QUANTA = Object.freeze({
   x: 0.01, y: 0.01, z: 0.01, b: 0.01,
   r: 0.01, rx: 0.01, ry: 0.01,
@@ -197,7 +197,7 @@ export const KF_MAX_KEYS = 256;
  * `parse(serialise(parse(s))) === parse(s)` hold BY CONSTRUCTION for every
  * input: the key cap dominates, so `serialiseKf` can never hand back a string
  * `parseKf` would truncate. `tests/keyframes.test.ts` re-derives the 174 from
- * `KF_CLAMPS`/`KF_QUANTA` and fails if a widened clamp ever eats the headroom —
+ * `KF_CLAMPS`/`KF_QUANTA` and fails if a widened clamp ever eats the headroom - 
  * re-derive this constant then, don't paper over it. It has already happened
  * once, which is why the test exists: `w`/`h` (plans/104 §5.2, P1) added two
  * channels worth 20 chars per key, i.e. 5 120 chars of full-density track, and
@@ -214,7 +214,7 @@ export const KF_MAX_TIME_MS = 3_600_000;
 /** DOF blur is capped at the `b` channel's own ceiling so a fly-past cannot hand the compositor an absurd radius. */
 export const KF_MAX_BLUR = 300;
 
-/** Every byte a serialised track may contain. Nothing else — never `~` or `,`. */
+/** Every byte a serialised track may contain. Nothing else - never `~` or `,`. */
 export const KF_CHARSET_RE = /^[A-Za-z0-9._*()-]*$/;
 
 /** True when a string is safe to put on the wire as a `kf` value. */
@@ -243,10 +243,10 @@ export interface KfEasePreset {
  * authored on a transition and one authored on a keyframe are the same curve.
  * The last two are the additive names plan §3 adopts from the Depthfield menu:
  *
- * - `es` **smooth** = `cubic-bezier(0.4, 0, 0.2, 1)` — the standard
+ * - `es` **smooth** = `cubic-bezier(0.4, 0, 0.2, 1)` - the standard
  *   accelerate-decelerate curve (Material's "standard"), specified by name in
  *   the plan.
- * - `ek` **snappy** = `cubic-bezier(0.4, 0, 0.6, 1)` — Material's "sharp"
+ * - `ek` **snappy** = `cubic-bezier(0.4, 0, 0.6, 1)` - Material's "sharp"
  *   curve: the same 0.4 in-ramp as smooth with a much later out-handle, so it
  *   leaves at the same rate and arrives abruptly. Chosen over the other
  *   "snappy" candidates because it is a documented standard curve and reads as
@@ -288,7 +288,7 @@ function clamp(v: number, lo: number, hi: number): number {
 
 /**
  * Round to a quantum. The inverse is always an exact integer power of ten here,
- * so this is `Math.round(v * 100) / 100` and friends — no float dust, and
+ * so this is `Math.round(v * 100) / 100` and friends - no float dust, and
  * `String()` of the result is the shortest round-tripping spelling.
  */
 function quant(v: number, q: number): number {
@@ -297,14 +297,14 @@ function quant(v: number, q: number): number {
   return Object.is(n, -0) ? 0 : n;
 }
 
-/** Strict decimal parse — no exponents, no `NaN`, no `Infinity`, no `+`. */
+/** Strict decimal parse - no exponents, no `NaN`, no `Infinity`, no `+`. */
 function num(s: string): number | null {
   if (!NUM_RE.test(s)) return null;
   const n = Number(s);
   return Number.isFinite(n) ? n : null;
 }
 
-/** Bound how much untrusted text a warning may quote — a `kf` value can be 8 KB of anything. */
+/** Bound how much untrusted text a warning may quote - a `kf` value can be 8 KB of anything. */
 function snip(s: string): string {
   return s.length > 40 ? `${s.slice(0, 40)}…` : s;
 }
@@ -320,10 +320,10 @@ function fmt(v: number): string {
  * y at time x on a unit cubic bezier with endpoints (0,0) and (1,1).
  *
  * Newton-Raphson first (two or three steps for any curve anyone authors), then
- * bisection as the guaranteed fallback — the shape every browser's own
+ * bisection as the guaranteed fallback - the shape every browser's own
  * implementation uses. A near-zero derivative is where Newton diverges (a curve
  * with a flat spot), so that case bails to bisection rather than dividing by it.
- * x is clamped to [0,1]; y is deliberately unbounded — that is the whole
+ * x is clamped to [0,1]; y is deliberately unbounded - that is the whole
  * overshoot family.
  *
  * This is a deliberate local copy of the web shell's `cubicBezierAt`
@@ -358,7 +358,7 @@ export function cubicBezierAt(x1: number, y1: number, x2: number, y2: number, x:
 /** Canonical token for four control points: a preset's name when they match one, else `eb(...)`. */
 function easeFromPoints(x1: number, y1: number, x2: number, y2: number): string {
   // x is TIME and must stay inside the unit interval or the curve is not a
-  // function of progress — CSS rejects the same thing.
+  // function of progress - CSS rejects the same thing.
   const p: [number, number, number, number] = [
     quant(clamp(x1, 0, 1), KF_BEZIER_QUANTUM),
     quant(clamp(y1, -KF_BEZIER_Y_MAX, KF_BEZIER_Y_MAX), KF_BEZIER_QUANTUM),
@@ -389,7 +389,7 @@ export function normaliseKfEase(tok: unknown): string | null {
 
 // Bounded so a track full of junk cannot grow it without limit. Module-level and
 // therefore per-thread, which is the point: the cached form is a plain string
-// key, never a compiled closure — a closure in a structured-cloned track would
+// key, never a compiled closure - a closure in a structured-cloned track would
 // DataCloneError and silently kill worker offload (§5.1).
 const EASE_PTS_CACHE = new Map<string, readonly [number, number, number, number] | null>();
 
@@ -425,7 +425,7 @@ export function kfEasePoints(ease: unknown): [number, number, number, number] | 
  * Eased progress at raw progress `u ∈ [0,1]`.
  *
  * `eh` holds: 0 until the segment ends. An unrecognised token falls back to the
- * grammar's default rather than throwing — junk is skipped everywhere else too.
+ * grammar's default rather than throwing - junk is skipped everywhere else too.
  */
 export function kfEaseAt(ease: string, u: number): number {
   if (!(u > 0)) return 0;
@@ -438,7 +438,7 @@ export function kfEaseAt(ease: string, u: number): number {
 /**
  * kf token → the canonical CSS wire the easing editor speaks.
  *
- * Always the `cubic-bezier(a,b,c,d)` spelling (commas — which is exactly why
+ * Always the `cubic-bezier(a,b,c,d)` spelling (commas - which is exactly why
  * this adapter exists: they are banned from the kf charset). `eh` has no CSS
  * equivalent and returns the documented `'hold'` sentinel; anything
  * unrecognised returns the default ease's CSS.
@@ -467,7 +467,7 @@ const NAME_TO_TOKEN: ReadonlyMap<string, string> = new Map(
  *
  * Accepts a kf token, a preset NAME from the shell's `EASINGS`, a CSS
  * `cubic-bezier(a,b,c,d)`, or the `'hold'` sentinel. Unrecognised input becomes
- * the grammar's default — this adapter never throws and never emits a token the
+ * the grammar's default - this adapter never throws and never emits a token the
  * charset would reject.
  */
 export function kfEaseToken(v: unknown): string {
@@ -532,19 +532,19 @@ function easeParamAtX(x1: number, x2: number, x: number): number {
 }
 
 /**
- * Below this the renormalisation divides by (almost) nothing — see the
+ * Below this the renormalisation divides by (almost) nothing - see the
  * degenerate case in {@link subdivideKfEase}.
  */
 const SUBDIVIDE_EPS = 1e-4;
 
 /**
- * A subdivided half, as a token — with the one canonicalisation `easeFromPoints`
+ * A subdivided half, as a token - with the one canonicalisation `easeFromPoints`
  * cannot make on its own.
  *
  * `easeFromPoints` recognises a preset by exact control-point equality, and a
  * subdivision re-parametrises: splitting LINEAR at the midpoint yields the
  * control net (0,0)(0.5,0.5), which is the identity curve spelled differently.
- * Same function, but it would come back as `eb(0)(0)(0.5)(0.5)` — so the halves
+ * Same function, but it would come back as `eb(0)(0)(0.5)(0.5)` - so the halves
  * of a linear move would each read "Custom" in the easing menu, and the wire
  * would grow, for a segment nobody eased. `y1 === x1 && y2 === x2` makes
  * `y(t) === x(t)` identically, so that net IS `el` and is named as such.
@@ -568,8 +568,8 @@ function subdividedEaseToken(x1: number, y1: number, x2: number, y2: number): st
 }
 
 /**
- * Split one segment's ease at `lambda` — the fraction of the segment's TIME at
- * which a cut lands — into the ease each half needs to reproduce the original
+ * Split one segment's ease at `lambda` - the fraction of the segment's TIME at
+ * which a cut lands - into the ease each half needs to reproduce the original
  * motion. This is what makes a split/trim/join rebase honest rather than
  * approximately honest (plan §5.6).
  *
@@ -585,14 +585,14 @@ function subdividedEaseToken(x1: number, y1: number, x2: number, y2: number): st
  *     E_R(u) = (E(λ + (1 − λ)·u) − E(λ)) / (1 − E(λ))
  *
  * Both are exactly the de Casteljau halves of the cubic at the parameter where
- * x = λ, each rescaled back into the unit square — which is why this is a
+ * x = λ, each rescaled back into the unit square - which is why this is a
  * subdivision and not a fit. Returned as canonical tokens (a half that lands on
  * a preset comes back BY NAME), so the caller can splice them straight into a
  * track.
  *
  * Exactness, stated: the halves reproduce the original to the §4.6 bezier
  * quantum (0.001 on each control point). Three cases cannot be expressed at all
- * and keep the original token instead — documented approximations, not silent
+ * and keep the original token instead - documented approximations, not silent
  * ones:
  *
  * - `eh` (hold) has no bezier to split; both halves hold.
@@ -604,11 +604,11 @@ function subdividedEaseToken(x1: number, y1: number, x2: number, y2: number): st
  *
  * THE RESIDUAL, MEASURED (and it is not what the first version of this comment
  * claimed). Only the overshoot family can reach its own start/end value in
- * flight — `ev` crosses E = 1 at λ ≈ 0.3691, `ea` returns to E = 0 at
- * λ ≈ 0.2735 — and the earlier justification ("the excursion is bounded by the
+ * flight - `ev` crosses E = 1 at λ ≈ 0.3691, `ea` returns to E = 0 at
+ * λ ≈ 0.2735 - and the earlier justification ("the excursion is bounded by the
  * endpoints' separation") is false exactly there: the endpoints COINCIDE while
- * `ev`'s excursion is 56 % of travel. Around each crossing there is a band —
- * λ ∈ [0.348, 0.387] for `ev`, λ ∈ [0.264, 0.284] for `ea` — where the halves
+ * `ev`'s excursion is 56 % of travel. Around each crossing there is a band - 
+ * λ ∈ [0.348, 0.387] for `ev`, λ ∈ [0.264, 0.284] for `ea` - where the halves
  * are an approximation with up to ~0.10 of error in E, i.e. ~10 px on a 100 px
  * move, mid-segment; it falls to zero at each edge of the band. That is an
  * expressive limit, not a bug to fix: a segment whose two endpoint VALUES are
@@ -651,7 +651,7 @@ export interface KfKey {
   readonly t: number;
   /** Canonical ease token governing the segment that STARTS here. */
   readonly ease: string;
-  /** Only the channels this keyframe mentions — sparseness is a wire property (§5.1). */
+  /** Only the channels this keyframe mentions - sparseness is a wire property (§5.1). */
   readonly v: Readonly<KfPose>;
 }
 
@@ -659,7 +659,7 @@ export interface KfKey {
 export type KfTrack = readonly KfKey[];
 
 /**
- * A key as a caller may hand it in — looser than the parsed form, so a `KfKey`
+ * A key as a caller may hand it in - looser than the parsed form, so a `KfKey`
  * (or anything a rebase builds by hand) is accepted by `serialiseKf` unchanged.
  */
 export interface KfKeyInput {
@@ -739,7 +739,7 @@ export function parseKf(s: unknown, opts?: KfParseOptions): KfTrack {
   let src = s;
   if (src.length > KF_MAX_CHARS) {
     warn?.(`kf: value is ${src.length} chars; reading the first ${KF_MAX_CHARS}`);
-    // The truncated tail is parsed leniently under the ordinary junk rules —
+    // The truncated tail is parsed leniently under the ordinary junk rules - 
     // a half-written token is simply a token that does not parse.
     src = src.slice(0, KF_MAX_CHARS);
   }
@@ -766,7 +766,7 @@ export function parseKf(s: unknown, opts?: KfParseOptions): KfTrack {
       const tok = toks[i] as string;
       if (tok.charCodeAt(0) === 101 /* e */) {
         const norm = normaliseKfEase(tok);
-        // Later tokens overwrite earlier ones within a keyframe — the wire is
+        // Later tokens overwrite earlier ones within a keyframe - the wire is
         // read as a sequence of assignments.
         if (norm !== null) { ease = norm; continue; }
       }
@@ -803,7 +803,7 @@ function keyToWire(k: KfKey): string {
  * Serialise a track back to a `kf` field value.
  *
  * Output is always charset-clean and quantised, which is what lets the hooks
- * hold their strict-emission rule (§5.1): parse, re-serialise, emit — raw user
+ * hold their strict-emission rule (§5.1): parse, re-serialise, emit - raw user
  * text never reaches an attribute.
  */
 export function serialiseKf(track: readonly KfKeyInput[] | null | undefined, opts?: KfParseOptions): string {
@@ -862,7 +862,7 @@ function sampleChannel(track: KfTrack, ks: readonly number[], ch: KfChannel, t: 
   const span = b.t - a.t;
   if (!(span > 0)) return bv;
   const u = (t - a.t) / span;
-  // The segment ease governs every channel EXCEPT `o`, which is always linear —
+  // The segment ease governs every channel EXCEPT `o`, which is always linear - 
   // `eh` still holds it, like any channel (§5.2).
   const ease = ch === 'o' ? (a.ease === KF_HOLD_EASE ? KF_HOLD_EASE : KF_LINEAR_EASE) : a.ease;
   return av + (bv - av) * kfEaseAt(ease, u);
@@ -872,13 +872,13 @@ function sampleChannel(track: KfTrack, ks: readonly number[], ch: KfChannel, t: 
  * The pose at local time `tMs`.
  *
  * Sparse by channel: a channel interpolates between the nearest keyframes that
- * MENTION it — a diamond in between that says nothing about it is transparent —
+ * MENTION it - a diamond in between that says nothing about it is transparent - 
  * using the earlier mentioning keyframe's ease, and clamp-holds outside the
  * authored range. A channel the track never mentions is ABSENT from the result,
  * so a consumer can tell "not authored" from "authored 0".
  *
  * The per-track channel index is memoised against the track object, so a track
- * must not be mutated in place after its first evaluation — `parseKf` freezes
+ * must not be mutated in place after its first evaluation - `parseKf` freezes
  * what it returns, and anything built by hand should be handed over as a fresh
  * array (which is what a rebase produces anyway).
  *
@@ -918,16 +918,16 @@ export interface KfCameraPose {
   f: number;
   /** Aperture 0–1. 0 = everything sharp. */
   a: number;
-  /** Tilt, deg — parsed from day one, consumed at P2. */
+  /** Tilt, deg - parsed from day one, consumed at P2. */
   rx?: number;
-  /** Tilt, deg — parsed from day one, consumed at P2. */
+  /** Tilt, deg - parsed from day one, consumed at P2. */
   ry?: number;
 }
 
 /**
  * The DEFAULT camera (§5.4): P = 1200, pose 0.
  *
- * This is what "no camera box" resolves to — never a literal identity, because
+ * This is what "no camera box" resolves to - never a literal identity, because
  * an identity would swallow z. It projects z = 0 layers at eff = 1, so every
  * existing document renders byte-identically.
  */
@@ -936,7 +936,7 @@ export const DEFAULT_CAMERA: Readonly<KfCameraPose> = Object.freeze({ x: 0, y: 0
 /** The default perspective strength, in px. */
 export const DEFAULT_PERSPECTIVE = 1200;
 
-/** A camera pose plus the stage it looks at — the principal point is the stage centre. */
+/** A camera pose plus the stage it looks at - the principal point is the stage centre. */
 export interface KfCameraView extends KfCameraPose {
   /** Stage width, stage-native px (BEFORE export scale S). */
   w: number;
@@ -963,10 +963,10 @@ export const KF_GUARD_U = 0.9;
 export const KF_GUARD_BAND = 0.1;
 
 /**
- * eff at the clamp: 1/(1 − 0.9). Any fly-past hits the plate budget cap — a
+ * eff at the clamp: 1/(1 − 0.9). Any fly-past hits the plate budget cap - a
  * designed path.
  *
- * `projectDepth` returns EXACTLY this at and beyond the guard — the naive
+ * `projectDepth` returns EXACTLY this at and beyond the guard - the naive
  * `1/(1 − 0.9)` is 10.000000000000002 in IEEE-754, which would put the number
  * consumers actually see above the maximum this constant declares (the §5.5
  * plate-resolution buckets and the λ budget are both computed from maxEff). See
@@ -976,7 +976,7 @@ export const KF_EFF_MAX = 10;
 
 /** What the depth of one layer works out to under a camera. */
 export interface KfDepth {
-  /** (z − camZ)/P, unclamped — the diagnostic the guard is stated in. */
+  /** (z − camZ)/P, unclamped - the diagnostic the guard is stated in. */
   u: number;
   /** P/(P − (z − camZ)), with u clamped at KF_GUARD_U. */
   eff: number;
@@ -999,8 +999,8 @@ function sanePerspective(p: unknown): number {
  * eff FREEZES at its clamp value while alpha ramps, so the pole is unreachable
  * and the whole thing stays continuous.
  *
- * eff is computed in P-SPACE — `P/(P − min(dz, 0.9P))` rather than
- * `1/(1 − min(u, 0.9))` — and then held to `KF_EFF_MAX`. Same value everywhere
+ * eff is computed in P-SPACE - `P/(P − min(dz, 0.9P))` rather than
+ * `1/(1 − min(u, 0.9))` - and then held to `KF_EFF_MAX`. Same value everywhere
  * it matters, but the division happens once instead of twice, so the clamp
  * lands on exactly 10 instead of 10.000000000000002: `KF_EFF_MAX` is a declared
  * maximum that downstream code buckets and budgets against, and a maximum the
@@ -1027,7 +1027,7 @@ export function projectDepth(cam: Pick<KfCameraPose, 'z' | 'p'>, z: number): KfD
  * Callers that pick a look (the lift ladder's eff band, plans/104 §5.3's
  * "tasteful 1.05–1.2") state it in eff and come here for the number to store.
  *
- * `eff ≤ 1` is not an error — it is the far side of the surface, and returns a
+ * `eff ≤ 1` is not an error - it is the far side of the surface, and returns a
  * negative (sunken) z, which the field's own clamp then has an opinion about.
  * The perspective is clamped like everywhere else, and eff is held under
  * {@link KF_EFF_MAX} so the inverse can never be asked for the pole.
@@ -1056,7 +1056,7 @@ export interface KfLayerPose {
   /** Resolved depth: the box's `z` field unless a kf `z` token overrides it (§5.2). */
   z?: number;
   /**
-   * The layer's EXTENT in surface px at this instant — its drawn width/height times
+   * The layer's EXTENT in surface px at this instant - its drawn width/height times
    * whatever scale the transition and the track put on it, BEFORE the projection.
    *
    * Read only by the TILTED branch (P2), where the guard stops being a property of the
@@ -1066,7 +1066,7 @@ export interface KfLayerPose {
    * layer is treated as a point and the guard is exactly the §4.5 plane formula it has
    * always been.
    *
-   * The AUTHORED rotation is deliberately not folded in — neither evaluator parses it
+   * The AUTHORED rotation is deliberately not folded in - neither evaluator parses it
    * out of the element's own transform, and the guard is a soft ramp over 0.1·P rather
    * than a clip, so a rotated box's near corner is estimated from its unrotated extent
    * and the error is bounded by √2 of a ramp width.
@@ -1081,17 +1081,17 @@ export interface KfProjection {
   dx: number;
   /** cy' − by. */
   dy: number;
-  /** eff — multiply the transition and keyframe scales by this (§4.1: scale = scT · sK · eff). */
+  /** eff - multiply the transition and keyframe scales by this (§4.1: scale = scT · sK · eff). */
   scale: number;
   /** Multiply the item's alpha by this; skip the layer entirely at 0. */
   alphaGuard: number;
   /**
-   * P2 — the ELEMENT-LOCAL homography a tilted camera needs, or null on the
+   * P2 - the ELEMENT-LOCAL homography a tilted camera needs, or null on the
    * screen-parallel path (every untilted camera, i.e. everything P0/P1 ships).
    *
    * Null is the byte-identity floor: a consumer that sees null writes exactly the
    * `translate(dx,dy) … scale(scale)` it always wrote. When it is present, it REPLACES
-   * the leading translate and nothing else — `scale` still carries eff and `rot` is
+   * the leading translate and nothing else - `scale` still carries eff and `rot` is
    * still applied after it, because the matrix has the centre magnification divided
    * back out (see {@link projectLayerMatrix}).
    */
@@ -1115,21 +1115,21 @@ export type KfMatrix3 = readonly [
 ];
 
 // NO `KF_MATRIX3_IDENTITY` HERE, deliberately. 1.121 exported one from the barrel and
-// nothing in `engine/`, `shells/`, `tests/` or `packages/` ever read it — and the engine's
+// nothing in `engine/`, `shells/`, `tests/` or `packages/` ever read it - and the engine's
 // own rule is that a minor's additions are permanent ("added in minor versions, never
 // removed"), so an unused export is a forever commitment made by accident. The untilted
 // tier returns `m: null` rather than an identity matrix (that IS the byte-identity gate),
 // so there is no caller to give it. Add it back the day something needs one.
 
 /**
- * Is this camera TILTED — i.e. does it need the homography tier at all?
+ * Is this camera TILTED - i.e. does it need the homography tier at all?
  *
  * An EXACT zero test on both angles, with no epsilon, and that is deliberate: this
  * predicate is the byte-identity gate. Everything written before P2 authors no `rx`
  * and no `ry`, so it answers false and every one of those documents takes the exact
  * screen-parallel path it took before this function existed. An epsilon here would
  * mean a track that keyframes rx from 0 to 40 spends its first frames on the affine
- * path and then switches — a discontinuity in the picture at whatever threshold was
+ * path and then switches - a discontinuity in the picture at whatever threshold was
  * chosen. Zero or not zero; the maths is continuous across it (at rx = ry = 0 the
  * homography reduces algebraically to the affine fold, which is a golden).
  */
@@ -1148,8 +1148,8 @@ const DEG = Math.PI / 180;
  *
  * The two elementary matrices are CSS's own `rotateX`/`rotateY` in CSS's own axes
  * (x right, y DOWN, z toward the viewer), so a reader can check the sign of a tilt
- * against a transform they can type into a stylesheet. Composed pitch-then-yaw — the
- * pan/tilt head — so a camera with both angles never acquires roll, which is a third
+ * against a transform they can type into a stylesheet. Composed pitch-then-yaw - the
+ * pan/tilt head - so a camera with both angles never acquires roll, which is a third
  * channel the wire does not have.
  */
 function camRotationT(rxDeg: number, ryDeg: number): KfMatrix3 {
@@ -1179,7 +1179,7 @@ function mul3(a: KfMatrix3, b: KfMatrix3): KfMatrix3 {
 
 /**
  * A tilted camera's SURFACE → SCREEN homography for one layer plane, plus the two
- * scalars the guard and the depth-of-field need. Null when the camera is not tilted —
+ * scalars the guard and the depth-of-field need. Null when the camera is not tilted - 
  * callers take the affine path.
  *
  * ## The model, and why the camera ORBITS rather than swivels
@@ -1190,7 +1190,7 @@ function mul3(a: KfMatrix3, b: KfMatrix3): KfMatrix3 {
  *
  * - swivel in place (rotate about `C`): pointing the camera up sends the artwork out
  *   of the bottom of the frame, exactly as a real camera does. Physically honest and
- *   useless as a control — the first degree of tilt loses the subject.
+ *   useless as a control - the first degree of tilt loses the subject.
  * - ORBIT the aim point (rotate about `Q = (camX + W/2, camY + H/2, camZ)`, the point
  *   the camera was already looking at, keeping the distance `P`): the aim point stays
  *   dead centre and the plane pitches around it. This is what every "camera angle"
@@ -1204,7 +1204,7 @@ function mul3(a: KfMatrix3, b: KfMatrix3): KfMatrix3 {
  *
  * `rx` and `ry` are CAMERA rotations in degrees, in CSS's axis convention, and the
  * honest way to state their sign is by the PICTURE rather than by where the rig ends
- * up — the artwork is a plane with no gravity, so "the camera is below looking up" and
+ * up - the artwork is a plane with no gravity, so "the camera is below looking up" and
  * "the camera is above looking down at a floor" are the same photograph, and only one
  * of those sentences is useful.
  *
@@ -1214,11 +1214,12 @@ function mul3(a: KfMatrix3, b: KfMatrix3): KfMatrix3 {
  * other way up: a ceiling). **`ry > 0` brings the RIGHT-hand edge nearer.** Both are
  * pinned by hand-computed goldens in `tests/keyframes-tilt.test.ts`.
  *
- * One consequence worth knowing before reaching for a dolly under tilt: `camZ` moves
- * the aim point along the WORLD z axis, not along the camera's own view axis, so on a
- * pitched camera it displaces the picture vertically as well as magnifying it. That is
- * consistent (the rig is looking at a plane further back) but it is not what "push in"
- * means to a user, which is why the shipped Surface glide preset does not dolly.
+ * One consequence to know before using a dolly under tilt: `camZ` moves the aim
+ * point along the WORLD z axis, not along the camera's own view axis. On a
+ * pitched camera this displaces the picture vertically as well as magnifying it.
+ * That is consistent (the rig is looking at a plane further back), but it is not
+ * what "push in" means to a user, which is why the shipped Surface glide preset
+ * does not dolly.
  *
  * ## The algebra
  *
@@ -1226,14 +1227,14 @@ function mul3(a: KfMatrix3, b: KfMatrix3): KfMatrix3 {
  * z − camZ)`) and `g = Rᵀ v`, the camera-space point is `(g₀, g₁, g₂ − P)`, the
  * distance along the view axis is `D = P − g₂`, and the screen point is
  * `(W/2 + P·g₀/D, H/2 + P·g₁/D)`. Written as a homography over `[x, y, 1]` that is
- * the matrix below, and at `R = I` it is `W/2 + (x − camX − W/2)·P/d` — the §4.1 fold,
+ * the matrix below, and at `R = I` it is `W/2 + (x − camX − W/2)·P/d` - the §4.1 fold,
  * exactly.
  */
 function surfaceMatrix(cam: KfCameraView, z: number): {
   m: KfMatrix3;
   /** Row 2 of `Rᵀ`, the only row the per-corner depth needs. */
   m2: readonly [number, number, number];
-  /** `cx0`, `cy0` — the aim point in surface coords. */
+  /** `cx0`, `cy0` - the aim point in surface coords. */
   cx0: number;
   cy0: number;
   /** `z − camZ`. */
@@ -1259,7 +1260,7 @@ function surfaceMatrix(cam: KfCameraView, z: number): {
   const h6 = -m20;
   const h7 = -m21;
   const h8 = P + m20 * cx0 + m21 * cy0 - m22 * zeta;
-  // X = P·g₀ + (W/2)·D, Y = P·g₁ + (H/2)·D — the principal point is the stage centre.
+  // X = P·g₀ + (W/2)·D, Y = P·g₁ + (H/2)·D - the principal point is the stage centre.
   const gx0 = -(m00 * cx0) - m01 * cy0 + m02 * zeta;
   const gy0 = -(m10 * cx0) - m11 * cy0 + m12 * zeta;
   const m: KfMatrix3 = [
@@ -1271,7 +1272,7 @@ function surfaceMatrix(cam: KfCameraView, z: number): {
 }
 
 /**
- * The element-local homography for a tilted layer — what a DOM consumer writes as
+ * The element-local homography for a tilted layer - what a DOM consumer writes as
  * `matrix3d(...)` in place of the affine `translate(dx, dy)`.
  *
  * `hs` maps SURFACE points to SCREEN points; a CSS transform maps points in the
@@ -1282,7 +1283,7 @@ function surfaceMatrix(cam: KfCameraView, z: number): {
  *     M = T(−O) · hs · T(cp) · S(1/effc)
  *
  * where `O` is the element's origin (its authored centre), `cp` the posed centre in
- * surface space, and `effc` the centre magnification — which is divided back out
+ * surface space, and `effc` the centre magnification - which is divided back out
  * precisely so that `scale` on `KfProjection` keeps meaning what it has always meant
  * (`scT · sK · eff`) and every consumer that is not writing the matrix reads the same
  * numbers it read before P2. At `rx = ry = 0` this product collapses to
@@ -1293,7 +1294,7 @@ function localMatrix(hs: KfMatrix3, ox: number, oy: number, cpx: number, cpy: nu
   const inv = 1 / e;
   // B = T(cp) · S(1/effc)
   const B: KfMatrix3 = [inv, 0, cpx, 0, inv, cpy, 0, 0, 1];
-  // A = T(−O), applied in PROJECTIVE space (X − Ox·W, Y − Oy·W, W) — a translation
+  // A = T(−O), applied in PROJECTIVE space (X − Ox·W, Y − Oy·W, W) - a translation
   // after the divide, which is what "the element paints at its own origin" means.
   const A: KfMatrix3 = [1, 0, -ox, 0, 1, -oy, 0, 0, 1];
   return mul3(A, mul3(hs, B));
@@ -1310,11 +1311,11 @@ function fmt9(v: number): string {
  * A 2D homography as a CSS `matrix3d(...)`, normalised so its bottom-right entry is 1.
  *
  * The 3D form is the only CSS transform that performs a perspective divide, which is
- * the only way to put a homography on an element — a 2D `matrix()` is affine by
+ * the only way to put a homography on an element - a 2D `matrix()` is affine by
  * definition. The z row is the identity's (`0,0,1,0`) and the z output is 0, so the
  * element stays FLAT: this must never be paired with a `perspective` or
  * `transform-style: preserve-3d` ancestor. That is the Cover Flow rule, and it is not
- * an aesthetic one — `parseCssMatrix` (engine/src/css-box.ts) refuses a real 3D
+ * an aesthetic one - `parseCssMatrix` (engine/src/css-box.ts) refuses a real 3D
  * context, so a walker-captured still of a preserve-3d scene comes out mis-scaled or
  * blank. Per-element and flattened, every layer's geometry is recoverable.
  *
@@ -1336,7 +1337,7 @@ export function kfMatrix3dCss(m: KfMatrix3): string {
 }
 
 /**
- * Map one surface point through a tilted camera — the chrome's route (handles, motion
+ * Map one surface point through a tilted camera - the chrome's route (handles, motion
  * paths, hit-testing) and the reference implementation the goldens check the matrix
  * against. Null when the camera is not tilted, or when the point is at/behind the
  * near plane (there is no honest screen position for it).
@@ -1361,7 +1362,7 @@ export function projectSurfacePoint(
  *   dx  = cx' − bx        scale = eff        (per axis for y/H)
  *
  * The transition and keyframe offsets are INSIDE the projection, so they scale
- * by eff — a slide enter on a lifted layer tracks the parallax instead of
+ * by eff - a slide enter on a lifted layer tracks the parallax instead of
  * landing short. The naive reading (adding the camera displacement to an
  * unscaled offset) is the defect the parity suite's transition × camera case
  * exists to catch.
@@ -1376,7 +1377,7 @@ export function projectLayer(cam: KfCameraView, layer: KfLayerPose): KfProjectio
   const cy = by + (layer.dyT ?? 0) + (layer.dyK ?? 0);
   // P2. The branch is `cameraTilted`, an exact zero test, so a camera that authors no
   // angle never reaches a line of the homography tier and the screen-parallel path
-  // below is the one that shipped — same expressions, same order, same bits.
+  // below is the one that shipped - same expressions, same order, same bits.
   if (cameraTilted(cam)) {
     const t = projectLayerTilted(cam, layer, cx, cy, bx, by);
     if (t) return t;
@@ -1397,21 +1398,21 @@ export function projectLayer(cam: KfCameraView, layer: KfLayerPose): KfProjectio
  *
  * Three numbers come out of it, and each one is the generalisation of an affine one:
  *
- * - **`scale`** — the magnification at the layer's posed CENTRE, `P/D` with `D` the
+ * - **`scale`** - the magnification at the layer's posed CENTRE, `P/D` with `D` the
  *   distance along the view axis, clamped exactly as `projectDepth` clamps eff. At
  *   `rx = ry = 0`, `D = d` and this IS eff.
- * - **`alphaGuard`** — the §4.5 ramp, moved from the layer's PLANE to its nearest
+ * - **`alphaGuard`** - the §4.5 ramp, moved from the layer's PLANE to its nearest
  *   CORNER. A pitched camera puts one edge of a screen-parallel layer nearer than the
  *   other, and it is that edge which reaches the near plane first; ramping on the
  *   plane would let a corner cross `w = 0` while the layer was still fully opaque,
- *   which is not a soft failure — a homography with a sign change in its denominator
+ *   which is not a soft failure - a homography with a sign change in its denominator
  *   paints garbage. Ramping on the nearest corner means the layer is already invisible
  *   before any part of it can get there, so the matrix handed out is always one whose
  *   denominator is positive over the whole box. Written as
  *   `clamp(Dmin/(band·P) − 1, 0, 1)`, which is the same expression as
- *   `clamp((0.9 − u)/0.1, 0, 1)` with `u = 1 − D/P` — identical in ℝ, and the untilted
+ *   `clamp((0.9 − u)/0.1, 0, 1)` with `u = 1 − D/P` - identical in ℝ, and the untilted
  *   path still evaluates the original spelling so it stays identical in IEEE-754 too.
- * - **`m`** — the element-local homography (see {@link localMatrix}).
+ * - **`m`** - the element-local homography (see {@link localMatrix}).
  */
 function projectLayerTilted(
   cam: KfCameraView, layer: KfLayerPose, cx: number, cy: number, bx: number, by: number,
@@ -1420,7 +1421,7 @@ function projectLayerTilted(
   if (!s) return null;
   const [m20, m21, m22] = s.m2;
   const zTerm = m22 * s.zeta;
-  /** Distance along the view axis for a surface point — `D = P − g₂`. */
+  /** Distance along the view axis for a surface point - `D = P − g₂`. */
   const depthAt = (px: number, py: number): number =>
     s.P - (m20 * (px - s.cx0) + m21 * (py - s.cy0) + zTerm);
   const dC = depthAt(cx, cy);
@@ -1440,7 +1441,7 @@ function projectLayerTilted(
   }
   const alphaGuard = clamp(dMin / (KF_GUARD_BAND * s.P) - 1, 0, 1);
   // The projected CENTRE, off the matrix already in hand rather than through
-  // `projectSurfacePoint` — this runs per layer per frame in the DOM applier, and that
+  // `projectSurfacePoint` - this runs per layer per frame in the DOM applier, and that
   // call would rebuild the whole surface matrix a second time to answer one point.
   const [h0, h1, h2, h3, h4, h5, h6, h7, h8] = s.m;
   const wC = h6 * cx + h7 * cy + h8;
@@ -1469,7 +1470,7 @@ export const DOF_K = 40;
  *   blur = a · K · |z − f| · eff(z) · eff(f) / P
  *
  * The `eff(z)·eff(f)` factor is the correction: without it, dollying toward an
- * out-of-focus layer SHARPENED it — the defocus circle is magnified by the same
+ * out-of-focus layer SHARPENED it - the defocus circle is magnified by the same
  * projection as everything else, at both the layer and the focal plane.
  * Returned in stage-native px (×S at export), capped at KF_MAX_BLUR.
  */
@@ -1479,10 +1480,10 @@ export function dofBlur(cam: Pick<KfCameraPose, 'z' | 'p' | 'f' | 'a' | 'rx' | '
   const P = sanePerspective(cam.p);
   const f = typeof cam.f === 'number' && Number.isFinite(cam.f) ? cam.f : 0;
   const zz = Number.isFinite(z) ? z : 0;
-  // P2 — DISTANCE ALONG THE VIEW AXIS, which is what defocus has always been a
+  // P2 - DISTANCE ALONG THE VIEW AXIS, which is what defocus has always been a
   // function of. The affine tier can use `z` as a proxy because the two agree there:
   // an untilted camera's view axis IS the z axis, so `d = P − (z − camZ)`. Orbit the
-  // camera (see `surfaceMatrix`) and they part company — down the centre of frame the
+  // camera (see `surfaceMatrix`) and they part company - down the centre of frame the
   // depth becomes `D = P − κ·(z − camZ)` with `κ = cos(rx)·cos(ry)`, because the camera
   // has swung to a shallower height above the surface. Both the layer's and the focal
   // plane's depths move, so the two eff factors are re-read at the tilted distance and
@@ -1491,14 +1492,14 @@ export function dofBlur(cam: Pick<KfCameraPose, 'z' | 'p' | 'f' | 'a' | 'rx' | '
   //     |D_f − D_z| = κ·|z − f|   ⇒   blur = a·K·|z−f|·effᴰ(z)·effᴰ(f)·κ / P
   //
   // At κ = 1 every term is the affine one it replaces and this is the expression that
-  // shipped, evaluated in the same order — which is why the branch is on `cameraTilted`
+  // shipped, evaluated in the same order - which is why the branch is on `cameraTilted`
   // rather than on a κ that merely happens to be 1.
   //
   // ⚑ UNDER TILT THIS IS THE ON-AXIS NUMBER, deliberately, and the limit is worth
   // knowing before reading `D` as "the layer's depth". The signature is `(cam, z)`: a
   // depth and no position, so `D = P − κ(z − camZ)` is the view-axis depth of the AIM
   // COLUMN, not of wherever the layer sits in frame. A pitched camera makes those
-  // differ — at `rx = −40`, `f = 600`, `a = 1`, P = 1200, a layer centred at the frame
+  // differ - at `rx = −40`, `f = 600`, `a = 1`, P = 1200, a layer centred at the frame
   // centre is at D = 1200 and gets 24.83 px, while the same layer down in the near
   // field (centre y 918) is really at D = 957 and wants 46.35 px, and up in the far
   // field (centre y 162) at D = 1443 wants 15.55 px. So an off-centre layer's defocus
@@ -1510,7 +1511,7 @@ export function dofBlur(cam: Pick<KfCameraPose, 'z' | 'p' | 'f' | 'a' | 'rx' | '
   // It is an approximation rather than a defect because the correction has a price
   // this module is not the right place to pay: a per-layer depth means passing the
   // layer's posed centre (or its whole `KfProjection`) into every DOF read, and
-  // `foldKfPose` then must NOT divide the result by `proj.scale` — the two eff factors
+  // `foldKfPose` then must NOT divide the result by `proj.scale` - the two eff factors
   // would already be at the layer's own column. That is a signature change on a
   // published minor plus a matching change in both evaluators, so it belongs in a
   // measured pass with goldens of its own, not in a corrective. Recorded here rather
@@ -1531,13 +1532,13 @@ export function dofBlur(cam: Pick<KfCameraPose, 'z' | 'p' | 'f' | 'a' | 'rx' | '
  * covers t, folded to a pose. Windows are half-open `[start, end)` so adjacent
  * clips cut cleanly; an untimed clip ("Always on") covers everything.
  *
- * With no camera at all — or none covering t — the result is the DEFAULT camera
+ * With no camera at all - or none covering t - the result is the DEFAULT camera
  * (P = 1200, pose 0), which projects z = 0 at eff = 1. Never a literal identity:
  * an identity would swallow z, and the whole point is that lifted layers read as
  * lifted the moment the first z slider moves.
  *
  * Channels are ABSOLUTE on a camera: a keyed channel replaces the base pose for
- * that segment, and the base is the value wherever the track authors no token —
+ * that segment, and the base is the value wherever the track authors no token - 
  * the §5.2 `z`-replaces-the-field rule, generalised (there is no sensible
  * additive reading of a focal length).
  */
@@ -1551,7 +1552,7 @@ export function resolveCamera(cameras: readonly KfCameraClip[] | null | undefine
       const end = typeof c.end === 'number' && Number.isFinite(c.end) ? c.end : null;
       if (start !== null && t < start) continue;
       if (end !== null && t >= end) continue;
-      pick = c; // latest-in-array wins — cuts, not blends (§5.4)
+      pick = c; // latest-in-array wins - cuts, not blends (§5.4)
     }
   }
   const pose: KfCameraPose = { ...DEFAULT_CAMERA };
@@ -1578,7 +1579,7 @@ export function resolveCamera(cameras: readonly KfCameraClip[] | null | undefine
   }
   // EVERY channel is re-held to its declared range on the way out, not just `p`.
   // The `ev`/`ea` presets overshoot by design, so a segment between two in-range
-  // keys leaves the range mid-flight — `t0_ea_a1*t1000_a0` peaks at a = 1.072,
+  // keys leaves the range mid-flight - `t0_ea_a1*t1000_a0` peaks at a = 1.072,
   // and `KfCameraPose.a` is documented "Aperture 0–1". The resolved pose is this
   // module's public contract (the §8 camera panel and any plate-padding budget
   // read it directly), so the guarantee has to hold here rather than only inside

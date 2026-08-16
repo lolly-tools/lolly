@@ -1,15 +1,15 @@
 #!/usr/bin/env node
 // SPDX-License-Identifier: MPL-2.0
 /**
- * Docs nav drift guard — every `docs/*.md` is either a registered `/info` page or
+ * Docs nav drift guard - every `docs/*.md` is either a registered `/info` page or
  * a DECLARED exception.
  *
  * Run as: node scripts/check-docs-nav.ts        (exit 1 on drift)
  *         node scripts/check-docs-nav.ts --json (machine-readable report)
  *
  * WHY THIS EXISTS
- * `docs/build.ts` holds a hand-maintained `pages` array; the `/info` site — nav,
- * sidebar, sitemap — is derived from it. Nothing connected that array to the
+ * `docs/build.ts` holds a hand-maintained `pages` array; the `/info` site - nav,
+ * sidebar, sitemap - is derived from it. Nothing connected that array to the
  * directory it reads from, so a `.md` could be written, reviewed and committed
  * while remaining unreachable from the site. `docs/ios-build.md` was exactly that
  * for as long as it existed: a complete iOS build walkthrough with no `pages`
@@ -17,8 +17,8 @@
  * registered now (maintainability-2026-07-29.md item 5), and this script is the
  * half that stops the next one drifting.
  *
- * It also checks the other direction — a `pages` entry whose `src` no longer
- * exists — because that fails the build with a bare ENOENT rather than saying
+ * It also checks the other direction - a `pages` entry whose `src` no longer
+ * exists - because that fails the build with a bare ENOENT rather than saying
  * which page is stale.
  *
  * AND IT CHECKS SIDEBAR REACHABILITY, which is the stricter and more honest
@@ -30,12 +30,12 @@
  *
  * AND IT CHECKS THE README INDEX. docs/README.md opens by promising its sections
  * "mirror the pathways declared in docs/build.ts, so the index cannot drift from
- * the site" — but nothing enforced that, and by 2026-08-11 nine registered pages
+ * the site" - but nothing enforced that, and by 2026-08-11 nine registered pages
  * (the whole Trust pathway among them: trust, status-quo, ai-stance, ai-features,
  * beatrice-warde, inclusive-design, input-not-impersonation, plus cli-signing and
  * contributing-setup) had no row at all. A contributor reading the index would
  * conclude those pages did not exist. So every `pages` entry must be NAMED in
- * docs/README.md — in one of the pathway tables, in the "Not in the site nav"
+ * docs/README.md - in one of the pathway tables, in the "Not in the site nav"
  * table, or in the prose that covers a page the tables cannot hold (the About
  * entry, which renders `../README.md`). The match is on the page's own source
  * path or its slug, not on table structure, so the index can be reorganised
@@ -60,7 +60,7 @@ const DOCS_README = join(DOCS_DIR, 'README.md');
 
 /**
  * `docs/*.md` files that are deliberately NOT `/info` pages, each with the reason
- * it is not one. A file here is a decision, not an oversight — if you cannot state
+ * it is not one. A file here is a decision, not an oversight - if you cannot state
  * a reason, the file wants a `pages` entry instead.
  */
 export const NOT_PAGES: Record<string, string> = {
@@ -82,6 +82,21 @@ export const NOT_IN_SIDEBAR: Record<string, string> = {
   index:
     'the /info landing page — the brand wordmark links to it from every page, and it ' +
     'renders the hub cards rather than sitting inside a pathway sidebar',
+  'compare-canva':
+    'a per-competitor compare page, reached through the /info/compare index and the ' +
+    'format-page footers, not a top-level sidebar item',
+  'compare-adobe':
+    'a per-competitor compare page, reached through the /info/compare index and the ' +
+    'format-page footers, not a top-level sidebar item',
+  'compare-figma':
+    'a per-competitor compare page, reached through the /info/compare index and the ' +
+    'format-page footers, not a top-level sidebar item',
+  'compare-render-apis':
+    'a per-competitor compare page, reached through the /info/compare index and the ' +
+    'format-page footers, not a top-level sidebar item',
+  'compare-converters':
+    'a per-competitor compare page, reached through the /info/compare index and the ' +
+    'format-page footers, not a top-level sidebar item',
 };
 
 export interface NavReport {
@@ -89,14 +104,14 @@ export interface NavReport {
   orphaned: string[];
   /** pages entries whose src file is missing from disk. */
   missing: string[];
-  /** NOT_PAGES entries for files that no longer exist — stale exceptions. */
+  /** NOT_PAGES entries for files that no longer exist - stale exceptions. */
   staleExceptions: string[];
-  /** NOT_PAGES entries for files that ARE registered — contradictory. */
+  /** NOT_PAGES entries for files that ARE registered - contradictory. */
   contradictoryExceptions: string[];
   /** Page slugs with no SIDEBARS item and no NOT_IN_SIDEBAR exception. */
   unreachable: string[];
   /** NOT_IN_SIDEBAR entries for slugs that are not pages, or that DO have a
-   *  sidebar item — stale or contradictory either way. */
+   *  sidebar item - stale or contradictory either way. */
   staleSidebarExceptions: string[];
   /** Registered pages that docs/README.md never names, as `slug (src)`. */
   unindexed: string[];
@@ -132,7 +147,7 @@ const slugsIn = (block: string): string[] =>
   [...block.matchAll(/\bslug:\s*'([^']+)'/g)].map((m) => m[1] as string);
 
 /**
- * The `pages` entries as `{ slug, src }` pairs — the README check needs both,
+ * The `pages` entries as `{ slug, src }` pairs - the README check needs both,
  * since the index links files (`[using.md](using.md)`) while the site is keyed
  * by slug. One entry is one object literal on one line, which is how the array
  * is written; a reshaped entry simply yields fewer pairs than there are slugs,
@@ -154,7 +169,7 @@ export function pageEntries(pagesBlock: string): Array<{ slug: string; src: stri
  * bare `README.md` row that stands for this index itself.
  *
  * NOT matched on the slug: too many slugs are ordinary English (`trust`, `about`,
- * `search`, `index`), and a prose coincidence would let a missing row pass — the
+ * `search`, `index`), and a prose coincidence would let a missing row pass - the
  * exact failure this check exists to catch. A `.md` path in the text is always a
  * reference to the doc.
  */
@@ -177,7 +192,7 @@ export function checkDocsNav(): NavReport {
   const staleExceptions = Object.keys(NOT_PAGES).filter((n) => !onDisk.includes(n)).sort();
   const contradictoryExceptions = Object.keys(NOT_PAGES).filter((n) => inDocs.has(n)).sort();
 
-  // Sidebar reachability. Both slices must be non-empty — an empty one would make
+  // Sidebar reachability. Both slices must be non-empty - an empty one would make
   // every check below pass vacuously, which is the failure mode a guard must not have.
   const pagesBlock = sliceDeclaration(buildTs, 'pages');
   const sidebarBlock = sliceDeclaration(buildTs, 'SIDEBARS');
@@ -231,7 +246,7 @@ function main(): void {
   try {
     report = checkDocsNav();
   } catch (err) {
-    // The vacuity guard in checkDocsNav (and any read failure) — report it as a
+    // The vacuity guard in checkDocsNav (and any read failure) - report it as a
     // failed check with its message, not as an unhandled stack trace.
     console.error(`\n✗ docs nav check could not run: ${err instanceof Error ? err.message : String(err)}`);
     process.exit(1);

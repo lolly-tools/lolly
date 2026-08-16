@@ -1,14 +1,14 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
- * C2PA verdict-unification contract tests — engine/src/c2pa-verdict.ts, the
+ * C2PA verdict-unification contract tests - engine/src/c2pa-verdict.ts, the
  * single source of truth for check codes, flags→verdict resolution, and
  * trust-anchor assembly. Run with: node --test tests/c2pa-verdict.test.ts
  *
  * Three layers:
- *  1. C2PA_CHECK drift guard — the values must equal the legacy literal
+ *  1. C2PA_CHECK drift guard - the values must equal the legacy literal
  *     strings BYTE-FOR-BYTE (the web /valid scorecard, saved JSON reports and
  *     the contract tests all string-match them).
- *  2. resolveVerdict over synthetic reports — every state/tone branch of the
+ *  2. resolveVerdict over synthetic reports - every state/tone branch of the
  *     reference ladder (the web view's resolveState + stateTone semantics),
  *     including the defence-in-depth gates and the parts-is-a-flag-not-a-rung
  *     rule.
@@ -64,7 +64,7 @@ test('C2PA_CHECK values equal the exact legacy check-code strings', () => {
     assertionDataHashMismatch: 'assertion.dataHash.mismatch',
     assertionBmffHashMatch: 'assertion.bmffHash.match',
     assertionBmffHashMismatch: 'assertion.bmffHash.mismatch',
-    // C2PA 2.4 text bindings (§A.7/§A.8/§A.9) — added 105-M1. Every value is the
+    // C2PA 2.4 text bindings (§A.7/§A.8/§A.9) - added 105-M1. Every value is the
     // spec's own §15.2.2 status code; they are only emitted for the html/code/text
     // formats, so no pre-existing report's rows changed.
     assertionDataHashMalformed: 'assertion.dataHash.malformed',
@@ -79,7 +79,7 @@ test('C2PA_CHECK values equal the exact legacy check-code strings', () => {
   });
 });
 
-// ─── 2. resolveVerdict over synthetic reports — every branch ─────────────────
+// ─── 2. resolveVerdict over synthetic reports - every branch ─────────────────
 
 const chk = (code: string, ok: boolean) => ({ code, ok, explanation: code });
 // The standard intact rows an on-device (untrusted) export produces.
@@ -127,7 +127,7 @@ test('trusted (anchored, intact) → trusted/good, identity passed through', () 
 test('trusted + delivered → delivered/good; delivered WITHOUT trusted stays valid', () => {
   assert.equal(resolveVerdict(rpt({ trusted: true, delivered: true })).state, 'delivered');
   assert.equal(resolveVerdict(rpt({ trusted: true, delivered: true })).tone, 'good');
-  // The web ladder gates delivered on trusted — an unanchored published asset
+  // The web ladder gates delivered on trusted - an unanchored published asset
   // is just an intact credential.
   const unanchored = resolveVerdict(rpt({ delivered: true }));
   assert.equal(unanchored.state, 'valid');
@@ -191,7 +191,7 @@ test('expired PLUS another failure is NOT expired-only → invalid/bad', () => {
 
 test('partsMadeWithLolly is a FLAG, never a rung: state stays valid (or trusted)', () => {
   // Reference (web hero) semantics: parts surfaces as a scorecard pip only.
-  // The CLI deliberately elevates this flag to its headline — that divergence
+  // The CLI deliberately elevates this flag to its headline - that divergence
   // lives at the CLI call site, not here.
   const parts = resolveVerdict(rpt({ partsMadeWithLolly: true }));
   assert.equal(parts.state, 'valid');
@@ -217,7 +217,7 @@ test('round-trip: Lolly-created export → lolly/good; its codes are all C2PA_CH
   const v = resolveVerdict(report);
   assert.equal(v.state, 'lolly');
   assert.equal(v.tone, 'good');
-  // Every emitted code comes from the shared map — constants meet reality.
+  // Every emitted code comes from the shared map - constants meet reality.
   const known = new Set<string>(Object.values(C2PA_CHECK));
   for (const c of report.checks) assert.ok(known.has(c.code), `unknown check code ${c.code}`);
 });
@@ -287,7 +287,7 @@ test('round-trip: pinned-anchor chain → trusted; published under it → delive
   assert.equal(vDelivered.madeWithLolly, false, 'delivered, never authored');
 });
 
-// ─── defaultTrustAnchors — the per-surface assembly, made explicit ────────────
+// ─── defaultTrustAnchors - the per-surface assembly, made explicit ────────────
 
 test('defaultTrustAnchors: vendored-only (CLI flagless / MCP policy) equals c2paTrustAnchors()', () => {
   const vendored = c2paTrustAnchors();

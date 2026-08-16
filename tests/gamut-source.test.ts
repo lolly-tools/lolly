@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
- * Gamut SOURCES (engine/src/gamut-source.ts) — the generalisation that lets a
+ * Gamut SOURCES (engine/src/gamut-source.ts) - the generalisation that lets a
  * gamut come from an ICC profile instead of one of three hard-coded RGB
  * matrices.
  *
@@ -12,10 +12,10 @@
  *
  * The rest:
  *   (1) a hand-written GamutSource is honoured by inGamut / maxChroma /
- *       oklchSlice / gamutSolid — the generalisation actually reaches all four
+ *       oklchSlice / gamutSolid - the generalisation actually reaches all four
  *   (2) a source wider than chroma 0.5 is bracketed upward, not clamped at the
  *       old probe start (which would draw our own guess as a boundary)
- *   (3) P3 is still NOT inside Rec.2020 — membership is never inferred from
+ *   (3) P3 is still NOT inside Rec.2020 - membership is never inferred from
  *       gamut order, however the gamut arrived
  *   (4) identity: `gamutSourceId` keys a cache where string interpolation would
  *       collide every source onto '[object Object]'
@@ -140,7 +140,7 @@ test('degenerate input still answers false rather than reaching a source', () =>
 /**
  * A deliberately un-RGB-like gamut: a chroma ceiling that rises and falls with
  * hue and tapers at both ends of lightness. It is not a display, which is the
- * point — nothing about it can be satisfied by falling through to a matrix.
+ * point - nothing about it can be satisfied by falling through to a matrix.
  */
 const WEDGE_C = 0.18;
 const wedge: GamutSource = {
@@ -263,7 +263,7 @@ test('Display-P3 is still not inside Rec.2020, whichever form the gamut arrives 
   for (const e of escapees) assert.match(e, /H(25|30|35)$/, `the sliver is confined to the reds; got ${e}`);
 
   // And the consequence: a chroma search must ask Rec.2020 itself, not infer
-  // from order — the ceiling there is genuinely NARROWER than P3's.
+  // from order - the ceiling there is genuinely NARROWER than P3's.
   assert.ok(
     maxChroma(0.5433, 29.7, REC2020_SOURCE) < maxChroma(0.5433, 29.7, P3_SOURCE),
     'the Rec.2020 source reports the narrower ceiling in the red sliver',
@@ -297,7 +297,7 @@ test('a source has a stable id that string interpolation would have collided', (
 
 test('something that is not a source resolves to the no-answer gamut instead of throwing', () => {
   // An unknown NAME has always degraded quietly; an unknown OBJECT was returned
-  // verbatim and became `src.contains is not a function` inside whatever asked —
+  // verbatim and became `src.contains is not a function` inside whatever asked - 
   // from a tool's beforeExport hook, a visibly failed export. The shape to catch is
   // the inert profile handle from host.color.iccProfile, which carries an id, a
   // label and usable:true and so reads source-like.
@@ -330,7 +330,7 @@ test('something that is not a source resolves to the no-answer gamut instead of 
   assert.notEqual(resolveGamutSource({} as never), SRGB_SOURCE,
     'a malformed limit must not be silently answered as sRGB');
   assert.equal(NO_GAMUT_SOURCE.inkCoverage?.(0.5, 0.1, 30), null, 'and it invents no ink figure');
-  // A well-formed custom source is still the identity — the guard must not have
+  // A well-formed custom source is still the identity - the guard must not have
   // closed the door on the generalisation it protects.
   assert.equal(resolveGamutSource(wedge), wedge, 'a real source still passes through untouched');
 });

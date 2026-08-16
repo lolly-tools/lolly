@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
- * EPS (Encapsulated PostScript) emitter — pure, DOM-free, platform-agnostic.
+ * EPS (Encapsulated PostScript) emitter - pure, DOM-free, platform-agnostic.
  *
  * Third sink on the SVG vector pipeline (alongside SVG and EMF): turns the same
  * normalized device-px IR that emf.js serializes into an EPSF-3.0 document whose
@@ -13,7 +13,7 @@
  *
  * Like color.js / units.js this is a format authority: it imports only those two
  * (toPoints for the bounding box, rgbToCmyk for the DeviceCMYK variant). No DOM,
- * no Handlebars, no ajv — fully node:test-able.
+ * no Handlebars, no ajv - fully node:test-able.
  */
 import { parseDimension, toPoints, CSS_DPI } from './units.ts';
 import { rgbToCmyk } from './color.ts';
@@ -21,7 +21,7 @@ import type { Rgb, VectorIr, VectorPathPrim, VectorImagePrim, VectorEmitOpts } f
 import type { PrintGeometry } from './print-marks.ts';
 
 /** A brand ink lookup keyed by a quantised RGB triple (see rgbPaletteKey). CMYK
- *  values are 0–1 fractions, matching rgbToCmyk's output — mirrors
+ *  values are 0–1 fractions, matching rgbToCmyk's output. Mirrors
  *  buildCmykPaletteMap in shells/web/src/bridge/export.ts so a caller can build
  *  one map and reuse it across both the PDF and EPS CMYK export paths. */
 export type EpsCmykPalette = Map<string, { cmyk: [number, number, number, number] }>;
@@ -69,7 +69,7 @@ for (let i = 0; i < 256; i++) HEX.push((i < 16 ? '0' : '') + i.toString(16));
 // translate; sx -sy scale) already maps device y-down onto the y-up page, so within
 // it we translate to the dest top-left, scale to the dest size, and ImageMatrix
 // [pxW 0 0 pxH 0 0] lands image row 0 at the top of the dest rect. Opaque RGB only
-// (no /SMask — alpha was composited over the background in the shell). Even for the
+// (no /SMask - alpha was composited over the background in the shell). Even for the
 // CMYK variant the image stays DeviceRGB pixels (like every raster in the pipeline).
 function emitImagePrim(prim: VectorImagePrim, out: string[]): void {
   const pxW = Math.max(1, Math.round(prim.pxW));
@@ -120,7 +120,7 @@ function emitPathPrim(prim: VectorPathPrim, cmyk: boolean, out: string[], palett
 /**
  * Serialize an IR to EPS text.
  * @param ir   { width, height, prims }
- * @param opts { width, height, unit, dpi, cmyk, meta } — physical size + colour mode
+ * @param opts { width, height, unit, dpi, cmyk, meta } - physical size + colour mode
  */
 export function emitEps(ir: VectorIr, opts: EpsEmitOpts = {}): string {
   const Wpx = Math.max(1, Math.round(ir.width));
@@ -180,7 +180,7 @@ export function emitEps(ir: VectorIr, opts: EpsEmitOpts = {}): string {
 }
 
 // Print marks (crop/bleed/registration lines, registration rings, colour-bar cells)
-// in top-left-origin POINTS — the page CTM has already flipped y, so these emit
+// in top-left-origin POINTS - the page CTM has already flipped y, so these emit
 // verbatim. Provenance labels are DROPPED: the EPS emitter ships no fonts (upstream
 // text is outlined; the mark band has none to outline).
 function emitMarksPs(geo: PrintGeometry, markSpace: 'rgb' | 'cmyk', L: string[]): void {
@@ -205,7 +205,7 @@ function emitMarksPs(geo: PrintGeometry, markSpace: 'rgb' | 'cmyk', L: string[])
     }
     const r = Math.min(b.r ?? 0, b.w / 2, b.h / 2);
     if (r > 0) {
-      // Rounded cell. Each `arcto` leaves 4 numbers on the stack — pop all four, or
+      // Rounded cell. Each `arcto` leaves 4 numbers on the stack - pop all four, or
       // the file is rejected. Square `rectfill` is the default and avoids the stack.
       const x = b.x, y = b.y, w = b.w, h = b.h;
       L.push('newpath ' + n(x + r) + ' ' + n(y) + ' moveto');

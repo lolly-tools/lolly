@@ -7,12 +7,12 @@
  * (`services/mcp/src/render.ts`). It used to be copied into each of them, and the copies
  * drifted: the MCP twin still carried the ORIGINAL prose-only regex, so a tool hook that
  * says "isn't available in this app" (convert-image) failed hard over MCP while the same
- * hook escalated correctly on the CLI. Same question, two answers, no way to tell from
- * the outside which host you were talking to.
+ * hook escalated correctly on the CLI. Same question, two answers. There was no way to
+ * tell from the outside which host you were talking to.
  *
  * TWO signals, in order of reliability:
  *
- *   1. A TYPED SENTINEL on the error — `err.code === 'NEEDS_BROWSER'`, or a truthy
+ *   1. A TYPED SENTINEL on the error - `err.code === 'NEEDS_BROWSER'`, or a truthy
  *      `err.needsBrowser`. This is the supported way for a tool hook to say it, and the
  *      only one not coupled to prose. Tool hooks ship as DATA from a different
  *      repository, so wording there and control flow here must not be the same thing.
@@ -22,7 +22,7 @@
  * A verification failure ("the rebuilt PDF still carries Info") reads like neither, so a
  * failed export gate still fails loudly rather than being retried in a browser.
  *
- * Accepts an Error or a bare message string — the MCP call site has only the message.
+ * Accepts an Error or a bare message string - the MCP call site has only the message.
  */
 
 /** `NEEDS_BROWSER`: the typed sentinel a tool hook (or a bridge) sets to ask for Tier B. */

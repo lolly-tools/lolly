@@ -2,7 +2,7 @@
 //
 // Audiogram audio-only export (wav / mp3 / m4a / opus).
 //
-// What an audio export MEANS for this tool: THE TRIMMED EXCERPT — from the
+// What an audio export MEANS for this tool: THE TRIMMED EXCERPT - from the
 // "Start at" in-point to the end of the clip (or to a length the user typed),
 // not the whole source file. The tool applies nothing else to it: hooks.js only
 // ANALYSES the clip (host.audio) to drive the picture, and the video's soundtrack
@@ -53,7 +53,7 @@ function compileHooks(): HookModule {
   return factory(null);
 }
 
-/** A 220 Hz tone, `seconds` long — every sample distinct enough that a slice can
+/** A 220 Hz tone, `seconds` long - every sample distinct enough that a slice can
  *  be checked against the position it claims to have come from. */
 function tone(seconds: number): AudioPcm {
   const out = new Float32Array(Math.round(seconds * SR));
@@ -70,7 +70,7 @@ function wavSource(seconds: number): { pcm: AudioPcm; bytes: ArrayBuffer } {
 }
 
 /** An "mp3": an ID3 tag over bytes nothing here decodes. The decode is injected,
- *  so what matters is that sniffAudioFormat reads it as mp3 — which is what the
+ *  so what matters is that sniffAudioFormat reads it as mp3 - which is what the
  *  pass-through rule keys off. */
 function fakeMp3(): ArrayBuffer {
   const u8 = new Uint8Array(2048);
@@ -95,7 +95,7 @@ test('the manifest offers all four audio formats and still opens on the picture'
 
 test('the in-point reaches the export bar as data-audio-start', () => {
   // The export path reads the excerpt's start off the stage, not out of the
-  // manifest — so this attribute IS the contract between the "Start at" input and
+  // manifest - so this attribute IS the contract between the "Start at" input and
   // an audio export. See views/tool-actions.ts stageAudioStart().
   assert.match(TEMPLATE, /data-audio-start="\{\{default start 0\}\}"/);
 });

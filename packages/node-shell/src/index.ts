@@ -1,26 +1,26 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
- * @lolly-tools/node-shell — shared plumbing for the Node shells (CLI + TUI).
+ * @lolly-tools/node-shell - shared plumbing for the Node shells (CLI + TUI).
  *
  * One implementation of the pieces both terminal shells need, so they cannot drift:
- *   repo-root.ts       — LOLLY_ROOT → marker walk → cwd repo-root resolution
- *   browsers.ts        — the scoped headless-Chromium launcher ("Tier B")
- *   browser-tier.ts    — "can a browser do what this host just failed at?", the one
+ *   repo-root.ts       - LOLLY_ROOT → marker walk → cwd repo-root resolution
+ *   browsers.ts        - the scoped headless-Chromium launcher ("Tier B")
+ *   browser-tier.ts    - "can a browser do what this host just failed at?", the one
  *                        escalation predicate the CLI, the TUI and MCP all read
- *   webshell-render.ts — drive the built web shell for browser-only formats
- *   raster.ts          — the resvg SVG→PNG fast path ("Tier A") + the format split
- *   c2pa-opts.ts       — the export Content-Credentials payload (incl. profile author)
- *   text.ts            — host.text (HarfBuzz text-to-path), so DOM-free vector output
+ *   webshell-render.ts - drive the built web shell for browser-only formats
+ *   raster.ts          - the resvg SVG→PNG fast path ("Tier A") + the format split
+ *   c2pa-opts.ts       - the export Content-Credentials payload (incl. profile author)
+ *   text.ts            - host.text (HarfBuzz text-to-path), so DOM-free vector output
  *                        outlines text the same as the web shell
- *   audio.ts           — host.audio (WAV + ZzFXM decode, engine analysis), so an
+ *   audio.ts           - host.audio (WAV + ZzFXM decode, engine analysis), so an
  *                        audio-reactive tool renders headlessly
- *   render-integrity.ts — the fail-loud checkpoint: never write a broken file + exit 0
- *   net.ts             — host.net (the allowlisted fetch + its 64 MB body cap)
- *   pptx.ts            — host.pptx (deck inspect + surgical rebrand, XML parser injected)
- *   pdf-pages.ts       — the pdf-lib page walk that feeds the engine's pure PDF interpreter
- *   inspect.ts         — "what is in this file, and is it safe to share": metadata, PDF
+ *   render-integrity.ts - the fail-loud checkpoint: never write a broken file + exit 0
+ *   net.ts             - host.net (the allowlisted fetch + its 64 MB body cap)
+ *   pptx.ts            - host.pptx (deck inspect + surgical rebrand, XML parser injected)
+ *   pdf-pages.ts       - the pdf-lib page walk that feeds the engine's pure PDF interpreter
+ *   inspect.ts         - "what is in this file, and is it safe to share": metadata, PDF
  *                        structure, and text present but not visible (failed redaction)
- *   inspect-render.ts  — the terminal rendering of an inspection, control-char scrubbed
+ *   inspect-render.ts  - the terminal rendering of an inspection, control-char scrubbed
  *
  * net.ts and pptx.ts are also what the WEB shell's bridge uses: they are DOM-free, and
  * shells/web/src/bridge/{net,pptx}.ts re-export them so one matcher and one deck

@@ -1,10 +1,10 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
- * EPUB 3 writer — pure, DOM-free, platform-agnostic.
+ * EPUB 3 writer - pure, DOM-free, platform-agnostic.
  *
  * An .epub is an OCF ZIP with one hard rule the reader relies on: the FIRST entry
  * must be an uncompressed (STORED) `mimetype` file holding exactly
- * `application/epub+zip`, with no extra fields — that's the "magic" a reader sniffs
+ * `application/epub+zip`, with no extra fields - that's the "magic" a reader sniffs
  * before it trusts the container. Everything after it is ordinary DEFLATEd XML.
  *
  * We build the minimal EPUB 3 spine:
@@ -16,7 +16,7 @@
  *
  * Deterministic: no timestamps or randomness reach the bytes (fflate zips with a
  * fixed mtime of 0), so the same `doc` always yields the same bytes. The caller's
- * `xhtml` is treated as trusted body markup and passed through verbatim — text we
+ * `xhtml` is treated as trusted body markup and passed through verbatim - text we
  * generate (titles, author, ids) is XML-escaped. Chapter files are content-safe by
  * construction; the caller owns the correctness of the XHTML fragment it supplies.
  *
@@ -28,7 +28,7 @@
 import { zipSync } from 'fflate';
 
 export interface EpubChapter {
-  /** Chapter title — used in the nav TOC and the chapter's <title>. */
+  /** Chapter title - used in the nav TOC and the chapter's <title>. */
   title: string;
   /** XHTML body markup (the inner content of <body>). Trusted, passed through verbatim. */
   xhtml: string;
@@ -44,7 +44,7 @@ export interface EpubDoc {
 
 const enc = new TextEncoder();
 
-/** Fixed timestamp for deterministic output — the earliest date the zip DOS format admits. */
+/** Fixed timestamp for deterministic output - the earliest date the zip DOS format admits. */
 const EPOCH_1980 = new Date(Date.UTC(1980, 0, 1, 0, 0, 0));
 
 /** Escape the five XML metacharacters for text that lands in element content or attributes. */
@@ -155,7 +155,7 @@ export function writeEpub(doc: EpubDoc): Uint8Array {
 
   // Insertion order is preserved by zipSync, so `mimetype` stays the first local entry.
   const files: Record<string, [Uint8Array, { level: 0 | 6 }]> = {
-    // STORED (level 0), no extra fields — the OCF "magic" the reader sniffs first.
+    // STORED (level 0), no extra fields - the OCF "magic" the reader sniffs first.
     mimetype: [enc.encode('application/epub+zip'), { level: 0 }],
     'META-INF/container.xml': [enc.encode(CONTAINER_XML), { level: 6 }],
     'OEBPS/content.opf': [enc.encode(contentOpf(doc, lang)), { level: 6 }],

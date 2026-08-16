@@ -6,7 +6,7 @@
  * Every layer of the container is re-read independently of the builder:
  * hand-computed CBOR byte vectors, a from-scratch JUMBF box walker, a DER
  * walker over the self-signed cert, a hand-built COSE Sig_structure verified
- * with WebCrypto, and — the loop-closer — the hard-binding hash recomputed
+ * with WebCrypto, and - the loop-closer - the hard-binding hash recomputed
  * from the embedder's own PDF output per its own exclusion ranges.
  */
 import { test } from 'node:test';
@@ -79,7 +79,7 @@ function decodeCbor(bytes: any): any {
 
 // ─── independent JUMBF walker ─────────────────────────────────────────────────
 
-// Boxes must tile [start,end) exactly — the walker asserts it.
+// Boxes must tile [start,end) exactly - the walker asserts it.
 function walkBoxes(bytes: any, start: number, end: number): any[] {
   const boxes: any[] = [];
   let i = start;
@@ -303,7 +303,7 @@ test('COSE_Sign1 verifies; claim hashed-URIs match sha256 of assertion boxes', a
   const store = await fixture;
   const claim = await verifyCose(store);
   assert.equal(claim.get('dc:title'), 'Fixture Asset');
-  // v2 claim: no dc:format, no free-text claim_generator — the generator
+  // v2 claim: no dc:format, no free-text claim_generator - the generator
   // identity is the required single claim_generator_info map instead.
   assert.equal(claim.get('dc:format'), undefined);
   assert.equal(claim.get('claim_generator'), undefined);
@@ -317,7 +317,7 @@ test('COSE_Sign1 verifies; claim hashed-URIs match sha256 of assertion boxes', a
   assert.equal(refs[1].get('url'), 'self#jumbf=c2pa.assertions/c2pa.hash.data');
   const p = storeParts(store);
   for (const [i, sub] of [p.actions, p.hashData].entries()) {
-    // Superbox PAYLOAD only — jumd + content boxes, not the 8-byte LBox+TBox
+    // Superbox PAYLOAD only - jumd + content boxes, not the 8-byte LBox+TBox
     // header (c2pa-rs hashes write_box_payload of the recreated box).
     const boxBytes = store.slice(sub.box.start + 8, sub.box.end);
     assert.equal(hex(refs[i].get('hash')), hex(await sha256(boxBytes)), `hashed URI ${i} covers the assertion superbox payload`);
@@ -325,7 +325,7 @@ test('COSE_Sign1 verifies; claim hashed-URIs match sha256 of assertion boxes', a
 });
 
 // The v1 claim format is retained (claimVersion:1) only so the dual-version
-// verifier keeps v1-read coverage — the embedders never request it. This locks
+// verifier keeps v1-read coverage - the embedders never request it. This locks
 // the legacy shape (c2pa.claim / c2pa.actions labels, flat `assertions` array,
 // claim_generator string + dc:format) so a v1-format credential still builds
 // and its COSE signature still verifies.

@@ -1,13 +1,13 @@
 #!/usr/bin/env node
 // SPDX-License-Identifier: MPL-2.0
 /**
- * Engine purity guard — the no-DOM/no-storage/no-network rule, mechanically.
+ * Engine purity guard - the no-DOM/no-storage/no-network rule, mechanically.
  *
  * Run as: node scripts/check-engine-purity.ts        (exit 1 on any violation)
  *         node scripts/check-engine-purity.ts --json (machine-readable report)
  *
  * CLAUDE.md's core architectural claim is that engine/ "knows NOTHING about
- * brands, the DOM, storage, or networking" — everything platform-specific is
+ * brands, the DOM, storage, or networking" - everything platform-specific is
  * injected by a shell through the capability bridge. That holds 100% as of this
  * script landing, but nothing enforced it: engine/tsconfig.json keeps "DOM" in
  * `lib` for the fetch-spec globals (Blob, Response, RequestInit, URL) that
@@ -21,27 +21,27 @@
  *   - browser storage:   localStorage  sessionStorage
  *   - direct network:    a bare top-level `fetch(` call (host.net.fetch is the
  *                        allowlisted path, and `.fetch(` on any object is fine)
- *   - any `node:` builtin import — the engine must run unchanged in a browser
+ *   - any `node:` builtin import - the engine must run unchanged in a browser
  *   - any import that escapes engine/src other than the known-legal ones below
  *
  * NO FALSE POSITIVES, or the guard gets deleted the first time it cries wolf.
  * Every one of those identifiers occurs as PROSE somewhere in the engine today
- * — "the cert validity window" (c2pa-verify), "period-wide window"
+ * - "the cert validity window" (c2pa-verify), "period-wide window"
  * (audio-analyse), "one SVG document" (pdf-svg), "the profile/localStorage/
  * browser-default chain" (url-mode), "browser navigator.language values"
- * (lang.ts) — and the `ContentType=".../presentation.main+xml"` strings in
+ * (lang.ts) - and the `ContentType=".../presentation.main+xml"` strings in
  * pptx.ts contain `document.` inside a template literal. A sweep of the tree
  * found ~23 such comment/string-only hits. So the scanner runs a small lexer
  * first (`stripNonCode`) that blanks line comments, block comments, single- and
  * double-quoted strings, template literals (recursing into `${...}`
  * substitutions, which ARE code) and regex literals, replacing them with spaces
- * so byte offsets — and therefore reported line/column numbers — stay exact.
+ * so byte offsets - and therefore reported line/column numbers - stay exact.
  *
  * The navigator.language reference the DOM rule might have needed an exception
  * for was checked by hand: engine/src/lang.ts is a COMMENT explaining where
  * `?lang=` values come from, not a read of the global. There is no code-level
  * navigator use anywhere in the engine, so this script grants no navigator
- * exception at all — if one is ever genuinely needed, add it to
+ * exception at all - if one is ever genuinely needed, add it to
  * ALLOWED_GLOBAL_USES with the reason rather than loosening the rule.
  *
  * KNOWN-LEGAL import escapes (verified by reading the imports, not assumed):
@@ -63,8 +63,8 @@
  * aliased global (`const g = globalThis as any; g.document`) or one reached
  * through a computed member (`g['window']`) is out of reach, and it says nothing
  * about what a SHELL injects through the bridge. It closes the accidental-drift
- * case — someone reaching for `document.createElement` while editing an engine
- * module — which is the case that actually happens.
+ * case - someone reaching for `document.createElement` while editing an engine
+ * module - which is the case that actually happens.
  */
 
 import { readdirSync, readFileSync, statSync } from 'node:fs';
@@ -76,12 +76,12 @@ const ENGINE_SRC = join(ROOT, 'engine/src');
 
 /** Bare (non-relative) module specifiers engine/src may import. */
 const ALLOWED_PACKAGES = new Set([
-  'handlebars',                 // engine/src/template.ts — engine/package.json dep
-  'ajv/dist/2020.js',           // engine/src/validate.ts — engine/package.json dep
-  '@lolly-tools/core/host-v1',  // engine/src/bridge/host-v1.ts — the SDK contract
-  '@lolly-tools/core',          // engine/src/loader.ts — type-only manifest/render specs
+  'handlebars',                 // engine/src/template.ts - engine/package.json dep
+  'ajv/dist/2020.js',           // engine/src/validate.ts - engine/package.json dep
+  '@lolly-tools/core/host-v1',  // engine/src/bridge/host-v1.ts - the SDK contract
+  '@lolly-tools/core',          // engine/src/loader.ts - type-only manifest/render specs
   // engine/package.json dep (declared 2026-08-05, allowlist missed at the time).
-  // Pure JS zip/gzip codec, no DOM/fs/network — same platform-agnostic bar as
+  // Pure JS zip/gzip codec, no DOM/fs/network - same platform-agnostic bar as
   // handlebars/ajv above. Used directly by epub.ts (zipSync), font-convert.ts
   // (unzlibSync) and xlsx-import.ts (unzipSync); every other engine module that
   // mentions fflate in comments hands bytes to a SHELL to (de)compress instead.
@@ -101,7 +101,7 @@ const ALLOWED_ESCAPES = new Set([
 
 /**
  * Deliberate, reviewed exceptions to the global rules, as `<repo-relative
- * file>:<token>`. Empty on purpose — the engine needs none today. Anything added
+ * file>:<token>`. Empty on purpose - the engine needs none today. Anything added
  * here wants a comment saying why the capability bridge could not carry it.
  */
 const ALLOWED_GLOBAL_USES = new Set<string>();
@@ -136,7 +136,7 @@ export interface Violation {
   column: number;
   token: string;
   why: string;
-  /** The source line, trimmed — context for the console report. */
+  /** The source line, trimmed - context for the console report. */
   text: string;
 }
 
@@ -145,7 +145,7 @@ export interface Violation {
 /**
  * Replace every non-code region of `src` with spaces, preserving length and all
  * newlines so offsets (and therefore line/column) still map onto the original.
- * `${...}` substitutions inside template literals are KEPT — they are code.
+ * `${...}` substitutions inside template literals are KEPT - they are code.
  */
 export function stripNonCode(src: string): string {
   const out = src.split('');
@@ -207,7 +207,7 @@ export function stripNonCode(src: string): string {
         if (src[j] === ch || src[j] === '\n') break;
         j++;
       }
-      // Blank the CONTENTS only — the quote characters stay, so
+      // Blank the CONTENTS only - the quote characters stay, so
       // `moduleSpecifiers` can still find import specifiers in the blanked code
       // (and so an unterminated quote can't swallow the rest of the file).
       const end = Math.min(j + 1, n);
@@ -231,7 +231,7 @@ export function stripNonCode(src: string): string {
       while (j < n) {
         const c = src[j]!;
         if (c === '\\') { j += 2; continue; }
-        if (c === '\n') break; // unterminated — it was a division after all
+        if (c === '\n') break; // unterminated - it was a division after all
         if (inClass) { if (c === ']') inClass = false; }
         else if (c === '[') inClass = true;
         else if (c === '/') { closed = true; break; }
@@ -252,7 +252,7 @@ export function stripNonCode(src: string): string {
     else if (ch === '}') {
       braceDepth--;
       if (tmpl.length > 0 && tmpl[tmpl.length - 1] === braceDepth) {
-        // Closing a `${...}` substitution — back to literal text.
+        // Closing a `${...}` substitution - back to literal text.
         tmpl[tmpl.length - 1] = -1;
         blank(i, i + 1);
         i++;
@@ -293,7 +293,7 @@ function canStartRegex(prevSig: string, prevWord: string): boolean {
  * A match is only the GLOBAL if it is not part of a longer identifier
  * (`myWindow.x`, `refetch(`) and not a member access (`opts.window.width`,
  * `res?.fetch(`). `new OffscreenCanvas` and `return fetch(` must still match, so
- * a preceding keyword — identifier chars with whitespace in between — is fine.
+ * a preceding keyword - identifier chars with whitespace in between - is fine.
  */
 function precededOk(code: string, at: number): boolean {
   if (at > 0 && /[A-Za-z0-9_$]/.test(code[at - 1]!)) return false;
@@ -390,7 +390,7 @@ function modules(dir: string, out: string[] = []): string[] {
 }
 
 /**
- * Scan a file from disk, reporting its path repo-relative — or absolute when it
+ * Scan a file from disk, reporting its path repo-relative - or absolute when it
  * sits outside the repo (a self-test fixture), where `../../..` would be noise.
  */
 export function scanFile(absPath: string): Violation[] {

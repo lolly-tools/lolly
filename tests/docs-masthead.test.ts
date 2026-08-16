@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
- * The article masthead — the chip field behind every /info page's h1 (plans/105) —
+ * The article masthead - the chip field behind every /info page's h1 (plans/105) - 
  * and the shared field engine it borrows from the landing hero.
  *
  * Three things here can break silently, which is why they are pinned:
@@ -15,7 +15,7 @@
  *     docs/site/formats-catalog.json, and this file fails if a literal list returns.
  *  3. THE MANNERS. Reduced motion, off-screen pause, hidden tab, and a burst that
  *     yields to links and to text selection. All of them are invisible when they
- *     regress — the page just quietly animates at someone who asked it not to.
+ *     regress - the page just quietly animates at someone who asked it not to.
  *
  * Built-artifact assertions skip when /info has not been built (it is gitignored in
  * shells/web), exactly as tests/docs-logos.test.ts does.
@@ -34,7 +34,7 @@ const built = existsSync(join(BUILT, 'build-guide.html'))
   : 'no built /info on disk - run `npm run build:info`';
 
 const page = (f: string) => readFileSync(join(BUILT, f), 'utf-8');
-/** A page minus its inline stylesheet — the CSS discusses the band in comments. */
+/** A page minus its inline stylesheet - the CSS discusses the band in comments. */
 const bodyOf = (html: string) => html.replace(/<style>[\s\S]*?<\/style>/g, ' ');
 
 /** ONE inline script, by something only it contains. Split rather than a lazy regex
@@ -75,7 +75,7 @@ test('every article page opens with the masthead band, and the landing does not'
 
 test('hoisting the h1 into the band does not move its anchor', { skip: built }, () => {
   // The ids these pages had before the band existed. Not derived from the same
-  // helper the build uses — that would agree with itself no matter what it did.
+  // helper the build uses - that would agree with itself no matter what it did.
   const expected: Record<string, string> = {
     'build-guide.html': 'build-guide',
     'trust.html': 'trust',
@@ -169,7 +169,7 @@ test('the masthead burst yields to links, buttons and text selection', { skip: b
   const landing = scriptWith(page('index.html'), "getElementById('heroCanvas')");
   assert.match(landing, /document\.addEventListener\('pointerdown',burstAt\)/, 'the landing hero lost its immediate burst');
   // The engine SOURCE mentions every option (it implements them), so the landing is
-  // judged on the options it actually passes — that call is the whole difference
+  // judged on the options it actually passes - that call is the whole difference
   // between the two instances.
   assert.match(landing, /__lollyChipField\(canvas,\{burst:true\}\)/, 'the landing hero no longer runs the plain, unguarded field');
   assert.ok(!/\{[^{}]*burstGuard:true/.test(landing), 'the landing hero picked up the docs guards');
@@ -180,7 +180,7 @@ test('the masthead burst yields to links, buttons and text selection', { skip: b
 //
 // The MASTHEADS table overrides the default chip band per page with a signed
 // artifact from docs/mastheads/. It ships EMPTY, so what these guard is the
-// default staying the default — and the credential machinery the art will carry
+// default staying the default - and the credential machinery the art will carry
 // being present and honest before any art exists to carry it.
 
 test('with nothing mapped, every page still gets the default field — not a blank band', { skip: built }, () => {
@@ -214,7 +214,7 @@ test('the credential line offers Copy signed source, and says what happened', { 
   // The feedback words are DATA on the button, so a locale page speaks its own
   // language while every page runs identical script bytes.
   assert.match(js, /getAttribute\('data-copied'\)/);
-  // Escape still closes the line and returns focus to its trigger — the copy button
+  // Escape still closes the line and returns focus to its trigger - the copy button
   // lives inside that line, so a reader who tabbed to it must not be stranded.
   assert.match(js, /if\(e\.key!=='Escape'\)return;/);
   assert.match(js, /b\.focus\(\);/);

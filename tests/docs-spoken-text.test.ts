@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
- * Spoken-text extraction (plans/40-docs-audio-listen.md §4.1/§5) — what a listener
+ * Spoken-text extraction (plans/40-docs-audio-listen.md §4.1/§5) - what a listener
  * hears, which blocks get which ids, and the staleness hash's invariances.
  * Also the parity tripwire: extraction duplicates docs/build.ts's headingId
  * (build.ts has no exports by design), so a drift between the two would point
@@ -114,7 +114,7 @@ test('a leading meta-title H1 is skipped when the page title is known', () => {
   assert.equal(extractSpokenText(md)[0]!.text, 'Lolly - Landing page copy');
   const later = extractSpokenText('Opening para.\n\n# Lolly - Landing page copy\n\nBody.\n', { pageTitle: 'Lolly' });
   assert.ok(later.some(b => b.text === 'Lolly - Landing page copy'), 'a mid-page H1 is content, not a label');
-  // and the skip moves the staleness hash — the narrated words changed
+  // and the skip moves the staleness hash - the narrated words changed
   assert.notEqual(spokenTextHash(blocks), spokenTextHash(extractSpokenText(md)));
 });
 

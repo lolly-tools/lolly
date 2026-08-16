@@ -33,7 +33,7 @@ export type VectorValue = Record<string, number>;
 /**
  * A `table` input's value: user-defined column headings plus rows of plain-string
  * cells. Both dimensions are user DATA (unlike `blocks`, whose fields are declared
- * in the manifest) — that's what lets one tool render any table. Rows are kept
+ * in the manifest) - that's what lets one tool render any table. Rows are kept
  * rectangular: normalizeTableValue pads/folds every row to `columns.length`.
  */
 export type TableValue = {
@@ -73,7 +73,7 @@ export interface SelectOption {
    *  switches the select to a badged picker in the web shell (a radiogroup of
    *  labelled pills). A discovery hint, e.g. 'vector' / 'raster'. Engine only carries it. */
   badge?: string;
-  /** Export formats to offer while THIS option is selected — a subset of
+  /** Export formats to offer while THIS option is selected - a subset of
    *  render.formats. Lets a select (e.g. an effect picker) drive the export bar.
    *  Engine only carries it; the web shell intersects it with render.formats. */
   formats?: string[];
@@ -98,7 +98,7 @@ export interface BlockFieldOption {
 }
 
 /**
- * One field of a `blocks` row — a superset of VectorFieldSpec: blocks declare
+ * One field of a `blocks` row - a superset of VectorFieldSpec: blocks declare
  * richer field objects (typed like inputs, with optional short URL aliases).
  * The engine itself reads only `type`/`urlKey` (plus the VectorFieldSpec
  * members); the rest mirror the schema for shells and tests that read the
@@ -167,7 +167,7 @@ export interface InputSpec {
   label?: string;
   help?: string;
   /** Always-visible fine print rendered above the control (unlike `help`, which
-   *  sits behind an info button). For what the user should read BEFORE typing —
+   *  sits behind an info button). For what the user should read BEFORE typing - 
    *  e.g. the consent disclosure on an input whose value triggers a network
    *  lookup. */
   notice?: string;
@@ -226,12 +226,12 @@ export interface InputSpec {
    *  The web file-picker sets the `multiple` attribute; the CLI collects repeated
    *  `--<id>=path` occurrences. See the embed-track tool. */
   multiple?: boolean;
-  // Presentation members the web shell reads (the engine only carries them —
+  // Presentation members the web shell reads (the engine only carries them - 
   // they mirror schemas/tool.schema.json, same as the block sub-field members).
   /** Sidebar section (collapsible group) this input renders under. */
   section?: string;
   /** Render this input's control INSIDE the named sibling input's control row
-   *  (leading), instead of on its own labelled row — for a compact modifier that
+   *  (leading), instead of on its own labelled row - for a compact modifier that
    *  belongs to another control, e.g. a fit toggle on an asset slot. It stays an
    *  ordinary input everywhere else (URL params, hooks, state, undo). The engine
    *  only carries it; the web shell places it. */
@@ -244,7 +244,7 @@ export interface InputSpec {
   addMenu?: BlocksAddMenu;
   labelledFields?: boolean;
   /** Adds copy / paste / clear buttons to each block's header (next to collapse +
-   *  remove) — copy a row's values, paste them onto another row to make the two
+   *  remove) - copy a row's values, paste them onto another row to make the two
    *  match, or clear a row to its field defaults. The engine only carries it; the
    *  web shell renders + wires it. See schema `rowActions`. */
   rowActions?: boolean;
@@ -281,7 +281,7 @@ export interface InputManifest {
 /**
  * Backstop size cap for `file` inputs whose manifest omits `maxSize`. Shells
  * enforce `input.maxSize ?? DEFAULT_FILE_MAX_BYTES` at pick/drop time so an
- * undeclared cap never means an *unbounded* read into memory — file bytes are
+ * undeclared cap never means an *unbounded* read into memory - file bytes are
  * held in RAM (and some downstream parsers make byte-transparent string copies),
  * so a multi-GB pick would OOM the tab long before any hook could run. Tools
  * with a real need above this declare their own `maxSize`.
@@ -304,7 +304,7 @@ export function isFileValue(v: unknown): v is InputFile {
 }
 
 /** A well-formed value for a `multiple` file input: an array of loaded FileRefs.
- *  Stray non-file entries are not tolerated — the whole value must be clean. */
+ *  Stray non-file entries are not tolerated - the whole value must be clean. */
 export function isFileArrayValue(v: unknown): v is InputFile[] {
   return Array.isArray(v) && v.every(isFileValue);
 }
@@ -336,7 +336,7 @@ export function normalizeTableValue(v: unknown): TableValue | null {
   return { columns, rows };
 }
 
-// Any non-null object value — the shape vector compounds (and the JSON-ish
+// Any non-null object value - the shape vector compounds (and the JSON-ish
 // initial values they merge) take. Arrays pass too, mirroring the original
 // `typeof v === 'object'` checks (a string-keyed read on one is undefined).
 function isObjectValue(v: InputValue | null | undefined): v is { [key: string]: InputValue | undefined } {
@@ -371,7 +371,7 @@ export function buildInputModel(
     });
   }
 
-  // 'Convert paths' — auto-injected for any tool that exports a vector format.
+  // 'Convert paths' - auto-injected for any tool that exports a vector format.
   // Outlines text to paths in SVG/PDF so output renders identically without the
   // fonts installed. On by default; the export bridge reads its value as
   // opts.convertPaths. A tool can set render.convertPaths:false to suppress the
@@ -413,7 +413,7 @@ function resolveInitialValue(
   // over the per-field defaults, clamped to each field's range.
   if (input.type === 'vector') return resolveVectorValue(input, initial[input.id]);
   // A file input only ever holds a loaded FileRef (bytes + metadata). URL/CLI
-  // can carry an unresolved {__file, path} ref or a stray string — accept only a
+  // can carry an unresolved {__file, path} ref or a stray string - accept only a
   // ref that actually carries bytes (the shell loaded it); otherwise start blank.
   // (The CLI resolves path→bytes before createRuntime; the web picker provides the
   // bytes directly. Binary content is never expressible in a shareable URL.)
@@ -508,7 +508,7 @@ function pickControl(input: InputSpec): InputControl {
 
 /**
  * Apply user input changes back to the model, with constraint enforcement.
- * Returns a new model array — caller passes it to the renderer.
+ * Returns a new model array - caller passes it to the renderer.
  */
 export function updateInput(model: InputModelItem[], id: string, value: InputValue): InputModelItem[] {
   return model.map(input => {
@@ -519,7 +519,7 @@ export function updateInput(model: InputModelItem[], id: string, value: InputVal
 }
 
 /**
- * The input model's value gate — every write through `updateInput` (a keystroke, a
+ * The input model's value gate - every write through `updateInput` (a keystroke, a
  * canvas commit, a `/multi` fan-out, `runtime.applyPatch`) passes here, and a value
  * the declared constraints reject keeps the input's PRIOR value rather than entering
  * the model. That "rejection = the old value" convention is what lets applyPatch
@@ -532,17 +532,17 @@ export function updateInput(model: InputModelItem[], id: string, value: InputVal
  * `{_unresolved}` stub that resolveAssetRefs completes) and `color` (a plain hex, or
  * a `{ref}` token value that resolveTokenRefs completes). A caller that accepts
  * values from a peer must therefore still gate those two by declared type at ITS
- * boundary — the web shell's collab plumbing does, in lib/collab-plumbing.ts.
+ * boundary - the web shell's collab plumbing does, in lib/collab-plumbing.ts.
  *
  * Hook patches do NOT come through here (runtime.ts's mergePatch is the tool's own
- * trust boundary — a hook may compute anything for its own tool).
+ * trust boundary - a hook may compute anything for its own tool).
  */
 function constrain(input: InputModelItem, value: InputValue): InputValue {
   if (input.type === 'select') {
     // The enum whitelist (plans/100 §11.11's first named case). Only when the
     // manifest actually declares the options AND does not extend them at runtime:
     // a `brandFonts` select is appended to by the shell with the user's installed
-    // families, so its declared list is not the whole truth — the same carve-out
+    // families, so its declared list is not the whole truth - the same carve-out
     // engine/src/preflight.ts's checkSelectValue makes. Compared as strings because
     // a shell's select control hands back the option's value as text.
     const options = input.options;
@@ -553,8 +553,8 @@ function constrain(input: InputModelItem, value: InputValue): InputValue {
   if (input.type === 'boolean') {
     if (typeof value === 'boolean') return value;
     // The canonical wire spellings a URL/CLI param carries (`?flag=1`), normalised
-    // rather than rejected so those transports keep working. Anything else — an
-    // object, an array, an arbitrary string — is not a boolean and is refused.
+    // rather than rejected so those transports keep working. Anything else - an
+    // object, an array, an arbitrary string - is not a boolean and is refused.
     if (value === 1 || value === '1' || value === 'true') return true;
     if (value === 0 || value === '0' || value === 'false' || value === '' || value === null) return false;
     return input.value;
@@ -636,20 +636,20 @@ export function modelToValues(model: InputModelItem[]): Record<string, InputValu
 
 // Input types whose value is worth recording in export provenance ("what was this
 // rendered from"). Deliberately excludes the user's own uploads (asset/file) and
-// repeating groups (blocks/vector) — bulky or not a legible entry. Text AND
+// repeating groups (blocks/vector) - bulky or not a legible entry. Text AND
 // longtext ARE recorded: the exact rendered copy is a tamper-relevant signal, so
 // it belongs in the credential (stored in full, bounded by TEXT_VALUE_CAP below).
 const SUMMARISABLE_TYPES = new Set<string>([
   'text', 'longtext', 'number', 'boolean', 'color', 'select', 'url', 'date', 'time', 'datetime-local',
 ]);
 // Text/longtext are kept in FULL (not truncated to the scalar sample length) so the
-// verifiable copy matches what the asset shows — capped only against a pathological
+// verifiable copy matches what the asset shows - capped only against a pathological
 // manifest. Non-text scalars keep the short `maxValueLen` sample.
 const TEXT_VALUE_CAP = 4000;
 
 /**
- * A compact, human-readable digest of a tool's scalar inputs — id → short string
- * — for embedding in export provenance (the C2PA `tools.lolly.export`
+ * A compact, human-readable digest of a tool's scalar inputs - id → short string
+ * - for embedding in export provenance (the C2PA `tools.lolly.export`
  * assertion), so an inspected asset answers "what was this made from": the
  * colours, sizes, toggles and short text it was rendered with.
  *
@@ -657,8 +657,8 @@ const TEXT_VALUE_CAP = 4000;
  * and profile-bound inputs, so a user's pre-filled name/email never rides along
  * unless they opted into authorship separately; drops empties; appends a number's
  * unit ("12 mm"). Text and longtext are recorded IN FULL (bounded by TEXT_VALUE_CAP)
- * — the exact rendered copy is a tamper-relevant signal — while other scalars keep a
- * short sample. Bounded by `maxEntries`. Never throws — enrichment must not fail an export.
+ * - the exact rendered copy is a tamper-relevant signal - while other scalars keep a
+ * short sample. Bounded by `maxEntries`. Never throws - enrichment must not fail an export.
  */
 export function summarizeInputs(
   model: readonly InputModelItem[],
@@ -695,13 +695,13 @@ export function modelForHooks(model: InputModelItem[]): InputModelItem[] {
   });
 }
 
-// A token-backed colour value ({ ref, value }) hydrates as its resolved hex —
+// A token-backed colour value ({ ref, value }) hydrates as its resolved hex - 
 // the template (and CLI/JSON export) only ever sees a plain colour string. The
 // runtime refreshes `.value` from the live token set before this; the cached hex
 // is the fallback. Plain values (incl. AssetRefs, which carry no `ref`) pass through.
 export function flattenValue(v: InputValue): InputValue {
   if (!isTokenValue(v)) return v;
   // The cached value is a resolved colour string; anything else (or a missing
-  // cache) flattens to '' — the same fallback the `?? ''` gave.
+  // cache) flattens to '' - the same fallback the `?? ''` gave.
   return typeof v.value === 'string' ? v.value : '';
 }

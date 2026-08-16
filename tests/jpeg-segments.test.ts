@@ -1,13 +1,13 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
- * engine/src/jpeg-segments.ts — the one shared JPEG marker walker/writer
+ * engine/src/jpeg-segments.ts - the one shared JPEG marker walker/writer
  * (plans/61-deeprichpixels.md §6 Phase B2, task F2).
  *
  * Three independent kinds of evidence, because this module both READS hostile
  * files and WRITES bytes a decoder has to keep accepting:
  *
- *  1. REAL FILES. `sharp` (libvips → libjpeg-turbo) encodes the fixtures —
- *     baseline, progressive, with EXIF, with an ICC profile — so the scanner is
+ *  1. REAL FILES. `sharp` (libvips → libjpeg-turbo) encodes the fixtures - 
+ *     baseline, progressive, with EXIF, with an ICC profile - so the scanner is
  *     exercised against segment layouts a browser or camera actually produces
  *     rather than ones this test invented. Skipped with a reason where sharp is
  *     absent (the `tests/png.test.ts` pattern), and every scanner claim is ALSO
@@ -17,11 +17,11 @@
  *     decoder chokes on, or that shifts a pixel, fails here.
  *  3. BYTE-LEVEL ASSERTIONS on the splice itself: exact output length, the
  *     untouched suffix compared byte for byte, and the resulting marker ORDER
- *     — which is the whole reason the module exists (MPF must precede ICC).
+ * - which is the whole reason the module exists (MPF must precede ICC).
  *
  * Plus hostile input: truncation, lengths of 0/1, a length past EOF, no SOS, no
  * EOI, exact 64 KiB boundary lengths, fill-byte runs, and a few hundred seeded
- * mutations of a real JPEG — with a structural invariant (`no segment may end
+ * mutations of a real JPEG - with a structural invariant (`no segment may end
  * past the buffer`) checked on every single scan, which is what "no over-read"
  * means operationally.
  */
@@ -91,7 +91,7 @@ const APP0_JFIF = buildJpegSegment(0xe0, bodyOf('JFIF', 1, [1, 1, 0, 0, 1, 0, 1,
 const DQT = buildJpegSegment(0xdb, Uint8Array.from([0, ...new Array<number>(64).fill(16)]))!;
 const SOF0 = buildJpegSegment(0xc0, Uint8Array.from([8, 0, H, 0, W, 1, 1, 0x11, 0]))!;
 const SOS = buildJpegSegment(0xda, Uint8Array.from([1, 1, 0, 0, 63, 0]))!;
-/** Entropy data containing a stuffed FF and a restart marker — both must be walked over, not mistaken for segments. */
+/** Entropy data containing a stuffed FF and a restart marker - both must be walked over, not mistaken for segments. */
 const ENTROPY = Uint8Array.from([0x12, 0xff, 0x00, 0x34, 0xff, 0xd0, 0x56, 0x78, 0xff, 0x00]);
 const EOI = Uint8Array.from([0xff, 0xd9]);
 
@@ -104,7 +104,7 @@ function cat(...parts: Uint8Array[]): Uint8Array {
 }
 const SOI = Uint8Array.from([0xff, 0xd8]);
 
-/** A structurally valid JPEG marker stream. The entropy data is not real Huffman output — nothing here decodes it. */
+/** A structurally valid JPEG marker stream. The entropy data is not real Huffman output - nothing here decodes it. */
 function synthJpeg(extra: Uint8Array[] = [], opts: { app0?: boolean; eoi?: boolean; sos?: boolean } = {}): Uint8Array {
   const { app0 = true, eoi = true, sos = true } = opts;
   return cat(
@@ -164,7 +164,7 @@ test('scan: hand-built JPEG — every segment, SOS, EOI, no trailer', () => {
 test('scan: entropy data with stuffed FF00 and a restart marker is walked, not mis-parsed', () => {
   const bytes = synthJpeg();
   const scan = scanJpegSegments(bytes)!;
-  // The FF D0 inside ENTROPY must NOT appear as a segment — only SOS then EOI.
+  // The FF D0 inside ENTROPY must NOT appear as a segment - only SOS then EOI.
   const after = scan.segments.filter(s => s.start >= scan.sos!);
   assert.deepEqual(after.map(s => s.marker), [0xda, 0xd9]);
   assert.equal(scan.eoi, bytes.length - 2);

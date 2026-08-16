@@ -1,28 +1,28 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
- * ICC profiles applied to deep pixel buffers — the digiKam act (deeprichpixels
+ * ICC profiles applied to deep pixel buffers: the digiKam act (deeprichpixels
  * §3, §5.1): input profile → PCS → working/output space, per pixel, over a
  * {@link DeepFrame}. icc.ts READS a profile and answers per-colour questions;
- * this module is the missing half — running that transform over a float image,
+ * this module is the missing half. It runs that transform over a float image,
  * which is what makes soft-proofing and honest deep ingest possible.
  *
  * Division of labour, deliberately strict: icc.ts stays the single
  * implementation of ICC semantics (curve evaluation, CLUT layout, the 16-bit
- * legacy Lab scale its decodePcs/encodePcs own — see icc.ts:880 — and the
+ * legacy Lab scale its decodePcs/encodePcs own, see icc.ts:880, and the
  * media-white rules). Its pipelines are private on purpose, so this module
  * consumes only the reader's public contract (`toLab`/`fromLab`) and never
  * re-reads profile bytes:
  *
  *   - Matrix/TRC and gray profiles ({@link iccRoundTripDecides} false) are
- *     evaluated DIRECTLY per pixel — analytic, so no resampling error is added.
+ *     evaluated DIRECTLY per pixel: analytic, so no resampling error is added.
  *   - Pure-LUT profiles are pre-linked ONCE per (profile, direction, intent)
  *     into a 33-per-axis device-link lattice sampled through the reader (the
  *     same shape littleCMS's cmsCreateTransform pre-links; 33 is the
  *     conventional device-link grid), then evaluated per pixel by TETRAHEDRAL
  *     interpolation. Tetrahedral over trilinear (Sakamoto's 6-tetrahedron cell
  *     split, the default CLUT interpolator in littleCMS and most CMMs): all six
- *     tetrahedra share the cell's main diagonal — the axis a well-formed
- *     profile lays its neutral along — so greys interpolate through the
+ *     tetrahedra share the cell's main diagonal. That is the axis a well-formed
+ *     profile lays its neutral along, so greys interpolate through the
  *     diagonal's own nodes instead of being averaged from all 8 corners
  *     (trilinear tints greys between nodes), and each output reads 4 lattice
  *     nodes rather than 8. Resampling error is bounded by the profile's own
@@ -30,26 +30,26 @@
  *
  * Rendering-intent fallback (ICC.1:2010, i.e. ICC v4.3): the required-tag
  * tables of clause 8 (§8.4 display-class, §8.5 output-class) make only the
- * perceptual …0 LUT pair universally mandatory — A2B1/B2A1 and A2B2/B2A2 are
- * optional outside output-class profiles — so a CMM asked for an intent whose
+ * perceptual …0 LUT pair universally mandatory. A2B1/B2A1 and A2B2/B2A2 are
+ * optional outside output-class profiles, so a CMM asked for an intent whose
  * table is absent substitutes the perceptual table rather than refusing.
  * {@link iccResolvedIntent} implements that: absolute degrades through relative
  * first (Annex A defines it AS relative plus the media-white rescale), then
  * everything degrades to perceptual. Note the contrast with icc.ts's
  * `hasIntent`, which deliberately refuses to fall back: for GAMUT membership a
  * silently substituted table is a wrong answer, but for RENDERING pixels the
- * fallback is what the spec's optional tags imply — refusing would fail on
+ * fallback is what the spec's optional tags imply. Refusing would fail on
  * nearly every real display profile.
  *
  * Frame conventions (the seam between babl-style tagged buffers and ICC's
  * profile-defined device spaces):
  *
  *   - `toPcs` reads the frame's first `nChannels` channels (R, or R/G/B) as the
- *     profile's ENCODED device channel values in 0..1 — NOT linear light. That
+ *     profile's ENCODED device channel values in 0..1, NOT linear light. That
  *     claim is REQUIRED of the caller, not assumed: the input must be tagged
  *     {@link ICC_DEVICE_SPACE}, the same sentinel `fromPcs` stamps on its own
  *     output, so the two halves are symmetric and a device frame flows from one
- *     into the other untouched. Every member of PixelSpace is refused — the four
+ *     into the other untouched. Every member of PixelSpace is refused: the four
  *     linear ones because a frame from `fromU8Srgb` holds LINEAR LIGHT and
  *     reading those channels as encoded device values is precisely the
  *     laundering this module exists to prevent (linear 0.21404114 IS encoded
@@ -61,22 +61,22 @@
  *   - `fromPcs` takes a colorimetric frame (any real PixelSpace; converted to
  *     Lab per scanline) and returns the profile's encoded device channels. A
  *     one-channel (gray) result is replicated into R=G=B.
- *   - Device-side OUTPUT frames are tagged {@link ICC_DEVICE_SPACE} — a value
+ *   - Device-side OUTPUT frames are tagged {@link ICC_DEVICE_SPACE}, a value
  *     deliberately OUTSIDE the PixelSpace union. There is no honest member for
  *     "channels whose meaning is this profile": tagging them `srgb-linear`
  *     would let convertSpace/toU8Srgb silently launder device values into wrong
  *     colour. With the sentinel, pixels.ts's colorimetric machinery throws its
  *     own loud "unknown pixel space" instead, while `toU16` (which only refuses
- *     lab) still encodes device bytes for a writer — exactly the split a
+ *     lab) still encodes device bytes for a writer: exactly the split a
  *     terminal device frame wants. If PixelSpace ever grows a device member
  *     this constant collapses into it.
  *   - ICC transforms are display-referred: `toLab` clamps device channels to
  *     0..1 and PCS Lab is bounded by its encoding box (L 0..100, a/b −128..127,
- *     ICC.1:2010 §6.3.4.2), so HDR headroom does not survive — a view
+ *     ICC.1:2010 §6.3.4.2), so HDR headroom does not survive. A view
  *     transform maps it first (deeprichpixels §5.2). Non-finite pixel values
  *     (data damage) are read as 0 rather than poisoning the row.
  *
- * Contract, matching icc.ts: NEVER throws — a malformed profile, an unusable
+ * Contract, matching icc.ts: NEVER throws. A malformed profile, an unusable
  * intent, an unsupported channel count (only 1- and 3-channel device spaces fit
  * an RGBA frame; CMYK frames have no representation yet) or a nonsense frame
  * yields `null`. {@link iccFrameRefusal} is the pure companion that says WHY a
@@ -85,7 +85,7 @@
  * allocation is the output buffer; `convertViaIcc` fuses both legs per row so
  * no intermediate PCS frame exists.
  *
- * Pure and deterministic: typed-array maths only — no DOM, no IO, no clock.
+ * Pure and deterministic: typed-array maths only. No DOM, no IO, no clock.
  */
 
 import type { RenderingIntent } from './gamut-source.ts';
@@ -100,7 +100,7 @@ export type IccDirection = 'toPcs' | 'fromPcs';
 /**
  * The `space` tag on a device-side frame this module returns. Deliberately not
  * a member of the PixelSpace union (see the header): pixels.ts's colorimetric
- * functions throw their own "unknown pixel space" on it — loud, immediate —
+ * functions throw their own "unknown pixel space" on it (loud, immediate),
  * while `toU16` still encodes the 0..1 device channels for a writer.
  */
 export const ICC_DEVICE_SPACE = 'icc-device' as PixelSpace;
@@ -120,7 +120,7 @@ const FALLBACK: Readonly<Record<RenderingIntent, readonly RenderingIntent[]>> = 
 
 /**
  * The intent whose table will actually be used for `direction`, after the ICC
- * v4 fallback rules — or null when the profile has no usable transform in that
+ * v4 fallback rules, or null when the profile has no usable transform in that
  * direction at all. Exposed so a caller (soft-proof UI, export report) can say
  * "rendered relative: this profile has no saturation table" instead of
  * silently substituting; {@link applyIccToFrame} uses exactly this resolution.
@@ -156,7 +156,7 @@ export function iccResolvedIntent(
 
 /**
  * Nodes per axis. 33 is the conventional device-link grid (littleCMS device
- * links, ProfileMaker) — dense enough that piecewise-linear resampling of a
+ * links, ProfileMaker), dense enough that piecewise-linear resampling of a
  * profile's own in-curves adds error well below the source table's 8/16-bit
  * node quantisation, small enough that a build is ~36k reader calls and ~430 kB.
  *
@@ -178,7 +178,7 @@ const LATTICES = new WeakMap<IccProfile, Map<string, Float32Array | null>>();
 /**
  * Sample the profile's transform on the regular grid. toPcs domain is the
  * device cube [0,1]³; fromPcs domain is the PCS Lab encoding box (L 0..100,
- * a/b −128..127 — ICC.1:2010 §6.3.4.2; values outside clamp to the boundary at
+ * a/b −128..127 (ICC.1:2010 §6.3.4.2); values outside clamp to the boundary at
  * evaluation time, the same clamp the profile's own PCS encoding applies).
  */
 function buildLattice(profile: IccProfile, direction: IccDirection, intent: RenderingIntent): Float32Array | null {
@@ -225,7 +225,7 @@ const san = (v: number): number => (Number.isFinite(v) ? v : 0);
  * writing the 3 outputs at out[o..o+2]. The cell is split into the 6 tetrahedra
  * that share its main diagonal; the vertex path steps axes in descending order
  * of their fractional parts, so out = P₀ + f₁(P₁−P₀) + f₂(P₂−P₁) + f₃(P₃−P₂)
- * with f₁ ≥ f₂ ≥ f₃ — barycentric weights that reproduce any affine function
+ * with f₁ ≥ f₂ ≥ f₃, barycentric weights that reproduce any affine function
  * exactly (which is what the tests pin with the identity LUT).
  */
 function tetraEval(lat: Float32Array, u: number, v: number, w: number, out: Float32Array, o: number): void {
@@ -276,7 +276,7 @@ type RowFn = (row: Float32Array) => boolean;
  * null when the profile cannot run this direction. Matrix/TRC and gray
  * profiles go through the reader directly (exact); pure-LUT profiles through
  * the tetrahedral lattice. A pure-LUT single-channel profile has no direct
- * path and no 3D lattice domain — refused (none is known to exist; stock gray
+ * path and no 3D lattice domain, so it is refused (none is known to exist; stock gray
  * profiles all carry kTRC and take the direct path).
  */
 function rowEvaluator(profile: IccProfile, direction: IccDirection, intent: RenderingIntent): RowFn | null {
@@ -352,8 +352,8 @@ const profileSane = (p: IccProfile): boolean =>
 
 /**
  * Is this frame acceptable as the DEVICE side of a transform? Only the
- * {@link ICC_DEVICE_SPACE} sentinel is. Every real PixelSpace is colorimetric —
- * four linear-light spaces and Lab — so accepting one would mean reading light
+ * {@link ICC_DEVICE_SPACE} sentinel is. Every real PixelSpace is colorimetric,
+ * the four linear-light spaces and Lab, so accepting one would mean reading light
  * as encoded ink, which is the laundering the header describes; the sentinel is
  * the caller's explicit statement that these channels mean "this profile".
  */
@@ -363,8 +363,8 @@ const deviceInputOk = (frame: DeepFrame): boolean => frame.space === ICC_DEVICE_
 const pcsInputOk = (frame: DeepFrame): boolean => PIXEL_SPACES.includes(frame.space);
 
 /**
- * Why `frame` cannot serve as `direction`'s input — as a sentence naming the
- * fix — or null when it can. The transforms keep icc.ts's never-throw /
+ * Why `frame` cannot serve as `direction`'s input, as a sentence naming the
+ * fix, or null when it can. The transforms keep icc.ts's never-throw /
  * return-null convention, so this is where the reason lives: a caller (or a
  * test) reads the explanation instead of guessing at a bare null. Pure: it
  * inspects the frame's shape and tag only, and is the same predicate
@@ -391,12 +391,12 @@ export function iccFrameRefusal(frame: DeepFrame, direction: IccDirection): stri
  * Run one half of an ICC transform over a frame under `intent` (with the ICC
  * v4 fallback of {@link iccResolvedIntent} when that intent's table is absent).
  *
- * `toPcs`: device-encoded frame — which must be tagged {@link ICC_DEVICE_SPACE},
- * see the header — → PCS, returned as a `lab` frame.
+ * `toPcs`: device-encoded frame (which must be tagged {@link ICC_DEVICE_SPACE},
+ * see the header) → PCS, returned as a `lab` frame.
  * `fromPcs`: colorimetric frame (converted to Lab per scanline if needed) →
  * device channels, returned tagged {@link ICC_DEVICE_SPACE}.
  *
- * Alpha passes through untouched. Returns null — never throws — on any
+ * Alpha passes through untouched. Returns null (never throws) on any
  * profile, direction, intent or frame this module cannot honestly transform.
  */
 export function applyIccToFrame(
@@ -420,7 +420,7 @@ export function applyIccToFrame(
     for (let y = 0; y < height; y++) {
       const at = y * stride;
       if (needsLab) {
-        // Per-scanline Lab conversion through pixels.ts's own maths — a row
+        // Per-scanline Lab conversion through pixels.ts's own maths: a row
         // wrapped as a 1-high frame, so no whole-frame intermediate exists.
         const labRow = convertSpace(
           { width, height: 1, data: frame.data.subarray(at, at + stride), space: frame.space },
@@ -440,14 +440,14 @@ export function applyIccToFrame(
 
 /**
  * Device → PCS → device: `srcProfile`'s forward transform chained into
- * `dstProfile`'s reverse, per scanline with both legs fused over one row — no
+ * `dstProfile`'s reverse, per scanline with both legs fused over one row. No
  * intermediate PCS frame is allocated. `intent` applies to each leg with its
  * own ICC v4 fallback (the destination's table availability is the one that
  * usually decides; use {@link iccResolvedIntent} to report what actually ran).
  *
  * The input frame holds `srcProfile`'s encoded device channels and must be
  * tagged {@link ICC_DEVICE_SPACE} like any device side; the result carries the
- * same tag and holds `dstProfile`'s channels — so the output of one conversion
+ * same tag and holds `dstProfile`'s channels, so the output of one conversion
  * is a legal input to the next. Null on anything either leg refuses.
  */
 export function convertViaIcc(

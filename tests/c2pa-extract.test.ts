@@ -644,7 +644,7 @@ test('collectIngredients: an SVG that embeds a signed raster surfaces the NESTED
     `<?xml version="1.0"?><svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="8" height="8">`
     + `<image xlink:href="data:image/jpeg;base64,${b64(signedJpeg)}" width="8" height="8"/></svg>`);
   const ings = collectIngredients(svg);
-  // The SVG itself is unsigned, but the raster it embeds is — its manifest travels forward.
+  // The SVG itself is unsigned, but the raster it embeds is - its manifest travels forward.
   assert.equal(ings.length, 1);
   assert.ok(ings[0]!.activeLabel);
 });

@@ -3,25 +3,25 @@
  * The pro float formats through the REAL CLI mechanism (plans/61-deeprichpixels.md
  * §6 Phase B3, §10 item 4 "CLI first for pro formats"): `--export=exr` and
  * `--export=hdr` on a native-<svg> fixture tool, driven by `runToolCli` exactly
- * as a terminal invocation would — jsdom, createCliBridge, resvg, the engine's
+ * as a terminal invocation would - jsdom, createCliBridge, resvg, the engine's
  * own OpenEXR / Radiance writers.
  *
  * Sibling of tests/cli-export-golden.test.ts and hermetic the same way: a
  * self-contained fixture repo with LOLLY_ROOT pinned BEFORE the dynamic import,
  * so the whole run → bridge chain resolves against the fixture regardless of the
- * active content profile. NOT a golden-byte suite — these files are asserted by
+ * active content profile. NOT a golden-byte suite - these files are asserted by
  * decoding them, because the point of the feature is that other people's
  * software can read them.
  *
  * WHAT IS ACTUALLY BEING CLAIMED, and how each claim is checked:
  *
- *   1. The REFUSAL is the load-bearing half. The CLI's pixel source is an 8-bit
+ *   1. The REFUSAL is the essential half. The CLI's pixel source is an 8-bit
  *      sRGB resvg raster, so a float file made from it without `hdr=` would be
- *      padding — §10's "depth follows provenance" forbids shipping that as
+ *      padding - §10's "depth follows provenance" forbids shipping that as
  *      quality. `refuses …` asserts the sentence, that it is not swallowed by
  *      run.ts's fall-back-to-HTML catch, and that no file is left behind.
  *   2. With `hdr=1` the float is EARNED: the view transform pushes near-whites
- *      to peakNits/203 in linear light — above 1.0, which no integer container
+ *      to peakNits/203 in linear light - above 1.0, which no integer container
  *      can hold. `above-1.0 headroom` decodes the file and measures it, with the
  *      SDR PNG of the same design as the negative control (its brightest sample
  *      is 255 and cannot be anything else).
@@ -73,7 +73,7 @@ function manifest(id: string, overrides: Record<string, unknown> = {}): string {
   });
 }
 
-// swatch: a two-half image — pure white on the left, pure black on the right.
+// swatch: a two-half image - pure white on the left, pure black on the right.
 // White is what the HDR view transform's includeWhite default boosts (so the left
 // half must land above 1.0); black is the fixed point (it must stay exactly 0).
 // NOTE the declared formats deliberately DO NOT include exr/hdr: the pro formats
@@ -154,11 +154,11 @@ async function probe(path: string): Promise<{ codec: string; pixFmt: string; wid
  * float32 ONLY, and that restriction is a finding, not a convenience: ffmpeg's
  * decoder emits `gbrapf32le` natively for a FLOAT EXR, so `-f rawvideo -pix_fmt
  * gbrapf32le` is a passthrough and above-1.0 samples survive. Ask it to convert a
- * HALF EXR to f32 and the conversion goes through swscale, which CLAMPS to [0,1] —
+ * HALF EXR to f32 and the conversion goes through swscale, which CLAMPS to [0,1] - 
  * measured: the same white pixel reads 4.75 out of the float file and exactly
  * 1.0 out of the half file. So the half files are asserted structurally here, and
  * every pixel-VALUE claim is made against a `depth=float` render. (`gbrap` is
- * planar G,B,R,A — ffmpeg's plane order, spelled out rather than assumed.)
+ * planar G,B,R,A - ffmpeg's plane order, spelled out rather than assumed.)
  */
 async function pixelRgb(path: string, w: number, h: number, x: number, y: number): Promise<[number, number, number]> {
   assert.equal((await probe(path)).pixFmt, 'gbrapf32le',
@@ -175,7 +175,7 @@ async function pixelRgb(path: string, w: number, h: number, x: number, y: number
   return [r, g, b];
 }
 
-// ── 1. the refusal (the load-bearing half) ──────────────────────────────────
+// ── 1. the refusal (the essential half) ──────────────────────────────────
 
 // Adversarial review (2026-07-31): the gate used to check only that hdr= was
 // PASSED, not that the view transform actually lifted anything. hdrViewTransform
@@ -288,13 +288,13 @@ test('exr carries genuine above-1.0 headroom; the SDR png of the same design can
     assert.ok(r > 1.0 && g > 1.0 && b > 1.0, `white must exceed 1.0, got ${r},${g},${b}`);
     // Exactly peakNits/sdrWhiteNits = 1000/203 for a pure white, to float precision.
     assert.ok(Math.abs(r - 1000 / 203) < 1e-3, `white should be 1000/203 = 4.926, got ${r}`);
-    // Black is the fixed point of the transform — nothing invents light.
+    // Black is the fixed point of the transform - nothing invents light.
     const [kr, kg, kb] = await pixelRgb(exr, 40, 20, 35, 10);
     assert.ok(Math.abs(kr) < 1e-4 && Math.abs(kg) < 1e-4 && Math.abs(kb) < 1e-4,
       `black must stay 0, got ${kr},${kg},${kb}`);
 
     // NEGATIVE CONTROL: the same render as an ordinary 8-bit PNG. Its brightest
-    // sample is 255 by construction — there is no encoding of "brighter than
+    // sample is 255 by construction - there is no encoding of "brighter than
     // white" in it, which is precisely the range the EXR adds.
     const png = await cli('swatch', 'png', {});
     const stats = await sharp!(png).stats();
@@ -378,7 +378,7 @@ test('MCP: exr/hdr are browser-free (TIER_A), binary, and correctly typed', asyn
   assert.ok(m.TIER_A.has('hdr'));
   assert.equal(m.mimeForFormat('exr'), 'image/x-exr');
   assert.equal(m.mimeForFormat('hdr'), 'image/vnd.radiance');
-  // Binary — a text content-type would corrupt them over the HTTP surface.
+  // Binary - a text content-type would corrupt them over the HTTP surface.
   assert.equal(m.isTextFormat('exr'), false);
   assert.equal(m.isTextFormat('hdr'), false);
   // The tables must not have drifted from the CLI's.

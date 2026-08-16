@@ -3,7 +3,7 @@
  * audio-coach-core contract tests.
  *
  * Run with: npm test  (node --test over the tests/ globs)
- * No test framework — uses node:test built-in.
+ * No test framework - uses node:test built-in.
  *
  * Exercises the PURE coaching logic that turns a live `AudioLevel` into a
  * `Coaching` verdict (tone / warning / recording-tip cue). The logic lives in a
@@ -150,7 +150,7 @@ test('steady absent → no droning; snr-based speaking still holds', () => {
 // ─── robustness: optional spectral fields absent ──────────────────────────────
 
 test('an AudioLevel missing all optional spectral fields does not throw', () => {
-  // No noiseFloor/snr/hum/hiss at all — the guards must treat each as absent.
+  // No noiseFloor/snr/hum/hiss at all - the guards must treat each as absent.
   const bare: AudioLevel = { rms: 0.15, peak: 0.3, dbfs: -12, clipping: false, t: 0 };
   assert.doesNotThrow(() => coachAudio(bare, { phase: 'check' }));
   const c = coachAudio(bare, { phase: 'check' });

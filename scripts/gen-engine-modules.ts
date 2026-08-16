@@ -4,7 +4,7 @@
  * engine/README.md module-map generator.
  *
  * Run as: node scripts/gen-engine-modules.ts  (no npm alias yet)
- * Check mode: node scripts/gen-engine-modules.ts --check  — exits 1 if the table
+ * Check mode: node scripts/gen-engine-modules.ts --check - exits 1 if the table
  * committed in engine/README.md differs from what a fresh scan produces, so this
  * can become a CI guard exactly like `npm run validate:catalog`.
  *
@@ -15,17 +15,17 @@
  * no-op.
  *
  * Columns:
- *   Module   — path relative to engine/src/ (index.ts is the barrel, excluded).
- *   Lines    — physical line count of the file.
- *   Purpose  — first sentence of the file's leading doc comment. Both header
+ *   Module - path relative to engine/src/ (index.ts is the barrel, excluded).
+ *   Lines - physical line count of the file.
+ *   Purpose - first sentence of the file's leading doc comment. Both header
  *              styles in the tree are handled: JSDoc `/** ... *\/` blocks, and
  *              `// ─── Title ───` banner comments (where the banner label IS the
  *              purpose). A leading SPDX line is skipped either way.
- *   Public?  — whether engine/src/index.ts re-exports anything from the module.
- *   Test     — `tests/<name>.test.ts` (or `tests/<dir>-<name>.test.ts` for a
+ *   Public? - whether engine/src/index.ts re-exports anything from the module.
+ *   Test - `tests/<name>.test.ts` (or `tests/<dir>-<name>.test.ts` for a
  *              subdirectory module) if that file exists; else `indirect` if any
  *              file under tests/ imports the module; else `none`.
- *   Fuzzed   — whether the module basename is a declared target name in
+ *   Fuzzed - whether the module basename is a declared target name in
  *              tests/fuzz/targets.ts.
  */
 import { existsSync, readFileSync, readdirSync, statSync, writeFileSync } from 'node:fs';

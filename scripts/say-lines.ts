@@ -5,7 +5,7 @@
  *
  * The docs corpus renderer (scripts/build-docs-audio.ts) narrates PAGES: it reads
  * docs/build.ts, speaks blocks, and pins one corpus voice. This speaks a FILE, at a
- * voice and pace you choose, with a gap after every line — the shape verse needs,
+ * voice and pace you choose, with a gap after every line - the shape verse needs,
  * where the line break IS the pacing and a sentence splitter would flatten it.
  *
  * It is a second CALLER of the shared speech maths (engine/src/speech-text.ts), not a
@@ -28,7 +28,7 @@
  *
  *   ffmpeg -v info -i read.mp3 -af "silencedetect=noise=-35dB:d=0.15" -f null -
  *
- * `-v info` is not optional — silencedetect logs at info level, so the usual
+ * `-v info` is not optional - silencedetect logs at info level, so the usual
  * `-v error` hides every result and the filter looks like it found nothing.
  * Subtract the speech spans from the total to separate delivery rate from rests;
  * they are independent problems and conflating them sends you tuning the wrong dial.
@@ -174,7 +174,7 @@ async function main(): Promise<void> {
   const voice = arg('voice', 'bf_emma');
   const speed = Number(arg('speed', '0.85'));
   const gapMs = Number(arg('gap', '500'));
-  // A blank line in the source is a longer rest — the stanza break, if the text has one.
+  // A blank line in the source is a longer rest - the stanza break, if the text has one.
   const stanzaMs = Number(arg('stanza-gap', String(gapMs * 2)));
   // A line opening with '+' CONTINUES the one before it: the same breath, not a new
   // line. Verse needs this. "But fixed in time / having been verified in proof" is one

@@ -1,10 +1,10 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
- * Capability Bridge — v1
+ * Capability Bridge - v1
  *
  * This is the versioned contract between tools and host shells. Tools call into
  * `host.*` methods provided here. Shells (web PWA, Tauri desktop/mobile, CLI)
- * implement this interface in their own way — but the surface is identical.
+ * implement this interface in their own way - but the surface is identical.
  *
  * RULES:
  * - Methods may be added in a minor version. Never removed or signature-changed
@@ -23,7 +23,7 @@ export interface HostV1 {
   readonly shell: 'web' | 'tauri-desktop' | 'tauri-mobile' | 'cli';
 
   /**
-   * The capabilities this shell can actually fulfil — a subset of the tool.json
+   * The capabilities this shell can actually fulfil - a subset of the tool.json
    * `capabilities` enum. The host uses it to disable tools that declare a
    * capability this shell can't provide (e.g. 'capture' in the web PWA). Absent ⇒
    * gating is skipped, so a shell that doesn't declare it hides nothing.
@@ -39,13 +39,13 @@ export interface HostV1 {
   /** Persistent state for the current tool/session. IndexedDB on web, FS on Tauri. */
   state: StateAPI;
 
-  /** Clipboard ops. Universal — even CLI has a fallback (writes to stdout/file). */
+  /** Clipboard ops. Universal - even CLI has a fallback (writes to stdout/file). */
   clipboard: ClipboardAPI;
 
   /** Export the rendered template area to a format. The host owns the rasteriser. */
   export: ExportAPI;
 
-  /** Network — only available if the tool declared the 'network' capability. */
+  /** Network - only available if the tool declared the 'network' capability. */
   net?: NetAPI;
 
   /**
@@ -53,13 +53,13 @@ export interface HostV1 {
    * themed lookup. The host UI uses it to source colour-picker swatches from
    * tokens; the runtime uses it to resolve token-referenced input values; a
    * token-aware tool can read the whole tree. Optional and additive (like net/
-   * text) — a shell that doesn't provide it just doesn't offer token-driven UI.
+   * text) - a shell that doesn't provide it just doesn't offer token-driven UI.
    */
   tokens?: TokensAPI;
 
   /**
    * Text-to-path primitive. Shape and outline a text run into an SVG path.
-   * Backed by HarfBuzz WASM — correct shaping including GPOS, ligatures, kerning.
+   * Backed by HarfBuzz WASM - correct shaping including GPOS, ligatures, kerning.
    * DOM-free (HarfBuzz needs no layout engine), so the web PWA, the CLI, and the TUI
    * all provide it; a shell can still legitimately omit it (feature-detected).
    */
@@ -69,7 +69,7 @@ export interface HostV1 {
    * PDF metadata inspection + removal. Reads the Info dictionary and any XMP
    * packet to report what a PDF carries, and produces a re-saved copy with that
    * metadata stripped (pages preserved; the document is re-serialised, so the
-   * result is NOT byte-for-byte). Backed by a PDF library in the shell — optional
+   * result is NOT byte-for-byte). Backed by a PDF library in the shell - optional
    * and additive like net/text: a shell that can't provide it just doesn't offer
    * PDF cleaning, and a tool feature-detects `host.pdf`. Runs locally; the bytes
    * are never uploaded.
@@ -79,9 +79,9 @@ export interface HostV1 {
   /**
    * PPTX inspect + rebrand. Reads an uploaded .pptx deck (slide count, theme,
    * the literal colours/fonts in use) and produces a surgically re-themed copy:
-   * only the brand-bearing OOXML values are rewritten — every other byte passes
+   * only the brand-bearing OOXML values are rewritten - every other byte passes
    * through verbatim, so SmartArt, charts, animations and media survive. Backed
-   * by the engine's pptx primitives plus a zip codec in the shell — optional
+   * by the engine's pptx primitives plus a zip codec in the shell - optional
    * and additive like net/text/pdf: a shell that can't provide it just doesn't
    * offer deck rebranding, and tools must feature-detect `host.pptx`. Runs
    * locally; the bytes are never uploaded.
@@ -89,18 +89,18 @@ export interface HostV1 {
   pptx?: PptxAPI;
 
   /**
-   * Page capture — rasterise a live URL to an image. Only shells with a real,
+   * Page capture - rasterise a live URL to an image. Only shells with a real,
    * authoritative browser engine can fulfil it: Tauri's native webview and the
-   * CLI's headless Chromium. The web PWA *cannot* — a page cannot read pixels
+   * CLI's headless Chromium. The web PWA *cannot* - a page cannot read pixels
    * from a cross-origin URL (frame-busting headers block display; tainted-canvas
    * rules block readback), so it exposes a stub that throws. Gated by the
    * 'capture' capability in tool.json. The browser engine lives in the shell,
-   * never in the engine — this is only the contract.
+   * never in the engine - this is only the contract.
    */
   capture?: CaptureAPI;
 
   /**
-   * Compose — render another tool's output to an embeddable asset (tool
+   * Compose - render another tool's output to an embeddable asset (tool
    * composition / "nested exports"). The runtime resolves a tool's manifest
    * `composes` entries by calling this, then exposes each result as an extra the
    * template references via `{{asset <id>}}`. The returned AssetRef flows back
@@ -109,37 +109,37 @@ export interface HostV1 {
    * additive (like net/capture): a shell that can't render a child tool to bytes
    * (e.g. the no-raster CLI for a raster child) just doesn't provide it, and the
    * runtime degrades gracefully (the `{{#if}}` slot stays empty). Gated by the
-   * 'compose' capability. The host owns depth/cycle guards — see ComposeSpec._stack.
+   * 'compose' capability. The host owns depth/cycle guards - see ComposeSpec._stack.
    */
   compose?: ComposeAPI;
 
   /**
-   * Live media — a camera frame source for motion-reactive tools. Only shells with
+   * Live media - a camera frame source for motion-reactive tools. Only shells with
    * a real camera + canvas can fulfil it: the web PWA and Tauri's webview (both via
    * getUserMedia) provide it; the headless CLI does not. The shell owns the
-   * MediaStream, the <video>, and the grab loop entirely — it hands the runtime
+   * MediaStream, the <video>, and the grab loop entirely - it hands the runtime
    * plain pixel frames (a typed array, no DOM types), so the engine stays DOM-free
    * exactly as it does for `capture`/`compose`. The runtime drives the tool's
    * `onFrame` hook per frame (see runtime.startLive). Optional/additive (v1.4): a
    * tool feature-degrades to a still-image tool where `host.media` is absent, so
-   * this is NOT gated by a `capabilities` flag — it's pure progressive enhancement.
+   * this is NOT gated by a `capabilities` flag - it's pure progressive enhancement.
    */
   media?: MediaAPI;
 
   /**
-   * Lift — enumerate an SVG's own layers into standalone documents (the engine's
+   * Lift - enumerate an SVG's own layers into standalone documents (the engine's
    * `enumerateSvgLayers`). The shell fetches + sanitises the SVG through its one
    * untrusted-SVG path; the engine owns what a "layer" is, so web and CLI agree. The
-   * maths that turns layers into DEPTH is the CALLER's, not this primitive's — it returns
+   * maths that turns layers into DEPTH is the CALLER's, not this primitive's - it returns
    * geometry (documents + ink boxes + viewBox), never a scene. Optional/additive (v1.123):
    * a shell without a safe SVG fetch/sanitise path omits it, and NOT gated by a capability
-   * — it is progressive enhancement (the dedicated Flythrough tool lifts a screenshot into
+   * - it is progressive enhancement (the dedicated Flythrough tool lifts a screenshot into
    * depth planes where `host.lift` is present, and flies one flat plane where it is not).
    */
   lift?: LiftAPI;
 
   /**
-   * Keyframes — evaluate the engine's `kf` wire (the same track format the Design tool's
+   * Keyframes - evaluate the engine's `kf` wire (the same track format the Design tool's
    * camera and every keyframed input use) into concrete pose samples, for a tool TEMPLATE
    * that cannot import the engine. The engine owns the parse + interpolation + easing (the
    * drift-prone part), so a template's motion matches the Design tool's exactly; the
@@ -150,30 +150,30 @@ export interface HostV1 {
   keyframes?: KeyframesAPI;
 
   /**
-   * Device capture — record the microphone (and optionally the camera) to a file,
+   * Device capture - record the microphone (and optionally the camera) to a file,
    * plus a DOM-free live audio-level meter. Where `media` is a read-only camera
    * frame *source*, `recorder` is a *sink*: the shell owns getUserMedia({audio}),
    * the MediaRecorder, and the AnalyserNode entirely, and the engine only ever sees
-   * plain numbers (AudioLevel) and finished Blobs — never a MediaStream or <video>,
+   * plain numbers (AudioLevel) and finished Blobs - never a MediaStream or <video>,
    * so the engine stays DOM-free exactly as it does for `media`/`capture`. UNLIKE
    * `media`, capture prompts for a permission that a shell may be unable to grant,
    * so it IS gated behind the `microphone` (and, for video capture, `camera`;
    * for display capture, `screen`) capability in tool.json; the headless CLI
    * provides no `recorder` at all. The runtime drives a tool's `onLevel` hook from
    * the meter and orchestrates a recording session (see runtime.startMeter /
-   * startRecording). Optional/additive (v1.17) — a tool feature-detects
+   * startRecording). Optional/additive (v1.17) - a tool feature-detects
    * `host.recorder`. (See host.export.file for how the recorded bytes reach the
    * user: the transform path, never watermarked.)
    */
   recorder?: RecorderAPI;
 
   /**
-   * Audio analysis — decoded sound in, a per-frame reactivity track out (bass /
+   * Audio analysis - decoded sound in, a per-frame reactivity track out (bass /
    * mid / treble, a log-spaced spectrum, onset strength, tempo, beat times, and
    * optionally raw time-domain windows).
    *
    * Where `recorder.meter` reports the LIVE level of a microphone one sample at a
-   * time, this analyses a whole finished clip ahead of drawing it — which is what
+   * time, this analyses a whole finished clip ahead of drawing it - which is what
    * an audiogram, a music video or a spectrum needs, because it has to know frame
    * 200's bass while it is still drawing frame 1. Nothing here streams.
    *
@@ -183,64 +183,64 @@ export interface HostV1 {
    * the engine's `analysePcm`, so a shell attaches it rather than reimplementing
    * it and the browser and the CLI read the same numbers off the same clip.
    *
-   * Optional/additive (v1.71) and NOT gated by a `capabilities` flag — a tool
+   * Optional/additive (v1.71) and NOT gated by a `capabilities` flag - a tool
    * feature-detects `host.audio` and falls back to a static waveform where it is
    * absent. Runs locally; the audio is never uploaded.
    */
   audio?: AudioAPI;
 
   /**
-   * Deep image codecs — a float pixel frame in, finished image bytes out at real
+   * Deep image codecs - a float pixel frame in, finished image bytes out at real
    * bit depth. The dual of `export.render` (which rasterises the DOM to 8-bit):
    * a tool that computes its own high-precision pixels (a float grading pipeline,
    * a renderer with genuine headroom) hands over a linear Float32 RGBA frame and
    * gets back a 16-bit PNG, an OpenEXR / Radiance master, or an error-diffused
-   * 8-bit PNG — depths the browser's 8-bit canvas cannot originate. Pairs with a
+   * 8-bit PNG - depths the browser's 8-bit canvas cannot originate. Pairs with a
    * tool's `exportStill` hook to own its raster export end to end.
    *
    * DOM-free CONTRACT: a plain typed-array frame in, bytes out. The MATHS is the
    * engine's own writers (packExr / packRadiance / packPng + the Floyd–Steinberg
-   * dither), so the SHELL only forwards — and web and CLI produce byte-identical
+   * dither), so the SHELL only forwards - and web and CLI produce byte-identical
    * output from the same frame. `data` is RGBA interleaved, LINEAR light,
    * un-premultiplied (the engine `DeepFrame` contract); the SDR encoders
    * (png16 / dither8) gamma-encode and clamp at their display boundary, EXR and
    * Radiance keep the unbounded linear values.
    *
-   * Optional/additive and NOT gated by a `capabilities` flag — a tool
+   * Optional/additive and NOT gated by a `capabilities` flag - a tool
    * feature-detects `host.codec` and falls back to the ordinary 8-bit export
    * where it is absent. Runs locally; pixels are never uploaded.
    */
   codec?: CodecAPI;
 
   /**
-   * Layered-bitmap write-back (v1.102) — currently one method: serialise a set
+   * Layered-bitmap write-back (v1.102) - currently one method: serialise a set
    * of positioned RGBA layers as a layered Photoshop PSD (the engine's own
    * writer; opens in Photoshop, GIMP and Krita). The read side is NOT here:
    * PSD/XCF *import* is a shell ingest flow (drop router → per-layer library
    * assets), not something a running tool does. Optional/additive, feature-
    * detected (`host.layers?.writePsd`); runs locally, bytes never leave the
    * device, and like every `export.file` path the result is never watermarked
-   * or provenance-stamped — it is the user's own file.
+   * or provenance-stamped - it is the user's own file.
    */
   layers?: LayersAPI;
 
   /**
-   * On-device AI image upscaling — a low-resolution raster in, a larger one out,
+   * On-device AI image upscaling - a low-resolution raster in, a larger one out,
    * run entirely on the device (onnxruntime-web, WebGPU where present falling back
    * to WASM). For the person whose headshot is 400px beside colleagues' 2000px
-   * photos: enlarge it offline, and — because the added pixels are model-inferred —
+   * photos: enlarge it offline, and - because the added pixels are model-inferred -
    * the output carries a C2PA credential naming the model (the runtime sets
    * `ExportOpts.c2paAiUpscale` from the upscaled asset's meta, disclosed as the
-   * IPTC `compositeWithTrainedAlgorithmicMedia` source type — a real photo,
+   * IPTC `compositeWithTrainedAlgorithmicMedia` source type - a real photo,
    * AI-enhanced, never claimed as fully generated).
    *
    * DOM-free CONTRACT: a plain RGBA frame in, a larger RGBA frame out. The SHELL
-   * owns the model runtime, the backend choice, the one-time (consented — see
+   * owns the model runtime, the backend choice, the one-time (consented - see
    * `modelBytes`) weight download and the memory-bounded tiling; the engine/tool
    * only ever sees pixels. The models ship under permissive licences (BSD-3-Clause,
    * Apache-2.0) whose attribution the shell carries in its credits.
    *
-   * Optional/additive (v1.101) and NOT gated by a `capabilities` flag — a tool
+   * Optional/additive (v1.101) and NOT gated by a `capabilities` flag - a tool
    * feature-detects `host.upscale` and hides its "Upscale" affordance where it is
    * absent (the headless CLI provides none for now). Because the run can take many
    * seconds on a weak device, it is NEVER driven from a time-boxed hook: a shell
@@ -250,22 +250,22 @@ export interface HostV1 {
   upscale?: UpscaleAPI;
 
   /**
-   * On-device background removal — a plain RGBA frame in, the same frame with a
+   * On-device background removal - a plain RGBA frame in, the same frame with a
    * model-computed alpha matte out (v1.103). A structural twin of `upscale`: the
    * shell owns the ONNX runtime, the WebGPU→WASM backend, the one-time consented
    * model download and the memory bound; the tool only ever sees pixels.
    *
    * Its PROVENANCE is deliberately NOT the upscale kind. Upscale INVENTS pixels
    * (a trained-algorithm composite source type, `aiGenerated:'partial'`); a matte
-   * invents nothing — every RGB pixel is the original, and only the alpha channel
+   * invents nothing - every RGB pixel is the original, and only the alpha channel
    * (a selection, not image content) is computed. So the honest disclosure is an
    * edit step, "Background removed with <model> <version>", with the original kept
-   * as a C2PA ingredient — NOT a generated/composite claim, and the asset is NOT
+   * as a C2PA ingredient - NOT a generated/composite claim, and the asset is NOT
    * flagged AI-generated. That distinction is the whole point of hosting this: a
    * same-format cutout that keeps its metadata, colour and credential intact,
    * where other removers strip all three.
    *
-   * Optional/additive and NOT gated by a `capabilities` flag — a tool feature-
+   * Optional/additive and NOT gated by a `capabilities` flag - a tool feature-
    * detects `host.matte` and hides its Remove-Background affordance where it is
    * absent. Like `upscale`, NOT driven from a time-boxed hook: a shell surfaces it
    * as an explicit, cancellable, progress-bearing action whose result is an asset.
@@ -274,22 +274,22 @@ export interface HostV1 {
   matte?: MatteAPI;
 
   /**
-   * Speech synthesis — text in, spoken PCM plus word timings out (on-device
+   * Speech synthesis - text in, spoken PCM plus word timings out (on-device
    * Kokoro TTS).
    *
    * The dual of `audio`: where `analyse` turns a finished clip into numbers a
-   * tool can draw, `synthesize` turns a tool's own text into a clip — mono PCM
+   * tool can draw, `synthesize` turns a tool's own text into a clip - mono PCM
    * a shell can play, mix under a video export, or hand straight back to
    * `audio.analyse`. The word timings are what a caption or karaoke-highlight
    * tool keys off, so they ride in the same result rather than needing a
    * second alignment pass.
    *
    * DOM-free CONTRACT, exactly like `audio`: a string in, plain typed arrays
-   * out. The SHELL owns the model runtime and the (one-time, consented — see
+   * out. The SHELL owns the model runtime and the (one-time, consented - see
    * `modelBytes`) weight download; the engine only ever sees Float32 samples
    * and plain timing objects.
    *
-   * Optional/additive (v1.96) and NOT gated by a `capabilities` flag — a tool
+   * Optional/additive (v1.96) and NOT gated by a `capabilities` flag - a tool
    * feature-detects `host.speech` and hides its voiceover affordance where it
    * is absent (the headless CLI provides none for now). Runs locally; text is
    * never uploaded.
@@ -297,25 +297,25 @@ export interface HostV1 {
   speech?: SpeechAPI;
 
   /**
-   * MilkDrop visualisation — availability and attribution, and deliberately
+   * MilkDrop visualisation - availability and attribution, and deliberately
    * nothing else. A tool is data: it has no element to hand over and no business
    * holding a GL context, so it renders a `[data-lolly-viz]` placeholder carrying
    * its parameters and the shell owns the canvas behind it (the same contract
-   * `[data-lottie-src]` already uses — which is what lets the context and its
+   * `[data-lottie-src]` already uses - which is what lets the context and its
    * loaded preset survive the innerHTML rebuild every keystroke causes).
    *
-   * Optional/additive (v1.72) and NOT gated by a `capabilities` flag — a shell
+   * Optional/additive (v1.72) and NOT gated by a `capabilities` flag - a shell
    * without this, or without WebGL2, means the tool draws its ordinary canvas
    * style, never that it refuses to render.
    */
   viz?: VizAPI;
 
   /**
-   * Perceptual colour tools — extrapolate from brand primitives without
+   * Perceptual colour tools - extrapolate from brand primitives without
    * shipping colour science in every tool: ΔEOK distance, APCA + WCAG
    * contrast, OKLab ramps, data class-breaks, and distinct categorical
    * palettes (see engine/src/color-tools.ts, the chroma.js-evaluation port).
-   * Pure math, so every method is SYNCHRONOUS and identical across shells —
+   * Pure math, so every method is SYNCHRONOUS and identical across shells -
    * shells attach the engine's `makeColorApi()` rather than implementing
    * anything. Optional/additive (v1.40): a tool feature-detects `host.color`
    * and keeps a small fallback (older shells lack it); not gated by a
@@ -324,10 +324,10 @@ export interface HostV1 {
   color?: ColorAPI;
 
   /**
-   * Image decode / resize / re-encode — on-device conversion (HEIC → JPEG,
+   * Image decode / resize / re-encode - on-device conversion (HEIC → JPEG,
    * compress-to-WebP, downscale) as a first-class capability instead of
    * upload-pipeline plumbing. DOM-free CONTRACT: encoded bytes (or a Blob) in,
-   * encoded bytes + dimensions out — the shell owns the decoder/encoder (WASM,
+   * encoded bytes + dimensions out - the shell owns the decoder/encoder (WASM,
    * canvas, native codecs); the engine never sees a canvas or an <img>.
    * Optional/additive like pdf/pptx (v1.60) and not gated by a `capabilities`
    * flag: a tool feature-detects `host.images` and degrades where it's absent.
@@ -336,7 +336,7 @@ export interface HostV1 {
   images?: ImagesAPI;
 
   /**
-   * Raster primitives for tool hooks that do their own canvas pixel work — a
+   * Raster primitives for tool hooks that do their own canvas pixel work - a
    * realm-correct capability probe, decode a source to a drawable bitmap,
    * measure it, and encode finished pixels back to bytes. The bridge home for
    * the `canRaster()`/`loadImage()` probes tool hooks used to open-code against
@@ -348,12 +348,12 @@ export interface HostV1 {
    * Distinct from `host.images`: that is the CONVERT path (encoded bytes in,
    * encoded bytes out, no pixel access) for the upload/export pipeline. This is
    * for tools that composite, sample or mutate pixels themselves (bitmap-studio,
-   * the filter-* family, the logo/lockup composers, redact) — so `decode`
+   * the filter-* family, the logo/lockup composers, redact) - so `decode`
    * returns a drawable `ImageBitmap` (valid on a main-thread `<canvas>` AND a
    * Worker `OffscreenCanvas`, unlike an `<img>`) and `encode` takes raw RGBA.
    * Building/drawing INTO a canvas is deliberately NOT here: `new
    * OffscreenCanvas(w, h)` is a realm global a hook constructs directly, so an
-   * RPC round-trip would buy nothing. DOM-free CONTRACT — no `HTMLImageElement`
+   * RPC round-trip would buy nothing. DOM-free CONTRACT - no `HTMLImageElement`
    * or `document` crosses this surface. Optional/additive (v1.105) and NOT gated
    * by a `capabilities` flag: a tool feature-detects `host.raster` (undefined on
    * the headless CLI/jsdom shell, which has no canvas) and degrades to its
@@ -363,14 +363,14 @@ export interface HostV1 {
   raster?: RasterAPI;
 
   /**
-   * Exact vector geometry — path booleans, offsetting, stroke outlining,
+   * Exact vector geometry - path booleans, offsetting, stroke outlining,
    * authored-spline lowering, simplification and hit testing (see
    * engine/src/geom/). SVG path data in, SVG path data out; nothing flattens,
    * samples or rasterises. Pure math, so every method is SYNCHRONOUS and
-   * identical across shells — shells attach the engine's `makeGeomApi()` rather
+   * identical across shells - shells attach the engine's `makeGeomApi()` rather
    * than implementing anything, exactly like `color`. Optional/additive (v1.64)
    * and not gated by a `capabilities` flag: feature-detect `host.geom`.
-   * Failures are RETURNED (`{ ok: false, code }`), never thrown — a tool is
+   * Failures are RETURNED (`{ ok: false, code }`), never thrown - a tool is
    * never handed a plausible-looking wrong path.
    */
   geom?: GeomAPI;
@@ -378,7 +378,7 @@ export interface HostV1 {
   /**
    * Committed, export-safe connector / line / arrow geometry (v1.106; the path
    * decorations + dash fitting added v1.110). The engine's connector module behind a
-   * tool-facing surface — every shell attaches `makeConnectorsApi()` verbatim, so
+   * tool-facing surface - every shell attaches `makeConnectorsApi()` verbatim, so
    * web / Tauri / CLI emit identical geometry: a canvas tool's hooks.js renders its
    * connectors in one line and a headless `--export` keeps them. Pure + synchronous,
    * like `color`/`geom`. Optional/additive and NOT gated by a `capabilities` flag:
@@ -387,12 +387,12 @@ export interface HostV1 {
   connectors?: ConnectorsAPI;
 
   /**
-   * Content Credentials signing — embed a FRESH signed C2PA manifest into
+   * Content Credentials signing - embed a FRESH signed C2PA manifest into
    * finished bytes, with NO ingredients and no ingredient thumbnails. This is
    * the redacted-derivative path: carrying the source's manifest forward would
    * re-embed a pixel-accurate thumbnail of the un-redacted original, so the
    * output is signed as a new work instead, and the caller says so in the UI.
-   * Not a general provenance surface — ordinary exports keep going through
+   * Not a general provenance surface - ordinary exports keep going through
    * `host.export` (which owns ingredients, action history and the opt-in
    * gates). Optional/additive (v1.85) and not gated by a `capabilities` flag:
    * a tool feature-detects `host.c2pa?.sign`. Signing runs locally with the
@@ -401,7 +401,7 @@ export interface HostV1 {
    */
   c2pa?: C2paAPI;
 
-  /** Logging — goes to console in dev, to a log buffer for support diagnostics. */
+  /** Logging - goes to console in dev, to a log buffer for support diagnostics. */
   log: (level: 'debug' | 'info' | 'warn' | 'error', msg: string, ctx?: object) => void;
 }
 
@@ -409,7 +409,7 @@ export interface HostV1 {
 
 /**
  * All methods are pure and synchronous. Colour arguments accept hex
- * (`#rgb…#rrggbbaa`) or `oklch()`/`lch()` strings — the forms token values
+ * (`#rgb…#rrggbbaa`) or `oklch()`/`lch()` strings - the forms token values
  * take; metrics return NaN on unparseable input, `ramp` throws (an authoring
  * error). Every emitted colour is a gamut-mapped `#rrggbb`.
  */
@@ -424,15 +424,15 @@ export interface ConnectorRenderOpts {
   fromField?: string; toField?: string;
   styleField?: string; arrowField?: string; headField?: string;
   colorField?: string; dashField?: string; widthField?: string;
-  /** v1.111 — per-END head shapes (an `AuthoredPath` box's `headStart`/`headEnd`). Naming
+  /** v1.111 - per-END head shapes (an `AuthoredPath` box's `headStart`/`headEnd`). Naming
    *  either switches a row off the `arrow` + shared-`head` edge reading onto the path one,
    *  so a bound path and a legacy edge render through one builder. */
   headStartField?: string; headEndField?: string;
-  /** v1.111 — an AUTHORED dash pattern (array, or a space/comma-separated string). Set →
+  /** v1.111 - an AUTHORED dash pattern (array, or a space/comma-separated string). Set →
    *  the shaft is drawn as real `<line>` dash segments fitted to the route's corners, and
    *  the `dash` keyword is not read for that row. */
   dashArrayField?: string;
-  /** v1.111 — opt out of the corner FIT while keeping the authored pattern (default on). */
+  /** v1.111 - opt out of the corner FIT while keeping the authored pattern (default on). */
   dashFitField?: string;
   defaultStyle?: string; defaultArrow?: string; defaultHead?: string;
   defaultColor?: string; defaultWidth?: number;
@@ -440,12 +440,12 @@ export interface ConnectorRenderOpts {
   layerClass?: string;             // class on the <svg> (default 'lolly-connectors')
 }
 
-/** A head at the tip of an authored path (v1.110) — see {@link ConnectorsAPI.pathHeadSvg}.
+/** A head at the tip of an authored path (v1.110) - see {@link ConnectorsAPI.pathHeadSvg}.
  *  Structurally identical to the engine's PathHeadOpts; a copy, so @lolly-tools/core
  *  carries no dependency on @lolly/engine. */
 export interface PathHeadOpts {
   tipX: number; tipY: number;
-  /** Tangent at the tip in RADIANS, pointing OUT of the path — `Math.atan2(dy, dx)` of
+  /** Tangent at the tip in RADIANS, pointing OUT of the path - `Math.atan2(dy, dx)` of
    *  the last segment at an end head, of the REVERSED first segment at a start head. */
   angle: number;
   /** none · open · triangle · diamond · circle · bar (anything else draws a triangle). */
@@ -468,7 +468,7 @@ export interface DashFitOpts {
 }
 
 /**
- * Dash entry + Illustrator-style corner fitting (v1.110) — see
+ * Dash entry + Illustrator-style corner fitting (v1.110) - see
  * {@link ConnectorsAPI.dashFit}. Pure + synchronous.
  */
 export interface DashFitAPI {
@@ -476,26 +476,26 @@ export interface DashFitAPI {
    * Parse a user-typed dash string (`"6 4"`, `"6,4,2,4"`) into a canonical, even-length
    * array of NUMBERS, or `null` when it is not one. At most 16 numbers, each 0…1000, at
    * least one above zero; an odd-length list is doubled (the SVG rule). Numbers only, by
-   * contract: never put the user's raw text on `stroke-dasharray` — serialize THIS.
+   * contract: never put the user's raw text on `stroke-dasharray` - serialize THIS.
    */
   parse(text: string): number[] | null;
   /**
    * One explicit dash array covering the WHOLE path, with the pattern grown/shrunk
    * slightly per span so a dash lands centred on every corner (Illustrator's "align
    * dashes to corners and path ends"). `spanLengths` are the path's corner-to-corner run
-   * lengths in order — include the closing span for a closed path. Even-length and
+   * lengths in order - include the closing span for a closed path. Even-length and
    * summing to exactly the path length, so the pattern never wraps.
    */
   cornerFitDashArray(spanLengths: number[], pattern: number[], opts?: DashFitOpts): number[];
   /**
-   * The same fit as absolute `[start, end]` dash intervals along the path — for the
+   * The same fit as absolute `[start, end]` dash intervals along the path - for the
    * committed/export render, which draws real geometry and never `stroke-dasharray`.
    * Inked length agrees exactly with `cornerFitDashArray`'s dash entries.
    */
   dashSegments(spanLengths: number[], pattern: number[], opts?: DashFitOpts): DashSegment[];
 }
 
-/** Committed connector/line/arrow render (v1.106; path decorations + dash fit v1.110) —
+/** Committed connector/line/arrow render (v1.106; path decorations + dash fit v1.110) -
  *  see {@link HostV1.connectors}. */
 export interface ConnectorsAPI {
   /** Render the committed connector layer as an export-safe SVG string: every edge
@@ -506,7 +506,7 @@ export interface ConnectorsAPI {
    * An arrowhead/decoration SVG fragment for ONE path tip (v1.110): the same shapes
    * `build` draws on a connector, addressed by tip + outward tangent, so a spline, a
    * line and a connector decorate identically. Baked coordinates, no transform, no
-   * `<marker>` — it drops into any `<svg>` and survives the vector walkers.
+   * `<marker>` - it drops into any `<svg>` and survives the vector walkers.
    * Optional/additive: feature-detect it.
    */
   pathHeadSvg?(opts: PathHeadOpts): string;
@@ -518,20 +518,20 @@ export interface ConnectorsAPI {
   /**
    * The route a BOUND path is drawn with, from its own spline kind (v1.111). A path box
    * with an endpoint attached to another box is a connector, and connector management
-   * picks its route — `line`→straight (an authored polyline of 3+ nodes→elbow),
+   * picks its route - `line`→straight (an authored polyline of 3+ nodes→elbow),
    * `spiro`→arc, every other kind→the smooth curved S. `override` is the box's explicit
    * `route` field and wins whenever it names one of `routeStyles`; that override is what
    * makes the plan-90 edge migration lossless (six kinds cannot name thirteen routes).
    * Pure; feature-detect it.
    */
   routeStyleForKind?(kind: string, override?: string, nodeCount?: number): string;
-  /** The thirteen route styles `build` understands, in menu order (v1.111) — so a pack
+  /** The thirteen route styles `build` understands, in menu order (v1.111) - so a pack
    *  control and the editor offer one list rather than each spelling it out. */
   routeStyles?: string[];
 }
 
 export interface ColorAPI {
-  /** ΔEOK — Euclidean distance in OKLab (0 identical … ≈1 black↔white; ~0.02 is a JND). */
+  /** ΔEOK - Euclidean distance in OKLab (0 identical … ≈1 black↔white; ~0.02 is a JND). */
   deltaE(a: string, b: string): number;
   /** APCA-W3 Lc, signed (advisory; |60| ≈ body text). WCAG 2.1 stays the compliance number. */
   apca(text: string, bg: string): number;
@@ -539,18 +539,18 @@ export interface ColorAPI {
   contrast(a: string, b: string): number;
   /** `n` colours along a smooth OKLab bezier through `stops`; optional perceptually-even lightness steps. */
   ramp(stops: string[], n: number, opts?: { correctLightness?: boolean }): string[];
-  /** `n + 1` class boundaries over data — 'e' equal, 'l' log₁₀ (positive data only), 'q' quantile. */
+  /** `n + 1` class boundaries over data - 'e' equal, 'l' log₁₀ (positive data only), 'q' quantile. */
   breaks(data: number[], mode: 'e' | 'l' | 'q', n: number): number[];
   /** Up to `n` visually distinct categorical colours, seeded from a brand anchor. */
   distinct(n: number, opts?: { anchorHex?: string; minDeltaE?: number }): string[];
   /**
    * The ACCENT colours of a classic colour-harmony scheme, seeded from
-   * `seedHex` (hex forms only — normalise oklch()/lch() first). The seed
+   * `seedHex` (hex forms only - normalise oklch()/lch() first). The seed
    * itself is never returned (it is the scheme's 0° member), so a k-colour
    * scheme yields k−1 accents; each keeps the seed's OKLCH lightness/chroma
    * and rotates only the hue, emitted gamut-mapped. `kind` defaults to
    * 'complement'. An unparseable seed falls back to a neutral mid-blue rather
-   * than throwing — the picker always has something to show (this is the
+   * than throwing - the picker always has something to show (this is the
    * brand editor's generator, engine/src/brand-schemes.ts, attached).
    * Optional/additive (v1.60); feature-detect on older hosts.
    */
@@ -574,15 +574,15 @@ export interface ColorAPI {
    *
    * Spec grammar: `<kind>[.<space>[.<hue>]]_<angle>_<colour>-<pos>_…`, e.g.
    * `lin_90_30ba78-0_efefef-100`. The stops come back interpolated in the spec's
-   * space and BAKED into plain sRGB stops — extra stops inserted only where sRGB
-   * would visibly diverge — because an SVG `<linearGradient>` and a PDF axial
+   * space and BAKED into plain sRGB stops - extra stops inserted only where sRGB
+   * would visibly diverge - because an SVG `<linearGradient>` and a PDF axial
    * shading have no interpolation-space knob. So one value renders the same on
    * screen, in SVG and in PDF, and a tool never hand-rolls colour maths to get a
    * gradient that isn't muddy. Optional/additive (v1.68).
    */
   gradientCss?(spec: string): string | null;
   /**
-   * The narrowest display gamut that can show this colour — `'srgb'`, `'p3'`,
+   * The narrowest display gamut that can show this colour - `'srgb'`, `'p3'`,
    * `'rec2020'`, or `'none'` when nothing can. Accepts the same hex /
    * `oklch()` / `lch()` forms as the rest of this API.
    *
@@ -596,25 +596,25 @@ export interface ColorAPI {
    * The highest chroma that still fits `limit` (default `'srgb'`) at this
    * lightness (0–1, not the CSS percent) and hue (degrees).
    *
-   * This is the real, hue-dependent ceiling — yellow carries far more chroma
-   * than blue — so it beats a fixed maximum for building even ramps or
+   * This is the real, hue-dependent ceiling - yellow carries far more chroma
+   * than blue - so it beats a fixed maximum for building even ramps or
    * clamping a picker. Optional/additive (v1.69).
    */
   maxChroma?(l: number, h: number, limit?: Exclude<ColorGamut, 'none'>): number;
   /**
    * One 2D plane through OKLCH space as RGBA pixels, ready for
-   * `new ImageData(data, width)` — the gamut charts on oklch.com, as a
+   * `new ImageData(data, width)` - the gamut charts on oklch.com, as a
    * primitive. Transparent outside `limit`; see {@link ColorSliceOptions} for
    * the axis convention.
    *
    * Pixels beyond sRGB come back gamut-mapped, because the buffer is 8-bit
-   * sRGB — draw the boundary from `maxChroma` on top rather than trusting the
+   * sRGB - draw the boundary from `maxChroma` on top rather than trusting the
    * fill's colour out there. Optional/additive (v1.69).
    */
   slice?(opts: ColorSliceOptions): ColorSliceImage;
   /**
    * The in-gamut region of a slice plane, as closed rings in the plane's unit
-   * square (x right, y DOWN) — multiply by a pixel box and you have an SVG
+   * square (x right, y DOWN) - multiply by a pixel box and you have an SVG
    * `clipPath` or a filled `<path>`.
    *
    * This is the vector counterpart to {@link ColorAPI.slice}: a raster surface
@@ -630,15 +630,15 @@ export interface ColorAPI {
    * A colour string → OKLCH (`l` 0–1, not the CSS percent; `h` in degrees), or
    * null if it can't be read. The inverse of {@link ColorAPI.fromOklch}.
    *
-   * Without this a tool cannot get at the perceptual axes at all — `schemes()`
-   * returns OKLCH for the accents it generates but never for the seed — so any
+   * Without this a tool cannot get at the perceptual axes at all - `schemes()`
+   * returns OKLCH for the accents it generates but never for the seed - so any
    * tool wanting to reason about lightness or chroma had to carry its own
    * matrices. Optional/additive (v1.69).
    */
   oklch?(color: string): { l: number; c: number; h: number; alpha?: number } | null;
   /**
    * OKLCH → hex, gamut-mapped into sRGB per CSS Color 4 §14.2 (hue and
-   * lightness preserved, chroma reduced — never a raw channel clip). 8-digit
+   * lightness preserved, chroma reduced - never a raw channel clip). 8-digit
    * when `alpha` is under 1. Optional/additive (v1.69).
    */
   fromOklch?(o: { l: number; c: number; h: number; alpha?: number }): string;
@@ -647,14 +647,14 @@ export interface ColorAPI {
    * whose forward APCA Lc against `bgHex` is closest to `|targetLc|`. Returns the
    * solved colour as gamut-mapped hex plus the signed Lc it ACTUALLY achieves.
    *
-   * `apca` scores a pair; this is the other direction — "give me a tone of this
-   * hue that reads at Lc 60 on this background" — the one move a contrast-first
+   * `apca` scores a pair; this is the other direction - "give me a tone of this
+   * hue that reads at Lc 60 on this background" - the one move a contrast-first
    * ramp needs and that no forward call can do. Polarity is taken from the
    * background (dark text on a light bg, light on a dark one), never from the
    * sign of `targetLc`; a negative argument is the same request as its magnitude.
    *
    * `reachable` is false when the target magnitude is beyond what this hue/chroma
-   * can carry against this background (e.g. past APCA's near-black ceiling) — then
+   * can carry against this background (e.g. past APCA's near-black ceiling) - then
    * `hex`/`lc` are the closest achievable, not a guess. Chroma is clamped into
    * `opts.limit`'s gamut (default `'srgb'`) at the solved lightness, so the colour
    * is real. Optional/additive (v1.107); feature-detect on older hosts.
@@ -665,7 +665,7 @@ export interface ColorAPI {
    * null when the bytes are not a profile that can be evaluated.
    *
    * Until this existed, "will it print?" had no answer here: `gamut()` reports
-   * the three DISPLAY gamuts, and a press is neither of them — a colour can sit
+   * the three DISPLAY gamuts, and a press is neither of them - a colour can sit
    * comfortably inside sRGB and still be unreachable in CMYK, which is exactly
    * the case a brand palette needs flagged before it goes to a printer. The
    * profile is the user's own file (the one their print shop sent), so nothing
@@ -674,7 +674,7 @@ export interface ColorAPI {
    * `intent` defaults to `'relative'`, the intent a proof is normally judged
    * under. A profile that cannot be asked about gamut under that intent yields a
    * handle with `usable: false` rather than one silently answering from a
-   * different intent's table — a wrong colour that looks right is worse than no
+   * different intent's table - a wrong colour that looks right is worse than no
    * answer.
    *
    * Malformed bytes return null and never throw, however hostile.
@@ -693,7 +693,7 @@ export interface ColorAPI {
    */
   inProfileGamut?(profile: ColorProfileGamut, l: number, c: number, h: number): boolean;
   /**
-   * The highest chroma this profile can reproduce at a given lightness and hue —
+   * The highest chroma this profile can reproduce at a given lightness and hue -
    * {@link ColorAPI.maxChroma}'s counterpart for a press rather than a display,
    * so a ramp can be built to what will actually print. 0 for an unusable
    * handle. Optional/additive (v1.70).
@@ -703,7 +703,7 @@ export interface ColorAPI {
    * Total ink coverage for the colour, or null when the profile's space has no
    * ink (an RGB or a display profile).
    *
-   * The unit is channels — 1.0 is one ink at full, so four-colour process can
+   * The unit is channels - 1.0 is one ink at full, so four-colour process can
    * reach 4.0, the trade's "400% TAC". Not normalised to 0–1, because a
    * pressroom's limit is written as a percentage of that total (300%, 340%) and
    * dividing by the channel count would throw away the only figure a printer
@@ -711,7 +711,7 @@ export interface ColorAPI {
    */
   inkCoverage?(profile: ColorProfileGamut, l: number, c: number, h: number): number | null;
   /**
-   * Serialise a flat list of named swatches as a design-interchange TEXT file —
+   * Serialise a flat list of named swatches as a design-interchange TEXT file -
    * a DTCG design-tokens JSON (`'tokens-json'`, nested by each swatch's dotted
    * key), a plain CSS custom-properties block (`'css-vars'`), a set of bg/text/
    * border utility classes (`'css-classes'`), an SCSS `$var` block (`'scss'`), or
@@ -726,7 +726,7 @@ export interface ColorAPI {
   paletteExport?(swatches: ColorPaletteSwatch[], format: ColorPaletteTextFormat, opts?: { paletteName?: string }): string;
   /**
    * The binary counterpart to {@link ColorAPI.paletteExport}: the same swatch list
-   * as an Adobe Swatch Exchange (`.ase`) file — RGB colour-entry blocks readable by
+   * as an Adobe Swatch Exchange (`.ase`) file - RGB colour-entry blocks readable by
    * Illustrator, Photoshop and Affinity. `format` is `'ase'` (the one binary
    * palette format), taken for symmetry with the text call and forward room.
    * Optional/additive (v1.108); feature-detect on older hosts.
@@ -740,7 +740,7 @@ export interface ColorAPI {
  * nested for the tokens tree), a display name, a group label (prefixed onto the
  * .gpl / .ase entry names), and a resolved sRGB hex. A swatch whose `hex` is
  * empty or a non-hex value (an unresolved alias, `transparent`) is dropped by the
- * serializers. Mirrored locally — packages/core carries no engine dependency —
+ * serializers. Mirrored locally - packages/core carries no engine dependency -
  * from the engine's `PaletteSwatch`.
  */
 export interface ColorPaletteSwatch {
@@ -786,7 +786,7 @@ export interface ColorApcaSolveResult {
   /** Signed target: `|targetLc|` carrying the polarity forced by the background. */
   target: number;
   /** False when the target magnitude exceeds the most this hue/chroma can reach
-   *  against this background — then `hex`/`lc` are the closest achievable. */
+   * against this background - then `hex`/`lc` are the closest achievable. */
   reachable: boolean;
 }
 
@@ -814,13 +814,13 @@ export interface ColorProfileGamut {
   readonly deviceClass: string;
   /** ICC data colour space: 'CMYK', 'RGB', 'GRAY', … */
   readonly colourSpace: string;
-  /** Device channel count — 4 for process CMYK. */
+  /** Device channel count - 4 for process CMYK. */
   readonly channels: number;
   /** The intent this handle answers under. */
   readonly intent: ColorRenderingIntent;
   /** ICC spec version the profile declares, e.g. '2.2.0' or '4.3.0'. */
   readonly version: string;
-  /** False when this profile cannot answer a gamut question under `intent` — no
+  /** False when this profile cannot answer a gamut question under `intent` - no
    *  table for it, no reverse transform to test membership with, or an abstract
    *  transform with no device gamut at all. Every query then returns its
    *  no-answer value. Check this before drawing a chart of nothing. */
@@ -834,9 +834,9 @@ export type ColorGamut = 'srgb' | 'p3' | 'rec2020' | 'none';
  * Which plane {@link ColorAPI.slice} paints. In every name the FIRST letter is
  * the vertical axis and the SECOND is the horizontal one:
  *
- *   'lc' — lightness (y, 1 at the top) × chroma (x, 0 at the left), at a fixed hue
- *   'ch' — chroma    (y, 0 at the bottom) × hue (x, 0–360°), at a fixed lightness
- *   'lh' — lightness (y, 1 at the top) × hue (x, 0–360°), at a fixed chroma
+ * 'lc' - lightness (y, 1 at the top) × chroma (x, 0 at the left), at a fixed hue
+ * 'ch' - chroma (y, 0 at the bottom) × hue (x, 0–360°), at a fixed lightness
+ * 'lh' - lightness (y, 1 at the top) × hue (x, 0–360°), at a fixed chroma
  */
 export type ColorSlicePlane = 'lc' | 'ch' | 'lh';
 
@@ -874,14 +874,14 @@ export type ColorInterpolationSpace =
 /** How to travel around the hue circle between two polar colours. */
 export type ColorHueDirection = 'shorter' | 'longer' | 'increasing' | 'decreasing';
 
-/** The harmony schemes `schemes()` accepts (mirrors engine brand-schemes.ts —
+/** The harmony schemes `schemes()` accepts (mirrors engine brand-schemes.ts -
  *  the numeral is the scheme's TOTAL colour count, seed included). */
 export type ColorSchemeKind =
   | 'complement' | 'adjacent-3' | 'triad-3' | 'tetrad-4'
   | 'free-2' | 'free-3' | 'free-4';
 
 /** One generated harmony accent: its gamut-mapped sRGB hex, the OKLCH it was
- *  emitted from, and the normalised hue (degrees, [0,360) — same as `oklch.h`,
+ * emitted from, and the normalised hue (degrees, [0,360) - same as `oklch.h`,
  *  surfaced for callers that sort/group swatches by hue). */
 export interface ColorSchemeAccent {
   hex: string;
@@ -892,18 +892,18 @@ export interface ColorSchemeAccent {
 // ─── Vector geometry (optional, v1.64) ───────────────────────────────────────
 
 /**
- * Exact Bézier geometry — booleans, offsetting, stroke outlining, authored-spline
+ * Exact Bézier geometry - booleans, offsetting, stroke outlining, authored-spline
  * lowering, simplification and hit testing. The engine's geometry kernel
  * (engine/src/geom/) behind a tool-facing surface, attached verbatim by every
  * shell (`host.geom = makeGeomApi()`), so web / Tauri / CLI can never drift.
- * Pure math: DOM-free, synchronous, no platform dependency — the same shape as
+ * Pure math: DOM-free, synchronous, no platform dependency - the same shape as
  * `host.color`. Optional/additive and NOT gated by a `capabilities` flag: a tool
  * feature-detects `host.geom` and degrades where it's absent (or raises its
  * manifest `engineVersion` floor to `">=1.64"` if it genuinely cannot).
  *
  * ## The currency is SVG path data
  *
- * Every path in and out of this API is a path-data **string** — the form a tool
+ * Every path in and out of this API is a path-data **string** - the form a tool
  * already puts in a template, stores in state and packs into a URL. Nothing here
  * asks a tool to build flat control-point tuples. `parse` / `toPathData` expose
  * the structured form (whole cubics, 8 numbers each) for callers that want to
@@ -919,41 +919,41 @@ export interface ColorSchemeAccent {
  *   `d` string can arrive from a paste, a URL param or a half-finished pen drag,
  *   and "that isn't a path" is a state the tool must render something for.
  * - A throw from `onInit`/`onInput` is caught and LOGGED by the runtime, then
- *   discarded — the tool's inputs simply don't update and the user sees nothing.
+ * discarded - the tool's inputs simply don't update and the user sees nothing.
  *   A pen tool that silently stopped responding mid-drag is the worst possible
  *   failure mode, so failure is made a value the hook has to look at.
  *
  * `code` keeps the distinctions the kernel makes; it never collapses them:
  *
- * - `'invalid-path'` — the path data is malformed (bad command, wrong argument
+ * - `'invalid-path'` - the path data is malformed (bad command, wrong argument
  *   count, unparseable number, a non-finite or absurd coordinate). Your input
  *   was wrong. Reject it; do not retry.
- * - `'too-large'` — well-formed but past the parse ceilings (see `limits()`):
+ * - `'too-large'` - well-formed but past the parse ceilings (see `limits()`):
  *   too many characters, commands or curves. Retryable with a smaller path.
- * - `'limit'` — the *operation* could not be answered within bounded work (the
+ * - `'limit'` - the *operation* could not be answered within bounded work (the
  *   kernel's `GeomLimitError`). The input was fine and the answer exists; this
  *   engine declines to guess at it. Retryable with simpler operands, a coarser
  *   `tolerance`, or fewer paths at once.
- * - `'invalid-argument'` — a non-path argument is wrong (a NaN distance, an
+ * - `'invalid-argument'` - a non-path argument is wrong (a NaN distance, an
  *   unknown join style, one path where two were needed).
- * - `'unsupported'` — a declared-but-unimplemented feature, e.g. a `spline`
+ * - `'unsupported'` - a declared-but-unimplemented feature, e.g. a `spline`
  *   `kind` the running engine knows the name of but cannot lower yet.
- * - `'internal'` — an unexpected engine failure. A bug; report it.
+ * - `'internal'` - an unexpected engine failure. A bug; report it.
  *
  * What no code means: a silently-wrong path. There is no degraded fallback
- * anywhere in this API — every method either returns geometry it stands behind
+ * anywhere in this API - every method either returns geometry it stands behind
  * or tells you it didn't.
  */
 export interface GeomAPI {
   // ── boolean operations ──────────────────────────────────────────────────────
-  /** Union of two or more paths — everything any operand covers. */
+  /** Union of two or more paths - everything any operand covers. */
   union(paths: string[], opts?: GeomBooleanOpts): GeomPathResult;
-  /** Intersection of two or more paths — only what EVERY operand covers, folded
+  /** Intersection of two or more paths - only what EVERY operand covers, folded
    *  left to right. */
   intersect(paths: string[], opts?: GeomBooleanOpts): GeomPathResult;
   /** The first path minus every later one (`paths[0] − paths[1] − …`). */
   difference(paths: string[], opts?: GeomBooleanOpts): GeomPathResult;
-  /** Symmetric difference — covered by an odd number of operands. */
+  /** Symmetric difference - covered by an odd number of operands. */
   xor(paths: string[], opts?: GeomBooleanOpts): GeomPathResult;
   /**
    * Canonical form of ONE path: self-intersections resolved, contours oriented
@@ -973,7 +973,7 @@ export interface GeomAPI {
   offset(d: string, distance: number, opts?: GeomOffsetOpts): GeomPathResult;
   /**
    * The outline of `d` stroked at `width`, as a path that FILLS to the same
-   * region under the nonzero rule — a real `<path fill>`, no `stroke` attribute.
+   * region under the nonzero rule - a real `<path fill>`, no `stroke` attribute.
    * Defaults match SVG's (`butt` cap, `miter` join, miter limit 4) so the
    * outline reproduces what a renderer would have painted.
    */
@@ -983,19 +983,19 @@ export interface GeomAPI {
   /**
    * Lower an authored node list to path data. `kind` is a plain STRING that the
    * ENGINE validates, so a spline kind added in a later engine needs no bridge
-   * change: pass it through and read the result — an engine that doesn't know it
+   * change: pass it through and read the result - an engine that doesn't know it
    * answers `'invalid-argument'`, one that knows-but-can't answers
    * `'unsupported'`.
    */
   fromNodes(path: GeomAuthoredPath): GeomPathResult;
   /**
    * Re-apply a node's continuity constraint after ONE of its handles moved
-   * (`'in'` or `'out'`) — the operation a pen tool performs on every handle
+   * (`'in'` or `'out'`) - the operation a pen tool performs on every handle
    * drag. Returns the corrected node; `'corner'` nodes come back untouched.
    */
   continuity(node: GeomNode, moved: 'in' | 'out'): GeomResult<GeomNode>;
   /**
-   * An authored path — or SEVERAL, which is the general case — → ONE string that
+   * An authored path - or SEVERAL, which is the general case - → ONE string that
    * is safe to store in an input value, a `blocks` sub-field and a share link.
    *
    * Several, because a `GeomAuthoredPath` holds exactly one `nodes` run and a
@@ -1012,7 +1012,7 @@ export interface GeomAPI {
    *
    * The form is delimiter-safe by construction: every character is in
    * `encodeURIComponent`'s unreserved set except `~`, so it contains no `,` and
-   * no `~` — the two separators of the compact blocks-URL format, which cannot
+   * no `~` - the two separators of the compact blocks-URL format, which cannot
    * be escaped (`URLSearchParams` percent-decodes the query before the block
    * splitter runs). It therefore costs zero bytes to percent-encode and never
    * pushes a blocks input onto its JSON fallback. Treat it as opaque: it is
@@ -1020,12 +1020,12 @@ export interface GeomAPI {
    */
   encodeAuthored(path: GeomAuthoredPath | GeomAuthoredPath[]): GeomResult<string>;
   /**
-   * The inverse. ALWAYS a list, of at least one path — a one-path value decodes
+   * The inverse. ALWAYS a list, of at least one path - a one-path value decodes
    * to a one-element array rather than to a bare path, so a caller can never
    * accidentally render the first contour of a shape and drop its holes.
    *
-   * A value that is not an encoded authored path — empty, garbage, hand-edited,
-   * or written by a NEWER format version — answers `'invalid-argument'` rather
+   * A value that is not an encoded authored path - empty, garbage, hand-edited,
+   * or written by a NEWER format version - answers `'invalid-argument'` rather
    * than a partially-decoded path: half a shape would render as
    * confidently-wrong artwork. One well-formed but oversized (past the node
    * ceiling `limits().maxNodes` reports, counted across the whole value) answers
@@ -1046,11 +1046,11 @@ export interface GeomAPI {
   simplify(d: string, opts?: { tolerance?: number }): GeomPathResult;
 
   // ── measurement / hit testing ───────────────────────────────────────────────
-  /** Tight bounding box — the curves' true extent, not their control hull.
+  /** Tight bounding box - the curves' true extent, not their control hull.
    *  An empty path has no box, so `value` is `null`. */
   bounds(d: string): GeomResult<GeomBox | null>;
   /**
-   * SIGNED area, exact (Green's theorem per cubic — nothing is sampled).
+   * SIGNED area, exact (Green's theorem per cubic - nothing is sampled).
    * Positive means counter-clockwise in a y-up frame, which reads as clockwise
    * on screen in SVG's y-down one. Self-overlapping input gives the algebraic,
    * winding-weighted area; run `selfUnion` first for the FILLED area.
@@ -1059,12 +1059,12 @@ export interface GeomAPI {
   /** Is the point inside the filled region, under `fillRule` (default
    *  `'nonzero'`)? Ray casting against the real curves. */
   contains(d: string, x: number, y: number, opts?: { fillRule?: GeomFillRule }): GeomResult<boolean>;
-  /** Winding number at the point — how many times the path wraps it, signed.
+  /** Winding number at the point - how many times the path wraps it, signed.
    *  `contains` under the nonzero rule is `winding !== 0`. */
   winding(d: string, x: number, y: number): GeomResult<number>;
   /**
    * Nearest point ON the path to an arbitrary point, with the address that
-   * located it — a pen tool's hit test, snap, and "insert a node here". The
+   * located it - a pen tool's hit test, snap, and "insert a node here". The
    * point is computed from the curve, not sampled near it.
    */
   nearest(d: string, x: number, y: number): GeomResult<GeomNearest>;
@@ -1089,7 +1089,7 @@ export type GeomFillRule = 'nonzero' | 'evenodd';
 export type GeomJoinStyle = 'miter' | 'round' | 'bevel';
 export type GeomCapStyle = 'butt' | 'round' | 'square';
 
-/** Why a geometry call couldn't answer — see the `GeomAPI` doc comment. */
+/** Why a geometry call couldn't answer - see the `GeomAPI` doc comment. */
 export type GeomErrorCode =
   | 'invalid-path' | 'too-large' | 'limit' | 'invalid-argument' | 'unsupported' | 'internal';
 
@@ -1101,7 +1101,7 @@ export interface GeomFailure {
 }
 
 /** A path-producing result. `d` is `''` for a legitimately empty region (an
- *  intersection that doesn't overlap, an over-shrunk offset) — `ok: true` with
+ * intersection that doesn't overlap, an over-shrunk offset) - `ok: true` with
  *  no geometry is an ANSWER, not a failure. */
 export type GeomPathResult =
   | { ok: true; d: string; contours: number; curves: number }
@@ -1111,7 +1111,7 @@ export type GeomPathResult =
 export type GeomResult<T> = { ok: true; value: T } | GeomFailure;
 
 export interface GeomBooleanOpts {
-  /** Positional tolerance — how far apart two coordinates may be and still count
+  /** Positional tolerance - how far apart two coordinates may be and still count
    *  as the same point. Default 1e-9-ish (the kernel's EPS). */
   tolerance?: number;
   /** How the OPERANDS' own interiors are read. It does not describe the result:
@@ -1127,7 +1127,7 @@ export interface GeomOffsetOpts {
   /** Miter spike ratio past which a miter becomes a bevel, default 4 (SVG's). */
   miterLimit?: number;
   /** How closely the offset curves must follow the TRUE offset, in px. Default
-   *  0.01 — finer than any raster device resolves. A fitting error, not a
+   * 0.01 - finer than any raster device resolves. A fitting error, not a
    *  positional tolerance. */
   tolerance?: number;
   decimals?: number;
@@ -1140,7 +1140,7 @@ export interface GeomStrokeOpts extends GeomOffsetOpts {
 
 /** One contour: whole cubics, each `[x0,y0, x1,y1, x2,y2, x3,y3]`, consecutive
  *  curves sharing endpoints. `closed` means the last curve's endpoint joins the
- *  first's start — the closing straight edge is implicit and not stored. */
+ * first's start - the closing straight edge is implicit and not stored. */
 export interface GeomContour {
   curves: number[][];
   closed: boolean;
@@ -1152,13 +1152,13 @@ export interface GeomNearest {
   /** The point on the path. */
   x: number;
   y: number;
-  /** Distance from the queried point (always ≥ 0 — unsigned; use `contains` for
+  /** Distance from the queried point (always ≥ 0 - unsigned; use `contains` for
    *  which side). */
   distance: number;
   /** Index of the contour it landed on, and of the curve within that contour. */
   contour: number;
   curve: number;
-  /** Bézier parameter on that curve, 0…1 — where to split for a new node. */
+  /** Bézier parameter on that curve, 0…1 - where to split for a new node. */
   t: number;
 }
 
@@ -1185,16 +1185,16 @@ export interface GeomAuthoredPath {
   /**
    * The spline family. A STRING, not a union, on purpose: the engine owns the
    * list and validates it, so a kind added in a later engine version reaches it
-   * through an unchanged bridge. Known at v1.64: `'cubic'` (explicit handles —
+   * through an unchanged bridge. Known at v1.64: `'cubic'` (explicit handles -
    * the ordinary pen path), `'line'`, `'catmull-rom'`, `'bspline'`,
-   * `'hyperbezier'` (Levien's two-parameter curve — curvature-continuous from
+   * `'hyperbezier'` (Levien's two-parameter curve - curvature-continuous from
    * nodes alone, and the pen tool's default), plus declared-not-implemented
    * kinds that answer `'unsupported'`.
    *
    * Two notes specific to `'hyperbezier'`, because they surprise pen-tool
    * authors: a node's `continuity` defaults to `'smooth'` here rather than
    * `'corner'` (a default that broke the spline would draw polylines), and an
-   * authored handle pins the tangent DIRECTION only — the solve owns arm
+   * authored handle pins the tangent DIRECTION only - the solve owns arm
    * length, since that is what it spends to make curvature continuous.
    */
   kind: string;
@@ -1229,10 +1229,10 @@ export interface GeomLimits {
 
 /**
  * On-device image transforms. Every method accepts raw encoded bytes or a Blob
- * (the two forms user files arrive in — InputFile.bytes, picker Blobs) and
+ * (the two forms user files arrive in - InputFile.bytes, picker Blobs) and
  * resolves to plain bytes + dimensions, so the contract stays DOM-free.
  * Decode-bomb guards, EXIF-orientation baking, and per-format support are the
- * SHELL's responsibility — read the RESULT's mime/width/height rather than
+ * SHELL's responsibility - read the RESULT's mime/width/height rather than
  * assuming a request was honoured exactly (a shell may fall back, e.g. PNG
  * where WebP encoding is unsupported).
  */
@@ -1249,13 +1249,13 @@ export interface ImagesAPI {
    * Downscale the image (aspect preserved; never upscales) and return it
    * re-encoded. `maxEdge` caps the longest edge; explicit `width`/`height`
    * fit the image WITHIN that box. Output format defaults per the shell
-   * (typically the source format where re-encodable) — pass `format` to pin
+   * (typically the source format where re-encodable) - pass `format` to pin
    * it. An animated source flattens to its first frame.
    */
   resize(input: Uint8Array | Blob, opts: ImageResizeOpts): Promise<ImageResult>;
 
   /**
-   * Re-encode the image into `format` at its full (oriented) size — the
+   * Re-encode the image into `format` at its full (oriented) size - the
    * convert path: HEIC → JPEG, PNG → WebP, … `quality` applies to the lossy
    * formats. An animated source flattens to its first frame.
    */
@@ -1269,7 +1269,7 @@ export interface ImageInfo {
   height: number;
   /** MIME type sniffed from the bytes, e.g. 'image/heic'. */
   mime: string;
-  /** True for an animated container (GIF/APNG/animated WebP) — a resize/encode
+  /** True for an animated container (GIF/APNG/animated WebP) - a resize/encode
    *  flattens it to a still. Absent when the shell can't tell. */
   animated?: boolean;
 }
@@ -1298,7 +1298,7 @@ export interface ImageEncodeOpts {
   quality?: number;
 }
 
-/** An encoded transform result — the mime/dimensions of `bytes`, which may
+/** An encoded transform result - the mime/dimensions of `bytes`, which may
  *  differ from the request (shell fallbacks; never-upscale clamping). */
 export interface ImageResult {
   /** The encoded image. */
@@ -1314,7 +1314,7 @@ export interface ImageResult {
 // ─── Raster primitives (optional, v1.105) ────────────────────────────────────
 
 /**
- * On-device raster access for tool hooks — see the `raster?` field on HostV1
+ * On-device raster access for tool hooks - see the `raster?` field on HostV1
  * for what this is and why it is separate from `host.images`. Every source it
  * accepts and every value it returns is realm-portable (bytes, Blob, URL,
  * AssetRef, ImageBitmap, RGBA frame); no `HTMLImageElement` and no `document`
@@ -1342,12 +1342,12 @@ export interface RasterAPI {
   measure(src: RasterSource): Promise<ImageInfo>;
 
   /**
-   * Decode `src` to a drawable `ImageBitmap` — EXIF orientation baked in,
+   * Decode `src` to a drawable `ImageBitmap` - EXIF orientation baked in,
    * HEIC/AVIF handled via the shell's bundled fallback, SVG via the shell's
    * reliable `<img>` path (decoding an SVG blob directly is unreliable), all
    * behind a decode-bomb guard. Draw it with `ctx.drawImage(bitmap, …)` on a
    * locally-built canvas/OffscreenCanvas exactly where an `<img>` was drawn
-   * before — the only call-site change is the object's type. `ImageBitmap` has
+   * before - the only call-site change is the object's type. `ImageBitmap` has
    * `width`/`height` (no `naturalWidth`), and the shipped consumers already read
    * `img.naturalWidth || img.width`, so they are unchanged. Call `.close()` when
    * done to release the backing store eagerly (optional; GC'd otherwise). Rejects
@@ -1356,13 +1356,13 @@ export interface RasterAPI {
   decode(src: RasterSource): Promise<ImageBitmap>;
 
   /**
-   * Encode finished pixels to bytes — the sink side of every `toDataURL` /
+   * Encode finished pixels to bytes - the sink side of every `toDataURL` /
    * `toBlob` / `convertToBlob` a hook used to call. Accepts EITHER an
-   * `ImageBitmap` (the cheap path — a hook that only composited, no per-pixel
+   * `ImageBitmap` (the cheap path - a hook that only composited, no per-pixel
    * read-back) OR a `RasterFrame` of raw RGBA (a hook that pulled pixels via
    * `getImageData` to do its own maths; a live `MediaFrame` is structurally a
    * `RasterFrame` and passes straight through). Mirrors `host.images`'
-   * `{ format, quality }` in / `{ bytes, mime, width, height }` out — read the
+   * `{ format, quality }` in / `{ bytes, mime, width, height }` out - read the
    * result's actual mime back, since an encoder may fall back (PNG where WebP is
    * unsupported).
    */
@@ -1371,7 +1371,7 @@ export interface RasterAPI {
 
 /**
  * What `host.raster` can decode/measure: a fetchable URL (including a `blob:` or
- * `data:` one — the form every AssetRef.url in this app takes), an AssetRef
+ * `data:` one - the form every AssetRef.url in this app takes), an AssetRef
  * directly (so a hook need not unwrap `.url` itself), or raw encoded bytes / a
  * Blob (so a `file` input's in-memory upload is readable without being written
  * anywhere first). Mirrors `AudioSource`, with `Blob` for `host.images` parity.
@@ -1380,7 +1380,7 @@ export interface RasterAPI {
 export type RasterSource = string | AssetRef | Uint8Array | Blob;
 
 /**
- * Raw RGBA pixels — the DOM-free shape `getImageData`/`putImageData` deal in,
+ * Raw RGBA pixels - the DOM-free shape `getImageData`/`putImageData` deal in,
  * and the encode-input sibling of `MediaFrame` (minus the timestamp a finished
  * still has no use for). A `MediaFrame` value is structurally assignable here,
  * so an `onFrame` frame hands straight to `encode()`.
@@ -1396,7 +1396,7 @@ export interface RasterFrame {
 
 export interface AudioAPI {
   /**
-   * Whether this shell can decode and analyse audio at all. Sync + cheap — a tool
+   * Whether this shell can decode and analyse audio at all. Sync + cheap - a tool
    * uses it to decide whether to offer reactive styles or stay on a static
    * waveform. True does not promise any PARTICULAR file decodes: a container the
    * platform lacks a codec for still rejects at `analyse`.
@@ -1405,7 +1405,7 @@ export interface AudioAPI {
 
   /**
    * Decode `src` and analyse it. Rejects when the bytes can't be fetched or the
-   * platform has no codec for them — a tool should catch and fall back rather than
+   * platform has no codec for them - a tool should catch and fall back rather than
    * assume, since codec support genuinely differs (Safari and Chromium disagree
    * about Ogg; nothing but Chromium reads much of what a phone records).
    *
@@ -1418,7 +1418,7 @@ export interface AudioAPI {
 
 /**
  * What can be analysed: a fetchable URL (including a `blob:` or `data:` one), a
- * catalog/user AssetRef, or raw encoded bytes — the last so a `file` input's
+ * catalog/user AssetRef, or raw encoded bytes - the last so a `file` input's
  * in-memory upload can be analysed without being written anywhere first.
  */
 export type AudioSource = string | AssetRef | ArrayBuffer | Uint8Array;
@@ -1437,7 +1437,7 @@ export interface AudioAnalyseOpts {
   /**
    * Also emit raw time-domain windows of this many samples per frame (rounded UP to
    * a power of two, capped at 4096). Off by default because it is by far the largest
-   * thing here — 1,024 samples × 3 channels × every frame — and only a caller that
+   * thing here - 1,024 samples × 3 channels × every frame - and only a caller that
    * feeds a sample-domain visualiser needs it. `1024` is what butterchurn wants: its
    * AudioProcessor is `numSamps = 512`, `fftSize = numSamps * 2`, and `updateAudio`
    * does a bare `.set()`, so a longer window throws RangeError inside the renderer
@@ -1453,7 +1453,7 @@ export interface AudioAnalyseOpts {
  * Struct-of-arrays, not an array of per-frame objects: a minute at 60fps is 3,600
  * frames, and a draw loop wants a few flat Float32Arrays it can index, not 3,600
  * allocations to chase. `magnitude` and the `wave*` arrays are `count` consecutive
- * rows of `bands` / `samples` entries — row i starts at `i * bands`.
+ * rows of `bands` / `samples` entries - row i starts at `i * bands`.
  *
  * Everything is normalised 0..1 across the analysed window EXCEPT `peak`, which
  * stays absolute so a tool can still see that the source clipped. Normalising is
@@ -1472,7 +1472,7 @@ export interface AudioFrames {
   t: Float32Array;
   /** Window RMS (loudness), 0..1 normalised. The value a VU-style bar tracks. */
   rms: Float32Array;
-  /** Window peak amplitude, 0..1 ABSOLUTE (not normalised — 1 means it clipped). */
+  /** Window peak amplitude, 0..1 ABSOLUTE (not normalised - 1 means it clipped). */
   peak: Float32Array;
   /** Energy below 320Hz, 0..1. Shares a scale with `mid`/`treb`. */
   bass: Float32Array;
@@ -1482,7 +1482,7 @@ export interface AudioFrames {
   treb: Float32Array;
   /** Spectral centroid ("brightness") as a 0..1 position across the audible range. */
   centroid: Float32Array;
-  /** Positive spectral flux, 0..1 — onset strength. Peaks land on note attacks. */
+  /** Positive spectral flux, 0..1 - onset strength. Peaks land on note attacks. */
   flux: Float32Array;
   /** `count` × `bands` log-spaced magnitudes, 0..1. */
   magnitude: Float32Array;
@@ -1495,7 +1495,7 @@ export interface AudioFrames {
 }
 
 export interface AudioAnalysis {
-  /** Duration of the WHOLE source in seconds — not of the analysed window. */
+  /** Duration of the WHOLE source in seconds - not of the analysed window. */
   duration: number;
   /** Source sample rate in Hz. */
   sampleRate: number;
@@ -1507,13 +1507,13 @@ export interface AudioAnalysis {
   window: number;
   /** Frames per second of `frames` (`opts.fps` clamped to 1..120). */
   fps: number;
-  /** `buckets` peak amplitudes over the window, 0..1 normalised — the overview waveform. */
+  /** `buckets` peak amplitudes over the window, 0..1 normalised - the overview waveform. */
   peaks: Float32Array;
   /** Per-frame reactivity. */
   frames: AudioFrames;
   /**
    * Estimated tempo, or **null** when the window holds too little rhythm to call
-   * one. Null is a real answer and the common one for speech, ambience and pads —
+   * one. Null is a real answer and the common one for speech, ambience and pads -
    * a visual built on a wrong beat grid looks far worse than one built on none, so
    * this refuses rather than guesses. Never treat null as 120.
    */
@@ -1547,13 +1547,13 @@ export interface SpeechWordTiming {
 export interface SpeechResult {
   /** Mono samples. */
   pcm: Float32Array;
-  /** Sample rate in Hz — 24000 for Kokoro. */
+  /** Sample rate in Hz - 24000 for Kokoro. */
   sampleRate: number;
   /** Clip length in seconds. */
   duration: number;
   /**
    * Word spans for captioning. May be sentence-granular when the model only
-   * aligns at sentence level; empty when no alignment is available at all —
+   * aligns at sentence level; empty when no alignment is available at all -
    * check `granularity` rather than inferring it from span lengths.
    */
   words: SpeechWordTiming[];
@@ -1581,7 +1581,7 @@ export interface SpeechSynthesizeOpts {
    * Abort a long synthesis: the promise rejects promptly (AbortError) and the
    * shell stops synthesizing at the next sentence boundary. Aborting during
    * the first-use model download also rejects promptly, but the download
-   * itself is not cancelled — it completes in the background and is cached,
+   * itself is not cancelled - it completes in the background and is cached,
    * so the next request starts warm instead of re-downloading.
    */
   signal?: AbortSignal;
@@ -1593,13 +1593,13 @@ export interface SpeechTranscript {
   /** The full transcription as one string. */
   text: string;
   /**
-   * Timed spans for captioning — the same shape synthesis emits, so caption
+   * Timed spans for captioning - the same shape synthesis emits, so caption
    * plumbing built on `SpeechResult.words` reads a transcript unchanged.
    */
   words: SpeechWordTiming[];
   /** BCP 47 tag of the language the model detected (or was told). */
   lang: string;
-  /** What one entry of `words` spans — check this, not span lengths. */
+  /** What one entry of `words` spans - check this, not span lengths. */
   granularity: 'word' | 'segment';
 }
 
@@ -1614,7 +1614,7 @@ export interface SpeechTranscribeOpts {
 export interface SpeechAPI {
   /**
    * Whether this shell can synthesise at all (possibly after a model download).
-   * Sync feature-detect — a tool uses it to decide whether to offer a voiceover
+   * Sync feature-detect - a tool uses it to decide whether to offer a voiceover
    * affordance, before any bytes move.
    */
   isAvailable(): boolean;
@@ -1626,12 +1626,12 @@ export interface SpeechAPI {
   synthesize(text: string, opts?: SpeechSynthesizeOpts): Promise<SpeechResult>;
 
   /**
-   * Transcription (v1.99) — audio in, text plus word timings out, via
+   * Transcription (v1.99) - audio in, text plus word timings out, via
    * on-device Whisper. Feature-detected like synthesis, not capability-gated:
    * audio never leaves the device, and the first use downloads the STT model
-   * once (a separate download from the TTS model — gate it with its own
+   * once (a separate download from the TTS model - gate it with its own
    * consent via `transcribeModelBytes`). Word timestamps feed the same
-   * caption cues synthesis produces. The CLI omits transcription for now —
+   * caption cues synthesis produces. The CLI omits transcription for now -
    * always check `transcribeAvailable()` first.
    */
   transcribeAvailable(): boolean;
@@ -1660,7 +1660,7 @@ export interface VizPresetInfo {
   name: string;
   /**
    * Who authored it. Twenty years of MilkDrop craft ships alongside our own
-   * presets, and a tool showing one is expected to say whose it is — so credit
+   * presets, and a tool showing one is expected to say whose it is - so credit
    * only a preset the shell CONFIRMS it has: naming an artist whose work is not
    * on screen (a pack that isn't staged falls back to a brand-native preset) is
    * worse than crediting nobody.
@@ -1677,13 +1677,13 @@ export interface RecorderAPI {
    * Whether device capture of the given kind is usable right now (a secure context
    * exposing getUserMedia + MediaRecorder; for 'screen', getDisplayMedia). Sync +
    * cheap, so a shell can decide whether to offer a "record" affordance. `kind`
-   * defaults to 'audio'. A `true` here does not pre-grant permission — the prompt
+   * defaults to 'audio'. A `true` here does not pre-grant permission - the prompt
    * happens on meter.start()/record()/still().
    */
   isAvailable(kind?: 'audio' | 'video' | 'screen'): boolean;
 
   /**
-   * Live input-level meter, DOM-free — a pre-record "sound check". Prompts for the
+   * Live input-level meter, DOM-free - a pre-record "sound check". Prompts for the
    * microphone on first start(), reference-counted + idempotent like MediaAPI. A web
    * shell opens it RAW (noiseSuppression/AGC/echoCancellation OFF, v1.19) so the level
    * and the noiseFloor/hum/hiss cues reflect the true room; the recording session
@@ -1702,12 +1702,12 @@ export interface RecorderAPI {
   record(opts?: RecordOpts): Promise<RecordSession>;
 
   /**
-   * Grab ONE still frame and resolve to its encoded bytes — a screenshot (v1.54).
+   * Grab ONE still frame and resolve to its encoded bytes - a screenshot (v1.54).
    * Where record() opens a session that runs until stop(), this opens the source,
    * takes a single frame, and releases it immediately: the picker/permission is the
    * whole interaction, so there is nothing to stop() and no session to leak.
    *
-   * `source: 'screen'` prompts the display picker (whole screen / a window / a tab —
+   * `source: 'screen'` prompts the display picker (whole screen / a window / a tab -
    * the user's choice IS the selection, made by browser-native UI a page cannot
    * spoof or pre-answer) and is gated behind the `screen` capability. Rejects if the
    * user dismisses the picker (NotAllowedError) or the shell can't grab a frame.
@@ -1721,18 +1721,18 @@ export interface RecorderAPI {
 export interface StillOpts {
   /**
    * What to photograph. 'screen' prompts the display picker; 'camera' takes a frame
-   * from the camera. Default 'screen' — the camera path already has host.media.
+   * from the camera. Default 'screen' - the camera path already has host.media.
    */
   source?: 'screen' | 'camera';
   /**
-   * Encoded image type. Default 'image/png' — lossless, which is what a screenshot of
+   * Encoded image type. Default 'image/png' - lossless, which is what a screenshot of
    * text and UI wants. A shell falls back to PNG where the type is unsupported, so read
    * the returned Blob's `type` rather than assuming.
    */
   type?: 'image/png' | 'image/jpeg' | 'image/webp';
   /** Quality 0..1 for the lossy types. Ignored for PNG. Default 0.97. */
   quality?: number;
-  /** Downscale: longest edge in px. Omit for the source's native resolution (the default —
+  /** Downscale: longest edge in px. Omit for the source's native resolution (the default -
    *  a screenshot scaled down is a blurry screenshot). */
   maxEdge?: number;
   /** Provenance stamped into the finished Blob (best-effort, per format). */
@@ -1759,7 +1759,7 @@ export interface MeterAPI {
 }
 
 /**
- * One audio-level sample — DOM-free, so the engine can hand it to a hook (the
+ * One audio-level sample - DOM-free, so the engine can hand it to a hook (the
  * audio counterpart to MediaFrame). All amplitudes are 0..1 linear except `dbfs`.
  */
 export interface AudioLevel {
@@ -1769,10 +1769,10 @@ export interface AudioLevel {
   peak: number;
   /** Peak in decibels-relative-to-full-scale: 20·log10(peak). 0 = clip, −∞ = silence. */
   dbfs: number;
-  /** True while `peak` sits at/above the clipping threshold (~0.99) — drives a "too hot" warning. */
+  /** True while `peak` sits at/above the clipping threshold (~0.99) - drives a "too hot" warning. */
   clipping: boolean;
   /**
-   * Estimated background-noise floor in dBFS — a slow min-hold of the loudness over a
+   * Estimated background-noise floor in dBFS - a slow min-hold of the loudness over a
    * few seconds (the level in the quiet gaps). −∞ = silence. Only trustworthy from a
    * RAW meter (the sound-check runs the mic with noiseSuppression/AGC OFF); a recording
    * session runs them ON for a clean file, so its floor reads artificially low.
@@ -1781,15 +1781,15 @@ export interface AudioLevel {
   noiseFloor?: number;
   /** Signal-to-noise ratio in dB = current RMS loudness − noiseFloor (like-with-like, both RMS). Low (≲15 dB) = noisy room. Optional (v1.19). */
   snr?: number;
-  /** 0..1 share of energy in the mains bands (50/60 Hz + harmonics) — tonal electrical HUM / ground loop. Optional (v1.19). */
+  /** 0..1 share of energy in the mains bands (50/60 Hz + harmonics) - tonal electrical HUM / ground loop. Optional (v1.19). */
   hum?: number;
-  /** 0..1 spectral flatness (geometric/arithmetic mean of the magnitude spectrum) — broadband HISS (fan/HVAC). Optional (v1.19). */
+  /** 0..1 spectral flatness (geometric/arithmetic mean of the magnitude spectrum) - broadband HISS (fan/HVAC). Optional (v1.19). */
   hiss?: number;
   /**
-   * 0..1 STEADINESS of the loudness envelope over ~1.5s — how constant the RMS is. ~1 =
+   * 0..1 STEADINESS of the loudness envelope over ~1.5s - how constant the RMS is. ~1 =
    * a steady drone (a fan / AC / HVAC / broadband hiss holds a near-constant RMS); ~0 = a
    * modulated signal (speech, whose syllables make the RMS peak and dip). Lets coaching
-   * tell background NOISE from SPEECH independent of level — a constant mid-level hiss no
+   * tell background NOISE from SPEECH independent of level - a constant mid-level hiss no
    * longer reads as "speaking". Optional (v1.20). */
   steady?: number;
   /** Monotonic timestamp (ms) of the sample, matching MediaFrame.t. */
@@ -1799,7 +1799,7 @@ export interface AudioLevel {
 export interface RecordOpts {
   /**
    * Where the video track comes from (v1.54). 'device' = the camera (getUserMedia);
-   * 'screen' = the display picker (getDisplayMedia — whole screen / a window / a tab,
+   * 'screen' = the display picker (getDisplayMedia - whole screen / a window / a tab,
    * chosen in browser-native UI), gated behind the `screen` capability. Default
    * 'device', so every pre-1.54 caller keeps its exact behaviour. Ignored when
    * `video` is false: there is no such thing as an audio-only screen.
@@ -1807,11 +1807,11 @@ export interface RecordOpts {
   source?: 'device' | 'screen';
   /** Capture the microphone. Default true. */
   audio?: boolean;
-  /** Capture the camera (or, with source:'screen', the display) — an audio+video clip.
+  /** Capture the camera (or, with source:'screen', the display) - an audio+video clip.
    *  Default false (audio-only). */
   video?: boolean;
   /**
-   * Also capture the source's own audio — tab/system sound (v1.54). Only meaningful
+   * Also capture the source's own audio - tab/system sound (v1.54). Only meaningful
    * with source:'screen'; the user grants it in the SAME picker as the video (there is
    * no separate prompt), and may withhold it, so the finished clip can be silent even
    * with this true. Mixed with the mic track when `audio` is also true, so a narrated
@@ -1825,7 +1825,7 @@ export interface RecordOpts {
   /**
    * Preferred container. The shell falls back across containers exactly like the
    * video-export path (a browser that can't encode the requested one uses what it
-   * can), so this is a hint, not a guarantee — read the returned Blob's `type`.
+   * can), so this is a hint, not a guarantee - read the returned Blob's `type`.
    */
   format?: 'webm' | 'mp4';
   /** Video downscale: longest edge in px (mirrors MediaAPI subscribe maxEdge). Ignored for audio-only. */
@@ -1850,7 +1850,7 @@ export interface RecordSession {
   subscribe(cb: (level: AudioLevel) => void): () => void;
   /** Finalise the recording and resolve the finished media Blob (with provenance where supported). */
   stop(): Promise<Blob>;
-  /** Discard the recording and release the devices — no Blob is produced. */
+  /** Discard the recording and release the devices - no Blob is produced. */
   cancel(): void;
   /**
    * Whether a microphone track was ACTUALLY acquired for this session (v1.54).
@@ -1859,7 +1859,7 @@ export interface RecordSession {
    * does NOT prove a mic was captured. Callers use this to keep the provenance honest
    * (never stamp "with microphone narration" on a silent take) and to warn the user.
    * Known synchronously once record() resolves. Undefined on shells/paths that don't
-   * report it — treat undefined as "unknown", not "no mic".
+   * report it - treat undefined as "unknown", not "no mic".
    */
   readonly micActive?: boolean;
 }
@@ -1869,7 +1869,7 @@ export interface RecordSession {
 export interface MediaAPI {
   /**
    * Whether a camera is usable right now (a secure context exposing
-   * getUserMedia). Sync + cheap — the shell uses it to decide whether to offer a
+   * getUserMedia). Sync + cheap - the shell uses it to decide whether to offer a
    * "live" affordance. A `true` here does not pre-grant permission; the prompt
    * happens on start().
    */
@@ -1900,15 +1900,15 @@ export interface MediaAPI {
    * in pixels: the shell downscales the source camera frame to a small default that
    * suits a vector trace, but a raster-output tool (whose result is a bitmap, not
    * traced shapes) can ask for more for sharper output. The shell clamps the request
-   * to the native camera frame (never upscales) and to its own ceiling, and — when
-   * several tools are live — uses the largest requested edge. The runtime forwards a
+   * to the native camera frame (never upscales) and to its own ceiling, and - when
+   * several tools are live - uses the largest requested edge. The runtime forwards a
    * tool's `render.liveMaxEdge` manifest hint here. A shell predating this opt simply
    * ignores it and keeps its default size.
    */
   subscribe(cb: (frame: MediaFrame) => void, opts?: { maxEdge?: number }): () => void;
 }
 
-/** One camera frame as raw RGBA pixels — DOM-free, so the engine can pass it to a hook. */
+/** One camera frame as raw RGBA pixels - DOM-free, so the engine can pass it to a hook. */
 export interface MediaFrame {
   /** Frame width in pixels (the shell may downscale the source for performance). */
   width: number;
@@ -1927,7 +1927,7 @@ export interface MediaFrame {
  */
 export type Capability =
   | 'network' | 'filesystem' | 'clipboard' | 'camera' | 'microphone' | 'ffmpeg' | 'wasm' | 'capture' | 'compose'
-  // 'screen' (v1.54) — display capture via host.recorder (getDisplayMedia). Distinct from
+  // 'screen' (v1.54) - display capture via host.recorder (getDisplayMedia). Distinct from
   // 'capture', which rasterises a URL the tool names; 'screen' photographs whatever the
   // USER picks from their own desktop, so it's the more sensitive of the two.
   | 'screen';
@@ -1943,7 +1943,7 @@ export interface PdfAPI {
 
   /**
    * Re-save the PDF with its Info-dictionary entries and XMP packet removed.
-   * Pages/content are preserved, but the document is re-serialised — the output
+   * Pages/content are preserved, but the document is re-serialised - the output
    * is not byte-identical, and any digital signature is invalidated.
    */
   strip(bytes: Uint8Array): Promise<{ bytes: Uint8Array }>;
@@ -1952,12 +1952,12 @@ export interface PdfAPI {
    * Re-save the PDF smaller. Recompresses oversized embedded JPEG images
    * (downsample + re-encode on a canvas) and re-serialises with object streams;
    * text and vector graphics are left untouched. Like strip(), the output is NOT
-   * byte-identical and any digital signature is invalidated. Runs locally — the
+   * byte-identical and any digital signature is invalidated. Runs locally - the
    * bytes are never uploaded. The result is guaranteed never larger than the input
    * (the original is returned unchanged when recompression wouldn't shrink it).
    * Image recompression needs a canvas (web/Tauri); a shell without one (the node
    * CLI) still applies the structural pass. Added after analyze/strip, so a tool
-   * must feature-detect `host.pdf?.compress` — an older shell may lack it.
+   * must feature-detect `host.pdf?.compress` - an older shell may lack it.
    */
   compress(bytes: Uint8Array, opts?: PdfCompressOpts): Promise<PdfCompressResult>;
 
@@ -1965,13 +1965,13 @@ export interface PdfAPI {
    * Redact by rasterise-and-rebuild. Each page is rendered to an image, the
    * given bars are burned in as fully opaque fills, and a BRAND-NEW document is
    * constructed whose pages contain only those images at the original page
-   * sizes — no text layer, fonts, annotations, attachments, layers, scripts or
+   * sizes - no text layer, fonts, annotations, attachments, layers, scripts or
    * metadata survive, because nothing is carried over. Bar coordinates are in
    * PDF points with y measured from the TOP of the page, and each bar names its
    * page by 1-based index. Like strip(), the output is not byte-identical and
    * any digital signature is invalidated; unlike strip(), the content under a
    * bar is destroyed, not hidden. Needs a real canvas, so shells without one
-   * (the node CLI) omit it — a tool must feature-detect `host.pdf?.redact`
+   * (the node CLI) omit it - a tool must feature-detect `host.pdf?.redact`
    * per method, exactly as for compress. Runs locally; the bytes are never
    * uploaded.
    */
@@ -1982,14 +1982,14 @@ export interface PdfAPI {
    * that need a live preview to draw on (the Redact tool's bar overlay). Text
    * is outlined to real paths with fonts embedded as a safety net, so the SVG
    * renders identically with no document fonts installed. Each page's viewBox
-   * is in PDF points with the origin at the TOP-LEFT — the same coordinate
+   * is in PDF points with the origin at the TOP-LEFT - the same coordinate
    * space as PdfRedactBar, so an overlay measured against the rendered SVG
    * converts to bars with a single scale factor (widthPt / rendered width) and
    * no DPI involved. At most `maxPages` pages are returned (default 40), with
    * `truncated` reporting that more exist; a page that fails to render is
    * SKIPPED from `pages` rather than thrown, so one broken page cannot kill
    * the preview. Optional per method like redact: the web shell provides it
-   * and the node CLI does not — a tool must feature-detect `host.pdf?.pages`.
+   * and the node CLI does not - a tool must feature-detect `host.pdf?.pages`.
    * Runs locally; the bytes are never uploaded.
    */
   pages?(bytes: Uint8Array, opts?: { maxPages?: number }): Promise<PdfPagesResult>;
@@ -2007,7 +2007,7 @@ export interface PdfCompressOpts {
 }
 
 export interface PdfCompressResult {
-  /** The compressed PDF — or the original bytes, if compression wouldn't shrink it. */
+  /** The compressed PDF - or the original bytes, if compression wouldn't shrink it. */
   bytes: Uint8Array;
   /** Input size in bytes. */
   before: number;
@@ -2044,8 +2044,8 @@ export interface PdfRedactOpts {
   /** Drop colour on the way out (e.g. a scan whose yellow channel carries printer tracking dots). */
   grayscale?: boolean;
   /**
-   * Bar fill as a 6-digit hex (v1.90). Colour is security-neutral — any fully
-   * opaque fill destroys the pixels underneath equally — so a caller may paint
+   * Bar fill as a 6-digit hex (v1.90). Colour is security-neutral - any fully
+   * opaque fill destroys the pixels underneath equally - so a caller may paint
    * its brand's own tone instead of black. Translucency is NOT neutral, so a
    * value carrying alpha below full opacity is REFUSED, as is anything
    * unreadable: the host falls back to its neutral near-black rather than
@@ -2055,13 +2055,13 @@ export interface PdfRedactOpts {
   /**
    * Corner radius in PDF points (v1.90). The painted shape is INFLATED by the
    * radius before the corners are rounded, so the bar the caller asked for
-   * stays entirely inside the opaque region — a rounded mark never leaves an
+   * stays entirely inside the opaque region - a rounded mark never leaves an
    * uncovered corner sliver. A corner whose sides had to clamp to the page edge
    * is painted square. Default 0 (square).
    */
   radius?: number;
   /**
-   * A short label painted ON TOP of the finished bar (v1.90) — an attribution
+   * A short label painted ON TOP of the finished bar (v1.90) - an attribution
    * stamp, e.g. the redacting person's or organisation's name. Safe because the
    * pixels beneath are already destroyed. The host never derives this text from
    * the document; it paints exactly what it is given, trimmed and clipped to
@@ -2073,7 +2073,7 @@ export interface PdfRedactOpts {
 }
 
 export interface PdfRedactResult {
-  /** The rebuilt document — page images only, nothing else. */
+  /** The rebuilt document - page images only, nothing else. */
   bytes: Uint8Array;
   /** Page count of the output (same as the input's). */
   pages: number;
@@ -2083,7 +2083,7 @@ export interface PdfRedactResult {
 
 /** One page of a host.pdf.pages preview: a self-contained SVG document. */
 export interface PdfPageSvg {
-  /** Standalone SVG markup — text outlined, fonts embedded, images inlined. */
+  /** Standalone SVG markup - text outlined, fonts embedded, images inlined. */
   svg: string;
   /** 1-based page index in the source document. */
   page: number;
@@ -2111,21 +2111,21 @@ export interface PdfPagesResult {
 export interface C2paSignOpts {
   /** Labels the primary edit step in the action history. */
   description?: string;
-  /** dc:title for the manifest — usually the file's own name. */
+  /** dc:title for the manifest - usually the file's own name. */
   title?: string;
   /**
    * Asserted authorship → the manifest's dc:creator. A bare string is shorthand
    * for `{ name }`. This is how an artist claims their name over content they
    * already have digitised, before uploading it anywhere. `email`/`url` are the
-   * licensing contact — both survive in the manifest and /verify shows them.
+   * licensing contact - both survive in the manifest and /verify shows them.
    */
   author?: { name: string; email?: string; url?: string } | string;
   /** © notice + licence, combined into one line → the manifest's dc:rights. */
   rights?: string;
   /**
    * Source manifests to PRESERVE as ingredients (relationship `parentOf`), so a
-   * credential already inside the bytes — or a signed element within a container
-   * (a C2PA raster embedded in a PDF/SVG, a signed track in an MP4) — survives
+   * credential already inside the bytes - or a signed element within a container
+   * (a C2PA raster embedded in a PDF/SVG, a signed track in an MP4) - survives
    * and is referenced rather than orphaned. Read them with the engine's
    * `extractC2paStore` / `prepareC2paIngredientFromStore` (and `extractC2paFromPdf`
    * for a document-level PDF manifest). When present the engine prepends a
@@ -2135,17 +2135,17 @@ export interface C2paSignOpts {
   ingredients?: IngredientCredential[];
   /**
    * What Lolly did to the bytes, for an honest action history:
-   *  • `'imported'` — content authored elsewhere; authorship/rights/metadata added
+   * • `'imported'` - content authored elsewhere; authorship/rights/metadata added
    *    here without re-rendering the essence (the any-media stamping path). The
    *    default whenever `author`, `rights`, or `ingredients` is supplied.
-   *  • `'redacted'` — a fresh derivative with content removed (the redact path):
+   * • `'redacted'` - a fresh derivative with content removed (the redact path):
    *    `c2pa.created` + a `c2pa.redacted` step. The default when none of the above
    *    are given, preserving the original v1.85 contract.
    */
   action?: 'imported' | 'redacted';
   /**
    * The caller applied the durable Lolly pixel imprint to the essence before
-   * signing (raster only) — records an honest `c2pa.edited` watermark step.
+   * signing (raster only) - records an honest `c2pa.edited` watermark step.
    * Ignored on `'redacted'`.
    */
   imprinted?: boolean;
@@ -2155,13 +2155,13 @@ export interface C2paAPI {
   /**
    * Embed a freshly signed C2PA manifest into `bytes` and return the stamped
    * bytes. `format` is the output format key ('pdf', 'png', 'jpg', 'mp4', 'm4a',
-   * …) — see the engine's `C2PA_FORMATS` for the full set. Two modes, chosen by
+   * …) - see the engine's `C2PA_FORMATS` for the full set. Two modes, chosen by
    * `opts` (see {@link C2paSignOpts}):
    *  • the default derivative path (v1.85): a redacted file, no ingredients; and
    *  • the any-media authorship path (v1.104): stamp an existing file with the
    *    artist's author/copyright/licence, carrying any manifests already inside
    *    it forward as ingredients so nested credentials are preserved, not lost.
-   * Throws when the format cannot carry a manifest or signing fails — the caller
+   * Throws when the format cannot carry a manifest or signing fails - the caller
    * decides whether unsigned bytes may still ship.
    */
   sign(bytes: Uint8Array, format: string, opts?: C2paSignOpts): Promise<Uint8Array>;
@@ -2169,12 +2169,12 @@ export interface C2paAPI {
   /**
    * Read EVERY C2PA manifest a file already carries and package each as an
    * ingredient ready to pass to `sign({ ingredients })` (v1.104). Collects the
-   * file's own container-level credential — for any supported format (PDF, PNG,
-   * JPEG, MP4, M4A, WebP, AVIF, TIFF, GIF, SVG, WebM, MP3, WAV) — plus the
+   * file's own container-level credential - for any supported format (PDF, PNG,
+   * JPEG, MP4, M4A, WebP, AVIF, TIFF, GIF, SVG, WebM, MP3, WAV) - plus the
    * element-level credentials nested inside a container (today: signed rasters an
    * SVG embeds via `<image href="data:…">`). This is how a tool that stamps an
    * authorship claim onto an EXISTING file preserves what is already inside it,
-   * relationship `parentOf`, instead of orphaning it. Read-only; NEVER throws —
+   * relationship `parentOf`, instead of orphaning it. Read-only; NEVER throws -
    * a file with nothing signed resolves to `[]`.
    */
   readIngredients(bytes: Uint8Array): Promise<IngredientCredential[]>;
@@ -2184,8 +2184,8 @@ export interface C2paAPI {
 
 export interface PptxAPI {
   /**
-   * Report what a deck carries — slide count, the read theme, and the distinct
-   * literal colours + explicit typefaces found on slides — for a "what will
+   * Report what a deck carries - slide count, the read theme, and the distinct
+   * literal colours + explicit typefaces found on slides - for a "what will
    * change" review UI. Read-only; never mutates the input, and NEVER throws:
    * bytes that aren't a readable .pptx resolve with `ok: false` (a picker feeds
    * arbitrary files here, so "not a deck" is an expected answer, not an error).
@@ -2198,7 +2198,7 @@ export interface PptxAPI {
    * Produce a re-themed copy of the deck. Surgical: only the values the plan
    * names are rewritten (theme slots, literal colour remaps, explicit typeface
    * remaps, embedded-font stripping); every untouched part is byte-identical.
-   * THROWS a friendly Error when the bytes are not a .pptx — by the time a
+   * THROWS a friendly Error when the bytes are not a .pptx - by the time a
    * rebrand runs the tool has committed to the file, so failure is exceptional
    * (inspect() is the never-throwing probe). Runs locally.
    */
@@ -2211,7 +2211,7 @@ export interface PptxBrandSwatch {
   hex: string;
   /** Display label, e.g. 'Jungle'. */
   name?: string;
-  /** Role hint ('bg'/'ink'/'accent'/'neutral' families) — improves slot mapping. */
+  /** Role hint ('bg'/'ink'/'accent'/'neutral' families) - improves slot mapping. */
   role?: string;
 }
 
@@ -2236,12 +2236,12 @@ export interface PptxInspectColor {
   hex: string;
   /** Nearest brand swatch as `#RRGGBB` (present when opts.swatches given). */
   suggested?: string;
-  /** True when the nearest match is a perceptual stretch — surface it for a human. */
+  /** True when the nearest match is a perceptual stretch - surface it for a human. */
   review?: boolean;
 }
 
 /**
- * What the slides are actually MADE of — the node kinds the reader found,
+ * What the slides are actually MADE of - the node kinds the reader found,
  * summed across every slide. Added in engine 1.79, so a tool must treat it as
  * optional: an older shell omits it entirely.
  *
@@ -2273,7 +2273,7 @@ export interface PptxInspectFont {
 }
 
 export interface PptxInspectResult {
-  /** False when the bytes aren't a readable .pptx — every other field is then empty/zero. */
+  /** False when the bytes aren't a readable .pptx - every other field is then empty/zero. */
   ok: boolean;
   slideCount: number;
   /** The deck's read theme: clrScheme slot → `#RRGGBB`, plus the scheme faces. */
@@ -2281,22 +2281,22 @@ export interface PptxInspectResult {
   /**
    * Distinct LITERAL (non-scheme-linked) colours found on slides, in first-
    * appearance order, capped at 256. Scheme-linked colours are deliberately
-   * absent: they follow the theme, so the theme swap rebrands them for free —
+   * absent: they follow the theme, so the theme swap rebrands them for free -
    * this list is exactly the residue a colorMap must handle.
    */
   colors: PptxInspectColor[];
   /** Distinct explicit typefaces incl. the theme major/minor, capped at 64. */
   fonts: PptxInspectFont[];
-  /** Node-kind tally across the slides — how to spot a flattened, picture-only
+  /** Node-kind tally across the slides - how to spot a flattened, picture-only
    *  deck that a rebrand cannot visibly change. Added in 1.79; optional, so a
    *  tool must feature-detect it (an older shell omits it). */
   content?: PptxInspectContent;
   /** A ready-made theme plan from the brand swatches (present when opts.swatches
-   *  is non-empty). Colour slots are `#RRGGBB` — pass it to rebrand() as-is. */
+   * is non-empty). Colour slots are `#RRGGBB` - pass it to rebrand() as-is. */
   themeSuggestion?: PptxRebrandTheme;
 }
 
-/** A brand theme as flat values — the 12 clrScheme slots + the scheme faces.
+/** A brand theme as flat values - the 12 clrScheme slots + the scheme faces.
  *  As plan input the colour slots accept `#RRGGBB` or any common hex form (the
  *  host/engine strip the hash and normalise on write); inspect's
  *  `themeSuggestion` always emits `#RRGGBB`. Any slot omitted is left as-is. */
@@ -2349,24 +2349,24 @@ export interface Profile {
   lastname?: string;
   email?: string;
   phone?: string;
-  /** Job title / role line — a `bindToProfile` target for signature, badge and
+  /** Job title / role line - a `bindToProfile` target for signature, badge and
    *  card tools (which today take it as a per-tool input). Optional like every
    *  field here; a deployment with a directory/IdP may populate it centrally. */
   title?: string;
-  /** Organisation / company line — the creator's org, used for shared-file
+  /** Organisation / company line - the creator's org, used for shared-file
    *  provenance (the `.lolly` creator block, plans/114). Optional like every field
    *  here; on a control-plane instance the shell derives it from the instance name
    *  when unset. Gated by `useDetails` at the point it is embedded, same as name. */
   org?: string;
-  /** "Use my details" opt-in — gates embedding author/contact into export
+  /** "Use my details" opt-in - gates embedding author/contact into export
    *  provenance (see engine/src/metadata.ts). */
   useDetails?: boolean;
   /** True once the user has dismissed (or acted on) the gallery's first-visit
-   *  personalisation nudge — the one-time prompt to opt into `useDetails`. Rides
+   * personalisation nudge - the one-time prompt to opt into `useDetails`. Rides
    *  the profile (not device storage) so the prompt is per-user, not per-device. */
   personalizeNudgeDismissed?: boolean;
   /** True once the user has dismissed (or acted on) the gallery's one-time
-   *  offline-downloads nudge — the prompt pointing at Profile → Available
+   * offline-downloads nudge - the prompt pointing at Profile → Available
    *  offline. Deliberately RE-CLEARED by the web shell when the PWA is
    *  installed (`appinstalled`): installing reads as "I have the app now", and
    *  the app must say "not all of it, yet" once more before the user finds out
@@ -2374,11 +2374,11 @@ export interface Profile {
   offlineNudgeDismissed?: boolean;
   city?: string;
   country?: string;
-  headshot?: AssetRef; // Yes — the user's headshot is an AssetRef too.
+  headshot?: AssetRef; // Yes - the user's headshot is an AssetRef too.
   custom?: Record<string, string>;
   /** Local UI feature flags, keyed by flag id (default ON when unset). */
   featureFlags?: Record<string, boolean>;
-  /** Accessibility preferences — all opt-in, default off (unset = the regular
+  /** Accessibility preferences - all opt-in, default off (unset = the regular
    *  experience, byte-for-byte). Shells apply them to their own chrome only;
    *  a tool's rendered output is never affected (motion/type inside the render
    *  canvas is the user's creative output, not app chrome). */
@@ -2392,39 +2392,39 @@ export interface Profile {
   };
   /** Nearby-discovery preferences (plans/110). Additive + optional, so a profile
    *  without it is byte-identical to today. The only PERSISTED visibility mode is
-   *  `standing` ("always visible on networks I join") — an opt-in for trusted LANs;
+   * `standing` ("always visible on networks I join") - an opt-in for trusted LANs;
    *  the ordinary timed "visible for 10 minutes" window is runtime state and never
    *  stored. Even `standing` advertises only while the app is running. */
   nearby?: {
     /** Keep advertising discoverable whenever the app runs, without re-arming a
-     *  timed window each time. Default (unset) is off — a device is discoverable
+     * timed window each time. Default (unset) is off - a device is discoverable
      *  only during an explicit timed window. */
     standing?: boolean;
   };
-  /** Tool ids the user has starred — the gallery's "Favourites" collection. Rides
+  /** Tool ids the user has starred - the gallery's "Favourites" collection. Rides
    *  the profile so it persists across reloads and travels in the portable backup. */
   favourites?: string[];
   /** Tool ids the user has hidden from the gallery/utilities grids ("Hide tool").
    *  Same per-user overlay idea as `hiddenAssets`: the tool stays installed and
-   *  deep links keep working — this only removes its tile from the browse surfaces,
+   * deep links keep working - this only removes its tile from the browse surfaces,
    *  behind a "Show hidden tools" reveal. Utility VIEW cards (app routes, not tools)
    *  share the store under their `view:<id>` namespaced key, mirroring how
    *  `favourites` stars them. Tolerant of ids that no longer resolve. */
   hiddenTools?: string[];
-  /** Asset ids the user has starred — the Catalog's asset "Favourites", surfaced as a
+  /** Asset ids the user has starred - the Catalog's asset "Favourites", surfaced as a
    *  pinned collapsible section at the top of every asset picker. Distinct from
    *  `favourites` (TOOL ids). Keyed by the base asset id (theme suffix stripped). */
   favouriteAssets?: string[];
   /** Per-user category override for the Catalog + picker grouping: base asset id →
    *  library group key (e.g. 'backgrounds'). Layers over the tag-derived category so a
    *  user can reclassify e.g. a headshot as a background. Immutable catalog tags are
-   *  never mutated — this is the per-user overlay. */
+   * never mutated - this is the per-user overlay. */
   assetCategories?: Record<string, string>;
   /**
    * Per-user cover art for an audio asset: base asset id → a RECIPE, not pixels.
    *
-   * Every audio asset already gets a generated look — a waveform shape and a brand
-   * colour derived deterministically from its id — and that is the product. This is the
+   * Every audio asset already gets a generated look - a waveform shape and a brand
+   * colour derived deterministically from its id - and that is the product. This is the
    * opt-in override for the handful of tracks a user cares enough about to style, so a
    * favourite gets something closer to an album cover.
    *
@@ -2453,7 +2453,7 @@ export interface Profile {
    *  baked in and set true, so their later un-hides stick and the defaults never re-apply. */
   catalogDefaultsSeeded?: boolean;
   /** UI/content language as a canonical short code (see engine/src/lang.ts's
-   *  LANGS) — 'es'|'de'|'fr'|'zh'|'ja'|'vi', or unset for English. Written by the
+   * LANGS) - 'es'|'de'|'fr'|'zh'|'ja'|'vi', or unset for English. Written by the
    *  welcome-dialog and profile-card language pickers; mirrored to `localStorage
    *  'lang'` for a pre-paint read, and a legal `bindToProfile: "lang"` target. */
   lang?: string;
@@ -2465,7 +2465,7 @@ export interface AssetsAPI {
   /**
    * Resolve a specific asset by id. Throws if not found and not in user uploads.
    *
-   * 1.6.0: the id may carry an icon colour pairing — `<baseId>?theme=<themeId>`
+   * 1.6.0: the id may carry an icon colour pairing - `<baseId>?theme=<themeId>`
    * (see engine icon-theme.js). Bridges resolve the BASE asset and, for a
    * themable two-colour icon, bake the pairing into the returned bytes; the
    * returned ref keeps the themed id (it is the persistent identity in URL
@@ -2478,7 +2478,7 @@ export interface AssetsAPI {
 
   /**
    * Open a host-provided picker UI. Returns the chosen AssetRef, or null if cancelled.
-   * This is what tools use for asset-typed inputs — the host owns the picker chrome.
+   * This is what tools use for asset-typed inputs - the host owns the picker chrome.
    */
   pick(opts: AssetPickerOpts): Promise<AssetRef | null>;
 
@@ -2487,7 +2487,7 @@ export interface AssetsAPI {
 
   /**
    * The stored Content Credentials of a user-uploaded asset, if it carried any
-   * at ingest — kept as the raw C2PA manifest store (no pixels/EXIF, so nothing
+   * at ingest - kept as the raw C2PA manifest store (no pixels/EXIF, so nothing
    * the upload pipeline strips is re-hoarded). Used to preserve a placed asset's
    * provenance as an export ingredient (see engine prepareC2paIngredientFromStore
    * → embedC2pa). Optional (added v1.26): shells without credential capture omit
@@ -2501,7 +2501,7 @@ export interface AssetsAPI {
  * Content Credentials. The runtime gathers these from credentialed uploads used
  * in a design; the C2PA embedder copies their manifests into the export's store
  * and records a c2pa.ingredient assertion + c2pa.opened action (so an AI or
- * camera origin is never laundered away). Opaque to the shell — forwarded as-is.
+ * camera origin is never laundered away). Opaque to the shell - forwarded as-is.
  */
 export interface IngredientCredential {
   manifestBoxes: Uint8Array[];
@@ -2587,11 +2587,11 @@ export interface ColorSwatch {
   spot: SpotColor | null;      // named spot/Pantone lock from $extensions, when present
   /**
    * Per-target overrides the brand AUTHORED for this colour, keyed by target id
-   * (a CSS space name, or `icc:<digest>:<intent>` — see the engine's
+   * (a CSS space name, or `icc:<digest>:<intent>` - see the engine's
    * `gamutSourceId`). Empty for a token with none, which is most of them.
    *
    * `value` above already honours an authored **sRGB** face, so a consumer that
-   * only paints does not need to read this — it is here for a consumer that has
+   * only paints does not need to read this - it is here for a consumer that has
    * to know WHICH faces were chosen rather than computed, or that can honour a
    * wider target than sRGB.
    *
@@ -2601,7 +2601,7 @@ export interface ColorSwatch {
 }
 
 /** A named spot ink (e.g. Pantone) locked onto a token. Independent of the
- *  sibling `cmyk` lock above — a token may carry either, both, or neither:
+ * sibling `cmyk` lock above - a token may carry either, both, or neither:
  *  `cmyk` is the process-colour fallback (preview, non-PDF export, and the
  *  Separation alternate-space value) whether or not a spot is also set; when
  *  neither is set it's derived from the token's own colour at export time. */
@@ -2610,7 +2610,7 @@ export interface SpotColor {
   book?: string;
   /** (v1.91) The tactile finish this ink IS, when it is not an ink at all: a foil,
    *  an emboss/deboss, a spot varnish, a cut/crease. Absent = an ordinary spot ink,
-   *  which is every spot lock that exists today — so this is strictly additive
+   * which is every spot lock that exists today - so this is strictly additive
    *  and changes nothing for them. `name` still says WHICH ('Gold', 'Silver',
    *  'Die'); `finish` says what the press DOES with it. */
   finish?: FinishKind;
@@ -2620,22 +2620,22 @@ export interface SpotColor {
  * (v1.91) Print finishes a brand can declare on a spot.
  *
  * A finish ink is not a colour. It is something the press applies as its own
- * PLATE — a foil stamp, an embossing/debossing die, a spot-UV varnish screen, a
- * cutting or creasing rule — so it never contributes to the process build and
+ * PLATE - a foil stamp, an embossing/debossing die, a spot-UV varnish screen, a
+ * cutting or creasing rule - so it never contributes to the process build and
  * must not be gamut-mapped, previewed as a pigment, or merged into CMYK. It
  * rides the spot contract because a finish already IS a named separation whose
  * "value" is a press instruction, not because it is a kind of colour.
  *
  * The contract defines only how a finish is SPELLED. The *offered* set is brand
  * data: a brand declares the finishes it can actually buy, on its own colour
- * tokens (plans/67-tactile-brand-control.md). That is why the union is open — the
+ * tokens (plans/67-tactile-brand-control.md). That is why the union is open - the
  * listed ids are the canonical spellings (they become plate names), while the
  * trailing `(string & {})` lets a house process ('letterpress', 'thermography',
  * 'holographic-foil') exist with no type, schema, or engine release. Editor
  * autocomplete still offers the known members.
  *
  * A consumer MUST treat an unrecognised value as "a finish I do not know how to
- * render" — never as an error, and never as a reason to discard the surrounding
+ * render" - never as an error, and never as a reason to discard the surrounding
  * ink, whose `name` is the one field a plate actually needs. Any `switch` over
  * it needs a `default:` arm.
  */
@@ -2666,13 +2666,13 @@ export interface ExportAPI {
   download(blob: Blob, filename: string): Promise<void>;
 
   /**
-   * Deliver a blob the tool produced itself — the transform path (file in →
+   * Deliver a blob the tool produced itself - the transform path (file in →
    * transformed file out), as opposed to render() which rasterises a DOM node.
    * Used by on-device utilities (EXIF strip, redact, compress, convert): the
    * tool's `exportFile` hook returns the transformed bytes, the shell wraps them
    * in a Blob, and this hands them to the user (download on web, a save target on
    * Tauri/CLI). UNLIKE render(), this NEVER watermarks and NEVER embeds
-   * provenance metadata — the bytes are the user's own content, not a generated
+   * provenance metadata - the bytes are the user's own content, not a generated
    * artifact, so stamping them would be both wrong and self-defeating (a metadata
    * stripper must not add metadata). Added in v1.1; older shells without it fall
    * back to download().
@@ -2680,15 +2680,15 @@ export interface ExportAPI {
   file(blob: Blob, opts?: { filename?: string }): Promise<void>;
 
   /**
-   * Hand a finished blob to the host's OS share sheet — the Web Share API
+   * Hand a finished blob to the host's OS share sheet - the Web Share API
    * (`navigator.share`) on web, or a Tauri shell's native share (Android `ACTION_SEND`).
    * Used by the Share modal's "Send to…" to hand over a `.lolly` file or a rendered
    * export. UNLIKE render(), this NEVER watermarks or re-encodes. Resolves `true` when
-   * the sheet handled it (INCLUDING a deliberate user-cancel — so the caller does not
+   * the sheet handled it (INCLUDING a deliberate user-cancel - so the caller does not
    * then also trigger a download), `false` when it could not share so the caller falls
    * back to download(). IMPORTANT: web Web Share only accepts an allowlisted set of file
    * types, so a caller MUST gate its "Send to…" affordance on canShare() below rather
-   * than assume share() will succeed. Progressive enhancement — older shells lack it.
+   * than assume share() will succeed. Progressive enhancement - older shells lack it.
    * (v1.126)
    */
   share?(blob: Blob, opts?: { filename?: string; mime?: string; title?: string }): Promise<boolean>;
@@ -2696,7 +2696,7 @@ export interface ExportAPI {
   /**
    * Synchronous capability probe: will share() actually reach an OS share sheet for a
    * file of this type on THIS shell? Web returns whether `navigator.canShare` accepts a
-   * file of `opts.mime` — Chromium enforces a fixed type/extension safelist, and a
+   * file of `opts.mime` - Chromium enforces a fixed type/extension safelist, and a
    * private `application/vnd.lolly+zip` / `.lolly` is NOT on it, so this is `false`
    * there; a Tauri native-share shell returns whether its native bridge is present. The
    * "Send to…" button is rendered only when this is true, so it never silently degrades
@@ -2705,14 +2705,14 @@ export interface ExportAPI {
   canShare?(opts?: { mime?: string; filename?: string }): boolean;
 
   /**
-   * Apply Lolly's durable RASTER marks to finished image bytes — the transform-
+   * Apply Lolly's durable RASTER marks to finished image bytes - the transform-
    * path counterpart to render()'s automatic marking, for a tool that stamps an
    * EXISTING file (Embed, Imprint & Track) rather than rendering a DOM node.
    * Embeds the pixel Imprint (a fast-to-read DCT watermark that survives re-
    * encoding) always, plus the imperceptible neural durable mark when
    * `opts.durable`, then re-encodes to the SAME raster format. Raster-only and
    * best-effort: a non-raster format (pdf/mp4/audio/svg), undecodable bytes, or a
-   * sub-8px image returns the input UNCHANGED, and it NEVER throws — a marking
+   * sub-8px image returns the input UNCHANGED, and it NEVER throws - a marking
    * hiccup returns the bytes, because losing the file is worse than a missing
    * mark. Distinct from file(): callers combine it with host.c2pa.sign to layer
    * the pixel/durable marks under the C2PA credential. Progressive enhancement:
@@ -2725,9 +2725,9 @@ export interface ExportAPI {
 /**
  * The value of a `file`-typed input: a user-picked file loaded into memory. The
  * shell's file picker builds this; the tool's hooks read `bytes` directly (by
- * design bytes ride in the value rather than behind a read API — the portable
+ * design bytes ride in the value rather than behind a read API - the portable
  * host surface has no file-read call). Never persisted and never serialised
- * into a URL — binary user
+ * into a URL - binary user
  * content lives only in memory on the device, which is the whole privacy point.
  */
 export interface InputFile {
@@ -2746,12 +2746,12 @@ export interface InputFile {
 
 export type ExportFormat =
   | 'png' | 'apng' | 'jpg' | 'svg' | 'emf' | 'eps' | 'eps-cmyk' | 'pdf' | 'pdf-cmyk' | 'cmyk-tiff' | 'html' | 'webm'
-  // Audio-only exports. 'opus' is Opus in a WebM container (audio/webm), not Ogg —
+  // Audio-only exports. 'opus' is Opus in a WebM container (audio/webm), not Ogg -
   // the shells already carry a WebM muxer and none can write an Ogg stream.
   | 'wav' | 'mp3' | 'm4a' | 'opus';
 
 export interface ExportOpts {
-  scale?: number;        // raster scale (1, 2, 3) — used when width/height absent
+  scale?: number;        // raster scale (1, 2, 3) - used when width/height absent
   quality?: number;      // jpg quality 0-1
   background?: string;   // override transparent
   watermark?: boolean;   // forced true for experimental tools by the host
@@ -2767,18 +2767,18 @@ export interface ExportOpts {
 
   /**
    * REQUESTED bits per channel for the output (the `depth` URL param): 8, 16,
-   * 'float' (floating-point samples — EXR / Radiance .hdr / float TIFF), or
+   * 'float' (floating-point samples - EXR / Radiance .hdr / float TIFF), or
    * 'auto' (the default when omitted) meaning "the deepest the provenance chain
    * supports".
    *
    * A request, never a promise. Consumers MUST apply the depth-follows-provenance
    * rule: emit deep bits only where the pipeline actually produced them. A 16-bit
    * container written over an 8-bit canvas render is padding, and shipping it is
-   * the export-side twin of the silent-ingest lie — so an unsupported request
+   * the export-side twin of the silent-ingest lie - so an unsupported request
    * degrades to what the source can honestly carry rather than upsampling.
    * Formats that are inherently deep (EXR, .hdr) ignore it; the first consumer is
    * the HDR PNG path (16-bit cICP PNG). Optional/additive (engine 1.88+, with the
-   * Phase B deep-pixel writers) — a field, not a method, and unset by default, so
+   * Phase B deep-pixel writers) - a field, not a method, and unset by default, so
    * a shell that ignores it behaves exactly as before.
    * See plans/61-deeprichpixels.md §10.
    */
@@ -2796,7 +2796,7 @@ export interface ExportOpts {
    * the ICC profile embedded into the file: 'srgb' (default) records the colour
    * space the canvas actually renders in, so colour-managed apps reproduce the
    * pixels faithfully; 'none' skips embedding (e.g. thumbnails). For pdf-cmyk it
-   * names the press condition declared in the PDF's OutputIntent — one of the
+   * names the press condition declared in the PDF's OutputIntent - one of the
    * keys in CMYK_CONDITIONS ('fogra39' default, 'swop', 'gracol', …). The
    * profile data and conversions live in the engine (engine/src/color.js); the
    * bridge only writes them into each format's native slot.
@@ -2805,13 +2805,13 @@ export interface ExportOpts {
 
   /**
    * Hint: this export is a low-fidelity thumbnail/preview, not the deliverable.
-   * Hooks may take a cheap path — e.g. an expensive-capture tool can reuse the
+   * Hooks may take a cheap path - e.g. an expensive-capture tool can reuse the
    * last render already on the canvas instead of re-running the capture.
    */
   thumbnail?: boolean;
 
   /**
-   * Optional audio bed for the video formats (webm/mp4) — like the de-facto
+   * Optional audio bed for the video formats (webm/mp4) - like the de-facto
    * wait/duration/fps timing opts, a web-shell extension the engine passes
    * through untouched. `url` is any fetchable audio file (the export popup
    * resolves a catalog `type: 'audio'` asset to its blob URL); it is decoded
@@ -2824,9 +2824,9 @@ export interface ExportOpts {
    * bed: it ramps up from silence over the first `fadeIn` seconds and down to
    * silence over the last `fadeOut` seconds of the clip. 0/omitted = no fade (a
    * hard cut). The shell applies them with a GainNode inside the audio graph, so
-   * the fade is baked into the muxed track — no pre-faded asset variants needed.
+   * the fade is baked into the muxed track - no pre-faded asset variants needed.
    * `volume` (0..1, default 1) is the bed's overall level. `duck` (0..1, default 1
-   * = no ducking) is the level the bed drops to while foreground audio is present —
+   * = no ducking) is the level the bed drops to while foreground audio is present -
    * the top-&-tail compositor lowers the music to `volume·duck` over the body clip
    * when the footage carries its own audio, then restores it for the outro, so an
    * uploaded talking clip stays intelligible under the bed.
@@ -2835,7 +2835,7 @@ export interface ExportOpts {
    * into the source instead of at 0:00, so a tool whose visuals start partway
    * through a clip (the audiogram's "Start at") exports picture and sound in
    * sync. A looping bed repeats the [start, end) region, not the whole track. It
-   * is clamped into the decoded source — a start past the end degrades to 0 with
+   * is clamped into the decoded source - a start past the end degrades to 0 with
    * a log warning rather than exporting silence.
    */
   audio?: { id?: string; url: string; fadeIn?: number; fadeOut?: number; volume?: number; duck?: number; start?: number };
@@ -2850,7 +2850,7 @@ export interface ExportOpts {
 
   /**
    * A compact digest of the tool's scalar inputs (id → short string) that
-   * produced this render — colours, sizes, toggles, short text (added v1.27).
+   * produced this render - colours, sizes, toggles, short text (added v1.27).
    * The runtime derives it via summarizeInputs() when C2PA stamping is on; the
    * shell records it under `inputs` in the `tools.lolly.export` assertion so an
    * inspected asset shows what it was made from. Opaque to the shell; ignored by
@@ -2860,7 +2860,7 @@ export interface ExportOpts {
 
   /**
    * Live-capture provenance for the C2PA action history (added v1.35). Set by the
-   * runtime when the essence of this render came from a device sensor — a filter
+   * runtime when the essence of this render came from a device sensor - a filter
    * tool's live camera frame (host.media / onFrame), or a recorder tool's take
    * (host.recorder): a video take carries both; an audio take, the mic alone. The
    * C2PA embedder marks the created step with the IPTC `digitalCapture` source
@@ -2872,7 +2872,7 @@ export interface ExportOpts {
   /**
    * Text-added provenance for the C2PA action history (added v1.35). Set by the
    * runtime ONLY when rendered text sits over an OPENED asset (a credentialed
-   * upload/catalog image is present as an ingredient) — a genuine edit worth its
+   * upload/catalog image is present as an ingredient) - a genuine edit worth its
    * own `c2pa.edited` "Added text" step. From-scratch text is the work's content,
    * not an edit: it rides in the `c2paInputs` digest instead. `sample` is a short
    * teaser for the step label; the full copy is in the digest. Opaque to the shell.
@@ -2895,14 +2895,14 @@ export interface ExportOpts {
 // are USER-ASSERTED IP fields, filled ONLY when a tool's inputs carry them via
 // `bindToMeta` (e.g. embed-track-image, where the artist explicitly declares the
 // copyright/licence of their OWN work). They are NEVER auto-derived from the profile
-// — Lolly won't assert ownership the user didn't state — and, like every EXIF
+// - Lolly won't assert ownership the user didn't state - and, like every EXIF
 // Copyright / XMP dc:rights out there, they are self-declared, not verified facts.
 export interface ExportMeta {
   software: string;     // "Lolly"
   source: string;       // "https://lolly.tools"
   tool: string;         // the tool's name
-  author: string;       // "First Last" — '' if the user hasn't set a profile
-  contact: string;      // "email · phone" — '' if none
+  author: string;       // "First Last" - '' if the user hasn't set a profile
+  contact: string;      // "email · phone" - '' if none
   description: string;  // human-readable credit line
   /** Rights/copyright notice, e.g. "© 2026 Jane Doe. All rights reserved." User-
    *  asserted (bindToMeta 'copyright'); omitted/'' when none. Written to EXIF
@@ -2924,7 +2924,7 @@ export interface TextAPI {
    * is the total pen advance in pixels. `bbox` is null for blank/whitespace-only
    * runs.
    *
-   * Font shaping respects OpenType features (GPOS, GSUB — ligatures, kerning,
+   * Font shaping respects OpenType features (GPOS, GSUB - ligatures, kerning,
    * contextual alternates) via HarfBuzz, unlike naïve glyph-by-glyph approaches.
    */
   toPath(opts: TextToPathOpts): Promise<TextPathResult>;
@@ -2942,16 +2942,16 @@ export interface TextAPI {
   axisDefaults?(fontUrl: string): Promise<Record<string, number>>;
 
   /**
-   * Resolve a font FAMILY the host knows — brand statics, user-uploaded faces,
-   * on-device Google Fonts, the platform face — to a fetchable font file
+   * Resolve a font FAMILY the host knows - brand statics, user-uploaded faces,
+   * on-device Google Fonts, the platform face - to a fetchable font file
    * usable as `fontUrl` in toPath()/preload(). `opts` picks the nearest face:
    * `weight` (CSS 100–900, default 400) and `italic` (default false). When the
    * resolved file is a VARIABLE font, `variations` carries the HarfBuzz axis
-   * settings (e.g. ['wght=700']) needed to reach the requested weight — pass
+   * settings (e.g. ['wght=700']) needed to reach the requested weight - pass
    * them through to toPath(), which otherwise shapes the default instance.
    * Resolves null when no file can be found for the family (the caller keeps
    * its <text>/CSS fallback). Optional/additive (v1.60); absent on older
-   * hosts — feature-detect `host.text?.fontUrl`.
+   * hosts - feature-detect `host.text?.fontUrl`.
    */
   fontUrl?(family: string, opts?: { weight?: number; italic?: boolean }): Promise<{ url: string; variations?: string[] } | null>;
 }
@@ -2971,12 +2971,12 @@ export interface TextToPathOpts {
   /**
    * OpenType variation-axis settings for a VARIABLE font, as HarfBuzz strings
    * (`['wght=700']`). Without them a variable face shapes at its default
-   * instance — a bold run would outline as regular. Axes not listed take their
+   * instance - a bold run would outline as regular. Axes not listed take their
    * default value. Ignored by static fonts. (v1.29)
    */
   variations?: string[];
   /**
-   * Faces to shape the characters `fontUrl` has no glyph for, tried in order —
+   * Faces to shape the characters `fontUrl` has no glyph for, tried in order -
    * the same job the browser's font fallback does. Needed because webfont
    * families arrive as DISJOINT subsets (Google Fonts' `latin` file holds no
    * `Ł`, and its `latin-ext` file holds no ASCII), so a single face cannot
@@ -2997,7 +2997,7 @@ export interface TextPathResult {
    */
   bbox: { x1: number; y1: number; x2: number; y2: number } | null;
   /**
-   * How many glyphs in the run fell back to `.notdef` — the font has no glyph
+   * How many glyphs in the run fell back to `.notdef` - the font has no glyph
    * for that character. Outlining then draws blanks or tofu boxes, so a caller
    * that has a fallback (an SVG `<text>` element) should prefer it when this is
    * non-zero. Absent on hosts that predate the field; treat as 0. (v1.29)
@@ -3018,37 +3018,37 @@ export interface CaptureAPI {
   /**
    * Navigate to `url` in a real browser engine and rasterise the result to an
    * image. Returns a raster AssetRef (`source: 'remote'`) that flows back through
-   * the normal render/export path — so units, format conversion, provenance and
+   * the normal render/export path - so units, format conversion, provenance and
    * the experimental watermark all apply downstream exactly as for a template
    * render. Capture is the *source*; export remains the single output path.
    *
-   * The returned ref's `width`/`height` are the ACTUAL captured CSS-px box —
-   * after any `crop` insets and `rangeTo` extension — so callers size their
+   * The returned ref's `width`/`height` are the ACTUAL captured CSS-px box -
+   * after any `crop` insets and `rangeTo` extension - so callers size their
    * composite from the result, never from the request. Hosts SHOULD also report
    * the resolved page geometry in `meta` (`pageWidth`/`pageHeight` in CSS px and
    * `scrollYPx`, the resolved scroll offset) where the engine can measure it;
    * callers must treat those as optional (older shells omit them).
    *
    * Slow and side-effectful (a real navigation + settle), unlike instant
-   * template renders — call it from an explicit action, not on every keystroke.
+   * template renders - call it from an explicit action, not on every keystroke.
    */
   page(spec: CaptureSpec): Promise<AssetRef>;
 
   /**
-   * Vector capture — print `url` to a TRUE vector document and return it as an
+   * Vector capture - print `url` to a TRUE vector document and return it as an
    * SVG AssetRef (`type: 'vector'`, `format: 'svg'`, `url` a data: URL holding a
    * self-contained SVG: text as <text>, boxes/paths as vectors, page images
-   * inlined as data: URIs). Where page() reads pixels, this reads *geometry* —
+   * inlined as data: URIs). Where page() reads pixels, this reads *geometry* -
    * the same fidelity ladder as the PDF import path (pdf-map.ts), so the result
    * is crisp at any zoom and re-editable, at the cost of pixel-perfection
    * (webfonts resolve by family name, exotic paint degrades per the ladder).
    *
    * The shell applies the SAME windowing as page(): `scrollDepth` + `height`
-   * frame the region, `crop` trims insets — all as viewBox geometry, so a vector
+   * frame the region, `crop` trims insets - all as viewBox geometry, so a vector
    * shot and a raster shot of one spec frame identical content. Omit `height`
    * to get the full page.
    *
-   * Optional/additive (v1.45) — only shells whose browser engine can print to a
+   * Optional/additive (v1.45) - only shells whose browser engine can print to a
    * vector format provide it; callers feature-detect `host.capture.vector` and
    * fall back to page() (a raster in an <svg> wrapper) where absent.
    */
@@ -3072,26 +3072,26 @@ export interface CaptureSpec {
    * (same 0..1-fraction / px-offset semantics; values ≤ the resolved
    * `scrollDepth` mean no extension). The captured image becomes a tall strip:
    * the viewport at `scrollDepth` plus everything down to the viewport at
-   * `rangeTo` — the strip a scroll animation pans over. Callers derive the pan
+   * `rangeTo` - the strip a scroll animation pans over. Callers derive the pan
    * distance from the RESULT (`ref.height` − the framed viewport height), so a
    * host that ignores or clamps this field (older shells; texture limits)
-   * degrades to a shorter — or static — pan, never an error. (v1.45)
+   * degrades to a shorter - or static - pan, never an error. (v1.45)
    */
   rangeTo?: number;
-  /** Settle time after load — and after scrolling — before the shot, in ms. */
+  /** Settle time after load - and after scrolling - before the shot, in ms. */
   waitMs?: number;
   /** Device pixel ratio for a crisp raster; maps onto the export `dpi` concept. */
   dpr?: number;
   /**
    * Custom CSS injected into the page before the shot (userstyles-style, additive
-   * — appended so it layers over the page's own rules by source order). Use it to
+   * - appended so it layers over the page's own rules by source order). Use it to
    * hide cookie banners, restyle elements, etc.
    */
   css?: string;
   /**
    * Trim insets, each a 0..0.9 fraction of the framed viewport box (the TUI's
    * url-capture semantics, now on the bridge). Applied by the host at capture
-   * time — clip geometry for a raster, viewBox geometry for a vector — so the
+   * time - clip geometry for a raster, viewBox geometry for a vector - so the
    * returned ref's width/height already reflect the trim. Hosts that predate the
    * field ignore it (the caller reads the result dims either way). (v1.45)
    */
@@ -3104,18 +3104,18 @@ export interface CaptureSpec {
 export interface LiftLayer {
   /**
    * The layer as a complete, standalone `<svg>…</svg>` document. It keeps the source's
-   * ROOT coordinate system, so every layer overlays the others exactly — ready to
+   * ROOT coordinate system, so every layer overlays the others exactly - ready to
    * rasterise to a texture or store as an asset with no fix-up. (The engine's
    * `SvgLayer.markup`.)
    */
   svg: string;
   /**
    * The layer's analytic ink bounding box in the SOURCE viewBox's user units, or null
-   * when nothing in it could be measured without a renderer. Advisory — for clustering
+   * when nothing in it could be measured without a renderer. Advisory - for clustering
    * and placement hints, never a pixel-exact crop.
    */
   bbox: { x: number; y: number; w: number; h: number } | null;
-  /** How many of the source's top-level nodes this layer gathered — a hint for telling a
+  /** How many of the source's top-level nodes this layer gathered - a hint for telling a
    *  real layer from a cluster of stray leaves. */
   nodes: number;
 }
@@ -3134,12 +3134,12 @@ export interface LiftResult {
 
 export interface LiftAPI {
   /**
-   * Lift an SVG — named by URL (a catalog/library asset, an uploaded `blob:`, or a
-   * `data:` URL) — into its own layers. The shell fetches + sanitises the markup through
+   * Lift an SVG - named by URL (a catalog/library asset, an uploaded `blob:`, or a
+   * `data:` URL) - into its own layers. The shell fetches + sanitises the markup through
    * its one untrusted-SVG path, then runs the engine's `enumerateSvgLayers`. Returns the
    * layers in paint order as standalone SVG documents + their ink boxes, and the source
    * viewBox. A source that is not an SVG, or has fewer than two layers, comes back with
-   * `layers: []` (the caller then treats the shot as a single plane) — this method never
+   * `layers: []` (the caller then treats the shot as a single plane) - this method never
    * throws on "nothing to lift", only on a fetch/parse failure the caller should surface.
    */
   svg(source: string): Promise<LiftResult>;
@@ -3152,7 +3152,7 @@ export interface KeyframesAPI {
    * Evaluate a `kf` track at `count` times evenly spaced across its OWN span (first to last
    * keyframe), returning each pose as a channel→value map (`x`, `y`, `z`, `rx`, `ry`, `p`,
    * `f`, `a`, …). Runs the engine's `parseKf` + `evaluateKf`, so the interpolation and
-   * easing are canonical — a template's motion matches the Design tool's exactly. An
+   * easing are canonical - a template's motion matches the Design tool's exactly. An
    * empty / parse-failed track returns `[]`. The caller maps the channels onto its own
    * camera or transform (a real-3D tool interprets `rx`/`ry`/`z` differently from the
    * Design tool's 2.5D homography, which is why the mapping stays with the caller).
@@ -3167,7 +3167,7 @@ export interface ComposeAPI {
    * Render the named tool with the given inputs to a self-contained AssetRef
    * (`source: 'remote'`, `url` a `blob:`/`data:` URL). The child render goes
    * through the same loadTool → createRuntime → host.export.render path, so it is
-   * pixel-identical to rendering that tool directly — but watermark/provenance are
+   * pixel-identical to rendering that tool directly - but watermark/provenance are
    * suppressed because the result is an intermediate asset, not the deliverable.
    *
    * The host enforces recursion guards: it rejects if `_stack` already contains
@@ -3178,7 +3178,7 @@ export interface ComposeAPI {
   render(spec: ComposeSpec): Promise<AssetRef>;
 
   /**
-   * Render a tool *URL* (a link a user pasted) to an embeddable AssetRef — the
+   * Render a tool *URL* (a link a user pasted) to an embeddable AssetRef - the
    * end-user counterpart to render(). The host parses the URL (manifest-aware, so
    * typed inputs coerce exactly as URL mode would), renders the named tool, and
    * returns an AssetRef whose `id` is the CANONICAL embed URL
@@ -3186,7 +3186,7 @@ export interface ComposeAPI {
    *
    * That canonical id is the asset's persistent identity: it round-trips through
    * URL mode + saved sessions, and the runtime feeds it back here to re-render the
-   * asset on load — so a tool-sourced image survives reload and travels inside a
+   * asset on load - so a tool-sourced image survives reload and travels inside a
    * shared link, exactly as a library asset id does. `opts` overrides (format /
    * size) take precedence over anything parsed from the URL and are folded into
    * the returned id. Returns null when the URL isn't a recognised tool URL or the
@@ -3194,7 +3194,7 @@ export interface ComposeAPI {
    *
    * Accepts every shape the app hands a user (embed URL, hash share route, pretty
    * path); the toolId must resolve to a real local tool, so a pasted link can only
-   * render a tool that already ships in this build. Optional/additive (v1.3) —
+   * render a tool that already ships in this build. Optional/additive (v1.3) -
    * older shells lack it, so callers feature-detect `host.compose?.renderUrl`.
    */
   renderUrl?(url: string, opts?: ComposeUrlOpts): Promise<AssetRef | null>;
@@ -3211,7 +3211,7 @@ export interface ComposeUrlOpts {
   unit?: string;
   /** Raster DPI for physical units (mirrors ExportOpts.dpi). */
   dpi?: number;
-  /** Engine-managed recursion stack — threaded by the runtime on re-resolve. */
+  /** Engine-managed recursion stack - threaded by the runtime on re-resolve. */
   _stack?: readonly string[];
 }
 
@@ -3234,12 +3234,12 @@ export interface ComposeSpec {
   /** Engine-managed recursion stack of tool ids already on the compose path. */
   _stack?: readonly string[];
   /**
-   * One-shot render: skip the host's render cache entirely — no lookup, no
+   * One-shot render: skip the host's render cache entirely - no lookup, no
    * insertion. For a bulk bake (a design import turning 30+ scenes into stored
    * assets) each result is used once and never re-requested, so caching them
    * only evicts the live preview entries and pins their blobs. The CALLER then
    * owns the returned `url` and must release it once the bytes are copied (on
-   * web that means URL.revokeObjectURL) — with the cache holding no reference,
+   * web that means URL.revokeObjectURL) - with the cache holding no reference,
    * nothing else will. Optional/additive (v1.5); absent → cached as before.
    */
   transient?: boolean;
@@ -3247,7 +3247,7 @@ export interface ComposeSpec {
    * Post-mount settle before the child is captured, in ms. The host's default
    * waits long enough for images/lottie/video inside the child to decode; a
    * caller that KNOWS the child has no such media may pass a much smaller value.
-   * Advisory — a host may clamp or ignore it. Optional/additive (v1.5).
+   * Advisory - a host may clamp or ignore it. Optional/additive (v1.5).
    */
   settleMs?: number;
 }
@@ -3257,8 +3257,8 @@ export interface AssetRef {
   source: 'library' | 'user' | 'remote';
   id: string;
   // 'profile' is an ICC colour profile the USER supplied (a press or display
-  // profile, `user/profiles/<digest>`). It has no visual form — it is a gamut to
-  // compare against, not something to place — so image surfaces filter it out
+  // profile, `user/profiles/<digest>`). It has no visual form - it is a gamut to
+  // compare against, not something to place - so image surfaces filter it out
   // the same way they filter 'font' and 'tokens'.
   type: 'vector' | 'raster' | 'video' | 'audio' | 'lottie' | 'palette' | 'tokens' | 'font' | 'profile' | 'ratecard' | 'text' | 'data';
   format: string;
@@ -3270,28 +3270,28 @@ export interface AssetRef {
   // Free-form, host-populated. Conventional keys the engine/shells recognise:
   //   name       display label
   //   tags       string[] for filtering
-  //   animated   true for an animated raster (gif/apng/animated-webp) — the frame
+  // animated true for an animated raster (gif/apng/animated-webp) - the frame
   //              badge marks it and exports know it flattens to a still
   //   posterUrl  a still fallback frame for a lottie or video (used for the
   //              <video poster> attribute and as the pre-play / export still)
   //   baked      true for a FROZEN composed render (engine bake.ts): the url is
-  //              a self-contained data: URL, resolved as-is on every mount — no
+  // a self-contained data: URL, resolved as-is on every mount - no
   //              compose depth consumed, never live-re-rendered
   //   bakedAt    epoch ms the bake happened
-  //   bakedFrom  the canonical embed URL the bake rendered from — provenance
+  // bakedFrom the canonical embed URL the bake rendered from - provenance
   //              for on-demand re-baking (absent when none could be minted)
-  //   durationMs playback length in milliseconds — video, audio, and lottie assets.
+  // durationMs playback length in milliseconds - video, audio, and lottie assets.
   //              Resolved at ingest (storeUserUpload probes it; a catalog asset
   //              authors it in asset.schema.json's per-format entry). Only ever
-  //              present when it resolved to a finite positive number — never 0
+  // present when it resolved to a finite positive number - never 0
   //              or a bogus placeholder.
-  //   fps        a lottie's frame rate (its `fr`), alongside its durationMs —
+  // fps a lottie's frame rate (its `fr`), alongside its durationMs -
   //              not meaningful for video/audio.
   meta?: Record<string, unknown>;
 }
 
 /**
- * A deep image frame handed to `host.codec` — the tool-facing mirror of the
+ * A deep image frame handed to `host.codec` - the tool-facing mirror of the
  * engine's `DeepFrame` (tools cannot import the engine, so the shape is restated
  * here as the versioned contract). RGBA interleaved Float32, LINEAR light,
  * un-premultiplied, unbounded; `space` travels WITH the buffer (babl's lesson).
@@ -3311,26 +3311,26 @@ export interface CodecFrame {
  * into finished image bytes; the tool decides depth by picking the method. All
  * async (a shell may offload to a Worker) and all pure with respect to the frame
  * (never mutated). A shell without a given format resolves to the same bytes as
- * its sibling — the maths is the engine's, not the shell's.
+ * its sibling - the maths is the engine's, not the shell's.
  */
 export interface CodecAPI {
-  /** 16-bit sRGB PNG — real per-channel precision, no HDR. Smooth where 8-bit bands. */
+  /** 16-bit sRGB PNG - real per-channel precision, no HDR. Smooth where 8-bit bands. */
   png16(frame: CodecFrame, opts?: { dpi?: number; channels?: 3 | 4 }): Promise<Uint8Array>;
   /** OpenEXR master. `'half'` (default) or `'float'` samples. */
   exr(frame: CodecFrame, opts?: { pixelType?: 'half' | 'float'; channels?: 'rgba' | 'rgb' }): Promise<Uint8Array>;
   /** Radiance RGBE (.hdr) master. */
   radiance(frame: CodecFrame, opts?: { exposure?: number }): Promise<Uint8Array>;
-  /** Error-diffused (Floyd–Steinberg) 8-bit sRGB PNG from a deep source — smooth 8-bit. */
+  /** Error-diffused (Floyd–Steinberg) 8-bit sRGB PNG from a deep source - smooth 8-bit. */
   dither8(frame: CodecFrame, opts?: { dpi?: number; channels?: 3 | 4 }): Promise<Uint8Array>;
 }
 
 // ─── Layered-bitmap write-back (optional, v1.102) ────────────────────────────
 
 /**
- * One layer of a {@link LayersAPI.writePsd} document — the tool-facing mirror
+ * One layer of a {@link LayersAPI.writePsd} document - the tool-facing mirror
  * of the engine's `PsdWriteLayer` (tools cannot import the engine, so the shape
  * is restated here as the versioned contract). Pixels are plain 8-bit RGBA,
- * un-premultiplied sRGB — exactly what a canvas `getImageData` gives.
+ * un-premultiplied sRGB - exactly what a canvas `getImageData` gives.
  */
 export interface LayerWrite {
   name: string;
@@ -3369,7 +3369,7 @@ export interface LayersAPI {
 // ─── On-device AI upscaling (optional, v1.101) ────────────────────────────────
 
 /**
- * A plain 8-bit RGBA pixel frame handed to / returned from `host.upscale` —
+ * A plain 8-bit RGBA pixel frame handed to / returned from `host.upscale` -
  * straight (un-premultiplied) alpha, exactly what a canvas `getImageData` gives
  * and `putImageData` takes, so a tool never has to touch a tensor. DOM-free: the
  * shell owns the model runtime; the contract only ever sees typed arrays.
@@ -3381,7 +3381,7 @@ export interface UpscaleFrame {
   data: Uint8ClampedArray;
 }
 
-/** A `host.upscale` model an id can select — see `UpscaleAPI.models`. Two general
+/** A `host.upscale` model an id can select - see `UpscaleAPI.models`. Two general
  *  Real-ESRGAN nets (fast + quality), an illustration/line-art net
  *  (`realesrgan-x4plus-anime`, the 6-block anime model) and a face restorer. */
 export type UpscaleModelId =
@@ -3413,7 +3413,7 @@ export interface UpscaleModelInfo {
   /** Model release string; lands verbatim in the C2PA disclosure. */
   version: string;
   /**
-   * A face RESTORER (GFPGAN) rather than a plain resolution enhancer — it can
+   * A face RESTORER (GFPGAN) rather than a plain resolution enhancer - it can
    * synthesise facial detail that was never in the source. The shell shows this
    * string beside the option; for GFPGAN it reads exactly
    * "warning can invent face details".
@@ -3429,7 +3429,7 @@ export interface UpscaleProgress {
   loaded?: number;
   /** Total bytes, or null when the transport doesn't say. */
   total?: number | null;
-  /** Tile index / count (inference phase) — the run is tiled to bound memory. */
+  /** Tile index / count (inference phase) - the run is tiled to bound memory. */
   tile?: number;
   tiles?: number;
   /** 0..1 where a fraction is knowable. */
@@ -3441,10 +3441,10 @@ export interface UpscaleOpts {
   model?: UpscaleModelId;
   /** Target output multiple; clamped to what the model + device allow. */
   scale?: 2 | 4;
-  /** 0..1 denoise strength (general model only — blends its WDN pair). */
+  /** 0..1 denoise strength (general model only - blends its WDN pair). */
   denoise?: number;
   /**
-   * Hard cap on the output's longest edge in pixels — the device/user lever. The
+   * Hard cap on the output's longest edge in pixels - the device/user lever. The
    * run trims its plan to honour it, so a phone never attempts a 6000px master.
    */
   targetMaxEdge?: number;
@@ -3458,7 +3458,7 @@ export interface UpscaleOpts {
 }
 
 /**
- * The honest answer to "can THIS device do THIS job?" — computed before any bytes
+ * The honest answer to "can THIS device do THIS job?" - computed before any bytes
  * move (see `UpscaleAPI.canRun`). When `ok` is false the shell tells the user
  * plainly and offers the concrete lever (`suggestedMaxEdge` / `suggestedModel`)
  * rather than attempting the run and crashing.
@@ -3477,8 +3477,8 @@ export interface UpscaleFeasibility {
 
 /**
  * On-device AI image upscaling (see `HostV1.upscale`). A plain RGBA frame in, a
- * larger RGBA frame out — the shell owns the ONNX runtime, the WebGPU→WASM
- * backend choice, the one-time (consented — see `modelBytes`) model download, and
+ * larger RGBA frame out - the shell owns the ONNX runtime, the WebGPU→WASM
+ * backend choice, the one-time (consented - see `modelBytes`) model download, and
  * the memory-bounded tiling; the engine/tool only ever sees pixels.
  *
  * The heavy run is NOT driven from a tool hook (hooks are time-boxed and their
@@ -3492,7 +3492,7 @@ export interface UpscaleAPI {
   isAvailable(): boolean;
   /** The resolved execution backend, or null before one is probed / when none. */
   backend(): 'webgpu' | 'wasm' | null;
-  /** The model catalogue — ids, sizes, licences, warnings. Sync + static. */
+  /** The model catalogue - ids, sizes, licences, warnings. Sync + static. */
   models(): UpscaleModelInfo[];
   /** Approximate one-time download for a model, for a consent UI. Sync. */
   modelBytes(id: UpscaleModelId): number;
@@ -3507,11 +3507,11 @@ export interface UpscaleAPI {
 // ─── On-device background removal / matting (optional, v1.103) ─────────────────
 
 /**
- * A plain 8-bit RGBA pixel frame handed to / returned from `host.matte` — the
+ * A plain 8-bit RGBA pixel frame handed to / returned from `host.matte` - the
  * same shape a canvas `getImageData` gives and `putImageData` takes, so a tool
  * never touches a tensor. On the way IN alpha is ignored (the model sees RGB); on
  * the way OUT the RGB is BYTE-FOR-BYTE the input's and the alpha is the computed
- * matte (straight, un-premultiplied) — a cutout you can composite directly.
+ * matte (straight, un-premultiplied) - a cutout you can composite directly.
  */
 export interface MatteFrame {
   width: number;
@@ -3521,7 +3521,7 @@ export interface MatteFrame {
 }
 
 /**
- * A `host.matte` model an id can select — see `MatteAPI.models`. A tiny fast
+ * A `host.matte` model an id can select - see `MatteAPI.models`. A tiny fast
  * preview net, a general default, a portrait specialist, and the full-size
  * "max quality" edge model (`birefnet`) for when the user will wait on a large
  * (~490 MB) download. All ship under permissive licences (Apache-2.0 / MIT); the
@@ -3567,7 +3567,7 @@ export interface MatteOpts {
   /** A `MatteModelId`; defaults to the general model. */
   model?: MatteModelId;
   /**
-   * Hard cap on the OUTPUT's longest edge in pixels — the device/user lever. The
+   * Hard cap on the OUTPUT's longest edge in pixels - the device/user lever. The
    * matte net runs at its own fixed input size regardless, so this only bounds the
    * full-resolution alpha buffer the mask is scaled back into (a phone need not
    * allocate a 8000px cutout). Absent ⇒ the source's own size.
@@ -3600,8 +3600,8 @@ export interface MatteFeasibility {
 
 /**
  * On-device background removal (see `HostV1.matte`). A plain RGBA frame in, the
- * same frame with a model-computed alpha matte out — the shell owns the ONNX
- * runtime, the WebGPU→WASM backend, the one-time (consented — see `modelBytes`)
+ * same frame with a model-computed alpha matte out - the shell owns the ONNX
+ * runtime, the WebGPU→WASM backend, the one-time (consented - see `modelBytes`)
  * download and the memory bound; the tool only ever sees pixels. The output's RGB
  * is the input's, untouched; only the alpha is new. All async methods reject
  * rather than half-produce; failures degrade to an honest message, never a stuck
@@ -3612,7 +3612,7 @@ export interface MatteAPI {
   isAvailable(): boolean;
   /** The resolved execution backend, or null before one is probed / when none. */
   backend(): 'webgpu' | 'wasm' | null;
-  /** The model catalogue — ids, tiers, sizes, licences. Sync + static. */
+  /** The model catalogue - ids, tiers, sizes, licences. Sync + static. */
   models(): MatteModelInfo[];
   /** Approximate one-time download for a model, for a consent UI. Sync. */
   modelBytes(id: MatteModelId): number;

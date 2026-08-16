@@ -1,10 +1,10 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
- * PDF (and Adobe Illustrator .ai — an .ai IS a PDF) page content stream → DesignNodes.
+ * PDF (and Adobe Illustrator .ai - an .ai IS a PDF) page content stream → DesignNodes.
  *
  * The counterpart to design-map.ts's Figma/Penpot walkers, for the PDF import path.
  * An Illustrator .ai file saved with PDF compatibility (the default) is a normal PDF,
- * so both land here. The shell (design-import.js) owns the byte work — it uses pdf-lib
+ * so both land here. The shell (design-import.js) owns the byte work - it uses pdf-lib
  * to load the document, decode the page's content stream(s), and pre-extract resources
  * (fonts → per-font byte→text decoders, XObjects → image markers or nested form streams,
  * ExtGStates → alpha, optional-content groups → layer labels). This module is PURE and
@@ -16,7 +16,7 @@
  *   • axis-aligned OR rotated rectangles + axis-aligned ellipses → editable box nodes
  *   • text runs (position + size + colour, grouped per BT/ET block) → editable text nodes
  *   • arbitrary filled/stroked paths → a `_vectorPath` (SVG `d`) the shell stores as a
- *     crisp SVG image — vector, not raster, and still one movable box
+ *     crisp SVG image - vector, not raster, and still one movable box
  *   • image XObjects → `_imageXObject` the shell resolves to a stored raster asset
  *   • groups → the box `group` field, captured from three PDF signals (Illustrator
  *     layers / optional-content groups, form XObjects, and q…Q blocks) and kept only
@@ -38,7 +38,7 @@ import { constantMask, isAchromatic, maskRegion } from './pdf-smask.ts';
 /** A 2-D affine (PDF/SVG convention: point (x,y) → (a·x + c·y + e, b·x + d·y + f)). */
 interface Mat { a: number; b: number; c: number; d: number; e: number; f: number; }
 
-/** A normalized node — structurally the design-map `DesignNode` (feed to finalizeBoxes). */
+/** A normalized node - structurally the design-map `DesignNode` (feed to finalizeBoxes). */
 export interface PdfNode {
   kind: 'box' | 'text' | 'image';
   x: number; y: number; w: number; h: number; rot: number;
@@ -64,7 +64,7 @@ export interface PdfNode {
    * PDF's `/P <</MCID n>> BDC`. Absent when the content is untagged.
    *
    * This is the ONLY link between painted content and the document's structure
-   * tree, and therefore the only route to a true reading order — geometry can
+   * tree, and therefore the only route to a true reading order - geometry can
    * only ever guess at it. Latched at the run's origin (with the fill, font and
    * mask), not at ET, because a single BT…ET block can cross several marked
    * runs and the first one is what the origin belongs to.
@@ -73,14 +73,14 @@ export interface PdfNode {
   _imageXObject?: string;
   _vectorPath?: string;
   _vectorFill?: string;
-  /** PDF even-odd fill (the starred f/B operators) — REQUIRED for ring-shaped
+  /** PDF even-odd fill (the starred f/B operators) - REQUIRED for ring-shaped
    *  fills: an inner subpath is a hole only under this rule; nonzero would fill
    *  it solid. */
   _vectorFillRule?: 'evenodd';
   _vectorStroke?: { color: string; width: number; cap?: 'butt' | 'round' | 'square'; join?: 'miter' | 'round' | 'bevel' } | null;
   _vectorViewBox?: { x: number; y: number; w: number; h: number };
   /** A text node's glyphs outlined to SVG path `d` strings, one per line (baseline
-   *  at y=0, pen at x=0 — HarfBuzz's frame). Set by a shell that can shape text
+   *  at y=0, pen at x=0 - HarfBuzz's frame). Set by a shell that can shape text
    *  (pdf-import's outlineText hook); when present, pdf-svg emits real `<path>`
    *  outlines instead of a font-dependent `<text>`, so the SVG is self-contained
    *  and pixel-faithful without the recipient's fonts. */
@@ -88,7 +88,7 @@ export interface PdfNode {
   /** Enclosing group ids, outermost→innermost (OCG layers / form XObjects / q…Q blocks).
    *  Resolved to the final flat `group` after the walk, then deleted. */
   _groupPath?: string[];
-  /** Active clipping paths (outermost→innermost), baked into box space — the
+  /** Active clipping paths (outermost→innermost), baked into box space - the
    *  `W`/`W*` stack in force when this node painted. Print engines draw soft
    *  shadows as LARGE low-alpha shapes cut down by a clip; ignoring the clip
    *  renders them as giant plates. Serializers intersect these (pdf-svg emits
@@ -99,7 +99,7 @@ export interface PdfNode {
    *  and paints the node with it instead of the flat `fill`/`_vectorFill`. Set
    *  by a shading-pattern (`scn`) fill or the `sh` operator; the geometry stays
    *  in the shading's own coordinate space with `matrix` mapping it to box
-   *  space (so any affine — incl. skew on a radial — is exact). */
+   *  space (so any affine - incl. skew on a radial - is exact). */
   _gradient?: PdfGradient;
   /**
    * The /Luminosity (or /Alpha) soft mask in force when this node painted, already
@@ -108,7 +108,7 @@ export interface PdfNode {
    * box-shadow finally renders: its blur, offset and rounded corners live entirely
    * in the mask (see pdf-smask.ts).
    *
-   * SHARED — the interpreter memoises one object per (mask, CTM) pair and hands the
+   * SHARED - the interpreter memoises one object per (mask, CTM) pair and hands the
    * same reference to every node it covers, so pdf-svg's dedup is a `key` lookup and
    * the per-node cost is one pointer. NEVER mutate it.
    *
@@ -126,7 +126,7 @@ export interface PdfNode {
  * form XObject: a content stream plus resources this interpreter can `run()`.
  * PDF 32000-1 §11.6.5.2.
  *
- * No bytes and no PDF objects cross this boundary — the mask group's own images
+ * No bytes and no PDF objects cross this boundary - the mask group's own images
  * arrive as ordinary `imageKey`s in `resources.xobjects`, and the shell resolves them
  * through the SAME `images` record as any other raster. That keeps the engine
  * platform-agnostic: it never learns that a mask is usually a blurred JPEG.
@@ -135,7 +135,7 @@ export interface PdfSoftMaskDef {
   /** Stable identity: the memoisation key and the `<mask>` dedup key. Shell-assigned
    *  and opaque (one id per distinct mask group in the document). */
   id: string;
-  /** /S. 'Alpha' is emitted as `mask-type="alpha"` and warned — Chromium never uses
+  /** /S. 'Alpha' is emitted as `mask-type="alpha"` and warned - Chromium never uses
    *  it (0 of 136 probed masks), and resvg does not implement it. */
   subtype: 'Luminosity' | 'Alpha';
   /** The /G form XObject's decoded content stream. */
@@ -150,21 +150,21 @@ export interface PdfSoftMaskDef {
    *  non-black backdrop extends to infinity and a userSpaceOnUse `<mask>` cannot
    *  say that. Chromium has never emitted one. */
   backdrop?: number;
-  /** /TR present and not /Identity — a transfer function we cannot express, so the
+  /** /TR present and not /Identity - a transfer function we cannot express, so the
    *  group is refused rather than rendered with the wrong response curve. */
   transfer?: boolean;
 }
 
 /**
  * A soft mask evaluated into box space, ready for serialization. `nodes` are the mask
- * group's own painted nodes (a raster, a gradient rect, or real vector shapes — one
+ * group's own painted nodes (a raster, a gradient rect, or real vector shapes - one
  * code path, because they came out of this same interpreter).
  */
 export interface PdfSoftMask {
   /** Dedup key: the mask's id plus the base transform it was evaluated under. */
   key: string;
   nodes: PdfNode[];
-  /** The mask region (the /BBox's box-space AABB) — `<mask>` userSpaceOnUse geometry. */
+  /** The mask region (the /BBox's box-space AABB) - `<mask>` userSpaceOnUse geometry. */
   x: number; y: number; w: number; h: number;
   subtype: 'Luminosity' | 'Alpha';
 }
@@ -176,19 +176,19 @@ export interface ClipPath { d: string; evenOdd: boolean }
 export interface PdfGradientStop { offset: number; color: string }
 
 /**
- * A normalized shading — the shell resolves the PDF /Function into a pre-sampled
+ * A normalized shading - the shell resolves the PDF /Function into a pre-sampled
  * colour ramp (`stops`), so this pure module never needs the PDF function machinery
  * (and never sees a PostScript program). Coords are in the shading's OWN space
  * (before the CTM / pattern matrix is applied):
  *   • type 1 (function-based): no coords; `domain` is the 2-D rect the function
  *     covers. Chromium prints CSS `oklch()` / `conic-gradient()` / wide-gamut
  *     interpolated gradients this way (a ShadingType 1 over a FunctionType 4
- *     PostScript calculator), NOT as an axial shading — so this rung is the one
+ *     PostScript calculator), NOT as an axial shading - so this rung is the one
  *     the docs-screenshot pipeline actually hits on a colour-heavy page. The shell
  *     classifies each one: constant → `flat` only; near-linear → re-expressed as a
  *     type 2 axial; irreducibly 2-D → `tileKey` + `flat`.
- *   • type 2 (axial):  [x0, y0, x1, y1]        — the gradient axis endpoints
- *   • type 3 (radial): [x0, y0, r0, x1, y1, r1] — start circle → end circle
+ *   • type 2 (axial):  [x0, y0, x1, y1]        - the gradient axis endpoints
+ *   • type 3 (radial): [x0, y0, r0, x1, y1, r1] - start circle → end circle
  */
 export interface PdfShading {
   type: 1 | 2 | 3;
@@ -196,10 +196,10 @@ export interface PdfShading {
   coords: number[];
   /** type 2/3 only. */
   stops: PdfGradientStop[];
-  /** [extendStart, extendEnd] — paint beyond the axis with the end colours. */
+  /** [extendStart, extendEnd] - paint beyond the axis with the end colours. */
   extend: [boolean, boolean];
   /**
-   * The shading dictionary's OWN /Matrix (PDF 32000-1 Table 79) — shading space →
+   * The shading dictionary's OWN /Matrix (PDF 32000-1 Table 79) - shading space →
    * the parent pattern/user space. ShadingType 1 only; type 2/3 have none.
    *
    * Deliberately NOT called `matrix`: `PdfGradient.matrix` is the COMPOSED
@@ -208,11 +208,11 @@ export interface PdfShading {
    * composes this into the box-space matrix at `scn`/`sh` time and never emits it.
    */
   shadingMatrix?: number[];
-  /** ShadingType 1 only: [x0 x1 y0 y1] — the function-based domain rect, in the
+  /** ShadingType 1 only: [x0 x1 y0 y1] - the function-based domain rect, in the
    *  shading's own space (PDF 32000-1 Table 78). */
   domain?: [number, number, number, number];
   /** ShadingType 1 only: an OPAQUE key the serializer resolves through
-   *  `PdfSvgOptions.images` — identical in kind to `PdfNode._imageXObject`. The
+   *  `PdfSvgOptions.images` - identical in kind to `PdfNode._imageXObject`. The
    *  engine never learns that it denotes pixels; a shell that can't rasterise
    *  simply doesn't register one and the node paints `flat` instead. */
   tileKey?: string;
@@ -223,7 +223,7 @@ export interface PdfShading {
   flat?: string;
 }
 
-/** A PatternType 1 (tiling) pattern body — PDF 32000-1 §8.7.3.1. The shell decodes
+/** A PatternType 1 (tiling) pattern body - PDF 32000-1 §8.7.3.1. The shell decodes
  *  the stream and extracts the pattern's own resources; the interpreter executes
  *  the content to find out what the tile actually paints (see the collapse pre-pass
  *  in `scn`). */
@@ -234,7 +234,7 @@ export interface PdfTiling {
   resources: PdfResources;
   /** /BBox [x0 y0 x1 y1] in pattern space. */
   bbox: [number, number, number, number];
-  /** /XStep, /YStep — the tile spacing in pattern space. */
+  /** /XStep, /YStep - the tile spacing in pattern space. */
   xStep: number;
   yStep: number;
   /** /PaintType: 1 = coloured (the tile carries its own colours), 2 = uncoloured
@@ -253,7 +253,7 @@ export interface PdfPattern {
    * A flat colour the shell already resolved for this pattern (a constant
    * function-based shading, or the mean of one it could not reproduce exactly).
    * Set ALONGSIDE `shading` too, as the back-stop for a paint the serializer
-   * ultimately refuses — an unemittable gradient must degrade to a colour, not to
+   * ultimately refuses - an unemittable gradient must degrade to a colour, not to
    * a hole. That hole is precisely how 76 filled elements became a white ghost
    * page on the Brand Studio colours tab.
    */
@@ -262,7 +262,7 @@ export interface PdfPattern {
   tiling?: PdfTiling;
 }
 
-/** A shading resolved into box space for emission — the shading's coords plus a
+/** A shading resolved into box space for emission - the shading's coords plus a
  *  box-space transform matrix (shading space → box space). */
 export interface PdfGradient extends PdfShading {
   matrix: [number, number, number, number, number, number];
@@ -275,7 +275,7 @@ export type FontDecoder = (codes: number[]) => string;
  * A Type3 font: glyphs are per-character PDF content streams (vector drawing
  * procedures), not an embedded outline font. Chromium's printToPDF emits app text
  * this way, so executing the CharProcs is how a screenshot's text becomes real
- * `<path>` outlines of the EXACT glyphs it rendered — no font resolution, any face.
+ * `<path>` outlines of the EXACT glyphs it rendered - no font resolution, any face.
  */
 export interface Type3Font {
   /** Glyph space → text space, [a b c d e f] (typically [0.001 0 0 ±0.001 0 0]). */
@@ -286,7 +286,7 @@ export interface Type3Font {
   encoding: Record<number, string>;
   /** Byte code → advance width, in glyph space (scaled by fontMatrix). */
   widths: Record<number, number>;
-  /** The font's own resources — CharProcs run against these. */
+  /** The font's own resources - CharProcs run against these. */
   resources: PdfResources;
 }
 
@@ -295,12 +295,12 @@ export interface PdfFontInfo {
   decode?: FontDecoder;
   /** Composite / Type0 (CID) fonts use 2-byte codes; simple fonts are 1 byte. */
   twoByte?: boolean;
-  /** Family name (remapped onto the target tool's font vocabulary — see
+  /** Family name (remapped onto the target tool's font vocabulary - see
    *  design-map.ts `mapFontFamily`/`DesignMapOptions`). */
   family?: string;
   /** A weight hint parsed from the font descriptor / name. */
   weight?: number | string;
-  /** Present for Type3 fonts — text is drawn by executing these glyph procedures
+  /** Present for Type3 fonts - text is drawn by executing these glyph procedures
    *  instead of emitting a font-dependent `<text>`. */
   type3?: Type3Font;
 }
@@ -350,8 +350,8 @@ export interface PdfPageInput extends PdfResources {
   originX?: number;
   originY?: number;
   /**
-   * Report a paint the interpreter had to approximate or drop. A PURE callback —
-   * no I/O, no formatting decisions — so this module stays platform-free; the
+   * Report a paint the interpreter had to approximate or drop. A PURE callback -
+   * no I/O, no formatting decisions - so this module stays platform-free; the
    * shell turns `(code, detail)` into a human string. `code` is a stable dotted
    * slug so a caller can tally categories (`pattern.tiling.collapsed`,
    * `pattern.unsupported`, …). Every silent drop in here is a pixel that goes
@@ -404,7 +404,7 @@ type Tok =
   /**
    * An inline `<<…>>` property dictionary operand (the BDC property list).
    *
-   * Only `/MCID` is lifted out — that is the one key this interpreter needs, and
+   * Only `/MCID` is lifted out - that is the one key this interpreter needs, and
    * parsing the rest would mean a second PDF object parser inside the tokenizer.
    * It MUST be its own token type: while it was reported as `{t:'op'}` it fell
    * through the operator switch to `default`, which calls `reset()` and wiped
@@ -419,7 +419,7 @@ const DELIM = new Set('()<>[]{}/%'.split('').map((c) => c.charCodeAt(0)));
 
 /**
  * Tokenize a content stream. Operates on Latin-1 char codes so binary string bytes
- * survive. Inline images (BI … ID … EI) are skipped wholesale — their binary payload
+ * survive. Inline images (BI … ID … EI) are skipped wholesale - their binary payload
  * isn't token-structured and we don't import them.
  */
 function tokenize(src: string): Tok[] {
@@ -517,7 +517,7 @@ function tokenize(src: string): Tok[] {
         let par = 0;
         while (i < n) {
           const d = code(i);
-          if (d === 0x5c) { i += 2; continue; }          // escape — skip the pair
+          if (d === 0x5c) { i += 2; continue; }          // escape - skip the pair
           if (d === 0x28) par++;
           else if (d === 0x29) { par--; if (par === 0) { i++; break; } }
           i++;
@@ -529,7 +529,7 @@ function tokenize(src: string): Tok[] {
       // the first '>', so consuming it here keeps it out of the depth count.
       if (c === 0x3c) { while (i < n && code(i) !== 0x3e) i++; i++; continue; }
       if (c === 0x3e && code(i + 1) === 0x3e) { depth--; i += 2; if (depth <= 0) break; continue; }
-      // /MCID <int> — the only key we lift out.
+      // /MCID <int> - the only key we lift out.
       if (c === 0x2f) {
         const start = i;
         const key = readName();
@@ -539,7 +539,7 @@ function tokenize(src: string): Tok[] {
           while (i < n && !WS.has(code(i)) && !DELIM.has(code(i))) i++;
           const v = parseInt(src.slice(numStart, i), 10);
           if (isFinite(v)) mcid = v;
-        } else if (i === start) i++;   // readName made no progress — never spin
+        } else if (i === start) i++;   // readName made no progress - never spin
         continue;
       }
       i++;
@@ -624,22 +624,22 @@ interface GState {
   fillAlpha: number;
   strokeAlpha: number;
   /**
-   * The soft mask in force, WITH the CTM at the `gs` that installed it — a mask
+   * The soft mask in force, WITH the CTM at the `gs` that installed it - a mask
    * group is evaluated in the coordinate system in effect when the ExtGState was
    * applied (§11.6.5.2; what pdf.js and poppler both do). Probed and confirmed on
    * Chromium print output: the mask /BBox under that CTM is identical to the masked
    * fill's own `re` rect.
    *
-   * IMMUTABLE — cloneState shares the reference, so `gs` must REPLACE it, never
+   * IMMUTABLE - cloneState shares the reference, so `gs` must REPLACE it, never
    * mutate it.
    */
   softMask: { def: PdfSoftMaskDef; ctm: Mat } | null;
   /** A mask is in force but its group was not supplied (legacy `smask: true`), so
-   *  there is nothing to evaluate — the last-resort rung. */
+   *  there is nothing to evaluate - the last-resort rung. */
   softMaskOpaque: boolean;
   lineWidth: number;
   /** PDF `J` line cap (0 butt, 1 round, 2 square) and `j` line join (0 miter,
-   *  1 round, 2 bevel) — §8.4.3.3-4. Unread until now, so every stroke fell back to
+   *  1 round, 2 bevel) - §8.4.3.3-4. Unread until now, so every stroke fell back to
    *  SVG's defaults, butt + miter. Chromium prints an icon's
    *  `stroke-linecap:round; stroke-linejoin:round` as `1 J 1 j`, so outline icons
    *  came out with clipped ends and spiked corners: thin, pale, and for the
@@ -649,7 +649,7 @@ interface GState {
   font: string;
   fontSize: number;
   leading: number;
-  /** Active clip stack. COPY-ON-WRITE — cloneState shares the array, so append
+  /** Active clip stack. COPY-ON-WRITE - cloneState shares the array, so append
    *  via `s.clips = [...s.clips, c]`, never mutate in place. */
   clips: ClipPath[];
   /** A pending gradient fill (a shading-pattern selected via `scn`), already
@@ -658,7 +658,7 @@ interface GState {
   /** Raster tile nodes selected by `scn`, waiting for the path that will clip them.
    *  A pattern paints only where the PATH is; emitting the tile at its own bbox
    *  paints the whole cell. Chromium's pasteboard checkerboard is a page-sized
-   *  cell, so that covered the entire page — sidebar included — instead of the
+   *  cell, so that covered the entire page - sidebar included - instead of the
    *  canvas rect that selected it. */
   fillTileNodes: PdfNode[] | null;
   /**
@@ -674,14 +674,14 @@ interface GState {
    * An extra fill-alpha multiplier adopted from a collapsed tiling pattern; 1 when
    * there is none. A tile paints with its OWN graphics state, so its alpha (an /ca, or
    * a soft mask that folded to a constant) ends up on the node the pre-pass produced,
-   * not on ours — adopting the tile's colour and dropping its alpha would paint a
+   * not on ours - adopting the tile's colour and dropping its alpha would paint a
    * translucent wash at full strength. Kept separate from `fillAlpha` so it cannot
    * leak onto a later plain-colour fill in the same q…Q block; cleared with
    * `fillGradient`.
    */
   fillScale: number;
   /**
-   * A stroke pattern (`SC`/`SCN` with a name) this interpreter cannot reproduce —
+   * A stroke pattern (`SC`/`SCN` with a name) this interpreter cannot reproduce -
    * the pattern's name, or '' when there is none. NOT warned at selection time:
    * Chromium sets stroke AND fill to the same pattern in one breath and then only
    * ever fills, so warning at `SCN` fired 78 times across the audit fixtures with a
@@ -695,10 +695,10 @@ interface GState {
 function cloneState(s: GState): GState { return { ...s }; }
 
 /**
- * The subset of the graphics state a nested `run()` INHERITS — PDF 32000-1 §8.10.1:
+ * The subset of the graphics state a nested `run()` INHERITS - PDF 32000-1 §8.10.1:
  * "the form XObject's content stream shall be executed with the current graphics
  * state". Passing only the CTM and the clip (what this interpreter did before) meant
- * `q /GS0 gs /Fm0 Do Q` — the canonical Illustrator/InDesign soft-mask idiom — painted
+ * `q /GS0 gs /Fm0 Do Q` - the canonical Illustrator/InDesign soft-mask idiom - painted
  * the form's contents at full opacity and unmasked, silently.
  *
  * The TEXT state (font name / size / leading) is deliberately NOT inherited: a font is
@@ -710,7 +710,7 @@ type InheritedGState = Pick<GState,
   'fill' | 'stroke' | 'fillAlpha' | 'strokeAlpha' | 'softMask' | 'softMaskOpaque'
   | 'lineWidth' | 'lineCap' | 'lineJoin' | 'fillGradient' | 'fillMask' | 'fillScale' | 'strokePatternUnsupported' | 'fillTileNodes'>;
 
-/** A gradient selected as the current fill — the shading plus its box-space matrix
+/** A gradient selected as the current fill - the shading plus its box-space matrix
  *  (which ALREADY has the shading's own /Matrix composed in, see `scn`/`sh`). */
 interface FillGradient extends PdfShading { mat: Mat; }
 /** Snapshot a live fill gradient onto a node (matrix as a plain array). `shadingMatrix`
@@ -726,7 +726,7 @@ function nodeGradient(g: FillGradient): PdfGradient {
     ...(g.flat ? { flat: g.flat } : {}),
   };
 }
-/** The inverse of `nodeGradient` — re-adopt a node's already-box-space gradient as
+/** The inverse of `nodeGradient` - re-adopt a node's already-box-space gradient as
  *  the live fill (the tiling-pattern collapse pre-pass). */
 function adoptGradient(g: PdfGradient): FillGradient {
   return {
@@ -742,8 +742,8 @@ function adoptGradient(g: PdfGradient): FillGradient {
  *  tiling-pattern collapse pre-pass gets a small private one so a hostile PDF full
  *  of patterns can't spend the page's whole node budget off-screen.
  *
- *  EVERY nested `run` — form XObjects, Type3 glyph procedures, the collapse
- *  pre-pass — must forward the sink it was given. A nested run that fell back to
+ *  EVERY nested `run` - form XObjects, Type3 glyph procedures, the collapse
+ *  pre-pass - must forward the sink it was given. A nested run that fell back to
  *  the page sink would paint a pattern tile's contents straight onto the page, in
  *  pattern-space coordinates. */
 interface Sink { nodes: PdfNode[]; count: number; max: number; }
@@ -755,7 +755,7 @@ interface Sink { nodes: PdfNode[]; count: number; max: number; }
 interface Seg { op: 'm' | 'l' | 'c' | 'h'; pts: number[]; }
 
 /**
- * The outcome of evaluating one ExtGState /SMask group — the fidelity ladder, as a
+ * The outcome of evaluating one ExtGState /SMask group - the fidelity ladder, as a
  * type. `null` (not a member here) is the refusal: the caller then falls back to the
  * pre-mask behaviour.
  *   • 'mask'     → a real `<mask>` (raster / gradient / vector, one code path)
@@ -800,20 +800,20 @@ export function interpretPdfPage(page: PdfPageInput): PdfNode[] {
   const collapseCache = new Map<string, PdfNode[]>();
   /**
    * Bumped every time a paint happened while a soft mask was in force that we could
-   * NOT evaluate — so what reached the sink is the UNMASKED shape (or was dropped).
+   * NOT evaluate - so what reached the sink is the UNMASKED shape (or was dropped).
    * A tiling pattern that paints a box-shadow installs its mask INSIDE its own
    * content stream (`/G8 gs` then fill-with-pattern), so the outer graphics state is
    * clean when `scn` selects it; watching this counter across the sub-run is the only
    * way for the collapse pre-pass to know whether the tile it just interpreted is
    * trustworthy. When the mask WAS evaluated the tile's nodes already carry it, and
-   * the collapse can proceed normally — which is what recovers a CSS gradient that
+   * the collapse can proceed normally - which is what recovers a CSS gradient that
    * carries alpha.
    */
   let softMaskUnresolved = 0;
   const inFlight = new Set<string>();
 
   // ── soft-mask evaluation budgets (untrusted input) ─────────────────────────
-  // A mask group is a raster, a gradient rect or a small shape — never a page. 64
+  // A mask group is a raster, a gradient rect or a small shape - never a page. 64
   // nodes is generous for every real case and bounds both the work and the emitted
   // markup. `maskBudget` bounds the number of DISTINCT (mask, CTM) evaluations a
   // page may spend; `maskInFlight` breaks a self-referential group (its content
@@ -822,7 +822,7 @@ export function interpretPdfPage(page: PdfPageInput): PdfNode[] {
   // inside a mask: §11.6.5.2 turns soft masks OFF inside a mask group anyway, and
   // this makes that structural rather than a matter of trusting the seed state.
   //
-  // The old budget was a flat 96 evaluations, which is really "96 shadows per page" —
+  // The old budget was a flat 96 evaluations, which is really "96 shadows per page" -
   // a cliff an ordinary Illustrator page clears easily, and past it EVERY remaining
   // mask silently degrades to the grey-plate heuristic. Two changes: the count rises
   // to 256, and the real bound moves to the thing that actually costs (total mask
@@ -866,7 +866,7 @@ export function interpretPdfPage(page: PdfPageInput): PdfNode[] {
     // the inherited fill when non-empty: it is the uncoloured-pattern (PaintType 2)
     // tint, which overrides colour operators outright.
     // Mask groups and the tiling-pattern collapse pre-pass pass no `inherit` on
-    // purpose — §11.6.5.2 turns soft masks and alpha OFF inside a mask group, and a
+    // purpose - §11.6.5.2 turns soft masks and alpha OFF inside a mask group, and a
     // tile paints with its own state.
     let s: GState = inherit
       ? {
@@ -904,7 +904,7 @@ export function interpretPdfPage(page: PdfPageInput): PdfNode[] {
     /**
      * Marked-content ids currently open, innermost last. A tagged PDF wraps each
      * logical run in `/P <</MCID n>> BDC … EMC`, and that n is the only link
-     * between painted content and the document's structure tree — which is what
+     * between painted content and the document's structure tree - which is what
      * states the true READING ORDER, as opposed to the order things happen to sit
      * on the page. Parallel to `gstack` rather than merged into it because a
      * group is about visual nesting and an MCID is about document structure; the
@@ -924,7 +924,7 @@ export function interpretPdfPage(page: PdfPageInput): PdfNode[] {
     let origin = { x: 0, y: 0 };
     let textSize = 0, textRot = 0, textFill = '', textFont = '';
     let lastLineY = 0;
-    /** Device-space x of the CURRENT LINE'S START — a next-line move is only a
+    /** Device-space x of the CURRENT LINE'S START - a next-line move is only a
      *  line break in this node when it returns close to it. */
     let lastLineX = 0;
     /** Accumulated real leading (as a multiple of the font size) across the
@@ -934,7 +934,7 @@ export function interpretPdfPage(page: PdfPageInput): PdfNode[] {
     /**
      * The fill alpha and the soft-mask decision captured AT THE RUN'S ORIGIN, not at
      * `ET`. A BT…ET block can change `gs` between shows, and the node carries a single
-     * alpha/mask — so the state that painted the first glyph is the one that describes
+     * alpha/mask - so the state that painted the first glyph is the one that describes
      * the run. `textMask === null` means the run is fully masked out and must not paint.
      * Text used to record neither: every muted or secondary label imported at full
      * strength (reads as "wrong colour", not "slightly off"), and masked type painted
@@ -991,11 +991,11 @@ export function interpretPdfPage(page: PdfPageInput): PdfNode[] {
         leadSum = 0; leadCount = 0;
       } else if (!textBuf) {
         // Nothing SHOWN yet in this run, so this move is pen positioning, not
-        // layout — re-latch the origin at the new position. The origin must
+        // layout - re-latch the origin at the new position. The origin must
         // belong to where glyphs are shown, not to the first positioning op:
         // Chromium prints every word as `1 0 0 -1 0 0 Tm` (a flip set-up at the
         // line box's top-left) followed by `x -leading Td` to the true glyph
-        // origin, and treating that Td as a line MOVE kept the stale Tm origin —
+        // origin, and treating that Td as a line MOVE kept the stale Tm origin -
         // every line-start word painted one leading too high, at x=0 of its
         // block, colliding with the next word's identically stale origin.
         originSet = false;
@@ -1005,7 +1005,7 @@ export function interpretPdfPage(page: PdfPageInput): PdfNode[] {
         // One BT…ET block is NOT always one visual run: producers that write a
         // whole frame/column set in a single block (Penpot exports, TeX, many
         // office printers) move the pen with Tm/Td between logically separate
-        // runs. Only two moves continue THIS node — anything else (an upward
+        // runs. Only two moves continue THIS node - anything else (an upward
         // move, a column-sized x jump, a leading the serializer's line model
         // cannot reproduce) flushes and starts a fresh node at the true origin,
         // so every run keeps its real position instead of being re-typeset on a
@@ -1027,7 +1027,7 @@ export function interpretPdfPage(page: PdfPageInput): PdfNode[] {
     };
 
     // Type3: draw each code's glyph procedure at the pen (the live text matrix
-    // `tm`), then advance `tm` by the glyph width — so subsequent shows continue
+    // `tm`), then advance `tm` by the glyph width - so subsequent shows continue
     // from the right place. The glyph's fills inherit the text fill colour (d1
     // glyphs are uncoloured). `tm` doubles as the pen: a following Td/Tm resets it.
     const drawType3 = (codes: number[], t3: Type3Font): void => {
@@ -1042,7 +1042,7 @@ export function interpretPdfPage(page: PdfPageInput): PdfNode[] {
           const glyphCtm = matMul(matMul(matMul(s.ctm, tm), scale), fmMat);
           // §9.6.5: a glyph procedure executes in the graphics state in effect, so it
           // inherits alpha and the soft mask, not just the fill colour it always had.
-          // `glyphRun` keeps it out of the box-shadow-plate rung — glyph outlines are
+          // `glyphRun` keeps it out of the box-shadow-plate rung - glyph outlines are
           // never a print engine's shadow plate, and dropping them loses the TEXT.
           run(proc, t3.resources, glyphCtm, depth + 1, [...gpath(), gid], s.clips, s.fill, sink, s, true);
         }
@@ -1095,7 +1095,7 @@ export function interpretPdfPage(page: PdfPageInput): PdfNode[] {
       if (originSet && txt.trim() && sink.count < sink.max && textMask) {
         const size = Math.max(1, textSize);
         // The document's real leading (average of the moves merged as '\n'),
-        // as a multiple of the font size — pdf-svg's line placement reads it
+        // as a multiple of the font size - pdf-svg's line placement reads it
         // so merged lines land on the true baselines, not a synthetic grid.
         const lead = leadCount ? Math.round((leadSum / leadCount) * 1000) / 1000 : 0;
         sink.nodes.push({
@@ -1135,20 +1135,20 @@ export function interpretPdfPage(page: PdfPageInput): PdfNode[] {
      *     print engine's box-shadow plate, and an opaque grey plate behind every
      *     rounded control is worse than the shadow simply being absent. A raster or a
      *     gradient is never a shadow plate, so those keep the pre-mask paint instead
-     *     of losing the picture — and neither is a Type3 GLYPH outline, which is why
+     *     of losing the picture - and neither is a Type3 GLYPH outline, which is why
      *     `glyphRun` opts out too: dropping those loses the page's words.
      *   Text runs ask as 'raw' (see flushText): a label is not a shadow plate either,
      *     and a mask adopted by a path fill is not the text's.
      *
      * This is the placeholder heuristic from before mask groups could be read, and it
-     * is DELIBERATELY RETAINED — demoted from "the answer" to the bottom rung. On
+     * is DELIBERATELY RETAINED - demoted from "the answer" to the bottom rung. On
      * Chromium print output it now fires zero times across all five audit fixtures
      * (`smask.shadow.skipped` went 86 → 0). What still depends on it is every OTHER
      * producer's masks, i.e. the user-uploaded `.pdf` / `.ai` half of this path:
      * a group with a /TR transfer function or a non-black /BC, a page past the
      * mask budget, a group that paints 64+ nodes, a mask nested inside a mask, a
      * degenerate /BBox, and a group the shell could not decode at all (`smask: true`).
-     * In every one of those the alternative is not "the real shadow" — it is the grey
+     * In every one of those the alternative is not "the real shadow" - it is the grey
      * plate. Delete this and those files regress; the honest fix is to shrink the
      * refusal set, not to remove the fallback.
      */
@@ -1178,8 +1178,8 @@ export function interpretPdfPage(page: PdfPageInput): PdfNode[] {
 
     const paintPath = (mode: 'fill' | 'stroke' | 'both', evenOdd = false): void => {
       if (!segs.length || sink.count >= sink.max) { segs = []; return; }
-      // A stroke pattern we could not reproduce is only worth reporting HERE — at a
-      // real stroke — not at the `SCN` that selected it. Cleared once reported so a
+      // A stroke pattern we could not reproduce is only worth reporting HERE - at a
+      // real stroke - not at the `SCN` that selected it. Cleared once reported so a
       // hostile stream of thousands of strokes cannot flood the census.
       if (mode !== 'fill' && s.strokePatternUnsupported) {
         onWarn('pattern.unsupported', s.strokePatternUnsupported);
@@ -1222,7 +1222,7 @@ export function interpretPdfPage(page: PdfPageInput): PdfNode[] {
       // The rect/ellipse fast paths only apply to a SINGLE subpath: a multi-
       // subpath fill (e.g. a shadow ring = outer + inner circle under even-odd)
       // must stay a real path or the inner subpath's hole is lost. A gradient
-      // fill (empty `fill`, `_gradient` set) still takes them — a hero gradient
+      // fill (empty `fill`, `_gradient` set) still takes them - a hero gradient
       // is almost always a plain rect.
       const subpaths = segs.reduce((c2, sg) => c2 + (sg.op === 'm' ? 1 : 0), 0);
       if ((fillCol || grad) && mode !== 'stroke' && subpaths === 1) {
@@ -1242,10 +1242,10 @@ export function interpretPdfPage(page: PdfPageInput): PdfNode[] {
 
       const baked = serializePath(segs);
       // A stroked straight line is degenerate in one axis but its stroke width
-      // gives it real area — floor its box at 1 so it isn't dropped (icon glyphs
+      // gives it real area - floor its box at 1 so it isn't dropped (icon glyphs
       // print as individual `m l S` segments). A FILL only needs positive extent:
       // a thin glyph stem (an 'i', an 'l' at a small size) is ~0.5px wide, so a
-      // 1px floor would drop it — Type3 text is filled glyphs, so admit anything
+      // 1px floor would drop it - Type3 text is filled glyphs, so admit anything
       // with real area and reject only sub-pixel noise.
       const bw = strokeCol ? Math.max(baked.w, 1) : baked.w;
       const bh = strokeCol ? Math.max(baked.h, 1) : baked.h;
@@ -1274,10 +1274,10 @@ export function interpretPdfPage(page: PdfPageInput): PdfNode[] {
     };
 
     /**
-     * PatternType 1 (tiling) collapse pre-pass — PDF 32000-1 §8.7.3.
+     * PatternType 1 (tiling) collapse pre-pass - PDF 32000-1 §8.7.3.
      *
      * Chromium prints an out-of-sRGB CSS colour (`oklch()`, a wide-gamut gradient)
-     * as a tiling pattern whose ENTIRE body is `/Pn scn <bbox> re f*` — a tile that
+     * as a tiling pattern whose ENTIRE body is `/Pn scn <bbox> re f*` - a tile that
      * does nothing but fill its own bbox with ANOTHER pattern. Rather than
      * pattern-match that against Chromium's current emitter, RE-INTERPRET the tile
      * with this same interpreter and look at what came out:
@@ -1295,12 +1295,12 @@ export function interpretPdfPage(page: PdfPageInput): PdfNode[] {
       // NB no soft-mask guard here any more. A mask on the OUTER graphics state is
       // applied by paintPath when the selecting path actually paints, and a mask the
       // TILE installs inside its own content stream is applied per-node by the
-      // sub-run's own paintPath — so a mask we can evaluate no longer forces this
+      // sub-run's own paintPath - so a mask we can evaluate no longer forces this
       // pre-pass to decline. The `softMaskUnresolved` check after the sub-run is what
       // still declines the cases we cannot read (see below).
       //
       // Pattern space maps to the parent content stream's default space, so the
-      // tile runs under baseCtm ∘ /Matrix — not the live CTM.
+      // tile runs under baseCtm ∘ /Matrix - not the live CTM.
       // Selecting a pattern replaces the fill outright, so any mask a PREVIOUS fill
       // had adopted from an earlier collapse is stale from here on.
       s.fillMask = null; s.fillScale = 1;
@@ -1325,7 +1325,7 @@ export function interpretPdfPage(page: PdfPageInput): PdfNode[] {
         // The tile installed a soft mask whose group could NOT be evaluated, so what
         // the sub-run emitted is the UNMASKED shape (or nothing). Flattening that
         // paints an opaque plate the size of the element's box behind every rounded
-        // control — visibly worse than the shadow being absent. Decline, exactly as
+        // control - visibly worse than the shadow being absent. Decline, exactly as
         // before mask groups could be read. When the mask WAS evaluated the nodes
         // carry it and the collapse proceeds normally.
         if (softMaskUnresolved > unresolvedBefore) {
@@ -1345,7 +1345,7 @@ export function interpretPdfPage(page: PdfPageInput): PdfNode[] {
       // A tile whose content is a RASTER is the other way Chromium prints a
       // box-shadow: it renders the blurred shadow to an image XObject and fills
       // the element's box with a one-cell pattern containing it (BBox 279x110,
-      // XStep 281 — a step wider than the cell, so it never actually repeats).
+      // XStep 281 - a step wider than the cell, so it never actually repeats).
       // An image has no meaningful flat colour: `nodeFlat` reads none and the
       // mean-colour rung paints the tile's whole rectangle in one opaque grey,
       // which is the hard plate that shows up behind every rounded, shadowed
@@ -1354,7 +1354,7 @@ export function interpretPdfPage(page: PdfPageInput): PdfNode[] {
       // the better of the two wrong answers.
       // So EMIT the tile instead of flattening it. Its nodes were produced by
       // running the tile's own content under `base` (= baseCtm ∘ /Matrix), so
-      // they are already in box space and correctly placed — they can go
+      // they are already in box space and correctly placed - they can go
       // straight into the sink, and the path that selected this pattern then
       // paints nothing. This is what recovers the brand palette's swatches, the
       // L/C/H slider tracks and the primary-colour bar (Chromium rasterises
@@ -1365,9 +1365,9 @@ export function interpretPdfPage(page: PdfPageInput): PdfNode[] {
       // as the cell means one cell covers the fill, which is the shape Chromium
       // emits here (BBox 34x34, XStep 36). A genuinely repeating raster tile
       // would need the fill path's extent to know how many cells to lay down,
-      // and that is not known until the path is painted — so it keeps the old
+      // and that is not known until the path is painted - so it keeps the old
       // flatten-or-average behaviour below.
-      // NB `kind: 'image'` alone does NOT mean raster — it is this interpreter's
+      // NB `kind: 'image'` alone does NOT mean raster - it is this interpreter's
       // generic drawn-node carrier, and a vector path arrives as an 'image' node
       // with `_vectorPath` set. A real raster is the one with an `_imageXObject`
       // key for the shell to resolve. Testing `kind` alone silently swallowed
@@ -1382,7 +1382,7 @@ export function interpretPdfPage(page: PdfPageInput): PdfNode[] {
           && tl.yStep >= (tl.bbox[3] - tl.bbox[1]) - 0.5;
         if (allRaster && noRepeat && sink.count + out.length <= sink.max) {
           // The tile's nodes are emitted INSTEAD of the selecting path's paint, so
-          // they — not that path — are what a mask on the outer graphics state has to
+          // they - not that path - are what a mask on the outer graphics state has to
           // apply to. A node the tile already masked keeps its own mask (SVG could
           // nest two `<g mask>` wraps, but the tile's mask is the shape and the outer
           // one is then almost always the same shadow group, so nesting would double
@@ -1403,7 +1403,7 @@ export function interpretPdfPage(page: PdfPageInput): PdfNode[] {
             if (mp.scale < 1) c.opacity = clamp(Math.round((typeof c.opacity === 'number' ? c.opacity : 100) * mp.scale), 0, 100);
             return c;
           });
-          // NB: no `fillTileNodes = null` here — that is the one we just set.
+          // NB: no `fillTileNodes = null` here - that is the one we just set.
           s.fill = ''; s.fillGradient = null; s.fillMask = null; s.fillScale = 1;
           onWarn('pattern.tiling.raster.emitted', name);
           return;
@@ -1452,7 +1452,7 @@ export function interpretPdfPage(page: PdfPageInput): PdfNode[] {
       if (pat.shading) {
         const sh = pat.shading;
         // Pattern /Matrix maps pattern space to the parent content stream's default
-        // space (§8.7.3.1) — hence baseCtm, not s.ctm. The shading dict's OWN
+        // space (§8.7.3.1) - hence baseCtm, not s.ctm. The shading dict's OWN
         // /Matrix (Table 79) composes inside that; baking it into the coords instead
         // would be exact only for a similarity transform and silently wrong on skew.
         const mat = matMul(matMul(baseCtm, patMat),
@@ -1487,7 +1487,7 @@ export function interpretPdfPage(page: PdfPageInput): PdfNode[] {
           if (g) {
             if (typeof g.ca === 'number') s.fillAlpha = g.ca;
             if (typeof g.CA === 'number') s.strokeAlpha = g.CA;
-            // Only touch the mask if this ExtGState actually names /SMask — see the
+            // Only touch the mask if this ExtGState actually names /SMask - see the
             // four-state note on PdfResources.extgstates. A pre-decoded group is
             // captured together with the CTM in force RIGHT NOW, because that is the
             // space the group's own content executes in (§11.6.5.2).
@@ -1508,7 +1508,7 @@ export function interpretPdfPage(page: PdfPageInput): PdfNode[] {
         // sc/scn: numeric operands → a real colour; a pattern NAME → `applyPattern`
         // (see its comment for the fidelity ladder). A name we have NO pattern
         // resource for still CLEARS the paint rather than letting it inherit the
-        // previous fill, since a stale colour (often black) would flood the shape —
+        // previous fill, since a stale colour (often black) would flood the shape -
         // the original anti-stale-black safety valve, now the rare case rather than
         // the common one. An uncoloured pattern (PaintType 2) carries its tint in
         // the numeric operands, which scColor resolves.
@@ -1525,7 +1525,7 @@ export function interpretPdfPage(page: PdfPageInput): PdfNode[] {
         }
         // Stroke patterns: there is no stroke-gradient support in this interpreter
         // at all, so the best available answer is the pattern's flat back-stop.
-        // A pattern with no back-stop is NOT reported here — see
+        // A pattern with no back-stop is NOT reported here - see
         // GState.strokePatternUnsupported; the report moves to the paint site so the
         // 78 benign Chromium "set stroke to the fill's pattern, then only fill"
         // selections stop burying real signal in the warning census.
@@ -1541,7 +1541,7 @@ export function interpretPdfPage(page: PdfPageInput): PdfNode[] {
         case 'cs': case 'CS': break;
 
         // `sh` paints a shading across the current clip. We only emit it when a clip
-        // is in force (the normal case — Chromium clips a gradient to its element
+        // is in force (the normal case - Chromium clips a gradient to its element
         // box): a page-sized gradient rect cropped by the clip. Unclipped `sh` is
         // rare and can't be bounded here (extend:false paints only the axis extent,
         // not the page), so it's skipped rather than risk flooding the page.
@@ -1589,7 +1589,7 @@ export function interpretPdfPage(page: PdfPageInput): PdfNode[] {
 
         // A pending W/W* applies at the path's terminating operator. Applying it
         // just BEFORE the paint deviates from the spec by one op (the painted
-        // path self-clips — a no-op, a path clipped by itself is itself) and
+        // path self-clips - a no-op, a path clipped by itself is itself) and
         // keeps the common `re W n` clip-only sequence exact.
         case 'f': case 'F': applyPendingClip(); paintPath('fill'); break;
         case 'f*': applyPendingClip(); paintPath('fill', true); break;
@@ -1635,16 +1635,16 @@ export function interpretPdfPage(page: PdfPageInput): PdfNode[] {
           } else if (xo && xo.kind === 'form') {
             const fm = (xo.matrix && xo.matrix.length >= 6) ? matMul(s.ctm, fromArr(xo.matrix)) : s.ctm;
             // §8.10.1: "the form XObject's content stream shall be executed with the
-            // CURRENT graphics state" — so the form inherits the caller's clip stack
+            // CURRENT graphics state" - so the form inherits the caller's clip stack
             // AND its paint state (fill/stroke colour, ca/CA, line width, and above
             // all the /SMask in force). Seeding a fresh state here made
-            // `q /GS0 gs /Fm0 Do Q` — the Illustrator/InDesign soft-mask idiom —
+            // `q /GS0 gs /Fm0 Do Q` - the Illustrator/InDesign soft-mask idiom -
             // paint the form's contents unmasked at full opacity with no warning.
             // `s` is passed by reference but `run` copies it into its own state
             // object, and `q`/`Q` inside the form use the form's own stack, so
             // nothing the form does can leak back out (§8.10.1 again).
             // Depth alone does not bound fanout: a self-referential form with k `Do`s
-            // costs k^12, and a form that paints nothing never trips the node ceiling —
+            // costs k^12, and a form that paints nothing never trips the node ceiling -
             // measured 9.6 s at fanout 4 from a ~40-byte stream. Stop descending once
             // the sink is full or the token budget is gone.
             if (sink.count < sink.max && tokensSpent < TOKEN_BUDGET) {
@@ -1674,7 +1674,7 @@ export function interpretPdfPage(page: PdfPageInput): PdfNode[] {
   };
 
   /**
-   * Evaluate one ExtGState /SMask group into box-space nodes — PDF 32000-1 §11.6.5.2.
+   * Evaluate one ExtGState /SMask group into box-space nodes - PDF 32000-1 §11.6.5.2.
    *
    * The group is a content stream plus resources, which is precisely what `run()`
    * already consumes, so re-running it through THIS interpreter makes a raster mask,
@@ -1682,7 +1682,7 @@ export function interpretPdfPage(page: PdfPageInput): PdfNode[] {
    * thing measured afterwards is whether the result folds to a constant.
    *
    * Never throws. Every refusal is `onWarn` + `null`, and the caller then falls back
-   * to the behaviour it had before masks could be read — so nothing renders worse at
+   * to the behaviour it had before masks could be read - so nothing renders worse at
    * any rung than it did before. Memoised per (mask id, base transform): a page names
    * the same shadow group dozens of times and one `<mask>` def serves all of them.
    */
@@ -1753,7 +1753,7 @@ export function interpretPdfPage(page: PdfPageInput): PdfNode[] {
         };
         onWarn('smask.group.applied', def.id);
         // /S /Alpha becomes mask-type="alpha", which browsers implement and resvg
-        // does not — worth saying so rather than silently emitting it.
+        // does not - worth saying so rather than silently emitting it.
         if (def.subtype === 'Alpha') onWarn('smask.alpha.approx', def.id);
       }
     }
@@ -1765,7 +1765,7 @@ export function interpretPdfPage(page: PdfPageInput): PdfNode[] {
 
   // Resolve each node's group: the innermost enclosing frame that actually holds ≥2 nodes
   // wins (so a q…Q wrapper around a single item, or a one-object layer, doesn't become a
-  // group), else ungrouped. Flat single id — nested groups collapse to the tightest real one.
+  // group), else ungrouped. Flat single id - nested groups collapse to the tightest real one.
   const counts = new Map<string, number>();
   for (const nd of nodes) for (const id of (nd._groupPath ?? [])) counts.set(id, (counts.get(id) ?? 0) + 1);
   for (const nd of nodes) {
@@ -1805,7 +1805,7 @@ function nodeFlat(n: PdfNode): string {
   return hexRgb(v) ? v : '';
 }
 
-/** Area-weighted (and alpha-weighted) mean of a node set's flat colours — the
+/** Area-weighted (and alpha-weighted) mean of a node set's flat colours - the
  *  tiling-pattern fallback. Naive sRGB averaging: this is a "something visible
  *  rather than nothing" rung, not a colour-management path. */
 function meanNodeColor(list: PdfNode[]): string {
@@ -1912,7 +1912,7 @@ function serializePath(segs: Seg[]): { d: string; x: number; y: number; w: numbe
   // NO unconditional 'Z'. It used to be appended to every path, which is invisible
   // on a FILL (SVG closes subpaths implicitly when filling) but draws a false edge
   // on a STROKE: an open 3-point chevron `M7 8 L3 12 L7 16` became a triangle. That
-  // is every open stroked icon in the app — arrowheads especially, which is how it
+  // is every open stroked icon in the app - arrowheads especially, which is how it
   // was spotted. Closure now comes only from an explicit `h` marker.
   return { d, x: minX, y: minY, w: maxX - minX, h: maxY - minY };
 }
@@ -1921,14 +1921,14 @@ function serializePath(segs: Seg[]): { d: string; x: number; y: number; w: numbe
  * WinAnsiEncoding (CP1252) bytes 0x80–0x9F → their real characters.
  *
  * A simple font with no /ToUnicode falls back to treating each byte as a code
- * point, which is Latin-1 — and Latin-1 is right for EVERY byte except this
+ * point, which is Latin-1 - and Latin-1 is right for EVERY byte except this
  * range, where CP1252 puts printable punctuation and Latin-1 puts C1 control
  * characters. WinAnsiEncoding is the default for non-symbolic simple fonts in
  * practice, so without this table the most ordinary punctuation in English
  * publishing decodes to invisible controls: smart quotes (0x91–0x94), the
  * en/em dash (0x96/0x97), the bullet (0x95) and the ellipsis (0x85).
  *
- * Sparse on purpose — 0x81, 0x8D, 0x8F, 0x90 and 0x9D are unassigned in CP1252,
+ * Sparse on purpose - 0x81, 0x8D, 0x8F, 0x90 and 0x9D are unassigned in CP1252,
  * so those keep the pass-through rather than inventing a character.
  */
 const WIN_ANSI_HIGH: Record<number, string> = {
@@ -1965,7 +1965,7 @@ function hexToUtf16(hex: string): string {
 // Source codes are 1-byte (simple fonts) or 2-byte (Type0/CID), so a single
 // bfrange can never legitimately span more than 0x10000 codes. A hostile CMap
 // (`<00000000> <ffffffff> <0041>`) would otherwise drive an ~4-billion-iteration
-// loop that OOM-crashes the process — never trust the declared span. Ranges
+// loop that OOM-crashes the process - never trust the declared span. Ranges
 // wider than this cap are clamped (the leading, plausibly-real codes still map).
 const MAX_BF_RANGE = 0x10000;
 

@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
- * Minimal XCF byte builder — the fixture source for tests/xcf.test.ts and the
+ * Minimal XCF byte builder - the fixture source for tests/xcf.test.ts and the
  * seed corpus for the `xcf` fuzz target (there is deliberately no engine XCF
  * writer; see engine/src/psd-write.ts's header for the conversion story).
  *
@@ -18,7 +18,7 @@ export interface XcfFixtureLayer {
   name: string;
   width: number;
   height: number;
-  /** RGBA8 w*h*4 — the builder derives the stored planes from this. */
+  /** RGBA8 w*h*4 - the builder derives the stored planes from this. */
   pixels: Uint8Array;
   x?: number;
   y?: number;
@@ -185,7 +185,7 @@ function encodeTile(data: Uint8Array, bpp: number, compression: number): Uint8Ar
 /**
  * Write a hierarchy (+ level + tiles) for a plane source; returns a thunk-based
  * layout: hierarchy is written immediately, tiles appended after the caller's
- * other pointers resolve — here we simply write everything sequentially, which
+ * other pointers resolve - here we simply write everything sequentially, which
  * the reader accepts (pointers are absolute).
  */
 function writeHierarchy(

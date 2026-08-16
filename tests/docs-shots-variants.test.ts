@@ -3,14 +3,14 @@
  * The two variant axes a docs screenshot can have, and the interactions that get it
  * into the state worth photographing.
  *
- *   theme  — `dark=1` ships a second baseline captured with the app pinned dark;
+ *   theme - `dark=1` ships a second baseline captured with the app pinned dark;
  *            /info swaps the two as the reader toggles the site theme.
- *   drive  — `drive=…` performs real clicks/keys/drags before the shot, so a menu,
+ *   drive - `drive=…` performs real clicks/keys/drags before the shot, so a menu,
  *            a popover, a dialog or a drag-in-flight can be documented at all.
  *
  * Both are recipe-authored, so both can rot the same way `format=png` did: silently,
  * by staying true after they stopped being true. These tests pin the parts that
- * would fail quietly — a filename that drops an axis, an expectation set that makes
+ * would fail quietly - a filename that drops an axis, an expectation set that makes
  * `--rebuild` delete every dark baseline, a theme pin that only reaches the OS
  * media query, and a `drive=` typo that would otherwise capture the untouched page.
  */
@@ -56,7 +56,7 @@ test('drive: each step kind parses to the shape the runner executes', () => {
 
 test('drive: a malformed step is reported, never silently dropped', () => {
   // Each of these would otherwise capture the page in its untouched state and
-  // publish a screenshot of the wrong thing — the failure mode worth catching.
+  // publish a screenshot of the wrong thing - the failure mode worth catching.
   for (const bad of ['clik:.tl-onion', 'click:', 'drag:.tl-clip', 'drag:.tl-clip|dx=x', 'wait:soon', 'nonsense']) {
     const { problems } = parseDriveSteps(bad);
     assert.ok(problems.length, `"${bad}" should be reported as a problem`);

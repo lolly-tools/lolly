@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
- * Unit tests for summarizeInputs (engine/src/inputs.ts) — the compact scalar-input
+ * Unit tests for summarizeInputs (engine/src/inputs.ts) - the compact scalar-input
  * digest embedded in export provenance (the C2PA tools.lolly.export assertion).
  * These pin down WHAT is included (short scalars + full text/longtext), what is
  * deliberately dropped (uploads, groups, profile PII, empties), and the shape
@@ -53,7 +53,7 @@ test('records text AND longtext in full — the exact rendered copy is a tamper 
     item({ id: 'headline', type: 'text', value: 'Summer Sale' }),
     item({ id: 'bio', type: 'longtext', value: body }),
   ]);
-  // Neither truncated to the short-scalar sample — the full copy rides along.
+  // Neither truncated to the short-scalar sample - the full copy rides along.
   assert.equal(out.headline, 'Summer Sale');
   assert.equal(out.bio, body);
 });

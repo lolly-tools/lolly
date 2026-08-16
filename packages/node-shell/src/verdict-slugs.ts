@@ -1,16 +1,16 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
- * The verdict SLUG + headline for each engine-resolved C2PA state.
+ * The verdict slug and headline for each engine-resolved C2PA state.
  *
  * The engine owns the ladder (`resolveVerdict`, engine/src/c2pa-verdict.ts): it decides
- * WHICH state a file is in. This owns the wording every machine surface reports that
- * state as — the stable slug a script branches on, and the one-line headline.
+ * which state a file is in. This module owns the wording every machine surface uses to
+ * report that state: the stable slug a script branches on, and the one-line headline.
  *
  * It lives here, in the shared Node package, because the CLI's `validate --json` and
- * the MCP `verify_file` tool answer the SAME question and must not answer it in two
- * vocabularies. That is not hypothetical: the verdict RENDERER was forked between the
- * CLI validator and the TUI profile view, and the two ladders drifted until the engine
- * took the ladder back. This is the same lesson applied to the slug.
+ * the MCP `verify_file` tool answer the same question and must not answer it in two
+ * vocabularies. That is not hypothetical: the verdict renderer was forked between the
+ * CLI validator and the TUI profile view before, and the two ladders drifted until the
+ * engine took the ladder back. This applies the same lesson to the slug.
  *
  * The slugs are a frozen machine surface: an existing one is never re-pointed, and a
  * new engine state adds a new slug.
@@ -21,7 +21,7 @@ import type { C2paVerdictState } from '@lolly/engine';
 export interface VerdictSlug {
   /** The stable machine handle, e.g. `made-with-lolly`. Branch on this. */
   verdict: string;
-  /** One-line human wording. Not stable — never branch on it. */
+  /** One-line human wording. Not stable, never branch on it. */
   headline: string;
 }
 

@@ -1,32 +1,34 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
- * tar (USTAR / POSIX 1003.1-1988) reader — the import half of tar.ts's writer, so
- * `.tar` (and, gunzipped, `.tar.gz`) becomes round-trip. A tar is a flat run of
- * 512-byte header blocks, each followed by its data padded up to a 512-byte
- * boundary, terminated by two all-zero blocks. There is no central directory and
- * no seek table — everything is inline — so the read is a single forward scan.
+ * tar (USTAR / POSIX 1003.1-1988) reader. This is the import half of tar.ts's
+ * writer, so `.tar` (and, gunzipped, `.tar.gz`) becomes round-trip. A tar is a
+ * flat run of 512-byte header blocks, each followed by its data padded up to a
+ * 512-byte boundary, terminated by two all-zero blocks. There is no central
+ * directory and no seek table; everything is inline, so the read is a single
+ * forward scan.
  *
- * We accept the USTAR variant tar.ts emits (magic "ustar\0", version "00") and,
- * being lenient on the read side, also pre-POSIX/v7 archives that omit the magic.
- * Only regular-file members are returned; directory, symlink/hardlink, and the
- * PAX/GNU metadata entries are recognised and SKIPPED (their data blocks are
- * still consumed so the scan stays aligned), never surfaced as files.
+ * This reader accepts the USTAR variant tar.ts emits (magic "ustar\0", version
+ * "00") and, being lenient on the read side, also pre-POSIX/v7 archives that
+ * omit the magic. Only regular-file members are returned; directory, symlink/
+ * hardlink, and the PAX/GNU metadata entries are recognised and skipped (their
+ * data blocks are still consumed so the scan stays aligned), never surfaced as
+ * files.
  *
- * ─── The header checksum (POSIX: the one subtle field) ───────────────────────
+ * The header checksum (POSIX: the one subtle field).
  * A block is validated by re-deriving its checksum: the unsigned sum of all 512
  * header bytes with the 8-byte chksum field itself taken as ASCII spaces (0x20),
  * compared to the octal value stored in that field. Historic tars wrote the sum
- * as SIGNED (treating bytes as int8), so we accept either the unsigned or the
- * signed total. A header whose checksum matches neither is rejected loudly — the
- * scan does not silently resync past corruption.
+ * as signed (treating bytes as int8), so this reader accepts either the unsigned
+ * or the signed total. A header whose checksum matches neither is rejected loudly;
+ * the scan does not silently resync past corruption.
  *
- * ─── Bounds / hostile-input posture ──────────────────────────────────────────
- * This is a PARSER of untrusted bytes, so every field read is bounds-checked
+ * Bounds and hostile-input posture.
+ * This is a parser of untrusted bytes, so every field read is bounds-checked
  * before deref and every advance is validated against the buffer length: a header
  * that would run off the end, a declared size that overruns the remaining bytes,
  * or a size past the USTAR 8 GiB limit all throw rather than over-read or
- * over-allocate. The end is reached at the first all-zero block (the POSIX two-
- * zero-block trailer, or simply running out of input). DOM-free, no
+ * over-allocate. The end is reached at the first all-zero block (the POSIX
+ * two-zero-block trailer, or simply running out of input). DOM-free, no
  * network/filesystem.
  */
 
@@ -62,7 +64,7 @@ export function readTar(bytes: Uint8Array): TarFile[] {
 
   while (off + BLOCK <= total) {
     // Two all-zero blocks mark the end; in practice the first all-zero header
-    // (name and checksum blank) is enough to stop — trailing bytes are padding.
+    // (name and checksum blank) is enough to stop. Trailing bytes are padding.
     if (isZeroBlock(bytes, off)) break;
 
     if (!checksumOk(bytes, off)) {
@@ -80,9 +82,9 @@ export function readTar(bytes: Uint8Array): TarFile[] {
     }
 
     const typeflag = bytes[off + OFF_TYPEFLAG]!;
-    // '0' (0x30) or NUL (0x00) = regular file. Everything else — directory ('5'),
+    // '0' (0x30) or NUL (0x00) = regular file. Everything else (directory ('5'),
     // links ('1'/'2'), char/block/fifo, PAX ('x'/'g'), GNU long name ('L'/'K'),
-    // etc. — is skipped, but its data blocks are still consumed below.
+    // etc.) is skipped, but its data blocks are still consumed below.
     if (typeflag === 0x30 || typeflag === 0x00) {
       const name = readName(bytes, off);
       // A name-less regular entry is not a usable member; skip defensively.
@@ -100,7 +102,7 @@ export function readTar(bytes: Uint8Array): TarFile[] {
 /**
  * Convenience for `.tar.gz`: {@link gunzip} the outer gzip member, then
  * {@link readTar} the recovered tar. The caller can equally gunzip themselves and
- * call `readTar` — this is the one-call path for the common case.
+ * call `readTar`; this is the one-call path for the common case.
  */
 export function readTarGz(bytes: Uint8Array): TarFile[] {
   return readTar(gunzip(bytes));
@@ -140,7 +142,7 @@ function readCString(bytes: Uint8Array, off: number, len: number): string {
 
 /**
  * Parse a tar numeric field: leading spaces/NULs, octal digits, then a trailing
- * space or NUL. Ignores GNU base-256 by design — the writer half never emits it,
+ * space or NUL. Ignores GNU base-256 by design: the writer half never emits it,
  * and an out-of-range size is refused by the caller's limit check anyway. A blank
  * field reads as 0.
  */

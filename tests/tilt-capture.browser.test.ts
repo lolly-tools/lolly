@@ -1,10 +1,10 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
- * plans/104 P2a — THE CAPTURE TIER, in a real browser.
+ * plans/104 P2a - THE CAPTURE TIER, in a real browser.
  *
  * The tilt gate and its driver are the one part of P2 that node cannot check at all:
  * the whole claim is that the LIVE DOM, posed by the applier and photographed by
- * dom-to-image, is the composite — and jsdom has no layout, no `matrix3d` and no
+ * dom-to-image, is the composite - and jsdom has no layout, no `matrix3d` and no
  * raster. So this rides the same browser tier as `depth-flythrough.browser.test.ts`
  * (skip with the install command when there is no browser, skip the H.264 cases when
  * the launched build cannot encode one).
@@ -12,18 +12,18 @@
  * Four claims, and nothing else:
  *
  *  1. **A tilted scene exports at all**, down the capture path, with decoded frames that
- *     are a picture rather than a blank — measured from the FILE, never from an
+ *     are a picture rather than a blank - measured from the FILE, never from an
  *     intermediate the pipeline also produced.
  *  2. **It is the TILTED picture.** A pitched camera puts the near edge of a layer lower
  *     and the far edge higher, and both edges move as the angle animates. The scene is
- *     built so that one number — the vertical centroid of a colour — has to move in the
+ *     built so that one number - the vertical centroid of a colour - has to move in the
  *     direction the engine predicts, and by roughly how much.
  *  3. **The gate is the camera set, and it says so.** The run logs the trigger (§6.4:
  *     "logged with the layer/channel that triggered it"), and an untilted scene never
  *     touches the path.
  *  4. **Tilt + video REFUSES, visibly.** dom-to-image cannot serialise a playing
  *     `<video>`, so the combination is turned down with a coded error and a sentence a
- *     user can act on — never exported wrong.
+ *     user can act on - never exported wrong.
  */
 import { test, describe, before, after } from 'node:test';
 import assert from 'node:assert/strict';
@@ -46,7 +46,7 @@ const LIFTED: [number, number, number] = [60, 190, 230];
 /**
  * The scene: two cards on a dark stage, one flat and one at z 200, under a camera that
  * holds a fixed pitch for the whole clip. A CONSTANT angle (rather than an animated one)
- * is what lets a single decoded frame be compared with a hand-computed projection —
+ * is what lets a single decoded frame be compared with a hand-computed projection - 
  * there is no "which instant is this" to argue about.
  */
 const TILT_KF = 't0_rx-45';
@@ -180,7 +180,7 @@ describe('plans/104 P2a — the tilt capture tier', { skip: gate ?? false, concu
           { x: 0, y: 0, w: 8, h: 8, camera: true, kf: 't0_rx-45' },
         ],
       };
-      // The SAME scene with the tilt taken off must export — otherwise the refusal is
+      // The SAME scene with the tilt taken off must export - otherwise the refusal is
       // just "this scene does not work" and says nothing about tilt.
       const untilted = {
         ...withVideo,

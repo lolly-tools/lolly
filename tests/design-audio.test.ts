@@ -1,20 +1,20 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
- * Design ("Design") — the audio subsystem mirror-ported from sequence-studio.
+ * Design ("Design") - the audio subsystem mirror-ported from sequence-studio.
  *
  * Run with: node --test tests/design-audio.test.ts  (node:test, no framework).
  *
- * GAP this closes: a Design timeline had NO audio — no `kind:'audio'` box, no
- * `.lolly-box-audio` marker — so a dropped audio asset rendered as a broken <img> and a
+ * GAP this closes: a Design timeline had NO audio - no `kind:'audio'` box, no
+ * `.lolly-box-audio` marker - so a dropped audio asset rendered as a broken <img> and a
  * timeline was silent. This mirror-ports the marker EMISSION only; the shell audio
  * compositor already keys off it (sequence-plan.ts `layerKind`).
  *
  * The contract this guards:
  *   - AN AUDIO BOX (kind:'audio', or an asset typed/named audio) emits ONLY the shell
  *     marker div: `<div class="lolly-box-audio" data-audio-src=… aria-hidden="true">`,
- *     with `data-audio-dur` when the source's length in ms is known — mirroring
+ *     with `data-audio-dur` when the source's length in ms is known - mirroring
  *     sequence-studio verbatim. It is INVISIBLE: the .lolly-box is `background:transparent`
- *     with no border, and it carries NO text run — no rectangle where the music bed sits.
+ *     with no border, and it carries NO text run - no rectangle where the music bed sits.
  *   - `layerKind()` (the shell compositor's own classifier) returns "audio" for that box.
  *   - A NON-AUDIO box is byte-unchanged: its fill, text and markup are exactly as before.
  *   - The shipped "video" template now carries an optional music bed (a `kind:'audio'` box).
@@ -85,7 +85,7 @@ test('a kind:"audio" box emits the .lolly-box-audio marker and nothing visible',
   assert.ok(!/background-image:/.test(bedStyle), 'the audio box has no gradient');
   assert.equal((bed.querySelector('.lolly-box-text')?.textContent || '').trim(), '',
     'the audio box renders no text');
-  // No <img>/<video>/lottie — the audio branch short-circuits BEFORE them.
+  // No <img>/<video>/lottie - the audio branch short-circuits BEFORE them.
   assert.equal(bed.querySelector('img,video,.lolly-box-lottie,.lolly-box-path'), null,
     'the audio box emits no picture element (never a broken <img>)');
   // The one trace is the marker.
@@ -129,6 +129,6 @@ test('the "video" template seeds a kind:"audio" music bed spanning the timeline'
   assert.equal(bed.start, 0, 'the bed starts at 0 (plays over the whole timeline)');
   assert.ok(bed.image && typeof bed.image.id === 'string' && /^zzfxm:\d{1,10}$/.test(bed.image.id),
     'the bed carries a procedural zzfxm ref (no external asset dependency)');
-  // It does NOT sit on the seq clip lane — a bed is an overlay, not one clip in the row.
+  // It does NOT sit on the seq clip lane - a bed is an overlay, not one clip in the row.
   assert.notEqual(bed.lane, 'seq', 'the bed is on the overlay lane, not the seq clip row');
 });

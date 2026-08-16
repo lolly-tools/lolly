@@ -2,7 +2,7 @@
 /**
  * email-signature inlined-logo credential guard.
  *
- * The signature's `html` output — the one people actually paste — has no
+ * The signature's `html` output - the one people actually paste - has no
  * container that can hold a C2PA manifest (embedding is container-gated; see
  * engine C2PA_FORMATS). So the inlined wordmark PNG is the ONLY place provenance
  * can live on the pasted path, and it gets there by `npm run sign:signature-logos`
@@ -10,12 +10,12 @@
  *
  * That arrangement is silently breakable: re-export a logo by hand, paste fresh
  * base64 into hooks.js, and the credential is gone with nothing to notice. These
- * tests are the guard — they assert the inlined bytes ARE the signed masters and
+ * tests are the guard - they assert the inlined bytes ARE the signed masters and
  * that the credential still verifies against the root the app pins.
  *
  * The tool ships in the private SUSE pack, so the suite skips when the pack is not
  * mounted (public CI / lolly-start checkouts). With the pack mounted, a missing
- * tool dir FAILS loudly rather than skipping — the color-block.test.ts precedent.
+ * tool dir FAILS loudly rather than skipping - the color-block.test.ts precedent.
  */
 import test from 'node:test';
 import assert from 'node:assert/strict';
@@ -36,7 +36,7 @@ if (PACK_MOUNTED) {
     'brands/suse/tools/email-signature/hooks.js is missing — pack is mounted, so the tool was renamed or deleted');
 }
 
-// The trust anchor the deployed app pins (shells/web/src/ca-root.ts) — the same
+// The trust anchor the deployed app pins (shells/web/src/ca-root.ts) - the same
 // one views/valid.ts hands verifyC2pa, so "trusted" here means trusted there.
 function pinnedAnchor(): Uint8Array[] {
   const src = readFileSync(join(ROOT, 'shells/web/src/ca-root.ts'), 'utf8');

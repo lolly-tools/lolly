@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
- * ingest-epub — the pure EPUB → boilerplate-text-asset transform, proven against a
+ * ingest-epub - the pure EPUB → boilerplate-text-asset transform, proven against a
  * real EPUB built by the engine's own writeEpub and read back by readEpub.
  */
 import { test } from 'node:test';

@@ -1,23 +1,23 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
- * Filter dispatcher — live-frame persistence across parameter edits.
+ * Filter dispatcher - live-frame persistence across parameter edits.
  *
  * Run with: node --test tests/filter-live-input-persistence.test.ts
  *
  * The bug this pins (Andy, 2026-08-10): with the live camera (or an animated
  * asset) driving the filter, changing a parameter like dot size FLASHED the
- * placeholder/demo still — onInput re-ran the STILL pipeline against the image
+ * placeholder/demo still - onInput re-ran the STILL pipeline against the image
  * input (empty → the demo asset), and the live frame only came back on the next
  * tick. The fix lives in the unified dispatcher (community/filter/hooks.js
  * _run): while a live frame is cached, onInput/onInit REPLAY that frame through
  * the effect's own onFrame with the new parameters, and the cache is dropped the
- * moment the image source itself changes — so picking a new image still lands on
+ * moment the image source itself changes - so picking a new image still lands on
  * the still path.
  *
  * Drives the SHIPPED hooks.js exactly the way the engine's in-realm executor
  * does (new Function('host', source)), with a minimal 2D-canvas double so the
  * real pixel pipeline runs headless: decoded stills sample mid-grey, live frames
- * sample black — making the two render paths distinguishable in the emitted SVG.
+ * sample black - making the two render paths distinguishable in the emitted SVG.
  * The routing marker is structural and exact: every still-path patch carries an
  * `imgKey` property (the auto-fit channel), onFrame-shaped patches never do.
  *
@@ -41,7 +41,7 @@ const HOOKS_PATH = join(dirname(fileURLToPath(import.meta.url)), '..', 'communit
 const source = await readFile(HOOKS_PATH, 'utf8');
 
 // ── DOM double: exactly the surface sampleGrid/onFrame touch ─────────────────
-// drawImage records its source; getImageData answers from what was drawn last —
+// drawImage records its source; getImageData answers from what was drawn last - 
 // black for a live-frame canvas (marked by putImageData), mid-grey for a decoded
 // still. That difference is what lets the assertions tell the two paths apart.
 type FakeCanvas = { width: number; height: number; __frame?: boolean; getContext: (kind: string, opts?: unknown) => FakeCtx | null };
@@ -164,7 +164,7 @@ test('picking a NEW image drops the live frame and returns to the still path', a
   assert.equal(p!.imgKey, 'blob:user-pick', 'a source swap lands on the still path (auto-fit key = the pick)');
   assert.ok(decoded.includes('blob:user-pick'), 'the picked image was decoded');
 
-  // A later param edit stays on the still path — the cached frame is gone.
+  // A later param edit stays on the still path - the cached frame is gone.
   const p2 = await hooks.onInput({ model: model({ image: { url: 'blob:user-pick' }, ht_gridSize: 24 }), id: 'ht_gridSize', value: 24, host }) as Patch;
   assert.equal(p2!.imgKey, 'blob:user-pick', 'no stale live frame resurfaces after the swap');
 });

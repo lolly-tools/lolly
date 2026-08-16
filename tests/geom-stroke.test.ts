@@ -7,22 +7,22 @@
  * The same three oracles as the intersector suite, aimed at a region rather than at a
  * point:
  *
- * 1. **Analytic** — strokes whose area is a rational number. A straight segment stroked
+ * 1. **Analytic** - strokes whose area is a rational number. A straight segment stroked
  *    butt is a rectangle; a square ring is the difference of two squares; two
  *    perpendicular strokes crossing at their midpoints overlap in exactly one square of
  *    side w. And the identity that reaches curves too: for a stroke that does not
  *    self-overlap the area is exactly `width × centreline length`, because the curvature
- *    terms on the two sides cancel — the outer edge gains w/2·∫κ of length and the inner
+ *    terms on the two sides cancel - the outer edge gains w/2·∫κ of length and the inner
  *    loses it. That makes a curved fixture checkable without ever naming a circle, and it
  *    is what settles a stroked circle as well: an annulus is `width × perimeter`.
- * 2. **Residual** — properties every output must satisfy whatever the shape. Contours
+ * 2. **Residual** - properties every output must satisfy whatever the shape. Contours
  *    joined end-to-start within `JOIN_EPS`; curve count proportional to the input,
  *    because turning a 4-curve circle into 400 curves is the failure this module exists
- *    to prevent; and two distance claims of different strength — the outline's KNOTS sit
+ *    to prevent; and two distance claims of different strength - the outline's KNOTS sit
  *    at exactly w/2 from the source to machine precision, since an offset piece's
  *    endpoints are a source point plus w/2 along an exact normal, while the interior of
  *    each piece is only within the fitting tolerance asked for.
- * 3. **Dense oracle** — a grid classified by an independent distance test built on
+ * 3. **Dense oracle** - a grid classified by an independent distance test built on
  *    `flattenCubic` + `nearestOnCubic`, checked against the module's own `pointInPath`.
  *    Flattening is forbidden inside the geometry and perfectly good outside it. A stroke
  *    whose caps and joins are both round is exactly the Minkowski sum of the centreline
@@ -31,7 +31,7 @@
  *
  * Circles are compared against the same kappa construction the module draws its caps
  * with, never against πr². Checking an exact result against an idealised value rather
- * than against the same curve makes correct code look broken — that mistake cost an
+ * than against the same curve makes correct code look broken - that mistake cost an
  * afternoon in the intersector suite and is written down in the plan.
  */
 import { test } from 'node:test';
@@ -56,7 +56,7 @@ function openSeg(x0: number, y0: number, x1: number, y1: number): GeomPath {
   return [{ curves: [lineToCubic(x0, y0, x1, y1)], closed: false }];
 }
 
-/** A polyline as one contour. Every edge explicit, including the closing one — the
+/** A polyline as one contour. Every edge explicit, including the closing one - the
  *  distance oracles measure against real curves and cannot see an implicit wrap. */
 function poly(pts: readonly (readonly [number, number])[], closed: boolean): Contour {
   const curves: Cubic[] = [];
@@ -128,7 +128,7 @@ function pathLength(p: GeomPath): number {
   return l;
 }
 
-/** True distance from a point to a path, exactly — `nearestOnCubic` per curve, no
+/** True distance from a point to a path, exactly - `nearestOnCubic` per curve, no
  *  sampling of the curve itself. */
 function distToPath(p: GeomPath, x: number, y: number): number {
   let d = Infinity;
@@ -152,7 +152,7 @@ function sampleOutline(p: GeomPath, per = 12): Pt[] {
   return out;
 }
 
-/** Just the knots — where one output curve hands over to the next. These are the points
+/** Just the knots - where one output curve hands over to the next. These are the points
  *  the offsetter placed exactly rather than fitted. */
 function outlineKnots(p: GeomPath): Pt[] {
   const out: Pt[] = [];
@@ -195,7 +195,7 @@ function assertJoined(p: GeomPath, what: string) {
  * the set of points within w/2 of the centreline (the Minkowski sum with a disc), so an
  * independent distance test classifies every point and `pointInPath` must agree.
  *
- * `band` excludes points too near the boundary to be decidable — that is not a
+ * `band` excludes points too near the boundary to be decidable - that is not a
  * correctness tolerance, it is the strip where the offsetter's fitting error and the
  * grid are the same size.
  */
@@ -273,7 +273,7 @@ test('a diagonal segment strokes to the same rectangle a horizontal one does', (
 
 test('every straight stroke is width × length, whatever direction and length', () => {
   // A property sweep rather than one fixture, because the failure this catches is not a
-  // wrong formula — it is a tolerance in the boolean cleanup that trips on some
+  // wrong formula - it is a tolerance in the boolean cleanup that trips on some
   // orientations and not others, so a single well-chosen segment proves nothing.
   const disc = areaOf(circlePath(0, 0, 5));
   const wrong: string[] = [];
@@ -314,7 +314,7 @@ test('a stroked square ring is the difference of the two squares', () => {
 });
 
 test('an implicit wrap is stroked as a real edge', () => {
-  // `closed: true` with no closing curve — the offsetter has nothing to push out unless
+  // `closed: true` with no closing curve - the offsetter has nothing to push out unless
   // strokeToPath materialises the wrap first.
   const three = poly([[0, 0], [100, 0], [100, 100], [0, 100]], false);
   const implicit: GeomPath = [{ curves: three.curves, closed: true }];
@@ -371,7 +371,7 @@ test('a round join never leaves the offset distance', () => {
 
 test('a stroke that does not self-overlap has area exactly width × centreline length', () => {
   // The curvature terms cancel between the two sides, so this holds for any simple
-  // curve — which is what makes it usable as an oracle without naming a circle.
+  // curve - which is what makes it usable as an oracle without naming a circle.
   for (const [what, k] of [
     ['gentle arch', [0, 0, 30, 10, 70, 10, 100, 0]],
     ['quarter arc', [50, 0, 50, 50 * KAPPA, 50 * KAPPA, 50, 0, 50]],
@@ -393,7 +393,7 @@ test('a stroked circle is an annulus of area width × perimeter', () => {
   assert.equal(out.length, 2, 'an annulus is two contours');
   assertJoined(out, 'annulus');
   // Steiner: the outer parallel body gains w/2·P and the inner loses it, and the πr²
-  // corner terms cancel between them. So the band is w·P of the SAME curve — no πr²
+  // corner terms cancel between them. So the band is w·P of the SAME curve - no πr²
   // anywhere, which is the whole point of measuring against the fixture rather than
   // against the circle it approximates.
   near(Math.abs(denseArea(out)), 10 * pathLength(src), 0.2, 'annulus area');
@@ -417,12 +417,12 @@ test('a stroked circle is an annulus of area width × perimeter', () => {
 });
 
 test('output COMPLEXITY follows the input, not the tolerance', () => {
-  // A tolerance buys a closer fit — more curves — and must never buy more CONTOURS. This
+  // A tolerance buys a closer fit - more curves - and must never buy more CONTOURS. This
   // wiggle of ten cubics came back as one contour at tol 1e-2, 1e-3 and 1e-4 and as
   // twenty-one at 1e-5: twenty extra one-curve contours of ~1e-11 area, slivers left where
   // a tighter fit made two pieces of the outline miss each other by less than the weld
   // radius. They are invisible in an area total and fatal to anything that iterates
-  // contours — a fill rule, a PDF emitter, a subsequent boolean.
+  // contours - a fill rule, a PDF emitter, a subsequent boolean.
   const curves: Cubic[] = [];
   for (let i = 0; i < 10; i++) {
     const x0 = i * 40, s = i % 2 ? -1 : 1;
@@ -464,8 +464,8 @@ test('an over-wide stroke on a CURVE swallows the hole, at every width past the 
   // through paint that must be solid. Every width here came back as two contours with the
   // centre UNPAINTED; the equivalent square was correct, which is how it survived a suite.
   //
-  // The expected areas are Steiner's formula on the fixture's own area and perimeter —
-  // A + P·r + πr² for a convex source — never π(50+r)², which would be the ideal circle
+  // The expected areas are Steiner's formula on the fixture's own area and perimeter - 
+  // A + P·r + πr² for a convex source - never π(50+r)², which would be the ideal circle
   // this cubic fixture only approximates.
   const src = circlePath(0, 0, 50);
   const A = contourArea(src[0]!), P = pathLength(src);
@@ -484,7 +484,7 @@ test('an over-wide stroke on a CURVE swallows the hole, at every width past the 
 test('a stroke narrower than the radius is still an annulus, and half a hole still survives', () => {
   // The other half of the property: dropping a contour must be reserved for the fold. A
   // stroke that does not fold keeps its hole, and one whose inner offset is merely deep
-  // keeps what is left of it — a rule that swallowed holes generally would pass the test
+  // keeps what is left of it - a rule that swallowed holes generally would pass the test
   // above and destroy every ordinary ring.
   const src = circlePath(0, 0, 50);
   const P = pathLength(src);
@@ -504,7 +504,7 @@ test('a stroke narrower than the radius is still an annulus, and half a hole sti
 
 test('a width wider than the shape swallows the hole instead of inverting it', () => {
   // w/2 = 30 against a 20×20 square: the inner offset inverts through itself, and the
-  // right answer is the solid 80×80 outer offset with no hole at all — every point of
+  // right answer is the solid 80×80 outer offset with no hole at all - every point of
   // the square is within 30 of its perimeter.
   const out = strokeToPath(rectPath(0, 0, 20, 20), 60);
   assert.equal(pointInPath(out, 10, 10, 'nonzero'), true, 'the centre must be painted, not punched out');
@@ -609,7 +609,7 @@ test('coincident contours: the same segment twice paints it once', () => {
 });
 
 test('coincident and opposed: a segment and its reverse must not cancel under nonzero', () => {
-  // Both outlines come out with the same winding — the offset-out, offset-in-reversed
+  // Both outlines come out with the same winding - the offset-out, offset-in-reversed
   // construction does not depend on the input's direction. If they did not, nonzero
   // would subtract one from the other and the stroke would vanish.
   const there: GeomPath = [...openSeg(0, 0, 100, 0), ...openSeg(100, 0, 0, 0)];
@@ -686,7 +686,7 @@ test('one ring fully inside another keeps both', () => {
   assert.equal(pointInPath(out, 50, 42, 'nonzero'), true, 'the inner ring\'s band is painted');
   // The band's own centreline, which is also the y of two vertices of the outline. A
   // query point level with a vertex is not on the boundary and must not be treated as
-  // undecidable — a ray cast that gives up there is guessing, not measuring.
+  // undecidable - a ray cast that gives up there is guessing, not measuring.
   assert.equal(pointInPath(out, 50, 40, 'nonzero'), true, 'the inner ring\'s own centreline is painted');
 });
 
@@ -770,7 +770,7 @@ test('dense grid: a self-crossing path, where the overlap must not punch a hole'
 });
 
 test('dense grid: a path that doubles back over itself at 45°', () => {
-  // Three edges, one genuine self-crossing, and both diagonals at 45° — the orientation
+  // Three edges, one genuine self-crossing, and both diagonals at 45° - the orientation
   // where the offset sides land on irrational coordinates. Round throughout, so the
   // painted region is the disc sum and the grid decides it outright.
   const src: GeomPath = [poly([[0, 0], [100, 100], [100, 0], [0, 100]], false)];
@@ -784,7 +784,7 @@ test('dense grid: a path that doubles back over itself at 45°', () => {
 test('contourArea agrees with a dense shoelace on the curves it is given', () => {
   // Not a stroke test as such: `contourArea` is documented exact and is how a caller
   // reads a stroke's area back. If it disagrees with an independent shoelace on the
-  // SAME curves then every orientation decision built on it is wrong too — and it is
+  // SAME curves then every orientation decision built on it is wrong too - and it is
   // checked against that shoelace rather than against πr², since the fixture is the
   // cubic approximation OF a circle and encloses slightly more.
   const unit = circleContour(0, 0, 1);
@@ -797,7 +797,7 @@ test('contourArea agrees with a dense shoelace on the curves it is given', () =>
 
 // ── the outline that lost a lobe ───────────────────────────────────────────────
 
-/** Three cubics, open, coming back to the point they started from — so the two butt caps
+/** Three cubics, open, coming back to the point they started from - so the two butt caps
  *  land on top of each other and the sweep folds against itself twice over. The coordinates
  *  are the ones that produced the defect and are not to be tidied: it turns on features a
  *  weld radius across, and rounding any of them moves them.
@@ -805,7 +805,7 @@ test('contourArea agrees with a dense shoelace on the curves it is given', () =>
  *  What went wrong: `dedupeEdges` annihilated a pair of 1.0e-5-long opposed slivers, one of
  *  which was the only link between a vertex and the rest of its curve. The walk dead-ended
  *  there, everything past it was abandoned, and an 87-unit lobe vanished from a 1047-unit
- *  outline — 3 contours came back as 7, four of them slivers. Two curves that short have no
+ *  outline - 3 contours came back as 7, four of them slivers. Two curves that short have no
  *  reliable direction to be opposed BY, which is what the guard in `dedupeEdges` now says.
  *
  *  It only became reachable when `nearestOnCubic` started reporting true distances: the old
@@ -822,8 +822,8 @@ const lostLobe: GeomPath = [{
 
 test('dense grid: the self-folding chain that lost a lobe of solid paint', () => {
   // Round throughout, so the painted region IS the disc sum and the grid settles it with no
-  // reference to the outline. A coarse grid is no use here — the lost lobe is 87 units of a
-  // 1047-unit region, a few cells at the default resolution — so this one counts fine.
+  // reference to the outline. A coarse grid is no use here - the lost lobe is 87 units of a
+  // 1047-unit region, a few cells at the default resolution - so this one counts fine.
   assertRegionIsDiscSum(
     strokeToPath(lostLobe, 4, { cap: 'round', join: 'round' }), lostLobe, 2, 0.02,
     'self-folding chain', 150,

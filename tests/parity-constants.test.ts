@@ -4,12 +4,12 @@
  * tool hook and the shell core.
  *
  * Run with: npm test  (node --test over the tests/ globs)
- * No test framework — uses node:test built-in.
+ * No test framework - uses node:test built-in.
  *
  * The coaching constants live in TWO places on purpose: the shell core
  * (shells/web/src/lib/audio-coach-core.ts) computes the HUD verdict, and the tool hook
- * (voice-recorder/hooks.js — shipped in BOTH brands/lolly-start and the private
- * brands/suse pack) recomputes the same verdict DOM-free — the hook ships as tool DATA
+ * (voice-recorder/hooks.js - shipped in BOTH brands/lolly-start and the private
+ * brands/suse pack) recomputes the same verdict DOM-free - the hook ships as tool DATA
  * and cannot import from the shell, so it keeps its own copies. The decision was to keep
  * that duplication and guard it here, so re-tuning one file without the other fails this
  * test.
@@ -36,7 +36,7 @@ const core = readFileSync(new URL('../shells/web/src/lib/audio-coach-core.ts', i
 // gitignored tools/ profile view (which silently vanishes if the tool is
 // renamed): brands/lolly-start is parent-owned and always present, so its copy
 // is asserted unconditionally; the private brands/suse copy is compared too
-// whenever that pack is mounted — and with the pack mounted, a missing hook
+// whenever that pack is mounted - and with the pack mounted, a missing hook
 // FAILS, it never skips.
 const startHookUrl = new URL('../brands/lolly-start/tools/voice-recorder/hooks.js', import.meta.url);
 assert.ok(existsSync(startHookUrl),
@@ -69,7 +69,7 @@ function band(src: string, name: string): [string, string] {
 }
 
 // True if `n` (a numeric literal like "-50" or "0.10") appears in `src` as a standalone
-// number — not as a digit-substring of a longer number.
+// number - not as a digit-substring of a longer number.
 function hasNumber(src: string, n: string): boolean {
   const esc = n.replace(/[.\\]/g, '\\$&');
   return new RegExp('(?<![\\d.])' + esc + '(?![\\d.])').test(src);

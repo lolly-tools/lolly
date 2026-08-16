@@ -1,34 +1,34 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
- * Vendored C2PA trust anchors — the root/anchor certificates whose signing
+ * Vendored C2PA trust anchors - the root/anchor certificates whose signing
  * chains verifyC2pa() upgrades from "valid" to TRUSTED (a named, CA-verified
  * signer). PUBLIC data (certificates, never keys), shipped the way a browser
  * ships its root store; each shell passes these to verifyC2pa({ trustAnchors }).
  *
  * BOTH authoritative lists are pinned (they are almost entirely disjoint, and
  * C2PA's own guidance is to use both and distinguish them). Sources (fetched
- * 2026-07-08 — refresh periodically):
- *   • Google C2PA Root CA G3 — http://pki.goog/c2pa/root-g3.crt (Gemini; also
+ * 2026-07-08 - refresh periodically):
+ *   • Google C2PA Root CA G3 - http://pki.goog/c2pa/root-g3.crt (Gemini; also
  *     on the official list, so deduped by c2paTrustAnchors()).
- *   • The FROZEN interim CAI trust list —
+ *   • The FROZEN interim CAI trust list -
  *     https://verify.contentauthenticity.org/trust/anchors.pem (Adobe Root CA
- *     G2, the camera makers — Canon/Nikon/Sony/Leica/Fujifilm — Microsoft,
+ *     G2, the camera makers - Canon/Nikon/Sony/Leica/Fujifilm - Microsoft,
  *     Truepic [the CA OpenAI's ChatGPT/DALL·E/Sora signer chains to], and AI
  *     providers Bria/Metaphysic, etc.). Still valid; verify.contentauthenticity
  *     .org uses it.
  *   • The OFFICIAL C2PA conformance trust list (C2PA_OFFICIAL_TRUST_LIST_PEM
- *     below) — the newer set (Google ICAs, DigiCert-for-C2PA, SSL.com 2025,
+ *     below) - the newer set (Google ICAs, DigiCert-for-C2PA, SSL.com 2025,
  *     Xiaomi, Huawei, Trufo, TrustAsia, Encypher, Snowball, …).
  *
  * verifyC2pa's signedBy() verifies ECDSA (P-256/384/521), RSA PKCS#1 v1.5,
  * RSA-PSS and Ed25519 issuer steps and walks arbitrary-depth chains, so every
- * anchor here — whatever its key type — genuinely confers trust ONLY when a
+ * anchor here - whatever its key type - genuinely confers trust ONLY when a
  * real credential's x5chain cryptographically reaches it AND the COSE claim
  * signature verifies (presence in this list alone never trusts anything).
- * Lolly's OWN device-credential CA is NOT part of the vendored list —
+ * Lolly's OWN device-credential CA is NOT part of the vendored list -
  * c2paTrustAnchors() never includes it. It ships separately as
  * LOLLY_CA_ROOT_PEM below, and defaultTrustAnchors({ includeLollyRoot: true })
- * (engine/src/c2pa-verdict.ts) is what folds it in — which is what the CLI
+ * (engine/src/c2pa-verdict.ts) is what folds it in - which is what the CLI
  * `lolly validate`, the TUI verify panel and MCP `lolly_verify` each pass
  * (plans/73-cli-ga-contract.md §12 O1). The web /valid view lands on the same
  * anchor set by composing it BY HAND (CA_ROOT_PEM + c2paTrustAnchors() in
@@ -37,13 +37,13 @@
  * itself defaults OFF, so a caller that says nothing verifies against the
  * vendored list alone, and the CLI's `--no-default-anchors` drops both sets.
  * The per-surface policy table lives at defaultTrustAnchors in c2pa-verdict.ts
- * — read it there. Malformed/foreign entries are skipped, never fatal. To
+ * - read it there. Malformed/foreign entries are skipped, never fatal. To
  * refresh: re-fetch both sources as-is and re-paste verbatim.
  */
 import { pemToDer } from './x509.ts';
 
 /**
- * The pinned Lolly CA root certificate — the trust anchor for Lolly's own
+ * The pinned Lolly CA root certificate - the trust anchor for Lolly's own
  * Content-Credentials identity (see docs/content-credentials-identity.md).
  * CANONICAL COPY: shells/web/src/ca-root.ts still carries a duplicate for the
  * /valid view until that view adopts defaultTrustAnchors; a drift guard in
@@ -51,7 +51,7 @@ import { pemToDer } from './x509.ts';
  *
  * PUBLIC data (a certificate, not a key), committed the same way a browser
  * ships its root store. The matching private key lives only in the CA
- * service's environment (CA_ROOT_KEY_PEM — services/ca reads it from env,
+ * service's environment (CA_ROOT_KEY_PEM - services/ca reads it from env,
  * nothing key-shaped is ever committed).
  *
  * Empty string = no root configured yet: defaultTrustAnchors degrades to the
@@ -855,7 +855,7 @@ x3sizPOefAIye4i1uTYYdbiXHBTuetSuMmuWtRld1howmo5dLeOE5PUoyToTqwyL
 
 // The OFFICIAL C2PA trust list, vendored verbatim (fetched 2026-07-08 from
 // https://raw.githubusercontent.com/c2pa-org/conformance-public/refs/heads/main/trust-list/C2PA-TRUST-LIST.pem). The newer conformance list (Google ICAs, DigiCert-for-C2PA,
-// SSL.com 2025, Xiaomi, Huawei, Trufo, TrustAsia, Encypher, …) — largely
+// SSL.com 2025, Xiaomi, Huawei, Trufo, TrustAsia, Encypher, …) - largely
 // DISJOINT from the frozen CAI list above, so both are pinned (C2PA guidance:
 // use both, distinguish them). To refresh: re-fetch this URL as-is.
 const C2PA_OFFICIAL_TRUST_LIST_PEM = `Subject	CN=Google C2PA Media Services 1P ICA G3, O=Google LLC, C=US

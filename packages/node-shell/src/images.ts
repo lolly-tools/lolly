@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
- * `host.images` for the Node shells — decode / resize / encode, backed by sharp.
+ * `host.images` for the Node shells: decode / resize / encode, backed by sharp.
  *
  * Why it exists: the contract in packages/core/src/host-v1.ts is optional and tools
- * feature-detect it, so a shell without it is "allowed" — but the CLI having none at
+ * feature-detect it, so a shell without it is "allowed". But the CLI having none at
  * all meant `lolly convert-image …` could only ever fail. sharp is already a
  * dependency of this repo and gives Node the same read-broad/write-web-safe split the
  * browser path has (HEIC, AVIF, TIFF and friends decode in; only webp/jpeg/png come
@@ -13,9 +13,9 @@
  * ATTACHMENT IS CONDITIONAL. `createNodeImagesAPI()` returns null when sharp cannot be
  * resolved (a lean install, or the esbuild-bundled Vercel MCP function where bare
  * specifiers stay external). A shell then leaves `host.images` undefined, which is
- * exactly the signal the contract defines — better than an API present that throws on
- * every call. The resolve check is a synchronous `require.resolve`, so it costs
- * nothing; the native module itself is imported lazily on first use.
+ * exactly the signal the contract defines. That is better than an API present that
+ * throws on every call. The resolve check is a synchronous `require.resolve`, so it
+ * costs nothing; the native module itself is imported lazily on first use.
  */
 import { createRequire } from 'node:module';
 import type { ImagesAPI, ImageInfo, ImageResizeOpts, ImageEncodeOpts, ImageResult } from '@lolly-tools/core/host-v1';
@@ -65,7 +65,7 @@ function q100(quality: number | undefined): number | undefined {
 }
 
 /**
- * Build the API, or null when sharp is unavailable (see the module header — the
+ * Build the API, or null when sharp is unavailable (see the module header: the
  * caller must then leave host.images undefined rather than attach a throwing stub).
  */
 export function createNodeImagesAPI(): ImagesAPI | null {
@@ -94,8 +94,8 @@ export function createNodeImagesAPI(): ImagesAPI | null {
     async decode(input): Promise<ImageInfo> {
       const { img } = await open(input);
       // `.rotate()` with no argument applies the EXIF orientation, so the metadata
-      // read after it reports the ORIENTED dimensions the contract promises — the
-      // same ones resize/encode will produce.
+      // read after it reports the ORIENTED dimensions the contract promises. These are
+      // the same ones resize/encode will produce.
       const meta = await img.rotate().metadata();
       if (!meta.width || !meta.height) {
         throw new Error('host.images: these bytes are not a decodable image here.');

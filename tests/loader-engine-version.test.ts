@@ -3,7 +3,7 @@
  * engineVersion enforcement in loadTool (P0-3).
  *
  * Tools sync to clients as data, ahead of the binary. A tool that declares it
- * needs a newer engine than the running build must be REFUSED — not warned, not
+ * needs a newer engine than the running build must be REFUSED - not warned, not
  * half-loaded to call a method that isn't there and die on a binary with no
  * update path. This proves loadTool refuses out-of-range manifests (before it
  * even fetches the template) and accepts in-range ones.
@@ -65,13 +65,13 @@ test('loadTool REFUSES a tool that requires a newer engine (hard error)', async 
 });
 
 test('loadTool REFUSES a tilde range that excludes this engine', async () => {
-  // ~1.30.0 = >=1.30.0 <1.31.0 — excludes the current 1.5x line.
+  // ~1.30.0 = >=1.30.0 <1.31.0 - excludes the current 1.5x line.
   await assert.rejects(loadTool('demo', makeFetchFile('~1.30.0')), ToolLoadError);
 });
 
 // The diagnostic order, which is not cosmetic. A tool built against a newer engine will
-// often ALSO carry manifest vocabulary this build's schema has never seen — the canvas
-// key set is `additionalProperties: false` — and that is an Ajv error, so validating
+// often ALSO carry manifest vocabulary this build's schema has never seen - the canvas
+// key set is `additionalProperties: false` - and that is an Ajv error, so validating
 // first answers a correctly-authored future tool with "failed validation / canvas must
 // NOT have additional properties" (reads as a broken tool) instead of the designed
 // "requires engine X, this build implements Y". The fast-catalog / slow-binary model
@@ -86,7 +86,7 @@ test('a future tool that ALSO uses unknown manifest vocabulary reports the VERSI
     render: { width: 10, height: 10, formats: ['svg'], layout: 'editor' },
     inputs: [{
       id: 'boxes', type: 'blocks', label: 'Boxes', fields: [{ id: 'x', type: 'number', label: 'X' }],
-      // A canvas key from an engine that does not exist yet — exactly what P1/P2 add.
+      // A canvas key from an engine that does not exist yet - exactly what P1/P2 add.
       canvas: { xField: 'x', lensField: 'lens' },
     }],
   };

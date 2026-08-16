@@ -1,33 +1,33 @@
 #!/usr/bin/env node
 // SPDX-License-Identifier: MPL-2.0
 /**
- * App-icon pipeline — ONE source of truth: `icon.svg` at the repo root.
+ * App-icon pipeline - ONE source of truth: `icon.svg` at the repo root.
  *
  * The Lolly mark lives in exactly one place: `icon.svg` (a hand-drawn, C2PA- + RDF-signed
- * vector, viewBox 541.87², transparent — the green + white glossy swirl). Every other icon
+ * vector, viewBox 541.87², transparent - the green + white glossy swirl). Every other icon
  * in the repo is DERIVED from it by this script, so they can never drift. Re-run whenever
  * icon.svg changes:
  *
  *   npm run icons
  *
  * The source is a vector, so we first rasterise it to a transparent master through our OWN
- * render path (Playwright/Chromium — the SAME engine the OG cards, previews and exports use),
+ * render path (Playwright/Chromium - the SAME engine the OG cards, previews and exports use),
  * NOT sharp's librsvg or resvg: the mark leans on `mix-blend-mode` and blur filters that the
  * standalone SVG interpreters drop (a fill collapses to solid black). sharp then does the
  * pure raster resizes from that master.
  *
- * What it regenerates (all committed — commit the diff like any other asset):
- *   • shells/web/public/icon.svg             — a byte copy of the signed source, so the web
+ * What it regenerates (all committed - commit the diff like any other asset):
+ *   • shells/web/public/icon.svg - a byte copy of the signed source, so the web
  *                                              shell (favicon, PWA, /info) can serve the SVG
  *                                              itself with its C2PA + RDF provenance intact
- *   • shells/web/public/icons/*              — PWA icon-192/512, 512-maskable, apple-touch
- *   • shells/web/public/favicon.ico          — 16/32/48 multi-size
- *   • shells/tauri-desktop/src-tauri/icons/* — via `tauri icon` (icns/ico/png/android/ios)
- *   • shells/tauri-mobile/src-tauri/icons/*  — same, when the shell is mounted + installed
+ *   • shells/web/public/icons/* - PWA icon-192/512, 512-maskable, apple-touch
+ *   • shells/web/public/favicon.ico - 16/32/48 multi-size
+ *   • shells/tauri-desktop/src-tauri/icons/* - via `tauri icon` (icns/ico/png/android/ios)
+ *   • shells/tauri-mobile/src-tauri/icons/* - same, when the shell is mounted + installed
  *
  * og.png (the landing / default share card) is ALSO derived from icon.svg, but it carries
  * the wordmark + tagline in the brand font, so it is rendered through the Chromium card
- * path in scripts/build-og-base.ts — not here, where everything after the master is a pure
+ * path in scripts/build-og-base.ts - not here, where everything after the master is a pure
  * sharp resize.
  *
  * Degrades like the OG scripts: if Playwright / a render browser is unavailable, it keeps the
@@ -52,13 +52,13 @@ const SOURCE = resolve(ROOT, 'icon.svg');
  * screenshot would otherwise capture whatever animation frame the page happened to be
  * on (the 0% keyframe alone applies a 15° hue shift), making every derivative
  * nondeterministic and tinted. Strip the style block (and any SMIL animation elements)
- * from the STRING we rasterise — the signed file itself is never modified, and the
+ * from the STRING we rasterise - the signed file itself is never modified, and the
  * verbatim `shells/web/public/icon.svg` copy below stays byte-identical so its C2PA +
  * RDF provenance survives.
  */
 export function staticIconSvg(svg: string): string {
   let out = svg;
-  // Repeat until no opening tag remains — the signed source nests an empty <style>
+  // Repeat until no opening tag remains - the signed source nests an empty <style>
   // inside the animation block, so one non-greedy pass leaves an orphan close tag.
   while (/<style\b/.test(out)) out = out.replace(/<style\b[^>]*>[\s\S]*?<\/style>/, '');
   return out
@@ -72,7 +72,7 @@ const MASTER = 1024;
 
 // Backgrounds for the icons that must be OPAQUE (a masked/rounded platform icon shows
 // its own corner fill, and iOS composites a transparent icon onto black). Pine is the
-// brand field — the green swirl reads well on it, and it matches the app chrome.
+// brand field - the green swirl reads well on it, and it matches the app chrome.
 const PINE = { r: 12, g: 50, b: 44, alpha: 1 };        // #0c322c
 const TRANSPARENT = { r: 0, g: 0, b: 0, alpha: 0 };
 
@@ -141,7 +141,7 @@ async function main(): Promise<void> {
   const meta = await sharp(master).metadata();
   console.log(`source: icon.svg → ${meta.width}×${meta.height} transparent master (alpha=${meta.hasAlpha})`);
 
-  // ── Serve the signed SVG itself — a byte copy, so its C2PA + RDF provenance travels. ──
+  // ── Serve the signed SVG itself - a byte copy, so its C2PA + RDF provenance travels. ──
   copyFileSync(SOURCE, resolve(ROOT, 'shells/web/public/icon.svg'));
   console.log('✓ shells/web/public/icon.svg (signed source, verbatim copy)');
 
@@ -156,7 +156,7 @@ async function main(): Promise<void> {
   writeFileSync(join(webIcons, 'apple-touch-icon.png'), await iconPng(master, 180, PINE, 0.06));
   console.log('✓ web icons (192, 512, 512-maskable, apple-touch)');
 
-  // ── favicon.ico — 16/32/48, transparent. ──
+  // ── favicon.ico - 16/32/48, transparent. ──
   const favSizes = [16, 32, 48];
   const frames = await Promise.all(
     favSizes.map(async (size) => ({ size, png: await iconPng(master, size, TRANSPARENT) })),
@@ -164,7 +164,7 @@ async function main(): Promise<void> {
   writeFileSync(resolve(ROOT, 'shells/web/public/favicon.ico'), encodeIco(frames));
   console.log('✓ favicon.ico (16/32/48)');
 
-  // ── Tauri shells — `tauri icon` regenerates icns/ico/png/android/ios from one master. ──
+  // ── Tauri shells - `tauri icon` regenerates icns/ico/png/android/ios from one master. ──
   const masterFile = join(tmpdir(), `lolly-icon-master-${MASTER}.png`);
   await sharp(master).resize(MASTER, MASTER, { fit: 'contain', background: TRANSPARENT }).png().toFile(masterFile);
   for (const shell of ['shells/tauri-desktop', 'shells/tauri-mobile']) {

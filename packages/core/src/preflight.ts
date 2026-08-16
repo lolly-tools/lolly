@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
- * Preflight findings — the transport-neutral data model for pre-export checks.
+ * Preflight findings - the transport-neutral data model for pre-export checks.
  *
  * ## Why this file exists, and why it is NOT in `host-v1.ts`
  *
@@ -13,8 +13,8 @@
  *   - A tool never *contributes* a finding. Preflight checks are engine rules over
  *     declared facts (the manifest, the input model, the export settings, the
  *     resolved brand palette). A tool participates only through what its manifest
- *     declares — `render.paginate`, `render.pages`, `render.video`, input `min`/
- *     `max`/`maxLength` — never by exporting a check function. Letting tool code
+ *     declares: `render.paginate`, `render.pages`, `render.video`, input `min`/
+ *     `max`/`maxLength`. It never contributes by exporting a check function. Letting tool code
  *     emit verdicts would make "is this export correct?" answerable by the thing
  *     being checked.
  *
@@ -25,7 +25,7 @@
  * ## Why it is in `@lolly-tools/core` rather than the engine
  *
  * Findings are produced by the engine (`engine/src/preflight.ts` owns the RULES)
- * and consumed by every shell — the web export panel, `lolly preflight --json`, a
+ * and consumed by every shell: the web export panel, `lolly preflight --json`, a
  * batch zip manifest, the MCP service. Keeping the *vocabulary* here, beside the
  * manifest contract, lets a consumer that already depends on the SDK read a
  * serialised report without pulling in the engine. The engine re-exports these
@@ -52,18 +52,18 @@
  * Modelled deliberately against the two three-state renderers already in the
  * tree, both of which spell the third state badly:
  *
- *   - `C2paCheck` (`engine/src/c2pa-verify.ts`) is `{ code, ok, explanation }` —
- *     two-state by construction, so "expected, not damage" had to be re-derived
+ *   - `C2paCheck` (`engine/src/c2pa-verify.ts`) is `{ code, ok, explanation }`.
+ *     It is two-state by construction, so "expected, not damage" had to be re-derived
  *     OUTSIDE the type by a hard-coded code list in one view
  *     (`shells/web/src/views/valid-verdict.ts` `isExpectedRow`). The CLI does not
  *     share that list, so the two renderers disagree about what counts as damage.
- *   - `PdfFinding` (`host-v1.ts`) has three fields but spells neutral as `''` —
- *     falsy, so `if (f.tone)` works in a view and the neutral case is
+ *   - `PdfFinding` (`host-v1.ts`) has three fields but spells neutral as `''`.
+ *     That is falsy, so `if (f.tone)` works in a view, and the neutral case is
  *     *unnameable* in a serialised artifact.
  *
  * So: severity is DATA on the finding, every level is NAMED, and no level is
- * falsy. `'info'` is a permanent, common, first-class state — a count, or an
- * honest gap — and must never be rendered with a warning tone.
+ * falsy. `'info'` is a permanent, common, first-class state, a count or an
+ * honest gap, and must never be rendered with a warning tone.
  */
 export type Severity =
   /** A fact, a count, or a named gap. Not a problem. Never styled as one. */
@@ -91,7 +91,7 @@ export type UnknownReason =
   /** A value exists upstream, but THIS transport dropped it. (A batch-snapshot
    *  row carries no profile/bleed/marks: `rowFromBatchRow` maps none of them.) */
   | 'not-carried'
-  /** The source was asked and did not answer — a throw, or an empty result that
+  /** The source was asked and did not answer: a throw, or an empty result that
    *  is indistinguishable from a throw. (`host.tokens.colors()`.) */
   | 'not-resolved'
   /** Only a mounted node can answer it. (`cuts` on a timed stage, `[data-pdf-page]`
@@ -139,8 +139,8 @@ export type QuantityKind =
   | 'sheets'
   | 'area'
   | 'pixels'
-  /** Total area coverage (sum of C+M+Y+K), %. A palette-scoped measurement — the
-   *  heaviest brand solid — never the whole render (a photo's TAC needs the
+  /** Total area coverage (sum of C+M+Y+K), %. A palette-scoped measurement, the
+   *  heaviest brand solid, never the whole render (a photo's TAC needs the
    *  separation). Reported with an explicit scope, so it is never read as the file's. */
   | 'inkCoverage'
   | 'seconds'
@@ -202,7 +202,7 @@ export interface Count {
  * The union is OPEN (`string & {}`) for the same reason `FinishKind` is: the
  * listed members are the canonical spellings and drive editor autocomplete, but
  * a consumer must treat an unrecognised id as "a finding I have no special
- * rendering for" and fall through to `message` — never as an error, and never as
+ * rendering for" and fall through to `message`. Never as an error, and never as
  * a reason to drop the finding.
  */
 export type FindingId =
@@ -253,7 +253,7 @@ export type FindingId =
   | 'plates.palette-unresolved'
   // Export behaviour
   | 'export.experimental-watermark'
-  // Named refusals — see the `needs` field
+  // Named refusals: see the `needs` field
   | 'refuse.ink-coverage'
   | 'refuse.finish-covered-area'
   | 'refuse.exact-separation'
@@ -268,13 +268,13 @@ export type FindingId =
   | 'collect.on-init-not-run'
   | 'collect.flags-not-preflighted'
   // A batch/folder row `planBatch` dropped before the run (`pro/preflight-rows.ts`
-  // `skipCaveat`) — the row will not be rendered at all, for one of `planBatch`'s
+  // `skipCaveat`): the row will not be rendered at all, for one of `planBatch`'s
   // three reasons (no template selected, render-only tool, template failed to load).
   | 'collect.row-not-rendered'
   // The requested format is not the format that will render (`pro/preflight-rows.ts`
   // `formatCaveat`). A batch resolves the format through `chooseFormat`, which
   // SUBSTITUTES the tool's first declared format when the requested one is not
-  // offered — so the engine's `settings.format-not-offered` can never see it, and
+  // offered, so the engine's `settings.format-not-offered` can never see it, and
   // without this caveat the substitution is silent until the zip is opened.
   | 'collect.format-substituted'
   | (string & {});
@@ -321,8 +321,8 @@ export interface Finding {
 // ─── The collection context ─────────────────────────────────────────────────
 //
 // A finding read out of a UI carries none of what qualifies it. The artifact is
-// the copy that travels — a `preflight.json` in a batch zip, a `--json` capture
-// in CI — and a reader must be able to tell a clean report taken with an
+// the copy that travels: a `preflight.json` in a batch zip, a `--json` capture
+// in CI. A reader must be able to tell a clean report taken with an
 // unresolved palette, an un-run `onInit` and a headless stage apart from a clean
 // report taken with all three in hand. `plans/65-preflight-and-cost.md` §6 rule 9
 // applied to counts rather than money: a caveat that lives only in a UI string is

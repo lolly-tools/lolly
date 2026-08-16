@@ -2,19 +2,19 @@
 /**
  * Pure, DOM-free media classification from header bytes.
  *
- * Two questions the ingest path can't answer from a MIME type alone:
- *   1. Is this raster ANIMATED? — an animated GIF, APNG and animated WebP are
+ * Two questions the ingest path cannot answer from a MIME type alone:
+ *   1. Is this raster ANIMATED? An animated GIF, APNG and animated WebP are
  *      byte-for-byte a different beast from their still cousins, yet share the
  *      SAME MIME (`image/gif`, `image/png`, `image/webp`). Only the container
  *      bytes tell them apart. A shell must know, because re-encoding an animated
  *      raster through a canvas (the normal downscale path) silently flattens it
- *      to one frame — so it has to be stored verbatim instead.
- *   2. Is this a video container? — cheap to guess from MIME/extension, but a
+ *      to one frame, so it has to be stored verbatim instead.
+ *   2. Is this a video container? Cheap to guess from MIME/extension, but a
  *      byte check is the honest backstop (an OS handing over a blank/wrong type).
  *
  * Everything here reads only a header prefix and returns a plain string|null, so
  * it lives in the engine (the format single-source-of-truth, alongside apng.ts /
- * tiff.ts) and every shell — web, Tauri, CLI — classifies uploads identically.
+ * tiff.ts) and every shell (web, Tauri, CLI) classifies uploads identically.
  * No DOM, no decode, no allocation beyond a short scan.
  */
 
@@ -44,8 +44,8 @@ function fourcc(bytes: Uint8Array, offset: number, cc: string): boolean {
 
 /**
  * Count GIF image frames up to `stopAt` by walking the block structure (skipping
- * colour tables + data sub-blocks by their length prefixes — no LZW decode). A GIF
- * with ≥2 image descriptors (0x2C) is animated. Needs the WHOLE file (a truncated
+ * colour tables and data sub-blocks by their length prefixes, with no LZW decode). A GIF
+ * with 2 or more image descriptors (0x2C) is animated. Needs the WHOLE file (a truncated
  * buffer could hide later frames); the caller passes full bytes for GIFs.
  */
 function gifFrameCount(bytes: Uint8Array, stopAt = 2): number {
@@ -74,7 +74,7 @@ function gifFrameCount(bytes: Uint8Array, stopAt = 2): number {
       p += 1;                           // label
       p = skipSubBlocks(bytes, p);
     } else {
-      break;                            // unknown/corrupt — stop, report what we have
+      break;                            // unknown/corrupt: stop, report what we have
     }
   }
   return frames;
@@ -126,7 +126,7 @@ function isAnimatedWebp(bytes: Uint8Array): boolean {
 /**
  * Classify an animated raster from its header, or null if it's a still image (or
  * not one of the three animatable raster containers). `mime`/`name` only steer
- * WHICH container check to run — the verdict is always from the bytes.
+ * WHICH container check to run. The verdict is always from the bytes.
  */
 export function sniffAnimatedRaster(
   input: Uint8Array | ArrayBuffer,
@@ -135,11 +135,11 @@ export function sniffAnimatedRaster(
   const bytes = asBytes(input);
   const ext = (name.match(/\.([a-z0-9]+)$/i)?.[1] ?? '').toLowerCase();
 
-  // GIF — identifiable by signature alone; animation needs the frame walk.
+  // GIF: identifiable by signature alone; animation needs the frame walk.
   if (has(bytes, 0, 0x47, 0x49, 0x46, 0x38)) {           // "GIF8"
     return gifFrameCount(bytes) >= 2 ? 'gif' : null;
   }
-  // APNG — a PNG whose acTL precedes IDAT.
+  // APNG: a PNG whose acTL precedes IDAT.
   if (has(bytes, 0, 0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a)) {
     return isAnimatedPng(bytes) ? 'apng' : null;
   }
@@ -159,8 +159,8 @@ export type LayeredRasterKind = 'psd' | 'xcf';
 
 /**
  * Classify a layered-bitmap container from its header, or null. PSD/PSB open
- * with '8BPS' (version 1|2); XCF with the ASCII 'gimp xcf ' magic. Prefix-only
- * — full validation belongs to engine/src/psd.ts / xcf.ts. This is what the
+ * with '8BPS' (version 1|2); XCF with the ASCII 'gimp xcf ' magic. Prefix-only.
+ * Full validation belongs to engine/src/psd.ts / xcf.ts. This is what the
  * drop router and the picker's flatten branch key off.
  */
 export function sniffLayeredRaster(input: Uint8Array | ArrayBuffer): LayeredRasterKind | null {
@@ -190,15 +190,15 @@ export function sniffVideoContainer(input: Uint8Array | ArrayBuffer): VideoConta
   return null;
 }
 
-/** A still/container format the MIME/extension gate can't settle on its own.
+/** A still/container format the MIME/extension gate cannot settle on its own.
  *  `zip` is a GENERIC verdict: every OOXML (xlsx/pptx/docx) and OCF (epub/odt)
  *  package also begins with the PK local-header magic, so an ingest path must look
  *  one level deeper (a `mimetype` entry, `[Content_Types].xml`) before it treats a
- *  `zip` as a plain archive to explode — see sniffContainer's note. */
+ *  `zip` as a plain archive to explode. See sniffContainer's note. */
 export type SniffedContainer = 'bmp' | 'gzip' | 'zip' | 'tar' | 'ttf' | 'otf' | 'woff' | 'woff2';
 
-/** sfnt / WOFF magic (uint32 BE) — INLINED, not imported from font-convert.ts (which
- *  pulls in fflate + deflate); this module stays allocation- and dependency-free. Kept
+/** sfnt / WOFF magic (uint32 BE), INLINED, not imported from font-convert.ts (which
+ *  pulls in fflate + deflate). This module stays allocation- and dependency-free. Kept
  *  in lockstep with font-convert.sfntKind. */
 function fontKind(bytes: Uint8Array): 'ttf' | 'otf' | 'woff' | 'woff2' | null {
   if (bytes.length < 4) return null;
@@ -211,16 +211,16 @@ function fontKind(bytes: Uint8Array): 'ttf' | 'otf' | 'woff' | 'woff2' | null {
 }
 
 /**
- * Recognise a still/container format from its header, or null — the byte-level
+ * Recognise a still/container format from its header, or null: the byte-level
  * backstop for the ingest/convert path. An uncompressed BMP ('BM' + a full 54-byte
- * header, mirroring bmp.isBmp so a stray 'BM' can't false-positive); a gzip stream
- * (an .svgz is gzip(SVG) — reported, NEVER inflated here; the caller gunzips and
- * re-sniffs the inner bytes); a zip local-header / empty-archive EOCD (GENERIC —
+ * header, mirroring bmp.isBmp so a stray 'BM' cannot false-positive); a gzip stream
+ * (an .svgz is gzip(SVG), reported, NEVER inflated here; the caller gunzips and
+ * re-sniffs the inner bytes); a zip local-header / empty-archive EOCD (GENERIC:
  * the ingest path must disambiguate OOXML/OCF before exploding, see below); a
  * USTAR tar (its magic sits at offset 257, so a full header block is required);
  * and the four font containers. Prefix-only and allocation-free like its siblings.
  *
- * A `.tar.gz` sniffs as 'gzip' first (its 1f 8b prefix) — correct: the caller
+ * A `.tar.gz` sniffs as 'gzip' first (its 1f 8b prefix). This is correct: the caller
  * gunzips, then re-sniffs the inner bytes, which then land on 'tar'.
  */
 export function sniffContainer(input: Uint8Array | ArrayBuffer): SniffedContainer | null {

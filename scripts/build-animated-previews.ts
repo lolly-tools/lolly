@@ -7,26 +7,26 @@
  *
  * Some tools ANIMATE (pose-geeko's Geeko idles; the digi-ad scenes play; the
  * filters drift). A static SVG/PNG gallery tile freezes them mid-motion. This script gives
- * such a tool a LOOPING APNG instead — a valid `.png` that the gallery <img> animates
- * natively — by driving the tool in a real browser and exporting via the app's OWN apng
+ * such a tool a LOOPING APNG instead - a valid `.png` that the gallery <img> animates
+ * natively - by driving the tool in a real browser and exporting via the app's OWN apng
  * path (runtime.export → renderApng), so the file is byte-faithful to a real user export.
  *
  * It writes COMMITTED authored overrides in the tool dir, which win over any build-generated
  * preview and (unlike catalog/previews/*, which `npm run previews` regenerates) are never
  * clobbered:
- *   • kind:'looks' → tools/<id>/look<i>.png   (one APNG per manifest example — the example
+ *   • kind:'looks' → tools/<id>/look<i>.png   (one APNG per manifest example - the example
  *                    carousel tile; build-preview-bundle.ts references it and build-previews
  *                    skips regenerating that look)
  *   • kind:'card'  → tools/<id>/card.png      (the single gallery card; build-catalog-index
  *                    already prefers a committed card.* over a generated preview)
  *
- * Files are kept deliberately SMALL — a gallery tile is tiny, and an APNG stores full PNG
+ * Files are kept deliberately SMALL - a gallery tile is tiny, and an APNG stores full PNG
  * frames (no inter-frame delta), so size scales with width × fps × duration. Each job below
  * picks a modest size / low fps / short loop; the console prints the resulting KB so a job
  * that balloons is obvious. Prefer a card-only APNG over animating every example unless the
  * tool's whole point is the motion.
  *
- * Needs a running web shell — point --url at `npm run dev:web` (default localhost:5173). The
+ * Needs a running web shell - point --url at `npm run dev:web` (default localhost:5173). The
  * generator relies on the app's __lollyCaptureMotion hook (shells/web/src/views/tool.ts).
  */
 
@@ -37,7 +37,7 @@ import { execFile } from 'node:child_process';
 import { tmpdir } from 'node:os';
 import { promisify } from 'node:util';
 import type { BrowserContext } from 'playwright';
-// Engine-owned URL encoding — the SAME buildInputModel → serializeUrlState the app's
+// Engine-owned URL encoding - the SAME buildInputModel → serializeUrlState the app's
 // seed-url.ts (and build-previews.ts) use, so a look's render URL seeds the identical
 // inputs the live carousel would render from.
 import { buildInputModel, serializeUrlState } from '../engine/src/index.ts';
@@ -46,7 +46,7 @@ import type { InputValue } from '../engine/src/inputs.ts';
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const CANVAS_SEL = '#tool-canvas, #tool-content';
 
-/** One render job — a tool's example looks, or its single card, as a small looping APNG. */
+/** One render job - a tool's example looks, or its single card, as a small looping APNG. */
 interface Job {
   tool: string;
   kind: 'looks' | 'card';
@@ -58,9 +58,9 @@ interface Job {
   fps: number;
   /** settle seconds before capture starts (lets fonts/hooks land + animation warm up). */
   wait?: number;
-  /** kind:'card' — the look to render (falls back to the tool defaults when absent). */
+  /** kind:'card' - the look to render (falls back to the tool defaults when absent). */
   values?: Record<string, unknown>;
-  /** kind:'looks' — restrict to these example indices (default: all). */
+  /** kind:'looks' - restrict to these example indices (default: all). */
   only?: number[];
   /** palette size for the ffmpeg quantise pass (default 128; 0 disables → raw RGBA APNG). */
   colors?: number;
@@ -68,7 +68,7 @@ interface Job {
 
 // The catalog's animated tiles. Prefer a single card APNG (kind:'card') per tool to
 // avoid a pile of big files; kind:'looks' is for a tool whose whole point is the moving
-// mascot (the retired bag-video was the canon case). Currently empty — pose-geeko's
+// mascot (the retired bag-video was the canon case). Currently empty - pose-geeko's
 // animated card is an authored CSS SVG (build-svg-card.ts), not a capture.
 const JOBS: Job[] = [
 ];
@@ -155,7 +155,7 @@ async function runJob(context: BrowserContext, job: Job): Promise<void> {
   }
 }
 
-/** Only the look's OWN (dirty) inputs ride the URL — identical to seed-url.ts / build-previews. */
+/** Only the look's OWN (dirty) inputs ride the URL - identical to seed-url.ts / build-previews. */
 function seedQuery(manifest: Parameters<typeof buildInputModel>[0], values: Record<string, unknown>): string {
   try {
     return serializeUrlState(
@@ -213,10 +213,10 @@ async function hasFfmpeg(): Promise<boolean> {
   return ffmpegOk;
 }
 
-// Palette-quantise an APNG to ~`colors` colours with ffmpeg — keeps every frame + the loop
+// Palette-quantise an APNG to ~`colors` colours with ffmpeg - keeps every frame + the loop
 // count but shares ONE palette across frames, cutting ~75% (an APNG stores full PNG frames
 // with no inter-frame delta, so full-RGBA frames dominate the file). Alpha becomes binary (a
-// single transparent palette entry), so soft drop-shadows drop out — fine at gallery-tile
+// single transparent palette entry), so soft drop-shadows drop out - fine at gallery-tile
 // size. No ffmpeg, or a result that isn't smaller → return the original RGBA APNG unchanged,
 // so this only ever helps. Temp files (the apng muxer needs seekable output, not a pipe).
 async function optimizeApng(bytes: Buffer, colors: number): Promise<Buffer> {

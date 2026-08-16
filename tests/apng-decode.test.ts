@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
- * demuxApng — round-trip against the real packApng packer and packPng encoder.
+ * demuxApng - round-trip against the real packApng packer and packPng encoder.
  * Encode a few genuine PNG frames, splice them into an APNG, demux, and assert
  * the frame count, canvas geometry, per-frame delays, and that every returned
  * still is a structurally valid standalone PNG.
@@ -149,7 +149,7 @@ test('demuxApng handles delay_den 0 as 100', () => {
     off += 12 + len;
   }
   assert.ok(patched, 'found an fcTL to patch');
-  // Recompute CRC of the mutated fcTL chunk so demux accepts nothing about CRC —
+  // Recompute CRC of the mutated fcTL chunk so demux accepts nothing about CRC - 
   // demuxApng does not verify CRCs, so no recompute is strictly needed; assert the delay.
   const out = demuxApng(mut);
   // 5 / 100 * 1000 = 50 ms.

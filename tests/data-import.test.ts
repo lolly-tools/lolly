@@ -2,7 +2,7 @@
 /**
  * Unit tests for the CSV/JSON → blocks importer (engine/src/data-import.js).
  *
- * Pure — the shell reads a file to text and hands it here — so these cover the
+ * Pure - the shell reads a file to text and hands it here - so these cover the
  * parsing, column→field mapping, coercion and guards end to end.
  *
  * Run with: node --test tests/data-import.test.js

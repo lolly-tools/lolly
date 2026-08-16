@@ -7,7 +7,7 @@
  * the element's whole rectangle with a flat translucent achromatic ink and letting an
  * ExtGState /SMask << /S /Luminosity /G … >> carve out the blur, the offset and the
  * rounded corners. Probing 136 masks across six real app pages, 94% of them are a
- * single blurred greyscale DCTDecode JPEG drawn on the group's own /BBox — i.e. ALL of
+ * single blurred greyscale DCTDecode JPEG drawn on the group's own /BBox - i.e. ALL of
  * the shape information lives in the mask and the masked paint carries only colour.
  * Before this landed, the interpreter could not evaluate a mask group, so it dropped
  * every masked translucent achromatic fill (86× across the audit fixtures) and any
@@ -76,7 +76,7 @@ test('box-shadow: the masked fill is PAINTED, carrying the mask group as _softMa
   assert.equal(n.shape, 'rect');
   assert.ok(near(n.x, 40) && near(n.y, 140), `xy ${n.x},${n.y}`);
   assert.ok(near(n.w, 120) && near(n.h, 60), `wh ${n.w},${n.h}`);
-  // /ca survives untouched — the mask supplies shape, the ExtGState supplies alpha.
+  // /ca survives untouched - the mask supplies shape, the ExtGState supplies alpha.
   assert.equal(n.opacity, 28);
   // The page clip is still on the node.
   assert.ok(n._clips?.length, 'page clip preserved');
@@ -84,7 +84,7 @@ test('box-shadow: the masked fill is PAINTED, carrying the mask group as _softMa
   const m = n._softMask;
   assert.ok(m, 'the soft mask reached the node');
   assert.equal(m.subtype, 'Luminosity');
-  // The mask region is the group /BBox in box space — the same rect the fill covers.
+  // The mask region is the group /BBox in box space - the same rect the fill covers.
   assert.ok(near(m.x, 40) && near(m.y, 140) && near(m.w, 120) && near(m.h, 60), JSON.stringify(m));
   // The mask's content was re-run through this same interpreter: its raster is an
   // ordinary image node the shell resolves through the usual `images` record.
@@ -111,7 +111,7 @@ test('box-shadow: pdfNodesToSvg emits a real <mask> and wraps the paint in it', 
 });
 
 test('box-shadow: one <mask> def serves every node that shares the mask', () => {
-  // Two shadowed controls, same group, same CTM — Chromium names the same ExtGState
+  // Two shadowed controls, same group, same CTM - Chromium names the same ExtGState
   // dozens of times on a real page.
   const { nodes } = run(
     'q 0 0 400 300 re W n 0 0 0 rg /G5 gs /G7 gs 40 100 120 60 re f Q'
@@ -126,7 +126,7 @@ test('box-shadow: one <mask> def serves every node that shares the mask', () => 
   const svg = svgOf(nodes, { m0: 'data:image/jpeg;base64,AAA' });
   assert.equal((svg.match(/<mask id=/g) || []).length, 1);
   assert.equal((svg.match(/<g mask="url\(#pmask0\)">/g) || []).length, 2);
-  // The base64 payload appears exactly once — in the <defs>.
+  // The base64 payload appears exactly once - in the <defs>.
   assert.equal((svg.match(/base64,AAA/g) || []).length, 1);
 });
 
@@ -202,7 +202,7 @@ test('empty mask group → the paint is dropped (luminosity is the black backdro
 test('a tiling pattern whose tile installs an evaluable mask now COLLAPSES with the mask', () => {
   // Chromium's encoding for "a gradient with transparency": a one-cell tiling pattern
   // whose body installs a /Luminosity mask (the alpha ramp) and fills with a shading
-  // (the colour ramp). This used to warn pattern.smasked.skipped and lose the fill —
+  // (the colour ramp). This used to warn pattern.smasked.skipped and lose the fill - 
   // it was the single most expensive defect on the brand-studio fixture (the whole
   // ambient page wash behind the studio was missing).
   const alphaRamp: PdfSoftMaskDef = {
@@ -245,7 +245,7 @@ test('a tiling pattern whose tile installs an UNEVALUABLE mask still declines', 
   });
   assert.ok(warns.includes('pattern.smasked.skipped|P1'), warns.join(','));
   // The paint is cleared, so the selecting path yields a fill:none node that
-  // serializes to nothing — byte-identical to the behaviour before mask groups could
+  // serializes to nothing - byte-identical to the behaviour before mask groups could
   // be read, which is the whole point of the bottom rung.
   assert.ok(nodes.every((n) => !n.fill && (!n._vectorFill || n._vectorFill === 'none')), JSON.stringify(nodes));
   const svg = svgOf(nodes);
@@ -318,7 +318,7 @@ test('budget: a page with 400 distinct masks evaluates at most 256 of them', () 
   // Announced ONCE with its own code, so the cliff shows in the census instead of
   // hiding among the per-group refusals.
   assert.equal(warns.filter((w) => w === 'smask.budget.exhausted').length, 1);
-  // One warn per refused mask at most — no warn storm.
+  // One warn per refused mask at most - no warn storm.
   assert.ok(warns.filter((w) => w === 'smask.group.unevaluated|budget').length <= 400 - applied);
 });
 
@@ -344,7 +344,7 @@ test('budget: many SMALL masks are bounded by total mask nodes, not just a count
 
 test('fuzz: a self-referential mask group terminates and paints something bounded', () => {
   // The group's content installs the very ExtGState that names it. The memo cannot
-  // catch this (the entry isn't written until the run returns) — the in-flight set and
+  // catch this (the entry isn't written until the run returns) - the in-flight set and
   // the one-level nesting cap do.
   const def: PdfSoftMaskDef = {
     id: 'smself', subtype: 'Luminosity',
@@ -363,7 +363,7 @@ test('fuzz: a mask inside a mask is refused at depth 1, the outer one still appl
   const inner: PdfSoftMaskDef = { id: 'smin', subtype: 'Luminosity', content: '1 g 0 0 100 100 re f', resources: {}, bbox: [0, 0, 100, 100] };
   const outer: PdfSoftMaskDef = {
     id: 'smout', subtype: 'Luminosity',
-    // Two nodes so it can't fold to a constant — it must stay a real <mask>.
+    // Two nodes so it can't fold to a constant - it must stay a real <mask>.
     content: '0.5 g /G9 gs 0 0 100 100 re f 1 g 10 10 20 20 re f',
     resources: { extgstates: { G9: { smask: inner } } },
     bbox: [0, 0, 100, 100],
@@ -394,7 +394,7 @@ test('fuzz: malformed mask groups never throw and always fall back a rung', () =
     const { nodes } = run(SHADOW_PAGE, {
       extgstates: { G5: { ca: 0.2784 }, G7: { smask: { ...SHADOW_MASK, ...patch } } },
     });
-    // Either dropped (the shadow rung) or painted unmasked — never a crash, and the
+    // Either dropped (the shadow rung) or painted unmasked - never a crash, and the
     // output stays bounded.
     assert.ok(nodes.length <= 1, JSON.stringify(Object.keys(patch)));
   }

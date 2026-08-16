@@ -3,12 +3,12 @@
  * rebrand-deck tool contract tests.
  *
  * Run with: node --test tests/rebrand-deck-tool.test.ts
- * No test framework — node:test built-in.
+ * No test framework - node:test built-in.
  *
  * Loads the REAL community tool straight from community/rebrand-deck (not the
  * tools/ profile view, which doesn't include a freshly-added tool until the
  * profile is rebuilt) and drives it through the engine with a stubbed
- * host.pptx/host.tokens — only the host is stubbed; the tool code under test
+ * host.pptx/host.tokens - only the host is stubbed; the tool code under test
  * is the shipped manifest + hooks. Guards:
  *   - the one-time mapping seed from the inspect result, and the never-reseed
  *     guard protecting the user's manual row edits,
@@ -33,7 +33,7 @@ import { baseHost } from './helpers/host.ts';
 const COMMUNITY_DIR = join(dirname(fileURLToPath(import.meta.url)), '..', 'community');
 const fetchFile = (path: string) => readFile(join(COMMUNITY_DIR, path), 'utf8');
 
-// rebrand-deck is a community tool — always present in a full checkout; a
+// rebrand-deck is a community tool - always present in a full checkout; a
 // missing dir means it was renamed or deleted, which must FAIL loudly here.
 assert.ok(existsSync(join(COMMUNITY_DIR, 'rebrand-deck', 'tool.json')),
   'community/rebrand-deck/tool.json is missing — the tool was renamed or deleted');
@@ -42,7 +42,7 @@ const tool: any = await loadTool('rebrand-deck', fetchFile);
 
 const PPTX_MIME = 'application/vnd.openxmlformats-officedocument.presentationml.presentation';
 
-// "PK\x03\x04" zip magic + padding — enough for the hook's byte sniff; the
+// "PK\x03\x04" zip magic + padding - enough for the hook's byte sniff; the
 // stubbed host.pptx never parses it.
 const PK_BYTES = new Uint8Array([0x50, 0x4b, 0x03, 0x04, 0, 0, 0, 0, 1, 2, 3, 4]);
 
@@ -140,7 +140,7 @@ test('user-edited mapping rows survive later inputs (never reseeded)', async () 
 
   const edited = [{ from: '#4472C4', to: '#0C322C' }];
   await rt.setInput('colorMap', edited as any);
-  await rt.setInput('useTheme', false);   // any other keystroke — still no reseed
+  await rt.setInput('useTheme', false);   // any other keystroke - still no reseed
 
   assert.deepEqual(value(rt, 'colorMap'), edited, 'manual rows kept verbatim');
   assert.deepEqual(value(rt, 'fontMap'), [{ from: 'Calibri', to: 'Inter' }]);
@@ -193,7 +193,7 @@ test('exportFile builds the surgical plan and returns the rebranded deck', async
 test('a download racing the review (rows never seeded) ships the seeded-default plan', async () => {
   // Model the pending race without wall-clock timers: the review's inspect
   // attempt fails, leaving the same state as a still-pending job (no rows
-  // seeded for this file key, job dropped from the cache) — then the
+  // seeded for this file key, job dropped from the cache) - then the
   // download's own await gets the real result and must derive the rows.
   const { host, calls } = makeHost();
   let first = true;
@@ -243,7 +243,7 @@ test('exportFile without host.pptx fails with the friendly message', async () =>
 // pixel-identical, so both are called out in the card rather than discovered
 // after the fact.
 
-// "%PDF-1.7" — the hook sniffs magic bytes, not the filename.
+// "%PDF-1.7" - the hook sniffs magic bytes, not the filename.
 const PDF_BYTES = new Uint8Array([0x25, 0x50, 0x44, 0x46, 0x2d, 0x31, 0x2e, 0x37]);
 
 const pdfFile = () => ({
@@ -251,7 +251,7 @@ const pdfFile = () => ({
   size: PDF_BYTES.length, bytes: PDF_BYTES, url: null,
 });
 
-// A deck of nothing but full-bleed pictures — what "export to PDF, import back"
+// A deck of nothing but full-bleed pictures - what "export to PDF, import back"
 // produces. No literal colour, no typeface beyond the theme's own two.
 const FLAT_INSPECT = {
   ok: true,
@@ -310,7 +310,7 @@ test('a normal deck carries no flattened warning', async () => {
 
 test('an older shell with no content tally still warns when nothing is mappable', async () => {
   // engine < 1.79: inspect omits `content`. The fallback signal is "no literal
-  // colour AND no typeface beyond the theme's own", and it hedges accordingly —
+  // colour AND no typeface beyond the theme's own", and it hedges accordingly - 
   // a fully theme-linked deck looks the same from here and rebrands fine.
   const { content: _drop, ...noTally } = FLAT_INSPECT;
   const { host } = makeHostWith(noTally);

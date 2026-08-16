@@ -2,23 +2,23 @@
 /**
  * Baseline TIFF encoder (uncompressed, single strip, little-endian).
  *
- * Pure byte assembly — no DOM, no browser APIs — so it belongs in the engine
+ * This is pure byte assembly with no DOM and no browser APIs, so it belongs in the engine
  * alongside the other hand-rolled format emitters (emf.js, eps.js, apng.js) and
  * is unit-testable at the repo root. It's generic over the sample layout so the
  * same code emits RGB (PhotometricInterpretation 2, 3 samples/pixel) or grayscale
- * (Photometric 1, 1 sample) — the plain `tiff` export uses RGB.
+ * (Photometric 1, 1 sample). The plain `tiff` export uses RGB.
  *
  * Depth: 8-bit unsigned (the default, byte-identical to the original encoder),
- * 16-bit unsigned, or 32-bit IEEE float (`depth: 'float32'` — the deep/VFX
+ * 16-bit unsigned, or 32-bit IEEE float (`depth: 'float32'`, the deep/VFX
  * interchange depth, plans/61-deeprichpixels.md §6 Phase A). Deep samples are
  * written little-endian to match the file's "II" byte order. Non-8-bit files
  * carry the SampleFormat tag (339, TIFF 6.0 Section 19 "Data Sample Format"):
  * 1 = unsigned integer for 16-bit, 3 = IEEE floating point for float32. 8-bit
- * output omits it — SampleFormat defaults to 1 per TIFF 6.0, and omitting keeps
+ * output omits it. SampleFormat defaults to 1 per TIFF 6.0, and omitting keeps
  * the 8-bit bytes identical to the pre-depth encoder.
  *
  * A sample count beyond what the photometric implies (e.g. 4 samples with RGB)
- * carries ExtraSamples (338) declaring each extra sample as unassociated alpha —
+ * carries ExtraSamples (338) declaring each extra sample as unassociated alpha.
  * TIFF 6.0 requires the tag in that case (p.31, p.77).
  *
  * SEAM: this writer never converts between depths. The caller hands it samples
@@ -65,11 +65,11 @@ export interface PackTiffOptions {
   /** ImageDescription (falls back to meta.description). */
   description?: string;
   /** ICC profile bytes → InterColorProfile tag (34675). Carries the colour space
-   *  the samples are in — e.g. a Rec.2100-PQ profile (its cicp tag) makes an HDR TIFF. */
+   *  the samples are in. For example, a Rec.2100-PQ profile (its cicp tag) makes an HDR TIFF. */
   icc?: Uint8Array;
   /** Bits per sample: 8 (default, Uint8Array/Uint8ClampedArray in), 16
    *  (Uint16Array in, SampleFormat 1), or 'float32' (Float32Array in,
-   *  SampleFormat 3 — IEEE float, TIFF 6.0 §19). The buffer must already be at
+   *  SampleFormat 3, IEEE float, TIFF 6.0 §19). The buffer must already be at
    *  this depth; packTiff never converts (that's pixels.ts's seam). */
   depth?: 8 | 16 | 'float32';
 }
@@ -94,7 +94,7 @@ export function packTiff(pixels: Uint8Array | Uint8ClampedArray | Uint16Array | 
   if (depth !== 8 && depth !== 16 && depth !== 'float32') {
     throw new Error(`packTiff: unsupported depth ${String(depth)} (8, 16 or 'float32').`);
   }
-  // The buffer must already be at the declared depth — packTiff writes, never converts.
+  // The buffer must already be at the declared depth. packTiff writes, never converts.
   if (depth === 8 && !(pixels instanceof Uint8Array || pixels instanceof Uint8ClampedArray)) {
     throw new Error('packTiff: depth 8 requires a Uint8Array or Uint8ClampedArray.');
   }
@@ -127,7 +127,7 @@ export function packTiff(pixels: Uint8Array | Uint8ClampedArray | Uint16Array | 
   };
 
   // BitsPerSample: one SHORT per sample (8, 16 or 32). count===1 (gray) inlines;
-  // RGB is out-of-line (6 bytes > 4). Built as a data blob either way — the
+  // RGB is out-of-line (6 bytes > 4). Built as a data blob either way. The
   // layout loop inlines it automatically when ≤4 bytes.
   const bps = new Uint8Array(spp * 2);
   { const dv = new DataView(bps.buffer); for (let i = 0; i < spp; i++) dv.setUint16(i * 2, bits, true); }
@@ -145,7 +145,7 @@ export function packTiff(pixels: Uint8Array | Uint8ClampedArray | Uint16Array | 
   num(259, SHORT, 1);                                  // Compression: none
   num(262, SHORT, photometric);                        // PhotometricInterpretation
   asciiTag(270, description);                          // ImageDescription
-  num(273, LONG, 0);                                   // StripOffsets — patched after layout
+  num(273, LONG, 0);                                   // StripOffsets - patched after layout
   num(277, SHORT, spp);                                // SamplesPerPixel
   num(278, LONG, H);                                   // RowsPerStrip (single strip)
   num(279, LONG, stripBytes);                          // StripByteCounts
@@ -156,7 +156,7 @@ export function packTiff(pixels: Uint8Array | Uint8ClampedArray | Uint16Array | 
   asciiTag(315, meta.author);                          // Artist
   if (depth !== 8) {
     // SampleFormat (339, TIFF 6.0 Section 19): 1 = unsigned integer, 3 = IEEE
-    // float. One SHORT per sample. Omitted for 8-bit — the spec default is 1,
+    // float. One SHORT per sample. Omitted for 8-bit: the spec default is 1,
     // and omission keeps 8-bit output byte-identical to the original encoder.
     const sampleFormat = depth === 'float32' ? 3 : 1;
     const sf = new Uint8Array(spp * 2);
@@ -165,7 +165,7 @@ export function packTiff(pixels: Uint8Array | Uint8ClampedArray | Uint16Array | 
   }
   // ExtraSamples (338, TIFF 6.0 p.31 "ExtraSamples" / p.77 field list): REQUIRED
   // whenever SamplesPerPixel exceeds the component count the PhotometricInterpretation
-  // implies (3 for RGB, 4 for Separated/CMYK, 1 otherwise) — without it a reader has
+  // implies (3 for RGB, 4 for Separated/CMYK, 1 otherwise). Without it a reader has
   // no idea what the trailing sample means. One SHORT per extra sample, value 2 =
   // "unassociated alpha data", which matches the engine's un-premultiplied (straight)
   // alpha convention. spp <= the photometric's component count emits nothing, so all

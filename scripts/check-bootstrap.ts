@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 // SPDX-License-Identifier: MPL-2.0
 /**
- * Bootstrap guard — refuse to `npm install` into a half-cloned checkout.
+ * Bootstrap guard - refuse to `npm install` into a half-cloned checkout.
  *
  * Run as: npm install (preinstall)  /  node scripts/check-bootstrap.ts
  *
@@ -21,7 +21,7 @@
  *
  *   - LOLLY_SKIP_BOOTSTRAP_CHECK is set (explicit operator override),
  *   - the checkout has no .gitmodules or no .git (a published tarball, a
- *     `npm pack` extraction, a vendored copy — there are no submodules to
+ *     `npm pack` extraction, a vendored copy - there are no submodules to
  *     initialise, so the sentinels legitimately may not be there),
  *   - the package is being installed as somebody else's dependency
  *     (this directory sits under a node_modules/, or npm_config_global is set),

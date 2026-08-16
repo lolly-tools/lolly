@@ -3,11 +3,11 @@
  * Catalog signing + runtime integrity contract tests.
  *
  * Run with: npm test  (node --test over the tests/ globs)
- * No test framework — uses node:test built-in.
+ * No test framework - uses node:test built-in.
  *
  * Exercises the whole trust chain in memory with an ephemeral P-256 keypair:
  * canonical JSON determinism, sign → verify roundtrip, tamper detection on
- * tool files / index bytes / envelope fields, and — the part that matters —
+ * tool files / index bytes / envelope fields, and - the part that matters - 
  * loadTool refusing to return a tool whose fetched bytes don't match the
  * signed digest map (fail CLOSED: tampered hooks.js, stripped-but-signed
  * hooks.js, unsigned extra files, module hooks). The unsigned path must keep
@@ -15,7 +15,7 @@
  *
  * i18n sidecars (i18n/<lang>.json) are signed too, with a softer failure mode:
  * an unverifiable overlay is dropped (tool loads in English), never applied,
- * and never fails the tool — including under an old pre-sidecar envelope.
+ * and never fails the tool - including under an old pre-sidecar envelope.
  */
 
 import { test } from 'node:test';
@@ -232,7 +232,7 @@ test('loadTool refuses a tampered manifest before trusting anything it declares'
 });
 
 // NOTE: the loader also refuses `hooks.module` tools under integrity (their
-// imported bytes never pass through loadTool, so digests can't cover them) —
+// imported bytes never pass through loadTool, so digests can't cover them) - 
 // untestable through loadTool today because schemas/tool.schema.json doesn't
 // yet admit `hooks.module`; the guard is defense-in-depth for when it does.
 

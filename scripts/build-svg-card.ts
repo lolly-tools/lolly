@@ -4,7 +4,7 @@
  * Animated SVG card generator.
  *
  * A handful of tools are, at heart, a self-contained animated inline SVG driven by
- * pure CSS `@keyframes` (no JS, no hooks, no assets) — e.g. pose-geeko's posed Geeko
+ * pure CSS `@keyframes` (no JS, no hooks, no assets) - e.g. pose-geeko's posed Geeko
  * and digi-ad's scene loop. For those, the most PERFORMANT gallery preview isn't a
  * raster APNG/GIF or a <video>, but the tool's own vector artwork shipped as a
  * committed `tools/<id>/card.svg`: it animates natively inside the gallery's <img>
@@ -15,8 +15,8 @@
  * `hydrate`, so the output is byte-faithful to what the tool shows), lifts the resolved
  * <svg> + <style>, and re-wraps them as a standalone animated SVG (the <style> moves
  * INSIDE the root svg so its keyframes ship with it). It writes:
- *   • tools/<id>/card.svg      — the DEFAULT inputs, the gallery card
- *   • tools/<id>/look<i>.svg   — one per manifest example (`looks: true`), the example
+ *   • tools/<id>/card.svg - the DEFAULT inputs, the gallery card
+ *   • tools/<id>/look<i>.svg - one per manifest example (`looks: true`), the example
  *                                carousel slides; each is picked up as a committed look
  *                                override by build-preview-bundle.ts (which inlines it) and
  *                                skipped by build-previews.ts (so `npm run previews` can't
@@ -27,7 +27,7 @@
  * teaser", and no backdrop <rect> standing in for the HTML container the lift left behind.
  * Every card is TRANSPARENT wherever the tool itself paints nothing, and the surface behind
  * it is the gallery tile's own themed preview shade (.gtile-hero / .gcar in
- * shells/web/src/styles/parts/gallery.css) — which follows light/dark, where a baked-in
+ * shells/web/src/styles/parts/gallery.css) - which follows light/dark, where a baked-in
  * hex could not. A tool that only looks good with a staged backdrop or tuned inputs is
  * telling you about the tool's defaults, not about the card.
  *
@@ -39,17 +39,17 @@ import { hydrate, buildInputModel } from '../engine/src/index.ts';
 
 const ROOT = new URL('..', import.meta.url).pathname;
 
-// Per-tool config — deliberately only ONE knob: whether to ALSO emit a standalone SVG per
+// Per-tool config - deliberately only ONE knob: whether to ALSO emit a standalone SVG per
 // manifest example (`looks`). There is no backdrop and no input-override slot; see the
 // authenticity rule above. Anything a card needs beyond "render the tool at its defaults"
 // belongs in the tool.
 //
 // ONLY for tools whose canvas is a self-contained animated inline <svg> with no JS/hooks/
-// assets. pose-geeko qualifies. digi-ad does NOT — it's HTML/CSS <div> scenes + hooks.js,
+// assets. pose-geeko qualifies. digi-ad does NOT - it's HTML/CSS <div> scenes + hooks.js,
 // so it has no <svg> to lift; it ships its real `html` export instead (build-html-card.ts).
 const CARDS: Record<string, { looks?: boolean }> = {
   // Pose Geeko: the default pose composites on the tile and gently breathes (its `idle`
-  // default is on). Card only — its example carousel keeps its manual-pose looks.
+  // default is on). Card only - its example carousel keeps its manual-pose looks.
   'pose-geeko': {},
 };
 
@@ -57,7 +57,7 @@ const CARDS: Record<string, { looks?: boolean }> = {
  * Hydrate the template with `values` and lift its <svg> + <style> into ONE standalone
  * animated SVG string. The <style> moves inside the root <svg> so its @keyframes travel
  * with the file and animate natively in an <img>. Nothing is painted that the tool did
- * not paint — the card is transparent wherever the tool's own canvas is.
+ * not paint - the card is transparent wherever the tool's own canvas is.
  */
 function liftStandaloneSvg(
   manifest: Record<string, unknown>,
@@ -71,7 +71,7 @@ function liftStandaloneSvg(
   // Pull the <style> block, then REMOVE it from the html before locating the <svg>. A CSS
   // comment can contain literal "<svg>"/"<g>"/"<style>" text (e.g. docs about the export),
   // which would otherwise fool the greedy svg/style regexes into starting at the fake tag.
-  // Strip CSS comments from the lifted stylesheet too — non-functional, smaller, and it
+  // Strip CSS comments from the lifted stylesheet too - non-functional, smaller, and it
   // dodges the same landmine (a "</style>" in a comment would close the injected block early).
   const styleBlock = (html.match(/<style[^>]*>[\s\S]*?<\/style>/) || [''])[0];
   let style = styleBlock.replace(/^<style[^>]*>/, '').replace(/<\/style>\s*$/, '');
@@ -83,7 +83,7 @@ function liftStandaloneSvg(
   let svg = svgMatch[0];
 
   // Standalone requirements: an explicit namespace, and a viewBox so the art has an intrinsic
-  // coordinate box — an <img>/tile with no matching width/height STRETCHES a viewBox-less SVG.
+  // coordinate box - an <img>/tile with no matching width/height STRETCHES a viewBox-less SVG.
   const openEnd = svg.indexOf('>');
   let openTag = svg.slice(0, openEnd);
   if (!/xmlns=/.test(openTag)) openTag = openTag.replace(/^<svg/, '<svg xmlns="http://www.w3.org/2000/svg"');
@@ -105,7 +105,7 @@ function liftStandaloneSvg(
   // Escape `&` and `<` in the lifted CSS: a standalone SVG is parsed as strict XML (resvg AND
   // the browser's <img>/<object> loaders), where a raw `&` (e.g. in a comment "Scale & …", or
   // a CSS-nesting `&`) or `<` is a fatal "malformed entity". Escaping keeps the <style> valid
-  // PCDATA in EVERY context — XML img/object AND an innerHTML inline — where CDATA would break
+  // PCDATA in EVERY context - XML img/object AND an innerHTML inline - where CDATA would break
   // the latter (HTML parsers treat `<![CDATA[` as a bogus comment and drop the CSS). The XML/
   // HTML parser un-escapes before the CSS parser runs, so the stylesheet is byte-identical.
   const styleXml = style.replace(/&/g, '&amp;').replace(/</g, '&lt;');
@@ -126,7 +126,7 @@ function buildCard(toolId: string): void {
   const manifest = JSON.parse(readFileSync(join(dir, 'tool.json'), 'utf8'));
   const template = readFileSync(join(dir, 'template.html'), 'utf8');
 
-  // Default input values, exactly as the tool opens with — via the engine's own model
+  // Default input values, exactly as the tool opens with - via the engine's own model
   // builder so vector/synthetic defaults resolve identically to the live tool.
   const defaults = Object.fromEntries(buildInputModel(manifest, {}).map((m) => [m.id, m.value]));
 

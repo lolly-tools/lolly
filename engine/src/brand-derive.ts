@@ -1,29 +1,30 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
- * Brand derivation — OKLCH-native colour math + the semantic-token generator
+ * Brand derivation. OKLCH-native colour math plus the semantic-token generator
  * behind the lolly-start onboarding (plans/archive/brand-token-contract.md).
  *
- * Two halves, both pure and deterministic (no Date, no Math.random, no IO):
+ * This module has two parts. Both are pure and deterministic (no Date, no
+ * Math.random, no IO):
  *
- *   1. sRGB ↔ OKLCH conversion (parseOklch / formatOklch / hexToOklch /
+ *   1. sRGB to OKLCH conversion (parseOklch / formatOklch / hexToOklch /
  *      oklchToHex) plus WCAG 2.1 contrastRatio. This is the engine's single
- *      source of truth for `oklch()` / `lch()` colour strings — tokens.ts
- *      imports it for colorToHex (never duplicates the math) and the wizard
- *      reuses it for live previews. `oklchToHex` gamut-maps by reducing chroma
- *      toward the achromatic axis (binary search, fixed iteration count) so an
- *      out-of-sRGB request degrades to the nearest same-hue, same-lightness
- *      colour instead of clipping channels.
+ *      source of truth for `oklch()` / `lch()` colour strings. tokens.ts
+ *      imports it for colorToHex instead of duplicating the math, and the
+ *      wizard reuses it for live previews. `oklchToHex` gamut-maps by
+ *      reducing chroma toward the achromatic axis (binary search, fixed
+ *      iteration count). An out-of-sRGB request degrades to the nearest
+ *      same-hue, same-lightness colour instead of clipping channels.
  *
- *   2. `deriveBrandTokens(opts)` — one brand colour in, a complete layered
- *      Tokens-Studio/DTCG document out: base ramps (primary/neutral/secondary,
- *      9 steps) + a brand-tinted spectrum + light/dark semantic sets + $themes,
- *      in exactly the shape `tokens.ts#createTokenSet` consumes. Every
- *      semantic slot is contrast-enforced, so a derived brand can never ship
- *      unreadable text.
+ *   2. `deriveBrandTokens(opts)` takes one brand colour and produces a
+ *      complete layered Tokens-Studio/DTCG document: base ramps
+ *      (primary/neutral/secondary, 9 steps), a brand-tinted spectrum,
+ *      light/dark semantic sets, and $themes, in exactly the shape
+ *      `tokens.ts#createTokenSet` consumes. Every semantic slot is
+ *      contrast-enforced, so a derived brand can never ship unreadable text.
  *
- * Pipeline for the maths: sRGB ↔ linear ↔ LMS ↔ Oklab ↔ OKLCH (Björn
- * Ottosson's published matrices); `lch()` additionally walks CIELAB → XYZ(D50)
- * → Bradford → XYZ(D65) → Oklab (CSS Color 4 constants).
+ * Pipeline for the maths: sRGB to linear to LMS to Oklab to OKLCH (Björn
+ * Ottosson's published matrices). `lch()` additionally walks CIELAB to
+ * XYZ(D50) to Bradford to XYZ(D65) to Oklab (CSS Color 4 constants).
  */
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -184,8 +185,8 @@ const parseAlphaComponent = parseAlphaToken;
  *
  * `oklch()`: L as a percent (`62%` → 0.62) or bare 0–1 number; C as a number or
  * percent of 0.4; H in degrees (deg/rad/grad/turn accepted); optional `/ alpha`.
- * `lch()` (CIELAB, D50): L 0–100 (percent or bare — same scale), C as a number
- * or percent of 150 — converted to OKLCH via Lab → XYZ → Oklab. Returns null
+ * `lch()` (CIELAB, D50): L 0–100 (percent or bare - same scale), C as a number
+ * or percent of 150 - converted to OKLCH via Lab → XYZ → Oklab. Returns null
  * for anything else; `alpha` is only set when specified and < 1.
  */
 export function parseOklch(s: string): Oklch | null {
@@ -246,23 +247,24 @@ export function hexToOklch(hex: string): Oklch | null {
   return out;
 }
 
-// ─── Gamut mapping — CSS Color 4 §14.2 (chroma bisection + local MINDE) ───────
+// ─── Gamut mapping - CSS Color 4 §14.2 (chroma bisection + local MINDE) ───────
 //
-// THE mapper for the whole engine: css-color.ts's gamutMapSrgb (and so every
-// format flatten) routes its chroma search here, and oklchToHex below is a thin
-// wrapper. One search, so a brand token and an exported paint can never disagree
-// about what an out-of-gamut colour becomes.
+// This is the mapper for the whole engine. css-color.ts's gamutMapSrgb, and so
+// every format flatten, routes its chroma search here. oklchToHex below is a
+// thin wrapper. There is one search, so a brand token and an exported paint
+// always agree on what an out-of-gamut colour becomes.
 //
-// Reducing chroma alone (the pre-2026-07 behaviour) is over-cautious: near the
-// sRGB blue and yellow corners the constant-hue ray grazes a cube face, dipping
-// ~7e-4 out of gamut before re-entering AT the corner, so a plain search stops
-// at that false boundary and throws away ~15% of the chroma (#0000ff emitted as
-// #0031e5). That used to be worked around with a deliberately loose gamut
-// tolerance. The spec's answer is better and subsumes it: at each step, compare
-// the CLIPPED candidate against the unclipped one, and accept the clip when they
-// differ by less than a just-noticeable difference ("local MINDE"). The corner
-// dip is exactly such a case, and genuinely out-of-gamut colours keep more of
-// their punch — `oklch(0.95 0.25 120)` lands on #dbff00 rather than #e0ff6f.
+// Reducing chroma alone (the pre-2026-07 behaviour) throws away too much
+// chroma. Near the sRGB blue and yellow corners, the constant-hue ray grazes a
+// cube face: it dips ~7e-4 out of gamut, then re-enters AT the corner. A plain
+// search stops at that false boundary and throws away ~15% of the chroma
+// (#0000ff is emitted as #0031e5). The old workaround was a deliberately loose
+// gamut tolerance. The spec's method is better and covers this case too: at
+// each step, compare the CLIPPED candidate against the unclipped one, and
+// accept the clip when they differ by less than a just-noticeable difference
+// ("local MINDE"). The corner dip is exactly this case, and genuinely
+// out-of-gamut colours keep more of their punch this way -
+// `oklch(0.95 0.25 120)` lands on #dbff00 rather than #e0ff6f.
 const JND = 0.02;          // one just-noticeable difference in OKLab
 
 /** The §14.2 bisection tolerance, which doubles as the in-gamut slack. Exported
@@ -277,7 +279,7 @@ const clipSrgb = (rgb: readonly [number, number, number]): [number, number, numb
   [clamp01(rgb[0]), clamp01(rgb[1]), clamp01(rgb[2])];
 
 /**
- * ΔEOK between two ENCODED sRGB triples — CSS Color 4's colour difference for
+ * ΔEOK between two ENCODED sRGB triples - CSS Color 4's colour difference for
  * gamut mapping. Exported for in-engine reuse (css-color.ts); the tool-facing
  * `host.color.deltaE` is color-tools.ts's string-taking `deltaEOk`.
  */
@@ -297,7 +299,7 @@ export function deltaEOkSrgb(
  * comes back untouched (beyond the encode), so this is safe to call
  * unconditionally.
  *
- * Deterministic: same input, same output, no fixed iteration count needed —
+ * Deterministic: same input, same output, no fixed iteration count needed -
  * the bisection terminates on MAP_EPSILON.
  */
 export function gamutMapOklch(l: number, c: number, h: number): [number, number, number] {
@@ -342,7 +344,7 @@ export function gamutMapOklch(l: number, c: number, h: number): [number, number,
 }
 
 /**
- * OKLCH → hex, gamut-mapped through `gamutMapOklch` (CSS Color 4 §14.2 — hue and
+ * OKLCH → hex, gamut-mapped through `gamutMapOklch` (CSS Color 4 §14.2 - hue and
  * lightness preserved, chroma reduced with a local-MINDE clip check, never a raw
  * channel clip). Alpha < 1 appends an 8-digit hex.
  */
@@ -357,11 +359,11 @@ export function oklchToHex(c: Oklch): string {
 }
 
 /**
- * Perceptual blend of two OKLCH colours at `t` (0 = `a`, 1 = `b`, clamped):
- * linear in lightness/chroma/alpha, shortest-arc in hue. An achromatic
- * endpoint (c < 0.02 — its hue is noise, not a choice) adopts the other
- * side's hue, so a grey ↔ colour blend deepens in place instead of sweeping
- * the wheel through whatever stale hue the grey happened to carry.
+ * Perceptual blend of two OKLCH colours at `t` (0 = `a`, 1 = `b`, clamped).
+ * Linear in lightness/chroma/alpha, shortest-arc in hue. An achromatic
+ * endpoint (c < 0.02, so its hue is noise, not a real value) adopts the
+ * other side's hue. A grey-to-colour blend then deepens in place instead of
+ * sweeping through whatever unrelated hue the grey happened to store.
  */
 export function mixOklch(a: Oklch, b: Oklch, t: number): Oklch {
   const k = clamp01(t);
@@ -386,7 +388,7 @@ function wcagLuminance(hex: string): number | null {
   const rgba = parseHex(hex);
   if (!rgba) return null;
   // WCAG 2.1's published linearisation (0.03928 knee, not the sRGB spec's
-  // 0.04045 — indistinguishable for 8-bit values, kept as the standard writes it).
+  // 0.04045 - indistinguishable for 8-bit values, kept as the standard writes it).
   const lin = (v: number) => {
     const c = v / 255;
     return c <= 0.03928 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4;
@@ -409,7 +411,7 @@ export function contrastRatio(aHex: string, bHex: string): number {
 
 // Minimal hsl → rgb (0–1 channels). tokens.ts has its own private copy for the
 // legacy colorToHex path; this one exists so brand-derive stays import-free of
-// tokens.ts (which imports US — a back-import would cycle).
+// tokens.ts (which imports US - a back-import would cycle).
 function hslToRgb01(h: number, s: number, l: number): [number, number, number] {
   const hh = normHue(h) / 360;
   if (s === 0) return [l, l, l];
@@ -459,7 +461,7 @@ function parseCssColor(input: string): Oklch | null {
 // ─── deriveBrandTokens ────────────────────────────────────────────────────────
 
 export interface BrandDeriveOptions {
-  /** The brand colour — any CSS colour string: hex, rgb(), hsl(), oklch(), lch(). */
+  /** The brand colour - any CSS colour string: hex, rgb(), hsl(), oklch(), lch(). */
   primary: string;
   /** Secondary-hue relationship. Default 'mono' (same hue, quiet chroma). */
   scheme?: 'mono' | 'complement' | 'analogous' | 'triad';
@@ -474,7 +476,7 @@ export interface BrandDeriveOptions {
   steps?: number;
   /** What sits on top of the brand primary (`color.semantic.on-primary`).
    *  'auto' (default) picks white/black by contrast; 'light' forces white and
-   *  'dark' forces black — a brand-owner override for the common case where the
+   *  'dark' forces black - a brand-owner override for the common case where the
    *  contrast pick flips to black on a mid-tone colour the owner wants white text
    *  on. The live specimen preview keeps a forced (lower-contrast) choice honest. */
   foreground?: 'auto' | 'light' | 'dark';
@@ -482,16 +484,16 @@ export interface BrandDeriveOptions {
   name?: string;
 }
 
-/** Ramp division bounds — the shade-count slider's range. */
+/** Ramp division bounds - the shade-count slider's range. */
 export const RAMP_STEPS_MIN = 3;
 export const RAMP_STEPS_MAX = 20;
 export const RAMP_STEPS_DEFAULT = 9;
 
-// Mirrors TOKEN_EXT in tokens.ts — kept as a local literal because tokens.ts
+// Mirrors TOKEN_EXT in tokens.ts - kept as a local literal because tokens.ts
 // imports this module's conversion math; importing the constant back would cycle.
 const VENDOR_EXT = 'com.suse.lolly';
 
-// Contrast floors per slot (vs its background) — the section-4 table of the spec.
+// Contrast floors per slot (vs its background) - the section-4 table of the spec.
 const FLOORS = {
   comfort: { text: 7.0, muted: 3.0, onPrimary: 4.5, edge: 1.3 },
   high: { text: 10.0, muted: 4.5, onPrimary: 7.0, edge: 1.6 },
@@ -512,7 +514,7 @@ const BLACK: Oklch = { l: 0, c: 0, h: 0 };
 
 // `n` ramp L targets: the 9-point perceptual RAMP_L curve resampled to n points
 // (endpoints fixed), with the MIDDLE step pulled to the primary's exact L when
-// it's mid-range (0.45–0.75) — neighbours re-spaced so the ramp stays monotonic.
+// it's mid-range (0.45–0.75) - neighbours re-spaced so the ramp stays monotonic.
 // n = 9 reproduces the original RAMP_L (and its step-5 anchor pull) verbatim.
 export function rampLightnesses(primaryL: number, n: number): number[] {
   const src = RAMP_L;
@@ -548,8 +550,8 @@ function nudgeHue(from: number, toward: number, maxDeg: number): number {
 }
 
 // Contrast checks and emitted values must agree, so every check runs on the
-// QUANTISED colour — exactly what a consumer reads back from the stored
-// `oklch()` string — never the full-precision intermediate.
+// QUANTISED colour - exactly what a consumer reads back from the stored
+// `oklch()` string - never the full-precision intermediate.
 function emitHex(v: Oklch): string {
   return oklchToHex(parseOklch(formatOklch(v)) ?? v);
 }
@@ -572,7 +574,7 @@ interface Slot {
   value: Oklch;
 }
 
-// Chroma-preserving lightness nudge — the last-resort path when no ramp step
+// Chroma-preserving lightness nudge - the last-resort path when no ramp step
 // meets a floor. Walks L toward the contrast-increasing extreme; black/white
 // is the ceiling (no floor in the table exceeds what they deliver).
 function nudged(from: Oklch, surfaceHex: string, floor: number): Oklch {
@@ -639,7 +641,7 @@ function buildSemantic(
   // fixed indices (9/1, 6/4, 3/7, 8/9 & 2/1, anchor 5, primary-surface 6…9).
   const N = neutral.length;
   const at = (frac: number): number => Math.min(N, Math.max(1, Math.round(frac * (N - 1)) + 1));
-  const anchor = at(0.5); // the mid ramp step (was 5) — the brand-colour anchor
+  const anchor = at(0.5); // the mid ramp step (was 5) - the brand-colour anchor
 
   let surface: Slot;
   if (spec.primarySurface) {
@@ -686,14 +688,14 @@ function buildSemantic(
   }
   if (!primary || !onPrimary) {
     // Unreachable in practice (a ramp end always carries a passing white or
-    // black at these floors) — but never emit a slot below its floor.
+    // black at these floors) - but never emit a slot below its floor.
     const step = spec.primarySurface ? N : 1;
     primary = { step, value: pRamp[step - 1]! };
     onPrimary = { value: nudged(step === N ? BLACK : WHITE, emitHex(primary.value), F.onPrimary) };
   }
   // A brand-owner foreground override wins over the contrast pick: force pure
   // white ('light') or black ('dark') on the brand button, keeping the primary
-  // step the pair logic chose. Deliberately un-nudged — the owner asked for this
+  // step the pair logic chose. Deliberately un-nudged - the owner asked for this
   // exact ink and the live specimen preview shows them the result.
   if (foreground === 'light') onPrimary = { value: WHITE };
   else if (foreground === 'dark') onPrimary = { value: BLACK };
@@ -716,7 +718,7 @@ function buildSemantic(
  * a `base` set (color.ramp.{primary,neutral,secondary}.1–9 + color.spectrum.*)
  * plus `light`/`dark` sets carrying the seven `color.semantic.*` slots, and
  * `$themes` ordered so the chosen `surface` look is the default theme. Fully
- * deterministic — same options, byte-identical document.
+ * deterministic - same options, byte-identical document.
  *
  * Throws on an unparseable `primary` (the only invalid input; other options
  * fall back to their defaults).
@@ -740,7 +742,7 @@ export function deriveBrandTokens(opts: BrandDeriveOptions): Record<string, unkn
     Ls.map(L => ({ l: L, c: p.c * chromaScale * chromaBell(L, peak), h: normHue(hue) }));
 
   const primaryRamp = mkRamp(p.h, 1);
-  // Mono derives a LOW-CHROMA SIBLING (quiet, but a distinct ramp — never a re-alias).
+  // Mono derives a LOW-CHROMA SIBLING (quiet, but a distinct ramp - never a re-alias).
   const secondaryRamp = mkRamp(p.h + SCHEME_ROTATION[scheme], scheme === 'mono' ? 0.35 : 1);
   // Neutrals carry the primary hue at C ≤ 0.02.
   const neutralC = Math.min(0.02, Math.max(0.004, p.c * 0.25));

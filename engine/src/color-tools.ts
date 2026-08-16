@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
- * Colour tools — perceptual metrics and ramp math on top of brand-derive's
+ * Colour tools: perceptual metrics and ramp math on top of brand-derive's
  * OKLab core. The adopt/port decision behind this module is
- * plans/archive/chroma-eval.md: the handful of load-bearing algorithms from chroma.js
+ * plans/archive/chroma-eval.md: the handful of essential algorithms from chroma.js
  * are ported and re-based onto OKLab (better hue uniformity than the CIELAB
  * originals, and every emitted colour rides `oklchToHex`'s chroma-reduction
  * gamut mapping instead of channel clipping); everything the engine already
@@ -10,8 +10,8 @@
  * brand-derive.ts untouched.
  *
  * Pure and deterministic throughout: no Date, no Math.random, no IO. Colour
- * inputs accept hex (#rgb…#rrggbbaa) or `oklch()`/`lch()` strings — the two
- * forms brand tokens are stored in; normalise anything else with
+ * inputs accept hex (#rgb…#rrggbbaa) or `oklch()`/`lch()` strings. These are the
+ * two forms brand tokens are stored in; normalise anything else with
  * tokens.ts#colorToHex first. Metrics return NaN on unparseable input (the
  * contrastRatio convention: every `>= floor` check honestly fails); ramp
  * generation throws (the deriveBrandTokens convention: bad input is an
@@ -20,7 +20,7 @@
  * Ported-from-chroma.js notice (applies to apcaContrast, rampOklab's
  * lightness-correction bisection and bezier blend, and classBreaks):
  *
- *   chroma.js — Copyright (c) 2011-2025, Gregor Aisch. All rights reserved.
+ *   chroma.js - Copyright (c) 2011-2025, Gregor Aisch. All rights reserved.
  *   Redistribution and use in source and binary forms, with or without
  *   modification, are permitted provided that the following conditions are
  *   met: (1) redistributions of source code must retain the above copyright
@@ -80,7 +80,7 @@ function toLab(input: string): Lab | null {
   return c ? oklchToLab(c) : null;
 }
 
-// ─── ΔEOK — perceptual colour difference ──────────────────────────────────────
+// ─── ΔEOK - perceptual colour difference ──────────────────────────────────────
 
 /**
  * ΔEOK: Euclidean distance in OKLab (CSS Color 4's deltaE for gamut mapping).
@@ -97,7 +97,7 @@ export function deltaEOk(aColor: string, bColor: string): number {
 
 // ─── APCA contrast (advisory) ─────────────────────────────────────────────────
 
-// APCA-W3, APCA-1.0.98G constants — ported from chroma.js
+// APCA-W3, APCA-1.0.98G constants - ported from chroma.js
 // src/utils/contrastAPCA.js (BSD-3-Clause, see module header); algorithm by
 // Andrew Somers / Myndex (https://github.com/Myndex/SAPC-APCA). The constants
 // are the spec's magic numbers; do not "clean them up".
@@ -118,7 +118,7 @@ function toRgbBytes(input: string): [number, number, number, number] | null {
   return c ? parseHex(oklchToHex(c)) : null;
 }
 
-// APCA's screen luminance: simple 2.4-gamma (deliberately not piecewise sRGB —
+// APCA's screen luminance: simple 2.4-gamma (deliberately not piecewise sRGB;
 // the spec models real monitors), then the soft black-level clamp.
 function apcaY(r: number, g: number, b: number): number {
   const { mainTRC } = SA98G.exponents;
@@ -132,11 +132,11 @@ function apcaY(r: number, g: number, b: number): number {
  * APCA-W3 lightness contrast Lc between text and background (APCA-1.0.98G).
  * Signed: positive for dark-on-light, negative for light-on-dark; |Lc| 60 ≈
  * body-text comfortable, 75 ≈ small text, 90 ≈ thin fonts. Text alpha < 1 is
- * composited onto the background first (background alpha is ignored — APCA
+ * composited onto the background first (background alpha is ignored; APCA
  * assumes an opaque bg). NaN when either input is unparseable.
  *
  * ADVISORY ONLY: APCA is beta/non-normative. WCAG 2.1 (`contrastRatio` +
- * deriveBrandTokens' floors) remains the enforced compliance number — this
+ * deriveBrandTokens' floors) remains the enforced compliance number. This
  * exists because WCAG 2.1 misjudges dark-mode and mid-tone pairs, exactly
  * where brand authors pick colours.
  */
@@ -144,8 +144,8 @@ export function apcaContrast(textColor: string, bgColor: string): number {
   const txt = toRgbBytes(textColor);
   const bg = toRgbBytes(bgColor);
   if (!txt || !bg) return NaN;
-  // Composite translucent text onto the (opaque) background, in sRGB bytes —
-  // matching chroma.js's mix-in-rgb pre-step.
+  // Composite translucent text onto the (opaque) background, in sRGB bytes.
+  // Matches chroma.js's mix-in-rgb pre-step.
   const a = txt[3];
   const t: [number, number, number] =
     a >= 1 ? [txt[0], txt[1], txt[2]]
@@ -172,7 +172,7 @@ export function apcaContrast(textColor: string, bgColor: string): number {
 /**
  * A note for any UI that shows an Lc, so every surface says it the same way.
  *
- * `apcaContrast` reads hex and `oklch()` and returns **NaN** for anything else —
+ * `apcaContrast` reads hex and `oklch()` and returns **NaN** for anything else,
  * including `color(display-p3 …)`. That is not a gap to paper over: APCA is fitted
  * to sRGB and has no published extension to a wider gamut, so a wide-gamut colour
  * has to be scored on its sRGB rendering. Pass `describeColor(...).srgbHex`, which
@@ -185,18 +185,18 @@ export const APCA_SRGB_ONLY =
  * What an Lc is good for.
  *
  * APCA's own published guidance, stated as what the pair CAN carry rather than as
- * pass/fail — its whole model is that contrast and text size trade off against each
+ * pass/fail. Its whole model is that contrast and text size trade off against each
  * other, so "fail" is not meaningful until you know the size. That is also why this
  * is a band and not a boolean: `wcagLevel` can say AA/AAA because WCAG 2 fixes the
  * sizes; APCA cannot, and inventing a pass here would misrepresent it.
  */
 export type ApcaUse =
-  | 'body-preferred'   // |Lc| 90+ — fluent body text, any normal size or weight
-  | 'body-minimum'     // |Lc| 75+ — body text, minimum
-  | 'large-text'       // |Lc| 60+ — 24px, or 16px bold
-  | 'headline'         // |Lc| 45+ — 36px, or 24px bold
-  | 'non-text'         // |Lc| 30+ — icons, borders, disabled states
-  | 'invisible';       // under 30 — not usable for anything meaningful
+  | 'body-preferred'   // |Lc| 90+ - fluent body text, any normal size or weight
+  | 'body-minimum'     // |Lc| 75+ - body text, minimum
+  | 'large-text'       // |Lc| 60+ - 24px, or 16px bold
+  | 'headline'         // |Lc| 45+ - 36px, or 24px bold
+  | 'non-text'         // |Lc| 30+ - icons, borders, disabled states
+  | 'invisible';       // under 30 - not usable for anything meaningful
 
 /** The floor of each band, high to low. */
 export const APCA_BANDS: ReadonlyArray<{ min: number; use: ApcaUse; label: string }> = [
@@ -221,7 +221,7 @@ export interface ApcaVerdict {
   /** Magnitude, which is what the bands are keyed on. */
   abs: number;
   /** True when the text is LIGHTER than its background. Kept because this is the
-   *  one thing WCAG 2's ratio cannot tell you — it scores both polarities alike. */
+   *  one thing WCAG 2's ratio cannot tell you: it scores both polarities alike. */
   reversed: boolean;
   use: ApcaUse;
   /** A short phrase for the band, ready to show. */
@@ -244,7 +244,7 @@ export function apcaVerdict(text: string, bg: string): ApcaVerdict | null {
 
 /** The result of {@link solveLightnessForApca}. */
 export interface ApcaSolveResult {
-  /** Solved OKLCH lightness (0–1) — the colour whose forward APCA Lc is closest
+  /** Solved OKLCH lightness (0–1): the colour whose forward APCA Lc is closest
    *  to the requested magnitude within the correct polarity branch. */
   l: number;
   /** Chroma actually used at `l`, clamped into `limit`'s gamut (≤ the request). */
@@ -253,13 +253,13 @@ export interface ApcaSolveResult {
   hue: number;
   /** The solved colour, gamut-mapped hex (via `oklchToHex`). */
   hex: string;
-  /** Signed forward `apcaContrast(hex, bgHex)` this colour ACTUALLY achieves —
+  /** Signed forward `apcaContrast(hex, bgHex)` this colour ACTUALLY achieves:
    *  positive for dark-on-light, negative for light-on-dark. */
   lc: number;
   /** Signed target: `|targetLc|` carrying the polarity forced by the background. */
   target: number;
   /** False when the target magnitude exceeds the most this hue/chroma can reach
-   *  against this background — then `hex`/`lc` are the closest achievable. */
+   *  against this background. Then `hex`/`lc` are the closest achievable. */
   reachable: boolean;
 }
 
@@ -275,23 +275,23 @@ export interface ApcaSolveOptions {
  * Invert `apcaContrast`: the OKLCH lightness at a fixed `hue`/`chroma` whose
  * forward APCA Lc against `bgHex` is closest to `|targetLc|`.
  *
- * APCA is NOT monotonic across the whole [0,1] lightness range — it flips
+ * APCA is NOT monotonic across the whole [0,1] lightness range. It flips
  * polarity where text luminance crosses the background's, and its soft
  * black-level clamp bends contrast back DOWN for near-black text, so a naive
  * bisection over all of L lands in the wrong place. So the polarity is fixed up
  * front from the background (dark text on a light bg, light text on a dark one),
  * the maximum achievable contrast is located by a lightness scan, and the target
  * is then reached by bisection on the single monotonic stretch between that
- * maximum and the zero-contrast boundary — never across the near-black dip. The
- * gentle side is chosen deliberately: the LEAST extreme lightness that meets the
- * target, i.e. the one nearest the background's own lightness.
+ * maximum and the zero-contrast boundary. It never bisects across the near-black
+ * dip. The gentle side is chosen deliberately: the LEAST extreme lightness that
+ * meets the target, i.e. the one nearest the background's own lightness.
  *
  * Chroma is clamped to `maxChroma(l, hue, limit)` at the solved lightness (the
  * `nudged()` precedent in brand-derive.ts), so the returned colour is real.
  *
  * When `|targetLc|` is beyond what this hue/chroma can carry against this
  * background (e.g. a target past the near-black floor), `reachable` is false and
- * the closest achievable colour — the contrast maximum — is returned.
+ * the closest achievable colour, the contrast maximum, is returned.
  */
 export function solveLightnessForApca(
   hue: number,
@@ -368,7 +368,7 @@ export function solveLightnessForApca(
 
   // Reachable: g is monotonic-decreasing from the peak out to the wrong-polarity
   // endpoint (L=1 for dark text, L=0 for light), passing through the target once.
-  // Bisect only that stretch — never the near-black side of the peak.
+  // Bisect only that stretch - never the near-black side of the peak.
   let a = peak.L;                 // g(a) = max ≥ wantMag
   let b = s > 0 ? 1 : 0;          // g(b) ≤ 0 ≤ wantMag
   for (let k = 0; k < 80; k++) {
@@ -378,12 +378,12 @@ export function solveLightnessForApca(
   return build((a + b) / 2, true, s);
 }
 
-// ─── Perceptual ramps — bezier through OKLab + lightness correction ───────────
+// ─── Perceptual ramps - bezier through OKLab + lightness correction ───────────
 
 // Degree-(k−1) Bernstein blend through k control points, one component at a
-// time — chroma.js's generator/bezier.js scheme run in OKLab instead of
+// time. Runs chroma.js's generator/bezier.js scheme in OKLab instead of
 // CIELAB. Endpoints are interpolated exactly; middle stops are CONTROL points
-// (pulled toward, not through) — that is what keeps multi-hue ramps smooth.
+// (pulled toward, not through). That is what keeps multi-hue ramps smooth.
 function bezierAt(points: Lab[], t: number): Lab {
   const n = points.length - 1;
   if (n === 0) return points[0]!;
@@ -409,10 +409,10 @@ export interface RampOptions {
 
 /**
  * `n` colours along a smooth curve through `stops` (hex or `oklch()`/`lch()`
- * strings): a Bézier through the stops' OKLab coordinates — 2 stops = linear,
+ * strings): a Bézier through the stops' OKLab coordinates. 2 stops = linear,
  * 3 = quadratic, 4 = cubic, more = degree-(k−1). Output is gamut-mapped hex
  * (via `oklchToHex`), endpoints exact. With `correctLightness`, sample
- * positions are bisected so lightness moves in even perceptual steps —
+ * positions are bisected so lightness moves in even perceptual steps. This is
  * chroma.js's canonical "good multi-hue scale" recipe (bezier +
  * correctLightness), in OKLab.
  *
@@ -466,7 +466,7 @@ export function rampOklab(stops: string[], n: number, opts: RampOptions = {}): s
   return out;
 }
 
-// ─── Class breaks — data-driven bins for chart scales ─────────────────────────
+// ─── Class breaks - data-driven bins for chart scales ─────────────────────────
 
 /**
  * `n + 1` class boundaries over `data` for binning values onto a colour ramp
@@ -474,7 +474,7 @@ export function rampOklab(stops: string[], n: number, opts: RampOptions = {}): s
  * log₁₀-spaced (throws unless every value is positive), `'q'` quantiles
  * (linear interpolation between sorted ranks). Non-finite entries are
  * ignored; an empty (or all-non-finite) dataset returns `[]`. The upstream
- * k-means mode is deliberately not ported — its assignment loop counts every
+ * k-means mode is deliberately not ported: its assignment loop counts every
  * point once per centroid (plans/archive/chroma-eval.md §5).
  */
 export function classBreaks(data: number[], mode: 'e' | 'l' | 'q', n: number): number[] {
@@ -495,7 +495,7 @@ export function classBreaks(data: number[], mode: 'e' | 'l' | 'q', n: number): n
     const lmax = Math.log10(max);
     return Array.from({ length: bins + 1 }, (_, i) => 10 ** (lmin + ((lmax - lmin) * i) / bins));
   }
-  // 'q' — quantiles with linear interpolation between sorted ranks.
+  // 'q' - quantiles with linear interpolation between sorted ranks.
   const sorted = [...values].sort((a, b) => a - b);
   return Array.from({ length: bins + 1 }, (_, i) => {
     const pos = ((sorted.length - 1) * i) / bins;
@@ -519,7 +519,7 @@ export interface DistinctColorsOptions {
 /**
  * Up to `n` visually distinct categorical colours (chart series), seeded from
  * a brand anchor. chroma.js has no equivalent (its categorical story is
- * ColorBrewer data) — this is the OKLCH generator sketched in
+ * ColorBrewer data). This is the OKLCH generator sketched in
  * plans/archive/chroma-eval.md: a structured candidate pool around the anchor's
  * lightness/chroma (24 hues × 3 lightness × 2 chroma levels), picked by
  * greedy maximin ΔEOK. Deterministic: same inputs, same palette; the anchor
@@ -531,7 +531,7 @@ export function distinctColors(n: number, opts: DistinctColorsOptions = {}): str
   const anchor = opts.anchorHex != null ? toOklch(opts.anchorHex) : null;
   const minDeltaE = Number.isFinite(opts.minDeltaE) ? Math.max(0, opts.minDeltaE!) : 0.02;
 
-  // Pool base: the anchor pulled into chart-legible range — mid lightness,
+  // Pool base: the anchor pulled into chart-legible range - mid lightness,
   // enough chroma that hue differences read (a grey anchor still yields a
   // colourful pool; the verbatim anchor stays grey as series 1).
   const baseL = clamp(anchor?.l ?? 0.65, 0.35, 0.8);
@@ -541,7 +541,7 @@ export function distinctColors(n: number, opts: DistinctColorsOptions = {}): str
   const chosen: { hex: string; lab: Lab }[] = [];
   const add = (c: Oklch) => {
     const hex = oklchToHex(c);
-    // Gamut mapping can collapse near-duplicates onto one hex — re-measure in
+    // Gamut mapping can collapse near-duplicates onto one hex. Re-measure in
     // OKLab of the EMITTED colour so distances reflect what renders.
     const lab = oklchToLab(hexToOklch(hex)!);
     chosen.push({ hex, lab });
@@ -591,7 +591,7 @@ export function distinctColors(n: number, opts: DistinctColorsOptions = {}): str
 /**
  * The gamut source behind a handle a tool holds.
  *
- * The handle a tool gets is inert data — the profile's tables never cross the
+ * The handle a tool gets is inert data. The profile's tables never cross the
  * bridge. Keeping the source here in a WeakMap rather than on the handle means
  * an object a tool assembled itself simply isn't in the map, so a forged or
  * stale handle produces the no-answer result instead of an answer computed
@@ -639,7 +639,7 @@ function readIccProfile(bytes: Uint8Array, intent: ColorRenderingIntent = 'relat
 
 /**
  * The `host.color` bridge implementation (HostV1 v1.40, optional/additive).
- * Pure engine math behind short tool-facing names — every shell attaches THIS
+ * Pure engine math behind short tool-facing names. Every shell attaches THIS
  * (`host.color = makeColorApi()`) instead of implementing anything, so the
  * API can never drift between web, CLI, and Tauri. Synchronous throughout.
  */
@@ -655,7 +655,7 @@ export function makeColorApi(): ColorAPI {
     // verbatim so tool-facing scheme accents can never drift from the editor's.
     schemes: (seedHex, kind = 'complement') => generateSchemeAccents(seedHex, kind),
     // v1.68: CSS-correct interpolation + the gradient spec. Both are thin
-    // adapters over css-color.ts / gradient-spec.ts — the same code the export
+    // adapters over css-color.ts / gradient-spec.ts - the same code the export
     // walkers and the web shell's gradient editor use, so a tool's gradient and
     // an exported one can never be interpolated differently.
     mix: (a, b, t, opts = {}) => {
@@ -666,8 +666,8 @@ export function makeColorApi(): ColorAPI {
     },
     gradientCss: spec => gradientSpecToCss(spec),
     // v1.107: the APCA inverse-solver (solveLightnessForApca), attached verbatim.
-    // The forward `apca` scores a pair; this is the other direction — a tone of a
-    // given hue that reads at a target Lc on a background — the one move a
+    // The forward `apca` scores a pair; this is the other direction: a tone of a
+    // given hue that reads at a target Lc on a background. The one move a
     // contrast-first ramp needs. Same engine math on web, Worker, Tauri and CLI.
     solveApca: (hue, chroma, targetLc, bgHex, opts = {}) => solveLightnessForApca(hue, chroma, targetLc, bgHex, opts),
     // v1.69: display-gamut classification + the OKLCH slice planes (gamut.ts).
@@ -684,13 +684,13 @@ export function makeColorApi(): ColorAPI {
     gamutRegion: (plane, fixed, limit = 'srgb', steps = 96, cMax = 0.4) =>
       sliceGamutRegion(plane, fixed, limit, steps, cMax),
     // The perceptual axes themselves. Until 1.69 a tool could ask for ramps and
-    // harmonies but could not read a colour's own lightness or chroma — the one
+    // harmonies but could not read a colour's own lightness or chroma. The one
     // conversion every colour tool needs, and the one it had to reimplement.
     oklch: color => toOklch(color),
     fromOklch: o => oklchToHex(o),
     // v1.70: the user's own ICC profile as a gamut (icc.ts + gamut-source.ts).
-    // The three queries go through gamut.ts exactly as the display gamuts do —
-    // a profile-backed source answers `contains` where a 3×3 matrix would — so
+    // The three queries go through gamut.ts exactly as the display gamuts do:
+    // a profile-backed source answers `contains` where a 3×3 matrix would. So
     // "does this print?" and "does this display?" cannot drift apart in method.
     // No-answer values (null / false / 0) for a handle we did not issue or a
     // profile with no table for its intent; never a guess.

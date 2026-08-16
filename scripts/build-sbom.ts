@@ -7,7 +7,7 @@
  *
  * Emits a CycloneDX 1.5 SBOM at `sbom.cdx.json` describing every third-party npm
  * package in the workspace dependency graph, plus the vendored browser libraries
- * (d3, topojson-client), the SUSE OFL fonts, and — when present — the Tauri shells'
+ * (d3, topojson-client), the SUSE OFL fonts, and - when present - the Tauri shells'
  * own npm installs and their Rust crate graph (Cargo.lock). This is the
  * supply-chain-transparency
  * half of the sovereignty story (see SOVEREIGNTY.md): it lets anyone audit exactly
@@ -16,22 +16,22 @@
  *
  * Design notes:
  *   - Self-contained on purpose. Generating an SBOM with a heavyweight external
- *     tool would itself add an opaque dependency — the opposite of the point. We
+ *     tool would itself add an opaque dependency - the opposite of the point. We
  *     read the npm lockfile (the install's own source of truth) and nothing else.
  *     No network, no new dependency.
  *   - Source of truth is the root `package-lock.json` (lockfileVersion 3). Its
  *     per-package `integrity` (SRI) and `license` fields become CycloneDX hashes
- *     and licenses verbatim — we don't re-derive them, so the SBOM can't disagree
+ *     and licenses verbatim - we don't re-derive them, so the SBOM can't disagree
  *     with what npm actually installed.
  *   - Output is DETERMINISTIC: components sorted by purl, the serialNumber derived
  *     from a content hash, and the timestamp held stable while the dependency set
  *     is unchanged. So `git diff` on sbom.cdx.json is empty unless dependencies
- *     actually moved — which makes a committed-but-stale SBOM a visible CI signal
+ *     actually moved - which makes a committed-but-stale SBOM a visible CI signal
  *     (run this, commit nothing → drift), the same guard build:catalog relies on.
  *   - dev-only packages carry the CycloneDX-standard `scope: "excluded"` (runtime
  *     ones `scope: "required"`) AND the `cdx:npm:package:development=true` property
  *     (the cyclonedx-npm convention) rather than being dropped, so the SBOM is
- *     complete and any SCA tool — standard or convention-aware — can filter to
+ *     complete and any SCA tool - standard or convention-aware - can filter to
  *     "what actually runs on a user's device" itself.
  *   - Beyond the root lockfile, optional passes fold in components that npm's graph
  *     can't see: vendored `.min.js` bundles (hashed from disk), the OFL fonts, the
@@ -49,7 +49,7 @@ import { createHash } from 'node:crypto';
 import { join, resolve, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-// ─── CycloneDX component shapes (partial — only the fields this tool emits) ───
+// ─── CycloneDX component shapes (partial - only the fields this tool emits) ───
 interface Hash {
   alg: string;
   content: string;
@@ -186,7 +186,7 @@ const VENDORED_LIBS = [
 ];
 for (const lib of VENDORED_LIBS) {
   const file = lib.files.find((f) => existsSync(join(ROOT, f)));
-  if (!file) continue; // none of the candidate copies are present — skip
+  if (!file) continue; // none of the candidate copies are present - skip
   const purl = purlFor(lib.name, lib.version);
   if (byPurl.has(purl)) continue;
   const component: Component = {
@@ -235,7 +235,7 @@ const cargoLicenseDoc = readJsonOptional('cargo-licenses.json');
 const cargoLicenses: Record<string, string> = cargoLicenseDoc?.licenses ?? {};
 // Crates whose license was read off a `license-file` by hand, with the reason
 // they are shippable. Cargo.lock does not distinguish build- from runtime-deps,
-// so a build-only crate would otherwise read as linked into the binary — which
+// so a build-only crate would otherwise read as linked into the binary - which
 // matters most for exactly the copyleft crates this table exists to explain.
 // Carry the note into the SBOM, and mark build-only ones `scope: excluded`.
 const cargoLicenseNotes: Record<string, string> = cargoLicenseDoc?.licenseFileNotes ?? {};
@@ -308,7 +308,7 @@ console.log(
 
 // ─── Surface license gaps without failing the build ──────────────────────────
 // A component (including the subject itself and the workspace subcomponents)
-// with an empty licenses[] is a real audit gap — something we couldn't attribute.
+// with an empty licenses[] is a real audit gap - something we couldn't attribute.
 // List them so they're visible; never throw or exit non-zero over it.
 const unlicensed = [subject, ...workspaceSubcomponents, ...components].filter(
   (c) => !Array.isArray(c.licenses) || c.licenses.length === 0,
@@ -332,7 +332,7 @@ function readJsonOptional(rel: string): any {
   }
 }
 
-// Hash a file on disk into CycloneDX hash entries — used for vendored bundles
+// Hash a file on disk into CycloneDX hash entries - used for vendored bundles
 // that never pass through npm and so have no lockfile integrity to reuse.
 function fileHashes(absPath: string, algs: string[] = ['sha512']): Hash[] | undefined {
   if (!existsSync(absPath)) return undefined;

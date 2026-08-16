@@ -1,22 +1,22 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
- * Compose — resolve a tool's manifest `composes` entries into embeddable assets.
+ * Compose: resolve a tool's manifest `composes` entries into embeddable assets.
  *
  * Tool composition ("nested exports"): a tool declares, in its manifest, that
  * another tool's render should be embedded as an image. The engine renders the
  * referenced tool (via the host's `compose` capability) and exposes each result
  * as an `extra` keyed by the entry's `id`, so the logic-less template can place
- * it with `{{asset <id>}}` — no template parsing, no tool→tool imports.
+ * it with `{{asset <id>}}`. No template parsing, no tool-to-tool imports.
  *
  * Each entry's `inputs` string values are Handlebars, hydrated against the SAME
  * context as the template (input values + extras), so a child input can bind to
  * a parent value: `{ "url": "{{url}}" }`. Resolution is memoised per entry id so
  * an unrelated keystroke doesn't re-render the child; the host bridge caches the
  * actual render and enforces the depth/cycle policy via the engine's
- * assertComposeStack (bake.ts) — we only thread the tool-id stack.
+ * assertComposeStack (bake.ts). This module only threads the tool-id stack.
  *
  * No-op (returns {}) when the shell provides no `host.compose` or the tool
- * declares no `composes` — so composition degrades gracefully everywhere.
+ * declares no `composes`, so composition degrades gracefully everywhere.
  */
 
 import { hydrate } from './template.ts';
@@ -93,7 +93,7 @@ export async function resolveNestedRenders(
     if (!spec || typeof spec.id !== 'string' || typeof spec.tool !== 'string') continue;
 
     // Hydrate input bindings against the parent context. `raw` (no HTML escaping)
-    // so values like a URL with `&` pass through untouched — these are values fed
+    // so values like a URL with `&` pass through untouched. These are values fed
     // to the child input model, not HTML.
     const inputs: Record<string, unknown> = {};
     for (const [k, v] of Object.entries(spec.inputs ?? {})) {

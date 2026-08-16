@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
  * The /info docs are vector-first: a docs screenshot is an SVG unless there is a
- * reason it physically cannot be.
+ * physical reason it cannot be.
  *
  * This guard exists because `format=png` used to carry no expiry. Twelve of the
  * original twenty raster recipes were born PNG in the first screenshot commit and
@@ -39,10 +39,10 @@ const RASTER_ALLOWED: Record<string, string> = {
   // RESIDUAL, accepted: the Cover Flow covers carry a 3-D `rotateY` that parseCssMatrix
   // refuses, so they fall to the axis-aligned-box path and some cover content mis-scales.
   // They are decorative, half-cropped at the frame edge, and everything else on the page
-  // — nav, hero card, tiles, footer — is faithful.
+  // - nav, hero card, tiles, footer - is faithful.
   // ov2-phone-audiogram + um-asset-audiogram left this list 2026-08-05: the walker now
   // snapshots the <canvas> (export.ts, tag === 'canvas') and downscales it to its rendered
-  // box via the rasterDpi recipe param — walker=1&format=svg&rasterDpi=110 — so the audiogram
+  // box via the rasterDpi recipe param - walker=1&format=svg&rasterDpi=110 - so the audiogram
   // ships as vector chrome with the canvas embedded as a smaller bitmap, under the budget.
   'seq-onion-ghosts':
     'Onion ghosts over the scene they ghost. Neither vector path can hold both at once: '
@@ -118,7 +118,7 @@ test('docs: no committed baseline is an undeclared bitmap', () => {
   const bitmaps = readdirSync(join(DOCS, 'shots')).filter((f) => /\.(png|jpg|jpeg)$/.test(f));
   // Localized variants are `<slug>.<loc>.<ext>` and inherit their recipe's format.
   // Variants are suffixes on the slug: `<slug>[.<loc>][.dark].<ext>`. Strip by KNOWN
-  // suffix, not by shape — `.dark` is two of the shapes a locale code can take ('de',
+  // suffix, not by shape - `.dark` is two of the shapes a locale code can take ('de',
   // 'pt-br'), so a shape match either eats a real slug segment or misses the theme.
   const locales = readdirSync(join(DOCS, 'i18n'), { withFileTypes: true })
     .filter((d) => d.isDirectory()).map((d) => d.name);

@@ -3,14 +3,14 @@
  * Privacy claims, enforced as tests.
  *
  * docs/privacy.md makes several claims that are properties of the SOURCE, not of
- * a promise — "no analytics or trackers anywhere in the codebase", "grep -ri
+ * a promise - "no analytics or trackers anywhere in the codebase", "grep -ri
  * cloudflare returns nothing", "the certificate service retains nothing". Those
  * are exactly the claims a reader can check for themselves, which makes them
  * exactly the claims that must not quietly rot when someone adds a dependency or
  * a debug log six months from now.
  *
  * So they live here. If one of these fails, either the change is wrong or the
- * privacy policy needs editing — never silence the test without doing one.
+ * privacy policy needs editing - never silence the test without doing one.
  */
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
@@ -19,22 +19,22 @@ import { join, extname, relative } from 'node:path';
 
 const ROOT = join(import.meta.dirname, '..');
 
-// Source we actually ship or run. Excludes generated bundles' inputs? No —
+// Source we actually ship or run. Excludes generated bundles' inputs? No - 
 // api/ is INCLUDED deliberately: it's the code that really runs on the server,
 // and a stale bundle is precisely the drift worth catching. Also deliberately
 // included, because docs/verify-yourself.md tells readers this test covers
-// "the code that ships": the chrome extension (no src/ dir — code sits at the
+// "the code that ships": the chrome extension (no src/ dir - code sits at the
 // top level), the Tauri bridge overrides, the web service worker (a lone file
 // outside src/), and the tool packs (hooks.js/template.html ship to clients as
 // executable tool data; community/*/lib vendored bundles are skipped via
-// SKIP_DIR, and brands/suse may be unmounted on public clones — walk() just
+// SKIP_DIR, and brands/suse may be unmounted on public clones - walk() just
 // skips a missing dir). docs/ itself is NOT scanned: verify-yourself.md names
 // the banned hostnames on purpose.
 const SCAN_DIRS = [
   'engine/src', 'shells/web/src', 'shells/cli/src', 'shells/tui/src',
   'shells/chrome-extension', 'shells/tauri-desktop/bridge-overrides',
   // tauri-shared holds the state logic BOTH Tauri shells ship (state-fs.ts). It
-  // is listed explicitly because this array is literal, not a `shells/*` glob —
+  // is listed explicitly because this array is literal, not a `shells/*` glob - 
   // the exact hand-add its own header warns about, and which was missed when it
   // was extracted (found 2026-07-30).
   'shells/tauri-mobile/bridge-overrides', 'shells/tauri-shared/bridge-overrides',
@@ -46,7 +46,7 @@ const SCAN_EXT = new Set(['.ts', '.js', '.mjs', '.html']);
 const SKIP_DIR = new Set(['node_modules', 'dist', '.git', 'lib', 'vendor']);
 
 function* walk(dir: string): Generator<string> {
-  // A SCAN_DIRS entry may be a single file (the service worker) — yield it as-is.
+  // A SCAN_DIRS entry may be a single file (the service worker) - yield it as-is.
   try { if (statSync(dir).isFile()) { yield dir; return; } } catch { return; }
   let entries: string[];
   try { entries = readdirSync(dir); } catch { return; }
@@ -106,7 +106,7 @@ test('no third-party DNS-over-HTTPS resolver is contacted', () => {
 });
 
 test('the certificate service logs no personal data', () => {
-  // Both the source and the GENERATED Vercel bundle — a rebuilt-but-unstaged
+  // Both the source and the GENERATED Vercel bundle - a rebuilt-but-unstaged
   // bundle is exactly how this claim would silently become false in production.
   for (const rel of ['services/ca/lib/enroll.mjs', 'services/ca/handler.mjs', 'api/ca/[...path].js']) {
     const text = readFileSync(join(ROOT, rel), 'utf8');

@@ -1,17 +1,17 @@
 // SPDX-License-Identifier: MPL-2.0
 // Cross-validator conformance, the OTHER direction from c2pa-c2patool-conformance.test.ts:
 // that suite proves Lolly's WRITER validates in c2patool; this proves Lolly's READER
-// (verifyC2pa) correctly parses a manifest it never wrote — a genuinely independent CBOR/
+// (verifyC2pa) correctly parses a manifest it never wrote - a genuinely independent CBOR/
 // COSE/JUMBF/X.509 encoder (c2pa-rs, via the c2patool CLI), not Lolly's own round-trip.
 // Interop bugs in either encoder's byte-level choices (box ordering, padding, CBOR map key
-// order, …) would only surface against a FOREIGN producer — a self-round-trip can't catch
+// order, …) would only surface against a FOREIGN producer - a self-round-trip can't catch
 // them. Ungated: the fixture is a committed binary, so this runs on every `npm test` with
 // no c2patool dependency at test time (unlike the sibling suite, which needs c2patool on
 // PATH to exercise the write→validate direction).
 //
-// Fixture: tests/fixtures/c2patool-signed.png — a 16x16 PNG, C2PA-signed by c2patool
+// Fixture: tests/fixtures/c2patool-signed.png - a 16x16 PNG, C2PA-signed by c2patool
 // 0.26.68 (c2pa-rs 0.89.0) with a throwaway ES256 self-signed test certificate (never used
-// to protect anything real; not committed — regenerate with the recipe below if the
+// to protect anything real; not committed - regenerate with the recipe below if the
 // fixture ever needs refreshing).
 //
 // Regeneration recipe:
@@ -55,7 +55,7 @@ test('verifyC2pa reads a c2patool/c2pa-rs-produced manifest correctly (foreign p
   assert.equal(report.signer?.alg, 'ES256');
 
   // Every real check must pass; the only failure is the always-expected untrusted marker
-  // for a self-signed key (the designed posture, not damage — see valid-verdict.ts's
+  // for a self-signed key (the designed posture, not damage - see valid-verdict.ts's
   // isExpectedRow / STATE_COPY.valid).
   const fails = report.checks.filter((c) => !c.ok);
   assert.deepEqual(fails.map((c) => c.code), ['signingCredential.untrusted']);

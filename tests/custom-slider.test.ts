@@ -1,11 +1,11 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
- * The shell's slider (shells/web/src/components/custom-slider.ts) — the markup
+ * The shell's slider (shells/web/src/components/custom-slider.ts) - the markup
  * contract, and the part that carries real risk: the two-way binding between an
  * upgraded `.field-range` input and the slider mounted beside it.
  *
  * Every chrome slider in the app is now that pair, and ~20 surfaces still talk to
- * the INPUT — reading `.value`, listening for 'input'/'change', pushing state back
+ * the INPUT - reading `.value`, listening for 'input'/'change', pushing state back
  * in by assignment. So what is pinned here is that contract: the input keeps the
  * value, the events a native range would have fired still fire, and an assignment
  * from outside reaches the slider.
@@ -23,7 +23,7 @@ import { JSDOM } from 'jsdom'; // typed by tests/jsdom.d.ts (no @types/jsdom exi
 
 // The module reads `HTMLInputElement.prototype`'s value accessor at import time
 // (that is how it forwards to the real setter), so the DOM globals have to exist
-// before the import — hence the dynamic import below.
+// before the import - hence the dynamic import below.
 const dom = new JSDOM('<!DOCTYPE html><body></body>');
 const w = dom.window as unknown as Record<string, unknown> & {
   document: Document;
@@ -89,13 +89,13 @@ test('keyboard stepping snaps, clamps, and reports through onCommit', () => {
   const key = (k: string) => cs.dispatchEvent(new w.KeyboardEvent('keydown', { key: k, bubbles: true, cancelable: true }));
   key('ArrowRight');
   key('ArrowRight');
-  key('ArrowRight');                      // already at max — no third commit
+  key('ArrowRight');                      // already at max - no third commit
   assert.deepEqual(commits, [0.75, 1]);
   assert.equal(cs.getAttribute('aria-valuenow'), '1');
 
   key('Home');
   assert.equal(cs.getAttribute('aria-valuenow'), '0');
-  key('ArrowDown');                       // clamped at min — nothing to report
+  key('ArrowDown');                       // clamped at min - nothing to report
   assert.deepEqual(commits, [0.75, 1, 0]);
   key('PageUp');                          // ten steps, but max is two away
   assert.equal(cs.getAttribute('aria-valuenow'), '1');

@@ -1,13 +1,13 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
- * Preflight — pre-export findings over a plain job description. No DOM, no
+ * Preflight: pre-export findings over a plain job description. No DOM, no
  * brand knowledge, no I/O.
  *
  * The split is the one `print-marks.ts` already uses: **the engine owns the
  * RULES, each shell collects the FACTS from its own platform.** A shell builds a
  * `PreflightJob` from whatever it can see (the manifest, the input model, the
  * resolved export settings, the brand palette it got back from
- * `host.tokens.colors()`, and — only if it has a mounted node — a few DOM facts),
+ * `host.tokens.colors()`, and, only if it has a mounted node, a few DOM facts),
  * hands it to {@link preflight}, and renders the `Finding[]` that comes back.
  * The web panel, `lolly preflight --json` and a batch zip manifest therefore emit
  * byte-identical findings, because there is exactly one implementation of every
@@ -64,7 +64,7 @@ export type {
 // and `shells/web/src/bridge/sequence-cuts.ts`, and so were unreachable from the
 // CLI. They live here now because a check and the UI that offers the setting must
 // agree by construction, and both shell-local copies have been REPLACED by imports
-// of these sets — `isPrintFmt`/`isCmykFmt` in `tool-actions.ts` and `CUTS_FORMATS`
+// of these sets. `isPrintFmt`/`isCmykFmt` in `tool-actions.ts` and `CUTS_FORMATS`
 // in `sequence-cuts.ts` now read from here. Two copies is how "the panel hides the
 // bleed card but the URL still carries bleed" happens, so do not reintroduce one.
 
@@ -98,7 +98,7 @@ export const MOTION_FORMATS: ReadonlySet<string> = new Set(['webm', 'mp4', 'gif'
 /**
  * Formats that actually produce a raster. A pixel count is a fact about these
  * and about nothing else: a `pdf-cmyk` page holds vector operators, an `svg` holds
- * geometry, and `csv`/`md`/`ics`/`html` hold text — reporting "2480 x 3508 pixels"
+ * geometry, and `csv`/`md`/`ics`/`html` hold text. Reporting "2480 x 3508 pixels"
  * for any of them asserts a resolution the output does not have.
  */
 export const RASTER_FORMATS: ReadonlySet<string> = new Set([
@@ -108,9 +108,9 @@ export const RASTER_FORMATS: ReadonlySet<string> = new Set([
 /**
  * The deep (float) pixel formats.
  *
- * These are admitted for ANY tool by the render path — `shells/cli/src/run.ts`
+ * These are admitted for ANY tool by the render path. `shells/cli/src/run.ts`
  * exempts them from the offered-formats gate, because `plans/61-deeprichpixels.md`
- * §10 rules out per-tool depth declarations — so preflight must exempt them too.
+ * §10 rules out per-tool depth declarations, so preflight must exempt them too.
  * Refusing a job that renders fine is the one failure that makes a CI gate built
  * on `lolly preflight` worse than none.
  */
@@ -143,7 +143,7 @@ export const KNOWN_FINISHES: ReadonlySet<string> = new Set<string>(KNOWN_FINISH_
 export type PreflightSource = 'web' | 'cli' | 'tui' | 'tauri' | 'mcp' | 'test';
 
 /**
- * The manifest slice preflight reads — a narrowed structural type, so preflight
+ * The manifest slice preflight reads: a narrowed structural type, so preflight
  * never depends on the whole `ToolManifest` and cannot drift into brand or DOM
  * knowledge.
  */
@@ -240,7 +240,7 @@ export interface PreflightSettings {
 }
 
 /**
- * One resolved brand swatch — structurally the subset of a token colour that
+ * One resolved brand swatch: structurally the subset of a token colour that
  * preflight reads.
  *
  * `spot.name` and `spot.finish` are OPAQUE STRINGS here. The engine never learns
@@ -284,7 +284,7 @@ export interface StageFacts {
   /** `[data-pdf-page]` box count, or null when the stage has none. */
   readonly pageBoxes?: number | null;
   /** Measured CSS-px width of the stage node, taken to span the physical trim
-   *  width — the px→physical scale for per-image effective DPI. */
+   *  width: the px→physical scale for per-image effective DPI. */
   readonly canvasCssW?: number | null;
   /** Every raster `<img>` in the artwork, with its natural size + rendered box.
    *  SVG inline `<image>` and CSS background-images are deliberately NOT collected
@@ -386,7 +386,7 @@ export function preflight(job: PreflightJob): PreflightReport {
     .sort((a, b) => (SEVERITY_RANK[a.f.severity] - SEVERITY_RANK[b.f.severity]) || (a.i - b.i))
     .map(({ f }) => f);
 
-  // Deduplicate counts by (kind, box, basis) — the same quantity reported twice
+  // Deduplicate counts by (kind, box, basis). The same quantity reported twice
   // is one quantity, and a consumer summing the list must not double it.
   const seen = new Set<string>();
   const counts: Count[] = [];
@@ -496,10 +496,10 @@ const finishSpots = (c: Ctx): { name: string; spot: SpotColor; path: string; fin
 
 // ─── Total ink coverage (TAC) ───────────────────────────────────────────────
 //
-// A brand SOLID's ink coverage is knowable — its CMYK build is data. A photo's or
+// A brand SOLID's ink coverage is knowable: its CMYK build is data. A photo's or
 // gradient's is not without rendering the separation, so refuse.ink-coverage stays
 // (rescoped to 'needs-render') for that. We report the heaviest brand solid, clearly
-// scoped, against the chosen condition's limit — never as the whole file's number.
+// scoped, against the chosen condition's limit. Never as the whole file's number.
 
 /** `#rgb`/`#rrggbb` → 0–1 triple, or null. */
 const hexRgb01 = (hex: unknown): [number, number, number] | null => {
@@ -698,7 +698,7 @@ const checkAspectGuard: Check = c => {
 //
 // These matter because `resolveInitialValue` short-circuits on `id in initial`,
 // so a URL param, a CSV cell or a restored session value BYPASSES `constrain`
-// entirely — `constrain` only runs from `updateInput`. A render can therefore
+// entirely. `constrain` only runs from `updateInput`. A render can therefore
 // hold a value the interface would refuse, and be unreproducible from the UI.
 
 const model = (c: Ctx): readonly PreflightInput[] =>
@@ -878,7 +878,7 @@ const physicalTrim = (c: Ctx): { w: Dimension; h: Dimension } | null => {
 // The number a press operator actually asks for: DPI (PPI) at the FINISHED size,
 // not a bare pixel count. Two questions with two honest answers:
 //  • The whole page's output DPI is `settings.size.dpi` exactly, by construction
-//    (the raster is rendered at toPixels(dim, dpi)) — measurable, needs nothing.
+//    (the raster is rendered at toPixels(dim, dpi)). Measurable, needs nothing.
 //  • A single placed image's effective DPI (the "logo is 96 DPI here" case) needs
 //    the mounted DOM: the image's intrinsic pixels vs. how big it prints. When the
 //    stage is absent (headless) we say so (checkImageDpiNeedsStage), never guess.
@@ -985,10 +985,10 @@ const checkTrimPartial: Check = c => {
 const checkTrimNotPhysical: Check = c => {
   if (!PRINT_MARK_FORMATS.has(c.fmt)) return;
   // svg/eps/eps-cmyk are dual-use (screen + print), so a plain px-size export of one is
-  // a screen graphic, not a print job missing its trim — reporting "no physical page
+  // a screen graphic, not a print job missing its trim. Reporting "no physical page
   // size" on every such row is batch noise (plans §6). Only speak up for them once
   // there is PRINT INTENT (marks/bleed turned on). The dedicated print formats
-  // (pdf/pdf-cmyk/cmyk-tiff) are unchanged: px on those is always worth noting.
+  // (pdf/pdf-cmyk/cmyk-tiff) are unchanged: px on those should always be flagged.
   if ((c.fmt === 'svg' || c.fmt === 'eps' || c.fmt === 'eps-cmyk') && !marksAreSet(c)) return;
   if (physicalTrim(c)) return;
   const s = c.job.settings.size;
@@ -1116,7 +1116,7 @@ const checkPagesPages: Check = c => {
  * The page count a MOUNTED stage already knows.
  *
  * `[data-pdf-page]` boxes are what the export path itself counts, and the web
- * collector was already measuring them — into a field no check read. A shell that
+ * collector was already measuring them, into a field no check read. A shell that
  * has the answer in hand and reports neither the answer nor a gap is worse than a
  * headless one that reports the gap.
  */
@@ -1282,7 +1282,7 @@ const checkNoSpotsDeclared: Check = c => {
 };
 
 /** The heaviest brand solid's total ink coverage, scoped to brand fills and
- *  measured against the chosen press condition's limit. NOT the whole render — the
+ *  measured against the chosen press condition's limit. NOT the whole render: the
  *  rendered-content gap stays as refuse.ink-coverage (needs-render). */
 const checkInkCoverage: Check = c => {
   if (!SEPARATING_FORMATS.has(c.fmt)) return;
@@ -1311,7 +1311,7 @@ const checkInkCoverage: Check = c => {
   }
 };
 
-/** A brand black built RICH (heavy K plus real CMY) — deep, but it mis-registers on
+/** A brand black built RICH (heavy K plus real CMY): deep, but it mis-registers on
  *  fine text and thin rules, which want 100% K only. */
 const checkRichBlack: Check = c => {
   if (!SEPARATING_FORMATS.has(c.fmt)) return;

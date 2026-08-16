@@ -3,14 +3,14 @@
  * Repo-root resolution shared by every Node shell (CLI, TUI) and anything they pull in.
  *
  * The monorepo puts catalog/ + tools/ (the gitignored profile views) at the repo root,
- * a fixed number of directory levels above each shell's source — but a bundled build
+ * a fixed number of directory levels above each shell's source. A bundled build
  * (Vercel's esbuild function, scripts/build-mcp-fn.ts) flattens every module's
  * import.meta.url onto the single output file, so a fixed `../../..` no longer lands
  * on the repo root. Resolution order:
- *   1. LOLLY_ROOT — explicit override (checked against the marker)
+ *   1. LOLLY_ROOT: explicit override (checked against the marker)
  *   2. marker-based walk up from this module's directory (works from source AND from
- *      a bundle — the bundle sits under api/, two levels below the deployed root)
- *   3. process.cwd() — a serverless task cwd carries catalog/ via `includeFiles`
+ *      a bundle: the bundle sits under api/, two levels below the deployed root)
+ *   3. process.cwd(): a serverless task cwd carries catalog/ via `includeFiles`
  *   4. the monorepo-relative guess (packages/node-shell/src → three levels up)
  * Mirrors services/mcp/src/paths.ts resolveRoot().
  */

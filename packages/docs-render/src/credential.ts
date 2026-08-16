@@ -1,8 +1,8 @@
 // The Content-Credential line assembly. Split out of docs/build.ts's shotCredential:
 // the FACTS come from DocsRenderContext.credential (filesystem/C2PA at build time, a
 // shipped manifest at runtime); THIS owns every byte of the HTML so both hosts emit
-// identical markup. Ported verbatim — the exact bit/fact/label/return structure is
-// load-bearing for the byte-identical build gate. See plan, M0b.
+// identical markup. Ported verbatim. The exact bit/fact/label/return structure is
+// required for the byte-identical build gate. See plan, M0b.
 
 import { esc } from './esc.ts';
 import { PROV_SEAL, localeNum, approxCount } from './markdown.ts';
@@ -15,7 +15,7 @@ export interface CredentialRenderOpts {
   /** The wrapper class (shot-cred--alt / --asset / --mascot / --mast / --figure / ''). */
   extraClass: string;
   /** Whether this credential was requested for a PAGE ASSET (opts present at the call
-   *  site) rather than a bare screenshot — drives the prov-file basename pill. */
+   *  site) rather than a bare screenshot. It drives the prov-file basename pill. */
   fromPresent: boolean;
 }
 
@@ -29,8 +29,8 @@ export function renderCredential(
   opts: CredentialRenderOpts,
   ctx: Pick<DocsRenderContext, 't' | 'htmlLang' | 'nextCredId' | 'docIcon'>,
 ): string {
-  // No readable credential → no line (and NO id is minted — the byte-identical id
-  // sequence must not advance on a miss, matching shotCredential's early return).
+  // No readable credential means no line, and NO id is minted. The byte-identical id
+  // sequence must not advance on a miss, matching shotCredential's early return.
   if (!facts) return '';
   const { file, extraClass, fromPresent } = opts;
   const id = ctx.nextCredId();
@@ -91,7 +91,7 @@ export function renderCredential(
 
   // A page asset's / figure's line rests OPEN; a screenshot's rests closed.
   const restsOpen = extraClass.includes('shot-cred--asset') || extraClass.includes('shot-cred--figure');
-  // "Copy signed source" — offered only where the served file is pasteable source text.
+  // "Copy signed source": offered only where the served file is pasteable source text.
   const copy = facts.canCopySource
     ? `<button type="button" class="shot-cred-do shot-cred-copy" data-copy-src="${esc(src)}"`
       + ` data-copied="${esc(t('Copied'))}" data-copy-failed="${esc(t('Copy failed'))}">`

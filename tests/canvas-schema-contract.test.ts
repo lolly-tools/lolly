@@ -7,13 +7,13 @@
  * shipped manifests (design's frame/vector/decoration keys, org-chart's six
  * stroke keys, sequence-studio's `linkField`, `import` on five tools). An open
  * object with a stale property list validates ANY key, so a typo'd `shadowBlrField`
- * shipped clean — and stayed silent at runtime too, because the overlay's write
+ * shipped clean - and stayed silent at runtime too, because the overlay's write
  * no-ops on a sub-field the row doesn't carry and the compact blocks URL drops the
  * undeclared field on the way out. Nothing anywhere said "that control does nothing".
  *
  * The fix is two halves that have to be tested as two halves:
  *
- *   1. The KEY set is closed — `additionalProperties: false` in BOTH schema copies,
+ *   1. The KEY set is closed - `additionalProperties: false` in BOTH schema copies,
  *      with the union re-derived first so org-chart still passes (the trap: flip the
  *      flag against a stale list and CI fails on a shipped tool).
  *   2. The REFERENCE side is checked by scripts/lib/canvas-refs.ts, because no JSON
@@ -25,14 +25,14 @@
  *
  * The last test is the anti-regression one: it re-derives the canvas-key union
  * across every MOUNTED pack and asserts the schema still covers it. That is the
- * check whose absence let the list fall 21 keys behind — a new canvas key now fails
+ * check whose absence let the list fall 21 keys behind - a new canvas key now fails
  * here (in the pack that adds it) rather than silently widening the open set.
  *
  * Both schema copies are kept byte-identical by tests/lolly-tools-core.test.ts, so
  * this file does not re-compare them; it drives each copy's REAL validator instead
  * (validateManifest reads schemas/, validateTool reads packages/core/schema/).
  *
- * Run with: npm test  — or node --test "tests/canvas-schema-contract.test.ts"
+ * Run with: npm test - or node --test "tests/canvas-schema-contract.test.ts"
  */
 
 import { test } from 'node:test';
@@ -49,7 +49,7 @@ const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 
 // ─── a minimal, well-formed canvas manifest ──────────────────────────────────
 
-/** The sub-fields the synthetic canvas declares — the ids every *Field points at. */
+/** The sub-fields the synthetic canvas declares - the ids every *Field points at. */
 const FIELDS = [
   { id: 'id', type: 'text' },
   { id: 'x', type: 'number' },
@@ -142,13 +142,13 @@ test('canvasFieldRefErrors passes a manifest whose *Field values all resolve', (
 });
 
 test('canvasFieldRefErrors FAILS a *Field pointing at a missing id', () => {
-  // The key is spelled correctly (so the schema is happy) — the VALUE is the typo.
+  // The key is spelled correctly (so the schema is happy) - the VALUE is the typo.
   // This is the failure mode JSON Schema structurally cannot see.
   const m = canvasManifest({ ...CANVAS, rotationField: 'rotation' }); // the field is `rot`
   const errs = canvasFieldRefErrors(m);
   assert.equal(errs.length, 1, JSON.stringify(errs));
   assert.match(errs[0]!, /canvas\.rotationField names "rotation"/);
-  // The schema alone is NOT enough — it validates this manifest happily, which is
+  // The schema alone is NOT enough - it validates this manifest happily, which is
   // exactly why the check lives in the validator.
   assert.equal(validateManifest(m).valid, true, 'a resolvable-looking name is schema-valid by construction');
 });
@@ -165,7 +165,7 @@ test('canvasFieldRefErrors reports EVERY broken reference, not just the first', 
 
 test('canvasFieldRefErrors ignores canvas keys that are not field references', () => {
   // `frameKind` is a literal `kind` VALUE, `pathLayerClass` a CSS class, `minSize` a
-  // number — none of them name a sub-field, and none of them end in `Field`.
+  // number - none of them name a sub-field, and none of them end in `Field`.
   const errs = canvasFieldRefErrors(canvasManifest({
     ...CANVAS, frameKind: 'frame', pathLayerClass: 'lolly-connectors', minSize: 8,
     grid: { size: 20, default: true }, fixedCanvas: true, addKinds: [{ id: 'box' }],
@@ -183,7 +183,7 @@ test('canvas.connect field references resolve against the EDGES input, not the b
     return m;
   };
   assert.deepEqual(canvasFieldRefErrors(withEdges({ input: 'edges', fromField: 'from', toField: 'to' })), []);
-  // `x` is a BOXES field — it must not satisfy a connector reference.
+  // `x` is a BOXES field - it must not satisfy a connector reference.
   assert.equal(canvasFieldRefErrors(withEdges({ input: 'edges', fromField: 'x' })).length, 1);
   // And an edges input that doesn't exist is its own error.
   const orphan = canvasFieldRefErrors(canvasManifest({ ...CANVAS, connect: { input: 'nope', fromField: 'from' } }));
@@ -215,7 +215,7 @@ test('the real org-chart manifest passes the schema AND the reference check', { 
 });
 
 test('the parent-owned design manifest passes the schema AND the reference check', () => {
-  // brands/lolly-start is parent-owned, so this half runs on a public clone too —
+  // brands/lolly-start is parent-owned, so this half runs on a public clone too - 
   // and it is the widest canvas block in the tree (63 keys).
   const path = join(ROOT, 'brands/lolly-start/tools/design/tool.json');
   const m = JSON.parse(readFileSync(path, 'utf8'));

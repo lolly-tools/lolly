@@ -1,44 +1,44 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
- * Offsetting — moving a path a fixed distance sideways, which is what an inset/outset,
- * a shadow ramp and (through stroke.ts) an outlined stroke are all made of.
+ * Offsetting: moving a path a fixed distance sideways. This is what an inset/outset,
+ * a shadow ramp, and (through stroke.ts) an outlined stroke are all built from.
  *
  * ## The offset of a cubic is not a cubic
  *
  * It is not a Bézier of any degree: the exact offset of a cubic is an algebraic curve
  * of degree 10, so no amount of cleverness produces it in the form the rest of the
- * engine speaks. The only question is how the approximation is CONTROLLED, and the
- * whole difference between a usable offset and a decorative one lives there.
+ * engine speaks. The only real question is how the approximation is CONTROLLED, and
+ * the whole difference between a usable offset and a decorative one lives there.
  *
  * 1. **Split at the curvature features first.** An offset is well behaved only on a
  *    piece whose curvature is monotone and whose concavity does not flip, so the source
- *    is cut at its curvature extrema, its inflections and any cusp before anything is
- *    approximated. Those parameters come from exact polynomials in `t` — the curvature
- *    numerator is a quadratic, and its extrema are the roots of a quintic — not from
+ *    is cut at its curvature extrema, its inflections, and any cusp before anything is
+ *    approximated. Those parameters come from exact polynomials in `t`: the curvature
+ *    numerator is a quadratic, and its extrema are the roots of a quintic, not found by
  *    walking the curve looking for where it seems to change.
  * 2. **Approximate each piece.** Its endpoints are exact (a point plus `distance` along
  *    its unit normal) and so are the tangent DIRECTIONS there, since an offset is
  *    parallel to its source by definition. Only the two handle lengths are unknown, and
  *    `fit.ts` determines them in closed form by matching the piece's signed area and
- *    first moment to the EXACT offset's — see `offsetSource`, which hands the fitter the
+ *    first moment to the EXACT offset's. See `offsetSource`, which hands the fitter the
  *    real offset as a sampleable curve rather than a point cloud taken off a guess at it.
  * 3. **Measure the true error, then re-split.** Walk the source's parameter, compute the
  *    exact offset point there, and ask `nearestOnCubic` how far the APPROXIMATION is from
- *    it. That direction rather than its opposite, for the reason `offsetError` sets out:
- *    asking how far the source is from a sample of the approximation is fooled wherever
- *    the offset folds. The walk's step is not a fixed grid — it is refined until
- *    consecutive exact offset points bracket the trace to within `tol`, because a
- *    curvature spike is a feature narrower than any fixed grid and a piece straddling one
- *    is otherwise accepted with the whole feature between two samples. This is the only
+ *    it. That direction, not its opposite, for the reason `offsetError` explains: asking
+ *    how far the source is from a sample of the approximation is fooled wherever the
+ *    offset folds. The walk's step is not a fixed grid, it is refined until consecutive
+ *    exact offset points bracket the trace to within `tol`, because a curvature spike is
+ *    a feature narrower than any fixed grid, and a piece straddling one would otherwise
+ *    be accepted with the whole feature hidden between two samples. This is the only
  *    sampling in the module, and it is measurement of a curve that has already been
- *    computed rather than a substitute for computing one. A piece outside `tol` is split
- *    at the source parameter where it missed worst and both halves are re-fitted, so
- *    every piece in the output has been checked against the real offset, not merely
- *    produced by a formula that usually works.
+ *    computed, not a substitute for computing one. A piece outside `tol` is split at the
+ *    source parameter where it missed worst, and both halves are re-fitted, so every
+ *    piece in the output has been checked against the real offset, not merely produced
+ *    by a formula that usually works.
  *
  * ## Sign convention (stroke.ts depends on this)
  *
- * `offsetCubic` is the primitive, and one curve has no inside: there a positive
+ * `offsetCubic` is the primitive, and one curve has no inside: there, a positive
  * distance moves the curve to the LEFT of its direction of travel, the quarter turn
  * `(-Ty, Tx)` of the unit tangent.
  *
@@ -46,26 +46,27 @@
  * `offsetPath(p, 5)` grows a shape and `offsetPath(p, -5)` shrinks it, whichever way
  * round the author happened to draw it. That flips the primitive's sign for loops
  * running counter-clockwise (positive signed area in a y-up frame), because the left of
- * a counter-clockwise loop is its interior. `offsetPath` takes the decision ONCE for a
- * whole path, from its largest contour, so a hole — wound the other way — closes in as
+ * a counter-clockwise loop is its interior. `offsetPath` makes the decision ONCE for a
+ * whole path, from its largest contour, so a hole (wound the other way) closes in as
  * the outline pushes out, instead of both boundaries marching the same direction across
  * the page. Open contours keep the primitive's meaning: positive is left of travel.
  *
- * `offsetSweep` is the raw trace with no region decided and no outward normalisation, so it
- * keeps the primitive's meaning on a closed contour too. It exists because a caller that
- * has to ADD two sweeps — `strokeToPath` — must not let either one collapse its winding
- * into a region first, and because a self-crossing centreline has no inside for the
- * outward/inward decision to be taken against.
+ * `offsetSweep` is the raw trace with no region decided and no outward normalisation, so
+ * it keeps the primitive's meaning on a closed contour too. It exists because a caller
+ * that has to ADD two sweeps (`strokeToPath`) must not let either one collapse its
+ * winding into a region first, and because a self-crossing centreline has no inside for
+ * the outward/inward decision to be made against.
  *
- * ## Why boolean.ts is a prerequisite rather than a nicety
+ * ## Why boolean.ts is a prerequisite, not a nicety
  *
  * An inward offset of anything concave crosses itself. The tempting fix is to detect
- * and trim each loop locally, which holds up until two parts of the path that are not
- * neighbours collide, and then quietly emits a shape with a knot in it. So the joins
+ * and trim each loop locally, which works until two parts of the path that are not
+ * neighbours collide, and then it quietly emits a shape with a knot in it. So the joins
  * here never trim: an inward corner is connected straight across, deliberately leaving
- * the loop, and `selfUnion` resolves the lot at once as a planar region — of which the
- * material that is genuinely `distance` from the source is what survives, which is the
- * part `resolveLoops` explains and the part every offset implementation gets wrong first.
+ * the loop, and `selfUnion` resolves the whole thing at once as a planar region. Of
+ * that region, the material that is genuinely `distance` from the source is what
+ * survives, which is what `resolveLoops` explains, and the part every offset
+ * implementation gets wrong first.
  */
 import {
   type Cubic, type Pt, boundsCubic, evalCubic, tangentAt, splitCubic, subCubic,
@@ -129,7 +130,7 @@ const MIN_SPAN = 1e-4;
  * Offset a single cubic: subdivided at its curvature features, fitted, and re-split
  * until every piece is within `tol` of the true offset.
  *
- * No joins and no cleanup — the pieces are returned as they come, and a source cusp
+ * No joins and no cleanup - the pieces are returned as they come, and a source cusp
  * shows up as a genuine gap between consecutive pieces, because that gap IS the
  * geometry. `offsetContour` is where gaps become joins.
  */
@@ -142,7 +143,7 @@ export function offsetCubic(c: Cubic, distance: number, tol = DEFAULT_TOL): Cubi
  *
  * Those directions are not recoverable from the piece itself, and the joins need them.
  * An offset's own tangent is `(1 − d·κ)·C'`, so wherever |distance| exceeds the radius of
- * curvature the piece arrives at its end running BACKWARDS along the source — genuinely,
+ * curvature the piece arrives at its end running BACKWARDS along the source - genuinely,
  * that is the fold. Reading "which way did the path turn" off the piece there inverts
  * every question `joinPieces` asks: the side test picks the wrong side, and a round join at
  * a cusp sweeps its cap through the spike instead of over it. Null where the piece is
@@ -156,7 +157,7 @@ function offsetPieces(c: Cubic, distance: number, tol: number): OffsetPiece[] {
   // than returned, which is what `booleanPath` and `strokeToPath` do with the same input.
   if (!isFiniteCubic(c)) return [];
   // A non-finite distance is a caller's bug rather than a geometric request, so the curve
-  // comes back untouched instead of vanishing or turning into NaN coordinates — same
+  // comes back untouched instead of vanishing or turning into NaN coordinates - same
   // answer the contour and path entry points give.
   if (!Number.isFinite(distance) || Math.abs(distance) < 1e-12) {
     return [{ curve: [...c] as Cubic, dirStart: unitTangent(c, 0), dirEnd: unitTangent(c, 1) }];
@@ -183,24 +184,25 @@ function pushRun(src: Cubic, fitted: Cubic[], out: OffsetPiece[]): void {
 /**
  * Fit one piece, and re-split it until the measurement agrees.
  *
- * ## Two error metrics, and which one is allowed to say yes
+ * ## Two error metrics, and which one gets to say yes
  *
- * `fitToCubics` has its own metric — normal-ray casting escalating to an arc-length
- * correspondence, with every local maximum of a 20-sample grid refined by golden section
- * — and it decides where the fitter subdivides. `offsetError` below is the one that
- * decides whether the RESULT is delivered. Acceptance is the conjunction: a chain has to
- * satisfy both, so whichever is stricter on a given piece is the one that governs, and
- * neither can quietly accept what the other would reject.
+ * `fitToCubics` has its own metric (normal-ray casting escalating to an arc-length
+ * correspondence, with every local maximum of a 20-sample grid refined by golden
+ * section), and it decides where the fitter subdivides. `offsetError` below is the one
+ * that decides whether the RESULT is delivered. Acceptance requires both: a chain has
+ * to satisfy each metric, so whichever is stricter on a given piece is the one that
+ * governs, and neither can quietly accept what the other would reject.
  *
- * That is not belt-and-braces. The two are strict in different places and both cases are
- * real. The fitter's grid is fixed at 20 samples per candidate range, so a curvature
- * spike narrower than a twentieth of the range falls between its brackets and its refined
- * maximum never sees it — the exact failure `offsetError`'s sagitta-refined walk was
- * built to close, where the delivered error stuck at 0.07 however small `tol` got.
- * Conversely the fitter measures along the source's NORMAL and rejects a candidate the
- * ray misses, which bounds Fréchet distance, while `offsetError` asks only for the
- * nearest point on the chain — a weaker question that a badly ordered curve can pass.
- * Taking either alone loses a guarantee that shipped output depends on.
+ * This is not redundant caution. The two metrics are strict in different places, and
+ * both failure modes are real. The fitter's grid is fixed at 20 samples per candidate
+ * range, so a curvature spike narrower than a twentieth of the range falls between its
+ * brackets, and its refined maximum never sees it. That is the exact failure
+ * `offsetError`'s sagitta-refined walk was built to close, where the delivered error
+ * stuck at 0.07 however small `tol` got. Conversely, the fitter measures along the
+ * source's NORMAL and rejects a candidate the ray misses, which bounds Fréchet
+ * distance, while `offsetError` asks only for the nearest point on the chain, a weaker
+ * question that a badly ordered curve can pass. Using either metric alone loses a
+ * guarantee that shipped output depends on.
  */
 function offsetSpan(src: Cubic, d: number, tol: number, depth: number, out: OffsetPiece[]): void {
   // A piece with no normal at an end has collapsed to a point: there is no offset of it,
@@ -208,11 +210,12 @@ function offsetSpan(src: Cubic, d: number, tol: number, depth: number, out: Offs
   if (!unitTangent(src, 0) || !unitTangent(src, 1)) return;
   // A straight piece is not fitted at all: its offset is the same piece translated along
   // one normal, which is exact arithmetic. Routing it through the fitter instead costs
-  // nothing in accuracy but everything in EXACTNESS — the fit places control points via
+  // nothing in accuracy but everything in EXACTNESS: the fit places control points via
   // cos/sin of the chord angle, so a vertical edge picks up a ~1e-16 lateral error, and
   // two squares grown until their offsets touch stop touching. `selfUnion` then reads a
-  // tangency as a near miss and the two shapes fail to merge. Verified against the same
-  // gate as any other piece, so a source that is only nearly straight cannot slip through.
+  // tangency as a near miss, and the two shapes fail to merge. This is checked against
+  // the same gate as any other piece, so a source that is only nearly straight cannot
+  // slip through.
   const straight = isLineCubic(src) ? translateCubic(src, d) : null;
   if (straight && offsetError(src, [straight], d, tol).error <= tol) { pushRun(src, [straight], out); return; }
   const fitted = fitToCubics(offsetSource(src, d), { tol, maxSegments: MAX_FIT_SEGMENTS });
@@ -220,7 +223,7 @@ function offsetSpan(src: Cubic, d: number, tol: number, depth: number, out: Offs
   if (depth >= MAX_OFFSET_DEPTH) { pushRun(src, fitted, out); return; }
   const worst = offsetError(src, fitted, d, tol);
   if (worst.error <= tol) { pushRun(src, fitted, out); return; }
-  // Split where it missed worst, in the SOURCE's parameter — that is the position the
+  // Split where it missed worst, in the SOURCE's parameter - that is the position the
   // next fit's endpoint has to be exact at, and halving instead would keep re-cutting
   // the well-behaved side of an asymmetric piece.
   const t = worst.t > MIN_SPAN && worst.t < 1 - MIN_SPAN ? worst.t : 0.5;
@@ -234,7 +237,7 @@ function offsetSpan(src: Cubic, d: number, tol: number, depth: number, out: Offs
  *
  * This is the reason offsetting uses the moment fit rather than a least-squares pass over
  * sampled points: the offset is an ANALYTIC source, not a point cloud. Its position is a
- * source point plus `d` along an exact normal, and its derivative is exact too —
+ * source point plus `d` along an exact normal, and its derivative is exact too -
  *
  *     O(t) = C(t) + d·N(t)   with N the left normal of the unit tangent
  *     O'(t) = (1 − d·κ(t))·C'(t)
@@ -248,7 +251,7 @@ function offsetSpan(src: Cubic, d: number, tol: number, depth: number, out: Offs
  *
  * κ = A/|C'|³ with A = x'y'' − y'x''. Below a vanishing |C'| the ratio is numerical noise
  * rather than curvature, so the position falls back to `unitTangent`'s control-leg normal
- * and the derivative is reported as zero — a source cusp, which is what it is, and which
+ * and the derivative is reported as zero - a source cusp, which is what it is, and which
  * `fit.ts` handles by probing inside the range.
  */
 function offsetSource(c: Cubic, d: number): ParamCurveFit {
@@ -267,15 +270,15 @@ function offsetSource(c: Cubic, d: number): ParamCurveFit {
   };
   return {
     sample,
-    // No closed form exists for an offset's area or moment — the curve is algebraic of
-    // degree 10 — so this is the case `quadratureMoments` is documented for. Gauss-Legendre
+    // No closed form exists for an offset's area or moment - the curve is algebraic of
+    // degree 10 - so this is the case `quadratureMoments` is documented for. Gauss-Legendre
     // over a smooth integrand, not a polyline of the shape.
     momentIntegrals: (t0, t1) => quadratureMoments(sample, t0, t1),
     breaks: () => offsetBreaks(c, d),
   };
 }
 
-/** Every control point moved `d` along the chord's left normal — the exact offset of a
+/** Every control point moved `d` along the chord's left normal - the exact offset of a
  *  straight piece, and the identity `t` is preserved so a caller measuring against it
  *  compares like with like. Null when the chord has no direction. */
 function translateCubic(c: Cubic, d: number): Cubic | null {
@@ -287,15 +290,16 @@ function translateCubic(c: Cubic, d: number): Cubic | null {
 }
 
 /**
- * Where the fitter must cut rather than try to span: the source's own curvature features,
- * and the parameters at which the OFFSET has a cusp.
+ * Where the fitter must cut rather than try to span: the source's own curvature
+ * features, and the parameters at which the OFFSET has a cusp.
  *
- * The second set is the one only this file can supply. Where the offset distance equals
- * the local radius of curvature the offset's derivative vanishes and its tangent reverses
- * — the point of the swallowtail an inward offset makes — and no single cubic spans that,
- * so a fitter left to discover it by bisection converges on it only in the limit and
- * emits a wall of segments on the way. Splitting AT it costs one extra piece, and the two
- * pieces meet at the same point, so `buildOffset` welds them and no join is invented.
+ * The second set is the one only this file can supply. Where the offset distance
+ * equals the local radius of curvature, the offset's derivative vanishes and its
+ * tangent reverses: this is the point of the swallowtail an inward offset makes, and no
+ * single cubic spans it. A fitter left to discover it by bisection converges on it only
+ * in the limit, emitting a wall of segments along the way. Splitting AT it costs one
+ * extra piece, and the two pieces meet at the same point, so `buildOffset` welds them
+ * and no join is invented.
  */
 function offsetBreaks(c: Cubic, d: number): number[] {
   const out = featureCuts(c);
@@ -317,24 +321,25 @@ function offsetBreaks(c: Cubic, d: number): number[] {
  * range, which the fitter does not report, and the chain-wide question is the one that
  * matters anyway: every point of the true offset has to be covered by SOMETHING.
  *
- * The direction of the measurement is the part worth keeping. The obvious test — sample
- * the approximation and check it is |d| from the source — is fooled wherever the offset
+ * The direction of the measurement is the part worth keeping. The obvious test (sample
+ * the approximation and check it is |d| from the source) is fooled wherever the offset
  * FOLDS, which is anywhere |distance| exceeds the local radius of curvature: a point
  * that cuts straight across the swallowtail is still exactly |d| from some other part of
  * the source, so a badly wrong curve passes. Asking instead how far the approximation is
  * from a point that must lie ON it cannot be fooled that way, and it hands back the
- * source parameter to split at rather than one inferred from a nearest-point search.
+ * source parameter to split at, rather than one inferred from a nearest-point search.
  *
  * ## Why the step is refined rather than fixed
  *
- * A fixed grid measures where it looks, and the places an offset goes wrong are narrower
- * than any grid worth paying for. Near a cusp the tangent whips round inside a window of
- * ~1e-7 in `t`, so the exact offset trace travels several units between two neighbours of
- * a 12-point grid: the piece is accepted, and the DELIVERED error stays at 0.07 however
- * small `tol` gets — the one failure mode that makes a tolerance argument decorative. So
- * an interval is subdivided until the exact offset points at its ends and its middle are
- * collinear to within `tol`, which is the condition under which nothing can be hiding
- * between them, and the samples land where the trace actually moves rather than evenly.
+ * A fixed grid only measures where it looks, and the places an offset goes wrong are
+ * narrower than any grid worth paying for. Near a cusp the tangent whips round inside a
+ * window of ~1e-7 in `t`, so the exact offset trace travels several units between two
+ * neighbours of a 12-point grid: the piece is accepted, and the DELIVERED error stays
+ * at 0.07 however small `tol` gets. That is the one failure mode that would make a
+ * tolerance argument meaningless. So an interval is subdivided until the exact offset
+ * points at its ends and its middle are collinear to within `tol`, which is the
+ * condition under which nothing can be hiding between them, and the samples land where
+ * the trace actually moves rather than at even spacing.
  * Refining the measurement grid is not flattening: no output coordinate comes from it.
  */
 function offsetError(src: Cubic, approx: Cubic[], d: number, tol: number): { error: number; t: number } {
@@ -368,15 +373,17 @@ function offsetError(src: Cubic, approx: Cubic[], d: number, tol: number): { err
   return worst;
 }
 
-/** Nearest distance from a point to a chain of fitted pieces. The box test first, because
- *  this runs once per measured sample against every piece of the chain and a chain the
- *  fitter split fifteen ways would otherwise cost fifteen quintic solves per sample.
+/** Nearest distance from a point to a chain of fitted pieces. The box test runs first,
+ *  because this runs once per measured sample against every piece of the chain, and a
+ *  chain the fitter split fifteen ways would otherwise cost fifteen quintic solves per
+ *  sample.
  *
- *  This used to pass a raised sample count, because the probe bracketed its answer on a
- *  grid and 24 samples over a piece spanning a whole curvature feature stopped resolving
- *  the basins — the wrong one got refined and the measurement over-reported, costing a
- *  split that was not needed. `nearestOnCubic` now solves the quintic outright, so there is
- *  no grid to size and the over-reporting it was compensating for is gone. */
+ *  This used to run with a raised sample count, because the probe bracketed its answer
+ *  on a grid, and 24 samples over a piece spanning a whole curvature feature stopped
+ *  resolving the basins: the wrong one got refined, and the measurement over-reported,
+ *  costing a split that was not needed. `nearestOnCubic` now solves the quintic
+ *  outright, so there is no grid to size, and the over-reporting it was compensating
+ *  for is gone. */
 function nearestOnChain(chain: Cubic[], p: Pt): number {
   let best = Infinity;
   for (const k of chain) {
@@ -433,14 +440,15 @@ function unitTangent(c: Cubic, t: number): Pt | null {
 /**
  * A parameter worth cutting at, and whether it is a closed-form root.
  *
- * The distinction is not pedantry. Inflections and cusps come out of a quadratic and a
- * cubic solved exactly; curvature extrema come out of a quintic isolated by bisection to
- * ~1e-7. Those cluster on the same feature — at a cusp the curvature numerator, its
- * derivative and the speed all vanish together — and the cluster has to collapse to one
- * cut. Taking the bisected one loses nothing at a curvature extremum and is fatal at a
- * cusp: cutting 5e-8 short of a tangent reversal leaves the reversal INSIDE a piece, so
- * the two offset ends land on the same point instead of 2|d| apart, no gap appears, no
- * join is inserted, and the fitted piece runs straight through the cusp point.
+ * The distinction matters. Inflections and cusps come out of a quadratic and a cubic
+ * solved exactly; curvature extrema come out of a quintic isolated by bisection to
+ * ~1e-7. Those cluster on the same feature (at a cusp the curvature numerator, its
+ * derivative, and the speed all vanish together), and the cluster has to collapse to
+ * one cut. Taking the bisected one loses nothing at a curvature extremum, but it is
+ * fatal at a cusp: cutting 5e-8 short of a tangent reversal leaves the reversal INSIDE
+ * a piece, so the two offset ends land on the same point instead of 2|d| apart, no gap
+ * appears, no join is inserted, and the fitted piece runs straight through the cusp
+ * point.
  */
 interface Feature { t: number; exact: boolean }
 
@@ -474,8 +482,9 @@ function featureCuts(c: Cubic): number[] {
  * Where the offset cusps: |C'|³ = d·A, i.e. `distance` equals the local radius of
  * curvature.
  *
- * Squaring both sides clears the half power and leaves a polynomial — D³ − d²A² of degree
- * 12 in `t`, with D = |C'|² and A the curvature numerator, both already exact polynomials.
+ * Squaring both sides clears the half power and leaves a polynomial, D³ − d²A², of
+ * degree 12 in `t`, with D = |C'|² and A the curvature numerator, both already exact
+ * polynomials.
  * Squaring also admits the roots of |C'|³ = −d·A, which are the points where the offset
  * runs at DOUBLE speed rather than stalling, so each root is checked against the unsquared
  * condition: a genuine one has 1 − dκ ≈ 0 and a spurious one has it at ≈ 2, which is not a
@@ -545,7 +554,7 @@ function featureParams(c: Cubic): Feature[] {
     polyScale(polyMul([a0, a1, a2], [d1, 2 * d2, 3 * d3, 4 * d4]), 3),
   ))) ts.push({ t, exact: false });
 
-  // A cusp is a zero of D, and D is a sum of squares — so it is a MINIMUM of D, and the
+  // A cusp is a zero of D, and D is a sum of squares - so it is a MINIMUM of D, and the
   // stationary points of D are the only places to look. Comparing against the control
   // legs keeps the test scale-free: 3·max leg length bounds |C'| for a cubic.
   const speedScale = 3 * Math.max(
@@ -583,10 +592,10 @@ function polySub(a: number[], b: number[]): number[] {
  * In Bernstein form the number of sign changes in the coefficients bounds the number of
  * roots in the interval (Descartes, via the variation-diminishing property), so a
  * subinterval with none can be discarded outright and the rest bisected. Unlike an
- * intersection, a split location does not need root-solver precision — cutting a
+ * intersection, a split location does not need root-solver precision. Cutting a
  * fraction of a percent off a curvature extremum costs nothing, because the error
- * measurement downstream is what certifies the result — so bisection is the right
- * trade here and Cardano-style closed forms do not exist above quartic anyway.
+ * measurement downstream is what certifies the result, so bisection is the right trade
+ * here, and Cardano-style closed forms do not exist above quartic anyway.
  */
 function rootsInUnit(poly: number[]): number[] {
   let scale = 0;
@@ -651,10 +660,11 @@ function splitBernstein(b: number[]): [number[], number[]] {
 /**
  * Offset one contour.
  *
- * Closed: a closed result with the input's orientation, self-intersections resolved, and
- * a positive distance meaning outward. It can come back as several contours — an inward
- * offset splits a waisted shape in two, and an outward one closes the mouth of a C into
- * a hole — or as nothing at all, when an inward offset exceeds the shape's inradius.
+ * Closed: a closed result with the input's orientation, self-intersections resolved,
+ * and a positive distance meaning outward. It can come back as several contours (an
+ * inward offset splits a waisted shape in two, and an outward one closes the mouth of
+ * a C into a hole), or as nothing at all, when an inward offset exceeds the shape's
+ * inradius.
  *
  * Open: the one-sided offset, positive to the left of travel, returned open.
  */
@@ -669,9 +679,9 @@ export function offsetContour(c: Contour, distance: number, opts: OffsetOptions 
   }
   // The wrap back to the start is part of the shape whether or not it was stored as a
   // curve, and an implicit edge has no side to push out. `pathFromSubPaths` produces the
-  // implicit form for every `Z` the SVG parser sees, so this is the shape most real input
-  // arrives in — without this the closing edge is replaced by a single join between the
-  // last and first offset pieces, which cuts that corner off the shape.
+  // implicit form for every `Z` the SVG parser sees, so this is the shape most real
+  // input arrives in. Without this step, the closing edge would be replaced by a single
+  // join between the last and first offset pieces, which cuts that corner off the shape.
   const cc = closeContour(src);
   const area = contourArea(cc);
   const curves = buildOffset(cc, distance * outwardSign(area), opts);
@@ -682,10 +692,10 @@ export function offsetContour(c: Contour, distance: number, opts: OffsetOptions 
 /**
  * Offset every contour of a path together.
  *
- * The sign is resolved ONCE, from the largest contour, and the whole result goes through
- * a single `selfUnion` — which is not just tidiness: growing two shapes until they touch
- * has to merge them, and growing an outline towards its own hole has to consume the
- * hole. Per-contour cleanup cannot see either.
+ * The sign is resolved ONCE, from the largest contour, and the whole result goes
+ * through a single `selfUnion`. This is not just tidiness: growing two shapes until
+ * they touch has to merge them, and growing an outline towards its own hole has to
+ * consume the hole. Per-contour cleanup cannot see either case.
  */
 export function offsetPath(p: GeomPath, distance: number, opts: OffsetOptions = {}): GeomPath {
   const src = p.map(finiteContour).filter((c): c is Contour => c !== null);
@@ -719,18 +729,19 @@ export function offsetPath(p: GeomPath, distance: number, opts: OffsetOptions = 
 
 /**
  * The RAW offset trace on the left of travel: joined, but with no region decided and no
- * outward normalisation. Positive `distance` is left of travel for a closed contour just as
- * for an open one, which is not what `offsetContour` means by it.
+ * outward normalisation. Positive `distance` means left of travel for a closed contour
+ * just as for an open one, which is not what `offsetContour` means by it.
  *
- * The trace is the boundary of the strip the normal segment sweeps as it slides along the
- * contour — the offset pieces, the join fans where the strip opens, and the fans' radii
- * where it closes — so its winding number counts how many times the sweep covered a point.
- * That is the quantity a caller combining several sweeps needs, and it is exactly what
- * `offsetContour` spends: it collapses the winding into one region on the way out, which is
- * the right answer for "inset this shape" and the wrong one for "what does this stroke
- * paint", where the two sides' sweeps have to be added before either can be judged. A
- * centreline that crosses itself has no inside for `offsetContour` to normalise against, so
- * for `strokeToPath` that collapse is not merely lossy, it is undefined.
+ * The trace is the boundary of the strip the normal segment sweeps as it slides along
+ * the contour (the offset pieces, the join fans where the strip opens, and the fans'
+ * radii where it closes), so its winding number counts how many times the sweep
+ * covered a point. That is the quantity a caller combining several sweeps needs, and it
+ * is exactly what `offsetContour` spends: it collapses the winding into one region on
+ * the way out, which is the right answer for "inset this shape" and the wrong one for
+ * "what does this stroke paint", where the two sides' sweeps have to be added together
+ * before either can be judged. A centreline that crosses itself has no inside for
+ * `offsetContour` to normalise against, so for `strokeToPath` that collapse is not
+ * merely lossy, it is undefined.
  */
 export function offsetSweep(c: Contour, distance: number, opts: OffsetOptions = {}): Contour | null {
   const src = finiteContour(c);
@@ -754,32 +765,34 @@ function outwardSign(area: number): number {
  * nonzero rule a region wound −1 is filled just as a region wound +1 is, and an inward
  * offset produces exactly that. The straight connector across a concave corner leaves a
  * flap wound against the body, and an offset deeper than the shape's inradius turns the
- * whole interior inside out — nonzero keeps both, so shrinking a 100pt square by 60
- * comes back as a shape instead of as nothing.
+ * whole interior inside out. Nonzero keeps both, so shrinking a 100pt square by 60
+ * would come back as a shape instead of as nothing.
  *
  * ## Why the survivors are not chosen by winding
  *
- * The tempting test is to keep the loops wound the way the source ran, on the reasoning
- * that over-erosion inverts the shape. It holds for a POLYGON and fails for every curve:
- * eroding a counter-clockwise circle of r=50 by 51 maps the point at angle θ to the point
- * of radius 1 at angle θ+π, which sweeps counter-clockwise too. Handedness is preserved,
- * the inside-out disc reads as material, and `offsetPath` grows a spurious shape exactly
- * where it owes the caller nothing. A smooth fold is not an inversion.
+ * The tempting test is to keep the loops wound the way the source ran, on the
+ * reasoning that over-erosion inverts the shape. It holds for a POLYGON and fails for
+ * every curve: eroding a counter-clockwise circle of r=50 by 51 maps the point at
+ * angle θ to the point of radius 1 at angle θ+π, which sweeps counter-clockwise too.
+ * Handedness is preserved, the inside-out disc reads as material, and `offsetPath`
+ * grows a spurious shape exactly where it owes the caller nothing. A smooth fold is
+ * not an inversion.
  *
  * So the survivors are chosen by MEASUREMENT against the source instead, which is what
- * the offset distance means in the first place: a point belongs to an erosion when it is
- * inside the source and no nearer than |distance| to its boundary, and to a dilation when
- * it is inside the source or no farther than |distance| from it. `nearestOnCubic` answers
- * that exactly on the original curves, so no epsilon and no winding argument is involved,
- * and the polygon and the circle are decided by the same rule. "Exactly" is the word that
- * matters, and it was not always true: while the probe bracketed its answer on a sample grid it
- * could report a distance orders of magnitude too large on a contour that passes close to
- * another part of itself, and this test would then delete material that belongs in the
- * output or keep a fold that does not. It solves the quintic now.
+ * the offset distance means in the first place: a point belongs to an erosion when it
+ * is inside the source and no nearer than |distance| to its boundary, and to a
+ * dilation when it is inside the source or no farther than |distance| from it.
+ * `nearestOnCubic` answers that exactly on the original curves, so no epsilon and no
+ * winding argument is involved, and the polygon and the circle are decided by the same
+ * rule. "Exactly" is the word that matters, and it was not always true: while the
+ * probe bracketed its answer on a sample grid, it could report a distance orders of
+ * magnitude too large on a contour that passes close to another part of itself, and
+ * this test would then delete material that belongs in the output or keep a fold that
+ * does not. It solves the quintic now.
  *
  * A contour is kept as soon as ONE probe of the material beside it lands in that set.
  * Asking for all of them would throw away correct output, because a mitred join and a
- * bevelled one deliberately do not sit at |distance| — a mitre reaches out to
+ * bevelled one deliberately do not sit at |distance|: a mitre reaches out to
  * `miterLimit` times it, and SVG asks for that spike.
  */
 function resolveLoops(raw: GeomPath, src: GeomPath, distance: number, wantCcw: boolean): GeomPath {
@@ -791,17 +804,17 @@ function resolveLoops(raw: GeomPath, src: GeomPath, distance: number, wantCcw: b
   return matchOrientation(kept, wantCcw);
 }
 
-/** Is `p` in the set the offset was asked for — the source eroded by |distance|, or
+/** Is `p` in the set the offset was asked for - the source eroded by |distance|, or
  *  dilated by it? Morphology, evaluated on the source curves themselves. */
 function isOffsetMaterial(src: GeomPath, p: Pt, distance: number): boolean {
-  // No tolerance is added to the comparison, and that is the deliberate part. The probe
-  // does not sit ON the boundary, it sits half a face-thickness inside it, and the normal
-  // it stepped along points away from the nearest source point — so on a face that is
-  // genuinely eroded material the step ITSELF is the margin, and it beats the fitting
-  // error for any face thicker than one. Allowing a tolerance instead re-admits what this
-  // test exists to remove: at exactly the radius of curvature the collapsing arcs of a
-  // rounded rectangle leave four knots of boundary 0.008 short of the distance, which is
-  // inside any slack worth writing down and is not material.
+  // No tolerance is added to the comparison, and that is deliberate. The probe does not
+  // sit ON the boundary, it sits half a face-thickness inside it, and the normal it
+  // stepped along points away from the nearest source point. So on a face that is
+  // genuinely eroded material, the step ITSELF is the margin, and it beats the fitting
+  // error for any face thicker than one. Allowing a tolerance instead would re-admit
+  // what this test exists to remove: at exactly the radius of curvature the collapsing
+  // arcs of a rounded rectangle leave four knots of boundary 0.008 short of the
+  // distance, which is inside any slack worth writing down and is not material.
   const slack = Math.max(Math.abs(distance), 1) * 1e-9;
   const want = Math.abs(distance);
   const inside = () => windingNumber(src, p.x, p.y) !== 0;
@@ -813,8 +826,8 @@ function isOffsetMaterial(src: GeomPath, p: Pt, distance: number): boolean {
  * Nearest distance from a point to any curve of a path.
  *
  * Every curve whose bounding box is already farther away than the best answer so far is
- * skipped, which matters because this runs once per probe against the whole source: the
- * box test costs a subtraction and `nearestOnCubic` costs a quintic root solve.
+ * skipped. This matters because this runs once per probe against the whole source: the
+ * box test costs a subtraction, and `nearestOnCubic` costs a quintic root solve.
  */
 export function distanceToPath(p: GeomPath, x: number, y: number): number {
   let best = Infinity;
@@ -831,31 +844,31 @@ export function distanceToPath(p: GeomPath, x: number, y: number): number {
 }
 
 export interface SideProbes {
-  /** Inside the region this contour bounds — `selfUnion` orients every contour it
+  /** Inside the region this contour bounds - `selfUnion` orients every contour it
    *  returns with the filled side on its left. */
   left: Pt;
   right: Pt;
 }
 
 /**
- * A probe for one resolved path: given one of its contours, points immediately either side
- * of it, one candidate curve at a time, longest first.
+ * A probe for one resolved path: given one of its contours, find points immediately
+ * either side of it, one candidate curve at a time, longest first.
  *
- * Built for the whole path rather than per contour because the reach, the curve list and
- * their boxes are properties of the path — recomputing them for each contour is what turns
- * judging a 68-contour offset into quadratic work.
+ * Built for the whole path rather than per contour, because the reach, the curve list,
+ * and their boxes are properties of the path. Recomputing them for each contour is what
+ * turns judging a 68-contour offset into quadratic work.
  *
- * How far to step is the whole difficulty, and a bbox-scaled epsilon — the obvious answer,
- * and the one boolean.ts's header rejects — gets it wrong twice over: on a region thinner
- * than the step the probe lands outside the very contour it came from and correct geometry
- * is deleted, and because the step comes from an axis-aligned box the verdict depends on
- * how the input was ROTATED. A 200×20 rectangle inset by 9.95 kept its 0.1-thick ribbon
- * axis-aligned and lost it at 45°.
+ * How far to step is the whole difficulty. A bbox-scaled epsilon (the obvious answer,
+ * and the one boolean.ts's header rejects) gets it wrong two ways: on a region thinner
+ * than the step, the probe lands outside the very contour it came from and correct
+ * geometry is deleted, and because the step comes from an axis-aligned box, the verdict
+ * depends on how the input was ROTATED. A 200×20 rectangle inset by 9.95 kept its
+ * 0.1-thick ribbon axis-aligned and lost it at 45°.
  *
  * So the step is not chosen, it is measured: cast the normal at the curve's midpoint,
  * intersect it with the region exactly, and go half way to the nearest crossing. On the
- * thin ribbon that is 0.05 and on a wide body it is a wide step, which is the same
- * statement in both cases — half the room there is — and it is a property of the geometry
+ * thin ribbon that is 0.05, and on a wide body it is a wide step, which is the same
+ * rule in both cases (half the available room), and it is a property of the geometry
  * rather than of the axes it happens to be drawn against.
  */
 export function regionProber(region: GeomPath): (c: Contour, limit?: number) => SideProbes[] {
@@ -915,10 +928,10 @@ export function regionProber(region: GeomPath): (c: Contour, limit?: number) => 
 /** A copy with the unusable curves gone, or null when nothing usable is left.
  *
  *  Every entry point runs it, because a coordinate that is not a number reaches the
- *  normal, the fit and the boolean pass alike and comes out the far end as NaN control
- *  points — `offsetPath` on a curve ending at Infinity used to emit exactly that. A curve
- *  dropped from the middle of a contour leaves a gap, which is the one thing this module
- *  already handles everywhere: gaps become joins. */
+ *  normal, the fit, and the boolean pass alike, and comes out the far end as NaN
+ *  control points. `offsetPath` on a curve ending at Infinity used to emit exactly
+ *  that. A curve dropped from the middle of a contour leaves a gap, which is the one
+ *  thing this module already handles everywhere: gaps become joins. */
 function finiteContour(c: Contour): Contour | null {
   const curves = c.curves.filter(isFiniteCubic).map((k) => [...k] as Cubic);
   return curves.length ? { curves, closed: c.closed } : null;
@@ -929,10 +942,11 @@ function finiteContour(c: Contour): Contour | null {
  *
  * Gaps are treated uniformly wherever they appear, which is what makes a cusp inside a
  * single cubic behave like a corner between two: consecutive offset pieces either meet
- * (weld them, or the contour drifts apart at machine precision) or they do not, and then
- * a join goes in. The corner to pivot the join around is the shared source point where
- * that is known, and the midpoint of the two offset ends otherwise — exact for a cusp,
- * where the normal reverses and the two ends sit diametrically opposite it.
+ * (weld them, or the contour would drift apart at machine precision) or they do not,
+ * and then a join goes in. The corner to pivot the join around is the shared source
+ * point where that is known, and the midpoint of the two offset ends otherwise. That
+ * midpoint is exact for a cusp, where the normal reverses and the two ends sit
+ * diametrically opposite it.
  */
 function buildOffset(c: Contour, d: number, opts: OffsetOptions): Cubic[] {
   const tol = opts.tol ?? DEFAULT_TOL;
@@ -964,7 +978,7 @@ function buildOffset(c: Contour, d: number, opts: OffsetOptions): Cubic[] {
       continue;
     }
     const pivot = corners[i] ?? { x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 };
-    // The source's directions, not the offset pieces' own — see `OffsetPiece`.
+    // The source's directions, not the offset pieces' own - see `OffsetPiece`.
     const t0 = cur.dirEnd ?? endTangent(cur.curve);
     const t1 = next.dirStart ?? startTangent(next.curve);
     out.push(...joinPieces(a, b, pivot, t0, t1, d, join, miterLimit));
@@ -975,20 +989,21 @@ function buildOffset(c: Contour, d: number, opts: OffsetOptions): Cubic[] {
 /**
  * Fill the gap between two offset pieces.
  *
- * The offset side only opens up where the path turns AWAY from it. A turn TOWARDS it makes
- * the two pieces overlap instead, and what goes between them there is not cosmetic: it
- * decides whether the fold can be recognised later. Both offset endpoints sit exactly |d|
- * from the pivot, so `a → pivot → b` is the pair of radii of the very fan a round join
- * sweeps the other way round — with them in place the trace follows the boundary of the
- * strip the moving normal sweeps, and its winding counts how many times material was swept
- * over, which is what `resolveLoops` reads.
+ * The offset side only opens up where the path turns AWAY from it. A turn TOWARDS it
+ * makes the two pieces overlap instead, and what goes between them there is not
+ * cosmetic: it decides whether the fold can be recognised later. Both offset endpoints
+ * sit exactly |d| from the pivot, so `a → pivot → b` is the pair of radii of the very
+ * fan a round join sweeps the other way round. With them in place the trace follows
+ * the boundary of the strip the moving normal sweeps, and its winding counts how many
+ * times material was swept over, which is what `resolveLoops` reads.
  *
- * A chord straight across the corner instead cuts through that strip. It works while the
- * offset is shallower than the corner's feature size and fails silently past it: the chord
- * then passes on the far side of the region, the fold comes back wound +1 rather than
- * against the body, and eroding a shape past its inradius returns an inside-out copy of it
- * instead of nothing. Trimming the two pieces against each other here is the other tempting
- * answer and is worse — it is a local decision about geometry that is not local.
+ * A chord straight across the corner instead cuts through that strip. It works while
+ * the offset is shallower than the corner's feature size, and fails silently past it:
+ * the chord then passes on the far side of the region, the fold comes back wound +1
+ * rather than against the body, and eroding a shape past its inradius returns an
+ * inside-out copy of it instead of nothing. Trimming the two pieces against each other
+ * here is the other tempting answer, and it is worse: it is a local decision about
+ * geometry that is not actually local.
  */
 function joinPieces(
   a: Pt, b: Pt, pivot: Pt, t0: Pt | null, t1: Pt | null,
@@ -998,13 +1013,13 @@ function joinPieces(
   const viaPivot = () => [lineToCubic(a.x, a.y, pivot.x, pivot.y), lineToCubic(pivot.x, pivot.y, b.x, b.y)];
   if (!t0 || !t1) return bevel();
   const cross = t0.x * t1.y - t0.y * t1.x;
-  // A tangent REVERSAL — a cusp inside one source curve, or a spike between two — has
-  // cross ≈ 0 with the tangents opposed, so "which way did it turn" has no answer and the
-  // side test below cannot be asked. It is not a degenerate case to be shrugged off,
-  // though: the true offset jumps 2|d| straight across the cusp point, and the gap left
-  // behind is a half turn that a round join has to actually round. Bevelling it draws a
-  // chord THROUGH the cusp, which sits at distance 0 from a source that was asked for
-  // |d| — the one place an offset can be wrong by its whole distance.
+  // A tangent REVERSAL (a cusp inside one source curve, or a spike between two) has
+  // cross ≈ 0 with the tangents opposed, so "which way did it turn" has no answer, and
+  // the side test below cannot be asked. It is not a degenerate case to be shrugged
+  // off, though: the true offset jumps 2|d| straight across the cusp point, and the
+  // gap left behind is a half turn that a round join has to actually round. Bevelling
+  // it draws a chord THROUGH the cusp, which sits at distance 0 from a source that was
+  // asked for |d|: the one place an offset can be wrong by its whole distance.
   const reversal = Math.abs(cross) < 1e-9 && t0.x * t1.x + t0.y * t1.y < 0;
   if (!reversal) {
     if (Math.abs(cross) < 1e-12) return bevel();
@@ -1037,11 +1052,11 @@ function arcJoin(a: Pt, b: Pt, pivot: Pt, heading: Pt | null): Cubic[] {
   let sweep = Math.atan2(b.y - pivot.y, b.x - pivot.x) - from;
   while (sweep <= -Math.PI) sweep += 2 * Math.PI;
   while (sweep > Math.PI) sweep -= 2 * Math.PI;
-  // A half turn is the one case where the endpoints do not say which way round: both arcs
-  // are equally short, and the normalisation above has to pick one blind. The answer is
-  // not in the endpoints at all — the arc has to leave `a` tangentially, so it turns the
-  // way (a − pivot) × heading points. At a cusp, picking wrong sends the cap through the
-  // spike instead of over it.
+  // A half turn is the one case where the endpoints do not say which way round: both
+  // arcs are equally short, and the normalisation above has to pick one blind. The
+  // answer is not in the endpoints at all: the arc has to leave `a` tangentially, so it
+  // turns the way (a − pivot) × heading points. At a cusp, picking wrong sends the cap
+  // through the spike instead of over it.
   if (heading && Math.abs(sweep) > Math.PI - 1e-6) {
     const turn = (a.x - pivot.x) * heading.y - (a.y - pivot.y) * heading.x;
     if (turn !== 0) sweep = turn > 0 ? Math.abs(sweep) : -Math.abs(sweep);
@@ -1097,36 +1112,39 @@ function matchOrientation(p: GeomPath, wantCcw: boolean): GeomPath {
 // ── curve fitting ─────────────────────────────────────────────────────────────
 
 /**
- * Fit a chain of cubics through a point sequence with prescribed end tangents —
+ * Fit a chain of cubics through a point sequence with prescribed end tangents, using
  * Schneider's algorithm (Graphics Gems, 1990).
  *
- * Least-squares for the two handle lengths with the endpoints and tangent directions
+ * Least-squares for the two handle lengths, with the endpoints and tangent directions
  * held fixed, then Newton-Raphson reparameterisation (chord length is only a guess at
- * where each point sits on the curve, and refitting against improved parameters is what
- * turns a mediocre fit into an exact one), then a recursive split at the worst point
- * when neither is enough.
+ * where each point sits on the curve, and refitting against improved parameters is
+ * what turns a mediocre fit into an exact one), then a recursive split at the worst
+ * point when neither is enough.
  *
  * Both tangents are in the DIRECTION OF TRAVEL: `start` leaves the first point, `end`
- * arrives at the last. Schneider's formulation wants the end one reversed; that happens
- * inside, because a caller holding a path has the forward tangent and not its negation.
+ * arrives at the last. Schneider's formulation wants the end one reversed; that
+ * happens inside, because a caller holding a path has the forward tangent, not its
+ * negation.
  *
  * ## This is the fitter for NOISY input, and offsetting no longer uses it
  *
  * ⚠️ Not dead code, and not redundant with `fit.ts`. The two fitters take different
- * inputs and neither substitutes for the other:
+ * inputs, and neither substitutes for the other:
  *
- * - **`fitToCubics` (fit.ts) takes a CURVE** — something with an exact position and
- *   derivative at any `t`, and exactly computable area and moment integrals. Given that,
- *   matching those two invariants beats least squares outright: closed form instead of
- *   iteration, O(n⁻⁶) convergence, and a cusp penalty that keeps the result smooth rather
- *   than merely close. An exact offset is such a curve, so `offsetSpan` uses it.
- * - **`fitCubic` (here) takes POINTS**, and asks nothing of where they came from. The
- *   moment method cannot: its invariants are integrals over an authoritative source, and
- *   over a digitiser's or a mouse drag's samples they measure the noise as faithfully as
- *   the shape. Levien caveats exactly this case. So a pen tool's freehand input — the
- *   Stage 4 caller the geometry plan names — needs a least-squares fitter, and this is it.
+ * - **`fitToCubics` (fit.ts) takes a CURVE**: something with an exact position and
+ *   derivative at any `t`, and exactly computable area and moment integrals. Given
+ *   that, matching those two invariants beats least squares outright: closed form
+ *   instead of iteration, O(n⁻⁶) convergence, and a cusp penalty that keeps the result
+ *   smooth rather than merely close. An exact offset is such a curve, so `offsetSpan`
+ *   uses it.
+ * - **`fitCubic` (here) takes POINTS**, and asks nothing about where they came from.
+ *   The moment method cannot do that: its invariants are integrals over an
+ *   authoritative source, and over a digitiser's or a mouse drag's samples they
+ *   measure the noise as faithfully as the shape. Levien flags exactly this case as a
+ *   caveat. So a pen tool's freehand input (the Stage 4 caller the geometry plan
+ *   names) needs a least-squares fitter, and this is it.
  *
- * Deleting either one costs a capability the other cannot supply.
+ * Removing either one loses a capability the other cannot supply.
  */
 export function fitCubic(points: Pt[], tangents: { start: Pt; end: Pt }, tol = DEFAULT_TOL): Cubic[] {
   const pts = dedupePoints(points);
@@ -1153,7 +1171,7 @@ function fitRecursive(pts: Pt[], t0: Pt, t1: Pt, tol: number, depth: number): Cu
 
   // Schneider gates the reparameterisation on the first fit already being close. That
   // gate never fires on a curve whose speed varies along it, because chord length is
-  // then a poor guess at the parameters and the first fit is nowhere near — so the
+  // then a poor guess at the parameters and the first fit is nowhere near. So the
   // fitter splits a shape it could have matched exactly (points taken off a single
   // cubic come back as a dozen). Iterate first, always, and stop the moment it stalls,
   // keeping whichever fit was better.
@@ -1179,7 +1197,7 @@ function fitRecursive(pts: Pt[], t0: Pt, t1: Pt, tol: number, depth: number): Cu
 /**
  * The least-squares core: endpoints and tangent directions fixed, two handle lengths
  * free. Shared by `fitCubic` and the offset approximation, which is the whole reason
- * an offset piece lands on the true offset rather than merely near it — the same
+ * an offset piece lands on the true offset rather than merely near it: the same
  * two-unknown solve, given exact data instead of sampled data.
  *
  * `t1` points BACKWARD from the last point (Schneider's convention).
@@ -1221,7 +1239,7 @@ function bezierWithTangents(pts: Pt[], u: number[], t0: Pt, t1: Pt): Cubic {
   ];
 }
 
-/** Worst distance between a point and the curve AT ITS ASSUMED PARAMETER — not the
+/** Worst distance between a point and the curve AT ITS ASSUMED PARAMETER - not the
  *  nearest point on the curve. That is the quantity the reparameterisation reduces, so
  *  measuring anything else would report progress the next iteration cannot make. */
 function fitError(pts: Pt[], u: number[], curve: Cubic): { error: number; index: number } {
@@ -1264,7 +1282,7 @@ function centreTangent(pts: Pt[], i: number): Pt | null {
   }) ?? direction(at, prev);
 }
 
-/** Cumulative chord length, normalised — the standard first guess at where each point
+/** Cumulative chord length, normalised - the standard first guess at where each point
  *  sits on the curve, and a good one whenever the points are reasonably even. */
 function chordParams(pts: Pt[]): number[] {
   const u = [0];
@@ -1277,7 +1295,7 @@ function chordParams(pts: Pt[]): number[] {
 }
 
 /** Consecutive duplicates give a zero-length chord, which makes the parameterisation
- *  degenerate — and a freehand drag that pauses produces runs of them. */
+ * degenerate - and a freehand drag that pauses produces runs of them. */
 function dedupePoints(pts: Pt[]): Pt[] {
   const out: Pt[] = [];
   for (const p of pts) {

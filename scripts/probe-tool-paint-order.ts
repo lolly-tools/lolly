@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 // SPDX-License-Identifier: MPL-2.0
 /**
- * Tool-export A/B for `ExportOpts.stackingOrder` — evidence, not a gate.
+ * Tool-export A/B for `ExportOpts.stackingOrder` - evidence, not a gate.
  *
  * `renderSvgFromHtml` (shells/web/src/bridge/export.ts) is the shipping
  * SVG/PDF/EMF/EPS path for every tool in every profile, so paint-order work sits
@@ -11,7 +11,7 @@
  *   1. With the flag OFF, is a tool's exported SVG byte-identical to what the
  *      pre-flag walker produced?  (`--baseline=<module.ts>`)
  *   2. With the flag ON, which tools would actually change?  That reviewed list
- *      — not an assertion — is the only thing that could ever justify flipping
+ * - not an assertion - is the only thing that could ever justify flipping
  *      the default.
  *
  * Build-machine only: needs Chromium and a built `shells/web/dist`.
@@ -21,7 +21,7 @@
  *   node scripts/probe-tool-paint-order.ts --baseline=shells/web/src/bridge/old-export.ts
  *   node scripts/probe-tool-paint-order.ts --limit=8 --only=qr-code,wordmark
  *
- * The baseline module must live NEXT TO export.ts — it is bundled with esbuild
+ * The baseline module must live NEXT TO export.ts - it is bundled with esbuild
  * and its relative imports have to resolve.
  */
 import { createServer } from 'node:http';

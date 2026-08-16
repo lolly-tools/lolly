@@ -7,7 +7,7 @@ import test from 'node:test';
  *
  * The rule: git holds AUTHORED source + test baselines; the BUILD produces
  * everything else. Generated, downloadable, or otherwise build-reproducible
- * artifacts must not be committed — they bloat the repo, churn diffs, and
+ * artifacts must not be committed - they bloat the repo, churn diffs, and
  * drift from their source of truth.
  *
  * This is a fast, pure `git ls-files` scan (no build step). Any TRACKED path
@@ -77,7 +77,7 @@ function globToRegExp(glob: string): RegExp {
     if (c === '*') {
       if (glob[i + 1] === '*') {
         if (glob[i + 2] === '/') {
-          out += '(?:.*/)?'; // `**/` — zero or more leading segments
+          out += '(?:.*/)?'; // `**/` - zero or more leading segments
           i += 2;
         } else {
           out += '.*'; // trailing/embedded `**`
@@ -130,7 +130,7 @@ test('no build-reproducible artifacts are tracked (git holds source, build makes
 test('ML models are fetched at build time, never committed', () => {
   // Models are large binary weights; committing them bloats history and drifts
   // from upstream. They must reach the deploy via a build-time fetch, so there
-  // is intentionally no models/** allowlist entry — the tracked count is zero.
+  // is intentionally no models/** allowlist entry - the tracked count is zero.
   const root = repoRoot();
   const models = trackedFiles(root).filter((f) => /(^|\/)public\/models\//.test(f));
 

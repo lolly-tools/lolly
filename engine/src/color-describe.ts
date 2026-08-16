@@ -1,15 +1,15 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
- * One colour, fully described — the join between css-color.ts (which already
+ * One colour, fully described. This connects css-color.ts (which already
  * parses and converts 14 CSS Color 4 spaces) and gamut.ts (which knows what a
  * display can actually show).
  *
- * Both halves existed; nothing put them together. So a caller holding a colour
- * could convert it anywhere but could not answer the two questions that decide
- * whether it is usable: **is it inside sRGB, and if not, what will it become?**
- * Every surface that asked ended up flattening to a hex first, which silently
- * throws away exactly the colours worth asking about — a `color(display-p3 1 0
- * 0)` becomes `#ff0000` and the question answers itself wrongly.
+ * Both modules existed already, but nothing combined them. A caller holding a
+ * colour could convert it anywhere but could not answer the two questions that
+ * decide whether it is usable: **is it inside sRGB, and if not, what will it
+ * become?** Every surface that asked ended up flattening to a hex first, which
+ * discards exactly the colours worth asking about: a `color(display-p3 1 0 0)`
+ * becomes `#ff0000` and the answer comes out wrong.
  *
  * `describeColor` keeps the authored value intact: the OKLCH here is UNCLAMPED,
  * so a P3 red reports chroma 0.32 rather than sRGB red's 0.26, and `gamut` says
@@ -36,8 +36,8 @@ export interface ColorNotation {
   /** The colour written in this space, e.g. `oklch(62.79% 0.2577 29.23)`. */
   css: string;
   /** Whether this space can hold the colour without clamping. A notation whose
-   *  space is too narrow is still emitted — CSS would clamp it, and seeing the
-   *  clamped numbers is the point — but it must be labelled. */
+   * space is too narrow is still emitted - CSS would clamp it, and seeing the
+   * clamped numbers is the point - but it must be labelled. */
   exact: boolean;
 }
 
@@ -46,13 +46,13 @@ export interface ColorDescription {
   input: string;
   /** The parsed colour in its authored space. */
   parsed: CssColor;
-  /** OKLCH, UNCLAMPED — the authored colour, not a displayable approximation. */
+  /** OKLCH, UNCLAMPED - the authored colour, not a displayable approximation. */
   oklch: Oklch;
   /** The narrowest display gamut that holds it, or 'none'. */
   gamut: GamutName;
   /** True when the colour survives sRGB untouched. */
   inSrgb: boolean;
-  /** The nearest sRGB colour — what actually renders on an ordinary screen.
+  /** The nearest sRGB colour - what actually renders on an ordinary screen.
    *  A FALLBACK, not the value; equals the colour itself when `inSrgb`. */
   srgbHex: string;
   /** How much chroma sRGB has left at this lightness and hue. Negative when the
@@ -78,7 +78,7 @@ const BOUNDED = new Set<ColorSpaceTag>([
  *
  * Judged on the CONVERTED components rather than by classifying the colour and
  * comparing gamuts. Both would be nearly right, but only this one can't
- * disagree with the numbers printed beside it — the matrix chain and the
+ * disagree with the numbers printed beside it - the matrix chain and the
  * classifier differ by ~1e-3 near a boundary, which is enough to render a
  * component as `-0.005` while a label calls it exact.
  */
@@ -151,11 +151,11 @@ export type WcagLevel = 'AAA' | 'AA' | 'fail';
 export interface ContrastVerdict {
   /** Whichever of black or white this colour contrasts with more. */
   against: '#000000' | '#ffffff';
-  /** The winning ratio (WCAG 2.1, 1–21) — see the floor noted below. */
+  /** The winning ratio (WCAG 2.1, 1–21) - see the floor noted below. */
   ratio: number;
   /** The level the winning pair reaches for BODY text (4.5 = AA, 7 = AAA). */
   level: WcagLevel;
-  /** …and for large text — ≥18.66px bold or ≥24px (3 = AA, 4.5 = AAA). */
+  /** …and for large text - ≥18.66px bold or ≥24px (3 = AA, 4.5 = AAA). */
   largeLevel: WcagLevel;
   /** Both sides, so a report can show the pair rather than only the winner. */
   onBlack: number;
@@ -167,7 +167,7 @@ export interface ContrastVerdict {
  *
  * WCAG's ratio is `(L₁+0.05)/(L₂+0.05)`, so a colour's ratios against black and
  * white multiply to exactly 21 whatever its luminance. Taking the better of the
- * two therefore bottoms out where they meet, at √21 — and that is ABOVE the 4.5
+ * two therefore bottoms out where they meet, at √21 - and that is ABOVE the 4.5
  * body-text AA threshold.
  */
 export const EXTREMES_CONTRAST_FLOOR = Math.sqrt(21);
@@ -178,7 +178,7 @@ const levelFor = (ratio: number, large: boolean): WcagLevel => {
 };
 
 /**
- * Score a colour against black AND white, reporting the better of the two — the
+ * Score a colour against black AND white, reporting the better of the two - the
  * same question a swatch answers when it picks its own label colour.
  *
  * **Read the result knowing the floor.** Because the two ratios always multiply
@@ -186,7 +186,7 @@ const levelFor = (ratio: number, large: boolean): WcagLevel => {
  * against one extreme or the other, and `level` is therefore never `'fail'`
  * here. That is not a bug and not a reason to trust a colour blindly: it means
  * the informative parts of this verdict are *which* extreme wins and whether it
- * reaches **AAA** — not whether it "passes". A verdict against a real brand
+ * reaches **AAA** - not whether it "passes". A verdict against a real brand
  * surface (plain `contrastRatio`) is what can actually fail, and is the number
  * to enforce with.
  *

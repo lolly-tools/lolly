@@ -1,13 +1,13 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
  * Contract tests for the END-USER tool-URL surface (parseToolUrl / buildEmbedUrl /
- * isToolUrl) — what the asset picker accepts when a user pastes a Lolly link.
+ * isToolUrl) - what the asset picker accepts when a user pastes a Lolly link.
  *
  * Unlike parseEmbedUrl (the strict, host-locked gate for author-written template
  * embeds), parseToolUrl is deliberately liberal: it recognises every link shape
  * the app hands a user (embed URL, hash share route, pretty path) on any host,
  * because the user's intent ("render this tool as my image") is explicit. The real
- * safety net is downstream — the toolId must resolve to a real local tool.
+ * safety net is downstream - the toolId must resolve to a real local tool.
  *
  * buildEmbedUrl canonicalises into the strict embed form, so its output must always
  * re-parse through parseEmbedUrl (the persistent-identity round-trip).

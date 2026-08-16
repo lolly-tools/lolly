@@ -5,7 +5,7 @@
  * (`detectWatermark`) reading a GENUINE v2-imprinted `ppt/media` raster.
  *
  * Why this exists: a green deck exported by deck-builder shows NO Imprint in
- * /verify — not because the read path is broken, but because an ordinary
+ * /verify - not because the read path is broken, but because an ordinary
  * deck-builder deck (text boxes, roundRect shapes, gradient fills, byte-faithful
  * user photos/SVG logos) lowers to NATIVE PowerPoint vector + verbatim user
  * bytes. There is no Lolly-RENDERED raster in `ppt/media`, so nothing carries the
@@ -14,8 +14,8 @@
  * (rotated / CSS-filtered / effect / inline <svg>).
  *
  * This test isolates that: it MANUFACTURES the raster the vector deck never
- * produces — a real v2 `embedWatermark` render encoded to a `ppt/media` PNG (and
- * JPEG) — and proves the read chain finds it. So when a real deck reads clean,
+ * produces - a real v2 `embedWatermark` render encoded to a `ppt/media` PNG (and
+ * JPEG) - and proves the read chain finds it. So when a real deck reads clean,
  * the failure is upstream at EMBED (no raster was made), not here at read.
  *
  * The zip unzip + canvas decode are the shell's job (browser-only, unverifiable
@@ -38,14 +38,14 @@ let sharp: (typeof import('sharp'))['default'] | undefined;
 try { sharp = (await import('sharp')).default; } catch { /* optional */ }
 const skip = sharp ? false : 'sharp not available';
 
-// Multi-scale "photo-like" RGBA — the shared, CALIBRATED generator (see
+// Multi-scale "photo-like" RGBA - the shared, CALIBRATED generator (see
 // helpers/photo-like.ts): real codecs behave as they would on a photograph and
 // there are plenty of non-flat 8x8 blocks for the embed floor
 // (MIN_IMPRINT_BLOCKS ~ 594; 384^2 = 2304 blocks).
 import { photoLike } from './helpers/photo-like.ts';
 
 // Encode a raw RGBA image to PNG/JPEG bytes, exactly as buildPptxParts stores
-// `ppt/media/imageN_M.ext` — verbatim in the zip, no re-encode. Round-trips the
+// `ppt/media/imageN_M.ext` - verbatim in the zip, no re-encode. Round-trips the
 // codec so decode reads NATIVE stored resolution (no resize; the mark rides an
 // 8×8 grid a rescale would shift).
 async function toPng(rgba: Uint8Array, w: number, h: number): Promise<Uint8Array> {
@@ -68,7 +68,7 @@ test('a v2-imprinted ppt/media PNG is enumerated and detected end-to-end', { ski
   const jpegBytes = await toJpeg(embedWatermark(photoLike(W, H, 202), { width: W, height: H }), W, H, 90);
 
   // The part map inflatePptx would hand back for a deck whose ONLY images are
-  // Lolly-rendered rasters (the rotated/filtered/effect case) — plus vector
+  // Lolly-rendered rasters (the rotated/filtered/effect case) - plus vector
   // siblings that must be OMITTED (no pixel mark by construction).
   const parts: PptxParts = {
     'ppt/presentation.xml': '<p:presentation/>',
@@ -99,7 +99,7 @@ test('a v2-imprinted ppt/media PNG is enumerated and detected end-to-end', { ski
 
 test('an all-vector / unmarked-raster deck reads absent — never a false hit', { skip }, async () => {
   const W = 384, H = 384;
-  // An ordinary deck-builder deck: byte-faithful USER photo (never imprinted —
+  // An ordinary deck-builder deck: byte-faithful USER photo (never imprinted - 
   // it is the user's own asset, not Lolly-rendered pixels) alongside vector art.
   const userPhoto = await toPng(photoLike(W, H, 303), W, H); // NO embedWatermark
   const parts: PptxParts = {
@@ -112,7 +112,7 @@ test('an all-vector / unmarked-raster deck reads absent — never a false hit', 
   // without decoding) …
   assert.deepEqual(pptxMediaImages(parts), [{ path: 'ppt/media/image1_1.png', mime: 'image/png' }]);
   // … but detection correctly finds NO mark. Absence must read as "nothing to
-  // report", never as a positive — the /verify scan surfaces only a true hit.
+  // report", never as a positive - the /verify scan surfaces only a true hit.
   const miss = det(await decodeRgba(parts['ppt/media/image1_1.png'] as Uint8Array));
   assert.equal(miss.present, false, `unmarked user photo must not false-positive (score ${miss.score.toFixed(4)})`);
 });

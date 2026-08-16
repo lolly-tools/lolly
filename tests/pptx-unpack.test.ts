@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
- * Unpack — the PowerPoint (.pptx) extraction passes (shells/web/src/views/pptx-import.ts).
+ * Unpack - the PowerPoint (.pptx) extraction passes (shells/web/src/views/pptx-import.ts).
  * The passes are pure functions over the engine's read model (PptxReadSlide/deck), so
  * these test them against synthetic decks rather than a real .pptx binary.
  */
@@ -14,7 +14,7 @@ const PNG_16x9 = Uint8Array.from([
   0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a,
   0, 0, 0, 13, 0x49, 0x48, 0x44, 0x52, 0, 0, 0, 16, 0, 0, 0, 9, 8, 6, 0, 0, 0,
 ]);
-// A NodeBox stub — the extraction passes never read geometry.
+// A NodeBox stub - the extraction passes never read geometry.
 const box = { xEmu: 0, yEmu: 0, cxEmu: 0, cyEmu: 0 };
 
 test('pptx slideText: paragraphs then table rows, in node order, weight/size read', () => {
@@ -47,7 +47,7 @@ test('pptx deckPalette: theme colours plus literal fills, deduped and lower-case
   for (const c of ['#000000', '#2453ff', '#30ba78', '#0c322c', '#e2231a']) {
     assert.ok(pal.includes(c), `expected ${c}, got ${pal.join(', ')}`);
   }
-  // #30ba78 appears in a fill AND a text fill — deduped to one entry.
+  // #30ba78 appears in a fill AND a text fill - deduped to one entry.
   assert.equal(pal.filter((c) => c === '#30ba78').length, 1);
 });
 

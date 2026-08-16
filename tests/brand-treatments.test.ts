@@ -4,11 +4,11 @@
  * and their two consumers:
  *
  *  - every derived doc must survive the runtime readers unchanged
- *    (parsePhotoTreatmentsDoc / parseIconThemesDoc — a dropped entry means a
+ *    (parsePhotoTreatmentsDoc / parseIconThemesDoc - a dropped entry means a
  *    silently thinner picker strip), and the default pairing must actually
  *    bake into a contract-following themable icon;
  *  - the committed lolly-start neutral set is derivation output, not
- *    hand-tuned data — a drift guard re-derives it from the committed starter
+ *    hand-tuned data - a drift guard re-derives it from the committed starter
  *    tokens and compares bytes (retune brand-treatments.ts ⇒ regenerate the
  *    committed docs + their index checksums);
  *  - scripts/ingest-brand.ts emits the derived docs (indexed, SRI-checksummed)

@@ -57,7 +57,7 @@ test('32-bit round-trip at an odd width, alpha preserved', () => {
 test('32-bit BI_RGB whose 4th byte is all zero decodes OPAQUE, not transparent', () => {
   // Regression: many real encoders (older GDI, Delphi/VB, scanner drivers) write the
   // officially-"unused" 4th byte of a 32-bit BI_RGB pixel as 0x00. Reading it straight
-  // as alpha would decode the whole image transparent — a blank conversion. When the
+  // as alpha would decode the whole image transparent - a blank conversion. When the
   // alpha channel is entirely zero it is padding, so the image is opaque.
   const w = 4;
   const h = 3;

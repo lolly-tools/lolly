@@ -4,8 +4,8 @@
  *
  * The compressor is never tested only against itself: every stream is decoded
  * by node:zlib (an independent, battle-tested inflater) and a representative
- * set also by the platform DecompressionStream — the exact codec that backs
- * url-pack's `z` tokens — so "our bytes are spec-valid RFC 1951/1950" is
+ * set also by the platform DecompressionStream - the exact codec that backs
+ * url-pack's `z` tokens - so "our bytes are spec-valid RFC 1951/1950" is
  * checked against two implementations we did not write. Reference values:
  * the canonical empty fixed-Huffman stream (0x03 0x00), Adler-32 of
  * "Wikipedia" = 0x11E60398 (the RFC 1950 §8 example value), and node:zlib's
@@ -58,7 +58,7 @@ function assertRoundTrip(data: Uint8Array, label: string): Uint8Array {
 
 test('deflate: empty input emits the canonical minimal fixed block (0x03 0x00)', () => {
   // BFINAL=1, BTYPE=01, then the 7-bit end-of-block code 0000000, zero-padded:
-  // LSB-first that is exactly the two bytes 0x03 0x00 — the same stream every
+  // LSB-first that is exactly the two bytes 0x03 0x00 - the same stream every
   // canonical encoder (zlib -9 raw, etc.) produces for empty input.
   const out = deflateRaw(new Uint8Array(0));
   assert.deepEqual(Array.from(out), [0x03, 0x00]);
@@ -88,7 +88,7 @@ test('zlib wrapper: valid header, adler trailer, inflateSync round-trip, corrupt
   assert.equal(out[0]! & 0x0f, 8, 'CM=8');
   assert.equal(((out[0]! << 8) | out[1]!) % 31, 0, 'FCHECK');
   assert.equal(out[1]! & 0x20, 0, 'no FDICT');
-  // inflateSync verifies the Adler-32 itself — an independent checksum check.
+  // inflateSync verifies the Adler-32 itself - an independent checksum check.
   assert.deepEqual(new Uint8Array(inflateSync(out)), data);
   const a = adler32(data);
   const o = out.length - 4;
@@ -164,7 +164,7 @@ test('deflate: compressible data spanning the 64 KB edge stays one fixed block',
 
 test('deflate: matches reach across the full 32 KB window', () => {
   // Two copies of the same 24 KB random block separated by 6 KB of noise:
-  // the second copy sits ~30 KB behind — inside the window — so it must
+  // the second copy sits ~30 KB behind - inside the window - so it must
   // compress to far less than a stored copy.
   const rng = mulberry32(0x37f00d);
   const blockA = randomBytes(rng, 24 * 1024);
@@ -251,7 +251,7 @@ test('deflate: seeded property sweep — inflate(deflate(x)) === x across shapes
 // what comes out: one LZ77 window is carried across pushes, blocks are emitted
 // as they are produced, and BFINAL is written only by finish(). Every claim
 // below is checked against node:zlib AND, for a representative set, the
-// platform DecompressionStream — never against our own inflater.
+// platform DecompressionStream - never against our own inflater.
 // ────────────────────────────────────────────────────────────────────────────
 
 /** Feed `data` through the raw stream in fixed-size slabs; concatenate output. */
@@ -436,7 +436,7 @@ test('stream: createZlibStream emits a valid RFC 1950 stream (header, adler, nod
   for (const p of parts) { out.set(p, k); k += p.length; }
   assert.equal(out[0]! & 0x0f, 8, 'CM=8');
   assert.equal(((out[0]! << 8) | out[1]!) % 31, 0, 'FCHECK');
-  // inflateSync checks the Adler-32 itself — the trailer is verified by an
+  // inflateSync checks the Adler-32 itself - the trailer is verified by an
   // implementation we did not write.
   assert.deepEqual(new Uint8Array(inflateSync(out)), data);
   const o = out.length - 4;
@@ -498,7 +498,7 @@ function abBytes(): number {
 }
 
 test('stream: peak scratch is bounded by the window, not by the input (measured)', () => {
-  // 24 MiB fed as 64 KiB slabs from ONE reused buffer — the shape png.ts uses,
+  // 24 MiB fed as 64 KiB slabs from ONE reused buffer - the shape png.ts uses,
   // and the size at which the one-shot path would allocate ~192 MiB of tokenizer
   // scratch on top of a 24 MiB input buffer.
   //
@@ -525,7 +525,7 @@ test('stream: peak scratch is bounded by the window, not by the input (measured)
   produced += z.finish().length;
   assert.ok(produced > 0 && produced < TOTAL / 50, `sanity: produced ${produced} from ${TOTAL}`);
   // Measured 2026-07-31 on this machine: peak delta 0.54 MiB for a 24 MiB input
-  // (which produced 282 KB of stream — ~1.1%, so output garbage is not the reading)
+  // (which produced 282 KB of stream - ~1.1%, so output garbage is not the reading)
   // (window 64 KiB + head 128 KiB + prev 128 KiB + tokens ~132 KiB + the 64 KiB
   // writer buffer + drained slices awaiting GC). The bound is 2 MiB: ~1/12 of
   // the INPUT and ~1/96 of the 192 MiB the one-shot tokenizer would have taken.
@@ -546,11 +546,11 @@ test('stream: the same payload one-shot costs several times the peak RSS (extern
   // call returns the delta shows only the retained output (it can even read
   // negative if a GC lands mid-call). The honest instrument is the OS's own
   // peak: run each path in its own child and read process.resourceUsage().maxRSS
-  // — monotonic, measured by the kernel, and not ours to fool.
+  // - monotonic, measured by the kernel, and not ours to fool.
   //
   // Same 64 MiB input, materialised the same way in both children, so the only
   // difference is the compressor. Measured 2026-07-31 on this machine (maxRSS,
-  // in MiB): idle node 41, one-shot 404, streamed 148 — i.e. 363 MiB of overhead
+  // in MiB): idle node 41, one-shot 404, streamed 148 - i.e. 363 MiB of overhead
   // (5.7x the input, the ~8x tokenizer scratch minus what is never touched)
   // against 107 MiB (the 64 MiB input plus V8's own growth).
   const script = join(tmpdir(), `deflate-rss-probe-${process.pid}.mjs`);
@@ -591,7 +591,7 @@ console.log(JSON.stringify({ rssKb: process.resourceUsage().maxRSS }));
 // ── the consumer this unblocks: png.ts past its old 16 MiB ceiling ──────────
 
 test('png: a filtered payload past the old 16 MiB ceiling now COMPRESSES (it used to refuse)', () => {
-  // 2048x2048 RGBA8 = 2048 * (2048*4 + 1) = 16,779,264 filtered bytes — just
+  // 2048x2048 RGBA8 = 2048 * (2048*4 + 1) = 16,779,264 filtered bytes - just
   // past the 16 MiB guard that made packPng throw (plan §9b) and past the 4 MiB
   // point where this writer switches to createZlibStream.
   const W = 2048;
@@ -627,7 +627,7 @@ test('png: a filtered payload past the old 16 MiB ceiling now COMPRESSES (it use
   assert.equal(inflated.length, filteredLen, 'inflated scanlines match the declared size');
 
   // ...and unfiltering those scanlines gives back exactly the pixels we passed
-  // in. Every sample, not a spot check — the whole point is that a streamed,
+  // in. Every sample, not a spot check - the whole point is that a streamed,
   // multi-block IDAT is lossless.
   const back = unfilterPng(inflated, W, W, 4);
   assert.ok(back, 'unfilterPng returned null');

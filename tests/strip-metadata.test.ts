@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
- * Metadata-stripping tests — lossless clean-copy byte surgery (mirrors the
+ * Metadata-stripping tests - lossless clean-copy byte surgery (mirrors the
  * strip-data tool's hook logic; see engine/src/strip-metadata.ts).
  * Run with: node --test tests/strip-metadata.test.ts
  */
@@ -51,7 +51,7 @@ test('stripMetadata(png): drops tEXt, keeps IHDR and IEND', () => {
   const chunk = (type: string, data: number[]): Uint8Array => {
     const len = data.length;
     const lenBytes = [(len >>> 24) & 0xff, (len >>> 16) & 0xff, (len >>> 8) & 0xff, len & 0xff];
-    return bytesOf(lenBytes, type, data, [0, 0, 0, 0]); // fake CRC — never validated
+    return bytesOf(lenBytes, type, data, [0, 0, 0, 0]); // fake CRC - never validated
   };
   const sig = [137, 80, 78, 71, 13, 10, 26, 10];
   const ihdr = chunk('IHDR', new Array(13).fill(0));
@@ -135,7 +135,7 @@ test('hasResidualMetadata(svg): flags editor cruft, clears the stripped copy', (
 //
 // A gain-map HDR JPEG keeps its second image past the primary's EOI, described
 // by an APP2 MPF index. Dropping every APPn but APP0 deleted the index and left
-// the second image orphaned — a file the read-side then flags as carrying
+// the second image orphaned - a file the read-side then flags as carrying
 // hidden appended data. The documented choice (see the module header) is to drop
 // the extra images WITH the index, so a stripped file is a plain SDR JPEG.
 
@@ -183,7 +183,7 @@ test('stripMetadata(jpeg): a gain-map JPEG strips to a valid single-image SDR JP
   const meta = extractFileMetadata(out);
   assert.equal(meta.appended, undefined, 'no orphan left behind for the reveal to flag');
 
-  // 4. Contrast — the UNstripped file discloses its gain map without alarm.
+  // 4. Contrast - the UNstripped file discloses its gain map without alarm.
   const before = extractFileMetadata(gainMap);
   assert.match(before.appended?.kind ?? '', /HDR gain map/);
   assert.equal(!!before.fields.find((f) => f.label === 'Appended data')?.sensitive, false);
@@ -191,7 +191,7 @@ test('stripMetadata(jpeg): a gain-map JPEG strips to a valid single-image SDR JP
 
 test('stripMetadata(jpeg): files with no MPF index are byte-for-byte unaffected by the MPF rule', () => {
   // Negative control 1: a plain JPEG with EXIF. Same output as before the change
-  // — the EXIF goes, everything else survives, and there is no truncation.
+  // - the EXIF goes, everything else survives, and there is no truncation.
   const app0 = bytesOf([0xff, 0xe0, 0x00, 0x10], 'JFIF\0', [0x01, 0x01, 0x00, 0x00, 0x01, 0x00, 0x01, 0x00, 0x00]);
   const app1 = bytesOf([0xff, 0xe1, 0x00, 0x10], 'Exif\0\0', [0, 0, 0, 0, 0, 0, 0, 0]);
   const tail = bytesOf(SOS_SEG, [0x11, 0x22, 0x33], [0xff, 0xd9]);
@@ -199,7 +199,7 @@ test('stripMetadata(jpeg): files with no MPF index are byte-for-byte unaffected 
   assert.deepEqual([...stripMetadata(plain, 'jpeg')], [...bytesOf([0xff, 0xd8], app0, tail)]);
 
   // Negative control 2: a motion photo. Its appended MP4 is NOT declared by an
-  // MPF index, and this module has never claimed to remove it — so the trailer
+  // MPF index, and this module has never claimed to remove it - so the trailer
   // must survive exactly as it did before.
   const mp4 = bytesOf([0, 0, 0, 0x18], 'ftypmp42', [0, 0, 0, 0], 'mp42isom', [1, 2, 3, 4]);
   const motion = bytesOf([0xff, 0xd8], app0, app1, tail, mp4);

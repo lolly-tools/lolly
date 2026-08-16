@@ -4,26 +4,26 @@
  * Raster thumbnail-derivative generator.
  *
  * Run as: npm run optimize:thumbnails
- *   (then: npm run build:catalog && npm run validate:catalog — same chain as optimize:assets)
+ *   (then: npm run build:catalog && npm run validate:catalog - same chain as optimize:assets)
  *
  * The landing gallery renders its featured/personalized tile previews through the real
  * engine path (renderRowToBlob → createRuntime), which resolves each example's photo
  * refs via host.assets.get. With only the full-res original on file, a single preview
- * dragged a 200–467 KB JPEG through a main-thread canvas — measured gallery LCP 8.3s.
+ * dragged a 200–467 KB JPEG through a main-thread canvas - measured gallery LCP 8.3s.
  *
  * This emits a small WebP derivative next to each raster asset (`<name>.thumb.webp`) and
  * registers it as an extra `formats[]` entry with `format: "thumb"`. The web bridge's
  * preview path (render-export.ts `withThumbAssets`) asks host.assets.get for the "thumb"
  * format; pickFormat returns it when present and falls back to the original otherwise, so
- * this is purely additive — real tool use and exports still resolve the full-res original.
+ * this is purely additive - real tool use and exports still resolve the full-res original.
  *
- * checksum/size are deliberately left blank here — `checksum-assets.ts` (run right after,
+ * checksum/size are deliberately left blank here - `checksum-assets.ts` (run right after,
  * via build:catalog) stamps them from the committed bytes, and validate-catalog.ts then
  * verifies existence + checksum. So no schema or validator changes are needed: a "thumb"
  * entry rides the existing formats[] machinery.
  *
  * BUILD-TIME ONLY. sharp (native libvips) does not run on the Vercel deploy build, so the
- * derivatives — like catalog/previews/ and catalog/og/ — are generated locally/CI and
+ * derivatives - like catalog/previews/ and catalog/og/ - are generated locally/CI and
  * COMMITTED. Deterministic: same source + params → identical bytes, so re-runs don't churn.
  */
 
@@ -74,7 +74,7 @@ async function run(): Promise<void> {
 
   for (const asset of index.assets) {
     // Strip any prior thumb entry up front so this run is the single source of truth
-    // (idempotent — a thumb we still want is re-added below with identical bytes).
+    // (idempotent - a thumb we still want is re-added below with identical bytes).
     const priorThumbs = (asset.formats ?? []).filter(f => f.format === THUMB_FORMAT);
     if (priorThumbs.length) asset.formats = asset.formats!.filter(f => f.format !== THUMB_FORMAT);
 
@@ -84,7 +84,7 @@ async function run(): Promise<void> {
     };
 
     // Only still, non-animated rasters. Animated raster (gif/apng/animated-webp) is stored
-    // VERBATIM — downscaling would flatten it to one frame — and vector/lottie/video have
+    // VERBATIM - downscaling would flatten it to one frame - and vector/lottie/video have
     // no bytes to shrink here.
     if (asset.type !== 'raster' || asset.meta?.animated) {
       for (const t of priorThumbs) cleanupOrphan(t.url);

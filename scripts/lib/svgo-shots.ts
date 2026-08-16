@@ -3,7 +3,7 @@
  * Geometry-safe svgo profile + fidelity gate for docs shots.
  *
  * Optimisation runs BEFORE credentialing (build-docs-shots.ts), so the C2PA
- * signature covers the optimised bytes — nothing is stripped after signing.
+ * signature covers the optimised bytes - nothing is stripped after signing.
  * The profile rounds to 4 decimals and approximates nothing: no structural
  * pruning (the walker's frosted-glass backdrop is a FILTERED EMPTY GROUP that
  * "empty container" cleanup would delete), no group collapsing, no transform
@@ -13,7 +13,7 @@
  *
  * The gate is the "damn sure" part: at write time the original and optimised
  * files are BOTH rasterised (resvg, the repo's own renderer class) and
- * pixel-compared. A breach keeps the original bytes and says so loudly —
+ * pixel-compared. A breach keeps the original bytes and says so loudly - 
  * optimisation can only ever be a no-op or a win, never a quality regression.
  */
 import { optimize, type Config } from 'svgo';
@@ -52,7 +52,7 @@ export const SHOT_SVGO_CONFIG = {
   ],
 } as unknown as Config;
 
-/** svgo pass over one shot. Throws on svgo failure — callers keep the original. */
+/** svgo pass over one shot. Throws on svgo failure - callers keep the original. */
 export function optimizeShotSvg(bytes: Uint8Array): Uint8Array {
   const out = optimize(new TextDecoder().decode(bytes), SHOT_SVGO_CONFIG);
   return new TextEncoder().encode(out.data);
@@ -68,7 +68,7 @@ export interface FidelityVerdict {
 /**
  * Max per-channel delta a write may carry. Calibrated 2026-08-10 against the
  * worst measured case of honest 4-decimal rounding (glyph-outline AA jitter,
- * maxΔ 21 — the worst-delta region magnified 5x is visually indistinguishable)
+ * maxΔ 21 - the worst-delta region magnified 5x is visually indistinguishable)
  * vs the structural failures the gate exists for (deleted backdrops, id
  * collisions: maxΔ 233–252 across whole elements). 32 passes the former and
  * fails the latter with a wide margin on both sides.

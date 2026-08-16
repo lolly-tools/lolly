@@ -1,38 +1,38 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
- * Vector artwork detection — finding the logos in a page full of shapes.
+ * Vector artwork detection - find the logos on a page full of shapes.
  *
  * Most logos in a PDF are not images. They are what they were in Illustrator: a
- * group of filled and stroked paths. Extracting them as SVG is the difference
- * between recovering an asset you can use at any size and recovering a blurry
- * screenshot of one — so this is the most valuable thing on the page, and also
- * the hardest to pick out, because the page is *full* of vector shapes that are
- * not artwork at all.
+ * group of filled and stroked paths. Extracting them as SVG gives an asset that
+ * scales to any size. The alternative is a blurry screenshot of the same logo.
+ * That makes vector artwork the most valuable thing on the page. It is also the
+ * hardest to pick out, because the page is full of vector shapes that are not
+ * artwork at all.
  *
- * The interpreter hands back one flat, paint-ordered list in which a logo's
+ * The interpreter returns one flat, paint-ordered list. In that list a logo's
  * petals, a table's cell borders, a hairline rule, a grey callout panel and a
  * redaction bar are structurally identical: `kind:'box'` with a `shape`, or a
  * node carrying a baked `_vectorPath`. Nothing marks which is which. This module
- * is the discriminator.
+ * tells them apart.
  *
  * ### Why grouping alone does not work
  *
- * `PdfNode.group` looks like the answer — the interpreter already resolves OCG
- * layers, form XObjects and `q…Q` frames into it. And for Illustrator-placed art
- * it usually IS the answer, because such a logo arrives as one form XObject.
+ * `PdfNode.group` looks like the answer. The interpreter already resolves OCG
+ * layers, form XObjects and `q…Q` frames into it. For Illustrator-placed art it
+ * usually is the answer, because such a logo arrives as one form XObject.
  *
- * But it is only *usually*. A generator that draws paths straight onto the page
- * with no wrapping frame produces artwork with NO group at all — verified
- * against a real generated file, where a three-path mark came back entirely
- * ungrouped. So `group` is used as a strong hint when present and never as a
- * requirement; spatial clustering catches the rest.
+ * But "usually" is not "always". A generator that draws paths straight onto the
+ * page with no wrapping frame produces artwork with no group at all. This was
+ * verified against a real generated file, where a three-path mark came back
+ * entirely ungrouped. So `group` is used as a strong hint when present, never
+ * as a requirement. Spatial clustering catches the rest.
  *
  * ### The bias
  *
- * Deliberately toward MISSING artwork rather than inventing it. A missed logo is
- * a gap the user can see and work around; a "logo" that is really the page's
- * table borders is an asset that looks extractable, downloads, and turns out to
- * be junk — which teaches the user not to trust the feature at all. Every
+ * The detector is biased toward missing artwork rather than inventing it. A
+ * missed logo is a gap the user can see and work around. A "logo" that is
+ * really the page's table borders looks extractable, downloads, and turns out
+ * to be junk. That teaches the user not to trust the feature at all. Every
  * threshold here is set to refuse when unsure.
  */
 
@@ -59,12 +59,12 @@ const MAX_CLUSTER_GAP = 48;
  * A group is a hint, not an instruction. An Illustrator OCG layer ("Layer 1")
  * routinely contains every graphic on the page, so honouring it unconditionally
  * merges a header logo with an unrelated footer mark into one useless asset.
- * Gating the rejoin on proximity keeps the case the group is genuinely useful
- * for — a symbol and its wordmark placed as one form XObject, side by side —
- * while refusing the page-spanning layer.
+ * Gating the rejoin on proximity keeps the case where the group is genuinely
+ * useful: a symbol and its wordmark placed as one form XObject, side by side.
+ * It still refuses the page-spanning layer.
  */
 const GROUP_REACH = 1.5;
-/** A mark needs at least this many shapes — one shape is a rule or a panel. */
+/** A mark needs at least this many shapes - one shape is a rule or a panel. */
 const MIN_SHAPES = 2;
 /** Thinner than this in either axis is a rule, an underline or a table border. */
 const MIN_SIDE = 8;
@@ -79,7 +79,7 @@ const MAX_CANDIDATES = 60;
 export interface ArtworkRect { x: number; y: number; w: number; h: number }
 
 export interface VectorArtwork {
-  /** Indices into the input array, in PAINT order — the order they must re-draw. */
+  /** Indices into the input array, in PAINT order - the order they must re-draw. */
   indices: number[];
   /** Bounding box in the page's top-left y-down point space. */
   rect: ArtworkRect;
@@ -87,7 +87,7 @@ export interface VectorArtwork {
   fills: string[];
   /** The interpreter's group id, when the artwork carried one. */
   group?: string;
-  /** Why this cluster was believed — shown in the UI and in test failures. */
+  /** Why this cluster was believed - shown in the UI and in test failures. */
   reason: string;
 }
 
@@ -162,13 +162,13 @@ function median(xs: number[]): number {
 /**
  * Cluster shapes into candidate marks.
  *
- * PROXIMITY decides the split; GROUP may only rejoin what proximity separated,
- * and only across a short reach. That ordering is the whole design. Doing it the
- * other way — group first, unconditionally — means one OCG layer covering the
- * page merges every graphic on it into a single candidate, which is exactly the
- * asset nobody wants. Meanwhile the case a group genuinely earns, a symbol and
- * its wordmark set as one form XObject a few points apart, is still caught,
- * because those are close by construction.
+ * PROXIMITY decides the split. GROUP may only rejoin what proximity separated,
+ * and only across a short reach. That ordering is the whole design. Doing it
+ * the other way - group first, unconditionally - means one OCG layer covering
+ * the page merges every graphic on it into a single candidate, which is
+ * exactly the asset nobody wants. The case a group genuinely earns - a symbol
+ * and its wordmark set as one form XObject a few points apart - is still
+ * caught, because those shapes are close by construction.
  */
 function cluster(items: Array<{ i: number; rect: ArtworkRect; group: string }>): Array<{ idx: number[]; rect: ArtworkRect; group: string }> {
   const parent = items.map((_, i) => i);
@@ -180,7 +180,7 @@ function cluster(items: Array<{ i: number; rect: ArtworkRect; group: string }>):
   const typical = median(items.map((it) => Math.min(it.rect.w, it.rect.h)));
   const gap = Math.min(MAX_CLUSTER_GAP, Math.max(CLUSTER_GAP, typical * GAP_FACTOR));
 
-  // 1. Proximity — the primary structure.
+  // 1. Proximity - the primary structure.
   for (let i = 0; i < items.length; i++) {
     const a = expand(items[i]!.rect, gap);
     for (let j = i + 1; j < items.length; j++) {
@@ -240,7 +240,7 @@ export interface ArtworkOptions {
 /**
  * Find the vector artwork on one page.
  *
- * `nodes` must be straight from `interpretPdfPage` — the returned `indices` are
+ * `nodes` must be straight from `interpretPdfPage` - the returned `indices` are
  * positions in THAT array, and re-drawing them in that order is what reproduces
  * the mark (paint order is the z-order).
  *
@@ -276,7 +276,7 @@ export function findVectorArtwork(nodes: PdfNode[], opts: ArtworkOptions = {}): 
     if (long / short > MAX_ASPECT) continue;                         // a bar, a banner rule
 
     // The positive test. Table borders and rules are ALL plain rectangles, so a
-    // cluster made only of those is furniture no matter how many pieces it has —
+    // cluster made only of those is furniture no matter how many pieces it has -
     // a 5x4 table is twenty perfectly aligned rectangles and would otherwise be
     // the most convincing "logo" on the page.
     const curved = members.some((n) => hasCurve(n) || n.shape === 'ellipse');
@@ -304,7 +304,7 @@ export function findVectorArtwork(nodes: PdfNode[], opts: ArtworkOptions = {}): 
     });
   }
 
-  // Biggest first — the page's main mark should lead.
+  // Biggest first - the page's main mark should lead.
   out.sort((a, b) => (b.rect.w * b.rect.h) - (a.rect.w * a.rect.h));
   return out;
 }

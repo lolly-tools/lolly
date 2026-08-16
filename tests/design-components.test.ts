@@ -2,7 +2,7 @@
 /**
  * Unit surface for the Penpot component collectors (engine/src/design-components.ts).
  *
- * Synthetic JSON only — the structures asserted here are the ones the REAL
+ * Synthetic JSON only - the structures asserted here are the ones the REAL
  * fixtures pin (`tests/penpot-kitchen-sink.test.ts` for variants + instances,
  * `tests/penpot-keynote-replay.test.ts` for the 6-definition census). This suite
  * covers the branches a single file cannot: a missing master, a stale
@@ -46,7 +46,7 @@ test('design-components: a plain component record resolves to its master subtree
     external: false, isVariantSet: false,
     variants: [{ id: 'c1', rootShapeId: 'm1', pageId: PAGE, properties: [], label: '' }],
   });
-  // A non-variant component is still a one-entry variant list — one shape for
+  // A non-variant component is still a one-entry variant list - one shape for
   // callers, so the template path never branches on variant-ness.
   assert.equal(out.components[0]!.variants[0]!.rootShapeId, out.components[0]!.rootShapeId);
 });

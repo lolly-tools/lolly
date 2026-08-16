@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
- * Contract tests for runtime.applyPatch — the atomic multi-input apply added for
+ * Contract tests for runtime.applyPatch - the atomic multi-input apply added for
  * live collaboration (plans/100 §5 + §11.11, wave 0.4).
  *
  * The decided semantics, pinned here so a later refactor can't quietly drift:
@@ -8,7 +8,7 @@
  *   - `onInput` still runs per CHANGED id, sequentially in the object's
  *     insertion order, with setInput's time-box + warn-don't-throw handling;
  *   - an unknown id (version skew between peers) and a value the constraints
- *     reject are dropped ON THEIR OWN — never the batch, never a throw mid-apply;
+ *     reject are dropped ON THEIR OWN - never the batch, never a throw mid-apply;
  *   - values are constrained by exactly setInput's path, and setInput itself is
  *     unchanged (it still paints per call).
  *
@@ -29,7 +29,7 @@ const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
 // Minimal tool double: three declared inputs of different types (so coercion is
 // observable), a template that also renders an undeclared key (`nope`) and a
-// hook-computed extra (`note`). Each tool gets a UNIQUE id — compiled hook
+// hook-computed extra (`note`). Each tool gets a UNIQUE id - compiled hook
 // factories are memoised by id@version, so a shared id would reuse another
 // test's hooks.
 let toolSeq = 0;
@@ -150,7 +150,7 @@ test('applyPatch: a hook is told the value that ACTUALLY entered the model (post
   const { host } = logHost();
   const calls = hookCalls();
   try {
-    // count is min 0 / max 10, so 99 clamps to 10 — the hook must not be handed a
+    // count is min 0 / max 10, so 99 clamps to 10 - the hook must not be handed a
     // value the model never holds (an untrusted remote value is clamped first).
     const rt = await createRuntime(
       toolDouble(`function onInput({ id, value }) { globalThis.__lollyPatchCalls.push(id + '=' + value); }`),
@@ -208,7 +208,7 @@ test('applyPatch: a hook past its budget drops only its own patch — same time-
     assert.equal(emits.n, 1, 'the timed-out hook did not cost an extra render');
     assert.equal(rt.getHydrated(), '<b>z</b><i>2</i><u>false</u><e></e><s>fast</s>',
       'both values applied; only the overrunning hook patch was dropped');
-    await sleep(80); // the abandoned hook resolves now — still discarded
+    await sleep(80); // the abandoned hook resolves now - still discarded
     assert.equal(rt.getHydrated(), '<b>z</b><i>2</i><u>false</u><e></e><s>fast</s>');
   } finally { setBudgets(); delete (globalThis as any).__lollyPatchCalls; }
 });
@@ -256,7 +256,7 @@ test('applyPatch: an invalid value drops THAT key while every valid key still ap
   } finally { delete (globalThis as any).__lollyPatchCalls; }
 });
 
-// A tool covering the types the number/text cases above don't reach — the ones a
+// A tool covering the types the number/text cases above don't reach - the ones a
 // peer can name in a patch and the ones §11.11 calls out by name.
 let typedSeq = 0;
 function typedToolDouble(): any {

@@ -14,13 +14,13 @@
  * locale page. Run after adding or moving a recipe, before `loldev shots`.
  *
  * Two passes, and the second one matters more than it looks:
- *   INSERT — a slug the locale page doesn't have yet, placed under its heading ordinal.
- *   SYNC   — a slug it already has, whose token has since CHANGED in English.
+ *   INSERT - a slug the locale page doesn't have yet, placed under its heading ordinal.
+ *   SYNC - a slug it already has, whose token has since CHANGED in English.
  * Sync exists because the recipe query is not decoration: build.ts reads `format=` off
  * the LOCALE page's own token to pick `/info/shots/<slug>.<lang>.<ext>` (build.ts:383-393).
  * So when English moves a recipe from `format=png` to `format=svg&walker=1`, a
  * skip-if-present propagate leaves 26 locales pointing at a .png that the run has just
- * retired — every translated page 404s its screenshot, and nothing in the pipeline
+ * retired - every translated page 404s its screenshot, and nothing in the pipeline
  * notices because the orphan check only reads English. Keeping the token verbatim in
  * every locale is what makes the recipe canonical in fact and not just in the comment.
  */
@@ -47,7 +47,7 @@ function anchored(md: string): Array<{ token: string; slug: string; ord: number 
   lines.forEach((line, i) => {
     for (const m of line.matchAll(RECIPE_IMG)) {
       const token = m[0];
-      // token ends with the markdown ")" — drop it before parsing, else filename= would
+      // token ends with the markdown ")" - drop it before parsing, else filename= would
       // capture "gallery)" and never match the clean slug in the idempotency have-set.
       const slug = new URLSearchParams(token.slice(token.indexOf('?') + 1, -1)).get('filename') ?? '';
       let ord = -1;
@@ -89,7 +89,7 @@ for (const f of readdirSync(DOCS).sort()) {
       const slug = new URLSearchParams(tok.slice(tok.indexOf('?') + 1, -1)).get('filename') ?? '';
       const want = canonical.get(slug);
       if (!want) return tok;
-      // Keep the locale's own translated alt text — only the recipe URL is canonical.
+      // Keep the locale's own translated alt text - only the recipe URL is canonical.
       const url = want.slice(want.indexOf('](') + 2, -1);
       const alt = tok.slice(0, tok.indexOf('](') + 2);
       const next = `${alt}${url})`;
@@ -115,7 +115,7 @@ for (const f of readdirSync(DOCS).sort()) {
       // followed by content. Without it the image and that first line become one
       // markdown paragraph: the token renders inline with the text instead of as
       // its own block. Only bites when a section opens on a non-blank line (a
-      // code span, a list item), which is why it went unnoticed — it was wrong in
+      // code span, a list item), which is why it went unnoticed - it was wrong in
       // every locale's overview.md.
       if ((lines[at] ?? '').trim() !== '') ins.push('');
       lines.splice(at, 0, ...ins);

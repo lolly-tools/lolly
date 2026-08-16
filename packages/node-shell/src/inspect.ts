@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
- * "What is actually in this file, and is it safe to share?" — one implementation, for
- * the CLI (`lolly validate --metadata`), the TUI and MCP.
+ * "What is actually in this file, and is it safe to share?" One implementation, for
+ * the CLI (`lolly validate --metadata`), the TUI, and MCP.
  *
  * Everything here is a thin, honest wrapper over engine primitives that are already
  * DOM-free and already tested:
@@ -10,21 +10,21 @@
  *                            an AI source-type declaration, bytes appended past the
  *                            container's end)
  *   hasResidualMetadata      whether a strip pass would actually find something to
- *                            remove, i.e. is the "clean this" advice real
- *   scanPdfPages             pdf-lib → interpretPdfPage, per page (this package)
+ *                            remove, i.e. whether the "clean this" advice is real
+ *   scanPdfPages             pdf-lib to interpretPdfPage, per page (this package)
  *   extractPageText/joinPageText   the text a recipient can copy back out
- *   findHiddenTextInPages    text present in the file but NOT visible on the page
+ *   findHiddenTextInPages    text present in the file but not visible on the page
  *   verifyC2pa + resolveVerdict     Content Credentials, when the caller asks for them
  *
  * ### The honesty rules this module is built around
  *
  * 1. **Absence of a finding is never proof of absence.** Every report carries that
- *    sentence, and `limits` enumerates what was not examined (page caps, format limits,
+ *    sentence, and `limits` lists what was not examined (page caps, format limits,
  *    the passes that need a browser). A clean report means "these checks found nothing",
  *    which is a much smaller claim than "this file is clean".
  * 2. **No invisible-watermark claim of any kind.** This module does not detect SynthID,
  *    and it says so. It reads DECLARED AI provenance (the IPTC DigitalSourceType tag a
- *    generator writes in plain metadata) and nothing more; that tag is trivially removed,
+ *    generator writes in plain metadata) and nothing more. That tag is trivially removed,
  *    so its presence is a genuine declaration and its absence proves nothing. The neural
  *    pixel-watermark decoders (TrustMark / Content Seal / Lolly's own durable mark) live
  *    behind `lolly validate --deep`, need a browser, and are not run here.
@@ -56,7 +56,7 @@ export interface CredentialSection {
   trusted: boolean;
   /** CA-verified identity, when there is one. */
   identity: C2paVerdict['identity'];
-  /** The raw verifier report, unchanged — codes mirror c2patool. */
+  /** The raw verifier report, unchanged. Codes mirror c2patool. */
   report: unknown;
 }
 
@@ -75,7 +75,7 @@ export interface MetadataSection {
   /**
    * What a strip pass would still find to remove, as a short human phrase, or null when
    * this module can verify there is nothing of the kind left. `null` for formats the
-   * stripper does not handle — read `strippable` first.
+   * stripper does not handle; read `strippable` first.
    */
   residual: string | null;
   /** Whether a clean copy can be produced at all for this container. */
@@ -143,7 +143,7 @@ export interface InspectOptions {
    * Reporting floor for the hidden-text pass, 0–1. Unset means the engine's own default
    * (0.7 today), which is what every caller should use unless it has a reason.
    *
-   * Worth knowing when tuning it: the engine measures coverage against a text node's
+   * To know when tuning it: the engine measures coverage against a text node's
    * BOX, and `interpretPdfPage` gives a single line of 12pt text a 24pt-tall box
    * (fontSize x lineHeight). A redaction bar drawn tightly around the glyphs therefore
    * covers ~0.6 of that box and falls under the default floor. See the "a bar that
@@ -286,15 +286,15 @@ export async function inspectBytes(bytes: Uint8Array, options: InspectOptions = 
         out.limits.push(`Only ${scan.pages.length} of ${scan.pageCount} pages were examined (page cap ${maxPages}). Nothing is claimed about the rest.`);
       }
 
-      // The killer pass: text under an opaque shape painted after it.
-      // Skipped entirely when no page could be read — `hiddenText: null` means "this
+      // The key pass: text under an opaque shape painted after it.
+      // Skipped entirely when no page could be read. `hiddenText: null` means "this
       // was not established", and printing "nothing hidden found (0 pages scanned)"
       // would be a reassurance nobody earned.
-      // The same argument covers a page that READ fine but yielded no text at all. A
+      // The same argument covers a page that read fine but yielded no text at all. A
       // Lolly vector export outlines its text to paths by default, so "No text found
       // hidden under opaque shapes (1 page scanned)" was printed for documents from
-      // which not a single character was extracted — a reassurance nobody earned, on
-      // the common case rather than an edge case.
+      // which not a single character was extracted. That is a reassurance nobody earned,
+      // on the common case rather than an edge case.
       const textChars = scan.pages.reduce(
         (n, p) => n + p.nodes.reduce((m, node) => m + (node.kind === 'text' ? (node.text ?? '').length : 0), 0),
         0,
@@ -359,8 +359,8 @@ function sniffSafe(bytes: Uint8Array): string | null {
 }
 
 /**
- * `hasResidualMetadata` answers "would a strip pass still find this?" — asked of the
- * ORIGINAL bytes it answers "is there anything here worth stripping?", which is the
+ * `hasResidualMetadata` answers "would a strip pass still find this?" Asked of the
+ * original bytes, it answers "is there anything here worth stripping?", which is the
  * question an inspection report needs. It only knows jpeg/png/svg; PDF metadata is
  * covered by the Info/XMP facts in the PDF section instead.
  */

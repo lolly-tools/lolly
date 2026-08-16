@@ -1,12 +1,12 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
- * Sidebar glyphs (SIDEBAR_ICON in docs/build.ts) — and the footer sitemap, which
+ * Sidebar glyphs (SIDEBAR_ICON in docs/build.ts) - and the footer sitemap, which
  * renders the SAME mapping so a destination wears one landmark everywhere.
  *
  * These are an accessibility feature, not decoration: a column of same-length
  * link text is slow to scan, and a stable picture per destination gives a second,
  * non-verbal way to find a page. That only works if the mapping is COMPLETE and
- * STABLE — one missing entry is a blank where a landmark should be, and docIcon()
+ * STABLE - one missing entry is a blank where a landmark should be, and docIcon()
  * answers an unknown key with a console warning and an empty string, which is
  * invisible in a build log nobody reads.
  *
@@ -25,9 +25,9 @@ const sidebarSlugs = [...new Set(
 )];
 
 // Comment lines are dropped BEFORE matching: the map is grouped by section with
-// `// Trust — …` headers, and an entry sitting directly under one is not preceded
+// `// Trust - …` headers, and an entry sitting directly under one is not preceded
 // by a `{` or `,`. Anchoring on those separators silently skipped the first entry
-// of every group — nine real pages read as "no icon" on the first run of this test.
+// of every group - nine real pages read as "no icon" on the first run of this test.
 const iconBlock = sliceDeclaration(BUILD_TS, 'SIDEBAR_ICON')
   .split('\n').filter((l) => !l.trim().startsWith('//')).join('\n');
 const iconMap = new Map(
@@ -35,7 +35,7 @@ const iconMap = new Map(
     .map((m) => [m[1]!, m[2]!] as const),
 );
 
-/** Keys DOC_ICONS holds — literal entries plus the `DOC_ICONS.x = …` aliases. */
+/** Keys DOC_ICONS holds - literal entries plus the `DOC_ICONS.x = …` aliases. */
 const iconKeys = new Set([
   ...[...sliceDeclaration(BUILD_TS, 'DOC_ICONS').matchAll(/^\s{2}'?([a-zA-Z-]+)'?:/gm)].map((m) => m[1]!),
   ...[...BUILD_TS.matchAll(/^DOC_ICONS\.([a-zA-Z-]+)\s*=/gm)].map((m) => m[1]!),
@@ -45,7 +45,7 @@ const iconKeys = new Set([
  * The footer sitemap's destinations: every row slug in FOOTER_SECTIONS plus the
  * pathway hubs the column headings link to (PATHWAY_HUB). footerSitemap() renders
  * SIDEBAR_ICON for each of these, so a slug missing from the mapping is the same
- * failure the sidebar tests guard against — a blank where a landmark goes.
+ * failure the sidebar tests guard against - a blank where a landmark goes.
  */
 const footerSlugs = [...new Set([
   ...[...sliceDeclaration(BUILD_TS, 'FOOTER_SECTIONS').matchAll(/slugs:\s*\[([^\]]*)\]/g)]
@@ -67,7 +67,7 @@ test('every sidebar entry has an icon', () => {
 
 test('every icon name resolves to a real glyph', () => {
   // docIcon warns and returns '' for an unknown key, so a typo degrades to a gap
-  // rather than an error — this is the check that makes it loud.
+  // rather than an error - this is the check that makes it loud.
   const unknown = [...iconMap].filter(([, icon]) => !iconKeys.has(icon)).map(([slug, icon]) => `${slug} → ${icon}`);
   assert.deepEqual(unknown, [], 'unknown DOC_ICONS key — docIcon would emit nothing');
 });
@@ -81,7 +81,7 @@ test('every footer sitemap destination has an icon', () => {
 
 test('the footer renders SIDEBAR_ICON itself, not a second mapping', () => {
   // ONE data source. The footer link's glyph must be a lookup into the sidebar's
-  // own table — a copied table drifts the first time one of them is edited — and
+  // own table - a copied table drifts the first time one of them is edited - and
   // it must be decorative: the label is the link, the icon is aria-hidden.
   const start = BUILD_TS.indexOf('function footerSitemap(');
   assert.ok(start >= 0, 'docs/build.ts no longer declares footerSitemap()');

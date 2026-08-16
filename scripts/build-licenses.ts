@@ -17,15 +17,15 @@
  *
  * Design notes:
  *   - Self-contained on purpose (mirrors scripts/build-sbom.ts). No network, no
- *     new dependency. License TEXT is read straight from node_modules — each
- *     component's LICENSE file, verbatim — so this file cannot disagree with
+ *     new dependency. License TEXT is read straight from node_modules - each
+ *     component's LICENSE file, verbatim - so this file cannot disagree with
  *     what npm actually installed.
  *   - VERSIONS come from package-lock.json, not from the installed tree (same
  *     source of truth as build-sbom.ts). CI regenerates this file after a clean
  *     `npm ci` and fails on any diff, so a version read from a working copy's
  *     node_modules turns "my install is a few days stale" into a red drift gate
  *     for whoever regenerates next. The lock is committed; node_modules is not.
- *     Only the version moves — text and SPDX still come from the install, which
+ *     Only the version moves - text and SPDX still come from the install, which
  *     is what keeps the notice honest about the bytes we ship.
  *   - The non-npm half (vendored d3 / topojson, the Lucide icons, the upstream
  *     HarfBuzz WASM, the SUSE OFL fonts, and the bundled map data) cannot be
@@ -34,7 +34,7 @@
  *   - DETERMINISTIC + idempotent: ordering is fixed by the arrays below and no
  *     timestamp is emitted, so re-running with an unchanged dependency set
  *     produces byte-identical files (an empty `git diff` is the drift signal).
- *   - NOT wired into the app build. This is a manual refresh tool — run it after
+ *   - NOT wired into the app build. This is a manual refresh tool - run it after
  *     changing a distributed dependency, then commit the regenerated files.
  */
 
@@ -90,8 +90,8 @@ function lockedVersion(pkg: string): string | undefined {
 
 // ─── LGPL-3.0 dynamic-loading note ───────────────────────────────────────────
 // Two web components are LGPL-3.0. Both are loaded exclusively via dynamic
-// `import()` as self-contained modules — never statically linked into Lolly's
-// own code — so a user can swap in a modified copy of the library. The note is
+// `import()` as self-contained modules - never statically linked into Lolly's
+// own code - so a user can swap in a modified copy of the library. The note is
 // attached to each entry so the obligation story travels with the notice.
 function lgplDynamicNote(pkg: string, what: string): string {
   return (
@@ -155,12 +155,12 @@ license of the upstream project, https://github.com/evanw/kiwi.)`;
 // Order here is the order they appear in the output. Versions + license text
 // are read live from node_modules; only the curation/scoping is declared.
 const NPM_COMPONENTS: NpmComponent[] = [
-  // Engine runtime deps — @lolly/engine is bundled into the web app (and also
+  // Engine runtime deps - @lolly/engine is bundled into the web app (and also
   // drives the CLI). Listed under the web group; cross-referenced from the CLI.
   { pkg: 'handlebars', where: 'web' },
   { pkg: 'ajv', where: 'web' },
 
-  // shells/web direct dependencies — bundled into the PWA.
+  // shells/web direct dependencies - bundled into the PWA.
   { pkg: 'dompurify', where: 'web', elect: 'MPL-2.0' },
   { pkg: 'pdf-lib', where: 'web' },
   { pkg: 'jspdf', where: 'web' },
@@ -171,7 +171,7 @@ const NPM_COMPONENTS: NpmComponent[] = [
   { pkg: 'idb', where: 'web' },
   { pkg: 'harfbuzzjs', where: 'web' },
   // Demux + WebCodecs decode for timeline/sequence video export. Lazy-imported, so it
-  // only reaches a user who exports a timed composition — but it IS distributed.
+  // only reaches a user who exports a timed composition - but it IS distributed.
   { pkg: 'mediabunny', where: 'web', elect: 'MPL-2.0' },
 
   // Rich-text editing (Tiptap + its bundled ProseMirror). All MIT, one project.
@@ -199,14 +199,14 @@ const NPM_COMPONENTS: NpmComponent[] = [
   { pkg: 'kiwi-schema', where: 'web', fallbackText: KIWI_SCHEMA_TEXT },
 
   // On-device speech (Apache-2.0, both from the transformers.js author). Lazy-
-  // imported by the Kokoro TTS and Whisper workers — a user who never asks for
+  // imported by the Kokoro TTS and Whisper workers - a user who never asks for
   // speech never fetches them, but they ship in the PWA all the same. Declared
   // dependencies of shells/web since 2026-08-02; they were absent from this
   // list, which is what the coverage gate below exists to catch.
   { pkg: '@huggingface/transformers', where: 'web' },
   { pkg: 'phonemizer', where: 'web' },
 
-  // LGPL-3.0 components — dynamically imported, self-contained modules. Each
+  // LGPL-3.0 components - dynamically imported, self-contained modules. Each
   // carries the LGPL dynamic-loading note (see LGPL_DYNAMIC_NOTE).
   { pkg: 'heic-to', where: 'web', note: lgplDynamicNote('heic-to', 'the libheif HEIC/HEIF decoder compiled to WebAssembly') },
   { pkg: '@breezystack/lamejs', where: 'web', note: lgplDynamicNote('@breezystack/lamejs', 'the LAME MP3 encoder ported to JavaScript') },
@@ -224,7 +224,7 @@ const NPM_COMPONENTS: NpmComponent[] = [
 
 // dompurify is dual-licensed "MPL-2.0 OR Apache-2.0"; Lolly elects MPL-2.0 to
 // match the project license. We therefore do NOT dump dompurify's bundled
-// Apache text — we record the election + the MPL Exhibit A notice and point at
+// Apache text - we record the election + the MPL Exhibit A notice and point at
 // the project's own MPL-2.0 copy (repo root LICENSE).
 const DOMPURIFY_ELECTION_TEXT = `DOMPurify is dual-licensed under "MPL-2.0 OR Apache-2.0". Lolly elects to
 use it under the Mozilla Public License, Version 2.0 (MPL-2.0), to match the
@@ -309,7 +309,7 @@ FITNESS FOR A PARTICULAR PURPOSE.  THE SOFTWARE PROVIDED HEREUNDER IS
 ON AN "AS IS" BASIS, AND THE COPYRIGHT HOLDER HAS NO OBLIGATION TO
 PROVIDE MAINTENANCE, SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.`;
 
-// SUSE / SUSE Mono fonts — OFL-1.1. Full OFL text is NOT inlined here; it ships
+// SUSE / SUSE Mono fonts - OFL-1.1. Full OFL text is NOT inlined here; it ships
 // verbatim at catalog/fonts/OFL.txt (copied into the web build's /catalog/).
 const SUSE_FONTS_TEXT = `Copyright 2025 The SUSE Project Authors (https://github.com/SUSE/suse-font)
 
@@ -333,7 +333,7 @@ domain (Natural Earth Terms of Use).
 ${ISC_BODY}`;
 
 // The vendored libopenmpt WASM tracker-module decoder (src/vendor/libopenmpt/). Built
-// with libopenmpt's DEFAULT internal codecs, so the whole artifact is permissive — no
+// with libopenmpt's DEFAULT internal codecs, so the whole artifact is permissive - no
 // LGPL (libmpg123/libvorbis are opt-in only, behind ALLOW_LGPL=1, which we never set).
 // See scripts/build-libopenmpt-wasm.sh and the vendor README.
 const LIBOPENMPT_TEXT = `Copyright (c) 2004-2026, OpenMPT Project Developers and Contributors
@@ -459,7 +459,7 @@ const HARFBUZZ_WASM_ENTRY: Entry = {
 // ─── Read npm component metadata + license text from node_modules ────────────
 function loadNpmComponent({ pkg, where, elect, transitiveVia, note, fallbackText }: NpmComponent): Entry {
   const dir = join(NODE_MODULES, pkg);
-  // Installed package.json — dynamic JSON, minimally typed for the fields we read.
+  // Installed package.json - dynamic JSON, minimally typed for the fields we read.
   const meta = JSON.parse(readFileSync(join(dir, 'package.json'), 'utf8')) as {
     version: string;
     license?: unknown;
@@ -587,7 +587,7 @@ for (const c of webNpm) {
 }
 
 // Coverage gate: every distributed direct dependency declared in the three
-// workspace manifests must be accounted for — a missing one exits 1 so CI blocks.
+// workspace manifests must be accounted for - a missing one exits 1 so CI blocks.
 verifyManifestCoverage();
 
 // Blocks are joined with a blank line between them; empty sections drop out.
@@ -650,7 +650,7 @@ console.log(`✓ Wrote shells/web/public/THIRD-PARTY-LICENSES.txt (web build sco
 
 // ─── Drift gate ──────────────────────────────────────────────────────────────
 // Read the declared direct dependencies of the three distributed workspaces and
-// FAIL (exit 1) if any is missing from NPM_COMPONENTS — a new shipped dep must
+// FAIL (exit 1) if any is missing from NPM_COMPONENTS - a new shipped dep must
 // not land without its notice. CI runs this via `npm run build:licenses`.
 function verifyManifestCoverage(): void {
   const declared = new Set<string>();

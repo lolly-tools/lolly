@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
- * HDR raster export — engine/src/hdr.ts (PQ pixel transform + brand-colour boost)
+ * HDR raster export - engine/src/hdr.ts (PQ pixel transform + brand-colour boost)
  * and engine/src/color.ts#pqBt2020IccProfile (the Rec.2100-PQ ICC profile whose
  * cicp tag is the HDR signal). Pure math, so this suite verifies it end to end;
  * whether the result actually *glows* is a display-dependent property that needs

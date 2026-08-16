@@ -8,15 +8,15 @@
  * Computes an SRI-format SHA-256 (`sha256-<base64>`) for every asset format file
  * referenced in `catalog/assets/index.json`, and writes it (plus the real byte
  * size) back into the index. This is the integrity guarantee promised in
- * docs/authoring-assets.md — without it the `checksum` fields are placeholders.
+ * docs/authoring-assets.md - without it the `checksum` fields are placeholders.
  *
  * This runs at BUILD time only. There is deliberately no runtime verification on
- * the asset-fetch path (it would hash every asset on every load — a runtime cost
+ * the asset-fetch path (it would hash every asset on every load - a runtime cost
  * for no offline-PWA benefit). CI runs `validate-catalog.js`, which recomputes
  * and compares, so a stale checksum fails the build rather than a user's device.
  *
  * It also labels each raster format file with its `depth` (bits per channel),
- * sniffed from the container header — see `depthForFormat` below and
+ * sniffed from the container header - see `depthForFormat` below and
  * plans/61-deeprichpixels.md §10 item 6. Depth follows provenance: the label is a
  * SNIFF of the shipped bytes, never an assertion, and absent always means
  * "unknown", never "8".
@@ -29,7 +29,7 @@ import { fileURLToPath, pathToFileURL } from 'node:url';
 // The ingest path's bounded bit-depth header sniff, reused verbatim so a catalog
 // label and a user upload can never disagree about the same bytes. The module is
 // DOM-free at import time (its DOM work lives inside sampleImageFile), and
-// scripts already import across this boundary — validate-catalog.ts pulls in
+// scripts already import across this boundary - validate-catalog.ts pulls in
 // shells/web/src/palette.ts, tests/fuzz/targets.ts fuzzes this very function.
 import { depthHint } from '../shells/web/src/lib/image-sample.ts';
 
@@ -52,7 +52,7 @@ interface Asset {
   locales?: Record<string, AssetFormat[]>;
 }
 
-/** Shape of catalog/assets/index.json (only the fields this script touches). */
+/** Structure of catalog/assets/index.json (only the fields this script touches). */
 interface AssetIndex {
   assets: Asset[];
 }
@@ -76,7 +76,7 @@ export function sriForFile(absPath: string): { checksum: string; size: number; b
  * cheaply and honestly.
  *
  * The gate is deliberately narrow, because the governing principle of
- * plans/61-deeprichpixels.md is "never emit bits the pipeline did not produce" —
+ * plans/61-deeprichpixels.md is "never emit bits the pipeline did not produce" - 
  * and a label is an emission too:
  *   - only `type: 'raster'` assets are asked at all (an SVG has no channels; a
  *     video/lottie/font/palette depth would be a category error),
@@ -87,7 +87,7 @@ export function sriForFile(absPath: string): { checksum: string; size: number; b
  *
  * The single source of truth for the parsing is the ingest sniff (`depthHint`),
  * so a catalog label and the upload-time label of the same bytes agree by
- * construction. Shared with validate-catalog.ts, which re-sniffs and compares —
+ * construction. Shared with validate-catalog.ts, which re-sniffs and compares - 
  * that is the drift guard, and it only works because both call THIS function.
  */
 export async function depthForFormat(assetType: string | undefined, bytes: Uint8Array): Promise<number | null> {
@@ -134,6 +134,6 @@ async function run(): Promise<void> {
 
 // Only rewrite the index when run directly (`node scripts/checksum-assets.ts`).
 // validate-catalog.ts imports `depthForFormat` from this module to share the one
-// sniff, and must NOT trigger a write as a side effect of the import — the same
+// sniff, and must NOT trigger a write as a side effect of the import - the same
 // pattern build-catalog-index.ts uses for `entryFromManifest`.
 if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) await run();

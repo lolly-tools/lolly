@@ -1,20 +1,20 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
- * Design — gradient-fill contract tests.
+ * Design - gradient-fill contract tests.
  *
- * Run with: npm test  (node --test over the tests/ globs). No framework — node:test.
+ * Run with: npm test  (node --test over the tests/ globs). No framework - node:test.
  *
  * Drives the REAL tool through the engine, so these guard the actual render rather than
  * a paraphrase of it. Loaded from brands/lolly-start (parent-owned, present in every
- * checkout; brands/suse is a private submodule CI skips) — but the SAME edit ships in
+ * checkout; brands/suse is a private submodule CI skips) - but the SAME edit ships in
  * both packs, and the manifest test below asserts the wire slot that has to match.
  *
  * The two host shapes are both the point:
  *
  *   - WITH `host.color` (the engine's real makeColorApi): the box gets a
  *     `background-image` whose stops were interpolated in OKLab and baked down to plain
- *     sRGB by the engine, so an SVG/PDF export — neither of which can read
- *     `linear-gradient(in oklab, …)` — paints the same thing the browser does.
+ *     sRGB by the engine, so an SVG/PDF export - neither of which can read
+ *     `linear-gradient(in oklab, …)` - paints the same thing the browser does.
  *   - WITHOUT it (the bare baseHost): `host.color.gradientCss` is an OPTIONAL v1.68
  *     bridge method and the tool declares `engineVersion: ^1.12.0`, so an older host is
  *     legal and MUST degrade to the flat fill instead of throwing or leaking the raw
@@ -69,7 +69,7 @@ test('a `grad` text field exists and holds wire slot 52', () => {
   assert.equal(grad.type, 'text');
   assert.equal(grad.default, '');
   // Compact block URLs encode fields POSITIONALLY, so a new field can only be
-  // APPENDED — inserting one mid-array shifts every column of every link already
+  // APPENDED - inserting one mid-array shifts every column of every link already
   // shared. `grad` was the 53rd field when it landed and must stay the 53rd forever.
   assert.equal(fields.indexOf(grad), 52, 'grad moved slot (wire order is locked)');
 });
@@ -90,7 +90,7 @@ test('a gradient spec becomes a background-image with OKLab-baked sRGB stops', a
   // it, an SVG/PDF renderer's sRGB interpolation would grey out the middle.
   const stops = style.match(/#[0-9a-f]{6,8} [\d.]+%/g) ?? [];
   assert.ok(stops.length >= 3, `baked an intermediate stop (got ${stops.length}: ${stops.join(', ')})`);
-  // No interpolation-space keyword — that is the whole point of baking.
+  // No interpolation-space keyword - that is the whole point of baking.
   assert.ok(!/\bin oklab\b/.test(style), 'no `in oklab` (SVG/PDF cannot read it)');
 });
 

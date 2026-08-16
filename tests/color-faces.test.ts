@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
- * A brand colour's faces (engine/src/color-faces.ts) — the generalisation of
+ * A brand colour's faces (engine/src/color-faces.ts) - the generalisation of
  * PrintLock to every colour space and press profile.
  *
  * Two invariants carry the most weight here, and both are about data the user
@@ -8,7 +8,7 @@
  *
  *  1. An override keyed to a profile that is NOT currently mounted survives.
  *     Unplugging a profile must not delete a brand's authored build for it, and
- *     the failure mode is silent — a save after an unmount would write the loss
+ *     the failure mode is silent - a save after an unmount would write the loss
  *     to disk with nothing on screen to say so.
  *  2. `set` stays distinguishable from `auto`. A re-derive is allowed to
  *     recompute everything computed and must not touch anything chosen; collapse
@@ -78,11 +78,11 @@ test('a target that cannot be derived and was not authored is simply absent', ()
 test('drift is ΔE for colours and worst-ink for builds', () => {
   const near = faceDrift('#00b050', '#00b154');
   assert.ok(typeof near === 'number' && near > 0 && near < 0.05, `a close pair is a small ΔE (${near})`);
-  // Ink builds are compared by the largest SINGLE-ink gap, in points — what a
+  // Ink builds are compared by the largest SINGLE-ink gap, in points - what a
   // printer would actually notice, rather than a perceptual number about a
   // colour neither of the two builds is yet.
   assert.equal(faceDrift([0, 90, 100, 0], [4, 86, 100, 0]), 4);
-  // Uncomparable pairs report nothing rather than 0 — a zero reads as
+  // Uncomparable pairs report nothing rather than 0 - a zero reads as
   // "identical" and would hide the very drift this number exists to show.
   assert.equal(faceDrift('#00b050', [0, 0, 0, 0]), undefined);
   assert.equal(faceDrift('not a colour', '#000000'), undefined);
@@ -134,7 +134,7 @@ test('a hand-edited or future file loses at most the bad entry', () => {
 test('the canonical value is Lab, so print and screen meet without a display hop', () => {
   const lab = canonicalValue('oklch(62% 0.2 145)');
   assert.ok(lab && lab.startsWith('lab('), `stored as Lab: ${lab}`);
-  // And it is lossless for a colour outside sRGB — the whole reason it is not a
+  // And it is lossless for a colour outside sRGB - the whole reason it is not a
   // hex. A P3-only green must survive the round trip with its chroma intact.
   const wide = canonicalValue('oklch(70% 0.25 145)')!;
   const back = convertColor(parseColor(wide)!, 'oklch');

@@ -4,7 +4,7 @@
  * Runs svgo over the authored catalog SVG assets (catalog/assets/**\/*.svg) in place.
  *
  * These ship and load in the gallery/pickers, so minifying them cuts transfer +
- * parse cost like the previews (npm run optimize:previews). Brand-safe config —
+ * parse cost like the previews (npm run optimize:previews). Brand-safe config - 
  * MUCH more conservative than the thumbnail pass:
  *   - inlineStyles/minifyStyles OFF: the themable two-colour icons carry a
  *     byte-exact <defs><style>.c1{…}.c2{…}</style></defs> that engine/icon-theme.ts

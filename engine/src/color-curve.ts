@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
- * color-curve.ts — a serializable tonal-curve model for brand colour ramps.
+ * color-curve.ts - a serializable tonal-curve model for brand colour ramps.
  *
- * A tonal ramp is modelled as three per-channel curves — L (lightness),
- * C (chroma), H (hue) — each a list of control points over a normalised
+ * A tonal ramp is modelled as three per-channel curves - L (lightness),
+ * C (chroma), H (hue) - each a list of control points over a normalised
  * tone-step position `t` in [0, 1]. Sampling a curve to `n` steps yields `n`
  * OKLCH stops, which convert to hex through the engine's canonical
  * `oklchToHex` path.
@@ -50,7 +50,7 @@ export interface ColorCurve {
   H: ChannelCurve;
 }
 
-/** Serializable form — version-tagged so a stored curve can migrate later. */
+/** Serializable form - version-tagged so a stored curve can migrate later. */
 export interface ColorCurveJSON {
   version: 1;
   L: CurvePoint[];
@@ -91,7 +91,7 @@ const orderedPoints = (curve: ChannelCurve): CurvePoint[] =>
  * When `t` lands exactly on a control point the stored value is returned
  * unchanged (no arithmetic), which is what preserves byte-identity when a
  * default curve is sampled at the same `n` it was baked for. Control points
- * need not be pre-sorted — they are ordered defensively here.
+ * need not be pre-sorted - they are ordered defensively here.
  */
 export function evalChannel(curve: ChannelCurve, t: number): number {
   const pts = orderedPoints(curve);
@@ -142,7 +142,7 @@ export function bakeCurve(curve: ColorCurve, n = curve.L.points.length): string[
 }
 
 /**
- * Build the DEFAULT tonal curve for a brand primary — the one that reproduces
+ * Build the DEFAULT tonal curve for a brand primary - the one that reproduces
  * today's ramp byte-for-byte at the same `n`. `chromaScale` mirrors the
  * `mkRamp` chroma multiplier in brand-derive (1 = primary ramp).
  */
@@ -164,7 +164,7 @@ export function defaultColorCurve(primary: Oklch, n: number, chromaScale = 1): C
 }
 
 /**
- * Reverse an already-baked ramp (hex stops) into an editable curve — one
+ * Reverse an already-baked ramp (hex stops) into an editable curve - one
  * control point per stop, positioned evenly across [0, 1]. Unparseable stops
  * are skipped. Baking the result at the same length reproduces the input
  * (hexToOklch → oklchToHex is bit-perfect), so the round-trip is stable.

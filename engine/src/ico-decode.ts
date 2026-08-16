@@ -1,26 +1,26 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
- * Windows ICO / CUR reader — picks the LARGEST image in the directory and
+ * Windows ICO / CUR reader: picks the LARGEST image in the directory and
  * decodes it to RGBA. The import side of the icon story: the shell already
  * ENCODES `.ico` (packs a PNG or BMP per size into an ICONDIR), so this is the
- * reverse — a dropped `.ico` becomes an editable raster.
+ * reverse. A dropped `.ico` becomes an editable raster.
  *
  * Pure bytes, DOM-free, no network/filesystem. Untrusted input throughout
  * (docs/threat-model.md): every field read is bounds-checked against the buffer
  * before it is dereferenced, and every count/offset/size from the header is
- * validated against the actual byte length before it is trusted — a crafted
+ * validated against the actual byte length before it is trusted. A crafted
  * `count`, `bytesInRes`, or `imageOffset` throws rather than reading out of
  * bounds or looping.
  *
  * ─── The container (ICO/CUR spec) ────────────────────────────────────────────
- * A 6-byte ICONDIR — reserved(0), type(1=ICO, 2=CUR), image count — followed by
+ * A 6-byte ICONDIR (reserved(0), type(1=ICO, 2=CUR), image count) followed by
  * `count` 16-byte ICONDIRENTRY records. Each entry carries a width/height byte
  * (0 means 256), colour/plane fields, a `bytesInRes` size and an `imageOffset`
  * pointing at the image payload elsewhere in the file. The payload is EITHER a
  * whole PNG file (Vista+ stores large icons this way) OR a "BMP" that is really
  * a headerless DIB: a BITMAPINFOHEADER whose `height` is DOUBLED (the XOR colour
  * mask stacked on a 1-bpp AND transparency mask), NO BITMAPFILEHEADER, and NO
- * `BITMAPINFOHEADER.height`-implied file layout — pixels follow the header (and
+ * `BITMAPINFOHEADER.height`-implied file layout: pixels follow the header (and
  * any palette) directly.
  *
  * ─── PNG entries: we return the bytes, not pixels ────────────────────────────
@@ -34,10 +34,10 @@
  * ─── BMP entries: 32-bit and 24-bit DIB ──────────────────────────────────────
  * Decoded here. 32-bit BGRA is read straight (the stored alpha is honoured).
  * 24-bit BGR is opaque, then the 1-bpp AND mask (if the row stride leaves room
- * for it) punches transparency — a real icon relies on the AND mask for its
+ * for it) punches transparency. A real icon relies on the AND mask for its
  * cut-out even at 24-bit. Rows are bottom-up and padded to a 4-byte boundary,
  * per the DIB convention. Palettised (1/4/8-bpp) and 16-bit DIBs are not
- * decoded — those sizes are essentially always PNG or 32-bit today — and throw
+ * decoded (those sizes are essentially always PNG or 32-bit today) and throw
  * a clear `unsupported` rather than guessing.
  */
 
@@ -71,14 +71,14 @@ export class IcoDecodeError extends Error {
 // A directory count over this can only be a hostile or corrupt file: 16 bytes
 // per entry means even the entry table would run past any plausible icon file.
 const MAX_ENTRIES = 4096;
-// Guard the decoded pixel buffer the same way psd.ts guards its dimensions —
+// Guard the decoded pixel buffer the same way psd.ts guards its dimensions:
 // 256 is the real ICO ceiling, but PNG entries can legitimately be larger; keep
 // a generous cap so a crafted BMP header can't ask for a gigabyte allocation.
 const MAX_DIM = 8192;
 
 const PNG_MAGIC = [0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a];
 
-/** Cheap prefix check — a real ICONDIR: reserved 0, type 1 (ICO) or 2 (CUR). */
+/** Cheap prefix check: a real ICONDIR has reserved 0, type 1 (ICO) or 2 (CUR). */
 export function isIco(input: Uint8Array | ArrayBuffer): boolean {
   const b = input instanceof Uint8Array ? input : new Uint8Array(input);
   if (b.length < 6) return false;
@@ -121,10 +121,10 @@ export function decodeIco(input: Uint8Array | ArrayBuffer): IcoImage {
     const h = bytes[rec + 1]! === 0 ? 256 : bytes[rec + 1]!;
     const size = readU32(bytes, rec + 8);
     const offset = readU32(bytes, rec + 12);
-    // The image payload must lie wholly inside the file — the classic hostile
+    // The image payload must lie wholly inside the file: the classic hostile
     // field. offset+size can overflow 32 bits in a crafted file, so compare in
     // the (safe-integer) number domain, not modular u32.
-    if (size === 0) continue; // empty entry — skip, never let it win
+    if (size === 0) continue; // empty entry: skip, never let it win
     if (offset < tableEnd || offset > bytes.length || offset + size > bytes.length) {
       throw new IcoDecodeError('offset', `entry ${i} image [${offset}..${offset + size}) escapes file (len ${bytes.length})`);
     }
@@ -156,7 +156,7 @@ function isPngPayload(p: Uint8Array): boolean {
   return true;
 }
 
-/** IHDR width/height (big-endian) — the first chunk after the 8-byte signature. */
+/** IHDR width/height (big-endian): the first chunk after the 8-byte signature. */
 function pngDimensions(p: Uint8Array): { width: number; height: number } | null {
   // signature(8) + length(4) + 'IHDR'(4) + width(4) + height(4) → needs 24 bytes.
   if (p.length < 24) return null;
@@ -235,7 +235,7 @@ function decodeDib(dib: Uint8Array, dirW: number, dirH: number): IcoRgbaImage {
 
   // Pass 2: the 1-bpp AND (transparency) mask. A 32-bit icon that carries a real
   // alpha channel does not need it, and many such icons ship a bogus all-0xFF AND
-  // mask as a formality — applying it would blank every valid pixel. So honour alpha
+  // mask as a formality. Applying it would blank every valid pixel. So honour alpha
   // for 32-bit and use the AND mask ONLY for 24-bit (no alpha) or a 32-bit icon whose
   // alpha channel is entirely zero (no usable alpha, so the mask is the only cut-out).
   const useAndMask = hasAndMask && (bpp !== 32 || !sawAlpha);

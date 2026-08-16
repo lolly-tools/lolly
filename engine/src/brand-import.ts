@@ -1,28 +1,29 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
- * Brand token ingestion — container extraction for the three shapes Penpot
- * (and Tokens Studio) export the SAME token document in:
+ * Brand token ingestion. Container extraction for the three shapes Penpot
+ * (and Tokens Studio) use to export the SAME token document:
  *
- *   1. Monolithic `tokens.json` — the whole Tokens-Studio/DTCG doc in one file
+ *   1. Monolithic `tokens.json`: the whole Tokens-Studio/DTCG doc in one file
  *      (`coerceTokensDoc`).
- *   2. One-file-per-set — `$metadata.json` + `$themes.json` at the root, every
- *      other `<set name>.json` where a `/` in the set name is a real
- *      subdirectory (`Color theme/Muted` → `Color theme/Muted.json`), file
- *      content = the unwrapped set body (`assembleTokenSetFiles`).
- *   3. A `.penpot` project zip — `manifest.json` lists files, each file's token
- *      doc (shape 1) lives at `files/<id>/tokens.json` (`extractPenpotProject`).
+ *   2. One-file-per-set: `$metadata.json` plus `$themes.json` at the root, and
+ *      every other `<set name>.json`, where a `/` in the set name is a real
+ *      subdirectory (`Color theme/Muted` → `Color theme/Muted.json`). File
+ *      content is the unwrapped set body (`assembleTokenSetFiles`).
+ *   3. A `.penpot` project zip: `manifest.json` lists files, and each file's
+ *      token doc (shape 1) lives at `files/<id>/tokens.json`
+ *      (`extractPenpotProject`).
  *
  * Each helper reassembles its container back into the single document shape
- * `tokens.ts` `createTokenSet` already consumes (top-level sets + `$themes` +
- * `$metadata.tokenSetOrder`, `{dotted.path}` aliases, `$type` inheritance) —
- * this module owns *containers only*, never token semantics.
+ * `tokens.ts` `createTokenSet` already consumes (top-level sets, `$themes`,
+ * `$metadata.tokenSetOrder`, `{dotted.path}` aliases, `$type` inheritance).
+ * This module handles *containers only*, never token semantics.
  *
  * PURE and platform-agnostic like the rest of the engine: no node:fs/node:path,
- * no DOM, no network. All IO stays in the caller — `assembleTokenSetFiles`
- * takes already-parsed JSON and `extractPenpotProject` takes already-unzipped
- * path→bytes entries (fflate's `unzipSync` shape), mirroring how design-map.ts
+ * no DOM, no network. All IO stays in the caller: `assembleTokenSetFiles`
+ * takes already-parsed JSON, and `extractPenpotProject` takes already-unzipped
+ * path→bytes entries (fflate's `unzipSync` shape), the same way design-map.ts
  * takes pre-parsed design JSON. Extraction never throws on bad input; problems
- * accumulate in `warnings` and the worst case is `doc: null`.
+ * accumulate in `warnings`, and the worst case is `doc: null`.
  *
  * Deliberate v1 non-goals:
  *   - No math-expression evaluation: a Tokens-Studio value like
@@ -31,7 +32,7 @@
  *   - No plural→canonical `$type` remapping (`colors`→`color` etc.);
  *     createTokenSet consumes the doc as-is and `.colors()` only needs
  *     resolvable `color` tokens.
- *   - No zip inflation — the shell/script that has the archive inflates it.
+ *   - No zip inflation - the shell/script that has the archive inflates it.
  */
 
 import { createTokenSet, tokenSetNames } from './tokens.ts';
@@ -46,13 +47,13 @@ const isRecord = (v: unknown): v is UnknownRecord =>
 export interface TokensExtraction {
   /** Reassembled Tokens-Studio/DTCG document, or null when nothing usable was found. */
   doc: Record<string, unknown> | null;
-  /** Per-entry parse failures, set collisions, missing tokens.json, … — never fatal. */
+  /** Per-entry parse failures, set collisions, missing tokens.json, … - never fatal. */
   warnings: string[];
   /** Which container shape produced the document. */
   source: 'dtcg' | 'tokens-studio' | 'token-set-files' | 'penpot-project';
 }
 
-// Key-order-insensitive equality for "same set exported twice?" checks — JSON
+// Key-order-insensitive equality for "same set exported twice?" checks - JSON
 // from different files may serialise identical bodies with different key order,
 // and a false "differs" warning is worse than the O(n log n) sort.
 function stableStringify(v: unknown): string {
@@ -87,7 +88,7 @@ export function coerceTokensDoc(json: unknown): TokensExtraction {
  *
  * @param files POSIX relative path → already-parsed JSON (caller does the IO).
  *   `$metadata.json` / `$themes.json` (root only) become `$metadata` / `$themes`;
- *   every other `*.json` becomes the set named by its path minus `.json` —
+ *   every other `*.json` becomes the set named by its path minus `.json` -
  *   subdirectories are part of the set name (`Color theme/Muted.json` → set
  *   `Color theme/Muted`). Non-.json keys and malformed bodies are skipped with
  *   a warning. Set ordering is irrelevant here: layering order comes from
@@ -155,14 +156,15 @@ function parseEntry(entries: Record<string, Uint8Array | string>, path: string, 
  * missing/unparseable manifest is a warning, then we fall back to scanning for
  * any `files/*\/tokens.json` (sorted, for determinism).
  *
- * Merge semantics when several files carry tokens: later file wins per
- * top-level set key, with a warning when a colliding set's body actually
- * differs (key-order-insensitive compare — identical re-exports stay silent).
- * `$themes`/`$metadata` come from the FIRST doc carrying a MEANINGFUL one —
- * themes name sets by key, and first-wins keeps them pointing at the doc that
- * defined those keys first. Presence isn't usefulness: Penpot writes an empty
- * `$themes: []` alongside real sets, and an empty first block must not shadow
- * a later file's real themes. Conflicting meaningful blocks warn (dropped).
+ * Merge rule when several files carry tokens: for each top-level set key, the
+ * later file wins. Warn when a colliding set's body actually differs
+ * (key-order-insensitive compare, so identical re-exports stay silent).
+ * `$themes`/`$metadata` come from the FIRST doc that carries a MEANINGFUL one.
+ * Themes name sets by key, so first-wins keeps them pointing at the doc that
+ * defined those keys first. An empty block does not count as meaningful:
+ * Penpot writes an empty `$themes: []` alongside real sets, and an empty
+ * first block must not hide a later file's real themes. Conflicting
+ * meaningful blocks produce a warning and the later one is dropped.
  */
 export function extractPenpotProject(entries: Record<string, Uint8Array | string>): TokensExtraction {
   const warnings: string[] = [];
@@ -211,7 +213,7 @@ export function extractPenpotProject(entries: Record<string, Uint8Array | string
     }
     for (const [key, value] of Object.entries(parsed)) {
       if (key === '$themes' || key === '$metadata') {
-        // First MEANINGFUL block wins — an empty `$themes: []` / `$metadata: {}`
+        // First MEANINGFUL block wins - an empty `$themes: []` / `$metadata: {}`
         // (Penpot writes these alongside real sets) counts as absent.
         const meaningful = (v: unknown) =>
           key === '$themes' ? Array.isArray(v) && v.length > 0 : isRecord(v) && Object.keys(v).length > 0;
@@ -235,13 +237,14 @@ export function extractPenpotProject(entries: Record<string, Uint8Array | string
   return { doc, warnings, source: 'penpot-project' };
 }
 
-// ── Usage scan — a token-LESS Penpot project's paints, gradients and fonts ───
-// The dual of extractPenpotProject: when a project declares no design tokens
-// (the common case — see the ':declared design-tokens/v1 but has no tokens.json'
-// warning above), the file's actual usage is the only brand signal there is.
-// scanPenpotUsage walks every page-shape JSON and tallies every paint source so
-// a shell can PROPOSE brand roles from what the designer really used. Container
-// walking only, still: no colour theory here — role picking is shell policy.
+// ── Usage scan - a token-LESS Penpot project's paints, gradients and fonts ───
+// The counterpart to extractPenpotProject. When a project declares no design
+// tokens (the common case; see the ':declared design-tokens/v1 but has no
+// tokens.json' warning above), the file's actual usage is the only brand
+// signal available. scanPenpotUsage walks every page-shape JSON and tallies
+// every paint source, so a shell can PROPOSE brand roles from what the
+// designer really used. This is container walking only: it does no colour
+// theory; role picking is shell policy.
 
 /** One colour's tally across every paint source, #RRGGBB uppercase. */
 export interface PenpotUsageColor {
@@ -266,7 +269,7 @@ export interface PenpotUsageGradient {
   count: number;
   /**
    * Modal per-paint angle: `round(atan2(dx, -dy))` in CSS degrees computed on
-   * the RAW endpoint fractions — deliberately aspect-IGNORANT, unlike
+   * the RAW endpoint fractions - deliberately aspect-IGNORANT, unlike
    * `penpotGradientToSpec`'s pixel-space angle, because no shape box exists at
    * census level and the modal over many differently-sized shapes only means
    * something in the shared fraction space. Ties break toward the smaller
@@ -295,7 +298,7 @@ const numOr = (v: unknown, d: number): number => {
   return Number.isFinite(n) ? n : d;
 };
 // Shape/leaf keys arrive camelCase (binfile-v3), kebab, or keyworded (":key")
-// depending on the exporter — same tolerance as design-map's internal reader.
+// depending on the exporter - same tolerance as design-map's internal reader.
 const kebabOf = (k: string): string => k.replace(/[A-Z]/g, c => `-${c.toLowerCase()}`);
 function pv(o: unknown, camel: string): unknown {
   if (!isRecord(o)) return undefined;
@@ -312,13 +315,13 @@ function pv(o: unknown, camel: string): unknown {
  * and `strokeColorGradient`), distinct gradients, and font usage.
  *
  * @param entries archive path → bytes (fflate's `unzipSync` shape) or → string,
- *   exactly like `extractPenpotProject` — the caller inflates the zip.
+ *   exactly like `extractPenpotProject` - the caller inflates the zip.
  *
  * Page-shape paths come from the manifest's file ids
  * (`files/<id>/pages/<pid>/<sid>.json`); a missing/unusable manifest falls back
  * to scanning every matching path (sorted, for determinism). Colours normalise
  * through `/^#[0-9a-fA-F]{6}$/` to uppercase; anything else is dropped. HIDDEN
- * shapes are counted — the per-shape `hidden` flag is not consulted — so the
+ * shapes are counted - the per-shape `hidden` flag is not consulted - so the
  * census matches a whole-file audit rather than one render of it. Never throws
  * on bad input; unusable entries are simply skipped.
  */
@@ -332,7 +335,7 @@ function pv(o: unknown, camel: string): unknown {
  * disagree about which shapes exist.
  */
 function penpotPagePaths(entries: Record<string, Uint8Array | string>): string[] {
-  const warnings: string[] = []; // parseEntry's sink — a census has no warning channel
+  const warnings: string[] = []; // parseEntry's sink - a census has no warning channel
   const pageShapeRe = /^[^/]+\/[^/]+\.json$/;
   const manifest = parseEntry(entries, 'manifest.json', warnings);
   const manifestFiles = isRecord(manifest) && Array.isArray(manifest.files) ? manifest.files : null;
@@ -354,7 +357,7 @@ function penpotPagePaths(entries: Record<string, Uint8Array | string>): string[]
 }
 
 export function scanPenpotUsage(entries: Record<string, Uint8Array | string>): PenpotUsage {
-  const warnings: string[] = []; // parseEntry's sink — a census has no warning channel
+  const warnings: string[] = []; // parseEntry's sink - a census has no warning channel
   const pagePaths = penpotPagePaths(entries);
 
   interface Tally { fills: number; strokes: number; textRuns: number; gradientStops: number }
@@ -459,33 +462,34 @@ export function scanPenpotUsage(entries: Record<string, Uint8Array | string>): P
   return { colors: colorRows, gradients: gradientRows, fonts: [...fonts.values()] };
 }
 
-// ── Applied-token census — which DECLARED tokens the designer actually used ──
+// ── Applied-token census - which DECLARED tokens the designer actually used ──
 // The third walker over the same archive, and the one that makes a token-first
-// import possible: extractPenpotProject says WHICH tokens a file declares,
-// scanPenpotUsage says which raw colours it paints, and this says which
-// declared token is attached to which kind of attribute, how often. A shell can
-// then propose brand roles from the designer's own names ("the token they put
-// on the most fills is the surface") instead of guessing from hexes.
+// import possible. extractPenpotProject says WHICH tokens a file declares,
+// scanPenpotUsage says which raw colours it paints, and this walker says which
+// declared token is attached to which kind of attribute, and how often. A
+// shell can then propose brand roles from the designer's own names ("the
+// token they put on the most fills is the surface") instead of guessing from
+// hexes.
 //
 // Penpot writes the attachment on each shape as `appliedTokens`, a flat map of
 // shape-attribute name → token name (`{"fill": "brand.primary", "r1": "rad.md"}`
-// — dotted token paths joining straight to createTokenSet's flattened names).
+// - dotted token paths joining straight to createTokenSet's flattened names).
 // Attribute names arrive camelCase in binfile-v3; kebab and ":key" spellings
 // are accepted for the same reason scanPenpotUsage's pv() accepts them.
 
 /** One declared token's applied-attribute tally across a project's shapes. */
 export interface PenpotAppliedToken {
-  /** Token name exactly as the file wrote it — a dotted path into the doc. */
+  /** Token name exactly as the file wrote it - a dotted path into the doc. */
   name: string;
-  /** `fill` on a non-text shape — the surface/primary signal. */
+  /** `fill` on a non-text shape - the surface/primary signal. */
   fills: number;
-  /** `strokeColor` and `shadow` — the secondary colour signal. */
+  /** `strokeColor` and `shadow` - the secondary colour signal. */
   strokes: number;
-  /** `fill` on a text shape — the text-role signal. Disjoint from `fills`. */
+  /** `fill` on a text shape - the text-role signal. Disjoint from `fills`. */
   text: number;
-  /** `typography`, `fontFamily`, `fontSize`, `fontWeight`, … — the type signal. */
+  /** `typography`, `fontFamily`, `fontSize`, `fontWeight`, … - the type signal. */
   type: number;
-  /** Corner radii, padding/margin, row/column gap — the geometry signal. */
+  /** Corner radii, padding/margin, row/column gap - the geometry signal. */
   geometry: number;
   /** Sum of the five. */
   total: number;
@@ -522,7 +526,7 @@ function camelOf(k: string): string {
  * page shapes.
  *
  * @param entries archive path → bytes (fflate's `unzipSync` shape) or → string,
- *   exactly like `extractPenpotProject` and `scanPenpotUsage` — the caller
+ *   exactly like `extractPenpotProject` and `scanPenpotUsage` - the caller
  *   inflates the zip.
  *
  * Rows sort by total desc, then name asc. HIDDEN shapes are counted, the same
@@ -561,10 +565,10 @@ export function scanPenpotAppliedTokens(entries: Record<string, Uint8Array | str
 }
 
 /**
- * Cheap import-preview stats for a reassembled document — what a shell shows
+ * Cheap import-preview stats for a reassembled document - what a shell shows
  * before the user commits ("14 sets · 4 themes · 391 tokens, 120 colours").
  *
- * `sets` lists top-level non-$ keys only when the doc is LAYERED — a non-empty
+ * `sets` lists top-level non-$ keys only when the doc is LAYERED - a non-empty
  * `$themes`, or the `$metadata.tokenSetOrder` a themeless Penpot export writes
  * (`tokenSetNames`, so this mirrors createTokenSet's set detection exactly);
  * a plain DTCG doc is one implicit set → `[]`. Counts come from

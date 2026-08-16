@@ -1,17 +1,17 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
- * brand-harmony (engine/src/brand-schemes.ts) — parametric hue-rotation contract.
+ * brand-harmony (engine/src/brand-schemes.ts) - parametric hue-rotation contract.
  *
  * Covers the F-HARMONY primitives layered on top of the existing scheme accent
  * generator:
- *   (1) rotateHue — rotates OKLCH hue by exactly the given degrees (mod 360),
+ *   (1) rotateHue - rotates OKLCH hue by exactly the given degrees (mod 360),
  *       holding lightness AND chroma fixed, then emitting through the
  *       gamut-mapped `oklchToHex` (the same path generateSchemeAccents uses) so
  *       the result stays renderable without a flat channel clip or a chroma
  *       pre-clip that would mute saturated colours.
- *   (2) generateAnalogous — a TRUE parametric analogous set: N accents at an
+ *   (2) generateAnalogous - a TRUE parametric analogous set: N accents at an
  *       evenly spaced hue step, distinct from the fixed ±30° 'adjacent-3'.
- *   (3) rotateRampHue — the same fixed-L/C rotation across a whole ramp.
+ *   (3) rotateRampHue - the same fixed-L/C rotation across a whole ramp.
  *   (4) Regression pins on the shipped generateSchemeAccents outputs, so the
  *       new code cannot perturb existing scheme behaviour.
  *
@@ -35,7 +35,7 @@ import { maxChroma } from '../engine/src/gamut.ts';
 const HEX6 = /^#[0-9a-f]{6}$/i;
 const normHue = (h: number): number => ((h % 360) + 360) % 360;
 
-// The primary used across the rotation tests — a mid-blue with modest chroma, so
+// The primary used across the rotation tests - a mid-blue with modest chroma, so
 // most rotations stay well inside the sRGB gamut and chroma is preserved rather
 // than clipped (the few hues where it clips are checked against maxChroma).
 const PRIMARY = '#4f83cc';
@@ -57,7 +57,7 @@ test('rotateHue rotates H by exactly the given degrees (mod 360) at fixed L and 
 
     // Decode sanity: CSS Color 4 gamut mapping holds L and H roughly (MINDE can
     // trade a little of each for chroma, and 8-bit hex quantises hue at low C),
-    // reducing only C where the hue can't carry it — never inflating chroma.
+    // reducing only C where the hue can't carry it - never inflating chroma.
     // The exact contract is the `out === reference` pin above; these are loose.
     const o = hexToOklch(out)!;
     assert.ok(Math.abs(o.l - src.l) < 0.03, `deg ${deg}: L ~held (${o.l} vs ${src.l})`);
@@ -98,7 +98,7 @@ test('rotateHue keeps the result renderable, reducing chroma the hue cannot carr
   // Never inflated past the source chroma…
   assert.ok(o.c <= src.c + 0.006, `chroma not inflated (${o.c} vs ${src.c})`);
   // …and always within the gamut ceiling for the colour's OWN L and H (the
-  // defining property of an in-gamut result — nominal-hue maxChroma would be
+  // defining property of an in-gamut result - nominal-hue maxChroma would be
   // wrong here because MINDE mapping shifts L/H slightly).
   assert.ok(o.c <= maxChroma(o.l, o.h) + 0.01, `within its own gamut ceiling (${o.c} vs ${maxChroma(o.l, o.h)})`);
 });

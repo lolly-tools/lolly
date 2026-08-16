@@ -1,12 +1,12 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
- * epub-read.ts — READ an EPUB back to titled chapters of markdown text.
+ * epub-read.ts - READ an EPUB back to titled chapters of markdown text.
  *
  * The inverse of `epub.ts`/`writeEpub`. Where the writer packs `EpubChapter`s
  * into an OCF zip, this unpacks one and recovers the reading-order chapters as
- * clean markdown. Its purpose is BRAND BOILERPLATE INGESTION — a brand's
+ * clean markdown. Its purpose is BRAND BOILERPLATE INGESTION - a brand's
  * body-copy corpus (an .epub of approved paragraphs) becomes managed catalog
- * text a `text`/`longtext` tool input can resolve — NOT e-book round-tripping.
+ * text a `text`/`longtext` tool input can resolve - NOT e-book round-tripping.
  * So it favours clean text fidelity over layout: it recovers headings, running
  * paragraphs, bullet lists and bold/italic emphasis, and discards everything
  * else (styling, columns, imagery, page structure).
@@ -25,7 +25,7 @@
  *
  * ── XML/HTML HANDLING ────────────────────────────────────────────────────────
  * The engine ships no XML library and stays DOM-free, so this is deliberate
- * string/regex extraction, not a parser. That is sufficient — and correct — for
+ * string/regex extraction, not a parser. That is sufficient - and correct - for
  * the "recover the prose" scope: we never need the document tree, only its text
  * runs and block boundaries. A malformed part yields best-effort text rather
  * than a tree, which is exactly the failure mode we want for ingestion.
@@ -125,7 +125,7 @@ export function readEpub(bytes: Uint8Array): EpubReadDoc {
 /** Convert a `<body>` inner-HTML fragment to markdown, discarding non-text structure. */
 function htmlToMarkdown(html: string): string {
   let s = html;
-  // Drop script/style wholesale — never prose.
+  // Drop script/style wholesale - never prose.
   s = s.replace(/<(script|style)\b[\s\S]*?<\/\1>/gi, '');
   // Inline emphasis → markdown markers, BEFORE block extraction so they survive inside.
   s = s.replace(/<(strong|b)\b[^>]*>([\s\S]*?)<\/\1>/gi, (_m, _t, inner) => `**${inner}**`);
@@ -247,7 +247,7 @@ function decodeEntities(s: string): string {
     .replace(/&amp;/g, '&');
 }
 
-/** Safe `String.fromCodePoint` — an out-of-range or non-finite value yields `''`. */
+/** Safe `String.fromCodePoint` - an out-of-range or non-finite value yields `''`. */
 function fromCodePoint(cp: number): string {
   if (!Number.isFinite(cp) || cp < 0 || cp > 0x10ffff) return '';
   try {

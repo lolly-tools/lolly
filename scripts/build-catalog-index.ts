@@ -7,7 +7,7 @@
  *
  * The tool manifests (`tools/<id>/tool.json`) are the single source of truth.
  * `catalog/tools/index.json` is a denormalised registry the shell fetches at
- * boot — it must never drift from the manifests. This script regenerates it.
+ * boot - it must never drift from the manifests. This script regenerates it.
  *
  * Each index entry carries only the fields the gallery needs:
  *   id, name, description, version, status, category
@@ -39,7 +39,7 @@ const INDEX_PATH = join(ROOT, 'catalog/tools/index.json');
 // gate tools a shell can't fulfil (e.g. 'capture' in the web PWA) without
 // fetching every manifest first. `privacy` surfaces the on-device note in the
 // gallery's tool-info modal. `tags` is what makes a tool findable by the words a
-// designer actually types — "foil", "riso", "emboss" — rather than only by the
+// designer actually types - "foil", "riso", "emboss" - rather than only by the
 // handful that happen to appear in its name or description.
 const INDEX_FIELDS = ['id', 'name', 'description', 'version', 'status', 'category', 'capabilities', 'privacy', 'new', 'listed', 'tags'];
 
@@ -51,9 +51,9 @@ export function entryFromManifest(manifest: Manifest): Record<string, unknown> {
   // Output formats the tool supports (tool.json render.formats). Carried so the
   // gallery's tool-info modal can list them with no per-open manifest fetch.
   // (For render.export:false utilities this is the set of input types they
-  // accept, not download formats — the modal gates on `exportable` below.)
+  // accept, not download formats - the modal gates on `exportable` below.)
   entry.formats = Array.isArray(manifest.render?.formats) ? manifest.render.formats : [];
-  // The tool's intended output size — render.width/height in render.unit (px when
+  // The tool's intended output size - render.width/height in render.unit (px when
   // unset). Carried so the gallery can show "what you'll get" (size + format) on the
   // card and in the info modal with no per-tool manifest fetch. `unit` is included only
   // when it's a physical unit (mm/cm/in/pt); px is the default and stays implicit.
@@ -61,8 +61,8 @@ export function entryFromManifest(manifest: Manifest): Record<string, unknown> {
   if (typeof manifest.render?.height === 'number') entry.height = manifest.render.height;
   if (manifest.render?.unit && manifest.render.unit !== 'px') entry.unit = manifest.render.unit;
   // Whether the tool can be rendered to an exportable file at all. Surfaced so
-  // shells can exclude render-only / on-device utilities — which produce their
-  // output via their own exportFile flow, not the batch render path — without
+  // shells can exclude render-only / on-device utilities - which produce their
+  // output via their own exportFile flow, not the batch render path - without
   // fetching every manifest (/pro batch hides them). Mirrors isExportable() in
   // shells/web/src/pro/render-export.js and the drift check in validate-catalog.js.
   entry.exportable = manifest.render?.export !== false && (manifest.render?.formats?.length ?? 0) > 0;
@@ -72,19 +72,19 @@ export function entryFromManifest(manifest: Manifest): Record<string, unknown> {
   // and validate-catalog's drift check stay in lock-step.
   const iconPath = join(ROOT, 'tools', manifest.id, 'icon.svg');
   if (existsSync(iconPath)) entry.icon = readFileSync(iconPath, 'utf8').replace(/\s*[\r\n]+\s*/g, '').trim();
-  // Demo preview thumbnail — shown for a tool with no saved session yet, for a
+  // Demo preview thumbnail - shown for a tool with no saved session yet, for a
   // fuller gallery on a fresh install. Resolution, highest priority first:
   //   1. A committed authored override: tools/<id>/card.html (self-contained animated
-  //      HTML — shown in a sandboxed <iframe>), card.svg (vector), or card.png.
+  //      HTML - shown in a sandboxed <iframe>), card.svg (vector), or card.png.
   //   2. Otherwise a BUILD-GENERATED preview at /catalog/previews/<id>.<ext>, where
-  //      ext is svg for tools that export vector (svg in formats), else png — the same
+  //      ext is svg for tools that export vector (svg in formats), else png - the same
   //      choice captureThumbnail makes. Produced by `npm run previews`
   //      (scripts/build-previews.ts) into the git-ignored catalog/previews/ dir, so it
   //      need not be committed. The path is derived DETERMINISTICALLY here (not from
   //      disk), so regenerating previews never churns the index; the gallery falls back
   //      to a plain "open to start" tile when the file is absent (dev / not yet built).
   // Unlike the icon (inlined), the preview is a PATH served by the shell's static
-  // handler — a sizeable PNG would bloat the index every shell fetches.
+  // handler - a sizeable PNG would bloat the index every shell fetches.
   if (existsSync(join(ROOT, 'tools', manifest.id, 'card.html'))) {
     entry.preview = `/tools/${manifest.id}/card.html`;
   } else if (existsSync(join(ROOT, 'tools', manifest.id, 'card.svg'))) {
@@ -93,14 +93,14 @@ export function entryFromManifest(manifest: Manifest): Record<string, unknown> {
     entry.preview = `/tools/${manifest.id}/card.png`;
   } else {
     // Vector tools default to a crisp .svg preview; raster/HTML tools to .png. But
-    // build-previews decides svg-vs-png from RENDER crispness (isExpensiveThumbSvg —
+    // build-previews decides svg-vs-png from RENDER crispness (isExpensiveThumbSvg - 
     // blur filters / thousands of dots / huge paths rasterise to .png; everything else
-    // stays crisp .svg), NOT from export formats — so a tool whose export format is
+    // stays crisp .svg), NOT from export formats - so a tool whose export format is
     // html/pdf can still get a vector .svg preview. Honour whichever file build-previews
     // actually produced so the index NEVER points at a 404; only when neither exists yet
     // (dev / pre-generation) do we fall back to the format-based default, keeping the
     // path stable. This disk check is why build:catalog must run after regenerating
-    // previews (validate-catalog guards the drift — see scripts/validate-catalog.ts).
+    // previews (validate-catalog guards the drift - see scripts/validate-catalog.ts).
     const pv = join(ROOT, 'catalog', 'previews');
     const hasSvg = existsSync(join(pv, `${manifest.id}.svg`));
     const hasWebp = existsSync(join(pv, `${manifest.id}.webp`));
@@ -118,10 +118,10 @@ export function entryFromManifest(manifest: Manifest): Record<string, unknown> {
   // Whether any input pre-fills from the user profile (bindToProfile) AND is actually
   // visible at the tool's default input values. The gallery uses this to scope
   // profile-aware preview regeneration to tools whose DEFAULT render changes with the
-  // profile — see shells/web/src/personalize-previews.js. A bindToProfile input hidden
+  // profile - see shells/web/src/personalize-previews.js. A bindToProfile input hidden
   // behind a default-off toggle (e.g. the filter tools' firstname/lastname under a
   // lower-third `showIf: { lowerThird: true }`) does NOT change the default preview, so
-  // it must not mark the tool personalized — otherwise the gallery would needlessly
+  // it must not mark the tool personalized - otherwise the gallery would needlessly
   // re-render it and swap the committed illustrative card (tools/<id>/card.svg) for a
   // live render. Without this flag the gallery would have to fetch every manifest to
   // find out. Manifest-derived.
@@ -130,14 +130,14 @@ export function entryFromManifest(manifest: Manifest): Record<string, unknown> {
   const activeAtDefault = (input: any) =>
     !input.showIf || Object.entries(input.showIf).every(([k, v]) => defaultOf(k) === v);
   if (inputs.some((i: any) => i.bindToProfile && activeAtDefault(i))) entry.personalized = true;
-  // Featured-row curation (manifest.featured) — carried verbatim so the gallery's
+  // Featured-row curation (manifest.featured) - carried verbatim so the gallery's
   // cinematic hero row (shells/web/src/components/featured-row.ts) can pick its tiles
   // and cross-fade variants with no per-tool manifest fetch. Not in INDEX_FIELDS (it's
   // an object, so the validator's field-by-field drift check would always trip on it,
   // as with icon/preview); the object copy here is deterministic, so re-running
   // build:catalog on the same manifests is idempotent.
   if (manifest.featured && typeof manifest.featured === 'object') entry.featured = manifest.featured;
-  // Example looks (manifest.examples) — carried verbatim so the gallery tile's
+  // Example looks (manifest.examples) - carried verbatim so the gallery tile's
   // horizontally-scrollable preview strip (and the featured hero row, when the tool
   // is featured) can render + cross-fade them with no per-tool manifest fetch. Like
   // `featured` above, it's an object/array excluded from INDEX_FIELDS' scalar drift
@@ -145,7 +145,7 @@ export function entryFromManifest(manifest: Manifest): Record<string, unknown> {
   if (Array.isArray(manifest.examples)) entry.examples = manifest.examples;
   // "New from template" starting points. SOURCE OF TRUTH = per-template files at
   // tools/<id>/templates/<tid>.json ({ id, name, category?, description?, thumb?, values }).
-  // The index carries METADATA ONLY (id/name/category/description/thumb) — never the
+  // The index carries METADATA ONLY (id/name/category/description/thumb) - never the
   // heavy `values` seed, which a client fetches on demand (chooser-select and the
   // reserved `?template=<id>` launcher). This keeps the synced index lean no matter how
   // many templates land or how large a free-canvas `boxes` blob grows. The scan mirrors
@@ -162,7 +162,7 @@ export function entryFromManifest(manifest: Manifest): Record<string, unknown> {
       if (typeof t.id !== 'string' || !t.id) continue;
       if (typeof t.name !== 'string' || !t.name) continue;
       const meta: Record<string, unknown> = {};
-      // METADATA ONLY — `values` is deliberately excluded so the index stays lean.
+      // METADATA ONLY - `values` is deliberately excluded so the index stays lean.
       for (const k of ['id', 'name', 'category', 'description', 'thumb']) {
         if (t[k] !== undefined) meta[k] = t[k];
       }
@@ -173,10 +173,10 @@ export function entryFromManifest(manifest: Manifest): Record<string, unknown> {
   // Paged tools (render.paged) lay out multiple [data-pdf-page] boxes; the gallery
   // shows each page as its own preview slide instead of input-variant looks.
   if (manifest.render?.paged === true) entry.paged = true;
-  // Gallery-card translations (plans/38-localize.md §7) — folded from the SAME
+  // Gallery-card translations (plans/38-localize.md §7) - folded from the SAME
   // tools/<id>/i18n/<lang>.json sidecars engine/src/loader.ts's
   // applyManifestI18n reads at tool-load time, but only the three fields the
-  // gallery card itself shows (name/description/blurb) — the rest of a
+  // gallery card itself shows (name/description/blurb) - the rest of a
   // sidecar (input labels, etc.) is loader-only and never reaches the index.
   // A locale only gets an entry when its sidecar actually supplies one of
   // these, so the index doesn't carry empty `{}` noise for partial sidecars.

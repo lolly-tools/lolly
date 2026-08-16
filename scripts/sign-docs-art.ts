@@ -1,15 +1,15 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
- * sign-docs-art — the bank-time pipeline for `docs/mastheads/` and `docs/figures/`
+ * sign-docs-art - the bank-time pipeline for `docs/mastheads/` and `docs/figures/`
  * (plan 105 §6): LINT every artifact, then sign the ones whose bytes changed.
  *
  * WHY a gate exists at all. These artifacts are small programs, mostly written by
- * models, that `docs/build.ts` INLINES into a docs page — so they run in the page's
+ * models, that `docs/build.ts` INLINES into a docs page - so they run in the page's
  * own origin with the page's own privileges. Bank time is the only moment where
  * trust can be established once for many readers, so the lint runs here rather than
  * at build time: an artifact that fails is not published, not "published with a
  * warning". The CSP (`default-src 'self'`) is the runtime backstop against exfil,
- * but storage, dynamic code and same-origin beacons are not CSP-gated — the lint is
+ * but storage, dynamic code and same-origin beacons are not CSP-gated - the lint is
  * that line. It is a REVIEW AID, not a sandbox: human curation stays the final
  * filter (plan §10), and a denylist can always be out-thought by someone who is
  * trying. What it guarantees is that nothing gets in by accident, and that anything
@@ -20,26 +20,26 @@
  * yourself" / "Copy signed source"). The claim states three separable facts, and the
  * honesty rule is that it must never over-claim in EITHER direction:
  *
- *   claim_generator_info  — who made the CLAIM. Always Lolly (§10.2.3.2 defines this
+ *   claim_generator_info - who made the CLAIM. Always Lolly (§10.2.3.2 defines this
  *                           field as the actor that generated the claim, which is this
  *                           script, not the model that drew the art).
- *   c2pa.created          — digitalSourceType from the meta's `source`: the nature of
+ *   c2pa.created - digitalSourceType from the meta's `source`: the nature of
  *                           the asset at its inception (§18.15.2 requires one), and the
  *                           authoring tool as the step's free-text description
  *                           (§18.15.4.1) since the softwareAgent of every step is Lolly.
- *   c2pa.ai-disclosure    — §18.28: the model, its identifier, and the human-oversight
+ *   c2pa.ai-disclosure - §18.28: the model, its identifier, and the human-oversight
  *                           level. §18.28.3 is explicit that with `digitalCreation`
  *                           ("no trained model invoked") the disclosure is NOT attached,
  *                           so a meta pairing digitalCreation with a model is refused as
  *                           contradictory rather than resolved by guessing.
  *
  * Provenance is not optional: an artifact with no `<id>.meta.json` is refused. There is
- * no default source type — a default here would be the script inventing history.
+ * no default source type - a default here would be the script inventing history.
  *
  * SIGN ONLY WHAT CHANGED. Every signing run mints a fresh ephemeral key and a fresh
  * timestamp, so re-signing unchanged bytes would churn the committed bank on every
  * run (the shots-pipeline lesson). An artifact is skipped when its existing store
- * still HARD-BINDS to its current bytes — the binding, not the whole verdict, so an
+ * still HARD-BINDS to its current bytes - the binding, not the whole verdict, so an
  * expired or untrusted certificate (the designed posture for an on-device key) never
  * causes churn. Pass --force to re-sign regardless.
  *
@@ -48,7 +48,7 @@
  *   node scripts/sign-docs-art.ts --check      # lint + report, write nothing (CI)
  *   node scripts/sign-docs-art.ts --force      # re-sign everything that lints clean
  *
- * Exit code 1 on any lint/meta violation, and NOTHING is signed in that run — a bank
+ * Exit code 1 on any lint/meta violation, and NOTHING is signed in that run - a bank
  * with one bad artifact is a bank under review, not a bank with one file missing.
  */
 
@@ -81,7 +81,7 @@ export const ART_BUDGETS: Record<ArtKind, number> = { masthead: 48 * 1024, figur
 
 /** Credential window. Long, because a banked artifact is signed once and served for
  *  years: a shorter one would make every reader after month 13 see "expired" on a file
- *  that never changed. The window is not a trust signal here anyway — the key is
+ *  that never changed. The window is not a trust signal here anyway - the key is
  *  ephemeral and self-signed, which every verifier reports as untrusted by design. */
 export const ART_CREDENTIAL_DAYS = 3650;
 
@@ -95,7 +95,7 @@ export function artBanks(docsDir: string): ArtBank[] {
 }
 
 /** `.svg` → the §A.3.3 SVG embedding; `.html` → the Lolly fragment profile (§A.9
- *  armour in an HTML comment — OUR profile, spec-adjacent, labelled as such). */
+ *  armour in an HTML comment - OUR profile, spec-adjacent, labelled as such). */
 export const ART_FORMATS: Record<string, string> = { '.svg': 'svg', '.html': C2PA_FRAGMENT_PROFILE.format };
 
 // ── meta.json ─────────────────────────────────────────────────────────────────
@@ -105,10 +105,10 @@ export interface ArtMeta {
   model?: {
     name: string;
     identifier?: string;
-    /** The organisation that produced the model (e.g. "Google", "Anthropic") —
+    /** The organisation that produced the model (e.g. "Google", "Anthropic") - 
      *  model-vendor provenance. Rides in Lolly's own environment assertion. */
     vendor?: string;
-    /** Where the request was processed — the datacenter's city/state/country, as
+    /** Where the request was processed - the datacenter's city/state/country, as
      *  the vendor discloses it. `country` is the one required part; city/state are
      *  filled when known. Best-effort: many vendors won't say. */
     region?: { city?: string; state?: string; country: string };
@@ -117,14 +117,14 @@ export interface ArtMeta {
   source: 'trainedAlgorithmicMedia' | 'digitalCreation' | 'compositeWithTrainedAlgorithmicMedia';
   locale?: string;
   /** The person who directed the work (the prompter). Emitted as the C2PA human
-   *  author — a `dc:creator` in the v2 cawg.metadata assertion. Independent of
+   *  author - a `dc:creator` in the v2 cawg.metadata assertion. Independent of
    *  the model, so it is allowed even with `source: digitalCreation`. */
   author?: { name: string; email?: string; url?: string };
 }
 
 /**
- * §18.28.3's own table, transcribed. `digitalCreation` is the row that reads "No
- * trained model invoked; AI Model Disclosure assertion is not attached" — which is
+ * §18.28.3's own table, copied verbatim. `digitalCreation` is the row that reads "No
+ * trained model invoked; AI Model Disclosure assertion is not attached" - which is
  * why the meta validator refuses a model/oversight beside it instead of silently
  * dropping either the disclosure (under-claiming) or the source (over-claiming).
  */
@@ -210,7 +210,7 @@ export function validateArtMeta(raw: unknown): { meta: ArtMeta } | { problems: s
   }
   // §18.28.3: digitalCreation means no trained model was invoked, and the disclosure
   // is not attached. Naming a model beside it is a contradiction only the author can
-  // resolve — either the artifact came out of a model (say so in `source`) or it did
+  // resolve - either the artifact came out of a model (say so in `source`) or it did
   // not (drop the model). Guessing would falsify one half of the record.
   if (src === 'digitalCreation') {
     if (model !== undefined) problems.push('source "digitalCreation" declares that no trained model was invoked (§18.28.3) — remove `model`, or set source to trainedAlgorithmicMedia / compositeWithTrainedAlgorithmicMedia');
@@ -228,7 +228,7 @@ const SVG_XMLNS_C2PA = /\s+xmlns:c2pa="http:\/\/c2pa\.org\/manifest"/;
 const SVG_MANIFEST_EL = /<c2pa:manifest\b[^>]*>[A-Za-z0-9+/=\s]*<\/c2pa:manifest>/;
 
 /**
- * The artifact WITHOUT its credential — what the lint reads and what the budget
+ * The artifact WITHOUT its credential - what the lint reads and what the budget
  * measures. Exact inverse of the placers for the two shapes this bank holds, so
  * `strip(sign(x)) === x` (pinned by test): a signed artifact must lint and measure
  * identically to the source it was made from, or the budget would shrink by ~10 KB
@@ -239,14 +239,14 @@ const SVG_MANIFEST_EL = /<c2pa:manifest\b[^>]*>[A-Za-z0-9+/=\s]*<\/c2pa:manifest
  * Everything removed here is text no rule will ever see, and the earlier patterns
  * were loose in exactly the way that matters: the armour regex was line-anchored
  * at the start but LAZY ACROSS LINES to the first `-----END`, so a file could open
- * a fake armour block and hide arbitrary source — an off-origin beacon, a
- * `document.cookie` read, 200 KB of budget — between it and any later END. `--check`
+ * a fake armour block and hide arbitrary source - an off-origin beacon, a
+ * `document.cookie` read, 200 KB of budget - between it and any later END. `--check`
  * (the CI gate) then reported zero violations and left the file hostile; a real
  * signing run happened to destroy the payload only because it re-writes the file
  * from the stripped source, which is luck, not a control.
  *
  * The same looseness deleted honest content: a figure that DOCUMENTS the armour
- * format — on a docs site whose subject is C2PA — lost the paragraph between its
+ * format - on a docs site whose subject is C2PA - lost the paragraph between its
  * example line and the next END, silently, at sign time.
  *
  * So: one line, at the end, with comment syntax and a real reference (the engine's
@@ -271,22 +271,22 @@ export interface Violation { file: string; rule: string; line: number | null; me
 
 /**
  * Identifier denylist. Each token is matched on a word boundary in the artifact's
- * WHOLE text — comments included, deliberately: a comment-aware scanner is another
+ * WHOLE text - comments included, deliberately: a comment-aware scanner is another
  * parser to fool, and "this artifact must not contain the word fetch" is a rule an
  * author can satisfy by rephrasing, while "this artifact must not fetch" is a rule
  * only a sandbox can enforce.
  */
 const DENIED_IDENTIFIERS: { token: string; rule: string; why: string }[] = [
-  // Network — the exfiltration surface the CSP narrows but does not close (a
+  // Network - the exfiltration surface the CSP narrows but does not close (a
   // same-origin POST is allowed by `default-src 'self'`).
   ...['fetch', 'XMLHttpRequest', 'WebSocket', 'EventSource', 'sendBeacon', 'importScripts',
     'RTCPeerConnection', 'RTCDataChannel', 'navigator'].map((token) => ({ token, rule: 'network', why: 'artifacts are self-contained; nothing in the bank talks to the network' })),
-  // Background execution contexts — each is a second scope the reviewer would have
+  // Background execution contexts - each is a second scope the reviewer would have
   // to reason about separately, and none is needed to draw.
   ...['Worker', 'SharedWorker', 'serviceWorker', 'BroadcastChannel', 'postMessage'].map((token) => ({ token, rule: 'isolation', why: 'no second execution context or cross-frame channel' })),
-  // Storage — NOT CSP-gated. This is why the lint exists as well as the CSP.
+  // Storage - NOT CSP-gated. This is why the lint exists as well as the CSP.
   ...['localStorage', 'sessionStorage', 'indexedDB', 'openDatabase', 'caches', 'cookie'].map((token) => ({ token, rule: 'storage', why: 'art keeps no state on the reader\'s device' })),
-  // Dynamic code — an artifact that builds code at runtime cannot be reviewed by
+  // Dynamic code - an artifact that builds code at runtime cannot be reviewed by
   // reading it, which makes every other rule here unenforceable.
   ...['eval', 'Function', 'atob', 'unescape', 'execScript', 'require'].map((token) => ({ token, rule: 'dynamic-code', why: 'the artifact must be reviewable by reading it' })),
   // Device + user surfaces that a decorative or illustrative component never needs,
@@ -295,14 +295,14 @@ const DENIED_IDENTIFIERS: { token: string; rule: string; why: string }[] = [
   ...['opener', 'domain'].map((token) => ({ token, rule: 'isolation', why: 'no reach outside the artifact' })),
   // Aliases of the global object. The bracket-indexed-global pattern below names
   // the globals themselves, which is no help against `var w = document.defaultView`
-  // — one property read hands you `window` under a name no denylist can predict.
+  // - one property read hands you `window` under a name no denylist can predict.
   // Deny the doors instead of trying to track what comes through them.
   ...['defaultView', 'contentWindow', 'contentDocument'].map((token) => ({ token, rule: 'dynamic-code', why: 'a second window/document reference — name what you touch directly' })),
 ];
 
 const DENIED_PATTERNS: { rule: string; re: RegExp; message: string }[] = [
   { rule: 'dynamic-code', re: /\bimport\s*[(.]/, message: 'dynamic `import()` / `import.meta`' },
-  // Static ESM is a network load too — `<script type="module">import … from '/x.mjs'`
+  // Static ESM is a network load too - `<script type="module">import … from '/x.mjs'`
   // puts the artifact's behaviour in a file the reviewer never opens, which is the
   // same defeat of "reviewable by reading it" as a dynamic import. Anchored on a
   // quote so the English word "import" in a comment is not a refusal.
@@ -314,7 +314,7 @@ const DENIED_PATTERNS: { rule: string; re: RegExp; message: string }[] = [
   { rule: 'embedding', re: /<\s*(?:iframe|object|embed|frame|frameset|portal)\b/i, message: 'nested browsing context (iframe/object/embed/frame/portal)' },
   { rule: 'embedding', re: /\bsrcdoc\s*=/i, message: '`srcdoc` — an inline document with its own script scope' },
   // `<meta http-equiv="refresh" content="5;url=…">` navigates the reader's page
-  // with no script at all, and browsers honour it in <body> — which is where an
+  // with no script at all, and browsers honour it in <body> - which is where an
   // inlined fragment lands. The `isolation` rules below name three scripted ways
   // to do this; this is the fourth, and the only one that needs no JS.
   { rule: 'isolation', re: /<\s*meta\b[^>]*http-equiv\s*=\s*["']?\s*refresh/i, message: '`<meta http-equiv="refresh">` — the artwork navigating the page it sits on' },
@@ -328,7 +328,7 @@ const DENIED_PATTERNS: { rule: string; re: RegExp; message: string }[] = [
   { rule: 'xml', re: /<!ENTITY\b/i, message: 'XML entity declaration (entity expansion / external entity)' },
   { rule: 'external-resource', re: /@import\b/i, message: 'CSS `@import` — an artifact carries its own styles' },
   // The runtime twins of the reference-attribute rules below. `new Image().src = …`
-  // is a GET with a query string — a same-origin beacon the CSP happily allows, and
+  // is a GET with a query string - a same-origin beacon the CSP happily allows, and
   // the one exfil shape that survives every rule above. Nothing an artifact does
   // needs to point a subresource somewhere after it has loaded.
   { rule: 'external-resource', re: /\.\s*(?:src|srcset|href)\s*=(?!=)/, message: 'assigning a subresource URL at runtime — an artifact loads nothing after it is placed' },
@@ -350,7 +350,7 @@ const DOCTYPE = /<!DOCTYPE[^>]*>/gi;
 const XML_PROLOG = /<\?xml[^>]*\?>/gi;
 
 /**
- * Attributes whose value is a reference — with HTML's real attribute grammar,
+ * Attributes whose value is a reference - with HTML's real attribute grammar,
  * including UNQUOTED values.
  *
  * The quoted-only version of this rule was the single largest hole in the gate:
@@ -366,13 +366,13 @@ const XML_PROLOG = /<\?xml[^>]*\?>/gi;
  */
 const REF_ATTRS = /(?:^|[\s/])(xlink:href|href|src|srcset|data|poster|action|formaction|ping|background|cite)\s*=\s*(?:"([^"]*)"|'([^']*)'|([^\s"'=<>`]+))/gi;
 /** Elements for which a root-relative `href` really is navigation. Everything
- *  else that spells `href` — `<link>`, SVG2 `<script href>`, `<use>`, `<image>` —
+ *  else that spells `href` - `<link>`, SVG2 `<script href>`, `<use>`, `<image>` - 
  *  is a SUBRESOURCE LOAD, and the old blanket exemption waved all of them
  *  through: `<script href="/evil.js">` signed while `<script xlink:href="/evil.js">`
  *  was refused, one load with two spellings and two verdicts. */
 const HREF_IS_NAVIGATION = new Set(['a', 'area']);
 
-/** The element an attribute match belongs to — the tag name of the nearest `<`
+/** The element an attribute match belongs to - the tag name of the nearest `<`
  *  at or before it. Cheap and text-local, which is all the reference rules need:
  *  they are deciding "is this href navigation or a load", not parsing a DOM. */
 function ownerTag(text: string, at: number): string {
@@ -395,7 +395,7 @@ const CSS_MOTION_OFF = /\banimation(?:-name)?\s*:\s*(?:none|unset|initial|revert
  * Does this CSS DECLARE motion (as opposed to switching it off)? Read as
  * declarations rather than as one regex: a negative lookahead after `\s*` can
  * simply backtrack over the whitespace and match anyway, so `animation: none`
- * would read as "declares motion" — a false refusal, and false refusals are how
+ * would read as "declares motion" - a false refusal, and false refusals are how
  * a trust gate gets worked around.
  */
 function declaresMotion(css: string): boolean {
@@ -429,7 +429,7 @@ function reduceMotionBlocks(text: string): string[] {
 
 /**
  * The source with COMMENTS BLANKED, length-preserving so line numbers still hold.
- * Used only by the motion contract — see the rule for why a guard has to be code.
+ * Used only by the motion contract - see the rule for why a guard has to be code.
  * `//` is treated as a comment only when it does not follow a `:`, so the `http://`
  * in an `xmlns` declaration does not swallow the rest of its line.
  */
@@ -466,13 +466,13 @@ function decodeJsEscapes(s: string): string {
     .replace(/\\x([0-9a-f]{2})/gi, (_m, h: string) => String.fromCharCode(parseInt(h, 16)));
 }
 
-/** `'fe' + 'tch'` — the other half of the obfuscation pair. */
+/** `'fe' + 'tch'` - the other half of the obfuscation pair. */
 const joinConcats = (s: string): string => s.replace(/['"]\s*\+\s*['"]/g, '');
 
 /** `String.fromCharCode(102, 101, 116, 99, 104)` → `fetch`. The literal-argument
  *  form only: a computed one cannot be decoded here by anything short of an
  *  interpreter, which is what the module header says this gate is not. Decoding
- *  beats denying — building a string from char codes is a legitimate (if rare)
+ *  beats denying - building a string from char codes is a legitimate (if rare)
  *  thing for a drawing to do; reaching `fetch` that way is not. */
 const decodeCharCodes = (s: string): string =>
   s.replace(/\bString\s*\.\s*fromCharCode\s*\(([\s\d,]+)\)|\bString\s*\.\s*fromCodePoint\s*\(([\s\d,]+)\)/g,
@@ -487,7 +487,7 @@ const decodeCharCodes = (s: string): string =>
  * The normalized view the rules ALSO run against. Entities, JS escapes, string
  * concatenation and char-code construction are the four ways a denied token or a
  * URL hides in plain sight; decoding them costs one extra scan and closes the
- * obvious evasions. It does not close clever ones — see the module header on what
+ * obvious evasions. It does not close clever ones - see the module header on what
  * this gate is and is not.
  */
 export function normalizeForLint(text: string): string {
@@ -497,7 +497,7 @@ export function normalizeForLint(text: string): string {
 /**
  * Open tags of one element name, scanned QUOTE-AWARE (placeSvg's own discipline).
  * A plain `<svg[^>]*>` stops at the first `>` even inside an attribute value, so a
- * figure whose label reads "a > b" would be reported as having no viewBox — a false
+ * figure whose label reads "a > b" would be reported as having no viewBox - a false
  * refusal in a trust gate is how a trust gate gets worked around.
  */
 function* openTags(text: string, name: string): Generator<{ src: string; index: number }> {
@@ -517,8 +517,8 @@ function* openTags(text: string, name: string): Generator<{ src: string; index: 
 export interface LintContext { file: string; kind: ArtKind; format: string; budget: number }
 
 /**
- * Lint one artifact's SOURCE (manifest already stripped). Returns every violation —
- * never the first — because a bank entry is reviewed once, and a gate that reports
+ * Lint one artifact's SOURCE (manifest already stripped). Returns every violation - 
+ * never the first - because a bank entry is reviewed once, and a gate that reports
  * one problem per run turns curation into a guessing game.
  */
 export function lintArtSource(text: string, ctx: LintContext): Violation[] {
@@ -592,7 +592,7 @@ export function lintArtSource(text: string, ctx: LintContext): Violation[] {
       const attr = m[1]!.toLowerCase();
       const value = (m[2] ?? m[3] ?? m[4] ?? '').trim();
       if (!value || value.startsWith('#') || DATA_OK.test(value)) continue;
-      // Root-relative `href` is same-origin NAVIGATION — but only on the elements
+      // Root-relative `href` is same-origin NAVIGATION - but only on the elements
       // where href means navigation. On `<link>`, on SVG2 `<script href>`, on
       // `<use>`/`<image>`, the same attribute is a subresource load.
       const owner = ownerTag(view.text, m.index);
@@ -626,7 +626,7 @@ export function lintArtSource(text: string, ctx: LintContext): Violation[] {
   //
   // Read with comments BLANKED. Every rule above scans comments on purpose (a
   // denylist you can satisfy by rephrasing is still a denylist); a guard is the
-  // opposite kind of claim — it has to be code that runs, or one comment saying
+  // opposite kind of claim - it has to be code that runs, or one comment saying
   // "this artwork honours prefers-reduced-motion and suspends on visibilitychange"
   // satisfies both halves of the contract while the rAF loop below it never stops.
   const runs = blankComments(text);
@@ -641,7 +641,7 @@ export function lintArtSource(text: string, ctx: LintContext): Violation[] {
   if (MOTION_CSS.test(runs)) {
     // "Mentions the query somewhere" accepted an INVERTED one: a
     // `(prefers-reduced-motion: reduce)` block full of animation, plus
-    // unconditional animation outside it, passed — motion for everyone and extra
+    // unconditional animation outside it, passed - motion for everyone and extra
     // motion for the readers who asked for less. The contract (plan §6) is that
     // self-running motion sits behind `no-preference`; the equally honest shape is
     // a `reduce` block that turns it off. Those two, and nothing else.
@@ -656,7 +656,7 @@ export function lintArtSource(text: string, ctx: LintContext): Violation[] {
   }
   // A rAF loop that never stops keeps a hidden tab painting and a scrolled-past
   // masthead burning battery for the length of the page (the canvas rAF-gating
-  // lesson). One of the three signals must be present — in CODE, for the same
+  // lesson). One of the three signals must be present - in CODE, for the same
   // reason the reduced-motion guard has to be.
   if (/\brequestAnimationFrame\s*\(/.test(text) && !SELF_SUSPEND.test(runs)) {
     add('motion', null, 'a requestAnimationFrame loop with no self-suspend — gate it on `visibilitychange`/`document.hidden` or an IntersectionObserver so it stops off-screen and in a hidden tab');
@@ -720,7 +720,7 @@ export function artC2paOpts(meta: ArtMeta, ctx: ArtClaimContext): ExportC2paOpts
   const author = meta.author;
   // Model-provenance facts the §18.28 ai-disclosure assertion has no field for:
   // the vendor that produced the model, and the datacenter region the request ran
-  // in. They are Lolly-namespaced facts, not spec assertions — so they belong in
+  // in. They are Lolly-namespaced facts, not spec assertions - so they belong in
   // the environment beside `generator`, never grafted onto the spec-clean disclosure.
   const modelRegion = meta.model?.region
     ? [meta.model.region.city, meta.model.region.state, meta.model.region.country].filter(Boolean).join(', ')
@@ -779,7 +779,7 @@ export interface SignRun {
   violations: Violation[];
   /** Artifacts written this run. */
   signed: string[];
-  /** Already bound to their current bytes — untouched. */
+  /** Already bound to their current bytes - untouched. */
   skipped: string[];
   /** --check only: what a real run would have signed. */
   wouldSign: string[];
@@ -821,7 +821,7 @@ export async function signDocsArt(o: SignDocsArtOptions = {}): Promise<SignRun> 
       // The manifest comes off FIRST: the lint reads source, not base64, and the
       // budget measures what an author wrote, not what signing added.
       const source = stripArtManifest(text, format);
-      // Linted unconditionally, before anything about the meta is known — an
+      // Linted unconditionally, before anything about the meta is known - an
       // artifact with a broken sidecar still gets its full list of problems, so
       // curation is one pass rather than a sequence of one-problem-per-run rounds.
       run.violations.push(...lintArtSource(source, { file: rel, kind: bank.kind, format, budget: bank.budget }));

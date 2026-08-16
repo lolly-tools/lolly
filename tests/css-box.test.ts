@@ -138,8 +138,8 @@ test('parseBoxShadow: blur/spread optional; negative spread kept; blur clamped �
 
 test('parseBoxShadow: inset shadows are FLAGGED, not skipped', () => {
   // They used to be dropped here on the grounds that they were not vector-
-  // expressible. They are — the region between the border box and an offset,
-  // shrunken copy of it — so the parser reports them and the caller decides.
+  // expressible. They are - the region between the border box and an offset,
+  // shrunken copy of it - so the parser reports them and the caller decides.
   const one = parseBoxShadow('rgba(0,0,0,0.5) 0px 2px 4px inset');
   assert.equal(one.length, 1);
   assert.equal(one[0]!.inset, true);
@@ -213,7 +213,7 @@ test('isNonAffineTransform tells "nothing to do" apart from "cannot be drawn"', 
   // ⚑ THE AMBIGUITY THIS RESOLVES, and what it cost: `parseCssMatrix` returns null for
   // `none`, for a 2-D affine it cannot parse, AND for a real perspective matrix. Both
   // export walkers read that single null as "nothing to do" and fell through to the AABB
-  // path — which is CORRECT for `none` and a WRONG PICTURE for a perspective pose (a
+  // path - which is CORRECT for `none` and a WRONG PICTURE for a perspective pose (a
   // tilted card emitted as an axis-aligned rect stretched to fill its projected bounding
   // box, silently; plans/104 §12 Q2). This predicate is the gate that separates them.
   //
@@ -226,7 +226,7 @@ test('isNonAffineTransform tells "nothing to do" apart from "cannot be drawn"', 
   assert.equal(isNonAffineTransform('matrix3d(0.7071,0.7071,0,0, -0.7071,0.7071,0,0, 0,0,1,0, 20,40,0,1)'), false,
     'a matrix3d that FLATTENS to a 2-D affine is expressible, and stays vector');
 
-  // TILTED: a non-trivial perspective row (m14, m24, m44) — the only thing that makes a
+  // TILTED: a non-trivial perspective row (m14, m24, m44) - the only thing that makes a
   // FLAT element's painted result something no `matrix(a,b,c,d,e,f)` can reproduce.
   assert.equal(isNonAffineTransform('matrix3d(1,0,0,0.001, 0,1,0,0, 0,0,1,0, 0,0,0,1)'), true, 'm14');
   assert.equal(isNonAffineTransform('matrix3d(1,0,0,0, 0,1,0,0.001, 0,0,1,0, 0,0,0,1)'), true, 'm24');
@@ -241,7 +241,7 @@ test('isNonAffineTransform tells "nothing to do" apart from "cannot be drawn"', 
   // points are all at z = 0, so every z-coupling term (m13, m23, m31..m34, m43) drops
   // out of `(x'/w', y'/w')`. A z translation with no perspective paints exactly what its
   // 2-D part paints, and rasterising it would be a fidelity loss in the name of fixing
-  // one that was not there — on a `url-shot` of somebody else's page, `translateZ` is a
+  // one that was not there - on a `url-shot` of somebody else's page, `translateZ` is a
   // GPU-promotion hack, not a pose.
   assert.equal(isNonAffineTransform('matrix3d(1,0,0,0, 0,1,0,0, 0,0,1,0, 0,0,50,1)'), false,
     'a z translation with no perspective row is visually the identity');
@@ -299,7 +299,7 @@ test('matToSvg: compact, negative-zero normalised', () => {
 // A blur-less renderer (PDF, EMF, EPS) can still draw a Gaussian: the coverage at
 // signed distance t outside an edge is exactly Φ(-t/σ), so painting the shape at a
 // series of outsets with the right alpha INCREMENTS composites to that curve. These
-// tests check the composite, not the individual alphas — the increments are only
+// tests check the composite, not the individual alphas - the increments are only
 // meaningful once stacked.
 
 /** Composite the bands the way a renderer does: outermost first, normal blending. */
@@ -308,7 +308,7 @@ function coverageAt(bands: { outset: number; alpha: number }[], t: number): numb
   for (const b of bands) if (t <= b.outset) acc = acc + b.alpha * (1 - acc);
   return acc;
 }
-/** Φ(-t/σ) * alpha — what the blur actually produces. */
+/** Φ(-t/σ) * alpha - what the blur actually produces. */
 function trueCoverage(t: number, sigma: number, alpha: number): number {
   const erf = (x: number) => {
     const s = x < 0 ? -1 : 1, ax = Math.abs(x);
@@ -328,7 +328,7 @@ test('gaussianShadowBands: composites to the Gaussian coverage curve', () => {
     for (let t = -3 * sigma; t <= 3 * sigma; t += sigma / 20) {
       worst = Math.max(worst, Math.abs(coverageAt(bands, t) - trueCoverage(t, sigma, alpha)));
     }
-    // Under 2 steps of an 8-bit channel — below what a shadow can even express.
+    // Under 2 steps of an 8-bit channel - below what a shadow can even express.
     assert.ok(worst * 255 < 8, `blur ${blur}: worst alpha error ${(worst * 255).toFixed(1)}/255`);
   }
 });

@@ -5,7 +5,7 @@
  * The counterpart to the free-canvas editor: the web shell walks a sanitized
  * Figma/Penpot/SVG DOM into normalized `DesignNode`s (geometry in world px +
  * decoration), and this module turns those into the flat `boxes` rows the editor
- * edits — so an imported design is fully re-editable and re-exportable in every
+ * edits - so an imported design is fully re-editable and re-exportable in every
  * Lolly format.
  *
  * PURE and DOM-free: no `document`, no imports from shells/ or tools/, no
@@ -14,11 +14,11 @@
  * mapping is unit-testable and identical everywhere the engine runs.
  *
  * Field defaults mirror tools/design (its addKinds seeds + field defaults),
- * and the colour/weight guards mirror its hooks.js — the imported box looks exactly
+ * and the colour/weight guards mirror its hooks.js - the imported box looks exactly
  * like a natively-authored one. The editor's font select is a closed vocabulary, so
  * every imported font remaps onto it (monospace family names → the mono family).
  * WHICH families those are is brand data, not engine knowledge: the shell threads a
- * `DesignMapOptions` (from the target tool's manifest — its font select values and
+ * `DesignMapOptions` (from the target tool's manifest - its font select values and
  * addKinds seed colours) through `finalizeBoxes`/`nodeToBox`; the built-in defaults
  * below mirror the neutral blank-brand (brands/lolly-start) design fork.
  */
@@ -42,7 +42,7 @@ interface KindSeed {
 interface ColorRun { text: string; color?: string; }
 
 /**
- * The font vocabulary imported text maps onto — the target editor tool's font
+ * The font vocabulary imported text maps onto - the target editor tool's font
  * select wire values. Every field is optional; anything unset keeps the neutral
  * defaults (DEFAULT_FONTS below).
  */
@@ -59,7 +59,7 @@ export interface DesignMapFonts {
   knownFamilies?: string[];
 }
 
-/** Seed colours for imported boxes — the target tool's addKinds seed values. */
+/** Seed colours for imported boxes - the target tool's addKinds seed values. */
 export interface DesignMapSeedColors {
   /** `box` kind default fill (when the node has no explicit fill). */
   boxBg?: string;
@@ -79,7 +79,7 @@ export interface DesignMapOptions {
   seedColors?: DesignMapSeedColors;
 }
 
-// Neutral defaults — mirror brands/lolly-start/tools/design (the blank
+// Neutral defaults - mirror brands/lolly-start/tools/design (the blank
 // brand's font select values and addKinds seed colours), NOT any real brand's.
 const DEFAULT_FONTS: Required<Omit<DesignMapFonts, 'knownFamilies'>> = {
   defaultFamily: 'sans',
@@ -99,7 +99,7 @@ interface PenpotContentInfo {
 }
 
 /**
- * A normalized design node — the intermediate the shell produces (SVG path) or the
+ * A normalized design node - the intermediate the shell produces (SVG path) or the
  * Penpot/Figma parsers below emit, and the sole input to `nodeToBox`. Every field is
  * optional and loosely typed because it comes from parsed design-file JSON.
  */
@@ -211,7 +211,7 @@ function get(o: unknown, k: string): unknown {
 }
 
 /**
- * Colour guard — identical to tools/design/hooks.js safeColor. Only lets a
+ * Colour guard - identical to tools/design/hooks.js safeColor. Only lets a
  * value through if it's unambiguously a CSS colour (hex / rgb(a) / hsl(a) / a bare
  * name); anything else (which could smuggle a `;` into a style="" attribute) falls
  * back. Imported fills flow through here before they ever reach the editor/output.
@@ -251,7 +251,7 @@ export function decomposeMatrix(
  * Turn a local (unrotated) bounding box + its cumulative transform matrix (CTM)
  * into a top-left box rect plus a rotation about its centre. Transforms the bbox
  * CENTRE by the matrix, scales the size by |sx|/|sy|, and takes the rotation from
- * the decomposition — the common Figma/Penpot case of axis-aligned + rotation.
+ * the decomposition - the common Figma/Penpot case of axis-aligned + rotation.
  * (Skew is approximated as rotation.)
  * @param {{x:number,y:number,width:number,height:number}} bbox local bbox.
  * @param {{a:number,b:number,c:number,d:number,e:number,f:number}} m the CTM.
@@ -278,7 +278,7 @@ export function boxGeomFromBBox(
 /**
  * Snap an arbitrary font weight onto the variable font's 100-step axis.
  * Mono cuts rarely ship a Black, so the mono family is capped at its declared
- * `monoMaxWeight` (default 800) — matching tools/design/hooks.js weightOf
+ * `monoMaxWeight` (default 800) - matching tools/design/hooks.js weightOf
  * so the browser render and the static-TTF vector export agree.
  * @param {number|string} weight
  * @param {string} [font] a font-select wire value (see mapFontFamily).
@@ -296,7 +296,7 @@ export function mapWeight(weight: number | string | undefined, font?: string, fo
 /**
  * Remap any imported font family onto the editor's two-family vocabulary.
  * A family listed in `fonts.knownFamilies` (matched case-insensitively) passes
- * through verbatim with the list's canonical casing — the shell can resolve it,
+ * through verbatim with the list's canonical casing - the shell can resolve it,
  * so no bucketing is needed. Otherwise: monospace family names
  * (mono/console/courier/menlo/…code) → the mono family; everything else → the
  * default family.
@@ -327,7 +327,7 @@ export function mapAlign(a: unknown): 'left' | 'center' | 'right' {
 
 /**
  * Build a box's markdown-subset text from coloured runs. A run whose colour differs from
- * the box's default `fg` is wrapped `{#rrggbb|…}` — hooks.js richText parses that back into
+ * the box's default `fg` is wrapped `{#rrggbb|…}` - hooks.js richText parses that back into
  * a coloured <span>, and the vector export reads the run colour from computed style. `*`/`_`
  * in run text are escaped so imported literals don't accidentally italicise, and a colour
  * wrap never spans a newline (colour runs are per-line, exactly like bold/italic).
@@ -379,7 +379,7 @@ const BLENDS: Record<string, number> = {
 function has(o: unknown, k: string): boolean { return o != null && Object.hasOwn(o, k); }
 
 /**
- * Turn one normalized DesignNode into a full Design box row — every field
+ * Turn one normalized DesignNode into a full Design box row - every field
  * present and defaulted (mirroring the addKinds seeds + field defaults), with the
  * font/weight/align/colour remaps applied. `kind` drives which fields carry
  * meaning, but all fields are emitted so the row is self-describing.
@@ -425,7 +425,7 @@ export function nodeToBox(
   const lineHeight = num(n.lineHeight, seed.lineHeight != null ? seed.lineHeight : 1.12);
 
   // image ref: keep the WHOLE resolved AssetRef (id + object-URL + meta), not just the id.
-  // resolveAssetRefs only runs at createRuntime — NOT on setInput — so an id-only ref
+  // resolveAssetRefs only runs at createRuntime - NOT on setInput - so an id-only ref
   // committed by the importer would render a broken <img> (no url until a reload re-resolves
   // it). Carrying the full ref matches what the image picker (pickImage) commits. A raw
   // data-URI string has no `.id`, so it's guarded to null and can't reach the resolver.
@@ -467,12 +467,12 @@ export function nodeToBox(
     strokeW: Math.max(0, num(n.strokeW, 0) ?? 0),
     strokeDash: n.strokeDash === 'dashed' || n.strokeDash === 'dotted' ? n.strokeDash : '',
     // Authored dash/gap lengths (Penpot 2.17 PR #9765). Numbers, never strings, so
-    // the compact blocks URL form is untouched — it cannot carry a comma or a tilde.
+    // the compact blocks URL form is untouched - it cannot carry a comma or a tilde.
     // 0 keeps the editor's width-proportional synthesis, so an unauthored row is
     // byte-identical to what it produced before these fields existed.
     strokeDashLen: Math.max(0, round2(num(n.strokeDashLen, 0))),
     strokeGapLen: Math.max(0, round2(num(n.strokeGapLen, 0))),
-    // Backdrop blur (frosted glass) — CSS backdrop-filter, same 0..300 clamp and
+    // Backdrop blur (frosted glass) - CSS backdrop-filter, same 0..300 clamp and
     // 1-decimal rounding as `blur`. 0 is off, so a row without the field renders
     // byte-identically to one from before the field existed.
     bgBlur: clamp(round1(num(n.bgBlur, 0)), 0, 300),
@@ -623,8 +623,8 @@ export interface PenpotFontUsage {
 
 /**
  * Tally every font a Penpot text-content tree references. Walks the same tree as
- * parsePenpotContent, visiting EVERY style-carrying node — Penpot writes the full
- * font set on paragraphs AND leaves alike — and dedupes entries by
+ * parsePenpotContent, visiting EVERY style-carrying node - Penpot writes the full
+ * font set on paragraphs AND leaves alike - and dedupes entries by
  * `fontId|fontVariantId|fontStyle` while counting the nodes (`runs`), so one
  * font never yields two entries. The engine stays brand- and provider-free: a
  * `fontId` is returned verbatim (the shell decides what e.g. a `gfont-` prefix
@@ -671,8 +671,8 @@ export function collectPenpotFontUsage(contentJson: unknown): PenpotFontUsage[] 
 // ── Penpot binfile-v3 shape → DesignNode ─────────────────────────────────────
 // The current Penpot `.penpot` export is a ZIP of per-shape JSON (camelCase). Unlike
 // the SVG path, geometry is authoritative DATA: `selrect` is the axis-aligned,
-// pre-rotation rect and `rotation` is degrees about the centre — exactly the box
-// model — so no DOM/getBBox measurement is needed. Image fills are returned with a
+// pre-rotation rect and `rotation` is degrees about the centre - exactly the box
+// model - so no DOM/getBBox measurement is needed. Image fills are returned with a
 // `_fillImageId` marker the shell resolves to bytes (it owns the zip + asset store).
 
 interface PenpotFill {
@@ -721,16 +721,16 @@ interface PenpotShape {
 }
 
 // Cap mirrors gradient-spec.ts MAX_GRADIENT_STOPS (kept literal: design-map must
-// not import the render-side module — the spec string is the only coupling).
+// not import the render-side module - the spec string is the only coupling).
 const MAX_PENPOT_GRADIENT_STOPS = 12;
 
 /**
  * Map a Penpot gradient fill to a Lolly gradient-spec string (gradient-spec.ts
  * grammar: `<kind>[.<space>]_<angle>_<hex>-<pos>_…`), or '' when unusable.
- * Interpolation is pinned to `.srgb` — Penpot ramps in sRGB, and Lolly's OKLab
+ * Interpolation is pinned to `.srgb` - Penpot ramps in sRGB, and Lolly's OKLab
  * default would visibly shift the mid-ramp. The angle comes from the gradient
  * vector in PIXEL space (start/end are fractions of the shape box, so aspect
- * matters); stop positions keep their authored offsets — CSS spans the full box
+ * matters); stop positions keep their authored offsets - CSS spans the full box
  * while Penpot endpoints can be inset, an accepted approximation for v1. Stop
  * alpha folds `stop.opacity × fillOpacity` into an 8-digit hex.
  * @param {object} g the fill's `fillColorGradient`.
@@ -762,7 +762,7 @@ export function penpotGradientToSpec(g: unknown, w: number, h: number, fillOpaci
 }
 
 /**
- * True when a Penpot shape's `transform` matrix is non-identity — i.e. rotation /
+ * True when a Penpot shape's `transform` matrix is non-identity - i.e. rotation /
  * flip / skew have been BAKED into the shape's path `content` (which Penpot writes
  * page-space-final). e/f are ignored: they carry ~1e-9 float noise, never real
  * translation, and translation wouldn't change the double-transform question anyway.
@@ -777,7 +777,7 @@ export function penpotTransformBaked(t: unknown): boolean {
 
 /**
  * Loose bounding box of an absolute-command SVG path `d`: scans every coordinate
- * pair, so cubic CONTROL points can bulge the box slightly — a deliberately cheap
+ * pair, so cubic CONTROL points can bulge the box slightly - a deliberately cheap
  * contract that's sufficient for a placement rect (parseSvgPath/pathBounds is the
  * exact-but-heavier one). Returns null unless the commands are only M/L/C/Z
  * (relative/arc commands would need real interpretation) with ≥1 finite pair.
@@ -824,7 +824,7 @@ export function mirrorPenpotGradient(g: unknown, flipX: boolean, flipY: boolean)
 }
 
 /**
- * Path data for a rect with four independent corner radii — a thin adapter over the
+ * Path data for a rect with four independent corner radii - a thin adapter over the
  * one existing rounded-corner implementation (css-box.ts): cornerRadii applies the
  * CSS §5.5 overlap clamp, roundedRectPath emits the four-arc path, so the clamp and
  * arc conventions stay shared with the HTML→SVG export walker.
@@ -840,7 +840,7 @@ export function penpotRoundedRectD(x: number, y: number, w: number, h: number, r
 
 // Per-corner radii, r1=top-left r2=top-right r3=bottom-right r4=bottom-left with
 // r2–r4 defaulting to r1 (Penpot omits them for uniform corners). Returns null when
-// all four are equal — the caller keeps its byte-identical rx/'rounded' fast path —
+// all four are equal - the caller keeps its byte-identical rx/'rounded' fast path -
 // else the FLIP-PERMUTED [tl,tr,br,bl]: consumers emit unflipped geometry, and a
 // mirrored rect shows its corners swapped (flipX left↔right, flipY top↔bottom).
 function penpotUnequalCorners(sh: PenpotShape): [number, number, number, number] | null {
@@ -856,7 +856,7 @@ function penpotUnequalCorners(sh: PenpotShape): [number, number, number, number]
 /**
  * Normalize a Penpot shape's `content` into SVG path data. binfile-v3 writes paths
  * as a ready `d` string (absolute M/L/C/Z, page-space coords); older/other exporters
- * store a segment-object array `[{command:'move-to',params:{x,y}},…]` — both forms
+ * store a segment-object array `[{command:'move-to',params:{x,y}},…]` - both forms
  * come out as one `d`. Anything else (text content trees, svg-raw wrappers) is ''.
  * @param {*} content
  * @returns {string}
@@ -884,7 +884,7 @@ export function penpotPathContentToD(content: unknown): string {
 }
 
 // Path data safe to embed in a double-quoted SVG attribute: must look like path data
-// (starts M/m) and keeps only path-grammar characters — no quotes/brackets can survive.
+// (starts M/m) and keeps only path-grammar characters - no quotes/brackets can survive.
 function safePathD(v: unknown): string {
   const s = String(v == null ? '' : v).trim();
   return /^[Mm]/.test(s) ? s.replace(/[^-+0-9eE.,\sA-Za-z]/g, '') : '';
@@ -895,7 +895,7 @@ export interface PenpotStrokeInfo {
   color: string;
   width: number;
   opacity?: number;
-  /** 'solid' | 'dashed' | 'dotted' | 'mixed' — never 'none' (those are skipped). */
+  /** 'solid' | 'dashed' | 'dotted' | 'mixed' - never 'none' (those are skipped). */
   style?: string;
   /** Authored dash length in px, when the source set one (Penpot `strokeDash`). */
   dash?: number;
@@ -912,7 +912,7 @@ function strokeStyleOf(st: unknown): string {
   return s || 'solid';
 }
 // A finite number >= 0 (Penpot's `decode_optional`: 0 IS a legal authored value), else
-// undefined. Absence is NOT zero — it means "use the renderer's width-derived default".
+// undefined. Absence is NOT zero - it means "use the renderer's width-derived default".
 function strokeLen(st: unknown, key: string): number | undefined {
   const v = pget(st, key);
   if (v == null) return undefined;
@@ -981,7 +981,7 @@ function penpotLineCap(st: PenpotStrokeInfo): string {
 
 /**
  * Render a Penpot `fillColorGradient` as a native SVG gradient def (NOT the Lolly
- * grad-spec route — SVG keeps the exact endpoints and has no stop cap). Coordinates
+ * grad-spec route - SVG keeps the exact endpoints and has no stop cap). Coordinates
  * are objectBoundingBox fractions, exactly Penpot's start/end encoding; a radial
  * approximates its radius as the start→end distance. Stop alpha folds
  * `stop.opacity × fillOpacity` into stop-opacity. Returns '' when unusable.
@@ -1026,7 +1026,7 @@ function hasVisibleShadow(sh: PenpotShape): boolean {
 const MAX_VECTOR_GROUP_SHAPES = 4000;
 
 /**
- * Serialize a Penpot `group` subtree into ONE standalone SVG string — the flattening
+ * Serialize a Penpot `group` subtree into ONE standalone SVG string - the flattening
  * that turns a 500-path illustration into a single image box. viewBox = the group's
  * selrect in PAGE space (path `content` coords are absolute page coords, so no
  * re-basing is needed). Succeeds only when EVERY visible descendant is pure vector:
@@ -1034,7 +1034,7 @@ const MAX_VECTOR_GROUP_SHAPES = 4000;
  * text, image fills, shadows, or unknown types return '' so mixed groups fall
  * through to the per-shape import. Child z-order follows each container's `shapes`
  * array (paint order, back-to-front). A `maskedGroup` wraps its non-mask children in
- * a <clipPath> built from the FIRST child (Penpot's mask slot) — the mask silhouette
+ * a <clipPath> built from the FIRST child (Penpot's mask slot) - the mask silhouette
  * itself never paints. The ROOT group's own opacity/rotation are NOT baked: the
  * caller carries them on the image box (nested group opacity IS baked, as <g opacity>).
  * @param {object} group the group shape.
@@ -1119,7 +1119,7 @@ export function penpotGroupToSvg(group: unknown, lookup: (id: string) => unknown
     // Layer blur bakes as a real feGaussianBlur def (Penpot value = stdDeviation, 1:1).
     // userSpaceOnUse with an explicit 3σ+8 region (export.ts's convention): selrect is
     // page-space here, and the default/percentage regions would clip the big glows.
-    // Inside a maskedGroup the blurred leaf stays under the <g clip-path> — blur then
+    // Inside a maskedGroup the blurred leaf stays under the <g clip-path> - blur then
     // clip, matching Penpot's mask semantics.
     const bv = ((): number => {
       const b = sh.blur;
@@ -1214,7 +1214,7 @@ export function penpotShapeToNode(shape: unknown): DesignNode | null {
   const shapeOp = num(sh.opacity, 1);
   const fills: PenpotFill[] = Array.isArray(sh.fills) ? (sh.fills as PenpotFill[]) : [];
 
-  // Text — rich content tree (reuse the shared parser; it handles camelCase keys).
+  // Text - rich content tree (reuse the shared parser; it handles camelCase keys).
   if (type === 'text' && sh.content) {
     const info = parsePenpotContent(sh.content);
     const node: DesignNode = { kind: 'text', x, y, w, h, rot, text: info.text, textAlign: info.textAlign,
@@ -1238,7 +1238,7 @@ export function penpotShapeToNode(shape: unknown): DesignNode | null {
       opacity: clamp(Math.round(shapeOp * num(imgFill.fillOpacity, 1) * 100), 0, 100),
       fit: imgFill.fillImage!.keepAspectRatio === false ? 'fill' : 'cover',
     };
-    // Flip flags mirror the PIXELS, not the box — a transient marker the shell's
+    // Flip flags mirror the PIXELS, not the box - a transient marker the shell's
     // media loader consumes (boxes have no mirror field; geometry is unaffected).
     const flip = (sh.flipX === true ? 'x' : '') + (sh.flipY === true ? 'y' : '');
     if (flip) node._fillFlip = flip;
@@ -1253,17 +1253,17 @@ export function penpotShapeToNode(shape: unknown): DesignNode | null {
   const gradFill = [...fills].reverse().find((f) =>
     f && f.fillColorGradient && Array.isArray(f.fillColorGradient.stops) && f.fillColorGradient.stops.length >= 2) || null;
 
-  // Vector outline — `path`/`bool` carry ready SVG path data in `content`. The shell
+  // Vector outline - `path`/`bool` carry ready SVG path data in `content`. The shell
   // bakes it into a standalone SVG asset (storeFigVector plumbing, same as a Figma
   // VECTOR); `_vectorSize` carries the PAGE-SPACE origin because Penpot path coords
-  // are absolute page coords — the Figma delta, whose vectors are shape-local.
+  // are absolute page coords - the Figma delta, whose vectors are shape-local.
   if (type === 'path' || type === 'bool') {
     const d = penpotPathContentToD(sh.content);
     if (d) {
       const gradFirst = gradFill ? ((gradFill.fillColorGradient!.stops![0] ?? null) as { color?: unknown } | null) : null;
       // Penpot path `content` is page-space-FINAL: when the shape's transform is
       // non-identity (rotation/flip baked in), placing the baked SVG on the
-      // pre-rotation selrect AND re-applying `rot` transforms it twice — so the
+      // pre-rotation selrect AND re-applying `rot` transforms it twice - so the
       // node rect becomes the content's own bbox with rot 0. Identity transforms
       // keep the byte-identical selrect + rot route (bbox ≡ selrect there anyway,
       // and paths whose bounds we can't scan fall back to it too).
@@ -1271,7 +1271,7 @@ export function penpotShapeToNode(shape: unknown): DesignNode | null {
       const bx = bb ? bb.x : x, by = bb ? bb.y : y;
       const bw = bb ? Math.max(1, bb.w) : w, bh = bb ? Math.max(1, bb.h) : h;
       const node: DesignNode = {
-        // Explicit fill:'' — the baked SVG is transparent outside its outline, so the
+        // Explicit fill:'' - the baked SVG is transparent outside its outline, so the
         // image box must not seed a backing colour behind it (nodeToBox seedBg).
         kind: 'image', x: bx, y: by, w: bw, h: bh, rot: bb ? 0 : rot, fit: 'fill', fill: '',
         _vectorPath: d,
@@ -1286,7 +1286,7 @@ export function penpotShapeToNode(shape: unknown): DesignNode | null {
         opacity: clamp(Math.round(shapeOp * num((gradFill ?? topFill)?.fillOpacity, 1) * 100), 0, 100),
       };
       applyPenpotShadow(sh, node);
-      // CSS filter blur on the image box = post-composite layer blur — the right
+      // CSS filter blur on the image box = post-composite layer blur - the right
       // semantics for a baked vector; never baked into the standalone path SVG.
       applyPenpotBlur(sh, node);
       return node;
@@ -1301,8 +1301,8 @@ export function penpotShapeToNode(shape: unknown): DesignNode | null {
     opacity: clamp(Math.round(shapeOp * num(topFill && topFill.fillOpacity, 1) * 100), 0, 100),
   };
   // Gradient fill → the Lolly grad spec (topmost gradient wins). The flat `fill`
-  // degrades to the FIRST stop so an old engine — or a box kind without a grad
-  // field — paints a plausible solid instead of transparent. Stop alpha already
+  // degrades to the FIRST stop so an old engine - or a box kind without a grad
+  // field - paints a plausible solid instead of transparent. Stop alpha already
   // folds the fill's own opacity, so node opacity carries the shape's alone.
   if (gradFill) {
     // The box paints unflipped, so a flipped shape's gradient endpoints mirror.
@@ -1349,13 +1349,13 @@ export function penpotShapeToNode(shape: unknown): DesignNode | null {
 }
 
 // Topmost stroke → the box stroke fields (rendered as a CSS border by the editor
-// tools). Path/bool shapes never reach here — their stroke rides the baked SVG
+// tools). Path/bool shapes never reach here - their stroke rides the baked SVG
 // (_vectorStroke). A CSS border on box-sizing:border-box is an INSIDE stroke, so
 // center/outer alignments pre-inflate the rect to land the painted edge where the
 // source authored it (Penpot defaults to center when the field is absent).
 function applyPenpotStroke(sh: PenpotShape, node: DesignNode): void {
   const list = Array.isArray(sh.strokes) ? sh.strokes : [];
-  // Topmost usable entry, searching downwards past `strokeStyle: "none"` rows — Penpot
+  // Topmost usable entry, searching downwards past `strokeStyle: "none"` rows - Penpot
   // paints nothing for those (`(when-not (= style :none) ...)`), where we used to paint
   // them as a solid border because a width and a colour were still present.
   let st: unknown = null;
@@ -1428,7 +1428,7 @@ function applyPenpotShadow(sh: PenpotShape, node: DesignNode): void {
 // Penpot layer blur → box blur. Penpot renders layer-blur as feGaussianBlur with
 // stdDeviation = value (frontend filters.cljs) and CSS blur(N) is stdDeviation N,
 // so value maps to blur(<value>px) 1:1. Background blur is a SEPARATE attribute
-// (`backgroundBlur`) since Penpot 2.17 — see penpotBackgroundBlurPx below; it never
+// (`backgroundBlur`) since Penpot 2.17 - see penpotBackgroundBlurPx below; it never
 // reaches node.blur, not even in its legacy `blur: {type:'background-blur'}` form.
 function applyPenpotBlur(sh: PenpotShape, node: DesignNode): void {
   const b = sh.blur;
@@ -1444,17 +1444,17 @@ function applyPenpotBlur(sh: PenpotShape, node: DesignNode): void {
 //
 // Penpot 2.17 (PR #10034) moved background blur onto its own shape attribute:
 //   backgroundBlur: { id, type: 'background-blur', value, hidden }
-// a SIBLING of `blur` — a shape may legally carry both. Pre-2.17 files instead carry
+// a SIBLING of `blur` - a shape may legally carry both. Pre-2.17 files instead carry
 // `blur: { type: 'background-blur' }`, and no Penpot migration rewrites them, so that
 // legacy form is accepted here and treated as background blur, never as layer blur.
 //
 // Radius: Penpot's shipping renderer is Skia, which converts the authored radius with
-// SkBlurMask::ConvertRadiusToSigma — sigma = 0.57735 * value + 0.5 — while CSS
+// SkBlurMask::ConvertRadiusToSigma - sigma = 0.57735 * value + 0.5 - while CSS
 // `backdrop-filter: blur(R)` is a Gaussian of sigma R/2. Equating the two gives
 // R = 2 * (0.57735 * value + 0.5) = 1.1547 * value + 1. This is an APPROXIMATION: it
 // matches the sigma, not Penpot's clipping/tiling behaviour, and the constant is
 // pinned by a test so a future fixture comparison can move it deliberately. (Penpot's
-// own SVG `value/2` filter is dead code — their shape->filters never emits it.)
+// own SVG `value/2` filter is dead code - their shape->filters never emits it.)
 const BG_BLUR_SIGMA_A = 1.1547;
 const BG_BLUR_SIGMA_B = 1;
 
@@ -1483,7 +1483,7 @@ export function penpotBackgroundBlurPx(sh: unknown): number {
 }
 
 // Background blur → the box `bgBlur` field (CSS backdrop-filter). v1 carries it only
-// on nodes whose painted region IS the box rect — a plain box and an image-fill box.
+// on nodes whose painted region IS the box rect - a plain box and an image-fill box.
 // Text shapes (Penpot masks the blur to the glyphs) and baked vector art (the frost
 // would become a rectangle behind an arbitrary outline) drop it; the shell warns once
 // per import batch so the loss is never silent.
@@ -1513,9 +1513,9 @@ export interface PenpotExportMark {
 
 // Normalize one shape's raw `exports` array: explicit === type comparisons (an
 // object-keyed whitelist would answer true for prototype keys), scale clamped to
-// 0.1..8 (default 1 — a scale of 0 clamps to 0.1, it does not default), suffix
+// 0.1..8 (default 1 - a scale of 0 clamps to 0.1, it does not default), suffix
 // stringified with null/undefined → ''. Entries dedupe by type|scale|suffix
-// (the wild identical-duplicate case). Unknown types drop SILENTLY here — the
+// (the wild identical-duplicate case). Unknown types drop SILENTLY here - the
 // shell scans the raw array itself when it wants to warn about them.
 function normalizePenpotExports(raw: unknown): PenpotExportEntry[] {
   if (!Array.isArray(raw)) return [];
@@ -1542,7 +1542,7 @@ function normalizePenpotExports(raw: unknown): PenpotExportEntry[] {
  * the root frame along each container's `shapes` array; unreachable orphans
  * follow in map order). Pruned wholesale, subtree included: `hidden` shapes
  * (hidden hides the whole subtree in Penpot) and component MASTER boards
- * (componentRoot + mainInstance) — a master subtree is a definition, not
+ * (componentRoot + mainInstance) - a master subtree is a definition, not
  * content, so a mark on the master OR on any of its descendants yields nothing.
  * @param {object} shapesById shape-id → parsed `<shape-id>.json` for one page.
  * @returns {PenpotExportMark[]} kept marks with normalized, deduped entries.
@@ -1582,7 +1582,7 @@ export function collectPenpotExportMarks(shapesById: Record<string, unknown>): P
 // ── Penpot prototype flow → scene order + per-scene enter transitions ────────
 //
 // Observed serialization (tests/fixtures/penpot-kitchen-sink.penpot, a genuine
-// Penpot 2.17.1-RC4 export — pinned in tests/penpot-kitchen-sink.test.ts):
+// Penpot 2.17.1-RC4 export - pinned in tests/penpot-kitchen-sink.test.ts):
 //
 //   shape.interactions = [{
 //     eventType: 'click', actionType: 'navigate',
@@ -1593,7 +1593,7 @@ export function collectPenpotExportMarks(shapesById: Record<string, unknown>): P
 //   page.flows = { '<id>': { id, name: 'Flow 1', startingFrame: '<frame id>' } }
 //
 // Two corrections against the inference that shipped in the plan: the action is
-// `navigate`, NOT `navigate-to` (both are accepted below — a Penpot version that
+// `navigate`, NOT `navigate-to` (both are accepted below - a Penpot version that
 // writes the hyphenated form still reads), and the starting frame lives on the
 // PAGE record's `flows` map, not on the shape.
 
@@ -1611,7 +1611,7 @@ export interface PenpotFlowOrder {
   ordered: string[];
   /** boardId → the entrance authored on the edge INTO it. Only boards entered via an edge appear. */
   transitions: Record<string, PenpotSceneTransition>;
-  /** Whether any usable navigate edge was found — false means callers keep the reading-order path. */
+  /** Whether any usable navigate edge was found - false means callers keep the reading-order path. */
   hasFlow: boolean;
 }
 
@@ -1627,13 +1627,13 @@ const FLOW_MAX_MS = 3000;
  * |---|---|
  * | `dissolve` | `fade` |
  * | `slide` / `push` + `direction` | `slide-<direction>` |
- * | missing / anything else | `none` (a hard cut — no motion is invented) |
+ * | missing / anything else | `none` (a hard cut - no motion is invented) |
  *
  * `direction` maps through UNCHANGED because both vocabularies name the direction
  * the incoming content TRAVELS: Penpot's push-right moves boards rightwards (the
  * new one starting off-screen left), and lolly's `slide-right` is labelled "Slide
  * from left" for exactly that reason. A slide with no recognised direction is a
- * cut, not a guess. `way: 'in'|'out'` is ignored in v1 — exit transitions are not
+ * cut, not a guess. `way: 'in'|'out'` is ignored in v1 - exit transitions are not
  * modelled, so an out-slide still reads as the incoming board's entrance.
  * @param {unknown} animation the interaction's nested `animation` object.
  * @returns {PenpotSceneTransition} always a valid entrance; `{enter:'none'}` when unmapped.
@@ -1729,7 +1729,7 @@ export function penpotFlowOrder(
   const inDeg = new Map<string, number>();
   for (const [, outs] of edges) for (const e of outs) inDeg.set(e.to, (inDeg.get(e.to) ?? 0) + 1);
 
-  // Start: authored flow first — the page record is the file's own answer.
+  // Start: authored flow first - the page record is the file's own answer.
   let start = '';
   const flows = get(page, 'flows');
   const flowList: unknown[] = Array.isArray(flows) ? flows : (flows && typeof flows === 'object' ? Object.values(flows as Record<string, unknown>) : []);
@@ -1755,7 +1755,7 @@ export function penpotFlowOrder(
     const next: { to: string; anim: PenpotSceneTransition } | undefined =
       (edges.get(cursor) ?? []).find((e) => !placed.has(e.to));
     if (next) {
-      // Only a real entrance is recorded — a cut leaves the scene's own default alone.
+      // Only a real entrance is recorded - a cut leaves the scene's own default alone.
       if (next.anim.enter !== 'none') transitions[next.to] = next.anim;
       cursor = next.to;
     } else cursor = undefined;
@@ -1767,7 +1767,7 @@ export function penpotFlowOrder(
 // A .fig decodes to a flat `nodeChanges` list forming a tree via `parentIndex.guid`.
 // Geometry is a parent-RELATIVE 2×3 `transform` {m00,m01,m02,m10,m11,m12} + `size`
 // {x:w,y:h}. We accumulate transforms down the tree to an absolute matrix, then reuse
-// boxGeomFromBBox on the node's local (0,0,w,h) box — the same maths as the SVG path.
+// boxGeomFromBBox on the node's local (0,0,w,h) box - the same maths as the SVG path.
 // The shell owns Kiwi decode + zstd + image bytes; this stays pure and testable.
 
 interface FigTransform { m00?: unknown; m01?: unknown; m02?: unknown; m10?: unknown; m11?: unknown; m12?: unknown; }
@@ -1946,7 +1946,7 @@ function figmaNode(node: FigNode, abs: Matrix, blobs: FigBlobs): DesignNode | nu
     }).filter(Boolean).join(' ');
     if (d) {
       // Stroke: Figma tessellates it separately, but strokeAlign CENTER + a solid stroke
-      // paint is exactly a plain SVG stroke on the fill path — so render it that way
+      // paint is exactly a plain SVG stroke on the fill path - so render it that way
       // (faithful for centre strokes; inside/outside are approximated as centre).
       const sp = Array.isArray(node.strokePaints)
         ? (node.strokePaints as unknown[]).find((p) => p && get(p, 'visible') !== false && get(p, 'type') === 'SOLID' && get(p, 'color')) : null;
@@ -2039,7 +2039,7 @@ function shiftNodesToOrigin(nodes: DesignNode[]): { width: number; height: numbe
  * Order frames the way a person reads a storyboard: rows top-to-bottom, then
  * left-to-right within a row. Design canvases store children in Z/creation
  * order (Penpot's root `shapes`, Figma's canvas children), so a deck imported
- * in that order plays backwards or shuffled — spatial order is what the frames'
+ * in that order plays backwards or shuffled - spatial order is what the frames'
  * layout actually says. Rows are clustered by vertical overlap of frame
  * centres (tolerance = half the median frame height), so slight hand-placed
  * jitter doesn't split a row. Pure + stable for equal positions.
@@ -2075,7 +2075,7 @@ const FIG_FRAME_TYPES = new Set(['FRAME', 'SECTION', 'COMPONENT', 'INSTANCE', 'S
 /**
  * Walk a decoded Figma document into per-frame scenes: every top-level frame on
  * every real page becomes one `DesignFrameScene` (nodes shifted to the frame's
- * origin, size = the frame's crop — content overflowing the frame stays put and
+ * origin, size = the frame's crop - content overflowing the frame stays put and
  * is cropped at render, matching Figma). Loose top-level shapes on a page are
  * collected into one extra scene per page. Same node production as
  * `figmaNodesToNodes` (image fills come back with `_imageHash` markers), so the
@@ -2120,7 +2120,7 @@ export function figmaNodesToScenes(nodeChanges: unknown, blobs?: FigBlobs): Desi
         const nodes: DesignNode[] = [];
         collect(child, nodes);
         if (!nodes.length) continue;
-        // The scene's crop window is the container's own absolute geometry —
+        // The scene's crop window is the container's own absolute geometry -
         // computed directly (not read off nodes[0]) because a COMPONENT/INSTANCE
         // container isn't a visual node and emits no box of its own.
         const geom = boxGeomFromBBox(
@@ -2141,7 +2141,7 @@ export function figmaNodesToScenes(nodeChanges: unknown, blobs?: FigBlobs): Desi
         collect(child, loose);
       }
     }
-    // Frames play in READING order (rows top-to-bottom, then left-to-right) —
+    // Frames play in READING order (rows top-to-bottom, then left-to-right) -
     // canvas child order is Z/creation order, which plays a deck backwards.
     scenes.push(...readingOrder(framed, (f) => f.at).map((f) => f.scene));
     // Loose shapes only make a scene when the page has NO frames (the whole page

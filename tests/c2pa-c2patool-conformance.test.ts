@@ -7,7 +7,7 @@
 // `signingCredential.untrusted` markers (an ephemeral on-device key is untrusted
 // by design; a CA signer or pinned trust list clears those).
 //
-// SKIPS cleanly when c2patool isn't on PATH — so `npm test` stays green on a
+// SKIPS cleanly when c2patool isn't on PATH - so `npm test` stays green on a
 // machine without it. Install locally with `brew install c2patool` (or
 // `cargo install c2patool`) to exercise it.
 import { test } from 'node:test';
@@ -67,8 +67,8 @@ test('Tier-1: a live-capture + text-added manifest validates in c2patool', { ski
 });
 
 test('Ingredient preservation: multi-manifest store validates in c2patool', { skip: !hasC2patool && 'c2patool not installed' }, async () => {
-  // A synthetic AI-generated source — a credential whose created action is
-  // trainedAlgorithmicMedia — so the test is self-contained (no external fixture).
+  // A synthetic AI-generated source - a credential whose created action is
+  // trainedAlgorithmicMedia - so the test is self-contained (no external fixture).
   const aiSource = await embedC2pa(new Uint8Array(HOST_PNG), 'png', {
     claimGenerator: 'Some AI Model', generatorInfo: { name: 'Some AI Model', version: 'test' },
     actions: [{ action: 'c2pa.created', digitalSourceType: AI_SOURCE_TYPE }],

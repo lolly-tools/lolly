@@ -4,7 +4,7 @@
  *
  * Used at:
  *   - tool catalog build time (CI rejects bad manifests)
- *   - host shell load time (defensive — never trust the network)
+ *   - host shell load time (defensive - never trust the network)
  *   - dev mode (live feedback while authoring)
  */
 
@@ -29,7 +29,7 @@ export interface ValidationResult {
 
 // Ajv ships as CJS; under some TS module-interop configs (e.g. Vercel's
 // function compiler) the default import isn't seen as constructable (TS2351).
-// It IS a class at runtime — cast the ctor so every toolchain agrees.
+// It IS a class at runtime - cast the ctor so every toolchain agrees.
 const ajv = new (Ajv as any)({ allErrors: true, strict: false });
 ajv.addSchema(toolSchema);
 ajv.addSchema(assetSchema);
@@ -38,13 +38,13 @@ ajv.addSchema(assetRefSchema);
 const validateTool = ajv.compile(toolSchema);
 
 // The rate-card shape validator, injected into `parseRateCard` (engine/src/rate-card.ts)
-// so the web drop path and the CLI `--rate-card` path share ONE compiled schema — the
+// so the web drop path and the CLI `--rate-card` path share ONE compiled schema - the
 // same single-source-of-truth `validate-catalog.ts` gets from its own Ajv instance.
 // Proves shape only; `parseRateCard` owns the extra-schema invariants a valid card can
 // still violate (ISO 4217, break ordering, unique ids, breakMode-with-breaks).
 const rateCardValidator = ajv.compile(rateCardSchema);
 
-/** True when `doc` satisfies `schemas/ratecard.schema.json`. Shape only — pass this to
+/** True when `doc` satisfies `schemas/ratecard.schema.json`. Shape only - pass this to
  *  `parseRateCard` as its injected validator. */
 export const validateRateCard = (doc: unknown): boolean => rateCardValidator(doc) as boolean;
 

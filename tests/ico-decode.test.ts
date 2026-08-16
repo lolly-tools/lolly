@@ -167,7 +167,7 @@ test('entry size escaping the file throws', () => {
 });
 
 test('unsupported bit depth (8-bpp palettised) throws clearly', () => {
-  // A 40-byte DIB claiming 8 bpp — not decoded.
+  // A 40-byte DIB claiming 8 bpp - not decoded.
   const dib = new Uint8Array(40 + 16 * 16 + 64);
   const dv = new DataView(dib.buffer);
   dv.setUint32(0, 40, true);

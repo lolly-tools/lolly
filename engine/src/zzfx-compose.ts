@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
- * ZzFXM composition — the shared ZzFX preset bank + the archetype composer
+ * ZzFXM composition - the shared ZzFX preset bank + the archetype composer
  * behind Lolly's procedural music (Neurospicy Mode tracks, video music beds,
- * the ingest/generator scripts). Pure and deterministic — no fs/network, no
- * Date, no Math.random (the PRNG is seeded) — so a caller can render-verify a
+ * the ingest/generator scripts). Pure and deterministic - no fs/network, no
+ * Date, no Math.random (the PRNG is seeded) - so a caller can render-verify a
  * composed song via renderZzfxm anywhere the engine runs. Moved here from
  * scripts/lib/zzfx-music.ts (1.60.0) so shells can compose songs at runtime;
  * that path remains as a re-export shim.
@@ -11,7 +11,7 @@
  * Note numbers follow ZzFXM: 12 = a voice's base frequency; other notes
  * transpose by 2**((n-12)/12). TONAL voices are based at C4 (bass/sub at C2, two
  * octaves down) so the SAME note number means the same pitch class across voices
- * — melody/chords stay in key. DRUMS are unpitched character sounds: always
+ * - melody/chords stay in key. DRUMS are unpitched character sounds: always
  * struck at note 12 (their own base), never transposed.
  *
  * The drum + a few timbre presets are adapted from the ZzFXM converter's vetted
@@ -49,14 +49,14 @@ export const PRESETS = {
   openhat: [0.45, 0, 2100, 0, 0, 0.1, 3, 3, 0, 0, -400, 0, 0, 2],
   clap:    [0.55, 0, 220, 0, 0, 0.1, 3, 0, 0, 0, 320, 0, 0, 4],
 
-  // ── more tonal voices (C4 / C2 based) — drumAndBass/jungle/classical/
+  // ── more tonal voices (C4 / C2 based) - drumAndBass/jungle/classical/
   // spanishGuitar/cuban/bossaNova/whimsical/chiptune/lofi ─────────────────
   nylonGuitar:  [0.46, 0, C4, 0.006, 0.07, 0.55, 1, 1.2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.55], // warm plucked nylon/classical guitar
   harpsichord:  [0.38, 0, C4, 0.002, 0.02, 0.35, 2, 1.6, 0, 0, 0, 0, 0, 0, 0, 2, 0, 0.35], // bright quick-decay pluck, slight metallic crush
   strings:      [0.4, 0, C4, 0.4, 0.3, 2.0, 1, 1, 0, 0, 0, 0, 0, 0, 0.02, 0, 0, 0.6], // slow-attack orchestral pad, gentle shimmer
-  reese:        [0.6, 0, C2, 0.02, 0.15, 0.9, 2, 1, -4, 0.15, 0, 0, 0, 0, 0, 0, 0, 0.55], // deep moving sub — slide+deltaSlide give the wobble
+  reese:        [0.6, 0, C2, 0.02, 0.15, 0.9, 2, 1, -4, 0.15, 0, 0, 0, 0, 0, 0, 0, 0.55], // deep moving sub - slide+deltaSlide give the wobble
   square:       [0.35, 0, C4, 0.003, 0.05, 0.12, 5, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.5], // chiptune square wave (shape 5, 50% duty)
-  pulse:        [0.32, 0, C4, 0.003, 0.04, 0.1, 5, 0.4, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.5], // chiptune pulse wave (narrower duty — brighter/buzzier)
+  pulse:        [0.32, 0, C4, 0.003, 0.04, 0.1, 5, 0.4, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.5], // chiptune pulse wave (narrower duty - brighter/buzzier)
   glockenspiel: [0.42, 0, C4, 0.002, 0.02, 1.0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.15, 0.3], // music-box bell: pluck, taper, long ring (uses `decay`)
   epiano:       [0.38, 0, C4, 0.015, 0.12, 0.8, 3, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.4], // warm lo-fi electric-piano-ish keys
 
@@ -66,8 +66,8 @@ export const PRESETS = {
   claves:      [0.5, 0, 2500, 0, 0.008, 0.05, 1, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.3],
   shaker:      [0.35, 0, 6000, 0, 0, 0.04, 2, 1.2, 0, 0, 0, 0, 0.015, 5, -0.2, 0, 0.3],
   ride:        [0.4, 0, 5000, 0, 0, 0.5, 2, 1.5, 0, 0, 0, 0, 0.03, 4, -0.15, 0, 0.4],
-  breakKick:   [0.85, 0, 100, 0, 0, 0.07, 0, 0.8, 0, 0, 0, 0.35, 0, 5, 1.2, 0.08], // punchier/tighter than `kick` — breakbeat
-  breakSnare:  [0.65, 0, 700, 0, 0, 0.065, 3, 1.8, 0, 0, 0, 0, 0.015, 4.5, -0.15, 0, 0.15], // snappier/tighter than `snare` — breakbeat
+  breakKick:   [0.85, 0, 100, 0, 0, 0.07, 0, 0.8, 0, 0, 0, 0.35, 0, 5, 1.2, 0.08], // punchier/tighter than `kick` - breakbeat
+  breakSnare:  [0.65, 0, 700, 0, 0, 0.065, 3, 1.8, 0, 0, 0, 0, 0.015, 4.5, -0.15, 0, 0.15], // snappier/tighter than `snare` - breakbeat
   brushSnare:  [0.4, 0, 500, 0, 0.015, 0.16, 3, 1.4, 0, 0, 0, 0, 0.03, 2.5, -0.05, 0, 0.1], // soft brushed snare/rim (bossa/lo-fi)
 } satisfies Record<string, ZzfxInstrument>;
 export type PresetName = keyof typeof PRESETS;
@@ -154,7 +154,7 @@ function everyN(n: number): number[] {
   return a;
 }
 /**
- * Syncopated breakbeat kick+snare placement (drumAndBass/jungle) — deliberately
+ * Syncopated breakbeat kick+snare placement (drumAndBass/jungle) - deliberately
  * NOT four-on-the-floor. `ghostProb` sprinkles quiet extra snare hits at
  * off-grid candidate steps for a denser/choppier feel (jungle uses a higher
  * value than drumAndBass).
@@ -165,11 +165,11 @@ function breakbeat(rng: () => number, ghostProb = 0): { kick: number[]; snare: n
   for (const s of [2, 7, 9, 14]) if (rng() < ghostProb) snareSteps.push(s);
   return { kick: hits(kickSteps), snare: hits(snareSteps) };
 }
-/** Son-clave (3-2), 16 steps — the backbone rhythm for cuban/bossa patterns. */
+/** Son-clave (3-2), 16 steps - the backbone rhythm for cuban/bossa patterns. */
 function clave(): number[] {
   return hits([0, 3, 6, 10, 12]);
 }
-/** Fast broken-chord arpeggio: cycles `intervals` (semitones from root) every `stepEvery` steps — NES-style chiptune arpeggio. */
+/** Fast broken-chord arpeggio: cycles `intervals` (semitones from root) every `stepEvery` steps - NES-style chiptune arpeggio. */
 function arpeggio(root: number, intervals: number[], stepEvery = 2): number[] {
   const a = new Array<number>(STEPS).fill(R);
   for (let s = 0; s < STEPS; s += stepEvery) a[s] = root + intervals[(s / stepEvery) % intervals.length]!;
@@ -208,13 +208,13 @@ export interface SongSpec {
 
 /**
  * Compose a ZzFXM song in one of several shapes for variety:
- *  - ambient      : warm pad + a soothing swell + sparse melody + sub — no drums, slow.
- *  - rhythmic     : kick/snare/hats + a bass groove + a chord stab — beat-driven.
+ *  - ambient      : warm pad, a soothing swell, sparse melody, sub. No drums, slow.
+ *  - rhythmic     : kick/snare/hats, a bass groove, a chord stab. Beat-driven.
  *  - melodic      : lead melody + pad + bass + light offbeat hats.
  *  - drumAndBass  : syncopated breakbeat + fast hats + a moving sub + a sparse dark pad.
  *  - jungle       : denser/choppier breakbeat + ghost hits + sub + echo-y sparse lead.
- *  - classical    : arpeggiated harpsichord + strings pad + a call-and-response voice — no drums.
- *  - spanishGuitar: arpeggiated nylon guitar + occasional chord stab — no drums.
+ *  - classical    : arpeggiated harpsichord + strings pad + a call-and-response voice. No drums.
+ *  - spanishGuitar: arpeggiated nylon guitar + occasional chord stab. No drums.
  *  - cuban        : son-clave + conga/bongo tumbao + piano-montuno stabs.
  *  - bossaNova    : nylon guitar comping + brushed snare/rim + light shaker.
  *  - whimsical    : playful skipping glockenspiel melody with irregular rests + light bass.
@@ -245,9 +245,9 @@ export function composeSong(spec: SongSpec): ZzfxSong {
     instruments = [PRESETS.kick, PRESETS.snare, PRESETS.hat, PRESETS[spec.bass ?? 'bass'], PRESETS[spec.lead ?? 'pluck']];
     for (const root of spec.roots) {
       patterns.push([
-        channel(0, 0, hits([0, 4, 8, 12])), // kick — four on the floor
-        channel(1, 0, hits([4, 12])), // snare — backbeat
-        channel(2, 0, hits([0, 2, 4, 6, 8, 10, 12, 14])), // hats — eighths
+        channel(0, 0, hits([0, 4, 8, 12])), // kick - four on the floor
+        channel(1, 0, hits([4, 12])), // snare - backbeat
+        channel(2, 0, hits([0, 2, 4, 6, 8, 10, 12, 14])), // hats - eighths
         channel(3, 0, placed([[0, root], [3, root], [8, root], [11, root]])), // bass groove
         channel(4, pan, placed([[0, root], [8, root + 7]])), // chord stab
       ]);
@@ -269,7 +269,7 @@ export function composeSong(spec: SongSpec): ZzfxSong {
     for (const root of spec.roots) {
       const brk = breakbeat(rng, 0.2);
       patterns.push([
-        channel(0, 0, brk.kick), // breakbeat kick — syncopated, not four-on-the-floor
+        channel(0, 0, brk.kick), // breakbeat kick - syncopated, not four-on-the-floor
         channel(1, 0, brk.snare), // breakbeat snare + occasional ghost hits
         channel(2, 0, hits(everyN(1))), // fast 16th-note hats
         channel(3, 0, walk(rng, scale, root, restProb)), // moving sub/reese bass line
@@ -280,7 +280,7 @@ export function composeSong(spec: SongSpec): ZzfxSong {
     instruments = [PRESETS.breakKick, PRESETS.breakSnare, PRESETS.hat, PRESETS[spec.bass ?? 'sub'], PRESETS[spec.lead ?? 'glockenspiel']];
     const restProb = spec.restProb ?? 0.5;
     for (const root of spec.roots) {
-      const brk = breakbeat(rng, 0.45); // denser/choppier than drumAndBass — more ghost hits
+      const brk = breakbeat(rng, 0.45); // denser/choppier than drumAndBass - more ghost hits
       patterns.push([
         channel(0, 0, brk.kick),
         channel(1, 0, brk.snare),
@@ -291,12 +291,12 @@ export function composeSong(spec: SongSpec): ZzfxSong {
     }
   } else if (spec.archetype === 'classical') {
     instruments = [PRESETS[spec.lead ?? 'harpsichord'], PRESETS.strings, PRESETS.piano];
-    const restProb = spec.restProb ?? 0.2; // flowing — fewer rests than ambient
+    const restProb = spec.restProb ?? 0.2; // flowing - fewer rests than ambient
     for (const root of spec.roots) {
       patterns.push([
         channel(0, 0, placed([[0, root], [2, root + 4], [4, root + 7], [6, root + 4], [8, root], [10, root + 4], [12, root + 7], [14, root + 4]])), // arpeggiated harpsichord
         channel(1, 0, placed([[0, root], [8, root + 7]])), // strings pad, sustained
-        channel(2, pan, walk(rng, scale, root, restProb)), // answering phrase — call-and-response
+        channel(2, pan, walk(rng, scale, root, restProb)), // answering phrase - call-and-response
       ]);
     }
   } else if (spec.archetype === 'spanishGuitar') {
@@ -304,10 +304,10 @@ export function composeSong(spec: SongSpec): ZzfxSong {
     const restProb = spec.restProb ?? 0.35;
     for (const root of spec.roots) {
       patterns.push([
-        channel(0, pan, walk(rng, scale, root, restProb)), // passionate arpeggiated lead
+        channel(0, pan, walk(rng, scale, root, restProb)), // arpeggiated lead
         channel(0, 0, placed([[0, root], [8, root + 7]])), // occasional chord stab (root + fifth)
         channel(1, 0, hits([6, 14])), // light hand-clap accent, off-beat
-        channel(2, 0, placed([[0, root]])), // grounding low root
+        channel(2, 0, placed([[0, root]])), // low anchor root
       ]);
     }
   } else if (spec.archetype === 'cuban') {
@@ -334,11 +334,11 @@ export function composeSong(spec: SongSpec): ZzfxSong {
   } else if (spec.archetype === 'whimsical') {
     instruments = [PRESETS[spec.lead ?? 'glockenspiel'], PRESETS.pluck, PRESETS.hat];
     for (const root of spec.roots) {
-      const restProb = (spec.restProb ?? 0.3) + rng() * 0.25; // varies bar to bar — avoids a strict predictable feel
+      const restProb = (spec.restProb ?? 0.3) + rng() * 0.25; // varies bar to bar - avoids a strict predictable feel
       patterns.push([
         channel(0, pan, walk(rng, scale, root, restProb)), // playful skipping melody
         channel(1, 0, placed([[0, root], [7, root + 3], [11, root]])), // light plucky bass
-        channel(2, 0, hits([3, 9])), // sparse curious tick
+        channel(2, 0, hits([3, 9])), // sparse tick
       ]);
     }
   } else if (spec.archetype === 'chiptune') {
@@ -357,7 +357,7 @@ export function composeSong(spec: SongSpec): ZzfxSong {
     for (const root of spec.roots) {
       patterns.push([
         channel(0, 0, hits([0, 10])), // laid-back kick
-        channel(1, 0, hits([3, 7, 11, 15])), // swung/shuffled snare — off the straight grid
+        channel(1, 0, hits([3, 7, 11, 15])), // swung/shuffled snare - off the straight grid
         channel(2, 0, hits(everyN(2))), // soft shaker, eighths
         channel(3, pan, placed([[0, root], [8, root + 7]])), // warm filtered e-piano pad
         channel(4, 0, placed([[0, root], [10, root]])), // mellow jazzy bass
@@ -369,11 +369,11 @@ export function composeSong(spec: SongSpec): ZzfxSong {
     bpm: spec.bpm,
     // DETERMINISM GUARD, not tidying. `zzfxG` reads parameter index 1 as
     // `randomness` and detunes the start frequency by `Math.random()` when it is
-    // non-zero — and its default is 0.05, so a preset authored with a SHORT array
+    // non-zero - and its default is 0.05, so a preset authored with a SHORT array
     // (fewer than two entries) would silently re-enable it and make every seed
     // produce a different render each time. Every preset in the table sets it to
-    // 0 today; normalising here is what stops that from being a property of the
-    // table's current contents. Copies, so PRESETS itself is never mutated.
+    // 0 today, but normalising here guarantees it even if a future preset forgets.
+    // Copies, so PRESETS itself is never mutated.
     instruments: instruments.map(withoutRandomness),
     patterns,
     sequence: arrange(spec.roots.length, spec.bpm, spec.targetSec),
@@ -393,9 +393,9 @@ function withoutRandomness(inst: ZzfxInstrument): ZzfxInstrument {
  * A deliberate subset of the twelve: these are the ones that read as a bed under
  * speech and picture. The other four (drum'n'bass, jungle, classical, spanish
  * guitar) are reachable only by naming them as an explicit `<style>`. This list
- * and its order are FROZEN — changing either would repoint every existing seed
- * at a different tune, which is the one thing this whole scheme exists to
- * prevent. This is the only copy of the list — the web shell's export bar calls
+ * and its order are FROZEN. Changing either would repoint every existing seed
+ * at a different tune, and preventing that is the whole purpose of this list.
+ * This is the only copy of the list - the web shell's export bar calls
  * `generatedSongSpec` rather than re-deriving the draw, so there is no second
  * table that could drift out of step with it.
  */
@@ -416,8 +416,8 @@ const ZZFXM_SCALES = ['majorPent', 'minorPent', 'suspended'] as const;
 /**
  * Seed → song spec. TOTALLY determined by (seed, targetSec, style).
  *
- * Every draw comes from one `mulberry32(seed)` stream, consumed in a FIXED order
- * — archetype, scale, tempo, three progression roots, pan — and a named `style`
+ * Every draw comes from one `mulberry32(seed)` stream, consumed in a FIXED order:
+ * archetype, scale, tempo, three progression roots, pan. A named `style`
  * overrides only the archetype AFTER its draw has happened, so naming a style
  * never shifts the rest of the stream. That is what lets `zzfxm:7` and
  * `zzfxm:7:lofi` share a progression while differing in arrangement.
@@ -429,13 +429,13 @@ const ZZFXM_SCALES = ['majorPent', 'minorPent', 'suspended'] as const;
 export function generatedSongSpec(seed: number, targetSec: number, style?: Archetype): SongSpec {
   const rng = mulberry32(seed >>> 0);
   const pick = <T>(a: readonly T[]): T => a[Math.floor(rng() * a.length)] as T;
-  // The draw happens EVEN WHEN it is about to be overridden — the stream's
+  // The draw happens EVEN WHEN it is about to be overridden - the stream's
   // position is part of the contract, so naming a style must not shift the scale,
   // the progression or the pan out from under a seed.
   const drawn: Archetype = pick(ZZFXM_SEEDED_ARCHETYPES);
   const archetype: Archetype = style ?? drawn;
   const scale = pick(ZZFXM_SCALES);
-  const pool = SCALES[scale].slice(0, 6);   // low register — melodies walk upward from the roots
+  const pool = SCALES[scale].slice(0, 6);   // low register - melodies walk upward from the roots
   const [lo, hi] = ZZFXM_BPM[archetype];
   return {
     archetype, seed: seed >>> 0, scale, targetSec,

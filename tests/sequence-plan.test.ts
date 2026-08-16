@@ -1,17 +1,17 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
- * sequence-plan — the pure planner behind deterministic sequence export
+ * sequence-plan - the pure planner behind deterministic sequence export
  * (Fable timeline, phase 3 §0.0's "DESIGN REQUIREMENT added by the spike").
  *
  * Run with: node --test tests/sequence-plan.test.ts
  *
  * The compositor's executor is browser-only (WebCodecs, canvas) and Playwright's
  * bundled Chromium has no proprietary codecs, so the planner is where the whole
- * correctness surface has to be pinned down instead — activity windows, junction
+ * correctness surface has to be pinned down instead - activity windows, junction
  * crossfade alpha, source-time mapping, the frame grid, error normalisation and the
  * silent-truncation guard. Everything here runs headlessly under jsdom.
  *
- * The parity block at the end is the load-bearing one: it runs the REAL
+ * The parity block at the end is the essential one: it runs the REAL
  * views/sequence-clock.ts (the preview the user scrubs) against the planner over a
  * dense time sweep. Preview-vs-export drift is the plan's own stated risk, so it is
  * asserted rather than commented.
@@ -37,7 +37,7 @@ import {
   isActiveAt, readTiming, transitionAt, withAuthoredDom,
   type ApplyCtx,
 } from '../shells/web/src/views/sequence-clock.ts';
-// The session form of the applier — a live per-frame writer, which is what the
+// The session form of the applier - a live per-frame writer, which is what the
 // export-time read/restore seam at the end of this file exists to stand down.
 import { createSequenceTime } from '../shells/web/src/bridge/sequence-dom.ts';
 import {
@@ -75,7 +75,7 @@ function layerFrom(html: string, totalMs = 7000): SeqLayer {
   return readLayer(wrap.firstElementChild as HTMLElement, 0, totalMs);
 }
 
-/** A synthetic layer for plan tests — no DOM needed beyond a placeholder element. */
+/** A synthetic layer for plan tests - no DOM needed beyond a placeholder element. */
 function fakeLayer(over: Partial<SeqLayer> & { idx: number }): SeqLayer {
   return {
     el: doc.createElement('div'),
@@ -94,7 +94,7 @@ function fakeLayer(over: Partial<SeqLayer> & { idx: number }): SeqLayer {
 
 test('parseSequenceStage returns null when nothing is timed', () => {
   assert.equal(parseSequenceStage(stageOf(boxHtml(), null)), null);
-  // A composition with nothing timed emits NEITHER marker — the all-or-nothing rule.
+  // A composition with nothing timed emits NEITHER marker - the all-or-nothing rule.
   const bare = doc.createElement('div');
   bare.innerHTML = '<div class="artboard"><div class="lolly-box"></div></div>';
   assert.equal(parseSequenceStage(bare), null);
@@ -126,8 +126,8 @@ test('parseSequenceStage keeps DOM order as z order', () => {
 //
 // A "Design" doc times whole FRAME PAGES ([data-pdf-page] carrying data-t-*) end to
 // end, rather than individual .lolly-box clips. The planner must treat each timed
-// frame page as ONE full-frame scene layer — photographed whole, gated so exactly one
-// shows at the playhead — and must NOT double-count the .lolly-box children inside it.
+// frame page as ONE full-frame scene layer - photographed whole, gated so exactly one
+// shows at the playhead - and must NOT double-count the .lolly-box children inside it.
 
 /** A `.lolly-frames` stage of N timed frame pages, each `durMs` long, back to back. */
 function framesStage(count: number, durMs: number, seqMs: number): HTMLElement {
@@ -149,7 +149,7 @@ function framesStage(count: number, durMs: number, seqMs: number): HTMLElement {
 test('a timed 3-frame stage plans exactly one frame-scene layer per window', () => {
   const stage = parseSequenceStage(framesStage(3, 3000, 9000));
   assert.ok(stage);
-  // Three scene layers — the frame PAGES — and nothing else: the .lolly-box children
+  // Three scene layers - the frame PAGES - and nothing else: the .lolly-box children
   // are part of each frame's picture, never separate open-ended layers stacked on top.
   assert.equal(stage.layers.length, 3);
   assert.deepEqual(stage.layers.map((l) => l.startMs), [0, 3000, 6000]);
@@ -315,7 +315,7 @@ test('kind is resolved from the box media child', () => {
 
 test('a video frozen to a still by snapshotMotion is still a video layer', () => {
   // snapshotMotion copies the <video>'s className onto the <img> it inserts and
-  // hides the video — so the class, not the tag, is what survives into the export.
+  // hides the video - so the class, not the tag, is what survives into the export.
   const el = layerFrom(boxHtml({
     inner: '<img class="lolly-box-img lolly-box-video" src="data:image/png;base64,">'
       + '<video class="lolly-box-img lolly-box-video" style="display:none"></video>',
@@ -337,7 +337,7 @@ test('a hostile data-seq-ms cannot make the sequence infinite', () => {
   assert.equal(parseSequenceStage(stageOf(boxHtml(), 9e12))?.totalMs, MAX_TIME_MS);
 });
 
-// ── 2. sequenceDrawPlan — activity ──────────────────────────────────────────
+// ── 2. sequenceDrawPlan - activity ──────────────────────────────────────────
 
 const at = (layers: SeqLayer[], t: number, total = 7000): number[] =>
   sequenceDrawPlan(layers, t, total).map((p) => p.layer.idx);
@@ -347,7 +347,7 @@ test('activity is half-open [start, start + dur)', () => {
   assert.deepEqual(at(l, 999), []);
   assert.deepEqual(at(l, 1000), [0]);            // inclusive head
   assert.deepEqual(at(l, 1499.999), [0]);
-  assert.deepEqual(at(l, 1500), []);             // exclusive tail — the clean cut
+  assert.deepEqual(at(l, 1500), []);             // exclusive tail - the clean cut
 });
 
 test('two gapless clips never both appear on a plain cut', () => {
@@ -397,7 +397,7 @@ test('a non-finite playhead is treated as 0 rather than emptying the frame', () 
   assert.deepEqual(sequenceDrawPlan(l, 0, Number.NaN).map((p) => p.layer.idx), [0]);
 });
 
-// ── 3. sequenceDrawPlan — transitions ───────────────────────────────────────
+// ── 3. sequenceDrawPlan - transitions ───────────────────────────────────────
 
 const only = (layers: SeqLayer[], t: number, total = 7000) => {
   const plan = sequenceDrawPlan(layers, t, total);
@@ -699,7 +699,7 @@ test('an already-coded error survives a round trip unchanged', () => {
 });
 
 test('every published code is reachable and the list is frozen', () => {
-  // 7 since plans/104 P2: `SEQ_TILT_UNSUPPORTED` — a tilted camera composites by
+  // 7 since plans/104 P2: `SEQ_TILT_UNSUPPORTED` - a tilted camera composites by
   // CAPTURING the live DOM, and dom-to-image cannot photograph a playing <video>, so
   // that one combination refuses with a visible notice instead of exporting a frozen
   // frame under the whole move (§6.4).
@@ -822,7 +822,7 @@ test('planner alpha and transform match the clock frame for frame', () => {
 
 test('regression: a crossfade never outlives the clip it hands over to', () => {
   // Reported: `ms = min(a.exitMs, b.enterMs)` is bounded by neither clip, so a
-  // 1000 ms handover into a 200 ms clip kept A alive 800 ms past the END of B —
+  // 1000 ms handover into a 200 ms clip kept A alive 800 ms past the END of B - 
   // and recTransition's alpha holds at exactly 1.0 for the first 40% of a fade, so
   // A came back at FULL opacity on top of whatever followed.
   const layers = [
@@ -892,7 +892,7 @@ test('activeFrameWindow gives a static layer a window but nothing to decode', ()
 
 test('regression: a layer the executor never drew is not "truncated"', () => {
   // Reported: `decoded` counts DRAWS, and drawItem returns early for alpha <= 0 or a
-  // zero-size box — so a video kept only for its audio (opacity 0) decoded nothing
+  // zero-size box - so a video kept only for its audio (opacity 0) decoded nothing
   // and failed the WHOLE export. Nothing asked ⇒ nothing concluded.
   const r = reconcileDecoded({ expectedSec: 3, decodedFrames: 0, lastTsSec: 0, fps: 30, requestedFrames: 0 });
   assert.deepEqual(r, { ok: true, shortfallSec: 0 });
@@ -903,7 +903,7 @@ test('regression: a layer the executor never drew is not "truncated"', () => {
 
 test('regression: a low-frame-rate source is not "truncated"', () => {
   // Reported: the tolerance is in span frames but lastSourceSec is a PTS, which lags
-  // the request by up to one SOURCE frame — 83 ms on a 12 fps screen recording
+  // the request by up to one SOURCE frame - 83 ms on a 12 fps screen recording
   // against a 67 ms tolerance. A complete export died after encoding every frame.
   const twelveFps = reconcileDecoded({
     expectedSec: 2, decodedFrames: 60, lastTsSec: 2 - 1 / 12, fps: 30,
@@ -922,7 +922,7 @@ test('regression: a low-frame-rate source is not "truncated"', () => {
 test('regression: requests past the source\'s own end are not evidence', () => {
   // Reported: a clip trimmed to (or past) the end of its media, and every crossfade
   // tail, deliberately request source times that cannot exist. 78 requests, 18 of
-  // them past a 2 s source, 60 answered — a complete decode.
+  // them past a 2 s source, 60 answered - a complete decode.
   const overTrimmed = reconcileDecoded({
     expectedSec: 2, decodedFrames: 60, lastTsSec: 2 - 1 / 30, fps: 30,
     requestedFrames: 78, unreachableFrames: 18, sourceFrameSec: 1 / 30,
@@ -951,7 +951,7 @@ test('the truncation guard still fires with every new field supplied', () => {
 // ── 11. authored easing ─────────────────────────────────────────────────────
 //
 // The ease is a per-PHASE string read straight off the box and handed to
-// recTransition, which governs GEOMETRY only (alpha keeps its own ramp — see
+// recTransition, which governs GEOMETRY only (alpha keeps its own ramp - see
 // lib/transitions.ts). It is deliberately NOT validated on the way in: the curve
 // module is the single validator, so a junk value means the same thing to the
 // planner as it does to the clock, which is "the preset's own curve".
@@ -1004,7 +1004,7 @@ test('an unauthored or junk curve plans exactly what it planned before the contr
 
 test('the crossfade tail keeps the curve the AUTHOR wrote, not the junction\'s kind', () => {
   // At a junction the outgoing kind is 'fade', derived from the two neighbours rather
-  // than read off either field — but the curve still belongs to A's authored exit.
+  // than read off either field - but the curve still belongs to A's authored exit.
   const layers = [
     fakeLayer({ idx: 0, lane: 'seq', startMs: 0, durMs: 1000, rect: { x: 0, y: 0, w: 640, h: 360, rot: 0 }, exit: 'fade', exitMs: 400, exitEase: 'overshoot' }),
     fakeLayer({ idx: 1, lane: 'seq', startMs: 1000, durMs: 1000, enter: 'fade', enterMs: 400 }),
@@ -1016,7 +1016,7 @@ test('the crossfade tail keeps the curve the AUTHOR wrote, not the junction\'s k
 });
 
 test('PARITY: an authored curve moves the planner and the clock the SAME way', () => {
-  // The load-bearing one. The preview the user scrubs and the file that gets rendered
+  // The essential one. The preview the user scrubs and the file that gets rendered
   // read the ease from the same attributes through two different modules; a drift here
   // is exactly the class of bug this whole file exists to make impossible.
   for (const [enterEase, exitEase] of [['', ''], ['linear', 'linear'], ['overshoot', 'anticipate'], ['cubic-bezier(0.2,1.4,0.6,1)', 'wobble']]) {
@@ -1095,7 +1095,7 @@ test('frames stage: each timed [data-pdf-page] is a frameScene layer', () => {
     assert.equal(l.frameScene, true, 'a [data-pdf-page] page is a frameScene');
     assert.equal(l.kind, 'static', 'a frame page is photographed whole → static');
   }
-  // The authored x/y are still read verbatim — the committed geometry is untouched.
+  // The authored x/y are still read verbatim - the committed geometry is untouched.
   assert.deepEqual(stage.layers.map((l) => l.rect.x), [0, 1120, 2240]);
 });
 
@@ -1106,7 +1106,7 @@ test('object-clip .lolly-box is NOT a frameScene', () => {
 
 test('normalizeFrameScene re-anchors a frame page to (0,0,nativeW,nativeH)', () => {
   const stage = parseSequenceStage(framesStageOf())!;
-  const nativeW = stage.layers[0]!.rect.w;   // 1080 — the first frame's own size
+  const nativeW = stage.layers[0]!.rect.w;   // 1080 - the first frame's own size
   const nativeH = stage.layers[0]!.rect.h;
   for (const l of stage.layers) {
     const n = normalizeFrameScene(l, nativeW, nativeH);
@@ -1135,7 +1135,7 @@ test('normalizeFrameScene leaves an object-clip .lolly-box untouched', () => {
 test('normalized slides gate one-at-a-time across the sequence', () => {
   const stage = parseSequenceStage(framesStageOf())!;
   // Exactly one slide is active in each window (gating is by time, unaffected by the
-  // spatial normalisation — so with the off-canvas anchor gone, every slide shows).
+  // spatial normalisation - so with the off-canvas anchor gone, every slide shows).
   for (const [t, wantIdx] of [[500, 0], [2500, 1], [4500, 2]] as const) {
     const active = sequenceDrawPlan(stage.layers, t, 6000);
     assert.equal(active.length, 1, `one slide active at t=${t}`);
@@ -1143,7 +1143,7 @@ test('normalized slides gate one-at-a-time across the sequence', () => {
   }
 });
 
-// ── plans/104 — depth, keyframes, and the two evaluators ────────────────────
+// ── plans/104 - depth, keyframes, and the two evaluators ────────────────────
 //
 // The feature adds two attributes (`data-t-z`, `data-t-kf`) that BOTH readers have
 // to read the same way, a fold (§4.1) that both have to compose in the same order,
@@ -1248,7 +1248,7 @@ test('DEPTH FLOOR: a document with no z and no kf writes not one new property', 
 
 test('DEPTH FLOOR: the fold at eff = 1 is the transition offset EXACTLY, not within epsilon', () => {
   // The naive `projectLayer` answer for this case is 0.10000000000002274. A document
-  // that uses no depth may not move by that much, so the fold short-circuits — and
+  // that uses no depth may not move by that much, so the fold short-circuits - and
   // this is the assertion that says so out loud.
   const view = planCameraView(PLAN_ENV, 0);
   const fold = foldKfPose({
@@ -1417,7 +1417,7 @@ test('§4.2 Z-ORDER: the DOM expresses the same order as z-index, and only when 
   assert.deepEqual(els.map((e) => e.style.zIndex), ['1', '2'], 'A (z 0) under B (z 200)');
   applyTimeToElements(els, 1000, ctx);
   assert.deepEqual(els.map((e) => e.style.zIndex), ['2', '1'], 'the order swapped with the curves');
-  // Restoring hands the authored `auto` back — the write is reversible like every other.
+  // Restoring hands the authored `auto` back - the write is reversible like every other.
   ctx.store.restoreAll();
   assert.deepEqual(els.map((e) => e.style.zIndex), ['', '']);
 });
@@ -1426,7 +1426,7 @@ test('§4.2 Z-ORDER: the DOM ranks the SAME SET the planner sorts — flat boxes
   // THE COUNTER-EXAMPLE THAT FORCED THIS. In CSS a positioned box with an integer
   // `z-index` paints in a HIGHER stacking level than every `auto` sibling, so ranking
   // only the boxes the fold touched means "everything lifted floats above everything
-  // flat" — which is the opposite of a depth sort the moment a box is SUNKEN. A flat
+  // flat" - which is the opposite of a depth sort the moment a box is SUNKEN. A flat
   // box (DOM idx 0) and a `z: -200` one (idx 1): the planner paints the sunken one
   // FIRST, and a projecting-only rank painted it last.
   const flat = depthBox({ left: 0, time: 'data-t-start="0" data-t-dur="4000"' });
@@ -1451,7 +1451,7 @@ test('§4.2 Z-ORDER: the DOM ranks the SAME SET the planner sorts — flat boxes
   assert.deepEqual(els.map((e) => e.style.zIndex), ['2', '1'],
     'and the flat box is RANKED, not left on `auto` above everything');
 
-  // Three boxes, flat / sunken / flat — the case where a subset rank re-orders two
+  // Three boxes, flat / sunken / flat - the case where a subset rank re-orders two
   // boxes that never authored anything at all.
   const three = depthStage(
     depthBox({ left: 0, time: 'data-t-start="0" data-t-dur="4000"' })
@@ -1487,7 +1487,7 @@ test('§4.2 Z-ORDER: a foreign writer owns the slot — a dragged box keeps its 
 
 test('the projection anchor follows a LIVE gesture, not the pre-drag centre', () => {
   // `applyLiveRect` moves a box during a drag by writing `left`/`top` onto the element
-  // — no model write, no repaint. `left`/`top` are never part of the composed surface,
+  // - no model write, no repaint. `left`/`top` are never part of the composed surface,
   // so the inline value is always the authored one and must be re-read every frame.
   const node = depthStage(depthBox({ left: 200, time: 'data-t-start="0" data-t-dur="4000" data-t-z="300"' }));
   const el = node.querySelector('.lolly-box') as HTMLElement;
@@ -1580,7 +1580,7 @@ test('§5.4 EXCLUSIONS: a frame page is out of scope for the projection, transit
 test('§5.4 EXCLUSIONS: a FRAMES document is out of depth scope whole — in both evaluators', () => {
   // Not only its pages. A frames-as-scenes slideshow lays its slides side by side on
   // the pasteboard, so the exporter sizes its output to the FIRST TIMED FRAME's box
-  // while the applier measures the artboard — two different W's, and the projection's
+  // while the applier measures the artboard - two different W's, and the projection's
   // principal point is W/2. Both readers therefore refuse the whole document rather
   // than one of them guessing the other's number (§5.4: "camera + kf apply only to
   // boxes on a [data-sequence] stage; frame pages are excluded").
@@ -1596,8 +1596,8 @@ test('§5.4 EXCLUSIONS: a FRAMES document is out of depth scope whole — in bot
   const stage = parseSequenceStage(wrap)!;
   assert.deepEqual(stage.layers.map((l) => l.frameScene), [true],
     'the frame page is the only layer the exporter draws');
-  // Which is exactly why the DOM applier — whose element list is every `[data-t-start]`
-  // on the stage, boxes included — must not pose that box either. Posed in the preview
+  // Which is exactly why the DOM applier - whose element list is every `[data-t-start]`
+  // on the stage, boxes included - must not pose that box either. Posed in the preview
   // and baked flat into the frame's plate is the divergence this gate closes.
   const els = [...wrap.querySelectorAll<HTMLElement>('.lolly-box')];
   applyTimeToElements(els, 1000, applyCtx(4000));
@@ -1611,7 +1611,7 @@ test('§5.4 EXCLUSIONS: a FRAMES document is out of depth scope whole — in bot
 test('§4.4 DOF: the blur the viewer sees is the engine\'s number — not eff² of it', () => {
   // `dofBlur` already carries `eff(z)·eff(f)` and is defined as "px at stage-native
   // scale", i.e. what the viewer sees. But BOTH executors apply `PlanItem.blur` in the
-  // LAYER's own space and then magnify by `item.scale` — the canvas blurs a
+  // LAYER's own space and then magnify by `item.scale` - the canvas blurs a
   // plate-resolution scratch and draws it under `ctx.scale(item.scale)`; CSS applies
   // `filter` before `transform`. So the DOF term has to be divided by the projection's
   // own eff on the way in, or it lands squared (up to 100× at the guard).
@@ -1629,7 +1629,7 @@ test('§4.4 DOF: the blur the viewer sees is the engine\'s number — not eff² 
   assert.ok(Math.abs(item.blur * item.scale - want) < 1e-9,
     `screen blur ${item.blur * item.scale} should be ${want}`);
   assert.ok(Math.abs(item.blur - want) > 1e-6, 'which is NOT the raw term (the vacuity guard)');
-  // The authored blur is a layer-space number and keeps its eff magnification — that
+  // The authored blur is a layer-space number and keeps its eff magnification - that
   // is what a CSS `filter: blur()` under a `transform: scale()` has always done.
   const withAuthored = sequenceDrawPlan(
     parseSequenceStage(depthStage(depthBox({
@@ -1653,7 +1653,7 @@ test('§5.5 BLUR: the DOM rewrites only the blur term, keeps the shadow, and res
   // point: `readLayer` reads the authored blur off the LIVE element, so parsing a
   // stage the playhead has already posed would read a composed filter as if it were
   // authored and blur it twice (2 + 6 → 8, then 8 + 6 → 14). That is the export-time
-  // read/restore seam plan §6 point 0 exists to close — pinned here so a future edit
+  // read/restore seam plan §6 point 0 exists to close - pinned here so a future edit
   // that removes the restore trips a test rather than shipping a soft picture.
   const stage = parseSequenceStage(node)!;
   const ctx = applyCtx(4000);
@@ -1668,7 +1668,7 @@ test('§5.5 BLUR: the DOM rewrites only the blur term, keeps the shadow, and res
   assert.equal(el.style.filter, 'blur(2px) drop-shadow(0px 21px 46px #00000055)');
 });
 
-// ── the load-bearing one: DOM writes == plan numbers, with kf active ────────
+// ── the essential one: DOM writes == plan numbers, with kf active ────────
 
 test('PARITY: with keyframes and a lift active, the applier writes exactly what the planner planned', () => {
   const cases: { name: string; style: string; time: string }[] = [
@@ -1740,7 +1740,7 @@ test('PARITY: and the keyframe track is not a no-op in either evaluator', () => 
   assert.notEqual(n3(a.plan.dx), n3(b.plan.dx), 'the track really did move the planner');
   assert.notEqual(a.dom.dx, b.dom.dx, 'and the applier');
   assert.notEqual(n3(a.plan.scale), n3(b.plan.scale));
-  // The lift itself is not a no-op either — eff is a real magnification at 180px.
+  // The lift itself is not a no-op either - eff is a real magnification at 180px.
   assert.ok(a.plan.scale > 1.15, 'a 180px lift magnifies');
   assert.ok(a.plan.scale < KF_EFF_MAX);
 });
@@ -1784,9 +1784,9 @@ test('§4.2 Z-ORDER: a z curve returning to the board takes its z-index with it'
 // ── §6 POINT 0: the export-time read/restore seam ──────────────────────────
 //
 // `renderSequence` parses and photographs the LIVE artboard, and the preview clock has
-// been writing on it. Every geometry read `readLayer` takes is an AUTHORED read — the
+// been writing on it. Every geometry read `readLayer` takes is an AUTHORED read - the
 // rotation off `style.transform`, the opacity off `style.opacity`, the blur off
-// `style.filter` — so with the playhead parked mid-keyframe those reads come back
+// `style.filter` - so with the playhead parked mid-keyframe those reads come back
 // pre-posed, and the export then poses them again. The playhead can be parked anywhere
 // when an export starts; that is what makes this the seam and not an edge case.
 
@@ -1813,7 +1813,7 @@ test('§6 POINT 0: withAuthoredDom hands an export the authored stage, mid-keyfr
   const node = depthStage(depthBox({ style: SEAM_STYLE, time: SEAM_TIME }));
   const el = node.querySelector('.lolly-box') as HTMLElement;
   const session = createSequenceTime(node);
-  // Parked ANYWHERE — the sweep is the test. Every one of these is a frame the user
+  // Parked ANYWHERE - the sweep is the test. Every one of these is a frame the user
   // could have left the playhead on when they pressed Export.
   for (const t of [0, 240, 750, 1500, 2100, 2999]) {
     session.apply(t);
@@ -1851,7 +1851,7 @@ test('§6 POINT 0: the writer stays stood down for the WHOLE scope, not just the
   assert.deepEqual(inside, { transform: '', filter: 'blur(2px) drop-shadow(0px 2px 10px #00000055)' },
     'nothing the clock asked for reached the DOM while the scope was held');
   // On the way out it re-asserts the LATEST time it was asked for, not the one it was
-  // suspended at — a clock that kept running catches up rather than jumping back.
+  // suspended at - a clock that kept running catches up rather than jumping back.
   const at600 = el.style.transform;
   session.apply(600);
   assert.equal(el.style.transform, at600, 'resumed at t=600, the last frame requested');
@@ -1880,7 +1880,7 @@ test('§6 POINT 0: a CONTACT SHEET opens its own session on an authored stage', 
   // `renderSequenceCuts` creates a second `createSequenceTime` on the SAME root the
   // preview clock is posing, and `AuthoredStore.get()` captures whatever is on the
   // element at first touch. Without the scope, every one of the N stills carries the
-  // frame the user happened to be parked on, baked in — the module's own "cut 2 would
+  // frame the user happened to be parked on, baked in - the module's own "cut 2 would
   // re-capture what cut 1 wrote" comment, one level up.
   const node = depthStage(depthBox({ style: SEAM_STYLE, time: SEAM_TIME }));
   const el = node.querySelector('.lolly-box') as HTMLElement;
@@ -1955,7 +1955,7 @@ test('§6 POINT 0: a LIVE TAKE holds the scope from start to stop', async () => 
 });
 
 test('§6 POINT 0 FLOOR: a document with no live writer takes the identical path', async () => {
-  // No clock, no session — a CLI render, a headless test, an export of a stage nobody
+  // No clock, no session - a CLI render, a headless test, an export of a stage nobody
   // ever played. The scope must be transparent, down to the parse being the same one.
   const node = depthStage(depthBox({ style: SEAM_STYLE, time: SEAM_TIME }));
   const el = node.querySelector('.lolly-box') as HTMLElement;
@@ -1994,7 +1994,7 @@ test('§6 POINT 0 FLOOR: a clean document parses the same posed or not', async (
 
 test('§6.5: a thumbnail sees the authored pose, mid-keyframe exactly as at rest', () => {
   // `authoredStyleOf` is what clip-thumbs photographs through (it cannot import this
-  // module — see the seam note there). At rest it answers null and the shot changes
+  // module - see the seam note there). At rest it answers null and the shot changes
   // nothing; mid-keyframe it answers the SAME authored values, which is the whole of
   // "a shot mid-keyframe equals a shot at rest".
   const node = depthStage(depthBox({ style: SEAM_STYLE, time: SEAM_TIME }));
@@ -2029,7 +2029,7 @@ test('§6.5: a thumbnail sees the authored pose, mid-keyframe exactly as at rest
 
 // ── P1a: real cameras, and the w/h channels ─────────────────────────────────
 //
-// P0 shipped the projection with the camera set permanently empty — every stage ran
+// P0 shipped the projection with the camera set permanently empty - every stage ran
 // at the DEFAULT camera, which is an identity for a flat board and a magnifier for a
 // lifted one. P1 fills it in from the stage's own `camera` boxes, and the tests below
 // are the ones that would have caught each way that can go wrong: a camera derived
@@ -2064,7 +2064,7 @@ test('§5.4 CAMERAS: derived from the stage\'s own layers, with butted half-open
   assert.equal(planCameraView({ ...PLAN_ENV, cameras: cams }, 999).x, -100);
   assert.equal(planCameraView({ ...PLAN_ENV, cameras: cams }, 1000).x, 300);
   // …and past every window there is no camera covering t at all, which resolves to the
-  // DEFAULT camera — never a literal identity, and never the last one that was on.
+  // DEFAULT camera - never a literal identity, and never the last one that was on.
   const after = planCameraView({ ...PLAN_ENV, cameras: cams }, 3000);
   assert.equal(after.x, 0);
   assert.equal(after.z, 0);
@@ -2084,7 +2084,7 @@ test('§5.4 CAMERAS: an untimed camera is "Always on" and covers every t', () =>
 test('§5.4 CAMERAS: BOTH evaluators derive the same camera from the same stage', () => {
   // The audio precedent, restated for the camera: this only works because the applier
   // detects `[data-cam]` for itself rather than being handed a list. A dolly to
-  // camZ = -600 magnifies a FLAT box (eff = 1200/(1200+600)... no — camZ negative pulls
+  // camZ = -600 magnifies a FLAT box (eff = 1200/(1200+600)... no - camZ negative pulls
   // the camera toward the surface, so eff > 1), which is exactly what makes it visible
   // to a parity assertion at all.
   const html = camBox('data-t-kf="t0_z-600"') + depthBox({ time: 'data-t-start="0" data-t-dur="4000"' });
@@ -2109,11 +2109,11 @@ test('§5.4 CAMERAS: BOTH evaluators derive the same camera from the same stage'
 
 test('§5.4 CAMERAS: the SESSION finds the "Always on" camera — not just a hand-fed list', () => {
   // THE TEST THE OLD PARITY BLOCK COULD NOT FAIL. Every assertion above hands the
-  // applier `querySelectorAll('.lolly-box')` — the PLANNER's element set — and so never
+  // applier `querySelectorAll('.lolly-box')` - the PLANNER's element set - and so never
   // exercises `createSequenceTime`'s own selector, which was `[data-t-start]` alone.
   // §5.4's headline scene camera is UNTIMED ("the first depth interaction auto-creates
   // ONE untimed camera box"), the hooks emit no `data-t-start` for a scenery box, and
-  // the marker is a child div — so the one box whose whole job is to move everything
+  // the marker is a child div - so the one box whose whole job is to move everything
   // else was invisible to the preview. The camera-pan drag, the wheel dolly and all
   // five presets committed to the model and then did nothing on screen, while the
   // export panned correctly: 240 px of divergence on the fixture below.
@@ -2146,7 +2146,7 @@ test('§5.5 BACKGROUND PLANE: the preview projects it, and it never takes a rank
   // "Both paths project the bg through the same projectLayer … Golden: pan moves the
   // bg." The export photographs the stage with every `.lolly-box` and timed frame page
   // hidden and projects THAT plate; the preview's applier only ever touched elements
-  // with timing, so anything else the stage paints — the bound-path connector layer —
+  // with timing, so anything else the stage paints - the bound-path connector layer - 
   // sat frozen while the composition slid across it. A flat colour artboard is
   // projection-invariant, which is what made this invisible until a document had
   // connectors.
@@ -2175,7 +2175,7 @@ test('§5.5 BACKGROUND PLANE: the preview projects it, and it never takes a rank
       assert.equal(w.sc, n3(proj.scale), `bg scale at ${t}`);
       // …and it is BELOW every layer, always. The compositor draws the bg before the
       // first item, so a SUNKEN box (which ranks first among the layers) must still
-      // paint above it — a rank on the plane would put the connector artwork over it
+      // paint above it - a rank on the plane would put the connector artwork over it
       // in the preview and under it in the export.
       assert.equal(planeEl.style.zIndex, '', 'the plane takes no rank');
       assert.ok(sunken.style.zIndex !== '', 'while the sunken box does');
@@ -2211,7 +2211,7 @@ test('§4.1 FOLD under a REAL camera: transition offsets are INSIDE the projecti
     assert.equal(w.dy, n3(item.dy), `dy at ${t}`);
     assert.equal(w.sc, n3(item.scale), `scale at ${t}`);
     // `written()` re-sums the rotate terms in float, so this one compares at the
-    // quantum rather than by identity — the other four are single values.
+    // quantum rather than by identity - the other four are single values.
     assert.ok(Math.abs(w.rot - n3(item.rot)) < 1e-3, `rot at ${t}`);
     assert.equal(w.alpha, n4(item.alpha), `alpha at ${t}`);
     if (item.dx !== 0) moved++;
@@ -2223,7 +2223,7 @@ test('camerasMove: the P1 ownership question, answered once for the whole render
   assert.equal(camerasMove(null), false);
   assert.equal(camerasMove([]), false);
   // A camera parked at the documented default moves nothing, so a flat layer keeps its
-  // plate-baked filter — the byte-identity floor survives an inert camera box.
+  // plate-baked filter - the byte-identity floor survives an inert camera box.
   assert.equal(camerasMove([{ start: 0, end: null, base: null, track: null }]), false);
   assert.equal(camerasMove([{ base: { z: -1 } }]), true, 'a dolly');
   assert.equal(camerasMove([{ base: { a: 0.4 } }]), true, 'an aperture: DOF varies with it');
@@ -2260,7 +2260,7 @@ test('§5.2 w/h: a keyed size REPLACES the box\'s own, and both paths move the c
   assert.equal(el.style.width, '960px');
   assert.equal(el.style.height, '360px');
 
-  // The centre moved with the growth — a box grows from its top-left in BOTH paths —
+  // The centre moved with the growth - a box grows from its top-left in BOTH paths - 
   // and with no camera the projection is still an exact identity, so nothing else did.
   assert.equal(mid.dx, 0, 'no camera: the fold short-circuits and the offset stays zero');
   assert.equal(mid.scale, 1);
@@ -2273,7 +2273,7 @@ test('§5.2 w/h: the projection anchors on the RESOLVED centre, not the authored
   // asserted against the engine's own fold rather than against a remembered number.
   // The camera needs a DOLLY as well as a pan: at eff = 1 the projected offset is
   // exactly `-camX` whatever the centre is, so a pan alone could not tell a right
-  // anchor from a wrong one. This is the shape of test that has to be built from the
+  // anchor from a wrong one. This is the kind of test that has to be built from the
   // formula rather than from a screenshot.
   const view = { ...planCameraView({ ...PLAN_ENV, cameras: [{ base: { x: 200, z: -400 } }] }, 0) };
   const base = { tr: REST, pose: {}, zField: 0, authoredBlur: 0, cx: 520, cy: 280, view };
@@ -2297,7 +2297,7 @@ test('§5.2 w/h: the layout write is REVERSIBLE, and an unsized document never i
   assert.equal(el.style.width, '640px', 'the AUTHORED declaration comes back, verbatim');
   assert.equal(el.style.height, '360px');
 
-  // A track that keys everything BUT the size writes no width at all — the reflow is
+  // A track that keys everything BUT the size writes no width at all - the reflow is
   // gated on `sized`, so the exception stays an exception.
   const other = depthStage(depthBox({
     time: 'data-t-start="0" data-t-dur="3000" data-t-z="200" data-t-kf="t0_x0_s1_o1_b0*t2000_x80_s1.3_o0.4_b6"',
@@ -2323,7 +2323,7 @@ test('§5.2 w/h: a size key round-trips the wire, and clamps rather than sizing 
   assert.equal(kfTrackOf('t0_w-40')[0]?.v.w, 0, 'a size is never negative');
   assert.equal(kfTrackOf('t0_w999999')[0]?.v.w, KF_CLAMPS.w[1], 'and never past the wire clamp');
   // A zero-sized BOX has no size to replace, so a `w` token on it is inert rather than
-  // a division by nothing — `boxW > 0` is the gate.
+  // a division by nothing - `boxW > 0` is the gate.
   const fold = foldKfPose({
     view: planCameraView(PLAN_ENV, 0), cx: 0, cy: 0, tr: REST,
     pose: { w: 400 }, zField: 0, authoredBlur: 0, boxW: 0, boxH: 0,

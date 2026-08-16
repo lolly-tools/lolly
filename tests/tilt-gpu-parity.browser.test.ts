@@ -1,10 +1,10 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
- * plans/104 P2b — THE GPU QUAD COMPOSITOR, at parity with P2a, in a real browser.
+ * plans/104 P2b - THE GPU QUAD COMPOSITOR, at parity with P2a, in a real browser.
  *
  * P2b (`sequence-gl.ts` + `renderGlComposite`) replaces the P2a capture tier's 127
  * independent dom-to-image rasters with one clean plate texture per layer, resampled on
- * the GPU through the engine's per-quad homography — the flicker fix. This is the gate
+ * the GPU through the engine's per-quad homography - the flicker fix. This is the gate
  * the plan requires before P2b can ship (§6.4: "P2b behind a flag with an image-diff
  * parity harness against P2a"). node cannot run it: `glQuadCompositorSupported()` is
  * false without a real WebGL2, so the whole thing rides the browser tier and, when the
@@ -12,20 +12,20 @@
  * twice.
  *
  * The scene is a CONSTANT −45° pitch (not animated), for two reasons: a single decoded
- * frame can be checked against a hand-computed projection, and — because the picture is
- * nominally identical every frame — the frame-to-frame delta is a clean read of temporal
+ * frame can be checked against a hand-computed projection, and - because the picture is
+ * nominally identical every frame - the frame-to-frame delta is a clean read of temporal
  * jitter (the flicker). Four claims:
  *
- *  1. **P2b takes the GPU path; P2a takes the capture path** — each announces itself, so
+ *  1. **P2b takes the GPU path; P2a takes the capture path** - each announces itself, so
  *     a browser with no WebGL2 (P2b silently fell back to P2a) is detected and skipped,
  *     never passed off as parity.
- *  2. **P2b draws the TILTED picture correctly** — both cards' centroids land where the
+ *  2. **P2b draws the TILTED picture correctly** - both cards' centroids land where the
  *     engine's own `projectSurfacePoint` puts them, same tolerance as the P2a tier.
- *  3. **P2b is at PARITY with P2a** — the same output frame of the two exports differs by
+ *  3. **P2b is at PARITY with P2a** - the same output frame of the two exports differs by
  *     only AA/codec noise (mean luma diff small). This is the parity gate, and it is also
  *     the alarm for the premultiplied-alpha readback risk: a mismatched alpha model
  *     darkens P2b's edges and blows this number up.
- *  4. **P2b is temporally STABLE (the flicker fix)** — on a constant pose, P2b's
+ *  4. **P2b is temporally STABLE (the flicker fix)** - on a constant pose, P2b's
  *     frame-to-frame delta is ≤ P2a's: one texture resampled identically every frame
  *     cannot shimmer the way independent per-frame rasters do.
  */
@@ -45,7 +45,7 @@ const FPS = 30;
 const CARD: [number, number, number] = [230, 60, 90];
 const LIFTED: [number, number, number] = [60, 190, 230];
 
-const TILT_KF = 't0_rx-45';   // constant pitch — same picture every frame
+const TILT_KF = 't0_rx-45';   // constant pitch - same picture every frame
 
 interface BoxLike {
   x?: number; y?: number; w?: number; h?: number; bg?: string;
@@ -123,7 +123,7 @@ describe('plans/104 P2b — the GPU quad compositor at parity with P2a', { skip:
     assert.ok(r.cap.usedCapture, 'the P2a run must take (and log) the capture tier');
     assert.equal(r.gl.err, null, `the P2b GPU export failed: ${JSON.stringify(r.gl.err)}`);
 
-    // 1. If WebGL2 is absent, P2b fell back to P2a — do not pretend that is parity.
+    // 1. If WebGL2 is absent, P2b fell back to P2a - do not pretend that is parity.
     if (!r.gl.usedGpu) {
       say('[skip] the launched browser has no WebGL2 quad compositor — P2b fell back to P2a; GPU parity not exercised here.');
       console.log('[browser] no WebGL2 — GPU compositor parity SKIPPED (P2a fallback verified to still export).');

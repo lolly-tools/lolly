@@ -9,7 +9,7 @@
  * the agreement is asserted here against the shipped artifacts.
  *
  * Tests the BUILT site (`shells/web/public/info/`), which is what actually ships and
- * is committed, rather than importing build.ts — that module self-executes a full
+ * is committed, rather than importing build.ts - that module self-executes a full
  * 27-locale build on import and exports nothing.
  */
 import { test, describe } from 'node:test';
@@ -22,7 +22,7 @@ const INFO = fileURLToPath(new URL('../shells/web/public/info/', import.meta.url
 
 interface Record_ { p: string; t: string; h: string; a: string; x: string }
 
-/** English, a CJK locale, and an RTL locale — the three anchor-derivation paths. */
+/** English, a CJK locale, and an RTL locale - the three anchor-derivation paths. */
 const LOCALES = ['en', 'zh', 'ar'];
 
 const dirFor = (lang: string) => (lang === 'en' ? INFO : resolve(INFO, lang));
@@ -30,7 +30,7 @@ const indexFor = (lang: string): Record_[] =>
   JSON.parse(readFileSync(resolve(dirFor(lang), 'search-index.json'), 'utf-8')) as Record_[];
 
 // The index (search-index.json) is COMMITTED, but the rendered pages it is
-// validated against are build products (public/info/*.html is gitignored) — so
+// validated against are build products (public/info/*.html is gitignored) - so
 // gating on the index alone passes in every fresh checkout and then fails on
 // the absent pages. A page file must be present too before this suite can
 // judge agreement between the two.
@@ -96,8 +96,8 @@ describe('docs search index', { skip: built ? false : 'run `npm run build:info` 
   }
 
   test('a heading that strips to nothing still gets a usable anchor', () => {
-    // Every non-Latin heading used to render id="" — the same empty id on every
-    // heading of the page — because the slug character class is [a-z0-9]. The
+    // Every non-Latin heading used to render id="" - the same empty id on every
+    // heading of the page - because the slug character class is [a-z0-9]. The
     // positional fallback is what makes a deep link into a translated page work.
     const zh = indexFor('zh').filter((r) => r.a.startsWith('section-'));
     assert.ok(zh.length > 20, `expected positional anchors in zh, got ${zh.length}`);
@@ -106,7 +106,7 @@ describe('docs search index', { skip: built ? false : 'run `npm run build:info` 
   });
 
   test('the index stays small enough to fetch on first keystroke', () => {
-    // Fetched lazily, once, only when someone actually searches — but it is still
+    // Fetched lazily, once, only when someone actually searches - but it is still
     // a blocking wait before the first result, so the ceiling is deliberate.
     for (const lang of LOCALES) {
       const bytes = readFileSync(resolve(dirFor(lang), 'search-index.json')).byteLength;

@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
- * Crop culling for the page-SVG path — engine/src/pdf-svg.ts
+ * Crop culling for the page-SVG path - engine/src/pdf-svg.ts
  * (cullPdfNodes / pdfNodeExtent / pdfNodeElementKind).
  *
  * The point of culling is that a cropped capture of a real app page spends
@@ -18,9 +18,9 @@
  * translate/clip-path it finds). Two invariants are then checked over a seeded
  * random corpus:
  *
- *   no silent cull  — if the emitted markup for a node intersects the window,
+ *   no silent cull - if the emitted markup for a node intersects the window,
  *                     cullPdfNodes must keep that node
- *   superset        — pdfNodeExtent(n) must contain the emitted markup's bbox
+ *   superset - pdfNodeExtent(n) must contain the emitted markup's bbox
  *
  * That is what catches "someone changed textEl's baseline formula / added a
  * transform / reordered the dispatch and the extent function didn't follow".
@@ -88,7 +88,7 @@ const num = (tag: string, name: string, dflt = 0): number => {
 
 /**
  * Drawable-element bboxes of a pdfNodesToSvg document, in page space.
- * Deliberately re-derived from the markup — never from pdfNodeExtent — so the two
+ * Deliberately re-derived from the markup - never from pdfNodeExtent - so the two
  * can disagree and the test can say so. Clip-path wrappers ARE honoured (a clip
  * only removes ink, so ignoring them would make the oracle demand that clipped
  * plates be kept).
@@ -104,7 +104,7 @@ function markupBoxes(svg: string): Box[] {
   }
   // A <mask maskUnits="userSpaceOnUse" x y width height> renders neither its own
   // content nor the masked element outside that region, so the region bounds ink
-  // exactly like a clip — same treatment.
+  // exactly like a clip - same treatment.
   for (const m of svg.matchAll(/<mask id="([^"]+)"([^>]*)>/g)) {
     const t = `<mask${m[2]!}>`;
     clips.set(m[1]!, { x: num(t, 'x'), y: num(t, 'y'), w: num(t, 'width'), h: num(t, 'height') });
@@ -120,7 +120,7 @@ function markupBoxes(svg: string): Box[] {
     const f = top();
     // Zero-area boxes are kept: a <text>'s tspan anchors are POINTS at which ink
     // definitely starts, and dropping them would make the oracle blind to text.
-    // A box that a CLIP collapses to zero area is a different thing — no ink — so
+    // A box that a CLIP collapses to zero area is a different thing - no ink - so
     // the tolerance is decided before clipping, not after.
     const pointy = b.w === 0 || b.h === 0;
     let box: Box = { x: b.x + f.tx, y: b.y + f.ty, w: b.w, h: b.h };
@@ -214,8 +214,8 @@ const aa = (b: { x: number; y: number; w: number; h: number }): { x: number; y: 
 const winBox = (w: CullWindow): Box => ({ x: w.x, y: w.y, w: w.width, h: w.height });
 /**
  * Does `a` put ink inside `b`? `eps` discounts a sub-hundredth graze of the edge
- * (the serializer rounds geometry to 2dp). A degenerate dimension — a <text>
- * anchor point — only has to fall inside, not to overlap by an area.
+ * (the serializer rounds geometry to 2dp). A degenerate dimension - a <text>
+ * anchor point - only has to fall inside, not to overlap by an area.
  */
 const overlaps = (a: Box, b: Box, eps = 0): boolean => {
   const i = intersectBox(a, b);
@@ -237,7 +237,7 @@ test('pdfNodeElementKind mirrors the serializer dispatch, incl. the _vectorPath-
   assert.equal(pdfNodeElementKind(box({ kind: 'image', _imageXObject: 'img0' })), 'image');
   assert.equal(pdfNodeElementKind(box({ kind: 'text', text: 'hi', _outlinePath: ['M0 0L1 0'] })), 'outlined-text');
   // A baked vector path is carried on a kind:'image' node with _imageXObject unset
-  // OR set — _vectorPath wins in the serializer, so it must win here.
+  // OR set - _vectorPath wins in the serializer, so it must win here.
   assert.equal(pdfNodeElementKind(box({ kind: 'image', _vectorPath: 'M0 0L1 0Z', _imageXObject: 'img0' })), 'path');
   assert.equal(pdfNodeElementKind({ kind: 'image', x: 0, y: 0, w: 1, h: 1, rot: 0 } as PdfNode), 'none');
 });
@@ -321,8 +321,8 @@ test('a multi-line _outlinePath grows the extent by 1.4em per line', () => {
 
 test('a clipped full-page node (the `sh` / shadow-plate shape) collapses to its clip bbox', () => {
   // pdf-map's `sh` operator emits a node covering the WHOLE page; the only real
-  // extent is the clip stack. Without clip-aware extents this class of node —
-  // the heaviest, since it carries the gradient/tile — is unculled by construction.
+  // extent is the clip stack. Without clip-aware extents this class of node - 
+  // the heaviest, since it carries the gradient/tile - is unculled by construction.
   const n = box({
     x: 0, y: 0, w: PAGE.width, h: PAGE.height, fill: '#123456',
     _clips: [{ d: 'M700 1700L760 1700L760 1760L700 1760Z', evenOdd: false }],
@@ -368,7 +368,7 @@ test('nested clips intersect; an unparseable clip `d` stops the extent shrinking
   // clip1 ⊕ AA ∩ clip2 ⊕ AA = 399..501 (each clip contributes one padded edge)
   assert.deepEqual({ x: e.x, y: e.y, w: e.w, h: e.h }, aa({ x: 400, y: 400, w: 100, h: 100 }));
 
-  // An arc/H/V command is outside serializePath's vocabulary — degrade to "no clip
+  // An arc/H/V command is outside serializePath's vocabulary - degrade to "no clip
   // information" (keep the node's own extent) rather than to a wrong bbox.
   const arcClip = box({ x: 0, y: 0, w: 1000, h: 1000, _clips: [{ d: 'M0 0A50 50 0 0 1 10 10Z', evenOdd: false }] });
   const ea = pdfNodeExtent(arcClip)!;
@@ -431,7 +431,7 @@ test('a gradient node that yields no element ships no <defs> payload', () => {
   assert.match(pdfNodesToSvg([painted], PAGE), /<linearGradient id="pgrad0"/);
 
   // A _vectorPath that sanitises away to an empty `d` still classifies as 'path'
-  // and still asks for the gradient paint — but pathEl then yields no element.
+  // and still asks for the gradient paint - but pathEl then yields no element.
   // The def must not be emitted. (Before the reference-driven fix, gradientFill's
   // registration side effect shipped it anyway.)
   const emptyPath = box({ kind: 'image', _vectorPath: '"<>&', _vectorFill: '#00ff00', _gradient: grad as never });
@@ -452,7 +452,7 @@ test('a gradient node that yields no element ships no <defs> payload', () => {
 
 // ── §6.2 the differential oracle over a seeded random corpus ─────────────────
 
-/** mulberry32 — a tiny seeded PRNG so a failure reproduces from its seed. */
+/** mulberry32 - a tiny seeded PRNG so a failure reproduces from its seed. */
 function prng(seed: number): () => number {
   let a = seed >>> 0;
   return () => {
@@ -465,7 +465,7 @@ function prng(seed: number): () => number {
 
 /**
  * Glyph-ish outline for one line, in the shaper's own frame (baseline y=0, pen from
- * x=0, ascenders negative — shells/web/src/bridge/text.ts). `adv` is that LINE's
+ * x=0, ascenders negative - shells/web/src/bridge/text.ts). `adv` is that LINE's
  * advance, deliberately NOT the node's `w`: pdf-map derives `w` from the first line
  * only, so a corpus where every line is the node's width can never catch an extent
  * that trusts `w`. Uses the shaper's real vocabulary (M/L/Q/C/Z, comma-separated).
@@ -550,7 +550,7 @@ function randomNode(rnd: () => number): PdfNode {
       // How Chromium prints a CSS box-shadow (engine 1.63): a translucent fill over
       // a much larger area, with a /Luminosity soft mask carving the blur. The real
       // extent is the MASK region, so an unmasked reading of this node is a
-      // page-scale plate — the exact class of node culling has to bound.
+      // page-scale plate - the exact class of node culling has to bound.
       const mx = x, my = y, mw = Math.max(4, w * 0.4), mh = Math.max(4, h * 0.4);
       return {
         kind: 'box', x: Math.max(0, x - 200), y: Math.max(0, y - 200), w: w + 400, h: h + 400,
@@ -610,7 +610,7 @@ test('oracle: pdfNodeExtent is a superset of the emitted markup bbox', () => {
 
 /**
  * The ratchet the oracle above CANNOT provide. `markupBoxes` reads a `<text>`
- * element's tspan anchors — which are POINTS — because the width of a `<text>` run
+ * element's tspan anchors - which are POINTS - because the width of a `<text>` run
  * is decided by the font the renderer resolves, and no oracle in this process can
  * know it. That blind spot is precisely how a first-line-derived width estimate
  * survived review, so the invariant is pinned structurally instead: a node that
@@ -651,7 +651,7 @@ test('culling only removes, preserves paint order, and is byte-identical to seri
  * THE acceptance property: a cropped render must be PIXEL-IDENTICAL to the
  * uncropped-then-cropped render. Proven structurally rather than by rasterising:
  * every element the full document emits whose ink lies inside the window is
- * present, verbatim and in the same order, in the culled document — and the
+ * present, verbatim and in the same order, in the culled document - and the
  * culled document adds nothing. Since the serializer emits no filter/mask/blend
  * (see the soundness guard below), identical elements inside the viewBox ⇒
  * identical pixels inside the viewBox.
@@ -673,8 +673,8 @@ test('acceptance: the culled document contains exactly the full document`s in-wi
       j = at + 1;
     }
     // 2. every node with in-window ink kept ALL of its elements, in order.
-    //    Asked per NODE, not per element, because a node's clip wrapper — which is
-    //    what bounds an `sh` shading or a shadow plate — lives outside the element.
+    //    Asked per NODE, not per element, because a node's clip wrapper - which is
+    //    what bounds an `sh` shading or a shadow plate - lives outside the element.
     const wb = winBox(win);
     let k = 0;
     for (const n of nodes) {
@@ -691,9 +691,9 @@ test('acceptance: the culled document contains exactly the full document`s in-wi
 
 /**
  * THE ratchet on the number this feature exists for. A page shaped like a real
- * cropped capture — a viewport-sized raster (the re-sourced <canvas>: on the Mesh
+ * cropped capture - a viewport-sized raster (the re-sourced <canvas>: on the Mesh
  * Gradient page that one node is ~11.7 MB of base64), a ShadingType-1 tile pattern,
- * a full-page shadow plate, and a hundred ordinary controls — cropped to one small
+ * a full-page shadow plate, and a hundred ordinary controls - cropped to one small
  * control. If a future change makes culling ineffective, this fails.
  */
 test('ratchet: a small crop of a spread-out page yields well under 10% of the uncropped bytes', () => {
@@ -745,7 +745,7 @@ test('ratchet: a small crop of a spread-out page yields well under 10% of the un
 /** The drawable (non-defs) leaf elements of a page SVG, in paint order. */
 function drawableEls(svg: string): string[] {
   const body = svg.replace(/<defs>[\s\S]*?<\/defs>/g, '').replace(/^<svg[^>]*>/, '').replace(/<\/svg>$/, '');
-  // One alternation, so the result is in DOCUMENT order — two matchAll passes
+  // One alternation, so the result is in DOCUMENT order - two matchAll passes
   // concatenated would put every shape before every <text> and silently break any
   // paint-order assertion built on it.
   return [...body.matchAll(
@@ -757,11 +757,11 @@ const wrapSvg = (el: string): string => `<svg viewBox="0 0 1 1">${el}</svg>`;
 // ── §6.5 the soundness guard (anti-drift ratchet) ────────────────────────────
 
 /**
- * Culling in cullPdfNodes assumes everything the serializer emits is INTERSECTIVE —
+ * Culling in cullPdfNodes assumes everything the serializer emits is INTERSECTIVE - 
  * a node's ink never leaves its own geometry. `clip-path` and `mask` qualify (both
  * only remove ink, and pdfNodeExtent intersects with both); a filter, a blend mode,
  * a <use> or an unbounded mask would not. If you are adding one of those, that
- * assumption is now false — fix the culler in the same commit, don't relax this
+ * assumption is now false - fix the culler in the same commit, don't relax this
  * test.
  */
 test('soundness guard: everything the serializer emits is intersective (no filter, blend, <use>)', () => {
@@ -804,7 +804,7 @@ test('soundness guard: everything the serializer emits is intersective (no filte
     'preserveAspectRatio', 'data-group', 'xml:space', 'font-size', 'font-family', 'font-weight',
     'id', 'offset', 'stop-color', 'gradientUnits', 'gradientTransform', 'x1', 'y1', 'x2', 'y2',
     'fx', 'fy', 'fr', 'r', 'patternUnits', 'patternTransform',
-    // engine 1.63 soft masks — intersective, and only because of the two pins below
+    // engine 1.63 soft masks - intersective, and only because of the two pins below
     'mask', 'maskUnits', 'mask-type', 'style',
   ]);
   const unknown = [...attrs].filter((a) => !known.has(a));
@@ -815,8 +815,8 @@ test('soundness guard: everything the serializer emits is intersective (no filte
     assert.match(m[1]!, /^(?:rotate\([^)]*\)|translate\([^)]*\))$/, `unexpected transform: ${m[1]}`);
   }
   // PIN 3: no ANCESTOR transform. pdfNodeExtent computes page-space boxes per node,
-  // so a transform on a wrapper `<g>` — a `<g data-group>` run, a clip or a mask
-  // wrap — would move every node inside it and invalidate every extent at once.
+  // so a transform on a wrapper `<g>` - a `<g data-group>` run, a clip or a mask
+  // wrap - would move every node inside it and invalidate every extent at once.
   // The only transform-bearing group the serializer emits is outlinedTextEl's, which
   // wraps exactly one glyph `<path/>` and is accounted for in the extent.
   for (const m of svg.matchAll(/<g\b([^>]*)>/g)) {
@@ -843,7 +843,7 @@ test('soundness guard: everything the serializer emits is intersective (no filte
     }
   }
   // PIN 2: `mask=`/`clip-path=` only ever reference our own defs, and `style=` is
-  // only the mask's colour-interpolation hint — not a place ink can grow.
+  // only the mask's colour-interpolation hint - not a place ink can grow.
   for (const m of svg.matchAll(/\s(?:mask|clip-path)="([^"]*)"/g)) {
     assert.match(m[1]!, /^url\(#p(?:mask|clip)\d+\)$/, `unexpected paint reference: ${m[1]}`);
   }
@@ -910,7 +910,7 @@ test('adversarial: outlined text is bounded EXACTLY by its glyph paths, per line
 
 test('adversarial: a clip `d` in RELATIVE (lowercase) commands must not be scanned as absolute', () => {
   // serializePath only emits M/L/C/Z today, but a blacklist of absolute letters let
-  // `m`/`l`/`c`/`z` through — and a relative path read as absolute yields a bbox that
+  // `m`/`l`/`c`/`z` through - and a relative path read as absolute yields a bbox that
   // need not contain the real clip at all. Here the real clip is x900..950, y1900..1950
   // while an absolute reading gives x−50..900, y0..1900: disjoint in y.
   const n = box({
@@ -918,7 +918,7 @@ test('adversarial: a clip `d` in RELATIVE (lowercase) commands must not be scann
     _clips: [{ d: 'M900 1900l50 0l0 50l-50 0z', evenOdd: false }],
   });
   assert.equal(cullPdfNodes([n], { x: 900, y: 1900, width: 50, height: 50, pad: 0 }).nodes.length, 1);
-  // Uppercase-only paths must still shrink — the guard is a whitelist, not a retreat.
+  // Uppercase-only paths must still shrink - the guard is a whitelist, not a retreat.
   const abs = box({
     x: 0, y: 0, w: PAGE.width, h: PAGE.height, fill: '#123456',
     _clips: [{ d: 'M900 1900L950 1900L950 1950L900 1950Z', evenOdd: false }],
@@ -960,7 +960,7 @@ test('adversarial: an unscannable vector `d` fails open rather than trusting x/y
 test('adversarial: a clip edge that coincides with the node edge still paints a pixel', () => {
   // FOUND ON REAL CONTENT (tools gallery, 2026-07-26): a card backdrop
   //   <rect x="536.49" y="288.22" width="260.15" height="260.15" fill="#030711" opacity="0.06"/>
-  // nested in a <clipPath> spanning x 276.34..536.49 — a mathematically ZERO-WIDTH
+  // nested in a <clipPath> spanning x 276.34..536.49 - a mathematically ZERO-WIDTH
   // intersection. The extent said "no ink", the node was dropped, and the culled
   // render lost the 1-device-px column Chromium antialiases at that coincident edge
   // (23 px at ~2/255 in that instance; a visible grey hairline for an opaque fill).
@@ -989,7 +989,7 @@ test('adversarial: a node exactly on the window boundary', () => {
   // Touching edge-to-edge with no pad puts zero ink inside → drop is correct.
   assert.equal(cullPdfNodes([n], { x: 110, y: 100, width: 50, height: 10, pad: 0 }).nodes.length, 0);
   assert.equal(cullPdfNodes([n], { x: 50, y: 100, width: 50, height: 10, pad: 0 }).nodes.length, 0);
-  // A hundredth of overlap — the serializer's own rounding grain — must survive.
+  // A hundredth of overlap - the serializer's own rounding grain - must survive.
   assert.equal(cullPdfNodes([n], { x: 109.99, y: 100, width: 50, height: 10, pad: 0 }).nodes.length, 1);
   assert.equal(cullPdfNodes([n], { x: 50, y: 100, width: 50.01, height: 10, pad: 0 }).nodes.length, 1);
 });
@@ -997,7 +997,7 @@ test('adversarial: a node exactly on the window boundary', () => {
 // ── §6.8 the <defs> ↔ body contract, and the no-op guarantee ──────────────────
 
 /** Every `url(#id)` the body references must be defined. A culled def with a live
- *  reference renders as NO PAINT — a silent hole, not a smaller file. */
+ *  reference renders as NO PAINT - a silent hole, not a smaller file. */
 function assertNoDanglingRefs(svg: string, label: string): void {
   const defs = /<defs>([\s\S]*?)<\/defs>/.exec(svg)?.[1] ?? '';
   const defined = new Set([...defs.matchAll(/\sid="([^"]+)"/g)].map((m) => m[1]!));
@@ -1013,7 +1013,7 @@ test('a gradient def shared with a surviving node is NOT dropped with its culled
     stops: [{ offset: 0, color: '#ff0000' }, { offset: 1, color: '#0000ff' }],
   };
   // Same gradient CONTENT on two nodes (the serializer dedupes by content), the
-  // first of which is culled — so the def's id is now claimed by the survivor.
+  // first of which is culled - so the def's id is now claimed by the survivor.
   const far = box({ x: 900, y: 1900, w: 50, h: 50, _gradient: grad as never });
   const near = box({ x: 10, y: 10, w: 50, h: 50, _gradient: grad as never });
   const kept = cullPdfNodes([far, near], { x: 0, y: 0, width: 200, height: 200 });
@@ -1038,7 +1038,7 @@ test('no dangling clip/mask/gradient references, cropped or not, over the corpus
 test('a window that covers the content culls nothing and is byte-identical', () => {
   // The no-regression guarantee for the uncropped path: culling is only ever asked
   // about a crop, and a window that contains everything must be a no-op down to the
-  // byte — identical <defs> ids, identical <g data-group> runs, identical order.
+  // byte - identical <defs> ids, identical <g data-group> runs, identical order.
   const rnd = prng(0x40E1);
   const opt = { ...PAGE, images: IMAGES };
   const all: CullWindow = { x: -1e5, y: -1e5, width: 2e5, height: 2e5 };
@@ -1049,7 +1049,7 @@ test('a window that covers the content culls nothing and is byte-identical', () 
     assert.equal(pdfNodesToSvg(res.nodes, opt), pdfNodesToSvg(nodes, opt), `iter ${iter}: not byte-identical`);
 
     // And with the window set to the PAGE, the only nodes that may go are ones whose
-    // ink is entirely off-page — i.e. invisible in the uncropped document too.
+    // ink is entirely off-page - i.e. invisible in the uncropped document too.
     const pageWin: CullWindow = { x: 0, y: 0, width: PAGE.width, height: PAGE.height };
     const onPage = new Set(cullPdfNodes(nodes, pageWin).nodes);
     for (const n of nodes) {

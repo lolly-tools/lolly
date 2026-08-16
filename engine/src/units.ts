@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
- * Physical unit conversions for output dimensions — platform-agnostic, no DOM.
+ * Physical unit conversions for output dimensions - platform-agnostic, no DOM.
  *
  * The platform's design canvas is measured in CSS pixels (the web standard
  * `1px = 1/96 inch`). Output media, though, are physical: a PDF page is points
@@ -82,7 +82,7 @@ export function toPoints(dim: Dimension): number {
   return dim.unit === 'px' ? (dim.value * 72) / CSS_DPI : toInches(dim) * 72;
 }
 
-/** CSS pixels (for an SVG viewBox / on-screen size) — physical units at 96 DPI. */
+/** CSS pixels (for an SVG viewBox / on-screen size) - physical units at 96 DPI. */
 export function toCssPx(dim: Dimension): number {
   return dim.unit === 'px' ? dim.value : toInches(dim) * CSS_DPI;
 }
@@ -92,7 +92,7 @@ export function toUnit(dim: Dimension, unit: Unit): number {
   return toInches(dim) * PER_INCH[unit];
 }
 
-/** A CSS length string for SVG width/height — keeps the physical unit if any. */
+/** A CSS length string for SVG width/height - keeps the physical unit if any. */
 export function toCssLength(dim: Dimension): string {
   return dim.unit === 'px' ? `${dim.value}px` : `${dim.value}${dim.unit}`;
 }

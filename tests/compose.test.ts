@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
- * Contract tests for tool composition / "nested exports" — the engine side.
+ * Contract tests for tool composition / "nested exports" - the engine side.
  *
  * Exercises resolveNestedRenders + its runtime wiring against a FAKE
  * host.compose (the real web/CLI bridges render a child tool to bytes; that's a
@@ -190,7 +190,7 @@ test('compose: nesting works to MAX depth (A→B→C); the level past it is reje
 
   assert.deepEqual(rendered.sort(), ['B', 'C'], 'B and C compose; D is depth-rejected');
   const stackFor = (id: string) => calls.find((c) => c.toolId === id)?.stack;
-  // Exact ancestor stacks — a double-count would inflate these and reject C early.
+  // Exact ancestor stacks - a double-count would inflate these and reject C early.
   assert.deepEqual(stackFor('B'), ['A']);
   assert.deepEqual(stackFor('C'), ['A', 'B']);
   assert.deepEqual(stackFor('D'), ['A', 'B', 'C']);

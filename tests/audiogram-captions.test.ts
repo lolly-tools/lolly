@@ -3,7 +3,7 @@
 // Audiogram captions: a Script-audio asset carries its word timings on
 // meta.tts.words, and the tool turns them into lower-third cues (agCues).
 // Hooks are data and may not import the engine, so hooks.js carries a small
-// MIRROR of `groupWordsToCues` (engine/src/captions.ts) — these tests compile
+// MIRROR of `groupWordsToCues` (engine/src/captions.ts) - these tests compile
 // the REAL hooks.js and pin that mirror against the engine implementation on
 // the same inputs, so the two cannot drift apart silently. Also pinned: the
 // in-point shifts and filters the timings, the captions toggle, and that
@@ -127,7 +127,7 @@ test('the in-point shifts cue times onto the analysed window and drops finished 
 
   const cues = JSON.parse(out.agCues!) as Cue[];
   // What the hook is DOCUMENTED to do: filter to words still sounding at the
-  // in-point, shift onto the window, then group — via the engine, so the
+  // in-point, shift onto the window, then group - via the engine, so the
   // comparison stays an engine-parity check.
   const shifted = WORDS.filter((w) => w.end > start).map((w) => ({
     text: w.text,

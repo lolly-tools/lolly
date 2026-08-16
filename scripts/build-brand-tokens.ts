@@ -6,7 +6,7 @@
  * Run as: node scripts/build-brand-tokens.ts
  *
  * Emits the canonical SUSE brand colour tokens as a W3C Design Tokens (DTCG)
- * document at catalog/assets/suse/tokens/brand.json — the format Penpot and
+ * document at catalog/assets/suse/tokens/brand.json - the format Penpot and
  * Tokens Studio import/export. The source of truth for the *values* is the web
  * shell's swatch list (shells/web/src/palette.js); this script reshapes those
  * swatches into the standard token structure so the catalog (and, through it,

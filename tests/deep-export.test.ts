@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
  * Deep raster output (engine 1.100): the deep-encode writers and the exportStill
- * runtime seam. No shell — the engine encoders are pure, and the seam is driven
+ * runtime seam. No shell - the engine encoders are pure, and the seam is driven
  * through createRuntime with a stubbed host, so this pins the CONTRACT that a
  * tool's own encoded bytes reach the caller and that declining is byte-identical
  * to the old path.
@@ -103,7 +103,7 @@ test('exportStill: declining (null) falls through to the normal DOM raster path'
 });
 
 // A tool that mutates the live node in beforeExport must have afterExport run
-// even when exportStill THROWS — otherwise a failed deep export leaves the DOM in
+// even when exportStill THROWS - otherwise a failed deep export leaves the DOM in
 // the export configuration (the cleanup guarantee afterExport exists for).
 const CLEANUP_TOOL: Record<string, string> = {
   'deepc/tool.json': JSON.stringify({

@@ -2,7 +2,7 @@
 /**
  * Contract tests for the `file` input type + the transform output path
  * (host.export.file / the exportFile hook / runtime.exportFile) and the
- * on-device utility guarantees — the Phase-0 infra for content-transform tools.
+ * on-device utility guarantees - the Phase-0 infra for content-transform tools.
  *
  * Also exercises the real Strip Hidden Data tool end-to-end: a crafted
  * JPEG (with GPS + camera EXIF) and PNG are run through the actual hooks.js to
@@ -60,7 +60,7 @@ test('file input: constrain accepts a FileRef or null, rejects anything else', (
   assert.equal(replaced[0].value.name, 'b.png');
   // null clears it.
   assert.equal((updateInput(model, 'photo', null) as any)[0].value, null);
-  // A garbage string is ignored — the prior value stays.
+  // A garbage string is ignored - the prior value stays.
   assert.equal((updateInput(model, 'photo', 'nope') as any)[0].value.name, 'a.jpg');
 });
 
@@ -165,7 +165,7 @@ test('runtime.export: on-device tools embed NO provenance metadata and never wat
   assert.ok(captured.meta && typeof captured.meta === 'object', 'normal tools still embed provenance');
 });
 
-// ─── Strip Hidden Data: JPEG/PNG — real hooks, end-to-end ──────────────────────
+// ─── Strip Hidden Data: JPEG/PNG - real hooks, end-to-end ──────────────────────
 
 // Build a TIFF (little-endian) with IFD0 {Make, GPS-pointer} → GPS IFD with a
 // known latitude/longitude, laid out at fixed offsets relative to the TIFF start.
@@ -228,7 +228,7 @@ function buildTextPng(): Uint8Array {
     dv.setUint32(0, data.length);
     for (let i = 0; i < 4; i++) out[4 + i] = type.charCodeAt(i);
     out.set(data, 8);
-    dv.setUint32(8 + data.length, 0); // CRC left zero — the stripper copies, never validates
+    dv.setUint32(8 + data.length, 0); // CRC left zero - the stripper copies, never validates
     return out;
   };
   const parts = [Uint8Array.from(sig),
@@ -295,7 +295,7 @@ test('strip-data: strips APP1/EXIF from a JPEG losslessly (keeps APP0 + scan dat
   assert.equal(hasExif(jpeg), true);
   assert.equal(hasExif(bytes), false);
   assert.ok(bytes.length < jpeg.length);
-  // The preserved scan data (AA BB) is still present — pixels untouched.
+  // The preserved scan data (AA BB) is still present - pixels untouched.
   assert.ok((() => { for (let i = 0; i < bytes.length - 1; i++) if (bytes[i] === 0xAA && bytes[i + 1] === 0xBB) return true; return false; })());
 });
 
@@ -317,7 +317,7 @@ test('strip-data: removes tEXt chunks from a PNG, keeps IHDR/IDAT/IEND', async (
   assert.ok(bytes.length < png.length);
 });
 
-// ─── Strip Hidden Data: SVG — real hooks, end-to-end ───────────────────────────
+// ─── Strip Hidden Data: SVG - real hooks, end-to-end ───────────────────────────
 // The converged tool (stripDataTool) now also cleans SVG, so these drive the
 // same on-disk tool as the JPEG/PNG cases above.
 
@@ -378,8 +378,8 @@ test('strip-data (svg): a non-SVG file is reported as such and handed back untou
   assert.deepEqual(Array.from(bytes), Array.from(original.bytes)); // byte-for-byte passthrough
 });
 
-// ─── Strip Hidden Data: PDF — real hooks via host.pdf, end-to-end ──────────────
-// A PDF can't be cleaned by in-hook byte surgery, so the tool calls host.pdf —
+// ─── Strip Hidden Data: PDF - real hooks via host.pdf, end-to-end ──────────────
+// A PDF can't be cleaned by in-hook byte surgery, so the tool calls host.pdf - 
 // the shell's pdf-lib-backed capability. These drive the SAME merged tool with a
 // pdf-capable host built from the web bridge's real pdf.js.
 

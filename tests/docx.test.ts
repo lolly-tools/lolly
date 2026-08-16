@@ -44,7 +44,7 @@ test('document.xml carries the heading + paragraph text as real w:t runs', () =>
   });
   const doc = part(bytes, 'word/document.xml');
 
-  // Real editable text — the strings live inside w:t elements, not a picture blip.
+  // Real editable text - the strings live inside w:t elements, not a picture blip.
   assert.match(doc, /<w:t xml:space="preserve">A Heading Here<\/w:t>/);
   assert.match(doc, /<w:t xml:space="preserve">A paragraph body\.<\/w:t>/);
   // Heading routes through a pStyle; the plain paragraph carries no pStyle.

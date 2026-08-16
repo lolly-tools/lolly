@@ -18,7 +18,7 @@ const bytesOf = (...parts: (number[] | string)[]): Uint8Array => {
   return new Uint8Array(arrs.flat());
 };
 
-// A minimal EXIF/TIFF block with a single ASCII IFD0 entry, no Make/Model —
+// A minimal EXIF/TIFF block with a single ASCII IFD0 entry, no Make/Model - 
 // the shape that used to crash the reader (see below).
 function tiffWithSingleAsciiTag(tag: number, value: string): Uint8Array {
   const str = value + '\0';
@@ -42,8 +42,8 @@ function jpegWithExif(tiff: Uint8Array): Uint8Array {
 test('extractFileMetadata: JPEG EXIF with no Make/Model still yields other fields', () => {
   // Regression: readExif used to call asciiVal() unconditionally for tags
   // 0x010f/0x0110 even when absent from the IFD, throwing inside the reader
-  // and (caught by the outer try/catch) silently discarding every field —
-  // Artist, Software, GPS, all of it — for any EXIF block without a camera.
+  // and (caught by the outer try/catch) silently discarding every field - 
+  // Artist, Software, GPS, all of it - for any EXIF block without a camera.
   const jpeg = jpegWithExif(tiffWithSingleAsciiTag(0x013b, 'Ada Lovelace')); // Artist
   const meta = extractFileMetadata(jpeg);
   assert.equal(meta.format, 'JPEG');
@@ -105,7 +105,7 @@ test('extractFileMetadata: element-form DigitalSourceType also parses', () => {
   assert.equal(extractFileMetadata(jpegWithXmp(packet)).ai?.kind, 'generated');
 });
 
-// PNG: the XMP packet rides in an iTXt chunk under the reserved keyword — the
+// PNG: the XMP packet rides in an iTXt chunk under the reserved keyword - the
 // Midjourney / Google-AI-PNG shape. It must parse as XMP, not dump as prose.
 function pngWithXmpItxt(packet: string): Uint8Array {
   const sig = [0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a];
@@ -144,7 +144,7 @@ test('extractFileMetadata: MP4 uuid-box XMP flags AI-generated (past a 64-bit md
 // ── Appended payloads (bytes after the container ends) ───────────────────────
 
 // A well-formed minimal JPEG whose SOS header length is honest, with FF00
-// stuffing in the entropy data, ending at a real EOI — then `trailing`.
+// stuffing in the entropy data, ending at a real EOI - then `trailing`.
 function jpegThen(trailing: number[]): Uint8Array {
   const sos = bytesOf([0xff, 0xda], u16be(8), [1, 1, 0, 0, 63, 0], [0x12, 0x34, 0xff, 0x00, 0x56], [0xff, 0xd9]);
   return bytesOf([0xff, 0xd8], [...sos], trailing);
@@ -172,7 +172,7 @@ test('extractFileMetadata: data after JPEG EOI is surfaced; clean files are not'
 
 test('extractFileMetadata: FF D9 inside a metadata segment does not fake an early EOI', () => {
   // An APP1 whose payload contains the EOI byte pair (as a real EXIF thumbnail
-  // would) — the end-of-image scan starts at the SOS entropy data, so this must
+  // would) - the end-of-image scan starts at the SOS entropy data, so this must
   // NOT read as "appended data after the image".
   const app1 = bytesOf([0xff, 0xe1], u16be(8), [0xff, 0xd9, 0, 0, 0, 0]);
   const sos = bytesOf([0xff, 0xda], u16be(8), [1, 1, 0, 0, 63, 0], [0x12, 0x34], [0xff, 0xd9]);
@@ -199,7 +199,7 @@ test('extractFileMetadata: QuickTime brand sniffs as QuickTime; truncated boxes 
 
 // A minimal, well-formed GIF89a stream: header + logical screen descriptor (no
 // global colour table) + one trivial image (no local colour table, a single
-// one-byte LZW sub-block) + trailer — then `trailing`.
+// one-byte LZW sub-block) + trailer - then `trailing`.
 function gifThen(trailing: number[]): Uint8Array {
   const header = 'GIF89a';
   const lsd = [...u16le(1), ...u16le(1), 0, 0, 0]; // 1x1 canvas, no GCT, bg 0, aspect 0
@@ -228,7 +228,7 @@ test('extractFileMetadata: clean GIF (nothing past the trailer) has no appended 
 });
 
 test('extractFileMetadata: truncated or malformed GIF never throws and records nothing', () => {
-  // Chopped off mid-image-data — the trailer never appears.
+  // Chopped off mid-image-data - the trailer never appears.
   const full = gifThen([1, 2, 3]);
   const truncated = full.subarray(0, full.length - 10);
   assert.doesNotThrow(() => extractFileMetadata(truncated));
@@ -247,7 +247,7 @@ test('extractFileMetadata: truncated or malformed GIF never throws and records n
   assert.equal(extractFileMetadata(tiny).appended, undefined);
 });
 
-// ── APNG (structurally a PNG — regression, not a new code path) ───────────────
+// ── APNG (structurally a PNG - regression, not a new code path) ───────────────
 // APNG reuses the PNG signature and IEND terminator; readPng's chunk walk steps
 // over every chunk generically by its length field, so acTL/fcTL/fdAT (which
 // match none of its known chunk-type branches) are skipped exactly like any
@@ -282,7 +282,7 @@ test('extractFileMetadata: APNG (acTL/fcTL/fdAT) already catches appended data v
 // plans/61-deeprichpixels.md §6 B2 / task E2. Lolly's own `hdr=1` JPEG export is a
 // gain-map file: an ordinary SDR JPEG with a second (gain-map) JPEG past its
 // EOI, described by a CIPA DC-007 MPF index. Before this coverage the reveal
-// called that "JPEG image — N KB after the image ends", flagged `sensitive` —
+// called that "JPEG image - N KB after the image ends", flagged `sensitive` - 
 // i.e. Lolly accusing its own export of smuggling. These tests pin the honest
 // report AND the negative control that an UNdeclared trailer is still flagged.
 
@@ -312,7 +312,7 @@ test('extractFileMetadata: an HDR gain-map JPEG is named, not accused', () => {
   const meta = extractFileMetadata(GAINMAP_JPEG);
   assert.equal(meta.format, 'JPEG');
 
-  // The bytes are still disclosed — sized, offset, and typed. That is the point
+  // The bytes are still disclosed - sized, offset, and typed. That is the point
   // of the reveal; suppressing the field would be the wrong fix.
   assert.ok(meta.appended, 'the second image must still be disclosed');
   assert.match(meta.appended!.kind, /HDR gain map/);
@@ -352,7 +352,7 @@ function leMpfSegment(sizes: [number, number], offsets: [number, number]): Uint8
   dv.setUint16(2, seg.length - 2);   // JPEG segment lengths are ALWAYS big-endian
   seg.set(new TextEncoder().encode('MPF\0'), 4);
   const h = 8;
-  seg[h] = 0x49; seg[h + 1] = 0x49;  // "II" — little-endian TIFF
+  seg[h] = 0x49; seg[h + 1] = 0x49;  // "II" - little-endian TIFF
   dv.setUint16(h + 2, 0x002a, true);
   dv.setUint32(h + 4, 8, true);
   const ifd = h + 8;
@@ -376,7 +376,7 @@ function leMpfSegment(sizes: [number, number], offsets: [number, number]): Uint8
   return seg;
 }
 
-/** A two-image MPF file with no gain-map metadata anywhere — a plain MPO. */
+/** A two-image MPF file with no gain-map metadata anywhere - a plain MPO. */
 function plainMpoJpeg(secondEntropy: number[], breakIt?: 'offset' | 'notJpeg'): Uint8Array {
   const second = minimalJpeg(secondEntropy);
   const tail = bytesOf(SOS_HDR, [7, 7, 7], [0xff, 0xd9]);
@@ -439,7 +439,7 @@ test('extractFileMetadata: the MPF change leaves ordinary and motion-photo JPEGs
   assert.equal(plain.fields.some((f) => f.label === 'Appended data'), false);
 
   // Negative control 2: the motion-photo precedent this fix was modelled on is
-  // unchanged — disclosed, sniffed as video, not sensitive, no MPF claim.
+  // unchanged - disclosed, sniffed as video, not sensitive, no MPF claim.
   const mp4 = bytesOf([0, 0, 0, 0x18], 'ftypmp42', [0, 0, 0, 0], 'mp42isom');
   const motion = extractFileMetadata(bytesOf([...minimalJpeg([1, 2, 3])], [...mp4]));
   assert.equal(motion.appended?.kind, 'video (motion photo)');
@@ -450,7 +450,7 @@ test('extractFileMetadata: the MPF change leaves ordinary and motion-photo JPEGs
 
 test('appendedIsExpected: one rule for "these bytes are accounted for"', () => {
   // The predicate exists because the verify view had its own copy of this rule,
-  // spelled as `kind !== 'video (motion photo)'` — which is exactly why a
+  // spelled as `kind !== 'video (motion photo)'` - which is exactly why a
   // gain-map export still drew a "Hidden data appended" pip. Shells call this.
   assert.equal(appendedIsExpected(extractFileMetadata(GAINMAP_JPEG).appended), true);
   assert.equal(appendedIsExpected(extractFileMetadata(plainMpoJpeg([9, 9, 9])).appended), true);

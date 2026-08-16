@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
- * Captions — spoken-word timings in, subtitle cues out.
+ * Captions - spoken-word timings in, subtitle cues out.
  *
  * This is the engine half of what `host.speech` (v1.96) starts: `synthesize`
  * returns per-word spans, and anything drawing or exporting subtitles needs
@@ -26,13 +26,13 @@ export interface CaptionCue {
 }
 
 export interface GroupWordsOpts {
-  /** Longest cue text in characters before a break. Default 42 — the classic
+  /** Longest cue text in characters before a break. Default 42 - the classic
    *  broadcast line length. */
   maxChars?: number;
   /** Longest a cue may stay on screen, in seconds. Default 5. */
   maxDurationS?: number;
   /** An inter-word silence at least this long (seconds) starts a new cue.
-   *  Default 0.6 — long enough to be a spoken pause, not articulation. */
+   * Default 0.6 - long enough to be a spoken pause, not articulation. */
   gapS?: number;
 }
 
@@ -43,7 +43,7 @@ const SENTENCE_END = /[.!?…][)\]"'”’]*$/;
  * Group word timings into subtitle cues, greedily: a word joins the open cue
  * unless it arrives after a >= `gapS` silence, or joining it would push the cue
  * past `maxChars` or `maxDurationS`; a word ending in sentence punctuation
- * closes the cue after itself. A cue's end is its last word's `end` — no
+ * closes the cue after itself. A cue's end is its last word's `end` - no
  * padding, so `cueAt` answers honestly during silence.
  */
 export function groupWordsToCues(
@@ -113,7 +113,7 @@ export function cuesToSrt(cues: readonly CaptionCue[]): string {
 /**
  * The cue on screen at time `t`, or null during silence. Binary search over the
  * (already time-ordered) cues, so a per-frame draw loop can afford to call it.
- * Boundaries: a cue covers `[start, end)` — at exactly `end` it has left.
+ * Boundaries: a cue covers `[start, end)` - at exactly `end` it has left.
  */
 export function cueAt(cues: readonly CaptionCue[], t: number): CaptionCue | null {
   let lo = 0;

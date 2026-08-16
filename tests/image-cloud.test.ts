@@ -28,7 +28,7 @@ function img(pixels: [number, number, number, number?][]): Uint8ClampedArray {
 test('the P3→sRGB matrix is the exact inverse of its forward twin', () => {
   // The pair is written out by hand in gamut-source.ts rather than inverted at
   // runtime, which is readable but drifts silently. Round-tripping catches that,
-  // and it must be checked OUTSIDE the unit cube too — the whole reason the
+  // and it must be checked OUTSIDE the unit cube too - the whole reason the
   // decode exists is colours that land outside sRGB.
   for (const [r, g, b] of [
     [0, 0, 0], [1, 1, 1], [0.5, 0.2, 0.9], [1, 0, 0], [0, 1, 0], [0, 0, 1],
@@ -69,7 +69,7 @@ test('transparent pixels are skipped, not counted as black', () => {
   assert.equal(cloud.transparent, 2);
   assert.equal(cloud.points.length, 1, 'only the red bucket exists');
   // Counting them as black would drag the mean lightness and invent a colour the
-  // image does not contain — a PNG's padding is not its colour.
+  // image does not contain - a PNG's padding is not its colour.
   assert.ok(cloud.points[0]!.l > 0.4, `the one point is the red, not black (L ${cloud.points[0]!.l})`);
 });
 
@@ -156,7 +156,7 @@ test('degenerate input does not throw', () => {
  * An ordinary sRGB image read through a Display-P3 canvas comes back with every
  * pixel re-encoded at 8 bits into P3's primaries, and that round trip does not
  * land where it started. Classified naively, ~5% of the sRGB cube reads as
- * "beyond sRGB" — and the Lab printed "7.4% of this image is beyond sRGB" about a
+ * "beyond sRGB" - and the Lab printed "7.4% of this image is beyond sRGB" about a
  * test file with nothing beyond sRGB in it.
  *
  * This is the guard. Reverting GAMUT_SLOP to 0 must fail it.
@@ -165,7 +165,7 @@ test('an sRGB image read through a P3 encoding is not reported as wide-gamut', a
   const { linearSrgbToLinearP3 } = await import('../engine/src/gamut-source.ts');
   const { srgbToLinear, linearToSrgb } = await import('../engine/src/brand-derive.ts');
 
-  // A saturated sweep — the worst case, since these sit ON the sRGB boundary
+  // A saturated sweep - the worst case, since these sit ON the sRGB boundary
   // where half the quantisation errors round outward.
   const src: [number, number, number][] = [];
   for (let i = 0; i < 256; i += 4) {

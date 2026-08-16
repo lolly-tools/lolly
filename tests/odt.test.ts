@@ -8,7 +8,7 @@ import { readZip } from '../engine/src/zip.ts';
 const dec = new TextDecoder('utf-8');
 
 // A tiny standalone zip reader that reports each entry's LOCAL-header compression
-// method — readZip() only returns decompressed bytes, so we peek at the raw local
+// method - readZip() only returns decompressed bytes, so we peek at the raw local
 // records to prove `mimetype` is STORED (method 0), not deflated.
 function localEntries(bytes: Uint8Array): { name: string; method: number; offset: number }[] {
   const u16 = (o: number) => bytes[o]! | (bytes[o + 1]! << 8);

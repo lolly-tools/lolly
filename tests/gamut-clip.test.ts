@@ -1,10 +1,10 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
- * clipToGamut (engine/src/gamut.ts) — gamut-clip contract tests.
+ * clipToGamut (engine/src/gamut.ts) - gamut-clip contract tests.
  *
  * The engine primitive promoted from the web shell's `clampIntoGamut`
  * (shells/web/src/lib/gamut-slider.ts). Contract: hold L and H constant, reduce
- * C to the in-gamut ceiling (`maxChroma(l, h, limit)`), for ANY GamutLimit —
+ * C to the in-gamut ceiling (`maxChroma(l, h, limit)`), for ANY GamutLimit - 
  * srgb / p3 / rec2020. An already-in-gamut colour passes through unchanged.
  *
  * Coverage:
@@ -13,7 +13,7 @@
  *   (2) in-gamut input returned unchanged (same reference)
  *   (3) sRGB result matches the old clampIntoGamut formula bit-for-bit
  *
- * MINDE note: the optional `mode:'minde'` refinement was NOT implemented here —
+ * MINDE note: the optional `mode:'minde'` refinement was NOT implemented here - 
  * a correct min-ΔE correction for an ARBITRARY GamutLimit needs a generic
  * per-source RGB clip + ΔEOK (brand-derive's gamutMapOklch has these for sRGB
  * only, via inSrgbGamut/clipSrgb/deltaEOkSrgb). Only the exact-ceiling default
@@ -32,7 +32,7 @@ import type { BuiltinGamutName } from '../engine/src/gamut-source.ts';
 const LIMITS: BuiltinGamutName[] = ['srgb', 'p3', 'rec2020'];
 const TOL = 1e-6; // maxChroma bisects to GAMUT_EPSILON; allow the boundary a hair
 
-// Deliberately extreme chroma at mid lightness across the hue wheel — well past
+// Deliberately extreme chroma at mid lightness across the hue wheel - well past
 // every RGB display gamut's ceiling, so each is out of gamut for all three.
 const OUT_OF_GAMUT = [
   { l: 0.6, c: 0.4, h: 0 },
@@ -47,7 +47,7 @@ test('clipToGamut: out-of-gamut colours land in-gamut, L+H preserved, C reduced'
     for (const o of OUT_OF_GAMUT) {
       assert.equal(inGamut(o.l, o.c, o.h, limit), false, `precondition: ${JSON.stringify(o)} out of ${limit}`);
       const r = clipToGamut(o, limit);
-      // L and H held EXACTLY constant — the whole point of the contract.
+      // L and H held EXACTLY constant - the whole point of the contract.
       assert.equal(r.l, o.l, `L preserved (${limit})`);
       assert.equal(r.h, o.h, `H preserved (${limit})`);
       // Chroma strictly reduced.

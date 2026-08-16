@@ -3,19 +3,19 @@
  * Banked docs art: the `MASTHEADS` override, the `::: figure <id>` fence, and the
  * credential line they both carry (plans/105 §6, docs/docs-art.ts + docs/build.ts).
  *
- * NO ART SHIPS YET — the bank directories are Andy's to fill (plan §11), and the
+ * NO ART SHIPS YET - the bank directories are Andy's to fill (plan §11), and the
  * `MASTHEADS` table ships empty. So every behavioural test here builds its own
  * artifact: a tiny SVG, signed through the SAME writer the sign script uses
  * (embedC2pa + buildExportC2paOpts, surface 'docs', with a §18.28 ai-disclosure),
  * dropped into a temp bank, and read back through the real modules. That is the
- * whole point — the fixture is a real credentialed file, not a stub, so the
+ * whole point - the fixture is a real credentialed file, not a stub, so the
  * assertions below are about bytes rather than about strings we wrote twice.
  *
  * The three things that must never regress:
  *
  *  1. THE MANIFEST LEAVES THE INLINED COPY. A C2PA hash binding covers file bytes.
  *     An inlined copy that kept its manifest would fail validation the moment
- *     anyone saved it out of devtools — a FALSE NEGATIVE on a genuine Lolly asset,
+ *     anyone saved it out of devtools - a FALSE NEGATIVE on a genuine Lolly asset,
  *     which is worse than no credential at all.
  *  2. THE SERVED FILE IS UNTOUCHED, and the credential line points at THAT file.
  *     Presentation copy ≠ verification copy: the page shows one, the credential
@@ -50,7 +50,7 @@ const MODEL_NAME = 'Claude Fable 5';
 
 /**
  * A minimal masthead-shaped artifact: a viewBox, one defs id, one `url(#…)` paint
- * reference and one `href="#…"` — the three references the namespacing rewrites,
+ * reference and one `href="#…"` - the three references the namespacing rewrites,
  * so a regression in any of them is visible in one fixture.
  */
 const ART_SVG = `<?xml version="1.0" encoding="UTF-8"?>
@@ -164,7 +164,7 @@ test('a locale variant is resolved as its own artifact, path and URL together', 
     assert.equal(de.src, '/info/mastheads/trust-hero.de.svg');
     assert.ok(de.path.endsWith('/mastheads/trust-hero.de.svg'),
       'the credential would be read from a different file than the one inlined');
-    // A locale with no variant falls back to the base artifact — English fallback,
+    // A locale with no variant falls back to the base artifact - English fallback,
     // never a 404 and never a mixed pair.
     assert.equal(resolveDocsArt('mastheads', 'trust-hero', { dir, lang: 'fr' })!.file, 'trust-hero.svg');
     assert.equal(resolveDocsArt('mastheads', 'trust-hero', { dir, lang: 'en' })!.file, 'trust-hero.svg');
@@ -256,7 +256,7 @@ test('a bank signed by scripts/sign-docs-art.ts inlines clean, in both carriers'
   // The fixtures and the signer are B1's (tests/fixtures/docs-art/, plan §6 step 3);
   // the inline and the credential read are this lane's. Running them together is the
   // only place the SVG <metadata> carrier and the Lolly fragment ARMOUR carrier are
-  // both proved to leave the page copy — the hand-rolled fixture above only covers
+  // both proved to leave the page copy - the hand-rolled fixture above only covers
   // the first.
   const fixtures = join(ROOT, 'tests/fixtures/docs-art/ok');
   if (!existsSync(fixtures)) return;
@@ -282,7 +282,7 @@ test('a bank signed by scripts/sign-docs-art.ts inlines clean, in both carriers'
     // comment host behind in the markup.
     assert.doesNotMatch(inlined.html, /<!--\s*-->/, `${id} left an empty comment where its armour was`);
     // The credential is readable from the same file, and names the model its meta
-    // declared — the pill the band and the figcaption render.
+    // declared - the pill the band and the figcaption render.
     const p = readShotProvenance(art.path)!;
     assert.equal(p.model, 'Claude Opus 5', `${id} lost its model disclosure`);
     assert.ok(p.oversight, `${id} lost its human-oversight level`);
@@ -303,7 +303,7 @@ test('the MASTHEADS table ships empty, and every entry it ever gains is banked',
   assert.ok(m, 'docs/build.ts no longer declares the MASTHEADS table');
   const entries = [...m[1]!.matchAll(/'([a-z0-9-]+)'\s*:\s*'([a-z0-9-]+)'/g)];
   // Empty today (plan §11: art is Andy's, never a subagent's). When it stops being
-  // empty, each id must exist in the bank — a mapping with no file only warns at
+  // empty, each id must exist in the bank - a mapping with no file only warns at
   // build time, and a warning in a 27-locale log is a thing nobody sees.
   for (const [, slug, id] of entries) {
     const svg = join(ROOT, 'docs/mastheads', `${id}.svg`);
@@ -314,7 +314,7 @@ test('the MASTHEADS table ships empty, and every entry it ever gains is banked',
 
 test('the build inlines through the shared fn and credits the file it inlined', () => {
   // The masthead band stays in build.ts (page-shell); it resolves through docs-art.ts and
-  // credits art.file/art.src — the same-file rule (never the id resolved twice).
+  // credits art.file/art.src - the same-file rule (never the id resolved twice).
   const mastStart = BUILD_TS.indexOf('function mastheadArt(');
   assert.ok(mastStart > 0, 'docs/build.ts no longer declares mastheadArt()');
   const mast = BUILD_TS.slice(mastStart, BUILD_TS.indexOf('\nfunction ', mastStart + 1));
@@ -323,7 +323,7 @@ test('the build inlines through the shared fn and credits the file it inlined', 
   assert.match(mast, /path: art\.path, src: art\.src/, 'mastheadArt credits a file other than the one it inlined');
   assert.match(mast, /console\.warn/, 'mastheadArt fails silently on a missing artifact');
   // The figure builder moved into the shared renderer: it resolves through ctx.art (one
-  // resolve, same file) and credits art.file with art.src — the same-file rule, preserved.
+  // resolve, same file) and credits art.file with art.src - the same-file rule, preserved.
   const figStart = RENDER_TS.indexOf('function buildFigure(');
   assert.ok(figStart > 0, 'packages/docs-render no longer declares buildFigure()');
   const fig = RENDER_TS.slice(figStart, RENDER_TS.indexOf('export function mdToHtml', figStart));
@@ -333,13 +333,16 @@ test('the build inlines through the shared fn and credits the file it inlined', 
   assert.match(fig, /console\.warn/, 'buildFigure fails silently on a missing artifact');
   // …and mdToHtml still dispatches the ::: figure fence to it.
   assert.match(RENDER_TS, /\} else if \(parseFigureFence\(label\)\) \{/, 'mdToHtml no longer dispatches ::: figure');
-  assert.match(BUILD_TS, /const mast = isLanding \? null : docsMasthead\(content, page\.slug\);/,
+  // Generated side-door pages (plan 116) also skip the band - they render their h1
+  // in the content column, not a masthead - but a regular page still resolves the
+  // band with its real slug, which is what keeps MASTHEADS able to apply.
+  assert.match(BUILD_TS, /const mast = \(isLanding \|\| page\.generated\) \? null : docsMasthead\(content, page\.slug\);/,
     'the masthead band no longer knows which page it is building, so MASTHEADS can never apply');
 });
 
 test('the runtime showcase and the build-time strip still agree on the rules', () => {
   // docs-art.ts's strip was promoted FROM this script (plan §6). The showcase keeps
-  // its own copy because it runs in the browser, so the two can drift — and a drift
+  // its own copy because it runs in the browser, so the two can drift - and a drift
   // means the site strips a manifest one way on one block and another way on the
   // next. Both directions are pinned: the rules exist in the script, and the shared
   // fn genuinely performs them.

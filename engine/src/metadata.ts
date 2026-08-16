@@ -1,17 +1,17 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
- * Export provenance — the generic authorship record embedded into every exported
+ * Export provenance: the generic authorship record embedded into every exported
  * media file (platform-agnostic; no format/DOM knowledge here).
  *
- * The engine assembles these fields from the host profile + the tool manifest;
+ * The engine assembles these fields from the host profile plus the tool manifest;
  * each shell's export bridge then maps them onto the format's native metadata
- * mechanism (PNG iTXt, JPEG EXIF, PDF info dict, SVG <metadata>, …). This is the
- * clean path from author → asset: provenance travels with the file, not the app.
+ * mechanism (PNG iTXt, JPEG EXIF, PDF info dict, SVG <metadata>, and so on). This is the
+ * clean path from author to asset: provenance travels with the file, not the app.
  *
- * Scope: provenance — who/what made the file — PLUS user-asserted copyright/licence
+ * Scope: provenance (who/what made the file) PLUS user-asserted copyright/licence
  * when a tool's inputs supply them via `bindToMeta` (the artist declaring the IP of
  * their OWN work; see the embed-track-image tool). Those two are NEVER auto-derived
- * from the profile — Lolly won't assert ownership the user didn't state. Personal
+ * from the profile. Lolly does not assert ownership the user did not state. Personal
  * fields (author/contact) appear only if the user filled in their profile; the
  * "Lolly" software/source tags are always stamped.
  */
@@ -69,7 +69,7 @@ export async function buildExportMeta(
     description,
   };
 
-  // bindToMeta: a tool's own inputs supply/override provenance fields — the artist's
+  // bindToMeta: a tool's own inputs supply/override provenance fields: the artist's
   // explicit author/copyright/licence declaration for their OWN work. Trimmed string
   // values; empty ones are skipped so a blank input never wipes a profile default.
   // copyright/license have no profile source, so they only ever arrive this way.

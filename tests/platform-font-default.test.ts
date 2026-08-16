@@ -1,13 +1,13 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
- * The PLATFORM default typeface — SUSE (UI/body) + SUSE Mono (code), shell-served
+ * The PLATFORM default typeface - SUSE (UI/body) + SUSE Mono (code), shell-served
  * from shells/web/public/fonts/ so they resolve on EVERY profile.
  *
  * Why this file exists, and why it is at the repo root rather than beside
  * font-registry.ts: the sibling golden suite
  * (shells/web/src/bridge/text-outline-golden.test.ts) is the deep coverage of the
  * text→outline seam, but every one of its 26 cases reads a font out of
- * `catalog/fonts/` — a gitignored profile VIEW — and therefore SKIPS wholesale on
+ * `catalog/fonts/` - a gitignored profile VIEW - and therefore SKIPS wholesale on
  * the `lolly-start` profile and in any public CI run that never mounted
  * brands/suse. That is correct for a brand-pack-specific golden, but it left the
  * DEFAULT face with no coverage at all on the default profile. Everything here is
@@ -17,7 +17,7 @@
  *
  *  1. LICENCE. The shipped binaries must still say OFL 1.1 in name ID 13, and the
  *     licence text must still sit beside them. Read out of the actual font bytes,
- *     not out of documentation — this is the standing version of the manual check
+ *     not out of documentation - this is the standing version of the manual check
  *     made when SUSE replaced Outfit as the default on 2026-08-10, so that a
  *     future font-file refresh cannot quietly ship non-OFL bytes in an OSS pack.
  *
@@ -25,14 +25,14 @@
  *     family, and every `staticUrl` in it must name a file that is on disk. A
  *     missing or mistyped entry does not throw: `pickFaces` is strict about slant,
  *     so the run simply keeps its `<text>` element and the export still "succeeds"
- *     — shipping a font-dependent SVG to someone who does not have the font. That
+ * - shipping a font-dependent SVG to someone who does not have the font. That
  *     is exactly the bug the swap away from (upright-only) Outfit fixed: before it,
  *     every italic run under the neutral profile fell back to `<text>`, which is
  *     what the docs-shot pipeline was reporting as
- *     "N <text> node(s) — a font did not outline".
+ *     "N <text> node(s) - a font did not outline".
  *
  *  3. IT ACTUALLY OUTLINES. Real HarfBuzz WASM shaping real bytes off disk,
- *     through the web shell's own `createTextAPI` — the same path
+ *     through the web shell's own `createTextAPI` - the same path
  *     shells/web/src/bridge/export.ts uses on SVG/PDF export. Asserting the file
  *     merely exists would not catch a truncated or wrong-format download.
  */
@@ -55,7 +55,7 @@ const DEFAULT_FAMILY = 'suse';
 
 // ── 1. Licence, read out of the shipped bytes ────────────────────────────────
 
-/** Minimal sfnt `name` table reader — enough for the licence IDs. Deliberately
+/** Minimal sfnt `name` table reader - enough for the licence IDs. Deliberately
  *  standalone rather than reusing shells/web/src/lib/font-utils.ts: this test is
  *  the independent check ON that kind of parsing, so it must not inherit its
  *  assumptions. */
@@ -143,7 +143,7 @@ test('the DEFAULT family registers a real italic, not just an upright', () => {
   // 2026-08-10 an italic run had no face to shape with and silently stayed <text>.
   // buildRegistry also skips @font-face discovery for any family already backed by
   // bytes here, so a half-registered family SHADOWS the italic woff2 fonts.css
-  // declares — dropping the entry below is strictly worse than having none.
+  // declares - dropping the entry below is strictly worse than having none.
   const faces = PLATFORM_FACES[DEFAULT_FAMILY];
   assert.ok(faces, `PLATFORM_FACES has no "${DEFAULT_FAMILY}" entry — tokens.css sets it as --font-brand`);
   const styles = faces.map((f) => f.style).sort();
@@ -196,7 +196,7 @@ after(() => { globalThis.fetch = realFetch; });
 
 const api = createTextAPI();
 
-// Mixed-case with ascenders, descenders and a ligature pair — enough that a
+// Mixed-case with ascenders, descenders and a ligature pair - enough that a
 // wrong/truncated file shows up as .notdef rather than shaping by luck.
 const SAMPLE = 'Handgloves fi 0123';
 
@@ -215,7 +215,7 @@ test('every platform face shapes real outlines with no .notdef', async () => {
 test('the default italic outlines, and is genuinely a different face from the upright', async () => {
   // The whole point of the 2026-08-10 swap. If these two ever come back equal, the
   // italic entry is pointing at the upright file and italic text would export
-  // silently UN-SLANTED — worse than the <text> fallback, because it looks fine.
+  // silently UN-SLANTED - worse than the <text> fallback, because it looks fine.
   const faces = PLATFORM_FACES[DEFAULT_FAMILY]!;
   const upright = faces.find((f) => f.style === 'normal')!;
   const italic = faces.find((f) => f.style === 'italic')!;

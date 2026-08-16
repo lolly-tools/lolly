@@ -1,11 +1,11 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
- * Two-tier zip encryption — the crypto behind the "lock this download" option.
+ * Two-tier zip encryption - the crypto behind the "lock this download" option.
  *
  *   Standard  = traditional PKWARE ZipCrypto. Weak (known-plaintext attacks), but
  *               opens in ANY unzip tool including Windows Explorer's built-in extract.
  *   Strong    = WinZip AES, AE-2, AES-256. Strong, but does NOT open in Windows
- *               Explorer's built-in zip — needs 7-Zip / WinZip / Keka / macOS.
+ *               Explorer's built-in zip - needs 7-Zip / WinZip / Keka / macOS.
  *
  * Pure and DOM-free (globalThis.crypto only, same rule as pdf-crypto-r6.ts). The
  * SHELL compresses each entry with fflate and hands us the compressed bytes + CRC;
@@ -14,7 +14,7 @@
  * 16-byte salt) is injected via `opts.rng` so it round-trips a fixed vector.
  *
  * Two byte-level traps, both handled below:
- *   1. ZipCrypto's key1 update multiplies by 0x08088405 — must use Math.imul or the
+ *   1. ZipCrypto's key1 update multiplies by 0x08088405 - must use Math.imul or the
  *      JS double overflows and silently corrupts the keystream.
  *   2. WinZip's AES-CTR counter is a 128-bit LITTLE-endian integer from 1; WebCrypto
  *      AES-CTR increments big-endian, so we drive the counter ourselves over a small
@@ -43,7 +43,7 @@ export interface ZipEntryInput {
   uncompressedSize: number;
 }
 
-// ── CRC-32 (reflected, poly 0xEDB88320) — shared by the whole-buffer CRC and the
+// ── CRC-32 (reflected, poly 0xEDB88320) - shared by the whole-buffer CRC and the
 //    ZipCrypto per-byte key update. Exported so the shell computes per-entry CRC. ──
 const CRC_TABLE = (() => {
   const t = new Uint32Array(256);
@@ -106,10 +106,10 @@ export function zipCryptoEncrypt(pw: Uint8Array, compressed: Uint8Array, crc: nu
   return concatBytes([keys.encrypt(header), keys.encrypt(compressed)]);
 }
 
-// ── AES-256 block cipher (encrypt only) — pure, for the WinZip LE-CTR keystream.
+// ── AES-256 block cipher (encrypt only) - pure, for the WinZip LE-CTR keystream.
 //    subtle exposes no ECB/raw block, and per-block subtle calls are far too slow
 //    for image-sized members, so we bundle a compact table-free core. Not constant-
-//    time (data-dependent branches in mul/xtime, table-built S-box) — fine here:
+//    time (data-dependent branches in mul/xtime, table-built S-box) - fine here:
 //    encrypt-only, always the user's own content, never a secret-keyed oracle an
 //    attacker can time. Do not reuse this core anywhere key/plaintext is untrusted. ──
 const AES_SBOX = (() => {
@@ -250,7 +250,7 @@ interface FramedEntry {
 
 /**
  * Build a whole encrypted zip from pre-compressed entries. `opts.rng(n)` supplies
- * the per-entry random bytes (default CSPRNG) — deterministic when injected, so the
+ * the per-entry random bytes (default CSPRNG) - deterministic when injected, so the
  * output round-trips a fixed vector in tests.
  */
 export async function buildEncryptedZip(

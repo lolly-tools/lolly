@@ -1,29 +1,29 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
- * Design — the consolidation-prep parity gaps (plans/104 §9.2's P1 side-fix note +
+ * Design - the consolidation-prep parity gaps (plans/104 §9.2's P1 side-fix note +
  * the retirement inventory: Sequence Studio retires into Design, so Design
  * has to grow the three capabilities its manifest was missing BEFORE the tool goes away).
  *
  * Run with: node --import ./tests/css-stub.mjs --test "tests/layout-consolidation-prep.test.ts"
- * (also collected by `npm test`). No framework — node:test.
+ * (also collected by `npm test`). No framework - node:test.
  *
- * Everything here reads the SHIPPED artefacts off disk, per brand pack, and — for the head
- * gate — drives the real `hooks.js` through the real engine. Nothing is re-implemented.
+ * Everything here reads the SHIPPED artefacts off disk, per brand pack, and - for the head
+ * gate - drives the real `hooks.js` through the real engine. Nothing is re-implemented.
  *
  * What is actually at risk, one section each:
  *
  * 1. **The wire format.** `boxes.fields` order IS the compact-URL wire format and is
  *    append-only forever (`lib/blocks-url.ts`), so `linkOf` had to land at slot 71, after
- *    `kf` at 70 — not inserted beside the other machine-managed fields where it reads
+ *    `kf` at 70 - not inserted beside the other machine-managed fields where it reads
  *    better. Slots 69–71 are pinned so a "tidy-up" that reorders them fails here rather
  *    than silently re-pointing every link ever shared.
  * 2. **The capability declarations.** `canvas.linkField` (A/V detach), the reconciled
  *    `canvas.import.formats` and the `clip`/`card` add-kinds are what the shell reads to
- *    light up the affordances — `canDetach()` in views/timeline-panel.ts gates on the
+ *    light up the affordances - `canDetach()` in views/timeline-panel.ts gates on the
  *    manifest alone, so the declaration IS the feature. Each is asserted to be coherent
  *    (a linkField that names a declared field; seeds whose kind/lane are values the
  *    manifest's own selects can express), not merely present. The ONE declaration held
- *    back is `import.mode: 'scenes'` — it is not inert, it would replace Design's
+ *    back is `import.mode: 'scenes'` - it is not inert, it would replace Design's
  *    editable design import outright, so G2 pins its ABSENCE and says why.
  * 3. **Both packs, independently.** The two brand copies diverge legitimately (fonts, an
  *    animated-SVG block), so every assertion runs over each copy rather than over "the"
@@ -53,7 +53,7 @@ const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
 /** Both brand variants ship the tool and a manifest change has to land in both. Gate the
  *  private brands/suse copy on the SOURCE pack being mounted, per the house rule
  *  (tests/README.md, "Private brand content"): a public checkout skips the SUSE half
- *  cleanly, but with the pack mounted a missing tool dir FAILS — a renamed or deleted
+ *  cleanly, but with the pack mounted a missing tool dir FAILS - a renamed or deleted
  *  variant must not be able to turn this suite green. */
 const SUSE_MOUNTED = existsSync(join(ROOT, 'brands', 'suse', 'tools'));
 if (SUSE_MOUNTED) {
@@ -88,7 +88,7 @@ const addKindsOf = (brand: string): AddKind[] => {
   assert.ok(Array.isArray(k) && k.length, `${brand}: no addKinds`);
   return k as AddKind[];
 };
-/** The declared `value`s of a select sub-field — what a seed is allowed to say. */
+/** The declared `value`s of a select sub-field - what a seed is allowed to say. */
 function optionValues(brand: string, fieldId: string): string[] {
   const f = fieldsOf(brand).find((x) => x.id === fieldId) as (FieldSpec & { options?: { value: string }[] }) | undefined;
   assert.ok(f, `${brand}: no ${fieldId} sub-field`);
@@ -96,24 +96,24 @@ function optionValues(brand: string, fieldId: string): string[] {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// 1. The wire format — linkOf is APPENDED, at slot 71
+// 1. The wire format - linkOf is APPENDED, at slot 71
 // ─────────────────────────────────────────────────────────────────────────────
 
 test('boxes.fields tail: z/kf/linkOf then the deck fields — appended, never reordered', () => {
   for (const brand of BRANDS) {
     const fields = fieldsOf(brand);
-    // The historical wire-format tail (pre-presentation): z/kf/linkOf at 69-71, UNMOVED —
+    // The historical wire-format tail (pre-presentation): z/kf/linkOf at 69-71, UNMOVED - 
     // so every link shared before the deck fields still decodes into the same columns.
     assert.deepEqual(fields.slice(69, 72).map((f) => f.id), ['z', 'kf', 'linkOf'],
       `${brand}: the compact-blocks tail moved — every link ever shared decodes into the wrong columns`);
-    // The presentation-mode deck fields (plan 112) were APPENDED after linkOf — slots 72-76,
-    // never squeezed in behind it — so `notes` is now the tail. This pin extends the same
+    // The presentation-mode deck fields (plan 112) were APPENDED after linkOf - slots 72-76,
+    // never squeezed in behind it - so `notes` is now the tail. This pin extends the same
     // append-only guard to them: a later field must land at 77, not shift these.
     assert.deepEqual(fields.slice(72).map((f) => f.id), ['presentAudio', 'build', 'state', 'matchOf', 'notes'],
       `${brand}: a deck field was inserted out of order — appended slots must stay put`);
     assert.equal(fields.length, 77, `${brand}: expected 77 sub-fields, got ${fields.length}`);
     assert.equal(fields[fields.length - 1]!.id, 'notes', `${brand}: notes is not the tail`);
-    // Ids are unique — an accidental second `linkOf` would give the codec two columns of
+    // Ids are unique - an accidental second `linkOf` would give the codec two columns of
     // the same name and the shell would read whichever it found first.
     assert.equal(new Set(fields.map((f) => f.id)).size, fields.length, `${brand}: duplicate sub-field id`);
   }
@@ -146,7 +146,7 @@ test('G1 — canvas.linkField names the linkOf sub-field, so A/V detach lights u
     assert.ok(fieldsOf(brand).some((f) => f.id === cv.linkField),
       `${brand}: canvas.linkField names "${cv.linkField}", which is not a declared sub-field`);
     // canDetach() also needs an `audio` add-kind (the vocabulary a detached sound is born
-    // into) — the manifest half of that gate, asserted here so a dropped audio kind shows
+    // into) - the manifest half of that gate, asserted here so a dropped audio kind shows
     // up as "detach silently stopped working" rather than a mystery.
     const audio = addKindsOf(brand).find((k) => k.id === 'audio');
     assert.ok(audio, `${brand}: no audio add-kind — canDetach() cannot mint the detached box`);
@@ -167,7 +167,7 @@ test('G2 — canvas.import lists the full design-format set, and scenes mode sta
     // `import.mode: "scenes"` is the ONE prep declaration that is not inert: free-canvas
     // gates on it alone (`importScenesMode`, views/free-canvas.ts) and Design's
     // timeCfg is always non-null, so declaring it here would flip EVERY Design
-    // design import — timed or not — from "editable boxes + artboard resize + the Penpot
+    // design import - timed or not - from "editable boxes + artboard resize + the Penpot
     // components-as-templates offer" to "one flat image clip per frame". That is the
     // tool's flagship import path and the shipped docs promise it by name
     // (docs/design-import.md: "the artboard resizes to the file's frame and every layer
@@ -257,7 +257,7 @@ test('G3 — the magnetic-row seeds (clip, card) ship beside the existing media 
 });
 
 // ─────────────────────────────────────────────────────────────────────────────
-// 3. The head whitelist — through the REAL hooks, per brand pack
+// 3. The head whitelist - through the REAL hooks, per brand pack
 // ─────────────────────────────────────────────────────────────────────────────
 
 /** A two-node diagonal line in the wire codec hooks.js decodes. Heads are drawn only on a
@@ -267,13 +267,13 @@ const PATH_LINE = '1!line!0_0!0_1!1';
 /**
  * Mount one path box against the REAL geometry + connector primitives. `baseHost()` carries
  * neither, and a head comes out of `host.connectors.pathHeadSvg`, so without them the hook's
- * feature detection correctly draws nothing — and the prototype-key test would pass against
+ * feature detection correctly draws nothing - and the prototype-key test would pass against
  * a tool that cannot decorate at all.
  */
 async function mountPath(brand: string, box: Record<string, unknown>): Promise<string> {
   const fetchFile = (path: string) => readFile(join(packDir(brand), path), 'utf8');
   // loadTool validates against schemas/tool.schema.json AND enforces the manifest's
-  // engineVersion range against the running ENGINE_VERSION — so this call is also the
+  // engineVersion range against the running ENGINE_VERSION - so this call is also the
   // "the edited manifest still loads" assertion.
   const tool: any = await loadTool('design', fetchFile);
   const host = baseHost({ geom: makeGeomApi(), connectors: makeConnectorsApi() });
@@ -306,7 +306,7 @@ test('the six legal head values still draw, in both packs', async () => {
 test('a head value outside the closed six draws nothing — including Object.prototype keys', async () => {
   // The point of the own-property posture. A bare `HEAD_KINDS[v]` truthiness test lets
   // `constructor`/`__proto__`/`toString`/`valueOf` through, because every object literal
-  // inherits them truthy — and the engine draws a triangle for any name it does not
+  // inherits them truthy - and the engine draws a triangle for any name it does not
   // recognise, so `?headEnd=constructor` in a hand-edited URL would decorate a path the
   // manifest's own option list has no way to express.
   for (const brand of BRANDS) {
@@ -321,11 +321,11 @@ test('a head value outside the closed six draws nothing — including Object.pro
 });
 
 // ─────────────────────────────────────────────────────────────────────────────
-// 4. The migrated teaching content — Sequence Studio's four examples, additively
+// 4. The migrated teaching content - Sequence Studio's four examples, additively
 // ─────────────────────────────────────────────────────────────────────────────
 //
 // Sequence Studio taught its motion model through four example looks. Two of them became
-// Design TEMPLATES (launch-teaser, feature-tour — "New from template" starting
+// Design TEMPLATES (launch-teaser, feature-tour - "New from template" starting
 // points, values in tools/<id>/templates/<tid>.json) and two became manifest EXAMPLES
 // (the gallery's preview strip). Three things about that port can silently rot, and none
 // of them is covered by validate-catalog:
@@ -333,7 +333,7 @@ test('a head value outside the closed six draws nothing — including Object.pro
 //   • **The dropped `orientation`.** Sequence Studio carried an `orientation` select that
 //     sized its canvas; Design has no such input, and NEITHER a template seed nor an
 //     example look can express canvas dimensions (a template's `values` is patched into the
-//     runtime by input id — views/tool.ts — and Design declares only `background` +
+//     runtime by input id - views/tool.ts - and Design declares only `background` +
 //     `boxes`; the canvas comes from `render.width/height`). So every composition was
 //     re-laid-out against the 1080×1080 default, exactly as templates/video.json already
 //     was. A box that drifts back outside that box is content the user never sees, and
@@ -343,7 +343,7 @@ test('a head value outside the closed six draws nothing — including Object.pro
 //     is checked against a select's option list. A stray `orientation`, or a `font: "sans"`
 //     in the SUSE pack (whose faces are SUSE/SUSE Mono), renders as the field's default
 //     with no error anywhere.
-//   • **Both packs, independently** — same rule as every section above.
+//   • **Both packs, independently** - same rule as every section above.
 //
 // Asset refs are asserted absent because these are pure text/box compositions: a look that
 // grew an asset id would have to resolve in BOTH catalogs, and a public checkout has no
@@ -371,7 +371,7 @@ const examplesOf = (brand: string): { label?: string; values: Record<string, any
 const templateOf = (brand: string, tid: string): Record<string, any> => {
   const p = join(packDir(brand), 'design', 'templates', `${tid}.json`);
   assert.ok(existsSync(p), `${brand}: templates/${tid}.json is missing`);
-  // Parses as JSON or this throws — that IS the "it still parses" assertion.
+  // Parses as JSON or this throws - that IS the "it still parses" assertion.
   return JSON.parse(readFileSync(p, 'utf8')) as Record<string, any>;
 };
 
@@ -416,7 +416,7 @@ test('the two migrated Video templates ship in both packs, in the Video category
   for (const brand of BRANDS) {
     for (const [tid, want] of Object.entries(EXPECTED)) {
       const t = templateOf(brand, tid);
-      // `id` is the reserved `?template=<id>` contract — it must match the filename.
+      // `id` is the reserved `?template=<id>` contract - it must match the filename.
       assert.equal(t.id, tid, `${brand}: templates/${tid}.json declares id "${t.id}"`);
       assert.equal(t.name, want.name, `${brand}: ${tid} name`);
       assert.equal(t.category, 'Video', `${brand}: ${tid} must group with the Video template`);

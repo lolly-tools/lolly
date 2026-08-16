@@ -7,7 +7,7 @@
  *
  * This module was split out of c2pa.ts so the container byte grammar is
  * reviewable apart from the manifest/claim builder, but its coverage stayed with
- * the parent suites (tests/c2pa.test.ts, tests/c2pa-formats.test.ts) — nothing
+ * the parent suites (tests/c2pa.test.ts, tests/c2pa-formats.test.ts) - nothing
  * named it. These cases exercise it DIRECTLY and cheaply through
  * `attachC2paStore`, the one export that runs a placer with no signing, no
  * hashing and no async: place a store verbatim, then read it back with
@@ -16,7 +16,7 @@
  *
  * CONTRACT (discovered by reading the module): every placer is SYNCHRONOUS and
  * THROWS on a container it cannot splice safely, with a message prefixed
- * `C2PA embed:` / `C2PA attach:`. Refusing is the correct outcome — a placer
+ * `C2PA embed:` / `C2PA attach:`. Refusing is the correct outcome - a placer
  * that "succeeded" on a container it mis-read would emit a file that either
  * fails to decode or verifies while being corrupt. `embedC2pa`/`embedC2paInPdf`
  * are async (they sign), but every grammar rejection below happens before any
@@ -82,7 +82,7 @@ const tinyWebp = (): Uint8Array => {
   return concat([bytesOf('RIFF'), u32le(body.length), body]);
 };
 
-// The smallest honest WAV: fmt (16-byte PCM header) + a 4-byte data chunk —
+// The smallest honest WAV: fmt (16-byte PCM header) + a 4-byte data chunk - 
 // placeWav refuses a container with no data chunk, so the fixture carries one.
 const tinyWav = (): Uint8Array => {
   const body = concat([
@@ -102,13 +102,13 @@ const tinyMp4 = (): Uint8Array => concat([
   mp4box('moov', mp4box('mvhd', new Uint8Array(40))),
   mp4box('mdat', bytesOf('fake-video-payload')),
 ]);
-// AVIF is ISO BMFF with an image major brand — the same placer/binding as mp4.
+// AVIF is ISO BMFF with an image major brand - the same placer/binding as mp4.
 const tinyAvif = (): Uint8Array => concat([
   mp4box('ftyp', bytesOf('avif'), u32be(0), bytesOf('avifmif1')),
   mp4box('meta', new Uint8Array(8)),
   mp4box('mdat', bytesOf('fake-avif-payload')),
 ]);
-// M4A (AAC audio) is ISO BMFF too — same placer/binding as mp4.
+// M4A (AAC audio) is ISO BMFF too - same placer/binding as mp4.
 const tinyM4a = (): Uint8Array => concat([
   mp4box('ftyp', bytesOf('M4A '), u32be(0), bytesOf('M4A mp42isom')),
   mp4box('moov', mp4box('mvhd', new Uint8Array(40))),
@@ -210,7 +210,7 @@ test('C2PA_FORMATS covers every dispatchable format and nothing else', () => {
   // APPEND-ONLY. Slots are a contract: shells key export formats off this list,
   // so an id may join the END of it and none may move or leave. The five text
   // formats (C2PA 2.4 §A.7 / §A.9 + the Lolly fragment profile) are the 2026-08-11
-  // addition — see tests/c2pa-text-write.test.ts for their round-trips.
+  // addition - see tests/c2pa-text-write.test.ts for their round-trips.
   assert.deepEqual([...C2PA_FORMATS], ['pdf', 'pdf-cmyk', 'png', 'apng', 'jpg', 'jpeg', 'gif', 'svg', 'tiff', 'cmyk-tiff', 'webp', 'mp4', 'avif', 'm4a', 'webm', 'mp3', 'wav', 'ogg', 'opus', 'html', 'js', 'css', 'md', 'html-fragment']);
   assert.ok(Object.isFrozen(C2PA_FORMATS));
   for (const [fmt] of FIXTURES) assert.ok(C2PA_FORMATS.includes(fmt), `${fmt} is declared stampable`);
@@ -222,7 +222,7 @@ test('attachC2paStore validates its arguments and the format key before touching
   assert.throws(() => attachC2paStore(tinyPng(), 'png', 'nope' as unknown as Uint8Array), /store must be a Uint8Array/);
   assert.throws(() => attachC2paStore(tinyPng(), 'bmp', store), /no container for format 'bmp'/);
   assert.throws(() => attachC2paStore(tinyPng(), '', store), /no container for format ''/);
-  // PDF is NOT a container placer — it routes through the incremental-update
+  // PDF is NOT a container placer - it routes through the incremental-update
   // embedder, which needs a signed manifest, so re-attachment is not offered.
   assert.throws(() => attachC2paStore(bytesOf('%PDF-1.4\n'), 'pdf', store), /no container for format 'pdf'/);
   // ...but the key is case-insensitive for the placers it does have.
@@ -359,20 +359,20 @@ test('ogg: the store rides in the OpusTags comment header, audio pages untouched
   const fixture = tinyOpus();
   const store = fakeStore(300);
   const out = attachC2paStore(fixture, 'opus', store);
-  // The credential lands between OpusTags and the audio — i.e. inside the rebuilt
+  // The credential lands between OpusTags and the audio - i.e. inside the rebuilt
   // comment page, never in the BOS header or the sound.
   const tagsAt = indexOfBytes(out, bytesOf('OpusTags'));
   const audioAt = indexOfBytes(out, bytesOf('fake-opus-audio'));
   const credAt = indexOfBytes(out, bytesOf('C2PA='));
   assert.ok(tagsAt >= 0 && credAt > tagsAt && audioAt > credAt, 'C2PA field sits in the comment header, before the audio');
   // The OpusHead BOS page (page 0) is byte-identical, and the audio page is
-  // present verbatim — only the comment page changed.
+  // present verbatim - only the comment page changed.
   const inPages = walkOggPages(fixture);
   const outPages = walkOggPages(out);
   assert.equal(outPages.length, inPages.length, 'page count preserved (comment rebuilt in place, no renumber)');
   assert.ok(sameBytes(out.subarray(0, inPages[1]!.start), fixture.subarray(0, inPages[1]!.start)), 'OpusHead page unchanged');
   assert.ok(indexOfBytes(out, fixture.subarray(inPages[2]!.start)) === out.length - (fixture.length - inPages[2]!.start), 'audio pages carried verbatim as the tail');
-  // Every rebuilt page still checksums — the file stays a valid, playable Ogg.
+  // Every rebuilt page still checksums - the file stays a valid, playable Ogg.
   const OGG = (() => { const t = new Uint32Array(256); for (let i = 0; i < 256; i++) { let r = i << 24; for (let j = 0; j < 8; j++) r = (r & 0x80000000) ? ((r << 1) ^ 0x04c11db7) : (r << 1); t[i] = r >>> 0; } return t; })();
   const crc = (b: Uint8Array): number => { let c = 0; for (const x of b) c = ((c << 8) ^ OGG[((c >>> 24) ^ x) & 0xff]!) >>> 0; return c >>> 0; };
   for (const p of outPages) {
@@ -492,7 +492,7 @@ test('re-attaching replaces the prior credential instead of stacking a second on
 test('mp4: a non-trailing C2PA uuid box is refused rather than silently corrupted', () => {
   // c2patool places its box right after ftyp and patches stco/co64. Stripping
   // it without that patching would shift mdat and break playback while still
-  // verifying — so the placer must refuse.
+  // verifying - so the placer must refuse.
   const prior = concat([
     u32be(8 + 16 + 4 + 9 + 8 + 4), bytesOf('uuid'), C2PA_BMFF_UUID,
     new Uint8Array(4), bytesOf('manifest\0'), new Uint8Array(8), bytesOf('fake'),
@@ -594,7 +594,7 @@ test('the BMFF usertype and exclusion set are the c2pa-rs defaults', () => {
   );
   const ex = bmffHashExclusions();
   assert.deepEqual(ex.map((e) => e.xpath), ['/uuid', '/ftyp', '/mfra', '/free', '/skip']);
-  // Only the C2PA uuid box is excluded — matched by usertype at offset 8, so
+  // Only the C2PA uuid box is excluded - matched by usertype at offset 8, so
   // other uuid boxes stay hashed.
   assert.deepEqual(ex[0]!.data, [{ offset: 8, value: C2PA_BMFF_UUID }]);
   assert.equal(C2PA_ATTACHMENT_MIME, 'application/c2pa');
@@ -706,7 +706,7 @@ test('pdf: unsupported and malformed PDF grammar is refused before any signing w
 //
 //   * The WRITE side does not throw. A PDF whose appended revision is cut off
 //     mid-way has no complete `startxref` for that revision, so parsePdf falls
-//     back to the last intact cross-reference chain — the pre-stamp revision.
+//     back to the last intact cross-reference chain - the pre-stamp revision.
 //     Re-stamping therefore appends a fresh revision over the dead bytes,
 //     which is exactly how a conforming reader resolves an interrupted
 //     incremental update. Nothing is half-parsed.

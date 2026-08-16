@@ -1,12 +1,12 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
- * The Lolly gradient spec — one terse, URL-safe string describing a gradient,
+ * The Lolly gradient spec: one terse, URL-safe string that describes a gradient,
  * and the CSS it bakes down to.
  *
- * A gradient has to survive the same round trip every other input does: typed in
+ * A gradient must survive the same round trip as every other input: typed in
  * an editor, written into a block row, encoded into a shareable URL, decoded by
- * the CLI, rendered identically headless. So it is a STRING, not an object — and
- * the parse/format pair lives here so the tool hooks (through `host.color`), the
+ * the CLI, and rendered identically headless. So it is a STRING, not an object.
+ * The parse/format pair lives here so the tool hooks (through `host.color`), the
  * web shell's on-canvas editor, and the tests all agree on one grammar.
  *
  *   lin_90_30ba78-0_efefef-100          linear, 90°, two stops
@@ -18,15 +18,15 @@
  * Grammar: `<kind>[.<space>[.<hue>]]_<angle>_<colour>-<pos>_…`
  *
  * Every separator (`_`, `-`, `.`) is a character `encodeURIComponent` leaves
- * alone, so a spec costs the same in a URL as it does here — no percent-escaping,
+ * alone, so a spec costs the same in a URL as it does here: no percent-escaping,
  * unlike the `,`/`~` the compact block encoder reserves for its own row and field
  * splits. Colours are written without the leading `#` for the same reason (the
  * convention colour fields already use in URLs); parsing accepts it either way,
  * along with named colours and `transparent`.
  *
- * ── Why bake, rather than emit `linear-gradient(in oklab, …)` ──
+ * ── Why bake, instead of emitting `linear-gradient(in oklab, …)` ──
  *
- * Because only the browser would honour it. An SVG `<linearGradient>` and a PDF
+ * Only the browser would honour it. An SVG `<linearGradient>` and a PDF
  * axial shading interpolate sRGB with no space to choose, so a CSS-space gradient
  * would render one way on screen and another in every exported vector file. The
  * spec is therefore interpolated HERE (css-color.ts#gradientStops, adaptive: extra
@@ -35,7 +35,7 @@
  * syntax for the export walkers to learn.
  *
  * Pure and deterministic: no DOM, no IO. Every entry point returns null (never
- * throws) on unreadable input — a spec can arrive from a hand-edited URL.
+ * throws) on unreadable input, because a spec can arrive from a hand-edited URL.
  */
 
 import { parseColor, colorToHexString, gradientStops, isNamedColor } from './css-color.ts';
@@ -49,7 +49,7 @@ export type GradientKind = (typeof GRADIENT_KINDS)[number];
 export const DEFAULT_GRADIENT_SPACE: ColorSpaceTag = 'oklab';
 
 /**
- * Upper bound on stops per spec. Not a UI preference — a hand-edited URL is
+ * Upper bound on stops per spec. This is not a UI preference: a hand-edited URL is
  * untrusted input, and each stop drives an adaptive subdivision, so the work per
  * render has to be bounded. Extra stops are dropped, not an error.
  */
@@ -57,7 +57,7 @@ export const MAX_GRADIENT_STOPS = 12;
 
 /** One authored stop: the colour exactly as written, and its position in percent. */
 export interface GradientSpecStop {
-  /** The colour as authored — hex (`#rrggbb`/`#rrggbbaa`), a CSS colour name, or
+  /** The colour as authored - hex (`#rrggbb`/`#rrggbbaa`), a CSS colour name, or
    *  `transparent`. Kept verbatim so a round trip is lossless. */
   color: string;
   /** Position along the gradient, 0–100. */
@@ -108,8 +108,8 @@ const wireColor = (c: string): string => (c.startsWith('#') ? c.slice(1) : c);
 //
 // Names are checked FIRST, so a colour keyword can never be misread as hex. In
 // practice no CSS colour name is also a valid hex string (a name needs a letter
-// outside a–f), and there is a test pinning that — but the precedence is free and
-// means the grammar doesn't depend on that coincidence holding.
+// outside a–f), and there is a test pinning that. The precedence is free, though,
+// so the grammar doesn't depend on that coincidence holding.
 function readColor(raw: string): string | null {
   const s = raw.trim();
   if (!s) return null;
@@ -120,7 +120,7 @@ function readColor(raw: string): string | null {
 
 /**
  * Parse a gradient spec string. Returns null for an empty/unreadable spec or one
- * with fewer than two usable stops — a gradient needs two colours to be a
+ * with fewer than two usable stops. A gradient needs two colours to be a
  * gradient, and a caller with null should fall back to a flat fill rather than
  * paint something half-specified.
  *
@@ -170,15 +170,15 @@ export function parseGradientSpec(input: string | null | undefined): GradientSpe
   }
   if (stops.length < 2) return null;
 
-  // Unpositioned stops spread evenly between their positioned neighbours — the
-  // same rule CSS applies, so a hand-written `lin_90_red_blue` behaves as expected.
+  // Unpositioned stops spread evenly between their positioned neighbours. This is
+  // the same rule CSS applies, so a hand-written `lin_90_red_blue` behaves as expected.
   spreadPositions(stops);
   return { kind, angle, stops, space, ...(hue ? { hue } : {}) };
 }
 
 // Fill in NaN positions: the ends anchor to 0/100, and each interior run is spread
 // evenly between the positioned stops that bracket it. Then enforce monotonicity
-// the way CSS does — a position smaller than the one before it clamps UP to it,
+// the way CSS does: a position smaller than the one before it clamps UP to it,
 // which is how a hard-edged stop is written.
 function spreadPositions(stops: GradientSpecStop[]): void {
   const last = stops.length - 1;
@@ -211,8 +211,8 @@ export function formatGradientSpec(g: GradientSpec): string {
 
 /**
  * The spec's stops, baked for a flat sRGB renderer (see the module header). Useful
- * on its own for a caller that wants the stop list rather than a CSS string — an
- * SVG `<linearGradient>` builder, say.
+ * on its own for a caller that wants the stop list rather than a CSS string, for
+ * example an SVG `<linearGradient>` builder.
  */
 export function gradientSpecStops(g: GradientSpec): ColorStop[] {
   const authored: ColorStop[] = [];
@@ -225,7 +225,7 @@ export function gradientSpecStops(g: GradientSpec): ColorStop[] {
 }
 
 /**
- * The spec as a CSS gradient value — `linear-gradient(…)` / `radial-gradient(…)` /
+ * The spec as a CSS gradient value: `linear-gradient(…)` / `radial-gradient(…)` /
  * `conic-gradient(…)` with baked sRGB stops, ready for a `background-image`.
  * Returns null when the spec can't be read, so a caller can fall back to a flat
  * fill.
@@ -244,8 +244,8 @@ export function gradientSpecToCss(input: string | GradientSpec | null | undefine
     .join(', ');
   switch (g.kind) {
     case 'radial':
-      // An ellipse filling the box, so the sweep reaches every corner — the
-      // shape/size keywords the radial walker resolves.
+      // An ellipse filling the box, so the sweep reaches every corner. These are
+      // the shape/size keywords the radial walker resolves.
       return `radial-gradient(ellipse farthest-corner at 50% 50%, ${stops})`;
     case 'conic':
       return `conic-gradient(from ${Math.round(normAngle(g.angle) * 100) / 100}deg at 50% 50%, ${stops})`;

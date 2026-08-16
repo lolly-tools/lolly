@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
- * color-curve.ts — tonal-curve model contract tests.
+ * color-curve.ts - tonal-curve model contract tests.
  *
- * The load-bearing guarantee: the DEFAULT curve for a brand primary reproduces
+ * The essential guarantee: the DEFAULT curve for a brand primary reproduces
  * today's ramp output BYTE-FOR-BYTE. The reference below rebuilds the primary
  * ramp exactly as brand-derive.ts does (rampLightnesses + chromaBell + the
  * mid-range peak clamp) and asserts bakeCurve matches, across the full
@@ -34,7 +34,7 @@ import {
 } from '../engine/src/color-curve.ts';
 
 // The exact primary-ramp hex stops brand-derive would emit for `primary` at
-// length `n` — the byte-identity reference (mkRamp with chromaScale = 1).
+// length `n` - the byte-identity reference (mkRamp with chromaScale = 1).
 function referenceRampHex(primary: Oklch, n: number): string[] {
   const peak = Math.min(0.75, Math.max(0.45, primary.l));
   const Ls = rampLightnesses(primary.l, n);

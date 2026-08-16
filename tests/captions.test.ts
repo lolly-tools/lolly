@@ -4,7 +4,7 @@ import assert from 'node:assert/strict';
 import { groupWordsToCues, cuesToVtt, cuesToSrt, cueAt } from '../engine/src/captions.ts';
 import type { CaptionCue } from '../engine/src/captions.ts';
 
-/** Evenly-spaced word timings from a sentence — 0.3s per word, no gaps. */
+/** Evenly-spaced word timings from a sentence - 0.3s per word, no gaps. */
 function words(text: string, per = 0.3, from = 0): { text: string; start: number; end: number }[] {
   return text.split(/\s+/).map((w, i) => ({
     text: w,
@@ -191,6 +191,6 @@ test('cueAt returns null in gaps and outside the timeline', () => {
 
 test('cueAt boundaries: start is inclusive, end is exclusive', () => {
   assert.equal(cueAt(TIMELINE, 1.5)?.text, 'b'); // exactly at a start
-  assert.equal(cueAt(TIMELINE, 1), null); // exactly at an end — the cue has left
+  assert.equal(cueAt(TIMELINE, 1), null); // exactly at an end - the cue has left
   assert.equal(cueAt(TIMELINE, 3), null);
 });

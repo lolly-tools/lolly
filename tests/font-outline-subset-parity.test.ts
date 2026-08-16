@@ -1,21 +1,21 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
- * skera ↔ current-method parity (plan 88 — Font Outliner). GATED: every case
- * skips (like the c2patool suites) unless a skera binary is installed —
+ * skera ↔ current-method parity (plan 88 - Font Outliner). GATED: every case
+ * skips (like the c2patool suites) unless a skera binary is installed - 
  *   cargo install skera --features cli
- * or SKERA_BIN=… — so `npm test` stays green on a machine with nothing extra.
+ * or SKERA_BIN=… - so `npm test` stays green on a machine with nothing extra.
  *
  * What it proves when it runs: a font subset by skera (fontations' Rust
- * subsetter — Dave Crossland's steer for Font Outliner, adopt at v1.0.0,
+ * subsetter - Dave Crossland's steer for Font Outliner, adopt at v1.0.0,
  * likely EoY 2026) shapes IDENTICALLY through the CURRENT text→outline
- * pipeline — packages/node-shell/src/text.ts, the faithful Node port of the
- * web bridge (shells/web/src/bridge/text.ts), same HarfBuzz WASM — for both
+ * pipeline - packages/node-shell/src/text.ts, the faithful Node port of the
+ * web bridge (shells/web/src/bridge/text.ts), same HarfBuzz WASM - for both
  * the default instance and a wght=700 variation (i.e. gvar survives the
  * subset). Identical path bytes + advance + coverage means skera output is
  * drop-in drawable for us. When skera hits 1.0 this suite is the first
  * yes/no on whether it is safe to build Font Outliner on.
  *
- * Perf is deliberately NOT asserted here (timing assertions flake — see
+ * Perf is deliberately NOT asserted here (timing assertions flake - see
  * BENCH=1 in tests/README.md); scripts/bench-font-outline.ts measures it.
  */
 import { test } from 'node:test';
@@ -83,7 +83,7 @@ test('skera subset still reports uncovered characters as notdef', { skip: SKIP ?
   skeraSubset(skeraBin!, OUTFIT_DISK, TEXT, subsetPath);
 
   // Characters outside BOTH the corpus and Outfit's coverage: the subset must
-  // count them as .notdef exactly like the original does — a subset that
+  // count them as .notdef exactly like the original does - a subset that
   // silently drops coverage reporting would break toPath's <text> fallback.
   const probe = { text: 'fox 日本語', fontSize: 64 };
   const orig = await api.toPath({ ...probe, fontUrl: OUTFIT_URL });

@@ -6,7 +6,7 @@
  *
  * Ground truth is the C2PA Technical Specification 2.4, §A.7.1.1/§A.7.1.3 and
  * §A.9.3.1/§A.9.4, read verbatim. The read side (M1: c2pa-extract.ts +
- * c2pa-verify.ts) is the verifier here — every fixture goes place → extract →
+ * c2pa-verify.ts) is the verifier here - every fixture goes place → extract →
  * verify, and the exclusion the writer declares is checked against the range the
  * READER derives from the document's own bytes (report.textBinding.exclusionsConform
  * must stay absent: any value means writer and validator disagree about where the
@@ -14,13 +14,13 @@
  *
  * HONEST LIMIT, restated from plan 105 §5: c2pa-rs implements none of §A.7/§A.8/
  * §A.9, so there is no external validator to cross-check against. Written-then-
- * read-by-ourselves is necessary but NOT sufficient — a shared misreading of the
+ * read-by-ourselves is necessary but NOT sufficient - a shared misreading of the
  * spec passes this suite. That is why the offsets below are asserted against the
  * spec's own wording (the excluded slice must literally start at `<script` and end
  * at `</script>`; the armour exclusion must literally start at the newline before
  * the block) rather than against whatever the reader happens to return.
  *
- * Deep imports throughout — engine/src/index.ts is another session's file.
+ * Deep imports throughout - engine/src/index.ts is another session's file.
  */
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
@@ -80,7 +80,7 @@ const ex1 = (out: Uint8Array): { start: number; length: number } => {
 test('the five text formats are registered, appended, and none displaced an old slot', () => {
   const list = [...C2PA_FORMATS];
   assert.deepEqual(list.slice(-5), ['html', 'js', 'css', 'md', 'html-fragment']);
-  // The pre-2.4 slots keep their exact positions — shells key export formats off
+  // The pre-2.4 slots keep their exact positions - shells key export formats off
   // this list, so an id may only ever join the end.
   assert.deepEqual(list.slice(0, -5), ['pdf', 'pdf-cmyk', 'png', 'apng', 'jpg', 'jpeg', 'gif', 'svg', 'tiff', 'cmyk-tiff', 'webp', 'mp4', 'avif', 'm4a', 'webm', 'mp3', 'wav', 'ogg', 'opus']);
   assert.ok(Object.isFrozen(C2PA_FORMATS));
@@ -99,7 +99,7 @@ for (const fmt of TEXT_FORMATS) {
     const host = bytesOf(HOSTS[fmt]!);
     const out = await embedC2pa(host, fmt, { ...OPTS, environment: { ...OPTS.environment, format: fmt } });
 
-    // The carrier is discoverable by sniffing alone — no caller-supplied format.
+    // The carrier is discoverable by sniffing alone - no caller-supplied format.
     assert.equal(sniffFormat(out), fmt === 'html' ? 'html' : 'code', `${fmt}: sniffs to its carrier`);
 
     const read = extractC2paDetailed(out);
@@ -118,7 +118,7 @@ for (const fmt of TEXT_FORMATS) {
     assert.equal(report.textBinding?.kind, fmt === 'html' ? 'html' : 'structuredText');
 
     // The host survives verbatim: take the exclusion back out and the original
-    // file is what remains — for the armour formats minus its final newline,
+    // file is what remains - for the armour formats minus its final newline,
     // which is the one §A.9.4 puts inside the exclusion.
     const bin = textOf(out);
     const ex = ex1(out);
@@ -158,7 +158,7 @@ test('§A.9.4: the exclusion runs from the newline BEFORE the block to end of fi
     assert.equal(bin[ex.start], '\n', `${fmt}: exclusion starts at a newline`);
     assert.equal(ex.start + ex.length, bin.length, `${fmt}: …and runs to end of file`);
     // The block is one comment LINE (§A.9.3.1 single-line form), not the
-    // front-matter shape — the only thing between that newline and EOF.
+    // front-matter shape - the only thing between that newline and EOF.
     const carved = bin.slice(ex.start + 1, ex.length + ex.start);
     assert.equal(carved.split('\n').filter(Boolean).length, 1, `${fmt}: a single comment line`);
     assert.ok(carved.includes(`${ARMOR_BEGIN} data:application/c2pa;base64,`), `${fmt}: §A.9.3.1 data: URI form`);
@@ -209,7 +209,7 @@ test('a reserved first line is never disturbed: shebang, XML prolog, doctype', a
     const firstLine = src.slice(0, src.indexOf('\n') + 1);
     assert.ok(bin.startsWith(firstLine), `${fmt}: line 1 is byte-identical`);
     // The END delimiter is on the last line (a trailing terminator still leaves
-    // it there — it is the line's terminator, not a new line).
+    // it there - it is the line's terminator, not a new line).
     const lines = bin.split('\n');
     assert.ok(lines[lines.length - 1] === '', `${fmt}: file ends with a terminator`);
     assert.ok(lines[lines.length - 2]!.includes(ARMOR_END), `${fmt}: END is on the last line`);
@@ -230,7 +230,7 @@ test('CRLF hosts get a CRLF block, and the exclusion still starts at the LF', as
   assert.ok(bin.endsWith(`${ARMOR_END} */\r\n`), 'the block is terminated CRLF, like its host');
   assert.equal(bin.split('\n').length - 1, 3, 'exactly one line was added');
   const ex = extractC2paDetailed(out)!.exclusions![0]!;
-  // §A.9.4 says "the newline character preceding the manifest block" — the LF,
+  // §A.9.4 says "the newline character preceding the manifest block" - the LF,
   // which leaves the CR before it inside the hashed content.
   assert.equal(bin[ex.start], '\n');
   assert.equal(bin[ex.start - 1], '\r');
@@ -254,13 +254,13 @@ test('a MIXED-ending host gets LF and keeps its own endings untouched', async ()
 test('§A.9.4: a terminator the placer INTRODUCED is inside the exclusion, both its bytes', async () => {
   // §A.9.4: "A claim generator shall not alter the line ending convention of the
   // file content outside the manifest block." A CRLF host with no trailing
-  // terminator used to get one appended and then excluded from the LF only —
+  // terminator used to get one appended and then excluded from the LF only - 
   // leaving the CR the placer itself wrote INSIDE the hashed content, so the
   // bound bytes ended in a bare CR, the one convention §A.9.4 declares
   // unsupported. The introduced terminator belongs to the block, not the host.
   // Read WHICH bytes were hashed straight out of the credential: the data-hash
   // assertion carries the digest verbatim, so finding sha256(host) in the store
-  // — and not finding sha256(host + CR) — settles it without decoding CBOR.
+  // - and not finding sha256(host + CR) - settles it without decoding CBOR.
   const digest = async (s: string): Promise<Uint8Array> =>
     new Uint8Array(await crypto.subtle.digest('SHA-256', bytesOf(s) as unknown as BufferSource));
   const carries = (hay: Uint8Array, needle: Uint8Array): boolean => {
@@ -289,7 +289,7 @@ test('§A.9.4: a terminator the placer INTRODUCED is inside the exclusion, both 
 
 test('bare-CR hosts are refused rather than silently converted', () => {
   // §A.9.4: bare CR "is not supported by this method … Such files shall be
-  // converted to LF or CRLF before embedding" — and converting them here would be
+  // converted to LF or CRLF before embedding" - and converting them here would be
   // the very alteration the next sentence forbids.
   for (const fmt of ARMOR_FORMATS) {
     assert.throws(() => attachC2paStore(bytesOf('a();\rb();\r'), fmt, fakeStore()), /bare CR line endings/, fmt);
@@ -304,7 +304,7 @@ test('placement is content-independent — and, for these placers, length-indepe
   // embedC2pa's contract is "bytes outside the exclusions depend only on manifest
   // LENGTH". Both text placers are stronger: the carrier is spliced whole into a
   // region that is entirely inside the exclusion, so the bytes outside it depend
-  // on the HOST alone. Assert the stronger property — if it ever weakens to the
+  // on the HOST alone. Assert the stronger property - if it ever weakens to the
   // documented one, this is where it shows up.
   for (const fmt of TEXT_FORMATS) {
     const host = bytesOf(HOSTS[fmt]!);
@@ -351,7 +351,7 @@ test('re-placing REPLACES: one carrier, newest credential wins, and it is idempo
       assert.equal(bin.split(ARMOR_BEGIN).length - 1, 1, `${fmt}: exactly one armour block`);
       assert.equal(bin.split(ARMOR_END).length - 1, 1, `${fmt}: …and one closing delimiter`);
     }
-    // Placing the same store twice is a fixed point — no drift, no growth.
+    // Placing the same store twice is a fixed point - no drift, no growth.
     const store = fakeStore(256, 0x33);
     const p1 = attachC2paStore(host, fmt, store);
     assert.deepEqual([...attachC2paStore(p1, fmt, store)], [...p1], `${fmt}: idempotent`);
@@ -417,7 +417,7 @@ test('a fragment carrying inline SVG still reads as structured text, not as an S
   assert.equal(report.textBinding?.kind, 'structuredText');
   assert.ok(textOf(out).includes('<svg viewBox="0 0 10 10"'), 'the artwork is untouched');
   // WHERE THE PROFILE LABEL HAS TO COME FROM. The container declares
-  // `text/html` to buildC2paManifest — but the v2 claim carries no `dc:format`
+  // `text/html` to buildC2paManifest - but the v2 claim carries no `dc:format`
   // at all (c2pa.ts: "the v2 claim drops dc:format"), so `report.claim.format`
   // is undefined here and for every other format too. A reader therefore cannot
   // recover "this is the Lolly fragment profile" from the claim; the signal that
@@ -437,7 +437,7 @@ test('§A.9.3: an existing block is replaced, but ambiguity is refused not guess
   // A dangling END, or END before BEGIN.
   assert.throws(() => attachC2paStore(bytesOf(`a();\n// ${ARMOR_END}\n`), 'js', store), /more than one — or a malformed/);
   assert.throws(() => attachC2paStore(bytesOf(`a();\n// ${ARMOR_END} x ${ARMOR_BEGIN}\n`), 'js', store), /more than one — or a malformed/);
-  // Prose that QUOTES the delimiters is not a credential — deleting somebody's
+  // Prose that QUOTES the delimiters is not a credential - deleting somebody's
   // paragraph to make room for one is not a trade a writer gets to make.
   const prose = `# Spec digest\n\nThe block is delimited by ${ARMOR_BEGIN} and ${ARMOR_END} markers.\n`;
   assert.throws(() => attachC2paStore(bytesOf(prose), 'md', store), /refusing to delete it/);
@@ -446,7 +446,7 @@ test('§A.9.3: an existing block is replaced, but ambiguity is refused not guess
   const bare = `# Spec digest\n\n${ARMOR_BEGIN} a reference goes here ${ARMOR_END}\n`;
   assert.throws(() => attachC2paStore(bytesOf(bare), 'md', store), /not a manifest reference/);
   // …but a real block, ours or anyone's, is replaced. (A `//` block is still
-  // recognised and replaced even though this placer now WRITES `/*!` — the strip
+  // recognised and replaced even though this placer now WRITES `/*!` - the strip
   // reads §A.9.3.1's whole comment-introducer list, so a file signed by any
   // conformant producer re-signs cleanly.)
   const signed = `a();\n// ${ARMOR_BEGIN} https://example.test/m.c2pa ${ARMOR_END}\n`;
@@ -459,8 +459,8 @@ test('§A.9.3: an existing block is replaced, but ambiguity is refused not guess
 test('a document that DOCUMENTS the armour form keeps every line it wrote', () => {
   // The defect this pins: a well-formed delimiter pair around reference-shaped
   // text used to be treated as a previous credential wherever it sat, and its
-  // whole line was deleted before hashing. On a docs site whose subject is C2PA —
-  // a spec digest, a README, this wave's own brief — that is ordinary prose. The
+  // whole line was deleted before hashing. On a docs site whose subject is C2PA - 
+  // a spec digest, a README, this wave's own brief - that is ordinary prose. The
   // signature over the mutilated text was VALID, and the deletion sat outside
   // every exclusion, so no reader downstream could ever notice.
   const store = fakeStore();
@@ -477,7 +477,7 @@ test('a document that DOCUMENTS the armour form keeps every line it wrote', () =
   assert.throws(() => attachC2paStore(bytesOf(doc), 'md', store), /in the middle of the file/,
     'refused, not silently rewritten');
   // The same shape on the LAST line is still refused when it is prose rather
-  // than a comment — the position test alone is not the whole rule.
+  // than a comment - the position test alone is not the whole rule.
   const trailing = `Text about ${ARMOR_BEGIN} data:application/c2pa;base64,AAAA ${ARMOR_END} in a sentence.\n`;
   assert.throws(() => attachC2paStore(bytesOf(trailing), 'md', store), /not a comment/);
 });
@@ -498,7 +498,7 @@ test('§A.7.1.1: a `<head` written inside a script or style is text, not an anch
     const at = out.indexOf('<script type="application/c2pa">');
     assert.ok(at > 0, 'a carrier was placed');
     // The one place §A.7.1.1 allows: immediately after the real <head> open tag
-    // (the LAST `<head>` in these fixtures — the earlier one is raw text).
+    // (the LAST `<head>` in these fixtures - the earlier one is raw text).
     const head = out.lastIndexOf('<head>');
     assert.equal(at, head + '<head>'.length, 'the element sits at the top of the real head');
     assert.ok(at < out.indexOf('</head>'), '…and inside it');
@@ -532,8 +532,8 @@ test('placeHtml refuses a host with nowhere to put the element', () => {
 test('hostile and truncated hosts throw cleanly and never hang', () => {
   // Bounds-before-read applies to writers too: every scan here is linear and
   // every dead end is a throw, not a loop. The shapes are the ones that have
-  // historically hung a scanner — a `>`-free tail, an unterminated comment, a
-  // megabyte of delimiters — sized so a quadratic path would blow the budget.
+  // historically hung a scanner - a `>`-free tail, an unterminated comment, a
+  // megabyte of delimiters - sized so a quadratic path would blow the budget.
   const store = fakeStore(64);
   const cases: Array<[string, string, Uint8Array]> = [
     ['html', '250k <script with no >', bytesOf('<!doctype html>\n<html><head>' + '<script '.repeat(250_000))],
@@ -553,7 +553,7 @@ test('hostile and truncated hosts throw cleanly and never hang', () => {
     try {
       const out = attachC2paStore(host, fmt, store);
       // A hostile host is allowed to SUCCEED (a NUL-riddled "text" file is still
-      // text as far as byte splicing is concerned) — what it may never do is hang
+      // text as far as byte splicing is concerned) - what it may never do is hang
       // or corrupt. If it placed, the carrier must still read back.
       assert.ok(extractC2paDetailed(out)?.store, `${fmt}: ${what} placed but does not read back`);
     } catch (err) {

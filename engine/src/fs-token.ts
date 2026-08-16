@@ -1,12 +1,12 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
- * Reversible, filesystem-safe token codec — pure string logic, no storage, DOM,
+ * Reversible, filesystem-safe token codec - pure string logic, no storage, DOM,
  * or platform coupling (it just maps a string to a safe token and back).
  *
  * The filesystem-backed state bridges (Tauri desktop/mobile) name each saved
  * session `<token>.json`, where the token must be:
  *   - INJECTIVE: distinct slot names → distinct tokens. The old
- *     `slot.replace(/[^\w.-]/g, '_')` was not — "Q3 Report", "Q3/Report",
+ *     `slot.replace(/[^\w.-]/g, '_')` was not - "Q3 Report", "Q3/Report",
  *     "Q3+Report" and "Q3_Report" all collapsed onto one file and silently
  *     overwrote each other (the P0-4 data-loss bug);
  *   - filesystem-safe on every OS: no `/ \ : * ? " < > |`, and no way to escape
@@ -21,7 +21,7 @@
 
 // Universally-legal, unreserved filename characters. Everything else (space, /,
 // +, %, and every non-ASCII byte) is percent-encoded as %XX over its UTF-8
-// bytes. `%` itself is NOT in the set, so it always encodes — keeping decoding
+// bytes. `%` itself is NOT in the set, so it always encodes - keeping decoding
 // unambiguous.
 const SAFE = /[A-Za-z0-9\-_.]/;
 

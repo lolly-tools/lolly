@@ -3,14 +3,14 @@
 /**
  * Raster preview → WebP converter.
  *
- * `npm run previews` rasterises the previews it can't keep as vector — a canvas tool
+ * `npm run previews` rasterises the previews it can't keep as vector - a canvas tool
  * (code-canvas), a dense-synthetic-vector tool the SVG walker would make expensive to
- * paint (filter-halftone, street-map), or a photo-heavy look — to PNG at up to render
+ * paint (filter-halftone, street-map), or a photo-heavy look - to PNG at up to render
  * resolution (code-canvas.png alone is 1.46 MB). Shown as gallery tiles at ~300–600 CSS px
  * they're both oversized AND in a format 3–5× heavier than it needs to be.
  *
  * This resizes every raster preview (default <id>.png AND look <id>.look<i>.png) to a
- * retina-safe cap and re-encodes as WebP — typically a 5–10× byte cut — then removes the
+ * retina-safe cap and re-encodes as WebP - typically a 5–10× byte cut - then removes the
  * .png so a tool never carries both. build-catalog-index.ts prefers .webp over .png, and
  * build-preview-bundle.ts references look rasters as .webp first, so the switch is picked
  * up with no other change. Runs as the final step of `npm run previews`.
@@ -58,7 +58,7 @@ async function run(): Promise<void> {
     const out = await stampBitmap(new Uint8Array(resized), 'webp', { id, name: id }, { webpQuality: 80 });
     // Write the .webp and drop the .png (a tool carries exactly one raster form). Even if
     // WebP weren't smaller for some pathological input it's still the format we standardise
-    // on, so always switch — these are lossy thumbnails, not deliverables.
+    // on, so always switch - these are lossy thumbnails, not deliverables.
     writeFileSync(webpPath, Buffer.from(out));
     unlinkSync(pngPath);
     converted++;

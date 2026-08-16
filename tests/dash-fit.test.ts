@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
- * engine/src/dash-fit.ts — manual dash entry + Illustrator-style corner-fit dashes
+ * engine/src/dash-fit.ts - manual dash entry + Illustrator-style corner-fit dashes
  * (plan 96). Two properties carry most of the weight here:
  *
  *  1. `parseDashArray` returns NUMBERS or nothing. It is the injection boundary for a
@@ -15,7 +15,7 @@ import {
   parseDashArray, cornerFitDashArray, dashSegments,
 } from '../engine/src/dash-fit.ts';
 
-/** Sum, rounded off the last bits of float noise — every emitted entry is already 2dp,
+/** Sum, rounded off the last bits of float noise - every emitted entry is already 2dp,
  *  but adding four thousand of them is not exact and the assertions are about geometry. */
 const sum = (xs: number[]): number => Math.round(xs.reduce((a, b) => a + b, 0) * 1e6) / 1e6;
 /** Total inked length of an alternating dash array (the even indices). */
@@ -69,7 +69,7 @@ test('parseDashArray: 16 entries pass, 17 do not (the entry bound)', () => {
 // ── the corner fit: a square ─────────────────────────────────────────────────────
 
 // Four 100px spans, pattern [6,4]: cycle 10 divides 100 exactly, so the fit is s = 1 and
-// the authored pattern is left ALONE — the property that says "if it already fits, don't
+// the authored pattern is left ALONE - the property that says "if it already fits, don't
 // touch it". Each span therefore runs 3, 4, (6, 4)×9, 3.
 const SQUARE = [100, 100, 100, 100];
 
@@ -103,7 +103,7 @@ test('square: the array is even-length and ends exactly at the path length', () 
 });
 
 test('a mid-span corner dash is ONE merged entry, not two adjacent dashes', () => {
-  // Two spans of 100: each is 3, 4, (6,4)×9, 3 — 21 entries — and the two 3s either side
+  // Two spans of 100: each is 3, 4, (6,4)×9, 3 - 21 entries - and the two 3s either side
   // of the corner merge into one 6. If the merge were missing the array would carry 3, 3
   // in a row, which SVG reads as dash-then-GAP and the corner would go bare.
   const runs = cornerFitDashArray([100, 100], [6, 4]);
@@ -127,23 +127,23 @@ test('a span that does not divide the cycle is scaled slightly, not truncated', 
 test('every span at least minScale × cycle long is FITTED, and inside the band', () => {
   // The whole-cycle-count rule keeps the scale in [0.75, 1.5) for any span from 0.66
   // cycles up, so the fallback is reserved for genuine stubs rather than firing on
-  // ordinary geometry (which is what `round((L − dash0) / cycle)` would have done —
+  // ordinary geometry (which is what `round((L − dash0) / cycle)` would have done - 
   // 16 units of a 10-unit cycle would have wanted s = 1.6 and given up).
   for (let L = 7; L <= 400; L += 0.25) {
     const runs = cornerFitDashArray([L], [6, 4]);
     const s = runs[0]! / 3;                       // a fitted span opens with half a dash
     assert.ok(s >= 0.66 - 1e-9 && s <= 1.5 + 1e-9, `L=${L} scale ${s}`);
-    // The same half dash closes it — to within the 2dp the positions are quantised to.
+    // The same half dash closes it - to within the 2dp the positions are quantised to.
     assert.ok(Math.abs(runs[runs.length - 2]! - runs[0]!) < 0.0101, `L=${L} closes with a half dash`);
   }
 });
 
 test('a stub span falls back to the AUTHORED pattern rather than minting absurd dashes', () => {
-  // 2px of a 10px cycle would need s = 0.2 — far below minScale, so no fit: the stub is
+  // 2px of a 10px cycle would need s = 0.2 - far below minScale, so no fit: the stub is
   // simply the pattern's first 2px of dash.
   assert.deepEqual(cornerFitDashArray([2], [6, 4]), [2, 0]);
   assert.deepEqual(dashSegments([2], [6, 4]), [{ start: 0, end: 2 }]);
-  // 6.5px: the pattern tiled and cut — a 6 dash then half a gap, exact lengths kept.
+  // 6.5px: the pattern tiled and cut - a 6 dash then half a gap, exact lengths kept.
   assert.deepEqual(cornerFitDashArray([6.5], [6, 4]), [6, 0.5]);
   // A stub between two real spans still hands the rest of the path back correctly.
   assert.equal(sum(cornerFitDashArray([100, 2, 100], [6, 4])), 202);

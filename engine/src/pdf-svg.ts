@@ -3,8 +3,8 @@
  * PDF page → standalone SVG serializer (pure, DOM-free).
  *
  * Takes the PdfNodes the content-stream interpreter (pdf-map.ts) produced for one
- * page — BEFORE finalizeBoxes, so the `_vector*` / `_imageXObject` placeholders are
- * still present — and emits one self-contained SVG document for the whole page.
+ * page (BEFORE finalizeBoxes, so the `_vector*` / `_imageXObject` placeholders are
+ * still present) and emits one self-contained SVG document for the whole page.
  * This is the "PDF page as an asset" sibling of the Design import path: the
  * SAME interpreted nodes either become editable boxes (design-import) or this flat
  * SVG (asset upload), so the two ingest surfaces can never disagree about what a
@@ -13,13 +13,13 @@
  * Raster image XObjects can't be decoded here (that needs a canvas); the shell
  * decodes them and passes the results in `opts.images` (imageKey → href, usually a
  * data: URI) so the output stays self-contained. An image with no resolved href is
- * skipped — mirroring the boxes path, where it degrades to an empty box.
+ * skipped, mirroring the boxes path, where it degrades to an empty box.
  *
  * Group ids (OCG layers / form XObjects / q…Q blocks, resolved by the interpreter
  * onto contiguous paint-order runs) are kept as <g data-group="…"> wrappers, so a
  * page SVG re-imported into Design yields the same grouping.
  *
- * The page background is transparent by design — PDF "paper" is a viewer
+ * The page background is transparent by design. PDF "paper" is a viewer
  * convention, not page content, and vector art (the .ai logo case) should land on
  * any canvas without a baked white plate. Pass `background` to opt into one.
  */
@@ -38,7 +38,7 @@ export interface PdfSvgOptions {
    * more than one SVG destined for the same canvas must pass a distinct prefix.
    */
   idPrefix?: string;
-  /** Page (MediaBox) size in points — becomes the viewBox and intrinsic size. */
+  /** Page (MediaBox) size in points: becomes the viewBox and intrinsic size. */
   width: number;
   height: number;
   /** Resolved raster XObjects: PdfNode._imageXObject key → href (a data: URI). */
@@ -47,18 +47,18 @@ export interface PdfSvgOptions {
   background?: string;
   /**
    * Hoist byte-identical `<path>` elements into `<defs>` and reference them with
-   * `<use>`. OFF by default, and deliberately opt-in — see the warning below.
+   * `<use>`. OFF by default, and deliberately opt-in: see the warning below.
    *
    * Why it exists: a print engine draws a dashed border as FOUR separate paints,
    * each carrying the WHOLE dash ring and each clipped to one mitred border-side
-   * wedge. The ring can run 50 KB, so one bordered control costs 200 KB — 37% of
-   * a docs brand-studio capture, 50% of a logo-grid one. The copies are NOT
+   * wedge. The ring can run 50 KB, so one bordered control costs 200 KB, 37% of
+   * a docs brand-studio capture and 50% of a logo-grid one. The copies are NOT
    * redundant (each has a different innermost clip), so collapsing the DRAWS
    * would delete three sides of every dashed border. This collapses only the
    * DATA: every `<use>` keeps its own clip/group wrappers, so rendering is
    * identical by construction.
    *
-   * WARNING — do not enable for SVG destined for a re-export path. `svg-ir.ts`
+   * WARNING: do not enable for SVG destined for a re-export path. `svg-ir.ts`
    * (EMF/EPS/DXF) skips `<use>` outright, so a hoisted path would silently
    * vanish there. Enable it only for terminal output such as a docs screenshot.
    */
@@ -68,7 +68,7 @@ export interface PdfSvgOptions {
 // Round for compact, stable output (the interpreter already works in ~0.01pt).
 // The isFinite check is on the ROUNDED value too: v·100 overflows to Infinity
 // somewhere past 1e306, and `x="Infinity"` is not valid SVG. A coordinate that
-// large is garbage from a malformed PDF either way — emit 0 rather than poison
+// large is garbage from a malformed PDF either way. Emit 0 rather than poison
 // the document (pdfNodeExtent refuses to bound such nodes, so they are kept).
 const r = (v: number): number => {
   const n = Math.round(((typeof v === 'number' && isFinite(v)) ? v : 0) * 100) / 100;
@@ -81,7 +81,7 @@ const escapeXml = (s: string): string =>
   ));
 
 // Only colours the interpreter itself emits (safeColor output: #rgb/#rrggbb/… or
-// 'none') are let through — anything else falls back, so no attribute injection.
+// 'none') are let through. Anything else falls back, so no attribute injection.
 const safeAttrColor = (v: unknown, dflt: string): string => {
   const s = String(v ?? '').trim();
   if (s.toLowerCase() === 'none') return 'none';
@@ -119,13 +119,13 @@ function ellipseEl(n: PdfNode, fillOverride?: string): string {
  * bounds the SAME string, not the raw `_vectorPath`: the sanitiser DELETES rather
  * than escapes, so a quote between two digits (`L1'0000 0`) fuses them into a
  * different, larger coordinate. Reading the raw value there would bound geometry
- * the document doesn't contain — and miss the geometry it does.
+ * the document doesn't contain, and miss the geometry it does.
  */
 function vectorPathD(n: PdfNode): string {
   return String(n._vectorPath ?? '').replace(/["<>&']/g, '');
 }
 
-// A baked vector path is already in absolute page coordinates — no transform needed.
+// A baked vector path is already in absolute page coordinates: no transform needed.
 function pathEl(n: PdfNode, fillOverride?: string): string {
   const d = vectorPathD(n);
   if (!d) return '';
@@ -146,7 +146,7 @@ function pathEl(n: PdfNode, fillOverride?: string): string {
 function imageEl(n: PdfNode, images: Record<string, string>): string {
   const href = n._imageXObject ? images[n._imageXObject] : undefined;
   if (!href || !/^data:image\//i.test(href)) return ''; // self-contained or nothing
-  // An image whose ROUNDED extent is zero cannot draw, so emitting it is pure weight —
+  // An image whose ROUNDED extent is zero cannot draw, so emitting it is pure weight,
   // and the weight is not small: the href is a base64 raster. The node-level guard is
   // `n.w > 0`, which a 0.004-unit box passes before `r()` rounds the attribute to "0".
   // Test what will actually be written, not what was computed.
@@ -165,7 +165,7 @@ function leadOf(n: PdfNode): number {
 
 // Outlined text: the same baseline/line geometry as textEl, but each line is a
 // real <path> of glyph outlines (font units already resolved to SVG px by the
-// shaper) placed by a translate — so the SVG needs no font at render time. Only
+// shaper) placed by a translate, so the SVG needs no font at render time. Only
 // used for un-rotated runs (the shell keeps rotated text as <text>).
 function outlinedTextEl(n: PdfNode): string {
   const lines = n._outlinePath ?? [];
@@ -178,7 +178,7 @@ function outlinedTextEl(n: PdfNode): string {
   for (let i = 0; i < lines.length; i++) {
     const d = lines[i];
     if (!d) continue;
-    // Same alpha as the <text> rung — the outlined path is the same run, so the two
+    // Same alpha as the <text> rung: the outlined path is the same run, so the two
     // presentations must not disagree about how strong the ink is.
     parts.push(`<g transform="translate(${r(n.x)} ${r(baseline0 + i * lineH)})"><path d="${d}" fill="${fill}"${opacityAttr(n)}/></g>`);
   }
@@ -186,7 +186,7 @@ function outlinedTextEl(n: PdfNode): string {
 }
 
 // Text: the interpreter puts the box top at (baseline − 0.8·size) and sizes the box
-// at 1.4·size per line — mirror both so this presentation matches the boxes path.
+// at 1.4·size per line. Mirror both so this presentation matches the boxes path.
 function textEl(n: PdfNode): string {
   const text = String(n.text ?? '');
   if (!text.trim()) return '';
@@ -204,7 +204,7 @@ function textEl(n: PdfNode): string {
     `<tspan x="${r(n.x)}" y="${r(baseline0 + i * lineH)}">${escapeXml(line)}</tspan>`).join('');
   // `opacityAttr` like every other element builder: text was the ONE that omitted it,
   // so a muted or secondary label (PDF `/ca`, or a soft mask folded to a constant)
-  // rendered at full strength — which reads as the wrong colour, not as slightly off.
+  // rendered at full strength, which reads as the wrong colour, not as slightly off.
   return `<text xml:space="preserve" fill="${safeAttrColor(n.fg, '#000000')}" font-size="${r(size)}"${familyAttr}${weight}${opacityAttr(n)}${rot}>${spans}</text>`;
 }
 
@@ -217,7 +217,7 @@ const clamp01 = (v: number): number => (v < 0 ? 0 : v > 1 ? 1 : v);
 /**
  * A PDF shading → an SVG paint server. The shading keeps its own coordinate space;
  * `matrix` (shading space → page/box space) rides on `gradientTransform` /
- * `patternTransform` so any affine — including a skewed radial — is exact without
+ * `patternTransform` so any affine, including a skewed radial, is exact without
  * pre-transforming the endpoints. `gradientUnits="userSpaceOnUse"` because the
  * coords are absolute, not fractions of the painted box. Returns '' for a shading
  * we can't faithfully emit (fewer than two stops, a degenerate radius, a non-finite
@@ -229,15 +229,15 @@ function gradientMarkup(g: PdfGradient, id: string, images: Record<string, strin
   if (!Array.isArray(m) || m.length < 6 || !m.every((v) => isFinite(v))) return '';
 
   // ShadingType 1 (function-based): an irreducibly 2-D colour field the shell
-  // rasterised to a tile. `tileKey` is opaque here — resolved through the same
+  // rasterised to a tile. `tileKey` is opaque here: resolved through the same
   // `images` record, and behind the same data:-URI check, as an image XObject, so
   // this can't become a second, laxer href path.
   //
   // The tile is emitted at the pattern origin (x=y=0) with the domain offset folded
   // into patternTransform, NOT as an x/y on the <pattern>: renderers disagree about
   // whether pattern content coordinates are tile-relative or user-space, and at
-  // x=y=0 both readings coincide. Deliberate limitation: a raster tile is a raster —
-  // zoom far enough into an exported OKLCH wheel and it blurs. Bounded to genuinely
+  // x=y=0 both readings coincide. Deliberate limitation: a raster tile is a raster,
+  // and zooming far enough into an exported OKLCH wheel blurs it. Bounded to genuinely
   // 2-D fields and switchable off (PdfPageSvgOpts.rasterFallback).
   //
   // Second deliberate limitation: `patternTransform` is less well-trodden in
@@ -282,11 +282,11 @@ export type PdfElementKind = 'path' | 'image' | 'outlined-text' | 'text' | 'box'
 
 /**
  * The serializer's element dispatch, extracted so `pdfNodeExtent` can mirror it
- * EXACTLY rather than re-deriving it. Order is load-bearing and matches the emit
+ * EXACTLY rather than re-deriving it. Order matters here and matches the emit
  * loop below.
  *
  * LANDMINE this exists to defuse: `kind: 'image'` is the interpreter's generic
- * drawn-node carrier — a baked vector path is an `'image'` node with `_vectorPath`
+ * drawn-node carrier. A baked vector path is an `'image'` node with `_vectorPath`
  * set (pdf-map.ts:898-901 makes the same point for raster detection). Anything
  * that branches on `n.kind` alone silently mis-classifies vector tiles; branch on
  * this instead.
@@ -320,8 +320,8 @@ export function pdfNodesToSvg(nodes: PdfNode[], opts: PdfSvgOptions): string {
 
   // Interpreter clip stacks (`W`/`W*`) → shared <clipPath> defs; a clipped node is
   // wrapped in one <g clip-path> per stack entry (nested groups = intersection).
-  // Without this, a print engine's soft shadows — large low-alpha shapes cut down
-  // by a clip — render as giant plates.
+  // Without this, a print engine's soft shadows (large low-alpha shapes cut down
+  // by a clip) render as giant plates.
   const clipDefs = new Map<string, string>();
   const clipId = (c: NonNullable<PdfNode['_clips']>[number]): string => {
     const key = `${c.evenOdd ? 'e' : 'n'}|${c.d}`;
@@ -340,8 +340,8 @@ export function pdfNodesToSvg(nodes: PdfNode[], opts: PdfSvgOptions): string {
 
   // Gradient fills (PDF ShadingType 1/2/3) → deduped <linearGradient>/
   // <radialGradient>/<pattern> defs; a node's flat fill is replaced with a `url(#…)`
-  // ref. Deduped by content so a hero gradient — or three instances of one OKLCH
-  // wheel — emits once. A shading we can't emit returns '' → the node keeps its flat
+  // ref. Deduped by content so a hero gradient, or three instances of one OKLCH
+  // wheel, emits once. A shading we can't emit returns '' → the node keeps its flat
   // fill, which the interpreter now always populates.
   const gradDefs = new Map<string, { id: string; markup: string }>();
   const gradientFill = (n: PdfNode): string => {
@@ -370,7 +370,7 @@ export function pdfNodesToSvg(nodes: PdfNode[], opts: PdfSvgOptions): string {
   // Gradient defs are REFERENCE-driven, not registration-driven: `gradientFill`
   // registers a def as a side effect of being asked for a paint, but the node may
   // still yield no element (an empty `d`, a fill of none, an unresolved image).
-  // Only ids that actually reached the output are emitted — otherwise a node that
+  // Only ids that actually reached the output are emitted. Otherwise a node that
   // paints nothing would still ship its <defs> payload, and for a ShadingType-1
   // tile that payload is a base64 PNG. This is also what makes cullPdfNodes safe
   // to use without a separate def sweep: cull nodes, and the defs follow.
@@ -379,8 +379,8 @@ export function pdfNodesToSvg(nodes: PdfNode[], opts: PdfSvgOptions): string {
   // One node → one element. Extracted so a <mask>'s children go through the EXACT
   // same path as the page's own nodes: gradients, clips, rasters, even-odd rules and
   // rotations all work inside a mask for free, because there is only one renderer.
-  // Dispatch via the shared classifier so pdfNodeExtent can mirror it exactly —
-  // see pdfNodeElementKind for why a `kind` test alone is a trap.
+  // Dispatch via the shared classifier so pdfNodeExtent can mirror it exactly.
+  // See pdfNodeElementKind for why a `kind` test alone is a trap.
   const renderNode = (n: PdfNode): { el: string; gref: string } => {
     let el = '', gref = '';
     switch (pdfNodeElementKind(n)) {
@@ -398,9 +398,9 @@ export function pdfNodesToSvg(nodes: PdfNode[], opts: PdfSvgOptions): string {
    * A PDF /Luminosity (or /Alpha) soft mask → an SVG `<mask>`, deduped by the
    * interpreter's own (mask, CTM) key. PDF 32000-1 §11.6.5.2 maps exactly:
    *   /S /Luminosity        → `<mask>` (SVG's default mask is luminance)
-   *   group /CS /DeviceGray → sRGB luminance of (g,g,g) IS g — EXACT
+   *   group /CS /DeviceGray → sRGB luminance of (g,g,g) IS g, EXACT
    *   group /BBox           → maskUnits="userSpaceOnUse" + explicit x/y/width/height
-   *   outside the /BBox     → 0, which is PDF's own default (black) /BC — exact
+   *   outside the /BBox     → 0, which is PDF's own default (black) /BC, exact
    *   /S /Alpha             → mask-type="alpha"
    *
    * This is how a CSS box-shadow finally renders: Chromium bakes its blur, offset and
@@ -409,14 +409,14 @@ export function pdfNodesToSvg(nodes: PdfNode[], opts: PdfSvgOptions): string {
    * the shape. See pdf-smask.ts.
    *
    * `color-interpolation:sRGB` is pinned deliberately: SVG 1.1 nominally computes mask
-   * luminance in linearRGB, while CSS Masking Level 1 — what browsers actually
-   * implement, and what /Luminosity means — uses sRGB. Stating it removes the
+   * luminance in linearRGB, while CSS Masking Level 1 (what browsers actually
+   * implement, and what /Luminosity means) uses sRGB. Stating it removes the
    * ambiguity for resvg/Inkscape and keeps this in step with pdf-smask's
    * `relativeLuminance`, which the interpreter's constant-fold rung uses.
    *
    * A mask whose children all render to nothing emits NOTHING for the masked node: an
    * unknowable mask is a black mask, and a print engine's shadow ink rendered UNMASKED
-   * is an opaque grey plate the size of the control — the worse of the two errors.
+   * is an opaque grey plate the size of the control, the worse of the two errors.
    */
   const maskDefs = new Map<string, { id: string; markup: string; grefs: string[] }>();
   const maskWrap = (n: PdfNode, el: string): string => {
@@ -426,7 +426,7 @@ export function pdfNodesToSvg(nodes: PdfNode[], opts: PdfSvgOptions): string {
     if (!entry) {
       const id = `${idp}mask${maskDefs.size}`;
       const grefs: string[] = [];
-      // A child's own `_softMask` is ignored — the interpreter caps mask nesting at
+      // A child's own `_softMask` is ignored. The interpreter caps mask nesting at
       // one level (§11.6.5.2 turns soft masks off inside a mask group), so it is
       // always absent here.
       let kids = '';
@@ -448,7 +448,7 @@ export function pdfNodesToSvg(nodes: PdfNode[], opts: PdfSvgOptions): string {
       maskDefs.set(m.key, entry);
     }
     if (!entry.markup) return '';
-    // The mask's own gradient defs are reference-driven too — they only survive the
+    // The mask's own gradient defs are reference-driven too: they only survive the
     // <defs> filter once a node actually used this mask.
     for (const g of entry.grefs) usedGrads.add(g);
     return `<g mask="url(#${entry.id})">${el}</g>`;
@@ -520,13 +520,13 @@ export interface SvgWindow {
 }
 
 /**
- * Window a pdfNodesToSvg document to a sub-rect — the vector counterpart of a
- * raster clip: scroll offset and crop insets become viewBox geometry, so the
+ * Window a pdfNodesToSvg document to a sub-rect: the vector counterpart of a
+ * raster clip. Scroll offset and crop insets become viewBox geometry, so the
  * "cropped" export is a lossless re-framing of the same vectors. Pure string
  * surgery on the serializer's own root element (viewBox + width + height are
- * always its first three attributes, see pdfNodesToSvg) — no DOM, so shells and
+ * always its first three attributes, see pdfNodesToSvg). No DOM, so shells and
  * tests share it. Returns the input unchanged when the root doesn't match (an
- * SVG from anywhere else) — callers can pass any svg string safely.
+ * SVG from anywhere else); callers can pass any svg string safely.
  */
 export function windowPdfSvg(svg: string, win: SvgWindow): string {
   const m = /^<svg ([^>]*?)viewBox="[^"]*" width="[^"]*" height="[^"]*">/.exec(svg);
@@ -540,12 +540,12 @@ export function windowPdfSvg(svg: string, win: SvgWindow): string {
 // ── Crop culling ──────────────────────────────────────────────────────────────
 //
 // SOUNDNESS: culling is legal only because everything pdfNodesToSvg emits is
-// INTERSECTIVE — a node's ink never leaves its own geometry, so a node outside the
+// INTERSECTIVE: a node's ink never leaves its own geometry, so a node outside the
 // crop cannot influence a pixel inside it. Concretely: no filter, no blend mode, no
 // <use>, no <marker>; `transform` is only rotate()/translate(); clip-path and (since
 // engine 1.63) mask can only remove ink, never move or spread it. A `<mask>` is
 // emitted with maskUnits="userSpaceOnUse" and an explicit region, and SVG renders
-// neither the mask's content nor the masked element outside that region — which is
+// neither the mask's content nor the masked element outside that region. This is
 // why pdfNodeExtent intersects with the mask rect rather than ignoring it.
 //
 // If a filter, a blend mode, or a mask WITHOUT a bounded region ever lands here,
@@ -555,14 +555,14 @@ export function windowPdfSvg(svg: string, win: SvgWindow): string {
 // Culling is deliberately NOT folded into windowPdfSvg. Windowing is an exact
 // viewBox rewrite that happens last, with the measured points-per-px ratio;
 // culling is a conservative, padded, fail-open optimisation that must happen
-// FIRST — before the shell decodes rasters, rasterises shading tiles and
+// FIRST, before the shell decodes rasters, rasterises shading tiles and
 // HarfBuzz-shapes text, which is where a cropped capture actually spends its
 // bytes and its seconds. Both rects derive from one crop in each caller.
 
 /** An axis-aligned box in the page's own (point) space. */
 export interface PdfExtent { x: number; y: number; w: number; h: number }
 
-/** A crop rectangle in the page's own (point) space — the same space as SvgWindow. */
+/** A crop rectangle in the page's own (point) space: the same space as SvgWindow. */
 export interface CullWindow {
   x: number; y: number; width: number; height: number;
   /**
@@ -582,7 +582,7 @@ export interface CullResult {
   unbounded: number;
 }
 
-/** 2pt ≈ 2.7 CSS px ≈ 3 device px at 1× — see CullWindow.pad. */
+/** 2pt ≈ 2.7 CSS px ≈ 3 device px at 1×. See CullWindow.pad. */
 export const CULL_PAD_PT = 2;
 
 /** A node whose extent is provably empty (the serializer emits nothing for it). */
@@ -590,7 +590,7 @@ const EMPTY_EXTENT: PdfExtent = { x: 0, y: 0, w: 0, h: 0 };
 
 const finite = (v: unknown): v is number => typeof v === 'number' && isFinite(v);
 
-/** Clip stacks past this depth are treated as unbounded — pathological nesting. */
+/** Clip stacks past this depth are treated as unbounded: pathological nesting. */
 const MAX_CLIPS = 64;
 /** A clip `d` longer than this isn't scanned (bounded work per node). */
 const MAX_CLIP_D = 64_000;
@@ -599,7 +599,7 @@ const MAX_PATH_D = 400_000;
 /** Total outline-path characters scanned for one text node (bounded work). */
 const MAX_OUTLINE_D = 400_000;
 /**
- * Beyond this magnitude a coordinate is not geometry, it is corruption — and the
+ * Beyond this magnitude a coordinate is not geometry, it is corruption. The
  * serializer's own 2-dp rounding can no longer represent it (see `r`), so the box
  * we'd compute would not describe where the ink actually lands. Fail open.
  * A PDF page is ~1e3 pt; even a pathological UserUnit page is far below this.
@@ -612,7 +612,7 @@ const MAX_COORD = 1e9;
  * every window still overlaps it, but the arithmetic stays finite.
  *
  * A PLANE-sized extent is NOT geometry. It means "this node's ink cannot be located
- * on this axis" — the only honest answer for a `<text>` run, whose advance width is
+ * on this axis", the only honest answer for a `<text>` run, whose advance width is
  * decided by whatever font the RENDERER resolves (see the text branch below).
  */
 const PLANE = MAX_COORD;
@@ -621,16 +621,16 @@ const planeBox = (): PdfExtent => ({ x: -PLANE, y: -PLANE, w: 2 * PLANE, h: 2 * 
 /**
  * The control-point hull of an SVG path `d`, or null when it can't be scanned.
  *
- * Every command this codebase emits into a `d` takes pure coordinate-pair operands
- * — `M`/`L`/`C`/`Z` from pdf-map's serializePath, plus `Q` from the HarfBuzz shaper
- * (shells/web/src/bridge/text.ts transformPath) — so every number is alternately an
+ * Every command this codebase emits into a `d` takes pure coordinate-pair operands:
+ * `M`/`L`/`C`/`Z` from pdf-map's serializePath, plus `Q` from the HarfBuzz shaper
+ * (shells/web/src/bridge/text.ts transformPath). So every number is alternately an
  * x and a y, and Bézier control points are included: a superset of the true curve,
  * which is exactly what a conservative culler wants.
  *
  * The vocabulary check is a WHITELIST, deliberately. An earlier blacklist of
  * absolute command letters let the RELATIVE forms (`m`/`l`/`c`/`z`) through, and a
  * relative path scanned as absolute yields a bbox that need not contain the real
- * path at all — i.e. a silent cull. Anything outside `M L C Q Z`, digits, sign,
+ * path at all: a silent cull. Anything outside `M L C Q Z`, digits, sign,
  * dot, comma, exponent and whitespace ⇒ null ⇒ the caller must not shrink.
  */
 function pathDataBox(d: string, maxLen: number): PdfExtent | null {
@@ -653,7 +653,7 @@ function pathDataBox(d: string, maxLen: number): PdfExtent | null {
  * can't establish one (so the caller must not shrink the node's extent).
  *
  * Prefers a `bbox` recorded by the interpreter (serializePath already computes the
- * control-point hull) — but only a SANE one: a negative span is not a tighter
+ * control-point hull), but only a SANE one: a negative span is not a tighter
  * clip, it is a bug upstream, and trusting it would collapse the extent to nothing
  * and drop a node that paints. Falls back to scanning `d`.
  */
@@ -667,7 +667,7 @@ function clipExtent(c: { d?: string; bbox?: PdfExtent } | null | undefined): Pdf
 /**
  * How far past a clip/mask edge a rasteriser can still put ink, in points. One
  * device pixel is 0.75 pt at the docs pipeline's own scale (1440 px ↔ 1080 pt), and
- * antialiasing spreads at most a pixel either side of an edge — so 1 pt covers it
+ * antialiasing spreads at most a pixel either side of an edge, so 1 pt covers it
  * with room to spare. Only ever WIDENS a clip, so it cannot cause a false drop.
  */
 const AA_PAD = 1;
@@ -701,13 +701,13 @@ function rotatedAabb(b: PdfExtent, deg: number, ax: number, ay: number): PdfExte
  * pdfNodesToSvg's element dispatch exactly, via pdfNodeElementKind.
  *
  * A node the serializer skips outright (w/h ≤ 0, or a kind that emits nothing)
- * returns a zero-area box, which no window intersects — dropping it is
+ * returns a zero-area box, which no window intersects. Dropping it is
  * behaviour-preserving, not a guess.
  *
  * THREE return shapes, and a caller must handle all three:
- *   • a real box            — bounds every pixel this node can paint
- *   • zero area             — the serializer emits nothing for it
- *   • null, or a box spanning ±PLANE on an axis — NOT geometry: "can't be located".
+ *   • a real box            : bounds every pixel this node can paint
+ *   • zero area             : the serializer emits nothing for it
+ *   • null, or a box spanning ±PLANE on an axis: NOT geometry, "can't be located".
  *     A `<text>` run is the standard case (its advance depends on the renderer's
  *     font), so treat a PLANE span as "keep", never as a bounding box. Clips and
  *     soft masks still intersect it, which is how a clipped unbounded node is
@@ -734,7 +734,7 @@ export function pdfNodeExtent(n: PdfNode): PdfExtent | null {
     } else if (kind === 'outlined-text') {
       // Outlined text is EXACTLY bounded: the glyph outlines are real path data, and
       // outlinedTextEl places line i at translate(x, baseline0 + i·1.4·size) with the
-      // baseline at the path's own y=0. So scan the paths — no font, no guessing.
+      // baseline at the path's own y=0. So scan the paths: no font, no guessing.
       const size = Math.max(1, +(n.fontSize ?? 0) || 12);
       const lineH = leadOf(n) * size;
       const baseline0 = n.y + size * 0.8;
@@ -758,14 +758,14 @@ export function pdfNodeExtent(n: PdfNode): PdfExtent | null {
       else if (!isFinite(minX)) box = EMPTY_EXTENT;        // every line empty ⇒ no element
       else box = { x: minX, y: minY, w: maxX - minX, h: maxY - minY };
       // outlinedTextEl emits no rotate at all (the shell only outlines un-rotated
-      // runs), so `rot` is deliberately ignored here — mirroring the serializer is
+      // runs), so `rot` is deliberately ignored here: mirroring the serializer is
       // the invariant, not mirroring what the PDF said.
     } else if (kind === 'text') {
       // A `<text>` element's ink is NOT bounded by anything the engine knows. `n.w`
       // is pdf-map's char-count estimate off the FIRST line only (flushText:
       // `max(4, firstLine.length·size·0.55, size·2)`), so a wrapped paragraph whose
       // second line is longer, or any full-width script at ~1em per glyph, paints
-      // far to the right of it — and the final advance is decided by whichever font
+      // far to the right of it, and the final advance is decided by whichever font
       // the RENDERER resolves, which is not knowable in a DOM-free engine.
       //
       // So the horizontal axis is reported as unbounded (PLANE) rather than guessed.
@@ -775,7 +775,7 @@ export function pdfNodeExtent(n: PdfNode): PdfExtent | null {
       // culls the 100+ labels of a sidebar that sits above or below the crop.
       //
       // Cost of being honest: text nodes level with the crop are never culled. They
-      // are also never the payload — a cropped capture's bytes are rasters and
+      // are also never the payload: a cropped capture's bytes are rasters and
       // shading tiles (an 11.7 MB base64 <canvas> node against ~150 B per label),
       // and on the docs path text is OUTLINED, which takes the exact branch above.
       const size = Math.max(1, +(n.fontSize ?? 0) || 12);
@@ -830,7 +830,7 @@ export function pdfNodeExtent(n: PdfNode): PdfExtent | null {
 
     if (!finite(box.x) || !finite(box.y) || !finite(box.w) || !finite(box.h)) return null;
 
-    // Clips can only REMOVE ink, so intersecting is a proof, not a guess — and it
+    // Clips can only REMOVE ink, so intersecting is a proof, not a guess, and it
     // is where the structural win lives: `sh` shadings and print-engine shadow
     // plates emit a node covering the WHOLE page whose real extent is the clip.
     //
@@ -838,7 +838,7 @@ export function pdfNodeExtent(n: PdfNode): PdfExtent | null {
     // idea of "inside the clip" is wider than the geometry's. Observed on the real
     // tools-gallery page (2026-07-26): a card backdrop `<rect x="536.49" …>` sat
     // inside a `<clipPath>` whose right edge was exactly 536.49, so the exact
-    // intersection was zero-width — yet Chromium antialiased the coincident edge
+    // intersection was zero-width, yet Chromium antialiased the coincident edge
     // into a real 1-device-px column. Declaring that node inkless dropped a column
     // of pixels the uncropped render had. The paint there was `opacity="0.06"` so
     // the loss was ~2/255 over 23 pixels, but the SAME collapse under an opaque
@@ -859,7 +859,7 @@ export function pdfNodeExtent(n: PdfNode): PdfExtent | null {
     // A soft mask can only remove ink too, and its region is already an axis-aligned
     // box: outside a userSpaceOnUse <mask> the mask value is the backdrop, which for
     // everything we emit is 0 (see maskWrap). So this is the same proof as the clip
-    // intersection, and it is the tight bound on a box-shadow plate — an element-sized
+    // intersection, and it is the tight bound on a box-shadow plate: an element-sized
     // fill whose visible extent is exactly the mask's blurred rect. Same AA_PAD, for
     // the same reason (a mask region is a clip as far as the rasteriser is concerned).
     const sm = n._softMask;
@@ -881,7 +881,7 @@ export function pdfNodeExtent(n: PdfNode): PdfExtent | null {
  * Conservative by design. The payload of a cropped capture is dominated by a few
  * enormous nodes (a re-sourced canvas raster, a ShadingType-1 tile) that are
  * wholly in or wholly out, so edge-trimming buys sub-1% of the bytes for unbounded
- * correctness risk — and the same interpreter serves every user who imports a .pdf
+ * correctness risk. The same interpreter serves every user who imports a .pdf
  * or .ai, where a dropped hairline is silent, permanent data loss in their artwork.
  * Cropping a straddling raster's PIXELS is the next real win; that is a canvas job
  * and belongs in the shell, not here.

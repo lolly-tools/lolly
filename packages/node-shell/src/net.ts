@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
- * NetAPI — controlled fetch for tools that declared the 'network' capability.
+ * NetAPI - controlled fetch for tools that declared the 'network' capability.
  *
  * The host applies the tool's allowlist before calling through. Tools without
  * the capability don't get this API at all (it's omitted from the host object).
@@ -9,10 +9,10 @@
 import type { NetAPI } from '@lolly-tools/core/host-v1';
 
 // Hard cap on a fetched response body. An allowlisted host can still be wrong,
-// compromised, or redirect-to-huge — the tool buffers whatever it reads into
-// memory, so the bridge bounds it: a lying/absent Content-Length is caught by
-// the counting stream, not trusted from the header. Far above any tile/API/font
-// payload a tool legitimately pulls.
+// compromised, or redirect to something huge. The tool buffers whatever it reads
+// into memory, so the bridge bounds it: a lying or absent Content-Length is
+// caught by the counting stream, not trusted from the header. This cap is far
+// above any tile, API, or font payload a tool legitimately pulls.
 const MAX_RESPONSE_BYTES = 64 * 1024 * 1024;
 
 export function createNetAPI({ allowlist = [] }: { allowlist?: readonly string[] }): NetAPI {
@@ -48,10 +48,10 @@ function capResponse(res: Response, cap: number): Response {
 }
 
 function matches(pattern: string, url: string): boolean {
-  // Simple prefix-match for now. Supports trailing wildcards: "https://api.example.com/*".
-  // The prefix must end at a path separator — the manifest schema requires the "/*" form,
-  // and this enforces the same boundary for hand-fed allowlists (CLI/TUI opts) — so an
-  // entry like "https://api.example.com*" can never bleed into a lookalike host such as
+  // Simple prefix match for now. Supports trailing wildcards: "https://api.example.com/*".
+  // The prefix must end at a path separator. The manifest schema requires the "/*" form,
+  // and this enforces the same boundary for hand-fed allowlists (CLI/TUI opts). So an
+  // entry like "https://api.example.com*" can never match a lookalike host such as
   // "https://api.example.com.evil.io/".
   if (pattern.endsWith('*')) {
     let prefix = pattern.slice(0, -1);

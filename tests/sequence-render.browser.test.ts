@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
- * Phase-3 sequence export — THE BROWSER TIER.
+ * Phase-3 sequence export - THE BROWSER TIER.
  *
  * `tests/sequence-plan.test.ts` already pins the entire decision surface headlessly
  * (activity windows, crossfade alpha, source mapping, the frame grid, error codes).
@@ -37,7 +37,7 @@ import { closeBrowser } from '../packages/node-shell/src/browsers.ts';
 
 const gate = browserGate();
 
-/** Reported at the end of the run — the numbers the phase-3 brief asks to see. */
+/** Reported at the end of the run - the numbers the phase-3 brief asks to see. */
 const measured: string[] = [];
 
 describe('sequence export (browser tier)', { skip: gate ?? false, concurrency: 1 }, () => {
@@ -184,7 +184,7 @@ describe('sequence export (browser tier)', { skip: gate ?? false, concurrency: 1
     assert.equal(r.err, null, `long export failed: ${JSON.stringify(r.err)}`);
     assert.equal(r.frames, 1350, 'the fixture is not 1,350 frames');
     assert.ok(r.size > 100_000, `suspiciously small output (${r.size} bytes)`);
-    // The old buffered path kept an ImageBitmap per frame — which is the only reason
+    // The old buffered path kept an ImageBitmap per frame - which is the only reason
     // maxVideoFrames() (600) ever existed. ZERO is the proof it is not being used:
     // createImageBitmap is the sole entry to that array.
     assert.equal(r.counters.imageBitmapsMade, 0, 'the streaming path allocated ImageBitmaps — it is buffering frames');
@@ -303,7 +303,7 @@ describe('sequence export (browser tier)', { skip: gate ?? false, concurrency: 1
     assert.ok(before_ > 0.2, `no bed before the clip (rms ${before_.toFixed(4)})`);
     assert.ok(after_ > 0.2, `the bed did not come back after the clip (rms ${after_.toFixed(4)})`);
     const ratio = during / before_;
-    // duck: 0.2 with 0.25s ramps either side of a 1.4s window — the steady-state
+    // duck: 0.2 with 0.25s ramps either side of a 1.4s window - the steady-state
     // level is 0.2x, and the measured window sits inside the ramps.
     assert.ok(ratio < 0.35, `the bed was not ducked under the clip (ratio ${ratio.toFixed(3)})`);
     measured.push(`[measured] bed duck ratio ${ratio.toFixed(3)} (asked for 0.2)`);
@@ -319,7 +319,7 @@ describe('sequence export (browser tier)', { skip: gate ?? false, concurrency: 1
   //   • mean absolute difference (0-255) <= 1.0
   //   • at most 1% of pixels may differ by more than 24/255 (an edge band)
   // Measured on these fixtures: rotation 0.005 / 0.000, radius 0.076 / 0.0017,
-  // blend 0.000 / 0.000 — three orders of magnitude inside the threshold, so the
+  // blend 0.000 / 0.000 - three orders of magnitude inside the threshold, so the
   // gate catches a real drift long before it catches noise.
 
   const MAE_LIMIT = 1.0;
@@ -350,7 +350,7 @@ describe('sequence export (browser tier)', { skip: gate ?? false, concurrency: 1
     { x: 90, y: 60, w: 160, h: 140, bg: '#3388ff', blend: 'multiply', ...T },
   ]);
 
-  // Regression: the authored opacity used to be applied TWICE — once by rasterBox
+  // Regression: the authored opacity used to be applied TWICE - once by rasterBox
   // (which photographed the element with its own opacity:0.45 still set) and again by
   // drawItem's globalAlpha, which the planner already defines as layer.opacity x
   // transition alpha. 0.45 exported as 0.20. rasterBox now shoots boxes with {opaque:true}.
@@ -440,7 +440,7 @@ describe('sequence export (browser tier)', { skip: gate ?? false, concurrency: 1
 
   // Regression: the compositor photographs the real artboard, and the phase-2 clock
   // leaves `.seq-off` (display:none) on every box outside the playhead window. Every
-  // off-playhead box therefore rasterised BLANK — exporting from a playhead at 1.5s
+  // off-playhead box therefore rasterised BLANK - exporting from a playhead at 1.5s
   // shipped picture for exactly one clip and nothing for the rest.
   test('an export taken with the playhead mid-sequence still paints every clip', async () => {
     const r = await page().evaluate(async () => {
@@ -468,7 +468,7 @@ describe('sequence export (browser tier)', { skip: gate ?? false, concurrency: 1
   });
 
   // Regression: gif/apng clamp the frame count to maxVideoFrames(), but every layer's
-  // decode span was still derived from the UNCAPPED grid — so a capped export asked
+  // decode span was still derived from the UNCAPPED grid - so a capped export asked
   // the truncation guard to account for frames it had deliberately never rendered and
   // threw SEQ_TRUNCATED after the whole file was already encoded.
   test('a gif/apng export clamped by the frame cap still succeeds', async () => {
@@ -491,7 +491,7 @@ describe('sequence export (browser tier)', { skip: gate ?? false, concurrency: 1
   // Regression: a ZIP bundle re-dispatches mp4/webm through renderFormat with the
   // OUTER format ('zip'), so snapshotMotion has already frozen every <video> into a
   // sibling <img>. That still was captured into the box's "over" plate and drawn on
-  // top of every decoded frame — a zipped mp4 of a sequence was a static picture.
+  // top of every decoded frame - a zipped mp4 of a sequence was a static picture.
   test('a frozen snapshotMotion still does not bake into the composited frames', async () => {
     const r = await page().evaluate(async () => {
       const S = (window as never as { SEQ: SeqApi }).SEQ;
@@ -510,7 +510,7 @@ describe('sequence export (browser tier)', { skip: gate ?? false, concurrency: 1
 
   // The headless tier (shells/web/src/bridge/sequence-cuts.test.ts) pins the sampling
   // maths, the clamp, the naming and the loop against injected renderers. What only a
-  // browser can answer is whether the members are real pictures of the right MOMENTS —
+  // browser can answer is whether the members are real pictures of the right MOMENTS - 
   // so this case reads actual pixels out of the archive, and a real page count out of
   // the pdf.
   test('cuts=N is N real stills at the midpoints — zipped for png, paged for pdf', async () => {
@@ -543,7 +543,7 @@ describe('sequence export (browser tier)', { skip: gate ?? false, concurrency: 1
     assert.deepEqual(r.png.progress, [[1, 3], [2, 3], [3, 3]], 'progress is reported per cut');
     assert.equal(r.png.restored, true, 'the artboard was left exactly as it was found');
 
-    // pdf: ONE document, four pages — never four documents, never a zip.
+    // pdf: ONE document, four pages - never four documents, never a zip.
     assert.equal(r.pdf.type, 'application/pdf');
     assert.equal(r.pdf.pages, 4);
     assert.equal(r.pdf.restored, true);
@@ -558,7 +558,7 @@ describe('sequence export (browser tier)', { skip: gate ?? false, concurrency: 1
     // The whole determinism claim of Track B, and the only place it can be
     // settled: same sequence, same options, one export down each path. The two
     // share ONE compositor (runSequenceJob), so a difference here would mean the
-    // hosting — encoder instance, canvas kind, PCM handover — is not neutral.
+    // hosting - encoder instance, canvas kind, PCM handover - is not neutral.
     const r = await page().evaluate(async () => {
       const S = (window as never as { SEQ: SeqApi }).SEQ;
       const clip = await S.makeClip({ frames: 60, fps: 30, w: 320, h: 240 });
@@ -609,7 +609,7 @@ describe('sequence export (browser tier)', { skip: gate ?? false, concurrency: 1
     // REPORT-ONLY, and the honest answer is "less than the brief hoped for". A
     // rAF heartbeat runs through a long export down each path; `maxGap` is the
     // longest the main thread went without painting. On the WebCodecs streaming
-    // path BOTH numbers sit at one vsync — the in-thread loop already awaits the
+    // path BOTH numbers sit at one vsync - the in-thread loop already awaits the
     // encoder's backpressure on every frame, so it never monopolises anything.
     // What the offload still buys is the case this harness cannot stage: a
     // BACKGROUNDED tab, where main-thread timers are throttled to ~1 Hz and the

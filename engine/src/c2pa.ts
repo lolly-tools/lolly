@@ -1,19 +1,19 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
- * C2PA (Content Credentials) manifest builder + PDF embedder — pure, DOM-free.
+ * C2PA (Content Credentials) manifest builder + PDF embedder - pure, DOM-free.
  *
  * Example-grade but spec-shaped C2PA: a JUMBF (ISO 19566-5) store holding one
  * manifest (assertion store + CBOR claim + COSE_Sign1 claim signature), signed
  * with an ephemeral on-device self-signed ECDSA P-256 certificate. Emits a
  * C2PA 2.x claim (`c2pa.claim.v2`, created_assertions, claim_generator_info,
- * c2pa.actions.v2) by default — validated by c2patool / c2pa-rs; the legacy v1
+ * c2pa.actions.v2) by default - validated by c2patool / c2pa-rs; the legacy v1
  * claim is retained behind buildC2paManifest's `claimVersion` only so the
  * dual-version verifier keeps v1-read coverage.
- * Validators parse the structure but report the signer as unknown/untrusted —
+ * Validators parse the structure but report the signer as unknown/untrusted -
  * that is the intended trust posture: no real credential ever leaves the
  * device, so what must be right is the container, not the chain.
  *
- * Hand-rolled on purpose (no npm deps; globalThis.crypto only — browsers and
+ * Hand-rolled on purpose (no npm deps; globalThis.crypto only - browsers and
  * Node 18+):
  *   - deterministic definite-length CBOR (the subset the claim needs),
  *   - JUMBF box writer (c2pa / c2ma / c2as / c2cl / c2cs box UUIDs + labels),
@@ -28,7 +28,7 @@
  *     bytes are preserved as a byte-identical prefix (asserted).
  *
  * The hard binding (c2pa.hash.data) hashes the FINAL file with the manifest's
- * own byte range OMITTED (C2PA exclusions skip ranges — they do not zero
+ * own byte range OMITTED (C2PA exclusions skip ranges - they do not zero
  * them), which forces the two-pass layout in embedC2paInPdf: freeze the byte
  * layout around a placeholder manifest of the exact final length, hash, then
  * rebuild with the real digest. Only fixed-width fields (32-byte hashes,
@@ -38,33 +38,33 @@
  * Not every asset can carry its store: §11.4 allows the manifest to live BESIDE
  * the asset instead (a `.c2pa` sidecar served as application/c2pa), and §A.7.1.2
  * gives HTML documents a `<link rel="c2pa-manifest">` to point at one.
- * buildExternalC2paStore is that path — a whole-asset hash with no exclusion
+ * buildExternalC2paStore is that path - a whole-asset hash with no exclusion
  * range, so it needs neither container surgery nor the two-pass layout below.
  *
  * ISO BMFF (mp4) is the one container with its own binding: the spec forbids
- * byte-range c2pa.hash.data there, so mp4 carries c2pa.hash.bmff.v2 — the
+ * byte-range c2pa.hash.data there, so mp4 carries c2pa.hash.bmff.v2 - the
  * manifest rides in a top-level `uuid` box and the hash walks top-level boxes
  * (each surviving box contributes its u64-BE file offset, then its bytes;
  * /uuid, /ftyp, /free, /skip, /mfra are excluded), which is what c2patool
  * verifies. WebM/Matroska has NO standardised C2PA binding (c2patool rejects
  * the container outright), so the manifest rides as a Matroska attachment
- * (`application/c2pa`) under the ordinary data-hash binding — readable by
+ * (`application/c2pa`) under the ordinary data-hash binding - readable by
  * Lolly's own verifier (c2pa-verify.js), invisible to c2pa-rs by necessity.
  *
  * Like emf.js / eps.js this is a format authority: no DOM, no Handlebars, no
- * ajv — fully node:test-able. Container byte grammar for mp4/webm is imported
+ * ajv - fully node:test-able. Container byte grammar for mp4/webm is imported
  * from video-meta.js (same package), which owns those two formats.
  */
 
 import { asDate, generateSigner } from './x509.ts';
 import { concatBytes, asBufferSource, sha256, bytesToHex } from './bytes.ts';
 // Container-specific byte-splicing (PDF/png/jpeg/gif/svg/tiff/webp/mp4/webm) and
-// the public embedC2pa/embedC2paInPdf entry points live in c2pa-containers.ts —
+// the public embedC2pa/embedC2paInPdf entry points live in c2pa-containers.ts -
 // this file is the manifest/claim BUILDER only (CBOR, JUMBF, COSE_Sign1,
 // buildC2paManifest). ONE genuine runtime cycle, by design: buildC2paManifest
 // needs the BMFF exclusion-set shape (bmffHashExclusions, which references the
 // BMFF usertype UUID) from there, and c2pa-containers.ts needs buildC2paManifest/
-// urnUuid/BMFF_HASH_LABEL from here. Safe — every cross-reference is inside a
+// urnUuid/BMFF_HASH_LABEL from here. Safe - every cross-reference is inside a
 // function BODY, never at module-top-level evaluation, which is the case ESM
 // circular imports handle correctly (verified: the full c2pa*/x509/fuzz suite
 // passes). Not a design to imitate elsewhere without the same care.
@@ -119,10 +119,10 @@ interface AssetHash {
 }
 
 // 'created' = the signer made this asset (c2pa.created + a digitalCreation
-// source type) — the honest claim for a tool export. 'delivered' = the signer
+// source type) - the honest claim for a tool export. 'delivered' = the signer
 // is distributing an EXISTING asset unchanged (the standard c2pa.published
 // action, no source type), so the credential proves authenticity + integrity
-// without overstating authorship — surfaced as "Delivered by Lolly". Default
+// without overstating authorship - surfaced as "Delivered by Lolly". Default
 // 'created' preserves every existing caller.
 type Authorship = 'created' | 'delivered';
 
@@ -164,7 +164,7 @@ interface BuildC2paManifestOptions {
   rights?: string;
   /**
    * Explicit action history for the actions assertion. When present and
-   * non-empty it REPLACES the default single created/published action — each
+   * non-empty it REPLACES the default single created/published action - each
    * entry is decorated with the shared softwareAgent + `when`. Build a sensible
    * list from an export's transformations with {@link exportActionSteps}.
    */
@@ -173,7 +173,7 @@ interface BuildC2paManifestOptions {
   ingredients?: C2paIngredient[];
   /**
    * §18.28 machine-readable AI transparency, emitted as a `c2pa.ai-disclosure`
-   * CBOR assertion and referenced from `created_assertions` (§2776 — created
+   * CBOR assertion and referenced from `created_assertions` (§2776 - created
    * assertions are the ones attributed to the signer, which is exactly what a
    * disclosure is). Absent → no assertion and byte-identical output, so nothing
    * that never asks for it changes.
@@ -198,7 +198,7 @@ interface BuildC2paManifestOptions {
   manifestLabel?: string;
   instanceId?: string;
   /**
-   * Claim format to emit. Default 2 (C2PA 2.x `c2pa.claim.v2`) — the format
+   * Claim format to emit. Default 2 (C2PA 2.x `c2pa.claim.v2`) - the format
    * every current validator reads and the spec's required output. `1` builds
    * the legacy `c2pa.claim` and is retained only so the dual-version verifier
    * keeps v1-read test coverage; the embedders never request it, so Lolly's
@@ -226,7 +226,7 @@ export interface EmbedOptions {
    * just the external-store one. Absent → byte-identical output.
    */
   aiDisclosure?: C2paAiDisclosureInput;
-  /** `claim_generator_info.specVersion` (SemVer) — see {@link C2PA_SPEC_VERSION}. */
+  /** `claim_generator_info.specVersion` (SemVer) - see {@link C2PA_SPEC_VERSION}. */
   specVersion?: string;
   dates?: Dates;
   signer?: Signer;
@@ -354,11 +354,11 @@ const COSE_HEADER_X5CHAIN = 33; // array of DER certs, leaf first
 
 // Detached payload: the COSE_Sign1 array carries null; the Signature1
 // Sig_structure carries the claim bytes. Signature stays raw r||s per COSE.
-// x5chain carries `signer.chain` (DER certs, leaf first) when present —
-// certDer is the single-cert back-compat shape — and an external signer
+// x5chain carries `signer.chain` (DER certs, leaf first) when present -
+// certDer is the single-cert back-compat shape - and an external signer
 // supplies sign() instead of a CryptoKey. ES256 is hardcoded, so anything
 // other than a 64-byte raw signature would silently corrupt the two-pass
-// byte layout downstream: fail loud instead.
+// byte layout downstream: throw an error instead.
 async function coseSign1Detached(signer: Signer, payload: Uint8Array): Promise<Uint8Array> {
   const protectedBytes = encodeCbor(new Map<number, unknown>([
     [COSE_HEADER_ALG, -7],
@@ -392,21 +392,21 @@ const isoSeconds = (d: Date): string => d.toISOString().slice(0, 19) + 'Z';
 export const DIGITAL_SOURCE_TYPE = 'http://cv.iptc.org/newscodes/digitalsourcetype/digitalCreation';
 
 // IPTC DigitalSourceType for content whose essence was captured from a real-world
-// source by a digital device — a live camera frame or a mic/AV recording. The
+// source by a digital device - a live camera frame or a mic/AV recording. The
 // created step carries this (instead of digitalCreation) when the render's origin
 // was a sensor, so the credential declares the capture honestly. Readers already
 // surface it as "Captured by a camera" (engine c2pa-verify + web Verify view).
 export const CAPTURE_SOURCE_TYPE = 'http://cv.iptc.org/newscodes/digitalsourcetype/digitalCapture';
 
-// IPTC DigitalSourceType for a screenshot / screen recording — "a capture of the
+// IPTC DigitalSourceType for a screenshot / screen recording - "a capture of the
 // contents of the screen of a computer or mobile device". DISTINCT from
 // digitalCapture on purpose: that term means a sensor recorded the real world, which
 // a screen capture never did, so reusing it would over-claim the file's origin (the
-// one thing a credential must never do). Nothing here infers this — only a caller
+// one thing a credential must never do). Nothing here infers this - only a caller
 // that KNOWS it captured a display sets the flag.
 export const SCREEN_SOURCE_TYPE = 'http://cv.iptc.org/newscodes/digitalsourcetype/screenCapture';
 
-// IPTC DigitalSourceType for media produced wholly by a trained model — the
+// IPTC DigitalSourceType for media produced wholly by a trained model - the
 // "artificially generated" mark EU AI Act Article 50 asks for, machine-readable.
 // The created step carries this when the essence came out of a generative model
 // (e.g. an on-device TTS clip: the voice is not a real person). The read side
@@ -415,7 +415,7 @@ export const SCREEN_SOURCE_TYPE = 'http://cv.iptc.org/newscodes/digitalsourcetyp
 export const GENERATED_SOURCE_TYPE = 'http://cv.iptc.org/newscodes/digitalsourcetype/trainedAlgorithmicMedia';
 
 // IPTC DigitalSourceType for a COMPOSITE of trained-algorithmic media with other
-// media — the honest mark for a real photograph enlarged by an AI upscaler: real
+// media - the honest mark for a real photograph enlarged by an AI upscaler: real
 // pixels, model-inferred detail, never claimed as wholly generated. The created
 // step carries this (instead of digitalCreation) when the render's essence is an
 // on-device AI-upscaled asset. The read side already maps the slug to 'composite'
@@ -448,16 +448,16 @@ function joinList(items: string[]): string {
 
 /**
  * Assemble an honest action history for a Lolly export from what the pipeline
- * actually did. Opens with `c2pa.created` (digitalCreation) — or a single
- * `c2pa.published` when `delivered` — then appends ONE step per transformation
+ * actually did. Opens with `c2pa.created` (digitalCreation) - or a single
+ * `c2pa.published` when `delivered` - then appends ONE step per transformation
  * that genuinely happened, each its own entry so the credential's history is as
  * granular as the pipeline itself: a CMYK conversion (`cmyk`), a brand-palette
  * colour snap (`paletteColors`, named by count), whichever print marks/bleed
- * were added — named individually, not lumped together (`marks`) — the
+ * were added - named individually, not lumped together (`marks`) - the
  * experimental-tool overlay watermark (`watermarked`), the durable in-pixel
  * Lolly watermark (`imprint`), an added audio track (`audio`), and a closing
  * render/encode for raster, video and PDF outputs. Vector-native (svg/emf/dxf/
- * eps) and text outputs add nothing beyond the close — the created asset
+ * eps) and text outputs add nothing beyond the close - the created asset
  * already IS that file. Pass the result as `actions` to {@link embedC2pa} /
  * {@link buildC2paManifest}.
  *
@@ -465,11 +465,11 @@ function joinList(items: string[]): string {
  * camera frame or a mic/AV recording produced the essence) swaps the created
  * step's source type to `digitalCapture` with a "captured/recorded live"
  * description; `aiUpscale` (the essence is an on-device AI-upscaled asset) swaps
- * it to `compositeWithTrainedAlgorithmicMedia` — a real image with model-inferred
- * detail — and appends an "AI-upscaled with <model> <version>" edit step naming
- * the model; `textAdded` (rendered text placed OVER an opened asset — the caller
+ * it to `compositeWithTrainedAlgorithmicMedia` - a real image with model-inferred
+ * detail - and appends an "AI-upscaled with <model> <version>" edit step naming
+ * the model; `textAdded` (rendered text placed OVER an opened asset - the caller
  * gates this on an ingredient being present) appends a `c2pa.edited` "Added text"
- * step. From-scratch text is content, not an edit — it belongs in the input
+ * step. From-scratch text is content, not an edit - it belongs in the input
  * digest, so callers must NOT set `textAdded` without an ingredient.
  */
 export function exportActionSteps(format: string, flags: {
@@ -482,15 +482,15 @@ export function exportActionSteps(format: string, flags: {
   watermarked?: boolean;
   imprint?: boolean;
   audio?: boolean;
-  /** The render's essence was captured from a device sensor — created → digitalCapture.
+  /** The render's essence was captured from a device sensor - created → digitalCapture.
    *  `screen` instead means a display was captured (a screenshot / screen recording) →
    *  created → screenCapture, which is a different IPTC term and a different claim. */
   capture?: { camera?: boolean; microphone?: boolean; screen?: boolean };
-  /** Text was placed over an opened asset (gate on ingredients) — appends "Added text". */
+  /** Text was placed over an opened asset (gate on ingredients) - appends "Added text". */
   textAdded?: boolean;
   /** Short teaser of that text for the step label (full copy rides in the input digest). */
   textSample?: string;
-  /** The render's essence is an on-device AI-upscaled asset — created →
+  /** The render's essence is an on-device AI-upscaled asset - created →
    *  compositeWithTrainedAlgorithmicMedia, plus an edit step naming the model. */
   aiUpscale?: { model: string; version: string };
 } = {}): C2paActionInput[] {
@@ -499,7 +499,7 @@ export function exportActionSteps(format: string, flags: {
   // Origin: a captured essence (camera/mic) declares digitalCapture with an honest
   // description; otherwise the software-authored default (digitalCreation).
   const cap = flags.capture;
-  // A display capture is its OWN source type, not a sensor capture — check it first so a
+  // A display capture is its OWN source type, not a sensor capture - check it first so a
   // narrated screen recording (screen + microphone) never reads as a mic recording of the
   // real world. The screen is what the essence IS; the mic is a track laid over it.
   const screened = !!cap?.screen;
@@ -526,7 +526,7 @@ export function exportActionSteps(format: string, flags: {
   // Text over an opened asset is a genuine edit (the caller has already gated this
   // on an ingredient); its short teaser labels the step, the full copy is digested.
   if (flags.textAdded) steps.push({ action: 'c2pa.edited', description: flags.textSample ? `Added text — “${flags.textSample}”` : 'Added text' });
-  // The model that enlarged the image, named — so an inspected asset discloses not
+  // The model that enlarged the image, named - so an inspected asset discloses not
   // just THAT it was AI-upscaled but with what. Kept as its own step after the other
   // edits, before the render/encode close.
   if (upscaled) steps.push({ action: 'c2pa.edited', description: `AI-upscaled with ${upscaled.model} ${upscaled.version}` });
@@ -536,7 +536,7 @@ export function exportActionSteps(format: string, flags: {
   return steps;
 }
 
-// The created step's description for a captured essence — camera, mic, or both.
+// The created step's description for a captured essence - camera, mic, or both.
 function captureDescription(cap: { camera?: boolean; microphone?: boolean; screen?: boolean }): string {
   // Screen first, and it never claims the camera: a display capture's essence came from
   // the screen. The mic is worth naming because it recorded the room, which the rest of
@@ -549,27 +549,27 @@ function captureDescription(cap: { camera?: boolean; microphone?: boolean; scree
 
 // Custom assertion label for Lolly's export context (reverse-domain of
 // lolly.tools). c2pa-rs surfaces unknown CBOR assertions verbatim in reports
-// and validates them only by hashed URI — no allowlist, no penalty.
+// and validates them only by hashed URI - no allowlist, no penalty.
 export const LOLLY_EXPORT_ASSERTION = 'tools.lolly.export';
 
-// The BMFF (mp4) hard-binding assertion label — used here (buildC2paManifest
+// The BMFF (mp4) hard-binding assertion label - used here (buildC2paManifest
 // picks it over the byte-range c2pa.hash.data for bmff assets) and by
 // c2pa-containers.ts's BMFF placer/digest, which imports it back from here.
 export const BMFF_HASH_LABEL = 'c2pa.hash.bmff.v2';
 
 // Authorship rides in the classic schema.org CreativeWork assertion (a JSON
 // assertion, unlike the CBOR ones). The current spec deprecates it in favour
-// of CAWG identity assertions — which require a real identity credential this
-// on-device signer deliberately doesn't have — but every validator today
+// of CAWG identity assertions - which require a real identity credential this
+// on-device signer deliberately doesn't have - but every validator today
 // (c2patool, Verify) still parses and DISPLAYS it as the work's author.
 export const CREATIVE_WORK_ASSERTION = 'stds.schema-org.CreativeWork';
 // How a human author is recorded in v2. NOT the strict `c2pa.metadata`
 // assertion: C2PA 2.x locked that to a technical field whitelist (exif/tiff/
-// crs/pdf/dc-technical…) that EXCLUDES dc:creator — c2patool rejects a creator
+// crs/pdf/dc-technical…) that EXCLUDES dc:creator - c2patool rejects a creator
 // there with `assertion.metadata.disallowed` and marks the whole file Invalid.
 // The spec-clean vehicle for creator metadata is the CAWG metadata assertion
 // (`cawg.metadata`): same JSON-LD metadata structure, not field-restricted,
-// purpose-built for dc:creator — validated Valid by c2patool, and distinct from
+// purpose-built for dc:creator - validated Valid by c2patool, and distinct from
 // the `cawg.identity` assertion (which needs a real identity credential this
 // on-device signer lacks). schema.org/Exif/IPTC standalone assertions were
 // removed in 2.x, so this replaces the v1 CreativeWork path.
@@ -583,7 +583,7 @@ const DC_CONTEXT = { dc: 'http://purl.org/dc/elements/1.1/' };
 // (c2pa-verify's readAiDisclosure), which is this writer's round-trip check.
 export const AI_DISCLOSURE_ASSERTION = 'c2pa.ai-disclosure';
 
-// Table 12's generic entry — "AI/ML model which is not described by any other
+// Table 12's generic entry - "AI/ML model which is not described by any other
 // model type". §18.28.2 makes modelType the one REQUIRED field, and Table 12's
 // other entries name model FORMATS (tensorflow, onnx, coreml…), none of which
 // honestly describes "a chat assistant wrote this SVG". So the generic term is
@@ -592,7 +592,7 @@ export const AI_DISCLOSURE_ASSERTION = 'c2pa.ai-disclosure';
 export const AI_MODEL_TYPE_GENERIC = 'c2pa.types.model';
 
 /**
- * Table 12, "Model type values", transcribed — the enumeration §18.28.2 requires:
+ * Table 12, "Model type values", copied verbatim - the enumeration §18.28.2 requires:
  * "The value of the modelType field is an enumeration of AI model types defined
  * in Table 12 … and it shall be present in the ai-model-disclosure-map object."
  *
@@ -602,7 +602,7 @@ export const AI_MODEL_TYPE_GENERIC = 'c2pa.types.model';
  * type ("or use an entity-specific namespace (e.g., com.litware.types.abc),
  * conforming to the syntax defined for assertion labels in §6.2.2"). So the rule
  * enforced below is: a Table 12 value, or a well-formed label in someone else's
- * namespace — and NEVER an invented `c2pa.*` value, because squatting the
+ * namespace - and NEVER an invented `c2pa.*` value, because squatting the
  * specification's own namespace is the one case that is simply wrong.
  */
 export const AI_MODEL_TYPES = Object.freeze([
@@ -632,7 +632,7 @@ export const AI_MODEL_TYPES = Object.freeze([
   'c2pa.types.model.xgboost',
 ] as const);
 
-// §6.2.2's ABNF for namespaced labels, transcribed:
+// §6.2.2's ABNF for namespaced labels, copied verbatim:
 //   namespaced-label = qualified-namespace label
 //   entity           = entity-component *( "." entity-component )
 //   entity-component = 1( DIGIT / ALPHA ) *( DIGIT / ALPHA / "-" / "_" )
@@ -640,9 +640,9 @@ export const AI_MODEL_TYPES = Object.freeze([
 const NAMESPACED_LABEL_RE = /^[A-Za-z0-9][A-Za-z0-9_-]*(?:\.[A-Za-z0-9][A-Za-z0-9_-]*)+$/;
 
 // §18.28.4's human-oversight-enum, verbatim and in the spec's own order:
-//   fully_autonomous — no human review after model output
-//   prompt_guided    — human provided prompts/config but no final approval
-//   human_validated  — human reviewed/approved the final output before release
+// fully_autonomous - no human review after model output
+// prompt_guided - human provided prompts/config but no final approval
+// human_validated - human reviewed/approved the final output before release
 // §18.28.3 pairs these with digitalSourceType rather than replacing it, so a
 // disclosure normally travels WITH a trainedAlgorithmicMedia created action.
 export const HUMAN_OVERSIGHT_LEVELS = Object.freeze(['fully_autonomous', 'prompt_guided', 'human_validated'] as const);
@@ -651,7 +651,7 @@ export type HumanOversightLevel = (typeof HUMAN_OVERSIGHT_LEVELS)[number];
 /**
  * A §18.28 AI transparency statement, as a caller states it. Flattened where the
  * spec nests: `oversight` becomes `contentProfile.humanOversightLevel`, which is
- * the only field of that sub-map the spec defines — and the same flattening the
+ * the only field of that sub-map the spec defines - and the same flattening the
  * read side does (`C2paAiDisclosure.oversight`), so a value written here comes
  * back under the same name.
  *
@@ -672,17 +672,17 @@ export interface C2paAiDisclosureInput {
 }
 
 // §18.28.4: `$scientific-domain-string /= tstr .regexp
-// "^[A-Za-z0-9-]+(\\.[A-Za-z0-9-]+)+$"` — transcribed, not approximated.
+// "^[A-Za-z0-9-]+(\\.[A-Za-z0-9-]+)+$"` - copied verbatim, not approximated.
 const SCIENTIFIC_DOMAIN_RE = /^[A-Za-z0-9-]+(\.[A-Za-z0-9-]+)+$/;
 
-// §10.2.3's `semver-string` regexp, transcribed from the CDDL (the canonical
+// §10.2.3's `semver-string` regexp, copied verbatim from the CDDL (the canonical
 // SemVer 2.0.0 pattern). Used to refuse a malformed specVersion at write time:
 // a version string is a conformance DECLARATION, and one the CDDL rejects is
 // worse than none at all.
 const SEMVER_RE = /^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(?:-((?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\.(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?(?:\+([0-9a-zA-Z-]+(?:\.[0-9a-zA-Z-]+)*))?$/;
 
 /**
- * The version of the C2PA specification this module was written against — the
+ * The version of the C2PA specification this module was written against - the
  * value a caller passes as `specVersion` when it wants the manifest to declare
  * one (§10.2.3.1: "A specVersion field SHOULD be present").
  *
@@ -696,7 +696,7 @@ export const C2PA_SPEC_VERSION = '2.4.0';
 /**
  * §18.28's `ai-model-disclosure-map`, CDDL key order preserved (the CBOR encoder
  * writes objects in insertion order, so the map's bytes are stable across calls
- * with the same input — which the two-pass container embedders require).
+ * with the same input - which the two-pass container embedders require).
  *
  * Validates rather than coerces, because all three constrained fields are enums a
  * config file can typo: an unknown oversight level, a domain the taxonomy regexp
@@ -708,7 +708,7 @@ function aiDisclosureMap(d: C2paAiDisclosureInput): Record<string, unknown> {
   const modelType = String(d.modelType ?? AI_MODEL_TYPE_GENERIC).trim();
   if (!modelType) throw new Error('c2pa: aiDisclosure.modelType cannot be empty (§18.28.2 requires it; omit the field to get the generic c2pa.types.model)');
   // §18.28.2's enumeration, or an entity's own namespaced label (§18.21.1 +
-  // §6.2.2) — never an invented value in the c2pa namespace.
+  // §6.2.2) - never an invented value in the c2pa namespace.
   if (!(AI_MODEL_TYPES as readonly string[]).includes(modelType)
     && (modelType.startsWith('c2pa.') || !NAMESPACED_LABEL_RE.test(modelType))) {
     throw new Error(`c2pa: aiDisclosure.modelType '${modelType}' is neither a Table 12 model type (§18.28.2) nor an entity-specific namespaced label (§6.2.2, e.g. 'com.litware.types.abc') — omit the field to get the generic ${AI_MODEL_TYPE_GENERIC}`);
@@ -737,16 +737,16 @@ function aiDisclosureMap(d: C2paAiDisclosureInput): Record<string, unknown> {
  * Build a complete C2PA JUMBF store (→ Uint8Array). Emits a C2PA 2.x claim
  * (`c2pa.claim.v2`) by default; `claimVersion: 1` builds the legacy
  * `c2pa.claim` and exists only so the dual-version verifier keeps v1-read test
- * coverage — the embedders never pass it, so Lolly's products only write v2.
+ * coverage - the embedders never pass it, so Lolly's products only write v2.
  *
  * Assertions: the actions assertion (c2pa.actions.v2 on v2, c2pa.actions on v1)
  * with one c2pa.created action (softwareAgent = the generator-info map on v2 /
  * the generator string on v1, digitalSourceType = digitalCreation, when =
  * dates.signedAt), the c2pa.hash.data hard binding carrying assetHash verbatim:
  *   assetHash = { exclusions: [{start, length}], name?, alg?, hash: Uint8Array, pad?: Uint8Array }
- * — or, with assetHash = { bmff: true, hash, pad? }, the ISO-BMFF binding
- * c2pa.hash.bmff.v2 with the fixed top-level box exclusions instead —
- * and — when `environment` is given — a `tools.lolly.export` CBOR assertion
+ * - or, with assetHash = { bmff: true, hash, pad? }, the ISO-BMFF binding
+ * c2pa.hash.bmff.v2 with the fixed top-level box exclusions instead -
+ * and - when `environment` is given - a `tools.lolly.export` CBOR assertion
  * recording the export context (tool, format, surface, browser engine, OS…).
  * `generatorInfo` ({ name, version, operating_system? }) becomes the claim's
  * claim_generator_info (a single REQUIRED map in v2; an optional array
@@ -761,7 +761,7 @@ function aiDisclosureMap(d: C2paAiDisclosureInput): Record<string, unknown> {
  * are optional and absent by default, so a caller that does not ask for them
  * gets byte-identical output to before they existed.
  *
- * The claim references each assertion by hashed URI — a JUMBF URI relative to
+ * The claim references each assertion by hashed URI - a JUMBF URI relative to
  * the manifest plus sha256 over the assertion superbox's payload (jumd +
  * content boxes, excluding the outer 8-byte box header).
  *
@@ -769,7 +769,7 @@ function aiDisclosureMap(d: C2paAiDisclosureInput): Record<string, unknown> {
  * embedders (and tests) can hold them constant across the two-pass layout;
  * fresh ones are generated when absent. A signer may be external (e.g. a
  * CA-issued device credential): { privateKey | sign(bytes) → raw 64-byte
- * r||s, certDer, chain? } — chain (leaf first) wins over certDer in the
+ * r||s, certDer, chain? } - chain (leaf first) wins over certDer in the
  * COSE x5chain. P-256/ES256 only.
  */
 export async function buildC2paManifest({
@@ -809,7 +809,7 @@ export async function buildC2paManifest({
     generatorInfo && typeof generatorInfo === 'object' && Object.keys(generatorInfo as object).length
       ? { name: generatorName, ...(generatorInfo as Record<string, unknown>) }
       : { name: generatorName };
-  // 2.4's specVersion lives in claim_generator_info — but only the CLAIM's copy,
+  // 2.4's specVersion lives in claim_generator_info - but only the CLAIM's copy,
   // never the per-action softwareAgent (same map type, different subject: the
   // manifest was produced to a spec version; a single edit step was not). A
   // caller that omits it gets `genInfoMap` itself, so the claim's bytes are
@@ -824,7 +824,7 @@ export async function buildC2paManifest({
   // A creation claim carries the digitalCreation source type; a delivery claim
   // (distributing an existing asset, the standard c2pa.published action)
   // deliberately omits it, so the credential never asserts the signer authored
-  // the work. Key insertion order is preserved on the created path — its bytes
+  // the work. Key insertion order is preserved on the created path - its bytes
   // are unchanged. In v2 the action's softwareAgent is a generator-info map (an
   // object); in v1 it stays the bare generator string.
   const softwareAgent: unknown = v2 ? genInfoMap : generatorName;
@@ -839,17 +839,17 @@ export async function buildC2paManifest({
     : [delivered
       ? { action: 'c2pa.published' }
       : { action: 'c2pa.created', digitalSourceType: DIGITAL_SOURCE_TYPE }];
-  // Each preserved ingredient is opened FIRST — and the opened step carries the
+  // Each preserved ingredient is opened FIRST, and the opened step carries the
   // ingredient's AI/ML source type, so the new asset's OWN active manifest
-  // declares the AI origin (not only the walked-in ingredient chain). This is
-  // the anti-laundering guarantee: strip the ingredient manifests and the flag
-  // still fires from Lolly's signed actions.
+  // declares the AI origin (not only the walked-in ingredient chain). This
+  // guarantees the AI origin cannot be hidden: strip the ingredient manifests
+  // and the flag still fires from Lolly's signed actions.
   const ingList = ingredients ?? [];
   // Build each preserved ingredient's c2pa.ingredient.v3 assertion FIRST: the
   // c2pa.opened action below must reference it via parameters.ingredients (the
   // spec requires opened/placed/removed actions to name their ingredients), and
   // the same hash feeds the claim's assertion list. Each assertion carries the
-  // V3-required validationResults — the integrity checks the ingredient's own
+  // V3-required validationResults - the integrity checks the ingredient's own
   // manifest passed at ingest (signature + hashes; carried verbatim so they
   // still hold; trust is reported separately by the reader).
   const ingredientBoxes: Uint8Array[] = [];
@@ -866,7 +866,7 @@ export async function buildC2paManifest({
       ...(ing.format && INGREDIENT_MIME[ing.format] ? { 'dc:format': INGREDIENT_MIME[ing.format] } : {}),
       relationship: ing.relationship || 'parentOf',
       // activeManifest hashed URI covers the referenced manifest superbox payload
-      // (jumd + content, minus the 8-byte header) — Lolly's hashed-URI convention.
+      // (jumd + content, minus the 8-byte header) - Lolly's hashed-URI convention.
       activeManifest: { url: `self#jumbf=/c2pa/${ing.activeLabel}`, alg: 'sha256', hash: await sha256(activeBox.subarray(8)) },
       validationResults: {
         activeManifest: {
@@ -882,7 +882,7 @@ export async function buildC2paManifest({
     ingredientRefs.push({ url: `self#jumbf=c2pa.assertions/${label}`, hash });
     ingredientParamRefs.push({ url: `self#jumbf=c2pa.assertions/${label}`, alg: 'sha256', hash });
   }
-  // Each ingredient is opened FIRST — the opened step references its ingredient
+  // Each ingredient is opened FIRST - the opened step references its ingredient
   // assertion AND carries the ingredient's AI/ML source type, so the new asset's
   // OWN active manifest declares the AI origin (not only the walked-in chain):
   // strip the ingredient manifests and the flag still fires from Lolly's actions.
@@ -904,7 +904,7 @@ export async function buildC2paManifest({
     })),
   };
   // BMFF assets carry the spec's box-walking binding (c2pa.hash.bmff.v2, fixed
-  // xpath exclusions) instead of byte ranges — c2pa-rs rejects a data-hash
+  // xpath exclusions) instead of byte ranges - c2pa-rs rejects a data-hash
   // binding on mp4. Both payloads keep `pad` last so the two-pass embedders
   // can absorb length drift.
   const hashLabel = bmff ? BMFF_HASH_LABEL : 'c2pa.hash.data';
@@ -917,8 +917,8 @@ export async function buildC2paManifest({
   } : {
     // §11.4's external form (and §A.7.1.3's link element) hash the asset WHOLE:
     // "the data hash assertion shall have no exclusion range". The CDDL is
-    // `? "exclusions": [1* EXCLUSION_RANGE-map]` — optional, but non-empty when
-    // present — so an empty list is written as NO KEY, not as `[]`. Every
+    // `? "exclusions": [1* EXCLUSION_RANGE-map]` - optional, but non-empty when
+    // present - so an empty list is written as NO KEY, not as `[]`. Every
     // embedded caller passes at least one range, so their bytes are unchanged.
     ...(assetHash.exclusions!.length
       ? { exclusions: assetHash.exclusions!.map((e) => ({ start: e.start, length: e.length })) }
@@ -943,12 +943,12 @@ export async function buildC2paManifest({
   // Authorship rode in a schema.org CreativeWork assertion on v1. C2PA 2.x
   // removed the schema.org/Exif/IPTC assertions (a conformant v2 generator must
   // not write them), and the CAWG identity assertion that replaces them needs a
-  // real identity credential the ephemeral on-device signer lacks — so a v2
+  // real identity credential the ephemeral on-device signer lacks - so a v2
   // credential attributes the software via claim_generator_info, never a human.
   let authorBox: Uint8Array | null = null;
   if (!v2 && author?.name) {
     // Profile authorship (opt-in upstream): a schema.org Person on the
-    // CreativeWork. JSON assertion — jumd UUID 'json', content box 'json'.
+    // CreativeWork. JSON assertion - jumd UUID 'json', content box 'json'.
     const person: { '@type': string; name: string; email?: string; url?: string } = { '@type': 'Person', name: String(author.name) };
     if (author.email) person.email = String(author.email);
     if (author.url) person.url = String(author.url);
@@ -962,8 +962,8 @@ export async function buildC2paManifest({
   if (v2 && (author?.name || rights)) {
     // JSON-LD cawg.metadata: dc:creator (author) + dc:rights (user-asserted
     // copyright/licence). Either one alone is enough to emit the assertion.
-    // The licensing contact rides inside the creator entry npm-style —
-    // `Name <email> (site)` — Dublin Core has no contact term of its own, and a
+    // The licensing contact rides inside the creator entry npm-style -
+    // `Name <email> (site)` - Dublin Core has no contact term of its own, and a
     // composed string stays a single dc:creator any external viewer displays
     // verbatim; the verifier's parseCreatorEntry unpicks it on read.
     const metaLd: Record<string, unknown> = { '@context': DC_CONTEXT };
@@ -976,7 +976,7 @@ export async function buildC2paManifest({
     storeBoxes.push(metadataBox);
   }
   // §18.28: the AI transparency statement, a CBOR assertion like the actions and
-  // hash ones. Written for BOTH claim versions — the label is version-neutral
+  // hash ones. Written for BOTH claim versions - the label is version-neutral
   // and a v1 store's `assertions` array references it the same way.
   let aiBox: Uint8Array | null = null;
   if (aiDisclosure) {
@@ -989,7 +989,7 @@ export async function buildC2paManifest({
   for (const box of ingredientBoxes) storeBoxes.push(box);
   const assertionStore = jumbfSuperbox(UUID_ASSERTION_STORE, 'c2pa.assertions', ...storeBoxes);
 
-  // JUMBF-box hashed URIs cover the superbox PAYLOAD — the jumd description box
+  // JUMBF-box hashed URIs cover the superbox PAYLOAD - the jumd description box
   // and content boxes, NOT the outer 8-byte LBox+TBox header (matches c2pa-rs,
   // which recreates the box and hashes write_box_payload). Same reference shape
   // in both versions; v2 only relabels the actions assertion.
@@ -1030,25 +1030,25 @@ export async function buildC2paManifest({
   const signatureBox = jumbfSuperbox(UUID_SIGNATURE, 'c2pa.signature', isoBox('cbor', await coseSign1Detached(sig, claimBytes)));
   const manifest = jumbfSuperbox(UUID_MANIFEST, manifestLabel || urnUuid(), assertionStore, claimBox, signatureBox);
   // Ingredient manifests are carried in verbatim BEFORE the active (Lolly)
-  // manifest — the store's LAST manifest is the active one (C2PA §"active
+  // manifest - the store's LAST manifest is the active one (C2PA §"active
   // manifest"), and the read side (parseC2paStore / collectActionChain) walks
   // every manifest, so a preserved ingredient's full provenance chain surfaces.
   const ingredientManifestBoxes = ingList.flatMap((ing) => ing.manifestBoxes);
   return jumbfSuperbox(UUID_C2PA_STORE, 'c2pa', ...ingredientManifestBoxes, manifest);
 }
 
-// ─── external (sidecar) manifests — §11.4 / §A.7.1.2 ──────────────────────────
+// ─── external (sidecar) manifests - §11.4 / §A.7.1.2 ──────────────────────────
 
 /** {@link buildExternalC2paStore}'s options: everything {@link embedC2pa} takes,
  *  plus the two 2.4 writer additions and the hash assertion's display name. */
 export interface ExternalC2paStoreOptions extends EmbedOptions {
-  /** §18.28 AI transparency statement — see {@link C2paAiDisclosureInput}. */
+  /** §18.28 AI transparency statement - see {@link C2paAiDisclosureInput}. */
   aiDisclosure?: C2paAiDisclosureInput;
   /** SemVer spec version declared in claim_generator_info (§10.2.3). */
   specVersion?: string;
   /**
    * The data-hash assertion's human-readable `name`. Defaults to
-   * 'whole document' — the embedded default ('jumbf manifest') describes an
+   * 'whole document' - the embedded default ('jumbf manifest') describes an
    * excluded region this binding does not have.
    */
   hashName?: string;
@@ -1056,7 +1056,7 @@ export interface ExternalC2paStoreOptions extends EmbedOptions {
 
 /**
  * Build + sign a C2PA Manifest Store that binds the WHOLE of `bytes`, and return
- * the JUMBF store on its own — nothing is placed in, appended to, or spliced
+ * the JUMBF store on its own - nothing is placed in, appended to, or spliced
  * into the asset. This is §11.4's external manifest: "keeping the C2PA Manifests
  * externally to the asset is an acceptable model for providing provenance",
  * served as `application/c2pa` from a location the asset points at.
@@ -1065,13 +1065,13 @@ export interface ExternalC2paStoreOptions extends EmbedOptions {
  * HTML document that references its manifest with
  * `<link rel="c2pa-manifest" href="…">`, says "the data hash assertion shall
  * have no exclusion range; the hash shall be computed over the entire document"
- * — so there is no circular dependency between the manifest's length and the
+ * - so there is no circular dependency between the manifest's length and the
  * offsets it declares, no two-pass layout, and no bytes added to the asset
  * beyond the one `<link>` element the caller wrote before hashing.
  *
  * Which means the ORDER matters and is the caller's responsibility: hash the
  * FINAL bytes, after the last serialization step and with the reference element
- * already in place (§A.7.1.3's note — any later re-serialization is, by design,
+ * already in place (§A.7.1.3's note - any later re-serialization is, by design,
  * a modification). What comes back is written beside the asset as its `.c2pa`
  * sidecar.
  *

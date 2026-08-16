@@ -1,12 +1,12 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
- * Unit tests for engine/src/png-unfilter.ts — unfilterPng(), the pure, DOM-free
+ * Unit tests for engine/src/png-unfilter.ts - unfilterPng(), the pure, DOM-free
  * reversal of PNG row filters (types 0 None, 1 Sub, 2 Up, 3 Average, 4 Paeth)
  * that PDF /Predictor >= 10 (and jsPDF's addImage(png,'PNG'), /Predictor 15)
  * apply before DEFLATE.
  *
  * The per-filter cases below carry HAND-COMPUTED filtered inputs and HAND-COMPUTED
- * expected outputs as literals — the assertion is NOT unfilterPng vs its own
+ * expected outputs as literals - the assertion is NOT unfilterPng vs its own
  * inverse. The RGB round-trip additionally filters with an independent forward
  * implementation written in this file.
  *
@@ -73,7 +73,7 @@ test('filter 4 (Paeth) — bpp=3, left neighbour is 3 bytes back', () => {
 
 // ── RGB round-trip via an INDEPENDENT forward filter ─────────────────────────
 
-// Forward PNG filter (encode) — reference impl written here, does NOT call
+// Forward PNG filter (encode) - reference impl written here, does NOT call
 // unfilterPng. Applies one filter type to every row of an 8bpc image.
 function forwardFilter(raw: Uint8Array, w: number, h: number, bpp: number, filter: number): Uint8Array {
   const rowBytes = w * bpp;

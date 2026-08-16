@@ -8,17 +8,17 @@
 // sandboxed and cannot import the engine, so that copy stays there and this
 // typed one serves the shells directly (see file-metadata.ts for the read-side
 // counterpart, which documents the same duplication). PDF is deliberately NOT
-// handled here — it needs a real PDF library (host.pdf.strip in the shells).
+// handled here: it needs a real PDF library (host.pdf.strip in the shells).
 //
-// A format this module can't confidently parse is returned untouched rather
-// than risk corrupting it — but "untouched" is only ever returned when there is
+// A format this module cannot confidently parse is returned untouched rather
+// than risk corrupting it. But "untouched" is only ever returned when there is
 // nothing to remove. This is a PRIVACY control, so it must never fail open: if
 // the surgery throws, or leaves any removable metadata behind, stripMetadata()
 // throws instead of silently handing back an un-stripped original that a caller
 // would present as a "clean" copy (verify-after-strip; see hasResidualMetadata).
 
 // MULTI-PICTURE JPEGs (decided 2026-07-31, plans/61-deeprichpixels.md §6 B2).
-// A gain-map HDR JPEG — the kind Lolly's own `hdr=1` export writes — is an
+// A gain-map HDR JPEG (the kind Lolly's own `hdr=1` export writes) is an
 // ordinary SDR JPEG whose second image (the gain map) rides past the EOI and is
 // described by an APP2 "MPF" index. Dropping every APPn but APP0 therefore used
 // to delete the index and leave the second image orphaned: a file that still
@@ -28,7 +28,7 @@
 // The choice made here is DROP, not refuse: when a JPEG carries an MPF index,
 // stripping removes the index AND every image after the primary, so the clean
 // copy is a valid, single-image, ordinary SDR JPEG with byte-identical scan
-// data. Rationale — "strip" is a privacy control whose promised output is a
+// data. Rationale: "strip" is a privacy control whose promised output is a
 // plain image, refusing would leave the user with no clean copy at all, and the
 // SDR base is exactly what a non-HDR viewer was going to see anyway. The cost is
 // stated plainly: a stripped gain-map JPEG is no longer HDR. Files with no MPF
@@ -43,7 +43,7 @@ export type StripFormat = 'jpeg' | 'png' | 'svg';
 /** Formats this module (or the shell's host.pdf.strip) can produce a clean copy of. */
 const STRIPPABLE = new Set(['JPEG', 'PNG', 'SVG', 'PDF']);
 
-/** True when `format` (as reported by extractFileMetadata / a C2PA sniff, e.g. "JPEG", "PDF") can be cleaned — directly by stripMetadata() for jpeg/png/svg, or via host.pdf.strip() for pdf. */
+/** True when `format` (as reported by extractFileMetadata / a C2PA sniff, e.g. "JPEG", "PDF") can be cleaned: directly by stripMetadata() for jpeg/png/svg, or via host.pdf.strip() for pdf. */
 export function isStrippableFormat(format: string | null | undefined): boolean {
   return !!format && STRIPPABLE.has(format.toUpperCase());
 }
@@ -58,7 +58,7 @@ function scanJpeg(bytes: Uint8Array): JpegSeg[] | null {
   const segs: JpegSeg[] = [];
   let p = 2;
   while (p + 1 < bytes.length) {
-    if (bytes[p] !== 0xff) break; // misaligned — bail, keep file intact
+    if (bytes[p] !== 0xff) break; // misaligned, bail, keep file intact
     let marker = bytes[p + 1]!;
     while (marker === 0xff && p + 2 < bytes.length) { p++; marker = bytes[p + 1]!; } // fill bytes
     if (marker === 0xd9) { segs.push({ marker, start: p, end: p + 2 }); break; } // EOI
@@ -115,8 +115,8 @@ function stripPng(bytes: Uint8Array): Uint8Array {
 }
 
 // ── SVG: drop comments, <metadata>, editor-private namespaces/attrs, DOCTYPE,
-// insignificant whitespace — every painting tag is emitted byte-for-byte ──────
-// A small hand-rolled tokenizer (no DOM — this runs in browser/Tauri/CLI alike).
+// insignificant whitespace: every painting tag is emitted byte-for-byte ──────
+// A small hand-rolled tokenizer (no DOM: this runs in browser/Tauri/CLI alike).
 
 interface Tok {
   t: 'comment' | 'cdata' | 'doctype' | 'pi' | 'open' | 'self' | 'close' | 'text';
@@ -144,7 +144,7 @@ function shouldDropElement(name: string): boolean {
 }
 
 function shouldDropAttr(name: string): boolean {
-  if (name === 'xml:space') return false; // rendering-relevant — keep
+  if (name === 'xml:space') return false; // rendering-relevant, keep
   if (DROP_EL_PREFIX.has(prefixOf(name))) return true;
   if (DROP_XMLNS.has(name.toLowerCase())) return true;
   if (name === 'data-name') return true; // Illustrator layer names (privacy)
@@ -240,7 +240,7 @@ function cleanSvgTokens(toks: Tok[]): string {
   let dropName: string | null = null, dropDepth = 0;
 
   for (const tk of toks) {
-    if (dropDepth > 0) { // inside a dropped subtree — watch only its nesting
+    if (dropDepth > 0) { // inside a dropped subtree, watch only its nesting
       if (tk.t === 'open' && tk.name === dropName) dropDepth++;
       else if (tk.t === 'close' && tk.name === dropName) dropDepth--;
       continue;
@@ -293,7 +293,7 @@ function stripSvg(bytes: Uint8Array): Uint8Array {
  * Verify-after-strip post-condition: does `bytes` (a supposedly-cleaned output)
  * still carry any of the metadata that stripMetadata is contracted to remove for
  * `format`? Returns a short human-readable reason, or null when the copy is
- * verifiably clean. Deliberately narrow — it only checks the segments/chunks/
+ * verifiably clean. Deliberately narrow: it only checks the segments/chunks/
  * nodes stripMetadata itself drops, so it never false-flags things outside this
  * module's remit (e.g. a trailing appended payload past a JPEG's EOI, which is
  * the read-side's concern, not something stripMetadata claims to remove).
@@ -301,7 +301,7 @@ function stripSvg(bytes: Uint8Array): Uint8Array {
 export function hasResidualMetadata(bytes: Uint8Array, format: StripFormat): string | null {
   if (format === 'jpeg') {
     for (const s of scanJpeg(bytes) ?? []) {
-      if (s.sos) break; // reached the scan/entropy data — no metadata beyond here
+      if (s.sos) break; // reached the scan/entropy data, no metadata beyond here
       if (s.marker === 0xfe) return 'a JPEG comment (COM) segment';
       if (s.marker >= 0xe1 && s.marker <= 0xef) return `a JPEG APP${s.marker - 0xe0} metadata segment`;
     }
@@ -335,10 +335,10 @@ export function hasResidualMetadata(bytes: Uint8Array, format: StripFormat): str
 }
 
 /**
- * Produce a lossless clean copy of `bytes` for a supported raster/vector format
- * — the image content (pixels or paint commands) is preserved byte-for-byte;
+ * Produce a lossless clean copy of `bytes` for a supported raster/vector format.
+ * The image content (pixels or paint commands) is preserved byte-for-byte;
  * only metadata (EXIF/XMP/ICC/IPTC/comments/editor cruft) is removed. PDF is
- * not handled here — clean it via the shell's `host.pdf.strip()`.
+ * not handled here: clean it via the shell's `host.pdf.strip()`.
  *
  * ONE deliberate exception to "image content preserved": a multi-picture JPEG
  * (HDR gain map, MPO) loses every image after the primary along with the MPF
@@ -357,7 +357,7 @@ export function stripMetadata(bytes: Uint8Array, format: StripFormat): Uint8Arra
   if (format === 'jpeg') out = stripJpeg(bytes);
   else if (format === 'png') out = stripPng(bytes);
   else if (format === 'svg') out = stripSvg(bytes);
-  else return bytes; // unknown format — nothing this module can strip
+  else return bytes; // unknown format, nothing this module can strip
 
   const residual = hasResidualMetadata(out, format);
   if (residual) throw new Error(`stripMetadata(${format}): clean copy still contains ${residual}`);

@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
  * CSS Color 4 interpolation (css-color.ts) and the Lolly gradient spec
- * (gradient-spec.ts) — see plans/60-color-spaces.md §10.
+ * (gradient-spec.ts) - see plans/60-color-spaces.md §10.
  *
  * The two properties worth defending here:
  *
@@ -170,12 +170,12 @@ test('interpolating in sRGB needs no baking at all — the renderer already agre
 test('a longer-hue sweep is monotone in hue, not an oscillation', () => {
   // Recursing on freshly-made midpoints would re-apply `longer` to each half and
   // tour the whole wheel once per subdivision. Anchoring on the endpoints keeps it
-  // to a single sweep — so the unwrapped hue must move in one direction only.
+  // to a single sweep - so the unwrapped hue must move in one direction only.
   const baked = gradientStops(
     [{ color: P('oklch(0.6 0.2 30)'), pos: 0 }, { color: P('oklch(0.6 0.2 60)'), pos: 100 }],
     { space: 'oklch', hue: 'longer' },
   );
-  // Monotone in ONE direction — which direction is the pair's business. 30°→60°
+  // Monotone in ONE direction - which direction is the pair's business. 30°→60°
   // "the long way" happens to run DOWNWARD (30 → 9 → 349 → … → 60), so the test
   // is that every step shares a sign, not that hue increases.
   const hueOf = (c: CssColor): number => convertColor(c, 'oklch').components[2];
@@ -237,7 +237,7 @@ test('the canonical form round-trips', () => {
 test('an all-letters hex is hex, not a colour name', () => {
   // `efefef`, `dedede`, `facade` are valid 6-digit hex AND all letters. Reading
   // them as idents dropped the stop, silently turning a 3-stop gradient into a
-  // 2-stop one — or refusing the whole spec when only two stops were authored.
+  // 2-stop one - or refusing the whole spec when only two stops were authored.
   const g = parseGradientSpec('lin_90_efefef-0_dedede-50_facade-100');
   assert.ok(g);
   assert.deepEqual(g.stops.map(s => s.color), ['#efefef', '#dedede', '#facade']);
@@ -319,7 +319,7 @@ test('each kind emits the CSS primitive the export walkers already parse', () =>
 test('the emitted CSS carries plain sRGB hex stops with percent positions', () => {
   const css = gradientSpecToCss('lin_90_30ba78-0_efefef-100')!;
   assert.equal(css, 'linear-gradient(90deg, #30ba78 0%, #9dd6b3 50%, #efefef 100%)');
-  // No `in <space>` — that is the whole point of baking (SVG/PDF can't read it).
+  // No `in <space>` - that is the whole point of baking (SVG/PDF can't read it).
   assert.ok(!/\bin\s+oklab\b/.test(css), 'no interpolation-space keyword');
 });
 

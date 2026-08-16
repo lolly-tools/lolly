@@ -1,10 +1,10 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
- * build-voice-clips — synthesize a robot voice speaking each UI filter/treatment/theme
+ * build-voice-clips - synthesize a robot voice speaking each UI filter/treatment/theme
  * NAME, at build time. A one-shot generator (like `npm run previews`): run it locally,
  * commit the output. The web shell plays the clip on click (data-voice="<label>", see
  * lib/sfx.ts playVoice). Requires macOS `say` (the Zarvox robot voice) + ffmpeg, so it
- * runs on a Mac, NOT on Vercel — the committed mp3s ship with the static build.
+ * runs on a Mac, NOT on Vercel - the committed mp3s ship with the static build.
  *
  * Clips: one mp3 per UNIQUE spoken label, named by a slug of the label, under
  * shells/web/public/voice/<slug>.mp3 (served at /voice/<slug>.mp3). Dedup by label so
@@ -46,7 +46,7 @@ for (const label of [...labels].sort()) {
   const slug = voiceSlug(label);
   if (!slug) continue;
   execFileSync('say', ['-v', VOICE, '-o', tmp, label]);
-  // mono, 48 kbps mp3 — a robot voice needs no more; each clip lands at a few KB.
+  // mono, 48 kbps mp3 - a robot voice needs no more; each clip lands at a few KB.
   execFileSync('ffmpeg', ['-y', '-i', tmp, '-af', AFILTER, '-codec:a', 'libmp3lame', '-b:a', '48k', '-ac', '1', join(OUT, `${slug}.mp3`)], { stdio: 'ignore' });
   console.log(`  ✓ voice/${slug}.mp3  ← "${label}"`);
 }

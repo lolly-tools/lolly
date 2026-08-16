@@ -1,29 +1,29 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
- * Font container interconversion — TTF/OTF ⇄ WOFF1, DOM-free and synchronous.
+ * Font container interconversion - TTF/OTF ⇄ WOFF1, DOM-free and synchronous.
  *
  * A font file is a *container* around a set of tables. The OpenType `sfnt`
  * container (TTF and OTF both) stores those tables uncompressed behind a sorted
  * directory; WOFF1 (W3C "WOFF File Format 1.0") is the same table set with a
  * different 44-byte header, a wider per-table directory, and each table
- * optionally zlib-compressed. So the conversions here are container surgery, not
- * glyph work: unwrap/rewrap the directory, (de)compress each table, fix offsets
- * and checksums. TTF↔OTF is a pure passthrough — the container is identical, the
+ * optionally zlib-compressed. So the conversions here change the container, not
+ * the glyphs: unwrap/rewrap the directory, (de)compress each table, fix offsets
+ * and checksums. TTF↔OTF is a pure passthrough - the container is identical, the
  * `flavor` (sfnt version) is the only thing that says whether the outlines live
  * in `glyf` (TrueType, 0x00010000) or `CFF `/`CFF2` (OTTO).
  *
  * WOFF2 is deliberately OUT OF SCOPE: it re-encodes the tables with a MTX glyph
  * transform and Brotli, and the engine has no Brotli *encoder*. `sfntKind`
  * recognises the 'wOF2' magic so a caller can route it elsewhere, but there is
- * no wOF2 (de)coder here — {@link woffToSfnt} rejects it.
+ * no wOF2 (de)coder here - {@link woffToSfnt} rejects it.
  *
  * ─── What this depends on ────────────────────────────────────────────────────
- * COMPRESSION uses the engine's own `zlibCompress` (deflate.ts) — WOFF1 stores
+ * COMPRESSION uses the engine's own `zlibCompress` (deflate.ts) - WOFF1 stores
  * each compressed table as a zlib stream (RFC 1950), which is exactly what that
  * emits. DECOMPRESSION needs a real inflater, which the engine does not have
- * (deflate.ts is encode-only), so this imports fflate's `unzlibSync` — the same
- * dependency scripts/ingest-brand.ts and brand-import.ts already lean on for the
- * unzip half they can't do in-tree. No DOM, no fs, no network; identical bytes
+ * (deflate.ts is encode-only), so this imports fflate's `unzlibSync` - the same
+ * dependency scripts/ingest-brand.ts and brand-import.ts already use for the
+ * unzip half they cannot do in-tree. No DOM, no fs, no network; identical bytes
  * in browser, CLI and MCP.
  *
  * ─── Hostile-input posture (the "GIF lesson") ────────────────────────────────
@@ -45,15 +45,15 @@ export type SfntKind = 'ttf' | 'otf' | 'woff' | 'woff2';
 /**
  * Largest font this module will read or produce. Guards every allocation driven
  * by an attacker-controlled length field. Generous versus the shells' 5 MB
- * upload cap (font-utils.validateFontFile) but finite — a 4 GB `origLength`
+ * upload cap (font-utils.validateFontFile) but finite - a 4 GB `origLength`
  * must never reach `new Uint8Array`.
  */
 const MAX_FONT_BYTES = 64 * 1024 * 1024;
 
 // ── sfnt / WOFF magic numbers (uint32 big-endian) ───────────────────────────
 const SFNT_TRUETYPE = 0x00010000; // TrueType outlines (glyf)
-const SFNT_TRUE = 0x74727565;     // 'true' — legacy Apple TrueType
-const SFNT_OTTO = 0x4f54544f;     // 'OTTO' — CFF/CFF2 outlines
+const SFNT_TRUE = 0x74727565;     // 'true' - legacy Apple TrueType
+const SFNT_OTTO = 0x4f54544f;     // 'OTTO' - CFF/CFF2 outlines
 const WOFF_SIG = 0x774f4646;      // 'wOFF'
 const WOFF2_SIG = 0x774f4632;     // 'wOF2'
 
@@ -67,7 +67,7 @@ const align4 = (n: number): number => (n + 3) & ~3;
 
 /**
  * Detect a font container from its first four bytes. Returns the kind or `null`
- * (too short, or a magic this module does not recognise — TrueType Collections
+ * (too short, or a magic this module does not recognise - TrueType Collections
  * 'ttcf', Type1 'typ1', etc. are intentionally not claimed).
  */
 export function sfntKind(bytes: Uint8Array): SfntKind | null {
@@ -89,7 +89,7 @@ interface Table {
 
 /** Sum a table's bytes as big-endian uint32 words (sfnt checksum, spec §"Table
  *  Directory"). Trailing bytes past the last full word are treated as a word
- *  zero-padded on the RIGHT — identical to how a 4-aligned table is laid out. */
+ *  zero-padded on the RIGHT - identical to how a 4-aligned table is laid out. */
 function tableChecksum(data: Uint8Array): number {
   let sum = 0;
   const n = data.length;

@@ -3,7 +3,7 @@
  * deck-builder freeform-mode contract tests.
  *
  * Run with: npm test  (node --test over the tests/ globs)
- * No test framework — node:test built-in.
+ * No test framework - node:test built-in.
  *
  * Loads the REAL community tool from disk and drives it through the engine with a
  * stub host, so these guard the tool's actual render. Two contradictory slide modes
@@ -28,7 +28,7 @@ import { loadTool } from '../engine/src/loader.ts';
 import { createRuntime } from '../engine/src/runtime.ts';
 import { baseHost } from './helpers/host.ts';
 
-// deck-builder is a community tool — always present in a full checkout. Load it
+// deck-builder is a community tool - always present in a full checkout. Load it
 // from the SOURCE pack (community/), not the gitignored tools/ profile view, so
 // the suite never silently skips: a missing dir means the tool was renamed or
 // deleted, which must FAIL here.
@@ -124,7 +124,7 @@ test('freeform text box: same markdown renderer + inline styling', async () => {
   // '# Hi' → an <h1> inside the box (mdBox), colour + align inline. The authored size
   // (96/1920 = 5cqw) rides --fs, NOT font-size: styles.css reads it back as
   // `calc(var(--fs) * var(--fit))` so the fit pass can scale the box without destroying
-  // the size it scales from. The <h1> sits inside .sl-box-fit — the content-sized child
+  // the size it scales from. The <h1> sits inside .sl-box-fit - the content-sized child
   // the fit pass measures against the box.
   assert.match(html, /class="sl-box-text" data-valign="t"\s+style="text-align: center; color: #ff0000; --fs: 5cqw;"><div class="sl-box-fit"><h1>Hi<\/h1>/);
   // second text box: subhead + bullet list
@@ -218,7 +218,7 @@ test('malformed boxes render an empty canvas, never throw', async () => {
   assert.equal((html.match(/class="sl-box /g) ?? []).length, 0);
 });
 
-// ── shape boxes (kind:"box") — plain filled shapes for pptxgenjs-style cards ─────
+// ── shape boxes (kind:"box") - plain filled shapes for pptxgenjs-style cards ─────
 
 // One rounded, filled, bordered card. radius/lineWidth are NATIVE px → slide-relative
 // cqw so they scale with the frame (like box.fontSize), never fixed px.
@@ -254,16 +254,16 @@ test('shape box: geometry reuses the same px→% mapping as text/image boxes', a
 test('shape box: per-corner radius → four cqw corners in CSS order', async () => {
   const { rt, html } = await mount([{
     mode: 'freeform',
-    // [topLeft, topRight, bottomRight, bottomLeft] — CSS corner order, native px.
+    // [topLeft, topRight, bottomRight, bottomLeft] - CSS corner order, native px.
     boxes: [{ kind: 'box', x: 0, y: 0, w: 960, h: 480, fill: '#30BA78', radius: [96, 0, 48, 0] }],
   }]);
   assert.deepEqual(rt.hookErrors, []);
-  // 96/1920 = 5cqw, 48/1920 = 2.5cqw — each corner scales with the slide independently.
+  // 96/1920 = 5cqw, 48/1920 = 2.5cqw - each corner scales with the slide independently.
   assert.match(html, /border-radius:calc\(5cqw\) calc\(0cqw\) calc\(2\.5cqw\) calc\(0cqw\)/);
 });
 
 test('shape box: a rect honours its authored radius (radius is the control, shape is the geometry)', async () => {
-  // `round` is not a distinct geometry — a rectangle WITH a radius is the rounded shape.
+  // `round` is not a distinct geometry - a rectangle WITH a radius is the rounded shape.
   // Both spellings must paint the same corners, or the two controls contradict each other.
   const rect = await mount([{ mode: 'freeform', boxes: [{ kind: 'box', x: 0, y: 0, w: 400, h: 200, fill: '#111111', shape: 'rect', radius: 24 }] }]);
   const round = await mount([{ mode: 'freeform', boxes: [{ kind: 'box', x: 0, y: 0, w: 400, h: 200, fill: '#111111', shape: 'round', radius: 24 }] }]);
@@ -322,7 +322,7 @@ test('a text box and a shape box on one slide both render and layer in ARRAY ord
   // Array order is z-order (later boxes stack above earlier ones): the shape is first
   // in the array so it appears FIRST in the DOM, under the text.
   assert.ok(iShape < iText, 'shape (array[0]) precedes text (array[1]) in DOM = z-order');
-  // The text box still renders its markdown through the shared renderer, untouched —
+  // The text box still renders its markdown through the shared renderer, untouched - 
   // inside .sl-box-fit, the content-sized child the fit pass measures.
   assert.match(html, /class="sl-box-text"[^>]*><div class="sl-box-fit"><h1>On top<\/h1>/);
 });

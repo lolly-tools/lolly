@@ -1,21 +1,21 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
  * Bundles the MCP serverless handler into a single self-contained
- * `api/mcp/[...path].js` — a catch-all so ONE function serves the JSON-RPC
+ * `api/mcp/[...path].js` - a catch-all so ONE function serves the JSON-RPC
  * endpoint (`/api/mcp`), the OAuth flow (`/api/mcp/{register,authorize,token}`),
  * and the `/.well-known/oauth-*` discovery docs (routed in via vercel.json).
  *
  * WHY THIS EXISTS
  * Vercel's @vercel/node builder transpiles each `.ts` file to `.js` individually
  * but leaves import *specifiers* untouched. The repo deliberately writes explicit
- * `.ts` extensions (so Node can run the sources directly — see CLAUDE.md), so the
+ * `.ts` extensions (so Node can run the sources directly - see CLAUDE.md), so the
  * traced function ends up full of `import ... from './x.ts'` pointing at files
  * that are now `x.js` → `ERR_MODULE_NOT_FOUND` at runtime.
  *
  * esbuild resolves and inlines ALL first-party code (api entry + services/mcp +
  * engine, following the `.ts` specifiers correctly) into one module. node_modules
  * stay EXTERNAL (`packages: 'external'`) so Vercel's file-tracer includes them
- * normally — this keeps native/wasm deps (@resvg/resvg-js, harfbuzz, jsdom) out
+ * normally - this keeps native/wasm deps (@resvg/resvg-js, harfbuzz, jsdom) out
  * of the bundle where esbuild would choke on them.
  *
  * Runs during the Vercel build (see `build:mcp-fn` in package.json / vercel.json
@@ -42,7 +42,7 @@ await build({
   platform: 'node',
   format: 'esm',
   target: 'node24',
-  // node_modules stay external — Vercel's tracer bundles them into the function.
+  // node_modules stay external - Vercel's tracer bundles them into the function.
   packages: 'external',
   // …but the workspace packages ARE first-party source: alias each to its real
   // entry so esbuild inlines it rather than leaving a bare, dangling import.

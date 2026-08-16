@@ -209,7 +209,7 @@ test('provenance alone reserves the margin band (counts as a mark)', () => {
 test("barStyle 'rgb-swatches' → one RGB cell per brand colour, no primaries, no CMYK", () => {
   const geo = computePrintGeometry({ ...TRIM, bleedPt: 8.5, marks: { colorBars: true }, palette: BRAND3, barStyle: 'rgb-swatches' });
   const bars = geo.primitives.bars;
-  // Exactly one cell per brand colour — no leading C/M/Y/K primaries, no CMYK pair.
+  // Exactly one cell per brand colour - no leading C/M/Y/K primaries, no CMYK pair.
   assert.equal(bars.length, BRAND3.length);
   bars.forEach((b, i) => {
     assert.equal(b.ink, 'rgb', 'every cell paints its RGB — a CMYK cell would be meaningless in an RGB doc');
@@ -217,7 +217,7 @@ test("barStyle 'rgb-swatches' → one RGB cell per brand colour, no primaries, n
     assert.equal(b.label, BRAND3[i]!.label);
     assert.ok(!strictlyInsideTrim(geo, b.x, b.y));
   });
-  // No two cells touch — a small gap keeps the (optionally rounded) swatches distinct.
+  // No two cells touch - a small gap keeps the (optionally rounded) swatches distinct.
   for (let i = 1; i < bars.length; i++) assert.ok(bars[i]!.x > bars[i - 1]!.x + bars[i - 1]!.w);
   // None of the four process primaries leaked in.
   assert.ok(!bars.some(b => b.ink === 'cmyk'));
@@ -241,7 +241,7 @@ test('barRadiusPt sets each cell corner radius, clamped to half the cell', () =>
 // ── The default is nothing: no request → no print geometry at all ─────────────
 // The RGB vector formats (SVG / plain PDF) reach the export bridges with no bleed
 // and no marks unless the user, an explicit ?bleed=/?marks= param, or a declared
-// print intent asked for them — and the engine's half of that contract is that an
+// print intent asked for them - and the engine's half of that contract is that an
 // empty request degenerates to the bare trim box: no margin, no primitives, no
 // page growth. A regression here would silently put press furniture on everyday
 // screen-bound exports.

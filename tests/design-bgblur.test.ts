@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
- * Design — box `bgBlur` (BACKGROUND blur / frosted glass) contract tests.
+ * Design - box `bgBlur` (BACKGROUND blur / frosted glass) contract tests.
  *
- * Run with: npm test  (node --test over the tests/ globs). No framework — node:test.
+ * Run with: npm test  (node --test over the tests/ globs). No framework - node:test.
  *
  * The sibling of design-blur.test.ts, and deliberately a separate file: `blur`
  * blurs the box's own paint (CSS `filter`), `bgBlur` blurs what is painted BEHIND it
@@ -11,7 +11,7 @@
  * narrowed the `blur` enum to `layer-blur`), and a shape may carry both.
  *
  * Four surfaces:
- *   1. The manifest: `bgBlur` is APPENDED after the stroke dash/gap pair — compact
+ *   1. The manifest: `bgBlur` is APPENDED after the stroke dash/gap pair - compact
  *      block URLs encode fields positionally, so the slot is a permanent contract,
  *      and BOTH brand forks have to agree on it.
  *   2. The hooks: `bgBlur > 0` emits both the prefixed and unprefixed
@@ -81,7 +81,7 @@ test('a `bgBlur` number field exists in every mounted brand fork, appended after
     assert.equal(ids.filter((v: string) => v === 'bgBlur').length, 1, `${brand}: exactly one bgBlur`);
     // Compact block URLs encode fields POSITIONALLY, so a field can only ever be
     // APPENDED. `blur` holds its historical slot 53, the Penpot dash/gap pair landed
-    // at 54/55, and bgBlur is slot 56 — none of them may move again.
+    // at 54/55, and bgBlur is slot 56 - none of them may move again.
     assert.equal(ids.indexOf('blur'), 53, `${brand}: blur moved slot (wire order is locked)`);
     assert.equal(ids.indexOf('strokeDashLen'), 54, `${brand}: strokeDashLen slot`);
     assert.equal(ids.indexOf('strokeGapLen'), 55, `${brand}: strokeGapLen slot`);
@@ -153,7 +153,7 @@ const RECT = { id: 'b', type: 'rect', selrect: SEL, fills: [{ fillColor: '#ff000
 test('the radius mapping constant is pinned (Skia sigma → CSS blur radius)', () => {
   // Penpot's shipping renderer is Skia: sigma = 0.57735 * value + 0.5. CSS
   // backdrop-filter: blur(R) is a Gaussian of sigma R/2, so R = 1.1547 * value + 1.
-  // An APPROXIMATION — it matches the sigma, not Penpot's clipping/tiling — pinned
+  // An APPROXIMATION - it matches the sigma, not Penpot's clipping/tiling - pinned
   // here so a future pixel comparison against a real Penpot export moves it on
   // purpose rather than by accident. The real-export INPUT side is now settled:
   // tests/penpot-kitchen-sink.test.ts reads four genuine `backgroundBlur` entries
@@ -209,7 +209,7 @@ test('penpotShapeToNode: text and baked vector art drop it (the shell warns)', (
 test('penpotShapeToNode: the legacy pre-2.17 blur:{type:background-blur} form is background blur', () => {
   // Penpot ships NO migration for it, so files authored before the attribute split
   // still carry it inside `blur`. Reading it as a layer blur would blur the shape's
-  // own paint instead of the backdrop — the one outcome that is worse than dropping it.
+  // own paint instead of the backdrop - the one outcome that is worse than dropping it.
   const legacy = penpotShapeToNode({ ...RECT, blur: { type: 'background-blur', value: 10 } }) as any;
   assert.equal(legacy.bgBlur, 12.5);
   assert.equal(legacy.blur, undefined);
@@ -220,7 +220,7 @@ test('penpotShapeToNode: the legacy pre-2.17 blur:{type:background-blur} form is
 
 test('penpotShapeToNode: layer blur and background blur coexist on one shape', () => {
   // render-wasm has an explicit layer_blur_and_background_blur_can_coexist test, and
-  // the shape schema carries the two keys side by side — so both fields must be set.
+  // the shape schema carries the two keys side by side - so both fields must be set.
   const node = penpotShapeToNode({
     ...RECT,
     blur: { type: 'layer-blur', value: 4 },
@@ -267,7 +267,7 @@ test('penpotGroupToSvg: a visible backgroundBlur leaf refuses the flatten', () =
     assert.equal(penpotGroupToSvg(shapes.g, (id) => shapes[id]), '', JSON.stringify(extra));
   }
 
-  // Hidden or zero-valued entries are not an effect at all — the flatten stays
+  // Hidden or zero-valued entries are not an effect at all - the flatten stays
   // byte-identical, so nothing that used to bake starts falling back.
   for (const extra of [
     { backgroundBlur: { type: 'background-blur', value: 9, hidden: true } },

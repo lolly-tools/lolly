@@ -1,18 +1,18 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
- * OpenEXR encoder — scanline, HALF (float16) or FLOAT (32-bit), NONE/ZIPS/ZIP.
+ * OpenEXR encoder - scanline, HALF (float16) or FLOAT (32-bit), NONE/ZIPS/ZIP.
  *
  * plans/61-deeprichpixels.md §4.2 / §6 Phase B3, surfaced CLI-first per §10 item 4.
- * This is the "hand it to a video person" format: every VFX, compositing and
- * colour pipeline in existence reads OpenEXR (Nuke, Resolve, Flame, Fusion,
- * Blender, Houdini, RV, OIIO), and none of them is served by a browser format.
- * PNG at 16 bits is a deep *display* master; EXR is a deep *scene-linear* one —
+ * This format is for professional video, compositing, and colour pipelines:
+ * every VFX and compositing tool reads OpenEXR (Nuke, Resolve, Flame, Fusion,
+ * Blender, Houdini, RV, OIIO), and none of them accept a browser format.
+ * PNG at 16 bits is a deep *display* master; EXR is a deep *scene-linear* one -
  * unbounded, negative-tolerant, and the only container in this tree that can
  * carry a `DeepFrame` without losing either end of its range.
  *
  * ─── What the caller hands over (colour) ────────────────────────────────────
  * A {@link DeepFrame}: RGBA interleaved float32, LINEAR light, un-premultiplied,
- * unbounded. That is already the EXR convention — "the values in an OpenEXR
+ * unbounded. That is already the EXR convention - "the values in an OpenEXR
  * file are usually scene-linear" (OpenEXR Technical Introduction, "Overview of
  * the OpenEXR File Format" / "Display-Referred vs. Scene-Referred"). This writer
  * therefore applies NO transfer curve, NO tone map and NO clamp: what is in the
@@ -25,52 +25,51 @@
  * primaries the numbers are in rather than assuming the EXR default. An EXR with
  * no `chromaticities` attribute means Rec.709 primaries with a D65 white
  * (OpenEXR File Layout, "chromaticities"; Technical Introduction, "RGB Colour"),
- * which is exactly `srgb-linear` — so omitting it there is the honest encoding,
+ * which is exactly `srgb-linear` - so omitting it there is the honest encoding,
  * not a shortcut. `xyz-d50` and `lab` frames are refused: EXR's R/G/B channels
  * are RGB primaries by definition and there is no chromaticity triple that
  * describes a CIELAB buffer. Convert first (`pixels.ts#convertSpace`).
  *
- * SEAM (same rule `png.ts` and `tiff.ts` state, same reason — plan §10, depth
+ * SEAM (same rule `png.ts` and `tiff.ts` state, same reason - plan §10, depth
  * follows provenance): this writer never invents depth. It writes float samples
  * because a `DeepFrame` genuinely holds float samples; it will happily encode a
  * frame that came from 8-bit bytes, but that is the caller's provenance claim to
  * make, not a quality upgrade this module performs.
  *
  * ─── What it emits (OpenEXR File Layout spec, https://openexr.com/en/latest/
- *     OpenEXRFileLayout.html — every field cited at its write site below) ──────
+ *     OpenEXRFileLayout.html - every field cited at its write site below) ──────
  *   magic (0x01312f76) → version+flags → header attributes → chunk offset table
  *   → scan line blocks.
  * Single-part, scanline, non-deep, INCREASING_Y. Channels are HALF by default
  * (`pixelType: 'float'` for 32-bit) and named R/G/B/A, written in the
- * ALPHABETICAL order the format requires — A, B, G, R.
+ * ALPHABETICAL order the format requires - A, B, G, R.
  *
  * ─── Compression ────────────────────────────────────────────────────────────
  * `none` (1 scanline per block), `zips` (zlib, 1 scanline per block) and `zip`
- * (zlib, 16 scanlines per block — the default, and what every DCC writes). The
+ * (zlib, 16 scanlines per block - the default, and what every DCC writes). The
  * zlib body is preceded by OpenEXR's byte reordering + delta predictor, which is
  * the part people get wrong: the bytes are DE-INTERLEAVED FIRST (even-indexed
  * bytes into the first half of the buffer, odd-indexed into the second) and only
  * THEN delta-encoded across the whole reordered buffer. Doing it the other way
  * round produces a file that inflates fine and decodes to garbage. Reference:
  * `Imf::Zip::compress` in src/lib/OpenEXR/ImfZip.cpp (OpenEXR 3.x, BSD-3-Clause)
- * — reproduced in {@link zipPreprocess} with the C loop structure preserved so
+ * - reproduced in {@link zipPreprocess} with the C loop structure preserved so
  * the correspondence is checkable by eye.
  *
  * Deliberately NO PIZ. PIZ is a wavelet transform plus a Huffman coder with its
- * own bit-packed code table — several hundred lines of intricate, easy-to-get-
- * subtly-wrong code, for a format where ZIP is universally readable and the
- * size difference is single-digit percent on rendered (non-grainy) imagery. Same
- * call for RLE, PXR24 (lossy 24-bit float), B44/B44A and DWAA/DWAB (lossy DCT):
- * every one of them is optional, and a reader that cannot inflate ZIP does not
- * exist. If PIZ is ever wanted, it goes in as its own module with its own fuzz
- * corpus, not as a fourth branch here.
+ * own bit-packed code table. Implementing it needs several hundred lines of
+ * complex code, and it is easy to get subtly wrong. ZIP is universally
+ * readable, and on rendered (non-grainy) imagery the size difference is only
+ * single-digit percent. Same reasoning applies to RLE, PXR24 (lossy 24-bit
+ * float), B44/B44A, and DWAA/DWAB (lossy DCT): every one of them is optional,
+ * and every reader can inflate ZIP. If PIZ is needed later, add it as its own
+ * module with its own fuzz corpus, not as a fourth branch here.
  *
- * ─── Crib, not vendor ───────────────────────────────────────────────────────
- * three.js's `EXRExporter` (MIT, examples/jsm/exporters/EXRExporter.js) is the
- * proven-simple reference for exactly this subset and was consulted as prior art
- * for the shape of the problem; no code from it is present here — the field
- * layout below is written from the OpenEXR file-layout specification and the
- * predictor from ImfZip.cpp, both cited inline.
+ * ─── Reference source, not vendored code ─────────────────────────────────────
+ * three.js's `EXRExporter` (MIT, examples/jsm/exporters/EXRExporter.js) was
+ * read as prior art for this subset of the format; no code from it is present
+ * here. The field layout below is written from the OpenEXR file-layout
+ * specification, and the predictor from ImfZip.cpp, both cited inline.
  *
  * Not in the engine barrel: EXR is consumed by deep-path import (the `bytes.ts`
  * / `gainmap.ts` precedent), not by every shell.
@@ -92,7 +91,7 @@ const EXR_VERSION = 2;
 
 /**
  * Version-field flag bit 10: any attribute name, attribute type name or channel
- * name longer than 31 bytes (File Layout, "Version Field" — the long-name flag).
+ * name longer than 31 bytes (File Layout, "Version Field" - the long-name flag).
  * Our own names are all short; the bit exists for caller-supplied attributes.
  */
 const FLAG_LONG_NAMES = 0x400;
@@ -123,7 +122,7 @@ export type ExrCompression = keyof typeof COMPRESSION_CODE;
 export type ExrPixelType = keyof typeof PIXEL_TYPE_CODE;
 
 export interface PackExrOptions {
-  /** Sample type. Default `'half'` — IEEE 754 binary16, what EXR exists for. */
+  /** Sample type. Default `'half'` - IEEE 754 binary16, what EXR exists for. */
   pixelType?: ExrPixelType;
   /** Default `'zip'` (16 scan lines per deflate block). */
   compression?: ExrCompression;
@@ -131,7 +130,7 @@ export interface PackExrOptions {
   channels?: 'rgba' | 'rgb';
   /**
    * Alpha association. OpenEXR has no metadata flag for this and the ecosystem
-   * convention is ASSOCIATED (premultiplied) alpha — "RGB values are
+   * convention is ASSOCIATED (premultiplied) alpha - "RGB values are
    * premultiplied by alpha" (Technical Introduction, "Premultiplied vs.
    * Un-Premultiplied Colour Channels"); Nuke and Fusion both assume it. A
    * `DeepFrame` is un-premultiplied by contract, so the default multiplies at
@@ -142,7 +141,7 @@ export interface PackExrOptions {
   alpha?: 'premultiplied' | 'straight';
   /**
    * `'auto'` (default) writes a `chromaticities` attribute when the frame's
-   * space is not sRGB/Rec.709 primaries — where the attribute's absence already
+   * space is not sRGB/Rec.709 primaries - where the attribute's absence already
    * means exactly that. `'always'` writes it unconditionally; `'never'` omits
    * it; an explicit 8-tuple `[rx, ry, gx, gy, bx, by, wx, wy]` overrides the
    * space entirely (for a caller who knows better, e.g. an ACES working space).
@@ -152,7 +151,7 @@ export interface PackExrOptions {
   pixelAspectRatio?: number;
   /**
    * Extra `string`-typed header attributes (e.g. `comments`, `owner`,
-   * `software`) — written after the required ones, sorted by name so output
+   * `software`) - written after the required ones, sorted by name so output
    * stays byte-deterministic. Reserved names are refused.
    */
   attributes?: Readonly<Record<string, string>>;
@@ -168,9 +167,9 @@ export interface PackExrOptions {
  * (File Layout, "chromaticities": red.x red.y green.x green.y blue.x blue.y
  * white.x white.y, eight floats).
  *
- * Sources: Rec.709 primaries with D65 — ITU-R BT.709-6 Table 1 (also the EXR
- * default, Technical Introduction "RGB Colour"). Display-P3 — SMPTE EG 432-1
- * primaries with the D65 white CSS Color 4 §10.4 uses. Rec.2020 — ITU-R
+ * Sources: Rec.709 primaries with D65 - ITU-R BT.709-6 Table 1 (also the EXR
+ * default, Technical Introduction "RGB Colour"). Display-P3 - SMPTE EG 432-1
+ * primaries with the D65 white CSS Color 4 §10.4 uses. Rec.2020 - ITU-R
  * BT.2020-2 Table 3. The same primaries the matrices in `pixels.ts` are built
  * from, so the tag and the numbers cannot disagree.
  */
@@ -232,13 +231,13 @@ const utf8 = (s: string): Uint8Array => {
  * before deflate. Reproduces `Imf::Zip::compress`, src/lib/OpenEXR/ImfZip.cpp
  * (OpenEXR 3.x, BSD-3-Clause), in its original two-step order:
  *
- *  1. **Reorder** — even-indexed source bytes fill `tmp[0 .. ceil(n/2))`,
+ *  1. **Reorder** - even-indexed source bytes fill `tmp[0 .. ceil(n/2))`,
  *     odd-indexed bytes fill `tmp[ceil(n/2) .. n)`. For HALF samples this puts
  *     every low byte together and every high byte together, so the high halves
  *     (which barely change between neighbouring pixels) become a long run of
  *     near-identical bytes. This is why it comes FIRST: it is what makes the
  *     delta in step 2 small.
- *  2. **Delta-encode** — over the whole reordered buffer, `out[i] = tmp[i] -
+ *  2. **Delta-encode** - over the whole reordered buffer, `out[i] = tmp[i] -
  *     tmp[i-1] + 384` truncated to 8 bits (the `+ (128 + 256)` in the reference
  *     is a bias that keeps the C `int` arithmetic away from negative values
  *     before the narrowing store; only the low byte survives either way).
@@ -263,7 +262,7 @@ function zipPreprocess(raw: Uint8Array): Uint8Array {
   }
 
   // 2. predictor (ImfZip.cpp: p holds the PREVIOUS original byte, not the
-  //    previous delta — so this is a first-order delta, not a running sum)
+  //    previous delta - so this is a first-order delta, not a running sum)
   let p = tmp[0]!;
   for (let i = 1; i < n; i++) {
     const cur = tmp[i]!;
@@ -326,7 +325,7 @@ export function packExr(frame: DeepFrame, opts: PackExrOptions = {}): Uint8Array
   const par = opts.pixelAspectRatio ?? 1;
   if (!Number.isFinite(par) || par <= 0) throw new Error(`packExr: pixelAspectRatio must be > 0, got ${par}`);
 
-  // Channel list, ALPHABETICAL — the format requires it (File Layout, "chlist":
+  // Channel list, ALPHABETICAL - the format requires it (File Layout, "chlist":
   // "channels are stored in the file in alphabetical order"), so RGBA is written
   // A, B, G, R. `srcIndex` maps each back to its RGBA offset in the frame.
   const channels = withAlpha
@@ -378,7 +377,7 @@ export function packExr(frame: DeepFrame, opts: PackExrOptions = {}): Uint8Array
   }
 
   attr(h, 'compression', 'compression', (s) => s.u8(COMPRESSION_CODE[compression]));
-  // box2i: xMin, yMin, xMax, yMax — INCLUSIVE, so xMax = width - 1.
+  // box2i: xMin, yMin, xMax, yMax - INCLUSIVE, so xMax = width - 1.
   const box = (s: Sink): void => { s.i32(0); s.i32(0); s.i32(width - 1); s.i32(height - 1); };
   attr(h, 'dataWindow', 'box2i', box);
   attr(h, 'displayWindow', 'box2i', box);
@@ -419,7 +418,7 @@ export function packExr(frame: DeepFrame, opts: PackExrOptions = {}): Uint8Array
         }
         if (pixelType === 'half') {
           // packF16 owns every float16 decision (RNE, subnormals, overflow to
-          // Inf) — pixels.ts is the single implementation, never a second one
+          // Inf) - pixels.ts is the single implementation, never a second one
           // here. Bit patterns are then written little-endian explicitly rather
           // than reusing the typed array's memory, so the file does not depend
           // on the host's byte order.
@@ -448,7 +447,7 @@ export function packExr(frame: DeepFrame, opts: PackExrOptions = {}): Uint8Array
   // ── offset table + assembly ───────────────────────────────────────────────
   // The chunk offset table follows the header immediately: one unsigned 64-bit
   // little-endian file offset per chunk, in chunk order (File Layout, "Chunk
-  // offset table"). Each entry points at the chunk's first byte — i.e. at its
+  // offset table"). Each entry points at the chunk's first byte - i.e. at its
   // y coordinate field, not at the pixel data.
   const tableBytes = numBlocks * 8;
   const headerBytes = h.take();

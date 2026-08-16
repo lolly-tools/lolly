@@ -4,8 +4,8 @@
  * export()): a placed asset input whose resolved ref carries a preserved
  * Content Credential is handed to host.export.render as opts.ingredients, so
  * the shell embeds the source's provenance chain into the export. Covers BOTH
- * user uploads (host captured the store at ingest — v1.26) and library/catalog
- * assets (the host may extract the store from the asset's own bytes — v1.31).
+ * user uploads (host captured the store at ingest - v1.26) and library/catalog
+ * assets (the host may extract the store from the asset's own bytes - v1.31).
  * Any other source is never consulted.
  *
  * Run with: node --test tests/runtime-ingredients.test.ts
@@ -17,7 +17,7 @@ import assert from 'node:assert/strict';
 import { createRuntime } from '../engine/src/runtime.ts';
 import { embedC2pa, extractC2paStore } from '../engine/src/index.ts';
 
-// Unique tool ids — compiled hook factories are memoised by id@version.
+// Unique tool ids - compiled hook factories are memoised by id@version.
 let toolSeq = 0;
 function assetTool(): any {
   return {
@@ -30,7 +30,7 @@ function assetTool(): any {
   };
 }
 
-// A real, parseable manifest store: sign a tiny SVG, pull the store back out —
+// A real, parseable manifest store: sign a tiny SVG, pull the store back out - 
 // exactly what a shell persists at upload ingest / reads from a library asset.
 async function credentialStore(): Promise<Uint8Array> {
   const svg = new TextEncoder().encode('<svg xmlns="http://www.w3.org/2000/svg" width="8" height="8"><rect width="8" height="8"/></svg>');

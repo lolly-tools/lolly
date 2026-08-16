@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
- * PDF text reconstruction — positioned runs back into readable prose.
+ * PDF text reconstruction - positioned runs back into readable prose.
  * Run directly:  node --test tests/pdf-text.test.ts
  *
  * The fixtures build PdfNodes the way pdf-map emits them, which means honouring
@@ -8,7 +8,7 @@
  *
  *   • `y` is the box TOP, already shifted up by `size * 0.8` from the baseline,
  *     and the page is top-left y-down (pdf-map bakes the PDF's y-up flip).
- *   • `w` is ESTIMATED as `chars × size × 0.55` — never measured. Fixtures use
+ *   • `w` is ESTIMATED as `chars × size × 0.55` - never measured. Fixtures use
  *     the same estimate so column geometry behaves as it does in production.
  *
  * `run()` below applies both, so a fixture reads as "this text sits at this
@@ -127,7 +127,7 @@ test('larger-than-body blocks become levelled headings', () => {
   ]);
   const heads = r.blocks.filter((b) => b.kind === 'heading');
   assert.equal(heads.length, 2);
-  assert.equal(heads[0]!.level, 1);       // 24pt — the largest
+  assert.equal(heads[0]!.level, 1);       // 24pt - the largest
   assert.equal(heads[1]!.level, 2);       // 14pt
   assert.match(r.markdown, /^# Document Title/m);
   assert.match(r.markdown, /^## Section/m);
@@ -223,7 +223,7 @@ test('a single column is never split by an indented or short line', () => {
 
 test('a narrow-celled table is not mistaken for columns', () => {
   // Two stacks of SHORT cells with a wide gap. The gutter is there, but prose
-  // fills its measure and table cells do not — the fill guard must refuse.
+  // fills its measure and table cells do not - the fill guard must refuse.
   const nodes: PdfNode[] = [];
   for (let i = 0; i < 6; i++) {
     nodes.push(run('12', 20, 100 + i * 14));
@@ -243,7 +243,7 @@ test('too few lines a side is not enough evidence for a column split', () => {
 
 // ─── tagged reading order ─────────────────────────────────────────────────────
 // A tagged PDF STATES its reading order. Where the structure tree and geometry
-// disagree, the document wins — geometry is only ever an inference.
+// disagree, the document wins - geometry is only ever an inference.
 
 /** A run carrying a marked-content id, as a tagged page emits. */
 function tagged(text: string, x: number, baseline: number, mcid: number, o: RunOpts = {}): PdfNode {
@@ -378,7 +378,7 @@ test('joinPageText separates pages and names scanned ones', () => {
   const md = joinPageText([a, scan, c]);
   assert.match(md, /Page one/);
   assert.match(md, /Page three/);
-  // The gap is stated, never silent — a reader must not mistake it for absence.
+  // The gap is stated, never silent - a reader must not mistake it for absence.
   assert.match(md, /scanned image/i);
   assert.match(md, /---/);
 

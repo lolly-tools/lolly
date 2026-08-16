@@ -1,13 +1,13 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
- * Canvas paint baseline (plans/98 §9) — the BROWSER half of the harness. Where
+ * Canvas paint baseline (plans/98 §9) - the BROWSER half of the harness. Where
  * bench-canvas.ts measures the DOM-free hot paths in node, this drives a real headless
  * Chrome to measure the thing node cannot: actual DOM paint / layout cost of the two
  * paint strategies over N boxes.
  *
  *   full   the CURRENT paint (views/tool.ts): `contentEl.innerHTML = <all N boxes>` then
- *          a forced reflow — re-parse + re-create + re-lay-out every box, every edit.
- *   patch  the PHASE-A paint (plans/98 §5): mutate only the damaged box's node in place —
+ *          a forced reflow - re-parse + re-create + re-lay-out every box, every edit.
+ *   patch  the PHASE-A paint (plans/98 §5): mutate only the damaged box's node in place - 
  *          a geometry move is a `transform` write (no layout invalidation).
  *
  * The delta is what the damage stream buys: an edit that touches one box should cost O(1),

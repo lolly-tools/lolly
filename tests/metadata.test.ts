@@ -23,7 +23,7 @@ test('buildExportMeta: opted-in profile → author + contact, no copyright', asy
   assert.equal(m.author, 'Ada Lovelace');
   assert.equal(m.contact, 'ada@x.com · +1 555');
   assert.match(m.description, /Made with https:\/\/lolly\.tools.*QR Code.*by Ada Lovelace/);
-  // Provenance only — never assert ownership/licence.
+  // Provenance only - never assert ownership/licence.
   assert.equal('copyright' in m, false);
 });
 

@@ -2,14 +2,14 @@
 // Pure, DOM-free CSS box-model + border-radius geometry.
 //
 // Single source of truth for the export walkers (the SVG walker and the PDF
-// walker in shells/web/src/bridge/export.js) so the two vector renderers — and
-// any future shell — compute identical geometry and can never drift. The shell
+// walker in shells/web/src/bridge/export.js), so the two vector renderers, and
+// any future shell, compute identical geometry and can never drift. The shell
 // reads getComputedStyle and passes the raw CSS strings/numbers in; NOTHING here
 // touches the DOM (engine stays platform-agnostic, like units.js / color.js).
 //
 // The reason this exists: browsers render border-radius with the CSS Backgrounds
-// & Borders §5.5 "corner overlap" rule — a single scale factor shrinks every
-// corner together so a huge `border-radius: 999px` becomes a stadium/pill. SVG
+// & Borders §5.5 "corner overlap" rule. A single scale factor shrinks every
+// corner together, so a huge `border-radius: 999px` becomes a stadium/pill. SVG
 // <rect> and jsPDF roundedRect instead clamp each axis independently (→ ellipse),
 // so the geometry must be resolved here before it reaches those primitives.
 
@@ -26,8 +26,8 @@ const IDENTITY_2D: Mat2D = { a: 1, b: 0, c: 0, d: 1, e: 0, f: 0 };
 
 /**
  * Parse a computed CSS `transform` matrix into a 2-D affine, DOM-free. Handles the
- * two forms getComputedStyle ever returns — `matrix(a,b,c,d,e,f)` and
- * `matrix3d(...)` (16 column-major values) — flattening the 3-D form to its 2-D
+ * two forms getComputedStyle ever returns: `matrix(a,b,c,d,e,f)` and
+ * `matrix3d(...)` (16 column-major values). It flattens the 3-D form to its 2-D
  * affine part. Returns **null** for `none`, an unparseable value, or a 3-D matrix
  * that carries real perspective / z-depth (those can't be expressed as a 2-D affine,
  * so the caller must fall back to a raster/AABB path rather than silently distort).
@@ -60,7 +60,7 @@ function matrix3dParts(transform: string): number[] | null {
 }
 
 /**
- * Does this 4x4 carry a z or PERSPECTIVE component — m13/m14/m23/m24/m31..m34/m43, or a
+ * Does this 4x4 carry a z or PERSPECTIVE component: m13/m14/m23/m24/m31..m34/m43, or a
  * non-identity m33/m44?
  *
  * {@link parseCssMatrix}'s refusal, and deliberately broader than
@@ -75,27 +75,27 @@ function has3dComponent(p: readonly number[]): boolean {
 }
 
 /**
- * Does this computed `transform` PERSPECTIVE-DIVIDE — i.e. is the picture it paints a
+ * Does this computed `transform` PERSPECTIVE-DIVIDE? That is: is the picture it paints a
  * homography that no 2-D affine can reproduce, so a caller must raster it rather than
  * emit geometry?
  *
  * Why the predicate exists: `parseCssMatrix` returning null is AMBIGUOUS, and both
- * export walkers were reading it as "nothing to do". `none` really is nothing to do and
- * the AABB path is correct for it; a `matrix3d` carrying a perspective row also comes
- * back null, and there the AABB path is a WRONG PICTURE — the trapezoid the user is
+ * export walkers were reading it as "nothing to do". `none` really is nothing to do, and
+ * the AABB path is correct for it. A `matrix3d` carrying a perspective row also comes
+ * back null, but there the AABB path is a WRONG PICTURE: the trapezoid the user is
  * looking at gets emitted as an axis-aligned rectangle stretched to fill its projected
  * bounding box, silently (plans/104 §12 Q2, measured: a tilted card exported to SVG as a
- * `<rect>` with no notice). This tells those two apart.
+ * `<rect>` with no notice). This function tells those two cases apart.
  *
- * ⚑ AND IT IS NARROWER THAN "REFUSED BY parseCssMatrix", from the algebra rather than
- * from caution. A flat element's own points are all at z = 0, so under
+ * NOTE: it is also narrower than "refused by parseCssMatrix", from the algebra rather
+ * than from caution. A flat element's own points are all at z = 0, so under
  * `matrix3d(m11…m44)` (column-major) they land at
  *
  *     x' = m11·x + m21·y + m41      w' = m14·x + m24·y + m44
  *     y' = m12·x + m22·y + m42
  *
- * and the screen point is `(x'/w', y'/w')`. Every z-coupling term — m13, m23, m31…m34,
- * m43 — drops out. So the painted result of a flat element is a 2-D AFFINE unless the
+ * and the screen point is `(x'/w', y'/w')`. Every z-coupling term (m13, m23, m31…m34,
+ * m43) drops out. So the painted result of a flat element is a 2-D AFFINE unless the
  * perspective row `(m14, m24, m44)` is non-trivial, and only that case needs a raster.
  * A `translateZ(50px)` with no perspective paints exactly what its 2-D part paints; a
  * GPU-promotion `translate3d(0,0,0)` likewise. Gating on "any 3-D component" would
@@ -103,10 +103,10 @@ function has3dComponent(p: readonly number[]): boolean {
  * a real fidelity loss in the name of fixing one that was not there.
  *
  * KNOWN GAP, separate and pre-existing: an ORTHOGRAPHIC 3-D rotation (`rotateX(45deg)`
- * with no perspective anywhere) paints its 2-D affine part — which `parseCssMatrix`
- * already computes and then throws away, so the walkers still emit it on the AABB path
- * unsquashed. That is a `parseCssMatrix` contract question with many callers, not this
- * predicate's, and it is not what §12 Q2 is about.
+ * with no perspective anywhere) paints its 2-D affine part. `parseCssMatrix`
+ * already computes that part and then throws it away, so the walkers still emit it on
+ * the AABB path unsquashed. That is a `parseCssMatrix` contract question with many
+ * callers, not this predicate's, and it is not what §12 Q2 is about.
  *
  * DOM-free like everything here: the caller passes `getComputedStyle(el).transform`.
  */
@@ -115,8 +115,8 @@ export function isNonAffineTransform(transform: string | null | undefined): bool
   const t = transform.trim();
   if (!t || t === 'none') return false;
   // A computed transform is only ever `none`, `matrix(…)` or `matrix3d(…)`. Anything
-  // else here — a hand-written `perspective(800px) rotateX(40deg)`, a malformed
-  // `matrix3d(1,2,3)` — is a string this module does not read, and "unparseable" is not
+  // else here, such as a hand-written `perspective(800px) rotateX(40deg)` or a malformed
+  // `matrix3d(1,2,3)`, is a string this module does not read. "Unparseable" is not
   // the same claim as "perspective": say no rather than send a caller down the raster
   // hatch on a value nobody measured.
   const p = matrix3dParts(t);
@@ -137,7 +137,7 @@ export function multiplyMat(P: Mat2D, C: Mat2D): Mat2D {
   };
 }
 
-/** Re-anchor a matrix about a pivot: `T(px,py)·M·T(-px,-py)` — the transform `m`
+/** Re-anchor a matrix about a pivot: `T(px,py)·M·T(-px,-py)`. This is the transform `m`
  *  applied around (px,py) instead of the origin (CSS `transform-origin`). */
 export function matAboutPivot(m: Mat2D, px: number, py: number): Mat2D {
   return {
@@ -147,7 +147,7 @@ export function matAboutPivot(m: Mat2D, px: number, py: number): Mat2D {
   };
 }
 
-/** True when the AABB-based walkers fully capture this matrix on their own — i.e. a
+/** True when the AABB-based walkers fully capture this matrix on their own. That is: a
  *  pure POSITIVE-scale + translate (no rotation, no skew, no flip). A negative scale
  *  (`scaleX(-1)` mirror) has zero off-diagonals but is NOT AABB-capturable (the box is
  *  unchanged, the mirror is lost), so it returns false and takes the vector matrix
@@ -186,10 +186,10 @@ export interface BoxShadow {
   y: number;
   blur: number;
   spread: number;
-  /** Raw CSS colour token for the shell to resolve — any CSS Color 4 form, not
-   *  just rgb/rgba: a shadow authored in `oklch()` reaches us verbatim. */
+  /** Raw CSS colour token for the shell to resolve. This can be any CSS Color 4 form,
+   *  not just rgb/rgba: a shadow authored in `oklch()` reaches us verbatim. */
   color: string;
-  /** `inset` — drawn INSIDE the border box, as the region between the box and an
+  /** `inset`: drawn INSIDE the border box, as the region between the box and an
    *  offset/shrunken copy of it, rather than behind it. Callers that only draw outer
    *  shadows must filter on this; it used to be dropped at parse time, which meant
    *  an inset shadow silently vanished from every vector export. */
@@ -197,7 +197,7 @@ export interface BoxShadow {
 }
 
 /** One shadow parsed from a computed `text-shadow`. Same shape as a box shadow
- *  without spread or inset — CSS gives text-shadow neither. */
+ *  without spread or inset; CSS gives text-shadow neither. */
 export interface TextShadow {
   x: number;
   y: number;
@@ -252,17 +252,17 @@ export function cornerRadii(corners: CornerInputs, w: number, h: number): Corner
   };
   const f = Math.min(
     1,
-    ratio(w, tl[0], tr[0]),   // top edge    — horizontal radii
-    ratio(w, bl[0], br[0]),   // bottom edge  — horizontal radii
-    ratio(h, tl[1], bl[1]),   // left edge    — vertical radii
-    ratio(h, tr[1], br[1]),   // right edge   — vertical radii
+    ratio(w, tl[0], tr[0]),   // top edge    - horizontal radii
+    ratio(w, bl[0], br[0]),   // bottom edge  - horizontal radii
+    ratio(h, tl[1], bl[1]),   // left edge    - vertical radii
+    ratio(h, tr[1], br[1]),   // right edge   - vertical radii
   );
   const scale = (p: CornerPair): CornerPair => [p[0] * f, p[1] * f];
   return { topLeft: scale(tl), topRight: scale(tr), bottomRight: scale(br), bottomLeft: scale(bl) };
 }
 
 // If all four (already-clamped) corners are equal, return the single [rx, ry]
-// pair — the fast path callers use to emit <rect rx ry> / jsPDF.roundedRect.
+// pair. This is the fast path callers use to emit <rect rx ry> / jsPDF.roundedRect.
 // Returns [0, 0] when there is no rounding, and null when corners differ (the
 // caller must emit a four-corner path via roundedRectPath instead).
 export function uniformRadius(radii: CornerRadii): CornerPair | null {
@@ -286,8 +286,8 @@ export function insetCorners(radii: CornerRadii, inset: number): CornerRadii {
   };
 }
 
-// Split a comma-separated CSS list at top level (commas inside parens — e.g.
-// rgba(0,0,0,.5) — are not separators).
+// Split a comma-separated CSS list at top level (commas inside parens, e.g.
+// rgba(0,0,0,.5), are not separators).
 function splitTopLevel(str: string): string[] {
   const out: string[] = [];
   let depth = 0, cur = '';
@@ -337,8 +337,8 @@ export function parseBoxShadow(value: string | null | undefined): BoxShadow[] {
  *
  * Same grammar as box-shadow minus spread and inset. Chromium's computed form puts
  * the colour first ("rgb(0, 0, 0) 0px 2px 4px"), but the authored order is
- * offset-first, so both are accepted — a value read off a stylesheet rather than a
- * computed style is otherwise silently dropped.
+ * offset-first, so both are accepted. Otherwise a value read off a stylesheet rather
+ * than a computed style would be silently dropped.
  *
  * Order matches CSS paint order: first listed is topmost.
  */
@@ -365,11 +365,11 @@ export function parseTextShadow(value: string | null | undefined): TextShadow[] 
 export interface ShadowBand {
   /** How far the band's shape sits OUTSIDE the casting shape's edge, in px.
    *  Negative means inside. Add it to the box on every side, and add it to each
-   *  corner radius — which is also why a square corner comes out correctly rounded:
+   *  corner radius. This is also why a square corner comes out correctly rounded:
    *  a blur rounds corners, and outsetting a 0 radius by `outset` gives exactly that. */
   outset: number;
   /** Alpha to paint THIS band with, assuming the bands are painted outermost-first
-   *  and composited normally over each other. Not the coverage — the increment that
+   *  and composited normally over each other. Not the coverage: the increment that
    *  makes the accumulated coverage land on the Gaussian. */
   alpha: number;
 }
@@ -391,7 +391,7 @@ function normalCdf(x: number): number {
  * one-dimensional convolution, and the resulting coverage at signed distance `t`
  * outside the edge is exactly `Φ(-t/σ)`. So painting the shape at a series of outsets,
  * each at the alpha increment that makes the ACCUMULATED coverage match that curve,
- * reproduces the blur in pure vector — editable, resolution-independent, and with no
+ * reproduces the blur in pure vector: editable, resolution-independent, and with no
  * embedded bitmap.
  *
  * Where it is approximate: corners. The 1-D profile is exact along a straight edge and
@@ -399,7 +399,7 @@ function normalCdf(x: number): number {
  * slightly differently than an outset one. In exchange the output stays vector, which
  * is the trade this codebase makes everywhere else.
  *
- * `blur` is the CSS blur radius (σ = blur/2, the box-shadow/text-shadow convention —
+ * `blur` is the CSS blur radius (σ = blur/2, the box-shadow/text-shadow convention,
  * NOT drop-shadow's, where the value is σ itself). `alpha` is the shadow colour's own
  * alpha. Returns outermost-first; paint in order.
  */
@@ -410,7 +410,7 @@ export function gaussianShadowBands(blur: number, alpha: number, bands?: number)
   // and MORE bands are worse, not better. Every band is a separate antialiased fill,
   // so each seam conflates a little extra coverage; doubling the count to 12σ tripled
   // the error against the browser (0.13% → 0.31% mean). Sizing by alpha step is the
-  // other tempting mistake — a 2px blur needs a 24/255 step to cover its range in 8
+  // other tempting mistake. A 2px blur needs a 24/255 step to cover its range in 8
   // bands, which sounds terrible and is invisible, because those bands are a third of
   // a pixel wide and the rasteriser smooths them itself.
   const n = Math.max(8, Math.min(bands ?? 160, Math.round(4 * sigma)));
@@ -443,8 +443,8 @@ export interface ShadowRing {
  * The same Gaussian, as non-overlapping rings at absolute alpha.
  *
  * Needed because not every consumer composites. EMF and EPS have no alpha at all, so
- * `svg-ir` flattens each shape against the page background INDEPENDENTLY — under
- * which overlapping increments (gaussianShadowBands) come out far too light, since
+ * `svg-ir` flattens each shape against the page background INDEPENDENTLY. Under
+ * that scheme, overlapping increments (gaussianShadowBands) come out far too light, since
  * the accumulation never happens. Rings each cover their annulus exactly once, so
  * flattening them one at a time is correct, and they composite correctly too.
  *

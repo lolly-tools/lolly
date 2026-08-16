@@ -1,19 +1,19 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
- * Photoshop PSD/PSB reader — layered import for the layer-stack tool, Layout
+ * Photoshop PSD/PSB reader: layered import for the layer-stack tool, Layout
  * Studio and the picker's flatten path. Byte→structure only (engine contract):
  * DOM-free, bounded on every declared length, and defensive against attacker
  * bytes throughout (docs/threat-model.md: a layered file is untrusted input).
  *
  * ─── Coverage (the honest list) ──────────────────────────────────────────────
- * Versions:    1 (PSD) and 2 (PSB — 8-byte section/channel lengths, 4-byte RLE
+ * Versions:    1 (PSD) and 2 (PSB: 8-byte section/channel lengths, 4-byte RLE
  *              row-table entries, 300k dimension ceiling). The real device
  *              guard is `maxDecodedBytes`, not the container version.
- * Color modes: RGB (3), Grayscale (1), CMYK (4 — channels un-inverted then
+ * Color modes: RGB (3), Grayscale (1), CMYK (4: channels un-inverted then
  *              converted through the embedded ICC profile via icc.ts when one
  *              is present and usable, else a naive 1−ink fold with a warning).
  *              Bitmap/Indexed/Lab/Duotone/Multichannel are REFUSED with a
- *              typed error — a wrong-looking import is worse than a named no.
+ *              typed error. A wrong-looking import is worse than a named no.
  * Depth:       8 and 16 bits/channel (16 folded to 8 at decode, recorded in
  *              `doc.depth` so shells can label the loss). 1 and 32 refused
  *              (32-bit data actually lives in `Lr32` tagged blocks we do not
@@ -30,7 +30,7 @@
  *              `applyLayerMasks` (default true). Adjustment layers, effects,
  *              text, smart objects: their PIXELS (if any) decode; their
  *              semantics do not exist here.
- * Composite:   the merged image-data section decodes into `doc.composite` — an
+ * Composite:   the merged image-data section decodes into `doc.composite`: an
  *              instant flattened preview and the fallback when every layer was
  *              skipped. Transparency honoured when the layer count was
  *              negative (the spec's "first alpha is merged transparency").
@@ -42,7 +42,7 @@
  * skip that piece, never the document. All loops advance a cursor bounded by
  * the real buffer, never by declared totals; every allocation is preceded by a
  * budget check against `maxDecodedBytes` (default 256 MiB) so a lying header
- * cannot OOM the host — shells on big devices may raise it.
+ * cannot OOM the host; shells on big devices may raise it.
  */
 
 import { parseIccProfile } from './icc.ts';
@@ -192,7 +192,7 @@ export function readPsd(bytes: Uint8Array, opts: PsdReadOptions = {}): LayeredRa
 
   const sectionLen = (): number => (psb ? c.u64() : c.u32());
 
-  // Color mode data — length-skipped (indexed/duotone payloads, refused above).
+  // Color mode data. Length-skipped (indexed/duotone payloads, refused above).
   if (!c.need(4)) throw new PsdUnsupportedError('not-psd', 'truncated at color mode data');
   const cmLen = c.u32();
   c.p = Math.min(c.p + cmLen, bytes.length);
@@ -370,7 +370,7 @@ function readLayerRecord(c: Cur, end: number, psb: boolean, warn: (c: string, d?
     }
     c.p = maskEnd;
   }
-  // Blending ranges — skipped.
+  // Blending ranges: skipped.
   if (c.p + 4 <= extraEnd) {
     const brLen = c.u32();
     c.p = Math.min(c.p + brLen, extraEnd);
@@ -726,7 +726,7 @@ function readComposite(
   let p = c.p;
   const end = c.b.length;
   // NOTE: the composite RLE row table covers headerChannels*height rows even
-  // when we only assemble the first nCh planes — walk it all to stay in sync.
+  // when we only assemble the first nCh planes. Walk it all to stay in sync.
   if (comp === 0) {
     for (let ch = 0; ch < nCh; ch++) {
       const at = p + ch * height * rowBytes;

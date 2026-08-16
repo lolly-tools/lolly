@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
- * ingest-epub — turn a brand's `.epub` body copy into managed catalog TEXT assets so
+ * ingest-epub - turn a brand's `.epub` body copy into managed catalog TEXT assets so
  * boilerplate lives centrally and drops into tools as text/longtext input.
  *
  *   npm run ingest:boilerplate -- <file.epub> --brand <name> --ns <ns> [--label "Title"]
@@ -11,7 +11,7 @@
  * so re-ingest is idempotent). Every tool in the profile can then reach them via
  * `host.assets.query({ tags: ['boilerplate'] })`.
  *
- * `readEpub` is deliberately lossy (headings/paragraphs/lists/emphasis only — no
+ * `readEpub` is deliberately lossy (headings/paragraphs/lists/emphasis only - no
  * styling, columns, or imagery), which is why ingestion happens at BUILD time: the
  * extracted Markdown is reviewable output, not a live round-trip.
  */

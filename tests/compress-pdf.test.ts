@@ -1,12 +1,12 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
- * Compress PDF — the on-device PDF compressor utility, end-to-end.
+ * Compress PDF - the on-device PDF compressor utility, end-to-end.
  *
  * Drives the REAL on-disk tools/compress-pdf/{tool.json,hooks.js,template.html}
  * through the engine runtime against a pdf-capable host built from the web bridge's
  * real pdf.js (host.pdf.compress). node has no canvas, so the bridge does its
- * structural pass only (object-stream re-save) — image recompression is exercised
- * in the browser, not here — but the contract (shape, never-larger guarantee, page
+ * structural pass only (object-stream re-save) - image recompression is exercised
+ * in the browser, not here - but the contract (shape, never-larger guarantee, page
  * preservation, settings flow, graceful degradation) is all checkable in node.
  */
 import { test } from 'node:test';
@@ -47,7 +47,7 @@ async function tinyPdf(): Promise<Uint8Array> {
   return d.save();
 }
 
-// A doc saved WITHOUT object streams + many pages — so the structural re-save
+// A doc saved WITHOUT object streams + many pages - so the structural re-save
 // (object streams, on by default) reliably shrinks it even with no canvas.
 async function compressiblePdf(pages = 40): Promise<Uint8Array> {
   const d = await PDFDocument.create();
@@ -64,7 +64,7 @@ test('compress-pdf: manifest validates and is wired as a no-sidebar exportFile u
   const { manifest } = compressTool();
   const { valid, errors } = validateManifest(manifest);
   assert.equal(valid, true, JSON.stringify(errors));
-  assert.equal(manifest.render.layout, 'canvas');     // no sidebar — file is the canvas
+  assert.equal(manifest.render.layout, 'canvas');     // no sidebar - file is the canvas
   assert.equal(manifest.render.export, false);        // no DOM-render export
   assert.equal(manifest.privacy, 'on-device');        // shows the no-upload badge
   assert.notEqual(manifest.status, 'experimental');   // never watermark a user's file
@@ -134,7 +134,7 @@ test('compress-pdf: a non-PDF file is reported as unsupported, and exportFile re
 
 test('compress-pdf: degrades gracefully when the host has no compress capability', async () => {
   const pdf = await tinyPdf();
-  // host.pdf with analyze/strip but NO compress — an older shell.
+  // host.pdf with analyze/strip but NO compress - an older shell.
   const legacy: any = { ...BARE_HOST, pdf: { analyze: async () => ({ findings: [] }), strip: async (b: Uint8Array) => ({ bytes: b }) } };
   const rt = await createRuntime(compressTool(), legacy, { source: pdfFile(pdf) });
   assert.match(rt.getHydrated(), /isn't available/i);

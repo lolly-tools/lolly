@@ -1,11 +1,11 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
- * sign-credentialed-assets — mint the "Made with Lolly" Content Credentials
+ * sign-credentialed-assets - mint the "Made with Lolly" Content Credentials
  * demo set for the catalog.
  *
  * Catalog assets normally carry only an SRI checksum; Content Credentials are
  * minted at export time. But verifying a credential is one of the first things
- * a new user wants to try — so this script bakes a real, signed C2PA manifest
+ * a new user wants to try - so this script bakes a real, signed C2PA manifest
  * into a small curated set of *styled* assets (the styling is a genuine Lolly
  * transform, which is exactly what "Made with Lolly" asserts), and registers
  * them as `suse/credentials/*` catalog entries. A user downloads one, drops it
@@ -16,16 +16,16 @@
  *   - illustrations→ applyIconTheme()  (multi-colour → monochromeRecolor re-hue)
  *   - photos       → wrapRasterWithTreatment()  (duotone / greyscale wash → SVG)
  * then embedC2pa(bytes, 'svg', …) signs the result with the engine's on-device
- * self-signed key (integrity + the maker's claim — no CA identity, by design).
+ * self-signed key (integrity + the maker's claim - no CA identity, by design).
  * A ~10-year cert window keeps the shipped demo from ever reading "expired".
  *
  * Two identity tiers:
- *   - default (`npm run sign:credentials`) — the engine's on-device self-signed
+ *   - default (`npm run sign:credentials`) - the engine's on-device self-signed
  *     key. Verify shows "Made with Lolly" (integrity + the maker's claim), no CA.
- *   - `--ca` (`npm run sign:credentials:ca`) — mints ONE long-lived leaf from the
+ *   - `--ca` (`npm run sign:credentials:ca`) - mints ONE long-lived leaf from the
  *     Lolly CA root (CA_ROOT_KEY_PEM/CA_ROOT_CERT_PEM in env, e.g. via
  *     `--env-file=services/ca/.env`) for the `credentials@lolly.tools` identity,
- *     and signs the whole set with it. Verify then upgrades to "Made with Lolly —
+ *     and signs the whole set with it. Verify then upgrades to "Made with Lolly - 
  *     identity verified" against the root pinned in shells/web/src/ca-root.ts.
  *     HARD GUARD: refuses to sign unless the env root == that pinned root, so the
  *     assets can never ship as un-verifiable on lolly.tools. The leaf key is
@@ -35,7 +35,7 @@
  * the signing key is fresh each run, so re-running rewrites the signatures.
  * Commit the generated SVGs together with the index. After running this, run
  * `npm run build:catalog` (fills the real checksum + size) then
- * `npm run validate:catalog`. Re-sign CA assets with the `:ca` variant — plain
+ * `npm run validate:catalog`. Re-sign CA assets with the `:ca` variant - plain
  * `sign:credentials` would downgrade them to on-device (no identity).
  *
  * Usage:  node scripts/sign-credentialed-assets.ts            # on-device
@@ -56,10 +56,10 @@ import { ENGINE_VERSION } from '../engine/src/index.ts';
 const USE_CA = process.argv.includes('--ca');
 // --catalog also DELIVERS every other stampable asset: signs the real catalog
 // file in place with a c2pa.published (not created) claim + its true author, so
-// every official download verifies as "Delivered by Lolly" — never unknown.
+// every official download verifies as "Delivered by Lolly" - never unknown.
 const USE_CATALOG = process.argv.includes('--catalog');
 const STAMPABLE = new Set(['png', 'apng', 'jpg', 'jpeg', 'gif', 'svg', 'tiff', 'webp']);
-// The catalog-signing identity (a lolly.tools address the CA vouches for — the
+// The catalog-signing identity (a lolly.tools address the CA vouches for - the
 // same one .env.example ships as EMAIL_FROM). Shows in Verify as the signer.
 const CA_IDENTITY = { email: 'credentials@lolly.tools', commonName: 'Lolly Content Credentials', organization: 'Lolly' };
 const CA_LEAF_DAYS = 800;      // long enough that the shipped demo never reads "expired"
@@ -92,7 +92,7 @@ const ILLUSTRATION_SPECS: IconLikeSpec[] = [
 const PHOTO_TREATMENTS_FOR_SET = ['greyscale', 'pine', 'midnight'];  // one per chosen photo
 const PHOTO_COUNT = PHOTO_TREATMENTS_FOR_SET.length;
 
-// Lead id per family — seeded into defaultFavourites so the set greets first-run
+// Lead id per family - seeded into defaultFavourites so the set greets first-run
 // users. (Kept small; the rest live in their own catalog group.)
 const FAVOURITE_LEADS = [
   ID_PREFIX + ICON_SPECS[0]!.out,
@@ -119,7 +119,7 @@ const DAY = 24 * 3600 * 1000;
 
 // The root the deployed app pins (shells/web/src/ca-root.ts) is what its
 // on-device verifier trusts. Signing with any other root ships credentials that
-// fail identity verification on lolly.tools — so we hard-stop on a mismatch.
+// fail identity verification on lolly.tools - so we hard-stop on a mismatch.
 function pinnedRootDer(): Uint8Array {
   const src = readFileSync(join(ROOT, 'shells/web/src/ca-root.ts'), 'utf8');
   const m = src.match(/-----BEGIN CERTIFICATE-----[\s\S]*?-----END CERTIFICATE-----/);
@@ -180,7 +180,7 @@ function entryFor(id: string, name: string, description: string, out: string, ta
   };
 }
 
-// The honest source of a delivered asset — its true author, recorded on the
+// The honest source of a delivered asset - its true author, recorded on the
 // CreativeWork so Verify shows who actually made it (never claiming Lolly did).
 function trueAuthor(a: AssetEntry): string {
   const hay = `${a.id} ${(a.tags ?? []).join(' ')} ${a.description ?? ''}`.toLowerCase();
@@ -198,7 +198,7 @@ function bumpMinor(v?: string): string {
   return m ? `${m[1]}.${Number(m[2]) + 1}.0` : '1.1.0';
 }
 
-// Cheap scan for the ASCII "c2pa" marker — present in both SVG (<c2pa:manifest)
+// Cheap scan for the ASCII "c2pa" marker - present in both SVG (<c2pa:manifest)
 // and JUMBF carriers (jpeg/png/…). Lets a re-run skip already-signed files
 // instead of nesting a second manifest.
 function hasC2pa(b: Uint8Array): boolean {
@@ -209,7 +209,7 @@ function hasC2pa(b: Uint8Array): boolean {
 }
 
 // Sign every OTHER stampable catalog asset in place as "delivered": an existing
-// asset Lolly distributes, not authored — a c2pa.published claim under the same
+// asset Lolly distributes, not authored - a c2pa.published claim under the same
 // CA identity, with the true author recorded. Bumps each signed asset's version.
 async function deliverCatalog(index: AssetIndex, sb: SignerBundle): Promise<void> {
   let signed = 0, already = 0, unstampable = 0, failed = 0;
@@ -260,7 +260,7 @@ async function main(): Promise<void> {
   const newEntries: AssetEntry[] = [];
   const skipped: string[] = [];
 
-  // Icons + illustrations — one styling path (applyIconTheme). Icons bake the
+  // Icons + illustrations - one styling path (applyIconTheme). Icons bake the
   // c1/c2 theme; multi-colour illustrations fall through to a monochrome re-hue.
   for (const spec of [...ICON_SPECS, ...ILLUSTRATION_SPECS]) {
     const base = byId.get(spec.baseId);
@@ -280,7 +280,7 @@ async function main(): Promise<void> {
     console.log(`  ✓ ${ID_PREFIX + spec.out}  (${bytes.length.toLocaleString()} bytes)`);
   }
 
-  // Photos — pick the first PHOTO_COUNT photo assets that carry pixel dims, then
+  // Photos - pick the first PHOTO_COUNT photo assets that carry pixel dims, then
   // bake a treatment into a self-contained SVG (embeds the JPEG as a data URI).
   const photoPool = index.assets
     .filter((a) => a.id.startsWith('suse/photos/') && a.type === 'raster')
@@ -312,7 +312,7 @@ async function main(): Promise<void> {
   // checksum-assets.ts uses, so the diff is additions only.
   index.assets = index.assets.filter((a) => !a.id.startsWith(ID_PREFIX)).concat(newEntries);
   // Preserve existing non-credential favourites, drop any stale credential ones,
-  // then seed the current leads (that actually got generated) — deduped.
+  // then seed the current leads (that actually got generated) - deduped.
   const built = new Set(newEntries.map((e) => e.id));
   const kept = (index.defaultFavourites ?? []).filter((id) => !id.startsWith(ID_PREFIX));
   index.defaultFavourites = [...new Set([...kept, ...FAVOURITE_LEADS.filter((id) => built.has(id))])];

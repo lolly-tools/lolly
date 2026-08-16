@@ -1,18 +1,18 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
- * "Did the encoder actually give me the format I asked for?" — the Node shells'
+ * "Did the encoder actually give me the format I asked for?" This is the Node shells'
  * output guard.
  *
  * The failure this exists for: `lolly qr-code --export=avif --output=qr.avif` wrote
  * PNG BYTES under an .avif name and exited 0. Headless Chromium ships no AV1 encoder,
  * so the web shell's canvasToBlob silently degrades to PNG; the CLI wrote whatever it
  * was handed. A pipeline downstream then has a file whose extension, whose MIME
- * assumption and whose actual bytes disagree — a plausible-looking wrong file, which
- * is the worst outcome this shell can produce.
+ * assumption and whose actual bytes disagree. That is a plausible-looking wrong file,
+ * the worst outcome this shell can produce.
  *
  * So: sniff the bytes, compare against what was REQUESTED, and refuse on a mismatch
- * rather than writing. The check is deliberately conservative — an unrecognised
- * signature is "no opinion", never a failure — so it can only ever catch a case where
+ * rather than writing. The check is deliberately conservative. An unrecognised
+ * signature is "no opinion", never a failure, so it can only ever catch a case where
  * we positively identified a DIFFERENT container.
  *
  * DELIBERATE WORDING of the refusal, same discipline as `deepSourceRefusal` in
@@ -40,7 +40,7 @@ const bytesAt = (b: Uint8Array, at: number, sig: number[]): boolean => {
 };
 
 /**
- * True when this PNG carries an `acTL` chunk before its first `IDAT` — the one
+ * True when this PNG carries an `acTL` chunk before its first `IDAT`. This is the one
  * structural difference between a PNG and an APNG. Scans the chunk table properly
  * rather than searching for the four letters anywhere (they can occur inside
  * compressed pixel data).
@@ -52,7 +52,7 @@ function isAnimatedPng(b: Uint8Array): boolean {
     if (ascii(b, at + 4, 'acTL')) return true;
     if (ascii(b, at + 4, 'IDAT')) return false;
     at += 12 + len; // length + type + data + crc
-    if (len > b.length) return false; // corrupt chunk table — stop rather than loop
+    if (len > b.length) return false; // corrupt chunk table - stop rather than loop
   }
   return false;
 }
@@ -63,7 +63,7 @@ function isoBrand(b: Uint8Array): SniffedFormat | null {
   const brand = String.fromCharCode(b[8] ?? 0, b[9] ?? 0, b[10] ?? 0, b[11] ?? 0).toLowerCase();
   if (brand === 'avif' || brand === 'avis') return 'avif';
   if (brand.startsWith('hei') || brand === 'mif1' || brand === 'msf1') return 'heic';
-  return 'mp4'; // isom/mp4x/M4V/qt … — everything else in the family
+  return 'mp4'; // isom/mp4x/M4V/qt … - everything else in the family
 }
 
 /** Leading text of the buffer, for the text-shaped formats. Cheap, ASCII-only. */
@@ -75,7 +75,7 @@ function head(b: Uint8Array, n = 1024): string {
 
 /**
  * Identify the container from its bytes, or null when nothing is recognised.
- * Never guesses from a filename — the whole point is that the name can lie.
+ * Never guesses from a filename. The whole point is that the name can lie.
  */
 export function sniffFormat(bytes: Uint8Array): SniffedFormat | null {
   const b = bytes;
@@ -95,7 +95,7 @@ export function sniffFormat(bytes: Uint8Array): SniffedFormat | null {
   if (bytesAt(b, 0, [0x00, 0x00, 0x01, 0x00])) return 'ico';
   if (bytesAt(b, 0, [0x1f, 0x8b])) return 'gzip';
   // Windows Enhanced Metafile: EMR_HEADER record type 1, with the ' EMF' signature
-  // at offset 40. Both are required — the leading 01 00 00 00 alone is far too weak.
+  // at offset 40. Both are required - the leading 01 00 00 00 alone is far too weak.
   if (bytesAt(b, 0, [0x01, 0x00, 0x00, 0x00]) && ascii(b, 40, ' EMF')) return 'emf';
   const iso = isoBrand(b);
   if (iso) return iso;
@@ -112,13 +112,13 @@ export function sniffFormat(bytes: Uint8Array): SniffedFormat | null {
  *
  * A format absent from this table is unchecked (data/text formats like json, csv, ics,
  * vcf, md, txt, html and dxf have no reliable magic and nothing to confuse them with).
- * Where a request is a VARIANT of a container — pdf-cmyk is a PDF, cmyk-tiff is a TIFF,
- * eps-cmyk is an EPS — the container is what gets checked; the colour model is not
+ * Where a request is a VARIANT of a container (pdf-cmyk is a PDF, cmyk-tiff is a TIFF,
+ * eps-cmyk is an EPS), the container is what gets checked; the colour model is not
  * something a magic number can speak to.
  */
 /**
- * NULL PROTOTYPE, deliberately. The key is a user-controlled file extension — the CLI's
- * transform path takes it from `extname(--output)` — so a plain object literal answered
+ * NULL PROTOTYPE, deliberately. The key is a user-controlled file extension. The CLI's
+ * transform path takes it from `extname(--output)`, so a plain object literal answered
  * `ACCEPTS['constructor']` with a function (`want.includes is not a function`, exit 70)
  * and `ACCEPTS['toString']` with a truthy value that silently skipped the check. An
  * inherited key is not a format row.
@@ -177,7 +177,7 @@ const LABEL: Record<SniffedFormat, string> = {
  *
  * Conservative on purpose, in both directions:
  *   • an unknown request (no ACCEPTS row) is never checked;
- *   • an unrecognised signature is never a failure — "no opinion" is not "wrong".
+ *   • an unrecognised signature is never a failure - "no opinion" is not "wrong".
  * Only a positive identification of a DIFFERENT container throws.
  *
  * Call it after the bytes are final and BEFORE anything is written.
@@ -186,7 +186,7 @@ const LABEL: Record<SniffedFormat, string> = {
  * Does a format NAME legitimately describe a sniffed identity?
  *
  * The same table `assertFormatBytes` gates on, exposed for callers that want to REPORT a
- * mismatch rather than refuse it — the CLI's transform path, where the bytes are already
+ * mismatch rather than refuse it - the CLI's transform path, where the bytes are already
  * final and the only question is whether the filename the caller chose describes them.
  * A name with no row is "no opinion", and returns true.
  */

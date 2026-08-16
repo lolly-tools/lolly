@@ -1,15 +1,15 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
- * EMF (Enhanced Metafile) emitter — pure, DOM-free, platform-agnostic.
+ * EMF (Enhanced Metafile) emitter - pure, DOM-free, platform-agnostic.
  *
  * Turns a normalized vector IR into a classic-GDI EMF `Uint8Array` whose only
  * drawing primitive is the path (filled / stroked). Text is expected to be
- * outlined to paths upstream (the "always text-as-paths" rule — see
+ * outlined to paths upstream (the "always text-as-paths" rule - see
  * plans/63-emf-support.md), so this writes NO text or font records.
  *
  * This is the format authority, the same way units.js owns dimension math and
  * color.js owns colour math. It imports only units.js. No Handlebars, no ajv,
- * no DOM — fully node:test-able.
+ * no DOM - fully node:test-able.
  *
  * Scope (v1): solid-fill / solid-stroke cubic-or-line paths, device RGB only
  * (EMF has no ICC/CMYK channel). Gradients/images/alpha are resolved to solids
@@ -24,7 +24,7 @@
  *     fillRule : 'nonzero' | 'evenodd'
  *   Segment = {op:'M',x,y} | {op:'L',x,y} | {op:'C',x1,y1,x2,y2,x,y}
  *
- * opts = { width, height, unit, dpi } — the PHYSICAL output size (carried by the
+ * opts = { width, height, unit, dpi } - the PHYSICAL output size (carried by the
  * header's rclFrame). Absent ⇒ the px canvas at the CSS 96-DPI convention.
  */
 
@@ -57,7 +57,7 @@ export interface VectorPathPrim {
 /** A raster escape-hatch primitive: the IR producer rasterises ONE node whose CSS
  *  the vector walkers can't express (filter/blend/mask/conic-gradient/url() bitmap)
  *  and hands it here as opaque RGB (alpha already composited over the background in
- *  the shell — EMF 32bpp BI_RGB and the EPS base `image` operator have no alpha).
+ *  the shell). EMF 32bpp BI_RGB and the EPS base `image` operator have no alpha.
  *  Everything vectorisable stays a path prim; this is the last resort. */
 export interface VectorImagePrim {
   type: 'image';
@@ -83,7 +83,7 @@ export interface VectorEmitOpts {
   dpi?: number;
   /** Embed the source-attribution generator field (EPS %%Creator, DXF 999 comment).
    *  Default true; the shell sets it false for a metadata-stripped export (URL `meta=off`).
-   *  This is a generated artifact's generator field — the user's own files go through the
+   *  This is a generated artifact's generator field; the user's own files go through the
    *  transform path (host.export.file), which never adds metadata. */
   attribution?: boolean;
 }
@@ -137,7 +137,7 @@ const PS_GEOMETRIC_SOLID = 0x00010000; // PS_GEOMETRIC | PS_SOLID
 const ENHMETA_SIGNATURE = 0x464D4520;  // ' EMF'
 const HEADER_SIZE = 88;
 
-// Handle slots — reused (delete-and-recreate) so the table stays tiny.
+// Handle slots - reused (delete-and-recreate) so the table stays tiny.
 const H_BRUSH = 1;
 const H_PEN   = 2;
 const N_HANDLES = 3;                    // slot 0 reserved + brush + pen
@@ -312,7 +312,7 @@ function emitPathPrim(prim: VectorPathPrim, out: Uint8Array[]): void {
         allPts.push(...pts);
         anchor = last;
       } else {
-        i++; // unknown op — skip defensively
+        i++; // unknown op - skip defensively
       }
     }
     if (sub.closed) out.push(recCloseFigure());
@@ -372,7 +372,7 @@ function recStretchDibits(prim: VectorImagePrim): Uint8Array {
   dv.setInt32(108, 0, true);                  // biYPelsPerMeter
   dv.setUint32(112, 0, true);                 // biClrUsed
   dv.setUint32(116, 0, true);                 // biClrImportant
-  // Pixels @ 120 — RGB (3B, top-first) → BGRX (4B).
+  // Pixels @ 120 - RGB (3B, top-first) → BGRX (4B).
   const px = new Uint8Array(buf, 120, bitsLen);
   const rgb = prim.rgb;
   const n = Math.min(pxW * pxH, Math.floor(rgb.length / 3));
@@ -441,7 +441,7 @@ function writeHeader(h: HeaderMath, nBytes: number, nRecords: number): Uint8Arra
 /**
  * Serialize an IR to EMF bytes.
  * @param ir   { width, height, prims }
- * @param opts { width, height, unit, dpi } — physical output size
+ * @param opts { width, height, unit, dpi } - physical output size
  */
 export function emitEmf(ir: VectorIr, opts: VectorEmitOpts = {}): Uint8Array {
   const h = headerMath(ir, opts);

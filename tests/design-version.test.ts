@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
- * engine/src/design-version.ts — the versioned design-system contracts that
+ * engine/src/design-version.ts - the versioned design-system contracts that
  * MULTIPLE shells depend on (plans/97 §6a).
  *
  * The ledger reader/writer, the slug grammar, the ladder, docChecksum and the
@@ -9,14 +9,14 @@
  * module through a re-export. This file deliberately does NOT duplicate those. It
  * covers what only makes sense from outside a browser:
  *
- *   (1) `pickHeadAssetId` — the discovery-exclusion rule the web bridge, the MCP
+ *   (1) `pickHeadAssetId` - the discovery-exclusion rule the web bridge, the MCP
  *       server and the CLI must apply identically, INCLUDING its byte-identity
  *       promise for the catalogs that ship one tokens asset (nearly all of them)
- *   (2) `frozenAssetId` — checked against the id pattern read off
+ *   (2) `frozenAssetId` - checked against the id pattern read off
  *       schemas/asset.schema.json, not a copy of it, because a preserved asset has
  *       to travel in a pack as an ordinary asset
- *   (3) `stripVersionIndex` — a version asset never carries a ledger
- *   (4) `collectAssetTokens` / `collectFontFamilies` / `applyPinnedAssets` — the
+ *   (3) `stripVersionIndex` - a version asset never carries a ledger
+ *   (4) `collectAssetTokens` / `collectFontFamilies` / `applyPinnedAssets` - the
  *       asset-manifest walk and the one place asset indirection happens
  *   (5) `sha256Hex` against a published test vector, since two independent
  *       implementations (a device and a pack validator) compare its output
@@ -39,7 +39,7 @@ import { validateManifest } from '../engine/src/validate.ts';
 
 const HEAD = 'user/tokens/brand';
 
-/** The asset-id grammar, read off the schema rather than restated — a frozen id
+/** The asset-id grammar, read off the schema rather than restated - a frozen id
  *  that only satisfies a copy of the pattern is a pack that fails to validate. */
 const ASSET_ID_RE = (() => {
   const schema = JSON.parse(readFileSync(new URL('../schemas/asset.schema.json', import.meta.url), 'utf8'));
@@ -49,7 +49,7 @@ const ASSET_ID_RE = (() => {
 })();
 
 /** A doc shaped like an installed design system: colour ramps, a logo group of
- *  `$type:'asset'` leaves, and font roles — plus a foreign `$extensions` key that
+ *  `$type:'asset'` leaves, and font roles - plus a foreign `$extensions` key that
  *  none of these walks may disturb. */
 const systemDoc = (): Record<string, unknown> => ({
   $extensions: { 'org.example.other': { keep: true } },
@@ -59,7 +59,7 @@ const systemDoc = (): Record<string, unknown> => ({
       logo: {
         'horizontal-primary': { $type: 'asset', $value: 'user/logo/horizontal-primary' },
         icon: { $type: 'asset', $value: 'user/logo/icon' },
-        // An alias names another token, not bytes — never a manifest entry.
+        // An alias names another token, not bytes - never a manifest entry.
         favicon: { $type: 'asset', $value: '{asset.logo.icon}' },
       },
     },
@@ -80,14 +80,14 @@ test('pickHeadAssetId: a version never shadows the design system it belongs to',
   assert.equal(pickHeadAssetId([HEAD, `${HEAD}/jupiter`, `${HEAD}/v2`]), HEAD);
 
   // Byte identity for everything else. One tokens asset, or none, or several
-  // UNRELATED ones: the first still wins, exactly as before — which is what makes
+  // UNRELATED ones: the first still wins, exactly as before - which is what makes
   // this rule safe to land in three consumers at once.
   assert.equal(pickHeadAssetId([]), null);
   assert.equal(pickHeadAssetId([HEAD]), HEAD);
   assert.equal(pickHeadAssetId(['suse/tokens/brand']), 'suse/tokens/brand');
   assert.equal(pickHeadAssetId(['suse/tokens/brand', HEAD]), 'suse/tokens/brand');
 
-  // A shared PREFIX is not a shared parent — the rule cuts on segment boundaries,
+  // A shared PREFIX is not a shared parent - the rule cuts on segment boundaries,
   // so a differently-named system next door is never mistaken for a version.
   assert.equal(pickHeadAssetId([`${HEAD}x`, HEAD]), `${HEAD}x`);
   assert.equal(isVersionAssetId(`${HEAD}x`, HEAD), false);
@@ -114,7 +114,7 @@ test('frozenAssetId: content-keyed, and legal as a catalog asset id', () => {
   assert.match(frozenAssetId(digest), ASSET_ID_RE);
 
   // A pack ships preserved bytes under its own namespace, and that id must
-  // validate too — this is the whole reason the scheme is three plain segments.
+  // validate too - this is the whole reason the scheme is three plain segments.
   assert.equal(frozenAssetId(digest, 'suse'), 'suse/frozen/aaaaaaaaaaaa');
   assert.match(frozenAssetId(digest, 'suse'), ASSET_ID_RE);
 
@@ -130,7 +130,7 @@ test('frozenAssetId: content-keyed, and legal as a catalog asset id', () => {
   assert.equal(frozenAssetId(digest.toUpperCase()), frozenAssetId(digest));
 
   // Every digest a real hash can produce keeps the id legal (a leading digit is
-  // the interesting one — the grammar's first segment character class allows it).
+  // the interesting one - the grammar's first segment character class allows it).
   for (const hex of ['0123456789ab', 'fedcba987654', '000000000000']) {
     assert.match(frozenAssetId(hex.padEnd(64, '0')), ASSET_ID_RE, hex);
   }
@@ -196,7 +196,7 @@ test('stripVersionIndex: the payload a version asset stores has no history in it
   assert.deepEqual(readVersionIndex(payload), { versions: [], active: null });
 
   // Only the ledger goes. The tokens survive, and so does a foreign extension key
-  // — a version that quietly dropped somebody else's data would not be a copy.
+  // - a version that quietly dropped somebody else's data would not be a copy.
   assert.deepEqual(payload.base, (systemDoc() as Record<string, unknown>).base);
   assert.deepEqual(payload.$extensions, { 'org.example.other': { keep: true } });
 
@@ -214,7 +214,7 @@ test('collectAssetTokens: every asset leaf, wherever it lives, aliases excluded'
     { path: 'base.asset.logo.icon', id: 'user/logo/icon' },
   ]);
 
-  // An asset named anywhere else is still pinned — the walk is not a hard-coded
+  // An asset named anywhere else is still pinned - the walk is not a hard-coded
   // tour of `asset.logo.*`, which is only where today's studio happens to write.
   const elsewhere = { promo: { hero: { $type: 'asset', $value: 'user/photo/hero' } } };
   assert.deepEqual(collectAssetTokens(elsewhere), [{ path: 'promo.hero', id: 'user/photo/hero' }]);
@@ -242,7 +242,7 @@ test('applyPinnedAssets: rewrites the pinned leaves and only those', () => {
     { id: 'user/logo/icon', version: '1.0.0', sha256: 'd'.repeat(64) },
   ];
 
-  /** `base.asset.logo` as a flat id map — the shape every assertion below reads. */
+  /** `base.asset.logo` as a flat id map - the shape every assertion below reads. */
   const logoIds = (d: unknown): Record<string, string> => Object.fromEntries(
     collectAssetTokens(d).map(({ path, id }) => [path.replace('base.asset.logo.', ''), id]),
   );
@@ -295,7 +295,7 @@ test('the barrel exports the design-version surface the shells resolve against',
   assert.equal(engine.DESIGN_VERSION_LATEST, DESIGN_VERSION_LATEST);
   assert.equal(DESIGN_VERSION_LATEST, 'latest');
 
-  // The ledger lives under the shells' own vendor extension, not a new namespace —
+  // The ledger lives under the shells' own vendor extension, not a new namespace - 
   // a doc written by the studio and one written by a pack must be the same file.
   const doc = withVersionIndex({}, {
     versions: [{ slug: 'v1', label: 'v1', date: '', checksum: '' }], active: null,

@@ -2,7 +2,7 @@
 /**
  * Unit tests for the HEIC sniff (shells/web/src/bridge/heic-decode.ts).
  *
- * Only looksLikeHeic() is covered — it's the pure, dependency-free part. The actual
+ * Only looksLikeHeic() is covered - it's the pure, dependency-free part. The actual
  * decode (decodeHeicBitmap) lazy-loads a ~3 MB WASM and needs a real canvas/browser,
  * so it's verified by driving the app. Importing the module here does NOT load the
  * WASM (heic-to is imported lazily inside decodeHeicBitmap only).

@@ -3,8 +3,8 @@
  * Penpot component definitions → template descriptors (pure collectors).
  *
  * A sibling of design-map.ts, which stays a shape→box MAPPER: this module reads
- * the OTHER half of a binfile-v3 export — the `files/<fid>/components/*.json`
- * records and the instance back-links on the shapes — and answers two questions
+ * the OTHER half of a binfile-v3 export - the `files/<fid>/components/*.json`
+ * records and the instance back-links on the shapes - and answers two questions
  * the components-as-templates work asks:
  *
  *   1. which reusable components does this file define, and where is each one's
@@ -18,7 +18,7 @@
  *
  * VARIANTS (the structure a plan written before the kitchen-sink fixture could
  * not know): Penpot 2.17 serializes a variant SET as one component record PER
- * VARIANT — same `name`, same `variantId`, one `variantProperties` pair each —
+ * VARIANT - same `name`, same `variantId`, one `variantProperties` pair each -
  * whose main instances live inside an `isVariantContainer` flex frame. Shape
  * names propagate across the whole set, so N variants read as N near-identical
  * components with identical names. Grouping by `variantId` is therefore not a
@@ -29,7 +29,7 @@
 
 import { parsePenpotContent } from './design-map.ts';
 
-/** A parsed Penpot shape (or component record) — any object with string keys. */
+/** A parsed Penpot shape (or component record) - any object with string keys. */
 type Rec = Record<string, unknown>;
 
 /**
@@ -43,11 +43,11 @@ export type PenpotShapesByPage =
 
 /** One variant of a component set (a single component record). */
 export interface PenpotComponentVariant {
-  /** The component record's own id — permanent within the file. */
+  /** The component record's own id - permanent within the file. */
   id: string;
-  /** `mainInstanceId` — the master frame this variant renders from. */
+  /** `mainInstanceId` - the master frame this variant renders from. */
   rootShapeId: string;
-  /** `mainInstancePage` — the page holding that master. */
+  /** `mainInstancePage` - the page holding that master. */
   pageId: string;
   /** Authored property pairs, e.g. `[{name:'Property 1', value:'Value 2'}]`. */
   properties: Array<{ name: string; value: string }>;
@@ -55,7 +55,7 @@ export interface PenpotComponentVariant {
   label: string;
 }
 
-/** One logical component — a plain component, or a whole variant set. */
+/** One logical component - a plain component, or a whole variant set. */
 export interface PenpotComponent {
   /** The set id (`variantId`) when this is a variant set, else the record id. */
   id: string;
@@ -63,7 +63,7 @@ export interface PenpotComponent {
   name: string;
   /** The authored grouping path ('titles', 'text'); '' when ungrouped. */
   path: string;
-  /** The DEFAULT variant's master shape id — what a v1 template maps. */
+  /** The DEFAULT variant's master shape id - what a v1 template maps. */
   rootShapeId: string;
   /** The page holding `rootShapeId`. */
   pageId: string;
@@ -78,9 +78,9 @@ export interface PenpotComponent {
 /** One foreign component, as seen from its instances in THIS file. */
 export interface PenpotExternalComponent {
   componentId: string;
-  /** The library file id — absent from this export, hence "external". */
+  /** The library file id - absent from this export, hence "external". */
   componentFile: string;
-  /** The first instance's shape name — the only label an external one has. */
+  /** The first instance's shape name - the only label an external one has. */
   name: string;
   /** How many instance roots point at it. */
   instances: number;
@@ -111,7 +111,7 @@ export interface PenpotComponentSlot {
   /** The master shape the slot edits. */
   shapeId: string;
   kind: 'text' | 'image';
-  /** The Penpot shape `name` — what the author called it. */
+  /** The Penpot shape `name` - what the author called it. */
   label: string;
   /** Text slots: the master's placeholder copy (lorem ipsum by construction). */
   text?: string;
@@ -175,7 +175,7 @@ export function collectPenpotComponents(
     const declared = pages.get(declaredPage);
     const hit = declared ? declared[rootShapeId] : undefined;
     if (isRec(hit)) return { shape: hit, pageId: declaredPage };
-    // A stale/absent mainInstancePage is recoverable — the id is unique file-wide.
+    // A stale/absent mainInstancePage is recoverable - the id is unique file-wide.
     for (const [pid, shapes] of pages) {
       const s = shapes[rootShapeId];
       if (isRec(s)) return { shape: s, pageId: pid };
@@ -183,7 +183,7 @@ export function collectPenpotComponents(
     return null;
   };
 
-  // Pass 1 — records → variants, keyed by set (variantId) or by record id.
+  // Pass 1 - records → variants, keyed by set (variantId) or by record id.
   interface Group { id: string; name: string; path: string; isVariantSet: boolean; variants: PenpotComponentVariant[] }
   const groups = new Map<string, Group>();
   let inferredFileId = '';
@@ -218,7 +218,7 @@ export function collectPenpotComponents(
     });
   }
 
-  // Pass 2 — order deterministically (zip entry order is arbitrary) and pick the
+  // Pass 2 - order deterministically (zip entry order is arbitrary) and pick the
   // default variant: the first by label, so "Value 1" leads "Value 2".
   const components: PenpotComponent[] = [];
   for (const g of groups.values()) {
@@ -237,7 +237,7 @@ export function collectPenpotComponents(
   }
   components.sort((a, b) => a.path.localeCompare(b.path) || a.name.localeCompare(b.name) || a.id.localeCompare(b.id));
 
-  // Pass 3 — the externals census, off the instance roots.
+  // Pass 3 - the externals census, off the instance roots.
   const localFileId = str(opts.fileId) || inferredFileId || null;
   const byComponent = new Map<string, PenpotExternalComponent>();
   const files = new Set<string>();
@@ -293,7 +293,7 @@ function slotFor(sh: Rec): Omit<PenpotComponentSlot, 'shapeId'> | null {
 
 /**
  * Infer the fill-in-the-blank slots of a component master: text shapes become
- * text slots (a master's own copy is placeholder by construction — that is what
+ * text slots (a master's own copy is placeholder by construction - that is what
  * a master is for), image-filled shapes become asset slots, and the label is the
  * author's own shape `name`.
  *

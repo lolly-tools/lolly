@@ -2,11 +2,12 @@
 /**
  * Money helper + serialised-artifact type tests.
  *
- * The load-bearing properties: the formatter respects each currency's OWN minor-unit
- * exponent (never a hardcoded /100), it refuses a bad currency and a non-integer
- * amount rather than inventing a fallback symbol or a plausible figure, and it never
- * emits a bare number. The serialised money object round-trips through JSON with every
- * rule-9 caveat present, carries no field named `total`, and self-describes its figure.
+ * These properties are required. The formatter uses each currency's OWN
+ * minor-unit exponent, never a hardcoded /100. It refuses a bad currency and a
+ * non-integer amount rather than inventing a fallback symbol or a plausible
+ * figure, and it never emits a bare number. The serialised money object
+ * round-trips through JSON with every rule-9 caveat present, carries no field
+ * named `total`, and self-describes its figure.
  */
 
 import { strict as assert } from 'node:assert';
@@ -49,7 +50,7 @@ test('formatMoney never emits a bare number: the currency is always present', ()
   for (const currency of ['EUR', 'JPY', 'USD', 'BHD']) {
     const s = formatMoney({ minorUnits: 100000, currency, locale: 'en' });
     // Something non-digit, non-separator must accompany the digits (a symbol or the
-    // ISO letters, per locale) — a bare "1000" would fail this.
+    // ISO letters, per locale). A bare "1000" would fail this.
     const nonNumeric = s.replace(/[\d.,\s ]/g, '');
     assert.ok(nonNumeric.length > 0, `expected a currency marker in ${JSON.stringify(s)}`);
   }

@@ -6,13 +6,13 @@
  * Runs the full local dev environment AND keeps the deploy artifacts fresh, so what
  * you see in dev is what ships. It runs three things:
  *
- *   1. docs/build.ts --watch  — rebuilds the /info site on docs changes
- *   1b. build-tool-og.js      — one-shot: refreshes the committed per-tool OG cards
+ *   1. docs/build.ts --watch - rebuilds the /info site on docs changes
+ *   1b. build-tool-og.js - one-shot: refreshes the committed per-tool OG cards
  *                               (catalog/og/<id>.png) + /t/<id>.html share stubs from
  *                               the catalog. resvg runs here (local), unlike the Vercel
  *                               build, so the committed cards stay fresh for deploy.
- *   2. vite (shells/web)      — the web shell dev server (HMR)
- *   3. build-previews.js      — once the dev server answers, generates any MISSING
+ *   2. vite (shells/web) - the web shell dev server (HMR)
+ *   3. build-previews.js - once the dev server answers, generates any MISSING
  *                               tool previews (catalog/previews/<id>.svg|png) against
  *                               the live dev server, in the background. This is the one
  *                               deploy artifact a plain build never produces, so the
@@ -73,7 +73,7 @@ start('node', ['scripts/build-tool-og.ts']);
 // (/d, /v, /c, /p, /profile) → committed catalog/og/views cards + /view/<slug>.html stubs.
 start('node', ['scripts/build-view-og.ts']);
 
-// 2. vite dev server — pipe stdout so we can discover the port, but forward every
+// 2. vite dev server - pipe stdout so we can discover the port, but forward every
 // byte so vite's own pretty output still shows.
 const vite = spawn('npm', ['--workspace', 'shells/web', 'run', 'dev'], {
   cwd: ROOT,

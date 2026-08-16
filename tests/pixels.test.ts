@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
- * engine/src/pixels.ts — DeepFrame buffer + conversion contract tests.
+ * engine/src/pixels.ts - DeepFrame buffer + conversion contract tests.
  *
  * Reference anchors (no converter is tested only against itself):
  *   - sRGB EOTF: 0.5 -> 0.21404114 (IEC 61966-2.1)
@@ -334,7 +334,7 @@ test('convertSpace: Lab anchors — white is L*=100 and 18% grey is L*=49.496 (C
   approx(grey.data[0]!, 116 * Math.cbrt(0.18) - 16, 1e-3, '18% grey L*');
   approx(grey.data[1]!, 0, 1e-3, 'neutral a*');
   approx(grey.data[2]!, 0, 1e-3, 'neutral b*');
-  // negative control: sRGB green is NOT neutral — a* strongly negative
+  // negative control: sRGB green is NOT neutral - a* strongly negative
   const green = convertSpace(frameOf([[0, 1, 0, 1]]), 'lab');
   assert.ok(green.data[1]! < -40, `green a* is strongly negative, got ${green.data[1]}`);
   assert.ok(green.data[2]! > 40, `green b* is strongly positive, got ${green.data[2]}`);

@@ -10,7 +10,7 @@ import { analyzeLsb } from '../engine/src/steganalysis.ts';
 
 const W = 128, H = 128;
 
-// Deterministic PRNG — tests must not depend on Math.random.
+// Deterministic PRNG - tests must not depend on Math.random.
 function lcg(seed: number): () => number {
   let s = seed;
   return () => (s = (s * 48271) % 0x7fffffff) / 0x7fffffff;
@@ -27,7 +27,7 @@ function image(fill: () => number): Uint8Array {
 }
 
 test('analyzeLsb: rough-histogram (natural-like) image is not suspicious', () => {
-  // Even values only — value pairs (2k, 2k+1) maximally UNequal, the signature
+  // Even values only - value pairs (2k, 2k+1) maximally UNequal, the signature
   // of an untouched carrier under this test.
   const rnd = lcg(7);
   const r = analyzeLsb(image(() => 2 * Math.floor(rnd() * 128)), { width: W, height: H });

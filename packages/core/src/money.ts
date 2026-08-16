@@ -7,10 +7,10 @@
  *
  * `preflight.ts` states, in its own header and again on `PreflightReport`, that
  * there is no currency, rate, price or monetary field anywhere in it and none may
- * be added. That is load-bearing: the moment a *report* can carry a number that
+ * be added. That matters: the moment a *report* can carry a number that
  * looks like money, an unqualified ceiling gets read as a quote. So money attaches
  * as a SEPARATE object that consumes `Count`/`Bound` values and carries its own
- * provenance caveats — it never lands inside `PreflightReport`. This module is that
+ * provenance caveats. It never lands inside `PreflightReport`. This module is that
  * separate object, and it lives beside preflight (same package, `type`-only import)
  * rather than in the engine or a shell for two reasons:
  *
@@ -180,14 +180,14 @@ export function monetaryFigure(minorUnits: number, currency: string): MonetaryFi
 //
 // A monetary figure may never appear in a serialised artifact without its caveats
 // as SIBLING FIELDS in the same object. A caveat that lives only in a UI string is
-// a bug — the zip's `preflight.json` and `--json` are the copies that travel, and a
+// a bug. The zip's `preflight.json` and `--json` are the copies that travel, and a
 // client mailed the whole job zip opens that file. So this object exists to make
 // the hedge inseparable from the figure.
 //
 // Key rules embedded in the type:
 //   - There is NO field named `total`. The figure is `estimatedTotalFromSuppliedRates`,
 //     and it is `null` unless every counted line is priced (rule 2).
-//   - The member is named `cost`, and the file `preflight.json` — never `budget.json`
+//   - The member is named `cost`, and the file `preflight.json`, never `budget.json`
 //     or `quote.json`.
 //   - It is a SIBLING of `PreflightReport`, never nested in it (see this file's header).
 
@@ -203,7 +203,7 @@ export interface CostRatesFrom {
   readonly issued: string;
   /** The expiry the file claims, or `null` if it declares none. */
   readonly validUntil: string | null;
-  /** The file's content digest — a fact Lolly DID compute. */
+  /** The file's content digest: a fact Lolly DID compute. */
   readonly digest: string;
   /** Always `false`. Lolly does not verify a dropped file's claims. */
   readonly verified: false;
@@ -267,13 +267,13 @@ export interface SerializedUncostedLine {
 }
 
 /**
- * The serialised money object — a SIBLING member named `cost`, beside `findings`/
+ * The serialised money object - a SIBLING member named `cost`, beside `findings`/
  * `counts`/`gaps` in the artifact, never inside `PreflightReport`.
  *
  * With no rate card, this member is ABSENT ENTIRELY (not `null`, not `{}`). When
  * money is suppressed (expired without opt-in, degrade-to-counts, a confidential
  * card reached via a link), it is likewise absent and an `info` finding carries the
- * reason — because rule 9 forbids a currency figure sitting in a serialised artifact
+ * reason, because rule 9 forbids a currency figure sitting in a serialised artifact
  * even one that is being hidden.
  */
 export interface SerializedCost {
@@ -296,7 +296,7 @@ export interface SerializedCost {
   readonly coversLines: number;
   /** Counted lines a rate card could price. */
   readonly ofLines: number;
-  /** `!card.taxIncluded` — from the card, never assumed. */
+  /** `!card.taxIncluded`: from the card, never assumed. */
   readonly excludesTax: boolean;
   /**
    * `true` iff this figure was computed from rates PAST the card's `validUntil`,

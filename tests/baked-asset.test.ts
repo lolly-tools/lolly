@@ -1,12 +1,12 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
- * Contract tests for BAKED assets — a composed render frozen into a static
- * `data:` ref (engine/src/bake.ts) — plus the engine-owned compose recursion
+ * Contract tests for BAKED assets - a composed render frozen into a static
+ * `data:` ref (engine/src/bake.ts) - plus the engine-owned compose recursion
  * guard (assertComposeStack) that every shell bridge now delegates to.
  *
  * A baked ref must mount from its own persisted bytes: no renderUrl, no catalog
  * lookup, no compose-stack growth. It presents as a plain image (meta.toolUrl
- * stripped at bake time) and degrades predictably — lost bytes drop the slot
+ * stripped at bake time) and degrades predictably - lost bytes drop the slot
  * with reason 'baked-bytes-lost' rather than re-rendering (baking's promise is
  * "these exact bytes"), and a share link serialises the provenance URL
  * (meta.bakedFrom) so recipients get a live re-render.
@@ -115,7 +115,7 @@ const chainTool = (id: string, child: string | null): any => ({
 
 // A faithful bridge double running the REAL engine guard for both compose paths:
 // render (authored composes) throws through, renderUrl (tool-URL assets) catches
-// to null — mirroring the web bridge's graceful-null contract.
+// to null - mirroring the web bridge's graceful-null contract.
 function chainHost(tools: Record<string, any>, extraInputs: Record<string, any> = {}) {
   const rendered: string[] = [];
   const urlCalls: Array<{ url: string; stack: string[] }> = [];
@@ -248,7 +248,7 @@ test('assertComposeStack: a repeated tool id is a cycle — code, path, message'
     assert.equal(e.message, 'cycle a → b → a');
     return true;
   });
-  // Cycle wins when both guards apply — the message names the real problem.
+  // Cycle wins when both guards apply - the message names the real problem.
   assert.throws(() => assertComposeStack(['a', 'b', 'c'], 'a'), (e: any) => e.code === 'cycle');
 });
 

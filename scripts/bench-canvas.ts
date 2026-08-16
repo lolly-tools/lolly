@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
- * Canvas performance baseline (plans/98 §9) — the NODE half of the harness.
+ * Canvas performance baseline (plans/98 §9) - the NODE half of the harness.
  *
  * Measures the editor's pure, DOM-free hot paths against document size, so Phase A
  * has a hard number to beat and the plan's "document size must never set the ceiling"
@@ -13,7 +13,7 @@
  *                vs  diffBoxes() damage (the Phase-A per-edit cost)
  *
  * This is deliberately NOT the browser half: it does not measure real DOM paint,
- * reflow, or style recalc (that needs the built shell + Chromium — the interaction
+ * reflow, or style recalc (that needs the built shell + Chromium - the interaction
  * harness, plans/98 §9 fixtures (a)-(e), tracked separately). What it DOES measure is
  * exactly the algorithmic cliff Phase A removes: an O(n) scan per pointer event and an
  * O(n) re-marshal per edit, both independent of how much actually changed.

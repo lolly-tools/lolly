@@ -4,14 +4,14 @@
  *
  * A "tool" on disk/CDN is a directory:
  *   tool-id/
- *     tool.json          — manifest (required)
- *     template.html      — render markup (required)
- *     styles.css         — optional, scoped
- *     hooks.js           — optional imperative escape hatch
- *     thumb.png          — gallery thumbnail
- *     assets/...         — tool-local assets (not in global catalog)
+ *     tool.json          - manifest (required)
+ *     template.html      - render markup (required)
+ *     styles.css         - optional, scoped
+ *     hooks.js           - optional imperative escape hatch
+ *     thumb.png          - gallery thumbnail
+ *     assets/...         - tool-local assets (not in global catalog)
  *
- * The loader doesn't render anything. It produces a normalised Tool object
+ * The loader does not render anything. It produces a normalised Tool object
  * the runtime can use. This separation lets us pre-warm tool caches without
  * mounting them.
  */
@@ -31,7 +31,7 @@ import type { Lang } from './lang.ts';
 import { ENGINE_VERSION } from './version.ts';
 import { satisfiesRange } from './semver-range.ts';
 
-/** `render` block of a tool manifest — the canonical shape lives in the
+/** `render` block of a tool manifest. The canonical shape lives in the
  *  tool-author SDK (`@lolly-tools/core` {@link RenderSpec}, mirroring
  *  schemas/tool.schema.json); re-exported under the engine's historical name. */
 export type ToolRenderSpec = RenderSpec;
@@ -40,7 +40,7 @@ export type ToolRenderSpec = RenderSpec;
  * Which hooks a tool's hooks.js declares. The schema-mirrored flags live in
  * `@lolly-tools/core` (ToolHookFlags); the engine adds `module`, which loadTool
  * implements but schemas/tool.schema.json does not yet admit (its `hooks` block
- * is `additionalProperties: false` — see the note in tests/catalog-integrity.test.ts).
+ * is `additionalProperties: false`; see the note in tests/catalog-integrity.test.ts).
  */
 export interface ToolHookFlags extends ToolHookFlagsBase {
   /** hooks.js is a standard ES module (named exports, sibling imports allowed);
@@ -51,12 +51,12 @@ export interface ToolHookFlags extends ToolHookFlagsBase {
 /**
  * A parsed + schema-validated tool manifest (schemas/tool.schema.json).
  * Produced only by loadTool, which validates the JSON before asserting this
- * shape — everything downstream (runtime, shells) trusts it.
+ * shape. Everything downstream (runtime, shells) trusts it.
  *
  * The field set is canonical in the tool-author SDK (`@lolly-tools/core`
- * ToolManifest — the schema-mirrored authoring type); the engine narrows the
+ * ToolManifest, the schema-mirrored authoring type); the engine narrows the
  * two members whose runtime semantics it owns: `inputs` uses the engine's
- * {@link InputSpec} (the single source of input semantics — see inputs.ts),
+ * {@link InputSpec} (the single source of input semantics; see inputs.ts),
  * and `hooks` admits the engine-implemented `module` flag.
  */
 export interface ToolManifest extends Omit<ToolManifestBase, 'inputs' | 'hooks'> {
@@ -71,7 +71,7 @@ export interface ToolManifest extends Omit<ToolManifestBase, 'inputs' | 'hooks'>
  */
 export type ToolFetchFile = (path: string) => Promise<string>;
 
-/** A normalised, loaded tool — everything the runtime needs to mount it. */
+/** A normalised, loaded tool: everything the runtime needs to mount it. */
 export interface LoadedTool {
   manifest: ToolManifest;
   /** template.html source (required). */
@@ -83,8 +83,8 @@ export interface LoadedTool {
   /** Importable URL for module hooks (hooks.module), or null for classic hooks. */
   hooksUrl: string | null;
   /**
-   * Sibling text templates (template.ics/.vcf/.csv) keyed by extension —
-   * only extensions the manifest declares appear; null marks a failed fetch.
+   * Sibling text templates (template.ics/.vcf/.csv) keyed by extension.
+   * Only extensions the manifest declares appear; null marks a failed fetch.
    */
   textTemplates: Record<string, string | null>;
   /** Why a declared text template failed to load, keyed by extension. */
@@ -94,7 +94,7 @@ export interface LoadedTool {
 /**
  * Catalog-integrity enforcement config (catalog-integrity.ts). When a shell
  * passes this, every fetched tool file must match the signed digest map or
- * loadTool refuses to return the tool — fail closed, verified BEFORE the
+ * loadTool refuses to return the tool. This fails closed, verified BEFORE the
  * runtime ever compiles hooks.js. Without it the loader behaves exactly as
  * before (plus a one-time "unsigned catalog" console warning).
  */
@@ -108,7 +108,7 @@ export interface ToolIntegrityOpts {
 export interface LoadToolOpts {
   /**
    * Resolve a tool-directory-relative path (e.g. "qr-code/hooks.js") to a URL a
-   * native dynamic import can load — the web shell maps to /tools/<path>, the
+   * native dynamic import can load. The web shell maps to /tools/<path>, the
    * CLI to a file:// URL. Required to load a tool that declares hooks.module.
    */
   resolveModuleUrl?: (path: string) => string;
@@ -119,7 +119,7 @@ export interface LoadToolOpts {
    * plans/38-localize.md §7). When set and not 'en', loadTool best-effort fetches
    * a sibling `i18n/<lang>.json` overlay and merges it onto the returned
    * manifest's user-facing strings before anything downstream (buildInputModel,
-   * every shell) ever sees it — one overlay point, every shell benefits.
+   * every shell) ever sees it. One overlay point, every shell benefits.
    * Missing sidecar, missing keys, a malformed file, or a sidecar that fails
    * integrity verification under a signed catalog all fall back to the
    * manifest's own English strings; a translation problem never fails a tool load.
@@ -128,7 +128,7 @@ export interface LoadToolOpts {
 }
 
 /** A tool's optional `i18n/<lang>.json` sidecar: a flat, dotted-path overlay
- *  onto its own manifest fields — sparse (only the strings a translator
+ *  onto its own manifest fields. Sparse (only the strings a translator
  *  touched), same identity-fallback contract as the SPA's i18n.ts catalogs.
  *  Keys: "name", "description", "a11yLabel", "inputs.<id>.label",
  *  "inputs.<id>.help", "inputs.<id>.notice", "inputs.<id>.placeholder", "inputs.<id>.section",
@@ -138,13 +138,13 @@ export interface LoadToolOpts {
  *  "inputs.<id>.fields.<fieldId>.options.<value>" (block sub-field option label),
  *  plus the walkthrough: "guide.title", "guide.tracks.<id>.label" / ".note" /
  *  ".steps.<index>".
- *  `featured.blurb` is intentionally NOT applied here — `featured` isn't part
+ *  `featured.blurb` is intentionally NOT applied here. `featured` isn't part
  *  of the typed ToolManifest (it's catalog-index-only data); the same sidecar
  *  file's `featured.blurb` key is read separately by build-catalog-index.ts. */
 export type ToolI18nOverlay = Record<string, string>;
 
 /** Apply a sidecar overlay onto a manifest's user-facing strings, in place.
- *  Unknown/malformed keys are ignored (best-effort) — validated separately by
+ *  Unknown/malformed keys are ignored (best-effort). They are validated separately by
  *  scripts/validate-catalog.ts so authoring mistakes are caught at build time,
  *  not silently swallowed at runtime. */
 export function applyManifestI18n(manifest: ToolManifest, overlay: ToolI18nOverlay): void {
@@ -197,8 +197,8 @@ export function applyManifestI18n(manifest: ToolManifest, overlay: ToolI18nOverl
 
 /** The `guide.*` half of {@link applyManifestI18n}: "title",
  *  "tracks.<id>.label", "tracks.<id>.note", "tracks.<id>.steps.<index>".
- *  A step index past the end of the track is ignored — a translator can't add
- *  steps the manifest doesn't have. */
+ *  A step index past the end of the track is ignored. A translator cannot add
+ *  steps the manifest does not have. */
 function applyGuideI18n(manifest: ToolManifest, rest: string, value: string): void {
   const guide = manifest.guide;
   if (!guide) return;
@@ -235,7 +235,7 @@ async function assertEnvelopeTrusted(integrity: ToolIntegrityOpts): Promise<void
 
 /**
  * Verify one fetched file's bytes against the signed map. `text === null`
- * means the fetch failed/degraded — fatal when the catalog signed that file
+ * means the fetch failed or degraded. This is fatal when the catalog signed that file
  * (a stripped hooks.js must not silently mount a hook-less tool), fine when
  * the tool genuinely ships no such file (absent from the map too).
  */
@@ -277,19 +277,19 @@ export async function loadTool(toolId: string, fetchFile: ToolFetchFile, opts: L
   }
 
   const manifestText = await fetchFile(`${toolId}/tool.json`);
-  // Verify the manifest bytes before parsing/trusting anything it declares.
+  // Verify the manifest bytes before parsing or trusting anything it declares.
   if (integrity) await assertFileIntegrity(integrity, toolId, 'tool.json', manifestText);
   const parsed: unknown = JSON.parse(manifestText);
 
-  // Engine-compatibility floor (P0-3) runs BEFORE schema validation, and the order is
-  // load-bearing rather than incidental. A tool built against a newer engine will often
-  // ALSO use manifest vocabulary this build's schema has never heard of — a new canvas
-  // key, a new input type — and `additionalProperties: false` turns that into an Ajv
+  // Engine-compatibility floor (P0-3) runs BEFORE schema validation, and the order
+  // is required, not incidental. A tool built against a newer engine will often
+  // ALSO use manifest vocabulary this build's schema has never heard of: a new canvas
+  // key, a new input type. `additionalProperties: false` turns that into an Ajv
   // error. Validate first and the diagnostic is "failed validation / must NOT have
-  // additional properties", which reads as a broken tool; check the range first and the
+  // additional properties", which reads as a broken tool. Check the range first and the
   // same tool reports the actionable, designed answer: it needs an engine this build
   // does not implement. The range is read defensively off the unparsed JSON (a pure
-  // string comparison, no trust extended) — anything missing or non-string falls
+  // string comparison, no trust extended). Anything missing or non-string falls
   // through to validation, which requires `engineVersion` and reports it properly.
   const declaredRange = parsed && typeof parsed === 'object'
     && typeof (parsed as { engineVersion?: unknown }).engineVersion === 'string'
@@ -307,7 +307,7 @@ export async function loadTool(toolId: string, fetchFile: ToolFetchFile, opts: L
     throw new ToolLoadError(`Manifest for "${toolId}" failed validation`, errors);
   }
   // JSON trust boundary: ajv just enforced schemas/tool.schema.json, which is
-  // the source of the ToolManifest shape — this assertion records that fact.
+  // the source of the ToolManifest shape. This assertion records that fact.
   const manifest = parsed as ToolManifest;
   if (manifest.id !== toolId) {
     throw new ToolLoadError(
@@ -316,8 +316,8 @@ export async function loadTool(toolId: string, fetchFile: ToolFetchFile, opts: L
     );
   }
 
-  // (The engine-compatibility floor — the load-bearing element of the whole
-  // fast-catalog / slow-binary model, which fails closed deliberately — was
+  // (The engine-compatibility floor is the essential element of the
+  // fast-catalog / slow-binary model, and it fails closed deliberately. It was
   // checked above, before validation. Tools sync to clients as data, ahead of
   // the binary; a tool needing a newer engine than this build implements is
   // REFUSED before its template/hooks are even fetched, never half-loaded to
@@ -325,9 +325,9 @@ export async function loadTool(toolId: string, fetchFile: ToolFetchFile, opts: L
 
   // Translation overlay (see LoadToolOpts.lang / applyManifestI18n above).
   // Under integrity the sidecar must match its signed digest (sign-catalog.ts
-  // enumerates i18n/<lang>.json per tool — CATALOG_SIGNED_I18N_SIDECAR). Fail
+  // enumerates i18n/<lang>.json per tool: CATALOG_SIGNED_I18N_SIDECAR). Fail
   // CLOSED, but only on the overlay: a sidecar that is unsigned (old envelope),
-  // tampered, or stripped-in-transit is DROPPED — never applied — and never
+  // tampered, or stripped in transit is DROPPED, never applied, and never
   // fails the tool. Unlike a stripped hooks.js, a lost translation only
   // downgrades the language, so English fallback is the right severity.
   if (opts.lang && opts.lang !== 'en') {
@@ -338,15 +338,15 @@ export async function loadTool(toolId: string, fetchFile: ToolFetchFile, opts: L
       applyManifestI18n(manifest, JSON.parse(overlayText) as ToolI18nOverlay);
     } catch {
       // No sidecar for this tool/language, a failed integrity check, or a
-      // malformed file — the manifest's own (English) strings are always a
+      // malformed file. The manifest's own (English) strings are always a
       // valid fallback.
     }
   }
 
   // Only the manifest is a true dependency (it tells us which optional files even
-  // apply). Once parsed, fire every declared file concurrently — template (the one
-  // other required file), styles, hooks, and any sibling text templates — so the
-  // mount isn't serialised on a chain of independent fetches.
+  // apply). Once parsed, fire every declared file concurrently: template (the one
+  // other required file), styles, hooks, and any sibling text templates. This way
+  // the mount is not serialised on a chain of independent fetches.
   // Expand derived export formats (svg→svgz, emf→wmf, png/tiff→bmp) into the loaded
   // manifest so both shells' export menus and the CLI's format gate offer them without
   // every tool.json having to list them. Runtime-only: the generated catalog index is
@@ -364,14 +364,14 @@ export async function loadTool(toolId: string, fetchFile: ToolFetchFile, opts: L
   // serialising the rendered DOM and `json` to the built-in {tool,version,inputs} dump.
   const textExts = ['ics', 'vcf', 'csv', 'md', 'css', 'scss', 'gpl', 'json'].filter(ext => declared.includes(ext));
 
-  // Module hooks (hooks.module) aren't fetched as text at all — the runtime
+  // Module hooks (hooks.module) are not fetched as text at all. The runtime
   // imports them natively, so sibling imports resolve and the browser/node
-  // module cache applies. A host that can't resolve module URLs must fail HERE,
+  // module cache applies. A host that cannot resolve module URLs must fail HERE,
   // loudly: silently mounting a hook-less tool would render wrong output.
   const wantsModuleHooks = manifest.hooks?.module === true;
-  // Module hooks are imported natively — the loader never sees their bytes, so
+  // Module hooks are imported natively, so the loader never sees their bytes, and
   // the signed digest map CANNOT cover what actually executes (nor sibling
-  // imports). Fail closed rather than pretend they're verified.
+  // imports). Fail closed rather than pretend they are verified.
   if (wantsModuleHooks && integrity) {
     throw new ToolLoadError(
       `catalog integrity: "${toolId}" declares module hooks, whose imported bytes cannot be verified against the signed catalog`,

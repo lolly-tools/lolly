@@ -1,13 +1,13 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
- * Shared build-time provenance stamping for the media WE generate — one path so every
+ * Shared build-time provenance stamping for the media WE generate - one path so every
  * generator (OG cards, previews, thumbnails, …) credentials its output identically, and
  * the same way the runtime export bridge (shells/web/src/bridge/export.ts) and
  * scripts/build-docs-shots.ts already do. "Walk the talk": every public image Lolly
  * ships carries its own provenance.
  *
  *   bitmap:  decode (sharp) → Lolly Imprint (embedWatermark, pixels)
- *            → [Durable neural mark — Phase 2] → re-encode (sharp)
+ *            → [Durable neural mark - Phase 2] → re-encode (sharp)
  *            → C2PA (embedC2pa, bytes)                     ← C2PA is always the LAST byte op
  *   vector:  C2PA only (an SVG can't carry a pixel-domain mark)
  *
@@ -25,7 +25,7 @@ import { embedWatermark, LOSSLESS_STRENGTH, DEFAULT_STRENGTH } from '../../engin
 import { buildExportC2paOpts } from '../../packages/node-shell/src/c2pa-opts.ts';
 
 export interface StampMeta {
-  /** Short id for the artifact (tool id, view slug, doc slug) — logging + credential title fallback. */
+  /** Short id for the artifact (tool id, view slug, doc slug) - logging + credential title fallback. */
   id: string;
   /** Human name used as the credential title. */
   name: string;
@@ -61,10 +61,10 @@ export async function stampBitmap(
   let width: number | undefined;
   let height: number | undefined;
 
-  // 1. Lolly Imprint — decode to straight RGBA, embed the spread-spectrum mark, re-encode.
+  // 1. Lolly Imprint - decode to straight RGBA, embed the spread-spectrum mark, re-encode.
   //    LOSSY targets (JPEG, or WebP below q100) use the robust DEFAULT_STRENGTH so the mark
   //    survives the quantiser; lossless PNG / near-lossless WebP use the gentler
-  //    LOSSLESS_STRENGTH — the same split the web export bridge makes.
+  //    LOSSLESS_STRENGTH - the same split the web export bridge makes.
   try {
     const sharp = (await import('sharp')).default;
     const { data, info } = await sharp(Buffer.from(out)).ensureAlpha().raw().toBuffer({ resolveWithObject: true });
@@ -77,7 +77,7 @@ export async function stampBitmap(
       strength: lossy ? DEFAULT_STRENGTH : LOSSLESS_STRENGTH,
     });
 
-    // 2. Durable neural credential — folded into step 1 so there is exactly ONE
+    // 2. Durable neural credential - folded into step 1 so there is exactly ONE
     //    encode (no double compression). Operates on the full-res, imprinted RGBA.
     //    Best-effort + gated to ≥256px: returns null (→ imprint-only pixels) when
     //    onnxruntime-node or the encoder model isn't available. C2PA stays last.
@@ -101,10 +101,10 @@ export async function stampBitmap(
     console.warn(`stamp: imprint skipped for ${meta.id} — ${(e as Error).message}`);
   }
 
-  // (Step 2, the Durable neural credential, is folded into step 1 above — it must
+  // (Step 2, the Durable neural credential, is folded into step 1 above - it must
   //  mark the same full-res RGBA and share the single re-encode. See durable-node.ts.)
 
-  // 3. C2PA — always last (hard-binds over the final bytes). Uses the true decoded dims.
+  // 3. C2PA - always last (hard-binds over the final bytes). Uses the true decoded dims.
   return stampC2pa(out, format, meta, { width, height });
 }
 
@@ -115,7 +115,7 @@ export async function stampVector(svg: Uint8Array | string, meta: StampMeta): Pr
 }
 
 /** Embed a "made with Lolly" C2PA credential into already-encoded bytes (self-signed
- *  on-device; verified when a CA key is present). Never throws — ships the bytes
+ *  on-device; verified when a CA key is present). Never throws - ships the bytes
  *  un-stamped on failure. Exposed for callers that do their own pixel encode (e.g. the
  *  WebP preview path, which imprints at its own quality before this). */
 export async function stampC2pa(

@@ -1,21 +1,21 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
- * Generate the export shutter's Lolly mark from the repo-root icon.svg —
+ * Generate the export shutter's Lolly mark from the repo-root icon.svg - 
  * the ONE source of truth for the mark (the previous shutter-mark.ts was a
  * hand-cleaned Inkscape export that silently went stale when the icon moved).
  * Runs as part of `npm run icons`, so an icon update re-derives the mark.
  *
- * WHY LAYER SLICES, NOT ONE SVG. The mark spins during export — while the main
+ * WHY LAYER SLICES, NOT ONE SVG. The mark spins during export - while the main
  * thread is busy rendering the export itself. CSS transforms on SVG *child*
  * elements are main-thread in Chromium, so the old single-SVG mark froze the
  * moment the export started (Andy's field report, 2026-08-10). Transforms on
  * HTML elements composite off-thread. So the icon is sliced in stacking order
  * into static and spinning layers; lib/shutter.ts stacks each slice in its own
- * absolutely-positioned <div>, and tool.css rotates the DIVs — the spin
+ * absolutely-positioned <div>, and tool.css rotates the DIVs - the spin
  * survives any main-thread stall.
  *
  * Each slice is a self-contained <svg> carrying its own copy of the defs with
- * slice-prefixed ids (inline SVGs share the document id namespace — see
+ * slice-prefixed ids (inline SVGs share the document id namespace - see
  * shells/web/src/bridge/svg-inline-ids.ts for the collision class this avoids).
  * The brand green is rewired to var(--exsh-swirl), which lib/shutter.ts sets
  * to the same brand tone the WebGL iris paints.
@@ -55,7 +55,7 @@ const wrapperAttrs = [...wrapper.attributes].map((a) => ` ${a.name}="${a.value}"
 
 // Slice the wrapper's children in stacking order, splitting FURTHER by blend
 // mode. The swirl layers are concentric and their brand-green paths paint with
-// mix-blend-mode:multiply — inner darkens mid darkens outer — so blending
+// mix-blend-mode:multiply - inner darkens mid darkens outer - so blending
 // reaches ACROSS the layers, and no partition into plain stacked divs can
 // reproduce it (caught by the composite-vs-whole verification, 2026-08-10:
 // 40% of pixels washed out). SVG blends only within one canvas; CSS blends
@@ -63,7 +63,7 @@ const wrapperAttrs = [...wrapper.attributes].map((a) => ` ${a.name}="${a.value}"
 // becomes its own slice, lib/shutter.ts gives multiply slices a div with
 // CSS mix-blend-mode:multiply (isolation:isolate on the mark keeps the blend
 // from sampling the seal behind, matching the old one-canvas semantics), and
-// a spinning layer's base + multiply divs share the same animation — started
+// a spinning layer's base + multiply divs share the same animation - started
 // in the same innerHTML batch, so they can never drift out of phase.
 interface Slice { spin: 0 | 1 | 2 | 3; blend: 'normal' | 'multiply'; parts: string[] }
 const slices: Slice[] = [];
@@ -81,7 +81,7 @@ for (const el of [...wrapper.children]) {
     // The group wrapper's attributes ride along on each sub-slice.
     const gAttrs = [...el.attributes].filter((a) => a.name !== 'class').map((a) => ` ${a.name}="${a.value}"`).join('');
     for (const child of [...el.children]) {
-      // The blend moves to the DIV — strip it from the path so it doesn't
+      // The blend moves to the DIV - strip it from the path so it doesn't
       // double-apply within the slice canvas.
       const markup = child.outerHTML.replace(/mix-blend-mode:\s*multiply;?/g, '');
       push(SPIN_CLASS[cls]!, blendOf(child), `<g${gAttrs}>${markup}</g>`);

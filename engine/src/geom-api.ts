@@ -1,32 +1,32 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
- * `host.geom` — the tool-facing face of the geometry kernel (HostV1 v1.64).
+ * `host.geom` - the tool-facing face of the geometry kernel (HostV1 v1.64).
  *
  * Sits at top level rather than inside `geom/` for the same reason `color-tools.ts`
  * does: `geom/` is the kernel, this is the bridge over it. Nothing here does geometry
- * — every operation is delegated to `geom/*` verbatim. What this module actually owns
+ * - every operation is delegated to `geom/*` verbatim. What this module actually owns
  * is the three things that stand between a tool and that kernel:
  *
  * 1. **Currency.** Tools speak SVG path data. The kernel speaks `GeomPath` (contours
  *    of flat 8-number cubics). A tool cannot import `Cubic`, so `d` in / `d` out is
  *    the contract and the structured form is offered, not required.
- * 2. **Bounded parsing.** A `d` string reaching a tool is untrusted by default — it
+ * 2. **Bounded parsing.** A `d` string reaching a tool is untrusted by default - it
  *    can come from a paste, a URL param, or an imported SVG. `parseSvgPath` is a
  *    tokenizer built for the engine's own well-formed output: it is lenient, silently
  *    ignoring garbage and short argument runs. That is the right posture for a sink
  *    that already trusts its input and the wrong one here, so this module validates
- *    the grammar FIRST — size, command vocabulary, argument arity, number syntax,
- *    coordinate magnitude — and rejects rather than guesses. (See `validatePathData`.)
+ *    the grammar FIRST - size, command vocabulary, argument arity, number syntax,
+ *    coordinate magnitude - and rejects rather than guesses. (See `validatePathData`.)
  * 3. **Error shape.** The kernel THROWS `GeomLimitError` rather than return a
  *    plausible wrong answer, which is right for engine callers and wrong for hooks: a
  *    throw from `onInit`/`onInput` is caught, logged and DISCARDED by the runtime, so
  *    the user's pen tool would just stop responding with nothing on screen to say
  *    why. Every method here returns a discriminated result instead, with a `code`
- *    that keeps the kernel's distinctions intact — `'limit'` (cannot be answered) is
+ *    that keeps the kernel's distinctions intact - `'limit'` (cannot be answered) is
  *    never conflated with `'invalid-path'` (your input was wrong) or with `ok: true,
  *    d: ''` (the answer is legitimately empty).
  *
- * Pure, synchronous, DOM-free — every shell attaches this same object.
+ * Pure, synchronous, DOM-free - every shell attaches this same object.
  */
 import type {
   GeomAPI, GeomAuthoredPath, GeomBooleanOpts, GeomBox, GeomContour, GeomErrorCode,
@@ -66,7 +66,7 @@ const MAX_CURVES = 16_000;
 const MAX_PATHS = 64;
 const MAX_NODES = 20_000;
 /**
- * Coordinate magnitude. Not a canvas size — a guard on numbers that are corrupt
+ * Coordinate magnitude. Not a canvas size - a guard on numbers that are corrupt
  * rather than large: at 1e9 px the double still has ~1e-7 of resolution, while an
  * arc radius of 1e200 squares to Infinity inside the endpoint parameterisation and
  * every coordinate downstream of it becomes NaN.
@@ -125,7 +125,7 @@ function usableDecimals(dp: number | undefined): number {
  * exactly one thing: the answer exists and this engine declines to guess at it. Every
  * other throw is either a declared-but-unimplemented feature (the spline lowerings
  * say so in their message) or a defect, and the two are kept apart because a caller
- * does different things about them — pick another spline kind, versus file a bug.
+ * does different things about them - pick another spline kind, versus file a bug.
  */
 function attempt(run: () => GeomPathResult): GeomPathResult {
   try {
@@ -155,7 +155,7 @@ const CURVES_PER_GROUP: Record<string, number> = { M: 1, L: 1, H: 1, V: 1, C: 1,
 const NUM_RE = /[+-]?(?:\d+\.?\d*|\.\d+)(?:[eE][+-]?\d+)?/y;
 const FLAG_RE = /[01]/y;
 const SEP_RE = /[\s,]*/y;
-/** Characters a number token may begin with. Non-sticky and single-char — used only to
+/** Characters a number token may begin with. Non-sticky and single-char - used only to
  *  decide whether an argument run continues. */
 const NUM_START = /[0-9.+-]/;
 
@@ -163,13 +163,13 @@ const NUM_START = /[0-9.+-]/;
  * Validate an SVG `d` string against the grammar, bounded, before any parsing.
  *
  * Single forward pass, no backtracking and no recursion, so the cost is linear in the
- * string length and the stack depth is constant — the two properties the hostile-input
+ * string length and the stack depth is constant - the two properties the hostile-input
  * posture actually needs. It rejects, in order: oversized input, a first command that
  * is not a move, an unknown command letter, an argument run that is not a whole
  * number of groups, a number token that does not terminate (`1e`, `.`, `--3`), a
  * non-finite or absurd coordinate, and any character the grammar has no place for.
  *
- * Returns the command count on success — the caller uses it for nothing except a
+ * Returns the command count on success - the caller uses it for nothing except a
  * bound, but a bound that has already been paid for.
  */
 function validatePathData(d: string): { commands: number } | GeomFailure {
@@ -234,7 +234,7 @@ function validatePathData(d: string): { commands: number } | GeomFailure {
       if (!NUM_START.test(d[i]!)) break;
       for (let a = 0; a < arity; a++) {
         // Arc flags are single '0'/'1' characters that may abut the next number with
-        // no separator ("0110" is laf 0, swf 1, x 10) — the generic number tokenizer
+        // no separator ("0110" is laf 0, swf 1, x 10) - the generic number tokenizer
         // reads that as one number, so arcs need the grammar-aware form.
         const isFlag = C === 'A' && (a === 3 || a === 4);
         const v = isFlag ? flag() : number();
@@ -264,7 +264,7 @@ function validatePathData(d: string): { commands: number } | GeomFailure {
  * `svg-path.ts` (the engine's one tokenizer, shared with the PDF/EMF/EPS/DXF sinks):
  * Q/T raise to a cubic by the standard degree elevation (control points at ⅔ of the
  * way from each endpoint to the quadratic's control), which is exact; A decomposes by
- * the SVG spec's endpoint parameterisation (F.6.5 — out-of-range radii scaled up per
+ * the SVG spec's endpoint parameterisation (F.6.5 - out-of-range radii scaled up per
  * F.6.6) into one cubic per ≤90° sweep with the k = 4/3·tan(Δθ/4) tangent scaling,
  * which is the standard circular-arc approximation and is exact at both endpoints and
  * in tangent direction there. H/V and the S/T reflections are exact by definition.
@@ -293,7 +293,7 @@ function parsePath(d: unknown): GeomPath | GeomFailure {
   return path;
 }
 
-/** Several operands at once — the selection shape every boolean takes. */
+/** Several operands at once - the selection shape every boolean takes. */
 function parsePaths(ds: unknown): GeomPath[] | GeomFailure {
   if (!Array.isArray(ds)) return fail('invalid-argument', 'geom: expected an array of path-data strings');
   if (ds.length === 0) return fail('invalid-argument', 'geom: no paths given');
@@ -541,7 +541,7 @@ export function makeGeomApi(): GeomAPI {
         total += src.nodes.length;
         if (total > MAX_NODES) return fail('too-large', `geom: ${total} nodes (limit ${MAX_NODES})`);
         // Validate every node through the SAME gate `fromNodes` uses, so a path that
-        // encodes is a path that lowers — an encoded value that cannot be rendered
+        // encodes is a path that lowers - an encoded value that cannot be rendered
         // would be a link the recipient can only look at.
         const nodes: SplineNode[] = [];
         for (const n of src.nodes) {
@@ -629,7 +629,7 @@ export function makeGeomApi(): GeomAPI {
     },
 
     /**
-     * Nearest point, by projecting onto every curve and keeping the closest — the
+     * Nearest point, by projecting onto every curve and keeping the closest - the
      * kernel's own `nearestOnCubic` (bracket then Newton on the squared-distance
      * derivative), so the answer is computed FROM the curve rather than sampled near
      * it, and the `t` it reports is the parameter to split at to insert a node.

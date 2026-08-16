@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
- * Contract tests for the Redact tool (community/redact/) — the REAL on-disk
+ * Contract tests for the Redact tool (community/redact/) - the REAL on-disk
  * hooks.js is executed, both directly (a `new Function('host', …)` harness,
  * the same shape the engine loader uses) and end-to-end via createRuntime
  * with the real manifest + template.
@@ -48,7 +48,7 @@ function loadHooks(): any {
 // The raster export gate is three pure functions the hook keeps private
 // (residualRasterMetadata / verifyRasterOutput scan OUTPUT bytes; the pieces
 // they use are the same scanners the analysis runs). They need no canvas, so
-// they are directly testable — reach them through a second harness over the
+// they are directly testable - reach them through a second harness over the
 // same source rather than leaving the one gate that guards every image export
 // with no coverage at all.
 function loadGate(): any {
@@ -60,7 +60,7 @@ function loadGate(): any {
 }
 
 // The node-geometry maths (snap-to-cover, partial coverage) plus the inline-SVG
-// preparation and the node addressing. All pure — no DOM anywhere — which is
+// preparation and the node addressing. All pure - no DOM anywhere - which is
 // the whole point of keeping them in the hook rather than in the canvas script.
 function loadGeom(): any {
   const factory = new Function(
@@ -75,7 +75,7 @@ function loadGeom(): any {
 }
 
 // The template's @geom-mirror block, evaluated on its own. It has to be pure
-// (no DOM, no closure over the script above) for this to work at all — which is
+// (no DOM, no closure over the script above) for this to work at all - which is
 // itself part of what this pins.
 function loadTemplateGeom(): any {
   const m = /@geom-mirror-start([\s\S]*?)@geom-mirror-end/.exec(TEMPLATE);
@@ -89,7 +89,7 @@ function loadTemplateGeom(): any {
 
 // The template's @resnap-plan block: the decision about which bars still have
 // to be measured against the page. It runs on top of the mirror, so both blocks
-// are evaluated together. Pure by construction — jsdom answers every
+// are evaluated together. Pure by construction - jsdom answers every
 // getBoundingClientRect with zeroes, so the DOM wiring around this cannot be
 // tested off-browser, but the decision that can leak is exactly this.
 function loadTemplateResnap(): any {
@@ -164,7 +164,7 @@ function buildExifTiff(): Uint8Array {
   return buf;
 }
 
-// JPEG: SOI + APP1/EXIF(GPS) + SOS + scan data + EOI, then trailing garbage —
+// JPEG: SOI + APP1/EXIF(GPS) + SOS + scan data + EOI, then trailing garbage - 
 // the aCropalypse shape (bytes past the terminator).
 function buildGpsJpegWithTrailer(trailerLen = 64): Uint8Array {
   const tiff = buildExifTiff();
@@ -197,7 +197,7 @@ function ihdr(w: number, h: number): Uint8Array {
   const d = new Uint8Array(13);
   const dv = new DataView(d.buffer);
   dv.setUint32(0, w); dv.setUint32(4, h);
-  d[8] = 8; d[9] = 6; // bit depth / colour type — irrelevant to the scanners
+  d[8] = 8; d[9] = 6; // bit depth / colour type - irrelevant to the scanners
   return d;
 }
 
@@ -260,7 +260,7 @@ test('redact: classifies JPEG/PNG/WebP/SVG/PDF by magic bytes, junk stays unsupp
   const kindOf = async (name: string, mime: string, bytes: Uint8Array) =>
     (await hooks.onInit({ model: modelFor(fileRef(name, mime, bytes)), host: BARE_HOST })).kind;
 
-  // The declared mime is a lie in every case — magic bytes must win.
+  // The declared mime is a lie in every case - magic bytes must win.
   assert.equal(await kindOf('a.bin', 'application/octet-stream', buildGpsJpegWithTrailer()), 'JPEG');
   assert.equal(await kindOf('b.bin', 'application/octet-stream', buildDirtyPng()), 'PNG');
   assert.equal(await kindOf('c.bin', 'application/octet-stream', buildAnimWebp()), 'WebP');
@@ -355,7 +355,7 @@ test('redact: vectorMode is true only for an SVG with the toggle on, and softens
     host: BARE_HOST,
   });
   assert.equal(svgOn.vectorMode, true);
-  // Vector mode DELETES what a bar touches now, so the copy says so — the old
+  // Vector mode DELETES what a bar touches now, so the copy says so - the old
   // "covers, does not delete" wording would be the one false sentence left.
   assert.match(svgOn.coverageText, /will delete what it touches and cover about \d+% of the frame\./);
   assert.doesNotMatch(svgOn.coverageText, /repaint/);
@@ -402,7 +402,7 @@ test('redact: hooks never mutate the input bytes', async () => {
   const f = fileRef('beach.jpg', 'image/jpeg', jpeg);
 
   await hooks.onInit({ model: modelFor(f), host: BARE_HOST });
-  // The raster export path throws headless — the input must still be intact.
+  // The raster export path throws headless - the input must still be intact.
   await assert.rejects(() => hooks.exportFile({ model: modelFor(f), host: BARE_HOST }));
   assert.deepEqual(Array.from(jpeg), before);
 
@@ -439,7 +439,7 @@ test('redact: SVG vector export removes metadata/comments/scripts and appends op
   assert.match(out, /<text x="10" y="50">Visible caption<\/text>/);
   assert.match(out, /viewBox="0 0 200 100"/);
   // The bar: 20..70 x 30..50, inflated 2px each side, width quantised UP to the
-  // 24px grid (54 → 72, centred) → x 9, y 28, 72x24 — the neutral ink at full
+  // 24px grid (54 → 72, centred) → x 9, y 28, 72x24 - the neutral ink at full
   // opacity (no brand is loaded on BARE_HOST, so the fallback stands in).
   assert.match(out, /<rect x="9" y="28" width="72" height="24" fill="#14161a" fill-opacity="1"\/>/);
 });
@@ -458,7 +458,7 @@ test('redact: SVG vector export works with no bars (still strips hidden data)', 
 // ─── exportFile: failures throw sentences, nothing downloads ─────────────────
 
 test('redact: vector-mode verification failure throws a sentence when removed content survives', async () => {
-  // The comment's token also appears in visible text — the gate must catch the
+  // The comment's token also appears in visible text - the gate must catch the
   // survivor and refuse to hand bytes back.
   const tricky = `<!-- ZEBRAWORD -->
 <svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 100 100">
@@ -582,7 +582,7 @@ test('redact: analyzer findings on the rebuilt PDF fail the export', async () =>
 });
 
 test('redact: the structural Pages finding alone never fails the gate', async () => {
-  // The analyzer inventories the page count of EVERY valid PDF — a rebuild can
+  // The analyzer inventories the page count of EVERY valid PDF - a rebuild can
   // never scan clean of it, so treating it as a leak made PDF export always fail.
   const hooks = loadHooks();
   const res = await hooks.exportFile({
@@ -594,7 +594,7 @@ test('redact: the structural Pages finding alone never fails the gate', async ()
 
 // ─── the gate against the REAL analyzer (the shipped false-positive) ─────────
 
-// A 1x1 baseline JPEG — enough for pdf-lib's embedJpg to parse dimensions.
+// A 1x1 baseline JPEG - enough for pdf-lib's embedJpg to parse dimensions.
 const TINY_JPEG = new Uint8Array(Buffer.from(
   '/9j/4AAQSkZJRgABAQEAYABgAAD/2wBDAAgGBgcGBQgHBwcJCQgKDBQNDAsLDBkSEw8UHRofHh0a'
   + 'HBwgJC4nICIsIxwcKDcpLDAxNDQ0Hyc5PTgyPC4zNDL/wAALCAABAAEBAREA/8QAFAABAAAAAAAA'
@@ -616,7 +616,7 @@ test('redact: a real rebuild through the real analyzer passes the gate', async (
 });
 
 test('redact: the real analyzer still fails the gate on genuine metadata leaks', async () => {
-  // A "rebuild" that carries Info metadata — the class the gate exists to stop.
+  // A "rebuild" that carries Info metadata - the class the gate exists to stop.
   const { PDFDocument } = await import('pdf-lib');
   const { analyzePdf } = await import('../shells/web/src/bridge/pdf.ts');
   const doc = await PDFDocument.create();
@@ -653,7 +653,7 @@ test('redact: resign calls host.c2pa.sign with the contract shape and ships its 
   assert.ok(seen.bytes instanceof Uint8Array, 'sign receives bytes');
   assert.equal(seen.format, 'pdf', 'sign receives the format KEY, not an options object');
   assert.equal(typeof seen.opts.description, 'string');
-  // The signed bytes ship verbatim — even though signing legitimately added a
+  // The signed bytes ship verbatim - even though signing legitimately added a
   // second %%EOF (the gate ran on the unsigned rebuild, before signing).
   assert.deepEqual(Array.from(res.bytes), Array.from(SIGNED));
 });
@@ -696,7 +696,7 @@ test('redact: an absolute root size IS the natural size, and bars scale through 
   // 210mm is 793.7 natural pixels in an <img>, so the drawing surface reports a
   // 793.7-wide frame while the viewBox is 800 wide. Treating mm as "unresolvable"
   // put those two spaces 0.79% apart here, and 7.9x apart when the viewBox is
-  // 100 — enough for a bar to cover a different part of the page with the gate
+  // 100 - enough for a bar to cover a different part of the page with the gate
   // still green. Every absolute CSS unit has to resolve the way the browser does.
   const svg = '<svg xmlns="http://www.w3.org/2000/svg" width="210mm" height="157.5mm" viewBox="0 0 800 600">'
     + '<text x="380" y="300">SECRET</text></svg>';
@@ -765,7 +765,7 @@ const TWO_PAGES = {
 test('redact: pdfPages extras carry INLINE per-page SVG markup in PDF points', async () => {
   // The enabling change of this round: a page arrives as markup the template
   // inlines, NOT as an <img src="blob:…">. An SVG inside an <img> is a closed
-  // document — nothing outside it can read a node's painted bounds — so
+  // document - nothing outside it can read a node's painted bounds - so
   // snap-to-cover, the partial-coverage warning and vector deletion would all
   // be impossible. The whole object-URL lifecycle (create, track, revoke on a
   // delay) went with it: there is nothing left to revoke.
@@ -806,7 +806,7 @@ test('redact: a slow page render reports pagesPending, then a later pass picks u
   assert.equal(first.supported, true);
 
   // The job settles; the next pass (the template's poll re-committing bars)
-  // reads the cached result synchronously — no second host.pdf.pages call.
+  // reads the cached result synchronously - no second host.pdf.pages call.
   resolvePages(TWO_PAGES);
   await deferred;
   const second = await hooks.onInput({ id: 'bars', value: [], model, host });
@@ -925,7 +925,7 @@ test('redact (e2e): PDF pages render as frames in point space with the no-bars b
   assert.match(html, /class="rd-frame rd-pageframe" data-page="1" data-ptw="612" data-pth="792"/);
   assert.match(html, /class="rd-frame rd-pageframe" data-page="2"/);
   assert.match(html, /Page 2<\/span>/);
-  // Each page is INLINE svg in the frame, addressed for measurement — not an
+  // Each page is INLINE svg in the frame, addressed for measurement - not an
   // <img src="blob:…">, which would be a closed document with no readable node
   // bounds and no snap-to-cover, warning or deletion on top of it.
   assert.match(html, /<svg[^>]*class="rd-img"[^>]*data-rdsvg=""/);
@@ -1094,7 +1094,7 @@ test('redact gate: a clean canvas JPEG passes, every metadata segment class fail
   // ...but only when it really is one. An APP2 with any other payload fails.
   assert.match(residualRasterMetadata(jpegWith(JFIF, jpegSeg(0xE2, ascii('MPF\0secret'))), 'JPEG'), /APP2/);
 
-  // The whole APP1..APPF window is a hard failure — this is the assertion that
+  // The whole APP1..APPF window is a hard failure - this is the assertion that
   // stops anyone "just exempting" the segment a browser happens to add.
   for (let m = 0xE1; m <= 0xEF; m++) {
     const msg = residualRasterMetadata(jpegWith(JFIF, jpegSeg(m, ascii('Exif\0\0payload'))), 'JPEG');
@@ -1175,7 +1175,7 @@ test('redact: the quantise toggle reaches the PDF rebuild, in points', async () 
   // preview draws the 2-unit inflation whatever the toggle says, and the rebuild
   // inflates by two DEVICE pixels (0.72pt at 200 dpi), so leaving the inflation
   // to the far side painted a bar several points narrower than the one on
-  // screen — area the user watched go black, shipped readable.
+  // screen - area the user watched go black, shipped readable.
   await hooks.exportFile({ model: modelFor(src, { bars, quantise: false }), host });
   assert.deepEqual(seen[1].bars, [{ page: 1, x: 98, y: 48, w: 41, h: 16 }],
     'off drops the width grid, never the inflation');
@@ -1190,7 +1190,7 @@ test('redact: an SVG sized in physical units maps bars from the browser natural 
   // 210mm is 793.7 natural pixels in an <img> (96 dpi), NOT 210 and not the
   // viewBox's 100. The drawing surface measures against naturalWidth, so if the
   // hook falls back to the viewBox the two spaces differ by 7.937x and the bar
-  // covers a different region — silently, with the gate still passing.
+  // covers a different region - silently, with the gate still passing.
   const svg = '<svg xmlns="http://www.w3.org/2000/svg" width="210mm" height="105mm" viewBox="0 0 100 50">'
     + '<text x="5" y="20">SECRET</text></svg>';
   const S = 96 / 25.4 * 210 / 100; // natural px per viewBox unit
@@ -1259,7 +1259,7 @@ test('redact geom: a bar grows to the union of the nodes it is over — ONCE, no
 
   // THE BOUND, and the defect it fixes. Growth used to be transitive: reaching
   // node 0 made the bar reach node 1, then 2, and on a real page of body text
-  // that is a flood fill — a 20x20pt bar came back 455x286pt, and the requested
+  // that is a flood fill - a 20x20pt bar came back 455x286pt, and the requested
   // width was discarded entirely. Only what the ORIGINAL rectangle is over
   // counts, so the chain is cut at the first link.
   const chain = snapBarToNodes({ x: 0, y: 0, w: 2, h: 2 }, [
@@ -1327,7 +1327,7 @@ test('redact geom: growth is bounded by intent, deletion is bounded by paint', (
   const W = 600, H = 200;
   // Two words. The drawn bar is over the first only; the 2-unit inflation of the
   // GROWN box then clips the second. The bar must not grow to the second (that
-  // is the cascade), but it must still ADDRESS it — a vector export that painted
+  // is the cascade), but it must still ADDRESS it - a vector export that painted
   // over a word without deleting it would leave it extractable under the ink.
   const nodes = [box(20, 20, 40, 12), box(61, 20, 40, 12)];
   const s = snapBarToNodes({ x: 25, y: 24, w: 20, h: 4 }, nodes, (b: any) => effBox(b, W, H, false));
@@ -1339,7 +1339,7 @@ test('redact geom: snapping probes the PAINTED box, so inflation and quantise pu
   const { snapBarToNodes, effBox } = loadGeom();
   const W = 400, H = 200;
   // A word sitting just outside the drawn bar, but inside the 2px inflation the
-  // export paints. It gets covered either way — so it must also be DELETED,
+  // export paints. It gets covered either way - so it must also be DELETED,
   // which only happens if the probe is the painted box and not the raw drag.
   const near = box(51, 10, 20, 10);
   const raw = { x: 10, y: 10, w: 40, h: 10 };
@@ -1398,7 +1398,7 @@ test('redact geom: the partial warning reports OVERLAP, not adjacency', () => {
   // clipping a neighbour it was never aimed at, and that neighbour IS reported:
   // to a reader of the output, half a blacked-out word is half a blacked-out
   // word whoever aimed at it, and in vector mode the clipped neighbour is
-  // deleted outright. What is NOT reported is a node the bar merely abuts —
+  // deleted outright. What is NOT reported is a node the bar merely abuts - 
   // nothing of it is covered, so there is nothing to say about it, and on body
   // text every line has two such neighbours and the toast would be permanent.
   const bar = box(0, 0, 50, 20);
@@ -1415,7 +1415,7 @@ test('redact geom: the partial warning reports OVERLAP, not adjacency', () => {
 });
 
 test('redact geom: the template mirror and the hook agree, case by case', () => {
-  // template.html has to carry its own copy of the maths — the measuring
+  // template.html has to carry its own copy of the maths - the measuring
   // happens where the DOM is, mid-gesture, and a sandboxed hook cannot be
   // called there. This is the guard that stops the two drifting.
   const hook = loadGeom();
@@ -1500,7 +1500,7 @@ test('redact resnap: a bar that arrived unmeasured is snapped to cover and addre
   assert.ok(got.x + got.w >= 95 && got.y + got.h >= 50, 'grew down and right past the second');
   // And it carries the addresses vector export deletes, in sorted order.
   assert.deepEqual(parseNodeMarks(got.n), [0, 1]);
-  // The original array is never mutated — the caller commits the copy.
+  // The original array is never mutated - the caller commits the copy.
   assert.equal(thin.n, undefined);
   assert.equal((thin as any).w, 80);
 });
@@ -1545,7 +1545,7 @@ test('redact resnap: a measured bar that leaves a node partly covered is REPORTE
 
   // Measured once, then edited in the sidebar until it only half-covers the
   // node. Re-growing it here used to be the correction; with growth bounded to
-  // one pass it becomes the creep instead — a bar whose inflation clips its
+  // one pass it becomes the creep instead - a bar whose inflation clips its
   // neighbour would be regrown into it, clip the next one, and walk across the
   // line a render at a time. So the geometry is the user's and stays put, and
   // the partial coverage is what gets raised.
@@ -1578,7 +1578,7 @@ test('redact resnap: other pages, zero-area rows and raster frames are untouched
   assert.equal(resnap.plan(bars, 1, nodes, W, H, eff).changed, false);
 
   // Flat pixels have no elements, so neither snap-to-cover nor the addresses
-  // can exist there — and the tool's copy says exactly that.
+  // can exist there - and the tool's copy says exactly that.
   assert.equal(resnap.plan([{ page: 1, x: 12, y: 32, w: 80, h: 4 }], 1, [], W, H, eff).changed, false);
 });
 
@@ -1602,7 +1602,7 @@ test('redact resnap: a long row of abutting glyph boxes is NOT swallowed, and do
   const resnap = loadTemplateResnap();
   const W = 4000, H = 150;
   const eff = (b: any) => resnapGeom().effBox(b, W, H, false, 2, 24);
-  // 40 abutting glyph boxes — the shape that used to run away. Whether growth
+  // 40 abutting glyph boxes - the shape that used to run away. Whether growth
   // was capped (a bar that crept outward one commit per render) or run to a
   // fixed point (a bar that swallowed all 40 at once), the row decided the
   // answer instead of the drag. Now the drag does.
@@ -1619,7 +1619,7 @@ test('redact resnap: a long row of abutting glyph boxes is NOT swallowed, and do
   const third = resnap.plan(second.next, 1, nodes, W, H, eff);
   assert.equal(third.changed, false);
 
-  // A wider drag over the same row takes more of it — the row is not what
+  // A wider drag over the same row takes more of it - the row is not what
   // decides the width.
   const wide = resnap.plan([{ page: 1, x: 12, y: 32, w: 200, h: 4 }], 1, nodes, W, H, eff);
   assert.ok(wide.next[0].w > first.next[0].w * 3, 'the drag decides, not the chain');
@@ -1645,7 +1645,7 @@ test('redact resnap: one array threaded through several pages keeps every correc
   const afterP2 = resnap.plan(afterP1.next, 2, nodesP2, W, H, eff);
   assert.equal(afterP2.changed, true);
 
-  // Both rows are measured in the SAME array — page 1's correction survived
+  // Both rows are measured in the SAME array - page 1's correction survived
   // page 2's pass.
   assert.equal(resnap.measured(afterP2.next[0]), true, 'page 1 stayed corrected');
   assert.equal(resnap.measured(afterP2.next[1]), true, 'page 2 was corrected too');
@@ -1924,7 +1924,7 @@ test('redact mark: the brand\'s dark tone becomes the ink, with a neutral near-b
     return patch.barInk;
   };
 
-  // SUSE's own semantic text token is Pine — exactly Andy's "dark muted colour".
+  // SUSE's own semantic text token is Pine - exactly Andy's "dark muted colour".
   assert.equal(await inkFor(tokenHost([SEMANTIC('color.semantic.text', '#0C322C')])), '#0c322c');
   // Falls back down the list, then to the neutral ink.
   assert.equal(await inkFor(tokenHost([SEMANTIC('color.semantic.primary', '#123456')])), '#123456');
@@ -1943,7 +1943,7 @@ test('redact mark: translucency is refused everywhere, colour is not', () => {
   const { normaliseInk } = loadGeom();
   // Colour is security-neutral: any fully opaque fill destroys the pixels under
   // it equally. Alpha is NOT neutral, so nothing below full opacity may become
-  // an ink — and an unreadable value must come back null rather than be passed
+  // an ink - and an unreadable value must come back null rather than be passed
   // through, because assigning it to a canvas fillStyle is a silent no-op that
   // would leave the previous fill (white) painting bars that redact nothing.
   assert.equal(normaliseInk('#0C322C'), '#0c322c');
@@ -2085,7 +2085,7 @@ test('redact mark: a stamp that would repeat deleted content fails with its own 
   const hooks = loadHooks();
   // The only user-typed string this export appends is the stamp. Telling the
   // user to change it is a far more useful failure than "this file could not be
-  // redacted" — and it still fails closed, so nothing downloads either way.
+  // redacted" - and it still fails closed, so nothing downloads either way.
   const svg = '<svg xmlns="http://www.w3.org/2000/svg" width="200" height="100" viewBox="0 0 200 100">'
     + '<!-- CONFIDENTIAL --><text x="10" y="50">Visible</text></svg>';
   await assert.rejects(
@@ -2158,11 +2158,11 @@ test('redact (e2e): a multi-page PDF scrolls inside the stage with a page indica
   const html = rt.getHydrated();
   // The page stack lives in its OWN bounded scroller. Without it the canvas
   // grows to the summed height of every page and the shell scales the whole
-  // document down to fit the stage — the unreadable strip this replaces.
+  // document down to fit the stage - the unreadable strip this replaces.
   assert.match(html, /<div class="rd-scroll" data-page-scroll>/);
   assert.match(html, /class="rd-frame rd-pageframe" data-page="1"/);
   assert.match(html, /class="rd-frame rd-pageframe" data-page="3"/);
-  // A quiet cue plus two buttons — a page frame sets touch-action:none, so a
+  // A quiet cue plus two buttons - a page frame sets touch-action:none, so a
   // finger on the page draws a bar and cannot scroll the list.
   assert.match(html, /<span class="rd-pagenow" data-page-now aria-live="polite">Page 1 of 3<\/span>/);
   assert.match(html, /<button type="button" class="rd-rail-btn" data-page-step="-1"/);
@@ -2241,7 +2241,7 @@ test('redact: a deleted <use> takes its top-level <symbol> master with it', asyn
   const { prepareInlineSvg } = loadGeom();
   // The sprite idiom: the master is a <symbol> at the top level, NOT a <defs>
   // child, so a sweep scoped to <defs> left the text in the file with the
-  // export gate silent — the <use> it deleted carries no text of its own.
+  // export gate silent - the <use> it deleted carries no text of its own.
   const sprite = `<svg xmlns="http://www.w3.org/2000/svg" width="200" height="100" viewBox="0 0 200 100">
   <symbol id="sec"><text x="0" y="10">TOPSECRETNAME</text></symbol>
   <use href="#sec" x="10" y="20"/>
@@ -2271,14 +2271,14 @@ test('redact resnap: a settled bar\'s addresses are rewritten to what it touches
 
   // Moved in the sidebar (or applied to the next file of a batch) so it now
   // fully contains a DIFFERENT node while still claiming the old one. Left
-  // alone, vector export deletes node 7 — nowhere near a bar — and paints an
+  // alone, vector export deletes node 7 - nowhere near a bar - and paints an
   // opaque rect over node 41, whose text stays in the file, recoverable in a
   // text editor, with the gate green because it only greps what was removed.
   const moved = { page: 1, x: 5, y: 15, w: 55, h: 45, n: 'm:7' };
   const out = resnap.plan([moved], 1, nodes, W, H, eff);
   assert.equal(out.changed, true, 'a stale address is a leak, measured or not');
   assert.deepEqual(parseNodeMarks(out.next[0].n), [41]);
-  // The geometry is the user's and is not touched — only the addresses were wrong.
+  // The geometry is the user's and is not touched - only the addresses were wrong.
   assert.equal(out.next[0].x, 5);
   assert.equal(out.next[0].w, 55);
   // And it settles in one pass, like every other correction.
@@ -2325,7 +2325,7 @@ test('redact: the mirrored backdrop rule matches the hook\'s, case by case', () 
 
 test('redact (e2e): the snap-to-cover promise is only made for a file that can be measured', async () => {
   // An SVG whose root declares neither a px width/height pair nor a viewBox has
-  // no size the hook can map bars into, so it falls back to the <img> preview —
+  // no size the hook can map bars into, so it falls back to the <img> preview - 
   // where nothing can be measured. isRaster is still false, so the hint used to
   // promise a bar "can never clip a word in half" for a file where no bar ever
   // grows. Absent a measurable frame, the tool says what it actually does.

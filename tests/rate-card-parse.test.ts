@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
- * parseRateCard — the reader for a dropped printer's rate card. No arithmetic
+ * parseRateCard - the reader for a dropped printer's rate card. No arithmetic
  * and no currency is exercised here (there is none in the module yet, Phase 3);
  * this covers parsing, the injected-schema gate, the extra-schema invariants, the
  * three refusals, and rule 10 (no fixture/doc/brand-pack card carries a numeric
@@ -28,7 +28,7 @@ const ajv = new Ajv({ allErrors: true, strict: false });
 const rateCardSchema = JSON.parse(readFileSync(join(ROOT, 'schemas/ratecard.schema.json'), 'utf8'));
 const validate = ajv.compile(rateCardSchema);
 
-/** Accept anything — used to reach parseRateCard's OWN defensive checks
+/** Accept anything - used to reach parseRateCard's OWN defensive checks
  *  independent of the strict schema (a looser injected validator is a real case:
  *  a bad field must degrade the LINE, not the whole card). */
 const permissive = (): boolean => true;
@@ -37,7 +37,7 @@ const digestOf = (s: string): string =>
   createHash('sha256').update(Buffer.from(s, 'utf8')).digest('hex').slice(0, 16);
 
 /** A minimal card that PASSES the strict schema (every rate is a number). Used
- *  only in tests — never shipped as a fixture (rule 10). */
+ *  only in tests - never shipped as a fixture (rule 10). */
 function validCardJson(overrides: Record<string, unknown> = {}): string {
   return JSON.stringify({
     $format: 'lolly-ratecard',

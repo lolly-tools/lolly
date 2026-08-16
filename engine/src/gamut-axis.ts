@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
- * How high a CHROMA AXIS has to reach for a given gamut — the one number every
- * chroma scale in the UI is drawn against.
+ * How high a CHROMA AXIS has to reach for a given gamut. This is the one number
+ * every chroma scale in the UI is drawn against.
  *
  * A flat ceiling cannot serve three gamuts at once. Chroma is not bounded by
  * anything intrinsic (OKLCH will happily name c = 2), so an axis maximum is a
@@ -10,11 +10,11 @@
  * directions at once: at 0.4 the top fifth of an sRGB chart can never contain a
  * colour, which squashes the envelope into the lower half and doubles how much
  * chroma a given mouse move covers, while Rec.2020's green and magenta spikes run
- * past 0.4 and get drawn with flat tops — the chart running out of axis and
- * looking like a property of the gamut.
+ * past 0.4 and get drawn with flat tops. The chart runs out of axis and looks
+ * like a property of the gamut.
  *
  * So the ceiling is derived from the gamut, by asking {@link maxChroma} over the
- * whole lightness × hue field. Two properties matter as much as the number:
+ * whole lightness x hue field. Two properties matter as much as the number:
  *
  *  - It depends on the LIMIT ONLY, never on the colour being edited. A ceiling
  *    that tracked the maximum at the current lightness would rescale the axis
@@ -22,8 +22,8 @@
  *  - It is derived rather than tabulated per name, because a limit may be an ICC
  *    press profile ({@link GamutSource}) and not one of the three display gamuts.
  *
- * The sweep is memoised by `gamutSourceId`, so it runs once per gamut per session
- * — never per frame.
+ * The sweep is memoised by `gamutSourceId`, so it runs once per gamut per session,
+ * never per frame.
  *
  * Pure and deterministic (the cache is a memo of a pure function): no Date, no
  * Math.random, no IO.
@@ -35,20 +35,20 @@ import type { GamutLimit } from './gamut-source.ts';
 
 /**
  * Headroom above the true peak, so the boundary is visibly INSIDE the plot
- * instead of grazing the frame — a spike that touches the top edge reads as
+ * instead of grazing the frame. A spike that touches the top edge reads as
  * clipped whether or not it is.
  */
 const AXIS_HEADROOM = 1.05;
 
 /** Granularity the ceiling is rounded UP to. Fine enough that the headroom stays
  *  small (no dead band at the top of an sRGB chart), coarse enough that the
- *  number reads as a number: 0.34, 0.38, 0.50. */
+ *  number reads as a round number: 0.34, 0.38, 0.50. */
 const AXIS_GRAIN = 0.02;
 
 /**
  * Tick steps worth labelling a chroma axis with, smallest first. A step is chosen
  * from this ladder rather than computed as `cMax / 4`, so the labels stay round
- * (0.10, 0.20, …) whatever the ceiling turns out to be.
+ * (0.10, 0.20, and so on) whatever the ceiling turns out to be.
  */
 const TICK_STEPS = [0.005, 0.01, 0.02, 0.025, 0.05, 0.1, 0.2, 0.5, 1] as const;
 
@@ -58,20 +58,20 @@ const TICK_TARGET = 5;
 const PEAK_CACHE = new Map<string, number>();
 
 /**
- * The highest chroma this gamut reaches anywhere — over every lightness and every
+ * The highest chroma this gamut reaches anywhere: over every lightness and every
  * hue, not at the colour in hand.
  *
  * The coarse stage is the PAINTER's ceiling grid (`gamutCeilingPeak`), not a
- * sweep of its own. This function used to run a 48×90 sweep of exactly the same
+ * sweep of its own. This function used to run a 48x90 sweep of exactly the same
  * `maxChroma` surface the slice painter tabulates, so a press profile paid for
- * two full boundary searches to draw one chart. Sharing the table makes an axis
- * ceiling cost only the local refinement — and, for an ICC source, the table has
+ * two full boundary searches to draw one chart. Sharing the table means an axis
+ * ceiling costs only the local refinement. For an ICC source, the table also has
  * to exist anyway before a single pixel can be painted.
  *
- * The refinement is a local search inside one grid cell either way at ~8x the
- * resolution: the boundary surface is smooth in both L and h, so the true peak
- * cannot be far from the grid's argmax. Memoised, so the cost is paid once per
- * gamut.
+ * The refinement is a local search inside one grid cell either way at about 8x
+ * the resolution: the boundary surface is smooth in both L and h, so the true
+ * peak cannot be far from the grid's argmax. Memoised, so the cost is paid once
+ * per gamut.
  */
 export function peakChroma(limit: GamutLimit): number {
   const id = gamutSourceId(limit);
@@ -97,8 +97,8 @@ export function peakChroma(limit: GamutLimit): number {
  * The ceiling a chroma axis drawn against this gamut should use: the peak plus a
  * little headroom, rounded up to a readable step.
  *
- * Everything that scales chroma — the 2D slice charts, the L/C/H sliders, the
- * typed number inputs and the axis ticks — must use THIS number, or they disagree
+ * Everything that scales chroma (the 2D slice charts, the L/C/H sliders, the
+ * typed number inputs and the axis ticks) must use THIS number, or they disagree
  * about where a colour sits.
  */
 export function chromaAxisMax(limit: GamutLimit): number {
@@ -111,7 +111,7 @@ export function chromaAxisMax(limit: GamutLimit): number {
 }
 
 /**
- * The spacing to label a chroma axis of this height at — a round number from
+ * The spacing to label a chroma axis of this height at: a round number from
  * {@link TICK_STEPS}, not `cMax / 4`, so the labels are 0.10 / 0.20 / 0.30 rather
  * than 0.085 / 0.17 / 0.255.
  */

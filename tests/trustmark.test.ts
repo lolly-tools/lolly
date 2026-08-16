@@ -3,16 +3,16 @@
  * TrustMark BCH data-layer tests (engine/src/trustmark.ts).
  * Run with: node --test tests/trustmark.test.ts
  *
- * How REAL_VECTORS / BOUNDARY_VECTORS / NOISE_VECTORS below were produced —
+ * How REAL_VECTORS / BOUNDARY_VECTORS / NOISE_VECTORS below were produced - 
  * NOT hand-written, NOT this module's own output echoed back at itself:
  *
  *   1. Fetched `python/trustmark/bchecc.py` (the BCH engine) and
  *      `python/trustmark/datalayer.py` (the schema/version framing) verbatim
- *      from github.com/adobe/trustmark @ main (MIT-licensed — see
+ *      from github.com/adobe/trustmark @ main (MIT-licensed - see
  *      engine/src/trustmark.ts's header for the full notice).
  *   2. bchecc.py has zero external dependencies and ran as-is. datalayer.py
  *      imports numpy only to wrap plain str/bytearray operations in an array
- *      shape its own encode/decode methods never actually need — those exact
+ *      shape its own encode/decode methods never actually need - those exact
  *      operations (raw_payload_split, process_encode, the decode framing)
  *      were reimplemented one-for-one in a small numpy-free Python harness
  *      calling the SAME unmodified bchecc.BCH class.
@@ -26,13 +26,13 @@
  *   4. Every one of those (216 total incl. the 200-sample sweep) was then run
  *      through THIS FILE's `decodeTrustmarkPayload` and compared byte-for-
  *      byte against the Python reference's answer before this suite was
- *      written — 216/216 matched, including the reference's own single
+ *      written - 216/216 matched, including the reference's own single
  *      random false-accept (NOISE_VECTORS' one `valid: true` row). This test
  *      file embeds a representative slice of that cross-check as permanent
  *      regression coverage, not the full 216 (excessive for a unit suite).
  *
  * This validates the BCH/ECC bit-level math against Adobe's own algorithm.
- * It does NOT validate the neural decoder (pixels → 100 raw bits) — no ONNX
+ * It does NOT validate the neural decoder (pixels → 100 raw bits) - no ONNX
  * model, image, or browser is available in this environment. See
  * shells/web/src/lib/trustmark.ts's header for that half of the picture.
  */
@@ -44,7 +44,7 @@ import {
   TRUSTMARK_PAYLOAD_BITS,
 } from '../engine/src/trustmark.ts';
 
-// Deterministic PRNG — tests must not depend on Math.random (project convention;
+// Deterministic PRNG - tests must not depend on Math.random (project convention;
 // see tests/steganalysis.test.ts).
 function lcg(seed: number): () => number {
   let s = seed;
@@ -57,7 +57,7 @@ function bitsFromString(s: string): number[] {
 
 // ─── Real vectors, generated from Adobe's OWN unmodified reference implementation ──
 // (python/trustmark/{bchecc,datalayer}.py fetched from github.com/adobe/trustmark @
-// main, MIT-licensed) via the harness described in this file's header — an
+// main, MIT-licensed) via the harness described in this file's header - an
 // independent oracle, not this port's own output. Regenerate if TrustMark's
 // reference ever changes its bit layout.
 interface RealVector {
@@ -101,7 +101,7 @@ const REAL_VECTORS: RealVector[] = [
   },
 ];
 
-// Exactly t+1 bit errors (one past the guaranteed-correctable radius) — the reference
+// Exactly t+1 bit errors (one past the guaranteed-correctable radius) - the reference
 // rejects all four; a real BCH code is not obligated to (bounded-distance decoding
 // only GUARANTEES correction up to t, not rejection beyond it), so this is an
 // empirical-match check against the reference, not a mathematical necessity.
@@ -113,9 +113,9 @@ const BOUNDARY_VECTORS: Array<{ version: number; corrupted: string; refValid: bo
 ];
 
 // Pure random 100-bit noise (no relation to any valid packet), decoded exactly as
-// decodeTrustmarkPayload would in production — read whatever schema the trailing 2
+// decodeTrustmarkPayload would in production - read whatever schema the trailing 2
 // bits happen to name, decode only that. 26 of the reference's 200-sample sweep,
-// selected to include its ONE false accept (a real, expected BCH property — a
+// selected to include its ONE false accept (a real, expected BCH property - a
 // t-error-correcting code occasionally decodes unstructured noise to some valid
 // codeword by chance; the reference's own rate here is 1/200 = 0.5%). Each row's
 // `valid`/`data` is the REFERENCE's answer, not a hand-picked expectation.
@@ -205,13 +205,13 @@ test('decodeTrustmarkPayload: pure random noise is classified exactly as the ref
     }
   }
   // Confirms the fixture actually exercises the false-accept row (not just 25
-  // rejections) — a t-error-correcting BCH code IS expected to occasionally
+  // rejections) - a t-error-correcting BCH code IS expected to occasionally
   // accept unstructured noise; the point of this suite is that our port's
   // rate of doing so matches the reference's, not that it never happens.
   assert.equal(sawTheKnownFalseAccept, true);
 });
 
-// ─── Input-shape guards (no reference needed — pure length/bounds checks) ───
+// ─── Input-shape guards (no reference needed - pure length/bounds checks) ───
 
 test('decodeTrustmarkPayload: wrong-length input is rejected without throwing', () => {
   for (const len of [0, 1, 99, 101, 1000]) {
@@ -235,14 +235,14 @@ test('TRUSTMARK_PAYLOAD_BITS is 100 (96 data+ecc + 4 version bits, per the refer
 
 // ─── Low-level BCH engine: structural invariants (this module's own encode+decode) ──
 // These exercise createBchEngine/bchEncode/bchDecode directly (not through the
-// datalayer framing above), across freshly-generated random payloads — a second,
+// datalayer framing above), across freshly-generated random payloads - a second,
 // independent angle on the same "corrects up to t, rejects beyond it" property,
 // this time generated and checked entirely within this port rather than against
 // an external oracle.
 
 test('BCH engine: eccBits/eccBytes match the reference for every TrustMark schema', () => {
   // GF(2^7) (n=127) is what poly=137 actually builds (see engine/src/trustmark.ts's
-  // header) — these figures come straight from running Adobe's own bchecc.py.
+  // header) - these figures come straight from running Adobe's own bchecc.py.
   const expected = [
     { t: 8, eccBits: 56, eccBytes: 7 },
     { t: 5, eccBits: 35, eccBytes: 5 },
@@ -262,7 +262,7 @@ test('BCH engine: a valid codeword (zero corruption) decodes with zero reported 
   const rnd = lcg(99);
   for (const t of [8, 5, 4, 3]) {
     const engine = createBchEngine(t, 137);
-    const dataLen = 8; // bytes — arbitrary, well within this engine's capacity
+    const dataLen = 8; // bytes - arbitrary, well within this engine's capacity
     const data = Array.from({ length: dataLen }, () => Math.floor(rnd() * 256));
     const ecc = bchEncode(engine, data);
     const flips = bchDecode(engine, data.slice(), ecc.slice());

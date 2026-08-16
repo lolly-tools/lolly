@@ -399,3 +399,90 @@ test('block 2 seeds tools that exist on every profile and touch no network', () 
     }
   }
 });
+
+// ── 6. banned overclaims across the docs (the honesty glass-jaw, plan 116 §5) ─
+
+/**
+ * Absolute claims the honesty doctrine forbids anywhere in the docs, because no
+ * mechanism backs them. Content Credentials are tamper-EVIDENT, not tamper-proof,
+ * and they are strippable. The network claim is "nothing you make leaves unless
+ * you asked", never "nothing is transmitted". Precise, true statements about a
+ * specific mechanism (a signature that cannot be forged, a channel a human
+ * verifies) are deliberately NOT here: a regex cannot tell those from an
+ * overclaim, so this list holds only phrasings that are false in every context.
+ */
+const BANNED_OVERCLAIMS: Array<[string, RegExp]> = [
+  ['tamper-proof', /tamper[-\s]?proof/i],
+  ['nobody can pass … off', /nobody can pass\b/i],
+  ['nothing is transmitted', /nothing is transmitted/i],
+  ['no data ever leaves', /no data ever leaves/i],
+  ['cannot be intercepted', /cannot be intercepted/i],
+];
+
+test('no banned overclaims anywhere in the docs sources', () => {
+  const docsDir = resolve(repoRoot, 'docs');
+  const files = readdirSync(docsDir).filter(f => f.endsWith('.md')).map(f => `docs/${f}`);
+  files.push('README.md');
+  const failures: string[] = [];
+  for (const rel of files) {
+    read(rel).split('\n').forEach((line, i) => {
+      for (const [label, re] of BANNED_OVERCLAIMS) {
+        if (re.test(line)) failures.push(`${rel}:${i + 1} overclaims "${label}": ${line.trim().slice(0, 80)}`);
+      }
+    });
+  }
+  // The landing copy composed in build.ts (its t() literals) too.
+  for (const copy of tLiterals(landingRegion())) {
+    for (const [label, re] of BANNED_OVERCLAIMS) {
+      if (re.test(copy)) failures.push(`docs/build.ts landing overclaims "${label}": ${copy}`);
+    }
+  }
+  assert.deepEqual(failures, [], 'a banned overclaim reached the docs - Content Credentials are tamper-EVIDENT and strippable, and the network claim is consent-gated, never absolute');
+});
+
+// ── 7. the consent ledger agrees with the CSP allowlist (plan 116 §5) ─────────
+
+/**
+ * The privacy.md network table is the consent ledger. Its fixed hosts must equal
+ * the app's Content-Security-Policy connect-src / media-src allowlist exactly. A
+ * host in one but not the other means the ledger drifted from the code, and the
+ * ledger is a claim readers rely on. The two
+ * user-chosen crossings - a URL you capture and a remote instance you name - have
+ * no fixed host, so they appear in neither set. The CSP is pinned identical in
+ * three files by tests/security-headers.test.ts; this reads the canonical nginx
+ * copy, and only its connect-src / media-src lines, so an unrelated URL in a
+ * comment cannot leak in.
+ */
+function cspHosts(): Set<string> {
+  const hosts = new Set<string>();
+  for (const line of read('deploy/docker/nginx.conf').split('\n')) {
+    if (!/connect-src|media-src/.test(line)) continue;
+    for (const m of line.matchAll(/https:\/\/([a-z0-9.*-]+)/gi)) hosts.add(m[1]!.toLowerCase());
+  }
+  return hosts;
+}
+
+function ledgerHosts(): Set<string> {
+  const privacy = read('docs/privacy.md');
+  const start = privacy.indexOf('| What | What actually leaves your device');
+  assert.ok(start > 0, 'privacy.md must carry the consent-ledger table');
+  const rest = privacy.slice(start);
+  const end = rest.indexOf('\n\n');
+  const table = end > 0 ? rest.slice(0, end) : rest;
+  const hosts = new Set<string>();
+  for (const m of table.matchAll(/`([a-z0-9*-]+(?:\.[a-z0-9*-]+)+)`/gi)) {
+    const tok = m[1]!.toLowerCase();
+    if (/\.(com|org|net|tools|io|dev)$/.test(tok)) hosts.add(tok); // a host, not `.icc`
+  }
+  return hosts;
+}
+
+test('the consent ledger and the CSP allowlist name the same fixed hosts', () => {
+  const ledger = ledgerHosts();
+  const csp = cspHosts();
+  const onlyLedger = [...ledger].filter(h => !csp.has(h)).sort();
+  const onlyCsp = [...csp].filter(h => !ledger.has(h)).sort();
+  assert.deepEqual(onlyLedger, [], `the consent ledger names a host the CSP does not allow: ${onlyLedger.join(', ')}`);
+  assert.deepEqual(onlyCsp, [], `the CSP allows a host the consent ledger does not disclose: ${onlyCsp.join(', ')}`);
+  assert.ok(ledger.size >= 6, `the ledger should list the fixed optional hosts (found ${ledger.size})`);
+});

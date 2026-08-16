@@ -6,13 +6,13 @@
  *
  * Three oracles, in order of strength:
  *
- * 1. **Analytic** — cases whose answer is known in closed form (a line through a
+ * 1. **Analytic** - cases whose answer is known in closed form (a line through a
  *    symmetric arch, a circle-ish curve against its own axis). Exact expected values.
- * 2. **Residual** — every reported intersection must satisfy the defining property:
+ * 2. **Residual** - every reported intersection must satisfy the defining property:
  *    evaluating BOTH curves at their reported parameters must give the same point, to
  *    near machine precision. This catches a plausible-looking answer that is merely
  *    close, which is the failure mode a flattening implementation has by construction.
- * 3. **Dense flattening** — an independent brute-force count, by chopping both curves
+ * 3. **Dense flattening** - an independent brute-force count, by chopping both curves
  *    into thousands of segments. Deliberately the thing this module refuses to do
  *    internally; as an ORACLE it is fine, because a slow approximate reference is
  *    exactly what you want to check a fast exact one against.
@@ -27,16 +27,16 @@
  * module has had: the exact line paths returned a fraction along the CHORD where a curve
  * parameter was required, and every reported point was on the line but tens of units from
  * the curve at the parameter reported for it. It missed because every straight fixture in
- * this file was built with `lineToCubic`, which spaces the controls evenly — and for that
+ * this file was built with `lineToCubic`, which spaces the controls evenly - and for that
  * one family the chord fraction IS the parameter, so the two quantities the code confused
  * were numerically identical in every test.
  *
  * A cubic can be geometrically straight and grossly non-uniformly parameterised, and that
  * is ordinary authored SVG: `M0,0 C0,0 0,0 100,0` is what a pen tool with un-dragged
  * handles emits, and its midpoint is at x=12.5. So the straight fixtures below come in
- * three parameterisations — controls bunched at the start (x = L·t³), bunched at the end
+ * three parameterisations - controls bunched at the start (x = L·t³), bunched at the end
  * (x = L·(1 − (1−t)³)), and doubling back past both ends (non-monotone, so the same point
- * is passed three times) — each with a closed-form parameter to check against, and they
+ * is passed three times) - each with a closed-form parameter to check against, and they
  * are used wherever an evenly spaced one used to be the only coverage.
  */
 import { test } from 'node:test';
@@ -97,14 +97,14 @@ const bunchedEnd = (x0: number, y0: number, x1: number, y1: number): Cubic =>
 const paramBunchedEnd = (u: number) => 1 - Math.cbrt(1 - u);
 
 /** Controls placed out of order along the chord (13/12 then −1/12): still exactly
- *  straight, and non-monotone — u = 4.5t³ − 6.75t² + 3.25t reverses between t = 0.4 and
+ *  straight, and non-monotone - u = 4.5t³ − 6.75t² + 3.25t reverses between t = 0.4 and
  *  t = 0.596, so points near the middle are passed three times. */
 const doublingBack = (x0: number, y0: number, x1: number, y1: number): Cubic => {
   const dx = x1 - x0, dy = y1 - y0;
   return [x0, y0, x0 + dx * (13 / 12), y0 + dy * (13 / 12), x0 - dx / 12, y0 - dy / 12, x1, y1];
 };
 
-/** Chord fraction of a point on a straight cubic — the quantity the exact line paths
+/** Chord fraction of a point on a straight cubic - the quantity the exact line paths
  *  compute internally, and the one that must NOT be handed back as a parameter. */
 function chordFraction(c: Cubic, x: number, y: number): number {
   const dx = c[6] - c[0], dy = c[7] - c[1];
@@ -180,13 +180,13 @@ test('extremaCubic finds the turning point of a symmetric arch', () => {
 test('lineToCubic is recognised as a line, and a real curve is not', () => {
   assert.equal(isLineCubic(lineToCubic(3, 4, 90, 120)), true);
   assert.equal(isLineCubic([0, 0, 10, 40, 90, 40, 100, 0]), false);
-  // A hair off straight is still a curve — the threshold must not swallow real bends.
+  // A hair off straight is still a curve - the threshold must not swallow real bends.
   assert.equal(isLineCubic([0, 0, 33.333, 0.5, 66.667, 0.5, 100, 0]), false);
 });
 
 test('signedAreaCubic is exact, checked against a numeric integral', () => {
   // Green's theorem in closed form. The oracle is the same integral computed
-  // numerically over the SAME curve — comparing against a true circle instead would
+  // numerically over the SAME curve - comparing against a true circle instead would
   // be measuring the Bezier approximation of the circle (2.2e-4 here), not the
   // formula, and that mistake makes an exact formula look broken.
   const k = 0.5522847498307936;
@@ -258,7 +258,7 @@ test('line × line: the obvious crossing, and the parallel non-crossing', () => 
 test('line × line: a straight cubic reports its OWN parameter, not a chord fraction', () => {
   // The defect this whole family exists for. `M0,0 C0,0 0,0 100,0` is straight and its
   // displacement is x = 100·t³, so the crossing at x=50 is at t = cbrt(0.5) = 0.79370…,
-  // NOT at the chord fraction 0.5. Reporting 0.5 puts the named point at x=12.5 — a
+  // NOT at the chord fraction 0.5. Reporting 0.5 puts the named point at x=12.5 - a
   // residual of 37.5 against a point the caller was told was on the curve, and every
   // consumer splits with `subCubic(c, t)`, so the split lands 37.5 units out of place.
   const c1 = bunchedStart(0, 0, 100, 0);
@@ -405,7 +405,7 @@ test('cubic × cubic: curves that miss report nothing', () => {
 });
 
 test('cubic × cubic: touching only at a shared endpoint', () => {
-  // Chained curves share a point — a boolean must see exactly one, at t=1 and t=0,
+  // Chained curves share a point - a boolean must see exactly one, at t=1 and t=0,
   // not a cluster from both sides of the join.
   const c1: Cubic = [0, 0, 20, 40, 60, 40, 80, 0];
   const c2: Cubic = [80, 0, 100, -40, 140, -40, 160, 0];
@@ -426,7 +426,7 @@ test('cubic × cubic: a straight-looking cubic takes the exact path and still ag
 
 test('cubic × cubic: touching at a shared endpoint, with non-uniform straight neighbours', () => {
   // The chained-curve case again, but where the join is between straight cubics whose
-  // controls bunch AT the shared point — the parameterisation is at its most extreme
+  // controls bunch AT the shared point - the parameterisation is at its most extreme
   // exactly where the contact is, so a chord fraction of 1 or 0 happens to be right while
   // anything in between is not. Two of the four combinations put the bunching on the far
   // end instead, where the shared vertex sits at a parameter the chord fraction misses.
@@ -464,7 +464,7 @@ test('cubic × cubic: a straight-looking NON-UNIFORM cubic takes the exact path 
     assert.equal(hits.length, uniform.length, `${what}: the same geometry must give the same count`);
     assertParamsAreParams(line, curve, hits, 1e-7);
     for (const [i, h] of hits.entries()) {
-      // Same POINTS as the uniform curve, different parameters — and the parameters are
+      // Same POINTS as the uniform curve, different parameters - and the parameters are
       // exactly the uniform ones pushed through this curve's own displacement map.
       near(h.x, uniform[i]!.x, 1e-7); near(h.y, uniform[i]!.y, 1e-7);
       near(h.t2, uniform[i]!.t2, 1e-7);
@@ -476,8 +476,8 @@ test('cubic × cubic: a straight-looking NON-UNIFORM cubic takes the exact path 
 test('a straight cubic of ANY parameterisation reports parameters, not chord fractions', () => {
   // The property, over the whole matrix rather than the one fixture: whatever the partner
   // and whatever the parameterisation, `evalCubic(c, t)` must land on the reported point.
-  // This is the guard that catches the next variant of the defect — a fourth exact path,
-  // an overlap endpoint, a new dispatch — without a new closed form to derive.
+  // This is the guard that catches the next variant of the defect - a fourth exact path,
+  // an overlap endpoint, a new dispatch - without a new closed form to derive.
   const straights: [string, Cubic][] = [
     ['bunchedStart', bunchedStart(-10, 30, 130, 30)],
     ['bunchedEnd', bunchedEnd(-10, 30, 130, 30)],

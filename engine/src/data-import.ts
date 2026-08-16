@@ -7,7 +7,7 @@
  * spreadsheet or API dump can populate a tool (chart data, tables, name lists)
  * instead of being retyped row by row.
  *
- * Pure and DOM-free — the shell reads the file to text and hands it here; the
+ * Pure and DOM-free. The shell reads the file to text and hands it here; the
  * result flows back through the ordinary input-set path, so it serialises to the
  * URL and saves exactly like hand-entered blocks. Wired via the manifest's
  * `blocks.importData` (see schemas/tool.schema.json) and offered by the web shell.
@@ -43,19 +43,19 @@ export interface ParseDataResult {
   truncated: boolean;
 }
 
-/** Hard cap on imported rows — a runaway-input backstop, well above any real
+/** Hard cap on imported rows: a runaway-input backstop, well above any real
  *  hand-authored dataset. The shell should also bound the file size at pick time. */
 export const DEFAULT_ROW_LIMIT = 1000;
 
 /** Hard cap on the TEXT fed to the parser (chars ≈ bytes for the data files this
- *  reads). The engine enforces it itself — shells should reject earlier at pick
+ *  reads). The engine enforces it itself. Shells should reject earlier at pick
  *  time for a friendlier message, but a missing shell gate must not let a
  *  gigabyte "CSV" (e.g. one row of millions of commas) balloon into cell/header
  *  allocations. 8M chars is ~40× the largest real import seen. */
 export const MAX_IMPORT_CHARS = 8 * 1024 * 1024;
 
 /**
- * Serialise a ragged grid (row 0 = header) to RFC-4180 CSV — the inverse the
+ * Serialise a ragged grid (row 0 = header) to RFC-4180 CSV: the inverse the
  * spreadsheet importers round-trip through: a cell is quoted iff it holds a comma,
  * double-quote, CR or LF, with internal quotes doubled. This is the canonical
  * `readXlsx().rows → CSV → parseDataRows` bridge, shared by the web data-source
@@ -181,7 +181,7 @@ function readJson(text: string): unknown[] {
   return arr;
 }
 
-// Union of keys across records, first-seen order — so a header exists even when
+// Union of keys across records, first-seen order, so a header exists even when
 // later rows carry extra columns the first row lacked.
 function unionKeys(records: unknown[]): string[] {
   const seen: string[] = [];

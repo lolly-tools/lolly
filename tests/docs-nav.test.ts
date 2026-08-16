@@ -11,7 +11,7 @@
  * silent no-op is caught.
  *
  * Written after maintainability-2026-07-29.md item 5 and the ios-build.md orphan
- * it names — see that plan for why the orphan mattered.
+ * it names - see that plan for why the orphan mattered.
  */
 
 import { test } from 'node:test';
@@ -87,7 +87,7 @@ test('sliceDeclaration separates pages from SIDEBARS (both use `slug:`)', () => 
 });
 
 test('sliceDeclaration returns empty for a renamed declaration, so the guard can refuse to run', () => {
-  // checkDocsNav throws on an empty slice rather than reporting success — the
+  // checkDocsNav throws on an empty slice rather than reporting success - the
   // behaviour that stops a build.ts refactor silently disabling the check.
   assert.equal(sliceDeclaration('const somethingElse = [];', 'pages'), '');
 });

@@ -1,10 +1,10 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
- * gzip (RFC 1952) — the member wrapper around raw DEFLATE, plus a self-contained
+ * gzip (RFC 1952): the member wrapper around raw DEFLATE, plus a self-contained
  * inflater so a `.gz`/`.svgz` can be read back without a platform decoder.
  *
  * The engine already emits raw DEFLATE (deflate.ts) and the zlib wrapper it
- * feeds PNG IDAT, but had no gzip framing and — deliberately — no synchronous
+ * feeds PNG IDAT, but had no gzip framing and, deliberately, no synchronous
  * INFLATE at all: url-pack.ts inflates its `z` tokens through the platform
  * DecompressionStream (async, browser-only), which is the wrong shape for a
  * format writer/reader that must run identically in web, CLI and MCP. gzip is
@@ -12,11 +12,11 @@
  * requested "just give me a .gz" export, so both halves live here.
  *
  * ─── Encode (RFC 1952 §2.3) ──────────────────────────────────────────────────
- * 10-byte fixed header — ID1 0x1f, ID2 0x8b, CM 8 (deflate), FLG 0 (no name /
+ * 10-byte fixed header: ID1 0x1f, ID2 0x8b, CM 8 (deflate), FLG 0 (no name /
  * comment / extra / hcrc), MTIME 0 (RFC 1952: 0 = "no timestamp", the only
- * deterministic choice — a wall clock would make output non-reproducible and
+ * deterministic choice, since a wall clock would make output non-reproducible and
  * break byte-pinned goldens), XFL 0, OS 255 (0xff = "unknown", the privacy-
- * preserving value; we never leak the producer's platform) — then the raw
+ * preserving value; we never leak the producer's platform), then the raw
  * DEFLATE body, then an 8-byte trailer: CRC-32 of the UNCOMPRESSED bytes and
  * ISIZE (input length mod 2^32), both little-endian (§2.3.1).
  *
@@ -24,7 +24,7 @@
  * Validate magic + CM + FLG (skipping any FEXTRA/FNAME/FCOMMENT/FHCRC fields a
  * third-party gzip may carry), INFLATE the body with the in-file bounded
  * inflater, then verify BOTH the trailer CRC-32 and ISIZE against the recovered
- * bytes — a truncated or corrupt stream fails loudly rather than returning short
+ * bytes. A truncated or corrupt stream fails loudly rather than returning short
  * data. Every field read is bounds-checked before deref, and the inflater can
  * neither loop forever nor over-allocate on a crafted length/distance (the "GIF
  * lesson"): the output is capped and every back-reference is validated against
@@ -32,7 +32,7 @@
  *
  * ─── SVGZ is exactly this ────────────────────────────────────────────────────
  * SVGZ (`image/svg+xml` + `Content-Encoding: gzip`, `.svgz`) is a gzip member
- * whose payload is UTF-8 SVG text — `gzip(new TextEncoder().encode(svg))` — with
+ * whose payload is UTF-8 SVG text (`gzip(new TextEncoder().encode(svg))`), with
  * no SVGZ-specific framing. `gunzip` reverses it. That is the whole format.
  *
  * Pure math + typed arrays; DOM-free, deterministic, no network/filesystem.
@@ -41,11 +41,11 @@
 import { crc32 } from './zip-crypto.ts';
 import { deflateRaw, type DeflateOptions } from './deflate.ts';
 
-// ── RFC 1952 §2.3.1 — the fixed 10-byte header we emit ───────────────────────
+// ── RFC 1952 §2.3.1: the fixed 10-byte header we emit ───────────────────────
 const ID1 = 0x1f;
 const ID2 = 0x8b;
 const CM_DEFLATE = 8;
-// FLG bits (RFC 1952 §2.3.1) — read on decode, never set on encode.
+// FLG bits (RFC 1952 §2.3.1): read on decode, never set on encode.
 const FTEXT = 1;
 const FHCRC = 2;
 const FEXTRA = 4;
@@ -108,7 +108,7 @@ export function gunzip(bytes: Uint8Array): Uint8Array {
   if (flg & FNAME) p = skipZeroString(bytes, p, 'FNAME');
   if (flg & FCOMMENT) p = skipZeroString(bytes, p, 'FCOMMENT');
   if (flg & FHCRC) {
-    p += 2; // 2-byte header CRC16 — presence checked, value not verified
+    p += 2; // 2-byte header CRC16: presence checked, value not verified
     if (p > bytes.length) throw new Error('gunzip: truncated in FHCRC');
   }
 
@@ -141,17 +141,17 @@ function readU32LE(bytes: Uint8Array, off: number): number {
 }
 
 // ────────────────────────────────────────────────────────────────────────────
-// Raw DEFLATE inflate (RFC 1951) — the decode half the engine lacked.
+// Raw DEFLATE inflate (RFC 1951): the decode half the engine lacked.
 //
 // Stored blocks (§3.2.4), fixed Huffman (§3.2.6) and dynamic Huffman (§3.2.7).
 // Bounded on every axis a hostile stream could exploit: a bit reader that
 // reports end-of-input instead of reading past the buffer, an output that
-// cannot exceed `sizeHint` (the gzip ISIZE — a crafted length code cannot make
+// cannot exceed `sizeHint` (the gzip ISIZE, so a crafted length code cannot make
 // us allocate gigabytes), and back-references validated against bytes actually
 // produced (distance <= current output length). No recursion, no unbounded loop.
 // ────────────────────────────────────────────────────────────────────────────
 
-// RFC 1951 §3.2.5 — length codes 257..285 (base + extra bits).
+// RFC 1951 §3.2.5: length codes 257..285 (base + extra bits).
 const LEN_BASE = [
   3, 4, 5, 6, 7, 8, 9, 10, 11, 13, 15, 17, 19, 23, 27, 31,
   35, 43, 51, 59, 67, 83, 99, 115, 131, 163, 195, 227, 258,
@@ -160,7 +160,7 @@ const LEN_EXTRA = [
   0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 2, 2, 2, 2,
   3, 3, 3, 3, 4, 4, 4, 4, 5, 5, 5, 5, 0,
 ];
-// RFC 1951 §3.2.5 — distance codes 0..29 (base + extra bits).
+// RFC 1951 §3.2.5: distance codes 0..29 (base + extra bits).
 const DIST_BASE = [
   1, 2, 3, 4, 5, 7, 9, 13, 17, 25, 33, 49, 65, 97, 129, 193,
   257, 385, 513, 769, 1025, 1537, 2049, 3073, 4097, 6145, 8193, 12289, 16385, 24577,
@@ -169,10 +169,10 @@ const DIST_EXTRA = [
   0, 0, 0, 0, 1, 1, 2, 2, 3, 3, 4, 4, 5, 5, 6, 6,
   7, 7, 8, 8, 9, 9, 10, 10, 11, 11, 12, 12, 13, 13,
 ];
-// RFC 1951 §3.2.7 — the order in which code-length-code lengths are stored.
+// RFC 1951 §3.2.7: the order in which code-length-code lengths are stored.
 const CLEN_ORDER = [16, 17, 18, 0, 8, 7, 9, 6, 10, 5, 11, 4, 12, 3, 13, 2, 14, 1, 15];
 
-/** LSB-first bit reader (RFC 1951 §3.1.1) with hard bounds — never reads past `data`. */
+/** LSB-first bit reader (RFC 1951 §3.1.1) with hard bounds; never reads past `data`. */
 class BitReader {
   private pos = 0;
   private bitBuf = 0;
@@ -263,7 +263,7 @@ class HuffTree {
   }
 }
 
-// Fixed literal/length + distance trees (RFC 1951 §3.2.6) — built once.
+// Fixed literal/length + distance trees (RFC 1951 §3.2.6), built once.
 const FIXED_LIT_TREE = (() => {
   const lengths = new Uint8Array(288);
   for (let i = 0; i < 144; i++) lengths[i] = 8;
@@ -305,7 +305,7 @@ class OutBuffer {
     this.buf.set(src, this.len);
     this.len += src.length;
   }
-  /** Copy `len` bytes from `dist` back — the LZ77 back-reference (§3.2.3). */
+  /** Copy `len` bytes from `dist` back: the LZ77 back-reference (§3.2.3). */
   copyBack(dist: number, len: number): void {
     if (dist > this.len) throw new Error('inflate: distance points before start of output');
     this.ensure(len);
@@ -318,7 +318,7 @@ class OutBuffer {
 }
 
 /**
- * Inflate a raw DEFLATE stream (RFC 1951 — no zlib/gzip wrapper). `sizeHint` is
+ * Inflate a raw DEFLATE stream (RFC 1951, no zlib/gzip wrapper). `sizeHint` is
  * the known uncompressed length (gzip ISIZE) and is used ONLY as a hard cap; the
  * returned length is whatever the stream actually decodes to (the caller checks
  * it against the trailer). Defaults to a generous cap when the size is unknown.

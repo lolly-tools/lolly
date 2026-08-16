@@ -1,53 +1,57 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
- * Spiro — Raph Levien's Euler-spiral interpolating spline, the one Inkscape and
- * FontForge ship. A separate `SplineKind` from `hyperbezier` (spline.ts) by design:
- * different knot semantics, a different curve family, requested by users who know it
- * from Inkscape (2026-08-06).
+ * Spiro. This is Raph Levien's Euler-spiral interpolating spline, the one Inkscape and
+ * FontForge ship. It is a separate `SplineKind` from `hyperbezier` (spline.ts) by
+ * design: it uses different knot semantics and a different curve family, and users who
+ * know it from Inkscape asked for it (2026-08-06).
  *
  * ## Attribution
  *
- * The mathematics is Raph Levien's. It is REPRODUCED here as formulae, not copied:
+ * The mathematics is Raph Levien's. It is REPRODUCED here as formulae, not copied,
+ * from:
  *   - the paper/thesis "From Spiral to Spline" and https://github.com/raphlinus/spiro,
  *   - libspiro's `compute_ends` relation between a segment's curvature polynomial and
  *     its end tangents/curvatures, and its `spiro_to_bpath` chord/3 arm construction.
- * MIT OR Apache-2.0 upstream, both compatible with this MPL-2.0 engine. Raph's work is
- * the foundation of curvature-continuous curves in typography and Inkscape; the
- * attribution is meant to stay. See memory `spiro-spline-references`.
+ * The upstream license is MIT OR Apache-2.0, both compatible with this MPL-2.0 engine.
+ * Raph's work is the foundation of curvature-continuous curves in typography and
+ * Inkscape, and the attribution stays here for that reason. See memory
+ * `spiro-spline-references`.
  *
  * ## What this implements
  *
- * A clothoid (Euler-spiral) segment between each pair of knots — curvature LINEAR in
- * arc length, k(s) = k0 + k1·s over s ∈ [−0.5, 0.5]. Two knot kinds, mapped from the
- * engine's `continuity` field, matching common Inkscape/FontForge usage:
+ * A clothoid (Euler-spiral) segment between each pair of knots: curvature LINEAR in
+ * arc length, k(s) = k0 + k1·s over s ∈ [−0.5, 0.5]. There are two knot kinds, mapped
+ * from the engine's `continuity` field, matching common Inkscape/FontForge usage:
  *   - `'corner'`  → a G0 corner (libspiro 'v'): the two sides are independent. Like
- *      hyperbezier, a corner PARTITIONS the path into runs solved separately — that is
+ *      hyperbezier, a corner PARTITIONS the path into runs solved separately. That is
  *      the semantics, not an optimisation.
  *   - `'smooth'` / `'symmetric'` → a G2 curve knot (libspiro 'c'): tangent AND curvature
  *      continuous. This is the ordinary smooth Spiro point.
  *
  * The unknown is one tangent ANGLE per knot (world frame). Sharing it across the two
- * incident segments makes G1 automatic, so only G2 is solved. Two stages:
+ * segments on either side of a knot makes G1 automatic, so only G2 needs solving. Two
+ * stages:
  *   1. A LINEAR seed. With Levien's algebraic `compute_ends` (tangent = 0.5·k0 ∓
  *      0.125·k1, curvature = k0 ∓ 0.5·k1, chord-relative), the end curvature is linear in
- *      the two knot angles, so the G2 conditions are a tridiagonal (cyclic when closed)
- *      system in bounded per-knot deflections — one dense solve, no winding blow-up.
- *   2. A NEWTON refinement on the TRUE clothoid curvatures (from `segClothoid`): the
+ *      the two knot angles, so the G2 conditions form a tridiagonal (cyclic when closed)
+ *      system in bounded per-knot deflections: one dense solve, with no winding blow-up.
+ *   2. A NEWTON refinement on the TRUE clothoid curvatures (from `segClothoid`). The
  *      leading-order seed leaves a small curvature step at a knot, so a few damped Newton
  *      steps drive the actual κ_exit(left) − κ_entry(right) to ~0. Free ends take the
  *      natural condition (curvature → 0). `maxSpiroCurvatureJump` measures the result.
  *
- * The bezier LOWERING builds each segment's TRUE chord-frame clothoid — Θ(u) quadratic in
- * arc length, solved for the closing condition (`solveClosing`) — and emits it as one or
- * more cubics with Levien's chord/3 arms, subdividing where it turns more than `ARC_TOL`.
- * A segment's outer tangents are exactly psiA/psiB, so joins are G1-exact. (The 2nd
- * derivative of the cubic *approximation* has small jumps — an unavoidable property of
- * representing a clothoid with cubic Béziers, as libspiro's own bezier output does — but
- * the curve itself is a smooth chain of Euler spirals with continuous analytic curvature.)
+ * The bezier LOWERING builds each segment's TRUE chord-frame clothoid: Θ(u) quadratic
+ * in arc length, solved for the closing condition (`solveClosing`), and emits it as one
+ * or more cubics with Levien's chord/3 arms, subdividing where it turns more than
+ * `ARC_TOL`. A segment's outer tangents are exactly psiA/psiB, so joins are G1-exact.
+ * (The 2nd derivative of the cubic *approximation* has small jumps. This is an
+ * unavoidable property of representing a clothoid with cubic Béziers, and libspiro's own
+ * bezier output has the same property, but the curve itself is a smooth chain of Euler
+ * spirals with continuous analytic curvature.)
  *
  * NOT (yet) implemented: libspiro's G4 'o' knot (4-parameter spiral, curvature-
- * derivative continuous). The common Inkscape smooth node is G2, which is what ships;
- * G4 is a documented future `SplineKind`-level addition, not a silent difference.
+ * derivative continuous). The common Inkscape smooth node is G2, which is what ships
+ * here. G4 is a documented future `SplineKind`-level addition, not a silent gap.
  */
 import type { Cubic } from './bezier.ts';
 import type { Node } from './spline.ts';
@@ -71,7 +75,8 @@ const GL_W = [
 
 /** The clothoid segment in its CHORD frame: tangent (relative to the chord) is a
  *  quadratic in the arc parameter u ∈ [0,1], Θ(u) = a + b·u + c·u². Curvature ∝ dΘ/du =
- *  b + 2c·u is therefore linear in u — the defining property of an Euler spiral. */
+ *  b + 2c·u, so curvature is linear in u. That is the defining property of an Euler
+ *  spiral. */
 const theta = (a: number, b: number, c: number, u: number): number => a + b * u + c * u * u;
 
 /** ∫ over [u0,u1] of (cos Θ, sin Θ) du for Θ(u) = a + b·u + c·u². Gauss–Legendre. */
@@ -94,7 +99,7 @@ function intCosSin(a: number, b: number, c: number, u0: number, u1: number): { x
  * find the clothoid Θ(u) = α + b·u + c·u² that starts and ends ON the chord. Θ(1) = β
  * fixes b + c = β − α; the CLOSING condition ∫₀¹ sin Θ du = 0 (no net perpendicular
  * drift) fixes the last degree of freedom. Solved for c by Newton from the circular-arc
- * seed c = 0, with a bounded fallback — the residual is smooth and shallow here.
+ * seed c = 0, with a bounded fallback - the residual is smooth and shallow here.
  */
 function solveClosing(alpha: number, beta: number): { b: number; c: number } {
   let c = 0;
@@ -197,7 +202,7 @@ function solveRun(pts: { x: number; y: number }[], wrap: boolean): number[] {
   if (wrap) for (let j = 0; j < m; j++) bend[j] = mod2pi(rawPhi[j % nSeg]! - rawPhi[(j - 1 + nSeg) % nSeg]!);
   else for (let j = 1; j < m; j++) bend[j] = mod2pi(rawPhi[j]! - rawPhi[j - 1]!);
 
-  // Unknowns are per-knot deflections θ_j := th1(seg j−1) — the EXIT deflection of the
+  // Unknowns are per-knot deflections θ_j := th1(seg j−1) - the EXIT deflection of the
   // arriving segment in Levien's reversed convention (th1 = chord − exit-tangent). With
   // compute_ends the curvatures at knot j are:
   //   exit-curvature(seg j−1) = 3θ_j + θ_{j−1} + bend[j−1]
@@ -236,7 +241,7 @@ function solveRun(pts: { x: number; y: number }[], wrap: boolean): number[] {
   // ── Newton refinement on the TRUE clothoid curvatures ────────────────────────
   // The linear solve above used Levien's leading-order compute_ends curvature, which
   // leaves a visible curvature step at a knot. Refine the world tangent angles ψ so the
-  // ACTUAL clothoid curvatures (from segClothoid) are continuous — that is the property
+  // ACTUAL clothoid curvatures (from segClothoid) are continuous - that is the property
   // Spiro exists for. Residual per knot: interior/closed = κ_exit(left) − κ_entry(right);
   // open free end = the end curvature itself (natural, → 0). The Jacobian is
   // tridiagonal (a knot's residual moves only with its own and its two neighbours' ψ),
@@ -288,7 +293,7 @@ function solveDense(A: number[][], b: number[]): number[] {
     for (let row = col + 1; row < n; row++) if (Math.abs(M[row]![col]!) > Math.abs(M[piv]![col]!)) piv = row;
     if (piv !== col) { const t = M[piv]!; M[piv] = M[col]!; M[col] = t; }
     const d = M[col]![col]!;
-    if (Math.abs(d) < 1e-12) continue; // singular row (degenerate run) — leave as-is
+    if (Math.abs(d) < 1e-12) continue; // singular row (degenerate run) - leave as-is
     for (let row = 0; row < n; row++) {
       if (row === col) continue;
       const f = M[row]![col]! / d;
@@ -307,7 +312,7 @@ const ARC_TOL = 0.25; // radians of turn per emitted cubic before subdividing
  * rendering its TRUE chord-frame clothoid, subdividing where it turns more than ARC_TOL.
  *
  * The clothoid's end tangents are EXACTLY psiA and psiB by construction (Θ(0) = α,
- * Θ(1) = β), so consecutive segments meet G1-exactly at the shared knot — no cusp.
+ * Θ(1) = β), so consecutive segments meet G1-exactly at the shared knot - no cusp.
  */
 function segToCubics(
   ax: number, ay: number, bx: number, by: number, psiA: number, psiB: number,
@@ -343,7 +348,7 @@ function segToCubics(
       emit(um, u1, pm, p1, depth + 1);
       return;
     }
-    // Chord/3 arms along the sub-arc's end tangents — Levien's spiro_to_bpath arm. The
+    // Chord/3 arms along the sub-arc's end tangents - Levien's spiro_to_bpath arm. The
     // segment's outer tangents are psiA/psiB exactly and interior sub-arcs share tan(um),
     // so joins are G1; curvature continuity comes from sampling the true clothoid finely
     // (ARC_TOL), the same way libspiro's own bezier output does.
@@ -362,10 +367,11 @@ function segToCubics(
 
 /**
  * Solve the per-knot LEAVING / ARRIVING world tangent angles. They agree at a smooth
- * knot; at a CORNER (shared by two runs) they differ — the whole point of a corner — so,
- * like hyperbezier's rth/lth, a segment reads its start knot's leaving tangent and its
- * end knot's arriving tangent. Writing one shared `psi` instead lets the second run
- * clobber the first run's corner tangent and corrupts that run's last segment.
+ * knot. At a CORNER (shared by two runs) they differ, which is the whole point of a
+ * corner. So, like hyperbezier's rth/lth, a segment reads its start knot's leaving
+ * tangent and its end knot's arriving tangent. Writing one shared `psi` instead would
+ * let the second run overwrite the first run's corner tangent, which would corrupt
+ * that run's last segment.
  */
 function solveTangents(nodes: Node[], closed: boolean): { psiOut: number[]; psiIn: number[] } {
   const n = nodes.length;
@@ -386,7 +392,7 @@ function solveTangents(nodes: Node[], closed: boolean): { psiOut: number[]; psiI
 }
 
 /**
- * Lower a Spiro authored path to cubic Béziers — the entry point `toCubics` calls.
+ * Lower a Spiro authored path to cubic Béziers - the entry point `toCubics` calls.
  */
 export function spiroCubics(nodes: Node[], closed: boolean): Cubic[] {
   const n = nodes.length;
@@ -404,9 +410,10 @@ export function spiroCubics(nodes: Node[], closed: boolean): Cubic[] {
 
 /**
  * The largest curvature discontinuity (per unit length) across any smooth interior knot,
- * measured on the ANALYTIC clothoid segments — the real thing the G2 solve guarantees,
- * as opposed to the 2nd derivative of the cubic-Bézier *approximation*, which is jumpy by
- * nature. Exposed for tests; ~0 means the solve achieved curvature continuity.
+ * measured on the ANALYTIC clothoid segments. This is the real thing the G2 solve
+ * guarantees, as opposed to the 2nd derivative of the cubic-Bézier *approximation*,
+ * which is jumpy by nature. Exposed for tests; ~0 means the solve achieved curvature
+ * continuity.
  */
 export function maxSpiroCurvatureJump(nodes: Node[], closed: boolean): number {
   const n = nodes.length;

@@ -1,21 +1,21 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
- * The printer's own rate card — stored, validated, never a source of prices.
+ * The printer's own rate card - stored, validated, never a source of prices.
  *
  * A rate card is a JSON document the USER drops (the file their supplier gave
  * them). Lolly multiplies the numbers in it by quantities it COUNTED elsewhere
  * (`engine/src/preflight.ts`); it never originates, defaults, infers, or
- * approximates a price. This module owns the READER only — parsing, schema
+ * approximates a price. This module owns the READER only - parsing, schema
  * validation, and the extra-schema invariants a schema-valid card can still
  * violate. Above the ARITHMETIC boundary this module is the READER only; below it
  * `computeCost` does the integer minor-unit arithmetic (Phase 4). There is NO
- * currency FORMATTING anywhere in this file — minor-unit integers go out and the
+ * currency FORMATTING anywhere in this file - minor-unit integers go out and the
  * surface formats them, so web and CLI can never print divergent figures
  * (`plans/65-preflight-and-cost.md` §8).
  *
  * DOM-free and pure. Shared verbatim by the web drop path, the CLI/TUI
  * `--rate-card` path, and `scripts/validate-catalog.ts`, so all three validate a
- * card identically — the `computePrintGeometry` / `readSpotColor` placement:
+ * card identically - the `computePrintGeometry` / `readSpotColor` placement:
  * one pure function, single source of truth, called from the shells.
  *
  * The digest is content-addressed and computed by the CALLER (async
@@ -33,7 +33,7 @@ import type { Bound, Count, MonetaryFigure, QuantityKind, QuantityUnit } from '@
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
-/** One priced line on the card. As authored — Phase 4 does the integer
+/** One priced line on the card. As authored - Phase 4 does the integer
  *  minor-unit maths; this reader keeps the number verbatim. */
 export interface RateCardLine {
   id: string;
@@ -45,7 +45,7 @@ export interface RateCardLine {
   unit?: string;
   quantityKind?: string;
   breaks?: { min: number; rate: number }[];
-  /** A line kept for its id but not costable — a bad rate, an unknown finish, a
+  /** A line kept for its id but not costable - a bad rate, an unknown finish, a
    *  missing quantityKind, malformed/absent break semantics. The LINE is disabled
    *  and REPORTED; the card survives (the `readSpotColor` total-function
    *  tolerance, `engine/src/tokens.ts:69-74`). Phase 4 renders it `ℹ Counted only`. */
@@ -90,8 +90,8 @@ export const EXAMPLE_RATECARD_DIGEST = 'ef6b6002525d25ce';
 
 /** The canonical `FinishKind` spellings a card's `finish` may use without a
  *  release. Built from the contract's `KNOWN_FINISH_KINDS`, never hand-copied. An
- *  unrecognised finish disables the line and is reported — the union's own
- *  degradation rule — never discarded. */
+ *  unrecognised finish disables the line and is reported - the union's own
+ *  degradation rule - never discarded. */
 const KNOWN_FINISHES: ReadonlySet<string> = new Set<string>(KNOWN_FINISH_KINDS);
 
 // ─── Reader ─────────────────────────────────────────────────────────────────
@@ -134,17 +134,17 @@ function breaksAreValid(breaks: unknown): boolean {
  * web, CLI and `validate-catalog` share one Ajv instance and validate identically.
  *
  * Refusals (nothing is stored on a refusal):
- *  - `example-card`   — the digest is the shipped §5 placeholder. Checked first.
- *  - `not-a-rate-card`— unparseable, wrong `$format`, schema-invalid shape, or a
- *                       currency `Intl.NumberFormat` rejects.
- *  - `no-priced-lines`— validates, but no line is costable.
+ *  - `example-card`    - the digest is the shipped §5 placeholder. Checked first.
+ *  - `not-a-rate-card` - unparseable, wrong `$format`, schema-invalid shape, or a
+ *                        currency `Intl.NumberFormat` rejects.
+ *  - `no-priced-lines` - validates, but no line is costable.
  */
 export function parseRateCard(
   input: Uint8Array | string,
   digest: string,
   validate: (doc: unknown) => boolean,
 ): RateCard | RateCardError {
-  // 1. The shipped placeholder example, refused by name — clearest message first.
+  // 1. The shipped placeholder example, refused by name - clearest message first.
   if (digest === EXAMPLE_RATECARD_DIGEST) return { error: 'example-card' };
 
   // 2. Parse JSON; a non-JSON drop is `not-a-rate-card`, not a thrown error.
@@ -160,7 +160,7 @@ export function parseRateCard(
   //    usable rate card.
   if (!validate(doc)) return { error: 'not-a-rate-card' };
 
-  // 4. ISO 4217 by letting `Intl.NumberFormat` throw — the schema pattern only
+  // 4. ISO 4217 by letting `Intl.NumberFormat` throw - the schema pattern only
   //    proves three uppercase letters, not a real code. No default anywhere.
   const currency = doc.currency as string;
   try {
@@ -190,7 +190,7 @@ export function parseRateCard(
 
     let disabled: DisabledReason | undefined;
 
-    // 7. A duplicate id keeps the FIRST and disables the later one — never merge
+    // 7. A duplicate id keeps the FIRST and disables the later one - never merge
     //    (a merge would fabricate a line).
     if (seen.has(line.id)) {
       disabled = 'bad-rate';
@@ -198,7 +198,7 @@ export function parseRateCard(
       seen.add(line.id);
     }
 
-    // 5. bad-rate — the rate itself. (The schema already rejects a non-number rate
+    // 5. bad-rate - the rate itself. (The schema already rejects a non-number rate
     //    for the strict drop-path validator; kept so a looser injected validator
     //    still degrades the line rather than the card.)
     if (!disabled && !isFiniteRate(line.rate)) disabled = 'bad-rate';
@@ -216,7 +216,7 @@ export function parseRateCard(
       if (typeof qk !== 'string' || qk.trim() === '') disabled = 'missing-quantity-kind';
     }
 
-    // An unrecognised finish — report, never discard (open-union degradation rule).
+    // An unrecognised finish - report, never discard (open-union degradation rule).
     if (!disabled && typeof line.finish === 'string' && !KNOWN_FINISHES.has(line.finish)) {
       disabled = 'unknown-finish';
     }
@@ -246,26 +246,26 @@ export function parseRateCard(
 }
 
 // ══════════════════════════════════════════════════════════════════════════════
-// ARITHMETIC — Phase 4 (plans/65-preflight-and-cost.md §8).
+// ARITHMETIC - Phase 4 (plans/65-preflight-and-cost.md §8).
 //
 // `computeCost(card, counts, input)` multiplies rates FROM THE CARD by quantities
 // preflight COUNTED, in integer minor units, and returns a structured working the
 // surface renders and serialises. It never originates, defaults, infers, or
 // approximates a price, and it does NO currency formatting (that is the surface's
-// job — minor-unit integers out). The one invariant above all: never invent money.
+// job - minor-unit integers out). The one invariant above all: never invent money.
 //
 // How the honesty rules are enforced HERE, not by convention:
-//   Rule 2  — `estimatedTotal` is `null` whenever ANY counted line is uncosted.
+//   Rule 2  - `estimatedTotal` is `null` whenever ANY counted line is uncosted.
 //             There is no scalar total to copy; the gap is the headline. A partial
 //             card yields rows + `uncosted[]` and a null total, never a subtotal
 //             dressed as a total.
-//   Rule 3  — every multiplication is a visible `CostRow`; the minimum charge is a
+//   Rule 3  - every multiplication is a visible `CostRow`; the minimum charge is a
 //             visible `CostAdjustment` row, never a silent floor. The rows plus the
 //             adjustment deltas SUM to the headline exactly (pinned by a test).
-//   Rule 4  — a `Count.bound` of `'ceiling'` rides through the multiplication into
+//   Rule 4  - a `Count.bound` of `'ceiling'` rides through the multiplication into
 //             `row.subtotalBound`, and any ceiling row makes the whole `bound`
 //             `'ceiling'`. A bound is never laundered into an unqualified figure.
-//   No default — a rate missing/bad (reader-disabled), a `perSheet` with no sheet
+//   No default - a rate missing/bad (reader-disabled), a `perSheet` with no sheet
 //             count, a `perArea` with no sheet-area count, a `perUnit` with no
 //             user-entered run length, a `perQuantity` naming a kind the job did
 //             not produce, or a card with breaks and no `breakMode` (reader-
@@ -279,7 +279,7 @@ export type CostRowQuantityKind = QuantityKind | 'job' | 'runLength';
 
 /** How a break tier was applied to a row, so the working can name it. */
 export interface CostBreakApplied {
-  /** `'flat'` — one tier priced every unit; `'marginal'` — this row is one band. */
+  /** `'flat'` - one tier priced every unit; `'marginal'` - this row is one band. */
   readonly mode: 'flat' | 'marginal';
   /** The tier's `min`. */
   readonly min: number;
@@ -326,7 +326,7 @@ export interface CostAdjustment {
   readonly from: number;
   /** After it, minor units. */
   readonly to: number;
-  /** `to - from`, minor units — the visible `+…` row. */
+  /** `to - from`, minor units - the visible `+…` row. */
   readonly delta: number;
 }
 
@@ -367,7 +367,7 @@ export interface CostInput {
  * `rows` sum to `subtotalOfCovered`; `rows` + adjustment deltas sum to the headline.
  */
 export interface CostWorking {
-  /** From the card, never defaulted — the surface formats with it. */
+  /** From the card, never defaulted - the surface formats with it. */
   readonly currency: string;
   /** `card.issuer.validUntil` is in the past. REPORTED, not acted on: the caller
    *  decides whether to suppress money (§5), this function does not. */
@@ -406,7 +406,7 @@ const QUANTITY_KINDS: ReadonlySet<string> = new Set<QuantityKind>([
  *  binary-float artefact (`5.5 * 100`) to the exact integer. A per-unit rate is NOT
  *  rounded here: it stays at full precision until it multiplies its quantity, so a
  *  sub-minor-unit rate (fractions of a cent per impression, routine in print) neither
- *  inflates nor rounds to zero — see `exactMinor` and `priceQuantity`. */
+ *  inflates nor rounds to zero - see `exactMinor` and `priceQuantity`. */
 function toMinor(rate: number, exponent: number): number {
   return Math.round(rate * 10 ** exponent);
 }
@@ -508,7 +508,7 @@ function priceQuantity(
 }
 
 /** The counts a line consumes. A `perArea` line prices the WHOLE SHEET through the
- *  press — the media box only. `checkPrintGeometry` emits three `m2-sheet` area counts
+ *  press - the media box only. `checkPrintGeometry` emits three `m2-sheet` area counts
  *  (trim, bleed, media); matching all three would price a single card line three times
  *  (~3× the true sheet area), inventing money. So `perArea` matches the media box alone
  *  (`plans/65-preflight-and-cost.md` §4: "the whole sheet through the press"). */
@@ -538,7 +538,7 @@ function gapReason(line: RateCardLine): CostUncostedReason {
 }
 
 /** `validUntil` in the past. A claim inside the file, so an unparseable or absent
- *  date is simply "not expired" — never a reason to suppress. */
+ *  date is simply "not expired" - never a reason to suppress. */
 function isExpired(card: RateCard, now: number | undefined): boolean {
   const v = card.issuer.validUntil;
   if (typeof v !== 'string' || v.trim() === '') return false;
@@ -550,7 +550,7 @@ function isExpired(card: RateCard, now: number | undefined): boolean {
 /**
  * Cost the counted work against a parsed rate card. Pure and total: it multiplies
  * the card's rates by preflight's counts in integer minor units and returns the
- * structured working. It invents nothing — no rate, no currency, no default — and
+ * structured working. It invents nothing - no rate, no currency, no default - and
  * emits a scalar total ONLY when every counted line is priced (rule 2).
  *
  * @param card   a card already read by `parseRateCard` (currency proven usable).
@@ -558,7 +558,7 @@ function isExpired(card: RateCard, now: number | undefined): boolean {
  * @param input  the user-entered run length (for `perUnit`) and the expiry `now`.
  */
 export function computeCost(card: RateCard, counts: readonly Count[], input: CostInput = {}): CostWorking {
-  // The exponent both parse and format read from `Intl` — the ONE source of truth,
+  // The exponent both parse and format read from `Intl` - the ONE source of truth,
   // so a subtotal and its rendering can never disagree. `card.currency` is already
   // proven usable by `parseRateCard`, so this does not throw for a real card.
   const exponent = minorUnitExponent(card.currency);
@@ -583,7 +583,7 @@ export function computeCost(card: RateCard, counts: readonly Count[], input: Cos
     const breaksExact = line.breaks ? breaksToMinor(line.breaks, exponent) : undefined;
 
     // Defensive: breaks without a breakMode must have been reader-disabled. If a
-    // looser reader let it through, it is still a gap here — never guessed.
+    // looser reader let it through, it is still a gap here - never guessed.
     if (breaksExact && card.breakMode === undefined) {
       uncosted.push({ lineId: line.id, reason: 'needs-break-mode' });
       continue;
@@ -652,7 +652,7 @@ export function computeCost(card: RateCard, counts: readonly Count[], input: Cos
   const fullCoverage = uncosted.length === 0;
 
   // Rule 3: the minimum charge is a visible adjustment row, applied once after all
-  // lines are priced and only on full coverage — never a silent floor.
+  // lines are priced and only on full coverage - never a silent floor.
   const adjustments: CostAdjustment[] = [];
   let headline = subtotalOfCovered;
   if (fullCoverage && card.minimumCharge !== undefined) {

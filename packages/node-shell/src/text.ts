@@ -1,19 +1,19 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
- * host.text (Node) — text-to-path bridge primitive for the CLI + TUI.
+ * host.text (Node): text-to-path bridge primitive for the CLI + TUI.
  *
  * A faithful port of the web shell's createTextAPI (shells/web/src/bridge/text.ts):
  * the SAME HarfBuzz-WASM shaping, so a tool that outlines text via host.text renders
  * byte-for-byte the same in the terminal as in the browser. HarfBuzz loads in Node
- * unchanged (its emscripten glue reads harfbuzz.wasm via fs when ENVIRONMENT_IS_NODE);
- * the ONLY difference from the web module is how a font URL becomes bytes — the browser
+ * unchanged (its emscripten glue reads harfbuzz.wasm via fs when ENVIRONMENT_IS_NODE).
+ * The ONLY difference from the web module is how a font URL becomes bytes: the browser
  * fetches it from the origin, here we read it off disk under the repo root.
  *
  * This is what makes brand-lockup (and any host.text-in-hooks tool) render in the Node
- * shells instead of silently emitting an empty SVG — see the P2 gap in the shell audit.
+ * shells instead of silently emitting an empty SVG. See the P2 gap in the shell audit.
  *
  * Scope (deliberate first increment): sfnt fonts only (ttf/otf), which is every
- * font a headless shell can reach — brand-lockup's tool-local SUSE-*.otf, the catalog
+ * font a headless shell can reach: brand-lockup's tool-local SUSE-*.otf, the catalog
  * SUSE-*.ttf statics, and the shell's platform faces (SUSE variable, Outfit). woff2
  * (browser IndexedDB / Google Fonts) is unreachable headlessly and rejected with a clear
  * error rather than silently shaping .notdef.
@@ -65,8 +65,8 @@ const fontCache = new Map<string, FontEntry>();
  *   • `http(s)://`           → global fetch (Node ≥18)
  *   • `file://`              → the pointed-at file
  *   • rooted `/tools/…`, `/catalog/…`, `/fonts/…` → disk under the repo root
- *     (`/fonts/…` also falls back to the web shell's public dir — where the platform
- *      faces live — mirroring shells/cli/src/bridge.ts's asset resolution)
+ *     (`/fonts/…` also falls back to the web shell's public dir, where the platform
+ *      faces live, mirroring shells/cli/src/bridge.ts's asset resolution)
  *   • bare relative          → resolved under the repo root
  */
 async function loadFontBytes(fontUrl: string, repoRoot: string): Promise<Uint8Array> {
@@ -102,7 +102,7 @@ async function loadFace(fontUrl: string, repoRoot: string): Promise<FaceEntry> {
   const hb = await loadHarfBuzz();
 
   const buf = await loadFontBytes(fontUrl, repoRoot);
-  // woff2 is not sfnt — HarfBuzz reads it as .notdef for every glyph (a silently blank
+  // woff2 is not sfnt. HarfBuzz reads it as .notdef for every glyph (a silently blank
   // export). No headless-reachable font is woff2, so fail loud rather than blank out.
   if (buf.length >= 4 && buf[0] === 0x77 && buf[1] === 0x4f && buf[2] === 0x46 && buf[3] === 0x32) {
     throw new Error(`host.text (node): ${fontUrl} is woff2, which the terminal shells can't decode — provide an sfnt (ttf/otf) font.`);
@@ -139,7 +139,7 @@ async function loadFont(fontUrl: string, repoRoot: string, variations?: string[]
 /**
  * Split `text` into maximal runs one face in `chain` can draw (browser-style fallback):
  * keep the current face while it covers the character, else the first face that does.
- * A character no face covers stays with the current face — shaping .notdef, counted so
+ * A character no face covers stays with the current face, shaping .notdef, counted so
  * a caller can prefer its own fallback. Whitespace never forces a face change.
  */
 function segmentByFace(text: string, chain: FontEntry[]): Array<{ text: string; face: number }> {
@@ -163,14 +163,14 @@ function fmt(n: number): number {
 }
 
 // ── Family → font file (host.text.fontUrl, v1.60) ────────────────────────────
-// The headless registry: the SAME disk locations loadFontBytes already reads —
+// The headless registry: the SAME disk locations loadFontBytes already reads,
 // the active catalog's static sfnts and the web shell's public fonts dir (where
 // the platform faces live: SUSE upright + italic as of 2026-08-10, and Outfit,
 // which is no longer the default but stays resolvable). Filenames follow the
 // FamilyName-FaceName convention (`SUSE-SemiBold.ttf`, `SUSEMono-BoldItalic.ttf`)
 // with variable faces carrying an axis suffix (`SUSE[wght].ttf`,
 // `SUSE-Italic[wght].ttf`); woff2 siblings are skipped (loadFace rejects them
-// anyway). Scanned once per repo root, catalog dir first — so a brand's own
+// anyway). Scanned once per repo root, catalog dir first, so a brand's own
 // statics still shadow the shell's variable face.
 
 const FONT_DIRS: Array<{ rel: string; url: string }> = [
@@ -230,7 +230,7 @@ function scanDiskFaces(repoRoot: string): Promise<DiskFace[]> {
         try { names = await readdir(abs); } catch { continue; }
         for (const name of names) {
           const m = name.match(/^(.+)\.(ttf|otf)$/i);
-          if (!m) continue; // sfnt only — woff2 is headlessly unreadable
+          if (!m) continue; // sfnt only - woff2 is headlessly unreadable
           faces.push({ url: dir.url + name, ...parseFontStem(m[1]!) });
         }
       }
@@ -355,13 +355,13 @@ export function createNodeTextAPI({ repoRoot }: { repoRoot: string }): TextAPI {
     },
 
     /**
-     * Resolve a font FAMILY to a font file on disk (v1.60) — the headless
+     * Resolve a font FAMILY to a font file on disk (v1.60): the headless
      * counterpart of the web registry, over the same locations loadFontBytes
      * reads. A variable face carries the `wght` setting for the requested
      * weight (HarfBuzz clamps to the axis range); a static family narrows to
-     * the nearest weight. Italic is strict, mirroring the web registry —
+     * the nearest weight. Italic is strict, mirroring the web registry:
      * outlining an upright face for an italic run would silently un-slant the
-     * text — so an italic request with no italic face resolves null and the
+     * text. So an italic request with no italic face resolves null, and the
      * caller keeps its fallback.
      */
     async fontUrl(family, opts) {
@@ -372,7 +372,7 @@ export function createNodeTextAPI({ repoRoot }: { repoRoot: string }): TextAPI {
       const matches = (await scanDiskFaces(repoRoot)).filter(f => f.family === want && f.italic === italic);
       if (!matches.length) return null;
       // Faces scan in FONT_DIRS order, so the first match's dir is the highest-
-      // precedence one carrying this family — the catalog's brand faces shadow
+      // precedence one carrying this family. The catalog's brand faces shadow
       // a same-named platform face. Within that dir a variable face covers
       // every weight and is preferred (as the web registry does).
       const dir = FONT_DIRS.find(d => matches[0]!.url.startsWith(d.url))!;

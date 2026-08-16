@@ -3,7 +3,7 @@
  * Brand packs carry published design-system versions (plans/97 §6a).
  *
  * A version is permanent and addressable, so moving one between devices is not a
- * copy — it is a merge with two rules that cannot be softened, and both are
+ * copy - it is a merge with two rules that cannot be softened, and both are
  * pinned here:
  *
  *   1. **a slug already published locally is never overwritten.** Two teams' "v2"
@@ -142,7 +142,7 @@ test('a slug already published here is kept, not overwritten', async () => {
   const src = await publishedHost();
   const { blob } = await exportBrandPack({ host: src, storage: memoryStorage() });
 
-  // The receiver published its OWN v1 — a different design system under the same
+  // The receiver published its OWN v1 - a different design system under the same
   // name. A published version is permanent, so it must survive the import.
   const dst = memoryHost();
   await put(dst, {
@@ -198,14 +198,14 @@ test('byte identity: a pack from a system that never published gains no new part
   assert.equal(imported.versions, 0);
   assert.equal(imported.versionsSkipped, 0);
   assert.equal(imported.skipped, 0);
-  // The document lands verbatim — no ledger key appears where there was none.
+  // The document lands verbatim - no ledger key appears where there was none.
   assert.deepEqual(JSON.parse(await dst.store.get(HEAD_ID)!.blob!.text()), tokensDoc('#444444'));
 });
 
 test('a pin whose preserved bytes did not travel falls back to the live asset', async () => {
   const src = await publishedHost();
   // The preserved copy is gone from the source device, so the pack cannot carry
-  // it — but the ledger still names it.
+  // it - but the ledger still names it.
   src.store.delete(FROZEN_ID);
   const { blob, summary } = await exportBrandPack({ host: src, storage: memoryStorage() });
   assert.equal(summary.frozen, 0);
@@ -237,7 +237,7 @@ test('a pack with no versions.json still imports the versions its document lists
 
 test('a pack with version payloads but NO tokens.json still records them in a ledger', async () => {
   // `readPackLedger` already anticipates a pack whose ledger part is missing, so
-  // the reverse — payloads present, head document absent — is reachable too. It
+  // the reverse - payloads present, head document absent - is reachable too. It
   // used to install the version assets, count them in the summary, and then never
   // write the merged ledger, leaving orphans nothing on the device lists.
   const src = await publishedHost();

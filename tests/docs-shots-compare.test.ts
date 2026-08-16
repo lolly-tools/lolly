@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MPL-2.0
-// Docs-screenshot comparison logic (scripts/lib/shot-compare.ts) — the pure rules
+// Docs-screenshot comparison logic (scripts/lib/shot-compare.ts) - the pure rules
 // behind `npm run docs:shots`. Synthetic RGBA buffers only: no Chromium, no sharp.
 import { test } from 'node:test';
 import { readFileSync } from 'node:fs';
@@ -16,7 +16,7 @@ function uniform(w: number, h: number, [r, g, b, a]: [number, number, number, nu
   return { width: w, height: h, data };
 }
 
-/** Deterministic high-contrast pattern (checkerboard) — very much not blank. */
+/** Deterministic high-contrast pattern (checkerboard) - very much not blank. */
 function checker(w: number, h: number): RawImage {
   const img = uniform(w, h, [0, 0, 0, 255]);
   for (let y = 0; y < h; y++) {
@@ -228,7 +228,7 @@ test('parseShotRecipes: format defaults to svg; ordinary images are ignored', ()
 // sees more than an 848px column. These tests pin the ceiling side.
 
 test('clampDpr: a tight crop keeps its full density', () => {
-  // 600 CSS px of visible content at 2x = 1200px — comfortably inside the budget,
+  // 600 CSS px of visible content at 2x = 1200px - comfortably inside the budget,
   // so the recipe's requested density survives untouched. This is the case the
   // house rule produces (crop to the area of focus), and it must not be penalised.
   assert.equal(clampDpr(192, 600), 2);
@@ -244,7 +244,7 @@ test('clampDpr: a full-window frame gives density back instead of exceeding the 
 });
 
 test('clampDpr: never below CSS resolution, and 96dpi is left alone', () => {
-  // Downsampling under 1x would render soft at ANY display size — worse than heavy.
+  // Downsampling under 1x would render soft at ANY display size - worse than heavy.
   assert.equal(clampDpr(192, 4_000), 1);
   assert.equal(clampDpr(96, 600), 1, '96dpi means 1x, not "scale me up"');
   assert.equal(clampDpr(48, 600), 1, 'a sub-96 dpi is not a downscale request');
@@ -329,7 +329,7 @@ test('ineffectiveTolerance names vector recipes whose tolerance cannot apply', (
 
 test('a taller-than-viewport centred element frames its visible band, not the top', () => {
   // The measured defect. renderSvgFromHtml emits nodes relative to the walked
-  // node's top-left, so root (0,0) is that corner — and a 944x2009 element
+  // node's top-left, so root (0,0) is that corner - and a 944x2009 element
   // centred in a 900px viewport sits at rect.top = -554.5. Anchoring the window
   // at 0,0 published y 0-900 (off-screen) while the reader saw y 554.5-1454.5.
   const w = walkerWindow({ w: 944, h: 2009 }, { w: 1440, h: 900 }, { x: 0, y: 554.5 });
@@ -367,7 +367,7 @@ test('a horizontal overflow anchors on x the same way', () => {
 
 test('the windowing inlined in the browser context still matches walkerWindow', () => {
   // build-docs-shots.ts computes the window inside a page.evaluate(), where it
-  // cannot import anything — so the arithmetic is written out a second time and
+  // cannot import anything - so the arithmetic is written out a second time and
   // the unit tests above would keep passing while the pipeline drifted. Rather
   // than compare source text (which reformats), lift the four expressions out and
   // run them against the same inputs the helper gets.

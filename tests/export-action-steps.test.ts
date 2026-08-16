@@ -1,10 +1,10 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
- * Unit tests for exportActionSteps (engine/src/c2pa.ts) — the honest C2PA action
+ * Unit tests for exportActionSteps (engine/src/c2pa.ts) - the honest C2PA action
  * history the shells assemble from what an export actually did. These pin down the
  * v1.35 provenance additions: a sensor origin swaps the created step to IPTC
  * digitalCapture with a truthful description, and text placed over an opened asset
- * appends a c2pa.edited "Added text" step (never fabricated for from-scratch text —
+ * appends a c2pa.edited "Added text" step (never fabricated for from-scratch text - 
  * the caller gates that, so passing textAdded here is always intentional).
  *
  * Run with: node --test tests/export-action-steps.test.ts
@@ -47,7 +47,7 @@ test('camera + mic capture: names both', () => {
 // ─── screen capture (v1.54) ──────────────────────────────────────────────────
 // A screenshot / screen recording is its OWN IPTC term (screenCapture), NOT the
 // sensor term (digitalCapture): a display was captured, not the real world. Getting
-// this wrong would over-claim the file's origin — the one thing a credential must
+// this wrong would over-claim the file's origin - the one thing a credential must
 // never do.
 
 test('screen capture: created is screenCapture (NOT digitalCapture)', () => {
@@ -161,7 +161,7 @@ test('capture composes with the existing transform steps', () => {
 
 test('COMPOSITE_SOURCE_TYPE is the IPTC compositeWithTrainedAlgorithmicMedia URI', () => {
   assert.equal(COMPOSITE_SOURCE_TYPE, 'http://cv.iptc.org/newscodes/digitalsourcetype/compositeWithTrainedAlgorithmicMedia');
-  // Genuinely distinct from the fully-generated term — an upscale is not generation.
+  // Genuinely distinct from the fully-generated term - an upscale is not generation.
   assert.notEqual(COMPOSITE_SOURCE_TYPE, DIGITAL_SOURCE_TYPE);
 });
 

@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
- * Runtime — orchestrates the 5-step lifecycle for a single mounted tool.
+ * Runtime - orchestrates the 5-step lifecycle for a single mounted tool.
  *
  *   1. Request tool & template      → loader.ts (done before runtime exists)
  *   2. Present inputs               → buildInputModel + host UI
@@ -12,14 +12,14 @@
  * and emits state updates. The shell renders them.
  *
  * Hooks (if the tool declares any) are loaded via `new Function` with the host
- * bridge injected as closure scope — a portability contract, NOT a security
+ * bridge injected as closure scope - a portability contract, NOT a security
  * boundary (see getHookFactory). The runtime invokes them at the right
  * lifecycle points, time-boxes their async results (HOOK_BUDGET_MS), and
  * merges their effects.
  *
  * Patch semantics:
  *   Hooks return a plain object. Keys that match a declared input id update
- *   that input's value. Keys with no matching input go into `extras` — a
+ *   that input's value. Keys with no matching input go into `extras` - a
  *   parallel store of hook-computed values the template can reference directly.
  *   This is how QR module lists, chart data, etc. reach the template without
  *   being declared as user-facing inputs in the manifest.
@@ -62,7 +62,7 @@ export interface DroppedAsset {
   reason?: string;
 }
 
-/** Export options accepted by runtime.export — the host contract's ExportOpts
+/** Export options accepted by runtime.export - the host contract's ExportOpts
  *  plus the engine-level 'Convert paths' toggle the bridge reads. */
 export interface RuntimeExportOpts extends ExportOpts {
   convertPaths?: boolean;
@@ -80,18 +80,18 @@ export interface ExportFileResult {
 }
 
 /**
- * What a tool's `exportStill` hook may return to OWN a raster still export — the
+ * What a tool's `exportStill` hook may return to OWN a raster still export - the
  * tool computes its own encoded bytes for the requested format (e.g. a float
  * grading pipeline → 16-bit PNG / OpenEXR the 8-bit DOM raster path cannot
  * produce) and the runtime returns them verbatim, skipping host.export.render.
  * Return null/undefined (or omit bytes) to decline and fall through to the
- * normal DOM raster path for this format — so a tool owns only the formats it
+ * normal DOM raster path for this format - so a tool owns only the formats it
  * has real precision for and every other export is byte-identical to before.
  * Like the exportFile transform path, tool-supplied bytes carry NO watermark and
  * NO engine-stamped provenance (the tool owns what it wrote).
  *
  * Not only deep RASTER: the bytes are whatever the requested format is, so a tool
- * may own a non-raster binary here too — e.g. the color-palette tool returns an
+ * may own a non-raster binary here too - e.g. the color-palette tool returns an
  * Adobe `.ase` swatch file for `format === 'ase'` (host.color.paletteExportBytes)
  * and declines every other format. The runtime just wraps the bytes with `mime`.
  */
@@ -100,19 +100,19 @@ export interface ExportStillResult {
   mime?: string;
 }
 
-/** What runtime.stopRecording resolves to — the captured media + its MIME type
+/** What runtime.stopRecording resolves to - the captured media + its MIME type
  *  (the container the shell actually encoded, which may differ from the request). */
 export interface RecordResult {
   blob: Blob;
   mimeType: string;
-  /** Whether a microphone track was actually captured (v1.54) — a granted mic, not a
+  /** Whether a microphone track was actually captured (v1.54) - a granted mic, not a
    *  requested-but-denied one. Lets the shell keep the saved take's provenance honest
    *  (never claim "with microphone narration" on a silent screen recording). Undefined
    *  when the session doesn't report it. */
   micActive?: boolean;
 }
 
-/** What runtime.startRecording resolves to — whether the take started, and (v1.54)
+/** What runtime.startRecording resolves to - whether the take started, and (v1.54)
  *  whether a mic was actually acquired, so a screen-capture UI can warn the user at
  *  the START of a long take that their narration isn't being recorded. */
 export interface StartRecordingResult {
@@ -123,13 +123,13 @@ export interface StartRecordingResult {
 /**
  * Per-hook time budgets (ms) for the runtime's async time-box. A hook that
  * returns a Promise is RACED against its budget: on overrun the runtime logs
- * the timeout, applies NO patch, and discards the late resolution — but the
+ * the timeout, applies NO patch, and discards the late resolution - but the
  * hook itself keeps executing (there is no in-realm preemption; a SYNCHRONOUS
  * overrun can only be measured and warned after the fact). `onFrame`/`onLevel`
  * are deliberately absent: they run once per frame/sample and are throttled by
  * dropping overlapping samples instead (see startLive/driveLevels).
  * `exportFile` gets a larger budget because it's a real-work path (e.g. PDF
- * re-encode of a large file). Every key here has a real invocation site — a
+ * re-encode of a large file). Every key here has a real invocation site - a
  * budget for a hook that never fires is how `beforeRender` looked implemented
  * for as long as it existed (removed 2026-07-30). Exported mutable so tests (and
  * shells with unusual needs, e.g. a long page-capture beforeExport) can adjust
@@ -160,7 +160,7 @@ type ExportFileHook = (ctx: HookContext & { opts: Record<string, unknown> }) => 
 type ExportStillHook = ExportLifecycleHook; // same ctx as beforeExport; returns ExportStillResult | null
 
 /**
- * The hooks record produced by loading a tool's hooks.js — one entry per
+ * The hooks record produced by loading a tool's hooks.js - one entry per
  * lifecycle point, null when the tool doesn't declare it.
  */
 export interface Hooks {
@@ -173,7 +173,7 @@ export interface Hooks {
   exportFile: ExportFileHook | null;
   exportStill: ExportStillHook | null;
   /**
-   * Optional teardown an executor may attach — called from runtime.destroy() when
+   * Optional teardown an executor may attach - called from runtime.destroy() when
    * the shell unmounts the tool. The in-realm executor has nothing to release (GC
    * reclaims the compiled closure); the Worker executor uses it to tell its worker
    * to drop this mount's run and to release the main-side host reference, so a
@@ -190,23 +190,23 @@ export interface Runtime {
   getHydratedString(str: string | null | undefined): string;
   manifest: ToolManifest;
   styles: string | null;
-  /** Asset refs (saved session / URL) that no longer resolve — read once after mount. */
+  /** Asset refs (saved session / URL) that no longer resolve - read once after mount. */
   droppedAssets: DroppedAsset[];
   /** Hook failures (currently onInit); empty when every hook ran cleanly. */
   hookErrors: HookError[];
   setInput(id: string, value: InputValue): Promise<void>;
   /**
-   * Apply MANY input values as ONE batch — the multi-input counterpart to
+   * Apply MANY input values as ONE batch - the multi-input counterpart to
    * setInput (plans/100 §5: a remote collaboration op arrives as a set of values;
    * also useful to /multi and URL hydration). Unknown ids and values the
-   * constraints reject are dropped key by key — never the batch, never a throw
+   * constraints reject are dropped key by key - never the batch, never a throw
    * mid-apply. `onInput` still runs per changed id, sequentially in the object's
    * insertion order; what coalesces is the render: subscribers are notified
    * exactly once, after the last hook.
    */
   applyPatch(values: Record<string, unknown>): Promise<void>;
   subscribe(fn: (state: RuntimeState) => void): () => void;
-  /** Re-notify subscribers with the CURRENT model — no value change. */
+  /** Re-notify subscribers with the CURRENT model - no value change. */
   refresh(): void;
   /** True when this tool declares an `onFrame` hook. */
   hasFrameHook: boolean;
@@ -215,7 +215,7 @@ export interface Runtime {
   /**
    * DETERMINISTIC export drive: run `onFrame` once with a caller-supplied frame and return
    * the freshly hydrated output (the same string a live render would paint), WITHOUT the rAF
-   * loop and WITHOUT notifying subscribers — the caller paints it and captures. This is the
+   * loop and WITHOUT notifying subscribers - the caller paints it and captures. This is the
    * frame-accurate render the live preview showed: the shell walks the source frame-by-frame
    * (host.media.renderFrameAt) and feeds each through here. Returns null with no onFrame hook.
    * Mutates the render's `extras` (the effect output), so trigger a normal render afterwards
@@ -225,7 +225,7 @@ export interface Runtime {
   /**
    * Pause / resume the live repaint loop WITHOUT tearing down the media source (unlike
    * stopLive, which calls host.media.stop()). Holds the preview still while a deterministic
-   * export drive owns the canvas — `renderFrameAt` keeps working because the source stays
+   * export drive owns the canvas - `renderFrameAt` keeps working because the source stays
    * armed and running. isLive() stays true. Idempotent; harmless when not live.
    */
   pauseLive(): void;
@@ -233,8 +233,8 @@ export interface Runtime {
   /**
    * Start driving `onFrame` from the host frame source. `source` declares what is
    * feeding the frames: 'camera' (default) marks each rendered frame as a live
-   * device capture for export provenance; 'asset' — a shell replaying an animated
-   * asset (SVG/GIF/APNG/video) through the same loop — must NOT, because claiming
+   * device capture for export provenance; 'asset' - a shell replaying an animated
+   * asset (SVG/GIF/APNG/video) through the same loop - must NOT, because claiming
    * digitalCapture for a decoded file would be a false statement in a signed
    * manifest (1.113).
    */
@@ -245,7 +245,7 @@ export interface Runtime {
   /** Whether the audio-level meter loop is currently running. */
   isMetering(): boolean;
   /**
-   * Start driving the tool's `onLevel` hook from the host mic level meter — a
+   * Start driving the tool's `onLevel` hook from the host mic level meter - a
    * pre-record "sound check". Resolves true once levels flow; rejects if permission
    * is denied or there's no mic (the shell shows that error). No-op (false) if
    * already metering, the tool has no onLevel, or the shell provides no host.recorder.
@@ -257,7 +257,7 @@ export interface Runtime {
   isRecording(): boolean;
   /**
    * Begin a recording session (mic, optionally camera) via host.recorder, driving
-   * the tool's `onLevel` hook — if any — from the session's live levels. Resolves
+   * the tool's `onLevel` hook - if any - from the session's live levels. Resolves
    * true once recording; rejects on denial / missing device. No-op (false) if
    * already recording or no host.recorder. Stops any pre-record meter first so the
    * take and the sound-check share the one mic the shell opened.
@@ -267,7 +267,7 @@ export interface Runtime {
    * Finalise the current recording and resolve the captured media (Blob + the MIME
    * type actually encoded), or null if not recording. The shell routes the bytes: a
    * video clip becomes a template asset (setInput); an audio clip downloads via
-   * host.export.file (the user's own content — never watermarked).
+   * host.export.file (the user's own content - never watermarked).
    */
   stopRecording(): Promise<RecordResult | null>;
   /** Discard the current recording and release the devices (idempotent). */
@@ -286,7 +286,7 @@ export interface Runtime {
  * @param tool          from loader.ts
  * @param host          capability bridge implementation
  * @param initialState  from URL params or saved slot
- * @param opts.composeStack  tool ids already on the compose path — set by the
+ * @param opts.composeStack  tool ids already on the compose path - set by the
  *        compose bridge when rendering a child, so nested composition
  *        (A embeds B embeds C) carries cycle/depth detection downward.
  */
@@ -304,7 +304,7 @@ export async function createRuntime(
   // bound inputs are unchanged across keystrokes.
   const composeMemo: ComposeMemo = new Map();
   // Monotonic id so an out-of-order (slow) nested render from an earlier
-  // setInput can't overwrite a newer value's render — see setInput below.
+  // setInput can't overwrite a newer value's render - see setInput below.
   let setInputSeq = 0;
 
   const profile = await host.profile.get();
@@ -341,7 +341,7 @@ export async function createRuntime(
 
   // Run one lifecycle hook under its HOOK_BUDGET_MS budget. An async result is
   // raced: a timeout rejects HERE (the caller logs/records it and applies no
-  // patch) and the hook's eventual late resolution is discarded — withTimeout's
+  // patch) and the hook's eventual late resolution is discarded - withTimeout's
   // promise has already settled, so the value never reaches mergePatch. The
   // hook itself is NOT cancelled (no in-realm preemption). A synchronous hook
   // has already finished by the time we can look at the clock, so a sync
@@ -367,7 +367,7 @@ export async function createRuntime(
     // (unchanged). A shell may inject a Worker-isolated one via opts.hookExecutor
     // (plans/86-worker-isolation-hooks.md M2); its slots return Promises that
     // runHook time-boxes exactly like async in-realm hooks. The engine never
-    // constructs a Worker — it only accepts an executor.
+    // constructs a Worker - it only accepts an executor.
     hooks = await (opts.hookExecutor ?? inRealmHookExecutor)(tool, host);
     const onInit = hooks.onInit;
     if (onInit) {
@@ -377,7 +377,7 @@ export async function createRuntime(
       } catch (e) {
         // Record the failure (not just log it) so the shell can show a canvas-error
         // banner instead of silently hydrating against missing extras. Still don't
-        // throw — the lifecycle stays resilient and the canvas renders what it can.
+        // throw - the lifecycle stays resilient and the canvas renders what it can.
         hookErrors.push({ hook: 'onInit', message: (e as Error).message });
         host.log('error', `onInit ${(e as Error).message}`, { toolId: tool.manifest.id });
       }
@@ -415,7 +415,7 @@ export async function createRuntime(
   // Set while a deterministic export DRIVE runs (applyFrameForExport per frame): the live
   // subscribe stays wired (media source + refcount intact, so renderFrameAt still works)
   // but its callback stops repainting, so a real-time frame can't clobber the exact frame
-  // the export is capturing. isLive() stays true throughout — this is a pause, not a stop.
+  // the export is capturing. isLive() stays true throughout - this is a pause, not a stop.
   let livePaused = false;
   const isLive = () => liveUnsub != null;
 
@@ -437,14 +437,14 @@ export async function createRuntime(
   // can declare it honestly (IPTC digitalCapture) instead of assuming software
   // creation. `liveCameraShown` tracks a filter tool's live frame: set when onFrame
   // drives a render, cleared when the user swaps the image SOURCE (an asset/file/url
-  // input) — a scalar tweak keeps it (while live, the next frame re-sets it anyway).
+  // input) - a scalar tweak keeps it (while live, the next frame re-sets it anyway).
   // `recordedCamera`/`recordedMic` are sticky once a recorder tool finalises a take
   // (the recording IS the content, re-composited across edits); a fresh take re-sets
   // them per the captured MIME + the tool's declared capabilities.
   let liveCameraShown = false;
   let recordedCamera = false;
   let recordedMic = false;
-  // A SCREEN take is a distinct origin from a camera take — IPTC screenCapture, not
+  // A SCREEN take is a distinct origin from a camera take - IPTC screenCapture, not
   // digitalCapture. Tracked separately so a screenshot exported after a screen recording
   // never inherits the camera's "captured live from the camera" claim (which would be a
   // false statement in a signed manifest). `recordSource` is the source of the in-flight
@@ -462,17 +462,17 @@ export async function createRuntime(
   // are DROPPED so a slow coaching hook self-throttles. Two entry points share one
   // driver: startMeter (a pre-record sound-check off host.recorder.meter) and
   // startRecording (off the live RecordSession, so the sound-check and the take use
-  // the single mic the shell opened — no double prompt). A video tool with NO
+  // the single mic the shell opened - no double prompt). A video tool with NO
   // onLevel still records; driveLevels just becomes a no-op subscription.
   let meterUnsub: (() => void) | null = null;      // active onLevel subscription (either source)
-  let stopMeterSource: (() => void) | null = null; // release the mic ref (meter.stop) — meter path only
+  let stopMeterSource: (() => void) | null = null; // release the mic ref (meter.stop) - meter path only
   let levelPending = false;
   let recordSession: RecordSession | null = null;
   const isMetering = () => meterUnsub != null && recordSession == null;
   const isRecording = () => recordSession != null;
 
-  // Subscribe onLevel to any level source ({ subscribe(cb) }) — the mic meter or a
-  // live RecordSession — with the same drop-overlap throttle as onFrame. Returns the
+  // Subscribe onLevel to any level source ({ subscribe(cb) }) - the mic meter or a
+  // live RecordSession - with the same drop-overlap throttle as onFrame. Returns the
   // unsubscribe. A no-op subscription when the tool declares no onLevel.
   function driveLevels(source: { subscribe(cb: (l: AudioLevel) => void): () => void }): () => void {
     const onLevel = hooks?.onLevel;
@@ -504,8 +504,8 @@ export async function createRuntime(
 
   // The template context (flattened input values + hook extras) is rebuilt only
   // when `model` or `extras` is replaced. Both are swapped wholesale on every
-  // mutation — updateInput/mergePatch/resolve* return fresh objects, never patch
-  // in place — so reference equality is a sound cache key. This avoids
+  // mutation - updateInput/mergePatch/resolve* return fresh objects, never patch
+  // in place - so reference equality is a sound cache key. This avoids
   // re-flattening the whole model on every render/emit (one emit per keystroke),
   // and Handlebars never mutates the data object so the cached one is safe to
   // share across the main template + data-format (raw) hydrations.
@@ -519,7 +519,7 @@ export async function createRuntime(
       ctxExtras = extras;
     }
     // First call always rebuilds (ctxModel starts null !== model), so ctxCache
-    // is set before any return — the assertion just erases the nullable type.
+    // is set before any return - the assertion just erases the nullable type.
     return ctxCache!;
   }
 
@@ -533,14 +533,14 @@ export async function createRuntime(
   // row of the named table input, each wrapped in its own [data-pdf-page] box,
   // so the tool authors ONE page and the paged export/preview paths see N.
   // Each hydration's context gains a `page` object:
-  //   index/number/count — 0-based, 1-based, total pages
-  //   first              — the row's first cell (the natural page title)
-  //   cells              — [{ column, value, col }] for every column (col is the
+  //   index/number/count - 0-based, 1-based, total pages
+  //   first              - the row's first cell (the natural page title)
+  //   cells              - [{ column, value, col }] for every column (col is the
   //                        original column index, so a template can address the
-  //                        cell — e.g. a data-cell="row:col" edit marker — even
+  //                        cell - e.g. a data-cell="row:col" edit marker - even
   //                        when it renders only a subset of the columns)
-  //   fields             — cells minus the first (the labelled body fields)
-  //   byColumn           — trimmed lower-cased column name → the row's cell, for
+  //   fields             - cells minus the first (the labelled body fields)
+  //   byColumn           - trimmed lower-cased column name → the row's cell, for
   //                        by-name lookup ({{lookup page.byColumn "icon"}}); the
   //                        first matching column wins. Null-prototype, so a column
   //                        the user names "constructor" can't shadow a real key.
@@ -575,7 +575,7 @@ export async function createRuntime(
     return str ? hydrate(str, templateContext()) : '';
   }
 
-  // Same context, but WITHOUT HTML escaping — for non-HTML data templates
+  // Same context, but WITHOUT HTML escaping - for non-HTML data templates
   // (template.ics/.vcf/.csv). Each data format escapes via its own helper.
   function getHydratedText(str: string): string {
     return str ? hydrate(str, templateContext(), { raw: true }) : '';
@@ -613,7 +613,7 @@ export async function createRuntime(
     resumeLive() { livePaused = false; },
 
     async setInput(id, value) {
-      // Swapping the image SOURCE retires any live-camera capture flag — the render
+      // Swapping the image SOURCE retires any live-camera capture flag - the render
       // no longer shows camera essence. Scalar tweaks keep it (while live, the next
       // onFrame re-sets it within a frame). Recorded takes stay sticky: a recorder
       // stores its clip through this same path, so clearing them here would erase
@@ -622,14 +622,14 @@ export async function createRuntime(
       if (priorType === 'asset' || priorType === 'file' || priorType === 'url') liveCameraShown = false;
       model = updateInput(model, id, value);
       // A live-camera resolution slider (render.liveMaxEdgeInput) re-applies to the
-      // running stream without a camera stop/start — the grab loop just starts
+      // running stream without a camera stop/start - the grab loop just starts
       // producing frames at the new working edge. No-op unless currently live.
       if (liveResubscribe && id === tool.manifest.render?.liveMaxEdgeInput) liveResubscribe();
       const seq = ++setInputSeq;
       // Paint the keystroke immediately, BEFORE awaiting the onInput hook (which may
       // do IndexedDB asset reads). Blocking the visible update on the hook made every
       // keystroke feel laggy. A hook that rewrites the just-typed input (e.g. quote
-      // capitalisation) then triggers a one-frame correction on the re-emit below —
+      // capitalisation) then triggers a one-frame correction on the re-emit below -
       // acceptable per the perf plan; the FINAL state is always the post-hook value.
       emit();
       const onInput = hooks?.onInput;
@@ -661,7 +661,7 @@ export async function createRuntime(
      * Atomic multi-input apply (plans/100 §5). Every value goes through EXACTLY
      * setInput's constraint path (updateInput → constrain), so a batch can never
      * put anything in the model a keystroke couldn't. A key naming no declared
-     * input — version skew between peers — or one whose value the constraints
+     * input - version skew between peers - or one whose value the constraints
      * reject is DROPPED on its own; the rest of the batch still applies and
      * nothing throws mid-apply (§11.11).
      *
@@ -670,7 +670,7 @@ export async function createRuntime(
      * options, a non-boolean boolean, NaN/out-of-range numbers, an over-long
      * string, a non-array `blocks`, a malformed table/vector/file. It does NOT
      * type-check `asset` or `color`, whose legitimate values are object-shaped and
-     * completed later in the lifecycle — a caller taking values from an untrusted
+     * completed later in the lifecycle - a caller taking values from an untrusted
      * peer gates those at its own boundary (the web shell's collab plumbing does).
      * Nor is it a size/depth cap on hostile payloads: that is inbound-transport
      * hardening (§11.21, wave 2.4), which belongs where the bytes arrive.
@@ -678,7 +678,7 @@ export async function createRuntime(
      * `onInput` runs per CHANGED id, sequentially in the object's insertion
      * order, under setInput's time-box and warn-don't-throw handling: the hook
      * contract is per-input and must not change meaning just because the values
-     * arrived together. Only the RENDER coalesces — one emit after the last
+     * arrived together. Only the RENDER coalesces - one emit after the last
      * hook instead of one per key (a batch where nothing landed emits nothing).
      * Each hook is told the value that actually entered the model (post-constrain,
      * flattened), captured at apply time so an earlier hook's patch can't change
@@ -692,7 +692,7 @@ export async function createRuntime(
       const applied: { id: string; value: InputValue }[] = [];
       for (const [id, value] of Object.entries(values ?? {})) {
         const before = model.find(i => i.id === id);
-        if (!before) continue; // no such input on this build — dropped, not an error
+        if (!before) continue; // no such input on this build - dropped, not an error
         // Trust boundary, the one setInput already has: the value is whatever the
         // caller (a peer, a URL, /multi) sent; constrain() decides what may enter.
         const next = updateInput(model, id, value as InputValue);
@@ -701,7 +701,7 @@ export async function createRuntime(
         // value is exactly the rejected case (and a genuine no-op write): leave the
         // model alone rather than churn isDirty and run a hook for nothing.
         if (Object.is(after.value, before.value)) continue;
-        // Same live-capture retirement as setInput — swapping the image SOURCE
+        // Same live-capture retirement as setInput - swapping the image SOURCE
         // means the render no longer shows camera essence.
         if (before.type === 'asset' || before.type === 'file' || before.type === 'url') liveCameraShown = false;
         model = next;
@@ -724,7 +724,7 @@ export async function createRuntime(
       }
       emit(); // ONE render for the whole batch, hooks included
       // Nested renders off the critical path, superseded by any newer
-      // setInput/applyPatch — the same tail (and the same later emit) setInput has.
+      // setInput/applyPatch - the same tail (and the same later emit) setInput has.
       if (host.compose && tool.manifest.composes?.length) {
         const composeOut = await resolveNestedRenders(tool, model, extras, host, composeStack, composeMemo);
         const changed = Object.keys(composeOut).some(k => extras[k] !== composeOut[k]);
@@ -741,14 +741,14 @@ export async function createRuntime(
       return () => listeners.delete(fn);
     },
 
-    // Re-notify subscribers with the CURRENT model — no value change. For shell
+    // Re-notify subscribers with the CURRENT model - no value change. For shell
     // state that lives outside the input model but still affects the render (e.g.
     // export dimensions): a shell can force the canvas to re-hydrate through the
     // one render path instead of mutating the DOM itself. Used to invalidate a
     // deferred preview (manifest.render.preview) when the capture geometry changes.
     refresh: emit,
 
-    // True when this tool declares an `onFrame` hook — i.e. it CAN react to a live
+    // True when this tool declares an `onFrame` hook - i.e. it CAN react to a live
     // camera. The shell still gates the actual "go live" affordance on host.media
     // being present, so a tool without a camera shell just runs as a still tool.
     hasFrameHook: Boolean(hooks?.onFrame),
@@ -757,7 +757,7 @@ export async function createRuntime(
     isLive,
 
     /**
-     * Start driving the tool's `onFrame` hook from the host frame source — the
+     * Start driving the tool's `onFrame` hook from the host frame source - the
      * camera by default, or (source:'asset') a shell-armed animated asset replayed
      * through the same loop. Resolves once frames can flow; rejects if permission
      * is denied or there's no camera (the shell shows that error). No-op (returns
@@ -773,10 +773,10 @@ export async function createRuntime(
       // capture. A shell replaying an ANIMATED ASSET through the same frame loop
       // passes source:'asset' so the export never over-claims digitalCapture.
       const sensorSource = opts?.source !== 'asset';
-      await media.start(); // may reject (permission/no camera) — the shell catches
+      await media.start(); // may reject (permission/no camera) - the shell catches
       // A raster-output tool can ask for higher-resolution frames than the shell's
       // default vector-trace working size (render.liveMaxEdge, or a live slider via
-      // render.liveMaxEdgeInput — see liveEdge()); the shell clamps it to the native
+      // render.liveMaxEdgeInput - see liveEdge()); the shell clamps it to the native
       // camera frame. Shells that ignore the opt fall back to default.
       const subscribeLive = () => media.subscribe((frame) => {
         if (framePending || livePaused) return; // busy, or an export drive owns the canvas → drop
@@ -794,7 +794,7 @@ export async function createRuntime(
       liveUnsub = subscribeLive();
       // Re-subscribe with the current working edge when the resolution input changes.
       // The grab loop sizes frames to the largest edge any subscriber wants, so simply
-      // swapping our subscription re-sizes the stream live — no stop/start of the camera.
+      // swapping our subscription re-sizes the stream live - no stop/start of the camera.
       liveResubscribe = () => { if (liveUnsub) { liveUnsub(); liveUnsub = subscribeLive(); } };
       return true;
     },
@@ -811,7 +811,7 @@ export async function createRuntime(
       try { host.media?.stop(); } catch { /* already torn down */ }
     },
 
-    // True when this tool declares an `onLevel` hook — i.e. it CAN react to live
+    // True when this tool declares an `onLevel` hook - i.e. it CAN react to live
     // audio levels. The shell still gates the actual meter/record affordance on
     // host.recorder being present.
     hasLevelHook: Boolean(hooks?.onLevel),
@@ -827,7 +827,7 @@ export async function createRuntime(
       const onLevel = hooks?.onLevel;
       const recorder = host.recorder;
       if (meterUnsub || !onLevel || !recorder) return false;
-      await recorder.meter.start(); // may reject (permission/no mic) — the shell catches
+      await recorder.meter.start(); // may reject (permission/no mic) - the shell catches
       stopMeterSource = () => recorder.meter.stop();
       meterUnsub = driveLevels(recorder.meter);
       return true;
@@ -847,7 +847,7 @@ export async function createRuntime(
       if (recordSession || !recorder) return { started: false };
       // Share the single mic: drop any pre-record sound-check meter first.
       stopMeterLoop();
-      const session = await recorder.record(opts); // may reject — the shell catches
+      const session = await recorder.record(opts); // may reject - the shell catches
       recordSession = session;
       // Remember what this take IS, so stopRecording/export stamp the right origin and the
       // shell can warn at once if a requested mic was actually denied.
@@ -868,9 +868,9 @@ export async function createRuntime(
       if (meterUnsub) { meterUnsub(); meterUnsub = null; }
       recordSession = null;
       const blob = await session.stop();
-      // Mark the capture for export provenance. Sticky — the take IS the content,
+      // Mark the capture for export provenance. Sticky - the take IS the content,
       // re-composited across later edits. A video take from the DISPLAY is a screen
-      // capture (screenCapture), NOT a camera one — so a still exported afterwards
+      // capture (screenCapture), NOT a camera one - so a still exported afterwards
       // through the export bar never falsely claims the camera. The mic flag reflects
       // what was ACTUALLY captured (recordMicActive), not the tool's declared
       // capability: a screen take whose mic was denied is silent, and the credential
@@ -905,7 +905,7 @@ export async function createRuntime(
      * reads the picked file's bytes (input.value.bytes) and returns the result as
      * a plain { bytes, mime, filename } record. The shell wraps it in a Blob and
      * delivers it via host.export.file. NEVER watermarked and NO provenance is
-     * embedded — the bytes are the user's own content, not a generated artifact.
+     * embedded - the bytes are the user's own content, not a generated artifact.
      */
     async exportFile(opts = {}) {
       const exportFileHook = hooks?.exportFile;
@@ -914,7 +914,7 @@ export async function createRuntime(
       }
       // Hook trust boundary: the result's shape is the tool's own
       // { bytes, mime, filename } contract, verified for bytes presence below.
-      // Errors (including a HOOK_BUDGET_MS timeout) propagate — the shell shows
+      // Errors (including a HOOK_BUDGET_MS timeout) propagate - the shell shows
       // the transform's failure to the user; there's no degraded fallback here.
       const out = await runHook('exportFile',
         () => exportFileHook({ model: modelForHooks(model), host, opts }),
@@ -938,7 +938,7 @@ export async function createRuntime(
       const beforeExport = hooks?.beforeExport;
       if (beforeExport) {
         // Time-boxed via HOOK_BUDGET_MS, but errors (including the timeout)
-        // PROPAGATE and fail this export visibly — beforeExport is where tools
+        // PROPAGATE and fail this export visibly - beforeExport is where tools
         // raise user-facing preconditions (e.g. url-shot's "enter a URL"), and
         // exporting an unstaged canvas silently would be worse than failing.
         await runHook('beforeExport', () => beforeExport({ node: renderedNode, format, opts, host }));
@@ -955,8 +955,8 @@ export async function createRuntime(
       if (exportStill) {
         // afterExport is the cleanup guarantee that pairs with a mutating
         // beforeExport. Since the owned-bytes path returns before the normal
-        // try/finally below, run it here on EVERY exit — success OR a throw/
-        // timeout from exportStill — so a failed deep export can't leave the DOM
+        // try/finally below, run it here on EVERY exit - success OR a throw/
+        // timeout from exportStill - so a failed deep export can't leave the DOM
         // stuck in the export configuration. (On decline we DON'T run it: the
         // fall-through hits the normal finally, which runs it exactly once.)
         const runAfterExport = async (): Promise<void> => {
@@ -985,7 +985,7 @@ export async function createRuntime(
       // Surface the 'Convert paths' export toggle (a synthetic export-group input)
       // to the bridge as opts.convertPaths, unless the caller set it explicitly.
       // When a tool suppresses the toggle (render.convertPaths:false) there's no
-      // input to read, so honour the manifest opt-out directly — otherwise the
+      // input to read, so honour the manifest opt-out directly - otherwise the
       // bridge's default would outline text anyway.
       if (opts.convertPaths === undefined) {
         const cp = model.find(i => i.id === 'convertPaths');
@@ -1011,16 +1011,16 @@ export async function createRuntime(
       // Data/text formats are produced from the input model (and optional sibling
       // text templates), not the rendered DOM. The engine hydrates the text here
       // and hands it to the host, which only has to wrap it in a Blob (one MIME
-      // per format). This keeps the single export entry point — every shell that
+      // per format). This keeps the single export entry point - every shell that
       // calls runtime.export gets these formats for free.
       const dataExtra = buildDataPayload(tool, format, model, getHydratedText);
       // Preserve the Content Credentials of any credentialed image the user
-      // PLACED into this design — carried into the export's provenance chain as
+      // PLACED into this design - carried into the export's provenance chain as
       // an ingredient (engine c2pa.ts), so an AI-generated or camera-signed
       // source is never laundered away. Only when we're stamping (never the
       // on-device utility path). Covers user uploads (credential captured at
       // ingest) and library/catalog assets (the host may extract one from the
-      // asset's own bytes — v1.31). A credential we can't read is skipped,
+      // asset's own bytes - v1.31). A credential we can't read is skipped,
       // never fatal to the export.
       let ingredients: IngredientCredential[] | undefined;
       if (!isOnDevice && meta !== undefined && host.assets?.credential) {
@@ -1046,19 +1046,19 @@ export async function createRuntime(
             const cred = await host.assets.credential(id);
             const ing = cred?.store ? prepareC2paIngredientFromStore(cred.store, cred.format) : null;
             if (ing) prepared.push(ing);
-          } catch { /* unreadable credential — skip, don't fail the export */ }
+          } catch { /* unreadable credential - skip, don't fail the export */ }
         }
         if (prepared.length) ingredients = prepared;
       }
       // When stamping Content Credentials (never the on-device utility path),
-      // record a compact digest of the scalar inputs this render came from —
+      // record a compact digest of the scalar inputs this render came from -
       // surfaced by the shell in the tools.lolly.export assertion so an inspected
       // asset shows what it was made from. Cheap + best-effort; skipped otherwise.
       const stampProvenance = opts.c2pa && !isOnDevice;
       const c2paInputs = stampProvenance ? summarizeInputs(model) : undefined;
       // Live-capture provenance: declare the origin honestly when this session's
       // render came from a device sensor (a filter's live camera frame, or a
-      // recorder take). Biased against over-claiming — see the flag tracking above.
+      // recorder take). Biased against over-claiming - see the flag tracking above.
       // Screen capture is its own IPTC origin and takes precedence: a screenshot exported
       // after a screen recording must read screenCapture, never "captured from the camera".
       // exportActionSteps checks cap.screen first, so screen + mic → a narrated screen
@@ -1072,11 +1072,11 @@ export async function createRuntime(
           }
         : undefined;
       // Text-added provenance: honest ONLY when rendered text sits over an OPENED
-      // asset (an ingredient is present) — a genuine edit on someone else's image.
+      // asset (an ingredient is present) - a genuine edit on someone else's image.
       // From-scratch text is the work's own content; it rides in the digest above,
       // never as a fabricated edit step. `sample` teases the step; the full copy is
       // in the digest. bindToProfile text (a pre-filled name) is attribution, not
-      // added content — excluded, matching summarizeInputs.
+      // added content - excluded, matching summarizeInputs.
       let c2paTextAdded: { sample?: string } | undefined;
       if (stampProvenance && ingredients?.length) {
         const textItem = model.find(i =>
@@ -1088,7 +1088,7 @@ export async function createRuntime(
         }
       }
       // AI-upscale provenance: a placed asset produced on-device by host.upscale
-      // carries { model, version } on its meta (a user asset — toAssetRef passes
+      // carries { model, version } on its meta (a user asset - toAssetRef passes
       // its meta through verbatim). Declare it honestly so the OUTPUT's credential
       // names the model that enlarged it (created → compositeWithTrainedAlgorithmicMedia
       // + an "AI-upscaled with <model> <version>" edit step). Only when stamping; the
@@ -1101,8 +1101,8 @@ export async function createRuntime(
           return up && typeof up.model === 'string' && typeof up.version === 'string'
             ? { model: up.model, version: up.version } : undefined;
         };
-        // Walk top-level asset inputs AND blocks asset sub-fields — the same descent
-        // the ingredient collector above does — so an upscaled image placed into a
+        // Walk top-level asset inputs AND blocks asset sub-fields - the same descent
+        // the ingredient collector above does - so an upscaled image placed into a
         // repeating-field grid (logo wall, carousel) still declares its AI origin.
         for (const input of model) {
           if (input.type === 'asset') {
@@ -1140,10 +1140,10 @@ export async function createRuntime(
         });
       } finally {
         // afterExport is a cleanup guarantee (e.g. tools that mutate the live node
-        // in beforeExport) — run it even if render throws, so a failed export
+        // in beforeExport) - run it even if render throws, so a failed export
         // can't leave hook state / the DOM in the export configuration. Its errors
         // and timeouts are logged, NOT rethrown (a throw from a finally would mask
-        // the render's own error); the budget only bounds how long we WAIT — the
+        // the render's own error); the budget only bounds how long we WAIT - the
         // cleanup itself is never cancelled, so a slow afterExport still finishes.
         const afterExport = hooks?.afterExport;
         if (afterExport) {
@@ -1159,7 +1159,7 @@ export async function createRuntime(
 
     // Release per-mount executor resources. In-realm hooks have no teardown
     // (`hooks?.dispose` is undefined); the Worker executor drops its run. Guarded
-    // so a shell that never wired destroy — or calls it twice — is harmless.
+    // so a shell that never wired destroy - or calls it twice - is harmless.
     destroy() {
       try { hooks?.dispose?.(); } catch (e) { host.log('warn', `hook dispose ${(e as Error).message}`, { toolId: tool.manifest.id }); }
     },
@@ -1224,7 +1224,7 @@ function buildDataPayload(
   return { dataText: getHydratedText(tpl), dataMime };
 }
 
-// The id carried by an asset ref still needing resolution — any truthy object
+// The id carried by an asset ref still needing resolution - any truthy object
 // value with a string `id` (covers both _unresolved URL-mode refs and
 // saved-session refs). Null when the value isn't ref-shaped. Mirrors the inline
 // `x && typeof x === 'object' && typeof x.id === 'string'` check.
@@ -1234,7 +1234,7 @@ function assetRefId(v: unknown): string | null {
   return typeof id === 'string' ? id : null;
 }
 
-// True when an input carries an asset ref that still needs resolving — either a
+// True when an input carries an asset ref that still needs resolving - either a
 // top-level asset value or a block whose declared asset sub-fields hold a ref.
 function inputNeedsAssetResolve(input: InputModelItem): boolean {
   const v = input.value;
@@ -1260,13 +1260,13 @@ async function resolveAssetRefs(
   if (!model.some(inputNeedsAssetResolve)) return model;
 
   const resolveOne = async (value: unknown, id: string, inputId: string, label: string): Promise<AssetRef | null> => {
-    // Re-resolve any asset ref that carries an id — this covers both the
+    // Re-resolve any asset ref that carries an id - this covers both the
     // _unresolved URL-mode path AND saved-session refs.  Saved sessions store
     // the full resolved object, but blob: URLs are session-scoped and invalid
     // after a page reload, so we always re-fetch a fresh blob URL from the cache.
     try {
       // A baked ref is frozen: its bytes ride in a data: URL, so it resolves
-      // as-is on every mount — no bridge call, no compose-stack growth, never a
+      // as-is on every mount - no bridge call, no compose-stack growth, never a
       // live re-render. A baked ref WITHOUT data: bytes (e.g. a stale blob: URL
       // that leaked into a save) has lost its pixels; drop it rather than
       // re-render, since baking's whole promise is "these exact bytes".
@@ -1276,12 +1276,12 @@ async function resolveAssetRefs(
         dropped.push({ inputId, label, id, reason: 'baked-bytes-lost' });
         return null;
       }
-      // A Lolly tool URL as an asset id means "render this tool as my image" —
+      // A Lolly tool URL as an asset id means "render this tool as my image" -
       // an end user pasted a share link into the picker. Re-render it through
       // compose (not the catalog), so the embedded render is reproduced on every
       // load (saved session, shared parent link). Push THIS tool's id onto the
       // stack (mirroring resolveNestedRenders) so a tool whose image input points
-      // at itself — or an A↔B pair — trips the bridge's cycle/depth guard and fails
+      // at itself - or an A↔B pair - trips the bridge's cycle/depth guard and fails
       // fast instead of recursing. withTimeout bounds a hung child render so it
       // can't block this mount. Graceful-null if the shell can't compose.
       if (isToolUrl(id)) {
@@ -1343,7 +1343,7 @@ async function resolveAssetRefs(
 // { ref, value:<hex> } pair: the ref keeps it canonical, the hex is the cached
 // fallback for when the token is absent on this device.
 async function resolveTokenRefs(model: InputModelItem[], host: HostV1): Promise<InputModelItem[]> {
-  if (!host.tokens) return model; // shell without token support — leave values as-is
+  if (!host.tokens) return model; // shell without token support - leave values as-is
   // No colour input carries a token ref/alias → skip the host.tokens.get() round
   // trip entirely and keep the same model reference.
   const needs = model.some(i => i.type === 'color' && (isTokenValue(i.value) || isAlias(i.value)));
@@ -1368,7 +1368,7 @@ async function resolveTokenRefs(model: InputModelItem[], host: HostV1): Promise<
 type HookFactory = (host: HostV1) => Record<string, unknown>;
 
 // Compiled hook factories, memoised by tool id@version. `new Function(...)`
-// re-parses the whole hooks.js source (chart-creator is ~525 lines) — but the
+// re-parses the whole hooks.js source (chart-creator is ~525 lines) - but the
 // source is identical for a given tool version, and the factory is host-agnostic
 // (it only takes `host` as an argument), so the compiled factory is safe to reuse
 // across every mount/re-mount of that version.
@@ -1379,11 +1379,11 @@ function getHookFactory(tool: LoadedTool): HookFactory {
   let factory = hookFactoryCache.get(key);
   if (!factory) {
     // Hooks run in a Function() scope with the host bridge injected as the
-    // sole argument — the intended path for anything a tool needs. This is
+    // sole argument - the intended path for anything a tool needs. This is
     // closure-scope injection, NOT isolation: `new Function` still runs in the
     // realm's global scope, so hooks CAN reach window/document/fetch when the
     // shell is a browser (and some shipping tools rely on it). Not a security
-    // sandbox; the host bridge is just the supported, portable API surface —
+    // sandbox; the host bridge is just the supported, portable API surface -
     // third-party/untrusted tool code is NOT safe to run until Worker
     // isolation ships. Async results are time-boxed (HOOK_BUDGET_MS) but a
     // synchronous runaway hook cannot be preempted in-realm.
@@ -1436,7 +1436,7 @@ async function loadHooks(tool: LoadedTool, host: HostV1): Promise<Hooks> {
  * `new Function('host', src)` in this realm). A shell can inject an alternative
  * through createRuntime's `opts.hookExecutor`: the web shell's Worker-isolated
  * executor (plans/86-worker-isolation-hooks.md M2) returns the SAME Hooks shape,
- * but each slot postMessages into a Worker and resolves a Promise — which
+ * but each slot postMessages into a Worker and resolves a Promise - which
  * `runHook` already time-boxes exactly like an async in-realm hook, so every
  * downstream call site (runHook, hasFrameHook, driveLevels, the export path) is
  * agnostic to which executor produced the Hooks. The engine stays DOM-free: it
@@ -1444,10 +1444,10 @@ async function loadHooks(tool: LoadedTool, host: HostV1): Promise<Hooks> {
  */
 export type HookExecutor = (tool: LoadedTool, host: HostV1) => Promise<Hooks>;
 
-/** The default executor — compile + run hooks in this realm (behavior unchanged). */
+/** The default executor - compile + run hooks in this realm (behavior unchanged). */
 export const inRealmHookExecutor: HookExecutor = loadHooks;
 
-// Backstop for re-rendering a tool-URL asset on mount — mirrors the same bound on
+// Backstop for re-rendering a tool-URL asset on mount - mirrors the same bound on
 // the manifest-composes path (compose.ts) so a hung child render can't block the
 // parent's first paint. On timeout the resolve rejects → the slot is dropped.
 const COMPOSE_TIMEOUT_MS = 10000;
@@ -1486,11 +1486,11 @@ function mergePatch(
     // A key whose value is undefined is a hook MENTIONING an input, not
     // setting it (`{ boxes: migrated || undefined }` is the shipped bug this
     // guards: key presence used to blank the input to undefined and every
-    // consumer downstream saw nothing). Skipping is safe for extras too — an
+    // consumer downstream saw nothing). Skipping is safe for extras too - an
     // undefined extra is indistinguishable from an absent one in templates.
     if (v === undefined) continue;
     // Hook trust boundary: a patched input value is whatever the tool
-    // computed — the same latitude the untyped runtime always gave hooks.
+    // computed - the same latitude the untyped runtime always gave hooks.
     if (ids.has(k)) { modelPatch[k] = v as InputValue; hasModelPatch = true; }
     else newExtras[k] = v;
   }

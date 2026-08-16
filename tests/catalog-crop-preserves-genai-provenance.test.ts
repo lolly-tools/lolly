@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MPL-2.0
 //
-// Cropping a genAI asset from the catalog must PRESERVE its synthetic-content provenance —
+// Cropping a genAI asset from the catalog must PRESERVE its synthetic-content provenance - 
 // both the genAI flag AND the "previous journey inside Lolly" (the action/ingredient chain).
 // This is Andy's #1 provenance rule: never destroy genAI credentials on an edit.
 //
@@ -9,7 +9,7 @@
 // glue (views/catalog.ts: downloadCrop → downloadSigned → sourceIngredients →
 // prepareC2paIngredientFromStore → stampDerivedC2pa → embedC2pa) builds that ingredient from
 // the source's stored credential and passes it to embedC2pa. This pins the ENGINE half of
-// that path — the part that actually round-trips the manifest boxes and source type — with a
+// that path - the part that actually round-trips the manifest boxes and source type - with a
 // genAI source that carries a multi-step Lolly journey, and a control proving the drop is real
 // when the ingredient is omitted.
 

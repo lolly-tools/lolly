@@ -1,13 +1,13 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
  * §7's exit criterion, enacted: **N lifted layers at z = 0 render as the
- * un-lifted original** (plans/104 §7 P3) — and the measurement that says what
+ * un-lifted original** (plans/104 §7 P3) - and the measurement that says what
  * "as" can honestly mean in a real browser.
  *
  * `tests/svg-layers.test.ts` proves the STRUCTURAL half: the derived documents
  * are a byte-exact partition of the source's children, nothing dropped,
  * duplicated or reordered. That is the property, and it fails with a readable
- * diff. This file proves the half a structural argument cannot reach — that a
+ * diff. This file proves the half a structural argument cannot reach - that a
  * real renderer, handed those documents as N stacked `<img>` layers, paints the
  * same picture it paints for the whole file.
  *
@@ -30,31 +30,31 @@
  * | ungrouped strays                 | 0                  | 0   | 0        |
  * | one wrapping group, rotated      | 130 (77 beyond ±1) | 17  | 0.0018   |
  *
- * Two shapes of difference, both understood. The ±1s are ordinary quantisation —
+ * Two shapes of difference, both understood. The ±1s are ordinary quantisation - 
  * a gradient's smooth ramp lands on a rounding boundary in 9 % of its pixels and
  * moves by one code value. The larger ones are the premultiplied-alpha precision
  * floor: where coverage is near zero (a star's spike, every pixel along a
  * rotated edge) the layer stores a saturated colour at an alpha of a few /255,
  * and recovering that colour cannot be exact. Neither is a lift defect, and no
- * amount of care in this module removes them — they are properties of layer
+ * amount of care in this module removes them - they are properties of layer
  * compositing.
  *
  * So the assertion here is the one that still catches every defect a lift could
  * actually have: **essentially every channel within ±1, and no more than a
  * handful beyond it.** A dropped layer, a duplicated node, a reordered stack or
- * a broken reference moves tens of thousands of channels by tens of values —
- * three orders of magnitude outside these bounds — which is exactly what the
+ * a broken reference moves tens of thousands of channels by tens of values - 
+ * three orders of magnitude outside these bounds - which is exactly what the
  * vacuity guard at the bottom demonstrates.
  *
  * ## ⚑ Every fixture above is k = 1, and that is why 1.121 over-claimed
  *
  * 320×240 into a 320×240 box is the one configuration in which snapping a crop to
- * whole USER units also lands it on whole ROW pixels — so the crop-to-ink of
+ * whole USER units also lands it on whole ROW pixels - so the crop-to-ink of
  * 1.121 measured neutral here and cost 88 675 channels beyond ±1 on real content
  * at k = 0.694. The `k = 1.5625` block below is the missing configuration: the
  * same fixtures in a 500×375 box, with `liftCropScale` feeding the engine the
  * scale the rows will actually be placed at, plus a test that the SAME box
- * cropped in user units blows the budget by 14× — so the claim cannot be made
+ * cropped in user units blows the budget by 14× - so the claim cannot be made
  * again from the easy case alone.
  *
  * GATING follows the rest of the browser tier (`sequence-render.browser.test.ts`,
@@ -83,12 +83,12 @@ const CHANNELS = W * H * 4;
  * Channels allowed to differ by more than one code value, as a fraction of the
  * frame. Measured worst: 77 of 307 200 = 0.025 %, the rotated-wrapper fixture,
  * whose every shape edge is anti-aliased along its whole length. A real lift
- * defect — a dropped layer, a lost wrapper transform, a reordered stack — moves
+ * defect - a dropped layer, a lost wrapper transform, a reordered stack - moves
  * TENS OF THOUSANDS of channels, three orders of magnitude past this.
  */
 const MAX_BEYOND_ONE_FRACTION = 0.0005;
 const MAX_BEYOND_ONE = Math.round(CHANNELS * MAX_BEYOND_ONE_FRACTION);
-/** How far one of those may go — the premultiplied-alpha floor (measured: 56). */
+/** How far one of those may go - the premultiplied-alpha floor (measured: 56). */
 const MAX_CHANNEL_DELTA = 96;
 /** Mean absolute error over every channel (measured worst: 0.094, a gradient). */
 const MAX_MEAN_ABS = 0.5;
@@ -103,8 +103,8 @@ const MAX_MEAN_ABS = 0.5;
  * spatial clustering), and a lone wrapper group (the descent).
  *
  * ⚑ What the original set had in common, and what it cost: not one fixture put
- * anything on the ROOT `<svg>`, so a root `opacity`/`filter` — applied N times
- * over by a split, 45 203 channels beyond ±1 against a 154-channel budget — was
+ * anything on the ROOT `<svg>`, so a root `opacity`/`filter` - applied N times
+ * over by a split, 45 203 channels beyond ±1 against a 154-channel budget - was
  * invisible to a suite whose entire job is to see that. The refusal cases at the
  * bottom of this file exist so the gap cannot reopen: they measure what the
  * refused split WOULD have cost, rather than asserting that a rule is a rule.
@@ -138,7 +138,7 @@ const FIXTURES: Array<[name: string, markup: string]> = [
   // The two reference shapes the repair used to MISS, because it only ever read
   // the layer body: a descended wrapper pointing at an id inside one of the
   // layers, and a carried paint server pointing the same way. Both rendered a
-  // visibly different picture with an empty `warnings` — Chromium paints an
+  // visibly different picture with an empty `warnings` - Chromium paints an
   // unresolvable `clip-path` as no clip at all, so the first one measured 76 800
   // channels different before the fix and 0 after it.
   ['a descended wrapper whose clip lives inside a layer', `<svg xmlns="${NS}" viewBox="0 0 ${W} ${H}">
@@ -188,7 +188,7 @@ const LIFT_CFG = {
 };
 
 /**
- * Where the shell would put each layer — through `liftRows` itself, not through
+ * Where the shell would put each layer - through `liftRows` itself, not through
  * a copy of its arithmetic.
  *
  * Since 1.121 a derived document may be CROPPED to its own ink, and a cropped
@@ -211,7 +211,7 @@ function placed(layers: SvgLayer[], viewBox: SvgLayerBox | null, bw = W, bh = H)
   }));
 }
 
-/** The source box a lift replaces — the one both `liftCropScale` and `liftRows` read. */
+/** The source box a lift replaces - the one both `liftCropScale` and `liftRows` read. */
 const liftBox = (bw: number, bh: number): Box => ({ id: 'a', x: 0, y: 0, w: bw, h: bh, rot: 0 } as Box);
 
 /** Full-stage placement, for the hand-split fixtures that never went near a crop. */
@@ -219,7 +219,7 @@ const wholeStage = (markup: string[]): Placed[] => markup.map((m) => ({ markup: 
 
 /**
  * The page: one `<img>` for the original, N absolutely-positioned `<img>` for
- * the layers, both in a `W×H` box on the same white ground — which is exactly
+ * the layers, both in a `W×H` box on the same white ground - which is exactly
  * what the editor does with lifted boxes at z = 0.
  */
 function pageFor(original: string, layers: Placed[], bw = W, bh = H): string {
@@ -313,8 +313,8 @@ describe('lift identity: N layers at z = 0 == the un-lifted original', { skip: g
   // ── k ≠ 1: the configuration this suite did not have, and what it cost ────
   //
   // ⚑ Every fixture above is 320×240 into a 320×240 box. That is k = 1 with an
-  // integer viewBox — the SINGLE configuration in which snapping a crop to whole
-  // USER units also lands it on whole ROW pixels — and 1.121 published
+  // integer viewBox - the SINGLE configuration in which snapping a crop to whole
+  // USER units also lands it on whole ROW pixels - and 1.121 published
   // "fidelity-neutral, measured" off exactly this suite. A lifted box on a canvas
   // is any size, so k is arbitrary and a user-unit crop lands between device
   // pixels: the browser then bilinear-filters the WHOLE layer back onto the grid
@@ -322,7 +322,7 @@ describe('lift identity: N layers at z = 0 == the un-lifted original', { skip: g
   // (`docs/shots/brand-colours.svg` in a 1000×625 box): 88 675 channels beyond ±1
   // with the crop on against 1 758 with it off, max 189 vs 63.
   //
-  // So the box here is 500×375 — k = 1.5625 on both axes, exactly proportional to
+  // So the box here is 500×375 - k = 1.5625 on both axes, exactly proportional to
   // the fixtures' viewBox so nothing letterboxes, and an INTEGER container so the
   // reference itself is on the pixel grid. `liftCropScale` answers the scale from
   // the same `liftContentRect` that places the rows, which is the point: one k,
@@ -383,7 +383,7 @@ describe('lift identity: N layers at z = 0 == the un-lifted original', { skip: g
   // A refusal is only defensible if the thing it refuses would really have been
   // wrong, so these two fixtures prove the cost rather than assert the rule.
   // Each is split BY HAND the way the enumerator used to (root attributes
-  // reproduced verbatim on every layer — the exact bytes `rootAttributes()`
+  // reproduced verbatim on every layer - the exact bytes `rootAttributes()`
   // emits) and measured against the same bounds every fixture above passes.
   // No fixture in FIXTURES puts anything on the root, which is precisely why
   // this suite did not catch either of them at 1.119.0.

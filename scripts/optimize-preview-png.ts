@@ -7,10 +7,10 @@
  * optimize:previews does for the SVG previews)
  *
  * `npm run previews` (build-previews.ts) rasterises expensive tool previews to PNG at
- * full render resolution — up to 3200×2000, 1.4 MB each. They're shown as gallery tile /
+ * full render resolution - up to 3200×2000, 1.4 MB each. They're shown as gallery tile /
  * featured-row previews at ~300–600 CSS px, so they're 4–8× oversized in each dimension.
  * This downscales them to a retina-safe cap and re-encodes at max PNG compression, in
- * place (kept as .png — an <img src> URL's extension pins the MIME type, and build-
+ * place (kept as .png - an <img src> URL's extension pins the MIME type, and build-
  * catalog-index derives the preview path from the filename, so bytes-only changes cause
  * no index drift; previews aren't checksummed).
  *
@@ -18,7 +18,7 @@
  * actually shrinks the file, so re-runs are stable.
  *
  * BUILD-TIME ONLY (sharp / native libvips). Previews are git-ignored + shipped via the
- * archive deploy, so run this locally/CI before deploying — same as optimize:previews.
+ * archive deploy, so run this locally/CI before deploying - same as optimize:previews.
  */
 
 import { readdirSync, readFileSync, writeFileSync, statSync } from 'node:fs';

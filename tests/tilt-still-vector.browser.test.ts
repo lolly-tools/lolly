@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
- * plans/104 §12 Q2 — THE TILTED STILL, in a real browser.
+ * plans/104 §12 Q2 - THE TILTED STILL, in a real browser.
  *
  * The one export a tilted scene has besides mp4 is the posed still, and §1 names it as
  * the thing Depthfield structurally cannot do: *"the posed still stays vector"*. §12 Q2
@@ -9,16 +9,16 @@
  * House style degrades visibly; nothing refuses.
  *
  * ⚑ WHY THIS FILE EXISTS. Before it, a tilted still went out as a WRONG PICTURE with no
- * notice, and no test looked at one — `tilt-capture.browser.test.ts` covers the motion
+ * notice, and no test looked at one - `tilt-capture.browser.test.ts` covers the motion
  * path only. SVG has no perspective transform, so `parseCssMatrix` refuses a `matrix3d`
  * carrying a perspective row, both walkers fell through to the AABB path,
  * `neutraliseTransform` wrote `transform: none`, and the subtree came out AXIS-ALIGNED,
  * stretched to fill the projected bounding box. Measured (two cards at z 0/200 under
  * `rx −45`, still at t = 500 ms): 495 B of SVG, zero `matrix3d`, zero `<image>`, two
- * upright `<rect>`s — precisely the failure S2 §4 measured for the raster escape hatch
+ * upright `<rect>`s - precisely the failure S2 §4 measured for the raster escape hatch
  * ("trapezoid → rectangle"), reproduced in the vector still.
  *
- * So the assertions here are about the SHAPE OF THE PICTURE, not about the presence of a
+ * So the assertions here are about the FORM OF THE PICTURE, not about the presence of a
  * feature: the tilted box's embed must be a real trapezoid whose taper matches the
  * engine's own projection, and an untilted box must still be geometry.
  */
@@ -33,13 +33,13 @@ const gate = browserGate();
 const W = 640;
 const H = 360;
 const MS = 1000;
-/** The instant every still is taken at — mid-clip, so nothing is at a transition edge. */
+/** The instant every still is taken at - mid-clip, so nothing is at a transition edge. */
 const AT = 500;
 /** A hard pitch: big enough that a trapezoid is unmistakable, short of edge-on. */
 const TILT_KF = 't0_rx-45';
 const FLAT_KF = 't0_x0';
 
-/** One card, flat, and one lifted — so the two disagree about how far the tilt moves them. */
+/** One card, flat, and one lifted - so the two disagree about how far the tilt moves them. */
 const CARD = { x: 200, y: 60, w: 240, h: 80, bg: 'rgb(230,60,90)', start: 0, dur: MS, z: 0 };
 const LIFTED = { x: 200, y: 220, w: 240, h: 80, bg: 'rgb(60,190,230)', start: 0, dur: MS, z: 200 };
 
@@ -97,7 +97,7 @@ describe('plans/104 §12 Q2 — a tilted still keeps the untilted layers vector'
       return await S.vectorStillAt(spec, t, 'svg');
     }, { spec: scene(TILT_KF), t: AT });
 
-    // The applier really did pose both cards with a perspective matrix — otherwise this
+    // The applier really did pose both cards with a perspective matrix - otherwise this
     // test would be asserting the walker's behaviour on a scene that was never tilted.
     const posed = out.posed.filter((p) => /matrix3d/.test(p.transform));
     assert.equal(posed.length, 2, `both cards must carry a matrix3d, got ${JSON.stringify(out.posed)}`);
@@ -111,7 +111,7 @@ describe('plans/104 §12 Q2 — a tilted still keeps the untilted layers vector'
       const rects = (out.text.match(/<rect\b[^>]*>/g) ?? []).filter((r) => r.includes(bg));
       assert.equal(rects.length, 0, `a tilted card came out as an axis-aligned rect: ${rects[0]}`);
     }
-    // The stage background is untilted and MUST still be geometry — the floor.
+    // The stage background is untilted and MUST still be geometry - the floor.
     assert.match(out.text, /<rect[^>]*fill="rgb\(8, ?10, ?16\)"/, 'the untilted background stayed vector');
     measured.push(`tilted still: ${out.size} B, ${images.length} embeds, background vector`);
   });
@@ -158,7 +158,7 @@ describe('plans/104 §12 Q2 — a tilted still keeps the untilted layers vector'
         let first = -1, last = -1;
         for (let y = 0; y < c.height; y++) if (widthAt(y) > 0) { if (first < 0) first = y; last = y; }
         const band = last - first;
-        // Every row's horizontal centre, sampled — see the drift assertion below.
+        // Every row's horizontal centre, sampled - see the drift assertion below.
         const mids: number[] = [];
         for (let i = 1; i < 12; i++) {
           const m = centreAt(first + Math.round((band * i) / 12));
@@ -191,7 +191,7 @@ describe('plans/104 §12 Q2 — a tilted still keeps the untilted layers vector'
       // composed transform, which is the one subtle thing about it: the fit translate
       // must sit LEFT of the pose in the list, where `(s·x + tx·w)/w = s·(x/w) + tx`
       // makes it land after the perspective divide. Put it on the right and each row
-      // shears by `tx·(1/w − 1)` — a fraction of a pixel here, several at a steep angle,
+      // shears by `tx·(1/w − 1)` - a fraction of a pixel here, several at a steep angle,
       // and invisible to a taper measurement because a per-row shift does not change a
       // per-row width.
       assert.ok(s.drift >= 0 && s.drift < 0.75,
@@ -199,7 +199,7 @@ describe('plans/104 §12 Q2 — a tilted still keeps the untilted layers vector'
       // The fixture has to taper at all, or the rest of this proves nothing.
       assert.ok(wanted[i]! - 1 > 0.02, `the fixture is not tilted enough: engine taper ${wanted[i]}`);
       // A rectangle stretched to the AABB reads exactly 1.0000. THAT is what this
-      // refuses; the engine's own number is what it accepts, inside 4 % relative — the
+      // refuses; the engine's own number is what it accepts, inside 4 % relative - the
       // slack the ink threshold costs, which S2 measured as a 3–5 px inset per edge.
       assert.ok(Math.abs(got - wanted[i]!) < 0.04 * wanted[i]!,
         `embed ${i} taper ${got.toFixed(4)} is not the engine's ${wanted[i]!.toFixed(4)} — ` +
@@ -212,7 +212,7 @@ describe('plans/104 §12 Q2 — a tilted still keeps the untilted layers vector'
     measured.push(...lines);
   });
 
-  // ── 3: the untilted floor — no camera angle, no raster, byte for byte ───────
+  // ── 3: the untilted floor - no camera angle, no raster, byte for byte ───────
 
   test('an untilted still is unchanged: zero embeds, the cards are rects', async () => {
     const out = await page().evaluate(async ({ spec, t }) => {
@@ -244,7 +244,7 @@ describe('plans/104 §12 Q2 — a tilted still keeps the untilted layers vector'
 
     assert.match(atob(r.head).slice(0, 5), /^%PDF-/, 'it is a PDF');
     // Two embedded PNGs against two vector rects: the file has to be substantially
-    // larger. This is a coarse instrument on purpose — the fine one is the SVG taper
+    // larger. This is a coarse instrument on purpose - the fine one is the SVG taper
     // above, and the point here is only that PDF took the same branch rather than
     // silently keeping the AABB path.
     assert.ok(r.tiltSize > r.flatSize * 1.5,

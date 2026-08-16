@@ -6,23 +6,23 @@
  * The gallery's featured hero row and every example-carousel tile demonstrate "one tool,
  * many on-brand outputs" by showing a handful of EXAMPLE LOOKS (manifest.examples, or the
  * pre-`examples` alias manifest.featured.variants). Historically each look was rendered
- * LIVE on the client at gallery load — spinning up the engine off-screen (~350 ms each),
+ * LIVE on the client at gallery load - spinning up the engine off-screen (~350 ms each),
  * fetching that look's photos/logos through a main-thread canvas, and rasterising. With
  * dozens of looks across the catalog that dominated first-load CPU + network (measured
- * gallery LCP 8.3 s / TBT 730 ms — see components/featured-row.ts).
+ * gallery LCP 8.3 s / TBT 730 ms - see components/featured-row.ts).
  *
  * `npm run previews` now ALSO pre-renders each look to a committed, SVGO-optimised
  * catalog/previews/<id>.look<i>.svg (or .webp/.png when the look is raster-heavy). This
  * script rolls every one of those look files into a SINGLE catalog/previews/bundle.json
  * that the gallery fetches ONCE (shells/web/src/lib/preview-bundle.ts): the client shows
- * the pre-rendered look instantly — no engine, no per-look asset fetch — and the live
+ * the pre-rendered look instantly - no engine, no per-look asset fetch - and the live
  * render becomes a background enhancement only for looks that aren't bundled (a fresh look
  * whose file hasn't been generated yet, or a profile-personalised preview).
  *
  * Wired into `npm run build:catalog` so it regenerates deterministically after the index.
  * Idempotent: same look files + manifests → byte-identical bundle. Safe to run with no
  * look files present (an empty/partial bundle just means the client live-renders those
- * looks, exactly as before) — so it never has to wait on `npm run previews`.
+ * looks, exactly as before) - so it never has to wait on `npm run previews`.
  *
  *   node scripts/build-preview-bundle.ts
  */
@@ -44,7 +44,7 @@ interface Manifest {
 }
 
 /**
- * The looks a tile cross-fades through — the canonical source is `examples`; the
+ * The looks a tile cross-fades through - the canonical source is `examples`; the
  * `featured.variants` object is the pre-`examples` alias kept working for tools authored
  * before it. MUST mirror resolveExamples() in shells/web/src/components/featured-row.ts so
  * the look INDEX (and therefore the bundle key `<id>:<i>`) lines up with what the client
@@ -78,14 +78,14 @@ function build(): void {
   for (const m of loadManifests()) {
     const looks = resolveLooks(m);
     for (let i = 0; i < looks.length; i++) {
-      // sig MUST equal JSON.stringify(look.values) in featured-render.ts — a mismatch there
+      // sig MUST equal JSON.stringify(look.values) in featured-render.ts - a mismatch there
       // rejects the bundled look and the client live-renders it, so a stale bundle self-heals.
       const sig = JSON.stringify(looks[i]!.values ?? {});
 
-      // Committed authored override — an animated APNG (or a hand-made look) that lives in
+      // Committed authored override - an animated APNG (or a hand-made look) that lives in
       // the tool dir at tools/<id>/look<i>.{png,webp,svg}, served at /tools/<id>/…. It's the
       // per-look analogue of the tools/<id>/card.* card override, and WINS over any
-      // build-generated catalog/previews/<id>.look<i>.* — so it survives `npm run previews`
+      // build-generated catalog/previews/<id>.look<i>.* - so it survives `npm run previews`
       // (which never writes into tools/). An .svg override is inlined like a generated svg;
       // a raster/APNG override is referenced by its tool-dir path.
       const ovrDir = join(TOOLS_DIR, m.id);
@@ -108,7 +108,7 @@ function build(): void {
         inlineSvg++;
         continue;
       }
-      // Raster look (dense/expensive vector or photo-heavy) — reference the file by path
+      // Raster look (dense/expensive vector or photo-heavy) - reference the file by path
       // rather than inlining bytes into the bundle. webp preferred, then png.
       const raster = ['webp', 'png'].find((ext) => existsSync(join(PREVIEWS_DIR, `${m.id}.look${i}.${ext}`)));
       if (raster) {

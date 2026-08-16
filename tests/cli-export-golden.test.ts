@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
  * Golden byte tests for the CLI export path (shells/cli/src/run.ts + bridge.ts):
- * a native-<svg> fixture tool rendered through the REAL CLI mechanism — jsdom,
- * createCliBridge, runtime.export — into svg, emf, eps, eps-cmyk, dxf and csv,
+ * a native-<svg> fixture tool rendered through the REAL CLI mechanism - jsdom,
+ * createCliBridge, runtime.export - into svg, emf, eps, eps-cmyk, dxf and csv,
  * with the exact output bytes pinned in tests/fixtures/cli-export.golden.json.
  * This is the only end-to-end coverage of the svgDomToIr → emitEmf/emitEps/
  * emitDxf pipeline under jsdom; the emitters and their data formats are shared
@@ -16,14 +16,14 @@
  * text cases exercise the real HarfBuzz outlining browser-free.
  *
  * Regenerate: UPDATE_GOLDENS=1 node --import ./tests/css-stub.mjs --test tests/cli-export-golden.test.ts
- * (then re-run without UPDATE_GOLDENS and diff-review the fixture change — the
+ * (then re-run without UPDATE_GOLDENS and diff-review the fixture change - the
  * golden diff IS the review artefact for any change to this seam.)
  *
  * KNOWN WEB/CLI DIVERGENCES pinned by these goldens (baseline for the eventual
- * unification pass — confirmed against the code on 2026-07-31):
+ * unification pass - confirmed against the code on 2026-07-31):
  *   • SVG serialiser: the CLI serialises the live <svg> via jsdom's
  *     XMLSerializer (bridge.ts `format === 'svg'` branch); the web shell's
- *     renderSvg walks/rewrites the DOM. The CLI svg golden is per-CLI output —
+ *     renderSvg walks/rewrites the DOM. The CLI svg golden is per-CLI output - 
  *     do NOT expect byte parity with a web export of the same tool.
  *   (The old "no text outlining on CLI svg" divergence is GONE as of the GA
  *   contract, plans/73-cli-ga-contract.md §6a: the svg branch outlines through the
@@ -32,10 +32,10 @@
  *   <text> with a warning, which only SVG can afford.)
  *   • No annotation-comment stripping on CLI svg: nothing strips the engine's
  *     input-marker HTML comments (the CLI never calls annotateTemplate, so none
- *     appear — but the branch has no strip step either).
+ *     appear - but the branch has no strip step either).
  *   • injectSvgMeta is DUPLICATED: shells/cli/src/bridge.ts carries its own
  *     copy of the web shell's provenance injector; the two can drift.
- *   • eps-cmyk on the CLI is naive rgbToCmyk only — emitEps's cmykPalette
+ *   • eps-cmyk on the CLI is naive rgbToCmyk only - emitEps's cmykPalette
  *     (brand palette CMYK overrides, built by the web shell's renderEps) is
  *     never passed, so brand colours separate differently here than on web.
  */
@@ -51,7 +51,7 @@ const HERE = dirname(fileURLToPath(import.meta.url));
 const FIXTURE_PATH = join(HERE, 'fixtures', 'cli-export.golden.json');
 const UPDATE_GOLDENS = process.env.UPDATE_GOLDENS === '1';
 
-// The committed platform face — present on a bare public clone (it is parent-repo
+// The committed platform face - present on a bare public clone (it is parent-repo
 // content, not a brand pack), so the text cases run in CI. Guarded anyway: this
 // file must never fail merely because a checkout is missing a font file.
 const OUTFIT_SRC = join(HERE, '..', 'shells', 'web', 'public', 'fonts', 'Outfit[wght].ttf');
@@ -79,7 +79,7 @@ function manifest(id: string, overrides: Record<string, unknown> = {}): string {
 
 // vector-mark: every leaf-shape kind the IR walk handles (rect+stroke, circle
 // with fill-opacity → the flatten path, path, polygon), one input-driven fill
-// for the negative control. text-mark: a live <text> in the platform face —
+// for the negative control. text-mark: a live <text> in the platform face - 
 // pins whether/where outlining happens per format. data-rows: a sibling
 // template.csv with a comma-bearing value, so the csvCell quoting is in the bytes.
 const VECTOR_TEMPLATE =
@@ -162,7 +162,7 @@ async function render(toolId: string, format: string, params: Record<string, str
   // A CLI render carries Content Credentials and the Lolly Imprint by default as of
   // plans/73-cli-ga-contract.md §12 O2 (Andy, 2026-08-01). A credential is signed with a
   // fresh key and a fresh timestamp, so with the default on these bytes would differ on
-  // every single run — the fixture could not be recorded at all, let alone reviewed as a
+  // every single run - the fixture could not be recorded at all, let alone reviewed as a
   // diff. Re-recording it would have produced a golden that fails the next minute.
   //
   // What this file pins is therefore explicitly the BARE render: the SVG/EMF/EPS/DXF/CSV
@@ -188,7 +188,7 @@ const regenerated: Record<string, GoldenEntry> = {};
 after(() => {
   if (!UPDATE_GOLDENS) return;
   // The text-mark cases skip without the Outfit face, so `regenerated` would be
-  // missing their four entries — a rebuild-from-scratch write would silently drop
+  // missing their four entries - a rebuild-from-scratch write would silently drop
   // them from the committed fixture. Refuse loudly instead.
   if (SKIP_NO_OUTFIT) assert.fail(`UPDATE_GOLDENS=1 but ${SKIP_NO_OUTFIT}; refusing a partial fixture rewrite`);
   const sorted: Record<string, GoldenEntry> = {};

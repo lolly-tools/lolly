@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
- * engine/src/exr.ts — the Phase B3 OpenEXR writer (plans/61-deeprichpixels.md §4.2).
+ * engine/src/exr.ts - the Phase B3 OpenEXR writer (plans/61-deeprichpixels.md §4.2).
  *
  * Four independent ways of being right, because a writer with no reader is a
  * writer with no test:
@@ -13,11 +13,11 @@
  *  2. CROSS-CONTAINER IDENTITY. A NONE-compressed file's chunk bodies ARE the
  *     raw, un-preprocessed block bytes. So inflating a ZIP chunk and running the
  *     predictor inverse must land on exactly the bytes the NONE file already
- *     wrote for the same scan lines — which is what proves the byte
+ *     wrote for the same scan lines - which is what proves the byte
  *     reorder/delta pair is not merely self-consistent but *correct*, and it
  *     proves NONE vs ZIP is a container choice and not a pixel one.
  *  3. THE FLOAT16 CONTRACT. Every HALF sample in the file is compared, bit for
- *     bit, against `packF16` over the source floats — so the writer cannot have
+ *     bit, against `packF16` over the source floats - so the writer cannot have
  *     grown a second, subtly-different half-float conversion.
  *  4. AN EXTERNAL ORACLE: the Academy Software Foundation's own OpenEXR library
  *     via its Python bindings, which is the definition of a correct reader.
@@ -31,11 +31,11 @@
  * the expected half-rounded pixels, plus the right compression enum, data
  * window, channel names, dtypes, chromaticities and string attributes. That venv
  * is not a repo dependency, so the test below re-runs the same check only when a
- * Python with `OpenEXR` is reachable — set `EXR_ORACLE_PYTHON=/path/to/python`
+ * Python with `OpenEXR` is reachable - set `EXR_ORACLE_PYTHON=/path/to/python`
  * (or have `python3 -c "import OpenEXR"` succeed) to make it run in CI.
  *
  * DCC oracle (2026-07-31): Blender 5.1 DOES now open these files and agrees on
- * every sample, half and float — see the Blender test at the bottom, which runs
+ * every sample, half and float - see the Blender test at the bottom, which runs
  * headless whenever Blender is installed. That is a second independent reader
  * (OpenImageIO, not the ASWF bindings) AND the app a designer actually has.
  * Still not claimable: Nuke, Resolve, Flame and RV have not seen a file, and
@@ -182,7 +182,7 @@ function parseExr(buf: Uint8Array): ExrFile {
 }
 
 /**
- * Undo `Imf::Zip`'s preprocessing: delta first, then interleave back — the exact
+ * Undo `Imf::Zip`'s preprocessing: delta first, then interleave back - the exact
  * inverse of the encoder's reorder-then-delta, written here from the C in
  * ImfZip.cpp's `uncompress` rather than from the encoder.
  */
@@ -793,7 +793,7 @@ print('OK')
 
 // ── DCC oracle: Blender ──────────────────────────────────────────────────────
 // The gap the header used to name ("no file here has been opened in Nuke,
-// Resolve, Blender or any other DCC") — closed for Blender, which is the one a
+// Resolve, Blender or any other DCC") - closed for Blender, which is the one a
 // designer is most likely to have. Blender's EXR path is OpenImageIO, i.e. a
 // SECOND independent implementation from the ASWF reference bindings above, and
 // it is what actually matters: a file being spec-legal and a file opening in the

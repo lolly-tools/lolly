@@ -1,18 +1,18 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
- * plans/104 P3 — THE LIFT-LAYERS EXIT DEMO, run as a test.
+ * plans/104 P3 - THE LIFT-LAYERS EXIT DEMO, run as a test.
  *
  * §9's P3 exit criterion, enacted end to end in a real browser: "url-shot → Lift layers
  * → preset → mp4 in under a minute of user effort." Every step below is the shipping
- * one — the walker that takes the screenshot, the engine enumerator that finds the
- * layers, the writer that turns them into boxes, the export funnel that renders them —
+ * one - the walker that takes the screenshot, the engine enumerator that finds the
+ * layers, the writer that turns them into boxes, the export funnel that renders them - 
  * and every number is measured from the exported FILE, never from an intermediate the
  * pipeline also produced.
  *
  * WHY IT IS A TEST AND NOT A SCRIPT, and how to run it: exactly as
  * `depth-flythrough.browser.test.ts` (P1's demo), whose shape this follows. It rides the
- * gated browser tier — skipped with the install command when there is no browser, and
- * the H.264 cases skipped when the launched build cannot encode one — so it stays green
+ * gated browser tier - skipped with the install command when there is no browser, and
+ * the H.264 cases skipped when the launched build cannot encode one - so it stays green
  * on a bare machine and bites on a real one. `LOLLY_P3_DEMO_OUT=<dir>` also WRITES the
  * artefacts (the mp4s, the source and derived SVGs, the still, the contact sheet), which
  * is what makes it a demo as well as a gate.
@@ -20,11 +20,11 @@
  * ── THE FOUR STEPS, and what is real in each ────────────────────────────────────
  *
  * 1. SCREENSHOT. `SEQ.walkToSvg` reproduces `main.ts`'s `__lollyWalkerShot` hook call
- *    for call — `export.render(node, 'svg', …)` with the same option bag, `layerIds`
+ *    for call - `export.render(node, 'svg', …)` with the same option bag, `layerIds`
  *    included. That hook IS url-shot's vector capture path: `scripts/build-docs-shots.ts`
  *    drives it for every `walker=1&format=svg` recipe. The hook itself cannot be reached
  *    from here (the web shell installs it at boot and the built shell is untracked build
- *    output), so its body is reproduced rather than driven — the walker, the export
+ *    output), so its body is reproduced rather than driven - the walker, the export
  *    funnel and the passthrough flag are the shipping ones either way.
  *
  * 2. LIFT. `enumerateSvgLayers` (engine, DOM-free) reads the walked bytes on the NODE
@@ -39,7 +39,7 @@
  *    "Push in" track from `KF_CAMERA_PRESETS` verbatim (`t0_z0*t4000_eo_z-220`; the
  *    dolly sign is the engine's, see that constant's comment).
  *
- * 4. EXPORT. Through `api.render` — the public funnel every real export takes — twice
+ * 4. EXPORT. Through `api.render` - the public funnel every real export takes - twice
  *    for webm (the byte-identity pair) and once for mp4, plus a mid-move still and a
  *    `cuts=4` contact sheet.
  *    P1's demo is the reason this is not `renderSequence`: the funnel detaches
@@ -51,25 +51,25 @@
  * A 960×540 page that reads like a Lolly gallery screenshot: a header bar with a title,
  * and a 2×2 grid of tool cards, each a flat colour with a caption, each carrying the
  * `data-box-id` a design board stamps on its boxes. The passthrough therefore has
- * real work to do, and the four cards come back out of the enumerator NAMED — which is
+ * real work to do, and the four cards come back out of the enumerator NAMED - which is
  * also how this file finds them again to measure them, rather than by an index that
  * would silently follow a re-ordering.
  *
- * The four card centres are offset (±124, ±70) from the stage centre — all 142.4 px in
- * magnitude. That equality is the measurement. A lifted layer is a FULL-STAGE box —
+ * The four card centres are offset (±124, ±70) from the stage centre - all 142.4 px in
+ * magnitude. That equality is the measurement. A lifted layer is a FULL-STAGE box - 
  * every derived document keeps the source's root coordinates, which is what makes the
- * lift geometry-free — so every lifted box has the same centre, and a pure dolly moves
+ * lift geometry-free - so every lifted box has the same centre, and a pure dolly moves
  * every box's centre by the same amount. What differs is the ink INSIDE: a point p in a
  * layer at depth z lands at `W/2 + (p − W/2)·eff(z)`, so its displacement is
  * `|p − centre| · Δeff(z)`. Hold the lever equal across the four cards and depth is the
- * only thing left that can order them — the same trick P1's demo used, applied to ink
+ * only thing left that can order them - the same trick P1's demo used, applied to ink
  * instead of boxes.
  *
  * The cards are also SMALL and TIGHT to the centre, which is not taste. A colour
  * centroid is only the ink's position while all of that ink is on screen and unoccluded,
  * and a push-in magnifies every layer about the stage centre: the first draft used
  * 300×180 cards at (±180, ±110) and by the last frame the deepest was half off-stage,
- * so the "parallax" it measured was the clipping — it came back 12.8 px where the engine
+ * so the "parallax" it measured was the clipping - it came back 12.8 px where the engine
  * says 106.9, DECREASING with depth. 180×100 cards at (±124, ±70) survive the deepest
  * layer's maximum eff (1.94 at t = 4 s) wholly on-stage and pairwise disjoint, which is
  * what makes the centroid mean what the assertion says it means.
@@ -82,7 +82,7 @@
  * ── WHAT THE GATE RENDERS AT, AND WHY (measured, not guessed) ───────────────────
  *
  * A lifted layer is a FULL-STAGE box, so its `shadow: depth` drop-shadow is a
- * full-frame gaussian — and while a camera is moving `ownsLayerFx` gives that filter to
+ * full-frame gaussian - and while a camera is moving `ownsLayerFx` gives that filter to
  * the COMPOSITOR, which means N full-frame blurs on every frame. That was the dominant
  * cost of this whole feature, and it is worth stating in numbers rather than adjectives.
  *
@@ -90,7 +90,7 @@
  * change: §5.3's depth shadow is derived from the box's `z` alone, so for a layer at a
  * fixed depth it is ONE filter over ONE unchanging plate, and the camera move lives
  * entirely in the destination transform. So the filtered picture is now rendered once
- * and re-composited per frame — `fxPlateKey` in `bridge/sequence-render.worker.ts` — and
+ * and re-composited per frame - `fxPlateKey` in `bridge/sequence-render.worker.ts` - and
  * the composite is the identical `drawImage` the uncached path issues, which is why the
  * gate below can assert the two decode to the same pixels rather than to a tolerance.
  *
@@ -101,24 +101,24 @@
  *        11      yes      960      30    854 ms/frame   47 ms/frame   18×
  *        11      yes      960      24    980            45           22×
  *        11      yes      960      15    998            62           16×
- *        11      NO       960      30     51            48            —   ← the floor
+ *        11      NO       960      30     51            48 - ← the floor
  *        11      yes      720      15    611            48           13×
  *        11      yes      480      15    281            36            8×
  *         6      yes      960      30    327            19           17×
  *
  * The mp4s are byte-for-byte the same size in every row. Shadows-on at full width now
  * costs what shadows-OFF costs (47 against 48 ms/frame), i.e. the depth shadow has
- * stopped being a per-frame cost at all — and the plan's own bar was "within ~4× of the
+ * stopped being a per-frame cost at all - and the plan's own bar was "within ~4× of the
  * shadows-off baseline". The earlier table's top row read ABORTED, because on a slower
  * machine the encoder's stall watchdog fires before the frame does.
  *
  * READ THE RATIO, NOT THE ABSOLUTE. A repeat of the same table on the same machine came
- * back 57 / 70 / 93 / 60(off) / 76 / 53 / 30 — everything up by about half, including
+ * back 57 / 70 / 93 / 60(off) / 76 / 53 / 30 - everything up by about half, including
  * the shadows-off control, which is what a loaded or thermally-limited laptop looks
  * like. The number that does NOT move between runs is the one the fix is about: with
  * the cache on, shadows-on and shadows-off are the same cost to within the noise.
  *
- * So the gate renders the stability pair at {@link GATE_FPS}/{@link GATE_WIDTH} — enough
+ * So the gate renders the stability pair at {@link GATE_FPS}/{@link GATE_WIDTH} - enough
  * frames and enough pixels to decide byte identity, funnel transparency and a monotone
  * parallax ladder, and cheap enough to belong in a suite. Under `LOLLY_P3_DEMO_OUT` it
  * ALSO renders one full-quality pass for the artefact. Nothing about the projection or
@@ -152,7 +152,7 @@ const H = 540;
 const MS = 4000;
 
 /**
- * What the GATE renders the stability pair at — see the cost table in the header.
+ * What the GATE renders the stability pair at - see the cost table in the header.
  * 15 fps over 4 s is 60 frames; 480 px out is an export scale of exactly 0.5, so the
  * stage-px conversion is a halving rather than a ratio with rounding in it.
  */
@@ -178,7 +178,7 @@ const CARDS = [
   { id: 'b4', cx: 604, cy: 340, rgb: [110, 90, 220] as [number, number, number], label: 'Design' },
 ] as const;
 
-/** Every card centre is this far from the stage centre — the lever the parallax uses. */
+/** Every card centre is this far from the stage centre - the lever the parallax uses. */
 const LEVER = Math.hypot(CARDS[0].cx - W / 2, CARDS[0].cy - H / 2);
 
 const PAGE = `<div id="shot" style="position:relative;width:${W}px;height:${H}px;background:#0b1220;
@@ -227,7 +227,7 @@ function poseAt(kf: string, t: number): ReturnType<typeof resolveCamera> {
  * Where a point of INK inside a full-stage lifted layer lands, stage-native px.
  *
  * `projectLayer` answers for the box: its centre moves by `dx/dy` and it scales by
- * `eff`. A lifted layer's box is the whole stage, so the ink is what moves — mapped
+ * `eff`. A lifted layer's box is the whole stage, so the ink is what moves - mapped
  * through the same uniform scale about the box centre that both executors apply
  * (`drawItem`'s translate → rotate → scale, and the DOM applier's composed transform).
  */
@@ -276,7 +276,7 @@ describe('plans/104 P3 — the Lift-layers exit demo', { skip: gate ?? false, co
     assert.ok(p.webcodecs, 'the launched browser has no WebCodecs at all');
 
     const t0 = Date.now();
-    // 1 — the screenshot.
+    // 1 - the screenshot.
     const walk = await page().evaluate(async (html) => {
       const S = (window as never as { SEQ: SeqApi }).SEQ;
       return await S.walkToSvg(html);
@@ -284,7 +284,7 @@ describe('plans/104 P3 — the Lift-layers exit demo', { skip: gate ?? false, co
     shotSvg = walk.svg;
     say(`[demo] 1. screenshot: the walker turned a ${walk.rect.w}×${walk.rect.h} page carrying ${walk.ids.length} data-box-id into ${walk.bytes} B of SVG in ${Math.round(walk.ms)} ms`);
 
-    // 2 — the lift: enumerate (engine, out of page) then write the rows (shell writer).
+    // 2 - the lift: enumerate (engine, out of page) then write the rows (shell writer).
     const enumerated = enumerateSvgLayers(shotSvg);
     layers = enumerated.layers;
     warnings = enumerated.warnings;
@@ -299,7 +299,7 @@ describe('plans/104 P3 — the Lift-layers exit demo', { skip: gate ?? false, co
     zs = rows.map((r) => Number(r.z));
     for (const l of layers) if (l.boxId) cardZ.set(l.boxId, zs[l.index] as number);
 
-    // 3 — the stage: the lifted rows, plus §5.4's implicit untimed scene camera.
+    // 3 - the stage: the lifted rows, plus §5.4's implicit untimed scene camera.
     spec = {
       w: W, h: H, seqMs: MS, bg: 'transparent',
       boxes: [
@@ -354,7 +354,7 @@ describe('plans/104 P3 — the Lift-layers exit demo', { skip: gate ?? false, co
 
     // The writer's own contract (1.121, plans/104 P3.2): one row per layer, depths
     // climbing a fixed magnification BAND rather than a fixed 40 px step, `shadow:
-    // depth` pre-set, one shared group — and each row SIZED TO ITS INK wherever the
+    // depth` pre-set, one shared group - and each row SIZED TO ITS INK wherever the
     // engine could crop its document safely, which is what stops a 16 px icon's
     // depth shadow costing a full-frame gaussian.
     assert.equal(rows.length, layers.length, 'one row per layer');
@@ -369,7 +369,7 @@ describe('plans/104 P3 — the Lift-layers exit demo', { skip: gate ?? false, co
     for (let i = 0; i < rows.length; i++) {
       assert.equal(rows[i]!.shadow, 'depth', `row ${i} carries no depth shadow`);
       assert.equal(rows[i]!.group, 'g1', `row ${i} left the group`);
-      // Cropped or not, a row is inside the box the artwork was in — a derived layer
+      // Cropped or not, a row is inside the box the artwork was in - a derived layer
       // keeps the ROOT coordinate system, and its crop is a window on it.
       const x = Number(rows[i]!.x), y = Number(rows[i]!.y);
       const w = Number(rows[i]!.w), h = Number(rows[i]!.h);
@@ -404,17 +404,17 @@ describe('plans/104 P3 — the Lift-layers exit demo', { skip: gate ?? false, co
   test('push-in over the lifted stack: two runs are byte-identical, and parallax is ordered by depth', async () => {
     const r = await page().evaluate(async ({ spec, fps, width, targets, last }) => {
       const S = (window as never as { SEQ: SeqApi }).SEQ;
-      // THE STABILITY PAIR IS WEBM, AND IT IS COMPARED BYTE FOR BYTE — see the block
+      // THE STABILITY PAIR IS WEBM, AND IT IS COMPARED BYTE FOR BYTE - see the block
       // below for why it is not an mp4 pair. Both through the PUBLIC FUNNEL, which is
       // the lesson P1's demo paid for.
       const wa = await S.exportViaApi(spec, 'webm', { fps, width });
       const wb = await S.exportViaApi(spec, 'webm', { fps, width });
       // The compositor called directly, as the control: the funnel must add nothing and
-      // take nothing away — and on this container it can be held to the same byte.
+      // take nothing away - and on this container it can be held to the same byte.
       const direct = await S.exportSeq(spec, 'webm', { fps, width });
       // The OTHER container, once: mp4 and webm share the whole render and differ only
       // in the encoder and the muxer, so one H.264 pass shows the lifted stack survives
-      // a second container — and it is the file the parallax below is measured from, so
+      // a second container - and it is the file the parallax below is measured from, so
       // the measurement is taken off a real mp4 rather than off the container the
       // stability claim was made in.
       const a = await S.exportViaApi(spec, 'mp4', { fps, width });
@@ -440,22 +440,22 @@ describe('plans/104 P3 — the Lift-layers exit demo', { skip: gate ?? false, co
     // plate ladder or projection.
     //
     // AN MP4 PAIR CANNOT CARRY THIS CLAIM, and the earlier draft of this test asked it
-    // to. Two mp4 exports of an unchanged render are NOT the same bytes — measured on
+    // to. Two mp4 exports of an unchanged render are NOT the same bytes - measured on
     // this fixture, they differ in 7 bytes at offsets 51/55, 167/171, 267/271 and 1020,
     // i.e. the mvhd/tkhd/mdhd creation+modification stamps and one SPS/SEI byte: the
     // wall clock, exactly as this file's header says. So the strongest thing an mp4 pair
-    // can assert is that the two DECODE to the same pixels — which quietly puts an
+    // can assert is that the two DECODE to the same pixels - which quietly puts an
     // H.264 encoder and an H.264 decoder inside a determinism chain that is about the
     // COMPOSITOR, and leaves the assertion resting on the hope that the encoder's
     // non-metadata bits never move. Under a loaded machine they can (rate control is
     // free to reach a different answer), and it fails as "the two flythroughs decoded to
-    // different pixels" — a message that indicts the lift, the plate ladder and the
+    // different pixels" - a message that indicts the lift, the plate ladder and the
     // projection for something none of them did.
     //
     // webm's VP8/VP9 lane is libvpx, in-process and deterministic, and its muxer stamps
     // no clock: two runs of an unchanged render are the same bytes, funnel and direct
-    // alike. That is STRICTLY STRONGER than the pixel comparison it replaces — a
-    // compositor, plate ladder or projection that moved changes the bytes too — and it
+    // alike. That is STRICTLY STRONGER than the pixel comparison it replaces - a
+    // compositor, plate ladder or projection that moved changes the bytes too - and it
     // is decoder-free, so nothing outside the render can make it lie.
     assert.equal(r.webm.a.err, null, `first flythrough failed: ${JSON.stringify(r.webm.a.err)}`);
     assert.equal(r.webm.b.err, null, `second flythrough failed: ${JSON.stringify(r.webm.b.err)}`);
@@ -473,7 +473,7 @@ describe('plans/104 P3 — the Lift-layers exit demo', { skip: gate ?? false, co
     assert.equal(r.a.err, null, `the mp4 flythrough failed: ${JSON.stringify(r.a.err)}`);
     say(`[demo] 3. flythrough @${GATE_WIDTH}px/${GATE_FPS}fps: webm ${r.webm.a.size} B in ${Math.round(r.webm.a.ms)} ms/run, byte-identical across two runs AND to a direct renderSequence; mp4 ${r.a.size} B in ${Math.round(r.a.ms)} ms`);
 
-    // PARALLAX — measured from the decoded frames, in stage px, per NAMED card.
+    // PARALLAX - measured from the decoded frames, in stage px, per NAMED card.
     const t = r.track!;
     const k = t.w / W;
     const first = t.frames[0]!;
@@ -498,7 +498,7 @@ describe('plans/104 P3 — the Lift-layers exit demo', { skip: gate ?? false, co
       assert.ok(depth[i]! > depth[i - 1]!, `lifted depths are not staggered: ${depth.join(', ')}`);
     }
     // ⚑ 1.121 changed what this fixture MEANS, and the assertion follows it.
-    // The four cards are a 2×2 grid of identical boxes — geometric peers — so
+    // The four cards are a 2×2 grid of identical boxes - geometric peers - so
     // `liftSlots` now puts them on ONE rung, a whisper apart (plans/104 P3.2:
     // "grids stay grids"). Before, they were 40 px apart and drifted 3.6–4.7 px
     // relative to each other over the push-in; a grid does not do that. So the
@@ -508,14 +508,14 @@ describe('plans/104 P3 — the Lift-layers exit demo', { skip: gate ?? false, co
       `the card grid must move as one surface, spread ${spread.toFixed(2)} px: ${moved.map((m) => m.toFixed(1)).join(', ')}`);
     // …while the STACK still has depth: the same camera moves the bottom layer and
     // the top of the ladder measurably differently, which is the parallax the whole
-    // feature exists for. (Engine arithmetic, not pixels — the two extremes are the
+    // feature exists for. (Engine arithmetic, not pixels - the two extremes are the
     // page background and the topmost label, neither of which is colour-tracked.)
     const ends = [Math.min(...zs), Math.max(...zs)]
       .map((z) => predictedInkParallax(PUSH_IN, tOf(0), tOf(LAST), z, { cx: CARDS[0]!.cx, cy: CARDS[0]!.cy }));
     assert.ok(ends[1]! - ends[0]! > 3,
       `the ladder must separate its ends: ${ends[0]!.toFixed(1)} px at z=${Math.min(...zs)} vs ${ends[1]!.toFixed(1)} px at z=${Math.max(...zs)}`);
     say(`[demo]    the grid moves as one (spread ${spread.toFixed(2)} px) while the ladder's ends separate by ${(ends[1]! - ends[0]!).toFixed(1)} px`);
-    // Every measurement inside 2 px of the engine's own arithmetic — the same bound P1's
+    // Every measurement inside 2 px of the engine's own arithmetic - the same bound P1's
     // demo used, and for the same reason: the tolerance is for the centroid of a
     // chroma-subsampled edge, not for the projection (a real fold error is tens of px).
     for (let i = 0; i < moved.length; i++) {
@@ -529,7 +529,7 @@ describe('plans/104 P3 — the Lift-layers exit demo', { skip: gate ?? false, co
 
     // DEMO MODE ONLY: the artefact a human watches, at full stage width. Asserted
     // lightly (it renders, it is an mp4, it is not empty) because the picture it makes
-    // is the same picture the gate above already measured — what this adds is the
+    // is the same picture the gate above already measured - what this adds is the
     // wall-clock of a full-quality pass, which is the number the P4 preset work will
     // have to care about.
     if (OUT) {
@@ -553,7 +553,7 @@ describe('plans/104 P3 — the Lift-layers exit demo', { skip: gate ?? false, co
   test('cached and uncached shadows decode to the SAME pixels, and the cache is what makes this affordable', async () => {
     const r = await page().evaluate(async ({ spec, fps, width, last }) => {
       const S = (window as never as { SEQ: SeqApi }).SEQ;
-      // The compositor directly, both ways, in ONE run on ONE engine — the only way to
+      // The compositor directly, both ways, in ONE run on ONE engine - the only way to
       // say "identical pixels" about a cache rather than to hope it across builds.
       // `fxCacheBytes: 0` is `_setFxCacheBytes(0)`: the allowance is nothing, so every
       // layer re-renders its filter on every frame, which is the path that shipped
@@ -573,7 +573,7 @@ describe('plans/104 P3 — the Lift-layers exit demo', { skip: gate ?? false, co
     }
     assert.equal(r.off.err, null, `the uncached control failed: ${JSON.stringify(r.off.err)}`);
     assert.equal(r.on.err, null, `the cached render failed: ${JSON.stringify(r.on.err)}`);
-    // THE CLAIM. Not "within a tolerance" — the cached frame is composited by the same
+    // THE CLAIM. Not "within a tolerance" - the cached frame is composited by the same
     // `ctx.drawImage`, of the same canvas, at the same four numbers.
     assert.deepEqual(r.on.pix, r.off.pix,
       `the cached shadow plate changed the picture:\n  cached   ${r.on.pix.join('\n           ')}\n  uncached ${r.off.pix.join('\n           ')}`);
@@ -597,7 +597,7 @@ describe('plans/104 P3 — the Lift-layers exit demo', { skip: gate ?? false, co
 
     assert.equal(r.type, 'image/svg+xml', `the still is not SVG: ${r.type}`);
     assert.ok(r.text.includes('<svg'), 'no <svg> root in the still');
-    // The load-bearing claim: nothing rasterised. A lifted layer is an <img> holding an
+    // The essential claim: nothing rasterised. A lifted layer is an <img> holding an
     // SVG, so this also proves `inlineSvgFromImg` carried the derived document through
     // as a nested <svg> rather than falling back to an <image>.
     const rasters = (r.text.match(/<image\b/g) ?? []).length;
@@ -647,7 +647,7 @@ describe('plans/104 P3 — the Lift-layers exit demo', { skip: gate ?? false, co
     assert.ok(r.restored, 'the contact sheet left the artboard modified');
 
     // Each cut is a different instant of the same move, read from the markup (Chromium
-    // refuses `createImageBitmap` on the walker's viewBox-only SVG) — which is the
+    // refuses `createImageBitmap` on the walker's viewBox-only SVG) - which is the
     // stronger check anyway: it proves the sheet is vector AND that the camera advanced.
     const scalesPer = (r.texts ?? []).map((svg) => {
       const set = new Set<string>();
@@ -680,7 +680,7 @@ interface SeqApi {
   exportSeq(spec: unknown, format: 'mp4' | 'webm' | 'gif' | 'apng', opts?: Record<string, unknown>): Promise<RunLike>;
   exportViaApi(spec: unknown, format: string, opts?: Record<string, unknown>): Promise<RunLike>;
   blobBytes(key: string): Promise<string>;
-  /** SHA-256 of a stored blob's whole byte stream — the determinism probe. */
+  /** SHA-256 of a stored blob's whole byte stream - the determinism probe. */
   blobSha(key: string): Promise<string>;
   frameHashes(key: string, frameIdx: number[], fps: number): Promise<string[]>;
   trackColors(key: string, frameIdx: number[], fps: number, targets: [number, number, number][], tol?: number):

@@ -3,7 +3,7 @@
 // Every animal mascot on the /info landing page MUST carry its genAI Content Credential.
 // The whole point of replacing the illustrated mascots with AI-generated, Lolly-edited
 // images was that a site arguing "AI should declare itself, provenance on by default"
-// demonstrates the chain in its own artwork — each animal is a live, verifiable example.
+// demonstrates the chain in its own artwork - each animal is a live, verifiable example.
 // If a re-encode, an optimiser, or a careless overwrite ever strips the C2PA, the imprint
 // glyph silently vanishes from that mascot and the argument quietly breaks. This fails the
 // build instead, which is Andy's standing rule: never lose synthetic-content provenance.

@@ -1,18 +1,18 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
- * plans/104 P2 — the tilt tier where it meets the two EVALUATORS and the compositor gate.
+ * plans/104 P2 - the tilt tier where it meets the two EVALUATORS and the compositor gate.
  *
  * `tests/keyframes-tilt.test.ts` pins the engine's maths; this file pins what the shell
  * does with it, and every case here is one of the three seams P2 actually cuts:
  *
- *  • **`composeTransform`** — the DOM writes the engine's homography as a per-element
+ *  • **`composeTransform`** - the DOM writes the engine's homography as a per-element
  *    `matrix3d`, in the leading translate's place and nowhere else. With no matrix the
  *    string it produces must be the one it has always produced, character for character.
- *  • **The fold and the plan** — `m3` reaches `PlanItem` only under a tilted camera, and
+ *  • **The fold and the plan** - `m3` reaches `PlanItem` only under a tilted camera, and
  *    `viewMoves`/`camerasMove` both learn to count a tilt (a flat box under a tilted
  *    camera has to be projected, and a plate cannot bake a filter for a camera that is
  *    turning).
- *  • **`camerasTilt`** — the gate `renderSequence` branches on, including the TRIGGER it
+ *  • **`camerasTilt`** - the gate `renderSequence` branches on, including the TRIGGER it
  *    reports, because §6.4 asks for the branch to be "logged with the trigger".
  *
  * jsdom-free: everything here is a pure function over plain objects.
@@ -53,7 +53,7 @@ test('a matrix REPLACES the leading translate and nothing else in the list', () 
   assert.match(out, /^matrix3d\(/, 'the homography leads, where the translate used to');
   assert.ok(!out.includes('translate('), 'and the translate is gone, not doubled');
   // The tail is untouched: authored transform, then the animation rotate, then the
-  // scale — which still carries eff, because the engine divides it back out of the
+  // scale - which still carries eff, because the engine divides it back out of the
   // matrix. Order is what makes a hand-rotated box keep spinning about its own centre.
   assert.ok(out.endsWith('rotate(4deg) rotate(12deg) scale(1.5)'), out);
   // A zero-length translate still yields a matrix: `m3` is not an optimisation, it is
@@ -88,7 +88,7 @@ test('the byte-identity short-circuit never fires under tilt, even at eff exactl
   // ⚑ `foldKfPose`'s `flat` fast path exists to keep an untilted document byte-identical:
   // `W/2 + (cx + dx − W/2)` is identity in ℝ and NOT in IEEE-754, so with eff 1 and a
   // parked camera the transition offset is taken straight through. That reasoning is the
-  // AFFINE tier's, and under tilt its premise is false — `proj.scale` is `P/D` at the
+  // AFFINE tier's, and under tilt its premise is false - `proj.scale` is `P/D` at the
   // layer's posed CENTRE and can be exactly 1 while the homography has still moved that
   // centre. `ry = 45` puts sin = cos in IEEE, so a layer 100 px off the stage centre at
   // z = −100 lands `dC === P` exactly: eff 1, camera parked, and 41.42 px of real
@@ -127,7 +127,7 @@ test('…and the untilted floor is untouched by that clause', () => {
 test('a flat box under a tilted camera is still projected (viewMoves counts the tilt)', () => {
   // The bug this exists to prevent: `viewMoves` decides whether a z = 0 box is folded at
   // all. Leaving the tilt out of it would have pitched every LIFTED layer while every
-  // flat one stayed square — an artwork that comes apart at the first degree.
+  // flat one stayed square - an artwork that comes apart at the first degree.
   const flat = planCameraView(env([camClip('t0_rx-40')]), 0);
   assert.equal(viewMoves(flat), true);
   assert.equal(viewMoves(planCameraView(env([]), 0)), false, 'and the default camera still moves nothing');
@@ -145,7 +145,7 @@ test('a flat box under a tilted camera is still projected (viewMoves counts the 
 test('paint order stays the z order under tilt — parallel planes cannot cross', () => {
   // The claim the plan path's sort rests on (§4.2 under P2): the order that reproduces
   // a perspective render is the VIEW-AXIS one, and a pitched camera's view axis is not
-  // the z axis — but the layers are parallel planes, so a higher `z` is nearer
+  // the z axis - but the layers are parallel planes, so a higher `z` is nearer
   // everywhere the two overlap as long as `κ = cos(rx)·cos(ry) > 0`. Checked by
   // projecting the same point on two planes and comparing depths, across the whole
   // usable range and at several screen positions.
@@ -163,7 +163,7 @@ test('paint order stays the z order under tilt — parallel planes cannot cross'
 
 test('camerasMove counts a tilt, so a moving camera owns every layer’s filter', () => {
   // §5.5's ownership predicate is asked ONCE for a whole render, and a tilt changes both
-  // eff and the depth-of-field radius per frame — a plate cannot bake either.
+  // eff and the depth-of-field radius per frame - a plate cannot bake either.
   assert.equal(camerasMove([{ start: 0, end: null, base: { rx: -40 }, track: null }]), true);
   assert.equal(camerasMove([{ start: 0, end: null, base: { ry: 12 }, track: null }]), true);
   assert.equal(camerasMove([{ start: 0, end: null, base: null, track: null }]), false);
@@ -195,7 +195,7 @@ test('camerasTilt finds the trigger, and names it', () => {
   // whole render a tilted one, even a track that is level for most of its length. The
   // answer decides which compositor runs, and that cannot change mid-film.
   assert.ok(camerasTilt([camClip('t0_rx0*t100_rx-1*t4000_rx0')]));
-  // A track that only ever says zero is not a tilt — the wire may carry the channel.
+  // A track that only ever says zero is not a tilt - the wire may carry the channel.
   assert.equal(camerasTilt([camClip('t0_rx0*t4000_rx0')]), null);
   // Junk in the clip list is skipped rather than thrown on (untrusted-input posture).
   assert.equal(camerasTilt([null as never, undefined as never, camClip('t0_x10')]), null);

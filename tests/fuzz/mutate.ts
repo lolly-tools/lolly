@@ -4,13 +4,13 @@
  * returns a NEW buffer (seeds are never mutated in place, so a corpus is stable
  * across a run). Operators target the ways a hand-rolled binary parser breaks:
  *
- *   - bitFlip / byteSet   — flip individual bits / clobber whole bytes
- *   - truncate            — cut the buffer short (headers promising more than exists)
- *   - splice              — overwrite a random run with random bytes
- *   - duplicateChunk      — repeat a run (nesting/box-count amplification)
- *   - inflateLength       — find a plausible 16/32-bit big-endian length field and
+ *   - bitFlip / byteSet - flip individual bits / clobber whole bytes
+ *   - truncate - cut the buffer short (headers promising more than exists)
+ *   - splice - overwrite a random run with random bytes
+ *   - duplicateChunk - repeat a run (nesting/box-count amplification)
+ *   - inflateLength - find a plausible 16/32-bit big-endian length field and
  *                           blow it up, the classic "trust the declared length" trap
- *   - growByte            — bump single bytes toward 0xff (length/count nibbles)
+ *   - growByte - bump single bytes toward 0xff (length/count nibbles)
  *
  * mutate() composes 1–4 of these per call, chosen deterministically from the Rng.
  */
@@ -70,7 +70,7 @@ function duplicateChunk(buf: Uint8Array, rng: Rng): Uint8Array {
 const INFLATED = [0xffffffff, 0x7fffffff, 0x10000000, 0x00ffffff, 0xffff, 0x7fff, 0x1000];
 
 // Overwrite a big-endian length-looking field (a run of bytes whose leading byte
-// is small, i.e. a modest declared length) with a huge value — the exact input
+// is small, i.e. a modest declared length) with a huge value - the exact input
 // that makes a parser allocate/loop on a number far bigger than the buffer.
 function inflateLength(buf: Uint8Array, rng: Rng): Uint8Array {
   const out = buf.slice();

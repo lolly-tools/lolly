@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
- * Design — authored dash/gap lengths on a path box's stroke.
+ * Design - authored dash/gap lengths on a path box's stroke.
  *
  * Run with: npm test (node --test over the tests/ globs). No framework.
  *
@@ -15,7 +15,7 @@
  * 1. **The wire slot.** Compact block URLs encode a row POSITIONALLY against
  *    the manifest's `fields` array, so a new field can only ever be APPENDED,
  *    and the slot is a permanent contract. Pinned as "immediately follows
- *    blur", never as a distance from the end — a tail assertion forbids the one
+ *    blur", never as a distance from the end - a tail assertion forbids the one
  *    safe edit (the mistake design-fit-circle.test.ts made about
  *    `fitText`, and design-path.test.ts documents at length).
  * 2. **The no-op default.** These are numbers, not strings, so they cannot
@@ -67,7 +67,7 @@ async function mount(boxes: unknown[]): Promise<string> {
   return rt.getHydrated() as string;
 }
 
-/** A closed 4-node diamond normalised to the frame — the manifest's own path seed. */
+/** A closed 4-node diamond normalised to the frame - the manifest's own path seed. */
 const DIAMOND = '1!catmull-rom!1_.5!0_1!.5_.5!1_0!.5';
 const PATH_BOX = {
   id: 'p1', kind: 'path', x: 0, y: 0, w: 400, h: 300, shape: 'rect',
@@ -94,7 +94,7 @@ test('strokeDashLen and strokeGapLen are APPENDED, in that order, immediately af
     // The SLOT, not the distance from the end: appending after these two stays legal.
     assert.deepEqual(ids.slice(at + 1, at + 3), ['strokeDashLen', 'strokeGapLen'],
       `${brand}: the two dash fields must follow blur, in this order (wire order is locked)`);
-    // No duplicate ids — a repeated id would silently shadow a slot.
+    // No duplicate ids - a repeated id would silently shadow a slot.
     assert.equal(new Set(ids).size, ids.length, `${brand}: duplicate field id`);
   }
 });
@@ -165,7 +165,7 @@ test('authored dash/gap reach stroke-dasharray verbatim, in px and not scaled by
   // Space-separated, never comma-separated: the value is also read back out of the
   // markup by the export walkers, and a comma here would be a second wire hazard.
   assert.ok(!(dashArray(html) ?? '').includes(','));
-  // Doubling the stroke width does NOT move the pattern — Penpot's authored numbers
+  // Doubling the stroke width does NOT move the pattern - Penpot's authored numbers
   // are absolute, unlike the keyword synthesis they replace.
   const wide = await mount([{ ...PATH_BOX, strokeW: 12, strokeDash: 'dashed', strokeDashLen: 8, strokeGapLen: 3 }]);
   assert.equal(dashArray(wide), '8 3');
@@ -223,7 +223,7 @@ test('a non-finite length is treated as unset, not as the ceiling', async () => 
 // This block used to be a list of tests "named now, unwritable today": the keynote
 // export predates PR #9765, so the camelCase spelling was inferred from Penpot's
 // encoder rather than observed. tests/fixtures/penpot-kitchen-sink.penpot settled
-// it — the serialization census lives in tests/penpot-kitchen-sink.test.ts, and
+// it - the serialization census lives in tests/penpot-kitchen-sink.test.ts, and
 // what belongs HERE is the leg that suite cannot reach: a genuinely authored dashed
 // stroke travelling shape → node → block row → compact link → this tool's markup.
 
@@ -247,7 +247,7 @@ test('fixture: a real Penpot dashed stroke renders its authored numbers, and sur
   } }]);
   assert.equal(dashArray(html), '6 3');
 
-  // And through a shared compact link, unchanged — the wire slot carrying real
+  // And through a shared compact link, unchanged - the wire slot carrying real
   // designer values, not a synthetic 8.5/3.
   for (const brand of BRANDS) {
     const fields = fieldsOf(brand);
@@ -272,7 +272,7 @@ test('fixture: a real Penpot dashed stroke renders its authored numbers, and sur
 });
 
 // The keyless case ("dashed", neither number authored) imports at Penpot's own
-// renderer default of width + 10 for BOTH — asserted against the real shape in
+// renderer default of width + 10 for BOTH - asserted against the real shape in
 // tests/penpot-kitchen-sink.test.ts, since it is a parse-side property. What it
 // produces HERE is the width-proportional path above: a 4px stroke → dashLen 14.
 test('fixture: the keyless dashed default reaches the markup as its imported numbers', async () => {

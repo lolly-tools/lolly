@@ -1,31 +1,31 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
- * Byte-exact golden tests for the engine's export emitters — the tier that
+ * Byte-exact golden tests for the engine's export emitters - the tier that
  * runs on EVERY clone: no browser, no brand pack, no network.
  *
  * (a) Vector emitters emitEmf / emitEps / emitDxf (engine/src/emf.ts, eps.ts,
  *     dxf.ts) against hand-built VectorIr fixtures covering the emission
  *     surface the IR can express: filled paths (both fill rules), stroked
- *     paths, fill+stroke, multi-subpath glyph outlines (text-as-paths — the IR
+ *     paths, fill+stroke, multi-subpath glyph outlines (text-as-paths - the IR
  *     carries no text or gradient prims; both are resolved upstream by the
  *     shell's IR producer, so paths and the raster image escape-hatch ARE the
- *     whole surface), an image region (DXF drops it — droppedImages pinned),
+ *     whole surface), an image region (DXF drops it - droppedImages pinned),
  *     and physical-unit output (mm) plus the EPS CMYK colour mode.
  * (b) Data/text formats hydrated by the engine (buildDataPayload in
  *     engine/src/runtime.ts) through the real runtime.export path: the
  *     community chart-creator / color-palette template.csv siblings (real
  *     public tools, real hooks), the model-derived JSON payload, and a
- *     synthetic tool double pinning the ics/vcf helpers (icsStamp / rfcText —
+ *     synthetic tool double pinning the ics/vcf helpers (icsStamp / rfcText - 
  *     community ships no ics/vcf tool; the SUSE ones live in a private pack
  *     that would force CI skips).
  *
- * Every input is pinned — no now-defaults, no randomness — so the goldens are
+ * Every input is pinned - no now-defaults, no randomness - so the goldens are
  * byte-stable across runs and machines.
  *
  * Run:        node --test tests/export-emitter-golden.test.ts
  * Regenerate: UPDATE_GOLDENS=1 node --test tests/export-emitter-golden.test.ts
  *   (then re-run without UPDATE_GOLDENS to confirm green, and diff-review the
- *   fixture change before committing — the golden diff IS the review artefact
+ *   fixture change before committing - the golden diff IS the review artefact
  *   for any emitter change.)
  */
 import { test, after } from 'node:test';
@@ -63,7 +63,7 @@ const regenerated: Golden = {};
 after(() => {
   if (!UPDATE_GOLDENS) return;
   mkdirSync(repoPath('tests/fixtures'), { recursive: true });
-  // Rebuilt from scratch each regen run, keys sorted — no stale leftovers.
+  // Rebuilt from scratch each regen run, keys sorted - no stale leftovers.
   const sorted: Golden = {};
   for (const key of Object.keys(regenerated).sort()) sorted[key] = regenerated[key]!;
   writeFileSync(FIXTURE_PATH, `${JSON.stringify(sorted, null, 2)}\n`, 'utf8');
@@ -134,7 +134,7 @@ const FILL_STROKE: VectorIr = {
   }], { r: 0, g: 128, b: 64 }, { r: 20, g: 20, b: 20, width: 2 })],
 };
 
-// Text-as-paths: an "o"-like glyph — outer + inner (counter) subpath in ONE
+// Text-as-paths: an "o"-like glyph - outer + inner (counter) subpath in ONE
 // prim, nonzero winding. This is exactly what outlined text reaches the
 // emitters as (the IR has no text prim), so it pins the multi-subpath surface.
 const GLYPH_OUTLINE: VectorIr = {
@@ -199,7 +199,7 @@ test('emitDxf: golden text per fixture, image prim dropped', () => {
   for (const [name, ir] of CASES) {
     const { text, droppedImages } = emitDxf(ir, { width: ir.width, height: ir.height });
     goldenCase(`dxf/${name}`, text);
-    // DXF has no raster carrier — the emitter must COUNT the drop (the shell
+    // DXF has no raster carrier - the emitter must COUNT the drop (the shell
     // warns from this), never silently lose it.
     assert.equal(droppedImages, name === 'image-region' ? 1 : 0, `droppedImages for ${name}`);
   }
@@ -232,7 +232,7 @@ test('negative control: a perturbed fixture emits different bytes in every forma
   assert.notEqual(emitEps(perturbed, { width: 200, height: 100 }),
     emitEps(FILLED, { width: 200, height: 100 }), 'EPS sees the perturbation');
   const seg = (perturbed.prims[0] as VectorPathPrim).subpaths[0]!.segments[0];
-  if (seg?.op === 'M') seg.x = 11; // DXF flattens colour-independently — move a point too
+  if (seg?.op === 'M') seg.x = 11; // DXF flattens colour-independently - move a point too
   assert.notEqual(emitDxf(perturbed, { width: 200, height: 100 }).text,
     emitDxf(FILLED, { width: 200, height: 100 }).text, 'DXF sees the perturbation');
 });
@@ -259,7 +259,7 @@ test('determinism: emitting the same fixture twice is byte-identical', () => {
 // ─── (b) data/text format goldens through the engine's buildDataPayload ──────
 
 // Loads a REAL community tool (public submodule, always mounted) straight from
-// its source pack — never the gitignored tools/ profile view.
+// its source pack - never the gitignored tools/ profile view.
 function loadCommunityTool(id: string, textExts: string[]): LoadedTool {
   const dir = `community/${id}/`;
   const read = (rel: string): string => readFileSync(repoPath(dir + rel), 'utf8');
@@ -276,7 +276,7 @@ function loadCommunityTool(id: string, textExts: string[]): LoadedTool {
   };
 }
 
-// runtime.export hands data formats to host.export.render as opts.dataText —
+// runtime.export hands data formats to host.export.render as opts.dataText - 
 // capture that instead of rendering anything.
 function captureHost() {
   const seen: Array<{ format: string; dataText?: string; dataMime?: string }> = [];
@@ -303,7 +303,7 @@ async function hydrateData(tool: LoadedTool, initial: Record<string, unknown>, f
   return { dataText: out.dataText!, dataMime: out.dataMime! };
 }
 
-// Pinned chart data — a comma+quote label so the golden proves csvCell's
+// Pinned chart data - a comma+quote label so the golden proves csvCell's
 // RFC 4180 quoting, not just pass-through.
 const CHART_DATA = [
   { label: 'Public, "cloud"', value: '38.5', color: '#008657' },
@@ -323,13 +323,13 @@ test('data: chart-creator template.csv golden (real community tool + hooks)', as
 
 test('data: color-palette template.csv golden (hook-computed csvRows)', async () => {
   const tool = loadCommunityTool('color-palette', ['csv']);
-  // seed pinned to a literal hex — its manifest default is a brand-token ref
+  // seed pinned to a literal hex - its manifest default is a brand-token ref
   // the stub host can't resolve.
   const { dataText, dataMime } = await hydrateData(
     tool, { seed: '#336699', harmony: 'triad-3', steps: 5, neutrals: true }, 'csv');
   assert.equal(dataMime, 'text/csv');
   goldenCase('data/color-palette-csv', dataText);
-  // Non-vacuity: csvRows comes from the tool's onInit hook — an empty hydration
+  // Non-vacuity: csvRows comes from the tool's onInit hook - an empty hydration
   // (hook failed silently) would be header-only, so demand real swatch rows.
   const rows = dataText.trim().split('\n');
   assert.ok(rows.length > 5, `hook produced swatch rows, got ${rows.length} lines`);

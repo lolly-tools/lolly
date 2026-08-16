@@ -6,7 +6,7 @@
  * esbuild and serves it to a real Chromium; everything here executes in the page and
  * is reached from the test through `page.evaluate` against `window.SEQ`.
  *
- * It deliberately imports the REAL modules under test — `bridge/sequence-render.ts`,
+ * It deliberately imports the REAL modules under test - `bridge/sequence-render.ts`,
  * `bridge/sequence-providers.ts`, `bridge/sequence-plan.ts`, `bridge/export.ts` and
  * `views/sequence-clock.ts`. Nothing about the pipeline is re-implemented here; the
  * only things this file owns are (a) synthesising self-identifying media, (b) building
@@ -27,7 +27,7 @@ import { parseSequenceStage, frameTimestamps, activeSpanTimestamps, toCodedError
 import { HIGH_WATER } from '../../shells/web/src/bridge/video-encode-core.ts';
 import { MAX_LIVE_PROVIDERS } from '../../shells/web/src/bridge/sequence-render.ts';
 // `createExportAPI` is also the plans/104 §7 P3 funnel's front door: `walkToSvg` renders
-// SVG through it, which is how `main.ts`'s `__lollyWalkerShot` reaches the walker too —
+// SVG through it, which is how `main.ts`'s `__lollyWalkerShot` reaches the walker too - 
 // the demo has to PRODUCE its layered SVG the honest way, by walking a real page with
 // `layerIds` on, rather than by hand-writing markup that happens to enumerate well.
 import { createExportAPI, rasterizeNodeToDataUrl, rasterizePosedNodeToDataUrl } from '../../shells/web/src/bridge/export.ts';
@@ -37,7 +37,7 @@ import DOMPurify from 'dompurify';
 import { applyTimeToElements, createAuthoredStore, OFF_CLASS } from '../../shells/web/src/views/sequence-clock.ts';
 // The SESSION entry point, imported from the bridge module that owns it: it enumerates
 // its own element set (`POSED_SEL`, which includes the untimed scene camera), so a still
-// taken through it is the one the editor's preview actually shows — the divergence the
+// taken through it is the one the editor's preview actually shows - the divergence the
 // P1 review's HIGH-1 was about. `applyTimeToElements` above is hand-fed the planner's
 // list, which cannot see that difference.
 import { createSequenceTime } from '../../shells/web/src/bridge/sequence-dom.ts';
@@ -217,7 +217,7 @@ async function makeClip(spec: ClipSpec = {}): Promise<Any> {
   return { key, url: urls.get(key), w, h, frames, fps, size: blob.size, container };
 }
 
-/** A copy of `key` cut to `frac` of its length — the silent-truncation fixture. */
+/** A copy of `key` cut to `frac` of its length - the silent-truncation fixture. */
 function truncate(key: string, frac: number): Promise<Any> {
   const blob = blobs.get(key) as Blob;
   return blob.arrayBuffer().then((buf) => {
@@ -227,7 +227,7 @@ function truncate(key: string, frac: number): Promise<Any> {
   });
 }
 
-/** A WAV blob of a constant tone — the music-bed fixture (`opts.audio.url`). */
+/** A WAV blob of a constant tone - the music-bed fixture (`opts.audio.url`). */
 function makeBed(sec: number, hz: number, gain: number): Any {
   const rate = 48_000;
   const n = Math.round(sec * rate);
@@ -268,20 +268,20 @@ export interface BoxSpec {
   exitMs?: number;
   lane?: 'seq' | '';
   /**
-   * plans/104 §5.3 — the per-box depth field, emitted as `data-t-z` exactly the way
+   * plans/104 §5.3 - the per-box depth field, emitted as `data-t-z` exactly the way
    * `timeAttrsFor` does (a clamped integer, absent at 0).
    */
   z?: number | null;
-  /** plans/104 §5.1 — the keyframe track, emitted as `data-t-kf`. */
+  /** plans/104 §5.1 - the keyframe track, emitted as `data-t-kf`. */
   kf?: string | null;
   /**
-   * plans/104 §5.4 — a CAMERA box: the non-visual `[data-cam]` marker and nothing
+   * plans/104 §5.4 - a CAMERA box: the non-visual `[data-cam]` marker and nothing
    * else, exactly what `mediaHtmlFor` emits for `kind: 'camera'`. The pose rides on
    * the wrapper's `data-t-kf`/`data-t-z` like every other box's timing.
    */
   camera?: boolean;
   /**
-   * plans/104 §5.3 — `shadow: depth`, derived from `z` by the same straight-overhead
+   * plans/104 §5.3 - `shadow: depth`, derived from `z` by the same straight-overhead
    * formula the three `hooks.js` copies share:
    * `drop-shadow(0px z·0.15px (10 + z·0.2)px #00000055)`.
    */
@@ -289,7 +289,7 @@ export interface BoxSpec {
   /** A raw `filter` for the box (the authored-filter tier the plates bake). */
   filter?: string;
   /**
-   * plans/104 §7 — a LIFTED LAYER's artwork: standalone SVG markup, mounted the way
+   * plans/104 §7 - a LIFTED LAYER's artwork: standalone SVG markup, mounted the way
    * the tool mounts an image field (an `<img>` whose src is the stored asset), so the
    * walker's `inlineSvgFromImg` path is the one under test rather than a hand-inlined
    * `<svg>` the real tool never produces.
@@ -316,7 +316,7 @@ function buildStage(spec: StageSpec): HTMLElement {
     // The panel's own stylesheet owns what seq-off means; the export tier only needs
     // the one rule so an off-playhead box is genuinely absent from a still capture.
     // `.lolly-box-cam` is hidden here because BOTH design copies hide it in
-    // their own styles.css — the camera marker is a model element the evaluators
+    // their own styles.css - the camera marker is a model element the evaluators
     // read, and it must never paint. Omitting the rule would make this stage more
     // permissive than the tool it stands in for.
     st.textContent = `.seq-off{display:none!important}.lolly-box{position:absolute;box-sizing:border-box;overflow:hidden}
@@ -395,7 +395,7 @@ function buildStage(spec: StageSpec): HTMLElement {
     if (b.enter) { el.setAttribute('data-t-enter', b.enter); el.setAttribute('data-t-enter-ms', String(b.enterMs ?? 400)); }
     if (b.exit) { el.setAttribute('data-t-exit', b.exit); el.setAttribute('data-t-exit-ms', String(b.exitMs ?? 400)); }
     if (b.lane) el.setAttribute('data-t-lane', b.lane);
-    // plans/104 — depth, the keyframe track and the camera marker, emitted the way
+    // plans/104 - depth, the keyframe track and the camera marker, emitted the way
     // `timeAttrsFor` / `mediaHtmlFor` emit them so the evaluators see the same DOM
     // the real tool produces.
     const z = Number(b.z ?? 0);
@@ -430,7 +430,7 @@ interface Counters {
   videoFramesPeak: number;
   videoFramesMade: number;
   imageBitmapsMade: number;
-  /** Live VideoDecoders — one per open provider, so this IS the live-provider count. */
+  /** Live VideoDecoders - one per open provider, so this IS the live-provider count. */
   decodersLive: number;
   decodersPeak: number;
 }
@@ -447,7 +447,7 @@ let instrumented = false;
  * Wrap `VideoFrame` and `createImageBitmap` so the streaming path's two memory
  * claims are measurable from the test rather than asserted in a comment:
  *   • at most HIGH_WATER + 1 VideoFrames alive at once (video-encode-core), and
- *   • ZERO ImageBitmaps created — an accumulating frame array is the old buffered
+ *   • ZERO ImageBitmaps created - an accumulating frame array is the old buffered
  *     path, and `createImageBitmap` is the only way onto it.
  * createStreamingMux resolves `VideoFrame` off globalThis when the session opens, so
  * the patch has to be in place before the export starts (it is installed once, and
@@ -462,7 +462,7 @@ function instrument(): void {
     // A Proxy with a `construct` trap, NOT a subclass: mediabunny's VideoSample
     // constructor branches on `data instanceof VideoFrame`, and a subclass on the
     // global makes every decoder-produced frame fail that test (it is an instance of
-    // the REAL class, not of ours) — which shows up as a bogus "Invalid data type"
+    // the REAL class, not of ours) - which shows up as a bogus "Invalid data type"
     // decode failure. A proxy leaves the identity of both class and instances alone.
     const tagged = new WeakSet<object>();
     const realClose = RealVF.prototype.close;
@@ -523,7 +523,7 @@ export interface ExportRun {
   stack?: string;
   counters: Counters;
   /** rAF heartbeat during the render (opts.heartbeat): frames painted, and the
-   *  longest gap between them — the main-thread responsiveness number. */
+   *  longest gap between them - the main-thread responsiveness number. */
   beat: { beats: number; maxGap: number };
   frames: number;
   fps: number;
@@ -537,10 +537,10 @@ export interface ExportRun {
  * in when a user hits export, and which a stage built from scratch never has:
  *
  *   applyClockAtMs  run the real phase-2 clock over the boxes first, exactly as
- *                   scrubbing does — which leaves `.seq-off` (display:none) on every
+ *                   scrubbing does - which leaves `.seq-off` (display:none) on every
  *                   box outside the playhead window.
- *   deviceMemory    fake navigator.deviceMemory, which is what maxVideoFrames() —
-                   the buffered-path frame cap — is derived from.
+ *   deviceMemory    fake navigator.deviceMemory, which is what maxVideoFrames() - 
+                   the buffered-path frame cap - is derived from.
  *   freezeVideos    insert the frozen <img data-motion-still> sibling that
  *                   export.ts's snapshotMotion leaves behind, which is what a ZIP
  *                   bundle's mp4 sub-render actually sees (the guard there keys on
@@ -636,7 +636,7 @@ async function exportSeq(spec: StageSpec, format: 'mp4' | 'webm' | 'gif' | 'apng
   const fps = format === 'gif' ? 15 : Math.max(1, Math.round(opts.fps ?? 30));
   // MAIN-THREAD RESPONSIVENESS. A rAF heartbeat during the render: `beatMaxGap`
   // is the longest the main thread went without painting, which is the number
-  // the worker offload exists to move. Reported, never asserted — the absolute
+  // the worker offload exists to move. Reported, never asserted - the absolute
   // value is machine- and headless-dependent.
   const beat = { beats: 0, maxGap: 0 };
   let last = performance.now();
@@ -675,15 +675,15 @@ async function exportSeq(spec: StageSpec, format: 'mp4' | 'webm' | 'gif' | 'apng
 }
 
 /**
- * The same export, but through the PUBLIC funnel — `createExportAPI(host).render()`
- * — instead of calling `renderSequence` directly.
+ * The same export, but through the PUBLIC funnel - `createExportAPI(host).render()`
+ * - instead of calling `renderSequence` directly.
  *
  * `exportSeq` above deliberately skips that funnel so the compositor can be tested on
  * its own. But the funnel is not a thin wrapper: it detaches every `[data-export-hide]`
  * node from the live tree for the duration, freezes video, adds the watermark overlay
  * and holds the thumbnail rasteriser down. Anything that reads the DOM *inside* the
  * render sees the tree in that state, and this is the entry point every real export in
- * the app actually takes — so a pipeline verified only through `exportSeq` is verified
+ * the app actually takes - so a pipeline verified only through `exportSeq` is verified
  * one layer below where users live.
  */
 async function exportViaApi(spec: StageSpec, format: string, opts: Any = {}): Promise<Any> {
@@ -750,7 +750,7 @@ async function blobSha(key: string): Promise<string> {
   return [...new Uint8Array(digest)].map((b) => b.toString(16).padStart(2, '0')).join('');
 }
 
-/** SHA-256 (hex) of N spread output frames' raw pixels — the determinism probe. */
+/** SHA-256 (hex) of N spread output frames' raw pixels - the determinism probe. */
 async function frameHashes(key: string, frameIdx: number[], fps: number): Promise<string[]> {
   const { mb, formats } = await MB_FORMATS();
   const blob = blobs.get(key) as Blob;
@@ -794,7 +794,7 @@ async function frameDelta(keyA: string, keyB: string, frameIdx: number, fps: num
   return sum / (a.data.length / 4);
 }
 
-/** Mean |luma difference| between two frames of the SAME export, 0..255 — the
+/** Mean |luma difference| between two frames of the SAME export, 0..255 - the
  * temporal-jitter measure. On a CONSTANT-pose scene P2b (one plate texture resampled
  * identically every frame) reads ~0, while P2a (an independent dom-to-image serialise
  * per frame) drifts. This is the flicker made into a number. */
@@ -872,8 +872,8 @@ async function hasAudioTrack(key: string): Promise<boolean> {
 // ── provider-level resource discipline ───────────────────────────────────────
 
 /**
- * Drive ONE provider exactly the way the compositor does — prime the whole output
- * grid, then ask for every source time in order — and report its own ledger.
+ * Drive ONE provider exactly the way the compositor does - prime the whole output
+ * grid, then ask for every source time in order - and report its own ledger.
  */
 async function driveProvider(clipKey: string, fps: number, durMs: number): Promise<Any> {
   const url = urls.get(clipKey) as string;
@@ -913,7 +913,7 @@ async function stalledProvider(): Promise<Any> {
  *
  * Two things are being proven at once: the off-playhead box is genuinely absent
  * (phase 2's seq-off, which the still capture merely photographs), and the video
- * box is NOT blank — a live <video> serialises empty, so a painted frame there is
+ * box is NOT blank - a live <video> serialises empty, so a painted frame there is
  * evidence `snapshotMotion` still ran for a still format on a sequence stage.
  */
 async function stillAt(spec: StageSpec, tMs: number, probes: { x: number; y: number }[], seekSec = 0): Promise<Any> {
@@ -922,7 +922,7 @@ async function stillAt(spec: StageSpec, tMs: number, probes: { x: number; y: num
   const boxes = [...art.querySelectorAll<HTMLElement>('.lolly-box')];
 
   // Park every <video> on the playhead's frame, the way the phase-2 clock's `media`
-  // callback does, and wait for the seek to land — otherwise "the still shows the
+  // callback does, and wait for the seek to land - otherwise "the still shows the
   // playhead frame" would be trivially true at frame 0 for any implementation.
   await Promise.all(boxes.map((b) => {
     const v = b.querySelector('video');
@@ -969,8 +969,8 @@ async function stillAt(spec: StageSpec, tMs: number, probes: { x: number; y: num
  * back: the archive's member names plus a pixel probe per member (png/svg), or the
  * page count (pdf).
  *
- * Only a browser can answer the questions that matter here — the members are real
- * rasters and the pdf is real jsPDF output — so the headless suite
+ * Only a browser can answer the questions that matter here - the members are real
+ * rasters and the pdf is real jsPDF output - so the headless suite
  * (shells/web/src/bridge/sequence-cuts.test.ts) stops at the loop and the naming,
  * and this is where "cut 3 shows the clip that is live at its midpoint" is decided.
  */
@@ -991,7 +991,7 @@ async function cutsAt(spec: StageSpec, cuts: number, format: string, probes: { x
   const leftOff = boxes.filter((b) => b.classList.contains(OFF_CLASS)).length;
   const restored = leftOff === 0 && art.innerHTML === before;
   // Kept in the registry so a caller can WRITE the sheet out (`blobBytes`) rather than
-  // only probe it — the P1 demo hands the archive itself back.
+  // only probe it - the P1 demo hands the archive itself back.
   const key = put(blob);
 
   if (format === 'pdf') {
@@ -1009,7 +1009,7 @@ async function cutsAt(spec: StageSpec, cuts: number, format: string, probes: { x
   const files = unzipSync(bytes);
   const names = Object.keys(files).sort();
   const at: Any[] = [];
-  /** SVG members' markup — the only way to interrogate a member the page cannot raster. */
+  /** SVG members' markup - the only way to interrogate a member the page cannot raster. */
   const texts: string[] = [];
   /** Why a member could not be probed, per member ('' when it was). */
   const notes: string[] = [];
@@ -1020,7 +1020,7 @@ async function cutsAt(spec: StageSpec, cuts: number, format: string, probes: { x
     // BEST-EFFORT. `createImageBitmap` on an SVG blob is not universally available
     // (Chromium refuses one whose root carries no intrinsic width/height, which the
     // walker's viewBox-only output is), and a probe that cannot be taken must not
-    // destroy the member list, the restore check and the archive itself — those are
+    // destroy the member list, the restore check and the archive itself - those are
     // what the caller came for. The reason is reported instead of thrown.
     try {
       const bmp = await createImageBitmap(member);
@@ -1046,7 +1046,7 @@ async function cutsAt(spec: StageSpec, cuts: number, format: string, probes: { x
 // ── compositor vs preview (the drift guard) ──────────────────────────────────
 
 /**
- * Render a ONE-FRAME sequence through the compositor (APNG — lossless, and a
+ * Render a ONE-FRAME sequence through the compositor (APNG - lossless, and a
  * single-frame APNG is a plain PNG to any decoder) and, separately, photograph the
  * same live DOM with dom-to-image, then diff them.
  *
@@ -1115,7 +1115,7 @@ async function firstFramePixels(key: string, probes: { x: number; y: number }[],
  * A stored blob's bytes, base64, so the Node side can WRITE the artefact.
  *
  * Chunked because `String.fromCharCode(...bytes)` on a multi-megabyte mp4 blows the
- * argument limit — the failure mode is a RangeError deep inside the page, which reads
+ * argument limit - the failure mode is a RangeError deep inside the page, which reads
  * as "the export broke" rather than "the transfer did".
  */
 async function blobBytes(key: string): Promise<string> {
@@ -1162,7 +1162,7 @@ async function blobDiff(keyA: string, keyB: string, maxRanges = 64): Promise<Any
  *
  * The flythrough demo's parallax number. Each layer is a flat, well-separated colour, so
  * a per-channel threshold survives H.264 4:2:0 without a tolerance argument doing the
- * work — the four targets are ≥130 apart on their nearest channel and `tol` is 48. The
+ * work - the four targets are ≥130 apart on their nearest channel and `tol` is 48. The
  * CENTROID is what moves: a layer's projected centre is `W/2 + (c − camX − W/2)·eff`,
  * so the displacement between two frames is exactly `|offset|·Δeff` and nothing else.
  *
@@ -1224,7 +1224,7 @@ async function trackColors(
  * The BACKGROUND instrument. The stage's own paint is a two-tone plane with one hard
  * vertical edge; the run length of the left tone along a clear row IS the edge's x. A
  * camera pan moves the whole plane (§5.5's "the bg is an implicit z = 0 layer"), so the
- * run changes — and a bg that is NOT projected leaves it constant, which is the failure
+ * run changes - and a bg that is NOT projected leaves it constant, which is the failure
  * this number is here to make visible.
  */
 async function rowRun(
@@ -1235,7 +1235,7 @@ async function rowRun(
   const input = new mb.Input({ formats, source: new mb.BlobSource(blobs.get(key) as Blob) });
   const runs: number[] = [];
   /**
-   * The LONGEST CONTIGUOUS run of the tone, as `[start, endExclusive)` — the tone's
+   * The LONGEST CONTIGUOUS run of the tone, as `[start, endExclusive)` - the tone's
    * real edges, and the only reading of them that survives two things the naive ones
    * do not. The COUNT stops being the edge as soon as a pan pushes the plane's own
    * left edge off-canvas (at camX = −140 the frame's first 140 px are outside it);
@@ -1293,7 +1293,7 @@ async function rowRun(
  * Photograph the live DOM at `tMs` as a VECTOR export, through the real funnel.
  *
  * The still half of P1's exit criteria: "the still-at-playhead is real SVG". The clock
- * runs through `createSequenceTime`, which enumerates its OWN element set — so the
+ * runs through `createSequenceTime`, which enumerates its OWN element set - so the
  * untimed scene camera is inside the picture, and this is the preview's frame rather
  * than a hand-assembled approximation of it.
  *
@@ -1311,7 +1311,7 @@ async function vectorStillAt(spec: StageSpec, tMs: number, format: 'svg' | 'pdf'
   let key: string | null = null;
   try {
     session.apply(tMs);
-    // What the applier composed onto each box at this instant — reported so a failing
+    // What the applier composed onto each box at this instant - reported so a failing
     // assertion about the MARKUP can be told apart from a failing projection.
     const posed = [...art.querySelectorAll<HTMLElement>('.lolly-box')].map((el) => ({
       z: el.getAttribute('data-t-z'),
@@ -1334,17 +1334,17 @@ async function vectorStillAt(spec: StageSpec, tMs: number, format: 'svg' | 'pdf'
 }
 
 /**
- * plans/104 §7 — STEP ONE OF THE LIFT FUNNEL: walk a real page to SVG with the
+ * plans/104 §7 - STEP ONE OF THE LIFT FUNNEL: walk a real page to SVG with the
  * identity passthrough on.
  *
- * This is `main.ts`'s `__lollyWalkerShot` hook reproduced call for call — the same
+ * This is `main.ts`'s `__lollyWalkerShot` hook reproduced call for call - the same
  * `export.render(node, 'svg', …)` funnel, the same option bag
- * (`convertPaths`/`elementScopedRaster`/`stackingOrder`/`backdropBlur`/`layerIds`) —
+ * (`convertPaths`/`elementScopedRaster`/`stackingOrder`/`backdropBlur`/`layerIds`) - 
  * because that hook IS the capture path: `scripts/build-docs-shots.ts` calls it for
  * every `walker=1&format=svg` recipe, which is how url-shot takes a vector screenshot.
  * The hook itself is unreachable here (it is installed by the web shell's boot, and
  * the built shell is untracked build output), so the body is reproduced rather than
- * driven — the walker, the funnel and the flag are the real ones either way.
+ * driven - the walker, the funnel and the flag are the real ones either way.
  *
  * The page is mounted VISIBLE. The walker reads a live layout through
  * `getBoundingClientRect` + `getComputedStyle`, so a hidden or zero-opacity subtree
@@ -1405,11 +1405,11 @@ async function probe(): Promise<Any> {
 }
 
 /**
- * plans/104 §12 Q2 / spike S2 §4 — the two captures of ONE tilted element, side by side.
+ * plans/104 §12 Q2 / spike S2 §4 - the two captures of ONE tilted element, side by side.
  *
  * S2 measured `rasterizeNodeToDataUrl` DESTROYING a 3-D pose: it overwrites the clone
  * root's transform with its own fit translate/scale and resizes the root to
- * `getBoundingClientRect()`, which on a tilted element is the projected AABB — so the
+ * `getBoundingClientRect()`, which on a tilted element is the projected AABB - so the
  * card comes back untilted and stretched (mean 35/255, IoU 0.88, "trapezoid →
  * rectangle"). `rasterizePosedNodeToDataUrl` is the wrapper-shaped capture that exists
  * because of that finding, and the two must never converge. Lives in the harness rather

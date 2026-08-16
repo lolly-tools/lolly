@@ -1,20 +1,21 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
- * Pure helpers for PDF soft masks (ExtGState /SMask — PDF 32000-1 §11.6.5.2).
+ * Pure helpers for PDF soft masks (ExtGState /SMask, PDF 32000-1 §11.6.5.2).
  *
  * The evaluation itself has to live inside pdf-map.ts's interpreter (it re-enters
  * `run()` to execute the mask group's content stream), but everything AROUND it is
- * ordinary geometry and colour arithmetic — so it lives here, DOM-free and unit
+ * ordinary geometry and colour arithmetic. So it lives here, DOM-free and unit
  * testable in isolation.
  *
  * Why a soft mask matters at all: Chromium's printToPDF encodes a CSS `box-shadow`
  * by filling the element's whole rectangle with a flat translucent ink and letting a
- * /Luminosity mask carve out the blur, the offset and the rounded corners. Probing
- * 136 masks across six real app pages, 94% of them are a single blurred greyscale
- * JPEG placed on the mask group's /BBox — i.e. ALL of the shape information lives in
- * the mask and the masked paint carries only colour. Ignore the mask and every
- * rounded control on the page gains an opaque grey plate; drop the paint and the
- * control's box disappears. Reading the mask is the only answer that is neither.
+ * /Luminosity mask carve out the blur, the offset, and the rounded corners. Probing
+ * 136 masks across six real app pages found 94% of them are a single blurred
+ * greyscale JPEG placed on the mask group's /BBox. That is, ALL of the shape
+ * information lives in the mask, and the masked paint carries only colour. Ignore
+ * the mask and every rounded control on the page gains an opaque grey plate; drop
+ * the paint and the control's box disappears. Reading the mask is the only answer
+ * that avoids both failures.
  */
 
 import type { ClipPath, PdfNode } from './pdf-map.ts';
@@ -26,7 +27,7 @@ export interface SMat { a: number; b: number; c: number; d: number; e: number; f
 
 /** The box-space footprint of a mask group's /BBox. */
 export interface MaskRegion {
-  /** Axis-aligned bounding box — the `<mask>` element's userSpaceOnUse region. */
+  /** Axis-aligned bounding box: the `<mask>` element's userSpaceOnUse region. */
   x: number; y: number; w: number; h: number;
   /** The TRUE (possibly rotated/skewed) transformed quad, as a clip. The AABB can
    *  be larger than the real bbox under a rotation, so the group's content is
@@ -41,9 +42,9 @@ const r2 = (v: number): number => Math.round(v * 100) / 100;
  * Transform a mask group's /BBox [x0 y0 x1 y1] through `m` (the group's base
  * transform = the CTM at the `gs` composed with the group's /Matrix) into box space.
  *
- * Returns null for anything degenerate — a non-finite matrix or bbox, a missing
- * bbox, or a zero-area result. Every rejection makes the caller fall back a rung;
- * this never throws, because the bbox arrives from an untrusted file.
+ * Returns null for anything degenerate: a non-finite matrix or bbox, a missing
+ * bbox, or a zero-area result. Every rejection makes the caller fall back a rung.
+ * This never throws, because the bbox arrives from an untrusted file.
  */
 export function maskRegion(bbox: number[] | undefined, m: SMat): MaskRegion | null {
   if (!Array.isArray(bbox) || bbox.length < 4) return null;
@@ -78,18 +79,18 @@ function hexRgb(hex: string): [number, number, number] | null {
 /**
  * A colour's mask luminance, 0..1.
  *
- * Rec.709 coefficients over sRGB values WITHOUT linearisation — deliberately the
- * CSS Masking Level 1 convention (what browsers actually implement, and what
+ * Rec.709 coefficients over sRGB values WITHOUT linearisation. This is deliberately
+ * the CSS Masking Level 1 convention (what browsers actually implement, and what
  * pdf-svg pins with `color-interpolation:sRGB` on every <mask>), not the SVG 1.1
  * linearRGB one. Folding a constant mask has to agree with what an un-folded
  * <mask> of the same colour would have produced, or rung 2 and rung 1 would
  * disagree about the same page.
  *
- * For the DeviceGray groups Chromium emits this is EXACT: 0.2126g + 0.7152g +
+ * For the DeviceGray groups Chromium emits, this is EXACT: 0.2126g + 0.7152g +
  * 0.0722g = g, which is precisely the /Luminosity value of §11.6.5.2. A DeviceRGB
  * group (the 3% CSS `mask-image: linear-gradient()` rung) differs slightly from
- * PDF's own 0.3/0.59/0.11 weights — a documented, sub-perceptual limitation whose
- * stops are near-grey in every observed case.
+ * PDF's own 0.3/0.59/0.11 weights. This is a documented, sub-perceptual limitation;
+ * its stops are near-grey in every observed case.
  */
 export function relativeLuminance(hex: string): number {
   const c = hexRgb(hex);
@@ -99,7 +100,7 @@ export function relativeLuminance(hex: string): number {
 
 /** Is this fill a neutral ink (r≈g≈b)? A missing/empty fill counts as achromatic:
  *  an unresolved paint under a mask is not content we can vouch for either.
- *  Used by the last-resort shadow test — see `isShadowPlate` and pdf-map's
+ *  Used by the last-resort shadow test. See `isShadowPlate` and pdf-map's
  *  paintPath rung 3. */
 export function isAchromatic(fill: string): boolean {
   const c = hexRgb(fill);
@@ -115,13 +116,13 @@ function nodeFill(n: PdfNode): string {
 
 /**
  * Rung 2 of the ladder: a mask group that is ONE flat rectangle covering its own
- * bbox is not a shape at all, it is a constant — Chromium emits this for a CSS
+ * bbox is not a shape at all, it is a constant. Chromium emits this for a CSS
  * `mask-image` with no gradient, and for `opacity` routed through a group. Fold it
  * into the painted node's alpha and emit no <mask> at all: fewer defs, no raster,
  * and exactly the same pixels.
  *
  * Deliberately strict. One node, a rect, a real flat fill, no gradient/raster/path,
- * and ≥95% of the region's area — anything else is a shape and must stay a <mask>.
+ * and ≥95% of the region's area. Anything else is a shape and must stay a <mask>.
  * Returns null when it does not apply.
  */
 export function constantMask(nodes: PdfNode[], region: { w: number; h: number }, subtype: 'Luminosity' | 'Alpha' = 'Luminosity'): number | null {
@@ -136,8 +137,8 @@ export function constantMask(nodes: PdfNode[], region: { w: number; h: number },
   const alpha = typeof n.opacity === 'number' ? Math.max(0, Math.min(100, n.opacity)) / 100 : 1;
   // §11.6.5.2 / Table 144: with `/S /Alpha` the mask value is the group's ALPHA and
   // its colour is irrelevant. Folding an Alpha group with luminosity math makes an
-  // opaque BLACK rect read as mask 0 and delete the artwork it was meant to reveal —
-  // and Illustrator is exactly the producer that puts /S /Alpha groups over dark art,
+  // opaque BLACK rect read as mask 0 and delete the artwork it was meant to reveal.
+  // Illustrator is exactly the producer that puts /S /Alpha groups over dark art,
   // so the failure is both silent and likely. Only Luminosity reads the colour.
   if (subtype === 'Alpha') return alpha;
   const col = nodeFill(n);
@@ -146,7 +147,7 @@ export function constantMask(nodes: PdfNode[], region: { w: number; h: number },
 }
 
 /**
- * Is this node a print engine's box-shadow plate — a translucent achromatic fill
+ * Is this node a print engine's box-shadow plate: a translucent achromatic fill
  * whose only shape came from a soft mask?
  *
  * Used by the SHELL's Design boxes path, which has no way to express a mask:
@@ -158,7 +159,7 @@ export function constantMask(nodes: PdfNode[], region: { w: number; h: number },
 export function isShadowPlate(n: PdfNode): boolean {
   if (!n || !n._softMask) return false;
   // A shadow plate is a PAINTED SHAPE. Text is content and must never be dropped as
-  // one — and it would be, silently: a text node keeps its colour in `fg`, which
+  // one. It would be, silently: a text node keeps its colour in `fg`, which
   // `nodeFill` cannot see, so an empty fill made `isAchromatic` say true for every
   // masked label. (Text only started carrying `_softMask`/alpha once flushText began
   // consulting the mask; before that this guard was unreachable, which is exactly why

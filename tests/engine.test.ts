@@ -3,7 +3,7 @@
  * Engine contract tests.
  *
  * Run with: node --test tests/engine.test.js
- * No test framework — uses node:test built-in.
+ * No test framework - uses node:test built-in.
  */
 
 import { test } from 'node:test';
@@ -114,7 +114,7 @@ test('url-mode: width/height/unit/dpi extracted; junk unit ignored', () => {
   assert.equal(s.height, 297);
   assert.equal(s.unit, 'mm');
   assert.equal(s.dpi, 300);
-  assert.equal(s.values.unit, undefined); // reserved — never a value
+  assert.equal(s.values.unit, undefined); // reserved - never a value
   // Invalid unit → null (caller falls back to px); long form width=/height= work too.
   const s2 = parseUrlState('width=800&height=600&unit=furlong', SAMPLE_MANIFEST);
   assert.equal(s2.width, 800);
@@ -128,16 +128,16 @@ test('url-mode: serialize emits unit/dpi/w/h, omits px', () => {
   assert.equal(p.get('h'), '297');
   assert.equal(p.get('unit'), 'mm');
   assert.equal(p.get('dpi'), '300');
-  // px is the default — not emitted.
+  // px is the default - not emitted.
   assert.equal(new URLSearchParams(serializeUrlState([], { unit: 'px' })).has('unit'), false);
 });
 
 test('url-mode: profile is a reserved export param', () => {
-  // The CMYK press condition for pdf-cmyk rides as a reserved `profile` param —
+  // The CMYK press condition for pdf-cmyk rides as a reserved `profile` param - 
   // extracted, never leaked into values, and round-trips through serialize.
   const s = parseUrlState('heading=Hi&format=pdf-cmyk&profile=swop', SAMPLE_MANIFEST);
   assert.equal(s.profile, 'swop');
-  assert.equal(s.values.profile, undefined);          // reserved — never a value
+  assert.equal(s.values.profile, undefined);          // reserved - never a value
   assert.equal(parseUrlState('heading=Hi', SAMPLE_MANIFEST).profile, null);
   const qs = serializeUrlState([], { profile: 'fogra51' });
   assert.equal(new URLSearchParams(qs).get('profile'), 'fogra51');
@@ -167,7 +167,7 @@ test('url-mode: RESERVED set matches the documented reserved-param list', () => 
   }
   const undocumented = [...RESERVED].filter(k => !rowKeys.has(k));
   assert.deepEqual(undocumented, [], `reserved params with no docs/url-mode.md row: ${undocumented.join(', ')}`);
-  // Negative control: the scan is genuinely reading rows, not matching anything —
+  // Negative control: the scan is genuinely reading rows, not matching anything - 
   // a name that is not a reserved param has no row key either.
   assert.equal(rowKeys.has('depth'), true);
   assert.equal(rowKeys.has('bitdepth'), false);
@@ -179,11 +179,11 @@ test('url-mode: designv is the design-system version override, read-only', () =>
   // design-version.ts decides what it means.
   const s = parseUrlState('heading=Hi&designv=jupiter', SAMPLE_MANIFEST);
   assert.equal(s.designVersion, 'jupiter');
-  assert.equal(s.values.designv, undefined);         // reserved — never a tool input
+  assert.equal(s.values.designv, undefined);         // reserved - never a tool input
   assert.equal(parseUrlState('designv=latest', SAMPLE_MANIFEST).designVersion, 'latest');
 
   // Absent (and empty) read as null, which is the "no override" rung of the
-  // ladder — so a link written before versions existed resolves exactly as before.
+  // ladder - so a link written before versions existed resolves exactly as before.
   assert.equal(parseUrlState('heading=Hi', SAMPLE_MANIFEST).designVersion, null);
   assert.equal(parseUrlState('designv=', SAMPLE_MANIFEST).designVersion, null);
 
@@ -197,7 +197,7 @@ test('url-mode: depth param — requested export bit depth (8/16/float/auto)', (
   const tool = { inputs: [], render: {} };
   const depth = (qs: string): DepthSetting => parseUrlState(qs, tool).depth;
 
-  // Absent ⇒ 'auto' — the default IS the contract, so a link without `depth`
+  // Absent ⇒ 'auto' - the default IS the contract, so a link without `depth`
   // behaves exactly as it did before the param existed.
   assert.equal(depth(''), 'auto');
 
@@ -210,7 +210,7 @@ test('url-mode: depth param — requested export bit depth (8/16/float/auto)', (
   assert.equal(depth('depth=FLOAT'), 'float');
   assert.equal(depth('depth=%2016%20'), 16);
 
-  // Junk NEVER throws and never invents a depth — it degrades to 'auto', like
+  // Junk NEVER throws and never invents a depth - it degrades to 'auto', like
   // `cuts`→1 and an unrecognized `unit`→null. '32'/'10' are plausible-looking but
   // unsupported, and the prototype-key cases are why the whitelist is a Map.
   for (const raw of ['', '32', '10', '0', '-8', '8.5', 'deep', 'true', 'NaN', 'Infinity',
@@ -218,7 +218,7 @@ test('url-mode: depth param — requested export bit depth (8/16/float/auto)', (
     assert.equal(depth(`depth=${encodeURIComponent(raw)}`), 'auto', raw);
   }
 
-  // Reserved — never mistaken for a tool input, and never leaks into values.
+  // Reserved - never mistaken for a tool input, and never leaks into values.
   assert.equal('depth' in parseUrlState('depth=16', tool).values, false);
 
   // Serialize: only a real request writes the param; 'auto'/absent/junk stay off
@@ -255,7 +255,7 @@ test('url-mode: cuts param — contact-sheet frame count parse', () => {
   assert.equal(cuts('cuts=65'), CUTS_MAX);
   assert.equal(cuts('cuts=100000'), CUTS_MAX);
   assert.equal(cuts('cuts=1e9'), CUTS_MAX);
-  // Fractions truncate toward zero — 1.9 is still one frame, 2.9 is two.
+  // Fractions truncate toward zero - 1.9 is still one frame, 2.9 is two.
   assert.equal(cuts('cuts=1.9'), 1);
   assert.equal(cuts('cuts=2.9'), 2);
   assert.equal(cuts('cuts=0.5'), 1);
@@ -266,7 +266,7 @@ test('url-mode: cuts param — contact-sheet frame count parse', () => {
 
 test('url-mode: cuts param serialize round-trip', () => {
   const tool = { inputs: [], render: {} };
-  // 1 is the default — writing it would be noise on every link.
+  // 1 is the default - writing it would be noise on every link.
   assert.equal(serializeUrlState([], {}), '');
   assert.equal(serializeUrlState([], { cuts: 1 }), '');
   assert.equal(serializeUrlState([], { cuts: 6 }), 'cuts=6');
@@ -274,7 +274,7 @@ test('url-mode: cuts param serialize round-trip', () => {
   assert.equal(serializeUrlState([], { cuts: 0 }), '');
   assert.equal(serializeUrlState([], { cuts: -3 }), '');
   assert.equal(serializeUrlState([], { cuts: Number.NaN }), '');
-  // Infinity is junk, not "lots" — it degrades to the default on both sides.
+  // Infinity is junk, not "lots" - it degrades to the default on both sides.
   assert.equal(serializeUrlState([], { cuts: Number.POSITIVE_INFINITY }), '');
   assert.equal(serializeUrlState([], { cuts: 1000 }), `cuts=${CUTS_MAX}`);
   assert.equal(parseUrlState(serializeUrlState([], { cuts: 6 }), tool).cuts, 6);
@@ -313,7 +313,7 @@ test('url-mode: c2pa param — on/off + lifetime parse', () => {
   // Explicit off overrides a render.c2pa default.
   assert.deepEqual(parseUrlState('c2pa=off', tool).c2pa, { on: false, days: null });
   assert.deepEqual(parseUrlState('c2pa=0', tool).c2pa, { on: false, days: null });
-  // c2pa is reserved — never mistaken for a tool input.
+  // c2pa is reserved - never mistaken for a tool input.
   assert.equal('c2pa' in parseUrlState('c2pa=90', tool).values, false);
 });
 
@@ -326,7 +326,7 @@ test('url-mode: c2pa param serialize round-trip', () => {
 });
 
 test('url-mode: imprint param — default-on parse/serialize round-trip', () => {
-  // Mirrors export.ts's imprintCapable / tool-actions.ts's isImprintFmt — the
+  // Mirrors export.ts's imprintCapable / tool-actions.ts's isImprintFmt - the
   // raster formats the Lolly pixel watermark actually survives. Kept as an
   // inline list (like the RESERVED test above) so a drift in either real gate
   // has to be a deliberate, visible edit here too.
@@ -353,7 +353,7 @@ test('url-mode: imprint param — default-on parse/serialize round-trip', () => 
   assert.equal(parseUrlState(qsOff, tool).imprint, false);
   assert.equal(applied(false, 'png'), false);
 
-  // Invariant 3: existing `imprint=1`/`on`/empty links still read as ON — and
+  // Invariant 3: existing `imprint=1`/`on`/empty links still read as ON - and
   // because ON is now the default, serializing the on state omits the param
   // rather than re-writing it (a plain link stays clean).
   assert.equal(parseUrlState('imprint=1', tool).imprint, true);
@@ -363,13 +363,13 @@ test('url-mode: imprint param — default-on parse/serialize round-trip', () => 
   assert.equal(serializeUrlState([], {}), '');
 
   // Invariant 4: non-raster formats are never imprint-capable, regardless of
-  // the param — vector/print/animation/data formats stay excluded.
+  // the param - vector/print/animation/data formats stay excluded.
   for (const fmt of ['svg', 'pdf', 'pdf-cmyk', 'cmyk-tiff', 'html', 'gif', 'apng', 'mp4', 'webm', 'zip', 'eps', 'dxf', 'json', 'csv']) {
     assert.equal(IMPRINT_FORMATS.includes(fmt), false, `${fmt} must not be imprint-capable`);
     assert.equal(applied(null, fmt), false, `${fmt} must never be imprinted even when absent defaults to on`);
   }
 
-  // imprint is reserved — never mistaken for a tool input.
+  // imprint is reserved - never mistaken for a tool input.
   assert.equal('imprint' in parseUrlState('imprint=0', tool).values, false);
 });
 
@@ -386,7 +386,7 @@ test('url-mode: meta param — default-on generator-metadata strip round-trip', 
   // Default-on omits the param (a plain link stays clean); affirmative reads true.
   assert.equal(serializeUrlState([], { metadata: true }), '');
   assert.equal(parseUrlState('meta=1', tool).metadata, true);
-  // Reserved — never a tool input.
+  // Reserved - never a tool input.
   assert.equal('meta' in parseUrlState('meta=off', tool).values, false);
 });
 
@@ -406,7 +406,7 @@ test('url-mode: hdr param — opt-in parse/serialize round-trip', () => {
   assert.equal(serializeUrlState([], { hdr: '1' }), 'hdr=1');
   assert.equal(serializeUrlState([], {}), '');
   assert.deepEqual(parseUrlState(serializeUrlState([], { hdr: '1' }), tool).hdr, DEF);
-  // hdr is reserved — never mistaken for a tool input.
+  // hdr is reserved - never mistaken for a tool input.
   assert.equal('hdr' in parseUrlState('hdr=1', tool).values, false);
 });
 
@@ -436,54 +436,54 @@ test('url-mode: lang param — alias normalization + serialize round-trip', () =
   assert.equal(parseUrlState('lang=cn', tool).lang, 'zh');
   assert.equal(parseUrlState('lang=jp', tool).lang, 'ja');
   assert.equal(parseUrlState('lang=ZH-CN', tool).lang, 'zh');
-  // Traditional Chinese is a distinct canonical code from zh (Simplified) — country/script aliases normalize to it.
+  // Traditional Chinese is a distinct canonical code from zh (Simplified) - country/script aliases normalize to it.
   assert.equal(parseUrlState('lang=zh-hant', tool).lang, 'zh-hant');
   assert.equal(parseUrlState('lang=tw', tool).lang, 'zh-hant');
   assert.equal(parseUrlState('lang=zh-TW', tool).lang, 'zh-hant');
   assert.equal(parseUrlState('lang=hk', tool).lang, 'zh-hant');
-  // Brazilian Portuguese — country code + underscore/hyphen region variants.
+  // Brazilian Portuguese - country code + underscore/hyphen region variants.
   assert.equal(parseUrlState('lang=pt', tool).lang, 'pt');
   assert.equal(parseUrlState('lang=br', tool).lang, 'pt');
   assert.equal(parseUrlState('lang=pt-BR', tool).lang, 'pt');
   assert.equal(parseUrlState('lang=pt_br', tool).lang, 'pt');
-  // Malay/Tagalog — country code + Filipino alias.
+  // Malay/Tagalog - country code + Filipino alias.
   assert.equal(parseUrlState('lang=ms', tool).lang, 'ms');
   assert.equal(parseUrlState('lang=my', tool).lang, 'ms');
   assert.equal(parseUrlState('lang=tl', tool).lang, 'tl');
   assert.equal(parseUrlState('lang=fil', tool).lang, 'tl');
-  // Czech + Dutch + Swedish — plain canonical codes, no informal aliases needed.
+  // Czech + Dutch + Swedish - plain canonical codes, no informal aliases needed.
   assert.equal(parseUrlState('lang=cs', tool).lang, 'cs');
   assert.equal(parseUrlState('lang=nl', tool).lang, 'nl');
   assert.equal(parseUrlState('lang=sv', tool).lang, 'sv');
-  // Hindi — canonical code + regioned browser tag.
+  // Hindi - canonical code + regioned browser tag.
   assert.equal(parseUrlState('lang=hi', tool).lang, 'hi');
   assert.equal(parseUrlState('lang=hi-IN', tool).lang, 'hi');
-  // Bengali — canonical code + both regioned tags (Bangladesh + West Bengal).
+  // Bengali - canonical code + both regioned tags (Bangladesh + West Bengal).
   assert.equal(parseUrlState('lang=bn', tool).lang, 'bn');
   assert.equal(parseUrlState('lang=bn-BD', tool).lang, 'bn');
   assert.equal(parseUrlState('lang=bn-IN', tool).lang, 'bn');
-  // Urdu — canonical code + regioned tags.
+  // Urdu - canonical code + regioned tags.
   assert.equal(parseUrlState('lang=ur', tool).lang, 'ur');
   assert.equal(parseUrlState('lang=ur-PK', tool).lang, 'ur');
-  // Indonesian — canonical code + the deprecated ISO 'in' code Android WebViews still emit.
+  // Indonesian - canonical code + the deprecated ISO 'in' code Android WebViews still emit.
   assert.equal(parseUrlState('lang=id', tool).lang, 'id');
   assert.equal(parseUrlState('lang=in', tool).lang, 'id');
   assert.equal(parseUrlState('lang=in-ID', tool).lang, 'id');
-  // Turkish — canonical code + regioned tags (Türkiye + Cyprus).
+  // Turkish - canonical code + regioned tags (Türkiye + Cyprus).
   assert.equal(parseUrlState('lang=tr', tool).lang, 'tr');
   assert.equal(parseUrlState('lang=tr-TR', tool).lang, 'tr');
   assert.equal(parseUrlState('lang=tr-CY', tool).lang, 'tr');
-  // Ukrainian — canonical code, regioned tag, and the country code people type.
+  // Ukrainian - canonical code, regioned tag, and the country code people type.
   assert.equal(parseUrlState('lang=uk', tool).lang, 'uk');
   assert.equal(parseUrlState('lang=uk-UA', tool).lang, 'uk');
   assert.equal(parseUrlState('lang=ua', tool).lang, 'uk');
-  // Polish — canonical code + regioned tag.
+  // Polish - canonical code + regioned tag.
   assert.equal(parseUrlState('lang=pl', tool).lang, 'pl');
   assert.equal(parseUrlState('lang=pl-PL', tool).lang, 'pl');
   // Absent/unrecognized → null, so the caller falls back to its own default chain.
   assert.equal(parseUrlState('', tool).lang, null);
   assert.equal(parseUrlState('lang=klingon', tool).lang, null);
-  // lang is reserved — never mistaken for a tool input.
+  // lang is reserved - never mistaken for a tool input.
   assert.equal('lang' in parseUrlState('lang=de', tool).values, false);
   // Serialize: English (the default) is omitted; other languages round-trip.
   assert.equal(serializeUrlState([], { lang: 'en' }), '');
@@ -493,7 +493,7 @@ test('url-mode: lang param — alias normalization + serialize round-trip', () =
 
 test('lang: sortedLangs — the shared picker orderings (speakers default, az)', () => {
   const pop = sortedLangs();
-  // No-arg IS the most-spoken-first order — the pickers' default.
+  // No-arg IS the most-spoken-first order - the pickers' default.
   assert.deepEqual(pop, sortedLangs('speakers'));
   // Same membership as LANGS, every code exactly once, in both orders.
   assert.deepEqual([...pop].sort(), [...LANGS].sort());
@@ -538,7 +538,7 @@ test('url-mode: compact blocks fold a raw comma into the last field (no shift)',
 test('url-mode: the compact block form cannot carry a ~ separator (why the encoder bails to JSON)', () => {
   // URLSearchParams percent-decodes the whole param value BEFORE decodeBlocksCompact
   // splits it, so a '~' can never be escaped into a compact value: even '%7E'
-  // decodes to '~' first and then splits. This documents the hazard — the shell's
+  // decodes to '~' first and then splits. This documents the hazard - the shell's
   // encodeBlocksCompact detects a separator-bearing value and falls back to the
   // lossless JSON form (asserted below) rather than emitting a corrupt compact link.
   const manifest: any = { inputs: [{ id: 'rows', type: 'blocks', fields: [
@@ -832,7 +832,7 @@ test('template: markdown renders links and images, allowlisting the URL scheme',
 });
 
 test('template: markdown drops unsafe link/image URLs and can never emit a live tag', () => {
-  // javascript: and friends render as plain text — no href, no element.
+  // javascript: and friends render as plain text - no href, no element.
   assert.equal(hydrate('{{{markdown t}}}', { t: '[click](javascript:evil)' }), '<p>click</p>');
   assert.equal(hydrate('{{{markdown t}}}', { t: '[x](vbscript:foo)' }), '<p>x</p>');
   // Control characters can't smuggle a scheme past the probe.
@@ -858,11 +858,11 @@ test('template: data-format helpers (icsStamp, rfcText, csvCell) with raw hydrat
   assert.equal(raw('{{icsStamp t}}', { t: '' }), '');
   // rfcText: escape iCalendar/vCard text (backslash, ';', ',', newline)
   assert.equal(raw('{{rfcText t}}', { t: 'Designer, Brand; SUSE' }), 'Designer\\, Brand\\; SUSE');
-  // csvCell: RFC 4180 — quote only when needed, doubling embedded quotes
+  // csvCell: RFC 4180 - quote only when needed, doubling embedded quotes
   assert.equal(raw('{{csvCell t}}', { t: 'plain' }), 'plain');
   assert.equal(raw('{{csvCell t}}', { t: 'a,b' }), '"a,b"');
   assert.equal(raw('{{csvCell t}}', { t: 'say "hi"' }), '"say ""hi"""');
-  // raw mode must NOT HTML-escape — a vCard EMAIL with & stays verbatim
+  // raw mode must NOT HTML-escape - a vCard EMAIL with & stays verbatim
   assert.equal(raw('EMAIL:{{t}}', { t: 'a&b@x.com' }), 'EMAIL:a&b@x.com');
   // default (HTML) mode still escapes, unchanged
   assert.equal(hydrate('{{t}}', { t: 'a&b' }), 'a&amp;b');
@@ -878,7 +878,7 @@ test('template: markdown direction markers become arrow bullets; lone marker sta
   // Mixed markers in one block: each item keeps its own marker style.
   assert.equal(hydrate('{{{markdown t}}}', { t: '- a\n> b\n< c' }),
     '<ul><li>a</li><li class="md-arrow">b</li><li class="md-arrow-left">c</li></ul>');
-  // A marker mid-line, or without a trailing space, is not a bullet — it stays
+  // A marker mid-line, or without a trailing space, is not a bullet - it stays
   // literal text (HTML-escaped), exactly like a stray "*".
   assert.equal(hydrate('{{{markdown t}}}', { t: 'a > b' }), '<p>a &gt; b</p>');
   assert.equal(hydrate('{{{markdown t}}}', { t: '>nospace' }), '<p>&gt;nospace</p>');
@@ -900,7 +900,7 @@ test('template: arrow helper swaps a leading direction marker for its glyph', ()
   assert.equal(hydrate('{{arrow t}}', { t: 'a < b' }), 'a &lt; b');
   // No marker → unchanged; the rest of the label is still escaped like {{x}}.
   assert.equal(hydrate('{{arrow t}}', { t: 'Buy & go' }), 'Buy &amp; go');
-  // A bare "v" word is left alone — only "v" + space at the very start rewrites.
+  // A bare "v" word is left alone - only "v" + space at the very start rewrites.
   assert.equal(hydrate('{{arrow t}}', { t: 'very nice' }), 'very nice');
 });
 
@@ -919,7 +919,7 @@ test('annotateTemplate: annotates text refs + attribute refs, <style>/<script> b
   assert.ok(out.includes('<!-- ci:heading -->{{heading}}<!-- /ci:heading -->'));
   assert.ok(out.includes('<!-- ci:body -->{{body}}<!-- /ci:body -->'));
   // A ref inside an attribute value gets a literal data-canvas-input baked onto
-  // that tag instead of a comment marker (there's no text run to bracket) — the
+  // that tag instead of a comment marker (there's no text run to bracket) - the
   // ONLY way most colour/asset inputs actually reach the page is an attribute
   // (style="...", src="..."), so this is the common case, not an edge case.
   // Appended after the tag's existing attributes, just before its closing ">".
@@ -941,7 +941,7 @@ test('annotateTemplate: attribute refs — self-closing tags, first-id-wins, aut
   assert.ok(out.includes('<div style="background:{{color}}" data-canvas-input="color"></div>'));
   // Self-closing: the attribute lands before the "/>", not after it.
   assert.ok(out.includes('<input value="{{name}}" data-canvas-input="name" />'));
-  // Two ids in one tag's attributes — only the first (positionally) wins.
+  // Two ids in one tag's attributes - only the first (positionally) wins.
   assert.ok(out.includes('<span style="color:{{a}}; border-color:{{b}}" data-canvas-input="a"></span>'));
   // A tag that already hand-authors its own data-canvas-input is left alone.
   assert.ok(out.includes('<div data-canvas-input="rows:0" style="background:{{color}}"></div>'));
@@ -996,7 +996,7 @@ test('validate: accepts typed blocks (addMenu, select/asset/number/showFor)', ()
 });
 
 test('url-mode: decodes typed block sub-fields (asset→ref, color→#, number)', () => {
-  // One row: kind,text,bgColor,img,scale — the asset id's "/" arrives as %2F.
+  // One row: kind,text,bgColor,img,scale - the asset id's "/" arrives as %2F.
   const { values }: any = parseUrlState('blocks=heading,Hi,30ba78,suse%2Flogo%2Fprimary,1.5', TYPED_BLOCKS_MANIFEST);
   const row = values.blocks[0];
   assert.equal(row.kind, 'heading');
@@ -1059,8 +1059,8 @@ test('runtime: resolves asset sub-fields inside blocks (CLI/URL parity)', async 
 });
 
 test('runtime: a hook patch key with an undefined value never blanks the input', async () => {
-  // The shipped shape of this bug: `return { boxes: migrated || undefined }` —
-  // key present, value undefined — used to overwrite the input with undefined
+  // The bug as shipped: `return { boxes: migrated || undefined }` -
+  // key present, value undefined - used to overwrite the input with undefined
   // via key-presence merging. mergePatch now skips undefined values entirely,
   // for inputs and extras alike.
   const { loadTool, createRuntime } = await import('../engine/src/index.ts');
@@ -1090,7 +1090,7 @@ test('runtime: a hook patch key with an undefined value never blanks the input',
 
 test('url-mode: bleed and marks are null unless explicitly in the URL — physical units do not imply them', () => {
   // Print prep is opt-in everywhere (web panel, CLI, TUI, MCP). The engine's half:
-  // an absent ?bleed=/?marks= parses to null — including on a fully physical job
+  // an absent ?bleed=/?marks= parses to null - including on a fully physical job
   // (mm + dpi), which is a size statement, not print intent. Shells key "apply
   // print geometry" off these values, so null-by-default is what keeps an everyday
   // SVG or RGB PDF trim-sized and unmarked.

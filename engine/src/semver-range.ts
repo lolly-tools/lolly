@@ -1,16 +1,16 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
- * Minimal SemVer range satisfaction — just enough to enforce a tool manifest's
+ * Minimal SemVer range satisfaction - enough to enforce a tool manifest's
  * `engineVersion` against the running ENGINE_VERSION (loader.ts, P0-3).
  *
  * Deliberately NOT a dependency: engine/package.json ships only handlebars, ajv,
  * and @lolly-tools/core, and the release plan requires keeping it that way. This
- * covers the operators tools actually use — caret (`^`), tilde (`~`),
- * comparators (`>= > <= <`), exact, and x-ranges (`1.2.x`, `1.x`) — combined
+ * covers the operators tools actually use - caret (`^`), tilde (`~`),
+ * comparators (`>= > <= <`), exact, and x-ranges (`1.2.x`, `1.x`) - combined
  * with whitespace/comma (AND) and `||` (OR). Prerelease/build metadata on the
  * *version* is tolerated (compared on the numeric core triple only); ranges here
- * never carry prerelease tags. Anything it genuinely can't parse is treated as
- * unsatisfiable, so an unrecognised range fails closed rather than loading a
+ * never carry prerelease tags. Anything it cannot parse is treated as
+ * unsatisfiable, so an unrecognised range fails closed instead of loading a
  * tool the host may not support.
  */
 

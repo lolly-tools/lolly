@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
- * Durable (TrustMark neural) credential EMBED for the BUILD-TIME Node path — the
+ * Durable (TrustMark neural) credential EMBED for the BUILD-TIME Node path - the
  * onnxruntime-node counterpart to the VERIFIED browser embed
  * (shells/web/src/lib/trustmark-embed.ts, which must NOT be edited/re-verified here).
  *
@@ -15,7 +15,7 @@
  * BEST-EFFORT / NEVER THROWS into the caller. Returns null (→ caller keeps the
  * imprint-only pixels) and logs a one-line reason when:
  *   - onnxruntime-node can't be imported (not installed / no native binary for this
- *     platform-arch — e.g. Vercel/CI with `--omit=dev`),
+ *     platform-arch - e.g. Vercel/CI with `--omit=dev`),
  *   - the encoder model file is absent on disk,
  *   - the image's min side < 256 (mark can't survive),
  *   - the encoder yields no/malformed stego.
@@ -23,7 +23,7 @@
  * durable step can't run.
  *
  * FIDELITY NOTE (the one deliberate, UNVERIFIED-here deviation): the cover→256
- * downscale uses sharp `kernel:'cubic'`, `fit:'fill'` (anisotropic squash, no crop —
+ * downscale uses sharp `kernel:'cubic'`, `fit:'fill'` (anisotropic squash, no crop - 
  * matching the web embed's no-crop drawImage). Cubic mirrors the browser VERIFY
  * downscale (resizer.onnx = cubic/antialias/half_pixel), minimising the residual-noise
  * injected at verify time. A resize-kernel mismatch can only WEAKEN recovery, never
@@ -65,11 +65,11 @@ interface OrtNodeModule {
   Tensor: OrtTensorCtor;
 }
 
-// LOAD-BEARING: an IDENTIFIER argument (not a string literal) keeps tsc from
+// REQUIRED: an IDENTIFIER argument (not a string literal) keeps tsc from
 // module-resolving 'onnxruntime-node' under `moduleResolution:"bundler"`, so
 // `tsc -p scripts` passes with the package NOT installed (no TS2307). Do NOT
 // inline this as `import('onnxruntime-node')` and do NOT add a static import or an
-// ambient `declare module` — either would break the build in every env or mask a
+// ambient `declare module` - either would break the build in every env or mask a
 // genuinely-missing dep. Same pattern as scripts/characterize-export.ts.
 const ORT_MODULE = 'onnxruntime-node' as string;
 
@@ -77,7 +77,7 @@ const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..', '..'); // sc
 const ENCODER_PATH = resolve(ROOT, 'shells/web/public/models/trustmark/encoder_Q.onnx');
 
 // Memoised per-process: one encoder session for a whole og/previews/docs-shots batch.
-// null = tried and unavailable (import/model/create failed) — don't retry each call.
+// null = tried and unavailable (import/model/create failed) - don't retry each call.
 let sessionState: { session: OrtSession; ort: OrtNodeModule } | null | undefined;
 
 async function getEncoder(): Promise<{ session: OrtSession; ort: OrtNodeModule } | null> {
@@ -118,7 +118,7 @@ async function resizeCover(rgba: ArrayLike<number>, width: number, height: numbe
 
 /**
  * Embed Lolly's durable mark into full-res straight RGBA in Node, returning the
- * marked copy — or null (leave pixels untouched) when the encoder isn't available,
+ * marked copy - or null (leave pixels untouched) when the encoder isn't available,
  * the image is too small, or anything faults. NEVER throws.
  */
 export async function embedLollyDurableNode(

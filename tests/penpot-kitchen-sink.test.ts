@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
- * The Penpot kitchen-sink fixture — the first REAL observation of every format
+ * The Penpot kitchen-sink fixture - the first REAL observation of every format
  * structure the round 4–6 Penpot work inferred from Penpot's source.
  *
  * `tests/fixtures/penpot-kitchen-sink.penpot` is a genuine Penpot 2.17.1-RC4
@@ -12,14 +12,14 @@
  * What it observes, one shape per structure:
  *   - `backgroundBlur` as its own 2.17 shape attribute, beside `blur`, and the
  *     two coexisting on one shape;
- *   - `strokeDash`/`strokeGap` on a strokes[] entry — authored 6/3, 12/4, an
+ *   - `strokeDash`/`strokeGap` on a strokes[] entry - authored 6/3, 12/4, an
  *     authored 0, and a "dashed" stroke with neither key;
  *   - an in-file `tokens.json`, and the `appliedTokens` map that names its
  *     tokens on the shapes;
- *   - a prototype interaction (unconsumed today — pinned for the flow-ordering
+ *   - a prototype interaction (unconsumed today - pinned for the flow-ordering
  *     plan);
  *   - a 2-variant component set with instances, one variant-switched and one
- *     fill-overridden (unconsumed today — pinned for components-as-templates).
+ *     fill-overridden (unconsumed today - pinned for components-as-templates).
  *
  * Every assertion below quotes the file, not our inference. Where the two
  * disagreed the parser was fixed and the fix is named in the test.
@@ -75,7 +75,7 @@ test('kitchen sink: the archive is a Penpot 2.17.1-RC4 export declaring the feat
   // 60, not the export's 65: 5 of the 8 objects/*.png previews are stripped from
   // the committed fixture (268 KB nothing reads); every JSON entry is the genuine
   // 2.17.1-RC4 output, untouched. The 3 that stay (3.5 KB) are the ones the
-  // `thumbnails/component/**` pointers reference — restored when the templates
+  // `thumbnails/component/**` pointers reference - restored when the templates
   // pass started reading them, so that path is exercised by a committed fixture
   // and not only by the gated keynote replay.
   assert.equal(paths.length, 60, 'entry count — a re-export that changes this needs re-reading');
@@ -110,7 +110,7 @@ test('kitchen sink: backgroundBlur is its own 4-key attribute, and the legacy in
     assert.equal(s.backgroundBlur.hidden, false);
   }
 
-  // The legacy pre-2.17 encoding — `blur: {type:'background-blur'}` — is accepted
+  // The legacy pre-2.17 encoding - `blur: {type:'background-blur'}` - is accepted
   // by penpotBackgroundBlurPx but 2.17 does NOT write it: every `blur` here is a
   // layer blur, and a shape may legally carry one of each.
   const withBlur = shapes.filter(s => s.blur);
@@ -145,7 +145,7 @@ test('kitchen sink: background blur reaches the node box, and the documented tex
   assert.equal(panel.kind, 'box');
   assert.equal(panel.bgBlur, 24.1);
 
-  // A fill-less rect still frosts — the box rect IS the painted region.
+  // A fill-less rect still frosts - the box rect IS the painted region.
   assert.equal(penpotShapeToNode(byName('stroke-only-frost bgblur16 nofill'))!.bgBlur, 19.5);
 
   // Both blurs land on the same node, on their own fields.
@@ -182,14 +182,14 @@ test('kitchen sink: strokeDash/strokeGap are camelCase numbers on the strokes[] 
   assert.equal(st.strokeAlignment, 'inner');
 
   // The authored 0: Penpot WROTE it. `strokeDash: 0` is a real serialized value,
-  // not an omission — which is why engine strokeLen accepts 0 as authored
+  // not an omission - which is why engine strokeLen accepts 0 as authored
   // (`n >= 0`) rather than treating it as absent.
   const zero = byName('dashed 0-8 outer').strokes[0];
   assert.equal(zero.strokeDash, 0);
   assert.equal(zero.strokeGap, 8);
   assert.ok(Object.hasOwn(zero, 'strokeDash'), 'the key is present, holding 0');
 
-  // "dashed" with neither key — the user picked the style and never touched the
+  // "dashed" with neither key - the user picked the style and never touched the
   // number inputs. Penpot omits both entirely rather than writing its default.
   const keyless = byName('dashed default no-dash-keys').strokes[0];
   assert.equal(keyless.strokeStyle, 'dashed');
@@ -199,7 +199,7 @@ test('kitchen sink: strokeDash/strokeGap are camelCase numbers on the strokes[] 
     ['strokeAlignment', 'strokeColor', 'strokeOpacity', 'strokeStyle', 'strokeWidth']);
 
   // dotted carries caps, never dash lengths; `mixed` is a real serialized style
-  // value (our mapper knows it — it used to fall through to solid).
+  // value (our mapper knows it - it used to fall through to solid).
   const dotted = byName('dotted round-caps').strokes[0];
   assert.equal(dotted.strokeStyle, 'dotted');
   assert.equal(dotted.strokeDash, undefined);
@@ -207,7 +207,7 @@ test('kitchen sink: strokeDash/strokeGap are camelCase numbers on the strokes[] 
   assert.equal(byName('mixed style').strokes[0].strokeStyle, 'mixed');
 
   // Surprise worth pinning: the authored "none over solid" stack came back with
-  // ONE entry — Penpot dropped the `none` stroke at save, so the entry-level
+  // ONE entry - Penpot dropped the `none` stroke at save, so the entry-level
   // skip in topPenpotStroke/applyPenpotStroke stays synthetic-only coverage.
   const multi = byName('multi-stroke none-above-solid');
   assert.equal(multi.strokes.length, 1);
@@ -240,7 +240,7 @@ test('kitchen sink: authored dash/gap land in DesignNode strokeDashLen/strokeGap
   assert.deepEqual([zero.strokeDashLen, zero.strokeGapLen], [13, 8]);
   assert.equal(penpotDashArray('dashed', 3, 0, 8), '13,8');
 
-  // dotted/mixed keep the width-proportional synthesis — no authored lengths.
+  // dotted/mixed keep the width-proportional synthesis - no authored lengths.
   const dotted = n('dotted round-caps');
   assert.equal(dotted.strokeDash, 'dotted');
   assert.equal(dotted.strokeDashLen, undefined);
@@ -267,7 +267,7 @@ test('kitchen sink: the in-file tokens.json is a Tokens-Studio doc with an EMPTY
 
   assert.deepEqual(doc.Global.brand.primary, { $value: '#F23AE5', $type: 'color', $description: '' });
   assert.deepEqual(doc.Global.brand.surface, { $value: '#151035', $type: 'color', $description: '' });
-  // The type token: PLURAL `$type` and an ARRAY `$value` — Tokens-Studio's
+  // The type token: PLURAL `$type` and an ARRAY `$value` - Tokens-Studio's
   // fontFamilies shape, not DTCG's singular `fontFamily` string.
   assert.deepEqual(doc.Global.type.brand, {
     $value: ['Work Sans'],
@@ -279,7 +279,7 @@ test('kitchen sink: the in-file tokens.json is a Tokens-Studio doc with an EMPTY
 test('kitchen sink: a themeless Penpot doc is still LAYERED — set names must not become path prefixes', () => {
   // THE MISMATCH THIS FIXTURE FOUND. Set detection used to be "$themes is
   // non-empty", so "Global" read as a GROUP and every token flattened to
-  // `Global.brand.primary` — which no longer joined to the `brand.primary` that
+  // `Global.brand.primary` - which no longer joined to the `brand.primary` that
   // Penpot writes in appliedTokens, silently dropping the token-first role
   // proposal back to hex guessing. tokenSetNames now also accepts
   // $metadata.tokenSetOrder.
@@ -301,7 +301,7 @@ test('kitchen sink: a themeless Penpot doc is still LAYERED — set names must n
   assert.equal(s.tokenCount, 3);
   assert.equal(s.colorCount, 2);
 
-  // A plain DTCG doc (no tokenSetOrder) is still one implicit set — the guard
+  // A plain DTCG doc (no tokenSetOrder) is still one implicit set - the guard
   // that keeps this fix from reclassifying ordinary token files.
   assert.equal(tokenSetNames({ color: { brand: { $value: '#fff', $type: 'color' } } }), null);
   // …and a tokenSetOrder naming a key the doc doesn't have is not trusted either.
@@ -374,7 +374,7 @@ test('kitchen sink: the prototype interaction shape is pinned (read-only — not
   }], 'trigger = eventType, action = actionType, animation is a nested object');
 
   // `destination` is a real shape id in the same page (the "strokes" frame), and
-  // `positionRelativeTo` is the source frame itself — the pair a flow-ordering
+  // `positionRelativeTo` is the source frame itself - the pair a flow-ordering
   // reader would follow.
   const it0 = src.interactions[0] as Record<string, any>;
   assert.equal(shapes.find(s => s.id === it0.destination)?.name, 'strokes');
@@ -441,7 +441,7 @@ test('kitchen sink: an instance is shapeRef + componentId, and an override is a 
     assert.equal(c.mainInstance, undefined, 'a copy is not the main instance');
   }
 
-  // The variant-SWITCHED copy is simply a copy of the OTHER variant's main —
+  // The variant-SWITCHED copy is simply a copy of the OTHER variant's main - 
   // switching a variant rewrites componentId/shapeRef, it does not add an override.
   const container = shapes.find(s => s.isVariantContainer)!;
   const value2Main = container.shapes
@@ -468,7 +468,7 @@ test('kitchen sink: an instance is shapeRef + componentId, and an override is a 
 });
 
 // ── (f) the component collectors read the observed structure ─────────────────
-// (Appended block — imports hoist; kept here so the block stays append-only.)
+// (Appended block - imports hoist; kept here so the block stays append-only.)
 import { collectPenpotComponents, penpotComponentSlots } from '../engine/src/design-components.ts';
 
 const FILE_ID = 'ddb7145f-a1be-80bb-8008-69139da641d1';
@@ -485,7 +485,7 @@ test('kitchen sink: the 2-variant component set collects as ONE logical componen
   assert.deepEqual(out.warnings, []);
 
   // THE REASON THIS GROUPING EXISTS: two records, one name, and every shape in
-  // the set carries that same name — ungrouped, the user sees two templates
+  // the set carries that same name - ungrouped, the user sees two templates
   // called "radii 4-8-16-32" with nothing to tell them apart.
   assert.equal(componentRecords().length, 2, 'two records on disk…');
   assert.equal(out.components.length, 1, '…one logical component');
@@ -515,7 +515,7 @@ test('kitchen sink: every instance is local, so the external-library census is e
   assert.equal(out.localFileId, FILE_ID);
   assert.deepEqual(out.externals, { instances: 0, files: [], components: [] });
   assert.deepEqual(out.warnings, []);
-  // The two placed copies DO carry componentFile — it is simply the local one.
+  // The two placed copies DO carry componentFile - it is simply the local one.
   const copies = shapes.filter(s => s.componentRoot && !s.mainInstance);
   assert.equal(copies.length, 2);
   assert.ok(copies.every(s => s.componentFile === FILE_ID));
@@ -526,8 +526,8 @@ test('kitchen sink: this variant set has no fill-in-the-blank slots, and says so
   const byId = Object.fromEntries(shapes.map(s => [String(s.id), s]));
   const lookup = (id: string): unknown => byId[id];
 
-  // The honest negative: the fixture's set is a solid-fill rect in a frame — no
-  // text, no image fill — so inference must return nothing rather than invent a
+  // The honest negative: the fixture's set is a solid-fill rect in a frame - no
+  // text, no image fill - so inference must return nothing rather than invent a
   // slot per shape. The positive path is pinned by the keynote replay (14 text +
   // 4 image slots across its 6 masters) and by tests/design-components.test.ts.
   for (const v of out.components[0]!.variants) {
@@ -536,7 +536,7 @@ test('kitchen sink: this variant set has no fill-in-the-blank slots, and says so
   const master = byId[out.components[0]!.rootShapeId]!;
   assert.equal(master.shapes.length, 1);
   assert.equal(byId[master.shapes[0]]!.type, 'rect');
-  // Worth pinning: that rect maps to a node of kind 'image' — the per-corner
+  // Worth pinning: that rect maps to a node of kind 'image' - the per-corner
   // radii take design-map's baked-vector branch. Slot inference reads the FILL,
   // not the node kind, so a baked vector is decoration and not an asset slot.
   const child = penpotShapeToNode(byId[master.shapes[0]]!) as any;
@@ -601,7 +601,7 @@ test('kitchen sink: with the interactions stripped, ordering falls back byte-ide
 });
 
 // ── (g) component previews: the pointer → object join ────────────────────────
-// (Appended block — the templates pass reads these, so what the export actually
+// (Appended block - the templates pass reads these, so what the export actually
 // writes is pinned here beside every other structure claim.)
 
 test('kitchen sink: a component preview is a pointer record naming an objects/ blob', () => {

@@ -3,7 +3,7 @@
  * Screenshot motion + credential contracts (docs/build.ts, docs/shot-provenance.ts).
  *
  * Two of these guard failure modes that are INVISIBLE in a build log and total in
- * effect — every screenshot on the site disappears, and the build still says "✓":
+ * effect - every screenshot on the site disappears, and the build still says "✓":
  *
  *  1. `.shot` is width:fit-content, so a `loading="lazy"` image with no declared
  *     size lays the wrapper out 0×0. A zero-area box never approaches the viewport,
@@ -11,7 +11,7 @@
  *     never fires and all 155 shots sit at opacity 0 for ever. Declared width/height
  *     attributes are what break the deadlock.
  *  2. The hidden start state is `.shots-motion .shot` (0,2,0). Anything that undoes
- *     it must carry the same qualifier — a bare `.shot--in` is (0,1,0) and LOSES,
+ *     it must carry the same qualifier - a bare `.shot--in` is (0,1,0) and LOSES,
  *     which again leaves every screenshot invisible. This exact bug was written and
  *     caught once already.
  *
@@ -41,7 +41,7 @@ const SHOTS_DIR = join(ROOT, 'docs/shots');
 
 // The credential line's HTML assembly moved to @lolly-tools/docs-render's renderCredential
 // (docs/build.ts's shotCredential is now a thin adapter that feeds it facts). These provenance
-// tests now assert on the renderer's OUTPUT with synthetic facts — behaviour, not source text.
+// tests now assert on the renderer's OUTPUT with synthetic facts - behaviour, not source text.
 let credSeq = 0;
 const stubCtx: Pick<DocsRenderContext, 't' | 'htmlLang' | 'nextCredId' | 'docIcon'> = {
   t: (s) => s,
@@ -64,7 +64,7 @@ function renderCred(factsOverrides: Partial<CredentialFacts> = {}, opts: Partial
 /**
  * One function's source, from its declaration to the next top-level one. Slicing
  * between two NAMED functions silently yields '' whenever they are reordered in the
- * file — which it did, and an empty haystack makes every `doesNotMatch` assertion
+ * file - which it did, and an empty haystack makes every `doesNotMatch` assertion
  * pass while proving nothing.
  */
 function fnSource(name: string): string {
@@ -142,7 +142,7 @@ test('every committed shot carries a readable, signed credential', () => {
     const p = readShotProvenance(join(SHOTS_DIR, f));
     if (!p?.signer || !p.generator || !p.when) unsigned.push(f);
   }
-  // A shot with no credential still renders — it just gets no line. That is the
+  // A shot with no credential still renders - it just gets no line. That is the
   // correct behaviour, and this test is the alarm that says it happened, because a
   // silently uncredentialed baseline is how the whole claim quietly stops being true.
   assert.deepEqual(unsigned, [], 'these baselines have no readable credential — re-run the shots pipeline');
@@ -157,7 +157,7 @@ test('the credential line reports the signer the file actually names', () => {
   assert.match(p!.generator!, /^Lolly \d+\.\d+\.\d+$/);
   assert.equal(p?.tool, 'URL Screenshot');
   assert.equal(p?.surface, 'docs');
-  // The renderer must not carry a literal signer — it comes from the facts. Render with a
+  // The renderer must not carry a literal signer - it comes from the facts. Render with a
   // distinctive signer and find it verbatim; render with none and get no signer pill.
   assert.match(renderCred({ signer: 'Signer-From-Manifest-XYZ' }), /Signer-From-Manifest-XYZ/,
     'the signer pill must come from the facts, not a literal in the renderer');
@@ -166,7 +166,7 @@ test('the credential line reports the signer the file actually names', () => {
 
 test('verify and download links point at the served file, same-origin', () => {
   // The verify view (shells/web/src/views/valid.ts) accepts ?src= ONLY when it starts with
-  // a single slash — it must never make a reader's browser fetch a third-party host. A shot's
+  // a single slash - it must never make a reader's browser fetch a third-party host. A shot's
   // src is its /info/shots/ path; a page asset passes its own /info/ URL. Both stay relative.
   const html = renderCred({ src: '/info/shots/gallery.svg' });
   assert.match(html, /href="\/#\/verify\?src=%2Finfo%2Fshots%2Fgallery\.svg"/,
@@ -193,7 +193,7 @@ test('an AI declaration is never hidden behind the hover', () => {
   assert.match(html, /class="shot-cred shot-cred--ai/, 'an AI-declaring credential marks itself for the louder glyph');
   // Promoted by CONTRAST, not by opacity. The glyph no longer rests at partial opacity
   // (that faded its strokes into the screenshot behind it), so "louder" now means a
-  // filled puck and a ring rather than opacity:1 — which would be a no-op today and a
+  // filled puck and a ring rather than opacity:1 - which would be a no-op today and a
   // test that passed while proving nothing.
   const ai = /\.shot-cred--ai \.shot-cred-btn\{([^}]*)\}/.exec(BUILD_TS);
   assert.ok(ai, 'an AI-declaring shot must style its glyph distinctly');
@@ -205,7 +205,7 @@ test('an AI declaration is never hidden behind the hover', () => {
 test('the showcase strips the manifest it inlines, and keeps the file it points at', () => {
   // Inlining removes the FILE from the page. A C2PA hash binding covers file bytes,
   // so an inline copy that still carried its manifest would fail validation if saved
-  // — a false negative on a real Lolly asset. The manifest is stripped from the DOM
+  // - a false negative on a real Lolly asset. The manifest is stripped from the DOM
   // copy and the credential line points at the untouched file instead.
   const script = BUILD_TS.slice(BUILD_TS.indexOf('const SHOWCASE_SCRIPT'), BUILD_TS.indexOf('const SCROLL_REVEAL_SCRIPT'));
   // Substring, not a regex: the strip lives inside a template literal, so its source
@@ -273,14 +273,14 @@ test('the anatomy reader counts a real vector shot and never throws on a bad one
 });
 
 test('the anatomy row lives inside the expanded line, and only when there is something to say', () => {
-  // Inside .shot-cred-line — NOT between the button and the line. The reveal is
+  // Inside .shot-cred-line - NOT between the button and the line. The reveal is
   // `.shot-cred-btn:hover + .shot-cred-line`, an adjacency, so anything emitted
   // between those two siblings stops every credential opening on hover.
   const html = renderCred();
   const line = /<span class="shot-cred-line"[^>]*>([\s\S]*)<\/span><\/span>$/.exec(html);
   assert.ok(line, 'the credential must still emit its .shot-cred-line');
   assert.match(line[1]!, /shot-cred-row shot-cred-anat/, 'the anatomy row belongs inside the line');
-  // A shot whose file cannot be read for anatomy gets the line it had before — no anat row.
+  // A shot whose file cannot be read for anatomy gets the line it had before - no anat row.
   assert.doesNotMatch(renderCred({ anat: null }), /shot-cred-anat/, 'no anatomy facts → no anatomy row');
   // The row is a second ROW, so the line stacks; a row that still declared nowrap on
   // the line itself would put the anatomy facts back on the end of the first one.
@@ -374,7 +374,7 @@ test('the anatomy ROW never prints a zero count, and the dimension pill is not i
   assert.doesNotMatch(zeros, /0 paths|0 groups|0 images|0 nodes/, 'a zero count must never render as a pill');
   assert.match(zeros, /5 elements/, 'a geometry-free vector still states its element count');
   // The recipe's capture viewport describes the REQUEST, not the file, and disagrees with the
-  // shipped artwork on most shots — so it must not sit in the row of checkable file facts. It
+  // shipped artwork on most shots - so it must not sit in the row of checkable file facts. It
   // belongs in the accessible label only.
   const html = renderCred();
   const anatRow = /<span class="shot-cred-row shot-cred-anat">(.*)<\/span><\/span><\/span>$/s.exec(html)?.[1] ?? '';

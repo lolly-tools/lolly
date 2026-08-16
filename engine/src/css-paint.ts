@@ -19,15 +19,15 @@ export type ClipShape =
   | { kind: 'ellipse'; cx: number; cy: number; rx: number; ry: number }
   | { kind: 'inset';   x: number; y: number; w: number; h: number; r: number }
   | { kind: 'polygon'; points: [number, number][] }
-  /** A well-formed clip that encloses NO area — `inset(50%)`, `circle(0)`. The
-   *  element and its subtree paint nothing at all.
+  /** A well-formed clip that encloses NO area, such as `inset(50%)` or `circle(0)`.
+   *  The element and its subtree paint nothing at all.
    *
    *  This is deliberately NOT `null`. `null` means "a shape I could not parse",
    *  which callers answer by rasterising the subtree as a fallback. Zero area is
    *  the opposite situation: it is fully understood, and the correct render is
-   *  emptiness. Conflating the two made every `clip-path: inset(50%)` — the
-   *  standard visually-hidden / skip-link idiom, i.e. content meant to be
-   *  invisible — rasterise its whole subtree, which on an ancestor turned an
+   *  emptiness. Conflating the two made every `clip-path: inset(50%)`, the
+   *  standard visually-hidden / skip-link idiom for content meant to be
+   *  invisible, rasterise its whole subtree, which on an ancestor turned an
    *  entire page snapshot into a screenshot. */
   | { kind: 'empty' };
 
@@ -53,7 +53,7 @@ function clipPos(posStr: string, w: number, h: number): { cx: number; cy: number
   return { cx: cx ?? w / 2, cy: cy ?? h / 2 };
 }
 
-// A clip shape radius (axis 'circle' | 'x' | 'y') — length, %, or closest/farthest-side.
+// A clip shape radius (axis 'circle' | 'x' | 'y'): length, %, or closest/farthest-side.
 function clipRadius(tok: string | undefined, w: number, h: number, cx: number, cy: number, axis: 'circle' | 'x' | 'y'): number | null {
   const t = (tok || 'closest-side').trim().toLowerCase();
   if (t === 'closest-side')  return axis === 'x' ? Math.min(cx, w - cx) : axis === 'y' ? Math.min(cy, h - cy) : Math.min(cx, w - cx, cy, h - cy);
@@ -137,7 +137,7 @@ export function parseClipShape(cp: string, w: number, h: number): ClipShape | nu
 export interface GradientStop {
   colorStr: string | null; opacity: number; offset: string;
   /** CSS double-position syntax (`red 0% 25%`): the second position. A stop
-   *  carrying one is shorthand for TWO stops of the same colour — expand with
+   *  carrying one is shorthand for TWO stops of the same colour. Expand with
    *  expandGradientStops() before consuming, or the band structure is lost
    *  (the checkerboard idiom `c 0% 25%, transparent 0% 50%` collapses to two
    *  stops at 0%). */
@@ -181,18 +181,18 @@ export function parseGradientAngle(token: string): number {
   if (t === 'to top left')     return Math.PI * 1.75;
   if (t.endsWith('deg'))  return parseFloat(t) * Math.PI / 180;
   if (t.endsWith('turn')) return parseFloat(t) * 2 * Math.PI;
-  // `grad` MUST be tested before `rad` — 'grad'.endsWith('rad') is true, so the
+  // `grad` MUST be tested before `rad`: 'grad'.endsWith('rad') is true, so the
   // other order reads 100grad (90°) as 100 radians.
   if (t.endsWith('grad')) return parseFloat(t) * Math.PI / 200;
   if (t.endsWith('rad'))  return parseFloat(t);
   return Math.PI;
 }
 
-// Split a CSS value on top-level whitespace, respecting nested parens — so the
+// Split a CSS value on top-level whitespace, respecting nested parens, so the
 // commas/spaces *inside* rgb(48, 186, 120) stay together while the SPACE between a
 // colour and its position separates them. (splitCssArgs only splits commas, which
 // can't separate the space-delimited "<color> <position>" of a computed gradient
-// stop — getComputedStyle serialises stops as e.g. "rgb(48, 186, 120) 0%".)
+// stop: getComputedStyle serialises stops as e.g. "rgb(48, 186, 120) 0%".)
 function splitTopLevelWs(str: string): string[] {
   const out: string[] = []; let depth = 0, cur = '';
   for (const ch of str) {
@@ -232,8 +232,8 @@ export function parseGradientStop(raw: string, index: number, total: number): Gr
   if (/^#(?:[0-9a-f]{3}|[0-9a-f]{6})$/.test(colorRaw)) {
     return { colorStr: colorRaw, opacity: 1, offset, ...off2 };
   }
-  // EVERY other form — legacy `rgb()`/`rgba()`, a named colour, `oklch()`, `oklab()`,
-  // `lab()`, `hwb()`, `color(<space> …)`, an 8-digit hex — is flattened to an OPAQUE
+  // EVERY other form (legacy `rgb()`/`rgba()`, a named colour, `oklch()`, `oklab()`,
+  // `lab()`, `hwb()`, `color(<space> …)`, an 8-digit hex) is flattened to an OPAQUE
   // hex plus a separate `opacity`.
   //
   // Opaque is the point. `stop-color` alpha MULTIPLIES with `stop-opacity` in SVG, and
@@ -241,7 +241,7 @@ export function parseGradientStop(raw: string, index: number, total: number): Gr
   // alongside `opacity: 0.5` exported that stop at ~0.25 alpha while the screen showed
   // 0.5. The old `rgb` branch did exactly that (and, because its alpha regex only
   // matched the legacy comma form, reported `opacity: 1` for a modern
-  // `rgb(1 2 3 / 50%)` — losing the alpha entirely for every consumer that reads it).
+  // `rgb(1 2 3 / 50%)`, losing the alpha entirely for every consumer that reads it).
   //
   // The wider net also fixed a silent drop: these used to return `colorStr: null`,
   // which callers read as "not a colour" and skip, so `linear-gradient(navy, white)`
@@ -351,7 +351,7 @@ export function parseRadialGradient(value: string, w: number, h: number): Radial
 
 /** A conic gradient resolved to box-local geometry (CSS px) + its parsed stops.
  *  `fromRad` is the starting angle measured clockwise from 12 o'clock, matching CSS
- *  (and NOT SVG's 3-o'clock zero — the two are 90° apart, which is the single easiest
+ *  (and NOT SVG's 3-o'clock zero: the two are 90° apart, which is the single easiest
  *  thing to get wrong here). */
 export interface ConicGradient { cx: number; cy: number; fromRad: number; stops: GradientStop[]; repeating: boolean }
 
@@ -359,7 +359,7 @@ export interface ConicGradient { cx: number; cy: number; fromRad: number; stops:
  * Parse `conic-gradient(from Xdeg at P, stops…)` into box-local geometry.
  *
  * SVG has no conic primitive, so the caller draws this as a fan of wedges. That is
- * still a far better answer than the alternative the walker used before — rasterising
+ * still a far better answer than the alternative the walker used before: rasterising
  * the whole element, which on the qr fixture meant a 1168×900 PNG standing in for a
  * page background.
  *
@@ -367,7 +367,7 @@ export interface ConicGradient { cx: number; cy: number; fromRad: number; stops:
  *
  * `repeating-conic-gradient` is included, flagged: its stop list describes one period
  * that tiles around the circle rather than the whole sweep, so the caller wraps its
- * sampling. It is not an exotic case — the transparency checkerboard behind every
+ * sampling. It is not an exotic case: the transparency checkerboard behind every
  * tool canvas in this app is a repeating conic, and refusing it meant rasterising the
  * whole stage.
  */
@@ -382,7 +382,7 @@ export function parseConicGradient(value: string, w: number, h: number): ConicGr
   let cx = w / 2, cy = h / 2;
   let firstStop = 0;
 
-  // The optional prelude is "[from <angle>] [at <position>]" — a single argument, and
+  // The optional prelude is "[from <angle>] [at <position>]": a single argument, and
   // absent entirely in the common case.
   const head = args[0]!.trim().toLowerCase();
   if (/^(from\s|at\s)/.test(head)) {
@@ -391,7 +391,7 @@ export function parseConicGradient(value: string, w: number, h: number): ConicGr
     if (fm) {
       const t = fm[1]!;
       // `grad` before `rad`: 'grad'.endsWith('rad') is true, so testing rad first
-      // reads 100grad as 100 radians — a 5730° error.
+      // reads 100grad as 100 radians: a 5730° error.
       fromRad = t.endsWith('turn') ? Number.parseFloat(t) * 2 * Math.PI
         : t.endsWith('grad') ? (Number.parseFloat(t) * Math.PI) / 200
         : t.endsWith('rad') ? Number.parseFloat(t)

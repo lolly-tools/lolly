@@ -1,21 +1,21 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
- * Video provenance — embeds the export authorship record (metadata.js) into the
+ * Video provenance - embeds the export authorship record (metadata.js) into the
  * two MediaRecorder containers, which are produced bare (no metadata slot exists
  * during recording, so the shell post-processes the finished bytes):
  *
- *   MP4  — an iTunes-style `udta ▸ meta ▸ ilst` box appended into `moov`
- *          (©nam/©ART/©day/©cmt/©too + a freeform PUBLISHER item — the keys
+ *   MP4 - an iTunes-style `udta ▸ meta ▸ ilst` box appended into `moov`
+ *          (©nam/©ART/©day/©cmt/©too + a freeform PUBLISHER item - the keys
  *          ffprobe/players surface as title/artist/date/comment/encoder).
- *   WebM — a Matroska `Tags` element (one SimpleTag per field, TargetType 50 =
+ *   WebM - a Matroska `Tags` element (one SimpleTag per field, TargetType 50 =
  *          whole movie) appended to the Segment, with the Segment size VINT
  *          patched in place and a Tags entry grown into the SeekHead's reserved
- *          Void — demuxers only parse linearly up to the first Cluster, so an
+ *          Void - demuxers only parse linearly up to the first Cluster, so an
  *          unindexed trailing element would never be read (see embedWebmMeta).
  *
  * Pure bytes-in/bytes-out (no DOM, no async) like apng.js/tiff.js. Both embed
  * functions are conservative: any structure they don't recognise (64-bit moov,
- * existing udta, non-EBML input) returns the ORIGINAL bytes untouched — a
+ * existing udta, non-EBML input) returns the ORIGINAL bytes untouched - a
  * playable file without provenance always beats a corrupted one with it.
  */
 
@@ -100,9 +100,9 @@ export function videoProvenanceTags(meta?: Partial<ExportMeta> | null, date: Dat
 
 // The BMFF/EBML primitives below are shared with the C2PA modules (c2pa.js
 // places manifests into these same containers; c2pa-verify.js reads them back)
-// — this file stays the single owner of the two containers' byte grammar.
+// - this file stays the single owner of the two containers' byte grammar.
 export const be32 = (n: number): Uint8Array => new Uint8Array([n >>> 24 & 0xff, n >>> 16 & 0xff, n >>> 8 & 0xff, n & 0xff]);
-// Latin-1 byte per char — iTunes keys use the single byte 0xA9 ('©'), which
+// Latin-1 byte per char - iTunes keys use the single byte 0xA9 ('©'), which
 // TextEncoder would mis-encode as two UTF-8 bytes.
 export const fourcc = (s: string): Uint8Array => Uint8Array.from(s, (c) => c.charCodeAt(0) & 0xff);
 export const box = (type: string, ...parts: Uint8Array[]): Uint8Array => {
@@ -134,7 +134,7 @@ export function walkBoxes(bytes: Uint8Array, start: number, end: number): BoxInf
 // iTunes value slot: type 1 = UTF-8 text, locale 0.
 const dataAtom = (value: string): Uint8Array => box('data', be32(1), be32(0), utf8(value));
 const ilstItem = (key: string, value: string): Uint8Array => box(key, dataAtom(value));
-// Freeform "----" item — surfaces in ffprobe/players under its NAME.
+// Freeform "----" item - surfaces in ffprobe/players under its NAME.
 const freeform = (name: string, value: string): Uint8Array =>
   box('----', box('mean', be32(0), fourcc('com.apple.iTunes')), box('name', be32(0), fourcc(name)), dataAtom(value));
 
@@ -148,7 +148,7 @@ const writeU32 = (buf: Uint8Array, off: number, v: number): void => {
 // which is the start of mdat in a fast-start file), every chunk-offset entry in
 // moov's stco/co64 tables that points at/after `insertAt` is now stale by
 // `delta`. Walk moov ▸ trak ▸ mdia ▸ minf ▸ stbl ▸ stco|co64 and fix them in
-// place. Without this a fast-start MP4 (moov before mdat — the shell's own
+// place. Without this a fast-start MP4 (moov before mdat - the shell's own
 // WebCodecs/MediaRecorder output) is corrupted: players can't locate samples.
 function patchChunkOffsets(buf: Uint8Array, moovOff: number, moovSize: number, insertAt: number, delta: number): void {
   const kids = (start: number, end: number, type: string): BoxInfo | undefined =>
@@ -201,7 +201,7 @@ export function embedMp4Meta(bytes: Uint8Array, tags: VideoProvenanceTags): Uint
   if (!items.length) return bytes;
 
   // meta is a FullBox (4 bytes version/flags) whose hdlr declares the iTunes
-  // metadata handler ('mdir'/'appl') — required for parsers to read the ilst.
+  // metadata handler ('mdir'/'appl') - required for parsers to read the ilst.
   const hdlr = box('hdlr', be32(0), be32(0), fourcc('mdir'), fourcc('appl'), be32(0), be32(0), new Uint8Array(1));
   const udta = box('udta', box('meta', be32(0), hdlr, box('ilst', ...items)));
 
@@ -212,7 +212,7 @@ export function embedMp4Meta(bytes: Uint8Array, tags: VideoProvenanceTags): Uint
     udta,
     bytes.subarray(moov.off + moov.size),
   );
-  // Fast-start files (moov before mdat — the shell's own output) just had mdat
+  // Fast-start files (moov before mdat - the shell's own output) just had mdat
   // pushed forward by udta.length; fix the now-stale chunk offsets or the video
   // is unplayable. (moov after mdat: nothing shifted, offsets stay valid.)
   const mdat = top!.find((b) => b.type === 'mdat');
@@ -286,14 +286,14 @@ function buildTagsElement(tags: VideoProvenanceTags): Uint8Array | null {
   if (tags.encodedBy) entries.push(simpleTag('ENCODED_BY', tags.encodedBy));
   if (tags.publisher) entries.push(simpleTag('PUBLISHER', tags.publisher));
   if (!entries.length) return null;
-  // TargetTypeValue 50 = the whole movie — where players/ffmpeg read global tags.
+  // TargetTypeValue 50 = the whole movie - where players/ffmpeg read global tags.
   const targets = ebml(ID_TARGETS, ebml(ID_TARGETTYPE, new Uint8Array([50])));
   return ebml(ID_TAGS, ebml(ID_TAG, concat(targets, ...entries)));
 }
 
 export const idAt = (bytes: Uint8Array, off: number, id: number[]): boolean => id.every((b, i) => bytes[off + i] === b);
 
-// Read a raw EBML element id (marker bits kept — ids are compared verbatim).
+// Read a raw EBML element id (marker bits kept - ids are compared verbatim).
 export function readId(bytes: Uint8Array, off: number): ElementId | null {
   const first = bytes[off];
   if (first === undefined || first === 0) return null;
@@ -307,7 +307,7 @@ export function readId(bytes: Uint8Array, off: number): ElementId | null {
 
 // Walk Segment children up to the first Cluster (Tags placement never needs to
 // look past it). Returns { elements, firstCluster } or null on malformed input.
-// Stops cleanly at a child with unknown size (streaming Clusters) — that child
+// Stops cleanly at a child with unknown size (streaming Clusters) - that child
 // is recorded, but nothing beyond it.
 export function scanSegmentChildren(bytes: Uint8Array, start: number, end: number): SegmentScan | null {
   const elements: SegmentElement[] = [];
@@ -347,7 +347,7 @@ function voidElement(span: number): Uint8Array | null {
 // find it: ffmpeg & friends parse a Matroska file linearly only up to the first
 // Cluster, then locate trailing elements (Cues, Tags, Attachments) through the
 // SeekHead. Muxers (Chrome included) reserve a Void right after the SeekHead
-// for exactly this kind of amendment — the SeekHead grows into it, so no byte
+// for exactly this kind of amendment - the SeekHead grows into it, so no byte
 // in the file moves and every existing SeekPosition stays valid. Returns a
 // { start, end, bytes } splice for the caller, or null when the shape doesn't
 // allow a safe update (no adjacent Void, CRC-protected SeekHead, entry doesn't
@@ -382,7 +382,7 @@ export function seekHeadEntrySplice(bytes: Uint8Array, scan: SegmentScan, seekId
 /**
  * Add a Matroska Tags element to the WebM's Segment.
  *
- * Finalised (known-size) Segments — what MediaRecorder blobs actually are —
+ * Finalised (known-size) Segments - what MediaRecorder blobs actually are -
  * get Tags appended at the Segment's end, the Segment size VINT patched in the
  * same width, and a Tags entry added to the SeekHead (grown into the muxer's
  * reserved Void) so demuxers that only scan up to the first Cluster still find

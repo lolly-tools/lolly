@@ -1,10 +1,10 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
- * Tests for engine/src/pptx-read.ts — the .pptx PARSE spike (plan track E1).
+ * Tests for engine/src/pptx-read.ts - the .pptx PARSE spike (plan track E1).
  *
  * The fixtures are hand-written OOXML: a real-shaped presentation.xml +
  * theme1.xml + slide1.xml (+ rels + notesSlide) as an in-memory part map, which
- * is exactly the contract — the CALLER inflates the zip, we read the part map.
+ * is exactly the contract - the CALLER inflates the zip, we read the part map.
  * The injected `parseXml` adapter is built from the jsdom already in devDeps
  * (the web shell passes the native DOMParser instead); the engine itself imports
  * no DOM library.
@@ -196,7 +196,7 @@ function deckParts(overrides: PptxParts = {}): PptxParts {
   return {
     'ppt/presentation.xml': PRESENTATION,
     'ppt/_rels/presentation.xml.rels': PRESENTATION_RELS,
-    // Bytes, not text — proves the Uint8Array decode path.
+    // Bytes, not text - proves the Uint8Array decode path.
     'ppt/theme/theme1.xml': new TextEncoder().encode(THEME),
     'ppt/slides/slide1.xml': SLIDE1,
     'ppt/slides/_rels/slide1.xml.rels': SLIDE1_RELS,
@@ -239,7 +239,7 @@ test('readPptx reads the theme colours (incl. sysClr lastClr) and fonts', () => 
   assert.equal(deck.theme.colors.accent1, '4472C4');
   assert.equal(deck.theme.colors.accent2, 'ED7D31');
   assert.equal(deck.theme.colors.accent6, '70AD47');
-  // dk1/lt1 arrive as sysClr — the lastClr attribute is the readable value.
+  // dk1/lt1 arrive as sysClr - the lastClr attribute is the readable value.
   assert.equal(deck.theme.colors.dk1, '000000');
   assert.equal(deck.theme.colors.lt1, 'FFFFFF');
   assert.equal(deck.theme.colors.dk2, '44546A');
@@ -321,7 +321,7 @@ test('a shape line resolves a tx1 schemeClr through the DEFAULT clrMap (tx1 → 
 
 test('a shape with an empty txBody stays a shape (not an empty text node)', () => {
   const deck = readPptx(deckParts(), parseXml);
-  // The rect's txBody holds only an endParaRPr — real PowerPoint output.
+  // The rect's txBody holds only an endParaRPr - real PowerPoint output.
   const shapes = byType(deck.slides[0]!.nodes, 'shape');
   assert.equal(shapes.length, 2);
   assert.equal(byType(deck.slides[0]!.nodes, 'text').length, 1);
@@ -359,7 +359,7 @@ test('grouped shapes are flattened (group child-offset transform is deferred)', 
   assert.ok(fill && 'scheme' in fill);
   assert.equal(fill.scheme, 'accent2');
   assert.equal(fill.hex, 'ED7D31');
-  // DEFERRED: chOff/chExt is not composed — the child keeps its authored xfrm.
+  // DEFERRED: chOff/chExt is not composed - the child keeps its authored xfrm.
   assert.equal(ellipse.xEmu, 10);
   assert.equal(ellipse.yEmu, 20);
 });
@@ -385,7 +385,7 @@ test('a slide with no notes rel has no notes', () => {
 // ─── slide ordering ──────────────────────────────────────────────────────────
 
 test('slide order follows p:sldIdLst rels, not the part filename', () => {
-  // sldIdLst lists slide2 FIRST — a reader that sorts filenames gets this wrong.
+  // sldIdLst lists slide2 FIRST - a reader that sorts filenames gets this wrong.
   const twoSlides: PptxParts = {
     'ppt/presentation.xml': `${XML_DECL}
 <p:presentation xmlns:a="${NS_A}" xmlns:r="${NS_R}" xmlns:p="${NS_P}">
@@ -511,7 +511,7 @@ test('a parser that throws on every part never escapes readPptx', () => {
   assert.deepEqual(deck.theme.colors, {}, 'no theme could be read');
   assert.equal(deck.widthEmu, 12192000, 'size falls back to the default');
   // Nothing is parseable, but the slide PART is still visible in the map, so the
-  // filename-glob fallback still reports it — with no nodes. "Return what
+  // filename-glob fallback still reports it - with no nodes. "Return what
   // parsed, skip the rest" rather than pretending the deck is empty.
   assert.equal(deck.slides.length, 1);
   assert.deepEqual(deck.slides[0]!.nodes, []);
@@ -542,7 +542,7 @@ test('deeply nested groups are depth-capped, not stack-overflowed', () => {
   assert.doesNotThrow(() => {
     deck = readPptx(parts, parseXml);
   });
-  // The shape sits far below MAX_GROUP_DEPTH, so it is skipped — the cap holds
+  // The shape sits far below MAX_GROUP_DEPTH, so it is skipped - the cap holds
   // and nothing crashes. What matters is that we returned.
   assert.equal(deck.slides.length, 1);
   assert.deepEqual(deck.slides[0]!.nodes, []);

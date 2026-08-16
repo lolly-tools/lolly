@@ -1,17 +1,17 @@
 // SPDX-License-Identifier: MPL-2.0
 // The dock stylesheet, as a string so BOTH consumers can use it: the web app
 // injects it (a <style> the shell ensures once), and the static /info build
-// inlines it. The string is the single source of truth — there is deliberately
+// inlines it. The string is the single source of truth. There is deliberately
 // NO sibling styles.css to drift from it (the drift-guard house rule); a
 // consumer that wants a file writes DOCK_CSS out at build time.
 //
 // Everything is scoped under `.audio-dock`. The look is a committed deep-teal /
 // SUSE-green dock, expressed as CSS custom properties on the root so a host can
 // override any token (e.g. brand-vars) without touching a rule. TYPE flows from the
-// app's brand-font tokens — `--font-brand` (body) and `--font-mono` (eyebrows,
-// section heads, pills, numerics) — with literal fallbacks inside each var() so the
-// shell still renders when a consumer hasn't defined them. The layering, back-to-
-// front, is: viz canvas backdrop → scrim (a LIGHT wash, not a frost) → controls face.
+// app's brand-font tokens: `--font-brand` (body) and `--font-mono` (eyebrows,
+// section heads, pills, numerics), with literal fallbacks inside each var() so the
+// shell still renders when a consumer hasn't defined them. The layering, back to
+// front, is: viz canvas backdrop, then scrim (a LIGHT wash, not a frost), then controls face.
 
 /** The <style> element id the shell dedupes on. */
 export const DOCK_STYLE_ID = 'lolly-audio-dock-styles';

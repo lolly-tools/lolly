@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
- * Vector artwork detection — telling a logo from the page it sits on.
+ * Vector artwork detection - telling a logo from the page it sits on.
  * Run directly:  node --test tests/pdf-artwork.test.ts
  *
  * Every negative case here is a shape a REAL page actually contains, because the
@@ -110,7 +110,7 @@ test('a single shape is never artwork, however pretty', () => {
 });
 
 test('two plain rectangles in two colours stay furniture', () => {
-  // A callout panel with an accent stripe — extremely common, not a logo.
+  // A callout panel with an accent stripe - extremely common, not a logo.
   const found = findVectorArtwork([
     rect(50, 200, 300, 90, '#eeeeee'),
     rect(50, 200, 4, 90, '#0d6640'),
@@ -139,7 +139,7 @@ test('an ellipse counts as curvature even with no path data', () => {
 
 // ─── how proximity and grouping decide the SPLIT ──────────────────────────────
 // Proximity decides; a shared group may only REJOIN across a short reach. Doing
-// it the other way — group first, unconditionally — means one Illustrator OCG
+// it the other way - group first, unconditionally - means one Illustrator OCG
 // layer covering the page merges every graphic on it into a single useless asset.
 
 test('a shared group REJOINS a symbol and its wordmark set slightly apart', () => {

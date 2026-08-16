@@ -1,13 +1,13 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
  * Unit tests for the PDF FunctionType 4 (PostScript calculator) evaluator
- * (shells/web/src/lib/pdf-ps-calc.ts), against the REAL module — no mocks.
+ * (shells/web/src/lib/pdf-ps-calc.ts), against the REAL module - no mocks.
  *
  * Why this is worth being pedantic about: Chromium encodes an out-of-sRGB CSS
  * colour, a conic-gradient and every wide-gamut interpolated gradient as a
  * function-based shading driven by one of these programs. A unit slip in `atan`
  * (degrees, not radians, and [0,360) not signed) or a sign slip in `mod` doesn't
- * throw — it silently paints the wrong colour, or paints nothing.
+ * throw - it silently paints the wrong colour, or paints nothing.
  *
  * Run with: node --test tests/pdf-ps-calc.test.ts
  */
@@ -50,7 +50,7 @@ test('arithmetic operators evaluate to hand-computed values', () => {
 });
 
 test('idiv and mod follow the spec sign rules', () => {
-  // idiv discards the fractional part — i.e. truncates TOWARD ZERO, not floors.
+  // idiv discards the fractional part - i.e. truncates TOWARD ZERO, not floors.
   assert.equal(one('7 2 idiv'), 3);
   assert.equal(one('-7 2 idiv'), -3);
   assert.equal(one('7 -2 idiv'), -3);
@@ -76,12 +76,12 @@ test('sin and cos take DEGREES', () => {
   assert.ok(near(one('30 sin'), 0.5, 1e-12));
   assert.ok(near(one('180 cos'), -1, 1e-12));
   assert.ok(near(one('0 cos'), 1, 1e-12));
-  // A radians implementation would give sin(90 rad) ≈ 0.894 — assert we don't.
+  // A radians implementation would give sin(90 rad) ≈ 0.894 - assert we don't.
   assert.ok(Math.abs(one('90 sin')! - Math.sin(90)) > 0.1);
 });
 
 test('atan returns DEGREES in [0,360) across all four quadrants', () => {
-  // `num den atan` — the quadrant comes from the signs of BOTH operands.
+  // `num den atan` - the quadrant comes from the signs of BOTH operands.
   assert.ok(near(one('0 1 atan'), 0));
   assert.ok(near(one('1 1 atan'), 45));
   assert.ok(near(one('1 0 atan'), 90));
@@ -181,7 +181,7 @@ test('three outputs come back in order (the RGB case)', () => {
 });
 
 test('a two-input program (the function-based shading case) reads both', () => {
-  // f(u,v) = (u, v, u*v) — the shape a hue/chroma field takes.
+  // f(u,v) = (u, v, u*v) - the shape a hue/chroma field takes.
   const fn = compilePostScriptCalculator('{ 2 copy mul 3 1 roll 2 copy pop exch pop exch 3 -1 roll }', 2, [0, 1, 0, 1, 0, 1]);
   assert.ok(fn, 'compiles');
   const out = fn!([0.5, 0.25]);

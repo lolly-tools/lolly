@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
- * engine/src/icc-pixels.ts — ICC profiles applied to DeepFrame buffers.
+ * engine/src/icc-pixels.ts - ICC profiles applied to DeepFrame buffers.
  *
  * ASCII-first console output, per tests/README.md.
  *
@@ -37,7 +37,7 @@ import { ascii, buildProfile, descTag, identityCurv, mft2, pressProfileBytes, u1
 
 // ─── fixtures ─────────────────────────────────────────────────────────────────
 
-/** Parsed in-tree sRGB writer profile — a v2 matrix/TRC display profile. */
+/** Parsed in-tree sRGB writer profile - a v2 matrix/TRC display profile. */
 function srgbProfile(): IccProfile {
   const p = parseIccProfile(srgbIccProfile());
   assert.ok(p, 'the in-tree srgbIccProfile() bytes must parse back through icc.ts');
@@ -46,7 +46,7 @@ function srgbProfile(): IccProfile {
 
 /**
  * A 1-row DEVICE frame from RGBA pixel tuples, carrying the ICC_DEVICE_SPACE
- * sentinel `toPcs` requires — the caller's statement that these channels are
+ * sentinel `toPcs` requires - the caller's statement that these channels are
  * this profile's encoded device values rather than light (see the module
  * header, and the refusal test below).
  */
@@ -70,7 +70,7 @@ function rng(seed: number): () => number {
 /**
  * An mft2 element whose CLUT is the IDENTITY map on the encoded values (grid 2,
  * corner nodes = corner coordinates, last channel fastest per ICC.1:2010
- * sec. 10.10) — so A2B0 = decodePcs and B2A0 = encodePcs exactly, and the
+ * sec. 10.10) - so A2B0 = decodePcs and B2A0 = encodePcs exactly, and the
  * device -> PCS -> device trip is the identity by construction. Both the decode
  * and the map are affine, which tetrahedral interpolation reproduces exactly:
  * any residual in the round trip below is the lattice machinery's own.
@@ -90,11 +90,11 @@ function identityMft2(): number[] {
 }
 
 /**
- * The KINKED input ramp, 33 normalised samples — a smooth ramp plus a wiggle
+ * The KINKED input ramp, 33 normalised samples - a smooth ramp plus a wiggle
  * whose period is a few grid steps, so the resulting transfer function is
  * piecewise linear with a kink at EVERY breakpoint and affine nowhere.
  *
- * 33 samples puts those breakpoints at k/32 — exactly the device-link lattice's
+ * 33 samples puts those breakpoints at k/32 - exactly the device-link lattice's
  * own sample points, so a 33-node lattice sees every kink and reproduces the
  * function to float32; a coarser lattice interpolates straight across whole
  * wiggles. sin() only chooses the offsets: what the profile stores are the
@@ -109,7 +109,7 @@ const KINK: readonly number[] = Array.from({ length: 33 }, (_, k) =>
  * identityMft2's element with the 2-entry identity input ramps replaced by the
  * 33-entry KINKED ones. Everything else is unchanged, so A2B0 is exactly the
  * kinked curve per channel (identity CLUT, identity out-curves, legacy16
- * decode) — a NON-affine transform, which is what makes lattice density
+ * decode) - a NON-affine transform, which is what makes lattice density
  * observable at all.
  */
 function kinkedMft2(): number[] {
@@ -176,7 +176,7 @@ test('sRGB white -> PCS lands on Lab (100,0,0) and the ICC PCS illuminant XYZ', 
   assert.ok(Math.abs(lab.data[0]! - 100) < 0.1, `white L* = ${lab.data[0]}, expected 100`);
   assert.ok(Math.abs(lab.data[1]!) < 0.3 && Math.abs(lab.data[2]!) < 0.3,
     `white a*/b* = (${lab.data[1]}, ${lab.data[2]}), expected neutral`);
-  // And in XYZ: the PCS illuminant nCIEXYZ (0.9642, 1.0, 0.8249) — ICC.1:2010
+  // And in XYZ: the PCS illuminant nCIEXYZ (0.9642, 1.0, 0.8249) - ICC.1:2010
   // sec. 7.2.16. Converted through pixels.ts's own Lab->XYZ leg, so this also
   // pins that the two modules' Lab conventions (L 0..100, D50) agree.
   const xyz = convertSpace(lab, 'xyz-d50');
@@ -194,7 +194,7 @@ test('sRGB mid-grey anchor: encoded 0.5 -> L* 53.389 (not a linear 50)', () => {
   // External anchor, computed outside this codebase: IEC 61966-2.1 EOTF puts
   // encoded 0.5 at linear 0.21404114; CIE L* of Y = 0.21404114 is 53.389. A
   // transform that skipped the TRC would return ~76 (L* of Y=0.5) and one that
-  // read encoded values as L* would return 50 — both far outside 0.05.
+  // read encoded values as L* would return 50 - both far outside 0.05.
   assert.ok(Math.abs(lab.data[0]! - 53.389) < 0.05, `mid-grey L* = ${lab.data[0]}, expected 53.389`);
   assert.ok(Math.abs(lab.data[1]!) < 0.05 && Math.abs(lab.data[2]!) < 0.05, 'mid-grey stays neutral');
 });
@@ -280,7 +280,7 @@ test('identity LUT profile round-trips random pixels through the tetrahedral lat
   const p = identityLutProfile();
   // Tolerance 1e-3, and why: the sampled transform is affine per channel
   // (identity CLUT composed with the legacy16 Lab encode/decode, which cancel
-  // — see icc.ts decodePcs), and tetrahedral interpolation reproduces affine
+  // - see icc.ts decodePcs), and tetrahedral interpolation reproduces affine
   // functions exactly, so the only residual is float32 lattice storage and
   // accumulation (~1e-7 relative). 1e-3 is three orders of margin; a wrong
   // tetrahedron pick or stride shows up as >1e-2 on off-diagonal pixels.
@@ -316,7 +316,7 @@ test('identity LUT profile round-trips random pixels through the tetrahedral lat
 test('lattice DENSITY is pinned: a kinked LUT tracks the reader only at the documented 33 nodes', () => {
   // Why this test exists: every other LUT fixture here is affine, and
   // tetrahedral interpolation reproduces affine functions exactly at ANY
-  // density — so the whole suite stayed green with LATTICE_N dropped to 3. A
+  // density - so the whole suite stayed green with LATTICE_N dropped to 3. A
   // non-affine profile is the only thing that can hold the constant down.
   const p = parseIccProfile(buildProfile({
     deviceClass: 'mntr', space: 'RGB ', pcs: 'Lab ',
@@ -344,7 +344,7 @@ test('lattice DENSITY is pinned: a kinked LUT tracks the reader only at the docu
 
   // Tolerance 0.05 Lab units, and why: KINK's breakpoints sit at k/32, which
   // are the 33-node lattice's own samples, so within every cell the sampled
-  // function is affine and tetrahedral interpolation is exact — the residual is
+  // function is affine and tetrahedral interpolation is exact - the residual is
   // float32 lattice storage on values up to 100 (~1e-4). At 3 nodes per axis
   // the lattice samples only 0, 0.5 and 1.0 and interpolates straight across
   // the wiggle, which is 0.18 of full scale: >10 L* and >25 in a*/b*.
@@ -469,7 +469,7 @@ test('toPcs refuses colorimetric frames: device data must state itself with the 
 
   // The laundering case, and why it is not a matter of taste: linear
   // 0.21404114 IS sRGB-encoded 0.5, i.e. L* 53.389 (IEC 61966-2.1). Read as an
-  // ENCODED device value it lands near L* 22.9 — a plausible-looking number
+  // ENCODED device value it lands near L* 22.9 - a plausible-looking number
   // that is wrong by 30 units, which is exactly the failure mode a silently
   // accepted `srgb-linear` frame produces.
   const linear = createDeepFrame(1, 1); // fromU8Srgb's own tag
@@ -480,7 +480,7 @@ test('toPcs refuses colorimetric frames: device data must state itself with the 
   assert.ok(why?.includes('ICC_DEVICE_SPACE'), `the refusal must name the fix, got: ${why}`);
   assert.ok(why?.includes('srgb-linear'), `and the tag it refused, got: ${why}`);
 
-  // Every real PixelSpace is colorimetric, so every one of them is refused —
+  // Every real PixelSpace is colorimetric, so every one of them is refused - 
   // on the chained path too, which validates the same device side.
   const spaces: PixelSpace[] = ['srgb-linear', 'display-p3-linear', 'rec2020-linear', 'xyz-d50', 'lab'];
   for (const space of spaces) {

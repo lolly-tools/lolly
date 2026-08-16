@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
- * Technology marks on the docs pages — the `<!--l:key-->` marker (docs/build.ts,
- * docs/logos.ts) — and the "On this page" jump nav that rides on the same build.
+ * Technology marks on the docs pages - the `<!--l:key-->` marker (docs/build.ts,
+ * docs/logos.ts) - and the "On this page" jump nav that rides on the same build.
  *
  * Checked at BOTH ends, for the reason tests/docs-provenance-pills.test.ts spells
  * out: the source and the artifact fail independently. A marker can be correct in
@@ -9,10 +9,10 @@
  * existed, and nothing in the source tree looks wrong when that happens. If the
  * built assertions here fail and the source ones pass, the answer is always
  * `npm run build:info` (the built HTML is gitignored in shells/web, so it is only
- * ever as fresh as the last build on this machine — hence the skip guard below).
+ * ever as fresh as the last build on this machine - hence the skip guard below).
  *
  * A marker is an HTML comment, which means a typo'd key is INVISIBLE rather than
- * loud — it renders as nothing at all (docLogo warns at build and emits ''). So the
+ * loud - it renders as nothing at all (docLogo warns at build and emits ''). So the
  * source end has to be the loud one.
  */
 import { test } from 'node:test';
@@ -31,7 +31,7 @@ const BUILT = join(REPO, 'shells/web/public/info');
 const MARKER = /<!--l:([a-z0-9-]+)-->/g;
 const BLOCK = /<!--lb:([a-z0-9 -]+)-->/g;
 
-/** docs/*.md plus any translated sidecar — a marker mangled in translation is a
+/** docs/*.md plus any translated sidecar - a marker mangled in translation is a
  *  marker that ships as nothing on that locale's page. */
 function sourceMarkdown(): Array<{ name: string; src: string }> {
   const files = readdirSync(DOCS)
@@ -66,7 +66,7 @@ test('every <!--l:key--> marker in the docs names a mark that exists', () => {
 
 test('a near-miss marker shape is caught rather than shipped blank', () => {
   // `<!--l:Helm-->`, `<!--l: helm-->`, `<!--l:helm -->` all fail MARKER and are then
-  // eaten by stripAuthoringComments as an ordinary authoring comment — the mark just
+  // eaten by stripAuthoringComments as an ordinary authoring comment - the mark just
   // never appears, with nothing to notice. Name them here instead.
   const malformed: string[] = [];
   for (const { name, src } of sourceMarkdown()) {
@@ -90,7 +90,7 @@ test('every DOC_LOGOS entry is a CSS-colorable, self-sizing, inert glyph', () =>
     // CSS sizes these (.doc-logo). An intrinsic width/height would out-rank the em
     // sizing on the wrapper and pin the mark to 24px everywhere.
     if (/\b(width|height)=/.test(svg)) bad.push(`${key}: carries a width/height attribute`);
-    // Decorative — the word beside it is the accessible name.
+    // Decorative - the word beside it is the accessible name.
     if (!/\baria-hidden="true"/.test(svg)) bad.push(`${key}: not aria-hidden`);
     // These are inlined verbatim into every page that names them.
     if (/<script|\son[a-z]+=|javascript:/i.test(svg)) bad.push(`${key}: carries script`);
@@ -101,14 +101,14 @@ test('every DOC_LOGOS entry is a CSS-colorable, self-sizing, inert glyph', () =>
 
 // ─── the HTML that actually ships ────────────────────────────────────────────
 
-/** A built page minus its inline <style> — the CSS carries a comment that documents
+/** A built page minus its inline <style> - the CSS carries a comment that documents
  *  the marker syntax, and that is prose about the feature, not an unrendered marker. */
 function bodyOf(html: string): string {
   return html.replace(/<style>[\s\S]*?<\/style>/g, ' ');
 }
 
 // The built site is gitignored in shells/web, so a fresh clone has none of it until
-// `npm run build:info` runs. Skip rather than fail there — same contract as
+// `npm run build:info` runs. Skip rather than fail there - same contract as
 // tests/docs-provenance-pills.test.ts. When the artifact IS present it is asserted in
 // full, which is what catches an /info older than docs/.
 const built = existsSync(join(BUILT, 'build-guide.html'))
@@ -148,7 +148,7 @@ test('every <!--lb:…--> block names marks that exist, and sits on a line of it
       for (const m of line.matchAll(BLOCK)) {
         seen++;
         // mdToHtml only takes the block form when the marker IS the line; anything
-        // else falls through to the inline pass, which does not match `lb:` at all —
+        // else falls through to the inline pass, which does not match `lb:` at all - 
         // so the marks would silently vanish.
         if (line.trim() !== m[0]) bad.push(`${name}: block marker shares its line: ${line.trim().slice(0, 60)}`);
         for (const key of m[1]!.trim().split(/\s+/)) {
@@ -163,7 +163,7 @@ test('every <!--lb:…--> block names marks that exist, and sits on a line of it
 
 test('no heading in the built docs carries a technology mark', { skip: built }, () => {
   // The policy, enforced where it can actually be checked: marks belong in prose,
-  // in a table cell, or in a block ABOVE a section — never inside the heading whose
+  // in a table cell, or in a block ABOVE a section - never inside the heading whose
   // words a reader scans to navigate by. (Style stripped first: the stylesheet's own
   // comments talk about h1s and markers, and that is documentation, not markup.)
   const offenders: string[] = [];
@@ -182,7 +182,7 @@ test('the build guide ships the Kubernetes block, decorative and unannounced', {
   assert.ok(block, 'the <!--lb:kubernetes helm--> block did not render (or lost aria-hidden)');
   const keys = [...block[1]!.matchAll(/class="doc-logo-mark" data-logo="([a-z0-9-]+)"/g)].map(m => m[1]);
   assert.deepEqual(keys, ['kubernetes', 'helm'], 'the block does not carry the two marks its section is about');
-  // The heading it introduces still owns its own line — and its own anchor.
+  // The heading it introduces still owns its own line - and its own anchor.
   assert.match(body, /<h2 id="web-shell-on-kubernetes-helm">Web shell on Kubernetes \(Helm\)<\/h2>/);
   assert.ok(!/<!--lb:/.test(body), 'an unrendered block marker ships as an HTML comment');
   assert.ok(!/&lt;!--lb:/.test(body), 'a block marker ships as VISIBLE text');
@@ -193,7 +193,7 @@ test('the built build-guide carries the marks it is the flagship for', { skip: b
   for (const key of ['helm', 'kubernetes', 'k3s', 'nginx', 'suse', 'rust', 'node']) {
     assert.match(body, new RegExp(`data-logo="${key}"`), `build-guide.html lost the ${key} mark`);
   }
-  // The mark inside the Kubernetes h2 must not have leaked into the heading's id —
+  // The mark inside the Kubernetes h2 must not have leaked into the heading's id - 
   // that id is a published anchor (the jump nav, search results, deep links).
   assert.match(body, /<h2 id="web-shell-on-kubernetes-helm"/);
 });
@@ -218,7 +218,7 @@ test('a long page gets the jump nav and a short one does not', { skip: built }, 
   assert.match(long, /href="#web-shell-on-kubernetes-helm"/, 'the nav does not list the page h2 anchors');
   assert.match(long, /class="doc-jump-top" href="#top"/, 'no Back to top entry');
 
-  // trust.html: 3 h2s, ~8 KB of rendered body — under both thresholds.
+  // trust.html: 3 h2s, ~8 KB of rendered body - under both thresholds.
   const short = readFileSync(join(BUILT, 'trust.html'), 'utf-8');
   assert.ok(!/id="docJumpBtn"/.test(short), 'a short page grew a jump nav — the threshold slipped');
 });
@@ -232,8 +232,8 @@ test('the jump nav ships on locale pages too', { skip: built }, () => {
 });
 
 test('the jump nav is exempted from the rules that own every other <nav>', { skip: built }, () => {
-  // The bare `nav{}` selector in the docs CSS IS the site's top bar — fixed, 100%
-  // wide, 3.75rem tall, display:flex — and it lands on ANY <nav> element. Without
+  // The bare `nav{}` selector in the docs CSS IS the site's top bar - fixed, 100%
+  // wide, 3.75rem tall, display:flex - and it lands on ANY <nav> element. Without
   // the resets the panel lays out as a strip across the bottom of the window; without
   // the `:not(.doc-jump-nav)` exemptions its links take the top bar's white-on-dark
   // colour, and below 1100px they are `display:none`d out of existence. Both shipped

@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
- * tests/gzip-tar.test.ts — gzip/gunzip round-trips + a self-decode oracle for the
+ * tests/gzip-tar.test.ts - gzip/gunzip round-trips + a self-decode oracle for the
  * in-tree inflater, cross-checked against node:zlib where available, and a USTAR
  * writer verified block-by-block (magic, checksum, layout) and, when a system
  * `tar` binary exists, listed/extracted by it.
@@ -27,13 +27,13 @@ function corpus(): { name: string; data: Uint8Array }[] {
   cases.push({ name: 'one byte', data: Uint8Array.of(0x41) });
   cases.push({ name: 'ascii', data: enc('Hello, gzip + tar!') });
   cases.push({ name: 'svg text', data: enc('<svg xmlns="http://www.w3.org/2000/svg"><rect/></svg>'.repeat(50)) });
-  // All 256 byte values, several times over — exercises literals + matches.
+  // All 256 byte values, several times over - exercises literals + matches.
   const bin = new Uint8Array(4096);
   for (let i = 0; i < bin.length; i++) bin[i] = (i * 31 + (i >> 3)) & 0xff;
   cases.push({ name: 'binary ramp', data: bin });
   // Highly compressible run.
   cases.push({ name: 'zeros 100k', data: new Uint8Array(100_000) });
-  // Large pseudo-random (a mulberry-ish PRNG for determinism) — forces stored fallback paths.
+  // Large pseudo-random (a mulberry-ish PRNG for determinism) - forces stored fallback paths.
   const big = new Uint8Array(200_000);
   let s = 0x12345678 >>> 0;
   for (let i = 0; i < big.length; i++) {

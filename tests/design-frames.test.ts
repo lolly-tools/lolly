@@ -1,25 +1,25 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
- * Design — hand-authored frames render as per-frame [data-pdf-page] (plan 93 F1a-part-2).
+ * Design - hand-authored frames render as per-frame [data-pdf-page] (plan 93 F1a-part-2).
  *
- * Run with: npm test  (node --test over the tests/ globs). No framework — node:test.
+ * Run with: npm test  (node --test over the tests/ globs). No framework - node:test.
  *
  * Loads the REAL tool from disk and drives it through the engine with a stub host, so
- * these guard the tool's actual render. Design ships in two packs — the private
- * brands/suse one and the parent-owned brands/lolly-start one — with byte-identical
+ * these guard the tool's actual render. Design ships in two packs - the private
+ * brands/suse one and the parent-owned brands/lolly-start one - with byte-identical
  * hooks.js/template.html (only tool.json + brand fonts differ). We load from
  * brands/lolly-start (always present in a public checkout; brands/suse is a private
  * submodule CI skips), so the suite never silently skips.
  *
  * The contract:
  *   - NO-FRAMES BYTE-IDENTITY (the centerpiece): with only non-frame boxes the output is
- *     exactly today's single .artboard, {{#each boxes}}, global coords — ZERO [data-pdf-page].
+ *     exactly today's single .artboard, {{#each boxes}}, global coords - ZERO [data-pdf-page].
  *   - FRAMES-PRESENT: each kind:"frame" box becomes one [data-pdf-page] sized to the frame's
  *     w×h; members (box.frame === frame.id) render at frame-LOCAL coords; page order is
  *     ascending `order`, tie-break ascending x.
  *   - PASTEBOARD (F1b-2): a non-frame box with frame==="" (or a frame id matching no page)
  *     renders LOOSE at global coords under the frames wrapper, OUTSIDE every [data-pdf-page]
- *     — visible in the editor, excluded from the per-page export by construction.
+ * - visible in the editor, excluded from the per-page export by construction.
  *   - clipChildren:false makes that page overflow:visible (not hidden).
  */
 
@@ -35,7 +35,7 @@ import { loadTool } from '../engine/src/loader.ts';
 import { createRuntime } from '../engine/src/runtime.ts';
 import { baseHost } from './helpers/host.ts';
 
-// Parent-owned pack — present in every checkout (brands/suse is private + CI-skipped).
+// Parent-owned pack - present in every checkout (brands/suse is private + CI-skipped).
 const PACK_DIR = join(dirname(fileURLToPath(import.meta.url)), '..', 'brands', 'lolly-start', 'tools');
 const fetchFile = (path: string) => readFile(join(PACK_DIR, path), 'utf8');
 
@@ -59,7 +59,7 @@ test('no frame boxes → exactly one .artboard, ZERO [data-pdf-page], children a
     { id: 'a', kind: 'box', x: 120, y: 80, w: 300, h: 200, shape: 'rect', bg: '#30BA78' },
     { id: 'b', kind: 'text', x: 500, y: 400, w: 400, h: 200, text: 'Hi', fontSize: 48 },
   ]);
-  // No paged output at all — the sacred invariant.
+  // No paged output at all - the sacred invariant.
   assert.ok(!html.includes('data-pdf-page'), 'no [data-pdf-page] in the no-frames render');
   assert.ok(!html.includes('lolly-frames'), 'the frames wrapper is absent');
   // Exactly one artboard root, and it opens the render (the {{else}} branch, verbatim).
@@ -100,7 +100,7 @@ test('each frame page carries data-frame-id (box id; index fallback) — deep-li
   // A frame with an id stamps that id (the reorder-proof deep-link address `?s=intro`).
   assert.equal(pages[0]!.getAttribute('data-frame-id'), 'intro');
   // An id-less frame still stamps a stable id (its flat index) so present mode and the
-  // timeline can always resolve a page — never a blank attribute.
+  // timeline can always resolve a page - never a blank attribute.
   assert.equal(pages[1]!.getAttribute('data-frame-id'), '1');
 });
 
@@ -260,7 +260,7 @@ test('clipChildren:false → that page is overflow:visible, NOT hidden', async (
 // ── frames AS scenes: sequenced frame pages emit timing (plan 92, Part 1) ──────────────
 // A SEQUENCED frame (lane:"seq" + start/dur, e.g. after "Place in order") stamps the
 // timeline attributes onto its own [data-pdf-page] so the sequence clock's [data-t-start]
-// selector gates it — one slide at a time. A spatial (untimed) frame stamps NONE, so every
+// selector gates it - one slide at a time. A spatial (untimed) frame stamps NONE, so every
 // frame shows. This is the hook half of the feature; the gating itself is sequence-dom's.
 
 test('sequenced frames → each [data-pdf-page] carries data-t-start / data-t-dur (ms)', async () => {
@@ -294,7 +294,7 @@ test('spatial (untimed) frames emit NO data-t-* on their pages — every frame s
   }
 });
 
-// ── FRAME (ARTBOARD) STROKE — a real exported border, ISSUE 2b ─────────────────────
+// ── FRAME (ARTBOARD) STROKE - a real exported border, ISSUE 2b ─────────────────────
 
 test('a frame with stroke+strokeW renders a REAL border on its [data-pdf-page] page', async () => {
   const html = await mount([

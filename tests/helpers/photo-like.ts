@@ -1,14 +1,14 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
- * Multi-scale "photo-like" RGBA content — smooth low-frequency blobs +
+ * Multi-scale "photo-like" RGBA content - smooth low-frequency blobs +
  * mid-frequency ripples + mild grain, so real codecs (JPEG/crop/resize) behave
  * as they would on a photograph (unlike flat or purely periodic synthetic
  * fills), and there are plenty of non-flat 8x8 blocks for the imprint embed
  * floor (MIN_IMPRINT_BLOCKS; 384^2 = 2304 blocks).
  *
- * CALIBRATION CONTRACT: the pixel-watermark suites' measured envelopes — the
+ * CALIBRATION CONTRACT: the pixel-watermark suites' measured envelopes - the
  * strength/threshold/floor constants asserted in
- * pixel-watermark-robustness.test.ts and watermark-search.test.ts — were
+ * pixel-watermark-robustness.test.ts and watermark-search.test.ts - were
  * calibrated against exactly this generator. The three per-file copies this
  * replaced were bit-identical; do NOT change the math here without re-running
  * that calibration.

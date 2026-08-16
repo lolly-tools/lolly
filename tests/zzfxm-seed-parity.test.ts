@@ -5,7 +5,7 @@
  * The draw lives in the engine (`generatedSongSpec`) precisely so the web bridge,
  * the Node shells and the scripts cannot each grow their own copy and drift. These
  * tests pin the two properties that make a ref a promise: the same inputs give a
- * deeply equal spec, and naming a style shifts nothing else in the stream — a seed
+ * deeply equal spec, and naming a style shifts nothing else in the stream - a seed
  * and `seed:style` share their scale, progression and pan.
  */
 import { test } from 'node:test';

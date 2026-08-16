@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
- * Tests for engine/src/pptx-patch.ts — the surgical .pptx rebrand (plan track E2).
+ * Tests for engine/src/pptx-patch.ts - the surgical .pptx rebrand (plan track E2).
  *
  * Strategy: build a minimal-but-REALISTIC in-memory part map (theme + slide +
  * presentation + rels + content-types + a fntdata part + unrelated string/binary
@@ -156,7 +156,7 @@ test('theme swap: the 12 clrScheme slots + fontScheme faces are replaced', () =>
   assert.match(theme, /<a:accent1><a:srgbClr val="112233"\/><\/a:accent1>/);
   // untouched slots keep their original literals
   assert.match(theme, /<a:accent2><a:srgbClr val="ED7D31"\/><\/a:accent2>/);
-  // scheme fonts swapped, panose attr on the ORIGINAL is dropped by the slot? no —
+  // scheme fonts swapped, panose attr on the ORIGINAL is dropped by the slot? no - 
   // only the typeface VALUE changes; other latin attrs stay.
   assert.match(theme, /<a:majorFont><a:latin typeface="Poppins" panose="020F0302020204030204"\/>/);
   assert.match(theme, /<a:minorFont><a:latin typeface="Inter" panose="020F0502020204030204"\/>/);
@@ -244,7 +244,7 @@ test('report.slidesTouched lists exactly the modified slide parts', () => {
 test('an IN-SCOPE part with nothing to rewrite stays byte-identical and unreported', () => {
   // The common real-world case: most slides in a deck carry none of the mapped
   // colours/fonts. They are rebrand CANDIDATES (in scope) but must come back
-  // untouched — not re-encoded, and not listed as touched.
+  // untouched - not re-encoded, and not listed as touched.
   const input: PartMap = {
     'ppt/slides/slide1.xml': SLIDE1, // will change
     // in scope for colour + font remap, but carries no mapped value:
@@ -294,7 +294,7 @@ test('an empty plan is a byte-identical pass-through of the whole map', () => {
 
 test('malformed XML never hangs or throws — unmatched patterns pass through', () => {
   const hostile: PartMap = {
-    // unclosed slot, unterminated tag, truncated attr — nothing we can safely edit
+    // unclosed slot, unterminated tag, truncated attr - nothing we can safely edit
     'ppt/theme/theme1.xml': `<a:theme><a:clrScheme><a:dk1><a:srgbClr val="000000"`,
     // srgbClr WITH a valid closing context but a broken sibling
     'ppt/slides/slide1.xml': `<p:sld><a:srgbClr val="FF0000"/><a:t>unclosed`,
@@ -307,7 +307,7 @@ test('malformed XML never hangs or throws — unmatched patterns pass through', 
   assert.match(asText(parts['ppt/slides/slide1.xml']!), /val="00FF00"/);
   // the theme slot with no close tag was left untouched (no crash, no bad edit):
   assert.match(asText(parts['ppt/theme/theme1.xml']!), /val="000000"/);
-  // embeddedFontLst with no close tag is NOT removed (delimiter absent) — verbatim:
+  // embeddedFontLst with no close tag is NOT removed (delimiter absent) - verbatim:
   assert.match(asText(parts['ppt/presentation.xml']!), /embeddedFontLst/);
   assert.ok(report.colorsRemapped >= 1);
 });

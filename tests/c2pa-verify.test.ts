@@ -1,13 +1,13 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
- * C2PA verifier contract tests — the read side of the c2pa.js writer.
+ * C2PA verifier contract tests - the read side of the c2pa.js writer.
  * Run with: node --test tests/c2pa-verify.test.ts
  *
  * The fixture is the embedder's own output (a stamped minimal classic-xref
  * PDF), so these tests close the loop writer → file → verifier. Tampering is
  * byte-flips at known offsets: outside the manifest (hard-binding must fail),
  * inside an assertion (hashed URI must fail), inside the claim (signature must
- * fail) — each leaving every OTHER check intact, which pins down that the
+ * fail) - each leaving every OTHER check intact, which pins down that the
  * verifier attributes damage to the right layer.
  */
 import { test } from 'node:test';
@@ -58,7 +58,7 @@ test('verifies the embedder\'s own output: valid, untrusted, facts intact', asyn
   assert.equal(report.checks.filter((c: any) => c.code === 'assertion.hashedURI.match').length, 2);
 
   assert.equal(report.claim.title, 'Fixture Asset');
-  // v2 claim: no dc:format / claim_generator string — the generator identity is
+  // v2 claim: no dc:format / claim_generator string - the generator identity is
   // surfaced from the required claim_generator_info map instead.
   assert.equal(report.claim.format, undefined);
   assert.equal(report.claim.claimGenerator, undefined);
@@ -80,7 +80,7 @@ test('surfaces the enriched tools.lolly.export environment (date, dimensions, ne
     environment: {
       tool: 'Design', format: 'pdf', surface: 'web', engine: 'Chromium 149', os: 'macOS',
       date: '2026-07-08T11:14:40.000Z', dimensions: '1080 × 1080 px',
-      // Nested map — dropped by the flat scalar reader, lifted separately as the
+      // Nested map - dropped by the flat scalar reader, lifted separately as the
       // input digest; a non-string value must be filtered out defensively.
       inputs: { color: '#ffffff', headline: 'short text here', bogus: 42 as unknown as string },
     },
@@ -105,13 +105,13 @@ test('junk bytes → unrecognised container, no credential invented', async () =
   assert.equal(report.found, false);
   assert.equal(report.state, 'none');
   assert.equal(report.format, null);
-  // C2PA-scoped reason — must not claim the whole file is "unrecognised"
+  // C2PA-scoped reason - must not claim the whole file is "unrecognised"
   // (/verify inspects it for the Imprint, SEAL, metadata, appended data too).
   assert.match(report.reason, /no Content Credentials/);
 });
 
 test('magic bytes with a broken body → found-but-unreadable, honestly invalid', async () => {
-  // Starts with the GIF magic, so it sniffs as gif — and then fails to parse.
+  // Starts with the GIF magic, so it sniffs as gif - and then fails to parse.
   const report: any = await verifyC2pa(bytesOf('GIF89a definitely not a real gif'));
   assert.equal(report.format, 'gif');
   assert.equal(report.state, 'invalid');
@@ -206,7 +206,7 @@ test('decodeCbor reads the wild forms foreign manifests use', () => {
 
 // ── authorship: "delivered" vs "created" ─────────────────────────────────────
 // A delivered asset names Lolly as the deliverer but carries a c2pa.published
-// action (no creation) — it must never read as authored by Lolly.
+// action (no creation) - it must never read as authored by Lolly.
 const stampedDelivered = embedC2paInPdf(buildTestPdf(), { title: 'Delivered Asset', claimGenerator: 'Lolly', authorship: 'delivered' });
 const stampedCreatedLolly = embedC2paInPdf(buildTestPdf(), { title: 'Created Asset', claimGenerator: 'Lolly', authorship: 'created' });
 
@@ -229,7 +229,7 @@ test('authorship "created" with a Lolly generator → madeWithLolly=true, delive
 
 // A Lolly-created asset that was re-saved/re-encoded after signing: the file's
 // bytes no longer match the hard binding, but the manifest's own content
-// (claim signature, every hashed-URI assertion — the actions and export
+// (claim signature, every hashed-URI assertion - the actions and export
 // context a report shows as edit history / "made from") is still fully
 // verified. That's the "likely" case, not the flat "invalid, no lolly" one.
 test('tamper OUTSIDE the manifest on a Lolly-created asset → likelyMadeWithLolly=true', async () => {
@@ -244,7 +244,7 @@ test('tamper OUTSIDE the manifest on a Lolly-created asset → likelyMadeWithLol
   assert.ok(check(report, 'claimSignature.validated').ok, 'the manifest content itself is untouched');
 });
 
-// A deeper tamper — inside the claim itself — breaks the claim signature, so
+// A deeper tamper - inside the claim itself - breaks the claim signature, so
 // the manifest's content can no longer be trusted either. likelyMadeWithLolly
 // must not soften THAT failure into a maybe.
 test('tamper INSIDE the claim on a Lolly-created asset → likelyMadeWithLolly stays false', async () => {
@@ -260,7 +260,7 @@ test('tamper INSIDE the claim on a Lolly-created asset → likelyMadeWithLolly s
 
 // v2 records the human author in a CAWG metadata assertion (dc:creator); the
 // verifier reads it back into report.author for the "Produced by" line. (The
-// strict c2pa.metadata assertion forbids creator fields — see c2pa.ts.)
+// strict c2pa.metadata assertion forbids creator fields - see c2pa.ts.)
 test('author profile → cawg.metadata dc:creator → report.author round-trips', async () => {
   const pdf = await embedC2paInPdf(buildTestPdf(), {
     title: 'Authored Asset', claimGenerator: 'Lolly', author: { name: 'Andy Fitzsimon' },
@@ -274,7 +274,7 @@ test('author profile → cawg.metadata dc:creator → report.author round-trips'
 });
 
 // The full "Add your credential" claim: contact (email + site) rides inside the
-// dc:creator entry npm-style, rights in dc:rights — and ALL of it must read back
+// dc:creator entry npm-style, rights in dc:rights - and ALL of it must read back
 // out, because /verify shows what the credential records (Contact and
 // Rights / licence facts), not just the name.
 test('author contact + rights → cawg.metadata → report.author/{email,url} + report.rights round-trip', async () => {
@@ -302,7 +302,7 @@ test('rights alone → report.rights, no invented author', async () => {
 
 // The manifest profile a catalog "modified download" writes (web shell
 // downloadSigned → stampDerivedC2pa): custom edit actions with NO c2pa.created
-// — the engine prepends c2pa.opened for the preserved source ingredient — plus
+// - the engine prepends c2pa.opened for the preserved source ingredient - plus
 // the transform detail under tools.lolly.export. The chain must verify, the
 // source's AI origin must propagate onto the new active manifest, and the
 // history must span BOTH manifests (the AI creation and the Lolly edits).

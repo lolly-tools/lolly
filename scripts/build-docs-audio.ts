@@ -1,16 +1,16 @@
 #!/usr/bin/env node
 // SPDX-License-Identifier: MPL-2.0
 /**
- * Renders the /info docs narration artefacts (plans/40-docs-audio-listen.md §4) —
+ * Renders the /info docs narration artefacts (plans/40-docs-audio-listen.md §4) - 
  * per page: audio.opus + captions.vtt + cues.json + meta.json under
  * docs/audio/<lang>/<slug>/, committed like docs/shots and only *linked* by
  * docs/build.ts, which never runs TTS.
  *
  * ANDY-RUN ONLY. Like scripts/fetch-trustmark-models.ts and
- * scripts/fetch-kokoro-models.ts, this script needs things CI must never have —
+ * scripts/fetch-kokoro-models.ts, this script needs things CI must never have - 
  * the LOCAL Kokoro model staged at shells/web/public/models/kokoro/ (the ~92 MB
  * timestamped q8 ONNX + tokenizer + voice matrices scripts/fetch-kokoro-models.ts
- * downloads and sha256-pins), and ffmpeg on PATH — and it is never invoked by
+ * downloads and sha256-pins), and ffmpeg on PATH - and it is never invoked by
  * `npm install`/`postinstall`/CI. CI's whole involvement is
  * tests/docs-audio-stale.test.ts, which only verifies COMMITTED artefacts
  * against the current docs source (plan §10). When any prerequisite is absent
@@ -24,7 +24,7 @@
  *   node scripts/build-docs-audio.ts --force creators   # re-render one slug regardless
  *
  * ── The staleness contract (plan §5) ──────────────────────────────────────
- * meta.json.textHash is `spokenTextHash(extractSpokenText(source))` — sha256 of
+ * meta.json.textHash is `spokenTextHash(extractSpokenText(source))` - sha256 of
  * the whitespace-normalised spoken-text document from
  * scripts/lib/docs-spoken-text.ts. Chrome/CSS/shot-recipe/translation churn
  * never touches it; only edits to the words a listener would hear do. `--check`
@@ -37,34 +37,34 @@
  * (shells/web/src/lib/speech-kokoro-worker.ts): @huggingface/transformers +
  * phonemizer directly (both resolve from the shells/web workspace, hoisted to
  * the root node_modules), loading the timestamped Kokoro q8 model from
- * shells/web/public/models/kokoro with remote models disabled — the worker's
- * privacy posture, no huggingface.co fetch ever — and the engine's shared pure
+ * shells/web/public/models/kokoro with remote models disabled - the worker's
+ * privacy posture, no huggingface.co fetch ever - and the engine's shared pure
  * logic (engine/src/speech-text.ts) for normalize/split/chunk/span/timing
  * maths, so the docs narration speaks words exactly the way every shell does.
- * One voice for the whole corpus (VOICE below — voice churn re-renders
+ * One voice for the whole corpus (VOICE below - voice churn re-renders
  * everything, so it changes only with a corpus-wide --force pass). Synthesised
  * PER BLOCK and concatenated with authored gaps (700 ms before a heading,
  * 350 ms before a paragraph/list item), which keeps each chunk inside Kokoro's
- * input budget and yields block start-times for free — those are the launch
+ * input budget and yields block start-times for free - those are the launch
  * cues. The timestamped model's `durations` output gives WORD timings too:
  * cues.json is `{ blocks: [{ blockId, start, end }], words: [{ text, start,
- * end }] }` — the reader-compat shape blocks-only launch promised. Loudness is
- * normalised in the encode step (ffmpeg loudnorm, I=-19 — the plan's ≈ −19
+ * end }] }` - the reader-compat shape blocks-only launch promised. Loudness is
+ * normalised in the encode step (ffmpeg loudnorm, I=-19 - the plan's ≈ −19
  * LUFS mono target) and the encode is Opus-in-Ogg at 24 kbps voice profile
  * (~180 KB/min).
  *
  * ── No viz artefact (plan §4.4, decision 2026-08-02) ──────────────────────
  * An earlier revision packed a precomputed reactivity track (viz.bin) beside
  * the audio for the player's driven-mode visualizer. Measured on the first
- * real render it came out at 27.5 MB PER PAGE — an order of magnitude over
- * the narration itself — so the player now taps its own <audio> element with
+ * real render it came out at 27.5 MB PER PAGE - an order of magnitude over
+ * the narration itself - so the player now taps its own <audio> element with
  * a live AnalyserNode instead (same-origin, zero shipped bytes). Precomputed
  * reactivity tracks remain the right pattern for EXPORTED deterministic video
  * (the audiogram), not for live listening.
  *
  * ── Captions ──────────────────────────────────────────────────────────────
- * captions.vtt comes from the engine's own caption maths — groupWordsToCues
- * over the word timings, serialised by cuesToVtt (engine/src/captions.ts) —
+ * captions.vtt comes from the engine's own caption maths - groupWordsToCues
+ * over the word timings, serialised by cuesToVtt (engine/src/captions.ts) - 
  * so a docs caption breaks lines at the same words a host.speech caption
  * does. When a block degrades to sentence granularity (durations shape
  * mismatch), the grouper passes sentence spans through mostly unchanged, the
@@ -93,18 +93,18 @@ const DOCS = join(ROOT, 'docs');
 const AUDIO_ROOT = join(DOCS, 'audio');
 
 /** Launch language. The layout is audio/<lang>/<slug>/ from day one (plan §9)
- *  but only English renders today — locale audio waits on per-locale Kokoro
+ *  but only English renders today - locale audio waits on per-locale Kokoro
  *  voice coverage and the storage curve. */
 export const LANG = 'en';
 
 /** One voice for the whole corpus (plan §4.2). Changing it stales EVERY page:
  *  that is a --force-everything day, chosen deliberately, not a hash-driven
  *  re-render. The narration is one narrator, start to finish. */
-// bf_lily: Andy's final call (2026-08-02, by ear over three candidates) — the
+// bf_lily: Andy's final call (2026-08-02, by ear over three candidates) - the
 // narrator stays British ("lolly" is a British/Australian word; Kokoro has no
 // Australian voice), and Lily beats the higher-GRADED Emma because Emma reads
 // as robotic at docs length while Lily sounds more on brand. Kokoro's grade
-// measures acoustic fidelity, not fit — the ear outranks the table. Supersedes
+// measures acoustic fidelity, not fit - the ear outranks the table. Supersedes
 // bf_emma (accent rule) and af_jessica ("most lolly-sounding") from earlier
 // the same day.
 export const VOICE = 'bf_lily';
@@ -113,7 +113,7 @@ export const VOICE = 'bf_lily';
  *  long-form reading wants to sit under the reader rather than race them, unlike
  *  a tool's one-line clip, which runs at 1.0 (KOKORO_DEFAULT_VOICE's callers).
  *  The model's own `durations` output drives word alignment, so timings follow
- *  this automatically — there is no second place to keep in step. */
+ *  this automatically - there is no second place to keep in step. */
 export const SPEED = 0.8;
 
 /** The upstream model this local copy was fetched from (see
@@ -121,12 +121,12 @@ export const SPEED = 0.8;
  *  model upgrade is visible per artefact. */
 export const MODEL_ID = 'onnx-community/Kokoro-82M-v1.0-ONNX';
 
-/** The locally staged model directory (scripts/fetch-kokoro-models.ts) — the
+/** The locally staged model directory (scripts/fetch-kokoro-models.ts) - the
  *  same files the web worker loads from /models/kokoro/. */
 const MODEL_DIR = join(ROOT, 'shells', 'web', 'public', 'models', 'kokoro');
 
 /**
- * The launch set (plan §1/§11): the landing page plus the three pathway hubs —
+ * The launch set (plan §1/§11): the landing page plus the three pathway hubs - 
  * the guided entry points ("For Creators / Builders / Operators" in
  * docs/build.ts's NAV). Quickstart and Trust are hubs in the sidebar sense too,
  * but the launch gate is storage (§7's budget maths), so the list stays this
@@ -134,7 +134,7 @@ const MODEL_DIR = join(ROOT, 'shells', 'web', 'public', 'models', 'kokoro');
  */
 export const LAUNCH_PAGES: string[] = [
   'index', 'quickstart', 'creators', 'builders', 'operators',
-  // 2026-08-04: the high-traffic prose pages get read-aloud narration too — the
+  // 2026-08-04: the high-traffic prose pages get read-aloud narration too - the
   // manifestation of the Listen promise on the Inclusive Design page.
   'about', 'trust', 'ai-stance', 'privacy', 'inclusive-design', 'beatrice-warde',
 ];
@@ -163,7 +163,7 @@ export interface AudioMeta {
 /**
  * slug → markdown source file + page title, read from docs/build.ts's own
  * pages[] array. build.ts deliberately has no exports (the spoken-text module
- * documents the same constraint for headingId), so this parses the literal —
+ * documents the same constraint for headingId), so this parses the literal - 
  * the same move as tests/docs-spoken-text.test.ts's parity tripwire. Returns
  * null for a slug build.ts no longer lists, which is how a retired page's
  * artefacts surface. The title feeds extraction's leading meta-title skip and
@@ -249,7 +249,7 @@ interface Rendered {
   meta: AudioMeta;
 }
 
-// Minimal shapes for the transformers.js pieces we touch — the same four
+// Minimal shapes for the transformers.js pieces we touch - the same four
 // operations (and the same rationale) as the web worker's KokoroRuntime:
 // the package's own typings are bundler-hostile generics.
 interface TensorLike { data: ArrayLike<number | bigint>; dims: number[] }
@@ -263,18 +263,18 @@ interface KokoroRuntime {
 }
 
 /**
- * Synthesize one spoken block — the web worker's per-sentence loop
+ * Synthesize one spoken block - the web worker's per-sentence loop
  * (shells/web/src/lib/speech-kokoro-worker.ts synthesize()), minus the
  * progress/abort machinery: normalize the whole block, split into sentences,
  * phonemize per WORD so each word's token span is known by construction, chunk
  * by the model's real phoneme budget, and read word timings off the
  * timestamped model's `durations` output. Returns mono PCM at
  * KOKORO_SAMPLE_RATE plus word timings relative to the block start (sentence
- * spans when any chunk's alignment invariant fails — uniform granularity, like
+ * spans when any chunk's alignment invariant fails - uniform granularity, like
  * the worker).
  */
 async function synthesizeBlock(rt: KokoroRuntime, text: string): Promise<{ pcm: Float32Array; words: SpeechWordTiming[] }> {
-  // af_/am_ voices are en-US — 'a' in Kokoro's accent scheme (b* = en-GB).
+  // af_/am_ voices are en-US - 'a' in Kokoro's accent scheme (b* = en-GB).
   const language = VOICE.startsWith('b') ? 'b' as const : 'a' as const;
   const sentences = splitSentences(normalizeText(text));
   interface Piece { pcm: Float32Array; sentence: string; wordEntries: SpeechWordTiming[] | null }
@@ -289,7 +289,7 @@ async function synthesizeBlock(rt: KokoroRuntime, text: string): Promise<{ pcm: 
       const phonemes = chunk.phonemes.join(' ');
       const { input_ids } = rt.tokenizer(phonemes, { truncation: true });
       const seqLen = input_ids.dims[input_ids.dims.length - 1] ?? 0;
-      // Style row is indexed by token count (rows 0..509) — the model was
+      // Style row is indexed by token count (rows 0..509) - the model was
       // trained with a per-length style lookup.
       const numTokens = Math.min(Math.max(seqLen - 2, 0), 509);
       const style = rt.voiceData.slice(numTokens * KOKORO_STYLE_DIM, (numTokens + 1) * KOKORO_STYLE_DIM);
@@ -329,7 +329,7 @@ async function renderPage(slug: string, tts: KokoroRuntime, tmp: string): Promis
   if (!spoken) throw new Error(`${slug}: not listed in docs/build.ts pages[] — nothing to narrate`);
 
   // Per-block synthesis, concatenated with the authored gaps. Cue times come
-  // from sample positions — exact by construction — and each block's word
+  // from sample positions - exact by construction - and each block's word
   // timings (from the timestamped model's durations output) are offset by its
   // start into the page timeline.
   const sr = KOKORO_SAMPLE_RATE;
@@ -419,8 +419,8 @@ function bail(lines: string[]): never {
 
 async function loadKokoro(): Promise<KokoroRuntime> {
   // Prereq: the locally staged model. Everything loads from MODEL_DIR with
-  // remote models disabled — the worker's privacy posture, never a
-  // huggingface.co fetch — so an absent stage is a printed recipe, not a
+  // remote models disabled - the worker's privacy posture, never a
+  // huggingface.co fetch - so an absent stage is a printed recipe, not a
   // download.
   const voicePath = join(MODEL_DIR, 'voices', `${VOICE}.bin`);
   if (!existsSync(join(MODEL_DIR, 'onnx', 'model_quantized.onnx')) || !existsSync(voicePath)) {
@@ -443,7 +443,7 @@ async function loadKokoro(): Promise<KokoroRuntime> {
       AutoTokenizer.from_pretrained(KOKORO_MODEL_ID),
     ]);
     const { phonemize } = await import('phonemizer');
-    // Buffer views are not guaranteed 4-byte aligned — copy before casting.
+    // Buffer views are not guaranteed 4-byte aligned - copy before casting.
     const raw = readFileSync(voicePath);
     const voiceData = new Float32Array(raw.buffer.slice(raw.byteOffset, raw.byteOffset + raw.byteLength));
     if (voiceData.byteLength !== KOKORO_VOICE_BYTES) {
@@ -474,7 +474,7 @@ async function main(): Promise<void> {
     const i = args.indexOf('--force');
     if (i < 0) return undefined;
     const slug = args[i + 1];
-    // A bare --force must not quietly degrade to a normal stale-only run —
+    // A bare --force must not quietly degrade to a normal stale-only run - 
     // the operator asked for a specific re-render and should say which.
     if (!slug || slug.startsWith('--')) {
       console.error('--force needs a slug (e.g. --force creators)');
@@ -502,7 +502,7 @@ async function main(): Promise<void> {
   }
 
   // A launch page pageSource() cannot find is a broken lookup (a pages[] edit
-  // in docs/build.ts, or a renamed source file), never a page that is fine —
+  // in docs/build.ts, or a renamed source file), never a page that is fine - 
   // dropping it from targets would print "all current" over a lie.
   const unlisted = verdicts.filter((v) => LAUNCH_PAGES.includes(v.slug) && v.status === 'unlisted');
   if (unlisted.length) {

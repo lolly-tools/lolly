@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
- * Unit tests for the PURE soft-mask helpers (engine/src/pdf-smask.ts) — the geometry
+ * Unit tests for the PURE soft-mask helpers (engine/src/pdf-smask.ts) - the geometry
  * and colour arithmetic around ExtGState /SMask evaluation, tested away from the
  * interpreter that drives them.
  *
@@ -102,7 +102,7 @@ test('constantMask: the rect’s own opacity multiplies in', () => {
 });
 
 test('constantMask: anything that is a SHAPE rather than a constant is refused', () => {
-  // partial coverage — a shape
+  // partial coverage - a shape
   assert.equal(constantMask([rect({ w: 50, h: 50 })], { w: 100, h: 100 }), null);
   // two nodes
   assert.equal(constantMask([rect(), rect()], { w: 100, h: 100 }), null);

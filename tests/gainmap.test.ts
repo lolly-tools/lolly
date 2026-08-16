@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
- * engine/src/gainmap.ts — ISO 21496-1 / Adobe gain-map math (deeprichpixels B2, task F1).
+ * engine/src/gainmap.ts - ISO 21496-1 / Adobe gain-map math (deeprichpixels B2, task F1).
  *
  * The claim under test is exactly one sentence: **this map means
  * `hdr = sdr * 2^lerp(min, max, t)`**, computed in one stated colour space, over
@@ -139,7 +139,7 @@ test('round trip holds at a non-default gamma (encode pow(t,g) / decode pow(v,1/
     const got = applyGainMap(convertSpace(sdr, GAIN_MAP_SPACE), map, meta);
     const span = meta.gainMapMax - meta.gainMapMin;
     // Non-unit gamma redistributes the 256 levels, so the step is no longer
-    // uniform in log2 — it stretches at whichever end the gamma curve flattens.
+    // uniform in log2 - it stretches at whichever end the gamma curve flattens.
     // The bound is therefore the WIDEST step (not half of it): the encoder
     // rounds by half a level in the gamma-warped domain, which un-warps to
     // nearly a whole step where the curve is steepest. Evaluate the actual
@@ -190,7 +190,7 @@ test('richness > 0 is the documented single-channel limitation, not a silent one
 
 test('space alignment: an unboosted saturated red gets a NEUTRAL gain, not a coloured one', () => {
   // sRGB red, in gamut for both sRGB and Rec.2020. With no boost targets the HDR
-  // rendition is the SAME light, just expressed in Rec.2020 primaries — so the
+  // rendition is the SAME light, just expressed in Rec.2020 primaries - so the
   // gain must be 1 (log2 0) everywhere.
   const sdr = frameOf([[1, 0, 0, 1], [0, 1, 0, 1], [0, 0, 1, 1], [1, 1, 1, 1]]);
   const flat: HdrBoostOptions = { targets: [], includeWhite: false, richness: 0 };
@@ -261,7 +261,7 @@ test('negative and non-finite input: no NaN escapes, and the fit is not poisoned
 
 test('a gain map cannot create light where the base has none', () => {
   // The decode is multiplicative, so a black base pixel stays black whatever the
-  // map says. That is a property, not a bug — it is asserted so nobody later
+  // map says. That is a property, not a bug - it is asserted so nobody later
   // "fixes" the undefined-pixel policy by inventing a gain.
   const sdr = frameOf([[0, 0, 0, 1], [0.5, 0.5, 0.5, 1]], GAIN_MAP_SPACE);
   const hdr = frameOf([[3, 3, 3, 1], [1, 1, 1, 1]], GAIN_MAP_SPACE);

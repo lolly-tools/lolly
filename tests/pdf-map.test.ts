@@ -4,7 +4,7 @@
  *
  * The shell decodes a page's content stream with pdf-lib and hands the string here;
  * these tests feed hand-written content streams directly (no PDF library) and assert
- * the reconstructed DesignNodes — proving rectangles, ellipses, text, arbitrary paths,
+ * the reconstructed DesignNodes - proving rectangles, ellipses, text, arbitrary paths,
  * optional-content groups, image XObjects and form-XObject recursion all map to editable
  * boxes with correct box-space coordinates (PDF's bottom-left y-up flipped to top-left).
  *
@@ -65,7 +65,7 @@ test('obliquely rotated rectangle → box with rotation', () => {
 });
 
 test('a 90°-traced axis-aligned rectangle is not needlessly rotated', () => {
-  // pdf-lib's drawRectangle traces the vertical edge first — must still be rot 0
+  // pdf-lib's drawRectangle traces the vertical edge first - must still be rot 0
   const nodes = page('0 0 0 rg 1 0 0 1 40 200 cm 0 0 m 0 60 l 120 60 l 120 0 l h f');
   assert.equal(nodes.length, 1);
   assert.equal(nodes[0].rot, 0);
@@ -160,7 +160,7 @@ test('positioning before the first show re-latches the origin (Chromium word idi
   // set-up at the LINE BOX's top-left) then `x -leading Td` to the true glyph
   // origin, then per-glyph `dx 0 Td (g) Tj`. The origin must latch where glyphs
   // are SHOWN: latching at the first positioning op gave every line-start word
-  // the stale Tm origin — one leading too high, at the block's x=0 — and the
+  // the stale Tm origin - one leading too high, at the block's x=0 - and the
   // next word (|dx| ≤ 2em) collided at the same point.
   const c = '1 0 0 -1 0 300 cm'
     + ' BT /F1 16 Tf 1 0 0 -1 0 0 Tm 10 -18 Td (F) Tj 8 0 Td (irst) Tj ET'
@@ -273,7 +273,7 @@ test('CMYK fill (k) converts to rgb hex', () => {
 // ── BDC property dictionaries (marked content) ───────────────────────────────
 // The tokenizer used to report an inline `<<…>>` operand as `{t:'op'}`. That fell
 // through the operator switch to `default`, which calls reset() and wiped the
-// pending `/OC /Name` — so a BDC carrying ANY property dict silently lost its
+// pending `/OC /Name` - so a BDC carrying ANY property dict silently lost its
 // layer name. These pin the fix and the MCID capture built on top of it.
 
 /** Two rects inside one BDC, so the >=2-member rule makes a real group. */
@@ -341,7 +341,7 @@ test('WinAnsi high bytes decode to punctuation, not C1 control characters', () =
 });
 
 test('bytes outside the CP1252 divergence keep their Latin-1 meaning', () => {
-  // 0xE9 is e-acute in BOTH encodings — the table must not touch it, and the
+  // 0xE9 is e-acute in BOTH encodings - the table must not touch it, and the
   // unassigned CP1252 slots (0x81, 0x8D, 0x8F, 0x90, 0x9D) must pass through
   // rather than inventing a character.
   const nodes = page('BT /F1 12 Tf 1 0 0 1 5 250 Tm (caf\xe9) Tj ET', {
@@ -371,7 +371,7 @@ test('font decode callback maps custom byte codes', () => {
   });
   assert.equal(nodes[0].text, 'Hello');
   // monospace family → the box maps to the neutral mono family via finalizeBoxes
-  // (a branded shell passes its own vocabulary — see design-map DesignMapOptions)
+  // (a branded shell passes its own vocabulary - see design-map DesignMapOptions)
   const box = finalizeBoxes(nodes, { prefix: 'p' })[0] as any;
   assert.equal(box.font, 'mono');
   assert.equal(box.weight, '700');
@@ -451,7 +451,7 @@ test('shading-pattern fill → box carries a box-space _gradient', () => {
   assert.deepEqual(g.stops, AXIAL.stops);
   // pattern matrix (identity) ∘ page flip → [1,0,0,-1,0,300] on a 300-tall page.
   assert.deepEqual(g.matrix, [1, 0, 0, -1, 0, 300]);
-  assert.equal(nodes[0].fill, '');       // flat fill cleared — the gradient wins
+  assert.equal(nodes[0].fill, '');       // flat fill cleared - the gradient wins
 });
 
 test('a shading pattern on a non-rectangular path → a path node with _gradient', () => {
@@ -674,7 +674,7 @@ test('/SMask /None clears the mask; an ExtGState with no /SMask key leaves it al
     extgstates: { G7: { smask: sm }, GX: { ca: 1 }, GN: { smask: false } },
   });
   assert.equal(nodes.length, 2);
-  // First fill: still masked (folded to a constant — 0.5 grey → 50%).
+  // First fill: still masked (folded to a constant - 0.5 grey → 50%).
   assert.equal(nodes[0].opacity, 50);
   // Second fill: /SMask /None cleared it, so full strength and no mask.
   assert.equal(nodes[1].opacity, 100);
@@ -685,7 +685,7 @@ test('/SMask /None clears the mask; an ExtGState with no /SMask key leaves it al
 // serializePath used to append 'Z' to every path it emitted. On a FILL that is
 // invisible (SVG closes subpaths implicitly when filling), but on a STROKE it
 // draws an edge the source never had: an open 3-point chevron `M7 8 L3 12 L7 16`
-// — the arrowhead in every outline icon — came out as a filled-looking triangle.
+// - the arrowhead in every outline icon - came out as a filled-looking triangle.
 // Reported from a screenshot of the export panel's ↔ / ↕ dimension icons.
 //
 // PDF says which paths close: `h`, `re`, and the close-then-paint operators
@@ -733,7 +733,7 @@ test('a filled open path is unaffected (fill closes implicitly)', () => {
 });
 
 // ── Line cap and join (§8.4.3.3-4) ───────────────────────────────────────────
-// PDF defaults are butt + miter, which match SVG's defaults — so this stayed
+// PDF defaults are butt + miter, which match SVG's defaults - so this stayed
 // invisible until a producer set them. Chromium never does: its print output has
 // zero `J`/`j`/`w` operators and leans entirely on the defaults. Illustrator and
 // Acrobat DO, and a round-capped stroke rendered with butt caps reads thinner and
@@ -748,7 +748,7 @@ test('line cap and join are carried onto the stroke', () => {
 });
 
 test('the PDF defaults (butt/miter) are left off the node, matching SVG', () => {
-  // Emitting stroke-linecap="butt" on every stroke would be noise — it is already
+  // Emitting stroke-linecap="butt" on every stroke would be noise - it is already
   // SVG's default. Absent means default, in both formats.
   const dflt = page('1 0 0 RG 2 w 10 10 m 40 10 l 40 40 l S');
   assert.equal(dflt[0]?._vectorStroke?.cap, undefined);

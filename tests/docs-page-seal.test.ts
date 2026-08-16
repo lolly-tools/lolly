@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
- * Page seals — the /info pages' own Content Credentials (plans/105 §7, M5).
+ * Page seals - the /info pages' own Content Credentials (plans/105 §7, M5).
  *
  * Each English page carries one `<link rel="c2pa-manifest">` and is bound by an
  * external Manifest Store beside it (C2PA 2.4 §A.7.1.2 + §11.4). Four things here
@@ -8,7 +8,7 @@
  *
  *  1. THE ORDERING. §A.7.1.3 hashes the WHOLE document, so the link must be in
  *     the bytes that were hashed and signing must be the last build step. Get it
- *     wrong and every page reports "this document was modified" — while looking
+ *     wrong and every page reports "this document was modified" - while looking
  *     perfect.
  *  2. THE CHURN RULE. Signatures differ on every signing (ECDSA nonce + a fresh
  *     timestamp), so a build that re-signs unconditionally rewrites 53 binary
@@ -17,7 +17,7 @@
  *  3. THE COMPONENT SET. A page's seal names the screenshots and banked art it
  *     references, as `c2pa.ingredient.v3` entries. A re-captured screenshot is
  *     re-signed under a new manifest label, so a page whose own bytes never moved
- *     can end up describing components that no longer exist — that must re-seal.
+ *     can end up describing components that no longer exist - that must re-seal.
  *  4. ENGLISH ONLY, this wave. A locale page must carry NO seal link: linking a
  *     sidecar that does not exist is a failed check, and linking the English one
  *     is a hash mismatch.
@@ -78,7 +78,7 @@ test('every English page carries exactly one seal link, in <head>, pointing at i
     if (!hits.length) continue;    // redirect stubs are not sealed
     sealed++;
     // §A.7.1: "There shall be at most one C2PA Manifest Store association per
-    // HTML document" — and the inlined banked art must never smuggle in a second.
+    // HTML document" - and the inlined banked art must never smuggle in a second.
     assert.equal(hits.length, 1, `${file} declares ${hits.length} C2PA manifest associations`);
     assert.ok(!/<script[^>]+type="application\/c2pa"/.test(html), `${file} carries an inline manifest as well as a link`);
     const slug = file.slice(0, -'.html'.length);
@@ -92,7 +92,7 @@ test('every English page carries exactly one seal link, in <head>, pointing at i
 test('locale pages carry no seal link at all', { skip: built }, () => {
   // Deliberate, and the reason is honesty rather than scope: a locale page
   // pointing at a sidecar that does not exist reports "references an external
-  // manifest… could not be checked" — a FAILURE row — and pointing it at the
+  // manifest… could not be checked" - a FAILURE row - and pointing it at the
   // English store would report a hash mismatch, i.e. "modified".
   const locales = readdirSync(BUILT, { withFileTypes: true })
     .filter((e) => e.isDirectory() && /^[a-z]{2}(-[A-Za-z]+)?$/.test(e.name))
@@ -123,8 +123,8 @@ test('a built page verifies against its sidecar, and one changed byte breaks it'
   // Ephemeral self-signed key: untrusted is the honest verdict, and the ONLY
   // failed check. Anything else here is a real regression.
   assert.deepEqual(report.checks.filter((c) => !c.ok).map((c) => c.code), [C2PA_CHECK.signingCredentialUntrusted]);
-  // §A.7.1.3: the hash covers the entire document, so a byte in the BODY — far
-  // from the link element — has to break it.
+  // §A.7.1.3: the hash covers the entire document, so a byte in the BODY - far
+  // from the link element - has to break it.
   const tampered = new Uint8Array(page);
   tampered[page.length - 60] = (tampered[page.length - 60] ?? 0) ^ 0x01;
   const bad = await verifyC2pa(tampered, { externalManifest: store });
@@ -157,7 +157,7 @@ test('a second build over an unchanged site writes no sidecar (the churn guard)'
   // This is the double-build proof, asked of the real site without building it
   // twice: `check` runs the exact decision a build makes, per page, and reports
   // what it WOULD write. Anything in `wouldSign` is a sidecar the next build
-  // rewrites for no reason — which is how 53 binary files start churning.
+  // rewrites for no reason - which is how 53 binary files start churning.
   const lines: string[] = [];
   const run = await sealPages({
     outDir: BUILT,
@@ -234,7 +234,7 @@ test('sign → verify → re-run: the second pass keeps the sidecar byte-identic
   const report = await verifyC2pa(bytesOf(page), { externalManifest: bytesOf(sidecar) });
   assert.equal(report.state, 'valid');
   // The signed component travels in; the unsigned one is not claimed (there is
-  // nothing to claim — an ingredient with no manifest would be an assertion
+  // nothing to claim - an ingredient with no manifest would be an assertion
   // about a file we cannot show anyone).
   assert.deepEqual(recordedComponentLabels(bytesOf(sidecar)), [prepareC2paIngredient(bytesOf(join(dir, 'shots', 'signed.svg')))!.activeLabel]);
   assert.equal(report.history?.some((s) => s.action === 'c2pa.opened'), true);

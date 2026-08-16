@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
- * Docs-screenshot comparison — the pure logic behind scripts/build-docs-shots.ts.
+ * Docs-screenshot comparison - the pure logic behind scripts/build-docs-shots.ts.
  *
  * Committed screenshots are snapshots; every capture run is a comparison against
  * them. Nothing here touches the filesystem or a browser: callers decode PNGs to
@@ -8,12 +8,12 @@
  * (tests/docs-shots-compare.test.ts) without Chromium or sharp.
  *
  * Failure taxonomy (what Andy actually wants to know after a run):
- *   • hard failure  — the capture itself errored (handled by the script, not here)
- *   • suspicious    — the capture "succeeded" but the pixels look wrong: tiny file,
+ *   • hard failure - the capture itself errored (handled by the script, not here)
+ *   • suspicious - the capture "succeeded" but the pixels look wrong: tiny file,
  *                     near-uniform (blank) image, or dimensions that don't match
- *                     the declared viewport. Flags, not verdicts — a legitimately
+ *                     the declared viewport. Flags, not verdicts - a legitimately
  *                     minimal page can trip 'tiny', so flags inform, never delete.
- *   • changed       — visibly different from the committed baseline. Never
+ *   • changed - visibly different from the committed baseline. Never
  *                     auto-promoted; --accept is the snapshot-update gesture.
  */
 
@@ -25,7 +25,7 @@ export interface RawImage {
 }
 
 export interface ShotThresholds {
-  /** Absolute byte floor — a viewport-sized PNG below this is almost certainly blank. */
+  /** Absolute byte floor - a viewport-sized PNG below this is almost certainly blank. */
   minBytes: number;
   /** Max per-channel stddev (0-255 scale) for an image to count as blank. */
   blankStddev: number;
@@ -37,10 +37,10 @@ export interface ShotThresholds {
   pixelDiffFrac: number;
   /** Slack (px) allowed between declared and actual dimensions (clip rounding × DPR). */
   dimSlack: number;
-  /** Byte floor for a TRUE-VECTOR svg shot (far lower than a raster's — a legit
+  /** Byte floor for a TRUE-VECTOR svg shot (far lower than a raster's - a legit
    *  vector page can be small, but near-nothing still means a failed print). */
   vectorMinBytes: number;
-  /** Device-pixel width ceiling for a raster shot — see MAX_SHOT_PX. */
+  /** Device-pixel width ceiling for a raster shot - see MAX_SHOT_PX. */
   maxWidth: number;
   /** Encoded-byte ceiling for a raster shot. */
   maxBytes: number;
@@ -51,14 +51,14 @@ export interface ShotThresholds {
 /**
  * The widest a docs screenshot can ever be SEEN, in device pixels.
  *
- * `docs/build.ts` renders /info in a 1180px `.docs-wrap` — a 220px nav rail plus
- * `.docs-content{padding:6rem 3.5rem}` — so a shot's box is 1180−220−112 = 848 CSS
+ * `docs/build.ts` renders /info in a 1180px `.docs-wrap` - a 220px nav rail plus
+ * `.docs-content{padding:6rem 3.5rem}` - so a shot's box is 1180−220−112 = 848 CSS
  * px, and that is a hard cap: `max-width` means a 5K monitor shows the same 848px
  * as a laptop. At DPR 2 that is 1696 device px; the FAQ accordion's box is
  * narrower still (~801 CSS px). Rounded up for clip/rounding slack.
  *
  * Every pixel past this is bytes no reader can resolve. Historically most recipes
- * paired `width=1440` with `dpi=192` and shipped 2880 px — 2.9x the pixels of the
+ * paired `width=1440` with `dpi=192` and shipped 2880 px - 2.9x the pixels of the
  * ceiling, i.e. about two thirds of the file unviewable. `clampDpr` below is what
  * stops that happening again, without hand-tuning 134 recipes.
  */
@@ -77,7 +77,7 @@ export const DEFAULT_THRESHOLDS: ShotThresholds = {
   // has ever had, and a number tight enough to be satisfying today would either
   // block legitimate shots or collect waivers. `maxWidth` is the derived rule and
   // does the real work; this is the backstop for the OTHER failure mode, where the
-  // pixels are in budget but the content is incompressible — the mesh-gradient and
+  // pixels are in budget but the content is incompressible - the mesh-gradient and
   // street-map canvases run ~1.5 B/px against a UI shot's ~0.36, and are the
   // heaviest files left once width is capped. A dense full-window UI shot at the
   // width ceiling measures ~0.45 B/px (1800x1125 ≈ 910 KB), so 1 MB clears those
@@ -91,7 +91,7 @@ export const DEFAULT_THRESHOLDS: ShotThresholds = {
  * reduced so the output cannot exceed `maxPx` across.
  *
  * `clipCssWidth` is the visible width AFTER cropping, which is the only width that
- * ends up in the file — so a recipe that crops to the area of focus (the house
+ * ends up in the file - so a recipe that crops to the area of focus (the house
  * rule) keeps its full 2x crispness, while a full-window shot quietly drops toward
  * 1x instead of shipping pixels past the display ceiling. Recipes therefore state
  * the density they want and this decides what is worth encoding.
@@ -125,7 +125,7 @@ export function channelStddev(img: RawImage): number {
   return worst;
 }
 
-/** True when the image is a near-uniform wash — the page painted nothing. */
+/** True when the image is a near-uniform wash - the page painted nothing. */
 export function isBlank(img: RawImage, t: ShotThresholds = DEFAULT_THRESHOLDS): boolean {
   return channelStddev(img) <= t.blankStddev;
 }
@@ -185,7 +185,7 @@ export function classifyShot(c: ShotComparison, t: ShotThresholds = DEFAULT_THRE
     flags.push('dims-mismatch');
   }
   // Ceilings, checked BEFORE the no-baseline return so a brand-new shot is judged
-  // too — an over-weight baseline is easiest to stop on the run that creates it.
+  // too - an over-weight baseline is easiest to stop on the run that creates it.
   if (c.newImg.width > t.maxWidth) flags.push('over-scale');
   if (c.newBytes > t.maxBytes) flags.push('heavy');
 
@@ -208,12 +208,12 @@ export function classifyShot(c: ShotComparison, t: ShotThresholds = DEFAULT_THRE
 // A vector shot is compared as a DOCUMENT, not as pixels: the conversion is
 // deterministic, so "unchanged" is string equality after stripping the C2PA
 // block (whose signature carries a timestamp) from the committed baseline.
-// Pixel-percentage metrics don't apply — size delta and dims carry the report.
+// Pixel-percentage metrics don't apply - size delta and dims carry the report.
 
 /** Remove the C2PA <metadata><c2pa:manifest>…</> block + xmlns (engine placeSvg shape). */
 export function stripSvgC2pa(svg: string): string {
   // GLOBAL, all three. A shot is not limited to one manifest: the walker inlines catalog
-  // preview SVGs as real nested vector, and those previews are themselves credentialed —
+  // preview SVGs as real nested vector, and those previews are themselves credentialed - 
   // the gallery shot carries EIGHT. Stripping only the first removed the shot's own
   // manifest from a stamped baseline but the first inlined preview's from a fresh
   // unstamped capture, so the two could never compare equal and the shot reported
@@ -229,20 +229,20 @@ export function stripSvgC2pa(svg: string): string {
  * The published frame for a walker shot, in the walked node's OWN coordinate space.
  *
  * `nat`   the walker's native root box (it frames getBoundingClientRect, so this is
- *         the element's border box — NOT its scroll height).
+ *         the element's border box - NOT its scroll height).
  * `frame` the recipe's declared width x height.
  * `off`   how far the node extends above/left of the viewport, i.e.
  *         max(0, -rect.left) and max(0, -rect.top).
  *
  * WHY THE OFFSET EXISTS. renderSvgFromHtml emits every node relative to the walked
- * node's top-left, so root (0,0) is that corner — which for an element TALLER than
+ * node's top-left, so root (0,0) is that corner - which for an element TALLER than
  * the viewport and centred in it (the tool stage is `place-items:center`) sits above
  * the fold. Anchoring the window at 0,0 then publishes the off-screen band and cuts
  * the visible one: measured on a 944x2009 centred element at top=-554.5, the reader
  * sees local y 554.5-1454.5 while a top-anchored 900px window emitted 0-900.
  *
  * SIZE IS min(), NOT the frame. An element smaller than the recipe frame keeps its
- * own box rather than being padded out to it — padding would add a transparent ring
+ * own box rather than being padded out to it - padding would add a transparent ring
  * the subtree-scoped walk has no ink for, and the /info column never upscales
  * (docs/build.ts, `max-width: min(100%, 40em)`), so it would just publish smaller
  * content inside a bigger canvas.
@@ -255,7 +255,7 @@ export function walkerWindow(
   const w = Math.min(frame.w, nat.w);
   const h = Math.min(frame.h, nat.h);
   // Slide to the visible band, then clamp inside the box so the window is always a
-  // sub-rect of what was actually walked — which is why no backdrop ring is needed.
+  // sub-rect of what was actually walked - which is why no backdrop ring is needed.
   return {
     x: Math.min(Math.max(0, off.x), Math.max(0, nat.w - w)),
     y: Math.min(Math.max(0, off.y), Math.max(0, nat.h - h)),
@@ -281,7 +281,7 @@ export interface VectorShotComparison {
    * when the frame is not derivable from the recipe. The print path windows a
    * full-page render, so its size IS viewport-minus-crop and a mismatch means the
    * window went wrong. A `walker=1` capture instead walks the cropSelector element
-   * at its native size, so there is nothing to compare against — see the note at
+   * at its native size, so there is nothing to compare against - see the note at
    * the call site in build-docs-shots.ts.
    */
   expected: { width: number; height: number } | null;
@@ -293,12 +293,12 @@ export interface VectorShotComparison {
  * Recipes whose `tolerance=` cannot do anything, returned as slugs.
  *
  * `tolerance` sets ShotThresholds.pixelDiffFrac, and only classifyShot (raster)
- * reads it — a vector shot is compared as a DOCUMENT, by exact string equality
+ * reads it - a vector shot is compared as a DOCUMENT, by exact string equality
  * after stripping C2PA, so there is no fuzzy channel for it to widen. An author
  * who writes it on a `format=svg` recipe gets silence, not an effect.
  *
  * This is not hypothetical: the walker migration moved several shots to
- * `format=svg&walker=1` and carried their `tolerance=0.03` across unchanged —
+ * `format=svg&walker=1` and carried their `tolerance=0.03` across unchanged - 
  * a tolerance they had *because* they frame wall-clock content (animated gallery
  * previews, a running timeline). Those now compare exactly and will report
  * `changed` on any run where the animation lands differently, with no way to say
@@ -350,14 +350,14 @@ export function classifyVectorShot(c: VectorShotComparison, t: ShotThresholds = 
 export interface ShotDef {
   slug: string;
   route: string;
-  /** Output format of the committed baseline (svg default — a scalable wrapper). */
+  /** Output format of the committed baseline (svg default - a scalable wrapper). */
   format: 'svg' | 'png' | 'jpg';
   width?: number;
   height?: number;
   dpi?: number;
   /**
    * Walker-SVG only: DPI ceiling for INLINED raster assets (`<img>` bitmaps), decoupled
-   * from `dpi` (the vector/own-paint resolution). Opt-in — when set, each embedded photo
+   * from `dpi` (the vector/own-paint resolution). Opt-in - when set, each embedded photo
    * is downscaled to its display box at this DPI (1x floor), replacing the full-resolution
    * source so a continuous-tone asset stops blowing the vector byte budget while the page
    * chrome stays crisp vector. `rasterDpi=96` = embed at exactly the rendered box.
@@ -368,8 +368,8 @@ export interface ShotDef {
   /**
    * Block the capture until this selector matches (after waitMs, before scroll or
    * serialisation). The deterministic settle for pages that signal readiness in the
-   * DOM — e.g. the ?neuro demo stamps `data-demo-settled` when its fixed frame
-   * sequence has rendered — where any waitMs is a guess about machine speed.
+   * DOM - e.g. the ?neuro demo stamps `data-demo-settled` when its fixed frame
+   * sequence has rendered - where any waitMs is a guess about machine speed.
    */
   waitSelector?: string;
   css?: string;
@@ -380,7 +380,7 @@ export interface ShotDef {
   cropTop?: number;
   cropBottom?: number;
   /**
-   * Crop to a single element by CSS selector — the capture measures its
+   * Crop to a single element by CSS selector - the capture measures its
    * bounding box (after css/scroll/wait) and derives the crop insets, so a
    * recipe can frame "just the Share dialog" without hand-computing fractions.
    * Overrides any explicit crop* values. Pipeline-only (resolved at capture).
@@ -388,7 +388,7 @@ export interface ShotDef {
   /**
    * Pipeline-only: offer a link to the app route this shot was taken from, under
    * the picture. Opt-in per recipe, because "you can go and do this yourself" is
-   * only true of some shots — a cropped control or an anatomy diagram is an
+   * only true of some shots - a cropped control or an anatomy diagram is an
    * illustration, and a link on every one of 150 shots is furniture, not an offer.
    */
   tryIt?: boolean;
@@ -396,7 +396,7 @@ export interface ShotDef {
   /**
    * Per-shot changed-vs-unchanged tolerance (fraction of differing pixels),
    * overriding ShotThresholds.pixelDiffFrac. For pages hosting wall-clock media
-   * (APNG/SMIL/video card previews) whose animation phase CSS freezing can't pin —
+   * (APNG/SMIL/video card previews) whose animation phase CSS freezing can't pin - 
    * raise it just enough to absorb the flutter, never to paper over real change.
    */
   pixelDiffFrac?: number;
@@ -406,14 +406,14 @@ export interface ShotDef {
    *
    * WHY IT IS A CHOICE AND NOT THE DEFAULT. print is a black box: it flattens
    * anything it has no PDF primitive for, and PDF has no conic/angular shading
-   * type at all, so a `repeating-conic-gradient` — the transparency checkerboard
-   * on every tool stage — comes back as a full-canvas PNG (measured: 49 KB inside
+   * type at all, so a `repeating-conic-gradient` - the transparency checkerboard
+   * on every tool stage - comes back as a full-canvas PNG (measured: 49 KB inside
    * a 518 KB shot, and 3.08 MB across the committed baselines). The walker emits
    * a real <pattern> instead, and plans/69-svg-snapshot-without-print.md measures it
    * 4-30x faster and 2-4x smaller with raster coverage on the tool fixtures cut
    * 86% -> 5%. What print still does better is anything the walker has not
    * implemented, so this stays opt-in per recipe until the corpus is migrated.
-   * Ignored for raster formats — there is nothing to keep vector.
+   * Ignored for raster formats - there is nothing to keep vector.
    */
   walker?: boolean;
   /**
@@ -446,7 +446,7 @@ export interface ShotDef {
   theme?: 'dark';
   /**
    * Interactions to perform after the page settles and before the shot is taken
-   * (`drive=` — see parseDriveSteps for the grammar). The states worth documenting
+   * (`drive=` - see parseDriveSteps for the grammar). The states worth documenting
    * in an editor are mostly states a user CREATES: an open menu, a popover, a
    * dialog, a drag in flight. None of them exist in a freshly loaded page and none
    * of them can be faked with `css=`, because the app builds them on demand.
@@ -456,7 +456,7 @@ export interface ShotDef {
   raw: string;
 }
 
-/** One interaction — the same shape `packages/node-shell/src/url-capture.ts` runs. */
+/** One interaction - the same shape `packages/node-shell/src/url-capture.ts` runs. */
 export type DriveStep =
   | { kind: 'click'; selector: string; button?: 'left' | 'right'; count?: number; at?: [number, number] }
   | { kind: 'hover'; selector: string; at?: [number, number] }
@@ -464,7 +464,7 @@ export type DriveStep =
   | { kind: 'drag'; selector: string; dx: number; dy: number; at?: [number, number]; hold?: boolean }
   | { kind: 'wait'; ms: number };
 
-/** `at=0.42,0.5` — a point inside the target's box as fractions of its width/height. */
+/** `at=0.42,0.5` - a point inside the target's box as fractions of its width/height. */
 function parseAt(v: string): [number, number] | null {
   const [fx, fy] = v.split(',').map(Number);
   if (!Number.isFinite(fx) || !Number.isFinite(fy)) return null;
@@ -579,7 +579,7 @@ export function parseShotRecipes(md: string): { recipes: ShotDef[]; problems: st
     const prior = byName.get(slug);
     if (prior !== undefined) {
       if (prior !== raw) problems.push(`${at}: filename reused with a different recipe`);
-      continue; // identical duplicate — same shot referenced again
+      continue; // identical duplicate - same shot referenced again
     }
     byName.set(slug, raw);
 

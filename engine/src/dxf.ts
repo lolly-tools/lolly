@@ -1,26 +1,27 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
- * DXF (AutoCAD Drawing Interchange) emitter — pure, DOM-free, platform-agnostic.
+ * DXF (AutoCAD Drawing Interchange) emitter - pure, DOM-free, platform-agnostic.
  *
  * Fourth sink on the SVG vector pipeline (alongside SVG, EMF and EPS): turns the
  * same normalized device-px IR that emf.ts / eps.ts serialize into an ASCII DXF
- * R12 (AC1009) document — the lingua franca for CAD / laser-cut / vinyl / CNC
- * software, most of which predates newer DXF flavours. The only drawing entity is
- * the POLYLINE: every fill/stroke path is flattened to line segments (cubic béziers
- * subdivided to a flatness tolerance) so a cutter's path planner sees clean vertex
- * chains. Text is outlined to paths upstream (the "always text-as-paths" rule), so
- * this writes no TEXT entities and needs no fonts.
+ * R12 (AC1009) document. This is the standard format for CAD, laser-cut, vinyl,
+ * and CNC software, most of which predates newer DXF versions. The only drawing
+ * entity is the POLYLINE: every fill/stroke path is flattened to line segments
+ * (cubic béziers subdivided to a flatness tolerance), so a cutter's path planner
+ * sees clean vertex chains. Text is outlined to paths upstream (the "always
+ * text-as-paths" rule), so this writes no TEXT entities and needs no fonts.
  *
- * DXF modelspace is y-UP (like PostScript), unitless coordinates whose meaning is
- * set by the header — so the IR's top-left / y-down / device-px space is flipped and
- * scaled to the physical output size in millimetres ($INSUNITS = 4). Colour is
- * carried as an AutoCAD Color Index (ACI) nearest-match (group code 62): DXF R12 has
- * no 24-bit colour, and for a cut/engrave file the index typically drives the tool
- * operation, not an exact hue — geometry is what matters. The raster escape-hatch
- * (`image` prim) has no line-art representation and is dropped; the shell warns.
+ * DXF modelspace is y-UP (like PostScript), with unitless coordinates whose
+ * meaning is set by the header. So the IR's top-left / y-down / device-px space
+ * is flipped and scaled to the physical output size in millimetres ($INSUNITS =
+ * 4). Colour is carried as an AutoCAD Color Index (ACI) nearest-match (group
+ * code 62): DXF R12 has no 24-bit colour, and for a cut/engrave file the index
+ * typically drives the tool operation, not an exact hue. Geometry is what
+ * matters here. The raster escape-hatch (`image` prim) has no line-art
+ * representation and is dropped; the shell warns.
  *
  * Like emf.ts / eps.ts this is a format authority: it imports only units.ts. No DOM,
- * no Handlebars, no ajv — fully node:test-able.
+ * no Handlebars, no ajv - fully node:test-able.
  */
 import { parseDimension, toInches, CSS_DPI } from './units.ts';
 import type { Rgb, VectorIr, VectorPathPrim, VectorEmitOpts } from './emf.ts';
@@ -28,7 +29,7 @@ import type { Rgb, VectorIr, VectorPathPrim, VectorEmitOpts } from './emf.ts';
 const MM_PER_INCH = 25.4;
 
 // Compact number: up to 4 decimals, no negative zero, no exponent (DXF group-code
-// values are plain decimals — a "1e-7" would break strict parsers).
+// values are plain decimals - a "1e-7" would break strict parsers).
 function num(v: number): string {
   if (!Number.isFinite(v)) return '0.0';
   let r = Math.round(v * 1e4) / 1e4;
@@ -111,9 +112,9 @@ function subpathVertices(segments: VectorPathPrim['subpaths'][number]['segments'
 /**
  * Serialize an IR to DXF text.
  * @param ir   { width, height, prims }
- * @param opts { width, height, unit, dpi } — physical output size (millimetres in DXF)
+ * @param opts { width, height, unit, dpi } - physical output size (millimetres in DXF)
  *
- * Returns { text, droppedImages } — droppedImages counts raster escape-hatch prims
+ * Returns { text, droppedImages } - droppedImages counts raster escape-hatch prims
  * that DXF can't carry, so the shell can warn rather than silently lose an effect.
  */
 export function emitDxf(ir: VectorIr, opts: VectorEmitOpts = {}): { text: string; droppedImages: number } {
@@ -160,10 +161,10 @@ export function emitDxf(ir: VectorIr, opts: VectorEmitOpts = {}): { text: string
 
   const out: string[] = [];
   // Group code 999 is a DXF comment (ignored by every reader). Plain ASCII, no scheme
-  // or punctuation that a vintage R12 reader might choke on — just names the source.
+  // or punctuation that a vintage R12 reader might choke on - just names the source.
   // Gated: a metadata-stripped export (opts.attribution === false) omits it.
   if (opts.attribution !== false) g(out, 999, 'Created by Lolly lolly.tools');
-  // HEADER — version + drawing units + extents (min/max of the whole model box).
+  // HEADER - version + drawing units + extents (min/max of the whole model box).
   g(out, 0, 'SECTION');
   g(out, 2, 'HEADER');
   g(out, 9, '$ACADVER'); g(out, 1, 'AC1009');
@@ -171,7 +172,7 @@ export function emitDxf(ir: VectorIr, opts: VectorEmitOpts = {}): { text: string
   g(out, 9, '$EXTMIN'); g(out, 10, '0.0'); g(out, 20, '0.0'); g(out, 30, '0.0');
   g(out, 9, '$EXTMAX'); g(out, 10, num(Wmm)); g(out, 20, num(Hmm)); g(out, 30, '0.0');
   g(out, 0, 'ENDSEC');
-  // TABLES — one LAYER ("0"), the minimum a strict reader expects.
+  // TABLES - one LAYER ("0"), the minimum a strict reader expects.
   g(out, 0, 'SECTION');
   g(out, 2, 'TABLES');
   g(out, 0, 'TABLE'); g(out, 2, 'LAYER'); g(out, 70, 1);

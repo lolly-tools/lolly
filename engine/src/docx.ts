@@ -1,38 +1,36 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
- * DOCX (Word / WordprocessingML OOXML) builder — pure, DOM-free, platform-agnostic.
+ * DOCX (Word / WordprocessingML OOXML) builder. Pure, DOM-free, platform-agnostic.
  *
- * The document twin of `pptx.ts`: a .docx is a ZIP of XML parts, and the point of the
- * format is the same PowerPoint pitch made to Word — hand over REAL editable text, not a
- * rasterised picture. `writeDocx` takes a tiny block model (headings + paragraphs) and
- * emits a minimal, spec-valid WordprocessingML package that opens and stays fully editable
- * in Word, LibreOffice Writer and Google Docs.
+ * The document twin of `pptx.ts`. A .docx file is a ZIP of XML parts. The format makes the
+ * same pitch to Word that PowerPoint gets: hand over real editable text, not a rasterised
+ * picture. `writeDocx` takes a tiny block model (headings + paragraphs) and emits a minimal,
+ * spec-valid WordprocessingML package that opens and stays fully editable in Word, LibreOffice
+ * Writer and Google Docs.
  *
- * The five parts every conforming Word document needs:
- *   • `[Content_Types].xml`        — declares the .rels + .xml defaults and the main-document
- *                                     + styles part content types.
- *   • `_rels/.rels`                — the package root relationship → word/document.xml (the
- *                                     `officeDocument` root; without it Word can't find the body).
- *   • `word/document.xml`          — `w:document/w:body`: one `w:p` per block. A run is
- *                                     `w:r/w:t`, and every `w:t` carries `xml:space="preserve"`
- *                                     so leading/trailing spaces survive. Headings reference a
- *                                     `w:pStyle` ("Heading1".."Heading6"); paragraphs carry none.
- *                                     The body's trailing `w:sectPr` (page geometry) is required
- *                                     for Word to treat the document as laid out.
- *   • `word/styles.xml`            — defines Normal (the document default) + Heading1..6, so a
- *                                     `pStyle` reference actually resolves to a visible style
- *                                     (bold, graded sizes) rather than a dangling id.
- *   • `word/_rels/document.xml.rels` — relates the main document to styles.xml.
+ * Every conforming Word document needs these five parts:
+ *   - `[Content_Types].xml` - declares the .rels + .xml defaults and the main-document
+ *     + styles part content types.
+ *   - `_rels/.rels` - the package root relationship to word/document.xml (the
+ *     `officeDocument` root; without it Word cannot find the body).
+ *   - `word/document.xml` - `w:document/w:body`: one `w:p` per block. A run is `w:r/w:t`,
+ *     and every `w:t` carries `xml:space="preserve"` so leading/trailing spaces survive.
+ *     Headings reference a `w:pStyle` ("Heading1".."Heading6"); paragraphs carry none. The
+ *     body's trailing `w:sectPr` (page geometry) is required for Word to treat the document
+ *     as laid out.
+ *   - `word/styles.xml` - defines Normal (the document default) + Heading1..6, so a `pStyle`
+ *     reference resolves to a visible style (bold, graded sizes) instead of a dangling id.
+ *   - `word/_rels/document.xml.rels` - relates the main document to styles.xml.
  *
  * Namespace trap (shared with pptx.ts): the .rels CONTAINER namespace is
  * …/package/2006/relationships, NOT the …/officeDocument/… relationship-TYPE base. The main
  * document uses the `w:` WordprocessingML namespace throughout.
  *
- * Scope: headings + plain paragraphs only — the deliberate floor that proves the editable-text
- * path, matching EPUB's "one XHTML file per chapter" minimalism. Runs carry no inline styling
- * (bold/italic/colour) yet; that is additive and can land without touching this contract.
- * Returns the finished zip bytes via the shared `storeZip`; no DOM, no deps beyond the named
- * engine primitives.
+ * Scope: headings and plain paragraphs only. This is the deliberate floor that proves the
+ * editable-text path, matching EPUB's "one XHTML file per chapter" minimalism. Runs carry no
+ * inline styling (bold/italic/colour) yet; that can be added later without touching this
+ * contract. Returns the finished zip bytes via the shared `storeZip`. No DOM, no deps beyond
+ * the named engine primitives.
  */
 
 import { storeZip, type ZipStoreEntry } from './zip.ts';
@@ -61,9 +59,10 @@ export interface DocxDoc {
   blocks: DocxBlock[];
 }
 
-// Strip the chars ILLEGAL in XML 1.0's Char production BEFORE entity-escaping — the C0
-// controls (below U+0020 except tab/LF/CR) plus U+FFFE/U+FFFF. A stray one in user text is a
-// hard parse-fail (Word "unreadable content" repair), so drop it at the single chokepoint.
+// Strip the chars illegal in XML 1.0's Char production before entity-escaping: the C0
+// controls (below U+0020 except tab/LF/CR) plus U+FFFE/U+FFFF. A stray one in user text
+// causes a hard parse-fail (Word "unreadable content" repair), so drop it at the single
+// chokepoint.
 const xmlEsc = (s: string): string =>
   s
     .replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F\uFFFE\uFFFF]/g, '')
@@ -85,9 +84,9 @@ function paragraphXml(block: DocxBlock): string {
   return `<w:p>${pPr}${run}</w:p>`;
 }
 
-// Body page geometry — US-Letter (12240×15840 twips) with 1" margins. A body with no trailing
-// w:sectPr is technically parseable but every real producer emits one, and its absence trips
-// Word's layout heuristics; keep it fixed so output is deterministic.
+// Body page geometry: US-Letter (12240x15840 twips) with 1" margins. A body with no trailing
+// w:sectPr is technically parseable, but every real producer emits one, and leaving it out
+// trips Word's layout heuristics. Keep it fixed so output is deterministic.
 const SECT_PR =
   '<w:sectPr>' +
   '<w:pgSz w:w="12240" w:h="15840"/>' +
@@ -104,8 +103,8 @@ function documentXml(blocks: DocxBlock[]): string {
   );
 }
 
-// Heading point sizes (half-points, so 32 = 16pt … stepping down to 20 = 10pt at Heading6),
-// each bold — enough that a pStyle reference resolves to a visibly distinct style.
+// Heading point sizes (half-points, so 32 = 16pt down to 20 = 10pt at Heading6), each
+// bold. Enough that a pStyle reference resolves to a visibly distinct style.
 const HEADING_HALF_PT = [32, 28, 26, 24, 22, 20];
 
 function stylesXml(): string {

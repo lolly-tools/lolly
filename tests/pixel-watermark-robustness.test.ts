@@ -1,15 +1,15 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
- * Lolly pixel watermark — real-encoder robustness (Phase 1 calibration, now a
+ * Lolly pixel watermark - real-encoder robustness (Phase 1 calibration, now a
  * regression). Runs marked/unmarked content through REAL JPEG/crop/resize via
  * sharp (already a repo devDependency) and asserts the survival envelope the
- * default strength/threshold were tuned for. Self-generated content — needs no
+ * default strength/threshold were tuned for. Self-generated content - needs no
  * external fixtures. Skips cleanly if sharp can't load.
  *
  * Measured envelope (photo-like content, v2 scheme: strength 3.8, 22-coefficient
  * mid-band, activity gate 2.5, threshold 0.035):
  *   survives:  PNG lossless, JPEG q95→q50, 8×8-aligned crop   (scores 0.11–0.53)
- *   does NOT:  arbitrary resize — the 8×8 grid shifts         (documented v1/v2 gap)
+ *   does NOT:  arbitrary resize - the 8×8 grid shifts         (documented v1/v2 gap)
  *   unmarked:  stays absent through every transform            (score ≲ 0.02)
  *
  * v2 (2026-07-18) re-calibrated for lower visibility: vs v1 (strength 5.5, 15
@@ -31,7 +31,7 @@ const skip = sharp ? false : 'sharp not available';
 
 interface Img { data: Uint8Array; width: number; height: number }
 
-// Multi-scale "photo-like" content — the shared, CALIBRATED generator (see
+// Multi-scale "photo-like" content - the shared, CALIBRATED generator (see
 // helpers/photo-like.ts): the measured envelope in this file's header was tuned
 // against it.
 import { photoLike } from './helpers/photo-like.ts';
@@ -82,7 +82,7 @@ test('unmarked content is never a false positive through any transform', { skip 
 // mid-band, chip key 0x10111e5c, strength 5.5, activity gate 1.5) must still detect
 // under the current dual-scheme detector, so pre-v2 `?imprint=1` files keep
 // verifying. This is a self-contained replica of the v1 embedder (the engine no
-// longer ships a v1 embed path) — the DETECTOR under test is the real one; only the
+// longer ships a v1 embed path) - the DETECTOR under test is the real one; only the
 // fixture is hand-rolled. The DCT math is identical to the engine's (unchanged in v2).
 const V1B = 8, V1BLOCK = 64;
 const V1M = (() => {
@@ -130,7 +130,7 @@ test('a v1-embedded buffer still detects under the current (v2) dual-scheme dete
   const size = 512;
   const orig: Img = { data: photoLike(size, size, 512), width: size, height: size };
   const v1marked: Img = { data: embedV1(orig.data, size, size), width: size, height: size };
-  // Sanity: this really is a v1 fixture, not a v2 one — the plain (v2) embedder
+  // Sanity: this really is a v1 fixture, not a v2 one - the plain (v2) embedder
   // would produce a different buffer; the point is the OLD scheme still reads back.
   assert.notDeepEqual(v1marked.data, embedWatermark(orig.data, { width: size, height: size }));
   // The unmarked original must stay absent; the v1-marked buffer must detect.

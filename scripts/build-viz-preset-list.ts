@@ -5,7 +5,7 @@
  * WHY THIS EXISTS. `scripts/viz-preset-list.json` used to be a hand-assembled selection
  * scored by a local heuristic (authored `rating` + shader richness + a per-author cap).
  * That produced 220 entries of which only 162 were in ANY butterchurn pack, while 232
- * presets that butterchurn itself curates were missing — including one of the 29 that
+ * presets that butterchurn itself curates were missing - including one of the 29 that
  * butterchurnviz.com opens with. It also parsed names badly, leaving author fields like
  * "Anandamide_I_Don't_Want_" (a truncated filename prefix) on the cards.
  *
@@ -13,11 +13,11 @@
  * The one real signal is which of its packs butterchurn ships a preset in, because those
  * were selected by people who know the corpus:
  *
- *   1 minimal   (29)  what butterchurnviz.com opens with — the greatest hits
+ *   1 minimal   (29)  what butterchurnviz.com opens with - the greatest hits
  *   2 base      (71)  the rest of the default `butterchurnPresets` pack
  *   3 extra     (146) the first deep cut
  *   4 extra2    (122) the second
- *   5 md1       (87)  the MilkDrop 1 originals — historical rather than "better or worse"
+ *   5 md1       (87)  the MilkDrop 1 originals - historical rather than "better or worse"
  *
  * A preset in several packs takes its BEST (lowest) tier. Union across all five: 395, of
  * which 394 map to a converted file.
@@ -26,7 +26,7 @@
  * tier 6, because a preset id is user data: it is stored in saved sessions and travels in
  * share URLs, so removing one silently changes somebody's finished card.
  *
- * PROVENANCE IS UNCHANGED. This writes identifiers only — filename, display name, author,
+ * PROVENANCE IS UNCHANGED. This writes identifiers only - filename, display name, author,
  * tier. The preset CONTENT still lives in the `butterchurn-presets` dependency and is
  * staged at build time by copy-viz-presets.ts into a gitignored directory. See that file.
  *
@@ -36,7 +36,7 @@
  *   node scripts/build-viz-preset-list.ts [--write-tool]
  *
  * `--write-tool` also refreshes the audiogram manifest's `preset` select with the tier-1
- * and tier-2 presets — the ones worth putting in front of someone by name.
+ * and tier-2 presets - the ones worth putting in front of someone by name.
  */
 import { existsSync, readFileSync, readdirSync, writeFileSync } from 'node:fs';
 import { createRequire } from 'node:module';
@@ -60,7 +60,7 @@ const PACKS: Array<{ tier: number; module: string }> = [
   { tier: 5, module: 'butterchurnPresetsMD1' },
 ];
 
-/** Tier given to a preset no pack includes — kept so no existing id disappears. */
+/** Tier given to a preset no pack includes - kept so no existing id disappears. */
 const TIER_DEEP_CUT = 6;
 
 /** Tiers offered by name in the tool's preset select. */
@@ -71,13 +71,13 @@ const TOOL_TIERS = 2;
  *
  * Pack membership says a preset is admired; it does not say it renders. Measured on a real
  * GPU across all 452 (butterchurn-viz's own mount, injected audio, buffers reset then 48
- * warm frames — the audiogram's actual path), 7 render pure black and 24 blow out to a
+ * warm frames - the audiogram's actual path), 7 render pure black and 24 blow out to a
  * flat white field. Both were reproduced with the brand wrapper BYPASSED and at tint
  * 'off', so they are how butterchurn renders these presets, not something we do to them.
  *
  * The blacks are a coherent class: pure feedback amplifiers with no light source of their
  * own. They come alive only by inheriting a previous preset's field, so they can look fine
- * in a live overlay that cycles — and render black in an export, which always starts cold.
+ * in a live overlay that cycles - and render black in an export, which always starts cold.
  *
  * WITHHELD, NOT REMOVED. These stay in the list and stay staged, so an id already in a
  * saved session or a share URL still resolves; they are simply not put in front of anyone
@@ -113,7 +113,7 @@ interface Entry {
  * the wrong preset. So a truncated slug carries a hash of the full filename.
  *
  * The hash is applied on TRUNCATION, not on collision, so an id is a pure function of its
- * own filename — a collision-triggered suffix would depend on what else happened to be in
+ * own filename - a collision-triggered suffix would depend on what else happened to be in
  * the list, and ids would churn every time the dependency added a preset. Ids are user
  * data: they sit in saved sessions and share URLs.
  */
@@ -124,7 +124,7 @@ function idFor(file: string): string {
     .replace(/^-|-$/g, '')
     .toLowerCase();
   if (slug.length <= 72) return slug;
-  // FNV-1a, 32-bit — a short stable discriminator, not a security hash.
+  // FNV-1a, 32-bit - a short stable discriminator, not a security hash.
   let h = 0x811c9dc5;
   for (let i = 0; i < file.length; i++) {
     h ^= file.charCodeAt(i);
@@ -134,7 +134,7 @@ function idFor(file: string): string {
 }
 
 /**
- * Split "Author - Title" — the convention 373 of the 395 pack presets follow. A title can
+ * Split "Author - Title" - the convention 373 of the 395 pack presets follow. A title can
  * itself contain " - " ("Flexi, martin + geiss - dedicated to the sherwin maxawow"), so
  * only the FIRST separator splits. The 22 without one (e.g. "_Mig_085") have no author to
  * credit, and inventing one would put a false name on a card.
@@ -188,7 +188,7 @@ function main(): void {
     out.set(file, { f: file, n, a, p: tier === 1 ? 1 : 0, t: tier, ...(lumaOf.has(file) ? { l: lumaOf.get(file) } : {}) });
   }
 
-  // Then everything the previous list carried that no pack includes — a preset id is user
+  // Then everything the previous list carried that no pack includes - a preset id is user
   // data (saved sessions, share URLs), so dropping one rewrites somebody's finished card.
   let kept = 0;
   for (const e of prior) {
@@ -236,7 +236,7 @@ function main(): void {
  *
  * Only tiers 1-2 go in by name: 100 curated presets is already a long select, and the
  * deeper cuts are reachable by id for anyone who wants them. The tool's OWN presets are
- * preserved exactly as authored — they are the licence-clean default and their order is a
+ * preserved exactly as authored - they are the licence-clean default and their order is a
  * design decision, not something to regenerate.
  */
 /** Does this preset render something a person would want on a card? Unaudited = yes:
@@ -258,7 +258,7 @@ function writeToolOptions(list: Entry[]): void {
     .filter(e => e.t <= TOOL_TIERS && rendersWell(e))
     .map(e => ({
       value: `stock:${idFor(e.f)}`,
-      // "Title · Author" — the author is the point, so it is in the label a person picks
+      // "Title · Author" - the author is the point, so it is in the label a person picks
       // from, not only on the finished card.
       label: e.a ? `${e.n} · ${e.a}` : e.n,
     }));

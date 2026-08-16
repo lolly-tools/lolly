@@ -6,7 +6,7 @@
  * ## How these are checked
  *
  * Nothing here compares against a stored expected control point. A spline solver has one
- * property that matters — the curve is continuous where it says it is — and a golden file
+ * property that matters - the curve is continuous where it says it is - and a golden file
  * of coordinates asserts only that the implementation still agrees with whatever it did
  * the day the file was written, including its bugs. So:
  *
@@ -23,7 +23,7 @@
  * 4. **Stated guarantees only.** Interpolation and G1 are exact by construction and are
  *    asserted tightly. G2 is what the solve converges to, so it is asserted relative to
  *    the curvature magnitude and cross-checked against the solver's own `converged` and
- *    `residual` flags — if the tolerance below ever needed loosening, the flag would have
+ *    `residual` flags - if the tolerance below ever needed loosening, the flag would have
  *    to be lying, and that is the real assertion.
  */
 import { test } from 'node:test';
@@ -248,7 +248,7 @@ test('a corner does not leak influence across itself', () => {
   assert.equal(a.length, 6);
   assert.equal(b.length, 6);
   // Segments 0..2 are before the corner and must change; 3..5 are after it and must be
-  // BIT-identical. Exact equality is the point — "nearly the same" would mean the corner
+  // BIT-identical. Exact equality is the point - "nearly the same" would mean the corner
   // is a strong coupling rather than no coupling.
   let changed = 0;
   for (let i = 0; i < 3; i++) if (a[i]!.some((v, k) => v !== b[i]![k]!)) changed++;
@@ -282,7 +282,7 @@ test('consecutive corners lower to straight segments', () => {
   ];
   const cs = hb(nodes);
   for (const c of cs) {
-    // Controls on the chord at the thirds — the polyline case.
+    // Controls on the chord at the thirds - the polyline case.
     assert.ok(Math.abs(c[2]! - (c[0]! + (c[6]! - c[0]!) / 3)) < 1e-12);
     assert.ok(Math.abs(c[3]! - (c[1]! + (c[7]! - c[1]!) / 3)) < 1e-12);
   }
@@ -361,7 +361,7 @@ test('a tiny nudge moves the output by a comparably tiny amount', () => {
           for (let k = 0; k < 8; k++) worst = Math.max(worst, Math.abs(got[i]![k]! - base[i]![k]!));
         }
         // A Lipschitz bound. The curve is a smooth function of the nodes, so the
-        // constant is O(1) — measured at 1.41 across every case here. A solver flip would
+        // constant is O(1) - measured at 1.41 across every case here. A solver flip would
         // put this in the hundreds of thousands at eps = 1e-6, so the exact ceiling
         // hardly matters; 10 is close enough to the truth to also catch a merely bad
         // amplification.
@@ -412,7 +412,7 @@ test('an authored handle pins the tangent direction and breaks the run', () => {
   assert.ok(sol.converged);
   assert.equal(sol.reversals, 0);
   const cs = hyperbezierCubics(nodes, false, sol);
-  // The pinned node's outgoing tangent must be horizontal, as authored — the handle's
+  // The pinned node's outgoing tangent must be horizontal, as authored - the handle's
   // LENGTH is the solve's business, only its direction is the user's.
   const th = tangentAngle(cs[2]!, 0);
   assert.ok(th !== null);
@@ -523,7 +523,7 @@ test('degenerate inputs return something sane, never NaN', () => {
     assert.ok(allFinite(hb(nodes, closed)), `${name} via toCubics`);
     // Nothing may escape the neighbourhood of its own polygon. The arm formula is
     // bounded by a third of a chord and the blend clamp doubles that at worst, so 2/3 of
-    // a chord is a real bound and not a generous one — an unstuck frame mapping or an
+    // a chord is a real bound and not a generous one - an unstuck frame mapping or an
     // unclamped blend breaks it by orders of magnitude, not by a few percent.
     for (let i = 0; i < cs.length; i++) {
       const c = cs[i]!;

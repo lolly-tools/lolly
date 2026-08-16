@@ -4,12 +4,12 @@
  * (c2pa, c2pa-verify, seal, x509, zip-crypto, pdf-crypto-r6, …). One canonical
  * copy of the helpers those modules used to each carry privately.
  *
- * INTERNAL — deliberately NOT exported from index.ts; consumers import this
+ * INTERNAL. Not exported from index.ts on purpose; consumers import this
  * module directly, so the public engine surface is unchanged.
  *
  * Platform-agnostic like every consumer: globalThis.crypto only (browsers,
  * Node 18+, the Tauri webview), no DOM, no node: imports. No crypto access at
- * module load time — only inside sha256() — so byte-only modules (video-meta,
+ * module load time, only inside sha256(), so byte-only modules (video-meta,
  * webp-anim, strip-metadata) can import this in any environment.
  */
 
@@ -37,25 +37,27 @@ export async function sha256(bytes: Uint8Array): Promise<Uint8Array> {
 export const bytesToHex = (b: Uint8Array): string => Array.from(b, (x) => x.toString(16).padStart(2, '0')).join('');
 
 /**
- * Lowercase sha256 hex of the given bytes — `bytesToHex(await sha256(bytes))`,
+ * Lowercase sha256 hex of the given bytes: `bytesToHex(await sha256(bytes))`,
  * the one spelling of that pair in the engine.
  *
- * It LIVES here rather than in `catalog-integrity.ts` (its original home, which
- * still re-exports it so the barrel surface is unchanged) for a boot-path reason:
- * `design-version.ts` re-exports it too, and `design-version.ts` is on the web
- * shell's first-paint graph via `bridge/assets.ts`. Sourcing a two-line helper
- * from `catalog-integrity.ts` dragged that module — and, through it, `x509.ts` +
- * `der-read.ts` — onto the boot chunk set for a feature (catalog signature
- * verification) that is inert unless a build pins a public key. Same leaf-import
- * discipline the `engine-util` / `engine-version` chunk groups exist to protect.
+ * This function lives here, not in `catalog-integrity.ts` (its original home,
+ * which still re-exports it so the barrel surface is unchanged), for a
+ * boot-path reason: `design-version.ts` re-exports it too, and
+ * `design-version.ts` is on the web shell's first-paint graph via
+ * `bridge/assets.ts`. Sourcing a two-line helper from `catalog-integrity.ts`
+ * would drag that module, and through it `x509.ts` and `der-read.ts`, onto
+ * the boot chunk set for a feature (catalog signature verification) that is
+ * inert unless a build pins a public key. This keeps the same leaf-import
+ * discipline that the `engine-util` / `engine-version` chunk groups exist to
+ * protect.
  */
 export async function sha256Hex(bytes: Uint8Array): Promise<string> {
   return bytesToHex(await sha256(bytes));
 }
 
 /** Strict standard base64 → bytes (atob semantics: throws on invalid input).
- *  Callers own any massaging — PEM armor / whitespace stripping, padding
- *  fixes, base64url alphabet translation — BEFORE calling this. */
+ *  Callers must do any massaging first: PEM armor / whitespace stripping,
+ *  padding fixes, base64url alphabet translation. */
 export function base64ToBytes(b64: string): Uint8Array {
   const bin = atob(b64);
   const out = new Uint8Array(bin.length);

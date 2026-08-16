@@ -1,13 +1,13 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
- * The `collab` translation corpus — the extractor that decides which strings the private
+ * The `collab` translation corpus - the extractor that decides which strings the private
  * collab surface ever gets translated at all.
  *
  * Run with: npm test
  *
  * WHY THIS EXISTS. The eight modules behind the `private-collab` flag keep their copy in an
  * exported `STRINGS` map and render it as `tRaw(STRINGS.x)`. `extractSpaKeys` only sees a
- * quote immediately after `t(`, so NONE of that copy is scannable — which is how
+ * quote immediately after `t(`, so NONE of that copy is scannable - which is how
  * `collab-pill.ts` and `collab-focus.ts` came to hold inline `tRaw('…')` literals that
  * read as translated and were English in all 26 languages, with nothing reporting it.
  * The corpus closes that by SLICING each map out of its source and evaluating it, the
@@ -52,7 +52,7 @@ function leaves(value: unknown, out: string[] = []): string[] {
   return out;
 }
 
-/** Read one module's STRINGS map the way the corpus does — independently, so this test
+/** Read one module's STRINGS map the way the corpus does - independently, so this test
  *  is a second opinion rather than a re-run of the same call. */
 function mapOf(rel: string): Record<string, unknown> {
   const src = readFileSync(join(WEB_SRC, rel), 'utf8');
@@ -106,8 +106,8 @@ test('the shipped collab catalogs carry exactly the corpus key set', () => {
 
 /**
  * Strings that legitimately live in BOTH the boot catalog and this namespace, each with
- * its reason. Overlap is not free — it is translated twice, by two prompts with two
- * different register briefs — so it has to be deliberate.
+ * its reason. Overlap is not free - it is translated twice, by two prompts with two
+ * different register briefs - so it has to be deliberate.
  *
  * On a collision `i18n.ts` merges chrome OVER the namespace (`{...namespace, ...catalog}`),
  * so the boot translation is the one that renders in both places. That is the right way

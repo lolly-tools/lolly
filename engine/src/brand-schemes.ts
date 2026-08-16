@@ -1,20 +1,22 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
- * Brand scheme accents — a pure, deterministic accent-colour generator for the
+ * Brand scheme accents. A pure, deterministic accent-colour generator for the
  * Lolly brand generator's harmony picker.
  *
- * Given a brand's primary colour it produces the ACCENT members of a classic
- * colour-harmony scheme (complement, adjacent, triad, tetrad, plus the "free"
- * variants the picker offers). Every accent holds the primary's OKLCH lightness
- * and chroma and only rotates the hue — so the accents read as siblings of the
- * brand colour, never louder or quieter than it — then is emitted through
- * brand-derive's gamut-mapped `oklchToHex`, so the returned `hex` is always a
- * real sRGB colour (out-of-gamut requests degrade to the nearest same-hue,
- * same-lightness colour rather than clipping channels).
+ * Given a brand's primary colour, this produces the ACCENT members of a
+ * classic colour-harmony scheme (complement, adjacent, triad, tetrad, plus the
+ * "free" variants the picker offers). Every accent keeps the primary's OKLCH
+ * lightness and chroma and rotates only the hue, so each accent matches the
+ * brand colour's intensity exactly, not brighter or duller. Each accent is
+ * then emitted through brand-derive's gamut-mapped `oklchToHex`, so the
+ * returned `hex` is always a real sRGB colour (an out-of-gamut request
+ * degrades to the nearest same-hue, same-lightness colour rather than
+ * clipping channels).
  *
- * Pure: no Date, no Math.random, no IO — same input, byte-identical output. The
- * OKLCH conversion math lives in brand-derive.ts (the engine's single source of
- * truth); this module only decides which hue rotations each scheme applies.
+ * Pure: no Date, no Math.random, no IO. Same input always gives byte-identical
+ * output. The OKLCH conversion math lives in brand-derive.ts (the engine's
+ * single source of truth); this module only decides which hue rotations each
+ * scheme applies.
  */
 
 import { hexToOklch, oklchToHex } from './brand-derive.ts';
@@ -34,7 +36,7 @@ export type SchemeKind =
   | 'free-4';
 
 /** One generated accent: its final sRGB hex, the OKLCH it was emitted from, and
- *  the normalised hue (degrees, [0,360)) — the same as `oklch.h`, surfaced for
+ *  the normalised hue (degrees, [0,360)) - the same as `oklch.h`, surfaced for
  *  callers that sort/group swatches by hue without re-reading the OKLCH. */
 export interface AccentCandidate {
   hex: string;
@@ -44,7 +46,7 @@ export interface AccentCandidate {
 
 // ─── Scheme table ─────────────────────────────────────────────────────────────
 
-// Hue rotations (degrees) from the primary hue for each scheme's ACCENTS — the
+// Hue rotations (degrees) from the primary hue for each scheme's ACCENTS - the
 // primary itself is never listed here (it's the 0° member, returned by neither).
 // So `rotations.length === count - 1` for every scheme.
 const SCHEME_ROTATIONS: Record<SchemeKind, readonly number[]> = {
@@ -70,7 +72,7 @@ export const SCHEME_KINDS: ReadonlyArray<{ id: SchemeKind; label: string; count:
   { id: 'free-4', label: 'Free (4)', count: 4 },
 ];
 
-// A neutral mid-blue OKLCH — the fallback primary when the input hex won't parse,
+// A neutral mid-blue OKLCH - the fallback primary when the input hex won't parse,
 // so the generator always yields a usable set instead of throwing.
 const FALLBACK_PRIMARY: Oklch = { l: 0.62, c: 0.11, h: 250 };
 
@@ -101,12 +103,12 @@ export function generateSchemeAccents(primaryHex: string, scheme: SchemeKind): A
 
 /**
  * Rotate an OKLCH colour's hue by `degrees` while HOLDING its lightness and
- * chroma fixed, then emit through `oklchToHex` — the same gamut-mapped path
- * `generateSchemeAccents` uses. Keeping L and C untouched (rather than
- * pre-clipping chroma to the new hue's ceiling) means saturated colours stay
- * punchy at the sRGB corners and the emitted hex only degrades where the hue
- * genuinely can't carry the chroma, via CSS Color 4 gamut mapping — never a
- * flat channel clip.
+ * chroma fixed, then emit through `oklchToHex`, the same gamut-mapped path
+ * `generateSchemeAccents` uses. Keeping L and C untouched (instead of
+ * pre-clipping chroma to the new hue's ceiling) keeps saturated colours near
+ * full strength at the sRGB corners. The emitted hex degrades only where the
+ * hue genuinely cannot carry the chroma, via CSS Color 4 gamut mapping, never
+ * a flat channel clip.
  *
  * Pure. An unparseable `hex` falls back to the neutral mid-blue primary. The
  * degrees are taken mod 360 (via `normHue`), so a 0° or ±360° rotation is a
@@ -135,7 +137,7 @@ export interface AnalogousParams {
 }
 
 /**
- * A TRUE parametric analogous generator — distinct from the fixed `adjacent-3`
+ * A TRUE parametric analogous generator - distinct from the fixed `adjacent-3`
  * scheme (which is hardwired to ±30°). Produces `count` accents at evenly
  * spaced hues: primary + angle, primary + 2·angle, … primary + count·angle,
  * each holding the primary's L and C (gamut-mapped at emit time by
@@ -157,9 +159,9 @@ export function generateAnalogous(primaryHex: string, params: AnalogousParams): 
 
 /**
  * Apply the same fixed-L, gamut-clipped-C hue rotation across a whole ramp's
- * stops — rotating every stop by the SAME `degrees` shifts the ramp bodily
- * around the hue wheel without touching its lightness/chroma structure. Returns
- * a new hex array; unparseable stops fall back to the neutral primary.
+ * stops. Rotating every stop by the SAME `degrees` moves the whole ramp around
+ * the hue wheel without changing its lightness/chroma structure. Returns a new
+ * hex array; unparseable stops fall back to the neutral primary.
  */
 export function rotateRampHue(stops: readonly string[], degrees: number): string[] {
   return stops.map(stop => rotateHue(stop, degrees));

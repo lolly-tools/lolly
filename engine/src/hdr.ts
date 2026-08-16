@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
- * HDR raster export — brand-colour highlight boost + PQ (SMPTE ST 2084) encoding.
+ * HDR raster export: brand-colour highlight boost + PQ (SMPTE ST 2084) encoding.
  * Platform-agnostic: pure pixel math, no DOM, no network. The sibling of
- * color.ts — where color.ts owns the *profile* bytes a raster file carries, this
+ * color.ts. color.ts owns the *profile* bytes a raster file carries; this module
  * owns the *pixel transform* that turns an SDR canvas render into HDR content the
  * profile then describes.
  *
@@ -18,17 +18,17 @@
  *      coherent HDR signal. A pixel with gain 1 lands at its normal SDR
  *      appearance (sRGB white → SDR reference white), so non-brand content looks
  *      unchanged on an HDR display and tone-maps back to correct SDR elsewhere.
- *   2. Boosts pixels that match the active brand's colours toward peak luminance
- *      — that's the "glow". The boost is a luminance multiplier on linear RGB, so
+ *   2. Boosts pixels that match the active brand's colours toward peak luminance.
+ *      That is the "glow". The boost is a luminance multiplier on linear RGB, so
  *      it brightens without shifting hue/saturation.
  *
  * The boost is profile-agnostic: callers pass the brand's own colours as
  * `targets` (the engine never hardcodes a brand). Near-white is included by
- * default so white text glows — the request that seeded this feature.
+ * default so white text glows: the request that seeded this feature.
  *
  * ─── Lightness-gated boost ────────────────────────────────────────────────────
  * Mid-lightness-and-above brand colours (white, and mid/light primaries) get the
- * full peak multiplier — white hits the peak and a saturated mid primary isn't far
+ * full peak multiplier. White hits the peak and a saturated mid primary isn't far
  * behind (same multiplier; white stays brightest in absolute nits by physics). The
  * multiplier rolls off smoothly for colours *below* mid lightness, so dark
  * primaries (a near-black pine, a deep midnight) are calmed rather than blown out
@@ -41,7 +41,7 @@
  * The output pixel values are PQ code values; they only render as HDR when the
  * file also carries the Rec.2100-PQ signal (JPEG: the cICP tag inside the ICC
  * profile from color.ts#pqBt2020IccProfile; PNG: a cICP chunk). Without that
- * signal a decoder reads the raw PQ codes as sRGB and the image looks dark — the
+ * signal a decoder reads the raw PQ codes as sRGB and the image looks dark. The
  * transform and the signal MUST travel together.
  *
  * ─── The float view transform (deeprichpixels plan §5.2) ──────────────────────
@@ -51,7 +51,7 @@
  *     Scene-referred: LINEAR light, un-premultiplied, unbounded, 1.0 = SDR
  *     reference white (`sdrWhiteNits`). The brand boost lives here; a boosted
  *     white sits at ~peakNits/sdrWhiteNits (~4.93 by default). Nothing is
- *     clipped — >1.0 input headroom rides straight through, and negative
+ *     clipped. >1.0 input headroom rides straight through, and negative
  *     (out-of-gamut) channels survive the re-saturation, unlike the legacy byte
  *     path which clamps because it quantises to unsigned bytes. The brand match
  *     is scale-invariant (computed on a tone-normalised copy), so the transform
@@ -62,7 +62,7 @@
  *     value, NOT linear light, so it deliberately does not travel as a
  *     `DeepFrame` (whose contract says linear): `PqImage` is its own type with
  *     an explicit `encoding: 'pq'` marker. pqToU16 quantises the full 0..65535
- *     range for the deep PNG-16 / AVIF consumers — the fix for the old 8-bit
+ *     range for the deep PNG-16 / AVIF consumers: the fix for the old 8-bit
  *     PQ quantise (10/12-bit transfer crushed to 256 codes banded in shadows).
  *
  * ─── Legacy byte path: byte-identity contract ─────────────────────────────────
@@ -136,7 +136,7 @@ const M_709_TO_2020: readonly [Row3, Row3, Row3] = [
   [0.0163914389, 0.0880132309, 0.8955953302],
 ];
 
-// Linear sRGB → OKLab (Ottosson's reference matrices — the same constants as
+// Linear sRGB → OKLab (Ottosson's reference matrices, the same constants as
 // engine/src/brand-derive.ts#linearSrgbToOklab, kept in sync so the mask's ΔE
 // agrees with the engine's deltaEOk). OKLab: perceptual, so the colour-distance
 // falloff below feathers naturally along anti-aliased edges.
@@ -253,10 +253,10 @@ function resolveTargets(opts: HdrBoostOptions): ResolvedTarget[] {
  * In-place transform of an 8-bit RGBA buffer (canvas `ImageData.data` order) into
  * Rec.2100-PQ code values, boosting pixels that match the brand targets. Alpha is
  * untouched. The result only renders as HDR when the container is tagged
- * Rec.2100-PQ (see HDR_PQ_CICP / color.ts#pqBt2020IccProfile) — see the module
+ * Rec.2100-PQ (see HDR_PQ_CICP / color.ts#pqBt2020IccProfile); see the module
  * header. Returns the same buffer for chaining.
  *
- * Cost is ~3 cbrt + 3 pow per pixel plus a short per-target loop — fine for an
+ * Cost is ~3 cbrt + 3 pow per pixel plus a short per-target loop. Fine for an
  * export-time pass (not a per-frame path).
  */
 export function hdrBoostToPQ<T extends Uint8Array | Uint8ClampedArray>(rgba: T, opts: HdrBoostOptions): T {
@@ -318,7 +318,7 @@ export function hdrBoostToPQ<T extends Uint8Array | Uint8ClampedArray>(rgba: T, 
  * boost + Rec.2020 conversion as {@link hdrBoostToPQ}, minus the encode.
  *
  * Output is a NEW `DeepFrame` in `'rec2020-linear'`: LINEAR light where
- * 1.0 = SDR reference white (`opts.sdrWhiteNits`), unbounded above — a fully
+ * 1.0 = SDR reference white (`opts.sdrWhiteNits`), unbounded above: a fully
  * boosted white lands at ~`peakNits / sdrWhiteNits`. The input frame is not
  * mutated (it is converted to `srgb-linear` first if needed, because the
  * OKLab target matching is defined against linear sRGB). NOTHING here clips:
@@ -343,8 +343,8 @@ export function hdrViewTransform(frame: DeepFrame, opts: HdrBoostOptions): DeepF
     let lg = src[i + 1]!;
     let lb = src[i + 2]!;
 
-    // Same boost model as the legacy loop (see hdrBoostToPQ) — strongest
-    // matching target wins — but the match is made SCALE-INVARIANT: a pixel
+    // Same boost model as the legacy loop (see hdrBoostToPQ): the strongest
+    // matching target wins. But the match is made SCALE-INVARIANT: a pixel
     // above SDR white is tone-normalised (divided by its own max channel) before
     // the OKLab lookup, so its *hue/chroma* decides the verdict and its
     // *brightness* does not. Without this, a neutral riding past 1.0 drifts
@@ -378,7 +378,7 @@ export function hdrViewTransform(frame: DeepFrame, opts: HdrBoostOptions): DeepF
       lb = y + (lb - y) * sat;
     }
 
-    // Boost gain only — NO nits scale and NO PQ here; the output stays linear
+    // Boost gain only: NO nits scale and NO PQ here. The output stays linear
     // relative to SDR reference white so DeepFrame's linear contract holds.
     const gain = 1 + extra;
     out[i] = (m0[0] * lr + m0[1] * lg + m0[2] * lb) * gain;
@@ -392,7 +392,7 @@ export function hdrViewTransform(frame: DeepFrame, opts: HdrBoostOptions): DeepF
 /**
  * A PQ-encoded image. Deliberately NOT a `DeepFrame`: the RGB channels are
  * SMPTE ST 2084 code values (display-referred transfer signal, 0..1), which
- * would violate DeepFrame's "data is linear light" contract — the explicit
+ * would violate DeepFrame's "data is linear light" contract. The explicit
  * `encoding` marker keeps the two worlds impossible to confuse. Alpha stays
  * linear 0..1.
  */
@@ -410,7 +410,7 @@ export interface PqImage {
  * over BT.2020 primaries), then each channel maps
  * `linear x sdrWhiteNits -> nits -> PQ` with the 203-nit BT.2408 diffuse-white
  * anchor by default, so linear 1.0 lands at PQ signal ~0.5806. This is where
- * >1.0 headroom finally meets the tonescale — pqEncode's only clip is the
+ * >1.0 headroom finally meets the tonescale. pqEncode's only clip is the
  * 10 000-nit top of the PQ range itself.
  */
 export function pqEncodeFrame(frame: DeepFrame, sdrWhiteNits: number = DEFAULTS.sdrWhiteNits): PqImage {
@@ -429,8 +429,8 @@ export function pqEncodeFrame(frame: DeepFrame, sdrWhiteNits: number = DEFAULTS.
 
 /**
  * Quantise a PQ image to full-range 16-bit (0..65535, round-to-nearest) for
- * the deep consumers (16-bit PNG IDAT, 10/12-bit AVIF after a shift). This —
- * not the legacy 8-bit quantise — is the precision PQ was designed for.
+ * the deep consumers (16-bit PNG IDAT, 10/12-bit AVIF after a shift). This,
+ * not the legacy 8-bit quantise, is the precision PQ was designed for.
  * Out-of-range clamps at both ends; non-finite samples are sanitised to 0.
  */
 export function pqToU16(pq: PqImage): Uint16Array {

@@ -3,7 +3,7 @@
  * SEAL (hackerfactor) signature verifier contract tests.
  * Run with: node --test tests/seal.test.ts
  *
- * HONESTY — this is a REAL crypto round-trip, not a mock:
+ * HONESTY - this is a REAL crypto round-trip, not a mock:
  *   The independent source of truth is WebCrypto itself. Each fixture generates
  *   a genuine ECDSA / RSA key pair, builds a byte buffer with a real SEAL record
  *   over known ranges, and SIGNS the assembled message with the PRIVATE key
@@ -15,11 +15,11 @@
  *
  *   The signature value region is EXCLUDED from the signed bytes (default
  *   b=F~S,s~f), so the fixture signs a placeholder-length record, then writes
- *   the real (differently-sized) signature into the excluded value slot — the
+ *   the real (differently-sized) signature into the excluded value slot - the
  *   assembled message is invariant to that slot, exactly as the format intends.
  *
  * UNVERIFIED here (documented, not claimed): behaviour against Wael Krawetz's
- * REAL published SEAL sample files, and against LIVE DNS / DNS-over-HTTPS — no
+ * REAL published SEAL sample files, and against LIVE DNS / DNS-over-HTTPS - no
  * sample files and no network in this environment. The crypto round-trip below
  * is what is proven; the real-file + DoH path is exercised only in the browser.
  */
@@ -90,7 +90,7 @@ async function buildSealedFile(opts: FixtureOpts = {}): Promise<Fixture> {
   if (opts.inlinePk) attrs.push(`pk="${b64(spki)}"`);
   const valuePrefix = opts.timestamp ? `${opts.timestamp}:` : '';
 
-  // Placeholder record (value length differs from the real signature — that's
+  // Placeholder record (value length differs from the real signature - that's
   // fine: the value region is excluded from the signed bytes).
   const mkRecord = (value: string): Uint8Array =>
     te.encode(`<seal ${attrs.join(' ')} s="${valuePrefix}${value}"/>`);
@@ -182,7 +182,7 @@ test('inline pk= verifies fully offline (no resolver)', async () => {
 
 test('tampering a covered byte invalidates the signature', async () => {
   const f = await buildSealedFile({ keyAlg: 'ec' });
-  f.bytes[10] = (f.bytes[10]! ^ 0xff) & 0xff; // inside the prefix — a covered byte
+  f.bytes[10] = (f.bytes[10]! ^ 0xff) & 0xff; // inside the prefix - a covered byte
   const r = await verifySeal(f.bytes, () => f.spki);
   assert.equal(r.found, true);
   assert.equal(r.valid, false);
@@ -226,7 +226,7 @@ test('found but no key published → found:true, valid:false, honest reason', as
 });
 
 test('da=sha224 is refused (WebCrypto has no SHA-224)', async () => {
-  // Hand-built record — cannot be WebCrypto-signed with SHA-224, and shouldn't be.
+  // Hand-built record - cannot be WebCrypto-signed with SHA-224, and shouldn't be.
   const rec = te.encode('<seal seal="1" ka="rsa" da="sha224" d="example.com" s="AAAA"/>');
   const bytes = concat(te.encode('data'), rec, te.encode('tail'));
   const r = await verifySeal(bytes, () => new Uint8Array(100));

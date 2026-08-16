@@ -1,16 +1,16 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
- * BMP (Windows Bitmap) — uncompressed BI_RGB encoder + decoder.
+ * BMP (Windows Bitmap) - uncompressed BI_RGB encoder + decoder.
  *
  * The oldest, dumbest raster container still in daily use: no compression, no
  * colour management, no provenance. It exists here because it is the lowest
- * common denominator — the format a legacy Windows tool, an embedded print
+ * common denominator: the format a legacy Windows tool, an embedded print
  * driver, a Delphi/VB app, or a "paste bitmap" clipboard consumer will accept
  * when nothing fancier is on offer. PNG is the engine's real display master
  * (png.ts); BMP is the escape hatch for the recipient who cannot read one.
  *
- * ─── What this emits (BITMAPFILEHEADER + BITMAPINFOHEADER, Microsoft
- *     "Bitmap Storage" / wingdi.h) ──────────────────────────────────────────
+ * --- What this emits (BITMAPFILEHEADER + BITMAPINFOHEADER, Microsoft
+ *     "Bitmap Storage" / wingdi.h) --------------------------------------
  *   14-byte BITMAPFILEHEADER : 'BM', file size, 2 reserved words, pixel offset.
  *   40-byte BITMAPINFOHEADER : header size (40), width, height (POSITIVE =
  *                              bottom-up rows), 1 plane, bit count (24 or 32),
@@ -21,21 +21,21 @@
  * 24-bit by default; 32-bit BGRA the moment any pixel's alpha is < 255, so a
  * fully-opaque image stays the compact three-byte form and a transparent one
  * keeps its alpha. (BI_RGB 32-bit's fourth byte is officially "unused", but
- * every modern reader — Windows GDI+, browsers, ImageMagick — treats it as
+ * every modern reader (Windows GDI+, browsers, ImageMagick) treats it as
  * alpha; that is the pragmatic contract, and the one this module's own decoder
  * honours on the round-trip.)
  *
- * ─── Bottom-up rows ─────────────────────────────────────────────────────────
+ * --- Bottom-up rows -----------------------------------------------------
  * A positive biHeight means the first row IN THE FILE is the BOTTOM row of the
- * image (origin lower-left) — the DIB convention. We write rgba top-down and
+ * image (origin lower-left): the DIB convention. We write rgba top-down and
  * flip at the row level; decode flips back. (Negative biHeight = top-down is a
  * legal variant we ACCEPT on decode but never emit.)
  *
- * ─── Hostile input (the "GIF lesson") ───────────────────────────────────────
+ * --- Hostile input (the "GIF lesson") ------------------------------------
  * Every multi-byte field is read through a bounds-checked cursor: the header is
  * refused unless all 54 declared bytes are present, the pixel offset and the
  * per-row stride are validated against the actual buffer length BEFORE any
- * deref, and the row count is bounded by the buffer — there is no size field
+ * deref, and the row count is bounded by the buffer. There is no size field
  * that can drive an unbounded loop or an out-of-range read. Compressed
  * (BI_RLE / BITFIELDS), paletted (≤8-bit), and 1/16-bit variants are REFUSED
  * with a typed error rather than mis-decoded into plausible garbage.
@@ -56,7 +56,7 @@ export class BmpUnsupportedError extends Error {
 
 export interface EncodeBmpOptions {
   /** Force the pixel format instead of auto-picking 24 vs 32 from alpha.
-   *  `24` drops alpha (composites nothing — bytes are taken as-is); `32` always
+   *  `24` drops alpha (composites nothing: bytes are taken as-is); `32` always
    *  writes BGRA. Default: 32 iff any pixel alpha < 255, else 24. */
   bitDepth?: 24 | 32;
 }
@@ -106,14 +106,14 @@ export function encodeBmp(
   const out = new Uint8Array(fileSize);
   const dv = new DataView(out.buffer);
 
-  // ── BITMAPFILEHEADER ──
+  // -- BITMAPFILEHEADER --
   out[0] = 0x42; // 'B'
   out[1] = 0x4d; // 'M'
   dv.setUint32(2, fileSize, true);
   // bytes 6-9: two reserved words, left zero.
   dv.setUint32(10, PIXELS_OFFSET, true); // bfOffBits
 
-  // ── BITMAPINFOHEADER ──
+  // -- BITMAPINFOHEADER --
   dv.setUint32(14, INFO_HEADER, true); // biSize = 40
   dv.setInt32(18, w, true); // biWidth
   dv.setInt32(22, h, true); // biHeight positive => bottom-up
@@ -126,7 +126,7 @@ export function encodeBmp(
   dv.setUint32(46, 0, true); // biClrUsed
   dv.setUint32(50, 0, true); // biClrImportant
 
-  // ── pixel array: bottom-up rows, BGR(A), padded ──
+  // -- pixel array: bottom-up rows, BGR(A), padded --
   for (let y = 0; y < h; y++) {
     // File row 0 is the image's bottom row.
     const srcRow = (h - 1 - y) * w;
@@ -213,7 +213,7 @@ export function decodeBmp(bytes: Uint8Array): DecodedBmp {
   }
 
   const rgba = new Uint8Array(width * height * 4);
-  // In a 32-bit BI_RGB BMP the 4th byte is officially UNUSED — many real encoders
+  // In a 32-bit BI_RGB BMP the 4th byte is officially UNUSED. Many real encoders
   // (older GDI, Delphi/VB, scanner drivers) write it 0x00 for every pixel. Reading it
   // straight as alpha would make such a file decode fully transparent (a blank
   // conversion). So we read it, but track whether ANY pixel carried a non-zero value;

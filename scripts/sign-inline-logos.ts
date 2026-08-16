@@ -1,19 +1,19 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
- * sign-inline-logos — bake Content Credentials into the brand logos a tool
+ * sign-inline-logos - bake Content Credentials into the brand logos a tool
  * inlines as `data:` URIs, and sync the base64 back into its hooks.js.
  *
  * WHY this exists. `email-signature` embeds its wordmark as a base64 PNG so the
  * pasted signature is self-contained (email clients don't fetch tool-relative
  * assets). That PNG never passes through the export bridge, so it never gets the
- * credential every other Lolly-delivered asset carries — and the signature's own
+ * credential every other Lolly-delivered asset carries - and the signature's own
  * `html` output has no container that could hold one either (C2PA embedding is
  * container-gated: see engine C2PA_FORMATS). Signing the inlined PNG itself is
  * the only place provenance can live on the pasted path: pull the logo out of a
  * received signature, drop it into Verify, and it reads as a SUSE asset delivered
  * by Lolly.
  *
- * IDENTITY — read this before changing the claim. The signature is made with
+ * IDENTITY - read this before changing the claim. The signature is made with
  * Lolly's own CA identity (`credentials@lolly.tools`), exactly like every other
  * delivered catalog asset; SUSE is recorded as the `author` of the CreativeWork
  * with `authorship: 'delivered'`. That is the honest shape and the only one
@@ -23,14 +23,14 @@
  *
  * The masters (`suse.png` / `suse-grey.png` beside hooks.js) are signed IN PLACE,
  * mirroring scripts/sign-credentialed-assets.ts `deliverCatalog`. Already-signed
- * masters are skipped, so a re-run is a no-op and diffs stay quiet — a fresh leaf
+ * masters are skipped, so a re-run is a no-op and diffs stay quiet - a fresh leaf
  * key each run would otherwise rewrite every signature. Pass --force to re-sign
  * from `--from <dir>` unsigned originals.
  *
  * There is deliberately NO pixel imprint here. The Lolly imprint is a block-DCT
  * mark calibrated for photos; on a 204x38 mostly-flat wordmark it clears its own
  * size-adjusted detection floor by only ~1.07x, and dies to a JPEG re-encode
- * (0.93x) or any resize (0.15x) — measured, see the tool's notes. The only case
+ * (0.93x) or any resize (0.15x) - measured, see the tool's notes. The only case
  * it survives is a byte-identical PNG, which is precisely the case where the C2PA
  * credential already verifies. Adding it would perturb a brand mark for a signal
  * that reads "present" only when it is redundant.
@@ -83,7 +83,7 @@ interface SignerBundle {
 
 const fingerprint = (der: Uint8Array): string => createHash('sha256').update(der).digest('hex');
 
-/** The root the deployed app pins — signing with any other ships un-verifiable credentials. */
+/** The root the deployed app pins - signing with any other ships un-verifiable credentials. */
 function pinnedRootDer(): Uint8Array {
   const src = readFileSync(join(ROOT, 'shells/web/src/ca-root.ts'), 'utf8');
   const m = src.match(/-----BEGIN CERTIFICATE-----[\s\S]*?-----END CERTIFICATE-----/);

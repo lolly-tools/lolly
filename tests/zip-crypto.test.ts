@@ -77,7 +77,7 @@ test('AE-2 AES-256: PBKDF2 split, LE-CTR encrypt, HMAC — round-trips via node:
   assert.equal(Buffer.from(mac).toString('hex'), expMac.toString('hex'), 'auth code matches');
 
   // Endianness guard: a BIG-endian CTR (what WebCrypto/Node AES-CTR would do) diverges
-  // at block 2, so it must NOT recover the data — proving the engine used LE.
+  // at block 2, so it must NOT recover the data - proving the engine used LE.
   if (data.length > 16) {
     const be = nodeCrypto.createDecipheriv('aes-256-ctr', encKey, Buffer.concat([Buffer.from([1]), Buffer.alloc(15)]));
     const beOut = Buffer.concat([be.update(Buffer.from(ct)), be.final()]);

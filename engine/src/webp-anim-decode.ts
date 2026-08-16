@@ -1,13 +1,13 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
- * Animated WebP demuxer — pure, DOM-free, platform-agnostic. The inverse of
+ * Animated WebP demuxer - pure, DOM-free, platform-agnostic. The inverse of
  * `webp-anim.ts` (`packWebpAnim`).
  *
  * Chunk-level surgery only: parse the RIFF/WEBP container's `VP8X` (canvas
  * geometry + flags), `ANIM` (background + loop count) and each `ANMF`
  * (per-frame region, timing, blend/dispose + the inner image bitstream), and
  * wrap every frame's image chunks (`ALPH`? + `VP8 `/`VP8L`) VERBATIM into a
- * STANDALONE still WebP file. No pixel work, no VP8/VP8L decode — the host hands
+ * STANDALONE still WebP file. No pixel work, no VP8/VP8L decode - the host hands
  * each recovered still to the platform's native WebP path to rasterize. That is
  * the established DEMUX boundary (cf. `apng-decode.ts`, the HEIC bundled decoder).
  *
@@ -82,7 +82,7 @@ function riffWebp(body: Uint8Array): Uint8Array {
  * Build a standalone still WebP from one ANMF's inner image chunks.
  *
  * `imageChunks` are complete RIFF chunks copied verbatim (an optional `ALPH`
- * before `VP8 `/`VP8L`). A lone `VP8 `/`VP8L` needs no header — that is the
+ * before `VP8 `/`VP8L`). A lone `VP8 `/`VP8L` needs no header - that is the
  * canonical "simple" still form. Anything with a separate `ALPH` chunk requires
  * the extended `VP8X` form to be a legal still, so we prepend one declaring the
  * frame's dimensions and the alpha flag.

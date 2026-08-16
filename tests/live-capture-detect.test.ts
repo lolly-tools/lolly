@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MPL-2.0
 // Contract tests for the live-capture stage locator
-// (shells/web/src/bridge/live-capture-detect.ts). DOM-free by design — synthetic
+// (shells/web/src/bridge/live-capture-detect.ts). DOM-free by design - synthetic
 // RGBA frames stand in for the sampled display capture; the <video>/canvas
 // sampling stays in live-capture.ts and needs a real browser.
 import { test } from 'node:test';
@@ -32,7 +32,7 @@ function paintRect(f: FrameLike, r: Rect, [cr, cg, cb]: [number, number, number]
   }
 }
 
-/** Blend a 2px border of `r` toward the background — encoder edge fuzz. */
+/** Blend a 2px border of `r` toward the background - encoder edge fuzz. */
 function blurEdges(f: FrameLike, r: Rect): void {
   for (let y = r.y; y < r.y + r.h; y++) {
     for (let x = r.x; x < r.x + r.w; x++) {
@@ -77,7 +77,7 @@ test('findSolidRect tolerates encoder edge blur within ~2px', () => {
 
 test('findSolidRect rejects scattered matches and specks', () => {
   const scattered = frame(320, 180);
-  // 6% of pixels magenta at deterministic pseudo-random spots — a big bounding
+  // 6% of pixels magenta at deterministic pseudo-random spots - a big bounding
   // box with a hopeless fill ratio.
   let seed = 42;
   const rand = (): number => {
@@ -116,7 +116,7 @@ test('locator confirms only when both flashes land on the same box', () => {
   assert.equal(locator.feed(m), null, 'magenta alone is not confirmation');
   assert.equal(locator.phase, 'seek-b');
 
-  // Green somewhere ELSE — a green terminal window, not our stage.
+  // Green somewhere ELSE - a green terminal window, not our stage.
   const gElse = frame(320, 180); paintRect(gElse, { x: 10, y: 120, w: 120, h: 50 }, GREEN);
   assert.equal(locator.feed(gElse), null, 'a displaced green box must not confirm');
   assert.equal(locator.phase, 'seek-b');
@@ -125,7 +125,7 @@ test('locator confirms only when both flashes land on the same box', () => {
   const got = locator.feed(g);
   assert.ok(got, 'matching green confirms the stage');
   assert.equal(locator.phase, 'done');
-  // Intersection of the two reads — never larger than either flash.
+  // Intersection of the two reads - never larger than either flash.
   assert.deepEqual(got, { x: box.x + 1, y: box.y, w: box.w - 1, h: box.h });
   assert.equal(locator.feed(g), null, 'a done locator stays done');
 });
@@ -141,7 +141,7 @@ test('scaleRect covers the detected box and clamps to the video bounds', () => {
   // 320-wide sample of a 1280-wide video: ×4 exact.
   assert.deepEqual(scaleRect({ x: 40, y: 30, w: 200, h: 100 }, 4, 4, 1280, 720),
     { x: 160, y: 120, w: 800, h: 400 });
-  // Non-integer scale: position floors, size ceils — never undershoots.
+  // Non-integer scale: position floors, size ceils - never undershoots.
   const r = scaleRect({ x: 3, y: 3, w: 10, h: 10 }, 1.5, 1.5, 100, 100);
   assert.deepEqual(r, { x: 4, y: 4, w: 15, h: 15 });
   // At the video edge the rect clamps instead of spilling out.

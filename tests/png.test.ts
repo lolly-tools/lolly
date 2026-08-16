@@ -1,17 +1,17 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
- * engine/src/png.ts — the Phase B1 PNG writer (plans/61-deeprichpixels.md §4.2).
+ * engine/src/png.ts - the Phase B1 PNG writer (plans/61-deeprichpixels.md §4.2).
  *
  * Three independent ways of being right, because a writer with no reader is a
  * writer with no test:
  *
  *  1. DECODE-YOUR-OWN-OUTPUT ORACLE. node:zlib inflates the IDAT stream and the
- *     engine's own `unfilterPng` (engine/src/png-unfilter.ts — written years
+ *     engine's own `unfilterPng` (engine/src/png-unfilter.ts - written years
  *     before this encoder, for PDF /Predictor 15 embeds, so it is genuinely
  *     independent code) reverses the row filters. Samples are then compared
  *     EXACTLY against the input buffer, at both depths and both channel counts.
  *  2. AN EXTERNAL DECODER. `sharp` (libvips → libspng) reads the same files and
- *     must return the same pixels — 8-bit and 16-bit both. Skipped with a reason
+ *     must return the same pixels - 8-bit and 16-bit both. Skipped with a reason
  *     if sharp is not installed, so a plain clone is not punished.
  *  3. GOLDEN BYTES. Small fixtures pinned base64-exact, UPDATE_GOLDENS=1 to
  *     regenerate (same pattern as tests/export-emitter-golden.test.ts), so any
@@ -24,7 +24,7 @@
  * arithmetic, and negative controls throughout.
  *
  * NOTE on the CRC negative control: libspng (and libpng by default) only WARNS
- * on a bad ancillary/critical chunk CRC — verified below, sharp happily decodes
+ * on a bad ancillary/critical chunk CRC - verified below, sharp happily decodes
  * a PNG whose IHDR CRC has been flipped. So "a decoder detects it" is asserted
  * with the reference verifier here, and the byte-level corruption control that
  * an external decoder DOES catch is an IDAT payload flip (node:zlib rejects it).
@@ -74,7 +74,7 @@ function golden(key: string, bytes: Uint8Array): void {
 // ── optional external decoder ───────────────────────────────────────────────
 
 // Structurally typed, and imported through a variable specifier so a clone
-// WITHOUT sharp neither fails to typecheck nor fails to run — it skips.
+// WITHOUT sharp neither fails to typecheck nor fails to run - it skips.
 interface SharpMeta { width?: number; height?: number; depth?: string; channels?: number; density?: number }
 interface SharpImage {
   metadata(): Promise<SharpMeta>;
@@ -93,7 +93,7 @@ try {
 }
 const SKIP_SHARP = sharp ? false : 'sharp is not installed (optional external-decoder oracle)';
 
-// ── reference CRC-32 (bitwise, no table — independent of zip-crypto.ts) ─────
+// ── reference CRC-32 (bitwise, no table - independent of zip-crypto.ts) ─────
 
 function refCrc32(bytes: Uint8Array): number {
   let crc = 0xffffffff;
@@ -204,7 +204,7 @@ const RGB16 = (() => {
   return a;
 })();
 
-/** A smooth gradient — the filtering measurement fixture. */
+/** A smooth gradient - the filtering measurement fixture. */
 function gradient(size: number, depth: 8 | 16): PngSamples {
   const n = size * size * 4;
   const a = depth === 8 ? new Uint8Array(n) : new Uint16Array(n);
@@ -278,7 +278,7 @@ test('a large payload is split across multiple IDAT chunks, and rejoins lossless
 });
 
 // ────────────────────────────────────────────────────────────────────────────
-// 2. Oracle 1 — decode our own output (node:zlib + engine unfilterPng)
+// 2. Oracle 1 - decode our own output (node:zlib + engine unfilterPng)
 // ────────────────────────────────────────────────────────────────────────────
 
 for (const [label, pixels, opts] of [
@@ -327,7 +327,7 @@ test('a single pixel image and a 1xN column both round-trip (degenerate geometry
 });
 
 // ────────────────────────────────────────────────────────────────────────────
-// 3. Oracle 2 — an external decoder (sharp / libvips)
+// 3. Oracle 2 - an external decoder (sharp / libvips)
 // ────────────────────────────────────────────────────────────────────────────
 
 test('external decoder: sharp reads our 8-bit RGBA and RGB byte-for-byte', { skip: SKIP_SHARP }, async () => {
@@ -420,7 +420,7 @@ test('cICP NEGATIVE CONTROL: a non-identity matrix or an out-of-range code point
 });
 
 // ────────────────────────────────────────────────────────────────────────────
-// 5. pHYs — must mean exactly what the shell's insertPngPhys means
+// 5. pHYs - must mean exactly what the shell's insertPngPhys means
 // ────────────────────────────────────────────────────────────────────────────
 
 test('pHYs matches insertPngPhys semantics: equal axes, unit 1 (metre), ppm = round(dpi/0.0254)', () => {
@@ -525,7 +525,7 @@ test('every chunk CRC matches an independent bitwise reference implementation', 
 
 test('CRC reference values: the standard check vector, and the invariant IEND CRC', () => {
   const ascii = (s: string): Uint8Array => Uint8Array.from(s, (ch) => ch.charCodeAt(0));
-  // CRC-32/ISO-HDLC check value for "123456789" — the reflected 0xEDB88320
+  // CRC-32/ISO-HDLC check value for "123456789" - the reflected 0xEDB88320
   // polynomial PNG mandates (spec §5.5).
   assert.equal(refCrc32(ascii('123456789')), 0xcbf43926);
   assert.equal(engineCrc32(ascii('123456789')), 0xcbf43926, 'the engine crc32 we reuse agrees');
@@ -616,7 +616,7 @@ test('filter heuristic pays for itself at BOTH depths on a gradient', () => {
     const none = packPng(px, { width: 256, height: 256, depth, filter: 'none' }).length;
     rows.push(`  ${depth}-bit 256x256 RGBA gradient: auto ${auto} bytes, none ${none} bytes (${(none / auto).toFixed(1)}x)`);
     assert.ok(auto < none, `${depth}-bit: filtering must not make the file bigger (auto ${auto}, none ${none})`);
-    // Well beyond noise — this is the justification for using the heuristic on
+    // Well beyond noise - this is the justification for using the heuristic on
     // the 16-bit path too rather than defaulting it to None.
     assert.ok(none / auto > 4, `${depth}-bit: expected a large win, got ${(none / auto).toFixed(2)}x`);
     // Both encodings still decode to the identical pixels.
@@ -628,7 +628,7 @@ test('filter heuristic pays for itself at BOTH depths on a gradient', () => {
 });
 
 test('filtering never expands incompressible-looking noise beyond the unfiltered size', () => {
-  // Deterministic pseudo-noise (LCG) — no randomness in the fixture.
+  // Deterministic pseudo-noise (LCG) - no randomness in the fixture.
   const n = 64 * 64 * 4;
   const px = new Uint8Array(n);
   let s = 12345;
@@ -680,7 +680,7 @@ test("oversize: 'store' emits a valid, decodable, uncompressed PNG", async () =>
 // ────────────────────────────────────────────────────────────────────────────
 
 test('the depth seam: packPng refuses to convert, it only writes', () => {
-  // An 8-bit buffer offered as 16-bit is padding sold as quality — refused.
+  // An 8-bit buffer offered as 16-bit is padding sold as quality - refused.
   assert.throws(() => packPng(RGBA8, { width: W, height: H, depth: 16 }), /depth 16 requires a Uint16Array/);
   // ...and the reverse.
   assert.throws(() => packPng(RGBA16, { width: W, height: H, depth: 8 }), /depth 8 requires a Uint8Array/);

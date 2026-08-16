@@ -2,27 +2,27 @@
 /**
  * Fail-loud checkpoint for the Node shells (CLI + TUI).
  *
- * The single most corrosive behaviour in the headless shells was silent success: a
- * render could fail (a lifecycle hook throws, a required host capability is missing)
- * yet the shell would still write a valid-but-empty file, print "✓ Wrote", and exit 0
- * — so a script or CI job could not tell the render failed. This checkpoint converts
- * that into an honest, catchable error BEFORE any file is written.
+ * The worst failure mode in the headless shells was silent success: a render could
+ * fail (a lifecycle hook throws, a required host capability is missing) and the shell
+ * would still write a valid-but-empty file, print "✓ Wrote", and exit 0. A script or
+ * CI job could not tell the render failed. This checkpoint turns that into an honest,
+ * catchable error BEFORE any file is written.
  *
  * Why here (not in the engine): engine/src/runtime.ts deliberately RECORDS an onInit
  * failure in `runtime.hookErrors` and does NOT throw, because the web GUI relies on
  * staying alive to show a canvas-error banner (locked by tests/runtime-hooks.test.ts).
  * The honest-failure decision is the shell's: a terminal shell has no banner, so the
- * only way to signal is a non-zero exit + a clear message. This is that decision, shared
- * so the CLI and TUI can never drift.
+ * only way to signal is a non-zero exit plus a clear message. This is that decision,
+ * shared so the CLI and TUI can never drift.
  *
  * Two signals, in order of precision:
- *   1. hookErrors (PRIMARY, format-agnostic) — a lifecycle hook actually threw. Catches
+ *   1. hookErrors (PRIMARY, format-agnostic): a lifecycle hook actually threw. Catches
  *      brand-lockup with no host.text, and any other unfulfilled dependency.
- *   2. degenerate SVG (BACKSTOP) — a hookless empty render (no size, no drawable
+ *   2. degenerate SVG (BACKSTOP): a hookless empty render (no size, no drawable
  *      content). Narrow by construction so it can never flag a legitimate tiny icon.
  *
  * NOT used: a byte-size threshold. An onInit-failed native-<svg> tool rasterised to PNG
- * (Tier A resvg) yields a full-size BLANK png, not a tiny one — only the hookErrors
+ * (Tier A resvg) yields a full-size BLANK png, not a tiny one. Only the hookErrors
  * signal catches that, which is why it is the primary check for every format.
  *
  * IMPORTANT: only apply this to output the shell's OWN runtime produced (the DOM-free
@@ -43,7 +43,7 @@ export type RenderFailureReason = 'hook-failed' | 'degenerate-svg';
 /**
  * A render the node shell must not report as success. Its message deliberately avoids
  * the substrings the TUI's HTML-fallback branch keys on (`<svg>`, `requires an`,
- * `browser engine` — see shells/tui/src/views/ToolView.tsx), so a genuinely-broken
+ * `browser engine`; see shells/tui/src/views/ToolView.tsx), so a genuinely broken
  * render is surfaced as an error rather than silently rewritten to an HTML file.
  */
 export class RenderIntegrityError extends Error {
@@ -65,9 +65,9 @@ interface AssertRenderOkArgs {
 
 /**
  * Throw RenderIntegrityError if the produced output cannot be trusted as a successful
- * render. Call it AFTER the bytes are finalized and BEFORE writing them — the throw
- * means no file is written and the process exits non-zero (CLI) / the export is refused
- * with a visible error (TUI).
+ * render. Call it AFTER the bytes are finalized and BEFORE writing them. The throw
+ * means no file is written, and the process exits non-zero (CLI) or the export is
+ * refused with a visible error (TUI).
  */
 export function assertRenderOk({ hookErrors, format, bytes }: AssertRenderOkArgs): void {
   // PRIMARY: a lifecycle hook threw. The runtime swallowed it (canvas is likely blank),
@@ -95,7 +95,7 @@ function isSvgFormat(format: string): boolean {
   return format.toLowerCase() === 'svg';
 }
 
-// Allowed non-drawing children of a root <svg> — provenance/metadata/setup elements
+// Allowed non-drawing children of a root <svg>: provenance/metadata/setup elements
 // that carry no visible geometry. If a degenerate <svg> holds ONLY these, it's empty.
 const NON_DRAWING = /<(?:title|desc|metadata|style|script|defs)\b[\s\S]*?<\/(?:title|desc|metadata|style|script|defs)>/gi;
 
@@ -143,7 +143,7 @@ function attrNum(tag: string, name: string): number {
 }
 
 function utf8(bytes: Uint8Array): string {
-  // Only the leading <svg …> tag + element names matter, all ASCII — a lossy decode is
+  // Only the leading <svg …> tag + element names matter, all ASCII. A lossy decode is
   // fine and avoids a TextDecoder dependency assumption.
   return Buffer.from(bytes.buffer, bytes.byteOffset, bytes.byteLength).toString('utf8');
 }

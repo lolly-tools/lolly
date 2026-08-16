@@ -5,7 +5,7 @@
  *
  * Run as: node scripts/sign-catalog.ts
  *
- * Produces `catalog/tools/index.sig.json` — the signed integrity envelope the
+ * Produces `catalog/tools/index.sig.json` - the signed integrity envelope the
  * engine verifies at runtime before executing any tool code (see
  * engine/src/catalog-integrity.ts for the envelope format and
  * engine/src/loader.ts `LoadToolOpts.integrity` for enforcement). It hashes
@@ -29,7 +29,7 @@
  *   --out <path>         envelope destination   (default: sibling index.sig.json of --index)
  *
  * Deterministic apart from signedAt + signature (ECDSA is randomised); re-run
- * after any tool or index change, BEFORE deploying — a stale envelope makes
+ * after any tool or index change, BEFORE deploying - a stale envelope makes
  * every changed tool fail closed on clients that pin the key.
  */
 
@@ -106,7 +106,7 @@ async function genKey(): Promise<void> {
 }
 
 /** PKCS8 PEM or JWK JSON → an ECDSA P-256 signing key (extractable, so the
- *  public half — and therefore the keyId — can be derived from it). */
+ *  public half - and therefore the keyId - can be derived from it). */
 async function importPrivateKey(material: string): Promise<CryptoKey> {
   const trimmed = material.trim();
   if (trimmed.startsWith('{')) {
@@ -142,7 +142,7 @@ function listToolIds(toolsDir: string): string[] {
 
 async function run(args: Args): Promise<void> {
   const privateKey = await importPrivateKey(loadKeyMaterial(args));
-  // Public half from the private JWK: same x/y, minus d — gives the RFC 7638 keyId
+  // Public half from the private JWK: same x/y, minus d - gives the RFC 7638 keyId
   // and lets the script self-verify what it just signed.
   const privJwk = await subtle.exportKey('jwk', privateKey);
   const pubJwk: JsonWebKey = { kty: privJwk.kty, crv: privJwk.crv, x: privJwk.x, y: privJwk.y };
@@ -163,7 +163,7 @@ async function run(args: Args): Promise<void> {
       if (!existsSync(path)) continue;
       files[`${id}/${filename}`] = await sha256Hex(readFileSync(path));
     }
-    // i18n sidecars are per-language and optional per tool — enumerate whatever
+    // i18n sidecars are per-language and optional per tool - enumerate whatever
     // exists (sorted for a deterministic envelope) rather than a fixed list.
     // Without these digests a signed catalog forces every tool back to English
     // (loader.ts drops any overlay it can't verify).

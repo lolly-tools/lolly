@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
- * `nearestOnCubic` — closest point on a cubic to an arbitrary point.
+ * `nearestOnCubic` - closest point on a cubic to an arbitrary point.
  *
  * ## Why this has a file of its own
  *
@@ -10,7 +10,7 @@
  * A wrong answer here does not blur a result, it deletes or invents whole shapes.
  *
  * It also shipped wrong, in a way its tests could not see. The implementation sampled a
- * grid of `samples` parameters, took the best one and Newton-refined from there — which
+ * grid of `samples` parameters, took the best one and Newton-refined from there - which
  * picks a BASIN. On a curve whose branches pass close to one another it refined the wrong
  * basin and returned the grid's answer looking fully converged: on
  * `[158.5518,54.1091, 110.9633,109.922, 83.2758,14.6683, 117.2366,72.005]` at
@@ -22,12 +22,12 @@
  *
  * Three oracles, and the third is the one whose absence let the defect live:
  *
- * 1. **Definitional** — the returned `t` is in [0,1], the returned point is `evalCubic` at
+ * 1. **Definitional** - the returned `t` is in [0,1], the returned point is `evalCubic` at
  *    that `t` exactly, and the returned distance is the distance between that point and the
  *    query. A result that fails these is not a wrong answer, it is an incoherent one.
- * 2. **Analytic** — cases with a known closed-form answer: a point on the curve, a point
+ * 2. **Analytic** - cases with a known closed-form answer: a point on the curve, a point
  *    off an endpoint, a straight cubic, a query at a control point.
- * 3. **Randomised, against an independent slow oracle** — thousands of (curve, point) pairs
+ * 3. **Randomised, against an independent slow oracle** - thousands of (curve, point) pairs
  *    including self-intersecting, near-cusp and degenerate curves, each answered separately
  *    by bracketing the squared distance on a dense grid and golden-section-refining EVERY
  *    local minimum. That oracle picks no basin, so it cannot make the mistake under test,
@@ -52,7 +52,7 @@ const GOLDEN = 0.6180339887498949;
  *
  * Slow and approximate, which is exactly what an oracle should be: it shares no code and no
  * idea with the implementation. Refining every local minimum rather than the best one is
- * the whole point — that is the step whose absence was the defect.
+ * the whole point - that is the step whose absence was the defect.
  */
 function oracleDistance(c: Cubic, px: number, py: number, n = 512): number {
   const f = (t: number): number => {
@@ -180,7 +180,7 @@ test('randomised: never worse than the golden-section oracle, over every awkward
   for (let i = 0; i < 3600; i++) {
     const c = curveFamily(i % 6, r);
     // Three kinds of query: anywhere in the neighbourhood, exactly on the curve, and a
-    // hair off the curve — the last is where a basin search is most confidently wrong,
+    // hair off the curve - the last is where a basin search is most confidently wrong,
     // because the true distance is tiny and the wrong basin's is not.
     const on = evalCubic(c, r());
     const queries: [number, number][] = [
@@ -286,7 +286,7 @@ test('degenerate cubics: a point, a straight line, a cusp, and repeated controls
 test('a query at the cusp of a cusped cubic answers the cusp', () => {
   // Handles crossed, so the curve runs out to x=100·(something) and comes back through a
   // point where the tangent vanishes. At a cusp the squared-distance derivative has a
-  // double root, which a sign-change bracket alone cannot see — the critical points have to
+  // double root, which a sign-change bracket alone cannot see - the critical points have to
   // be candidates in their own right, and this is the case that says they are.
   const cusped: Cubic = [0, 0, 100, 0, 0, 0, 100, 0];
   let cuspT = 0;
@@ -329,8 +329,8 @@ test('the probe never over-reports, which is what the retain tests depend on', (
     const want = oracleDistance(c, px, py);
     const rel = (got - want) / Math.max(1e-6, want);
     if (rel > 1e-9) { overs++; worstOver = Math.max(worstOver, rel); }
-    // Under-reporting below the oracle is expected and correct — the oracle brackets on a
-    // grid and cannot beat its own resolution — but only by rounding, never by a margin.
+    // Under-reporting below the oracle is expected and correct - the oracle brackets on a
+    // grid and cannot beat its own resolution - but only by rounding, never by a margin.
     if (rel < -1e-6) { unders++; worstUnder = Math.min(worstUnder, rel); }
   }
   assert.equal(overs, 0, `${overs} over-reports, worst relative ${worstOver.toExponential(3)}`);

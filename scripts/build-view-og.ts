@@ -1,20 +1,20 @@
 #!/usr/bin/env node
 // SPDX-License-Identifier: MPL-2.0
 /**
- * Per-view Open Graph (social share) generator — the app's own sections.
+ * Per-view Open Graph (social share) generator - the app's own sections.
  *
  * Run as part of `build:web` (after build-tool-og, before the vite build), or directly:
  *   node scripts/build-view-og.ts
  *
  * Companion to scripts/build-tool-og.ts. Where that script gives every *tool* its own
- * share card, this one covers Lolly's top-level *views* — Dashboard (/d), Verify (/v),
+ * share card, this one covers Lolly's top-level *views* - Dashboard (/d), Verify (/v),
  * Catalogue (/c), Projects (/p) and Profile (/profile). Same root cause: the web shell
  * routes these by URL *fragment* (#/d, #/verify, …), which social crawlers (Slack, X,
  * LinkedIn, iMessage, Facebook, Discord) never send to the server and never execute JS
- * for — so a shared /d link only ever previewed as the one generic og.png.
+ * for - so a shared /d link only ever previewed as the one generic og.png.
  *
  * Fix (identical mechanism to build-tool-og.ts): for each view we emit a crawler-visible
- * landing stub — the exact static file shells/web/public/view/<slug>.html — whose <head>
+ * landing stub - the exact static file shells/web/public/view/<slug>.html - whose <head>
  * carries that view's own title, description and 1200×630 share image (og:url/canonical =
  * the clean path, e.g. https://lolly.tools/d). A human visitor's browser then runs the
  * stub's inline redirect into the SPA at the view's hash route (#/d, carrying any
@@ -23,11 +23,11 @@
  *
  * Card art is a dark "brand-system" panel (docs/og-image.ts → createViewCardRenderer):
  * pine field, a green app-icon tile, the view title + one-line description, a large
- * translucent watermark of the same icon — cohesive as a family, distinct from the light
+ * translucent watermark of the same icon - cohesive as a family, distinct from the light
  * tool gallery-tile cards. Rendering goes through OUR OWN render path (Chromium via
- * Playwright — scripts/lib/rasterize-svg-browser.ts), not resvg, so a card is shaped the
- * way the app paints and can't drift. The browser isn't on the Vercel build, so — exactly
- * like the tool cards and catalog/previews — the PNGs are COMMITTED at
+ * Playwright - scripts/lib/rasterize-svg-browser.ts), not resvg, so a card is shaped the
+ * way the app paints and can't drift. The browser isn't on the Vercel build, so - exactly
+ * like the tool cards and catalog/previews - the PNGs are COMMITTED at
  * catalog/og/views/<slug>.png (served /catalog/og/views/<slug>.png). build:web / dev:web
  * refresh them LOCALLY; a browser-less build leaves the committed bytes untouched and the
  * stubs still point at them. Stubs (HTML, no rasteriser) are git-ignored, rebuilt each run.
@@ -51,7 +51,7 @@ const PUBLIC   = resolve(ROOT, 'shells/web/public');
 // shell → generic OG). See build-tool-og.ts for the full serving rationale.
 const STUB_DIR = resolve(PUBLIC, 'view');            // → /view/<slug>.html   (exact static file)
 // Cards are COMMITTED here (served /catalog/og/views/<slug>.png), mirroring the committed
-// tool cards + catalog/previews — so a git deploy ships them even though the render browser
+// tool cards + catalog/previews - so a git deploy ships them even though the render browser
 // isn't installed on the Vercel build. Locally, build:web refreshes these; commit them.
 const OG_DIR   = resolve(ROOT, 'catalog/og/views');  // → /catalog/og/views/<slug>.png (committed)
 // Input-hash gate (see build-tool-og.ts for the full rationale): a card is re-rendered
@@ -71,7 +71,7 @@ const esc = (s: unknown): string => String(s)
 
 // Every shareable top-level view. `slug` is the clean share path (/d, /v, /tools, …) AND
 // the stub filename; `hash` is the SPA route a human is bounced to (the canonical in-app
-// form — #/verify, not the /v shortlink); `aliases` are extra clean paths that serve the
+// form - #/verify, not the /v shortlink); `aliases` are extra clean paths that serve the
 // same stub (so /u previews like /utilities). Icons are lucide-style 24×24 stroke marks,
 // matching the ones the views themselves use in-app (icons.ts / view-toggle.ts).
 //
@@ -105,7 +105,7 @@ const VIEWS: View[] = [
     title: 'Tools',
     description: 'Every Lolly tool in one gallery. Pick one, fill it in, export what you need.',
     hash: '#/',
-    // wrench — the in-app Tools tab (components/view-toggle.ts)
+    // wrench - the in-app Tools tab (components/view-toggle.ts)
     icon: mark('<path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/>'),
   },
   {
@@ -114,7 +114,7 @@ const VIEWS: View[] = [
     description: 'Strip hidden data, compress a PDF, convert an image. All on your own device.',
     hash: '#/u',
     aliases: ['u'],
-    // hammer — the in-app Utilities tab
+    // hammer - the in-app Utilities tab
     icon: mark('<path d="m15 12-8.373 8.373a1 1 0 1 1-3-3L12 9"/><path d="m18 15 4-4"/><path d="m21.5 11.5-1.914-1.914A2 2 0 0 1 19 8.172V7l-2.26-2.26a6 6 0 0 0-4.202-1.756L9 2.96l.92.82A6.18 6.18 0 0 1 12 8.4V10l2 2h1.172a2 2 0 0 1 1.414.586L18.5 14.5"/>'),
   },
   {
@@ -153,7 +153,7 @@ const VIEWS: View[] = [
     title: 'Brand setup',
     description: 'Import your tokens, fonts and logos, then every tool follows them.',
     hash: '#/start',
-    // palette — the brand editor's own mark (lib/icons.ts)
+    // palette - the brand editor's own mark (lib/icons.ts)
     icon: mark('<circle cx="13.5" cy="6.5" r=".5" fill="currentColor"/><circle cx="17.5" cy="10.5" r=".5" fill="currentColor"/><circle cx="8.5" cy="7.5" r=".5" fill="currentColor"/><circle cx="6.5" cy="12.5" r=".5" fill="currentColor"/><path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10c.926 0 1.648-.746 1.648-1.688 0-.437-.18-.835-.437-1.125-.29-.289-.438-.652-.438-1.125a1.64 1.64 0 0 1 1.668-1.668h1.996c3.051 0 5.555-2.503 5.555-5.554C21.965 6.012 17.461 2 12 2z"/>'),
   },
   {
@@ -161,7 +161,7 @@ const VIEWS: View[] = [
     title: 'Colour Lab',
     description: 'Inspect any colour in OKLCH, check contrast, see what survives print.',
     hash: '#/lab',
-    // flask — lib/icons.ts
+    // flask - lib/icons.ts
     icon: mark('<path d="M14 2v6a2 2 0 0 0 .245.96l5.51 10.08A2 2 0 0 1 18 22H6a2 2 0 0 1-1.755-2.96l5.51-10.08A2 2 0 0 0 10 8V2"/><path d="M6.453 15h11.094"/><path d="M8.5 2h7"/>'),
   },
   {
@@ -169,7 +169,7 @@ const VIEWS: View[] = [
     title: 'Batch mode',
     description: 'Hundreds of assets from one spreadsheet, a row at a time.',
     hash: '#/pro',
-    // checklist — lib/icons.ts
+    // checklist - lib/icons.ts
     icon: mark('<path d="M9 6h11M9 12h11M9 18h11"/><path d="m3 6 1.3 1.3L6.5 5"/><path d="m3 12 1.3 1.3 2.2-2.3"/><path d="m3 18 1.3 1.3 2.2-2.3"/>'),
   },
   {
@@ -177,7 +177,7 @@ const VIEWS: View[] = [
     title: 'Take a PDF apart',
     description: 'Pull the text, images and vectors out of any PDF, on your device.',
     hash: '#/pdf',
-    // document — lib/icons.ts
+    // document - lib/icons.ts
     icon: mark('<path d="M14 3v5h5"/><path d="M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>'),
   },
   {
@@ -196,7 +196,7 @@ function stubHtml({ slug, title, description, hash, image }:
   const url = `${SITE_URL}/${slug}`;
   // Redirect target is ROOT-anchored ('/#/verify', not the bare fragment '#/verify').
   // The stub is served AT the clean path (e.g. the browser URL stays /v via the Vercel
-  // rewrite), so a bare-fragment location.replace('#/verify') resolves to /v#/verify —
+  // rewrite), so a bare-fragment location.replace('#/verify') resolves to /v#/verify - 
   // the PATH is unchanged, making it a same-document hash change that NEVER loads the SPA
   // (which lives in index.html), stranding the human on the stub. The leading '/' changes
   // the path to '/', forcing a real cross-document navigation to index.html so the app
@@ -261,7 +261,7 @@ async function main(): Promise<void> {
 
   // Stubs (HTML, no browser needed) are git-ignored and rebuilt from scratch each run.
   // Cards (catalog/og/views/<slug>.png) are COMMITTED and only (re)written when the
-  // browser is available — never wiped — so a Vercel build keeps the committed cards
+  // browser is available - never wiped - so a Vercel build keeps the committed cards
   // rather than deleting them.
   rmSync(STUB_DIR, { recursive: true, force: true });
   mkdirSync(STUB_DIR, { recursive: true });
@@ -312,7 +312,7 @@ async function main(): Promise<void> {
 
   // Persist the input-hash manifest (committed). Deterministic (sorted keys) so an
   // unchanged build leaves no diff. Prune slugs no longer in VIEWS, but only when a
-  // renderer ran — a browser-less/Vercel build must not drop sigs for committed cards it
+  // renderer ran - a browser-less/Vercel build must not drop sigs for committed cards it
   // can't re-render.
   if (renderer) {
     const live = new Set(VIEWS.map(v => v.slug));
