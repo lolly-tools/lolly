@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
- * Deep pixel buffers: the engine's float image interchange (deeprichpixels §5.1).
+ * Deep pixel buffers: the engine's float image interchange (deeprichpixels section 5.1).
  *
  * Every pixel Lolly historically touched was 8-bit display-encoded sRGB. This
  * module is the babl lesson applied to that seam: ONE buffer type whose format

@@ -21,7 +21,7 @@
  *   - Inexpressible kinds/effects (path, lottie/video image, rotation/gradient) emit
  *     nothing native (rasterise-to-image is a documented follow-up).
  *
- * Loaded from brands/lolly-start (always present; brands/suse is a private, CI-skipped
+ * Loaded from community/ (always present; brands/suse is a private, CI-skipped
  * submodule) exactly like design-frames.test.ts.
  */
 
@@ -37,11 +37,11 @@ import { loadTool } from '../engine/src/loader.ts';
 import { createRuntime } from '../engine/src/runtime.ts';
 import { baseHost } from './helpers/host.ts';
 
-const PACK_DIR = join(dirname(fileURLToPath(import.meta.url)), '..', 'brands', 'lolly-start', 'tools');
+const PACK_DIR = join(dirname(fileURLToPath(import.meta.url)), '..', 'community');
 const fetchFile = (path: string) => readFile(join(PACK_DIR, path), 'utf8');
 
 assert.ok(existsSync(join(PACK_DIR, 'design', 'tool.json')),
-  'brands/lolly-start/tools/design/tool.json is missing — the tool was renamed or deleted');
+  'community/design/tool.json is missing - the tool was renamed or deleted');
 
 const tool: any = await loadTool('design', fetchFile);
 

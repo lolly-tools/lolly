@@ -32,7 +32,7 @@ const one = (body: string, args: number[] = [0]): number | null => {
 };
 const near = (a: number | null, b: number, eps = 1e-9): boolean => a !== null && Math.abs(a - b) <= eps;
 
-// ── arithmetic (PDF 32000-1 §7.10.5.1) ───────────────────────────────────────
+// ── arithmetic (PDF 32000-1 section 7.10.5.1) ───────────────────────────────────────
 test('arithmetic operators evaluate to hand-computed values', () => {
   assert.equal(one('3 4 add'), 7);
   assert.equal(one('10 4 sub'), 6);
@@ -92,7 +92,7 @@ test('atan returns DEGREES in [0,360) across all four quadrants', () => {
   assert.ok(near(one('-1 1 atan'), 315));
 });
 
-// ── relational / boolean / bitwise (§7.10.5.2) ───────────────────────────────
+// ── relational / boolean / bitwise (section 7.10.5.2) ───────────────────────────────
 test('comparisons and booleans drive ifelse', () => {
   assert.equal(one('1 2 lt {10} {20} ifelse'), 10);
   assert.equal(one('1 2 gt {10} {20} ifelse'), 20);
@@ -125,7 +125,7 @@ test('mixing booleans into arithmetic is a type error, not a silent 0/1', () => 
   assert.equal(one('{1} 2 add'), null);
 });
 
-// ── stack operators (§7.10.5.4) ──────────────────────────────────────────────
+// ── stack operators (section 7.10.5.4) ──────────────────────────────────────────────
 test('dup / exch / pop / index / copy', () => {
   assert.equal(one('5 dup add'), 10);
   assert.deepEqual(ev('pop 1 2 exch', [0], 2), [2, 1]);

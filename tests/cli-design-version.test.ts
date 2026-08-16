@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
- * `--designv=` on the CLI - the design-system resolution ladder of plans/97 §6a,
+ * `--designv=` on the CLI - the design-system resolution ladder of plans/97 section 6a,
  * pinned against the REAL binary (spawned like tests/cli-machine-contract.test.ts)
  * over a fixture catalog that actually ships a published version.
  *

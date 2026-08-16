@@ -63,7 +63,7 @@ beside them rather than from documentation:
 | same files — `name` ID 0 | `Copyright 2025 The SUSE Project Authors (https://github.com/SUSE/suse-font)` |
 
 **No Reserved Font Name.** The copyright line carries no `with Reserved Font Name`
-suffix, so OFL §3 does not restrict redistribution under the original family
+suffix, so OFL section 3 does not restrict redistribution under the original family
 names — we may ship these files as "SUSE" and "SUSE Mono" unmodified.
 
 Two OFL obligations, both already met: the licence travels with the fonts

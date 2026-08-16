@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
  * ICC profiles applied to deep pixel buffers: the digiKam act (deeprichpixels
- * §3, §5.1): input profile → PCS → working/output space, per pixel, over a
+ * section 3, section 5.1): input profile → PCS → working/output space, per pixel, over a
  * {@link DeepFrame}. icc.ts READS a profile and answers per-colour questions;
  * this module is the missing half. It runs that transform over a float image,
  * which is what makes soft-proofing and honest deep ingest possible.
@@ -29,7 +29,7 @@
  *     CLUT quantisation (real B2A tables are 17³/33³ grids of 8/16-bit nodes).
  *
  * Rendering-intent fallback (ICC.1:2010, i.e. ICC v4.3): the required-tag
- * tables of clause 8 (§8.4 display-class, §8.5 output-class) make only the
+ * tables of clause 8 (section 8.4 display-class, section 8.5 output-class) make only the
  * perceptual …0 LUT pair universally mandatory. A2B1/B2A1 and A2B2/B2A2 are
  * optional outside output-class profiles, so a CMM asked for an intent whose
  * table is absent substitutes the perceptual table rather than refusing.
@@ -72,8 +72,8 @@
  *     this constant collapses into it.
  *   - ICC transforms are display-referred: `toLab` clamps device channels to
  *     0..1 and PCS Lab is bounded by its encoding box (L 0..100, a/b −128..127,
- *     ICC.1:2010 §6.3.4.2), so HDR headroom does not survive. A view
- *     transform maps it first (deeprichpixels §5.2). Non-finite pixel values
+ *     ICC.1:2010 section 6.3.4.2), so HDR headroom does not survive. A view
+ *     transform maps it first (deeprichpixels section 5.2). Non-finite pixel values
  *     (data damage) are read as 0 rather than poisoning the row.
  *
  * Contract, matching icc.ts: NEVER throws. A malformed profile, an unusable
@@ -178,7 +178,7 @@ const LATTICES = new WeakMap<IccProfile, Map<string, Float32Array | null>>();
 /**
  * Sample the profile's transform on the regular grid. toPcs domain is the
  * device cube [0,1]³; fromPcs domain is the PCS Lab encoding box (L 0..100,
- * a/b −128..127 (ICC.1:2010 §6.3.4.2); values outside clamp to the boundary at
+ * a/b −128..127 (ICC.1:2010 section 6.3.4.2); values outside clamp to the boundary at
  * evaluation time, the same clamp the profile's own PCS encoding applies).
  */
 function buildLattice(profile: IccProfile, direction: IccDirection, intent: RenderingIntent): Float32Array | null {

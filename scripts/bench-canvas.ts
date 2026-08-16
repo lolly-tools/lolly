@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
- * Canvas performance baseline (plans/98 §9) - the NODE half of the harness.
+ * Canvas performance baseline (plans/98 section 9) - the NODE half of the harness.
  *
  * Measures the editor's pure, DOM-free hot paths against document size, so Phase A
  * has a hard number to beat and the plan's "document size must never set the ceiling"
@@ -14,7 +14,7 @@
  *
  * This is deliberately NOT the browser half: it does not measure real DOM paint,
  * reflow, or style recalc (that needs the built shell + Chromium - the interaction
- * harness, plans/98 §9 fixtures (a)-(e), tracked separately). What it DOES measure is
+ * harness, plans/98 section 9 fixtures (a)-(e), tracked separately). What it DOES measure is
  * exactly the algorithmic cliff Phase A removes: an O(n) scan per pointer event and an
  * O(n) re-marshal per edit, both independent of how much actually changed.
  *
@@ -144,7 +144,7 @@ const worst = rows[rows.length - 1]!;
 console.log('\ninterpretation (largest fixture, 20k boxes):');
 console.log(`  • HIT-TEST: linear is ${f(worst.hitLinearNs / 1000, 1)}µs/event and grows with the document; the grid holds ${f(worst.hitGridNs, 0)}ns (${f(worst.hitLinearNs / worst.hitGridNs, 0)}× less) — picking stops scaling with box count. Grid (re)build is ${f(worst.gridBuildMs, 1)}ms, done once per geometry-damage batch, not per event.`);
 console.log(`  • PER-EDIT: today every change re-marshals + re-renders ALL ${worst.n} boxes. Just the re-marshal FLOOR is ${f(worst.reserializeMs, 2)}ms (${f((worst.reserializeMs / 16.7) * 100, 0)}% of a 16.7ms frame) — the real innerHTML swap + style/layout in the browser is strictly worse. Phase A instead pays a ${f(worst.diffUs / 1000, 2)}ms damage diff, then patches only the |damage| node(s) that changed — O(edit), not O(document).`);
-console.log(`  • the damage diff here is the UPPER BOUND (full per-field compare). The shipping design (plans/98 §5) caches a contentVersion per box in the hook worker, so the diff becomes an O(n) integer compare — cheaper still. The browser paint win (|damage| vs ${worst.n} nodes) is measured by the interaction harness, plans/98 §9 (a)-(e).\n`);
+console.log(`  • the damage diff here is the UPPER BOUND (full per-field compare). The shipping design (plans/98 section 5) caches a contentVersion per box in the hook worker, so the diff becomes an O(n) integer compare — cheaper still. The browser paint win (|damage| vs ${worst.n} nodes) is measured by the interaction harness, plans/98 section 9 (a)-(e).\n`);
 
 if (JSON_OUT) {
   writeFileSync(JSON_OUT, JSON.stringify({ node: process.version, iters: ITERS, queries: QUERIES, rows }, null, 2));

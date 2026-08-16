@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
  * Contract tests for the DOM-free CSS box / border-radius geometry that the
- * export walkers (SVG + PDF) share. The crux is the CSS §5.5 corner-overlap rule:
+ * export walkers (SVG + PDF) share. The crux is the CSS section 5.5 corner-overlap rule:
  * a huge border-radius must render as a pill (rx==ry==min(w,h)/2), not an ellipse.
  * Run with: node --test tests/css-box.test.ts
  */
@@ -215,7 +215,7 @@ test('isNonAffineTransform tells "nothing to do" apart from "cannot be drawn"', 
   // export walkers read that single null as "nothing to do" and fell through to the AABB
   // path - which is CORRECT for `none` and a WRONG PICTURE for a perspective pose (a
   // tilted card emitted as an axis-aligned rect stretched to fill its projected bounding
-  // box, silently; plans/104 §12 Q2). This predicate is the gate that separates them.
+  // box, silently; plans/104 section 12 Q2). This predicate is the gate that separates them.
   //
   // NOT tilted: nothing authored, or an affine (however it is spelled).
   assert.equal(isNonAffineTransform('none'), false);

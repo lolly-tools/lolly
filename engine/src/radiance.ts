@@ -2,7 +2,7 @@
 /**
  * Radiance RGBE (`.hdr` / `.pic`) reader + writer - pure bytes, DOM-free.
  *
- * plans/61-deeprichpixels.md §4.2 / §6 Phase B3, the small half: the OpenEXR writer
+ * plans/61-deeprichpixels.md section 4.2 / section 6 Phase B3, the small half: the OpenEXR writer
  * is the format a compositor wants, and this is the ~100-line one that every
  * renderer, every IBL/environment-map pipeline and every colour tool has read
  * since 1989. Written alongside EXR because a `DeepFrame` is already exactly the
@@ -64,7 +64,7 @@
  * constant across a scanline even when the colours are not.
  *
  * Sources (each cited again at its use site):
- *   - Greg Ward, "Real Pixels", Graphics Gems II (1991) §II.5 - the RGBE
+ *   - Greg Ward, "Real Pixels", Graphics Gems II (1991) section II.5 - the RGBE
  *     encoding and the frexp/ldexp formulation used verbatim below.
  *   - Radiance `src/common/color.c` - `setcolr`/`colr_color` (the exact
  *     rounding: TRUNCATION on encode, +0.5 half-bucket on decode) and

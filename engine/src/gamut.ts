@@ -137,7 +137,7 @@ export function maxChroma(l: number, h: number, limit: GamutLimit = 'srgb'): num
 
 /**
  * Reduce an OKLCH colour into `limit`, holding LIGHTNESS and HUE constant and
- * giving up CHROMA - CSS Color 4 §14.2's form of "keep the request, yield the
+ * giving up CHROMA - CSS Color 4 section 14.2's form of "keep the request, yield the
  * only channel that can give". An already-in-gamut colour is returned UNCHANGED
  * (the same object reference), so this is safe to call unconditionally.
  *
@@ -401,7 +401,7 @@ export function oklchSlice(opts: SliceOptions): SliceImage {
  * where a filled surface meets a painted one.
  *
  * Chroma past the encode space's ceiling is reduced (L and H preserved, CSS
- * Color 4 §14.2's shape), because a surface cannot show what it cannot show. That
+ * Color 4 section 14.2's shape), because a surface cannot show what it cannot show. That
  * makes the result a PAINTING value: never read a position, a stored token or a
  * round-trip back out of it - see the gamut-map caveat on `oklchToHex`.
  */

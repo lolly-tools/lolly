@@ -1,12 +1,12 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
- * Page seals - the /info pages' own Content Credentials (plans/105 §7, M5).
+ * Page seals - the /info pages' own Content Credentials (plans/105 section 7, M5).
  *
  * Each English page carries one `<link rel="c2pa-manifest">` and is bound by an
- * external Manifest Store beside it (C2PA 2.4 §A.7.1.2 + §11.4). Four things here
+ * external Manifest Store beside it (C2PA 2.4 section A.7.1.2 + section 11.4). Four things here
  * break silently, which is why each is pinned:
  *
- *  1. THE ORDERING. §A.7.1.3 hashes the WHOLE document, so the link must be in
+ *  1. THE ORDERING. section A.7.1.3 hashes the WHOLE document, so the link must be in
  *     the bytes that were hashed and signing must be the last build step. Get it
  *     wrong and every page reports "this document was modified" - while looking
  *     perfect.
@@ -54,11 +54,11 @@ const built = !existsSync(join(BUILT, 'exporting.html'))
 
 const bytesOf = (p: string): Uint8Array => new Uint8Array(readFileSync(p));
 
-// ── The link element (§A.7.1.2) ──────────────────────────────────────────────
+// ── The link element (section A.7.1.2) ──────────────────────────────────────────────
 
 test('the seal link is the spec\'s external form, and the href is the sidecar beside the page', () => {
   const link = pageSealLink('exporting');
-  // §A.7.1.2: "a link element with an attribute of rel="c2pa-manifest"… shall be
+  // section A.7.1.2: "a link element with an attribute of rel="c2pa-manifest"… shall be
   // used to reference an external C2PA Manifest Store via its href attribute. The
   // type="application/c2pa" attribute should be included but is not required."
   assert.match(link, /^<link rel="c2pa-manifest" href="\/info\/exporting\.c2pa" type="application\/c2pa">$/);
@@ -77,14 +77,14 @@ test('every English page carries exactly one seal link, in <head>, pointing at i
     const hits = [...html.matchAll(/<link rel="c2pa-manifest"[^>]*>/g)];
     if (!hits.length) continue;    // redirect stubs are not sealed
     sealed++;
-    // §A.7.1: "There shall be at most one C2PA Manifest Store association per
+    // section A.7.1: "There shall be at most one C2PA Manifest Store association per
     // HTML document" - and the inlined banked art must never smuggle in a second.
     assert.equal(hits.length, 1, `${file} declares ${hits.length} C2PA manifest associations`);
     assert.ok(!/<script[^>]+type="application\/c2pa"/.test(html), `${file} carries an inline manifest as well as a link`);
     const slug = file.slice(0, -'.html'.length);
     assert.ok(hits[0]![0].includes(`href="${pageSealHref(slug)}"`), `${file} links a sidecar that is not its own`);
     const headEnd = html.indexOf('</head>');
-    assert.ok(html.indexOf(hits[0]![0]) < headEnd, `${file}: the seal link is outside <head> (§A.7.1.1)`);
+    assert.ok(html.indexOf(hits[0]![0]) < headEnd, `${file}: the seal link is outside <head> (section A.7.1.1)`);
   }
   assert.ok(sealed > 40, `only ${sealed} pages carry a seal link`);
 });
@@ -106,7 +106,7 @@ test('locale pages carry no seal link at all', { skip: built }, () => {
   }
 });
 
-// ── The binding (§A.7.1.3) ───────────────────────────────────────────────────
+// ── The binding (section A.7.1.3) ───────────────────────────────────────────────────
 
 test('a built page verifies against its sidecar, and one changed byte breaks it', { skip: built }, async () => {
   const page = bytesOf(join(BUILT, 'exporting.html'));
@@ -123,7 +123,7 @@ test('a built page verifies against its sidecar, and one changed byte breaks it'
   // Ephemeral self-signed key: untrusted is the honest verdict, and the ONLY
   // failed check. Anything else here is a real regression.
   assert.deepEqual(report.checks.filter((c) => !c.ok).map((c) => c.code), [C2PA_CHECK.signingCredentialUntrusted]);
-  // §A.7.1.3: the hash covers the entire document, so a byte in the BODY - far
+  // section A.7.1.3: the hash covers the entire document, so a byte in the BODY - far
   // from the link element - has to break it.
   const tampered = new Uint8Array(page);
   tampered[page.length - 60] = (tampered[page.length - 60] ?? 0) ^ 0x01;
@@ -134,7 +134,7 @@ test('a built page verifies against its sidecar, and one changed byte breaks it'
 
 test('a page read WITHOUT its sidecar says the credential is elsewhere, never "no credential"', { skip: built }, async () => {
   // The M2 precondition: /verify must be able to tell a reader where to look,
-  // rather than reporting an unsigned document (plan §7).
+  // rather than reporting an unsigned document (plan section 7).
   const report = await verifyC2pa(bytesOf(join(BUILT, 'exporting.html')));
   assert.equal(report.found, true);
   assert.match(report.reason ?? '', /references an external C2PA manifest at \/info\/exporting\.c2pa/);
@@ -288,7 +288,7 @@ test('check mode decides exactly what a real run would do, and writes nothing', 
 test('a page that does not reference its sidecar is never signed', async (t) => {
   const { dir, write } = await miniSite();
   t.after(() => rmSync(dir, { recursive: true, force: true }));
-  // §A.7.1.3's ordering rule as a check: a store written beside a page that does
+  // section A.7.1.3's ordering rule as a check: a store written beside a page that does
   // not point at it is a credential nobody can find from the asset, and a link
   // added after the hash would bind bytes that no longer exist.
   write('<!doctype html>\n<html lang="en"><head><title>Demo</title></head><body><p>no seal link</p></body></html>\n');

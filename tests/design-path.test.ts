@@ -50,20 +50,12 @@ import { isPackAvailable, packQuery, unpackToken } from '../engine/src/url-pack.
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const ROOT = join(HERE, '..');
-/** Both brand variants ship the tool; a manifest change has to land in both, so
- *  every manifest assertion runs over both rather than over "the" manifest.
- *  Gate the private brands/suse copy on the SOURCE pack being mounted, per the
- *  house rule (tests/README.md, "Private brand content"): a public CI /
- *  lolly-start checkout skips the SUSE half cleanly, but with the pack mounted
- *  a missing tool dir FAILS - a renamed/deleted variant can't silently turn
- *  the suite green. */
-const SUSE_MOUNTED = existsSync(join(ROOT, 'brands', 'suse', 'tools'));
-if (SUSE_MOUNTED) {
-  assert.ok(existsSync(join(ROOT, 'brands', 'suse', 'tools', 'design', 'tool.json')),
-    'brands/suse/tools/design is missing — pack is mounted, so the tool was renamed or deleted');
-}
-const BRANDS: readonly string[] = SUSE_MOUNTED ? ['lolly-start', 'suse'] : ['lolly-start'];
-const toolDir = (brand: string): string => join(ROOT, 'brands', brand, 'tools', 'design');
+/** design is single-sourced in the public community pack (2026-08-16
+ *  consolidation), so every manifest assertion runs over the one manifest all
+ *  profiles share. The per-pack loop shape survives so a future re-fork slots
+ *  back in; the SUSE-variant half retired with the fork. */
+const BRANDS: readonly string[] = ['community'];
+const toolDir = (pack: string): string => join(ROOT, pack, 'design');
 
 interface Row { [k: string]: unknown }
 interface FieldSpec { id: string; type?: string; showFor?: string[]; options?: { value: string }[] }
@@ -113,7 +105,7 @@ function loadCompute(brand: string, host: FakeHost): (boxes: Row[], extra?: Row)
   });
 }
 
-function withGeom(brand = 'lolly-start') {
+function withGeom(brand = 'community') {
   const logs: string[] = [];
   const compute = loadCompute(brand, { geom: makeGeomApi(), log: (l, m) => logs.push(`${l}: ${m}`) });
   return { compute, logs };
@@ -485,7 +477,7 @@ function encodeBlocksCompact(rows: Row[], fields: FieldSpec[]): string | null {
 }
 
 test('URL: a path box survives the COMPACT blocks form (the one with unescapable separators)', () => {
-  const input = boxesInput('lolly-start');
+  const input = boxesInput('community');
   const fields = input.fields!;
   const rows: Row[] = [
     { id: 'a', kind: 'text', x: 10, y: 20, w: 300, h: 100, text: 'hello world', fg: '#112233' },
@@ -518,7 +510,7 @@ test('URL: a path box survives the COMPACT blocks form (the one with unescapable
 });
 
 test('URL: a path box survives the engine JSON blocks form too', () => {
-  const input = boxesInput('lolly-start');
+  const input = boxesInput('community');
   const rows = [pathBox({ path: encodeAuthoredPath(bigPath(120)) })];
   const qs = serializeUrlState([{ ...input, value: rows } as never]);
   const state = parseUrlState(qs, { inputs: [input] } as never);
@@ -531,7 +523,7 @@ test('URL: a path box survives the engine JSON blocks form too', () => {
 
 test('URL: DEFLATE packing keeps a realistic path link to a sane length', async (t) => {
   if (!isPackAvailable()) return t.skip('no CompressionStream in this runtime');
-  const input = boxesInput('lolly-start');
+  const input = boxesInput('community');
   /** A node-only spline (`hyperbezier`/`catmull-rom` - the pen-tool default owns its
    *  own handles) and the same node count WITH four handle offsets each: the cheap
    *  and expensive ends of what a pen tool actually stores. */
@@ -796,7 +788,7 @@ function assertUndrawn(markup: string, logs: string[], why: RegExp): void {
 
 test('degrade: host.geom absent — visible outline + a warning naming the missing bridge', () => {
   const logs: string[] = [];
-  const compute = loadCompute('lolly-start', { log: (l, m) => logs.push(`${l}: ${m}`) });
+  const compute = loadCompute('community', { log: (l, m) => logs.push(`${l}: ${m}`) });
   const out = compute([pathBox()]);
   assertUndrawn(out.pathHtml![0]!, logs, /host\.geom is unavailable/);
   assert.match(logs[0]!, /^warn: design: /);
@@ -808,7 +800,7 @@ test('degrade: host.geom absent — visible outline + a warning naming the missi
 
 test('degrade: a partial host.geom (no fromNodes) is treated as absent, not as a crash', () => {
   const logs: string[] = [];
-  const compute = loadCompute('lolly-start', {
+  const compute = loadCompute('community', {
     geom: { decodeAuthored: () => ({ ok: true, value: DIAMOND }) },
     log: (l, m) => logs.push(`${l}: ${m}`),
   });
@@ -1124,16 +1116,9 @@ test('regression: every pre-existing kind computes byte-identically to before th
   }
 });
 
-test('regression: the SUSE variant is the same change, and its own extras still differ only by brand',
-  { skip: SUSE_MOUNTED ? false : 'brands/suse not mounted (private pack)' }, () => {
-  const start = withGeom('lolly-start').compute(REGRESSION_BOXES);
-  const suse = withGeom('suse').compute(REGRESSION_BOXES);
-  // Same keys, same lengths - the two variants diverge only in fonts and default
-  // colours, which is exactly what they diverged in before.
-  assert.deepEqual(Object.keys(start).sort(), Object.keys(suse).sort());
-  assert.deepEqual(start.pathHtml, suse.pathHtml);
-  assert.deepEqual(start.boxStyle, suse.boxStyle);
-});
+// The SUSE-variant regression twin retired with the consolidation (2026-08-16):
+// design is single-sourced in community, so there is no second variant whose
+// extras could diverge - the property holds by construction.
 
 // ─────────────────────────────────────────────────────────────────────────────
 // 7. The template actually emits it

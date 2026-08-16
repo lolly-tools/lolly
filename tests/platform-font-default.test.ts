@@ -99,7 +99,7 @@ test('the shipped platform faces still declare the SIL OFL in their own bytes', 
       /SIL Open Font License, Version 1\.1/,
       `${face.staticUrl} name ID 13 must state the OFL 1.1 — a platform face ships in the OSS pack. Got: ${JSON.stringify(licence)}`,
     );
-    // OFL §3: a Reserved Font Name would forbid shipping the file under its own
+    // OFL section 3: a Reserved Font Name would forbid shipping the file under its own
     // family name, which is exactly what fonts.css and tokens.css do. Verified
     // absent for SUSE on 2026-08-10; this catches a refreshed binary that adds one.
     const copyright = names.get(0) ?? '';

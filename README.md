@@ -160,7 +160,7 @@ git submodule update --init --recursive     # in an existing clone, run BEFORE n
 
 Each submodule is checked out on its own `main`, tracking its repo under `github.com/lolly-tools/*`.
 
-**Where your changes go** - the umbrella pins a specific commit of each submodule, so a change is committed to *the repo that owns the file*, then the umbrella records the new pointer. The full path-to-repo ownership table lives in **[CONTRIBUTING.md §4](CONTRIBUTING.md#4-where-your-changes-go)**, which is the single source of truth for it.
+**Where your changes go** - the umbrella pins a specific commit of each submodule, so a change is committed to *the repo that owns the file*, then the umbrella records the new pointer. The full path-to-repo ownership table lives in **[CONTRIBUTING.md section 4](CONTRIBUTING.md#4-where-your-changes-go)**, which is the single source of truth for it.
 
 > ⚠️ Committing from the umbrella root does **not** capture edits made *inside* a submodule - git only sees the pointer. Commit inside the submodule, or use `loldev` (below). The `tools/` and `catalog/` views are symlinks into the packs, so editing through them lands in the right pack checkout automatically. Editing a SUSE tool touches two repos (`suse-lolly` + umbrella pointer); a community tool touches three (`lolly-tools` manifest, `suse-lolly` regenerated index, umbrella pointer).
 

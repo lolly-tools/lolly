@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
  * pptx-patch.ts: SURGICAL rebrand of an unzipped .pptx part map (Pipeline A,
- * plans/49-fable-new-potential-pptx.md §2.2 / track E2).
+ * plans/49-fable-new-potential-pptx.md section 2.2 / track E2).
  *
  * The winning architecture for "make rebranding an existing deck EASY" is NOT
  * "parse the whole deck into a model and regenerate it" (that silently strips
@@ -25,7 +25,7 @@
  * Pure + DOM-free: strings + Uint8Array only (TextDecoder/TextEncoder are the Web
  * platform globals shared by browsers and Node, like the rest of the engine).
  *
- * What it does (§2.2):
+ * What it does (section 2.2):
  *   1. THEME SWAP        : ppt/theme/theme*.xml: the 12 <a:clrScheme> slots + the
  *                          major/minor <a:latin> of <a:fontScheme>.
  *   2. LITERAL COLOUR    : every DrawingML-bearing part: <a:srgbClr val> and

@@ -8,7 +8,7 @@
  * url-pack's `z` tokens - so "our bytes are spec-valid RFC 1951/1950" is
  * checked against two implementations we did not write. Reference values:
  * the canonical empty fixed-Huffman stream (0x03 0x00), Adler-32 of
- * "Wikipedia" = 0x11E60398 (the RFC 1950 §8 example value), and node:zlib's
+ * "Wikipedia" = 0x11E60398 (the RFC 1950 section 8 example value), and node:zlib's
  * own deflate trailer as an Adler-32 oracle.
  *
  * Run with: node --import ./tests/css-stub.mjs --test tests/deflate.test.ts
@@ -66,12 +66,12 @@ test('deflate: empty input emits the canonical minimal fixed block (0x03 0x00)',
 });
 
 test('adler32: reference values and node:zlib as an independent oracle', () => {
-  // RFC 1950 §8: seeded s1=1, so empty input -> 1.
+  // RFC 1950 section 8: seeded s1=1, so empty input -> 1.
   assert.equal(adler32(new Uint8Array(0)), 1);
   // The classic published example: Adler-32("Wikipedia") = 0x11E60398.
   assert.equal(adler32(new TextEncoder().encode('Wikipedia')), 0x11e60398);
   // Oracle: node:zlib's deflate trailer IS the Adler-32 of the input (RFC 1950
-  // §2.3), so compare our checksum against a checksum we did not implement.
+  // section 2.3), so compare our checksum against a checksum we did not implement.
   const rng = mulberry32(0xad1e432);
   for (const n of [1, 7, 5551, 5552, 5553, 70000]) {
     const data = randomBytes(rng, n);
@@ -84,7 +84,7 @@ test('adler32: reference values and node:zlib as an independent oracle', () => {
 test('zlib wrapper: valid header, adler trailer, inflateSync round-trip, corrupt trailer rejected', () => {
   const data = new TextEncoder().encode('the quick brown fox jumps over the lazy dog '.repeat(20));
   const out = zlibCompress(data);
-  // RFC 1950 §2.2: CM=8 (deflate), CMF*256+FLG divisible by 31.
+  // RFC 1950 section 2.2: CM=8 (deflate), CMF*256+FLG divisible by 31.
   assert.equal(out[0]! & 0x0f, 8, 'CM=8');
   assert.equal(((out[0]! << 8) | out[1]!) % 31, 0, 'FCHECK');
   assert.equal(out[1]! & 0x20, 0, 'no FDICT');
@@ -592,7 +592,7 @@ console.log(JSON.stringify({ rssKb: process.resourceUsage().maxRSS }));
 
 test('png: a filtered payload past the old 16 MiB ceiling now COMPRESSES (it used to refuse)', () => {
   // 2048x2048 RGBA8 = 2048 * (2048*4 + 1) = 16,779,264 filtered bytes - just
-  // past the 16 MiB guard that made packPng throw (plan §9b) and past the 4 MiB
+  // past the 16 MiB guard that made packPng throw (plan section 9b) and past the 4 MiB
   // point where this writer switches to createZlibStream.
   const W = 2048;
   const px = new Uint8Array(W * W * 4);

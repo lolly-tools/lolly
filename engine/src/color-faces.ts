@@ -26,7 +26,7 @@
  * ## The narrow faces are not lesser
  *
  * The sRGB face is the BAKE: what most viewers, most print pipelines and every
- * older browser actually receive. The automatic §14.2 gamut map picks the
+ * older browser actually receive. The automatic section 14.2 gamut map picks the
  * nearest reproducible colour by ΔE, and a brand will often prefer a
  * different sRGB green: one that reads as the same brand colour to a human
  * even though it is not the closest by measurement. So an override on a

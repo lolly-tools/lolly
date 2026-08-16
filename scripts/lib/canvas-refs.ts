@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
- * `canvas.*Field` → sub-field-id existence checking (plans/104 §9.2 M0-D).
+ * `canvas.*Field` → sub-field-id existence checking (plans/104 section 9.2 M0-D).
  *
  * A free-canvas block declares its geometry by NAMING sub-fields:
  * `canvas.xField: "x"` means "the box's left edge lives in the `x` sub-field of

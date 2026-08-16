@@ -1,11 +1,11 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
  * Spoken-text extraction for the docs audio pipeline (plans/40-docs-audio-listen.md
- * §4.1) - markdown source in, an ordered list of speakable blocks out.
+ * section 4.1) - markdown source in, an ordered list of speakable blocks out.
  *
  * The input is the page's SOURCE (`docs/<slug>.md`), never the built HTML: the
  * source is stable across chrome/CSS churn, and that stability is what the
- * staleness contract hashes (§5). Extraction decides what a listener hears:
+ * staleness contract hashes (section 5). Extraction decides what a listener hears:
  *
  *   - code fences   → one "Code example omitted." line per fence (never the code)
  *   - tables        → the authored caption line immediately above, else
@@ -201,7 +201,7 @@ export function extractSpokenText(markdown: string, opts: ExtractOptions = {}): 
 }
 
 /**
- * The staleness hash (plans/40-docs-audio-listen.md §5): sha256 over the
+ * The staleness hash (plans/40-docs-audio-listen.md section 5): sha256 over the
  * whitespace-normalised spoken text, so chrome/CSS/recipe/translation churn and
  * paragraph reflow never re-render narration - only a change to the words a
  * listener would hear does. Includes the block kinds/levels (a paragraph

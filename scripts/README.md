@@ -74,7 +74,7 @@ These drive tools in a real browser and export through the app's own render path
 
 | Script | npm alias | Purpose | Flags |
 |---|---|---|---|
-| `sign-credentialed-assets.ts` | `sign:credentials`, `sign:credentials:ca`, `sign:credentials:catalog` | Mints the "Made with Lolly" Content Credentials demo set for the catalog. The `:ca` and `:catalog` aliases run under `--env-file=services/ca/.env`. | DESTRUCTIVE, submodule, API key |
+| `sign-credentialed-assets.ts` | `sign:credentials:catalog` | Stamps every stampable catalog asset in place as "Delivered by Lolly" (c2pa.published + true author, under the CA identity), and strips any lingering retired `suse/credentials/*` demo entry from the index. Runs under `--env-file=services/ca/.env`. (The old `suse/credentials/*` "Made with Lolly" demo set it used to mint was retired 2026-08-16.) | DESTRUCTIVE, submodule, API key |
 | `sign-inline-logos.ts` | `sign:signature-logos` | Bakes Content Credentials into the brand logos a tool inlines as `data:` URIs, then syncs the base64 back into that tool's `hooks.js`. Never hand-paste the base64. | DESTRUCTIVE, submodule, API key |
 | `lib/durable-node.ts` | none | The build-time Node path for TrustMark durable-credential embedding, the onnxruntime-node counterpart to the browser embed. | |
 | `lib/stamp-media.ts` | none | Shared build-time provenance stamping, so every generator (OG cards, previews, thumbnails) credentials its output identically. | |

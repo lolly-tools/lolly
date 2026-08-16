@@ -124,7 +124,7 @@ export interface PdfNode {
 /**
  * An ExtGState soft mask (/SMask), pre-decoded by the SHELL into the same shape as a
  * form XObject: a content stream plus resources this interpreter can `run()`.
- * PDF 32000-1 §11.6.5.2.
+ * PDF 32000-1 section 11.6.5.2.
  *
  * No bytes and no PDF objects cross this boundary - the mask group's own images
  * arrive as ordinary `imageKey`s in `resources.xobjects`, and the shell resolves them
@@ -223,7 +223,7 @@ export interface PdfShading {
   flat?: string;
 }
 
-/** A PatternType 1 (tiling) pattern body - PDF 32000-1 §8.7.3.1. The shell decodes
+/** A PatternType 1 (tiling) pattern body - PDF 32000-1 section 8.7.3.1. The shell decodes
  *  the stream and extracts the pattern's own resources; the interpreter executes
  *  the content to find out what the tile actually paints (see the collapse pre-pass
  *  in `scn`). */
@@ -626,7 +626,7 @@ interface GState {
   /**
    * The soft mask in force, WITH the CTM at the `gs` that installed it - a mask
    * group is evaluated in the coordinate system in effect when the ExtGState was
-   * applied (§11.6.5.2; what pdf.js and poppler both do). Probed and confirmed on
+   * applied (section 11.6.5.2; what pdf.js and poppler both do). Probed and confirmed on
    * Chromium print output: the mask /BBox under that CTM is identical to the masked
    * fill's own `re` rect.
    *
@@ -639,7 +639,7 @@ interface GState {
   softMaskOpaque: boolean;
   lineWidth: number;
   /** PDF `J` line cap (0 butt, 1 round, 2 square) and `j` line join (0 miter,
-   *  1 round, 2 bevel) - §8.4.3.3-4. Unread until now, so every stroke fell back to
+   *  1 round, 2 bevel) - section 8.4.3.3-4. Unread until now, so every stroke fell back to
    *  SVG's defaults, butt + miter. Chromium prints an icon's
    *  `stroke-linecap:round; stroke-linejoin:round` as `1 J 1 j`, so outline icons
    *  came out with clipped ends and spiked corners: thin, pale, and for the
@@ -695,7 +695,7 @@ interface GState {
 function cloneState(s: GState): GState { return { ...s }; }
 
 /**
- * The subset of the graphics state a nested `run()` INHERITS - PDF 32000-1 §8.10.1:
+ * The subset of the graphics state a nested `run()` INHERITS - PDF 32000-1 section 8.10.1:
  * "the form XObject's content stream shall be executed with the current graphics
  * state". Passing only the CTM and the clip (what this interpreter did before) meant
  * `q /GS0 gs /Fm0 Do Q` - the canonical Illustrator/InDesign soft-mask idiom - painted
@@ -763,7 +763,7 @@ interface Seg { op: 'm' | 'l' | 'c' | 'h'; pts: number[]; }
  *                  into the painted node's alpha and emit no `<mask>` at all
  *   • 'none'     → the group painted nothing, so its luminosity is the backdrop,
  *                  which defaults to black = 0. Fully masked out: paint NOTHING.
- *                  Exact, not a guess (§11.6.5.2).
+ *                  Exact, not a guess (section 11.6.5.2).
  */
 type MaskEval =
   | { kind: 'mask'; mask: PdfSoftMask }
@@ -819,7 +819,7 @@ export function interpretPdfPage(page: PdfPageInput): PdfNode[] {
   // page may spend; `maskInFlight` breaks a self-referential group (its content
   // installs the very ExtGState that names it), which the memo alone cannot, since
   // the cache entry is not written until the run returns. `maskDepth` forbids a mask
-  // inside a mask: §11.6.5.2 turns soft masks OFF inside a mask group anyway, and
+  // inside a mask: section 11.6.5.2 turns soft masks OFF inside a mask group anyway, and
   // this makes that structural rather than a matter of trusting the seed state.
   //
   // The old budget was a flat 96 evaluations, which is really "96 shadows per page" -
@@ -861,12 +861,12 @@ export function interpretPdfPage(page: PdfPageInput): PdfNode[] {
     }
     const toks = tokenize(content || '');
     tokensSpent += toks.length;
-    // `inherit` = a form XObject / Type3 glyph procedure, which §8.10.1 (and §9.6.5
+    // `inherit` = a form XObject / Type3 glyph procedure, which section 8.10.1 (and section 9.6.5
     // for Type3) executes with the CURRENT graphics state. `baseFill` still wins over
     // the inherited fill when non-empty: it is the uncoloured-pattern (PaintType 2)
     // tint, which overrides colour operators outright.
     // Mask groups and the tiling-pattern collapse pre-pass pass no `inherit` on
-    // purpose - §11.6.5.2 turns soft masks and alpha OFF inside a mask group, and a
+    // purpose - section 11.6.5.2 turns soft masks and alpha OFF inside a mask group, and a
     // tile paints with its own state.
     let s: GState = inherit
       ? {
@@ -1040,7 +1040,7 @@ export function interpretPdfPage(page: PdfPageInput): PdfNode[] {
         const proc = t3.encoding[code] ? t3.charProcs[t3.encoding[code]!] : undefined;
         if (proc && sink.count < sink.max) {
           const glyphCtm = matMul(matMul(matMul(s.ctm, tm), scale), fmMat);
-          // §9.6.5: a glyph procedure executes in the graphics state in effect, so it
+          // section 9.6.5: a glyph procedure executes in the graphics state in effect, so it
           // inherits alpha and the soft mask, not just the fill colour it always had.
           // `glyphRun` keeps it out of the box-shadow-plate rung - glyph outlines are
           // never a print engine's shadow plate, and dropping them loses the TEXT.
@@ -1274,7 +1274,7 @@ export function interpretPdfPage(page: PdfPageInput): PdfNode[] {
     };
 
     /**
-     * PatternType 1 (tiling) collapse pre-pass - PDF 32000-1 §8.7.3.
+     * PatternType 1 (tiling) collapse pre-pass - PDF 32000-1 section 8.7.3.
      *
      * Chromium prints an out-of-sRGB CSS colour (`oklch()`, a wide-gamut gradient)
      * as a tiling pattern whose ENTIRE body is `/Pn scn <bbox> re f*` - a tile that
@@ -1452,7 +1452,7 @@ export function interpretPdfPage(page: PdfPageInput): PdfNode[] {
       if (pat.shading) {
         const sh = pat.shading;
         // Pattern /Matrix maps pattern space to the parent content stream's default
-        // space (§8.7.3.1) - hence baseCtm, not s.ctm. The shading dict's OWN
+        // space (section 8.7.3.1) - hence baseCtm, not s.ctm. The shading dict's OWN
         // /Matrix (Table 79) composes inside that; baking it into the coords instead
         // would be exact only for a similarity transform and silently wrong on skew.
         const mat = matMul(matMul(baseCtm, patMat),
@@ -1480,8 +1480,8 @@ export function interpretPdfPage(page: PdfPageInput): PdfNode[] {
         case 'Q': if (stack.length) s = stack.pop()!; if (gstack.length) gstack.pop(); break;
         case 'cm': if (args.length >= 6) s.ctm = matMul(s.ctm, fromArr(args)); break;
         case 'w': s.lineWidth = args[0] ?? s.lineWidth; break;
-        case 'J': s.lineCap = args[0] ?? s.lineCap; break;      // §8.4.3.3
-        case 'j': s.lineJoin = args[0] ?? s.lineJoin; break;    // §8.4.3.4
+        case 'J': s.lineCap = args[0] ?? s.lineCap; break;      // section 8.4.3.3
+        case 'j': s.lineJoin = args[0] ?? s.lineJoin; break;    // section 8.4.3.4
         case 'gs': {
           const g = res.extgstates && res.extgstates[nameArg];
           if (g) {
@@ -1490,7 +1490,7 @@ export function interpretPdfPage(page: PdfPageInput): PdfNode[] {
             // Only touch the mask if this ExtGState actually names /SMask - see the
             // four-state note on PdfResources.extgstates. A pre-decoded group is
             // captured together with the CTM in force RIGHT NOW, because that is the
-            // space the group's own content executes in (§11.6.5.2).
+            // space the group's own content executes in (section 11.6.5.2).
             if (g.smask !== undefined) {
               if (g.smask === false) { s.softMask = null; s.softMaskOpaque = false; }
               else if (g.smask === true) { s.softMask = null; s.softMaskOpaque = true; }
@@ -1581,7 +1581,7 @@ export function interpretPdfPage(page: PdfPageInput): PdfNode[] {
         case 're': {
           const x = args[0]!, y = args[1]!, w = args[2]!, h = args[3]!;
           push(x, y, 'm'); push(x + w, y, 'l'); push(x + w, y + h, 'l'); push(x, y + h, 'l'); push(x, y, 'l');
-          segs.push({ op: 'h', pts: [] });          // `re` is a CLOSED subpath (§8.5.2.1)
+          segs.push({ op: 'h', pts: [] });          // `re` is a CLOSED subpath (section 8.5.2.1)
           cxU = startXU = x; cyU = startYU = y;
           break;
         }
@@ -1593,7 +1593,7 @@ export function interpretPdfPage(page: PdfPageInput): PdfNode[] {
         // keeps the common `re W n` clip-only sequence exact.
         case 'f': case 'F': applyPendingClip(); paintPath('fill'); break;
         case 'f*': applyPendingClip(); paintPath('fill', true); break;
-        // `s`/`b`/`b*` are the CLOSE-then-paint forms of `S`/`B`/`B*` (§8.5.3.1);
+        // `s`/`b`/`b*` are the CLOSE-then-paint forms of `S`/`B`/`B*` (section 8.5.3.1);
         // they must close, or a stroked shape is left with a gap where it started.
         case 'S': applyPendingClip(); paintPath('stroke'); break;
         case 's': if (segs.length) { push(startXU, startYU, 'l'); segs.push({ op: 'h', pts: [] }); } applyPendingClip(); paintPath('stroke'); break;
@@ -1634,7 +1634,7 @@ export function interpretPdfPage(page: PdfPageInput): PdfNode[] {
             sink.count++;
           } else if (xo && xo.kind === 'form') {
             const fm = (xo.matrix && xo.matrix.length >= 6) ? matMul(s.ctm, fromArr(xo.matrix)) : s.ctm;
-            // §8.10.1: "the form XObject's content stream shall be executed with the
+            // section 8.10.1: "the form XObject's content stream shall be executed with the
             // CURRENT graphics state" - so the form inherits the caller's clip stack
             // AND its paint state (fill/stroke colour, ca/CA, line width, and above
             // all the /SMask in force). Seeding a fresh state here made
@@ -1642,7 +1642,7 @@ export function interpretPdfPage(page: PdfPageInput): PdfNode[] {
             // paint the form's contents unmasked at full opacity with no warning.
             // `s` is passed by reference but `run` copies it into its own state
             // object, and `q`/`Q` inside the form use the form's own stack, so
-            // nothing the form does can leak back out (§8.10.1 again).
+            // nothing the form does can leak back out (section 8.10.1 again).
             // Depth alone does not bound fanout: a self-referential form with k `Do`s
             // costs k^12, and a form that paints nothing never trips the node ceiling -
             // measured 9.6 s at fanout 4 from a ~40-byte stream. Stop descending once
@@ -1674,7 +1674,7 @@ export function interpretPdfPage(page: PdfPageInput): PdfNode[] {
   };
 
   /**
-   * Evaluate one ExtGState /SMask group into box-space nodes - PDF 32000-1 §11.6.5.2.
+   * Evaluate one ExtGState /SMask group into box-space nodes - PDF 32000-1 section 11.6.5.2.
    *
    * The group is a content stream plus resources, which is precisely what `run()`
    * already consumes, so re-running it through THIS interpreter makes a raster mask,
@@ -1688,7 +1688,7 @@ export function interpretPdfPage(page: PdfPageInput): PdfNode[] {
    */
   const evalSoftMask = (sm: { def: PdfSoftMaskDef; ctm: Mat }, depth: number): MaskEval | null => {
     const def = sm.def;
-    // §11.6.5.2: soft masks are OFF inside a mask group, so a group that installs one
+    // section 11.6.5.2: soft masks are OFF inside a mask group, so a group that installs one
     // is malformed (or hostile). `run` already seeds `softMask: null`; this makes the
     // guarantee structural rather than a matter of trusting the seed.
     if (maskDepth >= 1) { onWarn('smask.group.unevaluated', 'nested'); return null; }
@@ -1735,7 +1735,7 @@ export function interpretPdfPage(page: PdfPageInput): PdfNode[] {
     }
     if (!sub.nodes.length) {
       // Nothing painted → the group's luminosity is the backdrop, which defaults to
-      // black = 0 → fully masked out. EXACT per §11.6.5.2, not a guess: paint nothing.
+      // black = 0 → fully masked out. EXACT per section 11.6.5.2, not a guess: paint nothing.
       out = { kind: 'none' };
       onWarn('smask.group.empty', def.id);
     } else {

@@ -12,10 +12,10 @@
  * committed to plate.
  *
  * Scope: enough of ICC.1:2010 (v2 and v4) to run a device↔PCS transform:
- *   - the 128-byte header and the tag table (§7.2, §7.3);
- *   - `mft1` / `mft2` (lut8Type / lut16Type, §10.10–10.11) and `mAB ` / `mBA `
- *     (lutAtoBType / lutBtoAType, §10.12–10.13) for the A2B / B2A tags;
- *   - `curv` and `para` curves (§10.5, §10.16), the matrix/TRC path for
+ *   - the 128-byte header and the tag table (section 7.2, section 7.3);
+ *   - `mft1` / `mft2` (lut8Type / lut16Type, section 10.10–10.11) and `mAB ` / `mBA `
+ *     (lutAtoBType / lutBtoAType, section 10.12–10.13) for the A2B / B2A tags;
+ *   - `curv` and `para` curves (section 10.5, section 10.16), the matrix/TRC path for
  *     three-component RGB profiles, and the single-curve path for GRAY;
  *   - `desc` (v2 textDescriptionType) and `mluc` (v4) for a human label.
  * Deliberately out of scope: named-colour tags, device-link chains, spectral
@@ -134,7 +134,7 @@ function evalCurve(c: Curve, x: number): number {
       return c.t[i]! * (1 - f) + c.t[i + 1]! * f;
     }
     case 'para': {
-      // ICC.1:2010 §10.16.1, parameters in file order g,a,b,c,d,e,f.
+      // ICC.1:2010 section 10.16.1, parameters in file order g,a,b,c,d,e,f.
       const [g = 1, a = 1, bb = 0, cc = 0, d = 0, e = 0, f = 0] = c.p;
       switch (c.fn) {
         case 0:
@@ -190,7 +190,7 @@ function parseCurve(b: Uint8Array, off: number, end: number): { curve: Curve; si
     const size = 12 + count * 2;
     if (off + size > end) return null;
     // count 0 means identity; count 1 means the single value is a u8Fixed8 gamma,
-    // NOT a one-entry table (§10.5): reading it as a table would flatten the curve.
+    // NOT a one-entry table (section 10.5): reading it as a table would flatten the curve.
     if (count === 0) return { curve: IDENTITY_CURVE, size };
     if (count === 1) {
       const g = u16(b, off + 12, end);
@@ -267,7 +267,7 @@ function evalClut(st: Extract<Stage, { kind: 'clut' }>, v: number[]): number[] |
   const nIn = st.grid.length;
   if (v.length !== nIn) return null;
   const strides = new Array<number>(nIn);
-  // Last input channel varies fastest (§10.10): node = Σ idx[d] · Π grid[d+1..].
+  // Last input channel varies fastest (section 10.10): node = Σ idx[d] · Π grid[d+1..].
   let s = 1;
   for (let d = nIn - 1; d >= 0; d--) {
     strides[d] = s;
@@ -335,7 +335,7 @@ function evalPipeline(p: Pipeline, input: readonly number[]): number[] | null {
  * Parse a lut8Type (`mft1`) or lut16Type (`mft2`) element.
  *
  * @param inputIsPcsXyz whether this element's INPUT side is PCSXYZ. This is the only
- * case in which the element's 3×3 matrix means anything (§10.10). Every matrix
+ * case in which the element's 3×3 matrix means anything (section 10.10). Every matrix
  * in every profile on a stock macOS install is identity, so applying it
  * unconditionally would be harmless there, but a device-specific profile with a
  * real matrix would be silently mangled on the Lab side.
@@ -431,7 +431,7 @@ function parseMft(
 
 // ─── mAB / mBA ────────────────────────────────────────────────────────────────
 
-/** Parse `count` back-to-back curves, each padded to a 4-byte boundary (§10.12). */
+/** Parse `count` back-to-back curves, each padded to a 4-byte boundary (section 10.12). */
 function parseCurveChain(b: Uint8Array, off: number, end: number, count: number): Curve[] | null {
   const out: Curve[] = [];
   let p = off;
@@ -509,7 +509,7 @@ function parseMab(b: Uint8Array, off: number, end: number, atoB: boolean): Pipel
   const aCurves = offA ? parseCurveChain(b, off + offA, end, nA) : null;
   const bCurves = offB ? parseCurveChain(b, off + offB, end, nB) : null;
   // M curves sit between the matrix and the CLUT, and the matrix is 3×3 + 3
-  // offsets, so both only exist on a three-channel side (§10.12.3).
+  // offsets, so both only exist on a three-channel side (section 10.12.3).
   const mCurves = offM ? parseCurveChain(b, off + offM, end, 3) : null;
   if (offA && !aCurves) return null;
   if (offB && !bCurves) return null;

@@ -61,7 +61,7 @@
             "type": "integer",
             "minimum": 1,
             "maximum": 64,
-            "description": "Bits per channel of THIS file. Raster containers only (png/tiff/jpeg/webp). SNIFFED, NOT ASSERTED: absent means unknown or not raster — a container that buries depth in codec boxes (heic/avif) stays absent rather than guessing. Never hand-authored: `npm run build:catalog` writes it from a bounded header sniff and `npm run validate:catalog` re-sniffs to catch drift. Depth follows provenance (plans/61-deeprichpixels.md §10)."
+            "description": "Bits per channel of THIS file. Raster containers only (png/tiff/jpeg/webp). SNIFFED, NOT ASSERTED: absent means unknown or not raster — a container that buries depth in codec boxes (heic/avif) stays absent rather than guessing. Never hand-authored: `npm run build:catalog` writes it from a bounded header sniff and `npm run validate:catalog` re-sniffs to catch drift. Depth follows provenance (plans/61-deeprichpixels.md section 10)."
           },
           "durationMs": { "type": "integer", "minimum": 0, "description": "Playback length in milliseconds, for video, audio and lottie assets." }
         }

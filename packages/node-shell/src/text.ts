@@ -105,7 +105,7 @@ async function loadFace(fontUrl: string, repoRoot: string): Promise<FaceEntry> {
   // woff2 is not sfnt. HarfBuzz reads it as .notdef for every glyph (a silently blank
   // export). No headless-reachable font is woff2, so fail loud rather than blank out.
   if (buf.length >= 4 && buf[0] === 0x77 && buf[1] === 0x4f && buf[2] === 0x46 && buf[3] === 0x32) {
-    throw new Error(`host.text (node): ${fontUrl} is woff2, which the terminal shells can't decode — provide an sfnt (ttf/otf) font.`);
+    throw new Error(`host.text (node): ${fontUrl} is woff2, which the terminal shells can't decode - provide an sfnt (ttf/otf) font.`);
   }
   const blob = new hb.Blob(buf as unknown as ArrayBuffer);
   const face = new hb.Face(blob);

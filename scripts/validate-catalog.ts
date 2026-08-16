@@ -50,7 +50,7 @@ import { entryFromManifest } from './build-catalog-index.ts';
 // silently resolve such a clash by entry order.
 import { PALETTE } from '../shells/web/src/palette.ts';
 import { isThemableIconSvg, parseThemedAssetId, parseIconThemesDoc } from '../engine/src/icon-theme.ts';
-// The head-vs-version asset rule and the reserved head slug (plans/97 §6a). Imported
+// The head-vs-version asset rule and the reserved head slug (plans/97 section 6a). Imported
 // rather than re-stated: if the validator's idea of "this is a version asset" drifts
 // from the shells', it either passes a pack that cannot resolve or fails one that can.
 import { isVersionAssetId, readVersionIndex, DESIGN_VERSION_LATEST } from '../engine/src/design-version.ts';
@@ -66,7 +66,7 @@ import { verifySharedRegions } from './sync-shared-hooks.ts';
 // that module only rewrites the index when run directly.
 import { depthForFormat } from './checksum-assets.ts';
 // The frozen CLI verb list has exactly one home (shells/cli/src/args.ts); a tool id that
-// collides with one is unreachable from the terminal. See §1.1 of the GA contract.
+// collides with one is unreachable from the terminal. See section 1.1 of the GA contract.
 import { RESERVED_SUBCOMMANDS } from '../shells/cli/src/args.ts';
 // `canvas.*Field` → sub-field-id existence. The schema closes the canvas key SET;
 // this closes the reference side, which no JSON Schema can (it has to look at a
@@ -136,7 +136,7 @@ for (const dir of toolDirs) {
     errors.push(`[${dir}] duplicate tool id "${manifest.id}"`);
   }
 
-  // A tool id may never be a CLI subcommand word (plans/73-cli-ga-contract.md §1.1). The
+  // A tool id may never be a CLI subcommand word (plans/73-cli-ga-contract.md section 1.1). The
   // verbs win the first positional, so `brands/acme/tools/run/` would ship, pass every
   // other check, appear in `lolly list`, and be unreachable by any spelling - with no
   // diagnostic. Post-GA the only fixes are renaming a tool id (a permanent-contract
@@ -381,7 +381,7 @@ for (const [toolId, manifest] of toolManifests) {
   }
 }
 
-// ─── i18n sidecars (plans/38-localize.md §7) ──────────────────────────────────
+// ─── i18n sidecars (plans/38-localize.md section 7) ──────────────────────────────────
 // tools/<id>/i18n/<lang>.json is a flat, dotted-path overlay onto the
 // manifest's own user-facing strings (engine/src/loader.ts's
 // applyManifestI18n applies it at load time; build-catalog-index.ts folds
@@ -479,7 +479,7 @@ for (const asset of assetsIndex.assets) {
       }
 
       // Depth label matches a re-sniff of the actual bytes, in BOTH directions.
-      // `depth` is generated, never hand-authored (plans/61-deeprichpixels.md §10
+      // `depth` is generated, never hand-authored (plans/61-deeprichpixels.md section 10
       // item 6): a present-but-wrong label would be exactly the "bits the
       // pipeline did not produce" the plan forbids, and a missing label on a
       // sniffable raster is a stale index. Same function the writer uses, so
@@ -525,7 +525,7 @@ for (const asset of assetsIndex.assets) {
       // Icon-themes palettes: the colour pairings the shells offer for themable
       // icons. parseIconThemesDoc is the runtime's reader - any entry it drops
       // (bad id charset, unusable colour) would silently vanish from the UI, so
-      // dropping is an authoring error here.
+      // dropping is an authoring error this validator must catch.
       if (asset.type === 'palette' && asset.tags?.includes('icon-themes') && fmt.format === 'json') {
         let doc;
         try { doc = JSON.parse(bytes.toString('utf8')); } catch {
@@ -612,7 +612,23 @@ if (assetsIndex.defaultFavourites !== undefined) {
   }
 }
 
-// ─── Design-system version pins (plans/97 §6a) ──────────────────────────────
+// Default-hidden tools (merged into a fresh profile's gallery overlay) must each reference a
+// real TOOL in this profile - a typo'd id would silently hide nothing, or hide a tool that
+// isn't shipped. Note these are TOOL ids, not asset ids (they live in the assets index only
+// because that index is already per-brand and round-trip-safe, like defaultFavourites).
+if (assetsIndex.defaultHiddenTools !== undefined) {
+  if (!Array.isArray(assetsIndex.defaultHiddenTools)) {
+    errors.push(`assets/index.json: "defaultHiddenTools" must be an array of tool ids`);
+  } else {
+    for (const id of assetsIndex.defaultHiddenTools) {
+      if (typeof id !== 'string' || !seenToolIds.has(id)) {
+        errors.push(`assets/index.json: defaultHiddenTools entry "${id}" is not a known tool id in this profile`);
+      }
+    }
+  }
+}
+
+// ─── Design-system version pins (plans/97 section 6a) ──────────────────────────────
 
 // The version assets this catalog ships, by slug. A tokens asset is a VERSION when
 // another tokens asset is its proper ancestor (`user/tokens/brand/jupiter` under

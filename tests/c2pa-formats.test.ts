@@ -610,8 +610,8 @@ for (const [fmt, fixture, description] of RECORDED) {
 // ─── coverage guard for the dispatch table (APPENDED 2026-08-11) ──────────────
 
 test('every stampable format is round-tripped by SOME suite, none silently untested', () => {
-  // CASES above is this file's own coverage. The C2PA 2.4 text bindings (§A.7
-  // HTML documents, §A.9 structured text, and the Lolly html-fragment profile)
+  // CASES above is this file's own coverage. The C2PA 2.4 text bindings (section A.7
+  // HTML documents, section A.9 structured text, and the Lolly html-fragment profile)
   // live in tests/c2pa-text-write.test.ts because their fixtures are text and
   // their tamper offsets sit at the FRONT of the file - the armour exclusion runs
   // to EOF, so this file's shared `out.length - 1` target would land inside the

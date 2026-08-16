@@ -264,10 +264,10 @@ export async function captureUrl(
   const fmt = format.toLowerCase() === 'jpeg' ? 'jpg' : format.toLowerCase();
   if (!params.url) throw new BrowserError('Enter a URL to capture.');
   if (!['png', 'jpg', 'pdf', 'svg', 'webp'].includes(fmt)) {
-    throw new BrowserError(`url-shot can't produce "${format}" — use png, jpg, pdf, or svg.`);
+    throw new BrowserError(`url-shot can't produce "${format}" - use png, jpg, pdf, or svg.`);
   }
   if (fmt === 'webp') {
-    throw new BrowserError('WebP capture needs the desktop app — in the terminal use png, jpg, pdf, or svg.');
+    throw new BrowserError('WebP capture needs the desktop app - in the terminal use png, jpg, pdf, or svg.');
   }
 
   const width = Math.max(1, Math.round(dims.width || 1280));

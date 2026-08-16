@@ -2,14 +2,14 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://lolly.tools/schemas/canvas-op.schema.json",
   "title": "Canvas Op",
-  "description": "One persisted collaboration operation on a live canvas (plans/99-canvas-op-contract.md). Mirrors the CanvasOp discriminated union in packages/core/src/canvas-op-v1.ts field-for-field — keep the two in sync by hand; there is no schema-from-types generator here. A discriminated union on `k`, expressed as allOf/if-then (not oneOf) so each branch is its own fully-closed (`additionalProperties: false`) object rather than an ambiguous alternative list. Every op carries `origin` — the Lamport-clock + client-id stamp the reference CRDT (ReferenceCanvasDoc) orders by; lolly-work's real Yjs adapter may ignore it. v1.1 (plans/100 §3, additive): every box op takes an optional `col` (blocks-input collection scoping — never `param`, whose lane is collection-blind), and the presence $def gains focus/location/following/viewport/chat.",
+  "description": "One persisted collaboration operation on a live canvas (plans/99-canvas-op-contract.md). Mirrors the CanvasOp discriminated union in packages/core/src/canvas-op-v1.ts field-for-field — keep the two in sync by hand; there is no schema-from-types generator here. A discriminated union on `k`, expressed as allOf/if-then (not oneOf) so each branch is its own fully-closed (`additionalProperties: false`) object rather than an ambiguous alternative list. Every op carries `origin` — the Lamport-clock + client-id stamp the reference CRDT (ReferenceCanvasDoc) orders by; lolly-work's real Yjs adapter may ignore it. v1.1 (plans/100 section 3, additive): every box op takes an optional `col` (blocks-input collection scoping — never `param`, whose lane is collection-blind), and the presence $def gains focus/location/following/viewport/chat.",
   "type": "object",
   "required": ["k", "origin"],
   "properties": {
     "k": {
       "type": "string",
       "enum": ["geom", "field", "add", "remove", "order", "param"],
-      "description": "The op kind. Deliberately small and append-only (plans/99 §9) — geometry/field/structural/order, plus `param` for the params document lane (plans/99 §6)."
+      "description": "The op kind. Deliberately small and append-only (plans/99 section 9) — geometry/field/structural/order, plus `param` for the params document lane (plans/99 section 6)."
     },
     "origin": { "$ref": "#/$defs/origin" }
   },
@@ -20,7 +20,7 @@
         "required": ["k"]
       },
       "then": {
-        "description": "Set a subset of geometry fields on one box — the geometry lane (plans/99 §4.1 `moved`). Never invalidates a raster/tile (plans/99 §4.3).",
+        "description": "Set a subset of geometry fields on one box — the geometry lane (plans/99 section 4.1 `moved`). Never invalidates a raster/tile (plans/99 section 4.3).",
         "type": "object",
         "required": ["k", "id", "fields", "origin"],
         "additionalProperties": false,
@@ -51,7 +51,7 @@
         "required": ["k"]
       },
       "then": {
-        "description": "Set one content field on one box — the content lane (plans/99 §4.1 `restyled`). `frame`/`group`/`order` membership are ordinary field writes too (plans/99 §3).",
+        "description": "Set one content field on one box — the content lane (plans/99 section 4.1 `restyled`). `frame`/`group`/`order` membership are ordinary field writes too (plans/99 section 3).",
         "type": "object",
         "required": ["k", "id", "field", "value", "origin"],
         "additionalProperties": false,
@@ -71,7 +71,7 @@
         "required": ["k"]
       },
       "then": {
-        "description": "Insert a new box with its full row + a paint-order key (plans/99 §4.1 `added`).",
+        "description": "Insert a new box with its full row + a paint-order key (plans/99 section 4.1 `added`).",
         "type": "object",
         "required": ["k", "id", "row", "orderKey", "origin"],
         "additionalProperties": false,
@@ -81,12 +81,12 @@
           "col": { "$ref": "#/$defs/collectionId" },
           "row": {
             "type": "object",
-            "description": "The box's flat row of fields — a BoxRow. Every value is a Scalar; file bytes, live frames, and unresolved bindings never enter an op (plans/99 §7).",
+            "description": "The box's flat row of fields — a BoxRow. Every value is a Scalar; file bytes, live frames, and unresolved bindings never enter an op (plans/99 section 7).",
             "additionalProperties": { "$ref": "#/$defs/scalar" }
           },
           "orderKey": {
             "type": "string",
-            "description": "LWW fractional-index paint-order key (see ReferenceCanvasDoc). lolly-work's adapter uses Y.Array<BoxId> instead — documented order-model divergence (plans/99 §3, §8)."
+            "description": "LWW fractional-index paint-order key (see ReferenceCanvasDoc). lolly-work's adapter uses Y.Array<BoxId> instead — documented order-model divergence (plans/99 section 3, section 8)."
           },
           "origin": { "$ref": "#/$defs/origin" }
         }
@@ -98,7 +98,7 @@
         "required": ["k"]
       },
       "then": {
-        "description": "Delete a box (plans/99 §4.1 `removed`). The id is never reused.",
+        "description": "Delete a box (plans/99 section 4.1 `removed`). The id is never reused.",
         "type": "object",
         "required": ["k", "id", "origin"],
         "additionalProperties": false,
@@ -116,7 +116,7 @@
         "required": ["k"]
       },
       "then": {
-        "description": "Set a box's paint-order key (plans/99 §4.1 `zChanged`, order move).",
+        "description": "Set a box's paint-order key (plans/99 section 4.1 `zChanged`, order move).",
         "type": "object",
         "required": ["k", "id", "orderKey", "origin"],
         "additionalProperties": false,
@@ -135,7 +135,7 @@
         "required": ["k"]
       },
       "then": {
-        "description": "Set a `params` entry — a separate document lane (`Y.Map<CanonicalId, ParamValue>`), not a box field (plans/99 §6).",
+        "description": "Set a `params` entry — a separate document lane (`Y.Map<CanonicalId, ParamValue>`), not a box field (plans/99 section 6).",
         "type": "object",
         "required": ["k", "key", "value", "origin"],
         "additionalProperties": false,
@@ -152,7 +152,7 @@
     "origin": {
       "$anchor": "origin",
       "type": "object",
-      "description": "The Lamport-clock + client-id stamp every op carries (plans/99 §8). Higher `clock` wins the LWW merge; on a tie, the higher `client` id wins.",
+      "description": "The Lamport-clock + client-id stamp every op carries (plans/99 section 8). Higher `clock` wins the LWW merge; on a tie, the higher `client` id wins.",
       "required": ["client", "clock"],
       "additionalProperties": false,
       "properties": {
@@ -164,35 +164,35 @@
       "$anchor": "boxId",
       "type": "string",
       "minLength": 1,
-      "description": "A stable, client-generated ULID (plans/99 §2). Everything keys on this, never an array index."
+      "description": "A stable, client-generated ULID (plans/99 section 2). Everything keys on this, never an array index."
     },
     "collectionId": {
       "$anchor": "collectionId",
       "type": "string",
       "minLength": 1,
-      "description": "v1.1 (plans/100 §3): the blocks-input collection an op targets; absent = the default canvas collection, so every v1.0 op stays valid. Never on `param` — the params lane is collection-blind."
+      "description": "v1.1 (plans/100 section 3): the blocks-input collection an op targets; absent = the default canvas collection, so every v1.0 op stays valid. Never on `param` — the params lane is collection-blind."
     },
     "scalar": {
       "$anchor": "scalar",
-      "description": "The CRDT-syncable value of a single box field (plans/99 §7). Deliberately narrow — no file bytes, no live frames.",
+      "description": "The CRDT-syncable value of a single box field (plans/99 section 7). Deliberately narrow — no file bytes, no live frames.",
       "type": ["string", "number", "boolean", "null"]
     },
     "providerRef": {
       "$anchor": "providerRef",
       "type": "object",
-      "description": "A descriptor of WHICH dataset/query a binding reads — never the resolved datum (plans/99 §6).",
+      "description": "A descriptor of WHICH dataset/query a binding reads — never the resolved datum (plans/99 section 6).",
       "required": ["provider"],
       "additionalProperties": false,
       "properties": {
         "provider": { "type": "string", "minLength": 1 },
         "query": { "type": "string" },
-        "version": { "type": "string", "description": "Optionally pins the provider so a schema change doesn't silently re-resolve differently across clients (plans/99 §11)." }
+        "version": { "type": "string", "description": "Optionally pins the provider so a schema change doesn't silently re-resolve differently across clients (plans/99 section 11)." }
       }
     },
     "paramBinding": {
       "$anchor": "paramBinding",
       "type": "object",
-      "description": "A param binding syncs as a descriptor, never the resolved datum — live data does not travel through the CRDT (plans/99 §6).",
+      "description": "A param binding syncs as a descriptor, never the resolved datum — live data does not travel through the CRDT (plans/99 section 6).",
       "required": ["bind"],
       "additionalProperties": false,
       "properties": {
@@ -201,7 +201,7 @@
     },
     "paramValue": {
       "$anchor": "paramValue",
-      "description": "The reactive/data-bus value stored per canonical id in `params` (plans/99 §3, §6): either a literal scalar or a binding descriptor.",
+      "description": "The reactive/data-bus value stored per canonical id in `params` (plans/99 section 3, section 6): either a literal scalar or a binding descriptor.",
       "oneOf": [
         { "$ref": "#/$defs/scalar" },
         { "$ref": "#/$defs/paramBinding" }
@@ -211,7 +211,7 @@
       "$anchor": "presence",
       "type": "object",
       "title": "Awareness / Presence",
-      "description": "Ephemeral presence — the Yjs awareness channel, NEVER written to the doc (plans/99 §5). Carries no origin/clock: it is not an op and never converges. Broadcast at pointer-move rate. v1.1 (plans/100 §3, §4) adds focus/location/following/viewport/chat — all optional, all still never persisted.",
+      "description": "Ephemeral presence — the Yjs awareness channel, NEVER written to the doc (plans/99 section 5). Carries no origin/clock: it is not an op and never converges. Broadcast at pointer-move rate. v1.1 (plans/100 section 3, section 4) adds focus/location/following/viewport/chat — all optional, all still never persisted.",
       "required": ["userId", "name", "color", "cursor", "selection"],
       "additionalProperties": false,
       "properties": {
@@ -220,7 +220,7 @@
         "color": { "type": "string" },
         "cursor": {
           "type": "object",
-          "description": "Normalized 0..1 of the design's unit space, so every zoom level and every presenter renders it identically (plans/99 §5).",
+          "description": "Normalized 0..1 of the design's unit space, so every zoom level and every presenter renders it identically (plans/99 section 5).",
           "required": ["x", "y"],
           "additionalProperties": false,
           "properties": {
@@ -252,19 +252,19 @@
         },
         "focus": {
           "type": "string",
-          "description": "v1.1 (plans/100 §3, §4.1): the focused input — an input id, or \"<blocksId>:<rowId>\" for a blocks row. Drives the focus-ring presence primitive on every tool."
+          "description": "v1.1 (plans/100 section 3, section 4.1): the focused input — an input id, or \"<blocksId>:<rowId>\" for a blocks row. Drives the focus-ring presence primitive on every tool."
         },
         "location": {
           "type": "string",
-          "description": "v1.1 (plans/100 §4.2): which slide/page/scene the user is on (big tools) — presence-bar grouping and the follow-mode target."
+          "description": "v1.1 (plans/100 section 4.2): which slide/page/scene the user is on (big tools) — presence-bar grouping and the follow-mode target."
         },
         "following": {
           "type": "string",
-          "description": "v1.1 (plans/100 §4.2): the userId this user is following — follow is a pure presence field, never a mode."
+          "description": "v1.1 (plans/100 section 4.2): the userId this user is following — follow is a pure presence field, never a mode."
         },
         "viewport": {
           "type": "object",
-          "description": "v1.1 (plans/100 §4.2): the follower-adoptable camera.",
+          "description": "v1.1 (plans/100 section 4.2): the follower-adoptable camera.",
           "required": ["x", "y", "zoom"],
           "additionalProperties": false,
           "properties": {
@@ -276,7 +276,7 @@
         "chat": {
           "type": "string",
           "maxLength": 64,
-          "description": "v1.1 (plans/100 §3): cursor chat — max 64 chars, rides the awareness channel only, never persisted."
+          "description": "v1.1 (plans/100 section 3): cursor chat — max 64 chars, rides the awareness channel only, never persisted."
         }
       }
     }

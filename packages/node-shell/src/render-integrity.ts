@@ -76,7 +76,7 @@ export function assertRenderOk({ hookErrors, format, bytes }: AssertRenderOkArgs
     const detail = hookErrors.map(e => `${e.hook} failed: ${e.message}`).join('; ');
     throw new RenderIntegrityError(
       'hook-failed',
-      `render produced no usable output — ${detail}. No file was written.`,
+      `render produced no usable output - ${detail}. No file was written.`,
       hookErrors,
     );
   }
@@ -85,7 +85,7 @@ export function assertRenderOk({ hookErrors, format, bytes }: AssertRenderOkArgs
   if (isSvgFormat(format) && isDegenerateSvg(bytes)) {
     throw new RenderIntegrityError(
       'degenerate-svg',
-      'render produced no usable output — the SVG has no size and no drawable content ' +
+      'render produced no usable output - the SVG has no size and no drawable content ' +
       '(the tool likely failed to render). No file was written.',
     );
   }

@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
  * The pro float formats through the REAL CLI mechanism (plans/61-deeprichpixels.md
- * §6 Phase B3, §10 item 4 "CLI first for pro formats"): `--export=exr` and
+ * section 6 Phase B3, section 10 item 4 "CLI first for pro formats"): `--export=exr` and
  * `--export=hdr` on a native-<svg> fixture tool, driven by `runToolCli` exactly
  * as a terminal invocation would - jsdom, createCliBridge, resvg, the engine's
  * own OpenEXR / Radiance writers.
@@ -17,7 +17,7 @@
  *
  *   1. The REFUSAL is the essential half. The CLI's pixel source is an 8-bit
  *      sRGB resvg raster, so a float file made from it without `hdr=` would be
- *      padding - §10's "depth follows provenance" forbids shipping that as
+ *      padding - section 10's "depth follows provenance" forbids shipping that as
  *      quality. `refuses …` asserts the sentence, that it is not swallowed by
  *      run.ts's fall-back-to-HTML catch, and that no file is left behind.
  *   2. With `hdr=1` the float is EARNED: the view transform pushes near-whites

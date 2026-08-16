@@ -26,7 +26,7 @@
  *    `readSpotColor`'s tolerance in `tokens.ts`.
  * 3. **It counts; it does not cost.** There is no currency, no rate and no
  *    monetary concept anywhere in this module, and none may be added.
- *    See `plans/65-preflight-and-cost.md` §6 and §8.
+ *    See `plans/65-preflight-and-cost.md` section 6 and section 8.
  *
  * The finding/count vocabulary lives in `@lolly-tools/core` (`preflight.ts`
  * there), beside the manifest contract, so a consumer can read a serialised
@@ -110,7 +110,7 @@ export const RASTER_FORMATS: ReadonlySet<string> = new Set([
  *
  * These are admitted for ANY tool by the render path. `shells/cli/src/run.ts`
  * exempts them from the offered-formats gate, because `plans/61-deeprichpixels.md`
- * §10 rules out per-tool depth declarations, so preflight must exempt them too.
+ * section 10 rules out per-tool depth declarations, so preflight must exempt them too.
  * Refusing a job that renders fine is the one failure that makes a CI gate built
  * on `lolly preflight` worse than none.
  */
@@ -986,7 +986,7 @@ const checkTrimNotPhysical: Check = c => {
   if (!PRINT_MARK_FORMATS.has(c.fmt)) return;
   // svg/eps/eps-cmyk are dual-use (screen + print), so a plain px-size export of one is
   // a screen graphic, not a print job missing its trim. Reporting "no physical page
-  // size" on every such row is batch noise (plans §6). Only speak up for them once
+  // size" on every such row is batch noise (plans section 6). Only speak up for them once
   // there is PRINT INTENT (marks/bleed turned on). The dedicated print formats
   // (pdf/pdf-cmyk/cmyk-tiff) are unchanged: px on those should always be flagged.
   if ((c.fmt === 'svg' || c.fmt === 'eps' || c.fmt === 'eps-cmyk') && !marksAreSet(c)) return;

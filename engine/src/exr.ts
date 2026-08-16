@@ -2,7 +2,7 @@
 /**
  * OpenEXR encoder - scanline, HALF (float16) or FLOAT (32-bit), NONE/ZIPS/ZIP.
  *
- * plans/61-deeprichpixels.md §4.2 / §6 Phase B3, surfaced CLI-first per §10 item 4.
+ * plans/61-deeprichpixels.md section 4.2 / section 6 Phase B3, surfaced CLI-first per section 10 item 4.
  * This format is for professional video, compositing, and colour pipelines:
  * every VFX and compositing tool reads OpenEXR (Nuke, Resolve, Flame, Fusion,
  * Blender, Houdini, RV, OIIO), and none of them accept a browser format.
@@ -30,7 +30,7 @@
  * are RGB primaries by definition and there is no chromaticity triple that
  * describes a CIELAB buffer. Convert first (`pixels.ts#convertSpace`).
  *
- * SEAM (same rule `png.ts` and `tiff.ts` state, same reason - plan §10, depth
+ * SEAM (same rule `png.ts` and `tiff.ts` state, same reason - plan section 10, depth
  * follows provenance): this writer never invents depth. It writes float samples
  * because a `DeepFrame` genuinely holds float samples; it will happily encode a
  * frame that came from 8-bit bytes, but that is the caller's provenance claim to
@@ -169,7 +169,7 @@ export interface PackExrOptions {
  *
  * Sources: Rec.709 primaries with D65 - ITU-R BT.709-6 Table 1 (also the EXR
  * default, Technical Introduction "RGB Colour"). Display-P3 - SMPTE EG 432-1
- * primaries with the D65 white CSS Color 4 §10.4 uses. Rec.2020 - ITU-R
+ * primaries with the D65 white CSS Color 4 section 10.4 uses. Rec.2020 - ITU-R
  * BT.2020-2 Table 3. The same primaries the matrices in `pixels.ts` are built
  * from, so the tag and the numbers cannot disagree.
  */

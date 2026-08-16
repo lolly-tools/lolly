@@ -48,9 +48,9 @@ export function validateTool(manifest: unknown): ValidationResult {
 }
 
 /**
- * Validate one `CanvasOp` (plans/99 §4) against the bundled canvas-op schema.
+ * Validate one `CanvasOp` (plans/99 section 4) against the bundled canvas-op schema.
  * This is the same shape-check lolly-work's collaboration gateway runs on every
- * inbound op before applying it (the veto in plans/99 §7 is a separate policy
+ * inbound op before applying it (the veto in plans/99 section 7 is a separate policy
  * layer). The bundled schema is kept byte-identical to
  * `schemas/canvas-op.schema.json` by the same drift-guard test that covers the
  * manifest schema.

@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
- * The free-canvas `canvas` block's validation contract (plans/104 §9.2 M0-D, §10).
+ * The free-canvas `canvas` block's validation contract (plans/104 section 9.2 M0-D, section 10).
  *
  * The gap this closes, measured 2026-08-11: `canvas` had no
  * `additionalProperties`, and its `properties` list had fallen 21 keys behind the
@@ -214,10 +214,10 @@ test('the real org-chart manifest passes the schema AND the reference check', { 
   assert.deepEqual(canvasFieldRefErrors(m), [], 'org-chart canvas.*Field values must all resolve');
 });
 
-test('the parent-owned design manifest passes the schema AND the reference check', () => {
-  // brands/lolly-start is parent-owned, so this half runs on a public clone too - 
+test('the community design manifest passes the schema AND the reference check', () => {
+  // community/ is the public pack, so this half runs on a public clone too - 
   // and it is the widest canvas block in the tree (63 keys).
-  const path = join(ROOT, 'brands/lolly-start/tools/design/tool.json');
+  const path = join(ROOT, 'community/design/tool.json');
   const m = JSON.parse(readFileSync(path, 'utf8'));
   const eng = validateManifest(m);
   assert.equal(eng.valid, true, `design must validate: ${JSON.stringify(eng.errors)}`);

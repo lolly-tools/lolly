@@ -279,7 +279,7 @@ test('extractFileMetadata: APNG (acTL/fcTL/fdAT) already catches appended data v
 
 // ─── Multi-picture JPEGs: an HDR gain map is DECLARED content, not a payload ──
 //
-// plans/61-deeprichpixels.md §6 B2 / task E2. Lolly's own `hdr=1` JPEG export is a
+// plans/61-deeprichpixels.md section 6 B2 / task E2. Lolly's own `hdr=1` JPEG export is a
 // gain-map file: an ordinary SDR JPEG with a second (gain-map) JPEG past its
 // EOI, described by a CIPA DC-007 MPF index. Before this coverage the reveal
 // called that "JPEG image - N KB after the image ends", flagged `sensitive` - 

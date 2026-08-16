@@ -31,7 +31,7 @@
     "minimumCharge": {
       "type": "number",
       "minimum": 0,
-      "description": "A number, so the §5 placeholder \"<your minimum>\" is invalid. Applied as a visible adjustment row, never a silent floor."
+      "description": "A number, so the section 5 placeholder \"<your minimum>\" is invalid. Applied as a visible adjustment row, never a silent floor."
     },
     "breakMode": {
       "enum": ["flat", "marginal"],
@@ -68,12 +68,12 @@
           },
           "kind": {
             "enum": ["perPlate", "perSheet", "perArea", "perQuantity", "perUnit", "perJob"],
-            "description": "There is deliberately no perRender: §4 counts three different things a job produces and they differ by an order of magnitude."
+            "description": "There is deliberately no perRender: section 4 counts three different things a job produces and they differ by an order of magnitude."
           },
           "rate": {
             "type": "number",
             "minimum": 0,
-            "description": "THE constraint that makes the §5 example invalid. A rate is a number FROM THE CARD; the placeholder \"<your rate>\" is a string and is rejected."
+            "description": "THE constraint that makes the section 5 example invalid. A rate is a number FROM THE CARD; the placeholder \"<your rate>\" is a string and is rejected."
           },
           "finish": {
             "type": "string",

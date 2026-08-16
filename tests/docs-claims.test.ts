@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
- * The landing page's claim guards (plans/117 §6, doctrine in plans/116 §3 + §5).
+ * The landing page's claim guards (plans/117 section 6, doctrine in plans/116 section 3 + section 5).
  *
  * These run against the SOURCE files - `docs/site.md`, `docs/site/*.json`,
  * `docs/build.ts`, `docs/faq.md`, `docs/trust.md` - and never against the built
@@ -148,7 +148,7 @@ function jsonStrings(value: unknown, out: string[] = []): string[] {
 // ── 1. say offline once ──────────────────────────────────────────────────────
 
 /**
- * The offline-claim phrase list (plan 117 §6). Written as regexes rather than
+ * The offline-claim phrase list (plan 117 section 6). Written as regexes rather than
  * substrings so "on your device" and "on your own device" are one rule, and so a
  * hyphenated "on-device" cannot slip past the spaced form.
  */
@@ -314,7 +314,7 @@ test('the sceptic paragraph is byte-identical in all three homes', () => {
 // ── 4. banned words on the landing ───────────────────────────────────────────
 
 /**
- * The rulebook list (plan 117 §1), minus the two entries no regex can judge (see
+ * The rulebook list (plan 117 section 1), minus the two entries no regex can judge (see
  * the header). Each entry is [label, regex]. "sovereignty" is allowed in exactly
  * one place - the hero H1 - which is why hero-chrome.json's `statement` is
  * checked separately below rather than scanned here.
@@ -400,7 +400,7 @@ test('block 2 seeds tools that exist on every profile and touch no network', () 
   }
 });
 
-// ── 6. banned overclaims across the docs (the honesty glass-jaw, plan 116 §5) ─
+// ── 6. banned overclaims across the docs (the honesty glass-jaw, plan 116 section 5) ─
 
 /**
  * Absolute claims the honesty doctrine forbids anywhere in the docs, because no
@@ -440,7 +440,7 @@ test('no banned overclaims anywhere in the docs sources', () => {
   assert.deepEqual(failures, [], 'a banned overclaim reached the docs - Content Credentials are tamper-EVIDENT and strippable, and the network claim is consent-gated, never absolute');
 });
 
-// ── 7. the consent ledger agrees with the CSP allowlist (plan 116 §5) ─────────
+// ── 7. the consent ledger agrees with the CSP allowlist (plan 116 section 5) ─────────
 
 /**
  * The privacy.md network table is the consent ledger. Its fixed hosts must equal

@@ -82,21 +82,6 @@ export const NOT_IN_SIDEBAR: Record<string, string> = {
   index:
     'the /info landing page — the brand wordmark links to it from every page, and it ' +
     'renders the hub cards rather than sitting inside a pathway sidebar',
-  'compare-canva':
-    'a per-competitor compare page, reached through the /info/compare index and the ' +
-    'format-page footers, not a top-level sidebar item',
-  'compare-adobe':
-    'a per-competitor compare page, reached through the /info/compare index and the ' +
-    'format-page footers, not a top-level sidebar item',
-  'compare-figma':
-    'a per-competitor compare page, reached through the /info/compare index and the ' +
-    'format-page footers, not a top-level sidebar item',
-  'compare-render-apis':
-    'a per-competitor compare page, reached through the /info/compare index and the ' +
-    'format-page footers, not a top-level sidebar item',
-  'compare-converters':
-    'a per-competitor compare page, reached through the /info/compare index and the ' +
-    'format-page footers, not a top-level sidebar item',
 };
 
 export interface NavReport {

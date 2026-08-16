@@ -146,7 +146,7 @@ function attempt(run: () => GeomPathResult): GeomPathResult {
 // ── path-data validation ──────────────────────────────────────────────────────
 
 /** Argument count per command. Every run must be a non-zero multiple of it (SVG
- *  1.1 §8.3: a command with a short trailing run is in error, not truncated). */
+ *  1.1 section 8.3: a command with a short trailing run is in error, not truncated). */
 const ARITY: Record<string, number> = { M: 2, L: 2, H: 1, V: 1, C: 6, S: 4, Q: 4, T: 2, A: 7, Z: 0 };
 /** Curves one command's argument group can contribute, for the pre-parse estimate.
  *  An arc is up to four (one per ≤90° sweep), everything else is one. */

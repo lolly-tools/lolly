@@ -1,6 +1,6 @@
 {
   "version": "1",
-  "generatedAt": "2026-08-16T09:46:13.741Z",
+  "generatedAt": "2026-08-16T12:46:05.526Z",
   "tools": [
     {
       "id": "compress-pdf",
@@ -5574,6 +5574,1279 @@
           "name": "Design",
           "description": "An open canvas for free arrangement — text, images, shapes and live renders from your other Lolly tools, all held to your brand.",
           "blurb": "在开放画布上自由排版"
+        }
+      }
+    },
+    {
+      "id": "3d",
+      "name": "3D",
+      "description": "Load a 3D model into a lit scene, orbit and pose the camera, and render a still or a turntable animation.",
+      "version": "1.0.0",
+      "status": "experimental",
+      "category": "designer",
+      "tags": [
+        "3d",
+        "gltf",
+        "glb",
+        "render",
+        "turntable",
+        "product"
+      ],
+      "formats": [
+        "png",
+        "jpg",
+        "webp",
+        "webm",
+        "mp4",
+        "gif"
+      ],
+      "width": 1280,
+      "height": 1280,
+      "exportable": true,
+      "icon": "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"24\" height=\"24\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z\"/><path d=\"m3.3 7 8.7 5 8.7-5\"/><path d=\"M12 22V12\"/></svg>",
+      "preview": "/catalog/previews/3d.webp",
+      "i18n": {
+        "ar": {
+          "name": "3D",
+          "description": "حمل نموذجا ثلاثي الأبعاد في مشهد مضاء، وحرك الكاميرا واضبط زاويتها، ثم صدر صورة ثابتة أو حركة دوران."
+        },
+        "bg": {
+          "name": "3D",
+          "description": "Зареди 3D модел в осветена сцена, завърти и позиционирай камерата и рендерирай статичен кадър или turntable анимация."
+        },
+        "bn": {
+          "name": "3D",
+          "description": "আলোকিত দৃশ্যে একটি 3D মডেল লোড করুন, ক্যামেরা অরবিট ও পোজ করুন, আর একটি স্টিল বা টার্নটেবল অ্যানিমেশন রেন্ডার করুন।"
+        },
+        "cs": {
+          "name": "3D",
+          "description": "Načti 3D model do nasvícené scény, otáčej a polohuj kameru a vykresli statický snímek nebo otáčivou animaci."
+        },
+        "de": {
+          "name": "3D",
+          "description": "Laden Sie ein 3D-Modell in eine beleuchtete Szene, umkreisen und positionieren Sie die Kamera, und rendern Sie ein Standbild oder eine Turntable-Animation."
+        },
+        "es": {
+          "name": "3D",
+          "description": "Carga un modelo 3D en una escena iluminada, orbita y posiciona la cámara, y renderiza una imagen fija o una animación giratoria."
+        },
+        "fr": {
+          "name": "3D",
+          "description": "Charge un modèle 3D dans une scène éclairée, fais pivoter et positionne la caméra, puis génère une image fixe ou une animation en rotation."
+        },
+        "hi": {
+          "name": "3D",
+          "description": "किसी 3D मॉडल को प्रकाशित सीन में लोड करें, कैमरे को ऑर्बिट और पोज़ करें, और स्टिल या टर्नटेबल एनिमेशन रेंडर करें।"
+        },
+        "id": {
+          "name": "3D",
+          "description": "Muat model 3D ke dalam scene yang diterangi, atur orbit dan pose kamera, lalu render gambar diam atau animasi turntable."
+        },
+        "it": {
+          "name": "3D",
+          "description": "Carica un modello 3D in una scena illuminata, ruota e imposta la fotocamera, e renderizza un fermo immagine o un'animazione a giostra."
+        },
+        "ja": {
+          "name": "3D",
+          "description": "3D モデルをライティングされたシーンに読み込み、カメラを周回・調整して、静止画またはターンテーブルアニメーションをレンダリングします。"
+        },
+        "ko": {
+          "name": "3D",
+          "description": "3D 모델을 조명이 설정된 장면에 불러와 카메라를 회전하고 자세를 조정하여, 정지 이미지 또는 턴테이블 애니메이션으로 렌더링합니다."
+        },
+        "ms": {
+          "name": "3D",
+          "description": "Muatkan model 3D ke dalam adegan bercahaya, putarkan dan laraskan kamera, kemudian render imej pegun atau animasi turntable."
+        },
+        "nl": {
+          "name": "3D",
+          "description": "Laad een 3D-model in een verlichte scene, draai en positioneer de camera, en render een still of een turntable-animatie."
+        },
+        "no": {
+          "name": "3D",
+          "description": "Last en 3D-modell inn i en belyst scene, roter og posisjoner kameraet, og render et stillbilde eller en turntable-animasjon."
+        },
+        "pl": {
+          "name": "3D",
+          "description": "Wczytaj model 3D do oświetlonej sceny, obróć i ustaw kamerę, a następnie wyrenderuj kadr lub animację obrotową."
+        },
+        "pt": {
+          "name": "3D",
+          "description": "Carregue um modelo 3D em uma cena iluminada, gire e posicione a câmera, e renderize uma imagem estática ou uma animação giratória."
+        },
+        "ro": {
+          "name": "3D",
+          "description": "Încarcă un model 3D într-o scenă luminată, rotește și poziționează camera, apoi randează o imagine statică sau o animație turntable."
+        },
+        "sv": {
+          "name": "3D",
+          "description": "Läs in en 3D-modell i en belyst scen, rotera och justera kameran, och rendera en stillbild eller en turntable-animation."
+        },
+        "tl": {
+          "name": "3D",
+          "description": "I-load ang 3D model sa isang naiilawang scene, i-orbit at i-adjust ang camera, at i-render ang isang still o turntable animation."
+        },
+        "tr": {
+          "name": "3D",
+          "description": "Bir 3D modeli aydınlatılmış bir sahneye yükle, kamerayı döndürüp konumlandır, ardından durağan bir görüntü ya da döner bir animasyon oluştur."
+        },
+        "uk": {
+          "name": "3D",
+          "description": "Завантажте 3D-модель у освітлену сцену, обертайте й позиціонуйте камеру та створіть статичне зображення або анімацію-турнтейбл."
+        },
+        "ur": {
+          "name": "3D",
+          "description": "ایک 3D ماڈل کو روشن سین میں لوڈ کریں، کیمرا کو گھمائیں اور پوز دیں، اور ایک اسٹیل یا ٹرن ٹیبل اینیمیشن رینڈر کریں۔"
+        },
+        "vi": {
+          "name": "3D",
+          "description": "Tải mô hình 3D vào một cảnh có ánh sáng, xoay và chỉnh camera, rồi kết xuất ảnh tĩnh hoặc video quay vòng."
+        },
+        "zh-hant": {
+          "name": "3D",
+          "description": "將 3D 模型載入打光場景,環繞並調整鏡頭,算圖靜態影像或轉台動畫。"
+        },
+        "zh": {
+          "name": "3D",
+          "description": "将 3D 模型加载到打光的场景中,环绕并调整相机,渲染静态图像或转台动画。"
+        }
+      }
+    },
+    {
+      "id": "asset-export",
+      "name": "Asset Export",
+      "description": "Render any catalog asset - or a Lolly tool link - out to any format and size.",
+      "version": "1.0.0",
+      "status": "official",
+      "category": "everyone",
+      "listed": false,
+      "tags": [
+        "asset",
+        "export",
+        "convert",
+        "format",
+        "logo",
+        "image",
+        "svg",
+        "png",
+        "pdf"
+      ],
+      "formats": [
+        "svg",
+        "png",
+        "jpg",
+        "webp",
+        "pdf",
+        "pdf-cmyk",
+        "cmyk-tiff",
+        "ico",
+        "zip"
+      ],
+      "width": 1000,
+      "height": 1000,
+      "exportable": true,
+      "icon": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><rect x=\"3\" y=\"3\" width=\"18\" height=\"14\" rx=\"2\"/><circle cx=\"8.5\" cy=\"8.5\" r=\"1.5\"/><path d=\"m21 15-5-5L5 21\"/><path d=\"M12 21v-6\"/><path d=\"m9 18 3 3 3-3\"/></svg>",
+      "preview": "/catalog/previews/asset-export.svg",
+      "i18n": {
+        "ar": {
+          "name": "تصدير الأصول",
+          "description": "صدر أي أصل من الكتالوج — أو رابط أداة Lolly — بأي صيغة وحجم."
+        },
+        "bg": {
+          "name": "Експорт на активи",
+          "description": "Рендирай всеки актив от каталога — или линк към инструмент на Lolly — във всякакъв формат и размер."
+        },
+        "bn": {
+          "name": "অ্যাসেট এক্সপোর্ট",
+          "description": "যেকোনো ক্যাটালগ অ্যাসেট — বা একটি Lolly টুল লিংক — যেকোনো ফরম্যাট ও আকারে রেন্ডার করুন।"
+        },
+        "cs": {
+          "name": "Export zdroje",
+          "description": "Vykreslí libovolný zdroj z katalogu — nebo odkaz na nástroj Lolly — do libovolného formátu a velikosti."
+        },
+        "de": {
+          "name": "Asset-Export",
+          "description": "Rendern Sie jedes Katalog-Asset — oder einen Lolly-Tool-Link — in jedes Format und jede Größe."
+        },
+        "es": {
+          "name": "Exportar recurso",
+          "description": "Renderiza cualquier recurso del catálogo — o un enlace de herramienta Lolly — en cualquier formato y tamaño."
+        },
+        "fr": {
+          "name": "Export de ressource",
+          "description": "Exporte n'importe quelle ressource du catalogue — ou un lien d'outil Lolly — dans n'importe quel format et taille."
+        },
+        "hi": {
+          "name": "एसेट एक्सपोर्ट",
+          "description": "किसी भी कैटलॉग एसेट — या किसी Lolly टूल लिंक — को किसी भी फ़ॉर्मैट और आकार में रेंडर करें।"
+        },
+        "id": {
+          "name": "Ekspor Aset",
+          "description": "Render aset katalog apa pun — atau tautan alat Lolly — ke format dan ukuran apa pun."
+        },
+        "it": {
+          "name": "Esportazione risorsa",
+          "description": "Renderizza qualsiasi risorsa del catalogo — o un link a uno strumento Lolly — in qualsiasi formato e dimensione."
+        },
+        "ja": {
+          "name": "アセットエクスポート",
+          "description": "カタログ内の任意のアセット、またはLollyツールのリンクを、任意の形式とサイズで書き出します。"
+        },
+        "ko": {
+          "name": "자산 내보내기",
+          "description": "카탈로그의 모든 자산 또는 Lolly 도구 링크를 원하는 형식과 크기로 내보냅니다."
+        },
+        "ms": {
+          "name": "Eksport Aset",
+          "description": "Render mana-mana aset katalog — atau pautan alat Lolly — kepada sebarang format dan saiz."
+        },
+        "nl": {
+          "name": "Asset-export",
+          "description": "Render elk asset uit de catalogus — of een Lolly-toollink — naar elk formaat en elke grootte."
+        },
+        "no": {
+          "name": "Eksporter ressurs",
+          "description": "Render en hvilken som helst ressurs fra katalogen — eller en Lolly-verktøylenke — til et vilkårlig format og størrelse."
+        },
+        "pl": {
+          "name": "Eksport zasobu",
+          "description": "Wyrenderuj każdy zasób z katalogu — lub link do narzędzia Lolly — w każdym formacie i rozmiarze."
+        },
+        "pt": {
+          "name": "Exportar recurso",
+          "description": "Renderize qualquer recurso do catálogo — ou um link de ferramenta Lolly — em qualquer formato e tamanho."
+        },
+        "ro": {
+          "name": "Export de active",
+          "description": "Randează orice activ din catalog — sau un link către un instrument Lolly — în orice format și dimensiune."
+        },
+        "sv": {
+          "name": "Exportera tillgång",
+          "description": "Rendera vilken katalogtillgång som helst — eller en Lolly-verktygslänk — till valfritt format och storlek."
+        },
+        "tl": {
+          "name": "Pag-export ng Asset",
+          "description": "I-render ang anumang asset sa catalog — o link ng Lolly tool — sa anumang format at sukat."
+        },
+        "tr": {
+          "name": "Varlık Dışa Aktarma",
+          "description": "Herhangi bir katalog varlığını — ya da bir Lolly araç bağlantısını — istediğin format ve boyutta oluştur."
+        },
+        "uk": {
+          "name": "Експорт активу",
+          "description": "Рендерить будь-який актив з каталогу — або посилання на інструмент Lolly — у будь-якому форматі й розмірі."
+        },
+        "ur": {
+          "name": "ایسٹ ایکسپورٹ",
+          "description": "کسی بھی کیٹلاگ ایسٹ — یا Lolly ٹول لنک — کو کسی بھی فارمیٹ اور سائز میں رینڈر کریں۔"
+        },
+        "vi": {
+          "name": "Xuất tài nguyên",
+          "description": "Xuất bất kỳ tài nguyên nào trong danh mục — hoặc liên kết công cụ Lolly — sang bất kỳ định dạng và kích thước nào."
+        },
+        "zh-hant": {
+          "name": "資源匯出",
+          "description": "將目錄中任何資源——或 Lolly 工具連結——匯出為任何格式和尺寸。"
+        },
+        "zh": {
+          "name": "资源导出",
+          "description": "将目录中任何资源——或 Lolly 工具链接——导出为任何格式和尺寸。"
+        }
+      }
+    },
+    {
+      "id": "booth-studio",
+      "name": "Booth Studio",
+      "description": "Dress a 3D event booth with sponsor artwork. Click any panel to drop an image on it, pick a booth design, and render a still or a turntable for a sponsor pitch.",
+      "version": "0.1.0",
+      "status": "experimental",
+      "category": "event",
+      "tags": [
+        "booth",
+        "event",
+        "sponsor",
+        "3d",
+        "mockup",
+        "stand",
+        "exhibition"
+      ],
+      "formats": [
+        "png",
+        "jpg",
+        "webp",
+        "webm",
+        "mp4",
+        "gif"
+      ],
+      "width": 1600,
+      "height": 1000,
+      "exportable": true,
+      "icon": "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"24\" height=\"24\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><rect x=\"3\" y=\"3\" width=\"18\" height=\"3.5\" rx=\"1\"/><path d=\"M4.5 6.5V20\"/><path d=\"M19.5 6.5V20\"/><rect x=\"7\" y=\"9\" width=\"10\" height=\"6.5\" rx=\"1\"/><path d=\"M2 20h20\"/><rect x=\"13.5\" y=\"15.5\" width=\"5\" height=\"4.5\" rx=\"1\"/></svg>",
+      "preview": "/catalog/previews/booth-studio.svg",
+      "i18n": {
+        "ar": {
+          "name": "استوديو الجناح",
+          "description": "جهز كشك فعالية ثلاثي الأبعاد بأعمال فنية للرعاة. انقر فوق أي لوحة لإسقاط صورة عليها، واختر تصميم الكشك، وأنشئ صورة ثابتة أو عرضا دوارا لعرض ترويجي للراعي."
+        },
+        "bg": {
+          "name": "Студио за щандове",
+          "description": "Облечи 3D щанд за събитие с материали на спонсор. Кликни върху всеки панел, за да пуснеш изображение върху него, избери дизайн на щанда и генерирай статично изображение или въртящ се изглед за спонсорска презентация."
+        },
+        "bn": {
+          "name": "বুথ স্টুডিও",
+          "description": "স্পনসর আর্টওয়ার্ক দিয়ে একটি 3D ইভেন্ট বুথ সাজান। যেকোনো প্যানেলে ছবি ড্রপ করতে ক্লিক করুন, একটি বুথ ডিজাইন বেছে নিন, এবং স্পনসর পিচের জন্য একটি স্টিল বা টার্নটেবল রেন্ডার করুন।"
+        },
+        "cs": {
+          "name": "Booth Studio",
+          "description": "Vyzdob 3D veletržní stánek grafikou sponzora. Klikni na libovolný panel a vlož na něj obrázek, vyber design stánku a vykresli statický snímek nebo otočný záběr pro sponzorskou prezentaci."
+        },
+        "de": {
+          "name": "Stand-Studio",
+          "description": "Gestalten Sie einen 3D-Messestand mit Sponsor-Grafiken. Klicken Sie auf ein beliebiges Panel, um ein Bild darauf abzulegen, wählen Sie ein Standdesign, und rendern Sie ein Standbild oder eine Turntable-Ansicht für einen Sponsoring-Pitch."
+        },
+        "es": {
+          "name": "Booth Studio",
+          "description": "Viste un stand de eventos en 3D con material del patrocinador. Haz clic en cualquier panel para soltar una imagen, elige un diseño de stand y renderiza una imagen fija o un giro de 360° para una presentación de patrocinio."
+        },
+        "fr": {
+          "name": "Studio Stand",
+          "description": "Habille un stand d'événement 3D avec les visuels d'un sponsor. Clique sur un panneau pour y déposer une image, choisis un design de stand, puis génère une image fixe ou un tour complet pour une présentation sponsor."
+        },
+        "hi": {
+          "name": "बूथ स्टूडियो",
+          "description": "स्पॉन्सर आर्टवर्क से एक 3D इवेंट बूथ सजाएं। किसी भी पैनल पर इमेज डालने के लिए क्लिक करें, बूथ डिज़ाइन चुनें, और स्पॉन्सर पिच के लिए स्थिर इमेज या टर्नटेबल रेंडर करें।"
+        },
+        "id": {
+          "name": "Booth Studio",
+          "description": "Hias booth acara 3D dengan karya seni sponsor. Klik panel mana pun untuk meletakkan gambar di atasnya, pilih desain booth, lalu render gambar diam atau turntable untuk presentasi sponsor."
+        },
+        "it": {
+          "name": "Studio Stand",
+          "description": "Allestisci uno stand 3D per un evento con la grafica dello sponsor. Clicca su un pannello qualsiasi per rilasciarvi un'immagine, scegli un design per lo stand e renderizza un fermo immagine o un turntable per il pitch dello sponsor."
+        },
+        "ja": {
+          "name": "ブーススタジオ",
+          "description": "3D イベントブースをスポンサーのアートワークで装飾します。パネルをクリックして画像をドロップし、ブースデザインを選び、スポンサー向けの静止画またはターンテーブル映像を書き出します。"
+        },
+        "ko": {
+          "name": "부스 스튜디오",
+          "description": "스폰서 아트워크로 3D 이벤트 부스를 꾸며요. 패널을 클릭해 이미지를 놓고 부스 디자인을 고른 다음, 스폰서 피칭용 정지 이미지나 턴테이블을 렌더링해요."
+        },
+        "ms": {
+          "name": "Studio Gerai",
+          "description": "Hiasi gerai acara 3D dengan karya seni penaja. Klik mana-mana panel untuk meletakkan imej padanya, pilih reka bentuk gerai, dan hasilkan imej statik atau turntable untuk tawaran penaja."
+        },
+        "nl": {
+          "name": "Standstudio",
+          "description": "Richt een 3D-eventstand in met sponsorartwork. Klik op een paneel om er een afbeelding op te zetten, kies een standontwerp en render een still of een turntable voor een sponsorpitch."
+        },
+        "no": {
+          "name": "Standstudio",
+          "description": "Utstyr en 3D-eventstand med sponsormateriell. Klikk på et panel for å slippe et bilde på det, velg en standdesign, og render et stillbilde eller en 360-visning til en sponsorpitch."
+        },
+        "pl": {
+          "name": "Booth Studio",
+          "description": "Wystrój stoisko eventowe 3D grafikami sponsora. Kliknij dowolny panel, aby dodać obraz, wybierz wygląd stoiska i wyrenderuj zdjęcie lub obrót 360° do oferty dla sponsora."
+        },
+        "pt": {
+          "name": "Estúdio de Estande",
+          "description": "Decore um estande de evento 3D com arte do patrocinador. Clique em qualquer painel para soltar uma imagem nele, escolha um design de estande e renderize uma imagem estática ou giratória para o pitch do patrocinador."
+        },
+        "ro": {
+          "name": "Studio Stand",
+          "description": "Îmbracă un stand 3D de eveniment cu materiale de sponsor. Dă clic pe orice panou pentru a plasa o imagine pe el, alege un design de stand și randează o imagine statică sau o rotire 360° pentru o prezentare de sponsor."
+        },
+        "sv": {
+          "name": "Monterstudio",
+          "description": "Klä en 3D-eventmonter med sponsormaterial. Klicka på valfri panel för att släppa en bild på den, välj en monterdesign och rendera en stillbild eller ett vridbord för en sponsorpitch."
+        },
+        "tl": {
+          "name": "Booth Studio",
+          "description": "Gayakan ang isang 3D event booth gamit ang artwork ng sponsor. I-click ang anumang panel para maglagay ng larawan dito, pumili ng disenyo ng booth, at mag-render ng still o turntable para sa sponsor pitch."
+        },
+        "tr": {
+          "name": "Stant Stüdyosu",
+          "description": "Bir 3D etkinlik standını sponsor görselleriyle donat. Bir görsel bırakmak için herhangi bir panele tıkla, bir stand tasarımı seç ve sponsor sunumu için bir sabit görsel ya da döner sahne oluştur."
+        },
+        "uk": {
+          "name": "Студія стендів",
+          "description": "Оформіть 3D-стенд заходу графікою спонсора. Клацніть на будь-яку панель, щоб додати зображення, оберіть дизайн стенда та відрендеріть статичне зображення або відео з обертанням для презентації спонсору."
+        },
+        "ur": {
+          "name": "بوتھ اسٹوڈیو",
+          "description": "سپانسر آرٹ ورک کے ساتھ 3D ایونٹ بوتھ سجائیں۔ کسی بھی پینل پر تصویر ڈراپ کرنے کے لیے کلک کریں، بوتھ ڈیزائن منتخب کریں، اور سپانسر پچ کے لیے ایک اسٹل یا ٹرن ٹیبل رینڈر کریں۔"
+        },
+        "vi": {
+          "name": "Booth Studio",
+          "description": "Trang trí gian hàng sự kiện 3D bằng hình ảnh nhà tài trợ. Nhấp vào bất kỳ tấm nào để thả ảnh vào, chọn kiểu gian hàng, và render ảnh tĩnh hoặc turntable quay vòng cho bài thuyết trình tài trợ."
+        },
+        "zh-hant": {
+          "name": "展位工作室",
+          "description": "為 3D 活動攤位佈置贊助商美術素材。點按任一面板放入圖片、選擇攤位設計，並為贊助商提案算繪靜態圖或旋轉展示。"
+        },
+        "zh": {
+          "name": "展位工作室",
+          "description": "用赞助商素材装饰 3D 活动展台。点击任意面板放置图像，选择展台设计，渲染静态图或旋转展示，用于赞助商提案。"
+        }
+      }
+    },
+    {
+      "id": "code-canvas",
+      "name": "Code Canvas",
+      "description": "Turn code snippets into clean, syntax-highlighted, shareable images.",
+      "version": "1.0.0",
+      "status": "official",
+      "category": "everyone",
+      "tags": [
+        "code",
+        "developer",
+        "snippet",
+        "export"
+      ],
+      "formats": [
+        "png",
+        "svg"
+      ],
+      "width": 1200,
+      "height": 800,
+      "exportable": true,
+      "icon": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"m7 11 2-2-2-2\" /><path d=\"M11 13h4\" /><rect width=\"18\" height=\"18\" x=\"3\" y=\"3\" rx=\"2\" ry=\"2\" /></svg>",
+      "preview": "/catalog/previews/code-canvas.svg",
+      "i18n": {
+        "ar": {
+          "name": "لوحة الكود",
+          "description": "حول مقتطفات الكود إلى صور أنيقة مع تمييز الصياغة، جاهزة للمشاركة."
+        },
+        "bg": {
+          "name": "Платно за код",
+          "description": "Превърни кодови фрагменти в чисти, синтактично оцветени изображения за споделяне."
+        },
+        "bn": {
+          "name": "কোড ক্যানভাস",
+          "description": "কোড স্নিপেটকে পরিচ্ছন্ন, সিনট্যাক্স-হাইলাইট করা, শেয়ারযোগ্য ছবিতে বদলে নিন।"
+        },
+        "cs": {
+          "name": "Plátno kódu",
+          "description": "Proměň úryvky kódu v čisté obrázky se zvýrazněnou syntaxí, připravené ke sdílení."
+        },
+        "de": {
+          "name": "Code-Leinwand",
+          "description": "Verwandeln Sie Codeschnipsel in klare, syntaxhervorgehobene, teilbare Bilder."
+        },
+        "es": {
+          "name": "Lienzo de Código",
+          "description": "Convierte fragmentos de código en imágenes limpias, con resaltado de sintaxis y listas para compartir."
+        },
+        "fr": {
+          "name": "Canevas de Code",
+          "description": "Transforme tes extraits de code en images nettes, avec coloration syntaxique, prêtes à partager."
+        },
+        "hi": {
+          "name": "कोड कैनवास",
+          "description": "कोड स्निपेट्स को साफ़, सिंटैक्स-हाइलाइट की गई, शेयर करने लायक इमेज में बदलें।"
+        },
+        "id": {
+          "name": "Kanvas Kode",
+          "description": "Ubah cuplikan kode menjadi gambar bersih, dengan penyorotan sintaks, siap dibagikan."
+        },
+        "it": {
+          "name": "Code Canvas",
+          "description": "Trasforma frammenti di codice in immagini pulite, con syntax highlighting, pronte da condividere."
+        },
+        "ja": {
+          "name": "コードキャンバス",
+          "description": "コードスニペットをシンプルでシンタックスハイライト付きの共有可能な画像に変換します。"
+        },
+        "ko": {
+          "name": "코드 캔버스",
+          "description": "코드 스니펫을 깔끔하고 신택스 하이라이트가 적용된 공유 가능한 이미지로 변환하세요."
+        },
+        "ms": {
+          "name": "Kanvas Kod",
+          "description": "Tukar coretan kod kepada imej kemas yang diserlahkan sintaksnya dan sedia dikongsi."
+        },
+        "nl": {
+          "name": "Codecanvas",
+          "description": "Verander codefragmenten in nette afbeeldingen met syntaxiskleuring, klaar om te delen."
+        },
+        "no": {
+          "name": "Kodelerret",
+          "description": "Gjør kodesnutter om til rene, syntaksmarkerte bilder, klare til å dele."
+        },
+        "pl": {
+          "name": "Code Canvas",
+          "description": "Zmień fragmenty kodu w czyste obrazy z podświetloną składnią, gotowe do udostępnienia."
+        },
+        "pt": {
+          "name": "Tela de Código",
+          "description": "Transforme trechos de código em imagens limpas, com destaque de sintaxe, prontas para compartilhar."
+        },
+        "ro": {
+          "name": "Canvas de cod",
+          "description": "Transformă fragmente de cod în imagini curate, cu evidențierea sintaxei, gata de distribuit."
+        },
+        "sv": {
+          "name": "Kodkanvas",
+          "description": "Gör kodsnuttar till rena, syntaxmarkerade bilder som är enkla att dela."
+        },
+        "tl": {
+          "name": "Canvas ng Code",
+          "description": "I-convert ang mga code snippet sa malinis, may syntax highlighting, at shareable na mga larawan."
+        },
+        "tr": {
+          "name": "Kod Kanvası",
+          "description": "Kod parçacıklarını temiz, sözdizimi vurgulamalı, paylaşılabilir görüntülere dönüştür."
+        },
+        "uk": {
+          "name": "Code Canvas",
+          "description": "Перетворює фрагменти коду на чисті зображення з підсвіткою синтаксису, зручні для поширення."
+        },
+        "ur": {
+          "name": "کوڈ کینوس",
+          "description": "کوڈ کے ٹکڑوں کو صاف ستھری، سنٹیکس-ہائی لائٹڈ، قابلِ اشتراک تصاویر میں بدلیں۔"
+        },
+        "vi": {
+          "name": "Khung Vẽ Mã",
+          "description": "Biến đoạn mã thành hình ảnh gọn gàng, có tô sáng cú pháp và dễ chia sẻ."
+        },
+        "zh-hant": {
+          "name": "程式碼畫布",
+          "description": "將程式碼片段轉換成簡潔、具語法高亮、可分享的圖片。"
+        },
+        "zh": {
+          "name": "代码画布",
+          "description": "将代码片段转换为简洁、带语法高亮、可分享的图片。"
+        }
+      }
+    },
+    {
+      "id": "doc-studio",
+      "name": "Doc Studio",
+      "description": "Write a multi-page document on the canvas - rich text, headings, tables and inserted Lolly renders that flow onto pages and export as a PDF.",
+      "version": "1.1.0",
+      "status": "official",
+      "category": "designer",
+      "tags": [
+        "document",
+        "doc",
+        "word",
+        "rich text",
+        "editor",
+        "pages",
+        "pdf",
+        "report",
+        "letter",
+        "writing",
+        "wysiwyg",
+        "tables",
+        "compose"
+      ],
+      "formats": [
+        "pdf",
+        "pptx",
+        "svg",
+        "md",
+        "docx",
+        "odt"
+      ],
+      "width": 794,
+      "height": 1123,
+      "exportable": true,
+      "icon": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7z\"/><path d=\"M14 2v5h5\"/><line x1=\"8\" y1=\"12\" x2=\"16\" y2=\"12\"/><line x1=\"8\" y1=\"16\" x2=\"14\" y2=\"16\"/></svg>",
+      "preview": "/catalog/previews/doc-studio.svg",
+      "paged": true,
+      "i18n": {
+        "ar": {
+          "name": "استوديو المستندات",
+          "description": "اكتب مستندا متعدد الصفحات على اللوحة — نص منسق وعناوين وجداول وعناصر Lolly مدرجة تتدفق عبر الصفحات وتصدر بصيغة PDF."
+        },
+        "bg": {
+          "name": "Студио за документи",
+          "description": "Пиши многостраничен документ върху платното — форматиран текст, заглавия, таблици и вмъкнати Lolly рендери, които се разпределят по страници и се експортират като PDF."
+        },
+        "bn": {
+          "name": "ডক স্টুডিও",
+          "description": "ক্যানভাসে বহু-পৃষ্ঠার ডকুমেন্ট লিখুন — রিচ টেক্সট, শিরোনাম, টেবিল ও সন্নিবেশ করা Lolly রেন্ডার, যা পৃষ্ঠা থেকে পৃষ্ঠায় প্রবাহিত হয় এবং PDF হিসেবে এক্সপোর্ট হয়।"
+        },
+        "cs": {
+          "name": "Studio dokumentů",
+          "description": "Piš vícestránkový dokument na plátně — formátovaný text, nadpisy, tabulky a vložené Lolly rendery, které plynou mezi stránkami a exportují se jako PDF."
+        },
+        "de": {
+          "name": "Dokumentstudio",
+          "description": "Schreiben Sie ein mehrseitiges Dokument auf der Leinwand – formatierten Text, Überschriften, Tabellen und eingefügte Lolly-Renderings, die über die Seiten fließen und sich als PDF exportieren lassen."
+        },
+        "es": {
+          "name": "Estudio de Documentos",
+          "description": "Escribe un documento de varias páginas en el lienzo: texto enriquecido, títulos, tablas y renders de Lolly insertados que fluyen entre páginas y se exportan como PDF."
+        },
+        "fr": {
+          "name": "Studio de Documents",
+          "description": "Écris un document multipage sur le canevas — texte enrichi, titres, tableaux et rendus Lolly insérés qui s'enchaînent sur les pages et s'exportent en PDF."
+        },
+        "hi": {
+          "name": "डॉक स्टूडियो",
+          "description": "कैनवास पर मल्टी-पेज दस्तावेज़ लिखें — रिच टेक्स्ट, हेडिंग, टेबल और डाले गए Lolly रेंडर, जो पेजों पर फ़्लो होते हैं और PDF के रूप में एक्सपोर्ट होते हैं।"
+        },
+        "id": {
+          "name": "Studio Dokumen",
+          "description": "Tulis dokumen multi-halaman di kanvas — teks kaya, judul, tabel, dan hasil render Lolly yang disisipkan, yang mengalir ke halaman-halaman dan diekspor sebagai PDF."
+        },
+        "it": {
+          "name": "Doc Studio",
+          "description": "Scrivi un documento multipagina sulla tela — testo formattato, titoli, tabelle e rendering Lolly inseriti, che scorrono tra le pagine ed esportano in PDF."
+        },
+        "ja": {
+          "name": "ドキュメントスタジオ",
+          "description": "キャンバス上で複数ページの文書を作成します。リッチテキスト、見出し、表、そしてページに流し込まれる挿入済みのLollyレンダーを使い、PDFとして書き出せます。"
+        },
+        "ko": {
+          "name": "문서 스튜디오",
+          "description": "캔버스에서 여러 페이지짜리 문서를 작성해요 — 서식 있는 텍스트, 제목, 표, 그리고 페이지에 흘러 들어가는 Lolly 렌더까지 담아 PDF로 내보낼 수 있어요."
+        },
+        "ms": {
+          "name": "Studio Dokumen",
+          "description": "Tulis dokumen berbilang muka surat pada kanvas — teks kaya, tajuk, jadual dan renderan Lolly yang disisipkan mengalir merentasi muka surat dan dieksport sebagai PDF."
+        },
+        "nl": {
+          "name": "Documentstudio",
+          "description": "Schrijf een document met meerdere pagina's op het canvas — opgemaakte tekst, koppen, tabellen en ingevoegde Lolly-renders die van pagina naar pagina doorlopen en als PDF worden geëxporteerd."
+        },
+        "no": {
+          "name": "Dokumentstudio",
+          "description": "Skriv et flersidig dokument på lerretet — formatert tekst, overskrifter, tabeller og innsatte Lolly-renderinger som flyter over sidene og eksporteres som PDF."
+        },
+        "pl": {
+          "name": "Doc Studio",
+          "description": "Pisz wielostronicowy dokument na płótnie — tekst sformatowany, nagłówki, tabele i wstawione rendery Lolly, które rozkładają się na strony i eksportują jako PDF."
+        },
+        "pt": {
+          "name": "Estúdio de Documentos",
+          "description": "Escreva um documento com várias páginas na tela — texto rico, títulos, tabelas e renderizações da Lolly inseridas que fluem pelas páginas e são exportadas como PDF."
+        },
+        "ro": {
+          "name": "Doc Studio",
+          "description": "Scrie un document cu mai multe pagini pe canvas — text îmbogățit, titluri, tabele și randări Lolly inserate, care curg pe pagini și se exportă ca PDF."
+        },
+        "sv": {
+          "name": "Dokumentstudio",
+          "description": "Skriv ett flersidigt dokument på canvasen — formaterad text, rubriker, tabeller och infogade Lolly-renderingar som flyter mellan sidorna och exporteras som PDF."
+        },
+        "tl": {
+          "name": "Doc Studio",
+          "description": "Gumawa ng multi-page na dokumento sa canvas — may rich text, headings, tables, at naka-insert na Lolly renders na dumadaloy sa mga page at ine-export bilang PDF."
+        },
+        "tr": {
+          "name": "Belge Stüdyosu",
+          "description": "Kanvasta çok sayfalı bir belge yaz — sayfalara akıp PDF olarak dışa aktarılan zengin metin, başlıklar, tablolar ve eklenmiş Lolly render'ları."
+        },
+        "uk": {
+          "name": "Doc Studio",
+          "description": "Пишіть багатосторінковий документ на полотні — форматований текст, заголовки, таблиці та вставлені рендери Lolly, які розподіляються на сторінки та експортуються як PDF."
+        },
+        "ur": {
+          "name": "دستاویز اسٹوڈیو",
+          "description": "کینوس پر ملٹی پیج دستاویز لکھیں — رچ ٹیکسٹ، عنوانات، ٹیبلز اور شامل کردہ Lolly رینڈرز جو صفحات میں ڈھل کر PDF کے طور پر ایکسپورٹ ہوتے ہیں۔"
+        },
+        "vi": {
+          "name": "Studio Tài liệu",
+          "description": "Viết tài liệu nhiều trang trên canvas — văn bản định dạng, tiêu đề, bảng và các bản dựng Lolly được chèn vào, chảy qua các trang và xuất thành PDF."
+        },
+        "zh-hant": {
+          "name": "文件工作室",
+          "description": "在畫布上撰寫多頁文件——富文本、標題、表格,以及隨頁面流動並匯出為 PDF 的 Lolly 算繪內容。"
+        },
+        "zh": {
+          "name": "文档工作室",
+          "description": "在画布上撰写多页文档——富文本、标题、表格,以及随页面排列并导出为 PDF 的 Lolly 渲染内容。"
+        }
+      }
+    },
+    {
+      "id": "lottie-digi-ad",
+      "name": "Lottie Ad",
+      "description": "Build animated ads from layered scenes, each carrying a Lottie motion asset, for any standard size.",
+      "version": "1.0.0",
+      "status": "community",
+      "category": "designer",
+      "tags": [
+        "ad",
+        "advertising",
+        "banner",
+        "animation",
+        "lottie",
+        "motion",
+        "video",
+        "social",
+        "scenes",
+        "gif",
+        "apng"
+      ],
+      "formats": [
+        "mp4",
+        "gif",
+        "webm",
+        "apng",
+        "png",
+        "svg",
+        "svg-anim"
+      ],
+      "width": 1080,
+      "height": 1080,
+      "exportable": true,
+      "icon": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"m12.296 3.464 3.02 3.956\" /><path d=\"M20.2 6 3 11l-.9-2.4c-.3-1.1.3-2.2 1.3-2.5l13.5-4c1.1-.3 2.2.3 2.5 1.3z\" /><path d=\"M3 11h18v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z\" /><path d=\"m6.18 5.276 3.1 3.899\" /></svg>",
+      "preview": "/catalog/previews/lottie-digi-ad.svg",
+      "i18n": {
+        "ar": {
+          "name": "إعلان Lottie",
+          "description": "أنشئ إعلانات متحركة من مشاهد متعددة الطبقات، كل منها يحمل أصل حركة Lottie، بأي مقاس قياسي."
+        },
+        "bg": {
+          "name": "Lottie реклама",
+          "description": "Изграждай анимирани реклами от насложени сцени, всяка с Lottie анимационен актив, за всеки стандартен размер."
+        },
+        "bn": {
+          "name": "Lottie বিজ্ঞাপন",
+          "description": "স্তরযুক্ত দৃশ্য থেকে অ্যানিমেটেড বিজ্ঞাপন বানান — প্রতিটিতে একটি Lottie মোশন অ্যাসেট — যেকোনো স্ট্যান্ডার্ড আকারে।"
+        },
+        "cs": {
+          "name": "Reklama Lottie",
+          "description": "Vytvoř animované reklamy z vrstvených scén, každá s animací Lottie, v libovolné standardní velikosti."
+        },
+        "de": {
+          "name": "Lottie-Anzeige",
+          "description": "Erstellen Sie animierte Anzeigen aus geschichteten Szenen, jede mit einer Lottie-Animation, in jeder Standardgröße."
+        },
+        "es": {
+          "name": "Anuncio Lottie",
+          "description": "Crea anuncios animados a partir de escenas en capas, cada una con una animación Lottie, en cualquier tamaño estándar."
+        },
+        "fr": {
+          "name": "Publicité Lottie",
+          "description": "Crée des publicités animées à partir de scènes superposées, chacune avec une animation Lottie, dans n'importe quel format standard."
+        },
+        "hi": {
+          "name": "Lottie विज्ञापन",
+          "description": "लेयर वाले सीन से किसी भी मानक आकार के एनिमेटेड विज्ञापन बनाएँ — हर सीन में एक Lottie मोशन एसेट।"
+        },
+        "id": {
+          "name": "Iklan Lottie",
+          "description": "Buat iklan animasi dari adegan berlapis, masing-masing membawa aset motion Lottie, untuk ukuran standar apa pun."
+        },
+        "it": {
+          "name": "Annuncio Lottie",
+          "description": "Crea annunci animati da scene sovrapposte, ognuna con un'animazione Lottie, in qualsiasi formato standard."
+        },
+        "ja": {
+          "name": "Lottie広告",
+          "description": "レイヤー化されたシーンからアニメーション広告を作成します。各シーンにはLottieモーションアセットが含まれ、標準サイズに対応します。"
+        },
+        "ko": {
+          "name": "Lottie 광고",
+          "description": "여러 레이어 씬으로 애니메이션 광고를 만들어요. 각 씬에는 Lottie 모션 애셋이 들어가며, 모든 표준 크기에 맞출 수 있어요."
+        },
+        "ms": {
+          "name": "Iklan Lottie",
+          "description": "Bina iklan animasi daripada adegan berlapis, setiap satu membawa aset gerakan Lottie, untuk sebarang saiz standard."
+        },
+        "nl": {
+          "name": "Lottie-advertentie",
+          "description": "Maak geanimeerde advertenties van gelaagde scènes, elk met een Lottie-animatie, in elk standaardformaat."
+        },
+        "no": {
+          "name": "Lottie-annonse",
+          "description": "Lag animerte annonser fra lagdelte scener, hver med en Lottie-animasjon, i alle standardstørrelser."
+        },
+        "pl": {
+          "name": "Reklama Lottie",
+          "description": "Twórz animowane reklamy z warstwowych scen, każda z zasobem animacji Lottie, w dowolnym standardowym rozmiarze."
+        },
+        "pt": {
+          "name": "Anúncio Lottie",
+          "description": "Crie anúncios animados a partir de cenas em camadas, cada uma com uma animação Lottie, em qualquer tamanho padrão."
+        },
+        "ro": {
+          "name": "Reclamă Lottie",
+          "description": "Creează reclame animate din scene stratificate, fiecare cu un fișier de animație Lottie, pentru orice dimensiune standard."
+        },
+        "sv": {
+          "name": "Lottie-annons",
+          "description": "Skapa animerade annonser av lagrade scener, var och en med en Lottie-animation, i valfri standardstorlek."
+        },
+        "tl": {
+          "name": "Lottie Ad",
+          "description": "Gumawa ng animated ads mula sa layered scenes, bawat isa may Lottie motion asset, para sa kahit anong standard size."
+        },
+        "tr": {
+          "name": "Lottie Reklamı",
+          "description": "Her biri bir Lottie hareket varlığı taşıyan katmanlı sahnelerden, herhangi bir standart boyut için animasyonlu reklamlar oluştur."
+        },
+        "uk": {
+          "name": "Lottie-реклама",
+          "description": "Створюйте анімовану рекламу з шаруватих сцен, кожна з яких містить Lottie-анімацію, для будь-якого стандартного розміру."
+        },
+        "ur": {
+          "name": "Lottie اشتہار",
+          "description": "کسی بھی معیاری سائز کے لیے تہہ دار مناظر سے متحرک اشتہارات بنائیں، ہر منظر ایک Lottie موشن اثاثہ رکھتا ہے۔"
+        },
+        "vi": {
+          "name": "Quảng cáo Lottie",
+          "description": "Tạo quảng cáo động từ các cảnh xếp lớp, mỗi cảnh có một tệp chuyển động Lottie, cho mọi kích thước chuẩn."
+        },
+        "zh-hant": {
+          "name": "Lottie 廣告",
+          "description": "透過分層場景製作動畫廣告,每個場景都搭載 Lottie 動態素材,適用於任何標準尺寸。"
+        },
+        "zh": {
+          "name": "Lottie 广告",
+          "description": "通过分层场景制作动画广告，每个场景都带有 Lottie 动效，适配任意标准尺寸。"
+        }
+      }
+    },
+    {
+      "id": "multi-page-pdf",
+      "name": "Multi-Page PDF",
+      "description": "Build a multi-page PDF - a cover, flowing content blocks, and a back page.",
+      "version": "1.0.0",
+      "status": "official",
+      "category": "designer",
+      "tags": [
+        "pdf",
+        "document",
+        "report",
+        "multi-page",
+        "brochure",
+        "layout",
+        "print"
+      ],
+      "formats": [
+        "pdf",
+        "pptx",
+        "svg",
+        "md"
+      ],
+      "width": 794,
+      "height": 1123,
+      "exportable": true,
+      "icon": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M15 2H9a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V6z\" /><path d=\"M15 2v4h4\" /><path d=\"M11 10.5h4\" /><path d=\"M11 13.5h4\" /><path d=\"M7 6a2 2 0 0 0-3 1.7V20a2 2 0 0 0 2 2h9a2 2 0 0 0 1.7-1\" /></svg>",
+      "preview": "/catalog/previews/multi-page-pdf.svg",
+      "personalized": true,
+      "featured": {
+        "order": 3,
+        "blurb": "Multi-page PDFs - cover, content, back"
+      },
+      "paged": true,
+      "i18n": {
+        "ar": {
+          "name": "PDF متعدد الصفحات",
+          "description": "أنشئ ملف PDF متعدد الصفحات — غلاف وكتل محتوى متدفقة وصفحة خلفية.",
+          "blurb": "ملفات PDF متعددة الصفحات — غلاف ومحتوى وصفحة خلفية"
+        },
+        "bg": {
+          "name": "Многостраничен PDF",
+          "description": "Създай многостраничен PDF — корица, течащи блокове със съдържание и задна страница.",
+          "blurb": "Многостранични PDF файлове — корица, съдържание, гръб"
+        },
+        "bn": {
+          "name": "মাল্টি-পেজ PDF",
+          "description": "একটি মাল্টি-পেজ PDF তৈরি করুন — কভার, প্রবাহমান কনটেন্ট ব্লক এবং একটি পেছনের পৃষ্ঠা।",
+          "blurb": "মাল্টি-পেজ PDF — কভার, কনটেন্ট, পেছনের পৃষ্ঠা"
+        },
+        "cs": {
+          "name": "Vícestránkové PDF",
+          "description": "Vytvoř vícestránkové PDF — titulní stranu, plynoucí bloky obsahu a zadní stranu.",
+          "blurb": "Vícestránková PDF — titulní strana, obsah, zadní strana"
+        },
+        "de": {
+          "name": "Mehrseitiges PDF",
+          "description": "Erstellen Sie ein mehrseitiges PDF – Deckblatt, fließende Inhaltsblöcke und eine Rückseite.",
+          "blurb": "Mehrseitige PDFs – Deckblatt, Inhalt, Rückseite"
+        },
+        "es": {
+          "name": "PDF multipágina",
+          "description": "Crea un PDF multipágina: portada, bloques de contenido fluido y contraportada.",
+          "blurb": "PDF multipágina — portada, contenido, contraportada"
+        },
+        "fr": {
+          "name": "PDF multi-pages",
+          "description": "Crée un PDF multi-pages : couverture, blocs de contenu fluide et page de dos.",
+          "blurb": "PDF multi-pages — couverture, contenu, dos"
+        },
+        "hi": {
+          "name": "मल्टी-पेज PDF",
+          "description": "मल्टी-पेज PDF बनाएँ — कवर, फ़्लो होते कंटेंट ब्लॉक और बैक पेज।",
+          "blurb": "मल्टी-पेज PDF — कवर, कंटेंट, बैक"
+        },
+        "id": {
+          "name": "PDF Multi-Halaman",
+          "description": "Buat PDF multi-halaman — sampul, blok konten yang mengalir, dan halaman belakang.",
+          "blurb": "PDF multi-halaman — sampul, konten, belakang"
+        },
+        "it": {
+          "name": "PDF multipagina",
+          "description": "Crea un PDF multipagina — copertina, blocchi di contenuto a scorrimento e una quarta di copertina.",
+          "blurb": "PDF multipagina — copertina, contenuto, retro"
+        },
+        "ja": {
+          "name": "複数ページ PDF",
+          "description": "表紙、流し込み式のコンテンツブロック、裏表紙からなる複数ページの PDF を作成します。",
+          "blurb": "複数ページ PDF — 表紙・コンテンツ・裏表紙"
+        },
+        "ko": {
+          "name": "멀티 페이지 PDF",
+          "description": "표지, 흐르는 콘텐츠 블록, 뒤표지로 구성된 멀티 페이지 PDF를 만들어요.",
+          "blurb": "멀티 페이지 PDF — 표지, 콘텐츠, 뒤표지"
+        },
+        "ms": {
+          "name": "PDF Berbilang Halaman",
+          "description": "Bina PDF berbilang halaman — muka depan, blok kandungan yang mengalir, dan muka belakang.",
+          "blurb": "PDF berbilang halaman — muka depan, kandungan, muka belakang"
+        },
+        "nl": {
+          "name": "PDF met meerdere pagina's",
+          "description": "Maak een PDF met meerdere pagina's — een cover, doorlopende inhoudsblokken en een achterpagina.",
+          "blurb": "PDF's met meerdere pagina's — cover, inhoud, achterpagina"
+        },
+        "no": {
+          "name": "Flersidig PDF",
+          "description": "Bygg en flersidig PDF — en forside, flytende innholdsblokker og en bakside.",
+          "blurb": "Flersidige PDF-er — forside, innhold, bakside"
+        },
+        "pl": {
+          "name": "Wielostronicowy PDF",
+          "description": "Twórz wielostronicowy PDF — okładkę, płynące bloki treści i stronę tylną.",
+          "blurb": "Wielostronicowe PDF-y — okładka, treść, tył"
+        },
+        "pt": {
+          "name": "PDF de várias páginas",
+          "description": "Crie um PDF de várias páginas — capa, blocos de conteúdo fluido e contracapa.",
+          "blurb": "PDFs de várias páginas — capa, conteúdo, contracapa"
+        },
+        "ro": {
+          "name": "PDF multi-pagină",
+          "description": "Creează un PDF cu mai multe pagini — o copertă, blocuri de conținut care curg și o pagină finală.",
+          "blurb": "PDF-uri cu mai multe pagini — copertă, conținut, final"
+        },
+        "sv": {
+          "name": "PDF med flera sidor",
+          "description": "Skapa en PDF med flera sidor — omslag, flytande innehållsblock och en baksida.",
+          "blurb": "PDF med flera sidor — omslag, innehåll, baksida"
+        },
+        "tl": {
+          "name": "Multi-Page PDF",
+          "description": "Gumawa ng multi-page PDF — cover, mga content block na dumadaloy, at back page.",
+          "blurb": "Multi-page PDF — cover, content, back page"
+        },
+        "tr": {
+          "name": "Çok Sayfalı PDF",
+          "description": "Kapak, akan içerik blokları ve bir arka sayfadan oluşan çok sayfalı bir PDF oluştur.",
+          "blurb": "Çok sayfalı PDF'ler — kapak, içerik, arka sayfa"
+        },
+        "uk": {
+          "name": "Багатосторінковий PDF",
+          "description": "Створюйте багатосторінковий PDF — обкладинка, текучі блоки контенту та задня сторінка.",
+          "blurb": "Багатосторінкові PDF — обкладинка, контент, задня сторінка"
+        },
+        "ur": {
+          "name": "ملٹی پیج PDF",
+          "description": "ایک ملٹی پیج PDF بنائیں — کور، بہاؤ والے مواد بلاکس، اور ایک بیک پیج۔",
+          "blurb": "ملٹی پیج PDFs — کور، مواد، بیک"
+        },
+        "vi": {
+          "name": "PDF nhiều trang",
+          "description": "Tạo PDF nhiều trang — gồm trang bìa, các khối nội dung tự động chảy và trang bìa sau.",
+          "blurb": "PDF nhiều trang — bìa, nội dung, bìa sau"
+        },
+        "zh-hant": {
+          "name": "多頁 PDF",
+          "description": "建立多頁 PDF——封面、流動內容區塊和封底。",
+          "blurb": "多頁 PDF——封面、內容、封底"
+        },
+        "zh": {
+          "name": "多页 PDF",
+          "description": "创建多页 PDF——封面、流动内容块和封底。",
+          "blurb": "多页 PDF——封面、内容、封底"
+        }
+      }
+    },
+    {
+      "id": "record",
+      "name": "Record",
+      "description": "Design your own top and tail cards, then record a clip and Lolly wraps them around it automatically.",
+      "version": "1.0.0",
+      "status": "experimental",
+      "category": "everyone",
+      "capabilities": [
+        "camera",
+        "microphone"
+      ],
+      "tags": [
+        "video",
+        "record",
+        "recording",
+        "camera",
+        "microphone",
+        "talking head",
+        "intro",
+        "outro",
+        "bookend",
+        "lower-third",
+        "reel",
+        "social",
+        "portrait",
+        "editor",
+        "layout",
+        "transition",
+        "animation",
+        "motion",
+        "wysiwyg"
+      ],
+      "formats": [
+        "mp4",
+        "webm"
+      ],
+      "width": 1080,
+      "height": 1920,
+      "exportable": true,
+      "icon": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><rect x=\"2\" y=\"6\" width=\"20\" height=\"12\" rx=\"2\"/><path d=\"M8 6v12\"/><path d=\"M16 6v12\"/><circle cx=\"12\" cy=\"12\" r=\"2.4\" fill=\"currentColor\" stroke=\"none\"/></svg>",
+      "preview": "/catalog/previews/record.webp",
+      "paged": true,
+      "i18n": {
+        "ar": {
+          "name": "تسجيل",
+          "description": "صمم بطاقتي البداية والنهاية بنفسك، ثم سجل مقطعا وسيغلفه Lolly بهما تلقائيا."
+        },
+        "bg": {
+          "name": "Запис",
+          "description": "Проектирай свои начална и крайна карта, после запиши клип и Lolly автоматично ги обвива около него."
+        },
+        "bn": {
+          "name": "রেকর্ড",
+          "description": "নিজের টপ ও টেইল কার্ড ডিজাইন করুন, তারপর একটি ক্লিপ রেকর্ড করুন এবং Lolly স্বয়ংক্রিয়ভাবে সেগুলো এর চারপাশে জুড়ে দেয়।"
+        },
+        "cs": {
+          "name": "Nahrávka",
+          "description": "Navrhni si vlastní úvodní a závěrečné karty, nahraj klip a Lolly je kolem něj automaticky obalí."
+        },
+        "de": {
+          "name": "Aufnahme",
+          "description": "Gestalten Sie eigene Intro- und Outro-Karten, nehmen Sie einen Clip auf, und Lolly platziert sie automatisch darum."
+        },
+        "es": {
+          "name": "Grabación",
+          "description": "Diseña tus propias tarjetas de intro y cierre, graba un clip y Lolly las coloca alrededor automáticamente."
+        },
+        "fr": {
+          "name": "Enregistrement",
+          "description": "Crée tes propres cartes d'intro et d'outro, puis enregistre un clip : Lolly les place automatiquement autour."
+        },
+        "hi": {
+          "name": "रिकॉर्ड",
+          "description": "अपने इंट्रो और आउट्रो कार्ड खुद डिज़ाइन करें, फिर एक क्लिप रिकॉर्ड करें — Lolly उन्हें अपने आप उसके आगे-पीछे जोड़ देता है।"
+        },
+        "id": {
+          "name": "Rekam",
+          "description": "Rancang kartu pembuka dan penutup Anda sendiri, lalu rekam klip dan Lolly membungkusnya secara otomatis."
+        },
+        "it": {
+          "name": "Registrazione",
+          "description": "Crea le tue schede di apertura e chiusura, registra un clip e Lolly le posiziona automaticamente intorno."
+        },
+        "ja": {
+          "name": "録画",
+          "description": "独自のイントロカードとアウトロカードをデザインしてクリップを録画すると、Lollyが自動的にその前後に配置します。"
+        },
+        "ko": {
+          "name": "녹화",
+          "description": "직접 디자인한 인트로·아웃트로 카드로 클립을 녹화하면 Lolly가 자동으로 앞뒤에 붙여줘요."
+        },
+        "ms": {
+          "name": "Rakaman",
+          "description": "Reka bentuk kad intro dan outro anda sendiri, kemudian rakam klip dan Lolly akan membalutnya secara automatik di sekelilingnya."
+        },
+        "nl": {
+          "name": "Opname",
+          "description": "Ontwerp je eigen intro- en outrokaarten, neem een clip op en Lolly plaatst ze automatisch eromheen."
+        },
+        "no": {
+          "name": "Opptak",
+          "description": "Design dine egne intro- og outrokort, ta opp et klipp, og Lolly plasserer dem automatisk rundt det."
+        },
+        "pl": {
+          "name": "Nagraj",
+          "description": "Zaprojektuj własne karty na początek i koniec, nagraj klip, a Lolly automatycznie owinie go nimi."
+        },
+        "pt": {
+          "name": "Gravação",
+          "description": "Crie seus próprios cartões de abertura e encerramento, grave um clipe e o Lolly os posiciona automaticamente ao redor dele."
+        },
+        "ro": {
+          "name": "Înregistrare",
+          "description": "Creează-ți propriile carduri de deschidere și închidere, apoi înregistrează un clip, iar Lolly le adaugă automat în jurul lui."
+        },
+        "sv": {
+          "name": "Inspelning",
+          "description": "Designa dina egna intro- och outrokort, spela sedan in ett klipp så lägger Lolly dem automatiskt runt det."
+        },
+        "tl": {
+          "name": "Record",
+          "description": "Gumawa ng sarili mong intro at outro cards, mag-record ng clip, at awtomatikong ibabalot ito ni Lolly sa paligid nito."
+        },
+        "tr": {
+          "name": "Kayıt",
+          "description": "Kendi baş ve son kartlarını tasarla, ardından bir klip kaydet; Lolly bunları otomatik olarak klibin etrafına sarar."
+        },
+        "uk": {
+          "name": "Запис",
+          "description": "Створіть власні вступну та завершальну картки, а Lolly автоматично обгорне ними записаний вами клип."
+        },
+        "ur": {
+          "name": "ریکارڈ",
+          "description": "اپنے ٹاپ اور ٹیل کارڈز ڈیزائن کریں، پھر ایک کلپ ریکارڈ کریں اور Lolly خودکار طور پر انہیں اس کے گرد لپیٹ دے گا۔"
+        },
+        "vi": {
+          "name": "Ghi hình",
+          "description": "Tự thiết kế thẻ mở đầu và kết thúc, sau đó quay một đoạn clip và Lolly sẽ tự động bao quanh nó."
+        },
+        "zh-hant": {
+          "name": "錄製",
+          "description": "設計你自己的片頭與片尾卡,然後錄製一段影片,Lolly 會自動將它們包覆在影片前後。"
+        },
+        "zh": {
+          "name": "录制",
+          "description": "设计你自己的片头和片尾卡片,然后录制一段视频,Lolly 会自动将它们包裹在视频前后。"
+        }
+      }
+    },
+    {
+      "id": "web-icon",
+      "name": "Web Icon Maker",
+      "description": "Favicon and app-icon maker - a multi-size .ico, plus PNG and SVG.",
+      "version": "1.0.0",
+      "status": "community",
+      "category": "everyone",
+      "tags": [
+        "favicon",
+        "icon",
+        "ico",
+        "app icon",
+        "web",
+        "logo"
+      ],
+      "formats": [
+        "ico",
+        "png",
+        "svg"
+      ],
+      "width": 512,
+      "height": 512,
+      "exportable": true,
+      "icon": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><rect x=\"3\" y=\"3\" width=\"18\" height=\"18\" rx=\"4\"/><circle cx=\"12\" cy=\"9.5\" r=\"2.4\"/><path d=\"M7.5 16h9\"/></svg>",
+      "preview": "/catalog/previews/web-icon.svg",
+      "i18n": {
+        "ar": {
+          "name": "صانع أيقونات الويب",
+          "description": "صانع أيقونات المواقع والتطبيقات — ملف .ico متعدد الأحجام، مع PNG وSVG."
+        },
+        "bg": {
+          "name": "Генератор на уеб икони",
+          "description": "Favicon и икони за приложения — многоразмерен .ico файл, плюс PNG и SVG."
+        },
+        "bn": {
+          "name": "ওয়েব আইকন মেকার",
+          "description": "ফেভিকন ও অ্যাপ-আইকন মেকার — একটি মাল্টি-সাইজ .ico, সাথে PNG ও SVG।"
+        },
+        "cs": {
+          "name": "Tvůrce webových ikon",
+          "description": "Tvůrce faviconů a ikon aplikací — vícevelikostní .ico, plus PNG a SVG."
+        },
+        "de": {
+          "name": "Web-Icon-Generator",
+          "description": "Generator für Favicons und App-Icons – eine .ico-Datei mit mehreren Größen, plus PNG und SVG."
+        },
+        "es": {
+          "name": "Creador de iconos web",
+          "description": "Creador de favicons e iconos de app: un .ico multitamaño, más PNG y SVG."
+        },
+        "fr": {
+          "name": "Créateur d'icônes web",
+          "description": "Créateur de favicons et d'icônes d'appli — un .ico multi-tailles, plus PNG et SVG."
+        },
+        "hi": {
+          "name": "वेब आइकन मेकर",
+          "description": "फ़ेविकॉन और ऐप-आइकन मेकर — मल्टी-साइज़ .ico, साथ में PNG और SVG।"
+        },
+        "id": {
+          "name": "Pembuat Ikon Web",
+          "description": "Pembuat favicon dan ikon aplikasi — berkas .ico multi-ukuran, plus PNG dan SVG."
+        },
+        "it": {
+          "name": "Creatore di icone web",
+          "description": "Creatore di favicon e icone app — un .ico multi-dimensione, più PNG e SVG."
+        },
+        "ja": {
+          "name": "ウェブアイコンメーカー",
+          "description": "ファビコンとアプリアイコンを作成 — マルチサイズの.icoに加え、PNGとSVGも生成します。"
+        },
+        "ko": {
+          "name": "웹 아이콘 메이커",
+          "description": "파비콘과 앱 아이콘을 만들어요 — 여러 크기가 담긴 .ico 파일에 PNG, SVG까지 함께 제공해요."
+        },
+        "ms": {
+          "name": "Pencipta Ikon Web",
+          "description": "Pencipta favicon dan ikon aplikasi — .ico pelbagai saiz, serta PNG dan SVG."
+        },
+        "nl": {
+          "name": "Web-icoonmaker",
+          "description": "Favicon- en app-icoonmaker — een .ico-bestand met meerdere formaten, plus PNG en SVG."
+        },
+        "no": {
+          "name": "Webikon-generator",
+          "description": "Generator for favicon og app-ikoner — en .ico-fil med flere størrelser, pluss PNG og SVG."
+        },
+        "pl": {
+          "name": "Web Icon Maker",
+          "description": "Generator favicon i ikon aplikacji — wielorozmiarowy plik .ico oraz PNG i SVG."
+        },
+        "pt": {
+          "name": "Criador de ícones para web",
+          "description": "Criador de favicon e ícone de app — um .ico multi-tamanho, além de PNG e SVG."
+        },
+        "ro": {
+          "name": "Creator de iconițe web",
+          "description": "Creator de favicon și iconițe de aplicație — un fișier .ico cu mai multe dimensiuni, plus PNG și SVG."
+        },
+        "sv": {
+          "name": "Webbikonskapare",
+          "description": "Skapare av favicon och appikoner — en .ico i flera storlekar, plus PNG och SVG."
+        },
+        "tl": {
+          "name": "Tagagawa ng Web Icon",
+          "description": "Gumagawa ng favicon at app icon — multi-size na .ico, plus PNG at SVG."
+        },
+        "tr": {
+          "name": "Web İkonu Oluşturucu",
+          "description": "Favicon ve uygulama ikonu oluşturucu — çoklu boyutlu bir .ico, artı PNG ve SVG."
+        },
+        "uk": {
+          "name": "Створення веб-іконок",
+          "description": "Створення фавіконок та іконок застосунків — багаторозмірний .ico, а також PNG і SVG."
+        },
+        "ur": {
+          "name": "ویب آئیکون میکر",
+          "description": "فیوی آئیکون اور ایپ آئیکون میکر — ملٹی سائز .ico، اور PNG و SVG۔"
+        },
+        "vi": {
+          "name": "Trình tạo biểu tượng web",
+          "description": "Trình tạo favicon và biểu tượng ứng dụng — tệp .ico đa kích thước, cùng với PNG và SVG."
+        },
+        "zh-hant": {
+          "name": "網頁圖示產生器",
+          "description": "favicon 與應用程式圖示產生器——多尺寸 .ico，以及 PNG 和 SVG。"
+        },
+        "zh": {
+          "name": "网页图标生成器",
+          "description": "favicon 与应用图标生成器——多尺寸 .ico,附带 PNG 和 SVG。"
         }
       }
     }

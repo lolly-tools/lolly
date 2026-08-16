@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
  * Lift layers - enumerate an SVG's own layers and derive a standalone document
- * for each one (plans/104 §7).
+ * for each one (plans/104 section 7).
  *
  * The action a user sees is "Lift layers" on a box holding an SVG: the artwork
  * comes apart into N stacked boxes at staggered depth, so a camera move gets
@@ -77,7 +77,7 @@
  * A derived document used to keep the source's viewBox verbatim - which made
  * every layer a full-stage box, whatever it actually drew. That is correct and
  * ruinous: `shadow: depth` on a 16×16 icon then costs a full-frame gaussian, and
- * eleven of them abort the encoder watchdog (plans/104 §9 P3.1 item 1, measured).
+ * eleven of them abort the encoder watchdog (plans/104 section 9 P3.1 item 1, measured).
  *
  * When a layer's ink is measurable AND the crop is provably safe, the derived
  * document's viewBox (and width/height) is the layer's own bounds instead, and
@@ -103,7 +103,7 @@
  * each derived document whole. So stacking the N derived documents in order
  * reproduces the original: `source-over` is associative, and a `<defs>` paints
  * nothing, so repeating it N times costs bytes and changes no pixel. That is
- * `plans/104` §7's "N lifted layers at z = 0 render byte-identical to the
+ * `plans/104` section 7's "N lifted layers at z = 0 render byte-identical to the
  * un-lifted original", and it is asserted both ways - the structural partition
  * BYTE-EXACTLY in `tests/svg-layers.test.ts`, the rendered composite in a real
  * engine in `tests/svg-lift-identity.browser.test.ts`.
@@ -124,7 +124,7 @@
  *      else paints between. A cluster that another layer's ink passes through
  *      is split back into its contiguous runs rather than reordered.
  *   2. **Cross-layer references.** `<use href="#p">` where `#p` lives inside a
- *      DIFFERENT layer is the pathological case §11 names. The referenced
+ *      DIFFERENT layer is the pathological case section 11 names. The referenced
  *      element is copied into the borrowing layer's own `<defs>` - where it
  *      paints nothing, so the copy cannot double-draw - and a warning says so.
  *
@@ -398,7 +398,7 @@ export interface SvgLayer {
   nodes: number;
   /**
  * The walker's `data-box-id`, when the layer is a single node carrying one -
-   * the §7 identity passthrough (`renderSvgFromHtml`'s `layerIds` option)
+   * the section 7 identity passthrough (`renderSvgFromHtml`'s `layerIds` option)
    * arriving at the other end. Absent for ordinary artwork.
    */
   boxId?: string;
@@ -1739,7 +1739,7 @@ function sliceKeeping(markup: string, drops: Array<[number, number]>, from: numb
 }
 
 /**
- * Repair cross-layer `#id` references - §11's pathological `<use>` case.
+ * Repair cross-layer `#id` references - section 11's pathological `<use>` case.
  *
  * `<g id="a"><path id="p"/></g><g id="b"><use href="#p"/></g>`: lift those two
  * groups apart and layer 2 references a path that is no longer in its document,

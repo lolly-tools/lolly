@@ -1,13 +1,13 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
- * Where the terminal shells keep on-device state (plans/73-cli-ga-contract.md §1.5, B14).
+ * Where the terminal shells keep on-device state (plans/73-cli-ga-contract.md section 1.5, B14).
  *
  * ONE variable for both shells: `LOLLY_STATE_DIR`. It was `LOLLY_TUI_DIR`, which said
  * the wrong thing the moment the CLI grew persistent `host.state`. The directory is a
  * property of the machine, not of the shell that happens to be reading it.
  *
  * The old name still works and prints a one-line deprecation note naming the
- * replacement (contract §10: a deprecation warns for at least two minors before the
+ * replacement (contract section 10: a deprecation warns for at least two minors before the
  * name is removed). The note is printed ONCE per process, on stderr, and never when the
  * new name is set.
  */
@@ -46,7 +46,7 @@ export function resolveStateDir(
   if (old) {
     if (!deprecationNoted) {
       deprecationNoted = true;
-      onNote('Note: LOLLY_TUI_DIR is deprecated — use LOLLY_STATE_DIR (both shells read it). LOLLY_TUI_DIR keeps working until the next major.\n');
+      onNote('Note: LOLLY_TUI_DIR is deprecated - use LOLLY_STATE_DIR (both shells read it). LOLLY_TUI_DIR keeps working until the next major.\n');
     }
     return { dir: old, explicit: true, deprecated: true };
   }

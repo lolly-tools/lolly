@@ -9,7 +9,7 @@
  * same on every machine), a real SVG export is signed with them through the exact call
  * shells/cli/src/run.ts makes, and the resulting file is read back by the real verifier
  * with that root pinned. It must come out `signingCredential.trusted` with the signer's
- * email surfaced. Contract §12 O1 recorded that this was the one thing the trust-anchor
+ * email surfaced. Contract section 12 O1 recorded that this was the one thing the trust-anchor
  * round could NOT verify, because it had no way to produce a file signed by an identity.
  * Now it can.
  *
@@ -128,7 +128,7 @@ test('an enrolled identity signs a real export and it reads TRUSTED against the 
     assert.equal(bare.signer?.identity, undefined);
     assert.equal(resolveVerdict(bare).trusted, false);
 
-    // 4. The default terminal anchor set (contract §12 O1: Lolly root + vendored list)
+    // 4. The default terminal anchor set (contract section 12 O1: Lolly root + vendored list)
     //    does NOT trust a stranger's CA. Pinning is what makes this work, and the
     //    default is not a blanket yes.
     const defaults = await verifyC2pa(bytes, { trustAnchors: defaultTrustAnchors() });
@@ -171,7 +171,7 @@ test('the identity can come from env paths or from inline env PEM (the CI secret
     assert.equal(viaPem?.keySource, `$${SIGN_ENV.keyPem}`, 'the source names the VARIABLE, never its contents');
     assert.equal(viaPem?.chainLength, 2);
 
-    // Flag beats environment (contract §1.5: flag > env > default).
+    // Flag beats environment (contract section 1.5: flag > env > default).
     const both = await resolveSigningIdentity({ keyPath, certPath, env: { [SIGN_ENV.keyPem]: 'nonsense', [SIGN_ENV.certPem]: 'nonsense' } });
     assert.equal(both?.keySource, keyPath);
   });

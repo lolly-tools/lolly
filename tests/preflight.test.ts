@@ -829,7 +829,7 @@ test('the recognised finish set is the contract list, not a hand copy', () => {
 });
 
 test('a deep-pixel format is never refused as "not offered"', () => {
-  // run.ts admits exr/hdr for ANY tool (plans/61-deeprichpixels.md §10 rules out
+  // run.ts admits exr/hdr for ANY tool (plans/61-deeprichpixels.md section 10 rules out
   // per-tool depth declarations), so preflight refusing them would block a
   // legitimate render behind a CI gate built on `lolly preflight`.
   for (const fmt of DEPTH_FORMATS) {

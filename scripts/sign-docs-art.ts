@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
  * sign-docs-art - the bank-time pipeline for `docs/mastheads/` and `docs/figures/`
- * (plan 105 §6): LINT every artifact, then sign the ones whose bytes changed.
+ * (plan 105 section 6): LINT every artifact, then sign the ones whose bytes changed.
  *
  * WHY a gate exists at all. These artifacts are small programs, mostly written by
  * models, that `docs/build.ts` INLINES into a docs page - so they run in the page's
@@ -11,7 +11,7 @@
  * warning". The CSP (`default-src 'self'`) is the runtime backstop against exfil,
  * but storage, dynamic code and same-origin beacons are not CSP-gated - the lint is
  * that line. It is a REVIEW AID, not a sandbox: human curation stays the final
- * filter (plan §10), and a denylist can always be out-thought by someone who is
+ * filter (plan section 10), and a denylist can always be out-thought by someone who is
  * trying. What it guarantees is that nothing gets in by accident, and that anything
  * deliberate has to look deliberate in the diff.
  *
@@ -20,15 +20,15 @@
  * yourself" / "Copy signed source"). The claim states three separable facts, and the
  * honesty rule is that it must never over-claim in EITHER direction:
  *
- *   claim_generator_info - who made the CLAIM. Always Lolly (§10.2.3.2 defines this
+ *   claim_generator_info - who made the CLAIM. Always Lolly (section 10.2.3.2 defines this
  *                           field as the actor that generated the claim, which is this
  *                           script, not the model that drew the art).
  *   c2pa.created - digitalSourceType from the meta's `source`: the nature of
- *                           the asset at its inception (§18.15.2 requires one), and the
+ *                           the asset at its inception (section 18.15.2 requires one), and the
  *                           authoring tool as the step's free-text description
- *                           (§18.15.4.1) since the softwareAgent of every step is Lolly.
- *   c2pa.ai-disclosure - §18.28: the model, its identifier, and the human-oversight
- *                           level. §18.28.3 is explicit that with `digitalCreation`
+ *                           (section 18.15.4.1) since the softwareAgent of every step is Lolly.
+ *   c2pa.ai-disclosure - section 18.28: the model, its identifier, and the human-oversight
+ *                           level. section 18.28.3 is explicit that with `digitalCreation`
  *                           ("no trained model invoked") the disclosure is NOT attached,
  *                           so a meta pairing digitalCreation with a model is refused as
  *                           contradictory rather than resolved by guessing.
@@ -72,7 +72,7 @@ const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 export type ArtKind = 'masthead' | 'figure';
 
 /**
- * Source budgets, PRE-manifest (plan §6): a masthead is a small component the page
+ * Source budgets, PRE-manifest (plan section 6): a masthead is a small component the page
  * inlines before its own content paints; a figure carries real data inline and gets
  * the larger allowance. Measured on the artifact with any existing manifest stripped,
  * so a signed file never eats its own budget.
@@ -94,7 +94,7 @@ export function artBanks(docsDir: string): ArtBank[] {
   ];
 }
 
-/** `.svg` → the §A.3.3 SVG embedding; `.html` → the Lolly fragment profile (§A.9
+/** `.svg` → the section A.3.3 SVG embedding; `.html` → the Lolly fragment profile (section A.9
  *  armour in an HTML comment - OUR profile, spec-adjacent, labelled as such). */
 export const ART_FORMATS: Record<string, string> = { '.svg': 'svg', '.html': C2PA_FRAGMENT_PROFILE.format };
 
@@ -123,7 +123,7 @@ export interface ArtMeta {
 }
 
 /**
- * §18.28.3's own table, copied verbatim. `digitalCreation` is the row that reads "No
+ * section 18.28.3's own table, copied verbatim. `digitalCreation` is the row that reads "No
  * trained model invoked; AI Model Disclosure assertion is not attached" - which is
  * why the meta validator refuses a model/oversight beside it instead of silently
  * dropping either the disclosure (under-claiming) or the source (over-claiming).
@@ -161,7 +161,7 @@ export function validateArtMeta(raw: unknown): { meta: ArtMeta } | { problems: s
 
   const src = raw.source;
   if (!isStr(src) || !(src in ART_SOURCE_TYPES)) {
-    problems.push(`source is required and must be one of ${Object.keys(ART_SOURCE_TYPES).join(' / ')} (IPTC digitalSourceType, §18.15.4.5)`);
+    problems.push(`source is required and must be one of ${Object.keys(ART_SOURCE_TYPES).join(' / ')} (IPTC digitalSourceType, section 18.15.4.5)`);
   }
   const model = raw.model;
   if (model !== undefined) {
@@ -203,18 +203,18 @@ export function validateArtMeta(raw: unknown): { meta: ArtMeta } | { problems: s
   }
   const oversight = raw.oversight;
   if (oversight !== undefined && !(HUMAN_OVERSIGHT_LEVELS as readonly string[]).includes(oversight as string)) {
-    problems.push(`oversight must be one of ${HUMAN_OVERSIGHT_LEVELS.join(' / ')} (§18.28.4)`);
+    problems.push(`oversight must be one of ${HUMAN_OVERSIGHT_LEVELS.join(' / ')} (section 18.28.4)`);
   }
   if (raw.locale !== undefined && (!isStr(raw.locale) || !BCP47.test(raw.locale))) {
     problems.push('locale must be a BCP-47 tag, e.g. "de" or "pt-BR"');
   }
-  // §18.28.3: digitalCreation means no trained model was invoked, and the disclosure
+  // section 18.28.3: digitalCreation means no trained model was invoked, and the disclosure
   // is not attached. Naming a model beside it is a contradiction only the author can
   // resolve - either the artifact came out of a model (say so in `source`) or it did
   // not (drop the model). Guessing would falsify one half of the record.
   if (src === 'digitalCreation') {
-    if (model !== undefined) problems.push('source "digitalCreation" declares that no trained model was invoked (§18.28.3) — remove `model`, or set source to trainedAlgorithmicMedia / compositeWithTrainedAlgorithmicMedia');
-    if (oversight !== undefined) problems.push('source "digitalCreation" has no human-oversight level to declare (§18.28.3 reads "not applicable") — remove `oversight`');
+    if (model !== undefined) problems.push('source "digitalCreation" declares that no trained model was invoked (section 18.28.3) — remove `model`, or set source to trainedAlgorithmicMedia / compositeWithTrainedAlgorithmicMedia');
+    if (oversight !== undefined) problems.push('source "digitalCreation" has no human-oversight level to declare (section 18.28.3 reads "not applicable") — remove `oversight`');
   }
   return problems.length ? { problems } : { meta: raw as unknown as ArtMeta };
 }
@@ -622,7 +622,7 @@ export function lintArtSource(text: string, ctx: LintContext): Violation[] {
     add('manifest', lineOf(text, leftover.index), `C2PA manifest markup (${leftover[0]}) the bank's own strip does not recognise — a banked artifact carries its credential where the placer puts it, and text hidden behind a manifest carrier is text the lint cannot read`);
   }
 
-  // ── motion contract (plan §6 step 2)
+  // ── motion contract (plan section 6 step 2)
   //
   // Read with comments BLANKED. Every rule above scans comments on purpose (a
   // denylist you can satisfy by rephrasing is still a denylist); a guard is the
@@ -642,7 +642,7 @@ export function lintArtSource(text: string, ctx: LintContext): Violation[] {
     // "Mentions the query somewhere" accepted an INVERTED one: a
     // `(prefers-reduced-motion: reduce)` block full of animation, plus
     // unconditional animation outside it, passed - motion for everyone and extra
-    // motion for the readers who asked for less. The contract (plan §6) is that
+    // motion for the readers who asked for less. The contract (plan section 6) is that
     // self-running motion sits behind `no-preference`; the equally honest shape is
     // a `reduce` block that turns it off. Those two, and nothing else.
     const reduce = reduceMotionBlocks(runs);
@@ -679,7 +679,7 @@ export function artDims(text: string): { width: number; height: number } | undef
 export interface ArtClaimContext { id: string; kind: ArtKind; format: string; dims?: { width: number; height: number } }
 
 /**
- * meta.json → the embedC2pa options. The three-way split of §18.28.3 lives here:
+ * meta.json → the embedC2pa options. The three-way split of section 18.28.3 lives here:
  * the SOURCE is always declared on the created action, the DISCLOSURE only when a
  * trained model was actually involved, and the authoring tool rides in the action's
  * description because every step's softwareAgent is Lolly (the claim generator).
@@ -700,7 +700,7 @@ export function artC2paOpts(meta: ArtMeta, ctx: ArtClaimContext): ExportC2paOpts
       digitalSourceType: ART_SOURCE_TYPES[meta.source],
       description: `Authored with ${generator} for the Lolly docs ${ctx.kind} bank`,
     }],
-    // §18.28.3: no disclosure beside digitalCreation. validateArtMeta has already
+    // section 18.28.3: no disclosure beside digitalCreation. validateArtMeta has already
     // refused a meta that names a model there, so this is the second half of one
     // rule, not a silent drop.
     ...(modelled && (meta.model || meta.oversight)
@@ -718,7 +718,7 @@ export function artC2paOpts(meta: ArtMeta, ctx: ArtClaimContext): ExportC2paOpts
   // hand-made artifact too; buildExportC2paOpts only sets author from a profile,
   // which the docs bank has none of, so this is the sole source of it here.
   const author = meta.author;
-  // Model-provenance facts the §18.28 ai-disclosure assertion has no field for:
+  // Model-provenance facts the section 18.28 ai-disclosure assertion has no field for:
   // the vendor that produced the model, and the datacenter region the request ran
   // in. They are Lolly-namespaced facts, not spec assertions - so they belong in
   // the environment beside `generator`, never grafted onto the spec-clean disclosure.
@@ -727,7 +727,7 @@ export function artC2paOpts(meta: ArtMeta, ctx: ArtClaimContext): ExportC2paOpts
     : undefined;
   // The environment assertion is Lolly's own namespace, and the only place the
   // artifact's editorial role and its authoring tool are recorded as plain facts
-  // (claim_generator_info is reserved by §10.2.3.2 for the claim's own generator).
+  // (claim_generator_info is reserved by section 10.2.3.2 for the claim's own generator).
   return {
     ...opts,
     ...(author ? { author } : {}),

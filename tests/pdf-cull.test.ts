@@ -226,7 +226,7 @@ const contains = (outer: PdfExtent, inner: Box): boolean =>
   && outer.x + outer.w + EPS >= inner.x + inner.w
   && outer.y + outer.h + EPS >= inner.y + inner.h;
 
-// ── §6.1 extent unit tests, per element kind ─────────────────────────────────
+// ── section 6.1 extent unit tests, per element kind ─────────────────────────────────
 
 const box = (o: Partial<PdfNode> = {}): PdfNode =>
   ({ kind: 'box', x: 100, y: 100, w: 50, h: 50, rot: 0, fill: '#ff0000', ...o }) as PdfNode;
@@ -419,7 +419,7 @@ test('a degenerate window is a no-op — a malformed crop must never blank a cap
   assert.deepEqual(cullPdfNodes(nodes, null as unknown as CullWindow).nodes, nodes);
 });
 
-// ── §2.3 reference-driven gradient defs ──────────────────────────────────────
+// ── section 2.3 reference-driven gradient defs ──────────────────────────────────────
 
 test('a gradient node that yields no element ships no <defs> payload', () => {
   const grad = {
@@ -450,7 +450,7 @@ test('a gradient node that yields no element ships no <defs> payload', () => {
   assert.doesNotMatch(pdfNodesToSvg(kept.nodes, { ...PAGE, images: IMAGES }), /<pattern/);
 });
 
-// ── §6.2 the differential oracle over a seeded random corpus ─────────────────
+// ── section 6.2 the differential oracle over a seeded random corpus ─────────────────
 
 /** mulberry32 - a tiny seeded PRNG so a failure reproduces from its seed. */
 function prng(seed: number): () => number {
@@ -754,7 +754,7 @@ function drawableEls(svg: string): string[] {
 }
 const wrapSvg = (el: string): string => `<svg viewBox="0 0 1 1">${el}</svg>`;
 
-// ── §6.5 the soundness guard (anti-drift ratchet) ────────────────────────────
+// ── section 6.5 the soundness guard (anti-drift ratchet) ────────────────────────────
 
 /**
  * Culling in cullPdfNodes assumes everything the serializer emits is INTERSECTIVE - 
@@ -852,7 +852,7 @@ test('soundness guard: everything the serializer emits is intersective (no filte
   }
 });
 
-// ── §6.7 adversarial: the silent-cull class ──────────────────────────────────
+// ── section 6.7 adversarial: the silent-cull class ──────────────────────────────────
 //
 // Every case below was a REAL silent cull before the fix that follows it. A silent
 // cull is the worst failure this feature can have: the node is simply not in the
@@ -994,7 +994,7 @@ test('adversarial: a node exactly on the window boundary', () => {
   assert.equal(cullPdfNodes([n], { x: 50, y: 100, width: 50.01, height: 10, pad: 0 }).nodes.length, 1);
 });
 
-// ── §6.8 the <defs> ↔ body contract, and the no-op guarantee ──────────────────
+// ── section 6.8 the <defs> ↔ body contract, and the no-op guarantee ──────────────────
 
 /** Every `url(#id)` the body references must be defined. A culled def with a live
  *  reference renders as NO PAINT - a silent hole, not a smaller file. */
@@ -1061,7 +1061,7 @@ test('a window that covers the content culls nothing and is byte-identical', () 
   }
 });
 
-// ── §6.6 fuzz / untrusted input ──────────────────────────────────────────────
+// ── section 6.6 fuzz / untrusted input ──────────────────────────────────────────────
 
 test('fuzz: pathological nodes never throw, always terminate, and are never silently dropped', () => {
   const bad: PdfNode[] = [

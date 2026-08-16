@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
- * Machine-usable redaction instructions on the CLI (plans/37-redact-tool.md §3).
+ * Machine-usable redaction instructions on the CLI (plans/37-redact-tool.md section 3).
  *
  * The bars array plus its options ARE the instruction format, and URL mode already
  * serialises them - so ONE canonical string has to survive a share link, an argv
@@ -18,7 +18,7 @@
  * LOLLY_WEB_DIST pointed at a directory with no built shell, so the browser tier
  * is deterministically unavailable and no Chromium is ever launched here. The real
  * browser-tier path is verified by hand against the built web shell (see the
- * plan's §3 notes) - node:test must stay browser-free.
+ * plan's section 3 notes) - node:test must stay browser-free.
  *
  * Run with: node --test tests/cli-redact-instructions.test.ts
  */

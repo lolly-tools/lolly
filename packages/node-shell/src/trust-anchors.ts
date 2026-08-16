@@ -15,7 +15,7 @@
  *
  * `describeAnchorSet` is the other half of the same anti-drift rule: both shells must
  * say WHICH anchors produced a verdict in the same words, because "verified" is only
- * meaningful next to "verified by what" (contract §12 O1).
+ * meaningful next to "verified by what" (contract section 12 O1).
  */
 
 import { homedir } from 'node:os';
@@ -38,7 +38,7 @@ export function splitAnchorList(v: unknown): string[] {
 
 /** What a shell fed to `verifyC2pa`, with enough provenance to explain a verdict. */
 export interface AnchorSetFacts {
-  /** Whether the Lolly CA root was pinned (default-on since contract §12 O1). */
+  /** Whether the Lolly CA root was pinned (default-on since contract section 12 O1). */
   lollyRoot: boolean;
   /** How many roots came from the vendored C2PA known-certificate list. */
   vendored: number;

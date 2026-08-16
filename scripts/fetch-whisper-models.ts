@@ -22,7 +22,7 @@
  * https://huggingface.co/onnx-community/whisper-base_timestamped
  * (derived from openai/whisper-base, MIT; the _timestamped repo itself carries
  * no license tag - recorded in the licensing audit, plans/41-tts-stt-programme.md
- * §9). The TIMESTAMPED export is the point: it keeps the cross-attention
+ * section 9). The TIMESTAMPED export is the point: it keeps the cross-attention
  * outputs transformers.js needs for `return_timestamps: 'word'`, which is what
  * lets host.speech.transcribe report per-word spans for captions. q8 quantised
  * (*_quantized.onnx) - the dtype the speech worker requests, same tier as

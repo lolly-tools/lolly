@@ -1,14 +1,14 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
- * The CLI's MACHINE contract, pinned (plans/73-cli-ga-contract.md §5).
+ * The CLI's MACHINE contract, pinned (plans/73-cli-ga-contract.md section 5).
  *
  * Three promises, and one test each for every way they can be broken:
  *
- *   §5.1  the exit taxonomy - a script branches on the number, so each code is pinned
+ *   section 5.1  the exit taxonomy - a script branches on the number, so each code is pinned
  *         against a real invocation of the real entry point, not against a helper.
- *   §5.2  the JSON envelope - one shape, every command, INCLUDING the failure path,
+ *   section 5.2  the JSON envelope - one shape, every command, INCLUDING the failure path,
  *         with `schemaVersion` as the thing a consumer keys its parser off.
- *   §5.3  stdout carries the payload and nothing else - verified by piping a binary
+ *   section 5.3  stdout carries the payload and nothing else - verified by piping a binary
  *         export and comparing it byte for byte with the same render written to a file,
  *         with a tool whose hook logs to `console.log` while it renders.
  *
@@ -115,7 +115,7 @@ function envelope(r: { stdout: Buffer }): Record<string, any> {
   }
 }
 
-/** The envelope keys every command must carry, in the frozen §5.2 shape. */
+/** The envelope keys every command must carry, in the frozen section 5.2 shape. */
 function assertEnvelopeShape(env: Record<string, any>, command: string): void {
   assert.deepEqual(
     Object.keys(env).sort(),
@@ -129,7 +129,7 @@ function assertEnvelopeShape(env: Record<string, any>, command: string): void {
   assert.ok(Array.isArray(env.warnings));
 }
 
-// ── §5.2 the envelope ────────────────────────────────────────────────────────
+// ── section 5.2 the envelope ────────────────────────────────────────────────────────
 
 test('list --json is one envelope, schemaVersion 1', async () => {
   const r = await cli(['list', '--json']);
@@ -200,7 +200,7 @@ test('validate --json is ONE document for N files, and an unreadable file is a r
   const env = envelope(r);
   assertEnvelopeShape(env, 'validate');
   assert.equal(env.result.files.length, 2);
-  // Per-file records keep the §5.2 verdict shape…
+  // Per-file records keep the section 5.2 verdict shape…
   assert.equal(env.result.files[0].verdict, 'no-credential');
   assert.equal(env.result.files[0].metadata, null, '--metadata did not run, so it is null, not {}');
   assert.ok(env.result.files[0].resolved.state);
@@ -270,7 +270,7 @@ test('--json on a render is a usage error, not a silently ignored flag', async (
   assert.equal(env.error.kind, 'UNSUPPORTED_FLAG');
 });
 
-// ── §5.1 the exit taxonomy ───────────────────────────────────────────────────
+// ── section 5.1 the exit taxonomy ───────────────────────────────────────────────────
 
 test('exit codes are pinned per outcome', async () => {
   const cases: Array<[string[], number, string]> = [
@@ -295,12 +295,12 @@ test('an unmet capability refuses with the capability named, and writes nothing'
   await assert.rejects(readFile(out), 'a refused render must not leave a plausible file behind');
 });
 
-// ── §5.3 stdout discipline ───────────────────────────────────────────────────
+// ── section 5.3 stdout discipline ───────────────────────────────────────────────────
 
 test('a binary export piped to stdout is byte-identical to the same render written to a file', async () => {
   const file = join(root, 'ref.png');
   // --no-provenance, because this test is about the PIPE, not the clock. A default
-  // render carries Content Credentials and the Imprint (contract §12 O2), both of which
+  // render carries Content Credentials and the Imprint (contract section 12 O2), both of which
   // embed a fresh timestamp, so two separate invocations legitimately differ and the
   // comparison would be measuring the signature instead of the stdout discipline.
   const written = await cli(['run', 'vec-tool', '--label=Pipe', '--export=png', '--no-provenance', '--output=' + file]);
@@ -347,7 +347,7 @@ test('the byte-determinism docs/cli.md promises for SVG holds — with provenanc
   // the browser tier is deliberately absent in this fixture, so it cannot be pinned at
   // all - which is itself the reason the claim was narrowed rather than tested wider.
   //
-  // Narrowed once more by contract §12 O2: provenance is now DEFAULT-ON, so the
+  // Narrowed once more by contract section 12 O2: provenance is now DEFAULT-ON, so the
   // deterministic thing is a render with the marks off. Both halves are asserted below,
   // because the promise and the price it was bought at are one decision.
   const a = await cli(['run', 'vec-tool', '--label=Same', '--export=svg', '--no-provenance']);
@@ -357,7 +357,7 @@ test('the byte-determinism docs/cli.md promises for SVG holds — with provenanc
   assert.ok(a.stdout.length > 0);
 });
 
-test('a DEFAULT render is signed, and therefore NOT byte-identical run to run (§12 O2)', async () => {
+test('a DEFAULT render is signed, and therefore NOT byte-identical run to run (section 12 O2)', async () => {
   // The other half of the trade, pinned so nobody re-reads the row above as "the CLI is
   // deterministic". A defaulted render carries Content Credentials; the credential is
   // signed with a fresh ephemeral key and timestamp, so the bytes move every run.
@@ -375,7 +375,7 @@ test('a DEFAULT render is signed, and therefore NOT byte-identical run to run (�
   assert.ok(bare.stdout.length < a.stdout.length, 'the signed render must be the larger of the two');
 });
 
-// ── machine discovery (§5.2 result.environment) ──────────────────────────────
+// ── machine discovery (section 5.2 result.environment) ──────────────────────────────
 
 test('list --json reports what THIS installation can do, before anything is tried', async () => {
   const env = envelope(await cli(['list', '--json']));

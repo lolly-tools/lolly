@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
  * Contract tests for runtime.applyPatch - the atomic multi-input apply added for
- * live collaboration (plans/100 §5 + §11.11, wave 0.4).
+ * live collaboration (plans/100 section 5 + section 11.11, wave 0.4).
  *
  * The decided semantics, pinned here so a later refactor can't quietly drift:
  *   - one batch → ONE emit (one render), never one per key;
@@ -257,7 +257,7 @@ test('applyPatch: an invalid value drops THAT key while every valid key still ap
 });
 
 // A tool covering the types the number/text cases above don't reach - the ones a
-// peer can name in a patch and the ones §11.11 calls out by name.
+// peer can name in a patch and the ones section 11.11 calls out by name.
 let typedSeq = 0;
 function typedToolDouble(): any {
   return {
@@ -278,7 +278,7 @@ function typedToolDouble(): any {
   };
 }
 
-test('applyPatch: the manifest\'s own declarations are the gate (§11.11 — enum, shape)', async () => {
+test('applyPatch: the manifest\'s own declarations are the gate (section 11.11 — enum, shape)', async () => {
   const { host } = logHost();
   const rt = await createRuntime(typedToolDouble(), host, {});
   const valueOf = (id: string) => rt.getModel().find(i => i.id === id)!.value;

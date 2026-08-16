@@ -203,7 +203,7 @@ export function assertFormatBytes(requested: string, bytes: Uint8Array): void {
   throw new FormatMismatchError(
     requested, got,
     `the encoder returned ${LABEL[got]} bytes for an export requested as "${requested}". ` +
-    'This shell will not write a file whose contents disagree with its declared format — a mislabelled ' +
+    'This shell will not write a file whose contents disagree with its declared format - a mislabelled ' +
     'file is worse than a failed export, because nothing downstream can tell. ' +
     (got === 'png' && (requested.toLowerCase() === 'avif' || requested.toLowerCase() === 'heic')
       ? 'The headless render tier has no AV1/HEVC encoder, so its canvas encoder degrades to PNG. '

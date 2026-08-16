@@ -1305,7 +1305,7 @@ test('penpotRoundedRectD: a thin adapter over cornerRadii + roundedRectPath', ()
     roundedRectPath(x, y, w, h, cornerRadii(
       { topLeft: `${r[0]}px`, topRight: `${r[1]}px`, bottomRight: `${r[2]}px`, bottomLeft: `${r[3]}px` }, w, h));
   assert.equal(penpotRoundedRectD(5, 7, 100, 80, [10, 20, 30, 40]), expected(5, 7, 100, 80, [10, 20, 30, 40]));
-  // The CSS §5.5 overlap clamp comes from the one shared implementation.
+  // The CSS section 5.5 overlap clamp comes from the one shared implementation.
   assert.equal(penpotRoundedRectD(0, 0, 100, 50, [80, 80, 0, 0]), expected(0, 0, 100, 50, [80, 80, 0, 0]));
   assert.ok(penpotRoundedRectD(0, 0, 100, 50, [80, 80, 0, 0]).includes('A50,'), 'top corners clamp to 50 each');
   // Negative radii sanitize to 0.
@@ -1487,7 +1487,7 @@ test('penpotGroupToSvg: dash decoration bakes into the flattened SVG (was always
 //    * "fixture: per-side stroke keys (strokePerSide, strokeWidthTop...) absent or
 //      present in 2.17 exports"
 
-// ── prototype-flow scene ordering (penpot-design-system.md §4) ───────────────
+// ── prototype-flow scene ordering (penpot-design-system.md section 4) ───────────────
 //
 // Synthetic pages here - the structure of the real thing is pinned against the
 // committed 2.17.1-RC4 export in tests/penpot-kitchen-sink.test.ts. These cover

@@ -1,12 +1,12 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
  * Banked docs art: the `MASTHEADS` override, the `::: figure <id>` fence, and the
- * credential line they both carry (plans/105 §6, docs/docs-art.ts + docs/build.ts).
+ * credential line they both carry (plans/105 section 6, docs/docs-art.ts + docs/build.ts).
  *
- * NO ART SHIPS YET - the bank directories are Andy's to fill (plan §11), and the
+ * NO ART SHIPS YET - the bank directories are Andy's to fill (plan section 11), and the
  * `MASTHEADS` table ships empty. So every behavioural test here builds its own
  * artifact: a tiny SVG, signed through the SAME writer the sign script uses
- * (embedC2pa + buildExportC2paOpts, surface 'docs', with a §18.28 ai-disclosure),
+ * (embedC2pa + buildExportC2paOpts, surface 'docs', with a section 18.28 ai-disclosure),
  * dropped into a temp bank, and read back through the real modules. That is the
  * whole point - the fixture is a real credentialed file, not a stub, so the
  * assertions below are about bytes rather than about strings we wrote twice.
@@ -69,7 +69,7 @@ async function signArt(svg: string): Promise<Uint8Array> {
     model: [] as unknown as Parameters<typeof buildExportC2paOpts>[0]['model'],
     format: 'svg',
     days: 365,
-    // §18.28.3's own pairing: trainedAlgorithmicMedia + prompt_guided is "AI
+    // section 18.28.3's own pairing: trainedAlgorithmicMedia + prompt_guided is "AI
     // generation guided by human prompts", which is exactly how this bank works.
     actions: [{ action: 'c2pa.created', digitalSourceType: 'http://cv.iptc.org/newscodes/digitalsourcetype/trainedAlgorithmicMedia' }],
     aiDisclosure: { modelName: MODEL_NAME, oversight: 'prompt_guided' },
@@ -186,7 +186,7 @@ test('an unknown id resolves to nothing, and an id is never a path', async () =>
 
 // ── The credential facts (docs/shot-provenance.ts) ───────────────────────────
 
-test('the model pill reads the §18.28 disclosure out of the file itself', async () => {
+test('the model pill reads the section 18.28 disclosure out of the file itself', async () => {
   const { dir, cleanup } = await bank();
   try {
     const art = resolveDocsArt('mastheads', 'trust-hero', { dir })!;
@@ -253,7 +253,7 @@ test('a figure is content: art, then a caption carrying the prose and the creden
 // ── End to end, against the real sign pipeline ───────────────────────────────
 
 test('a bank signed by scripts/sign-docs-art.ts inlines clean, in both carriers', async (t) => {
-  // The fixtures and the signer are B1's (tests/fixtures/docs-art/, plan §6 step 3);
+  // The fixtures and the signer are B1's (tests/fixtures/docs-art/, plan section 6 step 3);
   // the inline and the credential read are this lane's. Running them together is the
   // only place the SVG <metadata> carrier and the Lolly fragment ARMOUR carrier are
   // both proved to leave the page copy - the hand-rolled fixture above only covers
@@ -302,7 +302,7 @@ test('the MASTHEADS table ships empty, and every entry it ever gains is banked',
   const m = /const MASTHEADS: Record<string, string> = \{([\s\S]*?)\};/.exec(BUILD_TS);
   assert.ok(m, 'docs/build.ts no longer declares the MASTHEADS table');
   const entries = [...m[1]!.matchAll(/'([a-z0-9-]+)'\s*:\s*'([a-z0-9-]+)'/g)];
-  // Empty today (plan §11: art is Andy's, never a subagent's). When it stops being
+  // Empty today (plan section 11: art is Andy's, never a subagent's). When it stops being
   // empty, each id must exist in the bank - a mapping with no file only warns at
   // build time, and a warning in a 27-locale log is a thing nobody sees.
   for (const [, slug, id] of entries) {
@@ -341,7 +341,7 @@ test('the build inlines through the shared fn and credits the file it inlined', 
 });
 
 test('the runtime showcase and the build-time strip still agree on the rules', () => {
-  // docs-art.ts's strip was promoted FROM this script (plan §6). The showcase keeps
+  // docs-art.ts's strip was promoted FROM this script (plan section 6). The showcase keeps
   // its own copy because it runs in the browser, so the two can drift - and a drift
   // means the site strips a manifest one way on one block and another way on the
   // next. Both directions are pinned: the rules exist in the script, and the shared

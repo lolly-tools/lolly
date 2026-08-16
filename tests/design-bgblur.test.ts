@@ -39,11 +39,11 @@ import {
 import { baseHost } from './helpers/host.ts';
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
-/** Both brand variants ship the tool; suse is a private submodule public clones skip. */
-const BRANDS = (['lolly-start', 'suse'] as const).filter((b) =>
-  existsSync(join(ROOT, 'brands', b, 'tools', 'design', 'tool.json')));
+/** design is single-sourced in the public community pack (2026-08-16 consolidation);
+ *  the per-pack loop shape survives so a future re-fork slots back in. */
+const BRANDS = ['community'] as const;
 
-const PACK_DIR = join(ROOT, 'brands', 'lolly-start', 'tools');
+const PACK_DIR = join(ROOT, 'community');
 const fetchFile = (path: string) => readFile(join(PACK_DIR, path), 'utf8');
 
 const tool: any = await loadTool('design', fetchFile);
@@ -60,8 +60,8 @@ const BOX = {
 const boxStyle = (html: string): string =>
   /<div class="lolly-box[^"]*"[^>]*style="([^"]*)"/.exec(html)?.[1] ?? '';
 
-const fieldsOf = (brand: string): any[] => JSON.parse(readFileSync(
-  join(ROOT, 'brands', brand, 'tools', 'design', 'tool.json'), 'utf8'))
+const fieldsOf = (pack: string): any[] => JSON.parse(readFileSync(
+  join(ROOT, pack, 'design', 'tool.json'), 'utf8'))
   .inputs.find((i: any) => i.id === 'boxes').fields;
 
 // ── manifest shape ───────────────────────────────────────────────────────────

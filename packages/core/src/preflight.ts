@@ -41,7 +41,7 @@
  * `PreflightReport`, because the moment a report can carry a number that looks
  * like money, an unqualified ceiling gets read as a quote.
  *
- * See `plans/65-preflight-and-cost.md` §3 (the findings model) and §6 (honesty rules).
+ * See `plans/65-preflight-and-cost.md` section 3 (the findings model) and section 6 (honesty rules).
  */
 
 // ─── Severity ───────────────────────────────────────────────────────────────
@@ -324,7 +324,7 @@ export interface Finding {
 // the copy that travels: a `preflight.json` in a batch zip, a `--json` capture
 // in CI. A reader must be able to tell a clean report taken with an
 // unresolved palette, an un-run `onInit` and a headless stage apart from a clean
-// report taken with all three in hand. `plans/65-preflight-and-cost.md` §6 rule 9
+// report taken with all three in hand. `plans/65-preflight-and-cost.md` section 6 rule 9
 // applied to counts rather than money: a caveat that lives only in a UI string is
 // a bug.
 //

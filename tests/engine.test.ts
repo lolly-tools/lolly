@@ -174,7 +174,7 @@ test('url-mode: RESERVED set matches the documented reserved-param list', () => 
 });
 
 test('url-mode: designv is the design-system version override, read-only', () => {
-  // plans/97 §6a. Carried verbatim: only the caller knows which versions the
+  // plans/97 section 6a. Carried verbatim: only the caller knows which versions the
   // device holds, so url-mode extracts the string and the ladder in
   // design-version.ts decides what it means.
   const s = parseUrlState('heading=Hi&designv=jupiter', SAMPLE_MANIFEST);

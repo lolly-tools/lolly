@@ -74,7 +74,7 @@ export function createNodeImagesAPI(): ImagesAPI | null {
   async function open(input: Uint8Array | Blob): Promise<{ img: SharpLike; buf: Buffer }> {
     const sharp = await loadSharp();
     const buf = await toBuffer(input);
-    if (!buf.length) throw new Error('host.images: empty input — nothing to decode.');
+    if (!buf.length) throw new Error('host.images: empty input - nothing to decode.');
     return { img: sharp(buf), buf };
   }
 

@@ -6,7 +6,7 @@
  *
  * Modeled on design-gradient.test.ts: drives the REAL tool (manifest +
  * hooks) through the engine, so these guard the actual render rather than a
- * paraphrase of it. Renders load from brands/lolly-start (parent-owned, present
+ * paraphrase of it. Renders load from community/ (public, present
  * in every checkout); the manifest assertions run over BOTH brand forks, since
  * the SAME edit ships in both packs and the wire slot has to match.
  *
@@ -34,19 +34,19 @@ import { nodeToBox, penpotShapeToNode, penpotGroupToSvg } from '../engine/src/de
 import { baseHost } from './helpers/host.ts';
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
-/** Both brand variants ship the tool; suse is a private submodule public clones skip. */
-const BRANDS = (['lolly-start', 'suse'] as const).filter((b) =>
-  existsSync(join(ROOT, 'brands', b, 'tools', 'design', 'tool.json')));
+/** Both copies of the tool: the public community pack, plus the private suse one when mounted. */
+const PACKS = [join(ROOT, 'community'), join(ROOT, 'brands', 'suse', 'tools')].filter((p) =>
+  existsSync(join(p, 'design', 'tool.json')));
 
-const PACK_DIR = join(ROOT, 'brands', 'lolly-start', 'tools');
+const PACK_DIR = join(ROOT, 'community');
 const fetchFile = (path: string) => readFile(join(PACK_DIR, path), 'utf8');
 
 assert.ok(existsSync(join(PACK_DIR, 'design', 'tool.json')),
-  'brands/lolly-start/tools/design/tool.json is missing — the tool was renamed or deleted');
+  'community/design/tool.json is missing - the tool was renamed or deleted');
 
 const tool: any = await loadTool('design', fetchFile);
 
-/** Mount the real lolly-start tool and return the hydrated markup. */
+/** Mount the real community tool and return the hydrated markup. */
 async function mount(boxes: unknown[]): Promise<string> {
   const rt = await createRuntime(tool, baseHost(), { boxes: boxes as never });
   assert.deepEqual(rt.hookErrors ?? [], [], 'no hook errors');
@@ -63,20 +63,19 @@ const boxStyle = (html: string): string =>
 // ── manifest shape ───────────────────────────────────────────────────────────
 
 test('a `blur` number field exists in every mounted brand fork and holds wire slot 53', () => {
-  for (const brand of BRANDS) {
-    const manifest = JSON.parse(readFileSync(
-      join(ROOT, 'brands', brand, 'tools', 'design', 'tool.json'), 'utf8'));
+  for (const pack of PACKS) {
+    const manifest = JSON.parse(readFileSync(join(pack, 'design', 'tool.json'), 'utf8'));
     const fields = manifest.inputs.find((i: any) => i.id === 'boxes').fields as any[];
     const blur = fields.find((f) => f.id === 'blur');
-    assert.ok(blur, `${brand}: boxes has a \`blur\` sub-field`);
-    assert.equal(blur.type, 'number', `${brand}: blur type`);
-    assert.equal(blur.default, 0, `${brand}: blur default`);
-    assert.equal(blur.min, 0, `${brand}: blur min`);
-    assert.equal(blur.max, 300, `${brand}: blur max`);
+    assert.ok(blur, `${pack}: boxes has a \`blur\` sub-field`);
+    assert.equal(blur.type, 'number', `${pack}: blur type`);
+    assert.equal(blur.default, 0, `${pack}: blur default`);
+    assert.equal(blur.min, 0, `${pack}: blur min`);
+    assert.equal(blur.max, 300, `${pack}: blur max`);
     // Compact block URLs encode fields POSITIONALLY, so a new field can only be
     // APPENDED - `blur` landed as the 54th field (index 53, right after `grad`)
     // and must stay there forever.
-    assert.equal(fields.indexOf(blur), 53, `${brand}: blur moved slot (wire order is locked)`);
+    assert.equal(fields.indexOf(blur), 53, `${pack}: blur moved slot (wire order is locked)`);
   }
 });
 

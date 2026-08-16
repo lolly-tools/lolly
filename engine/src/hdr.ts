@@ -44,7 +44,7 @@
  * signal a decoder reads the raw PQ codes as sRGB and the image looks dark. The
  * transform and the signal MUST travel together.
  *
- * ─── The float view transform (deeprichpixels plan §5.2) ──────────────────────
+ * ─── The float view transform (deeprichpixels plan section 5.2) ──────────────────────
  * The seam is split in two so the linear invariant of `DeepFrame` stays honest:
  *
  *   hdrViewTransform(frame, opts) -> DeepFrame in 'rec2020-linear'
@@ -311,7 +311,7 @@ export function hdrBoostToPQ<T extends Uint8Array | Uint8ClampedArray>(rgba: T, 
   return rgba;
 }
 
-// ─── the float view transform (plan §5.2) ─────────────────────────────────────
+// ─── the float view transform (plan section 5.2) ─────────────────────────────────────
 
 /**
  * Scene-referred HDR view transform over a linear float frame: the same brand

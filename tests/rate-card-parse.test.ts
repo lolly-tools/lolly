@@ -4,7 +4,7 @@
  * and no currency is exercised here (there is none in the module yet, Phase 3);
  * this covers parsing, the injected-schema gate, the extra-schema invariants, the
  * three refusals, and rule 10 (no fixture/doc/brand-pack card carries a numeric
- * rate). plans/65-preflight-and-cost.md §5-6.
+ * rate). plans/65-preflight-and-cost.md section 5-6.
  *
  * Run: node --test "tests/rate-card-parse.test.ts"
  */
@@ -77,7 +77,7 @@ test('confidential:true is carried through', () => {
 
 // ── the example card is refused by digest ─────────────────────────────────────
 
-test('the shipped §5 example is schema-INVALID (placeholder string rates)', () => {
+test('the shipped section 5 example is schema-INVALID (placeholder string rates)', () => {
   const doc = JSON.parse(readFileSync(join(ROOT, 'tests/fixtures/ratecard.example.json'), 'utf8'));
   assert.equal(validate(doc), false, 'the example must fail the schema on purpose (rate is a number)');
 });
@@ -274,6 +274,6 @@ test('rule 10: no shipped .json rate card contains a numeric rate', () => {
     assert.ok(!anyNumericRate(doc),
       `${abs} is a rate card carrying a numeric rate — every shipped card must keep placeholder rates (rule 10)`);
   }
-  assert.ok(scanned >= 1, 'expected at least the §5 example fixture to be scanned');
+  assert.ok(scanned >= 1, 'expected at least the section 5 example fixture to be scanned');
   console.log(`  scanned ${scanned} shipped rate-card .json file(s)`);
 });

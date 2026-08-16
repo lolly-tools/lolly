@@ -29,7 +29,7 @@
  * There is NO default currency and NO fallback symbol in this file. `currency` is a
  * required argument on every entry point; a missing or invalid code THROWS a typed
  * `CurrencyError` rather than degrading to `$` or `0`. A currency always comes from
- * the rate card the user supplied. See `plans/65-preflight-and-cost.md` §6.
+ * the rate card the user supplied. See `plans/65-preflight-and-cost.md` section 6.
  *
  * All amounts crossing this module are INTEGER minor units. No float ever touches a
  * subtotal: the only division is the display-time `minorUnits / 10 ** exponent`
@@ -194,7 +194,7 @@ export function monetaryFigure(minorUnits: number, currency: string): MonetaryFi
 /**
  * The rate card's issuer, as REPORTED SPEECH. `verified` is a frozen `false`: this
  * is a claim typed inside a file the user dropped, and Lolly verifies none of it.
- * `plans/65-preflight-and-cost.md` §5.
+ * `plans/65-preflight-and-cost.md` section 5.
  */
 export interface CostRatesFrom {
   /** The issuer name the file claims. Reported, never asserted. */
@@ -277,7 +277,7 @@ export interface SerializedUncostedLine {
  * even one that is being hidden.
  */
 export interface SerializedCost {
-  /** Always `'estimate'`. Never the bare noun to a user (§6): the figure is always
+  /** Always `'estimate'`. Never the bare noun to a user (section 6): the figure is always
    *  rendered with its source inline. Here it is the machine tag. */
   readonly kind: 'estimate';
   /** Always `false`. Lolly never produces a quote. */
@@ -301,7 +301,7 @@ export interface SerializedCost {
   /**
    * `true` iff this figure was computed from rates PAST the card's `validUntil`,
    * because the user explicitly opted in ("Use these rates anyway", `--use-expired-rates`).
-   * A material caveat (§5: the opt-in "stamps every resulting figure with the expiry
+   * A material caveat (section 5: the opt-in "stamps every resulting figure with the expiry
    * date"), carried as a sibling so a `--json`/`preflight.json` consumer never has to
    * compare `ratesFrom.validUntil` to "now" itself to learn the figure is lapsed.
    * `false` on a live card.
@@ -310,7 +310,7 @@ export interface SerializedCost {
   /** Rule 6's sentence, verbatim ({@link COST_DISCLAIMER}), carried as a sibling so
    *  it travels with the copy. */
   readonly disclaimer: string;
-  /** The card's issuer, as reported speech (§5). */
+  /** The card's issuer, as reported speech (section 5). */
   readonly ratesFrom: CostRatesFrom;
   /** The counted lines the card could not price. Empty on full coverage. */
   readonly uncosted: readonly SerializedUncostedLine[];

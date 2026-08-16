@@ -5,7 +5,7 @@
  *
  * Run with: npm test  (node --test over the tests/ globs). No framework - node:test.
  *
- * Loads the REAL tool from disk (parent-owned brands/lolly-start pack, always present in a
+ * Loads the REAL tool from disk (public community pack, always present in a
  * public checkout - brands/suse is a private, CI-skipped submodule) and drives it through the
  * engine with a stub host, mirroring design-frames.test.ts.
  *
@@ -30,12 +30,12 @@ import { loadTool } from '../engine/src/loader.ts';
 import { createRuntime } from '../engine/src/runtime.ts';
 import { baseHost } from './helpers/host.ts';
 
-const PACK_DIR = join(dirname(fileURLToPath(import.meta.url)), '..', 'brands', 'lolly-start', 'tools');
+const PACK_DIR = join(dirname(fileURLToPath(import.meta.url)), '..', 'community');
 const fetchFile = (path: string) => readFile(join(PACK_DIR, path), 'utf8');
 
 const TOOL_JSON = join(PACK_DIR, 'design', 'tool.json');
 assert.ok(existsSync(TOOL_JSON),
-  'brands/lolly-start/tools/design/tool.json is missing — the tool was renamed or deleted');
+  'community/design/tool.json is missing - the tool was renamed or deleted');
 
 const tool: any = await loadTool('design', fetchFile);
 

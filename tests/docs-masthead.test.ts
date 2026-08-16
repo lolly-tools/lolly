@@ -176,7 +176,7 @@ test('the masthead burst yields to links, buttons and text selection', { skip: b
   assert.ok(!/\{[^{}]*(pause:true|reduceMotion:true)/.test(landing), 'the landing hero picked up the docs pausing');
 });
 
-// ─── banked art (plans/105 §6) ───────────────────────────────────────────────
+// ─── banked art (plans/105 section 6) ───────────────────────────────────────────────
 //
 // The MASTHEADS table overrides the default chip band per page with a signed
 // artifact from docs/mastheads/. It ships EMPTY, so what these guard is the

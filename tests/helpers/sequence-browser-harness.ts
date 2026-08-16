@@ -26,7 +26,7 @@ import { createVideoProvider } from '../../shells/web/src/bridge/sequence-provid
 import { parseSequenceStage, frameTimestamps, activeSpanTimestamps, toCodedError } from '../../shells/web/src/bridge/sequence-plan.ts';
 import { HIGH_WATER } from '../../shells/web/src/bridge/video-encode-core.ts';
 import { MAX_LIVE_PROVIDERS } from '../../shells/web/src/bridge/sequence-render.ts';
-// `createExportAPI` is also the plans/104 §7 P3 funnel's front door: `walkToSvg` renders
+// `createExportAPI` is also the plans/104 section 7 P3 funnel's front door: `walkToSvg` renders
 // SVG through it, which is how `main.ts`'s `__lollyWalkerShot` reaches the walker too - 
 // the demo has to PRODUCE its layered SVG the honest way, by walking a real page with
 // `layerIds` on, rather than by hand-writing markup that happens to enumerate well.
@@ -268,20 +268,20 @@ export interface BoxSpec {
   exitMs?: number;
   lane?: 'seq' | '';
   /**
-   * plans/104 §5.3 - the per-box depth field, emitted as `data-t-z` exactly the way
+   * plans/104 section 5.3 - the per-box depth field, emitted as `data-t-z` exactly the way
    * `timeAttrsFor` does (a clamped integer, absent at 0).
    */
   z?: number | null;
-  /** plans/104 §5.1 - the keyframe track, emitted as `data-t-kf`. */
+  /** plans/104 section 5.1 - the keyframe track, emitted as `data-t-kf`. */
   kf?: string | null;
   /**
-   * plans/104 §5.4 - a CAMERA box: the non-visual `[data-cam]` marker and nothing
+   * plans/104 section 5.4 - a CAMERA box: the non-visual `[data-cam]` marker and nothing
    * else, exactly what `mediaHtmlFor` emits for `kind: 'camera'`. The pose rides on
    * the wrapper's `data-t-kf`/`data-t-z` like every other box's timing.
    */
   camera?: boolean;
   /**
-   * plans/104 §5.3 - `shadow: depth`, derived from `z` by the same straight-overhead
+   * plans/104 section 5.3 - `shadow: depth`, derived from `z` by the same straight-overhead
    * formula the three `hooks.js` copies share:
    * `drop-shadow(0px z·0.15px (10 + z·0.2)px #00000055)`.
    */
@@ -289,7 +289,7 @@ export interface BoxSpec {
   /** A raw `filter` for the box (the authored-filter tier the plates bake). */
   filter?: string;
   /**
-   * plans/104 §7 - a LIFTED LAYER's artwork: standalone SVG markup, mounted the way
+   * plans/104 section 7 - a LIFTED LAYER's artwork: standalone SVG markup, mounted the way
    * the tool mounts an image field (an `<img>` whose src is the stored asset), so the
    * walker's `inlineSvgFromImg` path is the one under test rather than a hand-inlined
    * `<svg>` the real tool never produces.
@@ -1223,7 +1223,7 @@ async function trackColors(
  *
  * The BACKGROUND instrument. The stage's own paint is a two-tone plane with one hard
  * vertical edge; the run length of the left tone along a clear row IS the edge's x. A
- * camera pan moves the whole plane (§5.5's "the bg is an implicit z = 0 layer"), so the
+ * camera pan moves the whole plane (section 5.5's "the bg is an implicit z = 0 layer"), so the
  * run changes - and a bg that is NOT projected leaves it constant, which is the failure
  * this number is here to make visible.
  */
@@ -1334,7 +1334,7 @@ async function vectorStillAt(spec: StageSpec, tMs: number, format: 'svg' | 'pdf'
 }
 
 /**
- * plans/104 §7 - STEP ONE OF THE LIFT FUNNEL: walk a real page to SVG with the
+ * plans/104 section 7 - STEP ONE OF THE LIFT FUNNEL: walk a real page to SVG with the
  * identity passthrough on.
  *
  * This is `main.ts`'s `__lollyWalkerShot` hook reproduced call for call - the same
@@ -1405,7 +1405,7 @@ async function probe(): Promise<Any> {
 }
 
 /**
- * plans/104 §12 Q2 / spike S2 §4 - the two captures of ONE tilted element, side by side.
+ * plans/104 section 12 Q2 / spike S2 section 4 - the two captures of ONE tilted element, side by side.
  *
  * S2 measured `rasterizeNodeToDataUrl` DESTROYING a 3-D pose: it overwrites the clone
  * root's transform with its own fit translate/scale and resizes the root to

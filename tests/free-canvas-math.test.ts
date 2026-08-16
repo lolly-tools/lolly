@@ -388,7 +388,7 @@ test('gradientAngleAt: the centre itself is not an angle', () => {
   assert.equal(gradientAngleAt(200, 100, 100, 50), 0);
 });
 
-// ── Frame primitive (plan 93 §5/§10) ─────────────────────────────────────────
+// ── Frame primitive (plan 93 section 5/section 10) ─────────────────────────────────────────
 
 test('resolveFrame: a box whose centre is inside a frame resolves to that frame', () => {
   const frames: any[] = [{ id: 'f1', kind: 'frame', x: 0, y: 0, w: 100, h: 100 }];
@@ -799,7 +799,7 @@ test('pathEndPoints: the two points the heads sit on are the first + last lowere
   assert.equal(pathEndPoints([]), null);
 });
 
-// ── Lift layers: the replacement rows (plans/104 §7 P3) ─────────────────────
+// ── Lift layers: the replacement rows (plans/104 section 7 P3) ─────────────────────
 //
 // The engine decides WHAT the layers are (`enumerateSvgLayers`, goldens in
 // tests/svg-layers.test.ts). These pin what a lift does to the MODEL: geometry
@@ -862,7 +862,7 @@ test('liftDepths: the band is a CEILING — N layers never climb past it', () =>
   }
   // Under ~11 layers there is room for a full rung each; past it the rung shrinks
   // so the TOP still lands on the ceiling.
-  // …at the ladder's own 0.01 px quantum (§4.6), which is what gets stored.
+  // …at the ladder's own 0.01 px quantum (section 4.6), which is what gets stored.
   const q = (v: number): number => Math.round(v * 100) / 100;
   assert.equal(liftDepths([0, 1, 2])[1], q(depthForEff(1 + LIFT_EFF_STEP)));
   assert.equal(liftDepths(Array.from({ length: 40 }, (_, i) => i))[39], q(depthForEff(LIFT_EFF_CEIL)));

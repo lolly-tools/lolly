@@ -1,10 +1,10 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
- * THE TWO BLUR LANES, MEASURED AGAINST EACH OTHER - the browser tier (plan 104 §5.5).
+ * THE TWO BLUR LANES, MEASURED AGAINST EACH OTHER - the browser tier (plan 104 section 5.5).
  *
  * `shells/web/src/lib/canvas-blur.test.ts` pins the parse, the spill geometry, the mip
  * ladder and the box kernel headlessly. What no Node process can answer is the question
- * the Safari finding forces: the mip lane is the MAINLINE on WebKit (§11 S1 - no
+ * the Safari finding forces: the mip lane is the MAINLINE on WebKit (section 11 S1 - no
  * `ctx.filter` on any context kind there), so how close is it to what an engine's own
  * Gaussian paints? A lane that is only "the fallback" can be hand-waved. A lane that is
  * the only lane half our users have cannot.

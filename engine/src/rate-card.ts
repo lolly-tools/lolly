@@ -11,7 +11,7 @@
  * `computeCost` does the integer minor-unit arithmetic (Phase 4). There is NO
  * currency FORMATTING anywhere in this file - minor-unit integers go out and the
  * surface formats them, so web and CLI can never print divergent figures
- * (`plans/65-preflight-and-cost.md` §8).
+ * (`plans/65-preflight-and-cost.md` section 8).
  *
  * DOM-free and pure. Shared verbatim by the web drop path, the CLI/TUI
  * `--rate-card` path, and `scripts/validate-catalog.ts`, so all three validate a
@@ -82,7 +82,7 @@ export type RateCardError = { error: 'not-a-rate-card' | 'no-priced-lines' | 'ex
 
 export const isRateCardError = (r: RateCard | RateCardError): r is RateCardError => 'error' in r;
 
-/** The digest of the shipped §5 placeholder example (`tests/fixtures/ratecard.example.json`).
+/** The digest of the shipped section 5 placeholder example (`tests/fixtures/ratecard.example.json`).
  *  Refused by NAME, belt-and-suspenders beyond the schema-invalid placeholder rates:
  *  a copy whose strings are still placeholders would fail the schema anyway, but the
  *  UNEDITED shipped file is refused with the clearest message regardless. */
@@ -134,7 +134,7 @@ function breaksAreValid(breaks: unknown): boolean {
  * web, CLI and `validate-catalog` share one Ajv instance and validate identically.
  *
  * Refusals (nothing is stored on a refusal):
- *  - `example-card`    - the digest is the shipped §5 placeholder. Checked first.
+ *  - `example-card`    - the digest is the shipped section 5 placeholder. Checked first.
  *  - `not-a-rate-card` - unparseable, wrong `$format`, schema-invalid shape, or a
  *                        currency `Intl.NumberFormat` rejects.
  *  - `no-priced-lines` - validates, but no line is costable.
@@ -246,7 +246,7 @@ export function parseRateCard(
 }
 
 // ══════════════════════════════════════════════════════════════════════════════
-// ARITHMETIC - Phase 4 (plans/65-preflight-and-cost.md §8).
+// ARITHMETIC - Phase 4 (plans/65-preflight-and-cost.md section 8).
 //
 // `computeCost(card, counts, input)` multiplies rates FROM THE CARD by quantities
 // preflight COUNTED, in integer minor units, and returns a structured working the
@@ -370,7 +370,7 @@ export interface CostWorking {
   /** From the card, never defaulted - the surface formats with it. */
   readonly currency: string;
   /** `card.issuer.validUntil` is in the past. REPORTED, not acted on: the caller
-   *  decides whether to suppress money (§5), this function does not. */
+   *  decides whether to suppress money (section 5), this function does not. */
   readonly expired: boolean;
   /** Every priced multiplication, in order. */
   readonly rows: readonly CostRow[];
@@ -414,7 +414,7 @@ function toMinor(rate: number, exponent: number): number {
 /** An authored (major-unit) per-unit RATE as a full-precision minor-unit value,
  *  UNROUNDED. `0.008` EUR → `0.8`, not `1`. The rounding to integer minor units
  *  happens once, on the final line subtotal (`q × rate`), never on the rate itself
- *  (`plans/65-preflight-and-cost.md` §8; the honesty fix for sub-minor-unit rates). */
+ *  (`plans/65-preflight-and-cost.md` section 8; the honesty fix for sub-minor-unit rates). */
 function exactMinor(rate: number, exponent: number): number {
   return rate * 10 ** exponent;
 }
@@ -511,7 +511,7 @@ function priceQuantity(
  *  press - the media box only. `checkPrintGeometry` emits three `m2-sheet` area counts
  *  (trim, bleed, media); matching all three would price a single card line three times
  *  (~3× the true sheet area), inventing money. So `perArea` matches the media box alone
- *  (`plans/65-preflight-and-cost.md` §4: "the whole sheet through the press"). */
+ *  (`plans/65-preflight-and-cost.md` section 4: "the whole sheet through the press"). */
 function countsForLine(line: RateCardLine, counts: readonly Count[]): Count[] {
   switch (line.kind) {
     case 'perPlate':

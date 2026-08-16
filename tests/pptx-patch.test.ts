@@ -4,7 +4,7 @@
  *
  * Strategy: build a minimal-but-REALISTIC in-memory part map (theme + slide +
  * presentation + rels + content-types + a fntdata part + unrelated string/binary
- * parts), rebrand it, and assert every §2.2 behaviour: theme slots swapped, the
+ * parts), rebrand it, and assert every section 2.2 behaviour: theme slots swapped, the
  * fontScheme faces swapped, literal colours remapped, explicit typefaces remapped,
  * embedded-font parts+rels+content-type-default removed together, theme parts
  * excluded from the literal colour remap, and unrelated parts passed through

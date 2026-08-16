@@ -190,7 +190,7 @@ test('ENGINE_VERSION is 1.124.0', () => {
   // ToolHookFlags.exportStill type fix). Then 1.104.0 (host.c2pa.sign widened to
   // C2paSignOpts for the any-media authorship path) and 1.105.0 (host.raster - 
   // canRaster/measure/decode/encode: the bridge home for the canRaster()/loadImage()
-  // probes tool hooks used to open-code against the DOM, plans/86 §6.1) and 1.106.0
+  // probes tool hooks used to open-code against the DOM, plans/86 section 6.1) and 1.106.0
   // (host.connectors - the engine's committed connector/line/arrow SVG builder behind a
   // tool-facing surface, so a canvas tool renders its connectors in one line and a headless
   // --export keeps them; plan 90) and 1.107.0 (host.color.solveApca - the APCA INVERSE
@@ -202,7 +202,7 @@ test('ENGINE_VERSION is 1.124.0', () => {
   // CSS classes / SCSS / GIMP .gpl as text, or a binary Adobe .ase; the color-palette
   // tool's parity with the Swatches download. Two real additive HostV1 methods, plus
   // json-as-sibling-template + css/scss/gpl data-export formats at the runtime seam).
-  // Then 1.109.0 (versioned design systems, plans/97 §6a - the pure design-version.ts
+  // Then 1.109.0 (versioned design systems, plans/97 section 6a - the pure design-version.ts
   // module: the version ledger, the head/version asset-id scheme and its
   // discovery-exclusion rule, the resolution ladder, and the pinned-asset helpers, all
   // shared by the web bridge, the CLI and the MCP server; plus the reserved `designv`
@@ -230,23 +230,23 @@ test('ENGINE_VERSION is 1.124.0', () => {
   // projection/DOF both sequence evaluators fold; no HostV1 method changed).
   // Then 1.115.0 (plans/105 M1 - the C2PA 2.4 text-binding READ side: SniffFormat
   // gains 'html' | 'text' | 'code', extractC2paDetailed with the HTML/armour/
-  // variation-selector extractors, the NFC-normalised §15.12.1.3 text hash pipeline,
+  // variation-selector extractors, the NFC-normalised section 15.12.1.3 text hash pipeline,
   // and c2pa.ai-disclosure read for every format; read-only, no HostV1 method changed).
-  // Then 1.116.0 (plans/105 M2 §7 - verifyC2pa gains an optional `externalManifest`:
-  // the CALLER resolves a §A.7.1.2/§A.9.3 external credential reference under its own
+  // Then 1.116.0 (plans/105 M2 section 7 - verifyC2pa gains an optional `externalManifest`:
+  // the CALLER resolves a section A.7.1.2/section A.9.3 external credential reference under its own
   // network policy and passes the bytes in, so a document whose manifest lives beside
   // it can finally be checked; the engine still never fetches, the option is only read
   // when the asset carries no store, and report.textBinding.externalManifestUsed marks
   // every report that used it. No HostV1 method changed).
   // Then 1.117.0 (plans/105 M3 - the C2PA 2.4 text-binding WRITE side: C2PA_FORMATS
-  // gains html/js/css/md, placeHtml (§A.7 inline) + placeArmor (§A.9 armoured block),
+  // gains html/js/css/md, placeHtml (section A.7 inline) + placeArmor (section A.9 armoured block),
   // and the documented `html-fragment` Lolly profile; write-only, no HostV1 method
   // changed).
-  // Then 1.118.0 (plans/104 §5.2 P1 - the `kf` grammar gains `w`/`h`: absolute px
+  // Then 1.118.0 (plans/104 section 5.2 P1 - the `kf` grammar gains `w`/`h`: absolute px
   // that REPLACE the box's size for their segment, so a tween can reflow text.
   // `KF_MAX_CHARS` moved 40960 → 49152 because it is DERIVED from KF_MAX_KEYS and
   // two more channels are 20 chars a key; no HostV1 method changed).
-  // Then 1.119.0 (plans/104 §7 P3 - `engine/src/svg-layers.ts`: "Lift layers"
+  // Then 1.119.0 (plans/104 section 7 P3 - `engine/src/svg-layers.ts`: "Lift layers"
   // enumerates a sanitised SVG's own layers into one standalone document each,
   // DOM-free so the CLI lifts the same way the editor does; read-only, no HostV1
   // method changed).

@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
  * engine/src/design-version.ts - the versioned design-system contracts that
- * MULTIPLE shells depend on (plans/97 §6a).
+ * MULTIPLE shells depend on (plans/97 section 6a).
  *
  * The ledger reader/writer, the slug grammar, the ladder, docChecksum and the
  * compat diff are exercised by the web shell's

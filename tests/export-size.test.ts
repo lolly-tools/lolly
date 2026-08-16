@@ -28,11 +28,12 @@ const SUSE_TOOLS = join(ROOT, 'brands', 'suse', 'tools');
 const PACK_MOUNTED = existsSync(SUSE_TOOLS);
 const SKIP_SUSE = !PACK_MOUNTED && 'SUSE brand pack not mounted (see profiles.json)';
 if (PACK_MOUNTED) {
-  for (const id of ['multi-page-pdf', 'event-name-badge']) {
-    assert.ok(existsSync(join(SUSE_TOOLS, id, 'tool.json')),
-      `brands/suse/tools/${id}/tool.json is missing — pack is mounted, so the tool was renamed or deleted`);
-  }
+  assert.ok(existsSync(join(SUSE_TOOLS, 'event-name-badge', 'tool.json')),
+    'brands/suse/tools/event-name-badge/tool.json is missing - pack is mounted, so the tool was renamed or deleted');
 }
+// multi-page-pdf moved to the public community pack (2026-08-16), present in every checkout.
+assert.ok(existsSync(join(ROOT, 'community', 'multi-page-pdf', 'tool.json')),
+  'community/multi-page-pdf/tool.json is missing - the tool was renamed or deleted');
 
 test('detects a select whose options carry width/height and maps each value to dims', () => {
   const d = exportSizeDriver({
@@ -116,8 +117,8 @@ test('aspectWarning returns null with no config or invalid dimensions', () => {
   assert.equal(aspectWarning(GUARD, undefined as any, undefined as any), null);
 });
 
-test('the real multi-page-pdf manifest warns on landscape but not portrait', { skip: SKIP_SUSE }, () => {
-  const manifest = JSON.parse(readFileSync(join(SUSE_TOOLS, 'multi-page-pdf/tool.json'), 'utf8'));
+test('the real multi-page-pdf manifest warns on landscape but not portrait', () => {
+  const manifest = JSON.parse(readFileSync(join(ROOT, 'community', 'multi-page-pdf/tool.json'), 'utf8'));
   assert.ok(manifest.render.aspectWarning, 'manifest declares an aspect guard');
   // The removed A4-landscape size (297 × 210) is exactly what the guard should catch.
   assert.ok(aspectWarning(manifest, 297, 210));

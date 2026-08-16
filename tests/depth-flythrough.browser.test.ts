@@ -2,7 +2,7 @@
 /**
  * plans/104 P1 - THE FLYTHROUGH EXIT DEMO, run as a test.
  *
- * §9's P1 exit criteria, enacted end to end in a real browser: "layers lifted, push-in
+ * section 9's P1 exit criteria, enacted end to end in a real browser: "layers lifted, push-in
  * with parallax + DOF + soft shadows, mp4 byte-stable across two runs, still-at-playhead
  * is real SVG, bg moves under pan." Everything here is measured from the exported FILE - 
  * decoded pixels, hashed bytes, parsed markup - never from an intermediate the pipeline
@@ -16,7 +16,7 @@
  * stills and the contact sheet - which is what makes it a demo as well as a gate.
  *
  * THE SCENE (built once, shared by every case). A 960×540 stage whose own paint is a
- * two-tone plane with one hard vertical edge at x = 300 - that plane is §5.5's implicit
+ * two-tone plane with one hard vertical edge at x = 300 - that plane is section 5.5's implicit
  * z = 0 background layer, and the edge is how "the bg moves under a pan" becomes a
  * number. On it, four flat, well-separated colours at a staggered depth:
  *
@@ -32,9 +32,9 @@
  * left that can order the four displacements is depth. The three lifted layers carry
  * `shadow: depth`, whose drop-shadow the hooks derive from z by the same formula.
  *
- * The camera is an untimed ("Always on") scene camera - §5.4's implicit camera, the box
+ * The camera is an untimed ("Always on") scene camera - section 5.4's implicit camera, the box
  * with nothing in it but the `[data-cam]` marker - carrying a SHIPPED preset track from
- * `KF_CAMERA_PRESETS` verbatim. Note the preset's dolly sign is the inverse of §8's
+ * `KF_CAMERA_PRESETS` verbatim. Note the preset's dolly sign is the inverse of section 8's
  * sketch, deliberately and with the reasoning written at the constant: the engine's
  * `eff = P/(P − (z − camZ))` makes a GROWING camZ a camera moving away, so "Push in" is
  * `z0 → z−220`. The demo uses what a user clicking the button actually gets.
@@ -117,7 +117,7 @@ function scene(cameraKf: string): StageLike {
         // cast (10 + 0·0.2 would still draw a 10px ring, which is not "at rest").
         depthShadow: l.z > 0,
       })),
-      // §5.4's implicit scene camera: untimed, no picture, pose on the wrapper.
+      // section 5.4's implicit scene camera: untimed, no picture, pose on the wrapper.
       { x: 0, y: 0, w: 8, h: 8, camera: true, kf: cameraKf },
     ],
   };
@@ -187,7 +187,7 @@ describe('plans/104 P1 — the depth flythrough exit demo', { skip: gate ?? fals
       // THROUGH THE PUBLIC FUNNEL, both times. `exportSeq` calls `renderSequence`
       // directly, which is one layer below where every real export lives - and the
       // difference is not cosmetic: the funnel detaches `[data-export-hide]` nodes
-      // from the live tree, which used to include the §5.4 camera marker and left
+      // from the live tree, which used to include the section 5.4 camera marker and left
       // this exact flythrough completely motionless (measured: 0.0 px on all four
       // layers, 35,691 B instead of 230,632 B). Driving the demo through
       // `exportViaApi` is what makes that class of defect visible here at all.
@@ -248,7 +248,7 @@ describe('plans/104 P1 — the depth flythrough exit demo', { skip: gate ?? fals
     assert.equal(r.webm.shaA, r.webm.shaB,
       `webm is not byte-stable across two runs — this IS the render:\n  A ${r.webm.shaA}\n  B ${r.webm.shaB}`);
     // 3. THE MP4 CONTAINER is not, and the difference is bounded to metadata.
-    //    §9's exit criterion says "mp4 byte-stable across two runs"; it is not, and the
+    //    section 9's exit criterion says "mp4 byte-stable across two runs"; it is not, and the
     //    reason is outside this feature: `mp4-muxer` 5.2.2 writes
     //    `Math.floor(Date.now()/1000)` into mvhd/tkhd/mdhd creation+modification time
     //    (6 bytes, no option to pin it), and macOS VideoToolbox tags the IDR with a
@@ -304,7 +304,7 @@ describe('plans/104 P1 — the depth flythrough exit demo', { skip: gate ?? fals
     }
     // Every measurement inside 2 px of the engine's own arithmetic. The tolerance is
     // for the centroid of a chroma-subsampled edge, not for the projection: a real
-    // fold error is tens of px (the §4.1 "naive reading" defect is 240 px).
+    // fold error is tens of px (the section 4.1 "naive reading" defect is 240 px).
     for (let i = 0; i < moved.length; i++) {
       assert.ok(Math.abs(moved[i]! - predicted[i]!) < 2,
         `layer "${LAYERS[i]!.name}": exported displacement ${moved[i]!.toFixed(2)} px disagrees with the engine's ${predicted[i]!.toFixed(2)} px`);
@@ -386,7 +386,7 @@ describe('plans/104 P1 — the depth flythrough exit demo', { skip: gate ?? fals
         `no matrix in the still carries the projected scale ${s.toFixed(4)}; got ${scales.map((v) => v.toFixed(4)).join(', ')}`);
     }
     // The soft shadows are geometry too, not a bitmap: one <feDropShadow> per lifted
-    // layer, derived from z by the §5.3 straight-overhead formula.
+    // layer, derived from z by the section 5.3 straight-overhead formula.
     const fd = (r.text.match(/<feDropShadow/g) ?? []).length;
     assert.equal(fd, LAYERS.filter((l) => l.z > 0).length,
       `expected one <feDropShadow> per lifted layer, got ${fd}`);
@@ -428,7 +428,7 @@ describe('plans/104 P1 — the depth flythrough exit demo', { skip: gate ?? fals
     // per-element raster escape hatch. That is the house posture (degrade visibly, with
     // the spill measured so nothing is sheared off) and it is pinned in
     // `shells/web/src/bridge/export-pdf-filter.test.ts`. Pinned HERE too because it is
-    // the exact boundary of §9's "the still-at-playhead is real SVG": with depth
+    // the exact boundary of section 9's "the still-at-playhead is real SVG": with depth
     // shadows and no DOF the still is 100% vector (the case above proves it); switch
     // DOF on over the same shadows and the lifted layers become images.
     assert.equal(img, 3,

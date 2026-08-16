@@ -64,7 +64,7 @@ const U16_MAX = 0xffff;
 /** DOS date for 1980-01-01 (the epoch of the zip DOS date format); time 0. Fixed → deterministic. */
 const DOS_DATE_1980 = 0x0021;
 
-/** General-purpose bit 11: filename/comment are UTF-8 (APPNOTE §4.4.4). */
+/** General-purpose bit 11: filename/comment are UTF-8 (APPNOTE section 4.4.4). */
 const GPBF_UTF8 = 0x0800;
 
 const encoder = new TextEncoder();

@@ -2,7 +2,7 @@
 /**
  * plans/104 P3 - THE LIFT-LAYERS EXIT DEMO, run as a test.
  *
- * §9's P3 exit criterion, enacted end to end in a real browser: "url-shot → Lift layers
+ * section 9's P3 exit criterion, enacted end to end in a real browser: "url-shot → Lift layers
  * → preset → mp4 in under a minute of user effort." Every step below is the shipping
  * one - the walker that takes the screenshot, the engine enumerator that finds the
  * layers, the writer that turns them into boxes, the export funnel that renders them - 
@@ -35,7 +35,7 @@
  *    before it reaches a box, because that is where the real lift sanitises it
  *    (`runLift` → `storeUserUpload` → `sanitizeSvgFile`).
  *
- * 3. PRESET. The scene camera is §5.4's implicit untimed one, carrying the SHIPPED
+ * 3. PRESET. The scene camera is section 5.4's implicit untimed one, carrying the SHIPPED
  *    "Push in" track from `KF_CAMERA_PRESETS` verbatim (`t0_z0*t4000_eo_z-220`; the
  *    dolly sign is the engine's, see that constant's comment).
  *
@@ -86,8 +86,8 @@
  * the COMPOSITOR, which means N full-frame blurs on every frame. That was the dominant
  * cost of this whole feature, and it is worth stating in numbers rather than adjectives.
  *
- * P3.1 FIXED IT (plans/104 §9, measured failure 1) by noticing that the effect does not
- * change: §5.3's depth shadow is derived from the box's `z` alone, so for a layer at a
+ * P3.1 FIXED IT (plans/104 section 9, measured failure 1) by noticing that the effect does not
+ * change: section 5.3's depth shadow is derived from the box's `z` alone, so for a layer at a
  * fixed depth it is ONE filter over ONE unchanging plate, and the camera move lives
  * entirely in the destination transform. So the filtered picture is now rendered once
  * and re-composited per frame - `fxPlateKey` in `bridge/sequence-render.worker.ts` - and
@@ -299,7 +299,7 @@ describe('plans/104 P3 — the Lift-layers exit demo', { skip: gate ?? false, co
     zs = rows.map((r) => Number(r.z));
     for (const l of layers) if (l.boxId) cardZ.set(l.boxId, zs[l.index] as number);
 
-    // 3 - the stage: the lifted rows, plus §5.4's implicit untimed scene camera.
+    // 3 - the stage: the lifted rows, plus section 5.4's implicit untimed scene camera.
     spec = {
       w: W, h: H, seqMs: MS, bg: 'transparent',
       boxes: [
@@ -344,12 +344,12 @@ describe('plans/104 P3 — the Lift-layers exit demo', { skip: gate ?? false, co
 
     // The identity passthrough closed the loop: every card the PAGE stamped comes back
     // named, and nothing else does. This is what makes a screenshot "semantically
-    // explodable" (§7) rather than explodable along whatever the markup happened to group.
+    // explodable" (section 7) rather than explodable along whatever the markup happened to group.
     const named = layers.filter((l) => l.boxId).map((l) => l.boxId);
     assert.deepEqual([...named].sort(), CARDS.map((c) => c.id).sort(),
       `the lifted layers should name exactly the page's four boxes, got ${JSON.stringify(named)}`);
 
-    // Labels are indices, never names out of the file (the PII posture, §7).
+    // Labels are indices, never names out of the file (the PII posture, section 7).
     for (const l of layers) assert.equal(l.label, `Layer ${l.index + 1}`, `unexpected label ${l.label}`);
 
     // The writer's own contract (1.121, plans/104 P3.2): one row per layer, depths
@@ -435,7 +435,7 @@ describe('plans/104 P3 — the Lift-layers exit demo', { skip: gate ?? false, co
       targets: TARGETS as unknown as [number, number, number][], last: LAST,
     });
 
-    // STABILITY. §9's criterion as AMENDED by P1's demo: BYTE identity for webm, which
+    // STABILITY. section 9's criterion as AMENDED by P1's demo: BYTE identity for webm, which
     // is the render's own claim and the one that catches a nondeterministic compositor,
     // plate ladder or projection.
     //
@@ -619,7 +619,7 @@ describe('plans/104 P3 — the Lift-layers exit demo', { skip: gate ?? false, co
         `no matrix in the still carries the projected scale ${s.toFixed(4)}; got ${[...new Set(scales.map((v) => v.toFixed(4)))].join(', ')}`);
     }
     // The soft shadows are geometry too: one <feDropShadow> per lifted layer, derived
-    // from z by §5.3's straight-overhead formula.
+    // from z by section 5.3's straight-overhead formula.
     const fd = (r.text.match(/<feDropShadow/g) ?? []).length;
     assert.equal(fd, rows.length, `expected one <feDropShadow> per lifted layer, got ${fd}`);
     // And the ARTWORK is still artwork: the cards' rounded rects survive as <rect rx>,

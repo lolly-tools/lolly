@@ -247,7 +247,7 @@ export function hexToOklch(hex: string): Oklch | null {
   return out;
 }
 
-// ─── Gamut mapping - CSS Color 4 §14.2 (chroma bisection + local MINDE) ───────
+// ─── Gamut mapping - CSS Color 4 section 14.2 (chroma bisection + local MINDE) ───────
 //
 // This is the mapper for the whole engine. css-color.ts's gamutMapSrgb, and so
 // every format flatten, routes its chroma search here. oklchToHex below is a
@@ -267,7 +267,7 @@ export function hexToOklch(hex: string): Oklch | null {
 // `oklch(0.95 0.25 120)` lands on #dbff00 rather than #e0ff6f.
 const JND = 0.02;          // one just-noticeable difference in OKLab
 
-/** The §14.2 bisection tolerance, which doubles as the in-gamut slack. Exported
+/** The section 14.2 bisection tolerance, which doubles as the in-gamut slack. Exported
  *  so css-color.ts's wrapper tests the same boundary rather than a copy of it. */
 export const GAMUT_EPSILON = 1e-4;
 const MAP_EPSILON = GAMUT_EPSILON;
@@ -293,7 +293,7 @@ export function deltaEOkSrgb(
 }
 
 /**
- * Map an OKLCH colour into sRGB per CSS Color 4 §14.2, returning ENCODED sRGB
+ * Map an OKLCH colour into sRGB per CSS Color 4 section 14.2, returning ENCODED sRGB
  * components 0–1. Hue and lightness are preserved; chroma is reduced by binary
  * search with the local-MINDE clip check described above. An in-gamut request
  * comes back untouched (beyond the encode), so this is safe to call
@@ -344,7 +344,7 @@ export function gamutMapOklch(l: number, c: number, h: number): [number, number,
 }
 
 /**
- * OKLCH → hex, gamut-mapped through `gamutMapOklch` (CSS Color 4 §14.2 - hue and
+ * OKLCH → hex, gamut-mapped through `gamutMapOklch` (CSS Color 4 section 14.2 - hue and
  * lightness preserved, chroma reduced with a local-MINDE clip check, never a raw
  * channel clip). Alpha < 1 appends an 8-digit hex.
  */

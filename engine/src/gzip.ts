@@ -8,17 +8,17 @@
  * INFLATE at all: url-pack.ts inflates its `z` tokens through the platform
  * DecompressionStream (async, browser-only), which is the wrong shape for a
  * format writer/reader that must run identically in web, CLI and MCP. gzip is
- * what SVGZ is (§ "SVGZ is exactly this"), what `.tar.gz` needs, and the most
+ * what SVGZ is (section "SVGZ is exactly this"), what `.tar.gz` needs, and the most
  * requested "just give me a .gz" export, so both halves live here.
  *
- * ─── Encode (RFC 1952 §2.3) ──────────────────────────────────────────────────
+ * ─── Encode (RFC 1952 section 2.3) ──────────────────────────────────────────────────
  * 10-byte fixed header: ID1 0x1f, ID2 0x8b, CM 8 (deflate), FLG 0 (no name /
  * comment / extra / hcrc), MTIME 0 (RFC 1952: 0 = "no timestamp", the only
  * deterministic choice, since a wall clock would make output non-reproducible and
  * break byte-pinned goldens), XFL 0, OS 255 (0xff = "unknown", the privacy-
  * preserving value; we never leak the producer's platform), then the raw
  * DEFLATE body, then an 8-byte trailer: CRC-32 of the UNCOMPRESSED bytes and
- * ISIZE (input length mod 2^32), both little-endian (§2.3.1).
+ * ISIZE (input length mod 2^32), both little-endian (section 2.3.1).
  *
  * ─── Decode ──────────────────────────────────────────────────────────────────
  * Validate magic + CM + FLG (skipping any FEXTRA/FNAME/FCOMMENT/FHCRC fields a
@@ -41,17 +41,17 @@
 import { crc32 } from './zip-crypto.ts';
 import { deflateRaw, type DeflateOptions } from './deflate.ts';
 
-// ── RFC 1952 §2.3.1: the fixed 10-byte header we emit ───────────────────────
+// ── RFC 1952 section 2.3.1: the fixed 10-byte header we emit ───────────────────────
 const ID1 = 0x1f;
 const ID2 = 0x8b;
 const CM_DEFLATE = 8;
-// FLG bits (RFC 1952 §2.3.1): read on decode, never set on encode.
+// FLG bits (RFC 1952 section 2.3.1): read on decode, never set on encode.
 const FTEXT = 1;
 const FHCRC = 2;
 const FEXTRA = 4;
 const FNAME = 8;
 const FCOMMENT = 16;
-const FLG_RESERVED = 0xe0; // bits 5-7 MUST be zero (RFC 1952 §2.3.1.1)
+const FLG_RESERVED = 0xe0; // bits 5-7 MUST be zero (RFC 1952 section 2.3.1.1)
 
 /**
  * Wrap `bytes` in a gzip member (RFC 1952). Body is `deflateRaw(bytes)`; the
@@ -75,7 +75,7 @@ export function gzip(bytes: Uint8Array, opts?: DeflateOptions): Uint8Array {
   out[o + 1] = (crc >>> 8) & 0xff;
   out[o + 2] = (crc >>> 16) & 0xff;
   out[o + 3] = (crc >>> 24) & 0xff;
-  const isize = bytes.length >>> 0; // mod 2^32 (RFC 1952 §2.3.1)
+  const isize = bytes.length >>> 0; // mod 2^32 (RFC 1952 section 2.3.1)
   out[o + 4] = isize & 0xff;
   out[o + 5] = (isize >>> 8) & 0xff;
   out[o + 6] = (isize >>> 16) & 0xff;
@@ -143,7 +143,7 @@ function readU32LE(bytes: Uint8Array, off: number): number {
 // ────────────────────────────────────────────────────────────────────────────
 // Raw DEFLATE inflate (RFC 1951): the decode half the engine lacked.
 //
-// Stored blocks (§3.2.4), fixed Huffman (§3.2.6) and dynamic Huffman (§3.2.7).
+// Stored blocks (section 3.2.4), fixed Huffman (section 3.2.6) and dynamic Huffman (section 3.2.7).
 // Bounded on every axis a hostile stream could exploit: a bit reader that
 // reports end-of-input instead of reading past the buffer, an output that
 // cannot exceed `sizeHint` (the gzip ISIZE, so a crafted length code cannot make
@@ -151,7 +151,7 @@ function readU32LE(bytes: Uint8Array, off: number): number {
 // produced (distance <= current output length). No recursion, no unbounded loop.
 // ────────────────────────────────────────────────────────────────────────────
 
-// RFC 1951 §3.2.5: length codes 257..285 (base + extra bits).
+// RFC 1951 section 3.2.5: length codes 257..285 (base + extra bits).
 const LEN_BASE = [
   3, 4, 5, 6, 7, 8, 9, 10, 11, 13, 15, 17, 19, 23, 27, 31,
   35, 43, 51, 59, 67, 83, 99, 115, 131, 163, 195, 227, 258,
@@ -160,7 +160,7 @@ const LEN_EXTRA = [
   0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 2, 2, 2, 2,
   3, 3, 3, 3, 4, 4, 4, 4, 5, 5, 5, 5, 0,
 ];
-// RFC 1951 §3.2.5: distance codes 0..29 (base + extra bits).
+// RFC 1951 section 3.2.5: distance codes 0..29 (base + extra bits).
 const DIST_BASE = [
   1, 2, 3, 4, 5, 7, 9, 13, 17, 25, 33, 49, 65, 97, 129, 193,
   257, 385, 513, 769, 1025, 1537, 2049, 3073, 4097, 6145, 8193, 12289, 16385, 24577,
@@ -169,10 +169,10 @@ const DIST_EXTRA = [
   0, 0, 0, 0, 1, 1, 2, 2, 3, 3, 4, 4, 5, 5, 6, 6,
   7, 7, 8, 8, 9, 9, 10, 10, 11, 11, 12, 12, 13, 13,
 ];
-// RFC 1951 §3.2.7: the order in which code-length-code lengths are stored.
+// RFC 1951 section 3.2.7: the order in which code-length-code lengths are stored.
 const CLEN_ORDER = [16, 17, 18, 0, 8, 7, 9, 6, 10, 5, 11, 4, 12, 3, 13, 2, 14, 1, 15];
 
-/** LSB-first bit reader (RFC 1951 §3.1.1) with hard bounds; never reads past `data`. */
+/** LSB-first bit reader (RFC 1951 section 3.1.1) with hard bounds; never reads past `data`. */
 class BitReader {
   private pos = 0;
   private bitBuf = 0;
@@ -193,7 +193,7 @@ class BitReader {
     return v;
   }
 
-  /** Drop any partial bits, aligning to the next byte (stored-block start, §3.2.4). */
+  /** Drop any partial bits, aligning to the next byte (stored-block start, section 3.2.4). */
   alignByte(): void {
     this.bitBuf = 0;
     this.bitCnt = 0;
@@ -217,7 +217,7 @@ class BitReader {
 }
 
 /**
- * Canonical Huffman decoder built from a list of code lengths (RFC 1951 §3.2.2).
+ * Canonical Huffman decoder built from a list of code lengths (RFC 1951 section 3.2.2).
  * Decodes one symbol per `decode()` call, bit by bit, so no code is ever read
  * beyond its length. `maxLen` bounds the walk; a bit reader hitting end-of-input
  * throws rather than spinning.
@@ -246,7 +246,7 @@ class HuffTree {
     }
   }
 
-  /** Decode one symbol from `r`, walking one bit per length (RFC 1951 §3.2.2). */
+  /** Decode one symbol from `r`, walking one bit per length (RFC 1951 section 3.2.2). */
   decode(r: BitReader): number {
     let code = 0;
     let first = 0;   // first canonical code of the current length
@@ -263,7 +263,7 @@ class HuffTree {
   }
 }
 
-// Fixed literal/length + distance trees (RFC 1951 §3.2.6), built once.
+// Fixed literal/length + distance trees (RFC 1951 section 3.2.6), built once.
 const FIXED_LIT_TREE = (() => {
   const lengths = new Uint8Array(288);
   for (let i = 0; i < 144; i++) lengths[i] = 8;
@@ -305,7 +305,7 @@ class OutBuffer {
     this.buf.set(src, this.len);
     this.len += src.length;
   }
-  /** Copy `len` bytes from `dist` back: the LZ77 back-reference (§3.2.3). */
+  /** Copy `len` bytes from `dist` back: the LZ77 back-reference (section 3.2.3). */
   copyBack(dist: number, len: number): void {
     if (dist > this.len) throw new Error('inflate: distance points before start of output');
     this.ensure(len);
@@ -334,7 +334,7 @@ export function inflateRaw(data: Uint8Array, sizeHint?: number): Uint8Array {
     final = r.bits(1) === 1;
     const type = r.bits(2);
     if (type === 0) {
-      // Stored (§3.2.4): align, LEN + one's-complement NLEN, then raw bytes.
+      // Stored (section 3.2.4): align, LEN + one's-complement NLEN, then raw bytes.
       r.alignByte();
       const len = r.readU16();
       const nlen = r.readU16();
@@ -359,7 +359,7 @@ function inflateBlock(r: BitReader, out: OutBuffer, litTree: HuffTree, distTree:
     if (sym < 256) {
       out.pushByte(sym);
     } else if (sym === 256) {
-      return; // end of block (§3.2.3)
+      return; // end of block (section 3.2.3)
     } else {
       const li = sym - 257;
       if (li >= LEN_BASE.length) throw new Error('inflate: invalid length symbol');
@@ -373,7 +373,7 @@ function inflateBlock(r: BitReader, out: OutBuffer, litTree: HuffTree, distTree:
 }
 
 /**
- * Read a dynamic block's Huffman tables (RFC 1951 §3.2.7): HLIT/HDIST/HCLEN, the
+ * Read a dynamic block's Huffman tables (RFC 1951 section 3.2.7): HLIT/HDIST/HCLEN, the
  * code-length-code lengths (in CLEN_ORDER), then the run-length-encoded literal
  * and distance code lengths. Every count and repeat is bounds-checked.
  */

@@ -10,7 +10,7 @@
  *
  * Depth: 8-bit unsigned (the default, byte-identical to the original encoder),
  * 16-bit unsigned, or 32-bit IEEE float (`depth: 'float32'`, the deep/VFX
- * interchange depth, plans/61-deeprichpixels.md §6 Phase A). Deep samples are
+ * interchange depth, plans/61-deeprichpixels.md section 6 Phase A). Deep samples are
  * written little-endian to match the file's "II" byte order. Non-8-bit files
  * carry the SampleFormat tag (339, TIFF 6.0 Section 19 "Data Sample Format"):
  * 1 = unsigned integer for 16-bit, 3 = IEEE floating point for float32. 8-bit
@@ -23,7 +23,7 @@
  *
  * SEAM: this writer never converts between depths. The caller hands it samples
  * already at the requested depth (Uint8/Uint16/Float32Array); depth conversion
- * and colour math are pixels.ts's job (deeprichpixels.md §5.1).
+ * and colour math are pixels.ts's job (deeprichpixels.md section 5.1).
  *
  * The shell's DeviceCMYK TIFF path keeps its OWN bespoke encoder
  * (shells/web/src/bridge/export.js → encodeCmykTiff): it's entangled with print
@@ -69,7 +69,7 @@ export interface PackTiffOptions {
   icc?: Uint8Array;
   /** Bits per sample: 8 (default, Uint8Array/Uint8ClampedArray in), 16
    *  (Uint16Array in, SampleFormat 1), or 'float32' (Float32Array in,
-   *  SampleFormat 3, IEEE float, TIFF 6.0 §19). The buffer must already be at
+   *  SampleFormat 3, IEEE float, TIFF 6.0 section 19). The buffer must already be at
    *  this depth; packTiff never converts (that's pixels.ts's seam). */
   depth?: 8 | 16 | 'float32';
 }

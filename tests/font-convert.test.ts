@@ -122,7 +122,7 @@ test('reconstructed sfnt has a valid head.checkSumAdjustment', () => {
   const head = tables.get('head');
   assert.ok(head, 'head table present');
   // Whole-font checksum with checkSumAdjustment zeroed, plus the stored
-  // adjustment, must equal the magic 0xB1B0AFBA (OpenType §head).
+  // adjustment, must equal the magic 0xB1B0AFBA (OpenType section head).
   const dv = new DataView(back.buffer, back.byteOffset, back.byteLength);
   // locate head within `back`
   const num = dv.getUint16(4, false);

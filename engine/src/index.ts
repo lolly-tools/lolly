@@ -100,7 +100,7 @@ export {
   GRADIENT_KINDS, DEFAULT_GRADIENT_SPACE, MAX_GRADIENT_STOPS,
 } from './gradient-spec.ts';
 export type { GradientSpec, GradientKind, GradientSpecStop } from './gradient-spec.ts';
-// Deep pixel buffers (plans/61-deeprichpixels.md §5.1) - the Float32Array
+// Deep pixel buffers (plans/61-deeprichpixels.md section 5.1) - the Float32Array
 // linear-light working frame whose space travels with the data, plus every
 // converter between it and the byte world. Exported alongside hdr.ts because
 // hdrViewTransform/pqEncodeFrame consume and return DeepFrames - a caller of
@@ -120,7 +120,7 @@ export {
 // Preflight - pre-export findings over a plain job description. Sits beside
 // print-marks: the engine owns the RULES, each shell collects the FACTS from its
 // own platform. Counts and assertions only; there is no cost/currency concept
-// anywhere in it (plans/65-preflight-and-cost.md §8).
+// anywhere in it (plans/65-preflight-and-cost.md section 8).
 export {
   preflight,
   PRINT_MARK_FORMATS, SEPARATING_FORMATS, SPOT_PLATE_FORMATS,
@@ -137,7 +137,7 @@ export type {
 // prices). parseRateCard is the pure reader; computeCost is the Phase 4 arithmetic
 // (integer minor units, no currency formatting) that multiplies the card's rates by
 // preflight's counts and emits a scalar total ONLY on full coverage (rule 2).
-// plans/65-preflight-and-cost.md §8.
+// plans/65-preflight-and-cost.md section 8.
 export { parseRateCard, isRateCardError, EXAMPLE_RATECARD_DIGEST, computeCost } from './rate-card.ts';
 export type {
   RateCard, RateCardLine, RateCardError, DisabledReason,
@@ -146,7 +146,7 @@ export type {
 } from './rate-card.ts';
 export { parseSvgPath, parseSvgPathArgs, svgArcToBeziers } from './svg-path.ts';
 export { extractSvgColors } from './svg-colors.ts';
-// Lift layers (1.119, plans/104 §7): an SVG's own layers enumerated into one
+// Lift layers (1.119, plans/104 section 7): an SVG's own layers enumerated into one
 // standalone document each, so a flat drawing becomes a stack of boxes with real
 // depth. DOM-free, so the CLI lifts the same way the editor does.
 // 1.121 (plans/104 P3.2) adds the two pieces that make a lift a STACK rather than
@@ -206,7 +206,7 @@ export { generatedSongSpec } from './zzfx-compose.ts';
 export { ZZFXM_SCHEME, ZZFXM_ARCHETYPES, isZzfxmRef, parseZzfxmRef, formatZzfxmRef } from './zzfxm-ref.ts';
 export type { ZzfxmRef, ZzfxmArchetype } from './zzfxm-ref.ts';
 export type { SongSpec, Archetype, PresetName, ScaleName } from './zzfx-compose.ts';
-// Versioned design systems (plans/97 §6a) - here for the same reason as the two
+// Versioned design systems (plans/97 section 6a) - here for the same reason as the two
 // id schemes above: the head/version asset-id scheme, the discovery-exclusion
 // predicate and the resolution ladder must resolve IDENTICALLY in the web bridge,
 // the MCP server and the CLI, so there is one implementation, not three.

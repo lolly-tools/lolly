@@ -5,7 +5,7 @@
  * P2b (`sequence-gl.ts` + `renderGlComposite`) replaces the P2a capture tier's 127
  * independent dom-to-image rasters with one clean plate texture per layer, resampled on
  * the GPU through the engine's per-quad homography - the flicker fix. This is the gate
- * the plan requires before P2b can ship (§6.4: "P2b behind a flag with an image-diff
+ * the plan requires before P2b can ship (section 6.4: "P2b behind a flag with an image-diff
  * parity harness against P2a"). node cannot run it: `glQuadCompositorSupported()` is
  * false without a real WebGL2, so the whole thing rides the browser tier and, when the
  * launched build has no WebGL2, SKIPS the GPU half rather than silently testing P2a

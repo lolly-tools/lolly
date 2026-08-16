@@ -87,7 +87,7 @@ interface Table {
   data: Uint8Array;
 }
 
-/** Sum a table's bytes as big-endian uint32 words (sfnt checksum, spec §"Table
+/** Sum a table's bytes as big-endian uint32 words (sfnt checksum, spec section "Table
  *  Directory"). Trailing bytes past the last full word are treated as a word
  *  zero-padded on the RIGHT - identical to how a 4-aligned table is laid out. */
 function tableChecksum(data: Uint8Array): number {
@@ -117,7 +117,7 @@ function tableChecksum(data: Uint8Array): number {
  */
 function buildSfnt(flavor: number, tables: Table[]): Uint8Array {
   const numTables = tables.length;
-  // Directory must be sorted ascending by tag (OpenType §"Organization of an
+  // Directory must be sorted ascending by tag (OpenType section "Organization of an
   // OpenType Font"). Sort a copy so the caller's order is untouched.
   const sorted = [...tables].sort((a, b) => a.tag - b.tag);
 
@@ -158,7 +158,7 @@ function buildSfnt(flavor: number, tables: Table[]): Uint8Array {
   }
 
   // checkSumAdjustment (head +8): 0xB1B0AFBA minus the checksum of the WHOLE
-  // font computed with that field zeroed (OpenType §head). Padding/ordering may
+  // font computed with that field zeroed (OpenType section head). Padding/ordering may
   // differ from the original sfnt, so this is recomputed rather than copied.
   if (headOffset >= 0 && headOffset + 12 <= out.length) {
     view.setUint32(headOffset + 8, 0, false);

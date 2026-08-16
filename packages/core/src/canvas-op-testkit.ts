@@ -1,18 +1,18 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
- * The §8 shared conformance suite for the canvas-op contract (plans/99) - SHIPPED in
+ * The section 8 shared conformance suite for the canvas-op contract (plans/99) - SHIPPED in
  * @lolly-tools/core so BOTH repos run the same bytes: OSS against the dependency-free
  * `ReferenceCanvasDoc` (tests/canvas-op-convergence.test.ts), and lolly-work against its
  * real Yjs adapter (imported via engine-pin.json). This is the coupling test the
  * contract calls "owned by the architect" - changing `runConvergenceSuite`'s signature
- * is a coordinated cross-repo (major) change (plans/99 §9).
+ * is a coordinated cross-repo (major) change (plans/99 section 9).
  *
  * The suite is parameterized over `CanvasSyncAdapter` and asserts APPLY-ORDER
  * INDEPENDENCE: applying the same op log in any interleaving yields byte-identical
- * state + render-hash (plans/98 §11 determinism ⇒ identical `boxes` ⇒ identical pixels).
+ * state + render-hash (plans/98 section 11 determinism ⇒ identical `boxes` ⇒ identical pixels).
  * The claim is WITHIN each adapter model (all interleavings agree for THAT model), not
  * cross-model byte-equality - the reference's order is an LWW fractional index, a real
- * Yjs adapter's is a Y.Array (plans/99 §3, §8 order-model divergence).
+ * Yjs adapter's is a Y.Array (plans/99 section 3, section 8 order-model divergence).
  *
  * Self-contained: it imports only canvas-op TYPES and `node:assert` (a builtin), plus an
  * inlined mulberry32 PRNG - no `node:test`, no tests/ helper - so it is safe to ship and
@@ -81,7 +81,7 @@ function serializeState(s: CanvasDocState): string {
   });
 }
 
-/** The render-hash proxy (plans/99 §8): box rows in paint order, from the
+/** The render-hash proxy (plans/99 section 8): box rows in paint order, from the
  *  CanvasSyncAdapter interface alone (not the reference-only `canonicalBoxes()`).
  *  v1.1: each collection's rows ride in ITS paint order, keyed by collection id. */
 function renderHash(s: CanvasDocState): string {
@@ -219,7 +219,7 @@ function genOps(rng: Rng, count: number): CanvasOp[] {
 
 // ── Focused cases (each parameterized over the adapter) ──────────────────────────
 
-/** §4.3 lane discipline: a concurrent move + restyle on ONE box composes with no lost
+/** section 4.3 lane discipline: a concurrent move + restyle on ONE box composes with no lost
  *  update, because geometry and content are different keys. */
 function caseConcurrentMoveRestyle(makeAdapter: () => CanvasSyncAdapter, label: string): void {
   const add: CanvasOp = {
@@ -245,7 +245,7 @@ function caseConcurrentMoveRestyle(makeAdapter: () => CanvasSyncAdapter, label: 
   }
 }
 
-/** §6: a param LITERAL converges by LWW (higher clock wins). */
+/** section 6: a param LITERAL converges by LWW (higher clock wins). */
 function caseParamLiteralConverges(makeAdapter: () => CanvasSyncAdapter, label: string): void {
   const lo: CanvasOp = { k: 'param', key: 'k', value: 1, origin: { client: 'a', clock: 1 } };
   const hi: CanvasOp = { k: 'param', key: 'k', value: 2, origin: { client: 'b', clock: 2 } };
@@ -259,7 +259,7 @@ function caseParamLiteralConverges(makeAdapter: () => CanvasSyncAdapter, label: 
   }
 }
 
-/** §6: a param BINDING syncs as a descriptor `{bind: providerRef}`, never a resolved
+/** section 6: a param BINDING syncs as a descriptor `{bind: providerRef}`, never a resolved
  * datum - live data does not travel through the CRDT. */
 function caseParamBindingDescriptor(makeAdapter: () => CanvasSyncAdapter, label: string): void {
   const binding: ParamValue = { bind: { provider: 'sales', query: 'q1', version: 'v3' } };
@@ -270,7 +270,7 @@ function caseParamBindingDescriptor(makeAdapter: () => CanvasSyncAdapter, label:
   assert.deepEqual(v, binding, `${label}: binding descriptor mutated in transit`);
 }
 
-/** §7: an op on a LOCKED field is filtered from the stream before it reaches the doc.
+/** section 7: an op on a LOCKED field is filtered from the stream before it reaches the doc.
  *  Convergence still holds and the locked field never enters the persisted state. */
 function caseLockedFieldFiltered(makeAdapter: () => CanvasSyncAdapter, label: string): void {
   const rng = mulberry32(0x10cced);
@@ -283,7 +283,7 @@ function caseLockedFieldFiltered(makeAdapter: () => CanvasSyncAdapter, label: st
   }
 }
 
-/** §2: an id is never reused; a remove-then-re-add converges by LWW on the `alive`
+/** section 2: an id is never reused; a remove-then-re-add converges by LWW on the `alive`
  * register - the highest-clock write wins regardless of interleaving. */
 function caseRemoveReAdd(makeAdapter: () => CanvasSyncAdapter, label: string): void {
   const add1: CanvasOp = { k: 'add', id: 'z', row: { id: 'z', x: 1, y: 2, w: 3, h: 4, rot: 0 }, orderKey: '001', origin: { client: 'a', clock: 1 } };
@@ -306,7 +306,7 @@ function caseRemoveReAdd(makeAdapter: () => CanvasSyncAdapter, label: string): v
   }
 }
 
-/** §4.1: the emit → remote-apply loop. `onLocalChange` derives ops from a gesture and
+/** section 4.1: the emit → remote-apply loop. `onLocalChange` derives ops from a gesture and
  *  applies them locally; a second client's `applyRemotePatch` reproduces the state. */
 function caseEmitApplyLoop(makeAdapter: () => CanvasSyncAdapter, label: string): void {
   const a = makeAdapter();
@@ -330,7 +330,7 @@ function caseEmitApplyLoop(makeAdapter: () => CanvasSyncAdapter, label: string):
 }
 
 /**
- * §4.1 + plans/100 §3: a gesture's row ORDER survives the emit → remote-apply loop,
+ * section 4.1 + plans/100 section 3: a gesture's row ORDER survives the emit → remote-apply loop,
  * including the two cases a row-map diff is blind to - an insert at the TOP, and a
  * pure reorder that touches no field.
  *
@@ -378,8 +378,8 @@ function caseLocalOrderRoundTrips(makeAdapter: () => CanvasSyncAdapter, label: s
   expectOrder(['r01', 'r03', 'r02', 'r04'], 'append after a reorder');
 }
 
-/** §5: awareness/presence is ephemeral and must NEVER mutate the persisted doc -
- *  including every v1.1 field (focus/location/following/viewport/chat, plans/100 §3). */
+/** section 5: awareness/presence is ephemeral and must NEVER mutate the persisted doc -
+ *  including every v1.1 field (focus/location/following/viewport/chat, plans/100 section 3). */
 function caseAwarenessNeverMutatesDoc(makeAdapter: () => CanvasSyncAdapter, label: string): void {
   const d = makeAdapter();
   d.apply({ k: 'add', id: 'b1', row: { id: 'b1', x: 0, y: 0, w: 1, h: 1, rot: 0 }, orderKey: '001', origin: { client: 'a', clock: 1 } });
@@ -402,9 +402,9 @@ function caseAwarenessNeverMutatesDoc(makeAdapter: () => CanvasSyncAdapter, labe
   assert.equal(serializeState(d.state()), before, `${label}: awareness mutated the persisted doc`);
 }
 
-// ── v1.1 focused cases (plans/100 §3 - collections + presence, additive) ─────────
+// ── v1.1 focused cases (plans/100 section 3 - collections + presence, additive) ─────────
 
-/** plans/100 §3: collection-scoped ops converge exactly like canvas ops - per-
+/** plans/100 section 3: collection-scoped ops converge exactly like canvas ops - per-
  * collection registers, per-collection order - and land in `collections`, never
  *  the canvas box map. */
 function caseCollectionOpsConverge(makeAdapter: () => CanvasSyncAdapter, label: string): void {
@@ -431,7 +431,7 @@ function caseCollectionOpsConverge(makeAdapter: () => CanvasSyncAdapter, label: 
   assertConverges(makeAdapter, mixed, rng2, 4, `${label} mixed-collections`);
 }
 
-/** plans/100 §3: the same BoxId in the canvas collection and in a blocks collection
+/** plans/100 section 3: the same BoxId in the canvas collection and in a blocks collection
  * are INDEPENDENT documents - writes and removes on one never touch the other. */
 function caseCollectionsIndependent(makeAdapter: () => CanvasSyncAdapter, label: string): void {
   const addCanvas: CanvasOp = { k: 'add', id: 'b1', row: { id: 'b1', x: 0, y: 0, w: 10, h: 10, rot: 0, fill: 'red' }, orderKey: '001', origin: { client: 'a', clock: 1 } };
@@ -451,7 +451,7 @@ function caseCollectionsIndependent(makeAdapter: () => CanvasSyncAdapter, label:
   }
 }
 
-/** The additive guarantee (plans/100 §3): a v1.0 op stream - no `col` anywhere -
+/** The additive guarantee (plans/100 section 3): a v1.0 op stream - no `col` anywhere -
  *  still applies to the default canvas collection and yields a v1.0-shaped state
  *  (`collections` absent or empty). */
 function caseV10OpsUnscoped(makeAdapter: () => CanvasSyncAdapter, label: string): void {
@@ -466,14 +466,14 @@ function caseV10OpsUnscoped(makeAdapter: () => CanvasSyncAdapter, label: string)
   );
 }
 
-// ── The exported shared suite (plans/99 §8) ─────────────────────────────────────
+// ── The exported shared suite (plans/99 section 8) ─────────────────────────────────────
 
 /**
  * The cross-repo conformance suite. Runs the fuzz convergence property plus the focused
  * lane/param/awareness cases against whatever adapter `makeAdapter` builds. Call it from
- * inside a `test()` block: `test('yjs §8', () => runConvergenceSuite(() => new YjsAdapter(), 'yjs'))`.
+ * inside a `test()` block: `test('yjs section 8', () => runConvergenceSuite(() => new YjsAdapter(), 'yjs'))`.
  * Keep the signature `(makeAdapter, label) => void` stable - changing it is a coordinated,
- * cross-repo (major) change (plans/99 §9).
+ * cross-repo (major) change (plans/99 section 9).
  */
 export function runConvergenceSuite(makeAdapter: () => CanvasSyncAdapter, label: string): void {
   const SEEDS = [1, 7, 13, 42, 99, 256, 1024, 7777, 20260808, 0xc0ffee];
@@ -500,7 +500,7 @@ export function runConvergenceSuite(makeAdapter: () => CanvasSyncAdapter, label:
   caseEmitApplyLoop(makeAdapter, label);
   caseLocalOrderRoundTrips(makeAdapter, label);
   caseAwarenessNeverMutatesDoc(makeAdapter, label);
-  // v1.1 (plans/100 §3) - appended, never reordered; the suite signature is pinned.
+  // v1.1 (plans/100 section 3) - appended, never reordered; the suite signature is pinned.
   caseCollectionOpsConverge(makeAdapter, label);
   caseCollectionsIndependent(makeAdapter, label);
   caseV10OpsUnscoped(makeAdapter, label);

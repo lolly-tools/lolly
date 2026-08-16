@@ -10,7 +10,7 @@
 // the actual pixels the /verify Lolly-Imprint scan needs to read.
 //
 // Pure + DOM-free (engine contract): no DOM, no deps, defensive on every input.
-// Spec: PNG (RFC 2083 §6) / PDF 32000-1 §7.4.4.4 (LZW/Flate predictors).
+// Spec: PNG (RFC 2083 section 6) / PDF 32000-1 section 7.4.4.4 (LZW/Flate predictors).
 
 /**
  * Reverse PNG row filters over an already-inflated scanline buffer.
@@ -75,7 +75,7 @@ export function unfilterPng(
   return out;
 }
 
-// PNG Paeth predictor (RFC 2083 §6.6): pick the neighbour (left/above/above-left)
+// PNG Paeth predictor (RFC 2083 section 6.6): pick the neighbour (left/above/above-left)
 // closest to the initial estimate p = a + b - c, ties resolving a → b → c.
 function paethPredictor(a: number, b: number, c: number): number {
   const p = a + b - c;

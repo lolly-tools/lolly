@@ -6,7 +6,7 @@
  * filters over an already-inflated stream), but nothing could *produce* a
  * DEFLATE stream synchronously and platform-free. The upcoming deep-pixel
  * writers need exactly that: a PNG writer compresses IDAT with zlib-wrapped
- * DEFLATE (PNG spec §10.1), and an OpenEXR writer's ZIP compression is raw
+ * DEFLATE (PNG spec section 10.1), and an OpenEXR writer's ZIP compression is raw
  * DEFLATE per scanline block. CompressionStream is async and stream-shaped -
  * wrong fit for a writer that interleaves compressed chunks into a container -
  * and pulling in a dependency for a frozen 1996 IETF standard is not the
@@ -15,14 +15,14 @@
  *
  * ─── What subset of RFC 1951 this emits ──────────────────────────────────────
  * LZ77 over the full 32 KB window (hash-chain matcher, lazy matching as in
- * zlib's deflate_slow) coded with the FIXED Huffman tables (RFC 1951 §3.2.6),
- * with a per-stream fallback to stored blocks (§3.2.4, BTYPE=00) whenever the
+ * zlib's deflate_slow) coded with the FIXED Huffman tables (RFC 1951 section 3.2.6),
+ * with a per-stream fallback to stored blocks (section 3.2.4, BTYPE=00) whenever the
  * fixed-code stream would be larger - so incompressible input costs at most
  * 5 bytes per 65535-byte block of overhead, never an expansion blow-up. Both
  * block types are mandatory for every conforming inflater, so the output is
  * spec-valid everywhere (node:zlib, DecompressionStream, libpng, ...).
  *
- * DYNAMIC Huffman blocks (§3.2.7 - per-block code lengths, typically another
+ * DYNAMIC Huffman blocks (section 3.2.7 - per-block code lengths, typically another
  * 5-15% on text) are a deliberate later upgrade, not an omission by accident:
  * they add the two-pass symbol-frequency + code-length-code machinery without
  * changing this module's API or the validity of anything emitted today. The
@@ -33,7 +33,7 @@
  * `zlibCompress` = 2-byte header (CMF 0x78: CM=8 deflate, CINFO=7 → 32 KB
  * window; FLG 0x9C: check bits making CMF·256+FLG ≡ 0 mod 31, FLEVEL=2, no
  * dictionary) + deflateRaw + big-endian Adler-32 of the UNCOMPRESSED bytes
- * (RFC 1950 §2.2-2.3). Adler-32 per §8: two sums mod 65521 (largest prime
+ * (RFC 1950 section 2.2-2.3). Adler-32 per section 8: two sums mod 65521 (largest prime
  * < 2^16), started at s1=1 s2=0; the deferred-modulo batch of 5552 is NMAX
  * from zlib's adler32.c (largest n with 255·n·(n+1)/2 + (n+1)·(65521-1) < 2^32).
  *
@@ -63,15 +63,15 @@
  * the cost model (`fixedCost`), so the two streams differ only in blocking and
  * match reach, never in how a token becomes bits.
  *
- * Reference constants (all from RFC 1951 §3.2.5-3.2.6, copied verbatim):
+ * Reference constants (all from RFC 1951 section 3.2.5-3.2.6, copied verbatim):
  * length codes 257-285 with their base lengths + extra bits, distance codes
  * 0-29 with base distances + extra bits, and the fixed literal/length code
  * ranges (8-bit 0x30.. for 0-143, 9-bit 0x190.. for 144-255, 7-bit 0x00.. for
  * 256-279, 8-bit 0xC0.. for 280-287). Huffman codes are packed MSB-first into
- * the LSB-first bitstream (§3.1.1), hence the bit-reversed code tables.
+ * the LSB-first bitstream (section 3.1.1), hence the bit-reversed code tables.
  */
 
-// ── RFC 1951 §3.2.5 - length codes 257..285 ─────────────────────────────────
+// ── RFC 1951 section 3.2.5 - length codes 257..285 ─────────────────────────────────
 const LEN_BASE = [
   3, 4, 5, 6, 7, 8, 9, 10, 11, 13, 15, 17, 19, 23, 27, 31,
   35, 43, 51, 59, 67, 83, 99, 115, 131, 163, 195, 227, 258,
@@ -81,7 +81,7 @@ const LEN_EXTRA = [
   3, 3, 3, 3, 4, 4, 4, 4, 5, 5, 5, 5, 0,
 ];
 
-// ── RFC 1951 §3.2.5 - distance codes 0..29 ──────────────────────────────────
+// ── RFC 1951 section 3.2.5 - distance codes 0..29 ──────────────────────────────────
 const DIST_BASE = [
   1, 2, 3, 4, 5, 7, 9, 13, 17, 25, 33, 49, 65, 97, 129, 193,
   257, 385, 513, 769, 1025, 1537, 2049, 3073, 4097, 6145, 8193, 12289, 16385, 24577,
@@ -93,8 +93,8 @@ const DIST_EXTRA = [
 
 const MIN_MATCH = 3;
 const MAX_MATCH = 258;
-const WINDOW = 32768;        // CINFO=7 → 2^15 (RFC 1950 §2.2); max distance (RFC 1951 §3.2.5)
-const STORED_MAX = 65535;    // LEN is 16-bit (RFC 1951 §3.2.4)
+const WINDOW = 32768;        // CINFO=7 → 2^15 (RFC 1950 section 2.2); max distance (RFC 1951 section 3.2.5)
+const STORED_MAX = 65535;    // LEN is 16-bit (RFC 1951 section 3.2.4)
 const HASH_BITS = 15;
 const HASH_SIZE = 1 << HASH_BITS;
 const NICE_LEN = 128;        // stop the chain walk once a match this long is found
@@ -119,14 +119,14 @@ const DIST_SLOT = (() => {
   return t;
 })();
 
-/** Reverse the low `len` bits of `code` - Huffman codes pack MSB-first (§3.1.1). */
+/** Reverse the low `len` bits of `code` - Huffman codes pack MSB-first (section 3.1.1). */
 function revBits(code: number, len: number): number {
   let r = 0;
   for (let i = 0; i < len; i++) { r = (r << 1) | (code & 1); code >>= 1; }
   return r;
 }
 
-/** Fixed literal/length codes (RFC 1951 §3.2.6), pre-reversed for the bit writer. */
+/** Fixed literal/length codes (RFC 1951 section 3.2.6), pre-reversed for the bit writer. */
 const FIXED_LIT_BITS = new Uint8Array(288);
 const FIXED_LIT_CODE = new Uint16Array(288);
 (() => {
@@ -141,7 +141,7 @@ const FIXED_LIT_CODE = new Uint16Array(288);
   }
 })();
 
-/** Fixed distance codes: plain 5-bit values 0..29 (§3.2.6), pre-reversed. */
+/** Fixed distance codes: plain 5-bit values 0..29 (section 3.2.6), pre-reversed. */
 const FIXED_DIST_CODE = new Uint8Array(30);
 for (let s = 0; s < 30; s++) FIXED_DIST_CODE[s] = revBits(s, 5);
 
@@ -156,7 +156,7 @@ export interface DeflateOptions {
   maxChain?: number;
 }
 
-// ── LSB-first bit writer (RFC 1951 §3.1.1) ──────────────────────────────────
+// ── LSB-first bit writer (RFC 1951 section 3.1.1) ──────────────────────────────────
 class BitWriter {
   private out: Uint8Array;
   private len = 0;
@@ -184,7 +184,7 @@ class BitWriter {
     }
   }
 
-  /** Pad to a byte boundary with zero bits (stored-block alignment, §3.2.4). */
+  /** Pad to a byte boundary with zero bits (stored-block alignment, section 3.2.4). */
   alignByte(): void {
     if (this.bitCnt > 0) {
       this.ensure(1);
@@ -376,12 +376,12 @@ export function deflateRaw(data: Uint8Array, opts?: DeflateOptions): Uint8Array 
   if (fixedBytes <= storedBytes) {
     const w = new BitWriter(fixedBytes);
     w.writeBits(1, 1); // BFINAL
-    w.writeBits(1, 2); // BTYPE=01 fixed Huffman (§3.2.3)
+    w.writeBits(1, 2); // BTYPE=01 fixed Huffman (section 3.2.3)
     writeTokens(w, tokens, count);
     return w.finish();
   }
 
-  // Stored fallback (§3.2.4): incompressible data costs 5 bytes per 65535.
+  // Stored fallback (section 3.2.4): incompressible data costs 5 bytes per 65535.
   const w = new BitWriter(storedBytes);
   let off = 0;
   do {
@@ -398,7 +398,7 @@ export function deflateRaw(data: Uint8Array, opts?: DeflateOptions): Uint8Array 
 }
 
 /**
- * Adler-32 (RFC 1950 §8): s1 += byte, s2 += s1, both mod 65521 (the largest
+ * Adler-32 (RFC 1950 section 8): s1 += byte, s2 += s1, both mod 65521 (the largest
  * prime below 2^16), seeded s1=1 s2=0. NMAX=5552 deferred-modulo batching is
  * the standard bound from zlib's adler32.c. Returns an unsigned 32-bit value
  * (s2 << 16 | s1).
@@ -422,7 +422,7 @@ export function adler32(data: Uint8Array, seed = 1): number {
 /**
  * Compress to a zlib stream (RFC 1950): CMF/FLG header + raw DEFLATE +
  * big-endian Adler-32 of the input. This is the wrapper PNG IDAT requires
- * (PNG spec §10.1). Output inflates with `zlib.inflateSync` or
+ * (PNG spec section 10.1). Output inflates with `zlib.inflateSync` or
  * `DecompressionStream('deflate')`.
  */
 export function zlibCompress(data: Uint8Array, opts?: DeflateOptions): Uint8Array {
@@ -431,7 +431,7 @@ export function zlibCompress(data: Uint8Array, opts?: DeflateOptions): Uint8Arra
   const body = deflateRaw(data, opts);
   const out = new Uint8Array(2 + body.length + 4);
   // CMF 0x78: CM=8 (deflate), CINFO=7 (32 KB window). FLG 0x9C: FLEVEL=2,
-  // FDICT=0, FCHECK making 0x789C = 30876 = 31·996 ≡ 0 mod 31 (RFC 1950 §2.2).
+  // FDICT=0, FCHECK making 0x789C = 30876 = 31·996 ≡ 0 mod 31 (RFC 1950 section 2.2).
   out[0] = 0x78;
   out[1] = 0x9c;
   out.set(body, 2);
@@ -563,7 +563,7 @@ export interface DeflateStream {
  * ```
  *
  * The output is a normal multi-block DEFLATE stream: fixed-Huffman blocks with
- * a per-block stored fallback (§3.2.4), BFINAL only on the last. Every block
+ * a per-block stored fallback (section 3.2.4), BFINAL only on the last. Every block
  * after the first may reference the previous ~32 KB, so cross-slab repetition
  * compresses exactly as it would in one shot.
  */
@@ -646,7 +646,7 @@ export function createDeflateStream(opts: DeflateStreamOptions = {}): DeflateStr
       writeTokens(w, tokens, tokenCount);
     } else {
       w.writeBits(final ? 1 : 0, 1);
-      w.writeBits(0, 2);                        // BTYPE=00 stored (§3.2.4)
+      w.writeBits(0, 2);                        // BTYPE=00 stored (section 3.2.4)
       w.alignByte();
       w.writeBytes(Uint8Array.of(rawLen & 0xff, (rawLen >>> 8) & 0xff, ~rawLen & 0xff, (~rawLen >>> 8) & 0xff));
       w.writeBytes(win.subarray(blockStart, tokenEnd));

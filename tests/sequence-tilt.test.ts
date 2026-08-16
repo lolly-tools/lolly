@@ -13,7 +13,7 @@
  *    camera has to be projected, and a plate cannot bake a filter for a camera that is
  *    turning).
  *  • **`camerasTilt`** - the gate `renderSequence` branches on, including the TRIGGER it
- *    reports, because §6.4 asks for the branch to be "logged with the trigger".
+ *    reports, because section 6.4 asks for the branch to be "logged with the trigger".
  *
  * jsdom-free: everything here is a pure function over plain objects.
  */
@@ -134,7 +134,7 @@ test('a flat box under a tilted camera is still projected (viewMoves counts the 
   assert.equal(
     viewMoves(planCameraView(env([{ start: 0, end: null, base: { p: 600 }, track: null }]), 0)),
     false,
-    'perspective strength alone is a no-op on a flat scene (§4.3) — unchanged by P2',
+    'perspective strength alone is a no-op on a flat scene (section 4.3) — unchanged by P2',
   );
   // The fold on a z = 0, kf-less box: it must actually move.
   const posed = foldAt([camClip('t0_rx-40')], 0, { cy: 900 });
@@ -143,7 +143,7 @@ test('a flat box under a tilted camera is still projected (viewMoves counts the 
 });
 
 test('paint order stays the z order under tilt — parallel planes cannot cross', () => {
-  // The claim the plan path's sort rests on (§4.2 under P2): the order that reproduces
+  // The claim the plan path's sort rests on (section 4.2 under P2): the order that reproduces
   // a perspective render is the VIEW-AXIS one, and a pitched camera's view axis is not
   // the z axis - but the layers are parallel planes, so a higher `z` is nearer
   // everywhere the two overlap as long as `κ = cos(rx)·cos(ry) > 0`. Checked by
@@ -162,7 +162,7 @@ test('paint order stays the z order under tilt — parallel planes cannot cross'
 });
 
 test('camerasMove counts a tilt, so a moving camera owns every layer’s filter', () => {
-  // §5.5's ownership predicate is asked ONCE for a whole render, and a tilt changes both
+  // section 5.5's ownership predicate is asked ONCE for a whole render, and a tilt changes both
   // eff and the depth-of-field radius per frame - a plate cannot bake either.
   assert.equal(camerasMove([{ start: 0, end: null, base: { rx: -40 }, track: null }]), true);
   assert.equal(camerasMove([{ start: 0, end: null, base: { ry: 12 }, track: null }]), true);

@@ -66,8 +66,6 @@
     "voice": "node scripts/build-voice-clips.ts",
     "cards:svg": "node scripts/build-svg-card.ts",
     "cards:html": "node scripts/build-html-card.ts",
-    "sign:credentials": "node scripts/sign-credentialed-assets.ts",
-    "sign:credentials:ca": "node --env-file=services/ca/.env scripts/sign-credentialed-assets.ts --ca",
     "sign:credentials:catalog": "node --env-file=services/ca/.env scripts/sign-credentialed-assets.ts --ca --catalog",
     "sign:signature-logos": "node --env-file=services/ca/.env scripts/sign-inline-logos.ts",
     "optimize:previews": "node scripts/optimize-previews.ts",

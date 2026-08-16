@@ -489,7 +489,7 @@ function slideRelsXml(slideIdx: number, media: PptxMedia[], hasNotes = false, li
 
 // ─── speaker notes ──────────────────────────────────────────────────────────────
 // The slide→notesSlide relationship above is what binds a note to its slide; the
-// notesSlide relates back to that slide and to the notes master. ECMA-376 §13.3.5
+// notesSlide relates back to that slide and to the notes master. ECMA-376 section 13.3.5
 // lists the back-relationship as permitted rather than required. But every real
 // producer emits it (round-trip one of these decks through LibreOffice and it adds
 // the rel back), so match the convention rather than hand PowerPoint a part shape it

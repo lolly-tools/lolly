@@ -64,8 +64,8 @@ test('C2PA_CHECK values equal the exact legacy check-code strings', () => {
     assertionDataHashMismatch: 'assertion.dataHash.mismatch',
     assertionBmffHashMatch: 'assertion.bmffHash.match',
     assertionBmffHashMismatch: 'assertion.bmffHash.mismatch',
-    // C2PA 2.4 text bindings (§A.7/§A.8/§A.9) - added 105-M1. Every value is the
-    // spec's own §15.2.2 status code; they are only emitted for the html/code/text
+    // C2PA 2.4 text bindings (section A.7/section A.8/section A.9) - added 105-M1. Every value is the
+    // spec's own section 15.2.2 status code; they are only emitted for the html/code/text
     // formats, so no pre-existing report's rows changed.
     assertionDataHashMalformed: 'assertion.dataHash.malformed',
     assertionDataHashAdditionalExclusions: 'assertion.dataHash.additionalExclusionsPresent',

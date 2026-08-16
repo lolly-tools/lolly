@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
- * Pure helpers for PDF soft masks (ExtGState /SMask, PDF 32000-1 §11.6.5.2).
+ * Pure helpers for PDF soft masks (ExtGState /SMask, PDF 32000-1 section 11.6.5.2).
  *
  * The evaluation itself has to live inside pdf-map.ts's interpreter (it re-enters
  * `run()` to execute the mask group's content stream), but everything AROUND it is
@@ -87,7 +87,7 @@ function hexRgb(hex: string): [number, number, number] | null {
  * disagree about the same page.
  *
  * For the DeviceGray groups Chromium emits, this is EXACT: 0.2126g + 0.7152g +
- * 0.0722g = g, which is precisely the /Luminosity value of §11.6.5.2. A DeviceRGB
+ * 0.0722g = g, which is precisely the /Luminosity value of section 11.6.5.2. A DeviceRGB
  * group (the 3% CSS `mask-image: linear-gradient()` rung) differs slightly from
  * PDF's own 0.3/0.59/0.11 weights. This is a documented, sub-perceptual limitation;
  * its stops are near-grey in every observed case.
@@ -135,7 +135,7 @@ export function constantMask(nodes: PdfNode[], region: { w: number; h: number },
   const cover = Math.max(0, n.w) * Math.max(0, n.h) / area;
   if (!(cover >= 0.95)) return null;
   const alpha = typeof n.opacity === 'number' ? Math.max(0, Math.min(100, n.opacity)) / 100 : 1;
-  // §11.6.5.2 / Table 144: with `/S /Alpha` the mask value is the group's ALPHA and
+  // section 11.6.5.2 / Table 144: with `/S /Alpha` the mask value is the group's ALPHA and
   // its colour is irrelevant. Folding an Alpha group with luminosity math makes an
   // opaque BLACK rect read as mask 0 and delete the artwork it was meant to reveal.
   // Illustrator is exactly the producer that puts /S /Alpha groups over dark art,

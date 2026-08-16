@@ -78,6 +78,8 @@
     { "source": "/pro", "destination": "/view/pro.html" },
     { "source": "/pdf", "destination": "/view/pdf.html" },
     { "source": "/profile", "destination": "/view/profile.html" },
+    { "source": "/docs", "destination": "/info/index.html" },
+    { "source": "/docs/:slug([a-z0-9-]+)", "destination": "/info/:slug.html" },
     { "source": "/tool/:file([a-z0-9-]+\\.[a-z0-9-]+)", "destination": "/api/mcp/[...path]" },
     { "source": "/api/ca/:path*", "destination": "/api/ca/[...path]" },
     { "source": "/api/mcp", "destination": "/api/mcp/[...path]" },

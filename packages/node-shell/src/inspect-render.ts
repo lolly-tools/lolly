@@ -89,14 +89,14 @@ export function renderInspection(r: Inspection, opts: RenderOptions = {}): strin
       const tone = a.declared ? DIM : YELLOW;
       const mark = a.declared ? '○' : '!';
       line(paint(tone, `${mark} ${bytesLabel(a.bytes)} of data ride after the ${clean(m.format || 'container')} ends`)
-        + paint(DIM, ` — ${clean(a.kind)} at offset ${a.offset}${a.declared ? ', declared by the container itself' : ''}`));
+        + paint(DIM, ` - ${clean(a.kind)} at offset ${a.offset}${a.declared ? ', declared by the container itself' : ''}`));
     }
     if (m.ai) {
       line(paint(YELLOW, `~ AI provenance declared in metadata`)
-        + paint(DIM, ` — ${clean(m.ai.sourceType)}${m.ai.credit ? ` (${clean(m.ai.credit)})` : ''}`));
+        + paint(DIM, ` - ${clean(m.ai.sourceType)}${m.ai.credit ? ` (${clean(m.ai.credit)})` : ''}`));
     }
     if (m.fields.length) {
-      line(paint(BOLD, `Metadata`) + paint(DIM, ` — ${m.fields.length} field${m.fields.length === 1 ? '' : 's'}${m.sensitiveCount ? `, ${m.sensitiveCount} personally identifying` : ''}`));
+      line(paint(BOLD, `Metadata`) + paint(DIM, ` - ${m.fields.length} field${m.fields.length === 1 ? '' : 's'}${m.sensitiveCount ? `, ${m.sensitiveCount} personally identifying` : ''}`));
       for (const f of m.fields) {
         const mark = f.sensitive ? paint(YELLOW, '·') : paint(DIM, '·');
         line(`  ${mark} ${paint(DIM, clean(f.label).padEnd(18))} ${clean(truncate(f.value, 120))}`);
@@ -114,7 +114,7 @@ export function renderInspection(r: Inspection, opts: RenderOptions = {}): strin
   // ── PDF structure ───────────────────────────────────────────────────────────
   const p = r.pdf;
   if (p) {
-    line(paint(BOLD, 'Document') + paint(DIM, ` — ${p.pageCount} page${p.pageCount === 1 ? '' : 's'}, ${p.pagesScanned} examined${p.encrypted ? ', encrypted' : ''}`));
+    line(paint(BOLD, 'Document') + paint(DIM, ` - ${p.pageCount} page${p.pageCount === 1 ? '' : 's'}, ${p.pagesScanned} examined${p.encrypted ? ', encrypted' : ''}`));
     const info: Array<[string, string | undefined]> = [
       ['Title', p.info.title], ['Author', p.info.author], ['Subject', p.info.subject],
       ['Keywords', p.info.keywords], ['Creator', p.info.creator], ['Producer', p.info.producer],
@@ -133,9 +133,9 @@ export function renderInspection(r: Inspection, opts: RenderOptions = {}): strin
     if (p.pagesScanned) {
       line(`  ${paint(DIM, 'Contents'.padEnd(11))} ${chars} characters of text, ${images} image${images === 1 ? '' : 's'}, ${annots} annotation${annots === 1 ? '' : 's'}`);
     } else {
-      line(`  ${paint(DIM, 'Contents'.padEnd(11))} not read — see the incomplete-report note below`);
+      line(`  ${paint(DIM, 'Contents'.padEnd(11))} not read - see the incomplete-report note below`);
     }
-    if (scans) line(`  ${paint(DIM, 'Scanned'.padEnd(11))} ${scans} page${scans === 1 ? '' : 's'} carry no text layer — nothing to extract without OCR`);
+    if (scans) line(`  ${paint(DIM, 'Scanned'.padEnd(11))} ${scans} page${scans === 1 ? '' : 's'} carry no text layer - nothing to extract without OCR`);
     if (opts.showText && p.text) {
       line(paint(BOLD, 'Text'));
       for (const l of p.text.split('\n')) line(`  ${clean(l)}`);
@@ -152,12 +152,12 @@ export function renderInspection(r: Inspection, opts: RenderOptions = {}): strin
         : v.tone === 'warn'
           ? paint(YELLOW, `! Content Credentials: ${v.state}`)
           : paint(GREEN, `✓ Content Credentials: ${v.state}`);
-    line(label + (v.identity?.email ? paint(DIM, ` — ${clean(v.identity.email)}`) : ''));
+    line(label + (v.identity?.email ? paint(DIM, ` - ${clean(v.identity.email)}`) : ''));
   }
 
   // ── what ran, what did not ──────────────────────────────────────────────────
   if (r.errors.length) {
-    line(paint(RED, `✕ ${r.errors.length} check${r.errors.length === 1 ? '' : 's'} did not complete — this report is incomplete`));
+    line(paint(RED, `✕ ${r.errors.length} check${r.errors.length === 1 ? '' : 's'} did not complete - this report is incomplete`));
     for (const e of r.errors) line(paint(DIM, `  ${clean(e)}`));
   }
   if (r.checked.length) {

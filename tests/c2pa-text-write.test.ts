@@ -1,19 +1,19 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
- * C2PA 2.4 text bindings, WRITE side: §A.7 HTML documents, §A.9 structured text,
+ * C2PA 2.4 text bindings, WRITE side: section A.7 HTML documents, section A.9 structured text,
  * and the Lolly HTML-fragment profile.
  * Run with: node --test tests/c2pa-text-write.test.ts
  *
- * Ground truth is the C2PA Technical Specification 2.4, §A.7.1.1/§A.7.1.3 and
- * §A.9.3.1/§A.9.4, read verbatim. The read side (M1: c2pa-extract.ts +
+ * Ground truth is the C2PA Technical Specification 2.4, section A.7.1.1/section A.7.1.3 and
+ * section A.9.3.1/section A.9.4, read verbatim. The read side (M1: c2pa-extract.ts +
  * c2pa-verify.ts) is the verifier here - every fixture goes place → extract →
  * verify, and the exclusion the writer declares is checked against the range the
  * READER derives from the document's own bytes (report.textBinding.exclusionsConform
  * must stay absent: any value means writer and validator disagree about where the
  * carrier is).
  *
- * HONEST LIMIT, restated from plan 105 §5: c2pa-rs implements none of §A.7/§A.8/
- * §A.9, so there is no external validator to cross-check against. Written-then-
+ * HONEST LIMIT, restated from plan 105 section 5: c2pa-rs implements none of section A.7/section A.8/
+ * section A.9, so there is no external validator to cross-check against. Written-then-
  * read-by-ourselves is necessary but NOT sufficient - a shared misreading of the
  * spec passes this suite. That is why the offsets below are asserted against the
  * spec's own wording (the excluded slice must literally start at `<script` and end
@@ -44,7 +44,7 @@ const OPTS = {
 // ─── fixtures ─────────────────────────────────────────────────────────────────
 // Each host exercises the placement constraint its format actually has: the HTML
 // document has a real <head> AND a doctype on line 1; the JS has a shebang (the
-// §A.9.3.1 "first line is reserved" case); the fragment has no <head> at all,
+// section A.9.3.1 "first line is reserved" case); the fragment has no <head> at all,
 // which is the whole reason the Lolly profile exists.
 
 const HTML_DOC = '<!DOCTYPE html>\n<html lang="en">\n<head>\n<meta charset="utf-8">\n<title>Example</title>\n</head>\n<body>\n<p>Content here.</p>\n</body>\n</html>\n';
@@ -105,7 +105,7 @@ for (const fmt of TEXT_FORMATS) {
     const read = extractC2paDetailed(out);
     assert.ok(read?.store, `${fmt}: a store comes back out`);
     assert.equal(read!.status, undefined, `${fmt}: carrier is usable — ${read!.detail ?? ''}`);
-    assert.equal(read!.exclusions?.length, 1, `${fmt}: §A.7.1.3/§A.9.4 declare exactly one exclusion`);
+    assert.equal(read!.exclusions?.length, 1, `${fmt}: section A.7.1.3/section A.9.4 declare exactly one exclusion`);
 
     const report = await verifyC2pa(out);
     assert.equal(report.state, 'valid', JSON.stringify(report.checks.filter((c) => !c.ok)));
@@ -119,7 +119,7 @@ for (const fmt of TEXT_FORMATS) {
 
     // The host survives verbatim: take the exclusion back out and the original
     // file is what remains - for the armour formats minus its final newline,
-    // which is the one §A.9.4 puts inside the exclusion.
+    // which is the one section A.9.4 puts inside the exclusion.
     const bin = textOf(out);
     const ex = ex1(out);
     assert.equal(bin.slice(0, ex.start) + bin.slice(ex.start + ex.length),
@@ -136,7 +136,7 @@ for (const fmt of TEXT_FORMATS) {
 
 // ─── the exclusions, against the spec's own wording ───────────────────────────
 
-test('§A.7.1.3: the exclusion is the WHOLE script element, opening tag through closing tag', async () => {
+test('section A.7.1.3: the exclusion is the WHOLE script element, opening tag through closing tag', async () => {
   const out = await embedC2pa(bytesOf(HTML_DOC), 'html', OPTS);
   const bin = textOf(out);
   const ex = extractC2paDetailed(out)!.exclusions![0]!;
@@ -145,23 +145,23 @@ test('§A.7.1.3: the exclusion is the WHOLE script element, opening tag through 
   assert.ok(carved.endsWith('</script>'), 'ends at the closing </script> tag, inclusive');
   // …and nothing but the element: what remains is the host, byte for byte.
   assert.equal(bin.slice(0, ex.start) + bin.slice(ex.start + ex.length), HTML_DOC);
-  // §A.7.1.1: in the head. The base64 is one unbroken RFC 4648 §4 run.
+  // section A.7.1.1: in the head. The base64 is one unbroken RFC 4648 section 4 run.
   assert.ok(ex.start < bin.indexOf('</head>'), 'the element sits inside <head>');
   assert.match(carved, /^<script type="application\/c2pa">[A-Za-z0-9+/]+={0,2}<\/script>$/);
 });
 
-test('§A.9.4: the exclusion runs from the newline BEFORE the block to end of file', async () => {
+test('section A.9.4: the exclusion runs from the newline BEFORE the block to end of file', async () => {
   for (const fmt of ARMOR_FORMATS) {
     const out = await embedC2pa(bytesOf(HOSTS[fmt]!), fmt, OPTS);
     const bin = textOf(out);
     const ex = extractC2paDetailed(out)!.exclusions![0]!;
     assert.equal(bin[ex.start], '\n', `${fmt}: exclusion starts at a newline`);
     assert.equal(ex.start + ex.length, bin.length, `${fmt}: …and runs to end of file`);
-    // The block is one comment LINE (§A.9.3.1 single-line form), not the
+    // The block is one comment LINE (section A.9.3.1 single-line form), not the
     // front-matter shape - the only thing between that newline and EOF.
     const carved = bin.slice(ex.start + 1, ex.length + ex.start);
     assert.equal(carved.split('\n').filter(Boolean).length, 1, `${fmt}: a single comment line`);
-    assert.ok(carved.includes(`${ARMOR_BEGIN} data:application/c2pa;base64,`), `${fmt}: §A.9.3.1 data: URI form`);
+    assert.ok(carved.includes(`${ARMOR_BEGIN} data:application/c2pa;base64,`), `${fmt}: section A.9.3.1 data: URI form`);
     assert.ok(carved.includes(ARMOR_END), `${fmt}: closing delimiter present`);
     // Everything outside the exclusion is the untouched host.
     assert.equal(bin.slice(0, ex.start), HOSTS[fmt]!.slice(0, -1), `${fmt}: host bytes unchanged`);
@@ -169,12 +169,12 @@ test('§A.9.4: the exclusion runs from the newline BEFORE the block to end of fi
 });
 
 test('each armour host wears its own comment syntax, js AND css with the /*! preservation hint', async () => {
-  // §A.9.3.1: "When host formats define comment conventions that signal toolchains
+  // section A.9.3.1: "When host formats define comment conventions that signal toolchains
   // to preserve specific comments (e.g., comments beginning with /*! in JavaScript
   // and CSS), claim generators should use them for the reference line." The clause
   // names BOTH languages, and the failure it prevents is concrete: a minifier that
   // honours /*! drops a `//` line, so a signed .js would lose its credential the
-  // first time it went through a build. The `//` in §A.9.3.3.1's table is an
+  // first time it went through a build. The `//` in section A.9.3.3.1's table is an
   // example of comment styles, not a requirement.
   const shapes: Record<string, RegExp> = {
     js: /^\/\*! -----BEGIN C2PA MANIFEST----- data:/m,
@@ -190,10 +190,10 @@ test('each armour host wears its own comment syntax, js AND css with the /*! pre
   }
 });
 
-// ─── §A.9.3.1's reserved first line ───────────────────────────────────────────
+// ─── section A.9.3.1's reserved first line ───────────────────────────────────────────
 
 test('a reserved first line is never disturbed: shebang, XML prolog, doctype', async () => {
-  // §A.9.3.1: "When the first line of the file is reserved by the host format
+  // section A.9.3.1: "When the first line of the file is reserved by the host format
   // (e.g., a shebang line #!/… in scripts, or an XML declaration <?xml …?> in XML
   // documents), the manifest block shall be placed at the end of the file so that
   // the -----END C2PA MANIFEST----- delimiter appears on the last line."
@@ -215,12 +215,12 @@ test('a reserved first line is never disturbed: shebang, XML prolog, doctype', a
     assert.ok(lines[lines.length - 2]!.includes(ARMOR_END), `${fmt}: END is on the last line`);
     assert.equal((await verifyC2pa(out)).state, 'valid', `${fmt}: verifies`);
   }
-  // §A.7's carrier goes in the head, so an HTML doctype is equally untouched.
+  // section A.7's carrier goes in the head, so an HTML doctype is equally untouched.
   const html = await embedC2pa(bytesOf(HTML_DOC), 'html', OPTS);
   assert.ok(textOf(html).startsWith('<!DOCTYPE html>\n<html lang="en">\n<head>'), 'the doctype and root tag stay at byte 0');
 });
 
-// ─── line endings (§A.9.4) ────────────────────────────────────────────────────
+// ─── line endings (section A.9.4) ────────────────────────────────────────────────────
 
 test('CRLF hosts get a CRLF block, and the exclusion still starts at the LF', async () => {
   const src = 'const a = 1;\r\nconst b = 2;\r\n';
@@ -230,7 +230,7 @@ test('CRLF hosts get a CRLF block, and the exclusion still starts at the LF', as
   assert.ok(bin.endsWith(`${ARMOR_END} */\r\n`), 'the block is terminated CRLF, like its host');
   assert.equal(bin.split('\n').length - 1, 3, 'exactly one line was added');
   const ex = extractC2paDetailed(out)!.exclusions![0]!;
-  // §A.9.4 says "the newline character preceding the manifest block" - the LF,
+  // section A.9.4 says "the newline character preceding the manifest block" - the LF,
   // which leaves the CR before it inside the hashed content.
   assert.equal(bin[ex.start], '\n');
   assert.equal(bin[ex.start - 1], '\r');
@@ -239,7 +239,7 @@ test('CRLF hosts get a CRLF block, and the exclusion still starts at the LF', as
 });
 
 test('a MIXED-ending host gets LF and keeps its own endings untouched', async () => {
-  // §A.9.4: "A claim generator shall not alter the line ending convention of the
+  // section A.9.4: "A claim generator shall not alter the line ending convention of the
   // file content outside the manifest block." Nothing is rewritten; the
   // terminator we INTRODUCE is LF unless every host newline is already CRLF.
   const src = 'a();\r\nb();\nc();';
@@ -251,12 +251,12 @@ test('a MIXED-ending host gets LF and keeps its own endings untouched', async ()
   assert.equal((await verifyC2pa(out)).state, 'valid');
 });
 
-test('§A.9.4: a terminator the placer INTRODUCED is inside the exclusion, both its bytes', async () => {
-  // §A.9.4: "A claim generator shall not alter the line ending convention of the
+test('section A.9.4: a terminator the placer INTRODUCED is inside the exclusion, both its bytes', async () => {
+  // section A.9.4: "A claim generator shall not alter the line ending convention of the
   // file content outside the manifest block." A CRLF host with no trailing
   // terminator used to get one appended and then excluded from the LF only - 
   // leaving the CR the placer itself wrote INSIDE the hashed content, so the
-  // bound bytes ended in a bare CR, the one convention §A.9.4 declares
+  // bound bytes ended in a bare CR, the one convention section A.9.4 declares
   // unsupported. The introduced terminator belongs to the block, not the host.
   // Read WHICH bytes were hashed straight out of the credential: the data-hash
   // assertion carries the digest verbatim, so finding sha256(host) in the store
@@ -288,7 +288,7 @@ test('§A.9.4: a terminator the placer INTRODUCED is inside the exclusion, both 
 });
 
 test('bare-CR hosts are refused rather than silently converted', () => {
-  // §A.9.4: bare CR "is not supported by this method … Such files shall be
+  // section A.9.4: bare CR "is not supported by this method … Such files shall be
   // converted to LF or CRLF before embedding" - and converting them here would be
   // the very alteration the next sentence forbids.
   for (const fmt of ARMOR_FORMATS) {
@@ -358,7 +358,7 @@ test('re-placing REPLACES: one carrier, newest credential wins, and it is idempo
   }
 });
 
-test('§A.7.1: an existing <link rel="c2pa-manifest"> is removed, never left beside the script', async () => {
+test('section A.7.1: an existing <link rel="c2pa-manifest"> is removed, never left beside the script', async () => {
   // "An HTML document … shall not contain both a script element and a link
   // element referencing a C2PA Manifest Store."
   const src = '<!DOCTYPE html>\n<html><head><link rel="c2pa-manifest" href="/x.c2pa" type="application/c2pa">\n<title>t</title></head><body>hi</body></html>\n';
@@ -381,7 +381,7 @@ test('a carrier hidden in an HTML comment is stripped too — the validator coun
   assert.equal((await verifyC2pa(out)).state, 'valid');
 });
 
-test('a document that only implies a head gets a real one, where §A.7.1.4 looks', async () => {
+test('a document that only implies a head gets a real one, where section A.7.1.4 looks', async () => {
   for (const src of ['<!doctype html>\n<p>bare</p>\n', '<html>\n<body><p>no head</p></body>\n</html>\n']) {
     const out = await embedC2pa(bytesOf(src), 'html', OPTS);
     const bin = textOf(out);
@@ -389,7 +389,7 @@ test('a document that only implies a head gets a real one, where §A.7.1.4 looks
     if (bin.includes('<body')) assert.ok(bin.indexOf('<head>') < bin.indexOf('<body'), 'the head precedes the body');
     const report = await verifyC2pa(out);
     assert.equal(report.state, 'valid', JSON.stringify(report.checks.filter((c) => !c.ok)));
-    // §A.7.1.1 placement note: the reader only adds `detail` when the element is
+    // section A.7.1.1 placement note: the reader only adds `detail` when the element is
     // outside the head. Absent means it landed where the spec says.
     assert.equal(report.textBinding?.detail, undefined, 'the element is in the head');
   }
@@ -407,7 +407,7 @@ test('a comment mentioning <html> does not attract the splice', async () => {
 // ─── the Lolly fragment profile ───────────────────────────────────────────────
 
 test('a fragment carrying inline SVG still reads as structured text, not as an SVG', async () => {
-  // The masthead/figure artifacts are markup + inline SVG with no <head>. §A.7
+  // The masthead/figure artifacts are markup + inline SVG with no <head>. section A.7
   // has nowhere to put its element, and the sniffer must not hand the file to the
   // SVG reader (which would look for a <c2pa:manifest> that is not there).
   const out = await embedC2pa(bytesOf(FRAGMENT), 'html-fragment', { ...OPTS, environment: { ...OPTS.environment, format: 'html-fragment' } });
@@ -428,9 +428,9 @@ test('a fragment carrying inline SVG still reads as structured text, not as an S
 
 // ─── refusals and hostile hosts ───────────────────────────────────────────────
 
-test('§A.9.3: an existing block is replaced, but ambiguity is refused not guessed', () => {
+test('section A.9.3: an existing block is replaced, but ambiguity is refused not guessed', () => {
   const store = fakeStore();
-  // Two blocks: §A.9.3 already makes this file unreadable; picking one to keep
+  // Two blocks: section A.9.3 already makes this file unreadable; picking one to keep
   // would be a guess about which.
   const two = `a();\n// ${ARMOR_BEGIN} data:application/c2pa;base64,QQ== ${ARMOR_END}\n// ${ARMOR_BEGIN} data:application/c2pa;base64,Qg== ${ARMOR_END}\n`;
   assert.throws(() => attachC2paStore(bytesOf(two), 'js', store), /more than one — or a malformed — C2PA manifest block/);
@@ -447,7 +447,7 @@ test('§A.9.3: an existing block is replaced, but ambiguity is refused not guess
   assert.throws(() => attachC2paStore(bytesOf(bare), 'md', store), /not a manifest reference/);
   // …but a real block, ours or anyone's, is replaced. (A `//` block is still
   // recognised and replaced even though this placer now WRITES `/*!` - the strip
-  // reads §A.9.3.1's whole comment-introducer list, so a file signed by any
+  // reads section A.9.3.1's whole comment-introducer list, so a file signed by any
   // conformant producer re-signs cleanly.)
   const signed = `a();\n// ${ARMOR_BEGIN} https://example.test/m.c2pa ${ARMOR_END}\n`;
   const out = textOf(attachC2paStore(bytesOf(signed), 'js', store));
@@ -482,8 +482,8 @@ test('a document that DOCUMENTS the armour form keeps every line it wrote', () =
   assert.throws(() => attachC2paStore(bytesOf(trailing), 'md', store), /not a comment/);
 });
 
-test('§A.7.1.1: a `<head` written inside a script or style is text, not an anchor', () => {
-  // The carrier must be "placed in the head of the HTML document", and §A.7.1.4
+test('section A.7.1.1: a `<head` written inside a script or style is text, not an anchor', () => {
+  // The carrier must be "placed in the head of the HTML document", and section A.7.1.4
   // step 1 has the validator "parse the head element". Splicing at a `<head`
   // that lives inside a raw-text element would both corrupt the host (our
   // </script> closes THEIRS early) and put the element outside the head.
@@ -497,7 +497,7 @@ test('§A.7.1.1: a `<head` written inside a script or style is text, not an anch
     const out = textOf(attachC2paStore(bytesOf(host), 'html', store));
     const at = out.indexOf('<script type="application/c2pa">');
     assert.ok(at > 0, 'a carrier was placed');
-    // The one place §A.7.1.1 allows: immediately after the real <head> open tag
+    // The one place section A.7.1.1 allows: immediately after the real <head> open tag
     // (the LAST `<head>` in these fixtures - the earlier one is raw text).
     const head = out.lastIndexOf('<head>');
     assert.equal(at, head + '<head>'.length, 'the element sits at the top of the real head');
@@ -509,7 +509,7 @@ test('§A.7.1.1: a `<head` written inside a script or style is text, not an anch
 });
 
 test('an empty or whitespace-only host is refused — that binding would hash nothing', () => {
-  // §A.9.4's third case ("the file contains only the manifest block") is an
+  // section A.9.4's third case ("the file contains only the manifest block") is an
   // exclusion of {0, whole file}: a hard binding over zero bytes, which matches
   // every other such file. Refuse rather than mint one.
   for (const fmt of ARMOR_FORMATS) {

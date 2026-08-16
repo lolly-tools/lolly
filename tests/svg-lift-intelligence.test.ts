@@ -260,7 +260,7 @@ describe('geometric peers share a depth, so grids stay grids', () => {
       assert.equal(got.biggest, want.biggest, `${name}: the grid should be one rung of ${want.biggest}`);
       assert.equal(got.count, want.rungs, `${name}: ${s.layers.length} layers on ${want.rungs} rungs`);
       // One rung is one WHISPER, not one number: the members spread across a single
-      // band step so the depth sort keeps an order of its own (plans/104 §4.2)
+      // band step so the depth sort keeps an order of its own (plans/104 section 4.2)
       // while the grid still reads as one surface.
       const z = liftDepths(liftSlots(s.layers.map((l) => l.bbox ?? l.viewBox ?? null)), KF_Z_FIELD_CLAMP);
       const eff = got.members.map((i) => projectDepth(DEFAULT_CAMERA, z[i]!).eff);

@@ -396,7 +396,7 @@ export function pdfNodesToSvg(nodes: PdfNode[], opts: PdfSvgOptions): string {
 
   /**
    * A PDF /Luminosity (or /Alpha) soft mask → an SVG `<mask>`, deduped by the
-   * interpreter's own (mask, CTM) key. PDF 32000-1 §11.6.5.2 maps exactly:
+   * interpreter's own (mask, CTM) key. PDF 32000-1 section 11.6.5.2 maps exactly:
    *   /S /Luminosity        → `<mask>` (SVG's default mask is luminance)
    *   group /CS /DeviceGray → sRGB luminance of (g,g,g) IS g, EXACT
    *   group /BBox           → maskUnits="userSpaceOnUse" + explicit x/y/width/height
@@ -427,7 +427,7 @@ export function pdfNodesToSvg(nodes: PdfNode[], opts: PdfSvgOptions): string {
       const id = `${idp}mask${maskDefs.size}`;
       const grefs: string[] = [];
       // A child's own `_softMask` is ignored. The interpreter caps mask nesting at
-      // one level (§11.6.5.2 turns soft masks off inside a mask group), so it is
+      // one level (section 11.6.5.2 turns soft masks off inside a mask group), so it is
       // always absent here.
       let kids = '';
       for (const k of m.nodes ?? []) {
@@ -811,7 +811,7 @@ export function pdfNodeExtent(n: PdfNode): PdfExtent | null {
       const st = n._vectorStroke;
       if (st && st.color && box !== EMPTY_EXTENT) {
         // SVG's default stroke-linejoin: miter with the default stroke-miterlimit
-        // of 4 (SVG 1.1 §11.4) lets a spike reach 4 × halfWidth = 2 × width past
+        // of 4 (SVG 1.1 section 11.4) lets a spike reach 4 × halfWidth = 2 × width past
         // the geometric path, and the serializer emits neither property, so the
         // default governs. Same clamped width pathEl uses. Skipped for an empty
         // box: a path with no `d` draws nothing, and outsetting nothing would

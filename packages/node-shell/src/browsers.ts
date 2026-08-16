@@ -85,7 +85,7 @@ export async function getBrowser(): Promise<import('playwright-core').Browser> {
         if (/executable doesn't exist|Executable doesn't exist|please run|not been downloaded/i.test(msg)) {
           throw new BrowserError(
             'Raster/PDF/video export needs a headless browser. Run `lolly install-browser` ' +
-            '(or `npm run install:browser` in shells/cli — downloads Chromium once, ~150 MB), ' +
+            '(or `npm run install:browser` in shells/cli - downloads Chromium once, ~150 MB), ' +
             'or set LOLLY_BROWSER_CHANNEL=chrome to use an already-installed Chrome/Edge with ' +
             'no download. (svg and data formats need no browser.)',
           );

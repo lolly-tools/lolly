@@ -666,7 +666,7 @@ test('ExtGState ca/CA still set fill/stroke alpha with the widened smask field',
 });
 
 test('/SMask /None clears the mask; an ExtGState with no /SMask key leaves it alone', () => {
-  // §8.4.5: an ExtGState changes only the parameters it lists. Getting this wrong is
+  // section 8.4.5: an ExtGState changes only the parameters it lists. Getting this wrong is
   // what made the first soft-mask attempt a silent no-op.
   const sm = { id: 'sm0', subtype: 'Luminosity' as const, content: '0.5 g 0 0 100 100 re f', resources: {}, bbox: [0, 0, 100, 100] };
   // GN = /SMask /None (false); GX lists only /ca, so the mask must survive it.
@@ -689,7 +689,7 @@ test('/SMask /None clears the mask; an ExtGState with no /SMask key leaves it al
 // Reported from a screenshot of the export panel's ↔ / ↕ dimension icons.
 //
 // PDF says which paths close: `h`, `re`, and the close-then-paint operators
-// `s`/`b`/`b*` (§8.5.2.1, §8.5.3.1). `S`/`B`/`B*` leave the path open.
+// `s`/`b`/`b*` (section 8.5.2.1, section 8.5.3.1). `S`/`B`/`B*` leave the path open.
 const dOf = (nodes: any[]): string => nodes.map((n) => n._vectorPath || '').join(' ');
 
 test('an open stroked path stays open (S does not close)', () => {
@@ -732,7 +732,7 @@ test('a filled open path is unaffected (fill closes implicitly)', () => {
   assert.equal(nodes.length, 1, 'the fill still paints');
 });
 
-// ── Line cap and join (§8.4.3.3-4) ───────────────────────────────────────────
+// ── Line cap and join (section 8.4.3.3-4) ───────────────────────────────────────────
 // PDF defaults are butt + miter, which match SVG's defaults - so this stayed
 // invisible until a producer set them. Chromium never does: its print output has
 // zero `J`/`j`/`w` operators and leans entirely on the defaults. Illustrator and

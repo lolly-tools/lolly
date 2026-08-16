@@ -2,7 +2,7 @@
 /**
  * C2PA stamping of a gain-map (Ultra HDR / ISO 21496-1) JPEG.
  *
- * plans/61-deeprichpixels.md §6 B2, task E1. A gain-map JPEG is TWO JPEGs in one
+ * plans/61-deeprichpixels.md section 6 B2, task E1. A gain-map JPEG is TWO JPEGs in one
  * file, and the primary carries an MPF (CIPA DC-007) index whose MP Entries
  * record the byte SIZE of the primary image and the byte OFFSET of the second.
  * `c2pa-containers.ts#placeJpeg` splices its APP11 JUMBF store in after the LAST
@@ -98,7 +98,7 @@ try {
 }
 const SKIP_SHARP = sharp ? false : 'sharp is not installed (optional external-decoder oracle)';
 
-// ── this file's own MPF reader (CIPA DC-007 §5.2.3) ──────────────────────────
+// ── this file's own MPF reader (CIPA DC-007 section 5.2.3) ──────────────────────────
 
 interface MpEntry { attribute: number; size: number; offset: number }
 interface MpIndex {

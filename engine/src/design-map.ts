@@ -826,7 +826,7 @@ export function mirrorPenpotGradient(g: unknown, flipX: boolean, flipY: boolean)
 /**
  * Path data for a rect with four independent corner radii - a thin adapter over the
  * one existing rounded-corner implementation (css-box.ts): cornerRadii applies the
- * CSS §5.5 overlap clamp, roundedRectPath emits the four-arc path, so the clamp and
+ * CSS section 5.5 overlap clamp, roundedRectPath emits the four-arc path, so the clamp and
  * arc conventions stay shared with the HTML→SVG export walker.
  * @param {number} x,y,w,h the rect.
  * @param {number[]} r `[tl, tr, br, bl]` corner radii in px.

@@ -2,7 +2,7 @@
 /**
  * engine/src/gainmap-jpeg.ts - MPF + Ultra HDR XMP + ISO 21496-1 assembly.
  *
- * plans/61-deeprichpixels.md §6 B2. Everything asserted here is READ BACK OUT of
+ * plans/61-deeprichpixels.md section 6 B2. Everything asserted here is READ BACK OUT of
  * the produced bytes by readers written in this file - an independent MPF/TIFF
  * walker, an independent ISO 21496-1 parser, and a tiny XML well-formedness
  * checker - never trusted from the writer's own intermediate values. Where

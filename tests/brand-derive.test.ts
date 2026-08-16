@@ -88,7 +88,7 @@ test('formatOklch → parseOklch round-trips', () => {
 
 // ── gamut mapping ────────────────────────────────────────────────────────────
 
-test('oklchToHex maps out-of-gamut chroma per CSS §14.2 (L kept, hue near, chroma reduced)', () => {
+test('oklchToHex maps out-of-gamut chroma per CSS section 14.2 (L kept, hue near, chroma reduced)', () => {
   const wild: Oklch = { l: 0.62, c: 0.35, h: 145 }; // far outside sRGB
   const hex = oklchToHex(wild);
   assert.match(hex, /^#[0-9a-f]{6}$/);
@@ -107,7 +107,7 @@ test('oklchToHex maps out-of-gamut chroma per CSS §14.2 (L kept, hue near, chro
 });
 
 test('local MINDE lands perceptually closer to the request than plain chroma reduction', () => {
-  // This is why §14.2 replaced the plain chroma-reduction search: clipping is
+  // This is why section 14.2 replaced the plain chroma-reduction search: clipping is
   // accepted whenever it costs less than a JND, so more of the requested chroma
   // survives. Pinned as a property over a grid rather than a handful of hexes - 
   // the point is that MINDE is never meaningfully worse, and usually better.
@@ -268,7 +268,7 @@ test('contrastRatio: WCAG 2.1 sanity', () => {
 
 // ── deriveBrandTokens: document shape ────────────────────────────────────────
 
-test('deriveBrandTokens: §2 doc shape, resolvable via createTokenSet for BOTH themes', () => {
+test('deriveBrandTokens: section 2 doc shape, resolvable via createTokenSet for BOTH themes', () => {
   const doc = deriveBrandTokens({ primary: '#4f83cc', name: 'Acme' });
   assert.deepEqual((doc.$metadata as { tokenSetOrder: string[] }).tokenSetOrder, ['base', 'light', 'dark']);
   const themes = doc.$themes as { name: string }[];

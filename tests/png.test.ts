@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
- * engine/src/png.ts - the Phase B1 PNG writer (plans/61-deeprichpixels.md §4.2).
+ * engine/src/png.ts - the Phase B1 PNG writer (plans/61-deeprichpixels.md section 4.2).
  *
  * Three independent ways of being right, because a writer with no reader is a
  * writer with no test:
@@ -155,7 +155,7 @@ function decodeSelf(png: Uint8Array): { width: number; height: number; depth: nu
   const bytes = unfilterPng(inflated, width, height, bpp);
   assert.ok(bytes, 'unfilterPng returned null');
   if (depth === 8) return { width, height, depth, channels, samples: bytes };
-  // 16-bit: PNG samples are big-endian (spec §7.1).
+  // 16-bit: PNG samples are big-endian (spec section 7.1).
   const u16 = new Uint16Array(bytes.length / 2);
   for (let i = 0; i < u16.length; i++) u16[i] = (bytes[i * 2]! << 8) | bytes[i * 2 + 1]!;
   return { width, height, depth, channels, samples: u16 };
@@ -379,7 +379,7 @@ test('external decoder NEGATIVE CONTROL: sharp disagrees when the pixels differ'
 });
 
 // ────────────────────────────────────────────────────────────────────────────
-// 4. cICP (PNG 3rd Edition §11.3.3.6 / ITU-T H.273)
+// 4. cICP (PNG 3rd Edition section 11.3.3.6 / ITU-T H.273)
 // ────────────────────────────────────────────────────────────────────────────
 
 test('cICP carries the four H.273 code points, BT.2100-PQ being 9 16 0 1', () => {
@@ -526,7 +526,7 @@ test('every chunk CRC matches an independent bitwise reference implementation', 
 test('CRC reference values: the standard check vector, and the invariant IEND CRC', () => {
   const ascii = (s: string): Uint8Array => Uint8Array.from(s, (ch) => ch.charCodeAt(0));
   // CRC-32/ISO-HDLC check value for "123456789" - the reflected 0xEDB88320
-  // polynomial PNG mandates (spec §5.5).
+  // polynomial PNG mandates (spec section 5.5).
   assert.equal(refCrc32(ascii('123456789')), 0xcbf43926);
   assert.equal(engineCrc32(ascii('123456789')), 0xcbf43926, 'the engine crc32 we reuse agrees');
   // An empty IEND is byte-invariant across every PNG ever written.
@@ -641,7 +641,7 @@ test('filtering never expands incompressible-looking noise beyond the unfiltered
 });
 
 // ────────────────────────────────────────────────────────────────────────────
-// 10. The deflate memory guard (plan §9 "Phase B blocker")
+// 10. The deflate memory guard (plan section 9 "Phase B blocker")
 // ────────────────────────────────────────────────────────────────────────────
 
 test('past maxDeflateBytes the writer refuses loudly, naming the reason', () => {
