@@ -1,6 +1,6 @@
 # lolly-chrome-extension
 
-**Lolly URL Screenshot**, a Manifest V3 Chrome extension whose entire purpose is to give the *web* shell the capabilities a browser page cannot have on its own: reading a cross-origin URL. Two readings, one mechanism — a **screenshot** of a page (the `capture` capability), and a **site read** of a page's markup, stylesheets and icons (the `siteIngest` capability behind the Design System studio's website source, plan 97 §9).
+**Lolly URL Screenshot**, a Manifest V3 Chrome extension whose entire purpose is to give the *web* shell the capabilities a browser page cannot have on its own: reading a cross-origin URL. Two readings, one mechanism — a **screenshot** of a page (the `capture` capability), and a **site read** of a page's markup, stylesheets and icons (the `siteIngest` capability behind the Design System studio's website source, plan 97 section 9).
 
 It is the odd one out in `shells/`. It is not a host for the engine, it runs no tools, it renders nothing and it never sees a tool manifest. It is a **capability provider for the web shell**, filling in the same `capture` capability that the Tauri desktop shell fulfils with native headless Chrome. Calling it a shell is a filing convenience.
 
@@ -67,4 +67,4 @@ git clone --recurse-submodules https://github.com/lolly-tools/lolly.git
 git submodule update --init --recursive
 ```
 
-Commit changes to files in this directory in the `lolly-chrome-extension` repo, then commit the moved pointer in the umbrella. See [`CONTRIBUTING.md`](../../CONTRIBUTING.md) §4.
+Commit changes to files in this directory in the `lolly-chrome-extension` repo, then commit the moved pointer in the umbrella. See [`CONTRIBUTING.md`](../../CONTRIBUTING.md) section 4.

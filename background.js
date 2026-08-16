@@ -11,7 +11,7 @@
  *    Returns a base64 PNG data URL.
  * 2. `lolly-capture/site` — reads the page's markup, stylesheet text and a handful
  *    of icon/logo bytes for the Lolly app's design-system website source (plan 97
- *    §9). The app parses them on-device; the extension only reads and hands back.
+ *    section 9). The app parses them on-device; the extension only reads and hands back.
  *
  * This runs in the user's own browser, so reading localhost / private URLs is a
  * feature (it's their network) — we only reject non-http(s) schemes.
