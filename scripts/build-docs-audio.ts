@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 // SPDX-License-Identifier: MPL-2.0
 /**
- * Renders the /info docs narration artefacts (plans/40-docs-audio-listen.md §4) - 
+ * Renders the /info docs narration artefacts (plans/40-docs-audio-listen.md section 4) - 
  * per page: audio.opus + captions.vtt + cues.json + meta.json under
  * docs/audio/<lang>/<slug>/, committed like docs/shots and only *linked* by
  * docs/build.ts, which never runs TTS.
@@ -13,7 +13,7 @@
  * downloads and sha256-pins), and ffmpeg on PATH - and it is never invoked by
  * `npm install`/`postinstall`/CI. CI's whole involvement is
  * tests/docs-audio-stale.test.ts, which only verifies COMMITTED artefacts
- * against the current docs source (plan §10). When any prerequisite is absent
+ * against the current docs source (plan section 10). When any prerequisite is absent
  * this script prints the exact install/run steps and exits 0 without writing a
  * byte, so an accidental invocation on a clean clone is a no-op, not a
  * half-written artefact directory.
@@ -23,7 +23,7 @@
  *   node scripts/build-docs-audio.ts --check     # list stale/missing, write NOTHING, exit 1 if any
  *   node scripts/build-docs-audio.ts --force creators   # re-render one slug regardless
  *
- * ── The staleness contract (plan §5) ──────────────────────────────────────
+ * ── The staleness contract (plan section 5) ──────────────────────────────────────
  * meta.json.textHash is `spokenTextHash(extractSpokenText(source))` - sha256 of
  * the whitespace-normalised spoken-text document from
  * scripts/lib/docs-spoken-text.ts. Chrome/CSS/shot-recipe/translation churn
@@ -32,7 +32,7 @@
  * re-renders only pages whose hash moved (or which are missing entirely).
  * Voice/model upgrades are a deliberate `--force`, never automatic.
  *
- * ── Synthesis (plan §4.2, roadmap §4's one-synthesis-layer rule) ──────────
+ * ── Synthesis (plan section 4.2, roadmap section 4's one-synthesis-layer rule) ──────────
  * The SAME stack as host.speech's worker
  * (shells/web/src/lib/speech-kokoro-worker.ts): @huggingface/transformers +
  * phonemizer directly (both resolve from the shells/web workspace, hoisted to
@@ -53,7 +53,7 @@
  * LUFS mono target) and the encode is Opus-in-Ogg at 24 kbps voice profile
  * (~180 KB/min).
  *
- * ── No viz artefact (plan §4.4, decision 2026-08-02) ──────────────────────
+ * ── No viz artefact (plan section 4.4, decision 2026-08-02) ──────────────────────
  * An earlier revision packed a precomputed reactivity track (viz.bin) beside
  * the audio for the player's driven-mode visualizer. Measured on the first
  * real render it came out at 27.5 MB PER PAGE - an order of magnitude over
@@ -92,12 +92,12 @@ const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const DOCS = join(ROOT, 'docs');
 const AUDIO_ROOT = join(DOCS, 'audio');
 
-/** Launch language. The layout is audio/<lang>/<slug>/ from day one (plan §9)
+/** Launch language. The layout is audio/<lang>/<slug>/ from day one (plan section 9)
  *  but only English renders today - locale audio waits on per-locale Kokoro
  *  voice coverage and the storage curve. */
 export const LANG = 'en';
 
-/** One voice for the whole corpus (plan §4.2). Changing it stales EVERY page:
+/** One voice for the whole corpus (plan section 4.2). Changing it stales EVERY page:
  *  that is a --force-everything day, chosen deliberately, not a hash-driven
  *  re-render. The narration is one narrator, start to finish. */
 // bf_lily: Andy's final call (2026-08-02, by ear over three candidates) - the
@@ -126,10 +126,10 @@ export const MODEL_ID = 'onnx-community/Kokoro-82M-v1.0-ONNX';
 const MODEL_DIR = join(ROOT, 'shells', 'web', 'public', 'models', 'kokoro');
 
 /**
- * The launch set (plan §1/§11): the landing page plus the three pathway hubs - 
+ * The launch set (plan section 1/section 11): the landing page plus the three pathway hubs - 
  * the guided entry points ("For Creators / Builders / Operators" in
  * docs/build.ts's NAV). Quickstart and Trust are hubs in the sidebar sense too,
- * but the launch gate is storage (§7's budget maths), so the list stays this
+ * but the launch gate is storage (section 7's budget maths), so the list stays this
  * small until real feedback argues for more. Expansion is editing this array.
  */
 export const LAUNCH_PAGES: string[] = [
@@ -139,11 +139,11 @@ export const LAUNCH_PAGES: string[] = [
   'about', 'trust', 'ai-stance', 'privacy', 'inclusive-design', 'beatrice-warde',
 ];
 
-/** Every file a finished artefact directory carries (plan §4.5). */
+/** Every file a finished artefact directory carries (plan section 4.5). */
 export const ARTEFACT_FILES = ['audio.opus', 'captions.vtt', 'cues.json', 'meta.json'] as const;
 
 /** Inter-block gaps in ms, keyed by the kind of the block BEING INTRODUCED
- *  (plan §4.2: heading 700 ms, paragraph 350 ms). No gap before the first. */
+ *  (plan section 4.2: heading 700 ms, paragraph 350 ms). No gap before the first. */
 const GAP_MS: Record<SpokenBlock['kind'], number> = { heading: 700, para: 350, listItem: 350 };
 
 export interface AudioMeta {
@@ -482,6 +482,24 @@ async function main(): Promise<void> {
     }
     return slug;
   })();
+  // --except <slug> (repeatable) drops a page from the default stale-only run,
+  // for the common case of "re-render everything except the one I'm still
+  // editing". It never applies to --force, which names its single target
+  // explicitly. Unknown slugs are a typo, not a silent no-op.
+  const except = new Set<string>();
+  for (let i = 0; i < args.length; i++) {
+    if (args[i] !== '--except') continue;
+    const slug = args[i + 1];
+    if (!slug || slug.startsWith('--')) {
+      console.error('--except needs a slug (e.g. --except index)');
+      process.exit(1);
+    }
+    if (!LAUNCH_PAGES.includes(slug)) {
+      console.error(`--except ${slug}: not a launch page (known: ${LAUNCH_PAGES.join(', ')})`);
+      process.exit(1);
+    }
+    except.add(slug);
+  }
 
   // The audit set: every launch page, plus anything already committed (a page
   // that later left the launch list still has artefacts to keep honest).
@@ -515,6 +533,7 @@ async function main(): Promise<void> {
   const targets = forceSlug
     ? [forceSlug]
     : LAUNCH_PAGES.filter((slug) => {
+        if (except.has(slug)) return false;
         const v = verdicts.find((x) => x.slug === slug)!;
         return v.status === 'stale' || v.status === 'missing';
       });

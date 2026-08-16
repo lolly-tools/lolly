@@ -43,6 +43,11 @@ export interface Violation {
 /** Character bans. Key = the character, value = its name for the report. */
 const BANNED_CHARS: Record<string, string> = {
   '—': 'EM DASH',
+  // Section sign - say the word ("section 2", "step 2", "option 2") and link the
+  // reference where you can. Not everyone knows the glyph. Formal spec citations
+  // in CODE comments (C2PA/ISO section numbers) keep it as the standard notation;
+  // that is the separate code-comment gate, which does not carry this list.
+  '§': 'SECTION SIGN',
   '​': 'ZERO WIDTH SPACE',
   '‌': 'ZERO WIDTH NON-JOINER',
   '‍': 'ZERO WIDTH JOINER',
@@ -150,6 +155,17 @@ export const BANNED_PHRASES: { what: string; re: RegExp }[] = [
   // expires with a card"), which is a legitimate noun use in status-quo.md.
   { what: '"leverage" as a verb', re: /\bleverag(?:e|es|ing|ed) (?:the|its|our|your|their|a|an)\b/i },
   { what: '"where it gets interesting"', re: /\bwhere it gets interesting\b/i },
+  // "The (x) is (y) here." - the copula-flourish tic (owner-banned 2026-08-16):
+  // a clause that redefines its subject and then hedges with a trailing "here".
+  // Deterministic discriminators, calibrated against the whole owned corpus:
+  // a determiner after "is" excludes the pervasive legitimate participles
+  // ("is computed here", "is duplicated here"); requiring punctuation right
+  // after "here" excludes locatives that flow on ("is a no-op here (nothing
+  // buffered", "is a branch here plus an opener", "here too"); the lookbehinds
+  // require a subject word before "is" (a declarative, so real questions like
+  // "Is the extension here?" pass) and exclude existential and there/here pairs
+  // ("there is a session here", "a rename there is a rename here").
+  { what: '"the (x) is (y) here." copula flourish', re: /(?<=[\w'’] )(?<!there )is (?:not )?(?:the|a|an) [\w'’-]+(?: [\w'’-]+){0,2} here[.,!?:;]/i },
   { what: '"brings me/us back to"', re: /\bbrings? (?:me|us) back to\b/i },
   { what: '"underscores/underscoring the" (figurative)', re: /\bunderscor(?:es|ing) (?:the|how|that|a|an)\b/i },
 ];
@@ -182,29 +198,17 @@ const ALLOW: Record<string, string[]> = {
  * VERBATIM output quotes: the ONLY unicode exemption, held to a strict test.
  * An entry is allowed only when the shipping code emits that exact text,
  * so editing the doc would make it lie about what the tool prints. Every
- * entry below cites the source line it quotes; check it before adding
+ * entry must cite the source line it quotes; check it before adding
  * one, and never use this list for prose that merely sits in a code fence.
  * Stale entries fail loudly, same as ALLOW (see staleAllows).
+ *
+ * EMPTIED 2026-08-16: every entry quoted the CLI's em-dash output, and plan
+ * 122 item 8 swept the emitters themselves (terminal-shell string literals
+ * now carry the same ban, ratcheted in check-code-comment-vernacular.ts), so
+ * the docs quotes were updated to the real new output and nothing needs an
+ * exemption. The mechanism stays for a future genuinely-verbatim need.
  */
-const VERBATIM: Record<string, string[]> = {
-  // The CLI's own verdict reporter joins slug and message with an em dash,
-  // and splits back on it: packages/node-shell/src/verdict-report.ts:64.
-  'docs/cli-signing.md': [
-    '✦ Made with Lolly — credential intact',                                   // node-shell/src/verdict-slugs.ts:29
-    ' — verified by ',                                                          // node-shell/src/verdict-report.ts:111
-    '.match — hashed uri matched:',                                             // engine/src/c2pa-verify.ts:1268
-    'claimSignature.validated — claim signature valid',                         // engine/src/c2pa-verify.ts:1322
-    'claimSignature.insideValidity — signing certificate within its validity window', // c2pa-verify.ts:1329
-    'assertion.dataHash.match — data hash valid',                               // engine/src/c2pa-verify.ts:1550
-    'signingCredential.trusted — signing certificate chains to a pinned CA root — verified identity:', // c2pa-verify.ts:1594
-    'signingCredential.untrusted — signing certificate untrusted —',            // engine/src/c2pa-verify.ts:476-478
-    'has no C2PA container — Content Credentials skipped.',                     // shells/cli/src/run.ts:1058
-  ],
-  'docs/cli.md': [
-    '✦ Made with Lolly — credential intact',                                   // node-shell/src/verdict-slugs.ts:29
-    'signingCredential.untrusted — signing certificate untrusted —',            // engine/src/c2pa-verify.ts:476-478
-  ],
-};
+const VERBATIM: Record<string, string[]> = {};
 
 function targets(): string[] {
   const out: string[] = ['README.md'];

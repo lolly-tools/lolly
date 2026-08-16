@@ -283,7 +283,7 @@ export async function transformViaWebShell(
       await page.waitForSelector(picker, { state: 'attached', timeout: 30_000 });
     } catch {
       throw new BrowserError(
-        `The web shell showed no file picker for "${fileInputId}" on "${toolId}" — the built shell ` +
+        `The web shell showed no file picker for "${fileInputId}" on "${toolId}" - the built shell ` +
         `may predate this tool. Rebuild it with \`npm run build:web\`.`,
       );
     }
@@ -295,7 +295,7 @@ export async function transformViaWebShell(
       await page.waitForSelector(`${button}:not([disabled])`, { state: 'visible', timeout: 60_000 });
     } catch {
       throw new BrowserError(
-        `"${toolId}" never offered its export button after the file was loaded — the tool may have ` +
+        `"${toolId}" never offered its export button after the file was loaded - the tool may have ` +
         `refused this file. Open the same inputs in the app to see what it says.`,
       );
     }
@@ -378,7 +378,7 @@ export async function renderViaWebShell(
       download = await downloadP;
     } catch {
       throw new BrowserError(
-        `The web shell produced no "${format}" file for "${toolId}" in time — the tool may have ` +
+        `The web shell produced no "${format}" file for "${toolId}" in time - the tool may have ` +
         `failed to render or doesn't support that format. Try a different format or check the inputs.`,
       );
     }
@@ -450,7 +450,7 @@ export async function renderVideoViaScreenshot(
       download = await downloadP;
     } catch {
       throw new BrowserError(
-        `The web shell produced no "${format}" file for "${toolId}" in time — the tool may have ` +
+        `The web shell produced no "${format}" file for "${toolId}" in time - the tool may have ` +
         `failed to render or doesn't support that format. Try a different format or check the inputs.`,
       );
     }

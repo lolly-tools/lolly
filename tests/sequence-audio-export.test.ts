@@ -271,7 +271,7 @@ test('Design offers the four audio formats, after the motion group', async () =>
   // still, not mp4), so the old motion-first ordering no longer applies - only that
   // the audio set sits after the motion group.
   const manifest = JSON.parse(
-    await readFile(join(ROOT, 'brands', 'lolly-start', 'tools', 'design', 'tool.json'), 'utf8'),
+    await readFile(join(ROOT, 'community', 'design', 'tool.json'), 'utf8'),
   ) as { render: { formats: string[] } };
   const f = manifest.render.formats;
   for (const m of ['mp4', 'webm', 'gif', 'apng']) assert.ok(f.includes(m), `${m} (motion) is offered`);

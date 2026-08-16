@@ -2,16 +2,16 @@
 /**
  * PNG encoder: 8-bit and 16-bit truecolour, pure bytes, DOM-free.
  *
- * plans/61-deeprichpixels.md §4.2 / §6 Phase B1: the first *own* PNG writer in the
+ * plans/61-deeprichpixels.md section 4.2 / section 6 Phase B1: the first *own* PNG writer in the
  * tree. Everything before this was chunk SURGERY on bytes a browser encoder
  * produced (shells/web/src/bridge/export-image-meta.ts splices pHYs / cICP /
  * iCCP / iTXt into `canvas.toBlob` output, and engine/src/apng.ts re-wraps whole
  * encoded frames), which can never raise the depth, because IHDR was written by
  * someone else and is never rewritten. Owning IHDR + IDAT is what unlocks
  * 16-bit-per-channel output, and with it the plan's sharpest existing defect:
- * PQ code values quantised to 8 bits (§1). `pqToU16` now has somewhere to go.
+ * PQ code values quantised to 8 bits (section 1). `pqToU16` now has somewhere to go.
  *
- * ─── Governing principle: depth follows provenance (plan §10) ────────────────
+ * ─── Governing principle: depth follows provenance (plan section 10) ────────────────
  * This writer NEVER converts between depths. `depth: 16` requires a Uint16Array
  * the caller already produced at 16 bits; `depth: 8` requires 8-bit bytes. There
  * is deliberately no "widen my 8-bit buffer" path, because a 16-bit file made of
@@ -25,12 +25,12 @@
  * Signature, then IHDR (colour type 2 RGB / 6 RGBA; bit depth 8 or 16;
  * compression 0, filter 0, interlace 0, the only combinations that matter for
  * a rendered design), optional cICP / pHYs / iTXt, one or more IDATs, IEND.
- * 16-bit samples are big-endian, per PNG's network byte order (spec §7.1).
+ * 16-bit samples are big-endian, per PNG's network byte order (spec section 7.1).
  * Note that is the opposite of `tiff.ts`, whose "II" files are little-endian;
  * a Uint16Array handed to both writers therefore lands as different bytes on
  * purpose.
  *
- * `cICP` is PNG Third Edition (W3C REC 2025-06-24, §11.3.3.6): four bytes for
+ * `cICP` is PNG Third Edition (W3C REC 2025-06-24, section 11.3.3.6): four bytes for
  * colour primaries, transfer function, matrix coefficients, full-range flag, all
  * H.273 code points. `HDR_PQ_CICP` from hdr.ts is exactly the shape this takes,
  * so a Rec.2100-PQ export is `{ ...HDR_PQ_CICP }` and nothing else. Matrix
@@ -43,13 +43,13 @@
  * and a spliced browser PNG print at the same physical size. That equality is
  * asserted by test, not by comment.
  *
- * `iTXt` is an uncompressed passthrough (compression flag 0, spec §11.3.4.5):
+ * `iTXt` is an uncompressed passthrough (compression flag 0, spec section 11.3.4.5):
  * UTF-8 text with a language tag and translated keyword, for callers that want
  * XMP or a description in the file. Deflated iTXt is not emitted; nothing needs
  * it, and one compression path is easier to keep honest than two.
  *
  * ─── Filtering ──────────────────────────────────────────────────────────────
- * All five PNG filters (spec §9.2) with libpng's minimum-sum-of-absolute-
+ * All five PNG filters (spec section 9.2) with libpng's minimum-sum-of-absolute-
  * differences heuristic per scanline, treating filtered bytes as signed. Cheap
  * (five passes over a row, no lookahead) and it is what every real encoder does.
  * `filter: 'none'` forces type 0 for callers that want the fastest possible
@@ -59,7 +59,7 @@
  * measurement is pinned in tests/png.test.ts (a 16-bit gradient is materially
  * smaller filtered than unfiltered).
  *
- * ─── How big images are compressed (the §9b blocker, now lifted) ─────────────
+ * ─── How big images are compressed (the section 9b blocker, now lifted) ─────────────
  * `deflate.ts` grew the slab-fed deflater its old TODO here asked for
  * (`createZlibStream`: one 32 KB LZ77 window carried across pushes, blocks
  * emitted as they are produced, BFINAL only on finish). So there are two
@@ -83,7 +83,7 @@
  * Uint8Array this function returns, not a statement about scratch. A caller that
  * passes a small cap still gets the old loud refusal. That is the seam the web
  * shell's HDR path uses to fall back, or, with `oversize: 'store'`, a
- * spec-valid uncompressed zlib stream (RFC 1951 §3.2.4 stored blocks) built in
+ * spec-valid uncompressed zlib stream (RFC 1951 section 3.2.4 stored blocks) built in
  * O(1) extra memory.
  *
  * The IDAT payload is split across multiple IDAT chunks (`idatChunkBytes`,
@@ -94,7 +94,7 @@
 import { zlibCompress, createZlibStream, adler32, type DeflateOptions } from './deflate.ts';
 import { crc32 } from './zip-crypto.ts';
 
-/** PNG file signature (spec §5.2). */
+/** PNG file signature (spec section 5.2). */
 const PNG_SIG = Uint8Array.of(0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a);
 
 /**
@@ -115,7 +115,7 @@ const STREAM_ABOVE_BYTES = 4 * 1024 * 1024;
 /** Default IDAT payload split. */
 const DEFAULT_IDAT_CHUNK_BYTES = 1024 * 1024;
 
-/** Largest LEN a stored DEFLATE block can carry (RFC 1951 §3.2.4). */
+/** Largest LEN a stored DEFLATE block can carry (RFC 1951 section 3.2.4). */
 const STORED_MAX = 65535;
 
 /**
@@ -133,7 +133,7 @@ export interface PngCicp {
   fullRange: number;
 }
 
-/** One uncompressed iTXt entry (spec §11.3.4.5). */
+/** One uncompressed iTXt entry (spec section 11.3.4.5). */
 export interface PngTextEntry {
   /** 1-79 Latin-1 characters, no leading/trailing/consecutive spaces. */
   keyword: string;
@@ -190,7 +190,7 @@ function writeU32(b: Uint8Array, o: number, v: number): void {
   b[o + 3] = v & 0xff;
 }
 
-/** length + type + data + CRC32(type‖data): spec §5.3. */
+/** length + type + data + CRC32(type‖data): spec section 5.3. */
 function chunk(type: string, data: Uint8Array): Uint8Array {
   const out = new Uint8Array(12 + data.length);
   writeU32(out, 0, data.length);
@@ -221,9 +221,9 @@ function concat(parts: readonly Uint8Array[]): Uint8Array {
   return out;
 }
 
-// ── row filtering (spec §9.2) ───────────────────────────────────────────────
+// ── row filtering (spec section 9.2) ───────────────────────────────────────────────
 
-/** PNG Paeth predictor (spec §9.4); mirrors png-unfilter.ts's decode side. */
+/** PNG Paeth predictor (spec section 9.4); mirrors png-unfilter.ts's decode side. */
 function paeth(a: number, b: number, c: number): number {
   const p = a + b - c;
   const pa = Math.abs(p - a);
@@ -286,7 +286,7 @@ function filterRow(
 // ── stored-block zlib (the bounded-memory oversize escape hatch) ────────────
 
 /**
- * A valid RFC 1950 stream carrying RFC 1951 §3.2.4 stored blocks: no LZ77, no
+ * A valid RFC 1950 stream carrying RFC 1951 section 3.2.4 stored blocks: no LZ77, no
  * Huffman, so no tokenizer scratch. Used only past `maxDeflateBytes` with
  * `oversize: 'store'`, for a caller that has deliberately capped the encoder and
  * still wants a file. Ordinary large images now stream instead (see header).
@@ -373,7 +373,7 @@ export function packPng(pixels: PngSamples, opts: PackPngOptions): Uint8Array {
     );
   }
 
-  // ── serialise scanlines (big-endian for 16-bit, spec §7.1), filter, compress ─
+  // ── serialise scanlines (big-endian for 16-bit, spec section 7.1), filter, compress ─
   // Rows are produced one at a time into `rowOut`. Past STREAM_ABOVE_BYTES each
   // one is pushed straight into the compressor, so the whole-image `filtered`
   // buffer is never allocated; below it rows are staged into `filtered` and
@@ -442,7 +442,7 @@ export function packPng(pixels: PngSamples, opts: PackPngOptions): Uint8Array {
     for (const [name, v] of [['primaries', primaries], ['transfer', transfer], ['matrix', matrix], ['fullRange', fullRange]] as const) {
       if (!Number.isInteger(v) || v < 0 || v > 255) throw new Error(`packPng: cICP ${name} must be a byte, got ${String(v)}.`);
     }
-    // PNG 3e §11.3.3.6: samples are RGB, so identity is the only legal matrix.
+    // PNG 3e section 11.3.3.6: samples are RGB, so identity is the only legal matrix.
     if (matrix !== 0) throw new Error(`packPng: cICP matrix must be 0 (identity) in a PNG, got ${matrix}.`);
     parts.push(chunk('cICP', Uint8Array.of(primaries, transfer, matrix, fullRange)));
   }
@@ -462,7 +462,7 @@ export function packPng(pixels: PngSamples, opts: PackPngOptions): Uint8Array {
     if (keyword.length < 1 || keyword.length > 79) {
       throw new Error(`packPng: iTXt keyword must be 1-79 characters, got ${keyword.length}.`);
     }
-    // §11.3.4.5: no NUL (it would terminate the field early and corrupt the
+    // section 11.3.4.5: no NUL (it would terminate the field early and corrupt the
     // chunk structure), no leading/trailing spaces, no consecutive spaces.
     if (/\0/.test(entry.keyword) || /^ | $|  /.test(entry.keyword)) {
       throw new Error('packPng: iTXt keyword must not contain NUL or leading/trailing/consecutive spaces.');

@@ -337,7 +337,7 @@ test('a wide-gamut solid carries chroma its sRGB hex cannot hold', () => {
   let widest = 0;
   for (const q of s.quads) {
     assert.ok(q.oklch, 'every quad has an authored colour');
-    // The bake preserves L and H and reduces C (CSS Color 4 §14.2), so the hex can
+    // The bake preserves L and H and reduces C (CSS Color 4 section 14.2), so the hex can
     // never be MORE chromatic than what it was baked from. Checked only above
     // c 0.05: the hex is 8-bit, and down near the achromatic axis one quantisation
     // step is a large FRACTION of the chroma - a near-grey can round to 0.017 from

@@ -12,7 +12,7 @@
  * and color() serialise in their own space, so a computed `color-mix(in oklab,
  * …)` (used across the deck tools) or a raw `oklch()` brand token arrived as
  * null and its paint was silently dropped from SVG/PDF/EMF. See
- * plans/60-color-spaces.md §4.
+ * plans/60-color-spaces.md section 4.
  *
  * Shape follows linebender/color's `DynamicColor` (a CSS-Color-4-faithful Rust
  * crate, read as a design reference, not a dependency): a space tag, three
@@ -196,7 +196,7 @@ const linearToRec2020 = (c: number): number => {
   return a > R2020_B ? s * (R2020_A * a ** 0.45 - (R2020_A - 1)) : 4.5 * c;
 };
 
-// ─── Primary matrices (CSS Color 4 §17 reference values) ──────────────────────
+// ─── Primary matrices (CSS Color 4 section 17 reference values) ──────────────────────
 
 const LIN_SRGB_TO_XYZ65: Mat3 = [
   0.41239079926595934, 0.357584339383878, 0.1804807884018343,
@@ -421,7 +421,7 @@ function fromXyzD65(xyz: [number, number, number], space: ColorSpaceTag): [numbe
 /**
  * Convert to another colour space. Alpha rides along unchanged; `missing` is
  * dropped on any space change, because a component that was `none` in the source
- * space has no counterpart in the target (CSS Color 4 §4.4: missing components
+ * space has no counterpart in the target (CSS Color 4 section 4.4: missing components
  * behave as zero for conversion). A same-space call is the identity.
  */
 export function convertColor(c: CssColor, to: ColorSpaceTag): CssColor {
@@ -431,11 +431,11 @@ export function convertColor(c: CssColor, to: ColorSpaceTag): CssColor {
 }
 
 /**
- * The `missing` bits a freshly converted colour should carry (CSS Color 4 §4.4.1: a
+ * The `missing` bits a freshly converted colour should carry (CSS Color 4 section 4.4.1: a
  * component that has become POWERLESS is set to missing). In practice that is the hue
  * of an achromatic colour: grey has no hue, and pretending it has one is what makes
  * `linear-gradient(in oklch, white, green)` swing through pink and orange instead of
- * simply raising the green's chroma. §13.2 then carries the real hue from the other
+ * simply raising the green's chroma. section 13.2 then carries the real hue from the other
  * side of the interpolation, which is exactly the behaviour a browser shows.
  */
 function powerlessMissing(space: ColorSpaceTag, c: readonly [number, number, number]): number {
@@ -449,9 +449,9 @@ function powerlessMissing(space: ColorSpaceTag, c: readonly [number, number, num
   return 0;
 }
 
-// ─── Interpolation (CSS Color 4 §12–13) ───────────────────────────────────────
+// ─── Interpolation (CSS Color 4 section 12–13) ───────────────────────────────────────
 
-/** How to travel around the hue circle between two polar colours (§13.4). */
+/** How to travel around the hue circle between two polar colours (section 13.4). */
 export type HueDirection = 'shorter' | 'longer' | 'increasing' | 'decreasing';
 
 export interface MixOptions {
@@ -469,7 +469,7 @@ const HUE_INDEX: Partial<Record<ColorSpaceTag, number>> = {
   hsl: 0, hwb: 0, lch: 2, oklch: 2,
 };
 
-// §13.4 hue fixup: rewrite the two angles so a plain lerp between them travels
+// section 13.4 hue fixup: rewrite the two angles so a plain lerp between them travels
 // the requested way round the circle.
 function fixupHues(ha: number, hb: number, dir: HueDirection): [number, number] {
   let a = normHue(ha);
@@ -494,11 +494,11 @@ function fixupHues(ha: number, hb: number, dir: HueDirection): [number, number] 
 }
 
 /**
- * Fill in `c`'s missing components from `other` (§13.2: "a missing hue adopts the
+ * Fill in `c`'s missing components from `other` (section 13.2: "a missing hue adopts the
  * other side's hue"). BOTH are already in the interpolation space, which is the
  * only order that works: the components have to be analogous for the carry to mean
  * anything, and the missing bit that matters most is usually one `convertColor`
- * *produced*. An achromatic colour's hue is powerless (§4.4.1), so a white or grey
+ * *produced*. An achromatic colour's hue is powerless (section 4.4.1), so a white or grey
  * endpoint has no hue of its own to sweep from.
  *
  * Carrying before converting (the first cut here) made both cases dead: an authored
@@ -563,7 +563,7 @@ export function interpolateColor(a: CssColor, b: CssColor, t: number, opts: MixO
   return { space, components: out, alpha, missing: 0 };
 }
 
-/** ΔEOK between two colours: the perceptual distance §14.2 and §20.2 use. */
+/** ΔEOK between two colours: the perceptual distance section 14.2 and section 20.2 use. */
 export function deltaEOkColor(a: CssColor, b: CssColor): number {
   const la = convertColor(a, 'oklab').components;
   const lb = convertColor(b, 'oklab').components;
@@ -674,7 +674,7 @@ const inSrgb = (rgb: readonly [number, number, number]): boolean =>
   rgb.every(v => v >= -GAMUT_EPSILON && v <= 1 + GAMUT_EPSILON);
 
 /**
- * Map an sRGB triple into gamut per CSS Color 4 §14.2 (chroma bisection with a
+ * Map an sRGB triple into gamut per CSS Color 4 section 14.2 (chroma bisection with a
  * local-MINDE clip check). An in-gamut input is returned untouched.
  *
  * The search itself lives in brand-derive.ts#gamutMapOklch. It is THE engine's one
@@ -731,7 +731,7 @@ const RGB_SPACES = new Set<ColorSpaceTag>([
  * wide-gamut value can be written into an SVG paint rather than flattened at the
  * door. Predefined-RGB and XYZ spaces serialise as `color(<space> …)`; the
  * others use their own function. Components authored as `none` are preserved as
- * `none`, per CSS Color 4 §4.4.
+ * `none`, per CSS Color 4 section 4.4.
  */
 export function formatColor(c: CssColor): string {
   const [c0, c1, c2] = c.components;
@@ -913,13 +913,13 @@ export function parseColor(input: string | null | undefined): CssColor | null {
       // L is 0–100 (percent and bare share the scale); a/b percentages are ±125.
       return build('lab', [comp(parts[0]!, 100), comp(parts[1]!, 125), comp(parts[2]!, 125)], a);
     case 'lch':
-      // C 100% = 150 (CSS Color 4 §7.2).
+      // C 100% = 150 (CSS Color 4 section 7.2).
       return build('lch', [comp(parts[0]!, 100), comp(parts[1]!, 150), hueComp(parts[2]!)], a);
     case 'oklab':
       // L is 0–1 (100% = 1); a/b percentages are ±0.4.
       return build('oklab', [comp(parts[0]!, 1), comp(parts[1]!, 0.4), comp(parts[2]!, 0.4)], a);
     case 'oklch':
-      // C 100% = 0.4 (CSS Color 4 §7.3).
+      // C 100% = 0.4 (CSS Color 4 section 7.3).
       return build('oklch', [comp(parts[0]!, 1), comp(parts[1]!, 0.4), hueComp(parts[2]!)], a);
     default:
       return null;

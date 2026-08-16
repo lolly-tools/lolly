@@ -37,13 +37,13 @@ const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
 const geom = makeGeomApi();
 
 /**
- * The pen's hosts. `design` is loaded from brands/lolly-start (parent-owned and
+ * The pen's hosts. `design` is loaded from community/ (public and
  * present in every checkout - brands/suse is a private submodule CI skips, and its copy
  * of hooks.js is byte-identical in this region); `sequence-studio` from the public
  * community pack.
  */
 const HOSTS = [
-  { id: 'design', dir: join(ROOT, 'brands', 'lolly-start', 'tools') },
+  { id: 'design', dir: join(ROOT, 'community') },
 ] as const;
 
 for (const h of HOSTS) {

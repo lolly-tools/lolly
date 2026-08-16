@@ -3,7 +3,7 @@
  * PDF graphics-state INHERITANCE across a form XObject, and the paint sites that
  * depended on it - engine/src/pdf-map.ts.
  *
- * PDF 32000-1 §8.10.1: "the form XObject's content stream shall be executed with the
+ * PDF 32000-1 section 8.10.1: "the form XObject's content stream shall be executed with the
  * current graphics state". The interpreter used to seed every `Do` with a FRESH state,
  * passing through only the CTM and the clip, so `q /GS0 gs /Fm0 Do Q` - the canonical
  * Illustrator/InDesign soft-mask idiom - painted the form's contents at full opacity,
@@ -54,7 +54,7 @@ const form = (content: string, extra: Record<string, unknown> = {}) =>
 
 // ── D1: the root defect ───────────────────────────────────────────────────────
 
-test('a form XObject inherits the soft mask in force (§8.10.1)', () => {
+test('a form XObject inherits the soft mask in force (section 8.10.1)', () => {
   // `q /GS0 gs /Fm0 Do Q` - Illustrator/InDesign's soft-mask idiom.
   const { nodes, warns } = pageW('q /GS0 gs /Fm0 Do Q', {
     extgstates: { GS0: { smask: SHAPE } },
@@ -90,7 +90,7 @@ test('a form XObject inherits fill alpha, stroke colour and line width', () => {
 });
 
 test('a form XObject cannot leak its graphics state back to the caller', () => {
-  // §8.10.1 again: `Do` is state-neutral for the caller. The form paints red at 20%;
+  // section 8.10.1 again: `Do` is state-neutral for the caller. The form paints red at 20%;
   // the rect after it must still be the caller's blue at full strength.
   const { nodes } = pageW('0 0 1 rg /Fm0 Do 10 10 50 50 re f', {
     // A form resolves resource NAMES against its OWN /Resources, so /GR lives there.
@@ -149,7 +149,7 @@ test('text under a soft mask carries the mask', () => {
 });
 
 test('text under a mask group that paints nothing is fully masked out', () => {
-  // §11.6.5.2: an empty group's luminosity is the backdrop = black = 0.
+  // section 11.6.5.2: an empty group's luminosity is the backdrop = black = 0.
   // The group has content but paints nothing (`n` discards the path). An EMPTY
   // content string is a different case: the shell could not decode it, which is the
   // fallback rung, not a black backdrop.

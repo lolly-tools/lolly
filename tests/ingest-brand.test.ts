@@ -11,7 +11,7 @@
  * tests/brand-treatments.test.ts.
  *
  * Then M7's round-trip: a pack's PUBLISHED VERSIONS and the bytes they pin become
- * ordinary catalog assets (plans/97 §6a), a ledger entry the pack cannot back with
+ * ordinary catalog assets (plans/97 section 6a), a ledger entry the pack cannot back with
  * a payload is dropped rather than shipped unloadable, and a pack from a system
  * that never published is written exactly as it was before any of this existed.
  *
@@ -194,7 +194,7 @@ test('a Penpot archive still routes to the Penpot extractor', (t) => {
   assert.equal(brand.color.brand.primary.$value, '#30ba78');
 });
 
-// ── published design-system versions travel into the pack (plans/97 §6a) ─────
+// ── published design-system versions travel into the pack (plans/97 section 6a) ─────
 
 /** A pack whose head document publishes one version pinning one logo, whose
  *  bytes have since been replaced (so the version's copy is frozen). */

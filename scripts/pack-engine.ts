@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
  * pack-engine - produce the distributable, checksummed engine bundle that
- * downstream consumers pin against (see plans/11-commercial-build.md §3.4: the
+ * downstream consumers pin against (see plans/11-commercial-build.md section 3.4: the
  * engine is consumed as a pinned, UNMODIFIED dependency; this script is the
  * publish half, the consumer's verify step is the compliance half).
  *

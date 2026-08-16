@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
- * PDF Standard Security Handler - revision 6 (R6), AES-256 (ISO 32000-2 §7.6.4,
+ * PDF Standard Security Handler - revision 6 (R6), AES-256 (ISO 32000-2 section 7.6.4,
  * originally Adobe's "ExtensionLevel 3"). The pure crypto behind the "Strong lock"
  * PDF export tier.
  *
@@ -93,7 +93,7 @@ export async function hashR6(
   return K.subarray(0, 32);
 }
 
-/** §1 - UTF-8 encode the password and truncate to 127 bytes (byte truncation). */
+/** section 1 - UTF-8 encode the password and truncate to 127 bytes (byte truncation). */
 export function preparePassword(pw: string): Uint8Array {
   const bytes = new TextEncoder().encode(pw);
   return bytes.length > 127 ? bytes.subarray(0, 127) : bytes;
@@ -165,7 +165,7 @@ export async function buildEncryptDictValues(input: EncryptDictInput): Promise<E
 }
 
 /**
- * §8 - encrypt one object's bytes (a string's or a stream's content): a fresh
+ * section 8 - encrypt one object's bytes (a string's or a stream's content): a fresh
  * 16-byte IV prepended to AES-256-CBC-PKCS#7 ciphertext, all under the single file
  * key (R6 has no per-object key). The caller supplies the IV so tests are
  * deterministic; in production it must be fresh CSPRNG bytes per object.

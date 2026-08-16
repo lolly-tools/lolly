@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
- * Brand packs carry published design-system versions (plans/97 §6a).
+ * Brand packs carry published design-system versions (plans/97 section 6a).
  *
  * A version is permanent and addressable, so moving one between devices is not a
  * copy - it is a merge with two rules that cannot be softened, and both are

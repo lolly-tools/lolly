@@ -5,7 +5,7 @@
  * WHAT THIS IS. Every other collab suite in the repo runs under jsdom with stubbed
  * effects: the ceremony machine, the codec, the op guard and the mount seam are all
  * covered there, and none of them ever opens an `RTCPeerConnection`. This file is the
- * other half - plan 100 §10's "loopback pair" and "the real two-tab ceremony
+ * other half - plan 100 section 10's "loopback pair" and "the real two-tab ceremony
  * end-to-end", driven through the SHIPPING UI (Share dialog → invite link → `#/join`
  * → `#/join-reply`) with two real peer connections in one browser.
  *
@@ -24,14 +24,14 @@
  *
  *   • `--disable-features=WebRtcHideLocalIpsWithMdns`. Chrome replaces host candidates
  *     with `<uuid>.local` mDNS names unless a media permission has been granted
- *     (plan 100 §11.1 - the same snag the QR camera prompt incidentally solves for
+ *     (plan 100 section 11.1 - the same snag the QR camera prompt incidentally solves for
  *     real users). A headless container has no mDNS responder to resolve them with, so
  *     the pair would gather candidates and never connect. Turning the obfuscation off
  *     is what makes "host candidates, same machine" true here.
  *   • `--use-fake-ui-for-media-stream` / `--use-fake-device-for-media-stream` so
  *     nothing in the flow can block on a permission prompt.
  *
- * ONE BROWSER CONTEXT, THREE PAGES. `BroadcastChannel` - the §11.25 reply-link handoff
+ * ONE BROWSER CONTEXT, THREE PAGES. `BroadcastChannel` - the section 11.25 reply-link handoff
  * - only reaches same-origin contexts sharing a storage partition, which in Playwright
  * means pages of ONE `BrowserContext`. That is also why the drill can enable the
  * feature flag once: the flag lives on the profile record in IndexedDB (`lolly` →
@@ -362,7 +362,7 @@ function stopDevServer(): void {
  * flag's built-in `default` is TRUE (`shells/web/src/feature-flags.ts` - "it starts on",
  * because a default-off flag met a newcomer with "turn this on in your profile, then open
  * the link again" at the only moment they had a reason to care). A fresh context is
- * therefore a flag-ON device, so the §6.3 enable card can only be reached by a device
+ * therefore a flag-ON device, so the section 6.3 enable card can only be reached by a device
  * whose stored value is `false` - the person who turned it off. That is what the FLAG-OFF
  * drill writes before it opens the invite; without the write it would be measuring the
  * ordinary join flow and calling the absent card a regression.
@@ -680,12 +680,12 @@ let browserLabel = '';
  *  running one without it does not measure the thing it claims to - an absent pill on a
  *  page that never joined is not "the peer left cleanly". */
 let ceremonyOk = false;
-/** The inviter half, recorded separately - see §6.2a: the two roles are not symmetric. */
+/** The inviter half, recorded separately - see section 6.2a: the two roles are not symmetric. */
 let inviterMounted = false;
 let inviterKeptState = '';
 let inviterParticipants = 0;
 /**
- * The connection plate each side showed at connect (§1; Andy's decision, 2026-08-10).
+ * The connection plate each side showed at connect (section 1; Andy's decision, 2026-08-10).
  *
  * Read during the ceremony rather than after it, because the two roles do not hold the
  * screen for the same length of time: the inviter sits on Connected until a human presses
@@ -938,7 +938,7 @@ describe('private collab — real-browser ceremony drills', { skip: GATE ?? fals
     // and the QR are two more renderings of the same single-use payload. The drill cannot
     // fix the first (its base IS a dev server) and nothing should fake it.
 
-    // The LINK leg (§11.25): a third tab in the same context hands the payload to A's
+    // The LINK leg (section 11.25): a third tab in the same context hands the payload to A's
     // waiting dialog over the ceremony BroadcastChannel. Falls back to the paste leg.
     const pageC = await context.newPage();
     watch(pageC, 'C(join-reply)');
@@ -1054,7 +1054,7 @@ describe('private collab — real-browser ceremony drills', { skip: GATE ?? fals
     note(`plates at connect: A=${JSON.stringify(plateA)} (${readA.source}) B=${JSON.stringify(plateB)} (${readB.source})`);
 
     // The INVITER half is measured before any verdict on the pair. It is a separate
-    // claim from "both sides connected" (§6.2a makes the roles asymmetric on purpose),
+    // claim from "both sides connected" (section 6.2a makes the roles asymmetric on purpose),
     // and when the acceptor stalls it is the only half there is evidence for - losing
     // that evidence to a bare `assert.fail` would be throwing away a real result.
     if (await pageA.evaluate(() => Boolean(document.querySelector('[data-act="done"]')))) {
@@ -1147,7 +1147,7 @@ describe('private collab — real-browser ceremony drills', { skip: GATE ?? fals
   });
 
   /**
-   * PLATE - the confirmation, not a carrier (plan 100 §1; Andy's decision, 2026-08-10).
+   * PLATE - the confirmation, not a carrier (plan 100 section 1; Andy's decision, 2026-08-10).
    *
    * The plate is Lolly's ZRTP-style SAS: six characters derived from BOTH DTLS certificate
    * fingerprints, shown on both screens at connect, compared out loud. Its entire security
@@ -1322,7 +1322,7 @@ describe('private collab — real-browser ceremony drills', { skip: GATE ?? fals
         ?? [...document.querySelectorAll('button')].find(b => /turn (it )?on/i.test(b.textContent ?? '')),
       ));
       await shot(page, '20-flag-off-join');
-      // §6.3 "enable-on-accept": the floor is a sentence rather than a dead end, and the
+      // section 6.3 "enable-on-accept": the floor is a sentence rather than a dead end, and the
       // ceiling is an offer the reader can act on without leaving the page. Which of the
       // two arrived is RECORDED as well as asserted - the copy is the evidence when this
       // fails, and the difference between "refused" and "offered" is the whole feature.
@@ -1330,7 +1330,7 @@ describe('private collab — real-browser ceremony drills', { skip: GATE ?? fals
       note(`flag-off #/join → "${title}" / "${body}" (enable-and-continue control present: ${hasEnable})`);
       flagOffCopy = `${title} — ${body}`;
       flagOffHasEnable = hasEnable;
-      assert.equal(hasEnable, true, '§6.3 enable-on-accept: an invite must never dead-end an ungoverned user whose flag is off');
+      assert.equal(hasEnable, true, 'section 6.3 enable-on-accept: an invite must never dead-end an ungoverned user whose flag is off');
       // …and the half that matters: "no reload, no re-paste". Clicking it must walk into
       // the accept ceremony carrying the SAME invite payload.
       await page.evaluate(() => {
@@ -1340,7 +1340,7 @@ describe('private collab — real-browser ceremony drills', { skip: GATE ?? fals
       });
       await page.waitForSelector('[data-act="join"]', { timeout: 45_000 });
       await shot(page, '21-flag-off-enabled');
-      note('§6.3 enable-on-accept: "Turn on and continue" walked straight into the accept ceremony (no reload, no re-paste)');
+      note('section 6.3 enable-on-accept: "Turn on and continue" walked straight into the accept ceremony (no reload, no re-paste)');
     } finally {
       await clean.close().catch(() => {});
     }
@@ -1542,7 +1542,7 @@ describe('private collab — real-browser ceremony drills', { skip: GATE ?? fals
     await pageB.reload({ waitUntil: 'domcontentloaded' });
     await pageB.waitForSelector(`[data-input-id="${FIELD}"], [data-collab-join]`, { timeout: 60_000 });
     // A reload destroys the peer connection; a private collab has no server to resume
-    // from (plan 100 §6.1: "a dropped connection needs a fresh ceremony"). The only
+    // from (plan 100 section 6.1: "a dropped connection needs a fresh ceremony"). The only
     // wrong outcome is a pill still claiming a live pair.
     const claims = await pageB.evaluate(() => {
       const pill = document.querySelector('.collab-pill');

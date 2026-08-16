@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
- * design-version.ts - the pure model behind versioned design systems (plans/97 §6a).
+ * design-version.ts - the pure model behind versioned design systems (plans/97 section 6a).
  *
  * The edit head (`user/tokens/brand`) is always `-latest`; a published version is
  * an immutable sibling asset `user/tokens/brand/<slug>`, and the head doc carries
@@ -259,7 +259,7 @@ export function versionAssetId(headId: string, slug: string): string {
 
 /**
  * True when `id` is a published version OF `headId` - the discovery-exclusion
- * predicate of §6a: default tokens discovery skips descendants of a head id, so
+ * predicate of section 6a: default tokens discovery skips descendants of a head id, so
  * `user/tokens/brand/jupiter` can never be picked as "the design system", while
  * an unrelated `user/tokens/brandx` is untouched (segment boundary, not prefix).
  */
@@ -286,7 +286,7 @@ export function pickHeadAssetId(ids: readonly string[]): string | null {
 }
 
 /**
- * The §6a resolution ladder: explicit override → manifest pin → active version →
+ * The section 6a resolution ladder: explicit override → manifest pin → active version →
  * the head. A slug that names no known version falls through to the next rung
  * rather than failing the render - a tool pinned to a version the user never
  * imported still draws, against the next-best system. `latest` is reserved for

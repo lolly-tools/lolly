@@ -1,12 +1,12 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
- * C2PA 2.4 WRITE SIDE - the three additions plan 105 §5 asks the manifest
+ * C2PA 2.4 WRITE SIDE - the three additions plan 105 section 5 asks the manifest
  * builder for, none of which touches a container:
  *
- *   1. `aiDisclosure`  → the §18.28 `c2pa.ai-disclosure` assertion,
+ *   1. `aiDisclosure`  → the section 18.28 `c2pa.ai-disclosure` assertion,
  *   2. `specVersion`   → inside `claim_generator_info` (2.4 moved it out of the
  *                        claim, where it is now deprecated),
- *   3. `buildExternalC2paStore` → §11.4 / §A.7.1.2's EXTERNAL manifest: a store
+ *   3. `buildExternalC2paStore` → section 11.4 / section A.7.1.2's EXTERNAL manifest: a store
  *      that binds the whole asset with no exclusion range and is never placed
  *      inside it (the M5 page-seal primitive: page bytes in, `.c2pa` sidecar out).
  *
@@ -22,16 +22,16 @@
  * store's hash is recomputed as a plain sha256 over the page bytes. A standing
  * TODO stays open to re-run this against c2pa-rs the release it lands handlers.
  *
- * CONTRACT (from §18.28, §10.2.3, §11.4, §A.7.1.3):
+ * CONTRACT (from section 18.28, section 10.2.3, section 11.4, section A.7.1.3):
  *   * label `c2pa.ai-disclosure`; `modelType` is the one required field and
  *     defaults to Table 12's generic `c2pa.types.model`; oversight nests under
  *     `contentProfile.humanOversightLevel`; `scientificDomain` is a LIST.
- *   * the disclosure is a CREATED assertion (§2776 - created assertions are the
+ *   * the disclosure is a CREATED assertion (section 2776 - created assertions are the
  *     ones attributed to the signer, which is what a disclosure is).
  *   * `specVersion` is a SemVer string in `claim_generator_info`, never in the
- *     claim, and is purely informational (§10.2.3.1) - nothing branches on it.
+ *     claim, and is purely informational (section 10.2.3.1) - nothing branches on it.
  *   * an external manifest's data hash "shall have no exclusion range; the hash
- *     shall be computed over the entire document" (§A.7.1.3), and since the CDDL
+ *     shall be computed over the entire document" (section A.7.1.3), and since the CDDL
  *     is `? "exclusions": [1* EXCLUSION_RANGE-map]`, "no range" means the key is
  *     ABSENT, not an empty array.
  *   * absent options change nothing: same inputs minus the new keys produce
@@ -106,7 +106,7 @@ function cbor(bytes: Uint8Array): unknown {
 
 // ─── fixtures ─────────────────────────────────────────────────────────────────
 
-/** A §A.7.1.2 HTML document that POINTS at its manifest - the M5 page shape.
+/** A section A.7.1.2 HTML document that POINTS at its manifest - the M5 page shape.
  *  The `<link>` is inside the hash (there is no exclusion), so it must already
  *  be present in the bytes that get signed. */
 const pageHtml = (body = 'Content here.'): string =>
@@ -157,9 +157,9 @@ const claimOf = (store: Uint8Array): Map<unknown, unknown> => {
   return claim;
 };
 
-// ═══ §18.28 - the ai-disclosure assertion ═════════════════════════════════════
+// ═══ section 18.28 - the ai-disclosure assertion ═════════════════════════════════════
 
-test('§18.28 — aiDisclosure is written in the spec\'s own shape, defaults modelType, and nests oversight', async () => {
+test('section 18.28 — aiDisclosure is written in the spec\'s own shape, defaults modelType, and nests oversight', async () => {
   const store = await buildC2paManifest({
     title: 'Masthead',
     claimGenerator: 'Lolly lolly.tools',
@@ -171,25 +171,25 @@ test('§18.28 — aiDisclosure is written in the spec\'s own shape, defaults mod
 
   const m = cbor(assertionOf(store, AI_DISCLOSURE_ASSERTION).content) as Map<string, unknown>;
   assert.ok(m instanceof Map, 'the disclosure is a CBOR map');
-  // §18.28.2: "The value of the modelType field ... shall be present". The caller
+  // section 18.28.2: "The value of the modelType field ... shall be present". The caller
   // named no model type, so Table 12's generic entry is written rather than a
   // guessed framework or a missing required field.
   assert.equal(m.get('modelType'), AI_MODEL_TYPE_GENERIC);
   assert.equal(m.get('modelName'), 'Claude Fable 5');
   assert.equal(m.get('modelIdentifier'), 'claude-fable-5');
-  // §18.28.4: humanOversightLevel lives inside content-profile-map, not at the
+  // section 18.28.4: humanOversightLevel lives inside content-profile-map, not at the
   // top level - the writer's flattened `oversight` input must land nested.
   const profile = m.get('contentProfile');
   assert.ok(profile instanceof Map, 'contentProfile is a nested map');
   assert.equal(profile.get('humanOversightLevel'), 'prompt_guided');
   // `$scientific-domain-list /= 1* $scientific-domain-string` - a list, even
-  // though §18.28.4's own example ships a bare string.
+  // though section 18.28.4's own example ships a bare string.
   assert.deepEqual(m.get('scientificDomain'), ['cs.AI']);
   // Nothing else: a disclosure that invented fields would be a claim nobody made.
   assert.deepEqual([...m.keys()], ['modelType', 'modelName', 'modelIdentifier', 'contentProfile', 'scientificDomain']);
 });
 
-test('§18.28 — the disclosure is a CREATED assertion, referenced by a hashed URI that checks out', async () => {
+test('section 18.28 — the disclosure is a CREATED assertion, referenced by a hashed URI that checks out', async () => {
   const store = await buildC2paManifest({
     aiDisclosure: { modelName: 'Claude Fable 5', oversight: 'human_validated' },
     assetHash: { exclusions: [{ start: 0, length: 4 }], hash: new Uint8Array(32).fill(1) },
@@ -198,7 +198,7 @@ test('§18.28 — the disclosure is a CREATED assertion, referenced by a hashed 
   const created = claim.get('created_assertions') as Array<Map<string, unknown>>;
   assert.ok(Array.isArray(created), 'v2 claim splits references into created_assertions');
   const ref = created.find((r) => r.get('url') === `self#jumbf=c2pa.assertions/${AI_DISCLOSURE_ASSERTION}`);
-  assert.ok(ref, 'the disclosure is referenced from created_assertions (§2776: attributed to the signer)');
+  assert.ok(ref, 'the disclosure is referenced from created_assertions (section 2776: attributed to the signer)');
   // Never in gathered_assertions - nothing here was gathered from an ingredient.
   assert.equal(claim.get('gathered_assertions'), undefined);
   // Recompute the hashed URI here: sha256 over the assertion superbox payload
@@ -207,7 +207,7 @@ test('§18.28 — the disclosure is a CREATED assertion, referenced by a hashed 
   assert.equal(hex(ref.get('hash') as Uint8Array), hex(await sha256(payload)), 'hashed URI matches the assertion bytes');
 });
 
-test('§18.28 — a disclosure round-trips into the reader\'s report.aiDisclosure', async () => {
+test('section 18.28 — a disclosure round-trips into the reader\'s report.aiDisclosure', async () => {
   const page = utf8(pageHtml());
   const store = await buildExternalC2paStore(page, {
     title: 'Signed page',
@@ -230,7 +230,7 @@ test('§18.28 — a disclosure round-trips into the reader\'s report.aiDisclosur
   assert.equal(report.aiDisclosures, undefined);
 });
 
-test('§18.28 — malformed enums are refused at write time, not silently written', async () => {
+test('section 18.28 — malformed enums are refused at write time, not silently written', async () => {
   const base = { assetHash: { exclusions: [{ start: 0, length: 1 }], hash: new Uint8Array(32) } };
   await assert.rejects(
     () => buildC2paManifest({ ...base, aiDisclosure: { oversight: 'reviewed' as never } }),
@@ -240,25 +240,25 @@ test('§18.28 — malformed enums are refused at write time, not silently writte
   await assert.rejects(
     () => buildC2paManifest({ ...base, aiDisclosure: { scientificDomain: 'artificial intelligence' } }),
     /arXiv taxonomy term/,
-    'a scientificDomain the §18.28.4 regexp rejects is refused',
+    'a scientificDomain the section 18.28.4 regexp rejects is refused',
   );
   await assert.rejects(
     () => buildC2paManifest({ ...base, aiDisclosure: { modelType: '   ' } }),
     /modelType cannot be empty/,
-    'an empty modelType is refused (§18.28.2 requires the field)',
+    'an empty modelType is refused (section 18.28.2 requires the field)',
   );
 });
 
-test('§18.28.2 — modelType is checked against Table 12, and the c2pa namespace cannot be invented in', async () => {
+test('section 18.28.2 — modelType is checked against Table 12, and the c2pa namespace cannot be invented in', async () => {
   // "The value of the modelType field is an enumeration of AI model types defined
   // in Table 12, 'Model type values' and it shall be present in the
   // ai-model-disclosure-map object." Two of the three constrained fields were
   // validated and the REQUIRED one was not: any non-empty string was written.
   //
-  // §18.28.4's CDDL widens the socket (`$model-type-choice /= tstr`), and
-  // §18.21.1 spells out the escape hatch for the neighbouring asset type - "or
+  // section 18.28.4's CDDL widens the socket (`$model-type-choice /= tstr`), and
+  // section 18.21.1 spells out the escape hatch for the neighbouring asset type - "or
   // use an entity-specific namespace (e.g., com.litware.types.abc), conforming to
-  // the syntax defined for assertion labels in §6.2.2" - so the rule is Table 12
+  // the syntax defined for assertion labels in section 6.2.2" - so the rule is Table 12
   // OR someone else's namespace, never an invented c2pa.* value.
   const base = { assetHash: { exclusions: [{ start: 0, length: 1 }], hash: new Uint8Array(32) } };
   const written = async (modelType: string): Promise<Record<string, unknown>> => {
@@ -267,7 +267,7 @@ test('§18.28.2 — modelType is checked against Table 12, and the c2pa namespac
     return Object.fromEntries(cbor(a.content) as Map<string, unknown>);
   };
   assert.deepEqual(await written('c2pa.types.model.onnx'), { modelType: 'c2pa.types.model.onnx' }, 'a Table 12 value is written through');
-  assert.deepEqual(await written('com.litware.types.abc'), { modelType: 'com.litware.types.abc' }, '§6.2.2 entity namespace accepted');
+  assert.deepEqual(await written('com.litware.types.abc'), { modelType: 'com.litware.types.abc' }, 'section 6.2.2 entity namespace accepted');
   for (const bad of ['not.a.c2pa.type at all', 'c2pa.types.model.invented', 'c2pa.types.dataset.onnx', 'model', '.leading.dot']) {
     await assert.rejects(
       () => buildC2paManifest({ ...base, aiDisclosure: { modelType: bad } }),
@@ -282,9 +282,9 @@ test('§18.28.2 — modelType is checked against Table 12, and the c2pa namespac
   assert.ok(AI_MODEL_TYPES.every((t) => t === AI_MODEL_TYPE_GENERIC || t.startsWith('c2pa.types.model.')));
 });
 
-// ═══ §10.2.3 - specVersion in claim_generator_info ════════════════════════════
+// ═══ section 10.2.3 - specVersion in claim_generator_info ════════════════════════════
 
-test('§10.2.3 — specVersion is written inside claim_generator_info, never in the claim', async () => {
+test('section 10.2.3 — specVersion is written inside claim_generator_info, never in the claim', async () => {
   const store = await buildC2paManifest({
     claimGenerator: 'Lolly lolly.tools',
     generatorInfo: { name: 'Lolly', version: '1.116.0' },
@@ -307,7 +307,7 @@ test('§10.2.3 — specVersion is written inside claim_generator_info, never in 
   assert.equal(agent.get('specVersion'), undefined, 'specVersion is not repeated on every action');
 });
 
-test('§10.2.3 — the reader reads specVersion back off the generator info', async () => {
+test('section 10.2.3 — the reader reads specVersion back off the generator info', async () => {
   const page = utf8(pageHtml());
   const store = await buildExternalC2paStore(page, {
     generatorInfo: { name: 'Lolly', version: '1.116.0' },
@@ -318,7 +318,7 @@ test('§10.2.3 — the reader reads specVersion back off the generator info', as
   assert.equal(report.specVersion, '2.4.0');
 });
 
-test('§10.2.3 — a specVersion the CDDL\'s semver-string rejects is refused', async () => {
+test('section 10.2.3 — a specVersion the CDDL\'s semver-string rejects is refused', async () => {
   await assert.rejects(
     () => buildC2paManifest({ specVersion: '2.4', assetHash: { exclusions: [{ start: 0, length: 1 }], hash: new Uint8Array(32) } }),
     /specVersion must be a SemVer string/,
@@ -349,9 +349,9 @@ test('the two new options are absent by default — same inputs, byte-identical 
   assert.throws(() => assertionOf(plain, AI_DISCLOSURE_ASSERTION), /no c2pa\.ai-disclosure assertion/);
 });
 
-// ═══ §11.4 / §A.7.1.2 - the external (sidecar) store ══════════════════════════
+// ═══ section 11.4 / section A.7.1.2 - the external (sidecar) store ══════════════════════════
 
-test('§A.7.1.3 — an external store binds the WHOLE document: no exclusions key, hash over every byte', async () => {
+test('section A.7.1.3 — an external store binds the WHOLE document: no exclusions key, hash over every byte', async () => {
   const page = utf8(pageHtml());
   const store = await buildExternalC2paStore(page, { title: 'Signed page' });
 
@@ -369,7 +369,7 @@ test('§A.7.1.3 — an external store binds the WHOLE document: no exclusions ke
   assert.equal(parseC2paStore(store).claimVersion, 2);
 });
 
-test('§11.4 — the sidecar verifies against the unmodified page and fails against an edited one', async () => {
+test('section 11.4 — the sidecar verifies against the unmodified page and fails against an edited one', async () => {
   const page = utf8(pageHtml());
   const store = await buildExternalC2paStore(page, {
     title: 'Signed page',
@@ -398,7 +398,7 @@ test('§11.4 — the sidecar verifies against the unmodified page and fails agai
   assert.ok(bad.checks.some((c) => !c.ok && c.code === 'assertion.dataHash.mismatch'), 'the hard binding catches it');
   assert.equal(bad.madeWithLolly, false);
   // The claim itself is intact - only the bytes moved - so the softer verdict is
-  // the honest one for a re-serialized page (§A.7.1.3's own warning).
+  // the honest one for a re-serialized page (section A.7.1.3's own warning).
   assert.equal(bad.likelyMadeWithLolly, true);
 
   // A one-byte truncation is still a mismatch, never a crash or a pass.
@@ -406,7 +406,7 @@ test('§11.4 — the sidecar verifies against the unmodified page and fails agai
   assert.equal((await verifyC2pa(cut, { externalManifest: store })).state, 'invalid');
 });
 
-test('§A.7.1.4 — without the sidecar the page reports "referenced but not obtained", not "no credential"', async () => {
+test('section A.7.1.4 — without the sidecar the page reports "referenced but not obtained", not "no credential"', async () => {
   const page = utf8(pageHtml());
   const report = await verifyC2pa(page);
   assert.equal(report.found, true);
@@ -415,8 +415,8 @@ test('§A.7.1.4 — without the sidecar the page reports "referenced but not obt
   assert.equal(report.textBinding?.manifestUrl, '/info/example.c2pa');
 });
 
-test('§11.4 — ingredients ride into the external store and the chain reads back', async () => {
-  // A signed masthead: its own store, its own claim, its own §18.28 disclosure - 
+test('section 11.4 — ingredients ride into the external store and the chain reads back', async () => {
+  // A signed masthead: its own store, its own claim, its own section 18.28 disclosure - 
   // the M4 artifact, built here without a container so the test stays about the
   // ingredient machinery rather than about SVG splicing.
   const masthead = utf8('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 4 4"><rect width="4" height="4"/></svg>');
@@ -429,9 +429,9 @@ test('§11.4 — ingredients ride into the external store and the chain reads ba
     specVersion: C2PA_SPEC_VERSION,
   });
   // An external store is only ever consulted for an asset that REFERENCES one
-  // (§A.7.1.2's link element), which SVG has no form of - so a bare SVG plus a
+  // (section A.7.1.2's link element), which SVG has no form of - so a bare SVG plus a
   // sidecar reads as no credential, not as a broken one. That is exactly why M4
-  // embeds a masthead's store in the SVG (§A.3.3) and only the M5 page uses the
+  // embeds a masthead's store in the SVG (section A.3.3) and only the M5 page uses the
   // sidecar form; this fixture is here for the ingredient machinery.
   assert.equal((await verifyC2pa(masthead, { externalManifest: mastheadStore })).state, 'none');
 
@@ -477,8 +477,8 @@ test('§11.4 — ingredients ride into the external store and the chain reads ba
   assert.equal(disclosure.get('modelName'), 'Claude Fable 5');
 });
 
-test('§11.4 — a signed FILE is packageable as an ingredient of a page seal (the M4 → M5 path)', async () => {
-  // The real component shape: an SVG that carries its own store (§A.3.3), which
+test('section 11.4 — a signed FILE is packageable as an ingredient of a page seal (the M4 → M5 path)', async () => {
+  // The real component shape: an SVG that carries its own store (section A.3.3), which
   // is what /info/mastheads/<id>.svg serves and what "Check it yourself" verifies.
   const svg = utf8('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 8 8"><circle cx="4" cy="4" r="3"/></svg>');
   const signedSvg = await embedC2pa(svg, 'svg', {
@@ -530,7 +530,7 @@ test('c2pa-rs reads the sidecar store: signature, hashed URIs, ai-disclosure and
   // But the store is an ordinary JUMBF manifest store, and c2patool reads one
   // straight from a `.c2pa` file - so everything except the asset hash gets a
   // genuinely independent verdict here: the COSE signature, every hashed URI
-  // (the §18.28 assertion included), and the 2.4 placement of specVersion.
+  // (the section 18.28 assertion included), and the 2.4 placement of specVersion.
   const page = utf8(pageHtml());
   const store = await buildExternalC2paStore(page, {
     title: 'Signed page',
@@ -571,7 +571,7 @@ test('c2pa-rs reads the sidecar store: signature, hashed URIs, ai-disclosure and
   assert.deepEqual(failures.map((f) => f.code).sort(), ['assertion.dataHash.mismatch', 'signingCredential.untrusted']);
 });
 
-test('§11.4 — an enrolled/explicit signer and dates flow through the external path', async () => {
+test('section 11.4 — an enrolled/explicit signer and dates flow through the external path', async () => {
   const page = utf8(pageHtml());
   const signer = await generateSigner({ notBefore: new Date(Date.now() - 60_000), notAfter: new Date(Date.now() + 86_400_000) });
   const store = await buildExternalC2paStore(page, {

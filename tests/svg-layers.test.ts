@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
- * Goldens for engine/src/svg-layers.ts - "Lift layers" (plans/104 §7 P3).
+ * Goldens for engine/src/svg-layers.ts - "Lift layers" (plans/104 section 7 P3).
  *
  * The essential assertion in this file is the PARTITION property, and here is
- * why it is the one to have. §7's exit criterion is "N lifted
+ * why it is the one to have. section 7's exit criterion is "N lifted
  * layers at z = 0 render byte-identical to the un-lifted original", and there
  * are two ways to check that. One is to rasterise both and compare pixels,
  * which needs a browser and answers about the *renderer* as much as about us - 
@@ -248,7 +248,7 @@ test('layers always come back in paint order, whatever the clustering did', () =
 // ─── the pathological <use> ─────────────────────────────────────────────────
 
 test('a cross-group <use> keeps working: the referent is copied into that layer\'s <defs>', () => {
-  // §11's named risk. Lift these apart naively and layer 2 draws nothing.
+  // section 11's named risk. Lift these apart naively and layer 2 draws nothing.
   const body = '<g id="a"><path id="p" d="M0 0 L10 0 L10 10 Z" fill="#123"/></g><g id="b"><use href="#p" x="30"/></g>';
   const r = enumerateSvgLayers(doc(body));
   assert.equal(r.layers.length, 2);

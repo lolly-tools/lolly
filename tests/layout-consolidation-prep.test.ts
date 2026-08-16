@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
- * Design - the consolidation-prep parity gaps (plans/104 §9.2's P1 side-fix note +
+ * Design - the consolidation-prep parity gaps (plans/104 section 9.2's P1 side-fix note +
  * the retirement inventory: Sequence Studio retires into Design, so Design
  * has to grow the three capabilities its manifest was missing BEFORE the tool goes away).
  *
@@ -55,13 +55,10 @@ const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
  *  (tests/README.md, "Private brand content"): a public checkout skips the SUSE half
  *  cleanly, but with the pack mounted a missing tool dir FAILS - a renamed or deleted
  *  variant must not be able to turn this suite green. */
-const SUSE_MOUNTED = existsSync(join(ROOT, 'brands', 'suse', 'tools'));
-if (SUSE_MOUNTED) {
-  assert.ok(existsSync(join(ROOT, 'brands', 'suse', 'tools', 'design', 'tool.json')),
-    'brands/suse/tools/design is missing — the pack is mounted, so the tool was renamed or deleted');
-}
-const BRANDS: readonly string[] = SUSE_MOUNTED ? ['lolly-start', 'suse'] : ['lolly-start'];
-const packDir = (brand: string): string => join(ROOT, 'brands', brand, 'tools');
+// design is single-sourced in the public community pack (2026-08-16 consolidation);
+// the per-pack loop shape survives so a future re-fork slots back in.
+const BRANDS: readonly string[] = ['community'];
+const packDir = (pack: string): string => join(ROOT, pack);
 
 interface FieldSpec { id: string; type?: string; label?: string; default?: unknown; showFor?: string[] }
 interface AddKind { id: string; label?: string; seed?: Record<string, unknown> }
@@ -187,13 +184,13 @@ test('G2 — canvas.import lists the full design-format set, and scenes mode sta
 });
 
 test('P1 — the CAMERA add-kind is back, inside the timed group, seeding kind:"camera"', () => {
-  // M0 gated it out of all three manifests on purpose (§9.2): the wire and the hooks'
+  // M0 gated it out of all three manifests on purpose (section 9.2): the wire and the hooks'
   // marker shipped, but no affordance could CREATE a camera until P1 wired the
   // inspector and the canvas gestures. This is that re-add, and it is the only thing
   // standing between a user and the depth camera.
   //
   // Placed at the END of the timed group (audio, clip, card, camera) rather than
-  // immediately after `audio` as §9.2 sketched: the sketch predates the clip/card pair
+  // immediately after `audio` as section 9.2 sketched: the sketch predates the clip/card pair
   // the safe-pack inserted, and G3 below pins those three as one adjacent group because
   // the timeline's add menu reads in manifest order. Same group, same reading, no pin
   // broken.
@@ -211,7 +208,7 @@ test('P1 — the CAMERA add-kind is back, inside the timed group, seeding kind:"
   }
 
   // (The THIRD COPY was Sequence Studio in `community/`. It has been RETIRED into Design
-  // (plans/104), so §9.2's "three manifests" is now the two brand copies above.)
+  // (plans/104), so section 9.2's "three manifests" is now the two brand copies above.)
 });
 
 test('G3 — the magnetic-row seeds (clip, card) ship beside the existing media kinds', () => {
@@ -448,8 +445,9 @@ test('design ships exactly the two migrated example looks, in both packs', () =>
 });
 
 test('each pack uses its OWN typeface, never the other pack\'s — the copies diverge by brand', () => {
-  // The one field where a file-copy between packs (instead of a per-copy edit) shows up:
-  // lolly-start declares sans/mono, brands/suse declares SUSE/SUSE Mono. The option-list
+  // The one field where a file-copy between packs (instead of a per-copy edit) shows up.
+  // With design single-sourced in community this runs over one pack; if a brand fork
+  // ever returns, it must declare its own typefaces and rejoin this loop. The option-list
   // check above already fails a cross-pack value; this asserts the positive case so an
   // empty/absent `font` cannot pass by saying nothing.
   for (const brand of BRANDS) {

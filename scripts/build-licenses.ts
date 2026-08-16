@@ -321,7 +321,7 @@ avoid divergence; it ships verbatim with the fonts at:
 
 and is also carried in-band in every binary's name table (IDs 0, 13, 14).
 "SUSE" is a trademark of SUSE; the OFL grant does not include trademark
-rights (see OFL §3-4).`;
+rights (see OFL section 3-4).`;
 
 // world-atlas TopoJSON bundled for the meeting-planner map.
 const WORLD_ATLAS_TEXT = `tools/meeting-planner/lib/countries-110m.json is a world-atlas TopoJSON

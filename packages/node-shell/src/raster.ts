@@ -10,7 +10,7 @@ import { parseDimension, toPixels, fromU8Srgb, hdrViewTransform } from '@lolly/e
 import type { DeepFrame } from '@lolly/engine';
 // DEEP RELATIVE IMPORTS, not the `@lolly/engine` barrel: exr.ts and radiance.ts are
 // deliberately engine-internal (their own module headers say so; see the bytes.ts /
-// gainmap.ts precedent recorded in plans/61-deeprichpixels.md §9c). They are consumed by
+// gainmap.ts precedent recorded in plans/61-deeprichpixels.md section 9c). They are consumed by
 // deep-path import, exactly the way packages/node-shell/src/pptx.ts reaches
 // engine/src/pptx-read.ts. Nothing was added to the barrel for this feature.
 import { packExr, type ExrPixelType } from '../../../engine/src/exr.ts';
@@ -31,10 +31,10 @@ import { repoRoot } from './repo-root.ts';
 export const NODE_FORMATS = ['svg', 'svgz', 'emf', 'wmf', 'eps', 'eps-cmyk', 'dxf', 'bmp', 'exr', 'hdr', 'html', 'json', 'csv', 'ics', 'vcf', 'md'];
 
 /**
- * The float interchange formats (plans/61-deeprichpixels.md §4.2 / §6 B3, surfaced
- * CLI-first per §10 item 4): OpenEXR and Radiance RGBE.
+ * The float interchange formats (plans/61-deeprichpixels.md section 4.2 / section 6 B3, surfaced
+ * CLI-first per section 10 item 4): OpenEXR and Radiance RGBE.
  *
- * These are deliberately NOT declared per tool in `tool.json`. §10's "deliberately
+ * These are deliberately NOT declared per tool in `tool.json`. section 10's "deliberately
  * not doing" list rules out per-tool depth declarations: depth is an export
  * concern, and tools stay declarative. So adding `"exr"` to 60-odd manifests (and to
  * the schema enum, and to every per-brand generated catalog index) would be exactly
@@ -238,7 +238,7 @@ export async function rasterizeSvgToRgba(
  * (engine/src/pixel-watermark.ts) WITHOUT a browser.
  *
  * Why it exists: the Imprint became a default-on mark for the terminal shells
- * (plans/73-cli-ga-contract.md §12 O2, Andy 2026-08-01), and the only place it could be
+ * (plans/73-cli-ga-contract.md section 12 O2, Andy 2026-08-01), and the only place it could be
  * applied before was the web shell inside the scoped Chromium. Leaving it that way
  * would have made an ordinary `lolly qr-code --export=png` demand a 200 MB browser
  * download for a mark nobody asked for. A default that turns a working command into
@@ -291,7 +291,7 @@ export async function rasterizeSvgToBmp(
   return encodeBmp(rgba, frame.width, frame.height);
 }
 
-// ─── the pro float formats (plans/61-deeprichpixels.md §6 B3, §10 item 4) ────────
+// ─── the pro float formats (plans/61-deeprichpixels.md section 6 B3, section 10 item 4) ────────
 
 /** HDR view-transform request, in the author's 0–100 dial units (url-mode's
  *  HdrSettings) plus the brand colours to boost. Absent means no float source. */
@@ -402,7 +402,7 @@ export interface DeepRasterRequest {
  * pushes matched brand colours and near-whites up to `peakNits / 203` in linear
  * light: values above 1.0 that no integer container can hold at all. Those bits
  * are *generated* by continuous float maths (the OKLab match, the smoothstep knee,
- * the Rec.709→2020 matrix), which is the same honesty argument §9b made for the
+ * the Rec.709→2020 matrix), which is the same honesty argument section 9b made for the
  * 16-bit HDR PNG. What is not claimed is a deeper *source*: the underlying raster
  * is still 256 levels per channel, and without `hdr=` there is nothing above 1.0
  * to preserve. That is why the refusal exists.
@@ -431,7 +431,7 @@ export async function renderDeepRaster(req: DeepRasterRequest): Promise<{ bytes:
   if (fmt === 'hdr') {
     // Radiance ignores `depth`: RGBE is one shared exponent per pixel, full stop.
     if (req.depth === 'float' || req.depth === 16 || req.depth === 8) {
-      req.log?.('info', `Note: depth=${req.depth} is not a Radiance .hdr option — RGBE is 8-bit mantissas with one shared exponent per pixel. Wrote RGBE.`);
+      req.log?.('info', `Note: depth=${req.depth} is not a Radiance .hdr option - RGBE is 8-bit mantissas with one shared exponent per pixel. Wrote RGBE.`);
     }
     return {
       bytes: packRadiance(frame, { software: 'Lolly', comments: ['Rec.2020 primaries, linear light, 1.0 = 203 nits (BT.2408 diffuse white)'] }),
@@ -445,7 +445,7 @@ export async function renderDeepRaster(req: DeepRasterRequest): Promise<{ bytes:
   let pixelType: ExrPixelType = 'half';
   if (req.depth === 'float') pixelType = 'float';
   else if (req.depth === 8 || req.depth === 16) {
-    req.log?.('info', `Note: depth=${req.depth} has no OpenEXR sample type (EXR is float-only) — wrote HALF. Use depth=float for 32-bit samples.`);
+    req.log?.('info', `Note: depth=${req.depth} has no OpenEXR sample type (EXR is float-only) - wrote HALF. Use depth=float for 32-bit samples.`);
   }
   return {
     bytes: packExr(frame, {

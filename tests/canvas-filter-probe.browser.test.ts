@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
- * The ctx.filter functional probe - THE BROWSER TIER (plan 104 §11 S1).
+ * The ctx.filter functional probe - THE BROWSER TIER (plan 104 section 11 S1).
  *
  * `shells/web/src/lib/canvas-filter-probe.test.ts` pins the decision table headlessly
  * against stub contexts. What no Node process can answer is the question the spike was
@@ -12,7 +12,7 @@
  * It asserts nothing engine-specific - a build with no `ctx.filter` at all (WebKit 26.5
  * is one, measured 2026-08-11) passes these assertions with every verdict false. What is
  * asserted is that the module's verdict MATCHES an independent in-page measurement, and
- * that all three context kinds agree, which is §11 S1's "per-engine, not per-thread"
+ * that all three context kinds agree, which is section 11 S1's "per-engine, not per-thread"
  * claim. The measured matrix is logged either way.
  *
  * GATING follows `sequence-render.browser.test.ts`: no browser installed -> the whole
@@ -192,9 +192,9 @@ describe('ctx.filter functional probe (browser tier)', { skip: gate ?? false, co
   });
 
   test('support is per-engine, not per-thread — all three kinds agree', () => {
-    // The §11 S1 finding the fallback lane is designed around. If this ever fails,
+    // The section 11 S1 finding the fallback lane is designed around. If this ever fails,
     // the plan's "probe once per kind" is still safe (each kind is probed), but the
-    // claim that one verdict describes the engine is not, and §5.5 needs revisiting.
+    // claim that one verdict describes the engine is not, and section 5.5 needs revisiting.
     assert.equal(matrix.offscreenMain.verdict, matrix.main.verdict, 'OffscreenCanvas (main thread) vs canvas');
     assert.equal(matrix.offscreenWorker.verdict, matrix.main.verdict, 'OffscreenCanvas (worker) vs canvas');
   });

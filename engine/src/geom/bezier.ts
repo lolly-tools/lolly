@@ -311,7 +311,7 @@ function rootInBracket(
  * offset.ts isolates ITS quintic (dκ/dt) differently - Bernstein form plus Descartes'
  * rule, subdividing until one sign change is left. That is equally complete and it is the
  * better shape when the answer only has to be good to ~1e-7, which is all a split point
- * needs. It is the worse shape here, where the answer is a measured distance and has to be
+ * needs. It is the worse shape for this job, where the answer is a measured distance and has to be
  * exact: Descartes converges linearly, so machine precision costs ~50 subdivisions of a
  * six-coefficient array. It also lives one layer up and cannot be imported down without a
  * cycle. Two isolators, two different precision requirements, on purpose.

@@ -147,7 +147,7 @@ test('a noted slide emits a notesSlide + the shared notesMaster, and the slide r
   const rels = parts['ppt/slides/_rels/slide1.xml.rels'] as string;
   assert.match(rels, /Id="rId2" Type="[^"]*\/notesSlide" Target="\.\.\/notesSlides\/notesSlide1\.xml"/);
   // The notesSlide relates back to its own slide and to the shared master. ECMA-376
-  // §13.3.5 permits the back-rel rather than requiring it, but every real producer
+  // section 13.3.5 permits the back-rel rather than requiring it, but every real producer
   // emits it - don't be the one deck that doesn't.
   const nRels = parts['ppt/notesSlides/_rels/notesSlide1.xml.rels'] as string;
   assert.match(nRels, /Id="rId1" Type="[^"]*\/slide" Target="\.\.\/slides\/slide1\.xml"/);

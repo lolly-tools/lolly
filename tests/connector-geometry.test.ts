@@ -476,13 +476,13 @@ test('routedLineSvg: an elbow route corner-fits its dashes per span', () => {
 // ── Design: the unified render, end to end (plan 96 P3/P5) ──────────────
 //
 // The pieces above are the engine's. This drives the REAL parent-owned pack (brands/
-// lolly-start, present in every public checkout) through the engine, because the thing
+// community, present in every public checkout) through the engine, because the thing
 // worth guarding is the SEAM: a free path draws inside its own box <svg>, a bound one
 // steps aside and is drawn by connector management in the canvas-sized layer, and both
 // carry the same decorations from the same primitives. Getting that wrong draws a
 // connector twice, or not at all.
 
-const LS_PACK = join(dirname(fileURLToPath(import.meta.url)), '..', 'brands', 'lolly-start', 'tools');
+const LS_PACK = join(dirname(fileURLToPath(import.meta.url)), '..', 'community');
 const lsTool: any = await loadTool('design', (p: string) => readFile(join(LS_PACK, p), 'utf8'));
 const LS_HOST = (): unknown => baseHost({ connectors: makeConnectorsApi(), geom: makeGeomApi() });
 

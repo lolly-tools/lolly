@@ -57,9 +57,9 @@ export interface CredentialFacts {
   dimensions: string | null;
   /** Set when the credential declares AI-generated or AI-composited content. */
   ai: 'generated' | 'composite' | undefined;
-  /** §18.28 c2pa.ai-disclosure model name, e.g. "Claude Fable 5". */
+  /** section 18.28 c2pa.ai-disclosure model name, e.g. "Claude Fable 5". */
   model: string | null;
-  /** Human-oversight level (§18.28.4), verbatim: fully_autonomous | prompt_guided | human_validated. */
+  /** Human-oversight level (section 18.28.4), verbatim: fully_autonomous | prompt_guided | human_validated. */
   oversight: string | null;
   /** Byte-level anatomy, or null when the file cannot be parsed for it. */
   anat: CredentialAnatomy | null;

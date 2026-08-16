@@ -18,7 +18,7 @@
  *     and the far edge higher, and both edges move as the angle animates. The scene is
  *     built so that one number - the vertical centroid of a colour - has to move in the
  *     direction the engine predicts, and by roughly how much.
- *  3. **The gate is the camera set, and it says so.** The run logs the trigger (§6.4:
+ *  3. **The gate is the camera set, and it says so.** The run logs the trigger (section 6.4:
  *     "logged with the layer/channel that triggered it"), and an untilted scene never
  *     touches the path.
  *  4. **Tilt + video REFUSES, visibly.** dom-to-image cannot serialise a playing
@@ -125,7 +125,7 @@ describe('plans/104 P2a — the tilt capture tier', { skip: gate ?? false, concu
     assert.equal(r.flat.err, null, `the control export failed: ${JSON.stringify(r.flat.err)}`);
     assert.ok(r.tilt.size > 1000, `a ${r.tilt.size}B file is not a video`);
 
-    // THE GATE ANNOUNCED ITSELF, with the trigger (§6.4).
+    // THE GATE ANNOUNCED ITSELF, with the trigger (section 6.4).
     const gateLine = r.tilt.logs.find((l) => /TILT export/i.test(l));
     assert.ok(gateLine, `no tilt-gate log line in:\n  ${r.tilt.logs.join('\n  ')}`);
     assert.match(gateLine, /rx -45/, 'the log names the channel and the angle that triggered it');

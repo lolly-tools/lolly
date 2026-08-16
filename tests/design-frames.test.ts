@@ -6,9 +6,9 @@
  *
  * Loads the REAL tool from disk and drives it through the engine with a stub host, so
  * these guard the tool's actual render. Design ships in two packs - the private
- * brands/suse one and the parent-owned brands/lolly-start one - with byte-identical
+ * brands/suse one and the public community one - with byte-identical
  * hooks.js/template.html (only tool.json + brand fonts differ). We load from
- * brands/lolly-start (always present in a public checkout; brands/suse is a private
+ * community/ (always present in a public checkout; brands/suse is a private
  * submodule CI skips), so the suite never silently skips.
  *
  * The contract:
@@ -35,12 +35,12 @@ import { loadTool } from '../engine/src/loader.ts';
 import { createRuntime } from '../engine/src/runtime.ts';
 import { baseHost } from './helpers/host.ts';
 
-// Parent-owned pack - present in every checkout (brands/suse is private + CI-skipped).
-const PACK_DIR = join(dirname(fileURLToPath(import.meta.url)), '..', 'brands', 'lolly-start', 'tools');
+// Public community pack - present in every checkout (brands/suse is private + CI-skipped).
+const PACK_DIR = join(dirname(fileURLToPath(import.meta.url)), '..', 'community');
 const fetchFile = (path: string) => readFile(join(PACK_DIR, path), 'utf8');
 
 assert.ok(existsSync(join(PACK_DIR, 'design', 'tool.json')),
-  'brands/lolly-start/tools/design/tool.json is missing — the tool was renamed or deleted');
+  'community/design/tool.json is missing - the tool was renamed or deleted');
 
 const tool: any = await loadTool('design', fetchFile);
 

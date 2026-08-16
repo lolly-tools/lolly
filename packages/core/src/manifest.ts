@@ -239,7 +239,7 @@ export interface ToolManifest {
   version: string;
   engineVersion: string;
   /**
-   * Optional design-system version this tool renders against (plans/97 §6a): a
+   * Optional design-system version this tool renders against (plans/97 section 6a): a
    * published version's slug, or `'latest'` for the edit head. Author-controlled
    * stability: a pinned tool keeps rendering against its version whatever gets
    * republished.

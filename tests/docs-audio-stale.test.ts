@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
- * The docs-narration staleness contract (plans/40-docs-audio-listen.md §5), same
+ * The docs-narration staleness contract (plans/40-docs-audio-listen.md section 5), same
  * pattern as tests/docs-shots-vector.test.ts: every committed
  * docs/audio/<lang>/<slug>/meta.json must carry the textHash of the CURRENT
  * spoken-text document, or sit in the allowlist below with a written reason and
@@ -16,7 +16,7 @@
  * staying true after it stopped being true.
  *
  * With no docs/audio committed (the state at launch of this test) every case
- * passes over an empty set - CI never runs Kokoro or ffmpeg (plan §10), it only
+ * passes over an empty set - CI never runs Kokoro or ffmpeg (plan section 10), it only
  * ever judges committed artefacts.
  */
 import { test } from 'node:test';
@@ -42,73 +42,18 @@ const AUDIO = join(ROOT, 'docs', 'audio');
  * pardon: re-render (or prune) and delete the line.
  *
  * Also the only place a non-English artefact can live for now: the hash source
- * for locale narration (translation sidecars, plan §9) is not wired into this
+ * for locale narration (translation sidecars, plan section 9) is not wired into this
  * test yet, so a committed non-en directory must be listed here until it is.
  */
 const STALE_ALLOWED: Record<string, string> = {
-  // (Empty since the 2026-08-09 narration sweep re-rendered every stale launch
-  // page - en/about, en/beatrice-warde and en/privacy came off the list because
-  // their artefacts are fresh again, per this test's own second direction.)
-  'en/ai-stance':
-    'textHash drifted 2026-08-11: the pull-quote attribution changed from ' +
-    '"Architect of Lolly" to "Lolly Contributor" — a three-word byline edit ' +
-    'that does not warrant a full TTS re-render. Re-render (node ' +
-    'scripts/build-docs-audio.ts) at the next narration sweep to clear this.',
-  // The six below are one in-flight docs copy sweep (2026-08-11), still
-  // uncommitted in the docs/ submodule - its files were being rewritten while
-  // this list was assembled. Re-rendering mid-edit would burn a
-  // model-and-ffmpeg pass on words that are still moving, so they are held
-  // together and clear together: run `node scripts/build-docs-audio.ts` once
-  // the sweep lands, then delete these six entries.
-  'en/inclusive-design':
-    'textHash drifted 2026-08-11 (docs copy sweep, in flight): the Listen ' +
-    'paragraph now says eleven core pages rather than every page, and adds ' +
-    'that narration is English-only for now. The page that promises Listen ' +
-    'should not be the stale one — re-render as soon as the sweep settles.',
-  'en/index':
-    'textHash drifted 2026-08-11 (docs copy sweep, in flight): docs/site.md ' +
-    'swapped street maps for QR codes in the self-serve bullet, rewrote the ' +
-    'PowerPoint bullet around slide reuse plus a Markdown rebuild, changed a ' +
-    'CLI example from quotes to wordmark, and dropped the hard 31/29 format ' +
-    'counts. Re-render once the sweep settles. WIDER NOW (2026-08-15, plan 117): ' +
-    'the landing was rebuilt block by block - a new hero line, three new blocks ' +
-    '(worked examples, the sovereignty statement, AI on your terms), a new row ' +
-    'set in the era contrast, and the formats and design-import bands moved to ' +
-    'their own pages. The narration is a whole page behind, not a few sentences, ' +
-    'so re-render this one FIRST at the next sweep.',
-  'en/privacy':
-    'textHash drifted 2026-08-11 (docs copy sweep, in flight): the enrolment ' +
-    'section now distinguishes the throwaway per-export key from the lasting ' +
-    'non-extractable one, SUSE Okta became id.suse.com, and the last-updated ' +
-    'date moved. A privacy page must be re-rendered, not left stale for long — ' +
-    'it is first in the queue once the sweep settles.',
-  'en/trust':
-    'textHash drifted 2026-08-15 (plan 116 Workstream C): trust.md gained the ' +
-    '"Why this is free" section carrying the sceptic paragraph ("We built ' +
-    'Lolly for ourselves…"). One new section - re-render at the next audio ' +
-    'sweep alongside en/index.',
-  // The six below are the 2026-08-15 AI-vernacular sweep: banned phrases and
-  // fingerprint unicode were taken out of the copy across the docs set. The
-  // pages still say the same things, so they clear together at the next
-  // narration sweep (node scripts/build-docs-audio.ts).
-  'en/about':
-    'textHash drifted 2026-08-15 (AI-vernacular sweep): wording de-ticced; ' +
-    're-render at the next audio sweep.',
-  'en/beatrice-warde':
-    'textHash drifted 2026-08-15 (AI-vernacular sweep): wording de-ticced; ' +
-    're-render at the next audio sweep.',
-  'en/builders':
-    'textHash drifted 2026-08-15 (AI-vernacular sweep): wording de-ticced; ' +
-    're-render at the next audio sweep.',
-  'en/creators':
-    'textHash drifted 2026-08-15 (AI-vernacular sweep): wording de-ticced; ' +
-    're-render at the next audio sweep.',
-  'en/operators':
-    'textHash drifted 2026-08-15 (AI-vernacular sweep): wording de-ticced; ' +
-    're-render at the next audio sweep.',
-  'en/quickstart':
-    'textHash drifted 2026-08-15 (AI-vernacular sweep): wording de-ticced; ' +
-    're-render at the next audio sweep.',
+  // Empty: the 2026-08-16 narration re-render brought every committed launch
+  // page fresh against its source. It cleared the debt that had piled up here -
+  // the 2026-08-11 docs copy sweep, plan 116/117's rewrites, the 2026-08-15
+  // AI-vernacular sweep, and the 2026-08-16 pass that spelled out the section
+  // sign (say "section 2", never the glyph) - all of it is now baked into the
+  // audio. An entry here is a debt with a face: add one only with a reason and
+  // a date when a page is knowingly left stale, and delete it the moment the
+  // page is re-rendered.
 };
 
 interface Committed { key: string; lang: string; slug: string; meta: AudioMeta }
@@ -130,7 +75,7 @@ function committed(): Committed[] {
 /** Is this committed artefact stale against the current docs source?
  *  Returns the human-readable defect, or null when it is fresh. */
 function defect(c: Committed): string | null {
-  if (c.lang !== 'en') return 'locale narration has no hash source wired into this test yet (plan §9)';
+  if (c.lang !== 'en') return 'locale narration has no hash source wired into this test yet (plan section 9)';
   const spoken = currentSpoken(c.slug);
   if (!spoken) return 'docs/build.ts no longer lists this page — prune the artefacts';
   if (spoken.hash !== c.meta.textHash) {
@@ -174,7 +119,7 @@ test('docs audio: every allowlist entry states a reason and a date', () => {
 
 test('docs audio: every committed artefact directory is complete', () => {
   // meta.json is the staleness anchor, but a listener needs all five files
-  // (plan §4.5) - a partial directory is a failed render that got committed.
+  // (plan section 4.5) - a partial directory is a failed render that got committed.
   const incomplete: string[] = [];
   // committedSlugs() only surfaces directories that carry a meta.json, so a
   // half-committed directory without one would slip past every other case here

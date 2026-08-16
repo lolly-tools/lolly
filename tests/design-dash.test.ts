@@ -26,7 +26,7 @@
  * 3. **Hostile values.** Everything reaches an SVG attribute, so a garbage
  *    value must clamp rather than emit NaN or break out of the markup.
  *
- * Renders load from brands/lolly-start (parent-owned, present in every
+ * Renders load from community/ (public, present in every
  * checkout); the manifest assertions run over BOTH brand forks, because the
  * same edit ships in both packs and the wire slot has to match.
  */
@@ -45,22 +45,22 @@ import { parseUrlState } from '../engine/src/url-mode.ts';
 import { baseHost } from './helpers/host.ts';
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
-/** Both brand variants ship the tool; suse is a private submodule public clones skip. */
-const BRANDS = (['lolly-start', 'suse'] as const).filter((b) =>
-  existsSync(join(ROOT, 'brands', b, 'tools', 'design', 'tool.json')));
+/** design is single-sourced in the public community pack (2026-08-16 consolidation);
+ *  the per-pack loop shape survives so a future re-fork slots back in. */
+const BRANDS = ['community'] as const;
 
-const PACK_DIR = join(ROOT, 'brands', 'lolly-start', 'tools');
+const PACK_DIR = join(ROOT, 'community');
 const fetchFile = (path: string) => readFile(join(PACK_DIR, path), 'utf8');
 
 const tool: any = await loadTool('design', fetchFile);
 
-function fieldsOf(brand: string): any[] {
+function fieldsOf(pack: string): any[] {
   const manifest = JSON.parse(readFileSync(
-    join(ROOT, 'brands', brand, 'tools', 'design', 'tool.json'), 'utf8'));
+    join(ROOT, pack, 'design', 'tool.json'), 'utf8'));
   return manifest.inputs.find((i: any) => i.id === 'boxes').fields as any[];
 }
 
-/** Mount the real lolly-start tool (with the real geometry API) and return the markup. */
+/** Mount the real community tool (with the real geometry API) and return the markup. */
 async function mount(boxes: unknown[]): Promise<string> {
   const rt = await createRuntime(tool, baseHost({ geom: makeGeomApi() }), { boxes: boxes as never });
   assert.deepEqual(rt.hookErrors ?? [], [], 'no hook errors');
@@ -116,12 +116,8 @@ test('both dash fields are numbers, default 0, path-only, and shown only for a d
   }
 });
 
-test('the two forks ship the SAME field definitions', () => {
-  if (BRANDS.length < 2) return; // public clone: suse is not mounted
-  const pick = (brand: string) => fieldsOf(brand)
-    .filter((f) => f.id === 'strokeDashLen' || f.id === 'strokeGapLen');
-  assert.deepEqual(pick('lolly-start'), pick('suse'));
-});
+// The forks-parity test retired with the consolidation: one manifest means the
+// field definitions cannot drift between profiles, by construction.
 
 // ── the wire format ──────────────────────────────────────────────────────────
 

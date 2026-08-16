@@ -14,7 +14,7 @@
  * ambient "this was shared" boolean, and that is correct: the distinguishing fact is
  * how THIS card selection was made, not how the tool was opened.
  *
- * Consequences enforced here (see `plans/65-preflight-and-cost.md` §5 and Phase 5):
+ * Consequences enforced here (see `plans/65-preflight-and-cost.md` section 5 and Phase 5):
  *   - Rule 1: possession on THIS device is necessary. No card means counts only.
  *   - `validUntil`: expired rates suppress money unless the user explicitly opts in
  *     to using them anyway this session.
@@ -64,10 +64,10 @@ export function canShowMoney(c: MoneyContext): boolean {
   // Rule 1: possession on this device is necessary before anything else.
   if (!c.hasCard) return false;
 
-  // §5: expired rates suppress money unless the user explicitly opts in this session.
+  // section 5: expired rates suppress money unless the user explicitly opts in this session.
   if (c.expired && !c.useExpiredAnyway) return false;
 
-  // §5 + Phase 5: a link always opens on counts. Money is withheld until the explicit
+  // section 5 + Phase 5: a link always opens on counts. Money is withheld until the explicit
   // per-device reveal. A confidential card can be revealed ONLY by that action, and a
   // client always arrives via the link, so this one line is what protects trade rates:
   // it holds whether or not the card happens to be flagged confidential.

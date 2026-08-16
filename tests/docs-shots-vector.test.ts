@@ -29,7 +29,7 @@ const DOCS = join(ROOT, 'docs');
 
 /**
  * Slugs allowed to ship as a bitmap, each with the reason it cannot be vector.
- * See plans/69-svg-snapshot-without-print.md §16.3 for the full diagnosis of each.
+ * See plans/69-svg-snapshot-without-print.md section 16.3 for the full diagnosis of each.
  */
 const RASTER_ALLOWED: Record<string, string> = {
   // gallery + aud-gallery-landscape left this list 2026-07-31: the missing top nav was a

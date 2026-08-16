@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
  * Contract tests for synthetic-audio provenance (EU AI Act Article 50 - plan
- * tts-stt-programme §2): a TTS clip's record-side credential - c2pa.created
+ * tts-stt-programme section 2): a TTS clip's record-side credential - c2pa.created
  * with digitalSourceType trainedAlgorithmicMedia and the generation recipe
  * ({ script, voice, speed, model, lang }) in the action's parameters - must
  * survive the runtime's export-time ingredient sweep on BOTH audio-asset

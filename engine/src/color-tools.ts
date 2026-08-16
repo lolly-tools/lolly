@@ -475,7 +475,7 @@ export function rampOklab(stops: string[], n: number, opts: RampOptions = {}): s
  * (linear interpolation between sorted ranks). Non-finite entries are
  * ignored; an empty (or all-non-finite) dataset returns `[]`. The upstream
  * k-means mode is deliberately not ported: its assignment loop counts every
- * point once per centroid (plans/archive/chroma-eval.md §5).
+ * point once per centroid (plans/archive/chroma-eval.md section 5).
  */
 export function classBreaks(data: number[], mode: 'e' | 'l' | 'q', n: number): number[] {
   const values = (Array.isArray(data) ? data : []).filter(v => Number.isFinite(v));

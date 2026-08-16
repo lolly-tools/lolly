@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
- * §7's exit criterion, enacted: **N lifted layers at z = 0 render as the
- * un-lifted original** (plans/104 §7 P3) - and the measurement that says what
+ * section 7's exit criterion, enacted: **N lifted layers at z = 0 render as the
+ * un-lifted original** (plans/104 section 7 P3) - and the measurement that says what
  * "as" can honestly mean in a real browser.
  *
  * `tests/svg-layers.test.ts` proves the STRUCTURAL half: the derived documents
@@ -11,7 +11,7 @@
  * real renderer, handed those documents as N stacked `<img>` layers, paints the
  * same picture it paints for the whole file.
  *
- * ## §7 says "byte-identical". Measured, it is not, and the reason is not ours
+ * ## section 7 says "byte-identical". Measured, it is not, and the reason is not ours
  *
  * Source-over is associative, so the composite is mathematically the original.
  * The browser, however, rasterises each layer into its own **8-bit premultiplied**

@@ -185,7 +185,7 @@ export function parseC2paStore(store: Uint8Array): C2paStoreParts {
   if (s.label !== 'c2pa') throw new Error(`store label is '${s.label}', expected 'c2pa'`);
   if (!s.children.length) throw new Error('store has no manifest');
   // A store may hold several manifests (ingredients); the ACTIVE manifest is
-  // the last superbox (C2PA 1.x §"active manifest").
+  // the last superbox (C2PA 1.x section "active manifest").
   const manifest = parseSuperbox(store, s.children[s.children.length - 1]!);
   const parts: {
     manifestLabel: string;
@@ -280,13 +280,13 @@ export function extractC2paFromPdf(pdfBytes: Uint8Array): { manifest: Uint8Array
 
 const ascii = (b: Uint8Array, o: number, n: number): string => String.fromCharCode(...b.subarray(o, o + n));
 
-// ─── text-binding constants (C2PA 2.4 §A.7/§A.8/§A.9) ────────────────────────
+// ─── text-binding constants (C2PA 2.4 section A.7/section A.8/section A.9) ────────────────────────
 // Declared here because sniffFormat needs them; the readers that use them live
 // in the "text bindings" section below.
 
 /** Head window every text sniff reads. Also the historic <svg scan window. */
 const SNIFF_HEAD_BYTES = 4096;
-/** Tail window, for the spec's end-of-file placements (§A.8.4.1, §A.9.3.1). */
+/** Tail window, for the spec's end-of-file placements (section A.8.4.1, section A.9.3.1). */
 const SNIFF_TAIL_BYTES = 64 * 1024;
 /** A whole-file sniff pass is only ever run on an input this small. */
 const MAX_FULL_SCAN_BYTES = 4 * 1024 * 1024;
@@ -295,22 +295,22 @@ const MAX_FULL_SCAN_BYTES = 4 * 1024 * 1024;
  *  half-gigabyte JS string. */
 const MAX_TEXT_BYTES = 16 * 1024 * 1024;
 
-/** §A.7 root markers. `<html` needs a delimiter after it so `<htmlish>` misses. */
+/** section A.7 root markers. `<html` needs a delimiter after it so `<htmlish>` misses. */
 const HTML_MARKER = /<!doctype\s+html\b|<html(?=[\s/>])/i;
 
-/** §A.9 fixed ASCII-armour delimiters (modelled on OpenPGP, RFC 4880 §6.2). */
+/** section A.9 fixed ASCII-armour delimiters (modelled on OpenPGP, RFC 4880 section 6.2). */
 const ARMOR_BEGIN = '-----BEGIN C2PA MANIFEST-----';
 const ARMOR_END = '-----END C2PA MANIFEST-----';
 
 /**
- * A §A.7 carrier MARKER - is there a `<script type="application/c2pa">` or a
+ * A section A.7 carrier MARKER - is there a `<script type="application/c2pa">` or a
  * `<link rel="c2pa-manifest">` anywhere in the windows we looked at? Only ever
- * asked to break a tie against a COMPLETE §A.9 block, so a false positive costs
+ * asked to break a tie against a COMPLETE section A.9 block, so a false positive costs
  * nothing worse than the pre-existing "prefer html" answer.
  *
  * The attribute window is bounded (`{0,300}`) rather than `[^>]*`: an unbounded
  * negated class over a `>`-free tail is the quadratic shape that hangs a tab.
- * `application/c2pa` alone would be useless here - every §A.9 `data:` reference
+ * `application/c2pa` alone would be useless here - every section A.9 `data:` reference
  * contains that exact string, which is precisely the file this test has to tell
  * apart from an HTML document.
  */
@@ -358,7 +358,7 @@ function maskMarkupNoise(head: string): string {
 }
 
 /**
- * §A.8, as RAW BYTES: the exact 7-byte prefix every wrapper starts with.
+ * section A.8, as RAW BYTES: the exact 7-byte prefix every wrapper starts with.
  *
  * A wrapper is U+FEFF followed by the variation selector encoding the magic's
  * first byte 0x43 - which is >15, so it is U+E0100 + (0x43 - 16) = U+E0133.
@@ -372,9 +372,9 @@ const TEXT_WRAPPER_SIGNATURE = String.fromCharCode(0xef, 0xbb, 0xbf, 0xf3, 0xa0,
 
 export type SniffFormat = 'pdf' | 'png' | 'jpeg' | 'gif' | 'svg' | 'tiff' | 'webp' | 'avif' | 'mp4' | 'webm' | 'mkv' | 'mp3' | 'wav' | 'ogg'
   // C2PA 2.4 text bindings - see the "text bindings" section near the bottom of
-  // this file. 'html' keys on the DOCUMENT (§A.7 covers whole HTML documents);
-  // 'code' and 'text' key on finding the CARRIER itself (the §A.9 armour block /
-  // the §A.8 wrapper), never on guessing the host language - there is no magic
+  // this file. 'html' keys on the DOCUMENT (section A.7 covers whole HTML documents);
+  // 'code' and 'text' key on finding the CARRIER itself (the section A.9 armour block /
+  // the section A.8 wrapper), never on guessing the host language - there is no magic
   // that distinguishes JavaScript from prose, and claiming one would mislabel
   // every unrecognised upload.
   | 'html' | 'text' | 'code';
@@ -418,7 +418,7 @@ export function sniffFormat(bytes: Uint8Array): SniffFormat | null {
   // ── text carriers: no magic bytes anywhere, so ORDER is the whole contract ──
   // SVG has no magic - look for an <svg root in the first 4KB of text.
   const headBin = bytesToBin(bytes.subarray(0, SNIFF_HEAD_BYTES));
-  // C2PA 2.4 §A.7: an HTML document. Checked BEFORE the loose <svg scan, because
+  // C2PA 2.4 section A.7: an HTML document. Checked BEFORE the loose <svg scan, because
   // a page with an inline <svg> in its first 4 KB used to mis-sniff as 'svg' (and
   // one whose <svg> came later sniffed as nothing at all) - the SVG reader then
   // looked for a <c2pa:manifest> element that an HTML document never carries.
@@ -431,7 +431,7 @@ export function sniffFormat(bytes: Uint8Array): SniffFormat | null {
   const headMarkup = maskMarkupNoise(headBin);
   const htmlAt = headMarkup.search(HTML_MARKER);
   const svgAt = headMarkup.search(/<svg[\s>]/);
-  // §A.9 (armour block) and §A.8 (variation-selector wrapper) are found by their
+  // section A.9 (armour block) and section A.8 (variation-selector wrapper) are found by their
   // OWN carrier bytes. Both specs place the carrier at the start or the end of
   // the file, so two bounded windows answer the spec-compliant case without
   // reading the middle of a large upload.
@@ -446,19 +446,19 @@ export function sniffFormat(bytes: Uint8Array): SniffFormat | null {
   // an HTML template string stays 'code' - before this, whether it verified
   // depended on where in the file the word `<html` fell relative to a 4 KB
   // window, which is a non-deterministic-looking failure for its author. An HTML
-  // DOCUMENT that carries its own §A.7 element still wins (§A.9.2 excludes
-  // text/html from the structured-text method), and so does one whose §A.7
-  // marker we can see; a document with an armour block and no §A.7 element is
-  // read as the armour block, which is also plan 105 §5's fragment profile.
+  // DOCUMENT that carries its own section A.7 element still wins (section A.9.2 excludes
+  // text/html from the structured-text method), and so does one whose section A.7
+  // marker we can see; a document with an armour block and no section A.7 element is
+  // read as the armour block, which is also plan 105 section 5's fragment profile.
   if (armorBegin && armorEnd && !hasHtmlC2paCarrier(headBin, tailBin)) return 'code';
   if (htmlAt >= 0 && (svgAt < 0 || htmlAt < svgAt)) return 'html';
   if (svgAt >= 0) return 'svg';
   if (armorBegin && armorEnd) return 'code';
   // A DECODED wrapper outranks a lone delimiter. Either delimiter alone is still
   // enough to sniff 'code' - a half-present block is a
-  // manifest.structuredText.noManifest report (§A.9.5), which we can only make
+  // manifest.structuredText.noManifest report (section A.9.5), which we can only make
   // after admitting the file is structured text - but that report is a
-  // no-credential answer, and letting it out-rank a §A.8 wrapper meant any
+  // no-credential answer, and letting it out-rank a section A.8 wrapper meant any
   // signed text that merely QUOTED the delimiter (a support article, this
   // repo's own plans) had its credential erased rather than checked.
   if (inWindows(TEXT_WRAPPER_SIGNATURE)) return 'text';
@@ -843,7 +843,7 @@ function extractC2paFromOgg(ogg: Uint8Array): { manifest: Uint8Array } | null {
   try { return { manifest: base64ToBytes(b64) }; } catch { return null; }
 }
 
-// ─── text bindings (C2PA 2.4 §A.7 HTML / §A.8 unstructured / §A.9 structured) ──
+// ─── text bindings (C2PA 2.4 section A.7 HTML / section A.8 unstructured / section A.9 structured) ──
 //
 // READ ONLY. There is no writer/placer for any of these - `C2PA_FORMATS` and
 // c2pa-containers.ts are untouched, so nothing in Lolly can EMIT a text binding
@@ -855,7 +855,7 @@ function extractC2paFromOgg(ogg: Uint8Array): { manifest: Uint8Array } | null {
 //
 // Three things make these different from every binary container above:
 //
-//   1. THE ENGINE NEVER FETCHES. §A.7's `<link>` form and §A.9's URL form point
+//   1. THE ENGINE NEVER FETCHES. section A.7's `<link>` form and section A.9's URL form point
 //      at a manifest that lives somewhere else. Extraction hands back the URL in
 //      `externalUrl` and stops; whether it is resolved, and under whose network
 //      policy, is the shell's decision.
@@ -863,7 +863,7 @@ function extractC2paFromOgg(ogg: Uint8Array): { manifest: Uint8Array } | null {
 //      manifests in one document, half an armour block, a wrapper whose magic
 //      matched but whose body is truncated. The spec names those states, so the
 //      readers report them (`status`) instead of flattening everything to null.
-//   3. §A.8 offsets live in NFC-NORMALIZED UTF-8, not in the file's own bytes.
+//   3. section A.8 offsets live in NFC-NORMALIZED UTF-8, not in the file's own bytes.
 //      Normalizing can shorten the text ahead of the wrapper (a decomposed é is
 //      three bytes, a composed one is two), so every offset this file reports for
 //      a text wrapper is measured in the normalized encoding - see `readTextVs`.
@@ -871,19 +871,19 @@ function extractC2paFromOgg(ogg: Uint8Array): { manifest: Uint8Array } | null {
 // Bounds discipline (the GIF-hang and 2^42-VINT lessons): every scan here is
 // windowed or capped, every loop bound is derived from the input length rather
 // than from a length field the input chose, and the one allocation sized by an
-// attacker-controlled field (§A.8 manifestLength) is bounds-checked against the
+// attacker-controlled field (section A.8 manifestLength) is bounds-checked against the
 // remaining text BEFORE it is made.
 
 /** An absolute byte range a hard binding excludes from its hash. */
 export interface C2paExclusion { start: number; length: number; }
 
 /**
- * One §A.8 `C2PATextManifestWrapper` found in a text asset.
+ * One section A.8 `C2PATextManifestWrapper` found in a text asset.
  *
  * ALL FOUR OFFSETS ARE BYTE OFFSETS IN THE NFC-NORMALIZED UTF-8 ENCODING of the
- * text (§A.8.7.3), not offsets into the bytes that were passed in.
+ * text (section A.8.7.3), not offsets into the bytes that were passed in.
  *
- *   start         the U+FEFF prefix (§A.8.4.1)
+ *   start         the U+FEFF prefix (section A.8.4.1)
  *   selectorStart the first variation selector - always `start + 3`, since
  *                 U+FEFF is three UTF-8 bytes; reported so a caller never has to
  *                 know that
@@ -892,10 +892,10 @@ export interface C2paExclusion { start: number; length: number; }
  *                 (`runEnd > end` means the run carries trailing selectors that
  *                 are not part of the wrapper)
  *
- * SPEC AMBIGUITY, deliberately surfaced rather than resolved here: §A.8.6.1 says
+ * SPEC AMBIGUITY, deliberately surfaced rather than resolved here: section A.8.6.1 says
  * the exclusions "shall correspond to the location of the C2PATextManifestWrapper
- * in the text", but §A.8.4.1 calls U+FEFF a PREFIX to the wrapper rather than a
- * field of it, and §A.8.2.2's struct starts at the magic. So it is not stated
+ * in the text", but section A.8.4.1 calls U+FEFF a PREFIX to the wrapper rather than a
+ * field of it, and section A.8.2.2's struct starts at the magic. So it is not stated
  * whether an exclusion should start at `start` or at `selectorStart`. Both are
  * reported; the hash-validation side picks and pins the choice.
  */
@@ -904,23 +904,23 @@ export interface C2paTextWrapper {
   selectorStart: number;
   end: number;
   runEnd: number;
-  /** §A.8.2.3 `version`. Only 1 is defined; anything else is a corrupt wrapper. */
+  /** section A.8.2.3 `version`. Only 1 is defined; anything else is a corrupt wrapper. */
   version: number;
   /** The JUMBF store, or null when the wrapper is corrupt/unsupported. */
   store: Uint8Array | null;
   /** Set when the wrapper is present but unusable (see C2PA_TEXT_STATUS). */
   status?: string;
-  /** Human-readable specifics - §15.12.1.3.2 asks validators to say what broke. */
+  /** Human-readable specifics - section 15.12.1.3.2 asks validators to say what broke. */
   reason?: string;
 }
 
-/** Everything the §A.8 hash pipeline (§15.12.1.3.1) needs from extraction. */
+/** Everything the section A.8 hash pipeline (section 15.12.1.3.1) needs from extraction. */
 export interface C2paTextCarrier {
   /** The whole asset, decoded as UTF-8 and NFC-normalized - the string whose
    *  UTF-8 encoding the exclusions and the hash are both defined over. */
   nfc: string;
   /** EVERY wrapper found, in document order - valid, corrupt and unsupported
-   *  alike. §A.8.4.1 makes wrapper SELECTION a job for the assertion's
+   *  alike. section A.8.4.1 makes wrapper SELECTION a job for the assertion's
    *  exclusions, so extraction must not pick for the validator. */
   wrappers: C2paTextWrapper[];
   /** The walk stopped at MAX_TEXT_WRAPPERS, so `wrappers` is INCOMPLETE. Without
@@ -937,14 +937,14 @@ export interface C2paTextCarrier {
  */
 export interface ExtractedC2pa {
   store: Uint8Array | null;
-  /** §A.7.1.2 / §A.9.3 external reference. The engine never resolves it. */
+  /** section A.7.1.2 / section A.9.3 external reference. The engine never resolves it. */
   externalUrl?: string;
   /** What the spec says this carrier's `c2pa.hash.data` exclusions SHOULD be
-   *  (§A.7.1.3, §A.9.4, §A.8.6.1) - an advisory cross-check against what the
+   *  (section A.7.1.3, section A.9.4, section A.8.6.1) - an advisory cross-check against what the
    *  assertion actually declares, never a substitute for reading the assertion. */
   exclusions?: C2paExclusion[];
   /** Other exclusion sets that are equally conformant readings of the SAME
-   *  carrier - §A.9.4's end-of-file newline is one byte ambiguous on a CRLF file
+   *  carrier - section A.9.4's end-of-file newline is one byte ambiguous on a CRLF file
    *  and on a file with a trailing blank line (see armorExclusion). A producer
    *  on the other reading must get a hash result, not a non-conformance
    *  refusal. Absent when the spec's rule is unambiguous for this carrier. */
@@ -953,7 +953,7 @@ export interface ExtractedC2pa {
   status?: string;
   /** Human-readable specifics for the status. */
   detail?: string;
-  /** §A.8 only: the normalized text and every wrapper in it. */
+  /** section A.8 only: the normalized text and every wrapper in it. */
   text?: C2paTextCarrier;
 }
 
@@ -963,26 +963,26 @@ export interface C2paExtraction extends ExtractedC2pa { format: SniffFormat; }
 /**
  * Status codes the text-binding readers emit.
  *
- * The first six are the spec's own vocabulary, verbatim (§A.7.1.4, §A.8.7.1,
- * §A.9.3/§A.9.5, §15.12.1.3.3) - same posture as C2PA_CHECK in c2pa-verdict.ts,
+ * The first six are the spec's own vocabulary, verbatim (section A.7.1.4, section A.8.7.1,
+ * section A.9.3/section A.9.5, section 15.12.1.3.3) - same posture as C2PA_CHECK in c2pa-verdict.ts,
  * which deliberately reuses the C2PA validation-status strings so a Lolly report
  * and a c2patool report say the same words. The rest are Lolly extensions for
  * states the spec names no code for; they are `lolly.`-namespaced so they can
  * never be mistaken for the standard set.
  */
 export const C2PA_TEXT_STATUS = Object.freeze({
-  /** §A.7.1.4 - more than one C2PA association in one HTML document. */
+  /** section A.7.1.4 - more than one C2PA association in one HTML document. */
   htmlMultipleManifests: 'manifest.html.multipleManifests',
-  /** §A.9.3 - more than one armour block in one file. */
+  /** section A.9.3 - more than one armour block in one file. */
   structuredTextMultipleReferences: 'manifest.structuredText.multipleReferences',
-  /** §A.9.5 - no delimiters, or only one of the pair. */
+  /** section A.9.5 - no delimiters, or only one of the pair. */
   structuredTextNoManifest: 'manifest.structuredText.noManifest',
-  /** §A.9.5 - a block whose reference is empty or whitespace-only. */
+  /** section A.9.5 - a block whose reference is empty or whitespace-only. */
   structuredTextEmptyReference: 'manifest.structuredText.emptyReference',
-  /** §A.8.7.1 / §15.12.1.3.2 - magic matched, the rest of the wrapper did not. */
+  /** section A.8.7.1 / section 15.12.1.3.2 - magic matched, the rest of the wrapper did not. */
   textCorruptedWrapper: 'manifest.text.corruptedWrapper',
-  /** §A.8.7.1 - more than one valid wrapper. NOT fatal at extraction time:
-   *  §A.8.4.1 hands wrapper selection to the assertion's exclusions. */
+  /** section A.8.7.1 - more than one valid wrapper. NOT fatal at extraction time:
+   *  section A.8.4.1 hands wrapper selection to the assertion's exclusions. */
   textMultipleWrappers: 'manifest.text.multipleWrappers',
   /** Matches C2PA_CHECK.credentialUnreadable (c2pa-verdict.ts) - spelled out
    *  rather than imported, so this module keeps its leaf-import discipline and
@@ -1017,7 +1017,7 @@ const BASE64_ONLY = /^[A-Za-z0-9+/]+={0,2}$/;
  * A manifest reference we are willing to REPORT. Reporting is not fetching: the
  * engine performs no network I/O ever, and the shell resolves (or refuses) this
  * under its own policy, which is the layer that has a base URL and a network
- * posture. §A.7.1.2 and §A.9.3.1 constrain nothing about the URI form, and the
+ * posture. section A.7.1.2 and section A.9.3.1 constrain nothing about the URI form, and the
  * external form is the one both sections say is PREFERRED.
  *
  * Accepted: http(s) absolute, and any RELATIVE reference - `/info/m.c2pa`,
@@ -1029,7 +1029,7 @@ const BASE64_ONLY = /^[A-Za-z0-9+/]+={0,2}$/;
  * no URL at all, so the shell cannot even DISPLAY what the file points at.
  *
  * Refused: any non-http(s) scheme (`javascript:`, `file:`, `data:` outside the
- * §A.9 inline form), and the protocol-relative `//host/path` form - the one
+ * section A.9 inline form), and the protocol-relative `//host/path` form - the one
  * shape that reads as relative and resolves cross-origin.
  */
 function safeExternalUrl(raw: string): string | undefined {
@@ -1053,15 +1053,15 @@ function indicesOf(hay: string, needle: string, cap: number): number[] {
   return out;
 }
 
-// ── §A.7: HTML documents ──────────────────────────────────────────────────────
+// ── section A.7: HTML documents ──────────────────────────────────────────────────────
 //
-// §A.7.1.4 says to treat the file "as a series of bytes (vs. text)" - so this is
+// section A.7.1.4 says to treat the file "as a series of bytes (vs. text)" - so this is
 // a byte scan with regexes over the latin1 binary string, NOT a DOM parse. The
 // known limit of that (and of the spec's own framing) is an attribute value
 // containing `>`, which ends the tag early; a DOM parser would disagree, and the
 // hard binding would then fail rather than silently accept the wrong bytes.
 
-/** How many C2PA ASSOCIATIONS are collected. §A.7.1 allows one; anything past
+/** How many C2PA ASSOCIATIONS are collected. section A.7.1 allows one; anything past
  *  the second only has to be counted as "more than one", and capping the
  *  MATCHES (rather than the tags scanned) is what keeps a filler-tag prefix
  *  from pushing a real second association out of view. */
@@ -1148,7 +1148,7 @@ function findCloseTag(bin: string, name: string, from: number): { start: number;
 
 interface HtmlManifestRef {
   kind: 'inline' | 'link';
-  /** Element range: `<script` through `</script>` inclusive (§A.7.1.3), or the
+  /** Element range: `<script` through `</script>` inclusive (section A.7.1.3), or the
    *  `<link>` tag itself (which is excluded from nothing - see below). */
   start: number;
   end: number;
@@ -1181,7 +1181,7 @@ function readHtml(bytes: Uint8Array): TextRead {
     return refs.length < MAX_HTML_REFS;
   });
   scanHtmlTags(bin, 'link', (tag) => {
-    // §A.7.1.2: "the validator shall match on the rel attribute alone". `rel` is
+    // section A.7.1.2: "the validator shall match on the rel attribute alone". `rel` is
     // a space-separated token list, so match the TOKEN, not the whole value.
     const rel = (tag.attrs.get('rel') ?? '').trim().toLowerCase();
     if (!rel.split(/\s+/).includes('c2pa-manifest')) return true;
@@ -1191,10 +1191,10 @@ function readHtml(bytes: Uint8Array): TextRead {
   refs.sort((a, b) => a.start - b.start);
 
   if (!refs.length) return { store: null };
-  // §A.7.1.4 step 1, verbatim: "Treating the file as a series of bytes (vs.
+  // section A.7.1.4 step 1, verbatim: "Treating the file as a series of bytes (vs.
   // text), the validator shall PARSE THE HEAD ELEMENT, searching for a script
   // element with type="application/c2pa" or a link element with
-  // rel="c2pa-manifest"." So the "at most one association" rule (§A.7.1) is
+  // rel="c2pa-manifest"." So the "at most one association" rule (section A.7.1) is
   // counted over the HEAD, and only over the head.
   //
   // Counting body matches too was a denial-of-verification lever: a second
@@ -1210,7 +1210,7 @@ function readHtml(bytes: Uint8Array): TextRead {
     return {
       store: null,
       status: C2PA_TEXT_STATUS.htmlMultipleManifests,
-      fatal: `HTML document declares ${chosen.length}${chosen.length === MAX_HTML_REFS ? '+' : ''} C2PA manifest associations${head.length ? ' in <head>' : ''}; §A.7.1 allows at most one`,
+      fatal: `HTML document declares ${chosen.length}${chosen.length === MAX_HTML_REFS ? '+' : ''} C2PA manifest associations${head.length ? ' in <head>' : ''}; section A.7.1 allows at most one`,
     };
   }
   const ref = chosen[0]!;
@@ -1220,7 +1220,7 @@ function readHtml(bytes: Uint8Array): TextRead {
   // silent "no credential" would be the more misleading answer.
   // Spread, never assigned: an own `detail: undefined` key is not the same shape
   // as no key at all, and this result is deep-compared by its consumers.
-  const note = ref.inHead ? {} : { detail: 'the C2PA element is outside <head> (§A.7.1.1 places it in the head)' };
+  const note = ref.inHead ? {} : { detail: 'the C2PA element is outside <head> (section A.7.1.1 places it in the head)' };
 
   if (ref.kind === 'link') {
     const url = safeExternalUrl(ref.href ?? '');
@@ -1235,7 +1235,7 @@ function readHtml(bytes: Uint8Array): TextRead {
         detail: `<link rel="c2pa-manifest"> href is not an http(s) URL or a relative reference`,
       };
     }
-    // §A.7.1.3: the link form has NO exclusion - the hash covers the whole
+    // section A.7.1.3: the link form has NO exclusion - the hash covers the whole
     // document. An empty array says that positively; `undefined` would only mean
     // "not computed".
     return { store: null, externalUrl: url, exclusions: [], ...note };
@@ -1247,11 +1247,11 @@ function readHtml(bytes: Uint8Array): TextRead {
       fatal: '<script type="application/c2pa"> has no closing tag — the document looks truncated',
     };
   }
-  // §A.7.1.3: ONE exclusion covering the entire element, `<script` through
+  // section A.7.1.3: ONE exclusion covering the entire element, `<script` through
   // `</script>` inclusive. Wider than our SVG rule (base64 text only) - both are
   // legal for their own binding, and neither is a canonicalisation.
   const exclusions: C2paExclusion[] = [{ start: ref.start, length: ref.end - ref.start }];
-  // §A.7.1.1 requires stripping LEADING AND TRAILING whitespace before decoding.
+  // section A.7.1.1 requires stripping LEADING AND TRAILING whitespace before decoding.
   // Interior whitespace is stripped too: a real store is kilobytes of base64 and
   // every emitter wraps it, and refusing a line-wrapped payload would fail
   // documents the spec plainly intends to work.
@@ -1267,37 +1267,37 @@ function readHtml(bytes: Uint8Array): TextRead {
   }
 }
 
-// ── §A.9: structured text (source, config, markup) ────────────────────────────
+// ── section A.9: structured text (source, config, markup) ────────────────────────────
 
 /**
- * §A.9.4's exclusion: the whole manifest BLOCK.
+ * section A.9.4's exclusion: the whole manifest BLOCK.
  *
  * For the single-line comment form the block is the one comment line, host
  * comment prefix and suffix included; for the front-matter form it is the BEGIN
  * line through the END line inclusive, with the host format's own `---` fences
  * NOT part of it. Both are "from the start of BEGIN's line to the end of END's
- * line", so one formula covers both. Then §A.9.4's three placement cases:
+ * line", so one formula covers both. Then section A.9.4's three placement cases:
  *
  *   at the start of the file → { 0, block incl. its trailing terminator }
  *   at the end of the file   → { offset of the newline BEFORE the block, to EOF }
  *   the whole file           → { 0, file length }
  *
  * Spec-literal on a CRLF file: the end-of-file case starts at the LF, which
- * leaves the preceding CR inside the hashed content. That is what §A.9.4 says.
- * A block in the MIDDLE of a file has no rule at all (§A.9.3.1 places it at the
+ * leaves the preceding CR inside the hashed content. That is what section A.9.4 says.
+ * A block in the MIDDLE of a file has no rule at all (section A.9.3.1 places it at the
  * start or the end); the block's own range is returned as the best available
  * answer, and the mismatch will surface as a failed binding rather than a
  * silently-wrong hash.
  *
  * That middle case is also where a FRONT-MATTER block at the top of a file lands
- * - §A.9.4's "at the beginning of the file → start: 0" and its own note that the
+ * - section A.9.4's "at the beginning of the file → start: 0" and its own note that the
  * `---` fences are not part of the exclusion cannot both hold when the fences
  * come first. The note is the more specific rule, so it wins: the exclusion is
  * the block, and the fences stay in the hash.
  *
- * ALTERNATES. §A.9.4's end-of-file rule ("the newline character preceding the
+ * ALTERNATES. section A.9.4's end-of-file rule ("the newline character preceding the
  * block") is one byte ambiguous in two ways a producer cannot be blamed for, and
- * since Lolly is the first §A.9 implementation in the wild its reading would
+ * since Lolly is the first section A.9 implementation in the wild its reading would
  * otherwise become de-facto normative by accident:
  *
  *   CRLF - "the newline" reads as the LF alone or as the CRLF pair; the second
@@ -1335,10 +1335,10 @@ function armorExclusion(bin: string, begin: number, end: number): { primary: C2p
 }
 
 /**
- * §A.9.3.1's inline form: `data:application/c2pa;base64,…` → the base64 payload,
+ * section A.9.3.1's inline form: `data:application/c2pa;base64,…` → the base64 payload,
  * or null when this reference is not a C2PA data: URI at all.
  *
- * Parsed by hand rather than by a regex, because RFC 2397 (which §A.9.3.1 cites)
+ * Parsed by hand rather than by a regex, because RFC 2397 (which section A.9.3.1 cites)
  * permits `;parameter=value` between the media type and `;base64` - and the
  * regex that tolerates that has nested quantifiers, which is a ReDoS on a public
  * drop target. Refusing a legal `;charset=utf-8` form was also inconsistent with
@@ -1364,24 +1364,24 @@ function readArmor(bytes: Uint8Array): TextRead {
   // Cap at 4: all we need to know is "0, 1, or more than 1".
   const begins = indicesOf(bin, ARMOR_BEGIN, 4);
   const ends = indicesOf(bin, ARMOR_END, 4);
-  // §A.9.3: "There shall be at most one manifest block per file."
+  // section A.9.3: "There shall be at most one manifest block per file."
   if (begins.length > 1 || ends.length > 1) {
     return {
       store: null,
       status: C2PA_TEXT_STATUS.structuredTextMultipleReferences,
-      fatal: `file carries ${Math.max(begins.length, ends.length)} C2PA manifest blocks; §A.9.3 allows at most one`,
+      fatal: `file carries ${Math.max(begins.length, ends.length)} C2PA manifest blocks; section A.9.3 allows at most one`,
     };
   }
   const begin = begins[0];
   const end = ends[0];
-  // §A.9.5: delimiters absent, or only one of the pair (or END before BEGIN) →
+  // section A.9.5: delimiters absent, or only one of the pair (or END before BEGIN) →
   // no manifest block. NOT fatal: prose that quotes the delimiter - this file's
   // own plan does - must not read as a damaged credential.
   if (begin === undefined || end === undefined || end < begin + ARMOR_BEGIN.length) {
     return {
       store: null,
       status: C2PA_TEXT_STATUS.structuredTextNoManifest,
-      detail: 'the §A.9 armour delimiters are not both present, in order',
+      detail: 'the section A.9 armour delimiters are not both present, in order',
     };
   }
   const { primary, alternates } = armorExclusion(bin, begin, end);
@@ -1413,27 +1413,27 @@ function readArmor(bytes: Uint8Array): TextRead {
       detail: 'the manifest reference is neither a data:application/c2pa URI nor an http(s) URL or relative reference',
     };
   }
-  // Unlike §A.7's link form, the URL form here STILL has an exclusion: the
+  // Unlike section A.7's link form, the URL form here STILL has an exclusion: the
   // armour block is bytes in the file, so it must come out before hashing.
   return { store: null, externalUrl: url, exclusions, ...alt };
 }
 
-// ── §A.8: unstructured text (variation-selector wrapper) ──────────────────────
+// ── section A.8: unstructured text (variation-selector wrapper) ──────────────────────
 
 const BOM_CP = 0xfeff;
 const VS_LOW_START = 0xfe00;
 const VS_LOW_END = 0xfe0f;
 const VS_HIGH_START = 0xe0100;
 const VS_HIGH_END = 0xe01ef;
-/** §A.8.2.2 `magic = 0x4332504154585400` - "C2PATXT\0". */
+/** section A.8.2.2 `magic = 0x4332504154585400` - "C2PATXT\0". */
 const WRAPPER_MAGIC = [0x43, 0x32, 0x50, 0x41, 0x54, 0x58, 0x54, 0x00];
 /** magic(8) + version(1) + manifestLength(4). */
 const WRAPPER_HEADER_BYTES = 13;
-/** §A.8.4.1 expects one; a hostile paste can hold many. Collect a bounded few -
+/** section A.8.4.1 expects one; a hostile paste can hold many. Collect a bounded few -
  *  enough to report `multipleWrappers` honestly, not enough to be a workload. */
 const MAX_TEXT_WRAPPERS = 32;
 
-/** §A.8.3.2, verbatim: U+FE00–FE0F → 0–15, U+E0100–E01EF → 16–255, else invalid. */
+/** section A.8.3.2, verbatim: U+FE00–FE0F → 0–15, U+E0100–E01EF → 16–255, else invalid. */
 const variationSelectorToByte = (cp: number): number =>
   cp >= VS_LOW_START && cp <= VS_LOW_END ? cp - VS_LOW_START
     : cp >= VS_HIGH_START && cp <= VS_HIGH_END ? cp - VS_HIGH_START + 16
@@ -1457,12 +1457,12 @@ function runEndFrom(nfc: string, unit: number, byteOff: number): { unit: number;
 }
 
 /**
- * §A.8.4.2 steps 3–4 at one U+FEFF: decode the following selector run.
+ * section A.8.4.2 steps 3–4 at one U+FEFF: decode the following selector run.
  * Returns null when this is not a wrapper at all (no U+FEFF here, or the first
  * eight selectors are not the magic) - that check bails after EIGHT selectors,
  * so a megabyte of ordinary variation selectors costs eight steps, not a
  * megabyte. Returns a wrapper with a `status` when the magic matched but the
- * body did not (§15.12.1.3.2 "invalid version, algorithm, or manifest length").
+ * body did not (section 15.12.1.3.2 "invalid version, algorithm, or manifest length").
  */
 function decodeWrapperAt(nfc: string, unit: number, byteOff: number): C2paTextWrapper | null {
   const selectorStart = byteOff + utf8Len(BOM_CP);
@@ -1495,11 +1495,11 @@ function decodeWrapperAt(nfc: string, unit: number, byteOff: number): C2paTextWr
     return at(C2PA_TEXT_STATUS.textCorruptedWrapper, `the wrapper ends inside manifestLength (${len.length} of 4 bytes)`, version);
   }
   const manifestLength = ((len[0]! << 24) | (len[1]! << 16) | (len[2]! << 8) | len[3]!) >>> 0;
-  // §A.8.2.3 defines version 1 only. §15.12.1.3.2 puts an invalid version under
+  // section A.8.2.3 defines version 1 only. section 15.12.1.3.2 puts an invalid version under
   // corruptedWrapper; `reason` carries the honest "we don't support this yet"
   // wording so a report never has to guess which of the two it is.
   if (version !== 1) {
-    return at(C2PA_TEXT_STATUS.textCorruptedWrapper, `wrapper version ${version} is not supported (§A.8.2.3 defines version 1)`, version);
+    return at(C2PA_TEXT_STATUS.textCorruptedWrapper, `wrapper version ${version} is not supported (section A.8.2.3 defines version 1)`, version);
   }
   // BOUND BEFORE ALLOCATING. manifestLength is four bytes the input chose, up to
   // 4 GiB - sizing an array from it directly is the whole hazard. Every encoded
@@ -1539,7 +1539,7 @@ function readTextVs(bytes: Uint8Array): TextRead {
   // decoder eats it, which would shift every byte offset by three AND hide a
   // wrapper placed at offset 0.
   const raw = new TextDecoder('utf-8', { ignoreBOM: true }).decode(bytes);
-  // §A.8.7.2/§A.8.7.3: normalize FIRST, then measure. NFC can shorten the text
+  // section A.8.7.2/section A.8.7.3: normalize FIRST, then measure. NFC can shorten the text
   // ahead of a wrapper (decomposed é = 3 bytes → composed é = 2), so offsets
   // taken from the raw bytes would be wrong by exactly that much.
   const nfc = raw.normalize('NFC');
@@ -1583,12 +1583,12 @@ function readTextVs(bytes: Uint8Array): TextRead {
     // The U+FEFF-inclusive range - see C2paTextWrapper for why this is a choice
     // and not a reading. `selectorStart` is on the wrapper for the other one.
     exclusions: [{ start: chosen.start, length: chosen.end - chosen.start }],
-    // §A.8.4.1 hands wrapper SELECTION to the assertion's exclusions, and
-    // §15.12.1.3.1 only fails on multipleWrappers when more than one wrapper
+    // section A.8.4.1 hands wrapper SELECTION to the assertion's exclusions, and
+    // section 15.12.1.3.1 only fails on multipleWrappers when more than one wrapper
     // MATCHES those exclusions - which extraction cannot know. So this is a
     // notice for the validator, not a refusal here.
     ...(valid.length > 1
-      ? { status: C2PA_TEXT_STATUS.textMultipleWrappers, detail: `${valid.length} valid wrappers; §15.12.1.3.1 selects by the assertion's exclusions` }
+      ? { status: C2PA_TEXT_STATUS.textMultipleWrappers, detail: `${valid.length} valid wrappers; section 15.12.1.3.1 selects by the assertion's exclusions` }
       : {}),
   };
 }
@@ -1614,7 +1614,7 @@ const asExtractor = (read: (bytes: Uint8Array) => TextRead) => (bytes: Uint8Arra
 /**
  * Extraction with everything the text bindings need that `{ manifest }` cannot
  * carry: the external URL a reference-only carrier points at, the exclusions the
- * spec says the hard binding should declare, every §A.8 wrapper with its
+ * spec says the hard binding should declare, every section A.8 wrapper with its
  * NFC-normalized byte range, and a status code when the carrier is present but
  * unusable.
  *
@@ -1668,7 +1668,7 @@ export const EXTRACTORS: Record<SniffFormat, (bytes: Uint8Array) => { manifest: 
   wav: extractC2paFromRiff,
   ogg: extractC2paFromOgg,
   // C2PA 2.4 text bindings. `html` and `code` return null for the REFERENCE
-  // forms (§A.7.1.2 `<link>`, §A.9.3 URL) - nothing is embedded, so there is no
+  // forms (section A.7.1.2 `<link>`, section A.9.3 URL) - nothing is embedded, so there is no
   // store to hand back; extractC2paDetailed carries the URL instead.
   html: asExtractor(readHtml),
   code: asExtractor(readArmor),
@@ -1794,11 +1794,11 @@ export interface C2paIngredientData {
  *
  * Fail-closed by design: every throw becomes null. Two consequences worth
  * knowing now that the text bindings are readable - a reference-only carrier
- * (§A.7's `<link>`, §A.9's URL form) has no embedded store, so it is null here
+ * (section A.7's `<link>`, section A.9's URL form) has no embedded store, so it is null here
  * too; and `format` can now be 'html'/'code'/'text', which NO container in
  * c2pa-containers.ts can place back (they are read-only in M1), so a `format`
  * from this function must not be handed to `attachC2paStore` unguarded.
- * Callers that need the reason, the external URL, or the §A.8 wrapper ranges
+ * Callers that need the reason, the external URL, or the section A.8 wrapper ranges
  * use {@link extractC2paDetailed}.
  */
 export function extractC2paStore(bytes: Uint8Array): { store: Uint8Array; format: SniffFormat } | null {

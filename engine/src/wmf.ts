@@ -39,7 +39,7 @@ import type {
 } from './emf.ts';
 import type { PathSegment } from './svg-path.ts';
 
-// ─── WMF record function codes (RecordType enumeration, MS-WMF §2.1.1.1) ───────
+// ─── WMF record function codes (RecordType enumeration, MS-WMF section 2.1.1.1) ───────
 const META_EOF                = 0x0000;
 const META_SETPOLYFILLMODE    = 0x0106;
 const META_SETWINDOWORG       = 0x020b;
@@ -107,7 +107,7 @@ function rec(func: number, params: number[]): Uint8Array {
 }
 
 // ─── Records ───────────────────────────────────────────────────────────────────
-// SetWindowOrg/Ext store the Y field before X (MS-WMF §2.3.5.30 / §2.3.5.29).
+// SetWindowOrg/Ext store the Y field before X (MS-WMF section 2.3.5.30 / section 2.3.5.29).
 const recSetWindowOrg = (x: number, y: number): Uint8Array =>
   rec(META_SETWINDOWORG, [clampI16(y), clampI16(x)]);
 const recSetWindowExt = (w: number, h: number): Uint8Array =>

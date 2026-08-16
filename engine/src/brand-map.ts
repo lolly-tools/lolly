@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
  * Brand mapper. Primitives that make a foreign document look intentionally
- * on-brand (plan track E3, plans/49-fable-new-potential-pptx.md §E3). Given an
+ * on-brand (plan track E3, plans/49-fable-new-potential-pptx.md section E3). Given an
  * imported artefact's literal colours and font families, this maps each one
  * onto the active brand's swatches/fonts, so a rebrand reads as deliberate
  * instead of a random nearest-neighbour pick.

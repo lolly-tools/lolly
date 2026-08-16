@@ -548,7 +548,7 @@ test('kitchen sink: this variant set has no fill-in-the-blank slots, and says so
   assert.deepEqual(penpotComponentSlots(copy, lookup), []);
 });
 
-// ── (f) prototype flow → scene order (penpot-design-system.md §4) ────────────
+// ── (f) prototype flow → scene order (penpot-design-system.md section 4) ────────────
 // Imported here rather than at the top so this block appends cleanly.
 import { readingOrder, penpotFlowOrder } from '../engine/src/design-map.ts';
 //

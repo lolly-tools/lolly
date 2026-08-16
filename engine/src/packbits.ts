@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
- * PackBits run-length coding (TIFF 6.0 §9) - the byte compression Photoshop
+ * PackBits run-length coding (TIFF 6.0 section 9) - the byte compression Photoshop
  * calls "RLE" for PSD channel data (compression method 1) and TIFF uses for
  * Compression=32773. One scheme, two container homes, so it lives alone here
  * where psd.ts, psd-write.ts and any future TIFF reader can share it.

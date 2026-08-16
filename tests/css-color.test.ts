@@ -6,7 +6,7 @@
  *
  *   1. PARSING every form the spec defines, including the non-legacy ones whose
  *      absence silently dropped paint from SVG/PDF/EMF export (see
- *      plans/60-color-spaces.md §4). The reference hexes come from the spec's own
+ *      plans/60-color-spaces.md section 4). The reference hexes come from the spec's own
  *      equivalence examples where it gives them, otherwise from converting a
  *      known sRGB colour into the space and back.
  *   2. CONVERSION being lossless: every one of the 14 spaces round-trips a set
@@ -95,7 +95,7 @@ test('oklab() and oklch(), percent and bare lightness', () => {
   assert.equal(hexOf('oklab(62.8% 0.225 0.126)'), '#ff0000');
   // The two lightness spellings mean the same thing (100% = 1).
   assert.equal(hexOf('oklch(70% 0.1 200)'), hexOf('oklch(0.7 0.1 200)'));
-  // Chroma as a percentage is of 0.4 (§7.3).
+  // Chroma as a percentage is of 0.4 (section 7.3).
   assert.equal(hexOf('oklch(70% 25% 200)'), hexOf('oklch(70% 0.1 200)'));
 });
 

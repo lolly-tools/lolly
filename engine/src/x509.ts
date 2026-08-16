@@ -13,7 +13,7 @@
  *     issuing short-lived leaf certificates bound to an OIDC-verified email
  *     (SAN rfc822Name).
  *
- * Both leaf profiles are c2pa-rs-compatible on purpose (spec §14.5.1, hard
+ * Both leaf profiles are c2pa-rs-compatible on purpose (spec section 14.5.1, hard
  * failures otherwise): the subject carries O= and CN=, the EKU is
  * id-kp-emailProtection (anyExtendedKeyUsage is rejected), keyUsage is
  * digitalSignature critical, and SKI + AKI are present. ES256 P-256 only,
@@ -71,7 +71,7 @@ export function derOid(oid: string): Uint8Array {
   return der(0x06, Uint8Array.from(bytes));
 }
 
-// UTCTime through 2049, GeneralizedTime after (RFC 5280 §4.1.2.5).
+// UTCTime through 2049, GeneralizedTime after (RFC 5280 section 4.1.2.5).
 export function derTime(date: Date): Uint8Array {
   const p = (v: number, w = 2): string => String(v).padStart(w, '0');
   const y = date.getUTCFullYear();
@@ -92,7 +92,7 @@ export function asDate(v: DateInput, fallback: number | string): Date {
 // identifiers) and to copy a CA cert's subject Name verbatim; c2pa-verify.ts
 // owns the full certificate read side.
 
-// RFC 5280 §4.2.1.2 method (1) key identifier: SHA-1 of the subjectPublicKey
+// RFC 5280 section 4.2.1.2 method (1) key identifier: SHA-1 of the subjectPublicKey
 // BIT STRING value - which for EC is exactly the raw uncompressed point.
 async function keyIdOf(spkiDer: Uint8Array): Promise<Uint8Array> {
   const [, bits] = derChildren(spkiDer, derTlv(spkiDer, 0));
@@ -179,13 +179,13 @@ export async function generateSigner(
   const notAfter = asDate(dates.notAfter, notBefore.getTime() + 365 * 24 * 3600 * 1000);
   const pair = await subtle.generateKey({ name: 'ECDSA', namedCurve: 'P-256' }, true, ['sign', 'verify']) as CryptoKeyPair;
   const spki = new Uint8Array(await subtle.exportKey('spki', pair.publicKey));
-  // RFC 5280 §4.2.1.2 method (1) key identifier: SHA-1 of the subjectPublicKey
+  // RFC 5280 section 4.2.1.2 method (1) key identifier: SHA-1 of the subjectPublicKey
   // BIT STRING value - which for EC is exactly the raw uncompressed point.
   const keyId = new Uint8Array(await subtle.digest('SHA-1', new Uint8Array(await subtle.exportKey('raw', pair.publicKey))));
   const serial = randomSerial();
   const name = x501Name(subject.organization ?? SIGNER_O, subject.commonName ?? SIGNER_CN);
   const algId = derSeq(derOid(OID_ECDSA_WITH_SHA256));
-  // The C2PA certificate profile (spec §14.5.1, enforced by c2pa-rs) requires,
+  // The C2PA certificate profile (spec section 14.5.1, enforced by c2pa-rs) requires,
   // beyond basicConstraints + keyUsage: an EKU that is present and allowed
   // (emailProtection - anyExtendedKeyUsage is rejected) and an
   // AuthorityKeyIdentifier. SKI is included for AKI's keyid to refer back to.

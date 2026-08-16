@@ -1,19 +1,19 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
- * Bulk machine-translation pipeline (plans/38-localize.md §4).
+ * Bulk machine-translation pipeline (plans/38-localize.md section 4).
  *
  * Batch-translates UI strings via the Claude API, with a shared glossary,
  * content-hash incremental caching (only re-translates changed English
  * source), placeholder/structure validation, and a human-overrides layer
  * that always wins over machine output. Requires ANTHROPIC_API_KEY.
  *
- * Corpora (see plans/38-localize.md §10 for the rest still to come):
+ * Corpora (see plans/38-localize.md section 10 for the rest still to come):
  *   spa - shells/web/src/locales/<lang>.json, keyed by the exact English
  *           string used as a t() call site across shells/web/src (i18n.ts).
  *           Literal `t('...')` calls are found by scanning source; the small
  *           number of dynamically-keyed calls (t(FIELD_LABELS[f]), ternaries)
  *           are listed by hand in scripts/i18n/extra-keys.spa.json.
- *   tools - per-tool i18n sidecars (plans/38-localize.md §7), one
+ *   tools - per-tool i18n sidecars (plans/38-localize.md section 7), one
  *           tools/<id>/i18n/<lang>.json per tool per language. Scoped to the
  *           three gallery-card-visible fields (`name`, `description`,
  *           `featured.blurb`) - NOT the full sidecar key grammar
@@ -45,7 +45,7 @@
  *   npm run translate -- --check              # exit non-zero on stale/missing, no API calls
  *
  * Future corpora (site.json chrome) plug into the generic runCorpus() shape - 
- * see plans/38-localize.md §8.
+ * see plans/38-localize.md section 8.
  */
 
 import { readFileSync, writeFileSync, existsSync, readdirSync, statSync, mkdirSync, rmSync } from 'node:fs';
@@ -84,7 +84,7 @@ const GLOSSARY_PATH = join(I18N_DIR, 'glossary.json');
 const LANGS = ['es', 'de', 'fr', 'zh', 'ja', 'vi', 'pt', 'zh-hant', 'cs', 'nl', 'tl', 'sv', 'ms', 'ro', 'hi', 'bn', 'ur', 'id', 'ar', 'it', 'no', 'ko', 'bg', 'tr', 'uk', 'pl'] as const;
 type Lang = (typeof LANGS)[number];
 
-// Chosen deliberately for this pipeline (see plans/38-localize.md §4) - not the
+// Chosen deliberately for this pipeline (see plans/38-localize.md section 4) - not the
 // skill's default Opus-4.8 recommendation, which is for open-ended/reasoning
 // work. Bulk, high-volume, quality-sensitive-but-not-frontier-reasoning
 // translation is exactly what Sonnet-tier is priced and built for.
@@ -334,8 +334,13 @@ export function extractSiteKeys(): string[] {
     sliceDataLiteral(src, /\bconst\s+NAV\s*:\s*NavLink\[\]\[\]\s*=/, 'NAV'), 'NAV');
   const sidebars = evalDataLiteral<Record<string, SiteSidebar>>(
     sliceDataLiteral(src, /\bconst\s+SIDEBARS\s*:\s*Record<[^=]*=/, 'SIDEBARS'), 'SIDEBARS');
-  const pages = evalDataLiteral<SitePage[]>(
-    sliceDataLiteral(src, /\bconst\s+pages\s*:\s*Page\[\]\s*=/, 'pages'), 'pages');
+  // Two `pages` entries carry `render: <namedFunction>` (the band-hosting pages;
+  // named functions on purpose, for check-docs-nav's brace-free matcher). The site
+  // corpus needs only slug/title/isLanding, so strip the identifier-valued prop
+  // before eval rather than demanding the literal stay identifier-free.
+  const pagesText = sliceDataLiteral(src, /\bconst\s+pages\s*:\s*Page\[\]\s*=/, 'pages')
+    .replace(/\brender:\s*[A-Za-z_$][\w$]*\s*,?/g, '');
+  const pages = evalDataLiteral<SitePage[]>(pagesText, 'pages');
   if (!nav.length || !Object.keys(sidebars).length || !pages.length) {
     throw new Error('site corpus: NAV/SIDEBARS/pages extracted empty from docs/build.ts');
   }
@@ -641,6 +646,10 @@ async function runToolsCorpus(client: Anthropic | null, lang: Lang, cache: Cache
 // the operator overview whose stale SEAL sentence is still live in ~24 locales.
 export const DOCS_PAGES: Array<{ slug: string; src: string }> = [
   { slug: 'privacy', src: 'privacy.md' },              // the reason this corpus exists
+  // The landing body (site.md -> the index.md twin). Its section separators are
+  // protected by the {"---": "---"} entry in overrides/docs.<lang>.json: a twin
+  // that drops a separator silently shifts every audience tab's icon and slug.
+  { slug: 'index', src: 'site.md' },
   { slug: 'quickstart', src: 'quickstart.md' },
   { slug: 'creators', src: 'creators.md' },
   { slug: 'using', src: 'using.md' },
@@ -790,6 +799,7 @@ async function runDocsCorpus(
   cache: Cache,
   glossary: Glossary,
   only?: string,
+  opts: { writeFromCache?: boolean } = {},
 ): Promise<{ translated: number; cached: number; failed: number }> {
   // `client === null` means --check: a read-only audit ("what would be stale?"),
   // which is also the CI guard. It must touch NOTHING on disk. This matters more
@@ -798,7 +808,13 @@ async function runDocsCorpus(
   // stale file so build.ts falls back", and a --check that deletes 26 languages'
   // worth of real translations would be a data-loss bug wearing an audit's
   // clothes. (It was exactly that for one commit; hence this comment.)
-  const readOnly = client === null;
+  //
+  // `writeFromCache` is the offline path's finish step: no client, no API call,
+  // but DO write twins for pages whose every block is already in the cache
+  // (an `--import` just put them there). Callers scope it with `only` so an
+  // unrelated page's stale twin is never deleted by a run that imported nothing
+  // for it.
+  const readOnly = client === null && !opts.writeFromCache;
   const pages = only ? DOCS_PAGES.filter(p => p.slug === only) : DOCS_PAGES;
   if (only && !pages.length) {
     console.error(`Unknown --only page "${only}". Available: ${DOCS_PAGES.map(p => p.slug).join(', ')}`);
@@ -1203,13 +1219,46 @@ function pendingItems(corpus: CorpusDef, lang: Lang, keys: string[], cache: Cach
   return out;
 }
 
-async function exportPending(corpusIds: string[], langs: Lang[], cache: Cache, glossary: Glossary, dir: string): Promise<void> {
+async function exportPending(corpusIds: string[], langs: Lang[], cache: Cache, glossary: Glossary, dir: string, only?: string): Promise<void> {
   mkdirSync(dir, { recursive: true });
   let files = 0;
   let items = 0;
   for (const id of corpusIds) {
+    // The docs corpus exports per BLOCK, deduplicated by content (the cache is
+    // content-keyed, so one translation serves a block wherever it repeats). The
+    // work file records which pages it covered so `--import` can regenerate
+    // exactly those twins and no others.
+    if (id === 'docs') {
+      const pages = only ? DOCS_PAGES.filter(p => p.slug === only) : DOCS_PAGES;
+      if (only && !pages.length) { console.error(`Unknown --only page "${only}". Available: ${DOCS_PAGES.map(p => p.slug).join(', ')}`); process.exit(1); }
+      const docs = pages.map(p => ({ ...p, blocks: splitDocBlocks(readFileSync(join(REPO_ROOT, 'docs', p.src), 'utf8')) }));
+      for (const lang of langs) {
+        const langCache = cache.docs?.[lang] ?? {};
+        const overrides = loadOverrides('docs', lang);
+        const seen = new Set<string>();
+        const pending: BatchItem[] = [];
+        for (const doc of docs) for (const block of doc.blocks) {
+          if (!block.translatable || !block.text.trim()) continue;
+          if (overrides[block.text] !== undefined) continue;
+          if (langCache[sha256(block.text)] !== undefined) continue;
+          if (seen.has(block.text)) continue;
+          seen.add(block.text);
+          pending.push({ id: pending.length, text: block.text });
+        }
+        if (!pending.length) continue;
+        const work: WorkFile & { pages: string[] } = {
+          corpus: 'docs', lang, pages: pages.map(p => p.slug),
+          brief: buildSystemPrompt(lang, DOCS_CONTEXT, glossary), items: pending,
+        };
+        const out = join(dir, `docs.${lang}.json`);
+        writeFileSync(out, JSON.stringify(work, null, 2) + '\n', 'utf8');
+        files++; items += pending.length;
+        console.log(`  [docs/${lang}] ${pending.length} pending block(s) across ${pages.length} page(s) -> ${relative(REPO_ROOT, out)}`);
+      }
+      continue;
+    }
     const corpus = CORPORA[id];
-    if (!corpus) { console.warn(`  [${id}] not a generic corpus - export covers ${Object.keys(CORPORA).join(', ')} only`); continue; }
+    if (!corpus) { console.warn(`  [${id}] not a generic corpus - export covers ${Object.keys(CORPORA).join(', ')} and docs only`); continue; }
     const keys = await corpus.keys();
     for (const lang of langs) {
       const pending = pendingItems(corpus, lang, keys, cache);
@@ -1254,7 +1303,10 @@ function importWorkFile(path: string, cache: Cache): { ok: number; rejected: num
   for (const item of translated) {
     const english = source.get(item.id);
     if (english === undefined) { console.warn(`  ✗ ${corpusId}/${lang} id ${item.id}: no such item in the work file`); rejected++; continue; }
-    const problem = validate(english, item.text);
+    // Docs blocks get the structural markdown checks on top of the generic ones,
+    // exactly as the API path applies them via translateBatch's extraValidate.
+    const problem = validate(english, item.text)
+      ?? (corpusId === 'docs' ? validateDocBlock(english, item.text) : null);
     if (problem) { console.warn(`  ✗ ${corpusId}/${lang} "${english.slice(0, 40)}": ${problem}`); rejected++; continue; }
     langCache[sha256(english)] = item.text;
     ok++;
@@ -1452,10 +1504,20 @@ async function main(): Promise<void> {
     // offline path has to be able to finish without a key, so it does not defer
     // to a follow-up API run.
     const touched = new Map<string, Set<Lang>>();
+    // Docs work files also record WHICH pages they covered, so the twin
+    // regeneration below stays scoped: a run that imported quickstart blocks must
+    // never delete another page's stale twin as a side effect.
+    const touchedDocs = new Map<Lang, Set<string>>();
     for (const f of imported) {
       try {
-        const w = JSON.parse(readFileSync(f, 'utf8')) as { corpus?: string; lang?: Lang };
-        if (w.corpus && w.lang) (touched.get(w.corpus) ?? touched.set(w.corpus, new Set()).get(w.corpus)!).add(w.lang);
+        const w = JSON.parse(readFileSync(f, 'utf8')) as { corpus?: string; lang?: Lang; pages?: string[] };
+        if (!w.corpus || !w.lang) continue;
+        if (w.corpus === 'docs') {
+          const set = touchedDocs.get(w.lang) ?? touchedDocs.set(w.lang, new Set()).get(w.lang)!;
+          for (const p of w.pages ?? []) set.add(p);
+        } else {
+          (touched.get(w.corpus) ?? touched.set(w.corpus, new Set()).get(w.corpus)!).add(w.lang);
+        }
       } catch { /* already reported by the import above */ }
     }
     for (const [id, langs] of touched) {
@@ -1466,6 +1528,12 @@ async function main(): Promise<void> {
         const { written, english } = writeCatalogFromCache(corpus, l, keys, cache);
         console.log(`  [${id}/${l}] wrote ${relative(REPO_ROOT, corpus.outPath(l))} (${written} keys`
           + `${english ? `, ${english} still English` : ''})`);
+      }
+    }
+    const glossaryForDocs = touchedDocs.size ? loadGlossary() : null;
+    for (const [l, pages] of touchedDocs) {
+      for (const slug of pages) {
+        await runDocsCorpus(null, l, cache, glossaryForDocs!, slug, { writeFromCache: true });
       }
     }
 
@@ -1482,7 +1550,7 @@ async function main(): Promise<void> {
   const cache = loadCache();
 
   if (doExport) {
-    await exportPending(corpusIds, targetLangs, cache, glossary, join(REPO_ROOT, outDir ?? 'scripts/i18n/pending'));
+    await exportPending(corpusIds, targetLangs, cache, glossary, join(REPO_ROOT, outDir ?? 'scripts/i18n/pending'), only);
     return;
   }
 

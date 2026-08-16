@@ -173,7 +173,7 @@ export function entryFromManifest(manifest: Manifest): Record<string, unknown> {
   // Paged tools (render.paged) lay out multiple [data-pdf-page] boxes; the gallery
   // shows each page as its own preview slide instead of input-variant looks.
   if (manifest.render?.paged === true) entry.paged = true;
-  // Gallery-card translations (plans/38-localize.md §7) - folded from the SAME
+  // Gallery-card translations (plans/38-localize.md section 7) - folded from the SAME
   // tools/<id>/i18n/<lang>.json sidecars engine/src/loader.ts's
   // applyManifestI18n reads at tool-load time, but only the three fields the
   // gallery card itself shows (name/description/blurb) - the rest of a

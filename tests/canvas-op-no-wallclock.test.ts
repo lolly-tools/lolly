@@ -1,10 +1,10 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
  * Static guard: convergence must never read the wall clock or unseeded randomness
- * (plan 100 §11.7, §13 wave 0.6). LWW ordering in the canvas-op contract rides
+ * (plan 100 section 11.7, section 13 wave 0.6). LWW ordering in the canvas-op contract rides
  * Lamport `(clock, client)` only (`packages/core/src/canvas-op-v1.ts`'s `beats`) - 
  * an airgapped device with a wrong system clock still converges identically with
- * its peers, "and it doesn't matter" (§11.7). Any of these landing in the merge
+ * its peers, "and it doesn't matter" (section 11.7). Any of these landing in the merge
  * path (or in the testkit that stands in for a real adapter in the shared
  * conformance suite) would make two peers order ops differently depending on
  * physical clocks or unseeded entropy, which is precisely the bug this pins
@@ -74,7 +74,7 @@ test('canvas-op-v1 + canvas-op-testkit never read the wall clock or unseeded ran
     offenders,
     [],
     'wall-clock/random token found outside the allowlist — LWW must ride Lamport ' +
-    `(clock, client) only (plan 100 §11.7):\n${offenders.join('\n')}`,
+    `(clock, client) only (plan 100 section 11.7):\n${offenders.join('\n')}`,
   );
 });
 

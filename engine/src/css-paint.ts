@@ -271,7 +271,7 @@ function radialLen(tok: string | undefined, ref: number): number | null {
   return Number.isFinite(p) ? p : null;
 }
 
-// Radii (rx, ry) for a radial-gradient keyword size, per CSS Images 3 §3.2.1. `l/r/t/b`
+// Radii (rx, ry) for a radial-gradient keyword size, per CSS Images 3 section 3.2.1. `l/r/t/b`
 // are the centre's distances to the four box edges. Corner sizes keep the matching
 // side's aspect ratio and reach the corner (the √2 factor when the centre is centred).
 function radialKeywordRadii(kw: string, shape: string, cx: number, cy: number, w: number, h: number): [number, number] {

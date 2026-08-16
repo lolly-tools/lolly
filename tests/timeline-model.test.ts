@@ -4,13 +4,13 @@
  *
  * Run with: npm test  (node --test over the tests/ globs). No framework - node:test.
  *
- * Spec: plans/52-fable-timeline-phase-1.md §5. Phase 1 is inert data only - nothing
+ * Spec: plans/52-fable-timeline-phase-1.md section 5. Phase 1 is inert data only - nothing
  * reads `data-t-*`/`data-sequence` yet (that's the phase-2 panel) - so these tests
  * only guard: the compact-blocks wire format stays positionally stable, the hook's
  * derived attributes/duration math is correct, and hostile input can never reach a
  * rendered HTML attribute unescaped.
  *
- * Loads the REAL tool from disk (brands/lolly-start - parent-owned, always present
+ * Loads the REAL tool from disk (community/ - public, always present
  * in a public checkout; brands/suse is a private submodule CI skips) and drives it
  * through the engine with a stub host, exactly like design-fit-circle.test.ts.
  */
@@ -28,17 +28,12 @@ import { parseUrlState } from '../engine/src/url-mode.ts';
 import { KF_CHARSET_RE, parseKf, serialiseKf } from '../engine/src/keyframes.ts';
 import { baseHost } from './helpers/host.ts';
 
-// Parent-owned pack - present in every checkout (brands/suse is private + CI-skipped).
-const PACK_DIR = join(dirname(fileURLToPath(import.meta.url)), '..', 'brands', 'lolly-start', 'tools');
+// Public community pack - present in every checkout (brands/suse is private + CI-skipped).
+const PACK_DIR = join(dirname(fileURLToPath(import.meta.url)), '..', 'community');
 const fetchFile = (path: string) => readFile(join(PACK_DIR, path), 'utf8');
 
-// The private SUSE pack carries the second copy of this same tool. Gate on the pack - 
-// never skip silently when it IS mounted (the canvas-schema-contract.test.ts pattern).
-const SUSE_PACK = join(dirname(fileURLToPath(import.meta.url)), '..', 'brands', 'suse', 'tools');
-const SKIP_SUSE = !existsSync(SUSE_PACK) && 'SUSE brand pack not mounted (see profiles.json)';
-
 assert.ok(existsSync(join(PACK_DIR, 'design', 'tool.json')),
-  'brands/lolly-start/tools/design/tool.json is missing — the tool was renamed or deleted');
+  'community/design/tool.json is missing - the tool was renamed or deleted');
 
 const tool: any = await loadTool('design', fetchFile);
 
@@ -98,7 +93,7 @@ test('wire order: compact-blocks encode/decode round-trips every field (id..fill
     'the 10 time fields occupy slots 39..48, immediately after fillRule (a bounded slice, '
       + 'so appending a 50th field stays legal)',
   );
-  // plan 104 §5.1/§5.3: the depth + keyframe fields append at 69/70. Same rule, same
+  // plan 104 section 5.1/section 5.3: the depth + keyframe fields append at 69/70. Same rule, same
   // reason - a bounded slice, so a 72nd field stays legal, but an INSERT in front of
   // these two (which is what silently re-columns every shared link) fails right here.
   assert.deepEqual(ids.slice(69, 71), ['z', 'kf'], 'z/kf appended at slots 69/70');
@@ -127,18 +122,11 @@ test('wire order: compact-blocks encode/decode round-trips every field (id..fill
   });
 });
 
-// `boxes` is ONE positional wire shared by both brand copies of design, so a share
-// link written under one profile is decoded under the other. A single field of drift
-// between the copies mis-decodes every value after the drift point - and the copies are
-// edited independently BY ANCHOR (plan §2), which is exactly the discipline that lets one
-// side gain a field the other lacks. Nothing else in the suite compares them.
-test('wire order: the SUSE copy of design declares the identical boxes.fields sequence', { skip: SKIP_SUSE }, async () => {
-  const suse = JSON.parse(await readFile(join(SUSE_PACK, 'design', 'tool.json'), 'utf8'));
-  const suseIds = suse.inputs.find((i: any) => i.id === 'boxes').fields.map((f: any) => f.id);
-  assert.deepEqual(suseIds, boxSubFields().map((f: any) => f.id),
-    'the two brand copies must agree field-for-field, in order — the fonts and the '
-    + 'animated-SVG block may diverge, the WIRE may not');
-});
+// `boxes` is ONE positional wire, and it USED to be shared by two independently
+// edited brand copies of design, so a wire-order parity test lived here. The
+// copies were consolidated into the single community/design (2026-08-16), which
+// retires the test the strong way: with one manifest there is no second copy to
+// drift, so cross-profile share links agree by construction.
 
 // The case that actually carries the regression risk: a link SHARED BEFORE the time
 // fields existed carries only the first 39 comma slots, and is now decoded against a
@@ -461,7 +449,7 @@ test('easing: a non-string curve is ignored and never aborts compute()', async (
   assert.match(boxTag(html, 'b'), /style="[^"]*#112233/, 'the rest of the document still computed');
 });
 
-// ── 7. depth + keyframes (plan 104 §5.1/§5.3) ──────────────────────────────────────
+// ── 7. depth + keyframes (plan 104 section 5.1/section 5.3) ──────────────────────────────────────
 //
 // `z` is an ordinary clamped number, so it needs no more than the usual guards. `kf` is
 // the harder one: it is the second free-text sub-field (after the easings above) and it
@@ -518,7 +506,7 @@ test('keyframes: the emitted track is the ENGINE\'s canonical serialisation, byt
     't0_z-5000*t2000_z-600',                           // a camera DOLLY, past the z field's range
     Array.from({ length: 400 }, (_v, i) => `t${i}_x${i}`).join('*'),  // the 256 cap
     't0_x1*'.repeat(3000),                             // the char cap
-    // Full density: 256 full poses, the shape §8's UI writes. This is what the char cap
+    // Full density: 256 full poses, the shape section 8's UI writes. This is what the char cap
     // has to be derived from - at 8 KB the two sides truncated at different points.
     Array.from({ length: 256 }, (_v, i) => `t${i * 100}_x${i}.5_y-${i}.25_z${i}_s1.${i}_o0.${i}_b${i % 300}`).join('*'),
   ];
@@ -562,7 +550,7 @@ test('keyframes: hostile tracks never reach the attribute', async () => {
   }
 });
 
-// §5.4 scopes v1 to boxes on a [data-sequence] stage: "frame pages are excluded from
+// section 5.4 scopes v1 to boxes on a [data-sequence] stage: "frame pages are excluded from
 // projection and cannot carry kf". frameGroupsFor stamps timeAttrsFor's string onto the
 // [data-pdf-page] div, so the exclusion has to live in the emitter - otherwise it becomes
 // a rule every future reader of data-t-kf must remember, which is not a rule.
@@ -595,7 +583,7 @@ test('keyframes: a non-string / unparseable track emits no attribute and never a
   }
 });
 
-// ── 8. the camera kind (plan 104 §5.4) ─────────────────────────────────────────────
+// ── 8. the camera kind (plan 104 section 5.4) ─────────────────────────────────────────────
 //
 // A camera is a timeline citizen with no artboard footprint: it holds the scene's pose
 // and paints nothing. The audio box is the precedent, and the contract is the same one - 
@@ -616,7 +604,7 @@ test('camera: a camera box renders a bare marker and paints nothing', async () =
 });
 
 test('camera: the depth shadow is derived from z, and never from the manual offsets', async () => {
-  // (0, z·0.15px, (10 + z·0.2)px, #00000055) - straight overhead, §5.3.
+  // (0, z·0.15px, (10 + z·0.2)px, #00000055) - straight overhead, section 5.3.
   const tag = boxTag(await mount([timed({ shadow: 'depth', z: 140, shadowColor: '#ff0000', shadowX: 99, shadowY: 99 })]), 'a');
   assert.match(tag, /filter:drop-shadow\(0px 21px 38px #00000055\)/, 'derived from z alone: ' + tag);
   assert.ok(!tag.includes('#ff0000') && !tag.includes('99px'), 'the manual override tier is not consulted');

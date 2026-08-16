@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
  * CSS Color 4 interpolation (css-color.ts) and the Lolly gradient spec
- * (gradient-spec.ts) - see plans/60-color-spaces.md §10.
+ * (gradient-spec.ts) - see plans/60-color-spaces.md section 10.
  *
  * The two properties worth defending here:
  *
@@ -99,7 +99,7 @@ test('hue directions travel the requested way round the circle', () => {
   assert.ok(Math.abs(hueAt('decreasing') - 225) < 0.5, 'decreasing goes the other way');
 });
 
-test('a missing hue adopts the other side (§13.2), so grey→colour deepens in place', () => {
+test('a missing hue adopts the other side (section 13.2), so grey→colour deepens in place', () => {
   const grey = P('oklch(0.5 0 none)');
   const green = P('oklch(0.7 0.2 140)');
   const mid = convertColor(interpolateColor(grey, green, 0.5, { space: 'oklch' }), 'oklch');

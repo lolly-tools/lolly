@@ -374,7 +374,7 @@ function readXmp(text: string, out: FileMetadata): void {
 // second JPEG there:
 //
 //   - an **HDR gain map** (ISO 21496-1 + Ultra HDR v1.1) - what Lolly's own
-//     `hdr=1` JPEG export writes (plans/61-deeprichpixels.md §4.2 / §6 B2), and
+//     `hdr=1` JPEG export writes (plans/61-deeprichpixels.md section 4.2 / section 6 B2), and
 //     what Apple, Adobe and Android 15 write. The primary is an ordinary SDR
 //     JPEG; the second image is a greyscale map an HDR-aware decoder applies.
 //   - a plain MPO (stereo pairs, Apple burst/depth companions).
@@ -449,7 +449,7 @@ function primaryDeclaresGainMap(bytes: Uint8Array, scan: ReturnType<typeof scanJ
  * has none, has a malformed one, or declares fewer than two images.
  *
  * Every offset in an MP index is measured from the FIRST BYTE OF THE MP ENDIAN
- * FIELD (DC-007 §5.2.3.3), not the file start and not the segment start; the
+ * FIELD (DC-007 section 5.2.3.3), not the file start and not the segment start; the
  * primary's own offset field is zero by definition. Both byte orders are
  * accepted on read (libultrahdr and our own writer emit `MM`; a reader of files
  * strangers send does not get to be picky).

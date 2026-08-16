@@ -197,7 +197,7 @@ export interface Runtime {
   setInput(id: string, value: InputValue): Promise<void>;
   /**
    * Apply MANY input values as ONE batch - the multi-input counterpart to
-   * setInput (plans/100 §5: a remote collaboration op arrives as a set of values;
+   * setInput (plans/100 section 5: a remote collaboration op arrives as a set of values;
    * also useful to /multi and URL hydration). Unknown ids and values the
    * constraints reject are dropped key by key - never the batch, never a throw
    * mid-apply. `onInput` still runs per changed id, sequentially in the object's
@@ -658,12 +658,12 @@ export async function createRuntime(
     },
 
     /**
-     * Atomic multi-input apply (plans/100 §5). Every value goes through EXACTLY
+     * Atomic multi-input apply (plans/100 section 5). Every value goes through EXACTLY
      * setInput's constraint path (updateInput → constrain), so a batch can never
      * put anything in the model a keystroke couldn't. A key naming no declared
      * input - version skew between peers - or one whose value the constraints
      * reject is DROPPED on its own; the rest of the batch still applies and
-     * nothing throws mid-apply (§11.11).
+     * nothing throws mid-apply (section 11.11).
      *
      * What "reject" covers is exactly what the input model can decide from the
      * MANIFEST (see constrain in inputs.ts): a select value outside its declared
@@ -673,7 +673,7 @@ export async function createRuntime(
      * completed later in the lifecycle - a caller taking values from an untrusted
      * peer gates those at its own boundary (the web shell's collab plumbing does).
      * Nor is it a size/depth cap on hostile payloads: that is inbound-transport
-     * hardening (§11.21, wave 2.4), which belongs where the bytes arrive.
+     * hardening (section 11.21, wave 2.4), which belongs where the bytes arrive.
      *
      * `onInput` runs per CHANGED id, sequentially in the object's insertion
      * order, under setInput's time-box and warn-don't-throw handling: the hook

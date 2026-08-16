@@ -382,7 +382,7 @@ function toSwatch(e: TokenEntry): ColorSwatch {
     // An AUTHORED sRGB face wins over the automatic bake. This is Phase 9 of
     // plans/60-color-spaces.md, and it is one line here rather than a change per
     // export path because every consumer of a brand colour funnels through this
-    // field. The reason it must win: the automatic §14.2 gamut map picks the
+    // field. The reason it must win: the automatic section 14.2 gamut map picks the
     // nearest reproducible colour by ΔE, and a brand will often prefer a
     // DIFFERENT sRGB green, one that reads as the same brand colour to a human
     // even though it is not the closest by measurement. Left unhonoured, the

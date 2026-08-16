@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
- * engine/src/exr.ts - the Phase B3 OpenEXR writer (plans/61-deeprichpixels.md §4.2).
+ * engine/src/exr.ts - the Phase B3 OpenEXR writer (plans/61-deeprichpixels.md section 4.2).
  *
  * Four independent ways of being right, because a writer with no reader is a
  * writer with no test:

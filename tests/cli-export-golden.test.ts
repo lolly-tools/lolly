@@ -26,7 +26,7 @@
  *     renderSvg walks/rewrites the DOM. The CLI svg golden is per-CLI output - 
  *     do NOT expect byte parity with a web export of the same tool.
  *   (The old "no text outlining on CLI svg" divergence is GONE as of the GA
- *   contract, plans/73-cli-ga-contract.md §6a: the svg branch outlines through the
+ *   contract, plans/73-cli-ga-contract.md section 6a: the svg branch outlines through the
  *   same host.text EMF/EPS/DXF already used, and this fixture was regenerated
  *   for it. `--text=live` is the opt-out; an unresolvable font keeps live
  *   <text> with a warning, which only SVG can afford.)
@@ -160,7 +160,7 @@ async function render(toolId: string, format: string, params: Record<string, str
   // PROVENANCE PINNED OFF, and this is the honest fix rather than a nuisance.
   //
   // A CLI render carries Content Credentials and the Lolly Imprint by default as of
-  // plans/73-cli-ga-contract.md §12 O2 (Andy, 2026-08-01). A credential is signed with a
+  // plans/73-cli-ga-contract.md section 12 O2 (Andy, 2026-08-01). A credential is signed with a
   // fresh key and a fresh timestamp, so with the default on these bytes would differ on
   // every single run - the fixture could not be recorded at all, let alone reviewed as a
   // diff. Re-recording it would have produced a golden that fails the next minute.
@@ -271,7 +271,7 @@ test('negative control: a perturbed input changes the svg AND emf bytes', async 
 
 // ── text-mark: where outlining happens on the CLI, per format ───────────────
 
-test('golden: CLI svg export OUTLINES <text> like every other vector format (contract §6a)', { skip: SKIP_NO_OUTFIT }, async () => {
+test('golden: CLI svg export OUTLINES <text> like every other vector format (contract section 6a)', { skip: SKIP_NO_OUTFIT }, async () => {
   const svg = (await goldenCase('text-mark.svg', 'text-mark', 'svg')).toString('utf8');
   assert.doesNotMatch(svg, /<text\b/, 'live <text> must not survive: the recipient may not have the font');
   assert.doesNotMatch(svg, /Hamburg/, 'once the run is geometry, the string is gone');

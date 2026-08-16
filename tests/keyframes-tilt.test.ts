@@ -235,7 +235,7 @@ test('the guard ramps on the layer’s NEAREST CORNER under tilt, and on its pla
   const b = projectLayer(flatCam, { bx: 960, by: 540, z: 1000, w: 1600, h: 900 });
   assert.equal(a.alphaGuard, b.alphaGuard, 'without tilt the extent is irrelevant');
   // u = 1000/1200 = 0.8333 ⇒ guard = (0.9 − 0.8333)/0.1 = 0.6667
-  near(a.alphaGuard, (0.9 - 1000 / P) / 0.1, 1e-12, 'the §4.5 ramp');
+  near(a.alphaGuard, (0.9 - 1000 / P) / 0.1, 1e-12, 'the section 4.5 ramp');
 
   // Tilted: a big layer's near corner reaches the near plane first, so the same centre
   // depth fades earlier the wider the layer is. This is the whole reason the guard had
@@ -297,7 +297,7 @@ test('the Surface glide track poses the camera low over the artwork and brings i
 
   // AT THE OPENING: down among the surfaces. The pitch is the signature angle, and the
   // aperture is open with the focus plane out at z 160 - so the flat board is soft and
-  // only the lifted layers are sharp (near-field DOF, §9's "far layers soft in DOF").
+  // only the lifted layers are sharp (near-field DOF, section 9's "far layers soft in DOF").
   const open = at(0);
   assert.equal(open.rx, -40);
   assert.equal(open.a, 0.8);

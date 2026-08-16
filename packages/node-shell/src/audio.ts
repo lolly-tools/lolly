@@ -106,7 +106,7 @@ export function createNodeAudioAPI(opts: NodeAudioOptions): AudioAPI {
 
     if (NEEDS_PLATFORM_CODEC.test(url)) {
       throw new Error(
-        `audio: ${url.split('.').pop()} needs a platform codec this shell does not have — `
+        `audio: ${url.split('.').pop()} needs a platform codec this shell does not have - `
         + 'analyse WAV or a ZzFXM song headlessly, or render in a browser shell',
       );
     }

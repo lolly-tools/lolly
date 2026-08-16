@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
  * Gain maps: the ISO 21496-1 / Adobe "one file, two renditions" math
- * (deeprichpixels plan §4.2, §6 B2, §8 row "gain maps spread beyond JPEG/AVIF").
+ * (deeprichpixels plan section 4.2, section 6 B2, section 8 row "gain maps spread beyond JPEG/AVIF").
  *
  * A gain map is a small greyscale image that says, per pixel, how much brighter
  * the HDR rendition is than the SDR one. The SDR rendition is the file every
@@ -13,7 +13,7 @@
  * This module is **container-agnostic on purpose**: it computes and inverts the
  * map and produces the metadata fields, and knows nothing about JPEG, MPF, XMP
  * or ISO boxes. B2 glues the result into a gain-map JPEG. A later PNG 4e / JXL /
- * AVIF gain map reuses this file unchanged (plan §8: "the expensive part is
+ * AVIF gain map reuses this file unchanged (plan section 8: "the expensive part is
  * container-agnostic by construction"). It is also DOM-free like the rest of the
  * engine, so CLI and browser compute identical bytes.
  *
@@ -54,7 +54,7 @@
  * this with that exact counterfactual.
  *
  * **Negative and non-finite inputs (the float-path footgun).** `hdrViewTransform`
- * deliberately does not clamp (plan §9b post-review: "the float behaviour is the
+ * deliberately does not clamp (plan section 9b post-review: "the float behaviour is the
  * correct one"), so both frames can carry negative channels (out-of-gamut
  * excursions) and a damaged upstream can carry NaN. `log2` of a negative is NaN,
  * which would poison the min/max fit for the whole image. Policy, applied to the

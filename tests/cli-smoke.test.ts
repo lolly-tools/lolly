@@ -140,8 +140,8 @@ test('smoke over a catalog with broken tools: ✓/✗/skip rows and exit 1', asy
   // Both failure paths are strict: the runToolCli svg path and the inline html fallback.
   assert.match(out, /✗ broken-hook\s+svg\s+.*onInit failed: deliberately broken fixture hook/);
   assert.match(out, /✗ layout-broken\s+html\s+.*onInit failed: deliberately broken fixture hook/);
-  assert.match(out, /– cap-gated\s+—\s+skipped: needs capture/);
-  assert.match(out, /– transform-tool\s+—\s+skipped: transform tool/);
+  assert.match(out, /– cap-gated\s+-\s+skipped: needs capture/);
+  assert.match(out, /– transform-tool\s+-\s+skipped: transform tool/);
   // A layout tool with no browser-free path to its own first format is its OWN bucket:
   // never a ✓ for the format it could not produce, and never a ✗ either (that would be
   // a statement about smoke's browser-free budget, not about the tool).
@@ -175,5 +175,5 @@ test('smoke --format forces one format; non-declaring tools skip instead of fail
   const { code, out } = await run({ only: 'ok-tool,layout-broken', format: 'svg' });
   assert.equal(code, 0);
   assert.match(out, /✓ ok-tool\s+svg/);
-  assert.match(out, /– layout-broken\s+—\s+skipped: does not declare "svg"/);
+  assert.match(out, /– layout-broken\s+-\s+skipped: does not declare "svg"/);
 });

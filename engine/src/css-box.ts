@@ -8,7 +8,7 @@
 // touches the DOM (engine stays platform-agnostic, like units.js / color.js).
 //
 // The reason this exists: browsers render border-radius with the CSS Backgrounds
-// & Borders §5.5 "corner overlap" rule. A single scale factor shrinks every
+// & Borders section 5.5 "corner overlap" rule. A single scale factor shrinks every
 // corner together, so a huge `border-radius: 999px` becomes a stadium/pill. SVG
 // <rect> and jsPDF roundedRect instead clamp each axis independently (→ ellipse),
 // so the geometry must be resolved here before it reaches those primitives.
@@ -84,7 +84,7 @@ function has3dComponent(p: readonly number[]): boolean {
  * the AABB path is correct for it. A `matrix3d` carrying a perspective row also comes
  * back null, but there the AABB path is a WRONG PICTURE: the trapezoid the user is
  * looking at gets emitted as an axis-aligned rectangle stretched to fill its projected
- * bounding box, silently (plans/104 §12 Q2, measured: a tilted card exported to SVG as a
+ * bounding box, silently (plans/104 section 12 Q2, measured: a tilted card exported to SVG as a
  * `<rect>` with no notice). This function tells those two cases apart.
  *
  * NOTE: it is also narrower than "refused by parseCssMatrix", from the algebra rather
@@ -106,7 +106,7 @@ function has3dComponent(p: readonly number[]): boolean {
  * with no perspective anywhere) paints its 2-D affine part. `parseCssMatrix`
  * already computes that part and then throws it away, so the walkers still emit it on
  * the AABB path unsquashed. That is a `parseCssMatrix` contract question with many
- * callers, not this predicate's, and it is not what §12 Q2 is about.
+ * callers, not this predicate's, and it is not what section 12 Q2 is about.
  *
  * DOM-free like everything here: the caller passes `getComputedStyle(el).transform`.
  */
@@ -233,7 +233,7 @@ function cornerPair(value: string, w: number, h: number): CornerPair {
   return [parseCssLength(t[0], w), parseCssLength(t[1] ?? t[0], h)];
 }
 
-// Resolve the four border-radius corners for a w×h box, applying the CSS §5.5
+// Resolve the four border-radius corners for a w×h box, applying the CSS section 5.5
 // corner-overlap rule: a SINGLE scale factor f (the min over all four edges of
 // edge_length / sum-of-the-two-corner-radii-on-that-edge) shrinks every radius
 // together so adjacent corners never overlap. This is what makes a huge radius a

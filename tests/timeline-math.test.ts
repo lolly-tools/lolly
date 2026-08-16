@@ -4,7 +4,7 @@
  *
  * Run with: npm test  (node --test over the tests/ globs). No framework - node:test.
  *
- * Spec: plans/53-fable-timeline-phase-2.md §1. This file is the phase's real safety net:
+ * Spec: plans/53-fable-timeline-phase-2.md section 1. This file is the phase's real safety net:
  * every interaction edge case (trim clamps, split boundaries, magnetic reorder,
  * overlay ripple, snapping) is asserted here rather than in the DOM controller, so
  * the panel only has to get its wiring right.
@@ -29,12 +29,12 @@ import {
   detachAudio, isThroughEdit, joinClips, reattachAudio, splitAll,
   onionNeighbours, ONION_MAX_STEPS,
   snapTime, splitBox, trimClip,
-  // The keyframe EDITING surface (plans/104 §8) - the arithmetic the panel is
+  // The keyframe EDITING surface (plans/104 section 8) - the arithmetic the panel is
   // forbidden from doing itself.
   KF_NEUTRAL, KF_POSE_SEED, clearKfTrack, kfDiamondAt, kfDiamondTimes, kfDuplicateMs,
   kfFormatChannel, kfLocalMs, kfSeekDiamond, kfSlideMs, kfTimelineSec, kfTrackDelete,
   kfTrackDuplicate, kfTrackRetime, kfTrackSetEase, kfWriteMs, rescaleKfTrack, setKfTrack, writeKfPose,
-  // The motion path (plans/104 §8's overlay bullet) - sampled through the engine.
+  // The motion path (plans/104 section 8's overlay bullet) - sampled through the engine.
   MOTION_PATH_MAX_SAMPLES, kfCameraClips, kfMotionPath,
   type Box, type TimeCfg,
 } from '../shells/web/src/views/timeline-math.ts';
@@ -150,9 +150,9 @@ test('deriveDuration: hand-computed cases (milliseconds, matching data-seq-ms)',
 });
 
 test('deriveDuration: byte-identical to design hooks.js seqDurationMs', () => {
-  // Load the REAL hook off disk and lift its internal seqDurationMs out. brands/
-  // lolly-start is parent-owned (brands/suse is a private, CI-skipped submodule).
-  const hooksPath = join(dirname(fileURLToPath(import.meta.url)), '..', 'brands', 'lolly-start', 'tools', 'design', 'hooks.js');
+  // Load the REAL hook off disk and lift its internal seqDurationMs out. community/
+  // is the public pack (brands/suse is a private, CI-skipped submodule).
+  const hooksPath = join(dirname(fileURLToPath(import.meta.url)), '..', 'community', 'design', 'hooks.js');
   const src = readFileSync(hooksPath, 'utf8');
   const seqDurationMs = new Function('host', `${src}\n;return seqDurationMs;`)(
     { log: () => {} },
@@ -1351,7 +1351,7 @@ test('onionNeighbours: an open-ended seq clip runs to the DERIVED sequence end',
   assert.deepEqual(onionNeighbours(bare, cfg, 3.5, 1, 1), { past: [], future: [] });
 });
 
-// ── keyframe rebase (plans/104 §5.6) ──────────────────────────────────────────
+// ── keyframe rebase (plans/104 section 5.6) ──────────────────────────────────────────
 //
 // A keyframe track lives in the box's OWN local time, so every edit that moves the
 // clip's head has to move the track with it. The property under test is always the
@@ -1368,7 +1368,7 @@ const trackOf = (box: Box | undefined): KfTrack => parseKf(String(box?.kf ?? '')
  * channel, sampled densely enough to catch a wrong ease and not just a wrong endpoint.
  *
  * The tolerance is stated per channel as a fraction of that channel's own authored
- * SPREAD, because the error a correct rebase can still carry is the §4.6 wire
+ * SPREAD, because the error a correct rebase can still carry is the section 4.6 wire
  * quantisation (0.001 on a bezier control point, 0.01 px / 0.001 unit on a value)
  * scaled by how far the channel travels - not an absolute number of pixels. A tenth
  * of a percent of the travel plus one quantum is what that works out to, and it is
@@ -1408,7 +1408,7 @@ function assertContinuity(
   }
 }
 
-/** Every diamond poses every channel - what the UI writes (plan §8), and the exact case. */
+/** Every diamond poses every channel - what the UI writes (plan section 8), and the exact case. */
 const FULL_TRACK = 't0_eo_x0_y0_s1_r0_o1_b0_z0'
   + '*t1200_ei_x120_y-40_s1.4_r15_o0.5_b6_z80'
   + '*t3000_x0_y0_s1_r0_o1_b0_z0';
@@ -1732,7 +1732,7 @@ test('rebase fuzz: 300 random tracks × random cuts meet exactly at the seam', (
   }
 });
 
-// ── the keyframe EDITING primitives (plans/104 §8, workstream I2) ─────────────
+// ── the keyframe EDITING primitives (plans/104 section 8, workstream I2) ─────────────
 //
 // The surface's arithmetic, asserted with no DOM anywhere near it. The panel is
 // editing glue and calls exactly these; timeline-panel.test.ts pins the wiring, this
@@ -1818,7 +1818,7 @@ test('a keyframe never lands past the out-point — but an existing one is posed
 });
 
 test('kfFormatChannel prints a channel at ITS OWN quantum, never a hardcoded 1e-3', () => {
-  // §4.6: x/y/z/b/r are hundredths, s/o/a thousandths. A single 1e-3 in the inspector
+  // section 4.6: x/y/z/b/r are hundredths, s/o/a thousandths. A single 1e-3 in the inspector
   // printed five significant decimals for a depth the wire could never hold.
   assert.equal(kfFormatChannel('z', 140.23456), '140.23');
   assert.equal(kfFormatChannel('b', 2.5), '2.5', 'and never pads to the quantum');
@@ -1829,7 +1829,7 @@ test('kfFormatChannel prints a channel at ITS OWN quantum, never a hardcoded 1e-
   assert.equal(kfFormatChannel('z', Number.NaN), '0', 'junk reads as the neutral, never "NaN"');
 });
 
-test('writeKfPose composes a FULL pose over the active channel set, at the §4.6 quanta', () => {
+test('writeKfPose composes a FULL pose over the active channel set, at the section 4.6 quanta', () => {
   const rows = [clip('x', { start: 0, dur: 4, z: 140, kf: 't0_x0_s1*t2000_eo_x60_s1.5' })];
   // 'add' - a gesture's delta, on top of what the box is already doing there.
   const moved = writeKfPose(rows, zCfg, 'x', 2, { x: 12.345, y: -4 }, 'add');
@@ -1852,7 +1852,7 @@ test('writeKfPose composes a FULL pose over the active channel set, at the §4.6
 });
 
 test('a pose\'s unauthored `z` is the box\'s own depth FIELD, never a neutral zero', () => {
-  // §5.2: a keyed `z` REPLACES the field for its segment. A full pose that wrote 0 over
+  // section 5.2: a keyed `z` REPLACES the field for its segment. A full pose that wrote 0 over
   // an authored 140 would drop the box to the floor the instant it was keyed.
   const rows = [clip('x', { start: 0, dur: 4, z: 140, kf: 't0_x0*t2000_x60' })];
   const out = writeKfPose(rows, zCfg, 'x', 2, { z: 200 }, 'set');
@@ -1981,11 +1981,11 @@ test('clearKfTrack / setKfTrack write the ONE field and nothing else', () => {
   assert.equal(String(setKfTrack(rows, zCfg, 'x', kfTrackDelete(parseKf('t0_x0*t1500_x40'), 0))[0]!.kf), 't1500_x40');
 });
 
-// ── P1a: the size channels ride the rebase (plans/104 §5.2 + §5.6) ──────────
+// ── P1a: the size channels ride the rebase (plans/104 section 5.2 + section 5.6) ──────────
 
 test('the rebase is channel-agnostic, so `w`/`h` split, trim and join like everything else', () => {
-  // §5.6 rewrites the TRACK, not a list of channels - which is exactly why adding two
-  // to the grammar (§5.2, P1) needs no rebase change. This is the assertion that keeps
+  // section 5.6 rewrites the TRACK, not a list of channels - which is exactly why adding two
+  // to the grammar (section 5.2, P1) needs no rebase change. This is the assertion that keeps
   // it that way: the same continuity harness, driven by the new channels alone, over
   // the same eased cut the full-pose case uses.
   minted = 0;
@@ -2010,7 +2010,7 @@ test('the rebase is channel-agnostic, so `w`/`h` split, trim and join like every
   assertContinuity(orig, trackOf(byId(trimmed, 'x')), 800, 0, 2000, 'trim-in (size)');
 });
 
-// ══ the motion path (plans/104 §8's overlay, under §6.5's projection rule) ══════
+// ══ the motion path (plans/104 section 8's overlay, under section 6.5's projection rule) ══════
 //
 // The overlay's DOM half is pinned in shells/web/src/views/motion-path.test.ts. What
 // is pinned HERE is the only claim that matters for correctness: the samples are the

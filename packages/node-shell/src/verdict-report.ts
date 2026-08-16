@@ -57,11 +57,11 @@ export interface VerdictHeadline {
 }
 
 const PARTS_HEADLINE =
-  'Parts made with Lolly — the intact provenance chain records Lolly steps, but the file as it stands was produced by another tool';
+  'Parts made with Lolly - the intact provenance chain records Lolly steps, but the file as it stands was produced by another tool';
 
 /** Split a slug headline "Name - detail" into its painted name and dim tail. */
 function splitHeadline(headline: string): { name: string; detail: string } {
-  const i = headline.indexOf(' — ');
+  const i = headline.indexOf(' - ');
   return i === -1 ? { name: headline, detail: '' } : { name: headline.slice(0, i), detail: headline.slice(i + 3) };
 }
 
@@ -108,7 +108,7 @@ export function verdictFacts(report: C2paReport): Array<[label: string, value: s
   const raw: Array<[string, unknown]> = [
     ['Title', c.title],
     ['Identity', report.trusted && id
-      && `${id.email || s.commonName}${id.issuer ? ` — verified by ${id.issuer}` : ''}`],
+      && `${id.email || s.commonName}${id.issuer ? ` - verified by ${id.issuer}` : ''}`],
     ['Tool', env.tool],
     ['Produced by', report.author && `${report.author.name}${report.author.email ? ` <${report.author.email}>` : ''}`],
     ['Contact', report.author?.url],

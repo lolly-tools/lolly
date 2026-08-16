@@ -117,7 +117,7 @@ export function describeColor(input: string): ColorDescription | null {
   };
 
   // The sRGB fallback comes from css-color's own mapper (which routes through
-  // the same CSS Color 4 §14.2 chroma reduction) rather than a second path.
+  // the same CSS Color 4 section 14.2 chroma reduction) rather than a second path.
   const srgb = colorToSrgb(parsed);
   const byte = (v: number): string =>
     Math.round(Math.min(1, Math.max(0, v)) * 255).toString(16).padStart(2, '0');

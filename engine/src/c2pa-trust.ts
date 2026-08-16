@@ -30,7 +30,7 @@
  * LOLLY_CA_ROOT_PEM below, and defaultTrustAnchors({ includeLollyRoot: true })
  * (engine/src/c2pa-verdict.ts) is what folds it in - which is what the CLI
  * `lolly validate`, the TUI verify panel and MCP `lolly_verify` each pass
- * (plans/73-cli-ga-contract.md §12 O1). The web /valid view lands on the same
+ * (plans/73-cli-ga-contract.md section 12 O1). The web /valid view lands on the same
  * anchor set by composing it BY HAND (CA_ROOT_PEM + c2paTrustAnchors() in
  * shells/web/src/views/valid.ts), so it does not inherit a change to the shared
  * helper: the two agree today by inspection, not by construction. The option

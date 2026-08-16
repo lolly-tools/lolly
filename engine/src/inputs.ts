@@ -523,7 +523,7 @@ export function updateInput(model: InputModelItem[], id: string, value: InputVal
  * canvas commit, a `/multi` fan-out, `runtime.applyPatch`) passes here, and a value
  * the declared constraints reject keeps the input's PRIOR value rather than entering
  * the model. That "rejection = the old value" convention is what lets applyPatch
- * detect a rejected key (plans/100 §11.11) without a second validation pass.
+ * detect a rejected key (plans/100 section 11.11) without a second validation pass.
  *
  * NOT a policy engine: it enforces what the manifest DECLARES (an enum's options, a
  * number's range, a string's maxLength) and the value SHAPE each type is defined to
@@ -539,7 +539,7 @@ export function updateInput(model: InputModelItem[], id: string, value: InputVal
  */
 function constrain(input: InputModelItem, value: InputValue): InputValue {
   if (input.type === 'select') {
-    // The enum whitelist (plans/100 §11.11's first named case). Only when the
+    // The enum whitelist (plans/100 section 11.11's first named case). Only when the
     // manifest actually declares the options AND does not extend them at runtime:
     // a `brandFonts` select is appended to by the shell with the user's installed
     // families, so its declared list is not the whole truth - the same carve-out

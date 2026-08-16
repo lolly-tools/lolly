@@ -2,8 +2,9 @@
  * Ratcheting vernacular gate for CODE COMMENTS in the owned TypeScript.
  *
  * Humans read comments, so the plain-language rule that governs the docs governs
- * them too (owner directive, 2026-08-16): no em dashes, and none of the claudism
- * phrases from the shared ban list in check-docs-vernacular.ts.
+ * them too (owner directive, 2026-08-16): no em dashes, no section-sign glyph
+ * (say the word - "section 4", "step 2"), and none of the claudism phrases from
+ * the shared ban list in check-docs-vernacular.ts.
  *
  * The tree carries tens of thousands of comment em dashes today, so a hard "zero"
  * gate would be all red on day one. This is a RATCHET instead, the same pattern as
@@ -110,22 +111,53 @@ const CODE_EXEMPT = new Set<string>([
 ]);
 const CODE_PHRASES = BANNED_PHRASES.filter(p => !CODE_EXEMPT.has(p.what));
 
-/** Count of banned tokens (em dashes + claudism phrase hits) in a file's comments. */
+/**
+ * Roots whose STRING LITERALS are user-facing copy and therefore carry the
+ * em-dash ban too: the terminal shells print their strings verbatim (no i18n
+ * layer in between), and engine/src/c2pa-verify.ts is where the CLI's verdict
+ * messages are authored. Swept to zero 2026-08-16 (plan 122 item 8); the
+ * ratchet holds them there. The web shell is deliberately NOT here - its
+ * strings are 26-locale i18n KEYS, and changing a key orphans its translations,
+ * so that sweep is its own coordinated pass.
+ */
+const STRING_COPY_ROOTS = ['shells/cli/', 'shells/tui/', 'packages/node-shell/', 'engine/src/c2pa-verify.ts'];
+
+/** Em dashes inside string/template literal text, via the parser (never regexes,
+ *  identifiers or comments - those have their own rules). */
+function stringEmDashes(rel: string, src: string): number {
+  const sf = ts.createSourceFile(rel, src, ts.ScriptTarget.Latest, true, ts.ScriptKind.TS);
+  let n = 0;
+  const visit = (node: ts.Node): void => {
+    if (ts.isStringLiteral(node) || ts.isNoSubstitutionTemplateLiteral(node)
+      || ts.isTemplateHead(node) || ts.isTemplateMiddle(node) || ts.isTemplateTail(node)) {
+      n += (node.text.match(/—/g) ?? []).length;
+    }
+    node.forEachChild(visit);
+  };
+  visit(sf);
+  return n;
+}
+
+/** Count of banned tokens (em dashes + claudism phrase hits) in a file's comments,
+ *  plus string-literal em dashes where the strings are user-facing copy. */
 export function countFile(rel: string): number {
   const abs = join(ROOT, rel);
   let src: string;
   try { src = readFileSync(abs, 'utf8'); } catch { return 0; }
-  // Fast path: a file with no em dash and no phrase trigger anywhere has nothing
-  // in a comment either, so skip the parse. Most files hit this after the sweep.
-  if (!src.includes('—') && !CODE_PHRASES.some(({ re }) => re.test(src))) return 0;
+  // Fast path: a file with no em dash, no section sign and no phrase trigger
+  // anywhere has nothing in a comment either, so skip the parse. Most files hit
+  // this after the sweep.
+  if (!src.includes('—') && !src.includes('§') && !CODE_PHRASES.some(({ re }) => re.test(src))) return 0;
   let n = 0;
   for (const [s, e] of commentRanges(rel, src)) {
     const seg = src.slice(s, e);
     n += (seg.match(/—/g) ?? []).length;
+    n += (seg.match(/§/g) ?? []).length;
     for (const line of seg.split('\n')) {
       for (const { re } of CODE_PHRASES) if (re.test(line)) n += 1;
     }
   }
+  if (STRING_COPY_ROOTS.some((r) => rel === r || rel.startsWith(r))) n += stringEmDashes(rel, src);
   return n;
 }
 
@@ -185,7 +217,7 @@ if (invokedDirectly) {
   }
   const d = drift(current);
   for (const x of d.over) console.error(`✗ ${x.file}: comment claudisms rose ${x.was} → ${x.now}`);
-  for (const x of d.fresh) console.error(`✗ ${x.file}: new file has ${x.now} comment claudism(s) — write comments in plain English (no em dashes, no tics)`);
+  for (const x of d.fresh) console.error(`✗ ${x.file}: new file has ${x.now} comment claudism(s) — write comments in plain English (no em dashes, no section signs, no tics)`);
   for (const x of d.under) console.error(`✗ ${x.file}: improved ${x.was} → ${x.now} — run: node scripts/check-code-comment-vernacular.ts --write`);
   if (d.over.length || d.fresh.length || d.under.length) {
     console.error(`\n${d.over.length} regressed, ${d.fresh.length} new-dirty, ${d.under.length} improved-but-unrecorded. Total now ${total(current)}.`);

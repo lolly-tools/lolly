@@ -5,7 +5,7 @@
  * Run with: npm test  (node --test over the tests/ globs)
  * No test framework - uses node:test built-in. Dependency-free fs walk.
  *
- * Three invariants from plans/archive/brand-token-contract.md §3/§6:
+ * Three invariants from plans/archive/brand-token-contract.md section 3/section 6:
  *
  * 1. brands/lolly-start/** is brand-CLEAN: the starter pack (tokens + the
  *    de-SUSE'd tool copies) must carry none of the seven SUSE brand hexes and
@@ -14,12 +14,12 @@
  *    asset id would 404 under lolly-start, since no suse/* assets exist in
  *    this catalog). The one allowed occurrence is the vendor token-extension
  *    key com.suse.lolly (engine/src/tokens.ts TOKEN_EXT - renaming it is an
- *    explicit non-goal, contract §4): deriveBrandTokens output rides swatch
+ *    explicit non-goal, contract section 4): deriveBrandTokens output rides swatch
  *    hints on $extensions["com.suse.lolly"], so exactly that substring is
  *    scrubbed before the check (it currently appears nowhere in the pack).
  *    The build:catalog aggregation catalog/tools/index.json is excluded: it
  *    embeds COMMUNITY manifests verbatim (filter examples, …) whose de-SUSE
- *    sweep is deferred (contract §8), not lolly-start authored content.
+ *    sweep is deferred (contract section 8), not lolly-start authored content.
  *    REVISED 2026-07-09 → 2026-08-10: the pack's default TYPEFACES are now SUSE +
  *    SUSE Mono (OFL 1.1, no Reserved Font Name), so two enumerated files may name
  *    the families - see TYPEFACE_EXEMPT below for the reason per file. The hex
@@ -39,7 +39,7 @@
  *    shell's :root shadcn HSL-triple vocabulary (which community tools
  *    deliberately consume as hsl(var(--primary, …)) triples - so community is
  *    NOT scanned by this rule). A straggler in lolly-start would silently
- *    read an HSL triple, never a brand colour (contract §3, REVISED
+ *    read an HSL triple, never a brand colour (contract section 3, REVISED
  *    2026-07-09).
  */
 
@@ -83,7 +83,7 @@ function walk(dir: string, out: string[] = []): string[] {
 }
 
 // The SUSE brand palette as shipped in the private pack's tokens/tools - 
-// all seven brand-use hexes from contract §6.
+// all seven brand-use hexes from contract section 6.
 const SUSE_HEX = /#(?:30ba78|0c322c|90ebcd|fe7c3f|2453ff|192072|efefef)/i;
 
 // The vendor token-extension key is the only legitimate 'suse' substring
@@ -183,7 +183,7 @@ test('semantic brand var() references always carry a fallback', () => {
   }
 });
 
-// The pre-rename bare names, retired by contract §3 (REVISED 2026-07-09).
+// The pre-rename bare names, retired by contract section 3 (REVISED 2026-07-09).
 // Same trailing [,)] trick so --primary-foreground-style extended names pass.
 const RETIRED_VAR = /var\(\s*--(on-primary|primary|secondary|surface|text|muted|edge)\s*[,)]/g;
 
@@ -196,7 +196,7 @@ test('lolly-start never consumes the retired bare semantic var names', () => {
     const rel = relative(ROOT, f);
     for (const m of text.matchAll(RETIRED_VAR)) {
       assert.fail(
-        `${rel}: var(--${m[1]}) uses a retired bare slot name — the injected brand vars are --brand-* (contract §3); bare names are the shell's shadcn HSL-triple vocabulary`,
+        `${rel}: var(--${m[1]}) uses a retired bare slot name — the injected brand vars are --brand-* (contract section 3); bare names are the shell's shadcn HSL-triple vocabulary`,
       );
     }
   }

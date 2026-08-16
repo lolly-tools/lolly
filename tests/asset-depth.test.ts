@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
- * Catalog assets carry depth (plans/61-deeprichpixels.md §10 item 6).
+ * Catalog assets carry depth (plans/61-deeprichpixels.md section 10 item 6).
  *
  * Governing principle: depth follows provenance - never emit bits the pipeline
  * did not produce. A `depth` label on an asset format IS an emission, so this
@@ -10,8 +10,8 @@
  *      ingest sniff (`depthHint`, shells/web/src/lib/image-sample.ts), so a
  *      catalog label and a user upload can never disagree about the same bytes.
  *      Fixture layouts mirror shells/web/src/lib/image-sample.test.ts, which
- *      derives them from the specs (PNG 3rd ed §11.2.1, TIFF 6.0 tag 258,
- *      ITU-T T.81 §B.2.2).
+ *      derives them from the specs (PNG 3rd ed section 11.2.1, TIFF 6.0 tag 258,
+ *      ITU-T T.81 section B.2.2).
  *   2. The schema (schemas/asset.schema.json + its packages/core/schema copy).
  *   3. The drift guard - scripts/validate-catalog.ts re-sniffs every label
  *      through the SAME function. Asserted here as the invariant it enforces,
@@ -136,7 +136,7 @@ const SCHEMA_COPIES = ['schemas/asset.schema.json', 'packages/core/schema/asset.
 
 // Members that are intentionally in NEITHER kind set in asset-kinds.ts: audio is
 // tiled by the deny-list (isPlaceableAsset true) yet has no image thumbnail, so it
-// is neither VISUAL nor DATA. Any new "neither" member is a deliberate line here.
+// is neither VISUAL nor DATA. Any new "neither" member must be added to this set deliberately.
 const KIND_EXEMPT = new Set(['audio']);
 
 function schemaEnum(rel: string): string[] {

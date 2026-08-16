@@ -1,10 +1,10 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
  * Native site transport, shared by BOTH Tauri shells - the JS half of the
- * Design System studio's website source (plans/97 §9 / SS9).
+ * Design System studio's website source (plans/97 section 9 / SS9).
  *
  * The studio never fetches a site itself. It asks a TRANSPORT for one, and there
- * are exactly two (plan 97 §9, decision resolved: no server fetch, ever): this
+ * are exactly two (plan 97 section 9, decision resolved: no server fetch, ever): this
  * one, backed by the Rust `site_fetch` command, and the Chrome extension's
  * `lolly-capture/site`. Both hand back the same four things - page HTML,
  * stylesheet text, prefetched icon/og bytes, and the address the HTML really

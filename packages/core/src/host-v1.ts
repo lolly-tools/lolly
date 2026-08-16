@@ -343,7 +343,7 @@ export interface HostV1 {
    * the DOM (`typeof document === 'undefined'`, `new Image`), which are WRONG
    * inside a Worker: `document` is absent there even where `OffscreenCanvas`
    * works. A tool asks the host, not the realm, so the same hook is correct on
-   * the main thread and inside a Worker (plans/86-worker-isolation-hooks.md §6.1).
+   * the main thread and inside a Worker (plans/86-worker-isolation-hooks.md section 6.1).
    *
    * Distinct from `host.images`: that is the CONVERT path (encoded bytes in,
    * encoded bytes out, no pixel access) for the upload/export pipeline. This is
@@ -637,7 +637,7 @@ export interface ColorAPI {
    */
   oklch?(color: string): { l: number; c: number; h: number; alpha?: number } | null;
   /**
-   * OKLCH → hex, gamut-mapped into sRGB per CSS Color 4 §14.2 (hue and
+   * OKLCH → hex, gamut-mapped into sRGB per CSS Color 4 section 14.2 (hue and
    * lightness preserved, chroma reduced - never a raw channel clip). 8-digit
    * when `alpha` is under 1. Optional/additive (v1.69).
    */
@@ -859,7 +859,7 @@ export interface ColorSliceImage {
   height: number;
 }
 
-/** Options for {@link ColorAPI.mix} (mirrors CSS Color 4 §12–13). */
+/** Options for {@link ColorAPI.mix} (mirrors CSS Color 4 section 12–13). */
 export interface ColorMixOptions {
   /** Interpolation space. Default `oklab`; `srgb` models a plain CSS gradient. */
   space?: ColorInterpolationSpace;
@@ -2411,6 +2411,12 @@ export interface Profile {
    *  share the store under their `view:<id>` namespaced key, mirroring how
    *  `favourites` stars them. Tolerant of ids that no longer resolve. */
   hiddenTools?: string[];
+  /** One-shot marker that the brand's shipped default-hidden TOOL set (`defaultHiddenTools`
+   *  in the catalog index) has been established for this profile. Until it's set, those
+   *  defaults are merged into `hiddenTools` at load; the user's first hide/un-hide bakes the
+   *  current set in and sets this true, so their later un-hides stick and the defaults never
+   *  re-apply. The tool twin of `catalogDefaultsSeeded` (which covers the asset overlay). */
+  hiddenToolsSeeded?: boolean;
   /** Asset ids the user has starred - the Catalog's asset "Favourites", surfaced as a
    *  pinned collapsible section at the top of every asset picker. Distinct from
    *  `favourites` (TOOL ids). Keyed by the base asset id (theme suffix stripped). */
@@ -2780,7 +2786,7 @@ export interface ExportOpts {
    * the HDR PNG path (16-bit cICP PNG). Optional/additive (engine 1.88+, with the
    * Phase B deep-pixel writers) - a field, not a method, and unset by default, so
    * a shell that ignores it behaves exactly as before.
-   * See plans/61-deeprichpixels.md §10.
+   * See plans/61-deeprichpixels.md section 10.
    */
   depth?: 8 | 16 | 'float' | 'auto';
 

@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
- * plans/104 §12 Q2 - THE TILTED STILL, in a real browser.
+ * plans/104 section 12 Q2 - THE TILTED STILL, in a real browser.
  *
- * The one export a tilted scene has besides mp4 is the posed still, and §1 names it as
- * the thing Depthfield structurally cannot do: *"the posed still stays vector"*. §12 Q2
+ * The one export a tilted scene has besides mp4 is the posed still, and section 1 names it as
+ * the thing Depthfield structurally cannot do: *"the posed still stays vector"*. section 12 Q2
  * says how, and spike S2 cleared it unreserved: **keep every untilted layer vector and
  * embed a per-box captured raster for the tilted boxes only**, with an amber notice.
  * House style degrades visibly; nothing refuses.
@@ -15,7 +15,7 @@
  * `neutraliseTransform` wrote `transform: none`, and the subtree came out AXIS-ALIGNED,
  * stretched to fill the projected bounding box. Measured (two cards at z 0/200 under
  * `rx −45`, still at t = 500 ms): 495 B of SVG, zero `matrix3d`, zero `<image>`, two
- * upright `<rect>`s - precisely the failure S2 §4 measured for the raster escape hatch
+ * upright `<rect>`s - precisely the failure S2 section 4 measured for the raster escape hatch
  * ("trapezoid → rectangle"), reproduced in the vector still.
  *
  * So the assertions here are about the FORM OF THE PICTURE, not about the presence of a
@@ -75,7 +75,7 @@ function analyticTaper(kf: string, box: { x: number; y: number; w: number; h: nu
 
 const measured: string[] = [];
 
-describe('plans/104 §12 Q2 — a tilted still keeps the untilted layers vector', { skip: gate ?? false, concurrency: 1 }, () => {
+describe('plans/104 section 12 Q2 — a tilted still keeps the untilted layers vector', { skip: gate ?? false, concurrency: 1 }, () => {
   let Hn: Harness;
   const page = (): Harness['page'] => Hn.page;
 
@@ -252,10 +252,10 @@ describe('plans/104 §12 Q2 — a tilted still keeps the untilted layers vector'
     measured.push(`pdf: tilted ${r.tiltSize} B vs untilted ${r.flatSize} B`);
   });
 
-  // ── 5: S2's own discriminator, kept as a test (S2 §9.1) ────────────────────
+  // ── 5: S2's own discriminator, kept as a test (S2 section 9.1) ────────────────────
 
   test('the capture is NOT the shipped escape hatch: pointing that at a tilted node loses the tilt', async () => {
-    // S2 §4 measured `rasterizeNodeToDataUrl` destroying a pose (mean 35/255, IoU 0.88)
+    // S2 section 4 measured `rasterizeNodeToDataUrl` destroying a pose (mean 35/255, IoU 0.88)
     // because it overwrites the clone root's transform and resizes the root to the
     // PROJECTED AABB. `rasterizePosedNodeToDataUrl` exists for that reason, and this
     // pins the difference so a later simplification cannot quietly merge the two.
@@ -272,9 +272,9 @@ describe('plans/104 §12 Q2 — a tilted still keeps the untilted layers vector'
     assert.ok(r.hatch, 'the control capture must produce something');
     assert.notEqual(r.posed, r.hatch,
       'the posed capture and the AABB escape hatch must not be the same bytes — if they are, '
-      + 'the wrapper-shaped capture S2 §4 requires has been lost');
-    // S2 §3a: the placement rect is `getBoundingClientRect()` straight off the DOM, so no
-    // second implementation of the projection can drift from §4's module. With no effect
+      + 'the wrapper-shaped capture S2 section 4 requires has been lost');
+    // S2 section 3a: the placement rect is `getBoundingClientRect()` straight off the DOM, so no
+    // second implementation of the projection can drift from section 4's module. With no effect
     // to spill, the two are the same rectangle.
     assert.ok(r.posedRect, 'the posed capture reports where to place it');
     for (const k of ['x', 'y', 'w', 'h'] as const) {

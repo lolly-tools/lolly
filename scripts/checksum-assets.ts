@@ -17,7 +17,7 @@
  *
  * It also labels each raster format file with its `depth` (bits per channel),
  * sniffed from the container header - see `depthForFormat` below and
- * plans/61-deeprichpixels.md §10 item 6. Depth follows provenance: the label is a
+ * plans/61-deeprichpixels.md section 10 item 6. Depth follows provenance: the label is a
  * SNIFF of the shipped bytes, never an assertion, and absent always means
  * "unknown", never "8".
  */

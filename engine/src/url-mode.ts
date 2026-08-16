@@ -78,7 +78,7 @@
  *                  supports", mirroring the gamut rule in docs/color-spaces.md.
  *                  Junk (`depth=32`, `depth=deep`, empty) degrades to `auto`
  *                  rather than erroring - same total-function discipline as
- *                  `cuts`/`unit`. See plans/61-deeprichpixels.md §10.
+ *                  `cuts`/`unit`. See plans/61-deeprichpixels.md section 10.
  *   - `cuts` - CONTACT SHEET for a still export (`png`/`jpg`/`webp`/`svg`/`pdf`)
  *                  of a TIMED composition (a stage carrying `data-sequence`).
  *                  An integer, default `1`. `cuts=1` renders the frame at the
@@ -96,7 +96,7 @@
  *                  is unreadable and the render/zip cost stops being worth it. Any
  *                  junk value (non-numeric, 0, negative, NaN, Infinity, 1e9) falls
  *                  back to 1 rather than erroring. Ignored for non-still formats and
- *                  for stages with no sequence. See plans/51-fable-timeline-editing.md §4.6.
+ *                  for stages with no sequence. See plans/51-fable-timeline-editing.md section 4.6.
  *   - `lang` - UI/content language as a canonical short code (the full set
  *                  is engine/src/lang.ts's LANGS). Informal
  *                  aliases (`cn`, `jp`) are accepted on parse and normalized to
@@ -106,7 +106,7 @@
  *                  never written back to the recipient's saved profile.
  *   - `designv` - the DESIGN-SYSTEM VERSION this render resolves against: a
  *                  published version's slug, or `latest` for the edit head
- *                  (plans/97 §6a). The top rung of the resolution ladder - it beats
+ *                  (plans/97 section 6a). The top rung of the resolution ladder - it beats
  *                  a tool's `designVersion` manifest pin and the active version,
  *                  and a slug naming nothing this device holds falls through to the
  *                  next rung rather than failing the render. The author's testing
@@ -203,7 +203,7 @@ export const HDR_DEFAULTS: HdrSettings = { peakNits: 1000, reach: 45, lift: 0, r
  *  default) means "the deepest the provenance chain supports".
  *
  *  A REQUEST, not a promise. Consumers apply the depth-follows-provenance rule
- *  from plans/61-deeprichpixels.md §10: never emit bits the pipeline did not
+ *  from plans/61-deeprichpixels.md section 10: never emit bits the pipeline did not
  *  produce - a 16-bit file made from an 8-bit render is padding. */
 export type DepthSetting = 8 | 16 | 'float' | 'auto';
 

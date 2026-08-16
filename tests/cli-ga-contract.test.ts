@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
- * The GA CLI contract, pinned (plans/73-cli-ga-contract.md §2, "BREAK NOW").
+ * The GA CLI contract, pinned (plans/73-cli-ga-contract.md section 2, "BREAK NOW").
  *
  * Everything here is an INTERFACE promise, not an implementation detail: a flag name, a
  * default, an exit code, a refusal. Implementation quality can improve after GA; these
@@ -90,14 +90,14 @@ const TOOLS: Array<[string, string, string]> = [
       render: { width: 120, height: 80, formats: ['svg'] },
       inputs: [{ id: 'width', type: 'number', label: 'Width', default: 1080 }],
     })],
-  // Declares a browser-tier-only format (contract §4.3, `ico`): with no Chromium and no
+  // Declares a browser-tier-only format (contract section 4.3, `ico`): with no Chromium and no
   // built shell, the request must be UNAVAILABLE_HERE, not a generic failure.
   ['ico-tool', VEC_TEMPLATE, JSON.stringify({
     id: 'ico-tool', name: 'ico-tool', version: '1.0.0', engineVersion: '^1.0.0', status: 'community',
     render: { width: 32, height: 32, formats: ['ico'] }, inputs: [],
   })],
   // A transform tool (file in → bytes out) - the docs promised these stream to stdout
-  // without --output; the code wrote a file into the working directory instead (§11).
+  // without --output; the code wrote a file into the working directory instead (section 11).
   ['xform-tool', '<div>transform</div>', JSON.stringify({
     id: 'xform-tool', name: 'xform-tool', version: '1.0.0', engineVersion: '^1.0.0', status: 'community',
     render: { width: 10, height: 10, formats: ['html'] },
@@ -107,7 +107,7 @@ const TOOLS: Array<[string, string, string]> = [
   ['busy-tool', BUSY_TEMPLATE, manifest('busy-tool')],
   // A tool with a DATA format (csv, via a sibling template.csv). Data formats have no
   // C2PA container at all, which is what makes it the fixture for "a provenance default
-  // nobody asked for must not warn, and therefore must not fail --strict" (§12 O2).
+  // nobody asked for must not warn, and therefore must not fail --strict" (section 12 O2).
   ['data-tool', '<svg xmlns="http://www.w3.org/2000/svg" width="10" height="10"><rect width="10" height="10" fill="#123"/></svg>',
     JSON.stringify({
       id: 'data-tool', name: 'data-tool', version: '1.0.0', engineVersion: '^1.0.0', status: 'community',
@@ -190,7 +190,7 @@ function cli(args: string[], stdin?: string): Promise<{ stdout: Buffer; stderr: 
   });
 }
 
-// ── the parser (contract §1.3) ───────────────────────────────────────────────
+// ── the parser (contract section 1.3) ───────────────────────────────────────────────
 
 test('`--` ends option parsing, so a value beginning with -- can be passed', () => {
   const { flags, positionals } = parseArgs(['run', 'qr-code', '--url=x', '--', '--not-a-flag']);
@@ -229,7 +229,7 @@ test('the reserved subcommand words are frozen, and include the deferred `comple
   // No shipped tool id may collide. The fixture ids here are synthetic and can never
   // collide, so this line proves nothing about the catalog on its own - the REAL guard
   // is in scripts/validate-catalog.ts, which imports this same list and errors on a
-  // shipped tool id that matches. (That guard was decided in §1.1 and, until
+  // shipped tool id that matches. (That guard was decided in section 1.1 and, until
   // 2026-08-01, never written, while this comment claimed it existed.)
   for (const [id] of TOOLS) assert.ok(!RESERVED_SUBCOMMANDS.includes(id as never));
 });
@@ -255,13 +255,13 @@ test('--password-stdin reads the password off stdin and refuses to coexist with 
 test('every value-taking reserved flag is in VALUE_FLAGS (so none of them can parse to "1")', () => {
   // sign-key/sign-cert matter most of the whole list: a bare `--sign-key` parsing to "1"
   // would report an unreadable key file literally named "1", which reads as "your key is
-  // broken" when the real problem is a typo (contract §1.3).
+  // broken" when the real problem is a typo (contract section 1.3).
   for (const f of ['output', 'export', 'filename', 'width', 'height', 'unit', 'dpi', 'user-profile', 'press-profile', 'text', 'sign-key', 'sign-cert']) {
     assert.ok(VALUE_FLAGS.has(f), `${f} must reject its bare form`);
   }
 });
 
-// ── exit codes (contract §5.1) ───────────────────────────────────────────────
+// ── exit codes (contract section 5.1) ───────────────────────────────────────────────
 
 test('the taxonomy has the frozen numbers', () => {
   assert.deepEqual(
@@ -409,7 +409,7 @@ test('the CLI declares the capabilities it can fulfil, and no others', async () 
   const dom = new jsdom.JSDOM('<!DOCTYPE html><body></body>');
   const host = await createCliBridge({ dom: dom.window as never, profile: {} } as never);
   assert.deepEqual([...(host.capabilities ?? [])], ['network', 'wasm', 'compose', 'capture']);
-  // …and the clipboard refusal is classified, not a bare throw (contract §4.4).
+  // …and the clipboard refusal is classified, not a bare throw (contract section 4.4).
   await assert.rejects(() => host.clipboard.writeText('x'), (e: CliErr) => {
     assert.equal(e.exit, EXIT.UNAVAILABLE_HERE);
     assert.equal(e.kind, 'CAPABILITY_UNAVAILABLE');
@@ -436,7 +436,7 @@ test('a tool needing an unmet capability REFUSES with exit 3 instead of renderin
 
 // ── B12: vector text as paths ────────────────────────────────────────────────
 
-test('CLI svg export OUTLINES text by default (B12/§6a)', { skip: SKIP_NO_FONT }, async () => {
+test('CLI svg export OUTLINES text by default (B12/section 6a)', { skip: SKIP_NO_FONT }, async () => {
   const out = outPath('svg');
   await run({ toolId: 'text-tool', params: {}, outputPath: out, format: 'svg' });
   const svg = await readFile(out, 'utf8');
@@ -487,7 +487,7 @@ test('--output=- streams to stdout instead of writing a file called "-"', async 
 
 // ── the entry point, end to end (a real child process) ───────────────────────
 
-test('stdout carries the payload and stderr carries the diagnostics (§5.3)', async () => {
+test('stdout carries the payload and stderr carries the diagnostics (section 5.3)', async () => {
   const { stdout, stderr, code } = await cli(['run', 'vec-tool', '--export=svg', '--copy=1']);
   assert.equal(code, EXIT.OK);
   assert.match(stdout.toString('utf8'), /^<\?xml/, 'stdout is the artefact, byte one');
@@ -513,7 +513,7 @@ test('--quiet silences stderr but never the error, and --strict fails the run', 
   assert.match(err.stderr, /Tool not found/, '--quiet must not swallow the error');
 });
 
-test('the explicit verbs work and can never be shadowed by a tool id (§1.1)', async () => {
+test('the explicit verbs work and can never be shadowed by a tool id (section 1.1)', async () => {
   const list = await cli(['list']);
   assert.equal(list.code, EXIT.OK);
   assert.match(list.stdout.toString('utf8'), /vec-tool/);
@@ -538,7 +538,7 @@ test('--help documents the exit codes; --version reports both versions', async (
   assert.match((await cli(['--version'])).stdout.toString('utf8'), /^lolly \d+\.\d+\.\d+ \(engine \d+\.\d+\.\d+\)$/m);
 });
 
-test('--json is refused on a render rather than accepted and ignored (§3)', async () => {
+test('--json is refused on a render rather than accepted and ignored (section 3)', async () => {
   const { code, stderr } = await cli(['run', 'vec-tool', '--export=svg', '--json']);
   assert.equal(code, EXIT.USAGE);
   assert.match(stderr, /--json is not available on a render/);
@@ -587,7 +587,7 @@ test('LOLLY_STATE_DIR is the name; LOLLY_TUI_DIR still works and says it is depr
   const old = resolveStateDir({ LOLLY_TUI_DIR: '/tmp/old' } as NodeJS.ProcessEnv, push);
   assert.equal(old.dir, '/tmp/old');
   assert.equal(old.deprecated, true);
-  assert.match(notes.join(''), /LOLLY_TUI_DIR is deprecated — use LOLLY_STATE_DIR/);
+  assert.match(notes.join(''), /LOLLY_TUI_DIR is deprecated - use LOLLY_STATE_DIR/);
   // Once per process, not once per read.
   resolveStateDir({ LOLLY_TUI_DIR: '/tmp/old' } as NodeJS.ProcessEnv, push);
   assert.equal(notes.length, 1);
@@ -624,7 +624,7 @@ test('host.state persists to LOLLY_STATE_DIR when one is named, and stays in mem
 
 // ── B8: validate exit codes ──────────────────────────────────────────────────
 
-test('the verdict ladder maps onto the taxonomy (B8/§6b)', () => {
+test('the verdict ladder maps onto the taxonomy (B8/section 6b)', () => {
   assert.equal(verdictExit('valid'), EXIT.OK);
   assert.equal(verdictExit('trusted'), EXIT.OK);
   assert.equal(verdictExit('lolly'), EXIT.OK);
@@ -639,9 +639,9 @@ test('the verdict ladder maps onto the taxonomy (B8/§6b)', () => {
 
 before(() => resetOutput());
 
-// ── §4.3 ico, §11 transform tools, B10 stdin ────────────────────────────────
+// ── section 4.3 ico, section 11 transform tools, B10 stdin ────────────────────────────────
 
-test('a browser-tier-only format with no browser is UNAVAILABLE_HERE, not FAILED (§4.3)', async () => {
+test('a browser-tier-only format with no browser is UNAVAILABLE_HERE, not FAILED (section 4.3)', async () => {
   const out = join(root, 'icon.ico');
   const { code, stderr } = await cli(['run', 'ico-tool', '--export=ico', `--output=${out}`]);
   assert.equal(code, EXIT.UNAVAILABLE_HERE, 'exit 3 is the retry-on-another-runner code');
@@ -651,7 +651,7 @@ test('a browser-tier-only format with no browser is UNAVAILABLE_HERE, not FAILED
   assert.equal((await cli(['run', 'vec-tool', '--export=ico'])).code, EXIT.USAGE);
 });
 
-test('a transform tool streams to stdout without --output, and reads `-` from stdin (§11/B10)', async () => {
+test('a transform tool streams to stdout without --output, and reads `-` from stdin (section 11/B10)', async () => {
   const src = join(root, 'shout.txt');
   await writeFile(src, 'quiet words');
   const piped = await cli(['run', 'xform-tool', `--source=${src}`]);
@@ -686,7 +686,7 @@ test('preflight refuses with 4, never 1, and is 2 only when it could not run (B1
   assert.equal((await cli(['preflight', 'no-such-tool'])).code, EXIT.USAGE);
 });
 
-test('preflight has no --out: it refuses the flag and names the redirect (§1.4)', async () => {
+test('preflight has no --out: it refuses the flag and names the redirect (section 1.4)', async () => {
   const outFile = join(root, 'pf-report.json');
   const r = await cli(['preflight', 'vec-tool', '--export=svg', '--json', `--out=${outFile}`]);
   assert.equal(r.code, EXIT.USAGE);
@@ -721,7 +721,7 @@ test('--profile refuses its bare form exactly as --press-profile does (B17)', ()
     });
   }
   // A bare `--out` is NOT a usage error any more: preflight's --out is gone, so the word
-  // is free again and a tool declaring a boolean input `out` is reachable (§1.4).
+  // is free again and a tool declaring a boolean input `out` is reachable (section 1.4).
   assert.equal(VALUE_FLAGS.has('out'), false);
   assert.equal(parseArgs(['vec-tool', '--out']).flags.out, '1');
 });
@@ -736,14 +736,14 @@ test('a --json run gets its envelope even when the PARSER refuses (B20)', async 
   assert.equal(env.error.exit, EXIT.USAGE);
 });
 
-// ── §12: the three decisions Andy made on 2026-08-01 ─────────────────────────
+// ── section 12: the three decisions Andy made on 2026-08-01 ─────────────────────────
 //
 // O1 (pin the Lolly CA root by default, with --no-default-anchors for a bare-trust
 // check), O2 (provenance default-on, --no-provenance for a deterministic render) and
 // O3 (validate keeps its name). Each is visible in exit codes, in the `trusted` field
 // or in the bytes, so each is pinned here rather than left to a reading of the prose.
 
-test('§12 O1: the CLI verifies against the Lolly CA root by default', async () => {
+test('section 12 O1: the CLI verifies against the Lolly CA root by default', async () => {
   const { defaultTrustAnchors, LOLLY_CA_ROOT_PEM, pemToDer, c2paTrustAnchors } = await import('@lolly/engine');
   const dflt = defaultTrustAnchors({ includeLollyRoot: true });
   assert.deepEqual(dflt[0], pemToDer(LOLLY_CA_ROOT_PEM), 'the Lolly root leads the default set');
@@ -754,7 +754,7 @@ test('§12 O1: the CLI verifies against the Lolly CA root by default', async () 
   assert.deepEqual(defaultTrustAnchors({ includeLollyRoot: false, includeVendored: false }), []);
 });
 
-test('§12 O1: the report says WHICH anchor set produced the verdict, in both modes', async () => {
+test('section 12 O1: the report says WHICH anchor set produced the verdict, in both modes', async () => {
   const signed = join(root, 'anchored.svg');
   const r0 = await cli(['run', 'vec-tool', '--label=Anchors', '--export=svg', `--output=${signed}`]);
   assert.equal(r0.code, EXIT.OK, r0.stderr);
@@ -777,7 +777,7 @@ test('§12 O1: the report says WHICH anchor set produced the verdict, in both mo
   assert.deepEqual(env.result.files[0]!.anchors.pinned, []);
 });
 
-test('§12 O2: a default render carries a credential; --no-provenance is bare and repeatable', async () => {
+test('section 12 O2: a default render carries a credential; --no-provenance is bare and repeatable', async () => {
   const signed = await cli(['run', 'vec-tool', '--label=Prov', '--export=svg']);
   assert.equal(signed.code, EXIT.OK, signed.stderr);
   assert.ok(signed.stdout.includes(Buffer.from('c2pa')), 'the default must be ON, like the app');
@@ -794,13 +794,13 @@ test('§12 O2: a default render carries a credential; --no-provenance is bare an
   assert.doesNotMatch(bare1.stderr, /no-provenance/);
 });
 
-test('§12 O2: --no-provenance plus an explicit mark is a usage error, not a guess', async () => {
+test('section 12 O2: --no-provenance plus an explicit mark is a usage error, not a guess', async () => {
   const r = await cli(['run', 'vec-tool', '--export=svg', '--no-provenance', '--c2pa=30']);
   assert.equal(r.code, EXIT.USAGE);
   assert.match(r.stderr, /--no-provenance/);
 });
 
-test('§12 O2: a default nobody asked for never produces a warning (so --strict cannot fail on it)', async () => {
+test('section 12 O2: a default nobody asked for never produces a warning (so --strict cannot fail on it)', async () => {
   // csv has no C2PA container (nor do dxf/md/eps/exr). Under the old always-warn branch
   // this printed on every such render and turned every --strict pipeline into an exit
   // code for a default nobody chose.
@@ -813,7 +813,7 @@ test('§12 O2: a default nobody asked for never produces a warning (so --strict 
   assert.match(asked.stderr, /has no C2PA container/);
 });
 
-test('§12 O2: the manifest opts a tool out on every surface at once', async () => {
+test('section 12 O2: the manifest opts a tool out on every surface at once', async () => {
   const { c2paDefaultOn, imprintDefaultOn, isImprintFormat } = await import('@lolly/engine');
   assert.equal(c2paDefaultOn({ render: { formats: ['png'] } }), true, 'on unless the tool says otherwise');
   assert.equal(c2paDefaultOn({ render: { formats: ['png'], c2pa: false } }), false);
@@ -824,13 +824,13 @@ test('§12 O2: the manifest opts a tool out on every surface at once', async () 
   assert.equal(isImprintFormat('svg'), false, 'the Imprint lives in pixels; svg has none');
 });
 
-test('§12 O3: `validate` keeps its name — no `inspect` verb exists or is reserved', () => {
+test('section 12 O3: `validate` keeps its name — no `inspect` verb exists or is reserved', () => {
   assert.ok(RESERVED_SUBCOMMANDS.includes('validate'));
   assert.equal(RESERVED_SUBCOMMANDS.includes('inspect' as never), false,
     'the rename was declined; reserving the word would imply it is still coming');
 });
 
-test('§12 O2: a default PNG carries a REAL Lolly Imprint, embedded without a browser', async () => {
+test('section 12 O2: a default PNG carries a REAL Lolly Imprint, embedded without a browser', async () => {
   // The default-on Imprint is only honest if the Node tier can actually apply it: this
   // fixture has no built web shell and no Chromium (LOLLY_WEB_DIST points at nothing),
   // so a mark found here was embedded by resvg + the engine's watermark maths alone.

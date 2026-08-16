@@ -29,6 +29,14 @@ const dirFor = (lang: string) => (lang === 'en' ? INFO : resolve(INFO, lang));
 const indexFor = (lang: string): Record_[] =>
   JSON.parse(readFileSync(resolve(dirFor(lang), 'search-index.json'), 'utf-8')) as Record_[];
 
+/** A regular page ships as <slug>.html; a generated side-door page carries a
+ *  directory slug (formats/svg, convert/png-to-jpg) and ships as
+ *  <slug>/index.html. The index records both kinds since the side doors joined it. */
+const pageFile = (lang: string, slug: string) => {
+  const flat = resolve(dirFor(lang), `${slug}.html`);
+  return existsSync(flat) ? flat : resolve(dirFor(lang), slug, 'index.html');
+};
+
 // The index (search-index.json) is COMMITTED, but the rendered pages it is
 // validated against are build products (public/info/*.html is gitignored) - so
 // gating on the index alone passes in every fresh checkout and then fails on
@@ -48,7 +56,7 @@ describe('docs search index', { skip: built ? false : 'run `npm run build:info` 
       test('every record points at a page that exists', () => {
         const missing = new Set<string>();
         for (const r of indexFor(lang)) {
-          if (!existsSync(resolve(dirFor(lang), `${r.p}.html`))) missing.add(r.p);
+          if (!existsSync(pageFile(lang, r.p))) missing.add(r.p);
         }
         assert.deepEqual([...missing], [], `${lang}: records reference missing pages`);
       });
@@ -60,7 +68,7 @@ describe('docs search index', { skip: built ? false : 'run `npm run build:info` 
           if (!r.a) continue;   // the page-intro record deliberately has no anchor
           let html = pages.get(r.p);
           if (html === undefined) {
-            html = readFileSync(resolve(dirFor(lang), `${r.p}.html`), 'utf-8');
+            html = readFileSync(pageFile(lang, r.p), 'utf-8');
             pages.set(r.p, html);
           }
           if (!html.includes(`id="${r.a}"`)) broken.push(`${r.p}#${r.a}`);

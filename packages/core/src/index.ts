@@ -43,7 +43,7 @@ export {
 // shape. A SIBLING of the preflight vocabulary (never inside `PreflightReport`),
 // so a report can never carry a number that reads as a quote. There is no default
 // currency and no fallback symbol anywhere in it. See `plans/65-preflight-and-cost.md`
-// §6, and the header of `money.ts`.
+// section 6, and the header of `money.ts`.
 export {
   formatMoney, formatFigure, monetaryFigure, minorUnitExponent,
   CurrencyError, MinorUnitError, COST_DISCLAIMER, COST_MEMBER,

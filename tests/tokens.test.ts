@@ -312,7 +312,7 @@ test('single-axis doc is unchanged: no theme → first theme, named theme honour
 test('an authored sRGB face wins over the automatic bake', () => {
   const ts = createTokenSet({
     color: {
-      // A wide-gamut brand green. Its automatic sRGB bake is whatever §14.2's map
+      // A wide-gamut brand green. Its automatic sRGB bake is whatever section 14.2's map
       // reaches; the brand has authored a different one.
       wide: {
         $type: 'color',

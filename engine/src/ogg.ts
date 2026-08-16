@@ -6,7 +6,7 @@
  * agree on where an Opus stream's C2PA credential lives.
  *
  * WHERE THE CREDENTIAL GOES. Opus in Ogg carries its metadata in the OpusTags
- * comment header (RFC 7845 §5.2), a VorbisComment packet alone on the second
+ * comment header (RFC 7845 section 5.2), a VorbisComment packet alone on the second
  * Ogg page (the first is OpusHead, the BOS page). We stash the JUMBF manifest
  * store as a base64 VorbisComment field, `C2PA=<base64>`, rebuild that one page
  * (recomputing its Ogg CRC), and the hard binding excludes the WHOLE comment

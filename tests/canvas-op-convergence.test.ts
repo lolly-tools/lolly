@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
- * The §8 shared conformance test for the canvas-op contract (plans/99), OSS side.
+ * The section 8 shared conformance test for the canvas-op contract (plans/99), OSS side.
  *
  * The suite BODY now lives in the shipped SDK - `@lolly-tools/core/canvas-op-testkit`
  * (`runConvergenceSuite`) - so lolly-work imports the SAME bytes via engine-pin.json and
@@ -8,7 +8,7 @@
  * `ReferenceCanvasDoc`, and additionally cover the adapter-INDEPENDENT pure helpers
  * (damageToOps / opsToDamage / laneForField / version negotiation) that lolly-work does
  * not re-test. DO NOT change the exported suite signature without cross-repo
- * coordination (plans/99 §9).
+ * coordination (plans/99 section 9).
  */
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
@@ -32,13 +32,13 @@ import type { BoxId, BoxRow, CanvasOp, Damage, OpOrigin } from '../packages/core
 
 // ── OSS run: the reference CRDT is the adapter under test ────────────────────────
 
-test('reference CRDT converges under the shared conformance suite (§8)', () => {
+test('reference CRDT converges under the shared conformance suite (section 8)', () => {
   runConvergenceSuite(() => new ReferenceCanvasDoc(), 'reference');
 });
 
 // ── Pure-helper conformance (shared, but adapter-independent) ────────────────────
 
-test('damageToOps → opsToDamage round-trips the §4.1/§4.2 lane split', () => {
+test('damageToOps → opsToDamage round-trips the section 4.1/section 4.2 lane split', () => {
   const prev = new Map<BoxId, BoxRow>([
     ['b1', { id: 'b1', x: 0, y: 0, w: 10, h: 10, rot: 0, fill: 'red' }],
     ['b2', { id: 'b2', x: 0, y: 0, w: 10, h: 10, rot: 0, fill: 'red' }],
@@ -60,7 +60,7 @@ test('damageToOps → opsToDamage round-trips the §4.1/§4.2 lane split', () =>
   assert.deepEqual(dmg.frames, []);
 });
 
-test('one gesture is one transaction (single origin) = one undo step (§5)', () => {
+test('one gesture is one transaction (single origin) = one undo step (section 5)', () => {
   // A gesture that both moves and restyles the same box emits a batch sharing ONE
   // origin stamp - the atomic unit an undo pops.
   const prev = new Map<BoxId, BoxRow>([['b1', { id: 'b1', x: 0, y: 0, w: 10, h: 10, rot: 0, fill: 'red' }]]);
@@ -74,14 +74,14 @@ test('one gesture is one transaction (single origin) = one undo step (§5)', () 
   assert.deepEqual(dmg.restyled, ['b1']);
 });
 
-test('incompatible major → observer-only; same major → compatible (§9)', () => {
+test('incompatible major → observer-only; same major → compatible (section 9)', () => {
   assert.equal(isCompatibleOpVersion('1.0.0'), true);
   assert.equal(isCompatibleOpVersion('1.9.3', CANVAS_OP_VERSION), true);
   assert.equal(isCompatibleOpVersion('2.0.0', CANVAS_OP_VERSION), false);
   assert.equal(isCompatibleOpVersion('0.9.0', '1.0.0'), false);
 });
 
-test('damageToOps restates paint order on an insert, and emits a pure reorder (plans/100 §3)', () => {
+test('damageToOps restates paint order on an insert, and emits a pure reorder (plans/100 section 3)', () => {
   const origin: OpOrigin = { client: 'a', clock: 1 };
   const row = (id: BoxId): BoxRow => ({ id, x: 0, y: 0, w: 1, h: 1, rot: 0 });
   const prev = new Map<BoxId, BoxRow>([['r01', row('r01')], ['r02', row('r02')]]);
@@ -112,7 +112,7 @@ test('damageToOps restates paint order on an insert, and emits a pure reorder (p
   assert.deepEqual(damageToOps(prev, removed, origin).map(op => op.k), ['remove']);
 });
 
-test('v1.1: a col-scoped op is not sendable to a v1.0 peer (§9 + plans/100 §11.19)', () => {
+test('v1.1: a col-scoped op is not sendable to a v1.0 peer (section 9 + plans/100 section 11.19)', () => {
   const origin: OpOrigin = { client: 'a', clock: 1 };
   const canvasOp: CanvasOp = { k: 'field', id: 'b1', field: 'fill', value: 'red', origin };
   const colOp: CanvasOp = { k: 'field', id: 'r1', col: 'rows', field: 'label', value: 'x', origin };
@@ -128,11 +128,11 @@ test('v1.1: a col-scoped op is not sendable to a v1.0 peer (§9 + plans/100 §11
   assert.equal(isOpSendableTo(canvasOp, '1.0.0'), true);
   assert.equal(isOpSendableTo(colOp, '1.0.0'), false);
   assert.equal(isOpSendableTo(colOp, CANVAS_OP_VERSION), true);
-  // A major mismatch takes everything with it (observer-only, §9).
+  // A major mismatch takes everything with it (observer-only, section 9).
   assert.equal(isOpSendableTo(canvasOp, '2.0.0'), false);
 });
 
-test('laneForField splits geometry vs content, honouring a renamed geom set (§4.3)', () => {
+test('laneForField splits geometry vs content, honouring a renamed geom set (section 4.3)', () => {
   for (const f of DEFAULT_GEOMETRY_FIELDS) assert.equal(laneForField(f), 'geometry');
   assert.equal(laneForField('fill'), 'content');
   assert.equal(laneForField('kind'), 'content');
@@ -141,9 +141,9 @@ test('laneForField splits geometry vs content, honouring a renamed geom set (§4
   assert.equal(laneForField('x', ['px', 'py']), 'content');
 });
 
-// ── v1.1 - collection scoping + presence fields (plans/100 §3) ───────────────────
+// ── v1.1 - collection scoping + presence fields (plans/100 section 3) ───────────────────
 
-test('v1.1: version bumped, still same-major compatible with a 1.0 peer (§9)', () => {
+test('v1.1: version bumped, still same-major compatible with a 1.0 peer (section 9)', () => {
   assert.equal(CANVAS_OP_VERSION, '1.1.0');
   assert.equal(isCompatibleOpVersion('1.0.0', CANVAS_OP_VERSION), true);
   assert.equal(isCompatibleOpVersion(CANVAS_OP_VERSION, '1.0.0'), true);
@@ -167,7 +167,7 @@ test('damageToOps stamps the collection context; the default context stays v1.0-
   }
 });
 
-test('opsToDamage classifies per collection context (§4.2 + plans/100 §3)', () => {
+test('opsToDamage classifies per collection context (section 4.2 + plans/100 section 3)', () => {
   const origin: OpOrigin = { client: 'a', clock: 1 };
   const ops: CanvasOp[] = [
     { k: 'geom', id: 'c1', fields: { x: 1 }, origin },
@@ -192,7 +192,7 @@ test('opsToDamage classifies per collection context (§4.2 + plans/100 §3)', ()
   assert.deepEqual(other.zChanged, ['o2']);
 });
 
-test('reference doc: a collection-scoped gesture round-trips to a peer (plans/100 §3)', () => {
+test('reference doc: a collection-scoped gesture round-trips to a peer (plans/100 section 3)', () => {
   const a = new ReferenceCanvasDoc('a');
   const b = new ReferenceCanvasDoc('b');
   const rows = new Map<BoxId, BoxRow>([['r1', { id: 'r1', label: 'one' }]]);
@@ -231,7 +231,7 @@ test('schema: v1.1 col validates on every box op, never on param; v1.0 ops still
   assert.equal(validateCanvasOp({ k: 'add', id: 'b1', col: 'rows', row: { id: 'b1' }, orderKey: '1', origin }).valid, true);
   assert.equal(validateCanvasOp({ k: 'remove', id: 'b1', col: 'rows', origin }).valid, true);
   assert.equal(validateCanvasOp({ k: 'order', id: 'b1', col: 'rows', orderKey: '2', origin }).valid, true);
-  // ParamOp stays as is (plans/100 §3): its branch has no col.
+  // ParamOp stays as is (plans/100 section 3): its branch has no col.
   assert.equal(validateCanvasOp({ k: 'param', key: 'p', value: 1, col: 'rows', origin }).valid, false);
   // col must be a non-empty string.
   assert.equal(validateCanvasOp({ k: 'remove', id: 'b1', col: '', origin }).valid, false);

@@ -6,7 +6,7 @@
  * tokenizer and phonemizer wasm stay out - phonemizeChunk takes an injected
  * eSpeak stub - so this runs in plain Node like the other engine suites.
  * Moved from shells/web/src/lib/speech-kokoro.test.ts when the module moved
- * into the engine (roadmap §4's one-synthesis-layer rule).
+ * into the engine (roadmap section 4's one-synthesis-layer rule).
  */
 import { test, describe } from 'node:test';
 import assert from 'node:assert/strict';

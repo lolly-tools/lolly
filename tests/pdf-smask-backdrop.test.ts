@@ -4,7 +4,7 @@
  * (`groupColorSpace`, `backdropLuminosity`), plus the engine-level consequence of
  * getting the sign wrong.
  *
- * WHY this suite exists. PDF 32000-1 §11.6.5.2 composites a /Luminosity mask group
+ * WHY this suite exists. PDF 32000-1 section 11.6.5.2 composites a /Luminosity mask group
  * against a full-plane backdrop of /BC and takes the LUMINOSITY of the result: a black
  * backdrop (the default when /BC is absent) hides everything outside the group's /BBox,
  * a white one reveals it. /BC's components are in the GROUP's colour space, so the same
@@ -82,7 +82,7 @@ test('groupColorSpace: ICCBased resolves to a device space by /N', () => {
 });
 
 test('groupColorSpace: a bare non-device name resolves through the form’s own /Resources', () => {
-  // §8.6.3 - Illustrator writes `/CS /CS0` and defines CS0 in the form's resources.
+  // section 8.6.3 - Illustrator writes `/CS /CS0` and defines CS0 in the form's resources.
   const c = ctx();
   const res = dict(c, {
     ColorSpace: dict(c, {
@@ -113,7 +113,7 @@ test('DeviceCMYK is SUBTRACTIVE: all-zero is white (reveal), not black', () => {
   assert.equal(backdropLuminosity('DeviceCMYK', [0, 0, 0, 1]), 0);
   // Rich black via the process inks alone.
   assert.equal(backdropLuminosity('DeviceCMYK', [1, 1, 1, 0]), 0);
-  // A mid grey lands between, and out-of-range components clamp (§10.4.2.1's
+  // A mid grey lands between, and out-of-range components clamp (section 10.4.2.1's
   // R = 1 − min(1, C + K) is a clamp by construction).
   const mid = backdropLuminosity('DeviceCMYK', [0, 0, 0, 0.5]);
   assert.ok(mid !== null && Math.abs(mid - 0.5) < 1e-9, String(mid));
@@ -133,7 +133,7 @@ test('additive spaces: all-zero is black (the expressible default)', () => {
   assert.equal(backdropLuminosity('Lab', [100, -20, 40]), 1);
 });
 
-test('additive: §11.6.5.2’s own luma weights, not a max-magnitude', () => {
+test('additive: section 11.6.5.2’s own luma weights, not a max-magnitude', () => {
   // Pure blue is DARK (0.11), which `Math.max(|v|)` scored as a fully white backdrop.
   const blue = backdropLuminosity('DeviceRGB', [0, 0, 1]);
   assert.ok(blue !== null && Math.abs(blue - 0.11) < 1e-9, String(blue));

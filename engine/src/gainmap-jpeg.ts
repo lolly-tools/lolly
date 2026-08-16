@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
- * Gain-map JPEG assembly. This is the container half of plans/61-deeprichpixels.md §6 B2.
+ * Gain-map JPEG assembly. This is the container half of plans/61-deeprichpixels.md section 6 B2.
  *
  * {@link ../gainmap.ts} computes the map and its metadata. This module glues an
  * SDR base JPEG and a gain-map JPEG into ONE file. A gain-map-aware decoder
@@ -20,7 +20,7 @@
  * tells an aware decoder that the trailer is a second image and where it
  * starts.
  *
- * --- DUAL metadata, deliberately (plan §4.2) ---------------------------------
+ * --- DUAL metadata, deliberately (plan section 4.2) ---------------------------------
  * Two vocabularies describe the same single gain-map image, because the
  * ecosystem is mid-transition and each half reads a different one:
  *
@@ -38,7 +38,7 @@
  * --- Sources (cited again at each use site) -----------------------------------
  *   - CIPA DC-007-2021 "Multi-Picture Format" - the MPF APP2 index, its TIFF
  *     structure, the 16-byte MP Entry record, and the rule that every offset is
- *     measured from the MP Endian field (DC-007 §5.2.3.3).
+ *     measured from the MP Endian field (DC-007 section 5.2.3.3).
  *   - Google "Ultra HDR Image Format v1.1" - the GContainer + `hdrgm` XMP forms.
  *     https://developer.android.com/media/platform/hdr-image-format
  *   - Adobe Gain Map Specification v1.0 - the `hdrgm` vocabulary itself.
@@ -300,7 +300,7 @@ function mpfSegmentLength(images: number, withUids: boolean): number {
  * Build the MP Index IFD as an APP2 segment, with the per-image size/offset
  * fields left at zero for {@link patchMpfEntries} to fill in.
  *
- * Structure (DC-007 §5.2.3): the payload is `MPF\0` followed by a complete TIFF
+ * Structure (DC-007 section 5.2.3): the payload is `MPF\0` followed by a complete TIFF
  * stream (big-endian `MM`, 0x002A, first-IFD offset 8), and every offset in it,
  * including the image offsets in the MP Entries, is measured from the FIRST BYTE
  * OF THE MP ENDIAN FIELD, not from the file start and not from the segment
@@ -486,7 +486,7 @@ export function assembleGainMapJpeg(
     throw new Error('assembleGainMapJpeg: base image already has a post-EOI trailer (already a multi-picture file?)');
   }
 
-  // 1. The gain-map image gets BOTH metadata forms (plan §4.2): the hdrgm XMP
+  // 1. The gain-map image gets BOTH metadata forms (plan section 4.2): the hdrgm XMP
   //    that Adobe/Android<=14 read, and the ISO 21496-1 blob that Skia/Apple do.
   const mapFinal = insertJpegSegments(
     mapJpeg,

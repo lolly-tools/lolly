@@ -9,7 +9,7 @@ pointed at a temp copy, never at this tree.
 The `.meta.json` files are true. These artifacts were emitted by a model (Claude Opus 5, prompted
 and reviewed by a human), so they declare `source: "trainedAlgorithmicMedia"` with that model
 disclosed — not the `digitalCreation` a hand-typed file would carry. Declaring "no trained model
-invoked" (§18.28.3) over model-emitted bytes would be the exact under-claim the pipeline exists to
+invoked" (section 18.28.3) over model-emitted bytes would be the exact under-claim the pipeline exists to
 prevent, in the very files that test it. The `digitalCreation` path — where **no** AI-disclosure
 assertion is attached — is exercised on an artifact the test synthesises at run time, so no
 committed file makes a claim about its own origin that is not true.

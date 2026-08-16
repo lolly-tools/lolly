@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
- * The docs art bank's gate - `scripts/sign-docs-art.ts` (plan 105 §6).
+ * The docs art bank's gate - `scripts/sign-docs-art.ts` (plan 105 section 6).
  *
  * Two things are being pinned here, and they fail in opposite directions.
  *
@@ -9,11 +9,11 @@
  * are adversarial on purpose - the obvious `fetch(`, and then the same call wearing a
  * bracket-indexed global, a split string literal and an HTML entity. A lint that only
  * catches the tidy form is a lint that reads like protection and isn't. It is still
- * only a denylist (human curation is the final filter, per plan §10), so what these
+ * only a denylist (human curation is the final filter, per plan section 10), so what these
  * tests defend is the floor: nothing gets in by ACCIDENT, and anything deliberate has
  * to look deliberate in the diff.
  *
- * THE CLAIM is an honesty boundary. §18.28.3's table says `digitalCreation` means no
+ * THE CLAIM is an honesty boundary. section 18.28.3's table says `digitalCreation` means no
  * trained model was invoked and the AI-disclosure assertion is NOT attached; every
  * other row names a model. So the pipeline must refuse a meta that claims both, must
  * attach the disclosure when a model is named, and must attach NOTHING when one is
@@ -125,7 +125,7 @@ test('meta: the full shape is accepted and unknown keys are not', () => {
 });
 
 test('meta: a human author is allowed even with digitalCreation (it is not a model claim)', () => {
-  // §18.28.3 forbids a MODEL beside digitalCreation, but a person directing a
+  // section 18.28.3 forbids a MODEL beside digitalCreation, but a person directing a
   // hand-made artifact is an ordinary, honest fact - refusing it would be wrong.
   const r = validateArtMeta({
     generator: { name: 'A human, in a text editor' }, source: 'digitalCreation',
@@ -151,13 +151,13 @@ test('meta: generator and source are required, and their values are checked', ()
 });
 
 test('meta: digitalCreation + a model is a contradiction, refused rather than resolved', () => {
-  // §18.28.3, verbatim: digitalCreation ⇒ "No trained model invoked; AI Model
+  // section 18.28.3, verbatim: digitalCreation ⇒ "No trained model invoked; AI Model
   // Disclosure assertion is not attached". Dropping the model silently would
   // under-claim the AI involvement; keeping it would contradict the source type.
   // Only the author knows which half is true, so only the author can fix it.
   const r = validateArtMeta(JSON.parse(readFileSync(join(FIX, 'refuse/mastheads/contradictory-meta.meta.json'), 'utf-8')));
   assert.ok('problems' in r);
-  assert.ok(r.problems.some((p) => p.includes('digitalCreation') && p.includes('§18.28.3')));
+  assert.ok(r.problems.some((p) => p.includes('digitalCreation') && p.includes('section 18.28.3')));
   const withOversight = validateArtMeta({ generator: { name: 'x' }, source: 'digitalCreation', oversight: 'human_validated' });
   assert.ok('problems' in withOversight && withOversight.problems.some((p) => p.includes('not applicable')));
 });
@@ -342,14 +342,14 @@ test('lint: the manifest strip is not a hiding place — and --check cannot pass
 
 test('lint: honest content that DOCUMENTS the armour format survives the strip', () => {
   // The other end of the same defect: the lazy pattern deleted the span between a
-  // quoted BEGIN and a later END, so a figure explaining §A.9 - on a docs site
+  // quoted BEGIN and a later END, so a figure explaining section A.9 - on a docs site
   // whose subject is C2PA - silently lost a paragraph at sign time.
   const doc = '<p>A signed CSS file ends with one line:</p>\n'
     + '<pre>/*! -----BEGIN C2PA MANIFEST----- data:application/c2pa;base64,AAAA -----END C2PA MANIFEST----- */</pre>\n'
     + '<p>Everything above that line is hashed.</p>\n';
   const kept = stripArtManifest(doc, C2PA_FRAGMENT_PROFILE.format);
   assert.equal(kept, doc, 'not one byte of the artifact is removed');
-  // It is still refused - a second block would make the file unreadable (§A.9.3)
+  // It is still refused - a second block would make the file unreadable (section A.9.3)
   // - but as a stated violation the author can act on, not as a silent edit.
   assert.ok(rules(lintArtSource(kept, ctx(C2PA_FRAGMENT_PROFILE.format))).includes('manifest'));
 });
@@ -574,12 +574,12 @@ test('claim: the options carry the source type, the disclosure and the spec vers
   const opts = artC2paOpts(meta, { id: 'x', kind: 'masthead', format: 'svg' });
   assert.equal(opts.actions?.[0]?.action, 'c2pa.created');
   assert.equal(opts.actions?.[0]?.digitalSourceType, ART_SOURCE_TYPES.trainedAlgorithmicMedia);
-  // The authoring tool rides in the action's description: §10.2.3.2 reserves
+  // The authoring tool rides in the action's description: section 10.2.3.2 reserves
   // claim_generator_info for the actor that generated the CLAIM, which is Lolly.
   assert.match(String(opts.actions?.[0]?.description), /Claude Code opus-5/);
   assert.equal((opts.generatorInfo as { name: string }).name, 'Lolly');
   assert.equal(opts.specVersion, '2.4.0');
-  // The §18.28 disclosure stays spec-clean - vendor/region are NOT grafted onto it.
+  // The section 18.28 disclosure stays spec-clean - vendor/region are NOT grafted onto it.
   assert.deepEqual(opts.aiDisclosure, { modelName: 'Claude Opus 5', modelIdentifier: 'claude-opus-5', oversight: 'prompt_guided' });
   // The director is the C2PA human author; vendor + serving region are Lolly-namespaced
   // environment facts beside `generator`.
@@ -595,7 +595,7 @@ test('claim: the options carry the source type, the disclosure and the spec vers
   assert.ok(ART_CREDENTIAL_DAYS >= 365 * 5);
 });
 
-test('claim: digitalCreation attaches NO disclosure — §18.28.3', () => {
+test('claim: digitalCreation attaches NO disclosure — section 18.28.3', () => {
   const opts = artC2paOpts({ generator: { name: 'A human, in a text editor' }, source: 'digitalCreation' },
     { id: 'x', kind: 'figure', format: 'svg' });
   assert.equal(opts.aiDisclosure, undefined);
@@ -605,7 +605,7 @@ test('claim: digitalCreation attaches NO disclosure — §18.28.3', () => {
 test('claim: the fragment names its own profile in the environment', () => {
   // The v2 claim carries no dc:format, so `report.environment.format` is the ONLY
   // place a reader can learn that these bytes were bound under Lolly's fragment
-  // profile rather than §A.7 (A1's finding 5.2). /verify keys its label off it.
+  // profile rather than section A.7 (A1's finding 5.2). /verify keys its label off it.
   const opts = artC2paOpts({ generator: { name: 'x' }, source: 'digitalCreation' },
     { id: 'x', kind: 'masthead', format: C2PA_FRAGMENT_PROFILE.format });
   assert.equal((opts.environment as Record<string, unknown>).format, 'html-fragment');
@@ -636,7 +636,7 @@ test('sign: a clean bank is signed, verifies, and discloses its model', async (t
   }
   const fragment = await verifyC2pa(read(dir, 'mastheads/test-fragment.html'));
   // The v2 claim carries no dc:format, so the reader sniffs the CARRIER ('code' - 
-  // §A.9 armour) and the profile is recoverable only from our own environment
+  // section A.9 armour) and the profile is recoverable only from our own environment
   // assertion. Both halves are asserted so /verify can key its "Lolly fragment
   // profile" label off the pair without either side drifting silently.
   assert.equal(fragment.format, 'code');
@@ -760,7 +760,7 @@ test('refuse: an over-budget artifact, through the real pipeline', async (t) => 
 });
 
 test('sign: a hand-authored artifact gets a source type and no disclosure at all', async (t) => {
-  // The digitalCreation half of §18.28.3, exercised on an artifact written here at
+  // The digitalCreation half of section 18.28.3, exercised on an artifact written here at
   // run time: no committed fixture may claim "no trained model invoked" about bytes
   // a model emitted (see the fixtures README).
   const dir = stage([]);

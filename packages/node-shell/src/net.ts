@@ -33,7 +33,7 @@ export function createNetAPI({ allowlist = [] }: { allowlist?: readonly string[]
 function capResponse(res: Response, cap: number): Response {
   const declared = Number(res.headers.get('content-length'));
   if (Number.isFinite(declared) && declared > cap) {
-    throw new Error(`net: response is ${declared} bytes — over the ${cap}-byte limit`);
+    throw new Error(`net: response is ${declared} bytes - over the ${cap}-byte limit`);
   }
   if (!res.body || typeof TransformStream !== 'function') return res;
   let total = 0;

@@ -18,7 +18,7 @@
  *   project.penpot      a Penpot project archive (zip; tokens per file)
  *   LollyBrand-*.zip    a design system pack exported by the studio
  *                       (manifest.json `format: "lolly-brand"` + tokens.json).
- *                       Its published VERSIONS travel too (plans/97 §6a):
+ *                       Its published VERSIONS travel too (plans/97 section 6a):
  *                       versions/<slug>.json and the frozen/ bytes they pin land
  *                       as ordinary catalog assets beside the head. The pack's
  *                       fonts/ and logos/ still stay in the source zip, and the
@@ -60,7 +60,7 @@ import {
 } from '../engine/src/brand-import.ts';
 import type { TokensExtraction } from '../engine/src/brand-import.ts';
 import { deriveIconThemesDoc, derivePhotoTreatmentsDoc } from '../engine/src/brand-treatments.ts';
-// The version ledger (plans/97 §6a) is read and rewritten through the ONE shared
+// The version ledger (plans/97 section 6a) is read and rewritten through the ONE shared
 // model, never by hand: a pack's published versions have to mean the same thing
 // here as they do in the shell that exported them.
 import { readVersionIndex, versionAssetId, withVersionIndex } from '../engine/src/design-version.ts';
@@ -109,7 +109,7 @@ interface Extracted {
   extraction: TokensExtraction;
   containerLabel: string;
   notes: string[];
-  /** Published design-system versions the container carried (plans/97 §6a). */
+  /** Published design-system versions the container carried (plans/97 section 6a). */
   versions?: PackVersion[];
   /** Bytes a published version pins, re-homed into the pack's own namespace. */
   frozen?: PackFrozen[];
@@ -288,7 +288,7 @@ function verifyPackIntegrity(entries: Record<string, Uint8Array>, manifest: Reco
 
 /**
  * The published versions a pack carries, and the head document that must ship
- * with them (plans/97 §6a).
+ * with them (plans/97 section 6a).
  *
  * The HEAD DOCUMENT'S LEDGER is the authority, not `versions.json`: the ledger is
  * what every consumer reads once the pack is installed, so anything the emitted
@@ -496,7 +496,7 @@ function emitPack(
     }],
   }];
 
-  // Published design-system versions (plans/97 §6a) - sibling assets of the head,
+  // Published design-system versions (plans/97 section 6a) - sibling assets of the head,
   // exactly as they are on a device: `<ns>/tokens/brand/<slug>`, the file
   // `brand.json` and the directory `brand/` living side by side. The ledger is
   // already in the head document, so nothing extra is written to describe them.

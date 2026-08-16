@@ -2,13 +2,13 @@
 /**
  * Golden tests for engine/src/keyframes.ts - the `kf` wire grammar, keyframe
  * evaluation, the ease adapter, and the depth-camera projection (plans/104
- * §4, §5, §10).
+ * section 4, section 5, section 10).
  *
  * This module is the root dependency of the depth/flythrough feature: the DOM
  * applier, the plan/worker compositor, the timeline UI and the CLI all fold
  * these exact numbers, so everything here is a pin, not a smoke test. Where a
- * value is stated in the plan (the §4.1 fold, the §4.5 guard rows, K = 40, the
- * §4.6 quanta, the eight ease presets) the test carries the plan's own number.
+ * value is stated in the plan (the section 4.1 fold, the section 4.5 guard rows, K = 40, the
+ * section 4.6 quanta, the eight ease presets) the test carries the plan's own number.
  *
  * Run with: node --import ./tests/css-stub.mjs --test "tests/keyframes.test.ts"
  */
@@ -48,7 +48,7 @@ const CAM0: KfCameraView = { ...DEFAULT_CAMERA, ...STAGE };
 
 // ─── grammar: the locked token rules ─────────────────────────────────────────
 
-test('parses the plan §5.1 example into three keyframes', () => {
+test('parses the plan section 5.1 example into three keyframes', () => {
   const track = parseKf('t0_z0_b4*t1500_eo_z140_b0*t4000_eh_z140_x-60');
   assert.equal(track.length, 3);
   assert.deepEqual(track[0], { t: 0, ease: KF_DEFAULT_EASE, v: { z: 0, b: 4 } });
@@ -114,11 +114,11 @@ test('every channel is clamped to its declared range', () => {
 });
 
 // The wire's `z` is NOT the z field's own clamp, and the difference is the dolly.
-// §4.3: "Uniform zoom/dolly is camZ … there is deliberately no separate zoom channel",
+// section 4.3: "Uniform zoom/dolly is camZ … there is deliberately no separate zoom channel",
 // so a camera track's `z` is the only zoom control the feature has. Held to the field's
 // 900 ceiling the whole flat-scene zoom range would be eff ∈ [1200/2100, 1200/900] =
 // [0.571, 1.333] - a Ken Burns push-in past 1.33× would not be expressible at all.
-test('the camera dolly is expressible: §4.3\'s Vertigo recipe survives the wire', () => {
+test('the camera dolly is expressible: section 4.3\'s Vertigo recipe survives the wire', () => {
   // camZ = P·(1/c − 1) + z_s pins the subject plane z_s at magnification c.
   for (const [c, camZ] of [[2, -600], [1.5, -400], [3, -800]] as const) {
     assert.equal(parseKf(`t0_z${camZ}`)[0]?.v.z, camZ, `c=${c} needs camZ=${camZ}`);
@@ -131,12 +131,12 @@ test('the camera dolly is expressible: §4.3\'s Vertigo recipe survives the wire
   // both the base-pose path and the parse path used to clamp it to −300).
   assert.equal(resolveCamera([{ track: parseKf('t0_z-5000') }], 0).z, -5000);
   assert.deepEqual([...KF_CLAMPS.z], [-12000, 12000], 'a few multiples of any usable P');
-  // The per-box FIELD keeps its own §5.3 / §12 Q1 clamp - a different number, a different
+  // The per-box FIELD keeps its own section 5.3 / section 12 Q1 clamp - a different number, a different
   // job, applied where that field is read (the hooks\' data-t-z, the manifest min/max).
   assert.deepEqual([...KF_Z_FIELD_CLAMP], [-300, 900]);
 });
 
-test('values are quantised at the §4.6 quanta on the way IN, which is what makes the round-trip law hold', () => {
+test('values are quantised at the section 4.6 quanta on the way IN, which is what makes the round-trip law hold', () => {
   const k = parseKf('t10.6_x1.23456_y-1.23456_s1.23456_o0.98765_r45.678_p1199.999')[0];
   assert.equal(k?.t, 11);                 // t: integer ms
   assert.equal(k?.v.x, 1.23);             // px: 0.01
@@ -174,7 +174,7 @@ test('parse caps: KF_MAX_KEYS keyframes and KF_MAX_CHARS chars, both reported th
 // The two caps have to be mutually SATISFIABLE, or the module emits a wire it then
 // mangles: at 8 KB (the number the plan carried before anyone measured a full-pose
 // track) a 256-key camera track serialised to 15 759 chars and re-parsed to 134 keys - 
-// 122 keyframes lost, silently, with the §4.6 round-trip law false above the cap.
+// 122 keyframes lost, silently, with the section 4.6 round-trip law false above the cap.
 // So the char cap is DERIVED from the key cap, and this is the derivation. Widen a
 // clamp or add a channel and this test tells you to re-derive KF_MAX_CHARS.
 test('the char cap DOMINATES the key cap: a full-density track always fits', () => {
@@ -232,7 +232,7 @@ const ROUND_TRIP_CASES = [
   't0_ek_a0.5_f200_p800*t3500_eo_a0_p1200',
   't0_x1.23456*t10.6_x-9999999*t99999999_z9999',
   't500_x5*t0_x0*t0_x9*junk*t100_bogus_y5',
-  // MAX DENSITY - the case the law used to fail on. §8's UI writes full poses, so a
+  // MAX DENSITY - the case the law used to fail on. section 8's UI writes full poses, so a
   // 256-key content track is an ordinary artefact, not a fuzz artefact: at the old 8 KB
   // char cap this one re-parsed to 134 of its 256 keyframes.
   Array.from({ length: KF_MAX_KEYS }, (_v, i) =>
@@ -363,7 +363,7 @@ test('cubicBezierAt: endpoints, the linear identity, and an overshoot above 1', 
   assert.equal(kfEaseAt('el', 0), 0);
 });
 
-// ─── segment subdivision (the §5.6 rebase's ease half) ───────────────────────
+// ─── segment subdivision (the section 5.6 rebase's ease half) ───────────────────────
 
 /**
  * The defining property, straight off `subdivideKfEase`'s own doc block: a
@@ -565,7 +565,7 @@ test('two keys at the same time do not divide by zero', () => {
   near(evaluateKf(track, 1000).x ?? NaN, 100);
 });
 
-// ─── the projection fold (§4.1) ──────────────────────────────────────────────
+// ─── the projection fold (section 4.1) ──────────────────────────────────────────────
 
 test('the DEFAULT camera is a no-op on a z = 0 layer — every existing document is byte-identical', () => {
   assert.deepEqual({ ...DEFAULT_CAMERA }, { x: 0, y: 0, z: 0, p: DEFAULT_PERSPECTIVE, f: 0, a: 0 });
@@ -574,7 +574,7 @@ test('the DEFAULT camera is a no-op on a z = 0 layer — every existing document
     const pr = projectLayer(CAM0, { bx, by, z: 0 });
     // `m: null` is P2's additive field: the screen-parallel tier hands back no
     // homography at all, which is what keeps every pre-tilt document on the exact path
-    // it was always on (plans/104 §6.4, engine 1.121).
+    // it was always on (plans/104 section 6.4, engine 1.121).
     assert.deepEqual(pr, { dx: 0, dy: 0, scale: 1, alphaGuard: 1, m: null }, `${bx},${by}`);
   }
 });
@@ -591,7 +591,7 @@ test('golden fold table: cx′ = W/2 + (cx − camX − W/2)·eff, per axis', ()
     { cam: { x: 200 }, bx: 960, by: 540, z: 0, dx: -200, dy: 0, eff: 1 },
     { cam: { x: 200 }, bx: 960, by: 540, z: 240, dx: -250, dy: 0, eff: 1.25 },
     { cam: { y: -120 }, bx: 960, by: 540, z: 240, dx: 0, dy: 150, eff: 1.25 },
-    // Dolly: raising camZ pushes the scene away (eff < 1) - the §4.1 sign convention.
+    // Dolly: raising camZ pushes the scene away (eff < 1) - the section 4.1 sign convention.
     { cam: { z: 300 }, bx: 460, by: 540, z: 0, dx: 100, dy: 0, eff: 0.8 },
     { cam: { z: -240 }, bx: 460, by: 540, z: 0, dx: -125, dy: 0, eff: 1.25 },
   ];
@@ -624,7 +624,7 @@ test('transition × camera: the offsets are INSIDE the projection, so they scale
   near(projectLayer(cam, { bx: 960, by: 540, dyT: 80, z: 240 }).dy, 100);
 });
 
-test('guard band (§4.5): eff freezes at 10 while alpha ramps linearly over u ∈ [0.8, 0.9]', () => {
+test('guard band (section 4.5): eff freezes at 10 while alpha ramps linearly over u ∈ [0.8, 0.9]', () => {
   assert.equal(KF_GUARD_U, 0.9);
   assert.equal(KF_GUARD_BAND, 0.1);
   assert.equal(KF_EFF_MAX, 10);
@@ -654,8 +654,8 @@ test('guard band (§4.5): eff freezes at 10 while alpha ramps linearly over u �
   near(projectDepth({ z: -1080, p: 1200 }, 0).alphaGuard, 0);
 });
 
-// KF_EFF_MAX is a DECLARED maximum: §5.5's plate-resolution buckets and the λ budget are
-// both computed from maxEff, and §4.5 calls eff_max part of the byte-stable contract. So
+// KF_EFF_MAX is a DECLARED maximum: section 5.5's plate-resolution buckets and the λ budget are
+// both computed from maxEff, and section 4.5 calls eff_max part of the byte-stable contract. So
 // the number the function returns at the clamp has to BE it - `1/(1 − 0.9)` is
 // 10.000000000000002 in IEEE-754, which is above the maximum it is documented as.
 test('KF_EFF_MAX is exactly what projectDepth returns at and beyond the guard', () => {
@@ -680,7 +680,7 @@ test('p is perspective strength (FOV), never magnification: eff(z = camZ) === 1 
     }
   }
   // On a FLAT scene, p is a no-op - which is exactly why the not-a-no-op
-  // companion below has to use two distinct z values (§4.3).
+  // companion below has to use two distinct z values (section 4.3).
   const flat = { bx: 460, by: 200, z: 0 };
   const a = projectLayer({ ...CAM0, p: 300 }, flat);
   const b = projectLayer({ ...CAM0, p: 9000 }, flat);
@@ -703,7 +703,7 @@ test('p is NOT a no-op on a scene with two distinct z values (the companion gold
   assert.equal(projectDepth({ z: 0, p: Number.NaN }, 600).eff, projectDepth({ z: 0, p: DEFAULT_PERSPECTIVE }, 600).eff);
 });
 
-// ─── depth of field (§4.4) ───────────────────────────────────────────────────
+// ─── depth of field (section 4.4) ───────────────────────────────────────────────────
 
 test('DOF golden table pins K = 40 and the eff(z)·eff(f) factor', () => {
   assert.equal(DOF_K, 40);
@@ -743,7 +743,7 @@ test('blur GROWS as the camera approaches an out-of-focus layer (the v1 formula 
   near(dofBlur({ z: -300, p: 1200, f: 0, a: 1 }, 200), (40 * 200 * (1200 / 700) * (1200 / 900)) / 1200);
 });
 
-// ─── camera resolution (§5.4) ────────────────────────────────────────────────
+// ─── camera resolution (section 5.4) ────────────────────────────────────────────────
 
 test('no camera resolves to the DEFAULT camera — never a literal identity', () => {
   for (const cams of [null, undefined, [], [null as never]] as const) {
@@ -810,7 +810,7 @@ test('a resolved camera is always usable: p is sane and the pose is a fresh obje
 });
 
 // The overshoot presets exist to overshoot, so a segment between two IN-RANGE keys leaves
-// the range mid-flight. The resolved pose is this module's public contract - the §8 camera
+// the range mid-flight. The resolved pose is this module's public contract - the section 8 camera
 // panel and any plate-padding budget read it directly - so `a` documented as "Aperture
 // 0–1" has to be 0–1 at every t, not only where dofBlur re-clamps it for itself.
 test('EVERY resolved channel is held to its range, not just p (an overshoot ease cannot leak)', () => {
@@ -836,7 +836,7 @@ test('EVERY resolved channel is held to its range, not just p (an overshoot ease
 // ─── surface invariants ──────────────────────────────────────────────────────
 
 test('the channel vocabulary, its clamps and its quanta are all declared together', () => {
-  // APPEND-ONLY, and the order IS the serialisation order: `w`/`h` (plans/104 §5.2, P1)
+  // APPEND-ONLY, and the order IS the serialisation order: `w`/`h` (plans/104 section 5.2, P1)
   // joined at the TAIL, never beside x/y where they read better, because inserting in
   // the middle would re-spell every track already on the wire.
   assert.deepEqual([...KF_CHANNELS],
@@ -848,7 +848,7 @@ test('the channel vocabulary, its clamps and its quanta are all declared togethe
     assert.ok(KF_CLAMPS[ch][0] < KF_CLAMPS[ch][1], ch);
   }
   assert.deepEqual([...KF_CLAMPS.z], [-12000, 12000], 'the WIRE clamp — wide enough for the dolly');
-  assert.deepEqual([...KF_Z_FIELD_CLAMP], [-300, 900], 'the §5.3 field clamp, separately');
+  assert.deepEqual([...KF_Z_FIELD_CLAMP], [-300, 900], 'the section 5.3 field clamp, separately');
   assert.deepEqual([...KF_CLAMPS.o], [0, 1]);
   assert.deepEqual([...KF_CLAMPS.a], [0, 1]);
   assert.deepEqual([...KF_CLAMPS.s], [0.01, 100]);

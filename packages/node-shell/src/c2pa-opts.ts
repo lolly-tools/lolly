@@ -51,18 +51,18 @@ export interface BuildExportC2paOpts {
    *  page shows AI-generated imagery). Omit to keep embedC2pa's default created step. */
   actions?: ExportC2paOpts['actions'];
   /**
-   * §18.28 `c2pa.ai-disclosure`: the model that produced the essence, its
+   * section 18.28 `c2pa.ai-disclosure`: the model that produced the essence, its
    * identifier, and the human-oversight level. Node surfaces that KNOW a trained
    * model made the bytes (the docs art bank; later, a generative tool run from
    * the CLI) pass it; nothing infers it, and nothing defaults it, because a
    * disclosure nobody asserted is a claim about a pipeline we did not observe.
-   * §18.28.3: with `digitalSourceType: digitalCreation` the assertion is *not*
+   * section 18.28.3: with `digitalSourceType: digitalCreation` the assertion is *not*
    * attached. The caller decides; this only forwards.
    */
   aiDisclosure?: ExportC2paOpts['aiDisclosure'];
   /**
    * The C2PA spec version the manifest declares (`claim_generator_info.specVersion`,
-   * §10.2.3.2). Opt-in per surface: declaring it asserts the whole manifest was
+   * section 10.2.3.2). Opt-in per surface: declaring it asserts the whole manifest was
    * written to that version, and defaulting it would silently change the bytes of
    * every existing export. Engine's `C2PA_SPEC_VERSION` is the value to pass.
    */

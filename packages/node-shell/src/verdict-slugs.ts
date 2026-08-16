@@ -26,13 +26,13 @@ export interface VerdictSlug {
 }
 
 export const VERDICT_SLUGS: Record<C2paVerdictState, VerdictSlug> = {
-  lolly: { verdict: 'made-with-lolly', headline: 'Made with Lolly — credential intact, file unchanged since export' },
-  delivered: { verdict: 'delivered-by-lolly', headline: 'Delivered by Lolly — verified authentic official asset; delivered by Lolly, not created by it' },
-  likelyLolly: { verdict: 'likely-made-with-lolly', headline: "Likely made with Lolly — the credential's own content checks out and records a Lolly export, but this file's bytes no longer match it" },
-  expired: { verdict: 'credential-expired', headline: 'Credential expired — the file still matches what was signed; the one-year on-device certificate has lapsed' },
-  trusted: { verdict: 'credential-intact', headline: 'Credential intact — signed on-device (integrity, not identity)' },
-  valid: { verdict: 'credential-intact', headline: 'Credential intact — signed on-device (integrity, not identity)' },
-  invalid: { verdict: 'credential-broken', headline: 'Credential broken — the file no longer matches what was signed' },
+  lolly: { verdict: 'made-with-lolly', headline: 'Made with Lolly - credential intact, file unchanged since export' },
+  delivered: { verdict: 'delivered-by-lolly', headline: 'Delivered by Lolly - verified authentic official asset; delivered by Lolly, not created by it' },
+  likelyLolly: { verdict: 'likely-made-with-lolly', headline: "Likely made with Lolly - the credential's own content checks out and records a Lolly export, but this file's bytes no longer match it" },
+  expired: { verdict: 'credential-expired', headline: 'Credential expired - the file still matches what was signed; the one-year on-device certificate has lapsed' },
+  trusted: { verdict: 'credential-intact', headline: 'Credential intact - signed on-device (integrity, not identity)' },
+  valid: { verdict: 'credential-intact', headline: 'Credential intact - signed on-device (integrity, not identity)' },
+  invalid: { verdict: 'credential-broken', headline: 'Credential broken - the file no longer matches what was signed' },
   none: { verdict: 'no-credential', headline: 'No Content Credentials found' },
 };
 

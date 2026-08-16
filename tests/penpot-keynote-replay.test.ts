@@ -160,7 +160,7 @@ test('keynote: a mapped blur-2 box hydrates to filter:blur(2px) via the real des
   assert.equal(boxes.length, 1);
   assert.equal(boxes[0]!.blur, 2, 'the box row carries blur 2');
 
-  const PACK_DIR = join(ROOT, 'brands', 'lolly-start', 'tools');
+  const PACK_DIR = join(ROOT, 'community');
   const tool: any = await loadTool('design', (p: string) => readFile(join(PACK_DIR, p), 'utf8'));
   const rt = await createRuntime(tool, baseHost(), { boxes: boxes as never });
   assert.deepEqual(rt.hookErrors ?? [], [], 'no hook errors');
@@ -243,7 +243,7 @@ test('keynote: a Work Sans box hydrates to font-family:\'Work Sans\' via the rea
   const boxes = finalizeBoxes([node] as never[], map);
   assert.equal(boxes[0]!.font, 'Work Sans');
 
-  const PACK_DIR = join(ROOT, 'brands', 'lolly-start', 'tools');
+  const PACK_DIR = join(ROOT, 'community');
   const tool: any = await loadTool('design', (p: string) => readFile(join(PACK_DIR, p), 'utf8'));
   const rt = await createRuntime(tool, baseHost(), { boxes: boxes as never });
   assert.deepEqual(rt.hookErrors ?? [], [], 'no hook errors');
@@ -904,7 +904,7 @@ test('keynote: PERSON INTRO’s master hydrates through the real design', { skip
   const boxes = finalizeBoxes(sub.map((s) => penpotShapeToNode(s)).filter((n) => n != null) as never[], map);
   assert.equal(boxes.length, 537);
 
-  const PACK_DIR = join(ROOT, 'brands', 'lolly-start', 'tools');
+  const PACK_DIR = join(ROOT, 'community');
   const tool: any = await loadTool('design', (p: string) => readFile(join(PACK_DIR, p), 'utf8'));
   const rt = await createRuntime(tool, baseHost(), { boxes: boxes as never });
   assert.deepEqual(rt.hookErrors ?? [], [], 'no hook errors');

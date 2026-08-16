@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
- * Spoken-text extraction (plans/40-docs-audio-listen.md §4.1/§5) - what a listener
+ * Spoken-text extraction (plans/40-docs-audio-listen.md section 4.1/section 5) - what a listener
  * hears, which blocks get which ids, and the staleness hash's invariances.
  * Also the parity tripwire: extraction duplicates docs/build.ts's headingId
  * (build.ts has no exports by design), so a drift between the two would point

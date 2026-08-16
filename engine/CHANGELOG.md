@@ -193,7 +193,7 @@ an ordinary 1.0 MB file (one `<pattern>` holding a PNG, 24 groups) derives 24.0 
 shell writes every byte into IndexedDB on one confirm click — ~256 MB at the caps, silently.
 The enumerator now prices the result and warns, so the dialog can say so before the click.
 
-1.119.0 — additive: `engine/src/svg-layers.ts` — "Lift layers" (plans/104 §7 P3).
+1.119.0 — additive: `engine/src/svg-layers.ts` — "Lift layers" (plans/104 section 7 P3).
 `enumerateSvgLayers(markup)` reads a sanitised SVG and returns one standalone `<svg>`
 document per layer: the root's direct children in paint order, every `<g>` a layer, stray
 leaves clustered SPATIALLY with `pdf-artwork.ts`'s posture verbatim (group is a hint, never
@@ -202,9 +202,9 @@ attributes composite its children as a unit. Each derived document carries the r
 attributes and the WHOLE of every non-rendering sibling (`<defs>`, `<style>`, paint
 servers), which is what makes the layers a byte-exact PARTITION of the original: `<defs>`
 paints nothing, `source-over` is associative, so stacking the N documents in order
-reproduces the source — §7's identity property, asserted structurally in
+reproduces the source — section 7's identity property, asserted structurally in
 `tests/svg-layers.test.ts` and as rendered pixels in `tests/svg-lift-identity.browser.test.ts`.
-⚑ Measured amendment to §7's wording: the STRUCTURAL identity is byte-exact, the RENDERED
+⚑ Measured amendment to section 7's wording: the STRUCTURAL identity is byte-exact, the RENDERED
 one is exact to within compositing rounding — a browser rasterises each layer into its own
 8-bit premultiplied buffer, so it rounds twice where one pass rounds once (Chromium,
 320×240: every channel within ±1 except ≤ 0.025 % of them, worst single channel 56/255 at a
@@ -229,7 +229,7 @@ artwork. Nothing throws; junk yields fewer layers and more warnings. No HostV1 m
 changed.
 
 1.118.0 — additive: the `kf` wire grammar gains the `w` and `h` channels
-(`engine/src/keyframes.ts`; plans/104 §5.2, the P1 reversal — Andy, 2026-08-12 hands-on:
+(`engine/src/keyframes.ts`; plans/104 section 5.2, the P1 reversal — Andy, 2026-08-12 hands-on:
 "I can't change width and height of elements and have them tween"). Both are ABSOLUTE px
 and REPLACE the box's own size for their segment, exactly as `z` replaces the `z` field —
 a multiplier reading is what `s` already is, and `s` does not reflow. Clamped to
@@ -250,33 +250,33 @@ the preview's reflow and parity beats speed.
 
 1.117.0 — additive: C2PA 2.4 text-binding WRITE side (`engine/src/c2pa-containers.ts`,
 `engine/src/c2pa.ts`; plans/105 M3 — `plans/105-m345-brief.md`,
-`plans/105-c2pa-text-bindings-and-docs-mastheads.md` §5). `C2PA_FORMATS` gains `html`, `js`,
-`css`, `md`: `placeHtml` (§A.7 inline form) inserts/replaces `<script type="application/c2pa">`
+`plans/105-c2pa-text-bindings-and-docs-mastheads.md` section 5). `C2PA_FORMATS` gains `html`, `js`,
+`css`, `md`: `placeHtml` (section A.7 inline form) inserts/replaces `<script type="application/c2pa">`
 in `<head>`, excluding the WHOLE element (opening tag through closing tag inclusive) — wider
-than the SVG placer's base64-only exclusion, because that is what §A.7.1.3 requires; `placeArmor`
-(§A.9) writes the `-----BEGIN/END C2PA MANIFEST-----` block as a `data:application/c2pa;base64,…`
+than the SVG placer's base64-only exclusion, because that is what section A.7.1.3 requires; `placeArmor`
+(section A.9) writes the `-----BEGIN/END C2PA MANIFEST-----` block as a `data:application/c2pa;base64,…`
 URI inside each host language's comment syntax (`//` js, `/*! … */` css with the preservation
 hint, `<!-- -->` md), end-of-file, one exclusion over the whole block, LF/CRLF only. A new
 `html-fragment` format registers a documented Lolly profile — markup+script fragments (no
-`<head>`, so §A.7 does not apply) carry the same §A.9 armour mechanics in an HTML comment; it is
+`<head>`, so section A.7 does not apply) carry the same section A.9 armour mechanics in an HTML comment; it is
 real C2PA, spec-adjacent only in its carrier convention, and reports itself as exactly that, never
-as §A.7. The two-pass placer contract holds for all four: bytes outside the exclusion depend only
+as section A.7. The two-pass placer contract holds for all four: bytes outside the exclusion depend only
 on manifest length. `buildC2paManifest` gains an optional `aiDisclosure` input — assertion label
-`c2pa.ai-disclosure` (§18.28), CBOR map `{modelType, modelName?, modelIdentifier?,
+`c2pa.ai-disclosure` (section 18.28), CBOR map `{modelType, modelName?, modelIdentifier?,
 contentProfile?: {humanOversightLevel}}`, `modelType` defaulting to the generic
 `c2pa.types.model` — referenced from `created_assertions`, plus `specVersion` (`'2.4.0'`) inside
 `claim_generator_info` (the 2.4 move off the claim). M1's `report.aiDisclosure` reader round-trips
 every new field. Also new: an external-store build path (for M5) that signs bytes with a
 whole-document hash (no exclusions) and returns the JUMBF store without placing it in any
-container — the §A.7 link form / §11.4 external-manifest shape — with optional ingredients via
+container — the section A.7 link form / section 11.4 external-manifest shape — with optional ingredients via
 the existing `prepareC2paIngredientFromStore` machinery. No shipping library (c2pa-rs v0.90.10)
-implements §A.7/§A.9 yet, so this write path is validated by spec-literal fixtures and our own
+implements section A.7/section A.9 yet, so this write path is validated by spec-literal fixtures and our own
 M1 read path, not third-party interop — flagged, not hidden. No existing signature or export
 behaviour changed; a call that never sets `aiDisclosure`/`specVersion` and never targets the new
 formats is byte-for-byte the 1.116.0 behaviour.
 
-1.116.0 — additive: `verifyC2pa(bytes, { externalManifest })` (plans/105 M2 §7). C2PA 2.4
-§A.7.1.2 (`<link rel="c2pa-manifest">`) and §A.9.3 let a text asset REFERENCE its credential
+1.116.0 — additive: `verifyC2pa(bytes, { externalManifest })` (plans/105 M2 section 7). C2PA 2.4
+section A.7.1.2 (`<link rel="c2pa-manifest">`) and section A.9.3 let a text asset REFERENCE its credential
 instead of carrying it; 1.115.0 reports that honestly (`manifest.inaccessible` + the URL on
 `report.textBinding.manifestUrl`) but could never check such a document, because resolving the
 reference is network I/O and the engine does none. The new option closes that loop without
@@ -292,22 +292,22 @@ changed; a call without the option is byte-for-byte the 1.115.0 behaviour.
 
 1.115.0 — additive: C2PA 2.4 text-binding READ side (`engine/src/c2pa-extract.ts`,
 `engine/src/c2pa-verify.ts`; plans/105 M1 — `plans/105-m1-brief.md`, `plans/105-c2pa-text-bindings-and-docs-mastheads.md`
-§1-3). `SniffFormat` gains `'html' | 'text' | 'code'`, sniffed in a fixed order (binary
+section 1-3). `SniffFormat` gains `'html' | 'text' | 'code'`, sniffed in a fixed order (binary
 magics → html → svg → code → text) ahead of the existing loose `<svg` scan, so a pasted
 HTML document with an early inline `<svg>` no longer mis-sniffs as `'svg'`. Three new
-extractors — `extractC2paFromHtml` (§A.7: `<script type="application/c2pa">` in `<head>`
-or `<link rel="c2pa-manifest">`, at most one association), `extractC2paFromArmor` (§A.9:
+extractors — `extractC2paFromHtml` (section A.7: `<script type="application/c2pa">` in `<head>`
+or `<link rel="c2pa-manifest">`, at most one association), `extractC2paFromArmor` (section A.9:
 the `-----BEGIN/END C2PA MANIFEST-----` comment-armour block, `data:` URI or external URL
-ref), and `extractC2paFromTextVS` (§A.8: the U+FEFF + variation-selector wrapper, magic
+ref), and `extractC2paFromTextVS` (section A.8: the U+FEFF + variation-selector wrapper, magic
 `C2PATXT\0`, version 1 only) — all implementing a new `extractC2paDetailed(bytes, format)`
 that returns `{ store, externalUrl? }`; the engine never fetches an external ref, that's
 the shell's call. Hash validation in `c2pa-verify.ts` gets an `html`/`code` branch reusing
-the existing raw-byte exclusion walk, and a distinct §15.12.1.3 pipeline for `text`: locate
+the existing raw-byte exclusion walk, and a distinct section 15.12.1.3 pipeline for `text`: locate
 every wrapper, NFC-normalize (`String.prototype.normalize('NFC')`) before UTF-8 encoding
 and hashing, match the wrapper whose byte range exactly equals the assertion's exclusions,
 and report a fragment-honest status when a wrapper decodes but doesn't hash-match (pinned
 against a composed-vs-decomposed é fixture). `report.aiDisclosure` now reads the
-`c2pa.ai-disclosure` assertion (§18.28: `modelType`/`modelName`/`modelIdentifier`/
+`c2pa.ai-disclosure` assertion (section 18.28: `modelType`/`modelName`/`modelIdentifier`/
 `oversight`) for ALL formats, and `claim_generator_info.specVersion` is read alongside the
 tolerated claim-level field. Read-only: no writer/placer, `C2PA_FORMATS` untouched — write
 side is M3. New suite `tests/c2pa-text-bindings.test.ts`.
@@ -315,10 +315,10 @@ side is M3. New suite `tests/c2pa-text-bindings.test.ts`.
 1.114.0 — additive: `engine/src/keyframes.ts` — keyframe tracks, the `kf` wire grammar,
 and the depth-camera projection (plans/104 P0). No HostV1 method changed; this is a new
 pure module on the public surface, which is where the engine already keeps wire formats
-(url-mode, blocks) and where the plan put it (§12 Q9) so the goldens live at the repo root
+(url-mode, blocks) and where the plan put it (section 12 Q9) so the goldens live at the repo root
 and a future CLI posed-still path is free.
 
-What it owns. **The wire**: `parseKf`/`serialiseKf` over the LOCKED §5.1 grammar —
+What it owns. **The wire**: `parseKf`/`serialiseKf` over the LOCKED section 5.1 grammar —
 keyframes separated by `*`, tokens by `_`, first token `t<ms>` in local box time, charset
 `A–Z a–z 0–9 - . _ * ( )` and nothing else (every member is encodeURIComponent-unescaped
 and safe inside double quotes in bash/zsh, because "the CLI is URL mode under a different
@@ -331,7 +331,7 @@ hand-edited share URL: 256 keyframes, `KF_MAX_CHARS` chars, `t` clamped to an ho
 channel clamped (`b` 0…300, `o`/`a` 0…1, `s` 0.01…100, degrees and `p` likewise; `z`
 ±12000, because one `kf` grammar carries both a box's lift and the CAMERA's dolly, and
 `camZ` is the only zoom control there is — the per-box field's own −300…900 is
-`KF_Z_FIELD_CLAMP`, applied where that field is read) and quantised at the §4.6 quanta —
+`KF_Z_FIELD_CLAMP`, applied where that field is read) and quantised at the section 4.6 quanta —
 `t` integer ms, px 0.01, unit-ish 0.001. Parse applies the clamps and quanta too, which is
 what makes the round-trip law `parse(serialise(parse(s))) === parse(s)` true by
 construction rather than by luck — and the char cap is DERIVED from the key cap
@@ -355,7 +355,7 @@ the shell's (the engine must not import from a shell), pinned by golden tables o
 sides.
 
 `subdivideKfEase(ease, λ)` is the segment-splitting half of the same vocabulary, and the
-reason a trim/split/join rebase (§5.6) can be honest rather than approximately honest: a
+reason a trim/split/join rebase (section 5.6) can be honest rather than approximately honest: a
 segment interpolating `av → bv` through eased progress `E`, cut at the time fraction λ,
 needs `E_L(u) = E(u·λ)/E(λ)` before the cut and `E_R(u) = (E(λ + (1 − λ)u) − E(λ))/(1 −
 E(λ))` after it — exactly the de Casteljau halves of the cubic at the parameter where
@@ -387,23 +387,23 @@ holds it, like any channel. Tracks are plain data (arrays of `{t, ease, v}`), so
 survives `structuredClone` to a worker; the bezier cache is a module-level Map keyed on
 the token string, per thread, never a compiled closure inside the cloned form.
 
-**The projection**: `projectLayer` is the §4.1 fold verbatim — `cx = bx + dxT + dxK`,
+**The projection**: `projectLayer` is the section 4.1 fold verbatim — `cx = bx + dxT + dxK`,
 `eff = P/(P − (z − camZ))`, `cx' = W/2 + (cx − camX − W/2)·eff`, returning
 `{dx: cx' − bx, dy, scale: eff, alphaGuard}` in stage-native px BEFORE the export scale S.
 The transition and keyframe offsets sit INSIDE the projection and therefore scale by eff,
 which is the whole point: the naive reading (camera displacement added to an unscaled
 offset) makes a slide enter land short on a lifted layer. Rotation is untouched because a
-uniform scale commutes with it. `projectDepth` carries the §4.5 behind-camera guard as
+uniform scale commutes with it. `projectDepth` carries the section 4.5 behind-camera guard as
 formula, part of the byte-stable contract: `u = (z − camZ)/P`, eff uses `min(u, 0.9)` so
 `eff_max = 10`, `alphaGuard = clamp((0.9 − u)/0.1, 0, 1)` — eff FREEZES at its clamp while
 alpha ramps, so the pole is unreachable and everything stays continuous. eff is evaluated
 in P-space (`P/(P − min(dz, 0.9P))`) and held to `KF_EFF_MAX`, so the clamp returns exactly
 10: `1/(1 − 0.9)` is 10.000000000000002, and a declared maximum the function can exceed is
 no use to the plate buckets and λ budget that measure themselves against it. `dofBlur` is the
-§4.4 corrected formula `a·K·|z − f|·eff(z)·eff(f)/P` with `K = 40` px at `P = 1200`
+section 4.4 corrected formula `a·K·|z − f|·eff(z)·eff(f)/P` with `K = 40` px at `P = 1200`
 exported as `DOF_K`; the `eff(z)·eff(f)` factor is the correction, since without it
 dollying toward an out-of-focus layer SHARPENED it. `resolveCamera(cameras, t)` is the
-§5.4 cuts rule — latest-in-array clip whose half-open window covers t, folded to a pose —
+section 5.4 cuts rule — latest-in-array clip whose half-open window covers t, folded to a pose —
 and with no camera covering t it returns the DEFAULT camera (P = 1200, pose 0), never a
 literal identity: an identity would swallow z, while the default projects z = 0 at eff = 1
 so every existing document renders byte-identically. Every channel of the resolved pose is
@@ -425,13 +425,13 @@ for replayed file content would be a false statement in a signed manifest. No v1
 method changed; the zero-arg call keeps its exact behaviour.
 
 1.112.0 — additive: `runtime.applyPatch(values)` — an atomic multi-input apply with ONE
-render (plans/100 §5, wave 0.4). The batch counterpart to `setInput`, for a remote
+render (plans/100 section 5, wave 0.4). The batch counterpart to `setInput`, for a remote
 collaboration op that arrives as a set of values (and equally for `/multi` and URL
 hydration). Every value passes through EXACTLY `setInput`'s constraint path
 (`updateInput` → `constrain`), so a batch can never put anything in the model a keystroke
 couldn't; a key naming no declared input — version skew between peers — or one whose value
 the constraints reject is dropped ON ITS OWN, leaving the rest of the batch to apply, and
-nothing throws mid-apply (§11.11). `onInput` still runs per CHANGED id, sequentially in the
+nothing throws mid-apply (section 11.11). `onInput` still runs per CHANGED id, sequentially in the
 object's insertion order, under the same `HOOK_BUDGET_MS` time-box and warn-don't-throw
 handling `setInput` uses — the hook contract is per-input and does not change meaning
 because the values arrived together. What coalesces is the RENDER: subscribers are notified
@@ -444,7 +444,7 @@ what a later id reports. `setInput` is untouched, and the live-capture retiremen
 
 Same minor, and what makes the sentence above mean something: `constrain` (`src/inputs.ts`)
 now covers the types it used to fall through — a `select` value must be one of the
-manifest's declared `options` (§11.11's "enum outside whitelist"; skipped for a
+manifest's declared `options` (section 11.11's "enum outside whitelist"; skipped for a
 `brandFonts` select, whose list the shell extends at runtime, and for a select that
 declares none, exactly as `preflight`'s `checkSelectValue` already carved out), a `boolean`
 must be a boolean (the URL/CLI spellings `1`/`0`/`true`/`false`/`''` still normalise,
@@ -500,7 +500,7 @@ same fit as absolute `[start, end]` intervals for the committed/export render, w
 real geometry and never `stroke-dasharray`; both read one assembly, so their inked length
 agrees to 2dp. No existing method changed and no existing output moved.
 
-1.109.0 — additive: versioned design systems (plans/97 §6a). New pure module
+1.109.0 — additive: versioned design systems (plans/97 section 6a). New pure module
 `engine/src/design-version.ts` — the version ledger (`readVersionIndex` /
 `withVersionIndex` / `stripVersionIndex`), the slug grammar (`slugifyVersion`,
 `isVersionSlug` — the id-segment charset, the 48-character bound and the reserved
@@ -574,7 +574,7 @@ in, encoded bytes out. The bridge home for the `canRaster()`/`loadImage()` probe
 tool hooks used to open-code against the DOM (`typeof document`, `new Image`) —
 which are WRONG inside a Worker, where `document` is absent even though
 `OffscreenCanvas` works — so a hook asks the host, not the realm, and stays correct
-once isolated (plans/86 §6.1). DOM-free CONTRACT: no `HTMLImageElement`/`document`
+once isolated (plans/86 section 6.1). DOM-free CONTRACT: no `HTMLImageElement`/`document`
 crosses the surface; `decode` returns an `ImageBitmap`, drawable on a main-thread
 canvas AND a Worker OffscreenCanvas. Distinct from `host.images` (the bytes-in/
 bytes-out convert path with no pixel access). Web (and Tauri, via the web bridge)
@@ -1366,7 +1366,7 @@ pdf-smask.ts (pure: maskRegion / relativeLuminance / constantMask /
 isShadowPlate / isAchromatic). PdfResources.extgstates.smask widens from a
 boolean to a four-state field whose richest form is the new PdfSoftMaskDef — an
 ExtGState /SMask pre-decoded by the SHELL into a content stream + resources,
-i.e. the same shape as a form XObject (PDF 32000-1 §11.6.5.2). The interpreter
+i.e. the same shape as a form XObject (PDF 32000-1 section 11.6.5.2). The interpreter
 re-runs that group through ITSELF, so a raster mask, a gradient mask and a
 vector mask are one code path with no classifier, and the mask's own images
 arrive as ordinary imageKeys the shell resolves through the existing `images`
@@ -1462,7 +1462,7 @@ all-clips-ended state at t=duration. The value is clamped to 1…`CUTS_MAX` (64)
 junk input (non-numeric, 0, negative, NaN, Infinity) degrades to 1 rather than throwing.
 Default `cuts=1` is the playhead frame — byte-identical to a link without the param, so
 every existing URL and every untimed tool is unaffected. Phase 2.5 of the Fable timeline
-work (`plans/51-fable-timeline-editing.md` §4.6). No v1 method changed.
+work (`plans/51-fable-timeline-editing.md` section 4.6). No v1 method changed.
 
 1.67.0 — additive: the `zzfxm:<seed>[:<style>]` asset-id scheme (`src/zzfxm-ref.ts`,
 exported as `ZZFXM_SCHEME`, `ZZFXM_ARCHETYPES`, `isZzfxmRef`, `parseZzfxmRef`,
@@ -1484,7 +1484,7 @@ that does not recognise the scheme behaves exactly as before).
 `host.color` methods (`mix`, `gradientCss`) plus the engine primitives behind them
 (`src/css-color.ts` `interpolateColor` / `gradientStops`, `src/gradient-spec.ts`).
 
-`interpolateColor` implements CSS Color 4 §12–13 properly: interpolation in a chosen
+`interpolateColor` implements CSS Color 4 section 12–13 properly: interpolation in a chosen
 space (default OKLab), the four hue directions, missing-component carry-over, and —
 the part that is easy to skip and visibly wrong when you do — PREMULTIPLIED alpha. A
 per-channel lerp toward `transparent` drags the colour toward transparent's *black*, so
@@ -1517,7 +1517,7 @@ methods: `gamut(color)` → `'srgb' | 'p3' | 'rec2020' | 'none'`, `maxChroma(l, 
 limit?)`, and `slice(opts)` → RGBA bytes for one 2D plane through OKLCH space.
 
 The engine already mapped out-of-gamut colours back into sRGB (`gamutMapOklch`,
-CSS Color 4 §14.2), which answers "what will this become?". This answers the two
+CSS Color 4 section 14.2), which answers "what will this become?". This answers the two
 questions a brand designer actually asks next: *how far out is it*, and *would a
 wider display carry it?* — "outside sRGB but fine on P3" is a different decision
 from "no display can show this". The P3 and Rec.2020 tests are pre-composed 3×3
@@ -1816,7 +1816,7 @@ now returns an **authored sRGB face** in preference to the automatic bake. That 
 one line in `toSwatch` rather than a change per export path, because every
 consumer of a brand colour funnels through that field — and it is what stops an
 override being decoration. The reason the narrow face must win: CSS Color 4
-§14.2's map picks the nearest reproducible colour by ΔE, while a brand will often
+section 14.2's map picks the nearest reproducible colour by ΔE, while a brand will often
 prefer a DIFFERENT sRGB green, one that reads as the same brand colour to a human
 even though it is not the closest by measurement.
 
@@ -2111,7 +2111,7 @@ Pure additions/fixes since, no version bump (no HostV1 change): Penpot per-corne
 radii + flip fidelity in `src/design-map.ts`. New pure helpers
 `penpotTransformBaked`, `pathDBounds`, `mirrorPenpotGradient` and
 `penpotRoundedRectD` (a thin adapter over css-box's `cornerRadii` +
-`roundedRectPath`, so the CSS §5.5 overlap clamp stays shared with the export
+`roundedRectPath`, so the CSS section 5.5 overlap clamp stays shared with the export
 walker). Fixes: a path whose `transform` bakes rotation/flip into its page-space
 `content` now maps to the content bbox with rot 0 instead of double-transforming
 on selrect + rot; flipped shapes mirror their gradient endpoints (box `grad`,
@@ -2172,7 +2172,7 @@ The legacy `hdrBoostToPQ` 8-bit entry is kept byte-identical (sha256-pinned by
 tests) so existing AVIF HDR output and its C2PA hashes cannot drift.
 
 `src/tiff.ts` — `packTiff` gains `depth?: 8 | 16 | 'float32'`: BitsPerSample
-16 with SampleFormat 1, or 32 with SampleFormat 3 (IEEE float, TIFF 6.0 §19).
+16 with SampleFormat 1, or 32 with SampleFormat 3 (IEEE float, TIFF 6.0 section 19).
 Default-8 output stays byte-identical (SampleFormat omitted = spec default);
 the writer never converts depths — buffer element type must match, conversion
 is pixels.ts's seam. Fixtures validated against libtiff + sips and pinned.
@@ -2265,7 +2265,7 @@ already — the action type is `navigate`, not `navigate-to`, and the flow's
 start lives on the page record rather than a shape.
 
 The first slice of plans/61-deeprichpixels.md Phase B, plus the URL-mode plumbing
-its §10 calls for. Additive: one optional FIELD on `ExportOpts`, no HostV1
+its section 10 calls for. Additive: one optional FIELD on `ExportOpts`, no HostV1
 method added or changed, so every existing shell behaves exactly as before.
 
 `src/url-mode.ts` — new reserved param `depth` (`8 | 16 | float | auto`,
@@ -2286,7 +2286,7 @@ export-side twin of the silent-ingest lie Phase A fixed.
 `src/png.ts` — new: `packPng`, the engine's own PNG encoder. 8-bit and 16-bit
 truecolour (RGB/RGBA), IHDR/cICP/pHYs/iTXt/IDAT/IEND, adaptive row filtering
 (libpng's MSAD heuristic), IDAT split into 1 MiB chunks. 16-bit samples are
-big-endian per PNG spec §7.1 — deliberately the opposite of `tiff.ts`'s
+big-endian per PNG spec section 7.1 — deliberately the opposite of `tiff.ts`'s
 little-endian files, so the same `Uint16Array` lands as different bytes in each
 writer. It NEVER converts depth: `depth: 16` demands a `Uint16Array` the caller
 already produced at 16 bits, which is the provenance rule expressed as a type
@@ -2308,7 +2308,7 @@ on each format entry — schema-side only, no engine code reads it yet.
 
 ## 1.89.0 — the gain-map JPEG: one file, two renditions
 
-Phase B2 of plans/61-deeprichpixels.md (§4.2, §6 B2, §9c). Three new engine
+Phase B2 of plans/61-deeprichpixels.md (section 4.2, section 6 B2, section 9c). Three new engine
 modules and one deliberate behaviour change; no HostV1 method was added or
 changed, so no shell had to move. `?hdr=1&format=jpeg` now writes an ISO
 21496-1 / Ultra HDR v1.1 gain-map JPEG instead of an 8-bit PQ-encoded,
@@ -2488,7 +2488,7 @@ fixed-Huffman blocks rather than stored ones, decoding to identical pixels.
 `exr.ts` and `radiance.ts` are not in the barrel, following the `gainmap.ts` /
 `bytes.ts` precedent — they are engine-internal, consumed by deep-path import.
 (`deflate.ts` itself IS barrel-exported; its new streaming API is not.) The
-surfacing is CLI-first (plan §10 item 4): `--export=exr` and `--export=hdr` in
+surfacing is CLI-first (plan section 10 item 4): `--export=exr` and `--export=hdr` in
 `NODE_FORMATS`, refusing an 8-bit-only source rather than padding it.
 
 ## 1.93.0 — the check that says what it could not check
@@ -2554,7 +2554,7 @@ what I pinned" is a legitimate question a verifier should be able to ask, and th
 to it is an EMPTY anchor set, not a degenerate one. It pairs with the CLI's
 `--no-default-anchors`.
 
-The product decisions these enable are recorded in plans/73-cli-ga-contract.md §12 (Andy,
+The product decisions these enable are recorded in plans/73-cli-ga-contract.md section 12 (Andy,
 2026-08-01): the terminal surfaces now pin the Lolly CA root by default, so "Verified"
 means the same thing in a browser and in a terminal; and a CLI render carries the same
 provenance marks an app export does, at the cost of byte-determinism, which
@@ -2693,7 +2693,7 @@ changed.
 
 ## 1.99.0 — the speech contract learns to listen
 
-Additive: transcription on the optional `host.speech` (tts-stt-programme §8).
+Additive: transcription on the optional `host.speech` (tts-stt-programme section 8).
 `SpeechAPI` gains `transcribeAvailable()` (sync feature-detect, the mirror of
 `isAvailable`), `transcribeCached()`, `transcribeModelBytes()` and
 `transcribe(src, opts)` — on-device Whisper over the existing `AudioSource`
@@ -2705,7 +2705,7 @@ the TTS download. The CLI omits transcription for now. Contract only in this
 minor — no shell implements it yet. No v1 method changed.
 
 Also in this minor (additive, synthetic-audio provenance — the EU AI Act
-Article 50 item in plans/41-tts-stt-programme.md §2): `GENERATED_SOURCE_TYPE`
+Article 50 item in plans/41-tts-stt-programme.md section 2): `GENERATED_SOURCE_TYPE`
 (IPTC trainedAlgorithmicMedia) joins the exported source-type constants beside
 digitalCreation/digitalCapture/screenCapture, so a shell stamping a generated
 clip's credential names the AI origin from one shared constant; the read side
