@@ -172,6 +172,40 @@ export function scan(): Violation[] {
   return violations;
 }
 
+/**
+ * Layer 3 — the BUILT output. Sources can be clean while a generator assembles
+ * a banned character into the page (the credential label join and the theme
+ * tooltip both did exactly that), so the built English pages are scanned too:
+ * reader-visible text plus the spoken/hover attribute strings (aria-label,
+ * title). Styles, scripts, inlined SVGs and code samples are stripped first —
+ * their em-dashes are third-party licence comments, captured app chrome and
+ * the VERBATIM CLI transcripts, not our copy. English pages only: locale pages
+ * are translated output with their own punctuation rules.
+ */
+export function scanBuilt(): Violation[] {
+  const dir = join(ROOT, 'shells/web/public/info');
+  if (!existsSync(dir)) return [];
+  const violations: Violation[] = [];
+  const STRIP = /<style[\s\S]*?<\/style>|<script[\s\S]*?<\/script>|<svg[\s\S]*?<\/svg>|<pre[\s\S]*?<\/pre>|<code[\s\S]*?<\/code>/g;
+  for (const f of readdirSync(dir)) {
+    if (!f.endsWith('.html')) continue;
+    const rel = `shells/web/public/info/${f}`;
+    const stripped = readFileSync(join(dir, f), 'utf8').replace(STRIP, ' ');
+    const spoken = [...stripped.matchAll(/(?:aria-label|title)="([^"]*)"/g)].map(m => m[1]!).join('\n');
+    const visible = stripped.replace(/<[^>]*>/g, ' ');
+    for (const [where, text] of [['visible text', visible], ['aria-label/title', spoken]] as const) {
+      for (const [ch, name] of Object.entries(BANNED_CHARS)) {
+        let idx = text.indexOf(ch);
+        while (idx !== -1) {
+          violations.push({ file: rel, line: 0, kind: 'unicode', what: `${name} in built ${where}`, excerpt: text.slice(Math.max(0, idx - 45), idx + 45).replace(/\s+/g, ' ').trim() });
+          idx = text.indexOf(ch, idx + 1);
+        }
+      }
+    }
+  }
+  return violations;
+}
+
 /** Allow/verbatim entries whose sanctioned line no longer exists — stale. */
 export function staleAllows(): string[] {
   const stale: string[] = [];
@@ -189,13 +223,13 @@ export function staleAllows(): string[] {
 
 const invokedDirectly = process.argv[1] && resolve(process.argv[1]) === resolve(new URL(import.meta.url).pathname);
 if (invokedDirectly) {
-  const v = scan();
+  const v = [...scan(), ...scanBuilt()];
   const stale = staleAllows();
-  for (const x of v) console.error(`✗ ${x.file}:${x.line} [${x.kind}] ${x.what} — ${x.excerpt}`);
+  for (const x of v) console.error(`✗ ${x.file}${x.line ? ':' + x.line : ''} [${x.kind}] ${x.what} - ${x.excerpt}`);
   for (const s of stale) console.error(`✗ stale allow entry: ${s}`);
   if (v.length || stale.length) {
     console.error(`\n${v.length} violation(s), ${stale.length} stale allow(s).`);
     process.exit(1);
   }
-  console.log(`✓ vernacular + unicode clean across ${targets().length} source files`);
+  console.log(`✓ vernacular + unicode clean across ${targets().length} source files and the built pages`);
 }
