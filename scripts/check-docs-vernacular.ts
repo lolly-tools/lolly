@@ -56,15 +56,36 @@ const BANNED_CHARS: Record<string, string> = {
   ' ': 'PARAGRAPH SEPARATOR',
   ' ': 'NO-BREAK SPACE',
   '‑': 'NON-BREAKING HYPHEN',
+  // Unusual line terminators - the repo is LF-only; anything else is a
+  // fingerprint or an editor accident.
+  '\r': 'CARRIAGE RETURN (CR / CRLF line ending)',
+  '\u000B': 'VERTICAL TAB',
+  '\u000C': 'FORM FEED',
+  '\u0085': 'NEXT LINE (NEL)',
+  // Non-standard unicode spaces - every Zs character that is not a plain
+  // U+0020 space. Invisible in most editors, loud in a diff, classic tell.
+  '\u1680': 'OGHAM SPACE MARK',
+  '\u180E': 'MONGOLIAN VOWEL SEPARATOR',
+  '\u2000': 'EN QUAD', '\u2001': 'EM QUAD',
+  '\u2002': 'EN SPACE', '\u2003': 'EM SPACE',
+  '\u2004': 'THREE-PER-EM SPACE', '\u2005': 'FOUR-PER-EM SPACE',
+  '\u2006': 'SIX-PER-EM SPACE', '\u2007': 'FIGURE SPACE',
+  '\u2008': 'PUNCTUATION SPACE', '\u2009': 'THIN SPACE',
+  '\u200A': 'HAIR SPACE',
+  '\u202F': 'NARROW NO-BREAK SPACE',
+  '\u205F': 'MEDIUM MATHEMATICAL SPACE',
+  '\u3000': 'IDEOGRAPHIC SPACE',
 };
 
 /** Entity spellings of banned characters (checked case-insensitively). */
-const BANNED_ENTITIES = ['&mdash;', '&#8212;', '&#x2014;', '&nbsp;', '&#160;'];
+const BANNED_ENTITIES = ['&mdash;', '&#8212;', '&#x2014;', '&nbsp;', '&#160;',
+  '&ensp;', '&emsp;', '&thinsp;', '&#8194;', '&#8195;', '&#8201;', '&#8239;'];
 
 /** Hard-banned phrases, matched case-insensitively as regexes. */
 const BANNED_PHRASES: { what: string; re: RegExp }[] = [
   { what: '"load-bearing"', re: /load-bearing/i },
   { what: '"earns its keep"', re: /earns its keep/i },
+  { what: '"bar is high"', re: /bar is high/i },
   { what: '"heavy lifting"', re: /heavy lifting/i },
   { what: '"physically cannot"', re: /physically cannot/i },
   { what: '"deep dive"', re: /deep[ -]dive/i },
