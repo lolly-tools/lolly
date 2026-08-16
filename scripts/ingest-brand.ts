@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 // SPDX-License-Identifier: MPL-2.0
 /**
- * Brand pack hydrator — turns a design-tokens export into a `brands/<name>`
+ * Brand pack hydrator - turns a design-tokens export into a `brands/<name>`
  * pack, ready to register as a profile (see profiles.json / use-profile.ts).
  *
  * Run as:
@@ -36,8 +36,8 @@
  * icon-theme palette docs are DERIVED from the same document (engine
  * brand-treatments.ts) and written under catalog/assets/<name>/palette/, so
  * uploaded photos and themable icons get one-tap on-brand washes/pairings out
- * of the box — the icon-themes doc is skipped when the palette has no accent.
- * catalog/tools/index.json is NOT written here — `npm run build:catalog`
+ * of the box - the icon-themes doc is skipped when the palette has no accent.
+ * catalog/tools/index.json is NOT written here - `npm run build:catalog`
  * generates it once the profile is active.
  *
  * --register  upserts profiles.json: profiles[<name>] = community tools (+ the
@@ -100,7 +100,7 @@ const PACK_LABEL = 'Lolly design system pack (.zip)';
 
 /**
  * What extract() found. The engine's `TokensExtraction['source']` names the
- * DOCUMENT shape, not the box it arrived in — a pack's tokens.json really is a
+ * DOCUMENT shape, not the box it arrived in - a pack's tokens.json really is a
  * DTCG/Tokens-Studio document, so widening that contract type to carry a
  * container name would buy nothing. The container label rides alongside instead,
  * with any notes main() should print after the ✓.
@@ -127,7 +127,7 @@ const DEVICE_FROZEN_PREFIX = 'user/frozen/';
 
 interface Args {
   source: string; name: string; label: string; out: string;
-  /** Asset-id namespace: `name` with hyphens stripped — asset.schema.json's id
+  /** Asset-id namespace: `name` with hyphens stripped - asset.schema.json's id
    * pattern (`^[a-z0-9]+(/…)+$`) forbids '-' in the first segment. */
   ns: string;
   register: boolean; activate: boolean; force: boolean;
@@ -160,7 +160,7 @@ function parseArgs(argv: string[]): Args {
   // The pack must live INSIDE the repo: profiles.json paths are joined onto the
   // repo root by use-profile.ts (an absolute/outside path would register a
   // broken profile), and it must never be the repo root or the tools/ +
-  // catalog/ SYMLINK VIEWS — writing "into" a view lands in whatever pack is
+  // catalog/ SYMLINK VIEWS - writing "into" a view lands in whatever pack is
   // active (--force could clobber brands/suse's real assets/index.json).
   const rawOut = typeof flags.out === 'string' ? flags.out : join('brands', name);
   const outRel = relative(ROOT, resolve(ROOT, rawOut)).split(sep).join('/');
@@ -193,7 +193,7 @@ function walkJsonFiles(dir: string, base: string, files: Record<string, unknown>
   for (const entry of readdirSync(dir, { withFileTypes: true })) {
     const full = join(dir, entry.name);
     if (entry.isDirectory()) { walkJsonFiles(full, base, files, warnings); continue; }
-    if (!entry.name.endsWith('.json')) continue; // README, .DS_Store, … — not set files
+    if (!entry.name.endsWith('.json')) continue; // README, .DS_Store, … - not set files
     const rel = relative(base, full).split(sep).join('/');
     try {
       files[rel] = JSON.parse(readFileSync(full, 'utf8'));
@@ -203,7 +203,7 @@ function walkJsonFiles(dir: string, base: string, files: Record<string, unknown>
   }
 }
 
-const ZIP_MAGIC = [0x50, 0x4b, 0x03, 0x04]; // PK\x03\x04 — local file header
+const ZIP_MAGIC = [0x50, 0x4b, 0x03, 0x04]; // PK\x03\x04 - local file header
 
 const isRecord = (v: unknown): v is Record<string, unknown> =>
   typeof v === 'object' && v !== null && !Array.isArray(v);
@@ -246,7 +246,7 @@ function parseZipSetFiles(entries: Record<string, Uint8Array>): { files: Record<
   // Two paths minimum, matching the web importer's stripCommonPrefix
   // (shells/web/src/lib/design-system/sources/file.ts): one member's leading
   // directory is not evidence of a wrapper, it is just where that file lives.
-  // The rule has to be the same on both sides — the same zip fed to the CLI and
+  // The rule has to be the same on both sides - the same zip fed to the CLI and
   // to the studio must produce the same set names, and it did not: `export/
   // core.json` alone strips here and does not there, so one names the set `core`
   // and the other `export/core`.
@@ -264,7 +264,7 @@ function parseZipSetFiles(entries: Record<string, Uint8Array>): { files: Record<
  * does before it trusts any member (`verifyIntegrity`, shells/web/src/lib/
  * bundle.ts): each entry is an SRI-style `sha256-<base64>` over that part's
  * bytes. A pack whose tokens.json was swapped after export fails on web import,
- * and must fail here too — otherwise the CLI is the soft way in, and the README
+ * and must fail here too - otherwise the CLI is the soft way in, and the README
  * it writes records "Container: Lolly design system pack (.zip)" as provenance
  * for a document the pack never vouched for.
  *
@@ -303,7 +303,7 @@ function verifyPackIntegrity(entries: Record<string, Uint8Array>, manifest: Reco
  *     `<ns>/frozen/<sha12>`. It has to be: `user/…` is the DEVICE's namespace (the
  *     web bridge routes those ids to the on-device store, not the catalog), so a
  *     pack shipping one would name bytes that can never resolve. The pin's `id`
- *     and the version documents are untouched — the id is a lookup key matched
+ *     and the version documents are untouched - the id is a lookup key matched
  *     against the document's own asset tokens, and both sides still say `user/…`.
  */
 function readPackVersions(
@@ -395,7 +395,7 @@ function extractZip(entries: Record<string, Uint8Array>, abs: string, ns: string
     return { extraction, containerLabel: CONTAINER_LABEL[extraction.source], notes: [] };
   }
 
-  // A plain zip of loose token-set files — the shape assembleTokenSetFiles has
+  // A plain zip of loose token-set files - the shape assembleTokenSetFiles has
   // always read for a directory, one level of packaging up.
   const { files, warnings } = parseZipSetFiles(entries);
   const extraction = assembleTokenSetFiles(files);
@@ -408,7 +408,7 @@ function extractZip(entries: Record<string, Uint8Array>, abs: string, ns: string
 }
 
 /** Detect the container shape from the path/bytes and extract the token doc.
- *  `ns` is the pack's asset-id namespace — a design system pack's preserved files
+ *  `ns` is the pack's asset-id namespace - a design system pack's preserved files
  *  are re-homed into it as they are read (see readPackVersions). */
 function extract(source: string, ns: string): Extracted {
   const abs = resolve(source);
@@ -427,7 +427,7 @@ function extract(source: string, ns: string): Extracted {
   if (bytes.length >= 4 && ZIP_MAGIC.every((b, i) => bytes[i] === b)) {
     let entries: Record<string, Uint8Array>;
     try {
-      // The .json members, plus a design system pack's `frozen/` binaries — the
+      // The .json members, plus a design system pack's `frozen/` binaries - the
       // bytes a published version pins, which have to travel or the version is a
       // reference to nothing. Everything else stays compressed: a .penpot carries
       // images/media, and a pack carries font + logo binaries this script does
@@ -457,7 +457,7 @@ function emitPack(
 ): void {
   const out = resolve(ROOT, args.out);
   if (existsSync(out)) {
-    // A file here breaks every later mkdir/write with a raw ENOTDIR — refuse
+    // A file here breaks every later mkdir/write with a raw ENOTDIR - refuse
     // it readably, and regardless of --force (force can't help a file).
     if (!statSync(out).isDirectory()) fail(`--out ${args.out} exists and is not a directory`);
     if (!args.force && readdirSync(out).length > 0) {
@@ -467,7 +467,7 @@ function emitPack(
 
   const tokensDir = join(out, 'catalog/assets', args.ns, 'tokens');
   mkdirSync(tokensDir, { recursive: true });
-  // tools/ stays empty here — build:catalog generates its index.json later.
+  // tools/ stays empty here - build:catalog generates its index.json later.
   for (const d of ['catalog/tools', 'catalog/previews', 'catalog/og/views', 'catalog/fonts']) {
     mkdirSync(join(out, d), { recursive: true });
   }
@@ -475,7 +475,7 @@ function emitPack(
     writeFileSync(join(out, k), '');
   }
 
-  // The extracted document verbatim — this file IS the brand.
+  // The extracted document verbatim - this file IS the brand.
   const brandBytes = Buffer.from(JSON.stringify(doc, null, 2) + '\n');
   writeFileSync(join(tokensDir, 'brand.json'), brandBytes);
 
@@ -496,7 +496,7 @@ function emitPack(
     }],
   }];
 
-  // Published design-system versions (plans/97 §6a) — sibling assets of the head,
+  // Published design-system versions (plans/97 §6a) - sibling assets of the head,
   // exactly as they are on a device: `<ns>/tokens/brand/<slug>`, the file
   // `brand.json` and the directory `brand/` living side by side. The ledger is
   // already in the head document, so nothing extra is written to describe them.
@@ -637,7 +637,7 @@ interface ProfilesFile {
   profiles: Record<string, { label?: string; tools: string[]; catalog: string }>;
 }
 
-/** Guarded profiles.json read — a broken file must fail BEFORE the pack is
+/** Guarded profiles.json read - a broken file must fail BEFORE the pack is
  * written (main() pre-flights this when --register is set), not crash with a
  * raw stack after, when a re-run would additionally need --force. */
 function readProfilesFile(): ProfilesFile {
@@ -654,7 +654,7 @@ function readProfilesFile(): ProfilesFile {
   return cfg as ProfilesFile;
 }
 
-/** Upsert profiles.json — never touches "default"; re-runs update in place. */
+/** Upsert profiles.json - never touches "default"; re-runs update in place. */
 function registerProfile(args: Args): void {
   const cfg = readProfilesFile();
   const packTools = join(ROOT, args.out, 'tools'); // pack-owned tools root, sibling of catalog/
@@ -689,7 +689,7 @@ function main(): void {
   if (args.register) readProfilesFile(); // pre-flight: fail before the pack is written
   const { extraction, containerLabel, notes, versions = [], frozen = [] } = extract(args.source, args.ns);
 
-  // Extraction never throws — problems land here, and they matter: a partially
+  // Extraction never throws - problems land here, and they matter: a partially
   // merged doc can silently miss whole sets, so show every warning up front.
   for (const w of extraction.warnings) console.warn(`⚠ ${w}`);
 
@@ -706,7 +706,7 @@ function main(): void {
     `${summary.tokenCount} tokens (${summary.colorCount} colors)` +
     (versions.length ? ` · ${versions.length} versions, ${frozen.length} preserved files` : ''),
   );
-  // What the container carried and this script does NOT take — said out loud,
+  // What the container carried and this script does NOT take - said out loud,
   // right under the ✓, so a partial import is never mistaken for a whole one.
   for (const n of notes) console.log(`· ${n}`);
 

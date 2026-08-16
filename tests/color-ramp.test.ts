@@ -1,12 +1,12 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
- * rampOklab (engine/src/color-tools.ts) — perceptual colour-ramp contract tests.
+ * rampOklab (engine/src/color-tools.ts) - perceptual colour-ramp contract tests.
  *
  * "Smooth" gradients mean OKLab Bezier interpolation instead of muddy linear-RGB
  * blends. This file consolidates the former gradient-complex-scenarios /
  * gradient-smooth-e2e / spline-math-correctness suites (merged 2026-07-18; the
  * three files overlapped on determinism, NaN/Infinity stability, and
- * correctLightness — one copy of each survives). Coverage:
+ * correctLightness - one copy of each survives). Coverage:
  *
  *   (1) 4-stop and 10-stop-spectrum ramp correctness: endpoints, hue smoothness,
  *       lightness behaviour, chroma preservation (no saturation collapse)
@@ -15,7 +15,7 @@
  *   (3) Numerical stability (no NaN/Infinity in 1000-colour ramps), gamut-mapped
  *       sRGB hex output, determinism
  *   (4) correctLightness: perceptually even steps (lower step variance)
- *   (5) OKLab vs a LOCAL linear-RGB baseline (rampLinearRgb below) — the
+ *   (5) OKLab vs a LOCAL linear-RGB baseline (rampLinearRgb below) - the
  *       "vibrant, not muddy" contrast the feature exists for
  *   (6) SVG serialisation + re-import of the stop colours through the engine's
  *       real parser (extractSvgColors) round-trips the ramp
@@ -24,7 +24,7 @@
  * Gradient TOKENS (type:'gradient' entries, CSS export order/positions) are a
  * different module and stay in gradient-round-trip.test.ts.
  *
- * NOTE: the first bytes of every console.log line here must be ASCII — a byte
+ * NOTE: the first bytes of every console.log line here must be ASCII - a byte
  * >= 0x80 near the start of a raw write can intermittently crash the
  * `node --test` parent's frame parser. Full explanation in
  * font-upload-edge-cases.test.ts's header.
@@ -44,7 +44,7 @@ const HEX6 = /^#[0-9a-f]{6}$/i;
 // transient jitter but NOT sustained load: a busy CI runner or laptop makes
 // every sample slow, so on a normal `npm test` these flake for reasons that
 // have nothing to do with the math under test. They're gated behind BENCH=1 so
-// they still run — and log their numbers — when you actually want to benchmark:
+// they still run - and log their numbers - when you actually want to benchmark:
 //   BENCH=1 node --test tests/color-ramp.test.ts
 // rampOklab's *correctness* is covered by the non-timing tests in this file,
 // which always run.
@@ -54,7 +54,7 @@ const PERF_SKIP = process.env.BENCH === '1'
 
 // Helper to measure execution time in milliseconds. Best-of-N: the suite runs
 // under `node --test` with many child processes competing for cores, and
-// scheduler preemption / GC only ever ADD wall time — so the minimum over a
+// scheduler preemption / GC only ever ADD wall time - so the minimum over a
 // few runs is the noise-robust estimate of true cost (the first runs double
 // as JIT warm-up). A single sample here made the scaling-ratio assertion
 // flake under full-suite load.
@@ -76,7 +76,7 @@ const approx = (actual: number, expected: number, tol: number, msg?: string) =>
     `${msg ?? 'value'}: ${actual} not within ${tol} of ${expected}`);
 
 /**
- * Simple linear RGB interpolation — a deliberate LOCAL contrast baseline, not a
+ * Simple linear RGB interpolation - a deliberate LOCAL contrast baseline, not a
  * re-implementation of the module under test. It produces the "muddy" gradient
  * (desaturated midtones) that rampOklab's perceptual interpolation avoids; the
  * baseline-comparison tests below exist to pin that difference.
@@ -176,7 +176,7 @@ test('4-stop gradient lightness exhibits expected behavior', () => {
 
   console.log(`  Lightness oscillations: ${oscillations} local extrema in 100-color ramp`);
   // Bézier interpolation through 4 control points should be smooth but may have
-  // some structure — we just verify it's not chaotic
+  // some structure - we just verify it's not chaotic
   assert.ok(oscillations < 10, 'should not have excessive lightness oscillations');
 
   // Verify no NaN values
@@ -251,7 +251,7 @@ test('single-color gradient returns constant color (plain and correctLightness)'
     assert.ok(deltaEOk(hex, stops[0]!) < 1e-3, 'all colors should match the single stop');
   }
 
-  // correctLightness on a single-colour ramp must stay flat too — the lightness
+  // correctLightness on a single-colour ramp must stay flat too - the lightness
   // redistribution has nothing to redistribute (no sag, no drift).
   const corrected = rampOklab(stops, 25, { correctLightness: true });
   assert.equal(corrected.length, 25);
@@ -516,7 +516,7 @@ test('10-stop spectrum (red→orange→yellow→green→cyan→blue→indigo→v
 
   console.log(`  Hue step stats: avg=${avgHueDiff.toFixed(3)}°, max=${maxHueDiff.toFixed(3)}°`);
 
-  // Should be smooth — no >10° jumps (can occur at bezier inflection but should be rare)
+  // Should be smooth - no >10° jumps (can occur at bezier inflection but should be rare)
   assert.ok(maxHueDiff < 15, 'hue should step smoothly (max jump <15°)');
 
   // Verify chroma doesn't collapse
@@ -854,7 +854,7 @@ test('re-import SVG gradient stops via extractSvgColors round-trips the ramp', (
   <rect width="10" height="10" fill="url(#grad-smooth)" />
 </svg>`;
 
-  // Re-import through the engine's actual SVG colour extraction — the same
+  // Re-import through the engine's actual SVG colour extraction - the same
   // path the web shell runs when an SVG is dropped back in. stop-color
   // attributes come back as normalised hex, deduplicated in first-seen order.
   const reimported = extractSvgColors(svg);
@@ -869,7 +869,7 @@ test('re-import SVG gradient stops via extractSvgColors round-trips the ramp', (
   console.log(`  ok Re-imported ${reimported.length} gradient stops through extractSvgColors`);
 });
 
-// ─── Performance benchmarks (BENCH=1 only — see PERF_SKIP above) ─────────────
+// ─── Performance benchmarks (BENCH=1 only - see PERF_SKIP above) ─────────────
 
 test('performance: 1000-color ramp generation < 10ms', { skip: PERF_SKIP }, () => {
   const stops = ['#ff0000', '#ff8800', '#00ff00', '#0000ff'];

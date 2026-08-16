@@ -2,8 +2,8 @@
 /**
  * The §8 shared conformance test for the canvas-op contract (plans/99), OSS side.
  *
- * The suite BODY now lives in the shipped SDK — `@lolly-tools/core/canvas-op-testkit`
- * (`runConvergenceSuite`) — so lolly-work imports the SAME bytes via engine-pin.json and
+ * The suite BODY now lives in the shipped SDK - `@lolly-tools/core/canvas-op-testkit`
+ * (`runConvergenceSuite`) - so lolly-work imports the SAME bytes via engine-pin.json and
  * runs it against its real Yjs adapter. Here we run it against the dependency-free
  * `ReferenceCanvasDoc`, and additionally cover the adapter-INDEPENDENT pure helpers
  * (damageToOps / opsToDamage / laneForField / version negotiation) that lolly-work does
@@ -62,7 +62,7 @@ test('damageToOps → opsToDamage round-trips the §4.1/§4.2 lane split', () =>
 
 test('one gesture is one transaction (single origin) = one undo step (§5)', () => {
   // A gesture that both moves and restyles the same box emits a batch sharing ONE
-  // origin stamp — the atomic unit an undo pops.
+  // origin stamp - the atomic unit an undo pops.
   const prev = new Map<BoxId, BoxRow>([['b1', { id: 'b1', x: 0, y: 0, w: 10, h: 10, rot: 0, fill: 'red' }]]);
   const next = new Map<BoxId, BoxRow>([['b1', { id: 'b1', x: 80, y: 0, w: 10, h: 10, rot: 0, fill: 'blue' }]]);
   const origin: OpOrigin = { client: 'c1', clock: 9 };
@@ -98,14 +98,14 @@ test('damageToOps restates paint order on an insert, and emits a pure reorder (p
   assert.equal(new Set(keys).size, keys.length, 'no two rows may share an order key');
   assert.deepEqual([...keys].sort(), keys, 'the keys ascend in the gesture order');
 
-  // A PURE reorder — no field changed — must still be expressible.
+  // A PURE reorder - no field changed - must still be expressible.
   const reordered = new Map<BoxId, BoxRow>([['r02', row('r02')], ['r01', row('r01')]]);
   const reorderOps = damageToOps(prev, reordered, origin);
   assert.deepEqual(reorderOps.map(op => op.k), ['order', 'order'], 'a pure reorder emits order ops only');
   assert.deepEqual(reorderOps.map(op => (op.k === 'param' ? '' : op.id)), ['r02', 'r01']);
 
   // A field-only edit still emits no order op at all (the common case pays nothing),
-  // and neither does a pure removal — the survivors' keys still sort correctly.
+  // and neither does a pure removal - the survivors' keys still sort correctly.
   const edited = new Map<BoxId, BoxRow>([['r01', { ...row('r01'), fill: 'red' }], ['r02', row('r02')]]);
   assert.deepEqual(damageToOps(prev, edited, origin).map(op => op.k), ['field']);
   const removed = new Map<BoxId, BoxRow>([['r01', row('r01')]]);
@@ -122,7 +122,7 @@ test('v1.1: a col-scoped op is not sendable to a v1.0 peer (§9 + plans/100 §11
   assert.equal(supportsCollections('1.10.0'), true, 'minors compare numerically, not lexically');
   assert.equal(supportsCollections('2.0.0'), true);
 
-  // Same major, so the pair may still collaborate — on canvas ops only. The
+  // Same major, so the pair may still collaborate - on canvas ops only. The
   // collection edit is refused at the SENDER, never silently misrouted into the
   // peer's canvas box map.
   assert.equal(isOpSendableTo(canvasOp, '1.0.0'), true);
@@ -141,7 +141,7 @@ test('laneForField splits geometry vs content, honouring a renamed geom set (§4
   assert.equal(laneForField('x', ['px', 'py']), 'content');
 });
 
-// ── v1.1 — collection scoping + presence fields (plans/100 §3) ───────────────────
+// ── v1.1 - collection scoping + presence fields (plans/100 §3) ───────────────────
 
 test('v1.1: version bumped, still same-major compatible with a 1.0 peer (§9)', () => {
   assert.equal(CANVAS_OP_VERSION, '1.1.0');
@@ -161,7 +161,7 @@ test('damageToOps stamps the collection context; the default context stays v1.0-
     assert.notEqual(op.k, 'param');
     if (op.k !== 'param') assert.equal(op.col, 'rows', `${op.k} op missed the collection stamp`);
   }
-  // Default context: no col key AT ALL — the emitted op is byte-identical to v1.0.
+  // Default context: no col key AT ALL - the emitted op is byte-identical to v1.0.
   for (const op of damageToOps(prev, next, origin)) {
     assert.ok(!('col' in op), 'a default-canvas op must not carry a col key');
   }

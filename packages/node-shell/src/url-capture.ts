@@ -1,20 +1,20 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
- * url-shot capture — shared by the CLI and the TUI (one implementation, no drift).
+ * url-shot capture. Shared by the CLI and the TUI (one implementation, no drift).
  *
- * Drive the scoped Chromium straight at the target URL and
- * produce the final bytes — bypassing the engine's DOM export path (which can't
- * rasterise). This is the one tool whose whole job is "screenshot a live page", so a
- * direct capture is both simpler and strictly more capable than the composite-into-an-
- * <img> dance the web/desktop shells use.
+ * Drive the scoped Chromium straight at the target URL and produce the final
+ * bytes. This bypasses the engine's DOM export path, which cannot rasterise.
+ * This is the one tool whose whole job is "screenshot a live page", so a
+ * direct capture is simpler and more capable than the composite-into-an-<img>
+ * approach the web/desktop shells use.
  *
  * Formats:
- *   • png / jpg   — a real screenshot of the viewport, honouring crop + scroll + recolor.
- *   • pdf         — a TRUE vector print of the page via Chromium's page.pdf() (selectable
+ *   • png / jpg   - a real screenshot of the viewport, honouring crop + scroll + recolor.
+ *   • pdf         - a TRUE vector print of the page via Chromium's page.pdf() (selectable
  *                   text, crisp at any zoom), not a screenshot embedded as an image.
- *   • svg         — the high-DPI screenshot wrapped in a scalable <svg><image>. (Element-
- *                   level vectorisation of an arbitrary page isn't a browser primitive;
- *                   this is a faithful, resolution-independent container.)
+ *   • svg         - the high-DPI screenshot wrapped in a scalable <svg><image>. Element-level
+ *                   vectorisation of an arbitrary page is not a browser primitive; this is
+ *                   a faithful, resolution-independent container instead.
  *
  * Extras beyond a plain shot: crop insets (left/right/top/bottom), a recolor pass
  * (filter presets + optional tint), custom CSS, scroll depth, and a settle delay.
@@ -36,14 +36,14 @@ export interface CaptureParams {
   zoom: number;          // browser zoom level (1 = 100%); magnifies before the shot
   /**
    * Optional readiness selector: after waitMs, block until it matches (60s cap).
-   * Pipeline-only, like `initScript` — the deterministic settle for pages that
-   * signal readiness in the DOM, where any waitMs is a guess about machine speed.
+   * Pipeline-only, like `initScript`. This is the deterministic settle for pages
+   * that signal readiness in the DOM, where any waitMs is a guess about machine speed.
    */
   waitSelector?: string;
   /**
    * Optional page-init script run BEFORE the target page's own scripts, on every
    * navigation (Playwright addInitScript). The end-user url-shot tool never sets
-   * this — it exists only so the docs-shots pipeline can seed localStorage (e.g.
+   * this. It exists only so the docs-shots pipeline can seed localStorage (e.g.
    * dismiss the first-run welcome) so a gallery-route capture isn't occluded.
    */
   initScript?: string;
@@ -63,12 +63,12 @@ export interface CaptureParams {
   };
   /**
    * Optional interaction script run after the page has settled and before the
-   * shot is taken — the third pipeline-only field, alongside `initScript` and
-   * `contextPrefs`, and for the same reason: an end user capturing a page wants
+   * shot is taken. This is the third pipeline-only field, alongside `initScript`
+   * and `contextPrefs`, for the same reason: an end user capturing a page wants
    * the page as it loads, while a docs baseline often has to document a state
    * that only exists after a click (a menu, a popover, a dialog, a drag).
-   * Without it those states are undocumentable, and the alternative — CSS that
-   * force-shows a panel — would document markup that never appears that way,
+   * Without it those states cannot be documented. The alternative - CSS that
+   * force-shows a panel - would document markup that never appears that way,
    * because the panels are built on demand.
    *
    * Steps run in order, each one a real input event through Playwright, so the
@@ -102,24 +102,25 @@ const DRIVE_SETTLE_MS = 250;
  */
 export interface DriveOpts {
   /**
-   * When a click's ACTIONABILITY retries are exhausted — the element is visible,
-   * enabled and stable but Playwright still refuses because it is "outside of the
-   * viewport" — dispatch the click in the page instead (`el.click()`), and report
-   * it through `onClickFallback`.
+   * When a click's actionability retries are exhausted - the element is visible,
+   * enabled and stable, but Playwright still refuses because it is "outside of
+   * the viewport" - dispatch the click in the page instead (`el.click()`), and
+   * report it through `onClickFallback`.
    *
-   * WHY THIS IS SOUND HERE AND NOT EVERYWHERE. Playwright's viewport check exists
-   * to guarantee that a real pointer could have landed on the element; the app
+   * Why this is safe here and not everywhere: Playwright's viewport check exists
+   * to guarantee that a real pointer could have landed on the element. The app
    * shells this pipeline drives park closed panels off-screen with a `transform`
    * on a `position: fixed` host, which no amount of scrollIntoView can bring back
-   * (the page itself does not scroll — the tool view is a fixed-height shell). A
-   * docs capture does not need pointer realism: it needs the DOM STATE the click
+   * (the page itself does not scroll - the tool view is a fixed-height shell). A
+   * docs capture does not need pointer realism: it needs the DOM state the click
    * produces, because that state is what the walker serialises into the picture.
    *
-   * It is a FALLBACK, never the first move: the real click is tried first with all
-   * its retries, and `waitFor({ state: 'visible' })` still runs ahead of both, so a
-   * selector that matches nothing (recipe drift — the thing this pipeline most needs
-   * to hear about) still fails loudly. A recipe whose click only lands through the
-   * fallback is a recipe worth re-reading, which is what the log line is for.
+   * This is a fallback, never the first move. The real click is tried first with
+   * all its retries, and `waitFor({ state: 'visible' })` still runs ahead of both,
+   * so a selector that matches nothing (recipe drift, the thing this pipeline most
+   * needs to hear about) still fails loudly. A recipe whose click only lands
+   * through the fallback is a recipe worth re-reading, which is what the log line
+   * is for.
    */
   clickFallback?: boolean;
   /** Called when `clickFallback` actually fires, with the selector and the first
@@ -130,10 +131,10 @@ export interface DriveOpts {
 /**
  * Run a capture's interaction steps against a live page.
  *
- * Exported because the docs pipeline drives THREE pages per recipe — the crop
- * measurement, the vector walk and (through captureUrl) the raster shot — and all
- * three must reach the identical state or the measured frame is not the frame that
- * gets captured. One implementation, called from each.
+ * Exported because the docs pipeline drives three pages per recipe: the crop
+ * measurement, the vector walk, and (through captureUrl) the raster shot. All
+ * three must reach the identical state, or the measured frame is not the frame
+ * that gets captured. One implementation, called from each.
  *
  * A step that cannot run throws: a docs baseline that silently skipped the click
  * would publish the wrong picture, which is worse than a failed run.
@@ -171,12 +172,12 @@ export async function runDriveSteps(page: PageLike, steps: readonly DriveStep[],
           });
         } catch (e) {
           const msg = String((e as Error)?.message ?? '');
-          // Only the ACTIONABILITY exhaustion, which Playwright reports as a timeout.
-          // Anything else — a detached node, a navigation mid-click, a closed page — is
-          // a different failure, and swallowing it would turn a real break into a
-          // quietly wrong picture.
+          // Only the actionability exhaustion, which Playwright reports as a timeout.
+          // Anything else - a detached node, a navigation mid-click, a closed page - is
+          // a different failure. Swallowing it would turn a real break into a quietly
+          // wrong picture.
           const actionabilityTimeout = /timeout|exceeded/i.test(msg);
-          // A right-click / multi-click / positioned press is ABOUT the pointer —
+          // A right-click, multi-click, or positioned press depends on the pointer.
           // el.click() would dispatch a plain left click and quietly document the
           // wrong interaction, so those keep failing loudly. See DriveOpts.
           const pointerSpecific = step.button === 'right' || (step.count ?? 1) > 1 || Boolean(position);
@@ -203,8 +204,8 @@ export async function runDriveSteps(page: PageLike, steps: readonly DriveStep[],
         // a ripple) only paints once it has one.
         await page.mouse.move(x + step.dx / 2, y + step.dy / 2);
         await page.mouse.move(x + step.dx, y + step.dy);
-        // `hold` leaves the button DOWN, which is the whole point for a mid-drag
-        // state — the readout, the ghost extent and the limit edge exist only while
+        // `hold` leaves the button down. That is the point for a mid-drag state:
+        // the readout, the ghost extent, and the limit edge exist only while
         // dragging. The browser context is torn down after the shot, so nothing leaks.
         if (!step.hold) await page.mouse.up();
         break;
@@ -231,7 +232,7 @@ export interface PageLike {
       hover(opts?: { position?: { x: number; y: number } }): Promise<void>;
       focus(): Promise<void>;
       boundingBox(): Promise<{ x: number; y: number; width: number; height: number } | null>;
-      /** In-page dispatch — no actionability checks. Only the click fallback uses it. */
+      /** In-page dispatch, no actionability checks. Only the click fallback uses it. */
       evaluate(fn: (el: Element) => void): Promise<void>;
     };
   };
@@ -241,7 +242,7 @@ export interface CaptureDims { width: number; height: number; dpi: number }
 
 const clamp01 = (n: number): number => (Number.isFinite(n) ? Math.min(0.9, Math.max(0, n)) : 0);
 
-/** CSS for the recolor pass — a filter on <html>, plus a tint overlay when asked. */
+/** CSS for the recolor pass: a filter on <html>, plus a tint overlay when asked. */
 function recolorCss(p: CaptureParams): string {
   switch (p.recolor) {
     case 'invert':    return 'html{filter:invert(1) hue-rotate(180deg)!important}';
@@ -289,7 +290,7 @@ export async function captureUrl(
       throw new BrowserError(`Couldn't load ${params.url}: ${e.message}`);
     });
 
-    // Webfonts race the load event — a shot taken before they resolve bakes the
+    // Webfonts race the load event. A shot taken before they resolve bakes the
     // fallback face into the pixels. Settle them explicitly (cheap after load).
     await page
       .evaluate(() => (document.fonts?.ready ?? Promise.resolve()).then(() => undefined))
@@ -340,7 +341,7 @@ export async function captureUrl(
       }
     }
 
-    // Interactions LAST — after settle and after scroll, in every capture path
+    // Interactions run last, after settle and after scroll, in every capture path
     // (the docs pipeline drives its own pages the same way). A menu opened before
     // the page settled gets closed by the app's late layout, and a drag has to
     // measure the geometry it is about to drag.
@@ -401,7 +402,7 @@ export function captureParamsFrom(model: Array<{ id: string; value: unknown }>):
     cropTop: num(v.cropTop, 0),
     cropBottom: num(v.cropBottom, 0),
     recolor: str(v.recolor, 'none'),
-    // Neutral ink fallback — url-shot's manifest default is {color.semantic.primary},
+    // Neutral ink fallback. url-shot's manifest default is {color.semantic.primary},
     // resolved upstream into the input model; this literal only covers a missing value.
     tintColor: str(v.tintColor, '#111111'),
     hue: num(v.hue, 0),

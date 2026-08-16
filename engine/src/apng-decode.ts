@@ -1,11 +1,11 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
- * APNG demuxer — pure, DOM-free, platform-agnostic. The inverse of apng.ts.
+ * APNG demuxer - pure, DOM-free, platform-agnostic. The inverse of apng.ts.
  *
  * Chunk-level surgery only, no pixel work. An Animated PNG is split into its
  * frames WITHOUT rasterising: each frame's already-compressed image data (the
  * default image's IDAT stream, or a later frame's fdAT stream with its 4-byte
- * sequence prefix removed) is re-wrapped as a STANDALONE, spec-valid PNG —
+ * sequence prefix removed) is re-wrapped as a STANDALONE, spec-valid PNG:
  * signature, a fresh IHDR sized to that frame's region, the shared colour/
  * palette ancillary chunks carried over verbatim, one IDAT, IEND. The host then
  * decodes each still through its ordinary PNG path; the engine never pulls in a
@@ -24,7 +24,7 @@ import { crc32 } from './zip-crypto.ts';
 
 /** One demuxed animation frame as a standalone PNG plus its APNG geometry/timing. */
 export interface ApngFrame {
-  /** A complete, valid PNG file for this frame's region — the host decodes it. */
+  /** A complete, valid PNG file for this frame's region. The host decodes it. */
   still: Uint8Array;
   /** Display time in milliseconds (delay_num / delay_den, den 0 ⇒ 100). */
   delayMs: number;
@@ -44,7 +44,7 @@ export interface DemuxApngResult {
   width: number;
   /** Canvas height (default image IHDR height). */
   height: number;
-  /** acTL num_plays — 0 means loop forever. */
+  /** acTL num_plays. 0 means loop forever. */
   loops: number;
   /** Frames in display order. */
   frames: ApngFrame[];
@@ -56,7 +56,7 @@ const PNG_SIG = Uint8Array.of(0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a);
  * Ancillary chunks that describe how EVERY frame's samples are interpreted, so
  * they must ride onto each standalone still. PLTE/tRNS are mandatory for indexed
  * images; the rest are colour/precision fidelity. Frame-local and animation
- * control chunks are deliberately excluded — a standalone still has neither.
+ * control chunks are deliberately excluded: a standalone still has neither.
  */
 const SHARED_CHUNKS = new Set([
   'PLTE', 'tRNS', 'gAMA', 'cHRM', 'sRGB', 'iCCP', 'sBIT', 'bKGD', 'hIST', 'pHYs', 'sPLT', 'cICP',
@@ -165,7 +165,7 @@ export function demuxApng(bytes: Uint8Array): DemuxApngResult {
 
   const frames: PendingFrame[] = [];
   let current: PendingFrame | null = null;
-  let sawIdat = false; // any IDAT seen — distinguishes a default frame from a hidden default image
+  let sawIdat = false; // any IDAT seen - distinguishes a default frame from a hidden default image
 
   const flush = (): void => {
     if (current) { frames.push(current); current = null; }
@@ -213,10 +213,10 @@ export function demuxApng(bytes: Uint8Array): DemuxApngResult {
         break;
       }
       default: {
-        // Carry shared colour/palette chunks that precede the first image data —
-        // they apply to every frame. Per the PNG spec PLTE/tRNS/etc. always sit
+        // Carry shared colour/palette chunks that precede the first image data.
+        // They apply to every frame. Per the PNG spec PLTE/tRNS/etc. always sit
         // before the first IDAT, but the APNG spec lets frame 0's fcTL come
-        // before that IDAT too — so gate on `!sawIdat` alone, not on whether a
+        // before that IDAT too. So gate on `!sawIdat` alone, not on whether a
         // frame is open, or an indexed frame loses its palette and the standalone
         // still is invalid.
         if (!sawIdat && SHARED_CHUNKS.has(c.type)) {

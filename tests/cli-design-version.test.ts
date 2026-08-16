@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
- * `--designv=` on the CLI — the design-system resolution ladder of plans/97 §6a,
+ * `--designv=` on the CLI - the design-system resolution ladder of plans/97 §6a,
  * pinned against the REAL binary (spawned like tests/cli-machine-contract.test.ts)
  * over a fixture catalog that actually ships a published version.
  *
@@ -10,7 +10,7 @@
  * last hop and miss the two that broke first (the flag being swallowed as an
  * unknown input, and the bridge being built before the query was parsed).
  *
- * What each rung is worth here:
+ * What each rung resolves to:
  *   - no flag, `active: null`      → the edit head, exactly as before versions existed
  *   - `--designv=<slug>`           → that version's tokens AND its pinned asset bytes
  *   - `--designv=latest`           → the head, even when a pin or an active version says otherwise

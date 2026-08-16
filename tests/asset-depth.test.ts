@@ -2,18 +2,18 @@
 /**
  * Catalog assets carry depth (plans/61-deeprichpixels.md §10 item 6).
  *
- * Governing principle: depth follows provenance — never emit bits the pipeline
+ * Governing principle: depth follows provenance - never emit bits the pipeline
  * did not produce. A `depth` label on an asset format IS an emission, so this
  * covers the three ways it could lie:
  *
- *   1. `depthForFormat` (scripts/checksum-assets.ts) — the gate. It reuses the
+ *   1. `depthForFormat` (scripts/checksum-assets.ts) - the gate. It reuses the
  *      ingest sniff (`depthHint`, shells/web/src/lib/image-sample.ts), so a
  *      catalog label and a user upload can never disagree about the same bytes.
  *      Fixture layouts mirror shells/web/src/lib/image-sample.test.ts, which
  *      derives them from the specs (PNG 3rd ed §11.2.1, TIFF 6.0 tag 258,
  *      ITU-T T.81 §B.2.2).
  *   2. The schema (schemas/asset.schema.json + its packages/core/schema copy).
- *   3. The drift guard — scripts/validate-catalog.ts re-sniffs every label
+ *   3. The drift guard - scripts/validate-catalog.ts re-sniffs every label
  *      through the SAME function. Asserted here as the invariant it enforces,
  *      run against the real active catalog, with a negative control that the
  *      invariant actually fails on a wrong label.

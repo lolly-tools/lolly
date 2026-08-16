@@ -3,7 +3,7 @@
  * video-coach-core contract tests.
  *
  * Run with: npm test  (node --test over the tests/ globs)
- * No test framework — uses node:test built-in.
+ * No test framework - uses node:test built-in.
  *
  * Exercises the PURE exposure-coaching logic that turns a camera frame's RGBA bytes into
  * luma statistics (frameLuma) and then into an exposure verdict (coachVideo): too dark,
@@ -40,7 +40,7 @@ function backlit(w: number, h: number, whiteFrac: number): Uint8ClampedArray {
   return d;
 }
 
-const W = 100, H = 100;   // 10 000 px — well over MIN_SAMPLES
+const W = 100, H = 100;   // 10 000 px - well over MIN_SAMPLES
 
 // ─── frameLuma: brightness + clipped-pixel fractions ──────────────────────────
 
@@ -82,7 +82,7 @@ test('a dark frame → too dark (tone low, dark cue)', () => {
 });
 
 test('a washed-out (bright, unclipped) frame → too bright (tone hot, bright cue)', () => {
-  // Uniform luma ≈ 0.85 (217/255) — above BRIGHT_MEAN but below the blown-white cutoff.
+  // Uniform luma ≈ 0.85 (217/255) - above BRIGHT_MEAN but below the blown-white cutoff.
   const c = coachVideo(frameLuma(solid(W, H, 217, 217, 217), W, H));
   assert.equal(c.tone, 'hot');
   assert.equal(c.cue, 'bright');

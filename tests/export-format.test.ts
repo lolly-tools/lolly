@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
- * Unit tests for exportFormatDriver (shells/web/src/views/export-format.ts) — the
+ * Unit tests for exportFormatDriver (shells/web/src/views/export-format.ts) - the
  * manifest→export-formats mapping that lets a "mode" select (e.g. a unified filter
  * tool's effect picker) narrow the download bar to the selected option's formats,
  * while render.formats stays the union.

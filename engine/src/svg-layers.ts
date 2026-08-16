@@ -1,12 +1,12 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
- * Lift layers — enumerate an SVG's own layers and derive a standalone document
+ * Lift layers - enumerate an SVG's own layers and derive a standalone document
  * for each one (plans/104 §7).
  *
  * The action a user sees is "Lift layers" on a box holding an SVG: the artwork
  * comes apart into N stacked boxes at staggered depth, so a camera move gets
  * real parallax over real vector groups instead of an ML-inferred depth map.
- * This module is the half of that which has to be right — everything the shell
+ * This module is the half of that which has to be right - everything the shell
  * does afterwards (mint ids, sanitise, write rows) is bookkeeping over what is
  * returned here.
  *
@@ -15,8 +15,8 @@
  * Wire formats and the maths every shell must agree on live in the engine, and
  * a lifted layer is both: the derived markup is what gets stored in a box, and
  * a headless posed still (the CLI's Tier-A path) has to be able to produce the
- * same layers from the same bytes. So this is DOM-free — no `DOMParser`, no
- * `getBBox` — which is also why the bounding boxes here are *analytic and
+ * same layers from the same bytes. So this is DOM-free - no `DOMParser`, no
+ * `getBBox` - which is also why the bounding boxes here are *analytic and
  * best-effort*: computed from geometry attributes and path control points, not
  * measured by a renderer. They are used for CLUSTERING and for the picker's
  * preview, never for placement (a derived layer keeps the ROOT coordinate
@@ -26,29 +26,29 @@
  *
  * The root's direct children, in paint order:
  *
- *   • every `<g>` is a layer — that is what a designer's "layer" already is;
+ *   • every `<g>` is a layer - that is what a designer's "layer" already is;
  *   • stray leaves (`<path>`, `<rect>`, … dropped straight onto the root by a
  *     generator that never grouped anything) are clustered SPATIALLY, the
  *     `pdf-artwork.ts` posture verbatim: *group is a hint, never a
- *     requirement*. That module's reasoning applies unchanged here — an
+ *     requirement*. That module's reasoning applies unchanged here - an
  *     Illustrator export routinely wraps a whole drawing in one `<g>` while a
  *     plotter or a chart library emits fifty ungrouped paths;
  *   • a single wrapping `<g>` with nothing beside it is DESCENDED THROUGH
- *     (`<g id="Layer_1">` around the entire drawing is the most common shape of
+ *     (`<g id="Layer_1">` around the entire drawing is the most common structure of
  *     SVG there is, and lifting "1 layer" out of it is useless). The wrapper is
  *     reproduced as an ancestor in every derived document, so geometry and
- *     inherited paint are preserved exactly — and descent REFUSES a wrapper
+ *     inherited paint are preserved exactly - and descent REFUSES a wrapper
  *     whose attributes composite its children as a unit (`opacity` below 1,
  *     `filter`, `mask`, `mix-blend-mode`, `isolation`), because splitting those
  *     changes the picture wherever children overlap;
- *   • a layer holding almost ALL of the artwork is descended into as well —
+ * • a layer holding almost ALL of the artwork is descended into as well -
  *     see "the hero problem" below.
  *
  * ## The hero problem (1.121)
  *
  * A lone-wrapper descent stops the moment a level has two children, and a real
  * page routinely has a level like that: `docs/shots/brand-colours.svg` enumerated
- * into 5 layers of which ONE held 472 of the document's 492 paint elements —
+ * into 5 layers of which ONE held 472 of the document's 492 paint elements -
  * 96 %. Four hairlines and the page. Nothing about that stack is wrong (it is
  * exactly what the markup groups), and nothing about it is a lift either: there
  * is one surface to elevate, so a flythrough over it is a flythrough over a
@@ -59,13 +59,13 @@
  * up to {@link SVG_LAYERS_HERO_ROUNDS}. Two things are different one level down,
  * both deliberate:
  *
- *   • **groups cluster too.** At the root a `<g>` is always its own candidate —
+ * • **groups cluster too.** At the root a `<g>` is always its own candidate -
  *     the author's grouping is the only signal there is. Below a hero it has
  *     already been measured as uninformative (that is what "96 % in one group"
  *     means), so geometry decides instead, and a card's icon parts rejoin their
  *     card. `pdf-artwork.ts`'s "group is a hint" taken at its word.
  *   • **the count is budgeted.** A raw descent of that same file yields 80
- *     candidates, which is not a proposal a person can accept — the dialog would
+ *     candidates, which is not a proposal a person can accept - the dialog would
  *     be asking whether to turn one box into eighty. The clustering gap is
  *     doubled (up to {@link SVG_LAYERS_HERO_GAP_STEPS} times) until the level
  *     fits {@link SVG_LAYERS_HERO_BUDGET}, so the answer stays a stack somebody
@@ -74,7 +74,7 @@
  *
  * ## Cropping a derived layer to its ink (1.121)
  *
- * A derived document used to keep the source's viewBox verbatim — which made
+ * A derived document used to keep the source's viewBox verbatim - which made
  * every layer a full-stage box, whatever it actually drew. That is correct and
  * ruinous: `shadow: depth` on a 16×16 icon then costs a full-frame gaussian, and
  * eleven of them abort the encoder watchdog (plans/104 §9 P3.1 item 1, measured).
@@ -83,8 +83,8 @@
  * document's viewBox (and width/height) is the layer's own bounds instead, and
  * `SvgLayer.viewBox` reports the rect so the caller can place the row over
  * exactly that part of the source box ({@link SvgLayersResult.viewBox} carries
- * the source's own for the mapping). Geometry is unchanged — a smaller viewBox
- * over a proportionally smaller box is the same picture — and the effects that
+ * the source's own for the mapping). Geometry is unchanged - a smaller viewBox
+ * over a proportionally smaller box is the same picture - and the effects that
  * follow the box now follow the ink.
  *
  * "Provably safe" is the whole of it, because a viewBox is also a CLIP: every
@@ -92,7 +92,7 @@
  * length in the body (percentages resolve against the viewport, which is the
  * thing being changed), no `filter`/`marker` on the layer (both paint outside
  * the geometry), a pad for stroke half-widths and miters, and the result
- * intersected with the SOURCE viewBox — ink already clipped away by the original
+ * intersected with the SOURCE viewBox - ink already clipped away by the original
  * must not reappear because its layer got a bigger window. Anything unproven
  * keeps the full-stage document it had in 1.119.
  *
@@ -104,7 +104,7 @@
  * reproduces the original: `source-over` is associative, and a `<defs>` paints
  * nothing, so repeating it N times costs bytes and changes no pixel. That is
  * `plans/104` §7's "N lifted layers at z = 0 render byte-identical to the
- * un-lifted original", and it is asserted both ways — the structural partition
+ * un-lifted original", and it is asserted both ways - the structural partition
  * BYTE-EXACTLY in `tests/svg-layers.test.ts`, the rendered composite in a real
  * engine in `tests/svg-lift-identity.browser.test.ts`.
  *
@@ -112,7 +112,7 @@
  * and the reason is not ours: a browser rasterises each layer into its own 8-bit
  * PREMULTIPLIED buffer before compositing, so it rounds twice where the
  * single-pass render rounds once. Measured (Chromium, 320×240): every channel
- * within ±1 except at most 0.025 % of them, worst single channel 56/255 — a
+ * within ±1 except at most 0.025 % of them, worst single channel 56/255 - a
  * near-zero-coverage pixel at a star's spike, where premultiplied alpha cannot
  * carry a saturated colour. Structural identity is byte-exact and is the
  * property this module owes; the pixel bounds are in that test's header with
@@ -125,14 +125,14 @@
  *      is split back into its contiguous runs rather than reordered.
  *   2. **Cross-layer references.** `<use href="#p">` where `#p` lives inside a
  *      DIFFERENT layer is the pathological case §11 names. The referenced
- *      element is copied into the borrowing layer's own `<defs>` — where it
- *      paints nothing, so the copy cannot double-draw — and a warning says so.
+ *      element is copied into the borrowing layer's own `<defs>` - where it
+ *      paints nothing, so the copy cannot double-draw - and a warning says so.
  *
  * ## Names
  *
  * Labels are `Layer 1..N`, always: this module never reads a name out of the
  * file, and `<title>`, `<desc>` and `<metadata>` are dropped from a derived
- * document ANYWHERE they appear, not merely at its top level — a name hides
+ * document ANYWHERE they appear, not merely at its top level - a name hides
  * inside a `<g>` at least as often as beside one. The shell localises by index;
  * `label` is the untranslated fallback.
  *
@@ -149,7 +149,7 @@
  * The input is a user's uploaded SVG (already DOMPurify-sanitised by the shell,
  * but this module assumes nothing about that). Every bound is a named constant
  * below, and NOTHING here throws: junk yields fewer layers and more warnings.
- * Work is linear in the input length, with exactly one deliberate exception —
+ * Work is linear in the input length, with exactly one deliberate exception -
  * the spatial clustering is a pairwise union-find, quadratic in the number of
  * stray root leaves, which is what `SVG_LAYERS_MAX_CANDIDATES` exists to bound.
  * Every other pass here (id resolution included) is bounded by the document, NOT
@@ -158,12 +158,12 @@
 
 import { parseSvgPath } from './svg-path.ts';
 
-// ─── caps (untrusted SVG text — every one of these is a refusal, not a crash) ──
+// ─── caps (untrusted SVG text - every one of these is a refusal, not a crash) ──
 
 /** Longest document scanned, in chars. Beyond it: no layers, one warning. */
 export const SVG_LAYERS_MAX_CHARS = 4_000_000;
 /**
- * Tag ceiling for one scan — the same bound `svg-custgeom.ts` uses.
+ * Tag ceiling for one scan - the same bound `svg-custgeom.ts` uses.
  *
  * TAGS, not elements: `scanTags` emits one entry per `<g>` AND one per `</g>`, so a
  * document of N ordinary (non-self-closing) elements spends 2N of this budget. The
@@ -171,7 +171,7 @@ export const SVG_LAYERS_MAX_CHARS = 4_000_000;
  */
 export const SVG_LAYERS_MAX_TAGS = 40_000;
 /**
- * Most layers returned. A deeper stack is not a lift, it is a mess — and each
+ * Most layers returned. A deeper stack is not a lift, it is clutter. Each
  * layer becomes a real box with its own plate at export time.
  *
  * At the ceiling the TAIL MERGES rather than truncating: trailing candidates are
@@ -181,11 +181,11 @@ export const SVG_LAYERS_MAX_TAGS = 40_000;
  */
 export const SVG_LAYERS_MAX = 64;
 /**
- * Root children considered at all — `pdf-artwork.ts`'s `MAX_NODES` in a new
+ * Root children considered at all - `pdf-artwork.ts`'s `MAX_NODES` in a new
  * costume, and for the same reason: spatial clustering is a pairwise union-find,
  * so its cost is QUADRATIC in the number of stray leaves. Measured on this
  * module before the cap existed: 4 000 leaves 78 ms, 10 000 leaves 0.7 s,
- * 20 000 leaves 4.3 s, 39 000 leaves 16 s — a hang, on markup a stranger sends.
+ * 20 000 leaves 4.3 s, 39 000 leaves 16 s - a hang, on markup a stranger sends.
  *
  * Past the cap the tail is not dropped, it is ONE layer: a contiguous run at the
  * end of the document, so folding it together cannot reorder any ink. A 20 000
@@ -201,22 +201,22 @@ export const SVG_LAYERS_MAX_DESCENT = 8;
 export const SVG_LAYERS_MAX_REFS = 64;
 /**
  * Derived total (all layers' markup, summed) past which the caller is TOLD the
- * lift is heavy. A warning, never a refusal — the bytes are correct, and the
+ * lift is heavy. A warning, never a refusal - the bytes are correct, and the
  * user is the one who knows whether the artwork is worth them.
  *
  * Carrying the whole `<defs>` into every layer is cheap in pixels and expensive
  * in bytes, and only the second one is bounded by anything: `SVG_LAYERS_MAX`
  * bounds the layer COUNT, so one embedded raster in `<defs>` multiplies by it.
  * Measured: an ordinary 1.0 MB file (one `<pattern>` holding a PNG, 24 real
- * groups) derives 24.0 MB — and the shell writes every byte of that into
+ * groups) derives 24.0 MB - and the shell writes every byte of that into
  * IndexedDB on one confirm click. At the caps that is ~256 MB, silently. So the
  * enumerator prices the result and says so IN THE DIALOG, before the click.
  */
 export const SVG_LAYERS_HEAVY_BYTES = 8_000_000;
 
 /**
- * Share of a document's paint elements above which a layer is a HERO — the
- * artwork wearing one box — and gets descended into. See the header.
+ * Share of a document's paint elements above which a layer is a HERO: nearly
+ * all the artwork sits in one box, so it gets descended into. See the header.
  *
  * Two thirds, not "most": at 51 % a layer is merely the biggest of several and
  * the stack is already a stack. The measured failure was 96 %, and the second
@@ -224,7 +224,7 @@ export const SVG_LAYERS_HEAVY_BYTES = 8_000_000;
  * gap rather than on top of real data.
  */
 export const SVG_LAYERS_HERO_SHARE = 2 / 3;
-/** Descents attempted — a hero's replacement can itself be a hero. */
+/** Descents attempted - a hero's replacement can itself be a hero. */
 export const SVG_LAYERS_HERO_ROUNDS = 4;
 /** Documents with less ink than this are never shredded to find a stack. */
 export const SVG_LAYERS_HERO_MIN_INK = 8;
@@ -239,7 +239,7 @@ export const SVG_LAYERS_HERO_GAP_SCALES: readonly number[] =
   Object.freeze([1 / 8, 1 / 4, 1 / 2, 1, 2, 4, 8, 16]);
 /**
  * How different in AREA two things may be inside a hero descent and still be
- * merged into one layer — 16, i.e. four times the size on each side.
+ * merged into one layer - 16, i.e. four times the size on each side.
  *
  * Below a hero, proximity alone is not a relation: a content pane overlaps every
  * card on it and every card overlaps its own icon, so unlimited union-find
@@ -261,27 +261,27 @@ const MAX_CLUSTER_GAP = 48;
 // ─── element vocabulary ─────────────────────────────────────────────────────
 
 /**
- * Dropped from a derived document entirely — AT ANY DEPTH, not just at the root.
+ * Dropped from a derived document entirely - AT ANY DEPTH, not just at the root.
  *
  * Three of these are names or provenance (the PII posture), and `script` is
- * defence in depth — the shell sanitises before this module ever sees the
+ * defence in depth - the shell sanitises before this module ever sees the
  * markup, and a script is inert inside an `<img>` anyway, but a lifted layer
  * must not be the path that reintroduces one.
  *
- * ⚑ "At any depth" is load-bearing and used not to be true. A layer's body is a
+ * ⚑ "At any depth" is required and used not to be true. A layer's body is a
  * verbatim slice, so filtering only the nodes this module ENUMERATES (the root's
  * direct children, a wrapper's direct children) let `<g><script>…</script></g>`
  * and `<g><title>Andy's draft</title>…` ride through whole, while the header,
  * the changelog and a test all read as though they could not. The spans are
  * spliced out of the slice instead ({@link dropSpans}), which keeps every
- * emitted fragment verbatim — it just gives it holes.
+ * emitted fragment verbatim - it just gives it holes.
  */
 const DROP_TAGS = new Set(['title', 'desc', 'metadata', 'script']);
 
 /**
  * Non-rendering top-level siblings, carried into EVERY derived layer whole.
  *
- * The plan's own call — "root attrs + the WHOLE `<defs>` per layer — cheap,
+ * The plan's own call - "root attrs + the WHOLE `<defs>` per layer - cheap,
  * correct for cross-refs". Correct because a paint server, a clip path or a
  * `<style>` may be referenced from any layer; cheap because these bytes paint
  * nothing, so repeating them cannot change a pixel.
@@ -303,14 +303,14 @@ const CONTAINER_TAGS = new Set(['g', 'a', 'switch']);
  * it once to the three together.
  *
  * `transform` and `clip-path` are deliberately NOT here. Both are idempotent
- * under the split — the wrapper is reproduced verbatim in every derived
+ * under the split - the wrapper is reproduced verbatim in every derived
  * document, and clipping each layer by the same path gives exactly the union of
- * the clipped layers — so refusing them would cost the descent for nothing.
+ * the clipped layers - so refusing them would cost the descent for nothing.
  */
 const UNIT_PROPS = ['opacity', 'filter', 'mask', 'mix-blend-mode', 'isolation'] as const;
 
 /**
- * Elements that put ink on the page — the unit the hero test counts in.
+ * Elements that put ink on the page - the unit the hero test counts in.
  *
  * Paint elements rather than bytes or `<g>`s: bytes measure how a generator
  * writes numbers, and groups measure how it nests them, while "how much of this
@@ -325,7 +325,7 @@ const PAINT_TAGS = new Set([
 /**
  * Attributes whose value may be a percentage OF THE VIEWPORT, which a crop
  * changes. Gradient stop `offset` and filter-region percentages are relative to
- * their own units and are not here — they are why the test is per-attribute
+ * their own units and are not here - they are why the test is per-attribute
  * rather than "does this markup contain a `%`" (every gradient in every walker
  * shot has `offset="100.00%"`, and refusing on that would crop nothing, ever).
  */
@@ -336,7 +336,7 @@ const VIEWPORT_PCT_STYLE_RE =
   /(?:^|[;{\s])(?:width|height|font-size|stroke-width|stroke-dasharray|x|y|r|rx|ry|cx|cy)\s*:\s*[^;"'}]*%/i;
 /**
  * Markers draw whole shapes at a path's vertices, at a size and orientation
- * only a renderer knows. A layer using one is not cropped — unlike `filter`,
+ * only a renderer knows. A layer using one is not cropped - unlike `filter`,
  * whose region is declared and can be read (see {@link spillOf}), and unlike
  * `mask`/`clip-path`, which can only ever HIDE ink and so never spill.
  */
@@ -354,7 +354,7 @@ const STROKE_MITER_LIMIT = 4;
 const CROP_PAD = 1;
 /**
  * A crop must save at least this much area to be worth having. At 90 % the
- * background layer of a screenshot — the one that IS the stage — keeps the
+ * background layer of a screenshot - the one that IS the stage - keeps the
  * source's own root, which is both the honest document and the one the identity
  * property is easiest to read against.
  */
@@ -368,7 +368,7 @@ export interface SvgLayerBox { x: number; y: number; w: number; h: number }
 export interface SvgLayer {
   /**
    * A standalone `<svg>` document rendering ONLY this layer, in the source's
-   * root coordinate system — same root attributes, so it drops into a box of the
+   * root coordinate system - same root attributes, so it drops into a box of the
    * source's geometry with no fix-up at all.
    *
    * ⚑ Unless {@link viewBox} is present, in which case the document is CROPPED
@@ -380,7 +380,7 @@ export interface SvgLayer {
   /**
    * The crop this layer's document was given, in the SOURCE's root user units,
    * or absent when it kept the whole viewBox. Read with
-   * {@link SvgLayersResult.viewBox} — the two together are the affine map from
+   * {@link SvgLayersResult.viewBox} - the two together are the affine map from
    * the source box's rect to this row's.
    */
   viewBox?: SvgLayerBox;
@@ -390,14 +390,14 @@ export interface SvgLayer {
    * spill). Advisory: for previews and clustering, never for placement.
    */
   bbox: SvgLayerBox | null;
-  /** `Layer 1`… — an index, never a name from the file. Shells localise it. */
+  /** `Layer 1`… - an index, never a name from the file. Shells localise it. */
   label: string;
   /** 0-based position in paint order (bottom first). */
   index: number;
   /** How many of the source's own top-level nodes this layer carries. */
   nodes: number;
   /**
-   * The walker's `data-box-id`, when the layer is a single node carrying one —
+ * The walker's `data-box-id`, when the layer is a single node carrying one -
    * the §7 identity passthrough (`renderSvgFromHtml`'s `layerIds` option)
    * arriving at the other end. Absent for ordinary artwork.
    */
@@ -409,7 +409,7 @@ export interface SvgLayersResult {
   /** Everything refused, repaired or capped, in plain words. Never thrown. */
   warnings: string[];
   /**
-   * The SOURCE document's own viewBox in user units — from its `viewBox`, else
+   * The SOURCE document's own viewBox in user units - from its `viewBox`, else
    * from `width`/`height`, else null when it declares neither and there is no
    * coordinate system to map through. The denominator for every layer's
    * {@link SvgLayer.viewBox}.
@@ -437,13 +437,13 @@ export interface SvgLayerOptions {
    *
    * It exists because a crop is only free if the row it maps to lands where the
    * uncropped picture already was. {@link cropFor} snaps the crop OUTWARDS to
-   * whole units of this scale — i.e. whole px of the row — so the layer's
+   * whole units of this scale - i.e. whole px of the row - so the layer's
    * rectangle is an integer offset and an integer size in the space it will be
    * drawn in. Snapped in user units instead (1.121), a crop at any k ≠ 1 lands
    * the row between device pixels and the browser bilinear-filters the WHOLE
    * layer back onto the grid: measured on `docs/shots/brand-colours.svg` in a
    * 1000×625 box, 88 675 channels beyond ±1 (3.5 %, max 189) against 1 758
-   * (0.07 %, max 63) for the same shot uncropped — every anti-aliased edge in
+   * (0.07 %, max 63) for the same shot uncropped - every anti-aliased edge in
    * the layer, which on dense UI screenshots is all the text and every hairline.
    *
    * The resulting viewBox is usually FRACTIONAL, and that is fine: a viewBox
@@ -455,7 +455,7 @@ export interface SvgLayerOptions {
    * crop is fidelity-neutral when the row lands ON the pixel grid. When the
    * SOURCE box's content rect is itself fractional (a 443.78-unit shot drawn
    * 550.625 px tall), the browser rounds that container to a bitmap and scales
-   * it, while an integer-sized row does not — so the two differ by a fraction of
+   * it, while an integer-sized row does not - so the two differ by a fraction of
    * a pixel over the whole ink however the crop is snapped. Isolated: shortening
    * one layer's viewport 443.78 → 266 at scale 1 and origin 0 moves 283 px past
    * ±1 (max 89). That is the renderer's container rounding, and
@@ -468,16 +468,16 @@ export interface SvgLayerOptions {
 // ─── a minimal, bounded tag scanner ─────────────────────────────────────────
 //
 // Not a parser and not a DOM: a flat list of element tags with their byte spans,
-// which is all the derivation needs — every emitted fragment is a VERBATIM SLICE
+// which is all the derivation needs - every emitted fragment is a VERBATIM SLICE
 // of the input, so nothing is re-serialised and nothing can be corrupted on the
 // way through. (`strip-metadata.ts` has a tokenizer of its own with a different
 // job: it REBUILDS tags to drop attributes, and carries no spans and no nesting.
 // Two small scanners beat one shared one that has to do both.)
 
 interface Tag {
-  /** Lower-cased local name, namespace prefix removed — what logic tests. */
+  /** Lower-cased local name, namespace prefix removed - what logic tests. */
   name: string;
-  /** The name exactly as written, prefix and case intact — what is re-emitted. */
+  /** The name exactly as written, prefix and case intact - what is re-emitted. */
   qname: string;
   /** Raw attribute text, exactly as written. */
   attrs: string;
@@ -549,7 +549,7 @@ function attrOf(attrs: string, name: string): string | undefined {
   return m ? (m[2] ?? m[3]) : undefined;
 }
 
-/** `id` is read once per tag when building the index — keep its regex hoisted. */
+/** `id` is read once per tag when building the index - keep its regex hoisted. */
 const ID_ATTR_RE = /(?:^|\s)id\s*=\s*("([^"]*)"|'([^']*)')/i;
 function idOf(attrs: string): string | undefined {
   if (!attrs) return undefined;
@@ -579,7 +579,7 @@ function styleProps(attrs: string): Record<string, string> {
 /**
  * Does this group composite its children as a unit? Returns the offending
  * property name, or ''. `opacity="1"` and `filter="none"` are no-ops and do not
- * count — over-refusing here means never descending through Figma's outer `<g>`.
+ * count - over-refusing here means never descending through Figma's outer `<g>`.
  */
 function unitCompositing(attrs: string): string {
   const style = styleProps(attrs);
@@ -668,7 +668,7 @@ function matMul(m1: Mat, m2: Mat): Mat {
  * bounding box under a rotation is still a perfectly good bounding box. That
  * module refuses them because it has to REPRODUCE the shape in PowerPoint
  * geometry; this one only has to measure it. Anything unrecognised yields null,
- * which propagates as "unmeasurable" — never as a wrong number.
+ * which propagates as "unmeasurable" - never as a wrong number.
  */
 function parseTransform(v: string | undefined): Mat | null {
   if (v == null) return IDENTITY;
@@ -731,7 +731,7 @@ const rectPts = (x: number, y: number, w: number, h: number): number[][] =>
 /**
  * The ink of ONE element, in its parent's coordinates.
  *
- * A curve is bounded by its control polygon rather than solved for extrema — a
+ * A curve is bounded by its control polygon rather than solved for extrema - a
  * superset, never a subset, which is the right side to be wrong on here: it
  * merges slightly more eagerly and can never mistake overlap for separation.
  * Stroke width is not added: a hairline's half-width does not decide which
@@ -831,19 +831,19 @@ function median(xs: number[]): number {
  * Cluster stray leaves by proximity, returning one member-index list per cluster.
  *
  * `pdf-artwork.ts`'s union-find over expanded boxes, minus its group-rejoin pass
- * (a stray leaf has no group to rejoin by — that is what makes it stray). A leaf
+ * (a stray leaf has no group to rejoin by - that is what makes it stray). A leaf
  * with no measurable box is its own cluster: we will not guess where it is.
  *
  * `gapScale` multiplies the merge distance. It is 1 everywhere except inside a
  * hero descent, where doubling it is how a level of eighty becomes a level a
  * person can accept (header, "the count is budgeted").
  *
- * `sizeRatio` bounds how different in AREA two boxes may be and still merge —
+ * `sizeRatio` bounds how different in AREA two boxes may be and still merge -
  * `Infinity` at the root, where proximity is the only question. One level down
- * it is load-bearing and its absence was measured: a page's content pane
+ * it is required and its absence was measured: a page's content pane
  * overlaps every card, icon and swatch on it, so plain proximity union-find
  * bridges the entire level into ONE cluster (brand-colours: 80 candidates → 1,
- * i.e. no descent at all). A surface that big is scenery, not a peer of the
+ * i.e. no descent at all). A surface that big is background, not a peer of the
  * things sitting on it.
  */
 function clusterLeaves(
@@ -890,7 +890,7 @@ function clusterLeaves(
  * Layers composite in the order of their first member, so a cluster whose member
  * indices straddle a NON-member that overlaps it would reorder ink. Rather than
  * reason about whether that particular reorder is visible, such a cluster is
- * split back into its contiguous index runs — `pdf-artwork.ts`'s "refuse when
+ * split back into its contiguous index runs - `pdf-artwork.ts`'s "refuse when
  * unsure" bias, applied to ordering instead of to detection. An unmeasurable
  * non-member counts as overlapping: unknown means refuse.
  */
@@ -922,27 +922,27 @@ function splitUnsafeClusters(clusters: number[][], boxes: Array<SvgLayerBox | nu
 // ─── the pass ───────────────────────────────────────────────────────────────
 
 interface Candidate {
-  /** Member nodes in document order — one for a group, N for a cluster. */
+  /** Member nodes in document order - one for a group, N for a cluster. */
   members: Node[];
   bbox: SvgLayerBox | null;
   /** Document index of the first member: the candidate's place in paint order. */
   order: number;
   /**
-   * The open tags this candidate sits INSIDE, outermost first — the root's
+   * The open tags this candidate sits INSIDE, outermost first - the root's
    * descended wrappers plus, for a hero's children, the hero's own chain. Each
    * is re-emitted around the body so geometry and inherited paint survive.
    */
   wrappers: Tag[];
   /** Root-units matrix of that chain, or null when any link was unparseable. */
   mat: Mat | null;
-  /** Every member's bounds were measurable — the crop's precondition. */
+  /** Every member's bounds were measurable - the crop's precondition. */
   measured: boolean;
   /** Paint elements inside it: the hero test's unit. */
   ink: number;
 }
 
 /**
- * Paint elements in a node's subtree — what the hero test counts.
+ * Paint elements in a node's subtree - what the hero test counts.
  *
  * `<defs>` and friends are skipped WHOLE: a gradient with twelve stops is not
  * twelve drawings, and a document whose defs outnumber its artwork would
@@ -965,7 +965,7 @@ function inkOf(tags: Tag[], node: Node): number {
   return n;
 }
 
-/** The largest scale factor a chain matrix applies — how much a stroke grew. */
+/** The largest scale factor a chain matrix applies - how much a stroke grew. */
 function matScale(m: Mat | null): number {
   if (!m) return 1;
   return Math.max(Math.hypot(m[0], m[1]), Math.hypot(m[2], m[3])) || 1;
@@ -994,7 +994,7 @@ function buildLevel(
   // Budgeted clustering: walk the merge distance UPWARDS and stop at the first
   // one that fits, which is the finest grouping the budget allows. Starting at
   // the root's own gap and only coarsening was measured to overshoot in the
-  // other direction — 80 candidates collapsing to 3, a "descent" that swaps one
+  // other direction - 80 candidates collapsing to 3, a "descent" that swaps one
   // mega-layer for another. The budget is a ceiling on how many boxes a person
   // is asked to accept, not a target to hit from below.
   let clusters: number[][] = [];
@@ -1033,13 +1033,13 @@ function buildLevel(
 interface Descent { candidates: Candidate[]; carry: Node[] }
 
 /**
- * Take one candidate apart into the level below it — the hero problem's answer.
+ * Take one candidate apart into the level below it - the hero problem's answer.
  *
  * Only a single-node container is descendable, and only when it does not
  * composite as a unit: the same two refusals the root-level wrapper descent
  * makes, for the same reason. Lone wrappers on the way down are walked through
  * (a hero is routinely `<g><g><g>…the page`), and each becomes an emitted
- * ancestor of every child, so nothing about the picture changes — only which
+ * ancestor of every child, so nothing about the picture changes - only which
  * boxes it arrives in.
  */
 function descendInto(tags: Tag[], c: Candidate, onSplit: () => void): Descent | null {
@@ -1076,7 +1076,7 @@ function descendInto(tags: Tag[], c: Candidate, onSplit: () => void): Descent | 
  * Never throws. A document it cannot make sense of yields `layers: []` and a
  * warning saying why, in words a person can read in a dialog.
  *
- * @param markup  SVG source text — the shell's DOMPurify-sanitised string.
+ * @param markup  SVG source text - the shell's DOMPurify-sanitised string.
  * @param opts    {@link SvgLayerOptions}
  */
 export function enumerateSvgLayers(markup: string, opts: SvgLayerOptions = {}): SvgLayersResult {
@@ -1085,7 +1085,7 @@ export function enumerateSvgLayers(markup: string, opts: SvgLayerOptions = {}): 
     return enumerate(markup, opts, warnings);
   } catch {
     // Defence in depth: the body is written not to throw, so reaching here is a
-    // bug — but a bug in a lift must not take down the editor that called it.
+    // bug - but a bug in a lift must not take down the editor that called it.
     warnings.push('could not read this SVG');
     return { layers: [], warnings, viewBox: null };
   }
@@ -1112,13 +1112,13 @@ function enumerate(markup: string, opts: SvgLayerOptions, warnings: string[]): S
   const root = tags[rootIdx]!;
   if (root.kind === 'self') return empty('this SVG is empty');
 
-  // The root composites its children AS A UNIT — exactly the test the descent
+  // The root composites its children AS A UNIT - exactly the test the descent
   // already applies to a wrapper `<g>`, applied to the element that wraps
   // everything. `rootAttributes()` re-emits the root verbatim into every derived
   // document, so an `opacity="0.55"` up here would be applied N times over
   // instead of once over the composite. Measured (Chromium, 320×240, two
   // overlapping groups): 45 203 channels beyond ±1 against a suite budget of 154,
-  // mean absolute error 5.70 — a lift defect by the browser suite's own numbers,
+  // mean absolute error 5.70 - a lift defect by the browser suite's own numbers,
   // and it produced no warning at all because nothing looked. `filter` on the
   // root: 12 952 channels. There is no split that preserves this picture (leaving
   // the property on each layer over-applies it, stripping it drops it), so the
@@ -1155,7 +1155,7 @@ function enumerate(markup: string, opts: SvgLayerOptions, warnings: string[]): S
     if (!kids) break;
     const inner: Node[] = [];
     // Staged, not appended: if the descent turns out not to happen, the wrapper
-    // stays whole and ITS OWN markup already contains these — hoisting them into
+    // stays whole and ITS OWN markup already contains these - hoisting them into
     // `carry` as well would emit every id in it twice.
     const innerCarry: Node[] = [];
     for (const k of kids) {
@@ -1172,7 +1172,7 @@ function enumerate(markup: string, opts: SvgLayerOptions, warnings: string[]): S
   // ── bound the clustering before it bounds us ──────────────────────────────
   // The overflow is a contiguous run at the END of the document, which is why
   // folding it into one layer is safe: paint order within it is preserved and
-  // nothing painted before it moves. Its bbox is left unmeasured — a bucket does
+  // nothing painted before it moves. Its bbox is left unmeasured - a bucket does
   // not have a meaningful outline, and measuring it would reinstate the linear
   // scan over the very nodes the cap exists to skip.
   let overflow: Node[] = [];
@@ -1187,7 +1187,7 @@ function enumerate(markup: string, opts: SvgLayerOptions, warnings: string[]): S
 
   // ── one candidate per group; stray leaves cluster ─────────────────────────
   // Bounds are reported in ROOT user units, so anything the descent walked
-  // through has to be folded back in — a wrapper's `transform` is exactly the
+  // through has to be folded back in - a wrapper's `transform` is exactly the
   // difference between "where this shape is in the file" and "where it is in the
   // picture". An unparseable wrapper transform makes every box unmeasurable
   // rather than wrong, which the clustering then treats as "refuse to merge".
@@ -1225,7 +1225,7 @@ function enumerate(markup: string, opts: SvgLayerOptions, warnings: string[]): S
 
   // ── the hero problem: one layer holding the artwork is not a stack ─────────
   // Spliced IN PLACE, never re-sorted: a hero's children all live inside its own
-  // span, so putting them where it was is exactly their place in paint order —
+ // span, so putting them where it was is exactly their place in paint order -
   // and `order` below a descent is a different level's index, which a global
   // sort would happily interleave with this one's.
   if (opts.heroDescent !== false) {
@@ -1257,7 +1257,7 @@ function enumerate(markup: string, opts: SvgLayerOptions, warnings: string[]): S
     // A tail merged across two levels has no single wrapper chain, so it takes
     // the outermost one it can: the root's own. Its members are re-emitted
     // verbatim, wrappers and all, because a hero's children are sliced INSIDE
-    // the hero's span — the chain is in the bytes.
+    // the hero's span - the chain is in the bytes.
     final = [...candidates.slice(0, cap - 1), {
       members: tail.flatMap((c) => c.members).sort((a, b) => a.start - b.start),
       bbox: tail.reduce<SvgLayerBox | null>((acc, c) => boxUnion(acc, c.bbox), null),
@@ -1275,8 +1275,8 @@ function enumerate(markup: string, opts: SvgLayerOptions, warnings: string[]): S
   const carryMarkup = carry.map((c) => sliceKeeping(markup, drops, c.start, c.end)).join('');
   const srcViewBox = viewBoxOf(root.attrs);
   // ⚑ A carried `<style>` takes cropping off the table for the WHOLE document.
-  // CSS can set `filter`, `stroke-width`, and — since SVG 2, in every engine we
-  // ship to — the geometry properties `width`/`height`/`r`/`cx`… in percentages
+  // CSS can set `filter`, `stroke-width`, and - since SVG 2, in every engine we
+  // ship to - the geometry properties `width`/`height`/`r`/`cx`… in percentages
   // of the viewport, which is precisely what a crop changes. None of that is
   // visible to a per-element scan of the markup, and a stylesheet applies to
   // every layer, so the honest granularity is the document. Costs nothing on our
@@ -1284,7 +1284,7 @@ function enumerate(markup: string, opts: SvgLayerOptions, warnings: string[]): S
   const cropping = opts.cropToInk !== false && !!srcViewBox && !/<style\b/i.test(carryMarkup);
   // The scale the caller will PLACE the cropped rows at (see `cropScale`). Read
   // once, held to something sane here rather than in the per-layer loop, and 1:1
-  // when the caller says nothing — which is both the honest default and the exact
+  // when the caller says nothing - which is both the honest default and the exact
   // arithmetic 1.121 shipped.
   const cropScale = {
     x: opts.cropScale && Number.isFinite(opts.cropScale.x) && opts.cropScale.x > 0 ? opts.cropScale.x : 1,
@@ -1293,10 +1293,10 @@ function enumerate(markup: string, opts: SvgLayerOptions, warnings: string[]): S
 
   // Everything that rides into EVERY derived document unchanged: the carried
   // non-rendering siblings and the descended wrappers' own open tags. Both can
-  // POINT AT an id — a carried `<clipPath><use href="#s"/></clipPath>` (exactly
+  // POINT AT an id - a carried `<clipPath><use href="#s"/></clipPath>` (exactly
   // the shape Illustrator's `<clipPath><use href="#SVGID_1_"/>` takes), a
   // descended `<g clip-path="url(#c)">` whose `<clipPath>` lives inside one of
-  // the layers — and the repair used to look at the layer BODY only. Measured:
+  // the layers - and the repair used to look at the layer BODY only. Measured:
   // a wrapper clip whose path lives in layer 2 left layer 1 rendering unclipped,
   // 76 800 channels different (Chromium paints an unresolvable `clip-path` as no
   // clip at all), warnings empty. They are the same bytes in every layer, so
@@ -1358,13 +1358,13 @@ function enumerate(markup: string, opts: SvgLayerOptions, warnings: string[]): S
 }
 
 /**
- * The root's attributes, verbatim, with `xmlns` guaranteed — and, for a cropped
+ * The root's attributes, verbatim, with `xmlns` guaranteed - and, for a cropped
  * layer, with `viewBox`/`width`/`height` replaced by the crop.
  *
  * Verbatim matters: `preserveAspectRatio` and any `xmlns:*` declaration a
  * `<use>` needs are in there, and reproducing them exactly is what keeps a
  * derived layer in the SOURCE's coordinate system. The crop does not leave that
- * system — it is a WINDOW onto it, and the row it lands in is the same window
+ * system - it is a WINDOW onto it, and the row it lands in is the same window
  * over the source box, so the picture is unmoved and unscaled.
  *
  * `width`/`height` go with the viewBox necessarily: left at the source's, the
@@ -1385,7 +1385,7 @@ function rootAttributes(attrs: string, crop?: SvgLayerBox | null): string {
  *
  * The shell has to decide whether cropping is allowed before the documents are
  * derived (a cropped document needs a row cut to the same rect), and that
- * decision needs the source's viewBox — one regex over the root tag, rather than
+ * decision needs the source's viewBox - one regex over the root tag, rather than
  * a full enumeration thrown away. Same answer {@link SvgLayersResult.viewBox}
  * gives, from the same reader.
  */
@@ -1397,7 +1397,7 @@ export function svgRootViewBox(markup: string): SvgLayerBox | null {
 
 /**
  * The source's own coordinate system: its `viewBox`, else its `width`/`height`
- * (which is the same rect written the other way), else null — a document that
+ * (which is the same rect written the other way), else null - a document that
  * declares neither has no user-unit rect to map a crop through.
  */
 function viewBoxOf(attrs: string): SvgLayerBox | null {
@@ -1427,16 +1427,16 @@ interface Spill {
 /**
  * Walk one member's subtree for everything a bounding box does not see.
  *
- * Three answers come out of the same walk because they need the same thing — the
+ * Three answers come out of the same walk because they need the same thing - the
  * live transform chain at each element:
  *
  *   • **filter regions.** A `filter` paints outside its element, but a filter
  *     also DECLARES the rect it may paint in, and `filterUnits="userSpaceOnUse"`
  *     makes that rect readable numbers (which is exactly what our own walker
  *     emits for every CSS box-shadow: `<filter … x="-80" y="426.88" width="260"
- *     height="264">`). Resolved and unioned in; anything else — a percentage
+ *     height="264">`). Resolved and unioned in; anything else - a percentage
  *     region, `objectBoundingBox` units, a reference that does not resolve to a
- *     `<filter>` — refuses the crop rather than guessing.
+ *     `<filter>` - refuses the crop rather than guessing.
  *   • **stroke half-widths**, scaled by the chain, because the measured box is
  *     the path and the stroke straddles it.
  *   • **percentage lengths**, which resolve against the viewport a crop is about
@@ -1522,7 +1522,7 @@ function filterRegion(tags: Tag[], index: IdIndex, value: string): SvgLayerBox |
  * SOURCE viewBox, so ink the original clipped away cannot reappear because its
  * layer was handed a bigger window (a walker screenshot of a scrolling page has
  * layers taller than the picture); and no crop at all when it would save
- * nothing — a layer that fills the stage IS the stage, and rewriting its root to
+ * nothing - a layer that fills the stage IS the stage, and rewriting its root to
  * say so is churn.
  */
 function cropFor(
@@ -1550,16 +1550,16 @@ function cropFor(
   if (!box) return null;
   const pad = CROP_PAD + half * STROKE_MITER_LIMIT;
 
-  // Snapped OUTWARDS in ROW SPACE — whole px of the rectangle this document will
-  // be drawn into — before it is clamped to the source. A crop is rendered into a
+  // Snapped OUTWARDS in ROW SPACE - whole px of the rectangle this document will
+  // be drawn into - before it is clamped to the source. A crop is rendered into a
   // row of the same rect, so a crop whose edges land between device pixels asks
   // the browser to resample the whole layer back onto the grid, and every
   // anti-aliased edge in it moves.
   //
   // ⚑ 1.121 SNAPPED IN USER UNITS, which is the same thing ONLY at scale 1. The
-  // identity suite's fixtures are all 320×240 into a 320×240 box — k = 1 with an
+  // identity suite's fixtures are all 320×240 into a 320×240 box - k = 1 with an
   // integer viewBox, the single configuration where whole user units are also
-  // whole row px — so the "fidelity-neutral, measured" claim was made on the one
+  // whole row px - so the "fidelity-neutral, measured" claim was made on the one
   // case that could not see the defect. On real content the row scale is whatever
   // the box happens to be: `docs/shots/brand-colours.svg` in a 1000×625 box
   // (k = 0.694) measured 88 675 channels beyond ±1 with the crop on against 1 758
@@ -1568,7 +1568,7 @@ function cropFor(
   // PRODUCT that has to be whole, which is why the scale has to be passed in.
   //
   // The preimage is `src.x + n/k`, so the crop is generally fractional and the row
-  // is not — which is the right way round: a viewBox only has to be a superset of
+  // is not - which is the right way round: a viewBox only has to be a superset of
   // the ink, a row has to be a rectangle of pixels.
   const kx = Number.isFinite(scale.x) && scale.x > 0 ? scale.x : 1;
   const ky = Number.isFinite(scale.y) && scale.y > 0 ? scale.y : 1;
@@ -1595,7 +1595,7 @@ interface Refs { ids: string[]; more: boolean }
 /**
  * The layer's own references, plus the ones every layer inherits from the
  * carried markup and the descended wrappers. Deduped, and capped exactly like a
- * single scan is — the cap is on what one derived document may ask for, not on
+ * single scan is - the cap is on what one derived document may ask for, not on
  * where the asking came from.
  */
 function mergeRefs(own: Refs, shared: Refs): Refs {
@@ -1623,7 +1623,7 @@ function referencedIds(body: string): Refs {
     const id = (m[1] ?? m[2] ?? '').trim();
     if (!id || seen.has(id)) continue;
     // Checked BEFORE the push, so the flag means "there is a 65th", not merely
-    // "there is a 64th" — a document sitting exactly on the cap loses nothing and
+    // "there is a 64th" - a document sitting exactly on the cap loses nothing and
     // is told nothing.
     if (out.length >= SVG_LAYERS_MAX_REFS) { more = true; break; }
     seen.add(id);
@@ -1639,7 +1639,7 @@ function referencedIds(body: string): Refs {
  * "where do I copy `#p` FROM" (`first`) and "is `#p` already resolvable in THIS
  * layer" (`at`, queried by byte span). The second one used to be a fresh
  * `RegExp` per (layer × reference) run over the whole layer body and the whole
- * carried markup — bounded on both axes, but by a PRODUCT: 64 layers × 64 refs ×
+ * carried markup - bounded on both axes, but by a PRODUCT: 64 layers × 64 refs ×
  * 4 MB is ~16 GB of character scanning, all of it inside the declared caps.
  * Measured on the shipped code, main thread, editor frozen behind "Reading the
  * artwork…": 1.8 s for plain filler, 10.7 s when the filler near-misses the
@@ -1651,9 +1651,9 @@ function referencedIds(body: string): Refs {
  * bodies PARTITION the document, so the whole loop is linear again.
  */
 interface IdIndex {
-  /** id → tag index of its FIRST definition — what a borrow copies. */
+  /** id → tag index of its FIRST definition - what a borrow copies. */
   first: Map<string, number>;
-  /** Every id-bearing tag, ascending by position — the span query's array. */
+  /** Every id-bearing tag, ascending by position - the span query's array. */
   at: Array<{ start: number; id: string }>;
 }
 
@@ -1682,7 +1682,7 @@ function lowerBound(at: IdIndex['at'], from: number): number {
   return lo;
 }
 
-/** The ids DEFINED inside a set of byte spans — "already resolvable here?". */
+/** The ids DEFINED inside a set of byte spans - "already resolvable here?". */
 function idsInSpans(index: IdIndex, spans: Array<readonly [number, number]>): Set<string> {
   const out = new Set<string>();
   for (const [from, to] of spans) {
@@ -1718,7 +1718,7 @@ function dropSpans(tags: Tag[]): Array<[number, number]> {
 /**
  * `markup.slice(from, to)` with any dropped subtree inside it spliced out.
  *
- * Still verbatim — every character emitted is the input's own — and still
+ * Still verbatim - every character emitted is the input's own - and still
  * bounded: the drops are disjoint and sorted, so the walk visits only those that
  * intersect this span, and the spans a caller passes are themselves disjoint.
  */
@@ -1739,12 +1739,12 @@ function sliceKeeping(markup: string, drops: Array<[number, number]>, from: numb
 }
 
 /**
- * Repair cross-layer `#id` references — §11's pathological `<use>` case.
+ * Repair cross-layer `#id` references - §11's pathological `<use>` case.
  *
  * `<g id="a"><path id="p"/></g><g id="b"><use href="#p"/></g>`: lift those two
  * groups apart and layer 2 references a path that is no longer in its document,
  * so it renders nothing. The referenced element is copied into a `<defs>` of the
- * borrowing layer, where it PAINTS NOTHING — so the copy cannot double-draw —
+ * borrowing layer, where it PAINTS NOTHING - so the copy cannot double-draw -
  * and `<use>`'s own semantics (render the referent as if cloned here, WITHOUT
  * its original ancestors' transforms) are exactly what a `<defs>` copy
  * reproduces.
@@ -1764,7 +1764,7 @@ function borrowedDefs(
   const out: string[] = [];
   for (const id of wanted.ids) {
     // Already resolvable from this layer's own body, the carried defs or a
-    // descended wrapper? Then there is nothing to repair — and re-adding it
+    // descended wrapper? Then there is nothing to repair - and re-adding it
     // would duplicate an id.
     if (resolvable(id)) continue;
     const at = first.get(id);
@@ -1775,8 +1775,8 @@ function borrowedDefs(
   }
   // A reference the source itself never defined is left dangling in silence: it
   // was broken before the lift and the lift did not break it. References PAST THE
-  // CAP are the lift's doing — nothing looked at them, so anything among them
-  // that lived in another layer will not paint — and that is said out loud.
+  // CAP are the lift's doing - nothing looked at them, so anything among them
+  // that lived in another layer will not paint - and that is said out loud.
   if (wanted.more) {
     warnings.push(`layer ${layerNo}: more than ${SVG_LAYERS_MAX_REFS} shared references — the rest were left unrepaired`);
   }

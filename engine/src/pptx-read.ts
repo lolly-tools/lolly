@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
- * pptx-read.ts — PARSE an unzipped .pptx part map into a read-model.
+ * pptx-read.ts: PARSE an unzipped .pptx part map into a read-model.
  *
  * This is the read half of the PPTX story (`pptx.ts` is the mature *builder*).
  * It mirrors `pdf-map.ts`: a pure, DOM-free interpreter that turns an already-
@@ -12,7 +12,7 @@
  *   (fflate in the shells; a fixture map in tests). Zip inflation + the `PK`
  *   magic-byte sniff live in the caller, not here.
  * • The engine is XML-library-free, so we ACCEPT AN INJECTED PARSER
- *   `parseXml:(s:string)=>Document` — exactly the way the runtime injects the
+ *   `parseXml:(s:string)=>Document`, exactly the way the runtime injects the
  *   host bridge. The web shell passes the native `DOMParser`; Node shells / tests
  *   pass one built from jsdom or @xmldom. We import NO DOM library and never
  *   touch `document`/`window`/`fetch`.
@@ -23,7 +23,7 @@
  * ── SECURITY (a hostile zip is the threat model, same as PDF) ─────────────────
  * Every part is size-capped before parsing; slide/node/paragraph/run/table
  * counts are capped; group-shape recursion is depth-capped; a malformed or
- * hostile part NEVER throws — we return what parsed and skip the rest. XML
+ * hostile part NEVER throws: we return what parsed and skip the rest. XML
  * entity-expansion (billion-laughs) is the injected parser's responsibility, but
  * we additionally bound every DFS by a visited-node counter so a pathologically
  * deep/wide tree can't hang us.
@@ -39,11 +39,11 @@
  * original slot name.
  *
  * DEFERRED, explicitly (documented so it isn't mistaken for a bug):
- *   • Placeholder / layout / master INHERITANCE — the genuinely hard part of
+ *   • Placeholder / layout / master INHERITANCE: the genuinely hard part of
  *     reading PowerPoint. We read the slide spTree DIRECTLY; a run that inherits
  *     its size/colour from a layout/master placeholder (no explicit rPr) is read
  *     with only what the slide states. Best-effort, not full cascade.
- *   • Group-shape child-offset transforms (grpSp chOff/chExt) — children are
+ *   • Group-shape child-offset transforms (grpSp chOff/chExt): children are
  *     flattened with their own xfrm as-authored; the group's coordinate remap is
  *     not composed.
  *   • gradFill / pattFill / blipFill-as-shape-fill, prstClr named colours,
@@ -61,7 +61,7 @@ export type PptxParts = Record<string, Uint8Array | string>;
 export type XmlParser = (xml: string) => Document;
 
 /**
- * A colour with its PROVENANCE preserved — this is what makes token-aware
+ * A colour with its PROVENANCE preserved: this is what makes token-aware
  * rebranding possible ("this fill *was* accent1"). A schemeClr keeps its slot
  * name AND carries the theme-resolved hex; a literal srgbClr carries only a hex.
  */
@@ -165,7 +165,7 @@ const MAX_TABLE_COLS = 512;
 const MAX_TEXT_LEN = 200_000; // per run/cell text clamp
 const MAX_DFS_VISITS = 200_000; // bound any descendant search
 const MAX_COORD = 1e11; // EMU magnitude clamp (slide width is ~1.2e7)
-const DEFAULT_W_EMU = 12_192_000; // 13.333in — 16:9 default
+const DEFAULT_W_EMU = 12_192_000; // 13.333in, 16:9 default
 const DEFAULT_H_EMU = 6_858_000; // 7.5in
 
 // Node type constant (avoids depending on the DOM `Node` value namespace).
@@ -220,7 +220,7 @@ function descendantByLocal(root: Element, local: string): Element | null {
     if (++visits > MAX_DFS_VISITS) return null;
     if (el !== root && elemLocal(el) === local) return el;
     const kids = el.childNodes;
-    // push in reverse so DFS keeps document order-ish (not load-bearing)
+    // push in reverse so DFS keeps document order-ish (order doesn't matter here)
     for (let i = kids.length - 1; i >= 0; i--) {
       const n = kids[i];
       if (isElement(n)) stack.push(n as unknown as Element);
@@ -387,7 +387,7 @@ function parseRels(store: PartStore, partPath: string, parseXml: XmlParser): Rel
 // ─── colour resolution ───────────────────────────────────────────────────────
 
 // Default clrMap: how the master maps the placeholder slots (bg/tx) to the
-// theme's dk/lt slots. Per-slide clrMapOvr is DEFERRED — the default is assumed.
+// theme's dk/lt slots. Per-slide clrMapOvr is DEFERRED: the default is assumed.
 function schemeSlotToThemeKey(slot: string): string {
   switch (slot) {
     case 'bg1':
@@ -411,7 +411,7 @@ function resolveScheme(slot: string, theme: PptxReadTheme): PptxReadColor {
 /**
  * Read the colour inside a container element (a `solidFill`, or a clrScheme
  * slot). Recognises srgbClr / schemeClr / sysClr. lumMod/lumOff transforms are
- * read as provenance-only (not applied — deferred). gradFill/pattFill/prstClr →
+ * read as provenance-only (not applied; deferred). gradFill/pattFill/prstClr →
  * undefined (deferred).
  */
 function readColor(container: Element | null, theme: PptxReadTheme): PptxReadColor | undefined {
@@ -505,7 +505,7 @@ function readTheme(store: PartStore, parseXml: XmlParser): PptxReadTheme {
 // ─── geometry ────────────────────────────────────────────────────────────────
 
 /** Read an `xfrm` that is a direct child of `container` (spPr for sp/pic; the
- *  graphicFrame itself for tables — there it's `p:xfrm`, same local name). */
+ *  graphicFrame itself for tables; there it's `p:xfrm`, same local name). */
 function readXfrm(container: Element | null): NodeBox {
   const box: NodeBox = { xEmu: 0, yEmu: 0, cxEmu: 0, cyEmu: 0 };
   if (!container) return box;
@@ -573,7 +573,7 @@ function readTxBody(txBody: Element | null, theme: PptxReadTheme): PptxReadPara[
       } else if (ln === 'br') {
         runs.push({ text: '\n' });
       } else if (ln === 'fld') {
-        // a field (slide number, date…) — capture its cached text best-effort
+        // a field (slide number, date, etc.): capture its cached text best-effort
         const text = textOf(firstChildByLocal(child, 't'));
         if (text) runs.push({ text });
       }
@@ -674,7 +674,7 @@ function walkTree(
         case 'sp':
           out.push(readSp(child, theme));
           break;
-        case 'cxnSp': // connector — a shape with geom + line, no text
+        case 'cxnSp': // connector: a shape with geom + line, no text
           out.push(readSp(child, theme));
           break;
         case 'pic':
@@ -684,15 +684,15 @@ function walkTree(
           out.push(readGraphicFrame(child, theme));
           break;
         case 'grpSp':
-          // NOTE: group child-offset transform (chOff/chExt) is DEFERRED —
-          // children keep their own authored xfrm.
+          // NOTE: group child-offset transform (chOff/chExt) is DEFERRED.
+          // Children keep their own authored xfrm.
           walkTree(child, theme, slideRelsById, out, depth + 1);
           break;
         case 'nvGrpSpPr':
         case 'grpSpPr':
-          break; // group's own metadata — skip
+          break; // group's own metadata, skip
         default:
-          break; // unrecognised structural child — ignore silently
+          break; // unrecognised structural child, ignore silently
       }
     } catch {
       // A malformed shape never sinks the slide.
@@ -736,7 +736,7 @@ function slidePathsInOrder(store: PartStore, parseXml: XmlParser): string[] {
     if (sldIdLst) {
       for (const sldId of childrenByLocal(sldIdLst, 'sldId')) {
         // A p:sldId carries a numeric `id` (the slide id, not a rel) plus the
-        // relationship reference in the namespaced `r:id` attribute — that's the
+        // relationship reference in the namespaced `r:id` attribute; that's the
         // one that resolves to the slide part.
         const relId = readRid(sldId);
         const rel = relId ? byId.get(relId) : undefined;

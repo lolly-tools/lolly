@@ -1,13 +1,13 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
- * SVG path `d` tokenizer — pure, DOM-free, platform-agnostic.
+ * SVG path `d` tokenizer. Pure, DOM-free, platform-agnostic.
  *
  * Turns an SVG path data string into normalized **absolute** subpaths whose only
- * segment ops are M / L / C / Z. Every shorthand is expanded: H/V → L, S/T →
- * reflected cubic/quadratic, Q/T → cubic, A → cubic beziers (SVG appendix F.6).
- * This is the single source of truth for path parsing, shared by the PDF emitter
- * (drawSvgPathToPdf is now a thin adapter over it) and the EMF emitter
- * (engine/src/emf.js). One tokenizer, many sinks — see plans/63-emf-support.md.
+ * segment ops are M / L / C / Z. Every shorthand is expanded: H/V becomes L, S/T
+ * becomes reflected cubic/quadratic, Q/T becomes cubic, A becomes cubic beziers
+ * (SVG appendix F.6). This is the single source of truth for path parsing, shared
+ * by the PDF emitter (drawSvgPathToPdf is now a thin adapter over it) and the EMF
+ * emitter (engine/src/emf.js). One tokenizer, many sinks; see plans/63-emf-support.md.
  *
  * Output:
  *   parseSvgPath(d) → Array<{ segments: Segment[], closed: boolean }>
@@ -16,7 +16,7 @@
  *     | { op:'L', x, y }
  *     | { op:'C', x1,y1, x2,y2, x, y }   // all curves normalized to cubic
  *
- * Coordinates are in the path's own user space (no transform applied) — callers
+ * Coordinates are in the path's own user space, with no transform applied. Callers
  * map them into device/page space themselves. `closed` reflects an explicit Z.
  */
 
@@ -47,8 +47,8 @@ export function parseSvgPathArgs(str: string): number[] {
  * Each run is groups of 7: rx, ry, x-axis-rotation (numbers), large-arc-flag and
  * sweep-flag (each a SINGLE '0'/'1' char, which may be immediately followed by the
  * next number with no separator), then x, y. The generic number tokenizer
- * mis-reads compact, SVGO-optimized flags — e.g. "0110" as one number 110 — so
- * arcs need this dedicated pass.
+ * mis-reads compact, SVGO-optimized flags (for example "0110" as one number 110),
+ * so arcs need this dedicated pass.
  */
 function parseArcArgs(str: string): number[] {
   const numRe  = /[+-]?(?:\d+\.?\d*|\.\d+)(?:[eE][+-]?\d+)?/y;

@@ -3,14 +3,14 @@
  * Machine-usable redaction instructions on the CLI (plans/37-redact-tool.md §3).
  *
  * The bars array plus its options ARE the instruction format, and URL mode already
- * serialises them — so ONE canonical string has to survive a share link, an argv
+ * serialises them - so ONE canonical string has to survive a share link, an argv
  * invocation, and an MCP call. These cases pin the argv half:
  *
  *   • a `blocks` input arrives intact through --flag=… in tilde, JSON and CSV form;
  *   • a transform hook that can't run in the Node host escalates to the browser
  *     tier, and when that tier is missing the CLI says exactly what is missing
  *     instead of writing an unredacted or blank file;
- *   • a VERIFICATION failure is never mistaken for a missing capability — it fails
+ *   • a VERIFICATION failure is never mistaken for a missing capability - it fails
  *     the run, writes nothing, and keeps its own sentence;
  *   • --verify prints one line per file, only after the export gate ran clean.
  *
@@ -18,7 +18,7 @@
  * LOLLY_WEB_DIST pointed at a directory with no built shell, so the browser tier
  * is deterministically unavailable and no Chromium is ever launched here. The real
  * browser-tier path is verified by hand against the built web shell (see the
- * plan's §3 notes) — node:test must stay browser-free.
+ * plan's §3 notes) - node:test must stay browser-free.
  *
  * Run with: node --test tests/cli-redact-instructions.test.ts
  */
@@ -122,7 +122,7 @@ async function run(toolId: string, params: Record<string, string>, outputPath?: 
 test('needsBrowserTier tells a missing capability from a failed verification', () => {
   assert.equal(needsBrowserTier('Redacting this file needs a browser canvas. Open this tool in the Lolly web app.'), true);
   assert.equal(needsBrowserTier('PDF redaction is not available in this app.'), true);
-  // The gate's sentences must NEVER escalate — a failed check is a failed run.
+  // The gate's sentences must NEVER escalate - a failed check is a failed run.
   assert.equal(needsBrowserTier('Verification failed: the rebuilt PDF still carries Info. Nothing was downloaded.'), false);
   assert.equal(needsBrowserTier('Choose a file first.'), false);
   assert.equal(needsBrowserTier('That file is not a supported image, SVG or PDF.'), false);
@@ -170,7 +170,7 @@ test('a hook that needs a canvas escalates, and names what the browser tier is m
   await assert.rejects(
     run('needs-browser', { source: SRC, bars: '1,1,1,10,10' }, out, true).then(s => { err = s; }),
     (e: Error) => {
-      // The failure must name the missing piece — never a silent unredacted file.
+      // The failure must name the missing piece - never a silent unredacted file.
       assert.match(e.message, /No built web shell/);
       assert.match(e.message, /npm run build:web/);
       return true;

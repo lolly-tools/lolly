@@ -1,20 +1,20 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
- * The gamut SOLID — a display's whole reachable colour volume as a rotatable
+ * The gamut SOLID: a display's whole reachable colour volume as a rotatable
  * 3D surface in OKLCH.
  *
  * The slice charts in gamut.ts answer "how much room is left at this hue?". They
  * cannot show the shape they are slicing, and that shape is the thing that
  * explains the slices: sRGB in OKLab is not a box or a ball but a lumpy solid
  * with six corners (the RGB cube's corners), pinched at black and white and
- * bulging much further out at yellow than at blue. Once you have turned it once,
- * every horseshoe in the 2D charts stops looking arbitrary.
+ * bulging much further out at yellow than at blue. Once the solid has been
+ * turned once, every horseshoe in the 2D charts stops looking arbitrary.
  *
  * ## What this module does and does not own
  *
  * It builds the surface as a quad mesh, rotates it, and returns depth-sorted 2D
  * polygons with a colour each. There is no canvas, no SVG and no interaction
- * here — a shell paints the polygons it is handed, in whatever surface it likes,
+ * here. A shell paints the polygons it is handed, in whatever surface it likes,
  * and feeds back a yaw/pitch when the user drags. That keeps the 3D maths pure
  * and testable, and means the same solid can be drawn to a canvas in the web
  * shell or to paths in a vector export.
@@ -22,7 +22,7 @@
  * Painter's algorithm rather than a depth buffer: the surface is a closed
  * star-shaped-ish hull of a few thousand small quads, so sorting by centroid
  * depth is both correct enough and far cheaper than per-pixel work. Where it
- * would be wrong — long thin quads straddling in depth — the quads are small
+ * would be wrong (long thin quads straddling in depth), the quads are small
  * enough that the error is sub-pixel.
  *
  * Pure and deterministic: no Date, no Math.random, no IO.
@@ -34,7 +34,7 @@ import { oklchToHex } from './brand-derive.ts';
 
 /**
  * A point in the model's own space: `x` and `z` are the two horizontal axes,
- * `y` is vertical. What each axis MEANS depends on the embedding — see
+ * `y` is vertical. What each axis MEANS depends on the embedding, see
  * {@link SolidEmbed}.
  */
 export interface SolidPoint { x: number; z: number; y: number }
@@ -48,13 +48,13 @@ export interface SolidQuad {
   /**
    * The centre's colour as AUTHORED, before `hex` clamped it into sRGB.
    *
-   * `hex` is a bake and cannot describe a patch of a P3 or Rec.2020 surface — on
+   * `hex` is a bake and cannot describe a patch of a P3 or Rec.2020 surface. On
    * a wide-gamut display that is exactly the colour the chart exists to show. A
    * caller painting into a wide-gamut surface fills from this; `hex` remains the
    * right answer for an sRGB one, and for a label.
    */
   oklch: { l: number; c: number; h: number };
-  /** The surface normal's `l` component — used for shading, and to tell a cap
+  /** The surface normal's `l` component. Used for shading, and to tell a cap
    *  (facing up or down) from the side wall. */
   up: number;
 }
@@ -62,8 +62,8 @@ export interface SolidQuad {
 /**
  * How the (lightness, hue, max-chroma) grid is laid out in 3D.
  *
- * `'cylinder'` wraps hue around a vertical lightness axis, chroma outward — the
- * gamut as a lumpy solid you can turn.
+ * `'cylinder'` wraps hue around a vertical lightness axis, chroma outward. This is
+ * the gamut as a lumpy solid you can turn.
  *
  * `'landscape'` lays hue out FLAT along one horizontal axis, lightness along the
  * other, and stands chroma up as height. It reads much better for the question
@@ -72,7 +72,7 @@ export interface SolidQuad {
  * is wrapped around the back. It is the same numbers; only the embedding differs.
  *
  * `'lab'` is the ColorSync / iccview picture: the opponent axes a and b on the
- * floor, lightness standing up, and — the part that matters — ONE scale for all
+ * floor, lightness standing up, and, the part that matters, ONE scale for all
  * three, so the proportions are true. The cylinder normalises chroma by the
  * gamut's own widest reach, which makes every gamut fill the frame identically
  * and quietly destroys the comparison a press profile is loaded to make. In
@@ -83,10 +83,10 @@ export type SolidEmbed = 'cylinder' | 'landscape' | 'lab';
 /**
  * The model-space size of one unit of OKLab distance in the `'lab'` embedding.
  *
- * Lightness spans 1 and chroma spans at most `2·maxRadius` (~0.64 for sRGB), so
+ * Lightness spans 1 and chroma spans at most `2 x maxRadius` (~0.64 for sRGB), so
  * lightness is normally the longer axis and sets the unit; a source that reaches
- * further than L does widens it instead, keeping the model inside its ±1 box.
- * Isotropy is the whole point — divide both axes by the SAME number or the plot
+ * further than L does widens it instead, keeping the model inside its +-1 box.
+ * Isotropy is the whole point: divide both axes by the SAME number or the plot
  * is a cylinder with extra steps.
  */
 export function labSolidUnit(maxRadius: number): number {
@@ -99,7 +99,7 @@ function labPoint(l: number, c: number, ang: number, unit: number): SolidPoint {
     x: (c * Math.cos(ang)) / unit,
     z: (c * Math.sin(ang)) / unit,
     // Centred on 0.5 like every other embedding's vertical, and HALVED because
-    // the projector doubles the vertical on the way out (`(y − 0.5) · 2`). After
+    // the projector doubles the vertical on the way out (`(y - 0.5) * 2`). After
     // that round trip one lightness unit and one chroma unit are the same length
     // on screen, which is the whole claim this embedding makes.
     y: 0.5 + (l - 0.5) / (2 * unit),
@@ -107,7 +107,7 @@ function labPoint(l: number, c: number, ang: number, unit: number): SolidPoint {
 }
 
 export interface GamutSolid {
-  /** The gamut this surface is of — a name, or the source it was built from.
+  /** The gamut this surface is of: a name, or the source it was built from.
    *  Cache solids by `gamutSourceId(limit)`, never by interpolating this into a
    *  string: a source stringifies to '[object Object]' and collides. */
   limit: GamutLimit;
@@ -115,7 +115,7 @@ export interface GamutSolid {
   hueSteps: number;
   lightSteps: number;
   quads: SolidQuad[];
-  /** The largest chroma anywhere on the surface — the natural scale for a view. */
+  /** The largest chroma anywhere on the surface: the natural scale for a view. */
   maxRadius: number;
 }
 
@@ -124,11 +124,11 @@ const TAU = Math.PI * 2;
 /**
  * Build the surface of a display gamut in OKLCH.
  *
- * The mesh is a lightness × hue grid: at each (lightness, hue) the surface sits
- * at that pair's maximum chroma, which is exactly `maxChroma` — so the solid and
+ * The mesh is a lightness x hue grid: at each (lightness, hue) the surface sits
+ * at that pair's maximum chroma, which is exactly `maxChroma`, so the solid and
  * the 2D charts are the same function seen two ways and cannot disagree.
  *
- * `lightSteps` rows span lightness 0…1 inclusive, so the top and bottom rows
+ * `lightSteps` rows span lightness 0..1 inclusive, so the top and bottom rows
  * collapse to the achromatic axis (chroma 0 at black and white) and the solid
  * closes itself without needing separate caps.
  */
@@ -141,7 +141,7 @@ export function gamutSolid(
   const H = Math.max(6, Math.floor(hueSteps));
   const L = Math.max(3, Math.floor(lightSteps));
 
-  // Sample the radius once per (row, hue) — every quad shares its corners with
+  // Sample the radius once per (row, hue): every quad shares its corners with
   // three neighbours, so computing per-quad would run each bisection 4 times.
   const radius: number[][] = [];
   for (let i = 0; i < L; i++) {
@@ -156,14 +156,14 @@ export function gamutSolid(
   const scaleR = maxR || 1;
 
   /**
-   * Grid node → model point. Both embeddings put two axes horizontal and one
+   * Grid node to model point. Both embeddings put two axes horizontal and one
    * vertical, so the projector below serves either without knowing which.
    *
    *   cylinder:  x/z = the chroma plane (hue as angle), y = lightness
    *   landscape: x = hue, z = lightness, y = chroma
-   *   lab:       x/z = a and b, y = lightness — all three on one scale
+   *   lab:       x/z = a and b, y = lightness, all three on one scale
    *
-   * The landscape's hue axis deliberately runs the FULL 0–360 without wrapping:
+   * The landscape's hue axis deliberately runs the FULL 0-360 without wrapping:
    * a wrapped landscape would hide the red seam behind itself, and the seam is
    * where the interesting asymmetry lives.
    *
@@ -177,7 +177,7 @@ export function gamutSolid(
     const jj = (j % H + H) % H;
     const r = radius[i]![jj]!;
     if (embed === 'landscape') {
-      // j runs 0…H inclusive here (the caller wraps), so the far edge lands at 1.
+      // j runs 0..H inclusive here (the caller wraps), so the far edge lands at 1.
       return { x: (j / H) * 2 - 1, z: l * 2 - 1, y: r / scaleR };
     }
     const ang = (jj / H) * TAU;
@@ -192,10 +192,10 @@ export function gamutSolid(
     for (let j = 0; j < H; j++) {
       // Hue wraps modulo H at the seam. On the cylinder that closes the solid all
       // the way round; on the landscape the far column lands at x = +1 carrying
-      // hue 0's radius, which is correct — 360° IS 0°.
+      // hue 0's radius, which is correct: 360 degrees IS 0 degrees.
       const p0 = at(i, j), p1 = at(i, j + 1), p2 = at(i + 1, j + 1), p3 = at(i + 1, j);
-      // The patch's own colour comes from the GRID, not from its 3D position —
-      // the landscape embedding throws hue's angular meaning away, so reading it
+      // The patch's own colour comes from the GRID, not from its 3D position.
+      // The landscape embedding throws hue's angular meaning away, so reading it
       // back off x/z would be wrong there.
       const li = (i + 0.5) / (L - 1);
       const hj = ((j + 0.5) / H) * 360;
@@ -208,7 +208,7 @@ export function gamutSolid(
       const oklch = { l: cl, c: c * 0.995, h };
       const hex = oklchToHex(oklch);
 
-      // The normal, from the two edge vectors — its vertical component says how
+      // The normal, from the two edge vectors. Its vertical component says how
       // much the patch faces up, which is all the shading needs.
       const e1 = { x: p1.x - p0.x, z: p1.z - p0.z, y: p1.y - p0.y };
       const e2 = { x: p3.x - p0.x, z: p3.z - p0.z, y: p3.y - p0.y };
@@ -221,7 +221,7 @@ export function gamutSolid(
     }
   }
 
-  // A landscape is an open sheet, so its hue-seam edges are raw cuts — you can see
+  // A landscape is an open sheet, so its hue-seam edges are raw cuts. You can see
   // that it has no thickness, and it reads as a ribbon rather than a body. Cap them.
   if (embed === 'landscape') {
     for (const [j, x] of [[0, -1], [H, 1]] as [number, number][]) {
@@ -232,14 +232,14 @@ export function gamutSolid(
   return { limit, embed, hueSteps: H, lightSteps: L, quads, maxRadius };
 }
 
-/** Vertical subdivisions per cap cell. The cap spans chroma 0 → the surface, and
+/** Vertical subdivisions per cap cell. The cap spans chroma 0 to the surface, and
  *  one flat quad over that whole span would be a single colour where the eye
- *  expects the same ramp the 2D L×C chart shows. */
+ *  expects the same ramp the 2D L x C chart shows. */
 const CAP_STEPS = 10;
 
 /**
  * The wall closing one hue edge of a landscape, from the surface down to zero
- * chroma — filled with that hue's own lightness × chroma blend.
+ * chroma. It is filled with that hue's own lightness x chroma blend.
  *
  * Both edges sit at the seam (hue 0 and hue 360 are the same hue), so both caps
  * carry the same profile and the object is symmetric about it. The face is
@@ -287,7 +287,7 @@ function capQuads(
   return out;
 }
 
-// ─── Projection ───────────────────────────────────────────────────────────────
+// --- Projection --------------------------------------------------------------
 
 export interface SolidView {
   /** Rotation about the lightness axis, in degrees. */
@@ -296,7 +296,7 @@ export interface SolidView {
    *  degenerates to a line. */
   pitch: number;
   /** Zoom. 1 (the default) means the solid exactly fills the unit box at THIS
-   *  angle — the fit is measured per view, so it neither overflows at an oblique
+   *  angle. The fit is measured per view, so it neither overflows at an oblique
    *  pitch nor breathes while the user drags. Below 1 leaves a margin. */
   scale?: number;
 }
@@ -305,7 +305,7 @@ export interface SolidView {
 interface Projected { x: number; y: number; z: number }
 
 /**
- * The one model→screen transform, shared by the mesh and the "you are here"
+ * The one model-to-screen transform, shared by the mesh and the "you are here"
  * marker so the two can never drift out of register.
  *
  * Returns screen x/y already mapped into the 0–1 box (y flipped, since screen
@@ -318,9 +318,9 @@ function makeProjector(solid: GamutSolid, view: SolidView): (p: SolidPoint) => P
   const cy = Math.cos(yaw), sy = Math.sin(yaw);
   const cp = Math.cos(pitch), sp = Math.sin(pitch);
   // The cylinder's x/z are raw chroma, so they need normalising by the widest
-  // reach and its y (lightness 0–1) centring on 0. The landscape and the lab plot
-  // already arrive pre-scaled in −1…1, so they only need the same centring on the
-  // vertical — and the lab plot's pre-scale is deliberately the SAME divisor on
+  // reach and its y (lightness 0-1) centring on 0. The landscape and the lab plot
+  // already arrive pre-scaled in -1..1, so they only need the same centring on the
+  // vertical. The lab plot's pre-scale is deliberately the SAME divisor on
   // all three axes, which is what stops this from re-normalising its proportions
   // away again.
   const rad = solid.embed === 'cylinder' ? (solid.maxRadius || 1) : 1;
@@ -329,7 +329,7 @@ function makeProjector(solid: GamutSolid, view: SolidView): (p: SolidPoint) => P
     // Vertical centred on 0 either way, so pitch tilts about the middle.
     const px = p.x / rad, pz = p.z / rad, py = (p.y - 0.5) * 2;
     const x = px * cy - pz * sy;   // spin the two horizontals about the vertical
-    const zh = px * sy + pz * cy;  // …giving the depth contribution
+    const zh = px * sy + pz * cy;  // giving the depth contribution
     return {
       x,
       y: py * cp - zh * sp,        // tilt the vertical toward the viewer
@@ -337,8 +337,8 @@ function makeProjector(solid: GamutSolid, view: SolidView): (p: SolidPoint) => P
     };
   };
 
-  // Fit the ROTATED solid, not the model. Both axes reach ±1 before rotation, so
-  // an oblique view spans up to √2 — at pitch 45 the naive mapping pushes the
+  // Fit the ROTATED solid, not the model. Both axes reach +-1 before rotation, so
+  // an oblique view spans up to sqrt(2). At pitch 45 the naive mapping pushes the
   // silhouette off a box it claimed to fit. Measuring the actual extent per view
   // is what makes `scale: 1` mean "exactly fills the box" at every angle, and it
   // also stops the solid from visibly breathing as the user drags.
@@ -364,9 +364,9 @@ function makeProjector(solid: GamutSolid, view: SolidView): (p: SolidPoint) => P
 export interface ProjectedQuad {
   points: { x: number; y: number }[];
   hex: string;
-  /** The patch's colour before the sRGB bake — see {@link SolidQuad.oklch}. */
+  /** The patch's colour before the sRGB bake, see {@link SolidQuad.oklch}. */
   oklch: { l: number; c: number; h: number };
-  /** Camera depth of the centroid — larger is nearer. Already sorted on. */
+  /** Camera depth of the centroid. Larger is nearer. Already sorted on. */
   depth: number;
   /** 0–1 shading factor from the surface normal, for a lit look. */
   shade: number;
@@ -376,7 +376,7 @@ export interface ProjectedQuad {
  * Rotate and flatten a solid into depth-sorted 2D polygons.
  *
  * Orthographic on purpose. A perspective projection would make the near face
- * larger than the far one, which reads as drama but lies about the shape — and
+ * larger than the far one, which reads as drama but lies about the shape, and
  * the shape is the entire content of this chart. Orthographic keeps equal
  * chroma equally wide wherever it sits, so the silhouette IS the gamut's
  * cross-section.
@@ -397,18 +397,18 @@ export function projectGamutSolid(solid: GamutSolid, view: SolidView): Projected
       area += p.x * n.y - n.x * p.y;
     }
     // Back-face cull. Which SIGN means "facing us" follows from the mesh's
-    // winding (hue-then-lightness) combined with screen y running downward —
-    // easy to get backwards, and a flipped cull is not obviously wrong to the
+    // winding (hue-then-lightness) combined with screen y running downward.
+    // This is easy to get backwards, and a flipped cull is not obviously wrong to the
     // eye: you get a plausible-looking solid seen from the inside. The test
     // 'the surface we see is the near one' pins it against a known view
     // (yaw 0 / pitch 0 must show hue ~90, the +b axis pointing at the viewer).
-    // A landscape is an OPEN surface — from below, every quad is back-facing, and
+    // A landscape is an OPEN surface. From below, every quad is back-facing, and
     // culling would render nothing at all. Only the closed embeddings (cylinder
     // and lab, which is the same closed hull on different axes) can cull.
     if (solid.embed !== 'landscape' && area <= 0) continue;
 
     const depth = cam.reduce((s, p) => s + p.z, 0) / cam.length;
-    // A soft top-light: patches facing up read brighter. Kept mild (0.82–1) so
+    // A soft top-light: patches facing up read brighter. Kept mild (0.82-1) so
     // the chart still shows the real colour rather than a rendering of it.
     const shade = 0.82 + 0.18 * Math.max(0, Math.min(1, (q.up + 1) / 2));
     out.push({
@@ -426,7 +426,7 @@ export function projectGamutSolid(solid: GamutSolid, view: SolidView): Projected
 }
 
 /**
- * Where a single colour sits inside the projected solid — the marker for "you
+ * Where a single colour sits inside the projected solid: the marker for "you
  * are here". Uses the same projection as the quads, so it lands in register.
  *
  * `inside` reports whether the colour is within `solid.limit`; a marker outside
@@ -451,7 +451,7 @@ function modelPoint(solid: GamutSolid, o: { l: number; c: number; h: number }): 
 }
 
 /**
- * Many colours through one camera — a point CLOUD against the solid.
+ * Many colours through one camera: a point CLOUD against the solid.
  *
  * The batch form exists for a real reason, not tidiness: `projectSolidPoint`
  * builds a fresh projector per call, and building one scans every quad of the
@@ -493,21 +493,21 @@ export function projectSolidPoint(
 }
 
 /**
- * A model point back to the colour it stands for — the exact inverse of the
+ * A model point back to the colour it stands for: the exact inverse of the
  * placement each embedding uses.
  *
  * Worth having as one function rather than three inline inversions: the marker,
  * a shell hit-test and the tests all need it, and an embedding's scale factor
  * living in two places is how the marker drifts off the surface.
  */
-// ─── SVG emission ───────────────────────────────────────────────────────────
+// --- SVG emission ---------------------------------------------------------
 
 /**
  * One solid patch's CSS fill: its OKLCH encoded for the target space, times the
  * soft top-light `k`.
  *
  * This is the SAME operation the web shell's canvas painter runs (`shadedFill`
- * in shells/web/src/views/color-lab.ts) — `encodeOklch` is the engine's own
+ * in shells/web/src/views/color-lab.ts). `encodeOklch` is the engine's own
  * painter path, so a quad drawn to a canvas and the same quad emitted to SVG
  * cannot name different colours. The multiply lands on the ENCODED channels, not
  * on L, because shading is a lighting effect on the drawing, not a claim about
@@ -543,13 +543,13 @@ export interface GamutSolidSvgOptions {
  * Emit a self-contained SVG of one projected gamut solid.
  *
  * Walks the SAME depth-sorted `ProjectedQuad[]` that {@link projectGamutSolid}
- * returns and writes one `<polygon>` per quad IN DOCUMENT ORDER — document order
+ * returns and writes one `<polygon>` per quad IN DOCUMENT ORDER. Document order
  * is the painter's algorithm here, so a nearer quad's markup comes after (and
  * paints over) the far quads it occludes, with no z-fighting and no need for a
  * depth buffer. The array arrives already sorted far-to-near, so the emitter
  * simply preserves that order.
  *
- * Each polygon is filled AND stroked in its own colour — the same trick the
+ * Each polygon is filled AND stroked in its own colour: the same trick the
  * canvas painter uses to close the hairline antialiasing gap between abutting
  * fills that would otherwise make a dense mesh read as chicken wire.
  *
@@ -564,7 +564,7 @@ export function gamutSolidToSvg(
   const encode = opts.encode ?? 'srgb';
   const dp = Math.max(0, Math.floor(opts.precision ?? 2));
   const fmt = (v: number): string => {
-    // Guard against a NaN/Infinity slipping into markup — clamp non-finite to 0
+    // Guard against a NaN/Infinity slipping into markup. Clamp non-finite to 0
     // so the emitted SVG is always well-formed. Trim a trailing '.00' etc.
     const n = Number.isFinite(v) ? v : 0;
     return parseFloat(n.toFixed(dp)).toString();

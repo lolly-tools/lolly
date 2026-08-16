@@ -1,13 +1,13 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
- * Fitting cubics to a curve that has no Bézier form — an exact offset, a stroke edge,
+ * Fitting cubics to a curve that has no Bézier form - an exact offset, a stroke edge,
  * a distorted path. Stage 3 needs this: the offset of a cubic is not a cubic, so the
  * only honest way to emit one is to approximate it and then *measure* the true error.
  *
  * ## The decisive choice: match area and moment, don't least-squares the samples
  *
  * Pin the endpoints and the end tangent *directions* to the source (G1) and a cubic has
- * exactly two degrees of freedom left — the two control-arm lengths. Two scalar
+ * exactly two degrees of freedom left - the two control-arm lengths. Two scalar
  * constraints therefore determine it outright, with no iteration. Raph Levien's
  * choice of constraints is signed area and the first x-moment of area: both are global
  * (a local wobble cannot hide in them), both are exactly computable from the source by
@@ -17,7 +17,7 @@
  *
  * That is worth the trouble because it converges at O(n⁻⁶): halving a segment divides
  * the error by ~64. A least-squares fit over sampled points manages O(n⁻⁴) at best and
- * a Tiller-Hanson construction O(n⁻²) — "only a constant factor better than subdividing
+ * a Tiller-Hanson construction O(n⁻²) - "only a constant factor better than subdividing
  * into lines". At O(n⁻⁶) a tenfold tighter tolerance costs well under twice the
  * segments, which is why the output stays small enough to be worth calling vector.
  *
@@ -28,26 +28,26 @@
  * integral invariants; the source is evaluated exactly at whatever `t` is asked for; and
  * the error is measured against the real curve rather than against a polyline of it.
  * Quadrature over a smooth integrand is numerical analysis, not the corner-cutting the
- * kernel refuses — a 16-point Gauss-Legendre rule is exact to rounding for the degree-8
+ * kernel refuses - a 16-point Gauss-Legendre rule is exact to rounding for the degree-8
  * integrands a cubic source produces, and is the documented fallback only for sources
  * (offsets) whose integrals have no closed form.
  *
  * ## Fréchet, not Hausdorff
  *
- * The error metric compares points in order — the leash between two walkers, neither
+ * The error metric compares points in order - the leash between two walkers, neither
  * allowed to go backwards. Hausdorff distance drops the ordering and therefore calls a
  * sharp zigzag "close" to a straight line, which is exactly the failure mode of a
  * fitted approximation. Fréchet also preserves winding number on filled paths, and this
  * output feeds a self-union, so filled is the case that matters.
  *
  * And it is measured as a maximum that is SEARCHED FOR, not sampled. A max over a fixed
- * grid bounds nothing — the peak is what falls between samples — so accepting a piece on
+ * grid bounds nothing - the peak is what falls between samples - so accepting a piece on
  * one means the tolerance a caller asked for is not the one they got.
  *
  * ## Distance is not the whole of quality
  *
  * Fréchet distance bounds *position* error and says nothing about *angle* error, so the
- * curve that best minimises it can still be visibly bumpy — one long control arm and one
+ * curve that best minimises it can still be visibly bumpy - one long control arm and one
  * short, a hair away from a cusp. That is not a bug in the optimiser, it is the
  * optimiser succeeding at the stated objective, and better subdivision makes it worse.
  * `armPenalty` is the mitigation: a ReLU multiplier on the measured error above an arm
@@ -57,7 +57,7 @@
 import { type Cubic, evalCubic, tangentAt, subCubic, lineToCubic } from './bezier.ts';
 import { cubicRoots01 } from './intersect.ts';
 
-/** A curve that can be sampled but has no Bézier form — an exact offset, a stroke edge,
+/** A curve that can be sampled but has no Bézier form - an exact offset, a stroke edge,
  *  a transformed curve. The whole point: fit the REAL curve, not a polyline of it. */
 export interface ParamCurveFit {
   /** Position and first derivative at t in [0,1]. */
@@ -66,8 +66,8 @@ export interface ParamCurveFit {
    * Signed area and x-moment of the region under the curve over [t0,t1], by Green's
    * theorem. Analytic where the source can do it; a callers' default is provided.
    *
-   * Both are taken in the CHORD FRAME of that range — origin at the point at `t0`,
-   * x-axis towards the point at `t1` — because those are the two frame-invariant
+   * Both are taken in the CHORD FRAME of that range - origin at the point at `t0`,
+   * x-axis towards the point at `t1` - because those are the two frame-invariant
    * quantities the fit consumes, and a source computing them analytically can produce
    * them directly. `area` closes the region with the chord; `moment` is that region's
    * first moment about the chord-perpendicular axis through the start point. Both are
@@ -94,7 +94,7 @@ const D_PENALTY_SLOPE = 2.0;
  * Applied to the winner, never used to cull the candidate list: culling first means a
  * source cubic with long arms has its own exact solution removed and then gets a
  * different branch returned as if it were right, which is worse than returning nothing.
- * Deliberately generous, too — a hard exclusion at the 0.85 cusp threshold is the
+ * Deliberately generous, too - a hard exclusion at the 0.85 cusp threshold is the
  * cheaper published variant of the bump fix, and it breaks the property that feeding an
  * exact cubic in returns the same cubic out. Ranking quality is `armPenalty`'s job; this
  * only stops a looped "nemesis" root escaping when there is no tolerance to reject it.
@@ -102,7 +102,7 @@ const D_PENALTY_SLOPE = 2.0;
 const MAX_ARM_RATIO = 4;
 
 const N_SAMPLE = 20;
-/** |cross| > 0.2·|dot| between consecutive tangents is |tan Δθ| > 0.2 — about 11.3° of
+/** |cross| > 0.2·|dot| between consecutive tangents is |tan Δθ| > 0.2 - about 11.3° of
  *  turning in one twentieth of the range. */
 const SPICY_THRESH = 0.2;
 
@@ -111,7 +111,7 @@ const DEFAULT_MAX_SEGMENTS = 512;
 const MAX_DEPTH = 20;
 
 /** 16-point Gauss-Legendre on [-1,1] as (weight, abscissa). Exact for polynomials to
- *  degree 31, so for a cubic source — whose moment integrands are degree 8 — the
+ *  degree 31, so for a cubic source - whose moment integrands are degree 8 - the
  *  "numeric" path is exact to rounding. */
 const GL16: readonly (readonly [number, number])[] = [
   [0.1894506104550685, -0.0950125098376374], [0.1894506104550685, 0.0950125098376374],
@@ -154,12 +154,12 @@ function chordFrameMoments(raw: RawMoments, x0: number, y0: number, dx: number, 
 }
 
 /**
- * The default `momentIntegrals` for a source with no closed form — 16-point
+ * The default `momentIntegrals` for a source with no closed form - 16-point
  * Gauss-Legendre over [t0,t1], plus the two endpoint samples that define the chord.
  *
  * A fallback, and named as one: an offset curve's integrals genuinely have no closed
  * form, so quadrature is the correct tool rather than a shortcut. It is not sampling the
- * shape — the integrand is smooth and the rule is exact for polynomials to degree 31.
+ * shape - the integrand is smooth and the rule is exact for polynomials to degree 31.
  */
 export function quadratureMoments(
   sample: (t: number) => { x: number; y: number; dx: number; dy: number },
@@ -217,7 +217,7 @@ function rawMomentsCubic(c: Cubic): RawMoments {
  * closed form). Used for simplification and as the test oracle's control case.
  *
  * The area it returns is the same quantity `signedAreaCubic(subCubic(c, t0, t1))`
- * computes — a free cross-check on the whole moment pipeline, and one worth keeping in
+ * computes - a free cross-check on the whole moment pipeline, and one worth keeping in
  * the tests, since an offset source cannot use it.
  */
 export function cubicAsSource(c: Cubic): ParamCurveFit {
@@ -276,7 +276,7 @@ function solveQuadratic(c0: number, c1: number, c2: number): number[] {
 }
 
 /** Real roots of c0 + c1·x + c2·x² + c3·x³, ASCENDING coefficients, unrestricted range.
- *  Blinn's formulation via the depressed discriminant — better conditioned near a double
+ *  Blinn's formulation via the depressed discriminant - better conditioned near a double
  *  root than textbook Cardano, which is the case the fit's quartic keeps producing. */
 function solveCubic(c0: number, c1: number, c2: number, c3: number): number[] {
   const recip = 1 / c3, third = 1 / 3;
@@ -335,9 +335,9 @@ function depressedCubicDominant(g: number, h: number): number {
  * Factor x⁴ + a·x³ + b·x² + c·x + d into two quadratics x² + α·x + β.
  *
  * Orellana & De Michele (ACM TOMS Algorithm 1010), and the reason the fit does not call
- * a stock quartic root finder. The quartic here routinely has near-double roots — that
+ * a stock quartic root finder. The quartic here routinely has near-double roots - that
  * is what it means geometrically for three of its roots to give visually identical
- * curves — and companion-matrix or naive Cardano solvers lose many digits there, which
+ * curves - and companion-matrix or naive Cardano solvers lose many digits there, which
  * shows up directly as a worse fit. Factoring keeps the pair intact and, critically,
  * keeps a complex conjugate pair recoverable: its real part is a candidate the caller
  * must not discard.
@@ -457,14 +457,14 @@ interface Frame {
  *
  * `dir` is +1 at the start of a range and −1 at its end. `sample` has no side argument,
  * so at a cusp or corner the source returns whichever branch it happens to choose, and
- * for one of the two ranges meeting there that is the WRONG side — a fit is then handed
+ * for one of the two ranges meeting there that is the WRONG side - a fit is then handed
  * an end tangent belonging to the neighbouring piece and can only fail. A probe a
  * ten-millionth of the range inside settles it: if the two directions disagree by more
  * than about a degree, the endpoint's belongs to the other side and the probe's is used.
  * A smooth source has to turn that far within 1e-7 of the range to false-trigger, by
  * which point no fit was going to succeed anyway.
  *
- * The same probe covers a vanishing derivative — a cusp exactly on the endpoint — where
+ * The same probe covers a vanishing derivative - a cusp exactly on the endpoint - where
  * there is no direction to read at all.
  */
 function endpointSample(src: ParamCurveFit, t: number, dir: number, span: number): { x: number; y: number; tx: number; ty: number } {
@@ -497,7 +497,7 @@ function clamp01(t: number): number {
 }
 
 /** The unit-chord frame of [t0,t1] plus the two invariants expressed in it. Null when
- *  the chord is degenerate — the whole normalisation divides by its length. */
+ *  the chord is degenerate - the whole normalisation divides by its length. */
 function frameFor(src: ParamCurveFit, t0: number, t1: number): Frame | null {
   const span = Math.abs(t1 - t0);
   const start = endpointSample(src, t0, 1, span);
@@ -526,7 +526,7 @@ interface Candidate { c: Cubic; d0: number; d1: number }
  * into the source's coordinates. Up to four, and they must all be measured: for a
  * C-shaped source three of them are visually near-identical (which is precisely why an
  * iterative fitter gets stuck in local minima) and the fourth is a looped curve whose
- * loop lobe cancels the excess area and moment exactly — a valid solution of both
+ * loop lobe cancels the excess area and moment exactly - a valid solution of both
  * constraints and nothing like the source.
  */
 function candidates(f: Frame): Candidate[] {
@@ -560,7 +560,7 @@ function candidates(f: Frame): Candidate[] {
       for (const [qc1, qc0] of quads) {
         const qr = solveQuadratic(qc0, qc1, 1);
         // A factor with no real roots is not a dead end. These are the "near misses",
-        // where the moment residual dips towards zero without crossing — genuine error
+        // where the moment residual dips towards zero without crossing - genuine error
         // minima, often better than the real crossings. Dropping them makes the fit
         // error DISCONTINUOUS in the source, so a dragged curve visibly jumps branches.
         if (qr.length === 0) roots.push(-0.5 * qc1);
@@ -610,7 +610,7 @@ function mapCandidate(f: Frame, d0: number, d1: number): Candidate {
 
 /** ReLU on the arm length, applied as a multiplier to LINEAR error. Flat below the
  *  elbow, so an ordinary fit is untouched. `max` of the two arms rather than a product
- *  or a sum, because a bump is caused by the asymmetry — one bad arm is enough. */
+ *  or a sum, because a bump is caused by the asymmetry - one bad arm is enough. */
 function armPenalty(d: number): number {
   return 1 + Math.max(0, d - D_PENALTY_ELBOW) * D_PENALTY_SLOPE;
 }
@@ -662,7 +662,7 @@ function curveDist(src: ParamCurveFit, t0: number, t1: number): CurveDist {
  *
  * The peak of the error is exactly what falls between samples: on the +20 offset of a
  * cubic the peak of the accepted range [0.5,0.75] sits at grid index 10.49, and the
- * twenty-sample maximum read 9.93894e-4 against a true 1.01440e-3 — under tolerance, so
+ * twenty-sample maximum read 9.93894e-4 against a true 1.01440e-3 - under tolerance, so
  * the range was accepted at 1.0144× the budget it was measured against. Every sampled
  * range in that fit under-reported, by 0.5% to 2%. So the grid only BRACKETS: each local
  * maximum of the sampled sequence is then refined on the real error function.
@@ -677,7 +677,7 @@ function curveDist(src: ParamCurveFit, t0: number, t1: number): CurveDist {
  * Refining every local maximum, not only the largest, because the largest SAMPLE need not
  * sit on the largest lobe. A lobe narrower than one grid step could still hide entirely,
  * but a fit that tracks its source closely enough to be a candidate cannot oscillate that
- * fast — the difference of two cubics has a bounded number of extrema, and twenty samples
+ * fast - the difference of two cubics has a bounded number of extrema, and twenty samples
  * resolve them.
  */
 const REFINE_ITERS = 12;
@@ -734,7 +734,7 @@ function powerBasis(c: Cubic): Poly {
  * Tiller-Hanson: cast the normal ray at one source sample and measure to where it meets
  * the candidate.
  *
- * A ray that misses REJECTS the candidate — the answer starts above the budget and stays
+ * A ray that misses REJECTS the candidate - the answer starts above the budget and stays
  * there. Substituting the candidate's endpoints for a missed ray produces a plausible
  * number for a curve that may be nothing like the source, which is exactly how a looped
  * approximation passes an error check it should fail.
@@ -799,7 +799,7 @@ function arcTable(c: Cubic): ArcTable {
 }
 
 /** The same prefix table for the SOURCE, over the sample spans, so a refined parameter
- *  between two samples has an arc fraction too — a peak the correspondence can only be
+ *  between two samples has an arc fraction too - a peak the correspondence can only be
  *  evaluated at on the grid is a peak the metric cannot find. */
 function srcArcSpan(src: ParamCurveFit, a: number, b: number): number {
   const mid = 0.5 * (a + b), half = 0.5 * (b - a);
@@ -814,7 +814,7 @@ function srcArcSpan(src: ParamCurveFit, a: number, b: number): number {
 /** Gauss-Legendre per span, matching the rule the candidate's own arc length uses. A
  *  cruder rule here (a midpoint sum over the whole range) does converge, but its
  *  disagreement with the candidate's rule offsets the correspondence and puts a floor of
- *  ~1e-5 of the curve's size under every measured error — enough that a curve measured
+ *  ~1e-5 of the curve's size under every measured error - enough that a curve measured
  *  against ITSELF does not read as zero. */
 function srcArcTable(d: CurveDist): ArcTable {
   const cum = [0];
@@ -854,13 +854,13 @@ function arcInvert(c: Cubic, tab: ArcTable, target: number): number {
 /**
  * The expensive metric: compare source and candidate at equal FRACTIONS of arc length.
  *
- * Normal-ray casting fails on one specific and non-hypothetical shape — a source
+ * Normal-ray casting fails on one specific and non-hypothetical shape - a source
  * approximated by a cubic with a loop, where the rays strike only part of the candidate
  * and miss the loop entirely, reporting a small error for a curve that is nothing like
  * the source. Adding samples does not fix it, because the high curvature that makes ray
  * coverage uneven is the same thing that makes the case arise. Arc-length correspondence
  * compares every part of both curves to something, and approximates Fréchet closely when
- * the curves are near each other — which they are, by assumption, during fitting. It
+ * the curves are near each other - which they are, by assumption, during fitting. It
  * costs about 10× the ray metric, hence the spicy gate.
  */
 function evalArc(d: CurveDist, c: Cubic, acc2: number): number {
@@ -888,7 +888,7 @@ function evalArc(d: CurveDist, c: Cubic, acc2: number): number {
  * the larger of the two rather than the arc metric alone. Two reasons it has to be this
  * way round: the arc correspondence can only be evaluated where the source's and the
  * candidate's arc-length grids line up, since off a grid boundary `arcInvert` is a Newton
- * solve accurate to ~1e-6 of the curve rather than to rounding — refine it between
+ * solve accurate to ~1e-6 of the curve rather than to rounding - refine it between
  * samples and a curve measured against ITSELF stops reading zero. And a loop, the case
  * the arc metric exists for, is wrong by far more than one grid step's worth of peak, so
  * it does not need a refined maximum to be caught.
@@ -907,7 +907,7 @@ function evalDist(d: CurveDist, c: Cubic, acc2: number): number {
  * Tiller-Hanson normal ray casting, escalating to the arc-length metric on "spicy"
  * (high-curvature) pieces.
  *
- * Linear distance, not squared, and NOT penalised for arm length — the penalty is a
+ * Linear distance, not squared, and NOT penalised for arm length - the penalty is a
  * fitter policy for choosing between candidates, not a property of this pair of curves.
  * Infinity means a normal ray missed the candidate entirely, which is a rejection.
  */
@@ -927,7 +927,7 @@ function chordCubic(sx: number, sy: number, ex: number, ey: number): Cubic {
  * Fit a straight line instead.
  *
  * For short chords, where dividing by the chord length destabilises everything, and for
- * cusps and near-cusps, where the tangents are not worth trusting — note it ignores
+ * cusps and near-cusps, where the tangents are not worth trusting - note it ignores
  * tangents completely. Seven interior samples, every one of which must be within `tol`
  * of the chord.
  */
@@ -975,7 +975,7 @@ function fitOne(src: ParamCurveFit, t0: number, t1: number, tol: number): { c: C
 
 /**
  * Fit ONE cubic across [t0,t1] of the source by matching area and moment. Returns null
- * when no admissible fit exists (the moment quadratic has no usable root, or the
+ * when no valid fit exists (the moment quadratic has no usable root, or the
  * control-arm ratio exceeds the cusp threshold).
  *
  * No tolerance argument, so the error metric can only rank candidates, not reject them;
@@ -1026,7 +1026,7 @@ interface Budget { out: Cubic[]; max: number }
  * A worklist rather than recursion, so the segment budget is a HARD cap: every pending
  * range yields at least one output curve, so `out.length + pending + 1` is a lower bound
  * on the final count and splitting is refused once that would exceed the budget. A
- * hostile source then degrades to chords, which keeps the contour continuous — dropping
+ * hostile source then degrades to chords, which keeps the contour continuous - dropping
  * the range instead would leave a hole in the path.
  *
  * Cusps aside, the split point is the parameter midpoint. Levien's measurement is that
@@ -1091,15 +1091,14 @@ function solveItp(f: (x: number) => number, a: number, b: number, eps: number, n
  * fits within tolerance, and repeat.
  *
  * This is the first of the two passes in Levien's optimised subdivision, and gives the
- * minimum segment count under an assumption of monotonic error — reasonable for smooth
+ * minimum segment count under an assumption of monotonic error - reasonable for smooth
  * sources, not guaranteed for any. The second pass, which re-equalises the error across
  * the segments so the last one is not left slack, is deliberately not built: it costs
  * roughly 50× a bisecting fit for a gain the source material itself calls "not a
  * significant improvement when most curves can be rendered with one or two cubic
  * segments", which is the offsetting case.
  *
- * Without that second pass the greedy walk can land one segment WORSE than bisection —
- * it packs the early segments full and the remainder needs its own — so the caller runs
+ * Without that second pass the greedy walk can land one segment WORSE than bisection - * it packs the early segments full and the remainder needs its own - so the caller runs
  * both and keeps the shorter. Bisection is the cheap one, so that costs almost nothing.
  */
 function fitGreedy(src: ParamCurveFit, t0: number, t1: number, tol: number, b: Budget): void {
@@ -1132,7 +1131,7 @@ function fitGreedy(src: ParamCurveFit, t0: number, t1: number, tol: number, b: B
 /**
  * Fit a whole source curve to a sequence of cubics within tol, subdividing adaptively.
  *
- * `maxSegments` is a hard cap, not a hint — past it the remaining ranges become chords,
+ * `maxSegments` is a hard cap, not a hint - past it the remaining ranges become chords,
  * so a source that can never meet the tolerance yields a rough path rather than hanging.
  * `optimise` buys a slightly shorter path for roughly an order of magnitude more work,
  * and is worth asking for only when the output is being stored rather than redrawn.
@@ -1220,7 +1219,7 @@ function polyCubicSource(curves: Cubic[]): ParamCurveFit {
  * Simplify an existing path to within tol. Opt-in ONLY.
  *
  * ⚠️ NEVER apply this to boolean operation output by default. A boolean's output points
- * lie exactly ON its input curves — that is the guarantee the whole geometry layer
+ * lie exactly ON its input curves - that is the guarantee the whole geometry layer
  * exists to provide, and the reason nothing in it flattens. Fitting moves those points
  * off the inputs, so a simplified result can no longer be intersected, offset or
  * re-unioned against the shapes it came from without accumulating error. Simplification
@@ -1237,7 +1236,7 @@ function polyCubicSource(curves: Cubic[]): ParamCurveFit {
  * It is a Fréchet bound, in the input's own units, and it is honoured: a returned path is
  * never further from the input than `tol`. Measured on a 16-arc circle of r=100, the
  * reduction to the 4-segment kappa circle is taken at `tol` = 0.02685 against a true
- * two-sided Hausdorff distance of 0.026843 — four digits of headroom, not fifty times it.
+ * two-sided Hausdorff distance of 0.026843 - four digits of headroom, not fifty times it.
  * The only slack is `armPenalty`, which multiplies the measured error before the
  * comparison, so a candidate with arms past 0.65 chords must beat `tol` by that factor.
  * On the half-circle piece of that same fixture the arms sit at 0.6545 and the factor is

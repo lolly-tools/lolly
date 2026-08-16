@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
- * PPTX (PowerPoint / OOXML) builder — pure, DOM-free, platform-agnostic.
+ * PPTX (PowerPoint / OOXML) builder. Pure, DOM-free, platform-agnostic.
  *
  * A .pptx is a ZIP of XML parts. This module owns the OOXML *scaffolding* (content
  * types, relationships, a minimal slide master + blank layout + theme,
@@ -9,20 +9,20 @@
  * with fflate; the engine never touches a DOM.
  *
  * The point of the format (per its use): TRANSPORT the page's treated images and
- * vectors into PowerPoint so a user can pull each one out at full fidelity — layout
+ * vectors into PowerPoint so a user can pull each one out at full fidelity. Layout
  * is secondary. So a slide is a set of independent, extractable objects:
- *   • pic  — a raster image at native resolution (extract the real photo), OR a
+ *   • pic  : a raster image at native resolution (extract the real photo), OR a
  *            VECTOR embedded as a real SVG via PowerPoint's asvg:svgBlip extension
- *            (a PNG fallback blip + the .svg itself — modern PowerPoint renders the
+ *            (a PNG fallback blip and the .svg itself; modern PowerPoint renders the
  *            SVG and can even "Convert to Shape"; old viewers show the PNG).
- *   • text — a native, editable text box (font size / colour / weight / align).
- *   • rect — a solid/gradient block or border (light layout context).
+ *   • text : a native, editable text box (font size / colour / weight / align).
+ *   • rect : a solid/gradient block or border (light layout context).
  *
  * A PPTX has a SINGLE deck-wide slide size (p:sldSz); the shell sizes it from page 0.
  *
  * Two namespace traps (both handled): the .rels CONTAINER ns is
  * …/package/2006/relationships, NOT the …/officeDocument/… Type base; and the SVG
- * blip extension needs the fixed Microsoft ext GUID. Fully node:test-able — returns
+ * blip extension needs the fixed Microsoft ext GUID. Fully node:test-able: it returns
  * strings + byte arrays, no zip, no DOM, no deps.
  */
 
@@ -43,7 +43,7 @@ export interface PptxRun {
   linkSlide?: number;
 }
 /** A paragraph. `align`/`runs` are the original contract; the rest are additive rich-text
- *  controls (bullets, indent level, spacing) and are all optional — a bare
+ *  controls (bullets, indent level, spacing) and are all optional. A bare
  *  `{ runs, align }` serializes byte-for-byte as it did before they existed.
  *  `bullet`: omitted/undefined = inherit (no marker on a plain text box); `false` = force
  *  none (`<a:buNone/>`); `true` = a filled round bullet; `'number'` = auto arabic numbering;
@@ -53,7 +53,7 @@ export interface PptxPara {
   align?: 'l' | 'ctr' | 'r' | 'just';
   level?: number;
   bullet?: boolean | 'number' | { char?: string };
-  /** Line spacing as a PERCENT — 100 = single, 150 = 1.5×. (Not a fraction: 1.5 clamps to 1%.) */
+  /** Line spacing as a PERCENT: 100 = single, 150 = 1.5×. (Not a fraction: 1.5 clamps to 1%.) */
   lineSpacingPct?: number;
   spaceBeforePt?: number;
   spaceAfterPt?: number;
@@ -62,7 +62,7 @@ export interface PptxPara {
 export interface PptxRect { kind: 'rect'; x: number; y: number; cx: number; cy: number; rot?: number; fill?: PptxFill; line?: { color: string; w: number }; radius?: number; }
 /** A NATIVE custom-geometry vector shape (`p:sp` with `a:custGeom`). Its `paths` are
  *  SVG `d` strings whose coordinates already live in this shape's EMU box space
- *  (0..cx, 0..cy) — the emitter parses each with parseSvgPath and lowers M/L/C/Z to
+ *  (0..cx, 0..cy). The emitter parses each with parseSvgPath and lowers M/L/C/Z to
  *  a:moveTo / a:lnTo / a:cubicBezTo / a:close inside one `a:path w=cx h=cy`, so holes
  *  (opposite-wound subpaths) survive. Solid fill + solid stroke only; svg-custgeom.ts
  *  bails to a raster pic for gradients/filters/opacity/blend. */
@@ -73,7 +73,7 @@ export interface PptxText { kind: 'text'; x: number; y: number; cx: number; cy: 
  *  the PNG fallback). */
 export interface PptxPic {
   kind: 'pic'; x: number; y: number; cx: number; cy: number; rot?: number; media: number; svg?: number; name?: string;
-  /** Source crop (object-fit:cover), as fractions 0..1 cropped off each edge — the
+  /** Source crop (object-fit:cover), as fractions 0..1 cropped off each edge. The
    *  blip stays the full image (un-croppable in PowerPoint), only the view is cropped. */
   srcRect?: { l?: number; t?: number; r?: number; b?: number };
 }
@@ -82,7 +82,7 @@ export interface PptxLine { color: string; w: number; }
 /** One table cell. Content is either `paras` (full rich-text model) or the `text`
  *  shorthand (a single run styled by the `bold`/`color`/`sizePt`/`font` shorthands).
  *  `colSpan`/`rowSpan` > 1 merge to the right/down; the covered grid positions are
- *  filled with hMerge/vMerge markers automatically — the author supplies only the
+ *  filled with hMerge/vMerge markers automatically. The author supplies only the
  *  visible (origin) cells per row, never the swallowed ones. */
 export interface PptxTableCell {
   paras?: PptxPara[];
@@ -96,7 +96,7 @@ export interface PptxTableCell {
   margin?: number;
   borders?: { l?: PptxLine; r?: PptxLine; t?: PptxLine; b?: PptxLine };
 }
-/** A native (editable) PowerPoint table — an inline `a:tbl` inside a `p:graphicFrame`,
+/** A native (editable) PowerPoint table: an inline `a:tbl` inside a `p:graphicFrame`,
  *  needing NO extra parts, rels, or content types. `cols` (per-column widths in EMU)
  *  defines the grid every row is padded/clamped to. */
 export interface PptxTable {
@@ -114,7 +114,7 @@ export interface PptxMedia { bytes: Uint8Array; ext: 'png' | 'jpeg' | 'emf' | 's
  *  no notes parts are emitted for this slide at all (see buildPptxParts). */
 export interface PptxSlide { shapes: PptxShape[]; media: PptxMedia[]; notes?: string; }
 
-/** A DrawingML theme expressed as plain VALUES — the shell resolves the active brand's
+/** A DrawingML theme expressed as plain VALUES. The shell resolves the active brand's
  *  design tokens into these hexes + font names and passes them down; the engine never
  *  reads tokens, the DOM, or a brand pack. Any field omitted falls back to the neutral
  *  default scheme (see themeXml), so a partial theme is fine. Colours are `#rrggbb` or
@@ -139,7 +139,7 @@ export interface PptxBuildOpts {
 }
 
 // ─── low-level helpers ──────────────────────────────────────────────────────────
-// Strip the chars ILLEGAL in XML 1.0's Char production BEFORE entity-escaping — the C0
+// Strip the chars ILLEGAL in XML 1.0's Char production BEFORE entity-escaping. The C0
 // controls (below U+0020 except tab/LF/CR) plus the non-characters U+FFFE/U+FFFF. A stray
 // one in user run text, a custom bullet glyph, or a speaker note is a hard parse-fail
 // (PowerPoint repair), so drop them at the single chokepoint every text value flows through.
@@ -157,7 +157,7 @@ const MEDIA_CT: Record<PptxMedia['ext'], string> = {
   emf: 'image/x-emf', png: 'image/png', jpeg: 'image/jpeg', svg: 'image/svg+xml',
 };
 const clampInt = (v: number, lo: number, hi: number): number => Math.max(lo, Math.min(hi, Math.round(v)));
-// A finite rounded integer, or `fallback` for NaN/±Infinity — geometry that reaches an
+// A finite rounded integer, or `fallback` for NaN/±Infinity. Geometry that reaches an
 // XML attribute must never be the literal "NaN" (schema-invalid → PowerPoint repair).
 // Authored models (the tool path) can carry non-finite numbers; the DOM walker can't.
 const finInt = (v: number, fallback = 0): number => (Number.isFinite(v) ? Math.round(v) : fallback);
@@ -201,7 +201,7 @@ function rectXml(r: PptxRect, id: number): string {
 
 // ─── custom geometry (a:custGeom) ─────────────────────────────────────────────
 // The path coordinate space is the shape's own EMU box (a:path w=cx h=cy), so the
-// `d` coords — already scaled into 0..cx / 0..cy by svg-custgeom.ts — map 1:1 to the
+// `d` coords, already scaled into 0..cx / 0..cy by svg-custgeom.ts, map 1:1 to the
 // ext. ALL subpaths of ALL `d` strings collapse into ONE a:path so a hole (an
 // opposite-wound inner subpath, e.g. the counter of an "O") cuts out instead of
 // becoming its own filled shape. A `d` that parses to nothing yields an empty a:path
@@ -252,14 +252,14 @@ function runXml(run: PptxRun): string {
 
 // EMU per indent level for bullets: PowerPoint's default outline step (~0.3").
 const BULLET_STEP = 342900;
-// a:pPr — attributes then children, both in strict schema order. A paragraph carrying
+// a:pPr: attributes then children, both in strict schema order. A paragraph carrying
 // only `align` still yields exactly `<a:pPr algn="…"/>` (the pre-rich-text shape), so
 // existing callers are byte-for-byte unchanged.
 function paraXml(p: PptxPara): string {
   const lvl = p.level && p.level > 0 ? Math.min(8, Math.round(p.level)) : 0;
   const hasBullet = p.bullet === true || p.bullet === 'number' || (typeof p.bullet === 'object' && p.bullet != null);
   const attrs: string[] = [];
-  // Attributes in CT_TextParagraphProperties document order (marL, lvl, indent, algn) —
+  // Attributes in CT_TextParagraphProperties document order (marL, lvl, indent, algn).
   // XML treats attribute order as insignificant, but matching the schema keeps the
   // output identical to what real PowerPoint writes. A bulleted line hangs its text past
   // the marker (negative indent); a plain out-dented line just shifts its left margin.
@@ -287,7 +287,7 @@ function paraXml(p: PptxPara): string {
 }
 function textXml(t: PptxText, id: number): string {
   // noAutofit keeps the box at its authored geometry (matches the DOM box) so text
-  // sits where the layout put it — spAutoFit grew boxes and overlapped neighbours.
+  // sits where the layout put it. spAutoFit grew boxes and overlapped neighbours.
   const body = `<a:bodyPr wrap="square" anchor="${t.anchor ?? 't'}" lIns="0" tIns="0" rIns="0" bIns="0"><a:noAutofit/></a:bodyPr>`;
   const paras = t.paras.length ? t.paras.map(paraXml).join('') : '<a:p/>';
   return `<p:sp><p:nvSpPr><p:cNvPr id="${id}" name="text${id}"/><p:cNvSpPr txBox="1"/><p:nvPr/></p:nvSpPr>` +
@@ -312,10 +312,10 @@ function picXml(p: PptxPic, id: number): string {
 }
 
 // ─── native table (a:tbl) ─────────────────────────────────────────────────────
-// A table is inline DrawingML in the spTree — a p:graphicFrame wrapping a:tbl. It
+// A table is inline DrawingML in the spTree: a p:graphicFrame wrapping a:tbl. It
 // needs NO extra part, relationship, or content-type entry (unlike a chart). Built-in
 // table-style GUID: "Medium Style 2 – Accent 1" (what PowerPoint applies to a new
-// table). srgbClr, EMU, strict child order throughout — see buildTableGrid for how
+// table). srgbClr, EMU, strict child order throughout. See buildTableGrid for how
 // author-supplied origin cells become a rectangular hMerge/vMerge grid.
 const DEFAULT_TABLE_STYLE = '{5C22544A-7EE6-4342-B048-85BDC9FD1C3A}';
 
@@ -330,11 +330,11 @@ const spanOf = (v: number | undefined): number => (Number.isFinite(v) && (v as n
 
 // Place each row's visible (origin) cells left-to-right, skipping positions already
 // covered by a span from above/left, and stamp the covered positions with merge markers
-// so every row ends up exactly `nCols` cells wide (the grid MUST stay rectangular —
+// so every row ends up exactly `nCols` cells wide (the grid MUST stay rectangular:
 // gridCol count == tc-per-row count, or PowerPoint repairs). A span is clamped to the
 // run of consecutive FREE cells (not just the grid edge), and every stamp is guarded
-// against overwriting an existing marker — so a lower row's colSpan can never clobber an
-// upper row's rowSpan into a contradictory hMerge+vMerge cell.
+// against overwriting an existing marker. This stops a lower row's colSpan from
+// clobbering an upper row's rowSpan into a contradictory hMerge+vMerge cell.
 function buildTableGrid(nCols: number, rows: PptxTable['rows']): TcSlot[][] {
   const nRows = rows.length;
   const grid: (TcSlot | null)[][] = Array.from({ length: nRows }, () => Array<TcSlot | null>(nCols).fill(null));
@@ -465,7 +465,7 @@ const mediaName = (slideIdx: number, mediaIdx: number, ext: string): string => `
 const linkRidBase = (mediaCount: number, hasNotes: boolean): number => mediaCount + 2 + (hasNotes ? 1 : 0);
 
 // Unique, sorted 0-based slide-jump targets referenced by a slide's TEXT runs (the agenda
-// ToC case) — one slide→slide relationship is emitted per target.
+// ToC case). One slide→slide relationship is emitted per target.
 function collectLinkTargets(slide: PptxSlide): number[] {
   const set = new Set<number>();
   for (const s of slide.shapes) {
@@ -475,8 +475,8 @@ function collectLinkTargets(slide: PptxSlide): number[] {
   return [...set].sort((a, b) => a - b);
 }
 
-// slide rels: rId1 → layout, then one relationship per media entry (rId2, rId3, …), then —
-// only when the slide carries a note — the notesSlide, then any slide-jump links (past all
+// slide rels: rId1 → layout, then one relationship per media entry (rId2, rId3, …), then,
+// only when the slide carries a note, the notesSlide, then any slide-jump links (past all
 // the above). A slide→slide relationship targets `slideM.xml` in the same folder.
 function slideRelsXml(slideIdx: number, media: PptxMedia[], hasNotes = false, linkTargets: readonly number[] = []): string {
   let rels = `<Relationship Id="rId1" Type="${REL}/slideLayout" Target="../slideLayouts/slideLayout1.xml"/>`;
@@ -490,7 +490,7 @@ function slideRelsXml(slideIdx: number, media: PptxMedia[], hasNotes = false, li
 // ─── speaker notes ──────────────────────────────────────────────────────────────
 // The slide→notesSlide relationship above is what binds a note to its slide; the
 // notesSlide relates back to that slide and to the notes master. ECMA-376 §13.3.5
-// lists the back-relationship as permitted rather than required — but every real
+// lists the back-relationship as permitted rather than required. But every real
 // producer emits it (round-trip one of these decks through LibreOffice and it adds
 // the rel back), so match the convention rather than hand PowerPoint a part shape it
 // sees from nobody else. The note text must live in the `body` placeholder:
@@ -542,7 +542,7 @@ function notesMasterXml(notesW: number, notesH: number): string {
   );
 }
 
-// Third namespace/rels trap: a theme part is 1:1 with a master — every real deck
+// Third namespace/rels trap: a theme part is 1:1 with a master. Every real deck
 // gives each slideMaster/notesMaster its OWN theme part, never a shared one, and
 // pointing a notesMaster at the slideMaster's theme1 is a known PowerPoint repair
 // trigger. So the notes master gets theme2.xml (same content as theme1).
@@ -637,7 +637,7 @@ const slideLayoutRels =
 // Default scheme = the blank brand's spectrum AS IT STOOD AT 1.56 (blue/green/amber at
 // oklch(65% .12 h), hlink = primary ramp step 4). FROZEN: this is the fallback baked into
 // every deck exported without a caller theme, so it is an interop default, not a live
-// brand colour — pptx.test.ts pins theme1 byte-for-byte. It deliberately did NOT follow
+// brand colour. pptx.test.ts pins theme1 byte-for-byte. It deliberately did NOT follow
 // lolly-start's move to the Harmony palette. A caller-supplied PptxTheme (values the shell
 // resolved from the active brand's tokens) overrides any field, which is how a Harmony-era
 // deck actually gets its colours; the engine itself never reads a brand pack. hexNorm
@@ -710,7 +710,7 @@ export function buildPptxParts(slides: PptxSlide[], opts: PptxBuildOpts = {}): R
   const exts = new Set<string>();
   for (const s of slides) for (const m of s.media) exts.add(m.ext);
   const now = opts.now ?? '2026-01-01T00:00:00Z';
-  // Slide indices that actually carry a note — drives every notes part below.
+  // Slide indices that actually carry a note. This drives every notes part below.
   const noted = slides.map((s, i) => ({ i, notes: (s.notes ?? '').trim() })).filter(x => x.notes !== '');
   const hasAnyNotes = noted.length > 0;
 

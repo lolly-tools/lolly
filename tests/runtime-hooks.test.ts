@@ -3,10 +3,10 @@
  * Contract tests for the runtime's per-hook time-boxes (HOOK_BUDGET_MS).
  *
  * An async hook result is RACED against its budget: on overrun the runtime
- * logs the timeout, applies NO patch, and discards the late resolution — the
+ * logs the timeout, applies NO patch, and discards the late resolution - the
  * hook itself keeps executing (there is no in-realm preemption). A SLOW
  * SYNCHRONOUS hook can't be preempted at all: its overrun is measured and
- * warned, and its patch still applies. onFrame/onLevel are exempt — they're
+ * warned, and its patch still applies. onFrame/onLevel are exempt - they're
  * throttled by dropping overlapping frames/samples, never time-boxed.
  *
  * HOOK_BUDGET_MS is exported mutable exactly so these tests can shrink the
@@ -29,7 +29,7 @@ const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
 // Minimal tool double: one declared input (`msg`) + a template that renders the
 // hook-computed extra (`note`), so patch application is observable either way.
-// Each tool gets a UNIQUE id — compiled hook factories are memoised by
+// Each tool gets a UNIQUE id - compiled hook factories are memoised by
 // id@version (hookFactoryCache), so a shared id would reuse another test's hooks.
 let toolSeq = 0;
 function toolWith(hooks: Record<string, boolean>, hooksSource: string): any {
@@ -79,7 +79,7 @@ test('time-box: an async onInit past its budget → no patch, logged error, late
     assert.deepEqual(rt.hookErrors.map((e) => e.hook), ['onInit'], 'failure recorded for the shell');
     assert.equal(rt.getHydrated(), '<b>hi</b><i></i>', 'empty patch applied — inputs and extras untouched');
 
-    // The hook finally "finishes" with a patch — after the race was lost. It
+    // The hook finally "finishes" with a patch - after the race was lost. It
     // must be discarded, never resurrected into the model/extras.
     resolveLate({ msg: 'LATE', note: 'LATE' });
     await sleep(5);
@@ -105,7 +105,7 @@ test('time-box: an async onInput past its budget → keystroke kept, no hook pat
       `timeout logged, got: ${logs.join(' | ')}`,
     );
     assert.equal(rt.getHydrated(), '<b>typed</b><i></i>', 'input value kept; timed-out patch not applied');
-    await sleep(80); // the abandoned hook resolves now — still discarded
+    await sleep(80); // the abandoned hook resolves now - still discarded
     assert.equal(rt.getHydrated(), '<b>typed</b><i></i>', 'late resolution discarded');
   } finally { setBudgets(); }
 });
@@ -127,7 +127,7 @@ test('time-box: an async hook within budget applies its patch normally', async (
   } finally { setBudgets(); }
 });
 
-// ─── sync overrun: cannot be preempted — warn, patch still applies ────────────
+// ─── sync overrun: cannot be preempted - warn, patch still applies ────────────
 
 test('time-box: a slow SYNCHRONOUS hook cannot be preempted — warning logged, patch still applies', async () => {
   setBudgets({ onInput: 10 });
@@ -249,7 +249,7 @@ test('live camera: falls back to liveMaxEdge, and a resolution change while not 
 
 test('every budgeted hook has a real invocation site, and the schema matches', async () => {
   // `beforeRender` was accepted by tool.schema.json, typed in the SDK, plumbed
-  // through loadHooks and given a 5000 ms budget — and never called. A tool
+  // through loadHooks and given a 5000 ms budget - and never called. A tool
   // author could declare it, ship it, and watch it silently do nothing
   // (maintainability-2026-07-29.md item 5). It was removed on 2026-07-30; this
   // pins the three surfaces together so a hook cannot go half-implemented again.
@@ -277,7 +277,7 @@ test('every budgeted hook has a real invocation site, and the schema matches', a
     assert.ok(declarable.includes(name),
       `HOOK_BUDGET_MS budgets '${name}', which no manifest can declare`);
     // A budget plus a null-coalescing load is not an implementation. Require an
-    // actual call — runHook('<name>', …) — which is what beforeRender never had.
+    // actual call - runHook('<name>', …) - which is what beforeRender never had.
     assert.match(runtimeSrc, new RegExp(`runHook\\(\\s*'${name}'`),
       `HOOK_BUDGET_MS budgets '${name}' but runtime.ts never calls runHook('${name}', …) — ` +
       'a budgeted hook with no invocation site is the beforeRender trap');

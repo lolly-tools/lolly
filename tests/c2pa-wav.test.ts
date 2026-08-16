@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
- * WAV C2PA embedding (the RIFF-family binding — a top-level 'C2PA' chunk,
+ * WAV C2PA embedding (the RIFF-family binding - a top-level 'C2PA' chunk,
  * plans/41-tts-stt-programme.md §2: the Article 50 mark travels IN the generated
  * clip, not just on its asset record). The generic embed → verify round-trip
  * rides the same machinery as the format matrix in c2pa-formats.test.ts; this
@@ -54,7 +54,7 @@ test('a wav gains a trailing C2PA chunk; sniff and extraction read it back', asy
   assert.equal(sniffFormat(out), 'wav');
   const ex = extractC2paStore(out);
   assert.ok(ex && ex.format === 'wav' && ex.store.length > 0);
-  // The original bytes are a byte-identical prefix — nothing a decoder reads moved
+  // The original bytes are a byte-identical prefix - nothing a decoder reads moved
   // (only the RIFF size field at offset 4 is patched).
   for (let i = 12; i < wav.length; i++) assert.equal(out[i], wav[i], `original byte ${i} unchanged`);
   const report = await verifyC2pa(out);

@@ -5,10 +5,10 @@
  * Run with: node --test tests/layer-stack-tool.test.ts
  *
  * Loads the REAL tool straight from community/layer-stack and drives it
- * through the engine with a stubbed host — only the host is stubbed; the code
+ * through the engine with a stubbed host - only the host is stubbed; the code
  * under test is the shipped manifest + hooks. Guards:
  *   - the URL-string normalisation contract: a compact-decoded boolean arrives
- *     as the STRING 'false' (truthy!) and numbers as strings — the hook's view
+ *     as the STRING 'false' (truthy!) and numbers as strings - the hook's view
  *     styles must treat them as their real types,
  *   - view styles: hidden → display:none, opacity/blend only when non-default,
  *   - headless exportFile degradation: no DOM Image → a clear error, and a

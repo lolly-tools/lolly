@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MPL-2.0
 // Contract tests for the web shell's MediaRecorder mimetype ordering
-// (shells/web/src/bridge/video-mime.js). DOM-free by design — same pattern as
+// (shells/web/src/bridge/video-mime.js). DOM-free by design - same pattern as
 // export-size.test.js: the ordering logic is pure so it can be asserted here;
 // the isTypeSupported() probe stays in export.js and needs a real browser.
 import { test } from 'node:test';
@@ -23,7 +23,7 @@ test('audio candidates never pin video-only codecs', () => {
     for (const mime of candidates) {
       const codecs = /codecs=([^;]*)/.exec(mime)?.[1];
       // Either a bare container (recorder picks its default audio codec) or a
-      // codec list that names an audio codec — a video-only pin can make
+      // codec list that names an audio codec - a video-only pin can make
       // MediaRecorder throw NotSupportedError when the stream carries audio.
       if (codecs) assert.match(codecs, /opus|mp4a|aac/, `${mime} pins video-only codecs`);
     }
@@ -44,7 +44,7 @@ test('every candidate is a well-formed video/* mimetype', () => {
 });
 
 test('videoBitrate scales with pixels × fps and clamps to 1–24 Mbps', () => {
-  // 1080p30 at the offline default: 1920×1080×30×0.1 ≈ 6.2 Mbps — inside the clamp.
+  // 1080p30 at the offline default: 1920×1080×30×0.1 ≈ 6.2 Mbps - inside the clamp.
   assert.equal(videoBitrate(1920, 1080, 30), Math.round(1920 * 1080 * 30 * 0.1));
   // Tiny clip floors at 1 Mbps rather than a degenerate rate.
   assert.equal(videoBitrate(64, 64, 10), 1_000_000);

@@ -1,18 +1,18 @@
 // SPDX-License-Identifier: MPL-2.0
-// createAudioDock — the reusable, dependency-free audio-dock shell.
+// createAudioDock: the reusable, dependency-free audio-dock shell.
 //
 // ONE draggable/resizable window that can carry TWO coexisting players: a NARRATION
-// block (page voice — its own transport + follow/speed/caption) up top, and the MUSIC
+// block (page voice, with its own transport + follow/speed/caption) up top, and the MUSIC
 // player below (transport + Music/Effects mixer + Tracks/Atmosphere + a butterchurn
 // visualiser). Either block is optional, so a music-only, narration-only, or static host
-// all render correctly. The visualiser is the ambient BACKDROP behind the controls, it
-// EXPANDS to fullscreen via the header ↗, and its settings (theme + preset + on/off) live
+// all render correctly. The visualiser is the ambient BACKDROP behind the controls. It
+// EXPANDS to fullscreen via the header ↗, and its settings (theme, preset, on/off) live
 // in a RIGHT-CLICK menu on the dock.
 //
-// Layered back-to-front: viz canvas backdrop → scrim (a darkening wash, NO blur) →
-// controls face. All audio is delegated to the injected DockHost; the HOST renders the
+// Layered back to front: viz canvas backdrop, then scrim (a darkening wash, NO blur),
+// then controls face. All audio is delegated to the injected DockHost; the HOST renders the
 // rich visualiser through DockViz.mount, so this file imports NOTHING but its own types +
-// stylesheet and the static /info build can bundle it without the SPA module graph.
+// stylesheet, and the static /info build can bundle it without the SPA module graph.
 
 import type {
   AudioDockOptions,
@@ -44,14 +44,14 @@ const ICON = {
   caret: '<svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true"><path d="M6 9l6 6 6-6" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>',
   follow: SVG('<path d="M12 5v14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><path d="m19 12-7 7-7-7" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>'),
   close: SVG('<path d="M6 6l12 12M18 6L6 18" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/>'),
-  // The header ↗ — expand the visualiser straight to fullscreen (Fullscreen API).
+  // The header ↗: expands the visualiser straight to fullscreen (Fullscreen API).
   expand: SVG('<path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>'),
-  // ↙ — the header ↗ swaps to this while fullscreen; clicking it exits fullscreen.
+  // ↙: the header ↗ swaps to this while fullscreen; clicking it exits fullscreen.
   compress: SVG('<path d="M8 3v3a2 2 0 0 1-2 2H3M16 3v3a2 2 0 0 0 2 2h3M8 21v-3a2 2 0 0 0-2-2H3M16 21v-3a2 2 0 0 1 2-2h3" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>'),
   // repeat = loop the current track; forward = play through the list.
   repeat: SVG('<path d="m17 2 4 4-4 4M3 11v-1a4 4 0 0 1 4-4h14M7 22l-4-4 4-4M21 13v1a4 4 0 0 1-4 4H3" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>'),
   forward: SVG('<path d="M12 12H3M16 6H3M12 18H3M16 6l5 6-5 6V6Z" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>'),
-  // The viz on/off toggle glyph — a little waveform.
+  // The viz on/off toggle glyph: a little waveform.
   viz: SVG('<path d="M3 12h2l2-6 3 14 3-11 2 5h6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>'),
   // A magnifier for the preset search box.
   search: SVG('<circle cx="11" cy="11" r="7" fill="none" stroke="currentColor" stroke-width="2"/><path d="m20 20-3-3" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>'),
@@ -698,7 +698,7 @@ export function createAudioDock(opts: AudioDockOptions): DockController {
     paintVizToggle();
     markVizCurrent();
     vizMenu.hidden = false;
-    // Position within the dock (root is overflow:hidden — the menu scrolls internally).
+    // Position within the dock (root is overflow:hidden, so the menu scrolls internally).
     const r = root.getBoundingClientRect();
     const mw = vizMenu.offsetWidth || 240;
     const mh = vizMenu.offsetHeight || 240;
@@ -732,8 +732,8 @@ export function createAudioDock(opts: AudioDockOptions): DockController {
       .map((r) => `<option value="${r}"${r === cur ? ' selected' : ''}>${r}×</option>`)
       .join('');
   }
-  // Collapse the narration block from its own header — like Tracks/Atmosphere fold to their
-  // heads. A collapsed block shrinks to its title row, so the viz/free space + the bottom-
+  // Collapse the narration block from its own header, like Tracks/Atmosphere fold to their
+  // heads. A collapsed block shrinks to its title row, so the viz/free space and the bottom-
   // anchored music controls reflow around it.
   function applyNarrBlockOpen(): void {
     narrBlock.setAttribute('data-narrblock-open', String(narrBlockOpen));
@@ -1215,7 +1215,7 @@ export function createAudioDock(opts: AudioDockOptions): DockController {
   }
 
   // Keep the viz backing store matched to the canvas's displayed size × dpr (crisp when
-  // enlarged), on any size change — debounced to one animation frame.
+  // enlarged), on any size change. Debounced to one animation frame.
   let vizRoAf = 0;
   let vizRo: ResizeObserver | null = null;
   if (typeof ResizeObserver === 'function' && raf) {

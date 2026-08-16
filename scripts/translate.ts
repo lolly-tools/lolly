@@ -8,28 +8,28 @@
  * that always wins over machine output. Requires ANTHROPIC_API_KEY.
  *
  * Corpora (see plans/38-localize.md §10 for the rest still to come):
- *   spa   — shells/web/src/locales/<lang>.json, keyed by the exact English
+ *   spa - shells/web/src/locales/<lang>.json, keyed by the exact English
  *           string used as a t() call site across shells/web/src (i18n.ts).
  *           Literal `t('...')` calls are found by scanning source; the small
  *           number of dynamically-keyed calls (t(FIELD_LABELS[f]), ternaries)
  *           are listed by hand in scripts/i18n/extra-keys.spa.json.
- *   tools — per-tool i18n sidecars (plans/38-localize.md §7), one
+ *   tools - per-tool i18n sidecars (plans/38-localize.md §7), one
  *           tools/<id>/i18n/<lang>.json per tool per language. Scoped to the
  *           three gallery-card-visible fields (`name`, `description`,
- *           `featured.blurb`) — NOT the full sidecar key grammar
+ *           `featured.blurb`) - NOT the full sidecar key grammar
  *           (input labels/help/options) engine/src/loader.ts's
  *           applyManifestI18n also supports; those stay English until a tool
  *           author (or a future pass) opts in. Scans community/ and
  *           brands/{suse,lolly-start}/tools/ directly (not the gitignored
- *           tools/ profile view — that symlink farm only contains whichever
+ *           tools/ profile view - that symlink farm only contains whichever
  *           ONE profile is currently active, and this corpus must cover every
  *           pack regardless of what's active locally) and writes sidecars
  *           straight into each tool's own source directory. Unlike the spa
  *           corpus's one-file-per-language output, this is many small files;
  *           see runToolsCorpus() below rather than the generic runCorpus().
  *
- *   docs  — /info page BODIES, one docs/i18n/<lang>/<slug>.md per page per
- *           language, for the curated page list in DOCS_PAGES (not all 38 —
+ *   docs - /info page BODIES, one docs/i18n/<lang>/<slug>.md per page per
+ *           language, for the curated page list in DOCS_PAGES (not all 38 - 
  *           see that constant for why the engineering references stay English).
  *           Translates and caches per markdown BLOCK, and writes a page only
  *           when every block resolved, so a page is either fully translated or
@@ -44,7 +44,7 @@
  *   npm run translate -- --corpus docs --only privacy --all   # one page, all 26 languages
  *   npm run translate -- --check              # exit non-zero on stale/missing, no API calls
  *
- * Future corpora (site.json chrome) plug into the generic runCorpus() shape —
+ * Future corpora (site.json chrome) plug into the generic runCorpus() shape - 
  * see plans/38-localize.md §8.
  */
 
@@ -59,32 +59,32 @@ const REPO_ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
 
 // The Anthropic SDK reads ANTHROPIC_API_KEY from the environment. This is the only
 // script in the repo that needs a secret, and exporting it from a shell profile
-// would hand it to every process on the machine — so also accept it from the
+// would hand it to every process on the machine - so also accept it from the
 // repo's gitignored `.env.local` (which already exists for VERCEL_OIDC_TOKEN).
 //
 // Precedence is the right way round and verified, not assumed: an already-set
 // environment variable WINS over the file, so `ANTHROPIC_API_KEY=… npm run
 // translate` still overrides whatever is on disk. A missing file throws ENOENT
-// rather than returning quietly, hence the guard — running with no .env.local is
+// rather than returning quietly, hence the guard - running with no .env.local is
 // the normal case for anyone who exports the key themselves.
 // `.env.local` is what the Vercel CLI created and what it REWRITES on `vercel env
-// pull`, which would silently drop a key added by hand — so `.env` is read too and
+// pull`, which would silently drop a key added by hand - so `.env` is read too and
 // is the safer home for this one. `.env.local` is loaded first and therefore wins,
 // matching the usual dotenv precedence (loadEnvFile never overwrites an already-set
 // variable, so first-loaded is highest-priority here). Both are gitignored.
 for (const f of ['.env.local', '.env']) {
-  try { process.loadEnvFile(join(REPO_ROOT, f)); } catch { /* absent — fine */ }
+  try { process.loadEnvFile(join(REPO_ROOT, f)); } catch { /* absent - fine */ }
 }
 
 const I18N_DIR = join(REPO_ROOT, 'scripts', 'i18n');
 const CACHE_PATH = join(I18N_DIR, 'cache.json');
 const GLOSSARY_PATH = join(I18N_DIR, 'glossary.json');
 
-// Canonical language list (engine/src/lang.ts's LANGS, minus 'en' — the source).
+// Canonical language list (engine/src/lang.ts's LANGS, minus 'en' - the source).
 const LANGS = ['es', 'de', 'fr', 'zh', 'ja', 'vi', 'pt', 'zh-hant', 'cs', 'nl', 'tl', 'sv', 'ms', 'ro', 'hi', 'bn', 'ur', 'id', 'ar', 'it', 'no', 'ko', 'bg', 'tr', 'uk', 'pl'] as const;
 type Lang = (typeof LANGS)[number];
 
-// Chosen deliberately for this pipeline (see plans/38-localize.md §4) — not the
+// Chosen deliberately for this pipeline (see plans/38-localize.md §4) - not the
 // skill's default Opus-4.8 recommendation, which is for open-ended/reasoning
 // work. Bulk, high-volume, quality-sensitive-but-not-frontier-reasoning
 // translation is exactly what Sonnet-tier is priced and built for.
@@ -170,17 +170,17 @@ const SPA_CORPUS: CorpusDef = {
 
 // ─── caps corpus: the capability map's prose (a lazy string NAMESPACE) ─────
 // The Dashboard's Capabilities tab (#/d?tab=caps) renders shells/web/src/lib/
-// capabilities-data.ts — ~300 strings, ~22 KB of English, several of them full
+// capabilities-data.ts - ~300 strings, ~22 KB of English, several of them full
 // paragraphs carrying authored inline HTML. Two reasons it is its own corpus
 // rather than more keys in `spa`:
 //   1. Register. The spa prompt tells the model "compact UI microcopy, not
-//      marketing prose" — the exact wrong instruction for a 570-character
+//      marketing prose" - the exact wrong instruction for a 570-character
 //      paragraph explaining CMYK output intents.
 //   2. Weight. Its catalog is loaded on demand by the one panel that shows it
 //      (i18n.ts's loadNamespace('caps')), so a non-English user doesn't download
 //      a fifth of a boot catalog for a tab they may never open.
 // The strings are plain data, NOT literal t() call sites, so they can't be found
-// by extractSpaKeys's scan — the module is imported and walked instead. Node runs
+// by extractSpaKeys's scan - the module is imported and walked instead. Node runs
 // the .ts directly (type-stripping); the module imports nothing, so this is safe.
 const CAPS_DATA_PATH = join(REPO_ROOT, 'shells', 'web', 'src', 'lib', 'capabilities-data.ts');
 
@@ -408,7 +408,7 @@ const SITE_CORPUS: CorpusDef = {
 // Same two reasons as `caps` for being its own corpus rather than more keys in
 // `spa`, plus a third that is specific to it:
 //   1. Register. This is a mix of step headings, refusal sentences and live-region
-//      announcements about a person on another device — read by someone mid-task,
+//      announcements about a person on another device - read by someone mid-task,
 //      often anxious that a connection is not working. The spa prompt's "button
 //      labels and one-line descriptions" is the wrong brief for it.
 //   2. Weight. Its catalog loads on demand (i18n.ts's loadNamespace('collab')) and
@@ -420,13 +420,13 @@ const SITE_CORPUS: CorpusDef = {
 //      Every one of them would have been silently missed by a `spa` run.
 // Like the `site` corpus, the source cannot be imported (these are DOM modules on
 // the web shell's lazy chunks), so each STRINGS declaration's initializer is sliced
-// out by brace matching and EVALUATED — the same mechanism, and the same inverted
+// out by brace matching and EVALUATED - the same mechanism, and the same inverted
 // failure mode: renaming or moving a map THROWS naming the file, rather than
 // quietly shrinking the key set.
 //
-// The eight strings that render on ORDINARY chrome even with the flag off — the
+// The eight strings that render on ORDINARY chrome even with the flag off - the
 // profile Feature-flags row (extra-keys.spa.json) and the two Share-dialog rows
-// (literal `t('…')` call sites) — are deliberately in `spa`, not here: they are a
+// (literal `t('…')` call sites) - are deliberately in `spa`, not here: they are a
 // few hundred bytes and every user sees them.
 const COLLAB_SOURCES = [
   join('shells', 'web', 'src', 'components', 'collab-ceremony.ts'),
@@ -437,11 +437,11 @@ const COLLAB_SOURCES = [
   join('shells', 'web', 'src', 'components', 'collab-focus.ts'),
   // The work (server-room) half of the same feature: the inbox "Open the collab"
   // affordance and every sentence a work collab can fail with. Same register, same
-  // lazy namespace — it is `collab` copy that happens to live under org/.
+  // lazy namespace - it is `collab` copy that happens to live under org/.
   join('shells', 'web', 'src', 'org', 'collab-work-opener.ts'),
   // The five storage failures a received beam can die of. They were left out while
-  // `BeamSinkError.userMessage` had no reader — which is not a reason for copy to be
-  // untranslatable, only a reason nobody noticed: the map already had the shape of
+  // `BeamSinkError.userMessage` had no reader - which is not a reason for copy to be
+  // untranslatable, only a reason nobody noticed: the map already had the structure of
   // user copy, and a render site arriving later would have shipped it in English.
   join('shells', 'web', 'src', 'lib', 'beam-sink.ts'),
 ];
@@ -491,7 +491,7 @@ const COLLAB_CORPUS: CorpusDef = {
 const CORPORA: Record<string, CorpusDef> = { spa: SPA_CORPUS, caps: CAPS_CORPUS, site: SITE_CORPUS, collab: COLLAB_CORPUS };
 
 // ─── tools corpus: gallery-card fields (name/description/featured.blurb) ───
-// Every tool pack this corpus covers — community (public, shared across every
+// Every tool pack this corpus covers - community (public, shared across every
 // brand profile) plus the two brand packs that ship their own exclusive
 // tools. Deliberately NOT the gitignored tools/ profile view (scripts/use-
 // profile.ts's symlink farm): that only contains whichever ONE profile is
@@ -532,7 +532,7 @@ async function runToolsCorpus(client: Anthropic | null, lang: Lang, cache: Cache
   cache.tools[lang] ??= {};
   const langCache = cache.tools[lang]!;
 
-  // One flat batch across every tool's translatable fields for this language —
+  // One flat batch across every tool's translatable fields for this language - 
   // batch ids are "toolId::field" so results route back to the right sidecar;
   // the cache itself stays keyed by content hash of the ENGLISH TEXT (not the
   // batch id), so identical strings shared across tools (e.g. two tools both
@@ -597,7 +597,7 @@ async function runToolsCorpus(client: Anthropic | null, lang: Lang, cache: Cache
     const outPath = join(outDir, `${lang}.json`);
     // MERGE with an existing sidecar: this corpus only manages the three
     // gallery-card fields, but shipped sidecars also carry the full input
-    // key grammar (inputs.*.label/help/options…) written by other passes —
+    // key grammar (inputs.*.label/help/options…) written by other passes - 
     // overwriting the file wholesale would silently truncate those.
     let existing: Record<string, string> = {};
     if (existsSync(outPath)) {
@@ -619,7 +619,7 @@ async function runToolsCorpus(client: Anthropic | null, lang: Lang, cache: Cache
 // corpus is per-page opt-in by construction: a slug listed here gets 26
 // translations, a slug left out keeps serving accurate English. That property
 // is why the privacy translations could simply be deleted when they went stale
-// — a wrong translation is worse than an English fallback, especially for a
+// - a wrong translation is worse than an English fallback, especially for a
 // legal document.
 //
 // Unlike every other corpus, the output is not a key→value catalog but a whole
@@ -628,7 +628,7 @@ async function runToolsCorpus(client: Anthropic | null, lang: Lang, cache: Cache
 //
 // GRANULARITY: the unit of translation and of caching is a markdown BLOCK, not
 // a page. Editing one paragraph of privacy.md therefore re-translates one
-// paragraph, not 20 KB — and because the cache is keyed by content hash, a
+// paragraph, not 20 KB - and because the cache is keyed by content hash, a
 // block whose text is identical across pages (a shared warning note, say) is
 // translated once for the whole corpus.
 //
@@ -636,7 +636,7 @@ async function runToolsCorpus(client: Anthropic | null, lang: Lang, cache: Cache
 // authoring-tools, content-credentials-engineering, threat-model,
 // server-surface) are read by developers working in English, are the densest in
 // code identifiers, and are the ones a translation is most likely to quietly
-// corrupt — they stay English on purpose. What is listed below is the material
+// corrupt - they stay English on purpose. What is listed below is the material
 // a non-English *user* actually needs: the legal document, the on-ramps, and
 // the operator overview whose stale SEAL sentence is still live in ~24 locales.
 export const DOCS_PAGES: Array<{ slug: string; src: string }> = [
@@ -668,7 +668,7 @@ interface DocBlock {
  * `blocks.map(b => b.text).join('\n')`.
  *
  * Fenced code is scanned line-by-line rather than split on blank lines, because
- * a fence legitimately CONTAINS blank lines — splitting first would tear a code
+ * a fence legitimately CONTAINS blank lines - splitting first would tear a code
  * block in half and hand its second half to the model as prose.
  */
 export function splitDocBlocks(md: string): DocBlock[] {
@@ -690,7 +690,7 @@ export function splitDocBlocks(md: string): DocBlock[] {
     if (line.trim() === '') { flush(true); blocks.push({ text: '', translatable: false }); continue; }
     buf.push(line);
   }
-  // An unterminated fence stays opaque — better to ship the code untranslated
+  // An unterminated fence stays opaque - better to ship the code untranslated
   // than to feed a half-open fence to the model.
   flush(!inFence);
   // A pure HTML comment block is machinery (build directives, review notes).
@@ -774,7 +774,7 @@ function batchByChars(items: BatchItem[], budget: number): BatchItem[][] {
   let cur: BatchItem[] = [];
   let size = 0;
   for (const item of items) {
-    // An oversized single block still goes out alone rather than being split —
+    // An oversized single block still goes out alone rather than being split - 
     // splitting mid-paragraph would hand the model half a sentence.
     if (cur.length && size + item.text.length > budget) { out.push(cur); cur = []; size = 0; }
     cur.push(item);
@@ -893,14 +893,14 @@ async function runDocsCorpus(
 
 // ─── Validation: placeholders + inline HTML must survive ───────────────────
 const PLACEHOLDER_RE = /\{[a-zA-Z0-9_]+\}/g;
-// Authored inline HTML — <code>, <strong>, <em>, <a href="…"> — appears in both
+// Authored inline HTML - <code>, <strong>, <em>, <a href="…"> - appears in both
 // corpora (a handful of spa strings, many caps ones). A translation that drops a
 // closing tag, invents one, or "translates" an href silently ships broken markup
 // straight into the DOM, so tags are compared as a multiset: word order may move
 // them around, but the exact same tags must come out the other side.
 const TAG_RE = /<\/?[a-zA-Z][^>]*>/g;
 // `<code>…</code>` wraps literal parameters, flags and formats (e.g. the
-// `&amp;export` URL flag) — never prose, so its inner text must survive
+// `&amp;export` URL flag) - never prose, so its inner text must survive
 // byte-for-byte. Prose entities like a rendered `&` MAY become the target
 // language's word for "and", which is why we compare code CONTENTS specifically
 // rather than a blanket entity multiset.
@@ -956,14 +956,14 @@ const LATIN_PUNCTUATION_LANGS: ReadonlySet<string> = new Set([
 ]);
 
 /**
- * House copy rules that are style, not register — so they belong in the prompt
+ * House copy rules that are style, not register - so they belong in the prompt
  * rather than in a per-language registerNote.
  *
  * These exist because of real reviewer feedback, and because of a trap: the
  * committed catalogs were swept by HAND (2026-07-13) to remove em-dashes, but
  * that sweep never reached the glossary or this prompt. The cache is keyed by
  * the English source, so any re-translation of a changed string would quietly
- * reintroduce exactly what the sweep removed — undoing reviewed copy with no
+ * reintroduce exactly what the sweep removed - undoing reviewed copy with no
  * signal. Encoding the rule here is what makes the sweep durable.
  */
 function punctuationRules(lang: Lang): string[] {
@@ -1017,8 +1017,8 @@ async function translateBatch(
   items: BatchItem[],
   corpusContext: string,
   glossary: Glossary,
-  // The docs corpus translates whole markdown blocks — paragraphs, tables,
-  // bullet lists — not one-line UI strings, so it needs both a bigger output
+  // The docs corpus translates whole markdown blocks - paragraphs, tables,
+  // bullet lists - not one-line UI strings, so it needs both a bigger output
   // ceiling and structural checks (link targets, heading level, table shape)
   // that mean nothing to the other corpora. Both default to today's behaviour.
   opts: { maxTokens?: number; extraValidate?: (source: string, translated: string) => string | null } = {},
@@ -1312,7 +1312,7 @@ async function runCorpus(client: Anthropic | null, corpus: CorpusDef, lang: Lang
       }
     }
   } else if (toTranslate.length) {
-    // --check mode (no client): count as missing. NOT written — see below.
+    // --check mode (no client): count as missing. NOT written - see below.
     failedCount = toTranslate.length;
   }
 
@@ -1320,7 +1320,7 @@ async function runCorpus(client: Anthropic | null, corpus: CorpusDef, lang: Lang
   const overrides = loadOverrides(corpus.id, lang);
   Object.assign(result, overrides);
 
-  // --check is READ-ONLY, and that is load-bearing rather than tidiness.
+  // --check is READ-ONLY, and that is required behaviour, not just tidiness.
   //
   // It used to fall back to English for every uncached key and then write the
   // catalog anyway, which quietly turned an audit into an edit: a bare
@@ -1377,7 +1377,7 @@ function parseArgs(argv: string[]): { corpus?: string; lang?: Lang; all: boolean
 }
 
 // 'tools' doesn't fit the generic one-file-per-language CorpusDef shape (see
-// runToolsCorpus's doc comment) — it's a recognized --corpus value handled as
+// runToolsCorpus's doc comment) - it's a recognized --corpus value handled as
 // a special case in the loop below, not registered in CORPORA.
 const ALL_CORPUS_IDS = [...Object.keys(CORPORA), 'tools', 'docs'];
 

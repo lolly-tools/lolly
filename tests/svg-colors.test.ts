@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
- * Unit tests for engine/src/svg-colors.ts — extractSvgColors(), the pure,
+ * Unit tests for engine/src/svg-colors.ts - extractSvgColors(), the pure,
  * DOM-free scan that pulls the distinct colours out of raw SVG source text.
  *
  * Run with: node --test tests/svg-colors.test.ts
@@ -121,7 +121,7 @@ test('duplicate colours across multiple elements collapse to one entry', () => {
 
 test('a named colour dedupes case-insensitively, keeping the first-seen casing', () => {
   // colorToHex normalises hex/rgb()/hsl() to lowercase, but passes a bare
-  // named colour through verbatim — "RED" and "red" must still collapse to
+  // named colour through verbatim - "RED" and "red" must still collapse to
   // one entry rather than surviving as two "different" colours.
   assert.deepEqual(extractSvgColors('<rect fill="RED"/><rect fill="red"/>'), ['RED']);
   assert.deepEqual(extractSvgColors('<rect fill="red"/><rect fill="RED"/>'), ['red']);

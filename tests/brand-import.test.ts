@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
- * Unit + cross-container equivalence tests for engine/src/brand-import.ts —
+ * Unit + cross-container equivalence tests for engine/src/brand-import.ts - 
  * the container-extraction layer that reassembles a Penpot/Tokens-Studio
  * token document out of the three shapes Penpot exports it in (monolithic
  * tokens.json, one-file-per-set, .penpot project zip).
@@ -23,7 +23,7 @@ import {
 } from '../engine/src/brand-import.ts';
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
-// Real Penpot export samples live outside the repo (not checked in — see the
+// Real Penpot export samples live outside the repo (not checked in - see the
 // task that added this suite); CI and other machines won't have them.
 const MATERIALS_DIR = '/Users/andy/Desktop/penpot-start';
 const SKIP_MATERIALS = !existsSync(MATERIALS_DIR) && 'penpot-start example materials not on this machine';
@@ -131,7 +131,7 @@ test('extractPenpotProject: manifest + files/<id>/tokens.json → doc extracted,
   const r = extractPenpotProject(entries);
   assert.equal(r.source, 'penpot-project');
   // {...r.doc}: the merge accumulator is deliberately null-prototype (a set
-  // named "__proto__" must stay an own key) — compare content, not prototype.
+  // named "__proto__" must stay an own key) - compare content, not prototype.
   assert.deepEqual({ ...r.doc }, doc);
   assert.deepEqual(r.warnings, []);
 });
@@ -153,7 +153,7 @@ test('extractPenpotProject: missing manifest falls back to a sorted files/*/toke
 });
 
 test('extractPenpotProject: an empty first $themes/[]-$metadata must not shadow a later file\'s real ones', () => {
-  // Penpot writes `$themes: []` alongside real sets — presence isn't usefulness.
+  // Penpot writes `$themes: []` alongside real sets - presence isn't usefulness.
   const realThemes = [{ name: 'Light', group: 'Mode', selectedTokenSets: { Base: 'enabled' } }];
   const entries: Record<string, Uint8Array> = {
     'manifest.json': jsonBytes({ type: 'penpot/export-files', files: [{ id: 'first' }, { id: 'second' }] }),
@@ -370,7 +370,7 @@ test('scanPenpotAppliedTokens: malformed, absent and unmodelled entries are skip
 });
 
 test('scanPenpotAppliedTokens: dotted and "__proto__" token names land as plain rows', () => {
-  // Token names come straight out of the file, so the accumulator is a Map —
+  // Token names come straight out of the file, so the accumulator is a Map - 
   // an object literal would swallow "__proto__" through the prototype setter.
   const rows = scanPenpotAppliedTokens(appliedArchive({
     a: { type: 'rect', appliedTokens: { fill: 'a.deep.dotted.path' } },

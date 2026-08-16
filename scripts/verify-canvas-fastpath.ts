@@ -1,11 +1,11 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
  * Served-app acceptance gate for the geometry paint fast-skip (plans/98 §9). This is the
- * verification the two REVERTED attempts lacked — it drives REAL pointer drags in a real
+ * verification the two REVERTED attempts lacked - it drives REAL pointer drags in a real
  * headless Chrome against the built web dist and asserts, per gesture:
  *   - a pure-translation drag of a SAFE box (plain, fitText) ENGAGES the skip
  *     (window.__lollyGeomFastPath.skips++) and leaves the box DOM COMPUTED-STYLE identical
- *     to a from-scratch full paint of the same post-drag doc — the export/CLI determinism
+ *     to a from-scratch full paint of the same post-drag doc - the export/CLI determinism
  *     invariant (§11), since the export walker reads getComputedStyle (raw-attr whitespace
  *     is irrelevant). fitText proves the runtime `--fit` custom property survives.
  *   - dragging a cross-box-coupled box (a clip mask) REFUSES (fulls++, skips unchanged) and

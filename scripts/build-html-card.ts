@@ -4,8 +4,8 @@
  * Animated HTML card generator.
  *
  * The third card format, alongside build-svg-card.ts (vector) and the committed APNG
- * cards. For tools whose canvas is HTML/CSS — <div> scenes driven by CSS @keyframes,
- * possibly via hooks (e.g. digi-ad) — the lightest animated gallery/picker preview is a
+ * cards. For tools whose canvas is HTML/CSS - <div> scenes driven by CSS @keyframes,
+ * possibly via hooks (e.g. digi-ad) - the lightest animated gallery/picker preview is a
  * committed `tools/<id>/card.html`: the tool's own self-contained animated markup, a few
  * KB of CSS (not the ~2 MB an equivalent APNG would weigh), shown in a sandboxed <iframe>
  * that animates natively and pauses off-screen. The catalog index honours it as the
@@ -13,7 +13,7 @@
  * iframe. Run `npm run build:catalog` after.
  *
  * The HTML comes from the tool's REAL `html` export via the CLI shell (jsdom + engine +
- * hooks — deterministic, NO browser), so it's byte-faithful to the tool's own output. The
+ * hooks - deterministic, NO browser), so it's byte-faithful to the tool's own output. The
  * tool must declare `html` in render.formats. We wrap that node in a standalone document:
  * a SUSE @font-face (the iframe is a separate document and doesn't inherit the app's
  * fonts) + full-bleed sizing so the responsive (container-query) banner fills the frame.
@@ -29,7 +29,7 @@ import { fileURLToPath } from 'node:url';
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 
 // The iframe document is separate from the app, so it must register the brand fonts
-// itself (same-origin URLs — the card is served from /tools/<id>/). Mirrors
+// itself (same-origin URLs - the card is served from /tools/<id>/). Mirrors
 // shells/web/src/styles/fonts.css.
 const FONT_FACES = `
 @font-face{font-family:'SUSE';src:url('/catalog/fonts/webfonts/SUSE[wght].woff2') format('woff2-variations');font-weight:100 900;font-style:normal;font-display:swap}
@@ -43,7 +43,7 @@ function buildCard(toolId: string): void {
     throw new Error(`${toolId}: render.formats must include "html" (it's the export this lifts)`);
   }
   // The tool's real html export (canvas node + its inline <style>/@keyframes), rendered
-  // through the engine + hooks by the CLI shell — no browser.
+  // through the engine + hooks by the CLI shell - no browser.
   const res = spawnSync('node', ['shells/cli/bin/lolly.ts', toolId, '--export=html'], {
     cwd: ROOT, encoding: 'utf8', maxBuffer: 32 * 1024 * 1024,
   });

@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MPL-2.0
-// Byte-structure contract for engine/src/video-meta.js — the MP4 udta/ilst and
+// Byte-structure contract for engine/src/video-meta.js - the MP4 udta/ilst and
 // Matroska Tags provenance writers used on webm/mp4 exports. Same pattern as
 // apng.test.js / tiff.test.js: synthetic minimal containers, own mini-parsers.
 import { test } from 'node:test';
@@ -133,7 +133,7 @@ test('mp4: iTunes keys carry encoder, artist, date, title, comment', () => {
 // `mdat`, so every stco/co64 chunk offset must be bumped by udta.length or the
 // file is unplayable. Progressive files (mdat before moov) must be left alone.
 
-// Minimal tag set — enough to make embedMp4Meta insert a udta.
+// Minimal tag set - enough to make embedMp4Meta insert a udta.
 const STCO_TAGS = { title: '', artist: '', date: '', comment: '', encoder: 'Lolly', encodedBy: '', publisher: '' };
 const findStcoOffset = (b: Uint8Array): number => {
   for (let i = 0; i + 16 < b.length; i++) {
@@ -243,7 +243,7 @@ test('webm: known-size Segment gets its size VINT patched in the same width', ()
 
   const segAt = EBML_HEAD.length;
   const v = readVint(out, segAt + 4);
-  assert.equal(v.width, 2); // width preserved — no offsets shifted
+  assert.equal(v.width, 2); // width preserved - no offsets shifted
   assert.equal(v.value, payload.length + (out.length - src.length));
   // Tags element sits inside the (now larger) segment, right after the payload.
   const tagsOff = segAt + 4 + 2 + payload.length;
@@ -252,7 +252,7 @@ test('webm: known-size Segment gets its size VINT patched in the same width', ()
 
 // Chrome-shaped finalised recording: SeekHead (Info+Cluster entries) + reserved
 // Void + Info + Cluster + Cues, known-size Segment. The embed must index the
-// appended Tags in the SeekHead by growing it into the Void — with no byte of
+// appended Tags in the SeekHead by growing it into the Void - with no byte of
 // the file moving (demuxers only find trailing elements through the SeekHead).
 function chromeShapedWebm(): { src: Uint8Array; payload: Uint8Array; shVoidSpan: number } {
   const seek = (idBytes: number[], pos: number): Uint8Array => concat(

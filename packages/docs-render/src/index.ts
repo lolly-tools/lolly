@@ -1,4 +1,4 @@
-// @lolly-tools/docs-render — the shared, DOM-free docs render layer.
+// @lolly-tools/docs-render - the shared, DOM-free docs render layer.
 //
 // Consumed by BOTH docs/build.ts (the static site generator) and the in-app live
 // docs view (shells/web) so the two rendering paths can never drift. Everything

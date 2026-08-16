@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
- * timeline-math — the pure time math behind the timeline panel (Fable timeline, phase 2).
+ * timeline-math - the pure time math behind the timeline panel (Fable timeline, phase 2).
  *
- * Run with: npm test  (node --test over the tests/ globs). No framework — node:test.
+ * Run with: npm test  (node --test over the tests/ globs). No framework - node:test.
  *
  * Spec: plans/53-fable-timeline-phase-2.md §1. This file is the phase's real safety net:
  * every interaction edge case (trim clamps, split boundaries, magnetic reorder,
@@ -10,7 +10,7 @@
  * the panel only has to get its wiring right.
  *
  * The parity block below loads the REAL design hooks.js off disk and runs its
- * seqDurationMs against deriveDuration for the same rows — the artboard's data-seq-ms
+ * seqDurationMs against deriveDuration for the same rows - the artboard's data-seq-ms
  * and the panel's ruler length disagreeing is a real bug class, not a hypothetical.
  */
 
@@ -29,12 +29,12 @@ import {
   detachAudio, isThroughEdit, joinClips, reattachAudio, splitAll,
   onionNeighbours, ONION_MAX_STEPS,
   snapTime, splitBox, trimClip,
-  // The keyframe EDITING surface (plans/104 §8) — the arithmetic the panel is
+  // The keyframe EDITING surface (plans/104 §8) - the arithmetic the panel is
   // forbidden from doing itself.
   KF_NEUTRAL, KF_POSE_SEED, clearKfTrack, kfDiamondAt, kfDiamondTimes, kfDuplicateMs,
   kfFormatChannel, kfLocalMs, kfSeekDiamond, kfSlideMs, kfTimelineSec, kfTrackDelete,
   kfTrackDuplicate, kfTrackRetime, kfTrackSetEase, kfWriteMs, rescaleKfTrack, setKfTrack, writeKfPose,
-  // The motion path (plans/104 §8's overlay bullet) — sampled through the engine.
+  // The motion path (plans/104 §8's overlay bullet) - sampled through the engine.
   MOTION_PATH_MAX_SAMPLES, kfCameraClips, kfMotionPath,
   type Box, type TimeCfg,
 } from '../shells/web/src/views/timeline-math.ts';
@@ -57,7 +57,7 @@ const cfg: TimeCfg = {
 const clip = (id: string, extra: Box = {}): Box => ({ id, lane: 'seq', ...extra });
 /** A free-floating overlay (timed, but off the magnetic row). */
 const overlay = (id: string, start: number, extra: Box = {}): Box => ({ id, lane: '', start, ...extra });
-/** Scenery — never timed, invisible to every function in the module. */
+/** Scenery - never timed, invisible to every function in the module. */
 const scenery = (id: string, extra: Box = {}): Box => ({ id, lane: '', start: '', ...extra });
 
 const byId = (boxes: Box[], id: string): Box => boxes[indexOfId(boxes, cfg, id)]!;
@@ -132,7 +132,7 @@ test('indexOfId: exact id match, string-coerced; empty/absent ids never match', 
   assert.equal(indexOfId(boxes, cfg, 'nope'), -1);
 });
 
-// ── 2. deriveDuration — parity with the hook ───────────────────────────────────
+// ── 2. deriveDuration - parity with the hook ───────────────────────────────────
 
 test('deriveDuration: hand-computed cases (milliseconds, matching data-seq-ms)', () => {
   // Nothing timed at all.
@@ -143,7 +143,7 @@ test('deriveDuration: hand-computed cases (milliseconds, matching data-seq-ms)',
   // max(start + dur) wins, whichever lane it is on.
   assert.equal(deriveDuration([clip('a', { start: 0, dur: 2.5 }), clip('b', { start: 2.5, dur: 3 })], cfg), 5500);
   assert.equal(deriveDuration([clip('a', { start: 0, dur: 2 }), overlay('ov', 4, { dur: 2.4 })], cfg), 6400);
-  // dur is TIMELINE seconds — speed must never scale it.
+  // dur is TIMELINE seconds - speed must never scale it.
   assert.equal(deriveDuration([clip('a', { start: 0, dur: 4, speed: 2 })], cfg), 4000);
   // A single open-ended clip alongside a measured one does not extend the length.
   assert.equal(deriveDuration([clip('a', { start: 0, dur: 2 }), clip('b', { start: 2 })], cfg), 2000);
@@ -251,7 +251,7 @@ test('moveSeqClip: reorder first↔last, with an overlay anchored mid-row travel
   assert.equal(byId(after, 'a').start, 4);
   // b moved 2 → 0, so the overlay anchored inside b moves with it: 2.5 → 0.5.
   assert.equal(byId(after, 'ov').start, 0.5);
-  // Array (z) order is untouched — the row order lives in `start`, not in the array.
+  // Array (z) order is untouched - the row order lives in `start`, not in the array.
   assert.deepEqual(after.map((b) => b.id), ['a', 'b', 'c', 'ov']);
 });
 
@@ -371,7 +371,7 @@ test('trimClip in: dragging left clamps at clipIn 0 and start 0 (cannot invent s
 
 test('trimClip in: the t=0 bound is an OVERLAY rule — the first seq clip can give its head back', () => {
   // On the magnetic row `start` is re-derived by packOrder at the end of trimClip, so
-  // "cannot go before t=0" constrains nothing there — except at index 0, where start
+  // "cannot go before t=0" constrains nothing there - except at index 0, where start
   // really is 0 and the bound used to pin the delta window shut. The result was that a
   // head trim on the FIRST clip was the one trim in a sequence that could never be
   // dragged back out, however much source was still sitting behind the in-point.
@@ -380,7 +380,7 @@ test('trimClip in: the t=0 bound is an OVERLAY rule — the first seq clip can g
   assert.equal(a.clipIn, 1, 'a second of the source head came back');
   assert.equal(a.dur, 4, 'and the clip is a second longer for it');
   assert.equal(a.start, 0, 'the magnetic row still starts at zero');
-  // The same clip at a non-zero start behaves identically — the fix removed a
+  // The same clip at a non-zero start behaves identically - the fix removed a
   // special case, it did not add one.
   const b = byId(trimClip(rows, cfg, 'b', 'in', -1, null), 'b');
   assert.equal(b.clipIn, 0, 'b had no source head, so it is unchanged');
@@ -534,7 +534,7 @@ test('splitBox: splitting a seq clip leaves the row gapless without a repack', (
 test('rippleOverlays: an overlay exactly at a clip\'s OLD END is NOT anchored to it', () => {
   const before = [clip('a', { start: 0, dur: 2 }), clip('b', { start: 2, dur: 2 }), overlay('ov', 2)];
   // Lengthen a: b (and anything anchored in b) shifts +1. The overlay sits exactly on
-  // a's old end — half-open [0,2) excludes it, so it belongs to b and moves with b.
+  // a's old end - half-open [0,2) excludes it, so it belongs to b and moves with b.
   const after = trimClip(before, cfg, 'a', 'out', 1, null);
   assert.equal(byId(after, 'b').start, 3);
   assert.equal(byId(after, 'ov').start, 3, 'anchored to b (its start), not to a (its end)');
@@ -663,7 +663,7 @@ test('fmtDelta: ASCII sign, one decimal under 10s, and no negative zero', () => 
 });
 
 test('edgeZonePx: never lets the two zones meet, and gives up entirely on a narrow bar', () => {
-  // Below the floor there is no zone at all — the whole bar stays grabbable.
+  // Below the floor there is no zone at all - the whole bar stays grabbable.
   assert.equal(edgeZonePx(0, 10), 0);
   assert.equal(edgeZonePx(27, 10), 0);
   assert.equal(edgeZonePx(MIN_TRIM_BAR_PX - 0.5, 10), 0, 'the floor is inclusive, and fractional widths respect it');
@@ -720,7 +720,7 @@ test('hostile input: no mutator throws, and none writes NaN into a time field', 
     for (const row of rows) {
       if (!row) continue;
       // A field this module WROTE is finite. A hostile value it never touched passes
-      // straight through unchanged — these functions rewrite timing, they do not
+      // straight through unchanged - these functions rewrite timing, they do not
       // sanitise rows they had no reason to edit; boxTiming clamps on READ, which is
       // where the contract actually lives.
       const src = nasty.find((n) => n && n.id === row.id);
@@ -772,7 +772,7 @@ test('hostile input: a non-array boxes argument is tolerated by every reader and
 //
 // Every assertion above sits on the millisecond grid, which is exactly what hid the
 // three rounding defects this section pins. A media duration comes from a probe
-// (3.3335 s) and a split time comes from pointer-px ÷ pxPerSec — neither is ever a
+// (3.3335 s) and a split time comes from pointer-px ÷ pxPerSec - neither is ever a
 // round number, so "the row is gapless" and "the halves sum" have to hold for
 // arbitrary reals, not just for the fixtures a human types.
 
@@ -882,7 +882,7 @@ test('moveOverlay sets an absolute start, rounded to the ms grid and clamped to 
 });
 
 test('moveOverlay agrees with the drag path to the millisecond', () => {
-  // Whatever route a time takes, the stored value is identical — this is the invariant
+  // Whatever route a time takes, the stored value is identical - this is the invariant
   // that stops a clip landing one frame off depending on how it was moved.
   for (const t of [0.0005, 1 / 3, 2.9999, 7.123456, 59.9995]) {
     const viaMove = byId(moveOverlay([overlay('o', 0)], cfg, 'o', t), 'o').start as number;
@@ -915,7 +915,7 @@ test('dropIndexAt: crossing a clip MIDPOINT is what moves the drop index', () =>
 
 test('dropIndexAt: a clip does not displace itself', () => {
   const rows = packSeq([clip('a', { dur: 3 }), clip('b', { dur: 2 }), clip('c', { dur: 2 })], cfg);
-  // Dragging `a` across its OWN midpoint must not advance the index — it is already there.
+  // Dragging `a` across its OWN midpoint must not advance the index - it is already there.
   assert.equal(dropIndexAt(rows, cfg, 1.6, 'a'), 0, 'own midpoint is not a crossing');
   assert.equal(dropIndexAt(rows, cfg, 4.5, 'a'), 1, 'crossing b DOES move it');
   assert.equal(dropIndexAt(rows, cfg, 6.5, 'a'), 2);
@@ -940,7 +940,7 @@ test('dropIndexAt tolerates an empty or overlay-only row', () => {
 //
 // These exist because the inspector used to write clipIn and speed RAW, straight
 // through patchBox, which bypassed the one invariant trimClip is built around:
-// clipIn + dur x speed <= media. Violating it is unrecoverable at playback time —
+// clipIn + dur x speed <= media. Violating it is unrecoverable at playback time - 
 // the player seeks past the source duration and the bar plays nothing.
 
 test('setDuration is ABSOLUTE: typing a length gives that length, whatever the clip was', () => {
@@ -978,7 +978,7 @@ test('setSpeed clamps the rate AND compensates the length against the media', ()
   const rows = [clip('a', { start: 0, dur: 4, clipIn: 0, speed: 1 })];
   const fast = setSpeed(rows, cfg, 'a', 4, 4)[0]!;
   assert.equal(Number(fast.speed), 4);
-  // 4s of file at x4 is 1s of timeline — the old raw write left dur at 4 and the clip
+  // 4s of file at x4 is 1s of timeline - the old raw write left dur at 4 and the clip
   // played nothing for its last three seconds.
   assert.ok(Number(fast.clipIn) + Number(fast.dur) * 4 <= 4 + 1e-9, `invariant held: dur=${fast.dur}`);
   assert.equal(Number(setSpeed(rows, cfg, 'a', 99, null)[0]!.speed), 4, 'clamped to MAX_SPEED');
@@ -1027,7 +1027,7 @@ test('splitAll: three clips cut at one instant produce ONE array and three right
 });
 
 test('splitAll: a minter that reads a SNAPSHOT cannot mint the same id twice', () => {
-  // The panel's mintId reads getBoxes(), which does not move during the fold — so a
+  // The panel's mintId reads getBoxes(), which does not move during the fold - so a
   // naive fold hands `b4` to all three halves and two of them vanish into the third.
   const before = [overlay('a', 0, { dur: 4 }), overlay('b', 0, { dur: 4 }), overlay('c', 0, { dur: 4 })];
   const frozen = (): string => 'dup';
@@ -1155,7 +1155,7 @@ test('joinClips: refuses a non-adjacent pair, a reversed pair and an unknown id'
 
 // ── 14. detach / re-attach audio (the symmetric link) ──────────────────────────
 
-/** A cfg that DECLARES the link sub-field — the opt-in the manifest makes. */
+/** A cfg that DECLARES the link sub-field - the opt-in the manifest makes. */
 const linkCfg: TimeCfg = { ...cfg, linkField: 'linkOf' };
 
 test('detachAudio: one new OVERLAY box, same ref and timing, symmetric link, source muted', () => {
@@ -1183,7 +1183,7 @@ test('detachAudio: one new OVERLAY box, same ref and timing, symmetric link, sou
   assert.equal(audio.enter, 'none');
   assert.equal(audio.exit, 'none');
 
-  // The link is written on BOTH sides — that is what makes re-attach reachable either way.
+  // The link is written on BOTH sides - that is what makes re-attach reachable either way.
   assert.equal(audio.linkOf, 'v');
   assert.equal(video.linkOf, 'new-1');
   assert.equal(video.mute, true, 'the picture is silenced');
@@ -1274,7 +1274,7 @@ test('onionNeighbours: the active window is HALF-OPEN, exactly like isActiveAt',
   assert.deepEqual(onionNeighbours(rows, cfg, 2.5, 1, 1), { past: ['s1'], future: ['s3'] });
   // The frame at s2's own start belongs to s2 (start is INSIDE).
   assert.deepEqual(onionNeighbours(rows, cfg, 2, 1, 1), { past: ['s1'], future: ['s3'] });
-  // One instant earlier is still s1 — so the ghosts flip on the SAME frame the picture
+  // One instant earlier is still s1 - so the ghosts flip on the SAME frame the picture
   // does, never one frame early and never one frame late.
   assert.deepEqual(onionNeighbours(rows, cfg, 1.999, 1, 1), { past: [], future: ['s2'] });
   // And the frame at s2's END belongs to s3, not to s2.
@@ -1305,7 +1305,7 @@ test('onionNeighbours: counts clamp to 0…ONION_MAX_STEPS and survive junk', ()
   assert.equal(ONION_MAX_STEPS, 2);
   assert.deepEqual(onionNeighbours(rows, cfg, 6.5, 99, 99).past, ['s3', 's2'], 'never more than two');
   assert.deepEqual(onionNeighbours(rows, cfg, 6.5, -5, -5), { past: [], future: [] });
-  // A junk count draws NOTHING on that side — the safe direction for a decoration.
+  // A junk count draws NOTHING on that side - the safe direction for a decoration.
   assert.deepEqual(onionNeighbours(rows, cfg, 6.5, NaN as unknown as number, 2), { past: [], future: [] });
   assert.deepEqual(onionNeighbours(rows, cfg, 6.5, 1.9, 0), { past: ['s3'], future: [] }, 'a fraction floors');
 });
@@ -1316,7 +1316,7 @@ test('onionNeighbours: nothing active, an empty lane and a gap all return two em
   assert.deepEqual(onionNeighbours([], cfg, 1, 2, 2), { past: [], future: [] }, 'empty model');
   assert.deepEqual(onionNeighbours([scenery('x'), overlay('o', 0, { dur: 5 })], cfg, 1, 2, 2),
     { past: [], future: [] }, 'no seq lane at all');
-  // A gap in the row (possible only from a hand-edited ?boxes= — packSeq never leaves
+  // A gap in the row (possible only from a hand-edited ?boxes= - packSeq never leaves
   // one): the playhead is inside nothing, so there is no "either side" to speak of.
   const gapped = [clip('a', { start: 0, dur: 1 }), clip('b', { start: 5, dur: 1 })];
   assert.deepEqual(onionNeighbours(gapped, cfg, 3, 2, 2), { past: [], future: [] });
@@ -1335,7 +1335,7 @@ test('onionNeighbours: SEQ LANE ONLY — overlays are never ghosted and never co
 
 test('onionNeighbours: an open-ended seq clip runs to the DERIVED sequence end', () => {
   // No authored dur on the last clip. The panel's own span() reads that as "runs to the
-  // end of the sequence", where the end is deriveDuration's — here stretched to 10s by
+  // end of the sequence", where the end is deriveDuration's - here stretched to 10s by
   // an overlay. This must agree with span() or the ghosts would blink out early.
   const rows: Box[] = [
     clip('a', { start: 0, dur: 3 }),
@@ -1345,7 +1345,7 @@ test('onionNeighbours: an open-ended seq clip runs to the DERIVED sequence end',
   assert.deepEqual(onionNeighbours(rows, cfg, 5, 1, 1), { past: ['a'], future: [] },
     'b is still on screen at 5s because the sequence runs to 10');
   // With nothing else to stretch it the derived end IS a's end, so the open clip
-  // collapses to the MIN_DUR floor — the same (deliberate) reading span() takes.
+  // collapses to the MIN_DUR floor - the same (deliberate) reading span() takes.
   const bare = [clip('a', { start: 0, dur: 3 }), clip('b', { start: 3 })];
   assert.deepEqual(onionNeighbours(bare, cfg, 3.05, 1, 1), { past: ['a'], future: [] });
   assert.deepEqual(onionNeighbours(bare, cfg, 3.5, 1, 1), { past: [], future: [] });
@@ -1370,11 +1370,11 @@ const trackOf = (box: Box | undefined): KfTrack => parseKf(String(box?.kf ?? '')
  * The tolerance is stated per channel as a fraction of that channel's own authored
  * SPREAD, because the error a correct rebase can still carry is the §4.6 wire
  * quantisation (0.001 on a bezier control point, 0.01 px / 0.001 unit on a value)
- * scaled by how far the channel travels — not an absolute number of pixels. A tenth
+ * scaled by how far the channel travels - not an absolute number of pixels. A tenth
  * of a percent of the travel plus one quantum is what that works out to, and it is
  * deliberately snug: the worst error across the split/trim/join cases below is
  * 0.024 px on a 120 px move, so a rebase that dropped the ease subdivision (tens of
- * px out — see the vacuity guard) could not hide inside it.
+ * px out - see the vacuity guard) could not hide inside it.
  */
 function assertContinuity(
   orig: KfTrack, half: KfTrack, shiftMs: number, from: number, to: number, label: string,
@@ -1408,7 +1408,7 @@ function assertContinuity(
   }
 }
 
-/** Every diamond poses every channel — what the UI writes (plan §8), and the exact case. */
+/** Every diamond poses every channel - what the UI writes (plan §8), and the exact case. */
 const FULL_TRACK = 't0_eo_x0_y0_s1_r0_o1_b0_z0'
   + '*t1200_ei_x120_y-40_s1.4_r15_o0.5_b6_z80'
   + '*t3000_x0_y0_s1_r0_o1_b0_z0';
@@ -1429,7 +1429,7 @@ test('splitBox: the halves REPLAY the original — every channel, across an ease
   const b = trackOf(byId(out, 'new-1'));
   assertContinuity(orig, a, 0, 0, 1500, 'A half');
   assertContinuity(orig, b, 1500, 0, 1500, 'B half');
-  // The pose AT the cut is the same object on both sides — that is the seam.
+  // The pose AT the cut is the same object on both sides - that is the seam.
   assert.deepEqual(evaluateKf(a, 1500), evaluateKf(b, 0), 'the halves meet at the cut');
 });
 
@@ -1483,7 +1483,7 @@ test('splitBox: a cut ON a keyframe leaves the eases alone, and a cut outside th
 
 test('splitBox: a SPARSE channel keeps its endpoints exactly (the stated approximation)', () => {
   // `z` is mentioned at 0 and 2400 only, so its segment spans a diamond that never
-  // names it — two different crossing segments meet at one cut, and a keyframe carries
+  // names it - two different crossing segments meet at one cut, and a keyframe carries
   // one ease. The contract is: exact at the cut and at every key, shape approximate.
   minted = 0;
   const sparse = 't0_eo_x0_z0*t1200_x100*t2400_x0_z90';
@@ -1499,7 +1499,7 @@ test('splitBox: a SPARSE channel keeps its endpoints exactly (the stated approxi
   }
   // x's crossing segment starts at the last key before the cut, so IT is exact.
   assertContinuity(orig, a, 0, 1200, 1800, 'A sparse x', { only: ['x'] });
-  // z's does not, and is allowed to differ in shape — but never by more than the
+  // z's does not, and is allowed to differ in shape - but never by more than the
   // segment it lives on (a bound, so a future regression that inverts it still fails).
   const zErr = Math.abs((evaluateKf(a, 1500).z as number) - (evaluateKf(orig, 1500).z as number));
   assert.ok(zErr < 12, `the sparse channel stays near its curve (off by ${zErr})`);
@@ -1682,7 +1682,7 @@ test('rebase fuzz: 300 random tracks × random cuts meet exactly at the seam', (
   // Structural property rather than a shape one, so it can afford to be random:
   // whatever the track and wherever the cut, the two halves must MEET (A's last
   // instant is B's first), the wire must stay charset-clean and re-parseable, and no
-  // key may land out of order or before zero. Deterministic PRNG — a fuzz case that
+  // key may land out of order or before zero. Deterministic PRNG - a fuzz case that
   // cannot be reproduced is a rumour, not a test.
   let seed = 0x104f00d;
   const rnd = (): number => {
@@ -1707,7 +1707,7 @@ test('rebase fuzz: 300 random tracks × random cuts meet exactly at the seam', (
     const cut = 0.2 + rnd() * 2.6;
     minted = 0;
     const out = splitBox([clip('x', { start: 0, dur, clipIn: 0, speed: 1, kf })], kfCfg, 'x', cut, mintId);
-    if (!out) continue;                       // refused (too close to an edge) — fine
+    if (!out) continue;                       // refused (too close to an edge) - fine
     const label = `seed case ${i}: "${kf}" cut at ${cut}`;
     const a = trackOf(byId(out, 'x'));
     const b = trackOf(byId(out, 'new-1'));
@@ -1736,8 +1736,8 @@ test('rebase fuzz: 300 random tracks × random cuts meet exactly at the seam', (
 //
 // The surface's arithmetic, asserted with no DOM anywhere near it. The panel is
 // editing glue and calls exactly these; timeline-panel.test.ts pins the wiring, this
-// pins the numbers. Where the two could disagree — what a "full pose" contains, where
-// a dragged diamond lands, which token an ease splice touches — this file is right.
+// pins the numbers. Where the two could disagree - what a "full pose" contains, where
+// a dragged diamond lands, which token an ease splice touches - this file is right.
 
 const zCfg: TimeCfg = { ...cfg, kfField: 'kf', zField: 'z' };
 
@@ -1770,8 +1770,8 @@ test('the latch candidate is the ROUND TRIP of the latch test, on and off the ms
   // `kfDiamondTimes` emits what the ruler snaps the playhead to and what Alt+←/→ seeks
   // to; `kfDiamondAt` decides whether the header says "Keyframe @ …" and whether a
   // canvas drag poses. If the two round differently the playhead can land EXACTLY on a
-  // diamond that the panel then denies being on — pose fields disabled, drag moving the
-  // box — which is the one lie this model cannot afford. A start is not required to sit
+  // diamond that the panel then denies being on - pose fields disabled, drag moving the
+  // box - which is the one lie this model cannot afford. A start is not required to sit
   // on the millisecond grid anywhere in `TimeCfg`, the schema or `boxTiming`: an
   // authored, imported or URL-supplied document can carry any float.
   const kf = 't0_x0*t500_x10*t2000_x20';
@@ -1808,8 +1808,8 @@ test('a keyframe never lands past the out-point — but an existing one is posed
   const openEnded = clip('y', { start: 0, dur: '', kf: 't0_x0' });
   assert.equal(kfWriteMs(openEnded, zCfg, 10), 10000);
 
-  // And a key already sitting past the end — reachable by hand-editing a share URL, or
-  // by trimming the clip shorter afterwards — is EDITED, never forked: the latch's whole
+  // And a key already sitting past the end - reachable by hand-editing a share URL, or
+  // by trimming the clip shorter afterwards - is EDITED, never forked: the latch's whole
   // claim is that the header names the keyframe a gesture will write.
   const stale = clip('z', { start: 0, dur: 3, kf: 't0_x0*t9000_x50' });
   assert.equal(kfWriteMs(stale, zCfg, 9), 9000);
@@ -1831,7 +1831,7 @@ test('kfFormatChannel prints a channel at ITS OWN quantum, never a hardcoded 1e-
 
 test('writeKfPose composes a FULL pose over the active channel set, at the §4.6 quanta', () => {
   const rows = [clip('x', { start: 0, dur: 4, z: 140, kf: 't0_x0_s1*t2000_eo_x60_s1.5' })];
-  // 'add' — a gesture's delta, on top of what the box is already doing there.
+  // 'add' - a gesture's delta, on top of what the box is already doing there.
   const moved = writeKfPose(rows, zCfg, 'x', 2, { x: 12.345, y: -4 }, 'add');
   const t = parseKf(String(moved[0]!.kf));
   assert.equal(t.length, 2, 'the diamond was UPDATED, never duplicated');
@@ -1841,12 +1841,12 @@ test('writeKfPose composes a FULL pose over the active channel set, at the §4.6
   assert.equal(t[1]!.ease, 'eo', 'the curve out of the keyframe is not an edit');
   assert.deepEqual({ ...t[0]!.v }, { x: 0, s: 1 }, 'and every other keyframe is byte-identical');
 
-  // 0.01px for x/y/z/b, 0.001 for s/o/a, integer ms for t — the wire's own quanta, and
+  // 0.01px for x/y/z/b, 0.001 for s/o/a, integer ms for t - the wire's own quanta, and
   // the round-trip law `parse(serialise(parse(s))) === parse(s)` holds through an edit.
   assert.equal(String(moved[0]!.kf), 't0_x0_s1*t2000_eo_x72.35_y-4_s1.5');
   assert.deepEqual(parseKf(serialiseKf(parseKf(String(moved[0]!.kf)))), parseKf(String(moved[0]!.kf)));
 
-  // 'set' — a typed number IS the value, and it still writes a full pose around itself.
+  // 'set' - a typed number IS the value, and it still writes a full pose around itself.
   const typed = writeKfPose(rows, zCfg, 'x', 2, { o: 0.5 }, 'set');
   assert.deepEqual({ ...parseKf(String(typed[0]!.kf))[1]!.v }, { x: 60, s: 1.5, o: 0.5 });
 });
@@ -1895,7 +1895,7 @@ test('the neutral table IS what an absent channel composes to (the foldKfPose re
   assert.deepEqual({ ...KF_NEUTRAL }, {
     x: 0, y: 0, z: 0, s: 1, r: 0, rx: 0, ry: 0, o: 1, b: 0, f: 0, a: 0, p: 1200,
     // `w`/`h` are the `z` case: 0 stands for "unauthored", and the fold reads that as
-    // the box's own size. Never seeded (see KF_POSE_SEED) — a size in every diamond
+    // the box's own size. Never seeded (see KF_POSE_SEED) - a size in every diamond
     // would reflow every keyed box.
     w: 0, h: 0,
   });
@@ -1927,7 +1927,7 @@ test('retime / duplicate / delete / re-ease each touch exactly what they name', 
   assert.equal(serialiseKf(kfTrackDelete(track, 1500)), 't0_x0*t2500_el_x0');
   assert.equal(serialiseKf(kfTrackDelete(track, 9999)), serialiseKf(track), 'deleting nothing changes nothing');
 
-  // Ease: ONE token, spliced through the engine's own adapter — the canonical CSS wire
+  // Ease: ONE token, spliced through the engine's own adapter - the canonical CSS wire
   // uses commas, which the kf charset bans, so a raw hand-off would emit junk.
   assert.equal(serialiseKf(kfTrackSetEase(track, 0, 'ease-out')), 't0_eo_x0*t1500_eo_x40*t2500_el_x0');
   assert.equal(serialiseKf(kfTrackSetEase(track, 1500, 'cubic-bezier(0.2,0,0.3,1)')),
@@ -1948,7 +1948,7 @@ test('rescaleKfTrack stretches a track to a target span, tempo only — never it
   // Compress to 2 s: same shape, half again.
   assert.deepEqual(rescaleKfTrack(track, 2000).map((k) => k.t), [0, 500, 2000], 'compression is the same map, other way');
 
-  // Degenerate inputs are returned unchanged — nothing to stretch.
+  // Degenerate inputs are returned unchanged - nothing to stretch.
   assert.equal(serialiseKf(rescaleKfTrack(track, 0)), serialiseKf(track), 'a zero target leaves the authored track');
   assert.equal(serialiseKf(rescaleKfTrack(track, -5)), serialiseKf(track), 'a negative target too');
   assert.equal(serialiseKf(rescaleKfTrack(track, Number.NaN)), serialiseKf(track), 'and a non-finite target');
@@ -1984,7 +1984,7 @@ test('clearKfTrack / setKfTrack write the ONE field and nothing else', () => {
 // ── P1a: the size channels ride the rebase (plans/104 §5.2 + §5.6) ──────────
 
 test('the rebase is channel-agnostic, so `w`/`h` split, trim and join like everything else', () => {
-  // §5.6 rewrites the TRACK, not a list of channels — which is exactly why adding two
+  // §5.6 rewrites the TRACK, not a list of channels - which is exactly why adding two
   // to the grammar (§5.2, P1) needs no rebase change. This is the assertion that keeps
   // it that way: the same continuity harness, driven by the new channels alone, over
   // the same eased cut the full-pose case uses.
@@ -2000,7 +2000,7 @@ test('the rebase is channel-agnostic, so `w`/`h` split, trim and join like every
   assertContinuity(orig, a, 0, 0, 1500, 'A half (size)');
   assertContinuity(orig, b, 1500, 0, 1500, 'B half (size)');
   assert.deepEqual(evaluateKf(a, 1500), evaluateKf(b, 0), 'the halves meet at the cut');
-  // …and the crossing segment really was SUBDIVIDED, not copied to both halves — the
+  // …and the crossing segment really was SUBDIVIDED, not copied to both halves - the
   // vacuity guard, restated for the channels that arrived last.
   assert.notEqual(a.find((k) => k.t === 1200)?.ease, 'ei');
 
@@ -2016,7 +2016,7 @@ test('the rebase is channel-agnostic, so `w`/`h` split, trim and join like every
 // is pinned HERE is the only claim that matters for correctness: the samples are the
 // engine's own arithmetic, not a second implementation of the fold that happens to
 // look right. Every assertion below recomputes the expected point from
-// `evaluateKf` → `resolveCamera` → `projectLayer` directly and demands equality — so
+// `evaluateKf` → `resolveCamera` → `projectLayer` directly and demands equality - so
 // if `kfMotionPath` ever grew a shortcut, an approximation, or its own idea of what a
 // camera does, this fails rather than the picture quietly drifting from the export.
 
@@ -2024,7 +2024,7 @@ test('the rebase is channel-agnostic, so `w`/`h` split, trim and join like every
 const pathCfg: TimeCfg = { ...cfg, kfField: 'kf', zField: 'z' };
 const STAGE = { stageW: 1920, stageH: 1080 };
 
-/** The engine's own answer for one box at one TIMELINE instant — the reference. */
+/** The engine's own answer for one box at one TIMELINE instant - the reference. */
 function enginePoint(
   track: KfTrack, cams: KfCameraClip[], startMs: number, bx: number, by: number, baseZ: number, tMs: number,
 ): { x: number; y: number; a: number } {
@@ -2054,7 +2054,7 @@ test('kfCameraClips derives the same shape stageCameras does, from the model ins
   assert.equal(cams[1]!.end, null, 'an untimed camera never ends');
   assert.deepEqual(cams[1]!.base, { z: 120 }, 'the camera’s own z FIELD is the scene-default dolly');
   assert.equal(cams[1]!.track, null);
-  // Latest-in-array wins — cuts, not blends. Inside c1's window, c2 (declared later)
+  // Latest-in-array wins - cuts, not blends. Inside c1's window, c2 (declared later)
   // is the one `resolveCamera` picks, which is the engine's rule, not this function's.
   assert.equal(resolveCamera(cams, 500).z, 120);
 });
@@ -2089,7 +2089,7 @@ test('the sampled path IS the engine’s arithmetic — checked at three instant
   // camera and the depth) would put the last sample back at the authored centre.
   assert.notEqual(out.pts[out.pts.length - 1]!.x, 400);
 
-  // One mark per keyframe, at the same projected pose — the diamonds and the line
+  // One mark per keyframe, at the same projected pose - the diamonds and the line
   // cannot disagree, because they come out of the same expression.
   assert.deepEqual(out.keys.map((k) => k.t), [1000, 2500, 4000]);
   for (const k of out.keys) {
@@ -2108,7 +2108,7 @@ test('a kf `z` token REPLACES the depth field for its segment, and the path show
   const flat = kfMotionPath(base, pathCfg, 'art', { x: 100, y: 100 },
     { ...STAGE, cameras: kfCameraClips(base, pathCfg) });
 
-  // Same document, same camera, one keyed `z` — the parallax has to change, because
+  // Same document, same camera, one keyed `z` - the parallax has to change, because
   // eff = P/(P − (z − camZ)) is what the whole feature rests on.
   const lifted = base.map((b) => (b.id === 'art' ? { ...b, kf: 't0_x0_z240*t2000_el_x100_z240' } : b));
   const out = kfMotionPath(lifted, pathCfg, 'art', { x: 100, y: 100 },

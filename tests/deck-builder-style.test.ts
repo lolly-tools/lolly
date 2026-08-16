@@ -3,11 +3,11 @@
  * deck-builder "Style" section + extended markdown contract tests.
  *
  * Run with: node --test "tests/deck-builder-style.test.ts"  (or via npm test)
- * No test framework — node:test built-in.
+ * No test framework - node:test built-in.
  *
  * Loads the REAL community tool from disk and drives it through the engine, so these
  * guard the actual render of:
- *   • the two new markdown blocks — fenced code (``` … ```) and blockquotes (> …),
+ *   • the two new markdown blocks - fenced code (``` … ```) and blockquotes (> …),
  *     in BOTH slide modes (layout sl-* classes / freeform bare tags);
  *   • the per-element size/weight overrides → `--ds-<el>-*` custom properties on the
  *     deck root (only non-default values emitted; a scale is a ratio, not a px size);
@@ -197,7 +197,7 @@ test('custom CSS is wrapped in .slides { … } and emitted as a <style>', { skip
 
 test('an empty custom CSS box emits no extra <style>', { skip: SKIP }, async () => {
   const { html } = await mount({ deck: [{ content: '# T' }], customCss: '   ' });
-  // Only the animation <style> (+ nothing else) — the .slides wrapper never appears.
+  // Only the animation <style> (+ nothing else) - the .slides wrapper never appears.
   assert.doesNotMatch(html, /<style>\.slides \{/);
 });
 

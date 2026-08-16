@@ -1,14 +1,14 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
- * Design — the native-PPTX deck model emitter (plan 95 route-a).
+ * Design - the native-PPTX deck model emitter (plan 95 route-a).
  *
- * Run with: npm test  (node --test over the tests/ globs). No framework — node:test.
+ * Run with: npm test  (node --test over the tests/ globs). No framework - node:test.
  *
  * "Design" is Design. A SLIDE is a FRAME; a slide deck is N frames. When frames
  * exist the hook emits, ALONGSIDE the unchanged [data-pdf-page] HTML render, a
  * <script type="application/json" data-pptx-deck> carrying a deck-studio-shaped model
  * ({ size, slides:[{ bg, elements }] }). export-pptx.ts reads that off the export node
- * and lowers it (pptx-deck.ts, UNCHANGED) into a REAL editable .pptx — so the whole path
+ * and lowers it (pptx-deck.ts, UNCHANGED) into a REAL editable .pptx - so the whole path
  * is headlessly verifiable: the emitter runs DOM-free in the hook.
  *
  * The contract asserted here:
@@ -171,7 +171,7 @@ test('a box with opacity<100 is inexpressible → skipped native (no opaque drif
 });
 
 test('the Slide deck TEMPLATE seeds a deck of 3 slides, each with a title + body', async () => {
-  // Read the external template file's values directly and drive them through the hook —
+  // Read the external template file's values directly and drive them through the hook - 
   // the path the gallery "Slide deck" tile takes (templates are per-file now:
   // tools/<id>/templates/<tid>.json, not inline in tool.json).
   const raw = await fetchFile('design/templates/slide-deck.json');

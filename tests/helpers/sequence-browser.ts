@@ -7,18 +7,18 @@
  * the pattern. It follows the two conventions that already exist:
  *   • the external-dependency gate (`c2pa-c2patool-conformance.test.ts`): skip with a
  *     message naming what is missing, never fail, so `npm test` stays green on a bare
- *     machine — here that is `browserInstalled()` from packages/node-shell;
+ *     machine - here that is `browserInstalled()` from packages/node-shell;
  *   • the page lifecycle of `packages/node-shell/src/webshell-render.ts`: the pooled
  *     `getBrowser()`, a fresh context per run, `closeBrowser()` in teardown.
  *
  * It does NOT serve the built web-shell dist. That machinery exists to drive the real
  * export UI; what is under test here is three bridge modules, so the page is a bare
- * document with the modules bundled into it — no `npm run build:web` prerequisite.
+ * document with the modules bundled into it - no `npm run build:web` prerequisite.
  *
  * CODECS. `getBrowser()` defaults to Playwright's BUNDLED Chromium, whose proprietary
  * codec support is NOT guaranteed: an H.264/AAC (mp4) case can fail there on codec
  * support rather than on our code, and `LOLLY_BROWSER_CHANNEL=chrome` is the fix. Which
- * is why nothing is gated on the env var alone — `probe()` asks the launched browser what
+ * is why nothing is gated on the env var alone - `probe()` asks the launched browser what
  * it can actually do (isConfigSupported) and the tests skip on THAT. VP8/VP9/Opus/WebM
  * work everywhere, so the bulk of the suite runs on any build.
  */
@@ -72,7 +72,7 @@ async function bundleHarness(): Promise<string> {
  * esbuild leaves `new Worker(new URL('./sequence-render.worker.ts', import.meta.url))`
  * exactly as written, so the page resolves it against `/harness.js` and asks the
  * server for `/sequence-render.worker.ts`. Serving a real bundle there is what
- * makes the worker path reachable in the browser tier at all — without it the
+ * makes the worker path reachable in the browser tier at all - without it the
  * spawn 404s, the client reports a plain (non-coded) failure and the render
  * silently falls back in-thread, which would make the comparison vacuous.
  */
@@ -121,7 +121,7 @@ export async function openHarness(): Promise<Harness> {
       return;
     }
     if (path === '/stall') {
-      // Headers, one byte, then nothing — ever. A fetch against this resolves its
+      // Headers, one byte, then nothing - ever. A fetch against this resolves its
       // headers and then hangs on the body, which is exactly the "decoder went
       // quiet" shape the timeout is supposed to catch.
       res.writeHead(200, { 'content-type': 'video/webm', 'content-length': '10000000' });

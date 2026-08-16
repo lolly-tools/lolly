@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
- * Audio analysis — decoded PCM in, a per-frame reactivity track out.
+ * Audio analysis - decoded PCM in, a per-frame reactivity track out.
  *
  * This is the engine half of `host.audio` (v1.71). It is deliberately the ONLY
  * place the maths lives: every shell decodes bytes its own way (the web shell has
@@ -8,21 +8,21 @@
  * calls `analysePcm` with plain Float32 channel data, so an audiogram drawn in the
  * browser and the same audiogram rendered headlessly read the SAME numbers.
  *
- * Why frames at all: a waveform reduced to N static peak buckets can only ever be
+ * Why frames at all: a waveform reduced to N static peak buckets can only be
  * scrubbed, not reacted to. A tool that wants bars that move with the bass, a ring
  * that pulses on the beat, or a MilkDrop field that breathes needs per-instant
- * energy split by frequency — which means a short-time Fourier transform, one
+ * energy split by frequency. That needs a short-time Fourier transform, one
  * window per output frame.
  *
- * Two shape decisions worth knowing before reading the types:
+ * Two shape decisions to know before reading the types:
  *
  *  1. **Struct-of-arrays, not array-of-objects.** A minute at 60fps is 3,600
  *     frames; as objects that is 3,600 allocations a draw loop then chases through
  *     pointers. `AudioFrames` is a handful of Float32Arrays indexed by frame, which
  *     is both one allocation each and the layout a canvas loop actually wants.
  *  2. **Raw time-domain windows are opt-in** (`opts.samples`). They exist for one
- *     caller — butterchurn's `render({ audioLevels })`, which takes Uint8 time-domain
- *     arrays — and they are big (2,048 bytes × 3 channels × every frame). Nothing
+ *     caller: butterchurn's `render({ audioLevels })`, which takes Uint8 time-domain
+ *     arrays. They are big (2,048 bytes x 3 channels x every frame). Nothing
  *     that only draws bars should pay for them.
  *
  * The result types are the CONTRACT's (host.audio, v1.71) rather than this module's
@@ -38,8 +38,8 @@ export type { AudioAnalyseOpts, AudioAnalysis, AudioFrames };
 const BASS_HZ = 320;
 const MID_HZ = 2800;
 
-/** FFT window length in samples. 2048 at 44.1kHz ≈ 46ms — long enough to resolve
- *  bass (a 40Hz period is 25ms), short enough that a transient stays a transient.
+/** FFT window length in samples. 2048 at 44.1kHz is about 46ms: long enough to
+ *  resolve bass (a 40Hz period is 25ms), short enough that a transient stays a transient.
  *  Also exactly butterchurn's `fftSize`, which the `wave` windows feed. */
 const FFT_SIZE = 2048;
 
@@ -55,7 +55,7 @@ const MAX_BPM = 180;
 const OCTAVE_TOLERANCE = 0.8;
 
 /** Loudness floor. Amplitudes below this are treated as silence rather than
- *  normalised up into noise — an all-but-silent track should read as quiet, not as
+ *  normalised up into noise. An all-but-silent track should read as quiet, not as
  *  a full-scale rendering of its own noise floor. */
 const SILENCE = 1e-5;
 
@@ -63,9 +63,9 @@ const SILENCE = 1e-5;
  * Dynamic range in dB for the spectrum and the band split: the loudest bin in the
  * window reads 1.0, one this many dB quieter reads 0.
  *
- * These are reported in DECIBELS, not linear amplitude, and that is not a detail —
+ * These are reported in DECIBELS, not linear amplitude. This is not a minor detail:
  * it is the difference between a usable visual and an unusable one. Linear FFT
- * magnitude is dominated by whatever is loudest by such a margin that everything
+ * magnitude is dominated by whatever is loudest, by such a margin that everything
  * else rounds to nothing: plotted as bars, real music renders as one or two spikes
  * over a flat line, and a `treb` bar sits at zero forever because cymbals carry a
  * tiny fraction of a kick drum's amplitude. Hearing is roughly logarithmic, which
@@ -78,7 +78,7 @@ const DB_RANGE = 60;
 
 /**
  * Analyse decoded PCM. `channels` is one Float32Array per channel, all the same
- * length, samples nominally in −1..1 (values outside are kept — a clipped source
+ * length, samples nominally in -1..1 (values outside are kept: a clipped source
  * should read as clipped, not be silently rescaled).
  *
  * Pure and synchronous: no DOM, no timers, no I/O. Cost is dominated by one
@@ -179,12 +179,12 @@ export function analysePcm(
       mag[k] = m;
       magSum += m;
       centroidSum += m * k;
-      // Frame 0 has no predecessor, and `prevMag` starts zeroed — so measuring it
+      // Frame 0 has no predecessor, and `prevMag` starts zeroed. Measuring it
       // would report the whole window's magnitude as a rise and fabricate a
       // full-spectrum onset at t=0. That is not cosmetic: flux is normalised to its
       // own maximum, so the phantom would take the 1.0 and squash every genuine
       // attack (measured on a 120 BPM click train: flux[0] = 1.000 against 0.403 for
-      // the loudest real hit), and the beat grid is anchored on the strongest onset,
+      // the loudest real hit). The beat grid is anchored on the strongest onset,
       // so it would key the whole rhythm to the first frame.
       if (f > 0) {
         const d = m - prevMag[k]!;
@@ -195,9 +195,9 @@ export function analysePcm(
       else trebSum += m;
     }
     // MEAN magnitude per bin, not the sum. The three bands span wildly different
-    // numbers of FFT bins — bass is ~15 of them, treble ~900 — so summing makes
-    // treble structurally the largest for any broadband source no matter how dull
-    // it actually sounds. A three-bar meter is read as "how much is down here vs up
+    // numbers of FFT bins (bass is about 15 of them, treble about 900), so summing
+    // makes treble the largest for any broadband source no matter how dull it
+    // actually sounds. A three-bar meter is read as "how much is down here vs up
     // there", which is a density, so divide by the width.
     frames.bass[f] = bassSum / bassEnd;
     frames.mid[f] = midSum / Math.max(1, midEnd - bassEnd);
@@ -207,7 +207,7 @@ export function analysePcm(
 
     // Log-spaced bins: linear FFT bins put five sixths of their resolution above
     // 2kHz, where almost nothing a listener reads as "the music" lives. Each output
-    // band is the MAX over its source bins, not the mean — a mean smears a narrow
+    // band is the MAX over its source bins, not the mean. A mean smears a narrow
     // peak into its neighbours and the bars stop looking like the sound.
     const row = f * bands;
     for (let b = 0; b < bands; b++) {
@@ -234,13 +234,13 @@ export function analysePcm(
   }
 
   // Normalise the reactive tracks to the window's own maxima. This is what makes a
-  // quiet voice memo and a mastered track both fill the frame — the alternative
+  // quiet voice memo and a mastered track both fill the frame. The alternative
   // (absolute scale) renders half the world's audio as a flat line. `peak` is
   // deliberately left absolute so a tool can still tell that a source clipped.
   //
   // bass/mid/treb share ONE scale, and that matters: normalised independently, a
   // bass-only clip divides its own near-zero treble by itself and reports treble
-  // pinned at 1.0 — a treble bar at full height for a sine wave at 80Hz. The split
+  // pinned at 1.0, a treble bar at full height for a sine wave at 80Hz. The split
   // is a BALANCE between the three, so the loudest band in the window reads 1 and
   // the other two read their true share of it.
   //
@@ -321,10 +321,10 @@ function detectBeats(flux: Float32Array, fps: number): { bpm: number | null; bea
 
   // OCTAVE CORRECTION. A perfectly periodic pulse correlates just as well at two
   // beats' distance as at one, and dividing by `n - lag` gives the longer lag fewer,
-  // noisier terms to average — so the raw maximum lands on a sub-harmonic often
+  // noisier terms to average. So the raw maximum lands on a sub-harmonic often
   // enough to matter. Measured: a 120 BPM kick over a sustained tone reported 60.
   // So if half (or a third) of the winning lag correlates nearly as well, take the
-  // FASTER reading — which is also the one a listener would tap.
+  // FASTER reading, which is also the one a listener would tap.
   for (const div of [2, 3]) {
     const lag = Math.round(bestLag / div);
     if (lag < minLag) continue;
@@ -338,7 +338,7 @@ function detectBeats(flux: Float32Array, fps: number): { bpm: number | null; bea
   // PHASE, then grid. Walking fixed windows from frame 0 and taking each window's
   // strongest onset looks equivalent but is not: the window boundaries land wherever
   // the clip happens to start, so a window that falls entirely between two hits has
-  // no onset in it at all and gets skipped — emitting a beat list with occasional
+  // no onset in it at all and gets skipped. That emits a beat list with occasional
   // double-length gaps on a metronome-steady source. So anchor the grid on the
   // loudest onset in the whole window and step outward from there, snapping each grid
   // position to the nearest real onset within a quarter beat.
@@ -362,7 +362,7 @@ function detectBeats(flux: Float32Array, fps: number): { bpm: number | null; bea
   return { bpm: (60 * fps) / bestLag, beats: new Float32Array(beats) };
 }
 
-/** `buckets` normalised peak amplitudes over a mono window — the static overview. */
+/** `buckets` normalised peak amplitudes over a mono window: the static overview. */
 function overviewPeaks(mono: Float32Array, buckets: number): Float32Array {
   const out = new Float32Array(buckets);
   const per = mono.length / buckets;
@@ -395,7 +395,7 @@ function downmix(channels: Float32Array[], from: number, to: number): Float32Arr
   return out;
 }
 
-/** Mono sample at an absolute index — the slow path for windows that reach outside
+/** Mono sample at an absolute index: the slow path for windows that reach outside
  *  the analysed span (the first and last frames of a trimmed window). */
 function sampleAt(channels: Float32Array[], idx: number): number {
   let v = 0;
@@ -403,7 +403,7 @@ function sampleAt(channels: Float32Array[], idx: number): number {
   return v / channels.length;
 }
 
-/** −1..1 float → butterchurn's 0..255 time-domain byte (128 = silence). */
+/** -1..1 float to butterchurn's 0..255 time-domain byte (128 = silence). */
 function toByte(v: number): number {
   const b = Math.round(v * 128 + 128);
   return b < 0 ? 0 : b > 255 ? 255 : b;
@@ -431,7 +431,7 @@ function normaliseDb(tracks: Float32Array[]): void {
     for (let i = 0; i < a.length; i++) {
       const v = a[i]!;
       if (v <= 0) { a[i] = 0; continue; }
-      // 20·log10 — these are amplitudes, not powers.
+      // 20*log10 - these are amplitudes, not powers.
       const db = 20 * Math.log10(v / max);
       a[i] = db <= -DB_RANGE ? 0 : 1 + db / DB_RANGE;
     }
@@ -457,7 +457,7 @@ function logBandEdges(bands: number, half: number): Int32Array {
   for (let b = 0; b <= bands; b++) {
     out[b] = Math.min(half, Math.max(1, Math.round(Math.exp(lo + ((hi - lo) * b) / bands))));
   }
-  // Log spacing collides at the bottom (bins 1,1,1,2…); nudge each edge past its
+  // Log spacing collides at the bottom (bins 1,1,1,2...); nudge each edge past its
   // predecessor so no band ends up empty and the low bars stay distinct.
   for (let b = 1; b <= bands; b++) {
     if (out[b]! <= out[b - 1]!) out[b] = Math.min(half, out[b - 1]! + 1);
@@ -465,7 +465,7 @@ function logBandEdges(bands: number, half: number): Int32Array {
   return out;
 }
 
-/** Periodic Hann window — cheap, and its sidelobes are low enough that one loud
+/** Periodic Hann window: cheap, and its sidelobes are low enough that one loud
  *  band doesn't leak across the whole spectrum and flatten the bars. */
 function hannWindow(n: number): Float64Array {
   const w = new Float64Array(n);

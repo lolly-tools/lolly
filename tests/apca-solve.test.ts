@@ -1,19 +1,19 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
- * solveLightnessForApca (engine/src/color-tools.ts) — APCA inverse-solver contract.
+ * solveLightnessForApca (engine/src/color-tools.ts) - APCA inverse-solver contract.
  *
  * The solver inverts the FORWARD-only apcaContrast: given a hue/chroma, a target
  * Lc magnitude and a background, it returns the OKLCH lightness whose forward
- * APCA contrast is closest to the target — fixing polarity from the background
+ * APCA contrast is closest to the target - fixing polarity from the background
  * first, then bisecting on the single monotonic branch (never across APCA's
  * near-black dip, which flips polarity and is non-monotonic).
  *
  * Coverage:
- *   (1) reachable targets, light bg + dark bg, several hues — forward Lc lands
+ *   (1) reachable targets, light bg + dark bg, several hues - forward Lc lands
  *       within tolerance of the requested magnitude, with the correct polarity;
  *   (2) polarity: a dark bg yields a LIGHT text colour (high L) and a light bg a
- *       DARK one (low L) — the naive-bisection failure mode;
- *   (3) an unreachable target beyond the near-black floor — flagged, and the
+ *       DARK one (low L) - the naive-bisection failure mode;
+ *   (3) an unreachable target beyond the near-black floor - flagged, and the
  *       returned colour is the closest achievable (the contrast maximum);
  *   (4) chroma clamped into gamut; unparseable background handled.
  *
@@ -84,7 +84,7 @@ test('polarity is fixed from the background, not from a whole-range bisection', 
     `light bg text (L=${light.l}) must be darker than dark bg text (L=${dark.l})`);
   assert.ok(light.l < 0.7, `light bg should still yield reasonably dark text, got ${light.l}`);
 
-  // Passing a NEGATIVE targetLc is the same request as its magnitude — the
+  // Passing a NEGATIVE targetLc is the same request as its magnitude - the
   // background, not the sign of the argument, decides polarity.
   const asNeg = solveLightnessForApca(210, 0.08, -70, WHITE);
   assert.ok(Math.abs(asNeg.l - light.l) < 1e-9, 'sign of targetLc must not change the solution');

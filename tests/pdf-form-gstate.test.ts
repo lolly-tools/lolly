@@ -1,12 +1,12 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
  * PDF graphics-state INHERITANCE across a form XObject, and the paint sites that
- * depended on it — engine/src/pdf-map.ts.
+ * depended on it - engine/src/pdf-map.ts.
  *
  * PDF 32000-1 §8.10.1: "the form XObject's content stream shall be executed with the
  * current graphics state". The interpreter used to seed every `Do` with a FRESH state,
- * passing through only the CTM and the clip, so `q /GS0 gs /Fm0 Do Q` — the canonical
- * Illustrator/InDesign soft-mask idiom — painted the form's contents at full opacity,
+ * passing through only the CTM and the clip, so `q /GS0 gs /Fm0 Do Q` - the canonical
+ * Illustrator/InDesign soft-mask idiom - painted the form's contents at full opacity,
  * unmasked, and did not even warn. The same page printed by Chromium never exercises
  * this (it does not wrap masked paint in forms), so the audit fixtures cannot see it;
  * these synthetic streams are the evidence.
@@ -46,7 +46,7 @@ const SHAPE: PdfSoftMaskDef = {
   id: 'smShape', subtype: 'Luminosity',
   content: '1 g 0 0 100 200 re f 0 g 100 0 100 200 re f', resources: {}, bbox: [0, 0, 200, 200],
 };
-/** A mask the shell could not pre-decode at all (`smask: true`) — the last-resort rung. */
+/** A mask the shell could not pre-decode at all (`smask: true`) - the last-resort rung. */
 const OPAQUE = true as const;
 
 const form = (content: string, extra: Record<string, unknown> = {}) =>
@@ -55,7 +55,7 @@ const form = (content: string, extra: Record<string, unknown> = {}) =>
 // ── D1: the root defect ───────────────────────────────────────────────────────
 
 test('a form XObject inherits the soft mask in force (§8.10.1)', () => {
-  // `q /GS0 gs /Fm0 Do Q` — Illustrator/InDesign's soft-mask idiom.
+  // `q /GS0 gs /Fm0 Do Q` - Illustrator/InDesign's soft-mask idiom.
   const { nodes, warns } = pageW('q /GS0 gs /Fm0 Do Q', {
     extgstates: { GS0: { smask: SHAPE } },
     xobjects: { Fm0: form('0.8 0.8 0.8 rg 0 0 200 200 re f') },
@@ -203,7 +203,7 @@ test('`B` with both paints surviving still reports the fill’s alpha', () => {
 
 test('selecting an unreproducible stroke pattern and never stroking does not warn', () => {
   // Chromium sets stroke AND fill to the same pattern in one breath, then only fills
-  // — 80 such `/Pn SCN` occurrences across the audit fixtures, ZERO of them followed
+  // - 80 such `/Pn SCN` occurrences across the audit fixtures, ZERO of them followed
   // by a stroke paint op, yet `pattern.unsupported` fired 78 times and buried the
   // real signal in the census. `PS` has no flat back-stop, so the OLD code warned.
   const { nodes, warns } = pageW('/PS SCN /P1 scn 10 10 50 50 re f', {
@@ -240,7 +240,7 @@ test('the pending stroke-pattern report is graphics-state, restored by Q', () =>
 // ── D6: the mask budget cliff is announced ───────────────────────────────────
 
 test('exhausting the soft-mask budget is announced once, with its own code', () => {
-  // 300 DISTINCT mask groups (distinct ids ⇒ distinct memo keys) on one page — past
+  // 300 DISTINCT mask groups (distinct ids ⇒ distinct memo keys) on one page - past
   // the 256-evaluation budget. Every refusal past the cliff still falls back to the
   // pre-mask behaviour, but the census now says the cliff was reached.
   const extgstates: Record<string, { smask: PdfSoftMaskDef }> = {};
@@ -268,7 +268,7 @@ test('pdf-svg emits opacity on <text> and on outlined glyph paths', () => {
   const svg = pdfNodesToSvg([base], { width: 200, height: 100 });
   assert.match(svg, /<text[^>]*opacity="0\.45"/, svg);
 
-  // The outlined rung is the SAME run — the two presentations must agree.
+  // The outlined rung is the SAME run - the two presentations must agree.
   const outlined: PdfNode = { ...base, _outlinePath: ['M0 0L10 0L10 -10Z'] };
   const svg2 = pdfNodesToSvg([outlined], { width: 200, height: 100 });
   assert.match(svg2, /<path d="M0 0L10 0L10 -10Z" fill="#333333" opacity="0\.45"\/>/, svg2);
@@ -301,7 +301,7 @@ test('page → SVG: a masked form and a muted label both survive to markup', () 
 test('isShadowPlate never claims a text node', () => {
   // The Design boxes path drops every node isShadowPlate() accepts. A text
   // node keeps its colour in `fg`, which the fill probe cannot see, so a masked
-  // muted label looked exactly like a translucent achromatic plate — and vanished.
+  // muted label looked exactly like a translucent achromatic plate - and vanished.
   const masked: PdfNode = {
     kind: 'text', x: 0, y: 0, w: 50, h: 16, rot: 0, fg: '#333333', fontSize: 12,
     text: 'muted', opacity: 45,
@@ -313,12 +313,12 @@ test('isShadowPlate never claims a text node', () => {
 });
 
 // ── Untrusted input: bounded work ────────────────────────────────────────────
-// This interpreter runs on a PDF a user uploaded, so "terminates" is not enough —
+// This interpreter runs on a PDF a user uploaded, so "terminates" is not enough - 
 // it has to terminate FAST. Two vectors an adversarial review measured on the live
 // tree, both from tiny content streams. Note the cycle has to be built as a real
 // self-reference: a form executes with its OWN /Resources, so `/Fm0 Do` inside Fm0
 // only recurses when Fm0's resources actually contain Fm0. (A fixture that skips
-// that resolves nothing, runs in ~1ms, and tests precisely nothing — which is how
+// that resolves nothing, runs in ~1ms, and tests precisely nothing - which is how
 // the first version of these tests passed with the fix reverted.)
 test('a self-referential form with fanout terminates quickly', () => {
   const self: Record<string, unknown> = { kind: 'form', content: '/Fm0 Do /Fm0 Do /Fm0 Do /Fm0 Do /Fm0 Do /Fm0 Do' };

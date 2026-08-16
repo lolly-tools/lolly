@@ -39,12 +39,12 @@ import { fileURLToPath } from 'node:url';
 // Schemas declare the draft 2020-12 dialect, so use Ajv's 2020 build (the
 // default export only knows draft-07 and throws on the unknown meta-schema).
 import Ajv from 'ajv/dist/2020.js';
-// Shared catalog-entry derivation — the single source of truth for how a manifest
+// Shared catalog-entry derivation - the single source of truth for how a manifest
 // maps to a tools/index.json entry (including the `exportable` flag). Importing it
 // here (rather than re-deriving) prevents the two scripts from drifting. The build
 // script only writes the index when run directly, so this import has no side effect.
 import { entryFromManifest } from './build-catalog-index.ts';
-// Brand palette (pure data — no DOM/browser deps, safe to import in Node). Used
+// Brand palette (pure data - no DOM/browser deps, safe to import in Node). Used
 // below to assert no hex carries two conflicting CMYK ink values, since the PDF
 // export's hex→CMYK lookup (buildCmykPaletteMap) is keyed on hex and would
 // silently resolve such a clash by entry order.
@@ -56,7 +56,7 @@ import { isThemableIconSvg, parseThemedAssetId, parseIconThemesDoc } from '../en
 import { isVersionAssetId, readVersionIndex, DESIGN_VERSION_LATEST } from '../engine/src/design-version.ts';
 import { parseRateCard, isRateCardError } from '../engine/src/rate-card.ts';
 import { LANGS } from '../engine/src/lang.ts';
-// Shared-hook-region drift guard — the writer (npm run sync:shared) and this
+// Shared-hook-region drift guard - the writer (npm run sync:shared) and this
 // check share one parser (same import-without-side-effect pattern as
 // entryFromManifest above), so "what sync writes" and "what CI accepts" can't
 // drift apart.
@@ -73,7 +73,7 @@ import { RESERVED_SUBCOMMANDS } from '../shells/cli/src/args.ts';
 // SIBLING array). Pure module so tests can drive it without running the script.
 import { canvasFieldRefErrors } from './lib/canvas-refs.ts';
 
-// Fields tools/index.json mirrors from each manifest — kept in sync with
+// Fields tools/index.json mirrors from each manifest - kept in sync with
 // scripts/build-catalog-index.ts.
 const INDEX_FIELDS = ['name', 'description', 'version', 'status', 'category'];
 
@@ -106,7 +106,7 @@ const assetsIndex = readJson('catalog/assets/index.json');
 const toolsIndex = readJson('catalog/tools/index.json');
 
 // Underscore-prefixed dirs are pack infrastructure (community/_shared, the
-// canonical hook-helper corpus), not tools — use-profile.ts excludes them from
+// canonical hook-helper corpus), not tools - use-profile.ts excludes them from
 // the view, and this filter keeps a stale view from failing as "missing tool.json".
 const toolDirs = readdirSync(toolsDir).filter(d =>
   !d.startsWith('_') && statSync(join(toolsDir, d)).isDirectory(),
@@ -138,7 +138,7 @@ for (const dir of toolDirs) {
 
   // A tool id may never be a CLI subcommand word (plans/73-cli-ga-contract.md §1.1). The
   // verbs win the first positional, so `brands/acme/tools/run/` would ship, pass every
-  // other check, appear in `lolly list`, and be unreachable by any spelling — with no
+  // other check, appear in `lolly list`, and be unreachable by any spelling - with no
   // diagnostic. Post-GA the only fixes are renaming a tool id (a permanent-contract
   // violation) or changing verb dispatch (breaking), so the guard belongs here, now.
   if ((RESERVED_SUBCOMMANDS as readonly string[]).includes(manifest.id)) {
@@ -166,12 +166,12 @@ for (const dir of toolDirs) {
     errors.push(`[${dir}] manifest declares hooks but hooks.js is missing`);
   }
 
-  // "New from template" files (tools/<id>/templates/<tid>.json) — the SOURCE OF TRUTH
+  // "New from template" files (tools/<id>/templates/<tid>.json) - the SOURCE OF TRUTH
   // for the chooser + the reserved ?template=<id> launcher. Shape gate: each file must
   // parse, carry a non-empty string `id` and `name`, a plain-object `values` seed, the
   // basename must equal `id` (so <tid>.json ↔ id stays a stable, addressable contract),
   // and ids must be unique within the dir. (Like example looks, this does NOT resolve
-  // the values map's asset refs — that scope matches the historical example validator.)
+  // the values map's asset refs - that scope matches the historical example validator.)
   const templatesDir = join(ROOT, `tools/${dir}/templates`);
   if (existsSync(templatesDir)) {
     const seenTemplateIds = new Set<string>();
@@ -198,7 +198,7 @@ for (const dir of toolDirs) {
   // On-device utility conventions (privacy:'on-device'): the tool processes the
   // user's OWN content, so its output must never be watermarked or stamped with
   // provenance. An experimental tool force-watermarks its exports, which directly
-  // contradicts that — so the two are mutually exclusive. (The no-metadata side is
+  // contradicts that - so the two are mutually exclusive. (The no-metadata side is
   // enforced at runtime: the exportFile path embeds nothing, and the render path
   // skips provenance for on-device tools.)
   if (manifest.privacy === 'on-device' && manifest.status === 'experimental') {
@@ -216,7 +216,7 @@ for (const dir of toolDirs) {
   // (additionalProperties:false), so a typo'd KEY is already an Ajv error above.
   // This is the half a JSON Schema cannot express: every `canvas.*Field` VALUE has
   // to name a real sub-field id in the sibling `fields` array, because nothing at
-  // runtime notices when it doesn't — the overlay's write no-ops and the compact
+  // runtime notices when it doesn't - the overlay's write no-ops and the compact
   // blocks URL drops the undeclared field, so a mis-named control ships as one that
   // silently does nothing. An error, not a warning: the manifest is the contract.
   for (const msg of canvasFieldRefErrors(manifest)) {
@@ -239,7 +239,7 @@ for (const dir of toolDirs) {
   }
 }
 
-// composes must reference real tools — a typo'd child id would only 404 at render
+// composes must reference real tools - a typo'd child id would only 404 at render
 // time (and silently collapse the embed slot), so catch it here.
 for (const [id, manifest] of toolManifests) {
   for (const c of manifest.composes ?? []) {
@@ -266,7 +266,7 @@ for (const entry of toolsIndex.tools) {
   }
   // Derived flags: reuse the shared derivation so the generator and validator
   // can't drift on what they mean. `exportable` mirrors isExportable();
-  // `personalized` (bindToProfile present) gates profile-aware gallery previews —
+  // `personalized` (bindToProfile present) gates profile-aware gallery previews - 
   // both are manifest-derived, so a forgotten `npm run build:catalog` after adding
   // bindToProfile would otherwise silently leave a tool un-personalized. (icon is
   // disk-derived and intentionally not checked here; `preview` IS checked below.)
@@ -279,8 +279,8 @@ for (const entry of toolsIndex.tools) {
   }
   // Preview path is disk-derived: build-previews rasterises expensive-to-paint SVGs
   // (huge paths / thousands of dots) to .png, so entryFromManifest picks the extension
-  // that actually exists on disk. A stale index — pointing at .svg when the committed
-  // preview is .png — renders as a broken image in the gallery. Flag the drift, but
+  // that actually exists on disk. A stale index - pointing at .svg when the committed
+  // preview is .png - renders as a broken image in the gallery. Flag the drift, but
   // only when the derived path points at a file that exists: a fresh checkout with no
   // generated previews yet is fine (the gallery tolerates an absent preview), so we
   // don't force a regeneration there.
@@ -292,7 +292,7 @@ for (const entry of toolsIndex.tools) {
     errors.push(`tools/index.json: "${entry.id}" preview ${entry.preview} ≠ derived ${derived.preview} — run \`npm run build:catalog\` (after \`npm run previews\`)`);
   }
   // "New from template" metadata. THE WHOLE-POINT INVARIANT: the synced index must carry
-  // template METADATA ONLY — never the heavy `values` seed (that's fetched on demand). A
+  // template METADATA ONLY - never the heavy `values` seed (that's fetched on demand). A
   // stray `values` key here would re-bloat every client's index, defeating the lazy-file
   // storage entirely.
   for (const tmpl of (entry.templates ?? []) as Array<Record<string, unknown>>) {
@@ -319,7 +319,7 @@ for (const id of toolManifests.keys()) {
 // (shells/web/src/lib/featured-render.ts) asks bundledLook() for a committed data-URI out
 // of catalog/previews/bundle.json BEFORE it will touch the engine, and only falls through
 // to a LIVE off-screen render when a look is missing from the bundle or its sig no longer
-// matches. That fallback is SILENT — the tile still fills, just by mounting a runtime — so
+// matches. That fallback is SILENT - the tile still fills, just by mounting a runtime - so
 // editing a look's values in a manifest can quietly put an engine render back on the
 // first-paint path. This guards the invariant that a pre-rendered look stays pre-rendered.
 //
@@ -330,7 +330,7 @@ for (const id of toolManifests.keys()) {
 //
 // Severity split mirrors the tolerance the preview-path check above already applies:
 // a STALE sig is an error (a demonstrable manifest↔bundle drift, always fixable by
-// regenerating), while an ABSENT look is only a warning — build-previews is best-effort
+// regenerating), while an ABSENT look is only a warning - build-previews is best-effort
 // by design ("a look that fails just isn't bundled, and the gallery live-renders it as
 // before"), so a missing entry must not turn a documented graceful degrade into a red
 // build. No bundle at all = a checkout that hasn't generated previews: skip entirely.
@@ -386,7 +386,7 @@ for (const [toolId, manifest] of toolManifests) {
 // manifest's own user-facing strings (engine/src/loader.ts's
 // applyManifestI18n applies it at load time; build-catalog-index.ts folds
 // name/description/featured.blurb into the catalog index). Every key must
-// resolve to a real manifest field — an orphaned key (after a manifest
+// resolve to a real manifest field - an orphaned key (after a manifest
 // refactor renamed/removed an input) would silently translate nothing.
 const SIDECAR_LANGS = new Set(LANGS.filter(l => l !== 'en'));
 for (const [toolId, manifest] of toolManifests) {
@@ -420,10 +420,10 @@ for (const [toolId, manifest] of toolManifests) {
 // The CMYK-aware PDF export builds a hex→CMYK lookup (buildCmykPaletteMap in
 // shells/web/src/bridge/export.js) keyed on each swatch's hex. The brand palette
 // deliberately repeats hexes (e.g. Pine/Black/White appear as ramp endpoints),
-// which is fine — but only as long as the repeats agree on their ink values
+// which is fine - but only as long as the repeats agree on their ink values
 // (null = "unspecified" is always compatible). If two entries with the SAME hex
 // declared DIFFERENT non-null CMYK, the lookup's result would depend purely on
-// array order — a silent, order-dependent ink mismatch. Catch that here.
+// array order - a silent, order-dependent ink mismatch. Catch that here.
 {
   const cmykByHex = new Map<string, { cmyk: readonly [number, number, number, number]; label: string }>(); // normalised hex → { cmyk, label }
   for (const { hex, cmyk, label } of PALETTE) {
@@ -491,7 +491,7 @@ for (const asset of assetsIndex.assets) {
         errors.push(`[asset ${asset.id}] format "${fmt.format}" depth ${fmt.depth ?? '(absent)'} does not match the file's ${expectedDepth}-bit header — run \`npm run build:catalog\``);
       }
 
-      // Tokens assets carry a DTCG document — validate its structure too.
+      // Tokens assets carry a DTCG document - validate its structure too.
       if (asset.type === 'tokens' && fmt.format === 'json') {
         let doc;
         try { doc = JSON.parse(bytes.toString('utf8')); } catch {
@@ -506,7 +506,7 @@ for (const asset of assetsIndex.assets) {
       }
 
       // A brand-shipped house rate card (Phase 5). Schema-valid is not the same as
-      // computable — run it through parseRateCard, the same reader the drop path
+      // computable - run it through parseRateCard, the same reader the drop path
       // uses (the parseIconThemesDoc lesson, below).
       if (asset.type === 'ratecard' && fmt.format === 'json') {
         const digest = createHash('sha256').update(bytes).digest('hex').slice(0, 16);
@@ -523,7 +523,7 @@ for (const asset of assetsIndex.assets) {
       }
 
       // Icon-themes palettes: the colour pairings the shells offer for themable
-      // icons. parseIconThemesDoc is the runtime's reader — any entry it drops
+      // icons. parseIconThemesDoc is the runtime's reader - any entry it drops
       // (bad id charset, unusable colour) would silently vanish from the UI, so
       // dropping is an authoring error here.
       if (asset.type === 'palette' && asset.tags?.includes('icon-themes') && fmt.format === 'json') {
@@ -548,7 +548,7 @@ for (const asset of assetsIndex.assets) {
 
       // Themable two-colour icons (tag "themable"): the shells' theme baking is
       // a string rewrite, so the SVG must follow the exact contract the engine's
-      // isThemableIconSvg/applyIconTheme expect — one default
+      // isThemableIconSvg/applyIconTheme expect - one default
       // <defs><style>.c1{fill:…}.c2{fill:…}</style></defs> block, shape classes
       // limited to c1/c2, and no stray style/stroke attributes.
       if (asset.tags?.includes('themable') && fmt.format === 'svg') {
@@ -573,7 +573,7 @@ for (const asset of assetsIndex.assets) {
 }
 
 // The first icon-themes pairing is the DEFAULT the picker maps to a plain
-// (suffix-less) id — it only reads true if it matches the fills actually baked
+// (suffix-less) id - it only reads true if it matches the fills actually baked
 // into the icons. Reordering the palette without recolouring the icons would
 // silently mislabel every default pick.
 for (const pal of iconThemePalettes) {
@@ -598,7 +598,7 @@ for (const asset of assetsIndex.assets) {
   }
 }
 
-// Default favourites (seeded on first run) must each reference a real asset — a typo'd
+// Default favourites (seeded on first run) must each reference a real asset - a typo'd
 // id would silently seed a favourite that never resolves to a tile.
 if (assetsIndex.defaultFavourites !== undefined) {
   if (!Array.isArray(assetsIndex.defaultFavourites)) {
@@ -616,7 +616,7 @@ if (assetsIndex.defaultFavourites !== undefined) {
 
 // The version assets this catalog ships, by slug. A tokens asset is a VERSION when
 // another tokens asset is its proper ancestor (`user/tokens/brand/jupiter` under
-// `user/tokens/brand`) — the same descendant rule the shells' discovery applies, so
+// `user/tokens/brand`) - the same descendant rule the shells' discovery applies, so
 // the validator and the runtime cannot disagree about what is a head and what is a
 // version. Only a single extra segment counts: a deeper id is not addressable by a
 // slug, so it is not a version anything could pin to.
@@ -634,8 +634,8 @@ for (const id of tokensAssetIds) {
 // …and the slugs the HEAD document's ledger actually lists. This is the set that
 // decides a pin at runtime: `resolveDesignVersion` reads `readVersionIndex(head)`
 // and nothing consults the asset list at all (shells/cli/src/bridge.ts,
-// shells/web/src/bridge/tokens.ts). A pack can drift either way — an asset with
-// no ledger entry, or a ledger entry with no asset — and both make a pin fall
+// shells/web/src/bridge/tokens.ts). A pack can drift either way - an asset with
+// no ledger entry, or a ledger entry with no asset - and both make a pin fall
 // silently through the ladder, which is precisely what this section exists to
 // stop. So a slug has to be in BOTH.
 const ledgerVersionSlugs = new Set<string>();
@@ -671,7 +671,7 @@ for (const slug of ledgerVersionSlugs) {
 const resolvableVersionSlugs = new Set([...shippedVersionSlugs].filter(s => ledgerVersionSlugs.has(s)));
 
 // A tool's `designVersion` is a resolution hint, never a load gate (engine/src/
-// loader.ts deliberately ignores it — an unresolvable pin falls through the ladder
+// loader.ts deliberately ignores it - an unresolvable pin falls through the ladder
 // so the tool still draws). That leniency is exactly why a pack has to be checked
 // here: at runtime a typo'd slug is invisible, and the tool quietly renders against
 // a different design system than its author pinned it to.
@@ -680,7 +680,7 @@ for (const [toolId, manifest] of toolManifests) {
   if (typeof pin !== 'string' || !pin || pin === DESIGN_VERSION_LATEST) continue;
   if (!resolvableVersionSlugs.size) {
     // A community tool pinned for another pack must not fail every pack that does
-    // not ship versions — that would make one brand's pin everyone else's error.
+    // not ship versions - that would make one brand's pin everyone else's error.
     warnings.push(
       `[${toolId}] designVersion "${pin}" but this catalog ships no design-system versions — ` +
       `the pin falls through to the active version, then to the edit head`,
@@ -701,7 +701,7 @@ for (const [toolId, manifest] of toolManifests) {
 for (const [toolId, manifest] of toolManifests) {
   for (const input of manifest.inputs) {
     // Default asset refs must resolve. A default may carry an icon theme
-    // suffix (`<id>?theme=<t>`) — parse it exactly the way the runtime does,
+    // suffix (`<id>?theme=<t>`) - parse it exactly the way the runtime does,
     // so anything that validates here also resolves at mount.
     if (input.type === 'asset' && typeof input.default === 'string') {
       const { baseId, theme } = parseThemedAssetId(input.default);
@@ -729,16 +729,16 @@ for (const [toolId, manifest] of toolManifests) {
 // A look's `values` seed the gallery preview render exactly like batch-row
 // values: renderRowToBlob spreads them into createRuntime's initialState, which
 // resolves them BY INPUT ID ONLY (engine/src/inputs.ts resolveInitialValue). A
-// key that matches nothing — or only a urlKey, which is URL-mode transport, not
-// runtime state — silently renders the tool's DEFAULT look instead of the
+// key that matches nothing - or only a urlKey, which is URL-mode transport, not
+// runtime state - silently renders the tool's DEFAULT look instead of the
 // authored one, so both are errors. Asset refs get the same resolve-at-mount
 // guarantee as input defaults: a typo'd id would only 404 at gallery paint.
 {
-  // Formats the gallery strip can show as an <img> — mirrors displayFormatOf/
+  // Formats the gallery strip can show as an <img> - mirrors displayFormatOf/
   // rasterFormatOf in shells/web/src/lib/featured-render.ts.
   const DISPLAYABLE = new Set(['svg', 'png', 'jpg', 'jpeg', 'webp']);
   // A look whose asset value can't resolve at gallery-render time. Catalog ids
-  // ride in a ref object (the URL-mode shape — assetRefId in engine/src/runtime.ts
+  // ride in a ref object (the URL-mode shape - assetRefId in engine/src/runtime.ts
   // ignores bare strings), optionally with a ?theme= suffix; http(s)/data refs
   // (e.g. canonical tool-embed URLs rendered via compose) resolve at runtime and
   // can't be checked here.
@@ -766,7 +766,7 @@ for (const [toolId, manifest] of toolManifests) {
     if (Array.isArray(manifest.featured?.variants)) sources.push(['featured.variants', manifest.featured.variants]);
     if (!sources.length) continue;
 
-    // A look on a tool with no displayable format can never render in the strip —
+    // A look on a tool with no displayable format can never render in the strip - 
     // renderFeaturedVariant throws and the tile silently keeps its static preview.
     const formats: string[] = manifest.render?.formats ?? [];
     if (!formats.some(f => DISPLAYABLE.has(f))) {
@@ -833,12 +833,12 @@ for (const [toolId, manifest] of toolManifests) {
 }
 
 // ─── Brand overlay declarations (extends) ───────────────────────────────────
-// A brand-pack tool may declare `"extends": "community"` — scripts/use-profile.ts
+// A brand-pack tool may declare `"extends": "community"` - scripts/use-profile.ts
 // then composes its view dir per-file from community/<id>/ + the overlay
 // (overlay wins, `extends` stripped from the composed tool.json). The composed
 // RESULT is already validated as a normal tool by the per-tool checks above,
 // which run against the tools/ VIEW. What the view can't tell us is whether the
-// DECLARATIONS in the pack sources are sound — so walk the real packs here
+// DECLARATIONS in the pack sources are sound - so walk the real packs here
 // (community/ + brands/*/tools/, same as the shared-hooks guard below), even
 // for tools outside the active profile:
 //   - community tools must never declare an overlay (they are the bases)
@@ -849,7 +849,7 @@ for (const [toolId, manifest] of toolManifests) {
 {
   const packToolDirs = (root: string): string[] => {
     const abs = join(ROOT, root);
-    if (!existsSync(abs)) return []; // private pack not mounted — nothing to check
+    if (!existsSync(abs)) return []; // private pack not mounted - nothing to check
     return readdirSync(abs).filter((d) =>
       !d.startsWith('.') && !d.startsWith('_') && d !== 'node_modules' &&
       statSync(join(abs, d)).isDirectory());
@@ -892,7 +892,7 @@ for (const [toolId, manifest] of toolManifests) {
 // byte-copies of community/_shared/*.js regions between `lolly:shared` markers,
 // maintained by `npm run sync:shared`. A hand-edited consumer region (or a
 // canonical edit that skipped the sync) would silently re-fork the corpus the
-// same way the old copy-paste did — fail closed here, exactly like the
+// same way the old copy-paste did - fail closed here, exactly like the
 // tools/index.json drift check above. This walks the real pack sources
 // (community/ + brands/*/tools/), not the tools/ view, so even tools outside
 // the active profile are guarded.
@@ -924,7 +924,7 @@ function readJson(rel: string): any {
 }
 
 // Mirrors the traversal engine/src/loader.ts's applyManifestI18n uses to apply
-// a sidecar overlay — but reports WHY a key doesn't resolve instead of
+// a sidecar overlay - but reports WHY a key doesn't resolve instead of
 // silently skipping it (silent-skip is the right runtime behaviour; a build-time
 // validator's job is to catch the authoring mistake that would cause it).
 function unresolvedSidecarKey(manifest: any, key: string): string | null {
@@ -939,7 +939,7 @@ function unresolvedSidecarKey(manifest: any, key: string): string | null {
   if (!input) return `references unknown input "${inputId}"`;
 
   if (['label', 'help', 'notice', 'placeholder', 'section', 'suffix'].includes(rest)) return null;
-  // (.*) not (.+): mirrors applyManifestI18n — an option's value may be ''.
+  // (.*) not (.+): mirrors applyManifestI18n - an option's value may be ''.
   const optMatch = /^options\.(.*)$/.exec(rest);
   if (optMatch) {
     const found = (input.options ?? []).some((o: any) => o.value === optMatch[1]);
@@ -961,7 +961,7 @@ function unresolvedSidecarKey(manifest: any, key: string): string | null {
   return 'does not match any known overlay path';
 }
 
-// Mirrors applyGuideI18n in engine/src/loader.ts — a step index past the end of
+// Mirrors applyGuideI18n in engine/src/loader.ts - a step index past the end of
 // the track resolves to nothing at runtime, so it's an authoring error here.
 function unresolvedGuideKey(manifest: any, rest: string): string | null {
   const guide = manifest.guide;

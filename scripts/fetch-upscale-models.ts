@@ -2,14 +2,14 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
  * Downloads the ONNX upscale/restore models into
- * shells/web/public/models/upscale/ — the same-origin location the (planned)
+ * shells/web/public/models/upscale/ - the same-origin location the (planned)
  * upscale worker loads them from at runtime by exact filename. Mirrors
  * scripts/fetch-kokoro-models.ts and scripts/fetch-trustmark-models.ts in
  * shape: a PINS table of per-file url + sha256 + byte-length, verified BEFORE
  * a byte is written, plus --refresh-pins for a deliberate upgrade.
  *
  * ANDY-RUN ONLY. This script needs network access and is never invoked by
- * `npm install`/`postinstall`/CI — these are tens to hundreds of MB each, not
+ * `npm install`/`postinstall`/CI - these are tens to hundreds of MB each, not
  * something every clone/deploy should pay for. Nothing in this repo's
  * automated pipeline calls this file.
  *
@@ -33,39 +33,39 @@
  *
  * NOT fetched here: realesrgan-x4plus-anime.onnx (the illustration/line-art
  * intent's engine). Its upstream RealESRGAN_x4plus_anime_6B ships only as a
- * .pth with no license-clean ONNX mirror, so it is CONVERSION-SOURCED — produced
+ * .pth with no license-clean ONNX mirror, so it is CONVERSION-SOURCED - produced
  * on-device from the BSD-3 .pth by scripts/convert-anime-upscale-onnx.py, which
  * writes it straight into this same /models/upscale/ tree. Run that script (not
  * this one) to vendor it.
  *
  * ── HuggingFace community-upload caveat ──────────────────────────────────
  * None of these five models are published as ONNX by their own upstream
- * authors — xinntao's Real-ESRGAN releases and TencentARC's GFPGAN releases
+ * authors - xinntao's Real-ESRGAN releases and TencentARC's GFPGAN releases
  * are PyTorch .pth checkpoints; the .onnx files below are THIRD-PARTY
  * conversions re-hosted on community HuggingFace repos. The `license` field
  * on every PINS entry records the UPSTREAM project's license (verified
  * against the original GitHub repos, not the mirror), because a community
- * uploader's own repo card can — and sometimes does — attach a different,
+ * uploader's own repo card can - and sometimes does - attach a different,
  * more restrictive license than the code it was converted from. On
  * --refresh-pins, RE-CHECK the mirror's repo card against the upstream
  * license before trusting a new pin; do not assume it still matches.
  *
  * On success, this script writes shells/web/public/models/upscale/CREDITS.txt
- * with one entry per vendored file — license, source URL, and copyright —
+ * with one entry per vendored file - license, source URL, and copyright - 
  * so the app can carry the required attribution for an MPL-2.0 build that
  * ships these weights.
  *
  * ── Integrity ─────────────────────────────────────────────────────────────
  * Every file with a real pin is SHA-256 + byte-length verified BEFORE it is
- * written — a mismatch exits non-zero with nothing written. A file already
+ * written - a mismatch exits non-zero with nothing written. A file already
  * on disk whose hash matches its pin is skipped without touching the
  * network. realesr-general-wdn-x4v3.onnx below is a PLACEHOLDER pin (see the
- * TODO(andy) comment) — no unauthenticated, single-file ONNX export of the WDN
+ * TODO(andy) comment) - no unauthenticated, single-file ONNX export of the WDN
  * denoise partner could be found/verified (realesrgan-x4plus.onnx WAS a
  * placeholder too but is a real, verified pin as of 2026-08-05). A normal run
  * (no --refresh-pins) SKIPS a
  * placeholder entry with a loud warning rather than downloading it
- * unverified — nothing is trusted on a fake-looking hash. Run
+ * unverified - nothing is trusted on a fake-looking hash. Run
  * --refresh-pins to fetch a candidate, inspect it, and hand-verify before
  * pasting a real pin over the placeholder.
  */
@@ -89,18 +89,18 @@ interface Pin {
   bytes: number | null;
   /** SPDX id of the UPSTREAM project's license (see header caveat). */
   license: string;
-  /** Where the license/attribution was verified — the upstream repo, not just the mirror. */
+  /** Where the license/attribution was verified - the upstream repo, not just the mirror. */
   source: string;
   /** Copyright line to carry into CREDITS.txt. */
   copyright: string;
-  /** Best-effort file — a fetch failure or --no-face-detect skips it, not an abort. */
+  /** Best-effort file - a fetch failure or --no-face-detect skips it, not an abort. */
   optional?: boolean;
   /** Free-text note surfaced in CREDITS.txt and in --refresh-pins output. */
   note?: string;
 }
 
 // Per-file pins. Verified BEFORE writing (real entries); refresh with
-// --refresh-pins on a deliberate upgrade — see header for the placeholder
+// --refresh-pins on a deliberate upgrade - see header for the placeholder
 // caveat on the two files that don't have one yet.
 const PINS: Record<string, Pin> = {
   'realesr-general-x4v3.onnx': {
@@ -112,15 +112,15 @@ const PINS: Record<string, Pin> = {
     copyright: 'Copyright (c) 2021, Xintao Wang and contributors (xinntao/Real-ESRGAN)',
   },
   'realesr-general-wdn-x4v3.onnx': {
-    // TODO(andy): PLACEHOLDER — no unauthenticated single-file ONNX mirror of
+    // TODO(andy): PLACEHOLDER - no unauthenticated single-file ONNX mirror of
     // the WDN (denoise-strength-blend) variant was found as of 2026-08-04.
     // The .pth checkpoint exists (e.g. hlky/RealESRGAN_x4plus and the
     // cgfgui/upscale dataset both carry realesr-general-wdn-x4v3.pth) but
     // needs converting to ONNX yourself, or a mirror needs to surface. Run
-    // --refresh-pins once a candidate URL is in hand — this entry will still
+    // --refresh-pins once a candidate URL is in hand - this entry will still
     // refuse to verify (sha256 is 'PLACEHOLDER') until you paste a hand-
     // checked pin over it.
-    url: 'https://huggingface.co/hlky/RealESRGAN_x4plus/resolve/main/realesr-general-wdn-x4v3.pth', // NOTE: .pth, not .onnx — placeholder target only, not fetchable as-is
+    url: 'https://huggingface.co/hlky/RealESRGAN_x4plus/resolve/main/realesr-general-wdn-x4v3.pth', // NOTE: .pth, not .onnx - placeholder target only, not fetchable as-is
     sha256: PLACEHOLDER,
     bytes: null,
     license: 'BSD-3-Clause',
@@ -172,7 +172,7 @@ const onlyFiles = onlyArg ? new Set(onlyArg.split(',').map((s) => s.trim())) : n
 const sha256 = (bytes: Uint8Array): string => createHash('sha256').update(bytes).digest('hex');
 
 /** Verify bytes against the pin. Throws (nothing written by the caller) on any
- *  mismatch — the byte-length is reported alongside as the secondary signal. */
+ *  mismatch - the byte-length is reported alongside as the secondary signal. */
 function verify(relPath: string, pin: Pin, bytes: Uint8Array, source: string): void {
   const actual = sha256(bytes);
   if (actual !== pin.sha256) {
@@ -237,23 +237,23 @@ async function fetchFile(relPath: string): Promise<'saved' | 'cached' | 'skipped
     );
     return 'saved';
   }
-  verify(relPath, pin, bytes, 'downloaded'); // BEFORE the write — a bad file never lands
+  verify(relPath, pin, bytes, 'downloaded'); // BEFORE the write - a bad file never lands
   mkdirSync(dirname(outPath), { recursive: true });
   writeFileSync(outPath, bytes);
   process.stdout.write(`  saved ${outPath} (${bytes.byteLength} bytes, ${mb} MB, hash verified)\n`);
   return 'saved';
 }
 
-// A cheap "is this a single-file ONNX?" sniff for the refresh path — enough to stop
+// A cheap "is this a single-file ONNX?" sniff for the refresh path - enough to stop
 // a .pth/.zip being staged under an `.onnx` name, not a full validator. Rejects the
 // obvious non-ONNX containers; accepts a protobuf-looking head (ONNX ModelProto
 // opens with field tag 0x08 = ir_version, or 0x0a = a length-delimited field 1).
 function sniffOnnx(bytes: Uint8Array): boolean {
   if (bytes.length < 8) return false;
   const b0 = bytes[0], b1 = bytes[1];
-  if (b0 === 0x50 && b1 === 0x4b) return false; // 'PK' — zip / PyTorch .pth
+  if (b0 === 0x50 && b1 === 0x4b) return false; // 'PK' - zip / PyTorch .pth
   if (b0 === 0x1f && b1 === 0x8b) return false; // gzip
-  if (b0 === 0x3c) return false;                // '<' — an HTML error page
+  if (b0 === 0x3c) return false;                // '<' - an HTML error page
   return b0 === 0x08 || b0 === 0x0a;
 }
 

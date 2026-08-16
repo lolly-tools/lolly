@@ -7,7 +7,7 @@
  * cycle. index.ts re-exports it, so every external consumer (`@lolly/engine`,
  * the shells, services, scripts) keeps importing `ENGINE_VERSION` from the
  * barrel unchanged. The changelog for each minor lives above the re-export in
- * index.ts — the public surface — not here.
+ * index.ts - the public surface - not here.
  *
  * This is the *contract* version (what HostV1 level the engine implements), and
  * is DELIBERATELY decoupled from the product/release version. Do not collapse

@@ -1,14 +1,14 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
- * Native site transport, shared by BOTH Tauri shells — the JS half of the
+ * Native site transport, shared by BOTH Tauri shells - the JS half of the
  * Design System studio's website source (plans/97 §9 / SS9).
  *
  * The studio never fetches a site itself. It asks a TRANSPORT for one, and there
  * are exactly two (plan 97 §9, decision resolved: no server fetch, ever): this
  * one, backed by the Rust `site_fetch` command, and the Chrome extension's
- * `lolly-capture/site`. Both hand back the same four things — page HTML,
+ * `lolly-capture/site`. Both hand back the same four things - page HTML,
  * stylesheet text, prefetched icon/og bytes, and the address the HTML really
- * came from — which then go through ONE parser,
+ * came from - which then go through ONE parser,
  * shells/web/src/lib/design-system/extract-site.ts. Nothing here parses; nothing
  * here decides what to install. That is what keeps the two transports from
  * drifting into two different ideas of what a website contains.
@@ -20,7 +20,7 @@
  * WHY THIS FILE LIVES IN THE PARENT REPO, AND WHY IT TAKES AN `invoke` ADAPTER
  * Same reason as its neighbour state-fs.ts, which set the pattern. Desktop and
  * mobile are separate submodule repos and neither may import from the other, so
- * shared logic belongs in the parent repo — but the parent cannot resolve
+ * shared logic belongs in the parent repo - but the parent cannot resolve
  * `@tauri-apps/api` (the Tauri shells are deliberately not npm workspaces, so
  * that package exists only inside each shell's own node_modules). The dependency
  * is inverted: each shell imports `invoke` itself and passes it in, and its
@@ -33,21 +33,21 @@
  * exclusion). Anything that lists the two shells' override dirs LITERALLY still
  * needs this one added by hand.
  *
- * WHAT ACTUALLY WIRES THIS UP TODAY — READ THIS BEFORE TRUSTING THE FILE
+ * WHAT ACTUALLY WIRES THIS UP TODAY - READ THIS BEFORE TRUSTING THE FILE
  * Nothing in the web shell imports this module, and that is deliberate as of
  * 2026-08-09. The live path is a runtime probe INSIDE the web shell:
  * `detectSiteTransport` in shells/web/src/lib/design-system/sources/website.ts
  * reads the same `__TAURI_INTERNALS__.invoke` global `tauriInvoke()` reads below
  * and invokes the same `site_fetch` command. It has to own its own copy rather
  * than import this one, because shells/web is a separate submodule repository
- * and may not import from the parent repo's tauri-shared — an import that
+ * and may not import from the parent repo's tauri-shared - an import that
  * resolves in the umbrella and not in a clone of the web shell is not a
  * dependency, it is a trap.
  *
  * So this module is the BUILD-TIME seam, and it is currently unwired:
  *   • Each shell's vite.config.js maps the bridge module basename `site-fetch`
  *     to its own three-line seam file, exactly as it maps `state` and
- *     `capture` — but that plugin only rewrites an import made from inside a
+ *     `capture` - but that plugin only rewrites an import made from inside a
  *     `bridge/` directory, and there is no `shells/web/src/bridge/site-fetch.ts`
  *     for it to intercept. The key matches nothing. Add that web module (whose
  *     job would be to hand the transport to `host.net._siteFetch`, the optional
@@ -61,7 +61,7 @@
  * is keyed on a FILENAME, and the vite config's own comments record that exact
  * wiring silently breaking once before (the map was keyed on `.js` after the
  * bridge moved to `.ts`, so every override missed and the shell shipped web
- * IndexedDB state). Here it would fail OPEN — no throw, just a Website tile
+ * IndexedDB state). Here it would fail OPEN - no throw, just a Website tile
  * that never appears on the one platform it is meant to work on. What was wrong
  * was assuming a probe nobody calls is a probe that cannot miss.
  */
@@ -73,7 +73,7 @@ export interface SiteFetchOptions {
 
 /** One prefetched byte payload (an icon, an og:image), base64 in `data`. */
 export interface SiteAsset {
-  /** Absolute address the bytes came from — the key that matches a logo
+  /** Absolute address the bytes came from - the key that matches a logo
    *  candidate extract-site.ts derived from the same HTML. */
   url: string;
   /** Content-Type as the server sent it, parameters stripped; '' when absent. */
@@ -87,7 +87,7 @@ export interface SiteFetchResult {
   html: string;
   cssTexts: string[];
   assets: SiteAsset[];
-  /** Post-redirect address — pass as extract-site.ts's `baseUrl`. */
+  /** Post-redirect address - pass as extract-site.ts's `baseUrl`. */
   finalUrl: string;
 }
 
@@ -114,7 +114,7 @@ export const DEFAULT_SITE_TIMEOUT_MS = 15_000;
  *  command that never resolves at all, so the studio can never hang. */
 const WATCHDOG_SLACK_MS = 5_000;
 
-/** Command name — must match `#[tauri::command] pub async fn site_fetch` in both
+/** Command name - must match `#[tauri::command] pub async fn site_fetch` in both
  *  shells' src-tauri/src/site_fetch.rs. Nothing checks the two sides against
  *  each other, so a rename there is a rename here. */
 const COMMAND = 'site_fetch';
@@ -125,7 +125,7 @@ function asString(v: unknown): string {
 
 /**
  * Narrow the IPC payload. It comes from our own Rust, not from the site, so this
- * is not a trust boundary — it is a version boundary: a desktop app updated
+ * is not a trust boundary - it is a version boundary: a desktop app updated
  * ahead of (or behind) its frontend must degrade to a thinner result rather than
  * throw a TypeError deep inside the parser.
  */
@@ -210,7 +210,7 @@ export function tauriInvoke(): InvokeFn | null {
 /**
  * The native transport when this is a Tauri shell, otherwise null.
  *
- * A synchronous, zero-cost verdict — the same shape of answer
+ * A synchronous, zero-cost verdict - the same structure of answer
  * `hasCaptureExtension()` gives for the other transport, so the studio can
  * decide at boot whether the Website tile exists without a probe that could
  * itself be a network act.
@@ -221,7 +221,7 @@ export function tauriInvoke(): InvokeFn | null {
  * rather than a silently missing tile, and both shells ship the command as of
  * this change.
  *
- * NOT CALLED BY THE WEB SHELL — see the header. The equivalent probe lives in
+ * NOT CALLED BY THE WEB SHELL - see the header. The equivalent probe lives in
  * `sources/website.ts`, because a submodule cannot import across the repo
  * boundary. This one stays for a caller inside the Tauri shells themselves.
  */

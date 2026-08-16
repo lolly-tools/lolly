@@ -4,7 +4,7 @@
  *
  * The whole point of `makeColorApi()` is that every shell attaches THIS object
  * (`host.color = makeColorApi()`) rather than reimplementing anything, so a
- * method added here reaches web, Worker, Tauri and CLI with no shell edit — and
+ * method added here reaches web, Worker, Tauri and CLI with no shell edit - and
  * can never drift from the engine math it wraps. This suite pins that: the
  * bridge method must be byte-for-byte the same result as calling
  * `solveLightnessForApca` directly, including the `{ limit, samples }` options.
@@ -51,7 +51,7 @@ test('solveApca passes { limit, samples } straight through to the engine', () =>
 
   // `samples` changes the scan resolution used to locate the contrast maximum on
   // the UNREACHABLE path, so two sample counts can return different closest
-  // colours — either must match the engine call made the same way.
+  // colours - either must match the engine call made the same way.
   for (const samples of [16, 64, 512]) {
     assert.deepEqual(
       api.solveApca!(0, 0, 200, '#ffffff', { samples }),

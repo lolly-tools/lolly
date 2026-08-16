@@ -5,27 +5,27 @@
  *
  * Run as: npm run sync:shared
  *
- * Tool `hooks.js` files ship as self-contained plain JS (tools are data — no
+ * Tool `hooks.js` files ship as self-contained plain JS (tools are data - no
  * imports), which historically meant byte-identical helper blocks were
  * copy-pasted across the filter-* tools (and logo-wall) and rotted apart.
  * `community/_shared/*.js` now holds the canonical source of each shared
  * block as a named region:
  *
- *   // === lolly:shared <name> — canonical source; edit here and run npm run sync:shared ===
+ *   // === lolly:shared <name> - canonical source; edit here and run npm run sync:shared ===
  *   ...content...
  *   // === /lolly:shared <name> ===
  *
  * Consumers (`community/<tool>/hooks.js`, `brands/<brand>/tools/<tool>/hooks.js`)
  * mark where each region lives with the same grammar:
  *
- *   // === lolly:shared <name> — generated from community/_shared/<file>; edit there and run npm run sync:shared ===
+ *   // === lolly:shared <name> - generated from community/_shared/<file>; edit there and run npm run sync:shared ===
  *   ...content (rewritten by this script)...
  *   // === /lolly:shared <name> ===
  *
  * This script rewrites every consumer region from its canonical source. It is
  * idempotent, refuses CRLF files, and fails loudly on malformed, nested,
  * unterminated, or unknown-name markers. `scripts/validate-catalog.ts` imports
- * `verifySharedRegions` from here as the CI drift guard — the check and the
+ * `verifySharedRegions` from here as the CI drift guard - the check and the
  * writer share one parser so they can never disagree. Writing only happens
  * when this file is run directly.
  */
@@ -38,12 +38,12 @@ const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const SHARED_DIR = join(ROOT, 'community', '_shared');
 
 // Marker grammar. The em-dash tail is freeform human guidance; only the region
-// name is load-bearing. Anchored, whole-line matches — nothing else in a hooks
+// name is required. Anchored, whole-line matches - nothing else in a hooks
 // file can collide with `// === lolly:shared`.
 const BEGIN_RE = /^\/\/ === lolly:shared (\S+)(?: — (.*))? ===$/;
 const END_RE = /^\/\/ === \/lolly:shared (\S+) ===$/;
 // Optional `generated from community/_shared/<file>` reference in a consumer's
-// begin-marker tail — when present it must name the region's actual source file.
+// begin-marker tail - when present it must name the region's actual source file.
 const SOURCE_REF_RE = /generated from community\/_shared\/([\w.-]+)/;
 
 export interface SharedRegion {

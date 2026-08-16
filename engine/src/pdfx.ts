@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
- * PDF/X-4 metadata authority — pure strings + small descriptor objects, no PDF
+ * PDF/X-4 metadata authority: pure strings + small descriptor objects, no PDF
  * byte-wrangling. The shell's pdf-lib export pass consumes these: it embeds the
  * XMP packet as the catalog /Metadata stream, writes the Info-dict dates via
  * formatPdfDate, materializes the OutputIntent from pdfxOutputIntentSpec, and
@@ -28,7 +28,7 @@ const esc = (s: unknown): string => String(s ?? '')
 /**
  * Deterministic-format 'uuid:xxxxxxxx-…' identifier for xmpMM:DocumentID /
  * InstanceID and the trailer /ID. With a seed the result is a stable name-based
- * (v5-style) UUID — same seed, same id — so re-exports of an unchanged document
+ * (v5-style) UUID (same seed, same id), so re-exports of an unchanged document
  * can keep their DocumentID. Without a seed it defers to the platform's
  * crypto.randomUUID (callers who want reproducibility should pass a seed).
  */
@@ -59,7 +59,7 @@ export function makeDocumentId(seed?: string): string {
 
 /**
  * A date in the PDF Info-dict form `D:YYYYMMDDHHmmSS+HH'mm'` (local time with
- * numeric UTC offset — the Adobe convention; zero offset still writes +00'00'
+ * numeric UTC offset: the Adobe convention; zero offset still writes +00'00'
  * so the string shape is uniform). Accepts a Date or anything Date() parses.
  */
 export function formatPdfDate(date: Date | string | number): string {
@@ -83,7 +83,7 @@ const XPACKET_PAD = ('\n' + ' '.repeat(99)).repeat(20) + '\n';
 
 /** Options for {@link buildPdfXXmp}. */
 export interface PdfXXmpOptions {
-  /** required — ISO 8601 (e.g. new Date().toISOString()) */
+  /** required: ISO 8601 (e.g. new Date().toISOString()) */
   createDate?: string;
   /** defaults to createDate */
   modifyDate?: string;
@@ -157,7 +157,7 @@ export interface PdfXOutputIntentOptions {
   /** override the human-readable Info string */
   info?: string;
   /**
-   * Embedded destination-profile bytes. The engine NEVER reads a profile store —
+   * Embedded destination-profile bytes. The engine NEVER reads a profile store:
    * a caller that has the bytes (the web shell's on-device profile library)
    * supplies them, and a caller that has none (the CLI) passes nothing.
    */
@@ -170,7 +170,7 @@ export interface PdfXOutputIntentOptions {
    * registered characterization".
    */
   identifier?: string;
-  /** null omits RegistryName entirely — a Custom identity names no registry. */
+  /** null omits RegistryName entirely: a Custom identity names no registry. */
   registry?: string | null;
 }
 
@@ -194,7 +194,7 @@ export interface PdfXOutputIntentSpec {
  * Conformance note: X-4 requires an EMBEDDED DestOutputProfile (referencing an
  * external one is the X-4p variant, which needs a DestOutputProfileRef dict we
  * do not write). Two routes reach that here:
- *  - 'srgb' embeds the engine-generated profile — always;
+ *  - 'srgb' embeds the engine-generated profile, always;
  *  - a CMYK press condition (fogra39/fogra51/swop/gracol) has NO bytes of its
  *    own, because no CMYK ICC ships in this repo. Bytes arrive only when the
  *    caller passes `iccBytes` (the web shell, from a profile the user loaded on
@@ -255,12 +255,12 @@ const N_ALLOWED = new Set([1, 3, 4]);
  *
  * Pure rules, stated here because what X-4 requires is the engine's business:
  *  - device class must be `prtr`. PDF/A tolerates a display profile; PDF/X does
- *    not — an output intent describes an OUTPUT device.
+ *    not: an output intent describes an OUTPUT device.
  *  - the profile's data space must be the intent's space. Embedding an RGB
  *    profile under a CMYK intent would produce bytes that merely *render* the
  *    condition while claiming to BE it.
  *  - /N ∈ {1,3,4}, and consistent with the space.
- *  - ICC version: v2 (any minor) or v4 up to 4.2 — the versions the PDF spec's
+ *  - ICC version: v2 (any minor) or v4 up to 4.2, the versions the PDF spec's
  *    ICC-version table reaches, and the ones preflight tools accept. v1 is
  *    rejected as obsolete, v5/iccMAX as beyond what any PDF version admits.
  */

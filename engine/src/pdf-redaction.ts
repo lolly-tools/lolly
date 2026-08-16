@@ -1,42 +1,42 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
- * Failed-redaction detection — text that is in the file but not on the page.
+ * Failed-redaction detection: text that is in the file but not on the page.
  *
- * The classic PDF disaster: someone "redacts" a document by drawing black
+ * The classic PDF problem: someone "redacts" a document by drawing black
  * rectangles over the sensitive parts and saving. The bars are graphics. The
- * words are still underneath them, fully intact, and any text extractor — this
- * codebase's included — reads them straight back out. It has leaked court
- * filings, contracts, medical records and diplomatic cables, repeatedly, for
- * twenty years, and it is invisible to the person who did it because their PDF
- * viewer shows exactly what they expect.
+ * words are still underneath them, fully intact, and any text extractor,
+ * including this codebase's, reads them straight back out. This has leaked
+ * court filings, contracts, medical records, and diplomatic cables,
+ * repeatedly, for twenty years. It stays invisible to the person who did it,
+ * because their PDF viewer shows exactly what they expect.
  *
  * We can prove it offline, because we already hold both halves: `interpretPdfPage`
- * gives the text runs AND the filled shapes, in PAINT ORDER. So the test is a
- * geometric one — is there an opaque shape, painted AFTER a text run, covering
- * it? If so the reader cannot see those words, and the file still contains them.
+ * gives the text runs AND the filled shapes, in PAINT ORDER. So the test is
+ * geometric: is there an opaque shape, painted AFTER a text run, covering it?
+ * If so the reader cannot see those words, and the file still contains them.
  *
- * ### Why paint order is the whole game
+ * ### Why paint order is the key signal
  *
  * Order is what separates a redaction from a highlight. A coloured box painted
  * BEFORE text is a background; the same box painted AFTER it is a cover. Without
- * that distinction every highlighted heading, every table cell with a fill,
- * every button-shaped label on the page would be a false positive — which is to
- * say the check would be worthless. `interpretPdfPage` returns nodes in the
+ * that distinction, every highlighted heading, every table cell with a fill,
+ * and every button-shaped label on the page would be a false positive, which
+ * would make the check worthless. `interpretPdfPage` returns nodes in the
  * order the content stream painted them and never sorts them (see
  * tests/pdf-redaction.test.ts, which pins that invariant deliberately).
  *
  * ### What this deliberately does NOT claim
  *
  * It does not claim intent. A finding says "these words are present but not
- * visible", which is exactly what was measured, and which is worth surfacing
+ * visible", which is exactly what was measured, and is shown regardless of
  * whether it came from a botched redaction or from sloppy layering. Callers
  * should use that wording rather than accusing a document of a cover-up.
  *
- * It also does not catch every way to hide text — text rendered in invisible
+ * It also does not catch every way to hide text: text rendered in invisible
  * mode (`Tr 3`), text scissored away by a clip path, or text in white on white
  * all stay hidden from this pass. `Tr` in particular is how a searchable scan
  * stores its OCR layer, so treating it as concealment would flag every scanned
- * document ever made. This checks the one case that is unambiguous.
+ * document ever made. This checks only the one case that is unambiguous.
  */
 
 import type { PdfNode } from './pdf-map.ts';
@@ -45,16 +45,16 @@ import type { PdfNode } from './pdf-map.ts';
 const OPAQUE_MIN = 90;
 /** Fraction of a text run's box that must be covered before it is reported. */
 const DEFAULT_MIN_COVERAGE = 0.7;
-/** At or above this, the run is not merely obscured — it is gone. */
+/** At or above this, the run is not merely obscured - it is gone. */
 const FULLY_HIDDEN = 0.95;
 /**
  * Covering shapes considered per text run; the largest overlaps win.
  *
  * Generous, because word-by-word redaction of a single line legitimately draws
- * one bar per word and the union of all of them is the honest coverage. The cap
+ * one bar per word, and the union of all of them is the honest coverage. The cap
  * exists only to bound `unionArea`'s compressed grid, and it can only ever cause
- * UNDER-reporting — which is the safe direction for a cap, since a missed
- * finding is a gap, whereas an invented one would poison the whole check.
+ * UNDER-reporting. That is the safe direction for a cap: a missed finding is a
+ * gap, but an invented one would poison the whole check.
  */
 const MAX_COVERS = 64;
 
@@ -95,9 +95,9 @@ function intersect(a: Rect, b: Rect): Rect | null {
  *
  * A run split across two adjacent bars is covered by neither one alone, so
  * taking the largest single overlap would under-report exactly the case that
- * matters most — a long redacted line. Summing instead over-reports wherever
- * bars overlap each other. The union is the only answer that is right in both,
- * and with a handful of rectangles the compressed grid is trivially cheap.
+ * matters most: a long redacted line. Summing instead over-reports wherever
+ * bars overlap each other. The union is the only answer that is right in both
+ * cases, and with a handful of rectangles the compressed grid is cheap.
  */
 function unionArea(rects: Rect[]): number {
   if (!rects.length) return 0;
@@ -111,7 +111,7 @@ function unionArea(rects: Rect[]): number {
     const x0 = xs[i]!, x1 = xs[i + 1]!;
     for (let j = 0; j + 1 < ys.length; j++) {
       const y0 = ys[j]!, y1 = ys[j + 1]!;
-      // A cell counts once if ANY rectangle covers it — that is the union.
+      // A cell counts once if ANY rectangle covers it - that is the union.
       const covered = rects.some((r) => r.x <= x0 && r.x + r.w >= x1 && r.y <= y0 && r.y + r.h >= y1);
       if (covered) area += (x1 - x0) * (y1 - y0);
     }
@@ -127,8 +127,8 @@ function unionArea(rects: Rect[]): number {
  * Boxes and baked vector paths qualify by their fill; an image qualifies too,
  * because a photo pasted over a paragraph hides it just as completely as a black
  * bar does. Anything carrying a soft mask is refused: a masked shape's real
- * per-pixel alpha is unknown here, and a shape whose opacity we cannot vouch for
- * must not be presented as proof that text is concealed.
+ * per-pixel alpha is unknown here, and a shape whose opacity cannot be
+ * verified must not be presented as proof that text is concealed.
  */
 function coverFill(n: PdfNode): string | null {
   if (n._softMask) return null;
@@ -153,7 +153,7 @@ function textRect(n: PdfNode): Rect | null {
 /**
  * Find text on one page that an opaque shape painted over.
  *
- * `nodes` MUST be in paint order, i.e. straight from `interpretPdfPage` — a
+ * `nodes` MUST be in paint order, i.e. straight from `interpretPdfPage`. A
  * sorted or filtered list silently turns this into nonsense, because "painted
  * after" is read from the array index and nothing else.
  *

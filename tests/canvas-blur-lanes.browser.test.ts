@@ -1,10 +1,10 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
- * THE TWO BLUR LANES, MEASURED AGAINST EACH OTHER — the browser tier (plan 104 §5.5).
+ * THE TWO BLUR LANES, MEASURED AGAINST EACH OTHER - the browser tier (plan 104 §5.5).
  *
  * `shells/web/src/lib/canvas-blur.test.ts` pins the parse, the spill geometry, the mip
  * ladder and the box kernel headlessly. What no Node process can answer is the question
- * the Safari finding forces: the mip lane is the MAINLINE on WebKit (§11 S1 — no
+ * the Safari finding forces: the mip lane is the MAINLINE on WebKit (§11 S1 - no
  * `ctx.filter` on any context kind there), so how close is it to what an engine's own
  * Gaussian paints? A lane that is only "the fallback" can be hand-waved. A lane that is
  * the only lane half our users have cannot.
@@ -14,7 +14,7 @@
  * RGB of a fully transparent pixel is arbitrary in both lanes and comparing it would
  * measure nothing.
  *
- * THE TOLERANCE, and what it is worth (measured 2026-08-11, Chromium 151 headless,
+ * THE TOLERANCE, and why it is set where it is (measured 2026-08-11, Chromium 151 headless,
  * macOS 27, Playwright 1.62.1):
  *
  *   blur sigma 4        mean 0.67   max 18   0.70 % of channels over 8 levels
@@ -25,18 +25,18 @@
  *
  *   • MEAN absolute error per premultiplied channel is under one 8-bit level for the
  *     sigmas a document actually authors, and ~3 at sigma 30. That is the number that
- *     matters — a blur is a low-frequency operation and a per-pixel outlier is invisible
+ *     matters - a blur is a low-frequency operation and a per-pixel outlier is invisible
  *     inside one.
  *   • MAX absolute error is larger, and expected to be. The mip lane models the resample
  *     round trip's own softening as sigma = shrink/2 and subtracts it in variance; the
  *     model is good to roughly a tenth of a sigma, and a tenth of a sigma at the steepest
  *     point of a hard edge is tens of levels. It is a difference in EDGE SOFTNESS, not a
- *     difference in shape or position — which is why the mean stays where it does, and
+ *     difference in shape or position - which is why the mean stays where it does, and
  *     why the error grows with sigma (a deeper mip level, a coarser reconstruction).
  *
  * A build with no `ctx.filter` (WebKit today) cannot run the comparison at all. It is
- * not skipped silently: the mip lane still has to prove it BLURRED — ink where the
- * source had none, and the source's hard edge gone — which is the assertion that would
+ * not skipped silently: the mip lane still has to prove it BLURRED - ink where the
+ * source had none, and the source's hard edge gone - which is the assertion that would
  * have caught a lane that quietly did nothing on the only engine that needs it.
  *
  * GATING follows `canvas-filter-probe.browser.test.ts`: no browser installed -> the
@@ -57,7 +57,7 @@ const MODULE = join(HERE, '..', 'shells', 'web', 'src', 'lib', 'canvas-blur.ts')
 
 /**
  * The stated tolerance. Set from the measured Chromium numbers with headroom, not
- * from a guess — and deliberately tight enough that a real regression in the ladder
+ * from a guess - and deliberately tight enough that a real regression in the ladder
  * (a wrong sigma, a dropped level, a lost premultiply) blows straight through it.
  */
 const MEAN_TOLERANCE = 4;
@@ -73,7 +73,7 @@ interface Case {
   name: string;
   filterOk: boolean;
   diff: LaneDiff | null;
-  /** Ink at a pixel the SOURCE did not cover, per lane — proof each one spread. */
+  /** Ink at a pixel the SOURCE did not cover, per lane - proof each one spread. */
   spread: { filter: number | null; mip: number | null };
   /** The source's own ink at that pixel; must be 0 or the case proves nothing. */
   control: number;
@@ -86,7 +86,7 @@ interface Report {
 }
 
 /**
- * The measurement, in the page. Uses the SHIPPED module for both lanes — the point is
+ * The measurement, in the page. Uses the SHIPPED module for both lanes - the point is
  * to compare `renderFx('filter')` with `renderFx('mip')`, not a reimplementation of
  * either.
  */

@@ -12,7 +12,7 @@ function sine(hz: number, seconds: number, amp = 0.8, sr = SR): Float32Array {
   return out;
 }
 
-/** A click train at `bpm` — the simplest thing with a real tempo. */
+/** A click train at `bpm` - the simplest thing with a real tempo. */
 function clicks(bpm: number, seconds: number, sr = SR): Float32Array {
   const out = new Float32Array(Math.round(seconds * sr));
   const period = Math.round((60 / bpm) * sr);
@@ -70,7 +70,7 @@ test('a broadband signal lights bands across the whole spectrum, not two spikes'
   // The regression this pins: `magnitude` used to be LINEAR amplitude, so one loud
   // bin dominated by such a margin that every other band rounded to nothing. Drawn
   // as bars, real audio rendered as a couple of spikes over a flat line. Bars are
-  // read as loudness, and loudness is logarithmic — so the spectrum is in dB.
+  // read as loudness, and loudness is logarithmic - so the spectrum is in dB.
   const sr = 44100;
   const n = sr;
   const buf = new Float32Array(n);
@@ -120,7 +120,7 @@ test('log-spaced bands are strictly increasing and never empty', () => {
   const a = analysePcm([sine(440, 0.5)], SR, { bands: 64, fps: 10 });
   assert.equal(a.frames.bands, 64);
   assert.equal(a.frames.magnitude.length, a.frames.count * 64);
-  // Only one row need be checked — the edges are shared by every frame.
+  // Only one row need be checked - the edges are shared by every frame.
   const row = a.frames.magnitude.subarray(0, 64);
   assert.ok(row.some((v) => v > 0), 'the 440Hz tone lights at least one band');
 });
@@ -209,7 +209,7 @@ test('a 120 BPM click train is detected at 120 BPM', () => {
 test('a kick over a sustained tone is not read at half tempo', () => {
   // The fixture that caught the octave error: a 60Hz kick burst every 0.5s (120 BPM)
   // riding a continuous 220Hz tone. A perfectly periodic pulse correlates just as
-  // well at two beats as at one, and this combination reported 60 BPM — beats a full
+  // well at two beats as at one, and this combination reported 60 BPM - beats a full
   // second apart, so every other hit went unmarked.
   const sr = 44100;
   const n = sr * 4;
@@ -234,8 +234,8 @@ test('a kick over a sustained tone is not read at half tempo', () => {
 test('frame 0 does not fabricate an onset out of the zeroed history', () => {
   // `prevMag` starts zeroed, so measuring frame 0's flux against it reports the whole
   // window as a rise. Because flux normalises to its own maximum, that phantom used to
-  // take the 1.0 (0.403 for the loudest real hit) and — since the beat grid anchors on
-  // the strongest onset — keyed the entire rhythm to t=0.
+  // take the 1.0 (0.403 for the loudest real hit) and - since the beat grid anchors on
+  // the strongest onset - keyed the entire rhythm to t=0.
   const sr = 44100;
   const n = sr * 4;
   const buf = new Float32Array(n);
@@ -249,7 +249,7 @@ test('frame 0 does not fabricate an onset out of the zeroed history', () => {
 
   const a = analysePcm([buf], sr, { fps: 30 });
   assert.equal(a.frames.flux[0], 0, 'the first frame has no predecessor to differ from');
-  // A real onset — not the phantom — carries the normalisation.
+  // A real onset - not the phantom - carries the normalisation.
   const peak = Math.max(...Array.from(a.frames.flux.subarray(1)));
   assert.ok(Math.abs(peak - 1) < 1e-6, `a genuine attack should reach 1.0, got ${peak}`);
 });

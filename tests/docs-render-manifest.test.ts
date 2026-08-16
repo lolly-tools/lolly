@@ -16,7 +16,7 @@ const ROOT = new URL('..', import.meta.url).pathname;
 const MANIFEST = join(ROOT, 'shells/web/public/info/docs-render-manifest.json');
 const SHOTS_DIR = join(ROOT, 'docs/shots');
 
-// Always present (null-or-value). `ai` is OMITTED — it is 'generated'|'composite'|undefined,
+// Always present (null-or-value). `ai` is OMITTED - it is 'generated'|'composite'|undefined,
 // and JSON.stringify drops an undefined field; that is harmless (facts.ai absent ≡ undefined
 // to the renderer), and an AI shot serialises its `ai` fine (asserted separately below).
 const CREDENTIAL_FIELDS = [
@@ -26,7 +26,7 @@ const CREDENTIAL_FIELDS = [
 test('the render manifest covers every shot with a size and credential facts', { skip: !existsSync(MANIFEST) }, () => {
   const m = JSON.parse(readFileSync(MANIFEST, 'utf8'));
   assert.ok(Array.isArray(m.shots) && m.shots.length > 100, `the shot list is missing or short (${m.shots?.length})`);
-  // The manifest shot list is exactly what is committed — a runtime localizedShot()/darkShot()
+  // The manifest shot list is exactly what is committed - a runtime localizedShot()/darkShot()
   // resolves from it, so a drift means the in-app view can't find a shot the static site ships.
   const onDisk = readdirSync(SHOTS_DIR).filter((f) => /\.(svg|png|jpe?g)$/.test(f));
   assert.deepEqual([...m.shots].sort(), onDisk.sort(), 'the manifest shot list drifted from docs/shots');

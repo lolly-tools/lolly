@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
- * Preflight rules — engine/src/preflight.ts.
+ * Preflight rules - engine/src/preflight.ts.
  *
  * Every check is exercised BOTH ways: firing when its trigger is present, and
  * staying silent when it is not. A check that only ever gets a positive test
@@ -465,7 +465,7 @@ test('pages-unknown is a mount gap, gated to formats that have pages at all', ()
 
   assert.equal(has(preflight(job({ settings: { format: 'png' } })), 'count.pages.unknown'), false);
   // A MOUNTED stage that carries no page boxes has answered nothing about pages,
-  // so the gap still stands — it just stops blaming the mount.
+  // so the gap still stands - it just stops blaming the mount.
   const mounted = preflight(job({ settings: { format: 'pdf' }, stage: { known: true, value: { isSequence: false } } }));
   assert.equal(one(mounted, 'count.pages.unknown').needs, 'not-set');
   const declaresPages = preflight(job({
@@ -937,7 +937,7 @@ test('finish findings split: pdf-cmyk overprints (info), cmyk-tiff still flatten
     settings: { format: 'cmyk-tiff' },
     palette: { known: true, value: [swatch('Gold', 'Gold', 'foil')] },
   }));
-  // pdf-cmyk: the finish is its own OVERPRINTING plate now — no longer a knockout defect.
+  // pdf-cmyk: the finish is its own OVERPRINTING plate now - no longer a knockout defect.
   const fp = one(pdf, 'print.finish-separates-as-ink');
   assert.equal(fp.evidence?.overprint, true);
   assert.equal(fp.severity, 'info');
@@ -1023,13 +1023,13 @@ test('image-effective-dpi: warns for a low-res placed image, silent for a high-r
     known: true as const,
     value: { isSequence: false, canvasCssW: 800, rasterImages: [{ label: 'logo.png', naturalW, naturalH: naturalW, boxCssW: 800, boxCssH: 800 }] },
   });
-  // 400 px across 210mm (8.27 in) ≈ 48 DPI — soft.
+  // 400 px across 210mm (8.27 in) ≈ 48 DPI - soft.
   const low = preflight(job({ settings: { format: 'png', size: physSize(210, 210, 300) }, stage: stageWith(400) }));
   const f = one(low, 'print.image-effective-dpi');
   assert.equal(f.severity, 'warn');
   assert.ok((ev(f).effectiveDpi as number) < 60);
   assert.match(f.message, /logo\.png/);
-  // 2500 px across the same 210mm ≈ 302 DPI — fine.
+  // 2500 px across the same 210mm ≈ 302 DPI - fine.
   const high = preflight(job({ settings: { format: 'png', size: physSize(210, 210, 300) }, stage: stageWith(2500) }));
   assert.equal(has(high, 'print.image-effective-dpi'), false);
 });

@@ -1,24 +1,24 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
- * pptx-patch.ts — SURGICAL rebrand of an unzipped .pptx part map (Pipeline A,
+ * pptx-patch.ts: SURGICAL rebrand of an unzipped .pptx part map (Pipeline A,
  * plans/49-fable-new-potential-pptx.md §2.2 / track E2).
  *
  * The winning architecture for "make rebranding an existing deck EASY" is NOT
  * "parse the whole deck into a model and regenerate it" (that silently strips
- * SmartArt, charts, animations, embedded xlsx, sections — everything we don't
+ * SmartArt, charts, animations, embedded xlsx, sections: everything we don't
  * model). Instead we rewrite ONLY the brand-bearing values in the original OOXML
  * parts and pass every other byte through VERBATIM. High fidelity, deterministic,
  * fuzzable.
  *
  * Convention (established, mirrors the IDML/PDF ingest surfaces): the CALLER
- * inflates the zip. Our input is a part map — Record<path, Uint8Array|string> —
+ * inflates the zip. Our input is a part map (Record<path, Uint8Array|string>)
  * and we return a new map. We touch only the XML text parts we understand; media,
  * fonts, and any unknown byte stays exactly as it arrived.
  *
  * Threat model: a HOSTILE zip (same as the PDF reader). Every rewrite is a
- * string/regex-DELIMITED attribute/element edit — NOT a DOM parse — with LINEAR
- * regexes only (no nested quantifiers → no catastrophic backtracking), a per-part
- * size cap, and a "no close tag ⇒ no edit, pass through verbatim" failure mode.
+ * string/regex-DELIMITED attribute/element edit, NOT a DOM parse, with LINEAR
+ * regexes only (no nested quantifiers, so no catastrophic backtracking), a per-part
+ * size cap, and a "no close tag means no edit, pass through verbatim" failure mode.
  * We never emit invalid XML: we only rewrite well-formed, known attributes on
  * known elements, and an unmatched pattern leaves the bytes untouched.
  *
@@ -26,22 +26,22 @@
  * platform globals shared by browsers and Node, like the rest of the engine).
  *
  * What it does (§2.2):
- *   1. THEME SWAP        — ppt/theme/theme*.xml: the 12 <a:clrScheme> slots + the
+ *   1. THEME SWAP        : ppt/theme/theme*.xml: the 12 <a:clrScheme> slots + the
  *                          major/minor <a:latin> of <a:fontScheme>.
- *   2. LITERAL COLOUR    — every DrawingML-bearing part: <a:srgbClr val> and
+ *   2. LITERAL COLOUR    : every DrawingML-bearing part: <a:srgbClr val> and
  *                          <a:sysClr lastClr> through colorMap.
- *   3. FONT REMAP        — explicit <a:latin/ea/cs typeface> through fontMap in
+ *   3. FONT REMAP        : explicit <a:latin/ea/cs typeface> through fontMap in
  *                          slides/layouts/masters + presentation.xml + tableStyles
  *                          + charts.
- *   4. STRIP EMBEDDED    — <p:embeddedFontLst>, the ppt/fonts/*.fntdata parts, their
+ *   4. STRIP EMBEDDED    : <p:embeddedFontLst>, the ppt/fonts/*.fntdata parts, their
  *      FONTS               rels, and the [Content_Types].xml fntdata Default (a
- *                          dangling default is a "file is corrupt" repair trigger —
+ *                          dangling default is a "file is corrupt" repair trigger;
  *                          the three are removed together).
  */
 
 // ─── caps (hostile-input hardening) ──────────────────────────────────────────
-/** Above this a text part is passed through VERBATIM rather than rewritten —
- *  a real slide/theme part is KBs; a multi-MB one is a red flag, not a rebrand
+/** Above this a text part is passed through VERBATIM rather than rewritten.
+ *  A real slide/theme part is KBs; a multi-MB one is a red flag, not a rebrand
  *  candidate. Bounds the total regex work to O(total bytes). */
 const MAX_PART_CHARS = 32 * 1024 * 1024;
 
@@ -109,7 +109,7 @@ function xmlEncode(s: string): string {
     .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 }
 
-/** Normalise a colour to 6 upper-hex, hash-less — the well-formed `val` form. */
+/** Normalise a colour to 6 upper-hex, hash-less: the well-formed `val` form. */
 function hexNorm(v: string): string {
   const h = v.replace('#', '').replace(/[^0-9A-Fa-f]/g, '').slice(0, 6).toUpperCase();
   return h.length === 6 ? h : h.padStart(6, '0');
@@ -272,7 +272,7 @@ function stripFntDataDefault(xml: string): string {
 
 /**
  * Surgically rebrand an unzipped .pptx part map. Returns a NEW map (unchanged
- * parts pass through by reference — byte-identical) plus a report of what moved.
+ * parts pass through by reference, byte-identical) plus a report of what moved.
  */
 export function rebrandPptxParts(
   parts: PartMap,

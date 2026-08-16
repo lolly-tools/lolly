@@ -4,7 +4,7 @@
  *
  * The Node shells must never write a broken file and report success when the render
  * silently failed. assertRenderOk throws when (1) a lifecycle hook threw (hookErrors,
- * any format) or (2) an SVG is degenerate — no size AND no drawable content — while
+ * any format) or (2) an SVG is degenerate - no size AND no drawable content - while
  * staying quiet for every legitimate small output (a 1×1 icon, an empty-but-valid CSV,
  * a valid tiny PNG). It also must not phrase its error so the TUI's HTML-fallback
  * regex swallows it.
@@ -59,7 +59,7 @@ test('SVG with size but no viewBox → passes (has positive width/height)', () =
 
 test('SVG with a real viewBox but (temporarily) only provenance children → passes (has size)', () => {
   // A tool that sized its canvas but whose content is still loading must NOT be flagged
-  // just because a frame has no drawable child — size present ⇒ not degenerate.
+  // just because a frame has no drawable child - size present ⇒ not degenerate.
   const svg = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><title>x</title></svg>';
   assert.equal(isDegenerateSvg(enc(svg)), false);
 });

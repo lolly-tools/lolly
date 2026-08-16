@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
- * gamutSolidToSvg (engine/src/gamut-solid.ts) — SVG gamut-solid emitter contract.
+ * gamutSolidToSvg (engine/src/gamut-solid.ts) - SVG gamut-solid emitter contract.
  *
  * The emitter walks the depth-sorted ProjectedQuad[] projectGamutSolid returns
  * and writes one <polygon> per quad IN DOCUMENT ORDER (document order == the
@@ -10,7 +10,7 @@
  *   (1) exactly one <polygon> per projected quad
  *   (2) polygons appear in the SAME order as the input array (document order)
  *   (3) every emitted coordinate is finite and the markup is well-formed
- *   (4) a sample quad's fill EXACTLY equals the shared shading helper's output —
+ *   (4) a sample quad's fill EXACTLY equals the shared shading helper's output - 
  *       the guarantee that the vector and canvas renderings can never drift
  *
  * NOTE (see color-ramp.test.ts's header): the first bytes of every console.log

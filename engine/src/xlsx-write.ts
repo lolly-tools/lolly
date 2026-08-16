@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
- * xlsx-write.ts — write a plain grid out as a valid SpreadsheetML .xlsx.
+ * xlsx-write.ts - write a plain grid out as a valid SpreadsheetML .xlsx.
  *
  * The write half of `xlsx-import.ts`'s read: that module unzips an .xlsx into a
  * `string[][]`; this one takes a single sheet of cells and emits the bytes back,
@@ -13,21 +13,21 @@
  * `fflate` dependency on the write path; this module owns only the OOXML string
  * scaffolding + the value→cell mapping.
  *
- * ── SHAPE OF THE .xlsx WE EMIT (the minimum a spreadsheet app opens) ──────────
- *   • [Content_Types].xml          — declares every part's MIME type.
- *   • _rels/.rels                  — package → xl/workbook.xml (officeDocument).
- *   • xl/workbook.xml              — one <sheet name r:id="rId1"/>.
- *   • xl/_rels/workbook.xml.rels   — rId1→worksheet, rId2→styles, rId3→sharedStrings.
- *   • xl/worksheets/sheet1.xml     — <row r="1"><c r="A1" …>…</c></row>.
- *   • xl/sharedStrings.xml         — the deduplicated string table (t="s" refs it).
- *   • xl/styles.xml                — a single default cell format (schema requires the part).
+ * ── STRUCTURE OF THE .xlsx WE EMIT (the minimum a spreadsheet app opens) ──────
+ *   • [Content_Types].xml - declares every part's MIME type.
+ *   • _rels/.rels - package → xl/workbook.xml (officeDocument).
+ *   • xl/workbook.xml - one <sheet name r:id="rId1"/>.
+ *   • xl/_rels/workbook.xml.rels - rId1→worksheet, rId2→styles, rId3→sharedStrings.
+ *   • xl/worksheets/sheet1.xml - <row r="1"><c r="A1" …>…</c></row>.
+ *   • xl/sharedStrings.xml - the deduplicated string table (t="s" refs it).
+ *   • xl/styles.xml - a single default cell format (schema requires the part).
  *
  * ── CELL TYPING (mirrors what readXlsx decodes) ──────────────────────────────
  *   • string  → t="s", <v> is the shared-string index.
  *   • number  → no t (numeric is the default), <v> is the literal (finite only;
  *               a non-finite number is written as its text, as a shared string).
  *   • boolean → t="b", <v>1</v> / <v>0</v> (readXlsx surfaces "TRUE"/"FALSE").
- *   • null    → omitted entirely (a genuinely empty cell — no <c> element).
+ *   • null    → omitted entirely (a genuinely empty cell - no <c> element).
  *
  * Cell refs are true A1 addresses ("A1", "Z1", "AA1", "AB1", …) computed from the
  * 0-based column index, so the file self-describes its geometry and any reader
@@ -131,7 +131,7 @@ function cellXml(ref: string, value: XlsxCell, internString: (s: string) => numb
   if (typeof value === 'number' && Number.isFinite(value)) {
     return `<c r="${ref}"><v>${numText(value)}</v></c>`;
   }
-  // Everything else — text, or a non-finite number — is stored as a shared string.
+  // Everything else (text, or a non-finite number) is stored as a shared string.
   const text = typeof value === 'number' ? String(value) : value;
   const idx = internString(sanitizeText(String(text)));
   return `<c r="${ref}" t="s"><v>${idx}</v></c>`;
@@ -212,7 +212,7 @@ function workbookRelsXml(): string {
   );
 }
 
-/** A minimal but complete style table — one default font/fill/border/xf. The part
+/** A minimal but complete style table - one default font/fill/border/xf. The part
  *  is schema-required even when nothing is styled; two fills is the Excel-emitted
  *  convention (patternType "none" + the built-in "gray125" reserved slot). */
 function stylesXml(): string {

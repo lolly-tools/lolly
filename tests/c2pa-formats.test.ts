@@ -4,11 +4,11 @@
  * Run with: node --test tests/c2pa-formats.test.ts
  *
  * One minimal hand-built container per format (structure-valid: enough
- * chunk/segment/IFD grammar for the embedder and verifier — pixel data is not
+ * chunk/segment/IFD grammar for the embedder and verifier - pixel data is not
  * decoded by either). Each format round-trips through embedC2pa → verifyC2pa,
  * then takes a byte-flip outside the manifest to prove the hard binding
  * catches content tamper in that container. c2patool (the c2pa-rs CLI) is the
- * external ground truth for these embeddings — see the byte-recipe comments in
+ * external ground truth for these embeddings - see the byte-recipe comments in
  * engine/src/c2pa.js; these tests keep the loop closed offline.
  */
 import { test } from 'node:test';
@@ -53,7 +53,7 @@ function tinyPng(): Uint8Array {
 }
 
 function tinyJpeg(): Uint8Array {
-  // SOI + JFIF APP0 + EOI — segment grammar only, no scan data.
+  // SOI + JFIF APP0 + EOI - segment grammar only, no scan data.
   const app0 = concat([Uint8Array.of(0xff, 0xe0, 0x00, 0x10), bytesOf('JFIF\0'), Uint8Array.of(1, 1, 0, 0, 1, 0, 1, 0, 0)]);
   return concat([Uint8Array.of(0xff, 0xd8), app0, Uint8Array.of(0xff, 0xd9)]);
 }
@@ -79,7 +79,7 @@ function tinyWebp(): Uint8Array {
   return concat([bytesOf('RIFF'), u32le(body.length), body]);
 }
 
-// MP4: ftyp + moov(mvhd) + mdat — the same synthetic shape video-meta.test.js
+// MP4: ftyp + moov(mvhd) + mdat - the same synthetic shape video-meta.test.js
 // uses. Neither the embedder nor c2patool decodes samples; box grammar is all
 // the BMFF binding hashes.
 const mp4box = (type: string, ...parts: Uint8Array[]): Uint8Array => { const p = concat(parts); return concat([u32be(8 + p.length), bytesOf(type), p]); };
@@ -88,13 +88,13 @@ const tinyMp4 = (): Uint8Array => concat([
   mp4box('moov', mp4box('mvhd', new Uint8Array(100))),
   mp4box('mdat', bytesOf('fake-video-payload')),
 ]);
-// AVIF: an ISO BMFF still with an image major brand — same placer + bmff binding.
+// AVIF: an ISO BMFF still with an image major brand - same placer + bmff binding.
 const tinyAvif = (): Uint8Array => concat([
   mp4box('ftyp', bytesOf('avif'), u32be(0), bytesOf('avifmif1')),
   mp4box('meta', new Uint8Array(8)),
   mp4box('mdat', bytesOf('fake-avif-payload')),
 ]);
-// M4A: ISO BMFF audio — same placer + bmff binding; c2patool parses it like an mp4.
+// M4A: ISO BMFF audio - same placer + bmff binding; c2patool parses it like an mp4.
 const tinyM4a = (): Uint8Array => concat([
   mp4box('ftyp', bytesOf('M4A '), u32be(0), bytesOf('M4A mp42isom')),
   mp4box('moov', mp4box('mvhd', new Uint8Array(100))),
@@ -139,7 +139,7 @@ const tinyWebmStreaming = (): Uint8Array => concat([
   Uint8Array.of(0x1f, 0x43, 0xb6, 0x75), UNKNOWN_8, bytesOf('live-cluster-bytes'),
 ]);
 
-// Tagless MP3: a frame-sync start (0xFF 0xFB — MPEG-1 Layer III) and junk
+// Tagless MP3: a frame-sync start (0xFF 0xFB - MPEG-1 Layer III) and junk
 // audio. The placer prepends a fresh ID3v2.4 tag around the GEOB manifest.
 const tinyMp3 = (): Uint8Array => concat([Uint8Array.of(0xff, 0xfb, 0x90, 0x00), bytesOf('fake-mp3-audio-frames')]);
 
@@ -195,10 +195,10 @@ for (const [fmt, fixture] of CASES) {
 
 // A byte guaranteed to be original content in the stamped file: the LAST byte
 // of the output equals the last byte of every fixture container here (all
-// placers insert before the trailer except tiff/webp, which append — for those
+// placers insert before the trailer except tiff/webp, which append - for those
 // the FIRST content byte past the header is used). The video placers append
 // too, but keep every original offset: a byte near the fixture's end lands
-// inside mdat / the Cues payload — hashed original content in both bindings.
+// inside mdat / the Cues payload - hashed original content in both bindings.
 function fixtureTamperOffset(fmt: string, fixture: Uint8Array, out: Uint8Array): number {
   if (fmt === 'tiff' || fmt === 'cmyk-tiff' || fmt === 'webp') return 20;
   if (fmt === 'mp4' || fmt === 'webm') return fixture.length - 3;
@@ -303,7 +303,7 @@ test('webm: streaming (unknown-size, unindexed) gets the attachment before the f
   const cluster = indexOfBytes(out, Uint8Array.of(0x1f, 0x43, 0xb6, 0x75));
   assert.ok(attachments !== -1 && attachments < cluster, 'attachment sits before the first Cluster');
 
-  // Tamper the (shifted) cluster bytes — the data hash must catch it.
+  // Tamper the (shifted) cluster bytes - the data hash must catch it.
   const tampered = out.slice();
   tampered[out.length - 1] = tampered[out.length - 1]! ^ 0x01;
   assert.equal((await verifyC2pa(tampered)).state, 'invalid');
@@ -409,7 +409,7 @@ test('webm: a file that already has (foreign) attachments is refused', async () 
 
 test('webm: EOF append is refused when an unmeasurable element would hide it', async () => {
   // Unknown-size NON-Cluster child: an attachment appended past it would be
-  // invisible to the verifier's child walk — better no credential than a
+  // invisible to the verifier's child walk - better no credential than a
   // silently unverifiable one.
   const shape = concat([
     EBML_HEAD, SEG_ID, UNKNOWN_8,
@@ -470,7 +470,7 @@ test('c2patool validates the m4a BMFF binding end-to-end', { skip: !which('c2pat
 
 // ─── review-hardening regressions ────────────────────────────────────────────
 // /valid accepts arbitrary bytes: truncation and crafted claims must produce
-// honest reports (or clean throws from the embedder) — never hangs or
+// honest reports (or clean throws from the embedder) - never hangs or
 // uncaught TypeErrors. These byte layouts previously NaN-poisoned the GIF
 // walk into an infinite loop and escaped verifyC2pa as exceptions.
 
@@ -528,7 +528,7 @@ test('crafted claims with malformed assertion refs report invalid, never throw',
   }
 });
 
-// Ogg Opus — OpusHead (BOS) + OpusTags (where the credential rides) + one audio
+// Ogg Opus - OpusHead (BOS) + OpusTags (where the credential rides) + one audio
 // page, each with a real libogg CRC so the fixture is a decodable stream. This is
 // what Firefox's MediaRecorder hands back for an audio-only take.
 const OGG_CRC_T = (() => {
@@ -562,10 +562,10 @@ const tinyOgg = (): Uint8Array => concat([
 // A recorder tool signs its take at capture time (shells/web stampCaptureClip):
 // a c2pa.created step with the digitalCapture source type embedded into the take's
 // own bytes. This proves the engine half end-to-end for every container a capture
-// can arrive in — footage (mp4/webm) AND a voice take (m4a for the `audio/mp4` AAC
+// can arrive in - footage (mp4/webm) AND a voice take (m4a for the `audio/mp4` AAC
 // MediaRecorder writes, ogg for Firefox's Ogg Opus, mp3 for the on-device
 // transcode): the clip verifies, its created step round-trips digitalCapture, and
-// the store extracts back out as a preparable INGREDIENT — so the signed take both
+// the store extracts back out as a preparable INGREDIENT - so the signed take both
 // self-asserts AND chains when composited into a top-&-tail / record video.
 //
 // The audio legs are why the shell-side type had to widen: the embedder could
@@ -596,7 +596,7 @@ for (const [fmt, fixture, description] of RECORDED) {
     // The store extracts back out (what storeRecordingAsset persists as the asset's
     // credential) and prepares as an ingredient (what the composition chains). The
     // extract side names the container by SNIFF, and ISO BMFF audio shares mp4's
-    // magic bytes, so an m4a take reads back as 'mp4' — same container, same placer.
+    // magic bytes, so an m4a take reads back as 'mp4' - same container, same placer.
     const ex = extractC2paStore(out);
     assert.ok(ex, `a store extracts from the signed ${fmt} clip`);
     assert.equal(ex!.format, fmt === 'm4a' ? 'mp4' : fmt);
@@ -613,7 +613,7 @@ test('every stampable format is round-tripped by SOME suite, none silently untes
   // CASES above is this file's own coverage. The C2PA 2.4 text bindings (§A.7
   // HTML documents, §A.9 structured text, and the Lolly html-fragment profile)
   // live in tests/c2pa-text-write.test.ts because their fixtures are text and
-  // their tamper offsets sit at the FRONT of the file — the armour exclusion runs
+  // their tamper offsets sit at the FRONT of the file - the armour exclusion runs
   // to EOF, so this file's shared `out.length - 1` target would land inside the
   // exclusion and prove nothing.
   //

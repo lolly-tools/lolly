@@ -3,7 +3,7 @@
  * Unit tests for the baseline TIFF encoder (engine/src/tiff.ts).
  *
  * Parses the emitted bytes back with a tiny reader and checks the IFD tags and
- * the pixel strip — the encoder is pure, so this fully exercises it with no DOM.
+ * the pixel strip - the encoder is pure, so this fully exercises it with no DOM.
  *
  * Run with: node --test tests/tiff.test.ts
  */
@@ -28,7 +28,7 @@ interface TiffRead {
   n: number;
 }
 
-// Minimal baseline-TIFF IFD reader (little-endian only — that's all packTiff emits).
+// Minimal baseline-TIFF IFD reader (little-endian only - that's all packTiff emits).
 function readTiff(bytes: Uint8Array): TiffRead {
   const dv = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
   assert.equal(bytes[0], 0x49, 'byte 0 is "I"');
@@ -125,7 +125,7 @@ test('packTiff: rejects non-positive dimensions', () => {
 });
 
 // ---------------------------------------------------------------------------
-// Deep output (depth: 16 | 'float32') — plans/61-deeprichpixels.md Phase A.
+// Deep output (depth: 16 | 'float32') - plans/61-deeprichpixels.md Phase A.
 // Appended below the original 8-bit suite, which doubles as the byte-identical
 // characterization of the 8-bit path (nothing above this line was touched).
 // ---------------------------------------------------------------------------
@@ -228,7 +228,7 @@ test('packTiff: negative control — different 16-bit data produces different by
 });
 
 test('packTiff: rejects a buffer whose element type does not match depth', () => {
-  // No silent conversion — depth conversion is pixels.ts's seam, not the writer's.
+  // No silent conversion - depth conversion is pixels.ts's seam, not the writer's.
   assert.throws(() => packTiff(new Uint8Array(3), { width: 1, height: 1, samplesPerPixel: 3, depth: 16 }), /Uint16Array/);
   assert.throws(() => packTiff(new Uint16Array(3), { width: 1, height: 1, samplesPerPixel: 3, depth: 'float32' }), /Float32Array/);
   assert.throws(() => packTiff(new Float32Array(3), { width: 1, height: 1, samplesPerPixel: 3 }), /Uint8Array/);
@@ -276,7 +276,7 @@ test('packTiff: emits one SHORT per extra sample, not a fixed single entry', () 
 });
 
 test('packTiff: a photometric that consumes every sample emits no ExtraSamples', () => {
-  // Separated/CMYK (photometric 5) is a 4-component space — spp 4 has no extras.
+  // Separated/CMYK (photometric 5) is a 4-component space - spp 4 has no extras.
   const { tags } = readTiff(packTiff(new Uint8Array(4), { width: 1, height: 1, samplesPerPixel: 4, photometric: 5 }));
   assert.equal(tags[338], undefined, 'no ExtraSamples when spp equals the component count');
 });
@@ -298,7 +298,7 @@ test('packTiff: spp <= the photometric component count stays byte-identical', ()
 
 // Golden pin for the 8-bit RGBA path. This byte string is NEW as of the
 // spec-conformance fix that added ExtraSamples (338): 8-bit spp=4 output
-// deliberately changed (it was non-conformant before — no reader could tell what
+// deliberately changed (it was non-conformant before - no reader could tell what
 // the 4th sample was). Nothing in the repo emitted spp=4 at the time, so no
 // shipped bytes moved. spp<=3 is pinned unchanged above.
 // 1x1 RGBA (0x11,0x22,0x33,0x80) at 300 dpi.

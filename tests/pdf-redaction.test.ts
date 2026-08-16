@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
- * Failed-redaction detection — text present in the file but not on the page.
+ * Failed-redaction detection - text present in the file but not on the page.
  * Run directly:  node --test tests/pdf-redaction.test.ts
  *
  * The pass reads "painted after" from ARRAY ORDER, so every fixture here is
@@ -8,8 +8,8 @@
  * most of these tests. The last test in this file pins the upstream invariant
  * that makes that legal: `interpretPdfPage` returns nodes in paint order and
  * never sorts them. If someone ever adds a sort there, this whole module
- * silently starts reporting nonsense — highlights as redactions and redactions
- * as nothing — so that test exists to fail loudly instead.
+ * silently starts reporting nonsense - highlights as redactions and redactions
+ * as nothing - so that test exists to fail loudly instead.
  */
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
@@ -28,7 +28,7 @@ function text(s: string, x: number, y: number, w = 100, h = 14): PdfNode {
 function box(x: number, y: number, w: number, h: number, o: BoxOpts = {}): PdfNode {
   const n: PdfNode = { kind: 'box', x, y, w, h, rot: 0, fill: o.fill ?? '#000000' };
   if (o.opacity !== undefined) n.opacity = o.opacity;
-  // A stand-in for a real soft mask — the pass only checks for its presence.
+  // A stand-in for a real soft mask - the pass only checks for its presence.
   if (o.softMask) (n as PdfNode)._softMask = { key: 'm0', nodes: [] } as unknown as PdfNode['_softMask'];
   return n;
 }
@@ -73,7 +73,7 @@ test('a box that misses the text entirely is not a cover', () => {
 // ─── opacity ──────────────────────────────────────────────────────────────────
 
 test('a translucent shape does not conceal', () => {
-  // 40% ink over words leaves them legible — reporting it would be a lie.
+  // 40% ink over words leaves them legible - reporting it would be a lie.
   const found = findHiddenText([text('still readable', 60, 100), box(55, 96, 110, 22, { opacity: 40 })]);
   assert.deepEqual(found, []);
 });
@@ -116,13 +116,13 @@ test('the floor is adjustable for a caller that wants partials', () => {
   const found = findHiddenText([text('half covered', 60, 100, 100, 14), box(60, 100, 50, 14)], { minCoverage: 0.4 });
   assert.equal(found.length, 1);
   assert.equal(Math.round(found[0]!.coverage * 100), 50);
-  // Half-covered is obscured, not gone — the distinction the UI needs.
+  // Half-covered is obscured, not gone - the distinction the UI needs.
   assert.equal(found[0]!.fullyHidden, false);
 });
 
 test('two adjacent bars over one run are unioned, not taken singly', () => {
   // Neither bar covers enough alone; together they cover everything. Taking the
-  // largest single overlap would miss the most damaging case there is — a long
+  // largest single overlap would miss the most damaging case there is - a long
   // redacted line struck out in pieces.
   const found = findHiddenText([
     text('a long redacted sentence', 60, 100, 100, 14),
@@ -228,7 +228,7 @@ test('word-by-word bars tiling one line still add up to a full cover', () => {
 });
 
 test('a pathological number of bars stays bounded and never over-reports', () => {
-  // Past the per-run cap the answer can only come out LOW, never high — the cap
+  // Past the per-run cap the answer can only come out LOW, never high - the cap
   // must not be able to manufacture a finding that is not there.
   const nodes: PdfNode[] = [text('a very long line', 0, 100, 4000, 14)];
   for (let i = 0; i < 500; i++) nodes.push(box(i * 2, 100, 1, 14));
@@ -251,13 +251,13 @@ test('interpretPdfPage returns nodes in PAINT order — the invariant this rests
 
   const kinds = nodes.map((n) => n.kind);
   assert.deepEqual(kinds, ['box', 'text', 'box'], `expected paint order, got ${kinds.join(',')}`);
-  // And the colours confirm which box is which — first blue, then red.
+  // And the colours confirm which box is which - first blue, then red.
   assert.equal(nodes[0]!.fill, '#0000ff');
   assert.equal(nodes[2]!.fill, '#ff0000');
 });
 
 test('a real content stream that paints a bar over text is caught end to end', () => {
-  // Text first, then an opaque black rectangle across it — a redaction, written
+  // Text first, then an opaque black rectangle across it - a redaction, written
   // the way a generator would emit one.
   const nodes = interpretPdfPage({
     content: 'BT /F1 12 Tf 1 0 0 1 20 150 Tm (classified) Tj ET 0 g 15 140 120 20 re f',

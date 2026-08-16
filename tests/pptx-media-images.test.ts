@@ -1,13 +1,13 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
- * Tests for engine/src/pptx-read.ts `pptxMediaImages` — the DOM-free half of the
+ * Tests for engine/src/pptx-read.ts `pptxMediaImages` - the DOM-free half of the
  * /verify "Lolly Imprint inside an embedded raster" scan. Given an unzipped
  * .pptx part map (exactly the contract inflatePptx hands back), it names the
  * `ppt/media/*.{png,jpg,jpeg}` parts a pixel-watermark detector can read and
  * omits everything else. The shell owns the unzip + the canvas decode; this
  * pure enumeration is all that lives in the engine.
  *
- * Source of truth: a hand-built part map with a known-correct expected set — no
+ * Source of truth: a hand-built part map with a known-correct expected set - no
  * mocking of the function under test.
  *
  * Run with: node --test tests/pptx-media-images.test.ts

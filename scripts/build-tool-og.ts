@@ -9,30 +9,30 @@
  * Why this exists: the web shell routes tools by URL *fragment* (#/tool/<id>), which
  * social crawlers (Slack, X, LinkedIn, iMessage, Facebook, Discord) never send to the
  * server and never execute JS for. So every shared tool link previewed as the one
- * generic og.png. This generates, per tool, a crawler-visible landing stub — the exact
- * static file shells/web/public/t/<id>.html — whose <head> carries that tool's own
+ * generic og.png. This generates, per tool, a crawler-visible landing stub - the exact
+ * static file shells/web/public/t/<id>.html - whose <head> carries that tool's own
  * title, description and 1200×630 share image. A human visitor's browser then runs the
  * stub's inline redirect into the SPA at /#/tool/<id> (carrying any shared ?params);
  * crawlers ignore the script and read the tags.
  *
  * Share image, in priority order:
- *   1. Author override — tools/<id>/og.{png,jpg,jpeg,webp} (committed, raster). Lets a
+ *   1. Author override - tools/<id>/og.{png,jpg,jpeg,webp} (committed, raster). Lets a
  *      tool ship its own preferred art; it WINS over the generated default.
- *   2. Generated default — a gallery-tile card (tool icon + name + description + a
+ *   2. Generated default - a gallery-tile card (tool icon + name + description + a
  *      framed preview of the tool's own output) laid out by docs/og-image.ts and
- *      rasterised through OUR OWN render path (Chromium via Playwright — see
+ *      rasterised through OUR OWN render path (Chromium via Playwright - see
  *      scripts/lib/rasterize-svg-browser.ts), NOT a second SVG interpreter like resvg.
  *      One render path means a card is shaped the way the app paints the tool, and a
  *      brand illustration can't drift to a black-bodied Geeko the way resvg did. Cards
  *      land at catalog/og/<id>.png, are COMMITTED (like catalog/previews) and served at
- *      /catalog/og/<id>.png. The browser isn't available on the Vercel build, so — as
- *      before — build:web / dev:web refresh the cards LOCALLY and the git deploy ships
+ *      /catalog/og/<id>.png. The browser isn't available on the Vercel build, so - as
+ *      before - build:web / dev:web refresh the cards LOCALLY and the git deploy ships
  *      those bytes; a browser-less build leaves them untouched (never wiped) and the
  *      stubs still point at them.
- *   3. Fallback — the generic /og.png only when a tool has no committed card at all.
+ *   3. Fallback - the generic /og.png only when a tool has no committed card at all.
  *
  * Serving: this deploy's catch-all rewrite (/(.*) → /index.html, no cleanUrls) serves
- * ONLY exact static file paths — extensionless/directory paths fall through to the SPA
+ * ONLY exact static file paths - extensionless/directory paths fall through to the SPA
  * shell (verified against lolly.tools). So the stub is a flat file at /t/<id>.html, and
  * vercel.json + .vercel/output/config.json rewrite the clean /t/<id> share URL onto it
  * (a scoped rule before the SPA catch-all). The Share button emits /t/<id>
@@ -40,7 +40,7 @@
  * also redirects /t/<id> for a human who lands without the rewrite (dev, or a
  * fall-through) so routing degrades gracefully even if only crawler OG is affected.
  *
- * Source of truth is the committed catalog/tools/index.json — it already carries each
+ * Source of truth is the committed catalog/tools/index.json - it already carries each
  * tool's name, description and inlined icon SVG, so this needs no manifest walk and
  * works on a plain git deploy. Output dirs are git-ignored and rebuilt each run,
  * mirroring the /info OG images. The share card is rasterised through Chromium
@@ -70,7 +70,7 @@ const SITE_URL = 'https://lolly.tools';
 
 // Author override: a tool may ship its own preferred share image as
 // tools/<id>/og.{png,jpg,jpeg,webp} (committed, served at /tools/<id>/og.<ext>).
-// When present it WINS over the generated default — authors force their own art.
+// When present it WINS over the generated default - authors force their own art.
 // Raster only: crawlers don't take SVG, and an SVG would need resvg at serve time.
 const AUTHOR_EXTS = ['png', 'jpg', 'jpeg', 'webp'];
 function authorOgImage(id: string): string | null {
@@ -84,13 +84,13 @@ function authorOgImage(id: string): string | null {
 
 const PUBLIC  = resolve(ROOT, 'shells/web/public');
 // Flat files, NOT <id>/index.html: this deploy's catch-all rewrite (/(.*) →
-// /index.html, no cleanUrls) serves ONLY exact static file paths — a directory or
+// /index.html, no cleanUrls) serves ONLY exact static file paths - a directory or
 // extensionless path falls through to the SPA shell (verified against the live
 // site). So the stub is the exact file /t/<id>.html; vercel.json rewrites the clean
 // /t/<id> share URL onto it. See the og: comment block at the top of this file.
 const STUB_DIR = resolve(PUBLIC, 't');         // → /t/<id>.html        (exact static file)
 // Generated default cards are COMMITTED here (served /catalog/og/<id>.png), mirroring
-// the committed catalog/previews — so a git deploy ships them even though the render
+// the committed catalog/previews - so a git deploy ships them even though the render
 // browser (Playwright/Chromium) isn't installed on the Vercel build. Locally, where the
 // browser is available, build:web refreshes these; commit the changes like previews.
 const OG_DIR   = resolve(ROOT, 'catalog/og');  // → /catalog/og/<id>.png (committed)
@@ -100,7 +100,7 @@ const OG_DIR   = resolve(ROOT, 'catalog/og');  // → /catalog/og/<id>.png (comm
 // a sha256 over the exact fields passed to renderer.render() plus OG_RENDER_VERSION, in a
 // COMMITTED sidecar manifest (OG_DIR/.og-sigs.json). A card whose stored sig matches AND
 // whose file already exists is skipped. BUMP OG_RENDER_VERSION after any change to the
-// card template / stamp (docs/og-image.ts, stamp-media.ts) — otherwise unchanged inputs
+// card template / stamp (docs/og-image.ts, stamp-media.ts) - otherwise unchanged inputs
 // keep their old cards. `loldev og` (no --preserve) still forces a full re-render.
 const OG_RENDER_VERSION = 1;
 const SIGS_FILE = resolve(OG_DIR, '.og-sigs.json');
@@ -115,7 +115,7 @@ const esc = (s: unknown): string => String(s)
   .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 
 // id is a validated slug ([a-z0-9-]); safe to embed raw in JS strings / attributes.
-// `sized` declares the 1200×630 dimensions — true for our generated card and the
+// `sized` declares the 1200×630 dimensions - true for our generated card and the
 // og.png fallback (both 1200×630), false for an author override of unknown size.
 function stubHtml(
   { id, name, description, image, sized }:
@@ -165,7 +165,7 @@ function stubHtml(
 
 // The tool's preview thumbnail (catalog index `preview` path), as a data-URI the card
 // embeds in an <image>. A committed PNG preview is inlined as-is; an SVG preview rides
-// in AS SVG — the same browser that rasterises the whole card paints it in one pass
+// in AS SVG - the same browser that rasterises the whole card paints it in one pass
 // (isolated, like an <img>, so a brand illustration renders exactly as the gallery shows
 // it). This is the key change from the resvg era: previews are no longer pre-flattened to
 // PNG by a second, drifting interpreter (which is what turned the Geeko's gradient-filled
@@ -209,7 +209,7 @@ async function main(): Promise<void> {
 
   // Stubs (HTML, no resvg needed) are git-ignored and rebuilt from scratch each run.
   // Cards (catalog/og/<id>.png) are COMMITTED and only (re)written when resvg is
-  // available — never wiped — so a Vercel build (where resvg won't install) keeps the
+  // available - never wiped - so a Vercel build (where resvg won't install) keeps the
   // committed cards rather than deleting them and falling back to og.png.
   rmSync(STUB_DIR, { recursive: true, force: true });
   mkdirSync(STUB_DIR, { recursive: true });
@@ -278,7 +278,7 @@ async function main(): Promise<void> {
 
   // Persist the input-hash manifest (committed). Deterministic (sorted keys) so an
   // unchanged build leaves no diff. Prune ids no longer in the catalog so it can't grow
-  // unboundedly, but only when a renderer ran — a browser-less/Vercel build must not drop
+  // unboundedly, but only when a renderer ran - a browser-less/Vercel build must not drop
   // sigs for tools whose committed cards it can't re-render.
   if (renderer) {
     const live = new Set(tools.filter(t => t.id && t.name).map(t => t.id as string));

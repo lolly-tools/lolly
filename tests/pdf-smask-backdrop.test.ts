@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
- * The soft-mask backdrop (/BC) and its colour space — shells/web/src/lib/pdf-objects.ts
+ * The soft-mask backdrop (/BC) and its colour space - shells/web/src/lib/pdf-objects.ts
  * (`groupColorSpace`, `backdropLuminosity`), plus the engine-level consequence of
  * getting the sign wrong.
  *
@@ -8,7 +8,7 @@
  * against a full-plane backdrop of /BC and takes the LUMINOSITY of the result: a black
  * backdrop (the default when /BC is absent) hides everything outside the group's /BBox,
  * a white one reveals it. /BC's components are in the GROUP's colour space, so the same
- * array means opposite things in an additive and a subtractive space — DeviceCMYK
+ * array means opposite things in an additive and a subtractive space - DeviceCMYK
  * `[0 0 0 0]` is WHITE, DeviceRGB `[0 0 0]` is BLACK.
  *
  * The import path used to reduce /BC to `Math.max(|component|)` and never read the
@@ -82,7 +82,7 @@ test('groupColorSpace: ICCBased resolves to a device space by /N', () => {
 });
 
 test('groupColorSpace: a bare non-device name resolves through the form’s own /Resources', () => {
-  // §8.6.3 — Illustrator writes `/CS /CS0` and defines CS0 in the form's resources.
+  // §8.6.3 - Illustrator writes `/CS /CS0` and defines CS0 in the form's resources.
   const c = ctx();
   const res = dict(c, {
     ColorSpace: dict(c, {
@@ -163,7 +163,7 @@ const reg = (): SoftMaskIdRegistry => ({ groups: new Map(), ids: new Map() });
 
 test('softMaskId: one /G shared by an /Alpha and a /Luminosity mask → TWO ids', () => {
   // The collision. Keyed on /G alone both dicts were `sm0`, and the engine's
-  // (id, base transform) memo then handed the second the first's evaluation — the
+  // (id, base transform) memo then handed the second the first's evaluation - the
   // /Alpha mask silently rendering with luminance semantics and no mask-type="alpha".
   const r = reg();
   const g = { blurGroup: true };
@@ -183,7 +183,7 @@ test('softMaskId: /TR and /BC also distinguish two dicts over one group', () => 
   assert.notEqual(softMaskId(r, g, 'Luminosity', false, 1), plain);
   assert.notEqual(softMaskId(r, g, 'Luminosity', false, 1), softMaskId(r, g, 'Luminosity', false, 0));
   // An explicit black /BC and an absent one render identically but are still distinct
-  // entries — cheap, and it keeps the key a pure function of the dict.
+  // entries - cheap, and it keeps the key a pure function of the dict.
   assert.equal(softMaskId(r, g, 'Luminosity', false, 0.5), softMaskId(r, g, 'Luminosity', false, 0.50001));
 });
 
@@ -203,7 +203,7 @@ test('softMaskId: identical dicts over one group collapse to ONE id', () => {
 // A 300×200 fill masked by a group whose /BBox is only 100×100. With a black backdrop
 // the mask is honoured and two thirds of the fill are correctly hidden; with a white
 // backdrop the mask must be REFUSED, because a userSpaceOnUse <mask> cannot express a
-// region that reveals out to infinity — and the fallback (no mask) keeps the artwork.
+// region that reveals out to infinity - and the fallback (no mask) keeps the artwork.
 
 const MASK_GROUP = {
   subtype: 'Luminosity' as const,
@@ -235,7 +235,7 @@ test('backdrop 0 (black) → the mask is applied and clips the fill to the bbox'
 
 test('backdrop 1 (white) → refused, and the 300×200 fill survives unmasked', () => {
   // This is what a DeviceCMYK `/BC [0 0 0 0]` must now produce. Before the colour
-  // space was read it produced backdrop 0 — the case above — and the fill was hidden
+  // space was read it produced backdrop 0 - the case above - and the fill was hidden
   // everywhere outside a 100×100 box.
   const { nodes, warns } = runPage({ id: 'sm0', ...MASK_GROUP, backdrop: 1 });
   assert.ok(warns.includes('smask.group.unevaluated|bc'), warns.join(','));

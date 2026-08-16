@@ -1,10 +1,10 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
- * Design tokens — a platform-agnostic DTCG model.
+ * Design tokens: a platform-agnostic DTCG model.
  *
  * This is the engine's single source of truth for *token semantics*, the way
  * inputs.js owns input semantics and units.js owns physical units. It parses a
- * W3C Design Tokens (DTCG) document — the format Penpot imports/exports — and
+ * W3C Design Tokens (DTCG) document (the format Penpot imports/exports) and
  * resolves it into a flat lookup that shells and tools consume. It knows DTCG and
  * nothing else: no DOM, no storage, no SUSE. The brand *content* (the actual
  * token values) lives in the catalog as a `tokens` asset; this is only the engine
@@ -20,10 +20,10 @@
  *     their `color.brand.x` shape; there is no set prefix).
  *
  * Colour values: read every form Penpot can emit (hex, rgb/rgba, hsl/hsla,
- * oklch/lch — the lolly-start brand-token format — and the DTCG colour
+ * oklch/lch, the lolly-start brand-token format, and the DTCG colour
  * *object*), normalise to a hex string for the rest of the app (which already
  * speaks `#rrggbb` / `#rrggbbaa` / `transparent`). CMYK print anchors ride in
- * `$extensions` under the SUSE vendor key — DTCG reserves `$extensions` for
+ * `$extensions` under the SUSE vendor key. DTCG reserves `$extensions` for
  * exactly this, and Penpot round-trips it untouched.
  */
 
@@ -58,7 +58,7 @@ const isSpotColor = (v: unknown): v is SpotColor => {
  * I can't render" rather than invalidate the ink.
  *
  * A `finish` that is not a string at all (a number, an object, a null out of a
- * hand-edited doc) drops JUST THAT FIELD — total-function tolerance, the same
+ * hand-edited doc) drops JUST THAT FIELD. This is total-function tolerance, the same
  * way every other reader in this file degrades: rejecting the whole spot would
  * also lose `name`, the one field every consumer, including the PDF
  * /Separation emitter, actually needs. The ordinary paths (no finish, or a
@@ -143,7 +143,7 @@ function flattenGroup(
 //      OTHER group, so the named theme's cross-axis aliases still resolve;
 //   2. else `$metadata.activeThemes` (Tokens-Studio's "active theme per axis"), if present;
 //   3. else one theme per group (the first of each).
-// A single-theme or single-axis (one `group`) doc composes exactly one theme — the first,
+// A single-theme or single-axis (one `group`) doc composes exactly one theme: the first,
 // unless `activeThemes` names one of them, which is the designer's own ON state and the
 // reason Penpot writes the field at all.
 function chosenThemes(themes: UnknownRecord[], meta: UnknownRecord, theme: string | undefined): UnknownRecord[] {
@@ -205,7 +205,7 @@ function chosenThemes(themes: UnknownRecord[], meta: UnknownRecord, theme: strin
  * of a file whose designer never created a theme writes exactly:
  *   `{ "Global": {…}, "$themes": [], "$metadata": { "tokenSetOrder": ["Global"],
  *      "activeThemes": [], "activeSets": ["Global"] } }`
- * — an EMPTY `$themes` beside a real set. Reading `$themes` alone made "Global"
+ * That is an EMPTY `$themes` beside a real set. Reading `$themes` alone made "Global"
  * a group, so `brand.primary` flattened to `Global.brand.primary` and no longer
  * joined to the `appliedTokens: {"fill": "brand.primary"}` Penpot writes on the
  * shapes, silently dropping the token-first role proposal back to hex guessing.
@@ -273,14 +273,14 @@ function buildMergedMap(doc: UnknownRecord, theme: string | undefined): Map<stri
 // Resolve `{path}` aliases in place, following chains, leaving cycles untouched.
 // Gradient-typed tokens additionally get scoped composite resolution: aliases
 // nested in their stops (`$value[].color`) resolve through the same cycle-safe
-// walk — into a NEW array, since the raw stop objects belong to the caller's doc.
+// walk, into a NEW array, since the raw stop objects belong to the caller's doc.
 function resolveAliases(map: Map<string, MutableEntry>): Map<string, MutableEntry> {
   const resolving = new Set<string>();
   function resolve(path: string): unknown {
     const e = map.get(path);
     if (!e) return undefined;
     if (e._done) return e.value;
-    if (resolving.has(path)) return e.value; // cycle — stop, keep raw
+    if (resolving.has(path)) return e.value; // cycle: stop, keep raw
     resolving.add(path);
     if (isAlias(e.value)) {
       const target = aliasPath(e.value);
@@ -297,7 +297,7 @@ function resolveAliases(map: Map<string, MutableEntry>): Map<string, MutableEntr
         if (!isRecord(s) || !isAlias(s.color)) return s;
         const target = aliasPath(s.color);
         const tv = target != null ? resolve(target) : undefined;
-        // Unresolvable — or a cycle's still-alias value — stays as authored,
+        // Unresolvable, or a cycle's still-alias value, stays as authored,
         // exactly like a whole-value alias would.
         if (tv === undefined || isAlias(tv)) return s;
         changed = true;
@@ -379,12 +379,12 @@ function toSwatch(e: TokenEntry): ColorSwatch {
     // returns a real hex here; '' is a contract-satisfying fallback (ColorSwatch.value
     // is a non-null string) that a malformed colour value can never actually hit.
     //
-    // An AUTHORED sRGB face wins over the automatic bake — this is Phase 9 of
+    // An AUTHORED sRGB face wins over the automatic bake. This is Phase 9 of
     // plans/60-color-spaces.md, and it is one line here rather than a change per
     // export path because every consumer of a brand colour funnels through this
     // field. The reason it must win: the automatic §14.2 gamut map picks the
     // nearest reproducible colour by ΔE, and a brand will often prefer a
-    // DIFFERENT sRGB green — one that reads as the same brand colour to a human
+    // DIFFERENT sRGB green, one that reads as the same brand colour to a human
     // even though it is not the closest by measurement. Left unhonoured, the
     // override would be decoration.
     //
@@ -406,7 +406,7 @@ function toSwatch(e: TokenEntry): ColorSwatch {
  * Re-serialised through `colorToHex` rather than passed through verbatim: a face
  * is stored in whatever notation its author typed (`oklch(...)`, a named colour,
  * a hex), and `ColorSwatch.value` is contractually a hex string. A face that will
- * not parse is IGNORED rather than emitted — a malformed override must not be
+ * not parse is IGNORED rather than emitted. A malformed override must not be
  * able to make a brand colour render as nothing.
  */
 function srgbFace(ext: Record<string, unknown> | null): string | null {
@@ -416,7 +416,7 @@ function srgbFace(ext: Record<string, unknown> | null): string | null {
   return colorToHex(face.value) ?? null;
 }
 
-/** The `faces` field, present only when the token actually has overrides — an
+/** The `faces` field, present only when the token actually has overrides. An
  *  empty object on every swatch would be noise in every serialised payload. */
 function facesOf(ext: Record<string, unknown>): { faces?: Record<string, string | number[]> } {
   const stored = readFaces(ext);
@@ -433,7 +433,7 @@ function prettify(slug: string): string {
 /**
  * Resolve a stored input value to a concrete colour string for hydration/display.
  * Accepts a token value object ({ref, value}), a bare alias string, or a plain
- * colour string (returned untouched — existing tools are unaffected).
+ * colour string (returned untouched, existing tools are unaffected).
  */
 export function resolveColorValue(
   tokenSet: Pick<TokenSet, 'resolve'> | null | undefined,
@@ -447,7 +447,7 @@ export function resolveColorValue(
     const r = tokenSet?.resolve(stored);
     return r !== undefined ? colorToHex(r) : undefined;
   }
-  return stored; // plain colour string (or non-string) — leave exactly as-is
+  return stored; // plain colour string (or non-string): leave exactly as-is
 }
 
 // ─── Typography composites ───────────────────────────────────────────────────
@@ -497,7 +497,7 @@ export function colorToHex(value: unknown): string | null | undefined {
       return rgbaToHex(Number(r) * 255, Number(g) * 255, Number(b) * 255,
         value.alpha == null ? 1 : Number(value.alpha));
     }
-    // An object we can't read as a colour must NOT flow on verbatim — it would
+    // An object we can't read as a colour must NOT flow on verbatim. It would
     // stringify to "[object Object]" in a swatch and render an <input type=color>
     // blank. Return null so callers treat it as "no colour".
     return null;
@@ -506,7 +506,7 @@ export function colorToHex(value: unknown): string | null | undefined {
   if (s.toLowerCase() === 'transparent') return 'transparent';
   if (s.startsWith('#')) return normHex(s);
   if (/^(?:ok)?lch\(/i.test(s)) {
-    // oklch()/lch() — the OKLCH-native brand-token format. The conversion math
+    // oklch()/lch(): the OKLCH-native brand-token format. The conversion math
     // is brand-derive.ts's (single source of truth), never duplicated here.
     // Deliberately NOT routed through css-color.ts: oklchToHex's chroma-reduction
     // gamut mapping is what every stored brand token was authored against, and
@@ -515,7 +515,7 @@ export function colorToHex(value: unknown): string | null | undefined {
     const ok = parseOklch(s);
     if (ok) return oklchToHex(ok);
   }
-  // A plain colour ident ("rebeccapurple") passes through untouched — callers
+  // A plain colour ident ("rebeccapurple") passes through untouched. Callers
   // (extractSvgColors) rely on getting the name back verbatim, and it is already
   // a safe CSS value. Checked BEFORE the parser, which would resolve it to hex.
   if (/^[a-z][a-z0-9-]*$/i.test(s)) return s;
@@ -531,7 +531,7 @@ export function colorToHex(value: unknown): string | null | undefined {
 }
 
 // Strict hex only: expand #rgb/#rgba, reject anything that isn't a pure
-// 6/8-digit hex afterwards — "#fff;background:url(//x)" must not pass through.
+// 6/8-digit hex afterwards. "#fff;background:url(//x)" must not pass through.
 function normHex(s: string): string | null {
   let h = s.trim().toLowerCase();
   if (/^#[0-9a-f]{3}$/.test(h) || /^#[0-9a-f]{4}$/.test(h)) {

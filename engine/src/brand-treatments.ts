@@ -6,18 +6,20 @@
  * machinery is generic: shells discover a palette-type asset tagged
  * "photo-treatments" / "icon-themes" and offer its entries on every photo and
  * themable icon. Historically those docs were hand-authored per brand, so a
- * freshly ingested (or blank starter) brand shipped inert strips. This module
- * derives serviceable docs from a brand token document — or its resolved
- * swatches — so every brand gets the same one-tap treatments a hand-tuned
- * catalog has. The tuning constants are calibrated against the hand-authored
- * SUSE docs (duotone shadows ≈ L 0.2–0.3 / C ≤ 0.075, highlights ≈ L 0.93).
+ * freshly ingested (or blank starter) brand shipped with no working strip.
+ * This module derives usable docs from a brand token document (or its
+ * resolved swatches), so every brand gets the same one-tap treatments a
+ * hand-tuned catalog has. The tuning constants are calibrated against the
+ * hand-authored SUSE docs (duotone shadows ≈ L 0.2–0.3 / C ≤ 0.075,
+ * highlights ≈ L 0.93).
  *
  * Pure and deterministic (no Date/random/IO): same input, byte-identical docs.
- * Tolerant of thin palettes — with no chromatic swatch the treatments doc still
- * carries greyscale, and the themes list comes back EMPTY: callers must skip
- * writing an icon-themes asset then (the catalog validator rejects a doc whose
- * themes[] is empty). Both outputs parse cleanly through the runtime readers
- * (parsePhotoTreatmentsDoc / parseIconThemesDoc) — a test enforces it.
+ * Tolerant of thin palettes: with no chromatic swatch the treatments doc still
+ * carries greyscale, and the themes list comes back EMPTY. Callers must skip
+ * writing an icon-themes asset in that case (the catalog validator rejects a
+ * doc whose themes[] is empty). Both outputs parse cleanly through the
+ * runtime readers (parsePhotoTreatmentsDoc / parseIconThemesDoc); a test
+ * enforces this.
  */
 
 import type { PhotoTreatment } from './photo-treatment.ts';
@@ -41,10 +43,10 @@ export interface DerivedIconThemes {
 }
 
 // Bound the work: token documents are author-controlled but arrive as
-// untrusted JSON — a pathological doc must not turn selection quadratic.
+// untrusted JSON - a pathological doc must not turn selection quadratic.
 const MAX_SWATCHES = 1024;
 
-// Below this OKLCH chroma a swatch reads as grey — never an accent.
+// Below this OKLCH chroma a swatch reads as grey - never an accent.
 const ACCENT_MIN_CHROMA = 0.06;
 
 // Accents must sit at least one hue bucket apart (see HUE_NAMES); equal to the
@@ -79,7 +81,7 @@ interface Cand {
   c: number;
   h: number;
   /** lowercased token path / role hint (name only as fallback) for role
-   * scoring. Structural only — free-text descriptions would false-positive
+   * scoring. Structural only - free-text descriptions would false-positive
    * (lolly-start's spectrum tokens all *mention* "the primary"). */
   role: string;
 }
@@ -94,8 +96,8 @@ function roleScore(role: string): number {
 }
 
 /**
- * Normalise the source — a DTCG token document (aliases/themes resolved via
- * createTokenSet) or an already-resolved BrandSwatch[] — into deduped OKLCH
+ * Normalise the source - a DTCG token document (aliases/themes resolved via
+ * createTokenSet) or an already-resolved BrandSwatch[] - into deduped OKLCH
  * candidates. Unparseable and translucent colours are dropped.
  */
 function toCandidates(source: unknown): Cand[] {
@@ -121,7 +123,7 @@ function toCandidates(source: unknown): Cand[] {
     seen.add(hex);
     out.push({
       hex, l: ok.l, c: ok.c, h: ok.h,
-      // Token path (or a BrandSwatch's declared role) — a swatch NAME scores
+      // Token path (or a BrandSwatch's declared role) - a swatch NAME scores
       // only when no structural hint exists at all.
       role: (sw.role ?? sw.name ?? '').toLowerCase(),
     });
@@ -129,9 +131,10 @@ function toCandidates(source: unknown): Cand[] {
   return out;
 }
 
-// Accent hues, most-brandful first: role score, then chroma, then hex (a total
-// order, so selection never depends on sort stability), greedily hue-clustered
-// so each 30° neighbourhood contributes one representative.
+// Accent hues, most brand-relevant first: sort by role score, then chroma,
+// then hex (a total order, so selection never depends on sort stability).
+// Selection is greedy and hue-clustered, so each 30° neighbourhood
+// contributes one representative.
 function pickAccents(cands: Cand[]): Cand[] {
   const sorted = cands
     .filter(c => c.c >= ACCENT_MIN_CHROMA)
@@ -145,15 +148,16 @@ function pickAccents(cands: Cand[]): Cand[] {
   return out;
 }
 
-// The darkest swatch dark enough to serve as an icon base ("ink"), preferring
-// chromatic darks (SUSE's ink is a dark pine, not a grey) — or null.
+// The darkest swatch dark enough to serve as an icon base ("ink"). Prefers a
+// chromatic dark colour over a grey (SUSE's ink is a dark pine green, not a
+// grey). Returns null if no swatch is dark enough.
 function pickInk(cands: Cand[]): Cand | null {
   const dark = cands.filter(c => c.l <= 0.45);
   if (!dark.length) return null;
   return dark.sort((a, b) => a.l - b.l || b.c - a.c || a.hex.localeCompare(b.hex))[0]!;
 }
 
-// The soft duotone shadow for an accent hue — deep, chroma-tamed so the wash
+// The soft duotone shadow for an accent hue - deep, chroma-tamed so the wash
 // stays a treatment rather than a colour cast.
 function duotoneShadow(a: Cand): string {
   return oklchToHex({ l: 0.26, c: clamp(a.c * 0.5, 0.02, 0.075), h: a.h });
@@ -162,7 +166,7 @@ function duotoneShadow(a: Cand): string {
 /**
  * Derive a photo-treatments palette doc from a brand token document (or
  * resolved BrandSwatch[]): greyscale, one soft duotone wash per selected
- * accent hue (the brand primary first), and — when any accent exists — a
+ * accent hue (the brand primary first), and - when any accent exists - a
  * three-stop "deep" tritone (black → primary shadow → primary accent).
  * Every entry survives parsePhotoTreatmentsDoc unchanged.
  */
@@ -186,7 +190,7 @@ export function derivePhotoTreatmentsDoc(source: unknown): DerivedPhotoTreatment
   if (accents.length) {
     const p = accents[0]!;
     const mid = duotoneShadow(p);
-    // A dark primary would invert the ramp (highlight below mid) — lift it.
+    // A dark primary would invert the ramp (highlight below mid) - lift it.
     const highlight = p.l < 0.55 ? oklchToHex({ l: 0.62, c: p.c, h: p.h }) : p.hex;
     treatments.push({
       id: 'deep', label: 'Deep', kind: 'duotone',
@@ -204,9 +208,9 @@ export function derivePhotoTreatmentsDoc(source: unknown): DerivedPhotoTreatment
 /**
  * Derive an icon-themes palette doc from a brand token document (or resolved
  * BrandSwatch[]). First pairing is 'brand' (primary accent over the brand
- * ink) — the default pairing contract — then a light 'tint' of the primary,
+ * ink) - the default pairing contract - then a light 'tint' of the primary,
  * one pairing per extra accent hue, and 'paper' (white on light grey, with
- * the ink as previewBg). Empty `themes` when the palette has no accent —
+ * the ink as previewBg). Empty `themes` when the palette has no accent -
  * callers must not write an icon-themes asset then.
  */
 export function deriveIconThemesDoc(source: unknown): DerivedIconThemes {
@@ -223,7 +227,7 @@ export function deriveIconThemesDoc(source: unknown): DerivedIconThemes {
       : oklchToHex({ l: clamp(p.l - 0.35, 0.14, 0.3), c: clamp(p.c * 0.5, 0.01, 0.06), h: p.h });
     themes.push({ id: 'brand', label: 'Brand', c1: p.hex, c2: inkHex });
     if (p.l < 0.78) {
-      // A light accent IS its own tint — pairing it with itself says nothing.
+      // A light accent IS its own tint - pairing it with itself says nothing.
       themes.push({
         id: 'tint', label: 'Tint',
         c1: oklchToHex({ l: 0.87, c: clamp(p.c * 0.8, 0.02, 0.1), h: p.h }),

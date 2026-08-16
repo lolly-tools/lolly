@@ -60,7 +60,7 @@ test('both user and owner passwords recover the exact file key', async () => {
   const U = v.U, O = v.O;
 
   // Decrypt path (Algorithm 2.A) implemented here with node:crypto as an
-  // independent check — the engine only encrypts.
+  // independent check - the engine only encrypts.
   const cbcNoPadDecrypt = (key: Uint8Array, data: Uint8Array): Uint8Array => {
     const d = nodeCrypto.createDecipheriv('aes-256-cbc', key, Buffer.alloc(16));
     d.setAutoPadding(false);

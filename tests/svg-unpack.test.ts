@@ -1,10 +1,10 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
- * Unpack — the SVG reader (shells/web/src/views/svg-unpack.ts).
+ * Unpack - the SVG reader (shells/web/src/views/svg-unpack.ts).
  *
  * Every helper is pure and takes a parsed Document (or the raw string for the
- * palette), so these run against jsdom with no browser. The parser is XML —
- * `contentType: 'image/svg+xml'` — to mirror the browser's own
+ * palette), so these run against jsdom with no browser. The parser is XML - 
+ * `contentType: 'image/svg+xml'` - to mirror the browser's own
  * `new DOMParser().parseFromString(text, 'image/svg+xml')` that `openSvgFile` uses.
  */
 
@@ -144,7 +144,7 @@ test('vectors: a group with no computable frame is skipped, not guessed', () => 
   const doc = parse(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
     <g id="layer1"><path d="M0 0h10"/></g>
   </svg>`);
-  // A <g> has no viewBox and cannot be framed by attribute math — left for a
+  // A <g> has no viewBox and cannot be framed by attribute math - left for a
   // layout-aware pass rather than emitted at the wrong size.
   assert.equal(svgVectors(doc).length, 0);
 });

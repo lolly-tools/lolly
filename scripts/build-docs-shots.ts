@@ -1,52 +1,52 @@
 #!/usr/bin/env node
 // SPDX-License-Identifier: MPL-2.0
 /**
- * Docs screenshots — declared IN the markdown, captured, compared, credentialed.
+ * Docs screenshots - declared IN the markdown, captured, compared, credentialed.
  *
  * A screenshot in the /info docs is an ordinary markdown image whose URL is a real
  * url-shot tool link (domain-relative):
  *
  *   ![The gallery](/t/url-shot?url=%2F%23%2F&width=1440&height=900&waitMs=1600&format=svg&filename=gallery)
  *
- * Content and recipe travel together in the .md — no side manifest. The query is
+ * Content and recipe travel together in the .md - no side manifest. The query is
  * url-shot's own input vocabulary (url, waitMs, css, scrollDepth, zoom, crop*) plus
  * the reserved params width/height/dpi/format/filename and the pipeline-only
  * `tolerance`. This script scans docs/*.md, renders each recipe through the exact
  * primitive url-shot's CLI export uses (packages/node-shell/src/url-capture.ts →
  * the scoped Chromium), and commits baselines at docs/shots/<filename>.<format>;
  * docs/build.ts rewrites each recipe src to /info/shots/<filename>.<format>. The
- * day a GET renderer ships, the same links can resolve live — the capture step is
+ * day a GET renderer ships, the same links can resolve live - the capture step is
  * today's polyfill.
  *
- * Formats: `svg` (default) is a TRUE VECTOR — the page is printed to a vector PDF
+ * Formats: `svg` (default) is a TRUE VECTOR - the page is printed to a vector PDF
  * and interpreted back to standalone SVG by the app itself (see captureVector),
  * with text kept real and fonts inlined. `png`/`jpg` are screenshots for the
  * pages where the print path can't be faithful (wall-clock media, backdrop
- * effects) — a per-recipe, performance-reasons-only choice.
+ * effects) - a per-recipe, performance-reasons-only choice.
  *
  * Authenticity: every baseline carries Content Credentials (embedC2pa, surface
  * 'docs', with the recipe's parameters in the credential). Raster baselines also
  * carry the Lolly Imprint (engine pixel-watermark, gentle LOSSLESS_STRENGTH);
- * a vector has no pixels to watermark, and that's accepted — C2PA is the
+ * a vector has no pixels to watermark, and that's accepted - C2PA is the
  * provenance for vector shots. The imprint is embedded BEFORE the compare so
  * runs stay deterministic; C2PA (whose signature carries a timestamp) is stamped
  * only when a baseline is actually (re)written, so an unchanged shot keeps its
  * committed bytes verbatim and git never churns.
  *
  * Captures are PINNED to the neutral brand (lolly-start profile) regardless of the
- * sticky profile: deterministic pixels, and public-safe — the SUSE brand pack is
+ * sticky profile: deterministic pixels, and public-safe - the SUSE brand pack is
  * private, so its pixels must never be committed into the public docs repo. The
  * pre-run profile is restored afterwards (same fallback rules as loldev's do_build).
  *
  * Every run is a snapshot comparison (scripts/lib/shot-compare.ts):
- *   ✚ new        — no baseline; the capture is written (suspicious flags still warn)
- *   ✓ unchanged  — baseline kept byte-for-byte
- *   ▲ changed    — reported, NOT promoted; re-run with --accept to take the new pixels
- *   ✗ failed     — capture error or wrong output dimensions; exits 1
+ *   ✚ new - no baseline; the capture is written (suspicious flags still warn)
+ *   ✓ unchanged - baseline kept byte-for-byte
+ *   ▲ changed - reported, NOT promoted; re-run with --accept to take the new pixels
+ *   ✗ failed - capture error or wrong output dimensions; exits 1
  * Suspicious flags (tiny file / near-blank image / >40% size jump) mark probable
  * failed renders even when Chromium reported success.
  *
- * Chromium never runs on Vercel — this is a build-machine step (loldev gtg/ship);
+ * Chromium never runs on Vercel - this is a build-machine step (loldev gtg/ship);
  * the committed bytes ship, exactly like catalog/og and catalog/previews.
  *
  * Options:
@@ -58,7 +58,7 @@
  *                  origin/main (committed origin/main...HEAD ∪ uncommitted, *.md);
  *                  no changed page ⇒ capture nothing (near-instant); docs/git
  *                  unreadable ⇒ fall back to the full set. Ignored under --rebuild.
- *                  The gate path (loldev do_build) — a renderer change that alters
+ *                  The gate path (loldev do_build) - a renderer change that alters
  *                  an UNCHANGED recipe needs an explicit --rebuild to recapture.
  *   --only=a,b     limit to these filenames
  *   --url=...      capture against a running server (skips profile pin + build + serve)
@@ -97,7 +97,7 @@ const CAPTURE_PROFILE = 'lolly-start';
 const SITE_URL = 'https://lolly.tools';
 
 // Freeze the page for a deterministic shot: jump animations/transitions to their
-// final state (duration 0 — NOT `animation:none`, which would strand enter-animation
+// final state (duration 0 - NOT `animation:none`, which would strand enter-animation
 // elements at their invisible starting styles), hide the caret and scrollbars.
 const FREEZE_CSS =
   '*,*::before,*::after{animation-duration:0s!important;animation-delay:0s!important;' +
@@ -107,7 +107,7 @@ const FREEZE_CSS =
   // rendering off-screen subtrees, and whether it had got round to a given one by
   // capture time is a race: the same gallery serialised 26% more nodes on one run than
   // the next, because more tiles happened to be live. A skipped subtree is not absent
-  // from the walk either — it reports a zero-size box, which lands inside the frame and
+  // from the walk either - it reports a zero-size box, which lands inside the frame and
   // survives the off-frame cull, so the two states differ in BOTH directions. Forcing
   // it visible costs a build step some layout time and buys an identical DOM every run.
   '*{content-visibility:visible!important}';
@@ -123,7 +123,7 @@ const VIEWPORT_DEFAULTS = { width: 1440, height: 900, dpi: 192 };
  * `overflow: hidden` and the document never scrolls), and its closed export panel is
  * a `position: fixed` host holding a child pushed off the bottom with a `transform`.
  * Nothing scrollIntoView can do reaches that, so Playwright is right to refuse a real
- * pointer and wrong about what a docs shot needs — the walker serialises DOM STATE,
+ * pointer and wrong about what a docs shot needs - the walker serialises DOM STATE,
  * not pointer history, so a click that lands through the handler produces exactly the
  * picture a user's own click would.
  *
@@ -131,7 +131,7 @@ const VIEWPORT_DEFAULTS = { width: 1440, height: 900, dpi: 192 };
  * budget; `waitFor({ state: 'visible' })` still runs ahead of it, so recipe drift (a
  * selector matching nothing) fails as loudly as before; and every fallback prints a
  * line naming the recipe, because a click that only lands this way usually means the
- * recipe is missing the step that opens the thing — which is what it meant here (the
+ * recipe is missing the step that opens the thing - which is what it meant here (the
  * collab recipes were clicking Share without opening the export panel first).
  */
 const driveOptsFor = (shot: ShotDef): DriveOpts => ({
@@ -145,7 +145,7 @@ interface Opts {
   /** Force a full refresh: rebuild the shell, re-capture EVERY recipe, and write
    *  every baseline even when the bytes are unchanged, then prune baselines no
    *  recipe claims any more. Implies --accept. This is the "the renderer changed,
-   *  redo the lot" button — after an engine fix, `unchanged` verdicts are not
+   *  redo the lot" button - after an engine fix, `unchanged` verdicts are not
    *  something to preserve, they are something to overwrite. */
   rebuild: boolean;
   /** Capture ONLY recipes whose docs source page changed vs origin/main (committed
@@ -153,7 +153,7 @@ interface Opts {
    *  *.md). No changed page → nothing to capture (near-instant); the docs dir or
    *  git unreadable → fall back to the full set, never silently capture nothing.
    *  Ignored under --rebuild, which always re-shoots everything. This is the gate
-   *  path (loldev do_build) — an app/engine change that alters an UNCHANGED
+   *  path (loldev do_build) - an app/engine change that alters an UNCHANGED
    *  recipe's render won't recapture until an explicit --rebuild. */
   changed: boolean;
   list: boolean;
@@ -204,7 +204,7 @@ interface ShotResult {
   error?: string;
   wrote: boolean;
   bytes: number;
-  /** Device-pixel width of the capture — reported when a weight flag fires. */
+  /** Device-pixel width of the capture - reported when a weight flag fires. */
   width?: number;
 }
 
@@ -228,8 +228,8 @@ async function main(): Promise<void> {
 
   // --changed narrows to recipes declared on a docs page that differs from
   // origin/main. --rebuild always re-shoots everything, so --changed is inert
-  // there. The narrowing happens HERE — before the concurrency pool, the retry
-  // pass and the browser/build steps below — so a run with no changed page does
+  // there. The narrowing happens HERE - before the concurrency pool, the retry
+  // pass and the browser/build steps below - so a run with no changed page does
   // no work at all.
   if (opts.changed && !opts.rebuild) {
     const changed = changedDocsPages();
@@ -255,7 +255,7 @@ async function main(): Promise<void> {
   }
 
   // Nothing to capture (an empty --changed set): skip the build + serve + browser
-  // entirely so the gate path is near-instant. Only reachable via --changed —
+  // entirely so the gate path is near-instant. Only reachable via --changed - 
   // --only asserts its names exist, and the full scan throws on an empty corpus.
   if (!shots.length) {
     console.log('No shots to capture.');
@@ -292,11 +292,11 @@ async function main(): Promise<void> {
     // per-locale variants (`?lang=<loc>` → `<slug>.<loc>.<format>`), and the dark
     // twin of each (app + OS preference pinned dark → `<slug>[.<loc>].dark.<format>`;
     // the twin is crossed with the locale axis so a translated page's dark shot
-    // stays in its own language). Each job is an INDEPENDENT capture — its own
-    // route, theme and baseline file — so they were only run in series for want of
+    // stays in its own language). Each job is an INDEPENDENT capture - its own
+    // route, theme and baseline file - so they were only run in series for want of
     // a scheduler. Flatten them and drain through a bounded pool: captureOne opens
     // its own browser context per job, so N run truly in parallel on the single
-    // shared Chromium. SHOTS_CONCURRENCY tunes the width (default 4 — roughly
+    // shared Chromium. SHOTS_CONCURRENCY tunes the width (default 4 - roughly
     // quarters the wall-clock while keeping a dev laptop responsive). Order becomes
     // completion-order, which is fine: reportLine names each shot, and summarize()
     // plus the exit code are pure counts over `results`, never its sequence.
@@ -326,12 +326,12 @@ async function main(): Promise<void> {
     };
     await Promise.all(Array.from({ length: width }, () => drain()));
     // A parallel capture shares the CPU, so a heavy page can still be rendering when
-    // its fixed waitMs budget elapses — the cropSelector's target isn't in the DOM
+    // its fixed waitMs budget elapses - the cropSelector's target isn't in the DOM
     // yet and the shot fails with a false "matched nothing". That is a scheduling
     // artefact, not a broken recipe, and it clears once the page has a core to
     // itself. So retry every failure ONCE, sequentially, after the pool drains: a
     // contention flake recovers, a genuinely broken recipe fails both times and
-    // stays failed. Skipped at width 1 — with no pool there is no contention, so a
+    // stays failed. Skipped at width 1 - with no pool there is no contention, so a
     // failure there is real and a blind retry would only hide it.
     if (width > 1) {
       for (let i = 0; i < jobs.length; i++) {
@@ -352,7 +352,7 @@ async function main(): Promise<void> {
     restoreProfile?.();
   }
 
-  warnOrphans(allShots, opts.rebuild && !opts.only.length); // FULL set — an --only run must not cry (or prune) orphan
+  warnOrphans(allShots, opts.rebuild && !opts.only.length); // FULL set - an --only run must not cry (or prune) orphan
   summarize(results);
 }
 
@@ -385,11 +385,11 @@ function scanDocs(): Array<ShotDef & { file: string }> {
 }
 
 /**
- * The top-level docs/*.md pages that differ from origin/main — the union of
+ * The top-level docs/*.md pages that differ from origin/main - the union of
  * committed changes (`git diff --name-only origin/main...HEAD`) and uncommitted
  * working-tree edits (`git status --porcelain`), filtered to `*.md` files at the
  * docs root. `docs/` is its own submodule, so both git invocations run with
- * `-C DOCS_DIR` and report paths relative to that submodule's root — the same bare
+ * `-C DOCS_DIR` and report paths relative to that submodule's root - the same bare
  * basenames scanDocs keys `ShotDef.file` on (it only reads top-level *.md, never
  * the i18n/ translations, so nested paths are irrelevant to recipe mapping).
  *
@@ -419,7 +419,7 @@ function changedDocsPages(): Set<string> | null {
   for (const line of uncommitted.split('\n')) {
     if (!line) continue;
     // Porcelain v1: `XY <path>` (XY = 2 status chars + a space); a rename is
-    // `R  <old> -> <new>` — take the destination.
+    // `R  <old> -> <new>` - take the destination.
     let p = line.slice(3);
     const arrow = p.indexOf(' -> ');
     if (arrow >= 0) p = p.slice(arrow + 4);
@@ -438,7 +438,7 @@ function knownLocales(): string[] {
 }
 
 /**
- * Baselines a page references DIRECTLY — `![alt](/info/shots/<file>)` — rather than
+ * Baselines a page references DIRECTLY - `![alt](/info/shots/<file>)` - rather than
  * through a url-shot recipe. The DRILL-ASSISTED shots: states that exist only
  * downstream of something no URL can reach (a real WebRTC pairing's connection
  * plate, the peer-focus ring, the beam consent card). They are captured once, by
@@ -447,7 +447,7 @@ function knownLocales(): string[] {
  *
  * They are listed here for ONE reason: `--rebuild` prunes every file in docs/shots
  * that no recipe claims, and a drill shot is by definition unclaimable that way. So
- * "claimed" means claimed by a recipe OR referenced by a page — scanned from the
+ * "claimed" means claimed by a recipe OR referenced by a page - scanned from the
  * markdown, never a hand-kept list, so deleting the reference is still what retires
  * the file (which is the property the orphan sweep exists to give).
  */
@@ -461,7 +461,7 @@ function staticShotRefs(): Set<string> {
   return out;
 }
 
-/** Baselines on disk that no recipe declares any more — stale, safe to delete. */
+/** Baselines on disk that no recipe declares any more - stale, safe to delete. */
 /** Baselines on disk that no recipe claims. Warned about on a normal run; DELETED
  *  under --rebuild, because a full refresh that leaves the retired files behind
  *  would ship them forever (a recipe that changes format, e.g. png -> svg, orphans
@@ -471,7 +471,7 @@ function warnOrphans(shots: ShotDef[], prune = false): void {
   const locales = knownLocales();
   const expected = staticShotRefs();
   for (const s of shots) {
-    // The full cross-product of both variant axes — a name missing here is a file
+    // The full cross-product of both variant axes - a name missing here is a file
     // `--rebuild` DELETES, so the expectation set has to grow in the same commit
     // as any new axis.
     const stems = [s.slug, ...(s.localize ? locales.map((loc) => `${s.slug}.${loc}`) : [])];
@@ -522,7 +522,7 @@ function paramsFor(shot: ShotDef): { params: Omit<CaptureParams, 'url'>; dims: {
 
 /**
  * Cap the effective density so no baseline is wider than a reader can ever see
- * (MAX_SHOT_PX — the /info column is 848 CSS px, so 1700-odd device px at DPR 2).
+ * (MAX_SHOT_PX - the /info column is 848 CSS px, so 1700-odd device px at DPR 2).
  *
  * Applied HERE because `paramsFor` is the one source of `dims` for the capture, for
  * `expectedDims`, and for the C2PA provenance stamp, so a single clamp keeps all
@@ -563,12 +563,12 @@ function expectedDims(shot: ShotDef, dims: { width: number; height: number; dpi:
 // gallery-route deep-link like `?tool=` or `?history`) and the privacy notice
 // (it floats above the gallery footer, over the very tiles a gallery shot is
 // framing). Keys mirror shells/web/src/components/welcome-dialog.ts
-// (WELCOME_/TIPS_DISMISSED_KEY) and views/privacy-notice.ts (ACK_KEY) — stable
+// (WELCOME_/TIPS_DISMISSED_KEY) and views/privacy-notice.ts (ACK_KEY) - stable
 // localStorage contracts, same tier as the theme flag.
 //
 // Then the NEUTRAL-STATE pin (lib/capture-neutral.ts): a published screenshot
 // must show the app's plain chrome. A fresh browser context covers most of that
-// for free, but a default is not the same as absent — `jelly-effects` defaults
+// for free, but a default is not the same as absent - `jelly-effects` defaults
 // ON for an unlocked brand, which is precisely the `lolly-start` profile these
 // captures pin, so the soft-body controls were in every baseline by default. The
 // app cannot honour a seeded flag mirror (hydrateFeatureFlags rewrites it from
@@ -611,8 +611,8 @@ const captureContext = (theme?: string) => ({
  * a11y attributes), but not the OUTCOME: if the jelly gate ever stops reading the
  * mirror, or a new first-run overlay ships, the pin becomes a silent no-op and the
  * next `--rebuild` quietly publishes non-neutral chrome across every baseline.
- * This asks the rendered page instead — are there jelly elements, is an overlay
- * up, is an a11y attribute stamped — which is the thing the rule is actually about.
+ * This asks the rendered page instead - are there jelly elements, is an overlay
+ * up, is an a11y attribute stamped - which is the thing the rule is actually about.
  */
 const NEUTRAL_PROBE = `(() => {
   const bad = [];
@@ -638,14 +638,14 @@ const NEUTRAL_PROBE = `(() => {
  * Load a couple of representative routes and fail the run if the chrome isn't
  * neutral. Two page loads per RUN, not per shot. The tool route is checked
  * separately because the guide modal and the sidebar's jelly controls only exist
- * there — a gallery-only check would miss both.
+ * there - a gallery-only check would miss both.
  */
 async function preflightNeutralState(baseUrl: string, shots: ShotDef[]): Promise<void> {
   const routes = ['/#/'];
   const toolRoute = shots.find((s) => s.route.includes('/tool/'))?.route;
   if (toolRoute) routes.push(toolRoute);
   // The profile view decides jelly from the CANONICAL profile (not the pinned
-  // mirror), so it needs its own probe — this is the route where the pin once
+  // mirror), so it needs its own probe - this is the route where the pin once
   // silently failed to reach the rendered page.
   routes.push('/#/profile');
 
@@ -720,7 +720,7 @@ async function resolveSelectorCrop(baseUrl: string, shot: ShotDef): Promise<Part
     // The short settle lets scroll-triggered lazy rendering (content-visibility,
     // reveal observers) paint before measurement/capture.
     if (params.waitMs > 0) await page.waitForTimeout(Math.min(15_000, params.waitMs));
-    // waitSelector: the deterministic settle — block until the page says it is
+    // waitSelector: the deterministic settle - block until the page says it is
     // ready (e.g. the ?neuro demo's data-demo-settled) instead of guessing wall
     // clock. Applied here too so the measured crop box sees the same final state.
     if (shot.waitSelector) await page.waitForSelector(shot.waitSelector, { state: 'attached', timeout: 60_000 });
@@ -740,7 +740,7 @@ async function resolveSelectorCrop(baseUrl: string, shot: ShotDef): Promise<Part
       }
     }
     // Drive the same interactions the capture will, or the box measured here is
-    // the box BEFORE the menu opened — and the shot would be framed on furniture
+    // the box BEFORE the menu opened - and the shot would be framed on furniture
     // that has since moved. Same order as captureUrl: settle, scroll, then act.
     if (shot.drive?.length) await runDriveSteps(page as unknown as PageLike, shot.drive, driveOptsFor(shot));
 
@@ -792,7 +792,7 @@ async function captureOneRaster(sharp: Sharp, baseUrl: string, shot: ShotDef): P
   const verdict = classifyShot(
     { newBytes: bytes.byteLength, newImg, expected: expectedDims(shot, dims), oldBytes, oldImg },
     // Per-shot tolerance for pages hosting wall-clock media (animated previews)
-    // whose phase differs run to run — see ShotDef.pixelDiffFrac.
+    // whose phase differs run to run - see ShotDef.pixelDiffFrac.
     { ...DEFAULT_THRESHOLDS, pixelDiffFrac: shot.pixelDiffFrac ?? DEFAULT_THRESHOLDS.pixelDiffFrac },
   );
 
@@ -833,7 +833,7 @@ const clampInset = (n: number | undefined): number => Math.min(0.9, Math.max(0, 
  * The region a vector shot actually keeps, in CSS pixels of the FULL printed page
  * (scroll offset folded into y). ONE rect, used for two things: the cull hint the
  * app-side interpreter gets (so it never decodes the rasters and tiles outside it),
- * and — scaled by the measured pt/px ratio — the windowPdfSvg viewBox. Deriving
+ * and - scaled by the measured pt/px ratio - the windowPdfSvg viewBox. Deriving
  * both from one helper is what stops the optimisation and the authoritative crop
  * from ever describing different rectangles.
  */
@@ -858,8 +858,8 @@ function vectorCropCssPx(
  * WHOLE page to a vector PDF, hand it to the app's own loopback tooling hook
  * (window.__lollyVectorShot → lib/pdf-vector-shot.ts: the engine's PDF interpreter
  * + in-page font inlining), then window scroll/crop into viewBox geometry with the
- * engine's windowPdfSvg — a lossless re-framing of the same vectors. No Imprint:
- * a vector has no pixels to watermark; C2PA is the provenance (Andy's call —
+ * engine's windowPdfSvg - a lossless re-framing of the same vectors. No Imprint:
+ * a vector has no pixels to watermark; C2PA is the provenance (Andy's call - 
  * docs stay content-clean, raster only for performance reasons).
  */
 type VectorCapture = { bytes: Uint8Array; framed: { width: number; height: number } | null; imageB64?: string[] };
@@ -886,7 +886,7 @@ async function captureVector(baseUrl: string, shot: ShotDef): Promise<VectorCapt
     // The short settle lets scroll-triggered lazy rendering (content-visibility,
     // reveal observers) paint before measurement/capture.
     if (params.waitMs > 0) await page.waitForTimeout(Math.min(15_000, params.waitMs));
-    // waitSelector: the deterministic settle — block until the page says it is
+    // waitSelector: the deterministic settle - block until the page says it is
     // ready (e.g. the ?neuro demo stamps data-demo-settled once its fixed frame
     // sequence has rendered) instead of guessing how fast this machine's GL is.
     if (shot.waitSelector) await page.waitForSelector(shot.waitSelector, { state: 'attached', timeout: 60_000 });
@@ -906,39 +906,39 @@ async function captureVector(baseUrl: string, shot: ShotDef): Promise<VectorCapt
       }
     }
     // Interactions, in the same place in the sequence as the raster path and the
-    // crop measurement — three pages per recipe, one state.
+    // crop measurement - three pages per recipe, one state.
     if (shot.drive?.length) await runDriveSteps(page as unknown as PageLike, shot.drive, driveOptsFor(shot));
 
     // M5: the walker path. Ask the shell to serialise the live DOM itself rather
     // than round-tripping through Chromium's PDF printer. The crop is applied by
     // scoping the walk to cropSelector's element (the walker takes a selector), so
-    // there is no PDF window step and no cull — what is walked IS the frame.
+    // there is no PDF window step and no cull - what is walked IS the frame.
     if (shot.walker) {
       const sel = shot.cropSelector || 'body';
-      // A6: with no cropSelector the walked node is `body` — an unstyled
+      // A6: with no cropSelector the walked node is `body` - an unstyled
       // content-height block, so the frame would be 1440 x full document height
       // with the fixed chrome floating mid-image. Window the walk to the
       // recipe's width x height in CSS px instead (the walker works in CSS px,
       // so no dpi arithmetic applies), culling every drawable that lies fully
-      // outside. NOTE: assumes scrollDepth=0 for windowed body walks — fixed
+      // outside. NOTE: assumes scrollDepth=0 for windowed body walks - fixed
       // chrome is emitted at viewport coordinates, which only coincide with the
       // window at scroll 0; no current recipe combines walker+nocrop+scroll.
       //
       // A cropSelector walk is windowed too, but only where the element OVERFLOWS the
-      // recipe frame — the clamp below no-ops when it already fits, which is every
+      // recipe frame - the clamp below no-ops when it already fits, which is every
       // selector recipe committed today. Without it the walker read `cropSelector` as
       // "walk this subtree entire" while the print path had always meant "frame this",
       // so a tall element silently published at its own full height: the swatches group
       // went out at 1400x2256 where print gave 1440x852, blowing the weight budget with
       // 51 chips nobody can read in an 848px column. width/height drive layout via the
-      // viewport either way (the context above) — what changes here is only whether
+      // viewport either way (the context above) - what changes here is only whether
       // they also bound the OUTPUT frame.
       const win = { w: dims.width, h: dims.height };
       // Walk, then AUDIT the result in-page. The print path has elementCount,
       // warnings and a cull report; the walker had `svg.length < 64` and nothing
       // else, which is how a large file of invalid XML could be written, sized and
       // committed as a baseline (plans/69-svg-snapshot-without-print.md §2.1c). The
-      // audit is pure string/DOM inspection of what the walker already returned —
+      // audit is pure string/DOM inspection of what the walker already returned - 
       // it needs no change to renderSvgFromHtml or to the shipping loopback hook.
       const out = await page.evaluate(
         async ({ s, win, rDpi }: { s: string; win: { w: number; h: number } | null; rDpi?: number }) => {
@@ -951,7 +951,7 @@ async function captureVector(baseUrl: string, shot: ShotDef): Promise<VectorCapt
           // printBackground:true; the walker paints only per-element
           // background-color, so cropping to a panel that inherits its backdrop
           // (#tool-inputs, .be-* and 33 others measured) yields a TRANSPARENT shot
-          // — invisible against /info's dark theme. Using body's resolved colour
+          // - invisible against /info's dark theme. Using body's resolved colour
           // reproduces what the reader actually sees behind that element, rather
           // than inventing white.
           const target = document.querySelector(s) as HTMLElement | null;
@@ -979,14 +979,14 @@ async function captureVector(baseUrl: string, shot: ShotDef): Promise<VectorCapt
           // Origin of the walker's ROOT coordinate space, in viewport coords.
           // renderSvgFromHtml emits every node relative to the walked node's
           // border-box top-left, so root (0,0) IS that corner. A negative
-          // component means part of the node sits above/left of the fold — which
+          // component means part of the node sits above/left of the fold - which
           // is exactly the band the reader cannot see, and exactly what a
           // top-anchored window would otherwise publish instead of the visible one.
           // Read from the node itself rather than window.scrollY: body{margin:0}
           // makes them equal today, but a collapsed margin on a first child would
           // put them wildly apart and frame the wrong region.
           //
-          // Latent across the whole corpus as of 2026-07-31 — a --rebuild of all 140
+          // Latent across the whole corpus as of 2026-07-31 - a --rebuild of all 140
           // shots moved zero viewBoxes, so the plan's claim that three shipped shots
           // are already mis-anchored is refuted. The reason is that the stages centre
           // with `place-items: center`, and an oversized GRID item pins to the
@@ -1011,7 +1011,7 @@ async function captureVector(baseUrl: string, shot: ShotDef): Promise<VectorCapt
           // Is the framed area actually painted? The print path uses
           // printBackground:true so every baseline is opaque; the walker paints only
           // per-element background-color, and a crop root with no background rule
-          // yields a transparent shot — which reads as an empty rounded box against
+          // yields a transparent shot - which reads as an empty rounded box against
           // /info's dark theme. Read the walked element's own computed backdrop.
           // Ask the OUTPUT, not the element: a crop root can be transparent while
           // its first child paints the whole frame (the qr tool's own #fafbfe rect
@@ -1022,7 +1022,7 @@ async function captureVector(baseUrl: string, shot: ShotDef): Promise<VectorCapt
           const fw = vb.length === 4 ? (vb[2] as number) : 0;
           const fh = vb.length === 4 ? (vb[3] as number) : 0;
           const covers = [...doc.querySelectorAll('rect')].some((r) => {
-            // Fill can arrive as an attribute OR inside style="" — the svg-rooted
+            // Fill can arrive as an attribute OR inside style="" - the svg-rooted
             // passthrough clones a tool's own markup verbatim, and tools commonly
             // write `style="fill:#fafbfe"`. Reading only the attribute missed it.
             const f = (r.getAttribute('fill')
@@ -1044,7 +1044,7 @@ async function captureVector(baseUrl: string, shot: ShotDef): Promise<VectorCapt
           // parsed SVG (hidden, natural size) so getBoundingClientRect gives
           // every drawable's user-space box, drop the ones fully outside the
           // window, then rewrite the root frame. Definition subtrees
-          // (defs/clipPath/pattern/mask/symbol) are never culled — a <use> or
+          // (defs/clipPath/pattern/mask/symbol) are never culled - a <use> or
           // clip inside the window may reference ink whose source rect is not.
           let winDropped = 0;
           let framed: { width: number; height: number } | null = null;
@@ -1056,7 +1056,7 @@ async function captureVector(baseUrl: string, shot: ShotDef): Promise<VectorCapt
             // Window to the SMALLER of the two on each axis: the recipe frame bounds an
             // overflowing element, while an element smaller than the frame keeps its own
             // box rather than being padded out to the viewport. Only the CULL is
-            // conditional — the frame rewrite below always runs, because it also
+            // conditional - the frame rewrite below always runs, because it also
             // normalises the root to bare numbers, which is the form svgRootSize (the
             // dims-mismatch guard) can parse. Skipping it for a shot that exactly fits
             // left the walker's native `width="1440px"` in place and failed that guard.
@@ -1068,7 +1068,7 @@ async function captureVector(baseUrl: string, shot: ShotDef): Promise<VectorCapt
             const wx = Math.min(Math.max(0, off.x), Math.max(0, natW - winW));
             const wy = Math.min(Math.max(0, off.y), Math.max(0, natH - winH));
             // Reframe when the window is smaller than the box on either axis OR is
-            // offset into it. Testing size alone missed the offset case — the defect.
+            // offset into it. Testing size alone missed the offset case - the defect.
             const overflows = winW < natW - 0.5 || winH < natH - 0.5 || wx > 0.5 || wy > 0.5;
             const mountBox = document.createElement('div');
             mountBox.style.cssText = `position:absolute;left:-100000px;top:0;visibility:hidden;width:${natW}px;height:${natH}px;overflow:hidden`;
@@ -1093,7 +1093,7 @@ async function captureVector(baseUrl: string, shot: ShotDef): Promise<VectorCapt
               }
               // Prune empty <g>/<defs> shells, innermost first. Two reasons, and the
               // second is the one that matters:
-              //  1. They are pure weight — a group that paints nothing.
+              //  1. They are pure weight - a group that paints nothing.
               //  2. They are the last source of NON-DETERMINISM in a gallery shot. Tiles
               //     off-screen under `content-visibility: auto` are not rendered, so the
               //     walker emits their wrappers with nothing inside; how many get skipped
@@ -1104,7 +1104,7 @@ async function captureVector(baseUrl: string, shot: ShotDef): Promise<VectorCapt
               // is what makes the parent match `:empty` on the next pass), so the loop has
               // to run until it converges rather than a fixed number of times. An 8-pass
               // cap left a single stray `<g/>` on runs whose chains happened to nest
-              // deeper — which put the run-to-run variance back, 4 bytes of it.
+              // deeper - which put the run-to-run variance back, 4 bytes of it.
               for (let pass = 0; pass < 64; pass++) {
                 const empties = [...live.querySelectorAll('g:empty, defs:empty')];
                 if (!empties.length) break;
@@ -1127,11 +1127,11 @@ async function captureVector(baseUrl: string, shot: ShotDef): Promise<VectorCapt
           }
 
           // The BYTES of the raster images the framed region shows, fetched HERE in the
-          // page — the Verify view (and others) hand an <img> a blob: URL that only
+          // page - the Verify view (and others) hand an <img> a blob: URL that only
           // resolves in this realm, so the Node driver cannot re-fetch it. We read each
           // source's bytes (blob:/http/same-origin), base64-encode, and hand them out so
           // Node can read their Content Credentials directly and carry a genAI origin
-          // forward as an ingredient — BEFORE the walker's canvas re-encode strips it.
+          // forward as an ingredient - BEFORE the walker's canvas re-encode strips it.
           const _scope = (target ?? document.body) as HTMLElement;
           const _srcs = new Set<string>();
           for (const im of Array.from(_scope.querySelectorAll('img'))) {
@@ -1182,8 +1182,8 @@ async function captureVector(baseUrl: string, shot: ShotDef): Promise<VectorCapt
       if (!out.drawables) throw new Error(`walker capture produced no drawable content for ${sel}`);
       if (out.externalHrefs.length) {
         // A fetchable href renders BLANK inside `<img src="shot.svg">` (secure
-        // static mode, no network). Every src should now inline — see the <img>
-        // branch in export.ts — so reaching here means a scheme slipped through.
+        // static mode, no network). Every src should now inline - see the <img>
+        // branch in export.ts - so reaching here means a scheme slipped through.
         throw new Error(`walker left ${out.externalHrefs.length} non-inlined image href(s), `
           + `first: ${out.externalHrefs[0]} — the shot would not be self-contained`);
       }
@@ -1200,7 +1200,7 @@ async function captureVector(baseUrl: string, shot: ShotDef): Promise<VectorCapt
       return { bytes: new TextEncoder().encode(out.svg), framed: out.framed, imageB64: out.imageB64 };
     }
 
-    // Print the FULL page height as one tall page — scroll/crop trim below, in
+    // Print the FULL page height as one tall page - scroll/crop trim below, in
     // vector space, exactly like the desktop's capture_page_pdf + windowPdfSvg.
     const pageH = await page.evaluate(() =>
       Math.max(document.body.scrollHeight, document.documentElement.scrollHeight, window.innerHeight));
@@ -1209,13 +1209,13 @@ async function captureVector(baseUrl: string, shot: ShotDef): Promise<VectorCapt
       printBackground: true, pageRanges: '1', margin: { top: 0, right: 0, bottom: 0, left: 0 },
     });
 
-    // The crop, in CSS px of the printed page — the cull hint AND (scaled) the
+    // The crop, in CSS px of the printed page - the cull hint AND (scaled) the
     // window, from one helper so they can't drift.
     const crop = vectorCropCssPx(shot, dims, pageH, params.scrollDepth);
     const cropped = crop.width < dims.width || crop.height < dims.height || crop.x > 0 || crop.y > 0;
 
     // The hook is registered inside main.ts's async boot(), AFTER `await
-    // createBridge()` — it closes over the host's text shaper, which is the whole
+    // createBridge()` - it closes over the host's text shaper, which is the whole
     // reason outlining works. So it appears some way past `load`, and a shot whose
     // page settles quickly can reach here first. Wait for it rather than reading
     // its absence as a stale dist: that diagnosis sent the last build chasing a
@@ -1236,7 +1236,7 @@ async function captureVector(baseUrl: string, shot: ShotDef): Promise<VectorCapt
       );
     };
     // The optional call yields undefined only when the hook is gone at that instant
-    // — the page navigated (a hash route settling late) between the wait above and
+    // - the page navigated (a hash route settling late) between the wait above and
     // the call, which resets `window`. Seen once in a 134-shot run and never when
     // that shot is captured alone, i.e. under contention, not deterministically.
     // Re-wait and convert again: the print is already in hand and the conversion is
@@ -1244,7 +1244,7 @@ async function captureVector(baseUrl: string, shot: ShotDef): Promise<VectorCapt
     // cannot change the pixels.
     const res = (await convert()) ?? (await convert());
     if (!res) throw new Error('__lollyVectorShot resolved to nothing twice — the conversion returned no result');
-    // elementCount is what the INTERPRETER found, pre-cull — the "was the print
+    // elementCount is what the INTERPRETER found, pre-cull - the "was the print
     // blank?" signal. Culling is reported separately so a bad crop can't be
     // misdiagnosed as a blank print.
     if (!res.elementCount) throw new Error('vector capture produced no drawable content');
@@ -1257,7 +1257,7 @@ async function captureVector(baseUrl: string, shot: ShotDef): Promise<VectorCapt
         + `${res.culled.unbounded ? ` (${res.culled.unbounded} unbounded, kept)` : ''}`);
     }
 
-    // Window to the requested region — svg-point space (ratio = svg pts ÷ CSS px).
+    // Window to the requested region - svg-point space (ratio = svg pts ÷ CSS px).
     const ratio = res.width / dims.width;
     const svg = windowPdfSvg(res.svg, {
       x: crop.x * ratio,
@@ -1287,7 +1287,7 @@ async function captureOneVector(baseUrl: string, shot: ShotDef): Promise<ShotRes
   // Optimise BEFORE compare and BEFORE credentialing: baselines are stored
   // optimised, so a fresh capture must be optimised too or the vector exact
   // compare reports every shot changed forever. The C2PA stamp then covers
-  // the optimised bytes — nothing is stripped after signing. On svgo failure
+  // the optimised bytes - nothing is stripped after signing. On svgo failure
   // the original capture proceeds unoptimised (never block a shot on it).
   const rawBytes = bytes;
   try { bytes = optimizeShotSvg(bytes); } catch (e) {
@@ -1296,7 +1296,7 @@ async function captureOneVector(baseUrl: string, shot: ShotDef): Promise<ShotRes
 
   const { dims } = paramsFor(shot);
   // Expected output dims. The print path renders the whole page and WINDOWS it, so
-  // the frame is derivable from the viewport minus the crop insets — and a mismatch
+  // the frame is derivable from the viewport minus the crop insets - and a mismatch
   // there means the window went wrong, which is worth failing on.
   //
   // The walker path has no window step: it walks `cropSelector`'s element directly,
@@ -1308,7 +1308,7 @@ async function captureOneVector(baseUrl: string, shot: ShotDef): Promise<ShotRes
   // exit-code fix is meant to surface. So the check is skipped here; what still
   // guards a blank walker capture is the length check in captureVector.
   // For the walker the frame is whatever `walkerWindow`'s arithmetic resolved,
-  // reported back by the capture itself — same context, same numbers, so the check
+  // reported back by the capture itself - same context, same numbers, so the check
   // is exact rather than reconstructed. Do NOT re-derive it from the recipe: the
   // print path pads a cropSelector by 24px per side, which puts `expected` +48 over
   // a walker frame and reports a mismatch on all 38 cropSelector walker recipes.
@@ -1335,7 +1335,7 @@ async function captureOneVector(baseUrl: string, shot: ShotDef): Promise<ShotRes
   if (promote) {
     // The "damn sure" gate, paid only at write time: rasterise original vs
     // optimised and pixel-compare. A breach writes the ORIGINAL capture and
-    // says so — optimisation is only ever a no-op or a win.
+    // says so - optimisation is only ever a no-op or a win.
     let finalBytes = bytes;
     if (bytes !== rawBytes) {
       const gate = await svgFidelityGate(rawBytes, bytes);
@@ -1365,14 +1365,14 @@ async function imprintRaster(sharp: Sharp, raster: Uint8Array, format: string): 
 }
 
 /**
- * Content Credentials for a docs screenshot — the url-shot recipe's parameters
+ * Content Credentials for a docs screenshot - the url-shot recipe's parameters
  * ride in the credential (same enrichment path as a CLI url-shot export), so a
  * /verify of the published image shows exactly how to reproduce it.
  */
 /**
  * Ingredients for a genAI source the captured page shows. Fetches each live image
- * URL, reads its Content Credentials, and — only when a source GENUINELY carries a
- * genAI digitalSourceType — carries it forward as a `componentOf` ingredient. Verify
+ * URL, reads its Content Credentials, and - only when a source GENUINELY carries a
+ * genAI digitalSourceType - carries it forward as a `componentOf` ingredient. Verify
  * walks every manifest in the store, so the GEN AI flag surfaces on the screenshot
  * without ever claiming the screenshot itself is AI-generated. Silent + conservative:
  * an unreachable or uncredentialed source is skipped.
@@ -1460,7 +1460,7 @@ function summarize(results: ShotResult[]): void {
   const suspicious = results.filter((r) => r.verdict?.flags.some((f) => f === 'tiny' || f === 'blank' || f === 'size-jump'));
   // The weight budget, enforced at the only actionable moment: a baseline actually
   // being (re)written. An `unchanged` verdict means the bytes on disk are a legacy
-  // baseline's — worth reporting, not worth failing on, or the whole reframing
+  // baseline's - worth reporting, not worth failing on, or the whole reframing
   // backlog would block every run before it could be worked through. But nothing
   // over budget may be COMMITTED from here on, and --accept must not be the loophole.
   const overBudget = results.filter((r) => r.wrote && r.verdict?.flags.some((f) => f === 'over-scale' || f === 'heavy'));
@@ -1476,7 +1476,7 @@ function summarize(results: ShotResult[]): void {
     console.log(`⚠  over the weight budget, not rewritten this run (reframe: crop to the area of focus): ${legacyHeavy.map((r) => r.slug).join(', ')}`);
   }
   if (overBudget.length && opts.rebuild) {
-    // A full refresh is the CORRECTIVE run — it is how a renderer/engine/capture-state
+    // A full refresh is the CORRECTIVE run - it is how a renderer/engine/capture-state
     // change reaches every baseline. Failing it for weight would block the very run
     // that fixes things, and refusing the write would keep the older, heavier, staler
     // pixels instead. So --rebuild takes the new bytes and says loudly what is still
@@ -1502,7 +1502,7 @@ function summarize(results: ShotResult[]): void {
 /**
  * Switch the tools/ + catalog/ views to the neutral capture profile; returns the
  * restore function. Restore rules mirror loldev's do_build: sticky file, else
- * $LOLLY_PROFILE, else profiles.json's default — never silently leave the blank
+ * $LOLLY_PROFILE, else profiles.json's default - never silently leave the blank
  * brand pinned on a machine that had chosen another one.
  */
 function pinProfile(): () => void {
@@ -1533,7 +1533,7 @@ function useProfile(name: string): void {
   if (r !== 0) throw new Error(`use-profile ${name} failed (is the '${name}' pack mounted?)`);
 }
 
-/** With --no-build the dist may have been built under another brand — say so. */
+/** With --no-build the dist may have been built under another brand - say so. */
 function checkDistBrand(): void {
   try {
     const ids = (p: string): string =>
@@ -1551,7 +1551,7 @@ function checkDistBrand(): void {
 
 /**
  * captureUrl resolves the shells' scoped Chromium (.browsers / services/mcp/.browsers /
- * env overrides). When none exists, fall back to the repo's own playwright devDep —
+ * env overrides). When none exists, fall back to the repo's own playwright devDep - 
  * the same browser the previews + OG pipelines already use on this machine.
  */
 async function ensureBrowserResolvable(): Promise<void> {
@@ -1598,7 +1598,7 @@ const MIME: Record<string, string> = {
   '.map': 'application/json; charset=utf-8',
 };
 
-/** Static dist server with SPA fallback — same shape as build-previews' serveDist. */
+/** Static dist server with SPA fallback - same shape as build-previews' serveDist. */
 async function serveDist(): Promise<ServeHandle> {
   const server = createServer(async (req, res) => {
     try {

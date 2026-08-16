@@ -1,47 +1,48 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
- * Enrolled signing identities for the terminal shells — load an operator's own
- * private key + certificate chain and hand `embedC2pa` a real {@link C2paSigner}
+ * Enrolled signing identities for the terminal shells. Loads an operator's own
+ * private key and certificate chain and hands `embedC2pa` a real {@link C2paSigner}
  * instead of the ephemeral self-signed one.
  *
  * WHY THIS EXISTS. Every CLI export until now was signed by a fresh, anonymous,
  * self-signed on-device certificate, so it read `signingCredential.untrusted` no
  * matter which roots the verifier pinned. Contract §12 O1 made the terminal pin
- * the Lolly CA root by default, which is only a meaningful decision for files
- * signed by an identity that chains somewhere. This module is that identity.
+ * the Lolly CA root by default. That default only matters for files signed by an
+ * identity that chains somewhere. This module is that identity.
  *
- * THE RULES IT ENFORCES, all of them security-relevant:
+ * RULES THIS MODULE ENFORCES. All are security-relevant:
  *
  *  • KEY MATERIAL NEVER COMES FROM ARGV. The caller passes a FILE PATH, or PEM
- *    text out of an environment variable. `ps` shows every argument of every
+ *    text from an environment variable. `ps` shows every argument of every
  *    process on the machine to every user on it, shell history keeps a copy, and
  *    CI logs the command line. A path is not a secret; a key is.
  *
  *  • THE KEY AND THE CERTIFICATE MUST MATCH, checked here at setup time. The
  *    classic misconfiguration is a key from one enrolment and a certificate from
- *    another: the file signs fine, the manifest carries an x5chain whose leaf
- *    public key cannot verify the signature, and the mismatch is only discovered
- *    by the recipient. We derive the public key from the private key and compare
- *    it byte-for-byte with the leaf's SubjectPublicKeyInfo. Mismatch is a refusal.
+ *    another: the file signs fine, but the manifest carries an x5chain whose leaf
+ *    public key cannot verify the signature, and the recipient is the one who
+ *    discovers the mismatch. We derive the public key from the private key and
+ *    compare it byte-for-byte with the leaf's SubjectPublicKeyInfo. A mismatch
+ *    is a refusal.
  *
  *  • NOTHING HERE EVER PRINTS KEY MATERIAL. Every error message names the SOURCE
  *    (a path, or an environment variable's NAME) and the failure, never a byte of
- *    the key. `tests/cli-signing-identity.test.ts` asserts that for every failure
+ *    the key. `tests/cli-signing-identity.test.ts` checks this for every failure
  *    path, against a real key.
  *
  *  • THE KEY IS IMPORTED NON-EXTRACTABLE. The WebCrypto handle handed to the
  *    engine cannot be exported back out, so a tool hook that gets hold of the
  *    signer object still cannot read the key.
  *
- * ZEROING, HONESTLY. The file bytes and the decoded PKCS#8 both live in Buffers
- * we overwrite with zeros as soon as the key is imported, and the PEM is never
- * converted to a JS string (`Buffer.includes` does the sniffing) precisely
- * because a string cannot be zeroed. What CANNOT be guaranteed on this platform:
- * Node's `KeyObject` keeps its own copy in OpenSSL-managed memory with no public
- * "wipe" call, V8 may have copied any of these buffers during a GC compaction,
- * and the OS may have paged them to swap. Zeroing here shortens the window; it
- * does not close it. If that window matters to your threat model, the key wants
- * an HSM/KMS, not a file.
+ * ZEROING: WHAT IT DOES AND DOES NOT COVER. The file bytes and the decoded
+ * PKCS#8 both live in Buffers we overwrite with zeros as soon as the key is
+ * imported. The PEM is never converted to a JS string (`Buffer.includes` does
+ * the sniffing instead), because a string cannot be zeroed. This platform gives
+ * no guarantee beyond that: Node's `KeyObject` keeps its own copy in
+ * OpenSSL-managed memory with no public "wipe" call, V8 may have copied any of
+ * these buffers during a GC compaction, and the OS may have paged them to swap.
+ * Zeroing here shortens the window; it does not close it. If that window
+ * matters for your threat model, use an HSM/KMS instead of a file.
  *
  * DELIBERATELY NOT SUPPORTED: PKCS#12 / .p12. Node has no built-in PKCS#12
  * reader (`crypto.createPrivateKey` refuses it and WebCrypto has no such format),
@@ -51,9 +52,9 @@
  * two-command conversion the operator runs once; docs/cli-signing.md gives it
  * verbatim. Reconsider only if the engine ever needs an ASN.1 library anyway.
  *
- * PURE-ish: filesystem reads and `node:crypto`, no CLI vocabulary. What a shell
- * does with a `SigningIdentityError` (exit code, envelope shape) stays per-shell,
- * the same split `trust-anchors.ts` draws.
+ * MOSTLY PURE: filesystem reads and `node:crypto`, no CLI vocabulary. What a
+ * shell does with a `SigningIdentityError` (exit code, envelope shape) stays
+ * per-shell, the same split `trust-anchors.ts` draws.
  */
 
 import { readFile } from 'node:fs/promises';
@@ -118,7 +119,7 @@ export interface SigningIdentity {
   commonName?: string;
   /** Leaf subject O, if it has one. */
   organization?: string;
-  /** First SAN rfc822Name — what a verifier reports as the signer's identity. */
+  /** First SAN rfc822Name: what a verifier reports as the signer's identity. */
   email?: string;
   notBefore: Date;
   notAfter: Date;
@@ -240,7 +241,7 @@ async function importPrivateKey(
   // Node Buffer may sit on a shared pool. Both are zeroed below.
   const view = new Uint8Array(pkcs8);
   try {
-    // extractable: false — the engine only ever calls subtle.sign with this, and a
+    // extractable: false. The engine only ever calls subtle.sign with this, and a
     // tool hook that reaches the signer object still cannot read the key back out.
     const cryptoKey = await webcrypto.subtle.importKey(
       'pkcs8', view, { name: 'ECDSA', namedCurve: 'P-256' }, false, ['sign'],
@@ -280,9 +281,9 @@ export async function resolveSigningIdentity(input: SigningIdentityInput = {}): 
   const haveCert = Boolean(certPath || certPem);
   if (!haveKey && !haveCert) return null;
   if (!haveKey || !haveCert) {
-    // Half a configuration must never silently fall back to the anonymous signer:
-    // the operator asked for an identity and would get an untrusted file believing
-    // otherwise.
+    // Half a configuration must never silently fall back to the anonymous signer.
+    // The operator asked for an identity and would otherwise get an untrusted
+    // file without knowing it.
     throw new SigningIdentityError(
       haveKey
         ? `A signing key was configured but no certificate chain. Add --sign-cert=<chain.pem> (or $${SIGN_ENV.cert} / $${SIGN_ENV.certPem}). A key alone cannot produce a verifiable credential.`
@@ -318,8 +319,8 @@ export async function resolveSigningIdentity(input: SigningIdentityInput = {}): 
   const leaf = parsed[0]!;
 
   // THE MATCH CHECK. The public key derived from the private key must be the leaf's
-  // SubjectPublicKeyInfo, byte for byte. Without this a mismatched pair produces a
-  // perfectly well-formed manifest that no verifier on earth can validate.
+  // SubjectPublicKeyInfo, byte for byte. Without this check, a mismatched pair
+  // produces a well-formed manifest that no verifier can validate.
   // `createPublicKey` accepts a KeyObject at runtime (that is the whole point of the
   // overload); the bundled @types/node union omits it, hence the cast. Deriving it from
   // the KeyObject rather than re-exporting a PEM matters: a PEM would be an
@@ -336,8 +337,8 @@ export async function resolveSigningIdentity(input: SigningIdentityInput = {}): 
   }
 
   // Validity window, checked against this machine's clock. An expired certificate
-  // still signs, and the file still hashes; it simply reads "Credential expired"
-  // for its whole life, which is not what anyone configuring an identity wants.
+  // still signs, and the file still hashes. It reads "Credential expired" for
+  // its whole life, which is not useful when configuring an identity.
   const now = Date.now();
   if (now < leaf.notBefore.getTime()) {
     throw new SigningIdentityError(
@@ -353,8 +354,8 @@ export async function resolveSigningIdentity(input: SigningIdentityInput = {}): 
   }
 
   // Chain ORDER. x5chain is leaf first, each certificate issued by the next. A chain
-  // assembled in the wrong order verifies nowhere, and "it's in the file" is exactly
-  // the kind of thing that looks fine until a recipient checks it.
+  // assembled in the wrong order does not verify anywhere. It can look fine until
+  // a recipient checks it.
   for (let i = 1; i < parsed.length; i++) {
     if (!(await signedBy(parsed[i - 1]!, parsed[i]!))) {
       throw new SigningIdentityError(
@@ -408,7 +409,7 @@ async function readSecret(path: string, code: string, flag: string): Promise<Buf
 }
 
 /**
- * A one-line human summary of a loaded identity. Certificate facts only — this is
+ * A one-line human summary of a loaded identity. Certificate facts only. This is
  * printed to stderr on every signed run, and it must stay printable in a CI log.
  */
 export function describeIdentity(id: SigningIdentity): string {

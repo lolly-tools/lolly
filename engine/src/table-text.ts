@@ -1,19 +1,20 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
- * Text ⇄ table parsing/serialising for the `table` input (the clipboard and file round-trip) — the batch-editing story is
- * "edit in the spreadsheet you already have", so paste-in and copy-out must be
- * lossless against the three formats collaboration tools actually produce:
+ * Text-to-table parsing and serialising for the `table` input (the clipboard and
+ * file round-trip). The batch-editing story is "edit in the spreadsheet you
+ * already have", so paste-in and copy-out must be lossless against the three
+ * formats collaboration tools actually produce:
  *
- *   · TSV — what Excel / Google Sheets / Numbers put on the clipboard
- *   · Markdown pipe tables — Slack, Notion, GitHub, and every LLM
- *   · CSV — files and "export as CSV" flows (RFC 4180 quoting)
+ *   - TSV: what Excel, Google Sheets, and Numbers put on the clipboard
+ *   - Markdown pipe tables: Slack, Notion, GitHub, and every LLM
+ *   - CSV: files and "export as CSV" flows (RFC 4180 quoting)
  *
  * Detection is structural, not user-selected: tabs mean TSV, a pipe-framed
  * block means Markdown, otherwise CSV. Copy-out writes TSV (text/plain) plus a
  * real <table> (text/html) in one clipboard item, so pasting lands as a grid in
  * Sheets/Excel/Docs/Notion alike; toMarkdown is offered for text-only surfaces.
  *
- * Pure string functions, no DOM — usable from every shell (the web sidebar's
+ * Pure string functions, no DOM. Usable from every shell (the web sidebar's
  * paste/copy wiring, the CLI's `--<input>-data=file` import). Tested in
  * tests/table-text.test.ts.
  */
@@ -87,7 +88,7 @@ function splitCsvLine(line: string): string[] {
   return cells;
 }
 
-/** TSV serialisation (header row first) — the text/plain clipboard flavour.
+/** TSV serialisation (header row first): the text/plain clipboard flavour.
  *  Tabs/newlines inside a cell become spaces: TSV has no escape syntax, and a
  *  shifted grid is worse than a flattened line break. */
 export function toTsv(t: TableValue): string {
@@ -102,7 +103,7 @@ export function toMarkdown(t: TableValue): string {
   return [row(t.columns), `|${t.columns.map(() => ' --- |').join('')}`, ...t.rows.map(row)].join('\n');
 }
 
-/** A minimal semantic <table> — the text/html clipboard flavour, so a paste
+/** A minimal semantic <table>: the text/html clipboard flavour, so a paste
  *  into Sheets/Excel/Docs/Notion lands as a real grid. */
 export function toHtmlTable(t: TableValue): string {
   const esc = (s: string): string =>

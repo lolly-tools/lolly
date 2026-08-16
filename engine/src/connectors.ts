@@ -1,19 +1,19 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
- * Connector / line / arrow geometry — the ONE source (plan 90 R1).
+ * Connector / line / arrow geometry - the ONE source (plan 90 R1).
  *
  * A *line* is a stroked path with decorations, made three ways (pen, the line tool, or
  * node-connect) and sharing one endpoint + decoration model. This module is DOM-free and
  * pure, so it drives:
  *   • the editor's live overlay preview + hit-test (`edgeWaypoints`, sampled),
  *   • the COMMITTED / exported render (`buildConnectorSvg`, real curves), and
- *   • the CLI/headless export (same call, via the host bridge primitive) —
- * which is why it lives in the engine and not the web shell: a shell-only render would
+ *   • the CLI/headless export (same call, via the host bridge primitive).
+ * This is why it lives in the engine and not the web shell: a shell-only render would
  * drop every connector from a `--export` on the command line.
  *
  * An endpoint is a box id (the line attaches + tracks it) OR the sentinel `@x,y` (a free
  * point). A point resolves to a ZERO-SIZE rect, which every routing function here already
- * handles — `edgeBorderPt` on a 0×0 rect returns the point itself — so no routing is
+ * handles: `edgeBorderPt` on a 0×0 rect returns the point itself. So no routing is
  * special-cased for points.
  *
  * EXPORT-SAFE, without exception: shafts are `<path>`, arrowheads are filled `<path>` or
@@ -31,7 +31,7 @@ export interface EdgeRect { x: number; y: number; w: number; h: number }
 /** A rectangle reduced to centre + half-extents, for border-point math. */
 export interface EdgeAnchor { cx: number; cy: number; hw: number; hh: number }
 
-/** Round to 2dp — the connector coordinate precision, shared by preview + committed. */
+/** Round to 2dp - the connector coordinate precision, shared by preview + committed. */
 const ef2 = (v: number): number => Math.round(v * 100) / 100;
 /** Minimal attribute escaping for a colour baked into an SVG attribute. */
 const escAttr = (s: string): string =>
@@ -73,7 +73,7 @@ export function edgeAnchor(r: EdgeRect): EdgeAnchor {
   return { cx: r.x + r.w / 2, cy: r.y + r.h / 2, hw: r.w / 2, hh: r.h / 2 };
 }
 /** The point on anchor `a`'s border along the ray toward (tx,ty). A 0×0 anchor returns
- *  its own centre — which is exactly what makes a free point endpoint work unchanged. */
+ *  its own centre. That is exactly what makes a free point endpoint work unchanged. */
 export function edgeBorderPt(a: EdgeAnchor, tx: number, ty: number): Point {
   const dx = tx - a.cx, dy = ty - a.cy;
   if (dx === 0 && dy === 0) return { x: a.cx, y: a.cy };
@@ -96,7 +96,7 @@ export const CONNECTOR_ROUTE_STYLES: readonly string[] = [
 ];
 const ROUTE_SET: Record<string, 1> = Object.create(null);
 for (const s of CONNECTOR_ROUTE_STYLES) ROUTE_SET[s] = 1;
-/** True when `v` names one of the thirteen routes (own-property test — a bare index
+/** True when `v` names one of the thirteen routes (own-property test - a bare index
  *  would accept `constructor`/`toString` off Object.prototype). */
 export function isConnectorRouteStyle(v: unknown): boolean {
   return typeof v === 'string' && Object.prototype.hasOwnProperty.call(ROUTE_SET, v);
@@ -105,7 +105,7 @@ export function isConnectorRouteStyle(v: unknown): boolean {
 /**
  * The route a BOUND path is drawn with, from its own spline kind (plan 96 P3).
  *
- * A bound path is a connector, and connector management picks the route — but the user
+ * A bound path is a connector, and connector management picks the route, but the user
  * already said what shape they wanted when they picked a spline kind, so that is what
  * chooses it. The mapping, and why each pair goes together:
  *
@@ -121,7 +121,7 @@ export function isConnectorRouteStyle(v: unknown): boolean {
  * | anything else  | any   | `straight` | an unknown kind cannot be guessed at             |
  *
  * The sub-variants (`-v` / `-h` / `-src` / `-tgt` / `-wide` / `-flip`) are NOT reachable
- * from a kind — six kinds cannot name thirteen routes — so a path box carries an explicit
+ * from a kind (six kinds cannot name thirteen routes), so a path box carries an explicit
  * `route` override for them. `override` wins whenever it names a real route, which is also
  * what makes the plan-90 edge migration lossless: an `elbow-src` edge keeps bending at its
  * source. An empty/unknown override falls through to the kind, i.e. "auto".
@@ -135,7 +135,7 @@ export function pathRouteStyle(kind: unknown, override?: unknown, nodeCount?: nu
   return 'straight';
 }
 
-// Arc variants — [depth × chord, side sign, px cap].
+// Arc variants - [depth × chord, side sign, px cap].
 const ARC_VARIANTS: Record<string, [number, number, number]> = {
   arc: [0.22, 1, 70], 'arc-wide': [0.42, 1, 220], 'arc-flip': [0.22, -1, 70], 'arc-flip-wide': [0.42, -1, 220],
 };
@@ -272,7 +272,7 @@ function dashRun(x1: number, y1: number, x2: number, y2: number, style: string, 
 }
 
 // ── arrowheads ───────────────────────────────────────────────────────────────────
-/** A circle as 4 cubic beziers (never <circle>/<ellipse> — a path is PDF/EMF-portable). */
+/** A circle as 4 cubic beziers (never <circle>/<ellipse>; a path is PDF/EMF-portable). */
 function circleEdgePath(cx: number, cy: number, r: number): string {
   const k = 0.5523 * r;
   return `M${ef2(cx + r)} ${ef2(cy)}` +
@@ -291,7 +291,7 @@ export function edgeHeadInset(kind: string, s: number): number {
 /**
  * An arrowhead SVG fragment at `tip` pointing along unit (ux,uy), size `s`, colour `fill`.
  * `kind`: none · open · triangle (default) · diamond · circle · bar. Coordinates are baked
- * in — no transform — so it drops straight into a connector <svg> in overlay or export.
+ * in, with no transform, so it drops straight into a connector <svg> in overlay or export.
  */
 export function edgeArrowHead(tip: Point, ux: number, uy: number, s: number, fill: string, kind: string): string {
   if (kind === 'none') return '';
@@ -323,7 +323,7 @@ export function edgeArrowHead(tip: Point, ux: number, uy: number, s: number, fil
 
 // ── heads on an authored PATH (plan 96 P1) ───────────────────────────────────────
 /**
- * How big a head is for a given stroke width — the ONE formula, so an arrowhead on a
+ * How big a head is for a given stroke width. The ONE formula, so an arrowhead on a
  * hand-drawn spline is the same size as one on a routed connector of the same weight.
  */
 export function pathHeadSize(width: number): number {
@@ -333,7 +333,7 @@ export function pathHeadSize(width: number): number {
 /** A head at the tip of an authored path: tip point, OUTWARD tangent, shape, colour, weight. */
 export interface PathHeadOpts {
   tipX: number; tipY: number;
-  /** Tangent at the tip in RADIANS, pointing OUT of the path — i.e. `Math.atan2(dy, dx)`
+  /** Tangent at the tip in RADIANS, pointing OUT of the path, i.e. `Math.atan2(dy, dx)`
    *  of the last segment at an end head, and of the REVERSED first segment at a start head. */
   angle: number;
   /** none · open · triangle · diamond · circle · bar (anything else draws a triangle). */
@@ -347,7 +347,7 @@ export interface PathHeadOpts {
  * The head-for-a-tip primitive the unified path renderer calls (plan 96 P1): the SAME
  * shapes `edgeArrowHead` draws for a connector, addressed by tip + angle instead of a unit
  * vector, so a spline, a line and a connector all decorate identically in the editor, the
- * export and the CLI. Coordinates are baked in — no transform — so the fragment drops
+ * export and the CLI. Coordinates are baked in, with no transform, so the fragment drops
  * straight into any `<svg>`.
  */
 export function pathHeadSvg(o: PathHeadOpts): string {
@@ -388,7 +388,7 @@ export interface ConnectorRenderOpts {
    *  string). Set → the shaft is drawn as real `<line>` dash segments fitted to the
    *  route's corners, and the `dash` keyword is not read. */
   dashArrayField?: string;
-  /** Plan 96: opt out of the corner FIT while keeping the authored pattern (default on —
+  /** Plan 96: opt out of the corner FIT while keeping the authored pattern (default on:
    *  a routed connector's corners are exactly where a half dash reads as a mistake). */
   dashFitField?: string;
   defaultStyle?: string; defaultArrow?: string; defaultHead?: string;
@@ -399,7 +399,7 @@ export interface ConnectorRenderOpts {
 type Edge = Record<string, unknown>;
 
 /**
- * One committed line's resolved decoration — the ONE record both readings reduce to before
+ * One committed line's resolved decoration. The ONE record both readings reduce to before
  * any geometry happens, so an edge `{arrow:'end', head:'open'}` and a path
  * `{headStart:'none', headEnd:'open'}` are the same drawing by construction rather than by
  * two code paths agreeing.
@@ -414,18 +414,18 @@ export interface ConnectorDecor {
    *  is false. Never `stroke-dasharray`: this is the committed layer. */
   dashArray?: readonly number[] | null;
   dashFit?: boolean;
-  /** Already attribute-escaped (see `escAttr`) — this is baked straight into markup. */
+  /** Already attribute-escaped (see `escAttr`). This is baked straight into markup. */
   color: string;
   width: number;
 }
 
 /** Sample a route into the polyline the dash walk measures, plus which vertices are real
- *  CORNERS (a dash gets centred on those). A sampled curve has none — its whole run is one
+ *  CORNERS (a dash gets centred on those). A sampled curve has none: its whole run is one
  *  span, exactly as `dashSpanLengths` treats a smooth spline in the pack hooks. */
 function routePolyline(route: ConnectorRoute, pts: Point[]): { pts: Point[]; corners: boolean } {
   if (route.arc && route.cpt) return { pts: sampleQuad(pts[0]!, route.cpt, pts[pts.length - 1]!, 48), corners: false };
   if (route.curved && pts.length >= 3) {
-    // The same cubic `smoothEdgePath` draws, sampled — so the dashes sit on the drawn curve
+    // The same cubic `smoothEdgePath` draws, sampled, so the dashes sit on the drawn curve
     // rather than on the polyline the curve only passes near.
     const s = pts[0]!, t = pts[pts.length - 1]!;
     const vert = route.orient ? route.orient === 'v' : Math.abs(t.y - s.y) >= Math.abs(t.x - s.x);
@@ -469,7 +469,7 @@ function dashArrayRun(poly: Point[], corners: boolean, pattern: readonly number[
   const runs = dashSegments(spans, pattern.slice());
   let out = '';
   for (const seg of runs) {
-    // Walk the polyline once per dash — a dash may straddle several vertices.
+    // Walk the polyline once per dash - a dash may straddle several vertices.
     let acc = 0;
     for (let i = 0; i < segLen.length; i++) {
       const L = segLen[i]!;
@@ -491,7 +491,7 @@ function dashArrayRun(poly: Point[], corners: boolean, pattern: readonly number[
 /**
  * One committed line between two rects: shaft (real curve / rounded elbow / real-segment
  * dashes) plus head(s), with the shaft pulled back off a decorated end by a gap + the
- * head's inset. THE committed geometry — a plan-90 edge and a plan-96 bound path both
+ * head's inset. THE committed geometry: a plan-90 edge and a plan-96 bound path both
  * arrive here, so they cannot drift.
  */
 export function routedLineSvg(a: EdgeRect, b: EdgeRect, decor: ConnectorDecor): string {
@@ -621,17 +621,17 @@ export function buildConnectorSvg(edges: Edge[], rectById: Map<string, EdgeRect>
 /**
  * The `host.connectors` bridge implementation (HostV1 v1.106, extended v1.110/v1.111).
  * Every shell attaches THIS (`host.connectors = makeConnectorsApi()`) instead of naming
- * the members itself, so the surface can never drift between web, CLI and Tauri — the way
+ * the members itself, so the surface can never drift between web, CLI and Tauri. The way
  * `makeColorApi`/`makeGeomApi` already work. Pure + synchronous throughout.
  */
 export function makeConnectorsApi(): ConnectorsAPI {
   return {
     build: buildConnectorSvg,
-    // v1.110 — the unified path primitive's decoration + dash maths (plan 96).
+    // v1.110 - the unified path primitive's decoration + dash maths (plan 96).
     pathHeadSvg,
     pathHeadInset,
     dashFit: { parse: parseDashArray, cornerFitDashArray, dashSegments },
-    // v1.111 — a BOUND path is routed by its own spline kind (plan 96 P3), and a pack hook
+    // v1.111 - a BOUND path is routed by its own spline kind (plan 96 P3), and a pack hook
     // has to agree with the editor about which route that is, so the mapping is the
     // engine's rather than each surface's.
     routeStyleForKind: pathRouteStyle,

@@ -1,18 +1,18 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
- * Sequence Studio — the audio-only export (wav / mp3 / m4a / opus).
+ * Sequence Studio - the audio-only export (wav / mp3 / m4a / opus).
  *
- * Run with: npm test  (node --test over the tests/ globs). No framework — node:test.
+ * Run with: npm test  (node --test over the tests/ globs). No framework - node:test.
  *
  * An audio export of a sequence is the SOUNDTRACK OF THE VIDEO EXPORT in a file with
  * no picture: the music bed plus every unmuted clip track, ducked the same way. So
  * the thing worth proving is not "wav bytes came out" (that is lib/audio-encode.ts's
- * suite) but that this path is the SAME mix the mp4/webm path muxes — same mixer,
+ * suite) but that this path is the SAME mix the mp4/webm path muxes - same mixer,
  * same layers, same length, same answer when there is nothing to mix. Two mixers
  * would drift and the exported audio would stop matching the exported video.
  *
  * `mixSequenceAudio` is browser-only in the sense that it needs an
- * OfflineAudioContext, not in the sense that it needs pixels — so the graph is
+ * OfflineAudioContext, not in the sense that it needs pixels - so the graph is
  * driven here against a recording stand-in for that one Web Audio API. What that
  * stand-in cannot judge is the SOUND (the real ramps, the real resampling); that
  * stays with the Playwright tier in tests/sequence-render.browser.test.ts.
@@ -142,7 +142,7 @@ test('a sequence with no audio at all mixes to nothing', async () => {
   // The video path exports this composition as SILENT video (mix.buffer === null and
   // the muxer gets no audio track), which is correct: the picture is still the
   // deliverable. Audio-only has no such fallback, so `null` is the answer the caller
-  // turns into a refusal — a wav of pure silence reads as a broken export.
+  // turns into a refusal - a wav of pure silence reads as a broken export.
   reset();
   const pcm = await sequenceAudioPcm(stageOf(4000, [textBox(0, 4000)]), {}, host);
   assert.equal(pcm, null, 'no bed and no clip track means no audio');
@@ -188,7 +188,7 @@ test('a bed shorter than the timeline loops, exactly as the video export loops i
   const bed = FakeOfflineAudioContext.last!.sources.at(-1)!;
   assert.equal(bed.loop, true, 'the bed loops');
   assert.ok(bed.buffer!.duration < 6, 'test is meaningful: the stubbed bed really is shorter');
-  // And it is enveloped rather than played flat — the fades the export bar asked for.
+  // And it is enveloped rather than played flat - the fades the export bar asked for.
   assert.ok(FakeOfflineAudioContext.last!.gains.at(-1)!.gain.events.length > 1,
     'the bed rides the shared gain envelope');
 });
@@ -196,7 +196,7 @@ test('a bed shorter than the timeline loops, exactly as the video export loops i
 test('an unreachable bed warns and mixes to nothing, rather than failing the export', async () => {
   // A missing bed is "export without it", not a thrown export. The mixer reports
   // whether a bed actually CONNECTED rather than whether one was asked for, so with
-  // no clip audio either there is nothing left and the audio-only caller refuses —
+  // no clip audio either there is nothing left and the audio-only caller refuses - 
   // with the reason in the log. Before that distinction existed the graph was still
   // rendered and handed back a buffer of pure silence, which is precisely the file
   // this format must never produce. The video path is better off too: it now muxes
@@ -268,7 +268,7 @@ test('the audio-only path and the video path share ONE mixer', async () => {
 test('Design offers the four audio formats, after the motion group', async () => {
   // Migrated from Sequence Studio (retired into Design, plans/104): the audio-export
   // formats now live on Design's manifest. Design is design-first (formats[0] is a
-  // still, not mp4), so the old motion-first ordering no longer applies — only that
+  // still, not mp4), so the old motion-first ordering no longer applies - only that
   // the audio set sits after the motion group.
   const manifest = JSON.parse(
     await readFile(join(ROOT, 'brands', 'lolly-start', 'tools', 'design', 'tool.json'), 'utf8'),

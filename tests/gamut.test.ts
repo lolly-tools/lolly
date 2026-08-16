@@ -1,11 +1,11 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
- * Display-gamut classification (engine/src/gamut.ts) — the sRGB / Display-P3 /
+ * Display-gamut classification (engine/src/gamut.ts) - the sRGB / Display-P3 /
  * Rec.2020 boundaries the brand studio's OKLCH slice charts draw.
  *
  * The invariants that matter:
  *   (1) every sRGB colour classifies as 'srgb' (the whole 8-bit cube, sampled)
- *   (2) the gamuts nest — srgb ⊂ p3 ⊂ rec2020 — at every lightness and hue
+ *   (2) the gamuts nest - srgb ⊂ p3 ⊂ rec2020 - at every lightness and hue
  *   (3) maxChroma agrees with oklchGamut on both sides of the boundary it finds
  *   (4) the boundary is hue-dependent in the way real displays are (P3's big
  *       win is in the reds/greens, barely anything in the blues)
@@ -120,8 +120,8 @@ test('maxChroma widens past sRGB and matches oklchToHex on sRGB', () => {
     const s = maxChroma(0.65, h, 'srgb');
     const p = maxChroma(0.65, h, 'p3');
     const r = maxChroma(0.65, h, 'rec2020');
-    // Both wide gamuts beat sRGB everywhere. P3 vs Rec.2020 is NOT ordered —
-    // see the deep-red sliver test above — so that pair is deliberately not
+    // Both wide gamuts beat sRGB everywhere. P3 vs Rec.2020 is NOT ordered - 
+    // see the deep-red sliver test above - so that pair is deliberately not
     // asserted here.
     assert.ok(s <= p, `hue ${h}: sRGB ${s} <= P3 ${p}`);
     assert.ok(s <= r, `hue ${h}: sRGB ${s} <= Rec.2020 ${r}`);
@@ -183,7 +183,7 @@ test('a slice is a correctly sized RGBA buffer with the axes the doc claims', ()
   assert.ok(top[0] > bottom[0], `top ${top} should be lighter than bottom ${bottom}`);
   assert.ok(Math.abs(top[0] - top[1]) < 3 && Math.abs(top[1] - top[2]) < 3, `chroma 0 is grey: ${top}`);
   // Chroma grows rightward: at mid lightness the far side is more saturated.
-  // Measured at the last OPAQUE column — the true right edge is past Rec.2020
+  // Measured at the last OPAQUE column - the true right edge is past Rec.2020
   // at this hue and correctly transparent.
   const mid = Math.floor(s.height / 2);
   const spread = (p: readonly number[]): number =>
@@ -203,7 +203,7 @@ test('slice pixels are transparent exactly where the plane leaves the limit', ()
       const l = 1 - (y + 0.5) / H;
       for (let x = 0; x < W; x++) {
         const c = ((x + 0.5) / W) * cMax;
-        // Ask the gamut DIRECTLY — the ordering form (gamutWithin ∘ oklchGamut)
+        // Ask the gamut DIRECTLY - the ordering form (gamutWithin ∘ oklchGamut)
         // disagrees with the painter across the P3/Rec.2020 red sliver, and when
         // an oracle and the code disagree the oracle is just as likely to be wrong.
         const want = inGamut(l, c, 30, limit);
@@ -215,7 +215,7 @@ test('slice pixels are transparent exactly where the plane leaves the limit', ()
 });
 
 test('a wider limit paints a superset of sRGB', () => {
-  // sRGB genuinely nests inside Rec.2020 (unlike P3 — see the sliver test), so
+  // sRGB genuinely nests inside Rec.2020 (unlike P3 - see the sliver test), so
   // this superset claim is safe for this pair specifically.
   const box = { plane: 'ch' as const, fixed: 0.6, width: 90, height: 40 };
   const srgb = oklchSlice({ ...box, limit: 'srgb' });
@@ -285,7 +285,7 @@ test('sliceGamutEdge traces the boundary the slice is transparent past', () => {
       assert.ok(!inGamut(l, c * 1.03 + 1e-3, h, 'srgb'), `outside at ${JSON.stringify(p)}`);
     }
   }
-  // 'lh' has no single-valued boundary curve — chroma is constant across it.
+  // 'lh' has no single-valued boundary curve - chroma is constant across it.
   assert.deepEqual(sliceGamutEdge('lh', 0.15), []);
 });
 
@@ -298,7 +298,7 @@ test('the sampled fill ceiling lands on the real sRGB boundary', () => {
   // Note this is NOT the same colour oklchToHex would give. That mapper applies
   // CSS Color 4's local-MINDE clip, which deliberately overshoots the boundary
   // to keep punch (oklch(0.95 0.25 120) → #dbff00, not #e0ff6f). The chart wants
-  // the smooth ridge instead, so the two legitimately differ out of gamut —
+  // the smooth ridge instead, so the two legitimately differ out of gamut - 
   // which is exactly why the boundary is drawn as a line rather than inferred
   // from where the fill stops changing.
   for (const hue of [30, 145, 264, 330]) {
@@ -309,7 +309,7 @@ test('the sampled fill ceiling lands on the real sRGB boundary', () => {
       const ceiling = maxChroma(l, hue, 'srgb');
       for (let x = 0; x < 64; x += 2) {
         const c = ((x + 0.5) / 64) * 0.4;
-        if (c <= ceiling + 0.02) continue;        // in gamut (or straddling) — covered above
+        if (c <= ceiling + 0.02) continue;        // in gamut (or straddling) - covered above
         if (s.data[(y * 64 + x) * 4 + 3] !== 255) continue; // past Rec.2020, not painted
         const p = px(s, x, y);
         const got = hexToOklch(`#${p.slice(0, 3).map(v => v.toString(16).padStart(2, '0')).join('')}`)!;
@@ -318,10 +318,10 @@ test('the sampled fill ceiling lands on the real sRGB boundary', () => {
       }
     }
     // Blue (264°) has the narrowest sRGB→Rec.2020 band of the four, so the
-    // stride catches fewest pixels there — 15 is still a real sample of it.
+    // stride catches fewest pixels there - 15 is still a real sample of it.
     assert.ok(checked > 15, `hue ${hue}: sampled enough out-of-gamut pixels (${checked})`);
     // A JND in OKLab is ~0.02, and this error is pure chroma, so 0.015 is still
-    // under the threshold of visibility — and it is the bilinear interpolation
+    // under the threshold of visibility - and it is the bilinear interpolation
     // error on a 0.016-lightness grid, exactly the size the grid predicts.
     assert.ok(worst < 0.015, `hue ${hue}: worst ceiling error ${worst.toFixed(4)}`);
   }
@@ -366,7 +366,7 @@ test('a P3-encoded slice carries colour sRGB encoding has to throw away', async 
   }
   assert.ok(flat > 5, `sRGB encoding flat-lines past its ceiling (${flat} repeated columns)`);
 
-  // And the P3 bytes DECODE to the chroma that was asked for — the real check that
+  // And the P3 bytes DECODE to the chroma that was asked for - the real check that
   // the primaries were applied, not just that the numbers moved.
   const cMax = 0.4;
   const l = 1 - (row + 0.5) / p3.height;
@@ -391,7 +391,7 @@ test('a P3-encoded slice carries colour sRGB encoding has to throw away', async 
 test('the hoisted membership test agrees EXACTLY with the source it stands in for', async () => {
   // oklchSlice takes a fast path for the three built-in gamuts, skipping the
   // per-pixel method dispatch, the name comparison and the domain guard. A fast
-  // path that disagrees with the general one is worse than no fast path at all —
+  // path that disagrees with the general one is worse than no fast path at all - 
   // it would make the charts and the verdict cards describe different gamuts.
   const { fastRgbContains, BUILTIN_GAMUT_SOURCES } = await import('../engine/src/gamut-source.ts');
   for (const name of GAMUTS) {
@@ -412,7 +412,7 @@ test('the hoisted membership test agrees EXACTLY with the source it stands in fo
     assert.ok(checked > 50000, `${name}: swept ${checked} points`);
   }
   // Anything that is not a built-in has NO fast path, so it cannot be answered by
-  // the wrong arithmetic — a custom source must go through its own `contains`.
+  // the wrong arithmetic - a custom source must go through its own `contains`.
   assert.equal(fastRgbContains({ id: 'x', label: 'x', contains: () => true }), null);
 });
 
@@ -434,7 +434,7 @@ test('encodeOklch lands on exactly the bytes the slice painter writes', () => {
     for (let y = 2; y < height; y += 7) {
       for (let x = 2; x < width; x += 9) {
         const o = (y * width + x) * 4;
-        if (img.data[o + 3] !== 255) continue; // outside the limit — nothing painted
+        if (img.data[o + 3] !== 255) continue; // outside the limit - nothing painted
         // Reconstruct the pixel's own coordinates exactly as the painter does.
         const l = 1 - (y + 0.5) / height;
         const c = ((x + 0.5) / width) * cMax;
@@ -454,7 +454,7 @@ test('encodeOklch in P3 keeps chroma sRGB encoding has to give away', async () =
   // comparison test would still pass, and this would not.
   //
   // Read back through the CSS colour parser rather than compared channel by
-  // channel — the two spaces have different primaries, so "P3 uses less red" is
+  // channel - the two spaces have different primaries, so "P3 uses less red" is
   // not a claim that survives a hue change (at 145° it uses MORE). What survives
   // is the perceptual one: decode each, and the P3 encoding is nearer the colour
   // that was asked for.

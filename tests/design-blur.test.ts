@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
- * Design — box `blur` (layer blur) contract tests.
+ * Design - box `blur` (layer blur) contract tests.
  *
- * Run with: npm test  (node --test over the tests/ globs). No framework — node:test.
+ * Run with: npm test  (node --test over the tests/ globs). No framework - node:test.
  *
  * Modeled on design-gradient.test.ts: drives the REAL tool (manifest +
  * hooks) through the engine, so these guard the actual render rather than a
@@ -11,7 +11,7 @@
  * the SAME edit ships in both packs and the wire slot has to match.
  *
  * Three surfaces are covered:
- *   1. The manifest: `blur` is APPENDED (wire slot 53) — compact block URLs
+ *   1. The manifest: `blur` is APPENDED (wire slot 53) - compact block URLs
  *      encode fields positionally, so the slot is a permanent contract.
  *   2. The hooks: `blur` emits `filter:blur(Npx)` merged with a content
  *      drop-shadow into ONE filter declaration (blur first), and a box without
@@ -74,7 +74,7 @@ test('a `blur` number field exists in every mounted brand fork and holds wire sl
     assert.equal(blur.min, 0, `${brand}: blur min`);
     assert.equal(blur.max, 300, `${brand}: blur max`);
     // Compact block URLs encode fields POSITIONALLY, so a new field can only be
-    // APPENDED — `blur` landed as the 54th field (index 53, right after `grad`)
+    // APPENDED - `blur` landed as the 54th field (index 53, right after `grad`)
     // and must stay there forever.
     assert.equal(fields.indexOf(blur), 53, `${brand}: blur moved slot (wire order is locked)`);
   }
@@ -104,7 +104,7 @@ test('blur + content shadow merge into ONE filter declaration, blur first', asyn
 });
 
 test('a content shadow WITHOUT blur is byte-identical to the pre-blur output', async () => {
-  // The filterFn refactor must reassemble exactly `filter:drop-shadow(...);` —
+  // The filterFn refactor must reassemble exactly `filter:drop-shadow(...);` - 
   // this is the same guarantee the extras baseline fixture locks byte-for-byte.
   const style = boxStyle(await mount([{ ...BOX, shadow: 'content' }]));
   assert.match(style, /filter:drop-shadow\([^)]*\);/, `got: ${style}`);
@@ -121,7 +121,7 @@ test('hostile blur values never produce NaN and clamp to 0..300', async () => {
   ] as Array<[unknown, string | null]>) {
     const style = boxStyle(await mount([{ ...BOX, blur: v }]));
     assert.ok(!style.includes('NaN'), `${String(v)}: no NaN`);
-    // The value lands in an escaped style ATTRIBUTE — nothing tag-shaped survives
+    // The value lands in an escaped style ATTRIBUTE - nothing tag-shaped survives
     // there. (The whole document legitimately contains the template's own <script>.)
     assert.ok(!style.includes('<') && !style.includes('script'), `${String(v)}: no markup breakout, got: ${style}`);
     if (expect) assert.ok(style.includes(expect), `${String(v)}: expected ${expect}, got: ${style}`);

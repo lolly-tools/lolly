@@ -1,21 +1,21 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
- * The §8 shared conformance suite for the canvas-op contract (plans/99) — SHIPPED in
+ * The §8 shared conformance suite for the canvas-op contract (plans/99) - SHIPPED in
  * @lolly-tools/core so BOTH repos run the same bytes: OSS against the dependency-free
  * `ReferenceCanvasDoc` (tests/canvas-op-convergence.test.ts), and lolly-work against its
  * real Yjs adapter (imported via engine-pin.json). This is the coupling test the
- * contract calls "owned by the architect" — changing `runConvergenceSuite`'s signature
+ * contract calls "owned by the architect" - changing `runConvergenceSuite`'s signature
  * is a coordinated cross-repo (major) change (plans/99 §9).
  *
  * The suite is parameterized over `CanvasSyncAdapter` and asserts APPLY-ORDER
  * INDEPENDENCE: applying the same op log in any interleaving yields byte-identical
  * state + render-hash (plans/98 §11 determinism ⇒ identical `boxes` ⇒ identical pixels).
  * The claim is WITHIN each adapter model (all interleavings agree for THAT model), not
- * cross-model byte-equality — the reference's order is an LWW fractional index, a real
+ * cross-model byte-equality - the reference's order is an LWW fractional index, a real
  * Yjs adapter's is a Y.Array (plans/99 §3, §8 order-model divergence).
  *
  * Self-contained: it imports only canvas-op TYPES and `node:assert` (a builtin), plus an
- * inlined mulberry32 PRNG — no `node:test`, no tests/ helper — so it is safe to ship and
+ * inlined mulberry32 PRNG - no `node:test`, no tests/ helper - so it is safe to ship and
  * to call from inside any test runner's `test()` block.
  */
 import assert from 'node:assert/strict';
@@ -42,7 +42,7 @@ interface Rng {
   pick<T>(arr: readonly T[]): T;
 }
 
-/** Deterministic 32-bit PRNG — no Date.now / Math.random, so a failing seed reproduces
+/** Deterministic 32-bit PRNG - no Date.now / Math.random, so a failing seed reproduces
  *  forever and CI never flakes. */
 export function mulberry32(seed: number): Rng {
   let a = seed >>> 0;
@@ -65,7 +65,7 @@ export function mulberry32(seed: number): Rng {
 
 /** The full converged document as a stable string. `state()` already emits boxes and
  *  params in canonical (sorted) key order, so this string is interleaving-independent
- *  for a convergent adapter. v1.1: collections serialize too — sorted HERE by
+ * for a convergent adapter. v1.1: collections serialize too - sorted HERE by
  *  collection id (emission order is not part of the contract) and normalized so an
  *  absent map and an empty map compare equal. */
 function serializeState(s: CanvasDocState): string {
@@ -95,7 +95,7 @@ function renderHash(s: CanvasDocState): string {
   });
 }
 
-/** Fisher–Yates over a seeded PRNG — a reproducible client apply-order. */
+/** Fisher–Yates over a seeded PRNG - a reproducible client apply-order. */
 function shuffle<T>(rng: Rng, arr: readonly T[]): T[] {
   const a = arr.slice();
   for (let i = a.length - 1; i > 0; i--) {
@@ -159,7 +159,7 @@ function scalarValue(rng: Rng): Scalar {
 /**
  * A mixed op log across three authors. Each author keeps its OWN strictly-increasing
  * Lamport clock, so (clock, client) is unique per author and two authors that land on
- * the same clock are genuinely CONCURRENT — resolved by the `client` tiebreak. This
+ * the same clock are genuinely CONCURRENT - resolved by the `client` tiebreak. This
  * gives a strict total order over every origin that appears, which is exactly what
  * makes convergence order-independent (the property under test).
  */
@@ -260,7 +260,7 @@ function caseParamLiteralConverges(makeAdapter: () => CanvasSyncAdapter, label: 
 }
 
 /** §6: a param BINDING syncs as a descriptor `{bind: providerRef}`, never a resolved
- *  datum — live data does not travel through the CRDT. */
+ * datum - live data does not travel through the CRDT. */
 function caseParamBindingDescriptor(makeAdapter: () => CanvasSyncAdapter, label: string): void {
   const binding: ParamValue = { bind: { provider: 'sales', query: 'q1', version: 'v3' } };
   const d = makeAdapter();
@@ -284,7 +284,7 @@ function caseLockedFieldFiltered(makeAdapter: () => CanvasSyncAdapter, label: st
 }
 
 /** §2: an id is never reused; a remove-then-re-add converges by LWW on the `alive`
- *  register — the highest-clock write wins regardless of interleaving. */
+ * register - the highest-clock write wins regardless of interleaving. */
 function caseRemoveReAdd(makeAdapter: () => CanvasSyncAdapter, label: string): void {
   const add1: CanvasOp = { k: 'add', id: 'z', row: { id: 'z', x: 1, y: 2, w: 3, h: 4, rot: 0 }, orderKey: '001', origin: { client: 'a', clock: 1 } };
   const rem: CanvasOp = { k: 'remove', id: 'z', origin: { client: 'a', clock: 2 } };
@@ -319,7 +319,7 @@ function caseEmitApplyLoop(makeAdapter: () => CanvasSyncAdapter, label: string):
   b.applyRemotePatch(a.onLocalChange(addDamage, rows));
   assert.equal(serializeState(b.state()), serializeState(a.state()), `${label}: emit→apply (adds) diverged`);
 
-  // A second gesture: move b1, restyle b2 — different lanes, one transaction.
+  // A second gesture: move b1, restyle b2 - different lanes, one transaction.
   const rows2 = new Map<BoxId, BoxRow>([
     ['b1', { ...b1, x: 99 }],
     ['b2', { ...b2, text: 'changed' }],
@@ -331,13 +331,13 @@ function caseEmitApplyLoop(makeAdapter: () => CanvasSyncAdapter, label: string):
 
 /**
  * §4.1 + plans/100 §3: a gesture's row ORDER survives the emit → remote-apply loop,
- * including the two cases a row-map diff is blind to — an insert at the TOP, and a
+ * including the two cases a row-map diff is blind to - an insert at the TOP, and a
  * pure reorder that touches no field.
  *
  * This is the case that was missing while `damageToOps` minted every added row's
  * order key from a sequence that restarted per call: the second gesture handed a new
  * row a key an EXISTING row already held, the tie broke by BoxId (and ULIDs sort by
- * creation time, so the new row always lost), and both peers converged — on an order
+ * creation time, so the new row always lost), and both peers converged - on an order
  * neither user asked for. For a `blocks` collection that is not cosmetic: row order
  * is the content.
  */
@@ -361,7 +361,7 @@ function caseLocalOrderRoundTrips(makeAdapter: () => CanvasSyncAdapter, label: s
   sync(g1, damageOf(['r01', 'r02'], []));
   expectOrder(['r01', 'r02'], 'initial adds');
 
-  // Insert at the TOP of an existing collection — the collision case.
+  // Insert at the TOP of an existing collection - the collision case.
   const g2 = new Map<BoxId, BoxRow>([['r03', row('r03', 'three')], ...g1]);
   sync(g2, damageOf(['r03'], []));
   expectOrder(['r03', 'r01', 'r02'], 'insert at the top');
@@ -378,7 +378,7 @@ function caseLocalOrderRoundTrips(makeAdapter: () => CanvasSyncAdapter, label: s
   expectOrder(['r01', 'r03', 'r02', 'r04'], 'append after a reorder');
 }
 
-/** §5: awareness/presence is ephemeral and must NEVER mutate the persisted doc —
+/** §5: awareness/presence is ephemeral and must NEVER mutate the persisted doc -
  *  including every v1.1 field (focus/location/following/viewport/chat, plans/100 §3). */
 function caseAwarenessNeverMutatesDoc(makeAdapter: () => CanvasSyncAdapter, label: string): void {
   const d = makeAdapter();
@@ -402,10 +402,10 @@ function caseAwarenessNeverMutatesDoc(makeAdapter: () => CanvasSyncAdapter, labe
   assert.equal(serializeState(d.state()), before, `${label}: awareness mutated the persisted doc`);
 }
 
-// ── v1.1 focused cases (plans/100 §3 — collections + presence, additive) ─────────
+// ── v1.1 focused cases (plans/100 §3 - collections + presence, additive) ─────────
 
-/** plans/100 §3: collection-scoped ops converge exactly like canvas ops — per-
- *  collection registers, per-collection order — and land in `collections`, never
+/** plans/100 §3: collection-scoped ops converge exactly like canvas ops - per-
+ * collection registers, per-collection order - and land in `collections`, never
  *  the canvas box map. */
 function caseCollectionOpsConverge(makeAdapter: () => CanvasSyncAdapter, label: string): void {
   const rng = mulberry32(0xc0111d);
@@ -419,7 +419,7 @@ function caseCollectionOpsConverge(makeAdapter: () => CanvasSyncAdapter, label: 
   const rows = s.collections?.get('rows');
   assert.ok(rows !== undefined && rows.boxes.size > 0, `${label}: collection 'rows' missing from state()`);
 
-  // A mixed log — canvas + two collections interleaved — converges the same way.
+  // A mixed log - canvas + two collections interleaved - converges the same way.
   const rng2 = mulberry32(0x5c07ed);
   const base = genOps(rng2, 60);
   const cols = [undefined, 'a', 'b'] as const;
@@ -432,7 +432,7 @@ function caseCollectionOpsConverge(makeAdapter: () => CanvasSyncAdapter, label: 
 }
 
 /** plans/100 §3: the same BoxId in the canvas collection and in a blocks collection
- *  are INDEPENDENT documents — writes and removes on one never touch the other. */
+ * are INDEPENDENT documents - writes and removes on one never touch the other. */
 function caseCollectionsIndependent(makeAdapter: () => CanvasSyncAdapter, label: string): void {
   const addCanvas: CanvasOp = { k: 'add', id: 'b1', row: { id: 'b1', x: 0, y: 0, w: 10, h: 10, rot: 0, fill: 'red' }, orderKey: '001', origin: { client: 'a', clock: 1 } };
   const addList: CanvasOp = { k: 'add', id: 'b1', col: 'list', row: { id: 'b1', label: 'one' }, orderKey: '001', origin: { client: 'a', clock: 2 } };
@@ -451,7 +451,7 @@ function caseCollectionsIndependent(makeAdapter: () => CanvasSyncAdapter, label:
   }
 }
 
-/** The additive guarantee (plans/100 §3): a v1.0 op stream — no `col` anywhere —
+/** The additive guarantee (plans/100 §3): a v1.0 op stream - no `col` anywhere -
  *  still applies to the default canvas collection and yields a v1.0-shaped state
  *  (`collections` absent or empty). */
 function caseV10OpsUnscoped(makeAdapter: () => CanvasSyncAdapter, label: string): void {
@@ -472,7 +472,7 @@ function caseV10OpsUnscoped(makeAdapter: () => CanvasSyncAdapter, label: string)
  * The cross-repo conformance suite. Runs the fuzz convergence property plus the focused
  * lane/param/awareness cases against whatever adapter `makeAdapter` builds. Call it from
  * inside a `test()` block: `test('yjs §8', () => runConvergenceSuite(() => new YjsAdapter(), 'yjs'))`.
- * Keep the signature `(makeAdapter, label) => void` stable — changing it is a coordinated,
+ * Keep the signature `(makeAdapter, label) => void` stable - changing it is a coordinated,
  * cross-repo (major) change (plans/99 §9).
  */
 export function runConvergenceSuite(makeAdapter: () => CanvasSyncAdapter, label: string): void {
@@ -500,7 +500,7 @@ export function runConvergenceSuite(makeAdapter: () => CanvasSyncAdapter, label:
   caseEmitApplyLoop(makeAdapter, label);
   caseLocalOrderRoundTrips(makeAdapter, label);
   caseAwarenessNeverMutatesDoc(makeAdapter, label);
-  // v1.1 (plans/100 §3) — appended, never reordered; the suite signature is pinned.
+  // v1.1 (plans/100 §3) - appended, never reordered; the suite signature is pinned.
   caseCollectionOpsConverge(makeAdapter, label);
   caseCollectionsIndependent(makeAdapter, label);
   caseV10OpsUnscoped(makeAdapter, label);

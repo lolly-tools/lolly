@@ -1,12 +1,12 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
- * Design — a timed single-artboard model stamps the [data-sequence] stage marker
+ * Design - a timed single-artboard model stamps the [data-sequence] stage marker
  * + per-box data-t-* attrs (M1-a: Design exports video from its timeline).
  *
- * Run with: npm test  (node --test over the tests/ globs). No framework — node:test.
+ * Run with: npm test  (node --test over the tests/ globs). No framework - node:test.
  *
  * Loads the REAL tool from disk (parent-owned brands/lolly-start pack, always present in a
- * public checkout — brands/suse is a private, CI-skipped submodule) and drives it through the
+ * public checkout - brands/suse is a private, CI-skipped submodule) and drives it through the
  * engine with a stub host, mirroring design-frames.test.ts.
  *
  * The contract this guards:
@@ -84,7 +84,7 @@ test('the shipped "video" template seeds a single-artboard, all-timed sequence',
   assert.equal(video.id, 'video', 'the video template file exists and is self-identifying');
   const boxes = video.values?.boxes ?? [];
   assert.ok(Array.isArray(boxes) && boxes.length >= 2, 'the video template has multiple boxes');
-  // No kind:'frame' box — keeps frameGroups undefined so the {{else}} artboard carries the marker.
+  // No kind:'frame' box - keeps frameGroups undefined so the {{else}} artboard carries the marker.
   assert.ok(!boxes.some((b: any) => b.kind === 'frame'), 'no frame box (all-timed single artboard, not a paged doc)');
   // At least one timed clip on the seq lane with a real positive duration.
   assert.ok(

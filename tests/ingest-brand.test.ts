@@ -1,12 +1,12 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
- * ingest-brand — the container sniff in `extract()`, driven end to end through
+ * ingest-brand - the container sniff in `extract()`, driven end to end through
  * the real script (spawned like tests/brand-treatments.test.ts does), because
  * the script runs main() on import and its helpers are deliberately local.
  *
- * Covered here: the two ZIP shapes plan 97 M2 added — a Lolly design system pack
+ * Covered here: the two ZIP shapes plan 97 M2 added - a Lolly design system pack
  * (manifest `format: "lolly-brand"` → its tokens.json member) and a plain zip of
- * loose token-set files — plus the Penpot archive, which must keep routing where
+ * loose token-set files - plus the Penpot archive, which must keep routing where
  * it always did. The directory/monolithic-file shapes are exercised by
  * tests/brand-treatments.test.ts.
  *
@@ -109,7 +109,7 @@ test('a pack with no readable tokens.json fails, naming the pack', (t) => {
 test('a pack whose tokens.json was swapped after export is refused, not ingested', (t) => {
   // The manifest vouches for the ORIGINAL document; the member carries another.
   // This is the case the web importer refuses (verifyIntegrity), so the CLI must
-  // not be the soft way in — a README recording the pack as provenance for a
+  // not be the soft way in - a README recording the pack as provenance for a
   // document the pack never signed is a lie the file format can prevent.
   const swapped = { color: { $type: 'color', brand: { primary: { $value: '#ff0000' } } } };
   const zip = writeZip(t, {
@@ -236,7 +236,7 @@ test('a pack with versions hydrates version + frozen catalog assets', (t) => {
   assert.match(r.stdout, /· 1 versions, 1 preserved files/);
   assert.match(r.stdout, /1 version, 1 preserved file\)/);
 
-  // The version's payload sits beside the head — the FILE brand.json and the
+  // The version's payload sits beside the head - the FILE brand.json and the
   // DIRECTORY brand/ coexist, which is what makes `<head>/<slug>` addressable.
   const v2 = JSON.parse(readFileSync(join(r.out, 'catalog/assets/packversioned/tokens/brand/v2.json'), 'utf8'));
   assert.equal(v2.color.brand.primary.$value, '#30ba78');

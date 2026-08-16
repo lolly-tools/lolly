@@ -5,7 +5,7 @@
 // (the same `new Function('host', …)` shape the runtime uses) and drive it with the
 // engine's real `analysePcm`, so what is pinned here is the tool's actual behaviour:
 //
-//   1. The analysis window follows the clip — a 30 s clip yields ~30 s of frames.
+//   1. The analysis window follows the clip - a 30 s clip yields ~30 s of frames.
 //   2. The fps ADAPTS to the clip so the payload stays near the MAX_FRAMES budget
 //      (30fps up to 2 minutes, floor 6fps), and agMeta.fps reports the fps used.
 //   3. An asset ref's meta.durationMs makes the fps guess exact, so long clips do
@@ -42,7 +42,7 @@ function compileHooks(): HookModule {
   return factory(null);
 }
 
-/** A quiet-ish tone with periodic bursts, `seconds` long — enough life that the
+/** A quiet-ish tone with periodic bursts, `seconds` long - enough life that the
  *  analysis has something to normalise against. */
 function pcm(seconds: number): Float32Array {
   const out = new Float32Array(Math.round(seconds * SR));
@@ -125,7 +125,7 @@ test('a long clip adapts its fps to the frame budget (meta.durationMs path, sing
 
   const meta = JSON.parse(out.agMeta!) as { fps: number; count: number; dur: number; real: boolean };
   assert.equal(meta.real, true);
-  // floor(3600 / 300) = 12fps — the budget spread over the whole clip.
+  // floor(3600 / 300) = 12fps - the budget spread over the whole clip.
   assert.equal(meta.fps, 12, `adapted fps for a 300 s clip, got ${meta.fps}`);
   assert.ok(Math.abs(meta.dur - seconds) < 0.5, `analysed the whole ~${seconds} s, got ${meta.dur}`);
   assert.ok(Math.abs(meta.count - seconds * meta.fps) <= meta.fps, `count ≈ dur×fps, got ${meta.count}`);
@@ -144,7 +144,7 @@ test('a long clip WITHOUT durationMs re-analyses once at the adapted fps', async
   const out = await hooks.onInit(ctxFor(host, 'blob:clip-300s-no-meta'));
 
   const meta = JSON.parse(out.agMeta!) as { fps: number; count: number };
-  // First guess 30fps (no hint), truth says 12 — wrong by more than 2x, so exactly
+  // First guess 30fps (no hint), truth says 12 - wrong by more than 2x, so exactly
   // one corrective re-analysis.
   assert.deepEqual(calls, [30, 12], 'full-rate probe, then the adapted fps');
   assert.equal(meta.fps, 12);

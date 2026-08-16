@@ -1,56 +1,56 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
- * Adobe TrustMark — BCH data-layer decode (pure GF(2^7) math, DOM-free).
+ * Adobe TrustMark: BCH data-layer decode (pure GF(2^7) math, DOM-free).
  *
  * TrustMark (github.com/adobe/trustmark) is Adobe's C2PA "durable soft
  * binding" watermark: a neural encoder hides a 100-bit payload in an image's
  * pixels; a matching neural DECODER (an ONNX model, run via onnxruntime-web)
  * reads back a 100-bit boolean array. This file has NOTHING to do with that
- * neural step — it starts *after* it, taking the 100 recovered bits and
+ * neural step. It starts *after* it, taking the 100 recovered bits and
  * running the BCH error-correction + schema framing that turns "noisy bits
  * off a decoder" into "a validated, error-corrected payload, or nothing".
  * That distinction is what makes `valid: true` here a real detection rather
  * than a coin flip: a random/unmarked image's decoder output is statistically
  * indistinguishable from noise, and noise fails the BCH check overwhelmingly
- * (see tests/trustmark.test.ts) — the ECC pass is the actual evidence.
+ * (see tests/trustmark.test.ts). The ECC pass is the actual evidence.
  *
- * The neural decode itself — fetching the ONNX model, running inference,
- * resizing pixels to the model's input — lives in the WEB SHELL
+ * The neural decode itself (fetching the ONNX model, running inference,
+ * resizing pixels to the model's input) lives in the WEB SHELL
  * (shells/web/src/lib/trustmark.ts), which depends on onnxruntime-web and a
  * <canvas>. This module stays engine-appropriate: no DOM, no ONNX, no
- * network — just the bit-level math, so it is usable from any shell
+ * network. It has just the bit-level math, so it is usable from any shell
  * (including a future CLI `--deep` path via onnxruntime-node) and unit
  * testable in plain node:test.
  *
  * Port provenance and how it was checked: `bchDecode`/`bchEncode`/
  * `createBchEngine`/`getRoots`/`buildCyclic` are a line-for-line TypeScript
- * transliteration of Adobe's own reference decoder — `python/trustmark/
+ * transliteration of Adobe's own reference decoder: `python/trustmark/
  * bchecc.py` (the BCH engine) and `python/trustmark/datalayer.py` (the
  * schema/version framing this module's `decodeTrustmarkPayload` mirrors),
  * fetched from github.com/adobe/trustmark @ main, MIT-licensed (see notice
  * below). The schema table (four BCH(t,137) variants, 96 data+ecc bits + a
  * 4-bit version tail = 100 bits total) matches the JS reference
- * (`js/tm_datalayer.js`) too. This port was cross-checked — not just
- * typechecked — against Adobe's UNMODIFIED bchecc.py: a standalone Python
+ * (`js/tm_datalayer.js`) too. This port was cross-checked, not just
+ * typechecked, against Adobe's UNMODIFIED bchecc.py: a standalone Python
  * harness ran the real reference encoder/decoder (BCH_POLYNOMIAL=137, every
  * schema version) to produce known-good and known-bad bit vectors (pristine,
  * single-bit-flip, exactly-t-bit-flip, and heavily-corrupted packets), which
  * are embedded verbatim as the primary fixtures in tests/trustmark.test.ts.
  * The only thing NOT verified here is the neural decoder itself (no ONNX
- * model, no image, no browser in this environment) — see the web-shell
+ * model, no image, no browser in this environment). See the web-shell
  * module's header for that half of the honesty ledger.
  *
  * One deliberate deviation from the shipped JS reference, flagged for
  * review: `js/tm_datalayer.js`'s `DataLayer_Decode` retries decoding under
  * up to three OTHER schema versions when the version read from the trailing
  * bits fails to validate (and, on a fallback success, oddly still reports
- * the ORIGINALLY-read version in its soft-binding string — reads as an
+ * the ORIGINALLY-read version in its soft-binding string. This reads as an
  * upstream quirk, not intentional). `decodeTrustmarkPayload` below does NOT
  * do this: it decodes under exactly the schema the trailing 2 bits name, and
  * nothing else. Trying every schema against noise is a real false-positive
  * amplifier (up to ~4x the chance some engine's syndrome accidentally
  * resolves) that conflicts with this codebase's hard "no false positives"
- * bar for a green detection pip (see plans/31-watermark-detectors.md) — the
+ * bar for a green detection pip (see plans/31-watermark-detectors.md). The
  * Python reference (used for both encode AND decode, the more authoritative
  * half of Adobe's own repo) does not have this fallback either.
  *
@@ -58,7 +58,7 @@
  * buildCyclic, createBchEngine, and the schema table in
  * decodeTrustmarkPayload):
  *
- *   TrustMark — Copyright 2023 Adobe. All rights reserved.
+ *   TrustMark - Copyright 2023 Adobe. All rights reserved.
  *   Licensed under the MIT License:
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a
@@ -78,13 +78,13 @@
 
 /** One error-locator/generator polynomial: degree + coefficients (index 0 =
  *  constant term), sized generously like the Python `polynomial` dataclass's
- *  ad-hoc `c` lists — callers always allocate `c` big enough up front. */
+ *  ad-hoc `c` lists. Callers always allocate `c` big enough up front. */
 interface Poly { deg: number; c: number[] }
 
-/** The constructed state of one BCH(t, poly) instance — the TS shape of
+/** The constructed state of one BCH(t, poly) instance. This is the TS structure of
  *  Python's `self.ECCstate`. `eccBuf`/`errloc` are SCRATCH fields mutated by
  *  bchEncode/bchDecode/getRoots, mirroring the reference's stateful object
- *  (decode() calls encode() first purely for its ecc_buf side effect — kept
+ *  (decode() calls encode() first purely for its ecc_buf side effect, kept
  *  for fidelity rather than refactored into a purer return-value shape). Not
  *  safe to call concurrently against the same engine instance for that
  *  reason (matches the Python original, which has the same property).
@@ -94,14 +94,14 @@ export interface BchEngine {
   readonly t: number;
   readonly poly: number;
   readonly n: number;            // 2^m - 1
-  readonly eccBytes: number;     // ceil(m*t / 8) — the codec's fixed ecc-byte-buffer width
-  eccBits: number;               // g.deg — the REAL (possibly smaller) meaningful ecc bit count
+  readonly eccBytes: number;     // ceil(m*t / 8): the codec's fixed ecc-byte-buffer width
+  eccBits: number;               // g.deg: the REAL (possibly smaller) meaningful ecc bit count
   cyclicTab: number[];
   exponents: number[];
   logarithms: number[];
   elpPre: number[];
-  eccBuf: number[];              // scratch — see class doc above
-  errloc: number[];              // scratch — root/bit-flip positions from the last decode() call
+  eccBuf: number[];              // scratch: see class doc above
+  errloc: number[];              // scratch: root/bit-flip positions from the last decode() call
 }
 
 function deg(x: number): number {
@@ -159,7 +159,7 @@ function gSqrt(engine: BchEngine, a: number): number {
  *  locally repurposed as a bit-length partway through (kept as a fresh `kk`
  *  local here instead of shadowing, same effect). Sets engine.errloc and
  *  returns the root count, or -1 when fewer roots than poly.deg were found
- *  (uncorrectable — more bit errors than this code can fix). */
+ *  (uncorrectable: more bit errors than this code can fix). */
 function getRoots(engine: BchEngine, k: number, poly: Poly): number {
   const roots: number[] = [];
   if (poly.deg > 2) {
@@ -245,7 +245,7 @@ function buildCyclic(engine: BchEngine, g: number[]): void {
  *  polynomial (and its true bit-degree, `eccBits`), and the cyclic encode
  *  table. Mirrors `BCH.__init__`. TrustMark always calls this with
  *  poly=137 (a degree-7 primitive polynomial over GF(2), i.e. GF(128)) and
- *  t in {8,5,4,3} — one engine per schema version. */
+ *  t in {8,5,4,3}: one engine per schema version. */
 export function createBchEngine(t: number, poly: number): BchEngine {
   let tmp = poly;
   let m = 0;
@@ -306,7 +306,7 @@ export function createBchEngine(t: number, poly: number): BchEngine {
     }
   }
 
-  // Pack g's coefficients MSB-first into 32-bit words (genpoly) — the form
+  // Pack g's coefficients MSB-first into 32-bit words (genpoly). This is the form
   // buildCyclic's table generator consumes.
   const genpoly: number[] = new Array(ceilDiv(m * t + 1, 32)).fill(0);
   let nrem = g.deg + 1;
@@ -326,7 +326,7 @@ export function createBchEngine(t: number, poly: number): BchEngine {
   buildCyclic(engine, genpoly);
 
   // Precompute elp_pre: for each bit position r < m, the field element x
-  // whose quadratic trace root gives elp_pre[r] — used by getRoots' deg==2
+  // whose quadratic trace root gives elp_pre[r]. Used by getRoots' deg==2
   // closed-form solver.
   let aexp = 0;
   for (let i = 0; i < m; i++) {
@@ -357,7 +357,7 @@ export function createBchEngine(t: number, poly: number): BchEngine {
 
 /** Systematic BCH encode: returns `engine.eccBytes` parity bytes for `data`,
  *  and (matching the reference) leaves the FULL raw remainder register in
- *  `engine.eccBuf` as a side effect — bchDecode relies on this to compute its
+ *  `engine.eccBuf` as a side effect. bchDecode relies on this to compute its
  *  syndrome. Mirrors `BCH.encode`. */
 export function bchEncode(engine: BchEngine, dataIn: readonly number[]): number[] {
   const data = dataIn as number[];
@@ -414,15 +414,15 @@ export function bchEncode(engine: BchEngine, dataIn: readonly number[]): number[
  * BCH decode: given `data` (the message bytes) and `recvecc` (the received
  * parity bytes, `engine.eccBytes` long), corrects up to `t` bit errors
  * IN PLACE across `data` (and, for the part of `recvecc` covered by whole
- * leading 4-byte words, `recvecc` too — see note below) and returns the
+ * leading 4-byte words, `recvecc` too; see note below) and returns the
  * number of bits corrected, or -1 when the error count exceeds what this
- * code can fix (uncorrectable — the honest "not a match" answer; NEVER
+ * code can fix (uncorrectable, the honest "not a match" answer; NEVER
  * silently returns wrong data as if it were right). Mirrors `BCH.decode`.
  *
  * Upstream quirk, preserved for fidelity: the reference locally REBINDS its
  * `recvecc` parameter (`recvecc = recvecc[offset:]`, a new list) before the
  * final bit-flip loop runs, so any correction landing in the ecc region
- * lands in that local remainder copy, not the caller's original array —
+ * lands in that local remainder copy, not the caller's original array.
  * `recvecc`'s corrected bytes never actually reach the caller. This is
  * invisible to every consumer (Adobe's own datalayer.py, and this module)
  * because only `data` is ever read back after decode() returns; the
@@ -456,14 +456,14 @@ export function bchDecode(engine: BchEngine, data: number[], recvecc: number[]):
     engine.eccBuf[i] = (engine.eccBuf[i]! ^ eccbuf[i]!) >>> 0;
     sum = sum | engine.eccBuf[i]!;
   }
-  if (sum === 0) return 0; // received parity matches recomputed parity exactly — no bit flips
+  if (sum === 0) return 0; // received parity matches recomputed parity exactly: no bit flips
 
   let s = engine.eccBits;
   const t = engine.t;
   const syn: number[] = new Array(2 * t).fill(0);
 
   const m = s & 31;
-  const synbuf = engine.eccBuf; // alias, not a copy — mutations below feed the loop just after
+  const synbuf = engine.eccBuf; // alias, not a copy: mutations below feed the loop just after
   if (m) {
     const idx = Math.floor(s / 32);
     synbuf[idx] = (synbuf[idx]! & (~0 << (32 - m))) >>> 0;
@@ -554,11 +554,11 @@ export function bchDecode(engine: BchEngine, data: number[], recvecc: number[]):
 const BCH_POLYNOMIAL = 137;
 /** Bits 0..(ECC_REGION_BITS-1) hold data+ecc for whichever schema the
  *  trailing version bits name; the last VERSION_FIELD_BITS bits hold the
- *  schema version (0-3, only the low 2 bits are ever nonzero — see
+ *  schema version (0-3, only the low 2 bits are ever nonzero; see
  *  decodeTrustmarkPayload). Matches DataLayer(100, ...) upstream. */
 const ECC_REGION_BITS = 96;
 const VERSION_FIELD_BITS = 4;
-/** Total TrustMark payload length in bits — the shape `detectTrustmark`
+/** Total TrustMark payload length in bits: the shape `detectTrustmark`
  *  (web shell) must hand in after reading the neural decoder's raw output. */
 export const TRUSTMARK_PAYLOAD_BITS = ECC_REGION_BITS + VERSION_FIELD_BITS;
 
@@ -614,7 +614,7 @@ function bitStringToHex(bits: string): string {
 }
 
 export interface TrustmarkDecodeResult {
-  /** True ONLY when the BCH error-correction check passed — a real,
+  /** True ONLY when the BCH error-correction check passed. This is a real,
    *  error-corrected read. Never true for noise; see tests/trustmark.test.ts
    *  for the false-positive-resistance evidence this claim rests on. */
   valid: boolean;
@@ -627,20 +627,20 @@ export interface TrustmarkDecodeResult {
    *  BCH_SUPER), as a '0'/'1' string. '' when invalid. */
   dataBits: string;
   /** dataBits packed MSB-first into bytes, zero-padded to a nibble, as
-   *  lowercase hex — what the UI shows as "the payload". '' when invalid. */
+   *  lowercase hex. This is what the UI shows as "the payload". '' when invalid. */
   payloadHex: string;
   /** Adobe's own soft-binding value shape (`js/tm_datalayer.js`'s
    *  formatSoftBindingData): "<version>*<raw 100-bit packet>". Present only
-   *  when valid — the literal string a c2pa.soft-binding assertion using
+   *  when valid: the literal string a c2pa.soft-binding assertion using
    *  `com.adobe.trustmark.<variant>` would carry. */
   softBinding?: string;
 }
 
 /**
  * Validates and decodes a 100-bit TrustMark payload (the boolean/bit array a
- * neural decoder produces — see this module's header). Reads the schema
+ * neural decoder produces; see this module's header). Reads the schema
  * version from the trailing 2 bits, then runs ONLY that schema's BCH decode
- * (deliberately no multi-schema fallback — see the module header's "one
+ * (deliberately no multi-schema fallback; see the module header's "one
  * deliberate deviation" note). `valid: false` on ANY failure: wrong length,
  * unreadable version, or an ECC check that didn't pass. Never throws.
  */
@@ -654,7 +654,7 @@ export function decodeTrustmarkPayload(bits: ArrayLike<number | boolean>): Trust
 
     // DataLayer_GetVersion: the low 2 bits of the trailing 4-bit version
     // field (upstream only ever writes versions 0-3, whose top 2 bits are
-    // always 0 — see module header).
+    // always 0; see module header).
     const version = bitArr[bitArr.length - 2]! * 2 + bitArr[bitArr.length - 1]!;
     const info = SCHEMA_INFO[version];
     const engine = schemaEngine(version);
@@ -685,7 +685,7 @@ export function decodeTrustmarkPayload(bits: ArrayLike<number | boolean>): Trust
       softBinding: `${version}*${bitArr.join('')}`,
     };
   } catch {
-    // Defensive only — every branch above is bounds-checked and this should
+    // Defensive only. Every branch above is bounds-checked and this should
     // be unreachable; a caller feeding untrusted/garbled bits must never
     // crash the verify page over it.
     return { valid: false, version: -1, schema: 'unknown', dataBits: '', payloadHex: '' };
@@ -696,17 +696,17 @@ export function decodeTrustmarkPayload(bits: ArrayLike<number | boolean>): Trust
  * Inverse of decodeTrustmarkPayload: given a schema version (0–3) and exactly
  * that schema's number of data bits, returns the 100-bit TrustMark packet (a
  * 0/1 number[]) that decodeTrustmarkPayload round-trips back to `valid:true`
- * with the identical data bits. This is the pure DATA-LAYER encode — the BCH
+ * with the identical data bits. This is the pure DATA-LAYER encode: the BCH
  * framing a neural TrustMark ENCODER would then hide in pixels. That neural
  * encoder is NOT in this repo: Adobe ships ONNX for DECODE only; encoding lives
  * in their Python package's PyTorch weights, so embedding is a torch→ONNX
  * conversion job, not a model fetch (see plans/28-durable-content-credentials.md).
- * Nothing here touches pixels — bits in, 100-bit packet out.
+ * Nothing here touches pixels. Bits in, 100-bit packet out.
  *
  * Unlike the decoder (fed untrusted file bytes, never throws), this is fed our
  * OWN values, so a bad version or wrong data length is a programming error and
  * throws. Verified by round-trip against decodeTrustmarkPayload for all four
- * schemas (no committed test yet — checked via a scratchpad round-trip while
+ * schemas (no committed test yet; checked via a scratchpad round-trip while
  * the verifier suite was being edited elsewhere).
  */
 export function encodeTrustmarkPayload(dataBits: ArrayLike<number | boolean> | string, version: number): number[] {
@@ -724,7 +724,7 @@ export function encodeTrustmarkPayload(dataBits: ArrayLike<number | boolean> | s
   // Parity over the data bytes, packed exactly as the decoder recomputes them.
   const dataBytes = bitsToBytes(dataArr);
   const eccBytes = bchEncode(engine, dataBytes);
-  // The ECC region is (96 − dataBits) bits — precisely the code's m·t parity
+  // The ECC region is (96 − dataBits) bits, precisely the code's m·t parity
   // bits (56/35/28/21 for the four schemas). Taking exactly that many bits
   // MSB-first is what decode re-reads at bits[dataBits..96); the parity's low
   // padding bits within the last ecc byte are zero, so the round-trip is exact.
@@ -745,16 +745,16 @@ export function encodeTrustmarkPayload(dataBits: ArrayLike<number | boolean> | s
 // A C2PA 2.1 Durable Content Credential carries only an IDENTIFIER in the
 // watermark; the manifest is recovered by RESOLVING that id (a manifest store /
 // Adobe's CAI Soft Binding Resolution API). That resolution half is deferred to
-// a SUSE-domain deployment (server infra — see plans/durable-content-
+// a SUSE-domain deployment (server infra; see plans/durable-content-
 // credentials.md). What needs NO server, and is not deferred, is Lolly
 // recognising its OWN durable mark on-device: a fixed magic tag our decoder
 // already reads back. Useful on its own the moment an encoder can embed it.
 //
 // PROVISIONAL: only the magic + scheme-version are committed as the
 // self-recognition contract. The RESERVED id field's semantics (producer id /
-// content nonce) are pending the CAI details — it is zero today.
+// content nonce) are pending the CAI details. It is zero today.
 //
-// Schema choice: BCH_SUPER (version 0) — the strongest error correction (t=8),
+// Schema choice: BCH_SUPER (version 0), the strongest error correction (t=8),
 // i.e. the most damage-durable of the four, at the cost of the fewest data bits
 // (40). Durability is the whole point of a durable credential.
 
@@ -764,7 +764,7 @@ const LOLLY_MAGIC_BITS = 16;
 /** 16-bit "this is a Lolly durable mark" tag, in the leading data bits. */
 const LOLLY_MAGIC_VALUE = 0x1011;
 const LOLLY_SCHEME_BITS = 4;
-/** Durable-id LAYOUT revision — bump if the reserved-field meaning changes. */
+/** Durable-id LAYOUT revision. Bump if the reserved-field meaning changes. */
 const LOLLY_SCHEME_VALUE = 1;
 /** Remaining data bits reserved for the CAI-defined id (20 for BCH_SUPER). */
 const LOLLY_RESERVED_BITS = SCHEMA_INFO[LOLLY_DURABLE_SCHEMA_VERSION]!.dataBits - LOLLY_MAGIC_BITS - LOLLY_SCHEME_BITS;
@@ -789,7 +789,7 @@ export interface LollyDurable {
  * Builds the 100-bit packet for Lolly's own durable mark: magic ‖ scheme ‖
  * reserved-id, BCH-framed under BCH_SUPER. `reservedId` is a placeholder for
  * the future CAI-defined id (default 0). The bits are ready for a neural
- * encoder to hide in pixels — no pixels are touched here.
+ * encoder to hide in pixels. No pixels are touched here.
  */
 export function buildLollyDurablePayload(reservedId = 0): number[] {
   const data = [
@@ -803,7 +803,7 @@ export function buildLollyDurablePayload(reservedId = 0): number[] {
 /**
  * Pure on-device recognition: if a decoded TrustMark payload is one of Lolly's
  * own durable marks (right schema, magic and layout revision), returns its
- * fields; otherwise null. No network, no manifest lookup — this is exactly the
+ * fields; otherwise null. No network, no manifest lookup. This is exactly the
  * "identify Lolly's mark" half that works without the resolution server.
  */
 export function readLollyDurable(decoded: TrustmarkDecodeResult): LollyDurable | null {
@@ -817,7 +817,7 @@ export function readLollyDurable(decoded: TrustmarkDecodeResult): LollyDurable |
 }
 
 // ─── Durable neural-mark PIXEL MATH (platform-agnostic, dependency-injected) ──
-// The pure arithmetic half of the TrustMark durable EMBED — normalisation,
+// The pure arithmetic half of the TrustMark durable EMBED: normalisation,
 // residual + per-channel spatial-mean removal, bilinear residual upscale, and
 // merge/clip. It touches NO onnxruntime, canvas, sharp, DOM, or Node API: the
 // two platform-specific operations (downscale cover→256 and run the encoder
@@ -835,7 +835,7 @@ export function readLollyDurable(decoded: TrustmarkDecodeResult): LollyDurable |
 export const TRUSTMARK_MODEL_RESOLUTION = 256;
 /** Reference watermark strength for the Q variant (P would be ×1.25). */
 export const TRUSTMARK_Q_WM_STRENGTH = 1.0;
-/** Minimum side (px) below which the mark can't survive — skip. */
+/** Minimum side (px) below which the mark can't survive. Skip. */
 export const TRUSTMARK_MIN_SIDE = 256;
 
 /** RGBA → NCHW [1,3,S,S] float32 in [-1,1] (px/127.5 − 1), alpha dropped.
@@ -873,7 +873,7 @@ export type CoverResizer = (
 
 /** Run the TrustMark encoder: given the cover as NCHW [1,3,256,256] float32 in
  *  [-1,1] and the 100 secret bits (0/1), return the stego NCHW [1,3,256,256]
- *  float32 (~[-1,1]) — or null on failure. Platform-provided (ORT web/node). */
+ *  float32 (~[-1,1]), or null on failure. Platform-provided (ORT web/node). */
 export type DurableEncoderRun = (
   coverNchw: Float32Array, secretBits: readonly number[],
 ) => Promise<Float32Array | null> | (Float32Array | null);
@@ -896,7 +896,7 @@ export interface DurableEmbedMathOptions {
  * Embeds Lolly's durable mark into full-resolution straight-RGBA and returns a
  * marked copy (RGB overwritten, alpha + any trailing bytes preserved), or null
  * (leave pixels untouched) when the image is too small, the encoder yields no
- * stego, or the payload is malformed. NEVER throws for those cases — but an
+ * stego, or the payload is malformed. NEVER throws for those cases, but an
  * exception thrown by an injected hook propagates (callers wrap best-effort).
  *
  * This is the byte-faithful, dependency-free port of the VERIFIED web embed

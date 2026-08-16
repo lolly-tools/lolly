@@ -1,21 +1,21 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
- * Batch — the shared, DOM-free contract for "many URL-mode rows under one file".
+ * Batch - the shared, DOM-free contract for "many URL-mode rows under one file".
  *
  * A batch is just a table: each row names a tool and a set of input values (plus
  * optional per-row format/size), exactly the params a single CLI/URL render takes.
  * The engine owns the CSV/TSV reader-writer and the row parser; each shell renders
  * the rows its own way (the CLI writes a directory, the TUI packs a zip, the web
- * `/pro` grid drives its editor) — one contract, per-shell runners, no drift.
+ * `/pro` grid drives its editor): one contract, per-shell runners, no drift.
  *
  * This module has NO DOM/host/SUSE dependencies (pure string + number logic), so it
  * lives in the open-sourceable engine alongside url-mode.ts. The row `params` are
  * raw strings handed to parseUrlState downstream, so every input type expressible on
  * the CLI (blocks JSON / tilde-compact, vector `id.field`, #-less color, …) is
- * expressible in a cell — the batch inherits URL mode's whole contract for free.
+ * expressible in a cell, so the batch inherits URL mode's whole contract for free.
  */
 
-// ── CSV/TSV reader & writer (moved here from shells/web/src/pro/csv.ts) ──────────
+// -- CSV/TSV reader & writer (moved here from shells/web/src/pro/csv.ts) --------
 
 /** Serialize records to CSV text. `keys` fixes column order; `headers` optional. */
 export function toCSV(
@@ -80,7 +80,7 @@ export function detectDelimiter(text: string): string {
   return ',';
 }
 
-// ── Batch rows ──────────────────────────────────────────────────────────────────
+// -- Batch rows --------------------------------------------------------------
 
 /** One batch row: a tool + its input params + optional per-row output settings. The
  *  `params` are raw strings coerced by parseUrlState at render time (URL-mode rules). */
@@ -136,7 +136,7 @@ export function parseBatchCsv(text: string): BatchRow[] {
   return out;
 }
 
-/** A tool the template emitter needs — id + its input ids (order preserved). */
+/** A tool the template emitter needs: id + its input ids (order preserved). */
 export interface BatchTemplateTool { id: string; inputs: Array<{ id: string }> }
 
 /** The template's own output columns, and the alternative spellings that reach them. */
@@ -151,8 +151,8 @@ const TEMPLATE_OUTPUT_COLUMNS = ['toolId', 'format', 'width', 'height', 'unit', 
  * CSV is not a choice a reader can make: `parseBatchCsv` walks the header left to right,
  * so the second `width` silently overwrote the first, and a grid whose two `width` cells
  * said 600 and 300 rendered at 300 with nothing to say why. The input is unreachable in
- * a batch either way — the reserved header owns the name, exactly as the reserved export
- * param owns `--width` on a single render — so the honest grid says so by omission.
+ * a batch either way. The reserved header owns the name, exactly as the reserved export
+ * param owns `--width` on a single render, so the honest grid says so by omission.
  * `shadowedInputs` names them for a caller that wants to tell the user.
  */
 export function batchCsvTemplate(tools: BatchTemplateTool[]): string {

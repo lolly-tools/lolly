@@ -4,10 +4,10 @@
  * Run with: node --test tests/svg-custgeom.test.ts
  *
  * Two halves:
- *   1. svgToCustGeomPaths (svg-custgeom.ts) — a flat stroke/fill SVG lowers to
+ *   1. svgToCustGeomPaths (svg-custgeom.ts) - a flat stroke/fill SVG lowers to
  *      PptxPath[]; a gradient/filter/opacity/currentColor/rotate SVG returns null so
  *      the shell keeps its raster path (never regress non-flat art).
- *   2. buildPptxParts (pptx.ts) — a PptxPath serializes to a:custGeom / a:pathLst with
+ *   2. buildPptxParts (pptx.ts) - a PptxPath serializes to a:custGeom / a:pathLst with
  *      moveTo/lnTo/cubicBezTo/close and a solid fill + stroke.
  */
 import { test } from 'node:test';
@@ -17,7 +17,7 @@ import { svgToCustGeomPaths } from '../engine/src/svg-custgeom.ts';
 import { buildPptxParts } from '../engine/src/pptx.ts';
 import type { PptxSlide, PptxPath } from '../engine/src/pptx.ts';
 
-const EMU = 914400; // one inch — a convenient square target box
+const EMU = 914400; // one inch - a convenient square target box
 
 // ─── svgToCustGeomPaths ───────────────────────────────────────────────────────
 

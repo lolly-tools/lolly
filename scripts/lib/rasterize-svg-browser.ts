@@ -4,13 +4,13 @@
  * SVG → PNG rasteriser backed by our OWN render path (Playwright/Chromium), not resvg.
  *
  * Why this exists: the pre-rendered share/preview cards used to be rasterised with
- * @resvg/resvg-js — a SECOND, standalone SVG interpreter that re-parses the SVG on its
+ * @resvg/resvg-js - a SECOND, standalone SVG interpreter that re-parses the SVG on its
  * own and can therefore DRIFT from what the app (Chromium) actually paints: it shapes
  * text differently (its own metrics, no real HarfBuzz cascade), and it has mis-rendered
  * some brand illustrations (dropped gradient/class fills → a black-bodied Geeko) and
  * outright panicked on others (a Rust `unwrap` abort that took the whole build down).
  * Rasterising through the same browser engine the gallery, exports and preview pipeline
- * (scripts/build-previews.ts) already use means one render path — a card is byte-shaped
+ * (scripts/build-previews.ts) already use means one render path - a card is byte-shaped
  * the way a user sees the tool, and can't diverge.
  *
  * Contract mirrors the old resvg call so callers degrade the same way: constructing the
@@ -43,15 +43,15 @@ export interface SvgRasterizer {
 
 // The card SVGs paint text in three SUSE weights; expose them as one @font-face family
 // so `font-family="SUSE"` (with font-weight 400/500/700) shapes with the real face
-// rather than a Chromium fallback. Read from the active profile's catalog VIEW — the
-// same path resvg loaded from — so this is profile-consistent. A brand catalog with no
+// rather than a Chromium fallback. Read from the active profile's catalog VIEW - the
+// same path resvg loaded from - so this is profile-consistent. A brand catalog with no
 // fonts (lolly-start ships only a .gitkeep) falls back per-weight to the platform face,
 // the same last resort the web shell's font-registry uses, so a fontless brand still
 // renders cards instead of aborting the whole run.
 //
 // That fallback is the SUSE variable TTF as of 2026-08-10. It used to be Outfit, which
 // meant a card whose SVG said `font-family="SUSE"` was quietly PAINTED IN OUTFIT on any
-// profile without the brand catalog — the OG cards under lolly-start were mislabelled,
+// profile without the brand catalog - the OG cards under lolly-start were mislabelled,
 // not just unstyled. Now the family name and the bytes agree on every profile.
 const FONT_WEIGHTS: ReadonlyArray<readonly [number, string]> = [
   [400, 'Regular'],
@@ -78,10 +78,10 @@ export async function createSvgRasterizer(repoRoot: string): Promise<SvgRasteriz
     );
   }
 
-  // @font-face blocks with the brand faces inlined as data-URIs — resolved BEFORE the
+  // @font-face blocks with the brand faces inlined as data-URIs - resolved BEFORE the
   // browser launches so a truly unreadable font fails fast (caller degrades to committed
   // bytes). A weight the brand catalog doesn't ship resolves to the platform SUSE variable
-  // font pinned to that weight (Chromium sets the wght axis from the face's font-weight —
+  // font pinned to that weight (Chromium sets the wght axis from the face's font-weight - 
   // which matters, because the file's own fvar default is 100/Thin, not 400), so the family
   // stays 'SUSE' and the card SVGs need no per-brand markup. Until 2026-08-10 this fallback
   // was Outfit, so a card declaring 'SUSE' was painted in Outfit on any fontless profile.
@@ -106,7 +106,7 @@ export async function createSvgRasterizer(repoRoot: string): Promise<SvgRasteriz
   // profile or font hinting.
   const browser: Browser = await chromium.launch({ headless: true, args: ['--force-color-profile=srgb', '--font-render-hinting=none'] });
   // deviceScaleFactor 1: OG cards are authored at their exact output px (1200×630), the
-  // same 1:1 basis resvg used — no retina upscaling of a fixed-size social image.
+  // same 1:1 basis resvg used - no retina upscaling of a fixed-size social image.
   const context: BrowserContext = await browser.newContext({ deviceScaleFactor: 1 });
   const page: Page = await context.newPage();
 
@@ -114,7 +114,7 @@ export async function createSvgRasterizer(repoRoot: string): Promise<SvgRasteriz
     async rasterize(svg: string, { width, height, background = '#ffffff' }: RasterizeOpts): Promise<Buffer> {
       // `background: 'transparent'` yields a real alpha PNG (the app-icon path needs the
       // round mark's corners transparent). Playwright composites an opaque white backdrop
-      // unless `omitBackground` is set, so pair the two — every other caller passes a solid
+      // unless `omitBackground` is set, so pair the two - every other caller passes a solid
       // card field and keeps the opaque screenshot it always got.
       const transparent = background === 'transparent';
       const html =

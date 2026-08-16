@@ -1,15 +1,15 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
- * Contract tests for synthetic-audio provenance (EU AI Act Article 50 — plan
- * tts-stt-programme §2): a TTS clip's record-side credential — c2pa.created
+ * Contract tests for synthetic-audio provenance (EU AI Act Article 50 - plan
+ * tts-stt-programme §2): a TTS clip's record-side credential - c2pa.created
  * with digitalSourceType trainedAlgorithmicMedia and the generation recipe
- * ({ script, voice, speed, model, lang }) in the action's parameters — must
+ * ({ script, voice, speed, model, lang }) in the action's parameters - must
  * survive the runtime's export-time ingredient sweep on BOTH audio-asset
  * shapes: a plain asset input (the audiogram's audio pick) and an asset field
  * inside a blocks input (a sequence-studio audio box). The prepared ingredient
  * handed to host.export.render has to keep the AI source type (so the composed
  * export reads composite-AI on /verify) AND the parameters (the machine-
- * readable script — recoverable from the chained manifest bytes verbatim).
+ * readable script - recoverable from the chained manifest bytes verbatim).
  *
  * The store here is built exactly the way the web shell's save path builds it
  * (views/script-audio.ts buildTtsCredential): a signed sidecar-style store
@@ -50,7 +50,7 @@ async function ttsCredentialStore(): Promise<Uint8Array> {
   });
 }
 
-// Unique tool ids — compiled hook factories are memoised by id@version.
+// Unique tool ids - compiled hook factories are memoised by id@version.
 let toolSeq = 0;
 // The audiogram shape: one plain asset input.
 function plainAssetTool(): any {

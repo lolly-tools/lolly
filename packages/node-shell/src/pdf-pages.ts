@@ -1,26 +1,26 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
- * DOM-free multi-page PDF walk: bytes → per-page interpreted nodes.
+ * DOM-free multi-page PDF walk: bytes to per-page interpreted nodes.
  *
  * The engine owns the hard part. `interpretPdfPage` (engine/src/pdf-map.ts) is a pure
- * content-stream interpreter that returns positioned nodes IN PAINT ORDER, and every
- * higher pass this repo has — reading order (`extractPageText`), failed-redaction
- * detection (`findHiddenTextInPages`), design import (`finalizeBoxes`) — is written
- * against those nodes. What the engine deliberately does NOT do is parse a PDF's object
- * graph: it takes a content string plus already-resolved resources. Somebody has to walk
- * pdf-lib and hand it those, and until now that walk existed twice, in
- * `shells/web/src/views/pdf-import.ts` and `shells/tui/src/import/pdf.ts`, both first-page
- * only. This is the third caller's worth of evidence that it belongs in one place.
+ * content-stream interpreter that returns positioned nodes in paint order. Every higher
+ * pass this repo has is written against those nodes: reading order (`extractPageText`),
+ * failed-redaction detection (`findHiddenTextInPages`), design import (`finalizeBoxes`).
+ * What the engine deliberately does not do is parse a PDF's object graph: it takes a
+ * content string plus already-resolved resources. Somebody has to walk pdf-lib and hand
+ * it those, and until now that walk existed twice, in `shells/web/src/views/pdf-import.ts`
+ * and `shells/tui/src/import/pdf.ts`, both first-page only. This is the third caller's
+ * worth of evidence that it belongs in one place.
  *
- * What this module adds over those two: every page (bounded), and never throwing. An
+ * What this module adds over those two: every page (bounded), and it never throws. An
  * inspection command is pointed at files precisely because they might be broken or
  * hostile, so a page that cannot be read degrades to one entry in `errors` and the walk
  * carries on. Fewer findings, never a crash.
  *
  * Bounds, all deliberate and all reported back to the caller so a report can say what it
  * did not look at:
- *   • `maxPages` (default 25) — pages interpreted; the rest are counted, not read.
- *   • `maxContentBytes` — a single page's content streams, past which the page is skipped.
+ *   • `maxPages` (default 25): pages interpreted; the rest are counted, not read.
+ *   • `maxContentBytes`: a single page's content streams, past which the page is skipped.
  *   • resource recursion depth 8, matching the two shells this replaces.
  */
 
@@ -37,7 +37,7 @@ export interface PdfPageScan {
   /** MediaBox size in points. */
   width: number;
   height: number;
-  /** Interpreted content, in paint order — safe to hand straight to the engine passes. */
+  /** Interpreted content, in paint order. Safe to hand straight to the engine passes. */
   nodes: PdfNode[];
   /** Distinct base font names referenced by the page's resources, subset tag removed. */
   fonts: string[];
@@ -45,14 +45,14 @@ export interface PdfPageScan {
   images: number;
   /** Form XObjects the page's resources name. */
   forms: number;
-  /** Annotations on the page (links, widgets, comments) — count only. */
+  /** Annotations on the page (links, widgets, comments). Count only. */
   annotations: number;
 }
 
 export interface PdfScan {
   /** Pages in the document. */
   pageCount: number;
-  /** Pages actually interpreted — `pages.length <= pageCount`. */
+  /** Pages actually interpreted. `pages.length <= pageCount`. */
   pages: PdfPageScan[];
   /** True when `maxPages` (or a per-page skip) stopped this short of the document. */
   truncated: boolean;
@@ -256,17 +256,17 @@ function contentString(ctx: PDFContext, pageNode: Ref): string {
 const RESOURCE_NODE_BUDGET = 4096;
 
 /**
- * @param stack   Resources dicts currently being expanded — the CYCLE cut.
- * @param budget  Shared node allowance for this page — the FAN-OUT cut.
+ * @param stack   Resources dicts currently being expanded. This is the cycle cut.
+ * @param budget  Shared node allowance for this page. This is the fan-out cut.
  *
- * The depth cap alone does NOT bound this. A Form XObject may point its /Resources back
+ * The depth cap alone does not bound this. A Form XObject may point its /Resources back
  * at the dict it came from, and a page whose /Resources holds 8 such forms fans out to
- * 8^8 calls — each one retaining a `resources: sub` tree — which exhausted the heap and
+ * 8^8 calls. Each call retains a `resources: sub` tree, which exhausted the heap and
  * killed the process with SIGABRT (`validate <file> --metadata --json` wrote 0 bytes
  * despite `--json`). This module promises "fewer findings, never a crash".
  *
  * `stack` is popped on the way out rather than accumulating, so two sibling forms that
- * legitimately share one Resources dict both still resolve — only a dict reachable from
+ * legitimately share one Resources dict both still resolve. Only a dict reachable from
  * itself is refused.
  */
 function extractResources(

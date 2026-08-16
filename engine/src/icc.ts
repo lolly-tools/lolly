@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
- * ICC profile reader — the authority for "what can this device actually print?".
+ * ICC profile reader: the authority for "what can this device actually print?".
  *
  * Everything else in the engine's colour stack works in additive light: a 3×3
  * and a transfer curve describe sRGB, P3 and Rec.2020 completely. A press does
@@ -11,7 +11,7 @@
  * it answers for a monitor, and so an export can be soft-proofed before it is
  * committed to plate.
  *
- * Scope: enough of ICC.1:2010 (v2 and v4) to run a device↔PCS transform —
+ * Scope: enough of ICC.1:2010 (v2 and v4) to run a device↔PCS transform:
  *   - the 128-byte header and the tag table (§7.2, §7.3);
  *   - `mft1` / `mft2` (lut8Type / lut16Type, §10.10–10.11) and `mAB ` / `mBA `
  *     (lutAtoBType / lutBtoAType, §10.12–10.13) for the A2B / B2A tags;
@@ -20,7 +20,7 @@
  *   - `desc` (v2 textDescriptionType) and `mluc` (v4) for a human label.
  * Deliberately out of scope: named-colour tags, device-link chains, spectral
  * (`MS10`) data, the `gamt` gamut tag (Apple's own CMYK profile fills it with
- * 255 — "everything is out of gamut" — so trusting it would be worse than
+ * 255 ("everything is out of gamut"), so trusting it would be worse than
  * ignoring it), and the v4 `chad` tag beyond noting its presence: a v2 or v4
  * profile's `rXYZ`/`gXYZ`/`bXYZ` are already D50-adapted in the file, and `chad`
  * only records the adaptation that got them there.
@@ -28,7 +28,7 @@
  * SECURITY: profiles arrive embedded in user-supplied JPEG/PNG/PDF/TIFF, so
  * every byte here is hostile until proven otherwise. The contract is the
  * house reader contract (see png-unfilter.ts, file-metadata.ts): this module
- * NEVER throws on bad input — malformed, truncated or self-contradicting data
+ * NEVER throws on bad input: malformed, truncated or self-contradicting data
  * yields `null`. Nothing declared by the file is trusted: tag offsets and sizes
  * are re-checked against the real byte length (Apple's `gamt` tag over-reports
  * its size by one byte, so element geometry is derived from the element header
@@ -51,7 +51,7 @@ const MAX_TAGS = 512;              // real profiles carry 10–20
 const MAX_CHANNELS = 15;           // ICC's own ceiling (nCLR tops out at FCLR)
 const MAX_TABLE_ENTRIES = 4096;    // ICC's cap for mft2 in/out tables; Black & White.icc uses exactly 4096
 const MAX_CURVE_ENTRIES = 65536;   // a `curv` table; sRGB's TRC has 1024
-const MAX_CLUT_VALUES = 1 << 22;   // 4 M float32 = 16 MB. A 33⁴×4 CMYK LUT is 4.7 M — refused, and no such profile exists
+const MAX_CLUT_VALUES = 1 << 22;   // 4 M float32 = 16 MB. A 33⁴×4 CMYK LUT is 4.7 M, refused, and no such profile exists
 const MAX_PARA_PARAMS = 7;         // parametricCurveType function 4
 
 // Bisection steps when inverting a curve: 2^-40 is far past float32 table precision.
@@ -60,7 +60,7 @@ const MAX_CURVE_INVERT_STEPS = 40;
 // ─── Primitive reads ──────────────────────────────────────────────────────────
 //
 // Each returns a sentinel rather than throwing, and takes the exclusive `end` of
-// the window it is allowed to touch — the tag's own end, not the file's, so a
+// the window it is allowed to touch: the tag's own end, not the file's, so a
 // tag that lies about its size cannot read its neighbour. Bounds are checked
 // BEFORE the read because an out-of-range Uint8Array index yields `undefined`,
 // which NaN-poisons any arithmetic derived from it and silently defeats a later
@@ -113,7 +113,7 @@ type Curve =
 
 const IDENTITY_CURVE: Curve = { kind: 'identity' };
 
-/** `x^g` with a negative base treated as 0 — pow would give NaN and poison the pipeline. */
+/** `x^g` with a negative base treated as 0: pow would give NaN and poison the pipeline. */
 const pow = (x: number, g: number): number => (x <= 0 ? 0 : x ** g);
 
 /** Evaluate a curve at `x` (0–1 in, 0–1 out). Linear interpolation between table entries. */
@@ -190,7 +190,7 @@ function parseCurve(b: Uint8Array, off: number, end: number): { curve: Curve; si
     const size = 12 + count * 2;
     if (off + size > end) return null;
     // count 0 means identity; count 1 means the single value is a u8Fixed8 gamma,
-    // NOT a one-entry table (§10.5) — reading it as a table would flatten the curve.
+    // NOT a one-entry table (§10.5): reading it as a table would flatten the curve.
     if (count === 0) return { curve: IDENTITY_CURVE, size };
     if (count === 1) {
       const g = u16(b, off + 12, end);
@@ -262,7 +262,7 @@ interface Pipeline {
   labEnc: LabEnc;
 }
 
-/** Multilinear (n-linear) CLUT interpolation — the reference method; tetrahedral is an optimisation of it. */
+/** Multilinear (n-linear) CLUT interpolation: the reference method; tetrahedral is an optimisation of it. */
 function evalClut(st: Extract<Stage, { kind: 'clut' }>, v: number[]): number[] | null {
   const nIn = st.grid.length;
   if (v.length !== nIn) return null;
@@ -334,7 +334,7 @@ function evalPipeline(p: Pipeline, input: readonly number[]): number[] | null {
 /**
  * Parse a lut8Type (`mft1`) or lut16Type (`mft2`) element.
  *
- * @param inputIsPcsXyz whether this element's INPUT side is PCSXYZ — the only
+ * @param inputIsPcsXyz whether this element's INPUT side is PCSXYZ. This is the only
  * case in which the element's 3×3 matrix means anything (§10.10). Every matrix
  * in every profile on a stock macOS install is identity, so applying it
  * unconditionally would be harmless there, but a device-specific profile with a
@@ -486,8 +486,8 @@ function parseMabClut(
  * same list backwards. Any piece may be absent (offset 0), which is how a v4
  * profile expresses a pure matrix/curve transform in the same tag.
  *
- * UNVERIFIED against a real file: no macOS-shipped profile uses these tags —
- * every LUT profile on a stock install is v2 with `mft1`/`mft2` — so this path is
+ * UNVERIFIED against a real file: no macOS-shipped profile uses these tags.
+ * Every LUT profile on a stock install is v2 with `mft1`/`mft2`, so this path is
  * exercised only by synthesised fixtures. Treated as best-effort accordingly.
  */
 function parseMab(b: Uint8Array, off: number, end: number, atoB: boolean): Pipeline | null {
@@ -642,21 +642,21 @@ const labToXyz = (l: number, a: number, bb: number): [number, number, number] =>
  * D50, the illuminant every ICC PCS is referenced to. Taken from css-color's own
  * Lab white rather than the header's s15Fixed16 copy (0.964203, 1.0, 0.824905) or
  * the rounded book value, so the one path that both multiplies it in and divides
- * it out cancels exactly — the GRAY neutral axis, where Generic Gray Profile's
+ * it out cancels exactly. That is the GRAY neutral axis, where Generic Gray Profile's
  * white comes back Lab (100, −0.00002, +0.00002) instead of the (100, −0.016,
  * +0.016) the book value leaves.
  *
  * It does NOT set a matrix/TRC profile's neutral residual: that path never reads
  * this constant (`toLab` feeds the profile's own rXYZ+gXYZ+bXYZ sum straight to
  * xyzToLab), so AdobeRGB1998's white stays (100, −0.016, +0.016) and sRGB
- * Profile's (100, +0.002, −0.001) whatever value stands here — each ~0.02 ΔE, set
+ * Profile's (100, +0.002, −0.001), whatever value stands here, each ~0.02 ΔE, set
  * by that profile's colorant tags. Look there, not here, when a matrix profile's
  * greys tint. Besides the gray path the only other reader is the absolute
  * intent's rescale.
  */
 const PCS_D50: readonly [number, number, number] = labToXyz(100, 0, 0);
 
-/** 3×3 inverse, or null when singular. Not colour maths — plain linear algebra the matrix/TRC inverse needs. */
+/** 3×3 inverse, or null when singular. Not colour maths: plain linear algebra the matrix/TRC inverse needs. */
 function invert3(m: readonly number[]): number[] | null {
   const [a, b, c, d, e, f, g, h, i] = m as [number, number, number, number, number, number, number, number, number];
   const det = a * (e * i - f * h) - b * (d * i - f * g) + c * (d * h - e * g);
@@ -701,7 +701,7 @@ const PROFILE_DIGEST = new WeakMap<IccProfile, string>();
  * profile has no table: `fromLab` clips each linear channel into [0,1] instead,
  * and clipping a channel that barely contributes to the colour moves Lab only a
  * little. Measured on Apple's ITU-2020 profile, OKLCH (0.4, 0.35, 240) needs
- * linear red −0.02; clipping it to 0 costs 2.2 ΔE — under ICC_GAMUT_DELTA_E — so
+ * linear red −0.02; clipping it to 0 costs 2.2 ΔE, under ICC_GAMUT_DELTA_E, so
  * the trip alone called saturated blues reproducible to chroma 0.39, against the
  * matrix path's true 0.235. The cube these values must fall inside is the same
  * question the display gamuts answer, so ask it directly.
@@ -718,7 +718,7 @@ const DIRECT_LINEAR = new WeakMap<
  * the same gamut reached through its pre-composed matrix agree at the boundary
  * rather than differing by whichever epsilon each chose. A profile's matrix is
  * stored as s15Fixed16, so its primaries land a few ulps off the ideal ones and
- * an exact primary can read either way — a hundredth of nothing, either way.
+ * an exact primary can read either way: a hundredth of nothing, either way.
  */
 const CUBE_EPS = 1e-6;
 
@@ -726,7 +726,7 @@ const CUBE_EPS = 1e-6;
  * Parse an ICC profile.
  *
  * @param bytes the whole profile (as embedded in a file's ICC chunk, or a `.icc`).
- * @returns null when the buffer is not a profile we can evaluate — no exception is
+ * @returns null when the buffer is not a profile we can evaluate. No exception is
  * thrown for any input, however malformed.
  */
 export function parseIccProfile(bytes: Uint8Array): IccProfile | null {
@@ -776,7 +776,7 @@ function parseInner(b: Uint8Array): IccProfile | null {
     const size = u32(b, p + 8, fileEnd);
     if (!s || offset < 0 || size < 4) continue;
     // Checked against the real end, not the declared one: a tag may not reach
-    // past the profile, and tags are neither ordered nor guaranteed disjoint —
+    // past the profile, and tags are neither ordered nor guaranteed disjoint:
     // aliasing is the norm (Apple's CMYK profile points A2B0/1/2 at one element).
     if (offset + size > fileEnd) continue;
     if (!tags.has(s)) tags.set(s, { offset, size });
@@ -800,7 +800,7 @@ function parseInner(b: Uint8Array): IccProfile | null {
   // A v2 display profile stores its white UNADAPTED (sRGB Profile's wtpt is D65)
   // while its colorant/TRC tags are already D50-adapted, so the two describe
   // different things and multiplying by the tag puts a 19.5 ΔE blue cast on every
-  // neutral — Lab (100, −2.4, −19.4), the same cast the grayTrc branch below
+  // neutral: Lab (100, −2.4, −19.4), the same cast the grayTrc branch below
   // avoids. For those profiles the media white IS the PCS illuminant and the
   // rescale is identity, which is the rule littleCMS applies in
   // _cmsReadMediaWhitePoint (version < 4 and class 'mntr' → D50). v4 profiles
@@ -819,8 +819,8 @@ function parseInner(b: Uint8Array): IccProfile | null {
     if (elements.has(key)) return elements.get(key) ?? null;
     const end = Math.min(t.offset + t.size, fileEnd);
     const type = sig4(b, t.offset, end);
-    // The element's input is PCSXYZ only on the B-to-A side of an XYZ-PCS profile
-    // — the one place mft's 3×3 applies.
+    // The element's input is PCSXYZ only on the B-to-A side of an XYZ-PCS profile:
+    // the one place mft's 3×3 applies.
     const inputIsPcsXyz = !atoB && pcs === 'XYZ';
     let out: Pipeline | null = null;
     if (type === 'mft1') out = parseMft(b, t.offset, end, 8, inputIsPcsXyz);
@@ -879,7 +879,7 @@ function parseInner(b: Uint8Array): IccProfile | null {
     if (pcs === 'Lab') {
       // 65535/65280: the legacy 16-bit scale puts L*=100 at 0xFF00. Values a hair
       // above it are legal and real (one stock profile peaks at 65338), so the raw
-      // sample must not be clamped before this multiply — L* slightly over 100 is
+      // sample must not be clamped before this multiply. L* slightly over 100 is
       // the file's actual claim.
       const k = enc === 'legacy16' ? 65535 / 65280 : 1;
       return [y[0]! * 100 * k, y[1]! * 255 * k - 128, y[2]! * 255 * k - 128];
@@ -922,7 +922,7 @@ function parseInner(b: Uint8Array): IccProfile | null {
   const hasDirect = (): boolean => matrixTrc !== null || grayTrc !== null;
 
   /**
-   * PCS Lab → the direct transform's LINEAR device values, UNCLAMPED — the
+   * PCS Lab → the direct transform's LINEAR device values, UNCLAMPED. This is the
    * inverse matrix's raw output for matrix/TRC, Y/Y(D50) for gray. Null for a
    * profile with no direct transform.
    *
@@ -957,7 +957,7 @@ function parseInner(b: Uint8Array): IccProfile | null {
 
     /**
      * True when this intent's transform exists. For a LUT profile that means the
-     * A2B{n} or B2A{n} tag is physically present — there is deliberately NO
+     * A2B{n} or B2A{n} tag is physically present. There is deliberately NO
      * fallback to A2B0, because quietly answering with the perceptual table when
      * saturation was asked for returns plausible, wrong colour. A matrix/TRC or
      * gray profile has one colorimetric transform that every CMM uses for all
@@ -1004,8 +1004,8 @@ function parseInner(b: Uint8Array): IccProfile | null {
         // A gray profile's tone curve is luminance and the result is neutral on the
         // PCS axis: the D50 illuminant scaled by Y, NOT the profile's own `wtpt`.
         // Stock v2 gray profiles store an UNADAPTED white (Generic Gray Profile's
-        // is D65), so using it would report media white as Lab (100, −2.4, −19.4)
-        // — a blue cast on every grey. Relative colorimetric is white-normalised;
+        // is D65), so using it would report media white as Lab (100, −2.4, −19.4),
+        // a blue cast on every grey. Relative colorimetric is white-normalised;
         // the media white only enters through the absolute intent's rescale, and
         // for a v2 display-class profile that rescale is identity too (mediaWhite).
         const yv = evalCurve(grayTrc, dev[0]!);
@@ -1036,7 +1036,7 @@ function parseInner(b: Uint8Array): IccProfile | null {
       }
       const raw = directLinear(want);
       // Clamped, per the contract that device channels are 0–1. What the clamp
-      // hides is recorded in DIRECT_LINEAR for the gamut test — see there.
+      // hides is recorded in DIRECT_LINEAR for the gamut test; see there.
       if (raw && matrixTrc) return raw.map((v, i) => invertCurve(matrixTrc!.trc[i]!, clamp01(v)));
       if (raw && grayTrc) return [invertCurve(grayTrc, clamp01(raw[0]!))];
       return null;
@@ -1047,7 +1047,7 @@ function parseInner(b: Uint8Array): IccProfile | null {
   if (matrixTrc || grayTrc) DIRECT_LINEAR.set(profile, (intent, lab) => {
     if (!Object.hasOwn(INTENT_TAG, intent)) return null;
     // A LUT wins over the direct transform when both are present, and then the
-    // cube question below does not apply — the table already answers it.
+    // cube question below does not apply: the table already answers it.
     if (pipeline(`B2A${INTENT_TAG[intent]}`, false)) return null;
     let want: [number, number, number] = [lab[0]!, lab[1]!, lab[2]!];
     if (intent === 'absolute') {
@@ -1063,7 +1063,7 @@ function parseInner(b: Uint8Array): IccProfile | null {
 // ─── Gamut source ─────────────────────────────────────────────────────────────
 
 /**
- * ΔE*ab (CIE76) between two PCS Lab values — a Euclidean distance in the space
+ * ΔE*ab (CIE76) between two PCS Lab values: a Euclidean distance in the space
  * both arguments are already in, not a colour conversion.
  */
 const deltaE76 = (a: readonly number[], c: readonly number[]): number =>
@@ -1075,7 +1075,7 @@ const deltaE76 = (a: readonly number[], c: readonly number[]): number =>
  * The test is the standard one: a colour is in a device's gamut if Lab → device
  * → Lab comes back where it started, because a B2A table has nowhere to send an
  * unreachable colour except onto the gamut surface. It applies only to profiles
- * that HAVE such a table — matrix/TRC and gray profiles are answered by the
+ * that HAVE such a table. Matrix/TRC and gray profiles are answered by the
  * device cube instead (DIRECT_LINEAR), which is exact, so none of the tolerance
  * below is in play for them.
  *
@@ -1087,7 +1087,7 @@ const deltaE76 = (a: readonly number[], c: readonly number[]): number =>
  *   a colour no press prints    35–61 ΔE
  * 3.0 clears the floor with room and rejects everything genuinely outside it.
  *
- * ## What it costs — more than the corners
+ * ## What it costs: more than the corners
  *
  * Compared against the same profile's FORWARD table (a 21⁴ device grid pushed
  * through A2B, every result in gamut by definition), `contains` accepts about 65%
@@ -1106,7 +1106,7 @@ const deltaE76 = (a: readonly number[], c: readonly number[]): number =>
  * The inconsistency is the profile's own B2A, not this reader: littleCMS returns
  * the same device values on the same file to 0.002 (yellow 0.796 vs 0.798). But
  * the truncation above is this rule's, so treat what it draws as a conservative
- * soft-proof — markedly conservative in light yellows and deep shadows — never as
+ * soft-proof, markedly conservative in light yellows and deep shadows, never as
  * a colorimetric gamut boundary. The cure is a different question, a boundary
  * sampled from the FORWARD table, not a looser threshold: the alternatives here
  * are worse, since the `gamt` tag in this profile reports everything out of gamut
@@ -1122,8 +1122,8 @@ const fallbackId = (p: IccProfile): string =>
  * Can this profile answer a GAMUT question under `intent`? The gate to check
  * before building or trusting an {@link iccGamutSource}.
  *
- * `hasIntent` answers a different question — that a transform exists in EITHER
- * direction — and is right to: a scanner or an abstract profile carrying A2B0
+ * `hasIntent` answers a different question: that a transform exists in EITHER
+ * direction. It is right to: a scanner or an abstract profile carrying A2B0
  * alone can legitimately be asked for device → Lab. Membership cannot: `contains`
  * goes through `fromLab` first, so with no reverse transform every colour is
  * refused and the source reports an EMPTY gamut behind a valid id and label.
@@ -1132,7 +1132,7 @@ const fallbackId = (p: IccProfile): string =>
  * The six stock abstract profiles (Sepia Tone, Black & White, …) are exactly this
  * shape: `abst`, A2B0 present, no B2A0.
  *
- * `abst` and `link` classes are refused outright whatever tags they carry — an
+ * `abst` and `link` classes are refused outright whatever tags they carry: an
  * abstract effect and a device link have no device gamut to ask about.
  */
 export function iccGamutIntent(p: IccProfile, intent: RenderingIntent): boolean {
@@ -1149,7 +1149,7 @@ export function iccGamutIntent(p: IccProfile, intent: RenderingIntent): boolean 
  *
  * `contains` maps the OKLCH request to PCS Lab through css-color's conversion
  * hub (the engine's single implementation of that maths), then asks the profile
- * to round-trip it — see {@link ICC_GAMUT_DELTA_E} for why that answers the
+ * to round-trip it. See {@link ICC_GAMUT_DELTA_E} for why that answers the
  * question and what the threshold costs. A profile with no B2A table has its
  * device cube tested as well, because the round trip alone under-reports there
  * (see DIRECT_LINEAR).
@@ -1186,10 +1186,10 @@ function iccDevice(
  * four sources in the codebase is a worse contract than a function only the ICC
  * callers reach for.
  *
- * Null when the profile cannot be asked this question under `intent` — the same
- * gate {@link iccGamutIntent} applies — or when the colour is not one (NaN, l
+ * Null when the profile cannot be asked this question under `intent` (the same
+ * gate {@link iccGamutIntent} applies), or when the colour is not one (NaN, l
  * outside [0,1]). Note that a profile answered by its device CUBE rather than by
- * a B2A table (matrix/TRC and gray — see DIRECT_LINEAR) still returns a number
+ * a B2A table (matrix/TRC and gray, see DIRECT_LINEAR) still returns a number
  * here, and that number is near zero even well outside the gamut: the round trip
  * is not what decides membership for those, so do not read a small ΔE from one
  * as "comfortably inside".
@@ -1201,7 +1201,7 @@ function iccDevice(
  * clips into the device cube rather than projecting onto a gamut surface, and the
  * clip does not always show up in the round trip. {@link iccGamutSource}'s
  * `contains` tests the unclamped cube directly for them (DIRECT_LINEAR) and never
- * reaches the ΔE comparison — so a caller SHOWING {@link iccRoundTripDeltaE}
+ * reaches the ΔE comparison, so a caller SHOWING {@link iccRoundTripDeltaE}
  * beside a verdict has to gate on this, or it prints a rule the verdict does not
  * follow ("outside, shift ΔE 0.1" under "in gamut is decided by ΔE 3.0").
  */
@@ -1235,7 +1235,7 @@ export function iccGamutSource(p: IccProfile, intent: RenderingIntent): GamutSou
       const d = device(l, c, h);
       if (!d) return false;
       // A profile with no B2A table clips instead of projecting, and the clip can
-      // hide under the ΔE threshold — so ask its cube directly first. Null here
+      // hide under the ΔE threshold, so ask its cube directly first. Null here
       // means the profile HAS a table and the round trip below is the real test.
       const raw = direct?.(intent, d.lab);
       if (raw?.some((v) => v < -CUBE_EPS || v > 1 + CUBE_EPS)) return false;
@@ -1246,7 +1246,7 @@ export function iccGamutSource(p: IccProfile, intent: RenderingIntent): GamutSou
     /**
      * Total area coverage: the sum of the device channels the colour maps to, in
      * units where 1.0 is one channel at full. A four-ink profile can therefore
-     * return up to 4.0 — the printing trade's "400% TAC" — so this is not
+     * return up to 4.0, the printing trade's "400% TAC", so this is not
      * normalised to 0–1; normalising would erase exactly the number a pressroom
      * ink limit is expressed in. Null for additive spaces, where the question
      * does not apply.
@@ -1269,7 +1269,7 @@ export function iccGamutSource(p: IccProfile, intent: RenderingIntent): GamutSou
 const TARG_SCAN = 4096;
 
 /**
- * The characterization data set a profile says it was built from — the
+ * The characterization data set a profile says it was built from: the
  * `FILE_DESCRIPTOR` line of its `targ` (characterizationTarget) tag, e.g.
  * `FOGRA51`. Null when the profile carries no `targ`, or its header does not
  * state one.
@@ -1277,7 +1277,7 @@ const TARG_SCAN = 4096;
  * This is TESTIMONY, not measurement: it is what the profile's author wrote into
  * the file. It is the strongest identity signal available on-device short of
  * comparing its tables against published aim values (which needs aim data
- * nothing here ships) — which is exactly why a caller may use it to pair a
+ * nothing here ships), which is exactly why a caller may use it to pair a
  * profile with a named press condition but must never read it as proof that the
  * numbers inside are right.
  *
@@ -1342,13 +1342,13 @@ const K256 = /* @__PURE__ */ (() => {
   return primes.map((n) => Math.floor((Math.cbrt(n) % 1) * 2 ** 32) >>> 0);
 })();
 
-/** First 16 hex chars of the SHA-256 of `data` — enough to key a cache on. */
+/** First 16 hex chars of the SHA-256 of `data`: enough to key a cache on. */
 function sha256Prefix(data: Uint8Array): string {
   const h = [0x6a09e667, 0xbb67ae85, 0x3c6ef372, 0xa54ff53a, 0x510e527f, 0x9b05688c, 0x1f83d9ab, 0x5be0cd19];
   const len = data.length;
   // FIPS 180-4 padding: the smallest multiple of 64 that holds the message, the
   // 0x80 byte and the 8-byte length. `>>6` then `+1` already rounds up, so the
-  // slack term is 8, not 9 — at 9 a length of exactly 55 mod 64 (where len+9 is
+  // slack term is 8, not 9: at 9 a length of exactly 55 mod 64 (where len+9 is
   // already a multiple of 64) gained a whole extra zero block and the digest
   // stopped being SHA-256.
   const withPad = new Uint8Array((((len + 8) >> 6) + 1) << 6);

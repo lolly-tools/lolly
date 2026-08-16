@@ -4,13 +4,13 @@
  *
  * A free-canvas block declares its geometry by NAMING sub-fields:
  * `canvas.xField: "x"` means "the box's left edge lives in the `x` sub-field of
- * this same blocks input". Nothing at runtime notices when that name is wrong —
+ * this same blocks input". Nothing at runtime notices when that name is wrong - 
  * the overlay's `setField` no-ops on a field the row doesn't carry, and the
  * compact blocks URL drops an undeclared sub-field on the way out. So a typo'd
  * `shadowBlrField` (or a rename that missed the canvas block) ships as a control
  * that silently does nothing, in a manifest that validates cleanly.
  *
- * The JSON Schema owns the other half — `canvas` is a CLOSED set, so an unknown
+ * The JSON Schema owns the other half - `canvas` is a CLOSED set, so an unknown
  * key is an Ajv error. It cannot own this half: whether `"x"` names a real field
  * depends on the sibling `fields` array, which JSON Schema has no way to
  * cross-reference. Hence a structural check here, in the same class as the
@@ -24,8 +24,8 @@
  *     against that input's `fields`, and a `connect.input` naming no input at
  *     all is itself an error.
  *
- * Keys that are NOT field references — `frameKind` (a literal `kind` VALUE),
- * `pathLayerClass`, `minSize`, `grid`, `fixedCanvas`, `addKinds`, `import` — do
+ * Keys that are NOT field references - `frameKind` (a literal `kind` VALUE),
+ * `pathLayerClass`, `minSize`, `grid`, `fixedCanvas`, `addKinds`, `import` - do
  * not end in `Field`, which is exactly why the `/Field$/` rule is safe to apply
  * mechanically. `connect.layerClass` and the `default*` seeds are excluded by
  * the same rule.
@@ -57,7 +57,7 @@ const CONNECT_KEY = 'connect';
  *
  * Returns one message per broken reference (dir prefix left to the caller);
  * an empty array means every reference resolves. A non-string or empty value is
- * reported too — a `*Field` is a field NAME, and `null`/`0`/`""` can only be a
+ * reported too - a `*Field` is a field NAME, and `null`/`0`/`""` can only be a
  * mistake in a hand-edited manifest.
  */
 export function canvasFieldRefErrors(manifest: Manifest): string[] {
@@ -124,7 +124,7 @@ function fieldIds(input: BlocksInput): Set<string> {
   return ids;
 }
 
-/** A short, bounded rendering of the available ids — enough to spot the typo. */
+/** A short, bounded rendering of the available ids - enough to spot the typo. */
 function describe(ids: Set<string>): string {
   const all = [...ids];
   if (!all.length) return 'the input declares no fields';

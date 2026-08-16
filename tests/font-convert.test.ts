@@ -2,10 +2,10 @@
 /**
  * font-convert: TTF/OTF ⇄ WOFF1 container round-trips against a real font.
  *
- * The load-bearing property is that a font's TABLE DATA survives a
+ * The required property is that a font's TABLE DATA survives a
  * sfnt→WOFF→sfnt round-trip byte-for-byte, and that every directory checksum
  * stays consistent with the bytes it describes. We use the shipped Outfit
- * variable TTF (always present — it is the web shell's platform face) as a real
+ * variable TTF (always present - it is the web shell's platform face) as a real
  * fixture, and also exercise the synthetic minimal-sfnt path so the test does
  * not depend on any one font's table set.
  */
@@ -205,7 +205,7 @@ test('hostile WOFF: an out-of-range table offset throws, does not read past end'
   dv.setUint32(16, 64, false);        // totalSfntSize
   const e = 44;
   dv.setUint32(e, 0x61616161, false);     // tag 'aaaa'
-  dv.setUint32(e + 4, 9999, false);       // offset — way past end
+  dv.setUint32(e + 4, 9999, false);       // offset - way past end
   dv.setUint32(e + 8, 4, false);          // compLength
   dv.setUint32(e + 12, 4, false);         // origLength
   dv.setUint32(e + 16, 0, false);         // checksum

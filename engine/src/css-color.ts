@@ -1,11 +1,11 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
- * One CSS Color 4 colour value — the engine's single source of truth for
+ * One CSS Color 4 colour value. This is the engine's single source of truth for
  * parsing, converting, gamut-mapping and serialising colour.
  *
  * The third sibling of units.ts (dimensions → what each format needs) and
  * color.ts (ICC profile bytes / press conditions): this one owns the *value*.
- * Before it, five parsers disagreed about what a colour is — the shells' export
+ * Before it, five parsers disagreed about what a colour is. The shells' export
  * walkers each carried a `rgba?(int,int,int)` regex commented "always rgb/rgba
  * from getComputedStyle", which CSS Color 4 makes false: only rgb()/rgba()/hsl()
  * are LEGACY and serialise as `rgb(…)`. lab(), lch(), oklab(), oklch(), hwb()
@@ -15,7 +15,7 @@
  * plans/60-color-spaces.md §4.
  *
  * Shape follows linebender/color's `DynamicColor` (a CSS-Color-4-faithful Rust
- * crate — read as a design reference, not a dependency): a space tag, three
+ * crate, read as a design reference, not a dependency): a space tag, three
  * components in that space's own units, alpha, and a bitset of components that
  * were written `none`. Keeping "missing" distinct from zero is what lets CSS's
  * interpolation rule ("a missing hue adopts the other side's hue") stay
@@ -23,12 +23,12 @@
  *
  * Conversion hubs on XYZ D65. Oklab routes through linear sRGB rather than
  * carrying its own XYZ matrices, because brand-derive.ts already owns Ottosson's
- * reference matrices and linear-sRGB ↔ XYZ-D65 is exact — one set of magic
+ * reference matrices and linear-sRGB ↔ XYZ-D65 is exact: one set of magic
  * numbers instead of two. The gamut-map search is brand-derive's too
  * (`gamutMapOklch`), shared with `oklchToHex`.
  *
  * Pure and deterministic: no DOM, no Date, no Math.random, no IO. Every entry
- * point returns null (never throws) on unreadable input — this parses values
+ * point returns null (never throws) on unreadable input. This module parses values
  * from untrusted imported documents, and a caller that gets null must be able to
  * treat it as "no colour" rather than crash a render.
  */
@@ -42,14 +42,14 @@ import {
 
 /**
  * A CSS Color 4 colour space. The predefined-RGB spaces plus the polar/opponent
- * ones and the two XYZ whites — i.e. everything `color()` and the colour
+ * ones and the two XYZ whites. This is everything `color()` and the colour
  * functions can name, minus the ACES spaces (no format we emit can carry them).
  */
 export type ColorSpaceTag =
   | 'srgb' | 'srgb-linear' | 'display-p3' | 'a98-rgb' | 'prophoto-rgb' | 'rec2020'
   | 'hsl' | 'hwb' | 'lab' | 'lch' | 'oklab' | 'oklch' | 'xyz-d50' | 'xyz-d65';
 
-/** Bit flags for `CssColor.missing` — a component authored as the `none` keyword. */
+/** Bit flags for `CssColor.missing`: a component authored as the `none` keyword. */
 export const MISSING_C0 = 1 << 0;
 export const MISSING_C1 = 1 << 1;
 export const MISSING_C2 = 1 << 2;
@@ -69,7 +69,7 @@ export const MISSING_ALPHA = 1 << 3;
  * | oklch | L 0–1 | C | hue deg |
  * | xyz-d50, xyz-d65 | X | Y | Z |
  *
- * RGB components are NOT clamped — an out-of-gamut `color(display-p3 1 0 0)`
+ * RGB components are NOT clamped. An out-of-gamut `color(display-p3 1 0 0)`
  * keeps its real coordinates so a wide-gamut format can carry them, and only
  * flattens when a caller asks for sRGB bytes.
  */
@@ -94,7 +94,7 @@ const apply3 = (m: Mat3, v: readonly [number, number, number]): [number, number,
 // ─── Named colours ────────────────────────────────────────────────────────────
 
 /**
- * The CSS3 extended named colours as 24-bit sRGB ints. THE table — previously
+ * The CSS3 extended named colours as 24-bit sRGB ints. THE table. Previously
  * three (a 148-entry copy in the shell's PDF walker, a 12-entry one in the EMF
  * walker, and a name-only membership Set in svg-colors.ts kept in sync by
  * comment). `transparent` is deliberately absent: it is a keyword the parser
@@ -296,7 +296,7 @@ const polarToRect = (L: number, C: number, hDeg: number): [number, number, numbe
  * Chroma below which a colour is achromatic and its hue is numerical noise rather
  * than a choice. Per-space, because the units differ by three orders of magnitude:
  * OKLCH chroma tops out around 0.4, LCH's around 150. A single absolute epsilon
- * sized for OKLab means grey is NEVER detected in Lab units — `#808080` converted
+ * sized for OKLab means grey is NEVER detected in Lab units: `#808080` converted
  * to `lch` reported hue 139°, and a white→blue LCH gradient swept through green.
  */
 const ACHROMATIC_C: Readonly<Record<string, number>> = { oklch: 1e-4, lch: 0.02 };
@@ -433,7 +433,7 @@ export function convertColor(c: CssColor, to: ColorSpaceTag): CssColor {
 /**
  * The `missing` bits a freshly converted colour should carry (CSS Color 4 §4.4.1: a
  * component that has become POWERLESS is set to missing). In practice that is the hue
- * of an achromatic colour — grey has no hue, and pretending it has one is what makes
+ * of an achromatic colour: grey has no hue, and pretending it has one is what makes
  * `linear-gradient(in oklch, white, green)` swing through pink and orange instead of
  * simply raising the green's chroma. §13.2 then carries the real hue from the other
  * side of the interpolation, which is exactly the behaviour a browser shows.
@@ -455,7 +455,7 @@ function powerlessMissing(space: ColorSpaceTag, c: readonly [number, number, num
 export type HueDirection = 'shorter' | 'longer' | 'increasing' | 'decreasing';
 
 export interface MixOptions {
-  /** Interpolation space. Default `oklab` — perceptually even, and the space
+  /** Interpolation space. Default `oklab`: perceptually even, and the space
    *  `color-mix()` uses when none is named. Pass `srgb` to model what a plain CSS
    *  gradient or an SVG `<linearGradient>` actually does. */
   space?: ColorSpaceTag;
@@ -463,7 +463,7 @@ export interface MixOptions {
   hue?: HueDirection;
 }
 
-// Which component is the hue angle, per space — the one component that must NOT
+// Which component is the hue angle, per space. This is the one component that must NOT
 // be premultiplied and must be lerped as an angle.
 const HUE_INDEX: Partial<Record<ColorSpaceTag, number>> = {
   hsl: 0, hwb: 0, lch: 2, oklch: 2,
@@ -494,11 +494,11 @@ function fixupHues(ha: number, hb: number, dir: HueDirection): [number, number] 
 }
 
 /**
- * Fill in `c`'s missing components from `other` (§13.2 — "a missing hue adopts the
+ * Fill in `c`'s missing components from `other` (§13.2: "a missing hue adopts the
  * other side's hue"). BOTH are already in the interpolation space, which is the
  * only order that works: the components have to be analogous for the carry to mean
  * anything, and the missing bit that matters most is usually one `convertColor`
- * *produced* — an achromatic colour's hue is powerless (§4.4.1), so a white or grey
+ * *produced*. An achromatic colour's hue is powerless (§4.4.1), so a white or grey
  * endpoint has no hue of its own to sweep from.
  *
  * Carrying before converting (the first cut here) made both cases dead: an authored
@@ -524,7 +524,7 @@ function carryMissing(c: CssColor, other: CssColor): CssColor {
  * The premultiplication is the part that is easy to skip and visibly wrong when
  * you do. `red` → `transparent` unpremultiplied lerps the colour toward
  * transparent's *black* while the alpha falls, so the midpoint is a dark red at
- * 50% — the classic muddy fringe. Premultiplied, the midpoint is plain red at
+ * 50%, the classic muddy fringe. Premultiplied, the midpoint is plain red at
  * 50%, which is what every browser draws.
  *
  * Alpha itself is linear in `t` regardless of space. When both ends are fully
@@ -563,7 +563,7 @@ export function interpolateColor(a: CssColor, b: CssColor, t: number, opts: MixO
   return { space, components: out, alpha, missing: 0 };
 }
 
-/** ΔEOK between two colours — the perceptual distance §14.2 and §20.2 use. */
+/** ΔEOK between two colours: the perceptual distance §14.2 and §20.2 use. */
 export function deltaEOkColor(a: CssColor, b: CssColor): number {
   const la = convertColor(a, 'oklab').components;
   const lb = convertColor(b, 'oklab').components;
@@ -579,14 +579,14 @@ export interface ColorStop {
 }
 
 export interface BakeOptions extends MixOptions {
-  /** Max ΔEOK a baked segment may deviate from the true curve. Default 0.01 —
-   *  half a JND, i.e. invisible. */
+  /** Max ΔEOK a baked segment may deviate from the true curve. Default 0.01:
+   *  half a JND, in other words invisible. */
   tolerance?: number;
   /**
    * Recursion cap per input segment. Default 6, which is where the measurement
    * lands: across oklab/oklch/lab/lch/hsl and the hardest pairs (black→white,
    * blue→yellow, navy→gold, translucent ends), depth 6 holds the worst error at
-   * 0.012 ΔEOK — under a JND — while emitting at most 15 stops per segment. Depth
+   * 0.012 ΔEOK (under a JND) while emitting at most 15 stops per segment. Depth
    * 7 buys 0.0008 for another stop, so this is the knee, not a round number.
    */
   maxDepth?: number;
@@ -594,13 +594,13 @@ export interface BakeOptions extends MixOptions {
 
 /**
  * Approximate a gradient interpolated in `opts.space` with stops that a renderer
- * interpolating in **sRGB** draws indistinguishably — by inserting intermediate
- * stops only where the two disagree.
+ * interpolating in **sRGB** draws indistinguishably. It does this by inserting
+ * intermediate stops only where the two disagree.
  *
  * This is what makes a smooth gradient portable. CSS `linear-gradient(in oklab,
  * …)` exists, but an SVG `<linearGradient>` and a PDF axial shading have no
  * interpolation-space knob at all: they lerp sRGB, full stop. Baking means one
- * stop list renders the same on screen, in SVG, and in PDF — and none of the
+ * stop list renders the same on screen, in SVG, and in PDF, and none of the
  * export walkers need to learn a new syntax.
  *
  * Subdivision is adaptive: nearly-flat segments (grey → grey) emit nothing extra;
@@ -634,15 +634,15 @@ export function gradientStops(stops: readonly ColorStop[], opts: BakeOptions = {
 
 // Where inside a span the curve is probed against what the renderer would paint.
 // The midpoint alone is NOT enough: CIELAB black→white passes a midpoint check
-// (Lab's L=50 lands near sRGB's #777) while being ~0.023 ΔEOK off at 5% — its toe
+// (Lab's L=50 lands near sRGB's #777) while being ~0.023 ΔEOK off at 5%. Its toe
 // is where the two curves actually diverge. Three probes bound the error properly
 // for a handful of extra conversions per segment.
 const PROBES = [0.25, 0.5, 0.75] as const;
 
 /**
  * Emit whatever intermediate stops the span (t0…t1) of the segment `a`→`b` needs.
- * `ca`/`cb` are the colours already emitted at those two ends — the pair a flat
- * renderer will actually interpolate between — while the intended colours come
+ * `ca`/`cb` are the colours already emitted at those two ends: the pair a flat
+ * renderer will actually interpolate between. The intended colours come
  * from `a`/`b` at absolute positions inside the span.
  */
 function refineSegment(
@@ -677,7 +677,7 @@ const inSrgb = (rgb: readonly [number, number, number]): boolean =>
  * Map an sRGB triple into gamut per CSS Color 4 §14.2 (chroma bisection with a
  * local-MINDE clip check). An in-gamut input is returned untouched.
  *
- * The search itself lives in brand-derive.ts#gamutMapOklch — THE engine's one
+ * The search itself lives in brand-derive.ts#gamutMapOklch. It is THE engine's one
  * mapper, shared with `oklchToHex`, so a brand token and an exported paint can
  * never disagree about what an out-of-gamut colour becomes. This wrapper only
  * moves an encoded sRGB triple into OKLCH first.
@@ -701,7 +701,7 @@ export function colorToSrgb(c: CssColor): [number, number, number] {
   return gamutMapSrgb(convertColor(c, 'srgb').components);
 }
 
-/** The colour as sRGB bytes plus alpha 0–1 — what the export walkers consume. */
+/** The colour as sRGB bytes plus alpha 0–1: what the export walkers consume. */
 export function colorToSrgb8(c: CssColor): [number, number, number, number] {
   const [r, g, b] = colorToSrgb(c);
   const byte = (v: number): number => Math.round(clamp01(v) * 255);
@@ -727,7 +727,7 @@ const RGB_SPACES = new Set<ColorSpaceTag>([
 ]);
 
 /**
- * Serialise back to a CSS Color 4 string, in the colour's OWN space — so a
+ * Serialise back to a CSS Color 4 string, in the colour's OWN space, so a
  * wide-gamut value can be written into an SVG paint rather than flattened at the
  * door. Predefined-RGB and XYZ spaces serialise as `color(<space> …)`; the
  * others use their own function. Components authored as `none` are preserved as
@@ -737,7 +737,7 @@ export function formatColor(c: CssColor): string {
   const [c0, c1, c2] = c.components;
   const tok = (v: number, flag: number, dp: number): string =>
     (c.missing & flag) !== 0 ? 'none' : fmtNum(v, dp);
-  // A `none` component carries no unit — `none%` is not valid CSS.
+  // A `none` component carries no unit: `none%` is not valid CSS.
   const pct = (v: number, flag: number, dp: number): string =>
     (c.missing & flag) !== 0 ? 'none' : `${fmtNum(v, dp)}%`;
   const alpha = (c.missing & MISSING_ALPHA) !== 0 ? ' / none'
@@ -777,7 +777,7 @@ const COLOR_FN_SPACES: Readonly<Record<string, ColorSpaceTag>> = {
 
 // Split a function's argument text into the component tokens and the optional
 // slash-alpha. Legacy syntax is comma-separated, modern is whitespace-separated;
-// CSS forbids mixing, and so do we — a comma anywhere means every separator must
+// CSS forbids mixing, and so do we: a comma anywhere means every separator must
 // be a comma, which is what keeps `rgb(1 2, 3)` from parsing.
 function splitArgs(inner: string): { parts: string[]; alpha: string | null } | null {
   const slash = inner.split('/');
@@ -834,10 +834,10 @@ function build(
  * components, and percentages wherever CSS allows them.
  *
  * Returns null for `currentColor` (its value depends on inherited state the
- * engine can't see — callers resolve it upstream), for `none`/`inherit`/other
+ * engine can't see; callers resolve it upstream), for `none`/`inherit`/other
  * non-paint keywords, for `color-mix()`/relative syntax (`from`) which a browser
  * has already resolved by the time we read a computed value, and for anything
- * malformed. Null NEVER means "black" — it means "no colour", and callers must
+ * malformed. Null NEVER means "black". It means "no colour", and callers must
  * treat it that way.
  */
 export function parseColor(input: string | null | undefined): CssColor | null {
@@ -945,7 +945,7 @@ const COLOR_TOKEN_OR_IDENT = new RegExp(`(?:${COLOR_FN})\\([^)]*\\)|#[0-9a-fA-F]
 /**
  * The colour substring inside a shorthand value (`box-shadow`, `text-shadow`,
  * `drop-shadow()`), or null. Callers strip the returned substring before reading
- * the numeric parts — which is why this has to know every colour function name:
+ * the numeric parts. This is why this has to know every colour function name:
  * an unrecognised `oklch(0.7 0.1 200)` doesn't merely lose its colour, it leaves
  * `0.7 0.1 200` behind to be misread as the offsets.
  *
@@ -960,7 +960,7 @@ export function findColorToken(text: string, allowBareIdent = false): string | n
 // ─── Convenience for the export walkers ───────────────────────────────────────
 
 /**
- * Parse straight to sRGB bytes + alpha — the one call the SVG/PDF/EMF walkers
+ * Parse straight to sRGB bytes + alpha: the one call the SVG/PDF/EMF walkers
  * want. Null for unparseable input AND for fully transparent colour (every
  * caller treats "alpha 0" as "nothing to paint", so collapsing the two here
  * keeps their `if (rgb)` guards correct).

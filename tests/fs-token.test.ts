@@ -1,12 +1,12 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
- * Filesystem-safe token codec (engine/src/fs-token.ts) — the fix for the P0-4
+ * Filesystem-safe token codec (engine/src/fs-token.ts) - the fix for the P0-4
  * desktop session-name collision that silently destroyed data.
  *
  * The Tauri state bridges name each saved session `<encodeFsToken(slot)>.json`.
  * The property that matters: distinct slot names must produce distinct tokens
  * (injective) and each token must decode back to its exact slot. The old
- * `slot.replace(/[^\w.-]/g, '_')` failed injectivity — this proves the codec
+ * `slot.replace(/[^\w.-]/g, '_')` failed injectivity - this proves the codec
  * doesn't.
  */
 
@@ -47,7 +47,7 @@ test('tokens contain only universally-safe filename characters', () => {
   for (const slot of cases) {
     const token = encodeFsToken(slot);
     assert.match(token, /^[A-Za-z0-9._%-]*$/, `${JSON.stringify(slot)} → ${token}`);
-    // No path separators survive — a token can never escape its directory.
+    // No path separators survive - a token can never escape its directory.
     assert.ok(!token.includes('/') && !token.includes('\\'));
   }
 });

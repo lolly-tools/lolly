@@ -1,8 +1,8 @@
 // The shared docs body renderer: the inline pass and the block loop, plus the two
 // fence handlers (::: showcase / ::: figure). Ported verbatim from docs/build.ts, with
 // every impure call routed through the injected DocsRenderContext so the static build
-// and the in-app docs view emit byte-identical markup. The load-bearing bits — inline()'s
-// pass order, mdToHtml's headingOrdinal locality and the ::: fence depth counter — are
+// and the in-app docs view emit byte-identical markup. The essential bits - inline()'s
+// pass order, mdToHtml's headingOrdinal locality, and the ::: fence depth counter - are
 // preserved exactly. See plan this-is-a-very-sparkling-eich, M0b.
 
 import { esc } from './esc.ts';
@@ -21,8 +21,8 @@ function shotTry(file: string, ctx: DocsRenderContext): string {
 export function inline(text: string, ctx: DocsRenderContext): string {
   let s = esc(text);
   // One fact the recipe carries that the rewritten `src` cannot: the dark twin to pair
-  // with. Collected in the recipe pass below and read by the wrapper pass — same call, so
-  // a plain local map is the whole mechanism.
+  // with. Collected in the recipe pass below and read by the wrapper pass in the same
+  // call, so a plain local map is the whole mechanism.
   const darkFor = new Map<string, string>();
   // An inline code span that IS an app route becomes a link to it. Deliberately narrow:
   // the span must be a WHOLE route and nothing else, so placeholder forms stay plain text.
@@ -36,9 +36,9 @@ export function inline(text: string, ctx: DocsRenderContext): string {
   s = s.replace(/\*([^*]+)\*/g, '<em>$1</em>');
   // Screenshot recipes: an image whose URL is a url-shot tool link IS the shot's recipe;
   // the page serves the committed baseline at /info/shots/<filename>.<format>. The param
-  // is `recipe`, NOT `src` — a `src` param would shadow the wrapper pass's darkFor key.
+  // is `recipe`, NOT `src` - a `src` param would shadow the wrapper pass's darkFor key.
   s = s.replace(/(!\[[^\]]*\]\()(\/t\/url-shot\?[^)\s]+)(\))/g, (_m, pre: string, recipe: string, post: string) => {
-    // The body is HTML-escaped by now, so the query separators read `&amp;` — restore them.
+    // The body is HTML-escaped by now, so the query separators read `&amp;`; restore them.
     const q = new URLSearchParams(recipe.slice(recipe.indexOf('?') + 1).replace(/&amp;/g, '&'));
     const slug = q.get('filename');
     const ext = (q.get('format') || 'svg').toLowerCase();
@@ -89,7 +89,7 @@ export function inline(text: string, ctx: DocsRenderContext): string {
       + renderCredential(ctx.credential(file), { file, extraClass: '', fromPresent: false }, ctx)
       + `${twin}</span>${shotTry(file, ctx)}`;
   });
-  // A page ASSET that is not a screenshot — the AI stance hero, say — gets the same wrapper
+  // A page ASSET that is not a screenshot (the AI stance hero, say) gets the same wrapper
   // and credential glyph, read from the same served bytes. Assets with no readable
   // credential fall through unchanged.
   s = s.replace(/<img src="(\/info\/(?!shots\/)[^"]+\.(?:webp|png|jpe?g|avif))"([^>]*)>/g, (_m, src: string, rest: string) => {
@@ -114,7 +114,7 @@ export function inline(text: string, ctx: DocsRenderContext): string {
   return s;
 }
 
-// `::: showcase` — a vector shot inlined so scroll can drive its real viewBox. Bails to a
+// `::: showcase` - a vector shot inlined so scroll can drive its real viewBox. Bails to a
 // plain <img> screenshot (never drops the shot) when it cannot be inlined.
 function buildShowcase(body: string, ctx: DocsRenderContext): string {
   const recipe = /!\[([^\]]*)\]\((\/t\/url-shot\?[^)\s]+)\)/.exec(body);
@@ -142,8 +142,8 @@ function buildShowcase(body: string, ctx: DocsRenderContext): string {
 </figure>`;
 }
 
-// `::: figure <id>` — a banked figure inlined into the prose that argues with it. Unknown
-// id / unreadable art → a loud warning and nothing rendered (the prose carries the point).
+// `::: figure <id>` - a banked figure inlined into the prose it supports. Unknown
+// id / unreadable art → a loud warning and nothing rendered (the prose still stands alone).
 function buildFigure(id: string, body: string, ctx: DocsRenderContext): string {
   const art = ctx.art('figures', id);
   if (!art) {
@@ -255,7 +255,7 @@ export function mdToHtml(md: string, ctx: DocsRenderContext): string {
       }
     }
 
-    // A standalone <audio> line — a closed attribute whitelist, re-emitted re-escaped.
+    // A standalone <audio> line: a closed attribute whitelist, re-emitted re-escaped.
     // `captions` becomes a <track> (spoken words a deaf reader cannot reach are not published).
     const au = line.trim().match(/^<audio\s+([^<>]*?)\s*(?:\/>|><\/audio>)$/i);
     if (au) {
@@ -275,7 +275,7 @@ export function mdToHtml(md: string, ctx: DocsRenderContext): string {
       }
     }
 
-    // A standalone <video> line — the same closed-whitelist treatment as <audio>. This is
+    // A standalone <video> line: the same closed-whitelist treatment as <audio>. This is
     // how a credentialed audiogram MP4 lands on a page (audio containers can't carry C2PA).
     const vid = line.trim().match(/^<video\s+([^<>]*?)\s*(?:\/>|><\/video>)$/i);
     if (vid) {

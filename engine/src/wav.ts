@@ -1,18 +1,18 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
- * WAV reader/writer — RIFF bytes in, Float32 channel data out, and back again.
+ * WAV reader/writer. RIFF bytes in, Float32 channel data out, and back again.
  *
  * Exists so `host.audio` has a decoder that needs no platform codec at all. The web
  * shell hands its audio to `decodeAudioData` and gets MP3/AAC/Opus for free; Node
  * has none of that, so the headless path (CLI, TUI, batch renders) can decode
  * exactly two things without dependencies: a WAV file, and a ZzFXM song it renders
- * itself. That is enough for the cases that matter headlessly — our own generated
+ * itself. That covers the cases that matter headlessly: our own generated
  * music, and any clip a user is willing to hand over uncompressed.
  *
  * Supports the PCM forms that actually turn up: 8-bit unsigned, 16/24/32-bit signed
  * integer, and 32/64-bit IEEE float, including inside a `WAVE_FORMAT_EXTENSIBLE`
  * wrapper. Anything else (µ-law, ADPCM, a compressed payload in a RIFF skin) is
- * REFUSED by name rather than misread as PCM — reading an unknown encoding as
+ * REFUSED by name rather than misread as PCM. Reading an unknown encoding as
  * samples produces full-scale noise, which as an audiogram would look like a
  * perfectly plausible loud track.
  *
@@ -28,8 +28,8 @@ const FMT_ALAW = 0x0006;
 const FMT_MULAW = 0x0007;
 const FMT_EXTENSIBLE = 0xfffe;
 
-/** A sane ceiling on channel count — a malformed header claiming 65,535 channels
- *  would otherwise have us allocate 65,535 arrays before discovering there's no data. */
+/** A sane ceiling on channel count. Without it, a malformed header claiming 65,535
+ *  channels would make us allocate 65,535 arrays before discovering there's no data. */
 const MAX_CHANNELS = 32;
 
 export interface WavAudio {
@@ -40,8 +40,8 @@ export interface WavAudio {
 }
 
 /**
- * Decode a WAV file. Throws with a specific reason on anything it cannot read —
- * callers surface that to the user, so "24-bit ADPCM" is a better message than a
+ * Decode a WAV file. Throws with a specific reason on anything it cannot read.
+ * Callers surface that to the user, so "24-bit ADPCM" is a better message than a
  * silent wall of noise.
  */
 export function parseWav(bytes: ArrayBuffer | Uint8Array): WavAudio {
@@ -89,7 +89,7 @@ export function parseWav(bytes: ArrayBuffer | Uint8Array): WavAudio {
 
     // Chunks are word-aligned: an odd size carries a pad byte that is not counted.
     at = body + size + (size & 1);
-    if (at <= body) break; // a size that wrapped — refuse to walk backwards
+    if (at <= body) break; // a size that wrapped - refuse to walk backwards
   }
 
   if (dataStart < 0) throw new Error('wav: no data chunk');
@@ -137,7 +137,7 @@ function sampleReader(view: DataView, tag: number, bits: number): (at: number) =
     case 8: return (at) => (view.getUint8(at) - 128) / 128;
     case 16: return (at) => view.getInt16(at, true) / 32768;
     case 24: return (at) => {
-      // No getInt24 — assemble little-endian and sign-extend from bit 23.
+      // No getInt24: assemble little-endian and sign-extend from bit 23.
       const v = view.getUint8(at) | (view.getUint8(at + 1) << 8) | (view.getUint8(at + 2) << 16);
       return (v & 0x800000 ? v - 0x1000000 : v) / 8388608;
     };
@@ -150,15 +150,15 @@ export type WavSampleFormat = 'int16' | 'float32';
 
 export interface PackWavOptions {
   /**
-   * `int16` (default) — signed 16-bit PCM, what every player reads.
-   * `float32` — IEEE float, the lossless path. The pipeline is Float32 throughout,
+   * `int16` (default): signed 16-bit PCM, what every player reads.
+   * `float32`: IEEE float, the lossless path. The pipeline is Float32 throughout,
    * so a "save the audio" export must not quantise unless the caller asks for it.
    */
   format?: WavSampleFormat;
 }
 
 /**
- * Encode Float32 channel data as a RIFF/WAVE file. The inverse of `parseWav` —
+ * Encode Float32 channel data as a RIFF/WAVE file. The inverse of `parseWav`:
  * it takes exactly what `parseWav` returns, so `parseWav(packWav(x))` round-trips
  * (bit-exact for `float32`; for `int16`, exact for values already on the 1/32768
  * grid, quantised otherwise).
@@ -174,8 +174,8 @@ export interface PackWavOptions {
  *    reader passes them through, so the writer must too.
  *
  * A zero-sample buffer produces a valid, complete header with an empty data chunk.
- * `parseWav` will REFUSE to read it back ("no complete frames") — deliberately, a
- * silent zero-length decode is a worse answer than an error.
+ * `parseWav` will REFUSE to read it back ("no complete frames"). This is deliberate:
+ * a silent zero-length decode is a worse answer than an error.
  */
 export function packWav(audio: WavAudio, opts: PackWavOptions = {}): Uint8Array {
   const format = opts.format ?? 'int16';
@@ -227,7 +227,7 @@ export function packWav(audio: WavAudio, opts: PackWavOptions = {}): Uint8Array 
   if (float) view.setUint16(at + 24, 0, true);   // cbSize: no extension follows
   at += 8 + fmtLen;
 
-  // fact chunk — required for non-PCM; dwSampleLength is frames per channel.
+  // fact chunk - required for non-PCM; dwSampleLength is frames per channel.
   if (float) {
     put(at, 'fact');
     view.setUint32(at + 4, 4, true);

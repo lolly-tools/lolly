@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
  * Downloads the ONNX background-removal (matting) models into
- * shells/web/public/models/matte/ — the same-origin location the matte worker
+ * shells/web/public/models/matte/ - the same-origin location the matte worker
  * loads them from at runtime by exact filename. Twin of
  * scripts/fetch-upscale-models.ts; same PINS-table + sha256/byte-length verify +
  * --refresh-pins shape.
@@ -15,39 +15,39 @@
  *   node scripts/fetch-matte-models.ts --only u2netp.onnx
  *   node scripts/fetch-matte-models.ts --refresh-pins  # download candidates, print pin lines, verify nothing
  *
- * ── Files (the staged roster — real verified pins below) ────────────────────
+ * ── Files (the staged roster - real verified pins below) ────────────────────
  *   u2netp.onnx        U²-Net lite,   Apache-2.0, xuebinqin/U-2-Net    (FAST preview)
- *   birefnet-lite.onnx BiRefNet lite, MIT,        ZhengPeng7/BiRefNet  (DEFAULT — dark/detail)
- *   birefnet.onnx      BiRefNet full, MIT,        ZhengPeng7/BiRefNet  (MAX quality — ~490 MB fp16)
+ *   birefnet-lite.onnx BiRefNet lite, MIT,        ZhengPeng7/BiRefNet  (DEFAULT - dark/detail)
+ *   birefnet.onnx      BiRefNet full, MIT,        ZhengPeng7/BiRefNet  (MAX quality - ~490 MB fp16)
  *   modnet.onnx        MODNet,        Apache-2.0, ZHKKKe/MODNet        (PORTRAITS)
- * (IS-Net was staged then retired 2026-08-05 — strictly dominated by BiRefNet-lite.)
+ * (IS-Net was staged then retired 2026-08-05 - strictly dominated by BiRefNet-lite.)
  *
  * ── THE LICENCE + ARTIFACT GATES (work these before staging a NEW model) ─────
  * Model licensing ships to every user's device, so nothing is trusted on web
  * research. Before flipping a model's pin (and its MATTE_STAGED flag in
  * shells/web/src/lib/matte-models.ts, in the SAME change), a human MUST:
  *   1. Re-read the UPSTREAM LICENSE at a pinned commit and confirm it covers the
- *      WEIGHTS, not just the code — U-2-Net (Apache-2.0), BiRefNet (MIT), MODNet
+ *      WEIGHTS, not just the code - U-2-Net (Apache-2.0), BiRefNet (MIT), MODNet
  *      (Apache-2.0, covers code + models).
  *   2. Confirm the ONNX file's own provenance: u2netp from a COMMUNITY conversion
- *      (rembg), birefnet-lite/modnet from onnx-community / Xenova — verify each
+ *      (rembg), birefnet-lite/modnet from onnx-community / Xenova - verify each
  *      mirror's repo card licence matches the upstream, exactly as the upscale
  *      script's HuggingFace caveat warns.
  *   3. Download and record the REAL byte size + sha256.
- *   4. Load the ONNX in onnxruntime on the WASM/CPU path (matte is WASM-ONLY — the
+ *   4. Load the ONNX in onnxruntime on the WASM/CPU path (matte is WASM-ONLY - the
  *      roster's MaxPool ceil_mode isn't supported by ort-web's WebGPU kernels) at
  *      its input size, and confirm it RUNS.
  *   5. Confirm from the ACTUAL ONNX graph: input tensor name/shape/dtype, and the
- *      preprocessing mean/std — MODNet's [-1,1] (0.5 / 0.5) differs from the
+ *      preprocessing mean/std - MODNet's [-1,1] (0.5 / 0.5) differs from the
  *      ImageNet default u2netp/BiRefNet use.
  *   6. Confirm the output activation empirically (min-max for the bounded heads
  *      u2netp/modnet, sigmoid for birefnet-lite's logit head) by inspecting a real
- *      mask — a wrong choice degrades quality with no crash.
+ *      mask - a wrong choice degrades quality with no crash.
  * Reconcile the real sizes into MATTE_MODELS.approxBytes once known.
  *
  * ── WHY NOT THE POPULAR ONE (RMBG) ──────────────────────────────────────────
  * BRIA's RMBG-1.4 (proprietary non-commercial licence) and RMBG-2.0
- * (CC BY-NC 4.0) are the popular, high-quality removers — and both forbid
+ * (CC BY-NC 4.0) are the popular, high-quality removers - and both forbid
  * commercial use without a separate BRIA agreement. Lolly ships its model to
  * every device, so a non-commercial licence is disqualifying. We use the
  * MIT/Apache saliency nets instead. Do not add RMBG here.
@@ -56,7 +56,7 @@
  * Every real pin is SHA-256 + byte-length verified BEFORE it is written; a
  * mismatch exits non-zero with nothing written. An on-disk file matching its pin
  * is skipped network-free. A PLACEHOLDER pin is SKIPPED on a normal run with a
- * loud warning — nothing unverified is served or cached. --refresh-pins stages a
+ * loud warning - nothing unverified is served or cached. --refresh-pins stages a
  * candidate OUT of the served tree (.candidates/) and prints a pin line to
  * hand-verify.
  *
@@ -84,7 +84,7 @@ interface Pin {
 }
 
 // All four pins below are REAL and verified (downloaded, sha256 + byte-length
-// checked, ONNX graph inspected — see the gate list in the header and each
+// checked, ONNX graph inspected - see the gate list in the header and each
 // entry's note). To add a NEW model: paste its CANDIDATE url with sha256:
 // PLACEHOLDER, run --refresh-pins to fetch + print the real line, work the gate
 // list, then paste the real pin over the placeholder in the SAME change that
@@ -118,7 +118,7 @@ const PINS: Record<string, Pin> = {
     note: 'PRO tier, ~115 MB fp16. Validate against onnxruntime #21968 (BiRefNet WebGPU op failure) on BOTH WebGPU and WASM. Output head is a LOGIT → sigmoid.',
   },
   'birefnet.onnx': {
-    // The FULL BiRefNet (Swin-L backbone) — the "max quality / willing to wait"
+    // The FULL BiRefNet (Swin-L backbone) - the "max quality / willing to wait"
     // tier over birefnet-lite. Same MIT upstream, same exporter, same 1024² /
     // ImageNet / sigmoid contract as the lite; fp16 for a ~half-size download and
     // parity with the lite's proven float32 I/O boundary. WASM-only like the rest
@@ -163,9 +163,9 @@ function verify(relPath: string, pin: Pin, bytes: Uint8Array, source: string): v
 function sniffOnnx(bytes: Uint8Array): boolean {
   if (bytes.length < 8) return false;
   const b0 = bytes[0], b1 = bytes[1];
-  if (b0 === 0x50 && b1 === 0x4b) return false; // 'PK' — zip / .pth
+  if (b0 === 0x50 && b1 === 0x4b) return false; // 'PK' - zip / .pth
   if (b0 === 0x1f && b1 === 0x8b) return false; // gzip
-  if (b0 === 0x3c) return false;                // '<' — HTML error page
+  if (b0 === 0x3c) return false;                // '<' - HTML error page
   return b0 === 0x08 || b0 === 0x0a;            // protobuf ModelProto head
 }
 

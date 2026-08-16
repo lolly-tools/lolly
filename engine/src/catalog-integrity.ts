@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
- * Catalog signing + runtime integrity verification — the SOVEREIGNTY.md
+ * Catalog signing + runtime integrity verification - the SOVEREIGNTY.md
  * "catalog origin is a trust anchor" gap, closed.
  *
  * A deployment signs its tool catalog at BUILD time (scripts/sign-catalog.ts
@@ -21,10 +21,10 @@
  *   }
  *
  * Canonical JSON (recursively key-sorted, no whitespace) is the signed byte
- * form on both sides — signer and verifier share canonicalJson() below, so
+ * form on both sides - signer and verifier share canonicalJson() below, so
  * there is exactly one serialization to get right. File digests are over raw
  * file bytes at sign time and over the UTF-8 encoding of the fetched text at
- * verify time — identical for the valid-UTF-8 text files tools are made of.
+ * verify time - identical for the valid-UTF-8 text files tools are made of.
  *
  * Pure + DOM-free: globalThis.crypto.subtle only (browsers and Node 20+).
  * Enforcement lives in loader.ts (LoadToolOpts.integrity): a hooks.js whose
@@ -48,7 +48,7 @@ export const CATALOG_SIGNED_TOOL_FILES = [
   'tool.json', 'template.html', 'styles.css', 'hooks.js',
   'template.ics', 'template.vcf', 'template.csv', 'template.md',
 ] as const;
-/** Per-tool i18n sidecars (`i18n/<lang>.json`) are signed too — but they're
+/** Per-tool i18n sidecars (`i18n/<lang>.json`) are signed too - but they're
  *  per-language and OPTIONAL per tool, so the signer enumerates whatever exists
  *  on disk against this pattern instead of a fixed list. Signer and any
  *  validator share it so an envelope key like `qr-code/i18n/de.json` means
@@ -58,7 +58,7 @@ export const CATALOG_SIGNED_I18N_SIDECAR = /^i18n\/[a-z0-9-]+\.json$/;
 const EC_P256 = { name: 'ECDSA', namedCurve: 'P-256' } as const;
 const ECDSA_SHA256 = { name: 'ECDSA', hash: 'SHA-256' } as const;
 
-/** The envelope minus its signature — the exact object the signature covers. */
+/** The envelope minus its signature - the exact object the signature covers. */
 export interface UnsignedCatalogEnvelope {
   alg: typeof CATALOG_SIG_ALG;
   keyId: string;
@@ -96,7 +96,7 @@ function base64UrlToBytes(str: string): Uint8Array {
 /**
  * Canonical JSON: recursively key-sorted objects, no whitespace, undefined
  * object members dropped (as JSON.stringify does). The ONE serialization the
- * signature covers — signer and verifier both call this, never JSON.stringify.
+ * signature covers - signer and verifier both call this, never JSON.stringify.
  */
 export function canonicalJson(value: unknown): string {
   if (value === null || typeof value !== 'object') {
@@ -124,7 +124,7 @@ export { sha256Hex } from './bytes.ts';
 
 /**
  * RFC 7638 JWK thumbprint (base64url of sha256 over the canonical required
- * members) — the stable `keyId` for a P-256 key. canonicalJson over the
+ * members) - the stable `keyId` for a P-256 key. canonicalJson over the
  * {crv,kty,x,y} subset IS the RFC's lexicographically-ordered form.
  */
 export async function jwkThumbprint(jwk: JsonWebKey): Promise<string> {
@@ -138,7 +138,7 @@ export async function jwkThumbprint(jwk: JsonWebKey): Promise<string> {
 
 /**
  * Import the pinned catalog public key for verification. Accepts an SPKI PEM
- * string, a JWK JSON string, or a JsonWebKey object — the two forms
+ * string, a JWK JSON string, or a JsonWebKey object - the two forms
  * sign-catalog.ts emits, so a deployment can pin whichever it stored.
  */
 export async function importSpkiOrJwkPublicKey(key: string | JsonWebKey): Promise<CryptoKey> {
@@ -190,7 +190,7 @@ export async function verifyEnvelopeSignature(
     return { ok: false, reason: 'signature is not base64url' };
   }
   if (sig.length !== 64) return { ok: false, reason: 'signature is not a raw P-256 r||s pair' };
-  // Strip signature, keep EVERYTHING else (unknown fields included) — any
+  // Strip signature, keep EVERYTHING else (unknown fields included) - any
   // post-signing addition or edit must break verification.
   const { signature: _sig, ...unsigned } = envelope;
   const bytes = te.encode(canonicalJson(unsigned));
@@ -218,7 +218,7 @@ export async function verifyCatalogEnvelope(
 
 /**
  * Verify one fetched tool file against the signed digest map. A file ABSENT
- * from the map fails — an unsigned extra file is indistinguishable from an
+ * from the map fails - an unsigned extra file is indistinguishable from an
  * injected one, so the only safe answer is no. (Envelope signature is checked
  * separately/once; this is the hot per-file path.)
  */

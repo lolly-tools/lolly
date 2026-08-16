@@ -5,7 +5,7 @@
  * docs/audio/<lang>/<slug>/meta.json must carry the textHash of the CURRENT
  * spoken-text document, or sit in the allowlist below with a written reason and
  * date. That keeps "slightly stale narration" an acknowledged state rather than
- * silent drift — a small copy fix need not trigger a re-record the same day,
+ * silent drift - a small copy fix need not trigger a re-record the same day,
  * but the exception is visible and expires deliberately.
  *
  * The test fails in both directions:
@@ -16,7 +16,7 @@
  * staying true after it stopped being true.
  *
  * With no docs/audio committed (the state at launch of this test) every case
- * passes over an empty set — CI never runs Kokoro or ffmpeg (plan §10), it only
+ * passes over an empty set - CI never runs Kokoro or ffmpeg (plan §10), it only
  * ever judges committed artefacts.
  */
 import { test } from 'node:test';
@@ -37,7 +37,7 @@ const AUDIO = join(ROOT, 'docs', 'audio');
 
 /**
  * Artefacts allowed to ship stale, keyed '<lang>/<slug>', each with the reason
- * and the date it was accepted — the "substantially changed" judgement made
+ * and the date it was accepted - the "substantially changed" judgement made
  * explicit instead of heuristic. An entry here is a debt with a face, not a
  * pardon: re-render (or prune) and delete the line.
  *
@@ -47,7 +47,7 @@ const AUDIO = join(ROOT, 'docs', 'audio');
  */
 const STALE_ALLOWED: Record<string, string> = {
   // (Empty since the 2026-08-09 narration sweep re-rendered every stale launch
-  // page — en/about, en/beatrice-warde and en/privacy came off the list because
+  // page - en/about, en/beatrice-warde and en/privacy came off the list because
   // their artefacts are fresh again, per this test's own second direction.)
   'en/ai-stance':
     'textHash drifted 2026-08-11: the pull-quote attribution changed from ' +
@@ -55,7 +55,7 @@ const STALE_ALLOWED: Record<string, string> = {
     'that does not warrant a full TTS re-render. Re-render (node ' +
     'scripts/build-docs-audio.ts) at the next narration sweep to clear this.',
   // The six below are one in-flight docs copy sweep (2026-08-11), still
-  // uncommitted in the docs/ submodule — its files were being rewritten while
+  // uncommitted in the docs/ submodule - its files were being rewritten while
   // this list was assembled. Re-rendering mid-edit would burn a
   // model-and-ffmpeg pass on words that are still moving, so they are held
   // together and clear together: run `node scripts/build-docs-audio.ts` once
@@ -174,11 +174,11 @@ test('docs audio: every allowlist entry states a reason and a date', () => {
 
 test('docs audio: every committed artefact directory is complete', () => {
   // meta.json is the staleness anchor, but a listener needs all five files
-  // (plan §4.5) — a partial directory is a failed render that got committed.
+  // (plan §4.5) - a partial directory is a failed render that got committed.
   const incomplete: string[] = [];
   // committedSlugs() only surfaces directories that carry a meta.json, so a
   // half-committed directory without one would slip past every other case here
-  // — enumerate the raw tree for that shape first.
+  // - enumerate the raw tree for that shape first.
   if (existsSync(AUDIO)) {
     for (const lang of readdirSync(AUDIO, { withFileTypes: true })) {
       if (!lang.isDirectory()) continue;

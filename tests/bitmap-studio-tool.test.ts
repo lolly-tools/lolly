@@ -3,15 +3,15 @@
  * bitmap-studio tool contract tests.
  *
  * Run with: node --test tests/bitmap-studio-tool.test.ts
- * No test framework — node:test built-in.
+ * No test framework - node:test built-in.
  *
  * Loads the REAL tool straight from community/bitmap-studio and
- * drives it through the engine with a stubbed host — only the host is stubbed;
+ * drives it through the engine with a stubbed host - only the host is stubbed;
  * the code under test is the shipped manifest + hooks. Guards:
  *   - headless degradation: no canvas → the placeholder note, never a throw,
  *   - .cube parsing (3D and 1D) surfaced through the LUT chip, and the
  *     friendly error chip for an unreadable file,
- *   - the .cube BAKE (pure maths, works headless — the CLI path): identity
+ *   - the .cube BAKE (pure maths, works headless - the CLI path): identity
  *     pipeline bakes an identity LUT, exposure moves the mid-grey entry the
  *     way linear-light stops must, a duotone bakes its shadow stop into the
  *     black entry, bakeSize is honoured, and the bakeLut switch resets itself,
@@ -40,7 +40,7 @@ const tool: any = await loadTool('bitmap-studio', fetchFile);
 
 // Serve the shipped preset .cube files to the tool's own fetch() from disk, so
 // the preset path runs end-to-end without an HTTP server. The id pattern is the
-// tool's own whitelist shape — anything else (incl. any traversal attempt) 404s.
+// tool's own whitelist shape - anything else (incl. any traversal attempt) 404s.
 const LUT_DIR = join(TOOLS_DIR, 'bitmap-studio', 'assets', 'luts');
 const PRESET_IDS = ['slide-standard', 'slide-vivid', 'chrome-muted', 'mono-fine'];
 (globalThis as any).fetch = async (url: any) => {
@@ -213,7 +213,7 @@ test('bake: the HSL mixer folds into the .cube, and protects greys', async () =>
   const N = 33;
   const red = rows[N - 1]!;                       // corner (r=1, g=0, b=0), red-fastest
   for (const c of red) assert.ok(Math.abs(c - 0.5) < 0.02, `red desaturates to grey (got ${c})`);
-  const mid = rows[(16 * N + 16) * N + 16]!;      // mid-grey grid point — no hue, untouched
+  const mid = rows[(16 * N + 16) * N + 16]!;      // mid-grey grid point - no hue, untouched
   for (const c of mid) assert.ok(Math.abs(c - 0.5) < 0.005, `grey is protected from the mixer (got ${c})`);
 
   // A hue rotation on the red band moves the red corner off pure red.
@@ -371,7 +371,7 @@ test('overlays: the split is composited, not baked into the bitmap', async () =>
   assert.ok(hooks.includes('out.__bsFramed = framed'),
     'renderFrame must expose the framed source for the before layer');
   assert.ok(hooks.includes('beforeSrc'), 'the render paths must emit a beforeSrc');
-  // The old in-bitmap seam bake (a fixed midpoint white bar) must be gone — its
+  // The old in-bitmap seam bake (a fixed midpoint white bar) must be gone - its
   // return would put the seam into EVERY export at a fixed position again.
   assert.ok(!/fillRect\(\s*half\b/.test(hooks),
     'the split must not be painted into the composed bitmap');

@@ -1,61 +1,61 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
- * Gain-map JPEG assembly — the container half of plans/61-deeprichpixels.md §6 B2.
+ * Gain-map JPEG assembly. This is the container half of plans/61-deeprichpixels.md §6 B2.
  *
- * {@link ../gainmap.ts} computes the map and its metadata; this module glues an
- * SDR base JPEG and a gain-map JPEG into ONE file that a gain-map-aware decoder
- * (Chromium, Safari/macOS/iOS, Android 15) renders as real HDR and every other
- * decoder on earth renders as the ordinary SDR JPEG it starts with. Nothing here
+ * {@link ../gainmap.ts} computes the map and its metadata. This module glues an
+ * SDR base JPEG and a gain-map JPEG into ONE file. A gain-map-aware decoder
+ * (Chromium, Safari/macOS/iOS, Android 15) renders it as real HDR. Every other
+ * decoder renders it as the ordinary SDR JPEG it starts with. Nothing here
  * touches pixels: bytes in, bytes out, DOM-free like the rest of the engine.
  *
- * ─── The file, end to end ────────────────────────────────────────────────────
+ * --- The file, end to end ----------------------------------------------------
  *
  *   [ SOI … APP1 XMP (GContainer) … APP2 MPF … SDR image … EOI ]   <- primary
  *   [ SOI … APP1 XMP (hdrgm) … APP2 ISO 21496-1 … map image … EOI ] <- appended
  *
- * The second JPEG lives in the primary's post-EOI trailer, which is legal (a
- * JPEG ends at EOI; readers ignore what follows) and is exactly what makes the
+ * The second JPEG lives in the primary's post-EOI trailer. This is legal (a
+ * JPEG ends at EOI; readers ignore what follows), and it is what makes the
  * fallback perfect: a decoder that knows nothing about gain maps stops at the
  * first EOI and shows the SDR image, byte for byte. The MPF index in the primary
- * is what tells an aware decoder that the trailer is a second image and where it
+ * tells an aware decoder that the trailer is a second image and where it
  * starts.
  *
- * ─── DUAL metadata, deliberately (plan §4.2) ─────────────────────────────────
+ * --- DUAL metadata, deliberately (plan §4.2) ---------------------------------
  * Two vocabularies describe the same single gain-map image, because the
  * ecosystem is mid-transition and each half reads a different one:
  *
- *   - **Ultra HDR v1.1 / Adobe `hdrgm` XMP** — what Android <=14 and Adobe's
+ *   - **Ultra HDR v1.1 / Adobe `hdrgm` XMP** - what Android <=14 and Adobe's
  *     tools read. GContainer directory in the PRIMARY (this file has a GainMap
  *     item, and it is N bytes long); `hdrgm:*` attributes in the GAIN MAP image.
- *   - **ISO 21496-1** — the 2025 standard, read by Chromium/Skia and Apple, as a
+ *   - **ISO 21496-1** - the 2025 standard, read by Chromium/Skia and Apple, as a
  *     binary metadata blob in an APP2 segment of the GAIN MAP image, identified
  *     by `urn:iso:std:iso:ts:21496:-1`.
  *
  * Android 15 writes both around one shared map image; so do we. Neither is a
  * superset of the other in practice, and the map image is written once either
- * way, so the cost of both is ~1 KB of metadata for whole-ecosystem coverage.
+ * way, so the cost of both is about 1 KB of metadata for whole-ecosystem coverage.
  *
- * ─── Sources (cited again at each use site) ──────────────────────────────────
- *   - CIPA DC-007-2021 "Multi-Picture Format" — the MPF APP2 index, its TIFF
+ * --- Sources (cited again at each use site) -----------------------------------
+ *   - CIPA DC-007-2021 "Multi-Picture Format" - the MPF APP2 index, its TIFF
  *     structure, the 16-byte MP Entry record, and the rule that every offset is
  *     measured from the MP Endian field (DC-007 §5.2.3.3).
- *   - Google "Ultra HDR Image Format v1.1" — the GContainer + `hdrgm` XMP forms.
+ *   - Google "Ultra HDR Image Format v1.1" - the GContainer + `hdrgm` XMP forms.
  *     https://developer.android.com/media/platform/hdr-image-format
- *   - Adobe Gain Map Specification v1.0 — the `hdrgm` vocabulary itself.
- *   - ISO/CIE 21496-1:2025 — the binary gain-map metadata structure.
+ *   - Adobe Gain Map Specification v1.0 - the `hdrgm` vocabulary itself.
+ *   - ISO/CIE 21496-1:2025 - the binary gain-map metadata structure.
  *   - libultrahdr (Apache-2.0) `multipictureformat.cpp` / `gainmapmetadata.cpp`
- *     and Skia `SkGainmapInfo.cpp` / `SkJpegMultiPicture.cpp` — the two reference
+ *     and Skia `SkGainmapInfo.cpp` / `SkJpegMultiPicture.cpp` - the two reference
  *     implementations this writer is shaped to interoperate with. Where DC-007
  *     leaves a field to taste, we match libultrahdr's choice, because matching
  *     the reference encoder is what actually gets a file rendered.
  *
- * ─── Ordering is load-bearing ────────────────────────────────────────────────
+ * --- Ordering matters here ----------------------------------------------------
  * The MP index stores ABSOLUTE byte offsets to the images that follow it, so
  * anything inserted into the primary AFTER assembly shifts what MPF points at.
  * Every insertion here goes through `jpeg-segments.ts`, whose `jpegSegmentRank`
  * puts MPF ahead of ICC for exactly this reason, and the offsets are patched in
  * as the LAST step, once every other segment is in place. For the one insertion
- * that still legitimately happens later — a C2PA APP11 store — see
+ * that still legitimately happens later, a C2PA APP11 store, see
  * {@link repairMpfOffsets}.
  */
 
@@ -73,7 +73,7 @@ import {
 
 /** APP1. */
 const M_APP1 = 0xe1;
-/** APP2 — MPF and the ISO 21496-1 metadata both live here. */
+/** APP2 - MPF and the ISO 21496-1 metadata both live here. */
 const M_APP2 = 0xe2;
 
 /** Largest XMP packet that fits one APP1 segment: 65535 - 2 (length) - 29 (`ns\0`). */
@@ -98,9 +98,9 @@ function idBytes(id: string): Uint8Array {
 }
 
 /**
- * Deterministic decimal for an XMP attribute: six fractional digits, trailing
+ * Deterministic decimal for an XMP attribute. Six fractional digits, trailing
  * zeros trimmed, never exponential in the ranges gain-map metadata uses.
- * Non-finite collapses to 0 rather than emitting `NaN` into a packet.
+ * A non-finite value collapses to 0 rather than emitting `NaN` into a packet.
  */
 function fmt(v: number): string {
   const n = Number.isFinite(v) ? v : 0;
@@ -115,7 +115,7 @@ function xmlEsc(s: string): string {
 
 /**
  * A finite value as an exact-ish rational for the ISO box. Integers come back
- * over denominator 1 (so gamma 1 is literally 1/1 and offset 0 is 0/1); anything
+ * over denominator 1 (so gamma 1 is literally 1/1 and offset 0 is 0/1). Anything
  * else uses 1e6, which is finer than the metadata is ever authored to and keeps
  * the encoding deterministic and reversible to 6 decimals.
  */
@@ -138,12 +138,12 @@ function rational(v: number, signed: boolean): { n: number; d: number } {
  *
  * REFUSES loudly past {@link XMP_APP1_MAX}. The standard escape hatch is the
  * extended-XMP GUID chain (a `http://ns.adobe.com/xmp/extension/` APP1 series
- * keyed by the MD5 of the extended packet), and it is deliberately NOT
+ * keyed by the MD5 of the extended packet). It is deliberately NOT
  * implemented: every packet this module produces is a few hundred bytes, the
  * chain would be untested code on a path that never runs, and the failure mode
  * of a silently-truncated XMP packet is a file that looks fine and renders
- * wrong. If a caller ever needs a packet this large, implement the chain then —
- * throwing here is what makes that a visible decision instead of a silent
+ * wrong. If a caller ever needs a packet this large, implement the chain then.
+ * Throwing here makes that a visible decision instead of a silent
  * corruption.
  */
 export function buildXmpApp1(packet: string): Uint8Array {
@@ -162,9 +162,9 @@ const XPACKET_HEAD = '<?xpacket begin="﻿" id="W5M0MpCehiHzreSzNTczkc9d"?>';
 const XPACKET_TAIL = '<?xpacket end="w"?>';
 
 /**
- * The PRIMARY image's XMP: an Ultra HDR v1.1 GContainer directory saying "this
- * file holds a Primary item and then a GainMap item of `mapLength` bytes", plus
- * `hdrgm:Version` so a reader knows which vocabulary the second image speaks.
+ * The PRIMARY image's XMP. It is an Ultra HDR v1.1 GContainer directory saying
+ * "this file holds a Primary item and then a GainMap item of `mapLength` bytes",
+ * plus `hdrgm:Version` so a reader knows which vocabulary the second image speaks.
  * `Item:Length` is 0 for the primary by spec (its length is implied), and the
  * real byte count for the gain map.
  */
@@ -194,9 +194,9 @@ ${XPACKET_TAIL}`;
 }
 
 /**
- * The GAIN MAP image's XMP: the Adobe/Ultra HDR `hdrgm` attributes, one for one
- * with {@link GainMapMeta}'s log2 fields. `BaseRenditionIsHDR="False"` is the
- * `baseRendition: 'sdr'` contract; every numeric field is written explicitly
+ * The GAIN MAP image's XMP. It carries the Adobe/Ultra HDR `hdrgm` attributes,
+ * one for one with {@link GainMapMeta}'s log2 fields. `BaseRenditionIsHDR="False"`
+ * is the `baseRendition: 'sdr'` contract. Every numeric field is written explicitly
  * rather than relying on the spec defaults, so nothing depends on a reader
  * agreeing with us about what "absent" means.
  */
@@ -220,15 +220,15 @@ export function buildGainMapXmp(meta: GainMapMeta): string {
 ${XPACKET_TAIL}`;
 }
 
-// ─── ISO 21496-1 metadata ─────────────────────────────────────────────────────
+// --- ISO 21496-1 metadata -------------------------------------------------------
 
-/** `is_multichannel` — ISO 21496-1 flags bit 7 (libultrahdr `kIsMultiChannelMask`). */
+/** `is_multichannel` - ISO 21496-1 flags bit 7 (libultrahdr `kIsMultiChannelMask`). */
 const ISO_FLAG_MULTICHANNEL = 1 << 7;
-/** `use_base_colour_space` — flags bit 6 (libultrahdr `kUseBaseColourSpaceMask`). */
+/** `use_base_colour_space` - flags bit 6 (libultrahdr `kUseBaseColourSpaceMask`). */
 const ISO_FLAG_USE_BASE_CG = 1 << 6;
 
 /**
- * The ISO 21496-1 `GainMapMetadata` payload (no box header — in JPEG the
+ * The ISO 21496-1 `GainMapMetadata` payload (no box header - in JPEG the
  * structure is carried raw after the URN, which is how Skia's reader parses it):
  *
  * ```
@@ -242,7 +242,7 @@ const ISO_FLAG_USE_BASE_CG = 1 << 6;
  * ```
  *
  * All of the log2 quantities are the SAME numbers the `hdrgm` XMP carries as
- * decimals — the two metadata forms are two spellings of one fit, never two
+ * decimals. The two metadata forms are two spellings of one fit, never two
  * different fits. 61 bytes for a single-channel map.
  */
 export function buildIsoGainMapMetadata(meta: GainMapMeta): Uint8Array {
@@ -260,7 +260,7 @@ export function buildIsoGainMapMetadata(meta: GainMapMeta): Uint8Array {
   const putU = (r: { n: number; d: number }) => { dv.setUint32(o, r.n >>> 0); dv.setUint32(o + 4, r.d >>> 0); o += 8; };
   const putS = (r: { n: number; d: number }) => { dv.setInt32(o, r.n); dv.setUint32(o + 4, r.d >>> 0); o += 8; };
 
-  // Headroom pair: the base rendition is SDR, so its headroom is the capacity at
+  // Headroom pair. The base rendition is SDR, so its headroom is the capacity at
   // which the map starts being applied; the alternate is the capacity at which it
   // is applied in full.
   putU(rational(meta.hdrCapacityMin, false));
@@ -283,7 +283,7 @@ export function buildIsoGainMapApp2(meta: GainMapMeta): Uint8Array {
   return seg;
 }
 
-// ─── MPF (CIPA DC-007) ────────────────────────────────────────────────────────
+// --- MPF (CIPA DC-007) -----------------------------------------------------------
 
 /**
  * Byte length of an MPF APP2 segment for `images` pictures, with or without the
@@ -292,7 +292,7 @@ export function buildIsoGainMapApp2(meta: GainMapMeta): Uint8Array {
  */
 function mpfSegmentLength(images: number, withUids: boolean): number {
   const entries = withUids ? 4 : 3;
-  //  marker+len(4) + "MPF\0"(4) + TIFF header(8) + IFD count(2) + entries + next(4) + values
+  // marker+len(4) + "MPF\0"(4) + TIFF header(8) + IFD count(2) + entries + next(4) + values
   return 4 + 4 + 8 + 2 + entries * 12 + 4 + images * 16 + (withUids ? images * 33 : 0);
 }
 
@@ -301,15 +301,15 @@ function mpfSegmentLength(images: number, withUids: boolean): number {
  * fields left at zero for {@link patchMpfEntries} to fill in.
  *
  * Structure (DC-007 §5.2.3): the payload is `MPF\0` followed by a complete TIFF
- * stream — big-endian `MM`, 0x002A, first-IFD offset 8 — and every offset in it,
+ * stream (big-endian `MM`, 0x002A, first-IFD offset 8), and every offset in it,
  * including the image offsets in the MP Entries, is measured from the FIRST BYTE
  * OF THE MP ENDIAN FIELD, not from the file start and not from the segment
- * start. That single sentence is the whole reason this module patches offsets
+ * start. That single fact is the whole reason this module patches offsets
  * as its last act.
  *
  * Tags written: MPFVersion (0xB000, `"0100"`), NumberOfImages (0xB001),
  * MPEntry (0xB002, 16 bytes per image), and MPImageUIDList (0xB003) only when
- * the caller supplies real UIDs — see {@link AssembleGainMapJpegOptions.imageUids}.
+ * the caller supplies real UIDs - see {@link AssembleGainMapJpegOptions.imageUids}.
  */
 function buildMpfSegment(images: number, uids: readonly Uint8Array[] | null): Uint8Array {
   const withUids = !!uids;
@@ -321,7 +321,7 @@ function buildMpfSegment(images: number, uids: readonly Uint8Array[] | null): Ui
   seg.set(idBytes(JPEG_APP_IDS.MPF), 4); // "MPF\0"
 
   const H = 8; // offset of the MP Endian field within the segment
-  dv.setUint16(H, 0x4d4d);     // "MM" — big-endian, as libultrahdr writes
+  dv.setUint16(H, 0x4d4d);     // "MM" - big-endian, as libultrahdr writes
   dv.setUint16(H + 2, 0x002a); // TIFF magic
   dv.setUint32(H + 4, 8);      // first IFD, relative to H
 
@@ -333,14 +333,14 @@ function buildMpfSegment(images: number, uids: readonly Uint8Array[] | null): Ui
     dv.setUint16(e, tag); dv.setUint16(e + 2, type); dv.setUint32(e + 4, count); dv.setUint32(e + 8, value);
     e += 12;
   };
-  const valuesAt = 8 + 2 + entryCount * 12 + 4; // relative to H — where MPEntry data starts
+  const valuesAt = 8 + 2 + entryCount * 12 + 4; // relative to H - where MPEntry data starts
   putEntry(0xb000, 7, 4, 0x30313030);           // MPFVersion, UNDEFINED "0100" inline
   putEntry(0xb001, 4, 1, images);               // NumberOfImages, LONG
   putEntry(0xb002, 7, images * 16, valuesAt);   // MPEntry, UNDEFINED, offset from H
   if (withUids) putEntry(0xb003, 7, images * 33, valuesAt + images * 16);
   dv.setUint32(e, 0); // next IFD: none
 
-  // MP Entries — 16 bytes each: attribute, size, offset, then two 2-byte
+  // MP Entries: 16 bytes each: attribute, size, offset, then two 2-byte
   // dependent-image entry numbers (unused, zero). The first image's offset is 0
   // by definition (DC-007: it is the image the MP Index belongs to).
   let v = H + valuesAt;
@@ -349,8 +349,8 @@ function buildMpfSegment(images: number, uids: readonly Uint8Array[] | null): Ui
     // libultrahdr marks image 0 "Baseline MP Primary Image" and leaves the gain
     // map's type undefined; we match it byte for byte.
     dv.setUint32(v, i === 0 ? MP_TYPE_PRIMARY : 0);
-    dv.setUint32(v + 4, 0); // size — patched
-    dv.setUint32(v + 8, 0); // offset — patched
+    dv.setUint32(v + 4, 0); // size - patched
+    dv.setUint32(v + 8, 0); // offset - patched
     dv.setUint16(v + 12, 0);
     dv.setUint16(v + 14, 0);
     v += 16;
@@ -381,7 +381,7 @@ function patchMpfEntries(bytes: Uint8Array, images: readonly { start: number; le
   const dv = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
   // Byte order comes from the MP Endian field. We only ever WRITE 'MM', but this
   // also repairs foreign files (a user upload being C2PA-stamped), and libjpeg
-  // writers do emit 'II' — refusing those silently left them corrupted.
+  // writers do emit 'II' - refusing those silently left them corrupted.
   const order = dv.getUint16(h);
   if (order !== 0x4d4d && order !== 0x4949) return false;
   const le = order === 0x4949;
@@ -418,12 +418,12 @@ function patchMpfEntries(bytes: Uint8Array, images: readonly { start: number; le
  * stands. Needed because the MP index records absolute offsets, so ANY segment
  * added to the primary after assembly (the realistic case: a C2PA APP11 JUMBF
  * store spliced in by `c2pa-containers.ts#placeJpeg`) shifts the second image
- * without shifting what MPF claims — after which an aware decoder stops finding
+ * without shifting what MPF claims. After that an aware decoder stops finding
  * the gain map and quietly renders the SDR base.
  *
  * Bounded and total, like the rest of `jpeg-segments.ts`: it finds the primary's
  * EOI and treats the trailer as image 2, and returns the input untouched if
- * anything about the file is not what it expects. Idempotent — running it on an
+ * anything about the file is not what it expects. Idempotent: running it on an
  * already-correct file rewrites the same values.
  */
 export function repairMpfOffsets(bytes: Uint8Array): Uint8Array {
@@ -444,12 +444,12 @@ export function repairMpfOffsets(bytes: Uint8Array): Uint8Array {
   }
 }
 
-// ─── assembly ─────────────────────────────────────────────────────────────────
+// --- assembly ---------------------------------------------------------------
 
 export interface AssembleGainMapJpegOptions {
   /**
    * Optional CIPA DC-007 MPImageUIDList (0xB003): one 33-byte unique ID per
-   * image. OMITTED by default, and that is the considered choice — libultrahdr
+   * image. OMITTED by default, and that is the considered choice: libultrahdr
    * and Android do not write the tag, no reader in the target ecosystem consults
    * it, and a fabricated or all-zero "unique" ID is worse than an absent
    * optional field. Supply real IDs (33 bytes each, longer is truncated) if a
@@ -465,7 +465,7 @@ export interface AssembleGainMapJpegOptions {
  * which is the property the whole format rests on: strip the trailer and you
  * have the original SDR JPEG. Both inputs must be complete JPEGs (SOI…EOI).
  *
- * Throws — loudly, never silently degrades — when an input is not a JPEG, when
+ * Throws loudly, never silently degrades, when an input is not a JPEG, when
  * a metadata packet will not fit its segment, or when the MPF index cannot be
  * placed. The shell seam catches and falls back to the legacy path, so an HDR
  * export is never lost to a container problem.
@@ -496,7 +496,7 @@ export function assembleGainMapJpeg(
   if (mapFinal === mapJpeg) throw new Error('assembleGainMapJpeg: could not add metadata to the gain-map image');
 
   // 2. The primary's XMP declares the container directory, and needs the gain
-  //    map's FINAL length — which is why step 1 comes first.
+  //    map's FINAL length - which is why step 1 comes first.
   const uids = opts.imageUids?.length
     ? opts.imageUids.map(u => {
       const b = typeof u === 'string' ? enc.encode(u) : u;
@@ -510,7 +510,7 @@ export function assembleGainMapJpeg(
   const withXmp = insertJpegSegments(baseJpeg, [buildXmpApp1(buildPrimaryXmp(mapFinal.length))], { replace: true });
   if (withXmp === baseJpeg) throw new Error('assembleGainMapJpeg: could not add the container XMP to the base image');
 
-  // 3. MPF last of the primary's segments, so no later insertion of ours can
+  // 3. MPF is last of the primary's segments, so no later insertion of ours can
   //    shift the offsets it is about to record.
   const primary = insertJpegSegments(withXmp, [buildMpfSegment(2, uids)], { replace: true });
   if (primary === withXmp) throw new Error('assembleGainMapJpeg: could not add the MPF index to the base image');

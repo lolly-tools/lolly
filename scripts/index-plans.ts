@@ -9,15 +9,15 @@
  * reader cannot tell current from historical."
  *
  * ONE THING THAT AUDIT DID NOT SAY, AND IT CHANGES THE FIX. `plans/` is
- * GITIGNORED (.gitignore:59) — zero files tracked. So a hand-written index there
+ * GITIGNORED (.gitignore:59) - zero files tracked. So a hand-written index there
  * could never be committed, reviewed, or seen by anyone but the person whose
  * working copy it sits in, and nothing could stop it going stale. A checked-in
  * static index was never actually available as an option.
  *
  * So this is a generator instead. THE SCRIPT is tracked (it lives in scripts/,
  * which is in the repo); its OUTPUT is the untracked index. Anyone can rebuild it
- * in a second and it is therefore never stale by more than one command — the only
- * shape of index that works for an ignored directory.
+ * in a second and it is therefore never stale by more than one command - the only
+ * kind of index that works for an ignored directory.
  *
  * Sorted newest-first by mtime, which is the "current vs historical" signal the
  * audit actually wanted; the title comes from each file's first `# ` heading.
@@ -32,7 +32,7 @@ const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const PLANS = join(ROOT, 'plans');
 const OUT = join(PLANS, 'README.md');
 
-/** Recently-touched cutoff, in days — the "probably still live" band. */
+/** Recently-touched cutoff, in days - the "probably still live" band. */
 const RECENT_DAYS = 21;
 
 interface Plan {
@@ -49,7 +49,7 @@ function titleOf(path: string, name: string): string {
       const m = /^#\s+(.+?)\s*$/.exec(line);
       if (m) return (m[1] as string).replace(/\s*\|\s*/g, ' - ');
     }
-  } catch { /* unreadable — fall back to the name */ }
+  } catch { /* unreadable - fall back to the name */ }
   return name.replace(/\.md$/, '');
 }
 

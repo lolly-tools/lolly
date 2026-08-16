@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
- * Lolly pixel watermark — multi-scale + offset recovery search (Path A).
+ * Lolly pixel watermark - multi-scale + offset recovery search (Path A).
  *
  * Proves the two things the search has to earn, against INDEPENDENT ground truth
- * (real JPEG/crop/resize via sharp, self-generated content — no fixtures):
+ * (real JPEG/crop/resize via sharp, self-generated content - no fixtures):
  *   1. FALSE-POSITIVE CONTROL. Run the FULL 576-cell grid (both tiers) over a
  *      battery of UNMARKED images (photo-like / flat / white-noise) crossed with
  *      their own crop/JPEG/resize derivatives; assert `present === false` on every
@@ -15,7 +15,7 @@
  *      FINDS it. embed → real resize → Tier 2 recovers a MODERATE ratio and, honestly,
  *      does NOT recover an aggressive downscale.
  *
- * GATED: the full false-positive battery (16 trials x the full grid, ~25s — most
+ * GATED: the full false-positive battery (16 trials x the full grid, ~25s - most
  * of the whole suite's wall time) only runs with WATERMARK_FULL=1, following the
  * BENCH=1 precedent in color-ramp.test.ts. The default run keeps a reduced
  * battery (one photo-like base + one JPEG derivative) so the check still
@@ -37,18 +37,18 @@ const skip = sharp ? false : 'sharp not available';
 
 interface Img { data: Uint8Array; width: number; height: number }
 
-// Photo-like content — the shared, CALIBRATED generator (see helpers/photo-like.ts):
+// Photo-like content - the shared, CALIBRATED generator (see helpers/photo-like.ts):
 // the SEARCH_DETECT_FLOOR and score envelopes below were measured against it.
 import { photoLike } from './helpers/photo-like.ts';
 
-// Flat mid-grey fill — a degenerate case the robustness suite never covers.
+// Flat mid-grey fill - a degenerate case the robustness suite never covers.
 function flat(w: number, h: number, v = 128): Uint8Array {
   const px = new Uint8Array(w * h * 4);
   for (let i = 0; i < w * h; i++) { const p = i * 4; px[p] = v; px[p + 1] = v; px[p + 2] = v; px[p + 3] = 255; }
   return px;
 }
 
-// White noise — maximally textured, so every block clears the activity gate: the
+// White noise - maximally textured, so every block clears the activity gate: the
 // adversarial FP case (many high-activity blocks correlating with the chip by chance).
 function noise(w: number, h: number, seed = 1): Uint8Array {
   const px = new Uint8Array(w * h * 4);
@@ -67,7 +67,7 @@ const jpeg = async (i: Img, q: number): Promise<Img> => toRaw(await rawPipe(i).j
 const resize = async (i: Img, s: number): Promise<Img> =>
   toRaw(await rawPipe(i).resize(Math.max(8, Math.round(i.width * s)), Math.max(8, Math.round(i.height * s))).png().toBuffer());
 // Crop `l` px off the left and `t` px off the top (and the same off right/bottom to
-// stay rectangular) — only left/top move the 8×8 block PHASE.
+// stay rectangular) - only left/top move the 8×8 block PHASE.
 async function cropLT(i: Img, l: number, t: number): Promise<Img> {
   return toRaw(await rawPipe(i).extract({ left: l, top: t, width: i.width - 2 * l, height: i.height - 2 * t }).png().toBuffer());
 }
@@ -81,12 +81,12 @@ const search = (i: Img, tier: 1 | 2) => detectWatermarkSearch(i.data, { width: i
 // grid, and the max score anywhere on the grid (returned as `score` on a miss) must
 // stay under SEARCH_DETECT_FLOOR. Prints F/N and the empirical max so a regression
 // is loud and the floor stays auditable. 0/N here bounds the FP rate at ≲ 3/N (~14%
-// at 95% for N≈21) — this is the smoke test; the floor's real calibration came from
+// at 95% for N≈21) - this is the quick check; the floor's real calibration came from
 // the 320-trial sweep documented on SEARCH_DETECT_FLOOR.
 //
 // WATERMARK_FULL=1 runs the full 16-trial battery (~25s: every content type x
 // size crossed with real JPEG/resize/crop derivatives). The default run keeps a
-// reduced battery — one photo-like base + one JPEG derivative — so the check
+// reduced battery - one photo-like base + one JPEG derivative - so the check
 // still executes (and the FULL grid still runs per trial) on every `npm test`.
 const FULL = process.env.WATERMARK_FULL === '1';
 
@@ -105,7 +105,7 @@ test('the full search never false-positives on unmarked content', { skip }, asyn
     const base2: Img = { data: photoLike(384, 384, 4242), width: 384, height: 384 };
     trials.push(await jpeg(base2, 60), await cropLT(base2, 11, 2));
   } else {
-    // Reduced battery (1 content type x 1 derivative) — same trials as two of the
+    // Reduced battery (1 content type x 1 derivative) - same trials as two of the
     // full battery's cells, so scores stay comparable run to run.
     trials.push(base, await jpeg(base, 80));
   }
@@ -125,10 +125,10 @@ test('the full search never false-positives on unmarked content', { skip }, asyn
 // ── 2a. CROP RECOVERY (Tier 1) ────────────────────────────────────────────────
 // A near-half-block crop (3,4) shifts the block phase near maximum decorrelation, so
 // plain detect (grid fixed at 0,0) collapses from a pristine ~0.5 to ~0.01–0.02 and
-// MISSES; Tier 1's offset search realigns and RESTORES it to ~0.22 — a ~10× recovery
+// MISSES; Tier 1's offset search realigns and RESTORES it to ~0.22 - a ~10× recovery
 // that clears the 0.12 search floor with room to spare. (The reported offset is the
-// FIRST passing cell under early-exit, not necessarily the exact realignment offset —
-// partial-overlap phases also correlate — so presence, not the exact offset, is asserted.)
+// FIRST passing cell under early-exit, not necessarily the exact realignment offset - 
+// partial-overlap phases also correlate - so presence, not the exact offset, is asserted.)
 test('Tier 1 recovers a near-half-block crop that plain detect misses', { skip }, async () => {
   for (const size of [512, 320, 256]) {
     const marked = mark(size, size, size + 17);
@@ -162,7 +162,7 @@ test('Tier 2 recovers a moderate resize but not an aggressive downscale', { skip
   assert.equal(modFound.tier, 2, 'moderate-resize recovery should come from the scale tier');
 
   // Aggressive: a 0.3× downscale is a low-pass filter that destroys the mid-band at
-  // embed time — no post-hoc upsample recovers destroyed information. Must NOT fire.
+  // embed time - no post-hoc upsample recovers destroyed information. Must NOT fire.
   const aggressive = await resize(marked, 0.3);
   const aggFound = await search(aggressive, 2);
   console.error(`[resize 0.30] tier2 present=${aggFound.present} score=${aggFound.score.toFixed(4)} scale=${aggFound.scale}`);

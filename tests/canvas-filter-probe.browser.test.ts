@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
- * The ctx.filter functional probe — THE BROWSER TIER (plan 104 §11 S1).
+ * The ctx.filter functional probe - THE BROWSER TIER (plan 104 §11 S1).
  *
  * `shells/web/src/lib/canvas-filter-probe.test.ts` pins the decision table headlessly
  * against stub contexts. What no Node process can answer is the question the spike was
@@ -9,7 +9,7 @@
  * OffscreenCanvas inside a Worker? This file measures that, in the browser, running the
  * shipped module rather than a copy of it.
  *
- * It asserts nothing engine-specific — a build with no `ctx.filter` at all (WebKit 26.5
+ * It asserts nothing engine-specific - a build with no `ctx.filter` at all (WebKit 26.5
  * is one, measured 2026-08-11) passes these assertions with every verdict false. What is
  * asserted is that the module's verdict MATCHES an independent in-page measurement, and
  * that all three context kinds agree, which is §11 S1's "per-engine, not per-thread"

@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
- * engine/src/icc.ts — the ICC reader, against REAL profiles plus synthesised ones.
+ * engine/src/icc.ts - the ICC reader, against REAL profiles plus synthesised ones.
  *
  * The real files are macOS's stock ColorSync profiles. They are the only fixtures
  * that prove the reader against bytes nobody in this repo wrote, so they carry the
@@ -9,7 +9,7 @@
  * rather than going red on a missing OS file.
  *
  * Two things the stock profiles CANNOT prove, so they are synthesised here:
- *   - the v4 `mAB ` path (no macOS profile uses it — every LUT profile shipped is
+ *   - the v4 `mAB ` path (no macOS profile uses it - every LUT profile shipped is
  *     v2 `mft1`/`mft2`);
  *   - the legacy-vs-v4 Lab encoding decision, which needs the SAME sample value
  *     decoded through both element types to be a real test.
@@ -83,7 +83,7 @@ const deltaE = (a: readonly number[], b: readonly number[]): number =>
 const D65: readonly [number, number, number] = [0.950455, 1.0, 1.08905];
 
 /**
- * sRGB's colorants, which sum to the BOOK D50 (0.9642, 1.0, 0.8251) — the shape
+ * sRGB's colorants, which sum to the BOOK D50 (0.9642, 1.0, 0.8251) - the shape
  * of every stock v2 display profile: already D50-adapted primaries beside an
  * unadapted white point.
  */
@@ -144,7 +144,7 @@ test('hasIntent reflects the tags that exist, and absolute needs the media white
     }
     assert.ok(p.hasIntent('absolute'), 'absolute is supported: relative exists and wtpt is present');
   });
-  // An abstract Lab profile carries A2B0 only — the intents whose tag is absent
+  // An abstract Lab profile carries A2B0 only - the intents whose tag is absent
   // must report false rather than quietly borrowing the perceptual table.
   withProfile(`${SYS}Generic Lab Profile.icc`, t, (p) => {
     assert.ok(p.hasIntent('perceptual'), 'A2B0 is present, so perceptual is supported');
@@ -194,7 +194,7 @@ test('CMYK anchors: no ink is paper white, K alone is dark, all four is black', 
 test('CLUT index order is last-channel-fastest: only the K axis moves when K does', (t) => {
   withProfile(CMYK_PATH, t, (p) => {
     // A transposed index order would make a K-only change move the C axis instead,
-    // and the two are indistinguishable at the corners — so probe off-corner.
+    // and the two are indistinguishable at the corners - so probe off-corner.
     const a = p.toLab('relative', [0, 0, 0, 0.5])!;
     const b = p.toLab('relative', [0.5, 0, 0, 0])!;
     assert.ok(a[0] < 70, `half K must darken substantially, got L* ${a[0]}`);
@@ -315,7 +315,7 @@ test('absolute intent differs from relative by the media white rescale', (t) => 
 
 test('the absolute intent must not rescale a v2 DISPLAY profile by its unadapted wtpt', () => {
   // A v2 display profile's colorants are already D50-adapted while its wtpt is
-  // the unadapted D65 — the two describe different things, so trusting the tag
+  // the unadapted D65 - the two describe different things, so trusting the tag
   // turns media white into Lab (100, −2.4, −19.4): a 19.5 ΔE blue cast on every
   // neutral the absolute intent produces. littleCMS applies the same rule
   // (version < 4 and class 'mntr' → media white IS D50).
@@ -347,7 +347,7 @@ test('the absolute intent must not rescale a v2 DISPLAY profile by its unadapted
 
 test('stock v2 display profiles produce a neutral absolute white, matching littleCMS', (t) => {
   // The real files the rule exists for. lcms (transicc -t3) returns
-  // (99.9988, 0.0188, −0.0173) for sRGB Profile.icc — its absolute output is its
+  // (99.9988, 0.0188, −0.0173) for sRGB Profile.icc - its absolute output is its
   // relative output, byte for byte.
   let ran = 0;
   for (const file of ['sRGB Profile.icc', 'AdobeRGB1998.icc', 'Generic RGB Profile.icc', 'Generic Gray Profile.icc']) {
@@ -382,8 +382,8 @@ test('PCS_D50 makes the GRAY axis exact; a matrix profile\'s neutral residual is
   assert.ok(Math.abs(gw[1]) < 1e-3 && Math.abs(gw[2]) < 1e-3,
     `the gray neutral axis must be exactly neutral, got ${JSON.stringify(gw)}`);
 
-  // The matrix/TRC path never reads that constant — it feeds the profile's own
-  // rXYZ+gXYZ+bXYZ sum straight to xyzToLab — so its white carries the residual
+  // The matrix/TRC path never reads that constant - it feeds the profile's own
+  // rXYZ+gXYZ+bXYZ sum straight to xyzToLab - so its white carries the residual
   // of ITS colorant tags (here the book D50, ~0.02 ΔE off css-color's). Which is
   // where to look when a matrix profile's greys tint, and NOT at PCS_D50.
   const matrix = matrixTrcProfile({ white: D65 });
@@ -485,7 +485,7 @@ test('the digest is SHA-256 at every padding boundary, including length 55 mod 6
   // byte and the 8-byte length. At len % 64 === 55 that length is exactly len + 9,
   // so an implementation that rounds up unconditionally compresses one extra
   // all-zero block and stops producing SHA-256. The ICC spec requires a profile
-  // size that is a multiple of 4, so this needs a hand-edited header — which the
+  // size that is a multiple of 4, so this needs a hand-edited header - which the
   // reader accepts by design (any declared size inside the buffer).
   const base = buildProfile({ tags: [['A2B0', mft2(3, 3, [0x8000, 0x8080, 0x8080])]] });
   for (let declared = base.length; declared < base.length + 200; declared++) {
@@ -506,7 +506,7 @@ test('a gamut needs the REVERSE transform, not just an intent tag', () => {
   // A2B0 only: device → Lab works, Lab → device does not. `hasIntent` is right to
   // say the intent's transform exists; a membership question still cannot be
   // answered, and a source built anyway reports an empty gamut behind a valid
-  // label — indistinguishable from "this device reproduces nothing".
+  // label - indistinguishable from "this device reproduces nothing".
   const oneWay = parseIccProfile(oneWayProfileBytes())!;
   assert.ok(oneWay.hasIntent('perceptual'), 'precondition: the A2B0 tag is present, so the transform exists');
   assert.ok(oneWay.toLab('perceptual', [0.2, 0.2, 0.2, 0.2]), 'precondition: the forward direction works');
@@ -568,8 +568,8 @@ test('the delta-E rule refuses colours the profile itself prints, well away from
       return convertColor({ space: 'lab', components: lab, alpha: 1, missing: 0 }, 'oklch')
         .components as [number, number, number];
     };
-    // A single-ink yellow ramp: every step is IN gamut by definition — the profile
-    // produced it from its own forward table — and the round-trip rule refuses
+    // A single-ink yellow ramp: every step is IN gamut by definition - the profile
+    // produced it from its own forward table - and the round-trip rule refuses
     // everything from a flat 20% tint upward. This is what ICC_GAMUT_DELTA_E's doc
     // comment has to describe: the cost is not "the corners", it is the whole
     // high-L yellow lobe plus the heavy-ink shadows.
@@ -579,7 +579,7 @@ test('the delta-E rule refuses colours the profile itself prints, well away from
       assert.equal(g.contains(...asked([0, 0, y, 0])), false,
         `a ${y * 100}% yellow tint is a colour this profile PRINTS, and the delta-E round-trip rule still refuses it — the documented cost of ICC_GAMUT_DELTA_E must say so`);
     }
-    // Body colours, where the same rule is accurate — the reason charts built on
+    // Body colours, where the same rule is accurate - the reason charts built on
     // it read correctly below L* 85.
     for (const dev of [[0.2, 0.2, 0.2, 0], [0.4, 0.3, 0.2, 0.1], [0.1, 0.5, 0.3, 0]]) {
       assert.equal(g.contains(...asked(dev)), true,
@@ -623,7 +623,7 @@ test('iccGamutSource: an RGB profile agrees with its own primaries', (t) => {
     // sRGB's own mid grey and a bright green well inside the primary are in.
     assert.equal(g.contains(0.5, 0.02, 250), true, 'a near-neutral is inside sRGB');
     assert.equal(g.contains(0.87, 0.26, 142), true, 'a bright green inside the sRGB primary must be inside sRGB');
-    // 0.29 at this lightness sits PAST the sRGB green primary — the true ceiling
+    // 0.29 at this lightness sits PAST the sRGB green primary - the true ceiling
     // at (l 0.87, h 142) is 0.2873, so `#00ff00`'s 0.2948 is only reachable at its
     // own hue of 142.5. It reads inside if you test the round trip alone: a
     // matrix/TRC profile clips linear red to 0 there, which costs barely 2 ΔE. The
@@ -683,7 +683,7 @@ test('a curve claiming 4 G of entries is refused', () => {
       ['bXYZ', [...ascii('XYZ '), 0, 0, 0, 0, ...u32(0x24a0), ...u32(0x0f84), ...u32(0xb6cf)]]],
   }));
   // Either the profile is refused outright or the unusable curve keeps it from
-  // transforming — what must NOT happen is a 4 G allocation or an exception.
+  // transforming - what must NOT happen is a 4 G allocation or an exception.
   if (p) assert.equal(p.toLab('relative', [0.5, 0.5, 0.5]), null, 'an unreadable TRC must not transform');
 });
 
@@ -774,13 +774,13 @@ test('input arity and non-finite values are rejected', (t) => {
 // `iccCharacterization` is what lets a Print PDF declare a REGISTERED press
 // condition around a profile the user loaded, instead of `Custom`. It is
 // testimony (the author's own FILE_DESCRIPTOR line), so the tests that matter are
-// the ones where it must say NOTHING — a wrong pairing would put a registered
+// the ones where it must say NOTHING - a wrong pairing would put a registered
 // name on measurements that are not that condition's.
 
 test('iccCharacterization: reads FILE_DESCRIPTOR out of a targ tag', () => {
   assert.equal(iccCharacterization(pressProfileBytes({ charData: 'FOGRA51' })), 'FOGRA51');
   assert.equal(iccCharacterization(pressProfileBytes({ charData: 'CGATS TR003' })), 'CGATS TR003');
-  // No targ at all — the common case, and the reason pairing has a second tier.
+  // No targ at all - the common case, and the reason pairing has a second tier.
   assert.equal(iccCharacterization(pressProfileBytes({})), null);
 });
 
@@ -804,7 +804,7 @@ test('iccCharacterization: says nothing rather than something wrong', () => {
 test('iccCharacterization: never throws on corrupt bytes (untrusted input)', () => {
   const good = pressProfileBytes({ charData: 'FOGRA39' });
   // Truncation at every 7th byte, then single-byte mutations across the header and
-  // the tag table — the bytes arrive from a user's own file, so the contract is
+  // the tag table - the bytes arrive from a user's own file, so the contract is
   // "a value or null", never an exception.
   for (let cut = 0; cut < good.length; cut += 7) {
     assert.doesNotThrow(() => iccCharacterization(good.slice(0, cut)), `truncated at ${cut}`);
@@ -837,7 +837,7 @@ test('iccCharacterization: a desc tag is not a characterization', () => {
 
 // Gated: no profile ships in this repo, and a real registry file is 2-8 MB. Point
 // LOLLY_ICC_TARG at e.g. PSOcoated_v3.icc (which does carry a targ) to check the
-// reader against a real one — the synthetic fixture above cannot prove a vendor's
+// reader against a real one - the synthetic fixture above cannot prove a vendor's
 // actual byte layout.
 test('iccCharacterization: a real profile\'s targ (gated on LOLLY_ICC_TARG)', (t) => {
   const path = process.env.LOLLY_ICC_TARG;

@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
- * GIMP XCF reader — the second layered-bitmap import format beside psd.ts,
+ * GIMP XCF reader - the second layered-bitmap import format beside psd.ts,
  * decoding into the same {@link LayeredRasterDoc}. Byte→structure only
  * (engine contract): DOM-free, every pointer validated, every declared length
  * clamped, every allocation budgeted. Structure and enum values are pinned
@@ -8,12 +8,12 @@
  *
  * ─── Coverage (the honest list) ──────────────────────────────────────────────
  * Versions:   'file' (v0) and v001…v011 fully; v012+ (GIMP 3 era) is ATTEMPTED
- *             with the v011 layout — pointers stay 8-byte and properties are
- *             length-prefixed by design, so unknown ones skip — with a
+ *             with the v011 layout - pointers stay 8-byte and properties are
+ *             length-prefixed by design, so unknown ones skip - with a
  *             'version.newer' warning; a signature we cannot even parse a
  *             version from is refused.
  * Pointers:   4-byte below v011, 8-byte at v011+ (the >4GB switch).
- * Precision:  8-bit and 16-bit integer non-linear ("gamma") — enum 150/250 at
+ * Precision:  8-bit and 16-bit integer non-linear ("gamma") - enum 150/250 at
  *             v7+ (v5/6 dev builds used the same numbers), plus implicit 8-bit
  *             for v0–v3. Linear and float precisions are REFUSED with a typed
  *             error: linearised or float samples folded naively would be a
@@ -21,7 +21,7 @@
  *             documented follow-up).
  * Base types: RGB, Grayscale, Indexed (via PROP_COLORMAP). All layer pixel
  *             types normalise to RGBA8; 16-bit samples (big-endian) fold to 8.
- * Tiles:      64×64, compression none (0) / RLE (1, GIMP's own scheme — NOT
+ * Tiles:      64×64, compression none (0) / RLE (1, GIMP's own scheme - NOT
  *             PackBits) / zlib (2, via the injected {@link InflateFn}; absent
  *             inflate skips those layers with a warning). Tile byte length =
  *             gap to the next tile pointer (clamped; last tile capped at the
@@ -30,7 +30,7 @@
  *             (raster-layers.ts table), groups (PROP_GROUP_ITEM +
  *             PROP_ITEM_PATH → isGroup/groupPath), layer masks multiplied into
  *             alpha when PROP_APPLY_MASK says active (default true option).
- * Composite:  XCF stores none — `doc.composite` is always undefined (the
+ * Composite:  XCF stores none - `doc.composite` is always undefined (the
  *             documented asymmetry with PSD; shells flatten with the table).
  *
  * ─── Failure policy (matches psd.ts / pdf-map.ts) ────────────────────────────
@@ -58,7 +58,7 @@ const DEFAULT_DECODE_BUDGET = 256 << 20;
 const TILE = 64;
 
 export interface XcfReadOptions {
-  /** zlib inflater — required for v011+ zlib tiles; absent → those layers warn+skip. */
+  /** zlib inflater - required for v011+ zlib tiles; absent → those layers warn+skip. */
   inflate?: InflateFn;
   onWarn?: (code: string, detail?: string) => void;
   /** Multiply layer masks into alpha (default true). */

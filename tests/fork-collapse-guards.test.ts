@@ -6,7 +6,7 @@
  * live in .tsx / import-heavy modules this suite cannot exercise under Node
  * type-stripping (the model is shells/tui/src/provenance-default.test.ts). What
  * each guard pins is that a shell REACHES the one shared implementation instead of
- * re-deriving it — so a future editor cannot quietly re-fork the security scrub,
+ * re-deriving it - so a future editor cannot quietly re-fork the security scrub,
  * the verdict wording, or repo-root resolution and pass CI.
  *
  * The behaviour of the shared code itself is covered in tests/verdict-report.test.ts.
@@ -59,7 +59,7 @@ test('the MCP verify tool consumes the shared facts + checks, keeping its own he
   assert.match(MCP, /from '\.\.\/\.\.\/\.\.\/packages\/node-shell\/src\/verdict-report\.ts'/);
   assert.match(MCP, /verdictFacts\(report\)/);
   assert.match(MCP, /verdictChecks\(report\)/);
-  // MCP deliberately does NOT elevate parts — that quirk stays a property of the
+  // MCP deliberately does NOT elevate parts - that quirk stays a property of the
   // shared slug table, so the flag must not appear here.
   assert.doesNotMatch(MCP, /elevateParts/,
     'MCP must keep parts a flag (no headline elevation)');
@@ -67,7 +67,7 @@ test('the MCP verify tool consumes the shared facts + checks, keeping its own he
 
 test('the MCP verify path documents why it ignores caller/env pinned roots', () => {
   // A hosted multi-tenant surface must not READ LOLLY_TRUST_ANCHOR (the two terminal
-  // shells do); the reason is load-bearing and must stay visible next to the call.
+  // shells do); the reason is required and must stay visible next to the call.
   assert.match(MCP, /multi-tenant/i, 'the reason must be documented at the call site');
   assert.doesNotMatch(MCP, /process\.env\.LOLLY_TRUST_ANCHOR/,
     'MCP must not read the env pin — that would vouch for one tenant on another tenant’s file');

@@ -5,7 +5,7 @@
  *
  * C2PA stores its manifest as a JUMBF box split across APP11 (0xFFEB) segments
  * that share one box-instance number (En) and increment a 1-based sequence
- * counter (Z). The reader must reassemble by (En, Z) order — NOT by scanning for
+ * counter (Z). The reader must reassemble by (En, Z) order - NOT by scanning for
  * the "c2pa" store-UUID marker on every segment, because an assertion URL such
  * as `self#jumbf=/c2pa/…` plants the bytes "c2pa" at that exact offset inside a
  * *continuation* chunk. Reading a real 24-manifest export (Design.jpg)
@@ -27,7 +27,7 @@ const C2PA_UUID = Uint8Array.from([
 
 // Build a JUMBF manifest-store box: LBox(4) + 'jumb' + a jumd description box
 // (LBox + 'jumd' + the c2pa UUID) + `contentLen` bytes of filler. `decoyAt`, if
-// set, writes the ASCII "c2pa" into the filler at that box offset — used to plant
+// set, writes the ASCII "c2pa" into the filler at that box offset - used to plant
 // the false-positive marker inside what will become a continuation chunk.
 function buildManifestBox(contentLen: number, decoyAt?: number): Uint8Array {
   const jumdLen = 8 + C2PA_UUID.length;           // LBox + 'jumd' + UUID
@@ -82,7 +82,7 @@ function assembleJpeg(app11Bodies: Uint8Array[]): Uint8Array {
 test('reassembles a manifest split across APP11 segments (Z order), ignoring a "c2pa" decoy in a continuation chunk', () => {
   // Content = 240 bytes; cut at 100 → chunk0 carries content[0:100], chunk1
   // carries content[100:240]. Placing "c2pa" at box offset 8+108 lands it at
-  // chunk1 body offset 24 — the position the old scanner misread as a 2nd store.
+  // chunk1 body offset 24 - the position the old scanner misread as a 2nd store.
   const box = buildManifestBox(240, /* decoyAt */ 8 + 108);
   assert.equal(String.fromCharCode(...box.subarray(8 + 108, 8 + 112)), 'c2pa', 'decoy planted');
 

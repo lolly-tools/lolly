@@ -99,7 +99,7 @@ test('demuxWebpAnim recovers frame count, durations, loops and canvas from packW
 test('demuxed stills round-trip through packWebpAnim again (stable)', () => {
   const packed = packWebpAnim([stillVp8l(8, 8), stillVp8l(8, 8)], { delayMs: 40, loops: 0, width: 8, height: 8 });
   const first = demuxWebpAnim(packed);
-  // Re-pack the recovered stills and re-demux — count/geometry must survive.
+  // Re-pack the recovered stills and re-demux - count/geometry must survive.
   const repacked = packWebpAnim(first.frames.map((f) => f.still), { delayMs: 40, width: 8, height: 8 });
   const second = demuxWebpAnim(repacked);
   assert.equal(second.frames.length, 2);

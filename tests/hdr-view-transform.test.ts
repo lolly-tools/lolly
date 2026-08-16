@@ -1,13 +1,13 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
- * HDR float view transform (deeprichpixels Phase A / plan 5.2) — engine/src/hdr.ts.
+ * HDR float view transform (deeprichpixels Phase A / plan 5.2) - engine/src/hdr.ts.
  *
  * Two jobs:
  *   1. BYTE-IDENTITY SNAPSHOT of the legacy 8-bit `hdrBoostToPQ` entry. The
  *      sha256 hashes below were captured from the pre-refactor implementation
  *      (2026-07-31) over two deterministic synthetic images x six option sets
  *      covering the whole HdrBoostOptions surface. AVIF HDR exports and their
- *      C2PA hashes depend on this output not moving by a single byte — if this
+ *      C2PA hashes depend on this output not moving by a single byte - if this
  *      test fails, the refactor changed the legacy path and must be reverted.
  *   2. The new float path: hdrViewTransform (DeepFrame -> rec2020-linear DeepFrame)
  *      + pqEncodeFrame/pqToU16, with reference-value anchors (BT.2408 203-nit
@@ -26,7 +26,7 @@ import { createDeepFrame, fromU8Srgb, type DeepFrame } from '../engine/src/pixel
 
 // ─── deterministic synthetic images ──────────────────────────────────────────
 
-// mulberry32 PRNG — deterministic byte noise, no Math.random.
+// mulberry32 PRNG - deterministic byte noise, no Math.random.
 function mulberry32(seed: number): () => number {
   let a = seed >>> 0;
   return () => {
@@ -111,7 +111,7 @@ test('hdrViewTransform: returns a NEW rec2020-linear frame, alpha passthrough, i
 
 test('hdrViewTransform: sRGB white with no boost stays at 1.0 (SDR reference white) in Rec.2020', () => {
   // Negative control for the matrix: rows of M_709_TO_2020 sum to 1, so
-  // R=G=B=1 must land at R=G=B=1 — sRGB white and Rec.2020 white are both D65.
+  // R=G=B=1 must land at R=G=B=1 - sRGB white and Rec.2020 white are both D65.
   const out = hdrViewTransform(px1(1, 1, 1), { targets: [], includeWhite: false });
   for (let c = 0; c < 3; c++) assert.ok(Math.abs(out.data[c]! - 1) < 1e-6, `channel ${c} ~1`);
 });
@@ -132,7 +132,7 @@ test('hdrViewTransform: >1.0 input passes through un-clipped (the point of the f
 test('hdrViewTransform: monotonic on a neutral ramp through and past 1.0 (DEFAULT opts, boost ON)', () => {
   // Regression: the brand-match mask used to run OKLab on the RAW linear value,
   // so a neutral's distance to the white target moved as it brightened and the
-  // transform was NON-monotonic — linear 1.2 came out at 5.9075 while 1.6 came
+  // transform was NON-monotonic - linear 1.2 came out at 5.9075 while 1.6 came
   // out at 3.0769 (brighter in, darker out). The mask is now computed on a
   // tone-normalised copy, so the verdict is scale-invariant.
   const N = 251;
@@ -228,14 +228,14 @@ test('pqEncodeFrame: monotonic — more nits in, more PQ signal out; headroom ke
   for (let i = 1; i < levels.length; i++) {
     assert.ok(pq.data[i * 4]! > pq.data[(i - 1) * 4]!, `PQ(${levels[i]}) > PQ(${levels[i - 1]})`);
   }
-  // The >1.0 pixels are genuinely brighter than SDR white in the signal — the
+  // The >1.0 pixels are genuinely brighter than SDR white in the signal - the
   // 8-bit path could only ever have fed clipped 1.0s here.
   assert.ok(pq.data[8]! > pqEncode(203) + 0.05, '2x SDR white is visibly above the 203-nit code');
 });
 
 test('pqEncodeFrame: srgb-linear input is converted to Rec.2020 before encoding', () => {
   // A saturated sRGB red is NOT the same triple in Rec.2020 (it desaturates
-  // toward the wider gamut's interior) — so the red channel PQ must differ
+  // toward the wider gamut's interior) - so the red channel PQ must differ
   // from naively encoding the sRGB value, and green must be non-zero.
   const f = px1(1, 0, 0);
   const pq = pqEncodeFrame(f, 203);
@@ -288,7 +288,7 @@ test('float path agrees with legacy hdrBoostToPQ within 8-bit quantisation error
   // but on the same 8-bit input the two must describe the same image: each
   // legacy PQ byte b and float PQ signal s satisfy |s*255 - b| <= 1.
   // `richness: 0` because the re-saturation step is the ONE deliberate
-  // divergence between the paths — see the next test.
+  // divergence between the paths - see the next test.
   const opts: HdrBoostOptions = { targets: ['#30ba78'], includeWhite: true, richness: 0 };
   const bytes = paletteImage();
   const frame = fromU8Srgb(bytes, 8, 8);

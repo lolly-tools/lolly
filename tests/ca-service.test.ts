@@ -1,12 +1,12 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
- * CA service contract tests — pure logic, no sockets, no live OIDC.
+ * CA service contract tests - pure logic, no sockets, no live OIDC.
  * Run with: node --test tests/ca-service.test.ts
  *
  * Covers the HMAC token scheme, proof-of-possession, the full enrollment
  * issue path (root generated in-test, leaf checked with the engine's
  * independent parseCertificate), the origin allowlist and the dev-provider
- * gate — everything the identity bridge is built against.
+ * gate - everything the identity bridge is built against.
  */
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
@@ -28,7 +28,7 @@ import { generateCaRoot, derToPem, pemToDer } from '../engine/src/x509.ts';
 import { parseCertificate } from '../engine/src/c2pa-verify.ts';
 
 // The CA service modules are untyped .mjs; their inferred shapes are noisier than
-// this test needs. Treat them as `any` at the boundary — the engine imports above
+// this test needs. Treat them as `any` at the boundary - the engine imports above
 // stay precisely typed.
 /* eslint-disable @typescript-eslint/no-explicit-any */
 const mintEnrollToken: any = _mintEnrollToken;
@@ -90,7 +90,7 @@ test('enrollment token: expiry and tampering are rejected', async () => {
 
   const token = await mintEnrollToken({ email: 'a@b.co', provider: 'dev' }, SECRET);
   const [, mac] = token.split('.');
-  // swap the payload, keep the MAC — signature must not verify
+  // swap the payload, keep the MAC - signature must not verify
   const forgedBody = Buffer.from(JSON.stringify({ email: 'evil@x.co', provider: 'dev', iat: 0, exp: 9999999999 })).toString('base64url');
   assert.equal((await verifyEnrollToken(`${forgedBody}.${mac}`, SECRET)).ok, false);
   // wrong secret, wrong shape, empty
@@ -196,7 +196,7 @@ test('routeAuth enforces the origin allowlist before anything else', async () =>
   const redirectUri = 'https://lolly.tools/api/ca/callback/github';
   assert.equal((await routeAuth(env, { provider: 'github', origin: 'https://evil.example', redirectUri })).status, 403);
   assert.equal((await routeAuth(env, { provider: 'github', origin: null, redirectUri })).status, 403);
-  // allowlisted origin gets PAST the gate — github unconfigured here → 501
+  // allowlisted origin gets PAST the gate - github unconfigured here → 501
   assert.equal((await routeAuth(env, { provider: 'github', origin: 'https://lolly.tools', redirectUri })).status, 501);
 
   // localhost is only implicitly allowed when the dev flag is on

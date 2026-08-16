@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 // SPDX-License-Identifier: MPL-2.0
 /**
- * Tracker-module (and other audio) catalog ingest — DRY RUN BY DEFAULT.
+ * Tracker-module (and other audio) catalog ingest - DRY RUN BY DEFAULT.
  *
  * Run as:
  *   node scripts/ingest-audio.ts <srcDir> --brand <lolly-start|suse> --prefix <id/prefix>
@@ -11,7 +11,7 @@
  * catalog (`brands/<brand>/catalog/assets/index.json`) plus the byte copies beside
  * them. libopenmpt decodes .mod/.xm/.s3m/.it/.stm/.mtm faithfully in the web shell
  * (shells/web/src/lib/mod-worker.ts), so a module is a first-class playable and
- * analysable asset — the format badge is its REAL extension, never transcoded.
+ * analysable asset - the format badge is its REAL extension, never transcoded.
  *
  * ── WHY THIS SCRIPT REFUSES TO GUESS A LICENCE ──────────────────────────────
  * There is no "community catalog": community/ holds TOOLS, catalogs are PER BRAND.
@@ -19,12 +19,12 @@
  * inside this parent repo) or a private one (brands/suse). This catalog has already
  * been burned once by third-party music that had to be torn back out of an OSS repo
  * (the PremiumBeat episode). Tracker modules from the demoscene are works by named,
- * identifiable authors — an unlicensed one shipped in a public repo is the single
+ * identifiable authors - an unlicensed one shipped in a public repo is the single
  * worst outcome this script could produce, worse than shipping nothing.
  *
  * Therefore: a licence is REQUIRED per file, from `--licence` or a per-file sidecar
  * (`<file>.licence.json`). There is NO default and no fallback. A file with no
- * licence is reported as REFUSED, is never emitted, and — under `--write` — aborts
+ * licence is reported as REFUSED, is never emitted, and - under `--write` - aborts
  * the entire run before a single byte is copied. Do not "fix" this by adding a
  * default. `--licence unknown`/`none`/`?` is rejected too: silence and a placeholder
  * are the same mistake wearing different hats.
@@ -40,11 +40,11 @@
  *             at 0; XM: 20 at 17 after "Extended Module: "; IT: 26 at 4 after "IMPM";
  *             S3M: 28 at 0; STM: 20 at 0; MTM: 20 at 4), prettified. Falls back to a
  *             prettified filename only when the header carries no title.
- * id          `<prefix>/<slug-of-title>` — checked against asset.schema.json's id
+ * id          `<prefix>/<slug-of-title>` - checked against asset.schema.json's id
  *             pattern, which forbids '-' in the FIRST segment ('lolly-start/…' is
  *             illegal; use 'lolly/…').
  * format      the file's real extension (mod/xm/it/…). libopenmpt sniffs the format
- *             from the bytes, so this is cosmetic — but the badge and the downloaded
+ *             from the bytes, so this is cosmetic - but the badge and the downloaded
  *             filename have to stay honest.
  * checksum    SRI sha256-<base64>, byte-identical to scripts/checksum-assets.ts's
  *             `sriForFile`. That module is NOT imported because it self-executes on
@@ -56,7 +56,7 @@
  *             (shells/web/src/vendor/libopenmpt) loads under Node too, so the exact
  *             `openmpt_module_get_duration_seconds` is used when the web shell is
  *             mounted. When it is not (public clone without the shell submodule) the
- *             field falls back to a sidecar `durationMs` and is otherwise OMITTED —
+ *             field falls back to a sidecar `durationMs` and is otherwise OMITTED - 
  *             the schema allows that, and an invented number would be a lie the
  *             player would visibly contradict.
  *
@@ -92,7 +92,7 @@ const USAGE = `Usage:
   --write        actually copy the files and update the brand's assets/index.json.
                  Omit for a DRY RUN, which is the default and touches nothing.`;
 
-/** The tracker formats libopenmpt decodes for us — mirrors MODULE_FORMATS in
+/** The tracker formats libopenmpt decodes for us - mirrors MODULE_FORMATS in
  *  shells/web/src/lib/mod-render.ts. Kept as a literal so this script has no
  *  dependency on the web shell being mounted. */
 export const MODULE_FORMATS = ['mod', 'xm', 's3m', 'it', 'stm', 'mtm'] as const;
@@ -146,7 +146,7 @@ export function embeddedTitle(bytes: Uint8Array, ext: string): string {
     case 'mod':
     case 'stm':
       // MOD has no leading magic (the 4-byte tag sits at 1080 and varies by
-      // channel count), STM's tag is at 20 — both put the title first.
+      // channel count), STM's tag is at 20 - both put the title first.
       raw = field(bytes, 0, 20);
       break;
     default:
@@ -196,15 +196,15 @@ export function sri(bytes: Uint8Array): { checksum: string; size: number } {
  * Tags for a module entry.
  *
  * On `neurospicy`: the tag does NOT gate whether a track is playable in the focus
- * player — lib/neurospicy.ts queries ALL `type:'audio'` catalog assets and groups
+ * player - lib/neurospicy.ts queries ALL `type:'audio'` catalog assets and groups
  * the untagged ones under a separate "Catalog" section, and views/tool-actions.ts
  * lists every audio asset in the video music-bed select regardless. What the tag
  * actually decides is PLACEMENT: tagged tracks sort into the ambient/beats focus
  * groups and into the "Focus loops (Neurospicy)" optgroup above the music beds.
  *
  * Default OFF for tracker modules, deliberately. The existing `neurospicy` entries
- * are short seamless CC0 loops built to disappear behind work; these are composed
- * scene tracks of 1–6 minutes with intros, breaks and arrangement changes — exactly
+ * are short gapless CC0 loops built to disappear behind work; these are composed
+ * scene tracks of 1–6 minutes with intros, breaks and arrangement changes - exactly
  * the attention-grabbing shape focus music is meant not to have. They belong in the
  * "Catalog" / "Music beds" group, where they read as selectable music rather than
  * as the default focus bed. `--neurospicy` opts an ingest in when the batch really
@@ -217,7 +217,7 @@ export function decideTags(ext: string, extra: string[], neurospicy: boolean): s
   return tags;
 }
 
-/** Description: the credit is part of the asset, not a comment — these are named works. */
+/** Description: the credit is part of the asset, not a comment - these are named works. */
 export function buildDescription(o: {
   ext: string; author?: string; licence: string; source?: string; durationMs?: number; override?: string;
 }): string {
@@ -288,7 +288,7 @@ export function parseArgs(argv: string[]): Args {
   const brand = typeof flags.brand === 'string' ? flags.brand : fail(`--brand is required\n\n${USAGE}`);
   const prefix = (typeof flags.prefix === 'string' ? flags.prefix : fail(`--prefix is required\n\n${USAGE}`))
     .replace(/^\/+|\/+$/g, '');
-  // Validate the prefix by probing a complete id — the pattern's first-segment rule
+  // Validate the prefix by probing a complete id - the pattern's first-segment rule
   // ('lolly-start/…' is illegal) only shows up on the whole string.
   if (!ASSET_ID_RE.test(`${prefix}/probe`)) {
     fail(`--prefix "${prefix}" cannot form a legal asset id (asset.schema.json: ${ASSET_ID_RE}).\n`
@@ -311,7 +311,7 @@ export function parseArgs(argv: string[]): Args {
   };
 }
 
-/** brands/<brand>/catalog for a profiles.json key — never the gitignored catalog/ VIEW. */
+/** brands/<brand>/catalog for a profiles.json key - never the gitignored catalog/ VIEW. */
 export function catalogDirForBrand(brand: string, profiles: { profiles: Record<string, { catalog: string }> }): string {
   const p = profiles.profiles[brand];
   if (!p) {
@@ -337,7 +337,7 @@ let mptPromise: Promise<Openmpt | null> | null = null;
  * The vendored libopenmpt WASM, if the web shell is mounted. It is an
  * `ENVIRONMENT=web,worker` SINGLE_FILE build, but it loads under Node all the same,
  * which is what lets durationMs be MEASURED here instead of guessed. Returns null
- * when the submodule is absent — the caller then omits durationMs.
+ * when the submodule is absent - the caller then omits durationMs.
  */
 async function openmpt(): Promise<Openmpt | null> {
   if (!mptPromise) {

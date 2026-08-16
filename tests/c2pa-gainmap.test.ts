@@ -6,7 +6,7 @@
  * file, and the primary carries an MPF (CIPA DC-007) index whose MP Entries
  * record the byte SIZE of the primary image and the byte OFFSET of the second.
  * `c2pa-containers.ts#placeJpeg` splices its APP11 JUMBF store in after the LAST
- * APP0 — which is BEFORE the MPF segment and before everything the index
+ * APP0 - which is BEFORE the MPF segment and before everything the index
  * measures. Stamping therefore grows image 1 without the index noticing, and the
  * file ends up claiming a primary that is `block.length` bytes shorter than it
  * is: a structurally invalid MPF index, in a file that still opens fine
@@ -102,7 +102,7 @@ const SKIP_SHARP = sharp ? false : 'sharp is not installed (optional external-de
 
 interface MpEntry { attribute: number; size: number; offset: number }
 interface MpIndex {
-  /** Absolute offset of the MP Endian field — the origin every MPF offset is measured from. */
+  /** Absolute offset of the MP Endian field - the origin every MPF offset is measured from. */
   headerAt: number;
   numberOfImages: number;
   entries: MpEntry[];
@@ -252,7 +252,7 @@ test('negative control: a naive splice (the pre-fix placeJpeg) corrupts the MPF 
   assert.notEqual(after.entries[0]!.size, trailer, 'and so no longer covers the primary');
   assert.equal(trailer - after.entries[0]!.size, delta, 'it under-reports by exactly the inserted block');
   // MPEntry[1].offset is measured FROM the MP Endian field, and both the MPF
-  // segment and the trailer moved by the same delta, so the offset survives —
+  // segment and the trailer moved by the same delta, so the offset survives - 
   // the size field is the one that goes wrong, and one wrong field is enough to
   // make the index invalid.
   assert.equal(imageRangeFromMpf(after, 1).start, trailer, 'MPEntry[1].offset is delta-invariant');
@@ -300,7 +300,7 @@ test('the hard binding covers the appended gain map: tampering image 2 invalidat
 
   const idx = readMpIndex(out)!;
   const r = imageRangeFromMpf(idx, 1);
-  // A byte inside the gain map's entropy-coded data — past its last segment, so
+  // A byte inside the gain map's entropy-coded data - past its last segment, so
   // unambiguously image-2 CONTENT, not metadata.
   const mapScan = scanJpegSegments(out.subarray(r.start, r.end))!;
   const target = r.start + mapScan.sos! + 8;

@@ -12,7 +12,7 @@
  * `ICC_PROFILE_DIR`); every test here SKIPS with the missing path named when the
  * directory is absent, so CI stays green without them.
  *
- * The files are read-only fixtures — nothing here writes to them.
+ * The files are read-only fixtures - nothing here writes to them.
  *
  * Two of the eight are worth more than the other six:
  *
@@ -24,7 +24,7 @@
  *   - `swapped-v2.icc` is `green-red-swapped sRGB`, built by the W3C to be
  *     confidently WRONG: its `desc` says sRGB, its matrix does not. It is the
  *     fixture for the rule that we report what a profile DOES, never what it
- *     claims — and it also shows why gamut membership alone cannot catch it.
+ *     claims - and it also shows why gamut membership alone cannot catch it.
  *
  * Licence picture for these files (read out of their own `cprt` tags, recorded in
  * plans/60-color-spaces.md 11.8): the ICC's own two are shippable, the Elle Stone
@@ -88,7 +88,7 @@ function withReal(name: string, t: { skip(msg: string): void }, body: (p: IccPro
   body(p, b);
 }
 
-/** Both fixtures, or a skip — for the tests that compare one profile against another. */
+/** Both fixtures, or a skip - for the tests that compare one profile against another. */
 function withPair(
   a: string, c: string, t: { skip(msg: string): void }, body: (pa: IccProfile, pc: IccProfile) => void,
 ): void {
@@ -136,7 +136,7 @@ for (const name of ALL) {
       assert.equal(p.pcs, want.pcs, `${name}: PCS`);
       assert.equal(p.version, want.version, `${name}: version`);
       assert.equal(p.description, want.desc, `${name}: desc tag`);
-      // nChannels comes from the SPACE signature, never from a tag's own count —
+      // nChannels comes from the SPACE signature, never from a tag's own count - 
       // three for every RGB profile here whatever its element types.
       assert.equal(p.nChannels, want.n, `${name}: nChannels`);
     });
@@ -160,8 +160,8 @@ test('icc real: the gamut-source id is a content digest, not a behaviour one', t
     const b = iccGamutSource(v4, 'relative');
     assert.match(a.id, /^icc:[0-9a-f]{16}:relative$/);
     assert.match(b.id, /^icc:[0-9a-f]{16}:relative$/);
-    // Elle Stone's V2 and V4 CIERGB files describe the SAME transform — they agree
-    // on the red primary to two decimals — but they are different bytes, so they
+    // Elle Stone's V2 and V4 CIERGB files describe the SAME transform - they agree
+    // on the red primary to two decimals - but they are different bytes, so they
     // must not collide: the id addresses the file, so re-dropping one file
     // overwrites and dropping the other adds.
     assert.deepEqual(round(v2.toLab('relative', [1, 0, 0])!), round(v4.toLab('relative', [1, 0, 0])!));
@@ -198,7 +198,7 @@ test('icc real: matrix/TRC display profiles are decided by the cube, not the rou
     const p = parseIccProfile(bytesOf(name));
     assert.ok(p, name);
     // No B2A table anywhere in these files, so `fromLab` inverts the matrix and
-    // clips — and `contains` must test the unclamped cube instead of the ΔE.
+    // clips - and `contains` must test the unclamped cube instead of the ΔE.
     assert.equal(iccRoundTripDecides(p), false, `${name}: matrix/TRC must not be decided by round-trip ΔE`);
     // All four intents answerable: the matrix is direction-agnostic, and absolute
     // rides on relative plus a media white point.
@@ -210,7 +210,7 @@ test('icc real: sRGB2014 refuses a colour whose round trip barely moves', t => {
   withReal(SRGB_V2, t, p => {
     // This is the case DIRECT_LINEAR exists for, on a real file rather than a
     // synthesised one: OKLCH(0.6, 0.25, 29) is outside sRGB, and the round trip
-    // through the clipping inverse moves it only ~1.5 ΔE — comfortably under the
+    // through the clipping inverse moves it only ~1.5 ΔE - comfortably under the
     // 3.0 threshold. If `contains` ever went back to reading the ΔE for these
     // profiles it would call this colour reproducible.
     const dE = iccRoundTripDeltaE(p, 'relative', 0.6, 0.25, 29);
@@ -241,7 +241,7 @@ test('icc real: the v4 preference profile is a spac/Lab conversion profile, LUT-
     assert.equal(p.deviceClass, 'spac', 'not mntr: this is a colour-space conversion profile');
     assert.equal(p.pcs, 'Lab', 'Lab PCS, so the LUT path is exercised end to end');
     // A2B/B2A tables in both directions, so the round trip IS the membership test
-    // here — the opposite of the matrix profiles above.
+    // here - the opposite of the matrix profiles above.
     assert.equal(iccRoundTripDecides(p), true);
     const inside = iccRoundTripDeltaE(p, 'relative', 0.55, 0.16, 30);
     const outside = iccRoundTripDeltaE(p, 'relative', 0.6, 0.25, 29);
@@ -259,7 +259,7 @@ test('icc real: the v4 preference profile is a spac/Lab conversion profile, LUT-
 });
 
 /**
- * FINDING (2026-07-28) — `iccGamutIntent` accepts a `spac` profile.
+ * FINDING (2026-07-28) - `iccGamutIntent` accepts a `spac` profile.
  *
  * It refuses `abst` and `link` outright, on the reasoning that an abstract effect
  * and a device link have no device gamut to ask about. A `spac` colour-space
@@ -269,7 +269,7 @@ test('icc real: the v4 preference profile is a spac/Lab conversion profile, LUT-
  * `shells/web/src/lib/color-profiles.ts`'s `ingestProfile` will store it (its
  * `usableIntents` is non-empty, so the `no-gamut` refusal never fires) and
  * `activateProfile` will mount it as a `&limit=` target under a label that reads
- * "sRGB v4 ICC preference perceptual intent beta" — a display-gamut claim the
+ * "sRGB v4 ICC preference perceptual intent beta" - a display-gamut claim the
  * file does not make about itself.
  *
  * `icc.ts` and `color-profiles.ts` both belong to other runs today, so this pins
@@ -302,7 +302,7 @@ test('icc real: swapped-v2 reports the transform it HAS, not the one it claims',
     const w = (d: number[]) => swapped.toLab('relative', d)!;
 
     // Full red drives this device to sRGB's GREEN, and full green to sRGB's red.
-    // Same numbers, exchanged — the W3C built the file by swapping the two
+    // Same numbers, exchanged - the W3C built the file by swapping the two
     // colorant tags, so equality here is exact to the s15Fixed16 they share.
     assert.deepEqual(round(w(R), 6), round(s(G), 6), 'device red reports green');
     assert.deepEqual(round(w(G), 6), round(s(R), 6), 'device green reports red');
@@ -318,7 +318,7 @@ test('icc real: swapped-v2 reports the transform it HAS, not the one it claims',
     assert.deepEqual(round(srgb.fromLab('relative', redLab)!, 4), [1, 0, 0]);
     assert.deepEqual(round(swapped.fromLab('relative', redLab)!, 4), [0, 1, 0]);
 
-    // The neutral axis is NOT swapped — the two primaries sum the same — so white
+    // The neutral axis is NOT swapped - the two primaries sum the same - so white
     // and grey are identical in both. A check that only looked at the grey ramp
     // would call this profile sRGB.
     assert.deepEqual(round(w([1, 1, 1]), 4), round(s([1, 1, 1]), 4));

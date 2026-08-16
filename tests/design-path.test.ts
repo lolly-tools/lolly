@@ -1,15 +1,15 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
- * Layout Studio path boxes — persistence + HEADLESS render (Stage C of
+ * Layout Studio path boxes - persistence + HEADLESS render (Stage C of
  * plans/57-pen-tool-and-vector-ops.md).
  *
  * The point of the stage, and therefore of this suite, is that no editor is
  * involved anywhere: a pen shape is one row of the `boxes` blocks array, and a
  * URL render, a CLI render and an export all run manifest -> inputs -> hooks ->
- * template. So everything here drives the REAL artefacts — the shipped
+ * template. So everything here drives the REAL artefacts - the shipped
  * `tool.json` (for the field order that IS the wire format), the shipped
  * `hooks.js` compiled the way `engine/src/runtime.ts` compiles it, and the real
- * `makeGeomApi()` as `host.geom` — never a re-implementation of any of them.
+ * `makeGeomApi()` as `host.geom` - never a re-implementation of any of them.
  *
  * Four things are actually at risk, and each has its own section:
  *
@@ -20,10 +20,10 @@
  *    string at all when a value contains either. So the test is not "does
  *    percent-encoding survive" (it does not) but "does the encoding contain
  *    neither separator", asserted on paths with negative coordinates,
- *    high-precision floats, and a node count in the hundreds — plus a real round
+ *    high-precision floats, and a node count in the hundreds - plus a real round
  *    trip through both blocks URL forms.
- * 2. **The lowering.** The emitted `d` is compared GEOMETRICALLY — bounds, area
- *    and point membership, computed from the path — never by string equality,
+ * 2. **The lowering.** The emitted `d` is compared GEOMETRICALLY - bounds, area
+ *    and point membership, computed from the path - never by string equality,
  *    which would only be testing `toFixed`.
  * 3. **The degrades.** `host.geom` absent and `fromNodes` failing must both
  *    produce something visible and a `host.log` warning, because a throw out of
@@ -55,7 +55,7 @@ const ROOT = join(HERE, '..');
  *  Gate the private brands/suse copy on the SOURCE pack being mounted, per the
  *  house rule (tests/README.md, "Private brand content"): a public CI /
  *  lolly-start checkout skips the SUSE half cleanly, but with the pack mounted
- *  a missing tool dir FAILS — a renamed/deleted variant can't silently turn
+ *  a missing tool dir FAILS - a renamed/deleted variant can't silently turn
  *  the suite green. */
 const SUSE_MOUNTED = existsSync(join(ROOT, 'brands', 'suse', 'tools'));
 if (SUSE_MOUNTED) {
@@ -86,7 +86,7 @@ function boxesInput(brand: string) {
 // ── the hook, compiled the way the runtime compiles it ────────────────────────
 
 /**
- * `new Function('host', src + '; return {…}')` — the same closure-scope injection
+ * `new Function('host', src + '; return {…}')` - the same closure-scope injection
  * `getHookFactory` in engine/src/runtime.ts performs. Loading the real file this
  * way (rather than importing it, which would need it to be a module) is what makes
  * this a test of the shipped tool DATA and not of a copy.
@@ -149,7 +149,7 @@ function inside(d: string, x: number, y: number, rule?: 'nonzero' | 'evenodd'): 
   assert.ok(r.ok, 'contains failed');
   return (r as { ok: true; value: boolean }).value;
 }
-/** No NaN/Infinity anywhere in emitted markup — the specific failure a scaled,
+/** No NaN/Infinity anywhere in emitted markup - the specific failure a scaled,
  *  garbage-fed lowering would produce. */
 function assertNoNaN(markup: string): void {
   assert.ok(!/NaN|Infinity|undefined|null/.test(markup), `markup carries a non-number: ${markup}`);
@@ -175,7 +175,7 @@ function pathBox(over: Row = {}): Row {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// 1. Manifest — the shape Stages D and E build against
+// 1. Manifest - the shape Stages D and E build against
 // ─────────────────────────────────────────────────────────────────────────────
 
 test('manifest: kind gains "path", canvas gains pathField, and both brands agree', () => {
@@ -198,7 +198,7 @@ test('manifest: kind gains "path", canvas gains pathField, and both brands agree
 test('manifest: the four new sub-fields are APPENDED, in order, and `path` is hidden', () => {
   // Field order is the compact-URL wire format: inserting a field would decode
   // every link already shared into the wrong columns. What must be pinned is each
-  // field's SLOT, not its distance from the end — a test that pins the tail forbids
+  // field's SLOT, not its distance from the end - a test that pins the tail forbids
   // appending, which is the one safe edit. (Exactly the mistake
   // tests/design-fit-circle.test.ts made about `fitText`, and it was made
   // again here: ten timeline fields appended after `fillRule` broke this and
@@ -282,7 +282,7 @@ test('encoding: round-trips exactly, and carries neither blocks separator', () =
       const b: SplineNode = back!.nodes[i]!;
       for (const k of ['x', 'y', 'hInX', 'hInY', 'hOutX', 'hOutY'] as const) {
         if (a[k] === undefined || a[k] === 0) continue;
-        // 6 decimals of a NORMALISED coordinate — a nanometre on an A4 page.
+        // 6 decimals of a NORMALISED coordinate - a nanometre on an A4 page.
         assert.ok(Math.abs((b[k] ?? 0) - a[k]!) <= 5e-7, `node ${i}.${k}: ${b[k]} != ${a[k]}`);
       }
       assert.equal(b.continuity, a.continuity, `node ${i}.continuity`);
@@ -297,7 +297,7 @@ test('encoding: round-trips exactly, and carries neither blocks separator', () =
 //
 // A value carries a LIST of paths, because one `AuthoredPath` holds one `nodes` run
 // and a great many shapes are not one run: a boolean subtract punches a hole. The
-// separator is `*` — unreserved under encodeURIComponent, neither blocks delimiter,
+// separator is `*` - unreserved under encodeURIComponent, neither blocks delimiter,
 // and unreachable by any other production in the grammar (records are `_`, fields
 // `!`, kinds `[a-z][a-z0-9-]*`, continuity `c`/`s`/`y`, numbers digits/`.`/`-`).
 
@@ -316,7 +316,7 @@ test('encoding: a SINGLE path is byte-identical to what the singular format has 
   // form drifting: links already produced in this format have to keep decoding, so a
   // new arity must not cost the old one a single byte.
   assert.equal(encodeAuthoredPath(DIAMOND), '1!catmull-rom!1_.5!0_1!.5_.5!1_0!.5');
-  // And the plural entry point agrees with it exactly — no wrapper, no length marker,
+  // And the plural entry point agrees with it exactly - no wrapper, no length marker,
   // no separator for a list of one.
   assert.equal(encodeAuthoredPaths([DIAMOND]), '1!catmull-rom!1_.5!0_1!.5_.5!1_0!.5');
   assert.ok(!encodeAuthoredPaths([DIAMOND]).includes('*'));
@@ -372,7 +372,7 @@ test('encoding: decode∘encode is a fixed point at BOTH arities', () => {
 
 test('encoding: the singular decode REFUSES a multi-path value rather than returning the first', () => {
   const enc = encodeAuthoredPaths(RING);
-  // Silently answering with contour 1 of 2 would drop the hole — the same class of
+  // Silently answering with contour 1 of 2 would drop the hole - the same class of
   // defect as decoding half a path, which this codec exists not to do.
   assert.equal(decodeAuthoredPath(enc), null);
   assert.equal(decodeAuthoredPaths(enc)!.length, 2);
@@ -394,7 +394,7 @@ test('encoding: the node ceiling is on the WHOLE value, so N paths cannot multip
   // And the encoder refuses to produce such a value in the first place, rather than
   // writing a field nothing will ever read back.
   assert.throws(() => encodeAuthoredPaths([run(10_001), run(10_001)]), /20002 nodes/);
-  // Exactly at the ceiling is allowed — the limit is a limit, not a margin.
+  // Exactly at the ceiling is allowed - the limit is a limit, not a margin.
   assert.equal(decodeAuthoredPaths(`${encodeAuthoredPath(run(10_000))}*${encodeAuthoredPath(run(10_000))}`)!.length, 2);
 });
 
@@ -424,7 +424,7 @@ test('encoding: the bridge carries the plural form both ways', () => {
     (geom.encodeAuthored(DIAMOND as never) as { ok: true; value: string }).value,
   );
   // Past the ceiling is 'too-large' (well-formed, too big) and never 'invalid-argument'
-  // (not a path) — the distinction the whole API is built on.
+  // (not a path) - the distinction the whole API is built on.
   const run = (n: number): AuthoredPath => ({
     kind: 'line', closed: true, nodes: Array.from({ length: n }, (_, i) => ({ x: i / n, y: 0.5 })),
   });
@@ -458,7 +458,7 @@ test('encoding: one home — host.geom exposes the SAME codec the engine exports
   // for the common case would render the first contour of a holed shape and drop
   // the hole, which is the whole defect this arity exists to prevent.
   assert.deepEqual((dec as { ok: true; value: AuthoredPath[] }).value, [DIAMOND]);
-  // The bridge returns failures, never throws — a throw out of a hook is swallowed.
+  // The bridge returns failures, never throws - a throw out of a hook is swallowed.
   for (const bad of ['', 'nope', null as never, 42 as never]) {
     const r = geom.decodeAuthored(bad);
     assert.equal(r.ok, false);
@@ -509,7 +509,7 @@ test('URL: a path box survives the COMPACT blocks form (the one with unescapable
     const wanted = decodeAuthoredPath(String(rows[i]!.path));
     assert.deepEqual(decoded, wanted, `row ${i} path did not survive the round trip`);
   }
-  // And the rest of the row still lands in the right columns — the failure mode a
+  // And the rest of the row still lands in the right columns - the failure mode a
   // stray separator would cause.
   assert.equal(out[0]!.text, 'hello world');
   assert.equal(out[1]!.kind, 'path');
@@ -532,7 +532,7 @@ test('URL: a path box survives the engine JSON blocks form too', () => {
 test('URL: DEFLATE packing keeps a realistic path link to a sane length', async (t) => {
   if (!isPackAvailable()) return t.skip('no CompressionStream in this runtime');
   const input = boxesInput('lolly-start');
-  /** A node-only spline (`hyperbezier`/`catmull-rom` — the pen-tool default owns its
+  /** A node-only spline (`hyperbezier`/`catmull-rom` - the pen-tool default owns its
    *  own handles) and the same node count WITH four handle offsets each: the cheap
    *  and expensive ends of what a pen tool actually stores. */
   const nodesOnly = (n: number): AuthoredPath => ({
@@ -570,7 +570,7 @@ test('URL: DEFLATE packing keeps a realistic path link to a sane length', async 
   console.log(lines.join('\n'));
   for (const m of measured) {
     // Two claims, and only these two. Packing always wins, and the result stays
-    // inside the ceiling recorded for that size — so a pen shape lives in a LINK
+    // inside the ceiling recorded for that size - so a pen shape lives in a LINK
     // rather than only in a saved session.
     assert.ok(m.packed < m.raw, `${m.label}: packing did not help (${m.packed} vs ${m.raw})`);
     assert.ok(m.packed < m.ceiling, `${m.label}: packed link is ${m.packed} chars`);
@@ -578,7 +578,7 @@ test('URL: DEFLATE packing keeps a realistic path link to a sane length', async 
 });
 
 // ─────────────────────────────────────────────────────────────────────────────
-// 3. The lowering — hooks.js -> inline <svg><path>
+// 3. The lowering - hooks.js -> inline <svg><path>
 // ─────────────────────────────────────────────────────────────────────────────
 
 test('render: a path box lowers to a real <path> whose geometry is the intended shape', () => {
@@ -589,7 +589,7 @@ test('render: a path box lowers to a real <path> whose geometry is the intended 
     assert.equal(logs.length, 0, `${brand}: a good path logged: ${logs.join('; ')}`);
     assertNoNaN(markup);
 
-    // Box-local pixel space with a 1:1 viewBox — never "0 0 1 1", which would scale
+    // Box-local pixel space with a 1:1 viewBox - never "0 0 1 1", which would scale
     // the stroke non-uniformly with the box.
     assert.match(markup, /^<svg class="lolly-box-path" width="400" height="300" viewBox="0 0 400 300"/);
     const d = pathD(markup);
@@ -621,7 +621,7 @@ test('render: a path box lowers to a real <path> whose geometry is the intended 
 
 test('render: a multi-contour path is ONE <path> whose d holds every subpath, hole included', () => {
   // The case Stage E produces and Stage C did not originally render: a boolean subtract
-  // is several contours, and `fill-rule` is a property of a PATH — so two <path>
+  // is several contours, and `fill-rule` is a property of a PATH - so two <path>
   // elements can never subtract, while one <path> with two subpaths does it for free.
   for (const brand of BRANDS) {
     const { compute, logs } = withGeom(brand);
@@ -637,7 +637,7 @@ test('render: a multi-contour path is ONE <path> whose d holds every subpath, ho
     assert.equal((d.match(/M/gi) ?? []).length, 2, `${brand}: subpath count in ${d}`);
 
     // Computed independently: the outer square is the whole 200x200 frame and the inner
-    // one spans 0.25..0.75 of it, i.e. 100x100 — so a ring of 40000 - 10000.
+    // one spans 0.25..0.75 of it, i.e. 100x100 - so a ring of 40000 - 10000.
     assert.equal(area(d), 30_000, `${brand}: ring area`);
     // And the hole is a real hole, not just a lower area: the centre is OUTSIDE the
     // filled region while a point in the ring's material is inside.
@@ -693,7 +693,7 @@ test('render: stroke and fill-rule are honoured; an unfilled stroked path is pos
 test('render: the STROKE is not clipped — the <svg> box and viewBox pad by half the width', () => {
   // The second half of the reported bounding-box bug, and independent of the frame refit: the
   // pen tool makes the frame the curve's TIGHT bbox, so a stroke straddles the frame edge and
-  // half of it falls outside — and an outer <svg> clips to its viewport, in the browser AND in
+  // half of it falls outside - and an outer <svg> clips to its viewport, in the browser AND in
   // SVG output (a nested <svg> clips by default), so a shape whose curve fits perfectly still
   // lost half its outline all the way round. The fix is geometric rather than
   // `overflow: visible`, because three renderers read this markup.
@@ -733,7 +733,7 @@ test('render: the STROKE is not clipped — the <svg> box and viewBox pad by hal
     const style0 = compute([pathBox({ stroke: '#0e1217', strokeW: 20 })]).boxStyle![0]!;
     assert.match(style0, /overflow:visible;/, `${brand}: the box div still clips its path`);
 
-    // An UNSTROKED path needs no pad, and gets none — its markup is unchanged, which is what
+    // An UNSTROKED path needs no pad, and gets none - its markup is unchanged, which is what
     // keeps every existing filled shape byte-identical.
     assert.equal(attr(plain, 'viewBox'), '0 0 400 300', `${brand}: an unstroked path is unpadded`);
     assert.equal(attr(plain, 'style'), null, `${brand}: and carries no inline geometry`);
@@ -769,13 +769,13 @@ test('render: every other kind emits an empty pathHtml, and a path box emits no 
   assert.deepEqual(out.pathHtml!.slice(0, 3), ['', '', '']);
   assert.ok(out.pathHtml![3]!.includes('<path'));
   // A path box carries no image and no text of its own here, so the other extras
-  // stay empty — the shape is the only thing painted.
+  // stay empty - the shape is the only thing painted.
   assert.equal(out.mediaHtml![3], '');
   assert.equal(out.textHtml![3], '');
 });
 
 // ─────────────────────────────────────────────────────────────────────────────
-// 4. Degrades — visible and logged, never silent and never thrown
+// 4. Degrades - visible and logged, never silent and never thrown
 // ─────────────────────────────────────────────────────────────────────────────
 
 /**
@@ -818,10 +818,10 @@ test('degrade: a partial host.geom (no fromNodes) is treated as absent, not as a
 test('degrade: fromNodes returns ok:false — the code and message reach the log', () => {
   // A real refusal from the real bridge: a kind no engine has ever heard of answers
   // 'invalid-argument', which the tool degrades to an undrawn outline + a warning.
-  // (Spiro USED to be the "known but unimplemented" example — it is now a real solver,
+  // (Spiro USED to be the "known but unimplemented" example - it is now a real solver,
   // engine/src/geom/spiro.ts, so an unknown kind is the refusal case.)
   const { compute, logs } = withGeom();
-  // Cast: 'zigzag' is deliberately not a SplineKind — the codec must carry an unknown
+  // Cast: 'zigzag' is deliberately not a SplineKind - the codec must carry an unknown
   // kind through untouched so a LATER engine can be the one to name it.
   const out = compute([pathBox({
     path: encodeAuthoredPath({ ...DIAMOND, kind: 'zigzag' as AuthoredPath['kind'] }),
@@ -863,7 +863,7 @@ test('degrade: garbage / hostile / absurd path fields never throw and never emit
 });
 
 // ─────────────────────────────────────────────────────────────────────────────
-// 5. Injection — the extra is emitted through {{{ }}}, which does not escape
+// 5. Injection - the extra is emitted through {{{ }}}, which does not escape
 // ─────────────────────────────────────────────────────────────────────────────
 
 test('injection: hostile path / bg / stroke / fillRule values are neutralised', () => {
@@ -903,12 +903,12 @@ test('injection: hostile path / bg / stroke / fillRule values are neutralised', 
 });
 
 // ─────────────────────────────────────────────────────────────────────────────
-// 5b. Stroke decoration — style / ends / corners
+// 5b. Stroke decoration - style / ends / corners
 //
 // The canvas editor's stroke panel writes `strokeDash`, `strokeCap` and `strokeJoin`;
 // this is the other end of that, i.e. what the three renderers actually receive. Every
 // one of these values lands in an ATTRIBUTE inside markup emitted through `{{{ }}}`, so
-// the whitelist is a security property and not a tidiness one — `stroke-dasharray` in
+// the whitelist is a security property and not a tidiness one - `stroke-dasharray` in
 // particular is the one attribute that would otherwise carry arbitrary numbers (and
 // `NaN`) straight through `esc()`.
 // ─────────────────────────────────────────────────────────────────────────────
@@ -917,7 +917,7 @@ test('manifest: strokeDash / strokeCap / strokeJoin are appended after the exist
   // Slot-relative, never distance-from-the-end: appending is the one safe edit to a
   // blocks input, so an assertion that forbade it would fail on the next feature rather
   // than on a real defect. What must hold is that the three are CONTIGUOUS, in this
-  // order, and after `fillRule` — anything else is a wire-format change.
+  // order, and after `fillRule` - anything else is a wire-format change.
   for (const brand of BRANDS) {
     const ids = boxesInput(brand).fields!.map((f) => f.id);
     const rule = ids.indexOf('fillRule');
@@ -931,7 +931,7 @@ test('manifest: strokeDash / strokeCap / strokeJoin are appended after the exist
     assert.equal(new Set(ids).size, ids.length, `${brand}: a duplicated field id would alias a wire slot`);
 
     const byId = new Map(boxesInput(brand).fields!.map((f) => [f.id, f]));
-    // Closed sets, matching the whitelists in hooks.js exactly — a value the manifest
+    // Closed sets, matching the whitelists in hooks.js exactly - a value the manifest
     // offers but the hook rejects would be a control that silently does nothing.
     assert.deepEqual(byId.get('strokeDash')!.options!.map((o) => o.value), ['', 'dashed', 'dotted']);
     assert.deepEqual(byId.get('strokeCap')!.options!.map((o) => o.value), ['round', 'butt', 'square']);
@@ -951,7 +951,7 @@ const strokedBox = (over: Row = {}): Row => pathBox({ bg: '', stroke: '#0e1217',
 test('render: the DEFAULTS are byte-identical to the hard-coded round/round/undashed markup', () => {
   // The stroke decoration was hard-coded before it was controllable (round cap, round
   // join, no dash array), so an existing shape's markup has to be unchanged to the
-  // character — including the ABSENCE of stroke-dasharray and stroke-miterlimit, either
+  // character - including the ABSENCE of stroke-dasharray and stroke-miterlimit, either
   // of which would change what an SVG or PDF consumer receives for artwork nobody edited.
   for (const brand of BRANDS) {
     const { compute, logs } = withGeom(brand);
@@ -986,7 +986,7 @@ test('render: the stroke style is a dasharray PROPORTIONAL to the width, and dot
 
   // Solid is the absence of the attribute, not a dasharray that happens to be continuous.
   assert.equal(dash({ strokeDash: '' }), null);
-  // Dashed: 3 wide on, 2 wide off — a ratio, so a dash keeps its proportion at any width
+  // Dashed: 3 wide on, 2 wide off - a ratio, so a dash keeps its proportion at any width
   // and at any export scale.
   assert.equal(dash({ strokeDash: 'dashed', strokeW: 10 }), '30 20');
   assert.equal(dash({ strokeDash: 'dashed', strokeW: 2.5 }), '7.5 5');
@@ -994,7 +994,7 @@ test('render: the stroke style is a dasharray PROPORTIONAL to the width, and dot
   // full width, so a real dash would paint a lozenge instead of a dot.
   assert.equal(dash({ strokeDash: 'dotted', strokeW: 10 }), '0 20');
   assert.equal(dash({ strokeDash: 'dotted', strokeW: 10, strokeCap: 'square' }), '0 20');
-  // A flat cap paints NOTHING at zero length, so it needs a real width-long dash — which
+  // A flat cap paints NOTHING at zero length, so it needs a real width-long dash - which
   // is a square dot, correctly.
   assert.equal(dash({ strokeDash: 'dotted', strokeW: 10, strokeCap: 'butt' }), '10 10');
   // No stroke width means no stroke at all, so there is nothing to dash.
@@ -1035,7 +1035,7 @@ test('render: the stroke pad GROWS for the two decorations that reach past half 
     assert.equal(geo({ strokeJoin: 'miter' }), '-40 -40 480 380', `${brand}: a miter spike`);
     // The larger of the two wins rather than the two adding up.
     assert.equal(geo({ strokeCap: 'square', strokeJoin: 'miter' }), '-40 -40 480 380', `${brand}: max, not sum`);
-    // A dash changes no geometry — it is paint along the same centreline.
+    // A dash changes no geometry - it is paint along the same centreline.
     assert.equal(geo({ strokeDash: 'dashed' }), '-10 -10 420 320', `${brand}: a dash must not move the viewBox`);
   }
 });
@@ -1061,7 +1061,7 @@ test('injection: hostile strokeDash / strokeCap / strokeJoin values are neutrali
       assert.equal((markup.match(/<path/g) ?? []).length, 1, `${field}: path count`);
       assert.equal((markup.match(/stroke="/g) ?? []).length, 1, `${field}: a second stroke attribute appeared`);
       assertNoNaN(markup);
-      // The attributes only ever hold a member of the closed set — and a rejected
+      // The attributes only ever hold a member of the closed set - and a rejected
       // dash style is the ABSENCE of stroke-dasharray, never an escaped copy of the
       // user's string.
       assert.match(attr(markup, 'stroke-linecap')!, /^(butt|round|square)$/, `${field}: linecap`);
@@ -1070,7 +1070,7 @@ test('injection: hostile strokeDash / strokeCap / strokeJoin values are neutrali
       if (da !== null) assert.match(da, /^[0-9.]+ [0-9.]+$/, `${field}: dasharray shape`);
     }
   }
-  // A hostile width is a number or it is nothing — the pad geometry is computed FROM it,
+  // A hostile width is a number or it is nothing - the pad geometry is computed FROM it,
   // so a non-number there would put NaN in the viewBox as well as in stroke-width.
   for (const w of ['NaN', '1e400', 'Infinity', '4"/><script>x</script>', -50, 1e12]) {
     const markup = compute([strokedBox({ strokeW: w })]).pathHtml![0]!;
@@ -1084,7 +1084,7 @@ test('injection: hostile strokeDash / strokeCap / strokeJoin values are neutrali
 });
 
 // ─────────────────────────────────────────────────────────────────────────────
-// 6. Regression — every other kind is byte-identical to before the change
+// 6. Regression - every other kind is byte-identical to before the change
 // ─────────────────────────────────────────────────────────────────────────────
 
 /**
@@ -1116,7 +1116,7 @@ test('regression: every pre-existing kind computes byte-identically to before th
   // does not pin the set of new keys: other work appends extras of its own (the
   // timeline fields' `timeAttrs`/`seqAttrs` did exactly that), and a regression
   // lock that fails when someone adds an unrelated key is a lock on the wrong
-  // thing — it reports a conflict where there is no defect.
+  // thing - it reports a conflict where there is no defect.
   assert.ok('pathHtml' in out, 'pathHtml extra missing');
   assert.deepEqual(out.pathHtml, REGRESSION_BOXES.map(() => ''), 'pathHtml must be empty for every non-path kind');
   for (const key of Object.keys(baseline)) {
@@ -1128,7 +1128,7 @@ test('regression: the SUSE variant is the same change, and its own extras still 
   { skip: SUSE_MOUNTED ? false : 'brands/suse not mounted (private pack)' }, () => {
   const start = withGeom('lolly-start').compute(REGRESSION_BOXES);
   const suse = withGeom('suse').compute(REGRESSION_BOXES);
-  // Same keys, same lengths — the two variants diverge only in fonts and default
+  // Same keys, same lengths - the two variants diverge only in fonts and default
   // colours, which is exactly what they diverged in before.
   assert.deepEqual(Object.keys(start).sort(), Object.keys(suse).sort());
   assert.deepEqual(start.pathHtml, suse.pathHtml);
@@ -1142,7 +1142,7 @@ test('regression: the SUSE variant is the same change, and its own extras still 
 test('template: pathHtml is emitted raw inside .lolly-box in both variants', () => {
   for (const brand of BRANDS) {
     const tpl = readFileSync(join(toolDir(brand), 'template.html'), 'utf8');
-    // Raw ({{{ }}}) because it is markup — which is why hooks.js escapes every
+    // Raw ({{{ }}}) because it is markup - which is why hooks.js escapes every
     // interpolated value itself.
     assert.ok(tpl.includes('{{{lookup ../pathHtml @index}}}'), `${brand}: template does not emit pathHtml`);
     // Inside the box div, and BEFORE the media/text so the shape paints behind them.

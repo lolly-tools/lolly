@@ -7,29 +7,29 @@
  *
  * Renders every tool with its defaults in a REAL browser and writes a BUILD preview
  * image per tool into the git-ignored catalog/previews/ dir:
- *   • catalog/previews/<id>.svg   a VECTOR SCREENSHOT of the rendered canvas — attempted
+ *   • catalog/previews/<id>.svg   a VECTOR SCREENSHOT of the rendered canvas - attempted
  *                                 for EVERY tool, not just SVG exporters, since a tile is
  *                                 just a screenshot and vector stays crisp at any size
  *                                 (the __lollyForceVectorThumb flag decouples this from
- *                                 render.formats — see captureThumbnail in tool.ts)
+ *                                 render.formats - see captureThumbnail in tool.ts)
  *   • catalog/previews/<id>.png   fallback: a dense/expensive vector (rasterised below to
  *                                 keep the tile cheap to paint) or a tool whose canvas the
  *                                 walker can't vectorise (→ pixel-faithful raster screenshot)
- * SVG previews are then shrunk in place (format-preserving — the catalog index derives
+ * SVG previews are then shrunk in place (format-preserving - the catalog index derives
  * the .svg extension deterministically, so the file must stay SVG): never-painted
- * comments are dropped (a tool's template.html comments ride into the serialised SVG —
+ * comments are dropped (a tool's template.html comments ride into the serialised SVG - 
  * e.g. filter-duotone's ~674 KB commented-out fallback image) and any full-resolution
  * embedded rasters are downscaled to thumbnail size (diagram-builder's six headshots
  * were the bulk of its 900 KB). See scripts/optimize-preview-svg.ts. A tool whose SVG
  * is dense SYNTHETIC vector with no rasters (a halftone's ~10 k circles, a scanline's
- * one giant integer-coordinate path) can't shrink this way — it wants a committed
+ * one giant integer-coordinate path) can't shrink this way - it wants a committed
  * tools/<id>/card.png override, which the index honours and this script skips.
- * so the gallery shows a full, pretty masonry — no saved sessions required. (Despite the
- * "git-ignored" note above, these ARE committed on purpose — see .gitignore. Don't "clean
+ * so the gallery shows a full, pretty masonry - no saved sessions required. (Despite the
+ * "git-ignored" note above, these ARE committed on purpose - see .gitignore. Don't "clean
  * up" the diff.) The gallery falls back to a plain "open to start" tile when one is absent
  * (dev, or before this has run). Run before serving/deploying.
  *
- * A tool can ship a committed card — tools/<id>/card.svg or card.html — which wins over
+ * A tool can ship a committed card - tools/<id>/card.svg or card.html - which wins over
  * the generated preview and is skipped here. As of 2026-07-31 a card is NOT an "authored
  * override" slot: it exists only to preserve MOTION that this script's still capture would
  * lose (the vector screenshot flattens the canvas and drops the outer <style>, so CSS
@@ -37,16 +37,16 @@
  * build-svg-card.ts (lifts the tool's animated inline <svg> at its real defaults) or
  * build-html-card.ts (ships the tool's real `html` export). Nine hand-drawn illustration
  * cards were deleted on that date; if a tool's tile looks wrong, fix the tool's defaults
- * or this capture — do not draw a nicer picture of the tool and commit it as a card.
+ * or this capture - do not draw a nicer picture of the tool and commit it as a card.
  *
  * Why a browser (not the node CLI): the lean CLI has no layout engine, so it
  * can't render the HTML-layout tools or rasterise. Full coverage of every tool
- * needs a real engine — so we build the web shell and drive Playwright/chromium
+ * needs a real engine - so we build the web shell and drive Playwright/chromium
  * through the SAME path the Save button uses: captureThumbnail() in tool.js,
  * which already picks "svg if the format is vector, png otherwise" (exactly this
  * script's spec) and inlines/outlines so the SVG is self-contained. We then read
  * the captured thumbnail straight back out of IndexedDB. Reusing the app's own
- * capture keeps a preview byte-identical to a real saved session's thumbnail —
+ * capture keeps a preview byte-identical to a real saved session's thumbnail - 
  * no second rendering path to drift.
  *
  * The catalog index does NOT need regenerating afterward: entryFromManifest derives
@@ -62,7 +62,7 @@
  *   --no-build               reuse the existing shells/web/dist (skip vite build)
  *   --skip-existing          only generate previews that are missing (a tool with an
  *                            existing catalog/previews/<id>.* or a committed card is
- *                            skipped). Makes repeat runs cheap — used by `npm run dev:web`.
+ *                            skipped). Makes repeat runs cheap - used by `npm run dev:web`.
  *   --headed                 show the browser (default: headless)
  */
 
@@ -79,7 +79,7 @@ import {
   stripSvgComments, listEmbeddedRasters, substituteDataUris, svgoThumb, isExpensiveThumbSvg,
   MAX_RASTER_DIM, RASTER_JPEG_QUALITY,
 } from './optimize-preview-svg.ts';
-// Engine-owned URL encoding — the SAME buildInputModel → serializeUrlState the app's
+// Engine-owned URL encoding - the SAME buildInputModel → serializeUrlState the app's
 // seed-url.ts uses, so a look's pre-render URL seeds the identical inputs the live
 // carousel would render from (shells/web/src/lib/seed-url.ts).
 import { buildInputModel, serializeUrlState } from '../engine/src/index.ts';
@@ -114,7 +114,7 @@ interface Tool {
   capabilities: string[];
   hasCard: boolean;
   hasPreview: boolean;
-  // Example LOOKS (manifest.examples, or the featured.variants alias) — each pre-rendered
+  // Example LOOKS (manifest.examples, or the featured.variants alias) - each pre-rendered
   // to catalog/previews/<id>.look<i>.svg so the gallery shows them from the bundle instead
   // of live-rendering + fetching each look's assets on first load.
   looks: Look[];
@@ -171,7 +171,7 @@ async function main(): Promise<void> {
   const tools = await toolList();
   if (!tools.length) {
     // With --skip-existing an empty list just means everything is already covered
-    // (every dev:web start hits this once the previews exist) — not an error.
+    // (every dev:web start hits this once the previews exist) - not an error.
     if (opts.skipExisting) {
       console.log('All tools already have a preview or card — nothing to generate.');
       return;
@@ -196,7 +196,7 @@ async function main(): Promise<void> {
   } else {
     console.log(`Rendering against ${baseUrl}`);
     // A supplied server (e.g. the dev server launched alongside us by dev:web)
-    // may still be starting — wait for it to answer before driving the browser.
+    // may still be starting - wait for it to answer before driving the browser.
     await waitForServer(baseUrl);
   }
 
@@ -211,7 +211,7 @@ async function main(): Promise<void> {
   try {
     for (const tool of tools) {
       // A committed authored override (tools/<id>/card.svg|png) wins over a generated
-      // DEFAULT preview (see entryFromManifest), so there's nothing to render there — but
+      // DEFAULT preview (see entryFromManifest), so there's nothing to render there - but
       // the tool's example LOOKS still need pre-rendering (an authored-card tool like
       // pose-geeko still has a live example carousel), so we fall through to captureLooks.
       if (tool.hasCard) {
@@ -259,7 +259,7 @@ async function captureTool(context: BrowserContext, baseUrl: string, tool: Tool)
     // Wait for the tool canvas to mount and actually render something. Hooks
     // (onInit) and fonts resolve async, so wait for content then let it settle.
     // Sidebar tools render into #tool-canvas; full-bleed/display tools (hideSidebar)
-    // render into #tool-content — match either.
+    // render into #tool-content - match either.
     await page.waitForSelector(CANVAS_SEL, { timeout: 20000 });
     await page.waitForFunction(
       () => {
@@ -270,13 +270,13 @@ async function captureTool(context: BrowserContext, baseUrl: string, tool: Tool)
     );
     await page.waitForTimeout(900);
 
-    // Preferred path — exportable tools reuse the app's own Save → captureThumbnail
+    // Preferred path - exportable tools reuse the app's own Save → captureThumbnail
     // logic (svg if the format is vector, png otherwise) and we read the captured
     // thumbnail straight back out of IndexedDB, byte-identical to a real session's.
     const hasSave = await page.evaluate(() => !!document.querySelector('[data-action="save"]'));
     if (hasSave) {
-      // A gallery tile is just a screenshot — and a VECTOR screenshot stays crisp at any
-      // tile size — so capture one for EVERY tool, not only those that export SVG. This
+      // A gallery tile is just a screenshot - and a VECTOR screenshot stays crisp at any
+      // tile size - so capture one for EVERY tool, not only those that export SVG. This
       // flag makes captureThumbnail (tool.ts) vectorise the rendered canvas regardless of
       // the tool's declared export formats; a dense/expensive result is rasterised below
       // and any walker hiccup falls back to a pixel-faithful raster screenshot. Decoupling
@@ -299,13 +299,13 @@ async function captureTool(context: BrowserContext, baseUrl: string, tool: Tool)
       }
 
       // Fire the handler in-page rather than a Playwright click: the Save control
-      // can live inside a closed export popover — present in the DOM but not
+      // can live inside a closed export popover - present in the DOM but not
       // "visible", which fails Playwright's actionability check. el.click() runs
       // the handler regardless.
       await page.evaluate(() => document.querySelector<HTMLElement>('[data-action="save"]')!.click());
 
       // performSave() captures the thumbnail, awaits host.state.save(), then sets
-      // the button label to "Saved" — so once we see "Saved", the thumb is in the DB.
+      // the button label to "Saved" - so once we see "Saved", the thumb is in the DB.
       await page.waitForFunction(
         () => {
           const b = document.querySelector('[data-action="save"]');
@@ -318,16 +318,16 @@ async function captureTool(context: BrowserContext, baseUrl: string, tool: Tool)
 
       const thumb = await readThumb(page, tool.id);
       const { ext, bytes } = thumb ? decodeThumb(thumb) : {};
-      // Optimise the vector thumbnail in place (format-preserving — the catalog
+      // Optimise the vector thumbnail in place (format-preserving - the catalog
       // index derives the .svg extension deterministically from the tool's formats,
       // so a preview must stay SVG). Strip never-painted template comments, then
       // downscale any full-resolution embedded rasters to thumbnail size. A tool
-      // whose SVG is dense synthetic vector (no rasters — e.g. a halftone's 10k
+      // whose SVG is dense synthetic vector (no rasters - e.g. a halftone's 10k
       // circles) is unaffected here and wants a committed card.png instead.
       if (ext === 'svg' && bytes) {
         const svg = await optimizeSvgThumb(page, bytes.toString('utf8'));
         // Expensive-to-rasterise SVGs (blur filters / thousands of dots / huge paths)
-        // stall the gallery on every paint — svgo shrinks bytes but not render cost.
+        // stall the gallery on every paint - svgo shrinks bytes but not render cost.
         // Ship a pre-rasterised PNG for the tile instead; it decodes in ~1ms. The
         // catalog index honours whichever file exists (build-catalog-index.ts). Falls
         // back to the SVG on any rasterise hiccup, so this can only help, never break.
@@ -345,7 +345,7 @@ async function captureTool(context: BrowserContext, baseUrl: string, tool: Tool)
 
     // Before any raster screenshot, try a VECTOR SCREENSHOT via the app's own capture
     // hook (mountTool exposes __lollyCaptureThumb). This is what gives a tool with NO Save
-    // button — an export:false utility like the colour browser or countdown timer — a crisp
+    // button - an export:false utility like the colour browser or countdown timer - a crisp
     // vector tile too. Same optimise + expensive-rasterise path as the Save capture; a
     // null/failed result falls through to the pixel-faithful raster screenshot below.
     const vecThumb = await page.evaluate(() => {
@@ -364,12 +364,12 @@ async function captureTool(context: BrowserContext, baseUrl: string, tool: Tool)
       }
     }
 
-    // Fallback — display/utility tools with no Save action (or a failed capture):
+    // Fallback - display/utility tools with no Save action (or a failed capture):
     // a raster screenshot of the rendered canvas. Gives every visual tool a
     // preview; file-transform utilities just show their drop-zone UI.
     // Hide app chrome first: an element screenshot includes anything painted over
     // the element's box (the fixed "Tools" back link, the render FAB, the
-    // on-device badge), so the preview shows the tool — not the app shell.
+    // on-device badge), so the preview shows the tool - not the app shell.
     await page.addStyleTag({
       content:
         '.tools-home,.render-fab,.fullscreen-toggle,.fullscreen-toggle-float,.on-device-badge,.export-overlay{display:none !important}',
@@ -389,7 +389,7 @@ async function writePreview(toolId: string, ext: string, bytes: Buffer): Promise
   const file = join(PREVIEWS_DIR, `${toolId}.${ext}`);
   await mkdir(dirname(file), { recursive: true });
   // SVG previews carry a "made with Lolly" C2PA credential (embedded AFTER the svgo pass
-  // in optimizeSvgThumb, so it isn't stripped). PNG previews stay bare here — they're
+  // in optimizeSvgThumb, so it isn't stripped). PNG previews stay bare here - they're
   // intermediates that optimize-preview-webp turns into stamped .webp.
   const finalBytes = ext === 'svg' ? Buffer.from(await stampVector(bytes, { id: toolId, name: toolId })) : bytes;
   await writeFile(file, finalBytes);
@@ -398,7 +398,7 @@ async function writePreview(toolId: string, ext: string, bytes: Buffer): Promise
 }
 
 // A tool (or look) carries exactly ONE preview form. When we write one, drop any stale
-// file in the other formats — including .webp, which optimize-preview-webp produces from a
+// file in the other formats - including .webp, which optimize-preview-webp produces from a
 // .png, so a tool that flips raster→vector on a re-render can't leave a webp behind.
 async function clearSiblings(base: string, keepExt: string): Promise<void> {
   for (const e of ['svg', 'png', 'webp']) {
@@ -433,11 +433,11 @@ async function captureLooks(context: BrowserContext, baseUrl: string, tool: Tool
   for (let i = 0; i < tool.looks.length; i++) {
     const values = tool.looks[i]?.values;
     if (!values || typeof values !== 'object') continue;
-    // A committed authored look override (tools/<id>/look<i>.{png,webp,svg}) — e.g. an
-    // animated APNG — wins in the preview bundle and must never be clobbered. Skip it (and
+    // A committed authored look override (tools/<id>/look<i>.{png,webp,svg}) - e.g. an
+    // animated APNG - wins in the preview bundle and must never be clobbered. Skip it (and
     // skip the wasted render). Mirrors the card-override skip in the main capture loop.
     if (['png', 'webp', 'svg'].some((ext) => existsSync(join(ROOT, 'tools', tool.id, `look${i}.${ext}`)))) continue;
-    // Only the look's OWN (dirty) inputs ride the URL — engine-owned encoding, identical
+    // Only the look's OWN (dirty) inputs ride the URL - engine-owned encoding, identical
     // to what a hand-made share of that look would produce (seed-url.ts), so the render
     // matches the live carousel byte-for-byte.
     let query: string;
@@ -448,7 +448,7 @@ async function captureLooks(context: BrowserContext, baseUrl: string, tool: Tool
     } catch {
       continue;
     }
-    // width/height/unit/dpi are RESERVED params, not inputs — serializeUrlState drops them,
+    // width/height/unit/dpi are RESERVED params, not inputs - serializeUrlState drops them,
     // so a reflow look (color-block's wide/tall/banner variants set these in `values`) would
     // otherwise render at the tool's default square and come out squished. Append them so the
     // canvas reflows to the look's real aspect, exactly as the live renderVariantAt path does.
@@ -476,7 +476,7 @@ async function captureLookAt(context: BrowserContext, baseUrl: string, tool: Too
       { timeout: 20000 },
     );
     await page.waitForTimeout(700);
-    // Same vector-screenshot capture the default fallback uses (mountTool's __lollyCaptureThumb) —
+    // Same vector-screenshot capture the default fallback uses (mountTool's __lollyCaptureThumb) - 
     // no Save, so it doesn't pollute IndexedDB with a session per look. The force flag makes it
     // vectorise HTML-layout tools too.
     await page.evaluate(() => { (globalThis as { __lollyForceVectorThumb?: boolean }).__lollyForceVectorThumb = true; });
@@ -516,7 +516,7 @@ async function writeLookPreview(toolId: string, i: number, ext: string, bytes: B
 }
 
 // Read the most-recent captured thumbnail for a tool straight out of IndexedDB
-// (db 'lolly', store 'state' — see shells/web/src/bridge/db.js + state.js).
+// (db 'lolly', store 'state' - see shells/web/src/bridge/db.js + state.js).
 function readThumb(page: Page, toolId: string): Promise<string | null> {
   return page.evaluate<string | null, string>(
     (id) =>
@@ -568,7 +568,7 @@ function decodeThumb(dataUrl: string): { ext: 'svg' | 'png' | null; bytes: Buffe
 
 // Shrink a captured SVG thumbnail WITHOUT changing its format (the catalog index
 // derives the .svg path deterministically, so a preview must stay SVG). Two passes:
-// drop never-painted comments (template.html comments ride into the serialised SVG —
+// drop never-painted comments (template.html comments ride into the serialised SVG - 
 // e.g. filter-duotone's ~674 KB commented-out fallback <image>), then downscale any
 // full-resolution embedded rasters in a real canvas (the big win for tools that embed
 // source photos, e.g. diagram-builder's six). Fail-safe: any hiccup in the pixel pass
@@ -584,14 +584,14 @@ async function optimizeSvgThumb(page: Page, svg: string): Promise<string> {
       out = substituteDataUris(out, map);
     }
   } catch { /* downscaling is best-effort — keep the comment-stripped SVG */ }
-  // Final pass: svgo path-precision + structure cleanup (the big vector win — the
+  // Final pass: svgo path-precision + structure cleanup (the big vector win - the
   // comment/raster passes above never touch geometry). Fail-safe, only shrinks.
   return svgoThumb(out);
 }
 
 // Rasterise an SVG string to a PNG buffer using the real browser (Chromium handles
 // blur/filters/thousands-of-nodes fine, and 2× the intrinsic size stays crisp on a
-// hiDPI tile). Used only for expensive-to-paint previews — see isExpensiveThumbSvg.
+// hiDPI tile). Used only for expensive-to-paint previews - see isExpensiveThumbSvg.
 async function rasterizeSvg(page: Page, svg: string): Promise<Buffer> {
   const dataUrl = await page.evaluate(async (svgStr: string): Promise<string> => {
     const url = URL.createObjectURL(new Blob([svgStr], { type: 'image/svg+xml' }));
@@ -612,7 +612,7 @@ async function rasterizeSvg(page: Page, svg: string): Promise<Buffer> {
 
 // Runs IN THE PAGE (serialised by Playwright). Decode each embedded data-URI into an
 // Image, redraw it into a canvas capped at `maxDim` on its longest edge, and re-encode
-// — JPEG for fully-opaque images (much smaller), PNG when any transparency is present
+// - JPEG for fully-opaque images (much smaller), PNG when any transparency is present
 // so alpha survives (e.g. a logo). Returns old→new only where the re-encode is smaller;
 // data-URIs are same-origin so getImageData never taints. A per-image failure is
 // skipped, leaving that original in place.
@@ -665,7 +665,7 @@ async function toolList(): Promise<Tool[]> {
     hasCard: existsSync(join(ROOT, 'tools', t.id, 'card.svg')) || existsSync(join(ROOT, 'tools', t.id, 'card.png')),
     // A previously generated preview (catalog/previews/<id>.svg|png).
     hasPreview: existsSync(join(PREVIEWS_DIR, `${t.id}.svg`)) || existsSync(join(PREVIEWS_DIR, `${t.id}.png`)),
-    // resolveLooks(): examples is canonical, featured.variants is the pre-examples alias —
+    // resolveLooks(): examples is canonical, featured.variants is the pre-examples alias - 
     // MUST mirror resolveExamples() in featured-row.ts + resolveLooks() in build-preview-bundle.ts.
     looks: t.examples ?? t.featured?.variants ?? [],
   }));
@@ -674,14 +674,14 @@ async function toolList(): Promise<Tool[]> {
     tools = tools.filter((t) => want.has(t.id));
   }
   // Capture-gated tools (e.g. url-shot) rasterise a live URL via the `capture`
-  // bridge, which isn't available in this headless render path — they can never
+  // bridge, which isn't available in this headless render path - they can never
   // produce a static preview, so skip them up front instead of eating a guaranteed
   // ~20s waitForSelector timeout per run.
   const gated = tools.filter((t) => t.capabilities.includes('capture'));
   if (gated.length) console.log(`Skipping ${gated.map((t) => t.id).join(', ')} (capture-gated — no static preview).`);
   tools = tools.filter((t) => !t.capabilities.includes('capture'));
   // --skip-existing: only fill in the gaps. A tool that already has a generated
-  // preview (or a committed card) needs no work — drop it so repeat runs, e.g. on
+  // preview (or a committed card) needs no work - drop it so repeat runs, e.g. on
   // every `npm run dev:web`, are near-instant instead of re-rendering everything.
   if (opts.skipExisting) tools = tools.filter((t) => !t.hasPreview && !t.hasCard);
   return tools;
@@ -717,7 +717,7 @@ async function waitForServer(
 
 async function buildWebShell(): Promise<void> {
   console.log('Building the web shell (vite build)…');
-  // Build only the web workspace — skips the /info docs build, which the tool
+  // Build only the web workspace - skips the /info docs build, which the tool
   // render path doesn't need. vite's closeBundle copies catalog/ + tools/ into
   // dist, so the served build is self-contained.
   await run('npm', ['--workspace', 'shells/web', 'run', 'build'], { cwd: ROOT });

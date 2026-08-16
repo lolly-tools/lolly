@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
- * epub-read.test.ts — round-trips writeEpub → readEpub.
+ * epub-read.test.ts - round-trips writeEpub → readEpub.
  *
  * We build a REAL .epub with the existing writer (its OCF zip, container.xml,
  * OPF spine and nav are the genuine article), then assert readEpub recovers the

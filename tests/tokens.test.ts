@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
- * Engine design-tokens model — DTCG parse, alias resolution, theme/set layering,
+ * Engine design-tokens model - DTCG parse, alias resolution, theme/set layering,
  * colour normalisation, and the reference+cached input-value resolver.
  *
  * Pure engine: no DOM, no bridge. These pin the format contract the catalog
@@ -83,7 +83,7 @@ test('resolves aliases nested in gradient stops ($value[].color); the raw doc st
   assert.equal(v[1]!.color, '#30ba78');
   assert.equal(v[2]!.color, '#ffffff');
   assert.equal(v[3]!.color, '{color.missing}');
-  // The input document belongs to the caller — its stop objects must NOT be rewritten.
+  // The input document belongs to the caller - its stop objects must NOT be rewritten.
   assert.equal(doc.gradient.hero.$value[0]!.color, '{color.brand.jungle}');
   // resolve() on the gradient path hands back the same resolved stops.
   const r = ts.resolve('{gradient.hero}') as Array<{ color: unknown }>;
@@ -105,7 +105,7 @@ test('gradient stop alias resolution is cycle-safe', () => {
 });
 
 test('composite resolution is scoped to gradient-typed tokens', () => {
-  // The same array shape under a non-gradient $type keeps its alias strings —
+  // The same array shape under a non-gradient $type keeps its alias strings - 
   // only $type gradient (own or inherited) opts a token into stop resolution.
   const doc = {
     color: { $type: 'color', a: { $value: '#112233' } },
@@ -155,7 +155,7 @@ test('colorToHex normalises every form Penpot can emit', () => {
   assert.equal(colorToHex('transparent'), 'transparent');
   assert.equal(colorToHex({ colorSpace: 'srgb', components: [0, 0, 0], alpha: 1 }), '#000000');
   assert.equal(colorToHex({ hex: '#30ba78' }), '#30ba78');     // DTCG object with hex
-  assert.equal(colorToHex('rebeccapurple'), 'rebeccapurple');  // unknown named colour — untouched
+  assert.equal(colorToHex('rebeccapurple'), 'rebeccapurple');  // unknown named colour - untouched
 });
 
 test('colorToHex parses oklch()/lch() via the brand-derive math', () => {
@@ -177,7 +177,7 @@ test('colorToHex parses oklch()/lch() via the brand-derive math', () => {
 
 test('colorToHex rejects CSS-injection payloads (token values reach style attributes)', () => {
   // Token documents are untrusted user imports and colorToHex's output lands in
-  // inline style attributes (swatches, brand vars) — anything that isn't a
+  // inline style attributes (swatches, brand vars) - anything that isn't a
   // plain colour must come back null, never verbatim.
   for (const hostile of [
     'javascript:',
@@ -303,7 +303,7 @@ test('single-axis doc is unchanged: no theme → first theme, named theme honour
 /**
  * The single change that makes an override real rather than decorative.
  *
- * `ColorSwatch.value` is what every consumer of a brand colour reads — the CMYK
+ * `ColorSwatch.value` is what every consumer of a brand colour reads - the CMYK
  * palette map, the picker's swatches, the raster and vector export paths. So an
  * authored sRGB face has to be substituted HERE, and that is the whole of Phase 9
  * for the sRGB target. If this test is deleted, an override silently becomes a
@@ -319,7 +319,7 @@ test('an authored sRGB face wins over the automatic bake', () => {
         $value: 'oklch(70% 0.25 145)',
         $extensions: { [TOKEN_EXT]: { faces: { srgb: { value: '#00b050' } } } },
       },
-      // The same colour with NO override — the control, so the test proves a
+      // The same colour with NO override - the control, so the test proves a
       // substitution rather than just reading a hex back.
       plain: { $type: 'color', $value: 'oklch(70% 0.25 145)' },
     },
@@ -334,7 +334,7 @@ test('an authored sRGB face wins over the automatic bake', () => {
 test('a face is re-serialised to a hex, and a broken one cannot blank a colour', () => {
   const ts = createTokenSet({
     color: {
-      // Authored in OKLCH — `value` is contractually a hex, so it must convert.
+      // Authored in OKLCH - `value` is contractually a hex, so it must convert.
       typed: {
         $type: 'color', $value: '#123456',
         $extensions: { [TOKEN_EXT]: { faces: { srgb: { value: 'oklch(62% 0.2 145)' } } } },
@@ -372,7 +372,7 @@ test('faces ride alongside, and only when there are any', () => {
     },
   });
   const press = ts.colors().find(s => s.path === 'color.press')!;
-  // A wider/press face is carried UNTOUCHED — baking it into `value` would discard
+  // A wider/press face is carried UNTOUCHED - baking it into `value` would discard
   // exactly what it was authored to hold.
   assert.deepEqual(press.faces?.['icc:ab12cd:relative'], [0, 90, 100, 0]);
   assert.equal(press.faces?.srgb, '#00b050');
@@ -409,7 +409,7 @@ test('the existing cmyk/spot locks are untouched by faces', () => {
   assert.deepEqual(Object.keys(s.spot!), ['name']);
 });
 
-// ── SpotColor.finish — a finish ink is a PLATE, not a colour ────────────────
+// ── SpotColor.finish - a finish ink is a PLATE, not a colour ────────────────
 // The offered set is brand data, so the union is open and the reader must never
 // gate on membership. See FinishKind in packages/core/src/host-v1.ts.
 
@@ -419,7 +419,7 @@ const spotDoc = (spot: unknown) => ({
 
 test('a spot carrying a finish round-trips to ColorSwatch.spot.finish', () => {
   const s = createTokenSet(spotDoc({ name: 'Gold', book: 'Foilco', finish: 'foil' })).colors()[0]!;
-  // `book` and `finish` coexist — a foil still has a stock it is ordered from.
+  // `book` and `finish` coexist - a foil still has a stock it is ordered from.
   assert.deepEqual(s.spot, { name: 'Gold', book: 'Foilco', finish: 'foil' });
 });
 

@@ -48,6 +48,7 @@
     "check:engine-modules": "node scripts/gen-engine-modules.ts --check",
     "check:engine-purity": "node scripts/check-engine-purity.ts",
     "check:docs-nav": "node scripts/check-docs-nav.ts",
+    "check:code-comments": "node scripts/check-code-comment-vernacular.ts",
     "build:web-src-readme": "node scripts/gen-web-src-readme.ts",
     "check:web-src-readme": "node scripts/gen-web-src-readme.ts --check",
     "index:plans": "node scripts/index-plans.ts",

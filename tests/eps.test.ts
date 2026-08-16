@@ -15,7 +15,7 @@ import { emitEps } from '../engine/src/eps.ts';
 import { computePrintGeometry } from '../engine/src/print-marks.ts';
 
 // A filled+stroked path with one cubic + line (nonzero), plus a fill-only
-// triangle (evenodd) — same shape as the EMF suite's fixture.
+// triangle (evenodd) - same shape as the EMF suite's fixture.
 const IR: any = {
   width: 600,
   height: 600,

@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
- * Tests for shells/web/src/views/pptx-import.ts — the PURE slide→SVG renderer
+ * Tests for shells/web/src/views/pptx-import.ts - the PURE slide→SVG renderer
  * (pptxSlideToSvg). The renderer is a string builder over the engine's
  * pptx-read model with no DOM APIs, so it runs directly in node; fixtures are
  * hand-built read-model nodes, no XML or zip involved. openPptxFile /
@@ -110,7 +110,7 @@ test('shape paint: line-only strokes with fill "none"; scheme colours use their 
   const scheme = render([{ type: 'shape', geom: 'rect', fill: { scheme: 'accent1', hex: '4472C4' }, ...box(0, 0, 10, 10) }]);
   assert.ok(scheme.svg.includes('fill="#4472C4"'));
 
-  // an unresolved scheme colour (phClr — no hex) paints nothing; with no line the node skips
+  // an unresolved scheme colour (phClr - no hex) paints nothing; with no line the node skips
   const phClr = render([{ type: 'shape', geom: 'rect', fill: { scheme: 'phClr' }, ...box(0, 0, 10, 10) }]);
   assert.equal(phClr.elementCount, 0);
 });

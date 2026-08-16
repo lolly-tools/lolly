@@ -1,10 +1,10 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
- * Deep pixel buffers — the engine's float image interchange (deeprichpixels §5.1).
+ * Deep pixel buffers: the engine's float image interchange (deeprichpixels §5.1).
  *
  * Every pixel Lolly historically touched was 8-bit display-encoded sRGB. This
  * module is the babl lesson applied to that seam: ONE buffer type whose format
- * — linear light, un-premultiplied, and *which* primaries/white point — travels
+ * (linear light, un-premultiplied, and *which* primaries/white point) travels
  * with the data, plus the converters between it and the byte world. Operations
  * downstream (filters, view transforms, deep encoders) are written once against
  * `DeepFrame` and never see encoded bytes.
@@ -14,28 +14,28 @@
  *   - `data` is LINEAR light. No transfer curve is ever baked into a frame;
  *     sRGB gamma exists only inside {@link fromU8Srgb} / {@link toU8Srgb}.
  *   - `data` is UNBOUNDED. Values > 1 are HDR headroom, values < 0 are
- *     out-of-gamut excursions (a P3 red expressed in sRGB) — both are legal and
+ *     out-of-gamut excursions (a P3 red expressed in sRGB). Both are legal and
  *     must survive conversion. Clamping happens only at integer encode
  *     boundaries ({@link toU8Srgb}, {@link toU16}), never in {@link convertSpace}.
  *     Float is RANGE, not just precision (Krita's lesson).
  *   - `data` is un-premultiplied. Encoders that need premultiplied alpha call
  *     {@link premultiply} at their boundary; the working buffer never is.
- *   - Correctness is defined HERE, on the CPU, in plain typed-array math —
- *     DOM-free, deterministic, identical in browser/CLI/MCP. GPU or platform
+ *   - Correctness is defined HERE, on the CPU, in plain typed-array math.
+ *     It is DOM-free, deterministic, identical in browser/CLI/MCP. GPU or platform
  *     paths added later are accelerators validated against this module.
  *
  * Colour science sources (every constant cited at its definition):
  *   - RGB<->XYZ matrices and the Bradford D65<->D50 pair: CSS Color Level 4
  *     sample code, https://www.w3.org/TR/css-color-4/#color-conversion-code
  *     (conversions.js). The sRGB<->P3 pre-composed matrices in gamut-source.ts
- *     and hdr.ts's M_709_TO_2020 are products of the same primaries — the
+ *     and hdr.ts's M_709_TO_2020 are products of the same primaries. The
  *     cross-agreement is pinned by tests/pixels.test.ts against the functions
  *     gamut-source.ts exports.
  *   - sRGB transfer curve: IEC 61966-2.1 piecewise (same maths as
  *     brand-derive.ts / hdr.ts, kept in sync deliberately).
  *   - CIELAB: CIE 15 formulas with the CSS Color 4 rational constants
- *     (k = 24389/27, e = 216/24389) and the D50 reference white — the same
- *     constants as brand-derive.ts#labToOklch, kept in sync.
+ *     (k = 24389/27, e = 216/24389) and the D50 reference white. These are the
+ *     same constants as brand-derive.ts#labToOklch, kept in sync.
  *   - IEEE 754-2008 binary16 for the half-float pack/unpack.
  *
  * Exported from the engine barrel since 1.86.0, alongside the first consumers
@@ -92,7 +92,7 @@ export function createDeepFrame(width: number, height: number, space: PixelSpace
 
 /**
  * sRGB EOTF: encoded [0,1] -> linear light. The standard piecewise IEC
- * 61966-2.1 curve — same maths as brand-derive.ts and hdr.ts, kept in sync
+ * 61966-2.1 curve, same maths as brand-derive.ts and hdr.ts, kept in sync
  * deliberately. Anchor: 0.5 -> 0.21404114 (pinned by tests).
  */
 export const srgbToLinear = (c: number): number =>
@@ -102,10 +102,10 @@ export const srgbToLinear = (c: number): number =>
 export const linearToSrgb = (c: number): number =>
   c <= 0.0031308 ? 12.92 * c : 1.055 * c ** (1 / 2.4) - 0.055;
 
-// sRGB byte -> linear light via a 256-entry LUT, exactly the shape of
+// sRGB byte -> linear light via a 256-entry LUT, matching the structure of
 // hdr.ts:107's LINEAR_LUT (module-private there, so re-derived here from the
-// same shared curve rather than duplicated by hand — the values are identical
-// by construction and the decode loop stays pow-free).
+// same shared curve rather than duplicated by hand). The values are identical
+// by construction and the decode loop stays pow-free.
 const LINEAR_LUT = new Float64Array(256);
 for (let i = 0; i < 256; i++) LINEAR_LUT[i] = srgbToLinear(i / 255);
 
@@ -131,7 +131,7 @@ export function fromU8Srgb(src: Uint8ClampedArray | Uint8Array, width: number, h
  * Frame -> display-encoded 8-bit sRGB. This is a display-referred ENCODE
  * boundary: the frame is first converted to `srgb-linear`, then each channel
  * is clamped to [0,1] (HDR headroom and out-of-gamut excursions do not survive
- * an 8-bit sRGB byte — by design; a view transform that wants better mapping
+ * an 8-bit sRGB byte, by design; a view transform that wants better mapping
  * runs before this) and gamma-encoded with round-to-nearest.
  */
 export function toU8Srgb(frame: DeepFrame): Uint8ClampedArray {
@@ -153,7 +153,7 @@ const clamp01 = (v: number): number => (v <= 0 ? 0 : v >= 1 ? 1 : v);
 
 /**
  * Linear 16-bit interchange (0..65535 maps linearly onto 0..1) -> float frame.
- * NO transfer curve — 16-bit interchange in this pipeline is linear light
+ * NO transfer curve: 16-bit interchange in this pipeline is linear light
  * (deep PNG/TIFF writers apply their own encode separately if they need one).
  */
 export function fromU16(src: Uint16Array, width: number, height: number, space: PixelSpace = 'srgb-linear'): DeepFrame {
@@ -167,7 +167,7 @@ export function fromU16(src: Uint16Array, width: number, height: number, space: 
 
 /**
  * Frame -> linear 16-bit interchange in the frame's OWN space (no space
- * conversion — callers convert first). Values clamp to [0,1]; a Lab frame is
+ * conversion; callers convert first). Values clamp to [0,1]; a Lab frame is
  * refused because its channels are not 0..1.
  */
 export function toU16(frame: DeepFrame): Uint16Array {
@@ -181,7 +181,7 @@ export function toU16(frame: DeepFrame): Uint16Array {
 // ─── IEEE 754 binary16 (half float) ──────────────────────────────────────────
 
 // Manual bit math so the engine works without Float16Array (Safari 18.2+ /
-// Chrome 135+ / Node 24+ have it; jsdom and older runtimes do not) — a
+// Chrome 135+ / Node 24+ have it; jsdom and older runtimes do not). This is a
 // capability-ladder rung: the fast path below uses the platform's Float16Array
 // when the global exists, and tests cross-check the two paths bit-for-bit.
 // Rounding is round-to-nearest-even, matching IEEE 754-2008 and Float16Array.
@@ -199,7 +199,7 @@ function roundTiesToEven(x: number): number {
 /**
  * JS number -> IEEE 754 binary16 bit pattern (uint16), rounding ties to even
  * in a SINGLE step from the double (converting via float32 first would
- * double-round and disagree with the platform Float16Array on rare doubles —
+ * double-round and disagree with the platform Float16Array on rare doubles;
  * caught by the exhaustive cross-check test).
  */
 export function floatToHalf(v: number): number {
@@ -273,7 +273,7 @@ export function unpackF16(src: Uint16Array): Float32Array {
 // ─── alpha ───────────────────────────────────────────────────────────────────
 
 /**
- * In-place premultiply — an ENCODE-boundary helper (the working buffer is
+ * In-place premultiply, an ENCODE-boundary helper (the working buffer is
  * always un-premultiplied). Returns the same frame for chaining.
  */
 export function premultiply(frame: DeepFrame): DeepFrame {
@@ -302,7 +302,7 @@ export function unpremultiply(frame: DeepFrame): DeepFrame {
 
 /**
  * Run `fn` over each scanline as a zero-copy subarray view (mutations write
- * through to the frame) — so filter work can stream a frame without whole-frame
+ * through to the frame), so filter work can stream a frame without whole-frame
  * copies, which is the memory mitigation for 16-byte-per-pixel buffers.
  */
 export function mapScanlines(frame: DeepFrame, fn: (row: Float32Array, y: number) => void): DeepFrame {
@@ -324,7 +324,7 @@ const mul3 = (a: Mat3, b: Mat3): Mat3 => [
 ];
 
 // All matrices below: CSS Color Level 4 sample code (conversions.js),
-// https://www.w3.org/TR/css-color-4/#color-conversion-code — full-precision
+// https://www.w3.org/TR/css-color-4/#color-conversion-code, full-precision
 // primary matrices, all D65. gamut-source.ts's pre-composed sRGB<->P3 /
 // sRGB->Rec.2020 matrices are 7-digit roundings of products of these; the
 // agreement is pinned by tests against its exported functions.
@@ -365,7 +365,7 @@ const XYZ_D65_TO_REC2020: Mat3 = [
   0.017639857445311, -0.042770613257809, 0.942103121235474,
 ];
 
-// Bradford chromatic adaptation, D65 <-> D50 — the CSS Color 4 pair (which is
+// Bradford chromatic adaptation, D65 <-> D50: the CSS Color 4 pair (which is
 // also the ICC-recommended CAT). brand-derive.ts carries the same D50->D65
 // matrix for its lch() path; kept in sync deliberately.
 const XYZ_D65_TO_D50: Mat3 = [
@@ -397,7 +397,7 @@ const FROM_XYZ_D65: Readonly<Record<MatSpace, Mat3>> = {
 
 // ─── CIELAB (D50) ────────────────────────────────────────────────────────────
 
-// D50 reference white — CSS Color 4 rational values (0.3457/0.3585 chromaticity),
+// D50 reference white: CSS Color 4 rational values (0.3457/0.3585 chromaticity),
 // the same constants as brand-derive.ts#D50_WHITE, kept in sync.
 const D50_WHITE: readonly [number, number, number] = [0.9642956764295677, 1, 0.8251046025104602];
 
@@ -429,13 +429,13 @@ function labToXyzD50(L: number, a: number, b: number): [number, number, number] 
 
 /**
  * Convert a frame between pixel spaces. Returns the SAME frame when the target
- * equals the source (no copy — callers who need isolation copy first);
+ * equals the source (no copy; callers who need isolation copy first);
  * otherwise a new frame with a fresh buffer. Alpha passes through untouched.
  *
  * Matrix legs are pre-composed into a single 3x3 per call, so e.g.
  * srgb -> rec2020 involves no intermediate quantisation and no Bradford pass
  * (both are D65); xyz-d50 legs fold the Bradford adaptation into the same
- * single matrix. Out-of-gamut and >1 values pass straight through — that
+ * single matrix. Out-of-gamut and >1 values pass straight through; that
  * unboundedness is the point of the float buffer.
  */
 export function convertSpace(frame: DeepFrame, target: PixelSpace): DeepFrame {

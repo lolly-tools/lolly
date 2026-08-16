@@ -1,55 +1,55 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
- * Meta Content Seal (Pixel Seal / Video Seal, IMAGE mode) — the pure,
+ * Meta Content Seal (Pixel Seal / Video Seal, IMAGE mode). This is the pure,
  * message-free consensus decision (DOM-free, no ONNX, no network).
  *
- * The neural half — fetching the converted ONNX extractor, running inference
- * over four augmented views of an image, thresholding each per-view logit map
- * into 256 message bits — lives in the WEB SHELL
- * (shells/web/src/lib/contentseal.ts), which depends on onnxruntime-web and a
- * <canvas>. This module starts AFTER that: it takes the several 256-bit vectors
- * the extractor produced (one per view) and answers the only question the UI
- * asks — "is a single, consistent watermark message present?" — WITHOUT a
- * registered key. That keeps the engine dependency-light and lets the rule be
- * unit-tested in plain node:test against hand-constructed inputs.
+ * The neural half runs in the WEB SHELL (shells/web/src/lib/contentseal.ts),
+ * which depends on onnxruntime-web and a <canvas>. It fetches the converted
+ * ONNX extractor, runs inference over four augmented views of an image, and
+ * thresholds each per-view logit map into 256 message bits. This module
+ * starts after that step: it takes the several 256-bit vectors the extractor
+ * produced (one per view) and answers the only question the UI asks - "is a
+ * single, consistent watermark message present?" - without a registered key.
+ * That keeps the engine dependency-light and lets the rule be unit-tested in
+ * plain node:test against hand-constructed inputs.
  *
- * ── Why a message-free consensus test (not the paper's binomial bound) ──────
+ * -- Why a message-free consensus test (not the paper's binomial bound) --
  * The Pixel Seal / Video Seal paper (arXiv 2512.16874) anchors detection in a
  * binomial false-positive bound over the Hamming distance to a KNOWN registered
- * message m — sum_{k<=dH(m,m_hat)} C(nbits,k)/2^nbits. We do NOT have a
- * registered message, so that bound doesn't apply. Instead we exploit the
+ * message m: sum_{k<=dH(m,m_hat)} C(nbits,k)/2^nbits. We do not have a
+ * registered message, so that bound does not apply. Instead we use the
  * watermark's designed robustness: a genuinely watermarked image decodes to the
- * SAME message under heavy augmentation, whereas an un-watermarked image decodes
+ * SAME message under heavy augmentation, while an un-watermarked image decodes
  * to augmentation-dependent noise. The web shell builds V views of the candidate
  * (original + JPEG q85 + JPEG q60 + a 5% centre crop) and re-runs the extractor
- * on each; this module counts the message-bit positions on which ALL V views
+ * on each. This module counts the message-bit positions on which ALL V views
  * agree (all-0 or all-1) and calls the watermark PRESENT only when that count U
  * clears a threshold tau.
  *
- * ── The idealized false-positive math (an APPROXIMATION — see the caveat) ────
+ * -- The idealized false-positive math (an APPROXIMATION - see the caveat) --
  * Under a null of "no watermark, each view's bits i.i.d. Bernoulli(1/2), the V
  * views mutually independent", the chance a given position is unanimous is
- * 2·(1/2)^V. For V=4 that is 1/8, so U ~ Binomial(256, 1/8): mean 32, sd ≈ 5.29.
+ * 2 * (1/2)^V. For V=4 that is 1/8, so U ~ Binomial(256, 1/8): mean 32, sd ≈ 5.29.
  * tau ≈ 64 gives P(U>=64) ~ 1e-9 (~6σ); tau ≈ 72 (CONTENTSEAL_DEFAULT_TAU)
  * pushes it to ~1e-13. A truly watermarked image yields U ~ 250+, so the margin
- * is huge and the threshold is not sensitive — for FOUR views. tau is calibrated
- * for the view count; feeding a different number of views with the same tau
+ * is large and the threshold is not sensitive, for FOUR views. tau is calibrated
+ * for the view count. Feeding a different number of views with the same tau
  * changes the per-position unanimity chance (2/2^V) and would break the bound,
  * so the caller MUST keep the view count fixed at what tau was chosen for.
  *
- * ── HONESTY CAVEAT (gates any "it works" claim) ─────────────────────────────
+ * -- HONESTY CAVEAT (gates any "it works" claim) --
  * The Bernoulli(1/2)/independence null is only an approximation. Un-watermarked
  * natural images can make the extractor emit content-correlated bits that agree
  * across views (especially the near-identical original vs JPEG q85), inflating U
  * and the real false-positive rate above the clean binomial tail. The heavy
  * augmentations (q60 + 5% crop) exist to decorrelate content so the null roughly
  * holds, but tau MUST ultimately be calibrated empirically against a large clean
- * corpus, not trusted from the theoretical tail alone. And the whole neural path
- * that produces the per-view bits is UNVERIFIED in this repo (no browser, no ONNX
- * runtime, no real checkpoint) — this module's math is tested; the bits fed into
- * it are not proven to come from a real detection. See the web-shell module's
- * header for that half of the ledger, including the Meta "Muse" proprietary
- * caveat (the open extractor does not read production Muse output).
+ * corpus, not trusted from the theoretical tail alone. Also, the whole neural
+ * path that produces the per-view bits is UNVERIFIED in this repo (no browser,
+ * no ONNX runtime, no real checkpoint). This module's math is tested; the bits
+ * fed into it are not proven to come from a real detection. See the web-shell
+ * module's header for that half of the ledger, including the Meta "Muse"
+ * proprietary caveat (the open extractor does not read production Muse output).
  */
 
 /** The open Pixel Seal / Video Seal image models carry a 256-bit message
@@ -67,11 +67,11 @@ export const CONTENTSEAL_MESSAGE_BITS = 256;
 export const CONTENTSEAL_DEFAULT_TAU = 72;
 
 export interface ContentSealConsensus {
-  /** True iff `unanimous >= tau` with at least 2 equal-length views — a single
+  /** True if `unanimous >= tau` with at least 2 equal-length views: a single
    *  consistent message survived all the augmentations. The ONLY field the UI
    *  turns into a positive verdict. */
   present: boolean;
-  /** U — the number of message-bit positions on which every view agreed
+  /** U - the number of message-bit positions on which every view agreed
    *  (all-0 or all-1). Informational; the operating statistic. */
   unanimous: number;
   /** The number of message bits compared (the common view length; 0 for
@@ -81,7 +81,7 @@ export interface ContentSealConsensus {
   tau: number;
   /** How many views were compared (4 in the shipped web path). */
   views: number;
-  /** The smallest bit-agreement count over all view PAIRS — a stricter,
+  /** The smallest bit-agreement count over all view PAIRS. A stricter,
    *  reported-only diagnostic (a single badly-decoded view drags this down even
    *  when overall unanimity is high). Not part of the verdict. */
   minPairAgreement: number;
@@ -106,9 +106,9 @@ function bitsToHex(bits: readonly number[]): string {
 /**
  * The message-free 4-views unanimity test (see this module's header).
  *
- * Given several equal-length message-bit vectors — one decoded from each
- * augmented view of a candidate image — count the positions on which ALL views
- * agree and decide the watermark is PRESENT iff that count reaches `tau`.
+ * Given several equal-length message-bit vectors, one decoded from each
+ * augmented view of a candidate image, count the positions on which ALL views
+ * agree and decide the watermark is PRESENT only when that count reaches `tau`.
  *
  * Pure and defensive: never throws. Fewer than 2 views, an empty view, or views
  * of differing length are treated as "cannot decide" → `present: false` with

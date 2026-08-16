@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
- * Design — doc-level Custom CSS (plan 112 M4): the hook sanitises the `customCss`
+ * Design - doc-level Custom CSS (plan 112 M4): the hook sanitises the `customCss`
  * input into a `<style>` (the shell scopes it to the canvas; present re-scopes onto clones).
  * Loads the REAL tool from disk and drives it through the engine, so this guards the actual
  * render + the security posture (mirrors tests/deck-builder-style.test.ts).
@@ -43,7 +43,7 @@ test('customCss: @keyframes survive at the top level (real animation)', async ()
 test('customCss: the </style> breakout is neutralised — no verbatim <script> escape', async () => {
   const html = await render({ boxes: [], customCss: '.x{}</style><script>alert(1)</script>' });
   // The closing </style is backslash-neutralised, so it never terminates the <style> and
-  // the <script> stays inert as style text — the verbatim breakout is absent.
+  // the <script> stays inert as style text - the verbatim breakout is absent.
   assert.ok(!/<\/style><script>/i.test(html), 'no </style><script> breakout appears verbatim');
   assert.ok(html.includes('<\\/style'), 'the </style is backslash-neutralised');
 });

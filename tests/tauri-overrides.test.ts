@@ -6,7 +6,7 @@
  * shells. It was `.js` and covered by no tsconfig until 2026-07-30, which
  * maintainability-2026-07-29.md item 4 called out: a mistake in an override
  * surfaced at runtime on a device, not at build. The conversion closed that, and
- * these are the tripwires that keep it closed — a new override added as `.js`, or
+ * these are the tripwires that keep it closed - a new override added as `.js`, or
  * a deleted tsconfig, would otherwise silently reopen the gap because
  * scripts/typecheck-tauri.ts SKIPS rather than fails when a shell looks
  * unconfigured (see its header for why).
@@ -41,7 +41,7 @@ function dirFiles(rel: string): string[] {
   try {
     if (!statSync(dir).isDirectory()) return [];
   } catch {
-    return []; // shell submodule not checked out — the per-dir tests skip below
+    return []; // shell submodule not checked out - the per-dir tests skip below
   }
   return readdirSync(dir);
 }

@@ -20,10 +20,10 @@
  *    joiners, bidi controls, BOM, soft hyphen, NBSP, line/para separators,
  *    non-breaking hyphen, plus their HTML entity spellings. (The en-dash is
  *    deliberately NOT banned: numeric ranges use it legitimately.) The one
- *    exemption is VERBATIM below: a transcript of output the shipping code
+ *    exemption is VERBATIM below: a quote of output the shipping code
  *    actually prints. Rewriting those would make the docs misreport the tool.
  *  - PHRASES: the hard-ban list (owner-mandated). Judgment-call words
- *    (crucial, robust, navigate…) are NOT here — a script cannot judge, so
+ *    (crucial, robust, navigate…) are NOT here - a script cannot judge, so
  *    those stay in the writing guidance. A phrase ban may carry ALLOW entries:
  *    exact substrings of lines where the literal (non-tic) use is sanctioned.
  */
@@ -81,8 +81,9 @@ const BANNED_CHARS: Record<string, string> = {
 const BANNED_ENTITIES = ['&mdash;', '&#8212;', '&#x2014;', '&nbsp;', '&#160;',
   '&ensp;', '&emsp;', '&thinsp;', '&#8194;', '&#8195;', '&#8201;', '&#8239;'];
 
-/** Hard-banned phrases, matched case-insensitively as regexes. */
-const BANNED_PHRASES: { what: string; re: RegExp }[] = [
+/** Hard-banned phrases, matched case-insensitively as regexes. Exported so the
+ *  code-comment gate (scripts/check-code-comment-vernacular.ts) shares one list. */
+export const BANNED_PHRASES: { what: string; re: RegExp }[] = [
   { what: '"load-bearing"', re: /load-bearing/i },
   { what: '"earns its keep"', re: /earns its keep/i },
   { what: '"bar is high"', re: /bar is high/i },
@@ -101,11 +102,61 @@ const BANNED_PHRASES: { what: string; re: RegExp }[] = [
   { what: '"game-changer"', re: /game-chang/i },
   { what: '"at its core"', re: /\bat its core\b/i },
   { what: '"in today\'s world/era"', re: /\bin today'?s (world|era|fast)/i },
+  { what: '"admissible" (any variation)', re: /\badmissib\w*/i },
+  { what: 'the bar metaphor ("bar is high", "raises the bar")', re: /\b(?:bar is (?:high|low|higher|lower)|rais\w+ the bar)\b/i },
+  { what: '"transcribe" family as prose (say quote/copy; the speech feature and API names carry ALLOW entries)', re: /\btranscri\w*/i },
+  { what: '"worth knowing"', re: /\bworth knowing\b/i },
+  { what: '"what X is worth" framing', re: /\bwhat\s+\S[^.?!\n]{0,60}?\bis worth\b/i },
+  // --- claudisms.ai import (2026-08-16, curated) ------------------------
+  // Source: https://claudisms.ai/. Only entries with NO legitimate use in
+  // THESE technical docs are hard-banned. Judgment-call words that double as
+  // domain terms are deliberately NOT here, because the script cannot tell the
+  // metaphor from the term and the STE100 domain exemption keeps them: realm
+  // (the JS page realm), harness (test/fuzz harness), surface, shape, hold,
+  // carry, unpack (the tool), compound (control/path), mature (the comparison
+  // axis), leverage-as-noun, real. Those stay in the writing guidance.
+  { what: '"paradigm" / "paradigm shift"', re: /\bparadigm\b/i },
+  { what: '"throughline"', re: /\bthroughline\b/i },
+  { what: '"north star" / "true north"', re: /\b(?:north star|true north)\b/i },
+  { what: '"pressure-test"', re: /\bpressure[- ]test/i },
+  { what: '"right-size"', re: /\bright[- ]siz(?:e|es|ed|ing)\b/i },
+  { what: '"strategic imperative"', re: /\bstrategic imperative\b/i },
+  { what: '"shed light on"', re: /\bshed(?:s|ding)? light\b/i },
+  { what: '"pave the way"', re: /\bpav(?:e|es|ed|ing) the way\b/i },
+  { what: '"pivotal"', re: /\bpivotal\b/i },
+  { what: '"transformative"', re: /\btransformative\b/i },
+  { what: '"groundbreaking"', re: /\bground[- ]?breaking\b/i },
+  { what: '"cutting-edge"', re: /\bcutting[- ]edge\b/i },
+  { what: '"seamless"', re: /\bseamless/i },
+  { what: '"holistic"', re: /\bholistic\b/i },
+  { what: '"intricate"', re: /\bintricate\b/i },
+  { what: '"worth noting"', re: /\bworth noting\b/i },
+  { what: '"important to note"', re: /\bimportant to note\b/i },
+  { what: '"when it comes to"', re: /\bwhen it comes to\b/i },
+  { what: 'signposting ("let\'s break it down / explore / dive in")', re: /\blet'?s (?:break it down|explore|dive in|dive into|turn to|unpack)\b/i },
+  { what: '"moving on to"', re: /\bmoving on to\b/i },
+  { what: '"cannot be overstated"', re: /\bcannot be overstated\b/i },
+  { what: '"great question"', re: /\bgreat question\b/i },
+  { what: '"at the end of the day"', re: /\bat the end of the day\b/i },
+  { what: '"lean into" / "lean out"', re: /\blean(?:s|ing|ed)? (?:into|out)\b/i },
+  { what: 'totalising superlative ("the whole game", "the entire point")', re: /\b(?:the whole (?:game|ballgame)|the entire point|the only thing that matters)\b/i },
+  { what: '"seen this movie before"', re: /\bseen this movie before\b/i },
+  { what: '"lessons learned"', re: /\blessons learned\b/i },
+  { what: '"key takeaway(s)"', re: /\bkey takeaways?\b/i },
+  { what: '"reflecting a broader trend" / "marking a significant shift"', re: /\b(?:reflecting a broader trend|marking a significant shift)\b/i },
+  { what: '"dive into" (figurative)', re: /\bdiv(?:e|es|ing) into\b/i },
+  // Matches the verb form only (the word followed by a determiner like the, a or
+  // our). It deliberately excludes the noun-plus-relative-clause form ("... that
+  // expires with a card"), which is a legitimate noun use in status-quo.md.
+  { what: '"leverage" as a verb', re: /\bleverag(?:e|es|ing|ed) (?:the|its|our|your|their|a|an)\b/i },
+  { what: '"where it gets interesting"', re: /\bwhere it gets interesting\b/i },
+  { what: '"brings me/us back to"', re: /\bbrings? (?:me|us) back to\b/i },
+  { what: '"underscores/underscoring the" (figurative)', re: /\bunderscor(?:es|ing) (?:the|how|that|a|an)\b/i },
 ];
 
 /**
  * Literal-use exemptions: a phrase hit passes when its LINE contains one of
- * these substrings. Keep entries exact and minimal — every entry is a
+ * these substrings. Keep entries exact and minimal - every entry is a
  * conscious, reviewable decision, and a stale entry fails loudly when the
  * line it sanctioned goes away (see the test's stale-allow assertion).
  */
@@ -113,14 +164,25 @@ const ALLOW: Record<string, string[]> = {
   'docs/animating.md': ['follow the shape of the artwork'],
   'docs/ai-features.md': ['actual shape of the audio'],
   'docs/url-mode.md': ['actual shape of the catalogue track'],
-  'docs/using.md': ['filled shape of the same outline'],
+  'docs/using.md': ['filled shape of the same outline',
+    // the Ask view's transcript is that UI's real object, not prose flourish
+    'The transcript is session memory:'],
+  'docs/ask.md': ['Answers build up in the transcript above',
+    'The transcript is a record of what you asked',
+    'The transcript is session memory.'],
+  // host.speech transcription: the industry feature name and literal API names
+  'docs/host-api.md': ['speech synthesis + transcription',
+    'Transcription (v1.99) is the reverse',
+    '`transcribeAvailable()`', '`transcribeCached()`',
+    '`transcribeModelBytes()`', '`transcribe(src, opts?)`', 'SpeechTranscript'],
+  'docs/overview.md': ['TTS/transcription'],
 };
 
 /**
- * VERBATIM transcripts: the ONLY unicode exemption, and the bar is high.
- * An entry is admissible only when the shipping code emits that exact text,
+ * VERBATIM output quotes: the ONLY unicode exemption, held to a strict test.
+ * An entry is allowed only when the shipping code emits that exact text,
  * so editing the doc would make it lie about what the tool prints. Every
- * entry below cites the source line it transcribes; check it before adding
+ * entry below cites the source line it quotes; check it before adding
  * one, and never use this list for prose that merely sits in a code fence.
  * Stale entries fail loudly, same as ALLOW (see staleAllows).
  */
@@ -194,13 +256,13 @@ export function scan(): Violation[] {
 }
 
 /**
- * Layer 3 — the BUILT output. Sources can be clean while a generator assembles
+ * Layer 3 - the BUILT output. Sources can be clean while a generator assembles
  * a banned character into the page (the credential label join and the theme
  * tooltip both did exactly that), so the built English pages are scanned too:
  * reader-visible text plus the spoken/hover attribute strings (aria-label,
- * title). Styles, scripts, inlined SVGs and code samples are stripped first —
+ * title). Styles, scripts, inlined SVGs and code samples are stripped first - 
  * their em-dashes are third-party licence comments, captured app chrome and
- * the VERBATIM CLI transcripts, not our copy. English pages only: locale pages
+ * the VERBATIM CLI output quotes, not our copy. English pages only: locale pages
  * are translated output with their own punctuation rules.
  */
 export function scanBuilt(): Violation[] {
@@ -227,7 +289,7 @@ export function scanBuilt(): Violation[] {
   return violations;
 }
 
-/** Allow/verbatim entries whose sanctioned line no longer exists — stale. */
+/** Allow/verbatim entries whose sanctioned line no longer exists - stale. */
 export function staleAllows(): string[] {
   const stale: string[] = [];
   for (const [label, table] of [['ALLOW', ALLOW], ['VERBATIM', VERBATIM]] as const) {

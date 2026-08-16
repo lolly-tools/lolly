@@ -1,22 +1,22 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
- * plans/104 P1 — THE FLYTHROUGH EXIT DEMO, run as a test.
+ * plans/104 P1 - THE FLYTHROUGH EXIT DEMO, run as a test.
  *
  * §9's P1 exit criteria, enacted end to end in a real browser: "layers lifted, push-in
  * with parallax + DOF + soft shadows, mp4 byte-stable across two runs, still-at-playhead
- * is real SVG, bg moves under pan." Everything here is measured from the exported FILE —
- * decoded pixels, hashed bytes, parsed markup — never from an intermediate the pipeline
+ * is real SVG, bg moves under pan." Everything here is measured from the exported FILE - 
+ * decoded pixels, hashed bytes, parsed markup - never from an intermediate the pipeline
  * also produced.
  *
  * WHY IT IS A TEST AND NOT A SCRIPT. The demo is a gate, and a gate that only ever ran
  * once is a screenshot. It rides the same browser tier as `sequence-render.browser.test.ts`
  * (skip with the install command when there is no browser; skip the H.264 cases when the
  * launched build cannot encode one), so it stays green on a bare machine and bites on a
- * real one. Set `LOLLY_P1_DEMO_OUT=<dir>` to also WRITE the artefacts — the mp4s, the
- * stills and the contact sheet — which is what makes it a demo as well as a gate.
+ * real one. Set `LOLLY_P1_DEMO_OUT=<dir>` to also WRITE the artefacts - the mp4s, the
+ * stills and the contact sheet - which is what makes it a demo as well as a gate.
  *
  * THE SCENE (built once, shared by every case). A 960×540 stage whose own paint is a
- * two-tone plane with one hard vertical edge at x = 300 — that plane is §5.5's implicit
+ * two-tone plane with one hard vertical edge at x = 300 - that plane is §5.5's implicit
  * z = 0 background layer, and the edge is how "the bg moves under a pan" becomes a
  * number. On it, four flat, well-separated colours at a staggered depth:
  *
@@ -28,12 +28,12 @@
  *
  * The four offsets are the SAME magnitude (178.9 px) by construction, which is the whole
  * point: a projected centre is `W/2 + (c − camX − W/2)·eff`, so the displacement between
- * two frames is exactly `|offset| · Δeff` — with the geometry held equal, the only thing
+ * two frames is exactly `|offset| · Δeff` - with the geometry held equal, the only thing
  * left that can order the four displacements is depth. The three lifted layers carry
  * `shadow: depth`, whose drop-shadow the hooks derive from z by the same formula.
  *
- * The camera is an untimed ("Always on") scene camera — §5.4's implicit camera, the box
- * with nothing in it but the `[data-cam]` marker — carrying a SHIPPED preset track from
+ * The camera is an untimed ("Always on") scene camera - §5.4's implicit camera, the box
+ * with nothing in it but the `[data-cam]` marker - carrying a SHIPPED preset track from
  * `KF_CAMERA_PRESETS` verbatim. Note the preset's dolly sign is the inverse of §8's
  * sketch, deliberately and with the reasoning written at the constant: the engine's
  * `eff = P/(P − (z − camZ))` makes a GROWING camZ a camera moving away, so "Push in" is
@@ -73,7 +73,7 @@ const tOf = (n: number): number => (n * 1000) / FPS;
  * The two tones are 36/59/94 apart per channel and read with `tol = 22`, deliberately:
  * the first draft used a near-black pair 10/19/38 apart under the layer tracker's
  * `tol = 48`, so EVERY pixel of the row matched the left tone and the run came back a
- * constant 960 — a measurement that could not have failed and therefore said nothing.
+ * constant 960 - a measurement that could not have failed and therefore said nothing.
  */
 const BG_LEFT: [number, number, number] = [10, 15, 30];
 const BG_TOL = 22;
@@ -185,7 +185,7 @@ describe('plans/104 P1 — the depth flythrough exit demo', { skip: gate ?? fals
     const r = await page().evaluate(async ({ spec, fps, targets, last }) => {
       const S = (window as never as { SEQ: SeqApi }).SEQ;
       // THROUGH THE PUBLIC FUNNEL, both times. `exportSeq` calls `renderSequence`
-      // directly, which is one layer below where every real export lives — and the
+      // directly, which is one layer below where every real export lives - and the
       // difference is not cosmetic: the funnel detaches `[data-export-hide]` nodes
       // from the live tree, which used to include the §5.4 camera marker and left
       // this exact flythrough completely motionless (measured: 0.0 px on all four
@@ -194,7 +194,7 @@ describe('plans/104 P1 — the depth flythrough exit demo', { skip: gate ?? fals
       const a = await S.exportViaApi(spec, 'mp4', { fps, width: spec.w });
       const b = await S.exportViaApi(spec, 'mp4', { fps, width: spec.w });
       // The same scene down the OTHER container, twice. mp4 and webm share the whole
-      // render — compositor, plates, projection, frame grid — and differ only in the
+      // render - compositor, plates, projection, frame grid - and differ only in the
       // encoder and muxer, so running both is what separates "the render wobbles" from
       // "the container stamps the clock".
       const wa = await S.exportViaApi(spec, 'webm', { fps, width: spec.w });
@@ -243,7 +243,7 @@ describe('plans/104 P1 — the depth flythrough exit demo', { skip: gate ?? fals
     assert.equal(r.direct.err, null, `the direct control export failed: ${JSON.stringify(r.direct.err)}`);
     assert.deepEqual(r.pix.a, r.direct.pix,
       `the public export funnel and a direct renderSequence disagree — something in api.render is changing the stage:\n  funnel ${r.pix.a.join('\n         ')}\n  direct ${r.direct.pix.join('\n         ')}`);
-    // 2. THE WEBM CONTAINER is byte-identical — same render, a muxer that stamps no clock.
+    // 2. THE WEBM CONTAINER is byte-identical - same render, a muxer that stamps no clock.
     assert.equal(r.webm.err, null, `webm control export failed: ${JSON.stringify(r.webm.err)}`);
     assert.equal(r.webm.shaA, r.webm.shaB,
       `webm is not byte-stable across two runs — this IS the render:\n  A ${r.webm.shaA}\n  B ${r.webm.shaB}`);
@@ -254,13 +254,13 @@ describe('plans/104 P1 — the depth flythrough exit demo', { skip: gate ?? fals
     //    (6 bytes, no option to pin it), and macOS VideoToolbox tags the IDR with a
     //    user_data_unregistered SEI (UUID 47564adc-5c4c-433f-94ef-c5113cd143a8) whose
     //    payload carries one varying byte. The coded slice NALs are identical. The
-    //    number is asserted rather than the sha, so genuine drift — which would be
-    //    thousands of bytes across the slice data — still fails here.
+    //    number is asserted rather than the sha, so genuine drift - which would be
+    //    thousands of bytes across the slice data - still fails here.
     const d = r.diff!;
     assert.equal(d.sizeA, d.sizeB, `the two mp4s are different lengths: ${d.sizeA} vs ${d.sizeB}`);
     // The bound is STRUCTURAL, not a byte count. The count is not stable: each of the
     // six timestamp fields is a 32-bit second counter, so two runs a second apart differ
-    // in one byte each and two runs that straddle a 256-second boundary differ in two —
+    // in one byte each and two runs that straddle a 256-second boundary differ in two - 
     // a `<= 8` budget passed standalone and failed under a loaded full-suite run for
     // reasons that had nothing to do with the render. What IS stable is WHERE: this
     // fixture's `moov` ends at 1191 and the first sample's SEI at 1256, and the ~228 KB
@@ -274,7 +274,7 @@ describe('plans/104 P1 — the depth flythrough exit demo', { skip: gate ?? fals
       `mp4 header differs more than the mvhd/tkhd/mdhd timestamps + one SEI byte can explain: ${d.bytes} bytes in ${d.ranges.length} ranges ${JSON.stringify(d.ranges.slice(0, 12))}`);
     say(`[demo] push-in mp4  ${r.a.size} B  sha A ${r.sha.a.slice(0, 16)}… / B ${r.sha.b.slice(0, 16)}…  → ${d.bytes} differing bytes at ${JSON.stringify(d.ranges)} (mvhd/tkhd/mdhd time + 1 SEI byte); pixels identical; webm sha ${r.webm.shaA.slice(0, 16)}… identical both runs  ${Math.round(r.a.ms)} ms/run`);
 
-    // PARALLAX — measured from the decoded frames, in stage px.
+    // PARALLAX - measured from the decoded frames, in stage px.
     const t = r.track!;
     const k = t.w / W;
     const first = t.frames[0]!;
@@ -335,7 +335,7 @@ describe('plans/104 P1 — the depth flythrough exit demo', { skip: gate ?? fals
     const k = r.run!.w / W;
     // The TRAILING edge of the left tone, not the count. camZ stays 0 through this
     // move, so the bg plane's eff is exactly 1 and the edge sits at `BG_EDGE_X − camX`
-    // — 440 px at t0 (camX = −140) and 160 px at the end. The count is a different
+    // - 440 px at t0 (camX = −140) and 160 px at the end. The count is a different
     // number as soon as the pan pushes the plane's own left edge off-canvas (at
     // camX = −140 the frame's first 140 px are outside the plane), which is exactly
     // what the first draft of this case mistook for the edge.
@@ -370,7 +370,7 @@ describe('plans/104 P1 — the depth flythrough exit demo', { skip: gate ?? fals
     const mats = [...r.text.matchAll(/matrix\(([^)]*)\)/g)].map((m) => `matrix(${m[1]})`);
     assert.ok(mats.length >= LAYERS.length,
       `expected at least one matrix() per projected layer, found ${mats.length}`);
-    // Every one of them is a 2-D affine the engine's own reader accepts — the
+    // Every one of them is a 2-D affine the engine's own reader accepts - the
     // "posed still stays vector" claim is exactly this, and nothing weaker.
     const scales: number[] = [];
     for (const m of mats) {
@@ -422,9 +422,9 @@ describe('plans/104 P1 — the depth flythrough exit demo', { skip: gate ?? fals
     // WHERE THE VECTOR GUARANTEE ACTUALLY STOPS, pinned rather than glossed. The flat
     // layer carries DOF alone and stays vector (`feGaussianBlur`). The three LIFTED
     // layers carry the DOF blur AND their depth drop-shadow in one chain, and a mixed
-    // chain defeats both parsers — `parseDropShadowFilter` refuses a chain containing
+    // chain defeats both parsers - `parseDropShadowFilter` refuses a chain containing
     // a non-drop-shadow function, and `parseCssFilter`'s flat tokeniser cannot see past
-    // the nested `rgba()` of a computed drop-shadow colour — so each takes the
+    // the nested `rgba()` of a computed drop-shadow colour - so each takes the
     // per-element raster escape hatch. That is the house posture (degrade visibly, with
     // the spill measured so nothing is sheared off) and it is pinned in
     // `shells/web/src/bridge/export-pdf-filter.test.ts`. Pinned HERE too because it is

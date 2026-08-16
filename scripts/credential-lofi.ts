@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
- * credential-lofi — stamp each committed lo-fi loop (`lolly/loops/*.opus` in the
+ * credential-lofi - stamp each committed lo-fi loop (`lolly/loops/*.opus` in the
  * blank `lolly-start` brand) with a C2PA Content Credential that discloses its
  * ORIGIN: these tracks are the Open Lo-Fi collection (github.com/btahir/open-lofi),
  * **generated with Suno** and donated to the public domain under CC0. See
@@ -9,7 +9,7 @@
  * The credential is deliberately NOT signed as Lolly. Lolly did not make this
  * music; it is only attaching an honest provenance record to a CC0 asset it
  * redistributes. So the manifest is:
- *   - signed by a self-signed "Open Lo-Fi (Suno v5)" identity (never Lolly's) —
+ *   - signed by a self-signed "Open Lo-Fi (Suno v5)" identity (never Lolly's) - 
  *     the verifier reads a valid-but-untrusted signer, and `madeWithLolly` is
  *     false;
  *   - a `c2pa.created` action with IPTC digitalSourceType `trainedAlgorithmicMedia`
@@ -22,7 +22,7 @@
  * "GEN AI" pill) + a Suno line appended to the description.
  *
  * A one-shot generator (like ingest-lofi/previews): operates on the COMMITTED
- * .opus files — no source mp3s needed — then re-runnable idempotently (re-stamp
+ * .opus files - no source mp3s needed - then re-runnable idempotently (re-stamp
  * replaces the prior credential; the flag/description edits are guarded). Run it,
  * commit, then `npm run build:catalog` (refills checksum + size, since bytes
  * changed) and `npm run validate:catalog`.

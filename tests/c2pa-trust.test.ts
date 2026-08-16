@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
- * Trust-anchor verification contract tests — the identity path of
+ * Trust-anchor verification contract tests - the identity path of
  * verifyC2pa(bytes, { trustAnchors }). Run with:
  *   node --test tests/c2pa-trust.test.ts
  *
@@ -11,7 +11,7 @@
  * the chain. The zero-options path is pinned as a regression (byte-identical
  * report semantics), and the intermediate path is pinned in both directions:
  * a hand-built CA:TRUE intermediate verifies, while an issued leaf reused as
- * an "intermediate" (basicConstraints absent = CA:false) must NOT — otherwise
+ * an "intermediate" (basicConstraints absent = CA:false) must NOT - otherwise
  * any credential holder could vouch for a forged identity.
  */
 import { test } from 'node:test';
@@ -52,7 +52,7 @@ const check = (report: any, code: string): any => report.checks.find((c: any) =>
 const root = await generateCaRoot({ commonName: 'Lolly Test Root', organization: 'Lolly', days: 3650 });
 
 // Device key exactly as the web shell would hold it: non-extractable private
-// key (the public half is always exportable — that's all issuance needs).
+// key (the public half is always exportable - that's all issuance needs).
 const device = await subtle.generateKey({ name: 'ECDSA', namedCurve: 'P-256' }, false, ['sign', 'verify']);
 const deviceSpki = new Uint8Array(await subtle.exportKey('spki', device.publicKey));
 
@@ -92,7 +92,7 @@ test('no options: untrusted info row, valid state — CA-issued leaf names the r
   assert.ok(untrusted, 'untrusted row present');
   assert.equal(untrusted.ok, false);
   // The stamped fixture is signed by a CA-ISSUED leaf (chain [leaf, root]) that
-  // chains to no pinned anchor — untrustedReason must say so, not claim an
+  // chains to no pinned anchor - untrustedReason must say so, not claim an
   // "ephemeral on-device key" (the old conflated copy this test used to pin).
   assert.match(untrusted.explanation, /CA-issued certificate that chains to no pinned trust anchor/);
   assert.equal(check(report, 'signingCredential.trusted'), undefined);
@@ -144,16 +144,16 @@ test('tamper outside the manifest → invalid regardless of anchors', async () =
 });
 
 // ─── public-leaf replay (the forgery the whole scheme must stop) ────────────────
-// A victim's leaf certificate is PUBLIC — it ships in the x5chain of every file
+// A victim's leaf certificate is PUBLIC - it ships in the x5chain of every file
 // they credential. An attacker who has only that public cert (never the victim's
-// non-extractable key) must not be able to produce a "trusted — signed by victim"
+// non-extractable key) must not be able to produce a "trusted - signed by victim"
 // verdict. Two variants: forge a fresh claim signed with the attacker's own key,
 // or lift the victim's genuine signature onto tampered bytes.
 
 test('public-leaf replay: attacker signs with their OWN key but embeds the victim leaf → NOT trusted, NO identity', async () => {
   // The attacker owns a different key; they paste the victim's public leafDer as
   // the x5chain cert. They cannot sign under the victim's key, so the COSE claim
-  // signature is made with the attacker key — it will not verify against the leaf.
+  // signature is made with the attacker key - it will not verify against the leaf.
   const attacker = await subtle.generateKey({ name: 'ECDSA', namedCurve: 'P-256' }, false, ['sign', 'verify']);
   const forged = await embedC2paInPdf(buildTestPdf(), {
     title: 'Forged', claimGenerator: 'Attacker/1.0',
@@ -170,7 +170,7 @@ test('public-leaf replay: attacker signs with their OWN key but embeds the victi
 test('lifted signature: victim genuine credential, bytes tampered → NOT trusted, NO identity', async () => {
   // The victim's own valid file, with content changed after signing. The claim
   // signature still verifies (the signed claim is untouched) but the hard binding
-  // no longer matches — trust must be withheld, not granted on the intact sig.
+  // no longer matches - trust must be withheld, not granted on the intact sig.
   const pdf = stamped.slice();
   const i = binOf(pdf).indexOf('MediaBox') + 1;
   pdf[i] = pdf[i]! ^ 0x01; // change bytes outside the manifest
@@ -184,7 +184,7 @@ test('lifted signature: victim genuine credential, bytes tampered → NOT truste
 // ─── intermediate chain ───────────────────────────────────────────────────────
 // issueLeafCert can only mint end-entity (CA:false) certs, so the CA:TRUE
 // intermediate is hand-built from the exported DER writers and signed by the
-// root — the exact shape a future generateCaIntermediate would emit.
+// root - the exact shape a future generateCaIntermediate would emit.
 
 async function buildIntermediate(commonName: string): Promise<{ certDer: Uint8Array; privateKey: CryptoKey }> {
   const pair = await subtle.generateKey({ name: 'ECDSA', namedCurve: 'P-256' }, true, ['sign', 'verify']);
@@ -239,7 +239,7 @@ test('forged intermediate: an issued LEAF cannot vouch for another identity', as
   // The holder of a perfectly valid leaf tries to act as a CA: they "issue" a
   // cert claiming someone else's email, signed with their own device key, and
   // present [fake, their-leaf, root]. basicConstraints on the leaf is absent
-  // (CA:false), so the chain must be rejected — not crash, just untrusted.
+  // (CA:false), so the chain must be rejected - not crash, just untrusted.
   const attacker = await subtle.generateKey({ name: 'ECDSA', namedCurve: 'P-256' }, false, ['sign', 'verify']);
   const fake = await issueLeafCert({
     caCertDer: leafDer, // the legitimate leaf as "issuer"
@@ -272,7 +272,7 @@ test('hostile chain garbage never crashes verification', async () => {
   });
   // A junk anchor is quietly skipped; the unrelated (but well-formed) root
   // fails the direct step and then hits the garbage chain[1], whose parse
-  // failure must degrade to no-match — before the real anchor finally wins.
+  // failure must degrade to no-match - before the real anchor finally wins.
   const stranger = await generateCaRoot({ commonName: 'Unrelated Root' });
   const report: any = await verifyC2pa(pdf, { trustAnchors: [bytesOf('junk anchor'), stranger.certDer, root.certDer] });
   assert.equal(report.state, 'valid');
@@ -281,7 +281,7 @@ test('hostile chain garbage never crashes verification', async () => {
 });
 
 // Guards the vendored C2PA trust list (engine/src/c2pa-trust.ts): it must parse
-// cleanly and carry the Google C2PA root Gemini chains to — the anchor that
+// cleanly and carry the Google C2PA root Gemini chains to - the anchor that
 // makes real "Nano Banana" images read as trusted rather than merely valid.
 test('vendored c2paTrustAnchors() union both lists and dedup', async () => {
   const anchors = c2paTrustAnchors();
@@ -302,7 +302,7 @@ test('vendored c2paTrustAnchors() union both lists and dedup', async () => {
 // The guardrail: a cert may CLAIM any organisation in its subject, but a name is
 // never proof. An attacker signs a fully valid credential (real COSE signature,
 // intact hard binding) with their OWN key under a self-made root that claims
-// O="OpenAI" — and verifies it against the REAL vendored anchors. It must read
+// O="OpenAI" - and verifies it against the REAL vendored anchors. It must read
 // intact-but-UNTRUSTED: no chain to a pinned anchor → no identity, no trust.
 test('impersonation: a cert claiming O=OpenAI that chains to no pinned anchor is NEVER trusted', async () => {
   const spoofRoot = await generateCaRoot({ commonName: 'OpenAI', organization: 'OpenAI', days: 3650 });
@@ -332,7 +332,7 @@ test('impersonation: a cert claiming O=OpenAI that chains to no pinned anchor is
 // use: a self-signed root signs its OWN tbsCertificate, so signedBy(root, root)
 // must hold for each self-signed vendored anchor. Exercises ECDSA (Google,
 // camera makers), RSA PKCS#1 v1.5 (Adobe, Microsoft, Truepic, Pinterest) and
-// Ed25519 (Trufo) against genuine certificates — the RSA/Ed25519 paths have no
+// Ed25519 (Trufo) against genuine certificates - the RSA/Ed25519 paths have no
 // other coverage (the round-trip fixtures are all ECDSA).
 test('every self-signed trust anchor verifies its own signature (ECDSA + RSA + Ed25519)', async () => {
   const schemes = new Set<string>();
@@ -353,7 +353,7 @@ test('every self-signed trust anchor verifies its own signature (ECDSA + RSA + E
   assert.ok(schemes.has('ed25519'), 'the Ed25519 (Trufo) root was verified');
 });
 
-// A tampered anchor must NOT self-verify — flipping a tbsCertificate byte breaks
+// A tampered anchor must NOT self-verify - flipping a tbsCertificate byte breaks
 // the signature. Guards against a chain step that accepts anything.
 test('a tampered self-signed anchor fails its own signature check', async () => {
   const der = c2paTrustAnchors().find((d) => { try { return parseCertificate(d).selfSigned; } catch { return false; } })!;

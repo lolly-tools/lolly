@@ -1,16 +1,16 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
- * Portable user-data bundle — export on one install, import on another.
+ * Portable user-data bundle - export on one install, import on another.
  *
  * The module reads/writes everything through the capability bridge (`host`), so the
  * whole round-trip runs headlessly here against an in-memory bridge: seed a "source
  * device", export to a zip Blob, then import into a fresh "target device" and assert
- * everything came back byte-for-byte — profile, sessions (incl. data-URL thumbnails),
- * the uploaded image blobs + their MIME, and the prefs — while the re-syncable
+ * everything came back byte-for-byte - profile, sessions (incl. data-URL thumbnails),
+ * the uploaded image blobs + their MIME, and the prefs - while the re-syncable
  * catalog cache is left behind.
  *
  * Because the bridge is the only seam, this same module produces a byte-identical
- * package on the web PWA (IndexedDB) and the Tauri shells (filesystem) — only the
+ * package on the web PWA (IndexedDB) and the Tauri shells (filesystem) - only the
  * bridge implementation behind `host.state` differs.
  */
 
@@ -131,7 +131,7 @@ test('export → import reproduces all user data on a fresh device', async () =>
   assert.equal(profile.headshot.id, 'user/headshot');
   assert.equal(profile.flags['cat-designer'], false);
 
-  // Sessions — including the data-URL thumbnail and the null-thumb case.
+  // Sessions - including the data-URL thumbnail and the null-thumb case.
   const qrList = (await dst.host.state.list()).find((s: any) => s.slot === 'my-qr');
   assert.equal(qrList.label, 'Conference QR');
   assert.equal(qrList.thumb, 'data:image/png;base64,iVBORw0KGgoAAAA');
@@ -139,7 +139,7 @@ test('export → import reproduces all user data on a fresh device', async () =>
   const chartList = (await dst.host.state.list()).find((s: any) => s.slot === 'chart-1');
   assert.equal(chartList.thumb, null);
 
-  // Uploaded images — blob bytes + MIME round-trip exactly.
+  // Uploaded images - blob bytes + MIME round-trip exactly.
   const restored = await dst.host.assets._exportUserAssets();
   const head = restored.find((a: any) => a.id === 'user/headshot');
   assert.ok(head.blob instanceof Blob);
@@ -160,7 +160,7 @@ test('import isolates a failed asset restore: counts it, keeps going, reports ho
   const src = await seedSource();
   const { blob } = await exportBackup({ host: src.host, storage: src.storage });
 
-  // Target device where the second image write fails (e.g. IndexedDB quota) — the
+  // Target device where the second image write fails (e.g. IndexedDB quota) - the
   // first must still land, and the failure must be counted, not silently dropped.
   const dst = { host: makeHost(), storage: makeStorage() };
   let n = 0;

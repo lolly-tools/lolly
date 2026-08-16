@@ -1,15 +1,15 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
- * zip.ts — the shared PLAIN (unencrypted) zip primitive.
+ * zip.ts - the shared PLAIN (unencrypted) zip primitive.
  *
- * The engine already had every half of a zip except the one that ties them
- * together: `deflate.ts` emits raw DEFLATE, `gzip.ts` inflates it back
- * (`inflateRaw`), `zip-crypto.ts` owns CRC-32 and frames an *encrypted* archive,
- * and both `xlsx-import.ts` (read) and `epub.ts` (write) reach for `fflate` or
- * roll their own OOXML/OCF framing ad-hoc. This module is the missing centre: a
- * dependency-free `readZip` + `storeZip` over the engine's own primitives, so the
- * archive-import, epub-read, odt and docx/xlsx-write paths share ONE zip
- * implementation instead of each re-deriving the container.
+ * The engine already had the pieces of a zip, but not the part that joins them:
+ * `deflate.ts` emits raw DEFLATE, `gzip.ts` inflates it back (`inflateRaw`),
+ * `zip-crypto.ts` owns CRC-32 and frames an *encrypted* archive, and both
+ * `xlsx-import.ts` (read) and `epub.ts` (write) reach for `fflate` or roll their
+ * own OOXML/OCF framing ad hoc. This module fills that gap: a dependency-free
+ * `readZip` + `storeZip` over the engine's own primitives, so the archive-import,
+ * epub-read, odt and docx/xlsx-write paths share ONE zip implementation instead
+ * of each re-deriving the container.
  *
  * ── READ (readZip) ───────────────────────────────────────────────────────────
  * The authoritative index of a zip is its Central Directory, located from the
@@ -25,20 +25,20 @@
  * loudly. Directory entries (names ending '/') are skipped.
  *
  * We deliberately trust the CENTRAL directory's crc/sizes, never the local
- * header's — a streamed zip writes zeros there and appends a data descriptor
+ * header's - a streamed zip writes zeros there and appends a data descriptor
  * (GPBF bit 3). Reading sizes from the directory sidesteps data-descriptor
  * parsing entirely and matches what every real unzip does.
  *
  * ── WRITE (storeZip) ─────────────────────────────────────────────────────────
  * Local headers + data + central directory + EOCD, deterministic (fixed DOS
  * date, no data descriptors, real crc/sizes in every header). Each entry is
- * DEFLATEd unless STORED is at least as small — so incompressible bytes never
- * expand — with one exception: `opts.mimetypeFirst` forces the first entry named
+ * DEFLATEd unless STORED is at least as small - so incompressible bytes never
+ * expand - with one exception: `opts.mimetypeFirst` forces the first entry named
  * exactly `mimetype` to be STORED and written first, the OCF magic every EPUB/ODT
  * reader sniffs before it trusts the container.
  *
  * ── SCOPE ────────────────────────────────────────────────────────────────────
- * 32-bit sizes/offsets only — a ZIP64 archive (>4 GiB, or the 0xffffffff sentinel
+ * 32-bit sizes/offsets only - a ZIP64 archive (>4 GiB, or the 0xffffffff sentinel
  * fields) is refused with a clear Error rather than silently misread. Methods
  * other than STORED/DEFLATE are refused. Pure math + typed arrays; DOM-free,
  * dependency-free beyond the named engine primitives.
@@ -57,7 +57,7 @@ const SIG_EOCD = 0x06054b50; // "PK\x05\x06" end of central directory
 const METHOD_STORED = 0;
 const METHOD_DEFLATE = 8;
 
-/** ZIP64 sentinel — a field this value means "read the real value from a ZIP64 record". */
+/** ZIP64 sentinel - a field this value means "read the real value from a ZIP64 record". */
 const U32_MAX = 0xffffffff;
 const U16_MAX = 0xffff;
 
@@ -88,7 +88,7 @@ export interface ZipStoreEntry {
 export interface StoreZipOptions extends DeflateOptions {
   /**
    * OCF mode (EPUB/ODT): the first entry named exactly `mimetype` is written
-   * FIRST and STORED uncompressed, with no extra fields — the container magic a
+   * FIRST and STORED uncompressed, with no extra fields - the container magic a
    * reader sniffs before trusting the archive.
    */
   mimetypeFirst?: boolean;
@@ -159,7 +159,7 @@ export function readZip(bytes: Uint8Array): ZipEntry[] {
 
     p = nameStart + nameLen + extraLen + commentLen;
 
-    // Skip directory entries — nothing to extract.
+    // Skip directory entries - nothing to extract.
     if (name.endsWith('/')) continue;
 
     // Walk the LOCAL header to find where the data actually begins; its name/extra

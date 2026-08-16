@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
- * MP3 C2PA embedding (ID3v2 GEOB — the C2PA spec's MPEG-1/2 audio binding,
+ * MP3 C2PA embedding (ID3v2 GEOB - the C2PA spec's MPEG-1/2 audio binding,
  * plans/41-tts-stt-programme.md §2: the route for raw synthetic audio leaving
  * Lolly with its Article 50 mark attached). The generic embed → verify
  * round-trip and tamper case ride the format matrix in c2pa-formats.test.ts;
@@ -29,7 +29,7 @@ const u32be = (n: number): Uint8Array => Uint8Array.of(n >>> 24, (n >>> 16) & 0x
 
 const AUDIO = concat([Uint8Array.of(0xff, 0xfb, 0x90, 0x00), bytesOf('fake-mp3-audio-frames')]);
 
-// A TIT2 (title) frame — the existing metadata that must survive a stamp.
+// A TIT2 (title) frame - the existing metadata that must survive a stamp.
 const tit2 = (v4: boolean): Uint8Array => {
   const body = concat([Uint8Array.of(0x00), bytesOf('My Song')]);
   return concat([bytesOf('TIT2'), v4 ? syncsafe(body.length) : u32be(body.length), Uint8Array.of(0, 0), body]);
@@ -94,7 +94,7 @@ test('attachC2paStore re-inserts a preserved store without re-signing', async ()
 });
 
 test('unwalkable tags are refused, not mis-walked; junk is not an mp3', async () => {
-  // Unsynchronisation flag (0x80) set — frame offsets cannot be trusted.
+  // Unsynchronisation flag (0x80) set - frame offsets cannot be trusted.
   const unsync = concat([bytesOf('ID3'), Uint8Array.of(4, 0, 0x80), syncsafe(4), new Uint8Array(4), AUDIO]);
   await assert.rejects(() => embedC2pa(unsync, 'mp3', OPTS), /unsynchronised/i);
   await assert.rejects(() => embedC2pa(bytesOf('not audio at all'), 'mp3', OPTS), /not an MP3/i);

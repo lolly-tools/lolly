@@ -1,13 +1,13 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
- * Palette exchange — serialise a flat list of named colours as a standalone file
+ * Palette exchange - serialise a flat list of named colours as a standalone file
  * in one of several interchange formats: a DTCG design-tokens JSON (nested under
  * each swatch's canonical dotted key), a plain CSS custom-properties block, a set
  * of CSS utility classes (bg/text/border), an SCSS `$var` block, a GIMP .gpl
  * palette (name + 0-255 RGB only, no alpha), or a binary Adobe Swatch Exchange
  * (.ase) file.
  *
- * Pure — no DOM, no host — so a tool reaches it through `host.color.paletteExport`
+ * Pure - no DOM, no host - so a tool reaches it through `host.color.paletteExport`
  * / `paletteExportBytes` (makeColorApi attaches the same code every shell runs)
  * and the web shell's brand editor reaches the same functions through the thin
  * lib/swatch-export.ts adapter, so a downloaded palette is byte-identical whether
@@ -16,7 +16,7 @@
  */
 
 /** The minimal swatch shape every serializer reads: a canonical dotted key, a
- *  display name, a group label, and a resolved sRGB hex (or '' / an alias — those
+ *  display name, a group label, and a resolved sRGB hex (or '' / an alias - those
  *  are filtered out by `resolved()`). The web shell's richer BrandSwatch and a
  *  tool's own flat rows both structurally satisfy this. */
 export interface PaletteSwatch {
@@ -35,7 +35,7 @@ function hexToRgb(hex: string): [number, number, number] {
   return [(n >> 16) & 0xff, (n >> 8) & 0xff, n & 0xff];
 }
 
-/** Only swatches with a resolved literal colour — an unresolved alias or the
+/** Only swatches with a resolved literal colour - an unresolved alias or the
  *  empty/"transparent" tile has nothing to export. */
 function resolved(swatches: PaletteSwatch[]): ResolvedSwatch[] {
   return swatches
@@ -69,7 +69,7 @@ export function paletteTokensJson(swatches: PaletteSwatch[]): string {
   return JSON.stringify(root, null, 2) + '\n';
 }
 
-/** `:root { --color-ramp-primary-5: #...; }` — one custom property per swatch. */
+/** `:root { --color-ramp-primary-5: #...; }` - one custom property per swatch. */
 export function paletteCssVariables(swatches: PaletteSwatch[]): string {
   const lines = resolved(swatches).map(s => `  --${slug(s.key)}: ${s.hex};`);
   return `:root {\n${lines.join('\n')}\n}\n`;
@@ -88,13 +88,13 @@ export function paletteCssClasses(swatches: PaletteSwatch[]): string {
   return blocks.join('\n') + '\n';
 }
 
-/** `$color-ramp-primary-5: #...;` — one Sass variable per swatch. */
+/** `$color-ramp-primary-5: #...;` - one Sass variable per swatch. */
 export function paletteScssVariables(swatches: PaletteSwatch[]): string {
   const lines = resolved(swatches).map(s => `$${slug(s.key)}: ${s.hex};`);
   return lines.join('\n') + '\n';
 }
 
-/** GIMP palette (.gpl) — name + space-padded 0-255 RGB triples, tab, then a
+/** GIMP palette (.gpl) - name + space-padded 0-255 RGB triples, tab, then a
  *  human label. GPL carries no alpha and no colour-space metadata. */
 export function paletteGpl(swatches: PaletteSwatch[], paletteName = 'Lolly brand'): string {
   const pad = (n: number): string => String(n).padStart(3, ' ');
@@ -102,12 +102,12 @@ export function paletteGpl(swatches: PaletteSwatch[], paletteName = 'Lolly brand
   return `GIMP Palette\nName: ${paletteName}\nColumns: 0\n#\n${rows.join('\n')}\n`;
 }
 
-// ── Adobe Swatch Exchange (.ase) — binary ───────────────────────────────────
+// ── Adobe Swatch Exchange (.ase) - binary ───────────────────────────────────
 // Spec (unofficial but widely implemented): 'ASEF' signature, u16 version major/minor,
 // u32 block count, then N blocks. A colour-entry block: u16 type (0x0001), u32 data
 // length (of everything after this field), u16 name length (UTF-16 code units,
 // INCLUDING the null terminator), the UTF-16BE name itself, a 4-byte ASCII colour
-// model ('RGB ' — space-padded to 4 chars), the channel values as big-endian
+// model ('RGB ' - space-padded to 4 chars), the channel values as big-endian
 // float32 in 0..1, and a u16 colour type (0 Global / 1 Spot / 2 Normal).
 
 function utf16beNameBytes(name: string): Uint8Array {
@@ -140,7 +140,7 @@ function colorEntryBlock(name: string, rgb: [number, number, number]): Uint8Arra
   return block;
 }
 
-/** Adobe Swatch Exchange — readable by Illustrator, Photoshop, Affinity, etc. */
+/** Adobe Swatch Exchange - readable by Illustrator, Photoshop, Affinity, etc. */
 export function paletteAse(swatches: PaletteSwatch[]): Uint8Array {
   const blocks = resolved(swatches).map(s => colorEntryBlock(`${s.group} ${s.name}`, s.rgb));
   const headerLen = 4 + 2 + 2 + 4;

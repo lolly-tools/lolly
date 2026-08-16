@@ -25,7 +25,7 @@ import {
 const close = (a: number, b: number, eps = 1e-9) => Math.abs(a - b) <= eps;
 
 // The SUSE profile's vocabulary, as its web shell threads it in (from the SUSE
-// design manifest's font select + addKinds seeds) — the engine itself no
+// design manifest's font select + addKinds seeds) - the engine itself no
 // longer knows these names.
 const SUSE_FONTS = { defaultFamily: 'SUSE', monoFamily: 'SUSE Mono', monoMaxWeight: 800 };
 const SUSE_SEEDS = { boxBg: '#30BA78', textFg: '#0c322c', imageBg: '#eef1f0' };
@@ -433,7 +433,7 @@ test('parsePenpotContent: camelCase keys (binfile-v3) incl. fontFamily', () => {
 });
 
 // ── collectPenpotFontUsage ───────────────────────────────────────────────────
-// Penpot writes the full font set on paragraphs AND leaves alike — the walker
+// Penpot writes the full font set on paragraphs AND leaves alike - the walker
 // visits every style-carrying node but dedupes by fontId|fontVariantId|fontStyle.
 
 const fontLeaf = (text: string, over: Record<string, unknown> = {}) => ({
@@ -822,7 +822,7 @@ test('figmaNodesToScenes: a COMPONENT container (no visual node of its own) stil
   const nc = [
     { guid: { sessionID: 0, localID: 0 }, type: 'DOCUMENT' },
     { guid: { sessionID: 0, localID: 1 }, type: 'CANVAS', name: 'P', parentIndex: { guid: { sessionID: 0, localID: 0 } } },
-    // COMPONENT is not a VISUAL_FIG type — it emits no box, but is a frame-like scene root.
+    // COMPONENT is not a VISUAL_FIG type - it emits no box, but is a frame-like scene root.
     { guid: { sessionID: 1, localID: 2 }, type: 'COMPONENT', name: 'Slide', parentIndex: { guid: { sessionID: 0, localID: 1 } },
       size: { x: 400, y: 300 }, transform: at(50, 70) },
     { guid: { sessionID: 1, localID: 3 }, type: 'RECTANGLE', parentIndex: { guid: { sessionID: 1, localID: 2 } },
@@ -833,7 +833,7 @@ test('figmaNodesToScenes: a COMPONENT container (no visual node of its own) stil
   const [s] = scenes;
   assert.equal(s.name, 'Slide');
   assert.deepEqual([s.width, s.height], [400, 300]);
-  assert.equal(s.nodes.length, 1); // just the rect — the component itself draws nothing
+  assert.equal(s.nodes.length, 1); // just the rect - the component itself draws nothing
   assert.deepEqual([Math.round(s.nodes[0].x), Math.round(s.nodes[0].y)], [20, 10]);
 });
 
@@ -969,7 +969,7 @@ test('penpotShapeToNode: path with content → image node carrying page-space _v
   assert.equal(n._vectorFill, '#eeeeee');
   assert.equal(n._vectorGradient, null);
   assert.equal(n._vectorStroke, null);
-  // page-space origin rides _vectorSize — the Penpot/Figma delta (Figma vectors are local)
+  // page-space origin rides _vectorSize - the Penpot/Figma delta (Figma vectors are local)
   assert.deepEqual(n._vectorSize, { w: 4, h: 51, x: -447.62, y: 3775 });
 });
 
@@ -1051,7 +1051,7 @@ test('penpotGroupToSvg: all-vector group → one SVG, selrect viewBox, z-order p
   assert.ok(order[0]! > -1 && order[0]! < order[1]! && order[1]! < order[2]!);
   // stroke-only path: fill none + stroke attrs with opacity
   assert.ok(svg.includes('fill="none" stroke="#14ceca" stroke-width="2" stroke-opacity="0.5"'));
-  // ROOT group opacity is NOT baked — the caller carries it on the image box
+  // ROOT group opacity is NOT baked - the caller carries it on the image box
   assert.ok(!svg.includes('opacity="0.2"'));
 });
 
@@ -1207,7 +1207,7 @@ test('collectPenpotExportMarks: (f) unknown export types drop silently; a shape 
 });
 
 // ── Spec 3: per-corner radii + flipX/flipY fidelity ──────────────────────────
-// (Appended block — imports are hoisted, kept here so the block stays append-only.)
+// (Appended block - imports are hoisted, kept here so the block stays append-only.)
 import {
   penpotTransformBaked, pathDBounds, mirrorPenpotGradient, penpotRoundedRectD,
 } from '../engine/src/design-map.ts';
@@ -1235,7 +1235,7 @@ test('penpotTransformBaked: identity (with e/f float noise) is not baked; R·F i
 });
 
 test('pathDBounds: loose control-point bbox of absolute M/L/C/Z; anything else null', () => {
-  // Control points COUNT (deliberately loose — cheap placement rect, not exact bounds).
+  // Control points COUNT (deliberately loose - cheap placement rect, not exact bounds).
   assert.deepEqual(pathDBounds('M10,20L30,5C40,50,60,-4,35,80Z'), { x: 10, y: -4, w: 50, h: 84 });
   // Exponents parse as numbers, never as command letters.
   assert.deepEqual(pathDBounds('M1e2,2e1L3e2,4e1Z'), { x: 100, y: 20, w: 200, h: 20 });
@@ -1326,7 +1326,7 @@ test('penpotShapeToNode + penpotGroupToSvg: unequal corner radii route via the r
   assert.equal(n._vectorPath, penpotRoundedRectD(10, 20, 100, 80, [4, 8, 12, 16]));
   assert.equal(n._vectorFill, '#ff0000');
   assert.deepEqual(n._vectorSize, { w: 100, h: 80, x: 10, y: 20 });
-  // Stroke rides the bake — NO CSS-border inflation of the rect.
+  // Stroke rides the bake - NO CSS-border inflation of the rect.
   assert.deepEqual(n._vectorStroke, { color: '#151035', width: 2, opacity: 1, style: 'solid' });
   assert.deepEqual([n.x, n.y, n.w, n.h], [10, 20, 100, 80]);
   assert.equal(n.radius, undefined);
@@ -1405,7 +1405,7 @@ test('penpotShapeToNode: "mixed" maps to dashed; dash/gap read authored or defau
   // Authored 0 takes the width+10 fallback (SVG treats an all-zero dasharray as no
   // dashing). The kitchen-sink fixture settled the serialization half of this: Penpot
   // really does WRITE `strokeDash: 0` for an authored 0, so this is a deliberate
-  // rendering divergence, not a mis-read — see tests/penpot-kitchen-sink.test.ts,
+  // rendering divergence, not a mis-read - see tests/penpot-kitchen-sink.test.ts,
   // "authored dash/gap land in DesignNode strokeDashLen/strokeGapLen".
   const zero = mk({ strokeStyle: 'dashed', strokeDash: 0, strokeGap: 0 });
   assert.deepEqual([zero.strokeDashLen, zero.strokeGapLen], [12, 12]);
@@ -1475,7 +1475,7 @@ test('penpotGroupToSvg: dash decoration bakes into the flattened SVG (was always
 });
 
 // ── Kitchen-sink fixture will add (named now, unwritable until a real 2.17 export
-//    with an EDITED dashed stroke exists — the keynote has 0 dashed strokes and 0
+//    with an EDITED dashed stroke exists - the keynote has 0 dashed strokes and 0
 //    strokeDash/strokeGap keys, so the camelCase spelling is inferred from the
 //    encoder plus the fixture's uniform stroke-key convention):
 //    * "fixture: an edited dashed stroke serializes strokeDash/strokeGap as camelCase
@@ -1489,7 +1489,7 @@ test('penpotGroupToSvg: dash decoration bakes into the flattened SVG (was always
 
 // ── prototype-flow scene ordering (penpot-design-system.md §4) ───────────────
 //
-// Synthetic pages here — the shape of the real thing is pinned against the
+// Synthetic pages here - the structure of the real thing is pinned against the
 // committed 2.17.1-RC4 export in tests/penpot-kitchen-sink.test.ts. These cover
 // the walk's policy decisions, which one authored fixture can't enumerate.
 
@@ -1592,7 +1592,7 @@ test('penpotAnimationToTransition: the full mapping table, and unknowns are a ha
   // `way: 'out'` is ignored in v1 (exit transitions are not modelled).
   assert.deepEqual(penpotAnimationToTransition({ animationType: 'push', direction: 'up', duration: 200, way: 'out' }),
     { enter: 'slide-up', enterMs: 200 });
-  // No animation, an unknown type, and a slide with no usable direction are cuts —
+  // No animation, an unknown type, and a slide with no usable direction are cuts - 
   // and a cut carries no enterMs at all.
   for (const a of [undefined, null, {}, { animationType: 'wobble', duration: 300 }, { animationType: 'slide', duration: 300 }, { animationType: 'slide', direction: 'sideways' }]) {
     assert.deepEqual(penpotAnimationToTransition(a), { enter: 'none' });

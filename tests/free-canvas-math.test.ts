@@ -3,7 +3,7 @@
  * Pure-logic tests for the web shell's free-canvas (WYSIWYG "editor" layout)
  * geometry helpers (shells/web/src/views/free-canvas-math.ts). These guard the
  * rotation-aware resize/hit-test algebra and the align/distribute/z-order ops
- * that the direct-manipulation overlay commits back to a flat `blocks` array —
+ * that the direct-manipulation overlay commits back to a flat `blocks` array - 
  * the parts most likely to silently drift a layout.
  *
  * Run with: npm test
@@ -120,7 +120,7 @@ test('resizeRect on a ROTATED box preserves the fixed world corner', () => {
   // The corner opposite 'se' is 'nw' == TL == corners[0].
   const before: any = boxCorners(box(start), CFG)[0];
   const r = resizeRect(start, 'se', 40, -15, { minSize: 8 });
-  // Compare raw (unrounded) corners — withRect's whole-px rounding would shift a
+  // Compare raw (unrounded) corners - withRect's whole-px rounding would shift a
   // rotated box's corner by up to ~0.5px, which is expected quantisation, not drift.
   const after: any = boxCorners({ x: r.x, y: r.y, w: r.w, h: r.h, rot: start.rot }, CFG)[0];
   near(after.x, before.x, 1e-6);
@@ -134,7 +134,7 @@ test('resizeRect keepAspect on a corner holds the start aspect ratio', () => {
 });
 
 // A CIRCLE box (Design) resizes with keepAspect forced on, starting square, so
-// every handle — corner AND edge — must keep w === h. An edge handle drives the other
+// every handle - corner AND edge - must keep w === h. An edge handle drives the other
 // axis from the dragged one; without that a side-drag would flatten the circle.
 test('resizeRect keepAspect keeps a square square on a corner drag (circle invariant)', () => {
   const r = resizeRect({ x: 0, y: 0, w: 300, h: 300, rot: 0 }, 'se', 120, 40, { minSize: 8, keepAspect: true });
@@ -675,8 +675,8 @@ test('framesAreSequenced: a doc with no frames at all is never sequenced', () =>
 
 // ── authored dash arrays (plan 96 P0) ────────────────────────────────────────
 // The power-user "Dash array" field's validator. What matters here is that it
-// REFUSES rather than repairs — the panel's answer to null is to show the error
-// and write nothing — and that what it stores can survive the compact blocks URL.
+// REFUSES rather than repairs - the panel's answer to null is to show the error
+// and write nothing - and that what it stores can survive the compact blocks URL.
 
 test('parseDashArray takes a plain space- or comma-separated list', () => {
   assert.deepEqual(parseDashArray('6 4'), [6, 4]);
@@ -759,7 +759,7 @@ test('the engine connector surface is re-exported whole, and is live', () => {
   assert.doesNotMatch(out, /<marker|<polygon|stroke-dasharray/, 'export-safe');
 });
 
-// ── path end tangents (plan 96 P1 — the arrowhead ANGLE on a drawn path) ──────
+// ── path end tangents (plan 96 P1 - the arrowhead ANGLE on a drawn path) ──────
 // pathEndTangents feeds the head angle: the hook/shell lower a path to cubics, take the
 // OUTWARD unit tangent at each end (Math.atan2 of it), and hand that to
 // host.connectors.pathHeadSvg. If the tangent points the wrong way the arrowhead faces
@@ -873,10 +873,10 @@ test('liftDepths: strength scales the parallax, and its default moves nothing (A
   const base = liftDepths(slots, KF_Z_FIELD_CLAMP);
 
   // Opt-in: omitting strength, passing an explicit 1, and passing Medium all reproduce the
-  // SHIPPED ladder exactly — the control's default is byte-identical to every prior lift.
+  // SHIPPED ladder exactly - the control's default is byte-identical to every prior lift.
   assert.deepEqual(liftDepths(slots, KF_Z_FIELD_CLAMP, 1), base, 'explicit 1 == default');
   assert.deepEqual(liftDepths(slots, KF_Z_FIELD_CLAMP, LIFT_STRENGTH.medium), base, 'Medium == the shipped ceiling');
-  // A junk value can never zero or invert the ladder — it falls back to 1.
+  // A junk value can never zero or invert the ladder - it falls back to 1.
   for (const junk of [0, -1, Number.NaN, Number.POSITIVE_INFINITY]) {
     assert.deepEqual(liftDepths(slots, KF_Z_FIELD_CLAMP, junk), base, `junk strength ${junk} falls back to 1`);
   }
@@ -927,7 +927,7 @@ test('liftSlots: same size but nowhere near each other is not a grid', () => {
 });
 
 test('liftSlots: coherence gives way where it would repaint overlapping ink', () => {
-  // A and C are peers (same size, same column) with B between them — and B
+  // A and C are peers (same size, same column) with B between them - and B
   // overlaps C, so sharing a rung would sort C's ink under B's.
   const slots = liftSlots([
     { x: 0, y: 0, w: 50, h: 50 },

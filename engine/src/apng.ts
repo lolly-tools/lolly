@@ -1,11 +1,11 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
- * APNG packer — pure, DOM-free, platform-agnostic.
+ * APNG packer - pure, DOM-free, platform-agnostic.
  *
  * Chunk-level surgery only: the shell supplies COMPLETE already-encoded PNG
  * files (one per animation frame, all with identical IHDR geometry), and this
- * splices them into a single Animated PNG. No pixel work, no compression —
- * frame 0's chunk stream is kept intact (ancillary chunks stay in their
+ * splices them into a single Animated PNG. No pixel work, no compression.
+ * Frame 0's chunk stream is kept intact (ancillary chunks stay in their
  * original positions) with an acTL inserted right after IHDR and an fcTL
  * before its first IDAT; every later frame contributes one fcTL plus its IDAT
  * data re-wrapped as fdAT chunks (everything else from those frames is
@@ -44,8 +44,8 @@ function readU32(bytes: Uint8Array, off: number): number {
   return ((bytes[off]! << 24) | (bytes[off + 1]! << 16) | (bytes[off + 2]! << 8) | bytes[off + 3]!) >>> 0;
 }
 
-// PNG CRC-32 is the standard reflected 0xEDB88320 / init+xorout 0xFFFFFFFF —
-// exactly the table-based crc32 zip-crypto.ts exports (imported above).
+// PNG CRC-32 is the standard reflected 0xEDB88320 / init+xorout 0xFFFFFFFF.
+// It is exactly the table-based crc32 zip-crypto.ts exports (imported above).
 
 // Serialize one chunk: length + 4-char type + data + CRC(type‖data).
 function chunk(type: string, data: Uint8Array): Uint8Array {
@@ -59,7 +59,7 @@ function chunk(type: string, data: Uint8Array): Uint8Array {
 
 // Split an encoded PNG into { type, data } chunks. Throws on a bad signature,
 // truncation, or a stream that doesn't start IHDR / end IEND. Input CRCs are
-// not re-verified — the frames come from a trusted encoder.
+// not re-verified: the frames come from a trusted encoder.
 function parsePng(bytes: unknown, label: string): PngChunk[] {
   if (!(bytes instanceof Uint8Array)) {
     throw new Error(`packApng: ${label} is not a Uint8Array`);
@@ -92,12 +92,12 @@ const ihdrDesc = (d: Uint8Array): string => `${readU32(d, 0)}x${readU32(d, 4)} d
 /**
  * Pack pre-encoded PNG frames into an APNG.
  *
- * frames : Uint8Array[] — complete PNG files, identical IHDR geometry.
+ * frames : Uint8Array[] - complete PNG files, identical IHDR geometry.
  * opts   : { delayMs = 67, loops = 0 }
- *   delayMs — per-frame display time in ms; a number applies to every frame,
+ *   delayMs - per-frame display time in ms; a number applies to every frame,
  *             an array is per-frame (missing/invalid entries fall back to 67).
  *             Encoded as fcTL delay_num / delay_den with den fixed at 1000.
- *   loops   — acTL num_plays; 0 = loop forever.
+ *   loops   - acTL num_plays; 0 = loop forever.
  *
  * Returns the APNG bytes as a Uint8Array.
  */
@@ -137,7 +137,7 @@ export function packApng(frames: Uint8Array[], opts: PackApngOptions = {}): Uint
     writeU32(d, 16, 0); // y_offset
     d[20] = (num >>> 8) & 0xff; // delay_num (u16)
     d[21] = num & 0xff;
-    d[22] = (1000 >>> 8) & 0xff; // delay_den (u16) — ms
+    d[22] = (1000 >>> 8) & 0xff; // delay_den (u16) - ms
     d[23] = 1000 & 0xff;
     d[24] = 0; // dispose_op: APNG_DISPOSE_OP_NONE
     d[25] = 0; // blend_op: APNG_BLEND_OP_SOURCE

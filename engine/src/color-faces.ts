@@ -3,42 +3,45 @@
  * A brand colour's FACES: one canonical value, plus what it becomes in every
  * space and on every press it can be expressed in.
  *
- * The generalisation of `PrintLock` (`shells/web/src/lib/brand-doc.ts`), which
- * already let a token pin a CMYK build and a spot ink. Andy's direction is that
- * pinning is not a print feature — "print lock is what we want to expand to all
- * colour spaces for brand colour tokens" — so this module owns the shape and the
- * rules, and the brand editor, the pickers and the export walkers all read it.
+ * This generalises `PrintLock` (`shells/web/src/lib/brand-doc.ts`), which
+ * already let a token pin a CMYK build and a spot ink. Andy's direction:
+ * pinning is not a print feature. "Print lock is what we want to expand to all
+ * colour spaces for brand colour tokens." So this module owns the shape and
+ * the rules, and the brand editor, the pickers and the export walkers all read
+ * it.
  *
  * ## Canonical plus overrides, not a bag of values
  *
  * A token could store an independently authored colour per space. It must not.
- * Only canonical-plus-overrides can answer *"are these the same colour?"*, and
- * that question is the whole point of a brand:
+ * Only canonical-plus-overrides can answer the question "are these the same
+ * colour?", and that question is the whole point of a brand:
  *
- *  - drift is detectable — "your P3 face is ΔE 4.2 from canonical, deliberate?"
- *  - CHOSEN stays distinguishable from COMPUTED, so a re-derive knows what it may
- *    recompute and what it must leave alone
- *  - a target that did not exist yet (a new press, Rec.2100) derives itself
- *    without invalidating anything already authored
+ *  - Drift is detectable. Example: "your P3 face is ΔE 4.2 from canonical,
+ *    deliberate?"
+ *  - CHOSEN stays distinguishable from COMPUTED, so a re-derive knows what it
+ *    may recompute and what it must leave alone.
+ *  - A target that did not exist yet (a new press, Rec.2100) derives itself
+ *    without invalidating anything already authored.
  *
  * ## The narrow faces are not lesser
  *
- * The sRGB face is the BAKE — what most viewers, most print pipelines and every
- * older browser actually receive. The automatic §14.2 gamut map picks the nearest
- * reproducible colour by ΔE, and a brand will often prefer a *different* sRGB
- * green: one that reads as the same brand colour to a human even though it is not
- * the closest by measurement. So an override on a narrow space is an authored
- * fallback that must WIN at bake time, not a note attached to the real value.
+ * The sRGB face is the BAKE: what most viewers, most print pipelines and every
+ * older browser actually receive. The automatic §14.2 gamut map picks the
+ * nearest reproducible colour by ΔE, and a brand will often prefer a
+ * different sRGB green: one that reads as the same brand colour to a human
+ * even though it is not the closest by measurement. So an override on a
+ * narrow space is an authored fallback that must WIN at bake time, not a note
+ * attached to the real value.
  *
  * ## Keyed by identity, never by name
  *
  * Two shops' "coated" profiles are not the same profile, so a friendly name
- * cannot be the key — a target id is the profile's own identity
+ * cannot be the key. A target id is the profile's own identity
  * (`gamutSourceId`: `icc:<sha256-prefix>:<intent>`) or a CSS space name. The
  * human label rides ALONGSIDE as a label, never as the lookup. Getting that
  * backwards silently corrupts a brand pack: an override authored against one
- * shop's profile would be applied to another's under the same label, and nothing
- * would report an error.
+ * shop's profile would be applied to another's under the same label, and
+ * nothing would report an error.
  *
  * A face whose profile is not currently mounted is KEPT. The override is still
  * the user's, and dropping it because a profile was unmounted is data loss.
@@ -50,8 +53,8 @@ import type { CssColor } from './css-color.ts';
 /**
  * A face's target: a CSS colour space tag, or a mounted profile × intent.
  *
- * Deliberately a plain string rather than a union. The set is DYNAMIC — it grows
- * when a press profile is loaded and shrinks when one is removed — so a fixed
+ * Deliberately a plain string rather than a union. The set is DYNAMIC: it grows
+ * when a press profile is loaded and shrinks when one is removed. A fixed
  * enum would either have to be edited for every new profile or would reject the
  * ids it is supposed to carry.
  */
@@ -67,7 +70,7 @@ export type FaceOrigin =
 export interface ColorFace {
   target: FaceTarget;
   /**
-   * The colour, in whatever notation that target speaks — a CSS colour string
+   * The colour, in whatever notation that target speaks: a CSS colour string
    * for a space, four ink percentages for a press profile.
    */
   value: string | [number, number, number, number];
@@ -76,8 +79,8 @@ export interface ColorFace {
    * A human name for the target, carried for display only.
    *
    * Stored alongside a `set` face so a profile that is not mounted can still be
-   * NAMED in the UI ("Coated FOGRA39, relative — not on this device") rather than
-   * appearing as a hash. Never consulted to match a face to a target.
+   * NAMED in the UI ("Coated FOGRA39, relative - not on this device") rather
+   * than appearing as a hash. Never consulted to match a face to a target.
    */
   label?: string;
   /**
@@ -101,7 +104,7 @@ export interface StoredFace {
  *
  * Tolerant by design. This parses a file a user may have hand-edited or that a
  * future version wrote, so an entry it cannot make sense of is SKIPPED rather
- * than throwing — losing one override is recoverable, refusing to open the brand
+ * than throwing. Losing one override is recoverable; refusing to open the brand
  * pack is not.
  */
 export function readFaces(ext: unknown): Map<FaceTarget, StoredFace> {
@@ -169,7 +172,7 @@ export function writeFace(
  * authored override substituted and marked.
  *
  * `derive` is injected rather than imported because deriving a PRESS face needs
- * an ICC profile and its rendering intent, which is shell state — the engine
+ * an ICC profile and its rendering intent, which is shell state. The engine
  * must not reach for it. It returns null for a target it cannot currently
  * answer for (an unmounted profile), and that case is handled rather than
  * dropped: the override still appears, still marked `set`, just with no drift to
@@ -202,7 +205,7 @@ export function colorFaces(
       ...(drift === undefined ? {} : { drift }),
     });
   }
-  // Overrides whose target is not on offer right now — an unmounted profile.
+  // Overrides whose target is not on offer right now - an unmounted profile.
   // Appended rather than interleaved: they are not choices the reader can act on
   // in this session, and sorting them among live targets would imply they are.
   for (const [target, face] of stored) {
@@ -215,7 +218,7 @@ export function colorFaces(
 /**
  * How far an authored face is from the derived one, perceptually.
  *
- * Only meaningful when both are colours in a space we can measure — two ink
+ * Only meaningful when both are colours in a space we can measure. Two ink
  * builds are compared by their largest single-ink difference in percentage
  * points instead, which is what a printer would actually notice and argue about.
  * Returns undefined when the pair cannot be compared at all rather than
@@ -241,9 +244,9 @@ export function faceDrift(
  *
  * Lab is the profile connection space of every ICC profile, so a screen face and
  * a press face meet there without a lossy hop through a display gamut. Editing
- * still happens in OKLCH — it is the better space to reason in — but round-
- * tripping an author's OKLCH through sRGB on the way to disk is exactly the bake
- * this model exists to keep OUT of the value path.
+ * still happens in OKLCH, because it is the better space to reason in. But
+ * round-tripping an author's OKLCH through sRGB on the way to disk is exactly
+ * the bake this model exists to keep OUT of the value path.
  */
 export function canonicalValue(color: string | CssColor): string | null {
   const c = typeof color === 'string' ? parseColor(color) : color;

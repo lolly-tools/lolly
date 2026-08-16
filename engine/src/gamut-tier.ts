@@ -1,11 +1,11 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
- * How far OUT of the active gamut a colour is — "which ring", not "in or out".
+ * How far OUT of the active gamut a colour is. This is "which ring", not "in or out".
  *
  * A picker axis is painted from the runs the active limit can show, and every
  * stretch it cannot used to be a hole over a flat rail. A hole says "nothing
  * here" when the truthful statement is "your screen can show this, your limit
- * cannot" — so each unreachable stretch gets a TIER, and the shells paint tier 1
+ * cannot". So each unreachable stretch gets a TIER, and the shells paint tier 1
  * as a wash, tier 2 fainter, concentric rings of decreasing opacity out from the
  * limit. This module is the classifier the picker (`components/color-spaces.ts`)
  * and the Colour Lab sliders (`lib/gamut-slider.ts`) both rank against, so there
@@ -15,35 +15,35 @@
  * a list:
  *
  *   Display-P3 is not a subset of Rec.2020. Its red primary lies outside the
- *   Rec.2020 red–green edge, so "the next gamut out" cannot be computed by
- *   incrementing an index — every candidate is an independent `contains` on the
- *   same l/c/h. A previous version of this codebase ranked by index and was
+ *   Rec.2020 red-green edge, so "the next gamut out" cannot be computed by
+ *   incrementing an index. Every candidate is an independent `contains` call on
+ *   the same l/c/h. A previous version of this codebase ranked by index and was
  *   wrong for exactly that colour, behind a test that asserted the arithmetic
  *   instead of the membership.
  *
- * Consequences worth knowing, all of them falling out of that rule:
+ * Consequences to know, all of them falling out of that rule:
  *
- * - limit `srgb` → candidates [p3, rec2020], so the answers are 0, 1, 2 or beyond;
+ * - limit `srgb`: candidates are [p3, rec2020], so the answers are 0, 1, 2 or beyond;
  *   tier 3 needs a limit off the ladder (see the ICC case below). The P3 red corner
- *   is **tier 1** — quoted at full precision because it sits ON the hull and
+ *   is **tier 1**, quoted at full precision because it sits ON the hull and
  *   rounding pushes it off: L 0.6485740719414326, C 0.29948528899928223,
  *   h 28.958137085704436 (at 4 decimals `inGamut(…, 'p3')` is already false, and the
  *   tier reads BEYOND). A Rec.2020-only colour is tier 2. Measured tiers around a
  *   24-sample hue circle at l 0.6 / c 0.25, `.` for beyond:
- *   `111.......22...2...00001` — interleaving no index arithmetic can produce.
- * - limit `p3` → sRGB never appears as a tier: it is a true subset, so those
+ *   `111.......22...2...00001`, an interleaving no index arithmetic can produce.
+ * - limit `p3`: sRGB never appears as a tier, because it is a true subset, so those
  *   colours answer tier 0 first. Rec.2020-only is tier 2.
- * - limit `rec2020` → the P3-only region is **tier 2**, a wash, not "beyond".
+ * - limit `rec2020`: the P3-only region is **tier 2**, a wash, not "beyond".
  *   This is the case the old bug got wrong.
- * - an ICC press limit (`iccGamutSource`) → its `id` matches none of the three,
+ * - an ICC press limit (`iccGamutSource`): its `id` matches none of the three,
  *   so all three are candidates: tier 1 sRGB, tier 2 P3-not-sRGB, tier 3
  *   Rec.2020-only, then beyond. "Your press can't put it down, your screen can
- *   show it." No new code path — a `SpaceSpec.limit` is already a `GamutSource`.
+ *   show it." No new code path is needed: a `SpaceSpec.limit` is already a `GamutSource`.
  *
  * Sub-sample honesty: the widest P3-beyond-Rec.2020 excursion is ~0.0020 chroma
- * (L 0.63, h 29) = 0.50% of a 0–0.4 chroma track, while one 24-sample step is
+ * (L 0.63, h 29), 0.50% of a 0-0.4 chroma track, while one 24-sample step is
  * 4.35%. Under a Rec.2020 limit a tier-2 band is usually thinner than a sample
- * and will not render at all. The classifier is still correct — do NOT add a
+ * and will not render at all. The classifier is still correct. Do NOT add a
  * sub-sample search to "fix" it, which is where cost explodes for a band a pixel
  * wide.
  *
@@ -59,7 +59,7 @@ import type { GamutLimit, GamutSource } from './gamut-source.ts';
 export const BEYOND_TIER = -1;
 
 /**
- * The order in which candidates are ASKED — narrowest-nominal first, so the
+ * The order in which candidates are ASKED: narrowest-nominal first, so the
  * tightest true statement about a colour wins and the rings read outward.
  *
  * This order is a QUESTION order, never an implication: membership in one entry
@@ -93,7 +93,7 @@ export function gamutTierProbe(limit: GamutLimit): (l: number, c: number, h: num
   };
 }
 
-/** Single-shot {@link gamutTierProbe} — for tests and cold call sites. Do not
+/** Single-shot {@link gamutTierProbe}, for tests and cold call sites. Do not
  *  call this in a loop; it re-resolves and re-hoists every time. */
 export function gamutTier(l: number, c: number, h: number, limit: GamutLimit): number {
   return gamutTierProbe(limit)(l, c, h);

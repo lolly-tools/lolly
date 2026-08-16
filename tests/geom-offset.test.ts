@@ -7,23 +7,23 @@
  * The same three oracles as `geom-intersect.test.ts`, aimed at the one property that
  * defines an offset:
  *
- * 1. **Analytic** — a polygon's offset is a polygon, so its area is a closed-form
+ * 1. **Analytic** - a polygon's offset is a polygon, so its area is a closed-form
  *    number. A square grown by 10 with mitre joins is exactly 120×120; with bevels the
  *    corners are triangles of ½d²·sin θ; with mitres, kites of d²·tan(θ/2). Those are
  *    exact, and a test that accepts 14399 instead of 14400 is not testing anything.
  *    Morphology supplies the exact answers past the radius of curvature too: eroding a
  *    rounded rectangle by more than its corner radius gives a SHARP-cornered square,
  *    because erosion of (K ⊕ disc r) by disc d is erosion of K by disc (d − r).
- * 2. **Residual** — the defining property, and the one that bites: every point of the
+ * 2. **Residual** - the defining property, and the one that bites: every point of the
  *    output must be exactly `|distance|` from the SOURCE, measured with `nearestOnCubic`
  *    against the original curves. An approximation that merely looks parallel fails
  *    this; so does one that cuts a corner across a cusp. This is the check the module's
  *    own subdivision claims to certify, so it is checked independently here.
- * 3. **Dense** — two brute-force references, both built on `flattenCubic`, which is
+ * 3. **Dense** - two brute-force references, both built on `flattenCubic`, which is
  *    forbidden inside the module and perfectly good outside it. Areas come from a
  *    shoelace over a fine polyline; and `assertMinkowski` classifies a grid of points
- *    against what an offset IS as a set — dilation of the filled region by a disc when
- *    `d > 0`, erosion when `d < 0` — using an even-odd crossing test written here. The
+ *    against what an offset IS as a set - dilation of the filled region by a disc when
+ *    `d > 0`, erosion when `d < 0` - using an even-odd crossing test written here. The
  *    residual can only see the boundary it is given; this is what catches a region that
  *    should have been kept and was dropped, or a fold that should have been dropped and
  *    was kept.
@@ -45,7 +45,7 @@
  * **The Minkowski oracle needs round joins and a simple source.** A mitre deliberately
  * reaches past the disc, so only `join: 'round'` is the set operation. And on a
  * self-intersecting source the chords through the interior are not boundary at all,
- * while `nearestOnCubic` measures to them anyway — so the pentagram gets the residual
+ * while `nearestOnCubic` measures to them anyway - so the pentagram gets the residual
  * and the contour count, not the grid.
  *
  * ## Sign convention under test
@@ -71,7 +71,7 @@ const near = (a: number, b: number, eps = 1e-9, msg = '') =>
 /** Control-point-by-control-point comparison. Deliberately not `deepEqual`: the handle
  *  lengths come out of a least-squares solve, so a result that is geometrically exact
  *  can still differ from a hand-written literal in the last ulp. 1e-12 on coordinates of
- *  order 100 IS "exact" — it is fourteen significant figures. */
+ *  order 100 IS "exact" - it is fourteen significant figures. */
 function sameCurve(got: Cubic | undefined, want: Cubic, eps = 1e-12): void {
   assert.ok(got, 'no curve produced');
   for (let i = 0; i < 8; i++) near(got![i]!, want[i]!, eps);
@@ -105,7 +105,7 @@ const circleContour = (r: number): Contour => circleAt(0, 0, r);
 
 /** The same construction stretched: a four-cubic ellipse, counter-clockwise. Its minimum
  *  radius of curvature is ry²/rx, so it folds under an inward offset long before its
- *  inradius — the case where part of the boundary has folded and part has not. */
+ *  inradius - the case where part of the boundary has folded and part has not. */
 function ellipseContour(rx: number, ry: number): Contour {
   const kx = KAPPA * rx, ky = KAPPA * ry;
   return { closed: true, curves: [
@@ -136,7 +136,7 @@ function rotatePath(p: GeomPath, angle: number): GeomPath {
 
 /** Two-sided Hausdorff distance between two paths: the worst distance from a point of
  *  either boundary to the other boundary. Built on `flattenCubic` for the samples and
- *  `nearestOnCubic` for the distances — sampling the RESULT is measurement, which is what
+ *  `nearestOnCubic` for the distances - sampling the RESULT is measurement, which is what
  *  makes it a legitimate oracle for geometry the module must not sample internally.
  *
  *  Stronger than comparing areas: a boundary that bulged one way and pinched the other by
@@ -218,7 +218,7 @@ function insideFlat(rings: Pt[][], x: number, y: number): boolean {
  * An offset is a set operation, and this is the only oracle that checks it as one:
  * for `d > 0` the result is the filled source dilated by a disc of radius d, for
  * `d < 0` it is the source eroded by one. Every grid point is classified from the
- * SOURCE — inside it, or within |d| of it — and compared against the result.
+ * SOURCE - inside it, or within |d| of it - and compared against the result.
  *
  * Points within `band` of the deciding distance are skipped, because that is where the
  * fit's own tolerance lives and the answer is genuinely undecidable there. Everything
@@ -311,7 +311,7 @@ const WAIST = poly(
 const CSHAPE = poly(
   [0, 0], [100, 0], [100, 40], [30, 40], [30, 60], [100, 60], [100, 100], [0, 100],
 );
-/** A pentagram, drawn as five chords — the everyday self-intersecting input, and unlike
+/** A pentagram, drawn as five chords - the everyday self-intersecting input, and unlike
  *  a bowtie it has a well-defined interior under the nonzero rule. */
 const STAR = poly(...Array.from({ length: 5 }, (_, i): [number, number] => {
   const a = -Math.PI / 2 + (2 * Math.PI * ((i * 2) % 5)) / 5;
@@ -411,7 +411,7 @@ test('fitCubic recovers ONE curve from points sampled off one cubic', () => {
 
 test('fitCubic honours the endpoints and the tangents it was given, exactly', () => {
   // Its contract with the offset code: the ends are DATA, not something to be fitted.
-  // Both tangents are in the direction of travel — start leaves, end arrives — and a
+  // Both tangents are in the direction of travel - start leaves, end arrives - and a
   // fitter that took the end one as Schneider's inward convention would hand back a
   // curve that arrives backwards.
   const src: Cubic = [0, 0, 20, 90, 80, -30, 100, 50];
@@ -481,7 +481,7 @@ test('bevel and round joins have exactly the areas their corner geometry predict
   // Corner contributions at exterior angle θ: bevel ½d²·sin θ, mitre d²·tan(θ/2),
   // round ½d²·θ. For a square all four are right angles, so 50, 100 and 78.54 each.
   near(pathArea(offsetContour(SQUARE, 10, { join: 'bevel' })), 10000 + 4000 + 4 * 50, 1e-6);
-  // The round corners are four quadrant arcs at k = 4/3·tan(π/8) — which is exactly the
+  // The round corners are four quadrant arcs at k = 4/3·tan(π/8) - which is exactly the
   // four-cubic circle of radius 10, and NOT π·100. Comparing against π here is the
   // mistake that makes correct code look 0.086 wrong.
   const ownCircle = areaOf(circleContour(10));
@@ -510,7 +510,7 @@ test('the mitre limit turns a spike into a bevel exactly where SVG does', () => 
 test('a mitre on a 36° spike reaches exactly d/sin(18°) from the vertex', () => {
   // The pentagram's points are the sharpest corner in the suite, and the mitre ratio
   // 1/sin(18°) = 3.236 sits under SVG's default limit of 4, so every one is kept. The
-  // furthest the outline then gets from the source is that tip, exactly — which is also
+  // furthest the outline then gets from the source is that tip, exactly - which is also
   // the reason a shadow ramp wants round joins and gets spikes if it says nothing.
   const spike = 10 * (1 / Math.sin(Math.PI / 10) - 1);
   near(worstOffsetError([STAR], offsetContour(STAR, 10, { join: 'miter' }), 10), spike, 1e-4);
@@ -541,7 +541,7 @@ test('eroding past the radius of curvature gives the exact sharp-cornered answer
   // local radius of curvature, where the true offset folds into a swallowtail and the
   // answer depends entirely on the loop resolution. It has a closed form. A 100×100
   // rounded rect of radius 20 is the 60×60 square [20,80]² dilated by a disc of 20, and
-  // eroding that by d>20 is eroding the 60×60 square by (d−20) — a SHARP-cornered
+  // eroding that by d>20 is eroding the 60×60 square by (d−20) - a SHARP-cornered
   // square, with every trace of the arcs gone.
   const rr = roundedRect(20);
   for (const [d, side] of [[-20, 60], [-25, 50], [-30, 40], [-40, 20]] as const) {
@@ -638,7 +638,7 @@ test('a smooth contour gets no joins at all — the pieces already meet', () => 
   // The shared-endpoint trap, in its offset form. Consecutive curves of a circle are
   // tangent-continuous, so their offsets meet exactly and nothing may be inserted
   // between them. A join wedged in at every source vertex would still chain, still be
-  // closed, and still measure |d| from the source — and would quietly add a curve per
+  // closed, and still measure |d| from the source - and would quietly add a curve per
   // vertex to every shape that goes near this code.
   const src = circleContour(100);
   for (const d of [20, -20]) {
@@ -713,7 +713,7 @@ test('shapes that touch without crossing are handled as contact, not as a crossi
   const abutting: GeomPath = [SQUARE, poly([100, 0], [200, 0], [200, 100], [100, 100])];
   const grown = offsetPath(abutting, 5);
   // The region is right either way; what is asked here is that the result is only the
-  // region. A contour enclosing no area is not geometry — it renders as nothing, and it
+  // region. A contour enclosing no area is not geometry - it renders as nothing, and it
   // is a knot the next boolean has to resolve.
   const solid = grown.filter((c) => Math.abs(areaOf(c)) > 1e-9);
   assert.equal(solid.length, 1, 'a shared edge means one region');
@@ -793,7 +793,7 @@ test('eroding a CIRCLE past its radius leaves nothing, however far past', () => 
   // the point at angle θ to the point of radius 1 at angle θ+π, which still sweeps
   // counter-clockwise: handedness is PRESERVED, so the inside-out disc reads as material
   // and the offsetter grew a shape where it owed the caller nothing. It grew with the
-  // distance — 3.07, 78.2, 1255, 7851, 31408 for the five distances below — so the guard
+  // distance - 3.07, 78.2, 1255, 7851, 31408 for the five distances below - so the guard
   // has to cover the range rather than one value. A square of the same proportions was
   // always right, which is how this survived a suite.
   for (const [what, c] of [['ccw', circleContour(50)], ['cw', reverse(circleContour(50))]] as const) {
@@ -810,7 +810,7 @@ test('eroding a CIRCLE past its radius leaves nothing, however far past', () => 
     assert.equal(alive.length, 1, 'eroding by less than the radius must leave a disc');
     // A disc of r≈1, and only approximately π: what is left is the fitted offset of a
     // cubic circle, so it carries both the fixture's 2.8e-4 excess and the fit's own
-    // tolerance — magnified here because 0.01 of tolerance on a radius of 1 is a percent.
+    // tolerance - magnified here because 0.01 of tolerance on a radius of 1 is a percent.
     near(Math.abs(pathArea(alive)), Math.PI, 0.05, 'the r=1 disc that is left');
   }
 });
@@ -818,7 +818,7 @@ test('eroding a CIRCLE past its radius leaves nothing, however far past', () => 
 test('an ellipse eroded past its own radius of curvature is empty too', () => {
   // The same property where the fold is partial rather than total: an 80×25 ellipse has a
   // minimum radius of curvature of 25²/80 = 7.8 at its ends, so an erosion of 25 folds
-  // there while the flanks are still ordinary — and at 26 nothing at all is left, since 25
+  // there while the flanks are still ordinary - and at 26 nothing at all is left, since 25
   // is its inradius.
   const e = ellipseContour(80, 25);
   assert.ok(Math.abs(pathArea([offsetPath([e], -24, { join: 'round' })].flat())) > 1,
@@ -835,7 +835,7 @@ test('a contour that passes close to itself keeps only the contour the erosion h
   // point is from the source; while that probe bracketed its answer on a sample grid it
   // picked a basin, and on a contour whose branches pass close to one another it refined the
   // wrong one and under-reported the distance by orders of magnitude. Here it kept a whole
-  // second contour of area 208.6 alongside the real 1058.8 — a fifth of the output invented,
+  // second contour of area 208.6 alongside the real 1058.8 - a fifth of the output invented,
   // in the same family as the eroded circle that grew above.
   const src: GeomPath = [{ closed: true, curves: [
     [34.904874823987484, 25.09455450810492, 46.455714628100395, 46.71949555166066,
@@ -849,7 +849,7 @@ test('a contour that passes close to itself keeps only the contour the erosion h
 
   // Brute force for the verdict, deliberately: the thing under test is the probe, so the
   // check cannot go through it. A contour of an erosion by 3 has every point of its own
-  // boundary at least 3 from the source — the spurious one came within 0.087.
+  // boundary at least 3 from the source - the spurious one came within 0.087.
   const brute = (x: number, y: number): number => {
     let best = Infinity;
     for (const c of src) for (const k of c.curves) {
@@ -932,7 +932,7 @@ test('the thin-ribbon inset is exact at every angle, not merely non-empty', () =
 test('a non-finite coordinate is dropped, never spread through the output as NaN', () => {
   // A curve with a coordinate that is not a number has no normal, so every step of the
   // offsetter would propagate it: `offsetPath` on a curve ending at Infinity used to emit
-  // NaN control points. The contract is to drop the curve — a gap in a contour is the one
+  // NaN control points. The contract is to drop the curve - a gap in a contour is the one
   // thing this module already handles everywhere, since gaps become joins.
   const inf = Number.POSITIVE_INFINITY;
   for (const bad of [
@@ -959,7 +959,7 @@ test('a non-finite coordinate is dropped, never spread through the output as NaN
       assertChained(out, `${what} d=${d}`);
     }
   }
-  // The square survives its poisoned neighbour intact — dropping is not discarding.
+  // The square survives its poisoned neighbour intact - dropping is not discarding.
   const poisoned = [inject(SQUARE, [0, 0, inf, 0, 0, 0, 0, 0] as Cubic)];
   near(pathArea(offsetPath(poisoned, 10)), 14400, 1e-6, 'the good geometry still offsets');
   near(pathArea(offsetPath(poisoned, -10)), 6400, 1e-6);
@@ -990,7 +990,7 @@ test('an inward offset is the source eroded by a disc, point by point', () => {
 
 test('a concave mouth grows shut without swallowing what is out of reach', () => {
   // The slot in the C is 20 wide and 70 deep, so growing by 15 fills it and the result
-  // is the square grown by 15 — except at the mouth, where the two corners at (100,40)
+  // is the square grown by 15 - except at the mouth, where the two corners at (100,40)
   // and (100,60) are more than 30 apart and their discs do not meet the far side. The
   // notch between them is a fold's opposite: material the offset must NOT invent.
   const out = offsetPath([CSHAPE], 15, { join: 'round' });
@@ -1007,14 +1007,14 @@ test('a concave mouth grows shut without swallowing what is out of reach', () =>
 test('a cusp inside one cubic is joined, not cut across', () => {
   // At a tangent reversal the true offset jumps 2|d| to the other side, so the two pieces
   // gap by 2|d| and a round join there is a half-disc of radius |d| about the cusp point.
-  // Welding the gap shut instead — which is what happens when the cut lands a whisker off
-  // the reversal and the two ends come back to the same place — leaves a fitted piece
+  // Welding the gap shut instead - which is what happens when the cut lands a whisker off
+  // the reversal and the two ends come back to the same place - leaves a fitted piece
   // running straight through the cusp, at distance 0 from a source that asked for |d|.
   //
   // The cap is asserted directly rather than through `worstOffsetError`, and on BOTH
   // sides. That helper measures the distance to the whole source and is documented as
   // valid only where |d| stays under the radius of curvature; a cusp's radius of
-  // curvature is zero, so on the concave side the exact pointwise offset dives into the
+  // curvature is zero, so on the concave side the exact pointwise offset plunges into the
   // spike's throat, where the OTHER branch of the same curve is nearer than |d|. Measured
   // on this fixture: the branches are 4.59 apart at t=0.3 and 2.08 at t=0.35, so the
   // exact offset at d=−5 comes back 0.25 from the far branch around t=0.32. That is the
@@ -1050,7 +1050,7 @@ test('a cusp inside one cubic is joined, not cut across', () => {
 });
 
 test('the implicit closing edge of a closed contour is part of the shape', () => {
-  // path.ts stores the wrap implicitly — `closed: true` with no closing curve is what
+  // path.ts stores the wrap implicitly - `closed: true` with no closing curve is what
   // `pathFromSubPaths` produces for every `Z` that parseSvgPath sees, so this is the
   // shape most real input arrives in. Offsetting it must give the same answer as
   // offsetting the same outline with the edge written out.
@@ -1079,7 +1079,7 @@ test('a self-intersecting star offsets to one outline, not to five overlapping o
 });
 
 test('a self-intersecting closed input comes back finite and closed', () => {
-  // A bowtie has no well-defined inside, so no area is asserted — what is owed is that
+  // A bowtie has no well-defined inside, so no area is asserted - what is owed is that
   // the resolver terminates and hands back contours rather than a knot.
   const bowtie = poly([0, 0], [100, 100], [100, 0], [0, 100]);
   const t0 = process.hrtime.bigint();
@@ -1091,7 +1091,7 @@ test('a self-intersecting closed input comes back finite and closed', () => {
 
 test('a zero-area slit offsets to the stadium around it', () => {
   // Out and back along the same line: coincident curves, no interior at all. With round
-  // joins the answer is exact — a 100×10 rectangle plus two half-discs — and the discs
+  // joins the answer is exact - a 100×10 rectangle plus two half-discs - and the discs
   // are the same four-cubic circle the join builds, not π·25.
   const slit: Contour = { closed: true, curves: [lineToCubic(0, 0, 100, 0), lineToCubic(100, 0, 0, 0)] };
   const round = offsetContour(slit, 5, { join: 'round' });
@@ -1132,7 +1132,7 @@ function reverse(c: Contour): Contour {
   return { closed: c.closed, curves: c.curves.map((k) => [k[6], k[7], k[4], k[5], k[2], k[3], k[0], k[1]] as Cubic).reverse() };
 }
 
-/** True nearest distance from each sample to the fitted chain — stricter than the
+/** True nearest distance from each sample to the fitted chain - stricter than the
  *  parameter-based error the fitter minimises, and the one a caller can see. */
 function worstFitError(pts: Pt[], fit: Cubic[]): number {
   let worst = 0;
@@ -1166,7 +1166,7 @@ test('an outward offset of a five-times-self-crossing loop is one region, not fo
   // A closed contour that crosses itself repeatedly, grown outward far enough that every lobe
   // merges into a single blob. The self-union that resolves the sweep used to annihilate a
   // pair of weld-scale opposed slivers in it, break the walk at the vertex they linked, and
-  // hand back fourteen contours enclosing a quarter of the right area — 1370 against 5579.
+  // hand back fourteen contours enclosing a quarter of the right area - 1370 against 5579.
   //
   // The coordinates come from a randomised sweep and nothing about them is special except
   // that two boundary strands of the sweep land a weld radius apart, so rounding them moves

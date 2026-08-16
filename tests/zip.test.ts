@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
- * zip.ts — round-trip + wire-format assertions for the shared plain-zip primitive.
+ * zip.ts - round-trip + wire-format assertions for the shared plain-zip primitive.
  * Fixtures are built in-test (storeZip → readZip, and by hand-poking raw bytes)
  * so nothing external is trusted.
  */
@@ -60,7 +60,7 @@ test('a deflated entry is actually stored with method 8 and inflates back', () =
 test('mimetypeFirst stores an uncompressed mimetype as the very first entry', () => {
   const mimetype = enc.encode('application/epub+zip');
   // Give it AFTER other entries, with mimetype content long enough that it would
-  // normally deflate — proving the reorder + force-stored, not luck.
+  // normally deflate - proving the reorder + force-stored, not luck.
   const input = [
     { name: 'META-INF/container.xml', bytes: enc.encode('<container/>'.repeat(50)) },
     { name: 'mimetype', bytes: mimetype },

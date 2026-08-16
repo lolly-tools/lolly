@@ -1,10 +1,10 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
- * Procedural music generator — emits a varied set of CC0 ZzFXM tracks into the
+ * Procedural music generator - emits a varied set of CC0 ZzFXM tracks into the
  * lolly-start catalog for Neurospicy Mode + video music beds. Variety by design:
  * ambient (melody + soothing sweeps, no drums), rhythmic (kick/snare/hats + bass
  * groove), and melodic (lead + pad + light hats). Deterministic (seeded) so files
- * and checksums are byte-stable across runs — no git churn.
+ * and checksums are byte-stable across runs - no git churn.
  *
  * Each track is a few KB of ZzFXM data yet ~30–60s long (a handful of reused
  * patterns arranged into a longer sequence; low BPM stretches patterns so length
@@ -14,7 +14,7 @@
  * checksums/sizes) and `npm run validate:catalog`.
  *
  * NOTE: rendering here only checks the audio is present, in-range and the right
- * length — it can't judge taste. Audition in the app.
+ * length - it can't judge taste. Audition in the app.
  */
 import { writeFileSync, mkdirSync, readFileSync, existsSync } from 'node:fs';
 import { createHash } from 'node:crypto';
@@ -130,7 +130,7 @@ for (const t of TRACKS) {
   writeFileSync(join(SONGS_DIR, file), bytes);
   // Self-fill the SRI checksum + size (same format as scripts/checksum-assets.ts)
   // so the index is complete regardless of which profile's catalog view is active
-  // — the songs live in the lolly-start SOURCE, which build:catalog only reaches
+  // - the songs live in the lolly-start SOURCE, which build:catalog only reaches
   // when that profile is the active view.
   const checksum = `sha256-${createHash('sha256').update(bytes).digest('base64')}`;
   const size = Buffer.byteLength(bytes);
@@ -155,7 +155,7 @@ for (const t of TRACKS) {
 const index = existsSync(INDEX_PATH)
   ? (JSON.parse(readFileSync(INDEX_PATH, 'utf8')) as { assets: Asset[]; [k: string]: unknown })
   : { assets: [] as Asset[] };
-// Only replace entries THIS script owns (one per TRACKS slug) — songs registered by
+// Only replace entries THIS script owns (one per TRACKS slug) - songs registered by
 // other sources (e.g. scripts/ingest-midi.ts's fur-elise) must survive a rerun.
 const ownedSlugs = new Set(TRACKS.map((t) => `lolly/songs/${t.slug}`));
 index.assets = (index.assets ?? []).filter((a) => !ownedSlugs.has(a.id));

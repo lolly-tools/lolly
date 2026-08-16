@@ -1,54 +1,54 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
- * Gain maps — the ISO 21496-1 / Adobe "one file, two renditions" math
+ * Gain maps: the ISO 21496-1 / Adobe "one file, two renditions" math
  * (deeprichpixels plan §4.2, §6 B2, §8 row "gain maps spread beyond JPEG/AVIF").
  *
  * A gain map is a small greyscale image that says, per pixel, how much brighter
  * the HDR rendition is than the SDR one. The SDR rendition is the file every
- * decoder already understands; a gain-map-aware decoder multiplies it back up,
+ * decoder already understands. A gain-map-aware decoder multiplies it back up,
  * scaled by how much headroom the actual display has. That is why it is the only
  * HDR still output that renders as real HDR in Chromium/Safari/Android/iOS today
  * and degrades to a perfect ordinary SDR image everywhere else.
  *
  * This module is **container-agnostic on purpose**: it computes and inverts the
  * map and produces the metadata fields, and knows nothing about JPEG, MPF, XMP
- * or ISO boxes. B2 glues the result into a gain-map JPEG; a later PNG 4e / JXL /
+ * or ISO boxes. B2 glues the result into a gain-map JPEG. A later PNG 4e / JXL /
  * AVIF gain map reuses this file unchanged (plan §8: "the expensive part is
  * container-agnostic by construction"). It is also DOM-free like the rest of the
  * engine, so CLI and browser compute identical bytes.
  *
- * ─── Sources (every formula cited at its use site) ───────────────────────────
- *   - ISO/CIE 21496-1:2025, "Gain map metadata for image conversion" — the
+ * --- Sources (every formula cited at its use site) ---------------------------
+ *   - ISO/CIE 21496-1:2025, "Gain map metadata for image conversion" - the
  *     standard the metadata fields below name.
  *   - Adobe Gain Map Specification v1.0 (the informative encode/decode method
  *     ISO 21496-1 formalises), https://helpx.adobe.com/camera-raw/using/gain-map.html
  *   - Google "Ultra HDR Image Format v1.1", the same equations in explicit
  *     pseudo-code: https://developer.android.com/media/platform/hdr-image-format
- *   - libultrahdr (Apache-2.0) gainmapmath.cpp — the reference implementation
+ *   - libultrahdr (Apache-2.0) gainmapmath.cpp - the reference implementation
  *     whose encode/decode gamma directions this module matches.
- *   - ITU-R BT.2020-2 Table 4 / BT.2100-2 — the luma coefficients used to reduce
+ *   - ITU-R BT.2020-2 Table 4 / BT.2100-2 - the luma coefficients used to reduce
  *     a pixel to the single luminance value a single-channel map carries.
  *
- * ─── Decisions taken here, and why ───────────────────────────────────────────
+ * --- Decisions taken here, and why --------------------------------------------
  *
  * **Single channel (luminance), not RGB.** ISO 21496-1 allows a per-channel
- * (3-channel) gain map. We emit ONE channel: our HDR rendition comes from
+ * (3-channel) gain map. We emit ONE channel. Our HDR rendition comes from
  * {@link hdrViewTransform}. That transform has two parts: a per-pixel *scalar*
  * boost on linear RGB, which one luminance channel reproduces exactly, and the
  * `richness` re-saturation, which is a per-channel chroma change a scalar map
  * CANNOT carry. Richness is on by default (`hdr.ts` defaults it to 0.4, and the
  * export dials leave it there unless an author moves them), so the reconstructed
- * HDR rendition is slightly less saturated than the float transform's — measured
- * in the round-trip test. That is the concrete case for a future RGB mode; the
- * trade today is one third of the bytes for exact luminance and approximate
- * chroma. `meta.channels` is `1` so a future RGB mode is an additive change,
- * not a breaking one.
+ * HDR rendition is slightly less saturated than the float transform's. This is
+ * measured in the round-trip test. That is the concrete case for a future RGB
+ * mode; the trade today is one third of the bytes for exact luminance and
+ * approximate chroma. `meta.channels` is `1` so a future RGB mode is an
+ * additive change, not a breaking one.
  *
  * **The ratio is computed in ONE space: `rec2020-linear`.** {@link hdrViewTransform}
  * returns `rec2020-linear`; a canvas SDR render arrives as `srgb-linear` from
  * `fromU8Srgb`. Taking the ratio without converting would encode a *gamut* change
  * into the map (a saturated sRGB red has Rec.709 luminance 0.2126 but its raw
- * channels weighted with BT.2020 coefficients give 0.2627 — a bogus -0.30 log2
+ * channels weighted with BT.2020 coefficients give 0.2627, a bogus -0.30 log2
  * "gain" on a pixel that did not change at all). Both sides are converted to
  * `rec2020-linear` before the luminance reduction; `tests/gainmap.test.ts` pins
  * this with that exact counterfactual.
@@ -60,7 +60,7 @@
  * which would poison the min/max fit for the whole image. Policy, applied to the
  * *luminance* after reduction and never to the caller's frames:
  *   1. non-finite -> 0 (the `san` idiom shared with hdr.ts and icc-pixels.ts);
- *   2. negative -> 0 (clamped at the offset floor — offsets exist precisely to
+ *   2. negative -> 0 (clamped at the offset floor - offsets exist precisely to
  *      keep the ratio defined near zero);
  *   3. a pixel whose base or alternate luminance is still 0 after that has NO
  *      defined ratio. It is assigned the neutral gain (log2 = 0), and EXCLUDED
@@ -73,55 +73,56 @@
  * ratio finite near zero, and the spec default is 1/64. But we do not need them
  * for that (policy 3 above covers it), and they cost real accuracy in our case:
  * the map carries *luminance* gain while the decoder applies it per channel, so
- * a non-zero offset makes the decode exact only for neutrals — a saturated red
- * boosted 2x comes back ~3% dark. With offsets 0 the decode is a pure scalar and
- * is exact for every hue, and the scalar commutes with the primary matrix, so it
- * no longer matters which linear space the decoder applies it in. Both offsets
- * remain options for callers who want the conventional floor, and whatever is
- * used is written into the metadata, so a conformant decoder follows either way.
+ * a non-zero offset makes the decode exact only for neutrals: a saturated red
+ * boosted 2x comes back about 3% dark. With offsets 0 the decode is a pure
+ * scalar and is exact for every hue, and the scalar commutes with the primary
+ * matrix, so it no longer matters which linear space the decoder applies it in.
+ * Both offsets remain options for callers who want the conventional floor, and
+ * whatever is used is written into the metadata, so a conformant decoder
+ * follows either way.
  */
 
 import { convertSpace, type DeepFrame } from './pixels.ts';
 
-// ─── metadata ─────────────────────────────────────────────────────────────────
+// --- metadata --------------------------------------------------------------------
 
 /**
  * The ISO 21496-1 / Adobe gain-map metadata a container must carry beside the
- * map image. Names follow the Adobe/Ultra HDR XMP vocabulary (`hdrgm:*`); the
+ * map image. Names follow the Adobe/Ultra HDR XMP vocabulary (`hdrgm:*`). The
  * ISO box spells the same quantities as signed rationals and calls the capacity
- * pair "HDR headroom" — the container writer converts, this module does not.
+ * pair "HDR headroom". The container writer converts; this module does not.
  *
  * All four log2 fields are log2 ratios (0 = no change), NOT linear multipliers.
  */
 export interface GainMapMeta {
   /** 1 = single-channel (luminance) map. See the module header for why. */
   channels: 1;
-  /** log2 of the smallest gain in the map — `hdrgm:GainMapMin`. */
+  /** log2 of the smallest gain in the map - `hdrgm:GainMapMin`. */
   gainMapMin: number;
-  /** log2 of the largest gain in the map — `hdrgm:GainMapMax`. */
+  /** log2 of the largest gain in the map - `hdrgm:GainMapMax`. */
   gainMapMax: number;
-  /** Encoding gamma applied to the normalised map value — `hdrgm:Gamma`. > 0. */
+  /** Encoding gamma applied to the normalised map value - `hdrgm:Gamma`. > 0. */
   gamma: number;
-  /** Constant added to the base (SDR) value before the ratio — `hdrgm:OffsetSDR`. */
+  /** Constant added to the base (SDR) value before the ratio - `hdrgm:OffsetSDR`. */
   offsetSdr: number;
-  /** Constant added to the alternate (HDR) value before the ratio — `hdrgm:OffsetHDR`. */
+  /** Constant added to the alternate (HDR) value before the ratio - `hdrgm:OffsetHDR`. */
   offsetHdr: number;
-  /** log2 display headroom at/below which the map is not applied — `hdrgm:HDRCapacityMin`. */
+  /** log2 display headroom at/below which the map is not applied - `hdrgm:HDRCapacityMin`. */
   hdrCapacityMin: number;
-  /** log2 display headroom at/above which the map is applied in full — `hdrgm:HDRCapacityMax`. */
+  /** log2 display headroom at/above which the map is applied in full - `hdrgm:HDRCapacityMax`. */
   hdrCapacityMax: number;
   /** Which rendition the primary image holds. Lolly always writes the SDR one. */
   baseRendition: 'sdr';
   /**
    * `hdrgm:BaseRenditionIsHDR == false` companion: whether the gain is applied
-   * in the base image's colour space. True here — the map is a scalar, and with
+   * in the base image's colour space. True here: the map is a scalar, and with
    * `offsetSdr = 0` a scalar commutes with any primary matrix, so base-space
    * application is exact (see the module header).
    */
   useBaseColorSpace: boolean;
 }
 
-/** Diagnostics about the fit — not spec metadata, but the honest record of what happened. */
+/** Diagnostics about the fit. Not spec metadata, but the honest record of what happened. */
 export interface GainMapStats {
   /** Pixels whose ratio was undefined (zero base or alternate light after the clamp policy). */
   undefinedPixels: number;
@@ -136,7 +137,7 @@ export interface GainMapStats {
 export interface GainMapResult {
   width: number;
   height: number;
-  /** Single channel, one byte per pixel, row-major — length = width * height. */
+  /** Single channel, one byte per pixel, row-major - length = width * height. */
   map: Uint8ClampedArray;
   meta: GainMapMeta;
   stats: GainMapStats;
@@ -145,9 +146,9 @@ export interface GainMapResult {
 export interface GainMapOptions {
   /** Encoding gamma (`hdrgm:Gamma`). Default 1 (linear in log2 space). Must be > 0. */
   gamma?: number;
-  /** Base-side offset. Default 0 — see the module header. */
+  /** Base-side offset. Default 0 - see the module header. */
   offsetSdr?: number;
-  /** Alternate-side offset. Default 0 — see the module header. */
+  /** Alternate-side offset. Default 0 - see the module header. */
   offsetHdr?: number;
   /** Force the low end of the log2 range instead of fitting it to the image. */
   minLog2?: number;
@@ -157,7 +158,7 @@ export interface GainMapOptions {
 
 const DEFAULTS = { gamma: 1, offsetSdr: 0, offsetHdr: 0 } as const;
 
-// ─── luminance ────────────────────────────────────────────────────────────────
+// --- luminance -------------------------------------------------------------------
 
 /**
  * ITU-R BT.2020-2 Table 4 (and BT.2100-2) non-constant-luminance coefficients.
@@ -171,7 +172,7 @@ const san = (v: number): number => (Number.isFinite(v) ? v : 0);
 /** The colour space every gain ratio in this module is computed in. */
 export const GAIN_MAP_SPACE = 'rec2020-linear' as const;
 
-// ─── computeGainMap ───────────────────────────────────────────────────────────
+// --- computeGainMap ----------------------------------------------------------
 
 /**
  * Compute the gain map between an SDR rendition and its HDR rendition.
@@ -188,7 +189,7 @@ export const GAIN_MAP_SPACE = 'rec2020-linear' as const;
  *
  * `gainMapMin`/`gainMapMax` are fitted over the image unless overridden. The
  * gamma direction matches libultrahdr: `pow(t, gamma)` on encode, `pow(v, 1/gamma)`
- * on decode ({@link applyGainMap}) — at the default gamma of 1 both are identity.
+ * on decode ({@link applyGainMap}). At the default gamma of 1, both are identity.
  *
  * Neither input frame is mutated. Throws only on a caller mistake (mismatched
  * dimensions, non-positive gamma, negative offsets); pixel damage is handled by
@@ -305,8 +306,8 @@ export function computeGainMap(sdr: DeepFrame, hdr: DeepFrame, opts: GainMapOpti
  * / Ultra HDR): 0 on an SDR display, 1 on a display with at least the headroom
  * the map asks for, linear in log2 headroom between.
  *
- * `displayHeadroomLog2` is log2(peak luminance / SDR reference white) — e.g. 0
- * for an SDR display, log2(1000/203) ~= 2.30 for the 1000-nit target
+ * `displayHeadroomLog2` is log2(peak luminance / SDR reference white). For example
+ * 0 for an SDR display, log2(1000/203) ~= 2.30 for the 1000-nit target
  * `hdrViewTransform` boosts toward.
  */
 export function gainMapWeight(meta: GainMapMeta, displayHeadroomLog2: number): number {
@@ -314,7 +315,7 @@ export function gainMapWeight(meta: GainMapMeta, displayHeadroomLog2: number): n
   const hi = meta.hdrCapacityMax;
   const hr = san(displayHeadroomLog2);
   // Degenerate capacity range (hi == lo): a hard switch at the threshold. An SDR
-  // display (hr <= lo) must NEVER get the gain — applying it there would break the
+  // display (hr <= lo) must NEVER get the gain: applying it there would break the
   // "degrades to a perfect SDR image" promise, which is the whole point of the
   // format. Only a display strictly past the threshold takes the full gain.
   if (!(hi > lo)) return hr > lo ? 1 : 0;
@@ -326,7 +327,7 @@ export interface ApplyGainMapOptions {
   /**
    * log2 display headroom, fed through {@link gainMapWeight}. Default: full
    * application (weight 1), which reconstructs the HDR rendition the map was
-   * computed from — the round-trip case.
+   * computed from: the round-trip case.
    */
   displayHeadroomLog2?: number;
   /** Explicit weight in [0,1], overriding `displayHeadroomLog2`. */
@@ -335,8 +336,8 @@ export interface ApplyGainMapOptions {
 
 /**
  * The decoder half: reconstruct the HDR rendition from the SDR one plus the map.
- * Not used by the export path (a real decoder does this on the viewer's device)
- * — it exists so the claim "this map means hdr = sdr * 2^gain" is testable, and
+ * Not used by the export path (a real decoder does this on the viewer's device).
+ * It exists so the claim "this map means hdr = sdr * 2^gain" is testable, and
  * so a CLI/preview path can show what a viewer will see.
  *
  * Per Adobe/Ultra HDR, with `t` the map value normalised to [0,1]:
@@ -350,8 +351,8 @@ export interface ApplyGainMapOptions {
  * The boost is a scalar applied to each linear channel, so hue is preserved by
  * construction. The returned frame is new and carries the INPUT frame's space:
  * with `offsetSdr = 0` (our default) the scalar commutes with the primary
- * matrix, so applying before or after a space conversion gives identical results
- * — pinned by tests. With non-zero offsets, apply in the space the map was
+ * matrix, so applying before or after a space conversion gives identical results.
+ * This is pinned by tests. With non-zero offsets, apply in the space the map was
  * computed in ({@link GAIN_MAP_SPACE}) for exactness.
  */
 export function applyGainMap(

@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
- * Unit tests for engine/src/brand-map.ts — the brand colour + font mapper
+ * Unit tests for engine/src/brand-map.ts - the brand colour + font mapper
  * (plan track E3). Covers the intentional-output guard rails: the chroma gate
  * (neutrals stay neutral, chromatics stay chromatic), nearest-by-ΔEOK for
  * chromatic sources, the review threshold, role hints, many-to-one palette
@@ -243,7 +243,7 @@ test('a two-neutral brand (ink + surface) never inverts dk2/lt2 across the midpo
   assert.equal(theme.dk1, '1A1A1A');
   assert.equal(theme.lt1, 'FAFAFA');
   // The only OTHER distinct neutral sits on the wrong side of the dk1/lt1
-  // lightness midpoint — taking it would put dk2 body text white-on-white.
+  // lightness midpoint - taking it would put dk2 body text white-on-white.
   assert.equal(theme.dk2, theme.dk1);
   assert.equal(theme.lt2, theme.lt1);
 });
@@ -267,7 +267,7 @@ test('accent slots: role-matched first, then input order, cycling to six', () =>
   assert.equal(theme.accent2, 'FF8C00');
   assert.equal(theme.accent3, '00AA55');
   assert.equal(theme.accent4, '7B2FBE');
-  // Four distinct accents cycle to fill the remaining slots — an omitted slot
+  // Four distinct accents cycle to fill the remaining slots - an omitted slot
   // would keep the OLD brand colour in the deck.
   assert.equal(theme.accent5, '3564D4');
   assert.equal(theme.accent6, 'FF8C00');

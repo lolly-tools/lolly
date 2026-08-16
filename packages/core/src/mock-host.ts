@@ -1,13 +1,13 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
- * createMockHost — an in-memory {@link HostV1} for unit-testing a tool's hooks
+ * createMockHost - an in-memory {@link HostV1} for unit-testing a tool's hooks
  * without a real shell (no DOM, no filesystem, no network). State is an in-memory
  * Map; clipboard / export / log calls are captured so a test can assert what the
  * tool did via `host.inspect`.
  *
  * It implements the REQUIRED bridge surface (profile, assets, state, clipboard,
  * export, log). The optional capabilities (net, tokens, text, pdf, capture,
- * compose, media, recorder) are left undefined by default — a hook that
+ * compose, media, recorder) are left undefined by default. A hook that
  * feature-detects one sees it as absent unless you supply your own on the returned
  * object.
  */
@@ -156,7 +156,7 @@ export function createMockHost(opts: CreateMockHostOpts = {}): MockHost {
         exports.push({ kind: 'file', filename: o?.filename, bytes: blob.size });
       },
       async imprint(bytes: Uint8Array, _format: string, _o?: { durable?: boolean }) {
-        // No rasteriser in the mock — return the bytes unchanged (the progressive-
+        // No rasteriser in the mock. Return the bytes unchanged (the progressive-
         // enhancement contract), same as the headless CLI.
         return bytes;
       },

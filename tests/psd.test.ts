@@ -5,7 +5,7 @@
  * The round-trip suite is the contract: readPsd(writePsd(doc)) must reproduce
  * every layer's name/rect/opacity/visibility/blend/pixels exactly. Hand-built
  * byte fixtures cover what our writer never emits (16-bit, grayscale, CMYK,
- * refusals, damage) — the same house style as pptx-read's fixtures.
+ * refusals, damage) - the same house style as pptx-read's fixtures.
  *
  * Run with: node --test tests/psd.test.ts
  */
@@ -29,7 +29,7 @@ function pix(w: number, h: number, seed = 1): Uint8Array {
   return out;
 }
 
-/** Flat-colour RGBA (compresses hard — exercises the RLE path). */
+/** Flat-colour RGBA (compresses hard - exercises the RLE path). */
 function flatPix(w: number, h: number, r: number, g: number, b: number, a = 255): Uint8Array {
   const out = new Uint8Array(w * h * 4);
   for (let i = 0; i < out.length; i += 4) { out[i] = r; out[i + 1] = g; out[i + 2] = b; out[i + 3] = a; }
@@ -248,7 +248,7 @@ test('psd: a lying RLE row table skips the layer with a warning', () => {
   // corrupt a row length to an absurd value. The alpha channel is written
   // first; poke its first row-length entry.
   // Rather than byte-hunt, corrupt EVERY u16 0x0001..0x0004-looking row length:
-  // simpler and still deterministic — flip a mid-file byte region and require
+  // simpler and still deterministic - flip a mid-file byte region and require
   // "no throw + document still returned".
   const bytes = full.slice();
   for (let i = 60; i < Math.min(bytes.length, 160); i++) bytes[i] = 0xff;

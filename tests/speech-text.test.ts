@@ -3,8 +3,8 @@
  * Unit tests for the PURE half of Kokoro speech synthesis
  * (engine/src/speech-text.ts): sentence/word splitting, char→token span
  * bookkeeping, durations→seconds conversion and clip concatenation. The model,
- * tokenizer and phonemizer wasm stay out — phonemizeChunk takes an injected
- * eSpeak stub — so this runs in plain Node like the other engine suites.
+ * tokenizer and phonemizer wasm stay out - phonemizeChunk takes an injected
+ * eSpeak stub - so this runs in plain Node like the other engine suites.
  * Moved from shells/web/src/lib/speech-kokoro.test.ts when the module moved
  * into the engine (roadmap §4's one-synthesis-layer rule).
  */
@@ -68,7 +68,7 @@ describe('splitSentences', () => {
 });
 
 describe('normalize-then-split (kokoro.js order)', () => {
-  // The worker runs normalizeText over the WHOLE input before splitSentences —
+  // The worker runs normalizeText over the WHOLE input before splitSentences - 
   // these pin the composed behaviour the old per-word order got wrong.
   test('a decimal does not shatter its sentence', () => {
     assert.deepEqual(
@@ -132,7 +132,7 @@ describe('chunkByPhonemeLength', () => {
   });
 
   test('a pathological expansion splits into budget-sized chunks with no word lost', () => {
-    // '$45' x70 is 279 raw chars — under the 400-char wrap — but normalizes and
+    // '$45' x70 is 279 raw chars - under the 400-char wrap - but normalizes and
     // phonemizes to far more than 510 tokens. Every word must land in a chunk
     // whose joined phonemes fit, instead of the tokenizer truncating silently.
     const words = Array(70).fill('$45') as string[];

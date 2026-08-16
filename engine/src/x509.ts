@@ -1,14 +1,14 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
- * DER / X.509 authority — pure, DOM-free (globalThis.crypto only; browsers
+ * DER / X.509 authority - pure, DOM-free (globalThis.crypto only; browsers
  * and Node 18+). Extracted from c2pa.js so the on-device C2PA signer, the
  * Lolly CA service and tests share one writer.
  *
  * Two certificate producers live here:
- *   - generateSigner — the ephemeral self-signed credential every offline
+ *   - generateSigner - the ephemeral self-signed credential every offline
  *     export signs with (byte-identical to its previous c2pa.js home; the
  *     c2pa test suite is the regression harness).
- *   - generateCaRoot + issueLeafCert — the identity path: a long-lived
+ *   - generateCaRoot + issueLeafCert - the identity path: a long-lived
  *     self-signed CA:TRUE root (its private key never enters the repo)
  *     issuing short-lived leaf certificates bound to an OIDC-verified email
  *     (SAN rfc822Name).
@@ -93,7 +93,7 @@ export function asDate(v: DateInput, fallback: number | string): Date {
 // owns the full certificate read side.
 
 // RFC 5280 §4.2.1.2 method (1) key identifier: SHA-1 of the subjectPublicKey
-// BIT STRING value — which for EC is exactly the raw uncompressed point.
+// BIT STRING value - which for EC is exactly the raw uncompressed point.
 async function keyIdOf(spkiDer: Uint8Array): Promise<Uint8Array> {
   const [, bits] = derChildren(spkiDer, derTlv(spkiDer, 0));
   if (!bits || bits.tag !== 0x03) throw new Error('x509: SPKI has no subjectPublicKey BIT STRING');
@@ -130,7 +130,7 @@ export function derToPem(der: Uint8Array, label: string): string {
 
 const OID_ECDSA_WITH_SHA256 = '1.2.840.10045.4.3.2';
 const SIGNER_CN = 'Lolly On-Device Credential';
-// Validators surface the subject O as the credential issuer — c2pa-rs errors
+// Validators surface the subject O as the credential issuer - c2pa-rs errors
 // out of signature verification entirely when the attribute is absent.
 const SIGNER_O = 'Lolly';
 
@@ -165,7 +165,7 @@ async function signTbs(tbs: Uint8Array, privateKey: CryptoKey): Promise<Uint8Arr
  * digitalSignature). dates = { notBefore, notAfter } as Date | ISO string;
  * defaults to now ± 1 year. → { privateKey: CryptoKey, certDer: Uint8Array }
  *
- * `subject` overrides the cert's O/CN — default `O=Lolly, CN=Lolly On-Device
+ * `subject` overrides the cert's O/CN - default `O=Lolly, CN=Lolly On-Device
  * Credential`. Set it to sign AS SOMEONE ELSE: a credential attesting an asset
  * Lolly did not author (e.g. a CC0 GenAI loop from an upstream project) should
  * carry the upstream's name so the verifier never reads it as Lolly's own work.
@@ -180,14 +180,14 @@ export async function generateSigner(
   const pair = await subtle.generateKey({ name: 'ECDSA', namedCurve: 'P-256' }, true, ['sign', 'verify']) as CryptoKeyPair;
   const spki = new Uint8Array(await subtle.exportKey('spki', pair.publicKey));
   // RFC 5280 §4.2.1.2 method (1) key identifier: SHA-1 of the subjectPublicKey
-  // BIT STRING value — which for EC is exactly the raw uncompressed point.
+  // BIT STRING value - which for EC is exactly the raw uncompressed point.
   const keyId = new Uint8Array(await subtle.digest('SHA-1', new Uint8Array(await subtle.exportKey('raw', pair.publicKey))));
   const serial = randomSerial();
   const name = x501Name(subject.organization ?? SIGNER_O, subject.commonName ?? SIGNER_CN);
   const algId = derSeq(derOid(OID_ECDSA_WITH_SHA256));
   // The C2PA certificate profile (spec §14.5.1, enforced by c2pa-rs) requires,
   // beyond basicConstraints + keyUsage: an EKU that is present and allowed
-  // (emailProtection — anyExtendedKeyUsage is rejected) and an
+  // (emailProtection - anyExtendedKeyUsage is rejected) and an
   // AuthorityKeyIdentifier. SKI is included for AKI's keyid to refer back to.
   const extensions = derSeq(
     derSeq(derOid('2.5.29.19'), derOctet(derSeq())), // basicConstraints: CA absent = false
@@ -215,7 +215,7 @@ export async function generateSigner(
 /**
  * Self-signed CA root: X.509 v3, basicConstraints CA:TRUE critical, keyUsage
  * keyCertSign + cRLSign critical, SKI. ES256 P-256. The private key comes
- * back as PKCS#8 DER — custody is the caller's problem (env var / KMS, never
+ * back as PKCS#8 DER - custody is the caller's problem (env var / KMS, never
  * the repo). → { certDer: Uint8Array, pkcs8Der: Uint8Array }
  */
 export async function generateCaRoot(
@@ -248,7 +248,7 @@ export async function generateCaRoot(
 }
 
 /**
- * Issue a short-lived leaf certificate for a device public key (CSR-less —
+ * Issue a short-lived leaf certificate for a device public key (CSR-less -
  * the caller has already verified proof-of-possession). The issuer Name is
  * the CA cert's subject bytes copied VERBATIM, so chain verification's
  * byte-exact issuer/subject comparison holds by construction.

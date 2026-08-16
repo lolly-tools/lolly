@@ -1,13 +1,13 @@
 // SPDX-License-Identifier: MPL-2.0
 // Unit tests for the audio-dock shell: capability gating, collapse, transport
 // delegation, the host change-subscription, and the viz static fallback. A mock
-// DockHost stands in for the real players — the shell touches no audio itself.
+// DockHost stands in for the real players - the shell touches no audio itself.
 //
 // Run: node --test packages/audio-dock/test/dock.test.ts
 //
 // jsdom with a real origin + pretendToBeVisual (so requestAnimationFrame exists,
 // like the web-shell tests). jsdom has no canvas 2d context and no matchMedia, so
-// the viz loop stands down to the static ground — which is exactly one of the
+// the viz loop falls back to the static background - which is exactly one of the
 // cases under test. Assertions stay on the controller API + emitted structure /
 // gating attributes, never on computed CSS (jsdom does not lay out).
 import { test } from 'node:test';
@@ -386,7 +386,7 @@ test('dragging the header moves the dock and persists the position', () => {
   const P = (type: string, x: number, y: number): void =>
     { head.dispatchEvent(new dom.window.MouseEvent(type, { clientX: x, clientY: y, bubbles: true })); };
   P('pointerdown', 100, 100);
-  P('pointermove', 100, 100);   // under the threshold — not yet a drag
+  P('pointermove', 100, 100);   // under the threshold - not yet a drag
   P('pointermove', 160, 140);   // now it moves
   P('pointerup', 160, 140);
   assert.equal(typeof saved.x, 'number', 'x persisted');
@@ -424,7 +424,7 @@ test('the FULL window is resizable too (per-state size), and mini is not', () =>
   const dock = createAudioDock({ host: makeHost(), capabilities: { music: true }, mount: document.body, placement });
   assert.equal(dock.getCollapse(), 'full');
   assert.ok(dock.el.hasAttribute('data-resizable'), 'full is resizable');
-  // Resize from the west EDGE handle — moves the left edge / anchor.
+  // Resize from the west EDGE handle - moves the left edge / anchor.
   const w = dock.el.querySelector<HTMLElement>('[data-rz="w"]')!;
   const P = (type: string, x: number, y: number): void =>
     { w.dispatchEvent(new dom.window.MouseEvent(type, { clientX: x, clientY: y, bubbles: true })); };

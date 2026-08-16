@@ -1,14 +1,14 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
- * Raw DEFLATE compressor + zlib wrapper — the byte-emitting half the engine was
+ * Raw DEFLATE compressor + zlib wrapper - the byte-emitting half the engine was
  * missing. The DECODE side has always been in-tree (url-pack.ts inflates `z`
  * tokens via the platform DecompressionStream; png-unfilter.ts reverses PNG row
  * filters over an already-inflated stream), but nothing could *produce* a
  * DEFLATE stream synchronously and platform-free. The upcoming deep-pixel
  * writers need exactly that: a PNG writer compresses IDAT with zlib-wrapped
  * DEFLATE (PNG spec §10.1), and an OpenEXR writer's ZIP compression is raw
- * DEFLATE per scanline block. CompressionStream is async and stream-shaped —
- * wrong fit for a writer that interleaves compressed chunks into a container —
+ * DEFLATE per scanline block. CompressionStream is async and stream-shaped -
+ * wrong fit for a writer that interleaves compressed chunks into a container -
  * and pulling in a dependency for a frozen 1996 IETF standard is not the
  * engine's style. Pure math + typed arrays; DOM-free, deterministic, identical
  * in browser/CLI/MCP.
@@ -17,12 +17,12 @@
  * LZ77 over the full 32 KB window (hash-chain matcher, lazy matching as in
  * zlib's deflate_slow) coded with the FIXED Huffman tables (RFC 1951 §3.2.6),
  * with a per-stream fallback to stored blocks (§3.2.4, BTYPE=00) whenever the
- * fixed-code stream would be larger — so incompressible input costs at most
+ * fixed-code stream would be larger - so incompressible input costs at most
  * 5 bytes per 65535-byte block of overhead, never an expansion blow-up. Both
  * block types are mandatory for every conforming inflater, so the output is
  * spec-valid everywhere (node:zlib, DecompressionStream, libpng, ...).
  *
- * DYNAMIC Huffman blocks (§3.2.7 — per-block code lengths, typically another
+ * DYNAMIC Huffman blocks (§3.2.7 - per-block code lengths, typically another
  * 5-15% on text) are a deliberate later upgrade, not an omission by accident:
  * they add the two-pass symbol-frequency + code-length-code machinery without
  * changing this module's API or the validity of anything emitted today. The
@@ -48,7 +48,7 @@
  * create -> push -> finish, as `createStreamingMux` in the web shell's
  * video-encode-core.ts). Scratch is O(1) in the input: one 32 KB sliding LZ77
  * window carried across every slab, a hash table and a block's worth of tokens
- * — ~450 KB total, whatever the payload size — and DEFLATE blocks are emitted
+ * - ~450 KB total, whatever the payload size - and DEFLATE blocks are emitted
  * as they are produced, with BFINAL written only by `finish()`. That is what a
  * 4K 16-bit PNG (66 MiB of filtered scanlines, ~530 MiB of one-shot scratch)
  * needs; `png.ts` picks this path past a documented size and the whole-image
@@ -63,7 +63,7 @@
  * the cost model (`fixedCost`), so the two streams differ only in blocking and
  * match reach, never in how a token becomes bits.
  *
- * Reference constants (all from RFC 1951 §3.2.5-3.2.6, transcribed verbatim):
+ * Reference constants (all from RFC 1951 §3.2.5-3.2.6, copied verbatim):
  * length codes 257-285 with their base lengths + extra bits, distance codes
  * 0-29 with base distances + extra bits, and the fixed literal/length code
  * ranges (8-bit 0x30.. for 0-143, 9-bit 0x190.. for 144-255, 7-bit 0x00.. for
@@ -71,7 +71,7 @@
  * the LSB-first bitstream (§3.1.1), hence the bit-reversed code tables.
  */
 
-// ── RFC 1951 §3.2.5 — length codes 257..285 ─────────────────────────────────
+// ── RFC 1951 §3.2.5 - length codes 257..285 ─────────────────────────────────
 const LEN_BASE = [
   3, 4, 5, 6, 7, 8, 9, 10, 11, 13, 15, 17, 19, 23, 27, 31,
   35, 43, 51, 59, 67, 83, 99, 115, 131, 163, 195, 227, 258,
@@ -81,7 +81,7 @@ const LEN_EXTRA = [
   3, 3, 3, 3, 4, 4, 4, 4, 5, 5, 5, 5, 0,
 ];
 
-// ── RFC 1951 §3.2.5 — distance codes 0..29 ──────────────────────────────────
+// ── RFC 1951 §3.2.5 - distance codes 0..29 ──────────────────────────────────
 const DIST_BASE = [
   1, 2, 3, 4, 5, 7, 9, 13, 17, 25, 33, 49, 65, 97, 129, 193,
   257, 385, 513, 769, 1025, 1537, 2049, 3073, 4097, 6145, 8193, 12289, 16385, 24577,
@@ -119,7 +119,7 @@ const DIST_SLOT = (() => {
   return t;
 })();
 
-/** Reverse the low `len` bits of `code` — Huffman codes pack MSB-first (§3.1.1). */
+/** Reverse the low `len` bits of `code` - Huffman codes pack MSB-first (§3.1.1). */
 function revBits(code: number, len: number): number {
   let r = 0;
   for (let i = 0; i < len; i++) { r = (r << 1) | (code & 1); code >>= 1; }
@@ -319,7 +319,7 @@ interface BitSink { writeBits(value: number, count: number): void; }
 
 /**
  * Emit `count` tokens as fixed-Huffman symbols, then the end-of-block code.
- * The block header (BFINAL/BTYPE) is the caller's — it differs between the
+ * The block header (BFINAL/BTYPE) is the caller's - it differs between the
  * one-shot (always final) and the streaming (final only on finish) paths.
  * Shared so both paths turn a token into exactly the same bits.
  */
@@ -359,7 +359,7 @@ function fixedCost(tokens: Uint32Array, count: number): number {
 }
 
 /**
- * Compress to a raw DEFLATE stream (RFC 1951) — no zlib header/trailer.
+ * Compress to a raw DEFLATE stream (RFC 1951) - no zlib header/trailer.
  * Output inflates with `DecompressionStream('deflate-raw')`,
  * `zlib.inflateRawSync`, or any conforming inflater.
  */
@@ -445,12 +445,12 @@ export function zlibCompress(data: Uint8Array, opts?: DeflateOptions): Uint8Arra
 }
 
 // ────────────────────────────────────────────────────────────────────────────
-// Slab-fed (streaming) DEFLATE — create -> push -> finish
+// Slab-fed (streaming) DEFLATE - create -> push -> finish
 // ────────────────────────────────────────────────────────────────────────────
 
 /**
  * Bytes of context a match may need beyond the current position: the longest
- * match plus a hash's worth, plus one. zlib's MIN_LOOKAHEAD (deflate.h) — the
+ * match plus a hash's worth, plus one. zlib's MIN_LOOKAHEAD (deflate.h) - the
  * amount that must be buffered AHEAD of the cursor before a match decision can
  * be made without the answer depending on where a slab happened to end.
  */
@@ -533,7 +533,7 @@ export interface DeflateStreamOptions extends DeflateOptions {
  */
 export interface DeflateStream {
   /**
-   * Compress one slab. Any size, including 0 — slab boundaries do NOT affect
+   * Compress one slab. Any size, including 0 - slab boundaries do NOT affect
    * correctness and barely affect ratio (the LZ77 window carries across them).
    * The slab is copied into the window before returning, so the caller may
    * reuse the buffer immediately. Returns the stream bytes completed by this
@@ -797,7 +797,7 @@ export function createZlibStream(opts: DeflateStreamOptions = {}): DeflateStream
   let headerPending = true;
   let bytesOut = 0;
 
-  // Same CMF/FLG as zlibCompress — see its comment for the FCHECK arithmetic.
+  // Same CMF/FLG as zlibCompress - see its comment for the FCHECK arithmetic.
   const withHeader = (body: Uint8Array): Uint8Array => {
     if (!headerPending) return body;
     headerPending = false;

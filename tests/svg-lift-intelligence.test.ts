@@ -14,7 +14,7 @@
  *      ladder is now a fixed band in MAGNIFICATION (`liftDepths`), so N layers
  *      share the band however large N is.
  *   2. **Rows were full-stage.** Every derived document kept the source's
- *      viewBox, so a 16 px icon's `shadow: depth` cost a full-frame gaussian —
+ *      viewBox, so a 16 px icon's `shadow: depth` cost a full-frame gaussian - 
  *      which is what aborted the encoder watchdog on three of the six shots. The
  *      enumerator now crops a document to its ink where that is provably safe
  *      and reports the rect, and `liftRows` cuts the row to match.
@@ -47,7 +47,7 @@ const SHOTS = ['brand-colours', 'ai-stance-change-history', 'cc-verify-mobile',
 
 const PAINT = /<(path|rect|circle|ellipse|line|polyline|polygon|text|image|use)\b/g;
 
-/** Paint elements outside the non-rendering blocks — the hero test's own unit. */
+/** Paint elements outside the non-rendering blocks - the hero test's own unit. */
 function ink(markup: string): number {
   const body = markup.replace(/<defs[\s\S]*?<\/defs>/g, '').replace(/<style[\s\S]*?<\/style>/g, '');
   return (body.match(PAINT) ?? []).length;
@@ -63,7 +63,7 @@ const shots: Shot[] = SHOTS.map((name) => {
 });
 
 // The shots are committed; a missing one is a broken checkout, not a reason to
-// pass. (`docs/` is a submodule — say which, so the message is actionable.)
+// pass. (`docs/` is a submodule - say which, so the message is actionable.)
 test('the six acceptance shots are on disk and every one of them lifts', () => {
   for (const s of shots) {
     assert.ok(s.src, `${s.name}.svg is missing — run \`git submodule update --init docs\``);
@@ -98,7 +98,7 @@ describe('the depth ladder is a band, not a staircase', () => {
 
   test('the spread between neighbours is even, not exponential', () => {
     // P3.1: `ai-stance-change-history` moved its top layer 3202 px and its bottom
-    // one 15 px — a 210× spread, because the tail sat at the guard where eff is
+    // one 15 px - a 210× spread, because the tail sat at the guard where eff is
     // 10. Even rungs in eff mean the parallax ratio is the band, end to end.
     const s = shots.find((x) => x.name === 'ai-stance-change-history')!;
     const z = liftDepths(liftSlots(s.layers.map((l) => l.bbox ?? l.viewBox ?? null)), KF_Z_FIELD_CLAMP);
@@ -111,7 +111,7 @@ describe('the depth ladder is a band, not a staircase', () => {
 // ══ 2. bbox-sized rows ════════════════════════════════════════════════════════
 
 describe('a derived document is cropped to its ink, and the row is cut to match', () => {
-  /** A plain image box: no background, no caption — so cropping is allowed. */
+  /** A plain image box: no background, no caption - so cropping is allowed. */
   const CFG = {
     idField: 'id', xField: 'x', yField: 'y', wField: 'w', hField: 'h', rotationField: 'rot',
     radiusField: 'radius', imageField: 'image', fitField: 'fit', imgPosField: 'imgPos',
@@ -133,7 +133,7 @@ describe('a derived document is cropped to its ink, and the row is cut to match'
         src: `data:,${i}`, id: `r${i}`, crop: l.viewBox ?? null, bbox: l.bbox,
       })), CFG, { viewBox: s.viewBox, fit: 'contain', zClamp: KF_Z_FIELD_CLAMP }) as Array<Record<string, number | string>>;
 
-      // `contain` again, the way `liftContentRect` computes it — the box is built
+      // `contain` again, the way `liftContentRect` computes it - the box is built
       // from a rounded width, so the scale is the min of the two ratios and the
       // artwork is centred in whatever slack that leaves.
       const k = Math.min(Number(box.w) / s.viewBox!.w, Number(box.h) / s.viewBox!.h);
@@ -148,7 +148,7 @@ describe('a derived document is cropped to its ink, and the row is cut to match'
           continue;
         }
         // The row IS the crop, mapped through the box: this is the identity the
-        // whole crop rests on — the document's viewBox and the row's rect are the
+        // whole crop rests on - the document's viewBox and the row's rect are the
         // same rectangle in two coordinate systems.
         assert.ok(Math.abs(Number(r.w) - crop.w * k) <= 0.01, `${i}: width follows the crop`);
         assert.ok(Math.abs(Number(r.h) - crop.h * k) <= 0.01, `${i}: height follows the crop`);
@@ -323,7 +323,7 @@ describe('a layer holding the whole picture is opened up', () => {
   });
 
   test('lifting six real screenshots stays interactive', () => {
-    // Not a benchmark — a tripwire for the quadratic paths the caps exist to
+    // Not a benchmark - a tripwire for the quadratic paths the caps exist to
     // bound. Measured cold on this machine: 2–35 ms per shot.
     for (const s of shots) {
       const t0 = performance.now();
@@ -339,7 +339,7 @@ describe('a layer holding the whole picture is opened up', () => {
 describe('opening a hero up respects the ceilings it was given', () => {
   test('a descent that would be tail-merged straight back is not made', () => {
     // The merge at the layer cap folds a contiguous run into one document, and a
-    // document can only re-emit ONE wrapper chain — so a descent that overshot
+    // document can only re-emit ONE wrapper chain - so a descent that overshot
     // the cap would hand it members from two different chains and lose the
     // hero's own transform on half of them. It is refused instead, which is
     // 1.119's answer to the same file.

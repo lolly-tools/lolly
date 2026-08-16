@@ -1,15 +1,15 @@
 // SPDX-License-Identifier: MPL-2.0
 // ─── Embedded-metadata reader ────────────────────────────────────────────────
 //
-// Reads the metadata a file *carries* — EXIF, GPS, XMP, PNG text chunks, SVG
-// authoring data — straight from its bytes, with no DOM and no dependencies.
-// This is the "reveal" side of hidden data: what a file quietly discloses about
-// the device, person, place, and software behind it. The /verify view surfaces
-// it so a viewer sees exactly what they'd be sharing.
+// Reads the metadata a file *carries* - EXIF, GPS, XMP, PNG text chunks, SVG
+// authoring data - straight from its bytes, with no DOM and no dependencies.
+// This extracts the hidden data a file discloses about the device, person,
+// place, and software that created it. The /verify view shows this to a
+// viewer so they see exactly what they would be sharing.
 //
 // This intentionally mirrors the byte-parsers in the strip-data tool's hook:
 // tools run sandboxed and cannot import the engine, so that copy stays there and
-// this typed one serves the shells. Best-effort throughout — a malformed block
+// this typed one serves the shells. Best-effort throughout - a malformed block
 // yields fewer fields, never an exception.
 //
 // PDF is deliberately NOT handled here (it needs a parser the shells already
@@ -27,7 +27,7 @@ export type MetaGroup =
   | 'authorship'
   | 'timestamps'
   | 'description'
-  /** What a container CARRIES and DOES — attachments, scripts, actions, form
+  /** What a container CARRIES and DOES - attachments, scripts, actions, form
    *  values, hidden layers. Populated for PDFs by the shell's structural scan;
    *  distinct from 'technical', which describes the encoding rather than the
    *  payload. */
@@ -41,12 +41,12 @@ export interface MetaField {
   value: string;
   /** Which section it belongs to. */
   group: MetaGroup;
-  /** Personally identifying (GPS, serials, author names) — flagged for the viewer. */
+  /** Personally identifying (GPS, serials, author names) - flagged for the viewer. */
   sensitive?: boolean;
 }
 
 export interface FileMetadata {
-  /** Detected container, e.g. "JPEG", "PNG", "TIFF", "WebP", "SVG", "GIF" — '' if unknown. */
+  /** Detected container, e.g. "JPEG", "PNG", "TIFF", "WebP", "SVG", "GIF" - '' if unknown. */
   format: string;
   /** Everything found, in discovery order; the view groups + orders them. */
   fields: MetaField[];
@@ -55,7 +55,7 @@ export interface FileMetadata {
   /** A ready map link for the fix (OpenStreetMap; opened only if the viewer clicks). */
   mapUrl?: string;
   /**
-   * AI provenance declared in BARE metadata — the IPTC `DigitalSourceType` XMP
+   * AI provenance declared in BARE metadata - the IPTC `DigitalSourceType` XMP
    * tag generators write alongside their invisible pixel watermarks (Gemini/
    * Imagen next to SynthID, Midjourney, Meta AI, …) even when no C2PA manifest
    * is present. `credit` carries the accompanying credit line when one exists
@@ -64,14 +64,14 @@ export interface FileMetadata {
    */
   ai?: { kind: 'generated' | 'composite'; sourceType: string; credit?: string };
   /**
-   * Bytes riding AFTER the image container ends (past PNG IEND / JPEG EOI /
-   * GIF trailer) — the most common "hidden payload in an image" pattern in
-   * the wild: appended zips (polyglots), smuggled files, stego-loader
+   * Bytes that come AFTER the image container ends (past PNG IEND / JPEG EOI /
+   * GIF trailer) - the most common "hidden payload in an image" pattern:
+   * appended zips (polyglots), smuggled files, stego-loader
    * configs. Deterministic and always sized; `kind` is a best-effort sniff
    * of what the payload is, `offset` is the exact byte index it starts at
    * (so a caller can slice the original bytes to extract it). Note the
    * legitimate cases: motion photos (Samsung/Pixel) append an MP4 here, and a
-   * multi-picture JPEG — an HDR gain-map file (ours included) or an MPO — keeps
+   * multi-picture JPEG - an HDR gain-map file (ours included) or an MPO - keeps
    * its second image here and DECLARES it in an MPF index. Both are reported
    * with a `kind` that names them and without the `sensitive` flag; see
    * {@link readMpfIndex}.
@@ -84,14 +84,14 @@ export interface FileMetadata {
    */
   appended?: { bytes: number; kind: string; offset: number; declared?: boolean };
   /**
-   * LSB steganalysis verdict — populated by pixel-capable SHELLS (the analysis
+   * LSB steganalysis verdict - populated by pixel-capable SHELLS (the analysis
    * is pixel-domain, engine/src/steganalysis.ts; this byte reader can't decode
    * pixels). An amber heuristic, never proof.
    */
   lsb?: { suspicious: boolean; score: number };
 }
 
-// The order sections read top-to-bottom in a clinical layout.
+// The order sections read top-to-bottom in a plain layout.
 export const META_GROUP_ORDER: MetaGroup[] = [
   'location', 'device', 'capture', 'software', 'authorship', 'timestamps', 'description', 'structure', 'technical',
 ];
@@ -119,9 +119,9 @@ function sniff(b: Uint8Array): string {
       (b[0] === 0x4d && b[1] === 0x4d && b[2] === 0x00 && b[3] === 0x2a)) return 'TIFF';
   if (b[0] === 0x52 && b[1] === 0x49 && b[2] === 0x46 && b[3] === 0x46 &&
       b.length >= 12 && b[8] === 0x57 && b[9] === 0x45 && b[10] === 0x42 && b[11] === 0x50) return 'WebP';
-  // ISO BMFF video (mp4/m4v/mov) — an ftyp box first; 'qt  ' brand is QuickTime.
+  // ISO BMFF video (mp4/m4v/mov) - an ftyp box first; 'qt  ' brand is QuickTime.
   if (b.length >= 12 && matchAscii(b, 4, 'ftyp')) return matchAscii(b, 8, 'qt  ') ? 'QuickTime' : 'MP4';
-  // SVG (and other XML) — decode a small prefix and look for the root element.
+  // SVG (and other XML) - decode a small prefix and look for the root element.
   const head = new TextDecoder('utf-8').decode(b.subarray(0, Math.min(b.length, 512)));
   if (/<svg[\s>]/i.test(head) || (/^\s*<\?xml/i.test(head) && /<svg[\s>]/i.test(new TextDecoder().decode(b.subarray(0, Math.min(b.length, 4096)))))) return 'SVG';
   return '';
@@ -177,7 +177,7 @@ function readIfd(dv: DataView, off: number, le: boolean): IfdEntry[] {
 function asciiVal(dv: DataView, e: IfdEntry): string | null {
   if (e.type !== 2) return null;
   let s = '';
-  // A hostile TIFF can declare the whole file as one ASCII tag — cap the value.
+  // A hostile TIFF can declare the whole file as one ASCII tag - cap the value.
   const max = Math.min(e.count, MAX_VALUE_CHARS);
   for (let i = 0; i < max; i++) {
     const off = e.valueOffset + i;
@@ -279,7 +279,7 @@ function readExif(bytes: Uint8Array, base: number, len: number, out: FileMetadat
     if (o != null && ORIENTATION[o]) push('Orientation', ORIENTATION[o]!, 'technical');
   }
 
-  // ExifSubIFD — the shooting data.
+  // ExifSubIFD - the shooting data.
   const exifPtr = byTag.get(0x8769);
   if (exifPtr) {
     const sub = new Map<number, IfdEntry>();
@@ -337,7 +337,7 @@ function readXmp(text: string, out: FileMetadata): void {
     || grab(/<dc:rights>([\s\S]*?)<\/dc:rights>/i);
   if (rights) out.fields.push({ label: 'Rights', value: rights, group: 'authorship' });
 
-  // Credit line (photoshop:Credit) — where AI generators identify themselves in
+  // Credit line (photoshop:Credit) - where AI generators identify themselves in
   // prose ("Made with Google AI", "Imagined with AI").
   const credit = grab(/[\w-]+:Credit>\s*([\s\S]*?)<\/[\w-]+:Credit>/i)
     || grab(/[\w-]+:Credit\s*=\s*["']([^"']+)["']/i);
@@ -345,7 +345,7 @@ function readXmp(text: string, out: FileMetadata): void {
     out.fields.push({ label: 'Credit', value: credit, group: 'authorship' });
   }
 
-  // IPTC DigitalSourceType (Iptc4xmpExt namespace, but prefixes vary) — the
+  // IPTC DigitalSourceType (Iptc4xmpExt namespace, but prefixes vary) - the
   // standard machine-readable "how these pixels came to be" declaration, and
   // the sidecar AI flag written by Gemini/Imagen, Midjourney, Meta AI, …
   const dst = grab(/[\w-]+:DigitalSourceType\s*>\s*([^<\s]+?)\s*</i)
@@ -368,25 +368,27 @@ function readXmp(text: string, out: FileMetadata): void {
 // ── MPF: the second image a JPEG legitimately declares ────────────────────────
 //
 // A JPEG ends at its EOI, so a multi-picture file keeps its extra images in the
-// bytes AFTER it — exactly where a smuggled payload would sit. The difference is
+// bytes AFTER it - exactly where a smuggled payload would sit. The difference is
 // that a real multi-picture file SAYS SO, in a CIPA DC-007 "MPF" APP2 index that
 // records the byte offset and length of every image. Two shipping cases put a
 // second JPEG there:
 //
-//   - an **HDR gain map** (ISO 21496-1 + Ultra HDR v1.1) — what Lolly's own
+//   - an **HDR gain map** (ISO 21496-1 + Ultra HDR v1.1) - what Lolly's own
 //     `hdr=1` JPEG export writes (plans/61-deeprichpixels.md §4.2 / §6 B2), and
 //     what Apple, Adobe and Android 15 write. The primary is an ordinary SDR
 //     JPEG; the second image is a greyscale map an HDR-aware decoder applies.
 //   - a plain MPO (stereo pairs, Apple burst/depth companions).
 //
-// Reading the index is what lets the reveal say what IS there instead of
-// "appended data — 41 KB", which for our own export reads as an accusation. The
-// motion-photo precedent (`sniffAppended`'s `video (motion photo)`) is followed
-// exactly: disclosed, sized, offset given — just not flagged `sensitive`.
+// Reading the index lets the reveal name what is actually there, instead of
+// showing "appended data - 41 KB" for our own export, which would look like an
+// accusation. This follows the motion-photo precedent (`sniffAppended`'s
+// `video (motion photo)`) exactly: disclosed, sized, offset given, just not
+// flagged `sensitive`.
 //
-// House reader contract, same as the rest of this module: bounded, never throws,
-// `null` for anything it cannot fully verify. Nothing the index CLAIMS is
-// trusted — an offset is only believed once it lands inside the buffer on an SOI.
+// This reader follows the same contract as the rest of this module: bounded,
+// never throws, returns `null` for anything it cannot fully verify. Nothing
+// the index claims is trusted until checked - an offset is believed only once
+// it lands inside the buffer on an SOI marker.
 
 /** One image an MPF index declares, in absolute file offsets. */
 export interface MpfImageRef {
@@ -399,17 +401,17 @@ export interface MpfImageRef {
 export interface JpegMpfIndex {
   /** Every declared image, in index order; `images[0]` is the primary. At least two. */
   images: MpfImageRef[];
-  /** First byte past the PRIMARY image's EOI — the real start of the trailer, independent of what the index claims. */
+  /** First byte past the PRIMARY image's EOI - the real start of the trailer, independent of what the index claims. */
   trailerStart: number;
   /** True when the second image carries ISO 21496-1 or `hdrgm` gain-map metadata (or the primary's XMP declares a GainMap container item). */
   gainMap: boolean;
 }
 
-/** The ISO 21496-1 APP2 identifier (Skia's `kISOGainmapSig`). Kept as a local wire constant — see `engine/src/gainmap-jpeg.ts` for the writer that emits it. */
+/** The ISO 21496-1 APP2 identifier (Skia's `kISOGainmapSig`). Kept as a local wire constant - see `engine/src/gainmap-jpeg.ts` for the writer that emits it. */
 const ISO_GAINMAP_URN = 'urn:iso:std:iso:ts:21496:-1';
 /** Adobe's gain-map XMP namespace, as it appears inside an `hdrgm` packet. */
 const HDRGM_NS = 'hdr-gain-map';
-/** Hard cap on declared images — a real MPF file has 2–3; this stops a hostile count from sizing an array. */
+/** Hard cap on declared images - a real MPF file has 2–3; this stops a hostile count from sizing an array. */
 const MAX_MPF_IMAGES = 16;
 /** Bytes of a sub-image's APPn payload decoded as text when sniffing for gain-map metadata. */
 const MAX_GAINMAP_SNIFF = 8192;
@@ -513,7 +515,7 @@ export function readMpfIndex(bytes: Uint8Array | null | undefined): JpegMpfIndex
 
 // ── Appended payloads (bytes after the container ends) ───────────────────────────
 
-// Best-effort sniff of what a trailing payload is. Neutral wording — a motion
+// Best-effort sniff of what a trailing payload is. Neutral wording - a motion
 // photo's appended MP4 is legitimate and common; a zip/executable is the
 // smuggling pattern worth flagging loudly.
 function sniffAppended(b: Uint8Array, off: number): string {
@@ -545,7 +547,7 @@ function fmtBytes(n: number): string {
 
 /**
  * When the bytes at `off` are an image the file's own MPF index declares, name
- * it. `null` means "nothing in the file accounts for these bytes" — which is the
+ * it. `null` means "nothing in the file accounts for these bytes" - which is the
  * condition that earns the `sensitive` flag, not the mere presence of a trailer.
  */
 function describeDeclaredImage(bytes: Uint8Array, off: number): { kind: string; gainMap: boolean } | null {
@@ -584,17 +586,17 @@ function noteAppended(bytes: Uint8Array, off: number, out: FileMetadata): void {
 /**
  * Is a trailing payload accounted for, rather than hidden? The single rule
  * behind both this module's `sensitive` flag and any UI that warns about
- * appended data — shells must call this instead of comparing `kind` strings.
+ * appended data - shells must call this instead of comparing `kind` strings.
  *
- * Two ways to qualify, and they are different strengths of evidence:
- *   - `declared` — the container states the payload's offset and length (an MPF
+ * Two ways to qualify, with different strengths of evidence:
+ *   - `declared` - the container states the payload's offset and length (an MPF
  *     multi-picture index: an HDR gain map, an MPO). Strong: verified structure.
- *   - the motion-photo MP4 append — a convention with no in-file declaration,
- *     exempt because it is ubiquitous and benign, on the sniff alone.
+ *   - the motion-photo MP4 append - a convention with no in-file declaration.
+ *     Exempt on the sniff alone, because it is common and not harmful.
  *
  * Everything else (zips, executables, an undeclared second image) stays flagged.
  * Note what this is NOT: a safety verdict. It says the bytes are explained, not
- * that they are harmless — the /verify view still offers to view and extract
+ * that they are harmless - the /verify view still offers to view and extract
  * every appended payload, expected or not.
  */
 export function appendedIsExpected(appended: FileMetadata['appended']): boolean {
@@ -616,7 +618,7 @@ function jpegEnd(bytes: Uint8Array, scanStart: number): number | null {
     if (m === 0xff) { q++; continue; }                    // fill byte
     if (m === 0x00 || (m >= 0xd0 && m <= 0xd7)) { q += 2; continue; } // stuffed / RST
     if (m === 0xd9) return q + 2;                          // EOI
-    if (m === 0x01) { q += 2; continue; }                  // TEM — standalone
+    if (m === 0x01) { q += 2; continue; }                  // TEM - standalone
     if (q + 4 > bytes.length) return null;
     const len = ((bytes[q + 2]! << 8) | bytes[q + 3]!);    // next scan's header segment
     if (len < 2) return null;
@@ -698,7 +700,7 @@ function pngText(bytes: Uint8Array, start: number, len: number, kind: 'tEXt' | '
   }
   if (textStart >= end) return;
   // An XMP packet rides in an iTXt chunk under this reserved keyword (XMP spec
-  // part 3) — PNG is where Midjourney/Google AI outputs carry their AI
+  // part 3) - PNG is where Midjourney/Google AI outputs carry their AI
   // declaration. Parse it as XMP instead of dumping the raw packet as prose.
   if (keyword === 'XML:com.adobe.xmp') {
     const packetEnd = Math.min(end, textStart + MAX_TEXT_SCAN);
@@ -732,7 +734,7 @@ function readPng(bytes: Uint8Array, out: FileMetadata): void {
 // ── GIF ────────────────────────────────────────────────────────────────────────
 // GIF carries little structured metadata worth surfacing (no EXIF/XMP-equivalent
 // container), but its block structure is walkable enough to find the true end
-// of the data stream — the trailer byte 0x3B — so the same appended-payload
+// of the data stream - the trailer byte 0x3B - so the same appended-payload
 // pattern caught after PNG IEND / JPEG EOI is caught here too. Best-effort and
 // hostile-input-safe throughout: any block that runs past the end of the buffer,
 // or an unrecognised block introducer, just stops (records nothing) rather than
@@ -741,7 +743,7 @@ function readPng(bytes: Uint8Array, out: FileMetadata): void {
 // of Image Descriptor (0x2C) / Extension (0x21) blocks until the Trailer (0x3B).
 
 // Walks a run of length-prefixed sub-blocks starting at `start` (a byte giving
-// the next chunk's length, 0 = terminator) — the shape shared by every GIF
+// the next chunk's length, 0 = terminator) - the shape shared by every GIF
 // extension body and by image data after its LZW-min-code-size byte. Returns
 // the offset just past the terminating zero-length block, or null if the
 // buffer runs out first.
@@ -792,7 +794,7 @@ function readGif(bytes: Uint8Array, out: FileMetadata): void {
       p = end;
       continue;
     }
-    return; // unrecognised block introducer — malformed; stop rather than guess
+    return; // unrecognised block introducer - malformed; stop rather than guess
   }
 }
 
@@ -818,7 +820,7 @@ function readWebp(bytes: Uint8Array, out: FileMetadata): void {
 // ── MP4 / QuickTime (ISO BMFF) ───────────────────────────────────────────────────
 // Videos carry their XMP packet in a top-level `uuid` box with a fixed UUID
 // (XMP spec part 3, MPEG-4). That packet is where AI generators declare their
-// output (IPTC DigitalSourceType) — the video-side analogue of the JPEG/PNG
+// output (IPTC DigitalSourceType) - the video-side analogue of the JPEG/PNG
 // path above. Only top-level boxes are walked; media payloads are skipped.
 const XMP_BOX_UUID = [0xbe, 0x7a, 0xcf, 0xcb, 0x97, 0xa9, 0x42, 0xe8, 0x9c, 0x71, 0x99, 0x94, 0x91, 0xe3, 0xaf, 0xac];
 
@@ -829,7 +831,7 @@ function readBmff(bytes: Uint8Array, out: FileMetadata): void {
     const type = String.fromCharCode(bytes[p + 4]!, bytes[p + 5]!, bytes[p + 6]!, bytes[p + 7]!);
     let header = 8;
     if (size === 1) {
-      // 64-bit largesize (routine for a big mdat) — read it and keep walking.
+      // 64-bit largesize (routine for a big mdat) - read it and keep walking.
       if (p + 16 > bytes.length) return;
       size = (((bytes[p + 8]! << 24) | (bytes[p + 9]! << 16) | (bytes[p + 10]! << 8) | bytes[p + 11]!) >>> 0) * 0x1_0000_0000
         + (((bytes[p + 12]! << 24) | (bytes[p + 13]! << 16) | (bytes[p + 14]! << 8) | bytes[p + 15]!) >>> 0);
@@ -887,7 +889,7 @@ function readSvg(bytes: Uint8Array, out: FileMetadata): void {
 
 /**
  * Read embedded metadata from a file's bytes. Never throws; unknown or metadata-free
- * files return an empty `fields` list. PDF is not handled here — use host.pdf.analyze.
+ * files return an empty `fields` list. PDF is not handled here - use host.pdf.analyze.
  */
 export function extractFileMetadata(bytes: Uint8Array): FileMetadata {
   const out: FileMetadata = { format: '', fields: [] };

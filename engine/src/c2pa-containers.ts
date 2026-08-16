@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
- * C2PA container placement — the per-format byte-splicing side of the writer:
+ * C2PA container placement - the per-format byte-splicing side of the writer:
  * classic-xref PDF incremental update, the png/jpeg/gif/svg/tiff/webp embedders,
  * ISO BMFF (mp4) with its own c2pa.hash.bmff.v2 binding, and the WebM/Matroska
- * attachment path, plus embedC2pa/embedC2paInPdf — the public entry points that
+ * attachment path, plus embedC2pa/embedC2paInPdf - the public entry points that
  * dispatch to whichever placer a format needs. Split out of c2pa.ts so the
  * manifest/claim BUILDER (CBOR, JUMBF, COSE_Sign1, buildC2paManifest) is
  * reviewable on its own, separate from container-specific byte grammar.
@@ -11,7 +11,7 @@
  * from c2pa.ts; c2pa.ts re-exports embedC2pa/embedC2paInPdf/etc. back so every
  * existing import path is unchanged. ONE genuine runtime cycle: c2pa.ts's
  * buildC2paManifest needs bmffHashExclusions (exported here) for the BMFF
- * assertion's exclusion-set shape. Safe — see c2pa.ts's import-site comment.
+ * assertion's exclusion-set shape. Safe - see c2pa.ts's import-site comment.
  */
 
 import {
@@ -141,7 +141,7 @@ interface XrefSection {
 }
 
 // One classic xref section at `off`: entries + raw trailer dict + /Prev.
-// Cross-reference *streams* (PDF 1.5+) start with "N G obj" instead — those
+// Cross-reference *streams* (PDF 1.5+) start with "N G obj" instead - those
 // get a distinct error the shell maps to "cannot attach".
 function parseXrefSection(bin: string, off: number): XrefSection {
   let i = skipWs(bin, off);
@@ -193,7 +193,7 @@ function parsePdf(bin: string): PdfInfo {
   const sx = sxAt < 0 ? null : /^startxref\s+(\d+)/.exec(bin.slice(sxAt, sxAt + 40));
   if (!sx) throw new Error('C2PA embed: missing startxref');
   const startxref = +sx[1]!;
-  const entries = new Map<number, XrefEntry>(); // first seen wins — the chain walks newest → oldest
+  const entries = new Map<number, XrefEntry>(); // first seen wins - the chain walks newest → oldest
   const trailers: string[] = [];
   const seen = new Set<number>();
   for (let off: number | null = startxref; off != null && !seen.has(off); ) {
@@ -218,7 +218,7 @@ function parsePdf(bin: string): PdfInfo {
 }
 
 // The Catalog dict source, via the xref entry for /Root (raw scan fallback
-// for slightly-off offsets — some writers pad or shift by an EOL).
+// for slightly-off offsets - some writers pad or shift by an EOL).
 function catalogSource(bin: string, info: PdfInfo): string {
   const { num, gen } = info.root;
   const headRe = new RegExp(`^${num}\\s+${gen}\\s+obj\\b`);
@@ -272,7 +272,7 @@ function catalogWithAttachment(src: string, fsRef: string): string {
   return out;
 }
 
-// "nnnnnnnnnn ggggg n\r\n" — exactly the 20-byte classic xref entry.
+// "nnnnnnnnnn ggggg n\r\n" - exactly the 20-byte classic xref entry.
 const xrefEntryLine = (offset: number, gen: number): string => `${String(offset).padStart(10, '0')} ${String(gen).padStart(5, '0')} n\r\n`;
 
 /**
@@ -389,8 +389,8 @@ export async function embedC2paInPdf(pdfBytes: Uint8Array, { title, claimGenerat
 // That works because every placer's output outside its exclusion ranges
 // depends only on the manifest LENGTH, never its content (asserted below by
 // re-hashing the final output). The recipes byte-match c2pa-rs's asset
-// handlers (png_io/jpeg_io/gif_io/svg_io/tiff_io/riff_io) — the validator
-// behind c2patool and verify.contentauthenticity.org — including each
+// handlers (png_io/jpeg_io/gif_io/svg_io/tiff_io/riff_io) - the validator
+// behind c2patool and verify.contentauthenticity.org - including each
 // format's exact exclusion ranges.
 
 const asciiBytes = (s: string): Uint8Array => te.encode(s);
@@ -454,7 +454,7 @@ function placePng(png: Uint8Array, manifest: Uint8Array): PlaceResult {
   return { out, exclusions: [{ start: insertAt, length: chunk.length }] };
 }
 
-// JPEG: APP11 (FF EB) JUMBF segments — CI "JP", En 0x0211, Z = u32BE 1-based;
+// JPEG: APP11 (FF EB) JUMBF segments - CI "JP", En 0x0211, Z = u32BE 1-based;
 // the manifest is chunked at 64000 bytes and continuation segments repeat the
 // store's first 8 bytes (superbox LBox+TBox) after the Z field, exactly as
 // jpeg_io.rs writes and its reader strips. Placed after the LAST APP0 (or
@@ -463,14 +463,14 @@ function placePng(png: Uint8Array, manifest: Uint8Array): PlaceResult {
 // MPF-AWARE (plans/61-deeprichpixels.md §6 B2, task E1). A gain-map / Ultra HDR
 // JPEG is two JPEGs in one file, and the primary carries a CIPA DC-007 MPF
 // index (APP2) recording the SIZE of the primary image and the OFFSET of the
-// second. The APP11 block above always lands ahead of that APP2 — APP0 sorts
-// before APP2, and with no APP0 the insertion point is offset 2 — so stamping
+// second. The APP11 block above always lands ahead of that APP2 - APP0 sorts
+// before APP2, and with no APP0 the insertion point is offset 2 - so stamping
 // grows the primary without the index noticing: MPEntry[0].size then
 // under-reports by exactly the block length and the index is structurally
 // invalid, in a file that still opens fine everywhere. (MPEntry[1].offset is
 // measured from the MP Endian field, which moved by the same delta, so that one
 // field survives on its own; the size does not.) `repairMpfOffsets` re-derives
-// every entry from the finished bytes — it is a no-op returning the SAME array
+// every entry from the finished bytes - it is a no-op returning the SAME array
 // for any JPEG with no MPF index or no second image, so ordinary JPEGs are
 // spliced byte-identically, and it never throws.
 //
@@ -480,7 +480,7 @@ function placePng(png: Uint8Array, manifest: Uint8Array): PlaceResult {
 const JPEG_CHUNK = 64000;
 function placeJpeg(jpeg: Uint8Array, manifest: Uint8Array): PlaceResult {
   if (!(jpeg[0] === 0xff && jpeg[1] === 0xd8)) throw new Error('C2PA embed: not a JPEG');
-  // Walk marker segments up to SOS (FF DA) — entropy data follows, nothing to
+  // Walk marker segments up to SOS (FF DA) - entropy data follows, nothing to
   // relocate past that point.
   let insertAt = 2;
   const drop: { start: number; end: number }[] = [];
@@ -531,7 +531,7 @@ function placeJpeg(jpeg: Uint8Array, manifest: Uint8Array): PlaceResult {
 
 // GIF: one Application Extension (21 FF 0B "C2PA_GIF" 01 00 00) holding the
 // manifest as ≤255-byte sub-blocks + 00 terminator, inserted right after the
-// preamble (header + LSD + optional GCT) — c2pa-rs stops scanning at the first
+// preamble (header + LSD + optional GCT) - c2pa-rs stops scanning at the first
 // Image Descriptor. Inserting an extension forces the version byte to '9'.
 function placeGif(gif: Uint8Array, manifest: Uint8Array): PlaceResult {
   const sig = String.fromCharCode(...gif.subarray(0, 6));
@@ -573,14 +573,14 @@ function placeGif(gif: Uint8Array, manifest: Uint8Array): PlaceResult {
   ]);
   const cleaned = drop ? concatBytes([gif.subarray(0, drop.start), gif.subarray(drop.end)]) : gif;
   const out = concatBytes([cleaned.subarray(0, pre), block, cleaned.subarray(pre)]);
-  out[4] = 0x39; // '9' — extensions require GIF89a
+  out[4] = 0x39; // '9' - extensions require GIF89a
   return { out, exclusions: [{ start: pre, length: block.length }] };
 }
 
 // SVG: the manifest is standard base64 (with padding, one unbroken run) as the
 // text of <c2pa:manifest> inside a direct <metadata> child of the root <svg>,
 // with xmlns:c2pa declared on the root. Only the base64 TEXT is excluded from
-// the hard binding — the tags around it are hashed, and the hash is over raw
+// the hard binding - the tags around it are hashed, and the hash is over raw
 // bytes (no XML canonicalisation), so placement is byte-splicing, not DOM work.
 // Scanning is byte-wise over ASCII structural characters (UTF-8 safe).
 const C2PA_XMLNS = ' xmlns:c2pa="http://c2pa.org/manifest"';
@@ -701,9 +701,9 @@ function placeTiff(tiff: Uint8Array, manifest: Uint8Array): PlaceResult {
 }
 
 // RIFF family (WebP, WAV): a top-level "C2PA" chunk appended as the LAST chunk
-// (+0x00 pad when the manifest length is odd — the pad is HASHED, only
+// (+0x00 pad when the manifest length is odd - the pad is HASHED, only
 // header+data are excluded), with the RIFF size field at offset 4 updated. Any
-// existing C2PA chunk is removed first. One placer serves both containers —
+// existing C2PA chunk is removed first. One placer serves both containers -
 // the chunk grammar is identical, only the form fourcc at offset 8 differs.
 function placeRiff(riff: Uint8Array, manifest: Uint8Array, form: string, label: string): PlaceResult {
   const fourcc = (o: number) => String.fromCharCode(riff[o]!, riff[o + 1]!, riff[o + 2]!, riff[o + 3]!);
@@ -730,12 +730,12 @@ function placeRiff(riff: Uint8Array, manifest: Uint8Array, form: string, label: 
 
 const placeWebp = (webp: Uint8Array, manifest: Uint8Array): PlaceResult => placeRiff(webp, manifest, 'WEBP', 'WebP');
 
-// WAV: the same RIFF binding (the C2PA spec's RIFF-family mapping — the route
+// WAV: the same RIFF binding (the C2PA spec's RIFF-family mapping - the route
 // for a generated narration clip's Article 50 mark to live IN the file, not
 // just on the asset record; plans/41-tts-stt-programme.md §2). The chunk lands
 // after 'fmt '/'data' (appended last), decoders skip unknown chunks (the
 // engine's own parseWav walks; verified against decodeAudioData manually), and
-// re-stamp replaces. A file with no 'data' chunk is not audio — refuse rather
+// re-stamp replaces. A file with no 'data' chunk is not audio - refuse rather
 // than credential a container no player will read.
 function placeWav(wav: Uint8Array, manifest: Uint8Array): PlaceResult {
   const fourcc = (o: number) => String.fromCharCode(wav[o]!, wav[o + 1]!, wav[o + 2]!, wav[o + 3]!);
@@ -754,13 +754,13 @@ function placeWav(wav: Uint8Array, manifest: Uint8Array): PlaceResult {
 
 // ─── Ogg (Opus) ────────────────────────────────────────────────────────────────
 // Opus in Ogg (the .opus/.ogg files ffmpeg's libopus writes) has no C2PA-spec
-// container binding — c2pa-rs can't read it — so this is Lolly's own home for the
+// container binding - c2pa-rs can't read it - so this is Lolly's own home for the
 // credential, the same "our verifier only" caveat as the WebM attachment path.
 // The JUMBF store rides as a base64 `C2PA=` VorbisComment field in the OpusTags
 // comment header (the lone packet on the second Ogg page). We rebuild that ONE
 // page (a fresh segment table + a recomputed Ogg CRC) and exclude its whole byte
-// range from the hard binding, so OpusHead + every audio page — the actual sound
-// — hashes identically across the two-pass embed. Unknown comment fields are
+// range from the hard binding, so OpusHead + every audio page - the actual sound
+// - hashes identically across the two-pass embed. Unknown comment fields are
 // ignored by decoders, so the file still plays everywhere (incl. Safari's Web
 // Audio, the reason these loops are Ogg/Opus rather than WebM in the first place).
 // See engine/src/ogg.ts for the page grammar. Re-stamp strips any prior C2PA
@@ -788,14 +788,14 @@ interface Box {
   type: string;
 }
 
-// C2PA's BMFF usertype (extended box type) — d8fec3d6-1b0e-483c-9297-5828877ec481.
+// C2PA's BMFF usertype (extended box type) - d8fec3d6-1b0e-483c-9297-5828877ec481.
 export const C2PA_BMFF_UUID = Uint8Array.of(
   0xd8, 0xfe, 0xc3, 0xd6, 0x1b, 0x0e, 0x48, 0x3c,
   0x92, 0x97, 0x58, 0x28, 0x87, 0x7e, 0xc4, 0x81,
 );
 
 // The c2pa-rs default exclusion set for flat (non-fragmented) BMFF: the C2PA
-// uuid box itself (matched by usertype at offset 8 — other uuid boxes are
+// uuid box itself (matched by usertype at offset 8 - other uuid boxes are
 // hashed), ftyp, and the padding/index boxes muxers rewrite freely.
 export const bmffHashExclusions = () => [
   { xpath: '/uuid', data: [{ offset: 8, value: C2PA_BMFF_UUID }] },
@@ -838,13 +838,13 @@ async function bmffDigest(out: Uint8Array): Promise<Uint8Array> {
 // The C2PA box: uuid + usertype, FullBox version/flags 0, purpose 'manifest'
 // (nul-terminated), u64-BE offset to a merkle box (0 = none; flat hash), then
 // the JUMBF store. Appended as the LAST top-level box: nothing before it
-// moves, so moov's stco/co64 chunk offsets stay valid — and validators locate
+// moves, so moov's stco/co64 chunk offsets stay valid - and validators locate
 // the box by usertype, not position (verified against c2patool).
 function placeMp4(mp4: Uint8Array, manifest: Uint8Array): PlaceResult {
   const boxes = walkBoxes(mp4, 0, mp4.length);
   if (!boxes || !boxes.length) throw new Error('C2PA embed: malformed MP4 (truncated or 64-bit boxes)');
   if (boxes[0]!.type !== 'ftyp') throw new Error('C2PA embed: not an MP4 (no leading ftyp box)');
-  // Re-stamp replaces a prior credential — but only a TRAILING one (our own
+  // Re-stamp replaces a prior credential - but only a TRAILING one (our own
   // placement). Stripping a mid-file box (c2patool writes its after ftyp)
   // would shift mdat and stale every stco/co64 chunk offset, corrupting
   // playback while the credential still verifies. Refuse rather than corrupt.
@@ -882,8 +882,8 @@ interface EbmlEl {
 }
 
 // Matroska has no standardised C2PA binding (c2patool: "type is unsupported"),
-// so the store rides in the container's native side-channel — an Attachments
-// element whose AttachedFile is `manifest.c2pa` / application/c2pa — under the
+// so the store rides in the container's native side-channel - an Attachments
+// element whose AttachedFile is `manifest.c2pa` / application/c2pa - under the
 // ordinary byte-range data-hash binding. Lolly's verifier reads it back;
 // nothing else will until the spec grows a Matroska mapping.
 const ID_ATTACHMENTS  = Uint8Array.of(0x19, 0x41, 0xa4, 0x69);
@@ -928,11 +928,11 @@ function isC2paAttachments(bytes: Uint8Array, el: EbmlEl): boolean {
 /**
  * Place the manifest into a WebM/Matroska file.
  *
- * Finalised (known-size) Segments — what MediaRecorder blobs are — get the
+ * Finalised (known-size) Segments - what MediaRecorder blobs are - get the
  * attachment appended at the Segment's end (positions indexed by SeekHead/Cues
  * never move), the Segment size VINT patched at its existing width, and an
  * Attachments entry grown into the SeekHead's reserved Void when there is
- * room (best-effort — Lolly's verifier walks the children directly).
+ * room (best-effort - Lolly's verifier walks the children directly).
  * Streaming unknown-size Segments with no index get it inserted before the
  * first Cluster, where a linear walk can always reach it. A prior C2PA
  * attachment in either supported spot is replaced.
@@ -951,8 +951,8 @@ function placeWebm(webm: Uint8Array, manifest: Uint8Array): PlaceResult {
   if (segSize.unknown) {
     // Streaming shape (live MediaRecorder): nothing may index byte positions,
     // or inserting/removing would silently break seeks we cannot see. The
-    // guard must look past the first Cluster too — a trailing Cues would go
-    // just as stale — so keep scanning while sizes stay measurable.
+    // guard must look past the first Cluster too - a trailing Cues would go
+    // just as stale - so keep scanning while sizes stay measurable.
     const scan = scanSegmentChildren(webm, payloadStart, webm.length);
     if (!scan) throw new Error('C2PA embed: malformed Matroska Segment');
     const restStart = scan.firstCluster && !scan.firstCluster.unknown
@@ -968,7 +968,7 @@ function placeWebm(webm: Uint8Array, manifest: Uint8Array): PlaceResult {
     const lastEl = scan.elements[scan.elements.length - 1];
     if (!scan.firstCluster && lastEl) {
       // An EOF append must stay reachable by a child walk: refuse when the
-      // walk ended at an unmeasurable (unknown-size or overrunning) element —
+      // walk ended at an unmeasurable (unknown-size or overrunning) element -
       // an attachment past it would be invisible to Lolly's own verifier.
       const lastEnd = lastEl.off + lastEl.idWidth + lastEl.sizeWidth + lastEl.size;
       if (lastEl.unknown || lastEnd > webm.length) {
@@ -995,7 +995,7 @@ function placeWebm(webm: Uint8Array, manifest: Uint8Array): PlaceResult {
   let payloadLen = segSize.value;
 
   // Re-stamp: strip a prior TRAILING C2PA attachment (the only place we write
-  // one). Everything indexed sits before it, so no position goes stale — and
+  // one). Everything indexed sits before it, so no position goes stale - and
   // the replacement lands at the same offset, re-validating any existing
   // SeekHead entry. A C2PA attachment anywhere else is not ours to move, and
   // a foreign attachment (cover art) must not gain a sibling Attachments
@@ -1036,7 +1036,7 @@ function placeWebm(webm: Uint8Array, manifest: Uint8Array): PlaceResult {
   return { out, exclusions: [{ start: payloadStart + payloadLen, length: attach.length }] };
 }
 
-// Walk ALL sibling elements in [start, end) — unlike scanSegmentChildren this
+// Walk ALL sibling elements in [start, end) - unlike scanSegmentChildren this
 // does not stop at the first Cluster (finalised files have known-size Clusters
 // and trailing Cues/Tags/Attachments). Throws on malformed or unknown-size
 // children: every read is bounds-checked before use.
@@ -1056,8 +1056,8 @@ function walkAllChildren(bytes: Uint8Array, start: number, end: number): EbmlEl[
 }
 
 // Tolerant sibling walk for guards: collect element ids while sizes stay
-// known and in-bounds, stop silently otherwise (unknown-size Clusters — the
-// streaming case — end measurable structure; nothing beyond them can be
+// known and in-bounds, stop silently otherwise (unknown-size Clusters - the
+// streaming case - end measurable structure; nothing beyond them can be
 // checked, or shifted, reliably).
 function scanIdsTolerant(bytes: Uint8Array, from: number, end: number): number[] {
   const ids: number[] = [];
@@ -1088,7 +1088,7 @@ function readIdAt(bytes: Uint8Array, off: number, end: number): { width: number;
 }
 
 // Does the SeekHead already carry an entry whose SeekID is `seekId`? (Set on a
-// re-stamp — the prior stamp added it, and the replacement attachment lands at
+// re-stamp - the prior stamp added it, and the replacement attachment lands at
 // the same position, so the entry stays correct.)
 function seekHeadHasEntry(bytes: Uint8Array, scan: { elements: EbmlEl[] }, seekId: Uint8Array): boolean {
   const sh = scan.elements.find((e) => e.id === SEEKHEAD && !e.unknown);
@@ -1119,7 +1119,7 @@ const syncsafe = (n: number): Uint8Array =>
 const readSyncsafe = (b: Uint8Array, off: number): number =>
   ((b[off]! & 0x7f) << 21) | ((b[off + 1]! & 0x7f) << 14) | ((b[off + 2]! & 0x7f) << 7) | (b[off + 3]! & 0x7f);
 
-// One GEOB frame carrying the store. Latin-1 text encoding (0x00) — every
+// One GEOB frame carrying the store. Latin-1 text encoding (0x00) - every
 // string here is ASCII. `v4` picks the frame-size encoding to match the tag
 // version it lands in (v2.4 syncsafe, v2.3 plain 32-bit).
 function mp3GeobFrame(manifest: Uint8Array, v4: boolean): Uint8Array {
@@ -1141,7 +1141,7 @@ function isC2paGeob(bytes: Uint8Array, bodyStart: number, bodyEnd: number): bool
 
 // Walk the frames of a v2.3/v2.4 tag in [from, end): [{ start, end, keep }].
 // Stops at padding (a zero byte where a frame id should be). Bounds-checked
-// before every read — tags come out of attacker-controlled files.
+// before every read - tags come out of attacker-controlled files.
 function walkId3Frames(bytes: Uint8Array, from: number, end: number, v4: boolean): { start: number; end: number; c2pa: boolean }[] {
   const out: { start: number; end: number; c2pa: boolean }[] = [];
   let off = from;
@@ -1156,8 +1156,8 @@ function walkId3Frames(bytes: Uint8Array, from: number, end: number, v4: boolean
   return out;
 }
 
-// MP3: rebuild ONE leading ID3v2 tag — the existing tag's frames (minus any
-// prior C2PA GEOB — re-stamp replaces, never duplicates) with our GEOB
+// MP3: rebuild ONE leading ID3v2 tag - the existing tag's frames (minus any
+// prior C2PA GEOB - re-stamp replaces, never duplicates) with our GEOB
 // prepended, or a fresh minimal ID3v2.4 tag when the file starts at a frame
 // sync. The audio bytes are never touched, and everything outside the tag
 // depends only on manifest LENGTH (the placer contract). Unsynchronised or
@@ -1180,7 +1180,7 @@ function placeMp3(mp3: Uint8Array, manifest: Uint8Array): PlaceResult {
     audioStart = 10 + size + ((flags & 0x10) ? 10 : 0);
     if (audioStart > mp3.length) throw new Error('C2PA embed: truncated ID3v2 tag');
     // Existing frames ride verbatim (their bytes are already valid for `ver`);
-    // padding is dropped — the rebuilt tag is exactly as large as its frames.
+    // padding is dropped - the rebuilt tag is exactly as large as its frames.
     const frames = walkId3Frames(mp3, 10, 10 + size, ver === 4);
     kept = concatBytes(frames.filter((f) => !f.c2pa).map((f) => mp3.subarray(f.start, f.end)));
   }
@@ -1188,7 +1188,7 @@ function placeMp3(mp3: Uint8Array, manifest: Uint8Array): PlaceResult {
   const content = concatBytes([geob, kept]);
   if (content.length >= 1 << 28) throw new Error('C2PA embed: ID3v2 tag too large');
   // Rebuilt header: same major version, revision 0, no flags (any footer is
-  // dropped with the rest of the old envelope — the frames carry the meaning).
+  // dropped with the rest of the old envelope - the frames carry the meaning).
   const tag = concatBytes([asciiBytes('ID3'), Uint8Array.of(ver, 0, 0), syncsafe(content.length), content]);
   return {
     out: concatBytes([tag, mp3.subarray(audioStart)]),
@@ -1200,7 +1200,7 @@ function placeMp3(mp3: Uint8Array, manifest: Uint8Array): PlaceResult {
 //
 // Two placers, both pure byte-splicing in placeSvg's spirit: find the carrier's
 // home in the host's own bytes, splice, and report the exclusion range the hard
-// binding must carve out. No DOM, no canonicalisation — §A.7.1.3 hashes "the byte
+// binding must carve out. No DOM, no canonicalisation - §A.7.1.3 hashes "the byte
 // representation of the document as stored", and §A.9.4 says files "shall be read
 // in binary mode to preserve the exact byte representation of line terminators".
 //
@@ -1210,12 +1210,12 @@ function placeMp3(mp3: Uint8Array, manifest: Uint8Array): PlaceResult {
 // region that is entirely inside the exclusion. embedC2pa's convergence loop
 // therefore settles on the first probe.
 //
-// SPEC DELTAS worth knowing when reading this:
+// SPEC DELTAS to know when reading this:
 //   * §A.7's exclusion is the WHOLE `<script>` element, `<script` through
-//     `</script>` inclusive — wider than placeSvg's base64-text-only rule. Both
+//     `</script>` inclusive - wider than placeSvg's base64-text-only rule. Both
 //     are legal for their own binding; neither is a canonicalisation.
 //   * §A.9's block is a SINGLE COMMENT LINE (§A.9.3.1). The multi-line shape in
-//     §A.9.3.2 is the FRONT MATTER form — and the spec contradicts itself about
+//     §A.9.3.2 is the FRONT MATTER form - and the spec contradicts itself about
 //     when it is mandatory. §A.9.3 opens "For structured text formats that support
 //     front matter, the C2PA Manifest block SHALL appear inside that front
 //     matter"; §A.9.3.2 then downgrades the identical rule to "MAY use a
@@ -1226,7 +1226,7 @@ function placeMp3(mp3: Uint8Array, manifest: Uint8Array): PlaceResult {
 //     Say it plainly: that is a KNOWN DEVIATION from §A.9.3's `shall`, taken
 //     because §A.9.3.2 restates the same rule as a `should` and because one
 //     exclusion formula for all four hosts is the thing that keeps writer and
-//     reader byte-exact. Scheduled, not settled — see
+//     reader byte-exact. Scheduled, not settled - see
 //     plans/105-m345/findings-spec-conformance.md F4.
 //   * §A.9.3.1 recommends placing the block at the start of the file, and REQUIRES
 //     the end when line 1 is reserved by the host (a `#!` shebang, an `<?xml?>`
@@ -1235,24 +1235,24 @@ function placeMp3(mp3: Uint8Array, manifest: Uint8Array): PlaceResult {
 //     it keeps one exclusion formula for all four formats. Spec-legal, because the
 //     start-of-file preference is a "strongly recommended", not a "shall".
 //
-// AN UNRESOLVED CONFLICT INSIDE 2.4, worth knowing before anyone reads an interop
+// AN UNRESOLVED CONFLICT INSIDE 2.4, to know before anyone reads an interop
 // failure as our bug: §15.12.1.1 tells a validator it "shall ensure that the data
 // contained within the exclusion range containing the C2PA Manifest Store consists
 // of ONLY the C2PA Manifest Store and any appropriate padding", on pain of
-// `assertion.dataHash.mismatch` — but §A.7.1.3 REQUIRES the exclusion to cover
+// `assertion.dataHash.mismatch` - but §A.7.1.3 REQUIRES the exclusion to cover
 // "the entire element from the opening `<script` tag through the closing
 // `</script>` tag, inclusive", and §A.9.4 requires it to cover a comment line. In
 // both cases the excluded range is markup plus base64, never raw store bytes. 2.4
 // added the text bindings without reconciling them with §15.12.1.1, so a third
-// party implementing that clause literally will reject every §A.7/§A.9 file —
-// ours and everyone else's — and be right by one reading. Our existing SVG carrier
+// party implementing that clause literally will reject every §A.7/§A.9 file -
+// ours and everyone else's - and be right by one reading. Our existing SVG carrier
 // has the identical shape and c2patool accepts it, which is the only empirical
 // answer available so far.
 //
 // THE LOLLY HTML-FRAGMENT PROFILE (`html-fragment`) is ours, not the spec's, and
 // is labelled as such wherever it surfaces. A masthead/figure artifact is markup +
-// script with no `<head>` element, so §A.7's method — "a `script` element … placed
-// in the `head` of the HTML document" — has nowhere to go. §A.9.2 excludes
+// script with no `<head>` element, so §A.7's method - "a `script` element … placed
+// in the `head` of the HTML document" - has nowhere to go. §A.9.2 excludes
 // `text/html` from structured text only because §A.7 already covers HTML
 // DOCUMENTS, and the same clause explicitly admits XML-based formats "with XML
 // comment syntax". So a fragment carries the §A.9 armour block in an HTML comment.
@@ -1287,7 +1287,7 @@ function htmlTagNameAt(bin: string, at: number, name: string): boolean {
 
 /**
  * One past the `>` that closes an open tag whose attributes start at `from`, or
- * -1 when it never closes. Quote-aware — unlike the reader, which documents its
+ * -1 when it never closes. Quote-aware - unlike the reader, which documents its
  * plain `indexOf('>')` as a known limit. The asymmetry is deliberate: a wrong
  * answer costs the reader a failed binding, but costs the WRITER a splice into
  * the middle of an attribute value, which corrupts the host. Each call scans
@@ -1322,13 +1322,13 @@ interface HtmlAnchors {
 
 /**
  * Where a manifest element could go: the first `<head>`, else the first `<html>`,
- * else the doctype — in ONE linear walk that skips comments and stops at `<body`.
+ * else the doctype - in ONE linear walk that skips comments and stops at `<body`.
  *
  * Comments and RAW-TEXT ELEMENTS are both skipped here (a `<!-- <html> -->` in a
  * licence header, or a `var t = "<head>"` inside a `<script>`, must not attract
  * the splice), which is the opposite of the stripper below. That asymmetry is the
  * point: strip whatever the VALIDATOR would count, insert where a PARSER would
- * put it. Splicing into raw text costs twice — the host's own script or style is
+ * put it. Splicing into raw text costs twice - the host's own script or style is
  * corrupted (our `</script>` closes THEIR element early), and the manifest lands
  * outside the `head` where §A.7.1.1 requires it and §A.7.1.4 looks for it.
  */
@@ -1339,7 +1339,7 @@ function htmlAnchors(bin: string): HtmlAnchors {
       if (bin.startsWith('<!--', at)) {
         const close = bin.indexOf('-->', at + 4);
         // An unterminated comment swallows the rest of the file, exactly as a
-        // parser reads it — there is nothing left to anchor to.
+        // parser reads it - there is nothing left to anchor to.
         if (close < 0) break;
         at = close + 2;
         continue;
@@ -1403,7 +1403,7 @@ function findHtmlCloseTag(bin: string, name: string, from: number): number {
 }
 
 /**
- * Remove every C2PA association the host already carries — `<script
+ * Remove every C2PA association the host already carries - `<script
  * type="application/c2pa">` elements AND `<link rel="c2pa-manifest">` tags, since
  * §A.7.1 forbids a document from holding "both a script element and a link
  * element referencing a C2PA Manifest Store". Re-placing is therefore replace,
@@ -1457,7 +1457,7 @@ function stripHtmlC2paCarriers(bin: string): string {
  * whitespace, so the excluded range is exactly the element. A document that only
  * IMPLIES a head (`<html>` or a bare doctype and no `<head>` tag) gets a real
  * `<head></head>` synthesised around the element, so the validator's §A.7.1.4
- * step 1 — "parse the head element" — finds it where the spec says to look.
+ * step 1 - "parse the head element" - finds it where the spec says to look.
  */
 function placeHtml(html: Uint8Array, manifest: Uint8Array): PlaceResult {
   const bin = stripHtmlC2paCarriers(bytesToBin(html));
@@ -1496,7 +1496,7 @@ const ARMOR_SYNTAX: Record<'js' | 'css' | 'md' | 'html-fragment', ArmorSyntax> =
   // preserve specific comments (e.g., comments beginning with /*! in JavaScript
   // AND CSS), claim generators should use them for the reference line." The
   // example is illustrative; the SHOULD is aimed at exactly this pair, and the
-  // failure it exists to prevent is real — every minifier that honours `/*!`
+  // failure it exists to prevent is real - every minifier that honours `/*!`
   // drops `//`, so a signed .js would lose its credential the first time it went
   // through a build. CSS already complied, which left the file inconsistent with
   // itself. Safe because the base64 alphabet contains no `*` or `/`, so `*/`
@@ -1525,7 +1525,7 @@ const isManifestReference = (ref: string): boolean =>
  *  double-dash, semicolon, percent, HTML open) and their terminators (star-slash,
  *  HTML close), plus the slash-star-bang preservation hint the same clause
  *  recommends. Used ONLY to tell a line that IS a manifest block from
- *  a line of prose that happens to quote the delimiters — never to decide what to
+ *  a line of prose that happens to quote the delimiters - never to decide what to
  *  write. The empty alternative covers §A.9.3.2's front-matter form, where the
  *  delimiters sit on a bare line. */
 const ARMOR_COMMENT_OPEN = /^[ \t]*(?:\/\/!?|\/\*!?|<!--|--|#|;|%|')?[ \t]*$/;
@@ -1535,28 +1535,28 @@ const ARMOR_COMMENT_CLOSE = /^[ \t]*(?:\*\/|-->)?[ \t]*$/;
  * Remove the host's existing manifest block, so re-placing replaces (and is
  * idempotent) instead of producing the two blocks §A.9.3 forbids.
  *
- * Removes the block's whole LINE — the same span §A.9.4 calls the manifest block
- * — which for our own output restores the host byte-for-byte.
+ * Removes the block's whole LINE - the same span §A.9.4 calls the manifest block
+ * - which for our own output restores the host byte-for-byte.
  *
  * DELETING HOST CONTENT IS NOT A TRADE A WRITER GETS TO MAKE, so this strips only
  * a line that is a manifest block *where §A.9.3.1 allows one to be*, and refuses
  * everything else rather than guessing:
  *
- *   - more than one delimiter of either kind, or an END before its BEGIN —
+ *   - more than one delimiter of either kind, or an END before its BEGIN -
  *     §A.9.3 already makes that file unreadable, and picking one to keep would be
  *     a guess about which;
- *   - a pair that is NOT on the file's first or last line — §A.9.3.1 puts the
+ *   - a pair that is NOT on the file's first or last line - §A.9.3.1 puts the
  *     block at the start of the file, or at the end when line 1 is reserved, and
  *     nowhere else, so a pair in the middle is prose (a spec digest, this repo's
  *     own plans and briefs);
- *   - a pair whose line carries anything but comment syntax around it — same
+ *   - a pair whose line carries anything but comment syntax around it - same
  *     reason, one level finer: a delimiter quoted inside a sentence or a `<pre>`
  *     is not a comment line;
  *   - a pair whose content is not a manifest reference at all.
  *
  * The narrowness is what makes this a true inverse of {@link placeArmor}: the
  * only lines it can remove are lines that placer could have written. Before this,
- * ANY well-formed pair around reference-shaped text was deleted wherever it sat —
+ * ANY well-formed pair around reference-shaped text was deleted wherever it sat -
  * so a document that merely DOCUMENTED the armour form (this wave's own brief
  * did) lost the line its author wrote, silently, under a valid signature, with
  * the deletion outside every exclusion where no reader could ever notice.
@@ -1602,7 +1602,7 @@ function stripArmorBlock(bin: string, label: string): string {
  * §A.9.4 on line terminators: LF or CRLF only, and "a claim generator shall not
  * alter the line ending convention of the file content outside the manifest
  * block". Nothing here rewrites the host, and the terminator this placer
- * INTRODUCES follows the host — CRLF only when every newline in the host is
+ * INTRODUCES follows the host - CRLF only when every newline in the host is
  * already CRLF, so a mixed file gets LF rather than a third convention. A host
  * with bare-CR line endings is refused: §A.9.4 says such files "shall be
  * converted to LF or CRLF before embedding", and converting them here would be
@@ -1629,13 +1629,13 @@ function placeArmor(bytes: Uint8Array, manifest: Uint8Array, syntax: ArmorSyntax
   const block = `${syntax.prefix}${ARMOR_BEGIN} ${C2PA_DATA_URI}${btoa(bytesToBin(manifest))} ${ARMOR_END}${syntax.suffix}`;
   const out = head + block + eol;
   // §A.9.4: "start: byte offset of the newline character preceding the manifest
-  // block". When that newline is the host's own, this is head.length - 1 — the LF
+  // block". When that newline is the host's own, this is head.length - 1 - the LF
   // on a CRLF host, leaving the host's CR hashed, which is spec-literal and the
   // reading our reader returns as primary.
   //
   // When the placer INTRODUCED the terminator, the whole terminator is part of
   // what the writer added, so the exclusion starts at its FIRST byte. Otherwise a
-  // CRLF host with no trailing newline gets a bare CR inside the hashed content —
+  // CRLF host with no trailing newline gets a bare CR inside the hashed content -
   // a byte the host never had, in the one convention §A.9.4 declares unsupported,
   // and outside every exclusion where nothing downstream could see it. The reader
   // offers the CR reading as an equally-valid alternate (armorExclusion), so both
@@ -1647,17 +1647,17 @@ function placeArmor(bytes: Uint8Array, manifest: Uint8Array, syntax: ArmorSyntax
 /**
  * Remove the armour line {@link placeArmor} wrote, or return the text UNCHANGED.
  * The inverse of that placer, exported because two places outside the engine have
- * to undo it — the docs bank's lint (which reads an artifact's source, not its
+ * to undo it: the docs bank's lint (which reads an artifact's source, not its
  * base64) and the docs build's presentation copy (an inlined artifact must not
  * carry a credential whose binding covers a file, not a DOM). Two hand-written
- * copies of this rule had already drifted apart and each was looser than the
- * placer, so both cut host content the placer never added; one owner, beside the
- * writer it inverts, is the fix.
+ * copies of this rule had already drifted apart, and each was looser than the
+ * placer, so both cut host content the placer never added. This function is now
+ * the one owner of the rule, next to the writer it inverts.
  *
  * Removes ONLY what this placer could have written: a single-line block, on the
  * file's last line, with comment syntax around it and a real manifest reference
- * between the delimiters. Anything else — prose quoting the delimiters, a block
- * spanning lines, a second pair — is left exactly where it is, for the caller to
+ * between the delimiters. Anything else - prose quoting the delimiters, a block
+ * spanning lines, a second pair - is left exactly where it is, for the caller to
  * refuse. Unlike {@link stripArmorBlock} (which is about to write a second block,
  * so ambiguity is fatal), this one never throws: its callers have their own
  * policy for text they cannot account for.
@@ -1686,7 +1686,7 @@ export function stripPlacedArmorLine(text: string): string {
 }
 
 /** The Lolly HTML-fragment profile's registered ids, for the surfaces that have
- *  to name it honestly (it is Lolly's carrier convention, not §A.7 conformance —
+ *  to name it honestly (it is Lolly's carrier convention, not §A.7 conformance -
  *  see the block comment above). */
 export const C2PA_FRAGMENT_PROFILE = Object.freeze({ format: 'html-fragment', mime: 'text/html' });
 
@@ -1707,27 +1707,27 @@ const CONTAINERS: Record<string, Container> = {
   'cmyk-tiff': { place: placeTiff, mime: 'image/tiff' },
   webp: { place: placeWebp, mime: 'image/webp' },
   mp4: { place: placeMp4, mime: 'video/mp4', hash: 'bmff' },
-  // AVIF is ISO BMFF too (a still or sequence of AV1 frames). It rides the SAME
-  // c2pa.hash.bmff.v2 binding as MP4 via the format-agnostic placeMp4 (append the
-  // C2PA box last, nothing before it moves — so the meta/iloc offsets into mdat stay
-  // valid). This is the C2PA-spec-native home for the credential, so an AI/upscaled
-  // AVIF keeps its provenance instead of losing it on export.
+  // AVIF is ISO BMFF too (a still or sequence of AV1 frames). It uses the SAME
+  // c2pa.hash.bmff.v2 binding as MP4, via the format-agnostic placeMp4 (append the
+  // C2PA box last, so nothing before it moves and the meta/iloc offsets into mdat
+  // stay valid). This is the placement the C2PA spec defines for the credential,
+  // so an AI/upscaled AVIF keeps its provenance instead of losing it on export.
   avif: { place: placeMp4, mime: 'image/avif', hash: 'bmff' },
-  // M4A (AAC audio) is ISO BMFF too — same placeMp4 + bmff binding as MP4/AVIF. This
+  // M4A (AAC audio) is ISO BMFF too - same placeMp4 + bmff binding as MP4/AVIF. This
   // is how a synthetic/AI voice clip (the Voice Recorder, TTS, Audiogram) keeps a
   // verifiable credential instead of shipping unattributed.
   m4a: { place: placeMp4, mime: 'audio/mp4', hash: 'bmff' },
   webm: { place: placeWebm, mime: 'video/webm' },
   mp3: { place: placeMp3, mime: 'audio/mpeg' },
   wav: { place: placeWav, mime: 'audio/wav' },
-  // Ogg Opus — the JUMBF store lives in the OpusTags comment header, byte-range
+  // Ogg Opus - the JUMBF store lives in the OpusTags comment header, byte-range
   // excluded (Lolly-only binding; c2pa-rs has no Ogg reader). 'opus' and 'ogg'
   // are the same container; both map to the export/asset format strings in use.
   ogg: { place: placeOgg, mime: 'audio/ogg' },
   opus: { place: placeOgg, mime: 'audio/ogg' },
   // C2PA 2.4 text bindings. `html` is the §A.7 inline form (a whole HTML
   // DOCUMENT); js/css/md are §A.9 structured text; `html-fragment` is the Lolly
-  // profile — §A.9's armour in an HTML comment, for markup that has no `<head>`
+  // profile - §A.9's armour in an HTML comment, for markup that has no `<head>`
   // for §A.7 to use. See the block comment above the placers.
   html: { place: placeHtml, mime: 'text/html' },
   js: { place: (b, m) => placeArmor(b, m, ARMOR_SYNTAX.js), mime: 'text/javascript' },
@@ -1745,9 +1745,9 @@ export const C2PA_FORMATS = Object.freeze(['pdf', 'pdf-cmyk', ...Object.keys(CON
  * make a captured Content Credential inspectable again after ingest re-encoded the file
  * and dropped the in-file manifest (the raw store is preserved separately). The store's
  * hard binding still references the ORIGINAL bytes, so a verifier will correctly report
- * the file as modified if `bytes` differ from what was signed — but the manifest's claims
+ * the file as modified if `bytes` differ from what was signed - but the manifest's claims
  * (AI-generated flag, signer identity, action history) read intact. Returns the container
- * bytes with the store embedded. No signing, no hashing — a pure re-insertion.
+ * bytes with the store embedded. No signing, no hashing - a pure re-insertion.
  */
 export function attachC2paStore(bytes: Uint8Array, format: string, store: Uint8Array): Uint8Array {
   if (!(bytes instanceof Uint8Array)) throw new Error('C2PA attach: bytes must be a Uint8Array');
@@ -1765,7 +1765,7 @@ export function attachC2paStore(bytes: Uint8Array, format: string, store: Uint8A
  * above. A container with hash: 'bmff' gets the box-walking c2pa.hash.bmff.v2
  * binding instead of byte-range exclusions. Options:
  * { title, claimGenerator, generatorInfo, environment, author, dates, signer }
- * — signer as documented on buildC2paManifest (external CA-issued credential;
+ * - signer as documented on buildC2paManifest (external CA-issued credential;
  * the ephemeral self-signed one is generated when absent).
  */
 export async function embedC2pa(bytes: Uint8Array, format: string, opts: EmbedOptions = {}): Promise<Uint8Array> {
@@ -1807,7 +1807,7 @@ export async function embedC2pa(bytes: Uint8Array, format: string, opts: EmbedOp
   }
   if (!layout) throw new Error('C2PA embed: manifest layout did not converge');
 
-  // Hash the placed output with the manifest's home OMITTED — by byte range
+  // Hash the placed output with the manifest's home OMITTED - by byte range
   // for most containers, by the BMFF box walk for mp4.
   const digestOf = async (out: Uint8Array): Promise<Uint8Array> => {
     if (isBmff) return bmffDigest(out);
@@ -1833,7 +1833,7 @@ export async function embedC2pa(bytes: Uint8Array, format: string, opts: EmbedOp
   }
   const final = container.place(bytes, manifest);
   // The placer contract: bytes outside the exclusions depend only on manifest
-  // LENGTH — so the digest computed against the placeholder must still be the
+  // LENGTH - so the digest computed against the placeholder must still be the
   // digest of the final file. Verify rather than trust.
   const check = await digestOf(final.out);
   for (let i = 0; i < 32; i++) {

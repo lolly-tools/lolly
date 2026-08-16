@@ -14,7 +14,7 @@ function wav(opts: {
   bits?: number;
   frames: number;
   write?: (view: DataView, bytesPerSample: number, channels: number) => void;
-  /** Insert an unknown chunk before `fmt ` — the real-world case (LIST/INFO tags). */
+  /** Insert an unknown chunk before `fmt ` - the real-world case (LIST/INFO tags). */
   extraChunk?: string;
   /** Emit a WAVE_FORMAT_EXTENSIBLE fmt chunk carrying `tag` in its GUID. */
   extensible?: boolean;
@@ -288,7 +288,7 @@ test('fuzz: random bytes never crash the parser in an unexpected way', () => {
 });
 
 // ---------------------------------------------------------------------------
-// packWav — the writer half. parseWav is the oracle: whatever we write, the
+// packWav - the writer half. parseWav is the oracle: whatever we write, the
 // reader above must get back.
 // ---------------------------------------------------------------------------
 
@@ -315,7 +315,7 @@ test('packWav round-trips 16-bit stereo, keeping channels distinct', () => {
 });
 
 test('packWav round-trips float32 mono bit-exactly', () => {
-  // Deliberately NOT on the int16 grid — the point of the float path is that
+  // Deliberately NOT on the int16 grid - the point of the float path is that
   // nothing is quantised.
   const src = new Float32Array([0, 0.1, -0.1, 1 / 3, -0.0000001]);
   const bytes = packWav({ channels: [src], sampleRate: 22050 }, { format: 'float32' });

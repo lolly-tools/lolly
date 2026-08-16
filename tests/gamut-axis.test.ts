@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
- * The chroma AXIS ceiling (engine/src/gamut-axis.ts) — how high a chroma scale
+ * The chroma AXIS ceiling (engine/src/gamut-axis.ts) - how high a chroma scale
  * has to reach for the gamut it is drawn against.
  *
  * The bug this replaces was a flat 0.4 for every gamut, which is wrong in both
@@ -9,8 +9,8 @@
  * fifth of an sRGB chart permanently empty (sRGB stops at 0.321), squashing the
  * envelope into the lower half and doubling the chroma a given mouse move covers.
  *
- * So every assertion here is made against `maxChroma` itself — a dense sweep over
- * lightness × hue — never against a number typed into this file. A tabulated
+ * So every assertion here is made against `maxChroma` itself - a dense sweep over
+ * lightness × hue - never against a number typed into this file. A tabulated
  * expectation would pass while the derivation rotted, and would say nothing about
  * a gamut that is an ICC press profile rather than one of the three names.
  */
@@ -23,7 +23,7 @@ import type { GamutSource } from '../engine/src/gamut-source.ts';
 
 /**
  * The true peak, by brute force: 200 lightnesses × every degree of hue. This is
- * the oracle — deliberately far denser than the coarse-then-refine search the
+ * the oracle - deliberately far denser than the coarse-then-refine search the
  * module ships, so it can catch that search settling on a local maximum.
  */
 function bruteforcePeak(limit: Parameters<typeof maxChroma>[2]): { c: number; l: number; h: number } {
@@ -51,17 +51,17 @@ test('peakChroma finds the real peak, not a local one', () => {
   for (const g of GAMUTS) {
     const brute = peakOf(g);
     const got = peakChroma(g);
-    // AGREEMENT, both ways — not `got >= brute.c`.
+    // AGREEMENT, both ways - not `got >= brute.c`.
     //
     // Neither figure is the truth: both are sampled, the oracle at 200 L × 1° and the
     // shipped search on a coarser grid with a local refine, so either can come out a
     // hair above the other and which one does is a property of the sample counts. A
-    // one-sided assertion would therefore be held up by the oracle's coarseness — bump
+    // one-sided assertion would therefore be held up by the oracle's coarseness - bump
     // this file's density and it fails with the module untouched, which is a statement
     // about the test rather than about the code. Two-sided at 2% still fails a search
     // that settles on a genuinely different local maximum (the gamuts' second-highest
-    // ridges are tens of percent down), and the load-bearing property — the CEILING
-    // clears the true peak — is asserted in the next test.
+    // ridges are tens of percent down), and the required property - the CEILING
+    // clears the true peak - is asserted in the next test.
     const off = Math.abs(got - brute.c) / brute.c;
     assert.ok(off <= 0.02, `${g}: peakChroma ${got} disagrees with brute force ${brute.c} by ${(off * 100).toFixed(2)}%`);
   }
@@ -105,7 +105,7 @@ test('the ceiling is a property of the GAMUT ONLY — no lightness or hue in it'
 
 test('a ceiling is DERIVED, so an arbitrary source (an ICC press profile) gets one too', () => {
   // A source no name tabulates, and lumpy in BOTH l and h the way a press profile
-  // is — so the search has to find the ridge rather than read a table.
+  // is - so the search has to find the ridge rather than read a table.
   const cap = (l: number, h: number): number =>
     0.10 + 0.03 * Math.sin((2 * h * Math.PI) / 180) * Math.sin(l * Math.PI);
   const timid: GamutSource = {

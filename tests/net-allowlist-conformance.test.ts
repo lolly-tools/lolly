@@ -1,15 +1,15 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
- * host.net allowlist conformance — the fail-closed network invariant, across shells.
+ * host.net allowlist conformance - the fail-closed network invariant, across shells.
  *
  * Run with: npm test  (node --test over the tests/ globs)
- * No test framework — uses node:test built-in. No DOM, no jsdom, no real network.
+ * No test framework - uses node:test built-in. No DOM, no jsdom, no real network.
  *
  * `host.net` is the ONLY way a tool reaches the network, and it is fail-closed:
  * a tool without the `network` capability (or without a `network.allowlist`
  * block) gets every fetch rejected, and a tool with one gets exactly the URLs
  * its manifest named. The awkward part is WHERE that is enforced. It is not in
- * the engine — the engine only calls `host.net.fetch` — it is in each shell's
+ * the engine - the engine only calls `host.net.fetch` - it is in each shell's
  * bridge. Today all of them route through one module
  * (packages/node-shell/src/net.ts `createNetAPI`, which the web bridge re-exports
  * from shells/web/src/bridge/net.ts and the CLI and TUI import directly), but
@@ -22,20 +22,20 @@
  * test), with `globalThis.fetch` swapped for a counting fake:
  *   1. no network capability / no allowlist  → every fetch rejects, and the
  *      underlying fetch is never called (deny happens before any I/O),
- *   2. `allowlist: []` — the exact fail-closed boot default the web shell wires
- *      in bridge/index.ts — → same,
+ *   2. `allowlist: []` - the exact fail-closed boot default the web shell wires
+ *      in bridge/index.ts - → same,
  *   3. an allowlist that no entry matches → rejects, including the lookalike-host
  *      case the `/*` boundary rule exists for (api.example.com.evil.io),
  *   4. a matching URL DOES pass through (so 1-3 are not vacuous),
  *   5. tool code cannot widen the allowlist at runtime: the NetAPI handed to a
- *      tool exposes `fetch` and nothing else — no allowlist property, no setter,
- *      nothing on its prototype chain — and the per-mount scoped clone pattern
+ *      tool exposes `fetch` and nothing else - no allowlist property, no setter,
+ *      nothing on its prototype chain - and the per-mount scoped clone pattern
  *      (`{ ...host, net: createNetAPI({ allowlist }) }`, used by views/tool.ts,
  *      views/multi-edit.ts, pro/render-export.ts and tui/engine-render.ts)
  *      leaves the shared host's denying net untouched.
  *
  * Structurally, over the source (because the invariant is cross-shell and most
- * shell bridges cannot be imported here — the web bridge is DOM-bound and the
+ * shell bridges cannot be imported here - the web bridge is DOM-bound and the
  * CLI/TUI bridges need a jsdom window on globalThis before they will build):
  *   6. every `host.net = …` / `net:` assignment anywhere under shells/ is
  *      `createNetAPI(…)`, i.e. no shell hand-rolls a network API,
@@ -46,7 +46,7 @@
  *   9. the Tauri bridge overrides carry no net override (they inherit the web
  *      bridge's), and
  *  10. schemas/tool.schema.json still makes `network.allowlist` required with
- *      minItems 1 — a tool cannot declare an empty allowlist and have it read as
+ *      minItems 1 - a tool cannot declare an empty allowlist and have it read as
  *      "anything".
  *
  * WHAT THIS DOES NOT PROVE
@@ -58,7 +58,7 @@
  * response cap (that is `capResponse`, tested by its own callers) and nothing
  * about the ENGINE's behaviour when a shell omits `host.net` entirely. And the
  * allowlist array is held by reference inside `createNetAPI`, so a SHELL that
- * kept a mutable array could widen its own allowlist later — assertion 5 covers
+ * kept a mutable array could widen its own allowlist later - assertion 5 covers
  * the reachability that matters (tool code never receives that array), not
  * immutability of the array itself.
  */
@@ -171,7 +171,7 @@ test('tool code cannot widen the allowlist through the NetAPI it is handed', asy
   const allowlist = ['https://api.example.com/*'];
   const net = createNetAPI({ allowlist });
 
-  // The object a tool receives carries the method and nothing else — no
+  // The object a tool receives carries the method and nothing else - no
   // allowlist, no config, nothing to push onto or reassign.
   assert.deepEqual(Object.keys(net), ['fetch']);
   assert.deepEqual(Object.getOwnPropertyNames(net), ['fetch']);
@@ -196,7 +196,7 @@ test('tool code cannot widen the allowlist through the NetAPI it is handed', asy
 // ─── structure: no shell may hand-roll host.net ──────────────────────────────
 
 const NET_MODULE = 'packages/node-shell/src/net.ts';
-/** The web shell's stable re-export of NET_MODULE — not a second implementation. */
+/** The web shell's stable re-export of NET_MODULE - not a second implementation. */
 const NET_REEXPORT = 'shells/web/src/bridge/net.ts';
 
 /**
@@ -206,7 +206,7 @@ const NET_REEXPORT = 'shells/web/src/bridge/net.ts';
  */
 // tauri-shared is not a shell: it's the parent-repo composition point both Tauri
 // shells' bridge-overrides call into (state-fs only today). It defines no
-// host.net — the definer/hand-rolled scans below cover it like everything else.
+// host.net - the definer/hand-rolled scans below cover it like everything else.
 const KNOWN_SHELLS = ['chrome-extension', 'cli', 'tauri-desktop', 'tauri-mobile', 'tauri-shared', 'tui', 'web'];
 
 const SKIP_DIR = new Set(['node_modules', 'dist', 'target', '.git', 'gen', 'lib', 'vendor']);

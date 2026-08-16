@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
- * @lolly-tools/core — the Lolly tool-author contract.
+ * @lolly-tools/core - the Lolly tool-author contract.
  *
  * Depend on this package to build a Lolly tool without cloning the platform:
  *   - Types: the `HostV1` capability bridge + the `tool.json` manifest shape.
@@ -14,8 +14,8 @@ export type * from './contract.ts';
 
 /** The canonical `FinishKind` spellings, as a value: the ONE list. `FinishKind`
  *  is derived from it, and `engine/src/preflight.ts` builds its recognised-finish
- *  set from it, so the open union and the check that reports an unrecognised
- *  spelling cannot drift apart. */
+ *  set from it. This keeps the open union and the check that reports an
+ *  unrecognised spelling from drifting apart. */
 export { KNOWN_FINISH_KINDS } from './host-v1.ts';
 
 export { validateTool, validateCanvasOp } from './validate.ts';
@@ -39,7 +39,7 @@ export {
   SEVERITY_RANK, knownFact, unknownFact, PREFLIGHT_FORMAT, PREFLIGHT_FORMAT_VERSION,
 } from './preflight.ts';
 
-// Money — the currency-formatting helper and the serialised money-bearing artifact
+// Money - the currency-formatting helper and the serialised money-bearing artifact
 // shape. A SIBLING of the preflight vocabulary (never inside `PreflightReport`),
 // so a report can never carry a number that reads as a quote. There is no default
 // currency and no fallback symbol anywhere in it. See `plans/65-preflight-and-cost.md`
@@ -53,13 +53,13 @@ export type {
   SerializedWorkingRow, SerializedAdjustmentRow, SerializedUncostedLine,
 } from './money.ts';
 
-// money-policy — the pure decide-money-or-counts predicate. Keyed on per-selection
+// money-policy - the pure decide-money-or-counts predicate. Keyed on per-selection
 // provenance (own session vs reached-via-link), NOT on any URL param: the whole
 // design keeps card identity and money out of URL space. See `money-policy.ts`.
 export { canShowMoney } from './money-policy.ts';
 export type { MoneyContext } from './money-policy.ts';
 
-// extension-v1 — the chrome extension contract (the door + furniture-spec, and
+// extension-v1 - the chrome extension contract (the door + furniture-spec, and
 // the enumerable slot catalog). The host-v1 analog for chrome surfaces: a typed
 // contract both supply channels compile against without depending on the engine
 // or a shell. Types + one data constant only; no runtime, no DOM. See its header.
@@ -69,12 +69,12 @@ export type {
   SlotManifest, SlotHost, Extension,
 } from './extension-v1.ts';
 
-// canvas-op-v1 — the canvas op/awareness/params contract (plans/99). The
+// canvas-op-v1 - the canvas op/awareness/params contract (plans/99). The
 // host-v1 analog for the live canvas: a typed seam the OSS shell's
 // Scene/presenter and lolly-work's Yjs adapter both compile against without
 // either depending on the engine or on yjs. Canonical in this repo (the op
 // SHAPE is decided here; the transport lives in lolly-work). The OSS side's
-// dormant `org/` seam registers a `CanvasSyncAdapter` against it — with
+// dormant `org/` seam registers a `CanvasSyncAdapter` against it. With
 // nothing registered the path is dead and behaviour is byte-identical to
 // single-player. `ReferenceCanvasDoc` is a dependency-free reference CRDT used
 // to prove convergence in this repo's tests without a yjs dependency. See

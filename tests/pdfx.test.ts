@@ -3,7 +3,7 @@
  * PDF/X-4 metadata authority contract tests.
  * Run with: node --test tests/pdfx.test.ts
  *
- * pdfx.js is pure string/descriptor logic — no pdf bytes — so these assertions
+ * pdfx.js is pure string/descriptor logic - no pdf bytes - so these assertions
  * read the XMP/PDF conventions independently of the builder: packet framing
  * (xpacket begin/end='w' + writable padding), required properties + namespace
  * URIs, XML escaping, Info-dict date shape, and the OutputIntent descriptors.
@@ -146,7 +146,7 @@ test('pdfx: output intent spec — srgb embeds the ICC profile', () => {
 test('pdfx: output intent spec — a CMYK condition alone carries no profile bytes', () => {
   // No CMYK ICC ships in this repo, so with no options the intent is the press
   // condition's registered NAME. That is a true statement of the condition and it
-  // is what the CLI and every shared `profile=fogra39` link still produce — but it
+  // is what the CLI and every shared `profile=fogra39` link still produce - but it
   // is not PDF/X-4, which requires the profile embedded, so the shell withholds the
   // conformance claim (see bridge/export-pdfx.ts).
   const spec = pdfxOutputIntentSpec('fogra39');
@@ -192,7 +192,7 @@ test('pdfx: supplied profile bytes and identity pass through verbatim', () => {
   assert.equal(paired.registry, 'http://www.color.org');
 
   // The unpaired case: `Custom` names no registry, so RegistryName must be
-  // OMITTED — `registry: null` has to survive the merge rather than being read as
+  // OMITTED - `registry: null` has to survive the merge rather than being read as
   // "not supplied" and replaced by the condition's default.
   const custom = pdfxOutputIntentSpec('fogra39', {
     iccBytes: bytes, components: 4, identifier: 'Custom', registry: null, info: 'Some Press v2',
@@ -214,7 +214,7 @@ test('pdfx: profile eligibility — only a real output profile in the intent’s
   ), { ok: true });
 
   const refused: Array<[Record<string, unknown>, 'CMYK' | 'RGB', string]> = [
-    // A display profile is not an output device — PDF/A allows mntr, PDF/X does not.
+    // A display profile is not an output device - PDF/A allows mntr, PDF/X does not.
     [{ ...ok, deviceClass: 'mntr' }, 'CMYK', 'device class'],
     [{ ...ok, deviceClass: 'abst' }, 'CMYK', 'device class'],
     // The srgbHex trap: RGB bytes under a CMYK intent would merely RENDER a press
@@ -240,7 +240,7 @@ test('pdfx: profile eligibility — only a real output profile in the intent’s
 
 test('pdfx: the engine public surface re-exports the pdfx API', async () => {
   // The web shell imports these from '@lolly/engine' (its pdf-lib export pass),
-  // so the index re-export is load-bearing, not cosmetic.
+  // so the index re-export is required, not cosmetic.
   const engine = await import('../engine/src/index.ts');
   assert.equal(engine.PDFX_VERSION, PDFX_VERSION);
   assert.equal(engine.buildPdfXXmp, buildPdfXXmp);

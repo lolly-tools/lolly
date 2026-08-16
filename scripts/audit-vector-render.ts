@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 // SPDX-License-Identifier: MPL-2.0
 /**
- * Vector-render conformance audit — public pages as fixtures for the engine's
+ * Vector-render conformance audit - public pages as fixtures for the engine's
  * print-PDF → SVG interpreter (engine/src/pdf-map.ts + pdf-svg.ts, the path a
  * .ai/.pdf upload and the docs-screenshot vector pipeline both take).
  *
@@ -9,15 +9,15 @@
  * the engine for things Chromium's PRINT pass did (dropped lazy content, print
  * stylesheets). So this is a THREE-WAY diff per fixture:
  *
- *   ref     — a screen screenshot of the live page (what a human sees)
- *   native  — the SAME print-PDF rendered by an INDEPENDENT engine (poppler
- *             `pdftoppm`, else macOS `sips`) — the ground truth of what the PDF
+ *   ref - a screen screenshot of the live page (what a human sees)
+ *   native - the SAME print-PDF rendered by an INDEPENDENT engine (poppler
+ *             `pdftoppm`, else macOS `sips`) - the ground truth of what the PDF
  *             actually contains, with zero involvement from our interpreter
- *   ours    — our engine's SVG of that PDF, rendered back to pixels
+ *   ours - our engine's SVG of that PDF, rendered back to pixels
  *
  * Two scores fall out, cleanly attributed:
- *   print-loss  = ref  ↔ native   — Chromium's print pass (we mitigate, not fix)
- *   ENGINE-loss = native ↔ ours    — our interpreter's fidelity (this is the backlog)
+ *   print-loss  = ref  ↔ native - Chromium's print pass (we mitigate, not fix)
+ *   ENGINE-loss = native ↔ ours - our interpreter's fidelity (this is the backlog)
  *
  * Mitigations applied so the engine sees a real page, not a print-stylesheet
  * skeleton: `emulateMedia('screen')` before printing (bypasses the site's print
@@ -26,7 +26,7 @@
  * External origins have no in-page conversion hook, so the PDF is handed to the
  * app's loopback `__lollyVectorShot` (main.ts) running on the served dist in a
  * second page. Foreign fonts/rasters can't be re-sourced there (they live on the
- * captured page), so external fixtures show fallback faces — a known limitation,
+ * captured page), so external fixtures show fallback faces - a known limitation,
  * NOT an engine bug; the `local:` control fixture calibrates that out.
  *
  * Build-machine only (Chromium + a built dist). Outputs per-fixture artifacts to
@@ -64,7 +64,7 @@ const PT_PER_PX = 0.75;          // Chromium prints CSS px at 72/96 pt
 const NATIVE_DPI = 96;           // pdftoppm -r 96 → 1440px-wide native = matches ref/ours
 
 /** Fixtures: real public pages that stress different render features, plus one
- *  local control (our own clean page) where ENGINE-loss should be near-zero — if
+ *  local control (our own clean page) where ENGINE-loss should be near-zero - if
  *  it isn't, the harness itself is miscalibrated. */
 interface Fixture { slug: string; url: string; note: string; local?: boolean }
 const FIXTURES: Fixture[] = [
@@ -136,8 +136,8 @@ interface Row {
    *  2.1 Appendix E paint order, and the union-covered viewport fraction where
    *  that disagreement is visible. A property of the FIXTURE, not a score for
    *  the walker: it bounds what `stackingOrder` can buy on this page. Pixel loss
-   *  cannot see an ordering defect on its own — swapped boxes usually look
-   *  similar — so this is the only column that reports the demand at all. */
+   *  cannot see an ordering defect on its own - swapped boxes usually look
+   *  similar - so this is the only column that reports the demand at all. */
   zPairs?: number;
   zArea?: number;
   nativeRenderer?: string;
@@ -245,7 +245,7 @@ async function auditOne(browser: Browser, sharp: Sharp, base: string, nativeRend
     } else {
       row.engineLoss = await diffPct(sharp, p('ref.png'), p('ours.png'), p('engine-diff.png'));
     }
-    // 5. The DIRECT walker — same page, no print pass. Local fixtures only: the
+    // 5. The DIRECT walker - same page, no print pass. Local fixtures only: the
     //    hook is Lolly's own loopback surface, so a foreign origin has no walker.
     if (f.local) await auditWalker(ctx, sharp, url, p, row);
 
@@ -328,7 +328,7 @@ async function auditWalker(ctx: BrowserContext, sharp: Sharp, url: string, p: (n
     }
 
     // How much paint order this fixture actually asks for. Pixel loss cannot see
-    // an ordering defect on its own — two swapped boxes usually look similar —
+    // an ordering defect on its own - two swapped boxes usually look similar - 
     // so measure the demand directly: overlapping, non-nested element pairs
     // whose DOM order disagrees with CSS 2.1 Appendix E order, and the union
     // area where that disagreement is visible.
@@ -361,7 +361,7 @@ async function renderSvg(ctx: BrowserContext, svg: string, out: string): Promise
  *
  * Why this is not `renderSvg`: the print path always produces a page exactly
  * W wide, so forcing its SVG into a W×H <img> is lossless. The walker does not
- * — it walks `body`, whose border box is the WHOLE SCROLLABLE DOCUMENT. On
+ * - it walks `body`, whose border box is the WHOLE SCROLLABLE DOCUMENT. On
  * local-gallery that is 1440×2846, and squashing 2846 px into 900 before
  * diffing against a viewport screenshot scores the fixture as a catastrophe no
  * matter what the walker emitted. Measured: 63.7% under the old framing versus
@@ -372,7 +372,7 @@ async function renderSvg(ctx: BrowserContext, svg: string, out: string): Promise
  */
 async function renderWalkerSvg(ctx: BrowserContext, svg: string, out: string): Promise<void> {
   const page = await ctx.newPage();
-  // Natural size = the SVG's own width/height attributes (CSS px — the walker
+  // Natural size = the SVG's own width/height attributes (CSS px - the walker
   // works in px, not PDF points, so there is no PT_PER_PX conversion here).
   const m = svg.match(/<svg[^>]*\swidth="([\d.]+)(?:px)?"[^>]*\sheight="([\d.]+)(?:px)?"/);
   const natW = m ? Math.round(parseFloat(m[1]!)) || W : W;
@@ -395,7 +395,7 @@ async function renderWalkerSvg(ctx: BrowserContext, svg: string, out: string): P
  * Deliberately coarse and deliberately cheap: it is scoped to elements that are
  * positioned or carry a non-auto z-index (the population the walker's
  * stacking-order mode moves), compares their EFFECTIVE paint rank against
- * document order, and grids the overlap at 4 px — summing raw intersections
+ * document order, and grids the overlap at 4 px - summing raw intersections
  * double-counts badly on a page with 99 z-indexed boxes.
  */
 async function measureInversions(page: Page): Promise<{ pairs: number; area: number }> {
@@ -478,7 +478,7 @@ function renderNative(renderer: NativeRenderer, pdf: string, fullOut: string, sh
 }
 
 // The crop is async but renderNative is called inside an async fn that awaits the
-// diffs right after — collect the crop promises and settle them before diffing.
+// diffs right after - collect the crop promises and settle them before diffing.
 const cropQueue: Promise<void>[] = [];
 async function cropNative(sharp: Sharp, full: string, out: string): Promise<void> {
   const img = sharp(full);

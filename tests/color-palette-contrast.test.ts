@@ -1,17 +1,17 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
- * Palette Lab (community/color-palette) — Contrast mode contract.
+ * Palette Lab (community/color-palette) - Contrast mode contract.
  *
  * Loads the REAL tool from disk (manifest + template + hooks) and drives it
  * through the engine with a host whose `color` bridge is the actual
- * `makeColorApi()` — the same object every shell attaches — so this guards the
+ * `makeColorApi()` - the same object every shell attaches - so this guards the
  * tool's real behaviour end to end, not a fixture.
  *
  * Contrast mode's promise: every ramp step is a tone of its row's hue whose
  * FORWARD APCA Lc against the chosen background hits a per-step target. The tool
  * gets there through `host.color.solveApca` (engine 1.107). We verify the promise
  * from the outside: RE-MEASURE each emitted hex with `apcaContrast(hex, bg)` and
- * check it lands on its target — and that a target past the achievable ceiling is
+ * check it lands on its target - and that a target past the achievable ceiling is
  * flagged `reachable: false` (the closest colour returned, never a silent miss).
  *
  * Run with: node --test tests/color-palette-contrast.test.ts
@@ -45,7 +45,7 @@ if (PACK_MOUNTED) {
 
 const tool: any = SKIP ? null : await loadTool('color-palette', fetchFile);
 
-// A host whose color bridge is the engine's real ColorAPI — exactly what web/CLI
+// A host whose color bridge is the engine's real ColorAPI - exactly what web/CLI
 // attach. `strip` removes solveApca to exercise the feature-detect fallback.
 function makeHost(strip = false): any {
   const color: any = makeColorApi();
@@ -56,7 +56,7 @@ function makeHost(strip = false): any {
 async function mount(initialState: any, opts: { strip?: boolean } = {}) {
   const rt = await createRuntime(tool, makeHost(opts.strip), initialState);
   // tokensJson is a hook `extra`; render it raw (triple-stache bypasses escaping)
-  // and parse it — it is the machine-readable record of every solved step.
+  // and parse it - it is the machine-readable record of every solved step.
   const tokens = JSON.parse(rt.getHydratedString('{{{tokensJson}}}') as string);
   return { rt, html: rt.getHydrated() as string, tokens };
 }
@@ -161,7 +161,7 @@ test('contrast mode: the contrastCurve preset drives targets when no custom Lc i
     'preset targets must be non-zero (empty lcTargets must not become an all-zero ramp)');
 
   // The 'even' preset spans Lc 15..90 across 6 steps: the distinct targets are
-  // 15,30,45,60,75,90 (the same set for every entry — targets track step
+  // 15,30,45,60,75,90 (the same set for every entry - targets track step
   // position, not hue), so the unique sorted set must be exactly the preset.
   const targetsSeen = Array.from(new Set(cells.map(c => c.apca.targetLc))).sort((a, b) => a - b);
   assert.deepEqual(targetsSeen, [15, 30, 45, 60, 75, 90],
@@ -178,7 +178,7 @@ test('perceptual (default) mode never emits an APCA solve extension', { skip: SK
 
 test('contrast mode falls back to the perceptual ramp when the host cannot solve', { skip: SKIP }, async () => {
   // Same request, but host.color has no solveApca (an older shell). The tool must
-  // still render a ramp — just the OKLab one — never blank, never a thrown hook.
+  // still render a ramp - just the OKLab one - never blank, never a thrown hook.
   const { tokens, html } = await mount(
     { seed: '#2563eb', harmony: 'complement', steps: 6, neutrals: true, mode: 'contrast', bg: '#ffffff' },
     { strip: true },

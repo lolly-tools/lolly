@@ -1,28 +1,28 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
- * Brand mapper — the "make a foreign document look intentionally on-brand"
- * primitives (plan track E3, plans/49-fable-new-potential-pptx.md §E3). Given an
- * imported artefact's literal colours + font families, map each onto the active
- * brand's swatches/fonts so a rebrand reads as deliberate rather than
- * nearest-neighbour-random.
+ * Brand mapper. Primitives that make a foreign document look intentionally
+ * on-brand (plan track E3, plans/49-fable-new-potential-pptx.md §E3). Given an
+ * imported artefact's literal colours and font families, this maps each one
+ * onto the active brand's swatches/fonts, so a rebrand reads as deliberate
+ * instead of a random nearest-neighbour pick.
  *
  * Pure and deterministic: no DOM, no IO, no Date/Math.random. All colour maths
- * is reused from the engine's OKLab core — `deltaEOk` (color-tools.ts) for the
+ * is reused from the engine's OKLab core: `deltaEOk` (color-tools.ts) for the
  * perceptual metric, `hexToOklch` (brand-derive.ts) for the chroma gate, and
  * `colorToHex` (tokens.ts) to normalise any imported colour form to hex first.
  * Nothing here re-derives colour maths.
  *
- * Scope: this is Stage 2 of the plan's two-stage scheme — the *perceptual*
+ * Scope: this is Stage 2 of the plan's two-stage scheme, the *perceptual*
  * residue mapper. Stage 1 (exact re-linking against an old theme's lumMod/lumOff
  * variant grid) and lightness-ordering-preserving slot+transform output are
- * DEFERRED to the pptx rewrite track; this module deliberately does nearest by
- * ΔEOK with the intentional-output guard rails (chroma gate, role hints,
- * many-to-one collapse, review threshold).
+ * DEFERRED to the pptx rewrite track. This module deliberately maps to the
+ * nearest colour by ΔEOK, with guard rails that keep the output intentional
+ * (chroma gate, role hints, many-to-one collapse, review threshold).
  *
  * Untrusted-input regime: colours/fonts arrive from hostile documents. Every
- * entry is validated (unparseable → dropped, never trusted downstream), and
- * input list lengths are capped so a malicious deck with millions of literals
- * cannot force unbounded work or allocation.
+ * entry is validated (unparseable input is dropped, never trusted downstream),
+ * and input list lengths are capped, so a malicious deck with millions of
+ * literals cannot force unbounded work or allocation.
  */
 
 import { deltaEOk } from './color-tools.ts';
@@ -50,7 +50,7 @@ const NEUTRAL_CHROMA = 0.03;
 // "same-ish colour" bound).
 const DEFAULT_THRESHOLD = 0.12;
 
-// Two accents within a JND (ΔEOK ≈ 0.02) read as the same colour — the second
+// Two accents within a JND (ΔEOK ≈ 0.02) read as the same colour - the second
 // adds nothing to a colour scheme, so it's dropped before slot filling.
 const ACCENT_DEDUPE = 0.02;
 
@@ -109,7 +109,7 @@ function toBrandHex(input: unknown): string | null {
   if (typeof input !== 'string') return null;
   let s = input.trim().replace(/^['"]+|['"]+$/g, '').trim();
   if (!s) return null;
-  // Bare hex (no leading '#') — the DrawingML literal form.
+  // Bare hex (no leading '#') - the DrawingML literal form.
   if (/^[0-9a-fA-F]{3,4}$/.test(s) || /^[0-9a-fA-F]{6}$/.test(s) || /^[0-9a-fA-F]{8}$/.test(s)) {
     s = `#${s}`;
   }
@@ -150,14 +150,14 @@ function roleMatches(role: string, wanted: string[]): boolean {
  * The nearest brand swatch to `hex` by OKLab ΔE, with the guard rails that make
  * a rebrand look intentional:
  *
- *  - **Chroma gate** — a neutral source (chroma < 0.03) only ever considers
+ *  - **Chroma gate** - a neutral source (chroma < 0.03) only ever considers
  *    low-chroma brand swatches, and a chromatic source only chromatic swatches,
  *    so a grey never jumps to a saturated accent (or vice-versa). If a side of
  *    the gate is empty, it falls back to the full set (and the review threshold
  *    catches the stretch).
- *  - **Role hint** — with `opts.roleHint`, swatches whose declared role matches
+ *  - **Role hint** - with `opts.roleHint`, swatches whose declared role matches
  *    the family (bg/ink/accent/neutral) are preferred, when any match.
- *  - **Review flag** — `review:true` when the best ΔEOK exceeds
+ *  - **Review flag** - `review:true` when the best ΔEOK exceeds
  *    `opts.threshold` (default 0.12), so the caller can surface it for a human
  *    instead of silently mapping a poor match.
  *
@@ -334,7 +334,7 @@ const ACCENT_SLOTS = ['accent1', 'accent2', 'accent3', 'accent4', 'accent5', 'ac
 
 /**
  * Map brand swatches (+ fonts) onto the 12 clrScheme slots of a pptx-patch
- * RebrandTheme — the "one call from brand tokens to a theme plan" entry.
+ * RebrandTheme - the "one call from brand tokens to a theme plan" entry.
  *
  * Heuristic:
  *  - Swatches parse via the same toBrandHex/hexToOklch path as the mappers;
@@ -343,12 +343,12 @@ const ACCENT_SLOTS = ['accent1', 'accent2', 'accent3', 'accent4', 'accent5', 'ac
  *    by L (else darkest overall), lt1 = the lightest neutral (else lightest
  *    overall); dk2/lt2 = the second-darkest/-lightest DISTINCT neutral on the
  *    dark/light side of the dk1/lt1 lightness midpoint, falling back to
- *    dk1/lt1 — a two-neutral ink+surface brand must not invert the slots.
+ *    dk1/lt1 - a two-neutral ink+surface brand must not invert the slots.
  *  - Accents come from the chromatic swatches: those whose declared role
  *    matches the accent family (ROLE_ALIASES) first, preserving input order,
  *    then the remaining chromatics in input order; near-duplicates
  *    (ΔEOK < 0.02) are dropped. accent1..accent6 are filled by CYCLING through
- *    that list when it holds fewer than six — an omitted slot would keep the
+ *    that list when it holds fewer than six - an omitted slot would keep the
  *    OLD brand colour in the deck, so cycling keeps the output on-brand. With
  *    no chromatics at all, every accent slot is omitted.
  *  - hlink = the first accent (omitted when there are none); folHlink = hlink.
@@ -380,7 +380,7 @@ export function suggestRebrandTheme(swatches: BrandSwatch[], fonts?: BrandFonts)
     theme.dk1 = toSchemeHex(dk1.hex);
     theme.lt1 = toSchemeHex(lt1.hex);
     // Second-darkest/-lightest DISTINCT neutral, kept on its own side of the
-    // dk1/lt1 lightness midpoint — with a two-neutral brand (ink + surface)
+    // dk1/lt1 lightness midpoint - with a two-neutral brand (ink + surface)
     // the second-darkest IS the surface, which would invert dk2/lt2 and set
     // dk2 body text white-on-white. Off-side (or lone/absent) candidates fall
     // back to dk1/lt1 so the slot never keeps the old deck's colour.

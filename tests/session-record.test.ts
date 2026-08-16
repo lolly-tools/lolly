@@ -35,7 +35,7 @@ test('a current record loads its data unchanged', () => {
 
 test('an unversioned legacy record still loads (treated as v0, no-op migration)', () => {
   const data = { title: 'legacy' };
-  // No formatVersion / engineVersion — exactly what pre-P0-5 records look like.
+  // No formatVersion / engineVersion - exactly what pre-P0-5 records look like.
   const record = { slot: 'old', toolId: 'poster', data };
   assert.equal(migrateSessionRecord(record), data);
 });

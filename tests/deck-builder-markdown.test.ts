@@ -3,12 +3,12 @@
  * deck-builder full-markdown contract tests.
  *
  * Run with: node --test "tests/deck-builder-markdown.test.ts"  (or via npm test)
- * No test framework — node:test built-in.
+ * No test framework - node:test built-in.
  *
  * Loads the REAL community tool from disk and drives it through the engine, so these
  * guard the tool's actual markdown render. The hook extends the old subset
  * (headings / bold / italic / flat bullets / paragraphs) with pipe TABLES, ORDERED
- * and NESTED lists, LINKS, and inline CODE — every piece of user text escaped BEFORE
+ * and NESTED lists, LINKS, and inline CODE - every piece of user text escaped BEFORE
  * any tag is added, so a `javascript:` URL or an `<img onerror>` in a cell is inert.
  */
 
@@ -23,7 +23,7 @@ import { loadTool } from '../engine/src/loader.ts';
 import { createRuntime } from '../engine/src/runtime.ts';
 import { baseHost } from './helpers/host.ts';
 
-// deck-builder is a community tool — always present in a full checkout. Load it
+// deck-builder is a community tool - always present in a full checkout. Load it
 // from the SOURCE pack (community/), not the gitignored tools/ profile view, so
 // the suite never silently skips: a missing dir means the tool was renamed or
 // deleted, which must FAIL here.
@@ -113,7 +113,7 @@ test('SECURITY: a javascript: link produces NO href (text only)', async () => {
 });
 
 // The freeform box path shares the SAME parser, so tables/ordered/nested/links must
-// also work there — with the box's bare-tag class map (no sl-* classes).
+// also work there - with the box's bare-tag class map (no sl-* classes).
 test('freeform box: same parser renders bare-tag table + ordered list + link', async () => {
   const boxes = [{
     kind: 'text', x: 100, y: 100, w: 900, h: 700,

@@ -3,7 +3,7 @@
  * The Node shells' full-fidelity render tier (CLI + TUI): for formats the DOM-free
  * engine can't make (HTML-layout raster, jpg/webp, pdf, video), drive a REAL Lolly web
  * shell in the scoped Chromium and capture the exact bytes its own export path
- * downloads — so terminal output is byte-identical to the web/desktop app, with no
+ * downloads. Terminal output is byte-identical to the web/desktop app, with no
  * second render path to drift.
  *
  * It serves the built web dist (`shells/web/dist`) from an ephemeral localhost server
@@ -78,7 +78,7 @@ function serveDist(): Promise<Served> {
   });
 }
 
-// Reserved params we set ourselves on the export URL — cleared from the inbound query
+// Reserved params we set ourselves on the export URL. Cleared from the inbound query
 // first so the export dims/format/password win over anything the saved session encoded.
 const EXPORT_URL_RESERVED = ['format', 'export', 'copy', 'width', 'w', 'height', 'h', 'unit', 'dpi', 'password', 'bleed', 'marks', 'imprint', 'durable', 'profile', 'c2pa', 'preview', 'options'];
 
@@ -97,7 +97,7 @@ function exportUrl(base: string, toolId: string, query: string, fmt: string, dim
   // Node shells were simply never carrying the values into the URL that drives it.
   if (dims.bleed) p.set('bleed', dims.bleed);                    // e.g. "3mm"
   if (dims.marks) p.set('marks', dims.marks);                    // CSV: crop,reg,bleed,bars,prov
-  // The Imprint is DEFAULT-ON in the web shell, so `false` has to travel as the explicit
+  // The imprint is default-on in the web shell, so `false` has to travel as the explicit
   // `imprint=0` opt-out: forwarding only the true case would have made the Node shells'
   // --imprint=0 (and --no-provenance) a suggestion the browser tier quietly overrode.
   if (dims.imprint === false) p.set('imprint', '0');
@@ -105,15 +105,15 @@ function exportUrl(base: string, toolId: string, query: string, fmt: string, dim
   if (dims.durable) p.set('durable', '1');                       // neural TrustMark credential
   if (dims.pressProfile) p.set('profile', dims.pressProfile);    // URL 'profile' = CMYK press condition
   // Content Credentials: forward the setting so the web shell is the single c2pa authority
-  // for the browser tier (the Node post-stamp is skipped when this path ran — see run.ts /
-  // engine-render.ts — which avoids the pre-existing double-stamp).
+  // for the browser tier (the Node post-stamp is skipped when this path ran; see run.ts /
+  // engine-render.ts, which avoids the pre-existing double-stamp).
   if (dims.c2pa === false) p.set('c2pa', 'off');
   else if (dims.c2pa) p.set('c2pa', [7, 30, 90, 365].includes(Number(dims.c2paDays)) ? String(dims.c2paDays) : '1');
   p.set('export', '1'); // presence flag → the web shell auto-exports on load
   return `${base}/#/tool/${encodeURIComponent(toolId)}?${p.toString()}`;
 }
 
-/** How long to wait for the download — video records in real time. */
+/** How long to wait for the download. Video records in real time. */
 function timeoutFor(fmt: string): number {
   const f = fmt.toLowerCase();
   if (['webm', 'mp4', 'gif', 'apng'].includes(f)) return 180_000;
@@ -134,7 +134,7 @@ export interface RenderDims {
    *  web shell apply its own default. */
   imprint?: boolean | null;
   /** Embed the opt-in durable Content Credential (neural TrustMark mark) on raster
-   *  exports — the web shell's durableEmbedCanvas runs it (?durable=1). */
+   *  exports. The web shell's durableEmbedCanvas runs it (?durable=1). */
   durable?: boolean;
   /** CMYK press condition (e.g. "fogra39") for pdf-cmyk / cmyk-tiff. Named distinctly
    *  from the CLI's --profile (the user-profile FILE) to avoid the url-mode collision. */
@@ -151,8 +151,8 @@ export interface DeepScanResult {
   /** False when the /valid view never offered a scan for this batch (no decodable
    *  raster, WASM unavailable) or the detector download failed. */
   scanned: boolean;
-  /** Lolly's OWN durable identifier decoded from the pixels (TrustMark-format,
-   *  error-correction passed) — the ?durable=1 mark, readable after a metadata strip. */
+  /** Lolly's own durable identifier decoded from the pixels (TrustMark-format,
+   *  error-correction passed). The ?durable=1 mark, readable after a metadata strip. */
   lollyDurable: boolean;
   /** A generic/foreign Adobe TrustMark payload decoded (not Lolly's id). */
   trustmark: boolean;
@@ -164,14 +164,14 @@ export interface DeepScanResult {
 
 /**
  * Drive the web shell's /#/valid deep scan (the neural TrustMark / Content Seal
- * detectors) over local files and report, per file, whether Lolly's durable mark —
- * or a foreign watermark — was decoded from the pixels. This is the verify-side
+ * detectors) over local files and report, per file, whether Lolly's durable mark
+ * or a foreign watermark was decoded from the pixels. This is the verify-side
  * counterpart of the ?durable=1 export: the same on-device ONNX decode the browser
  * runs, driven headlessly so `lolly validate --deep` and the TUI can read the mark.
- * The models are served from the built dist (fetched fresh per run — the ephemeral
+ * The models are served from the built dist (fetched fresh per run: the ephemeral
  * browser context has no IndexedDB cache), so it needs the same build:web setup as
- * the render tier. A negative result is NOT proof of absence (per the watermark
- * detectors' own policy) — callers must word it that way.
+ * the render tier. A negative result is not proof of absence (per the watermark
+ * detectors' own policy); callers must word it that way.
  */
 export async function deepScanViaWebShell(files: string[]): Promise<DeepScanResult[]> {
   const base = await webShellBase();
@@ -201,8 +201,8 @@ export async function deepScanViaWebShell(files: string[]): Promise<DeepScanResu
     if (failed) {
       return files.map(f => ({ file: f, scanned: false, lollyDurable: false, trustmark: false, contentSeal: false, note: null }));
     }
-    // The per-file scans pop results in sequentially with no "all done" marker —
-    // poll until the findings snapshot is stable for a quiet period.
+    // The per-file scans pop results in sequentially with no "all done" marker.
+    // Poll until the findings snapshot is stable for a quiet period.
     const snapshot = (): Promise<Array<{ pips: string[]; note: string }>> => page.evaluate((count: number) =>
       Array.from({ length: count }, (_, i) => {
         const block = document.querySelector(`[data-deepscan-block="${i}"]`);
@@ -222,7 +222,7 @@ export async function deepScanViaWebShell(files: string[]): Promise<DeepScanResu
     }
     const found = JSON.parse(last) as Array<{ pips: string[]; note: string }>;
     // Text-matched against the /valid view's own en strings (the served dist runs
-    // untranslated here) — the durable note's heading is the most specific signal.
+    // untranslated here). The durable note's heading is the most specific signal.
     return files.map((f, i) => {
       const r = found[i] ?? { pips: [], note: '' };
       const hay = [r.note, ...r.pips].join(' · ');
@@ -247,22 +247,22 @@ export interface TransformViaWebShellArgs {
   /** The manifest's `file`-typed input id (the picker the bytes are dropped into). */
   fileInputId: string;
   file: TransformFile;
-  /** The tool's URL-state (serializeUrlState) — everything except the file itself. */
+  /** The tool's URL-state (serializeUrlState): everything except the file itself. */
   query?: string;
   timeoutMs?: number;
 }
 
 /**
- * Run a TRANSFORM tool (file-in → file-out, the `exportFile` hook) in the real web
+ * Run a transform tool (file-in to file-out, the `exportFile` hook) in the real web
  * shell and capture the file it downloads. The Node host has no canvas and no PDF
- * page renderer, so utilities that rebuild pixels — redact above all — cannot run
- * their export in jsdom; this drives the exact browser path a user clicks, so the
+ * page renderer, so utilities that rebuild pixels, redact above all, cannot run
+ * their export in jsdom. This drives the exact browser path a user clicks, so the
  * tool's own export gate runs on the same bytes the caller receives.
  *
  * It uploads the bytes into the sidebar file picker (`setInputFiles` with an
- * in-memory payload — nothing is written to disk) and clicks the template's
+ * in-memory payload; nothing is written to disk) and clicks the template's
  * `[data-export-file]` button. A hook that throws (a failed verification gate)
- * puts its sentence on that button and downloads nothing; we surface that sentence
+ * puts its sentence on that button and downloads nothing. We surface that sentence
  * as the thrown error, so a failed gate is a failure here too, never a quiet pass.
  */
 export async function transformViaWebShell(
@@ -303,7 +303,7 @@ export async function transformViaWebShell(
     // [data-export-wait] (redact: page previews rendering, or bars that arrived
     // as instructions and have not been snapped to cover against the real page
     // yet). The export button enables before that settles, so clicking on sight
-    // shipped bars exactly as supplied — with none of the geometry correction a
+    // shipped bars exactly as supplied, with none of the geometry correction a
     // person gets. Best-effort: if it never clears we go ahead anyway rather
     // than turning a slow page into a hard failure.
     await page.waitForFunction(() => !document.querySelector('[data-export-wait]'), undefined, { timeout: 30_000 })
@@ -350,9 +350,9 @@ export async function transformViaWebShell(
 export async function renderViaWebShell(
   toolId: string, query: string, format: string, dims: RenderDims = {},
 ): Promise<{ bytes: Uint8Array; mime: string }> {
-  // The durable embed is best-effort INSIDE the web shell (it never fails an export),
-  // so a dist without the encoder model would silently write an UNMARKED file while
-  // the caller believes it's protected. Fail loud up front instead — the mark is the
+  // The durable embed is best-effort inside the web shell (it never fails an export),
+  // so a dist without the encoder model would silently write an unmarked file while
+  // the caller believes it's protected. Fail loud up front instead. The mark is the
   // whole point of ?durable=1. Only checkable for a local dist; a remote
   // LOLLY_WEB_BASE serves its own models (or not) and we can't see its filesystem.
   if (dims.durable && !process.env.LOLLY_WEB_BASE) {
@@ -393,25 +393,25 @@ export async function renderViaWebShell(
 }
 
 /**
- * PROTOTYPE — opt-in alternative to renderViaWebShell for motion formats
- * (gif/apng/webm/mp4) ONLY. renderViaWebShell lets the web shell's own capture
- * loop run inside headless Chromium exactly as it does in a real browser tab —
- * frame-by-frame via dom-to-image (clone → serialize → rasterize). That means
- * every export-fidelity edge case dom-to-image has (documented against known
- * bugs elsewhere in the export path) applies here too, and it's real-time —
- * a 5s clip takes at least 5s of capture.
+ * Prototype: an opt-in alternative to renderViaWebShell for motion formats only
+ * (gif/apng/webm/mp4). renderViaWebShell lets the web shell's own capture loop run
+ * inside headless Chromium exactly as it does in a real browser tab, frame-by-frame
+ * via dom-to-image (clone, serialize, rasterize). That means every export-fidelity
+ * edge case dom-to-image has (documented against known bugs elsewhere in the export
+ * path) applies here too, and it runs in real time: a 5s clip takes at least 5s of
+ * capture.
  *
- * This drives the SAME tool page and the SAME client-side pipeline (deterministic
- * clock, scrubAnimations, WebCodecs encode, C2PA/watermark stamping — none of
- * that is duplicated here), but replaces dom-to-image's per-frame capture with a
- * REAL Playwright screenshot of the live #tool-canvas element: genuine Chromium
- * paint, no clone/serialize/reinterpret step. The bridge is `page.exposeFunction`
- * — the web shell's frame() (shells/web/src/bridge/export.ts) detects
+ * This drives the same tool page and the same client-side pipeline (deterministic
+ * clock, scrubAnimations, WebCodecs encode, C2PA/watermark stamping; none of that
+ * is duplicated here), but replaces dom-to-image's per-frame capture with a real
+ * Playwright screenshot of the live #tool-canvas element: genuine Chromium paint,
+ * no clone/serialize/reinterpret step. The bridge is `page.exposeFunction`. The web
+ * shell's frame() (shells/web/src/bridge/export.ts) detects
  * window.__lollyCaptureScreenshot and calls it instead of dom-to-image when present.
  *
- * deviceScaleFactor: 1 is required — the client scales the live node's CSS size
+ * deviceScaleFactor: 1 is required. The client scales the live node's CSS size
  * to the export's target pixel dimensions itself (mirroring dom-to-image's own
- * scale-transform trick) and expects a 1:1 CSS-px → screenshot-px mapping.
+ * scale-transform trick) and expects a 1:1 CSS-px to screenshot-px mapping.
  *
  * Not wired into the default CLI/MCP render path. Opt in via
  * LOLLY_VIDEO_CAPTURE=screenshot (see shells/cli/src/raster.ts) while this proves
@@ -424,7 +424,7 @@ export async function renderVideoViaScreenshot(
   const url = exportUrl(base, toolId, query, format, dims);
   const browser = await getBrowser();
   // Generous viewport so #tool-canvas renders near its native size rather than the
-  // web shell's own "fit to view" zooming it down to fit a small window — the client
+  // web shell's own "fit to view" zooming it down to fit a small window. The client
   // upscales whatever comes back, but starting from a full-resolution screenshot
   // keeps it sharp instead of upscaling an already-shrunk raster.
   const vw = Math.min(4000, Math.max(1400, (dims.width ?? 1000) + 500));
@@ -435,7 +435,7 @@ export async function renderVideoViaScreenshot(
   });
   try {
     const page = await ctx.newPage();
-    // Exposed before navigation — the binding survives the goto() below and every
+    // Exposed before navigation. The binding survives the goto() below and every
     // frame() call for the life of this page.
     await page.exposeFunction('__lollyCaptureScreenshot', async (): Promise<string | null> => {
       const handle = await page.$('#tool-canvas');

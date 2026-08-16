@@ -5,13 +5,13 @@
  *
  * WHY THIS EXISTS. `catalog/tools/index.json` is generated per BRAND, but `build:catalog`
  * and `validate:catalog` only ever see the active profile's view. So editing a community
- * tool's manifest — one that every brand's index lists — updates the active brand's index
+ * tool's manifest - one that every brand's index lists - updates the active brand's index
  * and silently leaves the others stale. Worse, `validate:catalog` cannot see the drift
  * either, because it validates the active view too. The failure surfaces somewhere with no
  * context: on a public clone (which has no `brands/suse`, so it falls back to
  * `lolly-start`) or in CI, as `"audiogram" version "2.0.0" ≠ manifest "2.1.0"`.
  *
- * That is not hypothetical — it shipped. An audiogram manifest bump left the lolly-start
+ * That is not hypothetical - it shipped. An audiogram manifest bump left the lolly-start
  * index a version behind for exactly this reason, and it took an adversarial review to
  * notice.
  *
@@ -19,7 +19,7 @@
  *   node scripts/build-catalog-all.ts --validate   # …and validate each one
  *   node scripts/build-catalog-all.ts --check      # validate only; fail on any drift (CI)
  *
- * THE ACTIVE PROFILE IS ALWAYS RESTORED, including when a rebuild throws — switching
+ * THE ACTIVE PROFILE IS ALWAYS RESTORED, including when a rebuild throws - switching
  * profiles rewrites the repo-root `tools/` and `catalog/` views, and leaving someone on a
  * profile they did not choose is a worse outcome than the error that caused it.
  *

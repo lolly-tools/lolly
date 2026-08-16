@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 // SPDX-License-Identifier: MPL-2.0
 /**
- * Landing / default share card generator — shells/web/public/og.png.
+ * Landing / default share card generator - shells/web/public/og.png.
  *
  * og.png is the site's default social-share image (the web shell's index.html and the
  * /info landing page point at it) and the fallback whenever a per-tool / per-view /
@@ -9,7 +9,7 @@
  * long after the app icon and the OG cards had moved to the current pine swirl.
  *
  * This regenerates it from the SINGLE source of truth, icon.svg (via chrome.mark, which
- * embeds the signed source SVG), through the same Chromium card path as every other card —
+ * embeds the signed source SVG), through the same Chromium card path as every other card - 
  * so the default card can never drift from the app icon again.
  *
  *   npm run og:base

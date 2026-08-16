@@ -1,14 +1,14 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
- * The shared Content-Credentials payload for a Node-shell export — the "what was this
+ * The shared Content-Credentials payload for a Node-shell export: the "what was this
  * made from / where / when / how big" record matching the web shell's
  * tools.lolly.export enrichment, so a CLI- or TUI-made asset inspects as richly as a
  * browser-made one. Author details ride along only with the profile's explicit
  * `useDetails` opt-in (same gate as the web shell).
  *
  * Signing: ephemeral on-device by default (verifiers report it unverified, which is
- * the honest posture for an anonymous key). Pass `signer` — from
- * `signing-identity.ts` — to sign with an enrolled identity instead; the engine then
+ * the honest posture for an anonymous key). Pass `signer` (from
+ * `signing-identity.ts`) to sign with an enrolled identity instead; the engine then
  * puts that chain in the manifest's x5chain and a verifier pinning the issuing root
  * reads the file as trusted.
  */
@@ -20,11 +20,11 @@ import type { Profile } from '@lolly-tools/core/host-v1';
 export type ExportC2paOpts = NonNullable<Parameters<typeof embedC2pa>[2]>;
 
 export interface BuildExportC2paOpts {
-  /** Which shell/service produced the bytes — lands in the environment assertion.
+  /** Which shell/service produced the bytes - lands in the environment assertion.
    *  'build' covers the generated-media pipeline (OG cards, previews, thumbnails). */
   surface: 'cli' | 'tui' | 'mcp' | 'docs' | 'build';
   manifest: { id: string; name?: string };
-  /** The runtime's input model (`runtime.getModel()`) — digested via summarizeInputs. */
+  /** The runtime's input model (`runtime.getModel()`), digested via summarizeInputs. */
   model: Parameters<typeof summarizeInputs>[0];
   format: string;
   /** Requested output dimensions, if any (values in `unit`, px default). */
@@ -43,7 +43,7 @@ export interface BuildExportC2paOpts {
   signer?: C2paSigner;
   /** The identity certificate's own validity window, when `signer` is an identity. */
   signerValidity?: { notBefore: Date; notAfter: Date };
-  /** Source manifests to carry forward as ingredients — e.g. a genAI bitmap the
+  /** Source manifests to carry forward as ingredients, e.g. a genAI bitmap the
    *  captured page contains, so its AI origin verifies independently on the output
    *  (Verify walks every manifest in the store, ingredients included). */
   ingredients?: ExportC2paOpts['ingredients'];
@@ -51,13 +51,13 @@ export interface BuildExportC2paOpts {
    *  page shows AI-generated imagery). Omit to keep embedC2pa's default created step. */
   actions?: ExportC2paOpts['actions'];
   /**
-   * §18.28 `c2pa.ai-disclosure` — the model that produced the essence, its
+   * §18.28 `c2pa.ai-disclosure`: the model that produced the essence, its
    * identifier, and the human-oversight level. Node surfaces that KNOW a trained
    * model made the bytes (the docs art bank; later, a generative tool run from
    * the CLI) pass it; nothing infers it, and nothing defaults it, because a
    * disclosure nobody asserted is a claim about a pipeline we did not observe.
    * §18.28.3: with `digitalSourceType: digitalCreation` the assertion is *not*
-   * attached — the caller decides, this only forwards.
+   * attached. The caller decides; this only forwards.
    */
   aiDisclosure?: ExportC2paOpts['aiDisclosure'];
   /**
@@ -94,7 +94,7 @@ export function buildExportC2paOpts(o: BuildExportC2paOpts): ExportC2paOpts {
       ? { author: { name: [profile.firstname, profile.lastname].filter(Boolean).join(' '), ...(profile.email ? { email: profile.email } : {}) } }
       : {}),
     ...(o.signer ? { signer: o.signer } : {}),
-    // With an identity, the dates ARE the certificate's — `dates` only ever fed the
+    // With an identity, the dates ARE the certificate's. `dates` only ever fed the
     // ephemeral certificate generator, and an enrolled signer brings its own.
     dates: o.signer && o.signerValidity
       ? { notBefore: o.signerValidity.notBefore, notAfter: o.signerValidity.notAfter }

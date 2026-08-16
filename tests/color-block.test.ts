@@ -3,7 +3,7 @@
  * color-block tool contract tests.
  *
  * Run with: npm test  (node --test over the tests/ globs)
- * No test framework — uses node:test built-in.
+ * No test framework - uses node:test built-in.
  *
  * Loads the REAL tool from disk (manifest + template + hooks) and drives it
  * through the engine with a stub host, so these guard the tool's actual
@@ -14,7 +14,7 @@
  * Two ideas underpin the suite:
  *   1. The render is a PURE function of the input model. Every visual format
  *      (png/jpg/webp/pdf/pdf-cmyk/cmyk-tiff/svg/html) is produced by the export
- *      bridge from this one hydrated DOM — so if the DOM is correct and stable,
+ *      bridge from this one hydrated DOM - so if the DOM is correct and stable,
  *      the formats are consistent by construction. The determinism test pins this.
  *   2. URL mode is the only transport: the CLI is `?param` under argv. The
  *      round-trip test proves a composition survives serialize → parse unchanged,
@@ -37,7 +37,7 @@ import { baseHost } from './helpers/host.ts';
 // pack, not the gitignored tools/ profile view, so this suite is profile-
 // independent: skip ONLY when the pack itself isn't mounted (public CI /
 // lolly-start checkouts); with the pack mounted, a missing tool dir means the
-// tool was renamed or deleted — that must FAIL loudly, never silently skip.
+// tool was renamed or deleted - that must FAIL loudly, never silently skip.
 const SUSE_TOOLS = join(dirname(fileURLToPath(import.meta.url)), '..', 'brands', 'suse', 'tools');
 const fetchFile = (path: string) => readFile(join(SUSE_TOOLS, path), 'utf8');
 

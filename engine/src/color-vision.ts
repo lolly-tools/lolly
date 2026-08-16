@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
- * Colour-vision-deficiency (CVD) simulation — Machado, Oliveira & Fernandes (2009).
+ * Colour-vision-deficiency (CVD) simulation - Machado, Oliveira & Fernandes (2009).
  *
  *   Gustavo M. Machado, Manuel M. Oliveira, Leandro A. F. Fernandes,
  *   "A Physiologically-based Model for Simulation of Color Vision Deficiency",
@@ -8,8 +8,8 @@
  *   pp. 1291–1298.  Matrices from the authors' supplementary table:
  *   https://www.inf.ufrgs.br/~oliveira/pubs_files/CVD_Simulation/CVD_Simulation.html
  *
- * The paper models each of the three anomalous-trichromacy axes — protanomaly
- * (protan), deuteranomaly (deutan), tritanomaly (tritan) — as a single 3x3
+ * The paper models each of the three anomalous-trichromacy axes (protanomaly
+ * = protan, deuteranomaly = deutan, tritanomaly = tritan) as a single 3x3
  * matrix per severity step, tabulated at severity 0.0 .. 1.0 in increments of
  * 0.1 (0 = normal vision, 1 = full dichromacy: protanopia / deuteranopia /
  * tritanopia). We golden-pin the published matrices EXACTLY and linearly
@@ -17,7 +17,7 @@
  *
  * SPACE / CONVENTION: the Machado matrices are applied as a LINEAR OPERATION on
  * the GAMMA-ENCODED sRGB channel values (the "linear-ish operation on sRGB"
- * convention — a matrix multiply in the sRGB-encoded [0,1] space, NOT in linear
+ * convention: a matrix multiply in the sRGB-encoded [0,1] space, NOT in linear
  * light). This is the convention of the authors' own reference implementation
  * and of the de-facto standard libraries built from these tables, so our numbers
  * match theirs. We do NOT sRGB-decode before the multiply. Channels are clamped
@@ -45,13 +45,13 @@ type Mat3 = readonly [number, number, number, number, number, number, number, nu
 // ─── Golden-pinned Machado (2009) matrices ───────────────────────────────────
 // Row-major 3x3, one per severity step 0.0 .. 1.0 (index 0 .. 10). Each matrix
 // maps a gamma-encoded sRGB column vector [r,g,b]^T to the simulated triple.
-// Values are transcribed verbatim from the authors' supplementary table; do NOT
-// "tidy" them — they are the published reference and are pinned exactly by the
+// Values are copied verbatim from the authors' supplementary table; do NOT
+// "tidy" them - they are the published reference and are pinned exactly by the
 // test suite.
 
 // Protanomaly → protanopia.
 const PROTAN: readonly Mat3[] = [
-  // 0.0 — identity (normal vision)
+  // 0.0 - identity (normal vision)
   [1, 0, 0, 0, 1, 0, 0, 0, 1],
   // 0.1
   [0.856167, 0.182038, -0.038205, 0.029342, 0.955115, 0.015544, -0.00288, -0.001563, 1.004443],
@@ -71,13 +71,13 @@ const PROTAN: readonly Mat3[] = [
   [0.259411, 0.923008, -0.18242, 0.110296, 0.80434, 0.085364, -0.006276, -0.034346, 1.040622],
   // 0.9
   [0.203876, 0.990338, -0.194214, 0.112975, 0.794542, 0.092483, -0.005222, -0.041043, 1.046265],
-  // 1.0 — protanopia
+  // 1.0 - protanopia
   [0.152286, 1.052583, -0.204868, 0.114503, 0.786281, 0.099216, -0.003882, -0.048116, 1.051998],
 ];
 
 // Deuteranomaly → deuteranopia.
 const DEUTAN: readonly Mat3[] = [
-  // 0.0 — identity
+  // 0.0 - identity
   [1, 0, 0, 0, 1, 0, 0, 0, 1],
   // 0.1
   [0.866435, 0.177704, -0.044139, 0.049567, 0.939063, 0.01137, -0.003453, 0.007233, 0.99622],
@@ -97,13 +97,13 @@ const DEUTAN: readonly Mat3[] = [
   [0.422823, 0.781057, -0.203881, 0.245752, 0.709602, 0.044646, -0.011843, 0.037423, 0.974421],
   // 0.9
   [0.392952, 0.82361, -0.216562, 0.263559, 0.69021, 0.046232, -0.01191, 0.040281, 0.97163],
-  // 1.0 — deuteranopia
+  // 1.0 - deuteranopia
   [0.367322, 0.860646, -0.227968, 0.280085, 0.672501, 0.047413, -0.01182, 0.04294, 0.968881],
 ];
 
 // Tritanomaly → tritanopia.
 const TRITAN: readonly Mat3[] = [
-  // 0.0 — identity
+  // 0.0 - identity
   [1, 0, 0, 0, 1, 0, 0, 0, 1],
   // 0.1
   [0.92667, 0.092514, -0.019184, 0.021191, 0.964503, 0.014306, 0.008437, 0.054813, 0.93675],
@@ -123,7 +123,7 @@ const TRITAN: readonly Mat3[] = [
   [1.257728, -0.139648, -0.118081, -0.078003, 0.975409, 0.102594, -0.003316, 0.501214, 0.502102],
   // 0.9
   [1.278864, -0.125333, -0.153531, -0.084748, 0.957674, 0.127074, -0.000989, 0.601151, 0.399838],
-  // 1.0 — tritanopia
+  // 1.0 - tritanopia
   [1.255528, -0.076749, -0.178779, -0.078411, 0.930809, 0.147602, 0.004733, 0.691367, 0.3039],
 ];
 

@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
- * Radiance RGBE (`.hdr` / `.pic`) reader + writer — pure bytes, DOM-free.
+ * Radiance RGBE (`.hdr` / `.pic`) reader + writer - pure bytes, DOM-free.
  *
  * plans/61-deeprichpixels.md §4.2 / §6 Phase B3, the small half: the OpenEXR writer
  * is the format a compositor wants, and this is the ~100-line one that every
@@ -12,7 +12,7 @@
  *
  * ─── What RGBE actually carries (read this before calling it "float") ───────
  * Each pixel is four bytes: three 8-bit mantissas and ONE exponent shared by all
- * three channels. So it is not three floats — it is a 3-vector quantised on a
+ * three channels. So it is not three floats - it is a 3-vector quantised on a
  * per-pixel logarithmic grid whose step size is set by the LARGEST channel:
  *
  *     step f = 2^(e-8), where 2^(e-1) <= max(r,g,b) < 2^e
@@ -27,13 +27,13 @@
  *     (~8 bits of mantissa), which is why RGBE is fine for radiance maps.
  *   - Relative to a channel much DARKER than its neighbours it is effectively
  *     unbounded: `(1, 0.001, 0)` quantises green onto a 1/128 grid, so it
- *     encodes to byte 0 and decodes to ~0.0039 — four times the true value.
+ *     encodes to byte 0 and decodes to ~0.0039 - four times the true value.
  *     This is the shared exponent, and it is the reason EXR half (a real
  *     per-channel float, ~0.05% everywhere) is the interchange format and this
  *     one is the convenience format.
  *
  * MEASURED round-trip (`tests/radiance.test.ts`, which re-measures these numbers
- * and fails if this paragraph drifts — 200k pseudo-random pixels, each channel
+ * and fails if this paragraph drifts - 200k pseudo-random pixels, each channel
  * independently log-uniform over 1e-6..1e4, compared against the float32 input):
  * max error / max-channel = 0.0039062 = 1/256 exactly: the derived bound is ATTAINED,
  * not merely respected; mean 0.0018849. Per-CHANNEL relative error over those
@@ -41,7 +41,7 @@
  * maximum is not preserved in any useful sense. Over uniform-magnitude pixels
  * (all three channels within one octave, the regime the format is for) the
  * per-channel relative error is <= 1/128 by the same derivation: measured max
- * 0.0069948, mean 0.0016962, and the SIGNED mean is ~0 — the encoder's
+ * 0.0069948, mean 0.0016962, and the SIGNED mean is ~0 - the encoder's
  * truncation and the decoder's +0.5 cancel, which is the whole point of that
  * pairing.
  *
@@ -49,12 +49,12 @@
  * `byte * 2^(exp-136)` with NO half-bucket offset, so their values sit half a
  * bucket BELOW ours and are biased low. Ours follows Radiance's own
  * `color.c colr_color`. Round-tripping a file through a mixed pair of
- * implementations therefore costs a full bucket (`max/128`), not half — both
+ * implementations therefore costs a full bucket (`max/128`), not half - both
  * behaviours are pinned by the external-oracle tests.
  *
  * ─── Format ─────────────────────────────────────────────────────────────────
  * `#?RADIANCE` magic, `KEY=value` header lines, a blank line, a resolution line
- * (`-Y h +X w`), then scanlines — either flat RGBE quadruples, "old-style" RLE
+ * (`-Y h +X w`), then scanlines - either flat RGBE quadruples, "old-style" RLE
  * (a `(1,1,1,n)` pixel repeats its predecessor `n << 8k` times), or the
  * "new-style" adaptive RLE this writer emits: a `(2, 2, hi, lo)` marker with
  * `hi<<8|lo == width`, then the four components stored SEPARATELY (R plane, G
@@ -64,26 +64,26 @@
  * constant across a scanline even when the colours are not.
  *
  * Sources (each cited again at its use site):
- *   - Greg Ward, "Real Pixels", Graphics Gems II (1991) §II.5 — the RGBE
+ *   - Greg Ward, "Real Pixels", Graphics Gems II (1991) §II.5 - the RGBE
  *     encoding and the frexp/ldexp formulation used verbatim below.
- *   - Radiance `src/common/color.c` — `setcolr`/`colr_color` (the exact
+ *   - Radiance `src/common/color.c` - `setcolr`/`colr_color` (the exact
  *     rounding: TRUNCATION on encode, +0.5 half-bucket on decode) and
  *     `fwritecolrs`/`freadcolrs`/`oldreadcolrs` (the RLE, MINRUN = 4, run cap
  *     127, and the new-RLE signature test).
- *   - "The RADIANCE File Formats" (Ward, LBNL) — header keywords FORMAT,
+ *   - "The RADIANCE File Formats" (Ward, LBNL) - header keywords FORMAT,
  *     EXPOSURE, GAMMA, PRIMARIES and the resolution-line grammar.
  *     https://floyd.lbl.gov/radiance/refer/filefmts.pdf
  *
  * ─── Seams ──────────────────────────────────────────────────────────────────
  * Like `png.ts` and `tiff.ts`: this module never converts colour or depth. It
  * takes a linear `DeepFrame` and writes its numbers; `lab`/`xyz-d50` frames are
- * REFUSED rather than silently reinterpreted (call `convertSpace` first — the
+ * REFUSED rather than silently reinterpreted (call `convertSpace` first - the
  * caller is the one who knows which RGB space it wants). Alpha has no
  * representation in RGBE and is DROPPED, not composited: the file holds the
  * un-premultiplied colour exactly as the frame held it.
  *
  * Deliberately NOT in the engine barrel (the `gainmap.ts` / `jpeg-segments.ts`
- * precedent) — consumed by deep-path import from the export seam.
+ * precedent) - consumed by deep-path import from the export seam.
  */
 
 import type { DeepFrame, PixelSpace } from './pixels.ts';
@@ -111,7 +111,7 @@ const MAX_PIXELS = 32 * 1024 * 1024;
 
 // ─── float <-> RGBE ──────────────────────────────────────────────────────────
 
-// frexp's exponent, by reading the IEEE-754 binary64 fields — no log2 rounding
+// frexp's exponent, by reading the IEEE-754 binary64 fields - no log2 rounding
 // games. Returns e with x = m * 2^e, m in [0.5, 1). Caller guarantees x > 0
 // and finite.
 const FREXP_VIEW = new DataView(new ArrayBuffer(8));
@@ -129,7 +129,7 @@ function frexpExp(x: number): number {
 /**
  * One linear RGB triple -> four RGBE bytes, written at `out[o..o+3]`.
  *
- * This is color.c `setcolr` transcribed, including its exact arithmetic:
+ * This is color.c `setcolr` copied verbatim, including its exact arithmetic:
  *
  *     d = frexp(max, &e) * 256.0 / max      // == 2^(8-e), exactly
  *     clr[i] = (v > 0) ? (int)(v * d) : 0   // C truncation, NOT rounding
@@ -188,7 +188,7 @@ export function floatToRgbe(r: number, g: number, b: number, out: Uint8Array, o:
  * Four RGBE bytes -> linear RGB, written at `out[oi..oi+2]`.
  *
  * color.c `colr_color`: `f = ldexp(1, exp - (COLXS+8))`, `v = (byte + 0.5) * f`.
- * The half-bucket recentring is what makes the encoder's truncation unbiased —
+ * The half-bucket recentring is what makes the encoder's truncation unbiased -
  * dropping it doubles the worst-case error and skews every value low (asserted
  * as a negative control in the tests).
  */
@@ -209,8 +209,8 @@ export function rgbeToFloat(rgbe: Uint8Array, o: number, out: Float32Array, oi: 
 /**
  * CIE xy chromaticities written to the PRIMARIES header, per pixel space:
  * `xr yr xg yg xb yb xw yw`. Radiance's own default primaries (0.640 0.330
- * 0.290 0.600 0.150 0.060 with an equal-energy white) are NOT sRGB — the green
- * and the white point both differ — so a file without PRIMARIES is genuinely
+ * 0.290 0.600 0.150 0.060 with an equal-energy white) are NOT sRGB - the green
+ * and the white point both differ - so a file without PRIMARIES is genuinely
  * ambiguous and we always write it.
  *
  * Sources: ITU-R BT.709-6 Table 1 (sRGB/Rec.709 primaries, D65 white),
@@ -235,7 +235,7 @@ export interface RadianceHeader {
   /**
    * Product of every EXPOSURE line (they are cumulative, per the file-format
    * doc). Stored samples have already been multiplied by this, so original
-   * radiance = stored / exposure — which is what {@link readRadiance} returns.
+   * radiance = stored / exposure - which is what {@link readRadiance} returns.
    */
   exposure: number;
   /** GAMMA= if present. Never applied to samples by this module. */
@@ -256,7 +256,7 @@ export interface RadianceHeader {
  * Parse the `#?RADIANCE` header and the resolution line.
  *
  * Never throws: any malformation (bad magic, unterminated header, missing or
- * non-`-Y ... +X ...` resolution line, absurd dimensions) returns null — the
+ * non-`-Y ... +X ...` resolution line, absurd dimensions) returns null - the
  * convention every other defensive engine reader uses (`png-unfilter.ts`
  * `unfilterPng`, `pdf-svg.ts`, `der-read.ts`).
  */
@@ -348,7 +348,7 @@ export interface PackRadianceOptions {
    * divides). Default 1 (still written, so the file is self-describing).
    */
   exposure?: number;
-  /** GAMMA header value. Metadata only — samples are never gamma-encoded. */
+  /** GAMMA header value. Metadata only - samples are never gamma-encoded. */
   gamma?: number;
   /**
    * PRIMARIES: `'auto'` (default) derives them from `frame.space`; an explicit
@@ -363,7 +363,7 @@ export interface PackRadianceOptions {
   /** Extra `#` comment lines, after the magic. */
   comments?: readonly string[];
   /**
-   * New-style adaptive RLE (default true). `false` writes flat scanlines —
+   * New-style adaptive RLE (default true). `false` writes flat scanlines -
    * identical pixels, larger file. RLE is skipped automatically for widths
    * outside 8..32767, where the format forbids it.
    */
@@ -414,7 +414,7 @@ export function packRadiance(frame: DeepFrame, opts: PackRadianceOptions = {}): 
   // ── header ──
   const lines: string[] = ['#?RADIANCE'];
   for (const c of opts.comments ?? []) lines.push(`#${sanitize(c)}`);
-  // SOFTWARE= is Radiance's own generator field — default it to Lolly so every .hdr
+  // SOFTWARE= is Radiance's own generator field - default it to Lolly so every .hdr
   // names its source. An explicit opts.software always wins; a metadata-stripped export
   // (opts.attribution === false) drops the default.
   const sw = opts.software ?? (opts.attribution === false ? undefined : 'Lolly lolly.tools');
@@ -459,7 +459,7 @@ export function packRadiance(frame: DeepFrame, opts: PackRadianceOptions = {}): 
  * then each of the four components run-length encoded independently. Run
  * lengths are 4..127 (`MIN_RUN`, and the 127 cap keeps `128+cnt` a byte);
  * literal blocks are 1..128. The "short run in between" branch is the
- * reference's own — when a 2- or 3-long run sits immediately before a real run,
+ * reference's own - when a 2- or 3-long run sits immediately before a real run,
  * emitting it as a run beats spending a literal block header on it.
  */
 function encodeRle(rgbe: Uint8Array, width: number, height: number): Uint8Array {
@@ -527,18 +527,18 @@ function encodeRle(rgbe: Uint8Array, width: number, height: number): Uint8Array 
  *
  * Handles all three scanline encodings (flat, old-style RLE, new-style adaptive
  * RLE). Stored samples are divided by the accumulated EXPOSURE, so the result
- * is scene radiance in the file's own units — the exact inverse of what
+ * is scene radiance in the file's own units - the exact inverse of what
  * {@link packRadiance} does with the same option.
  *
  * `space` is taken from PRIMARIES when they match a known space within 1e-3,
- * and otherwise defaults to `srgb-linear` — which is an ASSUMPTION, not a
+ * and otherwise defaults to `srgb-linear` - which is an ASSUMPTION, not a
  * measurement: a Radiance file with no PRIMARIES line is formally in Radiance's
  * own primaries (Rec.709-ish red/blue, a different green, equal-energy white),
  * and no amount of decoding can recover what the writer meant. Callers who care
  * should read {@link parseRadianceHeader}'s `primaries` themselves.
  *
- * Never throws. Any malformation — bad magic, truncated data, a run that would
- * overrun its scanline, an unsupported FORMAT — returns null, matching
+ * Never throws. Any malformation - bad magic, truncated data, a run that would
+ * overrun its scanline, an unsupported FORMAT - returns null, matching
  * `unfilterPng`'s contract.
  */
 export function readRadiance(bytes: Uint8Array): DeepFrame | null {
@@ -551,7 +551,7 @@ export function readRadiance(bytes: Uint8Array): DeepFrame | null {
 
   // Allocation guard. The floor is only 4 bytes per scanline, because
   // old-style RLE lets one 4-byte repeat marker stand for a whole row and it is
-  // legal at any width — a tighter per-row bound would reject valid files.
+  // legal at any width - a tighter per-row bound would reject valid files.
   // MAX_PIXELS is therefore the real backstop (see its comment): a tiny file
   // CAN legitimately ask for a large buffer, and the cap is what bounds it.
   if (bytes.length - dataOffset < 4 * height) return null;

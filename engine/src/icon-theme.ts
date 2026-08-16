@@ -8,14 +8,14 @@
  *   <defs><style>.c1{fill:#…}.c2{fill:#…}</style></defs>
  *
  * Inlined into a page, the defaults lose to any outside `.c1/.c2 { fill: … !important }`
- * rule — that is the authoring contract, not an accident. For everything that
+ * rule - that is the authoring contract, not an accident. For everything that
  * travels as bytes (picker refs, exports, saved sessions) a theme is instead
  * *baked*: the style block is removed and each class becomes a literal fill
  * attribute. Baking keeps two differently-themed copies safe inside a single
  * exported SVG document, where shared class rules would collide.
  *
  * The chosen theme must survive URL-mode round-trips, and an asset value
- * serialises to its id alone — so the theme rides inside the id:
+ * serialises to its id alone - so the theme rides inside the id:
  * `<baseId>?theme=<themeId>`. Shell bridges call parseThemedAssetId() before
  * catalog lookup and bake at resolve time. Theme definitions themselves are
  * catalog data (a palette-type asset tagged "icon-themes"), never engine code.
@@ -30,7 +30,7 @@ export interface IconTheme {
   previewBg?: string;
 }
 
-/** The JSON payload shape of a palette-type asset tagged "icon-themes". */
+/** The JSON payload structure of a palette-type asset tagged "icon-themes". */
 export interface IconThemesDoc {
   themes?: unknown;
 }
@@ -47,7 +47,7 @@ const DEFAULT_STYLE_RE = /<defs><style>\.c1\{fill:([^}]*)\}\.c2\{fill:([^}]*)\}<
 
 /**
  * Split `<baseId>?theme=<themeId>` into its parts.
- * Returns { baseId, theme } — theme is null when the id carries none.
+ * Returns { baseId, theme } - theme is null when the id carries none.
  * Full URLs (tool embeds) are never themed ids; they pass through untouched.
  */
 export function parseThemedAssetId(id: string): ParsedThemedAssetId {
@@ -110,12 +110,13 @@ export function applyIconTheme(svgText: string, theme: { c1?: unknown; c2?: unkn
       .replaceAll('class="c1"', `fill="${c1}"`)
       .replaceAll('class="c2"', `fill="${c2}"`);
   }
-  // A rich multi-colour SVG (e.g. a brand illustration) can't be reduced to two
-  // classes without losing its depth. Instead theme it MONOCHROMATICALLY: every
-  // fill/stroke becomes a shade of the theme's accent hue at its own original
-  // lightness — so highlights stay light, outlines stay dark, and the whole piece
-  // reads as one hue. The picker/bridge already route themable picks through here,
-  // so illustrations bake with no extra plumbing. Null when it isn't SVG at all.
+  // A rich multi-colour SVG (e.g. a brand illustration) cannot be reduced to two
+  // classes without losing detail. Instead theme it MONOCHROMATICALLY: every
+  // fill/stroke becomes a shade of the theme's accent hue, keeping its own
+  // original lightness. Highlights stay light, outlines stay dark, and the whole
+  // piece reads as one hue. The picker/bridge already route themable picks
+  // through here, so illustrations bake with no extra plumbing. Null when the
+  // input is not SVG at all.
   return monochromeRecolor(svgText, c1);
 }
 
@@ -136,7 +137,7 @@ export function restyleIconTheme(svgText: string, theme: { c1?: unknown; c2?: un
 }
 
 // Colour values land inside attribute/style text of SVG we hand to the DOM and
-// exporters — allow only simple colour tokens, nothing that can close a quote.
+// exporters - allow only simple colour tokens, nothing that can close a quote.
 function safeCssColor(v: unknown): string | null {
   if (typeof v !== 'string') return null;
   const s = v.trim();
@@ -146,10 +147,11 @@ function safeCssColor(v: unknown): string | null {
 // ── Monochromatic recolour (illustrations) ──────────────────────────────────
 // Every #hex colour token in the SVG (fills + strokes, whether inline or in a
 // <style> block) is re-hued to `baseColor`: the token keeps its own LIGHTNESS but
-// adopts the base hue + saturation. HSL naturally neutralises the extremes (a near-
-// white fill stays near-white, a near-black outline stays near-black), so only the
-// midtones carry the hue — a clean monochrome that preserves the artwork's shading.
-// A base with zero saturation (e.g. white/paper) yields a greyscale version.
+// adopts the base hue + saturation. HSL naturally neutralises the extremes (a
+// near-white fill stays near-white, a near-black outline stays near-black), so
+// only the midtones carry the hue. The result is a clean monochrome that keeps
+// the artwork's original shading. A base with zero saturation (e.g. white/paper)
+// gives a greyscale result.
 const HEX_TOKEN_RE = /#(?:[0-9a-fA-F]{6}|[0-9a-fA-F]{3})(?![0-9a-fA-F])/g;
 
 function hexToRgb(hex: string): [number, number, number] | null {

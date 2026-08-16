@@ -25,7 +25,7 @@ import type { EdgeRect } from '../shells/web/src/views/free-canvas-math.ts';
 // surface, while these are what the PATH renderer and both bridges call.
 import {
   pathHeadSvg, pathHeadInset, pathHeadSize, makeConnectorsApi,
-  // plan 96 P3/P5 — the kind→route mapping and the ONE routed-line renderer.
+  // plan 96 P3/P5 - the kind→route mapping and the ONE routed-line renderer.
   pathRouteStyle, isConnectorRouteStyle, CONNECTOR_ROUTE_STYLES, routedLineSvg,
 } from '../engine/src/connectors.ts';
 import { cornerFitDashArray } from '../engine/src/dash-fit.ts';
@@ -33,7 +33,7 @@ import { cornerFitDashArray } from '../engine/src/dash-fit.ts';
 // org-chart ships in the (private) SUSE brand pack; the hook↔shell parity
 // tests can only run when the pack is mounted (see profiles.json). Gate on the
 // SOURCE pack, not the gitignored tools/ profile view: with the pack mounted, a
-// missing hooks.js means the tool was renamed or deleted — FAIL, don't skip.
+// missing hooks.js means the tool was renamed or deleted - FAIL, don't skip.
 const SUSE_PACK = new URL('../brands/suse/tools/', import.meta.url);
 const HOOK_URL = new URL('org-chart/hooks.js', SUSE_PACK);
 const PACK_MOUNTED = existsSync(SUSE_PACK);
@@ -150,7 +150,7 @@ test('the arc variants live in the engine, and the hook only NAMES them', { skip
     'org-chart/hooks.js must not carry its own arc table');
 });
 
-// ── Arrowheads (export-safe geometry — plan 90 thread A) ───────────────────────
+// ── Arrowheads (export-safe geometry - plan 90 thread A) ───────────────────────
 // Every shape is a baked-in filled <path> or plain <line>: no <marker>, no <polygon>,
 // no transform, so it survives the SVG/PDF/EMF vector walkers. A tip at the origin
 // pointing +x (ux=1,uy=0), size 10, keeps the golden coordinates readable.
@@ -230,7 +230,7 @@ test('edgeEndRect: a point → a zero-size rect; an id → its rect; a dangling 
 
 test('the existing routing math already handles a point endpoint (zero-size rect)', () => {
   // A free point → a box: the straight route leaves the point itself and meets the box
-  // border. This is the whole reason a point is modelled as a 0×0 rect — no new routing.
+  // border. This is the whole reason a point is modelled as a 0×0 rect - no new routing.
   const point = edgeEndRect('@50,-100', new Map())!;      // { x:50, y:-100, w:0, h:0 }
   const box: EdgeRect = { x: 0, y: 0, w: 100, h: 50 };
   const pts = edgeWaypoints(point, box, 'straight');
@@ -238,7 +238,7 @@ test('the existing routing math already handles a point endpoint (zero-size rect
   assert.deepEqual(pts[pts.length - 1]!, { x: 50, y: 0 }, 'meets the top-centre border of the box');
 });
 
-// ── Committed builder (the exported connector layer — plan 90 R1) ──────────────
+// ── Committed builder (the exported connector layer - plan 90 R1) ──────────────
 
 const RENDER_OPTS = { width: 1600, height: 1000, defaultStyle: 'straight', defaultArrow: 'end', defaultHead: 'triangle', defaultColor: '#30ba78', defaultWidth: 3 };
 
@@ -263,7 +263,7 @@ test('buildConnectorSvg: a free point endpoint renders (not treated as a danglin
 test('buildConnectorSvg: a dangling id draws nothing; a point inside a box still draws', () => {
   const rectById = new Map<string, EdgeRect>([['a', { x: 0, y: 0, w: 100, h: 50 }]]);
   assert.equal(buildConnectorSvg([{ from: 'a', to: 'gone' }], rectById, RENDER_OPTS).replace(/<svg[^>]*>|<\/svg>/g, ''), '', 'dangling → empty body');
-  // A point at (50,25) sits inside box a — a nested NODE pair would be suppressed, but a
+  // A point at (50,25) sits inside box a - a nested NODE pair would be suppressed, but a
   // deliberate point endpoint is not.
   const svg = buildConnectorSvg([{ from: 'a', to: '@50,25' }], rectById, RENDER_OPTS);
   assert.match(svg, /<path /, 'a point inside a box is a real endpoint, not an overlap to skip');
@@ -281,7 +281,7 @@ test('buildConnectorSvg: dashed edges use real <line> segments, never stroke-das
 // ── Heads on an authored PATH (plan 96 P1) ────────────────────────────────────
 // The unified path primitive (spline = line = connector) decorates its own ends. The
 // head-for-a-tip primitive takes tip + OUTWARD tangent in radians instead of a unit
-// vector, and must draw the very same shapes a routed connector does — one geometry
+// vector, and must draw the very same shapes a routed connector does - one geometry
 // source, so a spline, a line and a connector are indistinguishable in the export.
 
 test('pathHeadSvg: an angle drives the same shapes as the unit-vector form', () => {
@@ -325,7 +325,7 @@ test('pathHeadSize / pathHeadInset: the head sizing is the connector rule, clamp
   assert.equal(pathHeadSize(1), 9, 'the 9px floor');
   assert.equal(pathHeadSize(1000), 80, 'stroke width clamps at 20');
   assert.equal(pathHeadSize(NaN), 10, 'a junk width falls back to the connector default');
-  // The inset is edgeHeadInset at that size — filled heads pull the shaft back, open/bar
+  // The inset is edgeHeadInset at that size - filled heads pull the shaft back, open/bar
   // do not, and 'none' never does.
   assert.equal(pathHeadInset('none', 2.5), 0);
   assert.equal(pathHeadInset('open', 2.5), 0);
@@ -353,12 +353,12 @@ test('the arrowhead SHAPES are the engine\'s; the hook keeps only the inset it m
     assert.ok(engine.includes(token), `engine/connectors.ts should encode ${token}`);
   }
   const hook = readFileSync(HOOK_URL, 'utf8');
-  // No head DRAWING in the hook — every shape comes back from host.connectors.pathHeadSvg.
+  // No head DRAWING in the hook - every shape comes back from host.connectors.pathHeadSvg.
   assert.doesNotMatch(hook, /function arrowHead\(|function circlePath\(/,
     'org-chart/hooks.js must not draw its own arrowheads');
   // The one number it legitimately still mirrors is the shaft PULL-BACK: the head is drawn
   // by the engine and the trim is applied here, so the two formulas have to agree. They are
-  // written to agree, and this is the check that they still do — the constants, and the
+  // written to agree, and this is the check that they still do - the constants, and the
   // pairing, are asserted against the engine's own edgeHeadInset below.
   assert.match(hook, /function headInsetFor\(/, 'the hook keeps its pull-back mirror');
   assert.equal(edgeHeadInset('triangle', 10), 9);
@@ -371,7 +371,7 @@ test('the arrowhead SHAPES are the engine\'s; the hook keeps only the inset it m
 // ── the spline kind → route mapping (plan 96 P3) ──────────────────────────────
 // A BOUND path is drawn by connector management, and what picks the route is the shape the
 // user already asked for: the path's own spline kind. Six kinds cannot name thirteen
-// routes, so a box also carries an explicit `route` override — which is the thing that
+// routes, so a box also carries an explicit `route` override - which is the thing that
 // makes the plan-90 edge migration lossless, and therefore the thing worth pinning.
 
 test('pathRouteStyle: each spline kind maps to its documented route', () => {
@@ -390,7 +390,7 @@ test('pathRouteStyle: an explicit route override wins, and only a REAL one', () 
     assert.equal(pathRouteStyle('line', style, 2), style, `${style} overrides the kind`);
     assert.equal(isConnectorRouteStyle(style), true);
   }
-  // Junk, an empty string and a prototype key all fall through to the kind — the last of
+  // Junk, an empty string and a prototype key all fall through to the kind - the last of
   // those is why the membership test is an own-property one and not a bare index.
   for (const junk of ['', 'nope', 'constructor', 'toString', '__proto__', null, 7]) {
     assert.equal(pathRouteStyle('spiro', junk as never, 2), 'arc', `${String(junk)} is not a route`);
@@ -400,7 +400,7 @@ test('pathRouteStyle: an explicit route override wins, and only a REAL one', () 
 
 test('CONNECTOR_ROUTE_STYLES is exactly the set connectorRoute understands', () => {
   assert.equal(CONNECTOR_ROUTE_STYLES.length, 13);
-  // Every listed style must route to at least two distinct points — i.e. it is a style the
+  // Every listed style must route to at least two distinct points - i.e. it is a style the
   // router really implements, not a menu entry with nothing behind it.
   for (const style of CONNECTOR_ROUTE_STYLES) {
     const pts = edgeWaypoints(aTop, bDiag, style);
@@ -540,8 +540,8 @@ test('design: a HALF-bound path routes from the box to its own free node', async
   // The free end is the last node in canvas px: x + 1·w, y + 1·h = (600, 500).
   const tip = /L([\d.]+) ([\d.]+)"/.exec(layer);
   assert.ok(tip, `the shaft ends somewhere: ${layer}`);
-  // The SHAFT stops a gap plus the head's inset short of the endpoint — 16 + 18 at width 5,
-  // i.e. 34px back along the route — because a routed head sits in clear space rather than
+  // The SHAFT stops a gap plus the head's inset short of the endpoint - 16 + 18 at width 5,
+  // i.e. 34px back along the route - because a routed head sits in clear space rather than
   // jammed against its own tip. So "reaches it" means within that, and nowhere near the card.
   assert.ok(Math.hypot(Number(tip[1]) - 600, Number(tip[2]) - 500) < 40,
     `it reaches the free node (600,500), got ${tip[1]},${tip[2]}`);

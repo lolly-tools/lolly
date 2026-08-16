@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
- * Contract tests for tool-sourced ASSETS — an asset input whose value is a Lolly
+ * Contract tests for tool-sourced ASSETS - an asset input whose value is a Lolly
  * tool URL (a share link the user pasted into the picker). The runtime must
  * re-render such an id via host.compose.renderUrl (NOT the catalog) on every load,
  * which is what makes the selection persist through URL mode + saved sessions.

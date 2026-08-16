@@ -1,21 +1,21 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
- * The docs translation corpus — segmentation fidelity and structural validation.
+ * The docs translation corpus - segmentation fidelity and structural validation.
  *
  * Run with: npm test
  *
  * WHY THIS EXISTS. `runDocsCorpus` translates a markdown page block by block and
  * then reassembles it. If `splitDocBlocks` is not perfectly lossless, every
- * translated page silently ships corrupted markdown — a torn code fence, a lost
- * blank line collapsing two paragraphs into one — in 26 languages that nobody on
- * the team reads. The round-trip property below is therefore the load-bearing
+ * translated page silently ships corrupted markdown - a torn code fence, a lost
+ * blank line collapsing two paragraphs into one - in 26 languages that nobody on
+ * the team reads. The round-trip property below is therefore the required
  * assertion of the whole corpus, and it is asserted against the REAL pages the
  * corpus is configured to translate, not a synthetic fixture.
  *
  * The validator tests matter for the same reason from the other end: they are
  * what stops a model's output from being written to disk. A translated link
  * target is a 404 or a broken screenshot recipe, and it is invisible in review
- * of a language you cannot read — so `validateDocBlock` must reject it, and this
+ * of a language you cannot read - so `validateDocBlock` must reject it, and this
  * file proves the rejections are real rather than vacuous.
  *
  * Importing scripts/translate.ts is safe: its `main()` is guarded on
@@ -138,7 +138,7 @@ test('an invented code fence is rejected', () => {
 
 test('--check is read-only: it never writes or deletes a translation file', async () => {
   // Regression guard. The first cut of runDocsCorpus deleted every page it
-  // considered incomplete — including in --check mode, which is the CI guard and
+  // considered incomplete - including in --check mode, which is the CI guard and
   // is documented as "no API calls". Running it against a repo with existing
   // translations destroyed them. A check that mutates the thing it audits is a
   // data-loss bug, so this asserts the invariant directly by running the real
@@ -147,7 +147,7 @@ test('--check is read-only: it never writes or deletes a translation file', asyn
   const before = execFileSync('git', ['status', '--porcelain', 'i18n'],
     { cwd: join(ROOT, 'docs'), encoding: 'utf8' });
   // A non-zero exit is the CORRECT outcome while pages are untranslated (that is
-  // the CI guard doing its job), so the exit code is deliberately ignored here —
+  // the CI guard doing its job), so the exit code is deliberately ignored here - 
   // this test is only about whether the run touched the tree.
   try {
     execFileSync('npm', ['run', 'translate', '--silent', '--', '--corpus', 'docs', '--lang', 'de', '--check'],

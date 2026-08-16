@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
- * plans/104 P2 — THE TILT TIER, pinned.
+ * plans/104 P2 - THE TILT TIER, pinned.
  *
  * `tests/keyframes.test.ts` owns the wire grammar and the affine projection; this file
  * owns the one thing that is NOT affine. Three claims, in the order they matter:
@@ -17,7 +17,7 @@
  *     far edge receding, aim point dead centre, and the whole move home at the end.
  *
  * Every expected number below is derived on paper in the comment beside it (the camera
- * orbits its aim point at radius P — see `surfaceMatrix`), never copied out of a run.
+ * orbits its aim point at radius P - see `surfaceMatrix`), never copied out of a run.
  */
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
@@ -67,7 +67,7 @@ test('an untilted camera takes the affine path, bit for bit', () => {
     assert.deepEqual(got, plain, 'the untilted branch must be the expression that shipped');
     assert.equal(got.m, null, 'and it hands back no matrix at all');
   }
-  // The same, with the camera actually somewhere — a pan and a dolly must not start
+  // The same, with the camera actually somewhere - a pan and a dolly must not start
   // taking a different path just because the tilt branch exists.
   const moved = view({ x: -140, y: 60, z: -220 });
   assert.equal(projectLayer(moved, layer).m, null);
@@ -78,7 +78,7 @@ test('an untilted camera takes the affine path, bit for bit', () => {
 
 test('the aim point is a fixed point: tilt pivots the artwork, it does not swing it away', () => {
   // The camera ORBITS `Q = (camX + W/2, camY + H/2, camZ)` at radius P, so the point it
-  // was already looking at stays exactly where it was — for ANY angle. A camera that
+  // was already looking at stays exactly where it was - for ANY angle. A camera that
   // swivelled in place instead would send the artwork out of frame on the first degree,
   // which is why the model is the one it is.
   for (const [rx, ry] of [[-40, 0], [0, 55], [-38, 22], [70, -70]] as const) {
@@ -115,7 +115,7 @@ test('a hand-computed pitched projection (rx = −40°, the Surface glide angle)
     near(p.d, D, 1e-9, `view-axis depth at b=${b}`);
   }
   // The picture that means: the BOTTOM of the artwork is nearer (smaller D) and the top
-  // recedes — the POV shot over a surface, near edge at the bottom of frame.
+  // recedes - the POV shot over a surface, near edge at the bottom of frame.
   const bottom = projectSurfacePoint(cam, W / 2, H, 0)!;
   const top = projectSurfacePoint(cam, W / 2, 0, 0)!;
   assert.ok(bottom.d < P && top.d > P, 'bottom nearer, top farther');
@@ -123,7 +123,7 @@ test('a hand-computed pitched projection (rx = −40°, the Surface glide angle)
   near(top.y, 219.144790, 1e-5, 'top edge lands at');
   // …and the two halves are no longer the same height on screen, which IS the
   // perspective: the far half compresses hard (321 px of the 540 it started with) while
-  // the near half, this far out, actually grows (582 px) — a plane receding to a
+  // the near half, this far out, actually grows (582 px) - a plane receding to a
   // vanishing line, not a picture that has merely been squashed.
   near(H / 2 - top.y, 320.855210, 1e-5, 'the far half');
   near(bottom.y - H / 2, 582.014174, 1e-5, 'the near half');
@@ -149,7 +149,7 @@ test('a hand-computed yawed projection (ry) brings the RIGHT edge nearer', () =>
 
 test('the element-local matrix IS translate(dx, dy) in the limit', () => {
   // The claim `composeTransform` rests on: the matrix takes the leading translate's
-  // place because it generalises it. Shrink the angle and the two must converge — and
+  // place because it generalises it. Shrink the angle and the two must converge - and
   // at exactly zero the affine branch takes over and hands back no matrix at all.
   const layer = { bx: 640, by: 400, dxT: 24, dyT: -12, z: 120, w: 300, h: 200 };
   const flat = projectLayer(view(), layer);
@@ -157,7 +157,7 @@ test('the element-local matrix IS translate(dx, dy) in the limit', () => {
     const t = projectLayer(view({ rx }), layer);
     assert.ok(t.m, `rx=${rx} is tilted`);
     // The matrix, applied to the element's own origin (local 0,0), is the projected
-    // offset — and the offset itself converges on the affine one.
+    // offset - and the offset itself converges on the affine one.
     const m = t.m;
     near(m[2] / m[8], t.dx, 1e-9, 'matrix translation agrees with dx');
     near(m[5] / m[8], t.dy, 1e-9, 'matrix translation agrees with dy');
@@ -174,7 +174,7 @@ test('the element-local matrix IS translate(dx, dy) in the limit', () => {
 });
 
 test('the matrix carries the SCALE back out, so every other consumer is unchanged', () => {
-  // `KfProjection.scale` still means `scT · sK · eff` under tilt — the element-local
+  // `KfProjection.scale` still means `scT · sK · eff` under tilt - the element-local
   // matrix divides the centre magnification out precisely so that the rotate and the
   // scale in the transform list keep composing against it in the order they always did.
   // Check it by pushing a local point through matrix ∘ scale and comparing with the
@@ -209,13 +209,13 @@ test('kfMatrix3dCss spells a homography as the one CSS transform that divides by
   assert.equal(n.length, 16);
   assert.ok(n.every((v) => Number.isFinite(v)), `unparseable number in ${css}`);
   // Column-major: the third column is the identity's z column and the z OUTPUT is 0, so
-  // the element stays FLAT — the Cover Flow rule (no perspective/preserve-3d ancestor,
+  // the element stays FLAT - the Cover Flow rule (no perspective/preserve-3d ancestor,
   // and parseCssMatrix refuses a real 3D context).
   assert.deepEqual(n.slice(8, 12), [0, 0, 1, 0], 'the z column is the identity');
   assert.equal(n[2], 0, 'x maps to no z');
   assert.equal(n[6], 0, 'y maps to no z');
   assert.equal(n[14], 0, 'and the translation has no z either');
-  // Normalised so the bottom-right entry is 1 — free (a homography is scale-invariant)
+  // Normalised so the bottom-right entry is 1 - free (a homography is scale-invariant)
   // and what keeps the w row printable beside a translation three orders of magnitude
   // bigger.
   assert.equal(n[15], 1);
@@ -239,7 +239,7 @@ test('the guard ramps on the layer’s NEAREST CORNER under tilt, and on its pla
 
   // Tilted: a big layer's near corner reaches the near plane first, so the same centre
   // depth fades earlier the wider the layer is. This is the whole reason the guard had
-  // to generalise — a corner crossing w = 0 is not a soft failure, it is garbage
+  // to generalise - a corner crossing w = 0 is not a soft failure, it is garbage
   // geometry, and the ramp has to have finished before it can happen.
   const tilt = view({ rx: -60 });
   const point = projectLayer(tilt, { bx: 960, by: 540, z: 900 });
@@ -274,7 +274,7 @@ test('DOF reduces EXACTLY to the affine formula at zero tilt, and reads the view
   near(affine, 40, 1e-12, 'the pinned affine number');
   // Continuity across the branch: a hair of tilt is a hair of difference, not a step.
   near(dofBlur({ ...base, rx: 1e-6 }, 0), affine, 1e-6, 'no discontinuity at the gate');
-  // Under a real pitch both plane depths move — D = P − κ·(z − camZ), κ = cos(rx) — and
+  // Under a real pitch both plane depths move - D = P − κ·(z − camZ), κ = cos(rx) - and
   // the separation picks up its own κ:
   //   κ = cos40 = 0.766044, D(0) = 1200, D(600) = 1200 − 459.6 = 740.4
   //   blur = 40·600·(1200/1200)·(1200/740.4)·0.766044/1200 = 24.832…
@@ -296,7 +296,7 @@ test('the Surface glide track poses the camera low over the artwork and brings i
     resolveCamera([{ start: 0, end: null, base: null, track }], t);
 
   // AT THE OPENING: down among the surfaces. The pitch is the signature angle, and the
-  // aperture is open with the focus plane out at z 160 — so the flat board is soft and
+  // aperture is open with the focus plane out at z 160 - so the flat board is soft and
   // only the lifted layers are sharp (near-field DOF, §9's "far layers soft in DOF").
   const open = at(0);
   assert.equal(open.rx, -40);
@@ -306,7 +306,7 @@ test('the Surface glide track poses the camera low over the artwork and brings i
   // The near field IS sharper than the board: a layer at the focus plane has no defocus,
   // the flat board has plenty.
   assert.equal(dofBlur(open, 160), 0, 'the focal plane is sharp');
-  // 3.6 px at stage-native scale — modest by construction, and that is the model
+  // 3.6 px at stage-native scale - modest by construction, and that is the model
   // speaking rather than a weak preset: `DOF_K` is 40 px for a layer ONE FOCAL LENGTH
   // (1200) out of focus at a = 1, so a 160 px focus offset can only ever be 40·160/1200
   // of it. A near-field pull between real lifted layers is a few px, not a bokeh wash.
@@ -315,7 +315,7 @@ test('the Surface glide track poses the camera low over the artwork and brings i
   assert.ok(dofBlur(open, 300) > 3, 'and so should anything well past the focal plane');
 
   // AT THE END: THE RESOLUTION RULE. Every channel the track touches is back at rest,
-  // and the camera is off the tilt tier entirely — the last frame of a glide is the
+  // and the camera is off the tilt tier entirely - the last frame of a glide is the
   // authored composition, seen straight on.
   const home = at(5200);
   for (const [ch, want] of [['x', 0], ['y', 0], ['rx', 0], ['f', 0], ['a', 0]] as const) {

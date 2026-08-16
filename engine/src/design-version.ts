@@ -1,23 +1,23 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
- * design-version.ts — the pure model behind versioned design systems (plans/97 §6a).
+ * design-version.ts - the pure model behind versioned design systems (plans/97 §6a).
  *
  * The edit head (`user/tokens/brand`) is always `-latest`; a published version is
  * an immutable sibling asset `user/tokens/brand/<slug>`, and the head doc carries
  * the ledger of what was published at `$extensions[TOKEN_EXT].versions`.
  *
  * This lives in the ENGINE, not a shell, because three consumers have to resolve
- * a version identically — the web bridge, the CLI bridge and the MCP server. The
+ * a version identically - the web bridge, the CLI bridge and the MCP server. The
  * discovery-exclusion rule and the resolution ladder are contracts: a shell that
  * invents its own reading of them renders a different design system from the one
  * the author published, which is exactly the drift versioning exists to remove.
  *
- * Everything here is a pure function over plain objects — no DOM, no bridge, no
+ * Everything here is a pure function over plain objects - no DOM, no bridge, no
  * asset IO. Writing version assets, enforcing immutability at the install
  * chokepoint and copy-on-write asset preservation sit ON TOP of this, per shell.
  *
  * Two shape rules the rest of the feature depends on:
- *   - A slug is an asset-id SEGMENT, so it must satisfy `[a-z0-9][a-z0-9-]*` —
+ *   - A slug is an asset-id SEGMENT, so it must satisfy `[a-z0-9][a-z0-9-]*` -
  *     the grammar `schemas/asset.schema.json` states for every id segment. A
  *     label ("Jupiter", "v2") is the team's own naming and is kept verbatim.
  *   - An unversioned doc stores nothing: withVersionIndex removes the key (and
@@ -37,8 +37,8 @@ const isRec = (v: unknown): v is Rec => typeof v === 'object' && v !== null && !
 /**
  * An asset a published version pins: the head id plus the exact bytes it meant.
  *
- * `frozenId` is set ONLY by a shell's copy-on-write hook, never at publish —
- * its presence means the head id's bytes have since changed and the version's
+ * `frozenId` is set ONLY by a shell's copy-on-write hook, never at publish. Its
+ * presence means the head id's bytes have since changed and the version's
  * bytes were preserved under a content-keyed id (see frozenAssetId). Publishing
  * copies nothing, so an unchanged asset never grows one.
  */
@@ -59,7 +59,7 @@ export interface VersionEntry {
  *  against (`null` = nothing activated, so tools see the head). */
 export interface VersionIndex { versions: VersionEntry[]; active: string | null }
 
-/** The head. Never a slug — `resolveDesignVersion` returns it to mean "the doc
+/** The head. Never a slug - `resolveDesignVersion` returns it to mean "the doc
  *  being edited", and `?designv=latest` is the author's preview lever. Kept out
  *  of the slug space by `isVersionSlug`, at both the mint and the read. */
 export const DESIGN_VERSION_LATEST = 'latest';
@@ -72,15 +72,15 @@ const SLUG_MAX = 48;
  * A usable version slug: the id grammar, the length bound, and not the reserved
  * head.
  *
- * `latest` passes the grammar, so without this a version could be published
- * under a name `resolveDesignVersion` short-circuits — it would answer 'latest'
- * for it and every caller would render the head instead, while
+ * `latest` passes the grammar, so without this check a version could be published
+ * under a name that `resolveDesignVersion` short-circuits on. It would answer
+ * 'latest' for that name and every caller would render the head instead, while
  * `versionAssetId(head, 'latest')` minted an asset the ladder can never resolve.
- * A version id is a permanent contract, so the name is refused at the two doors
- * it can come through (minting and reading) rather than half-honoured.
+ * A version id is a permanent contract, so the name is refused at both places it
+ * can come from: minting and reading. Neither place is allowed to half-honour it.
  *
  * SLUG_MAX is enforced HERE, not only in `slugifyVersion`, because minting is
- * not the only door: an imported pack's `versions.json` reaches the install
+ * not the only entry point: an imported pack's `versions.json` reaches the install
  * chokepoint with a slug nobody in this process typed (brand-transfer.ts), and
  * a 300-character segment would become a permanent asset id.
  */
@@ -141,7 +141,7 @@ function extOf(doc: unknown): Rec | null {
  * the extension namespace. Entries that fail the slug grammar or name the
  * reserved head are dropped, a repeated slug keeps its first occurrence, and an
  * `active` naming no known slug reads as null (so `active: 'latest'` on a
- * hand-edited doc falls back to the head) — a caller never has to re-validate
+ * hand-edited doc falls back to the head) - a caller never has to re-validate
  * what it gets back.
  */
 export function readVersionIndex(doc: unknown): VersionIndex {
@@ -168,7 +168,7 @@ export function readVersionIndex(doc: unknown): VersionIndex {
 }
 
 /**
- * `doc` with `index` written into its vendor extension — a deep clone, so the
+ * `doc` with `index` written into its vendor extension - a deep clone, so the
  * input is never touched and any other `$extensions` key rides along untouched.
  *
  * An empty index removes the key and prunes the containers it emptied (see the
@@ -204,7 +204,7 @@ export function withVersionIndex(doc: unknown, index: VersionIndex): unknown {
 }
 
 /**
- * `doc` with its ledger removed — the exact payload a version asset stores.
+ * `doc` with its ledger removed - the exact payload a version asset stores.
  *
  * A version never carries a ledger: it is a leaf of the head's history, and a
  * copy of the list as it stood at publish time would be a second, stale source
@@ -237,7 +237,7 @@ export function slugifyVersion(label: string): string | null {
 }
 
 /**
- * The next label in whatever convention the last publish established — `v1` → `v2`,
+ * The next label in whatever convention the last publish established - `v1` → `v2`,
  * `2` → `3`, zero padding preserved. A name with no trailing number ("jupiter")
  * has no successor to guess, and neither does an empty ledger: both return '' so
  * the field starts blank and naming stays free.
@@ -258,7 +258,7 @@ export function versionAssetId(headId: string, slug: string): string {
 }
 
 /**
- * True when `id` is a published version OF `headId` — the discovery-exclusion
+ * True when `id` is a published version OF `headId` - the discovery-exclusion
  * predicate of §6a: default tokens discovery skips descendants of a head id, so
  * `user/tokens/brand/jupiter` can never be picked as "the design system", while
  * an unrelated `user/tokens/brandx` is untouched (segment boundary, not prefix).
@@ -269,14 +269,14 @@ export function isVersionAssetId(id: string, headId: string): boolean {
 }
 
 /**
- * The first id in `ids` that is not a proper descendant of another id in `ids` —
- * "the design system", as opposed to one of its published versions.
+ * The first id in `ids` that is not a proper descendant of another id in `ids`.
+ * This is "the design system", as opposed to one of its published versions.
  *
  * Order-preserving on purpose: with zero or one tokens asset (every install that
  * never published, which is nearly all of them) this returns exactly what a bare
  * `.find(...)` returned before the rule existed, and with two UNRELATED tokens
  * assets it still returns the first. It differs only where one id is a proper
- * descendant of another — the versions case, which was undefined behaviour.
+ * descendant of another: the versions case, which was undefined behaviour.
  */
 export function pickHeadAssetId(ids: readonly string[]): string | null {
   for (const id of ids) {
@@ -288,7 +288,7 @@ export function pickHeadAssetId(ids: readonly string[]): string | null {
 /**
  * The §6a resolution ladder: explicit override → manifest pin → active version →
  * the head. A slug that names no known version falls through to the next rung
- * rather than failing the render — a tool pinned to a version the user never
+ * rather than failing the render - a tool pinned to a version the user never
  * imported still draws, against the next-best system. `latest` is reserved for
  * the head and short-circuits wherever it appears.
  */
@@ -306,18 +306,18 @@ export function resolveDesignVersion(
 }
 
 /**
- * SHA-256 of raw bytes as lowercase hex — the digest a pinned asset records, the
- * one `frozenAssetId` keys a preserved copy on, and the one `docChecksum` below
- * takes over a document's canonical JSON.
+ * SHA-256 of raw bytes as lowercase hex. This is the digest a pinned asset records,
+ * the one `frozenAssetId` keys a preserved copy on, and the one `docChecksum` below
+ * runs over a document's canonical JSON.
  *
  * Re-exported rather than written again: one spelling of that contract exists in
  * the engine, and it is the `bytes.ts` leaf. It used to be sourced from
  * `catalog-integrity.ts` (its original home, which still re-exports it, so the
- * barrel surface is unchanged) — but this module is on the web shell's FIRST-PAINT
- * graph via `bridge/assets.ts`, and that edge dragged catalog-integrity + `x509.ts`
- * + `der-read.ts` (~3.6 KB gz of boot chunks) along for a two-line helper, to serve
- * a catalog-signature feature that is inert unless a build pins a public key.
- * Import the leaf, not the module that happens to re-export from it.
+ * barrel surface is unchanged). But this module is on the web shell's FIRST-PAINT
+ * graph via `bridge/assets.ts`, and that edge pulled in catalog-integrity, `x509.ts`,
+ * and `der-read.ts` (about 3.6 KB gz of boot chunks) for the sake of a two-line
+ * helper, serving a catalog-signature feature that is inert unless a build pins a
+ * public key. Import the leaf, not the module that happens to re-export from it.
  */
 export { sha256Hex } from './bytes.ts';
 
@@ -330,8 +330,8 @@ const FROZEN_KEY_LEN = 12;
  * The content-keyed id preserved bytes live at: `<ns>/frozen/<first 12 hex>`.
  * `ns` is 'user' on device and the pack namespace in a catalog.
  *
- * Content-keyed so two versions pinning identical bytes share ONE preserved copy
- * — the storage cost of versioning is what actually diverged, nothing more.
+ * Content-keyed so two versions pinning identical bytes share ONE preserved copy.
+ * The storage cost of versioning is only what actually diverged, nothing more.
  * Satisfies `schemas/asset.schema.json`'s `^[a-z0-9]+(/[a-z0-9][a-z0-9-]*)+$`.
  *
  * Throws on anything that is not a digest, or on a namespace that is not one plain
@@ -409,7 +409,7 @@ export function collectFontFamilies(doc: unknown): string[] {
 
 /**
  * A copy of `doc` with each `$type: 'asset'` `$value` rewritten to its pin's
- * `frozenId`, where one exists — the ONE place version-scoped asset indirection
+ * `frozenId`, where one exists - the ONE place version-scoped asset indirection
  * happens, shared by every shell.
  *
  * Rewriting the DOCUMENT rather than intercepting asset lookups is what keeps
@@ -432,7 +432,7 @@ export function applyPinnedAssets(doc: unknown, pins: readonly PinnedAsset[]): u
   return next;
 }
 
-/** Key-sorted deep copy — the canonical form both docChecksum and the leaf diff
+/** Key-sorted deep copy - the canonical form both docChecksum and the leaf diff
  *  compare, so a doc rewritten by a different serializer still matches. */
 function canonical(v: unknown): unknown {
   if (Array.isArray(v)) return v.map(canonical);
@@ -447,7 +447,7 @@ function canonical(v: unknown): unknown {
 
 const canonicalJson = (v: unknown): string => JSON.stringify(canonical(v)) ?? 'null';
 
-/** SHA-256 hex of the doc's canonical JSON — stable under key reordering, so an
+/** SHA-256 hex of the doc's canonical JSON - stable under key reordering, so an
  *  identical system re-serialized still matches its published version's checksum.
  *  Web Crypto is present in any browser and in modern Node, so the headless tests
  *  digest for real; where it is absent this throws rather than storing a
@@ -468,7 +468,7 @@ function tokenLeaves(doc: unknown): Map<string, string> {
 
 /**
  * The compat diff behind publishing: which token paths `b` adds, changes, and
- * drops relative to `a`. Only `$value` is compared — a `$description` edit is not
+ * drops relative to `a`. Only `$value` is compared - a `$description` edit is not
  * a compatibility event. `removed` is the breaking set (a rename reads as one
  * removal plus one addition, which is exactly how it breaks a tool that named the
  * old path). All three are sorted so a diff renders in a stable order.

@@ -12,7 +12,7 @@ import type {
   ShotResolution,
 } from '../src/index.ts';
 
-// A trivial in-memory context — the smallest thing that satisfies the interface. The
+// A trivial in-memory context: the smallest thing that satisfies the interface. The
 // build-time and runtime adapters are richer, but must present exactly this surface.
 function mockContext(overrides: Partial<DocsRenderContext> = {}): DocsRenderContext {
   let seq = 0;

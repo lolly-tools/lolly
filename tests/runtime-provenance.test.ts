@@ -4,7 +4,7 @@
  * export(), v1.35). These prove the SIGNAL wiring end-to-end at the host seam: a
  * live camera frame (onFrame) or a recorder take (startRecording→stopRecording)
  * surfaces as opts.c2paCapture, and rendered text sitting over an OPENED asset (an
- * ingredient is present) surfaces as opts.c2paTextAdded — while from-scratch text
+ * ingredient is present) surfaces as opts.c2paTextAdded - while from-scratch text
  * does NOT (it rides in the input digest instead, never a fabricated edit). The
  * engine embedding of these steps is covered by export-action-steps.test.ts and the
  * c2patool conformance suite; here we pin down that the runtime derives them from
@@ -22,7 +22,7 @@ import { embedC2pa, extractC2paStore } from '../engine/src/index.ts';
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 let toolSeq = 0;
 
-// A real, parseable manifest store — what a shell persists for a credentialed
+// A real, parseable manifest store - what a shell persists for a credentialed
 // upload (so the runtime's ingredient sweep finds a chain to preserve).
 async function credentialStore(): Promise<Uint8Array> {
   const svg = new TextEncoder().encode('<svg xmlns="http://www.w3.org/2000/svg" width="8" height="8"><rect width="8" height="8"/></svg>');
@@ -107,7 +107,7 @@ function recorderTool(capabilities: string[]): any {
   };
 }
 
-// A plain image tool — one asset slot, no hooks. The AI-upscale disclosure is
+// A plain image tool - one asset slot, no hooks. The AI-upscale disclosure is
 // driven purely by the placed (upscaled) asset's meta, so this is all it takes.
 function imageTool(): any {
   return {
@@ -134,7 +134,7 @@ test('a live camera frame marks the export as a camera capture', async () => {
 test('an animated-asset frame drive (startLive source:asset) never claims a camera capture', async () => {
   // The web shell replays an animated asset (SVG/GIF/APNG/video) through the SAME
   // onFrame loop as the camera (live-controls.ts + media.ts anim source). The
-  // frames render identically, but they are decoded file content — an export
+  // frames render identically, but they are decoded file content - an export
   // claiming digitalCapture for them would be a false statement in a signed
   // manifest, so the 'asset' source must leave c2paCapture unset (engine 1.113).
   const { host, rendered, pushFrame } = makeHost();
@@ -188,7 +188,7 @@ test('a video take on a camera-only tool marks camera, not the mic', async () =>
   assert.deepEqual(rendered[0].c2paCapture, { camera: true });
 });
 
-// ─── screen capture (v1.54) — the runtime side of the screencap fixes ─────────
+// ─── screen capture (v1.54) - the runtime side of the screencap fixes ─────────
 // exportActionSteps proves the SOURCE-TYPE mapping; these prove the runtime derives
 // the right c2paCapture from a SCREEN take, so a still exported through the export bar
 // afterwards never inherits a camera claim, and a denied mic is never stamped as
@@ -216,7 +216,7 @@ test('a screen recording marks screenCapture (screen), NOT the camera', async ()
   await rt.stopRecording();
   await rt.export({} as any, 'png', { c2pa: true });
   // The exact bug finding #4 caught: a screen take must NOT set camera. It's a screen
-  // origin, with the granted mic — never "captured live from the camera".
+  // origin, with the granted mic - never "captured live from the camera".
   assert.equal(rendered[0].c2paCapture.screen, true);
   assert.equal(rendered[0].c2paCapture.camera, undefined, 'a screen take must never claim the camera');
   assert.equal(rendered[0].c2paCapture.microphone, true);
@@ -226,7 +226,7 @@ test('a screen recording marks screenCapture (screen), NOT the camera', async ()
 test('a screen recording with the mic DENIED is not stamped as narration', async () => {
   const { host, rendered, setRecBlob, setMicActive } = makeHost();
   setRecBlob(new Blob([new Uint8Array(4)], { type: 'video/mp4' }));
-  // Tool DECLARES 'microphone', user ticked Narrate — but the mic was actually blocked.
+  // Tool DECLARES 'microphone', user ticked Narrate - but the mic was actually blocked.
   // The credential must reflect what was captured (silent), not what was requested.
   setMicActive(false);
   const rt = await createRuntime(screenTool(['screen', 'microphone']), host, {});
@@ -318,11 +318,11 @@ test('no capture and no c2pa → no provenance keys at all', async () => {
 // its meta; the runtime surfaces that as opts.c2paAiUpscale so the export's
 // credential names the model that enlarged it (composite source type). The value
 // is read AFTER resolveAssetRefs, which re-resolves the placed id through
-// host.assets.get — the web get() returns a user asset via toAssetRef, carrying
+// host.assets.get - the web get() returns a user asset via toAssetRef, carrying
 // its record.meta verbatim (assets.ts), so the disclosure survives resolution.
 // These tests stub host.assets.get to mirror that real behaviour.
 
-// A host.assets.get that echoes the given meta for a user id — the shape the web
+// A host.assets.get that echoes the given meta for a user id - the shape the web
 // bridge's toAssetRef produces (record.meta passed through verbatim).
 function withUserAsset(host: any, meta?: Record<string, unknown>) {
   host.assets = {
@@ -355,7 +355,7 @@ test('a plain (non-upscaled) asset sets no c2paAiUpscale', async () => {
 });
 
 test('an upscaled asset placed in a BLOCKS sub-field still declares its AI origin', async () => {
-  // Logo Wall / Carousel place images into a repeating-field asset grid — the
+  // Logo Wall / Carousel place images into a repeating-field asset grid - the
   // disclosure must descend into blocks, not only top-level asset inputs.
   const { host, rendered } = makeHost();
   withUserAsset(host, { aiUpscale: { model: 'realesr-general-x4v3', version: 'v3' } });

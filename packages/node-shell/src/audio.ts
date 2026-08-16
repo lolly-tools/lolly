@@ -1,24 +1,24 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
- * host.audio (Node) — the headless half of audio analysis for the CLI + TUI.
+ * host.audio (Node): the headless half of audio analysis for the CLI + TUI.
  *
  * The ANALYSIS is the engine's `analysePcm`, identical to the web shell's, so an
  * audiogram rendered in the terminal reads exactly the numbers the browser reads.
  * The only difference is the DECODER, and here it is honest about being narrow:
  *
  *   • **WAV** via the engine's dependency-free `parseWav`.
- *   • **ZzFXM** — our own procedural songs, rendered rather than decoded (both the
+ *   • **ZzFXM**: our own procedural songs, rendered rather than decoded (both the
  *     catalog's `.zzfxm.json` files and the `zzfxm:<seed>` scheme).
  *
  * Nothing else. Node has no MP3/AAC/Opus codec, and this deliberately does NOT shell
- * out to ffmpeg to pretend otherwise — a render that silently depends on whatever
+ * out to ffmpeg to pretend otherwise. A render that silently depends on whatever
  * binary happens to be on PATH is worse than one that says what it cannot read. So
  * `isAvailable()` is true (there IS a decoder) and `analyse` rejects by format name,
  * which is exactly the contract's stated behaviour: available never promised that any
  * particular file decodes.
  *
  * The practical upshot: an audiogram of a generated ZzFXM track, or of a WAV, renders
- * fully headlessly — which is what makes the tool testable and batch-renderable at
+ * fully headlessly. That is what makes the tool testable and batch-renderable at
  * all. An MP3 needs a browser shell.
  */
 import { readFile } from 'node:fs/promises';
@@ -37,7 +37,7 @@ export interface NodeAudioOptions {
   repoRoot: string;
 }
 
-/** Formats we can name but not decode — worth a specific message, since "unsupported"
+/** Formats we can name but not decode. These get a specific message, since "unsupported"
  *  on an MP3 in a headless render is a confusing thing to hit. */
 const NEEDS_PLATFORM_CODEC = /\.(mp3|m4a|aac|ogg|oga|opus|flac|weba|webm|mp4)$/i;
 
@@ -90,7 +90,7 @@ export function createNodeAudioAPI(opts: NodeAudioOptions): AudioAPI {
       const ref = parseZzfxmRef(url);
       if (!ref) throw new Error(`audio: malformed procedural song ref (${url})`);
       // 30s is the seeded generator's own house length, matching the web shell's
-      // procedural path — analysis of the same ref must not depend on the shell.
+      // procedural path. Analysis of the same ref must not depend on the shell.
       const { left, right, sampleRate } = renderZzfxm(
         composeSong(generatedSongSpec(ref.seed, 30, ref.style)),
       );
@@ -117,7 +117,7 @@ export function createNodeAudioAPI(opts: NodeAudioOptions): AudioAPI {
 
   return {
     // There IS a decoder here (WAV + ZzFXM), so this is true. Per the contract it
-    // never promised that a given file decodes — analyse() rejects by name for the
+    // never promised that a given file decodes. analyse() rejects by name for the
     // formats Node cannot read.
     isAvailable: () => true,
 

@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
- * Unpack — the IDML and Penpot readers (shells/web/src/views/idml-import.ts,
+ * Unpack - the IDML and Penpot readers (shells/web/src/views/idml-import.ts,
  * penpot-import.ts). Both openers take PRE-unzipped entries (path → bytes), so the
  * fixtures are tiny hand-built entry maps rather than real archives. IDML parses XML
  * with DOMParser, so a jsdom one is installed on the global for the node run.

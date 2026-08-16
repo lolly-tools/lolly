@@ -1,11 +1,11 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
- * engine/src/gainmap-jpeg.ts — MPF + Ultra HDR XMP + ISO 21496-1 assembly.
+ * engine/src/gainmap-jpeg.ts - MPF + Ultra HDR XMP + ISO 21496-1 assembly.
  *
  * plans/61-deeprichpixels.md §6 B2. Everything asserted here is READ BACK OUT of
- * the produced bytes by readers written in this file — an independent MPF/TIFF
+ * the produced bytes by readers written in this file - an independent MPF/TIFF
  * walker, an independent ISO 21496-1 parser, and a tiny XML well-formedness
- * checker — never trusted from the writer's own intermediate values. Where
+ * checker - never trusted from the writer's own intermediate values. Where
  * `sharp` is installed it decodes the finished file as a third-party oracle:
  * it knows nothing about gain maps, which is precisely why it is the right
  * witness for "the fallback is a perfect ordinary SDR JPEG".
@@ -195,7 +195,7 @@ function assertWellFormedXmp(packet: string): void {
   assert.deepEqual(stack, [], 'every element is closed');
 }
 
-/** Pull `ns:name="value"` attributes out of a packet (flat — the packets are attribute-shaped). */
+/** Pull `ns:name="value"` attributes out of a packet (flat - the packets are attribute-shaped). */
 function xmpAttrs(packet: string, ns: string): Record<string, string> {
   const out: Record<string, string> = {};
   const re = new RegExp(`\\b${ns}:([A-Za-z]\\w*)\\s*=\\s*"([^"]*)"`, 'g');
@@ -248,7 +248,7 @@ test('assembled file: structure, and the base survives byte for byte', () => {
   assert.equal(mapScan.truncated, false, 'the appended image reaches its own EOI');
 
   // Removing exactly the two segments we added to the primary must restore the
-  // original base bytes — that is what makes the SDR fallback perfect.
+  // original base bytes - that is what makes the SDR fallback perfect.
   const xmp = findJpegSegment(primary, 0xe1, JPEG_APP_IDS.XMP)!;
   const mpf = findJpegSegment(primary, 0xe2, 'MPF')!;
   assert.ok(xmp && mpf, 'primary carries the XMP and MPF segments');
@@ -479,7 +479,7 @@ test('non-finite metadata degrades to zeros rather than emitting NaN', () => {
 });
 
 test('sharp decodes the finished file to EXACTLY the base SDR image', { skip: SKIP_SHARP }, async () => {
-  // The perfect-fallback proof. sharp/libvips knows nothing about gain maps —
+  // The perfect-fallback proof. sharp/libvips knows nothing about gain maps - 
   // that is the point: it must see the ordinary SDR JPEG and nothing else.
   const out = assembleGainMapJpeg(BASE, MAP, META);
   const decoded = await sharp!(Buffer.from(out)).raw().toBuffer();

@@ -1,11 +1,11 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
- * describeColor / contrastVsExtremes (engine/src/color-describe.ts) — the join
+ * describeColor / contrastVsExtremes (engine/src/color-describe.ts) - the join
  * between CSS Color 4 parsing and display-gamut classification.
  *
  * The behaviour that matters, and the reason the module exists: the OKLCH it
  * reports is UNCLAMPED. Every surface that flattened a colour to hex first threw
- * away exactly the colours worth asking about — a Display-P3 red became #ff0000
+ * away exactly the colours worth asking about - a Display-P3 red became #ff0000
  * and then trivially "fitted sRGB". These tests pin that it no longer does.
  */
 
@@ -157,7 +157,7 @@ test('WCAG levels use the body and large-text thresholds separately', () => {
 
 test('no colour can score below sqrt(21) against the better extreme', () => {
   // The two ratios always multiply to exactly 21, so taking the better of them
-  // bottoms out where they cross — above the 4.5 body-AA threshold. This is why
+  // bottoms out where they cross - above the 4.5 body-AA threshold. This is why
   // `level` is never 'fail' here, and why the report must not read as a pass.
   let worst = Infinity;
   for (let r = 0; r <= 255; r += 15) {
@@ -178,7 +178,7 @@ test('no colour can score below sqrt(21) against the better extreme', () => {
 
 test('wcagLevel is the reusable scale, where failure IS reachable', () => {
   // The exported scale for callers scoring against a real surface rather than
-  // the extremes — this is the one that can say no.
+  // the extremes - this is the one that can say no.
   assert.equal(wcagLevel(21), 'AAA');
   assert.equal(wcagLevel(7), 'AAA');
   assert.equal(wcagLevel(6.99), 'AA');
@@ -192,7 +192,7 @@ test('wcagLevel is the reusable scale, where failure IS reachable', () => {
 
 test('a wide-gamut colour is scored on what actually renders', () => {
   // You cannot read text against a colour a screen can't show, so the score has
-  // to be measured on the mapped hex — not on the authored value.
+  // to be measured on the mapped hex - not on the authored value.
   const v = contrastVsExtremes('color(display-p3 1 0 0)')!;
   const mapped = contrastVsExtremes(describeColor('color(display-p3 1 0 0)')!.srgbHex)!;
   assert.equal(v.against, mapped.against);

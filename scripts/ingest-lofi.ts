@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
- * ingest-lofi — convert a curated set of public-domain lo-fi tracks to opus and register them as
- * catalog audio assets under `lolly/loops/` in the BLANK `lolly-start` brand — the focus beats
+ * ingest-lofi - convert a curated set of public-domain lo-fi tracks to opus and register them as
+ * catalog audio assets under `lolly/loops/` in the BLANK `lolly-start` brand - the focus beats
  * behind "Neurospicy Mode" (they also flow into the video-export music picker, which lists every
  * type:'audio' asset). These ship with a real, public licence (CC0), so every brand is clean to
  * distribute. As of 2026-07-11 they are the ONLY loops in any profile: the 43 SUSE drum-breaks
@@ -11,21 +11,21 @@
  * ambient loops plus the licensed PremiumBeat music (`suse/music/*`); the ZZFXM tracks
  * (`lolly/songs/*`) are generated on device, not binary. Do not re-introduce unlicensed audio.
  *
- * Source: the Open Lo-Fi collection (github.com/btahir/open-lofi) — 166 tracks generated with
+ * Source: the Open Lo-Fi collection (github.com/btahir/open-lofi) - 166 tracks generated with
  * Suno v5 and donated to the public domain under CC0 1.0. Default layout:
- *   ~/Build/openlofi           — the *.mp3 tracks
- *   ~/Build/open-lofi-main     — repo checkout with catalog.json (title/category) + LICENSE
+ *   ~/Build/openlofi - the *.mp3 tracks
+ *   ~/Build/open-lofi-main - repo checkout with catalog.json (title/category) + LICENSE
  *
  * SELECTION rationale: neurospicy loops re-encode to opus at a fixed bitrate, so the smallest
  * output files are simply the shortest source tracks. The list below is the 12 shortest tracks
  * (all < 100 s), which also happens to span jazzhop / activities / soul-rnb / late-night /
- * seasonal for variety in the picker. Re-encoded to opus @64k — ~half the size of mp3/aac, loops
+ * seasonal for variety in the picker. Re-encoded to opus @64k - ~half the size of mp3/aac, loops
  * gaplessly via Web Audio, and (unlike vorbis) decodes in Safari.
  *
  * These are GenAI (Suno), so both surfaces disclose it: each entry carries
  * `aiGenerated: 'full'` (the catalog's violet "GEN AI" pill), and the matching
  * C2PA `trainedAlgorithmicMedia` credential is embedded into the .opus files by
- * scripts/credential-lofi.ts — signed as "Open Lo-Fi (Suno)", NOT as Lolly. Run
+ * scripts/credential-lofi.ts - signed as "Open Lo-Fi (Suno)", NOT as Lolly. Run
  * that AFTER this script (and after re-ingesting), then build:catalog.
  *
  * A one-shot generator (like previews): run locally (needs ffmpeg), commit the output, then

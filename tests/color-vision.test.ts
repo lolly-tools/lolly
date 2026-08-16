@@ -1,10 +1,10 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
- * Machado, Oliveira & Fernandes (2009) colour-vision-deficiency simulation —
+ * Machado, Oliveira & Fernandes (2009) colour-vision-deficiency simulation - 
  * contract tests for engine/src/color-vision.ts.
  *
  * Coverage:
- *   (1) Published Machado matrix entries survive verbatim — a handful of pinned
+ *   (1) Published Machado matrix entries survive verbatim - a handful of pinned
  *       cells at severity 1.0 for each type, proved by feeding pure primaries
  *       (which read off exactly one matrix column) through simulateCvd.
  *   (2) A known colour transforms to its expected simulated value at severity 1

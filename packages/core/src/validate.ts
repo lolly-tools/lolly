@@ -1,10 +1,10 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
- * Validate a `tool.json` manifest against the bundled JSON Schema — the
- * authoritative manifest contract. This is the SAME check Lolly runs at
- * catalog-build time and at host load time, so a manifest that passes here will
- * load in any Lolly shell. The bundled schema is kept byte-identical to the
- * platform's `schemas/tool.schema.json` by a drift-guard test.
+ * Validate a `tool.json` manifest against the bundled JSON Schema. This is the
+ * authoritative manifest contract. Lolly runs this SAME check at catalog-build
+ * time and at host load time, so a manifest that passes here will load in any
+ * Lolly shell. The bundled schema is kept byte-identical to the platform's
+ * `schemas/tool.schema.json` by a drift-guard test.
  */
 import Ajv from 'ajv/dist/2020.js';
 import type { ErrorObject } from 'ajv/dist/2020.js';
@@ -26,8 +26,8 @@ export interface ValidationResult {
   errors: ValidationIssue[];
 }
 
-// Ajv ships as CJS; under some TS module-interop configs the default import isn't
-// seen as constructable (TS2351). It IS a class at runtime — cast the ctor so
+// Ajv ships as CJS. Under some TS module-interop configs the default import isn't
+// seen as constructable (TS2351). It IS a class at runtime. Cast the ctor so
 // every toolchain agrees. (Mirrors engine/src/validate.ts.)
 const ajv = new (Ajv as any)({ allErrors: true, strict: false });
 ajv.addSchema(toolSchema);
@@ -48,11 +48,12 @@ export function validateTool(manifest: unknown): ValidationResult {
 }
 
 /**
- * Validate one `CanvasOp` (plans/99 §4) against the bundled canvas-op schema —
- * the same shape-check lolly-work's collaboration gateway runs on every inbound
- * op before applying it (the veto in plans/99 §7 is a separate policy layer).
- * The bundled schema is kept byte-identical to `schemas/canvas-op.schema.json`
- * by the same drift-guard test that covers the manifest schema.
+ * Validate one `CanvasOp` (plans/99 §4) against the bundled canvas-op schema.
+ * This is the same shape-check lolly-work's collaboration gateway runs on every
+ * inbound op before applying it (the veto in plans/99 §7 is a separate policy
+ * layer). The bundled schema is kept byte-identical to
+ * `schemas/canvas-op.schema.json` by the same drift-guard test that covers the
+ * manifest schema.
  */
 export function validateCanvasOp(op: unknown): ValidationResult {
   const ok = validateOp(op);

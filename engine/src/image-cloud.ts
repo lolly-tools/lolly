@@ -2,33 +2,33 @@
 /**
  * An image's colours as a point cloud in OKLCH, plus what the distribution says.
  *
- * The input is decoded RGBA — the shell owns the decoder, this owns the maths, the
- * same split as `audio-analyse.ts`. So the web shell and the CLI read identical
- * numbers off one file, and none of this needs a DOM to test.
+ * The input is decoded RGBA. The shell owns the decoder; this module owns the
+ * maths, the same split as `audio-analyse.ts`. So the web shell and the CLI
+ * read identical numbers off one file, and none of this needs a DOM to test.
  *
- * ## The honesty problem, and how it is handled
+ * ## Colour space must be stated, not guessed
  *
  * RGBA bytes do not say which space they are in. An untagged JPEG is sRGB *by
  * convention*, not by fact, and a browser that drew a Display-P3 photo into an
  * sRGB canvas has already thrown the wide colours away before this function sees
- * a byte. So `space` is REQUIRED to be passed by the caller and is echoed back on
- * the result: every number here is "given these bytes are in that space", and a
- * caller that guessed has to say so in its own UI rather than having this module
- * quietly launder the guess into a fact.
+ * a byte. So `space` is REQUIRED from the caller and is echoed back on the
+ * result: every number here means "given these bytes are in that space". A
+ * caller that guessed has to say so in its own UI - this module never turns a
+ * guess into a stated fact.
  *
- * Getting it wrong is not subtle. The same bytes read as Display-P3 rather than
- * sRGB carry up to ~25% more chroma in the reds and greens, which moves every
- * gamut statistic below.
+ * Getting the space wrong is not a small error. The same bytes read as
+ * Display-P3 rather than sRGB carry up to ~25% more chroma in the reds and
+ * greens, which moves every gamut statistic below.
  *
  * ## Why buckets rather than pixels
  *
- * A 12-megapixel photo has at most ~16.7M distinct colours and usually far fewer,
- * but plotting even 100k points is pointless: past a few thousand the cloud is
- * solid and the extra work is invisible. Colours are quantised into a 32³ RGB
- * grid, counted, and the heaviest buckets returned — so the plot shows where the
- * image's mass actually is. `unique` is counted separately at FULL 8-bit
- * precision, because "how many colours are in this image" is a question about the
- * image, not about our grid.
+ * A 12-megapixel photo has at most ~16.7M distinct colours and usually far
+ * fewer, but plotting even 100k points is pointless: past a few thousand the
+ * cloud looks solid and the extra points add nothing visible. Colours are
+ * quantised into a 32³ RGB grid, counted, and the heaviest buckets returned, so
+ * the plot shows where the image's mass actually is. `unique` is counted
+ * separately at FULL 8-bit precision, because "how many colours are in this
+ * image" is a question about the image, not about our grid.
  */
 
 import { oklchGamut, inGamut } from './gamut.ts';
@@ -46,7 +46,7 @@ export interface CloudPoint {
   h: number;
   /** Sampled pixels in this bucket. Relative to `sampled`, not to the image. */
   n: number;
-  /** The bucket centre as an sRGB hex — for painting a point, never for reading a
+  /** The bucket centre as an sRGB hex - for painting a point, never for reading a
    *  value back out of (it is gamut-mapped when the source space is wider). */
   hex: string;
 }
@@ -68,9 +68,9 @@ export interface ImageCloud {
   /**
    * Share of pixels sitting on a channel extreme (0 or 255).
    *
-   * The tell for an image that has ALREADY been clipped — by an export, a phone's
-   * processing, a previous gamut map. Those colours were somewhere else before,
-   * and no amount of plotting recovers where.
+   * The sign that an image has ALREADY been clipped - by an export, a phone's
+   * processing, or an earlier gamut map. Those colours were somewhere else
+   * before, and plotting them now cannot recover where.
    */
   clipped: number;
   /** Share within `nearEdge` of the source space's own boundary, so at risk from
@@ -83,7 +83,7 @@ export interface ImageCloud {
 }
 
 export interface ImageCloudOpts {
-  /** REQUIRED — see the honesty note above. */
+  /** REQUIRED - see the honesty note above. */
   space: CloudSpace;
   /** Take every Nth pixel. Default picks a stride that samples ~200k pixels. */
   stride?: number;
@@ -104,24 +104,26 @@ const DEFAULT_SAMPLE_TARGET = 200_000;
 const HUE_CHROMA_FLOOR = 0.02;
 
 /**
- * Half an 8-bit code value at the top of the linear range, and the tolerance the
- * gamut classification is done at.
+ * Half an 8-bit code value at the top of the linear range. This is the
+ * tolerance used for gamut classification.
  *
  * The first draft of this feature printed "7.4% of this image is beyond sRGB"
- * about a test file with nothing beyond sRGB in it. The cause is worth writing
- * down, because the obvious fix is the wrong one.
+ * for a test file with nothing beyond sRGB in it. The cause is worth recording,
+ * because the obvious fix is the wrong one.
  *
- * An sRGB colour carried through an 8-bit Display-P3 encoding comes back with its
- * linear channels a fraction OUTSIDE the unit cube — pure blue returned 1.003.
- * That is a rounding error of a third of a percent. But near the sRGB cusp the
- * chroma ceiling falls away steeply with lightness, so measured as chroma the
- * same error reads as 0.048 — eight times what an honest slop would be, and far
- * too large to absorb without also swallowing real out-of-gamut colours.
+ * An sRGB colour carried through an 8-bit Display-P3 encoding comes back with
+ * its linear channels a fraction OUTSIDE the unit cube: pure blue returned
+ * 1.003. That is a rounding error of a third of a percent. But near the sRGB
+ * cusp the chroma ceiling falls away steeply with lightness, so measured as
+ * chroma the same error reads as 0.048 - eight times the real error, and far
+ * too large a tolerance to use without also swallowing real out-of-gamut
+ * colours.
  *
- * So the tolerance goes where the error actually is: the CUBE. A channel within
- * half a code value of a rail is on the rail. Applied to classification only —
- * a point keeps its measured colour for the plot, because the error is invisible
- * there and snapping the plotted value would be inventing data.
+ * So the tolerance is applied where the error actually is: the CUBE. A channel
+ * within half a code value of a rail counts as on the rail. This applies to
+ * classification only. A point keeps its measured colour for the plot, because
+ * the error is invisible there, and snapping the plotted value would be
+ * inventing data.
  */
 const LIN_SLOP = 1 - srgbToLinear(254 / 255);
 
@@ -145,8 +147,8 @@ export function imageColorCloud(
   const uniq = new Set<number>();
   let sampled = 0, transparent = 0, clipped = 0;
   // Hue is BINNED into twelve 30° sectors rather than averaged. A mean of angles
-  // is meaningless on a circle — 350° and 10° average to 180°, the opposite hue —
-  // and the question ("which family of colour is this image") is answered by the
+  // is meaningless on a circle: 350° and 10° average to 180°, the opposite hue.
+  // The question ("which family of colour is this image") is answered by the
   // busiest sector anyway, which needs no circular statistics at all.
   const hueBins = new Float64Array(12);
   let chromaSum = 0, atRisk = 0;
@@ -169,12 +171,12 @@ export function imageColorCloud(
     const { l, c, hue, lin } = toOklch(r, g, b, space);
     chromaSum += c;
     if (c >= HUE_CHROMA_FLOOR) hueBins[Math.floor((((hue % 360) + 360) % 360) / 30)]! += 1;
-    // Classified at the sample's own precision — see LIN_SLOP. A colour is only
+    // Classified at the sample's own precision - see LIN_SLOP. A colour is only
     // "beyond sRGB" if it is beyond it by more than the 8 bits could have got
     // wrong on the way in.
     const snapped = snapToCube(lin);
     cover[snapped ? oklchOf(snapped).gamut : oklchGamut(l, c, hue)] += 1;
-    // "At risk" is measured against the space the bytes are IN — the next
+    // "At risk" is measured against the space the bytes are IN - the next
     // conversion is the one out of it. Measuring against sRGB for P3 bytes would
     // report most of a vivid photo as at risk, which is true of a conversion
     // nobody asked for.
@@ -253,7 +255,7 @@ function oklchOf(lin: [number, number, number]): { gamut: GamutName } {
 function toOklch(r: number, g: number, b: number, space: CloudSpace):
 { l: number; c: number; hue: number; lin: [number, number, number] } {
   let lr = srgbToLinear(r / 255), lg = srgbToLinear(g / 255), lb = srgbToLinear(b / 255);
-  // Display-P3 shares sRGB's transfer curve, so only the primaries differ — the
+  // Display-P3 shares sRGB's transfer curve, so only the primaries differ - the
   // decode above is right for both and only this rotation is conditional.
   if (space === 'display-p3') [lr, lg, lb] = linearP3ToLinearSrgb(lr, lg, lb);
   const [l, A, B] = linearSrgbToOklab(lr, lg, lb);

@@ -1,27 +1,29 @@
 // SPDX-License-Identifier: MPL-2.0
-// ─── Lolly pixel watermark — block-DCT spread-spectrum ────────────────────────
+// ─── Lolly pixel watermark - block-DCT spread-spectrum ────────────────────────
 //
 // A second, much weaker provenance signal that lives IN THE PIXELS, so it
 // survives what strips Lolly's C2PA credential: a screenshot, a re-save, a
-// JPEG recompress, a resize, an EXIF strip. Where C2PA answers "is this file
-// byte-for-byte what Lolly signed" (strong, dies to any container change), this
-// answers only "did these pixels pass through Lolly's export at some point"
-// (weak, but durable). It is a COMPLEMENT to C2PA, never a replacement — when a
-// credential is intact, trust that; this is the fallback signal for when it isn't.
+// JPEG recompress, a resize, an EXIF strip. C2PA answers "is this file
+// byte-for-byte what Lolly signed" (strong, dies to any container change).
+// This answers only "did these pixels pass through Lolly's export at some
+// point" (weak, but durable). It is a COMPLEMENT to C2PA, never a
+// replacement: when a credential is intact, trust that; this is the fallback
+// signal for when it isn't.
 //
 // Technique: classic spread-spectrum (Cox/Kilian/Leighton/Shamoon 1997). On the
 // SAME 8×8 grid JPEG's own DCT uses, a fixed ±1 chip sequence is added to a set
 // of mid-band luma coefficients of every block, scaled by a perceptual mask so
 // busy blocks carry more and flat ones stay clean. Detection re-reads the luma,
-// forward-DCTs each block, and correlates the mid-band against the chip — summed
-// over every block, so cropping/overlay/partial loss degrades the score
-// gracefully instead of destroying it. Presence-only (yes/no + score); no payload.
+// forward-DCTs each block, and correlates the mid-band against the chip. This
+// sum runs over every block, so cropping/overlay/partial loss degrades the
+// score gradually instead of destroying it. Presence-only (yes/no + score); no
+// payload.
 //
-// SECURITY POSTURE — read `plans/30-lollys-own-synth.md`. This is
+// SECURITY POSTURE - read `plans/30-lollys-own-synth.md`. This is
 // security-through-obscurity: the chip key ships in this (public) source and in
 // the on-device detector, so a motivated adversary who reads it can subtract the
 // mark out cleanly. It is honest cover against CASUAL stripping / re-encoding,
-// NOT a hardened defense — same framing as the self-signed on-device C2PA key.
+// NOT a hardened defense - same framing as the self-signed on-device C2PA key.
 //
 // Pure + DOM-free (no dependency beyond a hand-rolled 8×8 DCT), mirroring the
 // engine's other byte/pixel modules (tiff.ts, apng.ts). The shell owns pixel
@@ -38,7 +40,7 @@ export interface EmbedOptions extends WatermarkGeometry {
   /**
    * Perturbation magnitude in the orthonormal-DCT domain. Higher = more robust,
    * less imperceptible. Defaults to DEFAULT_STRENGTH (tuned via the sharp
-   * calibration suite — see tests/pixel-watermark-robustness.test.ts).
+   * calibration suite; see tests/pixel-watermark-robustness.test.ts).
    */
   strength?: number;
 }
@@ -53,49 +55,53 @@ export interface DetectResult {
 }
 
 // Which scheme the embedder writes. Versioned so a detector can try recent keys
-// and an old key can be retired — buys nothing against someone reading THIS
-// source, but bounds how long an extracted key stays live. v2 (2026-07-18)
-// RE-CALIBRATED for lower visibility: the mid-band was widened 15→22 coefficients
-// at a lower per-coefficient strength, and the mark was pushed off smooth-but-not-
-// flat blocks (higher activity gate) so it no longer reads as JPEG-like texture in
-// skies/skin/gradients. `detectWatermark` reads BOTH v2 AND the original v1 scheme
-// and takes the max, so files imprinted before this change still detect.
+// and an old key can be retired. This buys nothing against someone reading THIS
+// source, but it bounds how long an extracted key stays live. v2 (2026-07-18)
+// RE-CALIBRATED for lower visibility: the mid-band was widened from 15 to 22
+// coefficients at a lower per-coefficient strength, and the mark was pushed off
+// smooth-but-not-flat blocks (higher activity gate) so it no longer reads as
+// JPEG-like texture in skies/skin/gradients. `detectWatermark` reads BOTH v2
+// AND the original v1 scheme and takes the max, so files imprinted before this
+// change still detect.
 export const WATERMARK_VERSION = 2;
 
 // Default embed strength and detection threshold. Both are CALIBRATED against
-// real photos through real JPEG/crop/resize round-trips (via sharp), not guessed
-// — see tests/pixel-watermark-robustness.test.ts. Measured at the v2 scheme
-// (strength 3.8, 22 mid-band coefficients):
+// real photos through real JPEG/crop/resize round-trips (via sharp), not
+// guessed; see tests/pixel-watermark-robustness.test.ts. Measured at the v2
+// scheme (strength 3.8, 22 mid-band coefficients):
 //   marked, non-resized true positives:  0.11 – 0.66   (JPEG q50→q95, PNG, 8px crop)
 //   unmarked photo false-positive ceiling: ~0.017       (worst positive correlation)
 // The old 0.035 floor sat between those, but a wider corpus surfaced an
 // out-of-distribution false positive: an unmarked Rec.2100-PQ (HDR) JPEG scored
-// 0.0418 on the plain detect — PQ's luma statistics correlate more strongly with
-// the mid-band pattern than SDR photos do. Since a false "made with Lolly" is a
-// TRUST failure, the floor was raised 0.035 → 0.06: it now clears that HDR FP by
-// ×1.4 while genuine marks (min 0.11) still pass by ×1.8 (our own tool-logo scores
-// 0.20 lossy / 0.11 lossless). Resize is NOT reliably detected (the 8×8 grid
-// shifts) — a documented v1/v2 limitation, not a threshold to be tuned around.
+// 0.0418 on the plain detect. PQ's luma statistics correlate more strongly with
+// the mid-band pattern than SDR photos do. A false "made with Lolly" is a
+// TRUST failure, so the floor was raised from 0.035 to 0.06: it now clears that
+// HDR false positive by 1.4x while genuine marks (min 0.11) still pass by 1.8x
+// (our own tool-logo scores 0.20 lossy / 0.11 lossless). Resize is NOT reliably
+// detected (the 8×8 grid shifts). This is a documented v1/v2 limitation, not a
+// threshold to be tuned around.
 export const DEFAULT_STRENGTH = 3.8;
 // Gentler strength for LOSSLESS delivery (png, RGB tiff). DEFAULT_STRENGTH is
 // sized to survive JPEG/WebP/AVIF quantization down to ~q50; a lossless format
 // faces no quantization, so the mark needs far less energy to read back. Measured
-// on semi-textured content (the case that actually shows a mark — genuinely
+// on semi-textured content (the case that actually shows a mark; genuinely
 // smooth blocks are skipped by the activity gate, so nothing is embedded there):
-// at 2.0 the imprinted-vs-original PSNR rises ~+5 dB over 3.8 (about half the mark
-// amplitude — visibly subtler on gradients/logos) while detection still clears the
-// threshold by ~×8–9. Lossy formats keep DEFAULT_STRENGTH (and its robustness
-// suite) untouched. Applied by the shell export bridge per format, not here.
+// at 2.0 the imprinted-vs-original PSNR rises ~+5 dB over 3.8 (about half the
+// mark amplitude, visibly subtler on gradients/logos) while detection still
+// clears the threshold by roughly 8-9x. Lossy formats keep DEFAULT_STRENGTH
+// (and its robustness suite) untouched. Applied by the shell export bridge per
+// format, not here.
 export const LOSSLESS_STRENGTH = 2.0;
 export const DETECT_THRESHOLD = 0.06;
 
 // The normalized-correlation score's null distribution has std ≈ 1/√n (n =
 // mid-band coefficients scanned), so a FIXED threshold is too lax on small
-// images — few blocks ⇒ a wide null ⇒ chance correlations. The effective
-// threshold is therefore the fixed floor OR a σ-based floor, whichever is
-// higher: large images use 0.06 (which also rejects the resize artifact, whose
-// score scales with √n too); small images demand more. At the crossover (~200
-// scanned blocks, with the v2 22-coefficient band: 4/√(200·22) ≈ 0.06) both terms meet.
+// images: few blocks give a wide null, which gives chance correlations. The
+// effective threshold is therefore the fixed floor OR a σ-based floor,
+// whichever is higher: large images use 0.06 (which also rejects the resize
+// artifact, whose score scales with √n too); small images demand more. At the
+// crossover (~200 scanned blocks, with the v2 22-coefficient band:
+// 4/√(200·22) ≈ 0.06) both terms meet.
 //
 // DETECT_MIN_SIGMA encodes a single-hypothesis ~4-σ one-sided bar (present fires
 // on score > threshold, not |score| > threshold), so α₀ ≈ 1 − Φ(4) ≈ 3.2e-5.
@@ -114,7 +120,7 @@ const DETECT_MIN_SIGMA = 4.0;
  *   z*(K) ≈ √(DETECT_MIN_SIGMA² + 2·ln K).
  * The σ term below uses that z*; the flat DETECT_THRESHOLD floor is deliberately
  * NOT scaled here (it bounds a structured resize-artifact bias, not just Gaussian
- * noise — a search that needs a raised floor must calibrate it empirically, e.g.
+ * noise. A search that needs a raised floor must calibrate it empirically, e.g.
  * SEARCH_DETECT_FLOOR in watermark-search.ts, rather than trust this formula for
  * the floor-dominated regime).
  *
@@ -128,7 +134,7 @@ export function detectionThreshold(nCoef: number, hypotheses = 1): number {
 
 // Legacy name kept for the internal K=1 call sites (both schemes, inside
 // detectWatermark). √(16 + 2·ln 1) = 4 = DETECT_MIN_SIGMA, so this is BYTE-for-byte
-// the old max(DETECT_THRESHOLD, DETECT_MIN_SIGMA/√n) — the recalibration adds a
+// the old max(DETECT_THRESHOLD, DETECT_MIN_SIGMA/√n). The recalibration adds a
 // parameter without moving any existing decision.
 function thresholdForCoefficients(nCoef: number): number {
   return detectionThreshold(nCoef, 1);
@@ -144,7 +150,7 @@ const BLOCK = N * N;
 
 // ── Orthonormal 8×8 DCT-II basis ─────────────────────────────────────────────
 // M[u*8+x] = α(u)·cos((2x+1)uπ/16), α(0)=√(1/8), α(u>0)=√(2/8). M is orthonormal
-// so the inverse transform is Mᵀ — a 2D block round-trips to itself (float-exact).
+// so the inverse transform is Mᵀ. A 2D block round-trips to itself (float-exact).
 const M = (() => {
   const m = new Float64Array(BLOCK);
   for (let u = 0; u < N; u++) {
@@ -200,7 +206,7 @@ function idct2(coef: Float64Array, tmp: Float64Array, out: Float64Array): void {
 // quantizes to zero first). The current scheme (v2) marks and reads V2_MIDBAND;
 // V1_MIDBAND is kept only so the detector can still read pre-v2 imprints.
 //
-// v1 = ranks 6..20 (15 coefficients). v2 = ranks 6..27 (22 coefficients) — a
+// v1 = ranks 6..20 (15 coefficients). v2 = ranks 6..27 (22 coefficients), a
 // SUPERSET of v1's band extended with ranks 21..27, so the mark's energy spreads
 // over more coefficients at a lower per-coefficient magnitude (each perturbation
 // smaller and less visible) while the summed correlation stays comfortably
@@ -219,34 +225,37 @@ export const V2_BAND_SIZE = V2_MIDBAND.length;
 // ── Imprint-on-embed size floor ──────────────────────────────────────────────
 // The fewest full 8×8 blocks an image needs before embedding a mark is worth it
 // at all. thresholdForCoefficients raises the detection bar as 1/√n for small n
-// (few blocks ⇒ a wide null distribution), so below the crossover — where the
-// σ-floor DETECT_MIN_SIGMA/√n overtakes the fixed DETECT_THRESHOLD — a mark has no
-// robustness margin left once the image is JPEG-recompressed / resized /
-// screenshotted in the wild (a CLEAN embed still round-trips on tiny images, but
-// that's not the case this protects). Solve n = (DETECT_MIN_SIGMA/DETECT_THRESHOLD)²
-// for the mid-band coefficients scanned, then divide by MIDBAND.length for the
-// non-flat-block count: ≈ 594 blocks, a ~195×195 px image (the same crossover noted
-// on thresholdForCoefficients). The v2 band (22 coefficients, up from v1's 15) lowered
-// this floor — more coefficients per block means fewer blocks reach the σ-crossover.
+// (few blocks give a wide null distribution), so below the crossover point,
+// where the σ-floor DETECT_MIN_SIGMA/√n overtakes the fixed DETECT_THRESHOLD, a
+// mark has no robustness margin left once the image is JPEG-recompressed,
+// resized, or screenshotted in the wild (a CLEAN embed still round-trips on
+// tiny images, but that's not the case this protects). Solve
+// n = (DETECT_MIN_SIGMA/DETECT_THRESHOLD)² for the mid-band coefficients
+// scanned, then divide by MIDBAND.length for the non-flat-block count: about
+// 594 blocks, a ~195×195 px image (the same crossover noted on
+// thresholdForCoefficients). The v2 band (22 coefficients, up from v1's 15)
+// lowered this floor: more coefficients per block means fewer blocks reach
+// the σ-crossover.
 //
 // Callers that bake MANY small decorative rasters into a container (a PDF/PPTX
 // embed) gate on this so they never imprint icons that couldn't carry a durable
-// mark anyway; the standalone raster encoders skip the check — the user chose a
+// mark anyway. The standalone raster encoders skip the check: the user chose a
 // raster format outright, and embedWatermark already no-ops flat/sub-block input.
 // It is a NECESSARY, not sufficient, floor: flat blocks don't count toward
 // detection, so a real image needs at least this many blocks and usually more.
-// Derived from the ORIGINAL 0.035 robustness crossover, deliberately DECOUPLED from
-// DETECT_THRESHOLD. That detection floor was later raised (0.035→0.06) to reject an
-// HDR false positive, but tightening DETECTION must not quietly expand which images
-// we IMPRINT — the embeddable-size range is robustness-calibrated on its own (the
-// smallest sizes have no margin left after a real JPEG/resize round-trip). So this
-// stays the ≈594-block / ~195² floor regardless of the detection threshold.
+// Derived from the ORIGINAL 0.035 robustness crossover, deliberately DECOUPLED
+// from DETECT_THRESHOLD. That detection floor was later raised (0.035 to 0.06)
+// to reject an HDR false positive, but tightening DETECTION must not quietly
+// expand which images we IMPRINT: the embeddable-size range is
+// robustness-calibrated on its own (the smallest sizes have no margin left
+// after a real JPEG/resize round-trip). So this stays the ≈594-block / ~195²
+// floor regardless of the detection threshold.
 const MIN_IMPRINT_THRESHOLD = 0.035;
 export const MIN_IMPRINT_BLOCKS = Math.ceil((DETECT_MIN_SIGMA / MIN_IMPRINT_THRESHOLD) ** 2 / MIDBAND.length);
 
 /**
  * True when an RGBA raster is large enough that embedding a Lolly watermark is
- * worth it — it spans at least MIN_IMPRINT_BLOCKS full 8×8 blocks. Pure and
+ * worth it: it spans at least MIN_IMPRINT_BLOCKS full 8×8 blocks. Pure and
  * DOM-free: a size predicate only, it neither reads nor writes pixels.
  */
 export function canCarryWatermark(width: number, height: number): boolean {
@@ -282,7 +291,7 @@ const V2_CHIP = deriveChip(CHIP_KEY_V2, V2_MIDBAND);
 // The current embed/detect chip pairs with MIDBAND (= V2_MIDBAND).
 const CHIP = V2_CHIP;
 
-// Per-block AC-RMS "activity" — how textured the block is. Drives both the
+// Per-block AC-RMS "activity": how textured the block is. Drives both the
 // flat-block gate and the perceptual mask below.
 function blockActivity(coef: Float64Array): number {
   let acEnergy = 0;
@@ -291,12 +300,13 @@ function blockActivity(coef: Float64Array): number {
 }
 
 // Below this AC-RMS a block is treated as flat: it carries NO mark (banding
-// would show and the signal would be weak) and is skipped by the detector. Also
-// sidesteps a degenerate case — bit-identical flat blocks whose float-residual
-// mid-band could otherwise correlate with the chip by chance. v2 raises this from
-// v1's 1.5 to 2.5 so SMOOTH-BUT-NOT-FLAT blocks (skies/skin/gradients, activity
-// 1.5–2.5) — where a mid-band mark reads as visible JPEG-like texture — now carry
-// nothing; the mark rides only in genuinely textured blocks that hide it. The v1
+// would show and the signal would be weak) and is skipped by the detector. This
+// also avoids a degenerate case: bit-identical flat blocks whose float-residual
+// mid-band could otherwise correlate with the chip by chance. v2 raises this
+// from v1's 1.5 to 2.5 so SMOOTH-BUT-NOT-FLAT blocks (skies/skin/gradients,
+// activity 1.5-2.5), where a mid-band mark reads as visible JPEG-like texture,
+// now carry nothing; the mark rides only in genuinely textured blocks that
+// hide it. The v1
 // detection pass still uses the old 1.5 gate (V1_ACTIVITY_FLOOR) so it reads back
 // blocks the v1 embedder marked.
 const ACTIVITY_FLOOR = 2.5;
@@ -316,7 +326,7 @@ function blockMask(activity: number): number {
   return m < MASK_MIN ? MASK_MIN : m > MASK_MAX ? MASK_MAX : m;
 }
 
-// Rec.601 luma — matches JPEG's own luma weighting (and where a pixel-domain mark
+// Rec.601 luma: matches JPEG's own luma weighting (and where a pixel-domain mark
 // survives best). Returned as a Float64 plane, one sample per pixel.
 function lumaPlane(rgba: Uint8Array | Uint8ClampedArray, w: number, h: number): Float64Array {
   const Y = new Float64Array(w * h);
@@ -330,7 +340,7 @@ function lumaPlane(rgba: Uint8Array | Uint8ClampedArray, w: number, h: number): 
  * Embed the Lolly watermark into an RGBA buffer, returning a new buffer. Only the
  * luma is perturbed (an equal delta added to R/G/B preserves hue exactly); alpha
  * and chroma are untouched. Images narrower/shorter than one 8×8 block are
- * returned unchanged. Best-effort: never throws — a fault returns the input copy.
+ * returned unchanged. Best-effort: never throws. A fault returns the input copy.
  */
 export function embedWatermark(rgba: Uint8Array | Uint8ClampedArray, opts: EmbedOptions): Uint8Array {
   const { width: w, height: h } = opts;
@@ -368,7 +378,7 @@ function applyMark(Y: Float64Array, w: number, bw: number, bh: number, eps: numb
       for (let y = 0; y < N; y++) for (let x = 0; x < N; x++) block[y * N + x] = Y[(oy + y) * w + (ox + x)]!;
       dct2(block, tmp, coef);
       const mask = blockMask(blockActivity(coef));
-      if (mask === 0) continue; // flat block — leave it pristine
+      if (mask === 0) continue; // flat block, leave it pristine
       for (let k = 0; k < MIDBAND.length; k++) coef[MIDBAND[k]!]! += eps * CHIP[k]! * mask;
       idct2(coef, tmp, marked);
       for (let y = 0; y < N; y++) for (let x = 0; x < N; x++) {
@@ -416,9 +426,9 @@ function psnrRgb(a: Uint8Array | Uint8ClampedArray, b: Uint8Array): number {
  * BOTH schemes are read in one DCT pass: the current v2 band/chip AND the legacy
  * v1 band/chip (each with its own activity gate, since v1 marked down to activity
  * 1.5 and v2 only down to 2.5). `present` fires if EITHER scheme clears its own
- * size-adjusted threshold, and `score` is the larger of the two — so a file
+ * size-adjusted threshold, and `score` is the larger of the two, so a file
  * imprinted under v1 (a `?imprint=1` export from before the v2 re-calibration)
- * still detects. Never throws — a fault reports absent.
+ * still detects. Never throws: a fault reports absent.
  */
 export function detectWatermark(rgba: Uint8Array | Uint8ClampedArray, opts: WatermarkGeometry): DetectResult {
   const { width: w, height: h } = opts;
@@ -439,14 +449,14 @@ export function detectWatermark(rgba: Uint8Array | Uint8ClampedArray, opts: Wate
         for (let y = 0; y < N; y++) for (let x = 0; x < N; x++) block[y * N + x] = Y[(oy + y) * w + (ox + x)]!;
         dct2(block, tmp, coef);
         const activity = blockActivity(coef);
-        if (activity >= ACTIVITY_FLOOR) { // v2 gate (2.5) — the current scheme
+        if (activity >= ACTIVITY_FLOOR) { // v2 gate (2.5), the current scheme
           scanned2++;
           for (let k = 0; k < V2_MIDBAND.length; k++) {
             const c = coef[V2_MIDBAND[k]!]!;
             acc2 += V2_CHIP[k]! * c; energy2 += c * c; n2++;
           }
         }
-        if (activity >= V1_ACTIVITY_FLOOR) { // v1 gate (1.5) — legacy read-back only
+        if (activity >= V1_ACTIVITY_FLOOR) { // v1 gate (1.5), legacy read-back only
           for (let k = 0; k < V1_MIDBAND.length; k++) {
             const c = coef[V1_MIDBAND[k]!]!;
             acc1 += V1_CHIP[k]! * c; energy1 += c * c; n1++;

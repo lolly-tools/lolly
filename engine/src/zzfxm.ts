@@ -1,28 +1,28 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
- * ZzFXM procedural-music renderer — pure, DOM-free, deterministic-ish.
+ * ZzFXM procedural-music renderer. Pure, DOM-free, deterministic-ish.
  *
  * Lolly ships music as DATA, not bytes: a whole song is a few KB of nested
  * arrays that this module renders to raw PCM at play time (in a Web Worker on
  * the web shell, or offline for a video music bed). This is the single runtime
- * code path for every music source — hand-authored songs, MIDI→ZzFXM and
- * MOD→ZzFXM conversions, and the procedural generator all emit `ZzfxSong`.
+ * code path for every music source: hand-authored songs, MIDI-to-ZzFXM and
+ * MOD-to-ZzFXM conversions, and the procedural generator all emit `ZzfxSong`.
  *
- * Two MIT-licensed upstreams are vendored below. Their logic is UNCHANGED — the
+ * Two MIT-licensed upstreams are vendored below. Their logic is UNCHANGED. The
  * only edits are TypeScript annotations and the index guards required by the
  * engine's `noUncheckedIndexedAccess` (every guard is a no-op at runtime, i.e.
  * `?? 0` where the original relied on `undefined` coercing to `0`/`NaN`, and
  * `!` where an index is structurally always present in a valid song):
  *
- *   zzfxG — ZzFX "Micro" synth v1.3.2 by Frank Force.
- *           MIT — Copyright 2019 Frank Force — https://github.com/KilledByAPixel/ZzFX
+ *   zzfxG - ZzFX "Micro" synth v1.3.2 by Frank Force.
+ *           MIT - Copyright 2019 Frank Force - https://github.com/KilledByAPixel/ZzFX
  *           (the AudioContext/playback tail is dropped; it returns the mono
- *            sample buffer instead of playing it — i.e. this is `zzfxG`, the
+ *            sample buffer instead of playing it, so this is `zzfxG`, the
  *            generator, not `zzfx`, the player.)
- *   zzfxM — ZzFX Music renderer v2.0.3 by Keith Clark & Frank Force.
- *           MIT — Copyright Keith Clark — https://github.com/keithclark/ZzFXM
+ *   zzfxM - ZzFX Music renderer v2.0.3 by Keith Clark & Frank Force.
+ *           MIT - Copyright Keith Clark - https://github.com/keithclark/ZzFXM
  *
- * DO NOT "clean up" or refactor the two vendored functions — keep them faithful
+ * DO NOT "clean up" or refactor the two vendored functions. Keep them faithful
  * to upstream so rendered output matches the reference ZzFXM tracker. New code
  * belongs in `renderZzfxm()` / the types.
  */
@@ -46,7 +46,7 @@ export type ZzfxChannel = number[];
 /** A pattern: one {@link ZzfxChannel} per simultaneous voice. */
 export type ZzfxPattern = ZzfxChannel[];
 
-/** A complete ZzFXM song — the portable unit every music source produces. */
+/** A complete ZzFXM song. The portable unit every music source produces. */
 export interface ZzfxSong {
   /** ZzFX instrument parameter lists, indexed by channel row `[0]`. */
   instruments: ZzfxInstrument[];
@@ -56,7 +56,7 @@ export interface ZzfxSong {
   sequence: number[];
   /** Tempo in BPM (default 125). */
   bpm?: number;
-  /** Optional human title — metadata only; ignored by the renderer. */
+  /** Optional human title. Metadata only; ignored by the renderer. */
   title?: string;
 }
 
@@ -69,7 +69,7 @@ export interface RenderedPcm {
 
 /* ------------------------------------------------------------------------- *
  *  Vendored: ZzFX Micro synth (generator).  MIT © 2019 Frank Force.
- *  Do not refactor — keep faithful to upstream.
+ *  Do not refactor. Keep faithful to upstream.
  * ------------------------------------------------------------------------- */
 export function zzfxG(
   volume = 1,
@@ -215,7 +215,7 @@ export function zzfxG(
 
 /* ------------------------------------------------------------------------- *
  *  Vendored: ZzFXM song renderer.  MIT © Keith Clark & Frank Force.
- *  Do not refactor — keep faithful to upstream.
+ *  Do not refactor. Keep faithful to upstream.
  * ------------------------------------------------------------------------- */
 export function zzfxM(
   instruments: ZzfxInstrument[],

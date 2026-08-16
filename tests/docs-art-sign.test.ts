@@ -1,12 +1,12 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
- * The docs art bank's gate — `scripts/sign-docs-art.ts` (plan 105 §6).
+ * The docs art bank's gate - `scripts/sign-docs-art.ts` (plan 105 §6).
  *
  * Two things are being pinned here, and they fail in opposite directions.
  *
  * THE LINT is a trust boundary: these artifacts are model-written programs that get
  * inlined into a docs page and run with the page's privileges. So the refusal tests
- * are adversarial on purpose — the obvious `fetch(`, and then the same call wearing a
+ * are adversarial on purpose - the obvious `fetch(`, and then the same call wearing a
  * bracket-indexed global, a split string literal and an HTML entity. A lint that only
  * catches the tidy form is a lint that reads like protection and isn't. It is still
  * only a denylist (human curation is the final filter, per plan §10), so what these
@@ -17,9 +17,9 @@
  * trained model was invoked and the AI-disclosure assertion is NOT attached; every
  * other row names a model. So the pipeline must refuse a meta that claims both, must
  * attach the disclosure when a model is named, and must attach NOTHING when one is
- * not — over-claiming and under-claiming are both failures, and both are pinned.
+ * not - over-claiming and under-claiming are both failures, and both are pinned.
  *
- * Fixtures: `tests/fixtures/docs-art/` (see its README — their metas are true, which
+ * Fixtures: `tests/fixtures/docs-art/` (see its README - their metas are true, which
  * is why they read `trainedAlgorithmicMedia`, not the `digitalCreation` a hand-typed
  * file would carry). Every run happens in a temp copy; the fixture tree is read-only.
  */
@@ -109,7 +109,7 @@ test('meta: the full shape is accepted and unknown keys are not', () => {
   };
   assert.ok('meta' in validateArtMeta(good));
   // A typo'd key that was quietly ignored would ship a credential saying less than
-  // its author believed — the one failure mode a hand-authored sidecar has. This
+  // its author believed - the one failure mode a hand-authored sidecar has. This
   // must hold at every level, not only the top.
   const typo = validateArtMeta({ ...good, overisght: 'prompt_guided' });
   assert.ok('problems' in typo && typo.problems.some((p) => p.includes('overisght')));
@@ -126,7 +126,7 @@ test('meta: the full shape is accepted and unknown keys are not', () => {
 
 test('meta: a human author is allowed even with digitalCreation (it is not a model claim)', () => {
   // §18.28.3 forbids a MODEL beside digitalCreation, but a person directing a
-  // hand-made artifact is an ordinary, honest fact — refusing it would be wrong.
+  // hand-made artifact is an ordinary, honest fact - refusing it would be wrong.
   const r = validateArtMeta({
     generator: { name: 'A human, in a text editor' }, source: 'digitalCreation',
     author: { name: 'Andy Fitzsimon' },
@@ -262,8 +262,8 @@ test('lint: an adversarial sweep — every one of these is refused', () => {
 // got through. Every case below was run through the REAL pipeline (signDocsArt),
 // signed clean, and left a valid credential on a hostile file. The pattern under
 // most of them was one defect wearing different clothes: the reference rules
-// parsed a different language from the denylists — quoted values only, raw text
-// only — so "write the reference in a dialect the reference rules don't read"
+// parsed a different language from the denylists - quoted values only, raw text
+// only - so "write the reference in a dialect the reference rules don't read"
 // was a general bypass. See plans/105-m345/findings-trust-gate.md.
 
 test('lint: an UNQUOTED attribute value is a reference like any other', () => {
@@ -295,7 +295,7 @@ test('lint: a root-relative href is navigation only where href MEANS navigation'
   // `href` is not only a navigation attribute: on <link>, and on SVG2 <script>,
   // it is a subresource load. The blanket exemption waved those through, so
   // `<script href="/evil.js">` signed while `<script xlink:href="/evil.js">` was
-  // refused — one load, two spellings, two verdicts.
+  // refused - one load, two spellings, two verdicts.
   const loads = [
     '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 10 10"><script href="/evil.js"></script><rect/></svg>',
     '<link rel="stylesheet" href="/x.css"><div>a</div>',
@@ -314,7 +314,7 @@ test('lint: the manifest strip is not a hiding place — and --check cannot pass
   // so a fake `-----BEGIN` and any later `-----END` hid everything between them
   // from every rule AND from the budget. A real signing run happened to destroy
   // the payload (it rewrites the file from the stripped source); `--check`, the
-  // CI gate, reported zero violations and left the file exactly as it was — the
+  // CI gate, reported zero violations and left the file exactly as it was - the
   // read-only mode was the unsafe one.
   const hidden = '<div class=i1></div>\n'
     + '<!-- -----BEGIN C2PA MANIFEST----- data:application/c2pa;base64,AA\n'
@@ -342,21 +342,21 @@ test('lint: the manifest strip is not a hiding place — and --check cannot pass
 
 test('lint: honest content that DOCUMENTS the armour format survives the strip', () => {
   // The other end of the same defect: the lazy pattern deleted the span between a
-  // quoted BEGIN and a later END, so a figure explaining §A.9 — on a docs site
-  // whose subject is C2PA — silently lost a paragraph at sign time.
+  // quoted BEGIN and a later END, so a figure explaining §A.9 - on a docs site
+  // whose subject is C2PA - silently lost a paragraph at sign time.
   const doc = '<p>A signed CSS file ends with one line:</p>\n'
     + '<pre>/*! -----BEGIN C2PA MANIFEST----- data:application/c2pa;base64,AAAA -----END C2PA MANIFEST----- */</pre>\n'
     + '<p>Everything above that line is hashed.</p>\n';
   const kept = stripArtManifest(doc, C2PA_FRAGMENT_PROFILE.format);
   assert.equal(kept, doc, 'not one byte of the artifact is removed');
-  // It is still refused — a second block would make the file unreadable (§A.9.3)
-  // — but as a stated violation the author can act on, not as a silent edit.
+  // It is still refused - a second block would make the file unreadable (§A.9.3)
+  // - but as a stated violation the author can act on, not as a silent edit.
   assert.ok(rules(lintArtSource(kept, ctx(C2PA_FRAGMENT_PROFILE.format))).includes('manifest'));
 });
 
 test('lint: obfuscation the normalizer undoes, and the global aliases it cannot', () => {
   // `window['fe'+'tch']` was refused three ways; `String.fromCharCode(...)` plus
-  // `document.defaultView` — the same call, one layer further out — signed clean.
+  // `document.defaultView` - the same call, one layer further out - signed clean.
   const src = '<div class=a2></div>\n<script>\n(function () {\n'
     + '  var w = document.defaultView;\n'
     + '  var n = String.fromCharCode(102, 101, 116, 99, 104);\n'
@@ -401,7 +401,7 @@ test('lint: same-document and inlined references are allowed', () => {
 
 test('lint: a `>` inside an attribute value does not fake a missing viewBox', () => {
   // A false refusal in a trust gate is how the gate gets worked around, so the tag
-  // scan is quote-aware — a figure whose label reads "a > b" is ordinary content.
+  // scan is quote-aware - a figure whose label reads "a > b" is ordinary content.
   const svg = '<svg xmlns="http://www.w3.org/2000/svg" aria-label="throughput a > b" viewBox="0 0 10 10"><rect/></svg>';
   assert.deepEqual(lintArtSource(svg, ctx()), []);
   assert.deepEqual(artDims(svg), { width: 10, height: 10 });
@@ -447,7 +447,7 @@ test('motion: self-running CSS animation needs the query; a hover transition doe
 
 test('motion: a comment is not a guard', () => {
   // Every other rule here scans comments deliberately. A guard is the opposite
-  // kind of claim — it has to be code that runs — and one comment saying the
+  // kind of claim - it has to be code that runs - and one comment saying the
   // artwork "honours prefers-reduced-motion and suspends on visibilitychange"
   // satisfied BOTH halves of the contract while the rAF loop below never stopped.
   const src = '<div id="g1"></div>\n<script>\n'
@@ -468,7 +468,7 @@ test('motion: a comment is not a guard', () => {
 
 test('motion: an INVERTED reduced-motion query is not a guard', () => {
   // "Mentions prefers-reduced-motion somewhere" accepted a `reduce` block full of
-  // animation beside unconditional animation — motion for everyone, plus extra
+  // animation beside unconditional animation - motion for everyone, plus extra
   // motion for the readers who asked for less.
   const inverted = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 10 10"><style>\n'
     + '@media (prefers-reduced-motion: reduce) { .spin { animation: spin 1s linear infinite } }\n'
@@ -478,7 +478,7 @@ test('motion: an INVERTED reduced-motion query is not a guard', () => {
   const v = lintArtSource(inverted, ctx());
   assert.ok(v.some((x) => x.rule === 'motion' && x.message.includes('no `prefers-reduced-motion` guard')));
   assert.ok(v.some((x) => x.rule === 'motion' && x.message.includes('INSIDE')));
-  // The second honest shape — motion on by default, switched OFF for `reduce` —
+  // The second honest shape - motion on by default, switched OFF for `reduce` - 
   // has to keep passing, or the rule only permits one house style.
   const off = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 10 10"><style>\n'
     + '.spin { animation: spin 1s linear infinite }\n'
@@ -496,7 +496,7 @@ test('budget: the numbers are the charter\'s, and a breach is refused', () => {
   const big = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 10 10">\n${filler.repeat(900)}</svg>`;
   assert.ok(Buffer.byteLength(big) > ART_BUDGETS.masthead && Buffer.byteLength(big) < ART_BUDGETS.figure);
   assert.ok(rules(lintArtSource(big, ctx('svg', 'masthead'))).includes('budget'));
-  // The same file is within a figure's larger allowance — the budget is per bank.
+  // The same file is within a figure's larger allowance - the budget is per bank.
   assert.deepEqual(lintArtSource(big, ctx('svg', 'figure')), []);
 });
 
@@ -504,7 +504,7 @@ test('normalizeForLint undoes entities, escapes and concatenation — nested one
   for (const hidden of ['&#102;etch', '&#x66;etch', '&amp;#102;etch', '\\x66etch', '\\u0066etch', "'fe' + 'tch'"]) {
     assert.ok(normalizeForLint(hidden).includes('fetch'), `not normalized: ${hidden}`);
   }
-  // Two decode rounds. `&amp;amp;#102;etch` needs three and slips through — the
+  // Two decode rounds. `&amp;amp;#102;etch` needs three and slips through - the
   // honest limit of any normalizer, and exactly why the shape rules (bracket-indexed
   // globals, `.constructor`, string-bodied timers) exist alongside it: they need no
   // decoding at all, so they catch what the decoder cannot reach.
@@ -519,7 +519,7 @@ test('strip: signing then stripping returns the exact source bytes', async () =>
   // shrink the budget by ~10 KB and hand the denylist a base64 blob to scan.
   const cases: [string, string][] = [
     ['svg', fixture('ok', 'masthead', 'test-band.svg')],
-    // an artifact that already has its own <metadata> — the placer reuses it
+    // an artifact that already has its own <metadata> - the placer reuses it
     ['svg', '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 10 10"><metadata><x/></metadata><rect/></svg>'],
     [C2PA_FRAGMENT_PROFILE.format, fixture('ok', 'masthead', 'test-fragment.html')],
   ];
@@ -530,8 +530,8 @@ test('strip: signing then stripping returns the exact source bytes', async () =>
 });
 
 test('strip: the bank strip and the presentation strip are the SAME rule', async () => {
-  // Three hand-written copies of "remove the armour line" existed — this script's,
-  // docs/docs-art.ts's, and the placer's own — and two of them were looser than the
+  // Three hand-written copies of "remove the armour line" existed - this script's,
+  // docs/docs-art.ts's, and the placer's own - and two of them were looser than the
   // placer, so each cut host content the placer never added. The engine's
   // stripPlacedArmorLine is the one owner now (it is the placer's inverse); this
   // pins the two consumers to it, which is the house drift-guard pattern.
@@ -579,7 +579,7 @@ test('claim: the options carry the source type, the disclosure and the spec vers
   assert.match(String(opts.actions?.[0]?.description), /Claude Code opus-5/);
   assert.equal((opts.generatorInfo as { name: string }).name, 'Lolly');
   assert.equal(opts.specVersion, '2.4.0');
-  // The §18.28 disclosure stays spec-clean — vendor/region are NOT grafted onto it.
+  // The §18.28 disclosure stays spec-clean - vendor/region are NOT grafted onto it.
   assert.deepEqual(opts.aiDisclosure, { modelName: 'Claude Opus 5', modelIdentifier: 'claude-opus-5', oversight: 'prompt_guided' });
   // The director is the C2PA human author; vendor + serving region are Lolly-namespaced
   // environment facts beside `generator`.
@@ -635,7 +635,7 @@ test('sign: a clean bank is signed, verifies, and discloses its model', async (t
     assert.ok(labels.some((l) => l.startsWith('c2pa.ai-disclosure')));
   }
   const fragment = await verifyC2pa(read(dir, 'mastheads/test-fragment.html'));
-  // The v2 claim carries no dc:format, so the reader sniffs the CARRIER ('code' —
+  // The v2 claim carries no dc:format, so the reader sniffs the CARRIER ('code' - 
   // §A.9 armour) and the profile is recoverable only from our own environment
   // assertion. Both halves are asserted so /verify can key its "Lolly fragment
   // profile" label off the pair without either side drifting silently.

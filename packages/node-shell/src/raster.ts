@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
  * Shared no-browser raster plumbing for the Node shells (CLI + TUI): the format split,
- * pixel-dimension resolution, and the resvg SVG→PNG fast path ("Tier A" — pure Rust,
+ * pixel-dimension resolution, and the resvg SVG-to-PNG fast path ("Tier A", pure Rust,
  * a few-MB native module, not a browser). Each shell keeps its own orchestration on
  * top (the CLI's renderRaster, the TUI's exportToFile).
  */
@@ -9,7 +9,7 @@ import { join } from 'node:path';
 import { parseDimension, toPixels, fromU8Srgb, hdrViewTransform } from '@lolly/engine';
 import type { DeepFrame } from '@lolly/engine';
 // DEEP RELATIVE IMPORTS, not the `@lolly/engine` barrel: exr.ts and radiance.ts are
-// deliberately engine-INTERNAL (their own module headers say so — the bytes.ts /
+// deliberately engine-internal (their own module headers say so; see the bytes.ts /
 // gainmap.ts precedent recorded in plans/61-deeprichpixels.md §9c). They are consumed by
 // deep-path import, exactly the way packages/node-shell/src/pptx.ts reaches
 // engine/src/pptx-read.ts. Nothing was added to the barrel for this feature.
@@ -18,14 +18,14 @@ import { packRadiance } from '../../../engine/src/radiance.ts';
 import { repoRoot } from './repo-root.ts';
 
 /** Formats the DOM-free engine writes on its own (svg/emf/eps + text/data), plus the
- *  PRO float formats (exr/hdr) the engine's own writers emit over a resvg-rasterised
- *  frame. Everything else — raster, pdf, video — is produced by the raster tiers
- *  (resvg fast path, else the scoped Chromium driving the built web shell — see
+ *  pro float formats (exr/hdr) the engine's own writers emit over a resvg-rasterised
+ *  frame. Everything else (raster, pdf, video) is produced by the raster tiers:
+ *  the resvg fast path, else the scoped Chromium driving the built web shell (see
  *  webshell-render.ts). */
-// NOT `txt`. It was listed here, reported by `describe --json`'s `nativeFormats` and
+// NOT `txt`. It was listed here, reported by `describe --json`'s `nativeFormats`, and
 // documented as browser-free, but the engine has no txt path at all: `DATA_FORMATS` in
 // engine/src/runtime.ts covers json/csv/ics/vcf, `md` is special-cased beside it, and
-// `txt` is in neither — the web shell produces it by serialising the RENDERED DOM
+// `txt` is in neither. The web shell produces it by serialising the rendered DOM
 // (`renderPlainText`). So it is a browser-tier format like `ico`, and claiming otherwise
 // made `--export=txt` exit 3 with a message blaming a browser that was never consulted.
 export const NODE_FORMATS = ['svg', 'svgz', 'emf', 'wmf', 'eps', 'eps-cmyk', 'dxf', 'bmp', 'exr', 'hdr', 'html', 'json', 'csv', 'ics', 'vcf', 'md'];
@@ -35,8 +35,8 @@ export const NODE_FORMATS = ['svg', 'svgz', 'emf', 'wmf', 'eps', 'eps-cmyk', 'dx
  * CLI-first per §10 item 4): OpenEXR and Radiance RGBE.
  *
  * These are deliberately NOT declared per tool in `tool.json`. §10's "deliberately
- * not doing" list rules out per-tool depth declarations — depth is an export
- * concern, tools stay declarative — so adding `"exr"` to 60-odd manifests (and to
+ * not doing" list rules out per-tool depth declarations: depth is an export
+ * concern, and tools stay declarative. So adding `"exr"` to 60-odd manifests (and to
  * the schema enum, and to every per-brand generated catalog index) would be exactly
  * the mistake the plan names. Instead the CLI/MCP format gate admits these for any
  * tool whose render can be reduced to an `<svg>`, and refuses honestly otherwise.
@@ -80,14 +80,14 @@ export function pxDims(
 }
 
 /** Rasterise an SVG string to a `width`×`height` px PNG via resvg (pure Rust, no browser).
- *  resvg's `fitTo` can only constrain ONE axis, so to honour BOTH requested dimensions we
- *  set the root's width/height to the exact target box and render at that intrinsic size —
- *  the SVG's own viewBox + preserveAspectRatio then place the content (letterbox/meet as the
+ *  resvg's `fitTo` can only constrain one axis, so to honour both requested dimensions we
+ *  set the root's width/height to the exact target box and render at that intrinsic size.
+ *  The SVG's own viewBox + preserveAspectRatio then place the content (letterbox/meet as the
  *  tool authored it), matching the web/desktop raster rather than dropping the height.
  *  Text renders from the catalog fonts; the SVG's own background/transparency is kept.
  *
  *  `dpi` (physical units only) embeds a pHYs DPI chunk so a printer places the PNG at the
- *  requested physical size — the engine contract's "raster PNG embeds its DPI". resvg's own
+ *  requested physical size, matching the engine contract's "raster PNG embeds its DPI". resvg's own
  *  `asPng()` writes no pHYs, so when a DPI is asked for we route the same RGBA through the
  *  engine's `packPng` (as the imprinted path already does); with no DPI (px units) we keep
  *  resvg's byte-identical `asPng()`. */
@@ -108,7 +108,7 @@ export async function rasterizeSvgToPng(svg: string, width: number, height: numb
 /**
  * The only formats that can carry `--bleed` / `--marks`. Derived from where
  * computePrintGeometry is actually called in shells/web/src/bridge/export.ts (renderPdf,
- * renderCmykPdf, renderCmykTiff) — NOT from what sounds print-ish. Nothing applies a bleed
+ * renderCmykPdf, renderCmykTiff), not from what sounds print-ish. Nothing applies a bleed
  * box or crop marks to a PNG/SVG/EPS on any tier (the web `renderRaster` ignores them too),
  * so a print-prep request on any other format is a silent no-op unless it is refused. Shared
  * by the CLI (run.ts) and TUI (engine-render.ts) so both refuse identically. If a fourth
@@ -125,8 +125,8 @@ export function canCarryPrintPrep(format: string): boolean {
  * The refusal text for `--bleed`/`--marks` on a format that cannot carry page geometry,
  * in one place so the CLI and TUI say the same true thing. Print prep that cannot be
  * applied is a refusal, not a shrug: accepting the flags would hand back a file
- * byte-identical to one exported without them, exit 0, with nothing to say so — the worst
- * failure mode for a print job (discovered at the press, on someone else's money).
+ * byte-identical to one exported without them, exit 0, with nothing to say so. That is the worst
+ * failure mode for a print job: discovered at the press, on someone else's money.
  */
 export function printPrepRefusal(format: string): string {
   return (
@@ -139,7 +139,7 @@ export function printPrepRefusal(format: string): string {
 
 /**
  * Tier-A resvg-PNG eligibility, shared by both Node shells so they never drift on which
- * PNGs bypass the browser. True only for a plain `png` with no page geometry (bleed/marks —
+ * PNGs bypass the browser. True only for a plain `png` with no page geometry (bleed/marks;
  * resvg cannot draw them) and no durable credential (the neural TrustMark encoder is a
  * browser feature). Anything false falls through to the Tier-B browser. A png+bleed/marks
  * is refused upstream by `printPrepRefusal` before reaching here, so the bleed/marks half
@@ -175,7 +175,7 @@ export async function rasterizeTierAPng(
   return { bytes: await rasterizeSvgToPng(svg, width, height, idpi), imprinted: false };
 }
 
-/** Rewrite the root `<svg>` to render at exactly `width`×`height` px — see
+/** Rewrite the root `<svg>` to render at exactly `width`×`height` px. See
  *  rasterizeSvgToPng's doc comment for why both axes are set this way. */
 function sizeSvg(svg: string, width: number, height: number): string {
   const w = Math.max(1, Math.round(width));
@@ -198,7 +198,7 @@ function sizeSvg(svg: string, width: number, height: number): string {
  * Rasterise an SVG to raw RGBA8 with STRAIGHT (un-premultiplied) alpha, the shape
  * `fromU8Srgb` wants.
  *
- * resvg hands back PREMULTIPLIED bytes — verified, not assumed: a 50%-alpha pure red
+ * resvg hands back premultiplied bytes. This is verified, not assumed: a 50%-alpha pure red
  * rect comes out `128,0,0,128`, where straight alpha would be `255,0,0,128`. Feeding
  * those straight into a DeepFrame (whose contract is un-premultiplied) would darken
  * every semi-transparent pixel toward black in the EXR, so the division happens here,
@@ -207,7 +207,7 @@ function sizeSvg(svg: string, width: number, height: number): string {
  * alpha), so a resvg release that changed this convention fails loudly.
  *
  * Honesty note: un-premultiplying 8-bit bytes cannot recover precision the
- * premultiply threw away — at alpha 1/255 a channel has two distinguishable values.
+ * premultiply threw away. At alpha 1/255 a channel has two distinguishable values.
  * That is a property of the resvg source, not something this function papers over.
  */
 export async function rasterizeSvgToRgba(
@@ -241,14 +241,14 @@ export async function rasterizeSvgToRgba(
  * (plans/73-cli-ga-contract.md §12 O2, Andy 2026-08-01), and the only place it could be
  * applied before was the web shell inside the scoped Chromium. Leaving it that way
  * would have made an ordinary `lolly qr-code --export=png` demand a 200 MB browser
- * download for a mark nobody asked for — a default that turns a working command into
+ * download for a mark nobody asked for. A default that turns a working command into
  * exit 3 is not a default, it is a regression. resvg already hands back straight-alpha
  * RGBA (`rasterizeSvgToRgba`), the watermark maths is DOM-free engine code, and
  * `packPng` writes the file, so the whole pass is three in-repo calls.
  *
  * Returns null when the frame is too small to carry a detectable mark
- * (`canCarryWatermark`, the same floor the web shell's embed chokepoint applies) —
- * the caller then writes the ordinary unmarked PNG. Never a browser escalation: the
+ * (`canCarryWatermark`, the same floor the web shell's embed chokepoint applies).
+ * The caller then writes the ordinary unmarked PNG. Never a browser escalation: the
  * browser could not embed it either.
  *
  * The bytes differ from `rasterizeSvgToPng`'s beyond the mark itself, because this
@@ -261,7 +261,7 @@ export async function rasterizeSvgToImprintedPng(
   const { embedWatermark, canCarryWatermark, LOSSLESS_STRENGTH, packPng } = await import('@lolly/engine');
   const frame = await rasterizeSvgToRgba(svg, width, height);
   if (!canCarryWatermark(frame.width, frame.height)) return null;
-  // PNG is lossless, so the gentler strength is enough — the same choice the web
+  // PNG is lossless, so the gentler strength is enough, the same choice the web
   // shell's renderRaster makes for png/tiff (shells/web/src/bridge/export.ts).
   const marked = embedWatermark(frame.data, { width: frame.width, height: frame.height, strength: LOSSLESS_STRENGTH });
   return packPng(marked, {
@@ -275,9 +275,9 @@ export async function rasterizeSvgToImprintedPng(
  * resvg→straight-RGBA pass, encoded as an uncompressed Windows Bitmap by the
  * engine's `encodeBmp` (24-bit BGR, or 32-bit BGRA the moment a pixel is
  * translucent). BMP is lossless like TIFF, so the gentle `LOSSLESS_STRENGTH`
- * imprint is enough — and it applies by default (`imprint !== false`) unless the
+ * imprint is enough. It applies by default (`imprint !== false`) unless the
  * frame is below the watermark's detection floor, matching the PNG path. BMP has
- * no metadata box, so it carries no C2PA manifest — the pixel Imprint is the only
+ * no metadata box, so it carries no C2PA manifest. The pixel Imprint is the only
  * provenance the format can hold, which is exactly why it is applied here.
  */
 export async function rasterizeSvgToBmp(
@@ -294,9 +294,9 @@ export async function rasterizeSvgToBmp(
 // ─── the pro float formats (plans/61-deeprichpixels.md §6 B3, §10 item 4) ────────
 
 /** HDR view-transform request, in the author's 0–100 dial units (url-mode's
- *  HdrSettings) plus the brand colours to boost. Absent ⇒ no float source. */
+ *  HdrSettings) plus the brand colours to boost. Absent means no float source. */
 export interface DeepHdrRequest {
-  /** Brand colours to boost, as sRGB hex. Empty is fine — hdr.ts's includeWhite
+  /** Brand colours to boost, as sRGB hex. Empty is fine: hdr.ts's includeWhite
    *  default still gives every near-white pixel real headroom. */
   targets?: readonly string[];
   peakNits?: number;
@@ -329,7 +329,7 @@ export class DeepSourceError extends Error {
  * same sentence.
  *
  * DELIBERATE WORDING: it must not contain "browser engine", "needs a browser",
- * "requires an", "<svg>" or "chromium" — shells/cli/src/run.ts pattern-matches
+ * "requires an", "<svg>" or "chromium". shells/cli/src/run.ts pattern-matches
  * those to fall back to writing HTML, and this refusal must fail loudly instead of
  * silently handing the user a .html file.
  */
@@ -399,13 +399,13 @@ export interface DeepRasterRequest {
  *
  * The one honest float source available to a terminal render today is the HDR view
  * transform: `fromU8Srgb` linearises the 8-bit raster and `hdrViewTransform` then
- * pushes matched brand colours and near-whites up to `peakNits / 203` in LINEAR
- * light — values above 1.0 that no integer container can hold at all. Those bits
+ * pushes matched brand colours and near-whites up to `peakNits / 203` in linear
+ * light: values above 1.0 that no integer container can hold at all. Those bits
  * are *generated* by continuous float maths (the OKLab match, the smoothstep knee,
  * the Rec.709→2020 matrix), which is the same honesty argument §9b made for the
- * 16-bit HDR PNG. What is NOT claimed is a deeper *source*: the underlying raster
+ * 16-bit HDR PNG. What is not claimed is a deeper *source*: the underlying raster
  * is still 256 levels per channel, and without `hdr=` there is nothing above 1.0
- * to preserve — hence the refusal.
+ * to preserve. That is why the refusal exists.
  */
 export async function renderDeepRaster(req: DeepRasterRequest): Promise<{ bytes: Uint8Array; mime: string }> {
   const fmt = req.format.toLowerCase();
@@ -439,7 +439,7 @@ export async function renderDeepRaster(req: DeepRasterRequest): Promise<{ bytes:
     };
   }
 
-  // EXR: depth=float is the FIRST CLI consumer of the depth param — it selects
+  // EXR: depth=float is the first CLI consumer of the depth param. It selects
   // 32-bit FLOAT samples over the default 16-bit HALF. 8/16/auto keep half, which
   // is what every DCC writes and what the frame's precision actually justifies.
   let pixelType: ExrPixelType = 'half';
@@ -460,7 +460,7 @@ export async function renderDeepRaster(req: DeepRasterRequest): Promise<{ bytes:
 }
 
 /**
- * matchExportFormat (web parity — shells/web/src/views/tool-actions.ts): a manifest can
+ * matchExportFormat (web parity: shells/web/src/views/tool-actions.ts): a manifest can
  * flag one `asset`/`file` input so the export format DEFAULTS to the uploaded file's own
  * format (a dropped JPEG → jpg) until the user picks one explicitly. Reads `format` off
  * a resolved AssetRef, or the mime subtype off a FileRef, normalises the synonyms

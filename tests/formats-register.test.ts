@@ -5,7 +5,7 @@
  * The register is the single source of truth for the formats table: docs/build.ts
  * computes the visible in/out/round-trip counts and every chip's direction live
  * from each entry's `dir` field, and renders the `desc` prose verbatim in the
- * click dialog. So a `dir` and its prose must never contradict each other — a
+ * click dialog. So a `dir` and its prose must never contradict each other - a
  * round-trip (`both`) format whose description still says "Export-only" shows a
  * ⇄ chip over prose that calls it export-only, in the same panel.
  *

@@ -5,7 +5,7 @@
  * WHAT THIS IS. Every other collab suite in the repo runs under jsdom with stubbed
  * effects: the ceremony machine, the codec, the op guard and the mount seam are all
  * covered there, and none of them ever opens an `RTCPeerConnection`. This file is the
- * other half — plan 100 §10's "loopback pair" and "the real two-tab ceremony
+ * other half - plan 100 §10's "loopback pair" and "the real two-tab ceremony
  * end-to-end", driven through the SHIPPING UI (Share dialog → invite link → `#/join`
  * → `#/join-reply`) with two real peer connections in one browser.
  *
@@ -13,10 +13,10 @@
  * takes tens of seconds. `npm test` must stay green and fast on a bare machine
  * (tests/README.md, "Gated / conditional tests"), so:
  *
- *   • `LOLLY_BROWSER_DRILLS=1` — the explicit opt-in. Without it the whole describe
+ *   • `LOLLY_BROWSER_DRILLS=1` - the explicit opt-in. Without it the whole describe
  *     skips with the reason printed, exactly like `browserGate()` does for the
  *     sequence-export browser tier.
- *   • a browser must be resolvable — `browserInstalled()` from packages/node-shell,
+ *   • a browser must be resolvable - `browserInstalled()` from packages/node-shell,
  *     the same check `tests/helpers/sequence-browser.ts` uses.
  *
  * WHY IT LAUNCHES ITS OWN CHROMIUM rather than reusing `getBrowser()`. Two flags this
@@ -24,15 +24,15 @@
  *
  *   • `--disable-features=WebRtcHideLocalIpsWithMdns`. Chrome replaces host candidates
  *     with `<uuid>.local` mDNS names unless a media permission has been granted
- *     (plan 100 §11.1 — the same snag the QR camera prompt incidentally solves for
+ *     (plan 100 §11.1 - the same snag the QR camera prompt incidentally solves for
  *     real users). A headless container has no mDNS responder to resolve them with, so
  *     the pair would gather candidates and never connect. Turning the obfuscation off
  *     is what makes "host candidates, same machine" true here.
  *   • `--use-fake-ui-for-media-stream` / `--use-fake-device-for-media-stream` so
  *     nothing in the flow can block on a permission prompt.
  *
- * ONE BROWSER CONTEXT, THREE PAGES. `BroadcastChannel` — the §11.25 reply-link handoff
- * — only reaches same-origin contexts sharing a storage partition, which in Playwright
+ * ONE BROWSER CONTEXT, THREE PAGES. `BroadcastChannel` - the §11.25 reply-link handoff
+ * - only reaches same-origin contexts sharing a storage partition, which in Playwright
  * means pages of ONE `BrowserContext`. That is also why the drill can enable the
  * feature flag once: the flag lives on the profile record in IndexedDB (`lolly` →
  * `profile` → `me`), `hydrateFeatureFlags` mirrors it to localStorage at every boot,
@@ -44,13 +44,13 @@
  * THE FLAG IS SET THROUGH THE PROFILE, NOT THE MIRROR. Writing `lolly:featureFlags`
  * directly does not survive a reload: `hydrateFeatureFlags(profile)` REBUILDS the
  * mirror from the profile at every boot, filling anything unset from the flag's own
- * `default`. The profile record is the source of truth, so that is what this writes —
+ * `default`. The profile record is the source of truth, so that is what this writes - 
  * in BOTH directions, since that `default` went TRUE on 2026-08-10 and the flag-off
  * drill now has to make a flag-off device rather than assume a fresh one is one.
  *
  * WHAT COUNTS AS A FAILURE. Any uncaught page error, on any page, at any point, fails
  * the run (`pageerror` is collected per page and asserted in the last test). Console
- * `error` lines are recorded to the log file but not fatal — the shell logs recoverable
+ * `error` lines are recorded to the log file but not fatal - the shell logs recoverable
  * things (absent previews, an offline model) that are not this feature's business.
  *
  * ARTIFACTS. Screenshots and a JSON log per page land in `LOLLY_DRILL_OUT`
@@ -69,7 +69,7 @@ import { join } from 'node:path';
 import type { Browser, BrowserContext, Page } from 'playwright-core';
 import { browserInstalled } from '../packages/node-shell/src/browsers.ts';
 import { repoRoot } from '../packages/node-shell/src/repo-root.ts';
-// The plate module is pure (no DOM, no RTC, no clock — see its header), so the drill can
+// The plate module is pure (no DOM, no RTC, no clock - see its header), so the drill can
 // hold the shipping implementation itself rather than a copy of its shape: the regex the
 // UI is judged against is the one the UI derives from, and the independent re-derivation
 // below runs the real `derivePlate` over fingerprints read out of the live SDP.
@@ -92,19 +92,19 @@ const GATE = drillGate();
 const OUT = process.env.LOLLY_DRILL_OUT || join(repoRoot(), '.drills', 'collab');
 
 // The tool the pair co-edits. A community tool (present in every profile view), fast to
-// mount, and `url` is a plain scalar text control — the simplest possible convergence
+// mount, and `url` is a plain scalar text control - the simplest possible convergence
 // assertion. `padding` is the second control, used for the focus-ring drill.
 const TOOL_ID = 'qr-code';
 const FIELD = 'url';
 const FIELD_2 = 'padding';
-/** A value the URL never carried — see the ceremony drill's remount check. */
+/** A value the URL never carried - see the ceremony drill's remount check. */
 const SENTINEL = 'https://drill.example/sentinel-before-collab';
 
 // ── Small utilities ───────────────────────────────────────────────────────────
 
 type PageLog = { page: string; console: string[]; errors: string[] };
 const logs: PageLog[] = [];
-/** Notes every drill records for the final report — kept even when a drill fails. */
+/** Notes every drill records for the final report - kept even when a drill fails. */
 const notes: string[] = [];
 
 function note(line: string): void {
@@ -123,14 +123,14 @@ async function shot(page: Page, name: string): Promise<void> {
 // ── Docs capture (LOLLY_DRILL_DOCS=1) ─────────────────────────────────────────
 //
 // A handful of /info screenshots document states that exist ONLY downstream of a real
-// pairing — the connection plate (derived from the two DTLS fingerprints the handshake
+// pairing - the connection plate (derived from the two DTLS fingerprints the handshake
 // validated), the peer-focus ring, the beam consent card. No url-shot recipe can reach
 // them, so docs/collaborate.md marks them DRILL-ASSISTED and this is the capture pass.
 //
 // Two rules it follows, both from the docs pipeline it is feeding:
 //   • VECTOR, via the shell's own walker (`__lollyWalkerShot` → renderSvgFromHtml), not
 //     the drill's PNG. Same serialiser every committed baseline goes through.
-//   • It can never fail the drill. Everything below is try/caught and only `note()`s —
+//   • It can never fail the drill. Everything below is try/caught and only `note()`s - 
 //     the drill's job is to prove the feature works, and a docs artefact that did not
 //     write is a missing picture, not a broken feature.
 // Off unless LOLLY_DRILL_DOCS=1, so an ordinary drill run writes nothing outside .drills.
@@ -167,7 +167,7 @@ async function walkSvg(page: Page, selector: string): Promise<string | null> {
       const target = document.querySelector(sel) as HTMLElement | null;
       if (!target) return null;
       // Paint the page's backdrop onto a transparent crop root, or the shot reads as an
-      // empty box on /info's dark theme — the same guard the pipeline's walker branch has.
+      // empty box on /info's dark theme - the same guard the pipeline's walker branch has.
       const own = getComputedStyle(target).backgroundColor;
       const clear = !own || own === 'transparent'
         || (/^rgba\(/.test(own) && parseFloat(own.split(',')[3] as string) < 0.99);
@@ -200,7 +200,7 @@ function svgSize(svg: string): { w: number; h: number } {
  * Content Credentials, the same ones every recipe-driven baseline carries.
  *
  * tests/docs-shot-credentials.test.ts holds the whole corpus to "signed, readable,
- * dated" — a drill shot is a committed baseline like any other, so an unsigned one is
+ * dated" - a drill shot is a committed baseline like any other, so an unsigned one is
  * not a special case, it is a hole in the claim. Where a recipe puts its url-shot
  * parameters in the credential ("here is how to reproduce this"), a drill shot puts the
  * thing that actually produced it: the drill, the milestone and the framed selector.
@@ -252,7 +252,7 @@ async function docShot(page: Page, file: string, selector: string, how = 'walker
  * TWO screens, one picture. The plate shot only says what it means when both devices
  * are in it: "matching" is a relation, and a single screen cannot show a relation.
  *
- * Composition is two REAL walks placed side by side in one root — no re-render, no
+ * Composition is two REAL walks placed side by side in one root - no re-render, no
  * mock-up, nothing drawn that neither screen showed. Each child keeps its own
  * coordinate space inside a `<svg>` element with an explicit x/width, which is why this
  * needs no transform arithmetic and cannot mis-scale either half.
@@ -290,7 +290,7 @@ function watch(page: Page, label: string): PageLog {
     if (m.type() === 'error' || m.type() === 'warning') log.console.push(`${m.type()}: ${m.text()}`);
   });
   page.on('pageerror', (e) => { log.errors.push(e.stack || e.message); });
-  // Navigations are load-bearing here: the inviter's adoption is a FORCED same-document
+  // Navigations are essential here: the inviter's adoption is a FORCED same-document
   // re-entry, and telling that apart from a document reload (which would destroy the
   // peer connection) is the difference between a passing drill and a lying one.
   page.on('framenavigated', (f) => {
@@ -355,22 +355,22 @@ function stopDevServer(): void {
 // ── Flag + boot helpers ───────────────────────────────────────────────────────
 
 /**
- * Set `private-collab` for this browser context by writing the PROFILE record —
+ * Set `private-collab` for this browser context by writing the PROFILE record - 
  * see the header for why the localStorage mirror alone does not survive a reload.
  *
  * BOTH directions are needed, and `on = false` is not a leftover: as of 2026-08-10 the
- * flag's built-in `default` is TRUE (`shells/web/src/feature-flags.ts` — "it starts on",
+ * flag's built-in `default` is TRUE (`shells/web/src/feature-flags.ts` - "it starts on",
  * because a default-off flag met a newcomer with "turn this on in your profile, then open
  * the link again" at the only moment they had a reason to care). A fresh context is
  * therefore a flag-ON device, so the §6.3 enable card can only be reached by a device
- * whose stored value is `false` — the person who turned it off. That is what the FLAG-OFF
+ * whose stored value is `false` - the person who turned it off. That is what the FLAG-OFF
  * drill writes before it opens the invite; without the write it would be measuring the
  * ordinary join flow and calling the absent card a regression.
  *
  * `jelly-effects` goes OFF in the same write, and that is a HARNESS concession, not a
  * product statement. The flag's built-in default is brand-aware and resolves to ON for
  * the unlocked `lolly-start` profile, which upgrades every sidebar control to a
- * `<jelly-input>` custom element carrying the `data-input-id` on the HOST — the real
+ * `<jelly-input>` custom element carrying the `data-input-id` on the HOST - the real
  * `<input>` lives in its shadow root, where Playwright's `fill()` refuses to act
  * ("Element is not an <input>…"). Turning the flag off renders the same controls as
  * the plain CSS primitives, which is a shipping configuration (it is a user toggle),
@@ -457,7 +457,7 @@ const RTC_PROBE = `(() => {
     constructor(...args) {
       super(...args);
       const id = w.__rtcDrill.length;
-      // \`trace\` is the load-bearing one: every transition with a millisecond stamp, so
+      // \`trace\` is the essential one: every transition with a millisecond stamp, so
       // "did ICE connect before the dialog left creating-answer" is answerable.
       const rec = { id, ice: [], conn: [], gather: [], candidates: [], trace: [], channels: [] };
       w.__rtcDrill.push(rec);
@@ -519,7 +519,7 @@ async function rtcState(page: Page): Promise<unknown> {
  * The preflight exists because the first three runs of this drill failed identically
  * and the failure looked like Lolly's: both ceremonies reached step 3, exchanged
  * candidates, went `checking` → `disconnected` → `failed`, and the shell painted its
- * "This network blocks direct connections" copy — which is the CORRECT copy for what
+ * "This network blocks direct connections" copy - which is the CORRECT copy for what
  * was happening. It was the macOS Application Firewall dropping inbound UDP to the
  * Playwright-bundled Chromium (an ad-hoc-signed binary with no firewall entry), while
  * an installed Google Chrome has one and pairs instantly. Both peers gathered exactly
@@ -600,7 +600,7 @@ async function dialogText(page: Page): Promise<string> {
 }
 
 /**
- * The connection plate this page SHOWED — live if the screen is still up, and from the
+ * The connection plate this page SHOWED - live if the screen is still up, and from the
  * probe's mutation record if it is not.
  *
  * The fallback is not belt-and-braces. The acceptor's Connected screen is painted and
@@ -624,8 +624,8 @@ async function readPlate(page: Page): Promise<{ text: string; source: 'screen' |
 /**
  * The two DTLS certificate fingerprints of this page's live pairing, as uppercase hex.
  *
- * Read off the peer connection's own descriptions — the local one it minted its blob
- * from, and the remote one it applied — which is the same material `rtc-transport.ts`
+ * Read off the peer connection's own descriptions - the local one it minted its blob
+ * from, and the remote one it applied - which is the same material `rtc-transport.ts`
  * hands the ceremony, arrived at independently. That is what makes the re-derivation
  * below a check rather than an echo.
  */
@@ -653,7 +653,7 @@ function hexBytes(hex: string): Uint8Array | null {
   return out;
 }
 
-/** Wait until this page has a tool index — the acceptor's tool probe reads it. */
+/** Wait until this page has a tool index - the acceptor's tool probe reads it. */
 async function waitForCatalog(page: Page): Promise<void> {
   await until(
     () => page.evaluate(() => {
@@ -677,10 +677,10 @@ let replyLeg: 'link' | 'paste' | 'none' = 'none';
 let rtcPreflight = false;
 let browserLabel = '';
 /** Set only when BOTH sides reached connected. Every later drill needs a live pair, and
- *  running one without it does not measure the thing it claims to — an absent pill on a
+ *  running one without it does not measure the thing it claims to - an absent pill on a
  *  page that never joined is not "the peer left cleanly". */
 let ceremonyOk = false;
-/** The inviter half, recorded separately — see §6.2a: the two roles are not symmetric. */
+/** The inviter half, recorded separately - see §6.2a: the two roles are not symmetric. */
 let inviterMounted = false;
 let inviterKeptState = '';
 let inviterParticipants = 0;
@@ -697,7 +697,7 @@ let plateA = '';
 let plateB = '';
 /** The same plate re-derived in Node from the SDP fingerprints, when they were readable. */
 let plateDerived = '';
-/** Which read each plate came from — the live screen, or the probe's mutation record. */
+/** Which read each plate came from - the live screen, or the probe's mutation record. */
 let plateSources = '';
 let plateFingerprints: { a: string; b: string } | null = null;
 /** Every presence frame either side put on (or took off) the lossy lane. */
@@ -729,7 +729,7 @@ describe('private collab — real-browser ceremony drills', { skip: GATE ?? fals
       ...(executablePath && !channel ? { executablePath } : {}),
       args: [
         '--no-sandbox',
-        // The reason this drill can connect at all — see the header.
+        // The reason this drill can connect at all - see the header.
         '--disable-features=WebRtcHideLocalIpsWithMdns',
         // Asks for a 127.0.0.1 host candidate, which would make a same-machine pair a
         // true loopback pair and sidestep any host firewall. Kept because it is free
@@ -755,7 +755,7 @@ describe('private collab — real-browser ceremony drills', { skip: GATE ?? fals
     // The preflight, and the one automatic recovery this drill performs. A bundled
     // Chromium that cannot pair on a machine whose firewall allows an INSTALLED Chrome
     // is an environment problem with a known fix, and taking it silently would hide the
-    // finding — so it is taken loudly, once, and only when no browser was requested.
+    // finding - so it is taken loudly, once, and only when no browser was requested.
     rtcPreflight = await rtcLoopbackWorks(context, `${base}/`);
     note(`RTC loopback preflight (${browserLabel}): ${rtcPreflight ? 'pairs' : 'FAILS'}`);
     if (!rtcPreflight && !wanted && !executablePath) {
@@ -893,7 +893,7 @@ describe('private collab — real-browser ceremony drills', { skip: GATE ?? fals
     // THE GUARANTEE, at drill level: the acceptor's answer ALWAYS gets published and
     // rendered. On loopback the peer connection reaches ICE `connected` before the answer
     // has been carried back at all, so a ceremony that completes on ICE promotes straight
-    // past this screen — the reply is never shown, never copied, never delivered, and the
+    // past this screen - the reply is never shown, never copied, never delivered, and the
     // inviter waits for ever on step 2. This selector not appearing IS that bug.
     try {
       await pageB.waitForSelector('[data-token="copy-answer-link"]', { timeout: 60_000 });
@@ -922,7 +922,7 @@ describe('private collab — real-browser ceremony drills', { skip: GATE ?? fals
           : ''),
       );
     }
-    // THE EVIDENCE. Read the instant the answer screen exists — i.e. the instant the
+    // THE EVIDENCE. Read the instant the answer screen exists - i.e. the instant the
     // machine left `creating-answer` for `awaiting-connection`. Anything already in this
     // trace happened while the machine was still minting, and `onIce` drops ICE events
     // in that phase (see the ceremony assertion below).
@@ -932,7 +932,7 @@ describe('private collab — real-browser ceremony drills', { skip: GATE ?? fals
     assert.match(answerLink, /#\/join-reply\?ans=/, 'the reply must be a #/join-reply?ans= link');
     await shot(pageB, '07-answer-minted');
     note('B: answer minted');
-    // NO DOCS SHOT HERE, deliberately — see docs/collaborate.md's "SHOTS DROPPED" note.
+    // NO DOCS SHOT HERE, deliberately - see docs/collaborate.md's "SHOTS DROPPED" note.
     // This screen is a one-time secret wearing three hats: the reply link carries the
     // capture origin (`http://localhost:<drill port>/#/join-reply?ans=…`), and the code
     // and the QR are two more renderings of the same single-use payload. The drill cannot
@@ -969,8 +969,8 @@ describe('private collab — real-browser ceremony drills', { skip: GATE ?? fals
     try { await pageC.close(); } catch { /* ignore */ }
 
     // Both sides reach connected. A stall here is the interesting failure, so the whole
-    // window is TRACED — every half-second, what each dialog says and where each peer
-    // connection is — and written out whether it passes or fails.
+    // window is TRACED - every half-second, what each dialog says and where each peer
+    // connection is - and written out whether it passes or fails.
     const timeline: unknown[] = [];
     // EVERY read here tolerates a destroyed execution context. The inviter's adoption is
     // a real navigation mid-window, and an observer that dies of the thing it is meant to
@@ -986,12 +986,12 @@ describe('private collab — real-browser ceremony drills', { skip: GATE ?? fals
       rtc: (window as unknown as { __rtcDrill?: { trace: string[] }[] }).__rtcDrill?.map(r => r.trace.join(' | ')) ?? [],
     })).catch(() => null);
     /**
-     * "This side's ceremony completed", per role — and the two roles do NOT look the same.
+     * "This side's ceremony completed", per role - and the two roles do NOT look the same.
      *
      * The inviter is already in the tool, so its dialog sits on the Connected screen until
      * a human presses "Start editing": `[data-act="done"]` is a stable state to observe.
      * The acceptor arrived cold on `#/join`, so `onConnected` hands the pair straight to
-     * `lib/collab-live-mount.ts`, which NAVIGATES to the tool — the route change tears the
+     * `lib/collab-live-mount.ts`, which NAVIGATES to the tool - the route change tears the
      * join view down and the dialog closes with it (`collab-live-mount.ts`: "one navigates
      * and one re-mounts"). Its Connected screen therefore exists for less than a frame,
      * and polling for that button is polling for something the product deliberately does
@@ -1000,7 +1000,7 @@ describe('private collab — real-browser ceremony drills', { skip: GATE ?? fals
      * So the acceptor is judged by what its completion PRODUCES, which is the stronger
      * evidence anyway: the ceremony dialog gone and a live collab mount in its place. The
      * only path to that mount is the dialog's `onConnected`, which fires on phase
-     * `connected` and nowhere else — a mounted acceptor is a proof that its machine
+     * `connected` and nowhere else - a mounted acceptor is a proof that its machine
      * completed, where the button was only ever a proxy for it.
      */
     const completed = (side: { done: boolean; step: string | null; pill: number } | null, role: 'inviter' | 'acceptor'): boolean => {
@@ -1018,7 +1018,7 @@ describe('private collab — real-browser ceremony drills', { skip: GATE ?? fals
     }
     writeFileSync(join(OUT, 'ceremony-timeline.json'), JSON.stringify(timeline, null, 2));
 
-    // THE PLATE, read at the connected step and before anything is pressed — the inviter
+    // THE PLATE, read at the connected step and before anything is pressed - the inviter
     // is still on the Connected screen and the acceptor's record of it is still warm.
     // Asserted in its own drill below so a mismatch reads as a mismatch rather than as a
     // ceremony that did not connect.
@@ -1027,7 +1027,7 @@ describe('private collab — real-browser ceremony drills', { skip: GATE ?? fals
     plateB = readB.text;
     plateSources = `A:${readA.source} B:${readB.source}`;
     if (plateA) await shot(pageA, '09b-A-plate');
-    // DOCS: docs/collaborate.md "The matching plates" — captured HERE, at the connected
+    // DOCS: docs/collaborate.md "The matching plates" - captured HERE, at the connected
     // step, because this is the only instant both screens are showing it: the acceptor's
     // live mount tears its Connected screen down inside the task that painted it, so a
     // capture in the PLATE drill below would find one screen and have to invent the other.
@@ -1055,7 +1055,7 @@ describe('private collab — real-browser ceremony drills', { skip: GATE ?? fals
 
     // The INVITER half is measured before any verdict on the pair. It is a separate
     // claim from "both sides connected" (§6.2a makes the roles asymmetric on purpose),
-    // and when the acceptor stalls it is the only half there is evidence for — losing
+    // and when the acceptor stalls it is the only half there is evidence for - losing
     // that evidence to a bare `assert.fail` would be throwing away a real result.
     if (await pageA.evaluate(() => Boolean(document.querySelector('[data-act="done"]')))) {
       await shot(pageA, '09-A-connected');
@@ -1073,7 +1073,7 @@ describe('private collab — real-browser ceremony drills', { skip: GATE ?? fals
     }
     // Still conditional, and still worth trying: an acceptor whose handoff has not yet
     // navigated (a slow seed) IS on the Connected screen, and pressing the button is what
-    // a person would do. The usual case is the other one — the mount got there first —
+    // a person would do. The usual case is the other one - the mount got there first - 
     // which is recorded rather than skipped past, because "which signal completed the
     // acceptor" is exactly the thing this drill exists to report.
     if (await pageB.evaluate(() => Boolean(document.querySelector('[data-act="done"]')))) {
@@ -1147,14 +1147,14 @@ describe('private collab — real-browser ceremony drills', { skip: GATE ?? fals
   });
 
   /**
-   * PLATE — the confirmation, not a carrier (plan 100 §1; Andy's decision, 2026-08-10).
+   * PLATE - the confirmation, not a carrier (plan 100 §1; Andy's decision, 2026-08-10).
    *
    * The plate is Lolly's ZRTP-style SAS: six characters derived from BOTH DTLS certificate
    * fingerprints, shown on both screens at connect, compared out loud. Its entire security
-   * claim is the EQUALITY — two people reading the same six characters have proved each
+   * claim is the EQUALITY - two people reading the same six characters have proved each
    * device is holding the other's real certificate, because a middleman terminating DTLS
    * on both sides has two certificates of its own and cannot make the two derivations
-   * agree. So the load-bearing assertion here is plate(A) === plate(B) on two pages that
+   * agree. So the required assertion here is plate(A) === plate(B) on two pages that
    * connected through the shipping ceremony, which is the one thing no unit test can
    * establish: `plate.test.ts` pins the maths and `collab-ceremony.test.ts` pins the
    * painting, but only a real pairing can show that the material each side fed in was the
@@ -1162,7 +1162,7 @@ describe('private collab — real-browser ceremony drills', { skip: GATE ?? fals
    *
    * The shape assertion (`XXX-XXX`, 7 characters) comes second, and the re-derivation
    * third: `derivePlate` is run HERE, in Node, over fingerprints parsed out of each page's
-   * live SDP — a path that shares no code with the dialog. A plate that matches across
+   * live SDP - a path that shares no code with the dialog. A plate that matches across
    * pages but not the certificates would be a plate confirming something other than this
    * connection.
    */
@@ -1230,7 +1230,7 @@ describe('private collab — real-browser ceremony drills', { skip: GATE ?? fals
 
   /**
    * The inviter starts a collab from INSIDE the Share dialog, and that dialog is a
-   * `:modal` `<dialog>` — while it is open the rest of the document is inert. So the
+   * `:modal` `<dialog>` - while it is open the rest of the document is inert. So the
    * ceremony completing is not, on its own, a person who can edit: if the Share dialog
    * is still up when the tool remounts, the sidebar cannot be focused or typed into and
    * the canvas cannot be clicked. `document.activeElement` stays on the "Start a collab"
@@ -1244,7 +1244,7 @@ describe('private collab — real-browser ceremony drills', { skip: GATE ?? fals
    *
    * The sibling button one function along in `lib/collab-share-private.ts` already does
    * the right thing, with the reason written next to it: `join-private-collab` calls
-   * `ctx.close?.()` first — "Dismiss first: this is a modal, and a route change under an
+   * `ctx.close?.()` first - "Dismiss first: this is a modal, and a route change under an
    * open one leaves the dialog covering the page it just navigated to."
    */
   it('INVITER: the Share dialog does not outlive the ceremony it launched', async () => {
@@ -1262,7 +1262,7 @@ describe('private collab — real-browser ceremony drills', { skip: GATE ?? fals
     });
     await shot(pageA, '22-A-after-adoption');
     note(`A after adoption: share dialog open=${before.open} modal=${before.modal}; focus went to ${before.active} (the url field took it: ${before.fieldTookFocus})`);
-    // Dismissed whatever the verdict — see the doc comment.
+    // Dismissed whatever the verdict - see the doc comment.
     if (before.open) {
       await pageA.keyboard.press('Escape');
       await until(
@@ -1280,20 +1280,20 @@ describe('private collab — real-browser ceremony drills', { skip: GATE ?? fals
 
   it('FLAG-OFF: an invite opened on a device without the flag is refused, not broken', async () => {
     assert.ok(mintedInvite, 'needs an invite from the ceremony drill');
-    // A FRESH context, and then the flag is turned OFF in it. Both halves are load-bearing.
+    // A FRESH context, and then the flag is turned OFF in it. Both halves are required.
     // The context is fresh because the flag lives on the profile record, which is
     // context-scoped, so nothing this suite did to page A's device can leak in. The write
     // is there because a fresh device is no longer a flag-off device: the built-in default
     // went TRUE on 2026-08-10 (see `setPrivateCollab`), so without it this drill would open
     // the invite on a flag-ON device, walk the ordinary join flow, and read the absent
     // enable card as a missing feature. The device this models is the one that can still
-    // exist — somebody who turned private collab off and was then sent an invite.
+    // exist - somebody who turned private collab off and was then sent an invite.
     const clean = await browser.newContext({ viewport: { width: 1280, height: 900 } });
     try {
       const page = await clean.newPage();
       watch(page, 'D(flag-off join)');
       // The profile is the source of truth, but `isFlagOnSync` reads the localStorage
-      // mirror, and `hydrateFeatureFlags` only rebuilds that mirror at boot — so the write
+      // mirror, and `hydrateFeatureFlags` only rebuilds that mirror at boot - so the write
       // needs a load to happen on, and a reload to be believed.
       await page.goto(`${base}/#/`, { waitUntil: 'domcontentloaded' });
       await waitForCatalog(page);
@@ -1324,7 +1324,7 @@ describe('private collab — real-browser ceremony drills', { skip: GATE ?? fals
       await shot(page, '20-flag-off-join');
       // §6.3 "enable-on-accept": the floor is a sentence rather than a dead end, and the
       // ceiling is an offer the reader can act on without leaving the page. Which of the
-      // two arrived is RECORDED as well as asserted — the copy is the evidence when this
+      // two arrived is RECORDED as well as asserted - the copy is the evidence when this
       // fails, and the difference between "refused" and "offered" is the whole feature.
       assert.ok(title.length > 0, 'the flag-off join page must say something');
       note(`flag-off #/join → "${title}" / "${body}" (enable-and-continue control present: ${hasEnable})`);
@@ -1376,7 +1376,7 @@ describe('private collab — real-browser ceremony drills', { skip: GATE ?? fals
     await shot(pageA, '14-A-sees-B-edit');
     note('B → A convergence: OK');
 
-    // The canvas, not only the sidebar — a value that never reached the runtime would
+    // The canvas, not only the sidebar - a value that never reached the runtime would
     // still show in the control it was typed into.
     const canvasHasIt = await pageB.evaluate(() => {
       const canvas = document.querySelector('#tool-content, .tool-canvas, #tool-canvas');
@@ -1397,7 +1397,7 @@ describe('private collab — real-browser ceremony drills', { skip: GATE ?? fals
     }
     await shot(pageA, '15-A-pill');
     await shot(pageB, '16-B-pill');
-    // DOCS: docs/collaborate.md "Editing together" — the pill WITH its roster open, which
+    // DOCS: docs/collaborate.md "Editing together" - the pill WITH its roster open, which
     // is the state the prose describes ("Open it for the roster"). The popover is body-
     // mounted, so the frame has to be the pill and the roster together; `.collab-pill` and
     // `.collab-roster` are siblings under <body>, so walk the common parent and let the
@@ -1416,13 +1416,13 @@ describe('private collab — real-browser ceremony drills', { skip: GATE ?? fals
       } else {
         note(`DOCS collab-pill-roster.svg: roster did not open (${opened})`);
       }
-      // The pill itself is worth having either way — it is the thing the prose names.
+      // The pill itself is worth having either way - it is the thing the prose names.
       await docShot(pageA, 'collab-pill.svg', '.collab-pill', '15-A-pill, two participants');
     }
     // The wire behind the pills. The discovery announcer (lib/collab-session.ts) exists
     // because a serverless pair starts with two empty rosters and the engine's occupancy
-    // rule would keep both politely silent, so the frames that broke that silence — and
-    // how many repeats the lossy lane needed — are the evidence that it did its job.
+    // rule would keep both politely silent, so the frames that broke that silence - and
+    // how many repeats the lossy lane needed - are the evidence that it did its job.
     const frames = async (page: Page) => page
       .evaluate(() => (window as unknown as { __presence?: unknown[] }).__presence ?? [])
       .catch(() => [] as unknown[]);
@@ -1448,26 +1448,26 @@ describe('private collab — real-browser ceremony drills', { skip: GATE ?? fals
     assert.equal(found, true);
     await shot(pageA, '17-A-focus-ring');
     // DOCS: docs/collaborate.md "Where the other person is working". The page's own
-    // capture note is explicit that the PAIRING is the picture — the sidebar row and the
-    // canvas outline together — so the frame is the tool layout, not either one of them.
+    // capture note is explicit that the PAIRING is the picture - the sidebar row and the
+    // canvas outline together - so the frame is the tool layout, not either one of them.
     await docShot(pageA, 'collab-focus-ring.svg', '.tool-layout', "17-A-focus-ring (peer's focus painted on A)");
     note('peer focus ring: OK');
   });
 
   /**
-   * BEAM — the consent card, and the only drill that presses a control which MOVES
+   * BEAM - the consent card, and the only drill that presses a control which MOVES
    * something rather than reflecting something.
    *
    * Added 2026-08-10 for docs/collaborate.md's `collab-beam-consent` shot, which its own
    * capture note says is not reachable any other way: `beam-toast.ts` paints only from an
    * `offer-received` event, so a live pair with both tools mounted is the whole
-   * precondition. It is deliberately the SMALLEST step that produces the card — offer,
-   * card, DECLINE — so nothing is transferred, nothing is written to either library, and
+   * precondition. It is deliberately the SMALLEST step that produces the card - offer,
+   * card, DECLINE - so nothing is transferred, nothing is written to either library, and
    * the pair is left exactly as the FOCUS drill left it for the hygiene drills below.
    *
    * GATED ON THE CONTROL, NOT ASSUMED. "Send this session" is rendered only while the bulk
    * channel is actually open (the pill's action slots), so its absence is a state this
-   * feature has by design, not a failure — that path notes and returns. Past the gate the
+   * feature has by design, not a failure - that path notes and returns. Past the gate the
    * assertion is real: an offer that never becomes a card on the other device is a broken
    * consent step, and consent is the part of a beam that must not be quiet.
    */
@@ -1516,7 +1516,7 @@ describe('private collab — real-browser ceremony drills', { skip: GATE ?? fals
 
   it('HYGIENE: A navigating away leaves B honest about the peer', async () => {
     requirePair();
-    // An in-app route change (not a reload) — the path that runs the view's
+    // An in-app route change (not a reload) - the path that runs the view's
     // collabTeardown rather than tearing the whole document down.
     await pageA.evaluate(() => { window.location.hash = '#/p'; });
     const state = await until(

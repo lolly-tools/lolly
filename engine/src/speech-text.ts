@@ -1,29 +1,29 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
- * Speech synthesis text machinery — the PURE half of Kokoro TTS. Everything
+ * Speech synthesis text machinery - the PURE half of Kokoro TTS. Everything
  * here is plain math and string work with no transformers.js, no phonemizer
  * wasm and no DOM, so the SAME logic runs in the web worker
  * (shells/web/src/lib/speech-kokoro-worker.ts), in Node scripts
  * (scripts/build-docs-audio.ts) and under test. Same split as analysePcm: the
- * heavy runtime is injectable, the bookkeeping lives in the engine — the
- * roadmap's one-synthesis-layer rule (plans/39-inclusive-audio-roadmap.md §4).
+ * heavy runtime is injectable, the bookkeeping lives in the engine. This
+ * follows the roadmap's one-synthesis-layer rule (plans/39-inclusive-audio-roadmap.md §4).
  *
- * The text→phoneme pipeline (normalizeText / splitPunctuation /
+ * The text-to-phoneme pipeline (normalizeText / splitPunctuation /
  * postProcessPhonemes) is a TypeScript port of hexgrad/kokoro's
- * kokoro.js/src/phonemize.js (Apache-2.0) — ported rather than depended on
+ * kokoro.js/src/phonemize.js (Apache-2.0). It is ported rather than depended on
  * because kokoro-js's generate() discards the timestamped model's extra
  * `durations` output, which is the entire reason host.speech can caption
  * itself. Word alignment strategy: each word is phonemized SEPARATELY and the
  * per-word phoneme strings joined with single spaces to form the model input,
  * so every word's token span is known by construction (the Kokoro tokenizer is
- * character-level over phonemes — one token per phoneme char, space included —
+ * character-level over phonemes - one token per phoneme char, space included -
  * which `input_ids.length === phonemes.length + 2` verifies at runtime).
  */
 
 import type { SpeechVoiceInfo, SpeechWordTiming } from './bridge/host-v1.ts';
 
 export const KOKORO_SAMPLE_RATE = 24000;
-/** transformers.js model id under env.localModelPath ('/models/' in the web shell) — /models/kokoro/. */
+/** transformers.js model id under env.localModelPath ('/models/' in the web shell): /models/kokoro/. */
 export const KOKORO_MODEL_ID = 'kokoro';
 
 // The download-size constants (KOKORO_STYLE_DIM / KOKORO_VOICE_BYTES /
@@ -80,7 +80,7 @@ export const KOKORO_VOICES: SpeechVoiceInfo[] = [
  * Lily is graded D in the table above and Emma B-, and Emma was tried first on
  * exactly that reasoning. It was rejected AFTER LISTENING: Emma reads as robotic
  * at length, Lily sounds on brand. The grade measures acoustic fidelity, not fit,
- * so it decides nothing on its own — see the same call, with the same reasoning,
+ * so it decides nothing on its own. See the same call, with the same reasoning,
  * on the docs corpus in scripts/build-docs-audio.ts. Do not "fix" this back to a
  * higher-graded voice from the table without listening to both.
  */
@@ -90,7 +90,7 @@ export const KOKORO_DEFAULT_VOICE = 'bf_lily';
 export const SENTENCE_GAP_S = 0.35;
 
 /**
- * Sentences longer than this are wrapped on whitespace before synthesis — the
+ * Sentences longer than this are wrapped on whitespace before synthesis. The
  * model truncates at 510 tokens (~1 phoneme char each), and a run-on sentence
  * must degrade to an extra split, never to silently dropped words.
  */
@@ -99,7 +99,7 @@ const MAX_SENTENCE_CHARS = 400;
 /**
  * Hard cap on `synthesize()` input, enforced in bridge/speech.ts before the
  * text is posted to the worker AND in the worker itself (defence in depth).
- * Well above the UI's soft ~5000-char nudge — this is the "someone pasted a
+ * Well above the UI's soft ~5000-char nudge. This is the "someone pasted a
  * novel" guard, not a product limit: at seconds per sentence the model would
  * grind for hours, and the caller should chunk deliberately instead.
  */
@@ -110,7 +110,7 @@ export const MAX_INPUT_CHARS = 100_000;
  * tokens (one per char, plus BOS/EOS). The raw-char wrap in wrapLong is only a
  * cheap pre-pass: normalization can expand text severalfold ('$45' → '45
  * dollars' → yet more phoneme chars), so the real budget check happens on the
- * phonemes the model actually sees — see chunkByPhonemeLength.
+ * phonemes the model actually sees. See chunkByPhonemeLength.
  */
 export const MAX_PHONEME_CHARS = 508; // 510 tokens minus BOS/EOS
 
@@ -118,7 +118,7 @@ export const MAX_PHONEME_CHARS = 508; // 510 tokens minus BOS/EOS
 
 /**
  * Split text into sentences on terminal punctuation (., !, ?, …), keeping the
- * punctuation — and any closing quotes/brackets riding it — attached to the
+ * punctuation - and any closing quotes/brackets riding it - attached to the
  * sentence it ends. Newlines also terminate a sentence: a heading or a list
  * line is spoken as its own breath group even without a full stop.
  */
@@ -144,7 +144,7 @@ function wrapLong(sentence: string): string[] {
   for (const w of words) {
     if (w.length > MAX_SENTENCE_CHARS) {
       // A single word longer than the limit (a URL, a hash, key-mash) cannot
-      // wrap on whitespace — force-split it at the boundary rather than letting
+      // wrap on whitespace. Force-split it at the boundary rather than letting
       // the model silently truncate it downstream.
       if (cur) { chunks.push(cur); cur = ''; }
       let rest = w;
@@ -173,9 +173,9 @@ export function splitWords(sentence: string): string[] {
 export interface TokenSpan { start: number; end: number }
 
 /**
- * Char→token spans for per-word phoneme strings joined with single spaces.
+ * Char-to-token spans for per-word phoneme strings joined with single spaces.
  * The Kokoro tokenizer is character-level, and the tokenizer wraps the
- * sequence in BOS/EOS zeros — so word i's tokens are exactly its char range in
+ * sequence in BOS/EOS zeros, so word i's tokens are exactly its char range in
  * the joined string, shifted +1 for BOS. A word that phonemized to '' gets a
  * zero-width span (start === end) rather than being dropped, so the caller's
  * words array stays parallel.
@@ -200,8 +200,8 @@ export interface PhonemeChunk { words: string[]; phonemes: string[] }
  * chunk's spans/timings hold by construction and every input word lands in
  * exactly one chunk, in order. Greedy fill; a single word whose phonemes alone
  * exceed the budget still gets its own chunk (the tokenizer truncates that one
- * word) rather than being dropped — pathological, but never silent word loss
- * across the rest of the sentence.
+ * word) rather than being dropped. This is pathological, but it never causes
+ * silent word loss across the rest of the sentence.
  */
 export function chunkByPhonemeLength(
   words: string[],
@@ -227,14 +227,14 @@ export function chunkByPhonemeLength(
 }
 
 /**
- * Per-word times from the timestamped model's `durations` output — one frame
+ * Per-word times from the timestamped model's `durations` output - one frame
  * count per input token (BOS/EOS included). Rather than trusting a fixed frame
  * rate the divisor is DERIVED from the clip itself: total frames over actual
  * audio seconds, which by definition lands every word inside the waveform.
- * (Measured on the q8 export: ~40 frames/s — sum(durations) 112.96 over a
- * 2.80 s clip — NOT the 80 some community posts quote; deriving it makes the
+ * (Measured on the q8 export: ~40 frames/s - sum(durations) 112.96 over a
+ * 2.80 s clip, NOT the 80 some community posts quote; deriving it makes the
  * constant irrelevant either way.) Returns
- * null when the shapes disagree (durations not one-per-token) — the caller
+ * null when the shapes disagree (durations not one-per-token). The caller
  * falls back to sentence granularity rather than shipping wrong captions.
  */
 export function wordTimingsFromDurations(
@@ -412,11 +412,11 @@ export function postProcessPhonemes(ps: string, language: 'a' | 'b'): string {
 export type EspeakFn = (text: string, lang: string) => Promise<string[]>;
 
 /**
- * Full phonemize pipeline for one chunk of (already normalized) text —
- * kokoro.js's phonemize() with `norm` hoisted to the caller: the worker runs
+ * Full phonemize pipeline for one chunk of (already normalized) text:
+ * kokoro.js's phonemize() with `norm` hoisted to the caller. The worker runs
  * normalizeText once over the WHOLE input before sentence splitting (kokoro.js
- * order — abbreviation/number rules need cross-word context like '(?= [A-Z])'),
- * so by the time a word reaches here it is already normalized.
+ * order, because abbreviation/number rules need cross-word context like
+ * '(?= [A-Z])'), so by the time a word reaches here it is already normalized.
  */
 export async function phonemizeChunk(
   espeak: EspeakFn,

@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
- * xlsx-write.test.ts — writeXlsx round-trips through the real readXlsx, and the
+ * xlsx-write.test.ts - writeXlsx round-trips through the real readXlsx, and the
  * emitted archive carries every OOXML part a spreadsheet app expects.
  */
 
@@ -14,7 +14,7 @@ import { colLetters, writeXlsx } from '../engine/src/xlsx-write.ts';
 test('writeXlsx → readXlsx round-trips text / number / boolean cells', () => {
   const bytes = writeXlsx({ rows: [['h1', 'h2'], [1, true]] });
   assert.ok(bytes instanceof Uint8Array);
-  assert.equal(bytes[0], 0x50); // "PK" — a real zip
+  assert.equal(bytes[0], 0x50); // "PK" - a real zip
   assert.equal(bytes[1], 0x4b);
 
   const { rows } = readXlsx(bytes);
@@ -42,7 +42,7 @@ test('the archive contains every required OOXML part', () => {
 });
 
 test('cell refs advance past column Z into AA/AB', () => {
-  // 28 columns so the last three refs are Y, Z, AA, AB — the double-letter roll-over.
+  // 28 columns so the last three refs are Y, Z, AA, AB - the double-letter roll-over.
   const header = Array.from({ length: 28 }, (_, i) => `c${i}`);
   const bytes = writeXlsx({ rows: [header] });
   const sheetXml = new TextDecoder().decode(

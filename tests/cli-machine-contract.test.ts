@@ -4,11 +4,11 @@
  *
  * Three promises, and one test each for every way they can be broken:
  *
- *   §5.1  the exit taxonomy — a script branches on the number, so each code is pinned
+ *   §5.1  the exit taxonomy - a script branches on the number, so each code is pinned
  *         against a real invocation of the real entry point, not against a helper.
- *   §5.2  the JSON envelope — one shape, every command, INCLUDING the failure path,
+ *   §5.2  the JSON envelope - one shape, every command, INCLUDING the failure path,
  *         with `schemaVersion` as the thing a consumer keys its parser off.
- *   §5.3  stdout carries the payload and nothing else — verified by piping a binary
+ *   §5.3  stdout carries the payload and nothing else - verified by piping a binary
  *         export and comparing it byte for byte with the same render written to a file,
  *         with a tool whose hook logs to `console.log` while it renders.
  *
@@ -66,7 +66,7 @@ const TOOLS: Array<[string, string, string]> = [
   // Gated on capabilities this shell cannot provide: `run` must exit 3, and `list --json`
   // must say so BEFORE anyone tries.
   ['mic-tool', SVG, manifest('mic-tool', { capabilities: ['microphone', 'screen'] })],
-  // An input whose id collides with a reserved export flag — the case where reading the
+  // An input whose id collides with a reserved export flag - the case where reading the
   // bare id off the manifest would set the export size instead of the input.
   ['shadow-tool', SVG, JSON.stringify({
     id: 'shadow-tool', name: 'shadow-tool', version: '1.0.0', engineVersion: '^1.0.0', status: 'community',
@@ -75,7 +75,7 @@ const TOOLS: Array<[string, string, string]> = [
   })],
   // A tool whose hook writes to console.log while it renders. hooks.js ships as DATA
   // from another repository, so "no shipped tool does that" is not a property this
-  // shell can rely on — and on `--export=png > out.png` the line would land in the PNG.
+  // shell can rely on - and on `--export=png > out.png` the line would land in the PNG.
   ['loud-tool', SVG, manifest('loud-tool', { hooks: { onInit: true } })],
 ];
 for (const [id, template, json] of TOOLS) {
@@ -323,7 +323,7 @@ test("a hook's console.log cannot corrupt a binary pipe", async () => {
   const piped = await cli(['run', 'loud-tool', '--export=png', '--no-provenance']);
   assert.equal(piped.code, 0, piped.stderr);
   assert.ok(piped.stdout.equals(await readFile(file)));
-  // The PNG signature must be the FIRST thing on stdout — a stray log line would land
+  // The PNG signature must be the FIRST thing on stdout - a stray log line would land
   // in front of it (or, worse, in the middle of the IDAT).
   assert.deepEqual([...piped.stdout.subarray(0, 4)], [0x89, 0x50, 0x4e, 0x47]);
   assert.equal(piped.stdout.includes(Buffer.from('HOOK NOISE')), false, 'hook logging reached stdout');
@@ -345,7 +345,7 @@ test('the byte-determinism docs/cli.md promises for SVG holds — with provenanc
   // true of SVG and the DOM-free formats and false of PDF (a /CreationDate), of the
   // browser tier, and of anything signed. Only the promise that survived is pinned here;
   // the browser tier is deliberately absent in this fixture, so it cannot be pinned at
-  // all — which is itself the reason the claim was narrowed rather than tested wider.
+  // all - which is itself the reason the claim was narrowed rather than tested wider.
   //
   // Narrowed once more by contract §12 O2: provenance is now DEFAULT-ON, so the
   // deterministic thing is a render with the marks off. Both halves are asserted below,
@@ -386,7 +386,7 @@ test('list --json reports what THIS installation can do, before anything is trie
   assert.ok(e.nativeFormats.includes('svg'));
   assert.equal(e.tiers.domFree.available, true);
   // LOLLY_WEB_DIST points at a directory with no built shell, so the browser tier must
-  // report itself unavailable AND say why — that is the whole value of the report.
+  // report itself unavailable AND say why - that is the whole value of the report.
   assert.equal(e.tiers.browser.available, false);
   assert.match(e.tiers.browser.reason, /web shell/);
   assert.equal(e.env.LOLLY_ROOT, root);

@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
- * Curve intersection — the operation every boolean, offset and stroke outline is
- * built on, and the one that decides whether the whole geometry layer is clean.
+ * Curve intersection. Every boolean, offset, and stroke outline in this module depends
+ * on this file. If this file is wrong, the whole geometry layer is wrong.
  *
- * ## Three cases, cheapest-exact first
+ * ## Three cases, cheapest and most exact first
  *
  * | pair | method | exactness |
  * |---|---|---|
@@ -11,27 +11,28 @@
  * | line × cubic | cubic root solve in the line's frame | exact to root-solver precision |
  * | cubic × cubic | fat-line (Bézier) clipping | converges quadratically to `tol` |
  *
- * A line is not a special case in the data model — it is a cubic with collinear
- * controls — so the dispatch is a geometric test rather than a type tag, and a curve
- * that happens to be straight gets the exact path automatically.
+ * A line is not a special case in the data model. It is a cubic with collinear
+ * controls. So the code picks a method by testing the geometry, not by checking a type
+ * tag, and a curve that happens to be straight gets the exact line method automatically.
  *
- * ## Why fat-line clipping rather than subdivision
+ * ## Why fat-line clipping instead of subdivision
  *
- * The obvious approach is recursive bisection: split both curves, keep pairs whose
- * boxes overlap, stop when small. It converges LINEARLY, so pinning an intersection
- * to 1e-9 takes ~30 levels and 2^30 worst-case pairs. Fat-line clipping (Sederberg &
- * Nishita 1990) instead computes, in one step, the parameter interval of curve A that
- * could possibly lie within the "fat line" bounding curve B, and discards the rest.
- * It converges quadratically — usually 5–8 iterations to full double precision — and
- * it never approximates the curve, only brackets it. Bisection remains as the
- * fallback for the case clipping cannot make progress on (near-tangential contact,
- * where the fat line barely clips anything).
+ * The obvious method is recursive bisection: split both curves, keep the pairs whose
+ * boxes overlap, and stop when the pieces are small. This converges LINEARLY, so
+ * pinning an intersection to 1e-9 takes about 30 levels and up to 2^30 pairs in the
+ * worst case. Fat-line clipping (Sederberg & Nishita 1990) instead computes, in one
+ * step, the parameter interval of curve A that could possibly lie inside the "fat
+ * line" bounding curve B, and discards the rest. This converges quadratically, usually
+ * 5-8 iterations to full double precision, and it never approximates the curve, only
+ * narrows down where it can be. Bisection is kept as a fallback for when clipping
+ * cannot make progress: near-tangential contact, where the fat line barely clips
+ * anything.
  *
- * ## What "clean" means in the output
+ * ## What "clean" means here
  *
- * Results are parameters on the ORIGINAL curves. The point is then evaluated FROM the
- * curve, so it lies on it to machine precision rather than near it. Nothing here
- * flattens, samples, or rasterises.
+ * Results are parameters on the ORIGINAL curves. The point is then computed FROM the
+ * curve, so it lies on the curve to machine precision, not just near it. Nothing here
+ * flattens the curve, samples it, or rasterises it.
  */
 import {
   type Cubic, type Pt, evalCubic, splitCubic, subCubic, boundsCubic, hullBounds,
@@ -79,9 +80,9 @@ export function intersectSegments(
 /**
  * Real roots of a·t³ + b·t² + c·t + d within [0,1].
  *
- * Cardano for the cubic, with a Newton polish on each root. The polish matters more
- * than the formula: Cardano's trigonometric branch loses several digits for the
- * three-real-root case, and two Newton steps recover them at negligible cost.
+ * Uses Cardano's formula, with a Newton polish on each root. The polish matters more
+ * than the formula: Cardano's trigonometric branch loses several digits of precision
+ * in the three-real-root case, and two Newton steps recover them at negligible cost.
  */
 export function cubicRoots01(a: number, b: number, c: number, d: number): number[] {
   const out: number[] = [];
@@ -118,7 +119,7 @@ export function cubicRoots01(a: number, b: number, c: number, d: number): number
     const u = Math.cbrt(-q / 2);
     push(2 * u + shift); push(-u + shift);
   } else {
-    // Three distinct real roots — the trigonometric form.
+    // Three distinct real roots - the trigonometric form.
     const r = Math.sqrt(-(p * p * p) / 27);
     const phi = Math.acos(Math.min(1, Math.max(-1, -q / (2 * r))));
     const m = 2 * Math.cbrt(r);
@@ -152,7 +153,7 @@ function dedupeRoots(ts: number[]): number[] {
  * Line × cubic, exactly.
  *
  * Rewriting the cubic in the line's own frame turns "where do they meet" into "where
- * is the curve's signed distance to the line zero" — a scalar cubic in `t`, solved in
+ * is the curve's signed distance to the line zero" - a scalar cubic in `t`, solved in
  * closed form. No iteration, no subdivision, and the roots are the true parameters.
  */
 export function intersectLineCubic(
@@ -214,7 +215,7 @@ function fatLine(c: Cubic): { nx: number; ny: number; c0: number; dMin: number; 
  * The distance of `c` from the fat line's axis is itself a cubic in `t`, in Bernstein
  * form. Its convex hull in (t, distance) space bounds it, so intersecting that hull
  * with the horizontal band [dMin, dMax] gives a parameter interval that provably
- * contains every intersection — and usually discards most of the domain in one step.
+ * contains every intersection - and usually discards most of the domain in one step.
  */
 function clipToFatLine(c: Cubic, fat: NonNullable<ReturnType<typeof fatLine>>): [number, number] | null {
   const d = [
@@ -225,7 +226,7 @@ function clipToFatLine(c: Cubic, fat: NonNullable<ReturnType<typeof fatLine>>): 
   ];
   const pts: Pt[] = d.map((v, i) => ({ x: i / 3, y: v }));
 
-  // Convex hull of four points with monotonically increasing x — the upper and lower
+  // Convex hull of four points with monotonically increasing x - the upper and lower
   // chains are enough, and cheaper than a general hull.
   const cross = (o: Pt, a: Pt, b: Pt) => (a.x - o.x) * (b.y - o.y) - (a.y - o.y) * (b.x - o.x);
   const chain = (sign: number): Pt[] => {
@@ -269,7 +270,7 @@ function clipIntersect(
   // `swap` tracks whether c1/c2 are currently the caller's second/first curve. The
   // recursion exchanges them every step (that alternation is what makes the clipping
   // converge quadratically), and this flag puts the parameters back the right way
-  // round on the way out — rather than the results being silently transposed.
+  // round on the way out - rather than the results being silently transposed.
   const emit = (t1: number, t2: number, x: number, y: number) =>
     out.push(swap ? { t1: t2, t2: t1, x, y } : { t1, t2, x, y });
   if (out.length > 128 || depth > 60) return;
@@ -290,7 +291,7 @@ function clipIntersect(
   const [lo, hi] = clipped;
   const shrink = hi - lo;
 
-  // A clip that removes less than a fifth of the domain is not making progress —
+  // A clip that removes less than a fifth of the domain is not making progress -
   // the classic near-tangential case. Bisect the LONGER curve and recurse on both
   // halves; this is what keeps the worst case finite rather than spinning.
   if (shrink > 0.8) {
@@ -331,18 +332,17 @@ function dedupe(list: Intersection[], tol: number): Intersection[] {
  *
  * The exact line paths above take a curve's endpoints and report a fraction along the
  * chord. For a cubic built by `lineToCubic` that fraction IS the parameter, because the
- * controls are evenly spaced — and that equivalence is so convenient it is easy to
- * assume generally. It does not hold. `M0,0 C0,0 0,0 100,0` — handles resting on the
- * start point, which is what a pen tool with un-dragged handles and plenty of imported
- * SVG produce — is perfectly straight and grossly non-uniform: its midpoint is at
- * x=12.5, not 50. Handing the chord fraction back as `t` therefore reports a point that
- * is on the LINE but nowhere near the curve at that parameter, and since every consumer
- * splits with `subCubic(c, t)`, the split lands in the wrong place and the resulting
- * geometry does not close.
+ * controls are evenly spaced. It is easy to assume this holds in general, but it does
+ * not. `M0,0 C0,0 0,0 100,0` (handles resting on the start point, which is what a pen
+ * tool with un-dragged handles, and much imported SVG, produce) is perfectly straight
+ * but grossly non-uniform: its midpoint is at x=12.5, not 50. Returning the chord
+ * fraction as `t` in that case gives a point that is on the LINE but nowhere near the
+ * curve at that parameter. Every consumer splits with `subCubic(c, t)`, so the split
+ * lands in the wrong place and the resulting geometry does not close.
  *
- * So convert. The along-chord displacement is itself a cubic in `t` (Bernstein
- * coefficients are just the controls projected onto the chord), so this is the same
- * closed-form root solve as everything else here — exact, not a search.
+ * So convert it. The along-chord displacement is itself a cubic in `t` (the Bernstein
+ * coefficients are just the controls projected onto the chord), so this uses the same
+ * closed-form root solve as everything else in this file: exact, not a search.
  */
 function chordFractionToParam(c: Cubic, u: number): number {
   const dx = c[6] - c[0], dy = c[7] - c[1];
@@ -379,15 +379,15 @@ function chordFractionToParam(c: Cubic, u: number): number {
  * Every intersection of two cubics.
  *
  * Dispatches on geometry, not on how the caller labelled the curve: a cubic whose
- * controls are collinear IS a line and takes the exact algebraic path. What that path
- * returns is a fraction along the chord, which is NOT the curve's parameter unless the
- * controls happen to be evenly spaced — so it is converted back before it leaves here.
- * See `chordFractionToParam`; getting this wrong reports points tens of units off the
+ * controls are collinear IS a line and takes the exact algebraic path. That path
+ * returns a fraction along the chord, which is NOT the curve's parameter unless the
+ * controls happen to be evenly spaced, so it is converted back before it leaves here.
+ * See `chordFractionToParam`. Getting this wrong reports points tens of units off the
  * curve they claim to lie on.
  *
- * Overlapping (coincident) curves are reported as their two overlap endpoints rather
- * than as an infinity of points — enough for a boolean to split at, and honest about
- * there being no isolated crossing.
+ * Overlapping (coincident) curves are reported as their two overlap endpoints, not as
+ * an infinity of points. That is enough for a boolean operation to split at, and it is
+ * accurate: there is no single isolated crossing to report.
  */
 export function intersectCubics(c1: Cubic, c2: Cubic, tol = EPS): Intersection[] {
   if (!boxesOverlap(boundsCubic(c1), boundsCubic(c2), tol)) return [];

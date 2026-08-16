@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
- * PackBits run-length coding (TIFF 6.0 §9) — the byte compression Photoshop
+ * PackBits run-length coding (TIFF 6.0 §9) - the byte compression Photoshop
  * calls "RLE" for PSD channel data (compression method 1) and TIFF uses for
  * Compression=32773. One scheme, two container homes, so it lives alone here
  * where psd.ts, psd-write.ts and any future TIFF reader can share it.
@@ -11,7 +11,7 @@
  *   -128     → no-op (skip)
  *
  * Contract matches png-unfilter.ts: the decoder is defensive on every input and
- * NEVER throws — a truncated packet, source overrun or destination overrun
+ * NEVER throws - a truncated packet, source overrun or destination overrun
  * returns -1 so callers can treat it as "couldn't decode" and skip the row or
  * layer. The encoder emits runs only at length >= 3 (a 2-byte run costs the
  * same as 2 literal bytes but splits the literal packet, so it never wins).
@@ -20,7 +20,7 @@
 
 /**
  * Encode `src` as one PackBits stream. Worst case (no runs anywhere) the
- * output is src.length + ceil(src.length/128) bytes — each 128-byte literal
+ * output is src.length + ceil(src.length/128) bytes - each 128-byte literal
  * packet pays a 1-byte header, never more.
  */
 export function packBitsEncode(src: Uint8Array): Uint8Array {
@@ -58,7 +58,7 @@ export function packBitsEncode(src: Uint8Array): Uint8Array {
 /**
  * Decode PackBits from `src[srcStart, srcEnd)` into exactly `dstLen` bytes at
  * `dst[dstStart]`. Returns the byte count written (=== dstLen on success) or
- * -1 — never throws — when the stream is truncated, a packet would overrun the
+ * -1 - never throws - when the stream is truncated, a packet would overrun the
  * destination, or the bounds arguments are incoherent. Strict by design: a PSD
  * row's decoded length is known exactly, and a stream that disagrees is
  * damage, not tolerance.

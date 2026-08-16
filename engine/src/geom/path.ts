@@ -8,9 +8,9 @@
  * `svg-path.ts` already produces `SubPath[]`, and that is the right shape for a
  * *parser*: an M-led run of segments plus a `closed` flag, each segment carrying only
  * its endpoint because the previous one is implied. It is the wrong shape for
- * *geometry*, where every algorithm wants a curve it can hand to `intersectCubics`
- * without first reconstructing where it started. So a `Contour` stores whole cubics —
- * the same information, already joined up.
+ * *geometry*, where every algorithm wants a curve it can pass directly to
+ * `intersectCubics` without first reconstructing where it started. So a `Contour`
+ * stores whole cubics: the same information, already joined up.
  *
  * The conversion is lossless in both directions for closed shapes, which is what
  * matters: a boolean's input comes from `parseSvgPath` and its output goes back out as
@@ -19,15 +19,15 @@
  * ## Closed only, for the operators
  *
  * Booleans are defined on *regions*, and an open contour does not bound one. Open
- * contours survive in the model (offsetting and stroking both need them — a stroked
- * open path is the whole point of Stage 4) but `booleanPath` closes anything it is
- * given, because the alternative is silently discarding geometry the caller passed in.
+ * contours are kept in the model (offsetting and stroking both need them: a stroked
+ * open path is what Stage 4 exists for) but `booleanPath` closes anything it is given,
+ * because otherwise it would silently discard geometry the caller passed in.
  */
 import { type Cubic, evalCubic, boundsCubic, type Box, lineToCubic } from './bezier.ts';
 import type { PathSegment, SubPath } from '../svg-path.ts';
 
 /** A run of end-to-start connected cubics. `closed` means the last curve's endpoint
- *  joins the first curve's start — implicitly, so a closing straight edge is NOT
+ * joins the first curve's start - implicitly, so a closing straight edge is NOT
  *  stored as a curve unless it was authored as one. */
 export interface Contour {
   curves: Cubic[];
@@ -35,7 +35,7 @@ export interface Contour {
 }
 
 /** A whole path: several contours, holes included. Which contours are holes is decided
- *  by winding, not by ordering — see `pointInPath`. */
+ * by winding, not by ordering - see `pointInPath`. */
 export type GeomPath = Contour[];
 
 /** Positional tolerance for treating two coordinates as the same point. Deliberately
@@ -65,7 +65,7 @@ export function closeContour(c: Contour): Contour {
 }
 
 /**
- * Signed area of a closed contour. Positive is counter-clockwise in a y-up frame —
+ * Signed area of a closed contour. Positive is counter-clockwise in a y-up frame -
  * which in SVG's y-down frame reads as clockwise on screen.
  *
  * Green's theorem, ∮(x dy − y dx)/2, integrated per curve in closed form: for a cubic
@@ -73,13 +73,13 @@ export function closeContour(c: Contour): Contour {
  * this is exact and nothing is sampled.
  *
  * Written out here rather than assembled from `signedAreaCubic` plus each chord's
- * trapezoid. That decomposition is algebraically fine and was what this used to do, but
- * `signedAreaCubic` returns the curve's bulge over its chord with the sign the OTHER way
- * round from the trapezoid it has to be added to, so the two terms subtract instead of
- * adding: a four-cubic circle of r=10 came back as 85.75 against a true 314.25, and a
- * two- or three-cubic circle — which is how most rounded shapes and glyph outlines are
- * actually drawn — came back NEGATIVE, inverting every orientation decision taken from
- * it. Polygons hid it entirely, since a straight curve has no bulge.
+ * trapezoid. That decomposition is algebraically valid and was what this code used to
+ * do, but `signedAreaCubic` returns the curve's bulge over its chord with the sign the
+ * OTHER way round from the trapezoid it has to be added to, so the two terms subtract
+ * instead of adding. A four-cubic circle of r=10 came back as 85.75 against a true
+ * 314.25, and a two- or three-cubic circle (how most rounded shapes and glyph outlines
+ * are actually drawn) came back NEGATIVE, which inverted every orientation decision
+ * taken from it. Polygons did not show the bug, because a straight curve has no bulge.
  */
 export function contourArea(c: Contour): number {
   let a = 0;
@@ -202,7 +202,7 @@ export function toSvgPathData(p: GeomPath, dp = 4): string {
   return parts.join('');
 }
 
-/** Straight AND evenly parameterised — a curve can be geometrically straight while
+/** Straight AND evenly parameterised - a curve can be geometrically straight while
  *  its controls bunch at one end, and collapsing that to an `L` would change how any
  *  later split lands on it. */
 function isStraight(k: Cubic, tol = 1e-9): boolean {
@@ -216,7 +216,7 @@ function isStraight(k: Cubic, tol = 1e-9): boolean {
   return true;
 }
 
-/** Point on a contour at (curve index, t) — the coordinate the geometry addresses
+/** Point on a contour at (curve index, t) - the coordinate the geometry addresses
  *  everything by. */
 export function contourPoint(c: Contour, index: number, t: number): { x: number; y: number } {
   const k = c.curves[Math.min(c.curves.length - 1, Math.max(0, index))]!;

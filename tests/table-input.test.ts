@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
- * The `table` input type — value normalization, the single-param compact URL
+ * The `table` input type - value normalization, the single-param compact URL
  * codec, and engine-driven pagination (render.paginate).
  *
  * A table's columns AND rows are user data (unlike blocks, whose fields are
@@ -217,7 +217,7 @@ test('render.paginate with zero rows still emits one page', async () => {
 
 // Cells carry markdown (battlecards 1.1.0): the engine's {{markdown}} helper runs
 // per cell inside the paginated hydration, so a pasted spreadsheet cell can bring
-// structure — lists, emphasis, links, images — with no hook in the tool.
+// structure - lists, emphasis, links, images - with no hook in the tool.
 const MD_TOOL = {
   ...(PAGINATED_TOOL as object),
   template: '<article>{{#each page.fields}}<div class="v">{{{markdown value}}}</div>{{/each}}</article>',

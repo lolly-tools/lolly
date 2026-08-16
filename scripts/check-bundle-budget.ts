@@ -5,7 +5,7 @@
  * WHY THIS EXISTS
  * A large front-end perf effort (see plans/archive/ui-perf-audit.md) moved the heavy
  * render/validation libraries (engine render path, handlebars, ajv, html2canvas)
- * OFF the initial boot path — they now load lazily only when a tool actually
+ * OFF the initial boot path - they now load lazily only when a tool actually
  * renders. That win is *silent to lose*: a single careless top-level
  * `import { createRuntime }` in an entry/preloaded module re-drags ~85 KB gz of
  * engine + handlebars + ajv back onto the critical path, and nothing would fail.
@@ -16,7 +16,7 @@
  *   1. None of the deliberately-lazied heavy chunks appear on the boot path.
  *   2. The total GZIPPED size of the boot JS stays under a budget.
  *
- * It is a STANDALONE check — intentionally NOT wired into `build:web`. Run it in
+ * It is a STANDALONE check - intentionally NOT wired into `build:web`. Run it in
  * CI or by hand (`npm run check:bundle`) AFTER a production build exists.
  */
 import { readFileSync } from 'node:fs';
@@ -41,7 +41,7 @@ const FORBIDDEN_BOOT_CHUNK = /(engine-render|engine-c2pa|handlebars|ajv|html2can
 // host.geom + host.color off the eager bridge (-37.1), the Tauri/first-run probes
 // split out (-12.5), neuro-dock + music-player deferred (-9.3), lazy facades for
 // net/text/pdf/pptx/capture/viz/identity (-6.0), the user-fonts boot slice (-5.6).
-// What remains on boot is index, engine-util and bridge — all first-paint work, so
+// What remains on boot is index, engine-util and bridge - all first-paint work, so
 // the ceiling moved rather than the measurement. Do NOT raise this again to make a
 // failing build pass; the point of the number is that a regression has to be argued.
 // 2026-08-09: boot had drifted to 173.3 (an engine barrel re-dragged onto boot via
@@ -55,7 +55,7 @@ const FORBIDDEN_BOOT_CHUNK = /(engine-render|engine-c2pa|handlebars|ajv|html2can
 // sfx VOICES synthesis split into a lazy shells/web/src/lib/sfx-voices.ts. Landed 134.2.
 // 2026-08-10: 140.9 on CI (the collab work landed on top of that 134.2 measurement).
 // Back to 129.9, again without moving the ceiling, by restoring four lazy boundaries.
-// The collab boot imports were NOT the offender — private-opener / collab-share-private /
+// The collab boot imports were NOT the offender - private-opener / collab-share-private /
 // collab-mount / collab-launch / the live-mount install are ~7.8 KB of minified registry
 // between them, with every heavy body (ceremony, RTC, beam, QR) already behind a dynamic
 // import. What was actually on the critical path:
@@ -64,7 +64,7 @@ const FORBIDDEN_BOOT_CHUNK = /(engine-render|engine-c2pa|handlebars|ajv|html2can
 //     that edge carried catalog-integrity + x509 + der-read along. sha256Hex now lives
 //     in the engine/src/bytes.ts leaf; catalog-integrity re-exports it (unchanged barrel).
 //   - bytes.ts then co-located INTO the engine-x509 chunk, which kept the cert parser on
-//     boot anyway — the same trap the engine-util note above describes. It has its own
+//     boot anyway - the same trap the engine-util note above describes. It has its own
 //     `engine-bytes` chunk group now (vite.config.js), ahead of engine-x509.
 //   - shells/web/src/catalog/integrity.ts imported the verifier statically for a feature
 //     that is INERT unless a build pins VITE_CATALOG_PUBLIC_KEY_JWK. Dynamic now.

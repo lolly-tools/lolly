@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
  * Re-export shim. The ZzFX preset bank + ZzFXM composition helpers moved into
- * the ENGINE — engine/src/zzfx-compose.ts (1.60.0, barrel-exported) — so shells
+ * the ENGINE - engine/src/zzfx-compose.ts (1.60.0, barrel-exported) - so shells
  * can compose songs at runtime, not just the ingest/generator scripts. New code
  * should import from the engine; this path stays only so existing script
  * imports keep resolving.

@@ -1,12 +1,12 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
- * computeCost — the Phase 4 arithmetic. Multiplies rates FROM THE CARD by
+ * computeCost - the Phase 4 arithmetic. Multiplies rates FROM THE CARD by
  * quantities preflight COUNTED, in integer minor units, and returns a structured
  * working. The one invariant above all: never invent money.
  *
  * The rates below are TEST values, never shipped as data (rule 10 scans .json
  * fixtures, not this .test.ts). Amounts authored in MAJOR units, e.g. `38` EUR
- * becomes `3800` minor units at exponent 2 — that is the "3800 minor units" the
+ * becomes `3800` minor units at exponent 2 - that is the "3800 minor units" the
  * task refers to.
  *
  * Run: node --test "tests/rate-card-cost.test.ts"
@@ -38,7 +38,7 @@ function count(kind: Count['kind'], value: number, over: Partial<Count> = {}): C
   return { kind, value, unit: 'row', bound: 'exact', basis: 'test', ...over };
 }
 
-/** Sum every visible row + adjustment delta — must equal the headline (rule 3). */
+/** Sum every visible row + adjustment delta - must equal the headline (rule 3). */
 function visibleSum(w: ReturnType<typeof computeCost>): number {
   const rowSum = w.rows.reduce((s, r) => s + r.subtotal, 0);
   const adjSum = w.adjustments.reduce((s, a) => s + a.delta, 0);
@@ -112,7 +112,7 @@ test('every amount is an integer number of minor units (no float artefacts)', ()
     assert.ok(Number.isInteger(r.subtotal), 'subtotal integer');
   }
   assert.ok(Number.isInteger(w.subtotalOfCovered));
-  // 5.5 * 100 in binary float is exactly 550 after Math.round — pin it.
+  // 5.5 * 100 in binary float is exactly 550 after Math.round - pin it.
   assert.equal(w.rows[1]!.unitRate, 550);
 });
 
@@ -217,7 +217,7 @@ test('a sub-cent per-unit rate is neither inflated nor zeroed; subtotal rounds o
   assert.ok(Number.isInteger(w.rows[0]!.subtotal));
   assert.equal(w.estimatedTotal!.minorUnits, 80000);
 
-  // 0.004 rounds to 0 minor per unit — the buggy path priced this line at nothing while
+  // 0.004 rounds to 0 minor per unit - the buggy path priced this line at nothing while
   // still counting it as covered. The honest figure is 400.00.
   const w2 = computeCost(
     makeCard([{ id: 'press', kind: 'perQuantity', quantityKind: 'sheets', rate: 0.004 }]),

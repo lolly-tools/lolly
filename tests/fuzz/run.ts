@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
- * Fuzz discovery runner (standalone — NOT part of the node:test suite).
+ * Fuzz discovery runner (standalone - NOT part of the node:test suite).
  *
  *   node tests/fuzz/run.ts [iters] [targetName]
  *

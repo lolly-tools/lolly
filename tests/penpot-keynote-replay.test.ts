@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
- * Headless replay of a REAL Penpot deck export — the UXDays 2026 keynote —
+ * Headless replay of a REAL Penpot deck export - the UXDays 2026 keynote - 
  * against the engine's Penpot mappers. Gated (skip-with-reason) when the file
  * isn't on this machine, same pattern as brand-import.test.ts's SKIP_MATERIALS;
  * CI and other machines skip cleanly.
@@ -12,7 +12,7 @@
  * design tool hydrates the blur into its box style.
  *
  * Spec 2 (fonts): the deck's 110 text shapes use Work Sans (300–700),
- * Spline Sans Mono (700) — both `gfont-` — and the non-Google `sourcesanspro`.
+ * Spline Sans Mono (700) - both `gfont-` - and the non-Google `sourcesanspro`.
  * These assert the collectPenpotFontUsage aggregate tally, the knownFamilies
  * passthrough into finalizeBoxes, and the real hooks hydrating the family.
  *
@@ -47,7 +47,7 @@ interface Deck {
   pages: Map<string, Record<string, Shape>>;
   /** every shape across every page. */
   all: Shape[];
-  /** the raw unzipped archive, path → bytes — for the entry-level engine APIs. */
+  /** the raw unzipped archive, path → bytes - for the entry-level engine APIs. */
   entries: Record<string, Uint8Array>;
 }
 
@@ -139,7 +139,7 @@ test('keynote: every Mask group holding blurred circles flattens with feGaussian
       if (!(Array.isArray(s.shapes) ? s.shapes : []).some((k: unknown) => subtreeHasBlurredCircle(String(k)))) continue;
       population++;
       const svg = penpotGroupToSvg(s, lookup);
-      // Before this change the flatten SUCCEEDED but silently dropped the blur —
+      // Before this change the flatten SUCCEEDED but silently dropped the blur - 
       // so this asserts the new def, not a route change (and the clip survives).
       assert.ok(svg, `mask group ${s.id}: still flattens`);
       assert.ok(svg.includes('feGaussianBlur'), `mask group ${s.id}: blur def baked`);
@@ -293,9 +293,9 @@ test('keynote: the usage proposal assigns the roles a designer would', { skip: S
   assert.equal(roles.text, '#FFFFFF', 'the most-used text colour that clears 4.5:1 on the surface');
   assert.ok(contrastRatio(roles.text, roles.surface) >= 4.5, 'the text pick actually reads');
 
-  // The load-bearing exclusion: #312470 is the surface's gradient partner. Its
+  // The required exclusion: #312470 is the surface's gradient partner. Its
   // weight x chroma score (76 x 0.125) would beat #14CECA's (57 x 0.130) if it
-  // stayed in the pool — the shade rule is what keeps the real accent second.
+  // stayed in the pool - the shade rule is what keeps the real accent second.
   assert.notEqual(roles.secondary, '#312470');
   assert.ok(!roles.extras.includes('#312470'), 'the surface shade never reaches the accent pool');
 });
@@ -336,7 +336,7 @@ test('keynote: the proposal doc installs cleanly as a resolvable brand', { skip:
 });
 
 // ── 11. export marks: the census ─────────────────────────────────────────────
-// (Spec: exports-marked asset ingest — slot 11 per the cross-spec coordination.)
+// (Spec: exports-marked asset ingest - slot 11 per the cross-spec coordination.)
 
 /** pageId → declared page name, read from the page-level meta JSONs. */
 async function pageNamesById(): Promise<Map<string, string>> {
@@ -472,7 +472,7 @@ test('keynote: the pure-vector rule on the kept marks', { skip: SKIP }, async ()
 });
 
 // ── Spec 3: per-corner radii + flip fidelity (slots 13–17) ───────────────────
-// (Appended block — imports hoist; kept here so the block stays append-only.)
+// (Appended block - imports hoist; kept here so the block stays append-only.)
 import { penpotTransformBaked, pathDBounds, mirrorPenpotGradient } from '../engine/src/design-map.ts';
 
 const isFlipped = (s: Shape): boolean => s.flipX === true || s.flipY === true;
@@ -490,7 +490,7 @@ test('keynote: the flip and corner-radius census matches the audit scan exactly'
   for (const s of flipped) byType[String(s.type)] = (byType[String(s.type)] || 0) + 1;
   assert.deepEqual(byType, { path: 61, circle: 20, rect: 11, frame: 4 });
   assert.equal(all.filter((s) => String(s.type) === 'text' && isFlipped(s)).length, 0, 'zero flipped text');
-  // Corner radii: 13 shapes, every one with all four corners EQUAL — the deck never
+  // Corner radii: 13 shapes, every one with all four corners EQUAL - the deck never
   // exercises the unequal-corner route, which is why it's pinned by unit tests.
   const withR = all.filter((s) => [s.r1, s.r2, s.r3, s.r4].some((r) => Number(r) > 0));
   assert.equal(withR.length, 13, '13 shapes carry corner radii');
@@ -499,7 +499,7 @@ test('keynote: the flip and corner-radius census matches the audit scan exactly'
     assert.ok([s.r2, s.r3, s.r4].every((r) => (r == null ? r1 : Number(r)) === r1),
       `shape ${s.id}: all four corners equal`);
   }
-  // Every path carries an object transform (identity or baked) — the field the
+  // Every path carries an object transform (identity or baked) - the field the
   // double-transform fix keys on.
   const paths = all.filter((s) => String(s.type) === 'path');
   assert.equal(paths.length, 2290, '2290 paths');
@@ -519,7 +519,7 @@ test('keynote: path content is page-space-final — inverse transform lands on s
   const t = s!.transform as { a: number; b: number; c: number; d: number };
   assert.ok(Math.abs(t.a * t.d - t.b * t.c - -1) < 1e-4, 'det −1 (a flip is orientation-reversing)');
   // Undo the baked transform about the selrect centre: the content maps back onto
-  // the selrect — proving content is selrect-geometry with R·F applied, so using
+  // the selrect - proving content is selrect-geometry with R·F applied, so using
   // selrect + rot AND the final content together transforms the shape twice.
   const sel = s!.selrect;
   const cx = sel.x + sel.width / 2, cy = sel.y + sel.height / 2;
@@ -614,7 +614,7 @@ test('keynote: the 2 flipY image-fill "square" rects mark _fillFlip \'y\' with t
   }
   const target = flippedImages.find((s) => s.id === 'adf652d7-b996-8054-8005-9d80912e9a89');
   assert.ok(target, 'the verified page-b2c5fbf9 "square" is one of them');
-  // Unflipped image fills carry NO marker — the field stays absent, not ''.
+  // Unflipped image fills carry NO marker - the field stays absent, not ''.
   const plainImg = all.find((s) => !isFlipped(s)
     && Array.isArray(s.fills) && s.fills.some((f: any) => f?.fillImage?.id != null));
   assert.ok(plainImg, 'an unflipped image fill exists');
@@ -660,7 +660,7 @@ test('keynote: with nothing declared the token-first path defers to the usage pr
 
 test('keynote: the one strokeStyle "none" in the deck is a legacy SHAPE-level key, not a strokes[] entry', { skip: SKIP }, async () => {
   const { all } = await loadDeck();
-  // Not one strokes[] entry in this deck says "none" — the single hit the fixture
+  // Not one strokes[] entry in this deck says "none" - the single hit the fixture
   // scan reported is the flat pre-strokes[] field still written at shape level.
   const entryNone = all.filter((s) => Array.isArray(s.strokes)
     && s.strokes.some((st: any) => String(st?.strokeStyle ?? '') === 'none'));
@@ -698,7 +698,7 @@ test('keynote: zero backgroundBlur keys anywhere (the negative pin)', { skip: SK
   // designer never used it: every one of the 23 blur entries is a layer blur, and the
   // dedicated key never appears. The pin is what makes the positive cases in
   // design-bgblur.test.ts honestly synthetic rather than accidentally
-  // contradicted by the one real file we hold — and it will fail loudly the day a
+  // contradicted by the one real file we hold - and it will fail loudly the day a
   // background-blur fixture lands, which is exactly when the mapping wants revisiting.
   const { all } = await loadDeck();
   assert.deepEqual(all.filter((s) => (s as any).backgroundBlur !== undefined), [],
@@ -711,7 +711,7 @@ test('keynote: zero backgroundBlur keys anywhere (the negative pin)', { skip: SK
 });
 
 // ── components as templates: the 1.1 census ──────────────────────────────────
-// (Appended block — imports hoist; kept here so the block stays append-only.)
+// (Appended block - imports hoist; kept here so the block stays append-only.)
 import { collectPenpotComponents, penpotComponentSlots } from '../engine/src/design-components.ts';
 
 /** The deck's parsed `files/<fid>/components/*.json` records. */
@@ -794,7 +794,7 @@ test('keynote: each master subtree maps to boxes through the real resolvers', { 
     assert.equal(nodes.length, sub.length, `${c.name}: every shape in the subtree maps to a node`);
     const boxes = finalizeBoxes(nodes as never[]);
     assert.equal(boxes.length, nodes.length, `${c.name}: every node survives finalize`);
-    // The master frame itself is board-sized — the template's canvas.
+    // The master frame itself is board-sized - the template's canvas.
     const root = penpotShapeToNode(shapesById[c.rootShapeId]!) as any;
     assert.equal(Math.round(root.w), 895, `${c.name}: 895 wide`);
     assert.equal(Math.round(root.h), 503, `${c.name}: 503 tall`);
@@ -842,7 +842,7 @@ test('keynote: slot inference finds the lorem text leaves and the image fills', 
   assert.deepEqual(slotsOf('TITLES4').map((s) => s.kind),
     ['text', 'image', 'text', 'image', 'text', 'text', 'text', 'text']);
   assert.deepEqual(slotsOf('PERSON INTRO').map((s) => s.kind), ['image', 'text', 'text', 'text']);
-  // Slot count is a tiny fraction of the subtree — the rest is decoration.
+  // Slot count is a tiny fraction of the subtree - the rest is decoration.
   assert.ok(slotsOf('PERSON INTRO').length * 100 < 537, 'four slots in a 537-shape master');
 });
 
@@ -865,7 +865,7 @@ test('keynote: the external-library census is 6 instances across 3 files', { ski
   ], '5 distinct foreign components, one of them placed twice');
 
   // THE TRAP, pinned: 3 of those 5 foreign componentIds ALSO name a local
-  // definition — the library was duplicated from this file, so ids survive.
+  // definition - the library was duplicated from this file, so ids survive.
   // "has no local definition" would have classed 4 of the 6 instances as local;
   // `componentFile` is the only honest test, which is what the collector uses.
   const localIds = new Set(out.components.map((c) => c.id));
@@ -873,7 +873,7 @@ test('keynote: the external-library census is 6 instances across 3 files', { ski
   assert.equal(shared.length, 3, 'TEXT 8 / TEXT 9 / TEXT 10 ids are reused by the foreign library');
   assert.equal(shared.reduce((n, e) => n + e.instances, 0), 4, 'covering 4 of the 6 external instances');
 
-  // Instance accounting: 20 shapes carry a componentId — 6 masters, 8 local
+  // Instance accounting: 20 shapes carry a componentId - 6 masters, 8 local
   // copies, 6 foreign. Nothing else in the deck is component-linked.
   const { all } = await loadDeck();
   const linked = all.filter((s) => s.componentId);
@@ -915,7 +915,7 @@ test('keynote: PERSON INTRO’s master hydrates through the real design', { skip
 });
 
 // ── components as templates: the 1.2 preview census ──────────────────────────
-// (Appended block — imports hoist; kept here so the block stays append-only.)
+// (Appended block - imports hoist; kept here so the block stays append-only.)
 import { penpotComponentThumb } from '../shells/web/src/lib/design-templates.ts';
 
 test('keynote: every component preview belongs to an INSTANCE, so a master needs the fallback', { skip: SKIP }, async () => {
@@ -931,7 +931,7 @@ test('keynote: every component preview belongs to an INSTANCE, so a master needs
 
   // NOT ONE of them depicts a master: Penpot writes a preview for a frame it has
   // rendered, and the masters sit on the components page. A template built off
-  // the master alone would therefore be thumbnail-less for this whole deck —
+  // the master alone would therefore be thumbnail-less for this whole deck - 
   // which is why the import falls back to an instance's preview.
   const masterIds = new Set(out.components.map((c) => c.rootShapeId));
   assert.equal(frameIds.filter((id) => masterIds.has(id)).length, 0, 'zero master previews');
@@ -939,8 +939,8 @@ test('keynote: every component preview belongs to an INSTANCE, so a master needs
     assert.equal(penpotComponentThumb(entries, fileId, c.pageId, c.rootShapeId), null, `${c.name}: no own preview`);
   }
 
-  // Of the 8, three are LOCAL instances — one each for TITLES4, TITLES2 and
-  // PERSON INTRO — and those three templates get a real PNG through the
+  // Of the 8, three are LOCAL instances - one each for TITLES4, TITLES2 and
+  // PERSON INTRO - and those three templates get a real PNG through the
   // fallback. The other five are foreign instances or uncomponented frames.
   const localHits = new Map<string, string>();
   for (const frameId of frameIds) {

@@ -1,18 +1,18 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
- * Animated WebP packer — pure, DOM-free, platform-agnostic.
+ * Animated WebP packer - pure, DOM-free, platform-agnostic.
  *
  * Chunk-level surgery only: the shell supplies COMPLETE already-encoded still
  * WebP files (one per animation frame, from the browser's native
  * canvas.toBlob('image/webp')), and this splices their image bitstreams into a
- * single animated RIFF/WEBP. No pixel work, no compression — each frame's
+ * single animated RIFF/WEBP. No pixel work, no compression. Each frame's
  * `VP8 ` / `VP8L` chunk (and its optional `ALPH`) is copied verbatim into one
  * `ANMF`, wrapped by a `VP8X` (animation flag) + `ANIM` (loop/background)
  * header. The browser does the compression; the engine assembles the container.
  *
  * Like apng.ts / emf.ts / eps.ts this is a byte-format authority: no DOM, no
- * deps, fully node:test-able. NOTE: WebP RIFF integers are LITTLE-endian — PNG
- * (apng.ts) is big-endian — hence the separate little-endian helpers here.
+ * deps, fully node:test-able. NOTE: WebP RIFF integers are LITTLE-endian. PNG
+ * (apng.ts) is big-endian, hence the separate little-endian helpers here.
  */
 
 import { concatBytes as concat } from './bytes.ts';
@@ -23,7 +23,7 @@ export interface PackWebpAnimOptions {
   delayMs?: number | number[];
   /** ANIM loop_count; 0 = loop forever (default). */
   loops?: number;
-  /** Canvas width — the export path always passes this (frames share geometry). */
+  /** Canvas width - the export path always passes this (frames share geometry). */
   width?: number;
   /** Canvas height. */
   height?: number;
@@ -48,7 +48,7 @@ function chunk(fourcc: string, payload: Uint8Array): Uint8Array {
 
 interface WebpImage { chunks: Uint8Array; hasAlpha: boolean; width: number; height: number; }
 
-// Parse a still WebP (canvas.toBlob('image/webp') output — simple lossy `VP8 `,
+// Parse a still WebP (canvas.toBlob('image/webp') output - simple lossy `VP8 `,
 // simple lossless `VP8L`, or extended `VP8X`+`ALPH`+`VP8 `/`VP8L`) and return its
 // image bitstream chunks VERBATIM (ALPH before VP8, as libwebp demux requires),
 // plus whether it carries alpha and its pixel dimensions.
@@ -102,7 +102,7 @@ function parseStillWebp(bytes: Uint8Array, label: string): WebpImage {
 /**
  * Pack pre-encoded still WebP frames (identical geometry) into an animated WebP.
  *
- * frames : Uint8Array[] — complete still WebP files.
+ * frames : Uint8Array[] - complete still WebP files.
  * opts   : { delayMs = 67, loops = 0, width?, height?, background = transparent }
  *
  * Returns the animated WebP bytes as a Uint8Array.
@@ -138,7 +138,7 @@ export function packWebpAnim(frames: Uint8Array[], opts: PackWebpAnimOptions = {
   const parts: Uint8Array[] = [chunk('VP8X', vp8x), chunk('ANIM', anim)];
 
   // One ANMF per frame: full-canvas region at 0,0, Blending=overwrite (0x02),
-  // Disposal=none — the SOURCE semantics apng.ts uses, so transparent pixels
+  // Disposal=none - the SOURCE semantics apng.ts uses, so transparent pixels
   // replace rather than compositing over the previous frame.
   for (let i = 0; i < imgs.length; i++) {
     const raw = Array.isArray(delayMs) ? delayMs[i] : delayMs;

@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
- * `host.geom` — the tool-facing geometry bridge (engine/src/geom-api.ts).
+ * `host.geom` - the tool-facing geometry bridge (engine/src/geom-api.ts).
  *
  * ## What is under test, and against what
  *
@@ -14,12 +14,12 @@
  *
  * Four oracles, none of them the bridge itself:
  *
- * 1. **Analytic.** A stroked circle's outline area is Steiner's 2·P·(w/2) — exact for a
+ * 1. **Analytic.** A stroked circle's outline area is Steiner's 2·P·(w/2) - exact for a
  *    convex closed curve, and independent of the π d² term that makes the outer and
  *    inner offsets individually awkward. An offset unit square is (s+2d)² for a miter
  *    join, s² + 4sd + πd² for round, s² + 4sd + 2d² for bevel. An arc's area is πr²/2.
  * 2. **The kernel, called directly.** Every boolean through the bridge is compared with
- *    `unionPath`/`intersectPath`/… on the path `parseSvgPath` produces — by area and by
+ *    `unionPath`/`intersectPath`/… on the path `parseSvgPath` produces - by area and by
  *    point membership over a grid, never by string equality, since the bridge rounds
  *    coordinates on the way out and a string comparison would be testing `toFixed`.
  * 3. **Local integration.** Areas are computed HERE, by 3-point Gauss-Legendre on
@@ -73,7 +73,7 @@ function err(r: GeomPathResult | GeomResult<unknown>, what = ''): string {
   return r.code;
 }
 
-/** No path may ever carry a non-finite coordinate — checked in the STRING (a template
+/** No path may ever carry a non-finite coordinate - checked in the STRING (a template
  *  would render it verbatim) and again after re-parsing. */
 function assertFinite(pathData: string, what = ''): void {
   assert.ok(!/NaN|Infinity|undefined/.test(pathData), `${what}: non-finite token in "${pathData.slice(0, 120)}"`);
@@ -87,7 +87,7 @@ function assertFinite(pathData: string, what = ''): void {
   }
 }
 
-/** Signed area by 3-point Gauss-Legendre on ∮x dy — exact for cubics, computed here
+/** Signed area by 3-point Gauss-Legendre on ∮x dy - exact for cubics, computed here
  *  rather than taken from the engine. */
 const GL = [
   { t: 0.5 - Math.sqrt(3 / 5) / 2, w: 5 / 18 },
@@ -156,7 +156,7 @@ function sampleContours(contours: GeomContour[]): number[] {
 const SQUARE = 'M0 0 L100 0 L100 100 L0 100 Z';
 /** The same square shifted, overlapping SQUARE over a 50×50 corner. */
 const SQUARE_B = 'M50 50 L150 50 L150 150 L50 150 Z';
-/** A circle of r as four cubics — the k = 4/3·(√2−1) approximation. */
+/** A circle of r as four cubics - the k = 4/3·(√2−1) approximation. */
 const K = (4 / 3) * (Math.SQRT2 - 1);
 function circlePath(r: number, cx = 0, cy = 0, dp = 9): string {
   const k = K * r;
@@ -249,7 +249,7 @@ test('Q raises exactly to a cubic and T reflects the quadratic control', () => {
   for (let i = 0; i < 8; i++) near(seg[i]!, expect[i]!, 1e-12, `T control ${i}`);
   // T with no preceding quadratic is a straight-ish cubic through the current point.
   // A T with nothing to reflect uses the CURRENT point as the quadratic control, which
-  // is a straight line — unevenly parameterised (controls at 0 and ⅓), which is
+  // is a straight line - unevenly parameterised (controls at 0 and ⅓), which is
   // geometry and not an artefact, so it is asserted as written rather than tidied.
   const lone = val(geom.parse('M0 0 L10 0 T20 0'), 'lone T');
   const loneSeg = lone[0]!.curves[1]!;
@@ -345,7 +345,7 @@ test('an empty or whitespace-only `d` is an empty path, not an error', () => {
 // ── 3. booleans agree with the kernel ─────────────────────────────────────────
 
 /** Membership agreement over a grid: the bridge's own `contains` against `pointInPath`
- *  on the kernel's result. Coordinates near an edge are skipped — the two paths differ
+ *  on the kernel's result. Coordinates near an edge are skipped - the two paths differ
  *  by the bridge's coordinate rounding there, which is not a disagreement about the
  *  region. */
 function membershipAgrees(bridgeD: string, kernelResult: GeomPath, box: { x0: number; y0: number; x1: number; y1: number }, what: string): void {
@@ -428,7 +428,7 @@ test('a legitimately empty result is ok, not a failure', () => {
 
 // ── 4. the bounded-work path surfaces as `limit` ──────────────────────────────
 
-/** A closed polygon of `n` edges around a circle of radius `r` — well-formed geometry,
+/** A closed polygon of `n` edges around a circle of radius `r` - well-formed geometry,
  *  deliberately past the kernel's 8000-curve pairwise ceiling. */
 function manyEdgePolygon(n: number, r: number): string {
   const parts: string[] = [];
@@ -482,7 +482,7 @@ test('malformed path data is rejected with `invalid-path`, never guessed at', ()
   ];
   for (const [bad, why] of cases) {
     assert.equal(err(geom.parse(bad), why), 'invalid-path', why);
-    // Every entry point refuses identically — no method has its own softer parser.
+    // Every entry point refuses identically - no method has its own softer parser.
     assert.equal(err(geom.bounds(bad), why), 'invalid-path', `${why} via bounds`);
     assert.equal(err(geom.offset(bad, 5), why), 'invalid-path', `${why} via offset`);
     assert.equal(err(geom.stroke(bad, 5), why), 'invalid-path', `${why} via stroke`);
@@ -581,7 +581,7 @@ test('offsetting a square matches the closed form for each join style', () => {
   }
   // Inward: (s − 2d)², joins irrelevant on a shrinking convex corner.
   near(Math.abs(areaOf(d(geom.offset(square, -dist), 'inward'))), (s - 2 * dist) ** 2, 0.05);
-  // Past the inradius there is nothing left — an empty ANSWER, not the input back.
+  // Past the inradius there is nothing left - an empty ANSWER, not the input back.
   const gone = geom.offset(square, -60);
   assert.ok(gone.ok && gone.d === '', `over-shrunk offset should be empty, got ${gone.ok ? gone.d : gone.code}`);
   // A zero distance is the identity.
@@ -649,7 +649,7 @@ test('stroke and offset defaults are SVG\'s', () => {
 // ── 7. simplify ───────────────────────────────────────────────────────────────
 
 test('simplify reduces segment count within tolerance, and never inflates a path', () => {
-  // A circle drawn as 32 cubics — more segments than the shape needs.
+  // A circle drawn as 32 cubics - more segments than the shape needs.
   const parts: string[] = [];
   const n = 32, r = 100;
   const k = ((4 / 3) * Math.tan(Math.PI / (2 * n))) * r;
@@ -816,7 +816,7 @@ test('every method is synchronous, present, and returns a discriminated result',
     assert.ok(!(r instanceof Promise), 'host.geom must be synchronous');
     assert.equal(typeof (r as { ok: unknown }).ok, 'boolean');
   }
-  // `limits()` hands back a copy — a tool cannot lower the engine's own ceilings.
+  // `limits()` hands back a copy - a tool cannot lower the engine's own ceilings.
   const a = geom.limits();
   a.maxCurves = 1;
   assert.notEqual(geom.limits().maxCurves, 1);

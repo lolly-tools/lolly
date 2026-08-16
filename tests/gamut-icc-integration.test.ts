@@ -4,15 +4,15 @@
  *
  * icc.ts and gamut-source.ts were built to one interface and are unit-tested
  * separately (tests/icc.test.ts, tests/gamut-source.test.ts). Neither suite
- * proves they COMPOSE — that `iccGamutSource(p, intent)` is accepted everywhere a
+ * proves they COMPOSE - that `iccGamutSource(p, intent)` is accepted everywhere a
  * gamut name is, and that the answers mean what the display path's mean. That is
  * what this file is for, plus the `host.color` surface a tool actually sees.
  *
  * The strongest check here needs no fixture arithmetic at all: run macOS's own
  * sRGB / Display-P3 / Rec.2020 profiles through the ICC path and compare the
  * chroma ceiling with the same gamut reached by its pre-composed matrix. Two
- * completely independent routes to one number — CLUT-free matrix/TRC tables read
- * from bytes nobody here wrote, versus brand-derive's Oklab core — so agreement
+ * completely independent routes to one number - CLUT-free matrix/TRC tables read
+ * from bytes nobody here wrote, versus brand-derive's Oklab core - so agreement
  * is evidence about both.
  *
  * Real-profile tests skip with the missing path so a box without a ColorSync
@@ -70,7 +70,7 @@ test('a display gamut read from its own ICC profile agrees with its matrix', (t)
         for (const h of [0, 60, 120, 180, 240, 300]) {
           const viaIcc = maxChroma(l, h, src);
           const viaMatrix = maxChroma(l, h, name);
-          // These agree to about 1e-4 — the two routes are the same boundary,
+          // These agree to about 1e-4 - the two routes are the same boundary,
           // reached through a profile's s15Fixed16 matrix in one case and
           // brand-derive's float matrix in the other, both bisected to
           // GAMUT_EPSILON. 0.002 leaves room for the fixed-point quantisation and
@@ -103,7 +103,7 @@ test('every gamut function takes an ICC source where it takes a name', (t) => {
     assert.ok(ceiling > 0.06 && ceiling < 0.30, `press ceiling at l=0.55 h=30 must sit between the two probes, got ${ceiling}`);
     assert.ok(ceiling < maxChroma(0.55, 30, 'srgb'), 'a press gamut must be narrower than sRGB at hue 30');
 
-    // oklchSlice: some pixels painted, some left transparent — a source that
+    // oklchSlice: some pixels painted, some left transparent - a source that
     // answered every pixel the same way would pass a "runs without throwing" test.
     const img = oklchSlice({ plane: 'lc', fixed: 30, width: 48, height: 32, limit: src });
     let opaque = 0;
@@ -189,7 +189,7 @@ test('a profile with no reverse transform reports usable:false rather than an em
   // A2B0 only: device → Lab exists, so `hasIntent` says yes, but membership goes
   // through fromLab and there is nothing to invert. Reporting `usable: true` here
   // promises an answer the queries can only give as "nothing at all is printable"
-  // — a caller told to gate on `usable` then draws a chart of nothing and cannot
+  // - a caller told to gate on `usable` then draws a chart of nothing and cannot
   // tell it apart from a press that reproduces nothing.
   const api = makeColorApi();
   const handle = api.iccProfile!(oneWayProfileBytes(), 'perceptual');
@@ -218,7 +218,7 @@ test('the stock abstract profiles do not advertise a gamut to a tool', (t) => {
 
 test('a handle the host did not issue gets the no-answer result, never an answer', () => {
   const api = makeColorApi();
-  // Shaped exactly like a real handle, including a plausible id — the point is
+  // Shaped exactly like a real handle, including a plausible id - the point is
   // that shape is not authority: the tables live in the host, keyed by object
   // identity, so a forged handle cannot borrow some other profile's answers.
   const forged = {
@@ -237,7 +237,7 @@ test('the inert profile handle passed where a SOURCE belongs answers nothing, an
     // The natural mistake: the handle carries an id, a label and usable:true, so it
     // reads source-like, but the tables stay in the host and it has no `contains`.
     // The three limit-taking queries must degrade to their no-answer values rather
-    // than throw out of the hook that asked — from beforeExport, a failed export.
+    // than throw out of the hook that asked - from beforeExport, a failed export.
     assert.equal(api.maxChroma!(0.55, 30, handle as never), 0,
       'a limit that is not a gamut source must give no ceiling, not a TypeError');
     const img = api.slice!({ plane: 'ch', fixed: 0.55, width: 8, height: 8, limit: handle as never });
@@ -247,7 +247,7 @@ test('the inert profile handle passed where a SOURCE belongs answers nothing, an
     assert.ok(region.every((ring) => ring.every((pt) => pt.y === 1)),
       'and its boundary must collapse onto the zero-chroma edge rather than draw sRGB under a press label');
     // The handle-keyed queries are the ones that DO work with a handle, and must
-    // keep working — the guard above must not have made every handle inert.
+    // keep working - the guard above must not have made every handle inert.
     assert.equal(api.inProfileGamut!(handle, 0.55, 0.06, 30), true,
       'the handle still answers through the query built for it');
   });
@@ -279,7 +279,7 @@ test('ICC_GAMUT_DELTA_E is the documented dial, not an accident', () => {
 // ─── the ceiling grid stands in for `contains` ────────────────────────────────
 
 /**
- * The slice painter no longer calls a profile's `contains` per pixel — it tests
+ * The slice painter no longer calls a profile's `contains` per pixel - it tests
  * `c <= sampleCeiling(grid, l, h)` against that source's own ceiling grid, which
  * is what took a profile chart from ~85 ms to the RGB path's cost. The trade is
  * an assumption (a gamut is an interval in chroma at fixed L and h) plus grid
@@ -356,7 +356,7 @@ test('iccRoundTripDeltaE declines an intent the profile has no table for', () =>
 
 test('iccRoundTripDecides tells apart the profiles the ΔE actually decides', (t) => {
   // A matrix/TRC profile has no B2A table, so `fromLab` clips into the device cube
-  // and the round trip is near zero well OUTSIDE the gamut — `contains` tests the
+  // and the round trip is near zero well OUTSIDE the gamut - `contains` tests the
   // cube instead. Anything showing the ΔE beside a verdict has to gate on this, or
   // it prints "outside, ΔE 0.0" under "in gamut is decided by ΔE 3.0".
   const matrix = parseIccProfile(srgbIccProfile());

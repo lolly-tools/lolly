@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 // SPDX-License-Identifier: MPL-2.0
 /**
- * shells/web/src/README.md stats generator — the same marker-rewrite pattern as
+ * shells/web/src/README.md stats generator - the same marker-rewrite pattern as
  * scripts/gen-engine-modules.ts and scripts/build-readme-tools.ts.
  *
  * Run as: node scripts/gen-web-src-readme.ts          (rewrite in place)
@@ -17,11 +17,11 @@
  *   <!-- web-src-dirs:start -->    per-directory source / test / CSS counts
  *   <!-- web-src-largest:start -->  the largest source files + their test status
  *
- * The prose around them is hand-written and untouched — only the tables move.
+ * The prose around them is hand-written and untouched - only the tables move.
  *
  * "Direct test coverage" is deliberately mechanical: a sibling `<name>.test.ts`,
  * or any file under the shell's tree whose text imports the module by basename.
- * It answers "is anything pointed at this file", not "is it well tested" — the
+ * It answers "is anything pointed at this file", not "is it well tested" - the
  * hand-written notes in the prose column are where nuance belongs, so the
  * generator emits a plain yes/no and leaves judgement to the reader.
  */
@@ -123,7 +123,7 @@ function testedSet(): Set<string> {
     const base = f.rel.slice(f.rel.lastIndexOf('/') + 1).replace(/\.[jt]s$/, '');
     const sibling = f.rel.replace(/\.[jt]s$/, '.test.ts');
     if (existsSync(join(SRC, sibling))) { tested.add(f.rel); continue; }
-    // An import naming this module — `from './export.ts'`, `from '../lib/x.js'`.
+    // An import naming this module - `from './export.ts'`, `from '../lib/x.js'`.
     const re = new RegExp(`['"\`][^'"\`]*/${base}\\.[jt]s['"\`]`);
     if (texts.some((t) => re.test(t))) tested.add(f.rel);
   }
@@ -136,7 +136,7 @@ function testedSet(): Set<string> {
  * This column is HAND-WRITTEN and worth keeping: the `bridge/export.ts` note
  * names the nine Chromium suites that cover it and the fact they self-skip,
  * which no generator could derive. So the generator refreshes what actually rots
- * — the line counts and which files are in the top N — and carries each existing
+ * - the line counts and which files are in the top N - and carries each existing
  * note across verbatim. A file that enters the table for the first time gets a
  * mechanical yes/none placeholder for a human to write up.
  */

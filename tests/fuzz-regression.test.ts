@@ -5,7 +5,7 @@
  * It does two things:
  *
  *   1. Replays every saved regression input in tests/fuzz/regressions/ (inputs a
- *      prior discovery run — or a hand-added proof-of-concept — proved to crash,
+ *      prior discovery run - or a hand-added proof-of-concept - proved to crash,
  *      hang, or blow up allocation) against its target, asserting the parser now
  *      returns or throws promptly and bounded.
  *   2. Runs a few hundred seeded mutations per target (same mulberry32 PRNG the
@@ -16,7 +16,7 @@
  *   FUZZ_ITERS=50000 node tests/fuzz/run.ts
  *
  * The harness (prng.ts / mutate.ts / targets.ts) is shared with that runner, so
- * this test and the soak exercise the exact same code path — no drift.
+ * this test and the soak exercise the exact same code path - no drift.
  */
 
 import { test } from 'node:test';
@@ -77,7 +77,7 @@ test('regression corpus replays without crash / hang / alloc blow-up', async () 
   }
 });
 
-// 2. A few hundred seeded mutations per target — the same deterministic sequence
+// 2. A few hundred seeded mutations per target - the same deterministic sequence
 //    the discovery runner uses, so a reintroduced defect surfaces here first.
 for (const target of ALL_TARGETS) {
   test(`fuzz ${target.name}: ${ITERS} seeded mutations stay bounded`, async () => {

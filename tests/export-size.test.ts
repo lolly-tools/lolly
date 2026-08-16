@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
- * Unit tests for exportSizeDriver (shells/web/src/views/export-size.ts) — the
+ * Unit tests for exportSizeDriver (shells/web/src/views/export-size.ts) - the
  * manifest→export-dimensions mapping that lets a "size" select set the printed
  * page size (so choosing "A6 landscape" actually exports A6 landscape).
  *
@@ -23,7 +23,7 @@ const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
 // The real-manifest tests read tools that ship in the (private) SUSE brand
 // pack; under a checkout without it (public CI) they can't run. Gate on the
 // SOURCE pack, not the gitignored tools/ profile view: with the pack mounted,
-// a missing tool means it was renamed or deleted — FAIL, don't skip.
+// a missing tool means it was renamed or deleted - FAIL, don't skip.
 const SUSE_TOOLS = join(ROOT, 'brands', 'suse', 'tools');
 const PACK_MOUNTED = existsSync(SUSE_TOOLS);
 const SKIP_SUSE = !PACK_MOUNTED && 'SUSE brand pack not mounted (see profiles.json)';
@@ -133,7 +133,7 @@ test('the real event-name-badge manifest wires its size select to export dims', 
   const manifest = JSON.parse(readFileSync(join(SUSE_TOOLS, 'event-name-badge/tool.json'), 'utf8'));
   const d = exportSizeDriver(manifest)!;
   assert.equal(d.id, 'size');
-  // A6 landscape must export 148 × 105 mm — the exact case the user flagged.
+  // A6 landscape must export 148 × 105 mm - the exact case the user flagged.
   assert.deepEqual(d.dims.a6land, { width: 148, height: 105, unit: 'mm' });
   // The default (4×6 in) maps to its mm trim size.
   assert.deepEqual(d.dims['4x6in'], { width: 101.6, height: 152.4, unit: 'mm' });

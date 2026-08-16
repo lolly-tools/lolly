@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
- * PackBits (engine/src/packbits.ts) — encode/decode identity, worst-case
+ * PackBits (engine/src/packbits.ts) - encode/decode identity, worst-case
  * expansion bound, and the never-throw refusal contract of the decoder.
  *
  * Run with: node --test tests/packbits.test.ts
@@ -33,7 +33,7 @@ test('packbits: round-trip identity across shapes', () => {
     new Uint8Array([9, 9, 9, 5, 5, 5, 5, 1, 2, 3]),        // runs + tail literal
     // Deterministic pseudo-random: literals with occasional short runs.
     Uint8Array.from({ length: 4096 }, (_, i) => (i * 197 + ((i >> 3) * 31)) & 0xff),
-    // Alternating byte pairs — worst case for run finding.
+    // Alternating byte pairs - worst case for run finding.
     Uint8Array.from({ length: 257 }, (_, i) => i & 1),
   ];
   for (const src of cases) {

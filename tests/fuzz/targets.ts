@@ -3,30 +3,30 @@
  * Fuzz targets: the engine's untrusted-input parsers, each with a small seed
  * corpus of VALID inputs (built from the engine's own writers / real container
  * layouts) and an async invoke() that feeds one mutated buffer through the
- * parser. invoke() MUST NOT swallow errors — the runner's try/catch classifies
+ * parser. invoke() MUST NOT swallow errors - the runner's try/catch classifies
  * them (a thrown validation Error is the desired behaviour; a hang or an
  * allocation blow-up is a finding).
  *
  * Entry points (verified against the modules + existing tests):
- *   - c2pa-verify   : verifyC2pa(bytes)                     — top-level verifier
- *   - cbor          : decodeCbor(bytes)                     — the claim decoder, hit directly
+ *   - c2pa-verify   : verifyC2pa(bytes) - top-level verifier
+ *   - cbor          : decodeCbor(bytes) - the claim decoder, hit directly
  *   - media-sniff   : sniffAnimatedRaster + sniffVideoContainer
  *   - pdf-map       : interpretPdfPage(page) + parseToUnicode(str)
- *   - x509          : parseCertificate(der)                 — the DER/X.509 cert parser
- *   - file-metadata : extractFileMetadata(bytes)            — the /verify metadata reveal
- *   - strip-metadata: stripMetadata(bytes, fmt)             — the clean-copy byte surgery
- *   - video-meta    : embedMp4Meta / embedWebmMeta          — container walkers (shared with the c2pa read side)
- *   - data-import   : parseDataRows(text)                   — CSV/JSON → blocks rows
- *   - pptx-read     : readPptx(parts, parseXml) + isPptx    — the .pptx part-map reader
- *   - pptx-patch    : rebrandPptxParts(parts, plan)         — the surgical .pptx rebrand
- *   - icc           : parseIccProfile(bytes) + evaluate                  — the ICC profile reader
- *   - pptx-bridge   : createPptxAPI().inspect(bytes)        — the web bridge's capped unzip + inspect end-to-end
- *   - der-read      : derTlv/derChildren walk + ecdsaDerToRaw — the shared DER/ASN.1 TLV walker
+ *   - x509          : parseCertificate(der) - the DER/X.509 cert parser
+ *   - file-metadata : extractFileMetadata(bytes) - the /verify metadata reveal
+ *   - strip-metadata: stripMetadata(bytes, fmt) - the clean-copy byte surgery
+ *   - video-meta    : embedMp4Meta / embedWebmMeta - container walkers (shared with the c2pa read side)
+ *   - data-import   : parseDataRows(text) - CSV/JSON → blocks rows
+ *   - pptx-read     : readPptx(parts, parseXml) + isPptx - the .pptx part-map reader
+ *   - pptx-patch    : rebrandPptxParts(parts, plan) - the surgical .pptx rebrand
+ *   - icc           : parseIccProfile(bytes) + evaluate - the ICC profile reader
+ *   - pptx-bridge   : createPptxAPI().inspect(bytes) - the web bridge's capped unzip + inspect end-to-end
+ *   - der-read      : derTlv/derChildren walk + ecdsaDerToRaw - the shared DER/ASN.1 TLV walker
  *   - c2pa-extract  : parseC2paStore / collectActionChain / prepareC2paIngredientFromStore / sniffFormat
- *   - c2pa-containers: attachC2paStore(bytes, fmt, store) + embedC2paInPdf — the placement-side container walkers
- *   - url-pack      : unpackToken(token) + expandQuery(query) — the `z` param decoder (DEFLATE bomb caps)
- *   - wav           : parseWav(bytes)                       — the RIFF/WAVE container walker
- *   - depth-hint    : depthHint(bytes)                      — the ingest bit-depth header sniff (web shell lib)
+ *   - c2pa-containers: attachC2paStore(bytes, fmt, store) + embedC2paInPdf - the placement-side container walkers
+ *   - url-pack      : unpackToken(token) + expandQuery(query) - the `z` param decoder (DEFLATE bomb caps)
+ *   - wav           : parseWav(bytes) - the RIFF/WAVE container walker
+ *   - depth-hint    : depthHint(bytes) - the ingest bit-depth header sniff (web shell lib)
  */
 
 import { embedC2paInPdf, embedC2pa, attachC2paStore, encodeCbor, type Signer } from '../../engine/src/c2pa.ts';
@@ -65,7 +65,7 @@ import { JSDOM } from 'jsdom'; // typed by tests/jsdom.d.ts (no @types/jsdom exi
 
 export interface FuzzTarget {
   name: string;
-  /** Build the valid seed corpus (async — some seeds come from the signer). */
+  /** Build the valid seed corpus (async - some seeds come from the signer). */
   seeds(): Promise<Uint8Array[]>;
   /** Feed one buffer through the parser. Throwing is fine; hanging/alloc is not. */
   invoke(bytes: Uint8Array): Promise<void>;
@@ -126,7 +126,7 @@ const eb = (id: number[], payload: Uint8Array): Uint8Array => concat([Uint8Array
 // Every declared size is the REAL length of what follows. That matters: an EBML
 // header whose size byte undercounts its own content puts the Segment somewhere
 // other than where segOff computes, and both walkers (placeWebm,
-// embedWebmMeta) then bail at the front door on every iteration — the seed would
+// embedWebmMeta) then bail at the front door on every iteration - the seed would
 // look fine to a sniffer and still test nothing.
 function tinyWebm(): Uint8Array {
   const head = eb([0x42, 0x86], Uint8Array.of(1));                      // DocTypeVersion
@@ -137,7 +137,7 @@ function tinyWebm(): Uint8Array {
   ]);
 }
 
-// Tagless MP3 (frame sync + junk audio) — the placer prepends its ID3v2 tag,
+// Tagless MP3 (frame sync + junk audio) - the placer prepends its ID3v2 tag,
 // and a stamped one seeds the ID3 frame walk on the extract side.
 const tinyMp3 = (): Uint8Array => concat([Uint8Array.of(0xff, 0xfb, 0x90, 0x00), bytesOf('fake-mp3-audio-frames')]);
 
@@ -206,7 +206,7 @@ export const pdfMapTarget: FuzzTarget = {
     return [...PDF_CONTENT_SEEDS.map(bytesOf), bytesOf(TOUNICODE_SEED), bytesOf(TOUNICODE_WIDE_SEED)];
   },
   async invoke(bytes) {
-    // Byte-transparent latin1 view — the shell hands the interpreter a decoded
+    // Byte-transparent latin1 view - the shell hands the interpreter a decoded
     // content string; binary bytes survive as char codes.
     let s = '';
     for (let i = 0; i < bytes.length; i++) s += String.fromCharCode(bytes[i]!);
@@ -223,7 +223,7 @@ export const x509Target: FuzzTarget = {
     out.push(signer.certDer);
     const root = await generateCaRoot();
     out.push(root.certDer);
-    // A real leaf, using the signer's SPKI (pulled back out is overkill — the
+    // A real leaf, using the signer's SPKI (pulled back out is overkill - the
     // signer cert IS a full v3 cert, enough shape for the DER walker).
     const leaf = await issueLeafCert({ caCertDer: root.certDer, caPrivateKey: root.pkcs8Der, spkiDer: signer.certDer.slice(0), email: 'a@b.co' })
       .catch(() => null);
@@ -290,7 +290,7 @@ export const iccTarget: FuzzTarget = {
   async seeds() {
     return [iccProfileWith(iccMft2Element()), iccProfileWith(iccMabElement(), 4)];
   },
-  // Contract: parseIccProfile never throws — a malformed profile is null. So any
+  // Contract: parseIccProfile never throws - a malformed profile is null. So any
   // throw is a finding, as are the runner's hang and allocation classes (the LUT
   // geometry caps). Evaluation is exercised too: a profile that parses must be
   // safe to transform with, however absurd the geometry it declared.
@@ -311,15 +311,15 @@ export const iccTarget: FuzzTarget = {
 export const cborTarget: FuzzTarget = {
   name: 'cbor',
   async seeds() {
-    // The writer's own encodings of realistic claim shapes — every major type,
-    // nesting, and both string kinds — so mutation reaches the decoder's paths.
+    // The writer's own encodings of realistic claim shapes - every major type,
+    // nesting, and both string kinds - so mutation reaches the decoder's paths.
     return [
       encodeCbor({ 'dc:title': 'Fuzz', alg: 'sha256', assertions: [{ url: 'self#jumbf=c2pa.assertions/c2pa.hash.data', hash: new Uint8Array(32) }] }),
       encodeCbor([1, -5, 42, true, null, 'text', { nested: [{ deeper: 'x' }] }]),
       encodeCbor(new Map<unknown, unknown>([['actions', [{ action: 'c2pa.created' }]], [1, 2]])),
       encodeCbor('plain string'),
       encodeCbor(1234567890123),
-      // Half/single/double floats the decoder must read (0xf9/0xfa/0xfb) — the
+      // Half/single/double floats the decoder must read (0xf9/0xfa/0xfb) - the
       // writer can't emit them, so hand-author the three heads.
       Uint8Array.from([0xf9, 0x3c, 0x00]),                                     // half 1.0
       Uint8Array.from([0xfa, 0x40, 0x49, 0x0f, 0xdb]),                          // single ~π
@@ -342,7 +342,7 @@ export const fileMetadataTarget: FuzzTarget = {
     ]);
     return [tinyJpeg(), tinyPng(), pngWithText, tinyWebp(), tinySvg(), tiff, tinyGif(1)];
   },
-  // Contract: never throws, never hangs — a malformed block yields fewer fields.
+  // Contract: never throws, never hangs - a malformed block yields fewer fields.
   async invoke(bytes) { extractFileMetadata(bytes); },
 };
 
@@ -357,7 +357,7 @@ export const stripMetadataTarget: FuzzTarget = {
 };
 
 // A fast-start MP4 (moov before mdat) whose moov carries a real trak▸…▸stbl▸stco,
-// so mutations reach the chunk-offset patcher — the loop that must clamp a forged
+// so mutations reach the chunk-offset patcher - the loop that must clamp a forged
 // entry count to what the box physically holds.
 function faststartMp4(): Uint8Array {
   const stco = mp4box('stco', u32be(0) /* version/flags */, u32be(2) /* count */, u32be(64), u32be(128));
@@ -399,15 +399,15 @@ export const dataImportTarget: FuzzTarget = {
   },
   async invoke(bytes) {
     // The shell reads the file to text; junk bytes arrive as replacement chars.
-    // "No usable rows" & friends are controlled throws — fine by the runner.
+    // "No usable rows" & friends are controlled throws - fine by the runner.
     parseDataRows(new TextDecoder('utf-8').decode(bytes), { fields: DATA_IMPORT_FIELDS });
   },
 };
 
 // ── pptx fixtures (mirroring tests/pptx-read.test.ts + tests/pptx-patch.test.ts;
-//    each seed stays small — mutants past 64 KB escape the hang assertion) ─────
+//    each seed stays small - mutants past 64 KB escape the hang assertion) ─────
 
-// jsdom stands in for the shell's native DOMParser — built ONCE at module scope
+// jsdom stands in for the shell's native DOMParser - built ONCE at module scope
 // (a JSDOM window is far too expensive to build per invoke).
 const jsdomWin = new JSDOM('').window;
 const jsdomParser = new jsdomWin.DOMParser();
@@ -443,7 +443,7 @@ const READ_THEME = `${XML_DECL}<a:theme xmlns:a="${NS_A}" name="FuzzTheme"><a:th
   `<a:fmtScheme name="Fuzz"><a:fillStyleLst><a:solidFill><a:schemeClr val="phClr"/></a:solidFill></a:fillStyleLst></a:fmtScheme>` +
   `</a:themeElements></a:theme>`;
 
-// spTree carries a text box, a rect, a picture, a table, and a grouped ellipse —
+// spTree carries a text box, a rect, a picture, a table, and a grouped ellipse - 
 // every node kind the reader emits, so mutation reaches every branch.
 const READ_SLIDE = `${XML_DECL}<p:sld xmlns:a="${NS_A}" xmlns:r="${NS_R}" xmlns:p="${NS_P}"><p:cSld><p:spTree>` +
   `<p:nvGrpSpPr><p:cNvPr id="1" name=""/><p:cNvGrpSpPr/><p:nvPr/></p:nvGrpSpPr>` +
@@ -504,7 +504,7 @@ export const pptxReadTarget: FuzzTarget = {
     const enc = new TextEncoder();
     return [READ_PRESENTATION, READ_PRESENTATION_RELS, READ_THEME, READ_SLIDE, READ_SLIDE_RELS, READ_NOTES].map((s) => enc.encode(s));
   },
-  // Contract (file-metadata precedent): never throws — a hostile part degrades
+  // Contract (file-metadata precedent): never throws - a hostile part degrades
   // to defaults/no nodes, so the only findings are hang/alloc/stack-overflow.
   async invoke(bytes) {
     for (const slot of PPTX_READ_SLOTS) readPptx({ ...PPTX_READ_PARTS, [slot]: bytes }, parseXml);
@@ -584,7 +584,7 @@ export const pptxPatchTarget: FuzzTarget = {
     const enc = new TextEncoder();
     return [PATCH_THEME, PATCH_SLIDE, PATCH_CHART, PATCH_PRESENTATION, PATCH_PRES_RELS, PATCH_CONTENT_TYPES].map((s) => enc.encode(s));
   },
-  // Contract (file-metadata precedent): never throws — an unmatched/hostile
+  // Contract (file-metadata precedent): never throws - an unmatched/hostile
   // pattern passes through verbatim, so the only findings are hang/alloc/stack.
   async invoke(bytes) {
     for (const slot of PPTX_PATCH_SLOTS) rebrandPptxParts({ ...PPTX_PATCH_PARTS, [slot]: bytes }, PPTX_PATCH_PLAN);
@@ -593,8 +593,8 @@ export const pptxPatchTarget: FuzzTarget = {
 
 // The web bridge's consumer surface over the same parsers: capped zip inflation
 // (inflatePptx) + inspect end-to-end, on whole zipped decks rather than bare
-// parts. inspect NEVER throws by contract — hostile bytes must resolve ok:false
-// — so ANY throw is a finding, alongside the runner's hang/alloc classes (the
+// parts. inspect NEVER throws by contract - hostile bytes must resolve ok:false
+// - so ANY throw is a finding, alongside the runner's hang/alloc classes (the
 // zip-bomb caps). rebrand's inflatePptx throws are its committed-file contract,
 // not exercised here. Built at module scope, reusing pptx-read's jsdom adapter.
 const pptxBridgeApi = createPptxAPI({ parseXml });
@@ -624,7 +624,7 @@ export const pptxBridgeTarget: FuzzTarget = {
 // Under every certificate and signature path (c2pa-verify.ts, x509.ts, seal.ts),
 // and its own header says the DER it eats "comes straight out of attacker-
 // controlled files". Contract: throws PROMPTLY on truncation or a length that
-// overruns — so a controlled throw is the desired outcome and the findings are
+// overruns - so a controlled throw is the desired outcome and the findings are
 // the runner's hang / stack / alloc classes.
 
 // Bounds THIS harness's tree walk, not the parser: der-read is iterative (one
@@ -633,7 +633,7 @@ export const pptxBridgeTarget: FuzzTarget = {
 const DER_MAX_NODES = 20_000;
 
 /** Walk the whole TLV tree depth-first (explicit stack) via the real
- *  derTlv/derChildren — the same pair every certificate path uses. */
+ *  derTlv/derChildren - the same pair every certificate path uses. */
 function walkDer(b: Uint8Array): void {
   const stack: DerTlv[] = [derTlv(b, 0)];
   let visited = 0;
@@ -661,7 +661,7 @@ export const derReadTarget: FuzzTarget = {
   },
   // Whole-tree walk first, conversion second. Not the other way round: a
   // certificate is a SEQUENCE whose first child is constructed, so
-  // ecdsaDerToRaw rejects it immediately as "not an ECDSA-Sig-Value" — running
+  // ecdsaDerToRaw rejects it immediately as "not an ECDSA-Sig-Value" - running
   // it first would throw before the walker ever saw the cert seeds.
   async invoke(bytes) {
     walkDer(bytes);
@@ -701,14 +701,14 @@ export const c2paExtractTarget: FuzzTarget = {
   },
   // Mixed contracts, deliberately exercised together on the same bytes:
   // parseC2paStore THROWS with a specific message on a store it can't read
-  // (fine — the runner ignores controlled throws), while collectActionChain and
+  // (fine - the runner ignores controlled throws), while collectActionChain and
   // prepareC2paIngredientFromStore must NEVER throw (a display nicety and an
   // ingest helper), so any escape from those two is itself a finding.
   //
   // Ordered so the never-throw pair runs first: parseC2paStore is last because a
   // controlled throw from it would otherwise skip them. (bmffTopBoxes, the other
   // exported walker here, is reached on mutated MP4s through the c2pa-verify and
-  // c2pa-containers targets — swallowing its throw to also call it here would
+  // c2pa-containers targets - swallowing its throw to also call it here would
   // hide exactly the classes this harness exists to catch.)
   async invoke(bytes) {
     collectActionChain(bytes);
@@ -721,14 +721,14 @@ export const c2paExtractTarget: FuzzTarget = {
 // Attach format per sniffed container, so a mutated seed reaches the placer that
 // actually walks its grammar (the shell knows the format from the asset; a
 // header-mutated file that sniffs as nothing still gets fed to a placer).
-// ('pdf' is absent on purpose — it routes to embedC2paInPdf, not a placer; so
-// are the C2PA 2.4 text bindings 'html'/'code'/'text', which are READ-only — no
+// ('pdf' is absent on purpose - it routes to embedC2paInPdf, not a placer; so
+// are the C2PA 2.4 text bindings 'html'/'code'/'text', which are READ-only - no
 // container in c2pa-containers.ts can place one. A missing key falls through to
 // the 'png' default below, which is the intent for every unplaceable sniff.)
 //
 // The exclusion is spelled out rather than `Partial<>` ON PURPOSE: this type is
 // a GUARD. Adding a placeable format to SniffFormat without adding its placer
-// row has to be a compile error — under `Partial<>` it is silent, and the new
+// row has to be a compile error - under `Partial<>` it is silent, and the new
 // format gets fuzzed against the PNG placer forever.
 const ATTACH_FORMAT: Record<Exclude<SniffFormat, 'pdf' | 'html' | 'code' | 'text'>, string> = {
   png: 'png', jpeg: 'jpg', gif: 'gif', svg: 'svg',
@@ -748,7 +748,7 @@ export const c2paContainersTarget: FuzzTarget = {
   // The PLACEMENT side: splicing a store into a container means walking that
   // container's grammar (PNG chunks, JPEG segments, GIF blocks, RIFF/TIFF IFDs,
   // BMFF boxes, EBML elements, PDF xref). Contract: throws on a container it
-  // refuses to modify — so only hang / stack / alloc are findings.
+  // refuses to modify - so only hang / stack / alloc are findings.
   async invoke(bytes) {
     const store = (await cachedStoreSeeds())[0]!;
     const fmt = sniffFormat(bytes);
@@ -765,7 +765,7 @@ export const c2paContainersTarget: FuzzTarget = {
 // The one module whose ENTIRE input is a public URL param, and whose threat is a
 // DEFLATE bomb (raw DEFLATE expands ~1000×), bounded by MAX_TOKEN = 64 KB and
 // MAX_UNPACKED = 256 KB. unpackToken catches its own failures and returns null,
-// so the observable classes here are hang and stack overflow — a swallowed
+// so the observable classes here are hang and stack overflow - a swallowed
 // allocation error would show up as the cap doing its job, which is the point.
 const URL_PACK_QUERIES = [
   'background=336699&theme=dark&format=png',
@@ -795,7 +795,7 @@ export const urlPackTarget: FuzzTarget = {
   name: 'url-pack',
   // Two kinds of seed, because the interesting code sits behind a strict
   // alphabet check. Byte mutators produce mostly non-base64 text, so a mutated
-  // TOKEN is refused before decoding ~80% of the time — good coverage of the
+  // TOKEN is refused before decoding ~80% of the time - good coverage of the
   // validator, almost none of the inflater. So the raw DEFLATE payload of each
   // token (and of the bomb) is seeded too, and invoke() reads every buffer BOTH
   // ways; a mutated payload re-wrapped in valid framing lands squarely on the
@@ -824,7 +824,7 @@ export const urlPackTarget: FuzzTarget = {
     const query = `z=${encodeURIComponent(token)}&format=png`;
     hasPackedState(query);
     await expandQuery(query);
-    // (2) as the DEFLATE payload of a well-formed token — the mutated bytes reach
+    // (2) as the DEFLATE payload of a well-formed token - the mutated bytes reach
     // the decompressor itself rather than dying at the alphabet check.
     await unpackToken(`1${base64Url(bytes)}`);
   },
@@ -880,8 +880,8 @@ export const wavTarget: FuzzTarget = {
 };
 
 // depthHint (shells/web/src/lib/image-sample.ts): the ingest path's bit-depth
-// header sniff. Contract mirrors the house reader rule: never throws — hostile,
-// truncated, or lying headers answer nulls — and every read is a bounded slice,
+// header sniff. Contract mirrors the house reader rule: never throws - hostile,
+// truncated, or lying headers answer nulls - and every read is a bounded slice,
 // so the runner's finding classes here are hangs and allocation blow-ups.
 export const depthHintTarget: FuzzTarget = {
   name: 'depth-hint',
@@ -908,7 +908,7 @@ export const depthHintTarget: FuzzTarget = {
 };
 
 // The bitmap-studio tool's .cube/.3dl LUT readers (community/bitmap-studio/
-// hooks.js) — the one tool-data parser that reads untrusted
+// hooks.js) - the one tool-data parser that reads untrusted
 // bytes (a user-picked LUT file). Hooks ship as plain script, not a module, so
 // the functions are lifted out the same way the engine runtime compiles them:
 // new Function with the source appended by a return of the parsers under test.
@@ -944,8 +944,8 @@ export const lutParseTarget: FuzzTarget = {
 
 // PSD reader (engine/src/psd.ts): layered-bitmap import. Controlled outcomes
 // are the typed PsdUnsupportedError refusals; per-layer damage must degrade to
-// warnings. Seeds come from the engine's OWN writer (psd-write.ts) — the
-// "seed corpus from our writers" obligation — plus hand-tweaked variants.
+// warnings. Seeds come from the engine's OWN writer (psd-write.ts) - the
+// "seed corpus from our writers" obligation - plus hand-tweaked variants.
 // Declared bounds: MAX_DIM 30k/300k, MAX_LAYERS 1024, 256 MiB decode budget
 // (fuzz invokes with a tight budget so a lying header can't slow the run).
 export const psdTarget: FuzzTarget = {

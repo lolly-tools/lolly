@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
- * Golden tests for engine/src/keyframes.ts — the `kf` wire grammar, keyframe
+ * Golden tests for engine/src/keyframes.ts - the `kf` wire grammar, keyframe
  * evaluation, the ease adapter, and the depth-camera projection (plans/104
  * §4, §5, §10).
  *
@@ -34,7 +34,7 @@ function near(actual: number, expected: number, msg?: string, eps = 1e-9): void 
   );
 }
 
-/** Deterministic PRNG — the fuzz cases must be identical on every run. */
+/** Deterministic PRNG - the fuzz cases must be identical on every run. */
 function lcg(seed: number): () => number {
   let s = seed >>> 0;
   return () => {
@@ -117,7 +117,7 @@ test('every channel is clamped to its declared range', () => {
 // §4.3: "Uniform zoom/dolly is camZ … there is deliberately no separate zoom channel",
 // so a camera track's `z` is the only zoom control the feature has. Held to the field's
 // 900 ceiling the whole flat-scene zoom range would be eff ∈ [1200/2100, 1200/900] =
-// [0.571, 1.333] — a Ken Burns push-in past 1.33× would not be expressible at all.
+// [0.571, 1.333] - a Ken Burns push-in past 1.33× would not be expressible at all.
 test('the camera dolly is expressible: §4.3\'s Vertigo recipe survives the wire', () => {
   // camZ = P·(1/c − 1) + z_s pins the subject plane z_s at magnification c.
   for (const [c, camZ] of [[2, -600], [1.5, -400], [3, -800]] as const) {
@@ -131,7 +131,7 @@ test('the camera dolly is expressible: §4.3\'s Vertigo recipe survives the wire
   // both the base-pose path and the parse path used to clamp it to −300).
   assert.equal(resolveCamera([{ track: parseKf('t0_z-5000') }], 0).z, -5000);
   assert.deepEqual([...KF_CLAMPS.z], [-12000, 12000], 'a few multiples of any usable P');
-  // The per-box FIELD keeps its own §5.3 / §12 Q1 clamp — a different number, a different
+  // The per-box FIELD keeps its own §5.3 / §12 Q1 clamp - a different number, a different
   // job, applied where that field is read (the hooks\' data-t-z, the manifest min/max).
   assert.deepEqual([...KF_Z_FIELD_CLAMP], [-300, 900]);
 });
@@ -173,7 +173,7 @@ test('parse caps: KF_MAX_KEYS keyframes and KF_MAX_CHARS chars, both reported th
 
 // The two caps have to be mutually SATISFIABLE, or the module emits a wire it then
 // mangles: at 8 KB (the number the plan carried before anyone measured a full-pose
-// track) a 256-key camera track serialised to 15 759 chars and re-parsed to 134 keys —
+// track) a 256-key camera track serialised to 15 759 chars and re-parsed to 134 keys - 
 // 122 keyframes lost, silently, with the §4.6 round-trip law false above the cap.
 // So the char cap is DERIVED from the key cap, and this is the derivation. Widen a
 // clamp or add a channel and this test tells you to re-derive KF_MAX_CHARS.
@@ -232,7 +232,7 @@ const ROUND_TRIP_CASES = [
   't0_ek_a0.5_f200_p800*t3500_eo_a0_p1200',
   't0_x1.23456*t10.6_x-9999999*t99999999_z9999',
   't500_x5*t0_x0*t0_x9*junk*t100_bogus_y5',
-  // MAX DENSITY — the case the law used to fail on. §8's UI writes full poses, so a
+  // MAX DENSITY - the case the law used to fail on. §8's UI writes full poses, so a
   // 256-key content track is an ordinary artefact, not a fuzz artefact: at the old 8 KB
   // char cap this one re-parsed to 134 of its 256 keyframes.
   Array.from({ length: KF_MAX_KEYS }, (_v, i) =>
@@ -372,7 +372,7 @@ test('cubicBezierAt: endpoints, the linear identity, and an overshoot above 1', 
  *   left:   E(u·λ)                    === E_L(u) · E(λ)
  *   right:  E(λ + (1 − λ)·u)          === E(λ) + E_R(u) · (1 − E(λ))
  *
- * Checked as VALUES, which is what a rebased track actually replays — the
+ * Checked as VALUES, which is what a rebased track actually replays - the
  * control points are an implementation detail, and only the composed progress
  * has to survive the 0.001 quantisation.
  */
@@ -400,8 +400,8 @@ test('subdivideKfEase reproduces the original curve on both sides of the cut', (
 });
 
 test('subdivideKfEase: the overshoot family too, away from its own self-crossings', () => {
-  // Both overshoot curves cross their OWN endpoint value in flight — `ev` reaches
-  // E = 1 at λ ≈ 0.369, `ea` returns to E = 0 at λ ≈ 0.274 — and around each
+  // Both overshoot curves cross their OWN endpoint value in flight - `ev` reaches
+  // E = 1 at λ ≈ 0.369, `ea` returns to E = 0 at λ ≈ 0.274 - and around each
   // crossing the halves' endpoints coincide, which no easing vocabulary can
   // express (see the band test below). Away from those bands both are exact.
   for (const lam of [0.2, 0.5, 0.8]) assertSubdivides('ev', lam, 5e-3);
@@ -413,8 +413,8 @@ test('subdivideKfEase: near a self-crossing it NEVER emits a clamped, wrong-moti
   // author typing a wild bezier and catastrophic for a renormalised half: a half whose
   // control y works out at −40 came back spelled −10, i.e. a completely different
   // motion, silently. `ev` at λ = 0.37 was the measured case. The fix is not to make
-  // the band exact — a segment whose two endpoint VALUES are equal cannot carry an
-  // excursion in ANY easing vocabulary — but to detect the clamp and keep the original
+  // the band exact - a segment whose two endpoint VALUES are equal cannot carry an
+  // excursion in ANY easing vocabulary - but to detect the clamp and keep the original
   // token, which is the documented approximation.
   //
   // Swept densely across both bands: every token that comes back must be one this
@@ -438,7 +438,7 @@ test('subdivideKfEase: near a self-crossing it NEVER emits a clamped, wrong-moti
   }
   // And the residual is stated rather than claimed away: inside the band the halves
   // are an approximation, bounded by the excursion the coinciding endpoints cannot
-  // carry — up to ~0.10 in E, falling to 0 at each edge.
+  // carry - up to ~0.10 in E, falling to 0 at each edge.
   const err = (tok: string, lam: number): number => {
     const { right } = subdivideKfEase(tok, lam);
     const eLam = kfEaseAt(tok, lam);
@@ -459,7 +459,7 @@ test('subdivideKfEase: linear stays linear, and a preset half comes back BY NAME
   assert.deepEqual(subdivideKfEase('el', 0.137), { left: 'el', right: 'el' });
   for (const lam of [0.25, 0.5, 0.75]) {
     const { left, right } = subdivideKfEase('eio', lam);
-    // Charset-clean and re-parseable — these tokens are spliced straight into a
+    // Charset-clean and re-parseable - these tokens are spliced straight into a
     // track by the rebase, so they must survive the wire unchanged.
     for (const tok of [left, right]) {
       assert.ok(KF_CHARSET_RE.test(tok), tok);
@@ -591,7 +591,7 @@ test('golden fold table: cx′ = W/2 + (cx − camX − W/2)·eff, per axis', ()
     { cam: { x: 200 }, bx: 960, by: 540, z: 0, dx: -200, dy: 0, eff: 1 },
     { cam: { x: 200 }, bx: 960, by: 540, z: 240, dx: -250, dy: 0, eff: 1.25 },
     { cam: { y: -120 }, bx: 960, by: 540, z: 240, dx: 0, dy: 150, eff: 1.25 },
-    // Dolly: raising camZ pushes the scene away (eff < 1) — the §4.1 sign convention.
+    // Dolly: raising camZ pushes the scene away (eff < 1) - the §4.1 sign convention.
     { cam: { z: 300 }, bx: 460, by: 540, z: 0, dx: 100, dy: 0, eff: 0.8 },
     { cam: { z: -240 }, bx: 460, by: 540, z: 0, dx: -125, dy: 0, eff: 1.25 },
   ];
@@ -608,7 +608,7 @@ test('golden fold table: cx′ = W/2 + (cx − camX − W/2)·eff, per axis', ()
 test('transition × camera: the offsets are INSIDE the projection, so they scale by eff', () => {
   const cam: KfCameraView = { ...CAM0 };
   // A slide-enter offset of 100px on a layer at z = 240 (eff 1.25) must land 125px
-  // out, not 100 — the naive fold (camera displacement added to an unscaled offset)
+  // out, not 100 - the naive fold (camera displacement added to an unscaled offset)
   // makes the enter land short on a lifted layer.
   const lifted = projectLayer(cam, { bx: 960, by: 540, dxT: 100, z: 240 });
   near(lifted.dx, 125, 'transition offset scales by eff');
@@ -656,7 +656,7 @@ test('guard band (§4.5): eff freezes at 10 while alpha ramps linearly over u �
 
 // KF_EFF_MAX is a DECLARED maximum: §5.5's plate-resolution buckets and the λ budget are
 // both computed from maxEff, and §4.5 calls eff_max part of the byte-stable contract. So
-// the number the function returns at the clamp has to BE it — `1/(1 − 0.9)` is
+// the number the function returns at the clamp has to BE it - `1/(1 − 0.9)` is
 // 10.000000000000002 in IEEE-754, which is above the maximum it is documented as.
 test('KF_EFF_MAX is exactly what projectDepth returns at and beyond the guard', () => {
   for (const p of [50, 200, 600, 1080, 1200, 5000, 12000]) {
@@ -679,7 +679,7 @@ test('p is perspective strength (FOV), never magnification: eff(z = camZ) === 1 
       assert.equal(projectDepth({ z: camZ, p }, camZ).eff, 1, `p=${p} camZ=${camZ}`);
     }
   }
-  // On a FLAT scene, p is a no-op — which is exactly why the not-a-no-op
+  // On a FLAT scene, p is a no-op - which is exactly why the not-a-no-op
   // companion below has to use two distinct z values (§4.3).
   const flat = { bx: 460, by: 200, z: 0 };
   const a = projectLayer({ ...CAM0, p: 300 }, flat);
@@ -750,7 +750,7 @@ test('no camera resolves to the DEFAULT camera — never a literal identity', ()
     assert.deepEqual(resolveCamera(cams, 0), { ...DEFAULT_CAMERA });
     assert.deepEqual(resolveCamera(cams, 7331), { ...DEFAULT_CAMERA });
   }
-  // The default projects z = 0 at eff = 1 but still SEES z — an identity would swallow it.
+  // The default projects z = 0 at eff = 1 but still SEES z - an identity would swallow it.
   const cam: KfCameraView = { ...resolveCamera([], 0), ...STAGE };
   assert.equal(projectLayer(cam, { bx: 0, by: 0, z: 0 }).scale, 1);
   near(projectLayer(cam, { bx: 0, by: 0, z: 240 }).scale, 1.25);
@@ -803,15 +803,15 @@ test('a resolved camera is always usable: p is sane and the pose is a fresh obje
   assert.equal(resolveCamera([{ base: { p: 0 } }], 0).p, KF_CLAMPS.p[0]);
   assert.equal(resolveCamera([{ base: { p: Number.NaN } }], 0).p, DEFAULT_PERSPECTIVE);
   assert.equal(resolveCamera([{ base: { p: 1e9 } }], 0).p, KF_CLAMPS.p[1]);
-  // Camera channels only — an `s` on a camera track is not a camera channel.
+  // Camera channels only - an `s` on a camera track is not a camera channel.
   const cams = [{ track: parseKf('t0_s4_z10') }];
   assert.equal(resolveCamera(cams, 0).z, 10);
   assert.ok(!Object.hasOwn(resolveCamera(cams, 0), 's'));
 });
 
 // The overshoot presets exist to overshoot, so a segment between two IN-RANGE keys leaves
-// the range mid-flight. The resolved pose is this module's public contract — the §8 camera
-// panel and any plate-padding budget read it directly — so `a` documented as "Aperture
+// the range mid-flight. The resolved pose is this module's public contract - the §8 camera
+// panel and any plate-padding budget read it directly - so `a` documented as "Aperture
 // 0–1" has to be 0–1 at every t, not only where dofBlur re-clamps it for itself.
 test('EVERY resolved channel is held to its range, not just p (an overshoot ease cannot leak)', () => {
   const overshoot = [{ track: parseKf('t0_ea_a1*t1000_a0') }];

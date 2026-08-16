@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
- * Standard MIDI File → ZzFXM. A self-contained SMF parser plus a note→pattern
+ * Standard MIDI File to ZzFXM. A self-contained SMF parser plus a note-to-pattern
  * mapper that turns a .mid into a tiny {@link ZzfxSong} the engine renders to PCM
- * (zzfxm.ts) — the SAME portable format hand-authored songs and the procedural
+ * (zzfxm.ts). This is the SAME portable format hand-authored songs and the procedural
  * generator produce, so a converted MIDI plays through ONE code path everywhere
  * (Neurospicy player, catalog preview, video music bed) with no per-format player,
  * WASM, or soundfont.
@@ -25,7 +25,7 @@
 import type { ZzfxSong, ZzfxInstrument } from './zzfxm.ts';
 
 /**
- * The single voice a converted MIDI plays through — a soft tan-wave, quick-attack
+ * The single voice a converted MIDI plays through: a soft tan-wave, quick-attack
  * piano-ish timbre (ZzFX param list; index 2 is the base frequency, overwritten
  * per song so absolute pitch stays exact). Mirrors PRESETS.piano in
  * scripts/lib/zzfx-music.ts (C4 = 261.63 Hz).
@@ -34,7 +34,7 @@ const PIANO: ZzfxInstrument = [0.4, 0, 261.63, 0.002, 0.06, 0.55, 3, 1];
 
 /** Bounds that keep a hostile/corrupt file from hanging or exhausting memory. */
 const MAX_NOTES = 200_000;      // a real focus loop has hundreds; this is a hard backstop
-const MAX_STEPS = 1 << 15;      // 32768 grid steps — caps per-voice array allocation
+const MAX_STEPS = 1 << 15;      // 32768 grid steps: caps per-voice array allocation
 const MAX_VOICES = 8;           // simultaneous ZzFXM channels; excess overlaps are dropped
 
 interface NoteEv { start: number; end: number; midi: number }
@@ -116,7 +116,7 @@ export function midiToSong(parsed: ParsedMidi, opts: MidiToSongOptions = {}): Zz
   const bpm = Number.isFinite(parsed.bpm) && parsed.bpm > 0 ? parsed.bpm : 120;
   const stepsPerQuarter = opts.stepsPerQuarter && opts.stepsPerQuarter > 0 ? opts.stepsPerQuarter : 4;
   if (!notes.length) throw new Error('no notes in MIDI');
-  // SMPTE time division (high bit set) encodes frames/sec, not ticks/quarter — we
+  // SMPTE time division (high bit set) encodes frames/sec, not ticks/quarter. We
   // only map the common PPQ form; reject rather than silently mistiming.
   if (!division || (division & 0x8000)) throw new Error('unsupported MIDI time division (SMPTE)');
 

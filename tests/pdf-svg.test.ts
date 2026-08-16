@@ -3,7 +3,7 @@
  * Unit tests for the PDF page → standalone SVG serializer (engine/src/pdf-svg.ts).
  *
  * pdfNodesToSvg takes the interpreter's PdfNodes (pre-finalizeBoxes, placeholders
- * intact) and emits one self-contained SVG document — the asset-upload sibling of
+ * intact) and emits one self-contained SVG document - the asset-upload sibling of
  * the Design boxes path. These tests feed hand-built nodes AND real
  * interpreter output (via interpretPdfPage on hand-written content streams), so the
  * two modules are proven to compose.
@@ -89,7 +89,7 @@ test('text → <text> with per-line tspans on the interpreter baseline model', (
 });
 
 test('a node carrying its measured lineHeight places lines at the REAL leading', () => {
-  // 10pt type at 2x leading (interpreter-measured) — tspans and outlined lines
+  // 10pt type at 2x leading (interpreter-measured) - tspans and outlined lines
   // must both step 20pt per line, not the 1.4 fallback grid.
   const n: PdfNode = {
     kind: 'text', x: 10, y: 100, w: 100, h: 40, rot: 0, lineHeight: 2,
@@ -267,7 +267,7 @@ test('interpretPdfPage output round-trips: rect + path + text land in one page S
   assert.ok(svg.includes('font-family="TestSans, sans-serif"'));
 });
 
-// ── windowPdfSvg — vector clip via viewBox ──────────────────────────────────────
+// ── windowPdfSvg - vector clip via viewBox ──────────────────────────────────────
 test('windowPdfSvg re-frames the root viewBox and stamps the out size', () => {
   const doc = pdfNodesToSvg([{ kind: 'box', x: 0, y: 0, w: 400, h: 300, rot: 0, fill: '#123456' } as PdfNode], OPTS);
   const win = windowPdfSvg(doc, { x: 30, y: 75.333, width: 240, height: 135, outWidth: 320, outHeight: 180 });
@@ -305,7 +305,7 @@ test('a node with no soft mask serializes byte-identically to before the feature
 
 test('a soft mask whose children all render to nothing suppresses the masked node', () => {
   // An unknowable mask is a BLACK mask. Emitting the paint unmasked is how a print
-  // engine's box-shadow ink becomes an opaque grey plate the size of the control —
+  // engine's box-shadow ink becomes an opaque grey plate the size of the control - 
   // strictly the worse of the two errors, so nothing is emitted at all.
   const mask = {
     key: 'k1', x: 0, y: 0, w: 100, h: 50, subtype: 'Luminosity' as const,
@@ -332,7 +332,7 @@ test('a degenerate mask region is ignored rather than hiding the node', () => {
 });
 
 // ── An image that rounds away is not emitted ─────────────────────────────────
-// The node-level guard is `n.w > 0`, which a 0.004-unit box passes — and then the
+// The node-level guard is `n.w > 0`, which a 0.004-unit box passes - and then the
 // emitter's 2-decimal rounding writes width="0". The element cannot draw, but it
 // still carries its base64 raster payload, so it is pure weight: nine of them were
 // riding in one fixture. Test what will be WRITTEN, not what was computed.
@@ -355,11 +355,11 @@ test('an image with real extent is still emitted', () => {
   assert.ok(svg.includes('<image'), 'a normal image must still emit');
 });
 
-// ── dedupePaths — hoist repeated path DATA, never collapse the draws ───────────
+// ── dedupePaths - hoist repeated path DATA, never collapse the draws ───────────
 //
 // A print engine draws a dashed border as FOUR paints, each carrying the whole
 // dash ring and each clipped to one mitred border-side wedge. The ring can run
-// 50 KB, so one bordered control costs 200 KB — 37% of a docs brand-studio
+// 50 KB, so one bordered control costs 200 KB - 37% of a docs brand-studio
 // capture. The copies look identical and are NOT redundant: drop three and three
 // sides of the border disappear. So the hoist collapses the DATA only, and every
 // reference keeps its own clip wrapper.
@@ -386,7 +386,7 @@ test('dedupePaths: hoists the shared data but keeps all four clipped draws', () 
   assert.equal(svg.split('d="M0 0h100v50h-100z"').length - 1, 1, 'path data must appear once');
   // ...and drawn four times.
   assert.equal(svg.split('<use href="#puse0"/>').length - 1, 4, 'all four draws must survive');
-  // Each <use> is still inside its OWN clip — that is what keeps the four
+  // Each <use> is still inside its OWN clip - that is what keeps the four
   // border sides distinct. Four distinct clipPaths, four wrapped uses.
   for (let i = 0; i < 4; i++) {
     assert.match(svg, new RegExp(`<g clip-path="url\\(#pclip${i}\\)"><use href="#puse0"/></g>`), `copy ${i}`);
@@ -395,7 +395,7 @@ test('dedupePaths: hoists the shared data but keeps all four clipped draws', () 
 });
 
 test('dedupePaths: a path used once is never hoisted', () => {
-  // A <use> for a single occurrence is pure loss — 24 bytes and an indirection.
+  // A <use> for a single occurrence is pure loss - 24 bytes and an indirection.
   const one: PdfNode = { kind: 'image', x: 0, y: 0, w: 10, h: 10, rot: 0, _vectorPath: 'M0 0h9v9z', _vectorFill: '#000' };
   const svg = pdfNodesToSvg([one], { ...OPTS, dedupePaths: true });
   assert.ok(svg.includes('<path d="M0 0h9v9z"'), svg);
@@ -403,7 +403,7 @@ test('dedupePaths: a path used once is never hoisted', () => {
 });
 
 test('dedupePaths: different ink never collapses', () => {
-  // Same geometry, different fill — two separate defs-free paths.
+  // Same geometry, different fill - two separate defs-free paths.
   const a: PdfNode = { kind: 'image', x: 0, y: 0, w: 10, h: 10, rot: 0, _vectorPath: 'M0 0h9v9z', _vectorFill: '#111' };
   const b: PdfNode = { ...a, _vectorFill: '#222' } as PdfNode;
   const svg = pdfNodesToSvg([a, b], { ...OPTS, dedupePaths: true });
@@ -412,7 +412,7 @@ test('dedupePaths: different ink never collapses', () => {
 });
 
 test('dedupePaths: ids carry the caller idPrefix', () => {
-  // A stored SVG is inlined as a nested <svg> on export and ids are NOT scoped —
+  // A stored SVG is inlined as a nested <svg> on export and ids are NOT scoped - 
   // same discipline as pclip/pgrad/pmask, or two documents cross-reference.
   const svg = pdfNodesToSvg(ringNodes(), { ...OPTS, dedupePaths: true, idPrefix: 'v7' });
   assert.ok(svg.includes('<path id="v7use0"'), svg);

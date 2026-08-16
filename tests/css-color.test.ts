@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
- * engine/src/css-color.ts — the CSS Color 4 colour value.
+ * engine/src/css-color.ts - the CSS Color 4 colour value.
  *
  * Three things are pinned here:
  *
@@ -11,7 +11,7 @@
  *      known sRGB colour into the space and back.
  *   2. CONVERSION being lossless: every one of the 14 spaces round-trips a set
  *      of sRGB colours byte-exactly. That is a strong check on the primary
- *      matrices and transfer functions together — a wrong constant anywhere
+ *      matrices and transfer functions together - a wrong constant anywhere
  *      shows up as drift.
  *   3. GAMUT MAPPING invariants: in-gamut input untouched, out-of-gamut input
  *      landing inside [0,1] while staying perceptually near the request.
@@ -159,7 +159,7 @@ test('`none` components are tracked, behave as zero, and serialise back as none'
   assert.ok(c);
   assert.equal(c.missing, MISSING_C0 | MISSING_C2 | MISSING_ALPHA);
   assert.deepEqual(c.components, [0, 0.1, 0]);
-  // No `none%` — a missing component carries no unit.
+  // No `none%` - a missing component carries no unit.
   assert.equal(formatColor(c), 'oklch(none 0.1 none / none)');
   const rgb = parseColor('rgb(none 128 none)');
   assert.ok(rgb);

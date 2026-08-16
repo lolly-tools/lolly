@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
  * Unit tests for the ShadingType 1 (function-based) classifier
- * (shells/web/src/lib/pdf-shading.ts), fed synthetic 2-in evaluators directly — no
+ * (shells/web/src/lib/pdf-shading.ts), fed synthetic 2-in evaluators directly - no
  * PDF, no pdf-lib, no DOM.
  *
  * This is the test that protects against the classifier's two silent failure modes:
@@ -44,7 +44,7 @@ test('a constant function classifies flat with the exact colour', () => {
 });
 
 test('a field that varies below 8-bit resolution still reads as flat', () => {
-  // ±0.2/255 of a channel — smaller than anything the emitter could express.
+  // ±0.2/255 of a channel - smaller than anything the emitter could express.
   const c = classifyFunctionShading((u) => [0.5 + (u! * 0.2) / 255, 0.5, 0.5], 3, UNIT);
   assert.equal(c.rung, 'flat');
 });
@@ -94,7 +94,7 @@ test('a rotated ramp 0.6u+0.8v recovers the correct direction', () => {
 });
 
 test('a field that saturates its channels is refused as non-linear', () => {
-  // 0.6u+0.8v reaches 1.4 and clips to white over a whole corner region — a
+  // 0.6u+0.8v reaches 1.4 and clips to white over a whole corner region - a
   // plateau, not a ramp. Accepting it would paint that corner as a gradient.
   const c = classifyFunctionShading((u, v) => { const t = 0.6 * u! + 0.8 * v!; return [t, t, t]; }, 3, UNIT);
   assert.equal(c.rung, 'tiled');

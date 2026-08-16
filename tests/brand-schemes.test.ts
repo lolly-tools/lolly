@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
- * Unit tests for engine/src/brand-schemes.ts — the pure scheme-accent
+ * Unit tests for engine/src/brand-schemes.ts - the pure scheme-accent
  * generator behind the brand generator's harmony picker. Covers the accent
  * COUNT per scheme (= total count − 1), that every emitted hex is a real
  * 6-digit sRGB colour, that hues are the primary's hue rotated by the scheme's

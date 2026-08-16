@@ -9,11 +9,11 @@
  *  1. A typo'd or unclosed marker degrades to literal text. Markdown has no
  *     schema, so `%entty{Lolly}` renders as the characters `%entty{Lolly}`.
  *  2. `shells/web/public/info/` is COMMITTED, so an artifact built before the
- *     renderer existed shipped and served — the source was correct the whole
+ *     renderer existed shipped and served - the source was correct the whole
  *     time. Rebuilding fixed it, which is exactly what makes it easy to miss:
  *     nothing in the source tree looks wrong.
  *
- * So this checks both ends — the markers authors write, and the HTML that
+ * So this checks both ends - the markers authors write, and the HTML that
  * actually ships. Failure (2) means: run `npm run build:info` and commit.
  */
 import { test } from 'node:test';
@@ -35,7 +35,7 @@ test('every provenance marker in docs/*.md uses a supported kind', () => {
   const bad: string[] = [];
   for (const f of mdFiles) {
     const src = readFileSync(join(DOCS, f), 'utf-8');
-    // Any `%word{` that isn't a known kind — the shape an author typo takes.
+    // Any `%word{` that isn't a known kind - the shape an author typo takes.
     for (const m of src.matchAll(/%([a-zA-Z][a-zA-Z0-9_-]*)\{/g)) {
       if (!KINDS.includes(m[1]!)) bad.push(`${f}: %${m[1]}{`);
     }
@@ -51,7 +51,7 @@ test('every provenance marker in docs/*.md closes its brace', () => {
       const opens = [...line.matchAll(new RegExp(`%(${KINDS.join('|')})\\{`, 'g'))].length;
       if (!opens) continue;
       // Braces are only used by these markers in prose, so a line that opens N
-      // pills must close at least N — an unclosed one swallows the rest of the line.
+      // pills must close at least N - an unclosed one swallows the rest of the line.
       const closes = (line.match(/\}/g) ?? []).length;
       if (closes < opens) unbalanced.push(`${f}: ${line.trim().slice(0, 60)}…`);
     }
@@ -62,7 +62,7 @@ test('every provenance marker in docs/*.md closes its brace', () => {
 // ── The shipped artifact ─────────────────────────────────────────────────────
 // shells/web/public/info/ is committed, so these assert what READERS get, not
 // what the source could produce. A failure here means the build output on disk
-// is older than docs/ — rebuild with `npm run build:info`.
+// is older than docs/ - rebuild with `npm run build:info`.
 
 const builtPages = existsSync(BUILT)
   ? readdirSync(BUILT).filter((f) => f.endsWith('.html'))

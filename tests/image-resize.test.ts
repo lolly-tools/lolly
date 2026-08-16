@@ -2,7 +2,7 @@
 /**
  * Unit tests for the user-upload downscaling math.
  *
- * Only computeResize() is covered here — it's the pure piece. The full
+ * Only computeResize() is covered here - it's the pure piece. The full
  * downscaleRaster() path touches createImageBitmap + canvas and is browser-only
  * (no real canvas in node/jsdom), so it's verified manually in the web shell.
  *

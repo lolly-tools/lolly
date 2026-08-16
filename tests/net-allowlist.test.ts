@@ -3,19 +3,19 @@
  * The host.net manifest allowlist (schema `network`) at its contract seams.
  *
  * The cross-shell contract: a tool that declares capabilities:["network"] may
- * carry  network: { allowlist: [...] }  — 1-32 https URL entries, where a
+ * carry  network: { allowlist: [...] } - 1-32 https URL entries, where a
  * trailing /* (the wildcard must follow a path separator) makes an entry a
- * prefix wildcard and a bare entry permits that exact URL only — and the host
+ * prefix wildcard and a bare entry permits that exact URL only - and the host
  * builds host.net from it, fail-closed: no block / no matching entry ⇒ the
  * fetch rejects before any I/O happens.
  *
  * The two schema copies are kept byte-identical by the existing drift guard
  * (tests/lolly-tools-core.test.ts), so like screen-capture.test.ts this file
- * does not re-compare them — it exercises each copy's real VALIDATOR:
+ * does not re-compare them - it exercises each copy's real VALIDATOR:
  * validateManifest (engine, schemas/tool.schema.json) and validateTool
  * (@lolly-tools/core, packages/core/schema/tool.schema.json). Enforcement is
  * proven at the CLI bridge, which shares the web shell's createNetAPI module
- * verbatim — the matching rules asserted here are the rules every shell applies.
+ * verbatim - the matching rules asserted here are the rules every shell applies.
  *
  * Run with: node --test tests/net-allowlist.test.ts
  */
@@ -133,7 +133,7 @@ test('CLI host.net allows a prefix-wildcard match and denies everything else bef
     const res = await host.net!.fetch('https://api.example.com/v2/weather?q=x');
     assert.equal(await res.text(), 'ok');
     await assert.rejects(host.net!.fetch('https://evil.example.com/'), /disallowed/);
-    // Prefix means PREFIX of the whole URL string — a lookalike host must not pass.
+    // Prefix means PREFIX of the whole URL string - a lookalike host must not pass.
     await assert.rejects(host.net!.fetch('https://api.example.com.evil.io/'), /disallowed/);
   });
   // The denied fetches never reached the network layer.
@@ -141,7 +141,7 @@ test('CLI host.net allows a prefix-wildcard match and denies everything else bef
 });
 
 test('CLI host.net: a hand-fed no-slash wildcard still stops at the path boundary', async () => {
-  // The schema rejects this form, but the CLI/TUI opt is hand-fed — the matcher
+  // The schema rejects this form, but the CLI/TUI opt is hand-fed - the matcher
   // itself must keep a lookalike host out (matches() forces the '/' boundary).
   const host = await createCliBridge({ dom: fakeDom(), networkAllowlist: ['https://api.example.com*'] });
   const served = await withFetchStub(() => new Response('ok'), async () => {

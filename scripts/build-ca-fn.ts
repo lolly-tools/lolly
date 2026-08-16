@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
  * Bundles the CA (C2PA device-enrollment) serverless handler into a single
- * self-contained `api/ca/[...path].js` — the same fix as scripts/build-mcp-fn.ts.
+ * self-contained `api/ca/[...path].js` - the same fix as scripts/build-mcp-fn.ts.
  *
  * WHY: @vercel/node transpiles each `.ts`/`.mjs` file individually and leaves
  * import specifiers untouched. services/ca/lib/enroll.mjs imports

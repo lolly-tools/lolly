@@ -1,11 +1,11 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
- * Display-gamut classification for OKLCH colours — which of sRGB, Display-P3 or
+ * Display-gamut classification for OKLCH colours - which of sRGB, Display-P3 or
  * Rec.2020 can actually show a given lightness/chroma/hue.
  *
  * brand-derive.ts owns the sRGB↔Oklab pipeline and maps out-of-gamut requests
  * back into sRGB. That answers "what will this become?"; this module answers
- * "how far out is it, and would a wider display carry it?" — the information
+ * "how far out is it, and would a wider display carry it?" - the information
  * behind the brand studio's gamut bands, where a swatch that clips on an old
  * monitor but survives on P3 is a different decision from one no display can
  * hold.
@@ -16,7 +16,7 @@
  * are pre-multiplied in gamut-source.ts so the hot path (per-pixel slice
  * painting) is still two matrix applies, not three.
  *
- * Every function here takes its gamut as a {@link GamutLimit} — one of the three
+ * Every function here takes its gamut as a {@link GamutLimit} - one of the three
  * names, or any {@link GamutSource} (an ICC print profile, say). The three names
  * resolve to sources over the original matrices, so the display path is
  * unchanged arithmetic.
@@ -34,10 +34,10 @@ import type { BuiltinGamutName, GamutLimit, GamutSource } from './gamut-source.t
 /** Display gamuts, narrowest first. `none` = outside even Rec.2020. */
 export type GamutName = BuiltinGamutName | 'none';
 
-/** The three real gamuts, narrowest first — iterate this, don't hand-order. */
+/** The three real gamuts, narrowest first - iterate this, don't hand-order. */
 export const GAMUTS: readonly Exclude<GamutName, 'none'>[] = ['srgb', 'p3', 'rec2020'];
 
-// The membership test itself — matrices, cube slack and all — now lives in
+// The membership test itself - matrices, cube slack and all - now lives in
 // gamut-source.ts, so an ICC profile can answer the same question the three RGB
 // matrices do. Everything below is built on `GamutSource.contains` and does not
 // know which kind it was handed.
@@ -47,7 +47,7 @@ const holds = (src: GamutSource, l: number, c: number, h: number): boolean =>
   gamutInputSane(l, c, h) && src.contains(l, c, h);
 
 /**
- * Whether this OKLCH colour fits `limit` — tested DIRECTLY against that gamut.
+ * Whether this OKLCH colour fits `limit` - tested DIRECTLY against that gamut.
  *
  * ## The gamuts do not nest, and this is why the function exists
  *
@@ -59,13 +59,13 @@ const holds = (src: GamutSource, l: number, c: number, h: number): boolean =>
  * a thin sliver of deep reds near hue 30 is displayable on a P3 screen and NOT
  * within Rec.2020.
  *
- * Inferring membership from order therefore over-reports Rec.2020 near red — and
+ * Inferring membership from order therefore over-reports Rec.2020 near red - and
  * worse, it makes a chroma search stop at P3's ceiling and call it Rec.2020's.
  * Ask each gamut its own question instead.
  *
  * `l` is 0–1 (brand-derive's convention, not the CSS percent), `h` in degrees.
  *
- * `limit` is a gamut NAME or any {@link GamutSource} — a profile-backed source
+ * `limit` is a gamut NAME or any {@link GamutSource} - a profile-backed source
  * answers here exactly as a display matrix does.
  */
 export function inGamut(l: number, c: number, h: number, limit: GamutLimit): boolean {
@@ -78,8 +78,8 @@ export function inGamut(l: number, c: number, h: number, limit: GamutLimit): boo
  * specific gamut, since the answer is not recoverable from this one (see the
  * non-nesting note there).
  *
- * Lightness outside [0,1] is out of every gamut — it isn't a colour a display can
- * be asked for — rather than silently clamped.
+ * Lightness outside [0,1] is out of every gamut - it isn't a colour a display can
+ * be asked for - rather than silently clamped.
  */
 export function oklchGamut(l: number, c: number, h: number): GamutName {
   for (const g of GAMUTS) if (inGamut(l, c, h, g)) return g;
@@ -105,7 +105,7 @@ export function gamutWithin(gamut: GamutName, limit: Exclude<GamutName, 'none'>)
  * no chroma to give and returns 0.
  *
  * This is the boundary the slice charts trace, and the honest answer to "how
- * much punch can this hue actually carry?" — unlike a fixed chroma ceiling, it
+ * much punch can this hue actually carry?" - unlike a fixed chroma ceiling, it
  * tells you yellow reaches far further than blue.
  */
 export function maxChroma(l: number, h: number, limit: GamutLimit = 'srgb'): number {
@@ -123,7 +123,7 @@ export function maxChroma(l: number, h: number, limit: GamutLimit = 'srgb'): num
     hi *= 2;
     outside = !holds(src, l, hi, h);
   }
-  if (!outside) return hi; // the source never said no — report the bound honestly
+  if (!outside) return hi; // the source never said no - report the bound honestly
   while (hi - lo > GAMUT_EPSILON) {
     const mid = (lo + hi) / 2;
     // Directly, not via oklchGamut + ordering: the gamuts do not nest (see
@@ -137,15 +137,15 @@ export function maxChroma(l: number, h: number, limit: GamutLimit = 'srgb'): num
 
 /**
  * Reduce an OKLCH colour into `limit`, holding LIGHTNESS and HUE constant and
- * giving up CHROMA — CSS Color 4 §14.2's shape of "keep the request, yield the
+ * giving up CHROMA - CSS Color 4 §14.2's form of "keep the request, yield the
  * only channel that can give". An already-in-gamut colour is returned UNCHANGED
  * (the same object reference), so this is safe to call unconditionally.
  *
  * The ceiling is {@link maxChroma}, which is `GamutLimit`-parameterised, so this
  * works for `srgb`/`p3`/`rec2020` and for any {@link GamutSource} (an ICC print
  * profile) alike. Against `srgb` the result is bit-for-bit the shell's former
- * `clampIntoGamut` (shells/web/src/lib/gamut-slider.ts) — `{...o, c:
- * Math.min(o.c, maxChroma(o.l, o.h, 'srgb'))}` — which now delegates here.
+ * `clampIntoGamut` (shells/web/src/lib/gamut-slider.ts) - `{...o, c:
+ * Math.min(o.c, maxChroma(o.l, o.h, 'srgb'))}` - which now delegates here.
  *
  * `mode` is reserved for a future MINDE (min-ΔE) refinement; only the default
  * `'exact'` ceiling is implemented today (see the note in the test file).
@@ -165,9 +165,9 @@ export function clipToGamut(
  * Which 2D plane through OKLCH space to paint. In every name the FIRST letter is
  * the vertical axis and the SECOND is the horizontal one:
  *
- *   'lc' — lightness (y, 1 at the top) × chroma (x, 0 at the left), at a fixed hue
- *   'ch' — chroma    (y, 0 at the BOTTOM) × hue (x, 0–360°), at a fixed lightness
- *   'lh' — lightness (y, 1 at the top) × hue (x, 0–360°), at a fixed chroma
+ *   'lc' - lightness (y, 1 at the top) × chroma (x, 0 at the left), at a fixed hue
+ *   'ch' - chroma    (y, 0 at the BOTTOM) × hue (x, 0–360°), at a fixed lightness
+ *   'lh' - lightness (y, 1 at the top) × hue (x, 0–360°), at a fixed chroma
  */
 export type SlicePlane = 'lc' | 'ch' | 'lh';
 
@@ -188,13 +188,13 @@ export interface SliceOptions {
    * the caller must set both or neither.
    */
   encode?: EncodeSpace;
-  /** Paint nothing beyond this gamut — a name or any {@link GamutSource}.
+  /** Paint nothing beyond this gamut - a name or any {@link GamutSource}.
    *  Default 'rec2020', the widest gamut we classify by name. */
   limit?: GamutLimit;
 }
 
 export interface SliceImage {
-  /** RGBA bytes, row-major from the TOP row — ready for `new ImageData(data, width)`. */
+  /** RGBA bytes, row-major from the TOP row - ready for `new ImageData(data, width)`. */
   data: Uint8ClampedArray;
   width: number;
   height: number;
@@ -214,39 +214,39 @@ const ENCODE_GAMUT: Record<EncodeSpace, BuiltinGamutName> = {
  * Which space the returned bytes are ENCODED in.
  *
  * Only these two, because they are the only values a canvas 2D context accepts
- * for `colorSpace` — offering rec2020 here would be a promise no browser can
+ * for `colorSpace` - offering rec2020 here would be a promise no browser can
  * keep. Both use the sRGB transfer curve, so only the primaries differ.
  *
  * This is the difference between showing someone their own display's colour and
- * showing them an sRGB approximation of it. On a wide-gamut screen — which most
- * people who open a colour tool are using — 'display-p3' is the honest choice.
+ * showing them an sRGB approximation of it. On a wide-gamut screen - which most
+ * people who open a colour tool are using - 'display-p3' is the honest choice.
  */
 export type EncodeSpace = 'srgb' | 'display-p3';
 
 /**
  * A coarse (lightness × hue) grid of a gamut's chroma ceiling, bilinearly
- * sampled — how the painter avoids running a bisection 64,000 times.
+ * sampled - how the painter avoids running a bisection 64,000 times.
  *
  * It serves two jobs, and they are worth telling apart:
  *
  *  - **Desaturation target.** The grid for the ENCODE space decides the fill
  *    colour of pixels already outside it and therefore already an approximation
  *    on that surface. Sampling is obviously legitimate there.
- *  - **Membership**, for a source with no fast matrix path — an ICC profile. A
+ *  - **Membership**, for a source with no fast matrix path - an ICC profile. A
  *    profile's `contains` costs ~1.4 µs against a matrix's ~0.1, so a 320×200
  *    slice would be ~85 ms per chart, per repaint, under a drag. Testing
  *    `c <= sampleCeiling(grid, l, h)` instead brings the per-pixel cost back to
  *    the RGB path's, and pays the ~9.4k bisections once per (profile × intent).
  *
- * **The assumption membership adds**, stated because it is now load-bearing: a
- * gamut is treated as an INTERVAL [0, cmax] in chroma at fixed (L, h) —
+ * **The assumption membership adds**, stated because it is now essential: a
+ * gamut is treated as an INTERVAL [0, cmax] in chroma at fixed (L, h) -
  * star-shaped in chroma. The engine already assumes this, because `maxChroma`
  * bisects; the grid only extends it from the boundary to the fill. The
  * consequence is that a genuine hole inside a press gamut is drawn filled. Do
  * not add a hole search: it multiplies the cost of every pixel to chase
  * something no real output profile exhibits at this scale.
  *
- * Every line the user actually READS — the contours from `sliceGamutRegion` —
+ * Every line the user actually READS - the contours from `sliceGamutRegion` -
  * still comes from exact `maxChroma` calls. The ceiling is smooth in both axes
  * away from L→1, so a 2.5° / 0.016-lightness grid lands well inside a JND.
  *
@@ -315,24 +315,24 @@ function sampleCeiling(grid: Float64Array, l: number, h: number): number {
 /**
  * Paint one plane of OKLCH space as RGBA pixels: in-gamut colour where the plane
  * has a colour, fully transparent outside `limit`. This is the fill behind the
- * brand studio's gamut charts and the Colour Lab tool — one implementation, so
+ * brand studio's gamut charts and the Colour Lab tool - one implementation, so
  * the two can't drift, and it lives here because it is pure arithmetic with no
  * canvas, DOM or worker anywhere in it.
  *
  * Honesty note: the output is 8-bit sRGB, so a P3 or Rec.2020 pixel is painted
- * *gamut-mapped* — the nearest sRGB colour, not the real one. That is the best
+ * *gamut-mapped* - the nearest sRGB colour, not the real one. That is the best
  * an sRGB surface can do, and it is why the caller draws the gamut BOUNDARIES on
  * top: the boundary line is the information, the colour past it is an
  * approximation. Callers wanting the real thing on a wide-gamut display should
  * composite this against a `display-p3` canvas of their own.
  *
  * Cost is one gamut classification plus one gamut map per pixel, so a 320×200
- * slice is ~64k of each — single-digit milliseconds against one of the three RGB
+ * slice is ~64k of each - single-digit milliseconds against one of the three RGB
  * names, no worker needed. Repaint on rAF while a slider drags.
  *
  * A profile-backed `limit` costs the SAME per pixel, because membership comes
  * from that source's `ceilingGrid` rather than from `contains` (which runs two
- * CLUT interpolations, ~1.4µs against a matrix's ~0.1µs — 400,000 of those is
+ * CLUT interpolations, ~1.4µs against a matrix's ~0.1µs - 400,000 of those is
  * what made a profile chart unpaintable under a drag). The grid is built once
  * per profile × intent, ~9.4k bisections, and memoised; read `ceilingGrid` for
  * the assumption that trade makes.
@@ -343,7 +343,7 @@ export function oklchSlice(opts: SliceOptions): SliceImage {
   const cMax = opts.cMax != null && opts.cMax > 0 ? opts.cMax : SLICE_C_MAX;
   const src = resolveGamutSource(opts.limit ?? 'rec2020');
   const data = new Uint8ClampedArray(width * height * 4);
-  // The hoisted test for a built-in gamut; for anything else — an ICC profile —
+  // The hoisted test for a built-in gamut; for anything else - an ICC profile -
   // its own ceiling grid, because `contains` costs ~14x a matrix apply and this
   // is a per-PIXEL call, so the difference IS the cost of the paint. See
   // `ceilingGrid` for the star-shaped-in-chroma assumption that buys.
@@ -374,7 +374,7 @@ export function oklchSlice(opts: SliceOptions): SliceImage {
       const o = (y * width + x) * 4;
       if (!inside(l, c, h)) continue; // leave it transparent
       // Desaturate past the ENCODE space's ceiling before encoding, so the encode
-      // below is the whole cost — no per-pixel gamut-map bisection.
+      // below is the whole cost - no per-pixel gamut-map bisection.
       const cUse = Math.min(c, sampleCeiling(ceiling, l, h));
       const hr = (h * Math.PI) / 180;
       let lin = oklabToLinearSrgb(l, cUse * Math.cos(hr), cUse * Math.sin(hr));
@@ -397,13 +397,13 @@ export function oklchSlice(opts: SliceOptions): SliceImage {
  * deliberately built on the SAME desaturation grid rather than on an independent
  * `maxChroma` bisection: a vector shape filled with this and a slice pixel at the
  * same coordinates have to agree, and two ceilings that are merely both correct
- * would still disagree in the last decimal — which shows up as a visible seam
+ * would still disagree in the last decimal - which shows up as a visible seam
  * where a filled surface meets a painted one.
  *
  * Chroma past the encode space's ceiling is reduced (L and H preserved, CSS
  * Color 4 §14.2's shape), because a surface cannot show what it cannot show. That
  * makes the result a PAINTING value: never read a position, a stored token or a
- * round-trip back out of it — see the gamut-map caveat on `oklchToHex`.
+ * round-trip back out of it - see the gamut-map caveat on `oklchToHex`.
  */
 export function encodeOklch(
   l: number, c: number, h: number, encode: EncodeSpace = 'srgb',
@@ -421,14 +421,14 @@ export function encodeOklch(
 
 /**
  * The `limit` gamut's boundary across a plane, as `steps + 1` points in the
- * plane's own 0–1 unit square (x rightward, y DOWNWARD — SVG/canvas convention,
+ * plane's own 0–1 unit square (x rightward, y DOWNWARD - SVG/canvas convention,
  * so a caller multiplies by its pixel box and draws a polyline).
  *
- * For 'lc' the boundary is the maximum chroma at each lightness — the horseshoe
+ * For 'lc' the boundary is the maximum chroma at each lightness - the horseshoe
  * that shows yellow reaching much further than blue. For 'ch' it is the maximum
  * chroma at each hue. 'lh' has no such curve (chroma is fixed across the whole
  * plane, so the in-gamut region is bounded top and bottom, not by a single
- * function of x) and returns an empty array — draw that one's edge by painting
+ * function of x) and returns an empty array - draw that one's edge by painting
  * the slice's own alpha instead.
  */
 export function sliceGamutEdge(
@@ -458,14 +458,14 @@ export function sliceGamutEdge(
 
 /**
  * The in-gamut REGION of a plane, as closed rings in the plane's unit square
- * (x right, y down) — what an SVG `clipPath` or a filled `<path>` needs, where
+ * (x right, y down) - what an SVG `clipPath` or a filled `<path>` needs, where
  * {@link sliceGamutEdge} gives only the open curve to stroke. A vector export
  * (the Colour Lab tool's poster) has to FILL the displayable area; a raster
  * surface can just leave the rest of the buffer transparent.
  *
  * Returns an ARRAY of rings, because the region is not always connected. On the
  * 'lh' plane the chroma is fixed across the whole plane, so at, say, C 0.15 the
- * displayable area breaks into islands — one per stretch of hue that can hold
+ * displayable area breaks into islands - one per stretch of hue that can hold
  * that much chroma at some lightness, with real gaps between them where no
  * lightness can. One ring would have to bridge those gaps, claiming colours
  * that do not exist.
@@ -496,7 +496,7 @@ export function sliceGamutRegion(
   }
 
   // 'lh': at each hue, the lightness window that can hold this chroma. Scan
-  // coarsely for the window, then bisect each end into the gap beside it — one
+  // coarsely for the window, then bisect each end into the gap beside it - one
   // bisection per end per column rather than per sample.
   const c = Math.max(0, fixed);
   const SCAN = 64;

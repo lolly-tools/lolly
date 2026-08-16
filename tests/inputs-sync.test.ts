@@ -114,7 +114,7 @@ test('a slider whose DOM already shows the value skips the rebuild (drag/keyboar
 
 test('a slider whose DOM does NOT yet show the value rebuilds (programmatic / clamp)', () => {
   // aria-valuenow still reads the old value (URL/undo/hook set the model), so the
-  // DOM must be repainted — a full rebuild, exactly as before.
+  // DOM must be repainted - a full rebuild, exactly as before.
   const el = makePanel('<div class="custom-slider" data-input-id="scale" aria-valuenow="1"></div>');
   const prev = [inp('scale', 'slider', 1)];
   const model = [inp('scale', 'slider', 2)];
@@ -156,7 +156,7 @@ test('a focused block number field defers the rebuild (caret survives mid-decima
 });
 
 test('a blurred block number field does NOT defer (normal structural rebuild)', () => {
-  // Same panel, but nothing focused — a blocks value change is structural and must
+  // Same panel, but nothing focused - a blocks value change is structural and must
   // rebuild, so the deferral must not leak into the unfocused case.
   const dom = new JSDOM(
     '<!DOCTYPE html><div id="panel"><input type="number" data-field-id="scenes:0:hold" value="1.6"></div>'
@@ -192,7 +192,7 @@ test('visibleInputKey: hides export-group rows and showIf rows that fail their c
 
 // ─── Block TEXT fields defer too ──────────────────────────────────────────────
 // A block text field's caret DOES survive the rebuild (renderInputs restores it by
-// data-field-id), so the rebuild was never *destructive* here — it was wasteful, and
+// data-field-id), so the rebuild was never *destructive* here - it was wasteful, and
 // visibly so: replacing every row drops and re-establishes focus within the frame,
 // restarting the focus-spotlight opacity transition on every other row and section,
 // so the whole sidebar pulses once per keypress. syncInputs patches the one thing
@@ -213,7 +213,7 @@ const blocksPair = (before: unknown, after: unknown): [SyncableInput[], Syncable
 );
 
 test('a focused block text field defers the rebuild (no per-keypress panel churn)', () => {
-  // A block text field renders with NO type attribute — the shape this must match.
+  // A block text field renders with NO type attribute - the shape this must match.
   const el = focusedPanel('<input class="block-field" data-field-id="links:0:title" value="Calend">');
   const [prev, model] = blocksPair([{ title: 'Calend' }], [{ title: 'Calenda' }]);
   assert.equal(canSkipInputsRebuild(el, model, prev), true);
@@ -232,7 +232,7 @@ test('a blurred block text field does NOT defer (structural rebuild as before)',
 });
 
 test('a focused block range/checkbox/colour field does NOT defer', () => {
-  // These commit discretely rather than by typing, so they keep the full rebuild —
+  // These commit discretely rather than by typing, so they keep the full rebuild - 
   // which is what repaints a swatch, a slider readout or a showFor-gated sibling.
   for (const html of [
     '<input type="range" class="block-field" data-field-id="links:0:weight" value="2">',
@@ -262,7 +262,7 @@ test('a focused text field OUTSIDE the panel does not defer another panel rebuil
 test('a popped-out table cell defers the rebuild even though it left the panel', () => {
   // A table input can be lifted into a floating panel (lib/float-panel), which
   // mounts it OUTSIDE #tool-inputs. Its cells still hold the authoritative value,
-  // so the deferral has to follow the grid rather than the sidebar box — without
+  // so the deferral has to follow the grid rather than the sidebar box - without
   // this, every keystroke rebuilds the sidebar, which tears the panel down and
   // re-pops it, and typing dies after one character.
   const dom = new JSDOM(

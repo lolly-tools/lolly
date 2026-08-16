@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
- * C2PA 2.4 WRITE SIDE — the three additions plan 105 §5 asks the manifest
+ * C2PA 2.4 WRITE SIDE - the three additions plan 105 §5 asks the manifest
  * builder for, none of which touches a container:
  *
  *   1. `aiDisclosure`  → the §18.28 `c2pa.ai-disclosure` assertion,
@@ -13,8 +13,8 @@
  * Run with: node --test "tests/c2pa-writer-additions.test.ts"
  *
  * GROUND-TRUTH CAVEAT, stated up front: c2pa-rs 0.90 implements none of the 2.4
- * text bindings and c2patool cannot read an HTML asset, so — unlike every other
- * C2PA suite here — there is no second implementation to cross-check against.
+ * text bindings and c2patool cannot read an HTML asset, so - unlike every other
+ * C2PA suite here - there is no second implementation to cross-check against.
  * Written-then-read-by-our-own-reader is necessary but NOT sufficient, so each
  * case pairs the round-trip with a spec-literal assertion: the assertion's CBOR
  * is decoded by a decoder written in this file (never the engine's encoder run
@@ -26,10 +26,10 @@
  *   * label `c2pa.ai-disclosure`; `modelType` is the one required field and
  *     defaults to Table 12's generic `c2pa.types.model`; oversight nests under
  *     `contentProfile.humanOversightLevel`; `scientificDomain` is a LIST.
- *   * the disclosure is a CREATED assertion (§2776 — created assertions are the
+ *   * the disclosure is a CREATED assertion (§2776 - created assertions are the
  *     ones attributed to the signer, which is what a disclosure is).
  *   * `specVersion` is a SemVer string in `claim_generator_info`, never in the
- *     claim, and is purely informational (§10.2.3.1) — nothing branches on it.
+ *     claim, and is purely informational (§10.2.3.1) - nothing branches on it.
  *   * an external manifest's data hash "shall have no exclusion range; the hash
  *     shall be computed over the entire document" (§A.7.1.3), and since the CDDL
  *     is `? "exclusions": [1* EXCLUSION_RANGE-map]`, "no range" means the key is
@@ -106,7 +106,7 @@ function cbor(bytes: Uint8Array): unknown {
 
 // ─── fixtures ─────────────────────────────────────────────────────────────────
 
-/** A §A.7.1.2 HTML document that POINTS at its manifest — the M5 page shape.
+/** A §A.7.1.2 HTML document that POINTS at its manifest - the M5 page shape.
  *  The `<link>` is inside the hash (there is no exclusion), so it must already
  *  be present in the bytes that get signed. */
 const pageHtml = (body = 'Content here.'): string =>
@@ -133,7 +133,7 @@ const DISCLOSURE = {
 /** Signing options that make two builds byte-comparable: a stub signer with a
  *  fixed "signature" (real ECDSA is randomized, so identical inputs never
  *  produce identical bytes) plus frozen label/instance/dates. NOT usable for a
- *  verify — the cert is a stand-in — which is exactly why it is only used by the
+ *  verify - the cert is a stand-in - which is exactly why it is only used by the
  *  byte-stability case. */
 const fixedSigning = {
   signer: { certDer: Uint8Array.from({ length: 40 }, (_, i) => (i * 7) & 0xff), sign: (): Uint8Array => new Uint8Array(64).fill(9) },
@@ -157,7 +157,7 @@ const claimOf = (store: Uint8Array): Map<unknown, unknown> => {
   return claim;
 };
 
-// ═══ §18.28 — the ai-disclosure assertion ═════════════════════════════════════
+// ═══ §18.28 - the ai-disclosure assertion ═════════════════════════════════════
 
 test('§18.28 — aiDisclosure is written in the spec\'s own shape, defaults modelType, and nests oversight', async () => {
   const store = await buildC2paManifest({
@@ -178,11 +178,11 @@ test('§18.28 — aiDisclosure is written in the spec\'s own shape, defaults mod
   assert.equal(m.get('modelName'), 'Claude Fable 5');
   assert.equal(m.get('modelIdentifier'), 'claude-fable-5');
   // §18.28.4: humanOversightLevel lives inside content-profile-map, not at the
-  // top level — the writer's flattened `oversight` input must land nested.
+  // top level - the writer's flattened `oversight` input must land nested.
   const profile = m.get('contentProfile');
   assert.ok(profile instanceof Map, 'contentProfile is a nested map');
   assert.equal(profile.get('humanOversightLevel'), 'prompt_guided');
-  // `$scientific-domain-list /= 1* $scientific-domain-string` — a list, even
+  // `$scientific-domain-list /= 1* $scientific-domain-string` - a list, even
   // though §18.28.4's own example ships a bare string.
   assert.deepEqual(m.get('scientificDomain'), ['cs.AI']);
   // Nothing else: a disclosure that invented fields would be a claim nobody made.
@@ -199,7 +199,7 @@ test('§18.28 — the disclosure is a CREATED assertion, referenced by a hashed 
   assert.ok(Array.isArray(created), 'v2 claim splits references into created_assertions');
   const ref = created.find((r) => r.get('url') === `self#jumbf=c2pa.assertions/${AI_DISCLOSURE_ASSERTION}`);
   assert.ok(ref, 'the disclosure is referenced from created_assertions (§2776: attributed to the signer)');
-  // Never in gathered_assertions — nothing here was gathered from an ingredient.
+  // Never in gathered_assertions - nothing here was gathered from an ingredient.
   assert.equal(claim.get('gathered_assertions'), undefined);
   // Recompute the hashed URI here: sha256 over the assertion superbox payload
   // (jumd + content boxes, i.e. the box minus its 8-byte LBox+TBox header).
@@ -218,7 +218,7 @@ test('§18.28 — a disclosure round-trips into the reader\'s report.aiDisclosur
   const report = await verifyC2pa(page, { externalManifest: store });
   assert.equal(report.state, 'valid');
   // The read side flattens contentProfile.humanOversightLevel to `oversight` and
-  // normalizes the domain to a list — the same names the writer accepts.
+  // normalizes the domain to a list - the same names the writer accepts.
   assert.deepEqual(report.aiDisclosure, {
     modelType: AI_MODEL_TYPE_GENERIC,
     modelName: 'Claude Fable 5',
@@ -256,9 +256,9 @@ test('§18.28.2 — modelType is checked against Table 12, and the c2pa namespac
   // validated and the REQUIRED one was not: any non-empty string was written.
   //
   // §18.28.4's CDDL widens the socket (`$model-type-choice /= tstr`), and
-  // §18.21.1 spells out the escape hatch for the neighbouring asset type — "or
+  // §18.21.1 spells out the escape hatch for the neighbouring asset type - "or
   // use an entity-specific namespace (e.g., com.litware.types.abc), conforming to
-  // the syntax defined for assertion labels in §6.2.2" — so the rule is Table 12
+  // the syntax defined for assertion labels in §6.2.2" - so the rule is Table 12
   // OR someone else's namespace, never an invented c2pa.* value.
   const base = { assetHash: { exclusions: [{ start: 0, length: 1 }], hash: new Uint8Array(32) } };
   const written = async (modelType: string): Promise<Record<string, unknown>> => {
@@ -282,7 +282,7 @@ test('§18.28.2 — modelType is checked against Table 12, and the c2pa namespac
   assert.ok(AI_MODEL_TYPES.every((t) => t === AI_MODEL_TYPE_GENERIC || t.startsWith('c2pa.types.model.')));
 });
 
-// ═══ §10.2.3 — specVersion in claim_generator_info ════════════════════════════
+// ═══ §10.2.3 - specVersion in claim_generator_info ════════════════════════════
 
 test('§10.2.3 — specVersion is written inside claim_generator_info, never in the claim', async () => {
   const store = await buildC2paManifest({
@@ -342,27 +342,27 @@ test('the two new options are absent by default — same inputs, byte-identical 
   const plain = await buildC2paManifest(args);
   const explicitlyUnset = await buildC2paManifest({ ...args, aiDisclosure: undefined, specVersion: undefined });
   assert.equal(hex(plain), hex(explicitlyUnset), 'omitting the options perturbs nothing');
-  // And when they ARE set, the store necessarily grows — the guard above is
+  // And when they ARE set, the store necessarily grows - the guard above is
   // about absence, not about the options being inert.
   const disclosed = await buildC2paManifest({ ...args, aiDisclosure: DISCLOSURE, specVersion: C2PA_SPEC_VERSION });
   assert.ok(disclosed.length > plain.length);
   assert.throws(() => assertionOf(plain, AI_DISCLOSURE_ASSERTION), /no c2pa\.ai-disclosure assertion/);
 });
 
-// ═══ §11.4 / §A.7.1.2 — the external (sidecar) store ══════════════════════════
+// ═══ §11.4 / §A.7.1.2 - the external (sidecar) store ══════════════════════════
 
 test('§A.7.1.3 — an external store binds the WHOLE document: no exclusions key, hash over every byte', async () => {
   const page = utf8(pageHtml());
   const store = await buildExternalC2paStore(page, { title: 'Signed page' });
 
   const hd = cbor(assertionOf(store, 'c2pa.hash.data').content) as Map<string, unknown>;
-  // "The data hash assertion shall have no exclusion range" — and the CDDL's
+  // "The data hash assertion shall have no exclusion range" - and the CDDL's
   // `[1* EXCLUSION_RANGE-map]` means an empty array would be non-conformant, so
   // the key is absent entirely.
   assert.equal(hd.has('exclusions'), false, 'no exclusions key at all');
   assert.equal(hd.get('alg'), 'sha256');
   assert.equal(hd.get('name'), 'whole document');
-  // Recomputed here as a plain digest of the page bytes — no exclusion arithmetic
+  // Recomputed here as a plain digest of the page bytes - no exclusion arithmetic
   // to get wrong, which is the whole point of the external form.
   assert.equal(hex(hd.get('hash') as Uint8Array), hex(await sha256(page)), 'the hash is sha256 over the entire document');
   // Nothing was placed in the asset: the store is returned on its own.
@@ -389,7 +389,7 @@ test('§11.4 — the sidecar verifies against the unmodified page and fails agai
   assert.ok(ok.checks.some((c) => c.ok && c.code === 'assertion.dataHash.match'));
   assert.equal(ok.madeWithLolly, true);
 
-  // One character changed anywhere in the document — including outside the head,
+  // One character changed anywhere in the document - including outside the head,
   // which is the half an exclusion range would have carved out on the inline form.
   const edited = utf8(pageHtml('Content there.'));
   const bad = await verifyC2pa(edited, { externalManifest: store });
@@ -397,7 +397,7 @@ test('§11.4 — the sidecar verifies against the unmodified page and fails agai
   assert.equal(bad.state, 'invalid');
   assert.ok(bad.checks.some((c) => !c.ok && c.code === 'assertion.dataHash.mismatch'), 'the hard binding catches it');
   assert.equal(bad.madeWithLolly, false);
-  // The claim itself is intact — only the bytes moved — so the softer verdict is
+  // The claim itself is intact - only the bytes moved - so the softer verdict is
   // the honest one for a re-serialized page (§A.7.1.3's own warning).
   assert.equal(bad.likelyMadeWithLolly, true);
 
@@ -416,7 +416,7 @@ test('§A.7.1.4 — without the sidecar the page reports "referenced but not obt
 });
 
 test('§11.4 — ingredients ride into the external store and the chain reads back', async () => {
-  // A signed masthead: its own store, its own claim, its own §18.28 disclosure —
+  // A signed masthead: its own store, its own claim, its own §18.28 disclosure - 
   // the M4 artifact, built here without a container so the test stays about the
   // ingredient machinery rather than about SVG splicing.
   const masthead = utf8('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 4 4"><rect width="4" height="4"/></svg>');
@@ -429,7 +429,7 @@ test('§11.4 — ingredients ride into the external store and the chain reads ba
     specVersion: C2PA_SPEC_VERSION,
   });
   // An external store is only ever consulted for an asset that REFERENCES one
-  // (§A.7.1.2's link element), which SVG has no form of — so a bare SVG plus a
+  // (§A.7.1.2's link element), which SVG has no form of - so a bare SVG plus a
   // sidecar reads as no credential, not as a broken one. That is exactly why M4
   // embeds a masthead's store in the SVG (§A.3.3) and only the M5 page uses the
   // sidecar form; this fixture is here for the ingredient machinery.
@@ -464,7 +464,7 @@ test('§11.4 — ingredients ride into the external store and the chain reads ba
   assert.equal(ingredientAssertion.get('dc:format'), 'image/svg+xml');
   assert.equal(ingredientAssertion.get('relationship'), 'parentOf');
   assert.equal(ingredientAssertion.get('dc:title'), 'Masthead — provenance');
-  // report.aiDisclosure is the ACTIVE manifest's — the page made no disclosure of
+  // report.aiDisclosure is the ACTIVE manifest's - the page made no disclosure of
   // its own, and the reader does not (and should not) hoist an ingredient's.
   assert.equal(report.aiDisclosure, undefined);
   // …but the model name is not lost: the ingredient's whole manifest superbox
@@ -508,7 +508,7 @@ test('§11.4 — a signed FILE is packageable as an ingredient of a page seal (t
     'the page seal inherits the component\'s AI origin through the chain, with no new verdict logic');
 });
 
-/** First index of `needle` in `hay`, or -1 — a plain byte scan, used to prove an
+/** First index of `needle` in `hay`, or -1 - a plain byte scan, used to prove an
  *  ingredient manifest was carried in unaltered rather than re-encoded. */
 function indexOfBytes(hay: Uint8Array, needle: Uint8Array): number {
   outer: for (let i = 0; i + needle.length <= hay.length; i++) {
@@ -528,7 +528,7 @@ test('c2pa-rs reads the sidecar store: signature, hashed URIs, ai-disclosure and
   // c2patool cannot open an HTML asset, so the BINDING half of an external
   // manifest still has no second implementation to check it (the standing TODO).
   // But the store is an ordinary JUMBF manifest store, and c2patool reads one
-  // straight from a `.c2pa` file — so everything except the asset hash gets a
+  // straight from a `.c2pa` file - so everything except the asset hash gets a
   // genuinely independent verdict here: the COSE signature, every hashed URI
   // (the §18.28 assertion included), and the 2.4 placement of specVersion.
   const page = utf8(pageHtml());
@@ -566,7 +566,7 @@ test('c2pa-rs reads the sidecar store: signature, hashed URIs, ai-disclosure and
     'c2pa-rs re-hashes the disclosure assertion and matches our claim reference');
   // The failures c2patool DOES report are both expected and honest: the signer is
   // an ephemeral self-signed key, and the "asset" it hashed was the sidecar file
-  // itself — there is no way to hand it the page these bytes actually bind.
+  // itself - there is no way to hand it the page these bytes actually bind.
   const failures: Array<{ code: string }> = out.validation_results.activeManifest.failure;
   assert.deepEqual(failures.map((f) => f.code).sort(), ['assertion.dataHash.mismatch', 'signingCredential.untrusted']);
 });

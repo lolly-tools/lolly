@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
- * Saved-session record envelope — the version stamps a shell's state bridge
+ * Saved-session record envelope - the version stamps a shell's state bridge
  * writes for one saved tool session, and the migrate-or-warn branch it runs on
  * load.
  *
@@ -11,11 +11,11 @@
  *     formatVersion, engineVersion }
  *
  * `formatVersion` is the record LAYOUT version (bump on any change to the fields
- * or their shape). `engineVersion` is the running engine that wrote it — a
+ * or their shape). `engineVersion` is the running engine that wrote it - a
  * breadcrumb for a future migration that needs to know which engine's data
  * conventions produced the record. The engine owns both the constant and the
  * migrate-or-warn branch so the three bridges (web + desktop + mobile) cannot
- * drift — the same discipline data-transfer.ts applies to the portable-backup
+ * drift - the same discipline data-transfer.ts applies to the portable-backup
  * envelope, applied here to the per-session record.
  *
  * This is the hook the state.ts header always promised ("the runtime can decide
@@ -45,7 +45,7 @@ export function sessionVersionStamp(): SessionVersionStamp {
   return { formatVersion: SESSION_FORMAT_VERSION, engineVersion: ENGINE_VERSION };
 }
 
-/** A record as read back from storage — untrusted shape, version fields optional.
+/** A record as read back from storage - untrusted shape, version fields optional.
  *  Only the fields the migrate-or-warn branch reads are named (no index
  *  signature, so a shell's concrete record type stays assignable here). */
 export interface StoredSessionRecord {
@@ -63,7 +63,7 @@ export type SessionLogger = (
 
 /**
  * The migrate-or-warn branch every state bridge runs on load. Reads a parsed
- * record's version stamps and returns its `data` — migrating forward when the
+ * record's version stamps and returns its `data` - migrating forward when the
  * record predates the current layout, and warning (never throwing) when it comes
  * from a newer build than this one understands.
  *

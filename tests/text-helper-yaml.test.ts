@@ -11,8 +11,8 @@
  * that library as a classic-script global (community/text-helper/lib/yaml.min.js)
  * and load it on demand, mirroring the D3 tool.
  *
- * These guards run the ACTUAL vendored artifact — evaluated exactly as a browser
- * classic <script> would (`var YAML = (() => …)()`) — so a re-vendor that broke
+ * These guards run the ACTUAL vendored artifact - evaluated exactly as a browser
+ * classic <script> would (`var YAML = (() => …)()`) - so a re-vendor that broke
  * the surface or dropped a feature fails here, and assert that the template is
  * wired to it and no longer carries the old parser.
  */

@@ -3,7 +3,7 @@
  * The onion-ring classifier: which gamut OUT a colour sits in, relative to the
  * active limit.
  *
- * Every assertion here is about MEMBERSHIP — "this colour, under that limit, gets
+ * Every assertion here is about MEMBERSHIP - "this colour, under that limit, gets
  * that tier". None of them assert index arithmetic over `GAMUT_TIER_LADDER`, and
  * that is the point: the bug this classifier replaces ranked gamuts by their
  * position in an ordering, which is wrong because Display-P3 is not a subset of
@@ -26,7 +26,7 @@ const ok = (c: CssColor): [number, number, number] => {
   return [o.components[0] ?? 0, o.components[1] ?? 0, o.components[2] ?? 0];
 };
 
-/** The P3 red corner — the colour the index-arithmetic version got wrong. It is
+/** The P3 red corner - the colour the index-arithmetic version got wrong. It is
  *  inside Display-P3 by construction and OUTSIDE Rec.2020: its red primary lies
  *  past the Rec.2020 red–green edge. */
 const P3_RED = ok(parseColor('color(display-p3 1 0 0)')!);
@@ -126,7 +126,7 @@ test('the ladder is a question order, and the three display gamuts are on it', (
 test('the module comment\'s worked examples reproduce', () => {
   // They did not. The P3 red corner was quoted rounded to 4 decimals, which pushes it
   // OFF the P3 hull it sits on (`inGamut(…, 'p3')` false, tier BEYOND), and the hue
-  // sweep was illustrated with a `3` — an answer no sRGB limit can return, since its
+  // sweep was illustrated with a `3` - an answer no sRGB limit can return, since its
   // ladder has two candidates. A reader who pasted either into a debug session would
   // conclude the classifier is broken. So the doc is now read back from the source and
   // checked, which also keeps it honest if the hulls are ever revised.

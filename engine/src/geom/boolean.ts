@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
- * Boolean operations on regions bounded by cubic Béziers — union, intersection,
- * difference, exclusive-or — and the winding-number test they are all decided by.
+ * Boolean operations on regions bounded by cubic Béziers - union, intersection,
+ * difference, exclusive-or - and the winding-number test they are all decided by.
  *
  * ## The method
  *
@@ -13,15 +13,15 @@
  *    `subCubic`, so each piece is still exactly the original curve over a sub-range
  *    rather than an approximation of it. No polyline is ever built.
  * 3. Each piece is decided by what is filled immediately to its LEFT and to its RIGHT.
- *    It belongs to the result exactly when those two answers differ — that is the
- *    definition of a boundary — and it is emitted pointing so the kept side is on the
+ *    It belongs to the result exactly when those two answers differ - that is the
+ *    definition of a boundary - and it is emitted pointing so the kept side is on the
  *    left.
  * 4. The survivors are chained back into closed loops by shared endpoints.
  *
  * ## Why both sides, rather than "is the midpoint inside the other path"
  *
  * A one-sided test needs a point strictly inside the region beside the piece, and the
- * only way to name one is to step off the curve by some epsilon — a guess that fails on
+ * only way to name one is to step off the curve by some epsilon - a guess that fails on
  * thin geometry and on any piece shorter than the guess. Both sides can be had exactly
  * instead. Cast a ray from the piece's midpoint M: every curve that does NOT pass
  * through M contributes an unambiguous crossing, and the curves that DO pass through M
@@ -65,15 +65,15 @@
  * both operands are canonical and interior-left, so concatenating them adds their windings
  * and the nonzero region really is A∪B. No other operator has such an alternative, and
  * substituting the answer a disjoint pair would give is not a degradation but a wrong
- * answer wearing a successful one's clothes — a difference silently returns the whole first
+ * answer wearing a successful one's clothes - a difference silently returns the whole first
  * operand, an intersection silently returns nothing, and the caller has no way to tell. So
  * those three throw `GeomLimitError` instead. `selfUnion` is the exception and hands back
  * the unresolved path, which is a real approximation of its own answer: the input already
  * fills nearly the region its resolved form would under the nonzero rule.
  *
  * What the budget does not cover is the time one `intersectCubics` call spends. Its own caps
- * bound it, but a near-tangential pair — two curves of the same shape a hair apart, where a
- * fat-line clip cannot make progress and the search falls back to bisection — costs
+ * bound it, but a near-tangential pair - two curves of the same shape a hair apart, where a
+ * fat-line clip cannot make progress and the search falls back to bisection - costs
  * thousands of times what an ordinary pair does, and a thousand curves mutually shadowing
  * each other therefore take seconds, most of it inside Stage 1.
  *
@@ -123,7 +123,7 @@ export interface BooleanOptions {
 // Untrusted path data is ordinary input here (an imported SVG, a pasted glyph), and every
 // one of these loops is superlinear in the curve count. Each cap is sized above what real
 // geometry of that size costs and below where the time becomes unreasonable, and hitting one
-// yields a valid best-effort path rather than a partial one — a cap that truncates the work
+// yields a valid best-effort path rather than a partial one - a cap that truncates the work
 // mid-classification produces confetti, which is worse than not having tried.
 
 /** Curves per operand beyond which the pairwise pass is skipped entirely. */
@@ -131,7 +131,7 @@ const MAX_CURVES = 8000;
 /** Split parameters honoured across one operation. Sized by what it costs to be WRONG
  *  rather than by what it costs to be slow: an operation that runs out of splits leaves
  *  crossings uncut, and pieces that straddle a crossing are classified at a midpoint on the
- *  wrong side of it — a thousand overlapping squares came back as 130 contours instead of
+ *  wrong side of it - a thousand overlapping squares came back as 130 contours instead of
  *  one. The work budget below is the real governor of time, and it bails out safely, so this
  *  one only has to be above the count real geometry needs. */
 const MAX_SPLITS = 120_000;
@@ -139,13 +139,12 @@ const MAX_SPLITS = 120_000;
 const MAX_PAIRS = 4_000_000;
 /**
  * Abstract units of work: 1 per curve examined, 8 per root solve, 32 per nearest-point
- * projection — which really is that much dearer, and charging it honestly is the only way
+ * projection - which really is that much dearer, and charging it honestly is the only way
  * the cap bounds TIME rather than just iteration counts.
  *
  * Sized against what the algorithm legitimately costs, not against a round number. Ray
  * casting is inherently quadratic in the curve count (every edge asks about every curve),
- * and measured, a stroked 400-curve wiggle — an ordinary shape, a signature or a glyph run —
- * spends 5.6e7 of these. A cap below that does not make such a path slow, it makes it WRONG:
+ * and measured, a stroked 400-curve wiggle - an ordinary shape, a signature or a glyph run - * spends 5.6e7 of these. A cap below that does not make such a path slow, it makes it WRONG:
  * the classification answers 0/0 for every edge past the cap and the walk chains the result
  * into confetti. So the cap sits well above the legitimate cost of a path of about a
  * thousand curves, and anything past it takes the bail-out below instead of a wrong answer.
@@ -164,7 +163,7 @@ const CONTACT_SEED = 1 / 64;
 const MAX_CONTACT_LEAVES = 24;
 
 /** Parameter distance from a curve end within which a ray hit counts as hitting the
- *  shared vertex — which would be counted once per adjoining curve. */
+ *  shared vertex - which would be counted once per adjoining curve. */
 const T_GUARD = 1e-7;
 
 interface Budget { splits: number; pairs: number; work: number }
@@ -191,7 +190,7 @@ function usableTol(tol: number | undefined): number {
  * silently discarding geometry the caller passed in.
  *
  * Throws `GeomLimitError` for an intersection, difference or xor that cannot be answered
- * within bounded work — see `abandon` for why those three have nothing honest to return.
+ * within bounded work - see `abandon` for why those three have nothing honest to return.
  */
 export function booleanPath(a: GeomPath, b: GeomPath, op: BooleanOp, opts: BooleanOptions = {}): GeomPath {
   const tol = usableTol(opts.tol);
@@ -245,7 +244,7 @@ export function booleanPath(a: GeomPath, b: GeomPath, op: BooleanOp, opts: Boole
   }
 
   // Out of budget means some edges were classified and the rest were answered 0/0, and
-  // chaining those together is confetti — a worse answer than not having attempted the
+  // chaining those together is confetti - a worse answer than not having attempted the
   // operation.
   if (budget.work <= 0) return abandon(A, B, op, 'the work budget ran out mid-classification');
   return compactPath(walkLoops(dedupeEdges(kept, weld), weld));
@@ -264,7 +263,7 @@ export function intersectPath(a: GeomPath, b: GeomPath, opts?: BooleanOptions): 
  *
  * Classified directly, not as "intersect A with a reversed B". That shortcut only
  * inverts an operand cleanly while its winding is ±1 everywhere, and it stops being
- * true the moment B has nested contours wound the same way — the reversal then turns a
+ * true the moment B has nested contours wound the same way - the reversal then turns a
  * doubly-wound region into a doubly-wound one of the other sign rather than into a
  * hole. Asking what is filled either side of a piece does not care how B is wound.
  */
@@ -282,7 +281,7 @@ export function xorPath(a: GeomPath, b: GeomPath, opts?: BooleanOptions): GeomPa
  *
  * Both a public entry point (Stage 3's inward offsets always produce self-overlap, and
  * this is what removes it) and the preprocessing step `booleanPath` runs on each
- * operand — the pairwise pass is only simple because it can assume canonical inputs.
+ * operand - the pairwise pass is only simple because it can assume canonical inputs.
  */
 export function selfUnion(p: GeomPath, opts: BooleanOptions = {}): GeomPath {
   const tol = usableTol(opts.tol);
@@ -303,8 +302,7 @@ export function selfUnion(p: GeomPath, opts: BooleanOptions = {}): GeomPath {
   selfSplits(idx.curves, splits, tol, weld, budget);
 
   // A single contour that never crosses itself is already canonical apart from its
-  // direction, and returning it untouched keeps the caller's exact control points —
-  // which the split/classify/walk round trip would only reproduce approximately. The
+  // direction, and returning it untouched keeps the caller's exact control points - // which the split/classify/walk round trip would only reproduce approximately. The
   // direction is settled by the same side test the general path uses rather than by a
   // signed area, so one deeply concave curve cannot flip it.
   //
@@ -312,7 +310,7 @@ export function selfUnion(p: GeomPath, opts: BooleanOptions = {}): GeomPath {
   // TOUCHES itself at a vertex has none, because the contact sits exactly where two
   // curves already end and an endpoint is correctly not an intersection. Such a contour
   // still bounds two regions, wound oppositely under nonzero, and handing it back
-  // untouched leaves the two cancelling — so it goes the long way round instead.
+  // untouched leaves the two cancelling - so it goes the long way round instead.
   if (path.length === 1 && !splits.some((s) => s.length) && !selfTouching(path[0]!, weld)) {
     const only = path[0]!;
     const probe = only.curves[0]!;
@@ -371,8 +369,8 @@ export function windingNumber(p: GeomPath, x: number, y: number): number {
     last = cast.far;
     if (budget.work <= 0) return last;
   }
-  // Every direction defeated. `last` is a prefix sum — the curves the failing cast never
-  // reached are simply missing from it — so the fallback is a cast that visits all of them.
+  // Every direction defeated. `last` is a prefix sum - the curves the failing cast never
+  // reached are simply missing from it - so the fallback is a cast that visits all of them.
   const d = RAY_DIRS[0]!;
   const cast = castRay(idx, x, y, d[0], d[1], null, near, budget, true);
   return cast.ok || budget.work > 0 ? cast.far : last;
@@ -386,7 +384,7 @@ export function pointInPath(p: GeomPath, x: number, y: number, rule: FillRule = 
 
 function filled(w: number, rule: FillRule): boolean {
   // Every crossing is ±1, so the parity of the winding number and the parity of the
-  // crossing count are the same thing — even-odd needs no separate tally.
+  // crossing count are the same thing - even-odd needs no separate tally.
   return rule === 'evenodd' ? (Math.abs(w) & 1) === 1 : w !== 0;
 }
 
@@ -419,7 +417,7 @@ function disjointResult(a: GeomPath, b: GeomPath, op: BooleanOp): GeomPath {
  *
  * A union has an exact way out and takes it: both operands are canonical and interior-left,
  * so the concatenation's nonzero region IS A∪B. The one thing it gives up is canonical
- * FORM — the contours overlap where the operands did, so the result no longer reads the
+ * FORM - the contours overlap where the operands did, so the result no longer reads the
  * same under both fill rules.
  *
  * The other three have no such alternative. Handing back what a disjoint pair would give
@@ -439,7 +437,7 @@ function isFiniteCubic(c: Cubic): boolean {
   return true;
 }
 
-/** How far a curve reaches from its start — a chord-and-hull measure, no roots. */
+/** How far a curve reaches from its start - a chord-and-hull measure, no roots. */
 function extent(c: Cubic): number {
   return Math.max(
     Math.hypot(c[2] - c[0], c[3] - c[1]),
@@ -466,7 +464,7 @@ function normalise(p: GeomPath): GeomPath {
  * Does a contour come back to a point it has already been to?
  *
  * Every vertex of a contour that bounds one region appears exactly once as the start of a
- * curve, so a repeat is a contact — a figure of eight pinched at a point, or a slit cut in
+ * curve, so a repeat is a contact - a figure of eight pinched at a point, or a slit cut in
  * and retraced back out. Both need resolving and neither leaves a split parameter behind
  * to notice it by, which is why this is asked separately rather than inferred.
  */
@@ -510,7 +508,7 @@ function buildIndex(p: GeomPath): CurveIndex {
 
 const reverseCubic = (k: Cubic): Cubic => [k[6], k[7], k[4], k[5], k[2], k[3], k[0], k[1]];
 
-/** Direction at the midpoint, falling back to the chord — a cubic's derivative
+/** Direction at the midpoint, falling back to the chord - a cubic's derivative
  *  vanishes at a cusp, and a zero reference vector would make every side test
  *  meaningless rather than merely imprecise. */
 function midTangent(c: Cubic): { x: number; y: number } {
@@ -526,7 +524,7 @@ function midTangent(c: Cubic): { x: number; y: number } {
 /**
  * Every pair of curves whose boxes overlap, by sweep-and-prune along x rather than by
  * testing all n·m. A page-sized path carries thousands of curves, and the quadratic
- * scan is the difference between milliseconds and minutes — which on untrusted input is
+ * scan is the difference between milliseconds and minutes - which on untrusted input is
  * the difference between a slow render and a hang.
  *
  * Both lists are visited in x0 order; each curve is tested only against the curves
@@ -608,8 +606,8 @@ function addSplit(splits: number[][], index: number, t: number, budget: Budget):
 /**
  * Two straight, collinear, partially overlapping pieces.
  *
- * The general intersector reports nothing for them — two parallel segments have no
- * determinant to solve — so without this they would never be split at the ends of
+ * The general intersector reports nothing for them - two parallel segments have no
+ * determinant to solve - so without this they would never be split at the ends of
  * their shared run, the pieces of A and B would not line up, and the overlap would
  * survive twice in the output. Two rectangles sharing an edge is the everyday case.
  */
@@ -641,7 +639,7 @@ function collinearSplits(a: Cubic, b: Cubic, weld: number, budget: Budget): { ta
  * The two parameters where one cubic crosses ITSELF, in closed form.
  *
  * P(t1) = P(t2) with t1 ≠ t2 divides through by (t1 − t2) to leave
- * A(t1² + t1t2 + t2²) + B(t1 + t2) + C = 0 in both coordinates — two equations that are
+ * A(t1² + t1t2 + t2²) + B(t1 + t2) + C = 0 in both coordinates - two equations that are
  * linear in (s² − q) and s, where s = t1 + t2 and q = t1t2. So the loop parameters are
  * a 2×2 solve and one quadratic, with nothing iterated. A cubic loop is not exotic:
  * inward offsets and freehand fits produce them constantly, and an unresolved one makes
@@ -671,7 +669,7 @@ function selfIntersectCubic(c: Cubic): [number, number] | null {
  * Where one pair of curves needs cutting.
  *
  * Coincident curves are the trap here. They have no isolated crossing, and the
- * intersector — whose whole job is to find isolated crossings — answers a shared run
+ * intersector - whose whole job is to find isolated crossings - answers a shared run
  * with a scatter of points along it. Splitting at those cuts A and B at slightly
  * different parameters, the pieces stop matching, the coincidence test no longer
  * recognises them, and the overlap survives twice in the output. So:
@@ -722,14 +720,14 @@ function pairSplits(ci: Cubic, cj: Cubic, tol: number, weld: number, budget: Bud
 }
 
 /**
- * A run of boundary shared by two curves that are NOT the same curve end to end — one is
+ * A run of boundary shared by two curves that are NOT the same curve end to end - one is
  * a sub-range of the other, or the two overlap over part of their length.
  *
  * A run can only begin and end where one of the four endpoints falls, so each endpoint is
  * projected onto the other curve; two or more of them landing on it bracket a candidate
  * run, and the sub-ranges that run spans are then compared for identity. The comparison is
- * a proof rather than a heuristic — a degree-three difference that vanishes at four
- * parameters is identically zero — so a genuine crossing cannot be mistaken for an
+ * a proof rather than a heuristic - a degree-three difference that vanishes at four
+ * parameters is identically zero - so a genuine crossing cannot be mistaken for an
  * overlap: the pieces between two crossings bound a lens and are not equal.
  *
  * Asked BEFORE the intersector, which is the whole point. Asking for isolated crossings
@@ -778,7 +776,7 @@ function inflated(b: Box, x: number, y: number, pad: number): boolean {
  *
  * A tangency is the one contact the intersector cannot close on. A fat-line clip barely
  * shrinks the domain there, so it falls back to bisection, and bisecting a ten-unit chord
- * down to a 1e-9 box needs more levels than its depth cap allows — it reports nothing at
+ * down to a 1e-9 box needs more levels than its depth cap allows - it reports nothing at
  * all for two circles that meet at a point. As an INTERSECTION answer that is defensible;
  * there is no crossing. As input to a boolean it is fatal, because a piece is only
  * classified correctly when its midpoint is somewhere the answer is unambiguous, and
@@ -793,19 +791,19 @@ function inflated(b: Box, x: number, y: number, pad: number): boolean {
  * parameter where the gap between the curves is least, found by golden section on the
  * exact gap.
  *
- * Subdividing all the way down instead — the obvious single-step version — cannot locate a
+ * Subdividing all the way down instead - the obvious single-step version - cannot locate a
  * tangency at all, and this is worth stating precisely because the failure looks like
  * rounding rather than like a wrong method. Two curves tangent to second order stay within
  * the weld radius over a parameter neighbourhood of √(weld/Δκ), which for a weld of 1e-5 on
  * page-sized arches is a fiftieth of the curve. Every box pair in that neighbourhood
  * qualifies, so the recursion reports a scatter of contacts spread across it, each one a
- * cut that misses the touch point by enough to leave a visible sliver — and it burns its
+ * cut that misses the touch point by enough to leave a visible sliver - and it burns its
  * node budget subdividing a region it can never resolve. The gap MINIMUM is at the contact
  * and nowhere else, and because the gap is quadratic there it pins down to about the
  * square root of double precision: a contact located to ~1e-9 rather than to ~1e-2.
  *
- * A contact that turns out to sit on a curve's endpoint — two curves of one contour meeting
- * at their shared vertex, which is not an intersection at all — converges onto that
+ * A contact that turns out to sit on a curve's endpoint - two curves of one contour meeting
+ * at their shared vertex, which is not an intersection at all - converges onto that
  * endpoint, where `addSplit` then correctly refuses to cut.
  */
 function contactSplits(ci: Cubic, cj: Cubic, weld: number, budget: Budget): { a: number[]; b: number[] } | null {
@@ -834,7 +832,7 @@ function contactSplits(ci: Cubic, cj: Cubic, weld: number, budget: Budget): { a:
 
   // One bracket at a time, deliberately not merged with its neighbours. A touch landing on a
   // subdivision boundary survives in both, and each of the two minimises to that shared
-  // boundary EXACTLY — the same parameter twice, which `splitIntoEdges` collapses. Merging
+  // boundary EXACTLY - the same parameter twice, which `splitIntoEdges` collapses. Merging
   // them into one wide bracket first would be the tidier-looking choice and is unsound:
   // golden section needs the gap unimodal, and a bracket holding two contacts is where it
   // settles between them instead of on either.
@@ -853,8 +851,8 @@ function contactSplits(ci: Cubic, cj: Cubic, weld: number, budget: Budget): { a:
  * Golden section rather than Newton because the contact this is asked about is a DOUBLE
  * root: the gap's derivative and the Jacobian of every stationarity condition vanish
  * together there, so every quadratically convergent method is singular at the answer.
- * Bracketed minimisation has no such trouble — it only needs the gap to be unimodal on the
- * bracket, which the box pruning has already established by leaving one contact in it — and
+ * Bracketed minimisation has no such trouble - it only needs the gap to be unimodal on the
+ * bracket, which the box pruning has already established by leaving one contact in it - and
  * it converges on a boundary minimum just as happily as on an interior one, which is the
  * shared-vertex case.
  *
@@ -901,7 +899,7 @@ function pinContact(
  * find, not a search: the parameter comes back from `nearestOnCubic`, so the cut lands
  * on the curve rather than near it. Taking the extremes of the intersector's reported
  * points instead would put the cut wherever its subdivision happened to stop, and the
- * two curves would then be cut at different places — the overlap would survive twice.
+ * two curves would then be cut at different places - the overlap would survive twice.
  */
 function overlapSplits(ci: Cubic, cj: Cubic, weld: number, budget: Budget): { a: number[]; b: number[] } {
   const a: number[] = [], b: number[] = [];
@@ -948,8 +946,8 @@ function crossSplits(
  * Cut each curve at its recorded parameters with `subCubic`, so every piece is the
  * original curve restricted to a sub-range.
  *
- * A cut is dropped when the PIECE it would open is degenerate — extent below the weld
- * radius — rather than when its position is close to the previous cut's. Several sources
+ * A cut is dropped when the PIECE it would open is degenerate - extent below the weld
+ * radius - rather than when its position is close to the previous cut's. Several sources
  * report the same contact at slightly different parameters (a tangency is a double root
  * and comes back as two roots a whisker apart; a scatter along a shared run reports a
  * handful), and cutting at each of them would leave sub-weld slivers that then have to be
@@ -958,7 +956,7 @@ function crossSplits(
  *
  * Measuring the piece rather than the distance between the two cut POINTS is what keeps a
  * self-crossing curve intact. Its two loop parameters name the same point, so a
- * position test calls the second one a duplicate and drops it — and then the loop is
+ * position test calls the second one a duplicate and drops it - and then the loop is
  * never separated from the rest of the curve, nothing closes, and the walk hands back two
  * dangling chains. The piece between those parameters is a whole lobe: its endpoints
  * coincide and its extent is large, which is exactly the distinction this test makes.
@@ -1005,8 +1003,8 @@ function buildRayDirs(): (readonly [number, number])[] {
 }
 
 /** Directions usable for a side test at a piece whose tangent is (rx, ry). A ray
- *  parallel to that tangent cannot tell the two sides apart — the crossing at the
- *  query point becomes a double root — so those are excluded up front. */
+ *  parallel to that tangent cannot tell the two sides apart - the crossing at the
+ *  query point becomes a double root - so those are excluded up front. */
 function rayDirections(rx: number, ry: number): (readonly [number, number])[] {
   const mag = Math.hypot(rx, ry);
   if (mag < 1e-12) return RAY_DIRS.slice();
@@ -1046,7 +1044,7 @@ function castRay(
   const ry0 = Math.min(py, qy) - near, ry1 = Math.max(py, qy) + near;
   const nx = -uy, ny = ux;
   // The ray's own origin sits ON the curve being classified, so its hit lands at exactly
-  // u = 0 — and lands a couple of ULPS the wrong side of it once the coordinates are large.
+  // u = 0 - and lands a couple of ULPS the wrong side of it once the coordinates are large.
   // At x ≈ 1e7 one ulp is 1.9e-9, so an absolute 1e-9 rejects that hit as off the end of
   // the ray, the curve vanishes from the count, the edge is classified 0/0 and deleted, and
   // the operation returns non-closed geometry. Two overlapping unit squares placed at 1e7
@@ -1085,7 +1083,7 @@ function castRay(
       if (s <= near && ref) {
         // Through the query point. Which side it lands on is decided later from the
         // sign of (ray × reference); here only its direction relative to the reference
-        // matters, which is the sign of the dot product — continuous in the angle, so a
+        // matters, which is the sign of the dot product - continuous in the angle, so a
         // bundle member that is merely SKEW to the reference (a split this operation
         // failed to make) still lands on the side it mostly lies on. Answering 0 there
         // would drop a real boundary through the query point, making both sides agree
@@ -1143,7 +1141,7 @@ function sideWindings(
   }
   // Every direction defeated. A cast that bails the moment it meets a degeneracy leaves
   // `far` a PREFIX SUM over however many curves it happened to visit first, which is not a
-  // worse answer but no answer at all — the curves past the bail contribute nothing, so a
+  // worse answer but no answer at all - the curves past the bail contribute nothing, so a
   // point deep inside a shape comes back outside it. One more cast then, forbidden to bail,
   // so the count is at least taken over the whole path.
   const d = dirs[0]!;
@@ -1157,8 +1155,7 @@ function sideWindings(
  * Are two pieces the same curve, and do they run the same way?
  *
  * Degree three means a difference polynomial with four roots is identically zero, so
- * agreement at four parameters is a proof of identity rather than a sample of it —
- * which is why the parameters are fixed and there is no subdivision here. Returns 1 for
+ * agreement at four parameters is a proof of identity rather than a sample of it - * which is why the parameters are fixed and there is no subdivision here. Returns 1 for
  * same direction, -1 for opposed, 0 for different curves.
  */
 function coincidence(a: Cubic, b: Cubic, weld: number): 0 | 1 | -1 {
@@ -1183,7 +1180,7 @@ function coincidence(a: Cubic, b: Cubic, weld: number): 0 | 1 | -1 {
  * do they merely touch inside it?
  *
  * This cannot be decided by how wide the bracket is. A tangency is a double root, and the
- * solver reports it as two roots a whisker apart — but how wide a whisker depends on the
+ * solver reports it as two roots a whisker apart - but how wide a whisker depends on the
  * curvature difference at the contact and on the root polish, and for two circles meeting
  * at a point it comes out at 7.7e-6 against a weld radius of 4e-6. Comparing the bracket's
  * extent to the weld radius is therefore a magnitude race, and losing it is not a rounding
@@ -1194,7 +1191,7 @@ function coincidence(a: Cubic, b: Cubic, weld: number): 0 | 1 | -1 {
  *
  * What distinguishes the two cases is not size but analytic continuation. Sharing boundary
  * means agreeing on an INTERVAL, and two cubics that agree on an interval are the same cubic
- * — the affine map between their parameters that holds on the bracket holds everywhere. So
+ * - the affine map between their parameters that holds on the bracket holds everywhere. So
  * the bracket is used only to FIND that map, and the agreement is then tested across the
  * whole of `ci`, at the parameters of `cj` the map sends it to. A shared run passes, because
  * the map really is exact and extending it costs nothing. A tangency fails by an enormous
@@ -1214,7 +1211,7 @@ function continuesAsSameCurve(
       const u = dir === 1 ? b0 + f * db : b1 - f * db;
       const p = evalCubic(ci, t), q = evalCubic(cj, u);
       // A wildly extrapolated parameter can overflow to a non-finite coordinate, and every
-      // comparison against NaN is false — which would read as agreement.
+      // comparison against NaN is false - which would read as agreement.
       if (!Number.isFinite(q.x) || !Number.isFinite(q.y)
        || Math.abs(p.x - q.x) > weld || Math.abs(p.y - q.y) > weld) { same = false; break; }
     }
@@ -1227,7 +1224,7 @@ function continuesAsSameCurve(
  * Decide overlapping material once.
  *
  * Where the two operands share a stretch of boundary there is no isolated crossing to
- * find, and the side test keeps BOTH copies whenever it keeps either — they describe
+ * find, and the side test keeps BOTH copies whenever it keeps either - they describe
  * the same boundary from each path's point of view. So the survivors are matched up
  * afterwards by direction: two kept pieces running the same way are one edge and
  * collapse to a single copy (this is what makes a union keep one and an intersection
@@ -1251,7 +1248,7 @@ function continuesAsSameCurve(
  * same vertex and one of them is simply never taken. An annihilated sliver that was the only
  * link between a vertex and the rest of its curve is a BREAK, and the walk cannot step over
  * that: the chain dead-ends, everything past it is abandoned, and the abandoned part is not
- * a sliver — measured on a three-cubic self-crossing chain stroked at 4, deleting one
+ * a sliver - measured on a three-cubic self-crossing chain stroked at 4, deleting one
  * 1.0e-5-long edge cost an 87-unit lobe out of a 1047-unit outline and turned 3 contours
  * into 7. The lobe is not misplaced in that output, it is gone.
  *
@@ -1302,7 +1299,7 @@ function dedupeEdges(edges: Cubic[], weld: number): Cubic[] {
  *
  * At an ordinary crossing exactly one kept piece leaves each vertex, so the chain is
  * forced and no choice arises. Choices only appear where more than two boundary strands
- * meet — a shape touching itself at a point, or coincident material — and there the
+ * meet - a shape touching itself at a point, or coincident material - and there the
  * next edge is the first one clockwise from the reverse of the incoming direction. That
  * is the standard face traversal for "keep the region on your left", and it is what
  * separates a self-touching outline into two loops instead of one loop that crosses
@@ -1359,14 +1356,14 @@ function walkLoops(edges: Cubic[], weld: number): GeomPath {
     // ran out of edges is not, and what to do with it depends on whether it still bounds
     // anything. One that nearly closed does: the classification lost an edge to numerical
     // trouble, and marking it closed leaves a hairline join, which is the least damaging
-    // repair — inventing a straight edge across the gap is not.
+    // repair - inventing a straight edge across the gap is not.
     //
     // One that bounds no measurable area does not, and must be dropped here, because
     // nothing downstream can: `compactPath` asks whether a contour has bbox EXTENT, which a
     // sliver has, rather than whether it encloses area, which a sliver does not. A single
     // kept edge with no continuation would otherwise survive as a one-curve zero-area
     // subpath, and the count of those depends on the tolerance the operands were resolved
-    // at, not on the operands — one stroked wiggle came back as 1 contour at one tolerance
+    // at, not on the operands - one stroked wiggle came back as 1 contour at one tolerance
     // and 21 at a finer one, the outline plus one sliver per input curve. Output complexity
     // has to follow the input's.
     if (!joined && Math.abs(contourArea({ curves, closed: true })) <= weld * chainSpan(curves)) continue;

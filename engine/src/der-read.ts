@@ -1,17 +1,17 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
- * DER/ASN.1 read-side authority — the bounds-checked TLV walker plus the ECDSA
+ * DER/ASN.1 read-side authority - the bounds-checked TLV walker plus the ECDSA
  * signature-shape conversions and the EC named-curve table, shared by the
  * certificate/signature modules (c2pa-verify.ts, x509.ts, seal.ts). These used
  * to be per-module copies; this is the one canonical implementation.
  *
- * INTERNAL — deliberately NOT exported from index.ts; consumers import this
+ * INTERNAL - deliberately NOT exported from index.ts; consumers import this
  * module directly (x509.ts re-exports ecdsaRawToDer for its existing callers).
  *
- * INVARIANT (the GIF lesson — same rule as the CBOR decoder in c2pa-verify.ts):
+ * INVARIANT (the GIF lesson - same rule as the CBOR decoder in c2pa-verify.ts):
  * every multi-byte length head is bounds-checked BEFORE its bytes are read.
  * An out-of-range Uint8Array read yields undefined, which NaN-poisons the
- * computed length and silently defeats the `j + len > b.length` guard below —
+ * computed length and silently defeats the `j + len > b.length` guard below -
  * hostile input must fail with a prompt throw, never a silent mis-parse.
  * DER inputs here come straight out of attacker-controlled files.
  */
@@ -21,7 +21,7 @@ import { concatBytes } from './bytes.ts';
 export interface DerTlv { tag: number; start: number; contentStart: number; end: number; }
 
 /** Read one DER TLV at offset `i`. Throws on truncation or a length that
- *  overruns the buffer — never returns a TLV that reaches past `b`. */
+ * overruns the buffer - never returns a TLV that reaches past `b`. */
 export function derTlv(b: Uint8Array, i: number): DerTlv {
   if (i + 2 > b.length) throw new Error('der: truncated');
   const tag = b[i]!;
@@ -69,7 +69,7 @@ export const EC_CURVES: Record<string, { curve: string; hash: string; size: numb
 
 /**
  * DER ECDSA-Sig-Value (SEQUENCE { INTEGER r, INTEGER s }) → the fixed-width
- * raw r||s (IEEE P1363) WebCrypto verifies — the inverse of ecdsaRawToDer:
+ * raw r||s (IEEE P1363) WebCrypto verifies - the inverse of ecdsaRawToDer:
  * strip each INTEGER's leading 0x00 sign pads, left-pad back to the curve
  * field width (`size` bytes per integer). Throws on anything that is not a
  * well-formed ECDSA-Sig-Value that fits the curve.
@@ -92,7 +92,7 @@ export function ecdsaDerToRaw(derSig: Uint8Array, size: number): Uint8Array {
   return out;
 }
 
-// Just enough DER *writing* for ecdsaRawToDer below — byte-identical to
+// Just enough DER *writing* for ecdsaRawToDer below - byte-identical to
 // x509.ts's der()/derLen()/derUint() writers. Kept private here (x509.ts owns
 // the general writer set) to avoid an x509 ↔ der-read import cycle.
 function derLen(n: number): Uint8Array {

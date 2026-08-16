@@ -42,7 +42,7 @@ const TEXT_TEMPLATE =
   '<text x="12" y="50" font-family="Outfit" font-size="28" fill="#111111">{{label}}</text></svg>';
 // A textured render, for the Imprint case. The v2 watermark deliberately declines to
 // mark FLAT blocks (it would read as JPEG-like texture in a sky or a gradient), so a
-// single solid rectangle carries nothing detectable — that is the scheme working, not a
+// single solid rectangle carries nothing detectable - that is the scheme working, not a
 // missing mark. Sixty overlapping shapes give it something to hide in.
 const BUSY_TEMPLATE = (() => {
   let rects = '';
@@ -82,7 +82,7 @@ const TOOLS: Array<[string, string, string]> = [
   ['nofont-tool', NOFONT_TEMPLATE, manifest('nofont-tool')],
   // A tool gated on a capability this shell cannot provide (contract B11).
   ['mic-tool', VEC_TEMPLATE, manifest('mic-tool', { capabilities: ['microphone', 'screen'] })],
-  // A tool whose INPUT is named like a reserved export flag (contract B7) — the shape
+  // A tool whose INPUT is named like a reserved export flag (contract B7) - the shape
   // chart-creator, d3, filter-* and prompt-to-image all have in the shipping catalog.
   ['shadow-tool', '<svg xmlns="http://www.w3.org/2000/svg" width="120" height="80"><rect width="120" height="80" fill="#000"/><desc>{{width}}</desc></svg>',
     JSON.stringify({
@@ -96,7 +96,7 @@ const TOOLS: Array<[string, string, string]> = [
     id: 'ico-tool', name: 'ico-tool', version: '1.0.0', engineVersion: '^1.0.0', status: 'community',
     render: { width: 32, height: 32, formats: ['ico'] }, inputs: [],
   })],
-  // A transform tool (file in → bytes out) — the docs promised these stream to stdout
+  // A transform tool (file in → bytes out) - the docs promised these stream to stdout
   // without --output; the code wrote a file into the working directory instead (§11).
   ['xform-tool', '<div>transform</div>', JSON.stringify({
     id: 'xform-tool', name: 'xform-tool', version: '1.0.0', engineVersion: '^1.0.0', status: 'community',
@@ -227,7 +227,7 @@ test('the reserved subcommand words are frozen, and include the deferred `comple
     assert.ok(RESERVED_SUBCOMMANDS.includes(word as never), `${word} must be reserved`);
   }
   // No shipped tool id may collide. The fixture ids here are synthetic and can never
-  // collide, so this line proves nothing about the catalog on its own — the REAL guard
+  // collide, so this line proves nothing about the catalog on its own - the REAL guard
   // is in scripts/validate-catalog.ts, which imports this same list and errors on a
   // shipped tool id that matches. (That guard was decided in §1.1 and, until
   // 2026-08-01, never written, while this comment claimed it existed.)
@@ -563,7 +563,7 @@ test('validate reports a missing file as USAGE and a clean file as NOT_FOUND (B8
   await writeFile(plain, VEC_TEMPLATE);
   assert.equal((await cli(['validate', join(root, 'nope.png')])).code, EXIT.USAGE);
   assert.equal((await cli(['validate', plain])).code, EXIT.NOT_FOUND);
-  // N files, worst code wins — and every file gets a record, not just the first.
+  // N files, worst code wins - and every file gets a record, not just the first.
   const both = await cli(['validate', plain, join(root, 'nope.png')]);
   assert.equal(both.code, EXIT.USAGE, 'an unreadable path outranks a legitimate "no credential"');
   assert.match(both.stdout.toString('utf8'), /plain\.svg/);
@@ -607,7 +607,7 @@ test('host.state persists to LOLLY_STATE_DIR when one is named, and stays in mem
     const host = await createCliBridge({ dom: dom.window as never, profile: {} } as never);
     await host.state.save('slot-a', { hello: 'world' });
     assert.equal(existsSync(join(dir, 'state', 'slot-a.json')), true);
-    // A SECOND process (a second bridge) sees it — which is the whole point: a tool that
+    // A SECOND process (a second bridge) sees it - which is the whole point: a tool that
     // saves state used to be unscriptable, because every run started empty.
     const host2 = await createCliBridge({ dom: dom.window as never, profile: {} } as never);
     assert.deepEqual(await host2.state.load('slot-a'), { hello: 'world' });
@@ -675,13 +675,13 @@ test('preflight refuses with 4, never 1, and is 2 only when it could not run (B1
   // Clean: a declared format, nothing to fix.
   const clean = await cli(['preflight', 'vec-tool', '--export=svg']);
   assert.equal(clean.code, EXIT.OK);
-  // An error finding — an undeclared format is one the engine's rules emit — is REFUSED.
+  // An error finding - an undeclared format is one the engine's rules emit - is REFUSED.
   // 4 is what `validate` answers for the same class of event; two check commands must
   // not return opposite codes, or a CI wrapper sends a real finding down the retry path.
   const refused = await cli(['preflight', 'vec-tool', '--export=pdf']);
   assert.equal(refused.code, EXIT.REFUSED);
   assert.notEqual(refused.code, EXIT.FAILED);
-  // Could not run at all: exit 2, and NOT 4 — "the check never happened" is the fact
+  // Could not run at all: exit 2, and NOT 4 - "the check never happened" is the fact
   // this subcommand exists to state.
   assert.equal((await cli(['preflight', 'no-such-tool'])).code, EXIT.USAGE);
 });
@@ -700,7 +700,7 @@ test('preflight has no --out: it refuses the flag and names the redirect (§1.4)
 });
 
 test('preflight honours --input.<id>= and warns on a reserved flag that shadows an input (B7)', async () => {
-  // The bare form goes to the export and says so — the same warning `run` prints.
+  // The bare form goes to the export and says so - the same warning `run` prints.
   const shadowed = await cli(['preflight', 'shadow-tool', '--width=333', '--export=svg']);
   assert.match(shadowed.stderr, /--width is a reserved export flag AND an input of "shadow-tool"/);
   assert.match(shadowed.stdout.toString('utf8'), /collect\.reserved-flag-shadows-input/);
@@ -765,7 +765,7 @@ test('§12 O1: the report says WHICH anchor set produced the verdict, in both mo
 
   const bare = await cli(['validate', signed, '--no-default-anchors']);
   assert.match(bare.stdout.toString('utf8'), /Trust anchors: no built-in anchors .*Lolly CA root NOT pinned/);
-  // A self-signed on-device credential is untrusted either way — the anchor set changes
+  // A self-signed on-device credential is untrusted either way - the anchor set changes
   // WHAT COULD vouch for it, not whether these bytes match what was signed.
   assert.equal(bare.code, EXIT.OK, bare.stderr);
 
@@ -807,7 +807,7 @@ test('§12 O2: a default nobody asked for never produces a warning (so --strict 
   const quiet = await cli(['run', 'data-tool', '--export=csv', '--strict']);
   assert.equal(quiet.code, EXIT.OK, quiet.stderr);
   assert.doesNotMatch(quiet.stderr, /Content Credentials skipped/);
-  // Asking for it explicitly still says so — the promise was made, so it must be kept
+  // Asking for it explicitly still says so - the promise was made, so it must be kept
   // or reported.
   const asked = await cli(['run', 'data-tool', '--export=csv', '--c2pa']);
   assert.match(asked.stderr, /has no C2PA container/);

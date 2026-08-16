@@ -1,7 +1,7 @@
 {
   "id": "design",
   "name": "Design",
-  "description": "An open canvas for free arrangement — text, images, shapes and live renders from your other Lolly tools, all held to your brand.",
+  "description": "An open canvas for free arrangement - text, images, shapes and live renders from your other Lolly tools, all held to your brand.",
   "version": "1.13.0",
   "engineVersion": "^1.12.0",
   "status": "community",
@@ -94,7 +94,7 @@
             "h": 160,
             "rot": 0,
             "shape": "rect",
-            "text": "1 — Pick a template",
+            "text": "1 - Pick a template",
             "fg": "var(--brand-text, #0f172a)",
             "fontSize": 72,
             "align": "left",
@@ -112,7 +112,7 @@
             "h": 160,
             "rot": 0,
             "shape": "rect",
-            "text": "2 — Make it yours",
+            "text": "2 - Make it yours",
             "fg": "var(--brand-text, #0f172a)",
             "fontSize": 72,
             "align": "left",
@@ -130,7 +130,7 @@
             "h": 160,
             "rot": 0,
             "shape": "rect",
-            "text": "3 — Export on brand",
+            "text": "3 - Export on brand",
             "fg": "var(--brand-text, #0f172a)",
             "fontSize": 72,
             "align": "left",
@@ -185,7 +185,7 @@
             "h": 120,
             "rot": 0,
             "shape": "rect",
-            "text": "— Your team",
+            "text": " - Your team",
             "fg": "var(--brand-on-primary, #ffffff)",
             "fontSize": 52,
             "align": "left",
@@ -211,7 +211,7 @@
       "label": "Custom CSS",
       "rows": 8,
       "default": "",
-      "help": "Advanced (plan 112): CSS applied to the whole document — editor, export, and presentation. Scoped to the canvas, so @keyframes work at the top level. `@import` and `</style` are stripped for safety. Target `.lolly-box`, a frame with `[data-frame-id=\"…\"]`, or a present-mode state such as `.pr-active`."
+      "help": "Advanced (plan 112): CSS applied to the whole document - editor, export, and presentation. Scoped to the canvas, so @keyframes work at the top level. `@import` and `</style` are stripped for safety. Target `.lolly-box`, a frame with `[data-frame-id=\"…\"]`, or a present-mode state such as `.pr-active`."
     },
     {
       "id": "transition",
@@ -223,7 +223,7 @@
         { "value": "fade", "label": "Fade" },
         { "value": "morph", "label": "Morph" }
       ],
-      "help": "How slides change in presentation mode (plan 112 M5). Morph animates matching boxes — same text, the same image, or a shared match key — from one slide to the next."
+      "help": "How slides change in presentation mode (plan 112 M5). Morph animates matching boxes - same text, the same image, or a shared match key - from one slide to the next."
     },
     {
       "id": "boxes",
@@ -748,7 +748,7 @@
           "type": "select",
           "label": "Weight",
           "default": "500",
-          "help": "How heavy the heaviest cut is depends on the font — the mono stack is capped at Extrabold (800).",
+          "help": "How heavy the heaviest cut is depends on the font - the mono stack is capped at Extrabold (800).",
           "options": [
             {
               "value": "100",
@@ -862,7 +862,7 @@
           "type": "select",
           "label": "Shadow",
           "default": "none",
-          "help": "What the drop shadow applies to: the box outline, the text, the visible content (image alpha), or Depth — a soft shadow derived from the box's own depth, so lifting a box off the surface casts further. Raster and SVG export are faithful. In PDF, box and text shadows stay vector; content and Depth follow the shape of the artwork, so those boxes export as an embedded image.",
+          "help": "What the drop shadow applies to: the box outline, the text, the visible content (image alpha), or Depth - a soft shadow derived from the box's own depth, so lifting a box off the surface casts further. Raster and SVG export are faithful. In PDF, box and text shadows stay vector; content and Depth follow the shape of the artwork, so those boxes export as an embedded image.",
           "options": [
             {
               "value": "none",
@@ -921,7 +921,7 @@
           "type": "select",
           "label": "Image position",
           "default": "center",
-          "help": "Which edge or corner the image is anchored to — where a contained image sits inside the box, or which part of a cover-cropped image stays in frame. Honoured on screen and in PNG/SVG/PDF export.",
+          "help": "Which edge or corner the image is anchored to - where a contained image sits inside the box, or which part of a cover-cropped image stays in frame. Honoured on screen and in PNG/SVG/PDF export.",
           "options": [
             {
               "value": "left top",
@@ -966,7 +966,7 @@
           "type": "boolean",
           "label": "Shrink text to fit",
           "default": false,
-          "help": "Automatically shrink the text so it fits inside the box (shrink-only — never larger than the set size). Off by default, so the box grows to the text instead."
+          "help": "Automatically shrink the text so it fits inside the box (shrink-only - never larger than the set size). Off by default, so the box grows to the text instead."
         },
         {
           "id": "path",
@@ -1026,7 +1026,7 @@
           "type": "number",
           "label": "Start (s)",
           "default": "",
-          "help": "Seconds into the timeline this box appears — empty means it's always visible (scenery)."
+          "help": "Seconds into the timeline this box appears - empty means it's always visible (scenery)."
         },
         {
           "id": "dur",
@@ -1034,7 +1034,7 @@
           "type": "number",
           "label": "Duration (s)",
           "default": "",
-          "help": "How many seconds this box stays visible for — empty means it stays to the end."
+          "help": "How many seconds this box stays visible for - empty means it stays to the end."
         },
         {
           "id": "clipIn",
@@ -1324,7 +1324,7 @@
           "type": "text",
           "label": "Gradient",
           "default": "",
-          "description": "Gradient fill as a Lolly gradient spec — kind_angle_colour-pos_colour-pos, e.g. lin_90_30ba78-0_efefef-100 (lin/rad/con; add .srgb or .oklch.longer to the kind to change how the colours are interpolated). Painted over the flat Fill, so a translucent stop composites onto it. Empty means no gradient."
+          "description": "Gradient fill as a Lolly gradient spec - kind_angle_colour-pos_colour-pos, e.g. lin_90_30ba78-0_efefef-100 (lin/rad/con; add .srgb or .oklch.longer to the kind to change how the colours are interpolated). Painted over the flat Fill, so a translucent stop composites onto it. Empty means no gradient."
         },
         {
           "id": "blur",
@@ -1601,7 +1601,7 @@
           "default": 0,
           "min": -300,
           "max": 900,
-          "help": "How far this box sits above the surface, in px — 0 is on the surface, negative sinks it below. Depth drives the camera's parallax and the Depth shadow. Machine-managed by the depth slider, so showFor:[] keeps it out of the sidebar."
+          "help": "How far this box sits above the surface, in px - 0 is on the surface, negative sinks it below. Depth drives the camera's parallax and the Depth shadow. Machine-managed by the depth slider, so showFor:[] keeps it out of the sidebar."
         },
         {
           "id": "kf",
@@ -1617,7 +1617,7 @@
           "type": "text",
           "label": "Linked to",
           "default": "",
-          "help": "The id of the box this one is A/V-linked to — written on BOTH sides when a clip's audio is detached onto its own lane, so re-attaching works from either side. Machine-written by the timeline panel, never typed; showFor:[] keeps it out of the sidebar."
+          "help": "The id of the box this one is A/V-linked to - written on BOTH sides when a clip's audio is detached onto its own lane, so re-attaching works from either side. Machine-written by the timeline panel, never typed; showFor:[] keeps it out of the sidebar."
         },
         {
           "id": "presentAudio",
@@ -1649,7 +1649,7 @@
           "type": "text",
           "label": "Morph match key",
           "default": "",
-          "help": "Presentation MORPH (plan 112 M5): give two boxes on adjacent slides the same key and, with the Morph transition, one animates into the other. Optional — boxes with identical text or the same image already morph implicitly; a key is the explicit override that survives an edit. Set from the right-click menu; showFor:[] keeps it out of the sidebar."
+          "help": "Presentation MORPH (plan 112 M5): give two boxes on adjacent slides the same key and, with the Morph transition, one animates into the other. Optional - boxes with identical text or the same image already morph implicitly; a key is the explicit override that survives an edit. Set from the right-click menu; showFor:[] keeps it out of the sidebar."
         },
         {
           "id": "notes",
@@ -1657,7 +1657,7 @@
           "type": "text",
           "label": "Speaker notes",
           "default": "",
-          "help": "Presentation SPEAKER NOTES (plan 112 M5): free text stamped as data-frame-notes on a frame's page and shown only in the speaker view while that slide is active — never rendered on the slide the audience sees. Set from the right-click menu on a frame; showFor:[] keeps it out of the sidebar."
+          "help": "Presentation SPEAKER NOTES (plan 112 M5): free text stamped as data-frame-notes on a frame's page and shown only in the speaker view while that slide is active - never rendered on the slide the audience sees. Set from the right-click menu on a frame; showFor:[] keeps it out of the sidebar."
         }
       ],
       "default": []

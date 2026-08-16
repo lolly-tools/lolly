@@ -5,7 +5,7 @@
  *
  * THE ASSERTION THIS FILE EXISTS FOR is `trusted end to end`: a real P-256 key pair
  * and a real certificate chain are minted here (Node's WebCrypto plus the repo's own
- * DER/X.509 writers in engine/src/x509.ts — no openssl subprocess, so this runs the
+ * DER/X.509 writers in engine/src/x509.ts - no openssl subprocess, so this runs the
  * same on every machine), a real SVG export is signed with them through the exact call
  * shells/cli/src/run.ts makes, and the resulting file is read back by the real verifier
  * with that root pinned. It must come out `signingCredential.trusted` with the signer's
@@ -104,7 +104,7 @@ test('an enrolled identity signs a real export and it reads TRUSTED against the 
       signer: id.signer, signerValidity: { notBefore: id.notBefore, notAfter: id.notAfter },
     }));
 
-    // 1. The manifest carries the x5chain — both certificates, verbatim. (SVG carries
+    // 1. The manifest carries the x5chain - both certificates, verbatim. (SVG carries
     //    the JUMBF store base64-encoded, so the check is against the EXTRACTED store,
     //    not the file bytes.)
     const bytes = new Uint8Array(signed);
@@ -283,7 +283,7 @@ test('a chain in the wrong order is refused, and a chain missing its root only w
     assert.match(msg, /does not link/);
     assert.match(msg, /leaf first/);
 
-    // Root first, leaf second — the reversal — is caught one check EARLIER, by the
+    // Root first, leaf second - the reversal - is caught one check EARLIER, by the
     // key/certificate match (position 0 is not the leaf, so the key does not match it).
     // Different code, and its message carries the same "LEAF certificate first" fix.
     const reversed = await refusal('SIGN_KEY_CERT_MISMATCH', () => identityFrom(dir, pair.pkcs8Pem, [ca.certPem, leafPem]));
@@ -302,7 +302,7 @@ test('a key that is not P-256 is refused by name rather than failing at export t
   await withDir(async (dir) => {
     const ca = await makeCa();
     const p384 = await keyPair('P-384');
-    // Any certificate will do — the algorithm gate fires before the match check.
+    // Any certificate will do - the algorithm gate fires before the match check.
     const p256 = await keyPair();
     const leafPem = derToPem(await leafFor(ca, p256), 'CERTIFICATE');
     const msg = await refusal('SIGN_ALG_UNSUPPORTED', () => identityFrom(dir, p384.pkcs8Pem, [leafPem]));
@@ -396,7 +396,7 @@ function sliceEvery(s: string, n: number): string[] {
   return out;
 }
 
-/** Byte-subsequence search — proves the certificate DER rides in the file verbatim. */
+/** Byte-subsequence search - proves the certificate DER rides in the file verbatim. */
 function indexOfBytes(hay: Uint8Array, needle: Uint8Array): number {
   outer: for (let i = 0; i + needle.length <= hay.length; i++) {
     for (let j = 0; j < needle.length; j++) if (hay[i + j] !== needle[j]) continue outer;

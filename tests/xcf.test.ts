@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
- * XCF reader (engine/src/xcf.ts). There is no engine XCF writer (deliberate —
+ * XCF reader (engine/src/xcf.ts). There is no engine XCF writer (deliberate - 
  * see the psd-write.ts header's conversion story), so fixtures come from
  * buildXcf() below: a minimal two-pass XCF byte builder covering v001 (4-byte
  * pointers, RLE/none tiles) and v011 (8-byte pointers, zlib tiles via the
@@ -135,7 +135,7 @@ test('xcf: uncompressed tiles (PROP_COMPRESSION 0)', () => {
 });
 
 test('xcf: grayscale and gray-alpha layers normalise to RGBA', () => {
-  // Gray base: layer type Gray (2) — builder derives planes from RGBA input's R.
+  // Gray base: layer type Gray (2) - builder derives planes from RGBA input's R.
   const px = new Uint8Array([
     10, 10, 10, 255, 200, 200, 200, 255,
     90, 90, 90, 255, 0, 0, 0, 255,

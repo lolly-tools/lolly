@@ -4,7 +4,7 @@
  * Run with: node --test tests/webp-anim.test.ts
  *
  * Builds tiny still WebPs (real RIFF framing; the image chunks carry dummy
- * payload — the packer never decodes the bitstream) and ships its own
+ * payload - the packer never decodes the bitstream) and ships its own
  * little-endian RIFF walker so assertions read the packed bytes, not internals.
  */
 import { test } from 'node:test';

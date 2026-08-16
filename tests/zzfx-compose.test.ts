@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
- * Tests for engine/src/zzfx-compose.ts — the ZzFXM composer moved into the
+ * Tests for engine/src/zzfx-compose.ts - the ZzFXM composer moved into the
  * engine from scripts/lib/zzfx-music.ts (1.60.0). Covers: a composed song is
  * renderable (renderZzfxm → non-empty, non-silent, in-range PCM) for every
  * archetype; composition is deterministic; the arrangement honours targetSec;
@@ -71,12 +71,12 @@ test('arrangement approximates targetSec via pattern reuse', () => {
   const song = composeSong({ ...SPEC, targetSec: 20 });
   assert.equal(song.bpm, SPEC.bpm); // composeSong always stamps the spec bpm
   const sec = song.sequence.length * patternSeconds(SPEC.bpm);
-  // arrange() rounds to whole patterns with a numPatterns*2 floor — allow one pattern of slack.
+  // arrange() rounds to whole patterns with a numPatterns*2 floor - allow one pattern of slack.
   assert.ok(Math.abs(sec - 20) <= patternSeconds(SPEC.bpm), `~20s arrangement (got ${sec.toFixed(1)}s)`);
 });
 
 test('scripts/lib/zzfx-music.ts is a pure re-export shim of the engine module', () => {
-  // Same function identities, not copies — the generator scripts (gen-music.ts)
+  // Same function identities, not copies - the generator scripts (gen-music.ts)
   // keep producing byte-identical output through either path.
   assert.equal(shim.composeSong, composeSong);
   assert.equal(shim.PRESETS, PRESETS);

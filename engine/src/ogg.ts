@@ -2,7 +2,7 @@
 /**
  * Ogg (RFC 3533) page + Opus comment-header primitives, shared by the C2PA
  * write side (c2pa-containers.ts placeOgg) and the read side (c2pa-extract.ts
- * extractC2paFromOgg). Pure byte-grammar — no crypto, no DOM — so both sides
+ * extractC2paFromOgg). Pure byte-grammar - no crypto, no DOM - so both sides
  * agree on where an Opus stream's C2PA credential lives.
  *
  * WHERE THE CREDENTIAL GOES. Opus in Ogg carries its metadata in the OpusTags
@@ -10,17 +10,17 @@
  * Ogg page (the first is OpusHead, the BOS page). We stash the JUMBF manifest
  * store as a base64 VorbisComment field, `C2PA=<base64>`, rebuild that one page
  * (recomputing its Ogg CRC), and the hard binding excludes the WHOLE comment
- * page byte range — CRC included, so the pixels-equivalent (OpusHead + every
+ * page byte range - CRC included, so the pixels-equivalent (OpusHead + every
  * audio page) hashes identically across the embedder's two passes.
  *
  * There is no interoperable C2PA-in-Ogg standard (c2pa-rs has no Ogg handler),
- * so this binding is Lolly's own — the same "our verifier reads it, c2patool
+ * so this binding is Lolly's own - the same "our verifier reads it, c2patool
  * can't" caveat that already applies to the WebM attachment path. It keeps a
  * valid, correctly-CRC'd Ogg stream that every decoder (incl. Safari's Web
  * Audio) still plays, since unknown comment fields are ignored.
  *
  * SINGLE-PAGE ASSUMPTION. The writer only rebuilds a comment header that lives
- * on ONE page — true for every real Opus file (an OpusTags packet is a few
+ * on ONE page - true for every real Opus file (an OpusTags packet is a few
  * hundred bytes; even with a multi-KB manifest it stays well under a page's
  * 64 KB packet limit). Re-paging into one page preserves every following page's
  * sequence number. locateOpusComment still REASSEMBLES a multi-page comment
@@ -37,7 +37,7 @@ export const OGG_C2PA_KEY = 'C2PA';
 // ─── Ogg CRC-32 ────────────────────────────────────────────────────────────────
 // libogg's checksum: a NON-reflected CRC-32, polynomial 0x04c11db7, init 0, no
 // final xor, stored little-endian in the page header at offset 22. (Not the
-// common reflected zlib CRC-32 — a different value.)
+// common reflected zlib CRC-32 - a different value.)
 const OGG_CRC_TABLE = /* @__PURE__ */ (() => {
   const t = new Uint32Array(256);
   for (let i = 0; i < 256; i++) {
@@ -114,7 +114,7 @@ export interface OpusCommentLoc {
 /** Find the OpusTags comment header of an Ogg Opus stream: verify page 0 is the
  *  OpusHead BOS page, then reassemble the OpusTags packet that begins on page 1.
  *  Returns null for anything that is not Ogg Opus (Vorbis/FLAC/Theora/… are not
- *  claimed — their comment home differs and we don't stamp them). */
+ *  claimed - their comment home differs and we don't stamp them). */
 export function locateOpusComment(bytes: Uint8Array): OpusCommentLoc | null {
   const pages = walkOggPages(bytes);
   if (pages.length < 2) return null;

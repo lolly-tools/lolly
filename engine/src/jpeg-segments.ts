@@ -1,10 +1,10 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
- * JPEG marker-segment walker and writer — one shared primitive, DOM-free.
+ * JPEG marker-segment walker and writer - one shared primitive, DOM-free.
  *
  * plans/61-deeprichpixels.md §4.2 / §6 Phase B2. A gain-map JPEG is an ordinary
  * SDR JPEG carrying an MPF index (APP2), an XMP packet (APP1, possibly split
- * across an extended-XMP GUID chain), an ISO 21496-1 box and — still — EXIF and
+ * across an extended-XMP GUID chain), an ISO 21496-1 box and - still - EXIF and
  * an ICC profile. That is four or five metadata segments in ONE file, and their
  * relative order is no longer a matter of taste: an MPF index declares byte
  * offsets to the images that follow it, so anything inserted *before* MPF after
@@ -15,15 +15,15 @@
  *   - `shells/web/src/bridge/export-image-meta.ts` `insertJpegExif` skips
  *     exactly ONE APP0, then inserts. A `sharp`/libjpeg-turbo JPEG has no APP0
  *     at all (verified in the test file), so this is "insert at offset 2" for a
- *     large class of real files — ahead of an existing APP1/APP2.
+ *     large class of real files - ahead of an existing APP1/APP2.
  *   - the same file's `insertJpegIcc` loops over leading APP0/APP1 segments and
- *     stops at the first non-APP0/1 — so an APP2 MPF already present would end
+ *     stops at the first non-APP0/1 - so an APP2 MPF already present would end
  *     up AFTER the ICC chunks it must precede.
  *   - `engine/src/c2pa-containers.ts` `placeJpeg` inserts after the LAST APP0,
  *     scanning the whole pre-SOS region to find it.
  *
- * A fourth hand-rolled inserter for the gain-map work would have been a bug
- * farm, so the rule lives here once, as `jpegSegmentRank`.
+ * A fourth hand-rolled inserter for the gain-map work would have added more bugs,
+ * so the rule lives here once, as `jpegSegmentRank`.
  *
  * ─── Reader contract (docs/parser-inventory.md) ─────────────────────────────
  * This is a bounded, best-effort READER as well as a writer, and its input is a
@@ -31,7 +31,7 @@
  * it follows the house reader contract that `icc.ts` / `png-unfilter.ts` /
  * `media-sniff.ts` state: it NEVER throws, nothing the file declares is trusted,
  * every read is bounds-checked before it happens, and malformed input yields
- * `null` (not a JPEG) or a short scan flagged `truncated` — never an exception
+ * `null` (not a JPEG) or a short scan flagged `truncated` - never an exception
  * and never a byte read past the buffer. `insertJpegSegments` matches the
  * convention of the splicers it is meant to replace instead: any problem returns
  * the input bytes untouched, all or nothing, so a metadata hiccup can never
@@ -40,7 +40,7 @@
  * ─── What a "segment" is here ───────────────────────────────────────────────
  * One marker segment: the `0xFF` byte, its marker code, and (for markers that
  * have one) its 2-byte big-endian length plus payload. Entropy-coded scan data
- * after an SOS is NOT a segment — it is walked over, with byte stuffing
+ * after an SOS is NOT a segment - it is walked over, with byte stuffing
  * (`FF 00`) and restart markers (`FF D0`–`FF D7`) skipped, so that a file's
  * later segments and its EOI are found even in a progressive JPEG with several
  * scans. Bytes AFTER the EOI are reported as `trailerStart` rather than
@@ -63,12 +63,12 @@ export const JPEG_APP_IDS = Object.freeze({
   XMP_EXT: 'http://ns.adobe.com/xmp/extension/',
   ICC: 'ICC_PROFILE',
   MPF: 'MPF',
-  /** APP11 JUMBF (C2PA). Note this one is NOT NUL-terminated in the file — see `readAppId`. */
+  /** APP11 JUMBF (C2PA). Note this one is NOT NUL-terminated in the file - see `readAppId`. */
   JUMBF: 'JP',
 });
 
 export interface JpegSegment {
-  /** Marker code — the byte AFTER the `0xFF` (e.g. 0xE1 for APP1, 0xDA for SOS). */
+  /** Marker code - the byte AFTER the `0xFF` (e.g. 0xE1 for APP1, 0xDA for SOS). */
   readonly marker: number;
   /** For APPn markers, the leading printable-ASCII identifier (`'Exif'`, `'ICC_PROFILE'`, `'MPF'`, the XMP namespace URI, …). `null` for non-APP markers and for APPn payloads that do not start with one. */
   readonly appId: string | null;
@@ -86,7 +86,7 @@ export interface JpegScan {
   readonly eoi: number | null;
   /** Offset of the first byte after EOI when the file continues past it (the MPF second-image case), else `null`. */
   readonly trailerStart: number | null;
-  /** True when the walk stopped before reaching EOI — misaligned bytes, a nonsense length, or the cap. The segments reported before that point are still valid. */
+  /** True when the walk stopped before reaching EOI - misaligned bytes, a nonsense length, or the cap. The segments reported before that point are still valid. */
   readonly truncated: boolean;
 }
 
@@ -95,7 +95,7 @@ export interface JpegScan {
  * terminator, the first non-printable byte, or `MAX_APP_ID`.
  *
  * Stopping at the first non-printable byte (rather than requiring a NUL) is what
- * makes APP11 JUMBF report `'JP'` — its two-character CI is followed immediately
+ * makes APP11 JUMBF report `'JP'` - its two-character CI is followed immediately
  * by the binary En field, with no terminator. It also means an APPn full of
  * binary reports `null` instead of mojibake. This is identification, not
  * validation: a caller that cares whether a segment REALLY is EXIF must still
@@ -106,7 +106,7 @@ function readAppId(bytes: Uint8Array, from: number, to: number): string | null {
   let s = '';
   for (let i = from; i < limit; i++) {
     const b = bytes[i]!;
-    if (b < 0x20 || b > 0x7e) break; // NUL terminator, or binary — either ends the id
+    if (b < 0x20 || b > 0x7e) break; // NUL terminator, or binary - either ends the id
     s += String.fromCharCode(b);
   }
   return s.length ? s : null;
@@ -116,7 +116,7 @@ function readAppId(bytes: Uint8Array, from: number, to: number): string | null {
  * Walk entropy-coded scan data from `from`, returning the offset of the next
  * real marker (or `bytes.length` if the data runs to EOF without one).
  * `FF 00` is a stuffed byte, `FF D0`–`FF D7` are restart markers, and a run of
- * `FF` is fill — none of those end the scan.
+ * `FF` is fill - none of those end the scan.
  */
 function skipEntropy(bytes: Uint8Array, from: number): number {
   let i = from;
@@ -145,7 +145,7 @@ export function scanJpegSegments(bytes: Uint8Array | null | undefined): JpegScan
   let p = 2;
   while (p + 1 < bytes.length) {
     if (segments.length >= MAX_SEGMENTS) break;
-    if (bytes[p] !== 0xff) break; // misaligned — stop, report what we have
+    if (bytes[p] !== 0xff) break; // misaligned - stop, report what we have
     // Any number of 0xFF fill bytes may precede the marker code.
     let q = p + 1;
     while (q < bytes.length && bytes[q] === 0xff) q++;
@@ -171,7 +171,7 @@ export function scanJpegSegments(bytes: Uint8Array | null | undefined): JpegScan
     const end = start + 2 + len;
     const isApp = marker >= 0xe0 && marker <= 0xef;
     segments.push({ marker, appId: isApp ? readAppId(bytes, start + 4, end) : null, start, end });
-    if (marker === 0xda) { // SOS — entropy data follows the header
+    if (marker === 0xda) { // SOS - entropy data follows the header
       if (sos === null) sos = start;
       p = skipEntropy(bytes, end);
       continue;
@@ -205,7 +205,7 @@ export function findJpegSegment(
 /**
  * The segment's payload: everything after the marker and its length field, so
  * for an APPn this still INCLUDES the identifier and its terminator (callers
- * slice that off themselves, since the terminator length varies — `Exif\0\0` is
+ * slice that off themselves, since the terminator length varies - `Exif\0\0` is
  * two bytes, `MPF\0` is one, APP11's `JP` is none). Empty for standalone
  * markers, which have no payload.
  */
@@ -217,7 +217,7 @@ export function jpegSegmentBody(bytes: Uint8Array, seg: JpegSegment): Uint8Array
 /**
  * Build one marker segment: `FF <marker>`, a 2-byte big-endian length that
  * counts itself, then `body` (which must already contain any identifier and
- * terminator). Returns `null` when the body will not fit a JPEG segment —
+ * terminator). Returns `null` when the body will not fit a JPEG segment - 
  * callers that can chunk (ICC, XMP, the manifest store) must do so themselves,
  * exactly as they do today.
  */
@@ -241,13 +241,13 @@ export function buildJpegSegment(marker: number, body: Uint8Array): Uint8Array |
  *   APP0 JFIF        first if present, because decoders and the JFIF spec expect it there
  *   APP1 EXIF        conventional, and what every EXIF reader scans for first
  *   APP1 XMP         must follow EXIF; the extended-XMP chain follows the standard packet
- *   APP2 MPF         BEFORE ICC — the MP index stores absolute byte offsets to the images
+ *   APP2 MPF         BEFORE ICC - the MP index stores absolute byte offsets to the images
  *                    that follow, so any segment inserted ahead of it later invalidates them
  *   APP2 ICC         the profile chunks, kept contiguous and in sequence
  *   APP11 JUMBF      the C2PA store, last of the metadata (it hashes byte ranges of
  *                    everything else, so it is written last by construction)
  *   other APPn / COM after the identified ones
- *   everything else  100 — SOF/DQT/DHT/SOS never move, and no APPn may land after them
+ *   everything else  100 - SOF/DQT/DHT/SOS never move, and no APPn may land after them
  *
  * Unknown APPn markers get `60 + n` so they stay in APPn order among themselves.
  */
@@ -292,8 +292,8 @@ function prepare(seg: Uint8Array | null | undefined): PreparedSegment | null {
 
 /**
  * Splice new APPn/COM segments into a JPEG at their canonical positions
- * (`jpegSegmentRank`), returning fresh bytes. Everything else — the entropy
- * data, the EOI, and any post-EOI trailer — is preserved byte for byte.
+ * (`jpegSegmentRank`), returning fresh bytes. Everything else - the entropy
+ * data, the EOI, and any post-EOI trailer - is preserved byte for byte.
  *
  * All or nothing: if the input is not a JPEG, or ANY supplied segment is
  * malformed, the input bytes are returned untouched. Never throws.

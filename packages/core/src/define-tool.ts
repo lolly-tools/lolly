@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
- * Typed authoring helpers. `defineTool` and `defineHooks` are identity functions —
+ * Typed authoring helpers. `defineTool` and `defineHooks` are identity functions -
  * they add zero runtime behaviour and exist purely so your editor type-checks a
  * manifest, or a hooks module, against the contract as you write it.
  */
@@ -21,9 +21,9 @@ export interface HookModelItem {
 
 /** The lifecycle context every hook receives (mirrors the engine runtime). */
 export interface HookContext {
-  /** The current input model — one entry per declared input. */
+  /** The current input model - one entry per declared input. */
   model: HookModelItem[];
-  /** The capability bridge — the supported, portable API surface for hooks. */
+  /** The capability bridge - the supported, portable API surface for hooks. */
   host: HostV1;
 }
 

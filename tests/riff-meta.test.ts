@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
- * embedWavInfo (engine/src/riff-meta.ts) — the WAV LIST/INFO writer that gives
+ * embedWavInfo (engine/src/riff-meta.ts) - the WAV LIST/INFO writer that gives
  * a generated clip its human-readable authorship (the audio sibling of the mp4
  * ilst / WebM Tags embeds in video-meta.ts). Pins the byte structure: chunk
  * grammar, NUL termination + even padding, field presence rules (IART only
@@ -78,7 +78,7 @@ test('an odd-length value gains a pad byte the declared size does not count', ()
   const out = embedWavInfo(tinyWav(), { title: 'Hi' }); // 'Hi' + NUL = 3, padded to 4
   const { subs } = readInfo(out);
   assert.equal(subs.get('INAM')!.length, 3, 'declared size counts value + NUL only');
-  // The walk above steps by size + (size & 1) — reaching ISFT proves the pad byte.
+  // The walk above steps by size + (size & 1) - reaching ISFT proves the pad byte.
   assert.ok(subs.has('ISFT'));
 });
 

@@ -1,11 +1,11 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
- * OpenDocument Text (.odt) writer — pure, DOM-free, platform-agnostic.
+ * OpenDocument Text (.odt) writer: pure, DOM-free, platform-agnostic.
  *
  * An .odt is an OpenDocument OCF ZIP, the same container discipline as EPUB: the
  * FIRST entry must be an uncompressed (STORED) `mimetype` file holding exactly
- * `application/vnd.oasis.opendocument.text`, with no extra fields — the magic a
- * reader (LibreOffice, Word, Google Docs) sniffs before it trusts the package.
+ * `application/vnd.oasis.opendocument.text`, with no extra fields. This is the
+ * magic a reader (LibreOffice, Word, Google Docs) sniffs before it trusts the package.
  * Everything after it is ordinary DEFLATEd XML.
  *
  * We build the minimal package OpenDocument 1.2 requires for editable text:
@@ -16,12 +16,12 @@
  *
  * Headings become `<text:h text:outline-level="N">`, paragraphs `<text:p>`, both
  * carrying a named paragraph style (`Heading_20_N` / `Standard`) declared in
- * content.xml's automatic styles — so the output is real editable text the reader
+ * content.xml's automatic styles, so the output is real editable text the reader
  * can re-flow and re-style, NOT a picture. All caller text is XML-escaped.
  *
  * Deterministic: `storeZip` writes a fixed DOS date and no data descriptors, so
  * the same `doc` always yields the same bytes. Reuses the shared `storeZip`
- * primitive (`mimetypeFirst`) — no DOM, no fs, no network, no new zip framing.
+ * primitive (`mimetypeFirst`). No DOM, no fs, no network, no new zip framing.
  */
 
 import { storeZip, type ZipStoreEntry } from './zip.ts';

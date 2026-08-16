@@ -1,33 +1,33 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
- * xlsx-import.ts — read the first worksheet of an .xlsx into a plain grid.
+ * xlsx-import.ts - read the first worksheet of an .xlsx into a plain grid.
  *
  * The spreadsheet sibling of `data-import.ts`'s CSV path: an .xlsx is a zip of
- * XML parts, so this unzips it (fflate) and returns `string[][]` — the same
- * ragged-grid shape `data-import.ts`'s internal `readCsv` produces — so the very
+ * XML parts, so this unzips it (fflate) and returns `string[][]` - the same
+ * ragged-grid shape `data-import.ts`'s internal `readCsv` produces - so the very
  * same field-mapping (`parseDataRows`, via a header row) can feed a tool's
  * `blocks` input. The caller turns the first row into a header exactly as it
  * would for a pasted CSV; one importer downstream, two file formats in.
  *
- * Pure and DOM-free. We import ONLY `fflate` (for inflate — the engine has
+ * Pure and DOM-free. We import ONLY `fflate` (for inflate - the engine has
  * `deflateRaw` but no pure inflater) and scan the part XML with a small,
  * bounds-safe string/regex reader (no DOM, no injected parser). Numbers, dates
  * and formulae surface as their cached string value; styling/number-format is
  * not applied (a date shows its serial or cached text, matching a CSV paste).
  *
- * ── SHAPE OF AN .xlsx (only the parts we read) ───────────────────────────────
- *   • xl/workbook.xml            — <sheets><sheet name r:id=…/> — sheet ORDER.
- *   • xl/_rels/workbook.xml.rels — r:id → worksheets/sheetN.xml target.
- *   • xl/worksheets/sheetN.xml   — <c r="A1" t="s"><v>idx</v></c>: t="s" means
+ * ── STRUCTURE OF AN .xlsx (only the parts we read) ────────────────────────────
+ *   • xl/workbook.xml - <sheets><sheet name r:id=…/>: sheet ORDER.
+ *   • xl/_rels/workbook.xml.rels - r:id → worksheets/sheetN.xml target.
+ *   • xl/worksheets/sheetN.xml - <c r="A1" t="s"><v>idx</v></c>: t="s" means
  *                                  <v> is an index into sharedStrings; t="inlineStr"
  *                                  carries <is><t>…; anything else is an inline
  *                                  literal in <v> (number/bool/formula cache).
- *   • xl/sharedStrings.xml       — <si><t>…</t></si> (or rich runs of <r><t>…).
+ *   • xl/sharedStrings.xml - <si><t>…</t></si> (or rich runs of <r><t>…).
  *
  * ── SECURITY (a hostile file is the threat model) ────────────────────────────
  * A non-zip, a truncated zip, or a macro-enabled (.xlsm, vbaProject.bin) surprise
  * is refused with a clear Error. Every decompressed part is size-capped before
- * decode; the scan is bounded by input length (regex `matchAll` is linear — no
+ * decode; the scan is bounded by input length (regex `matchAll` is linear - no
  * size-field-driven loop that a crafted value could spin forever, the "GIF
  * lesson"); rows/cols/cells are hard-capped so a sheet claiming cell `XFD1048576`
  * can't balloon the grid.
@@ -60,16 +60,16 @@ export interface ReadXlsxResult {
 export interface XlsxSheetInfo {
   /** Human sheet name (the tab label). */
   name: string;
-  /** 0-based position in workbook order — the value to pass as {@link ReadXlsxOpts.sheet}. */
+  /** 0-based position in workbook order - the value to pass as {@link ReadXlsxOpts.sheet}. */
   index: number;
 }
 
-/** Hard cap on returned rows — mirrors `data-import.ts`'s CSV cap. A runaway
+/** Hard cap on returned rows - mirrors `data-import.ts`'s CSV cap. A runaway
  *  backstop well above any hand-authored sheet; the shell should bound file size
  *  at pick time too. */
 export const DEFAULT_XLSX_ROW_LIMIT = 1000;
 
-// A single decompressed part bigger than this is refused (not decoded) — a
+// A single decompressed part bigger than this is refused (not decoded) - a
 // zip-bomb / crafted-part backstop. 32M covers any real workbook part.
 const MAX_PART_BYTES = 32 * 1024 * 1024;
 // Total decompressed budget across ALL parts fflate is allowed to inflate. Bounds a
@@ -108,13 +108,13 @@ export function readXlsx(bytes: Uint8Array, opts: ReadXlsxOpts = {}): ReadXlsxRe
 
   let entries: Record<string, Uint8Array>;
   try {
-    // Bound decompression HERE, BEFORE fflate inflates each part — the size check in
+    // Bound decompression HERE, BEFORE fflate inflates each part - the size check in
     // makeStore.bytes() runs far too late (the whole payload is already materialised in
     // memory by then, so it is no zip-bomb defence at all). The filter runs per entry
     // ahead of inflation: a part whose DECLARED uncompressed size exceeds the per-part
     // cap, or that would push the running total past the archive budget, is SKIPPED
     // (never inflated). A crafted header that under-declares its size cannot slip a bomb
-    // through either — fflate inflates into a buffer sized to the declared originalSize
+    // through either - fflate inflates into a buffer sized to the declared originalSize
     // and throws if the stream overruns it. This is the zip-bomb resistance the file's
     // threat model promises.
     let budget = MAX_TOTAL_BYTES;
@@ -157,7 +157,7 @@ export function readXlsx(bytes: Uint8Array, opts: ReadXlsxOpts = {}): ReadXlsxRe
 }
 
 /**
- * List a workbook's worksheets in tab order — names + indices — WITHOUT inflating
+ * List a workbook's worksheets (names + indices) in tab order, WITHOUT inflating
  * any worksheet part (only workbook.xml + its rels are decoded), so a sheet-picker
  * is cheap even for a large book. Returns [] when the file carries no enumerable
  * sheets (the caller can still `readXlsx` the first-sheet fallback).
@@ -199,7 +199,7 @@ interface PartStore {
 }
 
 function makeStore(entries: Record<string, Uint8Array>): PartStore {
-  // Case-insensitive index — OOXML paths are stable-case in practice, but a
+  // Case-insensitive index - OOXML paths are stable-case in practice, but a
   // re-zipped/hostile archive may differ.
   const lower = new Map<string, string>();
   const keys = Object.keys(entries);
@@ -335,7 +335,7 @@ function readSharedStrings(store: PartStore): string[] {
   while ((m = siRe.exec(xml)) !== null) {
     const inner = m[1]; // undefined for a self-closing (empty) <si/>
     out.push(inner ? collectText(inner) : '');
-    if (out.length > MAX_CELLS) break; // absurd string table — stop
+    if (out.length > MAX_CELLS) break; // absurd string table - stop
   }
   return out;
 }
@@ -372,7 +372,7 @@ function readSheet(
   let cursorCol = 0;
 
   // Matches an opening <c …> (capturing its inner up to </c>) OR a self-closing
-  // <c …/> (an empty cell — still advances the cursor). Also tracks <row r=…> so
+  // <c …/> (an empty cell - still advances the cursor). Also tracks <row r=…> so
   // ref-less cells land on the right row.
   const tokenRe = /<row\b[^>]*>|<c\b([^>]*?)\/>|<c\b([^>]*?)>([\s\S]*?)<\/c>/g;
   let tok: RegExpExecArray | null;
@@ -404,7 +404,7 @@ function readSheet(
     cursorCol = colIdx + 1;
 
     if (rowIdx < 0 || colIdx < 0 || colIdx >= MAX_COLS) continue;
-    // A row beyond the limit is dropped (and flags truncation) — but ONLY once
+    // A row beyond the limit is dropped (and flags truncation) - but ONLY once
     // we've actually seen a populated row past it, so a single stray high ref
     // still lets the real rows through.
     if (rowIdx >= limit) {
@@ -466,7 +466,7 @@ function cellValue(attrs: string, inner: string, shared: string[]): string {
   if (t === 'b') {
     return firstElemText(inner, 'v').trim() === '1' ? 'TRUE' : 'FALSE';
   }
-  // number / date / error — the literal cached value in <v>.
+  // number / date / error - the literal cached value in <v>.
   return decodeXml(firstElemText(inner, 'v'));
 }
 
@@ -556,7 +556,7 @@ function decodeXml(s: string): string {
       case 'apos':
         return "'";
       default:
-        return whole; // unknown named entity — leave verbatim
+        return whole; // unknown named entity - leave verbatim
     }
   });
 }

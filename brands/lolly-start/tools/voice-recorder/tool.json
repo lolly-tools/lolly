@@ -2,7 +2,7 @@
   "id": "voice-recorder",
   "name": "Voice Recorder",
   "description": "Record a voice note with a live level meter and gentle coaching, then save it as MP3.",
-  "a11yLabel": "Voice recorder — level {{default dbText \"idle\"}}",
+  "a11yLabel": "Voice recorder - level {{default dbText \"idle\"}}",
   "version": "1.0.1",
   "engineVersion": "^1.17.0",
   "status": "experimental",

@@ -14,19 +14,19 @@
  *   npm run build:web                                  # the harness needs shells/web/dist
  *   node scripts/characterize-export.ts --baseline     # BEFORE touching export.ts
  *   …refactor export.ts…
- *   node scripts/characterize-export.ts --check        # AFTER — exits 1 on any drift
+ *   node scripts/characterize-export.ts --check        # AFTER - exits 1 on any drift
  *
  * It drives the built web shell's real export path through the Tier-B reuse point
- * renderViaWebShell (shells/cli/src/webshell-render.ts) — the same Chromium path
- * the CLI and MCP server use — which returns the exact bytes export.ts wrote to
+ * renderViaWebShell (shells/cli/src/webshell-render.ts) - the same Chromium path
+ * the CLI and MCP server use - which returns the exact bytes export.ts wrote to
  * the download, with no node-side mutation.
  *
  * A rendering platform cares about the DRAWN result, so we compare what's drawn:
  *   1. c2pa=off is forced on every render (C2PA is default-on and injects a fresh
- *      keypair + signature + timestamp per run — un-hashable otherwise).
+ *      keypair + signature + timestamp per run - un-hashable otherwise).
  *   2. Raster/vector formats hash their bytes directly. PDFs are byte-nondeterministic
  *      (pdf-lib object/font-subset ordering) but pixel-identical, so they are
- *      RASTERISED (macOS PDFKit) and the PNG pixels are hashed — render-faithful and
+ *      RASTERISED (macOS PDFKit) and the PNG pixels are hashed - render-faithful and
  *      deterministic. Container/encoder formats (pptx/zip/motion), whose bytes also
  *      wobble harmlessly, are size-banded `smoke`.
  *   3. Every (tool,format) is rendered TWICE and auto-classified: identical →
@@ -49,9 +49,9 @@ const DEFAULT_SNAPSHOT = path.join(ROOT, 'scratch', 'export-characterization.jso
 
 // Matrix: tools chosen so every export.ts dispatch branch is exercised, with
 // tools whose DEFAULT render is rich enough to walk gradients/borders/clips/text
-// (no example-seeding needed — the branch is selected by FORMAT, not by inputs).
+// (no example-seeding needed - the branch is selected by FORMAT, not by inputs).
 const MATRIX: { id: string; formats: string[] }[] = [
-  // Solid vector + raster + physical/CMYK — fully deterministic core.
+  // Solid vector + raster + physical/CMYK - fully deterministic core.
   { id: 'qr-code',        formats: ['png', 'jpg', 'webp', 'avif', 'pdf', 'pdf-cmyk', 'tiff', 'cmyk-tiff', 'svg', 'eps', 'dxf'] },
   { id: 'tool-logo',      formats: ['png', 'jpg', 'pdf', 'ico', 'zip', 'svg'] },
   { id: 'quotes',         formats: ['png', 'pdf', 'pptx'] },
@@ -59,8 +59,8 @@ const MATRIX: { id: string; formats: string[] }[] = [
   { id: 'code-canvas',    formats: ['png', 'svg', 'pdf'] },                    // text-as-paths heavy (pdf pixel-hashed: its byte-level nondeterminism is invisible in the render)
   { id: 'multi-page-pdf', formats: ['pdf', 'pptx'] },                          // multipage geometry
   { id: 'web-icon',       formats: ['ico', 'png'] },
-  { id: 'filter',        formats: ['png', 'avif'] },                          // unified filter (default effect: halftone) — photo → raster (gif dropped: slow, motion covered by digi-ad)
-  // Animation encoders (expect smoke). webm/mp4 are omitted by default — each has
+  { id: 'filter',        formats: ['png', 'avif'] },                          // unified filter (default effect: halftone) - photo → raster (gif dropped: slow, motion covered by digi-ad)
+  // Animation encoders (expect smoke). webm/mp4 are omitted by default - each has
   // a 180s render budget; add them when touching the video cluster with:
   //   node scripts/characterize-export.ts --baseline --only digi-ad --formats webm,mp4
   { id: 'digi-ad',        formats: ['gif', 'apng', 'webp-anim'] },
@@ -93,7 +93,7 @@ const onlyFormats = val('--formats')?.split(',').map(s => s.trim());
 // object streams (/ObjStm, the Info dict), so a raw latin1 regex can't reach the
 // compressed copies. We therefore INFLATE every FlateDecode stream first (so all
 // the noise becomes reachable plaintext), then apply the field regexes. The
-// result is not a valid PDF — it is a canonical, comparable byte sequence for
+// result is not a valid PDF - it is a canonical, comparable byte sequence for
 // hashing only. Identity for every non-PDF format.
 const ZERO_FIELDS = (s: string): string => s
   .replace(/(\/(?:CreationDate|ModDate))\s*\(D:[^)]*\)/g, '$1 (D:00000000000000Z)')
@@ -142,7 +142,7 @@ const sha256 = (b: Uint8Array) => createHash('sha256').update(b).digest('hex');
 // A rendering platform cares about the DRAWN result, not the container bytes.
 // PDFs are byte-nondeterministic (pdf-lib object/font-subset ordering) but pixel-
 // identical across renders (verified: 0-pixel diff). Byte-hashing them cries false
-// "drift". So we rasterise PDFs to pixels and hash THOSE — the thing we care about,
+// "drift". So we rasterise PDFs to pixels and hash THOSE - the thing we care about,
 // and deterministic. Container/encoder formats (pptx/zip/motion) whose bytes also
 // wobble harmlessly are classified `smoke` (size-band) rather than byte-hashed.
 const PDF_FORMATS = new Set(['pdf', 'pdf-cmyk']);
@@ -175,7 +175,7 @@ function rasterizePdf(bytes: Uint8Array): Uint8Array | null {
 function fingerprint(bytes: Uint8Array, format: string): { buf: Uint8Array; faithful: boolean } {
   if (PDF_FORMATS.has(format)) {
     const png = rasterizePdf(bytes);
-    if (png) return { buf: png, faithful: true };      // pixel hash — render-faithful
+    if (png) return { buf: png, faithful: true };      // pixel hash - render-faithful
     return { buf: normalize(bytes, format), faithful: false };  // no rasteriser → smoke
   }
   return { buf: normalize(bytes, format), faithful: true };

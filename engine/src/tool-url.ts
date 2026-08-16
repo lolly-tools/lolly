@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
- * Lolly tool-URL recognition — the END-USER surface of tool composition.
+ * Lolly tool-URL recognition. This is the END-USER surface of tool composition.
  *
  * Where embed.js / `parseEmbedUrl` is the STRICT, host-locked gate for an embed
  * URL an *author* writes into a template (a security boundary: an arbitrary
@@ -16,7 +16,7 @@
  * Host is NOT checked for the hash/path forms (a link copied from localhost or a
  * preview deploy is still the user's own tool). The real safety net is downstream:
  * the toolId must resolve to a REAL local tool (the host loader 404s otherwise), so
- * a pasted link can only ever render a tool that already ships in this build — the
+ * a pasted link can only ever render a tool that already ships in this build. This is the
  * same guarantee embed.js relies on.
  *
  * `buildEmbedUrl` canonicalises any of the above into the strict embed form, which
@@ -49,30 +49,30 @@ const ID_RE = /^[a-z0-9][a-z0-9-]*[a-z0-9]$/;
 // embed.js (parseEmbedUrl) accepts, so a built URL always re-parses. 'jpeg'
 // collapses to 'jpg' so the identity is stable regardless of how it was spelled.
 // The motion formats (webm/mp4/gif/apng) keep their own extension so a placed
-// MOVING embed re-renders as motion — not a still — when its id is reloaded.
+// MOVING embed re-renders as motion, not a still, when its id is reloaded.
 const FORMAT_EXT: Record<string, string> = { png: 'png', jpg: 'jpg', jpeg: 'jpg', webp: 'webp', svg: 'svg', pdf: 'pdf', webm: 'webm', mp4: 'mp4', gif: 'gif', apng: 'apng' };
 
 // Top-level app routes that share the pretty-path shape but are NOT tools.
 const APP_ROUTES = new Set(['tool', 'pro', 'platform', 'capabilities', 'profile', 'gallery']);
 
 // Max URL length. Matches parseEmbedUrl's cap so a URL we ACCEPT here and the
-// canonical embed id we MINT from it (buildEmbedUrl) share one bound — the minted
+// canonical embed id we MINT from it (buildEmbedUrl) share one bound. The minted
 // id must re-parse through parseEmbedUrl on load (the persistent-identity invariant).
 const MAX_URL = 4096;
 
 /**
  * Recognise any Lolly tool URL a user might paste. Returns
- * `{ toolId, format, query }` — `format` is the explicit choice from an embed-form
+ * `{ toolId, format, query }`. `format` is the explicit choice from an embed-form
  * extension, else null (the caller picks a default); `query` is the raw query
  * string (no leading '?'). Returns null for anything that isn't a Lolly tool URL.
- * `src` is whatever the user pasted — narrowed immediately.
+ * `src` is whatever the user pasted, narrowed immediately.
  */
 export function parseToolUrl(src: unknown): ToolUrlRef | null {
   if (typeof src !== 'string') return null;
   const s = src.trim();
   if (!s || s.length > MAX_URL) return null;
 
-  // 1) Strict embed form (…/tool/<id>.<ext>?…) — reuse the canonical parser, so
+  // 1) Strict embed form (…/tool/<id>.<ext>?…). Reuse the canonical parser, so
   //    the host-locked security shape stays authoritative for that form.
   const embed = parseEmbedUrl(s);
   if (embed) return { toolId: embed.toolId, format: embed.format, query: embed.query };
@@ -81,7 +81,7 @@ export function parseToolUrl(src: unknown): ToolUrlRef | null {
   try { u = new URL(s); } catch { return null; }
   if (u.protocol !== 'http:' && u.protocol !== 'https:') return null;
 
-  // 2) Hash share route (…/#/tool/<id>?<query>) — what the Share dialog produces.
+  // 2) Hash share route (…/#/tool/<id>?<query>): what the Share dialog produces.
   //    Everything after '#' is the fragment, so the route + its query both live in
   //    u.hash, e.g. "#/tool/qr-code?url=…". Split on the FIRST '?' only.
   if (u.hash) {
@@ -94,7 +94,7 @@ export function parseToolUrl(src: unknown): ToolUrlRef | null {
     if (hId !== undefined && ID_RE.test(hId)) return { toolId: hId, format: null, query: hQuery };
   }
 
-  // 3) Pretty path shortcut (…/<id> or …/tool/<id>, no extension) — the path the
+  // 3) Pretty path shortcut (…/<id> or …/tool/<id>, no extension): the path the
   //    router rewrites into the hash route on load.
   const segs = u.pathname.split('/').filter(Boolean);
   const cand = segs.length === 2 && segs[0] === 'tool' ? segs[1]
@@ -114,7 +114,7 @@ export function isToolUrl(src: unknown): boolean {
 
 /**
  * Canonicalise into the strict embed form
- * `https://lolly.tools/tool/<id>.<ext>?<query>` — the persistent identity for a
+ * `https://lolly.tools/tool/<id>.<ext>?<query>`, the persistent identity for a
  * tool-sourced asset. `query` is the child's input params (already URL-encoded);
  * reserved size params (w/h/unit/dpi) should already be folded in by the caller.
  * Returns null for a bad tool id, so a malformed spec can't mint a junk identity.
@@ -126,7 +126,7 @@ export function buildEmbedUrl({ toolId, format, query = '' }: EmbedUrlSpec = {})
   const url = q
     ? `https://lolly.tools/tool/${toolId}.${ext}?${q}`
     : `https://lolly.tools/tool/${toolId}.${ext}`;
-  // Refuse to mint an identity longer than parseEmbedUrl will accept — an id that
+  // Refuse to mint an identity longer than parseEmbedUrl will accept. An id that
   // can't re-parse on load is worse than no asset (renderUrl then returns null and
   // the picker reports it couldn't render, rather than persisting a dead slot).
   return url.length > MAX_URL ? null : url;

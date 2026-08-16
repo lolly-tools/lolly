@@ -1,16 +1,16 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
- * Design — timeline time-model contract tests (Fable timeline, phase 1).
+ * Design - timeline time-model contract tests (Fable timeline, phase 1).
  *
- * Run with: npm test  (node --test over the tests/ globs). No framework — node:test.
+ * Run with: npm test  (node --test over the tests/ globs). No framework - node:test.
  *
- * Spec: plans/52-fable-timeline-phase-1.md §5. Phase 1 is inert data only — nothing
- * reads `data-t-*`/`data-sequence` yet (that's the phase-2 panel) — so these tests
+ * Spec: plans/52-fable-timeline-phase-1.md §5. Phase 1 is inert data only - nothing
+ * reads `data-t-*`/`data-sequence` yet (that's the phase-2 panel) - so these tests
  * only guard: the compact-blocks wire format stays positionally stable, the hook's
  * derived attributes/duration math is correct, and hostile input can never reach a
  * rendered HTML attribute unescaped.
  *
- * Loads the REAL tool from disk (brands/lolly-start — parent-owned, always present
+ * Loads the REAL tool from disk (brands/lolly-start - parent-owned, always present
  * in a public checkout; brands/suse is a private submodule CI skips) and drives it
  * through the engine with a stub host, exactly like design-fit-circle.test.ts.
  */
@@ -28,11 +28,11 @@ import { parseUrlState } from '../engine/src/url-mode.ts';
 import { KF_CHARSET_RE, parseKf, serialiseKf } from '../engine/src/keyframes.ts';
 import { baseHost } from './helpers/host.ts';
 
-// Parent-owned pack — present in every checkout (brands/suse is private + CI-skipped).
+// Parent-owned pack - present in every checkout (brands/suse is private + CI-skipped).
 const PACK_DIR = join(dirname(fileURLToPath(import.meta.url)), '..', 'brands', 'lolly-start', 'tools');
 const fetchFile = (path: string) => readFile(join(PACK_DIR, path), 'utf8');
 
-// The private SUSE pack carries the second copy of this same tool. Gate on the pack —
+// The private SUSE pack carries the second copy of this same tool. Gate on the pack - 
 // never skip silently when it IS mounted (the canvas-schema-contract.test.ts pattern).
 const SUSE_PACK = join(dirname(fileURLToPath(import.meta.url)), '..', 'brands', 'suse', 'tools');
 const SKIP_SUSE = !existsSync(SUSE_PACK) && 'SUSE brand pack not mounted (see profiles.json)';
@@ -52,7 +52,7 @@ async function mount(boxes: unknown[]) {
 }
 
 // Pull the opening tag for a given data-box-id out of rendered HTML (non-greedy up
-// to the first '>' — every attribute value in this template is quoted, so a '>'
+// to the first '>' - every attribute value in this template is quoted, so a '>'
 // can't appear mid-tag unless something broke out of an attribute, which is
 // exactly what the sanitisation test below checks for).
 function boxTag(html: string, id: string): string {
@@ -68,8 +68,8 @@ function boxTag(html: string, id: string): string {
 // slot i, keyed off the manifest's `fields[]` array order. If anyone ever inserts a
 // field mid-array instead of appending, every previously-shared link silently
 // decodes into the wrong columns. This test builds one compact row with a distinct
-// sentinel value per field (by index) and asserts every field — the 39 pre-existing
-// ones (id..fillRule) AND the 10 new time fields (start..lane) — decodes back into
+// sentinel value per field (by index) and asserts every field - the 39 pre-existing
+// ones (id..fillRule) AND the 10 new time fields (start..lane) - decodes back into
 // its own id, unshifted.
 
 test('wire order: compact-blocks encode/decode round-trips every field (id..fillRule, start..lane) to its own slot', () => {
@@ -77,7 +77,7 @@ test('wire order: compact-blocks encode/decode round-trips every field (id..fill
   // Deliberately NOT asserting fields.length, and NOT asserting that the time fields
   // are LAST. `fields[]` is append-only: appending is the one safe edit, so a test that
   // pins the total count or the tail forbids exactly what it is meant to protect, and
-  // fails on a correct change made by whoever appends next. Pin SLOTS instead — a
+  // fails on a correct change made by whoever appends next. Pin SLOTS instead - a
   // stable prefix, plus the time fields at their own fixed indices.
   assert.ok(fields.length >= 49, 'boxes has at least the 39 pre-existing + 10 time sub-fields');
 
@@ -99,7 +99,7 @@ test('wire order: compact-blocks encode/decode round-trips every field (id..fill
       + 'so appending a 50th field stays legal)',
   );
   // plan 104 §5.1/§5.3: the depth + keyframe fields append at 69/70. Same rule, same
-  // reason — a bounded slice, so a 72nd field stays legal, but an INSERT in front of
+  // reason - a bounded slice, so a 72nd field stays legal, but an INSERT in front of
   // these two (which is what silently re-columns every shared link) fails right here.
   assert.deepEqual(ids.slice(69, 71), ['z', 'kf'], 'z/kf appended at slots 69/70');
   for (const id of ['z', 'kf']) {
@@ -107,7 +107,7 @@ test('wire order: compact-blocks encode/decode round-trips every field (id..fill
   }
   assert.equal(new Set(ids).size, ids.length, 'no duplicate sub-field ids');
 
-  // One sentinel value per field, keyed by its position (not its id) — this is what
+  // One sentinel value per field, keyed by its position (not its id) - this is what
   // catches a positional shift: if field N's declared slot moved, its decoded value
   // will be some OTHER field's sentinel, not 'f<N>'.
   const row = fields.map((_f: any, i: number) => encodeURIComponent(`f${i}`)).join(',');
@@ -129,7 +129,7 @@ test('wire order: compact-blocks encode/decode round-trips every field (id..fill
 
 // `boxes` is ONE positional wire shared by both brand copies of design, so a share
 // link written under one profile is decoded under the other. A single field of drift
-// between the copies mis-decodes every value after the drift point — and the copies are
+// between the copies mis-decodes every value after the drift point - and the copies are
 // edited independently BY ANCHOR (plan §2), which is exactly the discipline that lets one
 // side gain a field the other lacks. Nothing else in the suite compares them.
 test('wire order: the SUSE copy of design declares the identical boxes.fields sequence', { skip: SKIP_SUSE }, async () => {
@@ -143,12 +143,12 @@ test('wire order: the SUSE copy of design declares the identical boxes.fields se
 // The case that actually carries the regression risk: a link SHARED BEFORE the time
 // fields existed carries only the first 39 comma slots, and is now decoded against a
 // 49-field manifest. splitToFields' `parts.length <= count` branch must leave those 39
-// untouched and leave the 10 new slots empty (which reads back as scenery — no
+// untouched and leave the 10 new slots empty (which reads back as scenery - no
 // data-t-*), rather than redistributing values across columns. A full 49-value row
 // (the test above) cannot catch a mis-handled SHORT row.
 test('wire order: a SHORT pre-change row (39 values) still decodes every old field into its own slot, new fields empty', () => {
   const fields = boxSubFields();
-  const oldCount = 39; // id..fillRule — every field that existed before the time model
+  const oldCount = 39; // id..fillRule - every field that existed before the time model
   const row = Array.from({ length: oldCount }, (_v, i) => encodeURIComponent(`f${i}`)).join(',');
 
   const manifest = { inputs: [{ id: 'boxes', type: 'blocks', fields }] };
@@ -207,9 +207,9 @@ test('no-regression: an untimed model renders no data-sequence and no data-t- an
   assert.ok(!html.includes('data-sequence'), 'no data-sequence anywhere in an untimed render');
   assert.ok(!html.includes('data-t-'), 'no data-t-* anywhere in an untimed render');
 
-  // A second render of the same untimed input is identical — the time-model code
+  // A second render of the same untimed input is identical - the time-model code
   // path is a pure no-op for documents that don't use it (structural equality,
-  // not a stored golden blob — this repo has no snapshot-file convention, see
+  // not a stored golden blob - this repo has no snapshot-file convention, see
   // tests/README.md / design-fit-circle.test.ts).
   const html2 = await mount([
     { id: 'a', kind: 'box', x: 0, y: 0, w: 300, h: 200, bg: '#ff0000' },
@@ -262,7 +262,7 @@ test('sanitisation: a hostile, non-whitelisted enter value is dropped, never rea
   assert.ok(!tag.includes('onmouseover'), 'the hostile enum string never made it into the rendered tag: ' + tag);
   assert.ok(!/data-t-enter=/.test(tag), 'not in TRANSITIONS whitelist → the attribute is omitted entirely, not just escaped');
   // Well-formed: exactly the number of '"' we expect (a multiple of 2, one open/close
-  // per attribute) — a breakout would leave an odd count or inject a bare '='.
+  // per attribute) - a breakout would leave an odd count or inject a bare '='.
   const quoteCount = (tag.match(/"/g) || []).length;
   assert.equal(quoteCount % 2, 0, 'attribute quoting stays balanced — no breakout: ' + tag);
 });
@@ -299,7 +299,7 @@ test('sanitisation: speed is rounded to 2dp — accumulated float noise never le
 });
 
 // start had only a `>= 0` floor at first, which let 1e308 * 1000 reach the attribute as
-// "Infinity" and anything from 1e21 up as exponential notation ("1e+24") — both of which
+// "Infinity" and anything from 1e21 up as exponential notation ("1e+24") - both of which
 // a phase-2 parseInt reads as NaN / 1. It is clamped to the same [0, 3600] range as dur.
 test('sanitisation: start is clamped to [0, 3600] — Infinity and exponential notation can never reach the attribute', async () => {
   const htmlNeg = await mount([{ id: 'a', kind: 'text', x: 0, y: 0, w: 100, h: 100, text: 'x', start: -3 }]);
@@ -315,7 +315,7 @@ test('sanitisation: start is clamped to [0, 3600] — Infinity and exponential n
 
 // TRANSITIONS is an object literal, so a bare `TRANSITIONS[v]` truthiness test would
 // accept every key inherited from Object.prototype. None of those contain a quote, so
-// this was never an attribute breakout — but it hands phase 2's preset lookup a
+// this was never an attribute breakout - but it hands phase 2's preset lookup a
 // garbage keyword (and a truthy Object method), which the whitelist exists to prevent.
 test('sanitisation: Object.prototype keys are NOT transitions (constructor / __proto__ / toString / valueOf)', async () => {
   for (const key of ['constructor', '__proto__', 'toString', 'valueOf', 'hasOwnProperty', 'isPrototypeOf']) {
@@ -328,7 +328,7 @@ test('sanitisation: Object.prototype keys are NOT transitions (constructor / __p
 
 // ?boxes= accepts raw JSON (url-mode.ts), so a sub-field value can be an array or an
 // object. An object with a poisoned toString used to throw on property-key coercion
-// inside the whitelist lookup, which aborted the WHOLE compute() — every box then
+// inside the whitelist lookup, which aborted the WHOLE compute() - every box then
 // rendered with no geometry, text or media. The typeof guard keeps it a no-op.
 test('sanitisation: a non-string enter/exit (array, object) is ignored and never aborts compute()', async () => {
   const html = await mount([
@@ -357,7 +357,7 @@ test('mute accepts the platform-wide boolean spellings ("1"/"on"/"yes"), not jus
 //
 // The (op - ip) / fr * 1000 computation lives inline in shells/web/src/views/
 // picker.ts's storeUserUpload (~line 2483), NOT as an exported/importable function
-// — and picker.ts itself imports DOMPurify, a CSS chunk, and other browser-only
+// - and picker.ts itself imports DOMPurify, a CSS chunk, and other browser-only
 // modules at module scope, so it cannot be loaded under plain node:test either.
 // Per the task brief, that's reported rather than contorted into an import: this
 // unit-tests the exact formula (transcribed verbatim, including its guards) as a
@@ -399,7 +399,7 @@ test('lottie duration math: op === ip (zero-length) never produces a durationMs 
 // ── 6. authored easing ──────────────────────────────────────────────────────────────
 //
 // `enterEase`/`exitEase` are the one time sub-field that is neither a number nor a
-// closed enum — a cubic-bezier is user-typed text that has to reach an HTML attribute.
+// closed enum - a cubic-bezier is user-typed text that has to reach an HTML attribute.
 // So the hook never emits the author's string: it emits a whitelisted preset name, or
 // a bezier rebuilt from its own parsed numbers. Everything else is dropped entirely,
 // which the readers treat as "the preset keeps its built-in curve".
@@ -468,7 +468,7 @@ test('easing: a non-string curve is ignored and never aborts compute()', async (
 // carries a whole animation, so the hook parses it and RE-SERIALISES its own text rather
 // than passing the author's through. The engine owns the canonical grammar
 // (engine/src/keyframes.ts); the hook cannot import it, so the two implementations are
-// pinned to each other here — anything else is a divergence waiting for a share link.
+// pinned to each other here - anything else is a divergence waiting for a share link.
 
 test('depth: an authored z rides through as a clamped integer, and 0 emits nothing', async () => {
   const on = boxTag(await mount([timed({ z: 140 })]), 'a');
@@ -488,7 +488,7 @@ test('depth: z is clamped to [-300, 900] — the field range, not whatever a URL
 
 // Depth and keyframes are NOT timing: a scenery box on a sequence stage is visible
 // throughout and can still be lifted or animated (an always-on camera is exactly that
-// box). So these two attributes escape the scenery guard — and nothing else does.
+// box). So these two attributes escape the scenery guard - and nothing else does.
 test('depth: a scenery box carries z/kf but still no timing attributes', async () => {
   const tag = boxTag(await mount([{ id: 'a', kind: 'box', x: 0, y: 0, w: 100, h: 100, z: 40, kf: 't0_x0*t500_x20' }]), 'a');
   assert.match(tag, /data-t-z="40"/);
@@ -519,7 +519,7 @@ test('keyframes: the emitted track is the ENGINE\'s canonical serialisation, byt
     Array.from({ length: 400 }, (_v, i) => `t${i}_x${i}`).join('*'),  // the 256 cap
     't0_x1*'.repeat(3000),                             // the char cap
     // Full density: 256 full poses, the shape §8's UI writes. This is what the char cap
-    // has to be derived from — at 8 KB the two sides truncated at different points.
+    // has to be derived from - at 8 KB the two sides truncated at different points.
     Array.from({ length: 256 }, (_v, i) => `t${i * 100}_x${i}.5_y-${i}.25_z${i}_s1.${i}_o0.${i}_b${i % 300}`).join('*'),
   ];
   for (const kf of corpus) {
@@ -564,7 +564,7 @@ test('keyframes: hostile tracks never reach the attribute', async () => {
 
 // §5.4 scopes v1 to boxes on a [data-sequence] stage: "frame pages are excluded from
 // projection and cannot carry kf". frameGroupsFor stamps timeAttrsFor's string onto the
-// [data-pdf-page] div, so the exclusion has to live in the emitter — otherwise it becomes
+// [data-pdf-page] div, so the exclusion has to live in the emitter - otherwise it becomes
 // a rule every future reader of data-t-kf must remember, which is not a rule.
 test('depth/keyframes: a FRAME page carries neither data-t-z nor data-t-kf', async () => {
   const html = await mount([
@@ -598,7 +598,7 @@ test('keyframes: a non-string / unparseable track emits no attribute and never a
 // ── 8. the camera kind (plan 104 §5.4) ─────────────────────────────────────────────
 //
 // A camera is a timeline citizen with no artboard footprint: it holds the scene's pose
-// and paints nothing. The audio box is the precedent, and the contract is the same one —
+// and paints nothing. The audio box is the precedent, and the contract is the same one - 
 // a still export can never show a mark where it sits.
 
 test('camera: a camera box renders a bare marker and paints nothing', async () => {
@@ -616,7 +616,7 @@ test('camera: a camera box renders a bare marker and paints nothing', async () =
 });
 
 test('camera: the depth shadow is derived from z, and never from the manual offsets', async () => {
-  // (0, z·0.15px, (10 + z·0.2)px, #00000055) — straight overhead, §5.3.
+  // (0, z·0.15px, (10 + z·0.2)px, #00000055) - straight overhead, §5.3.
   const tag = boxTag(await mount([timed({ shadow: 'depth', z: 140, shadowColor: '#ff0000', shadowX: 99, shadowY: 99 })]), 'a');
   assert.match(tag, /filter:drop-shadow\(0px 21px 38px #00000055\)/, 'derived from z alone: ' + tag);
   assert.ok(!tag.includes('#ff0000') && !tag.includes('99px'), 'the manual override tier is not consulted');

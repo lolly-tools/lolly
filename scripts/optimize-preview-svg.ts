@@ -6,10 +6,10 @@
  * the app's own export path. That serialised SVG can carry two kinds of dead weight
  * that never affect how the thumbnail LOOKS but bloat the file:
  *
- *   1. HTML comments copied verbatim from the tool's template.html — e.g.
+ *   1. HTML comments copied verbatim from the tool's template.html - e.g.
  *      filter-duotone's ~674 KB commented-out declarative fallback <image>. Comments
  *      never render, so a thumbnail can drop them wholesale.
- *   2. Full-resolution embedded rasters (data: URIs) — e.g. diagram-builder embeds
+ *   2. Full-resolution embedded rasters (data: URIs) - e.g. diagram-builder embeds
  *      six source photos at capture resolution (~831 KB) into a card shown a few
  *      hundred px wide. Downscaling them (done in-browser by build-previews.ts, which
  *      has a real canvas) is the single biggest win.
@@ -17,11 +17,11 @@
  * These helpers are the pure string half (comment strip + data-URI find/replace) so
  * they're unit-testable without a browser; the actual pixel downscaling lives in the
  * previews script where a Playwright page is available. Precision reduction of path
- * coordinates is deliberately NOT done here — the heavy offenders use integer coords
+ * coordinates is deliberately NOT done here - the heavy offenders use integer coords
  * (which rounding can't touch) so it buys almost nothing for real risk.
  *
  * Thumbnail-scoped on purpose: real exports keep full fidelity. (The same template
- * comments do ride along in real SVG exports too — worth stripping there separately.)
+ * comments do ride along in real SVG exports too - worth stripping there separately.)
  */
 
 import { optimize as svgoOptimize, type Config } from 'svgo';
@@ -29,7 +29,7 @@ import { optimize as svgoOptimize, type Config } from 'svgo';
 // svgo config for thumbnails. preset-default gives whitespace/attribute/structure
 // cleanup + path-data restructuring; floatPrecision:2 rounds the full-precision
 // coordinates that dominate text-outlined-to-path previews (multi-page-pdf was 61
-// paths / 672 KB) — 0.01 units is sub-pixel even at the catalog zoom inspector's
+// paths / 672 KB) - 0.01 units is sub-pixel even at the catalog zoom inspector's
 // 1600%. viewBox is KEPT (svgo 4 keeps it by default; the inspector needs it), and
 // cleanupIds is OFF so filter/gradient/clip url(#id) refs can never break.
 const SVGO_THUMB_CONFIG: Config = {
@@ -48,9 +48,9 @@ export function svgoThumb(svg: string): string {
 
 /** A gallery tile paints its preview by rasterising the SVG on the client every
  *  frame. Cheap for most, but three shapes are expensive REGARDLESS of byte size
- *  (svgo can't help): feGaussianBlur (a full convolution — the priciest SVG op),
+ *  (svgo can't help): feGaussianBlur (a full convolution - the priciest SVG op),
  *  thousands of elements (a halftone's ~4k dots), or one enormous tessellated path
- *  (a street map). For these, build-previews ships a pre-rasterised PNG instead —
+ *  (a street map). For these, build-previews ships a pre-rasterised PNG instead - 
  *  it decodes in ~1ms no matter how complex the source. viewBox crispness is only
  *  wanted by the zoom inspector, not the tile, so the trade is worth it here. */
 export function isExpensiveThumbSvg(svg: string): boolean {
@@ -67,7 +67,7 @@ export function isExpensiveThumbSvg(svg: string): boolean {
 export const MAX_RASTER_DIM = 512;
 /** JPEG quality used when re-encoding an opaque embedded raster. */
 export const RASTER_JPEG_QUALITY = 0.82;
-/** Only embedded rasters whose data-URI is at least this many chars are touched —
+/** Only embedded rasters whose data-URI is at least this many chars are touched - 
  *  small inlined marks (icons/logos) aren't worth the round-trip and re-encode. */
 export const MIN_RASTER_URI_CHARS = 30_000;
 

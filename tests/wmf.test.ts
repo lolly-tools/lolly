@@ -262,7 +262,7 @@ test('ImageMagick cross-check (skipped unless a WMF delegate is present)', (t) =
   try {
     execFileSync(magick, args, { stdio: 'pipe' });
   } catch (e) {
-    // No WMF delegate (libwmf) compiled in — the byte-structure tests above stand
+    // No WMF delegate (libwmf) compiled in - the byte-structure tests above stand
     // on their own; this is a best-effort renderer check.
     return t.skip(`ImageMagick has no WMF delegate: ${(e as Error).message.split('\n')[0]}`);
   }

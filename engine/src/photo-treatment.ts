@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
- * Colour treatments for raster photo assets — the raster analogue of the
+ * Colour treatments for raster photo assets: the raster analogue of the
  * two-colour icon themes in ./icon-theme.ts.
  *
  * A treatment (greyscale, or a soft two-colour duotone wash) is chosen at pick
@@ -8,13 +8,13 @@
  * survives URL-mode round-trips (an asset value serialises to its id alone),
  * exactly like `?theme=` does for icons.
  *
- * Unlike an icon, a photo's bytes are opaque raster — there is nothing to
+ * Unlike an icon, a photo's bytes are opaque raster: there is nothing to
  * rewrite in place. Instead the treatment is *baked* at resolve time into a
  * small self-contained SVG that embeds the photo (as a data URI) and applies an
  * SVG <filter>. That wrapper is a normal image everywhere an <img>/background
  * is: on screen, and rasterised into exports. Treatment definitions themselves
  * are catalog data (a palette-type asset tagged "photo-treatments"), never
- * engine code — only the filter mechanics live here.
+ * engine code. Only the filter mechanics live here.
  */
 
 /** A single treatment entry from the "photo-treatments" palette document. */
@@ -26,14 +26,14 @@ export interface PhotoTreatment {
   shadow?: string;
   /** duotone: colour mapped onto the highlights (luminance 1). */
   highlight?: string;
-  /** OPTIONAL midtone (luminance 0.5) — when present the duotone becomes a TRITONE
+  /** OPTIONAL midtone (luminance 0.5): when present the duotone becomes a TRITONE
    *  (shadow → mid → highlight), e.g. black → pine → jungle for a rich dark wash. */
   mid?: string;
   /** surface a light treatment needs behind it to read in pickers/previews. */
   previewBg?: string;
 }
 
-/** The JSON payload shape of a palette-type asset tagged "photo-treatments". */
+/** The JSON payload structure of a palette-type asset tagged "photo-treatments". */
 export interface PhotoTreatmentsDoc {
   treatments?: unknown;
 }
@@ -49,7 +49,7 @@ const TREATMENT_SUFFIX = '?treatment=';
 
 /**
  * Split `<baseId>?treatment=<treatmentId>` into its parts.
- * Returns { baseId, treatment } — treatment is null when the id carries none.
+ * Returns { baseId, treatment }; treatment is null when the id carries none.
  * Full URLs (tool embeds) are never treated ids; they pass through untouched.
  */
 export function parseTreatedAssetId(id: string): ParsedTreatedAssetId {
@@ -75,7 +75,7 @@ export function isValidTreatmentId(treatmentId: unknown): treatmentId is string 
 }
 
 /**
- * Base asset id with any presentation-modifier suffix stripped — both the icon
+ * Base asset id with any presentation-modifier suffix stripped: both the icon
  * `?theme=` and the photo `?treatment=` forms. A modifier is presentation, not
  * identity, so favourites / hidden / category overlays and blob-cache pruning
  * all key off this. Full URLs (tool embeds) may legitimately contain `?` and
@@ -92,7 +92,7 @@ export function stripAssetModifiers(id: string): string {
  * payload of a palette-type asset tagged "photo-treatments"):
  * `{ treatments: [{ id, label?, kind, shadow?, highlight?, previewBg? }, …] }`.
  * Entries with an invalid id, unknown kind, or (for duotone) unusable colours
- * are dropped. "None" is not a treatment — it's the plain photo, expressed as an
+ * are dropped. "None" is not a treatment: it is the plain photo, expressed as an
  * id with no suffix, and prepended by the UI.
  */
 export function parsePhotoTreatmentsDoc(doc: PhotoTreatmentsDoc | null | undefined): PhotoTreatment[] {
@@ -139,7 +139,7 @@ function treatmentFilterBody(treatment: PhotoTreatment): string {
 
 /** Inputs for baking a treatment into a self-contained SVG wrapper. */
 export interface RasterTreatmentWrap {
-  /** the photo as a data URI (`data:image/jpeg;base64,…`) — must be inline, as
+  /** the photo as a data URI (`data:image/jpeg;base64,…`), must be inline, as
    *  an SVG used as an image may not load external resources. */
   href: string;
   width: number;

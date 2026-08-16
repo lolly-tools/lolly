@@ -1,21 +1,21 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
- * Headless-Chromium launcher shared by the Node shells (CLI + TUI) — the opt-in
+ * Headless-Chromium launcher shared by the Node shells (CLI + TUI): the opt-in
  * "Tier B" for the formats only a real browser can make: HTML-layout raster, jpg/webp,
  * pdf, video, and live-URL capture.
  *
- * The browser is NOT bundled: `lolly install-browser` (or `npm run install:browser`
+ * The browser is NOT bundled. `lolly install-browser` (or `npm run install:browser`
  * in shells/cli) downloads Chromium once via the `playwright-core` the shells already
- * depend on — a plain `npm install` pulls no browser. It is loaded lazily on first use
- * and killed on process exit — never at startup — so an `--export=svg` run stays
+ * depend on. A plain `npm install` pulls no browser. It is loaded lazily on first use
+ * and killed on process exit, never at startup, so an `--export=svg` run stays
  * instant and dependency-light.
  *
  * Resolution order gives the user the least-work option first:
- *   1. LOLLY_BROWSER_PATH     — an explicit browser binary
- *   2. LOLLY_BROWSER_CHANNEL  — an installed channel, e.g. `chrome` (no download)
- *   3. PLAYWRIGHT_BROWSERS_PATH — an existing browsers dir the env points at
+ *   1. LOLLY_BROWSER_PATH     - an explicit browser binary
+ *   2. LOLLY_BROWSER_CHANNEL  - an installed channel, e.g. `chrome` (no download)
+ *   3. PLAYWRIGHT_BROWSERS_PATH - an existing browsers dir the env points at
  *   4. the shells' own scoped install (.browsers at the repo root), else any Chromium a
- *      sibling package already downloaded (reused read-only — no second download).
+ *      sibling package already downloaded (reused read-only, no second download).
  * The scoped dir is package-neutral (not tied to another package's lifetime), so the
  * terminal shells' raster path keeps working on its own.
  */
@@ -23,9 +23,9 @@ import { join } from 'node:path';
 import { existsSync } from 'node:fs';
 import { repoRoot } from './repo-root.ts';
 
-/** Where `lolly install-browser` puts Chromium — a package-neutral repo-root dir. */
+/** Where `lolly install-browser` puts Chromium - a package-neutral repo-root dir. */
 export const INSTALL_BROWSERS_DIR = join(repoRoot(), '.browsers');
-// A Chromium another repo package already downloaded — reused read-only when the
+// A Chromium another repo package already downloaded. Reused read-only when the
 // shells' own dir is empty, so a machine already set up for the MCP render tier needs
 // no second download. Never installed into.
 const SIBLING_BROWSERS_DIR = join(repoRoot(), 'services', 'mcp', '.browsers');
@@ -61,19 +61,19 @@ export async function getBrowser(): Promise<import('playwright-core').Browser> {
           ...(channel ? { channel } : {}),
           ...(executablePath ? { executablePath } : {}),
           // SwiftShader gives headless runs a software WebGL2 context (recent
-          // Chromium disables it without the explicit opt-in) — the docs pipeline's
+          // Chromium disables it without the explicit opt-in). The docs pipeline's
           // ?neuro=viz capture needs one to render the MilkDrop visualizer at all.
           // The two rendering-intent flags pin what the user's export looks like
           // regardless of the machine doing the rendering. force-color-profile=srgb
-          // takes the host display profile out of every canvas/raster path (a brand
-          // #30ba78 exports as those bytes on any box — HDR is unaffected: the
-          // engine's PQ boost embeds its own BT.2020 profile downstream). Playwright
+          // takes the host display profile out of every canvas/raster path: a brand
+          // #30ba78 exports as those bytes on any box. HDR is unaffected, because the
+          // engine's PQ boost embeds its own BT.2020 profile downstream. Playwright
           // already passes this flag in its OWN default args, so here it is an
-          // explicit pin, not a behaviour change — it keeps the intent if the
+          // explicit pin, not a behaviour change. It keeps the intent if the
           // launcher ever sets ignoreDefaultArgs or moves off Playwright.
           // font-render-hinting=none removes the largest source of Linux/macOS
           // glyph-metric divergence (FreeType hint distortion) so server layouts
-          // (MCP, lolly.work) don't reflow vs desktop — antialiasing and subpixel
+          // (MCP, lolly.work) don't reflow vs desktop. Antialiasing and subpixel
           // positioning still differ per-OS, so raster BYTES are not cross-OS
           // identical. Mirrored in services/mcp/src/render.ts and the byte-golden
           // test harnesses (export-format-golden / export-text-emission).
@@ -97,7 +97,7 @@ export async function getBrowser(): Promise<import('playwright-core').Browser> {
   return browserPromise;
 }
 
-/** Whether a browser is reachable without a download (cheap check — no launch). */
+/** Whether a browser is reachable without a download (cheap check, no launch). */
 export function browserInstalled(): boolean {
   if (process.env.LOLLY_BROWSER_CHANNEL || process.env.LOLLY_BROWSER_PATH) return true;
   return existsSync(resolveBrowsersDir());

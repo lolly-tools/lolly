@@ -26,7 +26,7 @@ const OUT = `${ROOT}shells/web/src/lib/lolly-mark.ts`;
 
 let svg = readFileSync(SRC, 'utf-8');
 
-// 1. Drop the C2PA manifest block AND the inline <style> — icon.svg animates its
+// 1. Drop the C2PA manifest block AND the inline <style> - icon.svg animates its
 //    own layers always-on (animation: … infinite), but the app drives a hover-only
 //    spin from its own stylesheet (styles/parts/ask.css). Strip both.
 svg = svg.replace(/<metadata>[\s\S]*?<\/metadata>/g, '');

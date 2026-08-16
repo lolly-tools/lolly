@@ -1,14 +1,14 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
- * Pen shapes with a WIDE stroke must not be clipped — in any layout editor.
+ * Pen shapes with a WIDE stroke must not be clipped - in any layout editor.
  *
- * Run with: npm test  (node --test over the tests/ globs). No framework — node:test.
+ * Run with: npm test  (node --test over the tests/ globs). No framework - node:test.
  *
  * A path box's frame is the LOWERED curve's tight bbox (`refitFrame` in
  * shells/web/src/views/free-canvas-pen.ts keeps it exactly that, deliberately: fitting
  * the stroke instead would grow the box every time the width changed, and fitting the
  * control hull would make every curved shape's box visibly too big). So a stroke
- * straddles the frame edge and half its width falls OUTSIDE the frame — and the box's
+ * straddles the frame edge and half its width falls OUTSIDE the frame - and the box's
  * inline `<svg>` clips to its own viewport, in the browser AND in the SVG/PDF export
  * walkers. Every tool that hosts the pen therefore has to grow that `<svg>` by the
  * stroke's reach and shift its `viewBox` to match, or a stroked pen shape loses half its
@@ -16,7 +16,7 @@
  * `pathHtmlFor` from before it landed), which is the bug these tests close.
  *
  * The tools are driven through the REAL engine with the REAL `host.geom`, so what is
- * asserted is the markup the browser and the CLI actually get — not a paraphrase of it.
+ * asserted is the markup the browser and the CLI actually get - not a paraphrase of it.
  * Both hosts of the pen are covered by ONE table, because the pad is a property of the
  * pen contract rather than of either tool: a third editor added later belongs here too.
  */
@@ -38,7 +38,7 @@ const geom = makeGeomApi();
 
 /**
  * The pen's hosts. `design` is loaded from brands/lolly-start (parent-owned and
- * present in every checkout — brands/suse is a private submodule CI skips, and its copy
+ * present in every checkout - brands/suse is a private submodule CI skips, and its copy
  * of hooks.js is byte-identical in this region); `sequence-studio` from the public
  * community pack.
  */
@@ -57,7 +57,7 @@ const W = 200, H = 100;
  * An authored path field value: a diagonal across the whole frame, in the wire codec the
  * tool's `hooks.js` decodes. Encoded through the BRIDGE rather than hand-written, so the
  * fixture cannot drift from the grammar. Nodes are fractions of the frame, so 0→1 spans
- * it — i.e. the curve touches all four frame edges, which is what a refitted frame looks
+ * it - i.e. the curve touches all four frame edges, which is what a refitted frame looks
  * like and what makes a missing pad clip.
  */
 const PATH = (() => {
@@ -147,7 +147,7 @@ for (const h of HOSTS) {
 
 /**
  * Design also ships the stroke DECORATIONS, and two of them reach further than
- * half the width — a pad that is merely usually right is a clipped outline the user
+ * half the width - a pad that is merely usually right is a clipped outline the user
  * cannot explain. Sequence Studio hard-codes round/round (it has no such sub-fields), so
  * this claim is Design's alone rather than part of the table above.
  */

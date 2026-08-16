@@ -1,23 +1,23 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
- * The shared vocabulary of layered raster import — what psd.ts and xcf.ts both
- * decode INTO, and the blend-mode bridges between the source formats and the
- * one blend vocabulary the platform actually renders: CSS `mix-blend-mode`.
+ * The shared shape for layered raster import: what psd.ts and xcf.ts both
+ * decode into. Also holds the blend-mode bridge between the source formats
+ * and the one blend set the platform actually renders: CSS `mix-blend-mode`.
  *
- * Why one module: a PSD layer and an XCF layer are the same product object — a
- * named RGBA bitmap at a document offset with opacity/visibility/blend — and
- * every consumer (the layer-stack tool's block rows, Design's boxes,
- * the picker's flatten path, psd-write.ts) should see one shape regardless of
- * which container the bytes came from. The blend tables live here rather than
- * in each parser because they target the SAME 16-value CSS set that Layout
- * Studio's / sequence-studio's `blend` selects already ship, and the write-back
+ * Why one module: a PSD layer and an XCF layer are the same kind of object - a
+ * named RGBA bitmap at a document offset with opacity/visibility/blend. Every
+ * consumer (the layer-stack tool's block rows, Design's boxes,
+ * the picker's flatten path, psd-write.ts) should see one shape, no matter
+ * which container the bytes came from. The blend tables live here, not in each
+ * parser, because they target the SAME 16-value CSS set that Layout
+ * Studio's / sequence-studio's `blend` selects already ship. The write-back
  * table must be the exact inverse of the lossless read rows.
  *
- * Mapping policy: every source mode maps to its nearest CSS mode, `blendLossy`
- * marks the approximate ones, and `blendRaw` preserves provenance (`'psd:mul '`,
- * `'xcf:30'`) so nothing is silently forgotten. An UNKNOWN mode never throws —
- * it reads as `normal` + lossy + a parser warning, because one exotic layer
- * mode must not refuse a whole document.
+ * Mapping policy: every source mode maps to its nearest CSS mode. `blendLossy`
+ * marks the approximate ones, and `blendRaw` keeps the source value (`'psd:mul '`,
+ * `'xcf:30'`) so nothing is lost silently. An UNKNOWN mode never throws.
+ * It reads as `normal` + lossy + a parser warning, because one exotic layer
+ * mode must not block the whole document from loading.
  *
  * XCF mode numbers are pinned against GIMP's own devel-docs/xcf.txt (gimp-2-10
  * branch): 0-22 legacy, 23-27 LCH (XCF 9+), 28-61 default class (XCF 10+).
@@ -59,7 +59,7 @@ export interface RasterLayer {
   groupPath: number[];
 }
 
-/** A parsed layered document — the one shape both readers return. */
+/** A parsed layered document - the one shape both readers return. */
 export interface LayeredRasterDoc {
   format: 'psd' | 'xcf';
   width: number;
@@ -80,7 +80,7 @@ export interface LayeredRasterDoc {
 }
 
 /**
- * Injected zlib inflater — the engine deliberately carries no inflate (see
+ * Injected zlib inflater - the engine deliberately carries no inflate (see
  * deflate.ts's header); the shell that has the archive inflates (fflate's
  * `unzlibSync` on web, `node:zlib.inflateSync` in Node/CLI). Implementations
  * MUST honour `maxOut` as an output cap (both named backends accept an output
@@ -155,7 +155,7 @@ export const CSS_TO_PSD_BLEND: Readonly<Record<CssBlendMode, string>> = Object.f
  * XCF PROP_MODE value → CSS, both mode generations in the one number space
  * (devel-docs/xcf.txt, gimp-2-10): 0-22 legacy, 23-27 LCH (XCF 9+), 28-61
  * default class (XCF 10+). Legacy 5 "overlay" is soft-light maths (GIMP's own
- * historical bug, kept for compatibility) — mapped accordingly.
+ * historical bug, kept for compatibility) - mapped accordingly.
  */
 export const XCF_MODE_TO_CSS: Readonly<Record<number, BlendMap>> = Object.freeze({
   0: m('normal'),                  // Normal (legacy)
@@ -163,7 +163,7 @@ export const XCF_MODE_TO_CSS: Readonly<Record<number, BlendMap>> = Object.freeze
   2: m('normal', true),            // Behind (paint-only)
   3: m('multiply'),                // Multiply (legacy)
   4: m('screen'),                  // Screen (legacy)
-  5: m('soft-light', true),        // "Overlay" (legacy — soft-light maths)
+  5: m('soft-light', true),        // "Overlay" (legacy - soft-light maths)
   6: m('difference'),              // Difference (legacy)
   7: m('color-dodge', true),       // Addition (legacy)
   8: m('difference', true),        // Subtract (legacy)

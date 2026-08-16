@@ -43,24 +43,24 @@ export interface PaletteHit { cmyk: [number, number, number, number]; spot?: Pal
  * The CMYK build every DECLARED FINISH gets, in every CMYK sink.
  *
  * A finish (host-v1 `FinishKind`: foil, emboss, spot-uv, cut, …) is not a
- * colour — it is a press instruction with its own plate — so it has no process
- * build at all, and the swatch hex a brand author picked merely to DEPICT it on
- * screen must never become one. 100% K is the trade convention for technical /
- * mask art:
+ * colour. It is a press instruction with its own plate, so it has no process
+ * build at all. The swatch hex a brand author picked only to DEPICT it on
+ * screen must never become that build. 100% K is the trade convention for
+ * technical / mask art:
  *   - a RIP that honours the named /Separation never evaluates the tint
- *     transform's alternate, so this value is inert there — the plate is
- *     byte-for-byte what it was before this constant existed;
+ * transform's alternate, so this value is inert there. The plate stays
+ *     byte-for-byte what it was before this constant existed.
  *   - a RIP (or web-to-print portal) that FLATTENS spots to process paints an
  *     unmistakable solid black mask where the foil goes, instead of a plausible
- *     metallic gold that sails through unnoticed. That is the whole point: the
- *     failure becomes loud rather than silent.
- * Never [0,0,0,0] (flattens to invisible — silent again) and never [1,1,1,1]
- * (400% TAC, and registration ink already means something else).
+ *     metallic gold that would go unnoticed. That is the goal: make the
+ *     failure visible instead of hidden.
+ * Never [0,0,0,0] (flattens to invisible, hiding the failure again) and never
+ * [1,1,1,1] (400% TAC, and registration ink already means something else).
  *
  * This is the RIP-FLATTEN FALLBACK, not the primary path: in the pdf-cmyk export
  * the finish plate now OVERPRINTS (the export bridge selects an overprint graphics
  * state for it), so on a RIP that honours the named plate it sits ON the artwork.
- * This 100% K mask is what a RIP that DROPS the plate paints instead — loud and
+ * This 100% K mask is what a RIP that DROPS the plate paints instead: visible and
  * unmistakable, never a plausible metallic. `print.finish-separates-as-ink` now
  * reports the handoff choice (own overprinting plate vs separate finish artwork),
  * not a knockout defect.
@@ -72,7 +72,7 @@ export const FINISH_MASK_CMYK: [number, number, number, number] = [0, 0, 0, 1];
  *
  * The precision MUST match what jsPDF writes into the content stream: it emits
  * colour operators at two decimals (254/255 → "1.", 124/255 → "0.49"), so the
- * palette side has to bucket to two decimals too — a 3-decimal key never matches
+ * palette side has to bucket to two decimals too - a 3-decimal key never matches
  * jsPDF's "0.49" against the hex-exact 0.486, and every brand colour silently
  * falls through to the generic conversion. No 0–255 channel lands on a .5
  * boundary at x100, so jsPDF's toFixed(2) and Math.round always agree.
@@ -100,7 +100,7 @@ export function buildCmykPaletteMap(palette: readonly BrandPaletteEntry[]): Map<
     // is locked at all).
     const frac = cmyk && cmyk.length === 4 ? (cmyk.map(v => v / 100) as [number, number, number, number]) : rgbToCmyk(r, g, b);
     // A DECLARED FINISH never contributes to the process build, and is never
-    // gamut-mapped or merged into CMYK — its build is the mask, not the swatch's
+    // gamut-mapped or merged into CMYK - its build is the mask, not the swatch's
     // own colour, and an explicit cmyk anchor is deliberately overridden (a
     // brand may have anchored a "gold-ish" build for on-screen use; honouring it
     // here is precisely the silent failure). This one line covers every CMYK

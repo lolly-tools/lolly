@@ -1,18 +1,18 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
- * Goldens for engine/src/svg-layers.ts — "Lift layers" (plans/104 §7 P3).
+ * Goldens for engine/src/svg-layers.ts - "Lift layers" (plans/104 §7 P3).
  *
- * The load-bearing assertion in this file is the PARTITION property, and it is
- * worth saying why it is the one to have. §7's exit criterion is "N lifted
+ * The essential assertion in this file is the PARTITION property, and here is
+ * why it is the one to have. §7's exit criterion is "N lifted
  * layers at z = 0 render byte-identical to the un-lifted original", and there
  * are two ways to check that. One is to rasterise both and compare pixels,
- * which needs a browser and answers about the *renderer* as much as about us —
+ * which needs a browser and answers about the *renderer* as much as about us - 
  * `tests/svg-lift-identity.browser.test.ts` does exactly that, in a real engine,
  * and measured that "byte-identical" is not literally reachable there (a browser
  * composites each layer through its own 8-bit premultiplied buffer, so it rounds
  * twice where one pass rounds once). The other is to check the thing the
  * renderer's answer DEPENDS on: that the layers' bodies, concatenated in paint
- * order, are the source's own bytes — no node dropped, none duplicated, none
+ * order, are the source's own bytes - no node dropped, none duplicated, none
  * reordered. THAT one is exact, runs everywhere, and fails with a diff you can
  * read. Both exist; this is the one that bites first, and the one whose
  * "byte-identical" is literal.
@@ -40,9 +40,9 @@ function inner(markup: string): string {
 /**
  * The partition check.
  *
- * Strip each derived document's prologue — the carried non-rendering siblings
+ * Strip each derived document's prologue - the carried non-rendering siblings
  * (which the caller knows, because it wrote them) plus any `<defs>` borrowed to
- * repair a cross-layer reference — and any wrapper the enumerator descended
+ * repair a cross-layer reference - and any wrapper the enumerator descended
  * through, then concatenate what is left. It must equal the source's own
  * rendered children, byte for byte.
  *
@@ -239,7 +239,7 @@ test('layers always come back in paint order, whatever the clustering did', () =
     '<rect x="2" y="2" width="5" height="5"/>';
   const r = enumerateSvgLayers(doc(body));
   // The two rects cluster (they touch) and the group does not overlap them, so
-  // the merge is safe — and the merged layer still sits where its FIRST member was.
+  // the merge is safe - and the merged layer still sits where its FIRST member was.
   assert.equal(r.layers.length, 2);
   assert.equal(r.layers[0]!.nodes, 2);
   assert.ok(r.layers[1]!.markup.includes('id="mid"'));
@@ -255,7 +255,7 @@ test('a cross-group <use> keeps working: the referent is copied into that layer\
   const second = r.layers[1]!.markup;
   assert.ok(second.includes('<use href="#p"'), 'the use survives');
   assert.ok(/<defs><path id="p"/.test(second), `the referent is repaired into <defs>: ${second}`);
-  // …and it must be in <defs>, where it paints NOTHING — a copy outside would
+  // …and it must be in <defs>, where it paints NOTHING - a copy outside would
   // double-draw the shape at its original position.
   assert.equal((second.match(/<path id="p"/g) ?? []).length, 1, 'exactly one copy');
   assert.ok(r.warnings.some((w) => w.includes('layer 2')), r.warnings.join(' | '));
@@ -299,7 +299,7 @@ test('a dangling reference is left dangling — a lift does not invent artwork',
 test('a DESCENDED WRAPPER\'s own reference is repaired for every layer, not just the body\'s', () => {
   // `referencedIds` used to see the layer body ONLY. A wrapper the enumerator
   // descended through is reproduced in every derived document and can point at an
-  // id that now lives inside ONE of the layers — measured on Chromium before this
+  // id that now lives inside ONE of the layers - measured on Chromium before this
   // fix: layer 1 painted a 200x200 rect where the original painted a clipped
   // 120x120 one (76 800 channels different) with `warnings` empty, because an
   // unresolvable `clip-path` renders as no clip at all.
@@ -326,7 +326,7 @@ test('a CARRIED node\'s reference into a layer is repaired too — the Illustrat
 test('references PAST the repair cap are named, not silently unrepaired', () => {
   // The cap has always existed; being told about it has not. Past it the repair
   // simply stops looking, so a layer keeps a `url(#…)` whose target now lives in a
-  // different document and paints nothing — the same silent-difference class as
+  // different document and paints nothing - the same silent-difference class as
   // the wrapper case above, arrived at by a different route.
   const defs: string[] = [];
   const uses: string[] = [];
@@ -365,7 +365,7 @@ for (const [attrs, why] of [
     // The same test the descent already ran on a wrapper `<g>`, run on the element
     // that wraps everything. `rootAttributes()` re-emits the root verbatim into
     // every layer, so `opacity="0.55"` up here is applied N times over instead of
-    // once over the composite — measured on Chromium at 45 203 channels beyond
+    // once over the composite - measured on Chromium at 45 203 channels beyond
     // ±1 against the browser suite's 154-channel budget, with zero warnings.
     const r = enumerateSvgLayers(doc(
       '<g><rect width="60" height="60" fill="#c00"/></g><g><rect x="30" width="60" height="60" fill="#06c"/></g>',
@@ -441,7 +441,7 @@ test('the reference repair is bounded by the DOCUMENT, not by layers x refs', ()
   // ~16 GB of character scanning, every byte of it inside the declared caps.
   // Measured on the shipped code, single-threaded, on the main thread behind the
   // dialog's "Reading the artwork..." panel: 1 832 ms with plain filler and
-  // 10 682 ms when the filler NEAR-MISSES the regex — against 1 ms for the same
+  // 10 682 ms when the filler NEAR-MISSES the regex - against 1 ms for the same
   // document with no references at all. The filler below is the near-miss case,
   // because it is the one that ran 10 seconds.
   const unit = ' id="nope-63-63z"';
@@ -635,8 +635,8 @@ test('the same bytes in give the same layers out, every time', () => {
 
 test('a wrapper we DID NOT descend into does not have its own defs hoisted out', () => {
   // The descent stages the wrapper's non-rendering children and only commits
-  // them when it actually descends. Without that, this document — whose wrapper
-  // holds nothing but a <defs> — would emit that defs twice, once carried and
+  // them when it actually descends. Without that, this document - whose wrapper
+  // holds nothing but a <defs> - would emit that defs twice, once carried and
   // once inside the wrapper's own markup, and every id in it would be duplicated.
   const r = enumerateSvgLayers(doc('<g id="w"><defs><linearGradient id="only"/></defs></g>'));
   assert.equal(r.layers.length, 1);

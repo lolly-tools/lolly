@@ -6,7 +6,7 @@
  * at build time: each Tauri shell's `bridge-overrides/state.ts` is substituted for
  * that module by the resolveId plugin in its vite.config.js, and those two override
  * files are now thin platform seams that call `createFsStateAPI` here. The API
- * surface must stay in sync with the web bridge — tools, the engine, the gallery,
+ * surface must stay in sync with the web bridge - tools, the engine, the gallery,
  * the profile page and catalog sync never see which implementation is running, so a
  * missing method (e.g. sizes) crashes boot. That sync used to be comment-only; the
  * return type below is now the web bridge's own `WebStateAPI`, imported type-only,
@@ -28,13 +28,13 @@
  * keyed on the `shells/<shell>/bridge-overrides` wildcard keeps covering this file:
  * the tracker and DNS-resolver greps in docs/verify-yourself.md, and the Biome
  * exclusion for the hand-written override modules. Anything that lists the two shells'
- * override dirs LITERALLY still needs this one added by hand — tests/no-trackers.test.ts
+ * override dirs LITERALLY still needs this one added by hand - tests/no-trackers.test.ts
  * is the one that does.
  *
  * The parent repo cannot import `@tauri-apps/plugin-fs`, though: the Tauri shells
  * are NOT npm workspaces, so that package is installed only inside each shell's own
  * node_modules and a bare specifier from this directory would not resolve. Hence the
- * inversion — each shell imports the plugin itself and passes in a small bound `fs`
+ * inversion - each shell imports the plugin itself and passes in a small bound `fs`
  * adapter. That adapter is also the per-platform seam the mobile fork was kept for:
  * mobile can swap in iCloud sync or Android scoped storage by changing its adapter
  * (or by overriding a method on the returned object) without forking this logic.
@@ -53,7 +53,7 @@ import type { SavedStateData, WebStateAPI } from '../../web/src/bridge/state.ts'
 
 /**
  * The slice of a filesystem this module needs, paths relative to the app data dir.
- * Each Tauri shell binds it to `@tauri-apps/plugin-fs` against its own base dir —
+ * Each Tauri shell binds it to `@tauri-apps/plugin-fs` against its own base dir - 
  * see the header for why the dependency is inverted.
  */
 export interface StateFs {
@@ -61,7 +61,7 @@ export interface StateFs {
   mkdirRecursive(path: string): Promise<void>;
   readTextFile(path: string): Promise<string>;
   writeTextFile(path: string, text: string): Promise<void>;
-  /** Entry NAMES, not entry objects — all this module reads. */
+  /** Entry NAMES, not entry objects - all this module reads. */
   readDirNames(path: string): Promise<string[]>;
   remove(path: string): Promise<void>;
 }
@@ -76,7 +76,7 @@ interface FsStateRecord {
   data: SavedStateData;
   thumb: string | null;
   updatedAt: string;
-  /** First-save time, carried forward across re-saves (mirrors the web bridge) —
+  /** First-save time, carried forward across re-saves (mirrors the web bridge) - 
    *  the "Date added" sort key. Optional: older files have none. */
   createdAt?: string;
   formatVersion?: number;
@@ -84,7 +84,7 @@ interface FsStateRecord {
 }
 
 /** A record as parsed back off disk: JSON.parse output, so every field is
- *  untrusted. Read defensively — a hand-edited or truncated file must not throw
+ *  untrusted. Read defensively - a hand-edited or truncated file must not throw
  *  past the try/catch that wraps each read. */
 type ParsedRecord = Partial<FsStateRecord>;
 
@@ -93,7 +93,7 @@ const STATE_DIR = 'saved-state';
 // never re-walks the directory on subsequent launches. Not a `.json`, so the
 // record readers skip it.
 // MUST NOT begin with a dot. tauri-plugin-fs defaults require_literal_leading_dot
-// to `cfg!(unix)` — true on macOS and Android, so this bites both shells — and the
+// to `cfg!(unix)` - true on macOS and Android, so this bites both shells - and the
 // `$APPDATA/**` glob behind fs:scope-appdata-recursive therefore cannot match a
 // dotfile: every access to one is rejected as "forbidden path". As `.slotname-v1`
 // this rejection propagated out of ensureMigrated() and failed EVERY state call, so
@@ -103,7 +103,7 @@ const MIGRATION_MARKER = `${STATE_DIR}/slotname-v1.marker`;
 // Collision-free, cross-platform-safe filename for an arbitrary slot name via
 // the engine's reversible percent-encoding codec (encodeFsToken): "Q3 Report",
 // "Q3/Report", "Q3+Report", "Q3_Report" and "Björn keynote" all map to DISTINCT
-// files — each recoverable to its exact slot. This replaces the old
+// files - each recoverable to its exact slot. This replaces the old
 // `slot.replace(/[^\w.-]/g, '_')`, which collapsed all of those onto one file
 // and silently destroyed data (P0-4), and desktop and mobile can no longer
 // diverge on it: they share this module, which shares the one engine codec.
@@ -137,8 +137,8 @@ export function createFsStateAPI(fs: StateFs): WebStateAPI {
   // named "Q3 Report" lives at `Q3_Report.json` but load() now looks for
   // `Q3%20Report.json` and would never find it. Walk saved-state/, read each
   // record's authoritative `raw.slot`, and rewrite it under the canonical name.
-  // (Sessions already lost to a pre-fix collision can't be recovered — only one
-  // file survived on disk — but the survivor keeps its true name.) Idempotent and
+  // (Sessions already lost to a pre-fix collision can't be recovered - only one
+  // file survived on disk - but the survivor keeps its true name.) Idempotent and
   // memoised: a clean pass drops a marker so later launches skip the walk.
   let migrationPromise: Promise<void> | null = null;
   function ensureMigrated(): Promise<void> {
@@ -195,7 +195,7 @@ export function createFsStateAPI(fs: StateFs): WebStateAPI {
     }
 
     // Only mark done on a fully clean pass; otherwise retry next launch (the walk
-    // is idempotent — already-canonical files are skipped instantly).
+    // is idempotent - already-canonical files are skipped instantly).
     if (failures === 0) {
       try {
         await fs.writeTextFile(MIGRATION_MARKER, '1');
@@ -331,7 +331,7 @@ function collectAssetRefs(value: unknown, refs: Set<string>): void {
   const node = value as MaybeAssetRef;
   if (node.source === 'library' && node.id && node.format && node.version != null) {
     // A modified ref (`<baseId>?theme=<t>` icon OR `<baseId>?treatment=<x>` photo)
-    // is derived from the BASE blob — the key the cache holds and pruning must
+    // is derived from the BASE blob - the key the cache holds and pruning must
     // protect. Match the web bridge exactly: strip BOTH modifiers, not just theme,
     // or a saved session's treated photo gets a key that never matches and is evicted.
     const baseId = stripAssetModifiers(String(node.id));

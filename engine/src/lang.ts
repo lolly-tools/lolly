@@ -2,16 +2,16 @@
 /**
  * Supported UI/content languages, shared by the `lang` reserved URL param
  * (url-mode.ts), `Profile.lang`, tool-manifest i18n sidecars, and every shell's
- * language picker. Canonical codes are short BCP-47 primary tags; a few informal
+ * language picker. Canonical codes are short BCP-47 primary tags. A few informal
  * aliases people actually type (country codes `cn`/`jp`) are accepted on parse
- * and normalized to the canonical tag before anything is stored or serialized —
- * profile, URLs, and sidecar filenames only ever contain canonical codes.
+ * and normalized to the canonical tag before anything is stored or serialized.
+ * Profile, URLs, and sidecar filenames only ever contain canonical codes.
  *
- * `htmlLang` is the exact value for the `<html lang>` attribute — not always
+ * `htmlLang` is the exact value for the `<html lang>` attribute. It is not always
  * identical to the code itself (Simplified Chinese needs the `Hans` script
  * subtag for correct Han-unification glyph selection across fallback fonts).
  *
- * `dir` marks right-to-left scripts ('rtl' — Arabic; absent means ltr). Every
+ * `dir` marks right-to-left scripts ('rtl' - Arabic; absent means ltr). Every
  * consumer that stamps `<html lang>` must stamp `dir` from the same entry, or
  * RTL text renders with LTR bidi context (wrong punctuation sides, wrong
  * alignment) even when the translation itself is correct.
@@ -30,10 +30,10 @@ export interface LangMeta {
   englishName: string;
   /**
    * Approximate total speakers (native + second-language), in millions.
-   * Picker-sort data for the language menus' most-spoken-first ordering — not a census.
+   * Picker-sort data for the language menus' most-spoken-first ordering, not a census.
    */
   speakers: number;
-  /** Script direction — set ('rtl') only for right-to-left languages; absent ⇒ ltr. */
+  /** Script direction. Set ('rtl') only for right-to-left languages; absent means ltr. */
   dir?: 'rtl';
   /**
    * 1–3 ISO 3166-1 alpha-2 country codes whose flags stand for this language,
@@ -47,15 +47,15 @@ export interface LangMeta {
 /**
  * ISO 3166-1 alpha-2 country code → its flag emoji (a regional-indicator pair).
  * Pure and DOM-free: 'us' → 🇺🇸. Returns '' for anything that isn't two ASCII
- * letters, so a bad code degrades to no flag rather than mojibake. Note flag
- * emoji have no glyphs on some platforms (Windows) — callers wanting a guaranteed
- * render must supply their own images; here they're a progressive garnish.
+ * letters, so a bad code degrades to no flag rather than mojibake. Flag
+ * emoji have no glyphs on some platforms (Windows). Callers that need a guaranteed
+ * render must supply their own images; here they are a decorative extra, not required.
  */
 export function flagEmoji(cc: string): string {
   const s = String(cc ?? '').trim().toUpperCase();
   if (!/^[A-Z]{2}$/.test(s)) return '';
   if (s === 'AU') return '🐨';
-  const RI = 0x1f1e6; // 🇦 — regional indicator symbol letter A
+  const RI = 0x1f1e6; // 🇦 - regional indicator symbol letter A
   const A = 'A'.charCodeAt(0);
   return String.fromCodePoint(RI + s.charCodeAt(0) - A, RI + s.charCodeAt(1) - A);
 }
@@ -91,7 +91,7 @@ export const LANG_META: Record<Lang, LangMeta> = {
 };
 
 // Informal aliases accepted on parse (country codes people actually type).
-// Always normalized away — never written to storage/URLs/filenames.
+// Always normalized away. Never written to storage/URLs/filenames.
 const ALIASES: Record<string, Lang> = {
   cn: 'zh',
   'zh-cn': 'zh',
@@ -108,17 +108,17 @@ const ALIASES: Record<string, Lang> = {
   'zh-hant-tw': 'zh-hant',
   hant: 'zh-hant',
   my: 'ms', // Malaysia's country code, commonly typed for "Malaysian"
-  fil: 'tl', // Filipino — the modern standardized register of Tagalog
+  fil: 'tl', // Filipino - the modern standardized register of Tagalog
   // Regioned Arabic tags (browser navigator.language values people paste into
-  // ?lang=) — all one MSA UI register here, so they collapse to the base tag.
+  // ?lang=). All map to one MSA UI register here, so they collapse to the base tag.
   'ar-sa': 'ar',
   'ar-eg': 'ar',
   'ar-ae': 'ar',
-  'hi-in': 'hi', // regioned Hindi tag (navigator.language) — one standard-Hindi register here
-  // Regioned Bengali tags — one standard-Bengali (cholito) register covers both.
+  'hi-in': 'hi', // regioned Hindi tag (navigator.language); one standard-Hindi register here
+  // Regioned Bengali tags. One standard-Bengali (cholito) register covers both.
   'bn-bd': 'bn',
   'bn-in': 'bn',
-  // Regioned Urdu tags — one Modern Standard Urdu register covers both.
+  // Regioned Urdu tags. One Modern Standard Urdu register covers both.
   'ur-pk': 'ur',
   'ur-in': 'ur',
   // Indonesian: `in` is the DEPRECATED ISO 639-1 code (pre-1989) that Android's
@@ -129,15 +129,15 @@ const ALIASES: Record<string, Lang> = {
   'in-id': 'id',
   'id-id': 'id',
 
-  // Regioned Turkish tags (navigator.language) — one standard-Turkish register
+  // Regioned Turkish tags (navigator.language). One standard-Turkish register
   // covers both Türkiye and Cyprus.
   'tr-tr': 'tr',
   'tr-cy': 'tr',
   'uk-ua': 'uk', // regioned Ukrainian tag (navigator.language)
   ua: 'uk', // Ukraine's country code, commonly typed for "Ukrainian" (no ISO 639 collision)
   'pl-pl': 'pl', // regioned Polish tag (navigator.language)
-  nb: 'no', // Bokmål — the specific written standard this UI register actually uses
-  nn: 'no', // Nynorsk — not a distinct UI translation, collapses to the same Norwegian tag
+  nb: 'no', // Bokmål - the specific written standard this UI register actually uses
+  nn: 'no', // Nynorsk - not a distinct UI translation, collapses to the same Norwegian tag
   kr: 'ko', // South Korea's country code, commonly typed for "Korean"
 };
 
@@ -158,7 +158,7 @@ export type LangSort = 'speakers' | 'az';
 
 /**
  * The shared picker ordering used by every language menu (web shell lang-fab +
- * the /info site nav) — 'speakers' (descending `speakers`, most-spoken first)
+ * the /info site nav). 'speakers' (descending `speakers`, most-spoken first)
  * is the default; ties keep LANGS order (Array.prototype.sort is stable). 'az'
  * sorts ascending by nativeName.
  */

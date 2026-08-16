@@ -6,29 +6,29 @@
  *
  * Four oracles, in order of strength:
  *
- * 1. **Identity** — a cubic fed in through `cubicAsSource` must come back out as the
+ * 1. **Identity** - a cubic fed in through `cubicAsSource` must come back out as the
  *    same cubic, in one segment. Moment matching pins area and x-moment, and an exact
  *    cubic satisfies both by construction, so the answer is analytic and there is no
  *    tolerance to argue about. One wrong sign anywhere in the frame rotation, the
  *    quartic, or the arm recovery breaks it.
- * 2. **Analytic invariants** — `momentIntegrals` against `signedAreaCubic` from
+ * 2. **Analytic invariants** - `momentIntegrals` against `signedAreaCubic` from
  *    bezier.ts, the numeric quadrature against the closed form, and additivity of the
  *    underlying path integrals across a split. Independent of the fit entirely.
- * 3. **Independent distance** — a dense-bracket-plus-golden-section point-to-path
+ * 3. **Independent distance** - a dense-bracket-plus-golden-section point-to-path
  *    distance (`pathDistance`) against dense samples of the TRUE source. Never
  *    `fitError`: the module's own metric samples twenty points per range, so using it to
  *    check the module would be asking the implementation whether it agrees with itself.
- *    And never `nearestOnCubic` either — see `pathDistance`, which exists because that
+ *    And never `nearestOnCubic` either - see `pathDistance`, which exists because that
  *    one silently returns a sample-grid answer on a curve that passes close to itself.
  *    A one-sided nearest distance is a lower bound on the Fréchet distance the fitter
  *    budgets, so exceeding `tol` here means exceeding it there.
- * 4. **Geometric cusp detection** — dense derivative sampling for a direction reversal
+ * 4. **Geometric cusp detection** - dense derivative sampling for a direction reversal
  *    or a vanishing speed. Distance tolerance says nothing about angle, so a fit can
  *    pass oracle 3 and still be visibly bumpy; that is the failure this file is most
  *    interested in.
  *
- * Sources that are genuinely not cubics — exact circular arcs, exact offsets built from
- * the source curve's own normal, logarithmic spirals — are constructed here rather than
+ * Sources that are genuinely not cubics - exact circular arcs, exact offsets built from
+ * the source curve's own normal, logarithmic spirals - are constructed here rather than
  * approximated, because a fitter checked against an approximation measures the
  * approximation.
  */
@@ -46,7 +46,7 @@ import {
 const near = (a: number, b: number, eps = 1e-9) =>
   assert.ok(Math.abs(a - b) <= eps, `${a} !== ${b} (within ${eps})`);
 
-/** Largest control-point displacement between two cubics, as a fraction of the chord —
+/** Largest control-point displacement between two cubics, as a fraction of the chord - 
  *  so the same threshold means the same thing at any coordinate scale. */
 function relCoordError(want: Cubic, got: Cubic): number {
   const chord = Math.hypot(want[6] - want[0], want[7] - want[1]) || 1;
@@ -81,7 +81,7 @@ function minRadiusCubic(c: Cubic, n = 2000): number {
 // ── sources that have no Bézier form ──────────────────────────────────────────
 
 /** An exact circular arc. Position and derivative are closed form; the moments are not,
- *  so it takes the quadrature fallback — which is the path an offset source takes too. */
+ *  so it takes the quadrature fallback - which is the path an offset source takes too. */
 function arcSource(r: number, a0: number, a1: number, cx = 0, cy = 0): ParamCurveFit {
   const sweep = a1 - a0;
   const sample = (t: number) => {
@@ -95,7 +95,7 @@ function arcSource(r: number, a0: number, a1: number, cx = 0, cy = 0): ParamCurv
 }
 
 /**
- * The exact offset of a cubic — Stage 3's actual input, and the reason the fitter exists.
+ * The exact offset of a cubic - Stage 3's actual input, and the reason the fitter exists.
  *
  * The offset point comes from the source curve's own unit normal and the offset tangent
  * from that normal's derivative, so nothing here is an approximation of an offset: it IS
@@ -116,7 +116,7 @@ function offsetSource(c: Cubic, dist: number): ParamCurveFit {
 }
 
 /** A logarithmic spiral: curvature varies by orders of magnitude and there is no
- *  inflection anywhere, which is what makes it usable as a cusp fixture — any reversal
+ *  inflection anywhere, which is what makes it usable as a cusp fixture - any reversal
  *  of turning direction in the output came from the fit, not from the source. */
 function spiralSource(a: number, b: number, th0: number, th1: number): ParamCurveFit {
   const sweep = th1 - th0;
@@ -133,7 +133,7 @@ function spiralSource(a: number, b: number, th0: number, th1: number): ParamCurv
 
 /** Two straight runs meeting at a right angle at t=0.5. `sample(0.5)` returns the second
  *  branch, so the first range asks for a tangent at a parameter whose derivative belongs
- *  to its neighbour — the case the endpoint probe exists for. */
+ *  to its neighbour - the case the endpoint probe exists for. */
 function cornerSource(declareBreak: boolean): ParamCurveFit {
   const sample = (t: number) => (t < 0.5
     ? { x: 200 * t, y: 0, dx: 200, dy: 0 }
@@ -161,12 +161,12 @@ const GOLDEN = 0.6180339887498949;
  * local minimum by golden section.
  *
  * Not `nearestOnCubic`, and the difference is not academic. That one takes the single
- * best grid sample and Newton-refines from there, which picks a basin — so on a curve
+ * best grid sample and Newton-refines from there, which picks a basin - so on a curve
  * whose two branches pass close to each other it converges inside the wrong one and
  * returns the wrong answer with no signal that it did. Measured, on the loop-shaped
  * candidate `[158.5518,54.1091, 110.9633,109.922, 83.2758,14.6683, 117.2366,72.005]` and
  * the point (115.03178392553899, 68.35394304497076): `nearestOnCubic` reports 4.287e-1 at
- * samples=24 **and still at samples=200**, against a true 5.140e-6 — five orders of
+ * samples=24 **and still at samples=200**, against a true 5.140e-6 - five orders of
  * magnitude, and stable enough under refinement to look like a converged answer. An
  * oracle that does that turns a fitter's genuine sub-tolerance result into a fabricated
  * 22×-over-tolerance "violation", which is exactly what it did while this file was being
@@ -197,7 +197,7 @@ function pointToCubic(c: Cubic, px: number, py: number, n = 96): number {
   return Math.sqrt(best);
 }
 
-/** Distance from a point to a whole polycubic path — the minimum over segments, because
+/** Distance from a point to a whole polycubic path - the minimum over segments, because
  *  a source point may be nearest to a neighbouring one. */
 function pathDistance(segs: Cubic[], px: number, py: number): number {
   let best = Infinity;
@@ -211,7 +211,7 @@ function pathDistance(segs: Cubic[], px: number, py: number): number {
 /**
  * Oracle 3: the largest distance from any point of the TRUE source to the fitted output.
  *
- * One-sided, so it is a lower bound on the Fréchet distance the fitter budgets against —
+ * One-sided, so it is a lower bound on the Fréchet distance the fitter budgets against - 
  * which is what makes `>= tol` here a real breach rather than a metric disagreement.
  */
 function denseError(src: ParamCurveFit, segs: Cubic[], n = 2000): number {
@@ -224,7 +224,7 @@ function denseError(src: ParamCurveFit, segs: Cubic[], n = 2000): number {
   return worst;
 }
 
-/** A run of joined cubics as a source, parameterised uniformly across the segments —
+/** A run of joined cubics as a source, parameterised uniformly across the segments - 
  *  the same construction `simplifyCubics` puts its input through, rebuilt here so the
  *  oracle can ask the input path for a point at a parameter. */
 function polyPathSource(curves: Cubic[]): ParamCurveFit {
@@ -241,7 +241,7 @@ function polyPathSource(curves: Cubic[]): ParamCurveFit {
 }
 
 /** Two-sided Hausdorff distance between two polycubic paths. Weaker than Fréchet, so it
- *  is a LOWER bound on what the fitter promises — a breach here is unambiguous. */
+ *  is a LOWER bound on what the fitter promises - a breach here is unambiguous. */
 function pathHausdorff(a: Cubic[], b: Cubic[], per = 60): number {
   let worst = 0;
   for (const [from, to] of [[a, b], [b, a]] as const) {
@@ -257,7 +257,7 @@ function pathHausdorff(a: Cubic[], b: Cubic[], per = 60): number {
 }
 
 /** N exact circular arcs covering `sweep`, joined G1 and each the standard 4/3·tan(θ/4)
- *  cubic. THE arc handle length is tan(θ/**4**) — tan(θ/2) is a scalloped shape that is
+ *  cubic. THE arc handle length is tan(θ/**4**) - tan(θ/2) is a scalloped shape that is
  *  not a circle at all, which is the trap the closed-loop tests below pin. */
 function arcCircleCurves(n: number, r = 100, sweep = 2 * Math.PI): Cubic[] {
   const th = sweep / n, k = (4 / 3) * Math.tan(th / 4) * r;
@@ -279,14 +279,14 @@ function arcCircleCurves(n: number, r = 100, sweep = 2 * Math.PI): Cubic[] {
 /**
  * Oracle 4: cusp detection by dense derivative sampling.
  *
- * `minCos` is the worst agreement between consecutive tangents — a cusp turns the
+ * `minCos` is the worst agreement between consecutive tangents - a cusp turns the
  * direction through 180°, so it reads about −1. `speedRatio` is the smallest |C'(t)|
  * relative to the chord, which a cusp drives to zero. `turnSigns` counts the distinct
  * signs of the turning, so 2 means the curve changed which way it bends.
  *
  * Midpoint sampling, and a power-of-two count, so the grid steps OVER a cusp sitting at
  * a round parameter instead of landing on it. Landing on it reads speed exactly zero,
- * skips both neighbouring comparisons, and the reversal disappears — which is how a cusp
+ * skips both neighbouring comparisons, and the reversal disappears - which is how a cusp
  * fixture can quietly certify a detector that cannot see cusps.
  */
 function cuspStats(c: Cubic, n = 512): { minCos: number; speedRatio: number; turnSigns: number } {
@@ -311,8 +311,8 @@ function cuspStats(c: Cubic, n = 512): { minCos: number; speedRatio: number; tur
   return { minCos, speedRatio: minSpeed / (chord || 1), turnSigns: signs.size };
 }
 
-/** Deterministic LCG. Random fixtures are worth more than hand-picked ones here — the
- *  quartic has four branches and a handful of curves will not visit them all — but a
+/** Deterministic LCG. Random fixtures are worth more than hand-picked ones here - the
+ *  quartic has four branches and a handful of curves will not visit them all - but a
  *  test that fails on a different curve each run is not a test. */
 function lcg(seed: number): () => number {
   let s = seed;
@@ -351,7 +351,7 @@ test('the cusp detector fires on a cubic that really cusps, and not on ones that
   const nearCusp = cuspStats([0, 0, 150, 80, 50, 82, 100, 0]);
   assert.ok(nearCusp.speedRatio < 0.02, `near-cusp speed ${nearCusp.speedRatio}`);
 
-  // A loop is not a cusp — the detector must not conflate them, or test 5 would reject
+  // A loop is not a cusp - the detector must not conflate them, or test 5 would reject
   // perfectly good output.
   for (const c of [[0, 0, 30, 60, 70, 60, 100, 0], [0, 0, 200, 100, -100, 100, 100, 0]] as Cubic[]) {
     const s = cuspStats(c);
@@ -364,7 +364,7 @@ test('oracle and nearestOnCubic agree on a curve that passes close to itself', (
   // This test used to assert the OPPOSITE of its last block: that `nearestOnCubic` was
   // wrong here by five orders of magnitude, unimproved by sampling, and therefore that the
   // suite needed its own oracle. That was true when it was written, and the counterexample
-  // is what got the primitive fixed — `nearestOnCubic` now solves the quintic
+  // is what got the primitive fixed - `nearestOnCubic` now solves the quintic
   // `(C(t) - P) . C'(t) = 0` instead of picking a basin off a sample grid.
   //
   // Both halves are kept: brute force vs the refined oracle still guards the oracle the
@@ -383,7 +383,7 @@ test('oracle and nearestOnCubic agree on a curve that passes close to itself', (
   brute = Math.sqrt(brute);
   assert.ok(brute < 1e-5, `brute force says ${brute.toExponential(3)}`);
   // A grid cannot beat its own resolution, so brute force is an upper bound the refined
-  // oracle must be at or under — never above it, which would mean it missed the basin.
+  // oracle must be at or under - never above it, which would mean it missed the basin.
   const refined = pointToCubic(loopish, px, py);
   assert.ok(refined <= brute, `oracle ${refined.toExponential(4)} worse than brute ${brute.toExponential(4)}`);
   assert.ok(brute - refined < 1e-5, `oracle and brute force disagree: ${refined.toExponential(4)} vs ${brute.toExponential(4)}`);
@@ -397,7 +397,7 @@ test('oracle and nearestOnCubic agree on a curve that passes close to itself', (
       `nearestOnCubic(samples=${n}) says ${got.distance.toExponential(4)}, brute force ${brute.toExponential(4)}`,
     );
     // The returned address must describe the returned point, or a caller that splits at `t`
-    // cuts somewhere else — the defect class that produced the chord-parameter bug.
+    // cuts somewhere else - the defect class that produced the chord-parameter bug.
     assert.ok(got.t >= 0 && got.t <= 1, `t out of range: ${got.t}`);
     const at = evalCubic(loopish, got.t);
     assert.ok(
@@ -505,7 +505,7 @@ test('fitError of a curve against ITSELF is zero', () => {
 // ── 2. analytic moments ───────────────────────────────────────────────────────
 
 /**
- * Chord length of a range — the scale both invariants are measured in.
+ * Chord length of a range - the scale both invariants are measured in.
  *
  * Residuals go against chord² for an area and chord³ for a moment, because those are the
  * units the fit consumes (`area/chord²` and `moment/chord³`). A relative threshold is
@@ -553,7 +553,7 @@ test('the quadrature fallback agrees with the closed form to rounding', () => {
 });
 
 test('area is additive across a split, once the closing chords are accounted for', () => {
-  // The naive form — area(0,1) = area(0,a) + area(a,1) — is FALSE, and has to be: each
+  // The naive form - area(0,1) = area(0,a) + area(a,1) - is FALSE, and has to be: each
   // range closes its own region with its own chord, so the whole-curve region also
   // contains the triangle on the three points. Asserting the naive form instead would
   // demand the module abandon the chord frame its callers consume.
@@ -636,8 +636,8 @@ test('the offset fixture is genuinely smooth — a cusped source would be a diff
 for (const [name, src] of CONVERGENCE_CASES) {
   /**
    * A regression guard on the defect that made this red when it was written, because the
-   * shape of it recurs: `curveDist` took the max over twenty fixed interior samples, and a
-   * max over a fixed grid bounds nothing — the peak is exactly what falls between samples.
+   * same pattern recurs: `curveDist` took the max over twenty fixed interior samples, and a
+   * max over a fixed grid bounds nothing - the peak is exactly what falls between samples.
    * On the +20 offset at tol=1e-3 the true peak sat at grid index 10.49, so the metric read
    * 9.93894e-4 against a real 1.01440e-3 and accepted a range that missed the budget by
    * 2.06%. Every accepted range under-reported, by 0.5% to 2%.
@@ -764,7 +764,7 @@ test('a whole circle takes four cubics, at the four-cubic circle accuracy', () =
  * The "bumps" case: a source whose curvature varies enough that matching area and moment
  * wants one long control arm and one short. That fit can meet the distance tolerance and
  * still be visibly wrong, because Fréchet distance bounds position and says nothing about
- * angle — better subdivision makes it worse, not better.
+ * angle - better subdivision makes it worse, not better.
  *
  * Every source here is inflection-free (a logarithmic spiral, and offsets of a single
  * arch taken well inside its radius of curvature), so a reversal of turning direction in
@@ -783,7 +783,7 @@ for (const [name, src] of BUMP_CASES) {
     for (const tol of [2, 1, 0.5, 0.1, 0.01]) {
       const segs = fitToCubics(src, { tol });
       assert.ok(segs.length > 0);
-      // A cusp-free output that misses the source is not a pass — the two have to hold
+      // A cusp-free output that misses the source is not a pass - the two have to hold
       // together, or "no cusp" is satisfied by any straight line.
       const err = denseError(src, segs, 1500);
       assert.ok(err <= tol, `tol=${tol}: achieved ${err.toExponential(3)} with ${segs.length} segments`);
@@ -860,7 +860,7 @@ test('an UNDECLARED corner is still not fitted across', () => {
   // `sample` has no side argument, so at t=0.5 the source hands back the second arm's
   // tangent to a range that ends there. Without the endpoint probe the first range is
   // fitted to a tangent belonging to its neighbour and subdivides towards the corner
-  // forever — the symptom is a segment count in double figures for a two-line path.
+  // forever - the symptom is a segment count in double figures for a two-line path.
   const segs = fitToCubics(cornerSource(false), { tol: 0.01 });
   assert.ok(segs.length <= 4, `a two-line corner took ${segs.length} segments`);
   const err = denseError(cornerSource(false), segs, 1200);
@@ -989,13 +989,13 @@ test('simplifyCubics returns the input when it cannot do better', () => {
  * The closed loop that got reported as a defect, and was not one.
  *
  * A 16-arc circle of r=100 reduces to the 4-segment kappa circle the moment the tolerance
- * reaches what that circle can actually achieve — measured, by the independent oracle, at
+ * reaches what that circle can actually achieve - measured, by the independent oracle, at
  * 0.026843. Not at 2, and not "fifty times the achievable error": the acceptance threshold
  * sits at 0.02685, four digits above the achievable error, and every count in between is a
  * genuine improvement rather than conservatism.
  *
  * The report that said otherwise was built on a fixture whose arc handles were
- * 4/3·tan(π/n)·r — tan of θ/2 rather than θ/4, twice the correct length. That is a
+ * 4/3·tan(π/n)·r - tan of θ/2 rather than θ/4, twice the correct length. That is a
  * 16-lobed scalloped shape sitting 1.959 units outside a circle of the same radius, and no
  * 4-segment path can be within 0.5 of it. The test below pins both halves of that.
  */
@@ -1066,8 +1066,8 @@ test('a scalloped "circle" with tan(θ/2) handles is not a circle, and is refuse
 
 /**
  * The reported symptom's other half: an 8-arc semicircle collapsing to one cubic at
- * tol=10. It is correct — one cubic over 180° of r=100 is 1.825 units off, which is
- * comfortably inside a 10-unit budget — and the same power-of-two ladder as the full
+ * tol=10. It is correct - one cubic over 180° of r=100 is 1.825 units off, which is
+ * comfortably inside a 10-unit budget - and the same power-of-two ladder as the full
  * circle explains the counts, because `simplifyCubics` subdivides the parameter domain by
  * bisection.
  */
@@ -1091,7 +1091,7 @@ test('an over-split semicircle walks the bisection ladder, each rung inside its 
 
 test('simplifyCubics never returns a path outside the tolerance it was given', () => {
   // The serious version of the reported concern. Randomised G1 polycubics, over-split so
-  // there is something to remove, checked with the two-sided Hausdorff oracle — which is
+  // there is something to remove, checked with the two-sided Hausdorff oracle - which is
   // weaker than the Fréchet distance the fitter budgets, so any excess is unambiguous.
   const rnd = lcg(20260726);
   let checked = 0, worstRatio = 0, worstDesc = '';
@@ -1122,7 +1122,7 @@ test('simplifyCubics never returns a path outside the tolerance it was given', (
     }
   }
   assert.ok(checked >= 10, `expected the sweep to actually shorten things, only ${checked} did`);
-  // The worst case must also USE most of its budget — a suite where everything comes back
+  // The worst case must also USE most of its budget - a suite where everything comes back
   // at 1% of tolerance is not evidence the metric is tight, only that nothing was merged.
   assert.ok(worstRatio > 0.5, `nothing came close to its budget (worst ${worstRatio.toFixed(3)}: ${worstDesc})`);
 });

@@ -1,11 +1,11 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
  * Baseline benchmark of the CURRENT text→outline method, plus an optional
- * skera comparison stage (plan 88 — Font Outliner).
+ * skera comparison stage (plan 88 - Font Outliner).
  *
  * "Current method" = HarfBuzz WASM shaping + glyph→SVG-path extraction behind
  * host.text.toPath. This runs packages/node-shell/src/text.ts, the faithful
- * Node port of shells/web/src/bridge/text.ts — same WASM, same math — so the
+ * Node port of shells/web/src/bridge/text.ts - same WASM, same math - so the
  * numbers stand for both the web and terminal shells.
  *
  * What it measures per (font × corpus):
@@ -17,7 +17,7 @@
  *   notdef      glyphs no face covered (coverage signal)
  *   determinism two warm runs must emit identical bytes (asserted, not timed)
  *
- * skera stage (runs only when a binary is found — cargo install skera
+ * skera stage (runs only when a binary is found - cargo install skera
  * --features cli, or SKERA_BIN=…): subsets each font to each corpus's
  * codepoints, reports subset time + size vs original, then shapes the SAME
  * text through the ORIGINAL and the SUBSET font via the same pipeline and

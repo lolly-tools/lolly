@@ -2,7 +2,7 @@
 /**
  * Token-backed colour values through the engine value path: URL serialize/parse
  * and template hydration. Confirms a token reference survives a shared link and
- * that the template only ever sees a resolved colour string — while plain colour
+ * that the template only ever sees a resolved colour string - while plain colour
  * values are completely unaffected.
  */
 
@@ -11,7 +11,7 @@ import assert from 'node:assert/strict';
 import { parseUrlState, serializeUrlState } from '../engine/src/url-mode.ts';
 import { modelToValues, modelForHooks } from '../engine/src/inputs.ts';
 
-// Loose fixture shapes — these tests drive the value path with hand-built
+// Loose fixture shapes - these tests drive the value path with hand-built
 // models, so a localized `any` keeps the strict base happy without re-deriving
 // the engine's exact input unions here.
 const MANIFEST = { inputs: [{ id: 'bg', type: 'color' }, { id: 'fg', type: 'color' }] } as any;
@@ -62,7 +62,7 @@ test('modelForHooks flattens token-backed colours so hooks never see the {ref,va
   assert.doesNotThrow(() => (inputs.roadColor || '').trim());
 
   // AssetRefs (no `ref`) and plain values pass through untouched, and the source
-  // model is never mutated — its canonical token object survives for persistence.
+  // model is never mutated - its canonical token object survives for persistence.
   assert.equal(inputs.logo.id, 'suse/logo/primary');
   assert.deepEqual(model[0].value, { ref: '{color.brand.jungle}', value: '#30ba78' });
 });

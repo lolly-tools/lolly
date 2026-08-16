@@ -3,7 +3,7 @@
  * Font upload edge case tests
  * Tests: (1) Oversized files >5MB, (2) Corrupted TTF, (3) Duplicate fonts,
  * (4) WOFF2 decompression, (5) Delete in-use fonts, (6) Race conditions,
- * (7) A real sfnt — the platform Outfit face
+ * (7) A real sfnt - the platform Outfit face
  *
  * NOTE: the first three bytes of every console.log line here must be ASCII.
  * `node --test` children interleave raw stdout with V8-serialized report frames
@@ -17,7 +17,7 @@
  * Hence the ASCII "ok" pass markers. The trailing summary block is safe because
  * its non-ASCII check marks sit well past offset 2 of that write.
  * (This explanation used to live in font-upload.integration.test.ts, deleted
- * 2026-07-14 — it was 1/3 tautologies and read a fixture never committed.)
+ * 2026-07-14 - it was 1/3 tautologies and read a fixture never committed.)
  */
 
 import { test } from 'node:test';
@@ -515,7 +515,7 @@ test('Edge Case #7: Real TTF (Outfit) parses to a usable family/weight/style', a
 test('Edge Case #7b: Variable font family comes from nameID 16, not the instance-tied nameID 1', () => {
   // Outfit[wght].ttf carries nameID 1 = "Outfit Thin" (legacy, describing the
   // default instance) alongside nameID 16 = "Outfit" (typographic family). Only
-  // nameID 16 groups every weight under one family — reading nameID 1 mislabels the
+  // nameID 16 groups every weight under one family - reading nameID 1 mislabels the
   // Fonts tab, slugs the asset id "outfit-thin", and makes font-registry miss a
   // `font-family: Outfit` stack. Name records are ordered by nameId, so a
   // return-on-first-match loop silently picks 1; that regression is what this pins.
@@ -575,7 +575,7 @@ Test Coverage:
   ✓ #7d - Real TTF passes upload validation end to end
 `);
 
-// ─── OS/2 fsType — the font's own statement about reuse ───────────────────────
+// ─── OS/2 fsType - the font's own statement about reuse ───────────────────────
 // Read when a font is lifted OUT of a PDF (views/pdf-import.ts listFonts), where
 // "may I reuse this?" is the first question and the file is the only thing that
 // can answer it.
@@ -595,7 +595,7 @@ test('Edge Case #8b: fsType bits map to the right permission, and flags ride alo
   const withFsType = (fsType: number): ArrayBuffer => {
     const buf = new ArrayBuffer(12 + 16 + 12);
     const v = new DataView(buf);
-    v.setUint32(0, 0x00010000, false);   // sfnt version — a TrueType face
+    v.setUint32(0, 0x00010000, false);   // sfnt version - a TrueType face
     v.setUint16(4, 1, false);            // numTables
     // One table record: tag 'OS/2', offset 28.
     for (const [i, ch] of [...'OS/2'].entries()) v.setUint8(12 + i, ch.charCodeAt(0));

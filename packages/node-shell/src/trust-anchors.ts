@@ -2,14 +2,14 @@
 /**
  * How a Node shell reads pinned CA roots out of a PATH-style list.
  *
- * The two terminal shells both accept `LOLLY_TRUST_ANCHOR` — a `path.delimiter`
- * separated list of PEM files — and both expand a leading `~`. They had two copies of
+ * The two terminal shells both accept `LOLLY_TRUST_ANCHOR`, a `path.delimiter`
+ * separated list of PEM files, and both expand a leading `~`. They had two copies of
  * the splitting rules and the copies disagreed in a way that only bites on Windows: the
  * CLI hard-coded `':'` as the separator, which splits `C:\corp\root.pem` at the drive
  * letter and then reports two unreadable anchors. This module is the one set of rules.
  *
  * Deliberately only the PURE parts. What a shell does with an anchor it cannot read is
- * a product decision and stays per-shell: the CLI refuses the whole run (exit 2 — a
+ * a product decision and stays per-shell: the CLI refuses the whole run (exit 2; a
  * typo'd root must never quietly downgrade a verdict in a non-interactive gate), while
  * the TUI reports the failure in its verdict panel and carries on with the rest.
  *
@@ -52,7 +52,7 @@ export interface AnchorSetFacts {
  * Written once here because the CLI and the TUI answer the same question: a file can
  * read "Credential intact" for two completely different reasons (nothing vouches for
  * the signer, or the caller deliberately verified against nothing), and a trust tool
- * that does not distinguish them is confidently unhelpful. Pure — no I/O, no colour.
+ * that does not distinguish them gives a misleading answer. Pure: no I/O, no colour.
  */
 export function describeAnchorSet(f: AnchorSetFacts): string {
   const pinned = f.pinned.length ? f.pinned.map(p => basename(p)).join(', ') : 'none';

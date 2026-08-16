@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
- * Spiro spline (engine/src/geom/spiro.ts) — the Euler-spiral interpolating spline.
+ * Spiro spline (engine/src/geom/spiro.ts) - the Euler-spiral interpolating spline.
  * Tests the mathematical contract through the public `toCubics` seam: interpolation,
  * straight-line/collinear degeneracy, G1 at every smooth join, curvature continuity,
  * corner independence, and a closed loop. Real module, no mocks.
@@ -104,7 +104,7 @@ test('the analytic clothoid curvature is continuous at smooth knots (the G2 solv
 });
 
 test('the rendered cubics stay close to the true curve (G1-exact, bounded approximation)', () => {
-  // Not a curvature test — a shape test: the emitted cubics interpolate the knots and no
+  // Not a curvature test - a shape test: the emitted cubics interpolate the knots and no
   // control point flies off (a broken clothoid solve throws a control arm to infinity).
   const cs = spiro([P(0, 0), P(60, 90), P(170, 60), P(240, 150), P(320, 60)]);
   const xs = cs.flatMap((c) => [c[0], c[2], c[4], c[6]]);

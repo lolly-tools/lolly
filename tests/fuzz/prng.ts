@@ -2,7 +2,7 @@
 /**
  * Seeded, deterministic PRNG for the engine fuzz harness.
  *
- * mulberry32 — a tiny 32-bit generator. No Date.now / Math.random anywhere, so
+ * mulberry32 - a tiny 32-bit generator. No Date.now / Math.random anywhere, so
  * every run with the same seed produces byte-identical mutation sequences. That
  * determinism is the whole point: a failing iteration is reproducible forever
  * (the regression test replays the exact seeds), and CI never flakes.

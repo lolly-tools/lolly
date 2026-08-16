@@ -140,7 +140,7 @@ test('parseGradientStop: peels position off a spaced rgb() colour', () => {
   const s = parseGradientStop('rgb(48, 186, 120) 25%', 0, 2);
   // The colour comes back as an OPAQUE hex, not the rgb() verbatim: `stop-color`'s
   // alpha multiplies with `stop-opacity` in SVG, and callers set both from this one
-  // result — so returning `rgba(…,0.5)` next to `opacity: 0.5` exported the stop at
+  // result - so returning `rgba(…,0.5)` next to `opacity: 0.5` exported the stop at
   // ~0.25 alpha. Every form now flattens the same way; only an opaque 6-digit hex
   // passes through untouched.
   assert.equal(s.colorStr, '#30ba78');
@@ -167,7 +167,7 @@ test('parseGradientStop: alpha rides on `opacity` ONLY, never twice', () => {
 // ── Zero-area clips are UNDERSTOOD, not unparseable ──────────────────────────
 // `clip-path: inset(50%)` is the standard visually-hidden / skip-link idiom, and
 // `parseClipShape` used to answer it with `null`. Callers read `null` as "a shape
-// I can't vectorise" and fall back to rasterising the element's whole subtree —
+// I can't vectorise" and fall back to rasterising the element's whole subtree - 
 // so the single most common clip-path value in the app rasterised everything
 // under it, and on an ancestor that turned a whole page snapshot into one big
 // screenshot. `{kind:'empty'}` lets a caller do the correct thing: paint nothing.
@@ -195,7 +195,7 @@ test('parseClipShape: a clip WITH area is unaffected', () => {
 
 // ── conic-gradient ───────────────────────────────────────────────────────────
 // SVG has no conic primitive, so the walkers draw this as a fan of wedges. Before
-// it existed, a conic background rasterised the whole element — on the qr fixture,
+// it existed, a conic background rasterised the whole element - on the qr fixture,
 // one page background became a 1168x900 PNG. The geometry that matters is the
 // CENTRE and the START ANGLE: CSS measures clockwise from 12 o'clock, and every
 // consumer has to undo that against SVG's 3-o'clock zero.
@@ -288,7 +288,7 @@ test('conic-gradient: a garbage angle falls back to 0 rather than NaN', () => {
 
 test('parseGradientAngle: grad is not misread as rad', () => {
   // Pre-existing defect found while adding the conic parser: the suffix tests ran
-  // rad before grad, and 'grad'.endsWith('rad') is true — so a 90-degree gradient
+  // rad before grad, and 'grad'.endsWith('rad') is true - so a 90-degree gradient
   // written as 100grad came out as 100 radians.
   const deg = (r: number) => Math.round((r * 180) / Math.PI);
   assert.equal(deg(parseGradientAngle('100grad')), 90);
@@ -301,7 +301,7 @@ test('parseGradientAngle: grad is not misread as rad', () => {
 test('double-position stops expand — the checkerboard idiom keeps its bands', () => {
   // `c 0% 25%, transparent 0% 50%` means c from 0-25% and clear from 25-50%
   // (CSS double-position shorthand). Collapsing each pair to its FIRST position
-  // put both stops at 0% and dissolved the band structure entirely — the
+  // put both stops at 0% and dissolved the band structure entirely - the
   // transparency checkerboard behind every tool canvas is this exact idiom.
   const g = parseConicGradient(
     'repeating-conic-gradient(rgba(226, 232, 240, 0.5) 0% 25%, rgba(0, 0, 0, 0) 0% 50%)', 16, 16);

@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
- * Tests for migrateCarouselToFrames — the pure carousel-maker → Design frame shim
+ * Tests for migrateCarouselToFrames - the pure carousel-maker → Design frame shim
  * (shells/web/src/views/free-canvas-math.ts). A saved carousel-maker session stores a
  * FLAT global-strip boxes array + pages/pageW/pageH; Design only paints per-artboard
  * [data-pdf-page] pages when boxes carry kind:'frame' + a `frame` membership field. This
@@ -20,7 +20,7 @@ import {
   num,
 } from '../shells/web/src/views/free-canvas-math.ts';
 
-// carousel-maker/hooks.js pageOf, verbatim — the oracle the migration must match.
+// carousel-maker/hooks.js pageOf, verbatim - the oracle the migration must match.
 const GAP = 56;
 function carouselPageOf(b: any, pw: number, count: number): number {
   const stride = pw + GAP;
@@ -112,7 +112,7 @@ test('PARITY: resolveFrame on the migrated boxes buckets each box to its pageOf 
       const resolved = resolveFrame(b, frames);
       assert.equal(resolved, 'page-' + (page + 1), `resolveFrame parity for ${b.id}`);
     }
-    // In all cases the STORED frame is the pageOf bucket — the render reads this, not resolveFrame.
+    // In all cases the STORED frame is the pageOf bucket - the render reads this, not resolveFrame.
     assert.equal(b.frame, 'page-' + (page + 1));
   }
 });
@@ -132,7 +132,7 @@ test('out-of-strip + gap boxes are clamped/rounded by pageOf, where resolveFrame
   const originals = out.boxes.filter((b: any) => b.kind !== 'frame');
   assert.equal(originals.find((b: any) => b.id === 'left').frame, 'page-1');
   assert.equal(originals.find((b: any) => b.id === 'right').frame, 'page-2');
-  // resolveFrame gives '' for both (outside every artboard) — proving pageOf is the right bridge.
+  // resolveFrame gives '' for both (outside every artboard) - proving pageOf is the right bridge.
   assert.equal(resolveFrame(originals.find((b: any) => b.id === 'left'), frames), '');
   assert.equal(resolveFrame(originals.find((b: any) => b.id === 'right'), frames), '');
 });
@@ -165,7 +165,7 @@ test('idempotent: a record that already has frame boxes is returned UNCHANGED', 
     ],
   };
   const out = migrateCarouselToFrames(already);
-  assert.equal(out, already); // same reference — untouched
+  assert.equal(out, already); // same reference - untouched
 });
 
 test('non-carousel record (no page geometry) is returned UNCHANGED', () => {

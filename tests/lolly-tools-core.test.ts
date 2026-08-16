@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MPL-2.0
 // Keeps the tool-author SDK (@lolly-tools/core) honest against the platform:
 //  1. its bundled JSON schemas must not drift from the canonical schemas/ copies;
-//  2. its validateTool() must agree with the engine's validateManifest() — the two
+//  2. its validateTool() must agree with the engine's validateManifest() - the two
 //     independent code paths that every tool passes through.
 import { test } from 'node:test';
 import assert from 'node:assert/strict';

@@ -1,30 +1,30 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
- * tar (USTAR / POSIX 1003.1-1988) writer — the container half of `.tar` and,
+ * tar (USTAR / POSIX 1003.1-1988) writer. This is the container half of `.tar` and,
  * gzipped, `.tar.gz`. A tar is the simplest possible multi-file archive: a
  * 512-byte header block per member, its data padded up to a 512-byte boundary,
- * and two all-zero blocks to mark the end. No compression, no central directory,
- * no seek table — everything a consumer needs is inline, which is exactly why it
+ * and two all-zero blocks to mark the end. It has no compression, no central directory,
+ * and no seek table. Everything a consumer needs is inline. That is why it
  * is the right pair for gzip (gzip.ts) to make a streamable `.tar.gz`.
  *
  * We emit the USTAR variant (magic "ustar\0", version "00") so `tar`, libarchive,
- * bsdtar, GNU tar and every language stdlib read it unchanged. Deterministic:
- * mode 0644, uid/gid 0, mtime 0, no owner names — a given file list always
+ * bsdtar, GNU tar and every language stdlib read it unchanged. Output is deterministic:
+ * mode 0644, uid/gid 0, mtime 0, no owner names. A given file list always
  * produces byte-identical output (no wall clock, no host identity leaked).
  *
- * ─── The header checksum (POSIX: the one subtle field) ───────────────────────
+ * --- The header checksum (POSIX: the one subtle field) ---
  * The 8-byte checksum field is computed as the unsigned sum of ALL 512 header
  * bytes WITH the checksum field itself taken as eight ASCII spaces (0x20). It is
- * then written as six octal digits, a NUL, and a space — the historically most
+ * then written as six octal digits, a NUL, and a space. This is the historically most
  * compatible of the several encodings tar implementations have used. Getting the
  * "spaces during computation" rule wrong is the classic tar bug, so it is done
  * explicitly below.
  *
- * ─── Bounds / hostile-input posture ──────────────────────────────────────────
+ * --- Bounds / hostile-input posture ---
  * This is a WRITER, so the untrusted axis is the file list, not a parse. Names
  * are validated to fit USTAR's 100-byte `name` field (no PAX/GNU long-name
- * extension — a name that doesn't fit is rejected loudly rather than silently
- * truncated), sizes are checked to fit the 11-octal-digit field (< 8 GiB, the
+ * extension: a name that doesn't fit is rejected loudly rather than silently
+ * truncated). Sizes are checked to fit the 11-octal-digit field (< 8 GiB, the
  * USTAR limit), and the total output length is computed up front so there is a
  * single allocation and no reallocating loop. DOM-free, no network/filesystem.
  */
@@ -49,7 +49,7 @@ function padTo512(n: number): number {
 /**
  * Pack `files` into a USTAR archive. Deterministic and self-describing: header +
  * padded data per file, then two zero blocks. Throws on a name too long for the
- * 100-byte field or a file at/over the 8 GiB USTAR size limit — never truncates.
+ * 100-byte field or a file at/over the 8 GiB USTAR size limit. It never truncates.
  */
 export function packTar(files: TarFile[]): Uint8Array {
   // Validate + size the whole archive before allocating (single allocation).
@@ -88,9 +88,9 @@ export function packTar(files: TarFile[]): Uint8Array {
  */
 function writeHeader(out: Uint8Array, off: number, nameBytes: Uint8Array, size: number): number {
   const base = off;
-  // name (0, 100) — validated to fit by the caller.
+  // name (0, 100): validated to fit by the caller.
   out.set(nameBytes, base);
-  // mode (100, 8): "000644 \0" — octal 0644, ASCII, trailing space + NUL.
+  // mode (100, 8): "000644 \0". Octal 0644, ASCII, trailing space + NUL.
   writeOctal(out, base + 100, 8, 0o644);
   // uid (108, 8), gid (116, 8): 0.
   writeOctal(out, base + 108, 8, 0);

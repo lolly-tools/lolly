@@ -1,66 +1,70 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
- * Stroke outlining — the region a stroked path paints, as a fillable path.
+ * Stroke outlining: the region a stroked path paints, expressed as a fillable path.
  *
  * ## A stroke is one sweep down each side
  *
- * The one idea here: the boundary of a stroke is the centreline pushed w/2 to one side
+ * The core idea: the boundary of a stroke is the centreline pushed w/2 to one side,
  * plus the centreline pushed w/2 to the other. Both sides are reached the same way, by
- * REVERSING the contour rather than by negating the distance — `+w/2` to the left of
- * travel, twice. Everything else in this file is bookkeeping on top of that, and the only
- * difference between the closed and open cases is what closes the two sides into a loop:
- * nothing (they are already loops) or the caps.
+ * REVERSING the contour rather than by negating the distance: `+w/2` to the left of
+ * travel, twice. Everything else in this file is bookkeeping on top of that. The only
+ * difference between the closed and open cases is what closes the two sides into a
+ * loop: nothing (they are already loops), or the caps.
  *
- * Reversal rather than a negative distance, because `offsetContour` answers a signed
- * distance on a CLOSED contour with an outward/inward decision, and that decision is
- * taken from the contour's signed area — a quantity that means nothing on a centreline
+ * Reversal is used instead of a negative distance because `offsetContour` answers a
+ * signed distance on a CLOSED contour by deciding outward vs. inward, and that decision
+ * is taken from the contour's signed area. That quantity means nothing on a centreline
  * that crosses itself, where there is no inside to be outward of. A stroke never needs
- * that decision: left of travel is local and always defined, and reversing the contour
- * puts the second sweep on the other side already running the right way to carry the
- * opposite winding. Under the nonzero rule the band between the two then fills and the
- * middle does not.
+ * that decision: left of travel is a local property and is always defined, and
+ * reversing the contour puts the second sweep on the other side, already running the
+ * right way to carry the opposite winding. Under the nonzero rule, the band between the
+ * two then fills and the middle does not.
  *
- * So the closed case takes `offsetSweep`, which is the raw trace with no region decided,
- * and the open case takes `offsetContour` on an open contour, where a positive distance
+ * So the closed case uses `offsetSweep`, which is the raw trace with no region decided,
+ * and the open case uses `offsetContour` on an open contour, where a positive distance
  * already means left of travel and no decision is taken either. Joins land on the outer
- * side of every turn, which is the side a join belongs on; the inner side's self-crossing
- * loops are left to the boolean pass, which exists to remove exactly those.
+ * side of every turn, which is the side a join belongs on. The inner side's
+ * self-crossing loops are left for the boolean pass, whose job is to remove exactly
+ * those.
  *
  * ## Then selfUnion, unconditionally
  *
- * A stroke self-overlaps for three separate reasons — the path crosses itself, w/2
+ * A stroke can self-overlap for three separate reasons: the path crosses itself, w/2
  * exceeds the local radius of curvature (the inner offset folds through itself), or two
- * subpaths' strokes touch. All three come out as one clean outline only after a boolean
- * cleanup, so the pass is not conditional on detecting any of them. It is also the step
- * that turns the two sweeps' winding into a region, which is why neither sweep is allowed
- * to decide one on its own: the two have to be added before either can be judged.
+ * subpaths' strokes touch. All three only come out as one clean outline after a boolean
+ * cleanup, so the pass runs regardless of whether any of them is detected. It is also
+ * the step that turns the two sweeps' winding into a region, which is why neither sweep
+ * is allowed to decide that on its own: the two have to be added together before either
+ * can be judged.
  *
- * ## And then one measurement, because the winding is not the whole story
+ * ## Then one more check, because the winding alone is not enough
  *
  * Adding the two sweeps assumes a fold REVERSES the folded sweep's handedness, so that
- * where the inner offset turns through itself its winding cancels the material it wrongly
- * covers. That is true of a corner and false of a curve: the inward sweep of a circle of
- * r=50 at w/2=51 comes back as a circle of radius 1 running the SAME way round, so it
- * cancels the outer sweep instead of itself and punches a hole through paint that must be
- * solid — an over-wide stroke on a circle came back as an annulus. A square of the same
- * proportions was correct, which is why it survived a test suite.
+ * where the inner offset turns through itself, its winding cancels the material it
+ * wrongly covers. That is true for a corner and false for a curve: the inward sweep of
+ * a circle of r=50 at w/2=51 comes back as a circle of radius 1 running the SAME way
+ * round, so it cancels the outer sweep instead of itself, and punches a hole through
+ * paint that must be solid. An over-wide stroke on a circle came back as an annulus. A
+ * square of the same proportions was correct, which is why the bug survived a test
+ * suite.
  *
- * The cure is not another winding argument. A stroke paints exactly the points within w/2
- * of the centreline, so `keptContours` asks that question directly — `nearestOnCubic` on
- * the centreline curves, either side of each resolved contour — and drops any contour with
- * paint on BOTH sides, which is what a hole through solid paint looks like. Mitres, square
- * caps and round joins reach past w/2 by design, so the verdict is taken from the first
- * probe that finds a boundary at all rather than from any single one.
+ * The fix is not another winding argument. A stroke paints exactly the points within
+ * w/2 of the centreline, so `keptContours` checks that directly: it runs
+ * `nearestOnCubic` against the centreline curves, on either side of each resolved
+ * contour, and drops any contour with paint on BOTH sides, since that is what a hole
+ * through solid paint looks like. Mitres, square caps, and round joins reach past w/2
+ * by design, so the verdict is taken from the first probe that finds a boundary at all,
+ * not from any single probe.
  *
  * ## Sign convention
  *
- * offset.ts's, unchanged: a positive distance goes to the LEFT of the direction of travel
- * on a single curve, on an open contour and in `offsetSweep`, and OUTWARD in
- * `offsetContour` on a closed contour. Those are not the same rule — the left of a
- * counter-clockwise loop is its interior, not its outside — and this file only ever asks
- * for the first one.
+ * Same as offset.ts, unchanged: a positive distance goes to the LEFT of the direction
+ * of travel on a single curve, on an open contour, and in `offsetSweep`; it means
+ * OUTWARD in `offsetContour` on a closed contour. Those are not the same rule (the left
+ * of a counter-clockwise loop is its interior, not its outside), and this file only
+ * ever uses the first one.
  *
- * Nothing here samples a curve. The only curves this module authors are the cap arcs,
+ * Nothing here samples a curve. The only curves this module creates are the cap arcs,
  * and those are circular arcs written directly as cubics.
  */
 import { type Cubic, type Pt, lineToCubic } from './bezier.ts';
@@ -78,7 +82,7 @@ export interface StrokeOptions {
   miterLimit?: number;
   /** How closely the offset curves must follow the true offset. This is a FITTING
    *  error, not a positional tolerance, so it is passed to the offsetter and not to the
-   *  boolean pass — "draw me a coarser outline" and "treat points this far apart as the
+   * boolean pass - "draw me a coarser outline" and "treat points this far apart as the
    *  same point" are different requests, and feeding a fit tolerance to a boolean as if
    *  it were the second one collapses genuine intersections. */
   tol?: number;
@@ -126,21 +130,22 @@ export function strokeToPath(p: GeomPath, width: number, opts: StrokeOptions = {
 }
 
 /**
- * Drop the contours that bound nothing — the holes a folded inner sweep opens through
+ * Drop the contours that bound nothing: the holes a folded inner sweep opens through
  * solid paint.
  *
- * Each contour of a resolved path separates two faces, and `selfUnion` orients it with the
- * filled one on its left. That is a claim about the winding of the sweeps, and where the
- * inner sweep folded it is wrong; whether paint belongs at a point is not a claim, it is
- * the distance to the centreline. So each contour is measured on both sides: paint on one
- * side only is a genuine boundary, paint on both is a hole that must not be there, and
- * paint on neither means the probe landed inside a mitre or a cap, which reach past w/2 on
- * purpose — so that probe decides nothing and the next candidate is tried.
+ * Each contour of a resolved path separates two faces, and `selfUnion` orients it with
+ * the filled face on its left. That is a claim about the winding of the sweeps, and it
+ * is wrong wherever the inner sweep folded. Whether paint belongs at a point is not a
+ * claim about winding, it is the distance to the centreline. So each contour is checked
+ * on both sides: paint on one side only is a genuine boundary, paint on both sides is a
+ * hole that must not be there, and paint on neither side means the probe landed inside a
+ * mitre or a cap, which reach past w/2 by design, so that probe decides nothing and the
+ * next candidate is tried.
  *
- * Dropping the contour is enough to close the hole. The material was never missing from the
- * output, only from the winding: the outer boundary is still there and still oriented with
- * its interior on the left, so a stroke wider than the shape comes back as the solid blob
- * it paints.
+ * Dropping the contour is enough to close the hole. The material was never missing from
+ * the output, only from the winding: the outer boundary is still there and still
+ * oriented with its interior on the left, so a stroke wider than the shape comes back
+ * as the solid blob it paints.
  */
 function keptContours(resolved: GeomPath, centreline: GeomPath, r: number): GeomPath {
   if (resolved.length < 2) return resolved;
@@ -149,10 +154,11 @@ function keptContours(resolved: GeomPath, centreline: GeomPath, r: number): Geom
     .map((c) => (c.closed ? closeContour(c) : c));
   if (!src.length) return resolved;
   // Nothing is added to w/2 beyond a rounding guard, and the fitting tolerance in
-  // particular is not: a probe stands half a face-thickness off the boundary, so on a hole
-  // narrower than that tolerance a generous comparison reads both sides as painted and
-  // swallows a hole that belongs there. A probe misread the other way is harmless — it
-  // makes the pair agree, which decides nothing and moves on to the next candidate.
+  // particular is not added: a probe stands half a face-thickness off the boundary, so
+  // on a hole narrower than that tolerance a generous comparison would read both sides
+  // as painted and erase a hole that belongs there. A probe misread the other way is
+  // harmless: it makes the pair agree, which decides nothing, and the next candidate is
+  // tried.
   const paint = (p: Pt): boolean => distanceToPath(src, p.x, p.y) <= r * (1 + 1e-9);
   const probes = regionProber(resolved);
   return resolved.filter((c) => {
@@ -170,15 +176,16 @@ function keptContours(resolved: GeomPath, centreline: GeomPath, r: number): Geom
 /** A closed contour's stroke: the raw sweep down one side, plus the raw sweep down the
  *  other, reached by reversing the contour rather than by negating the distance.
  *
- *  Reversing is what gives the two loops opposite winding — which is what makes the middle
- *  a hole rather than a filled blob — and it is also the only form that survives a
- *  centreline crossing itself. Asking for `+r` and `−r` instead would be asking
- *  `offsetContour` which side is out, and a self-crossing loop has no answer: the sign
- *  would be taken from a signed area that means nothing, and material would go missing
- *  wherever the guess was wrong. Left of travel is a local property and is always defined. */
+ *  Reversing is what gives the two loops opposite winding, which is what makes the
+ *  middle a hole rather than a filled blob, and it is also the only form that survives
+ *  a centreline crossing itself. Asking for `+r` and `−r` instead would be asking
+ *  `offsetContour` which side is out, and a self-crossing loop has no answer to that:
+ *  the sign would be taken from a signed area that means nothing, and material would go
+ *  missing wherever the guess was wrong. Left of travel is a local property and is
+ *  always defined. */
 function ring(c: Contour, r: number, off: OffsetOptions): GeomPath {
   // The wrap from last point back to first has to be a real edge before it can be
-  // offset — `closed` alone is implicit, and an implicit edge has no side to push out.
+  // offset. `closed` alone is implicit, and an implicit edge has no side to push out.
   const cc = closeContour(c);
   const out: GeomPath = [];
   for (const side of [cc, reverseContour(cc)]) {
@@ -188,7 +195,7 @@ function ring(c: Contour, r: number, off: OffsetOptions): GeomPath {
   return out;
 }
 
-/** An open contour's stroke: forward side, end cap, return side, start cap — one closed
+/** An open contour's stroke: forward side, end cap, return side, start cap - one closed
  *  contour, with each cap joining the exact endpoints the offsetter produced so the
  *  result has no gap for the boolean pass to trip over. */
 function openOutline(c: Contour, r: number, cap: CapStyle, off: OffsetOptions): Contour | null {
@@ -212,8 +219,8 @@ function openOutline(c: Contour, r: number, cap: CapStyle, off: OffsetOptions): 
 /** One side of the stroke, as a single run of curves.
  *
  *  `offsetContour` returns a `GeomPath` because a closed offset can break into several
- *  contours. An open one cannot — it has two ends and no way to shed a piece between
- *  them — and the pieces come back in travel order, so concatenating them is the whole
+ * contours. An open one cannot - it has two ends and no way to shed a piece between
+ * them - and the pieces come back in travel order, so concatenating them is the whole
  *  of the join. */
 function offsetSide(c: Contour, distance: number, off: OffsetOptions): Cubic[] {
   const out: Cubic[] = [];
@@ -228,7 +235,7 @@ function offsetSide(c: Contour, distance: number, off: OffsetOptions): Cubic[] {
  * outgoing side stopped) across to `to` (where the returning side starts).
  *
  * `dir` is the direction of travel at that end of the contour, and is what tells a
- * round or square cap which way to bulge — in front of the end point rather than back
+ * round or square cap which way to bulge - in front of the end point rather than back
  * over the stroke it just came along. The cap's radius is taken from the two points
  * themselves rather than from w/2, so the cap meets them exactly even if the offsetter
  * landed a hair off.
@@ -295,7 +302,7 @@ function quarterArc(cx: number, cy: number, r: number, ax: number, ay: number, b
 // ── degenerate contours ───────────────────────────────────────────────────────
 
 /** A contour with no extent: a lone moveto, or a run of coincident points. It has no
- *  direction, so it cannot be offset at all — the SVG spec makes it a separate case
+ * direction, so it cannot be offset at all - the SVG spec makes it a separate case
  *  rather than a limit of the general one, and so does this file. */
 function isPoint(c: Contour): boolean {
   const b = pathBounds([c]);

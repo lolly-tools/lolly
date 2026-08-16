@@ -1,11 +1,11 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
- * Packed URL state — the compact transport for large tool state.
+ * Packed URL state - the compact transport for large tool state.
  *
  * URL mode (url-mode.ts) is first-class and deliberately human-readable: a simple
  * tool link like `?color=336699&theme=dark` can be hand-edited. But a complex tool
  * (Design, with dozens of boxes carrying coords / colours / text) serialises
- * to thousands of characters — past the ~2000-char ceiling that pasted links, social
+ * to thousands of characters - past the ~2000-char ceiling that pasted links, social
  * crawlers, QR codes and some servers still enforce.
  *
  * This module packs the ENTIRE readable query string into a single `z` param:
@@ -15,15 +15,15 @@
  *
  * Design decisions that make this SAFE and STABLE:
  *
- *   1. We compress the app's OWN canonical query string — the exact same readable
+ *   1. We compress the app's OWN canonical query string - the exact same readable
  *      serialization url-mode.ts already produces. There is NO new value-encoding
  *      surface to keep in sync: packed stability reduces to (already-frozen) readable
  *      stability + the DEFLATE standard.
  *
  *   2. The codec is raw DEFLATE (a frozen IETF standard, RFC 1951) via the platform
- *      -native `CompressionStream`/`DecompressionStream` — ZERO new dependencies, and
+ *      -native `CompressionStream`/`DecompressionStream` - ZERO new dependencies, and
  *      present in every target (modern browsers, Node 18+, the jsdom CLI, Deno). We
- *      never compare packed *bytes* for equality — only that decode(encode(x)) === x,
+ *      never compare packed *bytes* for equality - only that decode(encode(x)) === x,
  *      which the standard guarantees across engines and versions (a link packed in a
  *      browser decodes byte-identically in Node's zlib and vice versa). So there is no
  *      app-side dictionary that could drift and silently break an old shared link;
@@ -37,7 +37,7 @@
  *      escaping, no `=` padding) so it never needs re-encoding.
  *
  * Pure and DOM-free. Async because the Web Streams codec is async; the sync
- * `parseUrlState` is unchanged — callers run `expandQuery` first, at the (already
+ * `parseUrlState` is unchanged - callers run `expandQuery` first, at the (already
  * async) load boundary.
  */
 
@@ -48,12 +48,12 @@ import { asBufferSource } from './bytes.ts';
 export const PACK_PARAM = 'z';
 
 // Codec tag (first char of the `z` value). '1' = raw DEFLATE, no dictionary.
-// Never reuse a tag for a different codec — old links must decode forever.
+// Never reuse a tag for a different codec - old links must decode forever.
 const TAG_DEFLATE_RAW = '1';
 
 // Bounds that defang a hostile link. A `z` token is decoded from an untrusted URL,
 // and DEFLATE can expand ~1000×, so cap BOTH the token we accept and the bytes we
-// inflate — a decompression bomb must not hang the tab. Both sit far above any real
+// inflate - a decompression bomb must not hang the tab. Both sit far above any real
 // state (even a huge multi-hundred-box layout readable-serialises to a few tens of KB).
 const MAX_TOKEN = 64 * 1024;      // reject an absurdly long z value before decoding
 const MAX_UNPACKED = 256 * 1024;  // abort inflation past this many output bytes
@@ -87,7 +87,7 @@ async function deflateRaw(bytes: Uint8Array<ArrayBuffer>): Promise<Uint8Array> {
 // Inflate with a hard output-size cap. Reading chunk-by-chunk lets Web Streams
 // backpressure hold the decompressor between pulls, so a bomb is stopped at ~cap
 // instead of allocating its full expansion first. Cancelling the reader mid-stream
-// rejects the writable side we fed above, so those promises are explicitly caught —
+// rejects the writable side we fed above, so those promises are explicitly caught -
 // otherwise the abort surfaces as an unhandled rejection.
 async function inflateRaw(bytes: Uint8Array<ArrayBuffer>): Promise<Uint8Array> {
   const ds = new DecompressionStream('deflate-raw');
@@ -116,7 +116,7 @@ async function inflateRaw(bytes: Uint8Array<ArrayBuffer>): Promise<Uint8Array> {
 
 /**
  * True when this environment can pack/unpack (the Web Streams codec + base64 +
- * Response are all present). A shell without them simply keeps readable URLs —
+ * Response are all present). A shell without them simply keeps readable URLs -
  * packing is a progressive enhancement, never a hard dependency.
  */
 export function isPackAvailable(): boolean {
@@ -136,7 +136,7 @@ export function hasPackedState(query: string | null | undefined): boolean {
 /**
  * Pack a query string into a `z` token (`<tag><base64url>`). Returns null when the
  * codec is unavailable so callers fall back to the readable form. Does NOT decide
- * whether packing is worthwhile — the caller compares lengths (packing LOSES on
+ * whether packing is worthwhile - the caller compares lengths (packing LOSES on
  * short inputs: DEFLATE framing + base64's 4/3 blowup exceed tiny payloads).
  * @param query  a `&`-joined query string (no leading `?`)
  */
@@ -147,7 +147,7 @@ export async function packQuery(query: string | null | undefined): Promise<strin
     // Refuse to mint a token the decoder would then refuse. The encode and decode
     // size limits MUST stay symmetric: unpackToken caps its output at MAX_UNPACKED
     // and the token at MAX_TOKEN, so a token that trips either cap is one we could
-    // never reopen — a silent, unrecoverable break of decode(encode(x)) === x. When
+    // never reopen - a silent, unrecoverable break of decode(encode(x)) === x. When
     // that happens the caller falls back to the readable URL, which round-trips
     // unpacked (expandQuery is a no-op without a `z`).
     if (bytes.length > MAX_UNPACKED) return null;
@@ -161,7 +161,7 @@ export async function packQuery(query: string | null | undefined): Promise<strin
 /**
  * Decode a `z` token back into the original query string. Returns null for an
  * unknown tag, corruption, or an unavailable codec (a hand-mangled or truncated
- * link can't be recovered — better null than fabricated state).
+ * link can't be recovered - better null than fabricated state).
  * @param token  the raw `z` value (`<tag><base64url>`)
  */
 export async function unpackToken(token: string): Promise<string | null> {
@@ -180,10 +180,10 @@ export async function unpackToken(token: string): Promise<string | null> {
 // A password-gated variant of the packed link: the SAME readable query is DEFLATE'd
 // then AES-256-GCM-encrypted under a key derived from a password (PBKDF2-SHA256). The
 // link carries ONLY ciphertext (+ salt / iv / iteration count) in a separate `zx`
-// param — the PASSWORD NEVER TRAVELS. Opening such a link prompts for the password
+// param - the PASSWORD NEVER TRAVELS. Opening such a link prompts for the password
 // client-side (no server) and decrypts to the readable query: the secure counterpart
 // to the clear-text `?password=` PDF flag. Deliberately NOT handled inside
-// expandQuery — only the interactive load boundary (which can prompt) decrypts it;
+// expandQuery - only the interactive load boundary (which can prompt) decrypts it;
 // the headless embed / renderUrl path leaves `zx` untouched (reserved → ignored →
 // renders at defaults), so an encrypted link simply can't be embedded-as-image.
 export const ENC_PARAM = 'zx';
@@ -217,7 +217,7 @@ async function deriveLinkKey(password: string, salt: Uint8Array, iterations: num
 /**
  * Pack a query into an ENCRYPTED `zx` token (`<tag><base64url(iter‖salt‖iv‖ct)>`),
  * or null if the codec is unavailable / no password / too large. The password only
- * derives the key — it is never stored in the token.
+ * derives the key - it is never stored in the token.
  * @param query  a `&`-joined query string (no leading `?`)
  */
 export async function packEncrypted(query: string | null | undefined, password: string): Promise<string | null> {
@@ -249,7 +249,7 @@ export async function packEncrypted(query: string | null | undefined, password: 
 
 /**
  * Decode a `zx` token with the given password. Returns null on WRONG PASSWORD
- * (AES-GCM authentication fails), tamper, an unknown tag, or an unavailable codec —
+ * (AES-GCM authentication fails), tamper, an unknown tag, or an unavailable codec -
  * never fabricated state. Same size caps as unpackToken.
  * @param token  the raw `zx` value (`<tag><base64url>`)
  */
@@ -279,7 +279,7 @@ export async function unpackEncrypted(token: string, password: string): Promise<
  *
  * With no `z` param this is a no-op (returns the input). With a `z` param, the
  * decoded query is the BASE state, used verbatim so its exact block encoding
- * (`~`/`,` delimiters) is preserved untouched — and any OTHER params riding
+ * (`~`/`,` delimiters) is preserved untouched - and any OTHER params riding
  * alongside `z` are appended AFTER it, so they override (parseUrlState is
  * last-wins for inputs) and readable on-visit flags (`export`, `full`, `_v`, …)
  * still take effect. A `z` that fails to decode is left in place (it is reserved,

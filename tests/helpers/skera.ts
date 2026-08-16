@@ -1,11 +1,11 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
- * skera — fontations' Rust font subsetter (https://crates.io/crates/skera,
- * repo https://github.com/googlefonts/fontations) — detection + invocation,
+ * skera - fontations' Rust font subsetter (https://crates.io/crates/skera,
+ * repo https://github.com/googlefonts/fontations) - detection + invocation,
  * shared by the gated parity suite (tests/font-outline-subset-parity.test.ts)
  * and the benchmark harness (scripts/bench-font-outline.ts).
  *
- * Context (plan 88 — Font Outliner): Dave Crossland's steer is to adopt skera
+ * Context (plan 88 - Font Outliner): Dave Crossland's steer is to adopt skera
  * once it reaches v1.0.0 (likely end of 2026). Until then it stays optional:
  * nothing here runs unless a binary is present. Install with
  *   cargo install skera --features cli
@@ -52,7 +52,7 @@ export function unicodesArg(text: string): string {
 
 /**
  * Subset `fontPath` to the codepoints of `text`, writing `outPath`.
- * Returns wall-clock ms. Throws (with skera's stderr attached) on failure —
+ * Returns wall-clock ms. Throws (with skera's stderr attached) on failure - 
  * callers decide whether that's a skip, a fail, or a report line.
  */
 export function skeraSubset(bin: string, fontPath: string, text: string, outPath: string): number {

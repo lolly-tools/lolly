@@ -98,8 +98,8 @@ export function mab(nIn: number, nOut: number, node: number[]): number[] {
 
 /**
  * A CMYK profile with A2B0 and NO B2A0: device → Lab works, Lab → device cannot.
- * The shape of the stock abstract profiles, and the one an intent gate has to
- * refuse — a gamut source built over it contains nothing behind a valid label.
+ * The structure of the stock abstract profiles, and the one an intent gate has to
+ * refuse - a gamut source built over it contains nothing behind a valid label.
  */
 export const oneWayProfileBytes = (): Uint8Array => buildProfile({
   deviceClass: 'prtr', space: 'CMYK',
@@ -114,7 +114,7 @@ export const descTag = (text: string): number[] => [
 ];
 
 /**
- * A `targ` (characterizationTarget) tag holding a CGATS header — the in-file
+ * A `targ` (characterizationTarget) tag holding a CGATS header - the in-file
  * testimony `iccCharacterization` reads. `charData` becomes FILE_DESCRIPTOR, the
  * field a press profile states its characterization data set in (`FOGRA51`).
  */

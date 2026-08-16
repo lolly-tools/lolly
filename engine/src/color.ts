@@ -1,18 +1,18 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
- * Colour profiles for exports — platform-agnostic, no DOM, no network.
+ * Colour profiles for exports: platform-agnostic, no DOM, no network.
  *
  * The sibling of units.js: where units.js is the single source of truth for
  * turning a typed dimension into what each format needs, this is the single
- * source of truth for the *colour* side — the ICC profile bytes a raster file
- * should carry, the RGB→CMYK conversion, and the press condition a CMYK PDF
- * declares. Each shell's export bridge embeds these into the format's native
- * slot (PNG iCCP chunk, JPEG APP2 segment, PDF OutputIntent).
+ * source of truth for the *colour* side. It covers the ICC profile bytes a
+ * raster file should carry, the RGB→CMYK conversion, and the press condition
+ * a CMYK PDF declares. Each shell's export bridge embeds these into the
+ * format's native slot (PNG iCCP chunk, JPEG APP2 segment, PDF OutputIntent).
  *
  * Why generate the sRGB profile in code rather than ship a binary: the engine
  * stays dependency- and asset-free, and the profile is small and fully
  * specified. The browser canvas (and thus dom-to-image / toBlob) renders in
- * sRGB, so tagging output as sRGB is *honest* — it records the colour space the
+ * sRGB, so tagging output as sRGB is *honest*. It records the colour space the
  * pixels were actually produced in, which is exactly what colour-managed apps
  * (print shops, Photoshop, browsers) need to reproduce them faithfully.
  */
@@ -22,7 +22,7 @@ type Xyz = readonly [number, number, number];
 
 // ─── numeric encoders (ICC is big-endian) ────────────────────────────────────
 
-// s15Fixed16Number — signed 16.16 fixed point, the ICC XYZ/encoding type.
+// s15Fixed16Number - signed 16.16 fixed point, the ICC XYZ/encoding type.
 const s15f16 = (v: number): number => Math.round(v * 65536);
 const align4 = (n: number): number => (n + 3) & ~3;
 
@@ -80,10 +80,10 @@ function textType(ascii: string): Uint8Array {
   return b;
 }
 
-// ─── ICC tag element types (v4 — for the HDR profile) ─────────────────────────
+// ─── ICC tag element types (v4 - for the HDR profile) ─────────────────────────
 
 // multiLocalizedUnicodeType ('mluc'): the v4 replacement for 'desc'/'text'. One
-// 'enUS' record, UTF-16BE. (BMP only — profile strings are ASCII descriptions.)
+// 'enUS' record, UTF-16BE. (BMP only - profile strings are ASCII descriptions.)
 function mlucType(str: string): Uint8Array {
   const HEADER = 16;      // sig(4) + reserved(4) + record count(4) + record size(4)
   const RECORD = 12;      // language(2) + country(2) + length(4) + offset(4)
@@ -140,7 +140,7 @@ const TRC_SAMPLES = 1024;
  * Assemble an ICC profile: 128-byte header → tag table → tag data (4-byte
  * aligned). Shared by the sRGB (v2) and Rec.2100-PQ (v4) builders. Tags with the
  * same Uint8Array identity are stored once and referenced N times (the spec
- * allows it — e.g. one TRC blob for rTRC/gTRC/bTRC). Every profile here is a
+ * allows it: e.g. one TRC blob for rTRC/gTRC/bTRC). Every profile here is a
  * display (`mntr`) RGB→XYZ profile with the required D50 PCS illuminant; header
  * fields left zero (CMM, platform, flags, rendering intent=perceptual) are valid
  * defaults. `versionBE` is the big-endian version word (e.g. 0x02100000 = v2.1).
@@ -170,7 +170,7 @@ function buildIcc(versionBE: number, tags: ReadonlyArray<readonly [sig: string, 
   writeSig(out, 12, 'mntr');         // device class: display
   writeSig(out, 16, 'RGB ');         // data colour space
   writeSig(out, 20, 'XYZ ');         // PCS
-  dv.setUint16(24, 2024);            // creation date (fixed — no clock in engine)
+  dv.setUint16(24, 2024);            // creation date (fixed - no clock in engine)
   dv.setUint16(26, 1);
   dv.setUint16(28, 1);
   writeSig(out, 36, 'acsp');         // profile file signature (required)
@@ -296,7 +296,7 @@ export interface ColorProfile {
 }
 
 /**
- * Named ICC profile registry. Today only sRGB — the colour space the render
+ * Named ICC profile registry. Today only sRGB: the colour space the render
  * canvas actually produces. Wide-gamut profiles (Display P3) would require the
  * shell to render in that space first, so they're intentionally absent until
  * that exists, rather than mislabelling sRGB pixels.
@@ -310,7 +310,7 @@ const isProfileName = (n: string): n is keyof typeof COLOR_PROFILES =>
 
 /**
  * ICC profile bytes for a named profile, or null for 'none'/unknown. Anything
- * truthy that isn't a known wide-gamut profile resolves to sRGB — the safe,
+ * truthy that isn't a known wide-gamut profile resolves to sRGB: the safe,
  * honest default for canvas-rendered output.
  */
 export function iccProfileBytes(name: string | null | undefined = 'srgb'): Uint8Array | null {
@@ -345,8 +345,8 @@ export interface CmykCondition {
   identifier: string;
   info: string;
   registry: string;
-  /** Maximum total area coverage (sum of C+M+Y+K, %) the condition is built for —
-   *  the "total ink limit" a press operator sets. Above it, ink can fail to dry,
+  /** Maximum total area coverage (sum of C+M+Y+K, %) the condition is built for.
+   *  This is the "total ink limit" a press operator sets. Above it, ink can fail to dry,
    *  set off onto the next sheet, or crack on the fold. */
   tac: number;
 }
@@ -355,7 +355,7 @@ export interface CmykCondition {
  * Standard registered press conditions a CMYK PDF can declare in its
  * OutputIntent. Identifiers are the ICC characterization-data registry reference
  * names, so the intent NAMES the condition without carrying a (large) destination
- * profile — a true and useful statement to a RIP, but not PDF/X-4, which requires
+ * profile. This is a true and useful statement to a RIP, but not PDF/X-4, which requires
  * the profile embedded (see pdfx.ts: bytes are supplied by a caller that has them,
  * and the shell only claims GTS_PDFXVersion where they were).
  * Keys are the values accepted by the `colorProfile` export option for pdf-cmyk.
@@ -363,7 +363,7 @@ export interface CmykCondition {
 // TAC limits are the coated-stock ceilings the characterization data is built for
 // (trade references, not the paywalled ISO/CGATS datasets): FOGRA39 330% (ISO Coated
 // v2; a separate "300" profile variant exists), FOGRA51 300% (PSO Coated v3), US SWOP
-// v2 300%, GRACoL 320-340% (TR006 ships at both — 340 is used as the profile ceiling
+// v2 300%, GRACoL 320-340% (TR006 ships at both; 340 is used as the profile ceiling
 // so we don't cry wolf; a shop targeting 320 can tighten via the profile picker).
 export const CMYK_CONDITIONS = {
   fogra39: { identifier: 'FOGRA39', info: 'Coated FOGRA39 (ISO 12647-2:2004)', registry: 'http://www.color.org', tac: 330 },

@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
- * Unit tests for engine/src/color-tools.ts — the perceptual metrics + ramp
+ * Unit tests for engine/src/color-tools.ts - the perceptual metrics + ramp
  * math ported per plans/archive/chroma-eval.md. Covers APCA against the published
  * apca-w3 reference pairs (APCA-1.0.98G), ΔEOK's metric properties, bezier
  * ramps (endpoints, counts, lightness correction), class breaks (equal /
@@ -28,7 +28,7 @@ const approx = (actual: number, expected: number, tol: number, msg?: string) =>
 
 // ── apcaContrast ───────────────────────────────────────────────────────────────
 
-// The apca-w3 package's own README examples for the 0.0.98G constants — the
+// The apca-w3 package's own README examples for the 0.0.98G constants - the
 // same generation chroma.js implements. Signed: + dark-on-light, − light-on-dark.
 const APCA_GOLDEN: Array<[string, string, number]> = [
   ['#888888', '#ffffff', 63.056469930209424],
@@ -100,7 +100,7 @@ test('rampOklab returns n gamut-safe hexes with exact endpoints', () => {
 
 test('rampOklab correctLightness equalises perceptual steps', () => {
   // Mid stop chosen well BELOW the endpoints' lightness midpoint so the raw
-  // bezier visibly sags — the correction has something to fix.
+  // bezier visibly sags - the correction has something to fix.
   const stops = ['#111111', '#223377', '#ffffff'];
   const n = 9;
   const ramp = rampOklab(stops, n, { correctLightness: true });
@@ -201,7 +201,7 @@ test('makeColorApi maps every ColorAPI method onto the engine primitive', () => 
   assert.deepEqual(api.ramp(['#000000', '#ffffff'], 3), rampOklab(['#000000', '#ffffff'], 3));
   assert.deepEqual(api.breaks([0, 5, 10], 'e', 2), classBreaks([0, 5, 10], 'e', 2));
   assert.deepEqual(api.distinct(4, { anchorHex: '#30ba78' }), distinctColors(4, { anchorHex: '#30ba78' }));
-  // Synchronous throughout — a hook can call these inline, no await.
+  // Synchronous throughout - a hook can call these inline, no await.
   assert.equal(typeof api.contrast('#000000', '#ffffff'), 'number');
 });
 

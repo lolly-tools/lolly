@@ -1,23 +1,23 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
- * The terminal rendering of an {@link Inspection} — shared by the CLI, the TUI and
- * anything else that has to put this in front of a person.
+ * The terminal rendering of an {@link Inspection}. Shared by the CLI, the TUI, and
+ * anything else that shows this report to a person.
  *
  * Two rules govern every line below.
  *
  * **Everything printed here is attacker-controlled.** Titles, author names, font names,
- * XMP fields and the hidden text itself all come out of the file being examined, and the
- * file may have been crafted by whoever wants the report to say something else. So every
+ * XMP fields, and the hidden text itself all come from the file being examined, and the
+ * file may have been crafted to make the report say something else. So every
  * interpolated value goes through `clean()`, which strips C0/C1 control characters
- * including ESC, so a crafted document cannot emit ANSI sequences that repaint or erase
- * verdict lines in the very tool meant to be trustworthy about them. This is the same
+ * including ESC. This stops a crafted document from emitting ANSI sequences that repaint
+ * or erase verdict lines in the tool meant to be trustworthy about them. This is the same
  * discipline as `shells/cli/src/validate.ts`, applied to a much larger attack surface:
  * that file prints a handful of claim fields, this one prints page text.
  *
  * **The wording is the product.** A user decides whether to send a file based on these
- * sentences. So: hidden text is "present in the file, not visible on the page" and never
- * an accusation; limits are printed, not hidden, and the report always ends by saying
- * what it did not check.
+ * sentences. So: hidden text is described as "present in the file, not visible on the
+ * page", never as an accusation. Limits are printed, not hidden, and the report always
+ * ends by saying what it did not check.
  */
 
 import type { Inspection } from './inspect.ts';

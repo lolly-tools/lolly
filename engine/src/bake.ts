@@ -1,13 +1,13 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
- * Bake — freeze a composed render into a static asset, plus the shared
+ * Bake - freeze a composed render into a static asset, plus the shared
  * compose recursion policy (the depth/cycle guard every shell bridge enforces).
  *
  * A baked ref is a renderUrl result made self-sufficient: its bytes ride in a
  * `data:` URL, so it resolves on every mount without a bridge call, consumes no
  * compose depth, and never live-re-renders. Provenance rides in `meta.bakedFrom`
  * (the canonical embed URL) so a shell can offer "re-bake" on demand.
- * `meta.toolUrl` is deliberately REMOVED — it is the key that drives every
+ * `meta.toolUrl` is deliberately REMOVED: it is the key that drives every
  * live-edit affordance, and a baked ref must present as a plain image.
  *
  * Pure data transforms only (this module must stay DOM/network-free).
@@ -16,7 +16,7 @@
 import { isToolUrl } from './tool-url.ts';
 import type { AssetRef } from './bridge/host-v1.ts';
 
-/** Shared default compose nesting budget — one policy for every shell bridge. */
+/** Shared default compose nesting budget: one policy for every shell bridge. */
 export const MAX_COMPOSE_DEPTH = 3;
 
 /** Ceiling on a baked ref's data: URL length (~9MB of bytes as base64). */
@@ -62,7 +62,7 @@ export function isBakedRef(v: unknown): boolean {
   return !!meta && typeof meta === 'object' && (meta as { baked?: unknown }).baked === true;
 }
 
-// Typed throw helper — bake failures carry a machine-readable `code` so callers
+// Typed throw helper. Bake failures carry a machine-readable `code` so callers
 // can branch (offer "render smaller" on TOO_LARGE, "render first" on the other).
 function bakeError(code: 'BAKE_NOT_SELF_CONTAINED' | 'BAKE_TOO_LARGE', message: string): never {
   const err = new Error(message) as Error & { code: string };
@@ -71,12 +71,12 @@ function bakeError(code: 'BAKE_NOT_SELF_CONTAINED' | 'BAKE_TOO_LARGE', message: 
 }
 
 /**
- * Freeze a renderUrl result into a baked ref (pure transform — the render has
+ * Freeze a renderUrl result into a baked ref (pure transform: the render has
  * already happened; this only rewrites identity + meta):
- *   - id becomes 'baked/<base36 ms>' — NOT a tool URL, so the runtime's
+ *   - id becomes 'baked/<base36 ms>', NOT a tool URL, so the runtime's
  *     re-resolve path can never mistake it for a live embed;
  *   - meta gains { baked, bakedAt, bakedFrom? } and LOSES toolUrl plus any
- *     blob:-valued entry (posterUrl/animationUrl — blob: dies across sessions);
+ *     blob:-valued entry (posterUrl/animationUrl - blob: dies across sessions);
  *   - bakedFrom = meta.toolUrl when present, else the ref's own id when that is
  *     a tool URL, else omitted (re-bake unavailable, the bytes still stand).
  * Requires a self-contained `data:` URL under MAX_BAKED_URL_CHARS; throws an
@@ -98,7 +98,7 @@ export function bakeAssetRef(ref: AssetRef, opts: { now?: number } = {}): AssetR
 
   const meta: Record<string, unknown> = {};
   for (const [k, v] of Object.entries(source)) {
-    if (k === 'toolUrl') continue;                          // the live-edit key — baked refs are inert
+    if (k === 'toolUrl') continue;                          // the live-edit key - baked refs are inert
     if (typeof v === 'string' && v.startsWith('blob:')) continue; // session-scoped bytes, dead on reload
     meta[k] = v;
   }
@@ -110,10 +110,10 @@ export function bakeAssetRef(ref: AssetRef, opts: { now?: number } = {}): AssetR
 }
 
 /**
- * The link-safe identity of an asset ref — what URL serializers write for an
+ * The link-safe identity of an asset ref: what URL serializers write for an
  * asset param. A live ref's id already IS its shareable form (a library id or
  * the canonical embed URL); a baked ref's data: bytes can never ride in a link,
- * so it degrades to its provenance (meta.bakedFrom — the recipient re-renders
+ * so it degrades to its provenance (meta.bakedFrom, the recipient re-renders
  * live), else its 'baked/…' id (the recipient drops the slot gracefully).
  * Every serializer must route through here so the policy can't drift.
  */
@@ -126,7 +126,7 @@ export function assetIdForUrl(ref: AssetRef): string {
  * Rewrite block rows for URL serialization. Blocks serialise as JSON of the
  * whole row, so a baked sub-field ref would inline its entire data: URL
  * (megabytes) into the query; collapse each one to the same lightweight
- * unresolved ref URL parsing mints — provenance when it exists (the recipient
+ * unresolved ref URL parsing mints: provenance when it exists (the recipient
  * re-renders live), else the 'baked/…' id (a graceful drop). Rows without
  * baked refs pass through untouched (the SAME array when nothing changed).
  */

@@ -3,7 +3,7 @@
  * Pure-logic tests for the web shell's tree-blocks + reference-picker helpers
  * (shells/web/src/views/block-tree.ts). These guard the drag-to-reparent algebra
  * and the id derivation that keeps a dropdown's stored value resolvable by a
- * tool's hook — the parts most likely to silently corrupt a diagram.
+ * tool's hook - the parts most likely to silently corrupt a diagram.
  *
  * Run with: npm test  (node --test over the tests/ globs)
  */
@@ -130,7 +130,7 @@ test('reparent BEFORE makes the dragged node a preceding sibling of the target',
 
 test('reparent AFTER lands past the target whole subtree', () => {
   // Drag CFO (idx 4) after CTO (idx 1): CFO is a sibling of CTO, placed after
-  // CTO's entire subtree (eng, qa) — not wedged between them.
+  // CTO's entire subtree (eng, qa) - not wedged between them.
   const out = blockReparentMove(tree(), 4, 1, 'after', CFG)!;
   const keys = deriveBlockKeys(out, CFG);
   const cfo = out[keys.indexOf('cfo')]!;
@@ -204,12 +204,12 @@ test('blockReparentMove refuses to drop into its own subtree even on cyclic inpu
     { nodeId: 'b', parent: 'c' },
     { nodeId: 'c', parent: 'b' },
   ];
-  // Dropping b (idx1) inside a (idx0) — a is b's descendant, so it must be refused.
+  // Dropping b (idx1) inside a (idx0) - a is b's descendant, so it must be refused.
   assert.equal(blockReparentMove(rows, 1, 0, 'inside', CFG), null);
 });
 
 test('drag-to-nest onto a blank-id card anchors the reference durably (no drift)', () => {
-  // Two blank cards (no id, no label) — keys are position-derived. After nesting,
+  // Two blank cards (no id, no label) - keys are position-derived. After nesting,
   // the reference must still resolve, i.e. the dragged card is a child of the target.
   const rows: BlockRow[] = [{ nodeId: '', label: '' }, { nodeId: '', label: '' }];
   const out = blockReparentMove(rows, 0, 1, 'inside', CFG)!;

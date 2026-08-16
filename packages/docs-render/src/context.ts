@@ -1,14 +1,14 @@
-// The DocsRenderContext capability bridge — the M0b seam.
+// The DocsRenderContext capability bridge: the M0b seam.
 //
 // This is the ONE thing that differs between the two consumers of the shared docs
-// renderer: the BUILD-TIME static generator (docs/build.ts) reads facts from the
+// renderer. The BUILD-TIME static generator (docs/build.ts) reads facts from the
 // filesystem + C2PA manifests; the RUNTIME in-app docs view (shells/web) reads the
-// same facts from a shipped docs-manifest.json + fetch. The resolver returns DATA;
-// the shared renderer owns every byte of HTML assembly — so identical facts produce
+// same facts from a shipped docs-manifest.json + fetch. The resolver returns DATA.
+// The shared renderer owns every byte of HTML assembly, so identical facts produce
 // byte-identical markup on both sides. See plan this-is-a-very-sparkling-eich, M0b.
 //
 // NOTE (M0b, prep): these are the TARGET types. The renderer (inline/mdToHtml/the
-// credential assembly) is not wired through them yet — that surgery lands on a clean
+// credential assembly) is not wired through them yet. That surgery lands on a clean
 // build.ts. Until then this file is types-only (zero runtime) and typechecks alone.
 
 /** Anatomy of a served shot file. Mirrors docs/shot-anatomy.ts `ShotAnatomy`. */
@@ -16,7 +16,7 @@ export interface CredentialAnatomy {
   kind: 'vector' | 'raster';
   /** <path> elements. 0 on a raster. */
   paths: number;
-  /** Path anchor vertices — a text-heavy shot outlines to thousands. 0 on a raster. */
+  /** Path anchor vertices. A text-heavy shot outlines to thousands. 0 on a raster. */
   nodes: number;
   /** <g> elements. 0 on a raster. */
   groups: number;
@@ -43,8 +43,8 @@ export interface CredentialRecipe {
  * Mirrors docs/shot-provenance.ts `ShotProvenance` + anatomy + the recipe subset.
  * The build-time context reads these from the file (C2PA decode + a byte parse); the
  * runtime context reads them from the shipped docs-manifest.json. `null` overall (the
- * return of DocsRenderContext.credential) means the file carries no readable credential
- * — the renderer then emits no line, exactly as today.
+ * return of DocsRenderContext.credential) means the file carries no readable credential.
+ * The renderer then emits no line, exactly as today.
  */
 export interface CredentialFacts {
   /** Who signed it: the certificate's organisation, else its common name. */
@@ -88,7 +88,7 @@ export interface ShotResolution {
  *  Encapsulates resolveDocsArt + inlineDocsArt (docs/docs-art.ts). The pure composition
  *  (mastheadArtBand / figureBlock) lives in the renderer and reads this + a credential. */
 export interface ArtResolution {
-  /** stripArtForInline output — namespaced ids, C2PA manifest removed. */
+  /** stripArtForInline output: namespaced ids, C2PA manifest removed. */
   html: string;
   /** The bank file, for the credential (read from the SAME file that was inlined). */
   file: string;
@@ -100,7 +100,7 @@ export interface ArtResolution {
  *  Encapsulates buildShowcase's existsSync + viewBox read + shotSize. Null → the renderer
  *  bails to a plain <img> screenshot (never drops the shot). */
 export interface ShowcaseResolution {
-  /** The SVG viewBox, "minX minY width height" — the animation's start/end frame. */
+  /** The SVG viewBox, "minX minY width height": the animation's start/end frame. */
   viewBox: string;
   file: string;
   src: string;
@@ -112,7 +112,7 @@ export interface ShowcaseResolution {
  * The capability bridge for docs rendering. build.ts implements it with thin adapters
  * over its existing filesystem/C2PA helpers; the in-app view implements it over the
  * shipped docs-manifest.json + fetch. Method names track the resolvers the renderer
- * calls today, so the eventual build.ts adapter is a near 1:1 wrap — the only genuine
+ * calls today, so the eventual build.ts adapter is a near 1:1 wrap. The only genuine
  * refactor is `credential`, whose HTML assembly moves INTO the renderer (both consumers
  * must emit identical markup) while its facts come from here.
  */
@@ -122,7 +122,7 @@ export interface DocsRenderContext {
   /** The BCP-47 htmlLang for localeNum/approxCount grouping (LANG_META[lang].htmlLang). */
   readonly htmlLang: string;
   /** i18n lookup with English-key identity fallback (replaces the module-global `t()`).
-   *  For the English static build the catalog is empty, so `t` is the identity — the
+   *  For the English static build the catalog is empty, so `t` is the identity. The
    *  in-app English render must match that to stay byte-identical. */
   t(en: string): string;
   /** A doc bullet/credential icon SVG by key (`<!--i:key-->`, and the credential imprint).

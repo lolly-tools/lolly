@@ -1,21 +1,21 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
- * Design — text-fit + circle-shape contract tests.
+ * Design - text-fit + circle-shape contract tests.
  *
- * Run with: npm test  (node --test over the tests/ globs). No framework — node:test.
+ * Run with: npm test  (node --test over the tests/ globs). No framework - node:test.
  *
  * Loads the REAL tool from disk and drives it through the engine with a stub host, so
- * these guard the tool's actual render. Design ships in two packs — the private
- * brands/suse one and the parent-owned brands/lolly-start one — with byte-identical
+ * these guard the tool's actual render. Design ships in two packs - the private
+ * brands/suse one and the parent-owned brands/lolly-start one - with byte-identical
  * hooks.js/template.html and only brand differences in tool.json. We load from
  * brands/lolly-start (always present in a public checkout; brands/suse is a private
  * submodule CI skips), so the suite never silently skips.
  *
  * Two features under test (ported from deck-builder's freeform mode):
- *   1. Shrink-to-fit — a box with `fitText:true` marks a data-fit="1" fit root, and the
+ *   1. Shrink-to-fit - a box with `fitText:true` marks a data-fit="1" fit root, and the
  *      authored font size is written as `calc(<n>px * var(--fit, 1))` so the template's
  *      fit pass can scale it down with ONE unitless multiplier. Off boxes are untouched.
- *   2. Circle — a shape that renders like an ellipse (border-radius:50%); the editor
+ *   2. Circle - a shape that renders like an ellipse (border-radius:50%); the editor
  *      keeps it square, but the render path just needs the 50% radius.
  */
 
@@ -30,7 +30,7 @@ import { loadTool } from '../engine/src/loader.ts';
 import { createRuntime } from '../engine/src/runtime.ts';
 import { baseHost } from './helpers/host.ts';
 
-// Parent-owned pack — present in every checkout (brands/suse is private + CI-skipped).
+// Parent-owned pack - present in every checkout (brands/suse is private + CI-skipped).
 const PACK_DIR = join(dirname(fileURLToPath(import.meta.url)), '..', 'brands', 'lolly-start', 'tools');
 const fetchFile = (path: string) => readFile(join(PACK_DIR, path), 'utf8');
 

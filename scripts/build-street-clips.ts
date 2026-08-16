@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 // SPDX-License-Identifier: MPL-2.0
 /**
- * build-street-clips.js — offline street-map data prep for the `street-map` tool.
+ * build-street-clips.js - offline street-map data prep for the `street-map` tool.
  *
  * Fetches road + water geometry from OpenStreetMap (via the public Overpass API),
  * clips it to a radius around each city centre, converts OSM ways → GeoJSON, and
@@ -10,7 +10,7 @@
  * tool's <select> and projection read from).
  *
  * This is the ONLY step that touches the network. The tool itself ships the
- * generated files and runs fully offline — no API at render time.
+ * generated files and runs fully offline - no API at render time.
  *
  *   node scripts/build-street-clips.ts                # build every city in CITIES
  *   node scripts/build-street-clips.ts nuremberg      # build one (or several)
@@ -210,7 +210,7 @@ async function overpassFetch(b: BBox, bCoast: BBox, attempt: number = 1): Promis
     body: 'data=' + encodeURIComponent(overpassQuery(b, bCoast)),
   });
   if (res.ok) return res.json() as Promise<OverpassResult>;
-  // 429 (rate limit) / 504 (timeout) are transient — back off and retry.
+  // 429 (rate limit) / 504 (timeout) are transient - back off and retry.
   if ((res.status === 429 || res.status === 504) && attempt <= 3) {
     const wait = 5000 * attempt;
     process.stdout.write(`(HTTP ${res.status}, retry in ${wait / 1000}s) `);
@@ -226,7 +226,7 @@ async function overpassFetch(b: BBox, bCoast: BBox, attempt: number = 1): Promis
 // ways into chains, clip them to the city bbox, then close each chain along the
 // bbox edges into a polygon. The closing direction is chosen self-correctingly:
 // we sample a point just off the RIGHT of the coast (guaranteed sea by the OSM
-// rule) and keep whichever closure actually contains it — so an orientation slip
+// rule) and keep whichever closure actually contains it - so an orientation slip
 // can never paint the land instead of the water. All build-time; the tool renders
 // the result like any other water fill.
 
@@ -384,7 +384,7 @@ function assembleSea(coastLines: Coord[][], R: BBox): Coord[][] {
   // guaranteed-land point and the (land) city centre. The two closures are
   // complementary, so for a clean coast exactly one passes. If neither does (a
   // tangled multi-chain coast, e.g. a city wedged between two rivers), skip the
-  // fill — never flood the land. cx/cy (bbox centre) is the city centre.
+  // fill - never flood the land. cx/cy (bbox centre) is the city centre.
   const ok = (rings: Coord[][]): boolean => rings.length > 0 &&
     pointInRings(rings, waterPt) && !pointInRings(rings, landPt) && !pointInRings(rings, [cx, cy]);
 

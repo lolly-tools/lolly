@@ -1,27 +1,28 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
- * Flat-SVG → NATIVE PowerPoint custom geometry — pure, DOM-free, platform-agnostic.
+ * Flat-SVG to native PowerPoint custom geometry. Pure, DOM-free, platform-agnostic.
  *
- * A flat stroke/fill SVG (the user's own line-art: `<path>`/`<rect>`/`<circle>`/…
+ * A flat stroke/fill SVG (the user's own line-art: `<path>`/`<rect>`/`<circle>`/etc.
  * with solid colours) is lowered to an array of {@link PptxPath} shapes so it rides
- * into a .pptx as REAL, editable vector geometry instead of a rasterised picture.
- * That kills the EMF → Google Drawings → Slides → PPTX round-trip users do today to
- * keep such art vector.
+ * into a .pptx as real, editable vector geometry instead of a rasterised picture.
+ * That removes the need for the EMF to Google Drawings to Slides to PPTX round-trip
+ * users do today to keep such art vector.
  *
- * This does its OWN tiny SVG scan (no DOM — the engine never touches one): it walks
- * the tag stream, tracks the group `transform` stack and inherited `fill`/`stroke`/
- * `stroke-width`, converts every drawable element to an SVG `d` string, and maps its
- * coordinates through (group transforms) ∘ (viewBox → target EMU box) so every emitted
- * shape shares one 0..targetW × 0..targetH space (relative positions preserved).
+ * This does its own tiny SVG scan; it uses no DOM, since the engine never touches
+ * one. It walks the tag stream, tracks the group `transform` stack and inherited
+ * `fill`/`stroke`/`stroke-width`, converts every drawable element to an SVG `d`
+ * string, and maps its coordinates through the group transforms composed with the
+ * viewBox-to-target-EMU-box map, so every emitted shape shares one 0..targetW by
+ * 0..targetH space with relative positions preserved.
  *
- * It is DELIBERATELY conservative — the whole point is to never regress a non-flat
+ * It is deliberately conservative: the whole point is to never regress a non-flat
  * SVG. Anything it can't reproduce as solid vector geometry (gradients, filters,
  * masks, clip-paths, partial opacity, blend modes, `<image>`/`<text>`/`<use>`, a
  * `<style>` block, `currentColor`, an unknown named colour, a rotate/skew transform,
  * an unreadable viewBox) makes it return `null` so the caller keeps its raster path.
  *
  * Uses parseSvgPath (svg-path.ts) as the single path tokenizer; returns PptxPath[]
- * (pptx.ts). No Handlebars, no ajv, no deps — fully node:test-able.
+ * (pptx.ts). No Handlebars, no ajv, no deps. Fully node:test-able.
  */
 
 import { parseSvgPath } from './svg-path.ts';
@@ -33,7 +34,7 @@ const MAX_SVG_LEN = 4_000_000;
 const MAX_TAGS = 40_000;
 const MAX_SHAPES = 4_000;
 
-// Tags that mean "not flat solid vector art" — their presence forces a raster fallback.
+// Tags that mean "not flat solid vector art". Their presence forces a raster fallback.
 const BAIL_TAGS = new Set([
   'lineargradient', 'radialgradient', 'meshgradient', 'pattern', 'filter', 'mask',
   'clippath', 'image', 'use', 'text', 'tspan', 'textpath', 'foreignobject', 'symbol',
@@ -45,7 +46,7 @@ const DRAW_TAGS = new Set(['path', 'rect', 'circle', 'ellipse', 'line', 'polygon
 type Mat = [number, number, number, number, number, number];
 const IDENTITY: Mat = [1, 0, 0, 1, 0, 0];
 
-// m1 ∘ m2 — apply m2 first, then m1 (SVG's "translate(..) scale(..)" order).
+// m1 composed with m2: apply m2 first, then m1 (SVG's "translate(..) scale(..)" order).
 function matMul(m1: Mat, m2: Mat): Mat {
   const [a1, b1, c1, d1, e1, f1] = m1;
   const [a2, b2, c2, d2, e2, f2] = m2;
@@ -56,7 +57,7 @@ function matMul(m1: Mat, m2: Mat): Mat {
   ];
 }
 const applyMat = (m: Mat, x: number, y: number): [number, number] => [m[0] * x + m[2] * y + m[4], m[1] * x + m[3] * y + m[5]];
-// Uniform linear scale of a matrix — how much a stroke width grows under it.
+// Uniform linear scale of a matrix: how much a stroke width grows under it.
 const matScale = (m: Mat): number => Math.sqrt(Math.abs(m[0] * m[3] - m[1] * m[2])) || 1;
 
 // Parse an SVG `transform` attribute to a matrix, or null if it uses a function we
@@ -113,7 +114,7 @@ function resolvePaint(v: string | undefined): Paint | undefined {
   const hex = colorToHex(s);
   if (typeof hex !== 'string') return null;
   if (hex.startsWith('#')) {
-    if (hex.length === 9) {                     // #rrggbbaa — translucent stays raster
+    if (hex.length === 9) {                     // #rrggbbaa - translucent stays raster
       return parseInt(hex.slice(7, 9), 16) >= 250 ? hex.slice(0, 7).toUpperCase() : null;
     }
     return hex.toUpperCase();

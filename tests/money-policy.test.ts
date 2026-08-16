@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
- * canShowMoney — the pure decide-money-or-counts predicate (Phase 5 degrade).
+ * canShowMoney - the pure decide-money-or-counts predicate (Phase 5 degrade).
  * No figures, no arithmetic: it only answers "worked cost, or counts alone?".
  * plans/65-preflight-and-cost.md §5 + Phase 5.
  *

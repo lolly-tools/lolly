@@ -84,8 +84,8 @@ const SECRET = 'Social Security 123-45-6789';
 
 /**
  * The classic failed redaction: real text, then an opaque black rectangle drawn OVER it.
- * pdf-lib writes a genuine content stream, so this exercises the whole path — pdf-lib
- * walk, engine interpreter, paint-order geometry — not a hand-built node array.
+ * pdf-lib writes a genuine content stream, so this exercises the whole path - pdf-lib
+ * walk, engine interpreter, paint-order geometry - not a hand-built node array.
  */
 async function buildRedactedPdf(opts: { title?: string; cover?: boolean } = {}): Promise<Uint8Array> {
   const doc = await PDFDocument.create();

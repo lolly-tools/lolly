@@ -1,52 +1,53 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
- * The seam between an AUTHORED path and the cubics geometry runs on.
+ * The seam between an AUTHORED path and the cubics that geometry runs on.
  *
- * ## The one architectural decision that stops us boxing ourselves in
+ * ## The one architectural decision that avoids boxing this in
  *
- * Boolean operations, offsetting and intersection all work on cubic Béziers, and they
- * should: no serious implementation does booleans on Spiro or Catmull-Rom directly,
- * and every spline type has a well-defined lowering to cubics anyway. The mistake
- * would be letting that make the cubic the *authoring* model too.
+ * Boolean operations, offsetting, and intersection all work on cubic Béziers, and they
+ * should: no serious implementation does booleans on Spiro or Catmull-Rom curves
+ * directly, and every spline type has a well-defined lowering to cubics anyway. The
+ * mistake would be letting that make the cubic the *authoring* model too.
  *
- * If a pen tool stores only cubics, then a Spiro path cannot round-trip — Spiro is
- * defined by knots plus a curvature-continuity solve, and once it is lowered you can
- * recover the shape but not the knots, so the next edit re-solves from the wrong
- * thing. The same goes for a node the user declared "smooth": two adjacent cubics that
- * merely happen to be tangent-continuous are indistinguishable from a node whose
- * handles are *constrained* to stay collinear, and only the second one drags correctly.
+ * If a pen tool stores only cubics, a Spiro path cannot round-trip. Spiro is defined by
+ * knots plus a curvature-continuity solve, and once it is lowered you can recover the
+ * shape but not the knots, so the next edit re-solves from the wrong starting point.
+ * The same applies to a node the user declared "smooth": two adjacent cubics that
+ * merely happen to be tangent-continuous look identical to a node whose handles are
+ * *constrained* to stay collinear, but only the constrained one drags correctly.
  *
  * So: an `AuthoredPath` keeps whatever the user is editing, and `toCubics` lowers it
- * for geometry. One direction only. That is not a limitation — it is what every design
- * tool does, and it is why a boolean's OUTPUT is always plain Béziers in Illustrator
- * and Figma too: an intersection of two Spiro curves is not a Spiro curve.
+ * for geometry. Conversion runs one direction only. This is not a limitation, it is
+ * what every design tool does, and it is why a boolean's OUTPUT is always plain
+ * Béziers in Illustrator and Figma too: an intersection of two Spiro curves is not a
+ * Spiro curve.
  *
  * ## What this file does and does not contain
  *
  * It contains the seam, the node model a pen tool needs, the lowerings that are a few
- * lines of arithmetic (`cubic`, `line`, `catmull-rom`, `bspline`), and — since the pen
- * tool wanted a default that drags well — the `hyperbezier` global solve. It does NOT
+ * lines of arithmetic (`cubic`, `line`, `catmull-rom`, `bspline`), and, since the pen
+ * tool wanted a default that drags well, the `hyperbezier` global solve. It does NOT
  * contain a Spiro solver. That kind stays declared and throws, because Spiro is the
  * curve hyperbezier was designed to replace: its constraint system has no unique
  * solution, so dragging a knot can flip a loop's direction or fail to converge, and
  * "the shape jumped" is not a defect a user can work around.
  *
- * Both were built from Raph Levien's own work rather than a second-hand
- * reimplementation:
- *   - https://github.com/raphlinus/spiro — the original curvature-continuity solver,
- *     the one Inkscape and FontForge ship.
- *   - https://github.com/raphlinus/spline-research — the later two-parameter curve
+ * Both curve families were built from Raph Levien's own work rather than from a
+ * second-hand reimplementation:
+ * - https://github.com/raphlinus/spiro: the original curvature-continuity solver, the
+ *     one Inkscape and FontForge ship.
+ * - https://github.com/raphlinus/spline-research: the later two-parameter curve
  *     (MIT/Apache-2.0), designed specifically to fix how Spiro behaves when a knot is
  *     DRAGGED, which is the case this seam exists to serve.
- * Port it, don't depend on it: engine/ takes handlebars, ajv and the tool-author SDK,
- * and nothing else.
+ * The math is ported, not depended on: engine/ takes handlebars, ajv, and the
+ * tool-author SDK, and nothing else.
  */
 import { type Cubic, lineToCubic } from './bezier.ts';
 import { spiroCubics } from './spiro.ts';
 
 /**
  * How a node's handles behave when one is dragged. This is authoring intent, and it
- * cannot be inferred from the geometry afterwards — which is the whole reason the
+ * cannot be inferred from the geometry afterwards - which is the whole reason the
  * authored form has to be kept.
  */
 export type Continuity =
@@ -57,7 +58,7 @@ export type Continuity =
   /** Handles held collinear AND equal length. */
   | 'symmetric';
 
-/** One authored on-curve point. Handles are OFFSETS from the point, not absolute —
+/** One authored on-curve point. Handles are OFFSETS from the point, not absolute -
  *  so moving a node moves its handles without touching them. */
 export interface Node {
   x: number;
@@ -72,7 +73,7 @@ export interface Node {
 }
 
 export type SplineKind =
-  /** Nodes with explicit handles — the ordinary pen-tool path. */
+  /** Nodes with explicit handles - the ordinary pen-tool path. */
   | 'cubic'
   /** Nodes only; straight segments between them. */
   | 'line'
@@ -82,7 +83,7 @@ export type SplineKind =
    *  through them. */
   | 'bspline'
   /** Levien's two-parameter spline, a.k.a. the hyperbezier: nodes only, tangents
-   *  solved globally for curvature continuity. The pen-tool default — see
+   *  solved globally for curvature continuity. The pen-tool default; see
    *  `solveHyperbezier`. */
   | 'hyperbezier'
   /** Levien's Spiro: the Euler-spiral interpolating spline Inkscape and FontForge
@@ -101,7 +102,7 @@ export interface AuthoredPath {
 }
 
 /**
- * Lower an authored path to cubics — the only form the geometry kernel accepts.
+ * Lower an authored path to cubics - the only form the geometry kernel accepts.
  *
  * `warm` is only read by `hyperbezier`, whose lowering runs a solve: pass the previous
  * frame's solution during a drag and the solve starts from it. Callers that want the
@@ -139,7 +140,7 @@ function lineSegments(n: Node[], closed: boolean): Cubic[] {
 
 function cubicSegments(n: Node[], closed: boolean): Cubic[] {
   return pairs(n, closed).map(([a, b]) => {
-    // A missing handle means "no handle", i.e. the control sits on the node — which
+    // A missing handle means "no handle", i.e. the control sits on the node - which
     // makes the segment straight, exactly as a pen tool with un-dragged handles draws.
     const c1x = a.x + (a.hOutX ?? 0), c1y = a.y + (a.hOutY ?? 0);
     const c2x = b.x + (b.hInX ?? 0), c2y = b.y + (b.hInY ?? 0);
@@ -152,7 +153,7 @@ function cubicSegments(n: Node[], closed: boolean): Cubic[] {
  *
  * `alpha` parameterises the knot spacing: 0 uniform, 0.5 centripetal, 1 chordal.
  * Centripetal is the default because uniform Catmull-Rom is guaranteed to produce
- * cusps and self-intersections when the points are unevenly spaced — a well-known
+ * cusps and self-intersections when the points are unevenly spaced - a well-known
  * result, and a very visible one when the points come from a freehand drag.
  */
 function catmullRom(n: Node[], closed: boolean, alpha: number): Cubic[] {
@@ -210,19 +211,20 @@ function bspline(n: Node[], closed: boolean): Cubic[] {
 // ## Why this is the pen-tool default and Spiro is not
 //
 // A segment is one cubic in the frame of its own chord, and its only two degrees of
-// freedom are the tangent ANGLES at its ends — the arm lengths are a function of those
+// freedom are the tangent ANGLES at its ends. The arm lengths are a function of those
 // angles, not free parameters. So the whole path is described by one angle per node,
-// and the solve asks those angles to make curvature agree across every join. Three
-// consequences, all of which are why this curve and not Spiro:
+// and the solve adjusts those angles to make curvature agree across every join. Three
+// consequences, all of which are why this curve is used and not Spiro:
 //
 //   - The lowering is TOTAL. Any angles at all render a real cubic, and the arm-length
 //     formula is bounded by a third of a chord (two thirds once the curvature blend's
 //     clamp is allowed for), so the output is always inside a known box around the
-//     polygon. A half-converged solve is a slightly-wrong-curvature spline, never a
-//     particle-accelerator track.
+//     polygon. A half-converged solve gives a slightly-wrong-curvature spline, never a
+//     wildly wrong shape.
 //   - The residual is an angle DIFFERENCE of arctan-curvatures rather than a curvature
-//     difference. Bounded, monotone, and it stays meaningful through a reversal, which
-//     is exactly where Spiro's constraint system loses uniqueness and flips.
+//     difference. It is bounded and monotone, and it stays meaningful through a
+//     reversal, which is exactly where Spiro's constraint system loses uniqueness and
+//     flips.
 //   - Every node's angle couples only to its two neighbours, so the Jacobian is
 //     tridiagonal (cyclic when closed) and a Newton step costs O(n). A drag reuses the
 //     previous solution and converges in one or two steps.
@@ -230,13 +232,13 @@ function bspline(n: Node[], closed: boolean): Cubic[] {
 // ## What is actually guaranteed
 //
 // Interpolation is exact: the endpoints are the nodes, copied. G1 is exact at every
-// smooth join, with one stated exception — a segment whose deflection exceeds a right
-// angle has a reversed control arm and meets its neighbour at a cusp; `reversals` counts
-// those, and it is zero for any input a pen tool produces (see `hbArm`). G2 is what the
-// solve CONVERGES to: the residual is driven under `HB_TOL` and `converged` says whether
-// it got there. Corners are G0 on purpose. A node with an authored handle pins its
-// tangent, which breaks curvature continuity there by construction; the blend below
-// mitigates it approximately and is documented as approximate.
+// smooth join, with one stated exception: a segment whose deflection exceeds a right
+// angle has a reversed control arm and meets its neighbour at a cusp. `reversals`
+// counts those, and it is zero for any input a pen tool produces (see `hbArm`). G2 is
+// what the solve CONVERGES to: the residual is driven under `HB_TOL`, and `converged`
+// reports whether it got there. Corners are G0 on purpose. A node with an authored
+// handle pins its tangent, which breaks curvature continuity there by construction; the
+// blend below corrects for that approximately, and is documented as approximate.
 
 /** Reduce an angle to (−π, π]. Every tangent angle here is absolute (world) and every
  *  th0/th1 is relative to a chord, so the two only ever meet through this. */
@@ -263,24 +265,24 @@ function mod2pi(th: number): number {
  * throw a control point further than a third of a chord off the polygon; and the arm is
  * negative exactly when cos a < 0, i.e. only past a right angle of deflection.
  *
- * ## Past a right angle the arm reverses, and that is left alone deliberately
+ * ## Past a right angle the arm reverses, and that is left alone on purpose
  *
  * A negative arm puts the control point on the far side of the node from the tangent
- * angle the solve named, so the segment's real tangent there is that angle plus π and
- * the join with its neighbour is a cusp rather than G1. That reads like a defect and the
- * obvious fix — take the magnitude, keeping the direction the solve asked for — was
+ * angle the solve named, so the segment's real tangent there is that angle plus π, and
+ * the join with its neighbour is a cusp rather than G1. This looks like a defect, and
+ * the obvious fix (take the magnitude, keeping the direction the solve asked for) was
  * tried and is worse. It costs convergence: no C¹ function can agree with `c(2 − c²)/3`
  * for c ≥ 0 and stay non-negative for c < 0 (the slope at c = 0 is 2/3, not 0), so
  * clamping introduces a kink, and the kink gives the solver's merit function real local
  * minima. Sharp input that solves to 1e-15 with the signed arm stalls at a residual of
- * 0.65 rad with the clamped one — a curve visibly wrong everywhere instead of one cusp
- * where the data has a hairpin.
+ * 0.65 rad with the clamped version: a curve visibly wrong everywhere instead of one
+ * cusp where the data has a hairpin.
  *
- * The signed form is also self-consistent rather than merely tolerable: `ak0`/`ak1`
+ * The signed form also stays consistent rather than being merely tolerable: `ak0`/`ak1`
  * record the reversal in their quadrant, so the continuity solve knows about it and
- * still matches curvature across the join. What it costs is that a tangent PINNED by an
- * authored handle at more than a right angle from its chord renders reversed. The family
- * has no representation for that shape, so the honest report is a count —
+ * still matches curvature across the join. The cost is that a tangent PINNED by an
+ * authored handle at more than a right angle from its chord renders reversed. The
+ * family has no way to represent that shape, so the report is a plain count:
  * `HyperbezierSolution.reversals`.
  */
 function hbArm(tha: number, thb: number): number {
@@ -320,7 +322,7 @@ function hbCurve(th0: number, th1: number): HbCurve {
   const q0x = p2x - 2 * p1x, q0y = p2y - 2 * p1y;
   const q1x = 1 - 2 * p2x + p1x, q1y = p1y - 2 * p2y;
   // C'(0) = 3·a0·(cos th0, sin th0), so its component along the tangent is exactly
-  // 3·a0 — the general dot product would only reintroduce rounding.
+  // 3·a0 - the general dot product would only reintroduce rounding.
   const dot0 = 3 * a0, dot1 = 3 * a1;
   // Cross of the second derivative with the tangent direction. At the far end the
   // frame is (cos th1, −sin th1), which is where the sign flip comes from.
@@ -378,15 +380,15 @@ const HB_MIN_CHORD = 1e-12;
 /**
  * State of the segment between two points, given the absolute tangent angles at each.
  *
- * The curvature partials are central differences. `hbArm` is analytic but its
- * derivative is an unpleasant chain of nested trig that would have to be re-derived
- * every time the shape function is tuned, and a 1e-6 central difference of a smooth
- * analytic function is good to ~1e-10 — far better than a Jacobian needs, since a wrong
- * Jacobian slows Newton down and cannot move where it converges TO.
+ * The curvature partials are central differences. `hbArm` is analytic, but its
+ * derivative is a long chain of nested trig that would need re-deriving every time the
+ * shape function is tuned, and a 1e-6 central difference of a smooth analytic function
+ * is good to ~1e-10, far better than a Jacobian needs: a wrong Jacobian only slows
+ * Newton down, it cannot change where Newton converges TO.
  *
  * (Upstream's unfinished `computeCurvatureDerivs` scales its central difference by
- * 2/ε where the rule wants 1/2ε — a factor of four. It is dead code there because the
- * Newton step it was written for was never filled in.)
+ * 2/ε where the rule wants 1/2ε: a factor-of-four error. It is dead code there because
+ * the Newton step it was written for was never filled in.)
  */
 function hbSegState(ax: number, ay: number, bx: number, by: number, thA: number, thB: number): HbSegState {
   const dx = bx - ax, dy = by - ay;
@@ -416,7 +418,7 @@ function hbSegState(ax: number, ay: number, bx: number, by: number, thA: number,
  * blows up as either side approaches a cusp, and the residual's scale then depends on
  * the curvature rather than on how far from continuous the join is. Re-expressing the
  * SAME root as a difference of two arctans weighted by √chord keeps the residual an
- * angle — bounded by π, monotone in each argument, and finite through a reversal:
+ * angle - bounded by π, monotone in each argument, and finite through a reversal:
  *
  *   r = atan2(sin A·√c₁, cos A·√c₀) − atan2(sin B·√c₀, cos B·√c₁)
  *
@@ -455,11 +457,11 @@ interface HbRunPoint { x: number; y: number }
  * Residual and tridiagonal Jacobian of one run.
  *
  * `wrap` makes the run cyclic: every node then has a segment on both sides, so every
- * row is a continuity condition and the system is cyclic tridiagonal. An open run
- * spends its first and last rows on end conditions instead — either "this tangent is
- * pinned" (an authored handle) or the free-end condition. Folding those into the same
- * linear system, rather than assigning them outside the solve as the prototype does,
- * is what lets the whole thing converge at Newton's rate instead of crawling.
+ * row is a continuity condition and the system is cyclic tridiagonal. An open run uses
+ * its first and last rows for end conditions instead: either "this tangent is pinned"
+ * (an authored handle) or the free-end condition. Folding those into the same linear
+ * system, rather than assigning them outside the solve as the prototype does, is what
+ * lets the whole thing converge at Newton's rate instead of crawling.
  */
 function hbSystem(
   pts: HbRunPoint[],
@@ -544,13 +546,14 @@ function hbThomas(a: readonly number[], b: readonly number[], c: readonly number
 }
 
 /**
- * Cyclic tridiagonal solve — the closed-path case — by Sherman-Morrison.
+ * Cyclic tridiagonal solve for the closed-path case, using Sherman-Morrison.
  *
- * A closed path's seam is not special, and the only way to keep that true is to solve
- * the wrapped system. (The prototype instead cuts the loop at one node, duplicates it
- * and solves the result as an open run with free ends, which leaves the seam visibly
- * less continuous than every other join.) The rank-one correction turns the two corner
- * entries into two ordinary Thomas solves, so closed still costs O(n).
+ * A closed path's seam is not a special case, and the only way to keep that true is to
+ * solve the wrapped system. (The prototype instead cuts the loop at one node,
+ * duplicates it, and solves the result as an open run with free ends, which leaves the
+ * seam visibly less continuous than every other join.) The rank-one correction turns
+ * the two corner entries into two ordinary Thomas solves, so the closed case still
+ * costs O(n).
  */
 function hbCyclic(a: readonly number[], b: readonly number[], c: readonly number[], d: readonly number[]): number[] | null {
   const n = b.length;
@@ -598,7 +601,7 @@ interface HbRunResult {
   iterations: number;
 }
 
-/** Worst residual — the CONVERGENCE test, because the guarantee is about every join and
+/** Worst residual: the CONVERGENCE test, because the guarantee is about every join, and
  *  an average would let one bad join hide behind a thousand good ones. */
 function hbMaxAbs(v: readonly number[]): number {
   let m = 0;
@@ -611,15 +614,16 @@ function hbMaxAbs(v: readonly number[]): number {
 }
 
 /**
- * Merit for the line search — the 2-norm, NOT the worst residual.
+ * Merit for the line search: the 2-norm, NOT the worst residual.
  *
- * These have to be different functions and it is not a detail. Accepting a step only
- * when the worst residual improves works fine on five nodes and fails outright on two
- * thousand: a Newton step that improves nineteen hundred joins and slightly worsens the
- * single worst one gets rejected, the backtrack halves it four times, and the solve
- * stalls at a residual of order one on input a shorter path of the same shape solves to
- * 1e-15. The 2-norm is the standard merit function for exactly this reason — it measures
- * whether the step helped overall, which is what a Newton step is trying to do.
+ * These have to be different functions, and that is not a small detail. Accepting a
+ * step only when the worst residual improves works fine on five nodes and fails
+ * outright on two thousand: a Newton step that improves nineteen hundred joins and
+ * slightly worsens the single worst one gets rejected, the backtrack halves the step
+ * four times, and the solve stalls at a residual of order one, on input where a shorter
+ * path of the same shape solves to 1e-15. The 2-norm is the standard merit function for
+ * exactly this reason: it measures whether the step helped overall, which is what a
+ * Newton step is trying to do.
  */
 function hbNorm2(v: readonly number[]): number {
   let s = 0;
@@ -628,8 +632,8 @@ function hbNorm2(v: readonly number[]): number {
 }
 
 /** Chord-bend-weighted initial tangents: at each node, the angle between the two
- *  adjacent chords, apportioned by their lengths. Cheap, and already a passable curve —
- *  which is what makes it a safe thing to fall back to. */
+ *  adjacent chords, apportioned by their lengths. Cheap, and already a passable curve,
+ *  which is what makes it a safe fallback. */
 function hbInitialThs(pts: HbRunPoint[], wrap: boolean, startTh: number | null, endTh: number | null): number[] {
   const m = pts.length;
   const ths = new Array<number>(m).fill(0);
@@ -661,25 +665,25 @@ function hbInitialThs(pts: HbRunPoint[], wrap: boolean, startTh: number | null, 
 /**
  * Solve one run: damped Newton on the tangent angles, iterative but bounded.
  *
- * Bounded three ways, and honest about each. Iterations are capped. Every step is
+ * Bounded three ways, and this documents each. Iterations are capped. Every step is
  * clamped in magnitude and then backtracked until it actually reduces the residual's
  * ∞-norm, so a step can never make things worse. And when the tridiagonal solve is
- * singular the step falls back to the diagonal of the same system — the damped
- * fixed-point iteration the prototype ships as its only solver, slower but very hard
- * to break.
+ * singular, the step falls back to the diagonal of the same system: the damped
+ * fixed-point iteration the prototype ships as its only solver. That fallback is
+ * slower, but it is very hard to break.
  *
  * ## Why this does not throw
  *
- * `GeomLimitError` is right in boolean.ts because the alternative there is a
- * confidently wrong topology, and a caller silently unioning the wrong region is worse
- * off than one told it failed. Nothing like that applies here. Non-convergence means
- * curvature disagrees slightly at some join, on a curve that still interpolates every
- * node, still has the tangents the solve last named, and still has every control point
- * within half a chord of its polygon. Throwing would mean a pen tool that renders
- * nothing while the user drags through a hard configuration, to report a defect they
- * could not have seen. So: the last iterate is returned, `converged` says what
- * happened, and `residual` says by how much. A caller that genuinely needs G2 — a CNC
- * toolpath, say — can check it.
+ * `GeomLimitError` is the right choice in boolean.ts, because the alternative there is
+ * a confidently wrong topology, and a caller silently unioning the wrong region is
+ * worse off than one that was told it failed. Nothing like that applies here.
+ * Non-convergence means curvature disagrees slightly at some join, on a curve that
+ * still interpolates every node, still has the tangents the solve last named, and
+ * still has every control point within half a chord of its polygon. Throwing would
+ * mean a pen tool that renders nothing while the user drags through a hard
+ * configuration, to report a defect they could not have seen. So: the last iterate is
+ * returned, `converged` reports what happened, and `residual` reports by how much. A
+ * caller that genuinely needs G2, a CNC toolpath for example, can check it.
  */
 function hbSolveRun(
   pts: HbRunPoint[],
@@ -765,13 +769,13 @@ export interface HyperbezierSolution {
   converged: boolean;
   /** The worst residual across all runs, in radians. */
   residual: number;
-  /** Total Newton iterations across all runs — a drag-cost signal. */
+  /** Total Newton iterations across all runs - a drag-cost signal. */
   iterations: number;
   /**
    * Segment ends whose control arm came out reversed, meaning the solve wanted a tangent
    * more than a right angle off that segment's chord. Zero for anything a pen tool draws.
    * Non-zero says the node spacing has a hairpin the curve family cannot express, so the
-   * lowering has a cusp there — see `hbArm`.
+   * lowering has a cusp there - see `hbArm`.
    */
   reversals: number;
 }
@@ -787,17 +791,17 @@ interface HbPin {
 /**
  * Authored handles → tangent constraints.
  *
- * Only the handle's DIRECTION is read; its length is discarded. That is the
- * hyperbezier's bargain and it needs saying out loud, because it is the one place this
- * kind differs from what a Bézier pen tool trains a user to expect: you may say which
- * way the curve leaves a node, and the solve still owns how far the control point goes,
- * because arm length is what it has to spend to make curvature continuous. A user who
- * wants both is asking for kind `'cubic'`.
+ * Only the handle's DIRECTION is read; its length is discarded. This trade-off needs
+ * stating plainly, because it is the one place this kind differs from what a Bézier pen
+ * tool trains a user to expect: you may say which way the curve leaves a node, but the
+ * solve still owns how far the control point goes, because arm length is what it has
+ * to spend to make curvature continuous. A user who wants control over both is asking
+ * for kind `'cubic'`.
  *
  * A node's `continuity` defaults to `'smooth'` here, NOT to `'corner'` as
- * `enforceContinuity` defaults. Opposite defaults for opposite jobs: this kind exists so
- * that clicking a sequence of points yields a smooth curve, and a pen tool whose default
- * node broke the spline would draw polylines.
+ * `enforceContinuity` defaults. These are opposite defaults for opposite jobs: this
+ * kind exists so that clicking a sequence of points yields a smooth curve, and a pen
+ * tool whose default node broke the spline would draw polylines instead.
  */
 function hbPin(node: Node): HbPin {
   const corner = (node.continuity ?? 'smooth') === 'corner';
@@ -823,12 +827,12 @@ function hbIsBreak(p: HbPin): boolean {
  * Solve the tangent angles of a hyperbezier path.
  *
  * Corners and pinned tangents partition the path into RUNS that are solved
- * independently. That is not an optimisation — it is the semantics. A corner is a
+ * independently. That is not an optimisation, it is the semantics. A corner is a
  * declaration that the two sides have nothing to do with each other, so an edit on one
  * side of a corner must not move a single control point on the other, and the only way
- * to guarantee that is for the two sides never to share a solve. The same partition is
- * what keeps the cost of a drag proportional to the run being dragged rather than to
- * the whole path.
+ * to guarantee that is for the two sides to never share a solve. The same partition is
+ * what keeps the cost of a drag proportional to the run being dragged, not to the whole
+ * path.
  *
  * A closed path with no corner and no pinned tangent anywhere is one cyclic run, so its
  * seam is an ordinary join. With at least one break the path is rotated to start there
@@ -910,11 +914,11 @@ export function solveHyperbezier(nodes: Node[], closed: boolean, warm?: Hyperbez
    * Curvature blending at a pinned smooth node.
    *
    * A pinned tangent is a hard constraint, so the two runs meeting at that node solve
-   * to different curvatures there and the join is only G1. Levien's mitigation: aim
-   * both sides at one target curvature — the harmonic mean of what they each wanted, or
-   * zero when they disagree in sign, since there is no sensible mean of a left and a
-   * right bend — and then bend each side towards it. Only the arm-length rescale is
-   * ported; see `hbBlendArm`.
+   * to different curvatures there, and the join is only G1. Levien's fix: aim both
+   * sides at one target curvature (the harmonic mean of what they each wanted, or zero
+   * when they disagree in sign, since there is no sensible mean of a left bend and a
+   * right bend), then bend each side towards it. Only the arm-length rescale is ported;
+   * see `hbBlendArm`.
    */
   const segs: HbSegState[] = [];
   let reversals = 0;
@@ -948,13 +952,13 @@ export function solveHyperbezier(nodes: Node[], closed: boolean, warm?: Hyperbez
 /**
  * Rescale one control arm to aim its end's curvature at `kTarget` (unit-frame).
  *
- * Levien's `1/(2 + k/k_old)`, which his own comment calls dodgy and which is
- * approximate by construction — matching an endpoint curvature exactly needs the
+ * Levien's `1/(2 + k/k_old)`. His own comment calls this formula rough, and it is
+ * approximate by construction: matching an endpoint curvature exactly needs the
  * segment split and a quintic correction field, and that field's amplitude divides by
- * the squared tangent speed, so it is unbounded at a near-cusp. Trading exactness for a
- * bounded, monotone, single-cubic adjustment is the right way round for a curve whose
- * whole reason to exist is behaving while dragged. The clamp is what makes it bounded:
- * arm ∈ [a/4, 2a], so still under one chord.
+ * the squared tangent speed, so it is unbounded near a cusp. Trading exactness for a
+ * bounded, monotone, single-cubic adjustment is the right choice for a curve whose
+ * whole reason to exist is behaving well while dragged. The clamp is what makes it
+ * bounded: arm ∈ [a/4, 2a], so still under one chord.
  */
 function hbBlendArm(arm: number, oldK: number, kTarget: number): number {
   let k = oldK;
@@ -967,15 +971,15 @@ function hbBlendArm(arm: number, oldK: number, kTarget: number): number {
 }
 
 /**
- * Lower a solved hyperbezier to cubics — one per segment, except that a blended
- * segment is still one cubic (see `hbBlendArm`).
+ * Lower a solved hyperbezier to cubics: one per segment, and a blended segment is
+ * still one cubic (see `hbBlendArm`).
  *
- * The unit-frame control points are mapped out by the chord VECTOR rather than by a
+ * The unit-frame control points are placed using the chord VECTOR rather than a
  * rotation and a separate scale, which makes the whole lowering exactly equivariant
- * under any similarity of the input: translate, rotate or uniformly scale the nodes and
- * every emitted coordinate follows exactly, to rounding. Worth stating because it is
- * cheap to lose — normalising the chord and multiplying its length back in later is
- * algebraically identical and numerically is not.
+ * under any similarity of the input: translate, rotate, or uniformly scale the nodes,
+ * and every emitted coordinate follows exactly, to rounding. This is worth stating
+ * because it is easy to lose by accident: normalising the chord and multiplying its
+ * length back in later is algebraically identical but not numerically identical.
  */
 export function hyperbezierCubics(nodes: Node[], closed: boolean, solution: HyperbezierSolution): Cubic[] {
   const n = nodes.length;

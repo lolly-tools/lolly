@@ -7,7 +7,7 @@
  * The issued leaf is checked independently of the writer: a tiny in-file DER
  * walker pulls tbsCertificate + signatureValue out of the cert, the DER
  * ECDSA-Sig-Value is converted back to raw r||s, and WebCrypto verifies it
- * against the ROOT's public key — closing the chain-of-trust loop without
+ * against the ROOT's public key - closing the chain-of-trust loop without
  * trusting any x509.js reader.
  */
 import { test } from 'node:test';
@@ -192,7 +192,7 @@ test('issueLeafCert: leaf parses, chains to the root, carries the c2pa-rs profil
 
   const rf = certFields(root.certDer);
   const lf = certFields(leaf);
-  // issuer Name bytes are the root's subject bytes VERBATIM — the byte-exact
+  // issuer Name bytes are the root's subject bytes VERBATIM - the byte-exact
   // comparison chain verification relies on
   assert.equal(hex(lf.issuerBytes), hex(rf.subjectBytes));
   // the leaf carries the device SPKI verbatim

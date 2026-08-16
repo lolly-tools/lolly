@@ -1,21 +1,21 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
- * WAV provenance tags — the RIFF LIST/INFO chunk, the container's native
- * equivalent of the mp4 ilst / WebM Tags the video exports already carry
+ * WAV provenance tags: the RIFF LIST/INFO chunk. This is the WAV container's
+ * own equivalent of the mp4 ilst / WebM Tags the video exports already write
  * (video-meta.ts). A generated narration clip leaves Lolly as a plain WAV, so
  * its human-readable authorship (title, the AI-declaration comment, an opted-in
- * artist, the writing software) rides where every audio tool already looks:
+ * artist, the writing software) goes where every audio tool already looks:
  *
  *   LIST ▸ INFO ▸ INAM (title) / IART (artist, only when provided) /
  *                 ICMT (comment) / ISFT (software)
  *
  * Pure bytes-in/bytes-out, no DOM, no async. Conservative like the video
  * embedders: anything that is not a walkable RIFF/WAVE file returns the
- * ORIGINAL bytes untouched — a playable file without tags always beats a
+ * ORIGINAL bytes untouched - a playable file without tags always beats a
  * corrupted one with them. A prior LIST/INFO chunk is replaced, never
  * duplicated, so re-tagging is idempotent. Values are UTF-8, NUL-terminated
  * and even-padded per RIFF; the RIFF size field is patched to match. The C2PA
- * credential is a separate top-level chunk (c2pa-containers.ts placeWav) —
+ * credential is a separate top-level chunk (c2pa-containers.ts placeWav) -
  * embed INFO first so the hard binding hashes the finished tag bytes.
  */
 
@@ -23,13 +23,13 @@ import { concatBytes } from './bytes.ts';
 
 /** The INFO fields written. Empty/absent fields are omitted entirely. */
 export interface WavInfoTags {
-  /** INAM — the clip's display title. */
+  /** INAM - the clip's display title. */
   title?: string;
-  /** IART — the author, only when the user opted their details in. */
+  /** IART - the author, only when the user opted their details in. */
   artist?: string;
-  /** ICMT — free-text comment (the AI-declaration line for generated audio). */
+  /** ICMT - free-text comment (the AI-declaration line for generated audio). */
   comment?: string;
-  /** ISFT — the writing software; defaults to 'lolly.tools'. */
+  /** ISFT - the writing software; defaults to 'lolly.tools'. */
   software?: string;
 }
 
@@ -51,7 +51,7 @@ function infoSub(id: string, value: string): Uint8Array {
 /**
  * Write (or replace) the LIST/INFO chunk of a WAV file. Returns the original
  * bytes untouched when the input is not a RIFF/WAVE container, when its chunk
- * list does not walk cleanly, or when no field survives trimming — never
+ * list does not walk cleanly, or when no field survives trimming - never
  * throws, never corrupts.
  */
 export function embedWavInfo(wav: Uint8Array, tags: WavInfoTags): Uint8Array {
@@ -71,7 +71,7 @@ export function embedWavInfo(wav: Uint8Array, tags: WavInfoTags): Uint8Array {
   if (!fields.length) return wav;
 
   // Walk the top-level chunks; drop a prior LIST/INFO (replace, never
-  // duplicate). Bounds-checked — a declared size past EOF makes the file
+  // duplicate). Bounds-checked - a declared size past EOF makes the file
   // unwalkable and the whole write a no-op.
   const dv = new DataView(wav.buffer, wav.byteOffset);
   let drop: { start: number; end: number } | null = null;

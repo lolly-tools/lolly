@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
- * Print-marks & bleed geometry — platform-agnostic, no DOM.
+ * Print-marks & bleed geometry. Platform-agnostic, no DOM.
  *
  * The single source of truth for laying out a print-ready PDF page: where the
  * trim, bleed and media boxes sit, and the vector primitives for crop marks,
@@ -85,7 +85,7 @@ export interface BarCell {
   ink: 'rgb' | 'cmyk' | 'page';
   label?: string;
   spotName?: string;
-  /** Corner radius (pt) for the cell — 0 is a sharp square. Reflects the brand
+  /** Corner radius (pt) for the cell. 0 is a sharp square. Reflects the brand
    *  `--radius`; the shell passes it as barRadiusPt and it is clamped to w/2 here. */
   r: number;
   mark: 'colorbar';
@@ -111,14 +111,14 @@ export interface PrintGeometryOpts {
   marks?: PrintMarksFlags;
   palette?: PaletteSwatch[];
   /** How a brand palette renders in the colour bar:
-   *  • 'cmyk-verify' (default) — the CMYK press bar: four process primaries then
+   *  • 'cmyk-verify' (default): the CMYK press bar. Four process primaries then
    *    each brand colour as an RGB reference cell touching its CMYK substitution,
    *    so a press operator can check the RGB→CMYK swap. For the CMYK formats.
-   *  • 'rgb-swatches' — each brand colour as a single RGB cell, no process
+   *  • 'rgb-swatches': each brand colour as a single RGB cell, no process
    *    primaries and no CMYK pair. For RGB output (RGB PDF / SVG / EPS), where a
    *    CMYK cell would be meaningless. */
   barStyle?: 'cmyk-verify' | 'rgb-swatches';
-  /** Corner radius (pt) applied to every colour-bar cell — from the brand
+  /** Corner radius (pt) applied to every colour-bar cell, from the brand
    *  `--radius`. Clamped to half the cell size. 0 keeps sharp squares. */
   barRadiusPt?: number;
 }
@@ -173,7 +173,7 @@ export function cmykToRgbApprox([c, m, y, k]: Cmyk): RgbTriple {
  * cell beside its CMYK substitution per colour, so a press operator can confirm
  * the RGB→CMYK swap and calibrate against known inks. A swatch locked to a named
  * spot ink carries `spotName` onto both cells, so the shell can annotate the
- * pair with the ink name (e.g. "PANTONE 186 C") rather than raw CMYK numbers —
+ * pair with the ink name (e.g. "PANTONE 186 C") rather than raw CMYK numbers:
  * a genuine spot plate, not a process substitution. Empty palette → the generic
  * process/overprint/tint control bar.
  */
@@ -203,7 +203,7 @@ export function computePrintGeometry({ trimWpt, trimHpt, bleedPt = 0, marks = {}
     lines.push({ x1, y1, x2, y2, mark });
   };
 
-  // Crop (trim) marks — ticks aligned to the trim edges, sitting beyond the bleed.
+  // Crop (trim) marks: ticks aligned to the trim edges, sitting beyond the bleed.
   if (m.crop) {
     // verticals at the trim left/right; horizontals at the trim top/bottom.
     line(trimL, bT, trimL, bT - L, 'crop');  line(bL, trimT, bL - L, trimT, 'crop'); // TL
@@ -212,7 +212,7 @@ export function computePrintGeometry({ trimWpt, trimHpt, bleedPt = 0, marks = {}
     line(trimR, bB, trimR, bB + L, 'crop');  line(bR, trimB, bR + L, trimB, 'crop'); // BR
   }
 
-  // Bleed marks — ticks aligned to the bleed edges (offset from the crop marks).
+  // Bleed marks: ticks aligned to the bleed edges (offset from the crop marks).
   if (m.bleed && bleedPt > 0) {
     line(bL, bT, bL, bT - L, 'bleed');  line(bL, bT, bL - L, bT, 'bleed'); // TL
     line(bR, bT, bR, bT - L, 'bleed');  line(bR, bT, bR + L, bT, 'bleed'); // TR
@@ -220,7 +220,7 @@ export function computePrintGeometry({ trimWpt, trimHpt, bleedPt = 0, marks = {}
     line(bR, bB, bR, bB + L, 'bleed');  line(bR, bB, bR + L, bB, 'bleed'); // BR
   }
 
-  // Registration targets — bullseye + crosshair, centred on each side's margin.
+  // Registration targets: bullseye + crosshair, centred on each side's margin.
   if (m.registration) {
     const reg = (cx: number, cy: number): void => {
       circles.push({ cx, cy, r: rr, mark: 'registration' });
@@ -234,10 +234,10 @@ export function computePrintGeometry({ trimWpt, trimHpt, bleedPt = 0, marks = {}
     reg(bR + half, midY);   // right
   }
 
-  // Colour bar — a row of cells left-aligned in the bottom margin so it clears
+  // Colour bar: a row of cells left-aligned in the bottom margin so it clears
   // the centred bottom registration target. Three modes:
   //  • Brand palette + barStyle 'rgb-swatches' → each brand colour as ONE solid
-  //    RGB cell (for RGB output — RGB PDF / SVG / EPS; a CMYK cell would be moot).
+  //    RGB cell (for RGB output: RGB PDF / SVG / EPS; a CMYK cell would be moot).
   //  • Brand palette + 'cmyk-verify' → the CMYK press bar: four process primaries
   //    for the press to calibrate against, a wider gap, then each brand colour as
   //    an RGB reference swatch touching its CMYK substitution so the RGB→CMYK swap
@@ -249,7 +249,7 @@ export function computePrintGeometry({ trimWpt, trimHpt, bleedPt = 0, marks = {}
     const maxX = m.registration ? (pageW / 2 - rc - 6) : (pageW - M);
     let x = trimL;
     if (palette.length && barStyle === 'rgb-swatches') {
-      // RGB output — one RGB cell per brand colour, a small gap between so the
+      // RGB output: one RGB cell per brand colour, a small gap between so the
       // rounded cells read as distinct swatches. No process primaries, no CMYK.
       let brandCells = 0;
       for (const { rgb, cmyk, label, spotName } of palette) {
@@ -260,7 +260,7 @@ export function computePrintGeometry({ trimWpt, trimHpt, bleedPt = 0, marks = {}
         brandCells += 1;
       }
     } else if (palette.length) {
-      // Solid process primaries first — fixed calibration reference, DeviceCMYK
+      // Solid process primaries first: fixed calibration reference, DeviceCMYK
       // on the cmyk plate (the first four COLOR_BAR_CELLS are C, M, Y, K).
       for (const cmyk of COLOR_BAR_CELLS.slice(0, 4)) {
         if (x + bc > maxX) break;
@@ -268,7 +268,7 @@ export function computePrintGeometry({ trimWpt, trimHpt, bleedPt = 0, marks = {}
         x += bc;
       }
       if (bars.length) x += bgap;                  // wider gap before the brand pairs
-      // Brand pairs — RGB reference cell touching its CMYK substitution. Capped
+      // Brand pairs: RGB reference cell touching its CMYK substitution. Capped
       // on brand cells only (the process primaries above are always kept).
       let brandCells = 0;
       for (const { rgb, cmyk, label, spotName } of palette) {
@@ -289,19 +289,19 @@ export function computePrintGeometry({ trimWpt, trimHpt, bleedPt = 0, marks = {}
     }
   }
 
-  // Provenance labels — small credit text living in the proof margin (the white
+  // Provenance labels: small credit text living in the proof margin (the white
   // reach band; trimmed off at the final cut, like the marks). Anchors only: the
   // engine fixes where/orientation, the shell supplies the strings and measures
   // them for right-alignment. `align` is along the (post-rotation) baseline.
   if (m.provenance && reach > 0) {
     // Anchor each credit to the TRIM edge (inset by li), which is always inboard
-    // of both the bleed tick and the crop tick at every corner — so a mark never
+    // of both the bleed tick and the crop tick at every corner, so a mark never
     // overlays the text, and reading order is "bleed/crop line → then the text".
     // Top edge baselines sit near the page top, clear of the centred top mark.
     labels.push({ slot: 'topLeft',  x: trimL + li, y: li + ls, size: ls, rotation: 0, align: 'left',  mark: 'label' });
     labels.push({ slot: 'topRight', x: trimR - li, y: li + ls, size: ls, rotation: 0, align: 'right', mark: 'label' });
     // Bottom-left, reading upward (90° CCW): starts just inside the trimmed corner
-    // (above the bottom corner ticks) and climbs — the conventional credit spot.
+    // (above the bottom corner ticks) and climbs. The conventional credit spot.
     labels.push({ slot: 'bottomLeftUp', x: reach / 2, y: trimB - li, size: ls, rotation: 90, align: 'left', mark: 'label' });
   }
 

@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
- * deep-encode — one place that turns a linear {@link DeepFrame} into finished
+ * deep-encode - one place that turns a linear {@link DeepFrame} into finished
  * image bytes at the depth the caller asked for. The four writers it wraps
  * (packExr, packRadiance, packPng) are pure and DOM-free, so this module is too:
  * it is the shared core behind the `host.codec` bridge, called identically by
@@ -33,7 +33,7 @@ export function encodeRadiance(frame: DeepFrame, opts: PackRadianceOptions = {})
 
 /**
  * 16-bit sRGB PNG. The frame is converted to sRGB primaries, gamma-encoded and
- * clamped, then written at 16 bits — real per-channel precision (65536 levels),
+ * clamped, then written at 16 bits - real per-channel precision (65536 levels),
  * so gradients and grading math that the 8-bit path bands come out smooth. Not
  * an HDR container: HDR PNG is the separate PQ path in the shells. cICP is
  * tagged sRGB (primaries 1, transfer 13) so viewers read it unambiguously.

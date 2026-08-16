@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
- * Lolly pixel watermark — synthetic round-trip tests (no image codec; pure RGBA
+ * Lolly pixel watermark - synthetic round-trip tests (no image codec; pure RGBA
  * buffers). Robustness against real JPEG/resize/crop lives in the separate
  * sharp-based suite, tests/pixel-watermark-robustness.test.ts.
  * Run with: node --test tests/pixel-watermark.test.ts
@@ -12,12 +12,12 @@ import {
   embedWatermark, detectWatermark, canCarryWatermark, DETECT_THRESHOLD, MIN_IMPRINT_BLOCKS,
 } from '../engine/src/pixel-watermark.ts';
 
-// A deterministic textured RGBA buffer — a smooth gradient plus per-pixel white
+// A deterministic textured RGBA buffer - a smooth gradient plus per-pixel white
 // noise. NON-periodic on purpose: a regular pattern (e.g. a fixed checker) puts a
 // consistent signature in the mid-band that biases the unmarked baseline away
 // from zero, which real photographic content does not do. White noise keeps every
 // block above the flat-block gate while staying uncorrelated with the chip, so an
-// unmarked score sits ≈ 0 — matching the real-image calibration.
+// unmarked score sits ≈ 0 - matching the real-image calibration.
 function texture(w: number, h: number, seed = 1): Uint8Array {
   const px = new Uint8Array(w * h * 4);
   let a = seed >>> 0;
@@ -106,13 +106,13 @@ test('images smaller than one 8×8 block are a no-op (returned unchanged, absent
   assert.equal(d.blocks, 0);
 });
 
-// ── canCarryWatermark — the imprint-on-embed size floor ──────────────────────
+// ── canCarryWatermark - the imprint-on-embed size floor ──────────────────────
 // The PDF/PPTX embed chokepoints (shells/web/src/bridge/export*.ts) gate every
 // Lolly-rendered raster on this before imprinting, so a tiny gradient chip or icon
 // isn't marked with a signal it could never carry durably.
 
 test('canCarryWatermark: the boolean is exactly floor(w/8)·floor(h/8) ≥ MIN_IMPRINT_BLOCKS', () => {
-  // Independent recomputation of the block count — never calls the same code path.
+  // Independent recomputation of the block count - never calls the same code path.
   const blocks = (w: number, h: number): number => Math.floor(w / 8) * Math.floor(h / 8);
   for (const [w, h] of [[64, 64], [232, 232], [239, 239], [240, 240], [248, 248], [1280, 720], [100, 1600], [300, 50]] as const) {
     assert.equal(canCarryWatermark(w, h), blocks(w, h) >= MIN_IMPRINT_BLOCKS, `${w}×${h} (${blocks(w, h)} blocks vs floor ${MIN_IMPRINT_BLOCKS})`);
@@ -121,7 +121,7 @@ test('canCarryWatermark: the boolean is exactly floor(w/8)·floor(h/8) ≥ MIN_I
 
 test('canCarryWatermark: the embed floor stays at the ~195px crossover (decoupled from detection)', () => {
   // The embed-size floor is derived from MIN_IMPRINT_THRESHOLD (0.035), NOT the
-  // detection floor — DETECT_THRESHOLD was raised 0.035→0.06 to reject the HDR
+  // detection floor - DETECT_THRESHOLD was raised 0.035→0.06 to reject the HDR
   // false positive, but that must not change which images we imprint. So the
   // ~594-block / ~195² crossover holds regardless. Pin it so a future band/embed
   // retune (not a detection retune) updates the copy.

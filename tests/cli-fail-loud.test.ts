@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
- * "Wrong file, exit 0" is the worst thing this CLI can do — these cases pin that it
+ * "Wrong file, exit 0" is the worst thing this CLI can do - these cases pin that it
  * doesn't.
  *
  * Every case here corresponds to a defect where the shell produced a plausible-looking
@@ -20,7 +20,7 @@
  *   7. Unknown flags were swallowed silently.
  *   8. The --output EXTENSION was decoration. `--output=times.csv` on a tool that does
  *      not declare csv fell through to the tool's first format and wrote PNG under the
- *      .csv name, exit 0 — while `--export=csv` on the same tool exited 2.
+ *      .csv name, exit 0 - while `--export=csv` on the same tool exited 2.
  *   9. `--export`/`--format` on a TRANSFORM tool (file in → bytes out) was accepted and
  *      dropped: the reserved param never reaches an exportFile hook, so `--export=png`
  *      printed a success line for a file full of JPEG.
@@ -61,7 +61,7 @@ function manifest(id: string, formats: string[]): string {
 }
 
 // layout-tool: an HTML layout with TWO drawable children, so the bridge's rootSvgOf
-// answers null (a container with two children is a layout, not a wrapper) — the exact
+// answers null (a container with two children is a layout, not a wrapper) - the exact
 // shape that used to trigger the silent svg→html substitution.
 const LAYOUT_TEMPLATE = '<div><p>{{label}}</p><p>second box</p></div>';
 // vec-tool: a native <svg>, so the DOM-free path succeeds and nothing escalates.
@@ -88,7 +88,7 @@ for (const [id, template, formats] of [
 
 // xform-tool: an on-device transform (file in → bytes out). Its output container is
 // dictated by the file it was given, so a reserved `format`/`export` has nothing to act
-// on — accepting one printed a success line for a mislabelled file.
+// on - accepting one printed a success line for a mislabelled file.
 await mkdir(join(root, 'tools', 'xform-tool'), { recursive: true });
 await writeFile(join(root, 'tools', 'xform-tool', 'tool.json'), JSON.stringify({
   id: 'xform-tool',
@@ -115,7 +115,7 @@ const { runToolCli, needsBrowserTier, unknownFlags } = await import('../shells/c
 
 /**
  * Run the CLI, capturing the stderr it would print. `stderr` is filled in whether the
- * run resolves or throws — several of these cases care about what was printed BEFORE a
+ * run resolves or throws - several of these cases care about what was printed BEFORE a
  * failure (the escalation note), which a return value alone cannot carry.
  */
 async function run(args: Parameters<typeof runToolCli>[0]): Promise<{ stderr: string }> {
@@ -190,7 +190,7 @@ test('svg on an HTML-layout tool ESCALATES to the browser tier before giving up'
 test('escalation is gated on the error TYPE, not its wording', async () => {
   // A RenderIntegrityError means this runtime's own render is broken; re-running it in a
   // browser would only launder the bug, so it must NOT escalate. Modelled by a tool whose
-  // onInit throws — the runtime records it in hookErrors and assertRenderOk refuses.
+  // onInit throws - the runtime records it in hookErrors and assertRenderOk refuses.
   await mkdir(join(root, 'tools', 'broken-tool'), { recursive: true });
   await writeFile(join(root, 'tools', 'broken-tool', 'tool.json'), JSON.stringify({
     id: 'broken-tool', name: 'broken-tool', version: '1.0.0', engineVersion: '^1.0.0', status: 'community',
@@ -234,7 +234,7 @@ test('sniffFormat identifies the containers the CLI writes', () => {
   webp.set(new TextEncoder().encode('RIFF'), 0);
   webp.set(new TextEncoder().encode('WEBP'), 8);
   assert.equal(sniffFormat(webp), 'webp');
-  // No opinion on something unrecognised — "unknown" must never mean "wrong".
+  // No opinion on something unrecognised - "unknown" must never mean "wrong".
   assert.equal(sniffFormat(new TextEncoder().encode('id,name\n1,x\n')), null);
 });
 
@@ -316,7 +316,7 @@ test('--bleed/--marks on a format that cannot carry page geometry is refused', a
 
 test('a format that CAN carry page geometry is not refused by that check', async () => {
   // It still fails (no browser tier in this fixture), but for the tier reason, never
-  // "--bleed cannot be applied" — the allowlist must not be over-broad.
+  // "--bleed cannot be applied" - the allowlist must not be over-broad.
   const out = outPath('pdf');
   await assert.rejects(
     () => run({ toolId: 'vec-tool', params: { bleed: '3mm' }, outputPath: out, format: 'pdf' }),

@@ -1,12 +1,12 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
- * Cubic Bézier kernel — the geometric substrate for boolean operations, offsetting
+ * Cubic Bézier kernel - the geometric substrate for boolean operations, offsetting
  * and stroke outlining.
  *
  * ## Why cubics only
  *
  * Every path that reaches the engine is already normalised to moves, lines and cubics
- * (`PathSegment` in svg-path.ts — arcs and quadratics are converted at parse time).
+ * (`PathSegment` in svg-path.ts - arcs and quadratics are converted at parse time).
  * So a geometry layer here needs exactly one curve type, and a line is just a cubic
  * whose control points are collinear. That single fact removes most of the case
  * analysis that makes boolean geometry libraries large.
@@ -21,7 +21,7 @@
  * cubic precision and produces parameters (`t`) on the original curves, so a result
  * point is computed FROM the curve rather than approximated near it.
  *
- * Flattening still appears in this file — `flattenCubic` — but only where a caller
+ * Flattening still appears in this file - `flattenCubic` - but only where a caller
  * genuinely wants a polyline (a preview, a test oracle), never inside the geometry.
  */
 
@@ -39,7 +39,7 @@ export function lineToCubic(x0: number, y0: number, x1: number, y1: number): Cub
   return [x0, y0, x0 + (x1 - x0) / 3, y0 + (y1 - y0) / 3, x0 + (2 * (x1 - x0)) / 3, y0 + (2 * (y1 - y0)) / 3, x1, y1];
 }
 
-/** Point on the curve at `t`, by de Casteljau — not by expanding the polynomial.
+/** Point on the curve at `t`, by de Casteljau - not by expanding the polynomial.
  *  The expanded form loses precision near t=1 for curves far from the origin. */
 export function evalCubic(c: Cubic, t: number): Pt {
   const mt = 1 - t;
@@ -105,7 +105,7 @@ function quadRoots01(a: number, b: number, c: number): number[] {
   return out;
 }
 
-/** The `t` values where the curve turns in x or y — its extrema. */
+/** The `t` values where the curve turns in x or y - its extrema. */
 export function extremaCubic(c: Cubic): number[] {
   const ts: number[] = [];
   for (const off of [0, 1]) {
@@ -123,7 +123,7 @@ export function extremaCubic(c: Cubic): number[] {
 export interface Box { x0: number; y0: number; x1: number; y1: number }
 
 /**
- * TIGHT bounding box — the curve's actual extent, not its control hull.
+ * TIGHT bounding box - the curve's actual extent, not its control hull.
  *
  * The hull is cheaper and is what most code reaches for, but it can be several times
  * too large for a curve with far-flung controls, and every wasted box overlap costs
@@ -179,7 +179,7 @@ export function lengthCubic(c: Cubic, tol = 0.01, depth = 0): number {
 /**
  * Polyline approximation to a tolerance.
  *
- * Deliberately NOT used by the geometry in this directory — it exists for callers who
+ * Deliberately NOT used by the geometry in this directory - it exists for callers who
  * genuinely want a polyline (a preview, a format with no curves, a brute-force test
  * oracle). Using it inside an intersector or a boolean is the shortcut this whole
  * module exists to avoid.
@@ -195,7 +195,7 @@ export function flattenCubic(c: Cubic, tol = 0.1): Pt[] {
   return out;
 }
 
-/** True when every control point lies on the chord, to `tol` — the curve IS a line
+/** True when every control point lies on the chord, to `tol` - the curve IS a line
  *  and can be handled by exact algebra rather than by iteration. */
 export function isLineCubic(c: Cubic, tol = 1e-9): boolean {
   return flatnessCubic(c) <= tol;
@@ -206,15 +206,15 @@ export function isLineCubic(c: Cubic, tol = 1e-9): boolean {
 /**
  * Scratch buffers for the root solve, one set per recursion level.
  *
- * A polynomial here is a `Float64Array` of ascending coefficients — `co[i]` multiplies
- * t^i — plus a length, because the working degree drops as leading terms are trimmed.
+ * A polynomial here is a `Float64Array` of ascending coefficients - `co[i]` multiplies
+ * t^i - plus a length, because the working degree drops as leading terms are trimmed.
  * Ascending is the order the recursion wants: differentiating then only walks the tail.
  *
  * They are module-level and reused because `nearestOnCubic` runs per curve per frame in
  * the editor's hit testing and per measured sample inside offsetting, and allocating a
  * dozen short-lived arrays per call was measurably the largest single cost of the solve.
  * Safe to share only because the recursion descends one level at a time and nothing here
- * is async or reentrant — a level never sees another level's buffer.
+ * is async or reentrant - a level never sees another level's buffer.
  */
 const CO_BUF: Float64Array[] = [];
 const KN_BUF: Float64Array[] = [];
@@ -230,7 +230,7 @@ function polyEval(co: Float64Array, n: number, t: number): number {
   return v;
 }
 
-/** Value AND slope from one Horner sweep — the derivative falls out of the same partial
+/** Value AND slope from one Horner sweep - the derivative falls out of the same partial
  *  products, so a Newton step costs one traversal rather than two and needs no separate
  *  derivative array. The slope lands in a module-level slot because returning a pair would
  *  allocate on a path that runs tens of times per call. */
@@ -248,7 +248,7 @@ function polyEvalD(co: Float64Array, n: number, t: number): number {
  *
  * Newton where Newton behaves, bisection where it does not: the step is taken only if it
  * lands strictly inside the live bracket, and a bisection is forced periodically so a
- * stalled iteration still halves the interval — which is what makes the iteration count
+ * stalled iteration still halves the interval - which is what makes the iteration count
  * bounded rather than hopeful. The first guess is false position rather than the midpoint,
  * because the bracket comes from consecutive critical points and f is monotone across it,
  * so the secant is usually already close. This is the same bracket-then-polish discipline
@@ -278,7 +278,7 @@ function rootInBracket(
     let next = df !== 0 ? t - f / df : Number.NaN;
     if (!(next > a && next < b)) next = a + ((b - a) * fa) / (fa - fb);
     // Newton converges from ONE side, so the bracket stops shrinking even as `t` lands on
-    // the root — which is why the safeguard is a schedule and not a stall detector. It only
+    // the root - which is why the safeguard is a schedule and not a stall detector. It only
     // starts after Newton has had its eight quadratic steps (interrupting it earlier
     // measurably costs iterations by throwing away a converged guess), and from then on
     // every other step halves the interval, so the bracket-width exit is always reached.
@@ -291,8 +291,8 @@ function rootInBracket(
 
 /**
  * Every sign-changing root in [0,1] of the polynomial in `co[0..len-1]`, written into
- * `out` and counted by the return value. With `withCritical`, the isolating knots — the
- * derivative's own roots — are appended too; with `minimaOnly`, roots where the sign falls
+ * `out` and counted by the return value. With `withCritical`, the isolating knots - the
+ * derivative's own roots - are appended too; with `minimaOnly`, roots where the sign falls
  * through zero are located but not refined. Both flags are for the top-level call only,
  * and both are explained where they are used below.
  *
@@ -302,13 +302,13 @@ function rootInBracket(
  * monotone there and has at most one root, which a sign change at the ends detects. Zeros
  * of f' that do not change sign need not be knots at all, for the same reason: f stays
  * monotone across them. So isolating f's roots by f's critical points is complete rather
- * than lucky — and the argument repeats one level down, isolating f''s roots by f'''s, until
+ * than lucky - and the argument repeats one level down, isolating f''s roots by f'''s, until
  * the derivative is a quadratic and its roots are closed-form. Three levels of that solve a
  * quintic with no grid, no starting guess and nothing to tune. A sample-and-refine search
  * can only ever bracket features wider than its own step, which is precisely the defect
  * this replaced and which no sample count fixed.
  *
- * offset.ts isolates ITS quintic (dκ/dt) differently — Bernstein form plus Descartes'
+ * offset.ts isolates ITS quintic (dκ/dt) differently - Bernstein form plus Descartes'
  * rule, subdividing until one sign change is left. That is equally complete and it is the
  * better shape when the answer only has to be good to ~1e-7, which is all a split point
  * needs. It is the worse shape here, where the answer is a measured distance and has to be
@@ -384,7 +384,7 @@ function rootsIn01(
     if (f === 0) out[count++] = k;
     // Rising through zero is a MINIMUM of the objective this polynomial differentiates;
     // falling through it is a maximum. `minimaOnly` locates the maxima but does not refine
-    // them — worth about an eighth of the brackets, measured — and is only ever set by the
+    // them - worth about an eighth of the brackets, measured - and is only ever set by the
     // one caller that wants the smallest distance. It must stay off inside the recursion,
     // where the roots are isolating knots and every one of them is needed.
     else if (pf < 0 && f > 0) out[count++] = rootInBracket(co, n, pt, k, pf, f, fTol);
@@ -400,15 +400,15 @@ function rootsIn01(
  * distance.
  *
  * Wanted by three callers that look unrelated and are not: a pen tool's hit testing
- * and "insert node here", snapping, and — the reason it lives in the kernel rather
- * than in a UI — measuring the true error of an approximate offset curve, which is
+ * and "insert node here", snapping, and - the reason it lives in the kernel rather
+ * than in a UI - measuring the true error of an approximate offset curve, which is
  * how Stage 3 decides where to subdivide. Also the retain test in offset.ts, which
  * decides which contours of an offset are material at all, so a wrong answer here does
  * not degrade a result, it deletes or invents whole shapes.
  *
  * ## Solved, not searched
  *
- * The nearest point satisfies `(C(t) - P) · C'(t) = 0` — the vector to the point is
+ * The nearest point satisfies `(C(t) - P) · C'(t) = 0` - the vector to the point is
  * perpendicular to the tangent. C is cubic and C' quadratic, so that condition is a
  * QUINTIC in t with coefficients in closed form from the control points and P. So this
  * is a root-finding problem with an exact statement, and the answer is the best of every
@@ -443,8 +443,8 @@ export function nearestOnCubic(c: Cubic, px: number, py: number, _samples?: numb
   const n = rootsIn01(q, 6, 0, cand, true, true);
 
   // Both endpoints join the candidate list. They are genuinely the answer a great deal of
-  // the time and are not roots of anything, so the root solve alone would miss them — the
-  // classic omission in this algorithm — and having them there also means a curve whose
+  // the time and are not roots of anything, so the root solve alone would miss them - the
+  // classic omission in this algorithm - and having them there also means a curve whose
   // quintic degenerated to nothing (every control point coincident) still returns a real
   // point rather than Infinity.
   cand[n] = 0; cand[n + 1] = 1;
@@ -460,7 +460,7 @@ export function nearestOnCubic(c: Cubic, px: number, py: number, _samples?: numb
 }
 
 /** Signed area enclosed by the curve and the chord closing it, by Green's theorem.
- *  Exact for a cubic — no sampling. Used for winding and orientation. */
+ *  Exact for a cubic - no sampling. Used for winding and orientation. */
 export function signedAreaCubic(c: Cubic): number {
   const [x0, y0, x1, y1, x2, y2, x3, y3] = c;
   return (

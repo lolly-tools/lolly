@@ -1,49 +1,50 @@
 // SPDX-License-Identifier: MPL-2.0
-// ─── Lolly pixel watermark — multi-scale + offset recovery search ─────────────
+// --- Lolly pixel watermark - multi-scale + offset recovery search ---
 //
-// A DOM-free wrapper around the UNCHANGED `detectWatermark` (pixel-watermark.ts)
-// that recovers a Lolly Imprint from a candidate whose 8×8 embed grid no longer
-// starts at pixel (0,0) — because the file was CROPPED (phase shift) or MODERATELY
-// RESIZED (pitch change). It never re-implements the DCT/correlation: it only
+// A DOM-free wrapper around the UNCHANGED `detectWatermark` (pixel-watermark.ts).
+// It recovers a Lolly Imprint from a candidate whose 8x8 embed grid no longer
+// starts at pixel (0,0), because the file was CROPPED (phase shift) or MODERATELY
+// RESIZED (pitch change). It never re-implements the DCT/correlation. It only
 // re-slices / re-samples the RGBA buffer and re-applies a family-wise-corrected
 // presence decision to the score `detectWatermark` returns for each hypothesis.
 //
 // TWO ORTHOGONAL HYPOTHESIS AXES
-//   1) 8×8 block-phase offset (crop/border recovery, CHEAP). detectWatermark
-//      always starts its grid at (0,0); a crop or padding by any amount shifts the
+//   1) 8x8 block-phase offset (crop/border recovery, CHEAP). detectWatermark
+//      always starts its grid at (0,0). A crop or padding by any amount shifts the
 //      true grid's phase by (cropLeft mod 8, cropTop mod 8), so trying all 64
-//      (dx,dy) in 0..7 is EXHAUSTIVE for pure translation. No resample, no new DCT.
+//      (dx,dy) in 0..7 covers every case of pure translation. No resample, no new DCT.
 //   2) Scale (moderate-resize recovery, EXPENSIVE and honestly bounded). A pure
-//      bilinear resample of the CANDIDATE (we never see the original) by S ≈ 1/P
-//      roughly restores the original 8px pitch a platform resize by P disturbed.
-//      Candidate scales are quarter-octave, 0.5×–2×. This is NOT aggressive-social-
+//      bilinear resample of the CANDIDATE (we never see the original) by S ~= 1/P
+//      roughly restores the original 8px pitch that a platform resize by P disturbed.
+//      Candidate scales are quarter-octave, 0.5x-2x. This is NOT aggressive-social-
 //      downscale recovery: a heavy downscale is a low-pass filter AT EMBED TIME that
-//      destroys the mid-band outright, and our undo pass compounds a second lossy
-//      resample on top — so scale-recovered true positives sit BELOW the pristine
-//      crop/JPEG calibration range and the band deliberately stops at 2×.
+//      destroys the mid-band outright, and our undo pass adds a second lossy
+//      resample on top. So scale-recovered true positives sit BELOW the pristine
+//      crop/JPEG calibration range, and the band deliberately stops at 2x.
 //
 // NON-GOALS (keep the hypothesis space bounded and the claim honest): no rotation,
 // no aspect-distorting (non-uniform x/y) scale, no aggressive-downscale recovery
-// (that needs a resize-invariant embedding scheme — "Path B", out of scope).
+// (that needs a resize-invariant embedding scheme, "Path B", out of scope).
 //
 // FALSE-POSITIVE CONTROL. Trying K quasi-independent hypotheses against the same
-// null and taking the max inflates the family-wise FP rate ~K-fold at the single-
-// hypothesis threshold — unacceptable, since a false "made with Lolly" is a trust
-// claim, worse than a miss (which just reads "inconclusive"). Two guards, both
-// required: (1) a Bonferroni-corrected σ term via the engine's `detectionThreshold(
-// nCoef, K)`, and (2) an EMPIRICALLY-calibrated flat floor SEARCH_DETECT_FLOOR
-// that replaces the 0.035 single-hypothesis floor in the large-image regime — the
-// 0.035 floor bounds a STRUCTURED resize-artifact bias the Gaussian model doesn't
-// capture, and a max over many re-croppings/resamplings of the same image raises
-// the chance of hitting that bias's own peak. SEARCH_DETECT_FLOOR was measured by
-// running the FULL grid over a battery of unmarked images + their crop/JPEG/resize
-// derivatives and setting the floor a safety margin above the observed max — see
-// tests/watermark-search.test.ts (the same way DETECT_THRESHOLD=0.035 itself was
-// calibrated against a measured 0.017 in the robustness suite).
+// null and taking the max inflates the family-wise FP rate about K-fold at the
+// single-hypothesis threshold. That is unacceptable, since a false "made with
+// Lolly" is a trust claim, worse than a miss (which just reads "inconclusive").
+// Two guards are both required: (1) a Bonferroni-corrected sigma term via the
+// engine's `detectionThreshold(nCoef, K)`, and (2) an EMPIRICALLY-calibrated flat
+// floor SEARCH_DETECT_FLOOR that replaces the 0.035 single-hypothesis floor in the
+// large-image regime. The 0.035 floor bounds a STRUCTURED resize-artifact bias
+// that the Gaussian model does not capture, and a max over many re-croppings or
+// resamplings of the same image raises the chance of hitting that bias's own peak.
+// SEARCH_DETECT_FLOOR was measured by running the FULL grid over a battery of
+// unmarked images plus their crop/JPEG/resize derivatives, then setting the floor
+// a safety margin above the observed max. See tests/watermark-search.test.ts
+// (the same way DETECT_THRESHOLD=0.035 itself was calibrated against a measured
+// 0.017 in the robustness suite).
 //
-// Pure array math, mirroring the rest of engine/src — but ASYNC, so it can yield
+// Pure array math, like the rest of engine/src, but ASYNC so it can yield
 // cooperatively during a long grid (setTimeout exists in Node too, so this stays
-// DOM-free; it just isn't purely synchronous like detectWatermark).
+// DOM-free; it just is not purely synchronous like detectWatermark).
 
 import {
   detectWatermark, detectionThreshold, V2_BAND_SIZE,
@@ -65,27 +66,28 @@ export interface SearchResult extends DetectResult {
 
 // ── Empirically-calibrated flat detection floor for the search path ───────────
 // MEASURED, not derived. Over a 320-trial adversarial sweep at the worst regime
-// (256² — the σ/floor crossover — photoLike + white-noise + flat, each crossed with
-// JPEG q55/q80, crop and resize derivatives, full 576-cell grid) the max normalized-
-// correlation score seen ANYWHERE on the grid was ~0.0804 (and, tellingly, the
-// Bonferroni σ term ALONE let 2 of those clear its bar — the structured resize-
-// artifact bias the Gaussian model doesn't capture, exactly the caveat that makes
-// this empirical floor load-bearing rather than decorative). 0.12 sits ~1.5× above
-// that observed max and produced 0 false positives across the whole sweep. It's a
-// deliberately TIGHT choice: the weakest MODERATE true positive (a half-block crop,
-// ~0.21) is only ~2.6× above the FP max, so a full 2× margin on both sides is
-// impossible — and a false "made with Lolly" (a trust claim) is worse than a miss
-// (which reads "inconclusive"), so the margin is spent on the FP side. Moderate crop
-// (~0.21, ×1.75) and resize (~0.50, ×4) still clear it; heavy COMPOUND degradation
-// (crop + aggressive JPEG on a large image) can fall below and is honestly not
-// recovered. Recalibrate here (only here) if the grid/fixtures change — the pin test
-// (tests/watermark-search.test.ts) fails loudly if the measured max nears this value.
+// (256^2, the sigma/floor crossover, photoLike + white-noise + flat, each crossed
+// with JPEG q55/q80, crop and resize derivatives, full 576-cell grid), the max
+// normalized-correlation score seen ANYWHERE on the grid was about 0.0804. Notably,
+// the Bonferroni sigma term ALONE let 2 of those clear its bar. That is the
+// structured resize-artifact bias the Gaussian model does not capture, and it is
+// exactly why this empirical floor is required, not decorative. 0.12 sits about
+// 1.5x above that observed max and produced 0 false positives across the whole
+// sweep. It is a deliberately TIGHT choice: the weakest MODERATE true positive (a
+// half-block crop, about 0.21) is only about 2.6x above the FP max, so a full 2x
+// margin on both sides is not possible. A false "made with Lolly" (a trust claim)
+// is worse than a miss (which reads "inconclusive"), so the margin is spent on the
+// FP side. Moderate crop (about 0.21, x1.75) and resize (about 0.50, x4) still
+// clear it; heavy COMPOUND degradation (crop + aggressive JPEG on a large image)
+// can fall below and is honestly not recovered. Recalibrate here (only here) if the
+// grid/fixtures change: the pin test (tests/watermark-search.test.ts) fails loudly
+// if the measured max nears this value.
 export const SEARCH_DETECT_FLOOR = 0.12;
 
-// ── Hypothesis grid ───────────────────────────────────────────────────────────
+// -- Hypothesis grid --
 // Quarter-octave scales S = 2^(k/4), k = -4..4. 1.00 is the fast-path identity and
-// is excluded from the PAID (resample) search. Non-unity scales are ordered nearest-
-// to-1 first: moderate resize is both more common and more recoverable than extreme.
+// is excluded from the PAID (resample) search. Non-unity scales are ordered nearest
+// to 1 first: moderate resize is both more common and more recoverable than extreme.
 const SCALE_ORDER: readonly number[] = [0.84, 1.19, 0.71, 1.41, 0.59, 1.68, 0.5, 2.0];
 
 // Family sizes for the Bonferroni σ term (fpControl). Tier 1 = 64 scale-1 offsets.
@@ -103,7 +105,7 @@ const DEFAULT_HYPOTHESIS_BUDGET = 640;
 // pixels only add redundant blocks; capping the long edge bounds worst-case wall-
 // clock. Applied ONCE via the same bilinear primitive before either tier. NB: on an
 // image ABOVE this cap the cap is itself a resample, so integer-exact crop recovery
-// (Tier 1) degrades slightly there — the common case (≤ this size) is unaffected.
+// (Tier 1) degrades slightly there - the common case (≤ this size) is unaffected.
 const MAX_WORK_EDGE = 2000;
 
 // Cooperative yield cadence (mirrors valid.ts scanRgbaImages' YIELD_EVERY) so a
@@ -152,7 +154,7 @@ export function bilinearResampleRgba(
 
 /**
  * Drop the first `dx` columns and `dy` rows of an RGBA buffer into a new
- * (w−dx)×(h−dy) buffer — the phase-offset primitive Tier 1 uses to realign a
+ * (w−dx)×(h−dy) buffer - the phase-offset primitive Tier 1 uses to realign a
  * cropped candidate's 8×8 grid. dx,dy in 0..7; (0,0) returns a plain copy view.
  */
 function cropOrigin(
@@ -169,7 +171,7 @@ function cropOrigin(
 
 // The K-adjusted presence decision for one hypothesis: the correlation must clear
 // BOTH the empirical flat floor AND the Bonferroni σ term (the latter dominates on
-// small images where the null is wide). nCoef ≈ blocks × V2_BAND_SIZE — accurate
+// small images where the null is wide). nCoef ≈ blocks × V2_BAND_SIZE - accurate
 // when the v2 scheme is the one correlating (the common case; a legacy v1-only mark
 // would be scored against v2's block count, a pre-existing DetectResult limitation).
 function passes(r: DetectResult, hypotheses: number): boolean {

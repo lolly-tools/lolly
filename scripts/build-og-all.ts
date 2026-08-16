@@ -6,7 +6,7 @@
  * WHY THIS EXISTS. The per-tool cards (catalog/og/<id>.png) and per-view cards
  * (catalog/og/views/<slug>.png) are COMMITTED into each brand's catalog, but
  * `npm run og` (build-tool-og.ts + build-view-og.ts) only ever renders into the
- * active profile's catalog/ view — the exact per-brand drift problem
+ * active profile's catalog/ view - the exact per-brand drift problem
  * build-catalog-all.ts fixes for tools/index.json. Editing a community tool's
  * card inputs (name, description, icon, preview) refreshed the active brand's
  * cards and silently left the other brand's stale.
@@ -15,7 +15,7 @@
  *   node scripts/build-og-all.ts --preserve    # keep existing cards, fill gaps only
  *
  * The stubs (shells/web/public/t/*.html, view/*.html) are gitignored and
- * per-deploy, so only the LAST profile's stubs remain on disk — the loop runs the
+ * per-deploy, so only the LAST profile's stubs remain on disk - the loop runs the
  * original/active profile last so what's left matches what you had. THE ACTIVE
  * PROFILE IS ALWAYS RESTORED, including when a render throws (same contract as
  * build-catalog-all.ts). Profiles whose packs aren't mounted are SKIPPED, not
@@ -80,7 +80,7 @@ function main(): void {
       for (const s of OG) run(s, preserve ? ['--preserve'] : []);
     }
   } finally {
-    // Compare against where the loop ACTUALLY left us — a throw mid-loop can strand
+    // Compare against where the loop ACTUALLY left us - a throw mid-loop can strand
     // us on a profile the user didn't choose.
     const now = existsSync(STATE_FILE) ? readFileSync(STATE_FILE, 'utf8').trim() : null;
     if (original && now !== original) {

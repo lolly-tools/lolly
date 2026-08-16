@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
- * The wire form of an `AuthoredPath` — what a pen shape looks like inside one
+ * The wire form of an `AuthoredPath` - what a pen shape looks like inside one
  * `blocks` sub-field, and therefore inside a share link.
  *
  * ## Why this is not JSON
@@ -14,7 +14,7 @@
  * The compact form's two separators cannot be escaped. The value is pushed into
  * the query and `URLSearchParams` percent-DECODES the whole thing before the
  * block splitter runs, so a `%2C` written on the way out is a real `,` again on
- * the way in — which is exactly why `encodeBlocksCompact` refuses to emit a
+ * the way in - which is exactly why `encodeBlocksCompact` refuses to emit a
  * compact string at all when any value contains `,` or `~`. `AuthoredPath` JSON
  * is nothing but commas, so a JSON path field would silently force every
  * design link that contains one pen shape onto the JSON fallback: the
@@ -36,7 +36,7 @@
  *     cont   := "c" | "s" | "y"          // corner | smooth | symmetric
  *
  * `_` separates records, `!` separates fields, `1` is the format version, and
- * trailing empty fields are trimmed — so the common case (a node-only spline
+ * trailing empty fields are trimmed - so the common case (a node-only spline
  * such as `hyperbezier`, which owns its own handles) costs two numbers per node
  * and nothing else. An empty field means "absent", not zero, so a node that
  * declares no handles round-trips as a node that declares no handles rather
@@ -44,7 +44,7 @@
  *
  * `kind` is written out in full and validated only for SHAPE (`[a-z][a-z0-9-]*`),
  * never against a list. A spline family added in a later engine has to travel
- * through this codec unchanged — the engine that lowers it is the one that gets
+ * through this codec unchanged - the engine that lowers it is the one that gets
  * to say whether it knows the name (see `GeomAPI.fromNodes`).
  *
  * ## Why there is a plural form
@@ -54,7 +54,7 @@
  * value is a LIST of paths, `*`-separated, and `fill-rule` does its job across
  * them. `*` is the separator because it is in `encodeURIComponent`'s unreserved
  * set (so the value still expands by zero bytes), it is neither blocks delimiter
- * (`,` / `~`), and nothing else in the grammar can emit it — records are `_`,
+ * (`,` / `~`), and nothing else in the grammar can emit it - records are `_`,
  * fields are `!`, `kind` is `[a-z][a-z0-9-]*`, continuity is `c`/`s`/`y`, and
  * `numOut` emits only digits, `.` and `-`.
  *
@@ -77,7 +77,7 @@ import type { AuthoredPath, Continuity, Node } from './spline.ts';
  *  neither is a blocks-URL delimiter. */
 const REC = '_';
 const FLD = '!';
-/** Path separator for the multi-contour form — see the header. Unreserved under
+/** Path separator for the multi-contour form - see the header. Unreserved under
  *  `encodeURIComponent`, not a blocks delimiter, and unreachable by any other
  *  production in the grammar. */
 const PTH = '*';
@@ -97,7 +97,7 @@ const DECIMALS = 6;
  *  path encodes to well under this) and low enough that a hostile field costs
  *  nothing to reject. */
 const MAX_CHARS = 400_000;
-/** Nodes in one decoded VALUE — matches the geom API's own `maxNodes`. Counted
+/** Nodes in one decoded VALUE - matches the geom API's own `maxNodes`. Counted
  *  across the whole payload rather than per path, so a value carrying N paths
  *  cannot multiply the ceiling by N. */
 const MAX_NODES = 20_000;
@@ -112,7 +112,7 @@ const CONT_IN: Record<string, Continuity> = { c: 'corner', s: 'smooth', y: 'symm
 /**
  * A number, shortest safe decimal. Rounded to `DECIMALS`, exponent forms
  * rejected (they carry an `e+`, which is legal here but pointless, and a `+`
- * that percent-encodes), and a leading `0` before the point dropped — `.5`
+ * that percent-encodes), and a leading `0` before the point dropped - `.5`
  * instead of `0.5`, `-.5` instead of `-0.5`. `Number()` reads both back
  * exactly, and over a few hundred nodes the byte per coordinate is real.
  */
@@ -134,7 +134,7 @@ function numOut(v: number): string {
  * of −3e-18 (what `sin(π)` leaves behind) is not zero, but it writes as `0` at six
  * decimals and reads back as zero, so testing the raw value would encode it as `0`
  * and re-encode it as `''`. The format has to be a fixed point under
- * decode∘encode — otherwise re-sharing an opened link changes its bytes, and any
+ * decode∘encode - otherwise re-sharing an opened link changes its bytes, and any
  * cache or equality check keyed on the value churns.
  */
 function handleOut(v: number | undefined): string {
@@ -158,7 +158,7 @@ function numIn(s: string | undefined): number | undefined | null {
  * `AuthoredPath` → one URL-safe, delimiter-safe field value.
  *
  * Throws only on a path this codec cannot represent (a `kind` that is not an
- * identifier, a non-finite coordinate) — a programming error at the call site,
+ * identifier, a non-finite coordinate) - a programming error at the call site,
  * not user input. `GeomAPI.encodeAuthored` turns it into a returned failure.
  *
  * A single path is written WITHOUT the `*` separator, so this is exactly
@@ -202,7 +202,7 @@ export function encodeAuthoredPath(path: AuthoredPath): string {
  * A one-element list encodes byte-identically to `encodeAuthoredPath` of its only
  * member; there is no length marker and no wrapper. Throws on the same
  * programming errors the singular form does, plus an empty list (a value with no
- * paths in it is not a value) and a node total past `MAX_NODES` — the ceiling is
+ * paths in it is not a value) and a node total past `MAX_NODES` - the ceiling is
  * on the payload, so N paths cannot multiply it.
  */
 export function encodeAuthoredPaths(paths: AuthoredPath[]): string {
@@ -219,7 +219,7 @@ export function encodeAuthoredPaths(paths: AuthoredPath[]): string {
  * Why a value would not decode. The distinction exists because a caller has two
  * genuinely different things to say to a user: "that is not a shape" and "that
  * shape is bigger than this engine will read". Everything else about the failure
- * posture is unchanged — nothing is ever partially decoded.
+ * posture is unchanged - nothing is ever partially decoded.
  */
 export type AuthoredDecodeFail = 'malformed' | 'too-complex';
 
@@ -250,7 +250,7 @@ export function decodeAuthoredPathsResult(value: string): AuthoredPath[] | Autho
 }
 
 /**
- * The same thing with the reason dropped — `null` for "no shapes here", whatever
+ * The same thing with the reason dropped - `null` for "no shapes here", whatever
  * the reason. What a caller that only renders wants.
  */
 export function decodeAuthoredPaths(value: string): AuthoredPath[] | null {
@@ -262,7 +262,7 @@ export function decodeAuthoredPaths(value: string): AuthoredPath[] | null {
  * One field value → the ONE `AuthoredPath` it carries, or `null`.
  *
  * A value carrying several paths answers `null`, deliberately: returning the
- * first of them would be a silent, partial read of the value — the same class of
+ * first of them would be a silent, partial read of the value - the same class of
  * defect as decoding half a path. Callers that may be handed either arity call
  * `decodeAuthoredPaths` and handle a list.
  */

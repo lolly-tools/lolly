@@ -1,11 +1,11 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
- * Photoshop PSD writer — the write-back half of layered import (psd.ts reads).
+ * Photoshop PSD writer: the write-back half of layered import (psd.ts reads).
  * Emits the simplest PSD that Photoshop, GIMP and Krita all open: version 1,
  * 8-bit RGB, per-layer RGBA channels (PackBits-compressed, RAW per channel
  * when RLE would grow the data), Pascal + `luni` layer names, opacity /
  * blend / visibility, and a merged composite section (many readers key their
- * preview — and Photoshop its "compatibility" path — off it).
+ * preview on it, and Photoshop its "compatibility" path on it too).
  *
  * Knowingly dropped relative to a full PSD (documented, deliberate):
  *   - groups: rows with `isGroup` semantics are not emitted (flat layer list;
@@ -16,7 +16,7 @@
  * Round-trip contract, pinned by tests/psd.test.ts: readPsd(writePsd(doc))
  * reproduces every layer's name/rect/opacity/visibility/blend/pixels exactly.
  *
- * Layer order: `layers[0]` is the BOTTOM layer, matching LayeredRasterDoc —
+ * Layer order: `layers[0]` is the BOTTOM layer, matching LayeredRasterDoc.
  * PSD stores records bottom-to-top, so file order equals array order.
  *
  * Pure + DOM-free (engine contract); deterministic bytes for a given doc.
@@ -48,13 +48,13 @@ export interface PsdWriteDoc {
   /** Bottom-to-top. */
   layers: PsdWriteLayer[];
   /** Flattened RGBA8 at doc size; when omitted, flattened here by plain
-   *  src-over (blend modes are NOT simulated — the layers carry them). */
+   *  src-over (blend modes are NOT simulated: the layers carry them). */
   composite?: Uint8Array;
   /** Embedded as image resource 1039 when present. */
   icc?: Uint8Array;
 }
 
-const MAX_DIM = 30_000; // PSD v1 ceiling — a bigger doc needs a PSB writer (not built)
+const MAX_DIM = 30_000; // PSD v1 ceiling. A bigger doc needs a PSB writer (not built)
 
 /** Serialise `doc` as a PSD v1 byte stream. Throws TypeError on an incoherent doc. */
 export function writePsd(doc: PsdWriteDoc): Uint8Array {

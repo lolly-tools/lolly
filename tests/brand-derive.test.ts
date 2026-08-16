@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
- * Unit tests for engine/src/brand-derive.ts — the OKLCH colour math
+ * Unit tests for engine/src/brand-derive.ts - the OKLCH colour math
  * (parse/format/hex round-trips, gamut mapping, WCAG contrast) and the
  * deriveBrandTokens generator (document shape, ramp anchoring, scheme hues,
  * and the contrast-floor guarantees across a primary × scheme × surface ×
@@ -109,7 +109,7 @@ test('oklchToHex maps out-of-gamut chroma per CSS §14.2 (L kept, hue near, chro
 test('local MINDE lands perceptually closer to the request than plain chroma reduction', () => {
   // This is why §14.2 replaced the plain chroma-reduction search: clipping is
   // accepted whenever it costs less than a JND, so more of the requested chroma
-  // survives. Pinned as a property over a grid rather than a handful of hexes —
+  // survives. Pinned as a property over a grid rather than a handful of hexes - 
   // the point is that MINDE is never meaningfully worse, and usually better.
   const inG = (r: number[]): boolean => r.every(v => v >= -1e-4 && v <= 1 + 1e-4);
   const srgbOf = (l: number, c: number, h: number): [number, number, number] =>
@@ -135,7 +135,7 @@ test('local MINDE lands perceptually closer to the request than plain chroma red
       for (let h = 0; h < 360; h += 15) {
         const l = li / 20, c = ci * 0.025;
         const ideal = srgbOf(l, c, h);
-        if (inG(ideal)) continue;                 // in gamut — both are the identity
+        if (inG(ideal)) continue;                 // in gamut - both are the identity
         total++;
         const dm = deltaEOkSrgb(gamutMapOklch(l, c, h), ideal);
         const dp = deltaEOkSrgb(plainReduce(l, c, h), ideal);
@@ -146,7 +146,7 @@ test('local MINDE lands perceptually closer to the request than plain chroma red
   }
   assert.ok(total > 4000, `grid covers real out-of-gamut ground: ${total}`);
   assert.ok(better / total > 0.9, `MINDE closer for most requests: ${better}/${total}`);
-  // Where it loses it loses by a fraction of a JND (0.02) — extreme requests
+  // Where it loses it loses by a fraction of a JND (0.02) - extreme requests
   // (near-black at maximum chroma) that both algorithms miss by a mile anyway.
   assert.ok(worseBy < 0.008, `never meaningfully worse: ${worseBy}`);
 });
@@ -204,7 +204,7 @@ test('parseOklch: lch() (CIELAB D50) converts via Lab', () => {
   const red = parseOklch('lch(54.29% 106.84 40.86)')!;
   assertHexClose(oklchToHex(red), '#ff0000', 3, 'lch red');
   assert.equal(parseOklch('lch(54.29% 106.84 40.86 / 0.5)')!.alpha, 0.5);
-  // sRGB blue's lch() coordinates (the corner-grazing ray — the form
+  // sRGB blue's lch() coordinates (the corner-grazing ray - the form
   // Tokens-Studio/DTCG lch exports produce) land back on blue.
   const blue = parseOklch('lch(29.568% 131.207 301.364)')!;
   assertHexClose(oklchToHex(blue), '#0000ff', 3, 'lch blue');
@@ -245,7 +245,7 @@ test("mixOklch: an achromatic endpoint (c < 0.02) adopts the other side's hue", 
   const teal: Oklch = { l: 0.5, c: 0.12, h: 190 };
   assert.equal(mixOklch(grey, teal, 0.25).h, 190, 'hue held the whole way in');
   assert.equal(mixOklch(teal, grey, 0.75).h, 190, 'and the whole way out');
-  // Both achromatic: neither side donates — plain shortest-arc between them.
+  // Both achromatic: neither side donates - plain shortest-arc between them.
   assert.equal(mixOklch({ l: 0.2, c: 0, h: 10 }, { l: 0.8, c: 0.01, h: 350 }, 0.5).h, 0);
 });
 

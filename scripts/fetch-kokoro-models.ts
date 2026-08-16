@@ -2,13 +2,13 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
  * Downloads the Kokoro-82M speech-synthesis ONNX model (timestamped export) and
- * the full English set of voice style vectors into shells/web/public/models/kokoro/ —
+ * the full English set of voice style vectors into shells/web/public/models/kokoro/ - 
  * the same-origin location the speech worker
  * (shells/web/src/lib/speech-kokoro-worker.ts) loads them from at runtime via
  * transformers.js (`env.localModelPath = '/models/'`, remote models disabled).
  *
  * ANDY-RUN ONLY. Like scripts/fetch-trustmark-models.ts, this needs network
- * access and is never invoked by `npm install`/`postinstall`/CI — the model is
+ * access and is never invoked by `npm install`/`postinstall`/CI - the model is
  * ~92 MB, not something every clone/deploy should pay for, and host.speech
  * loads it lazily, once, only when a tool actually asks to speak.
  *
@@ -22,18 +22,18 @@
  * https://huggingface.co/onnx-community/Kokoro-82M-v1.0-ONNX-timestamped
  * (Apache-2.0). The TIMESTAMPED export is the point: alongside `waveform` it
  * returns a per-token `durations` output, which is what lets host.speech report
- * word timings for captions — the plain onnx-community/Kokoro-82M-v1.0-ONNX
+ * word timings for captions - the plain onnx-community/Kokoro-82M-v1.0-ONNX
  * export produces identical audio but discards the alignment. q8 quantised
- * (model_quantized.onnx) — the dtype kokoro-js itself defaults to on wasm.
+ * (model_quantized.onnx) - the dtype kokoro-js itself defaults to on wasm.
  *
  * Voices are 510x256 float32 style matrices (522,240 bytes each), one row per
  * input-token count. All 28 English voices from the model's own VOICES table
- * (kokoro.js/src/voices.js) are staged — 20 en-US (af_ and am_ prefixes) and
+ * (kokoro.js/src/voices.js) are staged - 20 en-US (af_ and am_ prefixes) and
  * 8 en-GB (bf_ and bm_). The list is mirrored in shells/web/src/lib/speech-kokoro.ts
- * (KOKORO_VOICES, ordered for display) — keep the two in sync.
+ * (KOKORO_VOICES, ordered for display) - keep the two in sync.
  *
  * Integrity: every file is pinned to a SHA-256 hash (computed from the
- * downloaded-and-verified 2026-08-02 set) and verified BEFORE it is written —
+ * downloaded-and-verified 2026-08-02 set) and verified BEFORE it is written - 
  * a mismatch exits non-zero with nothing written, so a tampered or re-exported
  * release can never land silently. A file already on disk whose hash matches
  * its pin is skipped without touching the network. For a deliberate model
@@ -41,7 +41,7 @@
  *
  * ── ALSO REQUIRED: transformers.js's pinned onnxruntime-web runtime ───────
  * The model runs on the onnxruntime-web build @huggingface/transformers pins
- * (NOT the 1.27 already at /ort/ — the two are not interchangeable). After
+ * (NOT the 1.27 already at /ort/ - the two are not interchangeable). After
  * `npm install`, `npm run build:ort` (or `node scripts/copy-transformers-ort.ts`)
  * stages it at shells/web/public/ort-hf/<version>/.
  */
@@ -59,7 +59,7 @@ const BASE = 'https://huggingface.co/onnx-community/Kokoro-82M-v1.0-ONNX-timesta
 // Repo-relative paths transformers.js expects under localModelPath/kokoro/.
 const MODEL_FILES = ['config.json', 'tokenizer.json', 'tokenizer_config.json', 'onnx/model_quantized.onnx'];
 
-// Keep in sync with KOKORO_VOICES in shells/web/src/lib/speech-kokoro.ts —
+// Keep in sync with KOKORO_VOICES in shells/web/src/lib/speech-kokoro.ts - 
 // the full English set: 20 en-US (af_*/am_*) + 8 en-GB (bf_*/bm_*).
 const VOICES = [
   'af_alloy', 'af_aoede', 'af_bella', 'af_heart', 'af_jessica', 'af_kore',
@@ -115,7 +115,7 @@ const refreshPins = args.includes('--refresh-pins');
 const sha256 = (bytes: Uint8Array): string => createHash('sha256').update(bytes).digest('hex');
 
 /** Verify bytes against the pin. Throws (nothing written by the caller) on any
- *  mismatch — the byte-length is reported alongside as the secondary signal. */
+ *  mismatch - the byte-length is reported alongside as the secondary signal. */
 function verify(relPath: string, bytes: Uint8Array, source: string): void {
   const pin = PINS[relPath];
   if (!pin) throw new Error(`no integrity pin for ${relPath} — add it to PINS (or run --refresh-pins for an upgrade)`);
@@ -154,7 +154,7 @@ async function fetchFile(relPath: string): Promise<void> {
   if (refreshPins) {
     process.stdout.write(`  '${relPath}': { sha256: '${sha256(bytes)}', bytes: ${bytes.byteLength} },\n`);
   } else {
-    verify(relPath, bytes, 'downloaded'); // BEFORE the write — a bad file never lands
+    verify(relPath, bytes, 'downloaded'); // BEFORE the write - a bad file never lands
   }
   mkdirSync(dirname(outPath), { recursive: true });
   writeFileSync(outPath, bytes);

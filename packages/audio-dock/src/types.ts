@@ -4,7 +4,7 @@
 // The dock is ONE UI shell that two different hosts drive: the Lolly web app
 // (music / internet radio / atmosphere soundbeds, via neurospicy.ts) and the
 // static /info docs site (page narration, via docs/player/player.ts). The shell
-// owns none of the audio — it renders controls and delegates every action to a
+// owns none of the audio. It renders controls and delegates every action to a
 // `DockHost` the host implements. `DockCapabilities` is what the APP declares
 // CAN appear; the user drives collapse size + which sections are open.
 //
@@ -14,7 +14,7 @@
 
 /**
  * What the host declares the dock is ALLOWED to show. Orthogonal to collapse and
- * to which sections the user has open — this is the app's policy, not the user's.
+ * to which sections the user has open. This is the app's policy, not the user's.
  * All flags default to absent/false, so an empty object is a transport-only dock.
  */
 export interface DockCapabilities {
@@ -30,7 +30,7 @@ export interface DockCapabilities {
   viz?: boolean;
 }
 
-/** The kind of thing currently sounding — drives the now-playing label and the
+/** The kind of thing currently sounding. Drives the now-playing label and the
  *  picker grouping (radio is a music source of a distinct kind). */
 export type DockSourceKind = 'narration' | 'music' | 'radio' | 'atmosphere';
 
@@ -44,7 +44,7 @@ export interface DockNowPlaying {
 }
 
 /** One row in the music/radio picker. `group` is the section heading (the app's
- *  own vocabulary — e.g. Catalog / Uploads / Internet Radio); `kind: 'radio'`
+ *  own vocabulary, e.g. Catalog / Uploads / Internet Radio); `kind: 'radio'`
  *  marks a station so the radio capability can gate its group. */
 export interface DockSource {
   id: string;
@@ -60,12 +60,12 @@ export interface DockSource {
 
 /** A required-credit line for a source provider (e.g. SomaFM asks that its
  *  attribution + support link stay visible wherever its stations play). Rendered
- *  by the shell as one small line — `text`, then a single anchor (`linkText` →
+ *  by the shell as one small line: `text`, then a single anchor (`linkText` →
  *  `href`, opened in a new tab). Optional; a provider with no credit obligation
  *  returns null. */
 export interface DockAttribution { text: string; href: string; linkText: string }
 
-/** The music/radio adapter — present only for a host that offers a picker.
+/** The music/radio adapter. Present only for a host that offers a picker.
  *  Narration hosts omit it entirely (they page with prev/next, not a dropdown). */
 export interface DockSources {
   /** The rows, in the host's canonical order (the SAME order prev/next walk). */
@@ -75,7 +75,7 @@ export interface DockSources {
   /** The id of the current selection, for the highlighted row. */
   currentId(): string;
   /** Subscribe to list changes (an upload arrived, radio came online). Returns
-   *  an unsubscribe. Optional — a fixed list never calls it. */
+   *  an unsubscribe. Optional; a fixed list never calls it. */
   onListChange?(listener: () => void): () => void;
   /** When true the shell renders a type-to-filter box over the list (a long
    *  music library wants search). Absent/false ⇒ no box. Additive; a fixed
@@ -109,7 +109,7 @@ export interface DockRepeat {
 }
 
 /** One soundbed/ambience layer. `icon` is optional inline SVG markup (or plain text)
- *  the shell renders beside the slider — the shell ships no icon registry, so the host
+ *  the shell renders beside the slider. The shell ships no icon registry, so the host
  *  supplies the finished glyph and the shell inserts it as-is (trusted, first-party
  *  host). Absent/'' ⇒ no glyph, just the label. */
 export interface DockAtmosphereLayer {
@@ -123,7 +123,7 @@ export interface DockAtmosphereLayer {
 
 /** The atmosphere mixer adapter. Levels are 0..1; the slider IS the enable
  *  (dragging up from zero starts a bed, back to zero stops it), matching both
- *  players. `master` is optional — the docs player has one, neurospicy does not. */
+ *  players. `master` is optional; the docs player has one, neurospicy does not. */
 export interface DockAtmosphere {
   layers(): DockAtmosphereLayer[];
   /** The display groups in order, if the host groups its layers. */
@@ -150,7 +150,7 @@ export interface DockVizTheme {
 }
 
 /** One preset-transition timing option (how often / how the visualiser moves between
- *  presets — e.g. Off / 8s / 15s / 30s auto-cycle). */
+ *  presets, e.g. Off / 8s / 15s / 30s auto-cycle). */
 export interface DockVizTransition {
   id: string;
   name: string;
@@ -165,7 +165,7 @@ export interface DockVizTransition {
  *   - A HOST-RENDERED visualiser. A music host additionally supplies `mount`/
  *     `unmount` (its butterchurn/MilkDrop renderer) plus the preset + theme
  *     controls. The shell keeps butterchurn OUT of its own bundle (so the static
- *     /info build never pulls it in) — the host owns the renderer and the shell
+ *     /info build never pulls it in). The host owns the renderer and the shell
  *     only hands it a canvas and draws the section UI + drag/resize/fullscreen
  *     chrome around it.
  *
@@ -183,7 +183,7 @@ export interface DockViz {
    *  Returns an unsubscribe. The shell prefers the analyser when both exist. */
   subscribeFrames?(listener: (amplitude: number) => void): () => void;
 
-  // ── host-rendered visualiser (butterchurn etc.) — all optional/additive ──
+  // ── host-rendered visualiser (butterchurn etc.): all optional/additive ──
   /** Whether the visualiser is switched on. A user pref the host persists; the
    *  shell's on/off toggle in the visualiser section flips it. Absent ⇒ always on. */
   enabled?(): boolean;
@@ -221,7 +221,7 @@ export interface DockViz {
 
 /**
  * A self-contained narration mini-player, rendered as its OWN block in the dock ABOVE the
- * music player — so page voice and music can sound AT THE SAME TIME (voice over an optional
+ * music player, so page voice and music can sound AT THE SAME TIME (voice over an optional
  * bed) in the one unified window. It is a SUBSET of {@link DockHost} (its own transport,
  * now-playing, and change subscription) plus the required {@link DockNarration} adapter, so
  * a narration host already satisfies it verbatim. Optional + additive: a host with no
@@ -240,7 +240,7 @@ export interface DockNarrationPlayer {
   narration: DockNarration;
 }
 
-/** Narration extras — present only for a docs-style host. Everything here is
+/** Narration extras. Present only for a docs-style host. Everything here is
  *  narration-specific (the music side has no speed or follow-along). */
 export interface DockNarration {
   /** Follow-along (auto-scroll to the narrated block) on/off. */
@@ -258,7 +258,7 @@ export interface DockNarration {
 
 /**
  * The adapter each host implements so ONE dock drives both players. A plain
- * interface of getters + callbacks — no app types leak in. Bare transport +
+ * interface of getters + callbacks; no app types leak in. Bare transport +
  * now-playing + a change subscription are required; every capability surface is
  * optional, so narration-only and music-only hosts both satisfy this.
  */
@@ -266,18 +266,18 @@ export interface DockHost {
   // ── transport (required) ──────────────────────────────────────────────────
   /** Is audio actually sounding right now (not paused, not muted)? */
   isPlaying(): boolean;
-  /** Play/pause toggle — the main and mini play buttons. */
+  /** Play/pause toggle. Drives the main and mini play buttons. */
   togglePlay(): void | Promise<void>;
   /** Step to the next source/page. Omit for a host with no stepping; the shell
    *  then hides the next button. */
   next?(): void | Promise<void>;
   prev?(): void | Promise<void>;
-  /** Whether stepping is possible from here — a paged narration host disables at
+  /** Whether stepping is possible from here. A paged narration host disables at
    *  the ends; a wrapping music host returns true. Absent ⇒ treated as true. */
   canNext?(): boolean;
   canPrev?(): boolean;
   /** Current position / total, in seconds. `duration` may be 0 or non-finite for
-   *  a live stream — the shell hides the scrub then (see `seekable`). */
+   *  a live stream, the shell hides the scrub then (see `seekable`). */
   currentTime?(): number;
   duration?(): number;
   /** Whether the current source can be seeked (false for radio / live streams). */
@@ -318,7 +318,7 @@ export interface DockHost {
  */
 export type DockCollapse = 'full' | 'compact' | 'mini' | 'expanded';
 
-/** The capability-gated, user-openable panels. (The visualiser has no section — its
+/** The capability-gated, user-openable panels. (The visualiser has no section; its
  *  settings live in a right-click menu on the viz, and it expands via the header ↗.) */
 export type DockSectionId = 'narration' | 'music' | 'atmosphere';
 
@@ -356,11 +356,11 @@ export interface AudioDockOptions {
   /** Which sections start open. Defaults: narration + music open, atmosphere
    *  closed. Only sections whose capability is on can actually show. */
   openSections?: Partial<Record<DockSectionId, boolean>>;
-  /** The document to build in — for a popout window or a test DOM. Defaults to
+  /** The document to build in, for a popout window or a test DOM. Defaults to
    *  the ambient `globalThis.document`. */
   document?: Document;
   /** When present, the shell renders a close (×) button in the header and calls
-   *  this on click — the host decides what "close" means (neurospicy leaves the
+   *  this on click. The host decides what "close" means (neurospicy leaves the
    *  mode). Absent ⇒ no close button (a narration dock only collapses). Optional. */
   onClose?(): void;
   /** Notified on EVERY collapse change (the collapse button, the mini expander, the
@@ -369,7 +369,7 @@ export interface AudioDockOptions {
   /** The ordered sizes the step-down (collapse button / Escape) walks through.
    *  Defaults to `['full', 'compact', 'mini']`. A host with no meaningful compact
    *  state (music: compact == full) can pass `['full', 'mini']` for a binary
-   *  expand/minimize. `expanded` is never in this list — it steps down to the first
+   *  expand/minimize. `expanded` is never in this list; it steps down to the first
    *  entry. Only affects stepping; `setCollapse` still accepts any size. */
   collapseSizes?: DockCollapse[];
   /** Persist where the user dragged the player + how big they made the expanded
