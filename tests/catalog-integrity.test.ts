@@ -247,20 +247,23 @@ test('a rejected envelope poisons every load that presents it', async () => {
   }
 });
 
-test('unsigned path still loads, warning exactly once per process', async () => {
-  const warnings: string[] = [];
-  const realWarn = console.warn;
-  console.warn = (...args: unknown[]) => { warnings.push(args.join(' ')); };
+test('unsigned path still loads, noting exactly once per process', async () => {
+  // The unsigned-catalog notice is a calm console.info (de-alarmed from console.warn:
+  // an unsigned catalog is the expected local/dev state, not a failure), so this hooks
+  // console.info. The once-per-process behavior it checks is unchanged.
+  const notices: string[] = [];
+  const realInfo = console.info;
+  console.info = (...args: unknown[]) => { notices.push(args.join(' ')); };
   try {
     const first = await loadTool('demo', makeFetchFile(TOOL_FILES));
     const second = await loadTool('demo', makeFetchFile(TOOL_FILES));
     assert.equal(first.hooksSource, TOOL_FILES['demo/hooks.js']);
     assert.equal(second.manifest.id, 'demo');
   } finally {
-    console.warn = realWarn;
+    console.info = realInfo;
   }
-  const integrityWarnings = warnings.filter(w => w.includes('unsigned catalog'));
-  assert.equal(integrityWarnings.length, 1);
+  const integrityNotices = notices.filter(w => w.includes('unsigned catalog'));
+  assert.equal(integrityNotices.length, 1);
 });
 
 // ─── i18n sidecars under a signed catalog ─────────────────────────────────────
