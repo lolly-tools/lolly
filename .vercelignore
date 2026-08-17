@@ -41,6 +41,14 @@ shells/web/public/ort
 # no client ever requests those URLs. Excluding them takes suse from ~2.0 GB to ~1.3 GB.
 **/models/*/.candidates
 
+# The full Swin-L BiRefNet matte model (~467 MB, the single biggest file in the
+# tree). It is NATIVE-ONLY: the web/PWA wasm32 runner OOMs on it, so matteModelsFor(false)
+# never offers it and no web client ever requests /models/matte/birefnet.onnx
+# (matte-models.ts NATIVE_ONLY). Only the Tauri desktop shell runs it, and that shell
+# builds its own frontend (tauri.conf.json frontendDist), so this exclusion is
+# web-deploy-only. Cuts the upload ~467 MB (~1.3 GB → ~0.83 GB).
+shells/web/public/models/matte/birefnet.onnx
+
 # Profile views — derived from the packs (community/, brands/**), which DO ship.
 # postinstall (use-profile --auto) rebuilds them on Vercel as real copies, so
 # vercel.json's includeFiles globs and the web build's dist copy see real files.

@@ -265,7 +265,11 @@ let warnedUnsignedCatalog = false;
 function warnUnsignedCatalogOnce(): void {
   if (warnedUnsignedCatalog) return;
   warnedUnsignedCatalog = true;
-  console.warn('catalog integrity: unsigned catalog — tool code is not verified');
+  // A calm info, not a warning: an unsigned catalog is the EXPECTED state for a local
+  // or dev build (a signed deploy carries an integrity envelope and never reaches here),
+  // so it should inform without the alarming console.warn triangle. Plain console.info
+  // (no %c/emoji) because the engine also runs in the CLI/node, where those are noise.
+  console.info('catalog integrity: unsigned catalog (tool code is not signature-verified) - expected for a local or dev catalog');
 }
 
 export async function loadTool(toolId: string, fetchFile: ToolFetchFile, opts: LoadToolOpts = {}): Promise<LoadedTool> {
