@@ -1,6 +1,6 @@
 {
   "version": "1",
-  "generatedAt": "2026-08-16T12:46:05.526Z",
+  "generatedAt": "2026-08-17T15:54:12.526Z",
   "tools": [
     {
       "id": "compress-pdf",
@@ -4972,7 +4972,7 @@
     {
       "id": "filter",
       "name": "Filter",
-      "description": "One tool for photo effects: pick halftone, scanline, posterize or voronoi (vector) or duotone, pixel-stretch or print imperfections (raster). Brand overlays, live camera, and exports to as many formats as each effect supports.",
+      "description": "One tool for photo effects: pick halftone, scanline, posterize, voronoi, dither or ASCII art (vector) or duotone, pixel-stretch, imperfections or glitch (raster). Brand overlays, live camera, and exports to as many formats as each effect supports.",
       "version": "1.3.0",
       "status": "official",
       "category": "designer",
@@ -5008,7 +5008,9 @@
         "apng",
         "webp-anim",
         "webm",
-        "mp4"
+        "mp4",
+        "txt",
+        "md"
       ],
       "width": 1080,
       "height": 1080,
@@ -5017,7 +5019,7 @@
       "preview": "/catalog/previews/filter.png",
       "featured": {
         "order": 7,
-        "blurb": "Seven photo effects, vector or raster, in one tool"
+        "blurb": "Ten photo effects, vector or raster, in one tool"
       },
       "examples": [
         {
@@ -5050,6 +5052,27 @@
           "label": "Print imperfections",
           "values": {
             "effect": "imperfections"
+          }
+        },
+        {
+          "label": "Dither",
+          "values": {
+            "effect": "dither",
+            "di_palette": "handheld4"
+          }
+        },
+        {
+          "label": "ASCII art",
+          "values": {
+            "effect": "ascii"
+          }
+        },
+        {
+          "label": "Glitch",
+          "values": {
+            "effect": "glitch",
+            "gl_sortThreshold": 55,
+            "gl_blockAmount": 30
           }
         }
       ],

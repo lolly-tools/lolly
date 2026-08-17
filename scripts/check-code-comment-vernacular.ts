@@ -108,6 +108,14 @@ const CODE_EXEMPT = new Set<string>([
   '"transcribe" family as prose (say quote/copy; the speech feature and API names carry ALLOW entries)',
   '"admissible" (any variation)',
   'prose "smoke test"', // a real testing term; a test file may name itself a smoke test
+  // The 2026-08-17 owner additions are docs-prose tics with real domain uses in
+  // code: the gamut/raster "honesty note" cross-reference; a PKI "trust anchor"
+  // and CSS "object-position anchors it"; a layout "the table fits"; and C2PA
+  // "structurally valid/invalid" (130+ legit occurrences).
+  '"honesty note(s)" as a heading/aside',
+  '"anchors it" (prose verb)',
+  '"the X fits" framing',
+  '"structurally X" adverb-hedge',
 ]);
 const CODE_PHRASES = BANNED_PHRASES.filter(p => !CODE_EXEMPT.has(p.what));
 
