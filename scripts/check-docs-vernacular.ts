@@ -168,6 +168,22 @@ export const BANNED_PHRASES: { what: string; re: RegExp }[] = [
   { what: '"the (x) is (y) here." copula flourish', re: /(?<=[\w'’] )(?<!there )is (?:not )?(?:the|a|an) [\w'’-]+(?: [\w'’-]+){0,2} here[.,!?:;]/i },
   { what: '"brings me/us back to"', re: /\bbrings? (?:me|us) back to\b/i },
   { what: '"underscores/underscoring the" (figurative)', re: /\bunderscor(?:es|ing) (?:the|how|that|a|an)\b/i },
+  // --- owner additions 2026-08-17 ---------------------------------------
+  // All four are DOCS-only (CODE_EXEMPT in the code-comment gate): each has a
+  // real domain use in code - the gamut "honesty note" cross-reference, a PKI
+  // "trust anchor" / CSS "object-position anchors it", a layout "the table
+  // fits", and C2PA "structurally valid/invalid". In PROSE they are tics.
+  { what: '"honesty note(s)" as a heading/aside', re: /\bhonesty notes?\b/i },
+  // "anchors it" as a prose verb - say what actually holds what (a signature
+  // chains to a root, an identity vouches for a key).
+  { what: '"anchors it" (prose verb)', re: /\banchors? it\b/i },
+  // "the X fits" - the "it all comes together" flourish; sibling of the
+  // fits-framing ban above.
+  { what: '"the X fits" framing', re: /\bthe \S+ fits\b/i },
+  // "structurally X" - the adverb-hedge. Delete the adverb and keep the
+  // adjective ("locked", not "structurally locked"); if the adverb carries
+  // meaning, name the actual structure.
+  { what: '"structurally X" adverb-hedge', re: /\bstructurally\b/i },
 ];
 
 /**

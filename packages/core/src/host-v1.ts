@@ -2463,6 +2463,13 @@ export interface Profile {
    *  welcome-dialog and profile-card language pickers; mirrored to `localStorage
    *  'lang'` for a pre-paint read, and a legal `bindToProfile: "lang"` target. */
   lang?: string;
+  /** Auto-save each finished render into the personal library (the 'renders'
+   *  tag) as it downloads. Default ON: unset means enabled, only an explicit
+   *  `false` turns it off. Shells save the exact credentialed bytes the user
+   *  received, deduped by checksum, so a re-download of the same file never
+   *  stacks a second copy. Set from Profile like the a11y prefs (never
+   *  localStorage). */
+  saveRenders?: boolean;
 }
 
 // ─── Assets ─────────────────────────────────────────────────────────────────
