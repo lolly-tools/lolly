@@ -251,7 +251,11 @@ describe('geometric peers share a depth, so grids stay grids', () => {
   const GRIDS: Record<string, { rungs: number; biggest: number }> = {
     'bs-palette-pane': { rungs: 6, biggest: 25 },     // 25 swatch wells + 25 chips
     'cc-verify-mobile': { rungs: 6, biggest: 9 },     // the 3×3 card block
-    'seq-studio-timeline': { rungs: 22, biggest: 9 }, // the toolbar's icon row
+    // Re-measured 2026-08-17: the baseline re-captured against design's timeline
+    // (sequence-studio consolidated into design; the recipe now opens design with
+    // the old default sequence packed into the URL), and design's toolbar row has
+    // one more control than the standalone tool's did.
+    'seq-studio-timeline': { rungs: 22, biggest: 10 }, // the toolbar's icon row
   };
   for (const [name, want] of Object.entries(GRIDS)) {
     test(`${name}: its grid is ONE surface, not ${want.biggest} steps`, () => {
