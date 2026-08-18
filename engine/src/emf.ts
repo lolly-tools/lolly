@@ -2,10 +2,15 @@
 /**
  * EMF (Enhanced Metafile) emitter - pure, DOM-free, platform-agnostic.
  *
- * Turns a normalized vector IR into a classic-GDI EMF `Uint8Array` whose only
- * drawing primitive is the path (filled / stroked). Text is expected to be
- * outlined to paths upstream (the "always text-as-paths" rule - see
- * plans/63-emf-support.md), so this writes NO text or font records.
+ * Turns a normalized vector IR into a classic-GDI EMF `Uint8Array` whose
+ * primitives are the path (filled / stroked), the DIB blit escape-hatch, and -
+ * since 1.128 - live text. A `text` prim becomes a real GDI font + string
+ * record pair (EXTCREATEFONTINDIRECTW + EXTTEXTOUTW), so the run stays
+ * selectable and editable in Office / Google Drawings. The IR producer decides
+ * per run: plain runs ride live, and anything GDI text can't express (tracking,
+ * OpenType features, strokes, skew) is outlined to paths upstream exactly as
+ * before (plans/63-emf-support.md). A file with no text prims is byte-identical
+ * to the pre-1.128 writer.
  *
  * This is the format authority, the same way units.js owns dimension math and
  * color.js owns colour math. It imports only units.js. No Handlebars, no ajv,
@@ -66,7 +71,36 @@ export interface VectorImagePrim {
   rgb: Uint8Array;                               // pxW·pxH·3, row-major top-first, opaque sRGB
 }
 
-export type VectorPrim = VectorPathPrim | VectorImagePrim;
+/** One LIVE text run - kept as a font + string record so it stays selectable and
+ *  editable in Office / Google Drawings. (x,y) is the anchor point in device px:
+ *  the baseline start for `baseline:'alphabetic'`, the cell top for `'top'` -
+ *  GDI resolves either against the REAL metrics of whatever face renders, which
+ *  is more faithful under font substitution than any precomputed offset.
+ *  `align` maps to TA_LEFT/TA_CENTER/TA_RIGHT the same way (the renderer centres
+ *  with its own advance widths). `rotation` is degrees clockwise in screen space
+ *  (SVG's convention); the writer negates it into GDI's counterclockwise
+ *  escapement/orientation tenths. */
+export interface VectorTextPrim {
+  type: 'text';
+  x: number;
+  y: number;
+  text: string;
+  /** Single face name (no CSS stack), ≤31 chars after truncation. Empty is
+   *  legal GDI: an all-NUL LOGFONT face name means "the renderer's default". */
+  fontFamily: string;
+  /** Em height in device px (CSS font-size semantics → negative lfHeight). */
+  fontSize: number;
+  /** 100–900. */
+  weight: number;
+  italic: boolean;
+  fill: Rgb;
+  align: 'left' | 'center' | 'right';
+  baseline: 'alphabetic' | 'top';
+  /** Degrees clockwise (screen space); absent/0 = horizontal. */
+  rotation?: number;
+}
+
+export type VectorPrim = VectorPathPrim | VectorImagePrim | VectorTextPrim;
 
 /** Normalized vector IR (see shells/web/src/bridge/svg-ir.js). */
 export interface VectorIr {
@@ -118,6 +152,24 @@ const EMR_STROKEANDFILLPATH  = 0x3F;
 const EMR_STROKEPATH         = 0x40;
 const EMR_EXTCREATEPEN       = 0x5F;
 const EMR_STRETCHDIBITS      = 0x51;   // raster escape-hatch (DIB blit)
+// Live-text records (1.128)
+const EMR_SETBKMODE          = 0x12;
+const EMR_SETTEXTALIGN       = 0x16;
+const EMR_SETTEXTCOLOR       = 0x18;
+const EMR_EXTCREATEFONTINDIRECTW = 0x52;
+const EMR_EXTTEXTOUTW        = 0x54;
+
+const BKMODE_TRANSPARENT = 1;
+const GM_COMPATIBLE      = 1;          // iGraphicsMode for EXTTEXTOUTW
+
+// TextAlignmentMode flags (MS-WMF 2.1.2.3): horizontal + vertical OR'd together.
+const TA_LEFT     = 0;
+const TA_RIGHT    = 2;
+const TA_CENTER   = 6;
+const TA_TOP      = 0;
+const TA_BASELINE = 24;
+
+const DEFAULT_CHARSET = 1;             // let the renderer pick the codepage
 
 const SRCCOPY = 0x00CC0020;            // dwRop: source overwrites destination
 const DIB_RGB_COLORS = 0;
@@ -129,6 +181,7 @@ const WINDING   = 2;   // SVG nonzero (default)
 // Stock object handles (high bit set). NULL_* = "draw nothing for this aspect".
 const NULL_BRUSH = 0x80000005;
 const NULL_PEN   = 0x80000008;
+const SYSTEM_FONT = 0x8000000D;        // parked in the font slot between prims
 
 // Brush/pen styles
 const BS_SOLID        = 0;
@@ -140,7 +193,8 @@ const HEADER_SIZE = 88;
 // Handle slots - reused (delete-and-recreate) so the table stays tiny.
 const H_BRUSH = 1;
 const H_PEN   = 2;
-const N_HANDLES = 3;                    // slot 0 reserved + brush + pen
+const H_FONT  = 3;                      // only allocated when the IR has text prims
+const N_HANDLES = 3;                    // slot 0 reserved + brush + pen (path-only files)
 
 const colorRef = ({ r, g, b }: Rgb): number =>
   ((r & 0xff) | ((g & 0xff) << 8) | ((b & 0xff) << 16)) >>> 0;
@@ -385,6 +439,88 @@ function recStretchDibits(prim: VectorImagePrim): Uint8Array {
   return new Uint8Array(buf);
 }
 
+// ─── Text prim → records ──────────────────────────────────────────────────────
+
+const recSetBkMode = (mode: number): Uint8Array =>
+  record(EMR_SETBKMODE, 4, (dv, o) => dv.setUint32(o, mode, true));
+
+const recSetTextAlign = (mode: number): Uint8Array =>
+  record(EMR_SETTEXTALIGN, 4, (dv, o) => dv.setUint32(o, mode, true));
+
+const recSetTextColor = (color: Rgb): Uint8Array =>
+  record(EMR_SETTEXTCOLOR, 4, (dv, o) => dv.setUint32(o, colorRef(color), true));
+
+// EMR_EXTCREATEFONTINDIRECTW: ihFonts + a plain 92-byte LogFontW (the spec's
+// elw field also admits the 320-byte LogFontExDvW; every reader we target -
+// GDI, LibreOffice, Inkscape, Google Drawings - accepts the short form).
+function recCreateFontW(handle: number, prim: VectorTextPrim): Uint8Array {
+  // GDI escapement is tenths of a degree COUNTERclockwise; SVG screen-space
+  // rotation is clockwise-positive, hence the negation. Orientation must match
+  // escapement or GM_COMPATIBLE renderers ignore the rotation.
+  const tenths = clampInt(-(prim.rotation || 0) * 10);
+  return record(EMR_EXTCREATEFONTINDIRECTW, 96, (dv, o) => {
+    dv.setUint32(o, handle, true);                                  // ihFonts
+    dv.setInt32(o + 4, -Math.max(1, clampInt(prim.fontSize)), true); // lfHeight <0 = em height
+    dv.setInt32(o + 8, 0, true);                                    // lfWidth (natural aspect)
+    dv.setInt32(o + 12, tenths, true);                              // lfEscapement
+    dv.setInt32(o + 16, tenths, true);                              // lfOrientation
+    dv.setInt32(o + 20, Math.min(900, Math.max(100, clampInt(prim.weight || 400))), true);
+    dv.setUint8(o + 24, prim.italic ? 1 : 0);                       // lfItalic
+    dv.setUint8(o + 25, 0);                                         // lfUnderline
+    dv.setUint8(o + 26, 0);                                         // lfStrikeOut
+    dv.setUint8(o + 27, DEFAULT_CHARSET);                           // lfCharSet
+    dv.setUint32(o + 28, 0, true);   // lfOutPrecision/ClipPrecision/Quality/PitchAndFamily = defaults
+    // lfFaceName: 32 WCHARs, NUL-terminated, so at most 31 visible chars.
+    const face = prim.fontFamily.slice(0, 31);
+    for (let i = 0; i < face.length; i++) dv.setUint16(o + 32 + i * 2, face.charCodeAt(i), true);
+  });
+}
+
+// EMR_EXTTEXTOUTW: rclBounds + iGraphicsMode + ex/eyScale + EmrText. The string
+// rides as UTF-16LE at offString; no Dx array (offDx=0) - the renderer lays the
+// run out with the real metrics of whatever face it resolves, which is the whole
+// point of a LIVE run (a precomputed spacing array would pin substituted fonts
+// to the source font's advances and shred their kerning).
+function recExtTextOutW(prim: VectorTextPrim, canvasW: number, canvasH: number, exScale: number, eyScale: number): Uint8Array {
+  const n = prim.text.length;                       // UTF-16 code units
+  const strBytes = 2 * n;
+  const pad = (4 - (strBytes % 4)) % 4;
+  const bodyLen = 68 + strBytes + pad;              // fixed part after the 8-byte record header
+  return record(EMR_EXTTEXTOUTW, bodyLen, (dv, o) => {
+    // Bounds: the whole canvas. The field is informational (bounds-culling
+    // readers only) and text extents aren't knowable without the renderer's
+    // metrics, so the never-culls box is the honest one.
+    setRect(dv, o, { left: 0, top: 0, right: Math.max(0, canvasW - 1), bottom: Math.max(0, canvasH - 1) });
+    dv.setUint32(o + 16, GM_COMPATIBLE, true);      // iGraphicsMode
+    dv.setFloat32(o + 20, exScale, true);           // page px → .01mm (X)
+    dv.setFloat32(o + 24, eyScale, true);           // page px → .01mm (Y)
+    // EmrText
+    dv.setInt32(o + 28, clampInt(prim.x), true);    // Reference.x
+    dv.setInt32(o + 32, clampInt(prim.y), true);    // Reference.y
+    dv.setUint32(o + 36, n, true);                  // Chars
+    dv.setUint32(o + 40, 76, true);                 // offString (from record start)
+    dv.setUint32(o + 44, 0, true);                  // Options
+    setRect(dv, o + 48, { left: 0, top: 0, right: 0, bottom: 0 }); // Rectangle (unused)
+    dv.setUint32(o + 64, 0, true);                  // offDx = 0 (no spacing array)
+    for (let i = 0; i < n; i++) dv.setUint16(o + 68 + i * 2, prim.text.charCodeAt(i), true);
+  });
+}
+
+function emitTextPrim(prim: VectorTextPrim, out: Uint8Array[], canvasW: number, canvasH: number, exScale: number, eyScale: number): void {
+  if (!prim.text) return;
+  const halign = prim.align === 'center' ? TA_CENTER : prim.align === 'right' ? TA_RIGHT : TA_LEFT;
+  const valign = prim.baseline === 'top' ? TA_TOP : TA_BASELINE;
+  out.push(recSetTextAlign(halign | valign));
+  out.push(recSetTextColor(prim.fill));
+  out.push(recCreateFontW(H_FONT, prim));
+  out.push(recSelectObject(H_FONT));
+  out.push(recExtTextOutW(prim, canvasW, canvasH, exScale, eyScale));
+  // Park a stock font in the slot, then free it - same delete-and-reuse
+  // discipline as the brush/pen slots.
+  out.push(recSelectObject(SYSTEM_FONT));
+  out.push(recDeleteObject(H_FONT));
+}
+
 // ─── Header ───────────────────────────────────────────────────────────────────
 
 interface HeaderMath {
@@ -415,7 +551,7 @@ function headerMath(ir: VectorIr, opts: VectorEmitOpts): HeaderMath {
   };
 }
 
-function writeHeader(h: HeaderMath, nBytes: number, nRecords: number): Uint8Array {
+function writeHeader(h: HeaderMath, nBytes: number, nRecords: number, nHandles: number): Uint8Array {
   const buf = new ArrayBuffer(HEADER_SIZE);
   const dv = new DataView(buf);
   dv.setUint32(0x00, EMR_HEADER, true);
@@ -426,7 +562,7 @@ function writeHeader(h: HeaderMath, nBytes: number, nRecords: number): Uint8Arra
   dv.setUint32(0x2C, 0x00010000, true);  // nVersion
   dv.setUint32(0x30, nBytes, true);      // nBytes (total file size)
   dv.setUint32(0x34, nRecords, true);    // nRecords (incl. header + EOF)
-  dv.setUint16(0x38, N_HANDLES, true);   // nHandles
+  dv.setUint16(0x38, nHandles, true);    // nHandles
   dv.setUint16(0x3A, 0, true);           // sReserved
   dv.setUint32(0x3C, 0, true);           // nDescription
   dv.setUint32(0x40, 0, true);           // offDescription
@@ -445,10 +581,19 @@ function writeHeader(h: HeaderMath, nBytes: number, nRecords: number): Uint8Arra
  */
 export function emitEmf(ir: VectorIr, opts: VectorEmitOpts = {}): Uint8Array {
   const h = headerMath(ir, opts);
+  const hasText = (ir.prims || []).some((p) => p?.type === 'text');
+  // GM_COMPATIBLE text scale: page px → .01mm, straight off the header math.
+  const exScale = h.rclFrame.right / h.Wpx;
+  const eyScale = h.rclFrame.bottom / h.Hpx;
   const body: Uint8Array[] = [];
+  // Text draws over earlier prims; TRANSPARENT keeps GDI from filling each
+  // string's cell with the background colour first. Emitted only when a text
+  // record exists so path-only files stay byte-identical to the 1.127 writer.
+  if (hasText) body.push(recSetBkMode(BKMODE_TRANSPARENT));
   for (const prim of ir.prims || []) {
     if (prim?.type === 'path') emitPathPrim(prim, body);
     else if (prim?.type === 'image') body.push(recStretchDibits(prim));
+    else if (prim?.type === 'text') emitTextPrim(prim, body, h.Wpx, h.Hpx, exScale, eyScale);
   }
   body.push(recEof());
 
@@ -457,7 +602,7 @@ export function emitEmf(ir: VectorIr, opts: VectorEmitOpts = {}): Uint8Array {
   const nBytes = HEADER_SIZE + bodyBytes;
 
   const out = new Uint8Array(nBytes);
-  out.set(writeHeader(h, nBytes, nRecords), 0);
+  out.set(writeHeader(h, nBytes, nRecords, hasText ? N_HANDLES + 1 : N_HANDLES), 0);
   let off = HEADER_SIZE;
   for (const r of body) { out.set(r, off); off += r.length; }
   return out;

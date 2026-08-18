@@ -154,7 +154,8 @@ process.env.LOLLY_ROOT = root;
 const { runToolCli } = await import('../shells/cli/src/run.ts');
 
 let seq = 0;
-async function render(toolId: string, format: string, params: Record<string, string> = {}): Promise<Buffer> {
+async function render(toolId: string, format: string, params: Record<string, string> = {},
+                      flags: { text?: 'outline' | 'live' } = {}): Promise<Buffer> {
   const ext = format === 'eps-cmyk' ? 'eps' : format;
   const out = join(root, `out-${toolId}-${format}-${seq++}.${ext}`);
   // PROVENANCE PINNED OFF, and this is the honest fix rather than a nuisance.
@@ -169,7 +170,7 @@ async function render(toolId: string, format: string, params: Record<string, str
   // the emitters produce, with no signature bytes in the way. That is the thing worth
   // byte-pinning; the credential has its own coverage in tests/c2pa*.test.ts, and the
   // "does a default render carry one" question is covered by tests/cli-ga-contract.ts.
-  await runToolCli({ toolId, params: { 'no-provenance': '1', ...params }, outputPath: out, format });
+  await runToolCli({ toolId, params: { 'no-provenance': '1', ...params }, outputPath: out, format, ...flags });
   return readFile(out);
 }
 
@@ -197,9 +198,10 @@ after(() => {
 });
 
 /** Render twice (byte-stability), then record or byte-compare against the golden. */
-async function goldenCase(key: string, toolId: string, format: string): Promise<Buffer> {
-  const live = await render(toolId, format);
-  const again = await render(toolId, format);
+async function goldenCase(key: string, toolId: string, format: string,
+                          flags: { text?: 'outline' | 'live' } = {}): Promise<Buffer> {
+  const live = await render(toolId, format, {}, flags);
+  const again = await render(toolId, format, {}, flags);
   assert.ok(live.equals(again), `${key}: double render is not byte-stable`);
   const encoding = format === 'emf' ? 'base64' : 'utf8';
   const entry: GoldenEntry = { encoding, data: live.toString(encoding) };
@@ -288,10 +290,24 @@ test('golden: CLI eps DOES outline <text> via host.text (Outfit, HarfBuzz in nod
   assert.ok(curves > 20, `expected many curveto ops from glyph outlines, got ${curves}`);
 });
 
-test('golden: CLI emf outlines <text> too (byte-pinned)', { skip: SKIP_NO_OUTFIT }, async () => {
+test('golden: CLI emf keeps <text> LIVE by default (byte-pinned, engine 1.128)', { skip: SKIP_NO_OUTFIT }, async () => {
   const emf = await goldenCase('text-mark.emf', 'text-mark', 'emf');
   assert.equal(emf.readUInt32LE(0), 1);
   assert.equal(emf.toString('latin1', 40, 44), ' EMF');
+  // The run must be a REAL text record - the string survives as UTF-16LE and the
+  // font record names the face - not a pile of glyph outlines.
+  const utf16 = (s: string) => Buffer.from(s, 'utf16le');
+  assert.ok(emf.includes(utf16('Hamburg')), 'EXTTEXTOUTW must carry the live string');
+  assert.ok(emf.includes(utf16('Outfit')), 'EXTCREATEFONTINDIRECTW must name the face');
+  // Live records are tiny next to outlined glyphs (a size collapse is the tell).
+  assert.ok(emf.length < 2000, `live-text emf should be small (${emf.length} bytes)`);
+});
+
+test('golden: CLI emf --text=outline restores text-as-paths (byte-pinned)', { skip: SKIP_NO_OUTFIT }, async () => {
+  const emf = await goldenCase('text-mark.outline.emf', 'text-mark', 'emf', { text: 'outline' });
+  assert.equal(emf.readUInt32LE(0), 1);
+  assert.equal(emf.toString('latin1', 40, 44), ' EMF');
+  assert.ok(!emf.includes(Buffer.from('Hamburg', 'utf16le')), 'outlined output must carry no live string');
   // A 7-glyph run outlines to far more bytes than the bare background rect would.
   assert.ok(emf.length > 2000, `emf with outlined text is suspiciously small (${emf.length} bytes)`);
 });

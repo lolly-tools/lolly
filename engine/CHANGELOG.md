@@ -6,6 +6,42 @@ minors, never removed or signature-changed without a major bump.
 
 Moved verbatim from the comment block that used to live in `src/index.ts`.
 
+1.128.0 — additive (no HostV1 change): the EMF emitter learns LIVE text. The
+vector IR gains a `text` prim (`VectorTextPrim` in `src/emf.ts`) and `emitEmf`
+writes it as a real GDI font + string record pair (EXTCREATEFONTINDIRECTW +
+EXTTEXTOUTW, with SETTEXTALIGN/SETTEXTCOLOR and a one-time SETBKMODE
+TRANSPARENT), so exported text stays selectable and editable in Office and
+Google Drawings instead of always arriving as outlines. Alignment maps
+text-anchor to TA_LEFT/CENTER/RIGHT and the baseline to TA_BASELINE/TA_TOP —
+the RENDERER's own font metrics resolve both, which degrades gracefully under
+font substitution; rotation rides lfEscapement/lfOrientation. No Dx array is
+written, deliberately: live means the destination lays the run out with the
+metrics of whatever face it has. The IR producer (the shells' svg-ir walker,
+textMode:'live') decides per run — anything GDI text can't express (tracking,
+OpenType features, strokes, skew/anisotropic scale, centred dominant-baseline)
+is still outlined to paths as before. A file with no text prims is
+byte-identical to the 1.127 writer (nHandles stays 3; the font slot and the
+bkmode record only exist when text does). WMF/EPS/DXF are unchanged and ignore
+text prims. Shipped with the shells' EMF default flipping to live text
+(`--text=outline` / the export panel's "Outline fonts" chip restores
+text-as-paths), and EMF/WMF downloads re-typed `application/x-msmetafile` so
+Google Drive routes them into Drawings/Slides.
+
+1.127.0 — additive (plans/125, on-device OCR): `HostV1` gains an optional
+**`ocr?: OcrAPI`** — a plain RGBA frame in, the text the image contains out, as
+lines with axis-aligned boxes and per-line confidences (`OcrResult`/`OcrLine`).
+A structural sibling of `matte`/`upscale`: the shell owns the ONNX runtime, the
+one-time consented model download and the memory bound; the caller sees only
+pixels and plain text. WASM-only (`backend()` never reports webgpu — the models
+are small and ort-web's GPU kernels reject ops these graphs use). Feature-detected
+and NOT capability-gated. Unlike matte/upscale it produces no pixels, no derived
+asset and NO provenance — reading text is not a media edit — and it is a
+best-effort read a shell presents as a correctable draft, never a verdict. Any
+byte-level signal in the source's digital text (invisible characters, homoglyphs,
+a text watermark) is lost in rasterisation, so it survives only on native digital
+text, not on an OCR read. First use: "Copy text" on a catalog asset. Older shells
+simply lack it.
+
 1.126.0 — additive (plans/114 Wave 3, the OS share sheet): `host.export` gains two optional verbs —
 **`share(blob, opts?)`** hands finished bytes to the platform share sheet (the Web Share API
 `navigator.share` on web; native Android `ACTION_SEND` on the Tauri mobile shell — desktop/iOS

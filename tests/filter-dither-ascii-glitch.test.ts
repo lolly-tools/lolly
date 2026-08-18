@@ -630,3 +630,190 @@ test('glitch: a still (png) export registers no per-frame hooks at all', async (
   assert.equal(node.__lollyFrameCanvas, undefined, 'png is not a motion format → no direct-canvas hook');
   assert.equal(node.children.length, 0, 'png is not a motion format → no ov-clock anchor mounted');
 });
+
+// ── still-raster base freeze (dither PNG hang fix) ────────────────────────────
+// A vector effect can emit tens of thousands of nodes (dither: one <rect> per virtual
+// pixel, ~28k at the default scale). The shell's still-raster export rasterises the
+// WHOLE tool-canvas DOM through dom-to-image-more, which clones every node and inlines
+// its computed style, so a big base stalls the export for tens of seconds (the "shutter
+// stays shut" hang). The dispatcher's _freezeBaseForExport swaps a heavy base to ONE
+// <image> for a still raster too (previously motion-only), sized to the export
+// resolution. Gated by a node-count floor so exports that already work stay untouched.
+
+// A loader that exposes the dispatcher's export lifecycle + the freeze internals.
+function loadFreeze(host: unknown) {
+  const fn = new Function('host', `${source}
+;return {
+  onInit:       typeof onInit       !== 'undefined' ? onInit       : null,
+  beforeExport: typeof beforeExport  !== 'undefined' ? beforeExport  : null,
+  afterExport:  typeof afterExport   !== 'undefined' ? afterExport   : null,
+  _stillExportEdge: typeof _stillExportEdge !== 'undefined' ? _stillExportEdge : null,
+  _STILL_FREEZE_MIN_NODES: typeof _STILL_FREEZE_MIN_NODES !== 'undefined' ? _STILL_FREEZE_MIN_NODES : null,
+};`) as (h: unknown) => {
+    onInit: (ctx: unknown) => unknown;
+    beforeExport: (ctx: unknown) => Promise<unknown> | unknown;
+    afterExport: (ctx: unknown) => unknown;
+    _stillExportEdge: (W: number, H: number, opts: Record<string, unknown>, node?: unknown) => number;
+    _STILL_FREEZE_MIN_NODES: number;
+  };
+  return fn(host);
+}
+
+// A fake <svg> element supporting exactly the surface _freezeBaseForExport touches:
+// getAttribute (viewBox/width/height), getElementsByTagName('*').length (the node
+// budget), querySelector (#lolly-ov-slot + image[data-base-raster]), cloneNode, and
+// the childNodes / removeChild / insertBefore swap. `nodeCount` synthetic <rect>s
+// stand in for the effect's grid.
+function fakeEl(tag: string): Record<string, unknown> {
+  const attrs: Record<string, string> = {};
+  return {
+    nodeType: 1, tagName: tag, parentNode: null, nextSibling: null,
+    setAttribute(k: string, v: string) { attrs[k] = v; },
+    setAttributeNS(_ns: string, k: string, v: string) { attrs[k] = v; },
+    getAttribute(k: string) { return attrs[k] ?? null; },
+    hasAttribute(k: string) { return k in attrs; },
+    querySelector() { return null; },
+    __attrs: attrs,
+  };
+}
+function fakeSvg(nodeCount: number, viewBox = '0 0 1000 1000'): Record<string, unknown> {
+  const attrs: Record<string, string> = { viewBox, width: '1000', height: '1000' };
+  const slot = fakeEl('g'); (slot as Record<string, unknown>).__isSlot = true;
+  const rects = Array.from({ length: nodeCount }, () => fakeEl('rect'));
+  const childNodes: Array<Record<string, unknown>> = [...rects, slot];
+  const svg: Record<string, unknown> = {
+    nodeType: 1, tagName: 'svg', __attrs: attrs, childNodes,
+    getAttribute(k: string) { return attrs[k] ?? null; },
+    getElementsByTagName() { return { length: nodeCount }; },
+    querySelector(sel: string) {
+      if (sel === '#lolly-ov-slot') return slot;
+      if (sel === 'image[data-base-raster]') return childNodes.find((c) => c.__attrs && (c.__attrs as Record<string, string>)['data-base-raster']) ?? null;
+      return null;
+    },
+    cloneNode() {
+      const cslot = fakeEl('g'); cslot.parentNode = { removeChild() {} };
+      return { __xml: '<svg>clone</svg>', querySelector: (s: string) => (s === '#lolly-ov-slot' ? cslot : null) };
+    },
+    removeChild(k: Record<string, unknown>) { const i = childNodes.indexOf(k); if (i >= 0) childNodes.splice(i, 1); k.parentNode = null; return k; },
+    insertBefore(n: Record<string, unknown>, ref: Record<string, unknown> | null) {
+      const i = ref ? childNodes.indexOf(ref) : -1;
+      if (i >= 0) childNodes.splice(i, 0, n); else childNodes.push(n);
+      n.parentNode = svg; // real DOM sets the child's parent; _restoreBaseRaster reads it
+      return n;
+    },
+  };
+  return svg;
+}
+// A tool-canvas node whose querySelector('svg') yields the fake base.
+function freezeNode(svg: Record<string, unknown>): Record<string, unknown> {
+  return { querySelector: (sel: string) => (sel === 'svg' ? svg : null) };
+}
+function baseWasFrozen(svg: Record<string, unknown>): boolean {
+  return !!(svg.querySelector as (s: string) => unknown)('image[data-base-raster]');
+}
+
+// Install the DOM globals the freeze needs (Image with async onload, XMLSerializer,
+// document.createElementNS), run `body`, then restore, so the rest of the suite is
+// unaffected. The canvas double from the top of the file is reused via createElement.
+async function withFreezeDom(body: () => Promise<void>) {
+  const g = globalThis as Record<string, unknown>;
+  const doc = g.document as Record<string, unknown>;
+  const savedNS = doc.createElementNS;
+  const savedImage = g.Image;
+  const savedXml = g.XMLSerializer;
+  doc.createElementNS = (_ns: string, tag: string) => fakeEl(tag);
+  g.XMLSerializer = class { serializeToString(n: Record<string, unknown>) { return (n.__xml as string) ?? '<svg/>'; } };
+  g.Image = class {
+    onload: (() => void) | null = null;
+    onerror: (() => void) | null = null;
+    set src(_v: string) { queueMicrotask(() => this.onload && this.onload()); }
+  };
+  try { await body(); }
+  finally { doc.createElementNS = savedNS; g.Image = savedImage; g.XMLSerializer = savedXml; }
+}
+
+test('freeze math: _stillExportEdge maps the viewBox to the export resolution (px, physical units, default supersample)', () => {
+  const { host } = makeHost();
+  const { _stillExportEdge } = loadFreeze(host);
+  assert.equal(_stillExportEdge(1000, 1000, {}), 2000, 'no size → 2× supersample (RASTER_DEFAULT_SCALE)');
+  assert.equal(_stillExportEdge(1000, 1000, { scale: 3 }), 3000, 'explicit scale honoured');
+  assert.equal(_stillExportEdge(1000, 1000, { width: 4000 }), 4000, 'width as a px number');
+  assert.equal(_stillExportEdge(1000, 1000, { width: '800px' }), 800, 'width as a "px" string');
+  assert.equal(Math.round(_stillExportEdge(1000, 1000, { width: '210mm', dpi: 300 })), 2480, '210mm @300dpi');
+  assert.equal(Math.round(_stillExportEdge(1600, 900, { width: 3000 })), 3000, 'non-square keys off the longest edge');
+  // No explicit size → supersample the NODE's CSS box (what dom-to-image targets), not
+  // the viewBox, so a canvas wider than its viewBox doesn't upscale/soften the base.
+  const wideNode = { getBoundingClientRect: () => ({ width: 1400, height: 787 }) };
+  assert.equal(_stillExportEdge(1000, 1000, {}, wideNode), 2800, 'measured node box × 2 when no size is requested');
+  assert.equal(_stillExportEdge(1000, 1000, {}, {}), 2000, 'unmeasurable node falls back to viewBox × 2');
+});
+
+test('freeze: a big dither PNG freezes the vector base to one <image> (the hang fix)', async () => {
+  await withFreezeDom(async () => {
+    const { host } = makeHost();
+    const hooks = loadFreeze(host);
+    await hooks.onInit({ model: model({ effect: 'dither' }), host }); // sets _activeEffect
+    const svg = fakeSvg(12000); // > 8000-node floor
+    await hooks.beforeExport({ format: 'png', node: freezeNode(svg), opts: {}, host });
+    assert.ok(baseWasFrozen(svg), 'a 12k-node dither base is frozen to a single <image> for a PNG');
+    // afterExport restores the vector base (removes the raster image).
+    hooks.afterExport({ format: 'png', node: freezeNode(svg), host });
+    assert.ok(!baseWasFrozen(svg), 'afterExport removes the frozen raster and restores the vectors');
+  });
+});
+
+test('freeze: a small base keeps its per-node vector path (byte-identical to today)', async () => {
+  await withFreezeDom(async () => {
+    const { host } = makeHost();
+    const hooks = loadFreeze(host);
+    await hooks.onInit({ model: model({ effect: 'dither' }), host });
+    const svg = fakeSvg(2000); // < 8000-node floor (e.g. halftone default ~1.7k)
+    await hooks.beforeExport({ format: 'png', node: freezeNode(svg), opts: {}, host });
+    assert.ok(!baseWasFrozen(svg), 'a small base is left as crisp per-node vectors for dom-to-image');
+  });
+});
+
+test('freeze: ASCII never freezes a still (its <text> resolves fonts via foreignObject) — even at its cap', async () => {
+  await withFreezeDom(async () => {
+    const { host } = makeHost();
+    const hooks = loadFreeze(host);
+    await hooks.onInit({ model: model({ effect: 'ascii' }), host });
+    const svg = fakeSvg(6000); // ascii's MAX_CELLS cap, below the 8000 floor by design
+    await hooks.beforeExport({ format: 'png', node: freezeNode(svg), opts: {}, host });
+    assert.ok(!baseWasFrozen(svg), 'ascii stays on the (font-correct) dom-to-image path for stills');
+  });
+});
+
+test('freeze: a MOTION export still freezes any vector base regardless of size', async () => {
+  await withFreezeDom(async () => {
+    const { host } = makeHost();
+    const hooks = loadFreeze(host);
+    await hooks.onInit({ model: model({ effect: 'dither' }), host });
+    const svg = fakeSvg(2000); // small, but motion pays the per-node cost every frame
+    await hooks.beforeExport({ format: 'gif', node: freezeNode(svg), opts: { duration: 5 }, host });
+    assert.ok(baseWasFrozen(svg), 'motion freezes the base even below the still floor');
+    hooks.afterExport({ format: 'gif', node: freezeNode(svg), host });
+  });
+});
+
+test('freeze: an SVG (vector) export never freezes — the output must stay crisp vectors', async () => {
+  await withFreezeDom(async () => {
+    const { host } = makeHost();
+    const hooks = loadFreeze(host);
+    await hooks.onInit({ model: model({ effect: 'dither' }), host });
+    const svg = fakeSvg(12000);
+    await hooks.beforeExport({ format: 'svg', node: freezeNode(svg), opts: {}, host });
+    assert.ok(!baseWasFrozen(svg), 'svg is not a raster format → base kept as vectors');
+  });
+});
+
+test('freeze: a raster effect (glitch) is never frozen — it already emits a single <image> base', async () => {
+  await withFreezeDom(async () => {
+    const { host } = makeHost();
+    const hooks = loadFreeze(host);
+    await hooks.onInit({ model: model({ effect: 'glitch' }), host });
+    const svg = fakeSvg(12000);
+    await hooks.beforeExport({ format: 'png', node: freezeNode(svg), opts: {}, host });
+    assert.ok(!baseWasFrozen(svg), 'glitch is not in _VECTOR_EFFECTS → freeze is skipped');
+  });
+});

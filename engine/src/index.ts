@@ -177,6 +177,15 @@ export type { AudioAnalysis, AudioAnalyseOpts, AudioFrames } from './audio-analy
 // export break caption lines at the same words.
 export { groupWordsToCues, cuesToVtt, cuesToSrt, cueAt } from './captions.ts';
 export type { CaptionCue, GroupWordsOpts } from './captions.ts';
+// Text AI-likelihood signals (plans/125) - a string in, a tiered SIGNAL (never a
+// verdict) out: byte-level artifact tells on digital text, English-gated writing
+// -style heuristics, a hedged low-confidence style guess. Pure + model-free, so
+// the verify view, the CLI, and the OCR path read identical numbers.
+export { analyzeTextSignals } from './text-signals.ts';
+export type {
+  TextSignalSource, TextSignalBand, TextSignalTier, TextSignalSpan,
+  TextSignalFinding, TextStyleGuess, TextSignalReport, AnalyzeTextSignalsOpts,
+} from './text-signals.ts';
 // Speech synthesis text machinery (host.speech, v1.98) - the pure half of Kokoro
 // TTS: normalize/split/chunk maths, token-span bookkeeping, durations→word
 // timings and clip concatenation. The shell's worker and Node scripts inject the

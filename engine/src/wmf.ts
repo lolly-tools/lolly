@@ -301,6 +301,12 @@ export function emitWmf(ir: VectorIr, opts: VectorEmitOpts = {}): Uint8Array {
     // `image` (raster escape-hatch) prims are dropped: WMF's DIB blits are out of
     // scope for this first cut. The IR producer already vectorises everything it
     // can, so this only loses the last-resort rasterised node.
+    // `text` prims (EMF's live-text mode, engine 1.128) must never reach this
+    // emitter - WMF callers walk with the outline default, and silently dropping
+    // a run would break the "never a partially-textless file" guarantee.
+    else if (prim?.type === 'text') {
+      throw new Error(`WMF cannot carry live text (run "${prim.text.slice(0, 24)}") - build the IR with textMode 'outline'`);
+    }
   }
   body.push(recEof());
 

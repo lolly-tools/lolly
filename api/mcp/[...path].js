@@ -61,7 +61,7 @@ var init_tool_schema = __esm({
         designVersion: {
           type: "string",
           pattern: "^[a-z0-9][a-z0-9-]*$",
-          description: "Optional design-system version this tool renders against (plans/97 \xA76a): a published version's slug, or 'latest' for the edit head. Author-controlled stability - a pinned tool keeps rendering against its version whatever gets republished. Unlike engineVersion this is NOT enforced at load: a pin naming a version this device does not have falls through to the active version, then to the head, so a tool always draws. Overridden per render by ?designv=. On a device that never published a version it has no effect at all."
+          description: "Optional design-system version this tool renders against (plans/97 section 6a): a published version's slug, or 'latest' for the edit head. Author-controlled stability - a pinned tool keeps rendering against its version whatever gets republished. Unlike engineVersion this is NOT enforced at load: a pin naming a version this device does not have falls through to the active version, then to the head, so a tool always draws. Overridden per render by ?designv=. On a device that never published a version it has no effect at all."
         },
         status: {
           type: "string",
@@ -425,6 +425,7 @@ var init_tool_schema = __esm({
             },
             label: { type: "string" },
             help: { type: "string" },
+            notice: { type: "string", description: "Always-visible fine print rendered above the control (unlike help, which sits behind an info button). For what the user should read before typing \u2014 e.g. the consent disclosure on an input whose value triggers a network lookup." },
             type: {
               type: "string",
               enum: ["text", "longtext", "number", "boolean", "color", "select", "asset", "date", "time", "datetime-local", "url", "blocks", "vector", "file", "table"]
@@ -865,7 +866,7 @@ var init_tool_schema = __esm({
                       import: {
                         type: "object",
                         additionalProperties: false,
-                        description: "Opt into design-file IMPORT on this canvas: the editor's Lolly menu gains an 'Import a design' entry that maps an imported file's frames/shapes onto boxes of THIS array, using the tool's own font-select values and addKinds seed colours so the result is indistinguishable from natively-authored boxes. Absent (Layout Studio's historical state) = no import control at all.",
+                        description: "Opt into design-file IMPORT on this canvas: the editor's Lolly menu gains an 'Import a design' entry that maps an imported file's frames/shapes onto boxes of THIS array, using the tool's own font-select values and addKinds seed colours so the result is indistinguishable from natively-authored boxes. Absent (Design's historical state) = no import control at all.",
                         properties: {
                           formats: {
                             type: "array",
@@ -1051,7 +1052,7 @@ var init_asset_schema = __esm({
                 type: "integer",
                 minimum: 1,
                 maximum: 64,
-                description: "Bits per channel of THIS file. Raster containers only (png/tiff/jpeg/webp). SNIFFED, NOT ASSERTED: absent means unknown or not raster \u2014 a container that buries depth in codec boxes (heic/avif) stays absent rather than guessing. Never hand-authored: `npm run build:catalog` writes it from a bounded header sniff and `npm run validate:catalog` re-sniffs to catch drift. Depth follows provenance (plans/61-deeprichpixels.md \xA710)."
+                description: "Bits per channel of THIS file. Raster containers only (png/tiff/jpeg/webp). SNIFFED, NOT ASSERTED: absent means unknown or not raster \u2014 a container that buries depth in codec boxes (heic/avif) stays absent rather than guessing. Never hand-authored: `npm run build:catalog` writes it from a bounded header sniff and `npm run validate:catalog` re-sniffs to catch drift. Depth follows provenance (plans/61-deeprichpixels.md section 10)."
               },
               durationMs: { type: "integer", minimum: 0, description: "Playback length in milliseconds, for video, audio and lottie assets." }
             }
@@ -1181,7 +1182,7 @@ var init_ratecard_schema = __esm({
         minimumCharge: {
           type: "number",
           minimum: 0,
-          description: 'A number, so the \xA75 placeholder "<your minimum>" is invalid. Applied as a visible adjustment row, never a silent floor.'
+          description: 'A number, so the section 5 placeholder "<your minimum>" is invalid. Applied as a visible adjustment row, never a silent floor.'
         },
         breakMode: {
           enum: ["flat", "marginal"],
@@ -1218,12 +1219,12 @@ var init_ratecard_schema = __esm({
               },
               kind: {
                 enum: ["perPlate", "perSheet", "perArea", "perQuantity", "perUnit", "perJob"],
-                description: "There is deliberately no perRender: \xA74 counts three different things a job produces and they differ by an order of magnitude."
+                description: "There is deliberately no perRender: section 4 counts three different things a job produces and they differ by an order of magnitude."
               },
               rate: {
                 type: "number",
                 minimum: 0,
-                description: 'THE constraint that makes the \xA75 example invalid. A rate is a number FROM THE CARD; the placeholder "<your rate>" is a string and is rejected.'
+                description: 'THE constraint that makes the section 5 example invalid. A rate is a number FROM THE CARD; the placeholder "<your rate>" is a string and is rejected.'
               },
               finish: {
                 type: "string",
@@ -1778,7 +1779,7 @@ var ENGINE_VERSION;
 var init_version = __esm({
   "engine/src/version.ts"() {
     "use strict";
-    ENGINE_VERSION = "1.124.0";
+    ENGINE_VERSION = "1.128.0";
   }
 });
 
@@ -1891,7 +1892,7 @@ function applyManifestI18n(manifest, overlay) {
     const [, inputId, rest] = m2;
     const input = manifest.inputs?.find((i) => i.id === inputId);
     if (!input) continue;
-    if (rest === "label" || rest === "help" || rest === "placeholder" || rest === "section" || rest === "suffix") {
+    if (rest === "label" || rest === "help" || rest === "notice" || rest === "placeholder" || rest === "section" || rest === "suffix") {
       input[rest] = value;
       continue;
     }
@@ -1970,7 +1971,7 @@ async function assertFileIntegrity(integrity, toolId, filename, text) {
 function warnUnsignedCatalogOnce() {
   if (warnedUnsignedCatalog) return;
   warnedUnsignedCatalog = true;
-  console.warn("catalog integrity: unsigned catalog \u2014 tool code is not verified");
+  console.info("catalog integrity: unsigned catalog (tool code is not signature-verified) - expected for a local or dev catalog");
 }
 async function loadTool(toolId, fetchFile, opts = {}) {
   const integrity = opts.integrity ?? null;
@@ -3670,12 +3671,12 @@ function toSwatch(e) {
     // returns a real hex here; '' is a contract-satisfying fallback (ColorSwatch.value
     // is a non-null string) that a malformed colour value can never actually hit.
     //
-    // An AUTHORED sRGB face wins over the automatic bake — this is Phase 9 of
+    // An AUTHORED sRGB face wins over the automatic bake. This is Phase 9 of
     // plans/60-color-spaces.md, and it is one line here rather than a change per
     // export path because every consumer of a brand colour funnels through this
-    // field. The reason it must win: the automatic §14.2 gamut map picks the
+    // field. The reason it must win: the automatic section 14.2 gamut map picks the
     // nearest reproducible colour by ΔE, and a brand will often prefer a
-    // DIFFERENT sRGB green — one that reads as the same brand colour to a human
+    // DIFFERENT sRGB green, one that reads as the same brand colour to a human
     // even though it is not the closest by measurement. Left unhonoured, the
     // override would be decoration.
     //
@@ -5099,7 +5100,7 @@ var init_jpeg_segments = __esm({
       XMP_EXT: "http://ns.adobe.com/xmp/extension/",
       ICC: "ICC_PROFILE",
       MPF: "MPF",
-      /** APP11 JUMBF (C2PA). Note this one is NOT NUL-terminated in the file — see `readAppId`. */
+      /** APP11 JUMBF (C2PA). Note this one is NOT NUL-terminated in the file - see `readAppId`. */
       JUMBF: "JP"
     });
   }
@@ -6130,15 +6131,15 @@ function stripArmorBlock(bin, label) {
   const begin = begins[0];
   const end = ends[0];
   if (begins.length !== 1 || ends.length !== 1 || end < begin + ARMOR_BEGIN.length) {
-    throw new Error(`C2PA embed: this ${label} already carries more than one \u2014 or a malformed \u2014 C2PA manifest block (\xA7A.9.3 allows at most one)`);
+    throw new Error(`C2PA embed: this ${label} already carries more than one \u2014 or a malformed \u2014 C2PA manifest block (section A.9.3 allows at most one)`);
   }
   const refuse = (what) => {
-    throw new Error(`C2PA embed: this ${label} quotes the \xA7A.9 armour delimiters ${what} \u2014 refusing to delete it, and a second block would make the file unreadable`);
+    throw new Error(`C2PA embed: this ${label} quotes the section A.9 armour delimiters ${what} \u2014 refusing to delete it, and a second block would make the file unreadable`);
   };
   const lineStart = bin.lastIndexOf("\n", begin) + 1;
   const nl = bin.indexOf("\n", end);
   const lineEnd = nl < 0 ? bin.length : nl + 1;
-  if (lineStart !== 0 && bin.slice(lineEnd).trim()) refuse("in the middle of the file, where \xA7A.9.3.1 never places a manifest block");
+  if (lineStart !== 0 && bin.slice(lineEnd).trim()) refuse("in the middle of the file, where section A.9.3.1 never places a manifest block");
   if (!ARMOR_COMMENT_OPEN.test(bin.slice(lineStart, begin)) || !ARMOR_COMMENT_CLOSE.test(bin.slice(end + ARMOR_END.length, lineEnd).replace(/\r?\n$/, ""))) {
     refuse("inside a line that is not a comment");
   }
@@ -6150,7 +6151,7 @@ function stripArmorBlock(bin, label) {
 function placeArmor(bytes, manifest, syntax) {
   const bin = bytesToBin(bytes);
   if (/\r(?!\n)/.test(bin)) {
-    throw new Error(`C2PA embed: this ${syntax.label} uses bare CR line endings, which \xA7A.9.4 does not support \u2014 convert it to LF or CRLF first`);
+    throw new Error(`C2PA embed: this ${syntax.label} uses bare CR line endings, which section A.9.4 does not support \u2014 convert it to LF or CRLF first`);
   }
   const base = stripArmorBlock(bin, syntax.label);
   if (!base.trim()) {
@@ -6334,13 +6335,13 @@ var init_c2pa_containers = __esm({
     HTML_RAW_TEXT = ["script", "style", "textarea", "title"];
     MAX_HTML_ATTRS = 64;
     ARMOR_SYNTAX = {
-      // JavaScript uses the PRESERVATION-HINT comment, not `//`. §A.9.3.1's example
+      // JavaScript uses the PRESERVATION-HINT comment, not `//`. section A.9.3.1's example
       // table shows `//` for JavaScript, but the same clause's normative sentence is
       // "When host formats define comment conventions that signal toolchains to
       // preserve specific comments (e.g., comments beginning with /*! in JavaScript
       // AND CSS), claim generators should use them for the reference line." The
       // example is illustrative; the SHOULD is aimed at exactly this pair, and the
-      // failure it exists to prevent is real — every minifier that honours `/*!`
+      // failure it exists to prevent is real - every minifier that honours `/*!`
       // drops `//`, so a signed .js would lose its credential the first time it went
       // through a build. CSS already complied, which left the file inconsistent with
       // itself. Safe because the base64 alphabet contains no `*` or `/`, so `*/`
@@ -6365,28 +6366,28 @@ var init_c2pa_containers = __esm({
       "cmyk-tiff": { place: placeTiff, mime: "image/tiff" },
       webp: { place: placeWebp, mime: "image/webp" },
       mp4: { place: placeMp4, mime: "video/mp4", hash: "bmff" },
-      // AVIF is ISO BMFF too (a still or sequence of AV1 frames). It rides the SAME
-      // c2pa.hash.bmff.v2 binding as MP4 via the format-agnostic placeMp4 (append the
-      // C2PA box last, nothing before it moves — so the meta/iloc offsets into mdat stay
-      // valid). This is the C2PA-spec-native home for the credential, so an AI/upscaled
-      // AVIF keeps its provenance instead of losing it on export.
+      // AVIF is ISO BMFF too (a still or sequence of AV1 frames). It uses the SAME
+      // c2pa.hash.bmff.v2 binding as MP4, via the format-agnostic placeMp4 (append the
+      // C2PA box last, so nothing before it moves and the meta/iloc offsets into mdat
+      // stay valid). This is the placement the C2PA spec defines for the credential,
+      // so an AI/upscaled AVIF keeps its provenance instead of losing it on export.
       avif: { place: placeMp4, mime: "image/avif", hash: "bmff" },
-      // M4A (AAC audio) is ISO BMFF too — same placeMp4 + bmff binding as MP4/AVIF. This
+      // M4A (AAC audio) is ISO BMFF too - same placeMp4 + bmff binding as MP4/AVIF. This
       // is how a synthetic/AI voice clip (the Voice Recorder, TTS, Audiogram) keeps a
       // verifiable credential instead of shipping unattributed.
       m4a: { place: placeMp4, mime: "audio/mp4", hash: "bmff" },
       webm: { place: placeWebm, mime: "video/webm" },
       mp3: { place: placeMp3, mime: "audio/mpeg" },
       wav: { place: placeWav, mime: "audio/wav" },
-      // Ogg Opus — the JUMBF store lives in the OpusTags comment header, byte-range
+      // Ogg Opus - the JUMBF store lives in the OpusTags comment header, byte-range
       // excluded (Lolly-only binding; c2pa-rs has no Ogg reader). 'opus' and 'ogg'
       // are the same container; both map to the export/asset format strings in use.
       ogg: { place: placeOgg, mime: "audio/ogg" },
       opus: { place: placeOgg, mime: "audio/ogg" },
-      // C2PA 2.4 text bindings. `html` is the §A.7 inline form (a whole HTML
-      // DOCUMENT); js/css/md are §A.9 structured text; `html-fragment` is the Lolly
-      // profile — §A.9's armour in an HTML comment, for markup that has no `<head>`
-      // for §A.7 to use. See the block comment above the placers.
+      // C2PA 2.4 text bindings. `html` is the section A.7 inline form (a whole HTML
+      // DOCUMENT); js/css/md are section A.9 structured text; `html-fragment` is the Lolly
+      // profile - section A.9's armour in an HTML comment, for markup that has no `<head>`
+      // for section A.7 to use. See the block comment above the placers.
       html: { place: placeHtml, mime: "text/html" },
       js: { place: (b, m2) => placeArmor(b, m2, ARMOR_SYNTAX.js), mime: "text/javascript" },
       css: { place: (b, m2) => placeArmor(b, m2, ARMOR_SYNTAX.css), mime: "text/css" },
@@ -6537,17 +6538,17 @@ function captureDescription(cap) {
 }
 function aiDisclosureMap(d) {
   const modelType = String(d.modelType ?? AI_MODEL_TYPE_GENERIC).trim();
-  if (!modelType) throw new Error("c2pa: aiDisclosure.modelType cannot be empty (\xA718.28.2 requires it; omit the field to get the generic c2pa.types.model)");
+  if (!modelType) throw new Error("c2pa: aiDisclosure.modelType cannot be empty (section 18.28.2 requires it; omit the field to get the generic c2pa.types.model)");
   if (!AI_MODEL_TYPES.includes(modelType) && (modelType.startsWith("c2pa.") || !NAMESPACED_LABEL_RE.test(modelType))) {
-    throw new Error(`c2pa: aiDisclosure.modelType '${modelType}' is neither a Table 12 model type (\xA718.28.2) nor an entity-specific namespaced label (\xA76.2.2, e.g. 'com.litware.types.abc') \u2014 omit the field to get the generic ${AI_MODEL_TYPE_GENERIC}`);
+    throw new Error(`c2pa: aiDisclosure.modelType '${modelType}' is neither a Table 12 model type (section 18.28.2) nor an entity-specific namespaced label (section 6.2.2, e.g. 'com.litware.types.abc') \u2014 omit the field to get the generic ${AI_MODEL_TYPE_GENERIC}`);
   }
   if (d.oversight != null && !HUMAN_OVERSIGHT_LEVELS.includes(String(d.oversight))) {
-    throw new Error(`c2pa: aiDisclosure.oversight must be one of ${HUMAN_OVERSIGHT_LEVELS.join(" / ")} (\xA718.28.4), got '${String(d.oversight)}'`);
+    throw new Error(`c2pa: aiDisclosure.oversight must be one of ${HUMAN_OVERSIGHT_LEVELS.join(" / ")} (section 18.28.4), got '${String(d.oversight)}'`);
   }
   const raw = d.scientificDomain == null ? [] : Array.isArray(d.scientificDomain) ? d.scientificDomain : [d.scientificDomain];
   const domains = raw.map((s) => String(s).trim()).filter(Boolean);
   for (const s of domains) {
-    if (!SCIENTIFIC_DOMAIN_RE.test(s)) throw new Error(`c2pa: aiDisclosure.scientificDomain '${s}' is not an arXiv taxonomy term (\xA718.28.4 e.g. 'cs.AI', 'physics.optics')`);
+    if (!SCIENTIFIC_DOMAIN_RE.test(s)) throw new Error(`c2pa: aiDisclosure.scientificDomain '${s}' is not an arXiv taxonomy term (section 18.28.4 e.g. 'cs.AI', 'physics.optics')`);
   }
   return {
     modelType,
@@ -6555,7 +6556,7 @@ function aiDisclosureMap(d) {
     ...d.modelIdentifier ? { modelIdentifier: String(d.modelIdentifier) } : {},
     ...d.oversight ? { contentProfile: { humanOversightLevel: String(d.oversight) } } : {},
     // The CDDL says a list (`1* $scientific-domain-string`) even though
-    // §18.28.4's own example ships a bare string. Write the conformant list;
+    // section 18.28.4's own example ships a bare string. Write the conformant list;
     // the read side accepts both.
     ...domains.length ? { scientificDomain: domains } : {}
   };
@@ -6590,7 +6591,7 @@ async function buildC2paManifest({
   const generatorName = String(claimGenerator || "Lolly");
   const genInfoMap = generatorInfo && typeof generatorInfo === "object" && Object.keys(generatorInfo).length ? { name: generatorName, ...generatorInfo } : { name: generatorName };
   if (specVersion != null && !SEMVER_RE.test(String(specVersion))) {
-    throw new Error(`c2pa: specVersion must be a SemVer string (\xA710.2.3, e.g. '${C2PA_SPEC_VERSION}'), got '${String(specVersion)}'`);
+    throw new Error(`c2pa: specVersion must be a SemVer string (section 10.2.3, e.g. '${C2PA_SPEC_VERSION}'), got '${String(specVersion)}'`);
   }
   const claimGenInfo = specVersion != null ? { ...genInfoMap, specVersion: String(specVersion) } : genInfoMap;
   const softwareAgent = v2 ? genInfoMap : generatorName;
@@ -6609,7 +6610,7 @@ async function buildC2paManifest({
       ...ing.format && INGREDIENT_MIME[ing.format] ? { "dc:format": INGREDIENT_MIME[ing.format] } : {},
       relationship: ing.relationship || "parentOf",
       // activeManifest hashed URI covers the referenced manifest superbox payload
-      // (jumd + content, minus the 8-byte header) — Lolly's hashed-URI convention.
+      // (jumd + content, minus the 8-byte header) - Lolly's hashed-URI convention.
       activeManifest: { url: `self#jumbf=/c2pa/${ing.activeLabel}`, alg: "sha256", hash: await sha256(activeBox.subarray(8)) },
       validationResults: {
         activeManifest: {
@@ -6650,10 +6651,10 @@ async function buildC2paManifest({
     hash: assetHash.hash,
     pad: assetHash.pad || new Uint8Array(0)
   } : {
-    // §11.4's external form (and §A.7.1.3's link element) hash the asset WHOLE:
+    // section 11.4's external form (and section A.7.1.3's link element) hash the asset WHOLE:
     // "the data hash assertion shall have no exclusion range". The CDDL is
-    // `? "exclusions": [1* EXCLUSION_RANGE-map]` — optional, but non-empty when
-    // present — so an empty list is written as NO KEY, not as `[]`. Every
+    // `? "exclusions": [1* EXCLUSION_RANGE-map]` - optional, but non-empty when
+    // present - so an empty list is written as NO KEY, not as `[]`. Every
     // embedded caller passes at least one range, so their bytes are unchanged.
     ...assetHash.exclusions.length ? { exclusions: assetHash.exclusions.map((e) => ({ start: e.start, length: e.length })) } : {},
     name: assetHash.name || "jumbf manifest",
@@ -8322,45 +8323,45 @@ var init_c2pa_verdict = __esm({
       /** The signing chain verified to a caller-pinned trust anchor (identity granted). */
       signingCredentialTrusted: "signingCredential.trusted",
       /**
-       * No pinned anchor vouches for the chain — the DESIGNED default posture for
+       * No pinned anchor vouches for the chain - the DESIGNED default posture for
        * ephemeral on-device keys, not damage. Always excluded from the state
        * verdict (see isExpiredOnly/resolveVerdict below and verifyC2pa itself).
        */
       signingCredentialUntrusted: "signingCredential.untrusted",
       /** The hard binding (c2pa.hash.data) matches the file bytes. */
       assertionDataHashMatch: "assertion.dataHash.match",
-      /** The hard binding does not match — the file changed after signing (or none present). */
+      /** The hard binding does not match - the file changed after signing (or none present). */
       assertionDataHashMismatch: "assertion.dataHash.mismatch",
       /** The BMFF (mp4/webm-family) hard binding matches. */
       assertionBmffHashMatch: "assertion.bmffHash.match",
       /** The BMFF hard binding does not match / could not be checked. */
       assertionBmffHashMismatch: "assertion.bmffHash.mismatch",
-      // ── C2PA 2.4 text bindings (§A.7 HTML / §A.8 unstructured / §A.9 structured).
-      // Every string below is the SPEC'S OWN status code, copied from §15.2.2's
-      // standard-status-code table, not invented here — same posture as the rows
+      // ── C2PA 2.4 text bindings (section A.7 HTML / section A.8 unstructured / section A.9 structured).
+      // Every string below is the SPEC'S OWN status code, copied from section 15.2.2's
+      // standard-status-code table, not invented here - same posture as the rows
       // above. They are only ever emitted for the three text formats, so no existing
       // report's rows change.
-      /** §15.12.1.3.3 — the data-hash assertion itself is malformed: for §A.8 text
+      /** section 15.12.1.3.3 - the data-hash assertion itself is malformed: for section A.8 text
        *  that means its exclusions match no C2PATextManifestWrapper in the asset. */
       assertionDataHashMalformed: "assertion.dataHash.malformed",
-      /** §15.2.2 — "a data hash specified exclusion ranges other than the C2PA
-       *  Manifest Store". §A.7.1.3 / §A.9.4 each mandate ONE exclusion covering
+      /** section 15.2.2 - "a data hash specified exclusion ranges other than the C2PA
+       *  Manifest Store". section A.7.1.3 / section A.9.4 each mandate ONE exclusion covering
        *  exactly the carrier; anything else is unbound content inside a "valid" file. */
       assertionDataHashAdditionalExclusions: "assertion.dataHash.additionalExclusionsPresent",
-      /** §A.7.1 / §A.7.1.4 — more than one C2PA manifest element in one HTML document. */
+      /** section A.7.1 / section A.7.1.4 - more than one C2PA manifest element in one HTML document. */
       manifestHtmlMultipleManifests: "manifest.html.multipleManifests",
-      /** §A.9.3 — more than one armour block in one structured-text file. */
+      /** section A.9.3 - more than one armour block in one structured-text file. */
       manifestStructuredTextMultipleReferences: "manifest.structuredText.multipleReferences",
-      /** §A.9.5 — the block's reference is empty or whitespace-only. */
+      /** section A.9.5 - the block's reference is empty or whitespace-only. */
       manifestStructuredTextEmptyReference: "manifest.structuredText.emptyReference",
-      /** §A.9.5 — the reference is neither a valid URL nor a data: URI. */
+      /** section A.9.5 - the reference is neither a valid URL nor a data: URI. */
       manifestStructuredTextMalformedReference: "manifest.structuredText.malformedReference",
-      /** §A.8.7.1 / §15.12.1.3.2 — a wrapper magic matched but the wrapper is malformed. */
+      /** section A.8.7.1 / section 15.12.1.3.2 - a wrapper magic matched but the wrapper is malformed. */
       manifestTextCorruptedWrapper: "manifest.text.corruptedWrapper",
-      /** §15.12.1.3.1 — more than one wrapper matches the assertion's exclusions. */
+      /** section 15.12.1.3.1 - more than one wrapper matches the assertion's exclusions. */
       manifestTextMultipleWrappers: "manifest.text.multipleWrappers",
-      /** §15.2.2 — "a non-embedded (remote) manifest was inaccessible at the time of
-       *  validation". The engine NEVER fetches, so every §A.7.1.2 `<link>` / §A.9.3
+      /** section 15.2.2 - "a non-embedded (remote) manifest was inaccessible at the time of
+       *  validation". The engine NEVER fetches, so every section A.7.1.2 `<link>` / section A.9.3
        *  URL reference lands here: the credential exists, just not in these bytes. */
       manifestInaccessible: "manifest.inaccessible"
     };
@@ -8515,7 +8516,7 @@ function parseC2paStore(store) {
         parts.assertions.push({
           label: ab.label,
           content: contentOf(store, ab),
-          // Hashed URIs cover the superbox payload — after the 8-byte header.
+          // Hashed URIs cover the superbox payload - after the 8-byte header.
           payload: store.slice(ab.box.start + 8, ab.box.end)
         });
       }
@@ -8999,11 +9000,11 @@ function readHtml(bytes) {
     return {
       store: null,
       status: C2PA_TEXT_STATUS.htmlMultipleManifests,
-      fatal: `HTML document declares ${chosen.length}${chosen.length === MAX_HTML_REFS ? "+" : ""} C2PA manifest associations${head.length ? " in <head>" : ""}; \xA7A.7.1 allows at most one`
+      fatal: `HTML document declares ${chosen.length}${chosen.length === MAX_HTML_REFS ? "+" : ""} C2PA manifest associations${head.length ? " in <head>" : ""}; section A.7.1 allows at most one`
     };
   }
   const ref = chosen[0];
-  const note = ref.inHead ? {} : { detail: "the C2PA element is outside <head> (\xA7A.7.1.1 places it in the head)" };
+  const note = ref.inHead ? {} : { detail: "the C2PA element is outside <head> (section A.7.1.1 places it in the head)" };
   if (ref.kind === "link") {
     const url = safeExternalUrl(ref.href ?? "");
     if (!url) {
@@ -9073,7 +9074,7 @@ function readArmor(bytes) {
     return {
       store: null,
       status: C2PA_TEXT_STATUS.structuredTextMultipleReferences,
-      fatal: `file carries ${Math.max(begins.length, ends.length)} C2PA manifest blocks; \xA7A.9.3 allows at most one`
+      fatal: `file carries ${Math.max(begins.length, ends.length)} C2PA manifest blocks; section A.9.3 allows at most one`
     };
   }
   const begin = begins[0];
@@ -9082,7 +9083,7 @@ function readArmor(bytes) {
     return {
       store: null,
       status: C2PA_TEXT_STATUS.structuredTextNoManifest,
-      detail: "the \xA7A.9 armour delimiters are not both present, in order"
+      detail: "the section A.9 armour delimiters are not both present, in order"
     };
   }
   const { primary, alternates } = armorExclusion(bin, begin, end);
@@ -9158,7 +9159,7 @@ function decodeWrapperAt(nfc, unit2, byteOff) {
   }
   const manifestLength = (len2[0] << 24 | len2[1] << 16 | len2[2] << 8 | len2[3]) >>> 0;
   if (version !== 1) {
-    return at(C2PA_TEXT_STATUS.textCorruptedWrapper, `wrapper version ${version} is not supported (\xA7A.8.2.3 defines version 1)`, version);
+    return at(C2PA_TEXT_STATUS.textCorruptedWrapper, `wrapper version ${version} is not supported (section A.8.2.3 defines version 1)`, version);
   }
   if (manifestLength > nfc.length - i) {
     return at(C2PA_TEXT_STATUS.textCorruptedWrapper, `the wrapper declares ${manifestLength} manifest bytes, more than the remaining text can hold`, version);
@@ -9219,14 +9220,14 @@ function readTextVs(bytes) {
   return {
     store: chosen.store,
     text,
-    // The U+FEFF-inclusive range — see C2paTextWrapper for why this is a choice
+    // The U+FEFF-inclusive range - see C2paTextWrapper for why this is a choice
     // and not a reading. `selectorStart` is on the wrapper for the other one.
     exclusions: [{ start: chosen.start, length: chosen.end - chosen.start }],
-    // §A.8.4.1 hands wrapper SELECTION to the assertion's exclusions, and
-    // §15.12.1.3.1 only fails on multipleWrappers when more than one wrapper
-    // MATCHES those exclusions — which extraction cannot know. So this is a
+    // section A.8.4.1 hands wrapper SELECTION to the assertion's exclusions, and
+    // section 15.12.1.3.1 only fails on multipleWrappers when more than one wrapper
+    // MATCHES those exclusions - which extraction cannot know. So this is a
     // notice for the validator, not a refusal here.
-    ...valid.length > 1 ? { status: C2PA_TEXT_STATUS.textMultipleWrappers, detail: `${valid.length} valid wrappers; \xA715.12.1.3.1 selects by the assertion's exclusions` } : {}
+    ...valid.length > 1 ? { status: C2PA_TEXT_STATUS.textMultipleWrappers, detail: `${valid.length} valid wrappers; section 15.12.1.3.1 selects by the assertion's exclusions` } : {}
   };
 }
 function extractC2paDetailed(bytes, format) {
@@ -9309,7 +9310,7 @@ function collectActionChain(store) {
               softwareAgent: sa instanceof Map ? sa.get("name") : sa,
               digitalSourceType: act.get?.("digitalSourceType"),
               description: act.get?.("description"),
-              // Raw CBOR parameters — surfaced for readers that recover a step's
+              // Raw CBOR parameters - surfaced for readers that recover a step's
               // machine-readable context (e.g. a TTS clip's recorded script).
               // Deliberately NOT part of the dedupe key below: Maps stringify
               // opaquely, and a parameters-only difference on an otherwise
@@ -9449,30 +9450,30 @@ var init_c2pa_extract = __esm({
     MKV_FILEMIMETYPE = 18016;
     MKV_FILEDATA = 18012;
     C2PA_TEXT_STATUS = Object.freeze({
-      /** §A.7.1.4 — more than one C2PA association in one HTML document. */
+      /** section A.7.1.4 - more than one C2PA association in one HTML document. */
       htmlMultipleManifests: "manifest.html.multipleManifests",
-      /** §A.9.3 — more than one armour block in one file. */
+      /** section A.9.3 - more than one armour block in one file. */
       structuredTextMultipleReferences: "manifest.structuredText.multipleReferences",
-      /** §A.9.5 — no delimiters, or only one of the pair. */
+      /** section A.9.5 - no delimiters, or only one of the pair. */
       structuredTextNoManifest: "manifest.structuredText.noManifest",
-      /** §A.9.5 — a block whose reference is empty or whitespace-only. */
+      /** section A.9.5 - a block whose reference is empty or whitespace-only. */
       structuredTextEmptyReference: "manifest.structuredText.emptyReference",
-      /** §A.8.7.1 / §15.12.1.3.2 — magic matched, the rest of the wrapper did not. */
+      /** section A.8.7.1 / section 15.12.1.3.2 - magic matched, the rest of the wrapper did not. */
       textCorruptedWrapper: "manifest.text.corruptedWrapper",
-      /** §A.8.7.1 — more than one valid wrapper. NOT fatal at extraction time:
-       *  §A.8.4.1 hands wrapper selection to the assertion's exclusions. */
+      /** section A.8.7.1 - more than one valid wrapper. NOT fatal at extraction time:
+       *  section A.8.4.1 hands wrapper selection to the assertion's exclusions. */
       textMultipleWrappers: "manifest.text.multipleWrappers",
-      /** Matches C2PA_CHECK.credentialUnreadable (c2pa-verdict.ts) — spelled out
+      /** Matches C2PA_CHECK.credentialUnreadable (c2pa-verdict.ts) - spelled out
        *  rather than imported, so this module keeps its leaf-import discipline and
        *  never drags the x509/trust graph onto a boot chunk. */
       credentialUnreadable: "credential.unreadable",
       /** A reference we will not even report: a non-http(s) scheme, or the
-       *  protocol-relative `//host/path` form. Relative references ARE reported —
+       *  protocol-relative `//host/path` form. Relative references ARE reported -
        *  resolving them is the shell's job, not the engine's. */
       unsupportedReference: "lolly.manifest.unsupportedReference",
       /** A base64 payload that is not base64. */
       malformedBase64: "lolly.manifest.malformedBase64",
-      /** `<script type="application/c2pa">` with no closing tag — a truncated paste. */
+      /** `<script type="application/c2pa">` with no closing tag - a truncated paste. */
       htmlUnterminatedScript: "lolly.html.unterminatedScript",
       /** Bigger than the text readers will decode. */
       tooLarge: "lolly.text.tooLarge"
@@ -9515,14 +9516,14 @@ var init_c2pa_extract = __esm({
       webp: extractC2paFromRiff,
       mp4: extractC2paFromMp4,
       avif: extractC2paFromMp4,
-      // same BMFF box walk — the C2PA uuid box is top-level
+      // same BMFF box walk - the C2PA uuid box is top-level
       webm: extractC2paFromWebm,
       mkv: extractC2paFromWebm,
       mp3: extractC2paFromMp3,
       wav: extractC2paFromRiff,
       ogg: extractC2paFromOgg,
       // C2PA 2.4 text bindings. `html` and `code` return null for the REFERENCE
-      // forms (§A.7.1.2 `<link>`, §A.9.3 URL) — nothing is embedded, so there is no
+      // forms (section A.7.1.2 `<link>`, section A.9.3 URL) - nothing is embedded, so there is no
       // store to hand back; extractC2paDetailed carries the URL instead.
       html: asExtractor(readHtml),
       code: asExtractor(readArmor),
@@ -9658,7 +9659,7 @@ function parseCertificate(cert) {
     notAfter: decodeTime(cert, validity[1]),
     selfSigned: bytesToHex(issuerBytes) === bytesToHex(subjectBytes),
     spki: cert.slice(spkiTlv.start, spkiTlv.end),
-    // Additive (1.11.0) — the chain-verification raw material. signatureRaw is
+    // Additive (1.11.0) - the chain-verification raw material. signatureRaw is
     // the signatureValue BIT STRING content minus its unused-bits byte: for
     // ECDSA that is still a DER ECDSA-Sig-Value (ecdsaDerToRaw converts).
     tbsBytes: cert.slice(tbs.start, tbs.end),
@@ -9786,9 +9787,9 @@ function parseCreatorEntry(entry) {
   return { name, ...em ? { email: em[1] } : {}, ...ur ? { url: ur[1] } : {} };
 }
 function untrustedReason(signer) {
-  if (signer?.selfSigned === false) return "signing certificate untrusted \u2014 a CA-issued certificate that chains to no pinned trust anchor (pin its root to verify the identity)";
-  if (signer && signer.commonName !== EPHEMERAL_CN) return "signing certificate untrusted \u2014 a self-signed certificate, which vouches only for itself (pin it as a trust anchor to verify the identity)";
-  return "signing certificate untrusted \u2014 an ephemeral on-device key, not a CA-issued identity";
+  if (signer?.selfSigned === false) return "signing certificate untrusted - a CA-issued certificate that chains to no pinned trust anchor (pin its root to verify the identity)";
+  if (signer && signer.commonName !== EPHEMERAL_CN) return "signing certificate untrusted - a self-signed certificate, which vouches only for itself (pin it as a trust anchor to verify the identity)";
+  return "signing certificate untrusted - an ephemeral on-device key, not a CA-issued identity";
 }
 function textStatusCheck(kind, status) {
   switch (status) {
@@ -9802,7 +9803,7 @@ function textStatusCheck(kind, status) {
       return C2PA_CHECK.manifestTextCorruptedWrapper;
     case C2PA_TEXT_STATUS.textMultipleWrappers:
       return C2PA_CHECK.manifestTextMultipleWrappers;
-    // §A.9.5 names this one; §A.7 names none for a bad href, so an HTML link we
+    // section A.9.5 names this one; section A.7 names none for a bad href, so an HTML link we
     // refuse to hand a fetcher reads as "the remote manifest was not obtained".
     case C2PA_TEXT_STATUS.unsupportedReference:
       return kind === "structuredText" ? C2PA_CHECK.manifestStructuredTextMalformedReference : C2PA_CHECK.manifestInaccessible;
@@ -9839,13 +9840,13 @@ function htmlCodeExclusionConformance(binding, advisory, alternates, declared) {
   if (readings.some((r3) => sameRanges(r3, declared))) return null;
   const inside = declared.every((d) => readings.some((r3) => r3.some((w) => d.start >= w.start && d.start + d.length <= w.start + w.length)));
   const shown = (list2) => list2.length ? list2.map((e) => `${e.start}+${e.length}`).join(", ") : "none";
-  const where = binding.kind === "html" ? 'the <script type="application/c2pa"> element (\xA7A.7.1.3)' : "the -----BEGIN/END C2PA MANIFEST----- block (\xA7A.9.4)";
+  const where = binding.kind === "html" ? 'the <script type="application/c2pa"> element (section A.7.1.3)' : "the -----BEGIN/END C2PA MANIFEST----- block (section A.9.4)";
   return inside ? {
     kind: "narrower",
-    message: `the data hash excludes ${shown(declared)}, inside ${where} at ${shown(want)} \u2014 narrower than the spec requires, so the carrier's own bytes are part of the hash`
+    message: `the data hash excludes ${shown(declared)}, inside ${where} at ${shown(want)} - narrower than the spec requires, so the carrier's own bytes are part of the hash`
   } : {
     kind: "other",
-    message: `the data hash excludes ${shown(declared)} but ${where} occupies ${shown(want)} \u2014 content outside the credential is not covered by the binding`
+    message: `the data hash excludes ${shown(declared)} but ${where} occupies ${shown(want)} - content outside the credential is not covered by the binding`
   };
 }
 function readAiDisclosure(content) {
@@ -9886,7 +9887,7 @@ async function verifyC2pa(bytes, { trustAnchors, externalManifest } = {}) {
   const report = { found: false, state: "none", trusted: false, madeWithLolly: false, likelyMadeWithLolly: false, partsMadeWithLolly: false, delivered: false, format, checks };
   const pdfBytes = bytes;
   if (!format) {
-    report.reason = "no Content Credentials \u2014 these are embedded only in pdf, png, jpg, gif, svg, tiff, webp, avif, mp4, webm, mkv, mp3, wav and ogg files, in HTML documents, and in text carrying a C2PA manifest block or wrapper";
+    report.reason = "no Content Credentials - these are embedded only in pdf, png, jpg, gif, svg, tiff, webp, avif, mp4, webm, mkv, mp3, wav and ogg files, in HTML documents, and in text carrying a C2PA manifest block or wrapper";
     return report;
   }
   let carrier = null;
@@ -9908,7 +9909,7 @@ async function verifyC2pa(bytes, { trustAnchors, externalManifest } = {}) {
     if (detailed.detail) binding.detail = detailed.detail;
     if (carrier?.wrappers.some(isCutWrapper)) binding.fragment = true;
     if (detailed.status === C2PA_TEXT_STATUS.tooLarge) {
-      report.reason = detailed.detail ? `no Content Credentials read \u2014 ${detailed.detail}` : "no Content Credentials read \u2014 this asset is past the size limit for on-device text inspection";
+      report.reason = detailed.detail ? `no Content Credentials read - ${detailed.detail}` : "no Content Credentials read - this asset is past the size limit for on-device text inspection";
       return report;
     }
     if (detailed.store) {
@@ -9925,11 +9926,11 @@ async function verifyC2pa(bytes, { trustAnchors, externalManifest } = {}) {
     } else if (detailed.externalUrl) {
       report.found = true;
       report.state = "invalid";
-      report.reason = `this ${bindingKind === "html" ? "document" : "file"} references an external C2PA manifest at ${detailed.externalUrl} \u2014 the engine never fetches, so it could not be checked against these bytes`;
+      report.reason = `this ${bindingKind === "html" ? "document" : "file"} references an external C2PA manifest at ${detailed.externalUrl} - the engine never fetches, so it could not be checked against these bytes`;
       fail3(C2PA_CHECK.manifestInaccessible, `references an external manifest (${detailed.externalUrl}); fetch it and verify it against these bytes`);
       return report;
     } else if (detailed.status === C2PA_TEXT_STATUS.structuredTextNoManifest) {
-      report.reason = "no Content Credentials found \u2014 the \xA7A.9 manifest block delimiters are not both present";
+      report.reason = "no Content Credentials found - the section A.9 manifest block delimiters are not both present";
       return report;
     } else if (detailed.status) {
       report.found = true;
@@ -9985,10 +9986,10 @@ async function verifyC2pa(bytes, { trustAnchors, externalManifest } = {}) {
           // v2 softwareAgent is a { name, version } map; surface its name.
           softwareAgent: sa instanceof Map ? sa.get("name") : sa,
           // IPTC provenance kind of this step (digitalCapture / digitalCreation /
-          // trainedAlgorithmicMedia …) — the signal behind the AI-generated flag.
+          // trainedAlgorithmicMedia …) - the signal behind the AI-generated flag.
           digitalSourceType: a.get?.("digitalSourceType"),
           description: a.get?.("description"),
-          // Raw CBOR parameters (a Map from our decoder) — the machine-readable
+          // Raw CBOR parameters (a Map from our decoder) - the machine-readable
           // context a writer recorded on the step (e.g. a TTS clip's script).
           parameters: a.get?.("parameters")
         };
@@ -10127,7 +10128,7 @@ async function verifyC2pa(bytes, { trustAnchors, externalManifest } = {}) {
       alg: signerAlg
     };
     if (!alg) {
-      fail3(C2PA_CHECK.claimSignatureMismatch, `unsupported signing algorithm (${signerAlg}) \u2014 cannot verify on-device`);
+      fail3(C2PA_CHECK.claimSignatureMismatch, `unsupported signing algorithm (${signerAlg}) - cannot verify on-device`);
     } else {
       const sigStructure = encodeCbor(["Signature1", protBytes, new Uint8Array(0), parts.claimBytes]);
       try {
@@ -10196,7 +10197,7 @@ async function verifyC2pa(bytes, { trustAnchors, externalManifest } = {}) {
       if (bytesToHex(await sha256(concatBytes(spans))) === bytesToHex(hd.get("hash"))) {
         pass(C2PA_CHECK.assertionBmffHashMatch, "BMFF hash valid");
       } else {
-        fail3(C2PA_CHECK.assertionBmffHashMismatch, "the file bytes do not match the credential \u2014 the file changed after signing");
+        fail3(C2PA_CHECK.assertionBmffHashMismatch, "the file bytes do not match the credential - the file changed after signing");
       }
     } catch (err) {
       fail3(C2PA_CHECK.assertionBmffHashMismatch, `hard binding could not be checked: ${err.message}`);
@@ -10217,7 +10218,7 @@ async function verifyC2pa(bytes, { trustAnchors, externalManifest } = {}) {
         }
         if (e.start + e.length > nfcBytes.length) {
           if (carrier.wrappers.length) binding.fragment = true;
-          throw new Error("an exclusion range runs past the end of the text \u2014 the signed text was longer than this copy");
+          throw new Error("an exclusion range runs past the end of the text - the signed text was longer than this copy");
         }
         at = e.start + e.length;
       }
@@ -10233,7 +10234,7 @@ async function verifyC2pa(bytes, { trustAnchors, externalManifest } = {}) {
       binding.matchedWrappers = matched.length;
       if (!matched.length) throw new Error("the data hash declares no exclusion matching any C2PATextManifestWrapper");
       if (matched.length > 1) {
-        fail3(C2PA_CHECK.manifestTextMultipleWrappers, `${matched.length} C2PATextManifestWrappers match the assertion's exclusions; \xA715.12.1.3.1 allows one`);
+        fail3(C2PA_CHECK.manifestTextMultipleWrappers, `${matched.length} C2PATextManifestWrappers match the assertion's exclusions; section 15.12.1.3.1 allows one`);
       } else {
         const spans = [];
         let cut = 0;
@@ -10244,9 +10245,9 @@ async function verifyC2pa(bytes, { trustAnchors, externalManifest } = {}) {
         spans.push(nfcBytes.subarray(cut));
         const remaining = te7.encode(tdText.decode(concatBytes(spans)).normalize("NFC"));
         if (bytesToHex(await sha256(remaining)) === bytesToHex(hd.get("hash"))) {
-          pass(C2PA_CHECK.assertionDataHashMatch, "data hash valid (NFC-normalized text, \xA715.12.1.3.1)");
+          pass(C2PA_CHECK.assertionDataHashMatch, "data hash valid (NFC-normalized text, section 15.12.1.3.1)");
         } else {
-          fail3(C2PA_CHECK.assertionDataHashMismatch, "the text does not match the credential \u2014 it changed after signing");
+          fail3(C2PA_CHECK.assertionDataHashMismatch, "the text does not match the credential - it changed after signing");
         }
       }
     } catch (err) {
@@ -10276,7 +10277,7 @@ async function verifyC2pa(bytes, { trustAnchors, externalManifest } = {}) {
       if (bytesToHex(await sha256(concatBytes(spans))) === bytesToHex(hd.get("hash"))) {
         pass(C2PA_CHECK.assertionDataHashMatch, `data hash valid${qualifier}`);
       } else {
-        fail3(C2PA_CHECK.assertionDataHashMismatch, `the file bytes do not match the credential \u2014 the file changed after signing${qualifier}`);
+        fail3(C2PA_CHECK.assertionDataHashMismatch, `the file bytes do not match the credential - the file changed after signing${qualifier}`);
       }
     } catch (err) {
       const malformed = !!err.malformed && !!report.textBinding;
@@ -10298,7 +10299,7 @@ async function verifyC2pa(bytes, { trustAnchors, externalManifest } = {}) {
   }
   if (report.signer?.identity) {
     const who = report.signer.identity.email || report.signer.commonName;
-    pass(C2PA_CHECK.signingCredentialTrusted, report.trusted ? `signing certificate chains to a pinned CA root \u2014 verified identity: ${who}` : `signing certificate chains to a pinned CA root \u2014 verified identity: ${who} (certificate has since expired; signing time cannot be proven \u2014 no timestamp authority yet)`);
+    pass(C2PA_CHECK.signingCredentialTrusted, report.trusted ? `signing certificate chains to a pinned CA root - verified identity: ${who}` : `signing certificate chains to a pinned CA root - verified identity: ${who} (certificate has since expired; signing time cannot be proven - no timestamp authority yet)`);
   } else {
     fail3(C2PA_CHECK.signingCredentialUntrusted, untrustedReason(report.signer));
   }
@@ -10591,27 +10592,27 @@ async function createRuntime(tool, host, initialState = {}, opts = {}) {
       }
     },
     /**
-     * Atomic multi-input apply (plans/100 §5). Every value goes through EXACTLY
+     * Atomic multi-input apply (plans/100 section 5). Every value goes through EXACTLY
      * setInput's constraint path (updateInput → constrain), so a batch can never
      * put anything in the model a keystroke couldn't. A key naming no declared
-     * input — version skew between peers — or one whose value the constraints
+     * input - version skew between peers - or one whose value the constraints
      * reject is DROPPED on its own; the rest of the batch still applies and
-     * nothing throws mid-apply (§11.11).
+     * nothing throws mid-apply (section 11.11).
      *
      * What "reject" covers is exactly what the input model can decide from the
      * MANIFEST (see constrain in inputs.ts): a select value outside its declared
      * options, a non-boolean boolean, NaN/out-of-range numbers, an over-long
      * string, a non-array `blocks`, a malformed table/vector/file. It does NOT
      * type-check `asset` or `color`, whose legitimate values are object-shaped and
-     * completed later in the lifecycle — a caller taking values from an untrusted
+     * completed later in the lifecycle - a caller taking values from an untrusted
      * peer gates those at its own boundary (the web shell's collab plumbing does).
      * Nor is it a size/depth cap on hostile payloads: that is inbound-transport
-     * hardening (§11.21, wave 2.4), which belongs where the bytes arrive.
+     * hardening (section 11.21, wave 2.4), which belongs where the bytes arrive.
      *
      * `onInput` runs per CHANGED id, sequentially in the object's insertion
      * order, under setInput's time-box and warn-don't-throw handling: the hook
      * contract is per-input and must not change meaning just because the values
-     * arrived together. Only the RENDER coalesces — one emit after the last
+     * arrived together. Only the RENDER coalesces - one emit after the last
      * hook instead of one per key (a batch where nothing landed emits nothing).
      * Each hook is told the value that actually entered the model (post-constrain,
      * flattened), captured at apply time so an earlier hook's patch can't change
@@ -10663,20 +10664,20 @@ async function createRuntime(tool, host, initialState = {}, opts = {}) {
       fn({ model: model2, hydrated: getHydrated() });
       return () => listeners.delete(fn);
     },
-    // Re-notify subscribers with the CURRENT model — no value change. For shell
+    // Re-notify subscribers with the CURRENT model - no value change. For shell
     // state that lives outside the input model but still affects the render (e.g.
     // export dimensions): a shell can force the canvas to re-hydrate through the
     // one render path instead of mutating the DOM itself. Used to invalidate a
     // deferred preview (manifest.render.preview) when the capture geometry changes.
     refresh: emit,
-    // True when this tool declares an `onFrame` hook — i.e. it CAN react to a live
+    // True when this tool declares an `onFrame` hook - i.e. it CAN react to a live
     // camera. The shell still gates the actual "go live" affordance on host.media
     // being present, so a tool without a camera shell just runs as a still tool.
     hasFrameHook: Boolean(hooks?.onFrame),
     /** Whether the camera-driven loop is currently running. */
     isLive,
     /**
-     * Start driving the tool's `onFrame` hook from the host frame source — the
+     * Start driving the tool's `onFrame` hook from the host frame source - the
      * camera by default, or (source:'asset') a shell-armed animated asset replayed
      * through the same loop. Resolves once frames can flow; rejects if permission
      * is denied or there's no camera (the shell shows that error). No-op (returns
@@ -10724,7 +10725,7 @@ async function createRuntime(tool, host, initialState = {}, opts = {}) {
       } catch {
       }
     },
-    // True when this tool declares an `onLevel` hook — i.e. it CAN react to live
+    // True when this tool declares an `onLevel` hook - i.e. it CAN react to live
     // audio levels. The shell still gates the actual meter/record affordance on
     // host.recorder being present.
     hasLevelHook: Boolean(hooks?.onLevel),
@@ -10811,7 +10812,7 @@ async function createRuntime(tool, host, initialState = {}, opts = {}) {
      * reads the picked file's bytes (input.value.bytes) and returns the result as
      * a plain { bytes, mime, filename } record. The shell wraps it in a Blob and
      * delivers it via host.export.file. NEVER watermarked and NO provenance is
-     * embedded — the bytes are the user's own content, not a generated artifact.
+     * embedded - the bytes are the user's own content, not a generated artifact.
      */
     async exportFile(opts2 = {}) {
       const exportFileHook = hooks?.exportFile;
@@ -10977,7 +10978,7 @@ async function createRuntime(tool, host, initialState = {}, opts = {}) {
     },
     // Release per-mount executor resources. In-realm hooks have no teardown
     // (`hooks?.dispose` is undefined); the Worker executor drops its run. Guarded
-    // so a shell that never wired destroy — or calls it twice — is harmless.
+    // so a shell that never wired destroy - or calls it twice - is harmless.
     destroy() {
       try {
         hooks?.dispose?.();
@@ -12007,7 +12008,7 @@ function parseInner(b) {
     nChannels,
     /**
      * True when this intent's transform exists. For a LUT profile that means the
-     * A2B{n} or B2A{n} tag is physically present — there is deliberately NO
+     * A2B{n} or B2A{n} tag is physically present. There is deliberately NO
      * fallback to A2B0, because quietly answering with the perceptual table when
      * saturation was asked for returns plausible, wrong colour. A matrix/TRC or
      * gray profile has one colorimetric transform that every CMM uses for all
@@ -12136,7 +12137,7 @@ function iccGamutSource(p, intent) {
     /**
      * Total area coverage: the sum of the device channels the colour maps to, in
      * units where 1.0 is one channel at full. A four-ink profile can therefore
-     * return up to 4.0 — the printing trade's "400% TAC" — so this is not
+     * return up to 4.0, the printing trade's "400% TAC", so this is not
      * normalised to 0–1; normalising would erase exactly the number a pressroom
      * ink limit is expressed in. Null for additive spaces, where the question
      * does not apply.
@@ -12776,7 +12777,7 @@ var init_raster_layers = __esm({
       4: m("screen"),
       // Screen (legacy)
       5: m("soft-light", true),
-      // "Overlay" (legacy — soft-light maths)
+      // "Overlay" (legacy - soft-light maths)
       6: m("difference"),
       // Difference (legacy)
       7: m("color-dodge", true),
@@ -14483,18 +14484,18 @@ var init_lang = __esm({
       my: "ms",
       // Malaysia's country code, commonly typed for "Malaysian"
       fil: "tl",
-      // Filipino — the modern standardized register of Tagalog
+      // Filipino - the modern standardized register of Tagalog
       // Regioned Arabic tags (browser navigator.language values people paste into
-      // ?lang=) — all one MSA UI register here, so they collapse to the base tag.
+      // ?lang=). All map to one MSA UI register here, so they collapse to the base tag.
       "ar-sa": "ar",
       "ar-eg": "ar",
       "ar-ae": "ar",
       "hi-in": "hi",
-      // regioned Hindi tag (navigator.language) — one standard-Hindi register here
-      // Regioned Bengali tags — one standard-Bengali (cholito) register covers both.
+      // regioned Hindi tag (navigator.language); one standard-Hindi register here
+      // Regioned Bengali tags. One standard-Bengali (cholito) register covers both.
       "bn-bd": "bn",
       "bn-in": "bn",
-      // Regioned Urdu tags — one Modern Standard Urdu register covers both.
+      // Regioned Urdu tags. One Modern Standard Urdu register covers both.
       "ur-pk": "ur",
       "ur-in": "ur",
       // Indonesian: `in` is the DEPRECATED ISO 639-1 code (pre-1989) that Android's
@@ -14504,7 +14505,7 @@ var init_lang = __esm({
       in: "id",
       "in-id": "id",
       "id-id": "id",
-      // Regioned Turkish tags (navigator.language) — one standard-Turkish register
+      // Regioned Turkish tags (navigator.language). One standard-Turkish register
       // covers both Türkiye and Cyprus.
       "tr-tr": "tr",
       "tr-cy": "tr",
@@ -14515,9 +14516,9 @@ var init_lang = __esm({
       "pl-pl": "pl",
       // regioned Polish tag (navigator.language)
       nb: "no",
-      // Bokmål — the specific written standard this UI register actually uses
+      // Bokmål - the specific written standard this UI register actually uses
       nn: "no",
-      // Nynorsk — not a distinct UI translation, collapses to the same Norwegian tag
+      // Nynorsk - not a distinct UI translation, collapses to the same Norwegian tag
       kr: "ko"
       // South Korea's country code, commonly typed for "Korean"
     };
@@ -14746,7 +14747,7 @@ function coerceFromString(input, raw) {
         }
       }
       return decodeTableCompact(raw);
-    // NOTE: 'vector' has no single-param form — each field is its own flat param
+    // NOTE: 'vector' has no single-param form - each field is its own flat param
     // ("<inputId>.<fieldId>"), handled in parseUrlState.
     default:
       return raw;
@@ -18624,7 +18625,7 @@ var init_preflight2 = __esm({
         c.add({
           id: "print.image-effective-dpi",
           severity: "warn",
-          message: `${im.label} is ${eff} DPI where it sits (${physMm} mm wide). ${intent === "offset" ? "Offset print wants at least 250 DPI" : "Large-format wants at least 72 DPI"}, so it will look soft. Replace it with a higher-resolution file.`,
+          message: `${im.label} is ${eff} DPI at its placed size (${physMm} mm wide). ${intent === "offset" ? "Offset print wants at least 250 DPI" : "Large-format wants at least 72 DPI"}, so it will look soft. Replace it with a higher-resolution file.`,
           evidence: { label: im.label, effectiveDpi: eff, placedMm: physMm, naturalW: im.naturalW, intent, floor, format: c.fmt }
         });
       }
@@ -21215,6 +21216,349 @@ var init_captions = __esm({
   }
 });
 
+// engine/src/text-signals.ts
+function collect(re, text) {
+  const out = [];
+  re.lastIndex = 0;
+  for (let m2 = re.exec(text); m2 !== null; m2 = re.exec(text)) {
+    out.push({ index: m2.index, length: m2[0].length });
+    if (m2[0].length === 0) re.lastIndex++;
+  }
+  return out;
+}
+function charAt(text, i) {
+  if (i < 0 || i >= text.length) return "";
+  return String.fromCodePoint(text.codePointAt(i));
+}
+function suspiciousJoiners(text) {
+  return collect(ZW_JOINERS, text).filter(({ index }) => {
+    const before = charAt(text, index - 1);
+    const after = charAt(text, index + 1);
+    if (PICTOGRAPHIC.test(before) || PICTOGRAPHIC.test(after)) return false;
+    const shaping = /[\p{Script=Arabic}\p{Script=Devanagari}\p{Script=Bengali}\p{Script=Tamil}]/u;
+    if (shaping.test(before) && shaping.test(after)) return false;
+    return true;
+  });
+}
+function mixedScriptTokens(text) {
+  const out = [];
+  const tokenRe = new RegExp("\\p{L}[\\p{L}\\p{M}]*", "gu");
+  for (let m2 = tokenRe.exec(text); m2 !== null; m2 = tokenRe.exec(text)) {
+    const tok = m2[0];
+    if (new RegExp("\\p{Script=Latin}", "u").test(tok) && CONFUSABLE_WITH_LATIN.test(tok)) {
+      out.push({ index: m2.index, length: tok.length });
+    }
+  }
+  return out;
+}
+function anomalousNbsp(text) {
+  const out = [];
+  const re = /[  ]/gu;
+  for (let m2 = re.exec(text); m2 !== null; m2 = re.exec(text)) {
+    const after = charAt(text, m2.index + 1);
+    if (";:!?\xBB".includes(after)) continue;
+    const before = charAt(text, m2.index - 1);
+    if (/\d/.test(before) && /\d/.test(after)) continue;
+    out.push({ index: m2.index, length: 1 });
+  }
+  return out;
+}
+function letterStats(text) {
+  let total = 0;
+  let latin = 0;
+  for (const ch of text) {
+    if (new RegExp("\\p{L}", "u").test(ch)) {
+      total++;
+      if (new RegExp("\\p{Script=Latin}", "u").test(ch)) latin++;
+    }
+  }
+  return { total, latin };
+}
+function wordCount(text) {
+  const m2 = text.match(new RegExp("\\p{L}[\\p{L}\\p{M}'-]*", "gu"));
+  return m2 ? m2.length : 0;
+}
+function sentenceWordLengths(text) {
+  return text.split(/[.!?]+[\s"')\]]+|\n+/u).map((s) => wordCount(s)).filter((n2) => n2 > 0);
+}
+function bandFrom(artifactScore, heuristicScore) {
+  if (artifactScore >= 4) return "strong";
+  if (artifactScore === 0) {
+    if (heuristicScore >= 3) return "notable";
+    if (heuristicScore >= 1.5) return "weak";
+    return "none";
+  }
+  const combined = artifactScore + Math.min(heuristicScore, HEURISTIC_CAP);
+  if (combined >= 4) return "strong";
+  if (combined >= 2) return "notable";
+  if (combined >= 1) return "weak";
+  return "none";
+}
+function summaryFor(band, pixelSourced) {
+  const base = {
+    none: "No AI-generation signals were found in this text.",
+    weak: "A few weak signals were found. Nothing here is conclusive.",
+    notable: "Several signals consistent with AI-generated text were found. This is not proof.",
+    strong: "Strong signals were found, including tells that are rare in ordinary writing. This is a signal, not proof."
+  };
+  const note = pixelSourced ? " The text was read from an image, so hidden-character and watermark checks could not run. Only writing-style signals were assessed." : "";
+  return base[band] + note;
+}
+function styleGuessFrom(heuristicFindings) {
+  if (heuristicFindings.length === 0) return void 0;
+  const markers = heuristicFindings.map((f) => f.label.toLowerCase()).join("; ");
+  return {
+    family: "generic-LLM",
+    confidence: "low",
+    rationale: `Writing-style markers only (${markers}). Consistent with AI-assisted text, but style cannot identify a specific model.`
+  };
+}
+function analyzeTextSignals(text, opts) {
+  const source = opts.source;
+  const pixelSourced = source === "ocr";
+  const findings = [];
+  if (!pixelSourced && text.length > 0) {
+    const invisible = [...collect(INVISIBLE_CORE, text), ...suspiciousJoiners(text)];
+    if (invisible.length > 0) {
+      findings.push({
+        tier: "artifact",
+        kind: "invisible-char",
+        label: "Invisible characters",
+        detail: `${invisible.length} zero-width or invisible character${invisible.length === 1 ? "" : "s"} that ordinary text does not contain.`,
+        weight: 2 + (invisible.length >= 4 ? 1 : 0),
+        spans: invisible
+      });
+    }
+    const tags = collect(TAG_CHARS, text);
+    if (tags.length > 0) {
+      findings.push({
+        tier: "artifact",
+        kind: "tag-chars",
+        label: "Hidden tag characters",
+        detail: `${tags.length} Unicode tag character${tags.length === 1 ? "" : "s"}, a known way to smuggle invisible data into text.`,
+        weight: 4,
+        spans: tags
+      });
+    }
+    const vs = [...collect(VS_SUPPLEMENTARY, text), ...collect(VS_BMP_RUN, text)];
+    if (vs.length > 0) {
+      findings.push({
+        tier: "artifact",
+        kind: "variation-selectors",
+        label: "Unusual variation selectors",
+        detail: `${vs.length} variation-selector sequence${vs.length === 1 ? "" : "s"}, which can carry hidden data.`,
+        weight: 3,
+        spans: vs
+      });
+    }
+    const bidi = collect(BIDI_OVERRIDE, text);
+    if (bidi.length > 0) {
+      findings.push({
+        tier: "artifact",
+        kind: "bidi-override",
+        label: "Bidirectional override characters",
+        detail: `${bidi.length} left-to-right or right-to-left override${bidi.length === 1 ? "" : "s"}, which can hide or reorder text.`,
+        weight: 3,
+        spans: bidi
+      });
+    }
+    const mixed = mixedScriptTokens(text);
+    if (mixed.length > 0) {
+      findings.push({
+        tier: "artifact",
+        kind: "mixed-script",
+        label: "Mixed-script words",
+        detail: `${mixed.length} word${mixed.length === 1 ? "" : "s"} mixing Latin with a look-alike script, a homoglyph tell.`,
+        weight: 3,
+        spans: mixed
+      });
+    }
+    const spaces = [...anomalousNbsp(text), ...collect(ANOMALOUS_SPACE, text)];
+    if (spaces.length >= 2) {
+      findings.push({
+        tier: "artifact",
+        kind: "anomalous-space",
+        label: "Unusual spacing",
+        detail: `${spaces.length} non-standard space character${spaces.length === 1 ? "" : "s"}.`,
+        weight: 1,
+        spans: spaces
+      });
+    }
+  }
+  const words = wordCount(text);
+  const { total: letters, latin } = letterStats(text);
+  const looksEnglish = letters === 0 ? false : latin / letters >= 0.6;
+  const longEnough = words >= 40;
+  const heuristicFindings = [];
+  if (looksEnglish && longEnough) {
+    const lower2 = text.toLowerCase();
+    let lexHits = 0;
+    const lexSpans = [];
+    for (const w of LLM_WORDS) {
+      const re = new RegExp(`\\b${w}\\b`, "giu");
+      for (let m2 = re.exec(text); m2 !== null; m2 = re.exec(text)) {
+        lexHits++;
+        lexSpans.push({ index: m2.index, length: m2[0].length });
+      }
+    }
+    for (const p of LLM_PHRASES) {
+      let from = lower2.indexOf(p);
+      while (from !== -1) {
+        lexHits++;
+        lexSpans.push({ index: from, length: p.length });
+        from = lower2.indexOf(p, from + p.length);
+      }
+    }
+    if (lexHits > 0) {
+      const density = lexHits / words * 1e3;
+      const weight = Math.min(3, 0.5 + density * 0.5);
+      heuristicFindings.push({
+        tier: "heuristic",
+        kind: "llm-lexicon",
+        label: "AI-favoured wording",
+        detail: `${lexHits} phrase${lexHits === 1 ? "" : "s"} over-represented in AI-written text.`,
+        weight,
+        spans: lexSpans
+      });
+    }
+    const emDashes = collect(/—/gu, text);
+    if (emDashes.length >= 3) {
+      heuristicFindings.push({
+        tier: "heuristic",
+        kind: "em-dash-density",
+        label: "Heavy em-dash use",
+        detail: `${emDashes.length} em-dashes, a common tell in AI prose.`,
+        weight: 1,
+        spans: emDashes
+      });
+    }
+    const lines = text.split("\n");
+    const bulletLines = lines.filter((l) => /^\s*([-*•]|\d+[.)])\s+/u.test(l)).length;
+    if (lines.length >= 6 && bulletLines / lines.length >= 0.5) {
+      heuristicFindings.push({
+        tier: "heuristic",
+        kind: "list-heavy",
+        label: "List-heavy structure",
+        detail: `${bulletLines} of ${lines.length} lines are list items.`,
+        weight: 1
+      });
+    }
+    const lens = sentenceWordLengths(text);
+    if (lens.length >= 5) {
+      const mean = lens.reduce((a, b) => a + b, 0) / lens.length;
+      const variance = lens.reduce((a, b) => a + (b - mean) ** 2, 0) / lens.length;
+      const cv = mean > 0 ? Math.sqrt(variance) / mean : 0;
+      if (cv < 0.35 && mean >= 8) {
+        heuristicFindings.push({
+          tier: "heuristic",
+          kind: "uniform-burstiness",
+          label: "Unusually uniform sentences",
+          detail: "Sentence lengths vary little, which is uncommon in human writing.",
+          weight: 1
+        });
+      }
+    }
+  }
+  findings.push(...heuristicFindings);
+  const artifactScore = findings.filter((f) => f.tier === "artifact").reduce((a, f) => a + f.weight, 0);
+  const heuristicScore = heuristicFindings.reduce((a, f) => a + f.weight, 0);
+  const band = bandFrom(artifactScore, heuristicScore);
+  findings.sort((a, b) => b.weight - a.weight);
+  const styleGuess = band === "notable" || band === "strong" ? styleGuessFrom(heuristicFindings) : void 0;
+  return {
+    source,
+    pixelSourced,
+    band,
+    findings,
+    styleGuess,
+    summary: summaryFor(band, pixelSourced)
+  };
+}
+var INVISIBLE_CORE, ZW_JOINERS, TAG_CHARS, VS_SUPPLEMENTARY, VS_BMP_RUN, BIDI_OVERRIDE, ANOMALOUS_SPACE, PICTOGRAPHIC, CONFUSABLE_WITH_LATIN, LLM_WORDS, LLM_PHRASES, HEURISTIC_CAP;
+var init_text_signals = __esm({
+  "engine/src/text-signals.ts"() {
+    "use strict";
+    INVISIBLE_CORE = /[​⁠﻿᠎­]/gu;
+    ZW_JOINERS = /[‌‍]/gu;
+    TAG_CHARS = /[\u{E0000}-\u{E007F}]/gu;
+    VS_SUPPLEMENTARY = /[\u{E0100}-\u{E01EF}]/gu;
+    VS_BMP_RUN = /[︀-️]{2,}/gu;
+    BIDI_OVERRIDE = /[‭‮]/gu;
+    ANOMALOUS_SPACE = /[ -  　]/gu;
+    PICTOGRAPHIC = new RegExp("\\p{Extended_Pictographic}", "u");
+    CONFUSABLE_WITH_LATIN = /[\p{Script=Cyrillic}\p{Script=Greek}]/u;
+    LLM_WORDS = [
+      "delve",
+      "delving",
+      "tapestry",
+      "testament",
+      "boasts",
+      "underscore",
+      "underscores",
+      "underscoring",
+      "nuanced",
+      "nuance",
+      "realm",
+      "realms",
+      "showcase",
+      "showcasing",
+      "leverage",
+      "leveraging",
+      "foster",
+      "fostering",
+      "seamless",
+      "seamlessly",
+      "robust",
+      "holistic",
+      "intricate",
+      "intricacies",
+      "pivotal",
+      "paramount",
+      "myriad",
+      "plethora",
+      "garner",
+      "elevate",
+      "elevating",
+      "embark",
+      "vibrant",
+      "bustling",
+      "meticulous",
+      "meticulously",
+      "comprehensive",
+      "unlock",
+      "unlocking",
+      "harness",
+      "harnessing"
+    ];
+    LLM_PHRASES = [
+      "it's important to note",
+      "it is important to note",
+      "it's worth noting",
+      "in conclusion",
+      "in the realm of",
+      "when it comes to",
+      "a testament to",
+      "plays a crucial role",
+      "plays a vital role",
+      "rich tapestry",
+      "navigating the",
+      "that being said",
+      "dive into",
+      "let's dive",
+      "in summary",
+      "ever-evolving",
+      "fast-paced",
+      "cutting-edge",
+      "game-changer",
+      "at the end of the day",
+      "the world of",
+      "in today",
+      "when it comes down to"
+    ];
+    HEURISTIC_CAP = 3;
+  }
+});
+
 // engine/src/speech-model-bytes.ts
 var KOKORO_STYLE_DIM, KOKORO_VOICE_BYTES, KOKORO_MODEL_BYTES;
 var init_speech_model_bytes = __esm({
@@ -21827,11 +22171,11 @@ function composeSong(spec) {
     for (const root of spec.roots) {
       patterns.push([
         channel(0, 0, hits([0, 4, 8, 12])),
-        // kick — four on the floor
+        // kick - four on the floor
         channel(1, 0, hits([4, 12])),
-        // snare — backbeat
+        // snare - backbeat
         channel(2, 0, hits([0, 2, 4, 6, 8, 10, 12, 14])),
-        // hats — eighths
+        // hats - eighths
         channel(3, 0, placed([[0, root], [3, root], [8, root], [11, root]])),
         // bass groove
         channel(4, pan, placed([[0, root], [8, root + 7]]))
@@ -21860,7 +22204,7 @@ function composeSong(spec) {
       const brk = breakbeat(rng, 0.2);
       patterns.push([
         channel(0, 0, brk.kick),
-        // breakbeat kick — syncopated, not four-on-the-floor
+        // breakbeat kick - syncopated, not four-on-the-floor
         channel(1, 0, brk.snare),
         // breakbeat snare + occasional ghost hits
         channel(2, 0, hits(everyN(1))),
@@ -21897,7 +22241,7 @@ function composeSong(spec) {
         channel(1, 0, placed([[0, root], [8, root + 7]])),
         // strings pad, sustained
         channel(2, pan, walk(rng, scale, root, restProb))
-        // answering phrase — call-and-response
+        // answering phrase - call-and-response
       ]);
     }
   } else if (spec.archetype === "spanishGuitar") {
@@ -21906,13 +22250,13 @@ function composeSong(spec) {
     for (const root of spec.roots) {
       patterns.push([
         channel(0, pan, walk(rng, scale, root, restProb)),
-        // passionate arpeggiated lead
+        // arpeggiated lead
         channel(0, 0, placed([[0, root], [8, root + 7]])),
         // occasional chord stab (root + fifth)
         channel(1, 0, hits([6, 14])),
         // light hand-clap accent, off-beat
         channel(2, 0, placed([[0, root]]))
-        // grounding low root
+        // low anchor root
       ]);
     }
   } else if (spec.archetype === "cuban") {
@@ -21955,7 +22299,7 @@ function composeSong(spec) {
         channel(1, 0, placed([[0, root], [7, root + 3], [11, root]])),
         // light plucky bass
         channel(2, 0, hits([3, 9]))
-        // sparse curious tick
+        // sparse tick
       ]);
     }
   } else if (spec.archetype === "chiptune") {
@@ -21979,7 +22323,7 @@ function composeSong(spec) {
         channel(0, 0, hits([0, 10])),
         // laid-back kick
         channel(1, 0, hits([3, 7, 11, 15])),
-        // swung/shuffled snare — off the straight grid
+        // swung/shuffled snare - off the straight grid
         channel(2, 0, hits(everyN(2))),
         // soft shaker, eighths
         channel(3, pan, placed([[0, root], [8, root + 7]])),
@@ -21993,11 +22337,11 @@ function composeSong(spec) {
     bpm: spec.bpm,
     // DETERMINISM GUARD, not tidying. `zzfxG` reads parameter index 1 as
     // `randomness` and detunes the start frequency by `Math.random()` when it is
-    // non-zero — and its default is 0.05, so a preset authored with a SHORT array
+    // non-zero - and its default is 0.05, so a preset authored with a SHORT array
     // (fewer than two entries) would silently re-enable it and make every seed
     // produce a different render each time. Every preset in the table sets it to
-    // 0 today; normalising here is what stops that from being a property of the
-    // table's current contents. Copies, so PRESETS itself is never mutated.
+    // 0 today, but normalising here guarantees it even if a future preset forgets.
+    // Copies, so PRESETS itself is never mutated.
     instruments: instruments.map(withoutRandomness),
     patterns,
     sequence: arrange(spec.roots.length, spec.bpm, spec.targetSec)
@@ -22052,7 +22396,7 @@ var init_zzfx_compose = __esm({
       hat: [0.5, 0, 4e3, 0, 0, 0.03, 2, 1.25, 0, 0, 0, 0, 0.02, 6.8, -0.3, 0, 0.5],
       openhat: [0.45, 0, 2100, 0, 0, 0.1, 3, 3, 0, 0, -400, 0, 0, 2],
       clap: [0.55, 0, 220, 0, 0, 0.1, 3, 0, 0, 0, 320, 0, 0, 4],
-      // ── more tonal voices (C4 / C2 based) — drumAndBass/jungle/classical/
+      // ── more tonal voices (C4 / C2 based) - drumAndBass/jungle/classical/
       // spanishGuitar/cuban/bossaNova/whimsical/chiptune/lofi ─────────────────
       nylonGuitar: [0.46, 0, C4, 6e-3, 0.07, 0.55, 1, 1.2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.55],
       // warm plucked nylon/classical guitar
@@ -22061,11 +22405,11 @@ var init_zzfx_compose = __esm({
       strings: [0.4, 0, C4, 0.4, 0.3, 2, 1, 1, 0, 0, 0, 0, 0, 0, 0.02, 0, 0, 0.6],
       // slow-attack orchestral pad, gentle shimmer
       reese: [0.6, 0, C2, 0.02, 0.15, 0.9, 2, 1, -4, 0.15, 0, 0, 0, 0, 0, 0, 0, 0.55],
-      // deep moving sub — slide+deltaSlide give the wobble
+      // deep moving sub - slide+deltaSlide give the wobble
       square: [0.35, 0, C4, 3e-3, 0.05, 0.12, 5, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.5],
       // chiptune square wave (shape 5, 50% duty)
       pulse: [0.32, 0, C4, 3e-3, 0.04, 0.1, 5, 0.4, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.5],
-      // chiptune pulse wave (narrower duty — brighter/buzzier)
+      // chiptune pulse wave (narrower duty - brighter/buzzier)
       glockenspiel: [0.42, 0, C4, 2e-3, 0.02, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.15, 0.3],
       // music-box bell: pluck, taper, long ring (uses `decay`)
       epiano: [0.38, 0, C4, 0.015, 0.12, 0.8, 3, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.4],
@@ -22077,9 +22421,9 @@ var init_zzfx_compose = __esm({
       shaker: [0.35, 0, 6e3, 0, 0, 0.04, 2, 1.2, 0, 0, 0, 0, 0.015, 5, -0.2, 0, 0.3],
       ride: [0.4, 0, 5e3, 0, 0, 0.5, 2, 1.5, 0, 0, 0, 0, 0.03, 4, -0.15, 0, 0.4],
       breakKick: [0.85, 0, 100, 0, 0, 0.07, 0, 0.8, 0, 0, 0, 0.35, 0, 5, 1.2, 0.08],
-      // punchier/tighter than `kick` — breakbeat
+      // punchier/tighter than `kick` - breakbeat
       breakSnare: [0.65, 0, 700, 0, 0, 0.065, 3, 1.8, 0, 0, 0, 0, 0.015, 4.5, -0.15, 0, 0.15],
-      // snappier/tighter than `snare` — breakbeat
+      // snappier/tighter than `snare` - breakbeat
       brushSnare: [0.4, 0, 500, 0, 0.015, 0.16, 3, 1.4, 0, 0, 0, 0, 0.03, 2.5, -0.05, 0, 0.1]
       // soft brushed snare/rim (bossa/lo-fi)
     };
@@ -22496,13 +22840,13 @@ function cornerRadii(corners, w, h) {
   const f = Math.min(
     1,
     ratio(w, tl[0], tr[0]),
-    // top edge    — horizontal radii
+    // top edge    - horizontal radii
     ratio(w, bl[0], br[0]),
-    // bottom edge  — horizontal radii
+    // bottom edge  - horizontal radii
     ratio(h, tl[1], bl[1]),
-    // left edge    — vertical radii
+    // left edge    - vertical radii
     ratio(h, tr[1], br[1])
-    // right edge   — vertical radii
+    // right edge   - vertical radii
   );
   const scale = (p) => [p[0] * f, p[1] * f];
   return { topLeft: scale(tl), topRight: scale(tr), bottomRight: scale(br), bottomLeft: scale(bl) };
@@ -25293,8 +25637,8 @@ function offsetSource(c, d) {
   };
   return {
     sample,
-    // No closed form exists for an offset's area or moment — the curve is algebraic of
-    // degree 10 — so this is the case `quadratureMoments` is documented for. Gauss-Legendre
+    // No closed form exists for an offset's area or moment - the curve is algebraic of
+    // degree 10 - so this is the case `quadratureMoments` is documented for. Gauss-Legendre
     // over a smooth integrand, not a polyline of the shape.
     momentIntegrals: (t0, t1) => quadratureMoments(sample, t0, t1),
     breaks: () => offsetBreaks(c, d)
@@ -27472,7 +27816,7 @@ function makeGeomApi() {
       }
     },
     /**
-     * Nearest point, by projecting onto every curve and keeping the closest — the
+     * Nearest point, by projecting onto every curve and keeping the closest - the
      * kernel's own `nearestOnCubic` (bracket then Newton on the squared-distance
      * derivative), so the answer is computed FROM the curve rather than sampled near
      * it, and the `t` it reports is the parameter to split at to insert a node.
@@ -28050,11 +28394,11 @@ function buildConnectorSvg(edges, rectById, opts) {
 function makeConnectorsApi() {
   return {
     build: buildConnectorSvg,
-    // v1.110 — the unified path primitive's decoration + dash maths (plan 96).
+    // v1.110 - the unified path primitive's decoration + dash maths (plan 96).
     pathHeadSvg,
     pathHeadInset,
     dashFit: { parse: parseDashArray, cornerFitDashArray, dashSegments },
-    // v1.111 — a BOUND path is routed by its own spline kind (plan 96 P3), and a pack hook
+    // v1.111 - a BOUND path is routed by its own spline kind (plan 96 P3), and a pack hook
     // has to agree with the editor about which route that is, so the mapping is the
     // engine's rather than each surface's.
     routeStyleForKind: pathRouteStyle,
@@ -28257,6 +28601,56 @@ function recStretchDibits(prim) {
   }
   return new Uint8Array(buf);
 }
+function recCreateFontW(handle, prim) {
+  const tenths = clampInt2(-(prim.rotation || 0) * 10);
+  return record(EMR_EXTCREATEFONTINDIRECTW, 96, (dv, o) => {
+    dv.setUint32(o, handle, true);
+    dv.setInt32(o + 4, -Math.max(1, clampInt2(prim.fontSize)), true);
+    dv.setInt32(o + 8, 0, true);
+    dv.setInt32(o + 12, tenths, true);
+    dv.setInt32(o + 16, tenths, true);
+    dv.setInt32(o + 20, Math.min(900, Math.max(100, clampInt2(prim.weight || 400))), true);
+    dv.setUint8(o + 24, prim.italic ? 1 : 0);
+    dv.setUint8(o + 25, 0);
+    dv.setUint8(o + 26, 0);
+    dv.setUint8(o + 27, DEFAULT_CHARSET);
+    dv.setUint32(o + 28, 0, true);
+    const face = prim.fontFamily.slice(0, 31);
+    for (let i = 0; i < face.length; i++) dv.setUint16(o + 32 + i * 2, face.charCodeAt(i), true);
+  });
+}
+function recExtTextOutW(prim, canvasW, canvasH, exScale, eyScale) {
+  const n2 = prim.text.length;
+  const strBytes = 2 * n2;
+  const pad = (4 - strBytes % 4) % 4;
+  const bodyLen = 68 + strBytes + pad;
+  return record(EMR_EXTTEXTOUTW, bodyLen, (dv, o) => {
+    setRect(dv, o, { left: 0, top: 0, right: Math.max(0, canvasW - 1), bottom: Math.max(0, canvasH - 1) });
+    dv.setUint32(o + 16, GM_COMPATIBLE, true);
+    dv.setFloat32(o + 20, exScale, true);
+    dv.setFloat32(o + 24, eyScale, true);
+    dv.setInt32(o + 28, clampInt2(prim.x), true);
+    dv.setInt32(o + 32, clampInt2(prim.y), true);
+    dv.setUint32(o + 36, n2, true);
+    dv.setUint32(o + 40, 76, true);
+    dv.setUint32(o + 44, 0, true);
+    setRect(dv, o + 48, { left: 0, top: 0, right: 0, bottom: 0 });
+    dv.setUint32(o + 64, 0, true);
+    for (let i = 0; i < n2; i++) dv.setUint16(o + 68 + i * 2, prim.text.charCodeAt(i), true);
+  });
+}
+function emitTextPrim(prim, out, canvasW, canvasH, exScale, eyScale) {
+  if (!prim.text) return;
+  const halign = prim.align === "center" ? TA_CENTER : prim.align === "right" ? TA_RIGHT : TA_LEFT;
+  const valign = prim.baseline === "top" ? TA_TOP : TA_BASELINE;
+  out.push(recSetTextAlign(halign | valign));
+  out.push(recSetTextColor(prim.fill));
+  out.push(recCreateFontW(H_FONT, prim));
+  out.push(recSelectObject(H_FONT));
+  out.push(recExtTextOutW(prim, canvasW, canvasH, exScale, eyScale));
+  out.push(recSelectObject(SYSTEM_FONT));
+  out.push(recDeleteObject(H_FONT));
+}
 function headerMath(ir, opts) {
   const Wpx = Math.max(1, Math.round(ir.width));
   const Hpx = Math.max(1, Math.round(ir.height));
@@ -28274,7 +28668,7 @@ function headerMath(ir, opts) {
     mmH: Math.max(1, Math.round(hIn * 25.4))
   };
 }
-function writeHeader(h, nBytes, nRecords) {
+function writeHeader(h, nBytes, nRecords, nHandles) {
   const buf = new ArrayBuffer(HEADER_SIZE);
   const dv = new DataView(buf);
   dv.setUint32(0, EMR_HEADER, true);
@@ -28285,7 +28679,7 @@ function writeHeader(h, nBytes, nRecords) {
   dv.setUint32(44, 65536, true);
   dv.setUint32(48, nBytes, true);
   dv.setUint32(52, nRecords, true);
-  dv.setUint16(56, N_HANDLES, true);
+  dv.setUint16(56, nHandles, true);
   dv.setUint16(58, 0, true);
   dv.setUint32(60, 0, true);
   dv.setUint32(64, 0, true);
@@ -28298,17 +28692,22 @@ function writeHeader(h, nBytes, nRecords) {
 }
 function emitEmf(ir, opts = {}) {
   const h = headerMath(ir, opts);
+  const hasText = (ir.prims || []).some((p) => p?.type === "text");
+  const exScale = h.rclFrame.right / h.Wpx;
+  const eyScale = h.rclFrame.bottom / h.Hpx;
   const body = [];
+  if (hasText) body.push(recSetBkMode(BKMODE_TRANSPARENT));
   for (const prim of ir.prims || []) {
     if (prim?.type === "path") emitPathPrim(prim, body);
     else if (prim?.type === "image") body.push(recStretchDibits(prim));
+    else if (prim?.type === "text") emitTextPrim(prim, body, h.Wpx, h.Hpx, exScale, eyScale);
   }
   body.push(recEof());
   const nRecords = body.length + 1;
   const bodyBytes = body.reduce((n2, r3) => n2 + r3.length, 0);
   const nBytes = HEADER_SIZE + bodyBytes;
   const out = new Uint8Array(nBytes);
-  out.set(writeHeader(h, nBytes, nRecords), 0);
+  out.set(writeHeader(h, nBytes, nRecords, hasText ? N_HANDLES + 1 : N_HANDLES), 0);
   let off = HEADER_SIZE;
   for (const r3 of body) {
     out.set(r3, off);
@@ -28316,7 +28715,7 @@ function emitEmf(ir, opts = {}) {
   }
   return out;
 }
-var EMR_HEADER, EMR_POLYBEZIERTO, EMR_POLYLINETO, EMR_EOF, EMR_SETPOLYFILLMODE, EMR_MOVETOEX, EMR_SELECTOBJECT, EMR_CREATEBRUSHINDIRECT, EMR_DELETEOBJECT, EMR_BEGINPATH, EMR_ENDPATH, EMR_CLOSEFIGURE, EMR_FILLPATH, EMR_STROKEANDFILLPATH, EMR_STROKEPATH, EMR_EXTCREATEPEN, EMR_STRETCHDIBITS, SRCCOPY, DIB_RGB_COLORS, ALTERNATE, WINDING, NULL_BRUSH, NULL_PEN, BS_SOLID, PS_GEOMETRIC_SOLID, ENHMETA_SIGNATURE, HEADER_SIZE, H_BRUSH, H_PEN, N_HANDLES, colorRef, clampInt2, setRect, recBeginPath, recEndPath, recCloseFigure, recSetPolyFillMode, recSelectObject, recDeleteObject, recCreateBrush, recExtCreatePen, recPaint, recEof;
+var EMR_HEADER, EMR_POLYBEZIERTO, EMR_POLYLINETO, EMR_EOF, EMR_SETPOLYFILLMODE, EMR_MOVETOEX, EMR_SELECTOBJECT, EMR_CREATEBRUSHINDIRECT, EMR_DELETEOBJECT, EMR_BEGINPATH, EMR_ENDPATH, EMR_CLOSEFIGURE, EMR_FILLPATH, EMR_STROKEANDFILLPATH, EMR_STROKEPATH, EMR_EXTCREATEPEN, EMR_STRETCHDIBITS, EMR_SETBKMODE, EMR_SETTEXTALIGN, EMR_SETTEXTCOLOR, EMR_EXTCREATEFONTINDIRECTW, EMR_EXTTEXTOUTW, BKMODE_TRANSPARENT, GM_COMPATIBLE, TA_LEFT, TA_RIGHT, TA_CENTER, TA_TOP, TA_BASELINE, DEFAULT_CHARSET, SRCCOPY, DIB_RGB_COLORS, ALTERNATE, WINDING, NULL_BRUSH, NULL_PEN, SYSTEM_FONT, BS_SOLID, PS_GEOMETRIC_SOLID, ENHMETA_SIGNATURE, HEADER_SIZE, H_BRUSH, H_PEN, H_FONT, N_HANDLES, colorRef, clampInt2, setRect, recBeginPath, recEndPath, recCloseFigure, recSetPolyFillMode, recSelectObject, recDeleteObject, recCreateBrush, recExtCreatePen, recPaint, recEof, recSetBkMode, recSetTextAlign, recSetTextColor;
 var init_emf = __esm({
   "engine/src/emf.ts"() {
     "use strict";
@@ -28338,18 +28737,33 @@ var init_emf = __esm({
     EMR_STROKEPATH = 64;
     EMR_EXTCREATEPEN = 95;
     EMR_STRETCHDIBITS = 81;
+    EMR_SETBKMODE = 18;
+    EMR_SETTEXTALIGN = 22;
+    EMR_SETTEXTCOLOR = 24;
+    EMR_EXTCREATEFONTINDIRECTW = 82;
+    EMR_EXTTEXTOUTW = 84;
+    BKMODE_TRANSPARENT = 1;
+    GM_COMPATIBLE = 1;
+    TA_LEFT = 0;
+    TA_RIGHT = 2;
+    TA_CENTER = 6;
+    TA_TOP = 0;
+    TA_BASELINE = 24;
+    DEFAULT_CHARSET = 1;
     SRCCOPY = 13369376;
     DIB_RGB_COLORS = 0;
     ALTERNATE = 1;
     WINDING = 2;
     NULL_BRUSH = 2147483653;
     NULL_PEN = 2147483656;
+    SYSTEM_FONT = 2147483661;
     BS_SOLID = 0;
     PS_GEOMETRIC_SOLID = 65536;
     ENHMETA_SIGNATURE = 1179469088;
     HEADER_SIZE = 88;
     H_BRUSH = 1;
     H_PEN = 2;
+    H_FONT = 3;
     N_HANDLES = 3;
     colorRef = ({ r: r3, g: g2, b }) => (r3 & 255 | (g2 & 255) << 8 | (b & 255) << 16) >>> 0;
     clampInt2 = (v) => Math.round(v);
@@ -28390,6 +28804,9 @@ var init_emf = __esm({
       dv.setUint32(o + 4, 16, true);
       dv.setUint32(o + 8, 20, true);
     });
+    recSetBkMode = (mode) => record(EMR_SETBKMODE, 4, (dv, o) => dv.setUint32(o, mode, true));
+    recSetTextAlign = (mode) => record(EMR_SETTEXTALIGN, 4, (dv, o) => dv.setUint32(o, mode, true));
+    recSetTextColor = (color) => record(EMR_SETTEXTCOLOR, 4, (dv, o) => dv.setUint32(o, colorRef(color), true));
   }
 });
 
@@ -30326,7 +30743,7 @@ function walkTree(tree, theme, slideRelsById, out, depth) {
         case "nvGrpSpPr":
         case "grpSpPr":
           break;
-        // group's own metadata — skip
+        // group's own metadata, skip
         default:
           break;
       }
@@ -32707,7 +33124,7 @@ var init_deflate = __esm({
           this.bitCnt -= 8;
         }
       }
-      /** Pad to a byte boundary with zero bits (stored-block alignment, §3.2.4). */
+      /** Pad to a byte boundary with zero bits (stored-block alignment, section 3.2.4). */
       alignByte() {
         if (this.bitCnt > 0) {
           this.ensure(1);
@@ -33628,7 +34045,7 @@ var init_gzip = __esm({
         this.bitCnt -= count2;
         return v;
       }
-      /** Drop any partial bits, aligning to the next byte (stored-block start, §3.2.4). */
+      /** Drop any partial bits, aligning to the next byte (stored-block start, section 3.2.4). */
       alignByte() {
         this.bitBuf = 0;
         this.bitCnt = 0;
@@ -33671,7 +34088,7 @@ var init_gzip = __esm({
           if (l !== 0) this.symbols[offsets[l]++] = i;
         }
       }
-      /** Decode one symbol from `r`, walking one bit per length (RFC 1951 §3.2.2). */
+      /** Decode one symbol from `r`, walking one bit per length (RFC 1951 section 3.2.2). */
       decode(r3) {
         let code = 0;
         let first = 0;
@@ -33726,7 +34143,7 @@ var init_gzip = __esm({
         this.buf.set(src, this.len);
         this.len += src.length;
       }
-      /** Copy `len` bytes from `dist` back — the LZ77 back-reference (§3.2.3). */
+      /** Copy `len` bytes from `dist` back: the LZ77 back-reference (section 3.2.3). */
       copyBack(dist2, len2) {
         if (dist2 > this.len) throw new Error("inflate: distance points before start of output");
         this.ensure(len2);
@@ -35075,7 +35492,7 @@ ${spineItems}
 function writeEpub(doc) {
   const lang = doc.lang && doc.lang.trim() ? doc.lang.trim() : "en";
   const files = {
-    // STORED (level 0), no extra fields — the OCF "magic" the reader sniffs first.
+    // STORED (level 0), no extra fields - the OCF "magic" the reader sniffs first.
     mimetype: [enc2.encode("application/epub+zip"), { level: 0 }],
     "META-INF/container.xml": [enc2.encode(CONTAINER_XML), { level: 6 }],
     "OEBPS/content.opf": [enc2.encode(contentOpf(doc, lang)), { level: 6 }],
@@ -35570,12 +35987,12 @@ function nodeToBox(node, opts) {
     strokeW: Math.max(0, num4(n2.strokeW, 0) ?? 0),
     strokeDash: n2.strokeDash === "dashed" || n2.strokeDash === "dotted" ? n2.strokeDash : "",
     // Authored dash/gap lengths (Penpot 2.17 PR #9765). Numbers, never strings, so
-    // the compact blocks URL form is untouched — it cannot carry a comma or a tilde.
+    // the compact blocks URL form is untouched - it cannot carry a comma or a tilde.
     // 0 keeps the editor's width-proportional synthesis, so an unauthored row is
     // byte-identical to what it produced before these fields existed.
     strokeDashLen: Math.max(0, round2(num4(n2.strokeDashLen, 0))),
     strokeGapLen: Math.max(0, round2(num4(n2.strokeGapLen, 0))),
-    // Backdrop blur (frosted glass) — CSS backdrop-filter, same 0..300 clamp and
+    // Backdrop blur (frosted glass) - CSS backdrop-filter, same 0..300 clamp and
     // 1-decimal rounding as `blur`. 0 is off, so a row without the field renders
     // byte-identically to one from before the field existed.
     bgBlur: clamp5(round1(num4(n2.bgBlur, 0)), 0, 300)
@@ -36097,7 +36514,7 @@ function penpotShapeToNode(shape) {
       const bx = bb ? bb.x : x, by = bb ? bb.y : y;
       const bw = bb ? Math.max(1, bb.w) : w, bh = bb ? Math.max(1, bb.h) : h;
       const node2 = {
-        // Explicit fill:'' — the baked SVG is transparent outside its outline, so the
+        // Explicit fill:'' - the baked SVG is transparent outside its outline, so the
         // image box must not seed a backing colour behind it (nodeToBox seedBg).
         kind: "image",
         x: bx,
@@ -36633,7 +37050,7 @@ function figmaNodesToScenes(nodeChanges, blobs) {
   const scenes = [];
   for (const page2 of canvases) {
     const pageAbs = figMatrix(page2);
-    const collect = (root, into) => {
+    const collect2 = (root, into) => {
       const visit = (node, pabs) => {
         if (!node || node.visible === false) return;
         const abs = matMul3(pabs, figMatrix(node));
@@ -36651,7 +37068,7 @@ function figmaNodesToScenes(nodeChanges, blobs) {
       const type = String(child.type || "");
       if (FIG_FRAME_TYPES.has(type) && child.size) {
         const nodes = [];
-        collect(child, nodes);
+        collect2(child, nodes);
         if (!nodes.length) continue;
         const geom = boxGeomFromBBox(
           { x: 0, y: 0, width: num4(child.size.x, 0), height: num4(child.size.y, 0) },
@@ -36671,7 +37088,7 @@ function figmaNodesToScenes(nodeChanges, blobs) {
           }
         });
       } else {
-        collect(child, loose);
+        collect2(child, loose);
       }
     }
     scenes.push(...readingOrder(framed, (f) => f.at).map((f) => f.scene));
@@ -37866,11 +38283,11 @@ function interpretPdfPage(page2) {
         case "J":
           s.lineCap = args[0] ?? s.lineCap;
           break;
-        // §8.4.3.3
+        // section 8.4.3.3
         case "j":
           s.lineJoin = args[0] ?? s.lineJoin;
           break;
-        // §8.4.3.4
+        // section 8.4.3.4
         case "gs": {
           const g2 = res.extgstates && res.extgstates[nameArg];
           if (g2) {
@@ -37927,7 +38344,7 @@ function interpretPdfPage(page2) {
         // sc/scn: numeric operands → a real colour; a pattern NAME → `applyPattern`
         // (see its comment for the fidelity ladder). A name we have NO pattern
         // resource for still CLEARS the paint rather than letting it inherit the
-        // previous fill, since a stale colour (often black) would flood the shape —
+        // previous fill, since a stale colour (often black) would flood the shape -
         // the original anti-stale-black safety valve, now the rare case rather than
         // the common one. An uncoloured pattern (PaintType 2) carries its tint in
         // the numeric operands, which scColor resolves.
@@ -37957,7 +38374,7 @@ function interpretPdfPage(page2) {
         }
         // Stroke patterns: there is no stroke-gradient support in this interpreter
         // at all, so the best available answer is the pattern's flat back-stop.
-        // A pattern with no back-stop is NOT reported here — see
+        // A pattern with no back-stop is NOT reported here - see
         // GState.strokePatternUnsupported; the report moves to the paint site so the
         // 78 benign Chromium "set stroke to the fill's pattern, then only fill"
         // selections stop burying real signal in the warning census.
@@ -37984,7 +38401,7 @@ function interpretPdfPage(page2) {
         case "CS":
           break;
         // `sh` paints a shading across the current clip. We only emit it when a clip
-        // is in force (the normal case — Chromium clips a gradient to its element
+        // is in force (the normal case - Chromium clips a gradient to its element
         // box): a page-sized gradient rect cropped by the clip. Unclipped `sh` is
         // rare and can't be bounded here (extend:false paints only the axis extent,
         // not the page), so it's skipped rather than risk flooding the page.
@@ -38072,7 +38489,7 @@ function interpretPdfPage(page2) {
           break;
         // A pending W/W* applies at the path's terminating operator. Applying it
         // just BEFORE the paint deviates from the spec by one op (the painted
-        // path self-clips — a no-op, a path clipped by itself is itself) and
+        // path self-clips - a no-op, a path clipped by itself is itself) and
         // keeps the common `re W n` clip-only sequence exact.
         case "f":
         case "F":
@@ -38083,7 +38500,7 @@ function interpretPdfPage(page2) {
           applyPendingClip();
           paintPath("fill", true);
           break;
-        // `s`/`b`/`b*` are the CLOSE-then-paint forms of `S`/`B`/`B*` (§8.5.3.1);
+        // `s`/`b`/`b*` are the CLOSE-then-paint forms of `S`/`B`/`B*` (section 8.5.3.1);
         // they must close, or a stroked shape is left with a gap where it started.
         case "S":
           applyPendingClip();
@@ -39063,7 +39480,7 @@ function cluster(items) {
       if (overlaps(a, items[j].rect)) join11(i, j);
     }
   }
-  const collect = () => {
+  const collect2 = () => {
     const m2 = /* @__PURE__ */ new Map();
     for (let i = 0; i < items.length; i++) {
       const root = find(i);
@@ -39078,7 +39495,7 @@ function cluster(items) {
     return m2;
   };
   for (let pass = 0; pass < 4; pass++) {
-    const clusters = [...collect().entries()];
+    const clusters = [...collect2().entries()];
     const byGroup = /* @__PURE__ */ new Map();
     for (const [root, c] of clusters) {
       if (!c.group) continue;
@@ -39103,7 +39520,7 @@ function cluster(items) {
     }
     if (!merged) break;
   }
-  return [...collect().values()];
+  return [...collect2().values()];
 }
 function findVectorArtwork(nodes, opts = {}) {
   const out = [];
@@ -39869,7 +40286,7 @@ function labPoint(l, c, ang, unit2) {
     x: c * Math.cos(ang) / unit2,
     z: c * Math.sin(ang) / unit2,
     // Centred on 0.5 like every other embedding's vertical, and HALVED because
-    // the projector doubles the vertical on the way out (`(y − 0.5) · 2`). After
+    // the projector doubles the vertical on the way out (`(y - 0.5) * 2`). After
     // that round trip one lightness unit and one chroma unit are the same length
     // on screen, which is the whole claim this embedding makes.
     y: 0.5 + (l - 0.5) / (2 * unit2)
@@ -41111,7 +41528,7 @@ function makeColorApi() {
     // verbatim so tool-facing scheme accents can never drift from the editor's.
     schemes: (seedHex, kind = "complement") => generateSchemeAccents(seedHex, kind),
     // v1.68: CSS-correct interpolation + the gradient spec. Both are thin
-    // adapters over css-color.ts / gradient-spec.ts — the same code the export
+    // adapters over css-color.ts / gradient-spec.ts - the same code the export
     // walkers and the web shell's gradient editor use, so a tool's gradient and
     // an exported one can never be interpolated differently.
     mix: (a, b, t, opts = {}) => {
@@ -41122,8 +41539,8 @@ function makeColorApi() {
     },
     gradientCss: (spec) => gradientSpecToCss(spec),
     // v1.107: the APCA inverse-solver (solveLightnessForApca), attached verbatim.
-    // The forward `apca` scores a pair; this is the other direction — a tone of a
-    // given hue that reads at a target Lc on a background — the one move a
+    // The forward `apca` scores a pair; this is the other direction: a tone of a
+    // given hue that reads at a target Lc on a background. The one move a
     // contrast-first ramp needs. Same engine math on web, Worker, Tauri and CLI.
     solveApca: (hue, chroma, targetLc, bgHex, opts = {}) => solveLightnessForApca(hue, chroma, targetLc, bgHex, opts),
     // v1.69: display-gamut classification + the OKLCH slice planes (gamut.ts).
@@ -41139,13 +41556,13 @@ function makeColorApi() {
     slice: (opts) => oklchSlice(opts),
     gamutRegion: (plane, fixed, limit = "srgb", steps = 96, cMax = 0.4) => sliceGamutRegion(plane, fixed, limit, steps, cMax),
     // The perceptual axes themselves. Until 1.69 a tool could ask for ramps and
-    // harmonies but could not read a colour's own lightness or chroma — the one
+    // harmonies but could not read a colour's own lightness or chroma. The one
     // conversion every colour tool needs, and the one it had to reimplement.
     oklch: (color) => toOklch2(color),
     fromOklch: (o) => oklchToHex(o),
     // v1.70: the user's own ICC profile as a gamut (icc.ts + gamut-source.ts).
-    // The three queries go through gamut.ts exactly as the display gamuts do —
-    // a profile-backed source answers `contains` where a 3×3 matrix would — so
+    // The three queries go through gamut.ts exactly as the display gamuts do:
+    // a profile-backed source answers `contains` where a 3×3 matrix would. So
     // "does this print?" and "does this display?" cannot drift apart in method.
     // No-answer values (null / false / 0) for a handle we did not issue or a
     // profile with no table for its intent; never a guess.
@@ -41216,6 +41633,45 @@ var init_color_tools = __esm({
     PROFILE_SOURCES = /* @__PURE__ */ new WeakMap();
     INTENTS = ["perceptual", "relative", "saturation", "absolute"];
     sourceFor = (p) => p != null && typeof p === "object" ? PROFILE_SOURCES.get(p) ?? null : null;
+  }
+});
+
+// engine/src/chroma-key.ts
+function rgbToOklab(r3, g2, b) {
+  return linearSrgbToOklab(srgbToLinear(r3 / 255), srgbToLinear(g2 / 255), srgbToLinear(b / 255));
+}
+function chromaKeyAlpha(rgba, width, height, opts) {
+  const out = new Uint8ClampedArray(rgba);
+  const [kr, kg, kb] = opts.keyColor;
+  const [kL, ka, kbb] = rgbToOklab(kr, kg, kb);
+  const tol = Math.max(0, opts.tolerance);
+  const soft = Math.max(1e-4, opts.softness);
+  const sp = Math.max(0, Math.min(1, opts.spill ?? 0));
+  const n2 = Math.min(Math.max(0, Math.floor(width * height)), Math.floor(out.length / 4));
+  for (let p = 0; p < n2; p++) {
+    const i = p * 4;
+    const r3 = out[i], g2 = out[i + 1], b = out[i + 2];
+    const [L, a, bb] = rgbToOklab(r3, g2, b);
+    const d = Math.hypot(L - kL, a - ka, bb - kbb);
+    let keep;
+    if (d <= tol) keep = 0;
+    else if (d >= tol + soft) keep = 1;
+    else keep = (d - tol) / soft;
+    if (sp > 0 && keep > 0 && keep < 1) {
+      const y = 0.299 * r3 + 0.587 * g2 + 0.114 * b;
+      const f = (1 - keep) * sp;
+      out[i] = r3 + (y - r3) * f;
+      out[i + 1] = g2 + (y - g2) * f;
+      out[i + 2] = b + (y - b) * f;
+    }
+    out[i + 3] = Math.round(out[i + 3] * keep);
+  }
+  return out;
+}
+var init_chroma_key = __esm({
+  "engine/src/chroma-key.ts"() {
+    "use strict";
+    init_brand_derive();
   }
 });
 
@@ -41371,7 +41827,7 @@ var init_color_vision = __esm({
     "use strict";
     init_brand_derive();
     PROTAN = [
-      // 0.0 — identity (normal vision)
+      // 0.0 - identity (normal vision)
       [1, 0, 0, 0, 1, 0, 0, 0, 1],
       // 0.1
       [0.856167, 0.182038, -0.038205, 0.029342, 0.955115, 0.015544, -288e-5, -1563e-6, 1.004443],
@@ -41391,11 +41847,11 @@ var init_color_vision = __esm({
       [0.259411, 0.923008, -0.18242, 0.110296, 0.80434, 0.085364, -6276e-6, -0.034346, 1.040622],
       // 0.9
       [0.203876, 0.990338, -0.194214, 0.112975, 0.794542, 0.092483, -5222e-6, -0.041043, 1.046265],
-      // 1.0 — protanopia
+      // 1.0 - protanopia
       [0.152286, 1.052583, -0.204868, 0.114503, 0.786281, 0.099216, -3882e-6, -0.048116, 1.051998]
     ];
     DEUTAN = [
-      // 0.0 — identity
+      // 0.0 - identity
       [1, 0, 0, 0, 1, 0, 0, 0, 1],
       // 0.1
       [0.866435, 0.177704, -0.044139, 0.049567, 0.939063, 0.01137, -3453e-6, 7233e-6, 0.99622],
@@ -41415,11 +41871,11 @@ var init_color_vision = __esm({
       [0.422823, 0.781057, -0.203881, 0.245752, 0.709602, 0.044646, -0.011843, 0.037423, 0.974421],
       // 0.9
       [0.392952, 0.82361, -0.216562, 0.263559, 0.69021, 0.046232, -0.01191, 0.040281, 0.97163],
-      // 1.0 — deuteranopia
+      // 1.0 - deuteranopia
       [0.367322, 0.860646, -0.227968, 0.280085, 0.672501, 0.047413, -0.01182, 0.04294, 0.968881]
     ];
     TRITAN = [
-      // 0.0 — identity
+      // 0.0 - identity
       [1, 0, 0, 0, 1, 0, 0, 0, 1],
       // 0.1
       [0.92667, 0.092514, -0.019184, 0.021191, 0.964503, 0.014306, 8437e-6, 0.054813, 0.93675],
@@ -41439,7 +41895,7 @@ var init_color_vision = __esm({
       [1.257728, -0.139648, -0.118081, -0.078003, 0.975409, 0.102594, -3316e-6, 0.501214, 0.502102],
       // 0.9
       [1.278864, -0.125333, -0.153531, -0.084748, 0.957674, 0.127074, -989e-6, 0.601151, 0.399838],
-      // 1.0 — tritanopia
+      // 1.0 - tritanopia
       [1.255528, -0.076749, -0.178779, -0.078411, 0.930809, 0.147602, 4733e-6, 0.691367, 0.3039]
     ];
     TABLES = {
@@ -42199,7 +42655,7 @@ function toCandidates(source) {
       l: ok3.l,
       c: ok3.c,
       h: ok3.h,
-      // Token path (or a BrandSwatch's declared role) — a swatch NAME scores
+      // Token path (or a BrandSwatch's declared role) - a swatch NAME scores
       // only when no structural hint exists at all.
       role: (sw.role ?? sw.name ?? "").toLowerCase()
     });
@@ -43005,7 +43461,7 @@ var init_keyframes = __esm({
       a: [0, 1],
       p: [50, 12e3],
       // ABSOLUTE px, and non-negative: a keyed `w`/`h` REPLACES the box's own size for
-      // that segment (§5.2), so there is no additive reading to allow a negative for.
+      // that segment (section 5.2), so there is no additive reading to allow a negative for.
       // 16384 is deliberately twice `PLATE_LONG_SIDE_LARGE`, the widest plate any shell
       // will actually capture: this is the untrusted-input backstop (a hand-edited share
       // URL), and the operative limit on a stretched layer is the plate budget's own
@@ -43297,6 +43753,7 @@ __export(src_exports, {
   aliasPath: () => aliasPath,
   analysePcm: () => analysePcm,
   analyzeLsb: () => analyzeLsb,
+  analyzeTextSignals: () => analyzeTextSignals,
   annotateTemplate: () => annotateTemplate,
   apcaContrast: () => apcaContrast,
   apcaUse: () => apcaUse,
@@ -43341,6 +43798,7 @@ __export(src_exports, {
   canonicalJson: () => canonicalJson,
   canonicalValue: () => canonicalValue,
   chromaAxisMax: () => chromaAxisMax,
+  chromaKeyAlpha: () => chromaKeyAlpha,
   chromaTickStep: () => chromaTickStep,
   chunkByPhonemeLength: () => chunkByPhonemeLength,
   classBreaks: () => classBreaks,
@@ -43946,6 +44404,7 @@ var init_src2 = __esm({
     init_zzfxm();
     init_audio_analyse();
     init_captions();
+    init_text_signals();
     init_speech_text();
     init_wav();
     init_midi();
@@ -44029,6 +44488,7 @@ var init_src2 = __esm({
     init_icc_pixels();
     init_brand_schemes();
     init_color_tools();
+    init_chroma_key();
     init_palette_export();
     init_color_curve();
     init_color_vision();
@@ -44836,7 +45296,7 @@ async function renderDeepRaster(req) {
   if (!hasHeadroom(frame)) throw new DeepSourceError(deepSourceRefusal(fmt3, "no-headroom"));
   if (fmt3 === "hdr") {
     if (req.depth === "float" || req.depth === 16 || req.depth === 8) {
-      req.log?.("info", `Note: depth=${req.depth} is not a Radiance .hdr option \u2014 RGBE is 8-bit mantissas with one shared exponent per pixel. Wrote RGBE.`);
+      req.log?.("info", `Note: depth=${req.depth} is not a Radiance .hdr option - RGBE is 8-bit mantissas with one shared exponent per pixel. Wrote RGBE.`);
     }
     return {
       bytes: packRadiance(frame, { software: "Lolly", comments: ["Rec.2020 primaries, linear light, 1.0 = 203 nits (BT.2408 diffuse white)"] }),
@@ -44846,7 +45306,7 @@ async function renderDeepRaster(req) {
   let pixelType = "half";
   if (req.depth === "float") pixelType = "float";
   else if (req.depth === 8 || req.depth === 16) {
-    req.log?.("info", `Note: depth=${req.depth} has no OpenEXR sample type (EXR is float-only) \u2014 wrote HALF. Use depth=float for 32-bit samples.`);
+    req.log?.("info", `Note: depth=${req.depth} has no OpenEXR sample type (EXR is float-only) - wrote HALF. Use depth=float for 32-bit samples.`);
   }
   return {
     bytes: packExr(frame, {
@@ -45315,13 +45775,13 @@ init_src2();
 
 // packages/node-shell/src/verdict-slugs.ts
 var VERDICT_SLUGS = {
-  lolly: { verdict: "made-with-lolly", headline: "Made with Lolly \u2014 credential intact, file unchanged since export" },
-  delivered: { verdict: "delivered-by-lolly", headline: "Delivered by Lolly \u2014 verified authentic official asset; delivered by Lolly, not created by it" },
-  likelyLolly: { verdict: "likely-made-with-lolly", headline: "Likely made with Lolly \u2014 the credential's own content checks out and records a Lolly export, but this file's bytes no longer match it" },
-  expired: { verdict: "credential-expired", headline: "Credential expired \u2014 the file still matches what was signed; the one-year on-device certificate has lapsed" },
-  trusted: { verdict: "credential-intact", headline: "Credential intact \u2014 signed on-device (integrity, not identity)" },
-  valid: { verdict: "credential-intact", headline: "Credential intact \u2014 signed on-device (integrity, not identity)" },
-  invalid: { verdict: "credential-broken", headline: "Credential broken \u2014 the file no longer matches what was signed" },
+  lolly: { verdict: "made-with-lolly", headline: "Made with Lolly - credential intact, file unchanged since export" },
+  delivered: { verdict: "delivered-by-lolly", headline: "Delivered by Lolly - verified authentic official asset; delivered by Lolly, not created by it" },
+  likelyLolly: { verdict: "likely-made-with-lolly", headline: "Likely made with Lolly - the credential's own content checks out and records a Lolly export, but this file's bytes no longer match it" },
+  expired: { verdict: "credential-expired", headline: "Credential expired - the file still matches what was signed; the one-year on-device certificate has lapsed" },
+  trusted: { verdict: "credential-intact", headline: "Credential intact - signed on-device (integrity, not identity)" },
+  valid: { verdict: "credential-intact", headline: "Credential intact - signed on-device (integrity, not identity)" },
+  invalid: { verdict: "credential-broken", headline: "Credential broken - the file no longer matches what was signed" },
   none: { verdict: "no-credential", headline: "No Content Credentials found" }
 };
 
@@ -45339,7 +45799,7 @@ function verdictFacts(report) {
   const id = report.signer?.identity;
   const raw = [
     ["Title", c.title],
-    ["Identity", report.trusted && id && `${id.email || s.commonName}${id.issuer ? ` \u2014 verified by ${id.issuer}` : ""}`],
+    ["Identity", report.trusted && id && `${id.email || s.commonName}${id.issuer ? ` - verified by ${id.issuer}` : ""}`],
     ["Tool", env.tool],
     ["Produced by", report.author && `${report.author.name}${report.author.email ? ` <${report.author.email}>` : ""}`],
     ["Contact", report.author?.url],
@@ -45407,8 +45867,8 @@ async function listTools(filter = {}) {
     if (filter.format && !(t.formats ?? []).map((f) => f.toLowerCase()).includes(filter.format.toLowerCase())) return false;
     if (filter.capability && !(t.capabilities ?? []).includes(filter.capability)) return false;
     if (q) {
-      const hay = `${t.id} ${t.name} ${t.description ?? ""} ${t.category ?? ""} ${(t.formats ?? []).join(" ")}`.toLowerCase();
-      if (!hay.includes(q)) return false;
+      const hay = `${t.id} ${t.name} ${t.description ?? ""} ${t.category ?? ""} ${(t.formats ?? []).join(" ")} ${(t.tags ?? []).join(" ")}`.toLowerCase();
+      if (!q.split(/\s+/).every((tok) => hay.includes(tok))) return false;
     }
     return true;
   });
@@ -45436,14 +45896,14 @@ function assertRenderOk({ hookErrors, format, bytes }) {
     const detail = hookErrors.map((e) => `${e.hook} failed: ${e.message}`).join("; ");
     throw new RenderIntegrityError(
       "hook-failed",
-      `render produced no usable output \u2014 ${detail}. No file was written.`,
+      `render produced no usable output - ${detail}. No file was written.`,
       hookErrors
     );
   }
   if (isSvgFormat(format) && isDegenerateSvg(bytes)) {
     throw new RenderIntegrityError(
       "degenerate-svg",
-      "render produced no usable output \u2014 the SVG has no size and no drawable content (the tool likely failed to render). No file was written."
+      "render produced no usable output - the SVG has no size and no drawable content (the tool likely failed to render). No file was written."
     );
   }
 }
@@ -45509,7 +45969,7 @@ function buildExportC2paOpts(o) {
     },
     ...profile.useDetails === true && profile.firstname ? { author: { name: [profile.firstname, profile.lastname].filter(Boolean).join(" "), ...profile.email ? { email: profile.email } : {} } } : {},
     ...o.signer ? { signer: o.signer } : {},
-    // With an identity, the dates ARE the certificate's — `dates` only ever fed the
+    // With an identity, the dates ARE the certificate's. `dates` only ever fed the
     // ephemeral certificate generator, and an enrolled signer brings its own.
     dates: o.signer && o.signerValidity ? { notBefore: o.signerValidity.notBefore, notAfter: o.signerValidity.notAfter } : { notBefore: new Date(Date.now() - 6e4), notAfter: new Date(Date.now() + days * 864e5) },
     // Carry a genAI source forward so the record stays accurate (default drops both).
@@ -46061,7 +46521,7 @@ function createNetAPI({ allowlist = [] }) {
 function capResponse(res, cap) {
   const declared = Number(res.headers.get("content-length"));
   if (Number.isFinite(declared) && declared > cap) {
-    throw new Error(`net: response is ${declared} bytes \u2014 over the ${cap}-byte limit`);
+    throw new Error(`net: response is ${declared} bytes - over the ${cap}-byte limit`);
   }
   if (!res.body || typeof TransformStream !== "function") return res;
   let total = 0;
@@ -46202,7 +46662,7 @@ function openOnce(timeoutMs = OPEN_TIMEOUT_MS) {
     },
     blocked() {
       wasBlocked = true;
-      console.warn("[db] IndexedDB open is blocked \u2014 another Lolly tab/window is holding the database open.");
+      console.warn("[db] IndexedDB open is blocked - another Lolly tab/window is holding the database open.");
     },
     terminated() {
       console.error("[db] IndexedDB connection terminated unexpectedly.");
@@ -46258,7 +46718,7 @@ async function openHealed(timeoutMs) {
   let db = await openOnce(timeoutMs);
   const missing = REQUIRED_STORES.filter((name) => !db.objectStoreNames.contains(name));
   if (missing.length) {
-    console.warn("[db] Rebuilding corrupted lolly DB \u2014 missing stores:", missing.join(", "));
+    console.warn("[db] Rebuilding corrupted lolly DB - missing stores:", missing.join(", "));
     db.close();
     await idbDelete(DB_NAME);
     db = await openOnce(timeoutMs);
@@ -46728,6 +47188,7 @@ async function svgDomToIr(svgEl, ctx = {}) {
   const regY = canvasH / vbH;
   const prims = [];
   const textApi = host?.text || null;
+  const liveText = ctx.textMode === "live";
   const filterCache = /* @__PURE__ */ new Map();
   const resolveDropShadow = (el) => {
     const raw = el.getAttribute("filter") || (getComputedStyle ? safeComputed(getComputedStyle, el)?.filter : "") || "";
@@ -46792,7 +47253,7 @@ async function svgDomToIr(svgEl, ctx = {}) {
       d = `M${len(prop(el, style, "x1"), vbW)},${len(prop(el, style, "y1"), vbH)} L${len(prop(el, style, "x2"), vbW)},${len(prop(el, style, "y2"), vbH)}`;
       forceStrokeOnly = true;
     } else if (tag2 === "text") {
-      await emitText(el, style, { mapPt, gAvg, rAvg, elemOpacity });
+      await emitText(el, style, { mapPt, gAvg, rAvg, elemOpacity, et });
       return;
     } else if (tag2 === "image") {
       const href = el.getAttribute("href") || el.getAttribute("xlink:href") || el.getAttributeNS?.("http://www.w3.org/1999/xlink", "href") || "";
@@ -46890,6 +47351,45 @@ async function svgDomToIr(svgEl, ctx = {}) {
       fillRule: prop(el, style, "fill-rule", inherited) === "evenodd" ? "evenodd" : "nonzero"
     });
   }
+  function liveTextPrim(el, style, m2, r3) {
+    const strokeStr = prop(el, style, "stroke", null);
+    if (strokeStr && parseColor2(strokeStr)) return null;
+    if (letterSpacingPx(r3.letterSpacingCss)) return null;
+    const feats = prop(el, style, "font-feature-settings", null) ?? r3.cs?.fontFeatureSettings;
+    if (feats && feats !== "normal") return null;
+    const domBase = (prop(el, style, "dominant-baseline", null) ?? r3.cs?.dominantBaseline ?? "").trim();
+    let baseline;
+    if (domBase === "text-before-edge" || domBase === "hanging") baseline = "top";
+    else if (!domBase || domBase === "auto" || domBase === "alphabetic") baseline = "alphabetic";
+    else return null;
+    const { et } = m2;
+    const sx = Math.hypot(et.a, et.b), sy = Math.hypot(et.c, et.d);
+    if (!(sx > 0 && sy > 0)) return null;
+    if (Math.abs(et.a * et.c + et.b * et.d) / (sx * sy) > 1e-3) return null;
+    if (Math.abs(sx - sy) / Math.max(sx, sy) > 0.01) return null;
+    if (Math.abs(regX - regY) / Math.max(regX, regY) > 0.01) return null;
+    const rotation = Math.atan2(et.b, et.a) * 180 / Math.PI;
+    const face = gdiFaceName(r3.family) ?? "";
+    if (!face) warn(`live text run "${r3.raw.slice(0, 24)}" has no resolvable font-family - the reader's default font will render it`);
+    const wRaw = r3.weight.trim().toLowerCase();
+    const weightNum = wRaw === "bold" ? 700 : Number.isFinite(parseFloat(wRaw)) ? Math.round(parseFloat(wRaw)) : 400;
+    const { x, y } = m2.mapPt(len(prop(el, style, "x"), vbW), len(prop(el, style, "y"), vbH));
+    const anchor = prop(el, style, "text-anchor", null) ?? r3.cs?.textAnchor ?? "start";
+    return {
+      type: "text",
+      x,
+      y,
+      text: r3.raw,
+      fontFamily: face,
+      fontSize: r3.fontSize * sx * regX,
+      weight: weightNum,
+      italic: r3.italic,
+      fill: rgbObj(r3.rgb),
+      align: anchor === "middle" ? "center" : anchor === "end" ? "right" : "left",
+      baseline,
+      ...Math.abs(rotation) > 0.01 ? { rotation } : {}
+    };
+  }
   async function emitText(el, style, m2) {
     const raw = (el.textContent ?? "").replace(/\s+/g, " ").trim();
     if (!raw) return;
@@ -46904,6 +47404,13 @@ async function svgDomToIr(svgEl, ctx = {}) {
     const italic = (prop(el, style, "font-style", null) ?? cs?.fontStyle) === "italic";
     const fontSize = parseFloat(prop(el, style, "font-size", null) ?? cs?.fontSize ?? "16");
     const letterSpacingCss = prop(el, style, "letter-spacing", null) ?? cs?.letterSpacing;
+    if (liveText) {
+      const live = liveTextPrim(el, style, m2, { raw, rgb, family, weight, italic, fontSize, letterSpacingCss, cs });
+      if (live) {
+        prims.push(live);
+        return;
+      }
+    }
     const fontStyleObj = {
       fontFamily: family,
       fontWeight: weight,
@@ -46975,6 +47482,22 @@ function safeComputed(fn, el) {
     return null;
   }
 }
+var GENERIC_FACES = /* @__PURE__ */ new Map([
+  ["sans-serif", "Arial"],
+  ["serif", "Times New Roman"],
+  ["monospace", "Courier New"],
+  ["cursive", "Comic Sans MS"],
+  ["fantasy", "Impact"],
+  ["system-ui", "Segoe UI"],
+  ["ui-sans-serif", "Segoe UI"],
+  ["ui-serif", "Times New Roman"],
+  ["ui-monospace", "Consolas"]
+]);
+function gdiFaceName(stack) {
+  const first = (stack || "").split(",")[0]?.trim().replace(/^['"]+|['"]+$/g, "").trim();
+  if (!first) return null;
+  return GENERIC_FACES.get(first.toLowerCase()) ?? first;
+}
 
 // shells/cli/src/bridge.ts
 init_repo_root();
@@ -47023,7 +47546,7 @@ async function loadFace(fontUrl, repoRoot2) {
   const hb = await loadHarfBuzz();
   const buf = await loadFontBytes(fontUrl, repoRoot2);
   if (buf.length >= 4 && buf[0] === 119 && buf[1] === 79 && buf[2] === 70 && buf[3] === 50) {
-    throw new Error(`host.text (node): ${fontUrl} is woff2, which the terminal shells can't decode \u2014 provide an sfnt (ttf/otf) font.`);
+    throw new Error(`host.text (node): ${fontUrl} is woff2, which the terminal shells can't decode - provide an sfnt (ttf/otf) font.`);
   }
   const blob = new hb.Blob(buf);
   const face = new hb.Face(blob);
@@ -47219,13 +47742,13 @@ function createNodeTextAPI({ repoRoot: repoRoot2 }) {
       return out;
     },
     /**
-     * Resolve a font FAMILY to a font file on disk (v1.60) — the headless
+     * Resolve a font FAMILY to a font file on disk (v1.60): the headless
      * counterpart of the web registry, over the same locations loadFontBytes
      * reads. A variable face carries the `wght` setting for the requested
      * weight (HarfBuzz clamps to the axis range); a static family narrows to
-     * the nearest weight. Italic is strict, mirroring the web registry —
+     * the nearest weight. Italic is strict, mirroring the web registry:
      * outlining an upright face for an italic run would silently un-slant the
-     * text — so an italic request with no italic face resolves null and the
+     * text. So an italic request with no italic face resolves null, and the
      * caller keeps its fallback.
      */
     async fontUrl(family, opts) {
@@ -47298,7 +47821,7 @@ function createNodeAudioAPI(opts) {
     }
     if (NEEDS_PLATFORM_CODEC.test(url)) {
       throw new Error(
-        `audio: ${url.split(".").pop()} needs a platform codec this shell does not have \u2014 analyse WAV or a ZzFXM song headlessly, or render in a browser shell`
+        `audio: ${url.split(".").pop()} needs a platform codec this shell does not have - analyse WAV or a ZzFXM song headlessly, or render in a browser shell`
       );
     }
     const { channels, sampleRate } = parseWav(await bytesOf(src));
@@ -47306,7 +47829,7 @@ function createNodeAudioAPI(opts) {
   }
   return {
     // There IS a decoder here (WAV + ZzFXM), so this is true. Per the contract it
-    // never promised that a given file decodes — analyse() rejects by name for the
+    // never promised that a given file decodes. analyse() rejects by name for the
     // formats Node cannot read.
     isAvailable: () => true,
     async analyse(src, analyseOpts = {}) {
@@ -47345,19 +47868,19 @@ async function getBrowser() {
           ...channel2 ? { channel: channel2 } : {},
           ...executablePath ? { executablePath } : {},
           // SwiftShader gives headless runs a software WebGL2 context (recent
-          // Chromium disables it without the explicit opt-in) — the docs pipeline's
+          // Chromium disables it without the explicit opt-in). The docs pipeline's
           // ?neuro=viz capture needs one to render the MilkDrop visualizer at all.
           // The two rendering-intent flags pin what the user's export looks like
           // regardless of the machine doing the rendering. force-color-profile=srgb
-          // takes the host display profile out of every canvas/raster path (a brand
-          // #30ba78 exports as those bytes on any box — HDR is unaffected: the
-          // engine's PQ boost embeds its own BT.2020 profile downstream). Playwright
+          // takes the host display profile out of every canvas/raster path: a brand
+          // #30ba78 exports as those bytes on any box. HDR is unaffected, because the
+          // engine's PQ boost embeds its own BT.2020 profile downstream. Playwright
           // already passes this flag in its OWN default args, so here it is an
-          // explicit pin, not a behaviour change — it keeps the intent if the
+          // explicit pin, not a behaviour change. It keeps the intent if the
           // launcher ever sets ignoreDefaultArgs or moves off Playwright.
           // font-render-hinting=none removes the largest source of Linux/macOS
           // glyph-metric divergence (FreeType hint distortion) so server layouts
-          // (MCP, lolly.work) don't reflow vs desktop — antialiasing and subpixel
+          // (MCP, lolly.work) don't reflow vs desktop. Antialiasing and subpixel
           // positioning still differ per-OS, so raster BYTES are not cross-OS
           // identical. Mirrored in services/mcp/src/render.ts and the byte-golden
           // test harnesses (export-format-golden / export-text-emission).
@@ -47373,7 +47896,7 @@ async function getBrowser() {
         const msg = err.message || "";
         if (/executable doesn't exist|Executable doesn't exist|please run|not been downloaded/i.test(msg)) {
           throw new BrowserError(
-            "Raster/PDF/video export needs a headless browser. Run `lolly install-browser` (or `npm run install:browser` in shells/cli \u2014 downloads Chromium once, ~150 MB), or set LOLLY_BROWSER_CHANNEL=chrome to use an already-installed Chrome/Edge with no download. (svg and data formats need no browser.)"
+            "Raster/PDF/video export needs a headless browser. Run `lolly install-browser` (or `npm run install:browser` in shells/cli - downloads Chromium once, ~150 MB), or set LOLLY_BROWSER_CHANNEL=chrome to use an already-installed Chrome/Edge with no download. (svg and data formats need no browser.)"
           );
         }
         throw err;
@@ -47468,10 +47991,10 @@ async function captureUrl(params, format, dims) {
   const fmt3 = format.toLowerCase() === "jpeg" ? "jpg" : format.toLowerCase();
   if (!params.url) throw new BrowserError("Enter a URL to capture.");
   if (!["png", "jpg", "pdf", "svg", "webp"].includes(fmt3)) {
-    throw new BrowserError(`url-shot can't produce "${format}" \u2014 use png, jpg, pdf, or svg.`);
+    throw new BrowserError(`url-shot can't produce "${format}" - use png, jpg, pdf, or svg.`);
   }
   if (fmt3 === "webp") {
-    throw new BrowserError("WebP capture needs the desktop app \u2014 in the terminal use png, jpg, pdf, or svg.");
+    throw new BrowserError("WebP capture needs the desktop app - in the terminal use png, jpg, pdf, or svg.");
   }
   const width = Math.max(1, Math.round(dims.width || 1280));
   const height = Math.max(1, Math.round(dims.height || 720));
@@ -47599,7 +48122,7 @@ function createNodeImagesAPI() {
   async function open(input) {
     const sharp = await loadSharp();
     const buf = await toBuffer(input);
-    if (!buf.length) throw new Error("host.images: empty input \u2014 nothing to decode.");
+    if (!buf.length) throw new Error("host.images: empty input - nothing to decode.");
     return { img: sharp(buf), buf };
   }
   async function finish(img, format, quality) {
@@ -47665,7 +48188,7 @@ function resolveStateDir(env = process.env, onNote = (m2) => process.stderr.writ
   if (old) {
     if (!deprecationNoted) {
       deprecationNoted = true;
-      onNote("Note: LOLLY_TUI_DIR is deprecated \u2014 use LOLLY_STATE_DIR (both shells read it). LOLLY_TUI_DIR keeps working until the next major.\n");
+      onNote("Note: LOLLY_TUI_DIR is deprecated - use LOLLY_STATE_DIR (both shells read it). LOLLY_TUI_DIR keeps working until the next major.\n");
     }
     return { dir: old, explicit: true, deprecated: true };
   }
@@ -47789,7 +48312,7 @@ async function outlineSvgText(svg, host, opts = {}) {
         ...font.variations ? { variations: font.variations } : {}
       });
     } catch (e) {
-      result.fallbacks.push({ text: raw, reason: `shaping failed \u2014 ${e.message}` });
+      result.fallbacks.push({ text: raw, reason: `shaping failed - ${e.message}` });
       continue;
     }
     if (!shaped?.d) {
@@ -47865,7 +48388,7 @@ async function createCliBridge({ profile = {}, dom, networkAllowlist, designVers
     shell: "cli",
     capabilities: CLI_CAPABILITIES,
     // EVERY level goes to stderr (contract B4). `info`/`debug` used to go to stdout,
-    // where a tool's one chatty log line interleaved itself into a piped PNG — and
+    // where a tool's one chatty log line interleaved itself into a piped PNG - and
     // tools ship as data from another repository, so this shell cannot assume they are
     // quiet. stdout carries the payload and nothing else.
     log: (level, msg, ctx) => {
@@ -47945,19 +48468,19 @@ async function createCliBridge({ profile = {}, dom, networkAllowlist, designVers
       const override = designVersion?.override ?? null;
       const slug2 = resolveDesignVersion({ override, pin: designVersion?.pin ?? null, index });
       if (override && override !== DESIGN_VERSION_LATEST && !index.versions.some((v) => v.slug === override)) {
-        host.log("warn", `--designv=${override} names no design-system version in this catalog \u2014 rendering against ${slug2 === DESIGN_VERSION_LATEST ? "the edit head" : `"${slug2}"`} instead.`);
+        host.log("warn", `--designv=${override} names no design-system version in this catalog - rendering against ${slug2 === DESIGN_VERSION_LATEST ? "the edit head" : `"${slug2}"`} instead.`);
       }
       if (slug2 === DESIGN_VERSION_LATEST) return head;
       const entry = index.versions.find((v) => v.slug === slug2);
       const asset = headTokensAsset2 ? assetById.get(versionAssetId(headTokensAsset2.id, slug2)) : void 0;
       if (!entry || !asset) {
-        host.log("warn", `design-system version "${slug2}" is listed but ships no tokens asset \u2014 rendering against the edit head instead.`);
+        host.log("warn", `design-system version "${slug2}" is listed but ships no tokens asset - rendering against the edit head instead.`);
         return head;
       }
       try {
         return applyPinnedAssets(await readAssetDoc(asset), entry.assets ?? []);
       } catch (e) {
-        host.log("warn", `design-system version "${slug2}" could not be read (${e instanceof Error ? e.message : e}) \u2014 rendering against the edit head instead.`);
+        host.log("warn", `design-system version "${slug2}" could not be read (${e instanceof Error ? e.message : e}) - rendering against the edit head instead.`);
         return head;
       }
     })().catch(() => tokensDoc());
@@ -48070,13 +48593,13 @@ async function createCliBridge({ profile = {}, dom, networkAllowlist, designVers
       }));
     },
     async pick() {
-      throw new Error("Asset picker not available in CLI mode \u2014 list ids with `lolly assets [query]` and pass one to the asset input (e.g. --logo=suse/logo/hor-pos-green)");
+      throw new Error("Asset picker not available in CLI mode - list ids with `lolly assets [query]` and pass one to the asset input (e.g. --logo=suse/logo/hor-pos-green)");
     },
     async isAvailable(id) {
       return assetById.has(parseThemedAssetId(id).baseId);
     },
     // The user-image library (device upload → downscale → IndexedDB) is a GUI
-    // concern. The CLI is ephemeral and headless, so it has no user images —
+    // concern. The CLI is ephemeral and headless, so it has no user images - 
     // these stubs keep the internal surface consistent with the web bridge.
     async _listUserAssets() {
       return [];
@@ -48136,7 +48659,7 @@ async function createCliBridge({ profile = {}, dom, networkAllowlist, designVers
   };
   const noClipboard = () => {
     throw unavailableHere(
-      "The clipboard is not available in the CLI \u2014 write the result with --output=<path> (or --output=- for stdout) instead.",
+      "The clipboard is not available in the CLI - write the result with --output=<path> (or --output=- for stdout) instead.",
       "CAPABILITY_UNAVAILABLE"
     );
   };
@@ -48174,7 +48697,7 @@ async function createCliBridge({ profile = {}, dom, networkAllowlist, designVers
       if (format === "svg" || format === "svgz") {
         const svg = rootSvgOf(node);
         if (!svg) {
-          throw new Error("SVG export requires the template's root drawable to be an <svg> (HTML-layout tools need a browser engine \u2014 use the desktop app or the web shell)");
+          throw new Error("SVG export requires the template's root drawable to be an <svg> (HTML-layout tools need a browser engine - use the desktop app or the web shell)");
         }
         const dw = parseDimension(opts.width);
         const dh = parseDimension(opts.height);
@@ -48210,14 +48733,14 @@ async function createCliBridge({ profile = {}, dom, networkAllowlist, designVers
       }
       if (format === "emf") {
         const svg = rootSvgOf(node);
-        if (!svg) throw new Error("EMF export requires an <svg> in the template (HTML-layout tools need a browser engine \u2014 use the desktop app)");
-        const ir = await svgDomToIr(svg, { host, background: opts.background });
+        if (!svg) throw new Error("EMF export requires an <svg> in the template (HTML-layout tools need a browser engine - use the desktop app)");
+        const ir = await svgDomToIr(svg, { host, background: opts.background, textMode: opts.text === "outline" ? "outline" : "live" });
         const bytes = emitEmf(ir, { width: opts.width, height: opts.height, unit: opts.unit, dpi: opts.dpi });
-        return new Blob([bytes], { type: "image/emf" });
+        return new Blob([bytes], { type: "application/x-msmetafile" });
       }
       if (format === "eps" || format === "eps-cmyk") {
         const svg = rootSvgOf(node);
-        if (!svg) throw new Error("EPS export requires an <svg> in the template (HTML-layout tools need a browser engine \u2014 use the desktop app)");
+        if (!svg) throw new Error("EPS export requires an <svg> in the template (HTML-layout tools need a browser engine - use the desktop app)");
         const ir = await svgDomToIr(svg, { host, background: opts.background, label: "EPS" });
         const text = emitEps(ir, {
           width: opts.width,
@@ -48232,21 +48755,21 @@ async function createCliBridge({ profile = {}, dom, networkAllowlist, designVers
       }
       if (format === "dxf") {
         const svg = rootSvgOf(node);
-        if (!svg) throw new Error("DXF export requires an <svg> in the template (HTML-layout tools need a browser engine \u2014 use the desktop app)");
+        if (!svg) throw new Error("DXF export requires an <svg> in the template (HTML-layout tools need a browser engine - use the desktop app)");
         const ir = await svgDomToIr(svg, { host, background: opts.background, label: "DXF" });
         const { text } = emitDxf(ir, { width: opts.width, height: opts.height, unit: opts.unit, dpi: opts.dpi });
         return new Blob([text], { type: "image/vnd.dxf" });
       }
       if (format === "wmf") {
         const svg = rootSvgOf(node);
-        if (!svg) throw new Error("WMF export requires an <svg> in the template (HTML-layout tools need a browser engine \u2014 use the desktop app)");
+        if (!svg) throw new Error("WMF export requires an <svg> in the template (HTML-layout tools need a browser engine - use the desktop app)");
         const ir = await svgDomToIr(svg, { host, background: opts.background, label: "WMF" });
         const bytes = emitWmf(ir, { width: opts.width, height: opts.height, unit: opts.unit, dpi: opts.dpi });
-        return new Blob([bytes], { type: "image/wmf" });
+        return new Blob([bytes], { type: "application/x-msmetafile" });
       }
       if (format === "exr" || format === "hdr") {
         const svg = rootSvgOf(node);
-        if (!svg) throw new Error("EXR/HDR export needs the template's root drawable to be a vector image (HTML-layout tools have no browser-free raster here \u2014 use the desktop app or the web shell)");
+        if (!svg) throw new Error("EXR/HDR export needs the template's root drawable to be a vector image (HTML-layout tools have no browser-free raster here - use the desktop app or the web shell)");
         const raw = w.XMLSerializer ? new w.XMLSerializer().serializeToString(svg) : svg.outerHTML;
         const { renderDeepRaster: renderDeepRaster2, deepFormatMime: deepFormatMime2 } = await Promise.resolve().then(() => (init_raster(), raster_exports));
         const dpi = opts.dpi ?? 300;
@@ -48267,7 +48790,7 @@ async function createCliBridge({ profile = {}, dom, networkAllowlist, designVers
       }
       if (format === "bmp") {
         const svg = rootSvgOf(node);
-        if (!svg) throw new Error("BMP export requires an <svg> in the template (HTML-layout tools need a browser engine \u2014 use the desktop app)");
+        if (!svg) throw new Error("BMP export requires an <svg> in the template (HTML-layout tools need a browser engine - use the desktop app)");
         const raw = w.XMLSerializer ? new w.XMLSerializer().serializeToString(svg) : svg.outerHTML;
         const { rasterizeSvgToBmp: rasterizeSvgToBmp2 } = await Promise.resolve().then(() => (init_raster(), raster_exports));
         const dpi = opts.dpi ?? 300;
@@ -48284,10 +48807,10 @@ async function createCliBridge({ profile = {}, dom, networkAllowlist, designVers
         return new Blob([bytes], { type: "image/bmp" });
       }
       const { NODE_FORMATS: NODE_FORMATS2 } = await Promise.resolve().then(() => (init_raster(), raster_exports));
-      throw new Error(`CLI shell does not support format "${format}" (needs a browser engine). Use one of the browser-free formats (${NODE_FORMATS2.join(", ")}), a pro float format (exr, hdr \u2014 with hdr=1), install the render tier with \`lolly install-browser\`, or run the Tauri-bundled CLI for raster/pdf/zip.`);
+      throw new Error(`CLI shell does not support format "${format}" (needs a browser engine). Use one of the browser-free formats (${NODE_FORMATS2.join(", ")}), a pro float format (exr, hdr - with hdr=1), install the render tier with \`lolly install-browser\`, or run the Tauri-bundled CLI for raster/pdf/zip.`);
     },
     async download() {
-      throw new Error("CLI cannot trigger a browser download \u2014 pipe the blob to a file via --output");
+      throw new Error("CLI cannot trigger a browser download - pipe the blob to a file via --output");
     },
     // Transform-path delivery has no browser download in the CLI; the runner
     // (run.js) writes the exportFile bytes to --output / stdout directly. This
@@ -48297,8 +48820,8 @@ async function createCliBridge({ profile = {}, dom, networkAllowlist, designVers
     },
     // The pixel Imprint / durable mark are a raster+canvas enhancement; the lean
     // headless CLI has no rasteriser, so it returns the bytes unchanged (progressive
-    // enhancement, per the host.export.imprint contract). The C2PA credential — the
-    // portable mark — is still applied by host.c2pa.sign either way.
+    // enhancement, per the host.export.imprint contract). The C2PA credential - the
+    // portable mark - is still applied by host.c2pa.sign either way.
     async imprint(bytes) {
       return bytes;
     }
@@ -48395,7 +48918,7 @@ async function createCliBridge({ profile = {}, dom, networkAllowlist, designVers
       };
     },
     // Render a pasted/stored Lolly tool URL to an AssetRef whose id is the
-    // canonical embed URL — the same contract as the web bridge, so a tool-sourced
+    // canonical embed URL - the same contract as the web bridge, so a tool-sourced
     // asset re-resolves in CLI/headless runs too (svg works; a raster child throws
     // and the caller leaves the slot empty, matching host.compose.render's stance).
     async renderUrl(url, opts = {}) {
@@ -48512,14 +49035,15 @@ function mimeFor(format) {
       return "image/webp";
     case "bmp":
       return "image/bmp";
+    // Legacy Windows-metafile type rather than RFC 7903 image/emf|image/wmf:
+    // it's the only MIME Google Drive opens in Google Drawings/Slides.
     case "emf":
-      return "image/emf";
     case "wmf":
-      return "image/wmf";
+      return "application/x-msmetafile";
     case "eps":
     case "eps-cmyk":
       return "application/postscript";
-    // Pro float formats (plans/61-deeprichpixels.md §6 B3). `image/x-exr` is the de-facto
+    // Pro float formats (plans/61-deeprichpixels.md section 6 B3). `image/x-exr` is the de-facto
     // OpenEXR type (never IANA-registered); `image/vnd.radiance` IS registered for RGBE.
     case "exr":
       return "image/x-exr";
@@ -48707,8 +49231,11 @@ function mimeForFormat(fmt3) {
     case "pdf":
     case "pdf-cmyk":
       return "application/pdf";
+    // Legacy Windows-metafile type rather than RFC 7903 image/emf: it's the
+    // only MIME Google Drive routes into Google Drawings/Slides, and this
+    // Content-Type is what Drive stores when a render URL is pulled in.
     case "emf":
-      return "image/emf";
+      return "application/x-msmetafile";
     case "eps":
     case "eps-cmyk":
       return "application/postscript";
@@ -49526,8 +50053,8 @@ ${links.renderUrl ?? "(unavailable)"}`);
         return {
           content: [
             { type: "text", text: verifyText(file.name ?? "file", report, headline) },
-            // `verdict` (legacy slug) and `report` are the compatibility surface —
-            // shapes unchanged; `resolved` is ADDITIVE: the engine's semantic
+            // `verdict` (legacy slug) and `report` are the compatibility surface.
+            // Shapes unchanged; `resolved` is ADDITIVE: the engine's semantic
             // verdict (state/tone + the flags that drove it) from resolveVerdict.
             { type: "text", text: JSON.stringify({ verdict, resolved: resolved2, report, metadata }, null, 2) }
           ]
@@ -50097,7 +50624,7 @@ function page(title, inner) {
 <style>
   :root { color-scheme: light dark; }
   body { margin:0; min-height:100vh; display:grid; place-items:center;
-    font:15px/1.5 -apple-system,system-ui,'Segoe UI',Roboto,sans-serif;
+    font:15px/1.5 SUSE,-apple-system,system-ui,'Segoe UI',Roboto,sans-serif;
     background:#f4f7f5; color:#10231f; }
   @media (prefers-color-scheme:dark){ body{ background:#0c1512; color:#e7f0ec; } .card{ background:#12201b; } input{ background:#0c1512; color:inherit; } }
   .card { width:min(420px,92vw); background:#fff; border-radius:16px; padding:28px 26px;

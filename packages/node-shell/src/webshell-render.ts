@@ -26,6 +26,9 @@ const MIME: Record<string, string> = {
   '.jpg': 'image/jpeg', '.jpeg': 'image/jpeg', '.webp': 'image/webp', '.gif': 'image/gif',
   '.ico': 'image/x-icon', '.wasm': 'application/wasm', '.woff': 'font/woff',
   '.woff2': 'font/woff2', '.ttf': 'font/ttf', '.map': 'application/json; charset=utf-8',
+  // Legacy Windows-metafile type rather than RFC 7903 image/emf|image/wmf: it's
+  // the only MIME Google Drive routes into Google Drawings/Slides.
+  '.emf': 'application/x-msmetafile', '.wmf': 'application/x-msmetafile',
 };
 
 interface Served { base: string; close: () => Promise<void> }
