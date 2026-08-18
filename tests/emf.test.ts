@@ -219,3 +219,136 @@ test('image prim → EMR_STRETCHDIBITS: header fields, BITMAPINFOHEADER, BGRX pi
   assert.deepEqual([dv.getUint8(p + 8), dv.getUint8(p + 9), dv.getUint8(p + 10), dv.getUint8(p + 11)], [255, 0, 0, 0], 'px2 blue → BGRX');
   assert.deepEqual([dv.getUint8(p + 12), dv.getUint8(p + 13), dv.getUint8(p + 14), dv.getUint8(p + 15)], [255, 255, 255, 0], 'px3 white → BGRX');
 });
+
+// ── Live text: EXTCREATEFONTINDIRECTW + EXTTEXTOUTW (1.128) ─────────────────
+const EMR_SETBKMODE = 0x12;
+const EMR_SETTEXTALIGN = 0x16;
+const EMR_SETTEXTCOLOR = 0x18;
+const EMR_EXTCREATEFONTINDIRECTW = 0x52;
+const EMR_EXTTEXTOUTW = 0x54;
+const EMR_SELECTOBJECT = 0x25;
+const EMR_DELETEOBJECT = 0x28;
+const SYSTEM_FONT = 0x8000000D;
+
+const TEXT_IR: VectorIr = {
+  width: 400, height: 200,
+  prims: [
+    IR.prims[0]!,
+    { type: 'text', x: 50, y: 120, text: 'Hello Slides', fontFamily: 'SUSE', fontSize: 24,
+      weight: 700, italic: true, fill: { r: 12, g: 34, b: 56 }, align: 'center',
+      baseline: 'alphabetic', rotation: -90 },
+  ],
+};
+
+test('text prim: stream walkable, font slot allocated, bkmode transparent once up front', () => {
+  const bytes = emitEmf(TEXT_IR, { width: 400, height: 200 });
+  const { header, records } = parseEmf(bytes);
+  assert.ok(!records.some(r => r.malformed), 'no malformed record');
+  assert.equal(header.nRecords, records.length);
+  assert.equal(header.nBytes, bytes.length);
+  assert.equal(header.nHandles, 4, 'font slot joins brush+pen');
+  const bk = records.filter(r => r.iType === EMR_SETBKMODE);
+  assert.equal(bk.length, 1, 'one SETBKMODE');
+  assert.equal(records[1]!.iType, EMR_SETBKMODE, 'emitted before any drawing');
+});
+
+test('text prim: font record carries face, size, weight, italic, escapement', () => {
+  const bytes = emitEmf(TEXT_IR, { width: 400, height: 200 });
+  const { records, dv } = parseEmf(bytes);
+  const font = records.find(r => r.iType === EMR_EXTCREATEFONTINDIRECTW);
+  assert.ok(font && font.off !== undefined, 'font record present');
+  const o = font!.off!;
+  assert.equal(font!.size, 104, '8 header + 4 ihFonts + 92 LogFontW');
+  assert.equal(dv.getUint32(o + 8, true), 3, 'ihFonts = font slot');
+  assert.equal(dv.getInt32(o + 12, true), -24, 'lfHeight = -fontSize (em height)');
+  assert.equal(dv.getInt32(o + 20, true), 900, 'lfEscapement: SVG -90° cw → +900 tenths ccw');
+  assert.equal(dv.getInt32(o + 24, true), 900, 'lfOrientation matches escapement');
+  assert.equal(dv.getInt32(o + 28, true), 700, 'lfWeight');
+  assert.equal(dv.getUint8(o + 32), 1, 'lfItalic');
+  assert.equal(dv.getUint8(o + 35), 1, 'lfCharSet = DEFAULT_CHARSET');
+  let face = '';
+  for (let i = 0; i < 32; i++) {
+    const cu = dv.getUint16(o + 40 + i * 2, true);
+    if (!cu) break;
+    face += String.fromCharCode(cu);
+  }
+  assert.equal(face, 'SUSE', 'lfFaceName UTF-16, NUL-terminated');
+});
+
+test('text prim: EXTTEXTOUTW reference point, alignment, colour, UTF-16 string round-trip', () => {
+  const bytes = emitEmf(TEXT_IR, { width: 400, height: 200 });
+  const { records, dv } = parseEmf(bytes);
+  const align = records.find(r => r.iType === EMR_SETTEXTALIGN);
+  assert.ok(align, 'SETTEXTALIGN present');
+  assert.equal(dv.getUint32(align!.off! + 8, true), 6 | 24, 'TA_CENTER | TA_BASELINE');
+  const color = records.find(r => r.iType === EMR_SETTEXTCOLOR);
+  assert.equal(dv.getUint32(color!.off! + 8, true), (12 | (34 << 8) | (56 << 16)) >>> 0, 'COLORREF');
+  const out = records.find(r => r.iType === EMR_EXTTEXTOUTW);
+  assert.ok(out && out.off !== undefined, 'EXTTEXTOUTW present');
+  const o = out!.off!;
+  const n = 'Hello Slides'.length;
+  assert.equal(out!.size, 76 + 2 * n, 'fixed part + UTF-16 string (already 4-aligned)');
+  assert.equal(dv.getUint32(o + 24, true), 1, 'iGraphicsMode = GM_COMPATIBLE');
+  // GM_COMPATIBLE scales: page px → .01mm, straight off the header frame.
+  const exScale = dv.getFloat32(o + 28, true);
+  const frameRight = dv.getInt32(32, true); // header rclFrame.right
+  assert.ok(Math.abs(exScale - frameRight / 400) < 1e-3, 'exScale = frame/.01mm ÷ device px');
+  assert.equal(dv.getInt32(o + 36, true), 50, 'Reference.x');
+  assert.equal(dv.getInt32(o + 40, true), 120, 'Reference.y');
+  assert.equal(dv.getUint32(o + 44, true), n, 'Chars');
+  assert.equal(dv.getUint32(o + 48, true), 76, 'offString');
+  assert.equal(dv.getUint32(o + 72, true), 0, 'offDx = 0 (renderer lays out with its own metrics)');
+  let s = '';
+  for (let i = 0; i < n; i++) s += String.fromCharCode(dv.getUint16(o + 76 + i * 2, true));
+  assert.equal(s, 'Hello Slides');
+});
+
+test('text prim: font handle is selected for the draw, then parked and deleted', () => {
+  const bytes = emitEmf(TEXT_IR, { width: 400, height: 200 });
+  const { records, dv } = parseEmf(bytes);
+  const idx = records.findIndex(r => r.iType === EMR_EXTTEXTOUTW);
+  const before = records[idx - 1]!;
+  assert.equal(before.iType, EMR_SELECTOBJECT);
+  assert.equal(dv.getUint32(before.off! + 8, true), 3, 'font slot selected before the draw');
+  const park = records[idx + 1]!;
+  const del = records[idx + 2]!;
+  assert.equal(park.iType, EMR_SELECTOBJECT);
+  assert.equal(dv.getUint32(park.off! + 8, true), SYSTEM_FONT, 'stock font parked in the slot');
+  assert.equal(del.iType, EMR_DELETEOBJECT);
+  assert.equal(dv.getUint32(del.off! + 8, true), 3, 'slot freed for the next prim');
+});
+
+test('top-left run maps to TA_TOP|TA_LEFT and no rotation means 0 escapement', () => {
+  const bytes = emitEmf({
+    width: 100, height: 100,
+    prims: [{ type: 'text', x: 5, y: 6, text: 'x', fontFamily: 'Arial', fontSize: 10,
+      weight: 400, italic: false, fill: { r: 0, g: 0, b: 0 }, align: 'left', baseline: 'top' }],
+  }, {});
+  const { records, dv } = parseEmf(bytes);
+  const align = records.find(r => r.iType === EMR_SETTEXTALIGN);
+  assert.equal(dv.getUint32(align!.off! + 8, true), 0, 'TA_TOP | TA_LEFT = 0');
+  const font = records.find(r => r.iType === EMR_EXTCREATEFONTINDIRECTW);
+  assert.equal(dv.getInt32(font!.off! + 12 + 8, true), 0, 'lfEscapement 0');
+});
+
+test('a path-only file writes no text machinery at all (byte-compat with 1.127)', () => {
+  const bytes = emitEmf(IR, { width: 600, height: 600 });
+  const { header, records } = parseEmf(bytes);
+  assert.equal(header.nHandles, 3, 'no font slot');
+  for (const t of [EMR_SETBKMODE, EMR_SETTEXTALIGN, EMR_SETTEXTCOLOR, EMR_EXTCREATEFONTINDIRECTW, EMR_EXTTEXTOUTW]) {
+    assert.ok(!records.some(r => r.iType === t), `no record 0x${t.toString(16)}`);
+  }
+});
+
+test('odd-length text pads the EXTTEXTOUTW record to 4 bytes', () => {
+  const bytes = emitEmf({
+    width: 100, height: 100,
+    prims: [{ type: 'text', x: 0, y: 0, text: 'abc', fontFamily: 'Arial', fontSize: 10,
+      weight: 400, italic: false, fill: { r: 0, g: 0, b: 0 }, align: 'left', baseline: 'alphabetic' }],
+  }, {});
+  const { records, endOff } = parseEmf(bytes);
+  const out = records.find(r => r.iType === EMR_EXTTEXTOUTW)!;
+  assert.equal(out.size, 76 + 6 + 2, '3 UTF-16 code units + 2 pad');
+  assert.equal(out.size % 4, 0);
+  assert.equal(endOff, bytes.length, 'stream still tiles the buffer');
+});

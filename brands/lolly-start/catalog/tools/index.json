@@ -1,6 +1,6 @@
 {
   "version": "1",
-  "generatedAt": "2026-08-17T20:09:23.070Z",
+  "generatedAt": "2026-08-18T11:54:59.485Z",
   "tools": [
     {
       "id": "compress-pdf",
@@ -1977,7 +1977,7 @@
       "id": "d3",
       "name": "D3 Chart Studio",
       "description": "Powerful data-driven charts with D3 — paste a table and it charts itself. Bars, lines, areas, scatter, pie, radar, treemap, heatmap, 3-D bars & pies and word clouds. Palettes derive from your brand's colours, with pattern fills and click-to-recolour — on-brand and vector-clean.",
-      "version": "1.17.0",
+      "version": "1.18.0",
       "status": "official",
       "category": "designer",
       "tags": [

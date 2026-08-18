@@ -78,7 +78,7 @@ test('the sensor capabilities still validate (screen is additive, not a replacem
 
 // ─── version ─────────────────────────────────────────────────────────────────
 
-test('ENGINE_VERSION is 1.124.0', () => {
+test('ENGINE_VERSION is 1.128.0', () => {
   // A literal pin: the screencap surface shipped at 1.54, and tools declare
   // ^1.54.0 to require it. session-record only checks the stamp equals whatever
   // ENGINE_VERSION happens to be (tautological) - this catches an errant bump.
@@ -276,8 +276,14 @@ test('ENGINE_VERSION is 1.124.0', () => {
   // manifest + i18n sidecar surface, no HostV1 method changed).
   // Then 1.126.0 (plans/114 Wave 3 - `host.export` gains optional `share`/`canShare`
   // for the OS share sheet; additive verbs on an existing API).
+  // Then 1.127.0 (plans/125, on-device OCR - `HostV1` gains an optional `ocr` API:
+  // an RGBA frame in, recognised text lines out; additive, feature-detected, NOT
+  // capability-gated).
+  // Then 1.128.0 (the EMF emitter learns LIVE text - a `text` vector prim written as
+  // a real GDI font + string record so exported text stays editable; no HostV1 method
+  // changed).
   // The ^1.54.0 screencap floor below still holds (a minor bump satisfies it).
-  assert.equal(ENGINE_VERSION, '1.126.0');
+  assert.equal(ENGINE_VERSION, '1.128.0');
 });
 
 // ─── loadTool: a ^1.54.0 tool loads against this engine ───────────────────────
