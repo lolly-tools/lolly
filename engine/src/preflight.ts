@@ -925,7 +925,7 @@ const checkEffectiveDpi: Check = c => {
     evidence: { dpi, intent, floor, longEdge: Math.round(dpiIntent(trim).longEdgeIn * 100) / 100, unit: U, format: c.fmt } });
 };
 
-/** A placed raster image whose effective resolution where it sits is too low. */
+/** A placed raster image whose effective resolution at its placed size is too low. */
 const checkImageEffectiveDpi: Check = c => {
   if (!RASTER_FORMATS.has(c.fmt) && !PRINT_MARK_FORMATS.has(c.fmt)) return;   // rasters embedded in a PDF matter too
   const trim = physicalTrim(c);
@@ -949,7 +949,7 @@ const checkImageEffectiveDpi: Check = c => {
     if (eff >= floor) continue;
     const physMm = round0(physWin * 25.4);
     c.add({ id: 'print.image-effective-dpi', severity: 'warn',
-      message: `${im.label} is ${eff} DPI where it sits (${physMm} mm wide). ${intent === 'offset' ? 'Offset print wants at least 250 DPI' : 'Large-format wants at least 72 DPI'}, so it will look soft. Replace it with a higher-resolution file.`,
+      message: `${im.label} is ${eff} DPI at its placed size (${physMm} mm wide). ${intent === 'offset' ? 'Offset print wants at least 250 DPI' : 'Large-format wants at least 72 DPI'}, so it will look soft. Replace it with a higher-resolution file.`,
       evidence: { label: im.label, effectiveDpi: eff, placedMm: physMm, naturalW: im.naturalW, intent, floor, format: c.fmt } });
   }
 };

@@ -39,7 +39,7 @@ import {
   boxesOverlap, isLineCubic, flatnessCubic,
 } from './bezier.ts';
 
-/** One intersection: where it is, and where it sits on each input. */
+/** One intersection: where it is, and its position on each input. */
 export interface Intersection {
   /** Parameter on the first curve, 0..1. */
   t1: number;

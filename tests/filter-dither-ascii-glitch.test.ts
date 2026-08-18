@@ -524,3 +524,109 @@ test('manifest: the ascii effect advertises txt + md, and the tool declares expo
   assert.ok(manifest.render.formats.includes('txt') && manifest.render.formats.includes('md'), 'render.formats union carries txt + md');
   assert.equal(manifest.hooks?.exportStill, true, 'exportStill hook declared');
 });
+
+// ── glitch motion export: direct-canvas fast path (node.__lollyFrameCanvas) ───
+// A gif/apng/webm/mp4 of a STILL glitch shimmers by re-corrupting the stashed base
+// per frame. The old path baked each frame to a ~1.7MB PNG and let dom-to-image
+// decode it (slow + an intermittent hang). With NO overlay the finished frame is one
+// full-canvas <image>, so the effect now hands the shell the frame <canvas> directly
+// via node.__lollyFrameCanvas - registered in beforeExport, removed in afterExport,
+// and deterministic in t. When an overlay IS active the mutating overlay group still
+// needs the dom-to-image ov-clock path, so the fast path must NOT be registered.
+
+// A loader that also exposes the dispatcher's export lifecycle hooks.
+function loadExport(host: unknown) {
+  const fn = new Function('host', `${source}
+;return {
+  onInit:       typeof onInit       !== 'undefined' ? onInit       : null,
+  beforeExport: typeof beforeExport  !== 'undefined' ? beforeExport  : null,
+  afterExport:  typeof afterExport   !== 'undefined' ? afterExport   : null,
+};`) as (h: unknown) => {
+    onInit: (ctx: unknown) => unknown;
+    beforeExport: (ctx: unknown) => unknown;
+    afterExport: (ctx: unknown) => unknown;
+  };
+  return fn(host);
+}
+
+// A minimal export node the glitch beforeExport can drive: the fast path only needs
+// a settable object; the ov-clock (overlay) path needs ownerDocument/appendChild/
+// querySelector so mountOvClockAnchor can attach the clock anchor.
+type FakeExportNode = {
+  __lollyFrameCanvas?: (t: number, durationMs?: number) => { toDataURL: (t?: string) => string; width: number; height: number };
+  children: Array<Record<string, unknown>>;
+  appendChild: (c: Record<string, unknown>) => unknown;
+  removeChild: (c: unknown) => unknown;
+  querySelector: (sel: string) => null;
+  ownerDocument: { createElement: (tag: string) => Record<string, unknown> };
+};
+function makeAnchor(tag: string): Record<string, unknown> {
+  const attrs: Record<string, string> = {};
+  return {
+    tagName: (tag || '').toUpperCase(), width: 0, height: 0, parentNode: null,
+    setAttribute(k: string, v: string) { attrs[k] = v; },
+    getAttribute(k: string) { return attrs[k] ?? null; },
+    hasAttribute(k: string) { return k in attrs; },
+  };
+}
+function fakeExportNode(): FakeExportNode {
+  const node: FakeExportNode = {
+    children: [],
+    appendChild(c: Record<string, unknown>) { node.children.push(c); c.parentNode = node; return c; },
+    removeChild(c: unknown) { node.children = node.children.filter((x) => x !== c); return c; },
+    querySelector() { return null; },
+    ownerDocument: { createElement: (tag: string) => makeAnchor(tag) },
+  };
+  return node;
+}
+
+test('glitch: a motion export with NO overlay registers node.__lollyFrameCanvas (deterministic), and afterExport removes it', async () => {
+  const { host } = makeHost();
+  const hooks = loadExport(host);
+  // The still render stashes the graded base a motion export re-corrupts per frame.
+  await hooks.onInit({ model: model({ effect: 'glitch' }), host });
+
+  const node = fakeExportNode();
+  await hooks.beforeExport({ format: 'gif', node, opts: { duration: 5 }, host });
+  const fc = node.__lollyFrameCanvas;
+  assert.equal(typeof fc, 'function', 'overlay-off motion export registers the direct-canvas hook');
+
+  // Deterministic: the same t twice yields byte-identical committed pixels.
+  const a = fc!(0.3).toDataURL();
+  const b = fc!(0.3).toDataURL();
+  assert.equal(a, b, 'same t → identical frame canvas (no Math.random; phaseGlitch is pure in t)');
+  assert.match(a, /200x150/, 'the frame canvas is the work-dims bitmap the shell stretches to the export size');
+  // It is a real canvas the shell can consume (has toDataURL + dims).
+  const cv = fc!(0.0);
+  assert.equal(typeof cv.toDataURL, 'function', 'hands back a canvas, not a data URL');
+  assert.ok(cv.width > 0 && cv.height > 0, 'the frame canvas has a backing store');
+
+  hooks.afterExport({ format: 'gif', node, host });
+  assert.equal(node.__lollyFrameCanvas, undefined, 'afterExport removes the direct-canvas hook');
+});
+
+test('glitch: a motion export WITH an active overlay does NOT register node.__lollyFrameCanvas (keeps the ov-clock path)', async () => {
+  const { host } = makeHost();
+  const hooks = loadExport(host);
+  // showLogo makes overlayActive() true, so the mutating overlay group needs dom-to-image.
+  await hooks.onInit({ model: model({ effect: 'glitch', showLogo: true, logoStyle: 'white', logoPosition: 'top-right' }), host });
+
+  const node = fakeExportNode();
+  await hooks.beforeExport({ format: 'gif', node, opts: { duration: 5 }, host });
+  assert.equal(node.__lollyFrameCanvas, undefined, 'overlay-active export must NOT take the direct-canvas fast path');
+  // Instead the ov-clock anchor is mounted and carries the per-frame render hook.
+  const anchor = node.children.find((c) => typeof c.__lollyFrameRender === 'function');
+  assert.ok(anchor, 'the ov-clock anchor was mounted with a __lollyFrameRender (existing overlay path)');
+
+  hooks.afterExport({ format: 'gif', node, host });
+});
+
+test('glitch: a still (png) export registers no per-frame hooks at all', async () => {
+  const { host } = makeHost();
+  const hooks = loadExport(host);
+  await hooks.onInit({ model: model({ effect: 'glitch' }), host });
+  const node = fakeExportNode();
+  await hooks.beforeExport({ format: 'png', node, opts: {}, host });
+  assert.equal(node.__lollyFrameCanvas, undefined, 'png is not a motion format → no direct-canvas hook');
+  assert.equal(node.children.length, 0, 'png is not a motion format → no ov-clock anchor mounted');
+});

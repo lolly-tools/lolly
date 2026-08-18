@@ -406,7 +406,7 @@ test('the Lab encoding is chosen by ELEMENT TYPE: 0xff00 is L*100 in mft2 and L*
   const lLegacy = legacy.toLab('perceptual', [0.5, 0.5, 0.5])!;
   assert.ok(Math.abs(lLegacy[0] - 100) < 1e-3,
     `mft2 is legacy-encoded: 0xff00 must decode to L* 100, got ${lLegacy[0]}`);
-  // Legacy and v4 also disagree on where neutral sits: a* = 0 is 0x8000 under the
+  // Legacy and v4 also disagree on where neutral lands: a* = 0 is 0x8000 under the
   // legacy scale but 0x8080 under the full-range one.
   assert.ok(Math.abs(lLegacy[1]) < 0.01 && Math.abs(lLegacy[2]) < 0.01,
     `legacy neutral a* and b* are 0x8000, got ${lLegacy[1]}, ${lLegacy[2]}`);

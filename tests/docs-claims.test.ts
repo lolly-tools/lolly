@@ -184,7 +184,7 @@ test('say offline once: the hero decodes the claim and block 3 states it', () =>
     buildTs.indexOf('// CLAIMS-ALLOW END', buildTs.indexOf('// CLAIMS-ALLOW: offline-statement')),
   );
   assert.match(block3, /Nothing you make ever leaves your device/);
-  assert.match(block3, /Turn the Wi-Fi off and everything still works/);
+  assert.match(block3, /Go offline and everything you have works/);
   assert.match(block3, /Freedom is sweet/);
 });
 
@@ -341,8 +341,14 @@ test('banned words stay off the landing', () => {
   // The hero, and the copy the landing composes in build.ts (its t() literals -
   // code identifiers and comments are not copy).
   assert.deepEqual(banned(heroSection), [], 'the hero subtitle carries a banned word');
+  // 2026-08-17 (Andy): the behind-block assurance deliberately closes on the H1's own
+  // term ("zero-trust creative sovereignty for all") - the ONE body-copy reuse the
+  // one-esoteric-term rule admits. Keyed to that exact phrase, so rewording the line
+  // retires the exemption and any third 'sovereignty' on the landing still fails.
+  const SOVEREIGNTY_HOME = /zero-trust creative sovereignty for all/;
   for (const copy of tLiterals(landingRegion())) {
-    assert.deepEqual(banned(copy), [], `landing copy carries a banned word: ${copy}`);
+    const hits = banned(copy).filter((w) => !(w === 'sovereignty' && SOVEREIGNTY_HOME.test(copy)));
+    assert.deepEqual(hits, [], `landing copy carries a banned word: ${copy}`);
   }
   // The landing content files, minus the one deliberate exception.
   for (const name of LANDING_JSON) {
@@ -378,7 +384,7 @@ test('"Content Sovereignty" is the page\'s one esoteric term, and it is the H1',
  * that declares no capabilities and whose hooks reach no network. That is what is
  * asserted.
  */
-const BLOCK2_TOOLS = ['qr-code', 'wordmark', 'filter'];
+const BLOCK2_TOOLS = ['qr-code', 'audiogram', 'filter'];
 
 test('block 2 seeds tools that exist on every profile and touch no network', () => {
   const region = landingRegion();
