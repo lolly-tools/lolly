@@ -494,6 +494,10 @@ export {
   solveLightnessForApca,
 } from './color-tools.ts';
 export type { RampOptions, DistinctColorsOptions, ApcaUse, ApcaVerdict, ApcaSolveResult, ApcaSolveOptions } from './color-tools.ts';
+// Chroma / colour-range keying - remove a flat background by perceptual (OKLab)
+// distance, model-free. The pure math behind the video-matte colour-key method.
+export { chromaKeyAlpha } from './chroma-key.ts';
+export type { ChromaKeyOptions } from './chroma-key.ts';
 // Palette exchange - a flat swatch list serialised as DTCG tokens JSON, CSS
 // custom properties / classes, SCSS variables, a GIMP .gpl, or a binary Adobe
 // .ase. Pure + DOM-free; attached to host.color (paletteExport/paletteExportBytes)

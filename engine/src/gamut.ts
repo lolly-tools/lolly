@@ -278,7 +278,7 @@ function ceilingGrid(limit: GamutLimit): Float64Array {
 }
 
 /**
- * The highest chroma on this gamut's ceiling grid, and where it sits.
+ * The highest chroma on this gamut's ceiling grid, and its location.
  *
  * The coarse stage of `chromaAxisMax`'s peak search (gamut-axis.ts), shared with
  * the painter rather than swept a second time: the grid is already built for any

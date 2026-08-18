@@ -98,7 +98,7 @@ export const BANNED_PHRASES: { what: string; re: RegExp }[] = [
   { what: 'prose "smoke test"', re: /smoke[ -]test/i },
   { what: '"it deserves"', re: /\bit deserves\b/i },
   { what: 'abstract "shape of"', re: /\bshape of\b/i },
-  { what: '"where X fits" framing', re: /\bwhere \S+ fits\b/i },
+  { what: '"where X sits/fits" framing', re: /\bwhere \S+ (?:sits|fits)\b/i },
   { what: 'abstract "landscape"', re: /\b(existing|wider|current|competitive|creative-tools) landscape\b/i },
   { what: '"a testament to"', re: /\ba testament to\b/i },
   { what: '"tapestry"', re: /tapestry/i },

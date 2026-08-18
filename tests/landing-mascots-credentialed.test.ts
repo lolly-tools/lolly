@@ -24,8 +24,10 @@ const MASCOT_DIR = resolve(import.meta.dirname, '../shells/web/public/info/masco
 
 // The animals that replaced the illustrated mascots (2026-08). Named explicitly so a
 // mascot going MISSING is a failure too, not just a silent shrink of the glob.
+// quokka.webp is on the landing too but its credential declares digitalCreation, not
+// genAI, so it stays out of this genAI-only list on purpose (2026-08-18).
 const MASCOTS = [
-  'echidna.webp', 'koala.webp', 'kookaburra.png', 'magpie.webp',
+  'echidna.webp', 'koala.webp', 'kookaburra.webp', 'magpie.webp',
   'quoll.webp', 'ringtail-possum.webp', 'wedge-tailed-eagle.webp',
 ];
 

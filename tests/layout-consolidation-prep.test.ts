@@ -103,13 +103,15 @@ test('boxes.fields tail: z/kf/linkOf then the deck fields — appended, never re
     // so every link shared before the deck fields still decodes into the same columns.
     assert.deepEqual(fields.slice(69, 72).map((f) => f.id), ['z', 'kf', 'linkOf'],
       `${brand}: the compact-blocks tail moved — every link ever shared decodes into the wrong columns`);
-    // The presentation-mode deck fields (plan 112) were APPENDED after linkOf - slots 72-76,
-    // never squeezed in behind it - so `notes` is now the tail. This pin extends the same
-    // append-only guard to them: a later field must land at 77, not shift these.
-    assert.deepEqual(fields.slice(72).map((f) => f.id), ['presentAudio', 'build', 'state', 'matchOf', 'notes'],
-      `${brand}: a deck field was inserted out of order — appended slots must stay put`);
-    assert.equal(fields.length, 77, `${brand}: expected 77 sub-fields, got ${fields.length}`);
-    assert.equal(fields[fields.length - 1]!.id, 'notes', `${brand}: notes is not the tail`);
+    // The presentation-mode deck fields (plan 112) were APPENDED after linkOf - slots 72-76.
+    // The flip (mirror) fields followed at slots 77-78, appended after them - never squeezed
+    // in behind - so `flipV` is now the tail. This pin extends the same append-only guard:
+    // a later field must land at 79, not shift any of these.
+    assert.deepEqual(fields.slice(72).map((f) => f.id),
+      ['presentAudio', 'build', 'state', 'matchOf', 'notes', 'flipH', 'flipV'],
+      `${brand}: a deck/flip field was inserted out of order — appended slots must stay put`);
+    assert.equal(fields.length, 79, `${brand}: expected 79 sub-fields, got ${fields.length}`);
+    assert.equal(fields[fields.length - 1]!.id, 'flipV', `${brand}: flipV is not the tail`);
     // Ids are unique - an accidental second `linkOf` would give the codec two columns of
     // the same name and the shell would read whichever it found first.
     assert.equal(new Set(fields.map((f) => f.id)).size, fields.length, `${brand}: duplicate sub-field id`);

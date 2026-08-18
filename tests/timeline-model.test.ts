@@ -587,7 +587,7 @@ test('keyframes: a non-string / unparseable track emits no attribute and never a
 //
 // A camera is a timeline citizen with no artboard footprint: it holds the scene's pose
 // and paints nothing. The audio box is the precedent, and the contract is the same one - 
-// a still export can never show a mark where it sits.
+// a still export can never show a mark where it lands.
 
 test('camera: a camera box renders a bare marker and paints nothing', async () => {
   const html = await mount([

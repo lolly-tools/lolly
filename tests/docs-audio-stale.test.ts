@@ -55,6 +55,9 @@ const STALE_ALLOWED: Record<string, string> = {
   // a date when a page is knowingly left stale, and delete it the moment the
   // page is re-rendered.
   'en/operators': 'operators doc edited in the 2026-08-17 docs pass; narration re-render is Andy-run-only (build-docs-audio.ts + local Kokoro), so it is deferred to the docs owner - remove this line once re-rendered',
+  'en/inclusive-design': 'inclusive-design reworded in the 2026-08-18 front-door completion; narration re-render is Andy-run-only (build-docs-audio.ts + local Kokoro), deferred to the docs owner - remove this line once re-rendered',
+  'en/index': 'the landing (index) reworded in the 2026-08-18 front-door completion; narration re-render is Andy-run-only (build-docs-audio.ts + local Kokoro), deferred to the docs owner - remove this line once re-rendered',
+  'en/trust': 'trust doc reworded in the 2026-08-18 front-door completion; narration re-render is Andy-run-only (build-docs-audio.ts + local Kokoro), deferred to the docs owner - remove this line once re-rendered',
 };
 
 interface Committed { key: string; lang: string; slug: string; meta: AudioMeta }

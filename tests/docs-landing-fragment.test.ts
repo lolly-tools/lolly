@@ -85,3 +85,26 @@ test('the shared landing stylesheet still hides bands until .visible, so the ove
     'the in-app reveal neutralizer is present (without it every band mounts invisible)',
   );
 });
+
+test('the audience tabs are CSS-only: radio pairing in the stylesheet, radios in the build', () => {
+  // The whole tab mechanism is stylesheet + markup (plan 123 D1 final form) - if either
+  // half loses its side of the contract, the section silently shows one frozen card.
+  const css = readFileSync(join(WEB_SRC, 'styles/parts/docs-landing.css'), 'utf8');
+  assert.ok(
+    /\.aud-radio:nth-of-type\(1\):checked ~ \.audience-panels > \.audience-card:nth-child\(1\)/.test(css),
+    'the :checked pairing rules drive card visibility',
+  );
+  assert.ok(
+    /\.aud-radio ~ \.audience-panels > \.audience-card\{display:none\}/.test(css),
+    'the hide rule anchors on a preceding radio sibling (so the machines band is never gated)',
+  );
+  assert.ok(
+    !/display:none/.test(css.match(/\.aud-radio\{[^}]*\}/)?.[0] ?? ''),
+    'the radios stay focusable (visually hidden, never display:none) - they ARE the keyboard interface',
+  );
+
+  const landing = readFileSync(join(INFO, 'index.html'), 'utf8');
+  assert.ok(landing.includes('<input class="aud-radio" type="radio" name="audience"'), 'the built landing ships the radio group');
+  assert.ok(landing.includes('<label class="audience-tab" for="aud-'), 'each pill is a label for its radio');
+  assert.ok(!landing.includes('activateBySlug'), 'no tab script ships on the landing');
+});
