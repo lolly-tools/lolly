@@ -189,6 +189,13 @@ export const BANNED_PHRASES: { what: string; re: RegExp }[] = [
   // adjective ("locked", not "structurally locked"); if the adverb carries
   // meaning, name the actual structure.
   { what: '"structurally X" adverb-hedge', re: /\bstructurally\b/i },
+  // Self-referential annotation tics: comments/prose that narrate their own text
+  // ("this line is the guard", "the boundary is the contract", "the API is
+  // structural") instead of just stating the fact. Say what the code does, not
+  // what the sentence/line "is".
+  { what: 'self-referential "(that/the/this line is X)"', re: /\b(?:that|the|this) line is\b/i },
+  { what: '"the boundary is X" self-reference', re: /\bthe boundary is\b/i },
+  { what: '"the X is structural" adjective-hedge', re: /\bis structural\b/i },
 ];
 
 /**
@@ -212,7 +219,15 @@ const ALLOW: Record<string, string[]> = {
     'Transcription (v1.99) is the reverse',
     '`transcribeAvailable()`', '`transcribeCached()`',
     '`transcribeModelBytes()`', '`transcribe(src, opts?)`', 'SpeechTranscript'],
-  'docs/overview.md': ['TTS/transcription'],
+  'docs/overview.md': ['TTS/transcription',
+    // Positioning prose that predates the self-reference ban - grandfathered like the
+    // code ratchet; the ban stops NEW uses of "(this line is X)"/"the boundary is X"/
+    // "the X is structural", it doesn't force a rewrite of meaningful existing copy.
+    'The line is sharp on purpose'],
+  'docs/faq.md': ['That line is drawn in the licence',
+    'The boundary is structural rather than promised'],
+  'docs/parser-inventory.md': ['the boundary is what lets a reviewer'],
+  'docs/threat-model.md': ['the boundary is simply gone'],
 };
 
 /**
