@@ -3330,6 +3330,12 @@ export interface AssetRef {
   //              or a bogus placeholder.
   // fps a lottie's frame rate (its `fr`), alongside its durationMs -
   //              not meaningful for video/audio.
+  // aiSignals  a text asset's persisted AI-likelihood note from the engine's
+  //              analyzeTextSignals: { v, band, score, source, family?,
+  //              confidence? }. `v` is the LEXICON_VERSION that produced it -
+  //              a stale v means recompute, never trust. A SIGNAL carried for
+  //              the user's own confidence in an ingredient, never a verdict,
+  //              and never written into signed provenance.
   meta?: Record<string, unknown>;
 }
 

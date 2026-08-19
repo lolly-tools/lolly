@@ -10,32 +10,60 @@
  * findings behind it, and the shell presents those as observations a person reads,
  * not a score a person quotes.
  *
- * Two confidence tiers ship in v1:
+ * Three bodies of evidence ship in v2, each with its own honest weight:
  *  - `artifact` (high): byte-level tells in DIGITAL text - invisible/zero-width
- *    characters, mixed-script homoglyphs, whitespace anomalies, bidi overrides.
- *    These are artifacts, not guesses. They are ABSENT from text read out of an
- *    image: OCR reads pixels, so the whole artifact layer is lost in rasterisation
- *    (`source: 'ocr'` sets `pixelSourced` and skips this tier entirely).
- *  - `heuristic` (low): a writing-style hint - an LLM-lexicon list, punctuation
- *    and list tells, sentence-length uniformity. Style is not proof, so heuristics
- *    alone never reach `strong`. They are English-centric, so they run ONLY on text
- *    that reads as English and is long enough to judge - short or non-English text
- *    returns `none` honestly rather than a biased false positive. This bias guard
- *    is required, not optional.
+ *    characters, mixed-script homoglyphs, whitespace anomalies, bidi overrides -
+ *    plus leaked model-scaffolding tokens (which are visible, so they survive OCR).
+ *    These are artifacts, not guesses. The byte-level ones are ABSENT from text
+ *    read out of an image: OCR reads pixels, so that layer is lost in
+ *    rasterisation (`source: 'ocr'` sets `pixelSourced` and skips them).
+ *  - chatbot BOILERPLATE (medium): verbatim assistant-register phrases left in a
+ *    document - "As an AI language model", refusal/policy boilerplate, "I hope
+ *    this helps! Let me know if…". Phrase-level evidence that chat output was
+ *    pasted, weighed above stylometry but below a byte artifact (a human CAN
+ *    quote a chatbot). Scored in its own bucket, so unlike pure style it can
+ *    reach `strong` when several distinct phrases stack up.
+ *  - `heuristic` style (low): a writing-style hint - an LLM-lexicon list,
+ *    punctuation and list tells, sentence/paragraph uniformity. Style is not
+ *    proof, so style alone never reaches `strong`. It is English-centric, so it
+ *    runs ONLY on text that reads as English and is long enough to judge - short
+ *    or non-English text returns `none` honestly rather than a biased false
+ *    positive. This bias guard is required, not optional.
  *
- * A `watermark` tier (a named-scheme detector like SynthID-Text) is a later add-on;
- * a watermark match is the one thing that may name a model with confidence. Until
- * then a naming guess is stylistic only, hence `TextStyleGuess.confidence` is the
- * literal `'low'` - the type forbids a confident stylistic attribution - and it is
- * offered only at band >= 'notable', framed "consistent with", never as an accusation.
+ * Every finding carries a `heat` (0-1): its individual confidence temperature,
+ * which the shells render as a graded highlight (cool amber for a soft style
+ * tell, hot red for a hard artifact) instead of a binary flag. The report also
+ * carries a rolling-window `heatmap` over the whole text, which both drives a
+ * minimap strip in the UI and powers the "sandwich" detector - an AI-dense
+ * region inside an otherwise quiet human document surfaces as an `ai-span`
+ * finding even when the whole-document averages would hide it.
+ *
+ * A `watermark` tier (a named-scheme detector like SynthID-Text) is a later
+ * add-on; a watermark match is the one thing that may name a model with
+ * confidence. Until then, model naming is fingerprint-first: a leaked
+ * scaffolding token names a model at `'high'`; anything stylistic is `'low'`,
+ * framed "consistent with", never an accusation.
  *
  * DOM-free and model-free: plain string in, plain object out, so the verify view,
- * the CLI, and the OCR path all read identical numbers. Pure - no I/O, no state.
+ * the catalog, the CLI, and the OCR path all read identical numbers. Pure - no
+ * I/O, no state. `LEXICON_VERSION` (re-exported from claudisms.ts) keys any
+ * PERSISTED analysis, so a stored verdict from an older lexicon is recomputed
+ * rather than trusted.
  */
+
+import {
+  AI_PHRASES, AI_STRUCTURE, AI_WORDS, CHATBOT_ARTIFACTS, CHATBOT_SOFT, FAMILY_TELLS,
+  MODEL_FINGERPRINTS, SPELLING_VARIANTS, type Tell,
+} from './claudisms.ts';
+
+export { LEXICON_VERSION } from './claudisms.ts';
 
 export type TextSignalSource = 'digital' | 'ocr';
 export type TextSignalBand = 'none' | 'weak' | 'notable' | 'strong';
 export type TextSignalTier = 'artifact' | 'heuristic'; // 'watermark' added by a later minor.
+/** What the text IS - detected (or declared) so the right detectors run.
+ *  'code' runs style tells on COMMENT text only and skips prose statistics. */
+export type TextSignalDocKind = 'prose' | 'markdown' | 'code';
 
 /** A [index, length) slice of the source string, in UTF-16 code units, for highlighting. */
 export interface TextSignalSpan {
@@ -45,7 +73,8 @@ export interface TextSignalSpan {
 
 /**
  * One observed signal. `weight` is this finding's contribution to the band (see
- * `analyzeTextSignals`); `spans` locate it in the source for the UI to highlight.
+ * `analyzeTextSignals`); `spans` locate it in the source for the UI to highlight;
+ * `heat` (0-1) is its confidence temperature for graded highlighting.
  * `label`/`detail` are plain English defaults - the shell may re-localise by `kind`.
  */
 export interface TextSignalFinding {
@@ -58,30 +87,65 @@ export interface TextSignalFinding {
   detail?: string;
   /** Contribution to the band. Artifact tells weigh more than style tells. */
   weight: number;
+  /** Confidence temperature 0-1: 1 = a hard artifact, ~0.3 = a soft style hint. */
+  heat: number;
   spans?: TextSignalSpan[];
+  /** Only on a `model-fingerprint` finding: the model the leaked token identifies. */
+  model?: string;
+  /** Only on a family-tell finding: which model family the tells lean toward. */
+  family?: string;
+}
+
+/** One cell of the rolling-window heat map: a char range and its 0-1 heat. */
+export interface TextHeatCell {
+  index: number;
+  length: number;
+  heat: number;
+}
+
+/** The rolling-window heat map over the analyzed text - the minimap the UI
+ *  renders, and the input to the sandwich (`ai-span`) detector. */
+export interface TextHeatmap {
+  /** Window size in words (stride is half a window). */
+  windowWords: number;
+  cells: TextHeatCell[];
 }
 
 /**
- * A hedged, stylistic-only guess at a source. `confidence` is the LITERAL 'low':
- * a specific model cannot be credibly named from writing style, so this is offered
- * as a possibility ("consistent with"), never a determination, and never on its own.
+ * A guess at the source model. `confidence` is 'high' ONLY when a leaked model-
+ * fingerprint token names it (near-certain - see `MODEL_FINGERPRINTS`); a guess from
+ * writing style alone is always 'low', offered as "consistent with", never a verdict.
+ * Family-leaning tics best-guess their family; otherwise the guess stays 'generic-LLM'.
  */
 export interface TextStyleGuess {
-  /** A family label, e.g. 'generic-LLM'. Naming a specific product awaits a watermark tier. */
+  /** e.g. 'generic-LLM' | 'Claude' | 'ChatGPT (OpenAI)' | 'Gemini (Google)'. */
   family: string;
-  confidence: 'low';
-  /** Which markers drove the guess; always framed as a possibility. */
+  confidence: 'low' | 'high';
+  /** Which markers drove the guess; always framed as a possibility (unless 'high'). */
   rationale: string;
+  /** Every family that scored, strongest first - so the UI can say "leans Claude
+   *  over ChatGPT" instead of presenting the winner as the only runner. */
+  candidates?: Array<{ family: string; strength: number }>;
 }
 
 export interface TextSignalReport {
   source: TextSignalSource;
-  /** True when `source === 'ocr'`: the artifact tier could not run (pixels, not bytes). */
+  /** True when `source === 'ocr'`: the byte-level artifact tier could not run (pixels, not bytes). */
   pixelSourced: boolean;
+  /** What the text was analysed AS (detected, or the caller's override). */
+  docKind: TextSignalDocKind;
   band: TextSignalBand;
+  /**
+   * A granular 0-100 AI-likelihood score, derived from the weighted findings. A
+   * companion to `band` (which is the coarse label): the same signals, finer. Still
+   * a SIGNAL, not a probability - a high score means many strong tells, not "N% AI".
+   */
+  score: number;
   /** Findings, most significant first. */
   findings: TextSignalFinding[];
-  /** Present only at band >= 'notable'. Always hedged (see `TextStyleGuess`). */
+  /** Rolling-window heat over the text; absent when the text is too short to window. */
+  heatmap?: TextHeatmap;
+  /** Present at band >= 'notable', OR whenever a model fingerprint named a source. */
   styleGuess?: TextStyleGuess;
   /** A plain, non-accusatory one-liner the UI may show as-is. */
   summary: string;
@@ -89,12 +153,44 @@ export interface TextSignalReport {
 
 export interface AnalyzeTextSignalsOpts {
   source: TextSignalSource;
+  /** Override the doc-kind detection (a caller that KNOWS it holds code should say so). */
+  docKind?: TextSignalDocKind;
 }
+
+// ─── Per-kind confidence temperatures (the heat-map grades) ───────────────────
+// 1.0 = a hard artifact that names its cause; ~0.3 = the softest style hint.
+// These grade the HIGHLIGHT, not the score - weight does the scoring.
+const KIND_HEAT: Record<string, number> = {
+  'model-fingerprint': 1,
+  'tag-chars': 0.95,
+  'bidi-override': 0.9,
+  'variation-selectors': 0.9,
+  'invisible-char': 0.85,
+  'mixed-script': 0.85,
+  'anomalous-space': 0.5,
+  'template-placeholder': 0.6,
+  'chatbot-leftover': 0.75,
+  'claude-tell': 0.55,
+  'family-tell': 0.55,
+  'ai-phrasing': 0.5,
+  'ai-structure': 0.45,
+  'ai-vocabulary': 0.4,
+  'em-dash-density': 0.35,
+  'smart-punctuation': 0.3,
+  'list-heavy': 0.35,
+  'uniform-burstiness': 0.35,
+  'uniform-paragraphs': 0.35,
+  'spelling-variant-mix': 0.4,
+  'ai-span': 0.55,
+};
+
+const heatOf = (kind: string): number => KIND_HEAT[kind] ?? 0.4;
 
 // ─── Artifact-tier detectors (digital text only) ──────────────────────────────
 
-/** Zero-width / invisible characters that are essentially never legitimate in prose. */
-const INVISIBLE_CORE = /[​⁠﻿᠎­]/gu;
+/** Zero-width / invisible characters that are essentially never legitimate in prose.
+ *  Soft hyphen (U+00AD) is handled separately - see `softHyphenSpans`. */
+const INVISIBLE_CORE = /[​⁠﻿᠎]/gu;
 /** ZWNJ / ZWJ - legitimate in emoji sequences and in Arabic/Indic shaping, so context-checked. */
 const ZW_JOINERS = /[‌‍]/gu;
 /** Unicode tag characters - a known scheme for smuggling invisible ASCII. */
@@ -110,8 +206,13 @@ const ANOMALOUS_SPACE = /[ -  　]/gu;
 
 /** Extended-pictographic test, to skip ZWJ that is joining an emoji sequence. */
 const PICTOGRAPHIC = /\p{Extended_Pictographic}/u;
-/** Scripts that share confusable glyphs with Latin. */
-const CONFUSABLE_WITH_LATIN = /[\p{Script=Cyrillic}\p{Script=Greek}]/u;
+/**
+ * Codepoints whose GLYPH passes for a Latin letter - the curated homoglyph set,
+ * not whole scripts. Script-level matching flagged every Greek-letter unit in
+ * human engineering prose (5μs, 10kΩ, ΔT); μ/Ω/Δ/σ/π look nothing like Latin,
+ * so only the genuinely confusable letters convict.
+ */
+const CONFUSABLE_WITH_LATIN = /[асеорхуѕіјєԛԝАВСЕНІЈКМОРЅТХУνοικρτυχηαΑΒΕΖΗΙΚΜΝΟΡΤΥΧ]/u;
 
 interface RawSpan {
   index: number;
@@ -150,6 +251,20 @@ function suspiciousJoiners(text: string): RawSpan[] {
   });
 }
 
+/**
+ * Soft hyphens (U+00AD). BETWEEN TWO LETTERS they are ordinary discretionary
+ * hyphenation - the classic residue of copying text out of a PDF or Word, which
+ * must NOT read as an AI tell (the MS-Word/PDF trap). Only a soft hyphen in a
+ * non-hyphenation position counts as an invisible-character artifact.
+ */
+function softHyphenSpans(text: string): RawSpan[] {
+  return collect(/­/gu, text).filter(({ index }) => {
+    const before = charAt(text, index - 1);
+    const after = charAt(text, index + 1);
+    return !(/\p{L}/u.test(before) && /\p{L}/u.test(after));
+  });
+}
+
 /** Tokens (letter runs) that mix Latin with a confusable script - a homoglyph tell. */
 function mixedScriptTokens(text: string): RawSpan[] {
   const out: RawSpan[] = [];
@@ -178,29 +293,141 @@ function anomalousNbsp(text: string): RawSpan[] {
   return out;
 }
 
+/** True when at least half of the given spans sit right beside a Markdown
+ *  formatting character - the tokenizer-boundary tell: invisible characters glued
+ *  to `**`/`#`/backtick are typical of AI chat output copied with its markup. */
+function mostlyMarkdownAdjacent(spans: RawSpan[], text: string): boolean {
+  if (spans.length === 0) return false;
+  const adjacent = spans.filter(({ index, length }) => {
+    const before = charAt(text, index - 1);
+    const after = charAt(text, index + length);
+    return /[*#`_]/.test(before) || /[*#`_]/.test(after);
+  }).length;
+  return adjacent * 2 >= spans.length;
+}
+
+// ─── Doc-kind detection ───────────────────────────────────────────────────────
+
+/** Detect what the text IS, so the right detectors run. Deliberately coarse:
+ *  'code' is the load-relevant case (prose statistics on code are noise, and
+ *  style tells belong to its comments); 'markdown' vs 'prose' only gates nothing
+ *  today but is reported so consumers can label the analysis honestly.
+ *  Markdown FENCED blocks are excluded from the code-ish ratio - a README with
+ *  one example block is a markdown document about code, not a code file, and
+ *  calling it 'code' would silently exempt its prose from the boilerplate tier. */
+function detectDocKind(text: string): TextSignalDocKind {
+  const lines = text.split('\n');
+  let inFence = false;
+  const unfenced: string[] = [];
+  let mdHits = 0;
+  for (const l of lines) {
+    if (/^\s*```/.test(l)) { inFence = !inFence; mdHits++; continue; }
+    if (inFence) continue;
+    unfenced.push(l);
+    if (/^#{1,6}\s|\[[^\]]+\]\([^)]+\)|\*\*[^*\n]+\*\*/.test(l)) mdHits++;
+  }
+  if (unfenced.length >= 8) {
+    let codeish = 0;
+    for (const l of unfenced) {
+      if (/[;{}]\s*$|^\s*(?:import |from |def |class |function |const |let |var |fn |pub |package |using |#include|export )|=>|::|^\s*[)\]};]/.test(l)) codeish++;
+    }
+    if (codeish / unfenced.length >= 0.3) return 'code';
+  }
+  return mdHits >= 3 ? 'markdown' : 'prose';
+}
+
+/**
+ * Comment spans in a code file: the prose the style tells may judge. Coarse by
+ * design - a false span only widens where style tells may fire, never the score
+ * maths - and covers the common comment syntaxes across the usual languages.
+ * A hand-rolled LINEAR scan, deliberately not a regex: the lazy block-comment
+ * regex was O(openers x length) on unterminated openers (a file of glob strings
+ * like "src/*" froze the ingest path for seconds); here an unterminated block
+ * comment is one span to end-of-input and the walk never re-visits a character.
+ */
+function commentSpans(text: string): RawSpan[] {
+  const out: RawSpan[] = [];
+  const n = text.length;
+  let i = 0;
+  const lineEnd = (from: number): number => {
+    const nl = text.indexOf('\n', from);
+    return nl === -1 ? n : nl;
+  };
+  const blockEnd = (from: number, close: string): number => {
+    const idx = text.indexOf(close, from);
+    return idx === -1 ? n : idx + close.length;
+  };
+  while (i < n) {
+    const ch = text[i] as string;
+    const two = text.slice(i, i + 2);
+    if (two === '//') {
+      const end = lineEnd(i);
+      out.push({ index: i, length: end - i });
+      i = end;
+    } else if (two === '/*') {
+      const end = blockEnd(i + 2, '*/');
+      out.push({ index: i, length: end - i });
+      i = end;
+    } else if (text.startsWith('<!--', i)) {
+      const end = blockEnd(i + 4, '-->');
+      out.push({ index: i, length: end - i });
+      i = end;
+    } else if (text.startsWith('"""', i) || text.startsWith("'''", i)) {
+      const q = text.slice(i, i + 3);
+      const end = blockEnd(i + 3, q);
+      out.push({ index: i, length: end - i });
+      i = end;
+    } else if (ch === '#' && (i === 0 || text[i - 1] === ' ' || text[i - 1] === '\t' || text[i - 1] === '\n')) {
+      const end = lineEnd(i);
+      out.push({ index: i, length: end - i });
+      i = end;
+    } else {
+      i++;
+    }
+  }
+  return out;
+}
+
+const withinSpans = (spans: RawSpan[], index: number): boolean =>
+  spans.some((s) => index >= s.index && index < s.index + s.length);
+
 // ─── Heuristic-tier detectors (English, long-enough text only) ─────────────────
 
 /**
- * A curated LLM-lexicon: single words and phrases over-represented in AI prose.
- * Several of these are exactly the tics Lolly bans in its OWN copy, which is why
- * this list can seed from that same style guidance.
+ * True when the span sits inside quotation marks on its own line - a human
+ * QUOTING a chatbot ("it just said “As an AI language model” again") is writing
+ * ABOUT AI, not with it. Line-local and double-quote-only by design: cheap, and
+ * apostrophes never trip it.
  */
-const LLM_WORDS = [
-  'delve', 'delving', 'tapestry', 'testament', 'boasts', 'underscore', 'underscores',
-  'underscoring', 'nuanced', 'nuance', 'realm', 'realms', 'showcase', 'showcasing',
-  'leverage', 'leveraging', 'foster', 'fostering', 'seamless', 'seamlessly', 'robust',
-  'holistic', 'intricate', 'intricacies', 'pivotal', 'paramount', 'myriad', 'plethora',
-  'garner', 'elevate', 'elevating', 'embark', 'vibrant', 'bustling', 'meticulous',
-  'meticulously', 'comprehensive', 'unlock', 'unlocking', 'harness', 'harnessing',
-];
-const LLM_PHRASES = [
-  "it's important to note", 'it is important to note', "it's worth noting",
-  'in conclusion', 'in the realm of', 'when it comes to', 'a testament to',
-  'plays a crucial role', 'plays a vital role', 'rich tapestry', 'navigating the',
-  'that being said', 'dive into', "let's dive", 'in summary', 'ever-evolving',
-  'fast-paced', 'cutting-edge', 'game-changer', 'at the end of the day',
-  'the world of', 'in today', 'when it comes down to',
-];
+function quotedAt(text: string, index: number, length: number): boolean {
+  const lineStart = text.lastIndexOf('\n', index - 1) + 1;
+  let lineEnd = text.indexOf('\n', index + length);
+  if (lineEnd < 0) lineEnd = text.length;
+  return /["“”«»]/.test(text.slice(lineStart, index)) && /["“”«»]/.test(text.slice(index + length, lineEnd));
+}
+
+/** Walk a list of `Tell` regexes over the text, collecting hit count + spans.
+ *  Every `Tell.re` is global, so `exec` advances; a zero-width match is guarded.
+ *  `keep` filters individual matches (the code-comment and quoted-text gates). */
+function collectTells(
+  tells: Tell[], text: string, keep?: (index: number, length: number) => boolean,
+): { hits: number; spans: RawSpan[]; labels: string[] } {
+  const spans: RawSpan[] = [];
+  const labels: string[] = [];
+  let hits = 0;
+  for (const tell of tells) {
+    tell.re.lastIndex = 0;
+    for (let m = tell.re.exec(text); m !== null; m = tell.re.exec(text)) {
+      if (!keep || keep(m.index, m[0].length)) {
+        hits++;
+        spans.push({ index: m.index, length: m[0].length });
+        if (!labels.includes(tell.label)) labels.push(tell.label);
+      }
+      if (m[0].length === 0) tell.re.lastIndex++;
+    }
+  }
+  return { hits, spans, labels };
+}
 
 function letterStats(text: string): { total: number; latin: number } {
   let total = 0;
@@ -214,9 +441,15 @@ function letterStats(text: string): { total: number; latin: number } {
   return { total, latin };
 }
 
+const WORD_RE = /\p{L}[\p{L}\p{M}'-]*/gu;
+
 function wordCount(text: string): number {
-  const m = text.match(/\p{L}[\p{L}\p{M}'-]*/gu);
+  const m = text.match(WORD_RE);
   return m ? m.length : 0;
+}
+
+function wordSpans(text: string): RawSpan[] {
+  return collect(new RegExp(WORD_RE.source, WORD_RE.flags), text);
 }
 
 /** Sentence lengths in words - for the burstiness measure. */
@@ -227,51 +460,177 @@ function sentenceWordLengths(text: string): number[] {
     .filter((n) => n > 0);
 }
 
-// ─── Banding ──────────────────────────────────────────────────────────────────
+/** Paragraph lengths in words - humans vary paragraph size; AI output tends to
+ *  come out in near-uniform blocks. */
+function paragraphWordLengths(text: string): number[] {
+  return text
+    .split(/\n[ \t]*\n+/u)
+    .map((p) => wordCount(p))
+    .filter((n) => n > 0);
+}
 
-const HEURISTIC_CAP = 3; // heuristics alone never reach 'strong'.
+function coefficientOfVariation(lens: number[]): { mean: number; cv: number } {
+  const mean = lens.reduce((a, b) => a + b, 0) / lens.length;
+  const variance = lens.reduce((a, b) => a + (b - mean) ** 2, 0) / lens.length;
+  return { mean, cv: mean > 0 ? Math.sqrt(variance) / mean : 0 };
+}
 
-function bandFrom(artifactScore: number, heuristicScore: number): TextSignalBand {
-  if (artifactScore >= 4) return 'strong';
-  if (artifactScore === 0) {
-    // Style-only: capped at 'notable' - style is not proof.
-    if (heuristicScore >= 3) return 'notable';
-    if (heuristicScore >= 1.5) return 'weak';
-    return 'none';
+// ─── The rolling-window heat map + the sandwich detector ─────────────────────
+
+const HEAT_WINDOW_WORDS = 40;   // window size; stride is half a window.
+const HEAT_MIN_WORDS = 60;      // below this, a map would just restate the marks.
+
+/** Build the rolling-window heat map from the findings' spans. Each window's heat
+ *  is the heat-weighted fraction of its characters covered by a finding span,
+ *  scaled so a solidly-flagged window saturates. */
+function buildHeatmap(text: string, findings: TextSignalFinding[], words: RawSpan[]): TextHeatmap | undefined {
+  if (words.length < HEAT_MIN_WORDS) return undefined;
+  const marks: Array<RawSpan & { heat: number }> = [];
+  for (const f of findings) {
+    for (const s of f.spans ?? []) marks.push({ index: s.index, length: s.length, heat: f.heat });
   }
-  const combined = artifactScore + Math.min(heuristicScore, HEURISTIC_CAP);
-  if (combined >= 4) return 'strong';
-  if (combined >= 2) return 'notable';
-  if (combined >= 1) return 'weak';
+  const stride = HEAT_WINDOW_WORDS / 2;
+  const cells: TextHeatCell[] = [];
+  for (let w = 0; w < words.length; w += stride) {
+    const first = words[w] as RawSpan;
+    const lastWord = words[Math.min(w + HEAT_WINDOW_WORDS, words.length) - 1] as RawSpan;
+    const start = first.index;
+    const end = lastWord.index + lastWord.length;
+    const size = Math.max(1, end - start);
+    let covered = 0;
+    for (const m of marks) {
+      const o = Math.min(end, m.index + m.length) - Math.max(start, m.index);
+      if (o > 0) covered += o * m.heat;
+    }
+    const heat = Math.min(1, (covered / size) * 4);
+    cells.push({ index: start, length: end - start, heat: Math.round(heat * 100) / 100 });
+    if (w + HEAT_WINDOW_WORDS >= words.length) break;
+  }
+  return cells.length >= 2 ? { windowWords: HEAT_WINDOW_WORDS, cells } : undefined;
+}
+
+/**
+ * The sandwich detector: an AI-dense region inside an otherwise quiet document.
+ * Whole-document averages hide a pasted AI section in a long human text; a
+ * contiguous run of hot windows against a cold median surfaces it as its own
+ * finding, spanning the run, so the UI can point at the seam.
+ */
+function sandwichFinding(map: TextHeatmap | undefined, totalWords: number): TextSignalFinding | undefined {
+  if (!map || map.cells.length < 6 || totalWords < 200) return undefined;
+  const heats = map.cells.map((c) => c.heat).sort((a, b) => a - b);
+  const median = heats[Math.floor(heats.length / 2)] as number;
+  if (median > 0.12) return undefined; // the whole document is warm - nothing to isolate.
+  const hot = Math.max(0.35, median * 3);
+  let bestStart = -1;
+  let bestLen = 0;
+  let runStart = -1;
+  for (let i = 0; i <= map.cells.length; i++) {
+    const isHot = i < map.cells.length && (map.cells[i] as TextHeatCell).heat >= hot;
+    if (isHot && runStart < 0) runStart = i;
+    if (!isHot && runStart >= 0) {
+      if (i - runStart > bestLen) { bestLen = i - runStart; bestStart = runStart; }
+      runStart = -1;
+    }
+  }
+  if (bestLen < 2) return undefined;
+  const first = map.cells[bestStart] as TextHeatCell;
+  const last = map.cells[bestStart + bestLen - 1] as TextHeatCell;
+  return {
+    tier: 'heuristic',
+    kind: 'ai-span',
+    label: 'A concentrated AI-like section',
+    detail: 'One section of this document carries far more AI-writing signals than the rest - consistent with AI-generated text pasted into human writing.',
+    weight: 1.5,
+    heat: heatOf('ai-span'),
+    spans: [{ index: first.index, length: last.index + last.length - first.index }],
+  };
+}
+
+// ─── Scoring + banding ──────────────────────────────────────────────────────
+
+const STYLE_CAP = 3;       // style-only evidence never reaches the 'strong' band.
+const BOILERPLATE_CAP = 4; // stacked chatbot phrases CAN reach 'strong' - they are quotes, not style.
+const DECAY = 0.35;        // shapes weighted-sum → 0-100 (w=1→30, w=2→50, w=4→75, w=6→88).
+
+/** Weighted findings → a granular 0-100 score. Three buckets, three caps:
+ *  artifacts are uncapped, chatbot boilerplate caps at 4 (several distinct
+ *  verbatim phrases CAN read strong), pure style caps at 3 (notable at most -
+ *  writing style is not proof). */
+function scoreFrom(artifactScore: number, styleScore: number, boilerplateScore: number): number {
+  const total = artifactScore + Math.min(styleScore, STYLE_CAP) + Math.min(boilerplateScore, BOILERPLATE_CAP);
+  return Math.max(0, Math.min(100, Math.round(100 * (1 - Math.exp(-DECAY * total)))));
+}
+
+/** The coarse band, derived from the same score so the label and number never disagree. */
+function bandFromScore(score: number): TextSignalBand {
+  if (score >= 72) return 'strong';
+  if (score >= 45) return 'notable';
+  if (score >= 20) return 'weak';
   return 'none';
 }
 
-function summaryFor(band: TextSignalBand, pixelSourced: boolean): string {
+function summaryFor(band: TextSignalBand, score: number, pixelSourced: boolean, docKind: TextSignalDocKind, findingCount: number): string {
   const base: Record<TextSignalBand, string> = {
-    none: 'No AI-generation signals were found in this text.',
+    // Band 'none' spans scores 1-19, where weak observations may still be listed -
+    // the absolute "no signals were found" sentence is reserved for a truly empty
+    // report, so the page never contradicts its own findings list.
+    none: findingCount > 0
+      ? 'Nothing significant was found. The few weak observations below are common in ordinary writing.'
+      : 'No AI-generation signals were found in this text.',
     weak: 'A few weak signals were found. Nothing here is conclusive.',
     notable: 'Several signals consistent with AI-generated text were found. This is not proof.',
     strong: 'Strong signals were found, including tells that are rare in ordinary writing. This is a signal, not proof.',
   };
-  const note = pixelSourced
-    ? ' The text was read from an image, so hidden-character and watermark checks could not run. Only writing-style signals were assessed.'
+  const ocrNote = pixelSourced
+    ? ' The text was read from an image, so hidden-character checks could not run - only writing-style signals were assessed.'
     : '';
-  return base[band] + note;
+  const codeNote = docKind === 'code'
+    ? ' This reads as source code, so style signals were taken from its comments and prose only.'
+    : '';
+  return `${base[band]} (Signal score ${score}/100.)${ocrNote}${codeNote}`;
 }
 
 /**
- * A stylistic-only family guess. It deliberately returns 'generic-LLM' for now:
- * naming a specific product from writing style is not credible, so v1 does not,
- * pending the sign-off on which families (if any) may be named. The rationale
- * carries the markers so the UI can show WHY, hedged.
+ * The best-guess source. Confidence levels:
+ *  - a leaked model FINGERPRINT names the model with confidence 'high' (near-certain);
+ *  - family-leaning style tells best-guess that family at 'low' confidence, but only
+ *    when the family clearly outscores every other family - a near-tie stays generic;
+ *  - otherwise the generic tells give 'generic-LLM' at 'low'.
+ * Style never names a model with certainty - only a fingerprint does.
  */
-function styleGuessFrom(heuristicFindings: TextSignalFinding[]): TextStyleGuess | undefined {
-  if (heuristicFindings.length === 0) return undefined;
-  const markers = heuristicFindings.map((f) => f.label.toLowerCase()).join('; ');
+function styleGuessFrom(findings: TextSignalFinding[]): TextStyleGuess | undefined {
+  const fps = findings.filter((f) => f.kind === 'model-fingerprint' && f.model);
+  if (fps.length > 0) {
+    const models = [...new Set(fps.map((f) => f.model as string))];
+    const first = fps[0] as TextSignalFinding;
+    const also = models.length > 1 ? ` Tokens from ${models.slice(1).join(' and ')} were found too.` : '';
+    return {
+      family: first.model as string,
+      confidence: 'high',
+      rationale: `A ${first.label.toLowerCase()} was found - a scaffolding token this model leaks into its output. A strong, specific tell, not style.${also}`,
+      candidates: models.map((m) => ({ family: m, strength: fps.filter((f) => f.model === m).length })),
+    };
+  }
+  const heuristic = findings.filter((f) => f.tier === 'heuristic');
+  if (heuristic.length === 0) return undefined;
+  // Family competition: each family's tells score independently; a family must
+  // clearly beat the runner-up to lean the guess, else it stays generic.
+  const famScores = new Map<string, number>();
+  for (const f of heuristic) {
+    const fam = f.kind === 'claude-tell' ? 'Claude' : f.family;
+    if (fam) famScores.set(fam, (famScores.get(fam) ?? 0) + f.weight);
+  }
+  const ranked = [...famScores.entries()].sort((a, b) => b[1] - a[1]);
+  const winner = ranked[0];
+  const runnerUp = ranked[1]?.[1] ?? 0;
+  const family = winner && winner[1] >= 1.2 && winner[1] >= runnerUp + 0.5 ? winner[0] : 'generic-LLM';
+  const markers = heuristic.map((f) => f.label).slice(0, 6).join('; ');
+  const candidates = ranked.map(([f, s]) => ({ family: f, strength: Math.round(s * 100) / 100 }));
   return {
-    family: 'generic-LLM',
+    family,
     confidence: 'low',
-    rationale: `Writing-style markers only (${markers}). Consistent with AI-assisted text, but style cannot identify a specific model.`,
+    rationale: `Writing-style markers only (${markers}). Consistent with ${family === 'generic-LLM' ? 'AI-assisted' : `${family}-authored`} text, but style cannot name a model with certainty.`,
+    ...(candidates.length > 0 ? { candidates } : {}),
   };
 }
 
@@ -281,25 +640,65 @@ function styleGuessFrom(heuristicFindings: TextSignalFinding[]): TextStyleGuess 
  * Analyse `text` for AI-generation signals. `opts.source` decides which tiers run:
  * 'digital' runs the artifact tier plus the heuristic tier; 'ocr' runs the
  * heuristic tier only (and sets `pixelSourced`), because a rasterised read has no
- * byte-level layer to inspect.
+ * byte-level layer to inspect. `opts.docKind` overrides the prose/markdown/code
+ * detection when the caller knows what it holds.
  *
  * Pure and synchronous. A best-effort SIGNAL, never a verdict.
  */
 export function analyzeTextSignals(text: string, opts: AnalyzeTextSignalsOpts): TextSignalReport {
   const source = opts.source;
   const pixelSourced = source === 'ocr';
+  const docKind = opts.docKind ?? (text.length > 0 ? detectDocKind(text) : 'prose');
   const findings: TextSignalFinding[] = [];
 
-  // ── Artifact tier (digital only) ──
+  // ── Model-fingerprint artifacts (run on ANY source) ──
+  // A leaked "oaicite" / "[span_1]" / "grok_card" is a VISIBLE scaffolding token, so it
+  // survives OCR and is checked on pixel-sourced text too - unlike the byte-level tells.
+  if (text.length > 0) {
+    for (const fp of MODEL_FINGERPRINTS) {
+      // The co-occurrence gate: a token too weak to convict alone only counts
+      // when its required companion pattern also appears somewhere in the text.
+      if (fp.requires && !new RegExp(fp.requires.source, fp.requires.flags.replace('g', '')).test(text)) continue;
+      const spans: RawSpan[] = [];
+      fp.re.lastIndex = 0;
+      for (let m = fp.re.exec(text); m !== null; m = fp.re.exec(text)) {
+        // A QUOTED match is a human writing about the assistant ("it said
+        // 'I'm Grok' again") - same rule the chatbot bucket applies.
+        if (!quotedAt(text, m.index, m[0].length)) spans.push({ index: m.index, length: m[0].length });
+        if (m[0].length === 0) fp.re.lastIndex++;
+      }
+      if (spans.length > 0) {
+        findings.push({
+          tier: 'artifact',
+          kind: 'model-fingerprint',
+          label: `${fp.label} (${fp.model})`,
+          detail: `A scaffolding token ${fp.model} leaks into its output; ${spans.length} occurrence${spans.length === 1 ? '' : 's'}.`,
+          weight: 5,
+          heat: heatOf('model-fingerprint'),
+          spans,
+          model: fp.model,
+        });
+      }
+    }
+  }
+
+  // ── Byte-level artifact tier (digital only) ──
   if (!pixelSourced && text.length > 0) {
-    const invisible = [...collect(INVISIBLE_CORE, text), ...suspiciousJoiners(text)];
+    // A U+FEFF at index 0 is a byte-order mark - an encoder's signature, not
+    // smuggled data - so the one leading BOM is carved out of the invisible set.
+    const invisible = [...collect(INVISIBLE_CORE, text), ...suspiciousJoiners(text), ...softHyphenSpans(text)]
+      .filter((s) => !(s.index === 0 && text.charCodeAt(0) === 0xfeff));
     if (invisible.length > 0) {
+      const mdNote = mostlyMarkdownAdjacent(invisible, text)
+        ? ' Most sit beside Markdown formatting characters - typical of AI chat output copied with its markup.'
+        : '';
       findings.push({
         tier: 'artifact',
         kind: 'invisible-char',
         label: 'Invisible characters',
-        detail: `${invisible.length} zero-width or invisible character${invisible.length === 1 ? '' : 's'} that ordinary text does not contain.`,
+        detail: `${invisible.length} zero-width or invisible character${invisible.length === 1 ? '' : 's'} that ordinary text does not contain.${mdNote}`,
         weight: 2 + (invisible.length >= 4 ? 1 : 0),
+        heat: heatOf('invisible-char'),
         spans: invisible,
       });
     }
@@ -312,6 +711,7 @@ export function analyzeTextSignals(text: string, opts: AnalyzeTextSignalsOpts): 
         label: 'Hidden tag characters',
         detail: `${tags.length} Unicode tag character${tags.length === 1 ? '' : 's'}, a known way to smuggle invisible data into text.`,
         weight: 4,
+        heat: heatOf('tag-chars'),
         spans: tags,
       });
     }
@@ -324,6 +724,7 @@ export function analyzeTextSignals(text: string, opts: AnalyzeTextSignalsOpts): 
         label: 'Unusual variation selectors',
         detail: `${vs.length} variation-selector sequence${vs.length === 1 ? '' : 's'}, which can carry hidden data.`,
         weight: 3,
+        heat: heatOf('variation-selectors'),
         spans: vs,
       });
     }
@@ -336,6 +737,7 @@ export function analyzeTextSignals(text: string, opts: AnalyzeTextSignalsOpts): 
         label: 'Bidirectional override characters',
         detail: `${bidi.length} left-to-right or right-to-left override${bidi.length === 1 ? '' : 's'}, which can hide or reorder text.`,
         weight: 3,
+        heat: heatOf('bidi-override'),
         spans: bidi,
       });
     }
@@ -348,6 +750,7 @@ export function analyzeTextSignals(text: string, opts: AnalyzeTextSignalsOpts): 
         label: 'Mixed-script words',
         detail: `${mixed.length} word${mixed.length === 1 ? '' : 's'} mixing Latin with a look-alike script, a homoglyph tell.`,
         weight: 3,
+        heat: heatOf('mixed-script'),
         spans: mixed,
       });
     }
@@ -360,110 +763,299 @@ export function analyzeTextSignals(text: string, opts: AnalyzeTextSignalsOpts): 
         label: 'Unusual spacing',
         detail: `${spaces.length} non-standard space character${spaces.length === 1 ? '' : 's'}.`,
         weight: 1,
+        heat: heatOf('anomalous-space'),
         spans: spaces,
       });
     }
   }
 
+  // ── Template placeholders (any source - visible text, so they survive OCR) ──
+  // "[Insert name here]" / "INSERT_LINK_HERE" / "20XX-XX-XX": an unfinished
+  // generated draft shipped with its fill-in slots still empty. NOT run on code
+  // (INSERT_BEFORE / INSERT_MODE are ordinary hand-written constants), and worded
+  // neutrally - a human mail-merge template is the innocent origin of the shape.
+  if (text.length > 0 && docKind !== 'code') {
+    const placeholders = [
+      ...collect(/\[(?:insert|paste|your)\b[^\]\n]{0,40}\]/gi, text),
+      ...collect(/\b(?:INSERT|PASTE)_[A-Z_]{2,30}\b/g, text),
+      ...collect(/\b20\d{2}-XX-XX\b/g, text),
+    ];
+    if (placeholders.length > 0) {
+      findings.push({
+        tier: 'artifact',
+        kind: 'template-placeholder',
+        label: 'Unfilled template placeholders',
+        detail: `${placeholders.length} fill-in placeholder${placeholders.length === 1 ? '' : 's'} left in the text - common in an unedited AI draft, and in a hand-written template.`,
+        weight: Math.min(2, 0.5 + placeholders.length * 0.5),
+        heat: heatOf('template-placeholder'),
+        spans: placeholders,
+      });
+    }
+  }
+
+  // ── Chatbot boilerplate (any source, NO length floor) ──
+  // Verbatim assistant-register phrases. The phrase itself is long and English
+  // enough to be its own guard, so the stylometry bias guard does not apply -
+  // "As an AI language model" in a 10-word caption is still evidence. In code,
+  // only a phrase inside a comment counts (string literals may legitimately
+  // hold such phrases - a detector's own source must not read as a chatbot).
+  // A phrase inside quotation marks is a human QUOTING a chatbot - skipped.
+  const comments = docKind === 'code' ? commentSpans(text) : undefined;
+  const inProse = comments ? (i: number) => withinSpans(comments, i) : undefined;
+  const boilerplateFindings: TextSignalFinding[] = [];
+  if (text.length > 0) {
+    const keepBp = (i: number, l: number) => (!inProse || inProse(i)) && !quotedAt(text, i, l);
+    // Two grades, one finding: HARD phrases (identity, refusal, cutoff) carry the
+    // weight; SOFT polite closers ("I hope this helps") are real signal in bulk
+    // but genuinely human too, so they contribute little and cap low - a human
+    // business email full of courteous sign-offs must never read as strong.
+    const hard = collectTells(CHATBOT_ARTIFACTS, text, keepBp);
+    const soft = collectTells(CHATBOT_SOFT, text, keepBp);
+    if (hard.hits + soft.hits > 0) {
+      const hardW = hard.hits > 0 ? 0.4 + hard.hits * 0.9 + hard.labels.length * 0.4 : 0;
+      const softW = Math.min(1.2, soft.hits * 0.35);
+      const hits = hard.hits + soft.hits;
+      const labels = [...hard.labels, ...soft.labels];
+      boilerplateFindings.push({
+        tier: 'heuristic',
+        kind: 'chatbot-leftover',
+        label: 'Chatbot boilerplate',
+        detail: `${hits} assistant-conversation phrase${hits === 1 ? '' : 's'} left in the text (${labels.slice(0, 4).join(', ')}).`,
+        weight: Math.min(BOILERPLATE_CAP, hardW + softW),
+        heat: hard.hits > 0 ? heatOf('chatbot-leftover') : 0.45,
+        spans: [...hard.spans, ...soft.spans].sort((a, b) => a.index - b.index),
+      });
+    }
+  }
+  findings.push(...boilerplateFindings);
+
   // ── Heuristic tier (English, long-enough text only - the bias guard) ──
-  const words = wordCount(text);
-  const { total: letters, latin } = letterStats(text);
+  const proseText = comments ? comments.map((s) => text.slice(s.index, s.index + s.length)).join('\n') : text;
+  const words = wordCount(proseText);
+  const { total: letters, latin } = letterStats(proseText);
   const looksEnglish = letters === 0 ? false : latin / letters >= 0.6;
-  const longEnough = words >= 40;
+  // A short-text floor: below it, stylometry is noise. 25 words is enough to catch a
+  // distinct phrase tell (weighted by COUNT, so short text does not over-inflate) while
+  // still refusing a one-liner. Fingerprints + byte-level artifacts run with no floor.
+  const longEnough = words >= 25;
   const heuristicFindings: TextSignalFinding[] = [];
 
   if (looksEnglish && longEnough) {
-    const lower = text.toLowerCase();
-
-    let lexHits = 0;
-    const lexSpans: RawSpan[] = [];
-    for (const w of LLM_WORDS) {
+    // Generic AI VOCABULARY (Wikipedia "Signs of AI writing" + the frequency studies).
+    let vocabHits = 0;
+    const vocabSpans: RawSpan[] = [];
+    for (const w of AI_WORDS) {
       const re = new RegExp(`\\b${w}\\b`, 'giu');
       for (let m = re.exec(text); m !== null; m = re.exec(text)) {
-        lexHits++;
-        lexSpans.push({ index: m.index, length: m[0].length });
+        if (inProse && !inProse(m.index)) continue;
+        vocabHits++;
+        vocabSpans.push({ index: m.index, length: m[0].length });
       }
     }
-    for (const p of LLM_PHRASES) {
-      let from = lower.indexOf(p);
-      while (from !== -1) {
-        lexHits++;
-        lexSpans.push({ index: from, length: p.length });
-        from = lower.indexOf(p, from + p.length);
-      }
-    }
-    if (lexHits > 0) {
-      const density = (lexHits / words) * 1000; // hits per 1000 words
-      const weight = Math.min(3, 0.5 + density * 0.5);
+    if (vocabHits > 0) {
+      // Count-based (not density): one AI word in a short text must not weigh as much as
+      // a paragraph full of them. It takes several distinct hits to weigh heavily.
       heuristicFindings.push({
         tier: 'heuristic',
-        kind: 'llm-lexicon',
-        label: 'AI-favoured wording',
-        detail: `${lexHits} phrase${lexHits === 1 ? '' : 's'} over-represented in AI-written text.`,
-        weight,
-        spans: lexSpans,
+        kind: 'ai-vocabulary',
+        label: 'AI-favoured vocabulary',
+        detail: `${vocabHits} word${vocabHits === 1 ? '' : 's'} over-represented in AI writing.`,
+        weight: Math.min(2.5, vocabHits * 0.45),
+        heat: heatOf('ai-vocabulary'),
+        spans: vocabSpans,
       });
     }
 
-    const emDashes = collect(/—/gu, text);
-    if (emDashes.length >= 3) {
+    // Generic AI PHRASING / puffery / signposting.
+    const phr = collectTells(AI_PHRASES, text, inProse);
+    if (phr.hits > 0) {
       heuristicFindings.push({
         tier: 'heuristic',
-        kind: 'em-dash-density',
-        label: 'Heavy em-dash use',
-        detail: `${emDashes.length} em-dashes, a common tell in AI prose.`,
-        weight: 1,
-        spans: emDashes,
+        kind: 'ai-phrasing',
+        label: 'AI stock phrasing',
+        detail: `${phr.hits} stock phrase${phr.hits === 1 ? '' : 's'} (${phr.labels.slice(0, 4).join(', ')}).`,
+        weight: Math.min(2.5, 0.5 + phr.hits * 0.5),
+        heat: heatOf('ai-phrasing'),
+        spans: phr.spans,
       });
     }
 
-    const lines = text.split('\n');
-    const bulletLines = lines.filter((l) => /^\s*([-*•]|\d+[.)])\s+/u.test(l)).length;
-    if (lines.length >= 6 && bulletLines / lines.length >= 0.5) {
+    // Generic AI STRUCTURE / grammar (negative parallelism, -ing editorializing,
+    // copula-avoidance, bold-label lists, emoji-decorated headings).
+    const struct = collectTells(AI_STRUCTURE, text, inProse);
+    if (struct.hits > 0) {
       heuristicFindings.push({
         tier: 'heuristic',
-        kind: 'list-heavy',
-        label: 'List-heavy structure',
-        detail: `${bulletLines} of ${lines.length} lines are list items.`,
-        weight: 1,
+        kind: 'ai-structure',
+        label: 'AI sentence structure',
+        detail: `${struct.hits} pattern${struct.hits === 1 ? '' : 's'} (${struct.labels.slice(0, 3).join(', ')}).`,
+        weight: Math.min(2, 0.5 + struct.hits * 0.5),
+        heat: heatOf('ai-structure'),
+        spans: struct.spans,
       });
     }
 
-    const lens = sentenceWordLengths(text);
-    if (lens.length >= 5) {
-      const mean = lens.reduce((a, b) => a + b, 0) / lens.length;
-      const variance = lens.reduce((a, b) => a + (b - mean) ** 2, 0) / lens.length;
-      const cv = mean > 0 ? Math.sqrt(variance) / mean : 0;
-      // Human writing is bursty (high variation); very uniform medium-length
-      // sentences read as machine-smoothed.
-      if (cv < 0.35 && mean >= 8) {
+    // Per-family style tics (Claude curated in-repo; other families additive).
+    // Claude keeps its historical kind; other families carry `family` instead.
+    for (const fam of FAMILY_TELLS) {
+      const tells = collectTells(fam.tells, text, inProse);
+      if (tells.hits > 0) {
+        const isClaude = fam.family === 'Claude';
         heuristicFindings.push({
           tier: 'heuristic',
-          kind: 'uniform-burstiness',
-          label: 'Unusually uniform sentences',
-          detail: 'Sentence lengths vary little, which is uncommon in human writing.',
-          weight: 1,
+          kind: isClaude ? 'claude-tell' : 'family-tell',
+          label: `${fam.family}-associated phrasing`,
+          detail: `${tells.hits} ${fam.family}-leaning tic${tells.hits === 1 ? '' : 's'} (${tells.labels.slice(0, 4).join(', ')}).`,
+          weight: Math.min(3, 0.8 + tells.hits * 0.7),
+          heat: heatOf(isClaude ? 'claude-tell' : 'family-tell'),
+          spans: tells.spans,
+          ...(isClaude ? {} : { family: fam.family }),
         });
+      }
+    }
+
+    if (docKind !== 'code') {
+      // Smart / odd punctuation (curly quotes, unicode ellipsis) - a weak "odd UTF-8" tell.
+      const smart = collect(/[‘’“”…]/gu, text);
+      if (smart.length >= 6) {
+        heuristicFindings.push({
+          tier: 'heuristic',
+          kind: 'smart-punctuation',
+          label: 'Curly quotes / smart punctuation',
+          detail: `${smart.length} curly-quote or ellipsis characters.`,
+          weight: 0.5,
+          heat: heatOf('smart-punctuation'),
+          spans: smart,
+        });
+      }
+
+      // Density-based (>=15 per 1000 words), not a bare count: long human prose
+      // legitimately collects a few em-dashes; AI prose salts them evenly through.
+      const emDashes = collect(/—/gu, text);
+      if (emDashes.length >= 3 && (emDashes.length / Math.max(1, words)) * 1000 >= 15) {
+        heuristicFindings.push({
+          tier: 'heuristic',
+          kind: 'em-dash-density',
+          label: 'Heavy em-dash use',
+          detail: `${emDashes.length} em-dashes in ${words} words, a density common in AI prose.`,
+          weight: 1,
+          heat: heatOf('em-dash-density'),
+          spans: emDashes,
+        });
+      }
+
+      const lines = text.split('\n');
+      const bulletLines = lines.filter((l) => /^\s*([-*•]|\d+[.)])\s+/u.test(l)).length;
+      if (lines.length >= 6 && bulletLines / lines.length >= 0.5) {
+        heuristicFindings.push({
+          tier: 'heuristic',
+          kind: 'list-heavy',
+          label: 'List-heavy structure',
+          detail: `${bulletLines} of ${lines.length} lines are list items.`,
+          weight: 1,
+          heat: heatOf('list-heavy'),
+        });
+      }
+
+      const lens = sentenceWordLengths(text);
+      if (lens.length >= 5) {
+        const { mean, cv } = coefficientOfVariation(lens);
+        // Human writing is bursty (high variation); very uniform medium-length
+        // sentences read as machine-smoothed.
+        if (cv < 0.35 && mean >= 8) {
+          heuristicFindings.push({
+            tier: 'heuristic',
+            kind: 'uniform-burstiness',
+            label: 'Unusually uniform sentences',
+            detail: 'Sentence lengths vary little, which is uncommon in human writing.',
+            weight: 1,
+            heat: heatOf('uniform-burstiness'),
+          });
+        }
+      }
+
+      // US/British spelling consistency: a human writes in one tradition; mixed
+      // variants across TWO OR MORE pairs read as generated (or stitched from
+      // generated) text. Code spans are masked first so a British document that
+      // mentions the CSS `color` property is never convicted by its own examples.
+      const masked = text.replace(/```[\s\S]*?```|`[^`\n]*`/g, (m) => ' '.repeat(m.length));
+      const mixedPairs: string[] = [];
+      const variantSpans: RawSpan[] = [];
+      for (const pair of SPELLING_VARIANTS) {
+        const us = collect(pair.us, masked);
+        const uk = collect(pair.uk, masked);
+        if (us.length > 0 && uk.length > 0) {
+          mixedPairs.push(pair.label);
+          // Highlight the minority side: the intruder in the document's tradition.
+          variantSpans.push(...(us.length <= uk.length ? us : uk));
+        }
+      }
+      if (mixedPairs.length >= 2) {
+        heuristicFindings.push({
+          tier: 'heuristic',
+          kind: 'spelling-variant-mix',
+          label: 'Mixed US/British spelling',
+          detail: `Both spellings of ${mixedPairs.slice(0, 3).join(', ')} appear - human writing usually keeps to one tradition.`,
+          weight: 1,
+          heat: heatOf('spelling-variant-mix'),
+          spans: variantSpans.sort((a, b) => a.index - b.index),
+        });
+      }
+
+      // The paragraph-scale twin: humans vary paragraph size; near-identical
+      // blocks read as generated. Needs enough paragraphs to be a pattern.
+      const paras = paragraphWordLengths(text);
+      if (paras.length >= 4) {
+        const { mean, cv } = coefficientOfVariation(paras);
+        if (cv < 0.25 && mean >= 25) {
+          heuristicFindings.push({
+            tier: 'heuristic',
+            kind: 'uniform-paragraphs',
+            label: 'Unusually uniform paragraphs',
+            detail: `${paras.length} paragraphs of near-identical length, which is uncommon in human writing.`,
+            weight: 1,
+            heat: heatOf('uniform-paragraphs'),
+          });
+        }
       }
     }
   }
 
   findings.push(...heuristicFindings);
 
+  // ── The heat map + the sandwich detector ──
+  const allWordSpans = wordSpans(text);
+  const heatmap = buildHeatmap(text, findings, allWordSpans);
+  const sandwich = docKind === 'code' ? undefined : sandwichFinding(heatmap, allWordSpans.length);
+  if (sandwich) {
+    findings.push(sandwich);
+    heuristicFindings.push(sandwich);
+  }
+
   const artifactScore = findings.filter((f) => f.tier === 'artifact').reduce((a, f) => a + f.weight, 0);
-  const heuristicScore = heuristicFindings.reduce((a, f) => a + f.weight, 0);
-  const band = bandFrom(artifactScore, heuristicScore);
+  const styleScore = heuristicFindings.reduce((a, f) => a + f.weight, 0);
+  const boilerplateScore = boilerplateFindings.reduce((a, f) => a + f.weight, 0);
+  const score = scoreFrom(artifactScore, styleScore, boilerplateScore);
+  const band = bandFromScore(score);
 
   findings.sort((a, b) => b.weight - a.weight);
 
-  const styleGuess = band === 'notable' || band === 'strong' ? styleGuessFrom(heuristicFindings) : undefined;
+  // The guess shows at notable+ OR whenever a fingerprint named a model (even if the
+  // rest of the text is clean, a single leaked token is worth surfacing).
+  const hasFingerprint = findings.some((f) => f.kind === 'model-fingerprint');
+  const styleGuess = band === 'notable' || band === 'strong' || hasFingerprint
+    ? styleGuessFrom(findings)
+    : undefined;
 
   return {
     source,
     pixelSourced,
+    docKind,
     band,
+    score,
     findings,
+    ...(heatmap ? { heatmap } : {}),
     styleGuess,
-    summary: summaryFor(band, pixelSourced),
+    summary: summaryFor(band, score, pixelSourced, docKind, findings.length),
   };
 }

@@ -1,6 +1,6 @@
 {
   "version": "1",
-  "generatedAt": "2026-08-18T11:54:59.485Z",
+  "generatedAt": "2026-08-18T17:07:42.844Z",
   "tools": [
     {
       "id": "compress-pdf",
@@ -2006,8 +2006,8 @@
         "csv"
       ],
       "formats": [
-        "md",
         "png",
+        "md",
         "svg",
         "emf",
         "pdf",

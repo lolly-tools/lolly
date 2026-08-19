@@ -178,14 +178,24 @@ export type { AudioAnalysis, AudioAnalyseOpts, AudioFrames } from './audio-analy
 export { groupWordsToCues, cuesToVtt, cuesToSrt, cueAt } from './captions.ts';
 export type { CaptionCue, GroupWordsOpts } from './captions.ts';
 // Text AI-likelihood signals (plans/125) - a string in, a tiered SIGNAL (never a
-// verdict) out: byte-level artifact tells on digital text, English-gated writing
-// -style heuristics, a hedged low-confidence style guess. Pure + model-free, so
-// the verify view, the CLI, and the OCR path read identical numbers.
-export { analyzeTextSignals } from './text-signals.ts';
+// verdict) out: byte-level artifact tells on digital text, chatbot-boilerplate
+// phrase evidence, English-gated writing-style heuristics, per-finding heat
+// temperatures + a rolling-window heat map, and a hedged style guess (only a
+// leaked fingerprint names a model with confidence). Pure + model-free, so the
+// verify view, the catalog, the CLI, and the OCR path read identical numbers.
+// LEXICON_VERSION keys persisted analyses to the tell lists that produced them.
+export { analyzeTextSignals, LEXICON_VERSION } from './text-signals.ts';
 export type {
   TextSignalSource, TextSignalBand, TextSignalTier, TextSignalSpan,
   TextSignalFinding, TextStyleGuess, TextSignalReport, AnalyzeTextSignalsOpts,
+  TextSignalDocKind, TextHeatCell, TextHeatmap,
 } from './text-signals.ts';
+// Humanize (plans/125) - the DETERMINISTIC, on-device clean-up of the mechanical AI
+// artifacts the analysis flags (invisible chars, leaked model tokens, curly-quote/em-dash
+// noise). No model, so no genAI stamp; the semantic tells stay HIGHLIGHTED for a person to
+// reword. The honest inverse of a detection-evading "humanizer".
+export { humanizeText } from './humanize.ts';
+export type { HumanizeChange, HumanizeResult } from './humanize.ts';
 // Speech synthesis text machinery (host.speech, v1.98) - the pure half of Kokoro
 // TTS: normalize/split/chunk maths, token-span bookkeeping, durations→word
 // timings and clip concatenation. The shell's worker and Node scripts inject the
@@ -338,7 +348,8 @@ export type {
   PptxSlide, PptxShape, PptxRect, PptxText, PptxPic, PptxRun, PptxPara, PptxFill, PptxMedia, PptxBuildOpts,
   PptxTable, PptxTableCell, PptxLine, PptxTheme, PptxPath,
 } from './pptx.ts';
-export { svgToCustGeomPaths } from './svg-custgeom.ts';
+export { svgToCustGeomPaths, svgToNativePptx } from './svg-custgeom.ts';
+export type { SvgNativePptx } from './svg-custgeom.ts';
 export { rebrandPptxParts } from './pptx-patch.ts';
 export type { RebrandPlan, RebrandTheme, RebrandReport, PartMap } from './pptx-patch.ts';
 export { isPptx, readPptx, pptxMediaImages } from './pptx-read.ts';
