@@ -533,6 +533,11 @@ export type { RampOptions, DistinctColorsOptions, ApcaUse, ApcaVerdict, ApcaSolv
 // distance, model-free. The pure math behind the video-matte colour-key method.
 export { chromaKeyAlpha } from './chroma-key.ts';
 export type { ChromaKeyOptions } from './chroma-key.ts';
+// Telea 2004 fast-marching inpainting - the classical content-aware fill behind
+// Retouch (plans/124 WP-E). Ported, not depended on: stock opencv.js omits
+// cv.inpaint. Windows itself to the mask bounding box and returns a new frame.
+export { inpaintTelea } from './inpaint.ts';
+export type { InpaintFrame, InpaintOpts } from './inpaint.ts';
 // Palette exchange - a flat swatch list serialised as DTCG tokens JSON, CSS
 // custom properties / classes, SCSS variables, a GIMP .gpl, or a binary Adobe
 // .ase. Pure + DOM-free; attached to host.color (paletteExport/paletteExportBytes)

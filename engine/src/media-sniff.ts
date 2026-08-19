@@ -183,10 +183,30 @@ export function sniffLayeredRaster(input: Uint8Array | ArrayBuffer): LayeredRast
  * `ftyp` box at offset 4; WebM/MKV open with the EBML magic. Used as a byte-level
  * backstop for the MIME/extension gate the ingest path already applies.
  */
+/** ISO-BMFF brands that mark an IMAGE file (AVIF/HEIC/HEIF, still or image
+ *  sequence) rather than a movie. AVIF and HEIC share MP4's `ftyp` container,
+ *  so a bare ftyp check classifies every AVIF upload as a video - which then
+ *  routes stills into the video pipeline (VideoDecoder refuses them) and off
+ *  every raster affordance. A real movie never declares these brands. */
+const IMAGE_FTYP_BRANDS = new Set([
+  'avif', 'avis', 'heic', 'heix', 'heim', 'heis', 'hevc', 'hevx', 'mif1', 'msf1', 'miaf',
+]);
+
 export function sniffVideoContainer(input: Uint8Array | ArrayBuffer): VideoContainer | null {
   const bytes = asBytes(input);
   if (has(bytes, 0, 0x1a, 0x45, 0xdf, 0xa3)) return 'webm';   // EBML (WebM/Matroska)
-  if (fourcc(bytes, 4, 'ftyp')) return 'mp4';                 // ISO-BMFF (MP4/MOV/M4V)
+  if (fourcc(bytes, 4, 'ftyp')) {                             // ISO-BMFF (MP4/MOV/M4V… or an image)
+    // Scan the major brand + every compatible brand inside the ftyp box; any
+    // image-family brand means this is an AVIF/HEIC picture, not a video.
+    const boxSize = ((bytes[0]! << 24) | (bytes[1]! << 16) | (bytes[2]! << 8) | bytes[3]!) >>> 0;
+    const end = Math.min(bytes.length, Math.max(16, Math.min(boxSize, 64)));
+    for (let off = 8; off + 4 <= end; off += 4) {
+      if (off === 12) continue; // minor_version, not a brand
+      const brand = String.fromCharCode(bytes[off]!, bytes[off + 1]!, bytes[off + 2]!, bytes[off + 3]!).toLowerCase();
+      if (IMAGE_FTYP_BRANDS.has(brand)) return null;
+    }
+    return 'mp4';
+  }
   return null;
 }
 
