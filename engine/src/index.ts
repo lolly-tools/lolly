@@ -37,6 +37,9 @@ export type { CssBlendMode, RasterLayer, LayeredRasterDoc, InflateFn } from './r
 export { buildInputModel, summarizeInputs, normalizeTableValue, DEFAULT_FILE_MAX_BYTES } from './inputs.ts';
 export type { TableValue } from './inputs.ts';
 export { parseUrlState, serializeUrlState, serializeHdr, encodeTableCompact, decodeTableCompact, RESERVED, HDR_DEFAULTS } from './url-mode.ts';
+// The `s=` state address + the still-export frame filter both shells apply (plan 112).
+export { parseFrameAddress, selectFramePage, frameFilterApplies, FRAME_FILTER_SKIP_FORMATS } from './frame-address.ts';
+export type { FrameAddress, FrameSelection } from './frame-address.ts';
 export { looksLikeTable, parseTableText, toTsv, toMarkdown, toHtmlTable } from './table-text.ts';
 export type { HdrSettings, DepthSetting } from './url-mode.ts';
 export { LANGS, LANG_META, isLang, normalizeLang, flagEmoji, sortedLangs } from './lang.ts';
@@ -196,6 +199,18 @@ export type {
 // reword. The honest inverse of a detection-evading "humanizer".
 export { humanizeText } from './humanize.ts';
 export type { HumanizeChange, HumanizeResult } from './humanize.ts';
+// Reword (plans/127) - the SEMANTIC half humanize defers, pure side only: the
+// deterministic suggestion table, the sentence spans worth offering a model,
+// the shared prompt, and the GATE that decides which model candidates a shell
+// may ever offer (no longer, facts/names intact, analyser-calmer, no artifact).
+// The model itself is shell-side; accepting its output stamps aiGenerated.
+export {
+  suggestRewrites, applySuggestion, rewordableSpans, buildRewordMessages,
+  normalizeRewordReply, rewordGate, rewordCandidates, REWORD_SYSTEM_PROMPT,
+} from './reword.ts';
+export type {
+  RewordSuggestion, RewordSpan, RewordMessage, RewordVerdict, RewordCandidate,
+} from './reword.ts';
 // Speech synthesis text machinery (host.speech, v1.98) - the pure half of Kokoro
 // TTS: normalize/split/chunk maths, token-span bookkeeping, durations→word
 // timings and clip concatenation. The shell's worker and Node scripts inject the

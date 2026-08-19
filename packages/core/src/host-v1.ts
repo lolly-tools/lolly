@@ -373,7 +373,7 @@ export interface HostV1 {
    *
    * Distinct from `host.images`: that is the CONVERT path (encoded bytes in,
    * encoded bytes out, no pixel access) for the upload/export pipeline. This is
-   * for tools that composite, sample or mutate pixels themselves (bitmap-studio,
+   * for tools that composite, sample or mutate pixels themselves (darkroom,
    * the filter-* family, the logo/lockup composers, redact) - so `decode`
    * returns a drawable `ImageBitmap` (valid on a main-thread `<canvas>` AND a
    * Worker `OffscreenCanvas`, unlike an `<img>`) and `encode` takes raw RGBA.

@@ -39,7 +39,11 @@ import {
 } from '../shells/web/src/views/sequence-clock.ts';
 // The session form of the applier - a live per-frame writer, which is what the
 // export-time read/restore seam at the end of this file exists to stand down.
-import { createSequenceTime } from '../shells/web/src/bridge/sequence-dom.ts';
+// `sequencePoseOf` is the same applier's published fold, which the editor chrome reads
+// back rather than re-evaluating (plans/104 section 6.5).
+import { createSequenceTime, sequencePoseOf } from '../shells/web/src/bridge/sequence-dom.ts';
+// …and the pure map from that pose to the rect the selection outline is drawn on.
+import { posedRect } from '../shells/web/src/views/free-canvas-math.ts';
 import {
   DEFAULT_PERSPECTIVE, KF_CLAMPS, KF_EFF_MAX, KF_Z_FIELD_CLAMP,
   dofBlur, evaluateKf, projectLayer,
@@ -2217,6 +2221,76 @@ test('section 4.1 FOLD under a REAL camera: transition offsets are INSIDE the pr
     if (item.dx !== 0) moved++;
   }
   assert.ok(moved > 40, 'the fixture really is moving — otherwise this proves nothing');
+});
+
+// ── section 6.5 / section 9.15: the pose the EDITOR CHROME reads back ────────────
+//
+// The reported bug: a box under a keyframe scale rendered at its posed geometry while
+// free-canvas drew the selection outline and all eight resize handles at the AUTHORED
+// rect: editing controls over empty canvas, and the one drag entry point that never
+// goes through the hit-test. Section 6.5's rule is that chrome projects through the SAME
+// fold the render used, so the applier publishes what it wrote and the chrome maps the
+// model rect through it. These two assertions are that seam: the published pose IS the
+// written transform, and `posedRect` turns it into the rect the user is looking at.
+
+test('section 9.15: the applier publishes the pose it wrote, and drops it on restore', () => {
+  const node = depthStage(
+    camBox('data-t-start="0" data-t-dur="3000" data-t-kf="t0_x-120_z-400*t2000_el_x120_z-200"')
+    + depthBox({
+      time: 'data-t-start="0" data-t-dur="2000"'
+        + ' data-t-kf="t0_s1_x0_y0*t2000_eo_s1.6_x140_y-60"',
+    }),
+  );
+  const el = [...node.querySelectorAll<HTMLElement>('.lolly-box')][1] as HTMLElement;
+  const ctx = applyCtx(4000);
+  let offset = 0;
+  for (let t = 0; t < 2000; t += 53) {
+    applyTimeToElements([...node.querySelectorAll<HTMLElement>('.lolly-box')], t, ctx);
+    const p = sequencePoseOf(el);
+    assert.ok(p, `a posed box answers at t=${t}`);
+    // Identical at the applier's own quantum to what it put in the inline transform:
+    // one number, published and written from the same fold, so the chrome cannot be
+    // reading a second evaluation of the same track.
+    const w = written(el);
+    assert.equal(n3(p.dx), w.dx, `dx at ${t}`);
+    assert.equal(n3(p.dy), w.dy, `dy at ${t}`);
+    assert.equal(n3(p.sc), w.sc, `sc at ${t}`);
+    assert.ok(Math.abs(n3(p.rot) - w.rot) < 1e-3, `rot at ${t}`);
+    assert.equal(p.sized, false, 'this track keys no size');
+    assert.equal(p.tilted, false, 'and rides no tilted camera');
+    // The chrome the OLD code drew (the authored rect) against the one it draws now.
+    const authored = { x: 200, y: 100, w: 640, h: 360, rot: 0 };
+    const posed = posedRect(authored, p);
+    assert.equal(posed.w, 640 * p.sc, 'the outline grows with the box');
+    assert.equal(posed.x + posed.w / 2, 200 + 320 + p.dx, 'and stays centred on it');
+    if (Math.hypot(posed.x - authored.x, posed.y - authored.y) > 1) offset++;
+  }
+  assert.ok(offset > 25, 'the fixture really does move the chrome — otherwise this proves nothing');
+
+  // Past the clip's out-point the applier hands the authored styles back, and the pose
+  // goes with them: "no entry" and "not posed" have to be the same answer, or the
+  // chrome would keep drawing at a pose the DOM no longer holds.
+  applyTimeToElements([...node.querySelectorAll<HTMLElement>('.lolly-box')], 3500, ctx);
+  assert.equal(sequencePoseOf(el), null, 'a box off the playhead publishes nothing');
+  const rest = { x: 200, y: 100, w: 640, h: 360, rot: 0 };
+  assert.equal(posedRect(rest, sequencePoseOf(el)), rest, 'so the chrome is placed from the model');
+});
+
+test('section 9.15: standing down for an export takes the published pose with it', () => {
+  const node = depthStage(depthBox({
+    time: 'data-t-start="0" data-t-dur="2000" data-t-kf="t0_s1*t2000_s1.6"',
+  }));
+  const el = node.querySelector('.lolly-box') as HTMLElement;
+  const session = createSequenceTime(node);
+  session.apply(1000);
+  assert.ok(sequencePoseOf(el), 'posed while the clock is driving');
+  // `withAuthoredDom` is what an export wraps itself in - every live writer hands its
+  // writes back for the duration. An editor asking mid-export must not be told the box
+  // is still posed, because it demonstrably is not.
+  withAuthoredDom(node, () => {
+    assert.equal(sequencePoseOf(el), null, 'the pose comes off with the styles that expressed it');
+  });
+  session.restore();
 });
 
 test('camerasMove: the P1 ownership question, answered once for the whole render', () => {

@@ -397,9 +397,11 @@ const withinSpans = (spans: RawSpan[], index: number): boolean =>
  * True when the span sits inside quotation marks on its own line - a human
  * QUOTING a chatbot ("it just said “As an AI language model” again") is writing
  * ABOUT AI, not with it. Line-local and double-quote-only by design: cheap, and
- * apostrophes never trip it.
+ * apostrophes never trip it. Exported for reword.ts, whose suggestion table
+ * must skip quoted phrases by the same rule (someone else's words are not
+ * ours to reword).
  */
-function quotedAt(text: string, index: number, length: number): boolean {
+export function quotedAt(text: string, index: number, length: number): boolean {
   const lineStart = text.lastIndexOf('\n', index - 1) + 1;
   let lineEnd = text.indexOf('\n', index + length);
   if (lineEnd < 0) lineEnd = text.length;

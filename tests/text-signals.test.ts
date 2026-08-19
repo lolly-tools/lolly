@@ -328,7 +328,7 @@ test('FP: template-placeholder never fires on code (INSERT_BEFORE is a constant)
   assert.ok(!r.findings.some((f) => f.kind === 'template-placeholder'));
 });
 
-// ── claudism-pass identifiers (github.com/mge1512/skill-claudism-pass, CC0) ──
+// ── claudism-pass identifiers (Matthias Eckermann, github.com/mge1512/skill-claudism-pass, CC0) ──
 
 test('claudism-pass tells lean the guess to Claude', () => {
   const text = 'Sit with that for a moment, because what struck me most is the part everyone misses. '

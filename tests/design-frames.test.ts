@@ -134,6 +134,43 @@ test('frame `state` → sanitised data-frame-state on the page (plan 112 M4)', a
   assert.equal(pages[1]!.getAttribute('data-frame-state'), null, 'no state → no attribute');
 });
 
+test('per-box `cls` → extra class tokens on the box, in every branch (plan 112 M4)', async () => {
+  // The Custom CSS companion: an author's own class names, so a rule says `.callout {…}`
+  // rather than addressing a ULID. It must reach ALL THREE render branches - a page child,
+  // a pasteboard box, and the no-frames artboard - because a class that works while a doc
+  // has frames and stops when it doesn't is a class nobody can rely on.
+  const framed = await mount([
+    { id: 'f', kind: 'frame', x: 0, y: 0, w: 800, h: 600, order: 0 },
+    { id: 'member', kind: 'text', x: 20, y: 20, w: 200, h: 40, text: 'In', frame: 'f', cls: 'callout hero' },
+    { id: 'loose', kind: 'text', x: 900, y: 20, w: 200, h: 40, text: 'Out', frame: '', cls: 'scratch' },
+  ]);
+  const fdoc = new JSDOM(framed).window.document;
+  const member = fdoc.querySelector('[data-box-id="member"]')!;
+  assert.deepEqual([...member.classList].sort(), ['callout', 'hero', 'lolly-box']);
+  assert.deepEqual([...fdoc.querySelector('[data-box-id="loose"]')!.classList].sort(), ['lolly-box', 'scratch']);
+
+  const flat = await mount([{ id: 'a', kind: 'box', x: 0, y: 0, w: 100, h: 100, cls: 'callout' }]);
+  const adoc = new JSDOM(flat).window.document;
+  assert.deepEqual([...adoc.querySelector('[data-box-id="a"]')!.classList].sort(), ['callout', 'lolly-box']);
+});
+
+test('`cls` is parsed and re-serialised, never passed through (plan 112 M4)', async () => {
+  const html = await mount([
+    // Quote-escape attempt, punctuation, uppercase, a digit-leading token, duplicates,
+    // and the app's own namespaces - the class attribute is authored by the DOCUMENT, so
+    // it is a sanitiser boundary like every other free-text field the hook emits.
+    { id: 'a', kind: 'box', x: 0, y: 0, w: 10, h: 10, cls: '"><script>x</script> Big.Callout 2cool big big lolly-frames seq-off pr-active fc-panel keep_me' },
+    { id: 'b', kind: 'box', x: 20, y: 0, w: 10, h: 10 },
+  ]);
+  assert.doesNotMatch(html, /<script>x<\/script>/, 'no markup can escape the class attribute');
+  const doc = new JSDOM(html).window.document;
+  assert.deepEqual([...doc.querySelector('[data-box-id="a"]')!.classList],
+    ['lolly-box', 'scriptxscript', 'bigcallout', 'big', 'keep_me'],
+    'lowercased, cleaned to [a-z0-9_-], de-duplicated; a digit-leading token and the app namespaces are DROPPED, never renamed');
+  assert.deepEqual([...doc.querySelector('[data-box-id="b"]')!.classList], ['lolly-box'],
+    'no cls → the class list is exactly what it always was');
+});
+
 test('frame `notes` → attribute-escaped data-frame-notes, never on the slide (plan 112 M5)', async () => {
   const html = await mount([
     { id: 'f', kind: 'frame', x: 0, y: 0, w: 800, h: 600, order: 0, notes: 'Say "hi" & <wave>\nline two' },

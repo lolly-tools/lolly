@@ -13,6 +13,7 @@ import { readFileSync } from 'node:fs';
 import { validateManifest } from '../engine/src/validate.ts';
 import { parseUrlState, serializeUrlState, serializeHdr, RESERVED, CUTS_MAX, cutTime } from '../engine/src/url-mode.ts';
 import type { DepthSetting } from '../engine/src/url-mode.ts';
+import { parseFrameAddress, selectFramePage } from '../engine/src/frame-address.ts';
 import { buildInputModel, updateInput, modelToValues } from '../engine/src/inputs.ts';
 import { hydrate, annotateTemplate } from '../engine/src/template.ts';
 import { createRuntime } from '../engine/src/runtime.ts';
@@ -191,6 +192,70 @@ test('url-mode: designv is the design-system version override, read-only', () =>
   // design system they don't have would resolve to something else on their device
   // anyway; worse, it would silently freeze their own system out of their render.
   assert.equal(new URLSearchParams(serializeUrlState([], {})).has('designv'), false);
+});
+
+test('url-mode: s is the deck state address, carried verbatim (plan 112)', () => {
+  // `s` was reserved with M1; the still-export filter is what made it engine-visible,
+  // so it is now a typed UrlState field. Verbatim: what "2" or "slide1" resolves to is
+  // a question about the pages a render produced, which url-mode cannot know.
+  const s = parseUrlState('heading=Hi&s=2', SAMPLE_MANIFEST);
+  assert.equal(s.slide, '2');
+  assert.equal(s.values.s, undefined);                // reserved - never a tool input
+  assert.equal(parseUrlState('s=slide1', SAMPLE_MANIFEST).slide, 'slide1');
+  assert.equal(parseUrlState('s=2.3', SAMPLE_MANIFEST).slide, '2.3');   // build suffix survives whole
+  // Absent and empty both read as "no address" ⇒ every page exports, unchanged.
+  assert.equal(parseUrlState('heading=Hi', SAMPLE_MANIFEST).slide, null);
+  assert.equal(parseUrlState('s=', SAMPLE_MANIFEST).slide, null);
+});
+
+test('frame-address: parseFrameAddress — position vs id vs build step', () => {
+  // Nothing addressed ⇒ null, so a caller can tell "no filter" from "filter matched nothing".
+  assert.equal(parseFrameAddress(null), null);
+  assert.equal(parseFrameAddress(undefined), null);
+  assert.equal(parseFrameAddress(''), null);
+  assert.equal(parseFrameAddress('   '), null);
+  assert.equal(parseFrameAddress('.3'), null, 'a bare build suffix addresses no slide');
+
+  // Digits = 1-based position; anything else = a frame id.
+  assert.deepEqual(parseFrameAddress('2'), { position: 2, id: null, build: null, raw: '2' });
+  assert.deepEqual(parseFrameAddress('slide1'), { position: null, id: 'slide1', build: null, raw: 'slide1' });
+  // `.N` is a 1-based build threshold on either form; `.0` and junk are meaningless.
+  assert.deepEqual(parseFrameAddress('2.3'), { position: 2, id: null, build: 3, raw: '2.3' });
+  assert.deepEqual(parseFrameAddress('slide1.2'), { position: null, id: 'slide1', build: 2, raw: 'slide1.2' });
+  assert.equal(parseFrameAddress('2.0')!.build, null);
+  assert.equal(parseFrameAddress('2.x')!.build, null);
+  // A ULID is an id like any other, and `s=0` is a POSITION (1-based), not an id -
+  // reading it as an id would match a frame literally named "0".
+  assert.equal(parseFrameAddress('01J8ZQ0000000000000000000A')!.id, '01J8ZQ0000000000000000000A');
+  assert.deepEqual(parseFrameAddress('0'), { position: 0, id: null, build: null, raw: '0' });
+});
+
+test('frame-address: selectFramePage — the still-export filter both shells apply', () => {
+  const pages = ['slide1', 'slide2', 'slide3'];
+
+  // No address ⇒ 'none' ⇒ the whole fan-out, byte-identical to before the filter existed.
+  assert.deepEqual(selectFramePage(pages, null), { kind: 'none' });
+  assert.deepEqual(selectFramePage(pages, ''), { kind: 'none' });
+
+  // Positional counts pages from 1; id matches wherever it sits (reorder-proof).
+  assert.equal((selectFramePage(pages, '2') as { index: number }).index, 1);
+  assert.equal((selectFramePage(pages, 'slide3') as { index: number }).index, 2);
+  assert.equal((selectFramePage(pages, 'slide1') as { index: number }).index, 0);
+  // A build step selects the same page - a still export shows every build.
+  assert.equal((selectFramePage(pages, '2.3') as { index: number }).index, 1);
+
+  // Out of range / unknown id / a document with no pages: 'unmatched', never a
+  // silent fall back to page 1. The web keeps the fan-out and says so; the CLI refuses.
+  assert.equal(selectFramePage(pages, '4').kind, 'unmatched');
+  assert.equal(selectFramePage(pages, '0').kind, 'unmatched');
+  assert.equal(selectFramePage(pages, 'nope').kind, 'unmatched');
+  assert.equal(selectFramePage([], '1').kind, 'unmatched');
+  assert.equal(selectFramePage([], null).kind, 'none');
+
+  // A paged tool that stamps no frame ids still answers a positional address.
+  const unstamped = [null, null, undefined];
+  assert.equal((selectFramePage(unstamped, '3') as { index: number }).index, 2);
+  assert.equal(selectFramePage(unstamped, 'slide1').kind, 'unmatched');
 });
 
 test('url-mode: depth param — requested export bit depth (8/16/float/auto)', () => {

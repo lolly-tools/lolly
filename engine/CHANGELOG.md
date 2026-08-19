@@ -6,6 +6,33 @@ minors, never removed or signature-changed without a major bump.
 
 Moved verbatim from the comment block that used to live in `src/index.ts`.
 
+1.131.0 — additive (plans/127, no HostV1 change): `src/reword.ts`, the pure side
+of on-device rewording - the deterministic rewrite-suggestion table
+(`suggestRewrites`/`applySuggestion`; filler-opener deletions and plain-word
+swaps, quote-masked, LEXICON_VERSION untouched), `rewordableSpans` (which
+sentences of an analysed text are worth offering a model - style marks,
+sentence-bounded, heat-ranked, capped), the shared prompt
+(`buildRewordMessages`/`REWORD_SYSTEM_PROMPT`), and the gate
+(`rewordGate`/`rewordCandidates`: a model candidate is offered only if it is no
+longer than the original, keeps every number/link/name both directions, scores
+no hotter on the analyser, and carries no artifact-tier finding). The model is
+shell-side; accepting its output makes the save AI-flagged (`aiGenerated`),
+per humanize.ts's provenance rule. `quotedAt` is now exported from
+text-signals.ts so the suggestion table skips quoted phrases by the same rule.
+
+1.130.0 — additive (plans/112 section 10, no HostV1 change): the `s=` STATE ADDRESS
+becomes engine-visible. `UrlState` gains `slide` (the raw `s` value, carried
+verbatim — `s` was already reserved, so no RESERVED change), and a new module
+`src/frame-address.ts` exports `parseFrameAddress` + `selectFramePage` with the
+`FrameAddress`/`FrameSelection` types: the one definition of what `s=2`,
+`s=slide1` and `s=2.3` mean against the pages a render actually produced. It is
+what makes the still-export filter (`?s=2&format=png` renders just that slide)
+identical in the web fan-out and the CLI instead of two shells agreeing to
+behave alike. DOM-free — callers pass the page ids they read off
+`[data-frame-id]`, in render order. An address that names nothing resolves as
+`unmatched` (never silently "the first page"); build steps parse but do not
+filter, because a still export shows every build.
+
 1.129.0 — additive (plans/125 v2, no HostV1 change): the text AI-likelihood
 analyser grows confidence TEMPERATURES and a heat map. Every
 `TextSignalFinding` now carries `heat` (0-1, its individual confidence grade -

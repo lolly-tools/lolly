@@ -200,7 +200,7 @@ var shell = (title, body, script = "") => `<!doctype html>
 <meta name="robots" content="noindex">
 <title>${escapeHtml(title)}</title>
 <style>
-  body { font-family: system-ui, sans-serif; display: grid; place-items: center; min-height: 100vh; margin: 0; background: #0c322c; color: #efefef; text-align: center; }
+  body { font-family: SUSE, system-ui, sans-serif; display: grid; place-items: center; min-height: 100vh; margin: 0; background: #0c322c; color: #efefef; text-align: center; }
   main { padding: 2rem; max-width: 26rem; }
   h1 { font-size: 1.3rem; margin: 0 0 0.5rem; }
   p { color: #b7c8c4; line-height: 1.5; }
@@ -214,12 +214,21 @@ ${script}</body>
 function completionPage({ token, origin }) {
   const script = `<script>
 (function () {
+  var payload = ${js({ source: "lolly-ca", type: "enroll-token", token })};
+  var delivered = false;
+  try {
+    var bc = new BroadcastChannel('lolly-ca');
+    bc.postMessage(payload);
+    bc.close();
+    delivered = true;
+  } catch (e) { /* no BroadcastChannel - the opener path below covers it */ }
   try {
     if (window.opener) {
-      window.opener.postMessage(${js({ source: "lolly-ca", type: "enroll-token", token })}, ${js(origin)});
-      window.close();
+      window.opener.postMessage(payload, ${js(origin)});
+      delivered = true;
     }
   } catch (e) { /* fall through to the visible message */ }
+  if (delivered) window.close();
 })();
 </script>
 `;
@@ -501,6 +510,10 @@ async function enroll({ token, spki, pop, days } = {}, env) {
 // services/ca/handler.mjs
 var STATE_COOKIE = "lolly_ca_state";
 var STATE_TTL_SECONDS = 600;
+var ISOLATION_HEADERS = {
+  "cross-origin-opener-policy": "same-origin",
+  "cross-origin-embedder-policy": "credentialless"
+};
 var BODY_CAP = 64 * 1024;
 var STATE_TYP = "lolly-ca/state";
 var EMAIL_COOLDOWN_MS = 60 * 1e3;
@@ -556,7 +569,7 @@ async function routeAuth(env, { provider, origin, redirectUri }) {
   if (provider === "dev") {
     if (env.CA_DEV_FAKE_PROVIDER !== "1") return { status: 404, json: { error: "unknown provider" } };
     const token = await mintEnrollToken({ email: "dev@example.com", provider: "dev" }, env.CA_SERVICE_SECRET);
-    return { status: 200, body: completionPage({ token, origin }), type: "text/html; charset=utf-8" };
+    return { status: 200, body: completionPage({ token, origin }), type: "text/html; charset=utf-8", headers: ISOLATION_HEADERS };
   }
   if (!OAUTH_PROVIDERS.includes(provider)) return { status: 404, json: { error: "unknown provider" } };
   if (!configuredProviders(env)[provider]) return { status: 501, json: { error: `${provider} sign-in is not configured on this deployment` } };
@@ -593,7 +606,7 @@ async function routeCallback(env, { provider, query, cookieHeader, redirectUri }
     return fail(401, err?.message || "Could not verify your email with the provider.");
   }
   const token = await mintEnrollToken({ email, provider }, env.CA_SERVICE_SECRET);
-  return { status: 200, body: completionPage({ token, origin: state.origin }), type: "text/html; charset=utf-8", headers: clear };
+  return { status: 200, body: completionPage({ token, origin: state.origin }), type: "text/html; charset=utf-8", headers: { ...clear, ...ISOLATION_HEADERS } };
 }
 async function routeEmailStart(env, body, ip) {
   const email = typeof body?.email === "string" ? body.email.trim() : "";

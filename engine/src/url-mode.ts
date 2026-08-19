@@ -123,11 +123,13 @@
  *                  presentation order, anything else (`s=slide1`, a ULID) is a frame
  *                  id, and an `.N` suffix (`s=2.3`) names a build step. With
  *                  `present` it deep-links that slide; without it the editor centres
- *                  that frame on mount. Read raw by the shell (the `template`
- *                  pattern) - its still-export meaning (`?s=2&format=png` = the one
- *                  slide) lives in the export fan-out, not in the typed UrlState.
- *                  (The signage flag `loop` is NOT reserved - see the RESERVED set
- *                  below for why - but travels alongside these as `?present&loop`.)
+ *                  that frame on mount. It ALSO filters a STILL export to the one
+ *                  named frame (`?s=2&format=png` = a per-slide image link), which is
+ *                  why it is carried verbatim in UrlState: `frame-address.ts` resolves
+ *                  it against the rendered pages for the web fan-out and the CLI alike.
+ *                  Build steps are presenter-only - a still export always shows every
+ *                  build. (The signage flag `loop` is NOT reserved - see the RESERVED
+ *                  set below for why - but travels alongside these as `?present&loop`.)
  *   - `z` - a PACKED whole-state token (raw DEFLATE + base64url) that carries
  *                  the entire query for complex tools whose readable form would blow
  *                  past practical URL limits. Expanded back into a plain query by
@@ -268,6 +270,13 @@ export interface UrlState {
    *  ladder in engine/src/design-version.ts decides what it resolves to, since only
    *  the caller knows which versions this device holds. See the header. */
   designVersion: string | null;
+  /** The `s` STATE ADDRESS of a multi-frame document (plan 112): `2` (1-based position in
+   *  presentation order), a frame id (`slide1`, a ULID), or either with an `.N` build-step
+   *  suffix. Carried VERBATIM - what it resolves to is a question about the pages a render
+   *  actually produced, which only the caller has; `engine/src/frame-address.ts` turns it
+   *  into a page selection for the still-export filter (web fan-out + CLI, same code).
+   *  null ⇒ absent ⇒ every page exports, the unchanged default. */
+  slide: string | null;
 }
 
 /** The slice of an input model item serializeUrlState reads. */
@@ -545,6 +554,9 @@ export function parseUrlState(searchParams: string | URLSearchParams, manifest: 
     // Design-system version override (see header). Verbatim, never validated here:
     // whether a slug names a real version is a question about the device's ledger.
     designVersion: params.get('designv') || null,
+    // The deck state address (see header). Verbatim: frame-address.ts resolves it against
+    // the pages a render produced, which is the only place that knows what exists.
+    slide: params.get('s') || null,
   };
 }
 
@@ -711,7 +723,10 @@ function decodeBlocksCompact(str: string, fields: BlockFieldSpec[]): InputValue[
         // 'remote' compose-rendered ref; a plain id is a 'library' asset. Empty
         // → no image.
         obj[f.id] = raw ? { source: isToolUrl(raw) ? 'remote' : 'library', id: raw, _unresolved: true } : null;
-      } else if (f.type === 'color' && raw && !raw.startsWith('#')) {
+      } else if (f.type === 'color' && /^[0-9a-fA-F]{3,8}$/.test(raw)) {
+        // Restore the '#' the encoder stripped - but ONLY for a bare hex body. A
+        // CSS var()/keyword/token colour was never stripped, so prepending '#'
+        // here would corrupt it (e.g. `#transparent`, `#var(--brand-primary,…)`).
         obj[f.id] = '#' + raw;
       } else {
         obj[f.id] = raw;

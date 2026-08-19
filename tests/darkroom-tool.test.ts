@@ -1,11 +1,11 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
- * bitmap-studio tool contract tests.
+ * darkroom tool contract tests.
  *
- * Run with: node --test tests/bitmap-studio-tool.test.ts
+ * Run with: node --test tests/darkroom-tool.test.ts
  * No test framework - node:test built-in.
  *
- * Loads the REAL tool straight from community/bitmap-studio and
+ * Loads the REAL tool straight from community/darkroom and
  * drives it through the engine with a stubbed host - only the host is stubbed;
  * the code under test is the shipped manifest + hooks. Guards:
  *   - headless degradation: no canvas → the placeholder note, never a throw,
@@ -33,18 +33,18 @@ import { baseHost } from './helpers/host.ts';
 const TOOLS_DIR = join(dirname(fileURLToPath(import.meta.url)), '..', 'community');
 const fetchFile = (path: string) => readFile(join(TOOLS_DIR, path), 'utf8');
 
-assert.ok(existsSync(join(TOOLS_DIR, 'bitmap-studio', 'tool.json')),
-  'community/bitmap-studio/tool.json is missing — the tool was renamed or deleted');
+assert.ok(existsSync(join(TOOLS_DIR, 'darkroom', 'tool.json')),
+  'community/darkroom/tool.json is missing — the tool was renamed or deleted');
 
-const tool: any = await loadTool('bitmap-studio', fetchFile);
+const tool: any = await loadTool('darkroom', fetchFile);
 
 // Serve the shipped preset .cube files to the tool's own fetch() from disk, so
 // the preset path runs end-to-end without an HTTP server. The id pattern is the
 // tool's own whitelist shape - anything else (incl. any traversal attempt) 404s.
-const LUT_DIR = join(TOOLS_DIR, 'bitmap-studio', 'assets', 'luts');
+const LUT_DIR = join(TOOLS_DIR, 'darkroom', 'assets', 'luts');
 const PRESET_IDS = ['slide-standard', 'slide-vivid', 'chrome-muted', 'mono-fine'];
 (globalThis as any).fetch = async (url: any) => {
-  const m = String(url).match(/\/tools\/bitmap-studio\/assets\/luts\/([a-z0-9-]+)\.cube$/);
+  const m = String(url).match(/\/tools\/darkroom\/assets\/luts\/([a-z0-9-]+)\.cube$/);
   if (!m) return { ok: false, status: 404, text: async () => '' };
   try {
     const text = await readFile(join(LUT_DIR, `${m[1]}.cube`), 'utf8');
@@ -90,10 +90,11 @@ function parseBaked(text: string) {
   return { size, rows };
 }
 
-test('manifest: a designer-grade raster tool on the ^1.4 engine', () => {
+test('manifest: a designer-grade raster tool on the ^1.12 engine', () => {
   const m = tool.manifest;
-  assert.equal(m.id, 'bitmap-studio');
-  assert.equal(m.engineVersion, '^1.4.0');
+  assert.equal(m.id, 'darkroom');
+  // ^1.12 floor inherited from the folded-in Layers tool (host.layers.writePsd).
+  assert.equal(m.engineVersion, '^1.12.0');
   assert.equal(m.render.liveMaxEdge, 1280);
   const lut = m.inputs.find((i: any) => i.id === 'lutFile');
   assert.equal(lut.type, 'file');
@@ -143,7 +144,7 @@ test('bake: the default pipeline bakes an identity LUT and resets the switch', a
   await rt.setInput('bakeLut', true as any);
 
   assert.equal(delivered.length, 1, 'one .cube delivered');
-  assert.equal(delivered[0]!.filename, 'bitmap-studio-look-33.cube');
+  assert.equal(delivered[0]!.filename, 'darkroom-look-33.cube');
   const { size, rows } = parseBaked(await delivered[0]!.blob.text());
   assert.equal(size, 33);
   assert.equal(rows.length, 33 * 33 * 33);
@@ -239,7 +240,7 @@ test('bake: a loaded LUT folds into the bake, and bakeSize is honoured', async (
   await rt.setInput('bakeSize', '17' as any);
   await rt.setInput('bakeLut', true as any);
 
-  assert.equal(delivered[0]!.filename, 'bitmap-studio-look-17.cube');
+  assert.equal(delivered[0]!.filename, 'darkroom-look-17.cube');
   const { size, rows } = parseBaked(await delivered[0]!.blob.text());
   assert.equal(size, 17);
   assert.equal(rows.length, 17 * 17 * 17);
@@ -296,7 +297,7 @@ test('Download this LUT hands over the raw shipped .cube and resets the switch',
   await rt.setInput('downloadPresetLut', true as any);
 
   assert.equal(delivered.length, 1, 'one .cube delivered');
-  assert.equal(delivered[0]!.filename, 'bitmap-studio-slide-vivid.cube');
+  assert.equal(delivered[0]!.filename, 'darkroom-slide-vivid.cube');
   const { size, rows } = parseBaked(await delivered[0]!.blob.text());
   assert.equal(size, 33);
   assert.equal(rows.length, 33 * 33 * 33);
@@ -345,13 +346,17 @@ test('bake folds an active preset LUT into the delivered .cube', async () => {
 //     into every export at a fixed midpoint).
 
 test('overlays: histogram + split grips are export-hidden; the divider is not', async () => {
-  const tpl = await fetchFile('bitmap-studio/template.html');
+  const tpl = await fetchFile('darkroom/template.html');
   // Anchor on the actual HUD attribute (not the prose mentions in comments/scripts).
   const attr = /\sdata-export-hide(?=[\s>])/g;
   const hud = tpl.search(attr);
   assert.ok(hud > 0, 'template has a [data-export-hide] HUD');
-  assert.equal((tpl.match(attr) || []).length, 1,
-    'exactly one export-hidden container — a second would be an unaudited export leak');
+  // Two audited export-hidden nodes: the HUD, and the layered-mode PSD button
+  // (plan 106). Anything beyond these is an unaudited export leak.
+  assert.equal((tpl.match(attr) || []).length, 2,
+    'exactly the two audited export-hidden nodes (HUD + PSD button)');
+  assert.match(tpl, /data-export-file[^>]*data-export-hide|data-export-hide[^>]*data-export-file/,
+    'the second export-hidden node is the PSD rebuild button');
 
   // Screen-only chrome sits inside the HUD (appears after it in document order).
   for (const marker of ['data-bs-hist', 'data-bs-split-move', 'data-bs-split-rot']) {
@@ -366,7 +371,7 @@ test('overlays: histogram + split grips are export-hidden; the divider is not', 
 });
 
 test('overlays: the split is composited, not baked into the bitmap', async () => {
-  const hooks = await fetchFile('bitmap-studio/hooks.js');
+  const hooks = await fetchFile('darkroom/hooks.js');
   // The framed source is handed back for the "before" layer, and the paths emit it.
   assert.ok(hooks.includes('out.__bsFramed = framed'),
     'renderFrame must expose the framed source for the before layer');
@@ -376,7 +381,7 @@ test('overlays: the split is composited, not baked into the bitmap', async () =>
   assert.ok(!/fillRect\(\s*half\b/.test(hooks),
     'the split must not be painted into the composed bitmap');
 
-  const styles = await fetchFile('bitmap-studio/styles.css');
+  const styles = await fetchFile('darkroom/styles.css');
   for (const cls of ['.bs-split-grip', '.bs-hist-resize']) {
     assert.ok(styles.includes(cls), `styles must define ${cls} for the drag/resize affordance`);
   }

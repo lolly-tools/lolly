@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
- * Photoshop PSD/PSB reader: layered import for the layer-stack tool, Layout
+ * Photoshop PSD/PSB reader: layered import for the darkroom tool's layers, Layout
  * Studio and the picker's flatten path. Byte→structure only (engine contract):
  * DOM-free, bounded on every declared length, and defensive against attacker
  * bytes throughout (docs/threat-model.md: a layered file is untrusted input).
