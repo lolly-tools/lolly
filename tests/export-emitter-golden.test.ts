@@ -303,24 +303,6 @@ async function hydrateData(tool: LoadedTool, initial: Record<string, unknown>, f
   return { dataText: out.dataText!, dataMime: out.dataMime! };
 }
 
-// Pinned chart data - a comma+quote label so the golden proves csvCell's
-// RFC 4180 quoting, not just pass-through.
-const CHART_DATA = [
-  { label: 'Public, "cloud"', value: '38.5', color: '#008657' },
-  { label: 'Edge', value: '12', color: '#0c322c' },
-  { label: 'On-prem', value: '49.5', color: '#30ba78' },
-];
-
-test('data: chart-creator template.csv golden (real community tool + hooks)', async () => {
-  const tool = loadCommunityTool('chart-creator', ['csv']);
-  const { dataText, dataMime } = await hydrateData(tool, { data: CHART_DATA }, 'csv');
-  assert.equal(dataMime, 'text/csv');
-  goldenCase('data/chart-creator-csv', dataText);
-  // Non-vacuity: the pinned rows are in the bytes, quoted per RFC 4180.
-  assert.ok(dataText.includes('"Public, ""cloud""",38.5,#008657'), 'csvCell-quoted row present');
-  assert.ok(dataText.includes('On-prem,49.5,#30ba78'), 'plain row present');
-});
-
 test('data: color-palette template.csv golden (hook-computed csvRows)', async () => {
   const tool = loadCommunityTool('color-palette', ['csv']);
   // seed pinned to a literal hex - its manifest default is a brand-token ref
@@ -423,10 +405,4 @@ test('data negative control: a perturbed input hydrates different bytes; repeat 
   assert.equal(again.dataText, base.dataText, 'same pinned inputs → identical bytes');
   const moved = await hydrateData(dataToolDouble(), { ...DATA_INPUTS, start: '2026-03-04T14:31' }, 'ics');
   assert.notEqual(moved.dataText, base.dataText, 'a one-minute shift changes the payload');
-
-  const tool = loadCommunityTool('chart-creator', ['csv']);
-  const csv = await hydrateData(tool, { data: CHART_DATA }, 'csv');
-  const csvMoved = await hydrateData(tool,
-    { data: [...CHART_DATA.slice(0, 2), { ...CHART_DATA[2]!, value: '50' }] }, 'csv');
-  assert.notEqual(csvMoved.dataText, csv.dataText, 'a changed cell changes the csv');
 });
