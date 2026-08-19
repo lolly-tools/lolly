@@ -104,14 +104,15 @@ test('boxes.fields tail: z/kf/linkOf then the deck fields — appended, never re
     assert.deepEqual(fields.slice(69, 72).map((f) => f.id), ['z', 'kf', 'linkOf'],
       `${brand}: the compact-blocks tail moved — every link ever shared decodes into the wrong columns`);
     // The presentation-mode deck fields (plan 112) were APPENDED after linkOf - slots 72-76.
-    // The flip (mirror) fields followed at slots 77-78, appended after them - never squeezed
-    // in behind - so `flipV` is now the tail. This pin extends the same append-only guard:
-    // a later field must land at 79, not shift any of these.
+    // The flip (mirror) fields followed at slots 77-78, and the per-box CSS class `cls`
+    // (plan 112 M4, the Custom CSS companion) at 79 - each appended, never squeezed in
+    // behind - so `cls` is now the tail. This pin extends the same append-only guard:
+    // a later field must land at 80, not shift any of these.
     assert.deepEqual(fields.slice(72).map((f) => f.id),
-      ['presentAudio', 'build', 'state', 'matchOf', 'notes', 'flipH', 'flipV'],
-      `${brand}: a deck/flip field was inserted out of order — appended slots must stay put`);
-    assert.equal(fields.length, 79, `${brand}: expected 79 sub-fields, got ${fields.length}`);
-    assert.equal(fields[fields.length - 1]!.id, 'flipV', `${brand}: flipV is not the tail`);
+      ['presentAudio', 'build', 'state', 'matchOf', 'notes', 'flipH', 'flipV', 'cls'],
+      `${brand}: a deck/flip/class field was inserted out of order — appended slots must stay put`);
+    assert.equal(fields.length, 80, `${brand}: expected 80 sub-fields, got ${fields.length}`);
+    assert.equal(fields[fields.length - 1]!.id, 'cls', `${brand}: cls is not the tail`);
     // Ids are unique - an accidental second `linkOf` would give the codec two columns of
     // the same name and the shell would read whichever it found first.
     assert.equal(new Set(fields.map((f) => f.id)).size, fields.length, `${brand}: duplicate sub-field id`);

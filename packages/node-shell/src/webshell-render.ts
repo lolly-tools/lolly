@@ -110,6 +110,9 @@ function exportUrl(base: string, toolId: string, query: string, fmt: string, dim
   // Content Credentials: forward the setting so the web shell is the single c2pa authority
   // for the browser tier (the Node post-stamp is skipped when this path ran; see run.ts /
   // engine-render.ts, which avoids the pre-existing double-stamp).
+  // The deck state address (plan 112): the web shell's still-export fan-out renders only
+  // the named slide. Same param, same meaning as the link a person would paste.
+  if (dims.slide) p.set('s', dims.slide);
   if (dims.c2pa === false) p.set('c2pa', 'off');
   else if (dims.c2pa) p.set('c2pa', [7, 30, 90, 365].includes(Number(dims.c2paDays)) ? String(dims.c2paDays) : '1');
   p.set('export', '1'); // presence flag → the web shell auto-exports on load
@@ -146,6 +149,11 @@ export interface RenderDims {
   c2pa?: boolean | null;
   /** Ephemeral-certificate lifetime in days (7/30/90/365) when c2pa is on. */
   c2paDays?: number | null;
+  /** The deck state address (url-mode's `s`, plan 112): a 1-based slide position, a frame
+   *  id, or either with an `.N` build suffix. Forwarded so the web shell's per-slide export
+   *  fan-out renders just that slide - the browser tier is the CLI's still-export path for
+   *  every raster/pdf format, so without it `--s=` would silently mean nothing there. */
+  slide?: string | null;
 }
 
 /** One file's deep-scan outcome from deepScanViaWebShell. */

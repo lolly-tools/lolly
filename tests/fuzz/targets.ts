@@ -907,7 +907,7 @@ export const depthHintTarget: FuzzTarget = {
   async invoke(bytes) { await depthHint(bytes); },
 };
 
-// The bitmap-studio tool's .cube/.3dl LUT readers (community/bitmap-studio/
+// The darkroom tool's .cube/.3dl LUT readers (community/darkroom/
 // hooks.js) - the one tool-data parser that reads untrusted
 // bytes (a user-picked LUT file). Hooks ship as plain script, not a module, so
 // the functions are lifted out the same way the engine runtime compiles them:
@@ -917,7 +917,7 @@ export const depthHintTarget: FuzzTarget = {
 // finding classes are hangs and allocation blow-ups.
 const lutParsers = (() => {
   const src = readFileSync(
-    join(dirname(fileURLToPath(import.meta.url)), '..', '..', 'community', 'bitmap-studio', 'hooks.js'),
+    join(dirname(fileURLToPath(import.meta.url)), '..', '..', 'community', 'darkroom', 'hooks.js'),
     'utf8',
   );
   type Parse = (text: string) => unknown;

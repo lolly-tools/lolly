@@ -1131,7 +1131,10 @@ test('template: pathHtml is emitted raw inside .lolly-box in both variants', () 
     // interpolated value itself.
     assert.ok(tpl.includes('{{{lookup ../pathHtml @index}}}'), `${brand}: template does not emit pathHtml`);
     // Inside the box div, and BEFORE the media/text so the shape paints behind them.
-    const box = tpl.indexOf('class="lolly-box"');
+    // A PREFIX match: the class attribute also carries the per-box `cls` tokens
+    // (`class="lolly-box{{lookup ../boxCls @index}}"`, plan 112 M4), so the old exact
+    // string stopped existing the day authors could name their own classes.
+    const box = tpl.indexOf('class="lolly-box');
     const path = tpl.indexOf('{{{lookup ../pathHtml @index}}}');
     const media = tpl.indexOf('{{{lookup ../mediaHtml @index}}}');
     assert.ok(box >= 0 && box < path && path < media, `${brand}: pathHtml is in the wrong place`);

@@ -285,8 +285,16 @@ test('ENGINE_VERSION is 1.128.0', () => {
   // Then 1.129.0 (plans/126 - the text AI-likelihood analyser gains heat temperatures,
   // a rolling-window heatmap, chatbot-boilerplate + placeholder tells, doc kinds, and
   // a doubled fingerprint table; pure exports only, no HostV1 method changed).
+  // Then 1.130.0 (plans/112 section 10 - the `s=` state address becomes engine-visible:
+  // `UrlState.slide` plus src/frame-address.ts's parseFrameAddress/selectFramePage, so
+  // the still-export slide filter is one definition across web and CLI; additive, no
+  // HostV1 method changed).
+  // Then 1.131.0 (plans/127 - src/reword.ts, the pure side of on-device rewording:
+  // the deterministic suggestion table, sentence-span selection, the shared prompt,
+  // and the candidate gate; the model stays shell-side; pure exports only, no HostV1
+  // method changed).
   // The ^1.54.0 screencap floor below still holds (a minor bump satisfies it).
-  assert.equal(ENGINE_VERSION, '1.129.0');
+  assert.equal(ENGINE_VERSION, '1.131.0');
 });
 
 // ─── loadTool: a ^1.54.0 tool loads against this engine ───────────────────────

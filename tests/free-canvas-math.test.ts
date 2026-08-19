@@ -25,7 +25,9 @@ import {
   edgeWaypoints, buildConnectorSvg,
   pathEndTangents, pathEndPoints,
   liftRows, applyLift, liftDepths, liftSlots, liftCanCrop, LIFT_EFF_STEP, LIFT_EFF_CEIL, LIFT_STRENGTH,
+  posedRect,
 } from '../shells/web/src/views/free-canvas-math.ts';
+import type { SeqPose } from '../shells/web/src/views/free-canvas-math.ts';
 import { KF_Z_FIELD_CLAMP, depthForEff } from '../engine/src/keyframes.ts';
 
 const CFG: any = {
@@ -65,6 +67,66 @@ test('boxAABB of a 45°-rotated square grows by √2', () => {
   near(a.w, 100 * Math.SQRT2, 1e-4);
   near(a.h, 100 * Math.SQRT2, 1e-4);
   near((a.minX + a.maxX) / 2, 50, 1e-4); // centre preserved
+});
+
+// ── posedRect: the selection chrome under a playhead (plans/104 section 9.15) ─────
+//
+// The bug this pins: a box scaled/moved by the keyframe system rendered at its posed
+// geometry while the outline and all eight handles drew at the AUTHORED rect, so the
+// user was offered editing controls over empty canvas. The chrome now maps the model
+// rect through the pose the applier published, and this is that map.
+
+/** A neutral pose, so each case below changes exactly one thing. */
+const pose = (o: Partial<SeqPose> = {}): SeqPose =>
+  ({ dx: 0, dy: 0, sc: 1, rot: 0, w: 0, h: 0, sized: false, ...o });
+
+test('posedRect: no pose hands back the SAME object (the byte-identity floor)', () => {
+  const r = { x: 10, y: 20, w: 100, h: 50, rot: 12 };
+  assert.equal(posedRect(r, null), r, 'an untimed board is placed by the identical expressions');
+  assert.equal(posedRect(r, undefined), r);
+  assert.equal(posedRect(r, pose()), r, 'and so is a box at rest inside a projecting stage');
+});
+
+test('posedRect: a keyframe scale grows the rect ABOUT ITS CENTRE', () => {
+  const r = { x: 100, y: 100, w: 200, h: 100, rot: 0 };
+  const p = posedRect(r, pose({ sc: 1.5 }));
+  assert.deepEqual(p, { x: 50, y: 75, w: 300, h: 150, rot: 0 });
+  // The centre is the invariant - it is what CSS `transform-origin: 50% 50%` means,
+  // and getting it wrong is exactly the "offset up-left" the report describes.
+  assert.deepEqual([p.x + p.w / 2, p.y + p.h / 2], [200, 150]);
+});
+
+test('posedRect: the translate is OUTSIDE the scale, and rotation ADDS to the authored one', () => {
+  const r = { x: 0, y: 0, w: 100, h: 100, rot: 15 };
+  // A CSS list of `translate(dx,dy) rotate(auth) rotate(kf) scale(sc)` multiplies out
+  // to scale-then-rotate about the centre, then translate in the PARENT's space - so
+  // the offset is never magnified by the scale.
+  const p = posedRect(r, pose({ dx: 40, dy: -20, sc: 2, rot: 30 }));
+  assert.deepEqual([p.x + p.w / 2, p.y + p.h / 2], [90, 30]);
+  assert.deepEqual([p.w, p.h], [200, 200]);
+  assert.equal(p.rot, 45, 'authored 15° + keyed 30°');
+});
+
+test('posedRect: a KEYED size replaces the box\'s own and moves the centre with it', () => {
+  // The applier writes `width`/`height` while `left`/`top` stay authored, so the box
+  // grows from its top-left and the pivot moves by half the growth - the same half
+  // `foldKfPose` anchors the projection on, which is why `dx`/`dy` are measured from
+  // the grown centre rather than the authored one.
+  const r = { x: 200, y: 100, w: 640, h: 360, rot: 0 };
+  const p = posedRect(r, pose({ w: 1280, h: 360, sized: true }));
+  assert.deepEqual(p, { x: 200, y: 100, w: 1280, h: 360, rot: 0 });
+  assert.deepEqual([p.x + p.w / 2, p.y + p.h / 2], [840, 280], 'centre moved by half the growth');
+  // …and an UNSIZED pose ignores the w/h it carries, which is the authored size anyway.
+  assert.deepEqual(posedRect(r, pose({ w: 1280, h: 360, sized: false })), r);
+});
+
+test('posedRect: junk in a pose degrades to the authored rect, never to NaN', () => {
+  const r = { x: 10, y: 20, w: 100, h: 50, rot: 0 };
+  assert.deepEqual(posedRect(r, pose({ sc: Number.NaN, dx: Number.POSITIVE_INFINITY })), r);
+  // A collapsed scale is honest (the box really is invisible), but never negative.
+  const zero = posedRect(r, pose({ sc: 0 }));
+  assert.deepEqual([zero.w, zero.h], [0, 0]);
+  assert.deepEqual([zero.x, zero.y], [60, 45], 'still centred where the box is');
 });
 
 test('hitTest/marqueeHit skip predicate: excluded boxes fall through', () => {

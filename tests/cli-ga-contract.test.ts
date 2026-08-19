@@ -53,6 +53,14 @@ const BUSY_TEMPLATE = (() => {
   return '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 160" width="240" height="160">'
     + `<rect width="240" height="160" fill="#ffffff"/>${rects}</svg>`;
 })();
+// Three slides, each an <svg> page carrying its own frame id and a uniquely coloured
+// rect, so an export can be told apart by its fill alone.
+const DECK_TEMPLATE = '<div class="deck">' +
+  ['intro:#111111', 'pricing:#222222', 'thanks:#333333'].map((s) => {
+    const [id, fill] = s.split(':');
+    return `<svg xmlns="http://www.w3.org/2000/svg" data-pdf-page data-frame-id="${id}" ` +
+      `width="120" height="80" viewBox="0 0 120 80"><rect width="120" height="80" fill="${fill}"/></svg>`;
+  }).join('') + '</div>';
 const NOFONT_TEMPLATE =
   '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 80" width="240" height="80">' +
   '<text x="12" y="50" font-family="Nonexistent Face" font-size="28">{{label}}</text></svg>';
@@ -73,7 +81,7 @@ if (!SKIP_NO_FONT) await copyFile(OUTFIT_SRC, join(root, 'catalog', 'fonts', 'tt
 await writeFile(join(root, 'catalog', 'assets', 'index.json'), JSON.stringify({ assets: [] }));
 await writeFile(
   join(root, 'catalog', 'tools', 'index.json'),
-  JSON.stringify({ version: '1', tools: [{ id: 'vec-tool' }, { id: 'text-tool' }, { id: 'nofont-tool' }, { id: 'mic-tool' }, { id: 'shadow-tool' }, { id: 'ico-tool' }, { id: 'xform-tool' }, { id: 'data-tool' }, { id: 'busy-tool' }] }),
+  JSON.stringify({ version: '1', tools: [{ id: 'vec-tool' }, { id: 'text-tool' }, { id: 'nofont-tool' }, { id: 'mic-tool' }, { id: 'shadow-tool' }, { id: 'ico-tool' }, { id: 'xform-tool' }, { id: 'data-tool' }, { id: 'busy-tool' }, { id: 'deck-tool' }] }),
 );
 
 const TOOLS: Array<[string, string, string]> = [
@@ -105,6 +113,15 @@ const TOOLS: Array<[string, string, string]> = [
     inputs: [{ id: 'source', type: 'file', label: 'File' }],
   })],
   ['busy-tool', BUSY_TEMPLATE, manifest('busy-tool')],
+  // A PAGED document - three [data-pdf-page] frames with real ids - for the `s=`
+  // still-export slide filter (plan 112 section 10). Each page is its own <svg>, so a
+  // filtered export has a CLI-native vector path while the unfiltered whole (three
+  // drawable children = a layout) correctly has none. That asymmetry is the point: it
+  // proves the filter actually narrowed the export rather than the tool being easy.
+  ['deck-tool', DECK_TEMPLATE, JSON.stringify({
+    id: 'deck-tool', name: 'deck-tool', version: '1.0.0', engineVersion: '^1.0.0', status: 'community',
+    render: { width: 120, height: 80, formats: ['svg', 'html'] }, inputs: [],
+  })],
   // A tool with a DATA format (csv, via a sibling template.csv). Data formats have no
   // C2PA container at all, which is what makes it the fixture for "a provenance default
   // nobody asked for must not warn, and therefore must not fail --strict" (section 12 O2).
@@ -334,6 +351,88 @@ test('--cuts is refused with exit 3 rather than rendering one frame (B6)', async
     },
   );
   assert.equal(existsSync(out), false, 'a silent single frame would have written a file here');
+});
+
+// ── `s=` - the still-export slide filter, CLI side (plan 112 section 10) ─────────────
+// URL mode is the contract: `?s=2&format=png` is a per-slide image link in the web shell,
+// so `--s=2 --export=svg` must select the SAME page here. WHAT an address means lives in
+// the engine (frame-address.ts), which is what stops the two shells from drifting; these
+// pin the CLI half - that the pick reaches the export, that a bad address writes nothing
+// rather than the wrong slide, and that a format the filter cannot narrow says so.
+
+test('--s=<n> exports that one slide, and the whole deck has no browser-free path at all', async () => {
+  // Unfiltered: three drawable children is a LAYOUT, so the DOM-free vector path refuses
+  // (and, with no browser tier in this fixture, the whole run does). That refusal is the
+  // control: it proves the filtered run below succeeded BECAUSE the export narrowed.
+  const whole = outPath('svg');
+  await assert.rejects(() => run({ toolId: 'deck-tool', params: {}, outputPath: whole, format: 'svg' }));
+  assert.equal(existsSync(whole), false);
+
+  const out = outPath('svg');
+  await run({ toolId: 'deck-tool', params: { s: '2' }, outputPath: out, format: 'svg' });
+  const svg = await readFile(out, 'utf8');
+  assert.match(svg, /#222222/, 'slide 2 is the second page - positions are 1-based');
+  assert.doesNotMatch(svg, /#111111|#333333/, 'and only that page');
+});
+
+test('--s=<frame id> selects the same page by name, wherever it sits', async () => {
+  const out = outPath('svg');
+  await run({ toolId: 'deck-tool', params: { s: 'thanks' }, outputPath: out, format: 'svg' });
+  assert.match(await readFile(out, 'utf8'), /#333333/);
+});
+
+test('--s=<n>.<build> still exports the whole slide — builds are presenter-only', async () => {
+  const out = outPath('svg');
+  await run({ toolId: 'deck-tool', params: { s: '1.3' }, outputPath: out, format: 'svg' });
+  assert.match(await readFile(out, 'utf8'), /#111111/);
+});
+
+test('an --s= that names nothing is a usage error and writes NOTHING', async () => {
+  for (const bad of ['9', 'nope']) {
+    const out = outPath('svg');
+    await assert.rejects(
+      () => run({ toolId: 'deck-tool', params: { s: bad }, outputPath: out, format: 'svg' }),
+      (e: CliErr) => {
+        assert.equal(e.exit, EXIT.USAGE);
+        assert.equal(e.kind, 'SLIDE_NOT_FOUND');
+        assert.match(e.message, /names no slide/);
+        return true;
+      },
+    );
+    assert.equal(existsSync(out), false, `--s=${bad} must not write a plausible wrong slide`);
+  }
+  // A tool with no pages at all says so rather than pretending the address missed.
+  await assert.rejects(
+    () => run({ toolId: 'vec-tool', params: { s: '1' }, outputPath: outPath('svg'), format: 'svg' }),
+    /no slides at all/,
+  );
+});
+
+test('a format the filter cannot narrow is REPORTED, not silently obeyed', async () => {
+  // html carries every slide by construction (as pdf/zip/pptx do, and as the motion
+  // formats do by being a timeline). The web shell renders the whole document for the
+  // same link, so the CLI does too - and says why, which the web cannot.
+  const out = outPath('html');
+  const { stderr } = await run({ toolId: 'deck-tool', params: { s: '2' }, outputPath: out, format: 'html' });
+  assert.match(stderr, /--s=2 names one slide/);
+  const html = await readFile(out, 'utf8');
+  for (const fill of ['#111111', '#222222', '#333333']) assert.match(html, new RegExp(fill));
+});
+
+test('--present is documented as a no-op here, while --s= is honoured (B6)', async () => {
+  const out = outPath('svg');
+  const { stderr } = await run({ toolId: 'deck-tool', params: { present: '1', s: '1' }, outputPath: out, format: 'svg' });
+  assert.match(stderr, /--present is not supported by the CLI/);
+  assert.match(await readFile(out, 'utf8'), /#111111/, 'the state address still selected the slide');
+  assert.equal(unsupportedReservedParams({ s: '2' }).length, 0, '`s` is honoured, so it never warns');
+});
+
+test('a bare --s is a usage error, not slide 1', () => {
+  assert.throws(() => parseArgs(['deck-tool', '--s']), (e: CliErr) => {
+    assert.equal(e.kind, 'MISSING_FLAG_VALUE');
+    return true;
+  });
+  assert.equal(parseArgs(['deck-tool', '--s=2']).flags.s, '2');
 });
 
 test('reserved params the CLI cannot honour warn instead of vanishing (B6)', async () => {

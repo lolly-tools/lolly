@@ -6,7 +6,7 @@
  *
  * Why one module: a PSD layer and an XCF layer are the same kind of object - a
  * named RGBA bitmap at a document offset with opacity/visibility/blend. Every
- * consumer (the layer-stack tool's block rows, Design's boxes,
+ * consumer (the darkroom tool's layer rows, Design's boxes,
  * the picker's flatten path, psd-write.ts) should see one shape, no matter
  * which container the bytes came from. The blend tables live here, not in each
  * parser, because they target the SAME 16-value CSS set that Layout

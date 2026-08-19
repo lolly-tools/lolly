@@ -116,7 +116,11 @@ test('wire order: compact-blocks encode/decode round-trips every field (id..fill
   fields.forEach((f: any, i: number) => {
     const raw = `f${i}`;
     let expected: unknown = raw;
-    if (f.type === 'color') expected = `#${raw}`; // color fields get '#' restored
+    // A colour field gets its '#' restored ONLY when the body is a bare hex (the codec is
+    // hex-aware now - a CSS var()/keyword colour is left verbatim). The sentinel `f${i}` is
+    // bare hex for i≥100 or 3-char values like f15/f29, but not the 2-char f9 (bg) - so the
+    // expectation is conditional. This still pins POSITIONAL order (field i → slot i).
+    if (f.type === 'color' && /^[0-9a-fA-F]{3,8}$/.test(raw)) expected = `#${raw}`;
     if (f.type === 'asset') expected = { source: 'library', id: raw, _unresolved: true };
     assert.deepEqual(obj[f.id], expected, `field ${i} ("${f.id}") landed in slot ${i}, not shifted`);
   });
@@ -146,7 +150,8 @@ test('wire order: a SHORT pre-change row (39 values) still decodes every old fie
   fields.slice(0, oldCount).forEach((f: any, i: number) => {
     const raw = `f${i}`;
     let expected: unknown = raw;
-    if (f.type === 'color') expected = `#${raw}`;
+    // Hex-aware '#' restore (see the note in the full-row test above).
+    if (f.type === 'color' && /^[0-9a-fA-F]{3,8}$/.test(raw)) expected = `#${raw}`;
     if (f.type === 'asset') expected = { source: 'library', id: raw, _unresolved: true };
     assert.deepEqual(obj[f.id], expected, `pre-change field ${i} ("${f.id}") decoded unshifted from a short row`);
   });
