@@ -6,6 +6,35 @@ minors, never removed or signature-changed without a major bump.
 
 Moved verbatim from the comment block that used to live in `src/index.ts`.
 
+1.129.0 — additive (plans/125 v2, no HostV1 change): the text AI-likelihood
+analyser grows confidence TEMPERATURES and a heat map. Every
+`TextSignalFinding` now carries `heat` (0-1, its individual confidence grade -
+1 = a hard artifact, ~0.3 = the softest style hint) so shells render graded
+highlights instead of a binary flag; `TextSignalReport` gains `heatmap` (a
+rolling 40-word-window density map, `TextHeatmap`/`TextHeatCell`) and `docKind`
+('prose'|'markdown'|'code', detected or overridden via
+`AnalyzeTextSignalsOpts.docKind` - code runs style tells on COMMENT text only
+and skips prose statistics, so an AI word in a string literal never flags).
+New signal families: chatbot boilerplate (`chatbot-leftover`, verbatim
+assistant-register phrases in their own scoring bucket - unlike pure style it
+can reach 'strong' when distinct phrases stack, and a QUOTED phrase is skipped
+as a human writing about AI), unfilled template placeholders
+(`template-placeholder`), paragraph-length uniformity (`uniform-paragraphs`),
+and the sandwich detector (`ai-span`: an AI-dense region inside otherwise-quiet
+human writing, found from the heat map's hot-run-vs-cold-median). The
+fingerprint table roughly doubles (ChatML/GPT tags, OpenAI private-use
+citation delimiters U+E200-E206, lenticular citations, canvas markers,
+chatgpt.com/copilot.com/grok.com link params, Gemini cite_start +
+googleusercontent placeholders, Llama/Mistral instruction tags, reasoning
+<think> tags, Claude transcript + tool scaffolding), and `TextStyleGuess`
+gains ranked `candidates` with the guess now COMPETED across per-family tell
+lists (`FAMILY_TELLS`) rather than defaulting to Claude on any tic.
+False-positive guards tightened: soft hyphens between letters (PDF/Word copy
+residue) no longer read as invisible-char artifacts, and em-dashes flag on
+density (>=15/1000 words), not bare count. `LEXICON_VERSION` (claudisms.ts,
+re-exported) keys persisted analyses so a stored verdict from an older lexicon
+is recomputed, not trusted. Pure exports only; no HostV1 method changed.
+
 1.128.0 — additive (no HostV1 change): the EMF emitter learns LIVE text. The
 vector IR gains a `text` prim (`VectorTextPrim` in `src/emf.ts`) and `emitEmf`
 writes it as a real GDI font + string record pair (EXTCREATEFONTINDIRECTW +
@@ -26,6 +55,29 @@ text prims. Shipped with the shells' EMF default flipping to live text
 (`--text=outline` / the export panel's "Outline fonts" chip restores
 text-as-paths), and EMF/WMF downloads re-typed `application/x-msmetafile` so
 Google Drive routes them into Drawings/Slides.
+
+Same release, same journey, second door: the flat-SVG → native-PPTX lowering
+learns text. `svgToNativePptx` (src/svg-custgeom.ts, new alongside the
+unchanged `svgToCustGeomPaths`) returns custGeom shapes PLUS plain `<text>`
+runs as native `PptxText` boxes - font name, size, colour, bold/italic,
+text-anchor as paragraph alignment, dy/em handling for d3 tick labels - so a
+chart's labels arrive in PowerPoint and Google Slides as live, editable text
+(Slides matches run font names against the Google Fonts catalogue, so a brand
+face that lives there, like SUSE, renders real). Deliberately narrow: tracking,
+textLength, per-glyph rotate, positioned/styled tspans, textPath, stroked text
+or an anisotropic map return null and the caller keeps its raster path, so
+nothing regresses. Partial opacity, though, now LOWERS instead of bailing -
+DrawingML solids carry `<a:alpha>`, so `PptxRun`/line gained an optional
+`alpha` and tinted gridlines, secondary labels and translucent track bars (the
+constructs every real chart is made of - the old opacity bail rasterised every
+chart-creator render) ride through with their transparency; group `opacity`
+multiplies down per leaf, the svg-ir flatten. The web shell's PPTX walker
+feeds it computed-baked attributes (export-pptx.ts bakeTextStyles - fonts and
+paint for text, paint for drawables) and then strips spent `<style>` blocks,
+whose mere presence was the other guaranteed raster bail (the community
+brand-font pattern puts one in every tool's `<defs>`); the same bake fixes the
+svgBlip picture path's serif font substitution. Verified against the real
+chart-creator donut markup: 4 slice paths + 8 native centred text runs.
 
 1.127.0 — additive (plans/125, on-device OCR): `HostV1` gains an optional
 **`ocr?: OcrAPI`** — a plain RGBA frame in, the text the image contains out, as

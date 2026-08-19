@@ -85,7 +85,7 @@ const KIND_SHORT: Readonly<Record<GradientKind, string>> = {
   linear: 'lin', radial: 'rad', conic: 'con',
 };
 
-// The interpolation spaces worth naming in a spec. Deliberately a subset of
+// The interpolation spaces a spec can name. Deliberately a subset of
 // ColorSpaceTag: these are the ones that differ *usefully* for a gradient, and
 // keeping the list closed means a typo reads as "unknown" rather than silently
 // picking a space nobody meant.

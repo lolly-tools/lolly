@@ -116,6 +116,10 @@ const CODE_EXEMPT = new Set<string>([
   '"anchors it" (prose verb)',
   '"the X fits" framing',
   '"structurally X" adverb-hedge',
+  // "survivable" is fault-tolerance vocabulary in the collab/parse/profile code
+  // (a failure, a skew, a truncated file that the system can survive) - a real
+  // domain term, not a claudism, so the docs-prose ban does not reach comments.
+  '"survivable" (prose)',
 ]);
 const CODE_PHRASES = BANNED_PHRASES.filter(p => !CODE_EXEMPT.has(p.what));
 

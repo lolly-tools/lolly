@@ -539,7 +539,7 @@ export function exportActionSteps(format: string, flags: {
 // The created step's description for a captured essence - camera, mic, or both.
 function captureDescription(cap: { camera?: boolean; microphone?: boolean; screen?: boolean }): string {
   // Screen first, and it never claims the camera: a display capture's essence came from
-  // the screen. The mic is worth naming because it recorded the room, which the rest of
+  // the screen. The mic gets named because it recorded the room, which the rest of
   // the file did not.
   if (cap.screen) return cap.microphone ? 'Captured from the screen with microphone narration' : 'Captured from the screen';
   if (cap.camera && cap.microphone) return 'Recorded live from the camera and microphone';

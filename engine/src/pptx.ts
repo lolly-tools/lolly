@@ -38,6 +38,10 @@ export type PptxFill =
 
 export interface PptxRun {
   text: string; sizePt: number; color?: string; bold?: boolean; italic?: boolean; underline?: boolean; strike?: boolean; font?: string;
+  /** Text colour opacity 0..1 (an `<a:alpha>` child on the run colour). Charts
+   *  paint secondary labels at partial opacity; carrying it keeps the native
+   *  text lowering from bailing to raster over a tint. Omitted = opaque. */
+  alpha?: number;
   /** Internal hyperlink: jump to another slide by 0-based index (an agenda/ToC link).
    *  buildPptxParts emits the `a:hlinkClick` + a slide→slide relationship for it. */
   linkSlide?: number;
@@ -59,14 +63,14 @@ export interface PptxPara {
   spaceAfterPt?: number;
 }
 
-export interface PptxRect { kind: 'rect'; x: number; y: number; cx: number; cy: number; rot?: number; fill?: PptxFill; line?: { color: string; w: number }; radius?: number; }
+export interface PptxRect { kind: 'rect'; x: number; y: number; cx: number; cy: number; rot?: number; fill?: PptxFill; line?: { color: string; w: number; alpha?: number }; radius?: number; }
 /** A NATIVE custom-geometry vector shape (`p:sp` with `a:custGeom`). Its `paths` are
  *  SVG `d` strings whose coordinates already live in this shape's EMU box space
  *  (0..cx, 0..cy). The emitter parses each with parseSvgPath and lowers M/L/C/Z to
  *  a:moveTo / a:lnTo / a:cubicBezTo / a:close inside one `a:path w=cx h=cy`, so holes
  *  (opposite-wound subpaths) survive. Solid fill + solid stroke only; svg-custgeom.ts
  *  bails to a raster pic for gradients/filters/opacity/blend. */
-export interface PptxPath { kind: 'path'; x: number; y: number; cx: number; cy: number; rot?: number; fill?: PptxFill; line?: { color: string; w: number }; paths: Array<{ d: string }>; }
+export interface PptxPath { kind: 'path'; x: number; y: number; cx: number; cy: number; rot?: number; fill?: PptxFill; line?: { color: string; w: number; alpha?: number }; paths: Array<{ d: string }>; }
 export interface PptxText { kind: 'text'; x: number; y: number; cx: number; cy: number; rot?: number; paras: PptxPara[]; anchor?: 't' | 'ctr' | 'b'; }
 /** A picture. `media` is the index (into the slide's media[]) of the raster blip;
  *  `svg`, when set, is the index of an .svg part embedded via svgBlip (media is then
@@ -178,8 +182,8 @@ function fillXml(fill?: PptxFill): string {
   return `<a:gradFill><a:gsLst>${stops}</a:gsLst><a:lin ang="${ang * 60000}" scaled="1"/></a:gradFill>`;
 }
 
-const lineXml = (line?: { color: string; w: number }): string =>
-  line ? `<a:ln w="${Math.max(0, Math.round(line.w))}"><a:solidFill>${clr(line.color)}</a:solidFill></a:ln>` : '';
+const lineXml = (line?: { color: string; w: number; alpha?: number }): string =>
+  line ? `<a:ln w="${Math.max(0, Math.round(line.w))}"><a:solidFill>${clr(line.color, line.alpha)}</a:solidFill></a:ln>` : '';
 
 const xfrmXml = (s: { x: number; y: number; cx: number; cy: number; rot?: number }): string =>
   `<a:xfrm${s.rot ? ` rot="${Math.round(((s.rot % 360) + 360) % 360 * 60000)}"` : ''}>` +
@@ -241,7 +245,7 @@ function runXml(run: PptxRun): string {
   const u = run.underline ? ' u="sng"' : '';
   const strike = run.strike ? ' strike="sngStrike"' : '';
   const attrs = `lang="en-US" sz="${clampInt(run.sizePt * 100, 100, 400000)}" b="${run.bold ? 1 : 0}" i="${run.italic ? 1 : 0}"${u}${strike} dirty="0"`;
-  const fill = run.color ? `<a:solidFill>${clr(run.color)}</a:solidFill>` : '';
+  const fill = run.color ? `<a:solidFill>${clr(run.color, run.alpha)}</a:solidFill>` : '';
   const font = run.font ? `<a:latin typeface="${xmlEsc(run.font)}"/><a:cs typeface="${xmlEsc(run.font)}"/>` : '';
   // hlinkClick sits after latin/cs in CT_TextCharacterProperties; the ppaction marks it an
   // internal slide jump rather than an external URL.

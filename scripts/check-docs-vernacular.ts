@@ -111,7 +111,12 @@ export const BANNED_PHRASES: { what: string; re: RegExp }[] = [
   { what: 'the bar metaphor ("bar is high", "raises the bar")', re: /\b(?:bar is (?:high|low|higher|lower)|rais\w+ the bar)\b/i },
   { what: '"transcribe" family as prose (say quote/copy; the speech feature and API names carry ALLOW entries)', re: /\btranscri\w*/i },
   { what: '"worth knowing"', re: /\bworth knowing\b/i },
+  { what: '"worth naming"', re: /\bworth naming\b/i },
   { what: '"what X is worth" framing', re: /\bwhat\s+\S[^.?!\n]{0,60}?\bis worth\b/i },
+  // DOCS-ONLY: carried in CODE_EXEMPT (check-code-comment-vernacular.ts) because
+  // "survivable" is genuine fault-tolerance vocabulary in the collab/parse code
+  // ("this failure is survivable"), but a prose tic in the docs.
+  { what: '"survivable" (prose)', re: /\bsurvivab\w*/i },
   // --- claudisms.ai import (2026-08-16, curated) ------------------------
   // Source: https://claudisms.ai/. Only entries with NO legitimate use in
   // THESE technical docs are hard-banned. Judgment-call words that double as
