@@ -6,6 +6,15 @@ minors, never removed or signature-changed without a major bump.
 
 Moved verbatim from the comment block that used to live in `src/index.ts`.
 
+1.132.0 — additive (plans/124 WP-E, no HostV1 change): `src/inpaint.ts`, a pure
+TypeScript port of Telea 2004 fast-marching inpainting (`inpaintTelea`) - the
+content-aware fill behind the web shell's Retouch dialog. DOM-free typed-array
+math with mask-bbox windowing; deterministic; no model, no weights, no new
+bridge surface. Also fixes `media-sniff.ts` `sniffVideoContainer`: an
+ISO-BMFF ftyp box whose brands name the AVIF/HEIC image family is no longer
+reported as an mp4 video (every AVIF upload was being routed into the video
+pipeline).
+
 1.131.0 — additive (plans/127, no HostV1 change): `src/reword.ts`, the pure side
 of on-device rewording - the deterministic rewrite-suggestion table
 (`suggestRewrites`/`applySuggestion`; filler-opener deletions and plain-word

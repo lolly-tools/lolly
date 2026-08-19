@@ -293,8 +293,10 @@ test('ENGINE_VERSION is 1.128.0', () => {
   // the deterministic suggestion table, sentence-span selection, the shared prompt,
   // and the candidate gate; the model stays shell-side; pure exports only, no HostV1
   // method changed).
+  // Then 1.132.0 (plans/124 WP-E - src/inpaint.ts, the pure Telea fast-marching
+  // content-aware fill behind Retouch; pure exports only, no HostV1 method changed).
   // The ^1.54.0 screencap floor below still holds (a minor bump satisfies it).
-  assert.equal(ENGINE_VERSION, '1.131.0');
+  assert.equal(ENGINE_VERSION, '1.132.0');
 });
 
 // ─── loadTool: a ^1.54.0 tool loads against this engine ───────────────────────

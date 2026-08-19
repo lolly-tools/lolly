@@ -101,6 +101,28 @@ test('a PNG is not mistaken for a video container', () => {
   assert.equal(sniffVideoContainer(png({ apng: false })), null);
 });
 
+test('AVIF/HEIC share MP4\'s ftyp box but are IMAGES, not videos', () => {
+  const ftyp = (major: string, ...compat: string[]): Uint8Array => {
+    const brands = [major, '\0\0\0\0', ...compat]; // minor_version slot after the major brand
+    const size = 8 + brands.length * 4;
+    const out = new Uint8Array(size);
+    out[0] = 0; out[1] = 0; out[2] = 0; out[3] = size;
+    out.set([0x66, 0x74, 0x79, 0x70], 4); // 'ftyp'
+    brands.forEach((b, i) => { for (let c = 0; c < 4; c++) out[8 + i * 4 + c] = b.charCodeAt(c) || 0; });
+    return out;
+  };
+  // Major brand says image - a still AVIF, a HEIC photo, an AVIF sequence.
+  assert.equal(sniffVideoContainer(ftyp('avif', 'mif1', 'miaf')), null);
+  assert.equal(sniffVideoContainer(ftyp('heic', 'mif1', 'heix')), null);
+  assert.equal(sniffVideoContainer(ftyp('avis', 'avif', 'msf1')), null);
+  // Generic HEIF major with the image brand in the compatibles (real AVIFs ship this way).
+  assert.equal(sniffVideoContainer(ftyp('mif1', 'avif')), null);
+  // Real movies keep matching: no image brand anywhere in the box.
+  assert.equal(sniffVideoContainer(ftyp('isom', 'iso2', 'mp41')), 'mp4');
+  assert.equal(sniffVideoContainer(ftyp('mp42', 'isom')), 'mp4');
+  assert.equal(sniffVideoContainer(ftyp('qt  ')), 'mp4');
+});
+
 // ── sniffContainer: BMP / gzip / fonts ─────────────────────────────────────────
 test('BMP is detected only with a full 54-byte header (a stray "BM" is not)', () => {
   const bmp = new Uint8Array(54); bmp[0] = 0x42; bmp[1] = 0x4d;   // 'BM' + full header
