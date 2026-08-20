@@ -190,5 +190,6 @@
   "← All team projects": "← Toate proiectele de echipă",
   "Home": "Acasă",
   "Live now - 1 person editing": "Live acum - 1 persoană editează",
-  "Live now - {n} people editing": "Live acum - {n} persoane editează"
+  "Live now - {n} people editing": "Live acum - {n} persoane editează",
+  "{n} more mark is in a format Logos does not take (PNG, JPEG, SVG or WebP).": "Încă {n} marcă este într-un format pe care Logos nu îl acceptă (PNG, JPEG, SVG sau WebP)."
 }
