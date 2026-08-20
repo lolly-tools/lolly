@@ -255,7 +255,10 @@ describe('geometric peers share a depth, so grids stay grids', () => {
     // (sequence-studio consolidated into design; the recipe now opens design with
     // the old default sequence packed into the URL), and design's toolbar row has
     // one more control than the standalone tool's did.
-    'seq-studio-timeline': { rungs: 21, biggest: 10 }, // the toolbar's icon row
+    // Re-measured 2026-08-20: another re-capture of the same recipe (the day's
+    // docs-shots sweep) merged two more rows into shared rungs - 21 -> 19; the
+    // biggest rung (the toolbar's icon row, 10) is unchanged.
+    'seq-studio-timeline': { rungs: 19, biggest: 10 }, // the toolbar's icon row
   };
   for (const [name, want] of Object.entries(GRIDS)) {
     test(`${name}: its grid is ONE surface, not ${want.biggest} steps`, () => {
