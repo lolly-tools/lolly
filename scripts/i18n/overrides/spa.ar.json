@@ -198,5 +198,10 @@
   "Work collab": "تعاون العمل",
   "Invite others on this instance to co-edit this session, live.": "دعوة آخرين على هذا المثيل لتعديل هذه الجلسة معك مباشرة.",
   "Live now - 1 person editing": "مباشر الآن - شخص واحد يحرر",
-  "Live now - {n} people editing": "مباشر الآن - {n} أشخاص يحررون"
+  "Live now - {n} people editing": "مباشر الآن - {n} أشخاص يحررون",
+  "Editing ahead of {label}. {n} change since it was published.": "التحرير متقدم على {label}. {n} تغيير منذ نشره.",
+  "Editing ahead of {label}. {n} changes since it was published.": "التحرير متقدم على {label}. {n} تغييرات منذ نشره.",
+  "{n} more mark is in a format Logos does not take (PNG, JPEG, SVG or WebP).": "{n} علامة إضافية بصيغة لا يقبلها Logos (PNG أو JPEG أو SVG أو WebP).",
+  "The file carries Content Credentials, and its bytes still match the hash that was signed — what failed is inside the credential itself. The checks below say which part.": "يحمل الملف Content Credentials، وما زالت بايتاته مطابقة لقيمة التجزئة (hash) التي تم توقيعها - الخلل يكمن داخل بيانات الاعتماد نفسها. توضح الفحوصات أدناه أي جزء تحديدًا.",
+  "The file carries Content Credentials, but the credential itself did not check out, so these bytes were never compared against it. Nothing here establishes that the content was changed — the checks below say what failed.": "يحمل الملف Content Credentials، لكن بيانات الاعتماد نفسها لم تجتز التحقق، لذا لم تتم مقارنة هذه البايتات بها إطلاقًا. لا شيء هنا يثبت أن المحتوى قد تم تغييره - توضح الفحوصات أدناه ما الذي فشل."
 }

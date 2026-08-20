@@ -190,5 +190,6 @@
   "← All team projects": "← Všechny týmové projekty",
   "Home": "Domů",
   "Live now - 1 person editing": "Právě živě - upravuje 1 člověk",
-  "Live now - {n} people editing": "Právě živě - upravuje {n} lidí"
+  "Live now - {n} people editing": "Právě živě - upravuje {n} lidí",
+  "The text is checked on this device, exactly as pasted. Invisible characters matter here — a C2PA text credential is made of them — so paste rather than retype.": "Text se kontroluje na tomto zařízení přesně tak, jak byl vložen. Na neviditelných znacích záleží - textové pověření C2PA je z nich tvořeno - proto text vlož, nepřepisuj ho."
 }
