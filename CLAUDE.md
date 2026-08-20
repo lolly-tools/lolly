@@ -140,7 +140,7 @@ tools/<id>/
 | `shells/cli/` | `bin/lolly.ts` (entry), `src/run.ts` (jsdom render), `src/bridge.ts` (CLI bridge) |
 | `shells/tauri-desktop`, `shells/tauri-mobile` | Tauri shells with `bridge-overrides/` (`.ts`, typechecked via `npm run typecheck:tauri`) |
 | `shells/tauri-shared/` | parent-owned `bridge-overrides/state-fs.ts` — the filesystem state logic BOTH Tauri shells call into, over an injected `fs` adapter |
-| `community/` | 39 brand-agnostic tool dirs (design, darkroom, filter, flythrough, qr-code, street-map, strip-data, text-helper, mesh-gradient, chart-creator, d3, compress-pdf, countdown-timer, url-shot) — public submodule `lolly-tools` |
+| `community/` | 38 brand-agnostic tool dirs (design, darkroom, filter, flythrough, qr-code, street-map, strip-data, text-helper, mesh-gradient, chart-creator, d3, compress-pdf, countdown-timer, url-shot) — public submodule `lolly-tools` |
 | `brands/suse/` | PRIVATE submodule `suse-lolly`: `tools/` (18 SUSE tool dirs) + `catalog/` (assets incl. `assets/suse/tokens/brand.json`, fonts, previews, og, generated `tools/index.json`) |
 | `brands/lolly-start/` | parent-owned blank brand: `tools/` (voice-recorder) + a neutral `catalog/` (assets/fonts/og/previews + generated `tools/index.json`) — where the brand-import (DTCG) experience gets built |
 | `tools/`, `catalog/` | gitignored profile VIEWS of the above (scripts/use-profile.ts + profiles.json) — what every script/shell actually reads |
