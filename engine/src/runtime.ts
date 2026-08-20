@@ -188,6 +188,13 @@ export interface Runtime {
   getHydrated(): string;
   /** Hydrate an arbitrary template string against the same context (e.g. manifest.a11yLabel). */
   getHydratedString(str: string | null | undefined): string;
+  /**
+   * Same context, WITHOUT HTML escaping - for reading non-HTML hook extras out of
+   * the runtime (e.g. `{{videoLook}}`, darkroom's baked-look JSON that the shell's
+   * Apply-to-video hands to the video-grade job). The escaping variant above would
+   * entity-encode the JSON's quotes.
+   */
+  getHydratedText(str: string): string;
   manifest: ToolManifest;
   styles: string | null;
   /** Asset refs (saved session / URL) that no longer resolve - read once after mount. */
@@ -585,6 +592,7 @@ export async function createRuntime(
     getModel: () => model,
     getHydrated,
     getHydratedString,
+    getHydratedText,
     manifest: tool.manifest,
     styles: tool.styles,
     // Asset refs (from a saved session / URL) that no longer resolve. The shell

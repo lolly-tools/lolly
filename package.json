@@ -41,6 +41,7 @@
     "format": "biome format --write",
     "pack:engine": "node scripts/pack-engine.ts",
     "build:catalog": "node scripts/build-catalog-index.ts && node scripts/checksum-assets.ts && node scripts/build-preview-bundle.ts",
+    "build:pack": "node scripts/build-instance-pack.ts",
     "build:catalog:all": "node scripts/build-catalog-all.ts",
     "build:readme-tools": "node scripts/build-readme-tools.ts",
     "validate:catalog": "node scripts/validate-catalog.ts",

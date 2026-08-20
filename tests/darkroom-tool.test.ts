@@ -16,7 +16,10 @@
  *     way linear-light stops must, a duotone bakes its shadow stop into the
  *     black entry, bakeSize is honoured, and the bakeLut switch resets itself,
  *   - baked output round-trips through the documented .cube grammar
- *     (red-fastest, DOMAIN 0..1, N³ rows).
+ *     (red-fastest, DOMAIN 0..1, N³ rows),
+ *   - the `videoLook` extra: published headless (before the raster guard, like
+ *     the bake), versioned, flagged with whether the look does anything, and
+ *     key-guarded so only a colour change re-publishes.
  */
 
 import { test } from 'node:test';
@@ -28,6 +31,7 @@ import { dirname, join } from 'node:path';
 
 import { loadTool } from '../engine/src/loader.ts';
 import { createRuntime } from '../engine/src/runtime.ts';
+import { parseCubeLut } from '../engine/src/grade.ts';
 import { baseHost } from './helpers/host.ts';
 
 const TOOLS_DIR = join(dirname(fileURLToPath(import.meta.url)), '..', 'community');
@@ -42,7 +46,14 @@ const tool: any = await loadTool('darkroom', fetchFile);
 // the preset path runs end-to-end without an HTTP server. The id pattern is the
 // tool's own whitelist shape - anything else (incl. any traversal attempt) 404s.
 const LUT_DIR = join(TOOLS_DIR, 'darkroom', 'assets', 'luts');
-const PRESET_IDS = ['slide-standard', 'slide-vivid', 'chrome-muted', 'mono-fine'];
+const PRESET_IDS = ['slide-standard', 'slide-vivid', 'chrome-muted', 'mono-fine', 'suse7-slog3-heavy'];
+// Authored grid size per preset: the CC0 film emulations are resampled to 33³;
+// the credited SUSE7 S-Log3 (Heavy) grade ships at its native 65³ (steep log→
+// display curves band at 33³, so it keeps the finer lattice).
+const PRESET_SIZE: Record<string, number> = {
+  'slide-standard': 33, 'slide-vivid': 33, 'chrome-muted': 33, 'mono-fine': 33,
+  'suse7-slog3-heavy': 65,
+};
 (globalThis as any).fetch = async (url: any) => {
   const m = String(url).match(/\/tools\/darkroom\/assets\/luts\/([a-z0-9-]+)\.cube$/);
   if (!m) return { ok: false, status: 404, text: async () => '' };
@@ -84,9 +95,19 @@ function parseBaked(text: string) {
   const sizeLine = lines.find(l => l.startsWith('LUT_3D_SIZE'));
   assert.ok(sizeLine, 'baked cube declares LUT_3D_SIZE');
   const size = Number(sizeLine!.split(/\s+/)[1]);
-  const rows = lines
-    .filter(l => /^\d+\.\d+ \d+\.\d+ \d+\.\d+$/.test(l))
-    .map(l => l.split(' ').map(Number) as [number, number, number]);
+  // Any line that is exactly three finite numbers is a data row. The tool's own
+  // bake writes fixed-decimals (\d+\.\d+), but a real-world .cube (e.g. a Resolve
+  // export) also carries bare integers (`0`) and scientific notation (`4.5e-05`),
+  // so match the engine parser's leniency rather than one formatter's output.
+  const rows: [number, number, number][] = [];
+  for (const l of lines) {
+    const t = l.trim();
+    if (!t || t[0] === '#') continue;
+    const parts = t.split(/\s+/);
+    if (parts.length !== 3) continue;
+    const n = parts.map(Number) as [number, number, number];
+    if (n.every(Number.isFinite)) rows.push(n);
+  }
   return { size, rows };
 }
 
@@ -268,14 +289,16 @@ test('manifest: LUT source switch gates upload + preset library', () => {
   assert.deepEqual(dl.showIf, { lutSource: ['preset'] });
 });
 
-test('every shipped preset .cube is a valid 33³ LUT in range', async () => {
+test('every shipped preset .cube is a valid LUT at its authored size, in range', async () => {
   for (const id of PRESET_IDS) {
     const text = await readFile(join(LUT_DIR, `${id}.cube`), 'utf8');
     assert.match(text, /^TITLE "/m, `${id}: has a title`);
     const { size, rows } = parseBaked(text);
-    assert.equal(size, 33, `${id}: 33³`);
-    assert.equal(rows.length, 33 * 33 * 33, `${id}: full grid`);
-    for (const [r, g, b] of [rows[0]!, rows[rows.length - 1]!, rows[(16 * 33 + 16) * 33 + 16]!]) {
+    const expected = PRESET_SIZE[id]!;
+    assert.equal(size, expected, `${id}: ${expected}³`);
+    assert.equal(rows.length, expected * expected * expected, `${id}: full grid`);
+    const mid = ((size >> 1) * size + (size >> 1)) * size + (size >> 1);
+    for (const [r, g, b] of [rows[0]!, rows[rows.length - 1]!, rows[mid]!]) {
       for (const c of [r, g, b]) assert.ok(c >= 0 && c <= 1, `${id}: value in [0,1]`);
     }
   }
@@ -385,4 +408,105 @@ test('overlays: the split is composited, not baked into the bitmap', async () =>
   for (const cls of ['.bs-split-grip', '.bs-hist-resize']) {
     assert.ok(styles.includes(cls), `styles must define ${cls} for the drag/resize affordance`);
   }
+});
+
+// ── the `videoLook` extra (plans/130) ────────────────────────────────────────
+// The tool publishes its current grade as a .cube envelope so a shell can apply
+// the same look to a video clip. Three properties matter and none is visible in
+// the rendered template: it must exist HEADLESS (the maths is pure and is
+// published before the raster guard - baseHost has no host.raster, so every
+// assertion below runs through that early return, exactly like the CLI would);
+// it must be key-guarded on the COLOUR identity, because serialising a 33³ table
+// is synchronous CPU that a grain, framing or histogram tweak must not pay; and
+// it must say whether the look is a real grade, because an identity cube is
+// indistinguishable from a real one by inspection and a shell would otherwise
+// re-encode a clip to change nothing.
+//
+// `videoLook` is an EXTRA, not an input, so it is only reachable by hydrating a
+// string against the runtime context. The triple-stache is required: the value is
+// JSON and {{x}} would escape its quotes into &quot;.
+function readVideoLook(rt: any) {
+  const raw = rt.getHydratedString('{{{videoLook}}}');
+  assert.ok(raw, 'the tool publishes a videoLook extra');
+  return JSON.parse(raw) as { v: number; on: number; cube: string; key: string };
+}
+
+test('videoLook: publishes a versioned .cube envelope, headless', async () => {
+  const { host } = makeHost();
+  const rt = await createRuntime(tool, host, {});
+
+  const look = readVideoLook(rt);
+  assert.equal(look.v, 1, 'the envelope is versioned');
+  assert.ok(typeof look.key === 'string' && look.key.length > 0, 'the envelope carries its memo key');
+
+  // The cube text is the tool's real bake at the default grid, not a stub.
+  const { size, rows } = parseBaked(look.cube);
+  assert.equal(size, 33);
+  assert.equal(rows.length, 33 * 33 * 33);
+  assert.deepEqual(rows[0], [0, 0, 0], 'default look is an identity: black stays black');
+
+  // And the ENGINE's ported parser reads the tool's own bake - the free
+  // cross-check that the two copies of the format agree (tests/grade-drift.test.ts
+  // pins the maths; this pins the round trip a shell actually performs).
+  const lut = parseCubeLut(look.cube);
+  assert.equal(lut.kind, '3d');
+  assert.equal(lut.size, 33);
+});
+
+test('videoLook: the download grid is not the video grid — the cube stays 33³', async () => {
+  const { host } = makeHost();
+  const rt = await createRuntime(tool, host, {});
+  const before = readVideoLook(rt);
+  assert.equal(parseCubeLut(before.cube).size, 33);
+
+  // bakeSize is the grid of the .cube DOWNLOAD, chosen for whatever an NLE wants
+  // to be handed. The video look is the PREVIEW's own lattice - the table the
+  // still on screen is graded through, which is 33³ by construction - so moving
+  // the download preference must neither change the published look nor spend
+  // 150 ms and 7 MB re-serialising a 65³ one on a slider tick.
+  await rt.setInput('bakeSize', '65' as any);
+  const after = readVideoLook(rt);
+  assert.equal(after.key, before.key, 'the download grid is not part of the look identity');
+  assert.equal(after.cube, before.cube, 'the published cube is the same text');
+  assert.equal(parseCubeLut(after.cube).size, 33);
+});
+
+test('videoLook: the envelope says whether the look actually does anything', async () => {
+  const { host } = makeHost();
+  const rt = await createRuntime(tool, host, {});
+  // An untouched darkroom bakes a perfectly good identity cube. Applying it to a
+  // clip would re-encode the file, cost a generation of quality and stamp a
+  // colour-grade credential for an adjustment that never happened, so the
+  // envelope carries the answer rather than leaving a shell to guess from text.
+  assert.equal(readVideoLook(rt).on, 0, 'the default pipeline is an identity');
+
+  await rt.setInput('exposure', 1 as any);
+  assert.equal(readVideoLook(rt).on, 1, '+1 EV is a real grade');
+});
+
+test('videoLook: a colour change republishes under a new key', async () => {
+  const { host } = makeHost();
+  const rt = await createRuntime(tool, host, {});
+  const before = readVideoLook(rt);
+
+  await rt.setInput('exposure', 1 as any);
+  const after = readVideoLook(rt);
+  assert.notEqual(after.key, before.key, '+1 EV is a different look');
+  assert.notEqual(after.cube, before.cube, 'and the cube text moves with it');
+  // Same linear-light stop the .cube download bakes: srgb 0.5 → ≈0.687.
+  const mid = parseBaked(after.cube).rows[(16 * 33 + 16) * 33 + 16]!;
+  for (const c of mid) assert.ok(Math.abs(c - 0.687) < 0.02, `mid-grey after +1 EV ≈ 0.687 (got ${c})`);
+});
+
+test('videoLook: a non-colour input does not pay for a rebake', async () => {
+  const { host } = makeHost();
+  const rt = await createRuntime(tool, host, {});
+  const before = readVideoLook(rt);
+
+  // The histogram is a screen-only overlay - it cannot change the grade, so the
+  // hook emits `undefined` and the engine's mergePatch leaves the extra standing.
+  await rt.setInput('histogram', true as any);
+  const after = readVideoLook(rt);
+  assert.equal(after.key, before.key, 'the look key is unchanged by a view-only input');
+  assert.equal(after.cube, before.cube, 'the published cube is the same text');
 });

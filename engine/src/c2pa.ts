@@ -266,7 +266,22 @@ function cborEncodeInto(value: unknown, out: Uint8Array[]): void {
   if (value === true) { out.push(Uint8Array.of(0xf5)); return; }
   if (value === false) { out.push(Uint8Array.of(0xf4)); return; }
   if (typeof value === 'number') {
-    if (!Number.isSafeInteger(value)) throw new Error('cbor: only safe integers are supported, got ' + value);
+    if (!Number.isSafeInteger(value)) {
+      // Non-integer (or unsafe-range) numbers encode as an IEEE 754 float64
+      // (major 7, additional 27). Without this, any fractional manifest value
+      // - the TTS speed 0.8/1.2 was the live case - threw here, and BOTH
+      // credential paths (in-file embed and record-side fallback) silently
+      // saved synthetic audio with no Content Credential at all: an EU AI Act
+      // Article 50 disclosure gap. NaN/Infinity stay refused: nothing in a
+      // manifest legitimately carries them, and a quiet 0xf97e00 would only
+      // mask an upstream bug.
+      if (!Number.isFinite(value)) throw new Error('cbor: non-finite numbers are not supported, got ' + value);
+      const f = new Uint8Array(9);
+      f[0] = 0xfb;
+      new DataView(f.buffer).setFloat64(1, value);
+      out.push(f);
+      return;
+    }
     out.push(value >= 0 ? cborHead(0, value) : cborHead(1, -1 - value));
     return;
   }
@@ -435,7 +450,8 @@ const INGREDIENT_MIME: Record<string, string> = {
   mp4: 'video/mp4', webm: 'video/webm', mkv: 'video/x-matroska',
   // Audio: a record-side credential (e.g. a TTS wav, whose container cannot
   // embed) still names its format honestly when carried as an ingredient.
-  wav: 'audio/wav', mp3: 'audio/mpeg',
+  wav: 'audio/wav', mp3: 'audio/mpeg', ogg: 'audio/ogg',
+  avif: 'image/avif',
 };
 
 // Joins a list of human-readable fragments as "a, b and c" (Oxford-comma-free,

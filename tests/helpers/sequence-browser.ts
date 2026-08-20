@@ -23,13 +23,45 @@
  * work everywhere, so the bulk of the suite runs on any build.
  */
 import { createServer, type Server } from 'node:http';
-import { existsSync } from 'node:fs';
+import { existsSync, mkdirSync, rmSync, statSync } from 'node:fs';
+import { tmpdir } from 'node:os';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
 import type { Browser, BrowserContext, Page } from 'playwright-core';
 import { getBrowser, browserInstalled } from '../../packages/node-shell/src/browsers.ts';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
+
+// One harness at a time across the whole test run. Each openHarness() file drives
+// a real video encoder for tens of seconds, and two encoding at once under
+// full-suite CPU load starve each other into the executor's 10s no-progress
+// watchdog (SEQ_ABORTED - seen as lift-flythrough and depth-flythrough stalling
+// each other on alternate runs). node:test runs files in separate processes, so
+// the mutex must be cross-process: an atomic mkdir in the OS tmpdir, spun on
+// with a stale takeover so a crashed run cannot wedge the tier for the next one.
+const ENCODE_LOCK = join(tmpdir(), 'lolly-sequence-browser.lock');
+const ENCODE_LOCK_STALE_MS = 5 * 60_000;
+
+async function acquireEncodeLock(): Promise<void> {
+  for (;;) {
+    try {
+      mkdirSync(ENCODE_LOCK);
+      return;
+    } catch {
+      try {
+        if (Date.now() - statSync(ENCODE_LOCK).mtimeMs > ENCODE_LOCK_STALE_MS) {
+          rmSync(ENCODE_LOCK, { recursive: true, force: true });
+          continue;
+        }
+      } catch { /* the holder released between our mkdir and stat - just retry */ }
+      await new Promise((r) => setTimeout(r, 250 + Math.floor(Math.random() * 250)));
+    }
+  }
+}
+
+function releaseEncodeLock(): void {
+  rmSync(ENCODE_LOCK, { recursive: true, force: true });
+}
 
 export interface CodecProbe {
   webcodecs: boolean;
@@ -103,6 +135,16 @@ async function bundleFor(entry: string): Promise<string> {
  * never completes, which is the fixture the provider-timeout case needs.
  */
 export async function openHarness(): Promise<Harness> {
+  await acquireEncodeLock();
+  try {
+    return await openHarnessLocked();
+  } catch (e) {
+    releaseEncodeLock(); // a failed launch must not hold the tier until stale takeover
+    throw e;
+  }
+}
+
+async function openHarnessLocked(): Promise<Harness> {
   const js = await bundleHarness();
   const workerJs = await bundleSequenceWorker();
   const html = '<!doctype html><meta charset="utf-8"><title>sequence tier</title><body><script type="module" src="/harness.js"></script></body>';
@@ -154,9 +196,13 @@ export async function openHarness(): Promise<Harness> {
     page,
     probe,
     async close(): Promise<void> {
-      await ctx.close().catch(() => {});
-      for (const s of openSockets) s.destroy();
-      await new Promise<void>((r) => server.close(() => r()));
+      try {
+        await ctx.close().catch(() => {});
+        for (const s of openSockets) s.destroy();
+        await new Promise<void>((r) => server.close(() => r()));
+      } finally {
+        releaseEncodeLock();
+      }
     },
   };
 }

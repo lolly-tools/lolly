@@ -22,7 +22,6 @@
   "shells/web/src/lib/url-budget.ts": 1,
   "shells/web/src/views/color-lab.ts": 1,
   "shells/web/src/views/free-canvas-seq-hit.test.ts": 1,
-  "shells/web/src/views/free-canvas.ts": 1,
   "shells/web/src/views/inputs-sync.test.ts": 1,
   "shells/web/src/views/inputs-sync.ts": 1,
   "shells/web/src/views/motion-path.test.ts": 1,

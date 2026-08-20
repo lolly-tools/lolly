@@ -236,7 +236,10 @@ test('CBOR encoder matches hand-computed byte vectors', () => {
   // tags + simple values
   eq(new CborTag(18, []), 'd280');
   eq(true, 'f5'); eq(false, 'f4'); eq(null, 'f6');
-  assert.throws(() => encodeCbor(1.5), /safe integers/);
+  // Non-integers encode as float64 (0xfb + IEEE754 BE) since the TTS-speed
+  // fix - 1.5 = 0x3FF8000000000000. Non-finite stays refused.
+  eq(1.5, 'fb3ff8000000000000');
+  assert.throws(() => encodeCbor(Number.NaN), /non-finite/);
 });
 
 test('CBOR round-trips through an independent decoder', () => {
@@ -503,4 +506,20 @@ test('c2patool parses the manifest store', { skip: !which('c2patool') && 'c2pato
     return;
   }
   assert.ok(res.status === 0 || /manifest|claim/i.test(text), `c2patool did not parse the manifest store: ${text}`);
+});
+
+test('cbor: non-integer numbers round-trip as float64 (the TTS speed case)', async () => {
+  // A fractional manifest value (TTS speed 0.8/1.2) used to THROW in the
+  // encoder, and both credential paths swallowed the throw - synthetic audio
+  // saved with no Content Credential at all (an AI Act Article 50 gap).
+  const { encodeCbor } = await import('../engine/src/c2pa.ts');
+  const { decodeCbor: readCbor } = await import('../engine/src/c2pa-extract.ts');
+  for (const v of [1.2, 0.8, -3.75, 1e300, 2 ** 53]) {
+    assert.equal(readCbor(encodeCbor(v)), v, `float64 round-trip for ${v}`);
+  }
+  const round = readCbor(encodeCbor({ action: 'c2pa.created', speed: 1.2, count: 3 })) as Map<unknown, unknown>;
+  assert.equal(round.get('speed'), 1.2);
+  assert.equal(round.get('count'), 3, 'integers keep the compact integer encoding');
+  assert.throws(() => encodeCbor(Number.NaN), /non-finite/);
+  assert.throws(() => encodeCbor(Number.POSITIVE_INFINITY), /non-finite/);
 });

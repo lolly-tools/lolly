@@ -118,6 +118,9 @@ out
 dist
 .output
 
+# Built instance packs (scripts/build-instance-pack.ts, plans/131) — distributables, never committed
+dist-packs/
+
 # Gatsby files
 .cache/
 # Comment in the public line in if your project uses Gatsby and not Next.js

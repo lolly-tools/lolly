@@ -1,6 +1,6 @@
 {
   "version": "1",
-  "generatedAt": "2026-08-19T15:35:22.538Z",
+  "generatedAt": "2026-08-19T21:22:12.392Z",
   "tools": [
     {
       "id": "compress-pdf",
@@ -6217,7 +6217,7 @@
       "id": "darkroom",
       "name": "Darkroom",
       "description": "A pro photo-grading darkroom: film looks, third-party .cube LUTs, brand-seeded colour treatments and finishing texture - then bake your look as a LUT any editor can use. Opens a Photoshop or GIMP file as layers too: position, blend and hide each one, grade the composite, and export flat images or a layered PSD.",
-      "version": "2.0.0",
+      "version": "2.1.0",
       "status": "community",
       "category": "designer",
       "tags": [
