@@ -27,6 +27,7 @@
  *   - url-pack      : unpackToken(token) + expandQuery(query) - the `z` param decoder (DEFLATE bomb caps)
  *   - wav           : parseWav(bytes) - the RIFF/WAVE container walker
  *   - depth-hint    : depthHint(bytes) - the ingest bit-depth header sniff (web shell lib)
+ *   - lut-parse     : parseCubeLut / parse3dlLut - the .cube/.3dl colour-grade LUT readers
  */
 
 import { embedC2paInPdf, embedC2pa, attachC2paStore, encodeCbor, type Signer } from '../../engine/src/c2pa.ts';
@@ -39,15 +40,13 @@ import {
 } from '../../engine/src/c2pa-extract.ts';
 import { unpackToken, expandQuery, hasPackedState, packQuery } from '../../engine/src/url-pack.ts';
 import { parseWav } from '../../engine/src/wav.ts';
+import { parseCubeLut, parse3dlLut } from '../../engine/src/grade.ts';
 import { readPsd } from '../../engine/src/psd.ts';
 import { writePsd } from '../../engine/src/psd-write.ts';
 import { readXcf } from '../../engine/src/xcf.ts';
 import type { InflateFn } from '../../engine/src/raster-layers.ts';
 import { buildXcf } from '../helpers/xcf-fixture.ts';
 import { deflateRawSync, inflateSync } from 'node:zlib';
-import { readFileSync } from 'node:fs';
-import { join, dirname } from 'node:path';
-import { fileURLToPath } from 'node:url';
 import { sniffAnimatedRaster, sniffVideoContainer } from '../../engine/src/media-sniff.ts';
 import { interpretPdfPage, parseToUnicode } from '../../engine/src/pdf-map.ts';
 import { extractFileMetadata } from '../../engine/src/file-metadata.ts';
@@ -907,23 +906,16 @@ export const depthHintTarget: FuzzTarget = {
   async invoke(bytes) { await depthHint(bytes); },
 };
 
-// The darkroom tool's .cube/.3dl LUT readers (community/darkroom/
-// hooks.js) - the one tool-data parser that reads untrusted
-// bytes (a user-picked LUT file). Hooks ship as plain script, not a module, so
-// the functions are lifted out the same way the engine runtime compiles them:
-// new Function with the source appended by a return of the parsers under test.
-// Declared bounds live in the hooks as CUBE_MAX_N / TDL_MAX_N; a controlled
-// "Not a … LUT" / "too large" throw is the desired outcome, and the runner's
-// finding classes are hangs and allocation blow-ups.
-const lutParsers = (() => {
-  const src = readFileSync(
-    join(dirname(fileURLToPath(import.meta.url)), '..', '..', 'community', 'darkroom', 'hooks.js'),
-    'utf8',
-  );
-  type Parse = (text: string) => unknown;
-  return new Function('host', `${src}\nreturn { parseCube, parse3dl };`)({}) as { parseCube: Parse; parse3dl: Parse };
-})();
-
+// The .cube/.3dl LUT readers (engine/src/grade.ts) - the parsers that read a
+// user-picked LUT file, the most untrusted bytes the grading path touches.
+// They used to live only in community/darkroom/hooks.js and had to be lifted
+// out of the hook source with new Function; plans/130 promoted them into an
+// engine module, so this target imports them directly like psdTarget below.
+// The tool still carries its own copy (tools never import the engine) and
+// tests/grade-drift.test.ts pins that copy to this one, so fuzzing here covers
+// both. Declared bounds are CUBE_MAX_N / TDL_MAX_N; a controlled "Not a … LUT"
+// / "too large" throw is the desired outcome, and the runner's finding classes
+// are hangs and allocation blow-ups.
 export const lutParseTarget: FuzzTarget = {
   name: 'lut-parse',
   async seeds() {
@@ -937,8 +929,8 @@ export const lutParseTarget: FuzzTarget = {
   },
   async invoke(bytes) {
     const text = new TextDecoder('utf-8').decode(bytes);
-    try { lutParsers.parseCube(text); } catch { /* controlled reject — the tool falls through to .3dl */ }
-    lutParsers.parse3dl(text);
+    try { parseCubeLut(text); } catch { /* controlled reject — parseLutText falls through to .3dl */ }
+    parse3dlLut(text);
   },
 };
 

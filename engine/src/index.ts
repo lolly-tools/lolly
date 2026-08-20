@@ -57,7 +57,7 @@ export { toCSV, parseDelimited, detectDelimiter, parseBatchCsv, batchCsvTemplate
 export type { BatchRow, BatchTemplateTool } from './batch.ts';
 export { buildExportMeta } from './metadata.ts';
 export { extractFileMetadata, readMpfIndex, appendedIsExpected, META_GROUP_ORDER, META_GROUP_LABEL } from './file-metadata.ts';
-export type { FileMetadata, MetaField, MetaGroup, JpegMpfIndex } from './file-metadata.ts';
+export type { FileMetadata, MetaField, MetaGroup, JpegMpfIndex, MediaProducer } from './file-metadata.ts';
 export { stripMetadata, isStrippableFormat, hasResidualMetadata } from './strip-metadata.ts';
 export type { StripFormat } from './strip-metadata.ts';
 export {
@@ -538,6 +538,17 @@ export type { ChromaKeyOptions } from './chroma-key.ts';
 // cv.inpaint. Windows itself to the mask bounding box and returns a new frame.
 export { inpaintTelea } from './inpaint.ts';
 export type { InpaintFrame, InpaintOpts } from './inpaint.ts';
+// Colour grading - the .cube/.3dl readers, the tetrahedral sampler, the RGBA
+// frame apply and the film grain + vignette pass, promoted out of the darkroom
+// tool so a shell can grade a whole VIDEO with the maths that graded the still
+// (plans/130). The tool keeps its own copy because tools never import the
+// engine; tests/grade-drift.test.ts pins the two together.
+export {
+  CUBE_MAX_N, TDL_MAX_N, GRAIN_REF_LONG_EDGE,
+  parseCubeLut, parse3dlLut, parseLutText,
+  sampleLut, applyLutFrame, applyGrainVignette, grainCellPx, gradeMulberry32,
+} from './grade.ts';
+export type { GradeLut, GrainVignetteParams } from './grade.ts';
 // Palette exchange - a flat swatch list serialised as DTCG tokens JSON, CSS
 // custom properties / classes, SCSS variables, a GIMP .gpl, or a binary Adobe
 // .ase. Pure + DOM-free; attached to host.color (paletteExport/paletteExportBytes)

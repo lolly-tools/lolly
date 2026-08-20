@@ -467,3 +467,155 @@ test('appendedIsExpected: one rule for "these bytes are accounted for"', () => {
   // A hand-forged record cannot claim exemption by kind alone.
   assert.equal(appendedIsExpected({ bytes: 1, kind: 'HDR gain map (ISO 21496-1 / Ultra HDR)', offset: 0 }), false);
 });
+
+// ── ISO BMFF (MP4/M4A) container metadata ───────────────────────────────────
+// Synthetic-box builders. Every box is length-prefixed big-endian, so a tree
+// assembles inside-out; '©' maps to 0xA9 through the &0xff in bmffBox().
+
+const zeros = (n: number): number[] => new Array(n).fill(0);
+function bmffBox(type: string, ...parts: (number[] | string)[]): number[] {
+  const body = parts.flatMap((p) => (typeof p === 'string' ? [...new TextEncoder().encode(p)] : p));
+  return [...u32be(8 + body.length), ...[...type].map((c) => c.charCodeAt(0) & 0xff), ...body];
+}
+const bmffHdlr = (kind: string, name: string): number[] =>
+  bmffBox('hdlr', u32be(0), u32be(0), kind, zeros(12), `${name}\0`);
+const bmffVideoTrak = (note: string): number[] =>
+  bmffBox('trak', bmffBox('mdia', bmffHdlr('vide', note), bmffBox('minf', bmffBox('stbl',
+    bmffBox('stsd', u32be(0), u32be(1),
+      bmffBox('avc1', zeros(6), u16be(1), zeros(16), u16be(720), u16be(1280), zeros(50))),
+  ))));
+const bmffAudioTrak = (note: string): number[] =>
+  bmffBox('trak', bmffBox('mdia', bmffHdlr('soun', note), bmffBox('minf', bmffBox('stbl',
+    bmffBox('stsd', u32be(0), u32be(1),
+      bmffBox('mp4a', zeros(6), u16be(1), zeros(8), u16be(2), u16be(16), zeros(4), u32be(44100 << 16))),
+  ))));
+const bmffIlstMeta = (...entries: number[][]): number[] =>
+  bmffBox('meta', u32be(0), bmffHdlr('mdir', 'appl'), bmffBox('ilst', ...entries));
+const bmffIlstText = (tag: string, value: string): number[] =>
+  bmffBox(tag, bmffBox('data', u32be(1), u32be(0), value));
+const GOOGLE_NOTE = 'ISO Media file produced by Google Inc.';
+// 2026-08-19T14:02:10Z in the BMFF epoch (seconds since 1904-01-01).
+const BMFF_CREATED = 2082844800 + Math.floor(Date.parse('2026-08-19T14:02:10Z') / 1000);
+const bmffMvhd = (created: number, timescale: number, duration: number): number[] =>
+  bmffBox('mvhd', u32be(0), u32be(created), u32be(created), u32be(timescale), u32be(duration), zeros(80));
+
+test('extractFileMetadata: BMFF reads tracks, tags, timestamps and the Google AI fingerprint', () => {
+  // A Gemini/Veo video download in miniature: mp42 brand, Google handler note
+  // on the tracks, an ilst ©too of exactly "Google", no XMP and no C2PA.
+  const mp4 = bytesOf(
+    bmffBox('ftyp', 'mp42', u32be(0), 'isommp42'),
+    bmffBox('moov',
+      bmffMvhd(BMFF_CREATED, 1000, 73816),
+      bmffVideoTrak(GOOGLE_NOTE),
+      bmffAudioTrak(GOOGLE_NOTE),
+      bmffBox('udta', bmffIlstMeta(bmffIlstText('©too', 'Google'))),
+    ),
+  );
+  const meta = extractFileMetadata(mp4);
+  assert.equal(meta.format, 'MP4');
+  const by = (label: string) => meta.fields.find((f) => f.label === label);
+  assert.equal(by('Encoded with')?.value, 'Google');
+  assert.equal(by('Handler description')?.value, GOOGLE_NOTE);
+  assert.equal(by('Video track')?.value, 'H.264 (avc1) — 720 × 1280 px');
+  assert.equal(by('Audio track')?.value, 'AAC (mp4a) — 44.1 kHz stereo');
+  assert.equal(by('Created')?.value, '2026-08-19 14:02 UTC');
+  assert.equal(by('Duration')?.value, '1 min 14 s');
+  assert.equal(by('Container profile')?.value, 'mp42');
+  assert.equal(meta.producer?.vendor, 'Google');
+  assert.equal(meta.producer?.signature, 'ai-download');
+  assert.equal(meta.producer?.hint, 'Gemini or Veo');
+  assert.ok(meta.producer?.markers.includes(GOOGLE_NOTE));
+});
+
+test('extractFileMetadata: audio-only DASH m4a maps to the Gemini/NotebookLM hint', () => {
+  const m4a = bytesOf(
+    bmffBox('ftyp', 'dash', u32be(0), 'iso6mp41'),
+    bmffBox('moov',
+      bmffMvhd(0, 44100, 64011264),
+      bmffAudioTrak(GOOGLE_NOTE),
+      bmffBox('udta', bmffIlstMeta(bmffIlstText('©too', 'Google'))),
+    ),
+  );
+  const meta = extractFileMetadata(m4a);
+  assert.equal(meta.producer?.signature, 'ai-download');
+  assert.equal(meta.producer?.hint, 'Gemini or NotebookLM');
+  assert.equal(meta.fields.find((f) => f.label === 'Container profile')?.value, 'dash — fragmented (streaming delivery)');
+  assert.equal(meta.fields.find((f) => f.label === 'Duration')?.value, '24 min 12 s');
+  assert.equal(meta.fields.find((f) => f.label === 'Created'), undefined, 'a zero created stamp is unset, not 1904');
+});
+
+test('extractFileMetadata: the dated YouTube handler note is a re-encode, never the AI hint', () => {
+  const mp4 = bytesOf(
+    bmffBox('ftyp', 'mp42', u32be(0), 'isommp42'),
+    bmffBox('moov', bmffVideoTrak(`${GOOGLE_NOTE} Created on: 10/09/2015.`)),
+  );
+  const meta = extractFileMetadata(mp4);
+  assert.equal(meta.producer?.vendor, 'Google');
+  assert.equal(meta.producer?.signature, 'reencode');
+});
+
+test('extractFileMetadata: a non-Google BMFF file carries no producer fingerprint', () => {
+  const mp4 = bytesOf(
+    bmffBox('ftyp', 'mp42', u32be(0), 'isommp42'),
+    bmffBox('moov',
+      bmffVideoTrak('VideoHandler'),
+      bmffBox('udta', bmffIlstMeta(bmffIlstText('©too', 'Lavf61.1.100'))),
+    ),
+  );
+  const meta = extractFileMetadata(mp4);
+  assert.equal(meta.producer, undefined);
+  assert.equal(meta.fields.find((f) => f.label === 'Encoded with')?.value, 'Lavf61.1.100');
+});
+
+test('extractFileMetadata: Android ©xyz GPS becomes a fix with a map link', () => {
+  const mp4 = bytesOf(
+    bmffBox('ftyp', 'mp42', u32be(0), 'isommp42'),
+    bmffBox('moov', bmffBox('udta', bmffBox('©xyz', u16be(22), u16be(0x15c7), '+37.421800-122.084000/'))),
+  );
+  const meta = extractFileMetadata(mp4);
+  assert.ok(meta.gps);
+  assert.ok(Math.abs(meta.gps!.lat - 37.4218) < 1e-6);
+  assert.ok(Math.abs(meta.gps!.lon - -122.084) < 1e-6);
+  assert.ok(meta.mapUrl?.startsWith('https://www.openstreetmap.org/'));
+  assert.equal(meta.fields.find((f) => f.label === 'Coordinates')?.sensitive, true);
+});
+
+test('extractFileMetadata: QuickTime mdta keys yield device, software and location rows', () => {
+  const key = (name: string): number[] => [...u32be(8 + name.length), ...[...'mdta'].map((c) => c.charCodeAt(0)), ...[...new TextEncoder().encode(name)]];
+  const idxEntry = (i: number, value: string): number[] =>
+    bmffBox(String.fromCharCode((i >>> 24) & 0xff, (i >>> 16) & 0xff, (i >>> 8) & 0xff, i & 0xff),
+      bmffBox('data', u32be(1), u32be(0), value));
+  const mov = bytesOf(
+    bmffBox('ftyp', 'qt  ', u32be(0), 'qt  '),
+    bmffBox('moov',
+      bmffBox('meta', u32be(0), bmffHdlr('mdta', ''),
+        bmffBox('keys', u32be(0), u32be(3),
+          key('com.apple.quicktime.model'), key('com.apple.quicktime.software'), key('com.apple.quicktime.location.ISO6709')),
+        bmffBox('ilst', idxEntry(1, 'iPhone 15 Pro'), idxEntry(2, '18.1'), idxEntry(3, '-33.8688+151.2093/')),
+      ),
+    ),
+  );
+  const meta = extractFileMetadata(mov);
+  assert.equal(meta.format, 'QuickTime');
+  assert.equal(meta.fields.find((f) => f.label === 'Device model')?.value, 'iPhone 15 Pro');
+  assert.equal(meta.fields.find((f) => f.label === 'Software')?.value, '18.1');
+  assert.ok(meta.gps && Math.abs(meta.gps.lat - -33.8688) < 1e-6);
+});
+
+test('extractFileMetadata: hostile BMFF sizes neither throw nor hang', () => {
+  const cases = [
+    // A child whose declared size overruns its parent.
+    bytesOf(bmffBox('ftyp', 'mp42', u32be(0), 'isommp42'), [0, 0xff, 0xff, 0xff], 'moov'),
+    // A size smaller than its own header.
+    bytesOf(bmffBox('ftyp', 'mp42', u32be(0), 'isommp42'), u32be(5), 'moov'),
+    // A largesize box truncated before the 64-bit length.
+    bytesOf(bmffBox('ftyp', 'mp42', u32be(0), 'isommp42'), u32be(1), 'moov', [0, 0]),
+    // A keys box declaring far more entries than it holds.
+    bytesOf(bmffBox('ftyp', 'mp42', u32be(0), 'isommp42'),
+      bmffBox('moov', bmffBox('meta', u32be(0), bmffHdlr('mdta', ''), bmffBox('keys', u32be(0), u32be(0xffffffff)), bmffBox('ilst')))),
+  ];
+  for (const bytes of cases) {
+    const meta = extractFileMetadata(bytes);
+    assert.equal(meta.format, 'MP4');
+  }
+});

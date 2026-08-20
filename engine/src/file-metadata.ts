@@ -89,6 +89,26 @@ export interface FileMetadata {
    * pixels). An amber heuristic, never proof.
    */
   lsb?: { suspicious: boolean; score: number };
+  /**
+   * Maker-pipeline fingerprint read from container internals (BMFF handler
+   * strings + encoder tags). `signature: 'ai-download'` means the markers match
+   * the packaging a vendor's AI products write on the files they deliver
+   * (Gemini / Veo video, Gemini / NotebookLM audio) - a fingerprint OF the
+   * pipeline, not a declaration BY it: other services sharing the vendor's
+   * muxer can leave the same trace, so a viewer must see this as a signal,
+   * never a verdict. `reencode` is the vendor's dated server-transcode variant
+   * (the classic YouTube handler note), which says nothing about AI origin.
+   * `markers` holds the literal matched strings so a view can show evidence.
+   */
+  producer?: MediaProducer;
+}
+
+export interface MediaProducer {
+  vendor: string;
+  signature: 'ai-download' | 'reencode';
+  /** Human hint at which products package files this way, e.g. "Gemini or Veo". */
+  hint: string;
+  markers: string[];
 }
 
 // The order sections read top-to-bottom in a plain layout.
@@ -818,36 +838,343 @@ function readWebp(bytes: Uint8Array, out: FileMetadata): void {
 }
 
 // ── MP4 / QuickTime (ISO BMFF) ───────────────────────────────────────────────────
-// Videos carry their XMP packet in a top-level `uuid` box with a fixed UUID
-// (XMP spec part 3, MPEG-4). That packet is where AI generators declare their
-// output (IPTC DigitalSourceType) - the video-side analogue of the JPEG/PNG
-// path above. Only top-level boxes are walked; media payloads are skipped.
+// Two layers of disclosure live in the container. The XMP packet (a top-level
+// `uuid` box with a fixed UUID, XMP spec part 3) is where AI generators declare
+// their output (IPTC DigitalSourceType) - the video-side analogue of the JPEG/
+// PNG path above. And the moov tree itself carries what the muxer wrote:
+// timestamps, codecs, iTunes-style `ilst` tags (encoder, title, artist),
+// QuickTime `mdta` keys (an iPhone's GPS/make/model live there), Android's
+// `©xyz` GPS string, and each track handler's description - which is where a
+// pipeline names itself ("ISO Media file produced by Google Inc.").
 const XMP_BOX_UUID = [0xbe, 0x7a, 0xcf, 0xcb, 0x97, 0xa9, 0x42, 0xe8, 0x9c, 0x71, 0x99, 0x94, 0x91, 0xe3, 0xaf, 0xac];
 
-function readBmff(bytes: Uint8Array, out: FileMetadata): void {
-  let p = 0;
-  while (p + 8 <= bytes.length && out.fields.length < MAX_FIELDS) {
+interface BmffBox { type: string; payload: number; end: number; }
+
+// Children of a byte range. Every size is checked BEFORE use (a crafted size
+// must not walk out of bounds or spin the loop), and the child count is capped.
+// The default cap suits nested boxes; the top-level walk passes a higher one
+// because a long DASH stream is thousands of legitimate moof/mdat pairs and an
+// XMP uuid box can trail them all.
+function bmffChildren(bytes: Uint8Array, start: number, end: number, maxBoxes = 512): BmffBox[] {
+  const out: BmffBox[] = [];
+  let p = start;
+  while (p + 8 <= end && out.length < maxBoxes) {
     let size = (((bytes[p]! << 24) | (bytes[p + 1]! << 16) | (bytes[p + 2]! << 8) | bytes[p + 3]!) >>> 0);
     const type = String.fromCharCode(bytes[p + 4]!, bytes[p + 5]!, bytes[p + 6]!, bytes[p + 7]!);
     let header = 8;
     if (size === 1) {
       // 64-bit largesize (routine for a big mdat) - read it and keep walking.
-      if (p + 16 > bytes.length) return;
+      if (p + 16 > end) break;
       size = (((bytes[p + 8]! << 24) | (bytes[p + 9]! << 16) | (bytes[p + 10]! << 8) | bytes[p + 11]!) >>> 0) * 0x1_0000_0000
         + (((bytes[p + 12]! << 24) | (bytes[p + 13]! << 16) | (bytes[p + 14]! << 8) | bytes[p + 15]!) >>> 0);
       header = 16;
     } else if (size === 0) {
-      size = bytes.length - p; // "to end of file" (last box only)
+      size = end - p; // "to end of enclosing range" (last box only)
     }
-    if (size < header || size > bytes.length - p) return; // truncated / hostile
-    if (type === 'uuid' && size >= header + 16
-        && XMP_BOX_UUID.every((v, i) => bytes[p + header + i] === v)) {
-      const start = p + header + 16;
-      const end = Math.min(p + size, start + MAX_TEXT_SCAN);
-      readXmp(new TextDecoder('utf-8').decode(bytes.subarray(start, end)), out);
-    }
+    if (size < header || size > end - p) break; // truncated / hostile
+    out.push({ type, payload: p + header, end: p + size });
     p += size;
   }
+  return out;
+}
+
+const u16 = (b: Uint8Array, p: number): number => (b[p]! << 8) | b[p + 1]!;
+const u32 = (b: Uint8Array, p: number): number => (((b[p]! << 24) | (b[p + 1]! << 16) | (b[p + 2]! << 8) | b[p + 3]!) >>> 0);
+
+function bmffString(bytes: Uint8Array, start: number, end: number): string {
+  if (end <= start) return '';
+  let s = new TextDecoder('utf-8').decode(bytes.subarray(start, Math.min(end, start + 4096)));
+  // QuickTime writes Pascal-style handler names (leading length byte); ISO
+  // writes NUL-terminated UTF-8. Normalise both to the printable text.
+  s = s.replace(/\0[\s\S]*$/, '');
+  if (s && s.charCodeAt(0) < 0x20) s = s.slice(1);
+  return clip(s.trim());
+}
+
+// Seconds since 1904-01-01 (the BMFF epoch) → "YYYY-MM-DD HH:MM UTC", or null
+// for the unset/garbage values muxers write (0, or anything before 1970).
+const BMFF_EPOCH_TO_UNIX = 2082844800;
+function bmffDate(secs: number): string | null {
+  const unix = secs - BMFF_EPOCH_TO_UNIX;
+  if (unix <= 0 || !Number.isFinite(unix)) return null;
+  const d = new Date(unix * 1000);
+  if (Number.isNaN(d.getTime())) return null;
+  return `${d.toISOString().slice(0, 16).replace('T', ' ')} UTC`;
+}
+
+function bmffDuration(seconds: number): string | null {
+  if (!Number.isFinite(seconds) || seconds <= 0) return null;
+  if (seconds < 60) return `${seconds.toFixed(1).replace(/\.0$/, '')} s`;
+  const whole = Math.round(seconds); // round once, then split - never "1 min 60 s"
+  const h = Math.floor(whole / 3600), m = Math.floor((whole % 3600) / 60), s = whole % 60;
+  return h ? `${h} h ${m} min ${s} s` : `${m} min ${s} s`;
+}
+
+const BMFF_CODEC_NAMES: Record<string, string> = {
+  avc1: 'H.264', avc3: 'H.264', hvc1: 'HEVC (H.265)', hev1: 'HEVC (H.265)',
+  av01: 'AV1', vp09: 'VP9', vp08: 'VP8', mp4v: 'MPEG-4 Visual',
+  mp4a: 'AAC', Opus: 'Opus', alac: 'Apple Lossless', fLaC: 'FLAC',
+  'ac-3': 'AC-3', 'ec-3': 'E-AC-3', twos: 'PCM', sowt: 'PCM', lpcm: 'PCM',
+};
+
+// The iTunes-style `ilst` tags worth a row. `©`-prefixed fourccs come out of
+// String.fromCharCode as ©, so the keys read naturally here.
+const ILST_TAGS: Record<string, { label: string; group: MetaGroup; sensitive?: boolean }> = {
+  '©nam': { label: 'Title', group: 'description' },
+  '©ART': { label: 'Artist', group: 'authorship', sensitive: true },
+  aART: { label: 'Album artist', group: 'authorship', sensitive: true },
+  '©alb': { label: 'Album', group: 'description' },
+  '©day': { label: 'Date', group: 'timestamps' },
+  '©cmt': { label: 'Comment', group: 'description' },
+  '©gen': { label: 'Genre', group: 'description' },
+  '©wrt': { label: 'Composer', group: 'authorship', sensitive: true },
+  '©aut': { label: 'Author', group: 'authorship', sensitive: true },
+  '©too': { label: 'Encoded with', group: 'software' },
+  cprt: { label: 'Copyright', group: 'authorship' },
+  desc: { label: 'Description', group: 'description' },
+  ldes: { label: 'Description', group: 'description' },
+};
+
+// The QuickTime `mdta` keys worth a row (an iPhone movie's identifying set).
+const MDTA_KEYS: Record<string, { label: string; group: MetaGroup; sensitive?: boolean }> = {
+  'com.apple.quicktime.make': { label: 'Device make', group: 'device', sensitive: true },
+  'com.apple.quicktime.model': { label: 'Device model', group: 'device', sensitive: true },
+  'com.apple.quicktime.software': { label: 'Software', group: 'software' },
+  'com.apple.quicktime.creationdate': { label: 'Created', group: 'timestamps' },
+  'com.apple.quicktime.author': { label: 'Author', group: 'authorship', sensitive: true },
+  'com.apple.quicktime.displayname': { label: 'Title', group: 'description' },
+  'com.apple.quicktime.description': { label: 'Description', group: 'description' },
+  'com.apple.quicktime.location.ISO6709': { label: 'Coordinates', group: 'location', sensitive: true },
+};
+
+// The text payload of an ilst entry's `data` atom (type 1 = UTF-8, 0 = implicit).
+function ilstText(bytes: Uint8Array, entry: BmffBox): string | null {
+  for (const d of bmffChildren(bytes, entry.payload, entry.end)) {
+    if (d.type !== 'data' || d.end - d.payload < 8) continue;
+    const kind = u32(bytes, d.payload) & 0xffffff;
+    if (kind !== 1 && kind !== 0) continue;
+    const text = bmffString(bytes, d.payload + 8, d.end);
+    if (text) return text;
+  }
+  return null;
+}
+
+// "+37.4218-122.0840+5.2/" (ISO 6709, Android ©xyz + QuickTime location) → fix.
+function parseIso6709(s: string): { lat: number; lon: number } | null {
+  const m = /^([+-]\d{1,2}(?:\.\d+)?)([+-]\d{1,3}(?:\.\d+)?)/.exec(s.trim());
+  if (!m) return null;
+  const lat = Number(m[1]), lon = Number(m[2]);
+  if (!Number.isFinite(lat) || !Number.isFinite(lon) || Math.abs(lat) > 90 || Math.abs(lon) > 180) return null;
+  return { lat, lon };
+}
+
+function bmffGps(out: FileMetadata, fix: { lat: number; lon: number }): void {
+  if (out.gps) return; // an earlier (XMP) fix wins; never overwrite
+  out.gps = fix;
+  out.mapUrl = `https://www.openstreetmap.org/?mlat=${fix.lat.toFixed(6)}&mlon=${fix.lon.toFixed(6)}#map=15/${fix.lat.toFixed(5)}/${fix.lon.toFixed(5)}`;
+  out.fields.push({ label: 'Coordinates', value: `${fix.lat.toFixed(6)}, ${fix.lon.toFixed(6)}`, group: 'location', sensitive: true });
+}
+
+// The pipeline fingerprints we can vouch for byte-for-byte. Google's AI
+// products (Gemini video/audio, Veo, NotebookLM) deliver files whose only
+// maker traces are the bare handler note and/or an `©too` of exactly
+// "Google"; YouTube's server re-encode writes the same note WITH a
+// "Created on:" date. Matching the dated variant first keeps a YouTube
+// download from wearing the AI hint.
+const GOOGLE_NOTE_DATED = /^ISO Media file produced by Google Inc\.?\s+Created on: /;
+const GOOGLE_NOTE = /^ISO Media file produced by Google Inc\.?$/;
+
+function detectProducer(handlerNotes: string[], encoder: string | null, hasVideo: boolean): MediaProducer | undefined {
+  const dated = handlerNotes.find((n) => GOOGLE_NOTE_DATED.test(n));
+  if (dated) return { vendor: 'Google', signature: 'reencode', hint: 'a YouTube-style server re-encode', markers: [dated] };
+  const markers: string[] = [];
+  const note = handlerNotes.find((n) => GOOGLE_NOTE.test(n));
+  if (note) markers.push(note);
+  if (encoder === 'Google') markers.push('encoder tag “Google”');
+  if (!markers.length) return undefined;
+  return {
+    vendor: 'Google',
+    signature: 'ai-download',
+    hint: hasVideo ? 'Gemini or Veo' : 'Gemini or NotebookLM',
+    markers,
+  };
+}
+
+function readIlst(bytes: Uint8Array, ilst: BmffBox, out: FileMetadata): string | null {
+  let encoder: string | null = null;
+  for (const entry of bmffChildren(bytes, ilst.payload, ilst.end)) {
+    const tag = ILST_TAGS[entry.type];
+    if (!tag) continue;
+    const text = ilstText(bytes, entry);
+    if (!text) continue;
+    if (entry.type === '©too') encoder = text;
+    if (out.fields.length < MAX_FIELDS) {
+      out.fields.push({ label: tag.label, value: text, group: tag.group, ...(tag.sensitive ? { sensitive: true } : {}) });
+    }
+  }
+  return encoder;
+}
+
+// A `meta` box is a FullBox (4 bytes of version/flags before its children) -
+// except QuickTime writes it as a plain box. Peek: a bare meta's first child
+// parses cleanly as its leading `hdlr`; a FullBox's version/flags read as a
+// garbage box instead, so fall through to the offset-4 walk.
+function metaChildren(bytes: Uint8Array, meta: BmffBox): BmffBox[] {
+  const bare = bmffChildren(bytes, meta.payload, meta.end);
+  if (bare.length && bare[0]!.type === 'hdlr') return bare;
+  return bmffChildren(bytes, meta.payload + 4, meta.end);
+}
+
+// QuickTime-style metadata: `keys` names each index, `ilst` children are keyed
+// by u32 index instead of fourcc.
+function readMdtaMeta(bytes: Uint8Array, kids: BmffBox[], out: FileMetadata): void {
+  const keysBox = kids.find((b) => b.type === 'keys');
+  const ilst = kids.find((b) => b.type === 'ilst');
+  if (!keysBox || !ilst) return;
+  const names: string[] = [];
+  if (keysBox.end - keysBox.payload >= 8) {
+    const count = Math.min(u32(bytes, keysBox.payload + 4), 256);
+    let p = keysBox.payload + 8;
+    while (names.length < count && p + 8 <= keysBox.end) {
+      const size = u32(bytes, p);
+      if (size < 8 || size > keysBox.end - p) break;
+      names.push(bmffString(bytes, p + 8, p + size));
+      p += size;
+    }
+  }
+  for (const entry of bmffChildren(bytes, ilst.payload, ilst.end)) {
+    // The entry "type" IS the big-endian index; recover it from the chars.
+    const idx = (entry.type.charCodeAt(0) << 24) | (entry.type.charCodeAt(1) << 16) | (entry.type.charCodeAt(2) << 8) | entry.type.charCodeAt(3);
+    const key = idx >= 1 && idx <= names.length ? names[idx - 1]! : '';
+    const known = MDTA_KEYS[key];
+    if (!known) continue;
+    const text = ilstText(bytes, entry);
+    if (!text) continue;
+    if (key === 'com.apple.quicktime.location.ISO6709') {
+      const fix = parseIso6709(text);
+      if (fix) bmffGps(out, fix);
+      continue;
+    }
+    if (out.fields.length < MAX_FIELDS) {
+      out.fields.push({ label: known.label, value: text, group: known.group, ...(known.sensitive ? { sensitive: true } : {}) });
+    }
+  }
+}
+
+function readBmff(bytes: Uint8Array, out: FileMetadata): void {
+  const top = bmffChildren(bytes, 0, bytes.length, 65536);
+  const handlerNotes: string[] = [];
+  const trackRows: MetaField[] = [];
+  let encoder: string | null = null;
+  let hasVideo = false;
+
+  // ftyp brand + the XMP uuid box (the AI-declaration carrier).
+  const ftyp = top.find((b) => b.type === 'ftyp');
+  const brand = ftyp && ftyp.end - ftyp.payload >= 4 ? bmffString(bytes, ftyp.payload, ftyp.payload + 4) : '';
+  for (const b of top) {
+    if (b.type === 'uuid' && b.end - b.payload >= 16 && XMP_BOX_UUID.every((v, i) => bytes[b.payload + i] === v)) {
+      const start = b.payload + 16;
+      readXmp(new TextDecoder('utf-8').decode(bytes.subarray(start, Math.min(b.end, start + MAX_TEXT_SCAN))), out);
+    }
+  }
+  const fragmented = brand === 'dash' || top.some((b) => b.type === 'moof');
+
+  const moov = top.find((b) => b.type === 'moov');
+  if (moov) {
+    const kids = bmffChildren(bytes, moov.payload, moov.end);
+
+    for (const trak of kids.filter((b) => b.type === 'trak')) {
+      const mdia = bmffChildren(bytes, trak.payload, trak.end).find((b) => b.type === 'mdia');
+      if (!mdia) continue;
+      const mkids = bmffChildren(bytes, mdia.payload, mdia.end);
+      const hdlr = mkids.find((b) => b.type === 'hdlr');
+      let kind = '';
+      if (hdlr && hdlr.end - hdlr.payload >= 12) {
+        kind = String.fromCharCode(bytes[hdlr.payload + 8]!, bytes[hdlr.payload + 9]!, bytes[hdlr.payload + 10]!, bytes[hdlr.payload + 11]!);
+        const note = hdlr.end - hdlr.payload > 24 ? bmffString(bytes, hdlr.payload + 24, hdlr.end) : '';
+        if (note && !handlerNotes.includes(note)) handlerNotes.push(note);
+      }
+      const minf = mkids.find((b) => b.type === 'minf');
+      const stbl = minf ? bmffChildren(bytes, minf.payload, minf.end).find((b) => b.type === 'stbl') : undefined;
+      const stsd = stbl ? bmffChildren(bytes, stbl.payload, stbl.end).find((b) => b.type === 'stsd') : undefined;
+      if (!stsd || stsd.end - stsd.payload < 8) continue;
+      const entries = bmffChildren(bytes, stsd.payload + 8, stsd.end);
+      if (!entries.length) continue;
+      const e = entries[0]!;
+      const codec = BMFF_CODEC_NAMES[e.type] ? `${BMFF_CODEC_NAMES[e.type]} (${e.type})` : e.type;
+      if (kind === 'vide') {
+        hasVideo = true;
+        // VisualSampleEntry: width/height at payload offset 24/26.
+        const w = e.end - e.payload >= 28 ? u16(bytes, e.payload + 24) : 0;
+        const h = e.end - e.payload >= 28 ? u16(bytes, e.payload + 26) : 0;
+        trackRows.push({ label: 'Video track', value: w && h ? `${codec} — ${w} × ${h} px` : codec, group: 'technical' });
+      } else if (kind === 'soun') {
+        // AudioSampleEntry: channels at payload offset 16, rate (16.16) at 24.
+        const ch = e.end - e.payload >= 28 ? u16(bytes, e.payload + 16) : 0;
+        const rate = e.end - e.payload >= 28 ? u32(bytes, e.payload + 24) >>> 16 : 0;
+        const chs = ch === 1 ? 'mono' : ch === 2 ? 'stereo' : ch ? `${ch} channels` : '';
+        const rateS = rate ? `${(rate / 1000).toFixed(1).replace(/\.0$/, '')} kHz` : '';
+        trackRows.push({ label: 'Audio track', value: [codec, [rateS, chs].filter(Boolean).join(' ')].filter(Boolean).join(' — '), group: 'technical' });
+      }
+    }
+
+    // moov-level meta (QuickTime mdta keys - iPhone GPS/make/model) and
+    // udta (iTunes ilst tags, Android ©xyz GPS, QuickTime XMP_).
+    const metas = kids.filter((b) => b.type === 'meta');
+    const udta = kids.find((b) => b.type === 'udta');
+    if (udta) {
+      const ukids = bmffChildren(bytes, udta.payload, udta.end);
+      for (const m of ukids.filter((b) => b.type === 'meta')) metas.push(m);
+      const xyz = ukids.find((b) => b.type === '©xyz');
+      if (xyz && xyz.end - xyz.payload > 4) {
+        const fix = parseIso6709(bmffString(bytes, xyz.payload + 4, xyz.end));
+        if (fix) bmffGps(out, fix);
+      }
+      const xmp = ukids.find((b) => b.type === 'XMP_');
+      if (xmp) readXmp(new TextDecoder('utf-8').decode(bytes.subarray(xmp.payload, Math.min(xmp.end, xmp.payload + MAX_TEXT_SCAN))), out);
+    }
+    for (const meta of metas) {
+      const mk = metaChildren(bytes, meta);
+      const hdlr = mk.find((b) => b.type === 'hdlr');
+      const handler = hdlr && hdlr.end - hdlr.payload >= 12
+        ? String.fromCharCode(bytes[hdlr.payload + 8]!, bytes[hdlr.payload + 9]!, bytes[hdlr.payload + 10]!, bytes[hdlr.payload + 11]!)
+        : '';
+      if (handler === 'mdta') {
+        readMdtaMeta(bytes, mk, out);
+      } else {
+        const ilst = mk.find((b) => b.type === 'ilst');
+        if (ilst) encoder = readIlst(bytes, ilst, out) ?? encoder;
+      }
+    }
+
+    // mvhd timestamps + duration.
+    const mvhd = kids.find((b) => b.type === 'mvhd');
+    if (mvhd && mvhd.end - mvhd.payload >= 20) {
+      const v = bytes[mvhd.payload]!;
+      const created = v === 1 ? u32(bytes, mvhd.payload + 4) * 0x1_0000_0000 + u32(bytes, mvhd.payload + 8) : u32(bytes, mvhd.payload + 4);
+      const timescale = v === 1 ? u32(bytes, mvhd.payload + 20) : u32(bytes, mvhd.payload + 12);
+      const duration = v === 1
+        ? u32(bytes, mvhd.payload + 24) * 0x1_0000_0000 + u32(bytes, mvhd.payload + 28)
+        : u32(bytes, mvhd.payload + 16);
+      const when = bmffDate(created);
+      if (when && out.fields.length < MAX_FIELDS) out.fields.push({ label: 'Created', value: when, group: 'timestamps' });
+      const dur = timescale > 0 ? bmffDuration(duration / timescale) : null;
+      if (dur && out.fields.length < MAX_FIELDS) out.fields.push({ label: 'Duration', value: dur, group: 'technical' });
+    }
+  }
+
+  for (const note of handlerNotes) {
+    if (out.fields.length < MAX_FIELDS) out.fields.push({ label: 'Handler description', value: note, group: 'software' });
+  }
+  for (const row of trackRows) {
+    if (out.fields.length < MAX_FIELDS) out.fields.push(row);
+  }
+  if (brand && out.fields.length < MAX_FIELDS) {
+    out.fields.push({ label: 'Container profile', value: fragmented ? `${brand} — fragmented (streaming delivery)` : brand, group: 'technical' });
+  }
+
+  const producer = detectProducer(handlerNotes, encoder, hasVideo);
+  if (producer) out.producer = producer;
 }
 
 // ── SVG (text; targeted extraction) ───────────────────────────────────────────────

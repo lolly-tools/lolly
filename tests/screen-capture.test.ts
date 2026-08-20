@@ -295,8 +295,17 @@ test('ENGINE_VERSION is 1.128.0', () => {
   // method changed).
   // Then 1.132.0 (plans/124 WP-E - src/inpaint.ts, the pure Telea fast-marching
   // content-aware fill behind Retouch; pure exports only, no HostV1 method changed).
+  // Then 1.133.0 (plans/130 - src/grade.ts, the darkroom look engine's pure half:
+  // the .cube/.3dl readers, the tetrahedral sampler, the RGBA frame apply and the
+  // grain + vignette pass, so a shell can grade a video the way the tool grades a
+  // still; the grain seed advances per frame, frameIndex 0 reproducing the still.
+  // Pure exports only, no HostV1 method changed).
+  // Then 1.134.0 (file-metadata.ts reads the ISO BMFF container tree - ilst tags,
+  // handler notes, track codecs, mvhd stamps, QuickTime mdta keys, ©xyz GPS - and
+  // gains the `producer` pipeline fingerprint behind /verify's "Likely
+  // AI-generated" tier. Pure exports only, no HostV1 method changed).
   // The ^1.54.0 screencap floor below still holds (a minor bump satisfies it).
-  assert.equal(ENGINE_VERSION, '1.132.0');
+  assert.equal(ENGINE_VERSION, '1.134.0');
 });
 
 // ─── loadTool: a ^1.54.0 tool loads against this engine ───────────────────────

@@ -6,6 +6,52 @@ minors, never removed or signature-changed without a major bump.
 
 Moved verbatim from the comment block that used to live in `src/index.ts`.
 
+1.134.0 — additive (no HostV1 change): the embedded-metadata reader
+(`src/file-metadata.ts`) learns to read the ISO BMFF container tree itself, not
+just its XMP uuid box. An MP4/M4A/MOV dropped on /verify now discloses its
+iTunes-style `ilst` tags (encoder, title, artist, date…), each track's handler
+description, per-track codec summaries (H.264 720 × 1280, AAC 44.1 kHz stereo),
+the mvhd created stamp and duration, the ftyp brand (with fragmented/DASH
+delivery named), QuickTime `mdta` keys — an iPhone movie's make/model/software
+and its ISO 6709 GPS fix, mapped like EXIF GPS — Android's `©xyz` GPS string,
+and the `XMP_` udta box. New `FileMetadata.producer` (type `MediaProducer` on
+the barrel): a maker-pipeline fingerprint matched byte-for-byte against known
+packaging — today Google's, where the bare "ISO Media file produced by Google
+Inc." handler note and/or an `©too` of exactly "Google" is the signature of
+Gemini/Veo/NotebookLM AI downloads (`signature: 'ai-download'`), while the
+dated "Created on:" variant is a YouTube-style server re-encode
+(`'reencode'`). A fingerprint OF the pipeline, not a declaration BY it — the
+verify view words it as "likely", never as a verdict. All parsing is
+bounds-before-read (including loop bounds) against hostile sizes.
+
+1.133.0 — additive (plans/130, no HostV1 change): `src/grade.ts`, the pure half
+of the darkroom tool's look engine promoted into the engine so a shell can grade
+a VIDEO with the same maths that graded the still. It exports the `.cube` and
+`.3dl` readers (`parseCubeLut`/`parse3dlLut`, plus the try-both `parseLutText`),
+the tetrahedral `sampleLut`, the in-place RGBA frame apply `applyLutFrame` (with
+an `intensity` lerp the tool did not need), and `applyGrainVignette` - the film
+grain lattice and vignette falloff, with two changes from the tool, both optional
+arguments that default to its behaviour. The PRNG seed advances per frame (`seed
++ frameIndex * 9973`), so a clip boils like real stock instead of wearing one
+frozen grain pattern; `frameIndex` 0 reproduces the darkroom still exactly. And
+`refLongEdge` (with `GRAIN_REF_LONG_EDGE`, the 1080 reference every video
+consumer passes, and the pure `grainCellPx` that computes it) measures the grain
+lattice against the picture instead of the pixel grid: `grainSize` is a cell in
+device pixels, so a grade previewed on a 960-wide frame and rendered at 1920
+otherwise ships grain exactly twice as fine as the one that was approved. `CUBE_MAX_N`/`TDL_MAX_N` come across as the declared
+bounds on untrusted LUT bytes, still checked before any allocation, and
+`tests/fuzz`'s `lut-parse` target now fuzzes this module directly instead of
+lifting the parsers out of the hook source. `gradeMulberry32` is darkroom's exact
+PRNG variant and must NOT be deduplicated against `mulberry32` in
+`zzfx-compose.ts` - same name, different sequence, every grain pixel would move.
+The runtime's public surface also gains `getHydratedText` (the raw, non-escaping
+sibling of `getHydratedString`, previously internal to the data-template path):
+a shell reading a JSON hook extra out of the runtime - darkroom's `videoLook`
+baked-look envelope is the first consumer - needs the quotes unescaped, and the
+escaping variant would entity-encode them.
+Tools never import the engine, so `community/darkroom/hooks.js` keeps its own
+copy; `tests/grade-drift.test.ts` is what stops the two drifting.
+
 1.132.0 — additive (plans/124 WP-E, no HostV1 change): `src/inpaint.ts`, a pure
 TypeScript port of Telea 2004 fast-marching inpainting (`inpaintTelea`) - the
 content-aware fill behind the web shell's Retouch dialog. DOM-free typed-array
@@ -13,7 +59,9 @@ math with mask-bbox windowing; deterministic; no model, no weights, no new
 bridge surface. Also fixes `media-sniff.ts` `sniffVideoContainer`: an
 ISO-BMFF ftyp box whose brands name the AVIF/HEIC image family is no longer
 reported as an mp4 video (every AVIF upload was being routed into the video
-pipeline).
+pipeline). And `src/c2pa.ts`'s CBOR encoder now writes non-integer numbers as
+float64 instead of throwing - a fractional manifest value (the TTS speed
+0.8/1.2) was silently costing synthetic audio its whole Content Credential.
 
 1.131.0 — additive (plans/127, no HostV1 change): `src/reword.ts`, the pure side
 of on-device rewording - the deterministic rewrite-suggestion table
