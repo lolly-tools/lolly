@@ -464,3 +464,93 @@ test('a run with linkSlide emits an internal slide-jump hlinkClick + slide→sli
   // A slide with no links carries no slide-jump rel and no stale map leaks into it.
   assert.doesNotMatch(buildPptxParts([slide], {})['ppt/slides/slide1.xml'] as string, /rId3/);
 });
+
+// ─── 1.135.0 layout galleries ────────────────────────────────────────────────
+test('a layout gallery emits per-layout parts, master ids, content types, and per-slide layout rels', () => {
+  const layouts = [
+    { name: 'TITLE', placeholders: [{ type: 'ctrTitle' as const, x: 1, y: 2, cx: 300, cy: 100 }] },
+    { name: 'TITLE_DARK', bg: { solid: '#01564A' } },
+    { name: 'BIG_NUMBER' },
+  ];
+  const parts = buildPptxParts([{ ...picSlide(), layout: 1 }, { shapes: [], media: [], layout: 99 }], { layouts });
+  for (const i of [1, 2, 3]) {
+    assert.ok(`ppt/slideLayouts/slideLayout${i}.xml` in parts, `layout part ${i}`);
+    assert.ok(`ppt/slideLayouts/_rels/slideLayout${i}.xml.rels` in parts, `layout rels ${i}`);
+  }
+  const master = parts['ppt/slideMasters/slideMaster1.xml'] as string;
+  assert.equal([...master.matchAll(/<p:sldLayoutId /g)].length, 3);
+  assert.match(master, /<p:sldLayoutId id="2147483651" r:id="rId3"\/>/);
+  assert.match(master, /<p:txStyles>/, 'galleried master carries txStyles');
+  const masterRels = parts['ppt/slideMasters/_rels/slideMaster1.xml.rels'] as string;
+  assert.match(masterRels, /Id="rId3" Type="[^"]*\/slideLayout" Target="\.\.\/slideLayouts\/slideLayout3\.xml"/);
+  assert.match(masterRels, /Id="rId4" Type="[^"]*\/theme"/, 'theme rel comes after all layouts');
+  const ct = parts['[Content_Types].xml'] as string;
+  assert.equal([...ct.matchAll(/slideLayout\d+\.xml/g)].length, 3);
+  // Slide 1 binds to its layout; slide 2's out-of-range index clamps to the last layout.
+  assert.match(parts['ppt/slides/_rels/slide1.xml.rels'] as string, /Target="\.\.\/slideLayouts\/slideLayout2\.xml"/);
+  assert.match(parts['ppt/slides/_rels/slide2.xml.rels'] as string, /Target="\.\.\/slideLayouts\/slideLayout3\.xml"/);
+});
+
+test('a layout carries bg fill, furniture below placeholders, role styles, prompt, and its own media', () => {
+  const layouts = [{
+    name: 'TITLE_AND_BODY',
+    bg: { solid: '#EAFAF8' },
+    shapes: [{ kind: 'pic' as const, x: 220000, y: 4730000, cx: 1246000, cy: 225000, media: 0, svg: 1, name: 'logo' }],
+    media: [{ bytes, ext: 'png' as const }, { bytes, ext: 'svg' as const }],
+    placeholders: [
+      { type: 'title' as const, x: 311000, y: 175000, cx: 8522000, cy: 571000, style: { font: 'SUSE', sizePt: 28, color: '#01564A', align: 'l' as const } },
+      { type: 'body' as const, idx: 1, x: 311000, y: 751000, cx: 8522000, cy: 3606000, style: { sizePt: 18, bullet: true }, prompt: 'Add your points' },
+    ],
+  }];
+  const parts = buildPptxParts([{ shapes: [], media: [] }], { layouts });
+  const xml = parts['ppt/slideLayouts/slideLayout1.xml'] as string;
+  assert.match(xml, /<p:cSld name="TITLE_AND_BODY"><p:bg><p:bgPr><a:solidFill><a:srgbClr val="EAFAF8"\/><\/a:solidFill><a:effectLst\/><\/p:bgPr><\/p:bg>/);
+  // Furniture (the pic) precedes the placeholders in the spTree (z-order).
+  assert.ok(xml.indexOf('<p:pic>') < xml.indexOf('<p:ph type="title"/>'), 'furniture below placeholders');
+  // svgBlip vector logo on the layout, media rels + parts under the limage names.
+  assert.match(xml, /asvg:svgBlip[^>]*r:embed="rId3"/);
+  const rels = parts['ppt/slideLayouts/_rels/slideLayout1.xml.rels'] as string;
+  assert.match(rels, /Id="rId1" Type="[^"]*\/slideMaster"/);
+  assert.match(rels, /Id="rId2" Type="[^"]*\/image" Target="\.\.\/media\/limage1_1\.png"/);
+  assert.match(rels, /Id="rId3" Type="[^"]*\/image" Target="\.\.\/media\/limage1_2\.svg"/);
+  assert.ok(parts['ppt/media/limage1_1.png'] instanceof Uint8Array);
+  assert.match(parts['[Content_Types].xml'] as string, /Extension="svg"/, 'layout media ext registered');
+  // Placeholders: title role style, body idx + bullet inheritance + prompt text.
+  assert.match(xml, /<p:ph type="title"\/>/);
+  assert.match(xml, /<a:lvl1pPr algn="l"><a:buNone\/><a:defRPr sz="2800"><a:solidFill><a:srgbClr val="01564A"\/><\/a:solidFill><a:latin typeface="SUSE"\/>/);
+  assert.match(xml, /<p:ph type="body" idx="1"\/>/);
+  const bodyStyle = xml.slice(xml.indexOf('idx="1"'));
+  assert.doesNotMatch(bodyStyle, /<a:buNone\/>/, 'bulleted body keeps bullet inheritance');
+  assert.match(bodyStyle, /<a:t>Add your points<\/a:t>/);
+});
+
+test('PptxText.ph binds slide text to a placeholder; unknown types degrade to a plain text box', () => {
+  const slide: PptxSlide = {
+    shapes: [
+      { kind: 'text', x: 1, y: 2, cx: 300, cy: 100, paras: [{ runs: [{ text: 'Hello', sizePt: 28 }] }], ph: { type: 'title' } },
+      { kind: 'text', x: 1, y: 200, cx: 300, cy: 100, paras: [{ runs: [{ text: 'Body', sizePt: 18 }] }], ph: { type: 'body', idx: 1 } },
+      { kind: 'text', x: 1, y: 400, cx: 300, cy: 100, paras: [{ runs: [{ text: 'Loose', sizePt: 12 }] }], ph: { type: 'evil"<x>' as never } },
+    ],
+    media: [],
+  };
+  const xml = buildPptxParts([slide], {})['ppt/slides/slide1.xml'] as string;
+  assert.match(xml, /<a:spLocks noGrp="1"\/><\/p:cNvSpPr><p:nvPr><p:ph type="title"\/><\/p:nvPr>/);
+  assert.match(xml, /<p:ph type="body" idx="1"\/>/);
+  // The bound shape still carries its own xfrm (belt-and-braces: survives layout loss).
+  assert.match(xml, /<p:ph type="title"\/><\/p:nvPr><\/p:nvSpPr><p:spPr><a:xfrm><a:off x="1" y="2"\/>/);
+  // Hostile/unknown ph type: no ph emitted, shape stays an ordinary text box.
+  assert.doesNotMatch(xml, /evil/);
+  assert.equal([...xml.matchAll(/txBox="1"/g)].length, 1, 'only the unbound shape is a txBox');
+});
+
+test('no layouts → parts, order, master and blank layout are byte-identical to pre-gallery output', () => {
+  const before = buildPptxParts([picSlide()], {});
+  const withEmpty = buildPptxParts([picSlide()], { layouts: [] });
+  assert.deepEqual(Object.keys(before), Object.keys(withEmpty), 'part order stable');
+  assert.equal(before['ppt/slideMasters/slideMaster1.xml'], withEmpty['ppt/slideMasters/slideMaster1.xml']);
+  const master = before['ppt/slideMasters/slideMaster1.xml'] as string;
+  assert.doesNotMatch(master, /<p:txStyles>/, 'plain deck master carries no txStyles');
+  assert.match(master, /<p:sldLayoutIdLst><p:sldLayoutId id="2147483649" r:id="rId1"\/><\/p:sldLayoutIdLst>/);
+  assert.match(before['ppt/slideLayouts/slideLayout1.xml'] as string, /type="blank" preserve="1"/);
+  assert.match(before['ppt/slideMasters/_rels/slideMaster1.xml.rels'] as string, /Id="rId2" Type="[^"]*\/theme"/);
+});

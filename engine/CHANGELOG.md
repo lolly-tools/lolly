@@ -6,6 +6,34 @@ minors, never removed or signature-changed without a major bump.
 
 Moved verbatim from the comment block that used to live in `src/index.ts`.
 
+1.136.0 — additive (no HostV1 change): `src/text-watermark.ts`, the statistical
+text watermark of Kirchenbauer et al. (arXiv:2301.10226) as pure exports:
+`WatermarkScheme` / `REWORD_WATERMARK` (the public scheme Lolly's reword
+generation embeds — gamma 0.25, delta 5, key 0x4c4f4c4c), `mix32` /
+`isGreenToken` (the keyed vocabulary partition), `addGreenBias` (the embedder's
+logit pass, shared by the web worker's logits processor and mirrored in the
+desktop shell's native sampler), and `greenListZ` / `binomialTailP` /
+`scoreTokenWatermark` (the detector: green counts over unique (prev, token)
+bigrams thresholded on the EXACT binomial tail — at a lone sentence's 10-15
+scorable tokens the normal z overstates the evidence — plus a sliding-window
+pass so a reworded cluster inside a long human document still surfaces;
+repetition is deduped so degenerate text cannot convict). Tokenizers stay
+shell-side; the engine owns only the maths, so embedder and detector cannot
+drift. The key is public by design — a match is a provenance disclosure, not a
+cryptographic guarantee.
+
+1.135.0 — additive (no HostV1 change): `buildPptxParts` learns slide-layout
+galleries. `PptxBuildOpts.layouts` takes `PptxLayout[]` — each a named branded
+layout with an optional bg fill, static furniture shapes/media (same shape
+vocabulary as slides, so a vector logo stays an svgBlip), and `PptxPlaceholder`s
+(title/ctrTitle/subTitle/body/sldNum) carrying role text styles + prompt text.
+`PptxSlide.layout` binds a slide to its gallery entry; `PptxText.ph` binds a
+text shape to a layout placeholder (`<p:ph>` in nvPr, own xfrm kept — the
+template convention), which is what makes PowerPoint's outline view, Reset
+Slide, and "New Slide" gallery work on an exported deck. With layouts present
+the master also gains minimal `<p:txStyles>`. No `layouts` → byte-identical
+pre-1.135 output. Modelled on the SUSE brand template's structure.
+
 1.134.0 — additive (no HostV1 change): the embedded-metadata reader
 (`src/file-metadata.ts`) learns to read the ISO BMFF container tree itself, not
 just its XMP uuid box. An MP4/M4A/MOV dropped on /verify now discloses its

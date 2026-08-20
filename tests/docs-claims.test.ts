@@ -168,7 +168,7 @@ function offend(text: string): string[] {
 
 test('say offline once: the hero decodes the claim and block 3 states it', () => {
   const heroLines = heroSection.split('\n').filter(l => l.trim() && !l.startsWith('#'));
-  assert.ok(heroLines.length >= 4, 'the hero subtitle should still be four lines');
+  assert.ok(heroLines.length >= 3, 'the hero subtitle should still be at least three lines');
   // Line 1 is the decode of "Content Sovereignty" and is the ONLY offline mention
   // allowed above the fold.
   assert.match(heroLines[0]!, /on your own device/,

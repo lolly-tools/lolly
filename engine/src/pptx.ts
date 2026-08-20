@@ -57,6 +57,9 @@ export interface PptxPara {
   align?: 'l' | 'ctr' | 'r' | 'just';
   level?: number;
   bullet?: boolean | 'number' | { char?: string };
+  /** Marker colour (`<a:buClr>`) for a bulleted/numbered paragraph - brand templates
+   *  colour their arrow bullets and list numbers. Omitted = inherit the run colour. */
+  bulletColor?: string;
   /** Line spacing as a PERCENT: 100 = single, 150 = 1.5×. (Not a fraction: 1.5 clamps to 1%.) */
   lineSpacingPct?: number;
   spaceBeforePt?: number;
@@ -71,7 +74,14 @@ export interface PptxRect { kind: 'rect'; x: number; y: number; cx: number; cy: 
  *  (opposite-wound subpaths) survive. Solid fill + solid stroke only; svg-custgeom.ts
  *  bails to a raster pic for gradients/filters/opacity/blend. */
 export interface PptxPath { kind: 'path'; x: number; y: number; cx: number; cy: number; rot?: number; fill?: PptxFill; line?: { color: string; w: number; alpha?: number }; paths: Array<{ d: string }>; }
-export interface PptxText { kind: 'text'; x: number; y: number; cx: number; cy: number; rot?: number; paras: PptxPara[]; anchor?: 't' | 'ctr' | 'b'; }
+export interface PptxText {
+  kind: 'text'; x: number; y: number; cx: number; cy: number; rot?: number; paras: PptxPara[]; anchor?: 't' | 'ctr' | 'b';
+  /** Bind this text to a layout placeholder (emits `<p:ph>` in nvPr). The shape KEEPS its
+   *  own xfrm - the same pattern real templates use, so a viewer that
+   *  drops the layout still renders the text where it was. Bound text is what makes
+   *  outline view / Reset Slide / re-layout work in PowerPoint. */
+  ph?: { type: PptxPhType; idx?: number };
+}
 /** A picture. `media` is the index (into the slide's media[]) of the raster blip;
  *  `svg`, when set, is the index of an .svg part embedded via svgBlip (media is then
  *  the PNG fallback). */
@@ -115,8 +125,34 @@ export type PptxShape = PptxRect | PptxText | PptxPic | PptxTable | PptxPath;
 
 export interface PptxMedia { bytes: Uint8Array; ext: 'png' | 'jpeg' | 'emf' | 'svg'; }
 /** `notes` is the slide's speaker note (PowerPoint's Notes pane). Blank/absent =>
- *  no notes parts are emitted for this slide at all (see buildPptxParts). */
-export interface PptxSlide { shapes: PptxShape[]; media: PptxMedia[]; notes?: string; }
+ *  no notes parts are emitted for this slide at all (see buildPptxParts).
+ *  `layout` is a 0-based index into PptxBuildOpts.layouts (clamped; absent = 0). */
+export interface PptxSlide { shapes: PptxShape[]; media: PptxMedia[]; notes?: string; layout?: number; }
+
+// ─── slide layouts (the branded layout gallery) ────────────────────────────────
+/** Placeholder types this builder emits. The template convention: `title`/`ctrTitle`
+ *  need no idx; `body`/`subTitle` carry idx 1+; `sldNum` conventionally idx 12. */
+export type PptxPhType = 'title' | 'ctrTitle' | 'subTitle' | 'body' | 'sldNum';
+/** A placeholder shape on a layout: geometry (EMU) + the role text style slides
+ *  inherit + optional prompt text shown in the layout. */
+export interface PptxPlaceholder {
+  type: PptxPhType; idx?: number;
+  x: number; y: number; cx: number; cy: number;
+  anchor?: 't' | 'ctr' | 'b';
+  style?: { font?: string; sizePt?: number; color?: string; align?: 'l' | 'ctr' | 'r'; bullet?: boolean };
+  prompt?: string;
+}
+/** One branded slide layout. `shapes`/`media` are the static furniture (logo, footer,
+ *  decorations - same shape vocabulary as slides, so a vector logo stays vector via
+ *  svgBlip); `placeholders` are what users type into when they build new slides from
+ *  the gallery. Furniture draws below placeholders (z-order: shapes then placeholders). */
+export interface PptxLayout {
+  name: string;
+  bg?: PptxFill;
+  shapes?: PptxShape[];
+  media?: PptxMedia[];
+  placeholders?: PptxPlaceholder[];
+}
 
 /** A DrawingML theme expressed as plain VALUES. The shell resolves the active brand's
  *  design tokens into these hexes + font names and passes them down; the engine never
@@ -140,6 +176,11 @@ export interface PptxBuildOpts {
   now?: string;
   /** Brand theme (values only). Threads into theme1.xml (+ the notes theme2.xml). */
   theme?: PptxTheme;
+  /** The branded layout gallery. When present, every layout is emitted as a real
+   *  slideLayoutN.xml (PowerPoint's "New Slide" gallery), the master gains txStyles,
+   *  and each slide's rels target its own `slide.layout`. Absent/empty → the single
+   *  blank layout, byte-identical to the pre-layouts output. */
+  layouts?: PptxLayout[];
 }
 
 // ─── low-level helpers ──────────────────────────────────────────────────────────
@@ -277,6 +318,8 @@ function paraXml(p: PptxPara): string {
   if (p.spaceBeforePt && p.spaceBeforePt > 0) kids += `<a:spcBef><a:spcPts val="${clampInt(p.spaceBeforePt * 100, 0, 158400)}"/></a:spcBef>`;
   if (p.spaceAfterPt && p.spaceAfterPt > 0) kids += `<a:spcAft><a:spcPts val="${clampInt(p.spaceAfterPt * 100, 0, 158400)}"/></a:spcAft>`;
   if (hasBullet) {
+    // buClr precedes buFont/buChar/buAutoNum in CT_TextParagraphProperties order.
+    if (p.bulletColor) kids += `<a:buClr>${clr(p.bulletColor)}</a:buClr>`;
     if (p.bullet === 'number') kids += `<a:buFont typeface="+mj-lt"/><a:buAutoNum type="arabicPeriod"/>`;
     else {
       const ch = typeof p.bullet === 'object' && p.bullet && p.bullet.char ? p.bullet.char : '•';
@@ -289,12 +332,27 @@ function paraXml(p: PptxPara): string {
   const pPr = attrs.length || kids ? (kids ? `<a:pPr${attrStr}>${kids}</a:pPr>` : `<a:pPr${attrStr}/>`) : '';
   return `<a:p>${pPr}${p.runs.map(runXml).join('')}</a:p>`;
 }
+const PH_TYPES: ReadonlySet<string> = new Set(['title', 'ctrTitle', 'subTitle', 'body', 'sldNum']);
+// The `<p:ph>` element for a placeholder binding (shared by slide text + layout shapes).
+// Unknown types are dropped (an unbound text box beats schema-invalid XML → repair).
+function phXml(ph: { type: string; idx?: number } | undefined): string {
+  if (!ph || !PH_TYPES.has(ph.type)) return '';
+  const idx = ph.idx != null && Number.isFinite(ph.idx) && ph.idx >= 0 ? ` idx="${Math.round(ph.idx)}"` : '';
+  return `<p:ph type="${ph.type}"${idx}/>`;
+}
+
 function textXml(t: PptxText, id: number): string {
   // noAutofit keeps the box at its authored geometry (matches the DOM box) so text
   // sits where the layout put it. spAutoFit grew boxes and overlapped neighbours.
   const body = `<a:bodyPr wrap="square" anchor="${t.anchor ?? 't'}" lIns="0" tIns="0" rIns="0" bIns="0"><a:noAutofit/></a:bodyPr>`;
   const paras = t.paras.length ? t.paras.map(paraXml).join('') : '<a:p/>';
-  return `<p:sp><p:nvSpPr><p:cNvPr id="${id}" name="text${id}"/><p:cNvSpPr txBox="1"/><p:nvPr/></p:nvSpPr>` +
+  // A ph-bound shape is a real placeholder, not a text box: spLocks noGrp + the ph in
+  // nvPr (template convention), while keeping its own xfrm (see PptxText.ph).
+  const ph = phXml(t.ph);
+  const nv = ph
+    ? `<p:nvSpPr><p:cNvPr id="${id}" name="text${id}"/><p:cNvSpPr><a:spLocks noGrp="1"/></p:cNvSpPr><p:nvPr>${ph}</p:nvPr></p:nvSpPr>`
+    : `<p:nvSpPr><p:cNvPr id="${id}" name="text${id}"/><p:cNvSpPr txBox="1"/><p:nvPr/></p:nvSpPr>`;
+  return `<p:sp>${nv}` +
     `<p:spPr>${xfrmXml(t)}<a:prstGeom prst="rect"><a:avLst/></a:prstGeom><a:noFill/></p:spPr>` +
     `<p:txBody>${body}<a:lstStyle/>${paras}</p:txBody></p:sp>`;
 }
@@ -461,8 +519,10 @@ function slideXml(slide: PptxSlide): string {
 }
 
 // Media file names are unique across the whole deck (slide#_media#) to avoid
-// collisions in ppt/media; slideRels targets them by the same name.
+// collisions in ppt/media; slideRels targets them by the same name. Layout media get
+// their own `limage` prefix so a layout's logo can never collide with slide media.
 const mediaName = (slideIdx: number, mediaIdx: number, ext: string): string => `image${slideIdx + 1}_${mediaIdx + 1}.${ext}`;
+const layoutMediaName = (layoutIdx: number, mediaIdx: number, ext: string): string => `limage${layoutIdx + 1}_${mediaIdx + 1}.${ext}`;
 
 // The base rId for a slide's first slide-jump link relationship: past the layout (rId1),
 // the media (rId2…), and the notesSlide (one more, when present).
@@ -482,8 +542,8 @@ function collectLinkTargets(slide: PptxSlide): number[] {
 // slide rels: rId1 → layout, then one relationship per media entry (rId2, rId3, …), then,
 // only when the slide carries a note, the notesSlide, then any slide-jump links (past all
 // the above). A slide→slide relationship targets `slideM.xml` in the same folder.
-function slideRelsXml(slideIdx: number, media: PptxMedia[], hasNotes = false, linkTargets: readonly number[] = []): string {
-  let rels = `<Relationship Id="rId1" Type="${REL}/slideLayout" Target="../slideLayouts/slideLayout1.xml"/>`;
+function slideRelsXml(slideIdx: number, media: PptxMedia[], hasNotes = false, linkTargets: readonly number[] = [], layoutIdx = 0): string {
+  let rels = `<Relationship Id="rId1" Type="${REL}/slideLayout" Target="../slideLayouts/slideLayout${layoutIdx + 1}.xml"/>`;
   media.forEach((m, i) => { rels += `<Relationship Id="${mediaRid(i)}" Type="${REL}/image" Target="../media/${mediaName(slideIdx, i, m.ext)}"/>`; });
   if (hasNotes) rels += `<Relationship Id="rId${media.length + 2}" Type="${REL}/notesSlide" Target="../notesSlides/notesSlide${slideIdx + 1}.xml"/>`;
   const base = linkRidBase(media.length, hasNotes);
@@ -580,7 +640,7 @@ function presentationRelsXml(n: number, hasAnyNotes = false): string {
   return `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\n<Relationships xmlns="${PKG_REL_NS}">${rels}</Relationships>`;
 }
 
-function contentTypesXml(n: number, exts: Set<string>, notedIdxs: readonly number[] = []): string {
+function contentTypesXml(n: number, exts: Set<string>, notedIdxs: readonly number[] = [], nLayouts = 1): string {
   const defaults = [
     `<Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/>`,
     `<Default Extension="xml" ContentType="application/xml"/>`,
@@ -588,8 +648,9 @@ function contentTypesXml(n: number, exts: Set<string>, notedIdxs: readonly numbe
   for (const e of exts) defaults.push(`<Default Extension="${e}" ContentType="${MEDIA_CT[e as PptxMedia['ext']]}"/>`);
   let overrides =
     `<Override PartName="/ppt/presentation.xml" ContentType="application/vnd.openxmlformats-officedocument.presentationml.presentation.main+xml"/>` +
-    `<Override PartName="/ppt/slideMasters/slideMaster1.xml" ContentType="application/vnd.openxmlformats-officedocument.presentationml.slideMaster+xml"/>` +
-    `<Override PartName="/ppt/slideLayouts/slideLayout1.xml" ContentType="application/vnd.openxmlformats-officedocument.presentationml.slideLayout+xml"/>` +
+    `<Override PartName="/ppt/slideMasters/slideMaster1.xml" ContentType="application/vnd.openxmlformats-officedocument.presentationml.slideMaster+xml"/>`;
+  for (let i = 0; i < nLayouts; i++) overrides += `<Override PartName="/ppt/slideLayouts/slideLayout${i + 1}.xml" ContentType="application/vnd.openxmlformats-officedocument.presentationml.slideLayout+xml"/>`;
+  overrides +=
     `<Override PartName="/ppt/theme/theme1.xml" ContentType="application/vnd.openxmlformats-officedocument.theme+xml"/>` +
     `<Override PartName="/docProps/core.xml" ContentType="application/vnd.openxmlformats-package.core-properties+xml"/>` +
     `<Override PartName="/docProps/app.xml" ContentType="application/vnd.openxmlformats-officedocument.extended-properties+xml"/>`;
@@ -610,33 +671,91 @@ const ROOT_RELS =
   `<Relationship Id="rId3" Type="${REL}/extended-properties" Target="docProps/app.xml"/>` +
   `</Relationships>`;
 
-function slideMasterXml(): string {
+// Master txStyles: what ph-bound text on slides ultimately inherits through the
+// layout→master chain (outline view, Reset Slide, theme-font substitution). Emitted
+// only when a layout gallery is present - a galleried deck is a template, a plain
+// deck stays byte-identical to the pre-layouts output. +mj-lt/+mn-lt defer to the
+// theme fontScheme, so re-theming in PowerPoint re-fonts the deck.
+const MASTER_TX_STYLES =
+  `<p:txStyles>` +
+  `<p:titleStyle><a:lvl1pPr algn="l"><a:defRPr sz="2800"><a:solidFill><a:schemeClr val="tx1"/></a:solidFill><a:latin typeface="+mj-lt"/></a:defRPr></a:lvl1pPr></p:titleStyle>` +
+  `<p:bodyStyle><a:lvl1pPr><a:defRPr sz="1800"><a:solidFill><a:schemeClr val="tx1"/></a:solidFill><a:latin typeface="+mn-lt"/></a:defRPr></a:lvl1pPr></p:bodyStyle>` +
+  `<p:otherStyle><a:defPPr><a:defRPr lang="en-US"/></a:defPPr></p:otherStyle>` +
+  `</p:txStyles>`;
+
+function slideMasterXml(nLayouts = 1, withTxStyles = false): string {
+  let layoutIds = '';
+  for (let i = 0; i < nLayouts; i++) layoutIds += `<p:sldLayoutId id="${2147483649 + i}" r:id="rId${i + 1}"/>`;
   return (
     `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\n` +
     `<p:sldMaster xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main" xmlns:r="${REL}" xmlns:p="http://schemas.openxmlformats.org/presentationml/2006/main">` +
     `<p:cSld><p:spTree><p:nvGrpSpPr><p:cNvPr id="1" name=""/><p:cNvGrpSpPr/><p:nvPr/></p:nvGrpSpPr><p:grpSpPr/></p:spTree></p:cSld>` +
     `<p:clrMap bg1="lt1" tx1="dk1" bg2="lt2" tx2="dk2" accent1="accent1" accent2="accent2" accent3="accent3" accent4="accent4" accent5="accent5" accent6="accent6" hlink="hlink" folHlink="folHlink"/>` +
-    `<p:sldLayoutIdLst><p:sldLayoutId id="2147483649" r:id="rId1"/></p:sldLayoutIdLst>` +
+    `<p:sldLayoutIdLst>${layoutIds}</p:sldLayoutIdLst>` +
+    (withTxStyles ? MASTER_TX_STYLES : '') +
     `</p:sldMaster>`
   );
 }
-const slideMasterRels =
-  `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\n<Relationships xmlns="${PKG_REL_NS}">` +
-  `<Relationship Id="rId1" Type="${REL}/slideLayout" Target="../slideLayouts/slideLayout1.xml"/>` +
-  `<Relationship Id="rId2" Type="${REL}/theme" Target="../theme/theme1.xml"/></Relationships>`;
+function slideMasterRelsXml(nLayouts = 1): string {
+  let rels = '';
+  for (let i = 0; i < nLayouts; i++) rels += `<Relationship Id="rId${i + 1}" Type="${REL}/slideLayout" Target="../slideLayouts/slideLayout${i + 1}.xml"/>`;
+  rels += `<Relationship Id="rId${nLayouts + 1}" Type="${REL}/theme" Target="../theme/theme1.xml"/>`;
+  return `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\n<Relationships xmlns="${PKG_REL_NS}">${rels}</Relationships>`;
+}
 
-function slideLayoutXml(): string {
+// A layout placeholder: <p:sp> with the ph binding, its geometry, the role text style
+// as a lvl1pPr lstStyle (what bound slide text inherits), and the prompt as literal
+// layout text (visible in layout view; slides show PowerPoint's own prompts).
+function layoutPlaceholderXml(ph: PptxPlaceholder, id: number): string {
+  const bind = phXml(ph);
+  if (!bind) return '';
+  const st = ph.style ?? {};
+  const defRPr = `<a:defRPr sz="${clampInt((st.sizePt ?? 18) * 100, 100, 400000)}">` +
+    (st.color ? `<a:solidFill>${clr(st.color)}</a:solidFill>` : '') +
+    (st.font ? `<a:latin typeface="${xmlEsc(st.font)}"/><a:cs typeface="${xmlEsc(st.font)}"/>` : '') +
+    `</a:defRPr>`;
+  // buNone before defRPr (CT_TextParagraphProperties child order).
+  const lvl1 = `<a:lvl1pPr${st.align ? ` algn="${st.align}"` : ''}>${st.bullet ? '' : '<a:buNone/>'}${defRPr}</a:lvl1pPr>`;
+  const prompt = ph.prompt
+    ? `<a:p><a:r><a:rPr lang="en-US" dirty="0"/><a:t>${xmlEsc(ph.prompt)}</a:t></a:r></a:p>` : `<a:p/>`;
+  return `<p:sp><p:nvSpPr><p:cNvPr id="${id}" name="ph${id}"/><p:cNvSpPr><a:spLocks noGrp="1"/></p:cNvSpPr><p:nvPr>${bind}</p:nvPr></p:nvSpPr>` +
+    `<p:spPr>${xfrmXml(ph)}<a:prstGeom prst="rect"><a:avLst/></a:prstGeom></p:spPr>` +
+    `<p:txBody><a:bodyPr anchor="${ph.anchor ?? 't'}"/><a:lstStyle>${lvl1}</a:lstStyle>${prompt}</p:txBody></p:sp>`;
+}
+
+function slideLayoutXml(layout?: PptxLayout): string {
+  if (!layout) {
+    return (
+      `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\n` +
+      `<p:sldLayout xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main" xmlns:r="${REL}" xmlns:p="http://schemas.openxmlformats.org/presentationml/2006/main" type="blank" preserve="1">` +
+      `<p:cSld name="Blank"><p:spTree><p:nvGrpSpPr><p:cNvPr id="1" name=""/><p:cNvGrpSpPr/><p:nvPr/></p:nvGrpSpPr><p:grpSpPr/></p:spTree></p:cSld>` +
+      `<p:clrMapOvr><a:overrideClrMapping bg1="lt1" tx1="dk1" bg2="lt2" tx2="dk2" accent1="accent1" accent2="accent2" accent3="accent3" accent4="accent4" accent5="accent5" accent6="accent6" hlink="hlink" folHlink="folHlink"/></p:clrMapOvr>` +
+      `</p:sldLayout>`
+    );
+  }
+  let id = 1;
+  const bg = layout.bg ? `<p:bg><p:bgPr>${fillXml(layout.bg)}<a:effectLst/></p:bgPr></p:bg>` : '';
+  // Furniture below, placeholders on top.
+  const shapes = (layout.shapes ?? []).map(s => shapeXml(s, ++id)).join('');
+  const phs = (layout.placeholders ?? []).map(p => layoutPlaceholderXml(p, ++id)).join('');
   return (
     `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\n` +
-    `<p:sldLayout xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main" xmlns:r="${REL}" xmlns:p="http://schemas.openxmlformats.org/presentationml/2006/main" type="blank" preserve="1">` +
-    `<p:cSld name="Blank"><p:spTree><p:nvGrpSpPr><p:cNvPr id="1" name=""/><p:cNvGrpSpPr/><p:nvPr/></p:nvGrpSpPr><p:grpSpPr/></p:spTree></p:cSld>` +
+    `<p:sldLayout xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main" xmlns:r="${REL}" xmlns:p="http://schemas.openxmlformats.org/presentationml/2006/main" preserve="1">` +
+    `<p:cSld name="${xmlEsc(layout.name || 'Layout')}">${bg}<p:spTree>` +
+    `<p:nvGrpSpPr><p:cNvPr id="1" name=""/><p:cNvGrpSpPr/><p:nvPr/></p:nvGrpSpPr><p:grpSpPr/>` +
+    shapes + phs +
+    `</p:spTree></p:cSld>` +
     `<p:clrMapOvr><a:overrideClrMapping bg1="lt1" tx1="dk1" bg2="lt2" tx2="dk2" accent1="accent1" accent2="accent2" accent3="accent3" accent4="accent4" accent5="accent5" accent6="accent6" hlink="hlink" folHlink="folHlink"/></p:clrMapOvr>` +
     `</p:sldLayout>`
   );
 }
-const slideLayoutRels =
-  `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\n<Relationships xmlns="${PKG_REL_NS}">` +
-  `<Relationship Id="rId1" Type="${REL}/slideMaster" Target="../slideMasters/slideMaster1.xml"/></Relationships>`;
+// Layout rels: rId1 → master, then media (rId2…), the same rId base as slides, so
+// picXml's mediaRid works unchanged for layout furniture.
+function slideLayoutRelsXml(layout?: PptxLayout, layoutIdx = 0): string {
+  let rels = `<Relationship Id="rId1" Type="${REL}/slideMaster" Target="../slideMasters/slideMaster1.xml"/>`;
+  (layout?.media ?? []).forEach((m, i) => { rels += `<Relationship Id="${mediaRid(i)}" Type="${REL}/image" Target="../media/${layoutMediaName(layoutIdx, i, m.ext)}"/>`; });
+  return `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\n<Relationships xmlns="${PKG_REL_NS}">${rels}</Relationships>`;
+}
 
 // Default scheme = the blank brand's spectrum AS IT STOOD AT 1.56 (blue/green/amber at
 // oklch(65% .12 h), hlink = primary ramp step 4). FROZEN: this is the fallback baked into
@@ -711,26 +830,40 @@ export function buildPptxParts(slides: PptxSlide[], opts: PptxBuildOpts = {}): R
   const emuW = Math.max(1, Math.round(opts.emuW ?? 1280 * EMU_PER_PX));
   const emuH = Math.max(1, Math.round(opts.emuH ?? 720 * EMU_PER_PX));
   const n = slides.length;
+  // The layout gallery: absent/empty → the single blank layout (pre-layouts bytes).
+  const layouts = opts.layouts && opts.layouts.length ? opts.layouts : null;
+  const nLayouts = layouts ? layouts.length : 1;
   const exts = new Set<string>();
   for (const s of slides) for (const m of s.media) exts.add(m.ext);
+  if (layouts) for (const L of layouts) for (const m of L.media ?? []) exts.add(m.ext);
   const now = opts.now ?? '2026-01-01T00:00:00Z';
   // Slide indices that actually carry a note. This drives every notes part below.
   const noted = slides.map((s, i) => ({ i, notes: (s.notes ?? '').trim() })).filter(x => x.notes !== '');
   const hasAnyNotes = noted.length > 0;
 
   const parts: Record<string, string | Uint8Array> = {
-    '[Content_Types].xml': contentTypesXml(n, exts, noted.map(x => x.i)),
+    '[Content_Types].xml': contentTypesXml(n, exts, noted.map(x => x.i), nLayouts),
     '_rels/.rels': ROOT_RELS,
     'ppt/presentation.xml': presentationXml(n, emuW, emuH, hasAnyNotes),
     'ppt/_rels/presentation.xml.rels': presentationRelsXml(n, hasAnyNotes),
-    'ppt/slideMasters/slideMaster1.xml': slideMasterXml(),
-    'ppt/slideMasters/_rels/slideMaster1.xml.rels': slideMasterRels,
-    'ppt/slideLayouts/slideLayout1.xml': slideLayoutXml(),
-    'ppt/slideLayouts/_rels/slideLayout1.xml.rels': slideLayoutRels,
-    'ppt/theme/theme1.xml': themeXml(opts.theme),
-    'docProps/core.xml': corePropsXml(opts.meta, now),
-    'docProps/app.xml': appPropsXml(n),
+    'ppt/slideMasters/slideMaster1.xml': slideMasterXml(nLayouts, !!layouts),
+    'ppt/slideMasters/_rels/slideMaster1.xml.rels': slideMasterRelsXml(nLayouts),
   };
+  // Layout parts sit here (between master and theme) so the no-layouts part order is
+  // exactly what it was before the gallery existed.
+  if (layouts) {
+    layouts.forEach((L, li) => {
+      parts[`ppt/slideLayouts/slideLayout${li + 1}.xml`] = slideLayoutXml(L);
+      parts[`ppt/slideLayouts/_rels/slideLayout${li + 1}.xml.rels`] = slideLayoutRelsXml(L, li);
+      (L.media ?? []).forEach((m, j) => { parts[`ppt/media/${layoutMediaName(li, j, m.ext)}`] = m.bytes; });
+    });
+  } else {
+    parts['ppt/slideLayouts/slideLayout1.xml'] = slideLayoutXml();
+    parts['ppt/slideLayouts/_rels/slideLayout1.xml.rels'] = slideLayoutRelsXml();
+  }
+  parts['ppt/theme/theme1.xml'] = themeXml(opts.theme);
+  parts['docProps/core.xml'] = corePropsXml(opts.meta, now);
+  parts['docProps/app.xml'] = appPropsXml(n);
   slides.forEach((slide, i) => {
     const hasNotes = (slide.notes ?? '').trim() !== '';
     const targets = collectLinkTargets(slide);
@@ -741,9 +874,10 @@ export function buildPptxParts(slides: PptxSlide[], opts: PptxBuildOpts = {}): R
       const map = new Map(targets.map((t, k) => [t, `rId${base + k}`] as const));
       slideLinkRid = t => map.get(t);
     }
+    const layoutIdx = clampInt(finInt(slide.layout ?? 0), 0, nLayouts - 1);
     parts[`ppt/slides/slide${i + 1}.xml`] = slideXml(slide);
     slideLinkRid = null;
-    parts[`ppt/slides/_rels/slide${i + 1}.xml.rels`] = slideRelsXml(i, slide.media, hasNotes, targets);
+    parts[`ppt/slides/_rels/slide${i + 1}.xml.rels`] = slideRelsXml(i, slide.media, hasNotes, targets, layoutIdx);
     slide.media.forEach((m, j) => { parts[`ppt/media/${mediaName(i, j, m.ext)}`] = m.bytes; });
   });
   if (hasAnyNotes) {

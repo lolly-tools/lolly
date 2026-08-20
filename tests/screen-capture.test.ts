@@ -304,8 +304,16 @@ test('ENGINE_VERSION is 1.128.0', () => {
   // handler notes, track codecs, mvhd stamps, QuickTime mdta keys, ©xyz GPS - and
   // gains the `producer` pipeline fingerprint behind /verify's "Likely
   // AI-generated" tier. Pure exports only, no HostV1 method changed).
+  // Then 1.135.0 (pptx.ts buildPptxParts learns slide-layout galleries: PptxLayout /
+  // PptxPlaceholder, PptxSlide.layout, PptxText.ph - branded layouts + placeholder
+  // bindings so an exported deck doubles as a PowerPoint template. Pure exports
+  // only, no HostV1 method changed).
+  // Then 1.136.0 (text-watermark.ts - the Kirchenbauer et al. green-list text
+  // watermark, arXiv:2301.10226: the keyed vocabulary partition + logit bias the
+  // reword samplers embed, and the unique-bigram z-test /verify detects it with.
+  // Pure exports only, no HostV1 method changed).
   // The ^1.54.0 screencap floor below still holds (a minor bump satisfies it).
-  assert.equal(ENGINE_VERSION, '1.134.0');
+  assert.equal(ENGINE_VERSION, '1.136.0');
 });
 
 // ─── loadTool: a ^1.54.0 tool loads against this engine ───────────────────────
