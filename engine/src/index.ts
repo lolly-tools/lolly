@@ -211,6 +211,16 @@ export {
 export type {
   RewordSuggestion, RewordSpan, RewordMessage, RewordVerdict, RewordCandidate,
 } from './reword.ts';
+// Statistical text watermark (Kirchenbauer et al., arXiv:2301.10226) - the
+// green-list scheme Lolly's reword generation embeds and /verify detects: the
+// keyed hash + logit bias for an embedder, the unique-bigram z-test (whole text
+// and windowed) for a detector. The key is public - a match is a provenance
+// disclosure, not a cryptographic guarantee.
+export {
+  mix32, isGreenToken, addGreenBias, greenListZ, binomialTailP, scoreTokenWatermark,
+  REWORD_WATERMARK,
+} from './text-watermark.ts';
+export type { WatermarkScheme, TextWatermarkScore } from './text-watermark.ts';
 // Speech synthesis text machinery (host.speech, v1.98) - the pure half of Kokoro
 // TTS: normalize/split/chunk maths, token-span bookkeeping, durations→word
 // timings and clip concatenation. The shell's worker and Node scripts inject the
@@ -361,7 +371,7 @@ export { emitWmf } from './wmf.ts';
 export { buildPptxParts, EMU_PER_INCH, EMU_PER_PX } from './pptx.ts';
 export type {
   PptxSlide, PptxShape, PptxRect, PptxText, PptxPic, PptxRun, PptxPara, PptxFill, PptxMedia, PptxBuildOpts,
-  PptxTable, PptxTableCell, PptxLine, PptxTheme, PptxPath,
+  PptxTable, PptxTableCell, PptxLine, PptxTheme, PptxPath, PptxLayout, PptxPlaceholder, PptxPhType,
 } from './pptx.ts';
 export { svgToCustGeomPaths, svgToNativePptx } from './svg-custgeom.ts';
 export type { SvgNativePptx } from './svg-custgeom.ts';

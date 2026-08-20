@@ -356,11 +356,44 @@ const renderLogo = async (slide: any) =>
 
 test('accent scheme forces the MONO logo (accent bg ≈ the brand logomark colour)', async () => {
   const html = await renderLogo({ content: '# A', theme: 'accent' });
-  assert.match(html, /-MONO\.svg/, 'accent uses a mono logo');
-  assert.doesNotMatch(html, /-COLOR\.svg/, 'accent does NOT use a colour logo');
+  // Scope to the SLIDE furniture: the [data-pptx-layouts] gallery JSON legitimately
+  // references the colour logos (its light/dark layouts carry them for new slides).
+  const slideHtml = html.slice(0, html.indexOf('data-pptx-layouts'));
+  assert.match(slideHtml, /-MONO\.svg/, 'accent uses a mono logo');
+  assert.doesNotMatch(slideHtml, /sl-logo[^>]*>\s*<img src="[^"]*-COLOR\.svg/, 'accent does NOT use a colour logo');
 });
 
 test('non-accent schemes keep the COLOUR logo (light + dark sides)', async () => {
   assert.match(await renderLogo({ content: '# A', theme: 'light' }), /ON-LIGHT-COLOR\.svg/);
   assert.match(await renderLogo({ content: '# A', theme: 'dark' }), /ON-DARK-COLOR\.svg/);
+});
+
+// ── the branded .pptx layout gallery (engine 1.135 layouts) ───────────────────
+
+test('every render carries the 20-layout gallery + per-page layout binding', async () => {
+  const html = await renderLogo({ content: '# A', theme: 'dark' });
+  const m = /<script type="application\/json" data-pptx-layouts>([\s\S]*?)<\/script>/.exec(html);
+  assert.ok(m, 'gallery script present');
+  const g = JSON.parse(m![1]!);
+  assert.deepEqual(g.ref, { w: 1280, h: 720 }, 'authored in the fixed ref space');
+  assert.equal(g.layouts.length, 20);
+  for (let i = 0; i < g.layouts.length; i++) {
+    assert.equal(g.layouts[i].name.endsWith('_DARK'), i % 2 === 1, `light/dark twin order at ${i}`);
+  }
+  assert.ok(g.theme?.colors?.lt1, 'brand theme rides along');
+  // Dark slide (default layout: title) binds to TITLE_DARK (index 1).
+  assert.match(html, /data-pptx-layout="1"/);
+  // Each side's colour logo rides its gallery half.
+  assert.match(m![1]!, /ON-LIGHT-COLOR\.svg/);
+  assert.match(m![1]!, /ON-DARK-COLOR\.svg/);
+  // Placeholders carry prompts; content layouts carry the sldNum convention (the
+  // cover is clean, like the template).
+  assert.ok(g.layouts[0].placeholders.some((p: any) => p.type === 'ctrTitle' && p.prompt));
+  const tab = g.layouts.find((l: any) => l.name === 'TITLE_AND_BODY');
+  assert.ok(tab.placeholders.some((p: any) => p.type === 'sldNum' && p.idx === 12));
+});
+
+test('the big-number and main-point layout presets render their slide classes', async () => {
+  assert.match(await renderLogo({ content: '# 87%\n\nof the message', layout: 'bignum' }), /sl-l-bignum/);
+  assert.match(await renderLogo({ content: '# One big statement', layout: 'mainpoint' }), /sl-l-mainpoint/);
 });

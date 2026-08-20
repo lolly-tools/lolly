@@ -312,6 +312,9 @@ async function main(): Promise<void> {
     }
     const url = baseUrl; // non-null here (set above); pinned so the pool closure keeps the narrowing
     const width = Math.max(1, Math.min(Number(process.env.SHOTS_CONCURRENCY) || 4, jobs.length || 1));
+    // Arm the progress prefix (reportLine) - jobs.length is final here.
+    progress.total = jobs.length;
+    progress.startedAt = Date.now();
     // Job-indexed (not push-order) so a flake can be retried in place below.
     const out: (ShotResult | undefined)[] = new Array(jobs.length);
     let cursor = 0;
@@ -343,6 +346,9 @@ async function main(): Promise<void> {
         reportLine(r);
       }
     }
+    // The per-hardware cost, stated once: what a full run takes on THIS machine.
+    const took = (Date.now() - progress.startedAt) / 1000;
+    console.log(`  ⏱ ${jobs.length} shot${jobs.length === 1 ? '' : 's'} in ${fmtSecs(took)} · avg ${(took / Math.max(1, jobs.length)).toFixed(1)}s/shot · concurrency ${width}`);
     for (const r of out) if (r) results.push(r);
   } finally {
     // getBrowser()'s Chromium is shared across captures and would otherwise hold
@@ -1433,10 +1439,31 @@ async function stampC2pa(bytes: Uint8Array, shot: ShotDef, dims: { width: number
 
 // ── Reporting ─────────────────────────────────────────────────────────────────
 
+// Progress counter: a `[done/total · elapsed · ~ETA] ` prefix on every completion
+// line, so a long run says where it is and a developer learns what a full capture
+// costs on their hardware (Andy 2026-08-20). Armed by the capture flow (total +
+// startedAt set just before the pool drains); zero total = no prefix, so the
+// list/verify paths print exactly as before. The sequential retry pass re-reports
+// jobs already counted, so the display clamps at total (elapsed stays honest).
+const progress = { total: 0, done: 0, startedAt: 0 };
+function fmtSecs(s: number): string {
+  if (s < 60) return `${Math.round(s)}s`;
+  return `${Math.floor(s / 60)}m ${String(Math.round(s % 60)).padStart(2, '0')}s`;
+}
+function progressPrefix(): string {
+  if (!progress.total) return '';
+  progress.done++;
+  const done = Math.min(progress.done, progress.total);
+  const elapsed = (Date.now() - progress.startedAt) / 1000;
+  const eta = done < progress.total ? ` · ~${fmtSecs((elapsed / done) * (progress.total - done))} left` : '';
+  return `[${String(done).padStart(String(progress.total).length)}/${progress.total} · ${fmtSecs(elapsed)}${eta}] `;
+}
+
 function reportLine(r: ShotResult): void {
+  const pre = progressPrefix();
   const name = `${r.slug}${r.lang ? `.${r.lang}` : ''}${r.theme ? `.${r.theme}` : ''}.${r.format}`.padEnd(22);
   if (r.error) {
-    console.log(`  ✗ ${name} FAILED — ${r.error}`);
+    console.log(`  ${pre}✗ ${name} FAILED — ${r.error}`);
     return;
   }
   const v = r.verdict!;
@@ -1449,9 +1476,9 @@ function reportLine(r: ShotResult): void {
       + `${Math.round((r.format === 'svg' ? DEFAULT_THRESHOLDS.vectorMaxBytes : DEFAULT_THRESHOLDS.maxBytes) / 1024)} KB`);
   }
   const sz = v.sizeDelta === null ? '' : `${v.sizeDelta >= 0 ? '+' : ''}${Math.round(v.sizeDelta * 100)}% bytes`;
-  if (v.kind === 'new') console.log(`  ✚ ${name} new — ${kb}${flags}`);
-  else if (v.kind === 'unchanged') console.log(`  ✓ ${name} unchanged (${px})${flags}`);
-  else console.log(`  ▲ ${name} CHANGED — ${[px, sz].filter(Boolean).join(', ')}${r.wrote ? ' → accepted' : ''}${flags}`);
+  if (v.kind === 'new') console.log(`  ${pre}✚ ${name} new — ${kb}${flags}`);
+  else if (v.kind === 'unchanged') console.log(`  ${pre}✓ ${name} unchanged (${px})${flags}`);
+  else console.log(`  ${pre}▲ ${name} CHANGED — ${[px, sz].filter(Boolean).join(', ')}${r.wrote ? ' → accepted' : ''}${flags}`);
 }
 
 function summarize(results: ShotResult[]): void {
