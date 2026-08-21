@@ -101,6 +101,10 @@ export const BANNED_PHRASES: { what: string; re: RegExp }[] = [
   { what: '"where X sits/fits" framing', re: /\bwhere \S+ (?:sits|fits)\b/i },
   { what: 'abstract "landscape"', re: /\b(existing|wider|current|competitive|creative-tools) landscape\b/i },
   { what: '"a testament to"', re: /\ba testament to\b/i },
+  // Figurative "lands/landed" (a change "lands", a file "lands on" a stack) -
+  // house style rejects it outside the literal senses (property, distant
+  // places), which the lookbehind carves out (Andy, 2026-08-21).
+  { what: 'figurative "lands/landed"', re: /(?<!\b(?:distant|foreign|native|far-off|their|his|her|ancestral)\s)\b(?:lands|landed)\b/i },
   { what: '"tapestry"', re: /tapestry/i },
   { what: '"delve"', re: /\bdelve/i },
   { what: '"treasure trove"', re: /treasure trove/i },
