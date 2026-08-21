@@ -6,6 +6,16 @@ minors, never removed or signature-changed without a major bump.
 
 Moved verbatim from the comment block that used to live in `src/index.ts`.
 
+1.138.0 - additive (no HostV1 change): `src/text-facts.ts`, the neutral
+document census behind the verify/catalog interrogation surface: `textFacts`
+(hidden characters by name+count with a severity grade - RLO/TAG/PUA-class
+characters read as severe warnings, never neutral inventory - script shares of
+the letters, link hosts - never fetched - punctuation counts, words/sentences/
+paragraphs/bullets, CRLF/LF mix, BOM) and `invisibleCharName` (the one home of
+invisible-character naming; the web shell's chip renderers import it, so
+census, extract and preview can never disagree). Facts carry no verdict - the
+score keeps that job - but severity still reads as severity.
+
 1.137.0 - additive (no HostV1 change): `applyModelEstimate` on text-signals -
 the fold for plans/126 WP-A's on-device classifier tier. A shell that ran a
 staged detector model hands its calibrated verdict (`AiModelEstimate`: probAi,

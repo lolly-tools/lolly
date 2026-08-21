@@ -316,8 +316,11 @@ test('ENGINE_VERSION is 1.128.0', () => {
   // fold: a staged on-device detector's calibrated verdict becomes a fourth,
   // style-capped evidence bucket + an estimate finding. Pure exports only, no
   // HostV1 method changed).
+  // Then 1.138.0 (text-facts.ts - the neutral document census: hidden chars by
+  // name, script shares, link hosts, structure + line-ending forensics; also
+  // the one home of invisibleCharName. Pure exports only, no HostV1 change).
   // The ^1.54.0 screencap floor below still holds (a minor bump satisfies it).
-  assert.equal(ENGINE_VERSION, '1.137.0');
+  assert.equal(ENGINE_VERSION, '1.138.0');
 });
 
 // ─── loadTool: a ^1.54.0 tool loads against this engine ───────────────────────
