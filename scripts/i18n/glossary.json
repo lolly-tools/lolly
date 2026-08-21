@@ -35,5 +35,13 @@
     "it": "neutral-informal (tu, not Lei)",
     "no": "neutral-informal (du) - Norwegian Bokmål; there is essentially no formal/informal register distinction in modern usage",
     "ko": "polite standard speech (해요체) - friendly but respectful UI register, the modern SaaS/app default; not deferential formal speech (하십시오체) and not casual banmal (반말)"
+  },
+  "termNotes": {
+    "house style": "the organisation's OWN editorial/design standard, as in a publishing or fashion house - never a residence or home decor. Use the target language's established term for an organisation's style standard (German 'Hausstil', Turkish 'kurumsal stil'), or keep the English where local professionals do.",
+    "house rules": "an organisation's standing working conventions - never the rules of a household.",
+    "in-house": "done inside the organisation itself - never inside a building or dwelling.",
+    "design house / fashion house / publishing house": "a company or atelier - never a physical building.",
+    "powerhouse": "an idiom for something exceptionally capable - never a power station or building.",
+    "house reader rule": "this codebase's own parser convention (never throws, null on bad input) - 'house' means the project, not a home."
   }
 }

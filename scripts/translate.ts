@@ -94,6 +94,11 @@ const BATCH_SIZE = 50;
 interface Glossary {
   neverTranslate: string[];
   registerNotes: Record<Lang, string>;
+  /** Figurative-sense guidance: terms whose literal rendering would be wrong
+   *  (the "house style" family - organisational sense, never a residence).
+   *  Injected into the system prompt AND the offline work-file briefs, so a
+   *  subagent wave inherits the same guard. */
+  termNotes?: Record<string, string>;
 }
 
 function loadGlossary(): Glossary {
@@ -1005,6 +1010,9 @@ function buildSystemPrompt(lang: Lang, corpusContext: string, glossary: Glossary
     'Preserve any inline HTML exactly: the same tags, the same count, every attribute (href, target, rel) byte-for-byte, and every HTML entity (&amp;, &lt;). Translate only the human text around and between the tags - never a tag name, an attribute value, or the contents of a <code> element.',
     'Preserve punctuation choices like → and & as-is where they read naturally in the target language; do not add explanatory text.',
     'Match the source length and register. Do not pad or embellish.',
+    ...(glossary.termNotes && Object.keys(glossary.termNotes).length
+      ? [`Term-sense guidance - translate each of these by its stated sense, NEVER literally: ${Object.entries(glossary.termNotes).map(([term, note]) => `"${term}" = ${note}`).join(' | ')}`]
+      : []),
     ...punctuationRules(lang),
     'Return ONLY the JSON matching the given schema - one translation per input id, in the same order.',
   ].join('\n');
