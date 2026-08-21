@@ -26,7 +26,7 @@ const DIST = join(process.cwd(), 'shells/web/dist');
 const MIME: Record<string, string> = { '.html': 'text/html', '.js': 'text/javascript', '.css': 'text/css', '.json': 'application/json', '.svg': 'image/svg+xml', '.woff2': 'font/woff2', '.wasm': 'application/wasm', '.png': 'image/png' };
 
 function serveDist(): Promise<{ base: string; close: () => Promise<void> }> {
-  if (!existsSync(join(DIST, 'index.html'))) throw new Error('shells/web/dist not built — run `npm run build:web` first');
+  if (!existsSync(join(DIST, 'index.html'))) throw new Error('shells/web/dist not built - run `npm run build:web` first');
   const server = createServer(async (req, res) => {
     try {
       const url = new URL(req.url ?? '/', 'http://x');
@@ -111,8 +111,8 @@ async function main(): Promise<void> {
 
   await browser.close();
   await close();
-  if (fails) { console.log(`\n${fails} FAILURE(S) — the geometry fast-skip is NOT safe to enable`); process.exit(1); }
-  console.log('\nALL PASS — geometry fast-skip engages/refuses correctly and is byte-identical (computed style) to a full paint.');
+  if (fails) { console.log(`\n${fails} FAILURE(S) - the geometry fast-skip is NOT safe to enable`); process.exit(1); }
+  console.log('\nALL PASS - geometry fast-skip engages/refuses correctly and is byte-identical (computed style) to a full paint.');
 }
 
 main().catch((e) => { console.error(e); process.exit(1); });

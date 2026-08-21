@@ -55,7 +55,7 @@ test('under a Rec.2020 limit the P3-only region is a RING, not "beyond"', () => 
   // index-ranked classifier had no ring left to hand P3 red and called it beyond.
   assert.equal(gamutTier(...REC_GREEN, 'rec2020'), 0);
   assert.equal(gamutTier(...P3_RED, 'rec2020'), 2,
-    'P3 red is outside Rec.2020 but inside P3 — the second candidate asked');
+    'P3 red is outside Rec.2020 but inside P3 - the second candidate asked');
   assert.notEqual(gamutTier(...P3_RED, 'rec2020'), BEYOND_TIER);
 });
 
@@ -132,7 +132,7 @@ test('the module comment\'s worked examples reproduce', () => {
   // checked, which also keeps it honest if the hulls are ever revised.
   const src = readFileSync(new URL('../engine/src/gamut-tier.ts', import.meta.url), 'utf8');
   const corner = /L (-?[\d.]+), C (-?[\d.]+),\s*\*?\s*h (-?[\d.]+)/.exec(src.replace(/\n \*/g, ''));
-  assert.ok(corner, 'the quoted P3 red corner moved — find it before deleting this test');
+  assert.ok(corner, 'the quoted P3 red corner moved - find it before deleting this test');
   const lch = [Number(corner[1]), Number(corner[2]), Number(corner[3])] as [number, number, number];
   assert.equal(inGamut(...lch, 'p3'), true, `the quoted corner is not in P3: ${lch.join(' ')}`);
   assert.equal(gamutTier(...lch, 'srgb'), 1, 'the doc calls it tier 1');

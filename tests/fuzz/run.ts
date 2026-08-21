@@ -92,7 +92,7 @@ async function main(): Promise<void> {
   }
 
   process.stdout.write('\n=== FUZZ SUMMARY ===\n');
-  if (!all.length) { process.stdout.write('clean — no crashes, hangs, or allocation blow-ups\n'); return; }
+  if (!all.length) { process.stdout.write('clean - no crashes, hangs, or allocation blow-ups\n'); return; }
   for (const f of all) process.stdout.write(`[${f.kind}] ${f.target} iter#${f.iter} size=${f.size} ${f.ms.toFixed(0)}ms :: ${f.message}\n`);
   process.exitCode = 1;
 }

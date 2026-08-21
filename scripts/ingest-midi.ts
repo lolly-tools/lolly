@@ -60,7 +60,7 @@ index.assets = (index.assets as Asset[]).filter((a) => a.id !== `lolly/songs/${s
 index.assets.push({
   id: `lolly/songs/${slug}`,
   name,
-  description: `${name} — a public-domain piano piece, converted from MIDI to a tiny ZzFXM song and synthesised on device. A focus track for Neurospicy Mode, also a video music bed. Public domain (CC0).`,
+  description: `${name} - a public-domain piano piece, converted from MIDI to a tiny ZzFXM song and synthesised on device. A focus track for Neurospicy Mode, also a video music bed. Public domain (CC0).`,
   type: 'audio',
   version: '1.0.0',
   tier: 'on-demand',

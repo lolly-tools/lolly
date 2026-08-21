@@ -8,10 +8,10 @@ scripts/fetch-upscale-models.ts for the ONE roster model that has no published,
 license-clean ONNX mirror (only a .pth). It produces an ONNX that is a DROP-IN for
 the existing runRealEsrgan path (shells/web/src/lib/upscaler.ts): NCHW float32
 [0,1] RGB in, x4 [0,1] RGB out, dynamic H/W, input `input` / output `output`,
-opset 17 — byte-for-byte the same contract the SceneWorks x4plus ONNX already
+opset 17 - byte-for-byte the same contract the SceneWorks x4plus ONNX already
 meets, because this is the SAME RRDBNet architecture (just 6 blocks, not 23).
 
-Only torch + onnx are needed — RRDBNet is defined inline, so basicsr/realesrgan
+Only torch + onnx are needed - RRDBNet is defined inline, so basicsr/realesrgan
 are NOT required. Run:  python3 scripts/convert-anime-upscale-onnx.py
 
 Gate (mirrors the fetch scripts): the upstream LICENSE is BSD-3-Clause and covers
@@ -141,7 +141,7 @@ def main():
     onnx_hash = sha256_file(ONNX_PATH)
 
     # Verify it runs + scales x4, on the CPU path the shell's WASM runtime mirrors.
-    ran = "onnxruntime not installed — skipped run-check"
+    ran = "onnxruntime not installed - skipped run-check"
     try:
         import numpy as np
         import onnxruntime as ort
@@ -159,7 +159,7 @@ def main():
     print(f"  verify : {ran}")
     print("\nPaste into scripts/fetch-upscale-models.ts note + upscale-models.ts approxBytes.")
 
-    # CREDITS — appended to the upscale ledger the fetch script also writes to.
+    # CREDITS - appended to the upscale ledger the fetch script also writes to.
     credits = os.path.join(OUT_DIR, "CREDITS-anime.txt")
     with open(credits, "w") as f:
         f.write(
@@ -171,7 +171,7 @@ def main():
             f"  .pth sha256:{pth_hash}\n"
             f"  ONNX sha256:{onnx_hash}\n"
             "  Note:       Converted on-device from the upstream .pth by scripts/convert-anime-upscale-onnx.py\n"
-            "              (RRDBNet 6-block, x4, opset 17, [0,1] RGB I/O) — a drop-in for the runRealEsrgan path.\n"
+            "              (RRDBNet 6-block, x4, opset 17, [0,1] RGB I/O) - a drop-in for the runRealEsrgan path.\n"
         )
     print(f"Wrote {credits}")
 

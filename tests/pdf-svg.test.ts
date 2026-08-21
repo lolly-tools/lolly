@@ -373,7 +373,7 @@ function ringNodes(d = 'M0 0h100v50h-100z'): PdfNode[] {
   } as PdfNode));
 }
 
-test('dedupePaths: off by default — every copy stays inline', () => {
+test('dedupePaths: off by default - every copy stays inline', () => {
   const svg = pdfNodesToSvg(ringNodes(), OPTS);
   assert.equal(svg.split('<path d="M0 0h100v50h-100z"').length - 1, 4);
   assert.ok(!svg.includes('<use'), 'no <use> without the opt-in');

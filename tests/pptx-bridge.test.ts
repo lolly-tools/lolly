@@ -252,7 +252,7 @@ test('inspect never throws: garbage bytes and non-deck zips resolve ok:false', a
 
 test('rebrand normalises colorMap keys and passes untouched parts byte-identically', async () => {
   const { bytes, report } = await api.rebrand(zipDeck(), {
-    colorMap: { '#ff0000': '30BA78' }, // lowercase, hashed — must still match FF0000
+    colorMap: { '#ff0000': '30BA78' }, // lowercase, hashed - must still match FF0000
   });
   const files = unzipSync(bytes);
   const slide = strFromU8(files['ppt/slides/slide1.xml']!);

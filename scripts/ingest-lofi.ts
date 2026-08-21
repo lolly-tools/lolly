@@ -86,7 +86,7 @@ const entries: AssetEntry[] = [];
 
 for (const file of SELECTION) {
   const src = join(SRC_DIR, file);
-  if (!existsSync(src)) { console.log(`  (skipping ${file} — not found in ${SRC_DIR})`); continue; }
+  if (!existsSync(src)) { console.log(`  (skipping ${file} - not found in ${SRC_DIR})`); continue; }
   const track = byFile.get(file);
   const slug = file.replace(/\.[^.]+$/, '');
   const name = track?.title ?? slug.replace(/-/g, ' ');
@@ -96,7 +96,7 @@ for (const file of SELECTION) {
   entries.push({
     id: ID_PREFIX + slug,
     name,
-    description: `Looping lo-fi beat (${label}) — a focus track for Neurospicy Mode, also selectable as a video music bed. AI-generated with Suno (the Open Lo-Fi project, github.com/btahir/open-lofi); released to the public domain (CC0).`,
+    description: `Looping lo-fi beat (${label}) - a focus track for Neurospicy Mode, also selectable as a video music bed. AI-generated with Suno (the Open Lo-Fi project, github.com/btahir/open-lofi); released to the public domain (CC0).`,
     type: 'audio',
     version: '1.0.0',
     tier: 'on-demand',

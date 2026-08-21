@@ -1,7 +1,7 @@
 {
   "name": "Perakam Suara",
   "description": "Rakam nota suara dengan meter aras langsung dan bimbingan lembut, kemudian simpan sebagai MP3.",
-  "a11yLabel": "Perakam suara — aras {{default dbText \"idle\"}}",
+  "a11yLabel": "Perakam suara - aras {{default dbText \"idle\"}}",
   "featured.blurb": "Rakam nota suara yang jernih dengan bimbingan aras langsung",
   "inputs.title.label": "Label",
   "inputs.title.help": "Menamakan kad rakaman dan fail yang disimpan.",

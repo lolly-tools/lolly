@@ -148,7 +148,7 @@ test('baked stops reproduce the requested curve within a JND at every sample', (
   }
 });
 
-test('subdivision is adaptive — flat segments cost nothing, hue crossings cost a few', () => {
+test('subdivision is adaptive - flat segments cost nothing, hue crossings cost a few', () => {
   const bake = (a: string, b: string): number =>
     gradientStops([{ color: P(a), pos: 0 }, { color: P(b), pos: 100 }]).length;
   assert.equal(bake('#888888', '#999999'), 2, 'a near-identical pair needs no help');
@@ -159,7 +159,7 @@ test('subdivision is adaptive — flat segments cost nothing, hue crossings cost
   assert.ok(bake('blue', 'yellow') <= 33, 'and it stays bounded');
 });
 
-test('interpolating in sRGB needs no baking at all — the renderer already agrees', () => {
+test('interpolating in sRGB needs no baking at all - the renderer already agrees', () => {
   for (const [a, b] of [['#000000', '#ffffff'], ['blue', 'yellow'], ['red', 'transparent']]) {
     assert.equal(
       gradientStops([{ color: P(a!), pos: 0 }, { color: P(b!), pos: 100 }], { space: 'srgb' }).length,
@@ -297,7 +297,7 @@ test('an unreadable stop is skipped, not fatal, while two remain', () => {
   assert.deepEqual(g.stops.map(s => s.color), ['red', 'blue']);
 });
 
-test('stop count is bounded — a hand-edited URL cannot ask for unbounded work', () => {
+test('stop count is bounded - a hand-edited URL cannot ask for unbounded work', () => {
   const many = ['lin', '90', ...Array.from({ length: 40 }, (_, i) => `ff00${(i % 10)}${(i % 10)}-${i * 2}`)];
   const g = parseGradientSpec(many.join('_'));
   assert.ok(g);

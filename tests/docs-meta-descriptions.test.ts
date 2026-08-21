@@ -43,7 +43,7 @@ test('descriptions are not all the same site-wide sentence', { skip }, () => {
   const all = readAll();
   const unique = new Set(all.map((p) => p.desc));
   assert.ok(unique.size > all.length * 0.6,
-    `only ${unique.size} distinct descriptions across ${all.length} pages — they have collapsed to a shared default`);
+    `only ${unique.size} distinct descriptions across ${all.length} pages - they have collapsed to a shared default`);
 });
 
 test('descriptions fit a preview without being truncated mid-clause', { skip }, () => {

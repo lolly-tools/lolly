@@ -73,7 +73,7 @@ Kg4yp6mk8T65OID5F5a6aQIhAO8Y82p4j6izN7HXL0dh8GZmMjy2flcHjX1/0+zL
 `;
 
 const C2PA_TRUST_ANCHORS_PEM = `# Google C2PA hierarchy (NOT in the Adobe/C2PA list below; sourced from Google PKI)
-Google C2PA Root CA G3 (Google LLC) — fetched from http://pki.goog/c2pa/root-g3.crt
+Google C2PA Root CA G3 (Google LLC) - fetched from http://pki.goog/c2pa/root-g3.crt
 -----BEGIN CERTIFICATE-----
 MIICLjCCAbOgAwIBAgIUUZK4AROFKiXQZ1UG7FG6qPGc1g8wCgYIKoZIzj0EAwMw
 QzELMAkGA1UEBhMCVVMxEzARBgNVBAoMCkdvb2dsZSBMTEMxHzAdBgNVBAMMFkdv
@@ -89,7 +89,7 @@ Mb74BOyK8/8pgMX0NPwLlo1ikLNY78ov+k21vZrEZQIxANQ91muDXgPjAMAkzAlK
 i32Z9VBB37ynTveKVC7ofTW0ZFfIIYYpWUR1+C4m2yRkOQ==
 -----END CERTIFICATE-----
 
-# C2PA / Content Authenticity trust list — https://verify.contentauthenticity.org/trust/anchors.pem
+# C2PA / Content Authenticity trust list - https://verify.contentauthenticity.org/trust/anchors.pem
 ## This interim trust list is now frozen.  C2PA has published an official trust list, and new anchor certificates should be added to that list. NOTE: Content Credentials are still valid which were signed using certificates chaining back to root certs on this list. Validators can still refer to this trust list, but should distinguish between Content Credentials signed with certs tracing back to these and those signed with certs tracing back to root certs on the official C2PA trust list.  
 ## Currently, the verifier at https://verify.contentauthenticity.org/ uses this list.  
 ## 

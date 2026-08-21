@@ -208,7 +208,7 @@ test('lint: the same call in three disguises is still refused', () => {
   assert.ok(v.some((x) => x.message.includes('after decoding')), 'a normalized hit must say it was normalized');
 });
 
-test('lint: an adversarial sweep — every one of these is refused', () => {
+test('lint: an adversarial sweep - every one of these is refused', () => {
   const wrap = (body: string): string =>
     `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 10 10"><script>${body}</script></svg>`;
   const cases: [string, string][] = [
@@ -309,7 +309,7 @@ test('lint: a root-relative href is navigation only where href MEANS navigation'
   assert.deepEqual(lintArtSource('<p><a href="/info/c2pa.html">Read more</a></p>', ctx(C2PA_FRAGMENT_PROFILE.format)), []);
 });
 
-test('lint: the manifest strip is not a hiding place — and --check cannot pass a hostile file', async () => {
+test('lint: the manifest strip is not a hiding place - and --check cannot pass a hostile file', async () => {
   // The strip ran before the lint, and its armour pattern was lazy across lines,
   // so a fake `-----BEGIN` and any later `-----END` hid everything between them
   // from every rule AND from the budget. A real signing run happened to destroy
@@ -365,7 +365,7 @@ test('lint: obfuscation the normalizer undoes, and the global aliases it cannot'
   assert.ok(rules(v).includes('network'), 'the char-code fetch is decoded and refused');
   assert.ok(rules(v).includes('dynamic-code'), 'and the window alias is a violation in its own right');
   assert.equal(normalizeForLint('String.fromCharCode(102,101,116,99,104)'), 'fetch');
-  assert.equal(normalizeForLint('String.fromCodePoint(0x66)'), 'String.fromCodePoint(0x66)', 'only literal decimals are decoded — nothing is guessed');
+  assert.equal(normalizeForLint('String.fromCodePoint(0x66)'), 'String.fromCodePoint(0x66)', 'only literal decimals are decoded - nothing is guessed');
 });
 
 test('lint: markup and CSS assembled at runtime, and static ESM', () => {
@@ -407,7 +407,7 @@ test('lint: a `>` inside an attribute value does not fake a missing viewBox', ()
   assert.deepEqual(artDims(svg), { width: 10, height: 10 });
 });
 
-test('lint: an HTML artifact is a fragment — a whole document is refused', () => {
+test('lint: an HTML artifact is a fragment - a whole document is refused', () => {
   const doc = '<!doctype html><html><head><title>x</title></head><body><svg viewBox="0 0 1 1"/></body></html>';
   assert.ok(rules(lintArtSource(doc, ctx(C2PA_FRAGMENT_PROFILE.format))).includes('shape'));
   assert.ok(rules(lintArtSource('<p>no svg here</p>', ctx('svg'))).includes('shape'));
@@ -415,7 +415,7 @@ test('lint: an HTML artifact is a fragment — a whole document is refused', () 
 
 // ── lint: the motion contract ─────────────────────────────────────────────────
 
-test('motion: an unguarded rAF loop is refused twice — no opt-out, and no off switch', () => {
+test('motion: an unguarded rAF loop is refused twice - no opt-out, and no off switch', () => {
   const v = lintArtSource(fixture('refuse', 'masthead', 'unguarded-motion.html'), ctx(C2PA_FRAGMENT_PROFILE.format));
   const motion = v.filter((x) => x.rule === 'motion');
   assert.ok(motion.some((x) => x.message.includes('prefers-reduced-motion')));
@@ -500,7 +500,7 @@ test('budget: the numbers are the charter\'s, and a breach is refused', () => {
   assert.deepEqual(lintArtSource(big, ctx('svg', 'figure')), []);
 });
 
-test('normalizeForLint undoes entities, escapes and concatenation — nested ones too', () => {
+test('normalizeForLint undoes entities, escapes and concatenation - nested ones too', () => {
   for (const hidden of ['&#102;etch', '&#x66;etch', '&amp;#102;etch', '\\x66etch', '\\u0066etch', "'fe' + 'tch'"]) {
     assert.ok(normalizeForLint(hidden).includes('fetch'), `not normalized: ${hidden}`);
   }
@@ -595,7 +595,7 @@ test('claim: the options carry the source type, the disclosure and the spec vers
   assert.ok(ART_CREDENTIAL_DAYS >= 365 * 5);
 });
 
-test('claim: digitalCreation attaches NO disclosure — section 18.28.3', () => {
+test('claim: digitalCreation attaches NO disclosure - section 18.28.3', () => {
   const opts = artC2paOpts({ generator: { name: 'A human, in a text editor' }, source: 'digitalCreation' },
     { id: 'x', kind: 'figure', format: 'svg' });
   assert.equal(opts.aiDisclosure, undefined);
@@ -707,7 +707,7 @@ test('sign: --check writes nothing and says what would be signed', async (t) => 
 
 // ── refusals, through the whole pipeline ──────────────────────────────────────
 
-test('refuse: no meta.json — provenance is not optional', async (t) => {
+test('refuse: no meta.json - provenance is not optional', async (t) => {
   const dir = stage([{ from: 'refuse', kind: 'masthead', name: 'no-meta.svg' }]);
   t.after(() => rmSync(dir, { recursive: true, force: true }));
   const run = await signDocsArt({ docsDir: dir, ...silent });
@@ -716,7 +716,7 @@ test('refuse: no meta.json — provenance is not optional', async (t) => {
   assert.equal(extractC2paStore(read(dir, 'mastheads/no-meta.svg')), null);
 });
 
-test('refuse: one bad artifact stops the whole run — nothing is signed', async (t) => {
+test('refuse: one bad artifact stops the whole run - nothing is signed', async (t) => {
   // A bank with one refused entry is a bank under review. Signing the rest would
   // publish a page whose credential line is complete and whose bank is not.
   const dir = stage([...CLEAN, { from: 'refuse', kind: 'masthead', name: 'exfil-plain.svg' }]);
@@ -812,5 +812,5 @@ test('the real docs/mastheads and docs/figures pass their own gate', async () =>
   // test never writes into the repo.
   const run = await signDocsArt({ docsDir: join(ROOT, 'docs'), check: true, ...silent });
   assert.deepEqual(run.violations, [], `the banked art does not pass the gate:\n${run.violations.map((v) => `${v.file}: ${v.message}`).join('\n')}`);
-  assert.deepEqual(run.wouldSign, [], `banked art with no current credential: ${run.wouldSign.join(', ')} — run node scripts/sign-docs-art.ts`);
+  assert.deepEqual(run.wouldSign, [], `banked art with no current credential: ${run.wouldSign.join(', ')} - run node scripts/sign-docs-art.ts`);
 });

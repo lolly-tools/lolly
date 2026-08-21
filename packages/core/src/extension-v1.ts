@@ -78,7 +78,7 @@ export const SLOT_REGISTRY: readonly SlotManifest[] = [
     id: 'cost-authoring',
     cardinality: 'single',
     summary:
-      'Authoring/manage UI for supplier rate cards — org/deployer config, not ' +
+      'Authoring/manage UI for supplier rate cards - org/deployer config, not ' +
       'core-individual config. Core keeps the preflight counts, the cost ' +
       'calculator, and card CONSUMPTION (CLI --rate-card, a supplied ' +
       'confidential catalog card); the AUTHORING furniture is hydrated.',

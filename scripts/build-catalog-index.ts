@@ -238,7 +238,7 @@ function build(): void {
   };
 
   writeFileSync(INDEX_PATH, JSON.stringify(out, null, 2) + '\n');
-  console.log(`✓ Wrote catalog/tools/index.json — ${out.tools.length} tools${unchanged ? ' (unchanged)' : ''}`);
+  console.log(`✓ Wrote catalog/tools/index.json - ${out.tools.length} tools${unchanged ? ' (unchanged)' : ''}`);
 }
 
 // Only regenerate when run directly (`node scripts/build-catalog-index.ts`).

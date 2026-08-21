@@ -5,9 +5,9 @@
 #
 #     shells/web/src/vendor/libopenmpt/libopenmpt.mjs   (~1.5 MB, wasm embedded base64)
 #
-# LICENSE — this build is intentionally 100% permissive, no copyleft:
+# LICENSE - this build is intentionally 100% permissive, no copyleft:
 #   * libopenmpt itself is BSD-3-Clause.
-#   * It is built with its DEFAULT internal codecs — minimp3 (CC0), stb_vorbis (PD/MIT),
+#   * It is built with its DEFAULT internal codecs - minimp3 (CC0), stb_vorbis (PD/MIT),
 #     miniz (MIT). The LGPL libmpg123 / libvorbis path is OPT-IN only, behind ALLOW_LGPL=1
 #     in libopenmpt's Makefile. We NEVER pass ALLOW_LGPL=1, so libmpg123 is never linked.
 #   * The Emscripten runtime glue is MIT.
@@ -53,7 +53,7 @@ if [ ! -d "libopenmpt-${LIBOPENMPT_VERSION}+release" ]; then
 fi
 cd "libopenmpt-${LIBOPENMPT_VERSION}+release"
 
-# 3. Static library — DEFAULT codecs (permissive). No ALLOW_LGPL, no ports. ---------
+# 3. Static library - DEFAULT codecs (permissive). No ALLOW_LGPL, no ports. ---------
 #    Skip examples / openmpt123 / test / shared-lib to keep the build lean.
 make CONFIG=emscripten EMSCRIPTEN_TARGET=wasm \
      STATIC_LIB=1 SHARED_LIB=0 EXAMPLES=0 OPENMPT123=0 TEST=0 \
@@ -65,7 +65,7 @@ make CONFIG=emscripten EMSCRIPTEN_TARGET=wasm \
 #    DISABLE_EXCEPTION_CATCHING=0 → libopenmpt uses C++ exceptions internally.
 #    Fixed INITIAL_MEMORY + ALLOW_MEMORY_GROWTH=0 is DELIBERATE and load-bearing:
 #    a growable heap is a *resizable* ArrayBuffer, and Chrome refuses
-#    crypto.getRandomValues() on a view into one — which libopenmpt hits while
+#    crypto.getRandomValues() on a view into one - which libopenmpt hits while
 #    seeding a module, throwing "ArrayBufferView value must not be resizable" at
 #    decode time. A fixed 256 MB heap sidesteps it (>8× our 30 MB upload cap).
 #    Do not re-enable ALLOW_MEMORY_GROWTH. ${SR_NOTE}.

@@ -40,12 +40,12 @@ const core = readFileSync(new URL('../shells/web/src/lib/audio-coach-core.ts', i
 // FAILS, it never skips.
 const startHookUrl = new URL('../brands/lolly-start/tools/voice-recorder/hooks.js', import.meta.url);
 assert.ok(existsSync(startHookUrl),
-  'brands/lolly-start/tools/voice-recorder/hooks.js is missing — the tool was renamed or deleted');
+  'brands/lolly-start/tools/voice-recorder/hooks.js is missing - the tool was renamed or deleted');
 const susePackUrl = new URL('../brands/suse/tools/', import.meta.url);
 const suseHookUrl = new URL('voice-recorder/hooks.js', susePackUrl);
 if (existsSync(susePackUrl)) {
   assert.ok(existsSync(suseHookUrl),
-    'brands/suse/tools/voice-recorder/hooks.js is missing — pack is mounted, so the tool was renamed or deleted');
+    'brands/suse/tools/voice-recorder/hooks.js is missing - pack is mounted, so the tool was renamed or deleted');
 }
 
 // Every mounted copy of the hook must mirror the core constants.

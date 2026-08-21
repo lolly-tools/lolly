@@ -140,7 +140,7 @@ test('web: ?depth= is destructured, carried on the view opts, and set on the exp
     'both ExportDefaults and RunExportOpts must declare `depth?: DepthSetting`');
 });
 
-test('web: the threading scan is a real check — each link fails when deleted', () => {
+test('web: the threading scan is a real check - each link fails when deleted', () => {
   // NEGATIVE CONTROL for the test above. Delete each threading line from a COPY of
   // the source and re-run its matcher: if the matcher still passes, it was matching
   // something incidental and the test above proves nothing.

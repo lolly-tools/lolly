@@ -1,5 +1,5 @@
 {
-  "$description": "Lolly starter tokens — deliberately small: one brand colour over a quiet neutral base, and nothing else. A new brand grows by ADDING colours in the #/start Design System studio, not by clearing out a big preset palette. Layered DTCG: a shared 'base' set of two ramps (primary + neutral) with per-theme semantic slots that alias into them. Every $value is a CSS oklch() string (L%, chroma, hue); anything needing hex goes through the engine's colorToHex. Add a secondary, a chart spectrum, and more as you go — or replace the lot via the #/start wizard or 'npm run ingest:brand'.",
+  "$description": "Lolly starter tokens - deliberately small: one brand colour over a quiet neutral base, and nothing else. A new brand grows by ADDING colours in the #/start Design System studio, not by clearing out a big preset palette. Layered DTCG: a shared 'base' set of two ramps (primary + neutral) with per-theme semantic slots that alias into them. Every $value is a CSS oklch() string (L%, chroma, hue); anything needing hex goes through the engine's colorToHex. Add a secondary, a chart spectrum, and more as you go - or replace the lot via the #/start wizard or 'npm run ingest:brand'.",
   "$metadata": {
     "tokenSetOrder": [
       "base",
@@ -28,7 +28,7 @@
       "$type": "color",
       "ramp": {
         "primary": {
-          "$description": "The one starter brand colour — a nine-step indigo ramp, dark (1) to light (9). Step 5 is the anchor; step 4 is the light-theme primary, step 6 the dark-theme one.",
+          "$description": "The one starter brand colour - a nine-step indigo ramp, dark (1) to light (9). Step 5 is the anchor; step 4 is the light-theme primary, step 6 the dark-theme one.",
           "1": {
             "$value": "oklch(19.14% 0.040625 260)"
           },
@@ -58,7 +58,7 @@
           }
         },
         "neutral": {
-          "$description": "Quiet grays, faintly warmed toward the brand hue — surfaces, text and hairlines. Dark (1) to light (9); the themes invert it so ink and paper swap.",
+          "$description": "Quiet grays, faintly warmed toward the brand hue - surfaces, text and hairlines. Dark (1) to light (9); the themes invert it so ink and paper swap.",
           "1": {
             "$value": "oklch(19.34% 0.024 275)"
           },
@@ -93,11 +93,11 @@
       "$type": "fontFamily",
       "brand": {
         "$value": "SUSE",
-        "$description": "UI & body — SUSE, the platform's default face. Shell-served from the web shell's public/fonts/ (not this catalog), so it resolves on every profile without the pack shipping font binaries. SIL OFL 1.1 — see this pack's README for the licence finding. Replace it by adding your own face in the #/start Type room."
+        "$description": "UI & body - SUSE, the platform's default face. Shell-served from the web shell's public/fonts/ (not this catalog), so it resolves on every profile without the pack shipping font binaries. SIL OFL 1.1 - see this pack's README for the licence finding. Replace it by adding your own face in the #/start Type room."
       },
       "mono": {
         "$value": "SUSE Mono",
-        "$description": "Code, readouts & data — SUSE Mono, also shell-served and the platform's default mono on every profile. SIL OFL 1.1."
+        "$description": "Code, readouts & data - SUSE Mono, also shell-served and the platform's default mono on every profile. SIL OFL 1.1."
       }
     }
   },

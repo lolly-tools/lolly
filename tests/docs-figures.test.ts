@@ -104,12 +104,12 @@ test('the inlined copy carries no manifest, and the served file still verifies',
     // can take, not on the one this fixture happens to use.
     assert.doesNotMatch(inlined.html, /<metadata/i, 'the inlined copy kept the SVG manifest carrier');
     assert.doesNotMatch(inlined.html, /c2pa:manifest|-----BEGIN C2PA MANIFEST-----/,
-      'the inlined copy kept a C2PA manifest — a saved copy of it would fail validation');
+      'the inlined copy kept a C2PA manifest - a saved copy of it would fail validation');
     assert.doesNotMatch(inlined.html, /<\?xml/, 'the XML prolog has no business inside an HTML document');
 
     // The served bytes are the record, and they are untouched by any of this.
     const report = await verifyC2pa(bytes);
-    assert.equal(report.state, 'valid', 'the signed fixture does not verify — the fixture, or the writer, is broken');
+    assert.equal(report.state, 'valid', 'the signed fixture does not verify - the fixture, or the writer, is broken');
     assert.equal(report.aiDisclosure?.modelName, MODEL_NAME, 'the engine reader disagrees with the docs reader about the model');
     assert.equal(readFileSync(art.path, 'utf8'), onDisk, 'inlining rewrote the banked file');
   } finally { cleanup(); }
@@ -201,7 +201,7 @@ test('the model pill reads the section 18.28 disclosure out of the file itself',
   } finally { cleanup(); }
 });
 
-test('a file with no disclosure reports no model — nothing is inferred', async () => {
+test('a file with no disclosure reports no model - nothing is inferred', async () => {
   const dir = mkdtempSync(join(tmpdir(), 'lolly-docs-art-'));
   try {
     mkdirSync(join(dir, 'figures'), { recursive: true });
@@ -233,7 +233,7 @@ test('the masthead band keeps the h1 and hides the art from the accessibility tr
   const band = mastheadArtBand({ art: '<svg/>', heading: '<h1 id="trust">Trust</h1>', credential: '<span class="shot-cred"></span>' });
   assert.match(band, /<div class="docs-masthead docs-masthead--art">/);
   assert.match(band, /<div class="docs-mast-art" aria-hidden="true"><svg\/><\/div>/,
-    'the art is decorative — the h1 is the page name, even when the artwork carries words');
+    'the art is decorative - the h1 is the page name, even when the artwork carries words');
   // The heading is passed through VERBATIM: its id is a published anchor (deep links,
   // the search index, bookmarks), and rebuilding it would rename every one of them.
   assert.match(band, /<div class="docs-mast-inner"><h1 id="trust">Trust<\/h1><\/div>/);
@@ -354,12 +354,12 @@ test('the runtime showcase and the build-time strip still agree on the rules', (
   assert.match(out, /id="p-a"[^>]*fill="url\(#p-a\)"/);
 });
 
-test('the banked art is served, and only the art — the meta sidecar stays home', () => {
+test('the banked art is served, and only the art - the meta sidecar stays home', () => {
   const step = BUILD_TS.slice(BUILD_TS.indexOf("for (const bank of ['mastheads', 'figures'])"), BUILD_TS.indexOf('// Docs narration'));
   assert.ok(step.length > 100, 'docs/build.ts no longer copies the banked art into the site');
   assert.match(step, /\\\.\(svg\|html\)\$/, 'the copy step no longer filters to svg/html');
   assert.ok(!/meta\.json/.test(step.replace(/\/\/[^\n]*/g, '')),
-    'the bank metadata sidecar must not be published — it is sign-time input');
+    'the bank metadata sidecar must not be published - it is sign-time input');
   assert.match(step, /rmSync\(/, 'a withdrawn artifact would be served stale from the output dir');
   // The served copy is the file the credential describes. Anything that rewrote it on
   // the way out (minify, re-serialize, "just" a trailing newline) would break the hard
@@ -381,7 +381,7 @@ test('the served bank is byte-identical to the bank', () => {
     }
     // The sidecar is sign-time input and names a model; it is not part of the site.
     for (const f of readdirSync(src).filter(n => n.endsWith('.meta.json'))) {
-      assert.ok(!existsSync(join(built, b, f)), `/info/${b}/${f} was published — the meta sidecar is not for the site`);
+      assert.ok(!existsSync(join(built, b, f)), `/info/${b}/${f} was published - the meta sidecar is not for the site`);
     }
   }
 });

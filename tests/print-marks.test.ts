@@ -212,7 +212,7 @@ test("barStyle 'rgb-swatches' → one RGB cell per brand colour, no primaries, n
   // Exactly one cell per brand colour - no leading C/M/Y/K primaries, no CMYK pair.
   assert.equal(bars.length, BRAND3.length);
   bars.forEach((b, i) => {
-    assert.equal(b.ink, 'rgb', 'every cell paints its RGB — a CMYK cell would be meaningless in an RGB doc');
+    assert.equal(b.ink, 'rgb', 'every cell paints its RGB - a CMYK cell would be meaningless in an RGB doc');
     assert.deepEqual(b.rgb, BRAND3[i]!.rgb);
     assert.equal(b.label, BRAND3[i]!.label);
     assert.ok(!strictlyInsideTrim(geo, b.x, b.y));

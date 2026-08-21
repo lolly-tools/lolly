@@ -95,7 +95,7 @@ const IN_PAGE = `(async () => {
   const SIZE = 256;
 
   // A deterministic source with hard edges, a curve, saturated colour and real
-  // transparency — every feature a blur can get wrong.
+  // transparency - every feature a blur can get wrong.
   const source = () => {
     const c = document.createElement('canvas');
     c.width = SIZE; c.height = SIZE;
@@ -128,7 +128,7 @@ const IN_PAGE = `(async () => {
     const out = M.renderFx(src, fx, lane);
     if (!out) return null;
     const px = readPremul(out.canvas);
-    // Six px clear of the orange rect's left edge — inside reach for the smallest
+    // Six px clear of the orange rect's left edge - inside reach for the smallest
     // sigma under test, and empty in the source, which is what makes ink here proof.
     const ink = inkAt(out.canvas, 34, 100);
     M.releaseStage(out);
@@ -248,12 +248,12 @@ describe('blur lanes: mip vs ctx.filter (browser tier)', { skip: gate ?? false, 
     for (const c of report.cases) assert.ok(!c.err, `${c.name}: ${c.err}`);
   });
 
-  test('the MIP lane blurs — on every engine, whether or not ctx.filter exists', () => {
+  test('the MIP lane blurs - on every engine, whether or not ctx.filter exists', () => {
     // The assertion that matters on WebKit, where this is the only lane there is.
     for (const c of report.cases) {
       assert.equal(c.control, 0, `${c.name}: the sample pixel must be empty in the SOURCE`);
       assert.ok((c.spread.mip ?? 0) > 0,
-        `${c.name}: the mip lane put no ink at a pixel the source never covered — it did not blur`);
+        `${c.name}: the mip lane put no ink at a pixel the source never covered - it did not blur`);
     }
   });
 
@@ -261,7 +261,7 @@ describe('blur lanes: mip vs ctx.filter (browser tier)', { skip: gate ?? false, 
     if (!report.filterSupported) {
       // Not a silent pass: say so, so a run on WebKit reads as "unmeasurable here"
       // rather than as "measured and fine".
-      console.log('[blur lanes] ctx.filter absent on this engine — the comparison is not measurable here');
+      console.log('[blur lanes] ctx.filter absent on this engine - the comparison is not measurable here');
       return;
     }
     for (const c of report.cases) {
@@ -273,7 +273,7 @@ describe('blur lanes: mip vs ctx.filter (browser tier)', { skip: gate ?? false, 
     }
   });
 
-  test('the filter lane blurs too — so the comparison is between two blurs', () => {
+  test('the filter lane blurs too - so the comparison is between two blurs', () => {
     if (!report.filterSupported) return;
     for (const c of report.cases) {
       assert.ok((c.spread.filter ?? 0) > 0, `${c.name}: the filter lane spread nothing`);

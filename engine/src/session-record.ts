@@ -83,7 +83,7 @@ export function migrateSessionRecord(
   const fromVersion = typeof raw === 'number' && Number.isFinite(raw) ? raw : 0;
 
   if (fromVersion > SESSION_READER_VERSION) {
-    log?.('warn', 'saved session was written by a newer version of the app — reading it as-is', {
+    log?.('warn', 'saved session was written by a newer version of the app - reading it as-is', {
       slot: record.slot,
       recordFormatVersion: fromVersion,
       readerFormatVersion: SESSION_READER_VERSION,

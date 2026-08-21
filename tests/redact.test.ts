@@ -1241,7 +1241,7 @@ test('redact: bars left on other pages by a replaced PDF are reported, not silen
 
 const box = (x: number, y: number, w: number, h: number) => ({ x, y, w, h });
 
-test('redact geom: a bar grows to the union of the nodes it is over — ONCE, not to a fixed point', () => {
+test('redact geom: a bar grows to the union of the nodes it is over - ONCE, not to a fixed point', () => {
   const { snapBarToNodes } = loadGeom();
 
   // The case Andy hit in the browser: a strikethrough-height bar across a word
@@ -1290,7 +1290,7 @@ test('redact geom: a bar grows to the union of the nodes it is over — ONCE, no
   assert.deepEqual(alone.hit, []);
 });
 
-test('redact geom: abutting line boxes do not chain — the paragraph cascade', () => {
+test('redact geom: abutting line boxes do not chain - the paragraph cascade', () => {
   const { snapBarToNodes, effBox, rectTouches, rectOverlaps } = loadGeom();
   const W = 600, H = 800;
 
@@ -1798,7 +1798,7 @@ test('redact: a bar with no measured nodes deletes nothing and still paints', as
   const res = await hooks.exportFile({
     model: modelFor(fileRef('n.svg', 'image/svg+xml', svgBytes(NODES_SVG)), {
       svgVector: true,
-      bars: [drawn(150, 10, 30, 20)], // 'm' — measured, nothing under it
+      bars: [drawn(150, 10, 30, 20)], // 'm' - measured, nothing under it
     }),
     host: BARE_HOST,
   });
@@ -1828,7 +1828,7 @@ test('redact: vector export refuses a bar that was never measured, instead of co
       // headless run learns this is browser work and escalates to the browser
       // tier instead of failing, where the canvas measures the bars for real.
       assert.equal(needsBrowserTier(e.message), true,
-        'the refusal must classify as browser-tier work — see shells/cli/src/run.ts');
+        'the refusal must classify as browser-tier work - see shells/cli/src/run.ts');
       return true;
     }
   );

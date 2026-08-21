@@ -36,7 +36,7 @@ const COMMUNITY_DIR = join(dirname(fileURLToPath(import.meta.url)), '..', 'commu
 const fetchFile = (path: string) => readFile(join(COMMUNITY_DIR, path), 'utf8');
 
 assert.ok(existsSync(join(COMMUNITY_DIR, 'deck-builder', 'tool.json')),
-  'community/deck-builder/tool.json is missing — the tool was renamed or deleted');
+  'community/deck-builder/tool.json is missing - the tool was renamed or deleted');
 
 const tool: any = await loadTool('deck-builder', fetchFile);
 
@@ -396,4 +396,39 @@ test('every render carries the 20-layout gallery + per-page layout binding', asy
 test('the big-number and main-point layout presets render their slide classes', async () => {
   assert.match(await renderLogo({ content: '# 87%\n\nof the message', layout: 'bignum' }), /sl-l-bignum/);
   assert.match(await renderLogo({ content: '# One big statement', layout: 'mainpoint' }), /sl-l-mainpoint/);
+});
+
+// ── text-capable slots (slots take media OR text) ─────────────────────────────
+
+test('a slot with text and no media renders a card well with the markdown inside', async () => {
+  const { rt, html } = await mount([{
+    layout: 'split', content: '# Side by side',
+    text1: '## Left card\n- one\n- two',
+    media2: { url: 'https://x/chart.png' },
+  }]);
+  assert.deepEqual(rt.hookErrors, [], 'no hook errors');
+  // Slot 1: a text card (is-text, no img); markdown became real elements.
+  assert.match(html, /sl-slot sl-slot--1 is-text/);
+  assert.match(html, /<h2>Left card<\/h2><ul><li>one<\/li><li>two<\/li><\/ul>/);
+  // Slot 2 keeps the media path (is-filled + img), untouched by text handling.
+  assert.match(html, /sl-slot sl-slot--2 is-filled/);
+  assert.match(html, /<img class="sl-fill" src="https:\/\/x\/chart\.png"/);
+});
+
+test('media wins over text in the same slot; blank text leaves the slot empty', async () => {
+  const { html } = await mount([{
+    layout: 'split', content: '# T',
+    media1: { url: 'https://x/a.png' }, text1: '## ignored',
+    text2: '   ',
+  }]);
+  assert.match(html, /sl-slot sl-slot--1 is-filled/);
+  assert.doesNotMatch(html, /ignored/);
+  assert.doesNotMatch(html, /sl-slot--2 is-text/, 'whitespace-only text is not a card');
+});
+
+test('slot text joins the fit pass only when the deck fit flag is on', async () => {
+  const on = await createRuntime(tool, makeHost(), { deck: [{ layout: 'full', content: '# T', text1: 'copy' }], fitText: true });
+  assert.match(on.getHydrated() as string, /sl-slot-text" data-fit="box"/);
+  const off = await createRuntime(tool, makeHost(), { deck: [{ layout: 'full', content: '# T', text1: 'copy' }], fitText: false });
+  assert.doesNotMatch(off.getHydrated() as string, /sl-slot-text" data-fit/);
 });

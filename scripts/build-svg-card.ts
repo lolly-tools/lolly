@@ -88,7 +88,7 @@ function liftStandaloneSvg(
   let openTag = svg.slice(0, openEnd);
   if (!/xmlns=/.test(openTag)) openTag = openTag.replace(/^<svg/, '<svg xmlns="http://www.w3.org/2000/svg"');
   const viewBox = (openTag.match(/viewBox="([^"]+)"/) || [, ''])[1]!;
-  if (!viewBox) throw new Error(`${toolId}: lifted <svg> has no viewBox — the card would stretch in the tile`);
+  if (!viewBox) throw new Error(`${toolId}: lifted <svg> has no viewBox - the card would stretch in the tile`);
   // A viewBox alone is NOT enough: Safari's <img> reports a 300×150 fallback intrinsic for a
   // width/height-less SVG, so height:auto makes a 2:1 box and the art STRETCHES to fill it.
   // Emit explicit width/height (the viewBox extent) so every browser gets the true ratio.
@@ -149,7 +149,7 @@ function buildCard(toolId: string): void {
       const stale = join(dir, `look${i}.${ext}`);
       if (existsSync(stale)) unlinkSync(stale);
     }
-    console.log(`  ↳ look${i} (${JSON.stringify(ex.values)}) — ${(lookOut.length / 1024).toFixed(1)} KB`);
+    console.log(`  ↳ look${i} (${JSON.stringify(ex.values)}) - ${(lookOut.length / 1024).toFixed(1)} KB`);
   });
 }
 

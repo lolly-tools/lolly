@@ -4,9 +4,9 @@
 # Squash the PARENT monorepo to a single clean-history commit to keep the repo
 # small (drops the old music blobs + preview churn from history). Preserves
 # EVERY working-tree file, including gitignored ones (/plans, scratch, .env*,
-# node_modules, .browsers, dist, …) — checkout --orphan never touches the tree.
+# node_modules, .browsers, dist, …) - checkout --orphan never touches the tree.
 #
-# Creates a safety backup branch first. Does NOT push — you force-push the
+# Creates a safety backup branch first. Does NOT push - you force-push the
 # parent yourself (history was rewritten, so a normal push is rejected):
 #     git push --force origin main        (or however you push the parent)
 #
@@ -18,7 +18,7 @@
 source "$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/config.sh"
 cd "$REPO_ROOT"
 
-MSG="lolly monorepo — clean history (lolly-tools submodule split)"; DRY=0
+MSG="lolly monorepo - clean history (lolly-tools submodule split)"; DRY=0
 while [ $# -gt 0 ]; do
   case "$1" in
     -m|--message) shift; MSG="$1" ;;
@@ -35,11 +35,11 @@ COMMITS="$(git rev-list --count HEAD 2>/dev/null || echo '?')"
 
 say "Snap parent history to a single commit"
 info "branch:  $ORIG_BRANCH   (currently $COMMITS commit(s), HEAD $HEAD_SHORT)"
-info "backup:  $BACKUP  (safety net — delete + gc later to reclaim space)"
+info "backup:  $BACKUP  (safety net - delete + gc later to reclaim space)"
 info "message: $MSG"
 
 if [ "$DRY" = 1 ]; then
-  warn "dry run — would:"
+  warn "dry run - would:"
   info "git branch -f $BACKUP"
   info "git checkout --orphan _clean_history && git add -A && git commit -m \"$MSG\""
   info "git branch -M $ORIG_BRANCH   (replaces the old branch; backup keeps old history)"
@@ -47,7 +47,7 @@ if [ "$DRY" = 1 ]; then
   exit 0
 fi
 
-# Never squash a dirty-but-uncaptured state by accident — but a normal split run
+# Never squash a dirty-but-uncaptured state by accident - but a normal split run
 # has staged submodule pointers; git add -A below captures everything.
 git branch -f "$BACKUP"
 ok "backed up old history → $BACKUP"

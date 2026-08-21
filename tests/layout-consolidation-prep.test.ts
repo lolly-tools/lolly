@@ -96,13 +96,13 @@ function optionValues(brand: string, fieldId: string): string[] {
 // 1. The wire format - linkOf is APPENDED, at slot 71
 // ─────────────────────────────────────────────────────────────────────────────
 
-test('boxes.fields tail: z/kf/linkOf then the deck fields — appended, never reordered', () => {
+test('boxes.fields tail: z/kf/linkOf then the deck fields - appended, never reordered', () => {
   for (const brand of BRANDS) {
     const fields = fieldsOf(brand);
     // The historical wire-format tail (pre-presentation): z/kf/linkOf at 69-71, UNMOVED - 
     // so every link shared before the deck fields still decodes into the same columns.
     assert.deepEqual(fields.slice(69, 72).map((f) => f.id), ['z', 'kf', 'linkOf'],
-      `${brand}: the compact-blocks tail moved — every link ever shared decodes into the wrong columns`);
+      `${brand}: the compact-blocks tail moved - every link ever shared decodes into the wrong columns`);
     // The presentation-mode deck fields (plan 112) were APPENDED after linkOf - slots 72-76.
     // The flip (mirror) fields followed at slots 77-78, and the per-box CSS class `cls`
     // (plan 112 M4, the Custom CSS companion) at 79 - each appended, never squeezed in
@@ -110,7 +110,7 @@ test('boxes.fields tail: z/kf/linkOf then the deck fields — appended, never re
     // a later field must land at 80, not shift any of these.
     assert.deepEqual(fields.slice(72).map((f) => f.id),
       ['presentAudio', 'build', 'state', 'matchOf', 'notes', 'flipH', 'flipV', 'cls'],
-      `${brand}: a deck/flip/class field was inserted out of order — appended slots must stay put`);
+      `${brand}: a deck/flip/class field was inserted out of order - appended slots must stay put`);
     assert.equal(fields.length, 80, `${brand}: expected 80 sub-fields, got ${fields.length}`);
     assert.equal(fields[fields.length - 1]!.id, 'cls', `${brand}: cls is not the tail`);
     // Ids are unique - an accidental second `linkOf` would give the codec two columns of
@@ -123,14 +123,14 @@ test('linkOf is machine-managed: text, empty default, showFor [] (never in the s
   for (const brand of BRANDS) {
     const f = fieldsOf(brand).find((x) => x.id === 'linkOf');
     assert.ok(f, `${brand}: no linkOf sub-field`);
-    assert.equal(f!.type, 'text', `${brand}: linkOf must be a text field — it stores a box id`);
+    assert.equal(f!.type, 'text', `${brand}: linkOf must be a text field - it stores a box id`);
     assert.equal(f!.default, '', `${brand}: linkOf must default to "" (unlinked)`);
     // `showFor: []` is the whole reason the field can exist without changing the UI: the
     // timeline writes it on both sides of a detach, and no `showFor` value can match, so
     // it never renders a control. A missing or non-empty showFor puts a raw box id in the
     // inspector for the user to mistype.
     assert.ok(Array.isArray(f!.showFor) && f!.showFor!.length === 0,
-      `${brand}: linkOf.showFor must be [] — got ${JSON.stringify(f!.showFor)}`);
+      `${brand}: linkOf.showFor must be [] - got ${JSON.stringify(f!.showFor)}`);
   }
 });
 
@@ -138,7 +138,7 @@ test('linkOf is machine-managed: text, empty default, showFor [] (never in the s
 // 2. The capability declarations the shell reads
 // ─────────────────────────────────────────────────────────────────────────────
 
-test('G1 — canvas.linkField names the linkOf sub-field, so A/V detach lights up', () => {
+test('G1 - canvas.linkField names the linkOf sub-field, so A/V detach lights up', () => {
   for (const brand of BRANDS) {
     const cv = canvasOf(brand);
     assert.equal(cv.linkField, 'linkOf', `${brand}: canvas.linkField is the detach opt-in`);
@@ -149,12 +149,12 @@ test('G1 — canvas.linkField names the linkOf sub-field, so A/V detach lights u
     // into) - the manifest half of that gate, asserted here so a dropped audio kind shows
     // up as "detach silently stopped working" rather than a mystery.
     const audio = addKindsOf(brand).find((k) => k.id === 'audio');
-    assert.ok(audio, `${brand}: no audio add-kind — canDetach() cannot mint the detached box`);
+    assert.ok(audio, `${brand}: no audio add-kind - canDetach() cannot mint the detached box`);
     assert.equal(audio!.seed?.kind, 'audio', `${brand}: the audio add-kind must seed kind:"audio"`);
   }
 });
 
-test('G2 — canvas.import lists the full design-format set, and scenes mode stays UNDECLARED', () => {
+test('G2 - canvas.import lists the full design-format set, and scenes mode stays UNDECLARED', () => {
   // The formats are RECONCILED with Sequence Studio's, not replaced: dropping one would
   // quietly retire an import path users already have.
   const EXPECTED = ['svg', 'penpot', 'pdf', 'ai', 'idml'];
@@ -175,18 +175,18 @@ test('G2 — canvas.import lists the full design-format set, and scenes mode sta
     // whose import replaces the board". The merged tool needs BOTH, so the mode lands
     // with the import-panel choice that lets a user pick, not before it.
     assert.equal(imp.mode, undefined,
-      `${brand}: import.mode must stay undeclared until the import panel offers "as scenes" vs "replace the board" — declaring it converts every design import to flat image clips`);
+      `${brand}: import.mode must stay undeclared until the import panel offers "as scenes" vs "replace the board" - declaring it converts every design import to flat image clips`);
     // …but the canvas must be READY for it: scene-mode import is only meaningful on a
     // time-capable canvas (free-canvas needs all ten time sub-fields for timeCfg), so the
     // remaining gap when that choice ships is UI, never the manifest.
     for (const key of ['startField', 'durField', 'clipInField', 'speedField', 'enterField',
       'exitField', 'enterMsField', 'exitMsField', 'muteField', 'laneField']) {
-      assert.ok(canvasOf(brand)[key], `${brand}: canvas.${key} missing — scenes mode would be inert`);
+      assert.ok(canvasOf(brand)[key], `${brand}: canvas.${key} missing - scenes mode would be inert`);
     }
   }
 });
 
-test('P1 — the CAMERA add-kind is back, inside the timed group, seeding kind:"camera"', () => {
+test('P1 - the CAMERA add-kind is back, inside the timed group, seeding kind:"camera"', () => {
   // M0 gated it out of all three manifests on purpose (section 9.2): the wire and the hooks'
   // marker shipped, but no affordance could CREATE a camera until P1 wired the
   // inspector and the canvas gestures. This is that re-add, and it is the only thing
@@ -200,21 +200,21 @@ test('P1 — the CAMERA add-kind is back, inside the timed group, seeding kind:"
   for (const brand of BRANDS) {
     const kinds = addKindsOf(brand);
     const cam = kinds.find((k) => k.id === 'camera');
-    assert.ok(cam, `${brand}: no "camera" add-kind — nothing in the UI can create a scene camera`);
+    assert.ok(cam, `${brand}: no "camera" add-kind - nothing in the UI can create a scene camera`);
     assert.equal(cam!.label, 'Camera');
     assert.deepEqual(cam!.seed, { kind: 'camera' }, `${brand}: a camera is its KIND and nothing else`);
     assert.ok(optionValues(brand, 'kind').includes('camera'),
       `${brand}: the camera add-kind seeds a kind the manifest's own select does not declare`);
     const ids = kinds.map((k) => k.id);
     assert.equal(ids.indexOf('camera') - ids.indexOf('card'), 1,
-      `${brand}: the camera sits with the timed kinds — order was ${ids.join(',')}`);
+      `${brand}: the camera sits with the timed kinds - order was ${ids.join(',')}`);
   }
 
   // (The THIRD COPY was Sequence Studio in `community/`. It has been RETIRED into Design
   // (plans/104), so section 9.2's "three manifests" is now the two brand copies above.)
 });
 
-test('G3 — the magnetic-row seeds (clip, card) ship beside the existing media kinds', () => {
+test('G3 - the magnetic-row seeds (clip, card) ship beside the existing media kinds', () => {
   for (const brand of BRANDS) {
     const kinds = addKindsOf(brand);
     const byId = new Map(kinds.map((k) => [k.id, k]));
@@ -234,14 +234,14 @@ test('G3 — the magnetic-row seeds (clip, card) ship beside the existing media 
 
     // Sequence Studio's third kind is deliberately NOT carried across: "tool" seeded a
     // plain image and duplicated what the asset picker already does from a Lolly link.
-    assert.ok(!byId.has('tool'), `${brand}: the "tool" add-kind was dropped on purpose — do not re-add it`);
+    assert.ok(!byId.has('tool'), `${brand}: the "tool" add-kind was dropped on purpose - do not re-add it`);
 
     // Adjacency to the existing video/audio entries: the timeline's add menu shows the
     // list in manifest order, so the timed kinds have to read as one group.
     const ids = kinds.map((k) => k.id);
     assert.equal(ids.indexOf('card') - ids.indexOf('clip'), 1, `${brand}: clip and card must be adjacent`);
     assert.ok(Math.abs(ids.indexOf('clip') - ids.indexOf('audio')) === 1,
-      `${brand}: the clip/card pair must sit next to the audio kind — order was ${ids.join(',')}`);
+      `${brand}: the clip/card pair must sit next to the audio kind - order was ${ids.join(',')}`);
 
     // A seed may only say things the manifest's own selects can express, or the box is
     // born carrying a value its render drops.
@@ -298,12 +298,12 @@ test('the six legal head values still draw, in both packs', async () => {
       `${brand}: "none" is a legal value that draws nothing`);
     for (const kind of ['triangle', 'open', 'circle', 'diamond', 'bar']) {
       assert.notEqual(headsOf(await mountPath(brand, { headEnd: kind })), '',
-        `${brand}: headEnd=${kind} drew nothing — the whitelist rejected a value it must accept`);
+        `${brand}: headEnd=${kind} drew nothing - the whitelist rejected a value it must accept`);
     }
   }
 });
 
-test('a head value outside the closed six draws nothing — including Object.prototype keys', async () => {
+test('a head value outside the closed six draws nothing - including Object.prototype keys', async () => {
   // The point of the own-property posture. A bare `HEAD_KINDS[v]` truthiness test lets
   // `constructor`/`__proto__`/`toString`/`valueOf` through, because every object literal
   // inherits them truthy - and the engine draws a triangle for any name it does not
@@ -380,7 +380,7 @@ function assertComposition(brand: string, where: string, values: Record<string, 
   const inputIds = new Set(inputIdsOf(brand));
   for (const key of Object.keys(values)) {
     assert.ok(inputIds.has(key),
-      `${brand} ${where}: values key "${key}" is not a declared input — it seeds nothing ` +
+      `${brand} ${where}: values key "${key}" is not a declared input - it seeds nothing ` +
       `(Sequence Studio's "orientation" is the one this is here to catch)`);
   }
   const fields = new Map(fieldsOf(brand).map((f) => [f.id, f as FieldSpec & { type?: string; options?: { value: unknown }[] }]));
@@ -392,7 +392,7 @@ function assertComposition(brand: string, where: string, values: Record<string, 
       const f = fields.get(k);
       assert.ok(f, `${brand} ${where}: box[${n}] key "${k}" is not a declared sub-field`);
       assert.notEqual(f!.type, 'asset',
-        `${brand} ${where}: box[${n}] carries an asset ref ("${k}") — these compositions are text/box only`);
+        `${brand} ${where}: box[${n}] carries an asset ref ("${k}") - these compositions are text/box only`);
       const opts = f!.options;
       if (Array.isArray(opts) && opts.length) {
         assert.ok(opts.some((o) => String(o.value) === String(v)),
@@ -403,7 +403,7 @@ function assertComposition(brand: string, where: string, values: Record<string, 
     const x = Number(b.x), y = Number(b.y), w = Number(b.w), h = Number(b.h);
     assert.ok(x >= 0 && y >= 0, `${brand} ${where}: box[${n}] starts off-canvas at ${x},${y}`);
     assert.ok(x + w <= width && y + h <= height,
-      `${brand} ${where}: box[${n}] runs to ${x + w}×${y + h}, outside the ${width}×${height} canvas — ` +
+      `${brand} ${where}: box[${n}] runs to ${x + w}×${y + h}, outside the ${width}×${height} canvas - ` +
       `a landscape/portrait composition was re-imported without re-laying it out`);
   });
 }
@@ -423,7 +423,7 @@ test('the two migrated Video templates ship in both packs, in the Video category
       assert.equal(typeof t.description, 'string', `${brand}: ${tid} needs a one-line description`);
       assert.ok(t.values && typeof t.values === 'object', `${brand}: ${tid} carries no values`);
       assert.equal((t.values.boxes as unknown[]).length, want.boxes,
-        `${brand}: ${tid} box count changed — a beat was added or lost`);
+        `${brand}: ${tid} box count changed - a beat was added or lost`);
       assertComposition(brand, `templates/${tid}.json`, t.values);
     }
   }
@@ -437,7 +437,7 @@ test('design ships exactly the two migrated example looks, in both packs', () =>
   for (const brand of BRANDS) {
     const looks = examplesOf(brand);
     assert.equal(looks.length, 2,
-      `${brand}: expected the 2 migrated looks, got ${looks.length} — the gallery strip renders each one live`);
+      `${brand}: expected the 2 migrated looks, got ${looks.length} - the gallery strip renders each one live`);
     looks.forEach((look, i) => {
       assert.equal(look.label, EXPECTED[i]!.label, `${brand}: example ${i} label`);
       assert.equal((look.values.boxes as unknown[]).length, EXPECTED[i]!.boxes,
@@ -447,7 +447,7 @@ test('design ships exactly the two migrated example looks, in both packs', () =>
   }
 });
 
-test('each pack uses its OWN typeface, never the other pack\'s — the copies diverge by brand', () => {
+test('each pack uses its OWN typeface, never the other pack\'s - the copies diverge by brand', () => {
   // The one field where a file-copy between packs (instead of a per-copy edit) shows up.
   // With design single-sourced in community this runs over one pack; if a brand fork
   // ever returns, it must declare its own typefaces and rejoin this loop. The option-list

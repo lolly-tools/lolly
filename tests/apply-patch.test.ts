@@ -122,13 +122,13 @@ test('applyPatch: onInput runs once per changed id, sequentially in insertion or
     await rt.applyPatch({ flag: true, title: 'z', count: 2 });
 
     assert.deepEqual(calls, ['flag=true', 'title=z', 'count=2'], 'op order, one call per id');
-    assert.equal(emits.n, 1, 'still ONE render — hook patches ride the same emit');
+    assert.equal(emits.n, 1, 'still ONE render - hook patches ride the same emit');
     assert.equal(rt.getHydrated(), '<b>z</b><i>2</i><u>true</u><e></e><s>3</s>',
       'the final state includes the last hook patch');
   } finally { delete (globalThis as any).__lollyPatchCalls; }
 });
 
-test('applyPatch: the batch is atomic — the FIRST hook already sees every applied value', async () => {
+test('applyPatch: the batch is atomic - the FIRST hook already sees every applied value', async () => {
   const { host } = logHost();
   const calls = hookCalls();
   try {
@@ -164,7 +164,7 @@ test('applyPatch: a hook is told the value that ACTUALLY entered the model (post
   } finally { delete (globalThis as any).__lollyPatchCalls; }
 });
 
-test('applyPatch: a throwing hook is logged, not thrown — later ids still run, still one emit', async () => {
+test('applyPatch: a throwing hook is logged, not thrown - later ids still run, still one emit', async () => {
   const { host, logs } = logHost();
   const calls = hookCalls();
   try {
@@ -187,7 +187,7 @@ test('applyPatch: a throwing hook is logged, not thrown — later ids still run,
   } finally { delete (globalThis as any).__lollyPatchCalls; }
 });
 
-test('applyPatch: a hook past its budget drops only its own patch — same time-box as setInput', async () => {
+test('applyPatch: a hook past its budget drops only its own patch - same time-box as setInput', async () => {
   setBudgets({ onInput: 15 });
   const { host, logs } = logHost();
   try {
@@ -215,7 +215,7 @@ test('applyPatch: a hook past its budget drops only its own patch — same time-
 
 // ─── dropped keys: unknown ids and rejected values ────────────────────────────
 
-test('applyPatch: an unknown input id is skipped — no model entry, no extra, no hook', async () => {
+test('applyPatch: an unknown input id is skipped - no model entry, no extra, no hook', async () => {
   const { host } = logHost();
   const calls = hookCalls();
   try {
@@ -278,7 +278,7 @@ function typedToolDouble(): any {
   };
 }
 
-test('applyPatch: the manifest\'s own declarations are the gate (section 11.11 — enum, shape)', async () => {
+test('applyPatch: the manifest\'s own declarations are the gate (section 11.11 - enum, shape)', async () => {
   const { host } = logHost();
   const rt = await createRuntime(typedToolDouble(), host, {});
   const valueOf = (id: string) => rt.getModel().find(i => i.id === id)!.value;
@@ -323,7 +323,7 @@ test('applyPatch: a boolean takes booleans and the wire spellings, nothing else'
   assert.equal(flag(), false);
 });
 
-test('applyPatch: coercion is byte-for-byte setInput’s — clamped, truncated, rejected alike', async () => {
+test('applyPatch: coercion is byte-for-byte setInput’s - clamped, truncated, rejected alike', async () => {
   const { host } = logHost();
   const viaPatch = await createRuntime(toolDouble(), host, {});
   const viaSet = await createRuntime(toolDouble(), host, {});

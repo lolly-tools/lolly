@@ -1,7 +1,7 @@
 # Lolly-specific Opengrep rules.
 #
-# These exist because the SUSE assessment (2026-08) found S1 — a `javascript:`
-# XSS in org/banner.ts — that NO off-the-shelf rule fired on. Escaping is not
+# These exist because the SUSE assessment (2026-08) found S1 - a `javascript:`
+# XSS in org/banner.ts - that NO off-the-shelf rule fired on. Escaping is not
 # scheme validation, and that distinction is invisible to a generic
 # "innerHTML" rule: the sink WAS escaped. The rule below encodes the local
 # invariant instead: a remote-sourced href/src must pass safeHref().
@@ -14,7 +14,7 @@ rules:
     severity: ERROR
     message: >-
       href/src interpolated with escape() but no scheme guard. escape() only
-      neutralises & < > " ' — a `javascript:` or `data:` URL contains none of
+      neutralises & < > " ' - a `javascript:` or `data:` URL contains none of
       them and survives intact. Gate the value with safeHref() (shells/web/src/utils.ts)
       before it reaches the DOM, as org/banner.ts, org/chrome.ts and org/index.ts do.
       If this href is a hardcoded first-party literal, add a
@@ -22,10 +22,10 @@ rules:
     # `href` only. `javascript:`/`data:` execute from a navigable
     # href; an <img src> does not, so folding src= in here would bury the signal
     # under first-party thumbnail/blob URLs. Reviewed href sites carry an inline
-    # `// nosemgrep:` with the reason — that annotation IS the audit trail, so it
+    # `// nosemgrep:` with the reason - that annotation IS the audit trail, so it
     # must name why the value cannot be attacker-controlled.
     # escapeHtml() and a module-local esc() are the same function under other names
-    # (views/picker.ts, pro/run-overlay.ts, docs/build.ts …) — matching only
+    # (views/picker.ts, pro/run-overlay.ts, docs/build.ts …) - matching only
     # `escape(` would let the identical defect through under an alias.
     pattern-regex: 'href="\$\{(?:escape|escapeHtml|esc)\('
     paths:
@@ -58,7 +58,7 @@ rules:
 # A third rule was written and then removed on 2026-08-04: "tRaw() reaching
 # innerHTML with an unescaped param". It cannot be expressed here honestly.
 # Whether a tRaw param is safe depends on the escaping in the same STATEMENT, and
-# a regex cannot find a statement boundary in this codebase — the sinks are
+# a regex cannot find a statement boundary in this codebase - the sinks are
 # template literals full of CSS, so `;` is not a terminator. A pattern narrow
 # enough to see the params missed the escaping and flagged 5 correct sites; one
 # wide enough to see the escaping spanned unrelated statements and flagged 23. A

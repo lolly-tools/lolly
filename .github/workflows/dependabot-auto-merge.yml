@@ -1,11 +1,11 @@
-# Dependabot auto-merge — the "instant, trivial, no-AI" layer of the two-part
+# Dependabot auto-merge - the "instant, trivial, no-AI" layer of the two-part
 # Dependabot triage setup (the other part is a weekly cloud routine that handles
-# bumps needing artifact regeneration or judgment — see the routine on
+# bumps needing artifact regeneration or judgment - see the routine on
 # https://claude.ai/code/routines).
 #
 # What it does: when Dependabot opens a PR and CI goes green, this approves it and
 # enables GitHub auto-merge for the LOW-RISK update types only. Auto-merge then
-# completes the merge itself once every required check passes — so a red PR (e.g.
+# completes the merge itself once every required check passes - so a red PR (e.g.
 # one that still needs its api-bundle/SBOM regenerated) is never merged here; it
 # simply waits, and the weekly routine picks it up.
 #

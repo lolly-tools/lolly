@@ -2,7 +2,7 @@
   "name": "음성 녹음기",
   "description": "실시간 레벨 미터와 부드러운 코칭으로 음성 메모를 녹음하고 MP3로 저장하세요.",
   "featured.blurb": "실시간 레벨 코칭으로 깔끔한 음성 메모를 녹음해요",
-  "a11yLabel": "음성 녹음기 — 레벨 {{default dbText \"idle\"}}",
+  "a11yLabel": "음성 녹음기 - 레벨 {{default dbText \"idle\"}}",
   "inputs.title.label": "라벨",
   "inputs.title.help": "녹음 카드와 저장되는 파일의 이름을 정해요.",
   "inputs.targetLevel.label": "목표 레벨",

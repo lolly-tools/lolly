@@ -1,5 +1,5 @@
 /* Voice Recorder card. The live meter is data-driven (bar width / peak position come
-   from the onLevel hook each frame) — NOT CSS keyframes, which would reset on every
+   from the onLevel hook each frame) - NOT CSS keyframes, which would reset on every
    per-frame re-hydrate. Colours shift with data-tone (ok / low / hot). */
 
 .vr {

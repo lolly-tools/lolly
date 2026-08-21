@@ -47,7 +47,7 @@ test('drops uploads, repeating groups, empties, and null/object values', () => {
   assert.deepEqual(out, {});
 });
 
-test('records text AND longtext in full — the exact rendered copy is a tamper signal', () => {
+test('records text AND longtext in full - the exact rendered copy is a tamper signal', () => {
   const body = 'The quick brown fox jumped over the lazy dog. '.repeat(4).trim(); // ~180 chars
   const out = summarizeInputs([
     item({ id: 'headline', type: 'text', value: 'Summer Sale' }),

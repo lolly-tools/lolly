@@ -148,7 +148,7 @@ function predictedParallax(kf: string, tA: number, tB: number): number[] {
 
 // ── the run ──────────────────────────────────────────────────────────────────
 
-describe('plans/104 P1 — the depth flythrough exit demo', { skip: gate ?? false, concurrency: 1 }, () => {
+describe('plans/104 P1 - the depth flythrough exit demo', { skip: gate ?? false, concurrency: 1 }, () => {
   let Hn: Harness;
   const page = (): Harness['page'] => Hn.page;
   let mp4 = false;
@@ -226,7 +226,7 @@ describe('plans/104 P1 — the depth flythrough exit demo', { skip: gate ?? fals
     }, { spec, fps: FPS, targets: TARGETS as unknown as [number, number, number][], last: LAST });
 
     if (!mp4 && r.a.err) {
-      say(`[skip] mp4: this build cannot encode H.264 (${r.a.err.code}) — rerun with LOLLY_BROWSER_CHANNEL=chrome`);
+      say(`[skip] mp4: this build cannot encode H.264 (${r.a.err.code}) - rerun with LOLLY_BROWSER_CHANNEL=chrome`);
       return;
     }
     assert.equal(r.a.err, null, `first flythrough failed: ${JSON.stringify(r.a.err)}`);
@@ -242,11 +242,11 @@ describe('plans/104 P1 — the depth flythrough exit demo', { skip: gate ?? fals
     //     decodes to the same pixels. This is the camera-marker regression's own pin.
     assert.equal(r.direct.err, null, `the direct control export failed: ${JSON.stringify(r.direct.err)}`);
     assert.deepEqual(r.pix.a, r.direct.pix,
-      `the public export funnel and a direct renderSequence disagree — something in api.render is changing the stage:\n  funnel ${r.pix.a.join('\n         ')}\n  direct ${r.direct.pix.join('\n         ')}`);
+      `the public export funnel and a direct renderSequence disagree - something in api.render is changing the stage:\n  funnel ${r.pix.a.join('\n         ')}\n  direct ${r.direct.pix.join('\n         ')}`);
     // 2. THE WEBM CONTAINER is byte-identical - same render, a muxer that stamps no clock.
     assert.equal(r.webm.err, null, `webm control export failed: ${JSON.stringify(r.webm.err)}`);
     assert.equal(r.webm.shaA, r.webm.shaB,
-      `webm is not byte-stable across two runs — this IS the render:\n  A ${r.webm.shaA}\n  B ${r.webm.shaB}`);
+      `webm is not byte-stable across two runs - this IS the render:\n  A ${r.webm.shaA}\n  B ${r.webm.shaB}`);
     // 3. THE MP4 CONTAINER is not, and the difference is bounded to metadata.
     //    section 9's exit criterion says "mp4 byte-stable across two runs"; it is not, and the
     //    reason is outside this feature: `mp4-muxer` 5.2.2 writes
@@ -412,7 +412,7 @@ describe('plans/104 P1 — the depth flythrough exit demo', { skip: gate ?? fals
     assert.equal(r.type, 'image/svg+xml', `the still is not SVG: ${r.type}`);
     const appliedBlur = r.posed.filter((p) => /blur\(/.test(p.filter)).length;
     assert.ok(appliedBlur > 0,
-      `the DOM applier wrote no blur at the playhead — engine says ${blurs.map((b) => b.toFixed(2)).join(', ')} px; filters were: ${r.posed.map((p) => p.filter || '(none)').join(' | ')}`);
+      `the DOM applier wrote no blur at the playhead - engine says ${blurs.map((b) => b.toFixed(2)).join(', ')} px; filters were: ${r.posed.map((p) => p.filter || '(none)').join(' | ')}`);
     assert.ok(/feGaussianBlur/.test(r.text),
       `a defocused still exported without a single feGaussianBlur (${appliedBlur} boxes carried a CSS blur)`);
     const fe = (r.text.match(/feGaussianBlur/g) ?? []).length;

@@ -89,7 +89,7 @@ test('two frame boxes → exactly two [data-pdf-page], each sized to its frame w
   assert.ok(!html.includes('data-box-id="fb"'), 'frame fb is not also a child box');
 });
 
-test('each frame page carries data-frame-id (box id; index fallback) — deep-link + timeline label (plan 112)', async () => {
+test('each frame page carries data-frame-id (box id; index fallback) - deep-link + timeline label (plan 112)', async () => {
   const html = await mount([
     { id: 'intro', kind: 'frame', x: 0, y: 0, w: 800, h: 600, order: 0, bg: '#ffffff' },
     { kind: 'frame', x: 1000, y: 0, w: 800, h: 600, order: 1, bg: '#ffffff' }, // no id → flat-index fallback
@@ -187,7 +187,7 @@ test('frame `notes` → attribute-escaped data-frame-notes, never on the slide (
   assert.equal(pages[0]!.textContent?.includes('line two'), false, 'notes are not rendered on the slide');
 });
 
-test('page ORDER follows `order` asc (then x) — fb(order 0) before fa(order 1)', async () => {
+test('page ORDER follows `order` asc (then x) - fb(order 0) before fa(order 1)', async () => {
   const html = await mount([
     { id: 'fa', kind: 'frame', x: 0, y: 0, w: 800, h: 600, order: 1, bg: '#ffffff' },
     { id: 'fb', kind: 'frame', x: 1000, y: 0, w: 400, h: 400, order: 0, bg: '#000000' },
@@ -230,7 +230,7 @@ test('a member box renders at frame-LOCAL coords (left = box.x - frame.x)', asyn
 // ONLY) excludes them by construction. We parse the render with jsdom so "outside every
 // page" and "child of the canvas root" are asserted structurally, not by string order.
 
-test('a scratch box (frame==="") renders LOOSE — child of the canvas root, NOT any page', async () => {
+test('a scratch box (frame==="") renders LOOSE - child of the canvas root, NOT any page', async () => {
   const html = await mount([
     { id: 'fa', kind: 'frame', x: 0, y: 0, w: 800, h: 600, order: 0, bg: '#ffffff' },
     { id: 'member', kind: 'box', x: 10, y: 10, w: 100, h: 100, shape: 'rect', bg: '#30BA78', frame: 'fa' },
@@ -244,7 +244,7 @@ test('a scratch box (frame==="") renders LOOSE — child of the canvas root, NOT
   // The member lives inside its page; the scratch box lives inside NO page.
   assert.ok(member!.closest('[data-pdf-page]'), 'the member is inside its [data-pdf-page]');
   assert.equal(scratch!.closest('[data-pdf-page]'), null,
-    'the scratch box is OUTSIDE every [data-pdf-page] — excluded from per-page export by construction');
+    'the scratch box is OUTSIDE every [data-pdf-page] - excluded from per-page export by construction');
   // It is a DIRECT child of the frames/canvas root, not nested in a page.
   const frames = doc.querySelector('.lolly-frames');
   assert.ok(frames, 'the frames wrapper exists');
@@ -319,7 +319,7 @@ test('sequenced frames → each [data-pdf-page] carries data-t-start / data-t-du
   assert.equal(pages[1]!.getAttribute('data-t-exit'), 'fade');
 });
 
-test('spatial (untimed) frames emit NO data-t-* on their pages — every frame shows', async () => {
+test('spatial (untimed) frames emit NO data-t-* on their pages - every frame shows', async () => {
   const html = await mount([
     { id: 'fa', kind: 'frame', x: 0, y: 0, w: 800, h: 600, order: 0, bg: '#ffffff' },
     { id: 'fb', kind: 'frame', x: 1000, y: 0, w: 800, h: 600, order: 1, bg: '#ffffff' },

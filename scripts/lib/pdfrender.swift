@@ -1,4 +1,4 @@
-// Render page 1 of a PDF to a PNG using Quartz — the renderer Preview and every
+// Render page 1 of a PDF to a PNG using Quartz - the renderer Preview and every
 // macOS app use. poppler is a fine independent check but implements a subset;
 // transparency groups, soft masks and blend modes are exactly where it diverges,
 // and those are what shadow work touches.

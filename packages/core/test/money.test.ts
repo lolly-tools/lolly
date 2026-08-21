@@ -51,7 +51,7 @@ test('formatMoney never emits a bare number: the currency is always present', ()
     const s = formatMoney({ minorUnits: 100000, currency, locale: 'en' });
     // Something non-digit, non-separator must accompany the digits (a symbol or the
     // ISO letters, per locale). A bare "1000" would fail this.
-    const nonNumeric = s.replace(/[\d.,\s ]/g, '');
+    const nonNumeric = s.replace(/[\d.,\s ]/g, '');
     assert.ok(nonNumeric.length > 0, `expected a currency marker in ${JSON.stringify(s)}`);
   }
 });
@@ -59,7 +59,7 @@ test('formatMoney never emits a bare number: the currency is always present', ()
 test('a zero amount still carries its currency (no dashed placeholder)', () => {
   const s = formatMoney({ minorUnits: 0, currency: 'EUR', locale: 'en-IE' });
   assert.ok(/0/.test(s));
-  assert.ok(s.replace(/[\d.,\s ]/g, '').length > 0);
+  assert.ok(s.replace(/[\d.,\s ]/g, '').length > 0);
 });
 
 // ─── No default currency: a bad or missing code THROWS, never a fallback ────────

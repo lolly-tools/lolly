@@ -166,7 +166,7 @@ test('the description carries the author credit and the licence', () => {
 test('an anonymous work reads cleanly and still states the licence', () => {
   const d = buildDescription({ ext: 'it', licence: 'CC0-1.0' });
   assert.equal(/\(IT\) by /.test(d), false, d); // no dangling credit clause
-  assert.ok(d.startsWith('Tracker module (IT) —'), d);
+  assert.ok(d.startsWith('Tracker module (IT) -'), d);
   assert.ok(d.includes('CC0-1.0'), d);
 });
 

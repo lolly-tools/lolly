@@ -1,8 +1,8 @@
-# brands/lolly-start — the blank starter brand
+# brands/lolly-start - the blank starter brand
 
 The brand pack you get when you don't have one. It is parent-owned (not a
-submodule), so anyone who clones the public monorepo — without access to the
-private brand pack — lands on a working profile: `scripts/use-profile.ts
+submodule), so anyone who clones the public monorepo - without access to the
+private brand pack - lands on a working profile: `scripts/use-profile.ts
 --auto` falls back to it automatically.
 
 Activate explicitly with:
@@ -17,7 +17,7 @@ parent repo.
 
 ## What's in the pack
 
-- **Starter tokens** (`catalog/assets/lolly/tokens/brand.json`) — a neutral,
+- **Starter tokens** (`catalog/assets/lolly/tokens/brand.json`) - a neutral,
   OKLCH-native DTCG document that doubles as the reference example of the
   brand token contract (`plans/archive/brand-token-contract.md`): primary/neutral/
   secondary nine-step ramps and a six-hue spectrum in a shared `base` set,
@@ -27,18 +27,18 @@ parent repo.
   web shell's token bridge discovers it generically (the first catalog asset
   with `type: "tokens"`), and the shells project the semantic slots onto the
   tool canvas as `--primary`, `--surface`, … custom properties.
-- **`tools/design`** — the free-form WYSIWYG canvas, starting from a
+- **`tools/design`** - the free-form WYSIWYG canvas, starting from a
   blank artboard (the web shell's blank-canvas invite takes over) with
   brand-agnostic font stacks (`var(--font-brand, system-ui, …)`) and neutral
   example layouts.
-- **`tools/voice-recorder`** — the live level-meter recording card
+- **`tools/voice-recorder`** - the live level-meter recording card
   (experimental), with dark/light card styles and a neutral accent.
 
-## Typefaces — SUSE + SUSE Mono, and why this pack ships no font files
+## Typefaces - SUSE + SUSE Mono, and why this pack ships no font files
 
 As of **2026-08-10** this pack's `base.font` tokens name **SUSE** (UI/body) and
 **SUSE Mono** (code), the same pair `brands/suse` uses. They replaced Outfit,
-which read less well and — being an upright-only family — could not outline
+which read less well and - being an upright-only family - could not outline
 italic text on vector export at all.
 
 `catalog/fonts/` here is still empty (a `.gitkeep`), deliberately. Both faces are
@@ -58,13 +58,13 @@ beside them rather than from documentation:
 | Source | Evidence |
 |---|---|
 | `brands/suse/catalog/fonts/OFL.txt` | Full OFL 1.1 text, headed `Copyright 2025 The SUSE Project Authors (https://github.com/SUSE/suse-font)`. Byte-identical to the `OFL-SUSE-Mono.txt` already shipped in the public web shell. |
-| `SUSE[wght].ttf`, `SUSE-Italic[wght].ttf`, `SUSEMono[wght].ttf` — `name` ID 13 | "This Font Software is licensed under the SIL Open Font License, Version 1.1." |
-| same files — `name` ID 14 | `https://openfontlicense.org` |
-| same files — `name` ID 0 | `Copyright 2025 The SUSE Project Authors (https://github.com/SUSE/suse-font)` |
+| `SUSE[wght].ttf`, `SUSE-Italic[wght].ttf`, `SUSEMono[wght].ttf` - `name` ID 13 | "This Font Software is licensed under the SIL Open Font License, Version 1.1." |
+| same files - `name` ID 14 | `https://openfontlicense.org` |
+| same files - `name` ID 0 | `Copyright 2025 The SUSE Project Authors (https://github.com/SUSE/suse-font)` |
 
 **No Reserved Font Name.** The copyright line carries no `with Reserved Font Name`
 suffix, so OFL section 3 does not restrict redistribution under the original family
-names — we may ship these files as "SUSE" and "SUSE Mono" unmodified.
+names - we may ship these files as "SUSE" and "SUSE Mono" unmodified.
 
 Two OFL obligations, both already met: the licence travels with the fonts
 (`shells/web/public/fonts/OFL-SUSE.txt` and `OFL-SUSE-Mono.txt` sit beside the
@@ -72,13 +72,13 @@ binaries, and the Platform/Catalog typeface views link the former), and the font
 are never sold on their own.
 
 Note `name` ID 7: *"SUSE is a trademark of SUSE"*. The OFL covers the software,
-not the mark — reusing the **font** is fine, using the **name** to brand a
+not the mark - reusing the **font** is fine, using the **name** to brand a
 derived product is a separate trademark question. Nothing here does that; the
 starter pack merely sets a default face.
 
 The starter tools consume brand colour only through the semantic CSS vars
 (always with a neutral fallback) or plain starter-palette hexes, so swapping
-the tokens re-skins them without touching the tool files —
+the tokens re-skins them without touching the tool files -
 `tests/brand-residue.test.ts` guards that this pack stays brand-clean.
 
 ## Hydrating a real brand
@@ -91,6 +91,6 @@ npm run ingest:brand -- <tokens.json | token-sets-dir | file.penpot> --name <bra
 
 `scripts/ingest-brand.ts` accepts a monolithic Tokens-Studio/DTCG JSON file, a
 Penpot multi-file token-set export (a directory), or a raw `.penpot` project
-file, and hydrates a new brand pack from it — replacing this starter tokens
+file, and hydrates a new brand pack from it - replacing this starter tokens
 file wholesale. In the web shell, the `#/start` wizard does the same job
 interactively from a single brand colour.

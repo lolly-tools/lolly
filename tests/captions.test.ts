@@ -44,7 +44,7 @@ test('? ! and … end sentences too, including through a closing quote', () => {
 test('an inter-word silence >= gapS starts a new cue', () => {
   const cues = groupWordsToCues([
     { text: 'before', start: 0, end: 0.3 },
-    { text: 'after', start: 0.9, end: 1.2 }, // 0.6s pause — exactly the default gap
+    { text: 'after', start: 0.9, end: 1.2 }, // 0.6s pause - exactly the default gap
   ]);
   assert.equal(cues.length, 2);
   assert.deepEqual(cues[0], { start: 0, end: 0.3, text: 'before' });

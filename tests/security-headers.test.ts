@@ -103,7 +103,7 @@ test('the directives that carry the security value are present', () => {
 
   // connect-src is the one that contains an XSS: injected script cannot post
   // stolen data to an arbitrary host. It must NOT be absent and must NOT be '*'.
-  assert.ok(csp['connect-src'], 'connect-src missing — the whole point of this CSP');
+  assert.ok(csp['connect-src'], 'connect-src missing - the whole point of this CSP');
   assert.ok(!csp['connect-src'].includes('*'), 'connect-src must not be a wildcard');
   assert.ok(csp['connect-src'].includes("'self'"));
 
@@ -122,7 +122,7 @@ test('the directives that carry the security value are present', () => {
   // capture path runs in the extension/desktop shell anyway.
   for (const dir of ['frame-src', 'child-src', 'worker-src'] as const) {
     assert.ok(csp[dir], `${dir} missing`);
-    assert.ok(!csp[dir].includes('https:'), `${dir} must not carry a scheme-wide https: grant — it bypasses connect-src`);
+    assert.ok(!csp[dir].includes('https:'), `${dir} must not carry a scheme-wide https: grant - it bypasses connect-src`);
     assert.ok(!csp[dir].includes('*'), `${dir} must not be a wildcard`);
   }
   assert.ok(!csp['img-src']?.includes('https:'), 'img-src must not carry a scheme-wide https: grant');
@@ -139,7 +139,7 @@ test('script-src carries unsafe-eval WITH the reason recorded, not by accident',
   const csp = parseCsp(rootHeaders['Content-Security-Policy']!);
   assert.ok(
     csp['script-src']?.includes("'unsafe-eval'"),
-    "script-src must keep 'unsafe-eval' — tool hooks use new Function; removing it breaks shipping tools",
+    "script-src must keep 'unsafe-eval' - tool hooks use new Function; removing it breaks shipping tools",
   );
   // If someone ever sandboxes hooks (the planned mitigation in the residual-risk
   // register), this assertion is the reminder to revisit the whole policy.
@@ -164,7 +164,7 @@ test('every host docs/privacy.md discloses is ALLOWED by the CSP', () => {
     const wildcard = host.replace(/^[a-z0-9-]+\./, '*.');
     assert.ok(
       csp.includes(host) || csp.includes(wildcard),
-      `docs/privacy.md says the app contacts ${host}, but the CSP does not allow it — that feature is broken on any deployment serving these headers`,
+      `docs/privacy.md says the app contacts ${host}, but the CSP does not allow it - that feature is broken on any deployment serving these headers`,
     );
   }
 });

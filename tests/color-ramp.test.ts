@@ -50,7 +50,7 @@ const HEX6 = /^#[0-9a-f]{6}$/i;
 // which always run.
 const PERF_SKIP = process.env.BENCH === '1'
   ? false
-  : 'perf/timing guard — set BENCH=1 to run (wall-clock, flakes under load)';
+  : 'perf/timing guard - set BENCH=1 to run (wall-clock, flakes under load)';
 
 // Helper to measure execution time in milliseconds. Best-of-N: the suite runs
 // under `node --test` with many child processes competing for cores, and
@@ -259,7 +259,7 @@ test('single-color gradient returns constant color (plain and correctLightness)'
     assert.ok(deltaEOk(hex, stops[0]!) < 0.01, 'corrected ramp color should match the single stop');
   }
 
-  console.log(`  Single-color gradient verified — all 25 colors identical (both modes)`);
+  console.log(`  Single-color gradient verified - all 25 colors identical (both modes)`);
 });
 
 test('same-color endpoints create valid spline without singularities', () => {

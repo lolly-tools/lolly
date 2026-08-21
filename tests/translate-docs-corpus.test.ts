@@ -39,7 +39,7 @@ test('every configured docs page round-trips byte-for-byte through splitDocBlock
     assert.ok(existsSync(path), `DOCS_PAGES names ${page.src}, which does not exist`);
     const md = readFileSync(path, 'utf8');
     const rejoined = splitDocBlocks(md).map(b => b.text).join('\n');
-    assert.equal(rejoined, md, `${page.src}: reassembly is lossy — translated pages would be corrupt`);
+    assert.equal(rejoined, md, `${page.src}: reassembly is lossy - translated pages would be corrupt`);
   }
 });
 
@@ -90,7 +90,7 @@ test('HTML comment blocks are opaque; prose and tables are translatable', () => 
   const table = blocks.find(b => b.text.startsWith('|'))!;
   const prose = blocks.find(b => b.text === 'Prose.')!;
   assert.equal(comment.translatable, false, 'HTML comments are machinery');
-  assert.equal(table.translatable, true, 'tables carry prose — the privacy policy legal-basis table is one');
+  assert.equal(table.translatable, true, 'tables carry prose - the privacy policy legal-basis table is one');
   assert.equal(prose.translatable, true);
 });
 
@@ -101,7 +101,7 @@ test('a changed markdown link target is rejected', () => {
   assert.equal(validateDocBlock(src, 'Siehe die [Datenschutzerklärung](/info/privacy.html) für Details.'), null,
     'translating only the link TEXT is fine');
   const err = validateDocBlock(src, 'Siehe die [Datenschutzerklärung](/info/datenschutz.html) für Details.');
-  assert.match(String(err), /link target changed/, 'a localised href is a 404 — must be refused');
+  assert.match(String(err), /link target changed/, 'a localised href is a 404 - must be refused');
 });
 
 test('a mangled url-shot screenshot recipe is rejected', () => {
@@ -155,10 +155,10 @@ test('--check is read-only: it never writes or deletes a translation file', asyn
   } catch { /* expected: exit 1 on stale/missing */ }
   const after = execFileSync('git', ['status', '--porcelain', 'i18n'],
     { cwd: join(ROOT, 'docs'), encoding: 'utf8' });
-  assert.equal(after, before, '--check modified docs/i18n — it must be read-only');
+  assert.equal(after, before, '--check modified docs/i18n - it must be read-only');
 });
 
-test('the validator is not vacuous — a faithful translation passes', () => {
+test('the validator is not vacuous - a faithful translation passes', () => {
   const src = [
     '## Legal bases, retention and recipients',
     '',

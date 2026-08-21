@@ -82,7 +82,7 @@ test('psd: write→read round-trip pins name/rect/opacity/visibility/blend/pixel
     height: 24,
     layers: [
       { name: 'Background', x: 0, y: 0, width: 32, height: 24, pixels: flatPix(32, 24, 200, 210, 220) },
-      { name: 'Nöisy Layér — ünïcode', x: -4, y: 3, width: 16, height: 10, pixels: pix(16, 10, 5), opacity: 0.5, blend: 'multiply' },
+      { name: 'Nöisy Layér - ünïcode', x: -4, y: 3, width: 16, height: 10, pixels: pix(16, 10, 5), opacity: 0.5, blend: 'multiply' },
       { name: 'hidden', x: 8, y: -2, width: 6, height: 6, pixels: flatPix(6, 6, 255, 0, 0, 128), visible: false, blend: 'screen' },
     ],
   };

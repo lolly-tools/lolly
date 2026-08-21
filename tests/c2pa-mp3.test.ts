@@ -74,7 +74,7 @@ for (const ver of [3, 4] as const) {
   });
 }
 
-test('re-stamping replaces the prior credential — never a second GEOB', async () => {
+test('re-stamping replaces the prior credential - never a second GEOB', async () => {
   const once = await embedC2pa(AUDIO, 'mp3', OPTS);
   const twice = await embedC2pa(once, 'mp3', { ...OPTS, title: 'Narration v2' });
   // A duplicated credential would make extraction throw ('more than one').

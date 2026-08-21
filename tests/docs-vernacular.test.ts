@@ -22,7 +22,7 @@ test('docs sources carry no banned vernacular or fingerprint unicode', () => {
   assert.deepStrictEqual(
     v.map(x => `${x.file}:${x.line} [${x.what}] ${x.excerpt}`),
     [],
-    'Banned phrase or unicode in docs sources — fix the copy (see scripts/check-docs-vernacular.ts for the ban list and the rules for ALLOW entries).',
+    'Banned phrase or unicode in docs sources - fix the copy (see scripts/check-docs-vernacular.ts for the ban list and the rules for ALLOW entries).',
   );
 });
 
@@ -39,5 +39,5 @@ test('built pages carry no fingerprint unicode in visible text or spoken attribu
 });
 
 test('every allowlist entry still sanctions a line that exists', () => {
-  assert.deepStrictEqual(staleAllows(), [], 'Stale ALLOW entries — the sanctioned line changed or moved; update or remove the entry so the list keeps meaning what it says.');
+  assert.deepStrictEqual(staleAllows(), [], 'Stale ALLOW entries - the sanctioned line changed or moved; update or remove the entry so the list keeps meaning what it says.');
 });

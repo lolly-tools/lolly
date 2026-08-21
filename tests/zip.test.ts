@@ -24,7 +24,7 @@ test('round-trips mixed text + binary entries exactly', () => {
   const empty = new Uint8Array(0);
 
   const input = [
-    { name: 'hello.txt', bytes: enc.encode('Hello, 世界! — a UTF-8 name test é') },
+    { name: 'hello.txt', bytes: enc.encode('Hello, 世界! - a UTF-8 name test é') },
     { name: 'dir/nested/data.bin', bytes: binary },
     { name: 'big.txt', bytes: highlyCompressible },
     { name: 'empty', bytes: empty },

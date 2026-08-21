@@ -78,7 +78,7 @@ const DAY = 24 * 3600 * 1000;
 function pinnedRootDer(): Uint8Array {
   const src = readFileSync(join(ROOT, 'shells/web/src/ca-root.ts'), 'utf8');
   const m = src.match(/-----BEGIN CERTIFICATE-----[\s\S]*?-----END CERTIFICATE-----/);
-  if (!m) throw new Error('No CA root pinned in shells/web/src/ca-root.ts — cannot --ca sign.');
+  if (!m) throw new Error('No CA root pinned in shells/web/src/ca-root.ts - cannot --ca sign.');
   return pemToDer(m[0]);
 }
 const fingerprint = (der: Uint8Array): string => createHash('sha256').update(der).digest('hex');
@@ -169,7 +169,7 @@ async function deliverCatalog(index: AssetIndex, sb: SignerBundle): Promise<void
     }
   }
   console.log(`Delivered: signed ${signed} in place · ${already} already signed · ${failed} failed`);
-  console.log(`Not stampable (no C2PA container, left as-is): ${unstampable} — ${Object.entries(skippedFormats).map(([k, v]) => `${k}:${v}`).join(', ')}`);
+  console.log(`Not stampable (no C2PA container, left as-is): ${unstampable} - ${Object.entries(skippedFormats).map(([k, v]) => `${k}:${v}`).join(', ')}`);
 }
 
 async function main(): Promise<void> {
@@ -191,7 +191,7 @@ async function main(): Promise<void> {
 
   const signer = await buildSigner();
   console.log(USE_CA
-    ? `Signing tier: CA identity — leaf for ${signer.identity}, ${CA_LEAF_DAYS}d, chains to pinned Lolly CA root`
+    ? `Signing tier: CA identity - leaf for ${signer.identity}, ${CA_LEAF_DAYS}d, chains to pinned Lolly CA root`
     : 'Signing tier: on-device self-signed (no CA identity)');
 
   await deliverCatalog(index, signer);

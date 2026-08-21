@@ -266,7 +266,7 @@ test('negative control: the derived bound is tight (halving it fails)', () => {
       if (Math.abs(decoded.data[i + c]! - frame.data[i + c]!) > mx / 512) violations++;
     }
   }
-  assert.ok(violations > 0, 'max/512 must be violated — max/256 is the real bound, not slack');
+  assert.ok(violations > 0, 'max/512 must be violated - max/256 is the real bound, not slack');
 });
 
 test('negative control: one changed sample changes the bytes', () => {
@@ -473,7 +473,7 @@ test('the header parses back, field for field', () => {
   assert.equal(headerText(packRadiance(frame, { primaries: null })).includes('PRIMARIES'), false);
 });
 
-test('header text is sanitised — a newline cannot be injected into a comment', () => {
+test('header text is sanitised - a newline cannot be injected into a comment', () => {
   const frame = makeFrame(8, 1, () => [1, 1, 1]);
   const bytes = packRadiance(frame, {
     software: 'evil\nFORMAT=32-bit_rle_xyze\nEXPOSURE=1e9',
@@ -587,7 +587,7 @@ test('readRadiance returns null on malformed input and never throws', () => {
     try {
       got = readRadiance(bytes);
     } catch (e) {
-      assert.fail(`${label}: readRadiance threw (${(e as Error).message}) — the convention is null`);
+      assert.fail(`${label}: readRadiance threw (${(e as Error).message}) - the convention is null`);
     }
     assert.equal(got, null, `${label}: expected null`);
   }

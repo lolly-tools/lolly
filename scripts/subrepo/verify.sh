@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # scripts/subrepo/verify.sh
 #
-# Post-split verification — proves build + run still work with the submodule
+# Post-split verification - proves build + run still work with the submodule
 # layout. Run after migrate.sh --run (before you push the parent). Read-only
 # except for regenerating build outputs and node_modules.
 #
@@ -27,7 +27,7 @@ step "profile views (tools/ + catalog from the active profile)"
 node scripts/use-profile.ts --auto >/dev/null 2>&1
 if [ -d tools ] && [ -e catalog ]; then
   ok "views present (profile: $(cat .lolly-profile 2>/dev/null || echo '?'))"
-else err "profile views missing — run: npm run profile:suse (or profile:start)"; fail=1; fi
+else err "profile views missing - run: npm run profile:suse (or profile:start)"; fail=1; fi
 
 step "npm install (workspaces link)"
 npm install >/dev/null 2>&1 && ok "installed" || { err "npm install failed"; fail=1; }
@@ -52,10 +52,10 @@ if [ -e "shells/tauri-desktop/vite.config.js" ] && [ -d "shells/web" ]; then ok 
 step "music: tracked ONLY in the private brands/suse pack"
 if [ -d "brands/suse/catalog/$MUSIC_REL" ]; then
   if git -C brands/suse ls-files "catalog/$MUSIC_REL" | grep -q .; then ok "music tracked in brands/suse (private repo)"
-  else warn "music present but untracked in brands/suse — check brands/suse/.gitignore"; fi
+  else warn "music present but untracked in brands/suse - check brands/suse/.gitignore"; fi
 else warn "brands/suse/catalog/$MUSIC_REL missing (suse pack not mounted? deploys won't have audio beds)"; fi
 if git -C community ls-files 2>/dev/null | grep -q "$MUSIC_REL"; then
-  err "music found in the PUBLIC community pack — must never be pushed there"; fail=1
+  err "music found in the PUBLIC community pack - must never be pushed there"; fail=1
 else ok "no music in the public community pack"; fi
 
 if [ "$DO_CLONE" = 1 ]; then

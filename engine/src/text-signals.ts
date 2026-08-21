@@ -190,9 +190,9 @@ const heatOf = (kind: string): number => KIND_HEAT[kind] ?? 0.4;
 
 /** Zero-width / invisible characters that are essentially never legitimate in prose.
  *  Soft hyphen (U+00AD) is handled separately - see `softHyphenSpans`. */
-const INVISIBLE_CORE = /[​⁠﻿᠎]/gu;
+const INVISIBLE_CORE = /[\u200b\u2060\ufeff\u180e]/gu;
 /** ZWNJ / ZWJ - legitimate in emoji sequences and in Arabic/Indic shaping, so context-checked. */
-const ZW_JOINERS = /[‌‍]/gu;
+const ZW_JOINERS = /[\u200c\u200d]/gu;
 /** Unicode tag characters - a known scheme for smuggling invisible ASCII. */
 const TAG_CHARS = /[\u{E0000}-\u{E007F}]/gu;
 /** Ideographic variation selectors (VS17-256) - almost never legitimate outside rare CJK IVD. */
@@ -200,9 +200,9 @@ const VS_SUPPLEMENTARY = /[\u{E0100}-\u{E01EF}]/gu;
 /** Runs of two or more BMP variation selectors - a byte-smuggling pattern. */
 const VS_BMP_RUN = /[︀-️]{2,}/gu;
 /** Bidi OVERRIDES (LRO/RLO) - the trojan-source vector; embeddings/isolates are left alone (RTL uses them). */
-const BIDI_OVERRIDE = /[‭‮]/gu;
+const BIDI_OVERRIDE = /[\u202d\u202e]/gu;
 /** Non-standard spaces. NBSP and narrow-NBSP are carved out where French typography wants them. */
-const ANOMALOUS_SPACE = /[ -  　]/gu;
+const ANOMALOUS_SPACE = /[\u2000-\u200a\u205f\u3000]/gu;
 
 /** Extended-pictographic test, to skip ZWJ that is joining an emoji sequence. */
 const PICTOGRAPHIC = /\p{Extended_Pictographic}/u;
@@ -258,7 +258,7 @@ function suspiciousJoiners(text: string): RawSpan[] {
  * non-hyphenation position counts as an invisible-character artifact.
  */
 function softHyphenSpans(text: string): RawSpan[] {
-  return collect(/­/gu, text).filter(({ index }) => {
+  return collect(/\u00ad/gu, text).filter(({ index }) => {
     const before = charAt(text, index - 1);
     const after = charAt(text, index + 1);
     return !(/\p{L}/u.test(before) && /\p{L}/u.test(after));
@@ -281,7 +281,7 @@ function mixedScriptTokens(text: string): RawSpan[] {
 /** NBSP / narrow-NBSP runs, minus the French carve-out (before ; : ! ? and as a group separator). */
 function anomalousNbsp(text: string): RawSpan[] {
   const out: RawSpan[] = [];
-  const re = /[  ]/gu;
+  const re = /[\u00a0\u202f]/gu;
   for (let m = re.exec(text); m !== null; m = re.exec(text)) {
     const after = charAt(text, m.index + 1);
     // French: NBSP before high punctuation, or narrow-NBSP between digit groups.
@@ -933,7 +933,7 @@ export function analyzeTextSignals(text: string, opts: AnalyzeTextSignalsOpts): 
 
       // Density-based (>=15 per 1000 words), not a bare count: long human prose
       // legitimately collects a few em-dashes; AI prose salts them evenly through.
-      const emDashes = collect(/—/gu, text);
+      const emDashes = collect(/\u2014/gu, text);
       if (emDashes.length >= 3 && (emDashes.length / Math.max(1, words)) * 1000 >= 15) {
         heuristicFindings.push({
           tier: 'heuristic',
@@ -1060,4 +1060,43 @@ export function analyzeTextSignals(text: string, opts: AnalyzeTextSignalsOpts): 
     styleGuess,
     summary: summaryFor(band, score, pixelSourced, docKind, findings.length),
   };
+}
+
+// ─── applyModelEstimate: fold a staged classifier verdict (plans/126 WP-A) ────
+// Reconstructed stub (engine 1.137.0). A shell that ran a staged on-device
+// detector hands its calibrated verdict here; the function adds an estimate
+// finding and lifts the band, capped at 'notable' - a classifier alone never
+// reaches 'strong', because detector models over-score fluent human prose.
+// Below the operating threshold the report returns unchanged.
+
+/** A staged on-device detector model's calibrated verdict. */
+export interface AiModelEstimate {
+  /** Calibrated probability the text is AI-authored, 0-1. */
+  probAi: number;
+  /** Operating threshold below which the estimate is inconclusive. */
+  threshold: number;
+  /** Stable model id. */
+  modelId: string;
+  /** Human model name for the finding label. */
+  modelName?: string;
+}
+
+const AI_BAND_ORDER: TextSignalBand[] = ['none', 'weak', 'notable', 'strong'];
+
+/** Fold a model estimate into a report as a fourth, style-capped evidence bucket. */
+export function applyModelEstimate(report: TextSignalReport, estimate: AiModelEstimate): TextSignalReport {
+  if (!(estimate.probAi >= estimate.threshold)) return report;
+  const pct = Math.round(estimate.probAi * 100);
+  const finding: TextSignalFinding = {
+    tier: 'heuristic',
+    kind: 'model-estimate',
+    label: 'On-device model estimate',
+    detail: `${estimate.modelName ?? estimate.modelId} scored this ${pct}% AI (threshold ${Math.round(estimate.threshold * 100)}%).`,
+    weight: estimate.probAi,
+    heat: 0.7,
+  };
+  const capped: TextSignalBand =
+    AI_BAND_ORDER.indexOf(report.band) >= AI_BAND_ORDER.indexOf('notable') ? report.band : 'notable';
+  const score = report.band === 'strong' ? report.score : Math.min(Math.max(report.score, pct), 79);
+  return { ...report, band: capped, score, findings: [finding, ...report.findings] };
 }

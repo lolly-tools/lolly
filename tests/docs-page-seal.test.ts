@@ -181,7 +181,7 @@ test('no sidecar is left behind by a page that no longer exists', { skip: built 
 
 // ── Component references ─────────────────────────────────────────────────────
 
-test('component refs come from attributes only — never from CSS or prose', () => {
+test('component refs come from attributes only - never from CSS or prose', () => {
   const html = [
     '<style>.docs-content img[src*="/info/shots/"]{border:0}</style>',
     '<p>The recipe writes /info/shots/not-referenced.svg into the bank.</p>',

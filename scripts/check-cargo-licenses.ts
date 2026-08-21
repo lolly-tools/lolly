@@ -76,7 +76,7 @@ function crateKeys(rel: string): string[] {
 
 const mapPath = join(ROOT, 'cargo-licenses.json');
 if (!existsSync(mapPath)) {
-  console.error('✗ cargo-licenses.json is missing — run: npm run build:cargo-licenses');
+  console.error('✗ cargo-licenses.json is missing - run: npm run build:cargo-licenses');
   process.exit(1);
 }
 const doc = JSON.parse(readFileSync(mapPath, 'utf8'));
@@ -87,7 +87,7 @@ const licenses: Record<string, string> = doc?.licenses ?? {};
 // there is no graph to be stale against and the gate is a no-op by design.
 const present = LOCKFILES.filter((rel) => existsSync(join(ROOT, rel)));
 if (!present.length) {
-  console.log('• No Tauri Cargo.lock present (submodules not checked out) — nothing to verify');
+  console.log('• No Tauri Cargo.lock present (submodules not checked out) - nothing to verify');
   process.exit(0);
 }
 

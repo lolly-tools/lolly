@@ -82,7 +82,7 @@ test('an invisible shape (no fill, no line) is skipped and not counted', () => {
   assert.equal(count(out.svg, '<rect'), 1);
 });
 
-test('drawn nodes each count once — a text and a shape make 2', () => {
+test('drawn nodes each count once - a text and a shape make 2', () => {
   const out = render([
     { type: 'shape', geom: 'rect', fill: { hex: 'FF0000' }, ...box(0, 0, 10, 10) },
     { type: 'text', paras: [{ runs: [{ text: 'hi' }] }], ...box(0, 20, 100, 30) },

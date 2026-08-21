@@ -94,7 +94,7 @@ test('forced 24-bit drops alpha', () => {
   for (let i = 3; i < dec.rgba.length; i += 4) assert.equal(dec.rgba[i], 255);
 });
 
-test('known 2x2 fixture — exact bytes', () => {
+test('known 2x2 fixture - exact bytes', () => {
   // Pixels (top-down RGBA), all opaque so we get 24-bit:
   //   (0,0) red      (1,0) green
   //   (0,1) blue     (1,1) white

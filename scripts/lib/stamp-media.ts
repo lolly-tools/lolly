@@ -88,7 +88,7 @@ export async function stampBitmap(
         const durable = await embedLollyDurableNode(marked, width, height, { reservedId: 0 });
         if (durable) pixels = durable;
       } catch (e) {
-        console.warn(`stamp: durable mark skipped for ${meta.id} — ${(e as Error).message}`);
+        console.warn(`stamp: durable mark skipped for ${meta.id} - ${(e as Error).message}`);
       }
     }
 
@@ -98,7 +98,7 @@ export async function stampBitmap(
       : img.png();
     out = new Uint8Array(await enced.toBuffer());
   } catch (e) {
-    console.warn(`stamp: imprint skipped for ${meta.id} — ${(e as Error).message}`);
+    console.warn(`stamp: imprint skipped for ${meta.id} - ${(e as Error).message}`);
   }
 
   // (Step 2, the Durable neural credential, is folded into step 1 above - it must
@@ -134,7 +134,7 @@ export async function stampC2pa(
       days: meta.days ?? 365,
     }));
   } catch (e) {
-    console.warn(`stamp: Content Credentials skipped for ${meta.id} — ${(e as Error).message}`);
+    console.warn(`stamp: Content Credentials skipped for ${meta.id} - ${(e as Error).message}`);
     return bytes;
   }
 }

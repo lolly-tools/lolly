@@ -1,6 +1,6 @@
 {
   "version": "1",
-  "generatedAt": "2026-08-20T21:41:25.960Z",
+  "generatedAt": "2026-08-21T03:41:32.228Z",
   "tools": [
     {
       "id": "compress-pdf",
@@ -1371,7 +1371,7 @@
         },
         "bn": {
           "name": "প্যালেট ল্যাব",
-          "description": "একটি মূল রঙ থেকে একটি প্যালেট বাড়ান - হারমনি অ্যাকসেন্ট, পার্সেপচুয়াল OKLab র‌্যাম্প এবং WCAG/APCA পঠনযোগ্যতা ব্যাজ, DTCG টোকেন ও CSV এক্সপোর্ট সহ।"
+          "description": "একটি মূল রঙ থেকে একটি প্যালেট বাড়ান - হারমনি অ্যাকসেন্ট, পার্সেপচুয়াল OKLab র্যাম্প এবং WCAG/APCA পঠনযোগ্যতা ব্যাজ, DTCG টোকেন ও CSV এক্সপোর্ট সহ।"
         },
         "cs": {
           "name": "Laboratoř palet",
@@ -1665,7 +1665,7 @@
         },
         "zh-hant": {
           "name": "網格漸層",
-          "description": "用你的品牌色票打造柔和的網格漸層——色點可直接在畫布上拖曳調整。"
+          "description": "用你的品牌色票打造柔和的網格漸層--色點可直接在畫布上拖曳調整。"
         },
         "zh": {
           "name": "网格渐变",
@@ -1812,52 +1812,52 @@
         "ar": {
           "name": "استوديو مخططات D3",
           "description": "رسوم بيانية قوية مدفوعة بالبيانات مع D3 - الصق جدولاً وسيرسم نفسه. أعمدة، خطوط، مساحات، تشتت، دائرية، رادار، خريطة شجرية، خريطة حرارية، أعمدة ودوائر ثلاثية الأبعاد وسحب كلمات. تُستمد لوحات الألوان من ألوان علامتك التجارية، مع تعبئات نقشية وإعادة تلوين بنقرة - متوافقة مع العلامة التجارية ونظيفة كمتجهات.",
-          "blurb": "الصق جدولا — يرسمه D3 بهوية علامتك وبنقاء متجهي"
+          "blurb": "الصق جدولا - يرسمه D3 بهوية علامتك وبنقاء متجهي"
         },
         "bg": {
           "name": "D3 студио за диаграми",
           "description": "Мощни диаграми, управлявани от данни, с D3 - постави таблица и тя се изобразява сама. Барове, линии, области, точкови диаграми, кръгови, радарни, дървовидни карти, топлинни карти, 3D барове и кръгови диаграми и облаци от думи. Палитрите произлизат от цветовете на твоя бранд, с шарки за запълване и оцветяване с клик - на бранда и векторно чисто.",
-          "blurb": "Постави таблица — D3 я превръща в диаграма, брандирано и векторно чисто"
+          "blurb": "Постави таблица - D3 я превръща в диаграма, брандирано и векторно чисто"
         },
         "bn": {
           "name": "D3 চার্ট স্টুডিও",
           "description": "D3 দিয়ে শক্তিশালী ডেটা-চালিত চার্ট - একটি টেবিল পেস্ট করুন, এটি নিজে থেকেই চার্ট হয়ে যায়। বার, লাইন, এরিয়া, স্ক্যাটার, পাই, রাডার, ট্রিম্যাপ, হিটম্যাপ, 3-D বার ও পাই এবং ওয়ার্ড ক্লাউড। প্যালেট আপনার ব্র্যান্ডের রঙ থেকে তৈরি হয়, প্যাটার্ন ফিল ও ক্লিক-টু-রিকালার সহ - অন-ব্র্যান্ড এবং ভেক্টর-ক্লিন।",
-          "blurb": "একটি টেবিল পেস্ট করুন — D3 তার চার্ট বানিয়ে দেয়, অন-ব্র্যান্ড ও ভেক্টর-ক্লিন"
+          "blurb": "একটি টেবিল পেস্ট করুন - D3 তার চার্ট বানিয়ে দেয়, অন-ব্র্যান্ড ও ভেক্টর-ক্লিন"
         },
         "cs": {
           "name": "D3 Studio grafů",
           "description": "Výkonné datové grafy s D3 - vlož tabulku a graf se vykreslí sám. Sloupce, čáry, plochy, bodové grafy, koláče, paprskové grafy, treemapy, teplotní mapy, 3D sloupce a koláče a slovní mraky. Palety vycházejí z barev tvé značky, s vzorovými výplněmi a přebarvením kliknutím - na značku a vektorově čisté.",
-          "blurb": "Vlož tabulku — D3 z ní udělá graf, podle tvé značky a vektorově čistý"
+          "blurb": "Vlož tabulku - D3 z ní udělá graf, podle tvé značky a vektorově čistý"
         },
         "de": {
           "name": "D3-Diagrammstudio",
           "description": "Leistungsstarke datengetriebene Diagramme mit D3 - eine Tabelle einfügen, und sie zeichnet sich selbst. Balken, Linien, Flächen, Streudiagramme, Kreise, Radar, Treemap, Heatmap, 3D-Balken & -Kreise und Wortwolken. Paletten leiten sich aus Ihren Markenfarben ab, mit Musterfüllungen und Umfärben per Klick - markenkonform und vektorsauber.",
-          "blurb": "Tabelle einfügen — D3 erstellt das Diagramm, markenkonform und vektorsauber"
+          "blurb": "Tabelle einfügen - D3 erstellt das Diagramm, markenkonform und vektorsauber"
         },
         "es": {
           "name": "Estudio de gráficos D3",
-          "description": "Gráficos potentes basados en datos con D3 — pega una tabla y se grafica sola. Barras, líneas, áreas, dispersión, circular, radar, treemap, mapa de calor, barras y circulares en 3D y nubes de palabras. Las paletas derivan de los colores de tu marca, con rellenos de patrón y clic para recolorear - fieles a la marca y nítidos en vectorial.",
+          "description": "Gráficos potentes basados en datos con D3 - pega una tabla y se grafica sola. Barras, líneas, áreas, dispersión, circular, radar, treemap, mapa de calor, barras y circulares en 3D y nubes de palabras. Las paletas derivan de los colores de tu marca, con rellenos de patrón y clic para recolorear - fieles a la marca y nítidos en vectorial.",
           "blurb": "Pega una tabla y D3 la grafica, con estilo de marca y en vector nítido"
         },
         "fr": {
           "name": "Studio de graphiques D3",
-          "description": "Des graphiques puissants pilotés par les données avec D3 - collez un tableau et il se met en graphique tout seul. Barres, lignes, aires, nuage de points, camembert, radar, treemap, carte de chaleur, barres et camemberts 3D et nuages de mots. Les palettes dérivent des couleurs de votre marque, avec remplissages à motifs et reco­loration en un clic - à l'image de la marque et net en vectoriel.",
-          "blurb": "Colle un tableau — D3 le transforme en graphique, à l'image de ta marque et en vectoriel net"
+          "description": "Des graphiques puissants pilotés par les données avec D3 - collez un tableau et il se met en graphique tout seul. Barres, lignes, aires, nuage de points, camembert, radar, treemap, carte de chaleur, barres et camemberts 3D et nuages de mots. Les palettes dérivent des couleurs de votre marque, avec remplissages à motifs et recoloration en un clic - à l'image de la marque et net en vectoriel.",
+          "blurb": "Colle un tableau - D3 le transforme en graphique, à l'image de ta marque et en vectoriel net"
         },
         "hi": {
           "name": "D3 चार्ट स्टूडियो",
           "description": "D3 के साथ शक्तिशाली डेटा-आधारित चार्ट्स - एक टेबल पेस्ट करें और यह खुद चार्ट बन जाता है। बार्स, लाइनें, एरिया, स्कैटर, पाई, रडार, ट्रीमैप, हीटमैप, 3-D बार्स व पाई और वर्ड क्लाउड। पैलेट आपके ब्रांड के रंगों से बनते हैं, पैटर्न फिल और क्लिक-टू-रीकलर के साथ - ऑन-ब्रांड और वेक्टर-क्लीन।",
-          "blurb": "टेबल पेस्ट करें — D3 उसका चार्ट बना देता है, ऑन-ब्रांड और वेक्टर-क्लीन"
+          "blurb": "टेबल पेस्ट करें - D3 उसका चार्ट बना देता है, ऑन-ब्रांड और वेक्टर-क्लीन"
         },
         "id": {
           "name": "Studio Grafik D3",
           "description": "Grafik berbasis data yang tangguh dengan D3 - tempel tabel dan grafik terbentuk sendiri. Bar, garis, area, sebar, pai, radar, treemap, heatmap, bar & pai 3D dan word cloud. Palet diturunkan dari warna brand Anda, dengan isian pola dan klik-untuk-ubah-warna - sesuai brand dan bersih secara vektor.",
-          "blurb": "Tempel tabel — D3 membuat grafiknya, sesuai brand dan bersih secara vektor"
+          "blurb": "Tempel tabel - D3 membuat grafiknya, sesuai brand dan bersih secara vektor"
         },
         "it": {
           "name": "D3 Chart Studio",
           "description": "Grafici potenti basati sui dati con D3 - incolla una tabella e si crea da sola. Barre, linee, aree, dispersione, torta, radar, treemap, heatmap, barre e torte 3D e nuvole di parole. Le palette derivano dai colori del tuo brand, con riempimenti a pattern e ricolorazione con un clic - fedeli al brand e nitidi in vettoriale.",
-          "blurb": "Incolla una tabella — D3 crea il grafico, coerente col brand e vettoriale"
+          "blurb": "Incolla una tabella - D3 crea il grafico, coerente col brand e vettoriale"
         },
         "ja": {
           "name": "D3チャートスタジオ",
@@ -1867,67 +1867,67 @@
         "ko": {
           "name": "D3 차트 스튜디오",
           "description": "D3 기반의 강력한 데이터 차트 - 표를 붙여넣으면 스스로 차트가 됩니다. 막대, 선, 영역, 산점도, 파이, 레이더, 트리맵, 히트맵, 3D 막대와 파이, 워드클라우드까지. 팔레트는 브랜드 색상에서 파생되며, 패턴 채우기와 클릭 재색상이 가능합니다 - 온브랜드하고 벡터답게 깔끔합니다.",
-          "blurb": "표를 붙여넣으세요 — D3가 브랜드에 맞는 깔끔한 벡터 차트로 만들어 드려요"
+          "blurb": "표를 붙여넣으세요 - D3가 브랜드에 맞는 깔끔한 벡터 차트로 만들어 드려요"
         },
         "ms": {
           "name": "Studio Carta D3",
-          "description": "Carta berkuasa dipacu data dengan D3 — tampal jadual dan ia mencarta sendiri. Bar, garis, kawasan, serakan, pai, radar, treemap, peta haba, bar & pai 3-D dan awan kata. Palet berasal daripada warna jenama anda, dengan isian corak dan klik-untuk-warna semula - sesuai jenama dan bersih vektor.",
-          "blurb": "Tampal jadual — D3 terus menjadikannya carta, berjenama dan kemas dalam bentuk vektor"
+          "description": "Carta berkuasa dipacu data dengan D3 - tampal jadual dan ia mencarta sendiri. Bar, garis, kawasan, serakan, pai, radar, treemap, peta haba, bar & pai 3-D dan awan kata. Palet berasal daripada warna jenama anda, dengan isian corak dan klik-untuk-warna semula - sesuai jenama dan bersih vektor.",
+          "blurb": "Tampal jadual - D3 terus menjadikannya carta, berjenama dan kemas dalam bentuk vektor"
         },
         "nl": {
           "name": "D3 Grafiekstudio",
-          "description": "Krachtige datagestuurde grafieken met D3 — plak een tabel en hij tekent zichzelf. Staven, lijnen, vlakken, spreiding, taart, radar, boomkaart, heatmap, 3D-staven en -taarten en woordwolken. Paletten komen voort uit je merkkleuren, met patroonvullingen en klikken om te herkleuren - on-brand en vector-scherp.",
-          "blurb": "Plak een tabel — D3 maakt de grafiek, in je huisstijl en messcherp als vector"
+          "description": "Krachtige datagestuurde grafieken met D3 - plak een tabel en hij tekent zichzelf. Staven, lijnen, vlakken, spreiding, taart, radar, boomkaart, heatmap, 3D-staven en -taarten en woordwolken. Paletten komen voort uit je merkkleuren, met patroonvullingen en klikken om te herkleuren - on-brand en vector-scherp.",
+          "blurb": "Plak een tabel - D3 maakt de grafiek, in je huisstijl en messcherp als vector"
         },
         "no": {
           "name": "D3 diagramstudio",
           "description": "Kraftige datadrevne diagrammer med D3 - lim inn en tabell, så diagramfører den seg selv. Stolper, linjer, arealer, spredning, kake, radar, tremap, varmekart, 3D-stolper og -kaker og ordskyer. Paletter avledes fra merkevarens farger, med mønsterfyll og klikk-for-å-omfarge - merkevaretro og vektorrent.",
-          "blurb": "Lim inn en tabell — D3 lager diagrammet, merkevaretilpasset og vektorrent"
+          "blurb": "Lim inn en tabell - D3 lager diagrammet, merkevaretilpasset og vektorrent"
         },
         "pl": {
           "name": "D3 Chart Studio",
           "description": "Zaawansowane wykresy oparte na danych z D3 - wklej tabelę, a wykres powstanie sam. Słupki, linie, obszary, punkty, koło, radar, mapa drzewa, mapa cieplna, słupki i koła 3D oraz chmury słów. Palety pochodzą z kolorów Twojej marki, z wypełnieniami wzorami i przekolorowaniem jednym kliknięciem - zgodnie z marką i czysto wektorowo.",
-          "blurb": "Wklej tabelę — D3 utworzy wykres, w barwach marki i w czystej wektorowej jakości"
+          "blurb": "Wklej tabelę - D3 utworzy wykres, w barwach marki i w czystej wektorowej jakości"
         },
         "pt": {
           "name": "Estúdio de Gráficos D3",
           "description": "Gráficos poderosos orientados a dados com D3 - cole uma tabela e ela se transforma em gráfico sozinha. Barras, linhas, áreas, dispersão, pizza, radar, treemap, mapa de calor, barras & pizzas 3D e nuvens de palavras. As paletas derivam das cores da sua marca, com preenchimentos padronizados e reclique para recolorir - fiel à marca e nítido em vetor.",
-          "blurb": "Cole uma tabela — o D3 monta o gráfico, alinhado à marca e em vetor limpo"
+          "blurb": "Cole uma tabela - o D3 monta o gráfico, alinhado à marca e em vetor limpo"
         },
         "ro": {
           "name": "Studio Grafice D3",
           "description": "Grafice puternice bazate pe date cu D3 - lipește un tabel și se reprezintă singur. Bare, linii, arii, dispersie, plăcintă, radar, treemap, heatmap, bare și plăcinte 3D și nori de cuvinte. Paletele derivă din culorile brandului tău, cu umpluturi de model și reculorare cu un clic - în ton cu brandul și clare ca vector.",
-          "blurb": "Lipește un tabel — D3 îl transformă în grafic, pe brand și impecabil ca vector"
+          "blurb": "Lipește un tabel - D3 îl transformă în grafic, pe brand și impecabil ca vector"
         },
         "sv": {
           "name": "D3-diagramstudio",
           "description": "Kraftfulla datadrivna diagram med D3 - klistra in en tabell så diagrammar den sig själv. Staplar, linjer, ytor, spridning, cirkel, radar, träddiagram, värmekarta, 3D-staplar & -cirklar och ordmoln. Paletter härleds från ditt varumärkes färger, med mönsterfyllningar och klick-för-att-omfärga - varumärkesanpassat och vektorrent.",
-          "blurb": "Klistra in en tabell – D3 diagramför den, varumärkesanpassat och vektorrent"
+          "blurb": "Klistra in en tabell - D3 diagramför den, varumärkesanpassat och vektorrent"
         },
         "tl": {
           "name": "Chart Studio ng D3",
           "description": "Makapangyarihang data-driven na mga chart gamit ang D3 - i-paste ang isang table at kusa na itong magiging chart. Bars, lines, areas, scatter, pie, radar, treemap, heatmap, 3-D bars & pies at word clouds. Nagmumula ang mga palette sa kulay ng iyong brand, may pattern fills at click-to-recolour - on-brand at malinis na vector.",
-          "blurb": "I-paste ang table — ico-chart ito ng D3, on-brand at malinis na vector"
+          "blurb": "I-paste ang table - ico-chart ito ng D3, on-brand at malinis na vector"
         },
         "tr": {
           "name": "D3 Grafik Stüdyosu",
           "description": "D3 ile güçlü veri odaklı grafikler - bir tablo yapıştırın, kendini çizsin. Çubuklar, çizgiler, alanlar, dağılım, pasta, radar, ısı haritası, 3D çubuklar ve pastalar ile kelime bulutları. Paletler markanızın renklerinden türetilir, desenli dolgular ve tıkla-yeniden-renklendir ile - markanıza uygun ve vektör temiz.",
-          "blurb": "Bir tablo yapıştır — D3 onu grafiğe dönüştürsün, markana uygun ve vektör netliğinde"
+          "blurb": "Bir tablo yapıştır - D3 onu grafiğe dönüştürsün, markana uygun ve vektör netliğinde"
         },
         "uk": {
           "name": "Студія діаграм D3",
           "description": "Потужні дата-орієнтовані діаграми на D3 - вставте таблицю, і вона побудує себе сама. Стовпчики, лінії, області, точкові, кругові, радарні, деревовидні карти, теплові карти, 3-D стовпчики й кругові діаграми та хмари слів. Палітри походять із кольорів вашого бренду, з візерунковими заливками й перефарбуванням одним кліком - на бренді й векторно чисто.",
-          "blurb": "Вставте таблицю — D3 побудує діаграму, фірмово і чисто векторно"
+          "blurb": "Вставте таблицю - D3 побудує діаграму, фірмово і чисто векторно"
         },
         "ur": {
           "name": "D3 چارٹ اسٹوڈیو",
-          "description": "D3 کے ساتھ طاقتور ڈیٹا سے چلنے والے چارٹس — ایک ٹیبل پیسٹ کریں اور یہ خود چارٹ بن جاتا ہے۔ بارز، لائنز، ایریاز، اسکیٹر، پائی، ریڈار، ٹری میپ، ہیٹ میپ، 3-D بارز اور پائیز اور ورڈ کلاؤڈز۔ پیلٹس آپ کے برانڈ کے رنگوں سے اخذ ہوتے ہیں، پیٹرن فلز اور کلک ٹو ری کلر کے ساتھ — آن برانڈ اور ویکٹر کلین۔",
-          "blurb": "ایک ٹیبل پیسٹ کریں — D3 اسے چارٹ کرتا ہے، برانڈ کے مطابق اور ویکٹر لحاظ سے صاف"
+          "description": "D3 کے ساتھ طاقتور ڈیٹا سے چلنے والے چارٹس - ایک ٹیبل پیسٹ کریں اور یہ خود چارٹ بن جاتا ہے۔ بارز، لائنز، ایریاز، اسکیٹر، پائی، ریڈار، ٹری میپ، ہیٹ میپ، 3-D بارز اور پائیز اور ورڈ کلاؤڈز۔ پیلٹس آپ کے برانڈ کے رنگوں سے اخذ ہوتے ہیں، پیٹرن فلز اور کلک ٹو ری کلر کے ساتھ - آن برانڈ اور ویکٹر کلین۔",
+          "blurb": "ایک ٹیبل پیسٹ کریں - D3 اسے چارٹ کرتا ہے، برانڈ کے مطابق اور ویکٹر لحاظ سے صاف"
         },
         "vi": {
           "name": "Xưởng Biểu Đồ D3",
           "description": "Biểu đồ mạnh mẽ dựa trên dữ liệu với D3 - dán một bảng và nó tự vẽ biểu đồ. Cột, đường, vùng, phân tán, tròn, radar, treemap, heatmap, cột & tròn 3D và đám mây từ. Bảng màu lấy từ màu thương hiệu của bạn, với hình mẫu tô và bấm để đổi màu - đúng thương hiệu và sắc nét dạng vector.",
-          "blurb": "Dán một bảng vào — D3 tự vẽ biểu đồ, đúng chuẩn thương hiệu và sạch đẹp dạng vector"
+          "blurb": "Dán một bảng vào - D3 tự vẽ biểu đồ, đúng chuẩn thương hiệu và sạch đẹp dạng vector"
         },
         "zh-hant": {
           "name": "D3 圖表工作室",
@@ -2429,7 +2429,7 @@
       "id": "deck-builder",
       "name": "Deck Builder",
       "description": "Build a slide deck with a live on-canvas editor - edit text, colours and images directly on each slide.",
-      "version": "1.1.0",
+      "version": "1.2.0",
       "status": "community",
       "category": "designer",
       "tags": [
@@ -4750,25 +4750,25 @@
           "id": "poster",
           "name": "Poster",
           "category": "Poster",
-          "description": "One 16:9 frame — a big headline and a supporting line, in your brand colours."
+          "description": "One 16:9 frame - a big headline and a supporting line, in your brand colours."
         },
         {
           "id": "pull-quote",
           "name": "Pull quote",
           "category": "Slides",
-          "description": "A large quotation with attribution — spare, in your brand colours."
+          "description": "A large quotation with attribution - spare, in your brand colours."
         },
         {
           "id": "slide-deck",
           "name": "Slide deck",
           "category": "Slides",
-          "description": "Three frames as slides — title, content, closing. Export as PowerPoint or PDF."
+          "description": "Three frames as slides - title, content, closing. Export as PowerPoint or PDF."
         },
         {
           "id": "title",
           "name": "Title slide",
           "category": "Slides",
-          "description": "A bold opening slide — big title and a supporting line, in your brand colours."
+          "description": "A bold opening slide - big title and a supporting line, in your brand colours."
         },
         {
           "id": "video",
@@ -5640,7 +5640,7 @@
         },
         "bn": {
           "name": "Lottie বিজ্ঞাপন",
-          "description": "স্তরযুক্ত দৃশ্য থেকে অ্যানিমেটেড বিজ্ঞাপন বানান — প্রতিটিতে একটি Lottie মোশন অ্যাসেট — যেকোনো স্ট্যান্ডার্ড আকারে।"
+          "description": "স্তরযুক্ত দৃশ্য থেকে অ্যানিমেটেড বিজ্ঞাপন বানান - প্রতিটিতে একটি Lottie মোশন অ্যাসেট - যেকোনো স্ট্যান্ডার্ড আকারে।"
         },
         "cs": {
           "name": "Reklama Lottie",
@@ -5660,7 +5660,7 @@
         },
         "hi": {
           "name": "Lottie विज्ञापन",
-          "description": "लेयर वाले सीन से किसी भी मानक आकार के एनिमेटेड विज्ञापन बनाएँ — हर सीन में एक Lottie मोशन एसेट।"
+          "description": "लेयर वाले सीन से किसी भी मानक आकार के एनिमेटेड विज्ञापन बनाएँ - हर सीन में एक Lottie मोशन एसेट।"
         },
         "id": {
           "name": "Iklan Lottie",
@@ -5975,7 +5975,7 @@
         },
         "hi": {
           "name": "रिकॉर्ड",
-          "description": "अपने इंट्रो और आउट्रो कार्ड खुद डिज़ाइन करें, फिर एक क्लिप रिकॉर्ड करें — Lolly उन्हें अपने आप उसके आगे-पीछे जोड़ देता है।"
+          "description": "अपने इंट्रो और आउट्रो कार्ड खुद डिज़ाइन करें, फिर एक क्लिप रिकॉर्ड करें - Lolly उन्हें अपने आप उसके आगे-पीछे जोड़ देता है।"
         },
         "id": {
           "name": "Rekam",

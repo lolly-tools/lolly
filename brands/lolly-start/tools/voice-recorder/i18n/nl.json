@@ -1,7 +1,7 @@
 {
   "name": "Spraakrecorder",
   "description": "Neem een spraakbericht op met een live niveaumeter en zachte begeleiding, en sla het op als MP3.",
-  "a11yLabel": "Spraakrecorder — niveau {{default dbText \"idle\"}}",
+  "a11yLabel": "Spraakrecorder - niveau {{default dbText \"idle\"}}",
   "featured.blurb": "Neem een heldere spraakopname op met live niveaubegeleiding",
   "inputs.title.label": "Label",
   "inputs.title.help": "Bepaalt de naam van de opnamekaart en het opgeslagen bestand.",

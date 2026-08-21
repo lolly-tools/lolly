@@ -1,6 +1,6 @@
 # Installing Lolly on a workstation
 
-Getting a fresh clone to a running state — **macOS** and **openSUSE**. For the day-to-day
+Getting a fresh clone to a running state - **macOS** and **openSUSE**. For the day-to-day
 submodule workflow (where each change gets committed), see
 [CONTRIBUTING.md](CONTRIBUTING.md); this file is just "clean machine → `npm run dev:web`".
 
@@ -29,7 +29,7 @@ Then:
 npm run dev:web           # web shell at http://localhost:5173
 ```
 
-`./setup.sh` is **idempotent** — safe to re-run any time (after a `git pull`, to repair a
+`./setup.sh` is **idempotent** - safe to re-run any time (after a `git pull`, to repair a
 half-finished checkout, etc.). `./setup.sh --help` lists every flag.
 
 ## Prerequisites
@@ -43,7 +43,7 @@ The script installs these for you when it can; here's what it needs and how to g
 | **Node** ≥ 22.18 (or ≥ 24) | `brew install node@22` | `sudo zypper install nodejs22 npm22` |
 
 **Why Node 22.18+?** The repo's scripts run TypeScript sources directly (`node scripts/foo.ts`),
-which relies on Node's unflagged type-stripping — added in Node **22.18** (the 22 LTS line)
+which relies on Node's unflagged type-stripping - added in Node **22.18** (the 22 LTS line)
 and **24**. `.nvmrc` pins `22`. Node 20 and early 22.x will fail `npm install`.
 
 If your distro's packaged Node is older than 22.18, use [**nvm**](https://github.com/nvm-sh/nvm),
@@ -63,7 +63,7 @@ nvm install                # reads .nvmrc → installs + selects Node 22
 3. **Initialises the public submodules**: `git submodule update --init --recursive`
    (shells, `community/` tools, `docs/`, `services/*`). The private `brands/suse` pack is
    `update = none`, so it's **skipped automatically** unless you pass `--suse`.
-4. **`npm install`** — installs all eight workspaces. Its `postinstall`
+4. **`npm install`** - installs all eight workspaces. Its `postinstall`
    (`scripts/use-profile.ts --auto`) builds the `tools/` + `catalog/` views for a content
    profile: the SUSE pack if it's mounted, otherwise the blank **lolly-start** brand. It
    never fails on a public clone.
@@ -83,9 +83,9 @@ nvm install                # reads .nvmrc → installs + selects Node 22
 If you'd rather not run the script, or you're on a distro it doesn't cover:
 
 ```bash
-# 1. prerequisites — git + Node 22.18+ (see the table above)
+# 1. prerequisites - git + Node 22.18+ (see the table above)
 
-# 2. submodules (BEFORE npm install — the workspaces need every submodule's package.json)
+# 2. submodules (BEFORE npm install - the workspaces need every submodule's package.json)
 git submodule update --init --recursive
 #   SUSE devs also:
 git submodule update --init --checkout brands/suse
@@ -93,7 +93,7 @@ git submodule update --init --checkout brands/suse
 # 3. dependencies + profile views (postinstall picks a profile automatically)
 npm install
 
-# 4. optional — pick a content profile explicitly
+# 4. optional - pick a content profile explicitly
 npm run profile          # show the active profile + what's available
 npm run profile:suse     # SUSE brand pack (needs brands/suse mounted)
 npm run profile:start    # blank starter brand
@@ -102,7 +102,7 @@ npm run profile:start    # blank starter brand
 ## Content profiles
 
 `tools/` and `catalog/` at the repo root are gitignored **views** assembled from the mounted
-packs (`profiles.json`) — never commit them. Without SUSE access you land on **lolly-start**
+packs (`profiles.json`) - never commit them. Without SUSE access you land on **lolly-start**
 (community tools + neutral tokens) and everything builds and runs. Generate a brand pack of
 your own from design tokens with `npm run ingest:brand` (DTCG / Tokens Studio / Penpot). More
 in [CONTRIBUTING.md](CONTRIBUTING.md) and `docs/authoring-tools.md`.
@@ -111,12 +111,12 @@ in [CONTRIBUTING.md](CONTRIBUTING.md) and `docs/authoring-tools.md`.
 
 Not needed for `dev:web` / `cli` / `npm test`, so the script skips them:
 
-- **Headless render + docs screenshots** — `npm run build:web` and the docs-shot pipeline
+- **Headless render + docs screenshots** - `npm run build:web` and the docs-shot pipeline
   drive a headless browser via Playwright. Fetch the browser once: `npx playwright install chromium`.
-- **Desktop / mobile apps** — the Tauri shells (`shells/tauri-desktop`, `shells/tauri-mobile`)
+- **Desktop / mobile apps** - the Tauri shells (`shells/tauri-desktop`, `shells/tauri-mobile`)
   are submodules but *not* npm workspaces and need the Rust toolchain + Tauri system deps.
   They're not initialised by default; see each submodule's README.
-- **`loldev`** — the one-command multi-repo helper (build → commit/push every changed
+- **`loldev`** - the one-command multi-repo helper (build → commit/push every changed
   submodule → record the umbrella pointer). Put it on your PATH:
   `ln -sf "$PWD/scripts/subrepo/loldev" /usr/local/bin/loldev`. See [CONTRIBUTING.md](CONTRIBUTING.md).
 
@@ -142,5 +142,5 @@ npm test                                                          # engine + she
   does this for its own run).
 - **Editing a tool doesn't show up / lands in the wrong repo** → the `tools/`/`catalog/`
   views are symlinks into the packs; edits flow to the pack checkout. Commit *inside* the
-  owning submodule (or use `loldev`) — the umbrella only records pointers. See
-  [CONTRIBUTING.md §4](CONTRIBUTING.md#4-where-your-changes-go).
+  owning submodule (or use `loldev`) - the umbrella only records pointers. See
+  [CONTRIBUTING.md section 4](CONTRIBUTING.md#4-where-your-changes-go).

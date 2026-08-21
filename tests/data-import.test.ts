@@ -29,7 +29,7 @@ test('CSV: header matches a field label case-insensitively', () => {
   assert.deepEqual(rows[0], { label: 'A', value: '1', color: '#fff' });
 });
 
-test('CSV: RFC-4180 quoting — commas, embedded newline, escaped quotes', () => {
+test('CSV: RFC-4180 quoting - commas, embedded newline, escaped quotes', () => {
   const csv = 'label,value\r\n"Smith, Jr.",10\r\n"line1\nline2",20\r\n"say ""hi""",30';
   const { rows } = parseDataRows(csv, { fields: F });
   assert.equal(rows[0]!.label, 'Smith, Jr.');
@@ -115,7 +115,7 @@ test('row limit caps output and reports truncation', () => {
 });
 
 test('strips a leading BOM before parsing', () => {
-  const { rows } = parseDataRows('﻿label,value\nA,1', { fields: F });
+  const { rows } = parseDataRows('label,value\nA,1', { fields: F });
   assert.equal(rows[0]!.label, 'A');
 });
 

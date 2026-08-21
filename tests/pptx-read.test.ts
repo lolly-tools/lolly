@@ -481,7 +481,7 @@ test('null/undefined parts and a non-function parser are handled', () => {
   assert.deepEqual(readPptx(deckParts(), null as unknown as typeof parseXml).slides, []);
 });
 
-test('a malformed slide skips cleanly — the rest of the deck still parses', () => {
+test('a malformed slide skips cleanly - the rest of the deck still parses', () => {
   const deck = readPptx(deckParts({ 'ppt/slides/slide1.xml': '<p:sld><<< not xml' }), parseXml);
   assert.equal(deck.theme.colors.accent1, '4472C4', 'theme still read');
   assert.equal(deck.widthEmu, 9144000, 'slide size still read');

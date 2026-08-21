@@ -31,7 +31,7 @@ const COMMUNITY_DIR = join(dirname(fileURLToPath(import.meta.url)), '..', 'commu
 const fetchFile = (path: string) => readFile(join(COMMUNITY_DIR, path), 'utf8');
 
 assert.ok(existsSync(join(COMMUNITY_DIR, 'deck-builder', 'tool.json')),
-  'community/deck-builder/tool.json is missing — the tool was renamed or deleted');
+  'community/deck-builder/tool.json is missing - the tool was renamed or deleted');
 
 const tool: any = await loadTool('deck-builder', fetchFile);
 

@@ -1,6 +1,6 @@
 {
   "name": "Riso Ink Colours",
-  "description": "Risograph duplicator ink drums as sRGB approximations. Each entry is one ink drum: a Riso print is built by overprinting one drum per pass, so these are SPOT colours, not process colours — `book` names the ink book a separation would carry (see SpotColor in packages/core/src/host-v1.ts). The hex is an approximation of the ink on white uncoated stock: Riso ink is translucent and soy-based, so real output shifts with paper, coverage and drum age. Ordered as Riso lists them: standard drums first, then the extended/custom range.",
+  "description": "Risograph duplicator ink drums as sRGB approximations. Each entry is one ink drum: a Riso print is built by overprinting one drum per pass, so these are SPOT colours, not process colours - `book` names the ink book a separation would carry (see SpotColor in packages/core/src/host-v1.ts). The hex is an approximation of the ink on white uncoated stock: Riso ink is translucent and soy-based, so real output shifts with paper, coverage and drum age. Ordered as Riso lists them: standard drums first, then the extended/custom range.",
   "book": "RISO",
   "swatches": [
     { "id": "black",              "label": "Black",             "hex": "#000000" },

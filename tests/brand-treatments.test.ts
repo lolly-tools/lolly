@@ -109,7 +109,7 @@ test('committed lolly-start neutral set is exactly the derivation of its starter
   for (const [file, derived] of expected) {
     const committed = readFileSync(join(paletteDir, file), 'utf8');
     assert.equal(committed, JSON.stringify(derived, null, 2) + '\n',
-      `${file} drifted from derivation — regenerate it (and its index checksum) after retuning brand-treatments.ts`);
+      `${file} drifted from derivation - regenerate it (and its index checksum) after retuning brand-treatments.ts`);
     const id = `lolly/palette/${file.replace('.json', '')}`;
     const entry = index.assets.find((a: { id: string }) => a.id === id);
     assert.ok(entry, `${id} indexed in the lolly-start catalog`);

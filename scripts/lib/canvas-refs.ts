@@ -80,7 +80,7 @@ export function canvasFieldRefErrors(manifest: Manifest): string[] {
       if (!ownIds.has(value)) {
         out.push(
           `input "${inputId}" canvas.${key} names "${value}", which is not an id in that input's fields ` +
-          `(${describe(ownIds)}) — the control would read a sub-field nothing writes`,
+          `(${describe(ownIds)}) - the control would read a sub-field nothing writes`,
         );
       }
     }

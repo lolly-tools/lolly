@@ -60,7 +60,7 @@ test('mergeBoilerplateIndex: replaces prior boilerplate, keeps other assets, is 
     generatedAt: '',
     assets: [
       { id: 'acme/tokens/brand' },
-      { id: 'acme/boilerplate/stale' }, // a prior run's entry — must be dropped
+      { id: 'acme/boilerplate/stale' }, // a prior run's entry - must be dropped
     ],
   };
   const merged = mergeBoilerplateIndex(index, 'acme', records);

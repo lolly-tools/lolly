@@ -112,7 +112,7 @@ test('the tagged file still decodes to identical samples', () => {
   assert.deepEqual(Array.from(b.channels[0]!), Array.from(a.channels[0]!));
 });
 
-test('non-WAV or unwalkable input comes back untouched — never corrupted', () => {
+test('non-WAV or unwalkable input comes back untouched - never corrupted', () => {
   const junk = Uint8Array.from('this is not a riff file at all!!', (c) => c.charCodeAt(0));
   assert.equal(embedWavInfo(junk, { title: 'X' }), junk);
   // A chunk whose declared size runs past EOF makes the walk unsafe → no-op.

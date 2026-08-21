@@ -38,7 +38,7 @@ const TOOLS_DIR = join(dirname(fileURLToPath(import.meta.url)), '..', 'community
 const fetchFile = (path: string) => readFile(join(TOOLS_DIR, path), 'utf8');
 
 assert.ok(existsSync(join(TOOLS_DIR, 'darkroom', 'tool.json')),
-  'community/darkroom/tool.json is missing — the tool was renamed or deleted');
+  'community/darkroom/tool.json is missing - the tool was renamed or deleted');
 
 const tool: any = await loadTool('darkroom', fetchFile);
 
@@ -244,7 +244,7 @@ test('bake: the HSL mixer folds into the .cube, and protects greys', async () =>
   await rt2.setInput('hslHueRed', 100 as any);    // +40° → toward orange
   await rt2.setInput('bakeLut', true as any);
   const red2 = parseBaked(await delivered[0]!.blob.text()).rows[N - 1]!;
-  assert.ok(red2[1] > red2[2] + 0.15, `red band rotates toward orange — G lifts above B (got G=${red2[1]}, B=${red2[2]})`);
+  assert.ok(red2[1] > red2[2] + 0.15, `red band rotates toward orange - G lifts above B (got G=${red2[1]}, B=${red2[2]})`);
 });
 
 test('bake: a loaded LUT folds into the bake, and bakeSize is honoured', async () => {
@@ -453,7 +453,7 @@ test('videoLook: publishes a versioned .cube envelope, headless', async () => {
   assert.equal(lut.size, 33);
 });
 
-test('videoLook: the download grid is not the video grid — the cube stays 33³', async () => {
+test('videoLook: the download grid is not the video grid - the cube stays 33³', async () => {
   const { host } = makeHost();
   const rt = await createRuntime(tool, host, {});
   const before = readVideoLook(rt);

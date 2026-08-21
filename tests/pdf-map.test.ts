@@ -552,7 +552,7 @@ test('a tiling pattern wrapping a gradient collapses to that gradient', () => {
   });
   assert.ok(nodes[0]._gradient, 'the inner gradient is adopted');
   assert.equal(nodes[0]._gradient.type, 2);
-  assert.deepEqual(nodes[0]._gradient.matrix, [1, 0, 0, -1, 0, 300], 'already box space — the collapse ran under the composed CTM');
+  assert.deepEqual(nodes[0]._gradient.matrix, [1, 0, 0, -1, 0, 300], 'already box space - the collapse ran under the composed CTM');
   assert.equal(nodes[0].fill, '#00ff00');
 });
 
@@ -695,27 +695,27 @@ const dOf = (nodes: any[]): string => nodes.map((n) => n._vectorPath || '').join
 test('an open stroked path stays open (S does not close)', () => {
   const d = dOf(page('1 0 0 RG 2 w 7 8 m 3 12 l 7 16 l S'));
   assert.ok(d.includes('M'), `no path emitted: ${d}`);
-  assert.ok(!d.includes('Z'), `S must not close the subpath — got ${d}`);
+  assert.ok(!d.includes('Z'), `S must not close the subpath - got ${d}`);
 });
 
 test('s closes the path it strokes', () => {
   const d = dOf(page('1 0 0 RG 2 w 7 8 m 3 12 l 7 16 l s'));
-  assert.ok(d.includes('Z'), `s is close-and-stroke — got ${d}`);
+  assert.ok(d.includes('Z'), `s is close-and-stroke - got ${d}`);
 });
 
 test('an explicit h closes, and only the subpath it ends', () => {
   const one = dOf(page('1 0 0 RG 2 w 10 10 m 40 10 l 40 40 l h S'));
-  assert.equal((one.match(/Z/g) ?? []).length, 1, `one closed subpath expected — got ${one}`);
+  assert.equal((one.match(/Z/g) ?? []).length, 1, `one closed subpath expected - got ${one}`);
   // first subpath closed, second left open
   const two = dOf(page('1 0 0 RG 2 w 10 10 m 40 10 l 40 40 l h 60 60 m 90 60 l 90 90 l S'));
-  assert.equal((two.match(/Z/g) ?? []).length, 1, `only the h-terminated subpath closes — got ${two}`);
-  assert.ok(two.indexOf('Z') < two.lastIndexOf('M'), `the Z must land on the FIRST subpath — got ${two}`);
+  assert.equal((two.match(/Z/g) ?? []).length, 1, `only the h-terminated subpath closes - got ${two}`);
+  assert.ok(two.indexOf('Z') < two.lastIndexOf('M'), `the Z must land on the FIRST subpath - got ${two}`);
 });
 
 test('b and b* close as well as painting both', () => {
   for (const op of ['b', 'b*']) {
     const d = dOf(page(`1 0 0 RG 0 0 1 rg 2 w 7 8 m 3 12 l 7 16 l ${op}`));
-    assert.ok(d.includes('Z'), `${op} is a close-then-paint operator — got ${d}`);
+    assert.ok(d.includes('Z'), `${op} is a close-then-paint operator - got ${d}`);
   }
 });
 

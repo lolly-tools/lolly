@@ -105,7 +105,7 @@ async function seedSource() {
 
   const storage = makeStorage({
     theme: 'dark', sidebarWidth: '300', 'ct-metrics': '{"toolOpens":5,"filesRendered":12}',
-    'sbt-tool-index': 'RESYNCABLE-CACHE', // catalog cache — must NOT travel
+    'sbt-tool-index': 'RESYNCABLE-CACHE', // catalog cache - must NOT travel
   });
   return { host, storage, headBytes, picBytes };
 }

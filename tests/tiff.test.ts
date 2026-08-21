@@ -150,7 +150,7 @@ const GOLDEN_GRAY_F32 =
   '040000001a01050001000000aa0000001b01050001000000b200000028010300010000000200000053010300010000000300000000000000' +
   '480000000100000048000000010000000000803e';
 
-test('packTiff: 16-bit RGB — IFD structure, SampleFormat=1, LE sample bytes', () => {
+test('packTiff: 16-bit RGB - IFD structure, SampleFormat=1, LE sample bytes', () => {
   const W = 2, H = 1;
   // Values chosen to catch endianness: 0x1234 written LE must appear as 34 12.
   const rgb = new Uint16Array([0x1234, 0, 0xffff, 0x8000, 0x00ff, 0xff00]);
@@ -176,7 +176,7 @@ test('packTiff: 16-bit RGB — IFD structure, SampleFormat=1, LE sample bytes', 
   assert.equal(bytes.length, off + W * H * 3 * 2);
 });
 
-test('packTiff: float32 grayscale — SampleFormat=3, IEEE-754 LE reference bytes', () => {
+test('packTiff: float32 grayscale - SampleFormat=3, IEEE-754 LE reference bytes', () => {
   const gray = new Float32Array([0, 0.5, 1, -1]);
   const bytes = packTiff(gray, { width: 2, height: 2, samplesPerPixel: 1, depth: 'float32' });
   const { dv, tags } = readTiff(bytes);
@@ -198,7 +198,7 @@ test('packTiff: float32 grayscale — SampleFormat=3, IEEE-754 LE reference byte
   assert.equal(bytes.length, off + 4 * 4);
 });
 
-test('packTiff: golden bytes — 16-bit RGB and float32 gray fixtures are byte-exact', () => {
+test('packTiff: golden bytes - 16-bit RGB and float32 gray fixtures are byte-exact', () => {
   const rgb16 = packTiff(new Uint16Array([0x0001, 0x8000, 0xffff]), {
     width: 1, height: 1, samplesPerPixel: 3, depth: 16,
   });
@@ -220,7 +220,7 @@ test('packTiff: 8-bit output is byte-identical with depth omitted vs depth: 8', 
   assert.equal(tags[339], undefined, 'no SampleFormat tag at 8-bit');
 });
 
-test('packTiff: negative control — different 16-bit data produces different bytes', () => {
+test('packTiff: negative control - different 16-bit data produces different bytes', () => {
   const a = packTiff(new Uint16Array([0, 1, 2]), { width: 1, height: 1, samplesPerPixel: 3, depth: 16 });
   const b = packTiff(new Uint16Array([0, 1, 3]), { width: 1, height: 1, samplesPerPixel: 3, depth: 16 });
   assert.notDeepEqual(a, b);
@@ -309,7 +309,7 @@ const GOLDEN_RGBA8 =
   '00005201030001000000020000000000000008000800080008002c010000010000002c010000010000001122' +
   '3380';
 
-test('packTiff: golden bytes — 8-bit RGBA fixture is byte-exact', () => {
+test('packTiff: golden bytes - 8-bit RGBA fixture is byte-exact', () => {
   const rgba = packTiff(new Uint8Array([0x11, 0x22, 0x33, 0x80]), {
     width: 1, height: 1, samplesPerPixel: 4, dpi: 300,
   });

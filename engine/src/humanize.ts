@@ -64,13 +64,13 @@ export function humanizeText(input: string): HumanizeResult {
 
   // 2. Invisible / hidden characters. ZWJ/ZWNJ (U+200C/D) are KEPT - they are load-carrying
   //    in emoji sequences and Arabic/Indic shaping - so only the never-legitimate set goes.
-  apply(/[​⁠﻿᠎­]/g, '', 'invisible', 'Invisible / zero-width characters');
+  apply(/[\u200b\u2060\ufeff\u180e\u00ad]/g, '', 'invisible', 'Invisible / zero-width characters');
   apply(/[\u{E0000}-\u{E007F}]/gu, '', 'tag-char', 'Hidden tag characters');
-  apply(/[‭‮]/g, '', 'bidi', 'Bidirectional override characters');
+  apply(/[\u202d\u202e]/g, '', 'bidi', 'Bidirectional override characters');
   apply(/[\u{E0100}-\u{E01EF}]/gu, '', 'variation', 'Unusual variation selectors');
 
   // 3. Typography → house style.
-  apply(/—/g, ' - ', 'em-dash', 'Em-dashes to " - "');
+  apply(/\u2014/g, ' - ', 'em-dash', 'Em-dashes to " - "');
   // En-dash to " - " EXCEPT a numeric range (3–5 / pp.3–5 stay).
   apply(/(?<!\d)\s*–\s*(?!\d)/g, ' - ', 'en-dash', 'En-dashes to " - "');
   apply(/[‘’]/g, "'", 'curly-apos', 'Curly apostrophes to straight');
@@ -78,7 +78,7 @@ export function humanizeText(input: string): HumanizeResult {
   apply(/…/g, '...', 'ellipsis', 'Unicode ellipsis to "..."');
   // Non-breaking space to a normal space, minus the French carve-out (before high
   // punctuation, where French wants the NBSP).
-  apply(/ (?![;:!?»])/g, ' ', 'nbsp', 'Non-breaking spaces to a space');
+  apply(/\u00a0(?![;:!?\u00bb])/g, ' ', 'nbsp', 'Non-breaking spaces to a space');
 
   // 4. Tidy the whitespace the strips can leave behind.
   apply(/[ \t]{2,}/g, ' ', 'multi-space', 'Collapsed repeated spaces');

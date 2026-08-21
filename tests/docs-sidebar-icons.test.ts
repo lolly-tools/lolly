@@ -69,7 +69,7 @@ test('every icon name resolves to a real glyph', () => {
   // docIcon warns and returns '' for an unknown key, so a typo degrades to a gap
   // rather than an error - this is the check that makes it loud.
   const unknown = [...iconMap].filter(([, icon]) => !iconKeys.has(icon)).map(([slug, icon]) => `${slug} → ${icon}`);
-  assert.deepEqual(unknown, [], 'unknown DOC_ICONS key — docIcon would emit nothing');
+  assert.deepEqual(unknown, [], 'unknown DOC_ICONS key - docIcon would emit nothing');
 });
 
 test('every footer sitemap destination has an icon', () => {
@@ -87,7 +87,7 @@ test('the footer renders SIDEBAR_ICON itself, not a second mapping', () => {
   assert.ok(start >= 0, 'docs/build.ts no longer declares footerSitemap()');
   const next = BUILD_TS.slice(start + 1).search(/\n(?:function |const [A-Z])/);
   const fn = BUILD_TS.slice(start, next < 0 ? undefined : start + 1 + next);
-  assert.ok(fn.length > 100, 'footerSitemap() source looks empty — the slice is wrong');
+  assert.ok(fn.length > 100, 'footerSitemap() source looks empty - the slice is wrong');
   assert.match(fn, /SIDEBAR_ICON\[/, 'footer glyphs must come from the sidebar mapping');
   assert.match(fn, /class="sitemap-ic" aria-hidden="true"/, 'footer glyphs are decorative and CSS-sized');
 });

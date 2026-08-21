@@ -118,7 +118,7 @@ function withoutAllow(src: string, ...names: string[]): string {
 /**
  * Drop comments so a rule is judged on COPY, not on the prose explaining it - a
  * doc comment that says "block 3 owns 'on your own device'" must not read as a
- * second telling. Only whole-line `//` comments and `/* *​/` blocks go: a trailing
+ * second telling. Only whole-line `//` comments and block comments go: a trailing
  * comment after code would take a URL's tail with it.
  */
 function stripComments(src: string): string {

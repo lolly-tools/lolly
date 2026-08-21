@@ -2,7 +2,7 @@
   "name": "وائس ریکارڈر",
   "description": "لائیو لیول میٹر اور نرم رہنمائی کے ساتھ ایک وائس نوٹ ریکارڈ کریں، پھر اسے MP3 کے طور پر محفوظ کریں۔",
   "featured.blurb": "لائیو لیول کوچنگ کے ساتھ صاف وائس نوٹ ریکارڈ کریں",
-  "a11yLabel": "وائس ریکارڈر — سطح {{default dbText \"idle\"}}",
+  "a11yLabel": "وائس ریکارڈر - سطح {{default dbText \"idle\"}}",
   "inputs.title.label": "لیبل",
   "inputs.title.help": "ریکارڈنگ کارڈ اور محفوظ شدہ فائل کا نام رکھتا ہے۔",
   "inputs.targetLevel.label": "مطلوبہ سطح",

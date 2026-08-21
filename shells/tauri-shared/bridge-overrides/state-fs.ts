@@ -236,7 +236,7 @@ export function createFsStateAPI(fs: StateFs): WebStateAPI {
         if (await fs.exists(path)) {
           priorCreated = (JSON.parse(await fs.readTextFile(path)) as ParsedRecord).createdAt;
         }
-      } catch { /* unreadable prior record — stamp fresh */ }
+      } catch { /* unreadable prior record - stamp fresh */ }
       const now = new Date().toISOString();
       const record: FsStateRecord = {
         slot,

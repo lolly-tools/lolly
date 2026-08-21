@@ -166,7 +166,7 @@ function isBold(n: PdfNode): boolean {
 }
 
 /** Leading list marker, if the line opens with one. */
-const LIST_MARKER = /^\s*(?:[•‣▪◦·–—*-]|\(?\d{1,3}[.)]|\(?[a-zA-Z][.)])\s+/;
+const LIST_MARKER = /^\s*(?:[•‣▪◦·–\u2014*-]|\(?\d{1,3}[.)]|\(?[a-zA-Z][.)])\s+/;
 
 /** Markdown control characters that would change meaning at the START of a line. */
 function escapeLeading(s: string): string {
@@ -684,7 +684,7 @@ export function extractPageText(nodes: PdfNode[], opts: PdfTextOptions = {}): Pa
 export function joinPageText(pages: PageText[], opts: { markdown?: boolean } = {}): string {
   const md = opts.markdown !== false;
   const parts = pages.map((p, i) => {
-    if (p.scanned) return md ? `> _Page ${i + 1} is a scanned image — no text layer to extract._` : `[Page ${i + 1}: scanned image, no text layer]`;
+    if (p.scanned) return md ? `> _Page ${i + 1} is a scanned image - no text layer to extract._` : `[Page ${i + 1}: scanned image, no text layer]`;
     return md ? p.markdown : p.text;
   });
   return parts.filter((s) => s.trim()).join(md ? '\n\n---\n\n' : '\n\n').trim();

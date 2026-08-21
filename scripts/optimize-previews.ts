@@ -37,4 +37,4 @@ for (const name of svgs) {
 }
 
 const pct = totalBefore ? Math.round((totalBefore - totalAfter) * 100 / totalBefore) : 0;
-console.log(`\nsvgo: optimised ${shrunk}/${svgs.length} previews — ${(totalBefore / 1024).toFixed(0)}K → ${(totalAfter / 1024).toFixed(0)}K (${pct}% smaller)`);
+console.log(`\nsvgo: optimised ${shrunk}/${svgs.length} previews - ${(totalBefore / 1024).toFixed(0)}K → ${(totalAfter / 1024).toFixed(0)}K (${pct}% smaller)`);

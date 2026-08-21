@@ -92,7 +92,7 @@ test('no dead band: a ceiling sits close above its gamut, sRGB tightest of all',
   assert.ok(chromaAxisMax('srgb') < 0.4, 'sRGB no longer borrows Rec.2020 headroom');
 });
 
-test('the ceiling is a property of the GAMUT ONLY — no lightness or hue in it', () => {
+test('the ceiling is a property of the GAMUT ONLY - no lightness or hue in it', () => {
   // Same call, same answer, whatever else is going on: this is what keeps the axis
   // from rescaling under the cursor mid-drag.
   const a = chromaAxisMax('p3');

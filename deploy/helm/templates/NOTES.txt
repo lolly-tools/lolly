@@ -1,15 +1,15 @@
-lolly {{ .Chart.AppVersion }} — release "{{ .Release.Name }}" installed in namespace "{{ .Release.Namespace }}".
+lolly {{ .Chart.AppVersion }} - release "{{ .Release.Name }}" installed in namespace "{{ .Release.Namespace }}".
 
 Components:
 {{- if .Values.web.enabled }}
-  web  (ON)   {{ include "lolly.componentImage" (dict "image" .Values.web.image "root" .) }}   — {{ .Values.web.replicaCount }} replica(s), stateless static PWA
+  web  (ON)   {{ include "lolly.componentImage" (dict "image" .Values.web.image "root" .) }}   - {{ .Values.web.replicaCount }} replica(s), stateless static PWA
 {{- else }}
-  web  (off)  — the primary product is disabled; nothing serves the app URL.
+  web  (off)  - the primary product is disabled; nothing serves the app URL.
 {{- end }}
-  mcp  ({{ if .Values.mcp.enabled }}ON{{ else }}off{{ end }}){{ if .Values.mcp.enabled }}   {{ include "lolly.componentImage" (dict "image" .Values.mcp.image "root" .) }}   — hosted MCP server{{ end }}
-  ca   ({{ if .Values.ca.enabled }}ON{{ else }}off{{ end }}){{ if .Values.ca.enabled }}   {{ include "lolly.componentImage" (dict "image" .Values.ca.image "root" .) }}   — C2PA credential authority{{ end }}
+  mcp  ({{ if .Values.mcp.enabled }}ON{{ else }}off{{ end }}){{ if .Values.mcp.enabled }}   {{ include "lolly.componentImage" (dict "image" .Values.mcp.image "root" .) }}   - hosted MCP server{{ end }}
+  ca   ({{ if .Values.ca.enabled }}ON{{ else }}off{{ end }}){{ if .Values.ca.enabled }}   {{ include "lolly.componentImage" (dict "image" .Values.ca.image "root" .) }}   - C2PA credential authority{{ end }}
 
-★ THE WEB APP IS THE PRIMARY URL you give employees — the offline-capable Lolly
+★ THE WEB APP IS THE PRIMARY URL you give employees - the offline-capable Lolly
   PWA. The mcp and ca services are opt-in backends; most installs only need web.
 
 {{- if .Values.web.enabled }}
@@ -26,12 +26,12 @@ Reach the web app:
   To publish it, set web.ingress.enabled=true and web.ingress.hosts[0].host.
 {{- end }}
 
-  The brand/catalog is baked into the web image at build time — there is nothing
+  The brand/catalog is baked into the web image at build time - there is nothing
   to mount or configure at runtime. To change brand, rebuild the image with a
   different --build-arg LOLLY_PROFILE and roll the deployment.
 {{- else }}
 
-WARNING: web.enabled=false — no one can open the Lolly app. Set web.enabled=true
+WARNING: web.enabled=false - no one can open the Lolly app. Set web.enabled=true
 (the default) unless you are deliberately running backends only.
 {{- end }}
 
@@ -46,7 +46,7 @@ MCP server:
   kubectl port-forward -n {{ .Release.Namespace }} svc/{{ include "lolly.componentFullname" (dict "root" . "name" "mcp") }} 8790:{{ .Values.mcp.service.port }}
 {{- end }}
 {{- if not .Values.mcp.webBase }}
-  Note: mcp.webBase is unset — Tier-B (browser) render formats are disabled;
+  Note: mcp.webBase is unset - Tier-B (browser) render formats are disabled;
   svg/data + resvg-png still work. Set mcp.webBase to your web host to enable them.
 {{- end }}
 {{- end }}

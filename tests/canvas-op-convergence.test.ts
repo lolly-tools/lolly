@@ -148,7 +148,7 @@ test('v1.1: version bumped, still same-major compatible with a 1.0 peer (section
   assert.equal(isCompatibleOpVersion('1.0.0', CANVAS_OP_VERSION), true);
   assert.equal(isCompatibleOpVersion(CANVAS_OP_VERSION, '1.0.0'), true);
   // Compatible does NOT mean every op may cross: `col` re-lanes an op, so the pair
-  // above is canvas-only until both sides are v1.1 — see the sendability test below.
+  // above is canvas-only until both sides are v1.1 - see the sendability test below.
 });
 
 test('damageToOps stamps the collection context; the default context stays v1.0-shaped', () => {

@@ -103,20 +103,20 @@ export function assembleTokenSetFiles(files: Record<string, unknown>): TokensExt
   for (const [path, body] of Object.entries(files)) {
     if (path === '$metadata.json') {
       if (isRecord(body)) doc.$metadata = body;
-      else warnings.push(`$metadata.json is not an object — ignored`);
+      else warnings.push(`$metadata.json is not an object - ignored`);
       continue;
     }
     if (path === '$themes.json') {
       if (Array.isArray(body)) doc.$themes = body;
-      else warnings.push(`$themes.json is not an array — ignored`);
+      else warnings.push(`$themes.json is not an array - ignored`);
       continue;
     }
     if (!path.endsWith('.json')) {
-      warnings.push(`${path}: not a .json file — ignored`);
+      warnings.push(`${path}: not a .json file - ignored`);
       continue;
     }
     if (!isRecord(body)) {
-      warnings.push(`${path}: set body is not an object — ignored`);
+      warnings.push(`${path}: set body is not an object - ignored`);
       continue;
     }
     doc[path.slice(0, -'.json'.length)] = body;
@@ -188,8 +188,8 @@ export function extractPenpotProject(entries: Record<string, Uint8Array | string
   } else {
     warnings.push(
       manifest === undefined
-        ? 'manifest.json missing or unparseable — scanning for files/*/tokens.json'
-        : 'manifest.json is not a penpot/export-files manifest — scanning for files/*/tokens.json',
+        ? 'manifest.json missing or unparseable - scanning for files/*/tokens.json'
+        : 'manifest.json is not a penpot/export-files manifest - scanning for files/*/tokens.json',
     );
     tokenPaths = Object.keys(entries)
       .filter(p => /^files\/[^/]+\/tokens\.json$/.test(p))
@@ -202,7 +202,7 @@ export function extractPenpotProject(entries: Record<string, Uint8Array | string
     const parsed = parseEntry(entries, path, warnings);
     if (parsed === undefined) continue;
     if (!isRecord(parsed)) {
-      warnings.push(`${path}: token document is not an object — ignored`);
+      warnings.push(`${path}: token document is not an object - ignored`);
       continue;
     }
     if (!doc) {
@@ -219,12 +219,12 @@ export function extractPenpotProject(entries: Record<string, Uint8Array | string
           key === '$themes' ? Array.isArray(v) && v.length > 0 : isRecord(v) && Object.keys(v).length > 0;
         if (!meaningful(doc[key])) doc[key] = value;
         else if (meaningful(value) && stableStringify(doc[key]) !== stableStringify(value)) {
-          warnings.push(`${path}: ${key} differs from an earlier file's — keeping the first`);
+          warnings.push(`${path}: ${key} differs from an earlier file's - keeping the first`);
         }
         continue;
       }
       if (Object.hasOwn(doc, key) && stableStringify(doc[key]) !== stableStringify(value)) {
-        warnings.push(`${path}: set "${key}" collides with an earlier file's — later file wins`);
+        warnings.push(`${path}: set "${key}" collides with an earlier file's - later file wins`);
       }
       doc[key] = value;
     }

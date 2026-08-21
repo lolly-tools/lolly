@@ -381,7 +381,7 @@ test('--s=<frame id> selects the same page by name, wherever it sits', async () 
   assert.match(await readFile(out, 'utf8'), /#333333/);
 });
 
-test('--s=<n>.<build> still exports the whole slide — builds are presenter-only', async () => {
+test('--s=<n>.<build> still exports the whole slide - builds are presenter-only', async () => {
   const out = outPath('svg');
   await run({ toolId: 'deck-tool', params: { s: '1.3' }, outputPath: out, format: 'svg' });
   assert.match(await readFile(out, 'utf8'), /#111111/);
@@ -594,7 +594,7 @@ test('stdout carries the payload and stderr carries the diagnostics (section 5.3
   assert.match(stderr, /--copy is not supported by the CLI/);
 });
 
-test('the whole payload reaches the pipe — no exit() truncation (B3)', async () => {
+test('the whole payload reaches the pipe - no exit() truncation (B3)', async () => {
   const { stdout, code } = await cli(['run', 'text-tool', '--export=svg', '--label=' + 'x'.repeat(200)]);
   assert.equal(code, EXIT.OK);
   // Whatever the length, the document must be COMPLETE: a truncated write loses the tail.
@@ -923,7 +923,7 @@ test('section 12 O2: the manifest opts a tool out on every surface at once', asy
   assert.equal(isImprintFormat('svg'), false, 'the Imprint lives in pixels; svg has none');
 });
 
-test('section 12 O3: `validate` keeps its name — no `inspect` verb exists or is reserved', () => {
+test('section 12 O3: `validate` keeps its name - no `inspect` verb exists or is reserved', () => {
   assert.ok(RESERVED_SUBCOMMANDS.includes('validate'));
   assert.equal(RESERVED_SUBCOMMANDS.includes('inspect' as never), false,
     'the rename was declined; reserving the word would imply it is still coming');

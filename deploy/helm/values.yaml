@@ -1,5 +1,5 @@
 # ============================================================================
-# lolly — Helm values
+# lolly - Helm values
 # ============================================================================
 # THIS IS THE ONE FILE YOU EDIT. Lolly's north star is "absolutely easy to
 # deploy": a Kubernetes cluster + a web image + this file is all it takes to
@@ -19,7 +19,7 @@
 #     --set web.ingress.tls[0].secretName=lolly-web-tls \
 #     --set web.ingress.tls[0].hosts[0]=lolly.example.com
 #
-# The two backend services (mcp, ca) are OPT-IN and disabled by default — turn
+# The two backend services (mcp, ca) are OPT-IN and disabled by default - turn
 # them on only if you need the hosted MCP server or the C2PA credential
 # authority (see their sections far below).
 # ============================================================================
@@ -41,20 +41,20 @@ serviceAccount:
   automountServiceAccountToken: false
 
 # ════════════════════════════════════════════════════════════════════════════
-# web — THE PRIMARY PRODUCT (enabled by default)
+# web - THE PRIMARY PRODUCT (enabled by default)
 # ════════════════════════════════════════════════════════════════════════════
 # The Lolly PWA: a fully static, offline-capable SPA served by nginx. It holds
 # NO server-side state (everything runs client-side; data lives in the browser's
 # IndexedDB), so replicas are freely interchangeable and it scales trivially.
 #
 # The brand/catalog is BAKED INTO THE IMAGE at build time (theme, tools/, and
-# catalog/ are resolved by `npm run build:web` — see deploy/docker/web.Dockerfile
+# catalog/ are resolved by `npm run build:web` - see deploy/docker/web.Dockerfile
 # --build-arg LOLLY_PROFILE). The running container reads nothing at serve time,
-# so there is NOTHING to mount here — no pack, no config, no secret.
+# so there is NOTHING to mount here - no pack, no config, no secret.
 web:
   enabled: true
 
-  # 2 replicas for HA. Stateless static content — raise freely for more traffic.
+  # 2 replicas for HA. Stateless static content - raise freely for more traffic.
   replicaCount: 2
 
   image:
@@ -75,7 +75,7 @@ web:
     # nginx cannot bind <1024, so this is 8080, not 80.
     targetPort: 8080
 
-  # TLS-ready ingress. Point config.instance is not needed — the PWA is origin-
+  # TLS-ready ingress. Point config.instance is not needed - the PWA is origin-
   # agnostic; just give it a hostname.
   ingress:
     enabled: false
@@ -131,7 +131,7 @@ web:
   extraEnv: []
 
 # ════════════════════════════════════════════════════════════════════════════
-# mcp — hosted MCP server (OPT-IN, disabled by default)
+# mcp - hosted MCP server (OPT-IN, disabled by default)
 # ════════════════════════════════════════════════════════════════════════════
 # Exposes the on-brand tool catalog + render path to AI agents over the Model
 # Context Protocol (Streamable-HTTP). Stateless. Listens on PORT (8790), serving
@@ -175,7 +175,7 @@ mcp:
       memory: 512Mi
 
   # The MCP server has no unauthenticated GET health route, so probes use a TCP
-  # socket check — the port is open once the http server is listening.
+  # socket check - the port is open once the http server is listening.
   livenessProbe:
     tcpSocket:
       port: http
@@ -204,14 +204,14 @@ mcp:
   podAnnotations: {}
   podLabels: {}
   # Extra non-secret env. For OAuth/provider secrets, mount your own secret via
-  # envFrom here or extend this chart — the MCP OAuth config is deployment-
+  # envFrom here or extend this chart - the MCP OAuth config is deployment-
   # specific and intentionally not templated.
   extraEnv: []
   # e.g. [{ secretRef: { name: lolly-mcp-oauth } }]
   extraEnvFrom: []
 
 # ════════════════════════════════════════════════════════════════════════════
-# ca — C2PA credential authority (OPT-IN, disabled by default)
+# ca - C2PA credential authority (OPT-IN, disabled by default)
 # ════════════════════════════════════════════════════════════════════════════
 # OIDC-verified short-lived X.509 leaf issuance for on-device C2PA signing.
 # Stateless (the only state is the root key/cert you supply). Listens on PORT
@@ -221,7 +221,7 @@ mcp:
 # REQUIRES a root CA key + cert and a service secret. Generate the root once:
 #   node services/ca/scripts/gen-root.mjs
 # then supply the PEMs + secret via `ca.secrets` (chart-managed) OR
-# `ca.existingSecret` (recommended for production — see below).
+# `ca.existingSecret` (recommended for production - see below).
 ca:
   enabled: false
 
@@ -285,7 +285,7 @@ ca:
   #   GITHUB_CLIENT_SECRET, GOOGLE_CLIENT_SECRET, SUSE_CLIENT_SECRET (as used)
   existingSecret: ""
   secrets:
-    # openssl rand -hex 32 — HMAC key for OAuth state + enrollment tokens.
+    # openssl rand -hex 32 - HMAC key for OAuth state + enrollment tokens.
     serviceSecret: ""
     # PKCS#8 PEM of the root private key (from gen-root.mjs). Keep it safe.
     rootKeyPem: ""
@@ -325,7 +325,7 @@ ca:
 # Secure defaults: run as a non-root user, drop all capabilities, no privilege
 # escalation, read-only root filesystem. The web image (nginx-unprivileged) runs
 # as uid 101; the node services run as uid 1000. fsGroup is unset so each image's
-# own default applies — override per install if your policy requires a fixed gid.
+# own default applies - override per install if your policy requires a fixed gid.
 podSecurityContext:
   runAsNonRoot: true
   seccompProfile:

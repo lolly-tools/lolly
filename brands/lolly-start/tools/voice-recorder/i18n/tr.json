@@ -2,7 +2,7 @@
   "name": "Ses Kaydedici",
   "description": "Canlı seviye göstergesi ve yumuşak yönlendirmelerle bir ses notunu kayda al, ardından MP3 olarak kaydet.",
   "featured.blurb": "Canlı seviye rehberliğiyle temiz bir sesli not kaydet",
-  "a11yLabel": "Ses kaydedici — seviye {{default dbText \"idle\"}}",
+  "a11yLabel": "Ses kaydedici - seviye {{default dbText \"idle\"}}",
   "inputs.title.label": "Etiket",
   "inputs.title.help": "Kayıt kartını ve kaydedilen dosyayı adlandırır.",
   "inputs.targetLevel.label": "Hedef seviye",

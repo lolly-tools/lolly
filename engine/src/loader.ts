@@ -229,7 +229,7 @@ async function assertEnvelopeTrusted(integrity: ToolIntegrityOpts): Promise<void
   }
   const result = await pending;
   if (!result.ok) {
-    throw new ToolLoadError(`catalog integrity: envelope rejected — ${result.reason}`, []);
+    throw new ToolLoadError(`catalog integrity: envelope rejected - ${result.reason}`, []);
   }
 }
 
@@ -248,7 +248,7 @@ async function assertFileIntegrity(
   if (text == null) {
     if (integrity.envelope.files?.[`${toolId}/${filename}`]) {
       throw new ToolLoadError(
-        `catalog integrity: "${toolId}/${filename}" is signed in the catalog but failed to load — refusing to run without it`,
+        `catalog integrity: "${toolId}/${filename}" is signed in the catalog but failed to load - refusing to run without it`,
         [],
       );
     }
@@ -301,7 +301,7 @@ export async function loadTool(toolId: string, fetchFile: ToolFetchFile, opts: L
     : null;
   if (declaredRange !== null && !satisfiesRange(ENGINE_VERSION, declaredRange)) {
     throw new ToolLoadError(
-      `"${toolId}" requires engine ${declaredRange}, but this build implements ${ENGINE_VERSION} — refusing to load`,
+      `"${toolId}" requires engine ${declaredRange}, but this build implements ${ENGINE_VERSION} - refusing to load`,
       [],
     );
   }

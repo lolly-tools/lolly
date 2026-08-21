@@ -79,7 +79,7 @@ const USAGE = `Usage:
   node scripts/ingest-audio.ts <srcDir> --brand <brand> --prefix <id/prefix> [options]
 
   <srcDir>       directory of tracker modules (${'.mod .xm .s3m .it .stm .mtm'})
-  --brand        a key from profiles.json (e.g. lolly-start, suse) — decides which
+  --brand        a key from profiles.json (e.g. lolly-start, suse) - decides which
                  brand pack's catalog receives the entries
   --prefix       asset-id prefix, e.g. 'lolly/modules'. First segment must be
                  [a-z0-9]+ with NO hyphen (asset.schema.json id pattern).
@@ -87,7 +87,7 @@ const USAGE = `Usage:
                  REQUIRED unless every file has a sidecar. There is no default.
   --author       credit applied to every file lacking a sidecar author
   --tag          extra tag (repeatable)
-  --neurospicy   tag these as focus-music (see the note in decideTags) — default OFF
+  --neurospicy   tag these as focus-music (see the note in decideTags) - default OFF
   --tier         core | catalog | on-demand   (default: on-demand)
   --write        actually copy the files and update the brand's assets/index.json.
                  Omit for a DRY RUN, which is the default and touches nothing.`;
@@ -222,10 +222,10 @@ export function buildDescription(o: {
   ext: string; author?: string; licence: string; source?: string; durationMs?: number; override?: string;
 }): string {
   if (o.override) return o.override;
-  const secs = o.durationMs != null ? ` — ${Math.round(o.durationMs / 1000)} s` : '';
+  const secs = o.durationMs != null ? ` - ${Math.round(o.durationMs / 1000)} s` : '';
   const by = o.author ? ` by ${o.author}` : '';
   const src = o.source ? ` Source: ${o.source}.` : '';
-  return `Tracker module (${o.ext.toUpperCase()})${by}${secs} — decoded on-device by libopenmpt; `
+  return `Tracker module (${o.ext.toUpperCase()})${by}${secs} - decoded on-device by libopenmpt; `
     + `selectable as a video music bed and in the focus player. Licence: ${o.licence}.${src}`;
 }
 
@@ -292,7 +292,7 @@ export function parseArgs(argv: string[]): Args {
   // ('lolly-start/…' is illegal) only shows up on the whole string.
   if (!ASSET_ID_RE.test(`${prefix}/probe`)) {
     fail(`--prefix "${prefix}" cannot form a legal asset id (asset.schema.json: ${ASSET_ID_RE}).\n`
-      + `  The FIRST segment must be [a-z0-9]+ with no hyphen — for the lolly-start brand use e.g. "lolly/modules".`);
+      + `  The FIRST segment must be [a-z0-9]+ with no hyphen - for the lolly-start brand use e.g. "lolly/modules".`);
   }
   const tier = typeof flags.tier === 'string' ? flags.tier : 'on-demand';
   if (!['core', 'catalog', 'on-demand'].includes(tier)) fail(`--tier "${tier}" must be core | catalog | on-demand`);
@@ -318,7 +318,7 @@ export function catalogDirForBrand(brand: string, profiles: { profiles: Record<s
     fail(`--brand "${brand}" is not in profiles.json (known: ${Object.keys(profiles.profiles).join(', ')})`);
   }
   if (/^(catalog|tools)(\/|$)/.test(p.catalog)) {
-    fail(`profile "${brand}" points at the ${p.catalog} profile VIEW — refusing to write through a symlink farm`);
+    fail(`profile "${brand}" points at the ${p.catalog} profile VIEW - refusing to write through a symlink farm`);
   }
   return p.catalog;
 }
@@ -415,7 +415,7 @@ export async function planFile(absSrc: string, file: string, args: Args, existin
   const id = `${args.prefix}/${slug}`;
   if (!ASSET_ID_RE.test(id)) return { src: absSrc, file, ok: false, reason: `derived id "${id}" is not a legal asset id` };
   if (existingIds.has(id)) {
-    return { src: absSrc, file, ok: false, reason: `id "${id}" already exists in this catalog — asset ids are permanent and never reused` };
+    return { src: absSrc, file, ok: false, reason: `id "${id}" already exists in this catalog - asset ids are permanent and never reused` };
   }
 
   const { checksum, size } = sri(bytes);
@@ -452,7 +452,7 @@ async function main(): Promise<void> {
     { profiles: Record<string, { catalog: string }> };
   const catalogRel = catalogDirForBrand(args.brand, profiles);
   const indexPath = join(ROOT, catalogRel, 'assets/index.json');
-  if (!existsSync(indexPath)) fail(`${catalogRel}/assets/index.json not found — is the "${args.brand}" pack mounted? (git submodule update --init)`);
+  if (!existsSync(indexPath)) fail(`${catalogRel}/assets/index.json not found - is the "${args.brand}" pack mounted? (git submodule update --init)`);
   const index = JSON.parse(readFileSync(indexPath, 'utf8')) as { assets: AssetEntry[]; generatedAt?: string };
   const existingIds = new Set(index.assets.map(a => a.id));
 
@@ -465,7 +465,7 @@ async function main(): Promise<void> {
   const M = await openmpt();
   console.log(M
     ? 'durationMs: MEASURED via vendored libopenmpt (shells/web/src/vendor/libopenmpt)'
-    : 'durationMs: OMITTED — vendored libopenmpt not available under this checkout; supply it per file via a sidecar "durationMs" if you need it');
+    : 'durationMs: OMITTED - vendored libopenmpt not available under this checkout; supply it per file via a sidecar "durationMs" if you need it');
   console.log('');
 
   const planned: PlannedFile[] = [];
@@ -483,14 +483,14 @@ async function main(): Promise<void> {
   }
   for (const p of refused) {
     console.log(`─ ${p.file}`);
-    console.log(`  ✗ REFUSED — ${p.reason}`);
+    console.log(`  ✗ REFUSED - ${p.reason}`);
     console.log('');
   }
 
   console.log(`${ok.length} entr${ok.length === 1 ? 'y' : 'ies'} planned · ${refused.length} refused`);
 
   if (!args.write) {
-    console.log('\nDRY RUN — nothing was written. Re-run with --write once every file has a licence.');
+    console.log('\nDRY RUN - nothing was written. Re-run with --write once every file has a licence.');
     return;
   }
   if (refused.length) {

@@ -2,7 +2,7 @@
   "name": "Enregistreur vocal",
   "description": "Enregistre une note vocale avec un indicateur de niveau en direct et des conseils en douceur, puis enregistre-la en MP3.",
   "featured.blurb": "Enregistre une note vocale nette avec un accompagnement de niveau en direct",
-  "a11yLabel": "Enregistreur vocal — niveau {{default dbText \"idle\"}}",
+  "a11yLabel": "Enregistreur vocal - niveau {{default dbText \"idle\"}}",
   "inputs.title.label": "Étiquette",
   "inputs.title.help": "Nomme la carte d'enregistrement et le fichier enregistré.",
   "inputs.targetLevel.label": "Niveau cible",

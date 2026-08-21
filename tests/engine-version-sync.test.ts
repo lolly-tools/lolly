@@ -41,7 +41,7 @@ test('engine/package.json version tracks ENGINE_VERSION', () => {
   assert.equal(
     pkg,
     src,
-    `engine/package.json version (${pkg}) != ENGINE_VERSION (${src}) — bump both together. ` +
+    `engine/package.json version (${pkg}) != ENGINE_VERSION (${src}) - bump both together. ` +
       'The published package version IS the engine version; pack-engine.ts refuses to pack when they differ.',
   );
 });

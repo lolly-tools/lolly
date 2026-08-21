@@ -104,7 +104,7 @@ for (const fmt of TEXT_FORMATS) {
 
     const read = extractC2paDetailed(out);
     assert.ok(read?.store, `${fmt}: a store comes back out`);
-    assert.equal(read!.status, undefined, `${fmt}: carrier is usable — ${read!.detail ?? ''}`);
+    assert.equal(read!.status, undefined, `${fmt}: carrier is usable - ${read!.detail ?? ''}`);
     assert.equal(read!.exclusions?.length, 1, `${fmt}: section A.7.1.3/section A.9.4 declare exactly one exclusion`);
 
     const report = await verifyC2pa(out);
@@ -300,7 +300,7 @@ test('bare-CR hosts are refused rather than silently converted', () => {
 
 // ─── the two-pass placer contract ─────────────────────────────────────────────
 
-test('placement is content-independent — and, for these placers, length-independent too', () => {
+test('placement is content-independent - and, for these placers, length-independent too', () => {
   // embedC2pa's contract is "bytes outside the exclusions depend only on manifest
   // LENGTH". Both text placers are stronger: the carrier is spliced whole into a
   // region that is entirely inside the exclusion, so the bytes outside it depend
@@ -371,7 +371,7 @@ test('section A.7.1: an existing <link rel="c2pa-manifest"> is removed, never le
   assert.equal(report.textBinding?.status, undefined, 'no multipleManifests');
 });
 
-test('a carrier hidden in an HTML comment is stripped too — the validator counts it', async () => {
+test('a carrier hidden in an HTML comment is stripped too - the validator counts it', async () => {
   // The reader's scan does not mask comments, so a leftover in one would be a
   // second association and manifest.html.multipleManifests. Strip what the
   // VALIDATOR counts, even where a browser would not.
@@ -422,7 +422,7 @@ test('a fragment carrying inline SVG still reads as structured text, not as an S
   // is undefined here and for every other format too. A reader therefore cannot
   // recover "this is the Lolly fragment profile" from the claim; the signal that
   // DOES survive is the export environment the signer records.
-  assert.equal(report.claim?.format, undefined, 'v2 claims carry no dc:format — not a fragment-profile signal');
+  assert.equal(report.claim?.format, undefined, 'v2 claims carry no dc:format - not a fragment-profile signal');
   assert.equal(report.environment?.format, 'html-fragment', 'the export environment is what names the profile');
 });
 
@@ -433,10 +433,10 @@ test('section A.9.3: an existing block is replaced, but ambiguity is refused not
   // Two blocks: section A.9.3 already makes this file unreadable; picking one to keep
   // would be a guess about which.
   const two = `a();\n// ${ARMOR_BEGIN} data:application/c2pa;base64,QQ== ${ARMOR_END}\n// ${ARMOR_BEGIN} data:application/c2pa;base64,Qg== ${ARMOR_END}\n`;
-  assert.throws(() => attachC2paStore(bytesOf(two), 'js', store), /more than one — or a malformed — C2PA manifest block/);
+  assert.throws(() => attachC2paStore(bytesOf(two), 'js', store), /more than one - or a malformed - C2PA manifest block/);
   // A dangling END, or END before BEGIN.
-  assert.throws(() => attachC2paStore(bytesOf(`a();\n// ${ARMOR_END}\n`), 'js', store), /more than one — or a malformed/);
-  assert.throws(() => attachC2paStore(bytesOf(`a();\n// ${ARMOR_END} x ${ARMOR_BEGIN}\n`), 'js', store), /more than one — or a malformed/);
+  assert.throws(() => attachC2paStore(bytesOf(`a();\n// ${ARMOR_END}\n`), 'js', store), /more than one - or a malformed/);
+  assert.throws(() => attachC2paStore(bytesOf(`a();\n// ${ARMOR_END} x ${ARMOR_BEGIN}\n`), 'js', store), /more than one - or a malformed/);
   // Prose that QUOTES the delimiters is not a credential - deleting somebody's
   // paragraph to make room for one is not a trade a writer gets to make.
   const prose = `# Spec digest\n\nThe block is delimited by ${ARMOR_BEGIN} and ${ARMOR_END} markers.\n`;
@@ -508,7 +508,7 @@ test('section A.7.1.1: a `<head` written inside a script or style is text, not a
   }
 });
 
-test('an empty or whitespace-only host is refused — that binding would hash nothing', () => {
+test('an empty or whitespace-only host is refused - that binding would hash nothing', () => {
   // section A.9.4's third case ("the file contains only the manifest block") is an
   // exclusion of {0, whole file}: a hard binding over zero bytes, which matches
   // every other such file. Refuse rather than mint one.
@@ -558,10 +558,10 @@ test('hostile and truncated hosts throw cleanly and never hang', () => {
       assert.ok(extractC2paDetailed(out)?.store, `${fmt}: ${what} placed but does not read back`);
     } catch (err) {
       threw = true;
-      assert.match((err as Error).message, /^C2PA embed: /, `${fmt}: ${what} — clean, prefixed error`);
+      assert.match((err as Error).message, /^C2PA embed: /, `${fmt}: ${what} - clean, prefixed error`);
     }
     const ms = Date.now() - t0;
-    assert.ok(ms < 5_000, `${fmt}: ${what} took ${ms}ms — that is a quadratic scan, not a slow machine`);
+    assert.ok(ms < 5_000, `${fmt}: ${what} took ${ms}ms - that is a quadratic scan, not a slow machine`);
     assert.ok(threw || true);
   }
 });

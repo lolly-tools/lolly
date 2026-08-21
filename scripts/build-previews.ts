@@ -173,7 +173,7 @@ async function main(): Promise<void> {
     // With --skip-existing an empty list just means everything is already covered
     // (every dev:web start hits this once the previews exist) - not an error.
     if (opts.skipExisting) {
-      console.log('All tools already have a preview or card — nothing to generate.');
+      console.log('All tools already have a preview or card - nothing to generate.');
       return;
     }
     throw new Error('No exportable tools found in catalog/tools/index.json.');
@@ -583,7 +583,7 @@ async function optimizeSvgThumb(page: Page, svg: string): Promise<string> {
       });
       out = substituteDataUris(out, map);
     }
-  } catch { /* downscaling is best-effort — keep the comment-stripped SVG */ }
+  } catch { /* downscaling is best-effort - keep the comment-stripped SVG */ }
   // Final pass: svgo path-precision + structure cleanup (the big vector win - the
   // comment/raster passes above never touch geometry). Fail-safe, only shrinks.
   return svgoThumb(out);
@@ -678,7 +678,7 @@ async function toolList(): Promise<Tool[]> {
   // produce a static preview, so skip them up front instead of eating a guaranteed
   // ~20s waitForSelector timeout per run.
   const gated = tools.filter((t) => t.capabilities.includes('capture'));
-  if (gated.length) console.log(`Skipping ${gated.map((t) => t.id).join(', ')} (capture-gated — no static preview).`);
+  if (gated.length) console.log(`Skipping ${gated.map((t) => t.id).join(', ')} (capture-gated - no static preview).`);
   tools = tools.filter((t) => !t.capabilities.includes('capture'));
   // --skip-existing: only fill in the gaps. A tool that already has a generated
   // preview (or a committed card) needs no work - drop it so repeat runs, e.g. on

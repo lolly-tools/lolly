@@ -400,7 +400,7 @@ test('packWav clips int16 output rather than wrapping', () => {
   assert.equal(back[3], -1);
 });
 
-test('packWav float32 does NOT clip — a hot master stays hot', () => {
+test('packWav float32 does NOT clip - a hot master stays hot', () => {
   const src = new Float32Array([2, -2]);
   const out = parseWav(packWav({ channels: [src], sampleRate: 8000 }, { format: 'float32' }));
   assert.deepEqual(Array.from(out.channels[0]!), [2, -2]);

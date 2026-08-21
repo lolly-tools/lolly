@@ -1,21 +1,21 @@
-# Quality gate — runs on every push to main and every PR.
+# Quality gate - runs on every push to main and every PR.
 # Independent gates run in parallel (plans/archive/qa-audit-2026-06-28.md #1):
-#   test            — full repo suite (engine contract tests + core/web/mcp)
-#   typecheck       — tsc -p across every project, INCLUDING both Tauri shells'
+#   test            - full repo suite (engine contract tests + core/web/mcp)
+#   typecheck       - tsc -p across every project, INCLUDING both Tauri shells'
 #                     bridge-overrides (this job installs those two shells,
-#                     which are not npm workspaces, so the gate is real here —
+#                     which are not npm workspaces, so the gate is real here -
 #                     the --strict step fails if the install is ever dropped)
-#   validate        — catalog manifests/index drift + asset checksums
-#   smoke           — render every catalog tool at manifest defaults (headless,
+#   validate        - catalog manifests/index drift + asset checksums
+#   smoke           - render every catalog tool at manifest defaults (headless,
 #                     browser-free); a hooks.js regression that renders blank
 #                     fails here instead of shipping green
-#   build + budget  — production web build (hard gate), then the boot-path
+#   build + budget  - production web build (hard gate), then the boot-path
 #                     bundle budget (scripts/check-bundle-budget.ts is
 #                     deliberately NOT part of build:web, so CI runs it after).
-#   api-bundles     — regenerate the committed api/ function bundles and fail
+#   api-bundles     - regenerate the committed api/ function bundles and fail
 #                     on drift (they are generated esbuild output, like
 #                     catalog/tools/index.json).
-#   audit           — npm audit (blocks on HIGH/CRITICAL; moderate/low surfaced,
+#   audit           - npm audit (blocks on HIGH/CRITICAL; moderate/low surfaced,
 #                     non-blocking) + SBOM freshness (regenerate sbom.cdx.json, fail
 #                     on drift) + third-party notices (build:licenses exits 1 on a
 #                     coverage gap; drift in the generated files fails the diff) +
@@ -46,7 +46,7 @@ concurrency:
 
 # onnxruntime-node's postinstall attempts a CUDA EP download on linux runners and
 # dies on an unhandled rejection (macOS never takes that path). No job here needs
-# CUDA; skip it so `npm ci` survives. Node is 24 to match the repo target — and
+# CUDA; skip it so `npm ci` survives. Node is 24 to match the repo target - and
 # npm 11's audit, which resolves override floors the way the lockfile intends.
 env:
   ONNXRUNTIME_NODE_INSTALL_CUDA: skip
@@ -68,7 +68,7 @@ jobs:
       - name: Install (workspaces)
         run: npm ci
 
-      # Conformance binaries — the C2PA/PDF conformance tests (tests/c2pa-c2patool-
+      # Conformance binaries - the C2PA/PDF conformance tests (tests/c2pa-c2patool-
       # conformance.test.ts + gated cases in c2pa.test.ts / c2pa-formats.test.ts)
       # skip silently when qpdf/c2patool aren't on PATH. Install both so they run.
       - name: Install qpdf (PDF conformance checks)
@@ -103,25 +103,25 @@ jobs:
           npm test 2>&1 | tee test-output.log
 
       # Skipped tests GATE (ratchet). On this runner the skip set is a KNOWN,
-      # environment-determined quantity — qpdf and c2patool are installed above,
+      # environment-determined quantity - qpdf and c2patool are installed above,
       # so the C2PA/PDF conformance tests all RUN here (zero conformance skips,
       # including the dynamic "this c2patool build cannot read PDFs" case). A
       # skip count above the baseline therefore means something that used to run
-      # is silently skipping again — e.g. a conformance-binary install step broke
-      # — and that must FAIL, not scroll past in the log.
+      # is silently skipping again - e.g. a conformance-binary install step broke
+      # - and that must FAIL, not scroll past in the log.
       #
       # EXPECTED_SKIPS is a RATCHET BASELINE, not a hand-derived invariant: the
       # per-test conditions (fixture presence, loops, dynamic t.skip) make the
       # exact number impractical to derive statically, so it is pinned to the
       # count observed on main (run 30541115113, 2026-07-30; +16 browser-gated
       # golden/emission tests added 2026-07-31). What legitimately skips on
-      # this runner, by reason (informational; these lines sum to 217 — one
+      # this runner, by reason (informational; these lines sum to 217 - one
       # bucket has overcounted by 1 since the 2026-07-30 baseline run, which
       # observed 200 against lines then summing to 201. Reconcile against the
       # next CI run's per-reason output; the baseline number is the observed
       # count, so the GATE is right even while the breakdown is off by one):
-      #  122  no browser — Playwright Chromium not installed
-      #   31  SUSE brand pack not mounted — brands/suse is `update = none` in CI
+      #  122  no browser - Playwright Chromium not installed
+      #   31  SUSE brand pack not mounted - brands/suse is `update = none` in CI
       #   31  macOS ColorSync stock profiles absent on ubuntu (icc.test.ts)
       #   28  UXDays keynote .penpot fixture (dev-machine only)
       #   17  SUSE static fonts not in the lolly-start fallback profile
@@ -147,13 +147,13 @@ jobs:
       # If a PR legitimately adds environment-gated tests, raise the baseline in
       # that same PR; when skips are removed (e.g. browsers installed in CI, or
       # fixtures committed), LOWER it so the ratchet keeps its teeth. Local runs
-      # are unaffected — this gate only runs in CI, where the toolchain is known.
+      # are unaffected - this gate only runs in CI, where the toolchain is known.
       - name: Skipped tests must not exceed the CI baseline
         if: always()
         env:
           EXPECTED_SKIPS: 308
         run: |
-          # node:test prints a run summary — "ℹ skipped N" (spec reporter) or
+          # node:test prints a run summary - "ℹ skipped N" (spec reporter) or
           # "# skipped N" (tap, the non-TTY default on some Node lines). Strip
           # ANSI colour codes first, then surface the counts in the job log.
           sed $'s/\x1b\[[0-9;]*m//g' test-output.log \
@@ -169,7 +169,7 @@ jobs:
           skipped=$(sed $'s/\x1b\[[0-9;]*m//g' test-output.log \
             | grep -E '^(#|ℹ) skipped [0-9]+' | tail -1 | grep -oE '[0-9]+' | tail -1 || true)
           if [ -z "$skipped" ]; then
-            echo "::error::no node:test skip summary found in test-output.log — cannot verify the skip baseline"
+            echo "::error::no node:test skip summary found in test-output.log - cannot verify the skip baseline"
             exit 1
           fi
           echo "skipped: $skipped (baseline: $EXPECTED_SKIPS)"
@@ -178,7 +178,7 @@ jobs:
             exit 1
           fi
           if [ "$skipped" -lt "$EXPECTED_SKIPS" ]; then
-            echo "note: $skipped < $EXPECTED_SKIPS — skips were removed; lower EXPECTED_SKIPS in ci.yml to ratchet the baseline down."
+            echo "note: $skipped < $EXPECTED_SKIPS - skips were removed; lower EXPECTED_SKIPS in ci.yml to ratchet the baseline down."
           fi
 
   typecheck:
@@ -200,12 +200,12 @@ jobs:
       # bridge-overrides/ is the whole application-specific surface of both Tauri
       # shells, and those shells are deliberately NOT npm workspaces, so `npm ci`
       # above does not create their node_modules and the @tauri-apps types their
-      # overrides import would not resolve. Install them here — production deps
+      # overrides import would not resolve. Install them here - production deps
       # only, since the types are all the typecheck needs and --omit=dev skips the
       # Tauri CLI and Vite. Without this, typecheck:tauri SKIPS (by design, so a
       # plain clone is not punished) and the --strict step below fails loudly
       # rather than letting the gate quietly become a no-op.
-      - name: Install (Tauri shells — types only, not npm workspaces)
+      - name: Install (Tauri shells - types only, not npm workspaces)
         run: |
           npm --prefix shells/tauri-desktop ci --omit=dev
           npm --prefix shells/tauri-mobile ci --omit=dev
@@ -231,7 +231,7 @@ jobs:
 
       # docs/build.ts's `pages` array is hand-maintained and the /info nav derives
       # from it, so a .md could be written and committed while staying unreachable
-      # from the site — docs/ios-build.md was exactly that. Every docs/*.md must now
+      # from the site - docs/ios-build.md was exactly that. Every docs/*.md must now
       # be a registered page or a declared exception (see NOT_PAGES in the script).
       - name: Docs nav completeness (no orphaned docs/*.md)
         run: npm run check:docs-nav
@@ -262,11 +262,11 @@ jobs:
       - name: Validate catalog (no manifest/index drift, asset checksums)
         run: npm run validate:catalog
 
-  # Catalog-wide render gate — `lolly smoke` renders every tool in the active profile
+  # Catalog-wide render gate - `lolly smoke` renders every tool in the active profile
   # at manifest defaults (sequential, browser-free: first Node-native format, html as
   # the layout fallback) and exits non-zero on any failed render. CI checks out the
   # public submodules only (brands/suse is `update = none`), so postinstall builds the
-  # lolly-start fallback profile — the community tools are what gets smoked here; a
+  # lolly-start fallback profile - the community tools are what gets smoked here; a
   # SUSE-profile smoke is a local/`loldev` concern.
   smoke:
     name: smoke (render every tool)
@@ -335,16 +335,16 @@ jobs:
       - name: No drift (stale bundle? rerun build:mcp-fn / build:ca-fn and commit)
         run: git diff --exit-code -- api/
 
-  # Self-test of the in-tree composite action (action/ — ready to split into
-  # lolly-tools/render-action, plans/48-fable-new-potential.md §5.4). Exercises the
+  # Self-test of the in-tree composite action (action/ - ready to split into
+  # lolly-tools/render-action, plans/48-fable-new-potential.md section 5.4). Exercises the
   # real consumer path end-to-end: the action checks out lolly at THIS commit,
   # npm ci builds the lolly-start fallback profile, and qr-code renders to SVG
-  # browser-free (Tier A) — so the action stays green before the split.
+  # browser-free (Tier A) - so the action stays green before the split.
   render-action:
     name: render-action self-test
     runs-on: ubuntu-latest
     steps:
-      # No submodules: this job only needs action/ itself — the action performs
+      # No submodules: this job only needs action/ itself - the action performs
       # its own pinned lolly checkout into a work dir.
       - uses: actions/checkout@v7
 
@@ -367,27 +367,27 @@ jobs:
           [ "$FILES" = "qr-code.svg" ]
           echo "rendered: $FILES → $OUT_DIR"
 
-  # Dependency vulnerabilities — fail on any HIGH or CRITICAL advisory so a new
+  # Dependency vulnerabilities - fail on any HIGH or CRITICAL advisory so a new
   # vulnerable dep can't land silently (readiness for the security audit). Moderate/
   # low are surfaced but don't block. A false alarm can be pinned via package.json
   # `overrides` (as adm-zip is, forced to ^0.6.0 past onnxruntime-node's ^0.5.16).
   #
   # Most advisories clear with `npm update --package-lock-only <pkg>`, because the
-  # fixed version already satisfies the range its parent declares — no package.json
+  # fixed version already satisfies the range its parent declares - no package.json
   # edit, no `npm audit fix --force`, which is never the answer here. An override is
   # for the other case: the parent's declared range EXCLUDES the fix. Two live now,
   # both scoped as narrowly as the syntax allows:
-  #   - ip-address ^10.3.1 / nanoid ^3.3.17 — floors, not pins. Both were already
+  #   - ip-address ^10.3.1 / nanoid ^3.3.17 - floors, not pins. Both were already
   #     satisfiable (express-rate-limit wants ^10.2.0, postcss wants ^3.3.16); the
   #     entries stop a future resolve from walking back under the advisory.
-  #   - @huggingface/transformers > sharp: "$sharp" — transformers pins sharp
+  #   - @huggingface/transformers > sharp: "$sharp" - transformers pins sharp
   #     ^0.34.1 and every published version of it still does, including 4.x, so
   #     upgrading transformers does NOT clear GHSA-f88m-g3jw-g9cj. `$sharp` reuses
   #     the root's own sharp spec, which keeps ONE sharp (and one libvips binary)
   #     in the tree instead of two. Verified against transformers' actual sharp
   #     usage: it calls metadata/rotate/raw/toBuffer/affine/resize/extract, none of
   #     the APIs 0.35.0 removed (failOnError, paletteBitDepth, jp2k, sharpen opts).
-  #     Revisit when transformers widens its range — then this can just go.
+  #     Revisit when transformers widens its range - then this can just go.
   audit:
     name: npm audit (high+critical)
     runs-on: ubuntu-latest
@@ -404,7 +404,7 @@ jobs:
       - name: Install (workspaces)
         run: npm ci
 
-      - name: Audit — block on high/critical
+      - name: Audit - block on high/critical
         run: npm audit --audit-level=high
 
       - name: Full advisory report (non-blocking, for the log)
@@ -413,7 +413,7 @@ jobs:
 
       # The committed CycloneDX SBOM (sbom.cdx.json) is generated from package-lock.json
       # (scripts/build-sbom.ts, deterministic). Regenerate + fail on drift so it can't go
-      # stale vs the installed graph — same discipline as the api-bundles drift gate.
+      # stale vs the installed graph - same discipline as the api-bundles drift gate.
       - name: SBOM up to date (regenerate; fail on drift)
         run: |
           npm run build:sbom
@@ -421,10 +421,10 @@ jobs:
 
       # Third-party notices are generated the same way (scripts/build-licenses.ts).
       # The generator itself EXITS 1 when a distributed direct dependency is missing
-      # from its component list, so an attribution gap blocks here — and drift in
+      # from its component list, so an attribution gap blocks here - and drift in
       # the committed outputs blocks on the diff, like the SBOM above.
       # (THIRD-PARTY-LICENSES.txt lives in the shells/web submodule, so its drift
-      # check has to run inside that repo — a superproject pathspec can't see it.)
+      # check has to run inside that repo - a superproject pathspec can't see it.)
       - name: Third-party notices complete + up to date (fail on gap or drift)
         run: |
           npm run build:licenses
@@ -432,7 +432,7 @@ jobs:
           git -C shells/web diff --exit-code -- public/THIRD-PARTY-LICENSES.txt
 
       # Rust crate licenses come from the committed cargo-licenses.json map, which
-      # is generated by `cargo metadata` — and CI has no Rust toolchain, so unlike
+      # is generated by `cargo metadata` - and CI has no Rust toolchain, so unlike
       # the two gates above this artifact CANNOT be regenerated-and-diffed here.
       # That made it the one licence artifact a `cargo update` could silently
       # invalidate while the job still went green. Check COVERAGE instead: every
@@ -447,7 +447,7 @@ jobs:
   # the repo had no SAST gate at all. Two deliberate design choices:
   #
   #   1. DIFF MODE, not full-tree. A full-tree gate fails on ~7,500 pre-existing
-  #      findings and gets switched off within a week — the fate the advisory-only
+  #      findings and gets switched off within a week - the fate the advisory-only
   #      Biome baseline already documents (~3,000 findings, see CLAUDE.md). Only
   #      findings NEW in this PR block.
   #   2. The two rules producing 5,197 of those findings are excluded: this
@@ -456,13 +456,13 @@ jobs:
   #
   # The custom rules in .github/opengrep/ are the more valuable half: the one real
   # vulnerability in the assessment (a javascript: href that WAS escaped but not
-  # scheme-checked) fired no upstream rule. Those run full-tree, not diff-only —
+  # scheme-checked) fired no upstream rule. Those run full-tree, not diff-only -
   # there is no backlog of them to grandfather in.
   sast:
     name: opengrep (custom rules + new findings)
     runs-on: ubuntu-latest
     # Runs on PUSH as well as PR. It was PR-only, which sounds harmless until you
-    # notice this repo commits straight to main — so the security gate never saw a
+    # notice this repo commits straight to main - so the security gate never saw a
     # single one of the commits it was added to guard (SUSE assessment follow-up,
     # 2026-08-04). The Lolly rules below are full-tree and need no baseline, so
     # they work on either event; only the upstream diff step needs one, and it
@@ -474,7 +474,7 @@ jobs:
           # Full history so --baseline-commit can reach the merge base.
           fetch-depth: 0
 
-      # Opengrep publishes NO PyPI package — `pipx install opengrep` cannot resolve
+      # Opengrep publishes NO PyPI package - `pipx install opengrep` cannot resolve
       # (verified 2026-08-04: "No matching distribution found"). The release ships a
       # self-contained binary per platform, so fetch that and pin the version.
       - name: Install Opengrep
@@ -487,17 +487,17 @@ jobs:
           chmod +x /usr/local/bin/opengrep
           opengrep --version
 
-      # Lolly's own rules — full-tree, blocking. No pre-existing backlog to absorb.
+      # Lolly's own rules - full-tree, blocking. No pre-existing backlog to absorb.
       #
       # `--no-git-ignore` is REQUIRED, not a preference: opengrep defaults to
       # scanning only files git tracks, and every shell lives in a SUBMODULE, so
       # from the parent repo their files are gitlinks rather than tracked paths.
-      # Without it this step scanned 1 file and reported success — a gate that
+      # Without it this step scanned 1 file and reported success - a gate that
       # silently does nothing, which is worse than no gate. Verified 2026-08-04:
       # 1 file with the default, ~1000 with this flag.
       #
       # That flag also stops honouring .gitignore, so the excludes below are what
-      # keep node_modules/dist/vendored bundles out — and `.claude/worktrees`,
+      # keep node_modules/dist/vendored bundles out - and `.claude/worktrees`,
       # which holds throwaway agent copies of the whole shell whose stale source
       # would otherwise fail the build.
       - name: Lolly custom rules (full tree)
@@ -519,7 +519,7 @@ jobs:
       #     times. Blocking on an unmeasured backlog is how a gate gets deleted.
       #   - `checkout` with fetch-depth: 0 already has full history, so the base
       #     commit needs no extra fetch (the earlier `git fetch --depth=0` here was
-      #     a fatal git error — 0 is not a valid depth — which would have failed
+      #     a fatal git error - 0 is not a valid depth - which would have failed
       #     the step before opengrep ever ran).
       # The blocking half of this job is the Lolly rules above. Promote this step
       # to blocking once its output has been read on real PRs and the exclusions
@@ -527,13 +527,13 @@ jobs:
       # On a push the baseline is the previous head of the branch; on a PR it is the
       # merge base. A first push (all-zero `before`) has no baseline, so the step
       # scans nothing rather than the whole tree.
-      - name: Upstream rules — new findings in this change (advisory)
+      - name: Upstream rules - new findings in this change (advisory)
         continue-on-error: true
         env:
           BASELINE: ${{ github.event_name == 'pull_request' && github.event.pull_request.base.sha || github.event.before }}
         run: |
           if [ -z "$BASELINE" ] || [ "$BASELINE" = "0000000000000000000000000000000000000000" ]; then
-            echo "no baseline for this event — skipping the diff scan"; exit 0
+            echo "no baseline for this event - skipping the diff scan"; exit 0
           fi
           opengrep scan \
             --config p/typescript --config p/javascript --config p/security-audit \

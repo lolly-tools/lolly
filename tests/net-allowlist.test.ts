@@ -48,8 +48,8 @@ function netManifest(overrides: Record<string, unknown> = {}): any {
 function assertBoth(manifest: unknown, valid: boolean, why: string): void {
   const engine = validateManifest(manifest);
   const core = validateTool(manifest);
-  assert.equal(engine.valid, valid, `engine: ${why} — ${JSON.stringify(engine.errors)}`);
-  assert.equal(core.valid, valid, `core: ${why} — ${JSON.stringify(core.errors)}`);
+  assert.equal(engine.valid, valid, `engine: ${why} - ${JSON.stringify(engine.errors)}`);
+  assert.equal(core.valid, valid, `core: ${why} - ${JSON.stringify(core.errors)}`);
 }
 
 // ─── schema: both copies, via their real validators ──────────────────────────

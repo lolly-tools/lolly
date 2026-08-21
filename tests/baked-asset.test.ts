@@ -72,7 +72,7 @@ function inertHost(): any {
 
 // ─── mounting from persisted bytes ──────────────────────────────────────────────
 
-test('baked: mounts from its data: URL — no renderUrl, no catalog, nothing dropped', async () => {
+test('baked: mounts from its data: URL - no renderUrl, no catalog, nothing dropped', async () => {
   const rt = await createRuntime(heroTool, inertHost(), { hero: bakedRef() });
   assert.ok(rt.getHydrated().includes(`<img src="${DATA_URL}">`), 'the frozen bytes reach the template');
   assert.equal(rt.droppedAssets.length, 0);
@@ -146,7 +146,7 @@ function chainHost(tools: Record<string, any>, extraInputs: Record<string, any> 
   return { host, rendered, urlCalls, runtimes };
 }
 
-test('baked: consumes no compose depth — the slot resolves at the A→B→C boundary with zero compose calls', async () => {
+test('baked: consumes no compose depth - the slot resolves at the A→B→C boundary with zero compose calls', async () => {
   const tools = { A: chainTool('A', 'B'), B: chainTool('B', 'C'), C: chainTool('C', null) };
   const { host, rendered, urlCalls, runtimes } = chainHost(tools, { C: { art: bakedRef() } });
   const rt = await createRuntime(tools.A, host, {});
@@ -158,7 +158,7 @@ test('baked: consumes no compose depth — the slot resolves at the A→B→C bo
   assert.match(rt.getHydrated(), /<img src="blob:B">/, 'the compose chain propagates up to A');
 });
 
-test('baked: contrast — a LIVE tool-URL ref in the same slot is depth-rejected at the boundary', async () => {
+test('baked: contrast - a LIVE tool-URL ref in the same slot is depth-rejected at the boundary', async () => {
   const tools = { A: chainTool('A', 'B'), B: chainTool('B', 'C'), C: chainTool('C', null) };
   const { host, rendered, urlCalls, runtimes } = chainHost(tools, {
     C: { art: { source: 'remote', id: TOOL_URL, _unresolved: true } },
@@ -185,12 +185,12 @@ test('baked: lost bytes (blob: url) → dropped with reason baked-bytes-lost, ne
 
 // ─── bakeAssetRef ───────────────────────────────────────────────────────────────
 
-test('bakeAssetRef: freezes identity — baked/bakedAt set, toolUrl stripped, bakedFrom = meta.toolUrl', () => {
+test('bakeAssetRef: freezes identity - baked/bakedAt set, toolUrl stripped, bakedFrom = meta.toolUrl', () => {
   const out: any = bakeAssetRef(liveRef(), { now: 1234567890123 });
   assert.equal(out.meta.baked, true);
   assert.equal(out.meta.bakedAt, 1234567890123);
   assert.equal(out.meta.bakedFrom, TOOL_URL);
-  assert.equal('toolUrl' in out.meta, false, 'the live-edit key is gone — baked refs present as plain images');
+  assert.equal('toolUrl' in out.meta, false, 'the live-edit key is gone - baked refs present as plain images');
   assert.equal(out.id, 'baked/' + (1234567890123).toString(36));
   assert.equal(isToolUrl(out.id), false, 'a baked id can never re-enter the live-embed resolve path');
   assert.equal(isBakedRef(out), true);
@@ -239,7 +239,7 @@ test('bakeAssetRef: refuses oversized bytes with code BAKE_TOO_LARGE; the ceilin
 
 // ─── assertComposeStack (the shared guard) ──────────────────────────────────────
 
-test('assertComposeStack: a repeated tool id is a cycle — code, path, message', () => {
+test('assertComposeStack: a repeated tool id is a cycle - code, path, message', () => {
   assert.throws(() => assertComposeStack(['a', 'b'], 'a'), (e: any) => {
     assert.ok(e instanceof ComposeGuardError);
     assert.equal(e.name, 'ComposeGuardError');
@@ -287,7 +287,7 @@ test('url-mode: a baked asset without provenance serialises to its baked id (gra
   assert.equal(new URLSearchParams(qs).get('logo'), 'baked/abc123');
 });
 
-test('url-mode: a baked ref inside a blocks row serialises as its provenance ref — never the data: bytes', () => {
+test('url-mode: a baked ref inside a blocks row serialises as its provenance ref - never the data: bytes', () => {
   const rows = [{ kind: 'a', img: bakedRef() }, { kind: 'b', img: null }];
   const qs = serializeUrlState([{ id: 'rows', type: 'blocks', value: rows as any }]);
   const raw = new URLSearchParams(qs).get('rows')!;
@@ -310,7 +310,7 @@ test('blocksForUrl: no provenance → a library ref by baked id (graceful drop);
   assert.equal(blocksForUrl('not-rows' as any), 'not-rows', 'non-array values pass through');
 });
 
-test('assetIdForUrl: the one link-identity rule — bakedFrom, else id (baked or live alike)', () => {
+test('assetIdForUrl: the one link-identity rule - bakedFrom, else id (baked or live alike)', () => {
   assert.equal(assetIdForUrl(bakedRef()), TOOL_URL);
   const orphan = bakedRef();
   delete orphan.meta.bakedFrom;

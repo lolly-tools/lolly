@@ -72,7 +72,7 @@ function fnSource(name: string): string {
   assert.ok(start >= 0, `docs/build.ts no longer declares ${name}()`);
   const next = BUILD_TS.slice(start + 1).search(/\n(?:function |const [A-Z])/);
   const body = BUILD_TS.slice(start, next < 0 ? undefined : start + 1 + next);
-  assert.ok(body.length > 100, `${name}() source looks empty — the slice is wrong`);
+  assert.ok(body.length > 100, `${name}() source looks empty - the slice is wrong`);
   return body;
 }
 
@@ -85,7 +85,7 @@ test('every shot img is emitted with width/height, or the lazy-load deadlock ret
   // saying nothing about the thing that matters. What matters is that no <img> for a
   // shot is ever emitted without measured dimensions.
   const start = RENDER_TS.indexOf('A screenshot gets a wrapper');
-  assert.ok(start > 0, 'the shot wrapper rewrite is gone — has inline() been restructured?');
+  assert.ok(start > 0, 'the shot wrapper rewrite is gone - has inline() been restructured?');
   const region = RENDER_TS.slice(start, RENDER_TS.indexOf('External links (absolute http/https)', start));
   // Only real emissions. The region also contains the word "<img>" in prose comments
   // and the SEARCH pattern the rewrite matches against (a regex literal, not output);
@@ -96,12 +96,12 @@ test('every shot img is emitted with width/height, or the lazy-load deadlock ret
     assert.match(m[0]!, /\$\{d?dims\}/,
       `this shot <img> is emitted without measured dimensions:\n  ${m[0]}\n`
       + 'A lazy image with no width/height inside a width:fit-content wrapper lays out '
-      + '0x0, never loads, and never settles — every screenshot on the site goes invisible.');
+      + '0x0, never loads, and never settles - every screenshot on the site goes invisible.');
   }
   // And the dimensions must come from the file, per image (a twin is a different file).
   assert.match(region, /size = ctx\.shotSize\(/);
   assert.equal((region.match(/ctx\.shotSize\(/g) ?? []).length, imgs.length,
-    'each emitted <img> needs its OWN shotSize() call — reusing one file\'s dims for another '
+    'each emitted <img> needs its OWN shotSize() call - reusing one file\'s dims for another '
     + 'reserves the wrong box and can reintroduce the deadlock for the odd one out');
 });
 
@@ -128,7 +128,7 @@ test('the hidden start state is armed pre-paint and gated, so no-JS shows plain 
   // credential line and is *meant* to start at opacity 0).
   for (const [, sel] of BUILD_TS.matchAll(/^\s*([^{\n]*\.shot(?:--[a-z]+)?(?![-\w])[^{\n]*)\{[^}]*opacity:0[^}]*\}/gm)) {
     assert.match(sel!, /\.shots-motion\b/,
-      `"${sel!.trim()}" hides a shot without the .shots-motion gate — with no JS it can never come back`);
+      `"${sel!.trim()}" hides a shot without the .shots-motion gate - with no JS it can never come back`);
   }
 });
 
@@ -145,7 +145,7 @@ test('every committed shot carries a readable, signed credential', () => {
   // A shot with no credential still renders - it just gets no line. That is the
   // correct behaviour, and this test is the alarm that says it happened, because a
   // silently uncredentialed baseline is how the whole claim quietly stops being true.
-  assert.deepEqual(unsigned, [], 'these baselines have no readable credential — re-run the shots pipeline');
+  assert.deepEqual(unsigned, [], 'these baselines have no readable credential - re-run the shots pipeline');
 });
 
 test('the credential line reports the signer the file actually names', () => {
@@ -199,7 +199,7 @@ test('an AI declaration is never hidden behind the hover', () => {
   assert.ok(ai, 'an AI-declaring shot must style its glyph distinctly');
   assert.match(ai[1]!, /background:/, 'the AI glyph must be filled, not merely un-faded');
   assert.doesNotMatch(ai[1]!, /opacity:1(?![\d.])/,
-    'opacity:1 is inert now that the glyph never rests faded — promote it with colour instead');
+    'opacity:1 is inert now that the glyph never rests faded - promote it with colour instead');
 });
 
 test('the showcase strips the manifest it inlines, and keeps the file it points at', () => {
@@ -214,7 +214,7 @@ test('the showcase strips the manifest it inlines, and keeps the file it points 
   // so match on the strip statement's opening instead of trying to spell both tags.
   assert.ok(script.includes('text=text.replace(/<metadata>'),
     'the fetched SVG must have its <metadata> stripped before injection');
-  assert.ok(script.includes("'id=\"sc-$1\"'"), 'inlined ids must be namespaced — an inline SVG shares the page id space');
+  assert.ok(script.includes("'id=\"sc-$1\"'"), 'inlined ids must be namespaced - an inline SVG shares the page id space');
   // The block still emits an <img> of the real file (the no-JS fallback AND the thing
   // the credential is about). buildShowcase moved to the shared renderer (M0b).
   const fnStart = RENDER_TS.indexOf('function buildShowcase(');
@@ -239,7 +239,7 @@ test('a showcase recipe names a captured vector baseline', () => {
       const slug = q.get('filename');
       assert.ok(slug, `${page}: the showcase recipe needs a filename=`);
       assert.equal((q.get('format') || 'svg').toLowerCase(), 'svg',
-        `${page}: ${slug} is a raster — only a vector shot can be inlined and zoomed`);
+        `${page}: ${slug} is a raster - only a vector shot can be inlined and zoomed`);
       assert.ok(existsSync(join(SHOTS_DIR, `${slug}.svg`)), `${page}: docs/shots/${slug}.svg is not captured`);
       // The camera lerps a viewBox; without one there is nothing to animate.
       assert.match(readFileSync(join(SHOTS_DIR, `${slug}.svg`), 'utf8').slice(0, 2048), /viewBox="/,
@@ -256,7 +256,7 @@ test('the anatomy reader counts a real vector shot and never throws on a bad one
   const sample = readdirSync(SHOTS_DIR).find((f) => f.endsWith('.svg'))!;
   const a = readShotAnatomy(join(SHOTS_DIR, sample));
   assert.equal(a?.kind, 'vector');
-  assert.ok(a!.elements > 1, `${sample} counted ${a!.elements} elements — the tag scan is broken`);
+  assert.ok(a!.elements > 1, `${sample} counted ${a!.elements} elements - the tag scan is broken`);
   assert.ok(a!.bytes > 0);
   assert.ok(a!.paths <= a!.elements, 'paths are elements; the counts cannot disagree that way');
   // Nothing here may be the reason a build fails: the credential is a garnish on a
@@ -288,14 +288,14 @@ test('the anatomy row lives inside the expanded line, and only when there is som
   assert.ok(lineCss, 'expected the .shot-cred-line rule');
   assert.match(lineCss[1]!, /flex-direction:column/);
   assert.match(BUILD_TS, /\.shot-cred-row\{[^}]*flex-wrap:nowrap/,
-    'each row keeps nowrap — the one-row rule was about wrapping, not about stacking');
+    'each row keeps nowrap - the one-row rule was about wrapping, not about stacking');
 });
 
 // ── Search placement ─────────────────────────────────────────────────────────
 
 test('the docs search field is in the topbar, once, and not on the landing page', () => {
   assert.match(BUILD_TS, /\$\{isLanding \? '' : searchBox\(lang\)\}/,
-    'the nav must mount searchBox for docs pages only — there is no index behind the landing page');
+    'the nav must mount searchBox for docs pages only - there is no index behind the landing page');
   // Exactly one input: two copies would duplicate the id the combobox wiring uses.
   const inputs = [...BUILD_TS.matchAll(/id="docs-search"/g)];
   assert.equal(inputs.length, 1, 'there must be exactly one #docs-search input');
@@ -331,7 +331,7 @@ test('nodes count anchor vertices per command, excluding control handles and Z',
     const g = join(dir, 'idtrap.svg');
     writeFileSync(g, '<svg xmlns="http://www.w3.org/2000/svg" id="d-shaped" width="4" height="4">'
       + '<rect id="mid" width="4" height="4"/></svg>');
-    assert.equal(readShotAnatomy(g)!.nodes, 0, 'no <path d>, so no nodes — id="…" is not path data');
+    assert.equal(readShotAnatomy(g)!.nodes, 0, 'no <path d>, so no nodes - id="…" is not path data');
   } finally {
     rmSync(dir, { recursive: true, force: true });
   }

@@ -78,7 +78,7 @@ for (const entry of PALETTE) {
 }
 
 const doc = {
-  $description: 'SUSE brand colour tokens — generated from shells/web/src/palette.js by scripts/build-brand-tokens.ts. Edit the palette and re-run; do not hand-edit.',
+  $description: 'SUSE brand colour tokens - generated from shells/web/src/palette.js by scripts/build-brand-tokens.ts. Edit the palette and re-run; do not hand-edit.',
   color,
 };
 
@@ -88,4 +88,4 @@ writeFileSync(OUT, JSON.stringify(doc, null, 2) + '\n');
 const count = (node: TokenNode): number => Object.values(node).reduce<number>(
   (n, v) => (v && typeof v === 'object' ? ('$value' in v ? n + 1 : n + count(v as TokenNode)) : n), 0,
 );
-console.log(`✓ Wrote catalog/assets/suse/tokens/brand.json — ${count(color)} colour tokens`);
+console.log(`✓ Wrote catalog/assets/suse/tokens/brand.json - ${count(color)} colour tokens`);

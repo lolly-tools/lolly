@@ -214,7 +214,7 @@ test('a pin whose preserved bytes did not travel falls back to the live asset', 
   await importBrandPack({ host: dst, storage: memoryStorage() }, await blob.arrayBuffer());
   const ledger = await ledgerOf(dst);
   const pin = ledger.versions.find(v => v.slug === 'v1')!.assets![0]!;
-  assert.equal(pin.id, LOGO_ID, 'the pin itself survives — it still records what v1 published with');
+  assert.equal(pin.id, LOGO_ID, 'the pin itself survives - it still records what v1 published with');
   assert.ok(!('frozenId' in pin), 'a reference to bytes nobody has is repaired away, not carried');
 });
 

@@ -12,7 +12,7 @@ one that most often goes wrong. See CONTRIBUTING.md for the full routing table.
 <!--
 Committing from the umbrella root does NOT capture edits made inside a
 submodule: git only sees the pointer. List the repos this PR spans.
-CONTRIBUTING.md §4 has the path-to-repo table.
+CONTRIBUTING.md section 4 has the path-to-repo table.
 -->
 
 - [ ] Umbrella (`lolly`): `engine/`, `schemas/`, `scripts/`, `tests/`, `api/`, `brands/lolly-start/`, root files

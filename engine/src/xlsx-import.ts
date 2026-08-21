@@ -127,7 +127,7 @@ export function readXlsx(bytes: Uint8Array, opts: ReadXlsxOpts = {}): ReadXlsxRe
       },
     });
   } catch {
-    throw new Error('Could not read the .xlsx — the file is corrupt or truncated.');
+    throw new Error('Could not read the .xlsx - the file is corrupt or truncated.');
   }
 
   const store = makeStore(entries);
@@ -135,7 +135,7 @@ export function readXlsx(bytes: Uint8Array, opts: ReadXlsxOpts = {}): ReadXlsxRe
   // A macro-enabled workbook (.xlsm) carries a VBA project; refuse it rather than
   // silently reading a file that also ships executable content.
   if (store.has('xl/vbaProject.bin')) {
-    throw new Error('This workbook is macro-enabled (.xlsm) — open it as a plain .xlsx.');
+    throw new Error('This workbook is macro-enabled (.xlsm) - open it as a plain .xlsx.');
   }
 
   const chosen = resolveSheet(store, opts.sheet);
@@ -180,11 +180,11 @@ export function listXlsxSheets(bytes: Uint8Array): XlsxSheetInfo[] {
           || f.name === 'xl/vbaProject.bin'),
     });
   } catch {
-    throw new Error('Could not read the .xlsx — the file is corrupt or truncated.');
+    throw new Error('Could not read the .xlsx - the file is corrupt or truncated.');
   }
   const store = makeStore(entries);
   if (store.has('xl/vbaProject.bin')) {
-    throw new Error('This workbook is macro-enabled (.xlsm) — open it as a plain .xlsx.');
+    throw new Error('This workbook is macro-enabled (.xlsm) - open it as a plain .xlsx.');
   }
   return allSheets(store).map((s, index) => ({ name: s.name || `Sheet ${index + 1}`, index }));
 }

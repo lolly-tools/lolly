@@ -66,9 +66,9 @@ const shots: Shot[] = SHOTS.map((name) => {
 // pass. (`docs/` is a submodule - say which, so the message is actionable.)
 test('the six acceptance shots are on disk and every one of them lifts', () => {
   for (const s of shots) {
-    assert.ok(s.src, `${s.name}.svg is missing — run \`git submodule update --init docs\``);
+    assert.ok(s.src, `${s.name}.svg is missing - run \`git submodule update --init docs\``);
     assert.ok(s.layers.length >= 2, `${s.name} must lift into a stack, got ${s.layers.length}`);
-    assert.ok(s.viewBox, `${s.name} must report its viewBox — the crop map's denominator`);
+    assert.ok(s.viewBox, `${s.name} must report its viewBox - the crop map's denominator`);
   }
 });
 
@@ -85,7 +85,7 @@ describe('the depth ladder is a band, not a staircase', () => {
         `nothing past the band ceiling (${CEIL_Z} px): ${Math.max(...z)}`);
       // The two failures the acceptance run reported, as assertions.
       assert.equal(z.filter((v) => v >= KF_Z_FIELD_CLAMP[1]).length, 0,
-        'no row at the field clamp — P3.1 measured 31 of 54 on bs-palette-pane');
+        'no row at the field clamp - P3.1 measured 31 of 54 on bs-palette-pane');
       assert.equal(z.filter((v) => v > 200).length, 0, 'no row past z = 200');
       // …and the guard is nowhere near: eff spreads across the band, not to 10.
       const effs = z.map((v) => projectDepth(DEFAULT_CAMERA, v).eff);
@@ -189,7 +189,7 @@ describe('a derived document is cropped to its ink, and the row is cut to match'
     });
   }
 
-  test('the filtered area collapses to the ink ratio — the shadow fix, measured', () => {
+  test('the filtered area collapses to the ink ratio - the shadow fix, measured', () => {
     // What the perf wall actually was: `shadow: depth` on N full-stage boxes is N
     // full-frame gaussians per frame. The number below is the share of the
     // full-stage cost the same stack now pays. Measured 2026-08-12; the bound is
@@ -314,7 +314,7 @@ describe('a layer holding the whole picture is opened up', () => {
       const before = ink(s.src);
       const after = s.layers.reduce((a, l) => a + ink(l.markup), 0);
       assert.equal(after, before,
-        `${s.name}: the layers are a partition — ${after} paint elements against the source's ${before}`);
+        `${s.name}: the layers are a partition - ${after} paint elements against the source's ${before}`);
       assert.ok(s.layers.length <= 64, `${s.name}: within the layer cap`);
     }
   });

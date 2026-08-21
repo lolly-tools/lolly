@@ -88,7 +88,7 @@ describe('sequence export (browser tier)', { skip: gate ?? false, concurrency: 1
 
   test('mp4 and webm agree at the middle frame', async (t) => {
     if (!H.probe.avcEncode) {
-      t.skip('no H.264 encode in this browser build (Playwright bundled Chromium ships no proprietary codecs) — set LOLLY_BROWSER_CHANNEL=chrome');
+      t.skip('no H.264 encode in this browser build (Playwright bundled Chromium ships no proprietary codecs) - set LOLLY_BROWSER_CHANNEL=chrome');
       return;
     }
     const r = await page().evaluate(async () => {
@@ -187,7 +187,7 @@ describe('sequence export (browser tier)', { skip: gate ?? false, concurrency: 1
     // The old buffered path kept an ImageBitmap per frame - which is the only reason
     // maxVideoFrames() (600) ever existed. ZERO is the proof it is not being used:
     // createImageBitmap is the sole entry to that array.
-    assert.equal(r.counters.imageBitmapsMade, 0, 'the streaming path allocated ImageBitmaps — it is buffering frames');
+    assert.equal(r.counters.imageBitmapsMade, 0, 'the streaming path allocated ImageBitmaps - it is buffering frames');
     // video-encode-core documents "at most HIGH_WATER + 1 VideoFrames alive".
     assert.ok(r.counters.videoFramesPeak <= 7, `peak live VideoFrames ${r.counters.videoFramesPeak} exceeds HIGH_WATER + 1`);
     assert.equal(r.counters.videoFramesLive, 0, 'a VideoFrame outlived the export');
@@ -210,7 +210,7 @@ describe('sequence export (browser tier)', { skip: gate ?? false, concurrency: 1
     });
     assert.equal(r.asked, 150, 'the grid handed to the provider is not the whole clip');
     assert.equal(r.drawn, 150, `${r.asked - r.drawn} frames were missed`);
-    assert.equal(r.stats.kind, 'mediabunny', 'the mediabunny path did not open — this test is not measuring what it claims');
+    assert.equal(r.stats.kind, 'mediabunny', 'the mediabunny path did not open - this test is not measuring what it claims');
     assert.ok(r.stats.maxInFlight <= 2, `held ${r.stats.maxInFlight} samples at once; the cap is 2`);
     assert.equal(r.stats.inFlight, 0, 'a sample was still held after the last draw');
     assert.equal(r.stats.randomAccess, false, 'the primed samplesAtTimestamps path was abandoned on a monotonic grid');
@@ -243,7 +243,7 @@ describe('sequence export (browser tier)', { skip: gate ?? false, concurrency: 1
 
   test('a source that never answers fails with a coded error instead of hanging', async () => {
     const r = await page().evaluate(async () => await (window as never as { SEQ: SeqApi }).SEQ.stalledProvider());
-    assert.ok(r.error, 'a stalled source resolved successfully — the timeout did not fire');
+    assert.ok(r.error, 'a stalled source resolved successfully - the timeout did not fire');
     assert.ok(['SEQ_UNSUPPORTED_MEDIA', 'SEQ_DECODE_FAILED', 'SEQ_ABORTED'].includes(r.error.code), `unexpected code ${r.error.code}`);
     // Both the mediabunny open and the element fallback are time-boxed; the sum of
     // the two is what a caller waits. It must be bounded and nowhere near a hang.
@@ -513,7 +513,7 @@ describe('sequence export (browser tier)', { skip: gate ?? false, concurrency: 1
   // browser can answer is whether the members are real pictures of the right MOMENTS - 
   // so this case reads actual pixels out of the archive, and a real page count out of
   // the pdf.
-  test('cuts=N is N real stills at the midpoints — zipped for png, paged for pdf', async () => {
+  test('cuts=N is N real stills at the midpoints - zipped for png, paged for pdf', async () => {
     const r = await page().evaluate(async () => {
       const S = (window as never as { SEQ: SeqApi }).SEQ;
       // Three gapless full-bleed clips; the midpoints of 3 cuts (500/1500/2500ms)
@@ -630,8 +630,8 @@ describe('sequence export (browser tier)', { skip: gate ?? false, concurrency: 1
     });
     assert.equal(r.a.err, null, `in-thread: ${JSON.stringify(r.a.err)}`);
     assert.equal(r.b.err, null, `worker: ${JSON.stringify(r.b.err)}`);
-    measured.push(`[worker] 20s@30fps 1280x720 — in-thread ${Math.round(r.a.ms)}ms wall, longest main-thread block ${r.a.beat.maxGap.toFixed(1)}ms over ${r.a.beat.beats} frames painted`);
-    measured.push(`[worker] 20s@30fps 1280x720 — worker    ${Math.round(r.b.ms)}ms wall, longest main-thread block ${r.b.beat.maxGap.toFixed(1)}ms over ${r.b.beat.beats} frames painted`);
+    measured.push(`[worker] 20s@30fps 1280x720 - in-thread ${Math.round(r.a.ms)}ms wall, longest main-thread block ${r.a.beat.maxGap.toFixed(1)}ms over ${r.a.beat.beats} frames painted`);
+    measured.push(`[worker] 20s@30fps 1280x720 - worker    ${Math.round(r.b.ms)}ms wall, longest main-thread block ${r.b.beat.maxGap.toFixed(1)}ms over ${r.b.beat.beats} frames painted`);
   });
 
   test('the worker offload falls back in-thread when it cannot be used', async () => {

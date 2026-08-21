@@ -66,7 +66,7 @@ test('layout body: fenced code block → <pre class="sl-pre"><code>, content lit
   const { rt, html } = await mount({ deck: [{ content }] });
   assert.deepEqual(rt.hookErrors, [], 'no hook errors');
   assert.match(html, /<pre class="sl-pre"><code># not a heading\n- not a bullet\na \*\*not bold\*\* b<\/code><\/pre>/,
-    'code content is literal — no heading/bullet/bold parsing inside the fence');
+    'code content is literal - no heading/bullet/bold parsing inside the fence');
   // The paragraph after the closing fence still renders (fence closed correctly).
   assert.match(html, /<p class="sl-p">after<\/p>/);
 });

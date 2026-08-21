@@ -36,7 +36,7 @@ test('deep-encode writes valid, correctly-depthed EXR / PNG16 / Radiance / dithe
   assert.equal(d8[24], 8, 'dither8 declares 8 bits per channel');
 });
 
-test('deep-encode is deterministic — same frame, byte-identical output', () => {
+test('deep-encode is deterministic - same frame, byte-identical output', () => {
   const f = gradientFrame(16, 12);
   assert.deepEqual(encodeExr(f), encodeExr(f));
   assert.deepEqual(encodePng16(f), encodePng16(f));
@@ -130,5 +130,5 @@ test('exportStill: a throw still runs afterExport (cleanup pairs with beforeExpo
   (globalThis as any).__deepc = undefined;
 
   await assert.rejects(rt.export({}, 'exr', { width: 4, height: 4 }), /boom/, 'the throw propagates and fails the export');
-  assert.equal((globalThis as any).__deepc, 'cleaned', 'afterExport ran despite the exportStill throw — DOM not left in export config');
+  assert.equal((globalThis as any).__deepc, 'cleaned', 'afterExport ran despite the exportStill throw - DOM not left in export config');
 });

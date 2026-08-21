@@ -84,7 +84,7 @@ test('marginal prices each band at its own rate (499 x 1000 + 701 x 550)', () =>
   assert.equal(w.subtotalOfCovered, 884550);
 });
 
-test('marginal exceeds flat by ~34% on a realistic break — flat is the cheaper reading', () => {
+test('marginal exceeds flat by ~34% on a realistic break - flat is the cheaper reading', () => {
   const flat = computeCost(makeCard([RUN_LINE], { breakMode: 'flat' }), RUN_COUNTS).subtotalOfCovered;
   const marginal = computeCost(makeCard([RUN_LINE], { breakMode: 'marginal' }), RUN_COUNTS).subtotalOfCovered;
   assert.equal(flat, 660000);

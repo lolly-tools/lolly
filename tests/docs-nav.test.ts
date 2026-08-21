@@ -18,7 +18,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { checkDocsNav, registeredSources, sliceDeclaration, NOT_PAGES, NOT_IN_SIDEBAR } from '../scripts/check-docs-nav.ts';
 
-test('the tree is currently clean — no orphans, no unreachable pages', () => {
+test('the tree is currently clean - no orphans, no unreachable pages', () => {
   const r = checkDocsNav();
   assert.deepEqual(r.orphaned, [], 'a docs/*.md has no pages entry and no declared exception');
   assert.deepEqual(r.missing, [], 'docs/build.ts registers a src that does not exist');
@@ -28,13 +28,13 @@ test('the tree is currently clean — no orphans, no unreachable pages', () => {
   assert.deepEqual(r.staleSidebarExceptions, [], 'NOT_IN_SIDEBAR exempts a slug that is not an unreachable page');
 });
 
-test('ios-build.md is registered — the orphan that motivated the guard', () => {
+test('ios-build.md is registered - the orphan that motivated the guard', () => {
   // Named explicitly rather than left to the generic orphan check, so a revert
   // says WHICH page regressed and why anyone cared.
   const r = checkDocsNav();
   assert.equal(r.orphaned.includes('ios-build.md'), false);
   assert.equal(r.unreachable.includes('ios-build'), false,
-    'ios-build is built but no longer linked from a sidebar — back to being unreachable');
+    'ios-build is built but no longer linked from a sidebar - back to being unreachable');
 });
 
 test('every declared exception carries a non-trivial reason', () => {
@@ -48,7 +48,7 @@ test('every declared exception carries a non-trivial reason', () => {
 test('the guard finds a healthy number of pages (the scan is not empty)', () => {
   const r = checkDocsNav();
   assert.ok(r.registeredCount > 20,
-    `only ${r.registeredCount} pages found in docs/build.ts — the src: matcher has probably stopped matching`);
+    `only ${r.registeredCount} pages found in docs/build.ts - the src: matcher has probably stopped matching`);
 });
 
 // ─── matcher non-vacuity ─────────────────────────────────────────────────────

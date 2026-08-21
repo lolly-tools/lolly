@@ -124,7 +124,7 @@ test('parity tripwire: headingId matches @lolly-tools/docs-render (the copy buil
   // headingId on ALREADY-stripped spoken text; the package copy additionally strips
   // `<!--l:key-->` marks, which is a no-op on the (mark-free) text this module ever passes.
   // The two must still agree on real inputs, which is what this tripwire guards.
-  for (const [text, ordinal] of [['1. Make it yours', 2], ['Verify — engineering', 3], ['中文標題', 4], ['  ', 5]] as const) {
+  for (const [text, ordinal] of [['1. Make it yours', 2], ['Verify - engineering', 3], ['中文標題', 4], ['  ', 5]] as const) {
     assert.equal(headingId(text, ordinal), pkgHeadingId(text, ordinal), `divergence on ${JSON.stringify(text)}`);
   }
 });

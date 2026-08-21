@@ -418,7 +418,7 @@ test('fitting a cubic to ITSELF returns that cubic, analytically', () => {
   }
 });
 
-test('identity is scale-invariant — the whole solve normalises by the chord', () => {
+test('identity is scale-invariant - the whole solve normalises by the chord', () => {
   for (const scale of [1, 100, 10000]) {
     for (const c of FIXTURES) {
       const s = c.map((v) => v * scale) as Cubic;
@@ -611,7 +611,7 @@ const CONVERGENCE_CASES: [string, ParamCurveFit][] = [
   ['the exact -20 offset of a cubic', offsetSource(OFFSET_BASE, -20)],
 ];
 
-test('the offset fixture is genuinely smooth — a cusped source would be a different test', () => {
+test('the offset fixture is genuinely smooth - a cusped source would be a different test', () => {
   const r = minRadiusCubic(OFFSET_BASE);
   assert.ok(r > 20 * 2, `offsetting by 20 needs a radius of curvature well over 20, got ${r.toFixed(2)}`);
   for (const dist of [20, -20]) {
@@ -658,7 +658,7 @@ for (const [name, src] of CONVERGENCE_CASES) {
       const err = denseError(src, segs);
       if (err > tol) over.push(`tol=${tol}: ${err.toExponential(4)} (${(err / tol).toFixed(4)}× the budget, ${segs.length} segments)`);
     }
-    assert.deepEqual(over, [], `the fit exceeds the tolerance it was given — ${over.join('; ')}`);
+    assert.deepEqual(over, [], `the fit exceeds the tolerance it was given - ${over.join('; ')}`);
   });
 
   test(`${name}: the segment count grows far more slowly than 1/tol`, (t) => {
@@ -793,15 +793,15 @@ for (const [name, src] of BUMP_CASES) {
         const [a0, a1] = armRatios(seg);
         worstArm = Math.max(worstArm, a0, a1);
         assert.ok(a0 < 1 && a1 < 1,
-          `tol=${tol}: control arm ${Math.max(a0, a1).toFixed(4)} of the chord — the bump the penalty exists to prevent`);
+          `tol=${tol}: control arm ${Math.max(a0, a1).toFixed(4)} of the chord - the bump the penalty exists to prevent`);
 
         const st = cuspStats(seg);
         worstCos = Math.min(worstCos, st.minCos);
         worstSpeed = Math.min(worstSpeed, st.speedRatio);
         assert.ok(st.minCos > 0.99,
-          `tol=${tol}: the tangent turns ${(Math.acos(Math.max(-1, st.minCos)) * 180 / Math.PI).toFixed(1)}° between adjacent samples — a reversal, not a curve`);
+          `tol=${tol}: the tangent turns ${(Math.acos(Math.max(-1, st.minCos)) * 180 / Math.PI).toFixed(1)}° between adjacent samples - a reversal, not a curve`);
         assert.ok(st.speedRatio > 0.05,
-          `tol=${tol}: |C'| falls to ${st.speedRatio.toExponential(2)} of the chord — that is a cusp forming`);
+          `tol=${tol}: |C'| falls to ${st.speedRatio.toExponential(2)} of the chord - that is a cusp forming`);
         assert.equal(st.turnSigns, 1,
           `tol=${tol}: the output bends both ways inside one segment, fitted to a source that never does`);
       }
@@ -867,7 +867,7 @@ test('an UNDECLARED corner is still not fitted across', () => {
   assert.ok(err <= 0.01, `achieved ${err.toExponential(3)} against tol 0.01`);
 });
 
-test('breaks() is sanitised — endpoints, duplicates and junk cannot start a loop', () => {
+test('breaks() is sanitised - endpoints, duplicates and junk cannot start a loop', () => {
   // A break reported AT a range endpoint splits into the same range and recurses.
   const sample = (t: number) => ({ x: 200 * t, y: 40 * Math.sin(3 * t), dx: 200, dy: 120 * Math.cos(3 * t) });
   const src: ParamCurveFit = {
@@ -888,7 +888,7 @@ test('maxSegments is a hard cap, and the output stays continuous under it', () =
   for (const cap of [1, 2, 5, 33, 128]) {
     const segs = fitToCubics(src, { tol: 1e-9, maxSegments: cap });
     assert.ok(segs.length <= cap, `cap ${cap} produced ${segs.length} segments`);
-    assert.ok(segs.length > 0, `cap ${cap} produced nothing — a hole in the contour`);
+    assert.ok(segs.length > 0, `cap ${cap} produced nothing - a hole in the contour`);
     for (let i = 1; i < segs.length; i++) {
       near(segs[i]![0], segs[i - 1]![6], 0);
       near(segs[i]![1], segs[i - 1]![7], 0);

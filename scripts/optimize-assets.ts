@@ -57,6 +57,6 @@ for (const rel of svgs) {
 }
 
 const pct = totalBefore ? Math.round((totalBefore - totalAfter) * 100 / totalBefore) : 0;
-console.log(`svgo: optimised ${shrunk}/${svgs.length} assets — ${(totalBefore / 1024).toFixed(0)}K → ${(totalAfter / 1024).toFixed(0)}K (${pct}% smaller)`);
-if (skippedTheme) console.log(`  (${skippedTheme} themable icon(s) left untouched — svgo would have broken their theme contract)`);
+console.log(`svgo: optimised ${shrunk}/${svgs.length} assets - ${(totalBefore / 1024).toFixed(0)}K → ${(totalAfter / 1024).toFixed(0)}K (${pct}% smaller)`);
+if (skippedTheme) console.log(`  (${skippedTheme} themable icon(s) left untouched - svgo would have broken their theme contract)`);
 console.log('Next: npm run build:catalog && npm run validate:catalog  (asset checksums changed)');

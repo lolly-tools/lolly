@@ -235,7 +235,7 @@ export function readPsd(bytes: Uint8Array, opts: PsdReadOptions = {}): LayeredRa
       if (count > MAX_LAYERS) throw new PsdUnsupportedError('bounds', `${count} layers (cap ${MAX_LAYERS})`);
       for (let i = 0; i < count; i++) {
         const rec = readLayerRecord(c, liEnd, psb, warn);
-        if (!rec) { warn('layer.bad', `record ${i} unreadable — remaining layers dropped`); break; }
+        if (!rec) { warn('layer.bad', `record ${i} unreadable - remaining layers dropped`); break; }
         records.push(rec);
       }
       // Channel image data follows the records, in record order.
@@ -622,8 +622,8 @@ function cmykPlanesToRgba(
 ): void {
   const profile = icc ? parseIccProfile(icc) : null;
   const lut = profile && profile.dataColourSpace === 'CMYK' ? buildCmykLut(profile, cy, ma, ye, ke, n, warn) : null;
-  if (!lut && icc) warn('cmyk.no-profile', 'embedded profile unusable — naive conversion');
-  if (!lut && !icc) warn('cmyk.no-profile', 'no embedded profile — naive conversion');
+  if (!lut && icc) warn('cmyk.no-profile', 'embedded profile unusable - naive conversion');
+  if (!lut && !icc) warn('cmyk.no-profile', 'no embedded profile - naive conversion');
   for (let i = 0; i < n; i++) {
     const o = i * 4;
     const key = (((cy[i]! << 8) | ma[i]!) * 65536) + ((ye[i]! << 8) | ke[i]!);

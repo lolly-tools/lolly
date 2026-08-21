@@ -173,7 +173,7 @@ function replaceBlock(text: string, start: string, end: string, body: string): s
   const i = text.indexOf(start);
   const j = text.indexOf(end);
   if (i < 0 || j < 0 || j < i) {
-    throw new Error(`markers ${start} / ${end} not found in ${README} — add them around the generated table`);
+    throw new Error(`markers ${start} / ${end} not found in ${README} - add them around the generated table`);
   }
   return `${text.slice(0, i + start.length)}\n${body}\n${text.slice(j)}`;
 }
@@ -186,7 +186,7 @@ function render(current: string): string {
 
 function main(): void {
   if (!existsSync(README) || !statSync(README).isFile()) {
-    console.error(`✗ ${relative(ROOT, README)} is missing — is the shells/web submodule checked out?`);
+    console.error(`✗ ${relative(ROOT, README)} is missing - is the shells/web submodule checked out?`);
     process.exit(1);
   }
   const current = readFileSync(README, 'utf8');

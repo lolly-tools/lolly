@@ -183,5 +183,5 @@ test('packing is NOT unconditionally smaller (why the caller must gate on length
   const small = 'url=https%3A%2F%2Fsuse.com&color=0c322c';
   const token = await packQuery(small);
   const packedLen = `${PACK_PARAM}=${token}`.length;
-  assert.ok(packedLen > small.length, 'a tiny query gets LONGER when packed — gate on length');
+  assert.ok(packedLen > small.length, 'a tiny query gets LONGER when packed - gate on length');
 });

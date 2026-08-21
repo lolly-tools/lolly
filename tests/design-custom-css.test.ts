@@ -40,7 +40,7 @@ test('customCss: @keyframes survive at the top level (real animation)', async ()
   assert.match(html, /@keyframes spin/);
 });
 
-test('customCss: the </style> breakout is neutralised — no verbatim <script> escape', async () => {
+test('customCss: the </style> breakout is neutralised - no verbatim <script> escape', async () => {
   const html = await render({ boxes: [], customCss: '.x{}</style><script>alert(1)</script>' });
   // The closing </style is backslash-neutralised, so it never terminates the <style> and
   // the <script> stays inert as style text - the verbatim breakout is absent.

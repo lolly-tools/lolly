@@ -122,7 +122,7 @@ test('a pack whose tokens.json was swapped after export is refused, not ingested
 
   const r = runIngest(t, zip, 'packtampered');
   assert.equal(r.status, 1, `expected a refusal, got:\n${r.stdout}`);
-  assert.match(r.stderr, /appears corrupted — "tokens\.json" failed the integrity check/);
+  assert.match(r.stderr, /appears corrupted - "tokens\.json" failed the integrity check/);
 });
 
 test('a pack that matches its integrity map ingests, binaries left unverified', (t) => {

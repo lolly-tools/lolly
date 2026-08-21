@@ -37,7 +37,7 @@ async function run(): Promise<void> {
   try {
     files = readdirSync(PREVIEWS_DIR).filter((f) => f.toLowerCase().endsWith('.png'));
   } catch {
-    console.log('· No catalog/previews/ dir yet (run `npm run previews` first) — nothing to do.');
+    console.log('· No catalog/previews/ dir yet (run `npm run previews` first) - nothing to do.');
     return;
   }
   if (!files.length) { console.log('✓ Preview rasters: none to convert (all vector / already WebP).'); return; }

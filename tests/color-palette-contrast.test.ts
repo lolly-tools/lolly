@@ -40,7 +40,7 @@ const PACK_MOUNTED = existsSync(COMMUNITY);
 const SKIP = !PACK_MOUNTED && 'community pack not mounted (clone without submodules)';
 if (PACK_MOUNTED) {
   assert.ok(existsSync(join(COMMUNITY, 'color-palette', 'tool.json')),
-    'community/color-palette/tool.json is missing — pack is mounted, so the tool was renamed or deleted');
+    'community/color-palette/tool.json is missing - pack is mounted, so the tool was renamed or deleted');
 }
 
 const tool: any = SKIP ? null : await loadTool('color-palette', fetchFile);

@@ -376,7 +376,7 @@ function picXml(p: PptxPic, id: number): string {
 // ─── native table (a:tbl) ─────────────────────────────────────────────────────
 // A table is inline DrawingML in the spTree: a p:graphicFrame wrapping a:tbl. It
 // needs NO extra part, relationship, or content-type entry (unlike a chart). Built-in
-// table-style GUID: "Medium Style 2 – Accent 1" (what PowerPoint applies to a new
+// table-style GUID: "Medium Style 2 - Accent 1" (what PowerPoint applies to a new
 // table). srgbClr, EMU, strict child order throughout. See buildTableGrid for how
 // author-supplied origin cells become a rectangular hMerge/vMerge grid.
 const DEFAULT_TABLE_STYLE = '{5C22544A-7EE6-4342-B048-85BDC9FD1C3A}';

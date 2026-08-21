@@ -125,7 +125,7 @@ async function fetchFile(label: string, fileName: string): Promise<void> {
   const mb = (bytes.byteLength / (1024 * 1024)).toFixed(1);
   const expected = EXPECTED_BYTES[fileName];
   const warn = expected != null && bytes.byteLength !== expected
-    ? ` — WARNING: expected ${expected} bytes (2026-07-17), got ${bytes.byteLength}; verify the release and bump MODEL_CACHE_VERSION`
+    ? ` - WARNING: expected ${expected} bytes (2026-07-17), got ${bytes.byteLength}; verify the release and bump MODEL_CACHE_VERSION`
     : '';
   process.stdout.write(`  saved ${outPath} (${bytes.byteLength} bytes, ${mb} MB)${warn}\n`);
 }
@@ -139,7 +139,7 @@ async function main(): Promise<void> {
     await fetchFile('resizer (antialiased Resize graph)', RESIZER_FILE);
   }
   process.stdout.write(
-    '\nDone. These files are gitignored (shells/web/.gitignore) — never commit them.\n' +
+    '\nDone. These files are gitignored (shells/web/.gitignore) - never commit them.\n' +
     'Next: complete the onnxruntime-web /ort/ copy steps in this script\'s header, then\n' +
     'npm run dev:web and test /#/valid\'s "Deep scan for watermarks" against a real\n' +
     'TrustMark-watermarked image (enable localStorage lolly:trustmark:debug=1 to trace).\n',

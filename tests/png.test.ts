@@ -67,7 +67,7 @@ after(() => {
 function golden(key: string, bytes: Uint8Array): void {
   const b64 = Buffer.from(bytes).toString('base64');
   if (UPDATE_GOLDENS) { regenerated[key] = b64; return; }
-  assert.ok(committed[key], `no golden for ${key} — run UPDATE_GOLDENS=1 node --test tests/png.test.ts`);
+  assert.ok(committed[key], `no golden for ${key} - run UPDATE_GOLDENS=1 node --test tests/png.test.ts`);
   assert.equal(b64, committed[key], `golden byte mismatch for ${key}`);
 }
 
@@ -374,7 +374,7 @@ test('external decoder NEGATIVE CONTROL: sharp disagrees when the pixels differ'
   const mutated = RGBA8.slice();
   mutated[17] = (mutated[17]! ^ 0x01) & 0xff;
   const raw = await s(Buffer.from(packPng(mutated, { width: W, height: H }))).raw().toBuffer();
-  assert.notEqual(new Uint8Array(raw)[17], RGBA8[17], 'the oracle would have passed on any bytes — it does not');
+  assert.notEqual(new Uint8Array(raw)[17], RGBA8[17], 'the oracle would have passed on any bytes - it does not');
   assertSamplesEqual(new Uint8Array(raw), mutated, 'sharp mutated');
 });
 
@@ -467,7 +467,7 @@ test('iTXt writes uncompressed UTF-8 with the spec field order', () => {
     width: W, height: H,
     text: [
       { keyword: 'Software', text: 'Lolly' },
-      { keyword: 'Description', text: 'depth follows provenance — 16-bit éè', languageTag: 'en', translatedKeyword: 'Beschreibung' },
+      { keyword: 'Description', text: 'depth follows provenance - 16-bit éè', languageTag: 'en', translatedKeyword: 'Beschreibung' },
     ],
   });
   const texts = parseChunks(png).filter((c) => c.type === 'iTXt');
@@ -497,7 +497,7 @@ test('iTXt writes uncompressed UTF-8 with the spec field order', () => {
   assert.equal(b.flag, 0, 'compression flag 0 = uncompressed');
   assert.equal(b.lang, 'en');
   assert.equal(b.translated, 'Beschreibung');
-  assert.equal(b.text, 'depth follows provenance — 16-bit éè');
+  assert.equal(b.text, 'depth follows provenance - 16-bit éè');
   // The em dash is multi-byte UTF-8, so the chunk is longer than the JS string.
   assert.ok(texts[1]!.data.length > b.keyword.length + b.text.length);
 });
@@ -548,7 +548,7 @@ test('CRC NEGATIVE CONTROL: a flipped CRC byte is detected (and libvips notably 
   // decoder is NOT the CRC oracle. Asserting that keeps the claim honest.
   if (!SKIP_SHARP) {
     const meta = await sharp!(Buffer.from(bad)).metadata();
-    assert.equal(meta.width, W, 'libvips decodes past a bad CRC — hence the reference verifier above');
+    assert.equal(meta.width, W, 'libvips decodes past a bad CRC - hence the reference verifier above');
   }
 });
 

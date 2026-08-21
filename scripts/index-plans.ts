@@ -98,22 +98,22 @@ export function buildIndex(now: Date): string {
   const out = [
     '# `plans/` index',
     '',
-    '**Generated — do not hand-edit.** Rebuild with `npm run index:plans`',
+    '**Generated - do not hand-edit.** Rebuild with `npm run index:plans`',
     '(`scripts/index-plans.ts`). `plans/` is gitignored, so this file is not committed;',
     'the generator is, which is why the index can never be more than one command stale.',
     '',
     'Sorted by the `NN-` reading-order prefix (status → strategy → ops → security →',
     'provenance → utilities → docs/i18n → brand → editors → engine → rendering →',
-    'shells → enterprise). The Updated column is the staleness signal — a plan can be',
+    'shells → enterprise). The Updated column is the staleness signal - a plan can be',
     `finished and still recently touched, or dormant and still true. Read the file.`,
     '',
-    `## Active — ${plans.length} (${recentCount} touched in the last ${RECENT_DAYS} days)`,
+    `## Active - ${plans.length} (${recentCount} touched in the last ${RECENT_DAYS} days)`,
     '',
     plans.length ? table(plans) : '_none_',
   ];
 
   if (archived.length) {
-    out.push('', `## \`archive/\` — ${archived.length}`, '', table(archived, 'archive/'));
+    out.push('', `## \`archive/\` - ${archived.length}`, '', table(archived, 'archive/'));
   }
 
   out.push('', `_${plans.length + archived.length} plan(s) indexed._`, '');
@@ -122,7 +122,7 @@ export function buildIndex(now: Date): string {
 
 function main(): void {
   if (!existsSync(PLANS)) {
-    console.error('✗ plans/ does not exist in this checkout — nothing to index.');
+    console.error('✗ plans/ does not exist in this checkout - nothing to index.');
     process.exit(1);
   }
   writeFileSync(OUT, buildIndex(new Date()));

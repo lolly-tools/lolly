@@ -72,7 +72,7 @@ test('resolves aliases nested in gradient stops ($value[].color); the raw doc st
           { color: '{color.brand.jungle}', position: 0 },
           { color: '{color.brand.pine}', position: 0.5 },  // through a chained alias
           { color: '#ffffff', position: 1 },
-          { color: '{color.missing}', position: 0.25 },    // unresolvable — stays as authored
+          { color: '{color.missing}', position: 0.25 },    // unresolvable - stays as authored
         ],
       },
     },
@@ -184,7 +184,7 @@ test('colorToHex rejects CSS-injection payloads (token values reach style attrib
     'url(//x)',
     'red;background:url(//x)',
     'expression(alert(1))',
-    '#fff;background:url(//x)', // hex-prefixed smuggle — normHex must reject it
+    '#fff;background:url(//x)', // hex-prefixed smuggle - normHex must reject it
     '#zzzzzz',                  // non-hex digits behind a '#'
   ]) {
     assert.equal(colorToHex(hostile), null, hostile);
@@ -423,7 +423,7 @@ test('a spot carrying a finish round-trips to ColorSwatch.spot.finish', () => {
   assert.deepEqual(s.spot, { name: 'Gold', book: 'Foilco', finish: 'foil' });
 });
 
-test('a finish outside FinishKind still surfaces — the union is open', () => {
+test('a finish outside FinishKind still surfaces - the union is open', () => {
   // A brand's house process must not need an engine release, so the reader
   // validates the SHAPE (a string) and never the membership.
   const s = createTokenSet(spotDoc({ name: 'House Press', finish: 'letterpress' })).colors()[0]!;

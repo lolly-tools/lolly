@@ -43,8 +43,8 @@ const ITERS = Number(process.env.FUZZ_ITERS || 300);
 // (runaway recursion) or an allocation blow-up counts as an escaped failure.
 function assertControlled(err: unknown, label: string): void {
   const msg = err instanceof Error ? err.message : String(err);
-  assert.ok(!/maximum call stack/i.test(msg), `${label}: runaway recursion — ${msg}`);
-  assert.ok(!/invalid (typed )?array length|array buffer allocation|out of memory/i.test(msg), `${label}: allocation blow-up — ${msg}`);
+  assert.ok(!/maximum call stack/i.test(msg), `${label}: runaway recursion - ${msg}`);
+  assert.ok(!/invalid (typed )?array length|array buffer allocation|out of memory/i.test(msg), `${label}: allocation blow-up - ${msg}`);
 }
 
 async function feed(target: FuzzTarget, bytes: Uint8Array, label: string): Promise<void> {
@@ -57,7 +57,7 @@ async function feed(target: FuzzTarget, bytes: Uint8Array, label: string): Promi
   }
   const ms = performance.now() - t0;
   if (bytes.length < MAX_HANG_SIZE) {
-    assert.ok(ms <= HANG_MS, `${label}: took ${ms.toFixed(0)}ms on ${bytes.length}B — looks like a hang`);
+    assert.ok(ms <= HANG_MS, `${label}: took ${ms.toFixed(0)}ms on ${bytes.length}B - looks like a hang`);
   }
 }
 

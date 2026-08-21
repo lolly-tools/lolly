@@ -2,7 +2,7 @@
 
 ## Reporting a vulnerability
 
-Please report suspected vulnerabilities privately — do not open a public issue.
+Please report suspected vulnerabilities privately - do not open a public issue.
 
 - **Email:** [fitzy+security@suse.com](mailto:fitzy+security@suse.com)
 - **GitHub:** private vulnerability reporting on the relevant
@@ -73,8 +73,8 @@ self-hosted deployment should go to that operator, engine/app issues to us.
 
 ## What we ship
 
-The project's standing security posture — on-device verification, the
-cryptography and its test suite, SBOM and dependency-audit gates — is
+The project's standing security posture - on-device verification, the
+cryptography and its test suite, SBOM and dependency-audit gates - is
 documented in [Security & Verification](https://lolly.tools/info/security.html)
 (`docs/security-verification.md` in this repository). The trust boundaries and
 the accepted residual risks are in

@@ -119,13 +119,13 @@ interface Rule {
 // `precededOk`) so `opts.window.width` and `res.fetch(...)` stay clean.
 const GLOBAL_PREFIX = '(?:globalThis\\s*\\.\\s*)?';
 const RULES: Rule[] = [
-  { token: 'document.', re: new RegExp(`${GLOBAL_PREFIX}document\\s*\\.`, 'g'), why: 'the DOM belongs to a shell — go through the host bridge' },
-  { token: 'window.', re: new RegExp(`${GLOBAL_PREFIX}window\\s*\\.`, 'g'), why: 'the DOM belongs to a shell — go through the host bridge' },
-  { token: 'navigator.', re: new RegExp(`${GLOBAL_PREFIX}navigator\\s*\\.`, 'g'), why: 'a browser-only global — the shell passes in what the engine needs' },
+  { token: 'document.', re: new RegExp(`${GLOBAL_PREFIX}document\\s*\\.`, 'g'), why: 'the DOM belongs to a shell - go through the host bridge' },
+  { token: 'window.', re: new RegExp(`${GLOBAL_PREFIX}window\\s*\\.`, 'g'), why: 'the DOM belongs to a shell - go through the host bridge' },
+  { token: 'navigator.', re: new RegExp(`${GLOBAL_PREFIX}navigator\\s*\\.`, 'g'), why: 'a browser-only global - the shell passes in what the engine needs' },
   { token: 'localStorage', re: new RegExp(`${GLOBAL_PREFIX}localStorage\\b`, 'g'), why: 'state goes through host.state, never localStorage' },
   { token: 'sessionStorage', re: new RegExp(`${GLOBAL_PREFIX}sessionStorage\\b`, 'g'), why: 'state goes through host.state, never sessionStorage' },
   { token: 'OffscreenCanvas', re: new RegExp(`${GLOBAL_PREFIX}OffscreenCanvas\\b`, 'g'), why: 'rasterisation is a shell capability (host.export.render)' },
-  { token: 'HTMLElement', re: new RegExp(`${GLOBAL_PREFIX}HTMLElement\\b`, 'g'), why: 'the engine must not name DOM types — keep signatures renderer-agnostic' },
+  { token: 'HTMLElement', re: new RegExp(`${GLOBAL_PREFIX}HTMLElement\\b`, 'g'), why: 'the engine must not name DOM types - keep signatures renderer-agnostic' },
   { token: 'fetch(', re: /fetch\s*\(/g, why: 'network access is host.net (allowlisted, fail-closed)' },
 ];
 
@@ -332,12 +332,12 @@ function moduleSpecifiers(src: string, code: string): { spec: string; offset: nu
 function importViolation(file: string, spec: string): string | null {
   if (spec === '') return null;
   if (spec.startsWith('node:')) {
-    return 'the engine must run unchanged in a browser — no node: builtins';
+    return 'the engine must run unchanged in a browser - no node: builtins';
   }
   if (!spec.startsWith('.')) {
     return ALLOWED_PACKAGES.has(spec)
       ? null
-      : 'unlisted package import — an engine dep must be platform-agnostic and listed in ALLOWED_PACKAGES';
+      : 'unlisted package import - an engine dep must be platform-agnostic and listed in ALLOWED_PACKAGES';
   }
   const abs = resolve(ROOT, dirname(file), spec);
   const inside = relative(ENGINE_SRC, abs);
@@ -345,7 +345,7 @@ function importViolation(file: string, spec: string): string | null {
   const repoRel = relative(ROOT, abs).split(sep).join('/');
   return ALLOWED_ESCAPES.has(repoRel)
     ? null
-    : `import escapes engine/src (${repoRel}) — the engine may not depend on shells, tools or brands`;
+    : `import escapes engine/src (${repoRel}) - the engine may not depend on shells, tools or brands`;
 }
 
 /**

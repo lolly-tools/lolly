@@ -102,7 +102,7 @@ function removeView(path: string, what: string): void {
     }
   }
   throw new Error(
-    `refusing to replace ${what} at ${path} — it contains real content, not a profile view. ` +
+    `refusing to replace ${what} at ${path} - it contains real content, not a profile view. ` +
     `Move it aside (the packs live under community/ and brands/) and re-run.`,
   );
 }
@@ -142,18 +142,18 @@ function planTools(profile: Profile): Map<string, ToolPlan> {
       if (!extendsTarget) { plan.set(entry, { src }); continue; }
       if (root === BASE_PACK) {
         throw new OverlayError(
-          `${root}/${entry}/tool.json declares "extends" — community tools are overlay BASES; only a brand pack may declare an overlay`,
+          `${root}/${entry}/tool.json declares "extends" - community tools are overlay BASES; only a brand pack may declare an overlay`,
         );
       }
       if (extendsTarget !== BASE_PACK) {
         throw new OverlayError(
-          `${root}/${entry}/tool.json declares "extends": "${extendsTarget}" — v1 supports only "${BASE_PACK}" as the base pack`,
+          `${root}/${entry}/tool.json declares "extends": "${extendsTarget}" - v1 supports only "${BASE_PACK}" as the base pack`,
         );
       }
       const base = join(ROOT, BASE_PACK, entry);
       if (!existsSync(join(base, 'tool.json'))) {
         throw new OverlayError(
-          `${root}/${entry} extends "${BASE_PACK}" but ${BASE_PACK}/${entry}/tool.json does not exist — ` +
+          `${root}/${entry} extends "${BASE_PACK}" but ${BASE_PACK}/${entry}/tool.json does not exist - ` +
           `an overlay and its base share the same tool id (ids are permanent contracts); refusing to build a partial tool`,
         );
       }
@@ -166,7 +166,7 @@ function planTools(profile: Profile): Map<string, ToolPlan> {
   // an id that is not present is a no-op (likely a typo), never a build failure.
   for (const id of profile.exclude ?? []) {
     if (!plan.delete(id)) {
-      console.warn(`⚠ profile exclude: "${id}" is not among the profile's tools — nothing to drop (typo?)`);
+      console.warn(`⚠ profile exclude: "${id}" is not among the profile's tools - nothing to drop (typo?)`);
     }
   }
   return plan;
@@ -301,7 +301,7 @@ function buildViews(name: string, profile: Profile, copyMode: boolean): void {
 
   writeFileSync(STATE_FILE, name + '\n');
   console.log(
-    `✓ profile "${name}"${profile.label ? ` (${profile.label})` : ''} — ` +
+    `✓ profile "${name}"${profile.label ? ` (${profile.label})` : ''} - ` +
     `${linked} tools from [${profile.tools.join(', ')}]` +
     `${composed ? ` (${composed} composed overlay${composed === 1 ? '' : 's'})` : ''}, ` +
     `catalog → ${profile.catalog}` +
@@ -311,11 +311,11 @@ function buildViews(name: string, profile: Profile, copyMode: boolean): void {
 
 function show(cfg: ProfilesFile): void {
   const active = activeProfile();
-  console.log(`Active profile: ${active ?? '(none — run npm run profile:<name>)'}\n`);
+  console.log(`Active profile: ${active ?? '(none - run npm run profile:<name>)'}\n`);
   for (const [name, p] of Object.entries(cfg.profiles)) {
     const flags = [
       name === cfg.default ? 'default' : '',
-      isComplete(p) ? '' : 'INCOMPLETE — missing pack(s)',
+      isComplete(p) ? '' : 'INCOMPLETE - missing pack(s)',
       name === active ? 'active' : '',
     ].filter(Boolean).join(', ');
     console.log(`  ${name.padEnd(14)} ${p.label ?? ''}${flags ? `  [${flags}]` : ''}`);
@@ -351,24 +351,24 @@ function main(): void {
       // (update = none), so the default profile is incomplete there. Fail the
       // build loudly instead of shipping the blank brand to production.
       if (process.env.VERCEL) {
-        console.error(`✗ use-profile --auto: default profile "${cfg.default}" is incomplete on Vercel — the private brands/suse pack is not present in a git-build.`);
+        console.error(`✗ use-profile --auto: default profile "${cfg.default}" is incomplete on Vercel - the private brands/suse pack is not present in a git-build.`);
         console.error('  Deploy with `loldev ship` (archive deploy tarballs the local tree, packs included),');
         console.error('  or set LOLLY_PROFILE=lolly-start on the Vercel project to intentionally ship the blank brand.');
         process.exit(1);
       }
       const fallback = Object.entries(cfg.profiles).find(([, p]) => isComplete(p))?.[0];
       if (!fallback) {
-        console.warn('⚠ use-profile --auto: no complete profile found (packs not initialised yet?) — skipping.');
+        console.warn('⚠ use-profile --auto: no complete profile found (packs not initialised yet?) - skipping.');
         return;
       }
-      console.warn(`⚠ default profile "${cfg.default}" is missing pack(s) (private submodule not initialised?) — falling back to "${fallback}".`);
+      console.warn(`⚠ default profile "${cfg.default}" is missing pack(s) (private submodule not initialised?) - falling back to "${fallback}".`);
       target = fallback;
     }
   }
 
   const profile = cfg.profiles[target];
   if (!profile) {
-    console.error(`✗ unknown profile "${target}" — known: ${Object.keys(cfg.profiles).join(', ')}`);
+    console.error(`✗ unknown profile "${target}" - known: ${Object.keys(cfg.profiles).join(', ')}`);
     process.exit(1);
   }
   if (!isComplete(profile)) {
@@ -382,7 +382,7 @@ function main(): void {
     // --auto, letting the build continue with no tools/catalog views and ship
     // an empty catalog. Same fail-safe as the default-branch guard.
     if (process.env.VERCEL) {
-      console.error(`  On Vercel this must not silently continue — deploy via \`loldev ship\` (archive includes the packs), or point LOLLY_PROFILE at a profile whose packs are present.`);
+      console.error(`  On Vercel this must not silently continue - deploy via \`loldev ship\` (archive includes the packs), or point LOLLY_PROFILE at a profile whose packs are present.`);
       process.exit(1);
     }
     process.exit(auto ? 0 : 1);

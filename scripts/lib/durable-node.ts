@@ -84,14 +84,14 @@ async function getEncoder(): Promise<{ session: OrtSession; ort: OrtNodeModule }
   if (sessionState !== undefined) return sessionState;
   sessionState = null; // pessimistic default; overwritten on success
   if (!existsSync(ENCODER_PATH)) {
-    console.warn('[durable-node] encoder model absent — durable mark skipped (build the encoder to enable)');
+    console.warn('[durable-node] encoder model absent - durable mark skipped (build the encoder to enable)');
     return null;
   }
   let ort: OrtNodeModule;
   try {
     ort = (await import(ORT_MODULE)) as unknown as OrtNodeModule;
   } catch {
-    console.warn('[durable-node] onnxruntime-node unavailable — durable mark skipped');
+    console.warn('[durable-node] onnxruntime-node unavailable - durable mark skipped');
     return null;
   }
   try {
@@ -99,7 +99,7 @@ async function getEncoder(): Promise<{ session: OrtSession; ort: OrtNodeModule }
     sessionState = { session, ort };
     return sessionState;
   } catch (err) {
-    console.warn(`[durable-node] could not create encoder session — durable mark skipped (${(err as Error).message})`);
+    console.warn(`[durable-node] could not create encoder session - durable mark skipped (${(err as Error).message})`);
     return null;
   }
 }
@@ -129,7 +129,7 @@ export async function embedLollyDurableNode(
 ): Promise<Uint8ClampedArray | null> {
   try {
     if (width < TRUSTMARK_MIN_SIDE || height < TRUSTMARK_MIN_SIDE) {
-      console.warn(`[durable-node] ${width}x${height} below ${TRUSTMARK_MIN_SIDE}px — durable mark skipped`);
+      console.warn(`[durable-node] ${width}x${height} below ${TRUSTMARK_MIN_SIDE}px - durable mark skipped`);
       return null;
     }
     const enc = await getEncoder();
@@ -149,7 +149,7 @@ export async function embedLollyDurableNode(
       },
     }, { reservedId: opts.reservedId ?? 0 });
   } catch (err) {
-    console.warn(`[durable-node] durable embed failed — durable mark skipped (${(err as Error).message})`);
+    console.warn(`[durable-node] durable embed failed - durable mark skipped (${(err as Error).message})`);
     return null;
   }
 }

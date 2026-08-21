@@ -233,7 +233,7 @@ test('Display P3 para curve is sRGB-shaped, and its red is more chromatic than s
   const sRed = s.toLab('relative', [1, 0, 0])!;
   const pRed = p.toLab('relative', [1, 0, 0])!;
   assert.ok(Math.hypot(pRed[1], pRed[2]) > Math.hypot(sRed[1], sRed[2]),
-    'P3 red must be more chromatic than sRGB red — the primaries differ, the curve does not');
+    'P3 red must be more chromatic than sRGB red - the primaries differ, the curve does not');
 });
 
 test('GRAY profile neutralises on the PCS axis rather than its unadapted white point', (t) => {
@@ -294,7 +294,7 @@ test('matrix/TRC round trip is exact, and evaluation is deterministic', (t) => {
         assert.ok(Math.abs(back[i]! - rgb[i]!) < 1e-3,
           `the matrix/TRC inverse must reproduce the device value: ${rgb[i]} -> ${back[i]}`);
       }
-      assert.deepEqual(p.toLab('relative', rgb), lab, 'the transform must be deterministic — no state, no float drift');
+      assert.deepEqual(p.toLab('relative', rgb), lab, 'the transform must be deterministic - no state, no float drift');
     }
   });
 });
@@ -577,7 +577,7 @@ test('the delta-E rule refuses colours the profile itself prints, well away from
       'a 10% yellow tint round-trips inside the threshold (2.0 dE) and is reported in gamut');
     for (const y of [0.2, 0.4, 0.6, 1]) {
       assert.equal(g.contains(...asked([0, 0, y, 0])), false,
-        `a ${y * 100}% yellow tint is a colour this profile PRINTS, and the delta-E round-trip rule still refuses it — the documented cost of ICC_GAMUT_DELTA_E must say so`);
+        `a ${y * 100}% yellow tint is a colour this profile PRINTS, and the delta-E round-trip rule still refuses it - the documented cost of ICC_GAMUT_DELTA_E must say so`);
     }
     // Body colours, where the same rule is accurate - the reason charts built on
     // it read correctly below L* 85.
@@ -603,7 +603,7 @@ test('iccGamutSource: ink coverage is a per-channel sum for CMYK and null for RG
   });
   withProfile(SRGB_PATH, t, (p) => {
     assert.equal(iccGamutSource(p, 'relative').inkCoverage!(0.6, 0.1, 30), null,
-      'additive light has no ink — the answer is "not applicable", not 0');
+      'additive light has no ink - the answer is "not applicable", not 0');
   });
 });
 
@@ -752,7 +752,7 @@ test('bit-flipped real profiles never throw and never hang', (t) => {
       }, `mutation ${i}: evaluating a mutated profile must not throw`);
     }
   }
-  assert.ok(Date.now() - started < 20000, '300 mutations of a 55 KB profile must not take 20 s — no unbounded work');
+  assert.ok(Date.now() - started < 20000, '300 mutations of a 55 KB profile must not take 20 s - no unbounded work');
 });
 
 test('input arity and non-finite values are rejected', (t) => {

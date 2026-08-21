@@ -58,7 +58,7 @@ function isMetaTitle(spoken: string, pageTitle: string): boolean {
   const title = pageTitle.trim().replace(/\s+/g, ' ');
   if (!title) return false;
   const escaped = title.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-  return new RegExp(`^${escaped}(\\s*[-–—:]\\s+.+)?$`, 'i').test(spoken);
+  return new RegExp(`^${escaped}(\\s*[-–\u2014:]\\s+.+)?$`, 'i').test(spoken);
 }
 
 /** docs/build.ts's headingId, duplicated verbatim (it has no exports by design).

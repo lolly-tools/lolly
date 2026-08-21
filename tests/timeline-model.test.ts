@@ -223,7 +223,7 @@ test('derived duration: timed boxes but no dur anywhere → 5s default (DEFAULT_
   assert.equal(seqMsOf(html), 5000, 'no authored dur anywhere → 5000ms default');
 });
 
-test('derived duration: an open-ended box (no dur) does not affect the max — only dur-bearing boxes set the length', async () => {
+test('derived duration: an open-ended box (no dur) does not affect the max - only dur-bearing boxes set the length', async () => {
   const html = await mount([
     { id: 'timed', kind: 'text', x: 0, y: 0, w: 100, h: 100, text: 'x', start: 0, dur: 2 },
     { id: 'open', kind: 'text', x: 0, y: 150, w: 100, h: 100, text: 'y', start: 0 }, // open-ended, extends to seqMs
@@ -257,7 +257,7 @@ test('sanitisation: a hostile, non-whitelisted enter value is dropped, never rea
   // Well-formed: exactly the number of '"' we expect (a multiple of 2, one open/close
   // per attribute) - a breakout would leave an odd count or inject a bare '='.
   const quoteCount = (tag.match(/"/g) || []).length;
-  assert.equal(quoteCount % 2, 0, 'attribute quoting stays balanced — no breakout: ' + tag);
+  assert.equal(quoteCount % 2, 0, 'attribute quoting stays balanced - no breakout: ' + tag);
 });
 
 test('sanitisation: NaN / non-numeric dur is dropped (never emits a broken/NaN attribute)', async () => {
@@ -268,7 +268,7 @@ test('sanitisation: NaN / non-numeric dur is dropped (never emits a broken/NaN a
   assert.ok(!/data-t-dur=/.test(boxTag(htmlAbc, 'a')), '"abc" dur → attribute omitted');
 });
 
-test('sanitisation: dur is clamped to [0.1, 3600] seconds — negative and absurdly large values never ride through raw', async () => {
+test('sanitisation: dur is clamped to [0.1, 3600] seconds - negative and absurdly large values never ride through raw', async () => {
   const htmlNeg = await mount([{ id: 'a', kind: 'text', x: 0, y: 0, w: 100, h: 100, text: 'x', start: 0, dur: -5 }]);
   assert.match(boxTag(htmlNeg, 'a'), /data-t-dur="100"/, '-5s clamps up to the 0.1s floor (100ms)');
 
@@ -281,7 +281,7 @@ test('sanitisation: speed is clamped to [0.25, 4] (an absurd multiplier never ri
   assert.match(boxTag(html, 'a'), /data-t-speed="4"/, '99x clamps down to the 4x ceiling');
 });
 
-test('sanitisation: speed is rounded to 2dp — accumulated float noise never leaks into the attribute', async () => {
+test('sanitisation: speed is rounded to 2dp - accumulated float noise never leaks into the attribute', async () => {
   const html = await mount([{ id: 'a', kind: 'text', x: 0, y: 0, w: 100, h: 100, text: 'x', start: 0, speed: 0.1 + 0.2 }]);
   assert.match(boxTag(html, 'a'), /data-t-speed="0\.3"/, '0.30000000000000004 emits as 0.3');
 
@@ -294,7 +294,7 @@ test('sanitisation: speed is rounded to 2dp — accumulated float noise never le
 // start had only a `>= 0` floor at first, which let 1e308 * 1000 reach the attribute as
 // "Infinity" and anything from 1e21 up as exponential notation ("1e+24") - both of which
 // a phase-2 parseInt reads as NaN / 1. It is clamped to the same [0, 3600] range as dur.
-test('sanitisation: start is clamped to [0, 3600] — Infinity and exponential notation can never reach the attribute', async () => {
+test('sanitisation: start is clamped to [0, 3600] - Infinity and exponential notation can never reach the attribute', async () => {
   const htmlNeg = await mount([{ id: 'a', kind: 'text', x: 0, y: 0, w: 100, h: 100, text: 'x', start: -3 }]);
   assert.match(boxTag(htmlNeg, 'a'), /data-t-start="0"/, '-3s clamps to 0');
 
@@ -411,7 +411,7 @@ test('easing: a whitelisted preset rides through, on the phase that declared it'
 test('easing: a cubic-bezier is re-emitted from its PARSED numbers, not from the typed string', async () => {
   const html = await mount([timed({ enter: 'rise', enterEase: '  cubic-bezier( 0.2 , 1.4000004 , 0.6 , 1 )  ' })]);
   assert.match(boxTag(html, 'a'), /data-t-enter-ease="cubic-bezier\(0\.2,1\.4,0\.6,1\)"/,
-    'whitespace and float noise are normalised away — the attribute is the hook\'s own text');
+    'whitespace and float noise are normalised away - the attribute is the hook\'s own text');
 });
 
 test('easing: an unauthored curve emits no attribute at all', async () => {
@@ -473,7 +473,7 @@ test('depth: an authored z rides through as a clamped integer, and 0 emits nothi
   }
 });
 
-test('depth: z is clamped to [-300, 900] — the field range, not whatever a URL says', async () => {
+test('depth: z is clamped to [-300, 900] - the field range, not whatever a URL says', async () => {
   assert.match(boxTag(await mount([timed({ z: 1e9 })]), 'a'), /data-t-z="900"/, 'clamps to the ceiling');
   assert.match(boxTag(await mount([timed({ z: -1e9 })]), 'a'), /data-t-z="-300"/, 'clamps to the floor');
   assert.match(boxTag(await mount([timed({ z: 1e308 })]), 'a'), /data-t-z="900"/, 'no Infinity, no exponent notation');
@@ -568,7 +568,7 @@ test('depth/keyframes: a FRAME page carries neither data-t-z nor data-t-kf', asy
   assert.ok(page, 'the frame renders a page div');
   assert.ok(!/data-t-z=/.test(page[0]), `no depth on a page: ${page[0]}`);
   assert.ok(!/data-t-kf=/.test(page[0]), `no keyframes on a page: ${page[0]}`);
-  assert.match(page[0], /data-t-start=/, 'but the page keeps its timing — frames-as-scenes still works');
+  assert.match(page[0], /data-t-start=/, 'but the page keeps its timing - frames-as-scenes still works');
   // A child box on that page is unaffected: the exclusion is the frame's, not the page's.
   assert.match(boxTag(html, 'a'), /data-t-z="40"/);
   assert.match(boxTag(html, 'a'), /data-t-kf="t0_x0\*t900_x50"/);

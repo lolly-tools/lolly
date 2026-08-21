@@ -36,7 +36,7 @@ const fetchFile = (path: string) => readFile(join(COMMUNITY_DIR, path), 'utf8');
 // rebrand-deck is a community tool - always present in a full checkout; a
 // missing dir means it was renamed or deleted, which must FAIL loudly here.
 assert.ok(existsSync(join(COMMUNITY_DIR, 'rebrand-deck', 'tool.json')),
-  'community/rebrand-deck/tool.json is missing — the tool was renamed or deleted');
+  'community/rebrand-deck/tool.json is missing - the tool was renamed or deleted');
 
 const tool: any = await loadTool('rebrand-deck', fetchFile);
 
@@ -112,7 +112,7 @@ test('manifest: an on-device pptx file utility on the ^1.58 engine', () => {
   assert.equal(src.type, 'file');
 });
 
-test('picking a deck seeds the colour/font mapping rows from the inspect result — once', async () => {
+test('picking a deck seeds the colour/font mapping rows from the inspect result - once', async () => {
   const { host, calls } = makeHost();
   const rt = await createRuntime(tool, host, {});
   await rt.setInput('source', deckFile() as any);

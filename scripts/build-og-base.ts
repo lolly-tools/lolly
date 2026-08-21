@@ -31,14 +31,14 @@ const OUT = resolve(ROOT, 'shells/web/public/og.png');
 
 async function main(): Promise<void> {
   if (process.env.VERCEL) {
-    console.log('og:base — on Vercel, keeping the committed og.png (no render browser).');
+    console.log('og:base - on Vercel, keeping the committed og.png (no render browser).');
     return;
   }
   let rasterizer: Awaited<ReturnType<typeof createSvgRasterizer>>;
   try {
     rasterizer = await createSvgRasterizer(ROOT);
   } catch (e) {
-    console.log(`og:base — skipped (${(e as Error).message}); kept the committed og.png.`);
+    console.log(`og:base - skipped (${(e as Error).message}); kept the committed og.png.`);
     return;
   }
   try {
@@ -48,7 +48,7 @@ async function main(): Promise<void> {
     // C2PA credential before committing it (see scripts/lib/stamp-media.ts).
     const stamped = await stampBitmap(new Uint8Array(png), 'png', { id: 'og', name: 'Lolly' });
     writeFileSync(OUT, Buffer.from(stamped));
-    console.log('✓ og:base — shells/web/public/og.png regenerated from icon.svg');
+    console.log('✓ og:base - shells/web/public/og.png regenerated from icon.svg');
   } finally {
     await rasterizer.close();
   }

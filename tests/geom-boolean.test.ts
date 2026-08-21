@@ -618,7 +618,7 @@ test('selfUnion collapses a retraced spur', () => {
       const a = curves[i]!, b = curves[j]!;
       const opposed = Math.hypot(a[0] - b[6], a[1] - b[7]) < 1e-9
                    && Math.hypot(a[6] - b[0], a[7] - b[1]) < 1e-9;
-      assert.ok(!opposed, `curves ${i} and ${j} retrace each other — the spur survived`);
+      assert.ok(!opposed, `curves ${i} and ${j} retrace each other - the spur survived`);
     }
   }
 });
@@ -691,7 +691,7 @@ test('a union of two circles stays eight curves and none of them straight', () =
   const u = unionPath(a, b);
   assert.ok(curveCount(u) <= 8 + 2 * crossings, `${curveCount(u)} curves from 8 inputs`);
   assert.equal(allCurves(u).filter((k) => isLineCubic(k, 1e-6)).length, 0,
-    'a circular arc came out straight — the boundary was flattened');
+    'a circular arc came out straight - the boundary was flattened');
 });
 
 // ── residual ──────────────────────────────────────────────────────────────────
@@ -920,7 +920,7 @@ test('circles tangent internally at an interior point', () => {
   near(pathArea(differencePath(big, small)), pathArea(big) - pathArea(small), 1e-8);
 });
 
-test('a tangency is not a coincident run — internal contact, at four scales', () => {
+test('a tangency is not a coincident run - internal contact, at four scales', () => {
   // The regression this file most needed. B sits strictly inside A and kisses it at ONE
   // point, so every operator is settled by the operands' own areas: A∪B = A, A∩B = B,
   // A−B = A⊕B = A−B's ring. Read as a coincident run instead, the shared "overlap" was
@@ -955,7 +955,7 @@ test('a tangency is not a coincident run — internal contact, at four scales', 
   }
 });
 
-test('a tangency is not a coincident run — external contact, at four scales', () => {
+test('a tangency is not a coincident run - external contact, at four scales', () => {
   // The other side of the same property: B outside A, touching at one 45° point. Union is
   // both discs and intersection is empty, and neither may see an overlap to collapse.
   for (const s of [1e-2, 1, 1e3, 1e6]) {

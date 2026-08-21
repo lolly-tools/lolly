@@ -265,7 +265,7 @@ test('mapScanlines: zero-copy rows in order, mutations write through', () => {
 
 // ─── convertSpace ────────────────────────────────────────────────────────────
 
-test('convertSpace: white anchor — sRGB white -> XYZ(D50) is the CSS D50 white', () => {
+test('convertSpace: white anchor - sRGB white -> XYZ(D50) is the CSS D50 white', () => {
   // D65 sRGB white -> XYZ(D65) is (0.9505, 1.0000, 1.0890); Bradford-adapting to
   // D50 must land exactly on the D50 reference white (CSS Color 4).
   const f = convertSpace(frameOf([[1, 1, 1, 1]]), 'xyz-d50');
@@ -278,7 +278,7 @@ test('convertSpace: white anchor — sRGB white -> XYZ(D50) is the CSS D50 white
   assert.deepEqual([...b.data], [0, 0, 0, 0.5]);
 });
 
-test('convertSpace: Y row anchor — luminance of sRGB white/green matches the matrix row', () => {
+test('convertSpace: Y row anchor - luminance of sRGB white/green matches the matrix row', () => {
   // The Y row of sRGB->XYZ is the Rec.709 luma vector; green's Y is 0.7152.
   const g = convertSpace(frameOf([[0, 1, 0, 1]]), 'xyz-d50');
   // Bradford barely moves Y for a D65 stimulus; check against the D65 value loosely
@@ -323,7 +323,7 @@ test('convertSpace: srgb <-> p3 agrees with gamut-source.ts (shared primaries, n
   }
 });
 
-test('convertSpace: Lab anchors — white is L*=100 and 18% grey is L*=49.496 (CIE 15)', () => {
+test('convertSpace: Lab anchors - white is L*=100 and 18% grey is L*=49.496 (CIE 15)', () => {
   const white = convertSpace(frameOf([[1, 1, 1, 1]]), 'lab');
   approx(white.data[0]!, 100, 1e-2, 'white L*');
   approx(white.data[1]!, 0, 1e-2, 'white a*');

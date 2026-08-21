@@ -113,7 +113,7 @@ test('the loop-shaped counterexample: right answer, and independent of any sampl
   assert.ok(got.distance <= brute,
     `${got.distance.toExponential(4)} is worse than a 400k-sample scan's ${brute.toExponential(4)}`);
   assert.ok(got.distance < 6e-6,
-    `expected the true ~5.14e-6, got ${got.distance.toExponential(4)} — the old basin-picking answer was 4.287e-1`);
+    `expected the true ~5.14e-6, got ${got.distance.toExponential(4)} - the old basin-picking answer was 4.287e-1`);
 
   // The point of the fix. The old implementation reported 4.287e-1 at samples=24 AND at
   // samples=200, so a test that only checked one sample count would have looked fine at
@@ -121,8 +121,8 @@ test('the loop-shaped counterexample: right answer, and independent of any sampl
   // of it, including absurd ones, must give the identical answer.
   for (const n of [1, 2, 3, 24, 200, 2000, 0, -5, Number.NaN]) {
     const alt = nearestOnCubic(loopish, px, py, n);
-    assert.equal(alt.t, got.t, `samples=${n} changed the parameter — it must be ignored`);
-    assert.equal(alt.distance, got.distance, `samples=${n} changed the distance — it must be ignored`);
+    assert.equal(alt.t, got.t, `samples=${n} changed the parameter - it must be ignored`);
+    assert.equal(alt.distance, got.distance, `samples=${n} changed the distance - it must be ignored`);
   }
 });
 

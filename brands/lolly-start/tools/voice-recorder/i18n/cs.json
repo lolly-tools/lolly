@@ -2,7 +2,7 @@
   "name": "Hlasový záznamník",
   "description": "Nahraj hlasovou poznámku s živým ukazatelem hlasitosti a jemným koučováním, pak ji ulož jako MP3.",
   "featured.blurb": "Nahraj čistou hlasovou poznámku s živým vedením hlasitosti",
-  "a11yLabel": "Hlasový záznamník — úroveň {{default dbText \"idle\"}}",
+  "a11yLabel": "Hlasový záznamník - úroveň {{default dbText \"idle\"}}",
   "inputs.title.label": "Popisek",
   "inputs.title.help": "Pojmenuje kartu nahrávky a uložený soubor.",
   "inputs.targetLevel.label": "Cílová úroveň",

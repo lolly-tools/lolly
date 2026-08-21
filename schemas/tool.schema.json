@@ -15,7 +15,7 @@
     "extends": {
       "type": "string",
       "enum": ["community"],
-      "description": "Brand-overlay marker — only valid on a tool inside a brand pack (brands/<brand>/tools/<id>/), never on a community tool. Declares this directory a per-file OVERLAY of the base pack's tool with the SAME id: scripts/use-profile.ts composes the profile view from community/<id>/ plus this dir (overlay file wins on filename collision, recursing one level into subdirs such as i18n/ and assets/) and strips this field from the composed tool.json, so shells and the engine never see it. The base community/<id>/tool.json must exist — a missing base fails the profile build loudly (never a silent partial tool). v1 supports only \"community\" as the base pack."
+      "description": "Brand-overlay marker - only valid on a tool inside a brand pack (brands/<brand>/tools/<id>/), never on a community tool. Declares this directory a per-file OVERLAY of the base pack's tool with the SAME id: scripts/use-profile.ts composes the profile view from community/<id>/ plus this dir (overlay file wins on filename collision, recursing one level into subdirs such as i18n/ and assets/) and strips this field from the composed tool.json, so shells and the engine never see it. The base community/<id>/tool.json must exist - a missing base fails the profile build loudly (never a silent partial tool). v1 supports only \"community\" as the base pack."
     },
     "name": {
       "type": "string",
@@ -58,12 +58,12 @@
     },
     "listed": {
       "type": "boolean",
-      "description": "Whether the tool appears in the gallery listing — the grid, search, favourites and the featured/utility strips (default true). Set false to UNLIST a tool that is a MECHANISM invoked from context rather than a destination the user browses to (e.g. asset-export, reached from the catalog's per-asset 'Download'). An unlisted tool still loads normally via #/tool/<id>, URL mode, and the CLI; unlisting only removes it from the gallery listing."
+      "description": "Whether the tool appears in the gallery listing - the grid, search, favourites and the featured/utility strips (default true). Set false to UNLIST a tool that is a MECHANISM invoked from context rather than a destination the user browses to (e.g. asset-export, reached from the catalog's per-asset 'Download'). An unlisted tool still loads normally via #/tool/<id>, URL mode, and the CLI; unlisting only removes it from the gallery listing."
     },
     "privacy": {
       "type": "string",
       "enum": ["on-device"],
-      "description": "Marks an on-device utility — a tool that processes the user's OWN content (file in → transformed file out) entirely on the device, with nothing uploaded. The host shows a 'Runs on your device — nothing is uploaded' badge. Enforced conventions (validated): status must not be 'experimental' (no watermark on the user's own file) and the tool must not embed provenance metadata into the output. This is the marker for the privacy-flagship utility category (EXIF strip, redact, compress, convert) that replaces content exfiltration to single-purpose SaaS."
+      "description": "Marks an on-device utility - a tool that processes the user's OWN content (file in → transformed file out) entirely on the device, with nothing uploaded. The host shows a 'Runs on your device - nothing is uploaded' badge. Enforced conventions (validated): status must not be 'experimental' (no watermark on the user's own file) and the tool must not embed provenance metadata into the output. This is the marker for the privacy-flagship utility category (EXIF strip, redact, compress, convert) that replaces content exfiltration to single-purpose SaaS."
     },
     "tags": {
       "type": "array",
@@ -85,19 +85,19 @@
         },
         "variants": {
           "type": "array",
-          "description": "DEPRECATED alias for top-level `examples` — kept for tools authored before `examples` existed. When both are present, `examples` wins (in the featured row and the gallery tile). Prefer authoring `examples` (it also drives the gallery tile's preview strip).",
+          "description": "DEPRECATED alias for top-level `examples` - kept for tools authored before `examples` existed. When both are present, `examples` wins (in the featured row and the gallery tile). Prefer authoring `examples` (it also drives the gallery tile's preview strip).",
           "items": { "$ref": "#/$defs/exampleVariant" }
         }
       }
     },
     "examples": {
       "type": "array",
-      "description": "Example input value-sets that demonstrate the tool's range. They render live on the client (the same off-screen engine path an export takes) and are shown as the gallery tile's horizontally-scrollable preview strip — after the most-recent saved-session preview — and, when the tool is `featured`, as the hero row's cross-fade. Each is memoised so later visits are instant. Omit for a tool whose single committed preview says enough.",
+      "description": "Example input value-sets that demonstrate the tool's range. They render live on the client (the same off-screen engine path an export takes) and are shown as the gallery tile's horizontally-scrollable preview strip - after the most-recent saved-session preview - and, when the tool is `featured`, as the hero row's cross-fade. Each is memoised so later visits are instant. Omit for a tool whose single committed preview says enough.",
       "items": { "$ref": "#/$defs/exampleVariant" }
     },
     "templates": {
       "type": "array",
-      "description": "Named starting points offered by the web shell's \"New from template\" chooser on a blank fresh open (no `?slot`, no URL values, no in-process seed, no `?template`). SOURCE OF TRUTH is the per-template files tools/<id>/templates/<tid>.json (each { id, name, category?, description?, thumb?, values }); build-catalog-index.ts scans that dir and the synced index carries METADATA ONLY (id/name/category/description/thumb) — the heavy `values` seed lives in the external file and is fetched on demand (chooser-select and the reserved `?template=<id>` launcher), never packed into the URL. This inline `templates[]` field is an OPTIONAL fallback for a tool that prefers inline metadata; when present the same items apply. Adding templates never changes a tool that lacks them, and never affects the manifest `default` composition (URL-mode / CLI / deep links still render with no chooser).",
+      "description": "Named starting points offered by the web shell's \"New from template\" chooser on a blank fresh open (no `?slot`, no URL values, no in-process seed, no `?template`). SOURCE OF TRUTH is the per-template files tools/<id>/templates/<tid>.json (each { id, name, category?, description?, thumb?, values }); build-catalog-index.ts scans that dir and the synced index carries METADATA ONLY (id/name/category/description/thumb) - the heavy `values` seed lives in the external file and is fetched on demand (chooser-select and the reserved `?template=<id>` launcher), never packed into the URL. This inline `templates[]` field is an OPTIONAL fallback for a tool that prefers inline metadata; when present the same items apply. Adding templates never changes a tool that lacks them, and never affects the manifest `default` composition (URL-mode / CLI / deep links still render with no chooser).",
       "items": { "$ref": "#/$defs/templateVariant" }
     },
     "render": {
@@ -128,13 +128,13 @@
         "sidebar": {
           "type": "boolean",
           "default": true,
-          "description": "Set false to declare inputs that are NOT presented as a left-panel sidebar: the inputs live only in the synced input model (URL params, collaboration, saved sessions, CLI/URL mode) and the tool's own template owns their editing UI. A full-bleed tool that still exports (render.export:true) keeps its export pill and canvas — the input aside is simply suppressed, exactly as for a no-input full-bleed tool. Use this for an interactive editor whose controls belong on the canvas (e.g. Run Web Code's code panes) rather than in a sidebar. Distinct from render.layout:'canvas' (which is for a single file drop-zone and forces export off) and from the chromeless 'editor'/'document' layouts (which keep a fixed render canvas)."
+          "description": "Set false to declare inputs that are NOT presented as a left-panel sidebar: the inputs live only in the synced input model (URL params, collaboration, saved sessions, CLI/URL mode) and the tool's own template owns their editing UI. A full-bleed tool that still exports (render.export:true) keeps its export pill and canvas - the input aside is simply suppressed, exactly as for a no-input full-bleed tool. Use this for an interactive editor whose controls belong on the canvas (e.g. Run Web Code's code panes) rather than in a sidebar. Distinct from render.layout:'canvas' (which is for a single file drop-zone and forces export off) and from the chromeless 'editor'/'document' layouts (which keep a fixed render canvas)."
         },
         "layout": {
           "type": "string",
           "enum": ["sidebar", "canvas", "editor", "document", "deck"],
           "default": "sidebar",
-          "description": "Presentation of the tool's interface. 'sidebar' (default) renders inputs in the left control panel. 'canvas' hides the sidebar and presents the tool as a full-bleed working area — a single declared 'file' input is shown as a drag-and-drop / click-to-pick zone on the canvas itself (for on-device file utilities). 'editor' hides the sidebar too, but keeps the fixed-size render canvas AND the full render/export controls (render pill + export popup): a chromeless WYSIWYG surface. A tool using 'editor' declares one 'blocks' input carrying a `canvas` flag (which maps its geometry fields); the web shell mounts a direct-manipulation overlay (select / drag / resize / rotate / z-order / align / distribute) that reads and writes that flat blocks array. Data stays flat and URL-expressible, so CLI/URL mode render the same artwork with no overlay. Input semantics are unchanged. 'document' is a chromeless multi-page flowing-document surface (paged tools): it keeps the render/export controls like 'editor' but mounts a rich-text document editor (on-canvas format ribbon, per-block controls, contenteditable, rich-HTML paste) over a 'blocks' input whose rows are content blocks (heading/text/lolly/table). Pagination lives in the tool's hook, so CLI/URL render the same document with no editor. 'deck' is a slide-deck editor: it KEEPS the input sidebar (not chromeless) and mounts a live on-canvas overlay (deck-editor.js) over a 'blocks' input whose rows are slides — click a slide to edit its text/colour/images in place, navigate a thumbnail rail. Bounded DOM: an edit-mode hook render-mode shows one active slide plus tiny thumbnails, and the overlay restores a full-deck render before export."
+          "description": "Presentation of the tool's interface. 'sidebar' (default) renders inputs in the left control panel. 'canvas' hides the sidebar and presents the tool as a full-bleed working area - a single declared 'file' input is shown as a drag-and-drop / click-to-pick zone on the canvas itself (for on-device file utilities). 'editor' hides the sidebar too, but keeps the fixed-size render canvas AND the full render/export controls (render pill + export popup): a chromeless WYSIWYG surface. A tool using 'editor' declares one 'blocks' input carrying a `canvas` flag (which maps its geometry fields); the web shell mounts a direct-manipulation overlay (select / drag / resize / rotate / z-order / align / distribute) that reads and writes that flat blocks array. Data stays flat and URL-expressible, so CLI/URL mode render the same artwork with no overlay. Input semantics are unchanged. 'document' is a chromeless multi-page flowing-document surface (paged tools): it keeps the render/export controls like 'editor' but mounts a rich-text document editor (on-canvas format ribbon, per-block controls, contenteditable, rich-HTML paste) over a 'blocks' input whose rows are content blocks (heading/text/lolly/table). Pagination lives in the tool's hook, so CLI/URL render the same document with no editor. 'deck' is a slide-deck editor: it KEEPS the input sidebar (not chromeless) and mounts a live on-canvas overlay (deck-editor.js) over a 'blocks' input whose rows are slides - click a slide to edit its text/colour/images in place, navigate a thumbnail rail. Bounded DOM: an edit-mode hook render-mode shows one active slide plus tiny thumbnails, and the overlay restores a full-deck render before export."
         },
         "dims": {
           "type": "boolean",
@@ -144,7 +144,7 @@
         "units": {
           "type": "boolean",
           "default": true,
-          "description": "Set false to offer pixels only — hides the physical-unit (mm/cm/in/pt) selector and the DPI field in the download bar. Width/height stay in px, so an on-screen pixel is an exported pixel. Use for tools whose output is inherently pixel-measured (screen assets, favicons, token-cost images) where a physical print size is meaningless and would make width/height inputs disagree with the true raster resolution."
+          "description": "Set false to offer pixels only - hides the physical-unit (mm/cm/in/pt) selector and the DPI field in the download bar. Width/height stay in px, so an on-screen pixel is an exported pixel. Use for tools whose output is inherently pixel-measured (screen assets, favicons, token-cost images) where a physical print size is meaningless and would make width/height inputs disagree with the true raster resolution."
         },
         "paginate": {
           "type": "object",
@@ -158,13 +158,13 @@
         "paged": {
           "type": "boolean",
           "default": false,
-          "description": "Marks a multi-page document tool — one whose output lays out several `[data-pdf-page]` boxes (e.g. multi-page-pdf). The gallery renders each page as its own horizontally-scrollable preview slide (via renderToolPages) instead of input-variant example looks."
+          "description": "Marks a multi-page document tool - one whose output lays out several `[data-pdf-page]` boxes (e.g. multi-page-pdf). The gallery renders each page as its own horizontally-scrollable preview slide (via renderToolPages) instead of input-variant example looks."
         },
         "filmstrip": {
           "type": "string",
           "enum": ["left", "bottom"],
           "default": "left",
-          "description": "Which edge the paged tool's slide-sorter filmstrip runs along. `left` (the default) is a vertical rail beside the canvas — right for tall documents. `bottom` is the deck-strip shape, for tools whose pages are wide and few (cards, slides), where a left rail would eat the width the page needs. Only read when `paged: true`."
+          "description": "Which edge the paged tool's slide-sorter filmstrip runs along. `left` (the default) is a vertical rail beside the canvas - right for tall documents. `bottom` is the deck-strip shape, for tools whose pages are wide and few (cards, slides), where a left rail would eat the width the page needs. Only read when `paged: true`."
         },
         "pages": {
           "type": "object",
@@ -183,7 +183,7 @@
         "printMarks": {
           "type": "boolean",
           "default": true,
-          "description": "Set false to hide the 'Print marks & bleed' card from the download bar. The print-finishing path (crop/registration marks, bleed box, page boxes) applies to a single trim-sized artwork, so multi-page documents (which emit per-page boxes) opt out of it. Set true to DECLARE PRINT INTENT: the card's master toggle then defaults ON for every print-capable format. Left unset, the card is offered but starts OFF for the RGB vector formats (pdf/svg/eps) and ON only for the separating press formats (pdf-cmyk/cmyk-tiff/eps-cmyk) — marks and bleed are never a side effect of picking a physical unit or an everyday PDF/SVG."
+          "description": "Set false to hide the 'Print marks & bleed' card from the download bar. The print-finishing path (crop/registration marks, bleed box, page boxes) applies to a single trim-sized artwork, so multi-page documents (which emit per-page boxes) opt out of it. Set true to DECLARE PRINT INTENT: the card's master toggle then defaults ON for every print-capable format. Left unset, the card is offered but starts OFF for the RGB vector formats (pdf/svg/eps) and ON only for the separating press formats (pdf-cmyk/cmyk-tiff/eps-cmyk) - marks and bleed are never a side effect of picking a physical unit or an everyday PDF/SVG."
         },
         "transparentBg": {
           "type": "boolean",
@@ -193,16 +193,16 @@
         "c2pa": {
           "type": "boolean",
           "default": true,
-          "description": "Whether the Content Credentials (C2PA) toggle is pre-checked in the export panel. Default TRUE — every tool stamps a signed provenance manifest by default (for the C2PA-capable formats it exports). Set FALSE to opt a tool out. Ignored (forced off) for privacy:'on-device' tools, which must never embed provenance into a user's own file. A ?c2pa= link/save value overrides this per export."
+          "description": "Whether the Content Credentials (C2PA) toggle is pre-checked in the export panel. Default TRUE - every tool stamps a signed provenance manifest by default (for the C2PA-capable formats it exports). Set FALSE to opt a tool out. Ignored (forced off) for privacy:'on-device' tools, which must never embed provenance into a user's own file. A ?c2pa= link/save value overrides this per export."
         },
         "liveMaxEdge": {
           "type": "integer",
           "minimum": 1,
-          "description": "For onFrame (live camera) tools only: the requested longest edge, in pixels, of the working camera frame handed to the hook. The shell downscales the source camera to a small default that suits a vector trace; a raster-output tool (whose result is a bitmap, not traced shapes — e.g. pixel-stretch) sets this higher for sharper output. The shell clamps it to the native camera frame (never upscales) and to its own ceiling. Ignored by tools without onFrame and by shells without a camera."
+          "description": "For onFrame (live camera) tools only: the requested longest edge, in pixels, of the working camera frame handed to the hook. The shell downscales the source camera to a small default that suits a vector trace; a raster-output tool (whose result is a bitmap, not traced shapes - e.g. pixel-stretch) sets this higher for sharper output. The shell clamps it to the native camera frame (never upscales) and to its own ceiling. Ignored by tools without onFrame and by shells without a camera."
         },
         "liveMaxEdgeInput": {
           "type": "string",
-          "description": "For onFrame (live camera) tools: id of a number input whose value overrides liveMaxEdge, exposing camera resolution as a user-facing control (e.g. a slider). The runtime reads it at go-live and re-applies to the running stream whenever the input changes — no camera stop/start — so the working frame resolution follows the control. Falls back to liveMaxEdge when the input is unset or absent."
+          "description": "For onFrame (live camera) tools: id of a number input whose value overrides liveMaxEdge, exposing camera resolution as a user-facing control (e.g. a slider). The runtime reads it at go-live and re-applies to the running stream whenever the input changes - no camera stop/start - so the working frame resolution follows the control. Falls back to liveMaxEdge when the input is unset or absent."
         },
         "liveDefault": {
           "type": "string",
@@ -212,22 +212,22 @@
         "convertPaths": {
           "type": "boolean",
           "default": true,
-          "description": "Controls the 'Convert paths' export toggle (outline text to vector paths in SVG/PDF/PDF-CMYK so output renders identically without the fonts installed). The engine auto-injects the toggle whenever the tool exports a vector format. Set false to suppress the toggle entirely and never outline text — e.g. capture tools, where the output is a raster and text-outlining doesn't apply."
+          "description": "Controls the 'Convert paths' export toggle (outline text to vector paths in SVG/PDF/PDF-CMYK so output renders identically without the fonts installed). The engine auto-injects the toggle whenever the tool exports a vector format. Set false to suppress the toggle entirely and never outline text - e.g. capture tools, where the output is a raster and text-outlining doesn't apply."
         },
         "preview": {
           "type": "object",
           "additionalProperties": false,
-          "description": "Marks a tool whose live canvas is a placeholder until an explicit, expensive render runs (e.g. a capture tool that screenshots a page in beforeExport). The shell wires a [data-preview] control in the template to render into the frame — preview only, never a download — and re-shows the placeholder whenever an input changes (the last preview is invalidated).",
+          "description": "Marks a tool whose live canvas is a placeholder until an explicit, expensive render runs (e.g. a capture tool that screenshots a page in beforeExport). The shell wires a [data-preview] control in the template to render into the frame - preview only, never a download - and re-shows the placeholder whenever an input changes (the last preview is invalidated).",
           "properties": {
             "format": {
               "type": "string",
               "enum": ["png", "jpg", "jpeg", "svg", "pdf", "webp", "avif"],
-              "description": "Format used for the preview render. Defaults to the tool's first render format. Pick a cheap raster (e.g. webp) — the blob is discarded; only the painted frame is kept."
+              "description": "Format used for the preview render. Defaults to the tool's first render format. Pick a cheap raster (e.g. webp) - the blob is discarded; only the painted frame is kept."
             },
             "auto": {
               "type": "boolean",
               "default": false,
-              "description": "Generate a preview automatically once the tool finishes loading, so the user lands on a rendered frame rather than the placeholder. Fires once on load only — never on every input change — so deferred renders stay deliberate."
+              "description": "Generate a preview automatically once the tool finishes loading, so the user lands on a rendered frame rather than the placeholder. Fires once on load only - never on every input change - so deferred renders stay deliberate."
             }
           }
         },
@@ -243,13 +243,13 @@
         "capture": {
           "type": "string",
           "enum": ["audio", "video", "av", "screen"],
-          "description": "Marks a device-recording tool (requires host.recorder + the matching 'microphone'/'camera' capability). Tells the shell which record affordance to mount: 'audio' = mic-only (a voice recorder — also shows a live level meter when the tool declares an onLevel hook); 'video' = camera-only, SILENT (no mic track); 'av' = camera+mic (a talking-head/video recorder — use this, not 'video', when the clip needs sound, and declare BOTH 'camera' and 'microphone'; the shell also shows an audio-level + background-noise coaching HUD). 'screen' = display capture (requires the 'screen' capability): the shell mounts a Screenshot + Record pair and the browser's own picker chooses the screen/window/tab, so the tool never names or sees a target it wasn't handed. Absent = no record button. The recorded bytes reach the user via the transform path (host.export.file, never watermarked) or, for a compositing tool, become a template asset the render wraps."
+          "description": "Marks a device-recording tool (requires host.recorder + the matching 'microphone'/'camera' capability). Tells the shell which record affordance to mount: 'audio' = mic-only (a voice recorder - also shows a live level meter when the tool declares an onLevel hook); 'video' = camera-only, SILENT (no mic track); 'av' = camera+mic (a talking-head/video recorder - use this, not 'video', when the clip needs sound, and declare BOTH 'camera' and 'microphone'; the shell also shows an audio-level + background-noise coaching HUD). 'screen' = display capture (requires the 'screen' capability): the shell mounts a Screenshot + Record pair and the browser's own picker chooses the screen/window/tab, so the tool never names or sees a target it wasn't handed. Absent = no record button. The recorded bytes reach the user via the transform path (host.export.file, never watermarked) or, for a compositing tool, become a template asset the render wraps."
         },
         "aspectWarning": {
           "type": "object",
           "additionalProperties": false,
           "required": ["message"],
-          "description": "Editor-only guard for tools whose layout only suits a certain orientation (e.g. a portrait-only document). Shows a prominent warning beside the dimension controls when the current page aspect ratio (width ÷ height) falls outside [min, max]. Never affects — or appears in — the rendered/exported output.",
+          "description": "Editor-only guard for tools whose layout only suits a certain orientation (e.g. a portrait-only document). Shows a prominent warning beside the dimension controls when the current page aspect ratio (width ÷ height) falls outside [min, max]. Never affects - or appears in - the rendered/exported output.",
           "properties": {
             "min":     { "type": "number", "exclusiveMinimum": 0, "description": "Minimum acceptable aspect ratio (width ÷ height). Below this, the warning shows. Omit to leave the low end unbounded." },
             "max":     { "type": "number", "exclusiveMinimum": 0, "description": "Maximum acceptable aspect ratio (width ÷ height). Above this, the warning shows. Omit to leave the high end unbounded." },
@@ -269,13 +269,13 @@
         "type": "string",
         "enum": ["network", "filesystem", "clipboard", "camera", "microphone", "ffmpeg", "wasm", "capture", "compose", "screen"]
       },
-      "description": "Declares what host capabilities this tool needs. The host disables the tool on shells that can't provide them (e.g. an ffmpeg-using tool is unavailable in the web shell; a 'microphone'/'camera'/'screen' recording tool is unavailable in the headless CLI). 'screen' (v1.54) is DISPLAY capture via host.recorder — the user picks a screen/window/tab in browser-native UI; distinct from 'capture', which rasterises a URL the tool itself names."
+      "description": "Declares what host capabilities this tool needs. The host disables the tool on shells that can't provide them (e.g. an ffmpeg-using tool is unavailable in the web shell; a 'microphone'/'camera'/'screen' recording tool is unavailable in the headless CLI). 'screen' (v1.54) is DISPLAY capture via host.recorder - the user picks a screen/window/tab in browser-native UI; distinct from 'capture', which rasterises a URL the tool itself names."
     },
     "network": {
       "type": "object",
       "required": ["allowlist"],
       "additionalProperties": false,
-      "description": "Configuration for the 'network' capability: which URLs host.net.fetch may reach. Only meaningful alongside capabilities:[\"network\"]. Fail-closed — without this block (or for a URL no entry matches) every host.net fetch rejects.",
+      "description": "Configuration for the 'network' capability: which URLs host.net.fetch may reach. Only meaningful alongside capabilities:[\"network\"]. Fail-closed - without this block (or for a URL no entry matches) every host.net fetch rejects.",
       "properties": {
         "allowlist": {
           "type": "array",
@@ -335,7 +335,7 @@
       "type": "object",
       "additionalProperties": false,
       "required": ["tracks"],
-      "description": "A short 'how do I actually use the thing I just made' walkthrough, shown as a dialog behind a help button beside the tool's title (web shell) and opened once automatically on a device's first visit to the tool. For the last mile a render can't teach on its own — where the export goes and what to do with it there. Keep it to a handful of steps: it is a nudge, not documentation (link to docs from a step for the long version). Translatable via the tool's i18n sidecar under `guide.*`.",
+      "description": "A short 'how do I actually use the thing I just made' walkthrough, shown as a dialog behind a help button beside the tool's title (web shell) and opened once automatically on a device's first visit to the tool. For the last mile a render can't teach on its own - where the export goes and what to do with it there. Keep it to a handful of steps: it is a nudge, not documentation (link to docs from a step for the long version). Translatable via the tool's i18n sidecar under `guide.*`.",
       "properties": {
         "title": {
           "type": "string",
@@ -354,14 +354,14 @@
               "id": {
                 "type": "string",
                 "pattern": "^[a-z0-9-]+$",
-                "description": "Stable key for this track — the i18n sidecar path (`guide.tracks.<id>.…`) is built from it, so treat it like an input id."
+                "description": "Stable key for this track - the i18n sidecar path (`guide.tracks.<id>.…`) is built from it, so treat it like an input id."
               },
               "label": { "type": "string", "description": "Tab label. Keep it to one or two words." },
               "steps": {
                 "type": "array",
                 "minItems": 1,
                 "maxItems": 8,
-                "description": "Ordered steps, rendered as a numbered list. Plain text — `**bold**` is the only markup, for naming the control being pointed at.",
+                "description": "Ordered steps, rendered as a numbered list. Plain text - `**bold**` is the only markup, for naming the control being pointed at.",
                 "items": { "type": "string" }
               },
               "note": {
@@ -380,11 +380,11 @@
       "properties": {
         "onInit": { "type": "boolean" },
         "onInput": { "type": "boolean" },
-        "onFrame": { "type": "boolean", "description": "The tool reacts to a live camera stream. When the shell provides host.media (a camera) the runtime drives this hook once per frame with { frame, model, host }, where frame is { width, height, data (RGBA), t }; the returned patch updates the render exactly like onInit/onInput. Pure progressive enhancement — the tool still runs as a still-image tool where no camera is available, so it must NOT be declared as a required 'camera' capability." },
-        "onLevel": { "type": "boolean", "description": "The tool reacts to live audio levels while metering/recording (e.g. a mic recorder's VU meter + coaching). When the shell provides host.recorder the runtime drives this hook per level sample with { level, model, host }, where level is { rms, peak, dbfs, clipping, t }; the returned patch updates the render like onFrame (drop-overlap, not time-boxed). The tool declares the 'microphone' capability, so — unlike onFrame — it only runs where a mic can be recorded." },
+        "onFrame": { "type": "boolean", "description": "The tool reacts to a live camera stream. When the shell provides host.media (a camera) the runtime drives this hook once per frame with { frame, model, host }, where frame is { width, height, data (RGBA), t }; the returned patch updates the render exactly like onInit/onInput. Pure progressive enhancement - the tool still runs as a still-image tool where no camera is available, so it must NOT be declared as a required 'camera' capability." },
+        "onLevel": { "type": "boolean", "description": "The tool reacts to live audio levels while metering/recording (e.g. a mic recorder's VU meter + coaching). When the shell provides host.recorder the runtime drives this hook per level sample with { level, model, host }, where level is { rms, peak, dbfs, clipping, t }; the returned patch updates the render like onFrame (drop-overlap, not time-boxed). The tool declares the 'microphone' capability, so - unlike onFrame - it only runs where a mic can be recorded." },
         "beforeExport": { "type": "boolean" },
         "afterExport": { "type": "boolean" },
-        "exportFile": { "type": "boolean", "description": "The tool produces output via the transform path (file in → transformed file out) rather than rasterising the DOM. The hook reads the picked file's bytes (input.value.bytes) and returns a { bytes, mime, filename } record; the host wraps it in a Blob and delivers it via host.export.file (no watermark, no embedded provenance). A batch tool (a `multiple` file input) may instead return an ARRAY of such records — one per file — which the host delivers as a single zip. Used by on-device utilities." },
+        "exportFile": { "type": "boolean", "description": "The tool produces output via the transform path (file in → transformed file out) rather than rasterising the DOM. The hook reads the picked file's bytes (input.value.bytes) and returns a { bytes, mime, filename } record; the host wraps it in a Blob and delivers it via host.export.file (no watermark, no embedded provenance). A batch tool (a `multiple` file input) may instead return an ARRAY of such records - one per file - which the host delivers as a single zip. Used by on-device utilities." },
         "exportStill": { "type": "boolean", "description": "The tool owns a raster still export at a bit depth the 8-bit DOM raster cannot originate (16-bit/HDR PNG, OpenEXR, Radiance). The runtime calls this hook (engine 1.100+) before host.export.render with { node, format, opts (depth/hdr/width/height/dpi), host }; returning { bytes, mime } short-circuits the export to those bytes (via host.codec, computed in float), while returning null declines and falls through to the normal path for that format. Tool-supplied bytes carry no watermark or engine provenance." }
       }
     },
@@ -405,7 +405,7 @@
         },
         "label": { "type": "string" },
         "help": { "type": "string" },
-        "notice": { "type": "string", "description": "Always-visible fine print rendered above the control (unlike help, which sits behind an info button). For what the user should read before typing — e.g. the consent disclosure on an input whose value triggers a network lookup." },
+        "notice": { "type": "string", "description": "Always-visible fine print rendered above the control (unlike help, which sits behind an info button). For what the user should read before typing - e.g. the consent disclosure on an input whose value triggers a network lookup." },
         "type": {
           "type": "string",
           "enum": ["text", "longtext", "number", "boolean", "color", "select", "asset", "date", "time", "datetime-local", "url", "blocks", "vector", "file", "table"]
@@ -436,7 +436,7 @@
         },
         "attachTo": {
           "type": "string",
-          "description": "Id of a sibling input. Renders THIS input's control inside that input's control row (leading) instead of on its own labelled row — for a compact modifier belonging to another control, e.g. a fit toggle on an asset slot. It stays an ordinary input everywhere else (URL params, hooks, state, undo); only its placement changes. Pair with display:'icon-toggle' to keep it to one button. Ignored if the target id does not exist."
+          "description": "Id of a sibling input. Renders THIS input's control inside that input's control row (leading) instead of on its own labelled row - for a compact modifier belonging to another control, e.g. a fit toggle on an asset slot. It stays an ordinary input everywhere else (URL params, hooks, state, undo); only its placement changes. Pair with display:'icon-toggle' to keep it to one button. Ignored if the target id does not exist."
         },
         "dataSource": {
           "type": "object",
@@ -485,7 +485,7 @@
               "display": { "type": "string", "enum": ["input", "slider"], "default": "input" },
               "rangeWhen": {
                 "type": "array",
-                "description": "Conditional slider bounds: the first entry whose `when` map matches the current model overrides min/max/step (e.g. per-mode limits). Drives the web slider UI only — a tool that must enforce the bound elsewhere (URL/CLI values are not auto-clamped) does so in a hook.",
+                "description": "Conditional slider bounds: the first entry whose `when` map matches the current model overrides min/max/step (e.g. per-mode limits). Drives the web slider UI only - a tool that must enforce the bound elsewhere (URL/CLI values are not auto-clamped) does so in a hook.",
                 "items": {
                   "type": "object",
                   "required": ["when"],
@@ -511,7 +511,7 @@
               },
               "swatchesOnly": {
                 "type": "boolean",
-                "description": "Restrict to brand palette swatches only — hides the hex entry, native picker and alpha. Default false (full picker)."
+                "description": "Restrict to brand palette swatches only - hides the hex entry, native picker and alpha. Default false (full picker)."
               }
             }
           }
@@ -525,7 +525,7 @@
                 "type": "string",
                 "enum": ["select", "icon-toggle", "segmented"],
                 "default": "select",
-                "description": "'icon-toggle' renders the select as ONE compact button that cycles its options, showing the current option's `icon` instead of a dropdown. Intended for 2-state modifiers (with attachTo); a longer option list still cycles, but a dropdown reads better past ~3. 'segmented' renders the options as a row of side-by-side tabs (a radiogroup) instead of a dropdown — for a small, mutually-exclusive mode switch (2–4 options) like Hue/Saturation/Luminance; past ~4 a dropdown reads better."
+                "description": "'icon-toggle' renders the select as ONE compact button that cycles its options, showing the current option's `icon` instead of a dropdown. Intended for 2-state modifiers (with attachTo); a longer option list still cycles, but a dropdown reads better past ~3. 'segmented' renders the options as a row of side-by-side tabs (a radiogroup) instead of a dropdown - for a small, mutually-exclusive mode switch (2–4 options) like Hue/Saturation/Luminance; past ~4 a dropdown reads better."
               },
               "options": {
                 "type": "array",
@@ -536,8 +536,8 @@
                     "value": { "type": "string" },
                     "label": { "type": "string" },
                     "icon": { "type": "string", "description": "Icon name from the web shell's registry (shells/web/src/lib/icons.ts), shown instead of the label when display is 'icon-toggle'. Falls back to the label if the name is unknown." },
-                    "badge": { "type": "string", "description": "Short pill shown beside this option's label. If ANY option carries a badge, the web shell renders the select as a badged picker (a radiogroup of labelled pills) instead of a native dropdown — so the badge is visible while choosing, not only after. For discovery/evaluation hints, e.g. 'vector' / 'raster' on a filter-effect picker. Keep it to one short word." },
-                    "formats": { "type": "array", "items": { "type": "string" }, "description": "Export formats to offer while THIS option is selected — a subset of render.formats. Lets one select (e.g. an effect picker) drive the export format bar so each choice offers only the formats it produces well, while render.formats stays the union. Intersected with the tool's render.formats and the device's capability filter. Ignored unless the shell wires the option to the format bar." },
+                    "badge": { "type": "string", "description": "Short pill shown beside this option's label. If ANY option carries a badge, the web shell renders the select as a badged picker (a radiogroup of labelled pills) instead of a native dropdown - so the badge is visible while choosing, not only after. For discovery/evaluation hints, e.g. 'vector' / 'raster' on a filter-effect picker. Keep it to one short word." },
+                    "formats": { "type": "array", "items": { "type": "string" }, "description": "Export formats to offer while THIS option is selected - a subset of render.formats. Lets one select (e.g. an effect picker) drive the export format bar so each choice offers only the formats it produces well, while render.formats stays the union. Intersected with the tool's render.formats and the device's capability filter. Ignored unless the shell wires the option to the format bar." },
                     "width": { "type": "number", "exclusiveMinimum": 0, "description": "Export width this option implies, in `unit`. With `height`, selecting the option sets the export dimensions (so a 'size' select drives the printed page size). The shell applies it to the export bar; the user can still override." },
                     "height": { "type": "number", "exclusiveMinimum": 0, "description": "Export height this option implies, in `unit`." },
                     "unit": { "type": "string", "enum": ["px", "mm", "cm", "in", "pt"], "description": "Unit for this option's width/height. Defaults to 'mm' when width/height are present." }
@@ -575,7 +575,7 @@
               "accept": {
                 "type": "array",
                 "items": { "type": "string" },
-                "description": "Allowlist of accepted file types — MIME types and/or extensions (e.g. [\"image/jpeg\", \"image/png\", \".heic\"]). Used as the file picker's `accept` attribute. Empty/omitted accepts any file. This is a UX hint, not a security boundary — the hook should still validate bytes."
+                "description": "Allowlist of accepted file types - MIME types and/or extensions (e.g. [\"image/jpeg\", \"image/png\", \".heic\"]). Used as the file picker's `accept` attribute. Empty/omitted accepts any file. This is a UX hint, not a security boundary - the hook should still validate bytes."
               },
               "maxSize": {
                 "type": "integer",
@@ -672,7 +672,7 @@
                     },
                     "optionsFrom": {
                       "type": "object",
-                      "description": "Render this sub-field as a reference picker whose choices are the rows of another blocks input (or several). The stored value is each target row's derived id (slug of its key field, else its label, else an ordinal) — the same id a tool's hook resolves — so it replaces hand-typed ID cross-references with a dropdown. A stored value matching no current row is surfaced as an '(unknown)' option rather than silently dropped.",
+                      "description": "Render this sub-field as a reference picker whose choices are the rows of another blocks input (or several). The stored value is each target row's derived id (slug of its key field, else its label, else an ordinal) - the same id a tool's hook resolves - so it replaces hand-typed ID cross-references with a dropdown. A stored value matching no current row is surfaced as an '(unknown)' option rather than silently dropped.",
                       "properties": {
                         "input": { "type": "string", "description": "id of the blocks input to draw rows from (single-source form)." },
                         "value": { "type": "string", "default": "nodeId", "description": "Source-row sub-field used as the stored id (slugged + de-duplicated to match the tool's resolution)." },
@@ -692,10 +692,10 @@
                             }
                           }
                         },
-                        "freeText": { "type": "boolean", "default": false, "description": "Render as a combobox (datalist) that also accepts a typed value not in the list — e.g. a kanban column invented on the spot." },
+                        "freeText": { "type": "boolean", "default": false, "description": "Render as a combobox (datalist) that also accepts a typed value not in the list - e.g. a kanban column invented on the spot." },
                         "excludeSelf": { "type": "boolean", "default": false, "description": "Omit the current row from its own options (a card can't be its own parent)." },
                         "excludeDescendants": { "type": "boolean", "default": false, "description": "Omit the current row's descendants (requires the input's `nesting`) so a node can't reparent into its own subtree." },
-                        "emptyLabel": { "type": "string", "description": "Label for the blank/none option (default '— none —')." }
+                        "emptyLabel": { "type": "string", "description": "Label for the blank/none option (default '- none -')." }
                       }
                     }
                   }
@@ -703,7 +703,7 @@
               },
               "nesting": {
                 "type": "object",
-                "description": "Treat this blocks array as an editable TREE: the sidebar renders it as an indented outline and the header drag lets a card be dropped above, below, or INSIDE another, updating the dragged card's parent reference (its whole subtree travels with it). The data stays a flat reference-by-id array — only the presentation is tree-shaped — so it serialises and renders exactly as before.",
+                "description": "Treat this blocks array as an editable TREE: the sidebar renders it as an indented outline and the header drag lets a card be dropped above, below, or INSIDE another, updating the dragged card's parent reference (its whole subtree travels with it). The data stays a flat reference-by-id array - only the presentation is tree-shaped - so it serialises and renders exactly as before.",
                 "required": ["parentField"],
                 "properties": {
                   "parentField": { "type": "string", "description": "Sub-field holding each row's parent reference (the id of another row)." },
@@ -729,11 +729,11 @@
               "mdPaste": {
                 "type": "boolean",
                 "default": false,
-                "description": "Adds a 'Paste Markdown' button to the blocks toolbar. It reads the clipboard, splits the Markdown into one block per heading (the heading line → the block's `heading` field, the section beneath it → its `body` field, kept as Markdown for the tool's {{markdown}} render), and appends the blocks — so a whole document lands as editable, page-flowing blocks. A block gets kind:'text' when the input has a `kind` discriminator; other fields start at their defaults."
+                "description": "Adds a 'Paste Markdown' button to the blocks toolbar. It reads the clipboard, splits the Markdown into one block per heading (the heading line → the block's `heading` field, the section beneath it → its `body` field, kept as Markdown for the tool's {{markdown}} render), and appends the blocks - so a whole document lands as editable, page-flowing blocks. A block gets kind:'text' when the input has a `kind` discriminator; other fields start at their defaults."
               },
               "importData": {
                 "type": "object",
-                "description": "Lets the user populate the whole list from a CSV or JSON file (the ingest counterpart to CSV/JSON export). The shell offers an 'Import data' control; the engine (parseDataRows) maps columns onto these fields — by explicit `columns` map, else by matching each column header/key case-insensitively to a field's id then its label — and sets the input value. Data stays flat and serialises exactly like hand-entered blocks.",
+                "description": "Lets the user populate the whole list from a CSV or JSON file (the ingest counterpart to CSV/JSON export). The shell offers an 'Import data' control; the engine (parseDataRows) maps columns onto these fields - by explicit `columns` map, else by matching each column header/key case-insensitively to a field's id then its label - and sets the input value. Data stays flat and serialises exactly like hand-entered blocks.",
                 "additionalProperties": false,
                 "properties": {
                   "formats": {
@@ -756,7 +756,7 @@
               },
               "canvas": {
                 "type": "object",
-                "description": "Marks this blocks array as a free-form WYSIWYG canvas of positioned 'boxes' (requires render.layout:'editor'). The web shell mounts a direct-manipulation overlay — select, drag, resize, rotate, re-stack (z-order = array order, later rows paint on top), align and distribute — that reads and writes this flat array through the normal input path. The fields named below give the overlay the geometry to manipulate; every field remains an ordinary block sub-field, so the layout stays flat, URL-expressible, and renders identically headless (CLI/URL) with no overlay. Field ORDER in `fields` is the compact-URL wire format — never reorder or remove once shipped. CLOSED SET: unknown keys are rejected, because a typo'd `*Field` name is silently inert at runtime (the overlay reads a field nothing writes) — so the schema, not a bug report, has to catch it. Every `*Field` value must also name a real sub-field id in the SIBLING `fields` array; scripts/validate-catalog.ts enforces that half. Adding a key here is therefore a BREAKING change for older shells: the same schema is what engine/src/loader.ts validates a manifest against at load time, so a manifest carrying a key an older engine's copy does not list is refused whole, not partially ignored. Ship a new canvas key together with an `engineVersion` floor that names the engine which introduced it — the loader checks that range BEFORE validating, so an old shell reports the version, not a schema error.",
+                "description": "Marks this blocks array as a free-form WYSIWYG canvas of positioned 'boxes' (requires render.layout:'editor'). The web shell mounts a direct-manipulation overlay - select, drag, resize, rotate, re-stack (z-order = array order, later rows paint on top), align and distribute - that reads and writes this flat array through the normal input path. The fields named below give the overlay the geometry to manipulate; every field remains an ordinary block sub-field, so the layout stays flat, URL-expressible, and renders identically headless (CLI/URL) with no overlay. Field ORDER in `fields` is the compact-URL wire format - never reorder or remove once shipped. CLOSED SET: unknown keys are rejected, because a typo'd `*Field` name is silently inert at runtime (the overlay reads a field nothing writes) - so the schema, not a bug report, has to catch it. Every `*Field` value must also name a real sub-field id in the SIBLING `fields` array; scripts/validate-catalog.ts enforces that half. Adding a key here is therefore a BREAKING change for older shells: the same schema is what engine/src/loader.ts validates a manifest against at load time, so a manifest carrying a key an older engine's copy does not list is refused whole, not partially ignored. Ship a new canvas key together with an `engineVersion` floor that names the engine which introduced it - the loader checks that range BEFORE validating, so an old shell reports the version, not a schema error.",
                 "additionalProperties": false,
                 "properties": {
                   "idField":       { "type": "string", "description": "Sub-field holding each box's stable id (used to track selection across re-stacking). Default 'id'." },
@@ -783,33 +783,33 @@
                   "fontField":     { "type": "string", "description": "Select sub-field: text font family." },
                   "lineHeightField":{ "type": "string", "description": "Number sub-field: text line-height (unitless multiplier)." },
                   "padField":      { "type": "string", "description": "Number sub-field: inner padding in px between the box edge and its text." },
-                  "fitTextField":  { "type": "string", "description": "Boolean sub-field: shrink the text until it fits inside the box (shrink-ONLY — never larger than the authored size). Off = the box is expected to grow to its text instead." },
+                  "fitTextField":  { "type": "string", "description": "Boolean sub-field: shrink the text until it fits inside the box (shrink-ONLY - never larger than the authored size). Off = the box is expected to grow to its text instead." },
                   "groupField":    { "type": "string", "description": "Text sub-field: id of the group this box belongs to (empty = ungrouped). Boxes sharing a group id move / scale / rotate together; purely an editor concept (no render effect)." },
                   "clipField":     { "type": "string", "description": "Text sub-field: id of another box whose shape clips this one (a clip-path mask). Faithful in raster + SVG export; flattened in PDF/EMF." },
-                  "pathField":     { "type": "string", "description": "Text sub-field holding a VECTOR path box's authored path — the pen tool's own form (nodes + handles + spline kind), encoded as one delimiter-safe value by host.geom.encodeAuthored. Node coordinates are NORMALISED to the box frame (fractions of w/h, values outside 0..1 legal), so the ordinary move / resize / rotate gestures act on a path box through x/y/w/h/rot without rewriting a single node. Machine-written and machine-read only: the field carries showFor:[] so it never renders as a sidebar control. The tool's hook lowers it via host.geom.fromNodes and emits an inline <svg><path>, which vector-exports with no extra export code." },
+                  "pathField":     { "type": "string", "description": "Text sub-field holding a VECTOR path box's authored path - the pen tool's own form (nodes + handles + spline kind), encoded as one delimiter-safe value by host.geom.encodeAuthored. Node coordinates are NORMALISED to the box frame (fractions of w/h, values outside 0..1 legal), so the ordinary move / resize / rotate gestures act on a path box through x/y/w/h/rot without rewriting a single node. Machine-written and machine-read only: the field carries showFor:[] so it never renders as a sidebar control. The tool's hook lowers it via host.geom.fromNodes and emits an inline <svg><path>, which vector-exports with no extra export code." },
                   "strokeField":      { "type": "string", "description": "Color sub-field: stroke paint for a path/box/image outline (empty = no stroke). Defaults to 'stroke' when the canvas omits it, so the overlay and the vector operations read the same sub-field." },
                   "strokeWField":     { "type": "string", "description": "Number sub-field: stroke width in canvas px. Default 'strokeW'." },
-                  "fillRuleField":    { "type": "string", "description": "Select sub-field: a path's fill rule — nonzero or evenodd. Default 'fillRule'." },
+                  "fillRuleField":    { "type": "string", "description": "Select sub-field: a path's fill rule - nonzero or evenodd. Default 'fillRule'." },
                   "strokeDashField":  { "type": "string", "description": "Select sub-field: dash STYLE as a keyword ('' solid / dashed / dotted). The pattern is derived from the stroke width so it keeps its proportions when the width changes; an authored `strokeDashArrayField` wins over it. Default 'strokeDash'." },
-                  "strokeCapField":   { "type": "string", "description": "Select sub-field: line cap — round, butt or square. Default 'strokeCap'." },
-                  "strokeJoinField":  { "type": "string", "description": "Select sub-field: line join — round, miter or bevel. Default 'strokeJoin'." },
+                  "strokeCapField":   { "type": "string", "description": "Select sub-field: line cap - round, butt or square. Default 'strokeCap'." },
+                  "strokeJoinField":  { "type": "string", "description": "Select sub-field: line join - round, miter or bevel. Default 'strokeJoin'." },
                   "strokeDashArrayField": { "type": "string", "description": "Text sub-field: an AUTHORED dash pattern as SPACE-separated numbers in stroke-width units (\"6 4\" = a 6-long dash, a 4-long gap). A string, not a list, and space-separated rather than comma-separated, because one block sub-field is one scalar and a comma would split the compact blocks URL row. Set, it wins over the `strokeDashField` keyword. Default 'strokeDashArray'." },
                   "dashFitField":     { "type": "string", "description": "Boolean sub-field: stretch the authored dash pattern slightly so a whole number of dashes fits between each corner and each end of the path (Illustrator's corner-aligned dashes) instead of a half dash landing on a corner. Applied by the tool's hook. Default 'dashFit'." },
-                  "headStartField":   { "type": "string", "description": "Select sub-field: the decoration drawn at the path's FIRST point, along that end's own tangent — none · triangle · open · circle · diamond · bar. Same vocabulary as the connector heads, because a spline, a line and a connector are one primitive carrying one decoration set. Default 'headStart'." },
+                  "headStartField":   { "type": "string", "description": "Select sub-field: the decoration drawn at the path's FIRST point, along that end's own tangent - none · triangle · open · circle · diamond · bar. Same vocabulary as the connector heads, because a spline, a line and a connector are one primitive carrying one decoration set. Default 'headStart'." },
                   "headEndField":     { "type": "string", "description": "Select sub-field: the same decoration at the path's LAST point. Default 'headEnd'." },
                   "bindStartField":   { "type": "string", "description": "Text sub-field: the id of the box this path's FIRST point is attached to, '' for a free end. Machine-written by the bind gesture (carries showFor:[]), never typed; a bound end is what hands the path to connector routing. Default 'bindStart'." },
                   "bindEndField":     { "type": "string", "description": "Text sub-field: the same binding for the path's LAST point. Default 'bindEnd'." },
-                  "routeField":       { "type": "string", "description": "Select sub-field: how a path with a BOUND end routes between its boxes (straight, elbow-*, curved-*, arc-*). '' = auto, read off the path's own spline kind — the explicit value exists because six spline kinds cannot name the engine's thirteen routes. Default 'route'." },
-                  "pathLayerClass":   { "type": "string", "description": "Class the tool's hook puts on its committed BOUND-PATH <svg> layer. The overlay hides that layer for the duration of a drag so the live preview doesn't double up with the stale committed one — only the manifest knows what its own hook emits. Default 'lolly-connectors'." },
+                  "routeField":       { "type": "string", "description": "Select sub-field: how a path with a BOUND end routes between its boxes (straight, elbow-*, curved-*, arc-*). '' = auto, read off the path's own spline kind - the explicit value exists because six spline kinds cannot name the engine's thirteen routes. Default 'route'." },
+                  "pathLayerClass":   { "type": "string", "description": "Class the tool's hook puts on its committed BOUND-PATH <svg> layer. The overlay hides that layer for the duration of a drag so the live preview doesn't double up with the stale committed one - only the manifest knows what its own hook emits. Default 'lolly-connectors'." },
                   "trackingField":    { "type": "string", "description": "Number sub-field: letter-spacing in px." },
                   "ligaturesField":   { "type": "string", "description": "Boolean sub-field: enable common ligatures." },
                   "alternatesField":  { "type": "string", "description": "Boolean/select sub-field: stylistic alternates." },
-                  "shadowField":      { "type": "string", "description": "SELECT sub-field (not a Boolean — a shadow has a target, and the value names it): 'none' · 'box' (the frame's own silhouette, a box-shadow) · 'text' (the type only, a text-shadow) · 'content' (the artwork's alpha silhouette, a filter: drop-shadow). The vocabulary is additive: a depth-capable tool may extend it with 'depth', whose offset/blur are DERIVED from the box's `zField` rather than authored. Whatever the value, the x/y/blur/colour sub-fields below supply the geometry." },
+                  "shadowField":      { "type": "string", "description": "SELECT sub-field (not a Boolean - a shadow has a target, and the value names it): 'none' · 'box' (the frame's own silhouette, a box-shadow) · 'text' (the type only, a text-shadow) · 'content' (the artwork's alpha silhouette, a filter: drop-shadow). The vocabulary is additive: a depth-capable tool may extend it with 'depth', whose offset/blur are DERIVED from the box's `zField` rather than authored. Whatever the value, the x/y/blur/colour sub-fields below supply the geometry." },
                   "shadowColorField": { "type": "string", "description": "Color sub-field: drop-shadow colour." },
                   "shadowXField":     { "type": "string", "description": "Number sub-field: drop-shadow x offset in px." },
                   "shadowYField":     { "type": "string", "description": "Number sub-field: drop-shadow y offset in px." },
                   "shadowBlurField":  { "type": "string", "description": "Number sub-field: drop-shadow blur radius in px." },
-                  "zField":        { "type": "string", "description": "Number sub-field: the box's DEPTH — how far it sits in front of (positive) or behind (negative) the stage plane, in canvas px. Layers stay parallel to the screen, so a camera turns z into a per-layer uniform scale + translate (parallax, push-in, depth-of-field) and the render stays affine end-to-end. Absent field or 0 = the flat, unlifted board; the authored slider runs 0–300 and the value clamps to −300…900." },
+                  "zField":        { "type": "string", "description": "Number sub-field: the box's DEPTH - how far it sits in front of (positive) or behind (negative) the stage plane, in canvas px. Layers stay parallel to the screen, so a camera turns z into a per-layer uniform scale + translate (parallax, push-in, depth-of-field) and the render stays affine end-to-end. Absent field or 0 = the flat, unlifted board; the authored slider runs 0–300 and the value clamps to −300…900." },
                   "startField":    { "type": "string", "description": "Number sub-field: when this box appears, in SECONDS from the start of the sequence. Empty = the box is 'scenery' (always visible). Timing is inert unless a shell mounts a timeline panel; static exports ignore it." },
                   "durField":      { "type": "string", "description": "Number sub-field: how long the box stays visible, in SECONDS. Empty = runs to the end of the sequence." },
                   "clipInField":   { "type": "string", "description": "Number sub-field: trim in-point WITHIN the box's own media (video/lottie/audio), in SECONDS from the media's start. Ignored for non-media boxes." },
@@ -818,20 +818,20 @@
                   "exitField":     { "type": "string", "description": "Select sub-field: named animate-out preset played at the box's end (e.g. fade, rise, pop; 'none' disables). Presets are shell-rendered; no keyframes are authored." },
                   "enterMsField":  { "type": "string", "description": "Number sub-field: duration of the enter preset, in MILLISECONDS." },
                   "exitMsField":   { "type": "string", "description": "Number sub-field: duration of the exit preset, in MILLISECONDS." },
-                  "enterEaseField": { "type": "string", "description": "String sub-field: the timing curve the enter preset's GEOMETRY follows — a preset name (linear, ease-out, ease-in, ease-in-out, overshoot, anticipate) or a CSS cubic-bezier(a,b,c,d). Empty = the preset's own built-in curve. Opacity is deliberately not governed by it: a fade that tracks a slow curve turns to mud under video compression, so alpha keeps its fixed ramp." },
+                  "enterEaseField": { "type": "string", "description": "String sub-field: the timing curve the enter preset's GEOMETRY follows - a preset name (linear, ease-out, ease-in, ease-in-out, overshoot, anticipate) or a CSS cubic-bezier(a,b,c,d). Empty = the preset's own built-in curve. Opacity is deliberately not governed by it: a fade that tracks a slow curve turns to mud under video compression, so alpha keeps its fixed ramp." },
                   "exitEaseField":  { "type": "string", "description": "String sub-field: the same curve control for the exit preset. Same wire format, same geometry-only reach." },
                   "muteField":     { "type": "string", "description": "Boolean sub-field: silence this box's own audio track when the sequence is mixed." },
                   "linkField":     { "type": "string", "description": "String sub-field: the id of the box this one is A/V-linked to (written on BOTH sides when audio is detached from a video). Absent or naming a missing box reads as unlinked." },
                   "laneField":     { "type": "string", "description": "Select sub-field: '' places the box on a free overlay lane; 'seq' places it on the magnetic main sequence row, where clips are kept gapless and edits ripple." },
-                  "kfField":       { "type": "string", "description": "Text sub-field: the box's KEYFRAME TRACK — its whole authored animation as one compact, delimiter-safe string (times in ms, per-channel values at the pinned quanta, per-segment easing). Machine-written by the timeline, so the sub-field carries showFor:[] and never renders as a sidebar control. Absent or empty = the box is not keyframed and every keyframe path is inert for it." },
-                  "frameField":    { "type": "string", "description": "Text sub-field: the id of the FRAME (page/artboard container) box this box belongs to; '' = it sits on the open board. Declaring it turns on the frame primitive — the overlay drives gestures in frame-local space via each frame's DOM offset, and re-buckets a moved/created/resized box into whichever frame its centre lands in on drop. Absent leaves every frame-aware path dead (byte-identical to a frameless editor)." },
+                  "kfField":       { "type": "string", "description": "Text sub-field: the box's KEYFRAME TRACK - its whole authored animation as one compact, delimiter-safe string (times in ms, per-channel values at the pinned quanta, per-segment easing). Machine-written by the timeline, so the sub-field carries showFor:[] and never renders as a sidebar control. Absent or empty = the box is not keyframed and every keyframe path is inert for it." },
+                  "frameField":    { "type": "string", "description": "Text sub-field: the id of the FRAME (page/artboard container) box this box belongs to; '' = it sits on the open board. Declaring it turns on the frame primitive - the overlay drives gestures in frame-local space via each frame's DOM offset, and re-buckets a moved/created/resized box into whichever frame its centre lands in on drop. Absent leaves every frame-aware path dead (byte-identical to a frameless editor)." },
                   "frameKind":     { "type": "string", "description": "NOT a field name: the literal `kind` VALUE that marks a box as a frame rather than ordinary content (e.g. 'frame'). Frames render as free-placed [data-pdf-page] pages at their authored x/y." },
                   "orderField":    { "type": "string", "description": "Number sub-field on a FRAME box: its page order in a multi-page export. Read by the tool's hook; the overlay's frame-reorder control writes it. Absent = no reorder affordance." },
                   "clipChildrenField": { "type": "string", "description": "Boolean sub-field on a FRAME box: whether content overflowing the frame is clipped to it. Absent = the overlay offers no clip toggle." },
                   "minSize":       { "type": "number", "description": "Smallest box width/height the overlay will create or resize to, in canvas px. Default 8." },
                   "addKinds": {
                     "type": "array",
-                    "description": "The kinds of box the 'add' tool offers. Each entry seeds a new box's fields (id excluded — the shell assigns it).",
+                    "description": "The kinds of box the 'add' tool offers. Each entry seeds a new box's fields (id excluded - the shell assigns it).",
                     "items": {
                       "type": "object",
                       "required": ["id"],
@@ -866,12 +866,12 @@
                     "additionalProperties": false,
                     "description": "Opt into connector authoring (Org Chart): a SECOND blocks input holding {from,to} edges between boxes, plus a 'Connect' rail mode to author them (click a source card, then targets). The overlay reads/writes that array and draws a live preview; the tool's hooks.js owns the real routed geometry. Absent = the editor's toolbar and gestures are unchanged.",
                     "properties": {
-                      "input":        { "type": "string", "description": "id of the blocks input storing the connector edges. Its sub-fields — not this canvas's `fields` — are what the *Field names below refer to." },
+                      "input":        { "type": "string", "description": "id of the blocks input storing the connector edges. Its sub-fields - not this canvas's `fields` - are what the *Field names below refer to." },
                       "fromField":    { "type": "string", "description": "Edge sub-field holding the SOURCE box id. Default 'from'." },
                       "toField":      { "type": "string", "description": "Edge sub-field holding the TARGET box id. Default 'to'." },
                       "styleField":   { "type": "string", "description": "Edge sub-field: route style (elbow, straight, curved …)." },
                       "arrowField":   { "type": "string", "description": "Edge sub-field: which ENDS carry an arrowhead (none/end/both)." },
-                      "headField":    { "type": "string", "description": "Edge sub-field: arrowhead SHAPE (triangle/open/circle/diamond/bar) — same vocabulary as the path decorations." },
+                      "headField":    { "type": "string", "description": "Edge sub-field: arrowhead SHAPE (triangle/open/circle/diamond/bar) - same vocabulary as the path decorations." },
                       "colorField":   { "type": "string", "description": "Edge sub-field: line colour." },
                       "dashField":    { "type": "string", "description": "Edge sub-field: dash style keyword." },
                       "widthField":   { "type": "string", "description": "Edge sub-field: line width in canvas px." },
@@ -935,11 +935,11 @@
         "theme": {
           "type": "string",
           "enum": ["light", "dark"],
-          "description": "Which UI theme this look suits — set only on looks that render ink on a TRANSPARENT background (e.g. a reverse/white logo). 'dark' looks show on the dark/SUSE themes, 'light' looks on the light theme; the clashing look is filtered out so it's never near-invisible on the tile. Omit for looks that bake their own background (shown on any theme)."
+          "description": "Which UI theme this look suits - set only on looks that render ink on a TRANSPARENT background (e.g. a reverse/white logo). 'dark' looks show on the dark/SUSE themes, 'light' looks on the light theme; the clashing look is filtered out so it's never near-invisible on the tile. Omit for looks that bake their own background (shown on any theme)."
         },
         "values": {
           "type": "object",
-          "description": "Map of input id -> value seeded into the render — the same shape URL params resolve to. Scalar inputs (select/color/text/number/boolean/url) plus block arrays (e.g. chart data, badge tracks — an array of field objects) are supported; rely on the tool's default for asset inputs unless referencing a catalog asset id."
+          "description": "Map of input id -> value seeded into the render - the same shape URL params resolve to. Scalar inputs (select/color/text/number/boolean/url) plus block arrays (e.g. chart data, badge tracks - an array of field objects) are supported; rely on the tool's default for asset inputs unless referencing a catalog asset id."
         }
       }
     },
@@ -956,7 +956,7 @@
         "thumb": { "type": "string", "description": "Optional thumbnail: a tool-relative asset path or data URI. Absent → the chooser draws a glyph tile." },
         "values": {
           "type": "object",
-          "description": "Map of input id -> value read directly into the fresh session — the same shape URL params resolve to, and the same shape a `default` composition uses. Authored in the EXTERNAL per-template file tools/<id>/templates/<tid>.json (not the synced index, which carries metadata only). Any size (a free-canvas `boxes` array can be many KB), because it is fetched on demand and seeded in-process, never serialised into a URL."
+          "description": "Map of input id -> value read directly into the fresh session - the same shape URL params resolve to, and the same shape a `default` composition uses. Authored in the EXTERNAL per-template file tools/<id>/templates/<tid>.json (not the synced index, which carries metadata only). Any size (a free-canvas `boxes` array can be many KB), because it is fetched on demand and seeded in-process, never serialised into a URL."
         }
       }
     }

@@ -144,7 +144,7 @@ test('a v1-embedded buffer still detects under the current (v2) dual-scheme dete
   }
 });
 
-test('resize is a documented v1 blind spot — the mark is not detected after rescale', { skip }, async () => {
+test('resize is a documented v1 blind spot - the mark is not detected after rescale', { skip }, async () => {
   // The 8×8 grid shifts under resampling, so the mid-band no longer lines up with
   // the chip. This is expected; if a future resize-normalization step lands, this
   // assertion should be updated to expect survival.

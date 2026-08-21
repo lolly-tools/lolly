@@ -97,7 +97,7 @@ const PINS: Record<string, Pin> = {
     license: 'Apache-2.0',
     source: 'https://github.com/xuebinqin/U-2-Net (upstream weights, Apache-2.0); ONNX re-hosted by rembg (danielgatis/rembg)',
     copyright: 'Copyright (c) 2020, Xuebin Qin et al. (U-2-Net)',
-    note: 'FAST tier. Community ONNX — verify the rembg conversion derives from the Apache-2.0 weights before pinning.',
+    note: 'FAST tier. Community ONNX - verify the rembg conversion derives from the Apache-2.0 weights before pinning.',
   },
   'modnet.onnx': {
     url: 'https://huggingface.co/Xenova/modnet/resolve/main/onnx/model.onnx',
@@ -131,7 +131,7 @@ const PINS: Record<string, Pin> = {
     license: 'MIT',
     source: 'https://github.com/ZhengPeng7/BiRefNet (upstream, MIT); ONNX by onnx-community/BiRefNet-ONNX',
     copyright: 'Copyright (c) 2024, Peng Zheng et al. (BiRefNet)',
-    note: 'MAX-quality PRO tier, ~490 MB fp16 (full Swin-L backbone). 1024² input, ImageNet norm, LOGIT head → sigmoid. Big/slow on WASM — best on a powerful machine or the native path.',
+    note: 'MAX-quality PRO tier, ~490 MB fp16 (full Swin-L backbone). 1024² input, ImageNet norm, LOGIT head → sigmoid. Big/slow on WASM - best on a powerful machine or the native path.',
   },
 };
 
@@ -176,7 +176,7 @@ async function fetchFile(relPath: string): Promise<'saved' | 'cached' | 'skipped
 
   if (!refreshPins && pin.sha256 === PLACEHOLDER) {
     process.stdout.write(
-      `  ${relPath}: SKIPPED — no verified pin yet (${pin.note ?? 'placeholder'}). ` +
+      `  ${relPath}: SKIPPED - no verified pin yet (${pin.note ?? 'placeholder'}). ` +
       `Run --refresh-pins to fetch a candidate, then work the header gate list before pasting a real pin.\n`,
     );
     return 'skipped';
@@ -204,8 +204,8 @@ async function fetchFile(relPath: string): Promise<'saved' | 'cached' | 'skipped
     process.stdout.write(
       `  '${relPath}': { url: '${pin.url}', sha256: '${sha256(bytes)}', bytes: ${bytes.byteLength}, ` +
       `license: '${pin.license}', source: '${pin.source}', copyright: '${pin.copyright}' },\n` +
-      `  staged candidate → ${stagePath} (${bytes.byteLength} bytes, ${mb} MB) — NOT written to the live ${relPath}\n` +
-      (looksOnnx ? '' : `  ⚠ these bytes do NOT look like a single-file ONNX (magic suggests .pth/.zip/HTML) — convert/inspect before pinning\n`) +
+      `  staged candidate → ${stagePath} (${bytes.byteLength} bytes, ${mb} MB) - NOT written to the live ${relPath}\n` +
+      (looksOnnx ? '' : `  ⚠ these bytes do NOT look like a single-file ONNX (magic suggests .pth/.zip/HTML) - convert/inspect before pinning\n`) +
       `  ⚠ Work the licence + runtime gates in this script's header before trusting this pin.\n`,
     );
     return 'saved';
@@ -220,11 +220,11 @@ async function fetchFile(relPath: string): Promise<'saved' | 'cached' | 'skipped
 
 function writeCredits(vendored: string[]): void {
   const lines: string[] = [
-    'Lolly — vendored background-removal (matting) ONNX models',
+    'Lolly - vendored background-removal (matting) ONNX models',
     '=========================================================',
     '',
     'These model files are not source code and are not covered by this repo\'s',
-    'own MPL-2.0 licensing — each carries the license of its own upstream',
+    'own MPL-2.0 licensing - each carries the license of its own upstream',
     'project, recorded below (verified against the upstream repo, not merely the',
     'mirror the file was fetched from).',
     '',
@@ -249,7 +249,7 @@ function writeCredits(vendored: string[]): void {
 async function main(): Promise<void> {
   const wanted = Object.keys(PINS).filter((relPath) => !onlyFiles || onlyFiles.has(relPath));
   if (refreshPins) {
-    process.stdout.write('--refresh-pins: downloading fresh copies and printing new pin lines — paste them over PINS after working the gate list.\n');
+    process.stdout.write('--refresh-pins: downloading fresh copies and printing new pin lines - paste them over PINS after working the gate list.\n');
   }
 
   const vendored: string[] = [];
@@ -269,12 +269,12 @@ async function main(): Promise<void> {
   if (skipped.length > 0) {
     process.stdout.write(
       `\n${skipped.length} file(s) not vendored: ${skipped.join(', ')}.\n` +
-      'Every matte model is a PLACEHOLDER until its licence + ONNX are verified — see this script\'s header gate list.\n',
+      'Every matte model is a PLACEHOLDER until its licence + ONNX are verified - see this script\'s header gate list.\n',
     );
   }
 
   process.stdout.write(
-    '\nDone. These files are gitignored — never commit them.\n' +
+    '\nDone. These files are gitignored - never commit them.\n' +
     (refreshPins
       ? 'Paste the printed pin lines over PINS after working the gate list, then flip MATTE_STAGED in matte-models.ts in the same change.\n'
       : 'The matte worker loads them from /models/matte/ by the exact filenames above.\n'),

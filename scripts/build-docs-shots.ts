@@ -137,7 +137,7 @@ const VIEWPORT_DEFAULTS = { width: 1440, height: 900, dpi: 192 };
 const driveOptsFor = (shot: ShotDef): DriveOpts => ({
   clickFallback: true,
   onClickFallback: (selector, why) =>
-    console.log(`    ⇢ ${shot.slug}: "${selector}" refused a real click (${why}) — dispatched in-page instead`),
+    console.log(`    ⇢ ${shot.slug}: "${selector}" refused a real click (${why}) - dispatched in-page instead`),
 });
 
 interface Opts {
@@ -239,7 +239,7 @@ async function main(): Promise<void> {
         ? `--changed: ${shots.length} recipe(s) from ${changed.size} changed docs page(s) (${[...changed].join(', ')})`
         : '--changed: no docs page changed vs origin/main');
     } else {
-      console.warn('⚠  --changed: docs dir or git history unreadable — capturing the FULL set (never nothing on error)');
+      console.warn('⚠  --changed: docs dir or git history unreadable - capturing the FULL set (never nothing on error)');
     }
   }
 
@@ -273,14 +273,14 @@ async function main(): Promise<void> {
       restoreProfile = pinProfile();
       if (!opts.noBuild) await buildWebShell();
       if (!existsSync(join(DIST, 'index.html'))) {
-        throw new Error(`No build at ${rel(DIST)} — run without --no-build, or pass --url=<server>.`);
+        throw new Error(`No build at ${rel(DIST)} - run without --no-build, or pass --url=<server>.`);
       }
       checkDistBrand();
       server = await serveDist();
       baseUrl = `http://127.0.0.1:${server.port}`;
       console.log(`Serving ${rel(DIST)} at ${baseUrl}`);
     } else {
-      console.log(`Capturing against ${baseUrl} (profile pin skipped — the server owns its brand)`);
+      console.log(`Capturing against ${baseUrl} (profile pin skipped - the server owns its brand)`);
     }
 
     await preflightNeutralState(baseUrl, shots);
@@ -379,7 +379,7 @@ function scanDocs(): Array<ShotDef & { file: string }> {
     for (const r of recipes) {
       const prior = byName.get(r.slug);
       if (prior && prior.raw !== r.raw) {
-        problems.push(`${f}: recipe "${r.slug}" conflicts with the one in ${prior.file} — same filename, different query`);
+        problems.push(`${f}: recipe "${r.slug}" conflicts with the one in ${prior.file} - same filename, different query`);
       } else if (!prior) {
         byName.set(r.slug, { ...r, file: f });
       }
@@ -492,7 +492,7 @@ function warnOrphans(shots: ShotDef[], prune = false): void {
     for (const f of orphans) rmSync(join(SHOTS_DIR, f), { force: true });
     console.log(`  ✂ pruned ${orphans.length} orphan baseline(s): ${orphans.join(', ')}`);
   } else {
-    console.warn(`⚠  orphan baselines (no recipe declares them — delete from ${rel(SHOTS_DIR)}): ${orphans.join(', ')}`);
+    console.warn(`⚠  orphan baselines (no recipe declares them - delete from ${rel(SHOTS_DIR)}): ${orphans.join(', ')}`);
   }
 }
 
@@ -675,7 +675,7 @@ async function preflightNeutralState(baseUrl: string, shots: ShotDef[]): Promise
         const bad = (await page.evaluate(NEUTRAL_PROBE)) as string[];
         if (bad.length) {
           throw new Error(`capture state is not neutral on ${route} (${theme ?? 'light'}): ${bad.join('; ')}`
-            + ' — the shell may predate lib/capture-neutral.ts (rebuild the dist), or the pin no longer reaches it.');
+            + ' - the shell may predate lib/capture-neutral.ts (rebuild the dist), or the pin no longer reaches it.');
         }
       }
     } finally {
@@ -1160,7 +1160,7 @@ async function captureVector(baseUrl: string, shot: ShotDef): Promise<VectorCapt
               let bin = '';
               for (let i = 0; i < by.length; i++) bin += String.fromCharCode(by[i]!);
               imageB64.push(btoa(bin));
-            } catch { /* unfetchable — skip */ }
+            } catch { /* unfetchable - skip */ }
           }
 
           return {
@@ -1183,7 +1183,7 @@ async function captureVector(baseUrl: string, shot: ShotDef): Promise<VectorCapt
         },
         { s: sel, win, rDpi: shot.rasterDpi },
       );
-      if (!out) throw new Error('the served shell has no __lollyWalkerShot hook — rebuild the dist (main.ts exposes it on loopback)');
+      if (!out) throw new Error('the served shell has no __lollyWalkerShot hook - rebuild the dist (main.ts exposes it on loopback)');
       if (out.parseErr) throw new Error(`walker produced invalid XML for ${sel}: ${out.parseErr}`);
       if (!out.drawables) throw new Error(`walker capture produced no drawable content for ${sel}`);
       if (out.externalHrefs.length) {
@@ -1191,7 +1191,7 @@ async function captureVector(baseUrl: string, shot: ShotDef): Promise<VectorCapt
         // static mode, no network). Every src should now inline - see the <img>
         // branch in export.ts - so reaching here means a scheme slipped through.
         throw new Error(`walker left ${out.externalHrefs.length} non-inlined image href(s), `
-          + `first: ${out.externalHrefs[0]} — the shot would not be self-contained`);
+          + `first: ${out.externalHrefs[0]} - the shot would not be self-contained`);
       }
       // Warn, never fail: <text> is a DESIGNED fallback for a font the outliner
       // cannot resolve, and five committed print baselines already carry 145 such
@@ -1201,8 +1201,8 @@ async function captureVector(baseUrl: string, shot: ShotDef): Promise<VectorCapt
       // so rather than quietly publishing a different band than the previous run.
       if (out.anchored) console.log(`    ⌖ ${shot.slug}: window anchored to the visible band at ${out.anchored.x},${out.anchored.y} (element overflows the frame)`);
       if (out.winDropped) console.log(`    ✂ ${shot.slug}: windowed ${shot.cropSelector ? `${shot.cropSelector} walk` : 'body walk'} culled ${out.winDropped} off-frame node(s)`);
-      if (out.texts) console.warn(`  ⚠ ${shot.slug}: ${out.texts} <text> node(s) — a font did not outline`);
-      if (!out.opaque) console.warn(`  ⚠ ${shot.slug}: "${sel}" has no opaque background — the shot may read as an empty box on /info's dark theme (add &css= to paint one)`);
+      if (out.texts) console.warn(`  ⚠ ${shot.slug}: ${out.texts} <text> node(s) - a font did not outline`);
+      if (!out.opaque) console.warn(`  ⚠ ${shot.slug}: "${sel}" has no opaque background - the shot may read as an empty box on /info's dark theme (add &css= to paint one)`);
       return { bytes: new TextEncoder().encode(out.svg), framed: out.framed, imageB64: out.imageB64 };
     }
 
@@ -1232,7 +1232,7 @@ async function captureVector(baseUrl: string, shot: ShotDef): Promise<VectorCapt
         () => Boolean((window as unknown as { __lollyVectorShot?: unknown }).__lollyVectorShot),
         { timeout: 20_000 },
       ).catch(() => {
-        throw new Error('the served shell never exposed __lollyVectorShot (waited 20s) — rebuild the dist (main.ts exposes it on loopback, and only on loopback)');
+        throw new Error('the served shell never exposed __lollyVectorShot (waited 20s) - rebuild the dist (main.ts exposes it on loopback, and only on loopback)');
       });
       return page.evaluate(
         ([b64, cropCssPx]: [string, typeof crop | null]) =>
@@ -1249,7 +1249,7 @@ async function captureVector(baseUrl: string, shot: ShotDef): Promise<VectorCapt
     // a pure function of it, so a second attempt costs one page round-trip and
     // cannot change the pixels.
     const res = (await convert()) ?? (await convert());
-    if (!res) throw new Error('__lollyVectorShot resolved to nothing twice — the conversion returned no result');
+    if (!res) throw new Error('__lollyVectorShot resolved to nothing twice - the conversion returned no result');
     // elementCount is what the INTERPRETER found, pre-cull - the "was the print
     // blank?" signal. Culling is reported separately so a bad crop can't be
     // misdiagnosed as a blank print.
@@ -1257,7 +1257,7 @@ async function captureVector(baseUrl: string, shot: ShotDef): Promise<VectorCapt
     for (const w of res.warnings) console.warn(`  ⚠ ${shot.slug}: ${w}`);
     if (res.culled) {
       if (res.culled.dropped === res.culled.total) {
-        throw new Error(`crop window selected no content (culled ${res.culled.total}/${res.culled.total} nodes) — check crop*/cropSelector`);
+        throw new Error(`crop window selected no content (culled ${res.culled.total}/${res.culled.total} nodes) - check crop*/cropSelector`);
       }
       console.log(`    ✂ ${shot.slug}: culled ${res.culled.dropped}/${res.culled.total} nodes`
         + `${res.culled.unbounded ? ` (${res.culled.unbounded} unbounded, kept)` : ''}`);
@@ -1297,7 +1297,7 @@ async function captureOneVector(baseUrl: string, shot: ShotDef): Promise<ShotRes
   // the original capture proceeds unoptimised (never block a shot on it).
   const rawBytes = bytes;
   try { bytes = optimizeShotSvg(bytes); } catch (e) {
-    console.warn(`  svgo failed for ${shot.slug} — keeping unoptimised capture (${(e as Error).message})`);
+    console.warn(`  svgo failed for ${shot.slug} - keeping unoptimised capture (${(e as Error).message})`);
   }
 
   const { dims } = paramsFor(shot);
@@ -1347,7 +1347,7 @@ async function captureOneVector(baseUrl: string, shot: ShotDef): Promise<ShotRes
       const gate = await svgFidelityGate(rawBytes, bytes);
       if (!gate.ok) {
         console.warn(`  FIDELITY GATE: svgo altered ${shot.slug} beyond tolerance `
-          + `(maxΔ ${gate.maxChannelDelta}/255, ${(gate.overFrac * 100).toFixed(3)}% px >2) — keeping unoptimised bytes`);
+          + `(maxΔ ${gate.maxChannelDelta}/255, ${(gate.overFrac * 100).toFixed(3)}% px >2) - keeping unoptimised bytes`);
         finalBytes = rawBytes;
       }
     }
@@ -1392,7 +1392,7 @@ function genAiFromPage(imageB64: string[] = []): { ingredients?: NonNullable<Par
       if (ing && aiKind(ing.digitalSourceType) && !ingredients.some((p) => p.activeLabel === ing.activeLabel)) {
         ingredients.push({ ...ing, relationship: 'componentOf' });
       }
-    } catch { /* uncredentialed source — skip */ }
+    } catch { /* uncredentialed source - skip */ }
   }
   return ingredients.length ? { ingredients } : {};
 }
@@ -1432,7 +1432,7 @@ async function stampC2pa(bytes: Uint8Array, shot: ShotDef, dims: { width: number
       ...genai,
     }));
   } catch (e) {
-    console.warn(`⚠  ${shot.slug}: Content Credentials not attached — ${(e as Error).message}`);
+    console.warn(`⚠  ${shot.slug}: Content Credentials not attached - ${(e as Error).message}`);
     return bytes;
   }
 }
@@ -1463,7 +1463,7 @@ function reportLine(r: ShotResult): void {
   const pre = progressPrefix();
   const name = `${r.slug}${r.lang ? `.${r.lang}` : ''}${r.theme ? `.${r.theme}` : ''}.${r.format}`.padEnd(22);
   if (r.error) {
-    console.log(`  ${pre}✗ ${name} FAILED — ${r.error}`);
+    console.log(`  ${pre}✗ ${name} FAILED - ${r.error}`);
     return;
   }
   const v = r.verdict!;
@@ -1472,13 +1472,13 @@ function reportLine(r: ShotResult): void {
   const px = v.pixelDiff === null ? '' : `${(v.pixelDiff * 100).toFixed(2)}% px`;
   // A weight flag has to say what it measured to be actionable.
   if (v.flags.includes('over-scale') || v.flags.includes('heavy')) {
-    console.log(`    ⚖ ${r.slug}: ${r.width ? `${r.width}px wide, ` : ''}${kb} — budget is ${MAX_SHOT_PX}px / `
+    console.log(`    ⚖ ${r.slug}: ${r.width ? `${r.width}px wide, ` : ''}${kb} - budget is ${MAX_SHOT_PX}px / `
       + `${Math.round((r.format === 'svg' ? DEFAULT_THRESHOLDS.vectorMaxBytes : DEFAULT_THRESHOLDS.maxBytes) / 1024)} KB`);
   }
   const sz = v.sizeDelta === null ? '' : `${v.sizeDelta >= 0 ? '+' : ''}${Math.round(v.sizeDelta * 100)}% bytes`;
-  if (v.kind === 'new') console.log(`  ${pre}✚ ${name} new — ${kb}${flags}`);
+  if (v.kind === 'new') console.log(`  ${pre}✚ ${name} new - ${kb}${flags}`);
   else if (v.kind === 'unchanged') console.log(`  ${pre}✓ ${name} unchanged (${px})${flags}`);
-  else console.log(`  ${pre}▲ ${name} CHANGED — ${[px, sz].filter(Boolean).join(', ')}${r.wrote ? ' → accepted' : ''}${flags}`);
+  else console.log(`  ${pre}▲ ${name} CHANGED - ${[px, sz].filter(Boolean).join(', ')}${r.wrote ? ' → accepted' : ''}${flags}`);
 }
 
 function summarize(results: ShotResult[]): void {
@@ -1513,12 +1513,12 @@ function summarize(results: ShotResult[]): void {
   } else if (overBudget.length) {
     console.log(`✗  refusing to publish ${overBudget.length} over-budget baseline(s): ${overBudget.map((r) => r.slug).join(', ')}`);
     console.log(`   Budget: ${MAX_SHOT_PX}px wide, ${Math.round(DEFAULT_THRESHOLDS.maxBytes / 1024)} KB raster / `
-      + `${Math.round(DEFAULT_THRESHOLDS.vectorMaxBytes / 1024)} KB vector. A docs shot is displayed in an 848px column —`);
+      + `${Math.round(DEFAULT_THRESHOLDS.vectorMaxBytes / 1024)} KB vector. A docs shot is displayed in an 848px column -`);
     console.log('   crop to the area of focus (cropSelector= or crop*=) rather than shooting the whole window.');
     process.exit(1);
   }
   if (pending.length) {
-    console.log(`▲  changed vs the committed baselines — review, then promote with:  npm run docs:shots -- --accept`);
+    console.log(`▲  changed vs the committed baselines - review, then promote with:  npm run docs:shots -- --accept`);
     process.exit(2);
   }
   if (failed.length) process.exit(1);
@@ -1569,9 +1569,9 @@ function checkDistBrand(): void {
     const dist = ids(join(DIST, 'catalog', 'tools', 'index.json'));
     const view = ids(join(ROOT, 'catalog', 'tools', 'index.json'));
     if (dist !== view) {
-      console.warn(`⚠  ${rel(DIST)} was built from a DIFFERENT tool set than the '${CAPTURE_PROFILE}' view — captures will show the wrong brand. Re-run without --no-build.`);
+      console.warn(`⚠  ${rel(DIST)} was built from a DIFFERENT tool set than the '${CAPTURE_PROFILE}' view - captures will show the wrong brand. Re-run without --no-build.`);
     }
-  } catch { /* no catalog in dist — the build will produce one, or captures will fail visibly */ }
+  } catch { /* no catalog in dist - the build will produce one, or captures will fail visibly */ }
 }
 
 // ── Browser, build, serve ─────────────────────────────────────────────────────
@@ -1588,7 +1588,7 @@ async function ensureBrowserResolvable(): Promise<void> {
     const { chromium } = await import('playwright');
     process.env.LOLLY_BROWSER_PATH = chromium.executablePath();
   } catch {
-    // No fallback available — captureUrl's BrowserError says how to install one.
+    // No fallback available - captureUrl's BrowserError says how to install one.
   }
 }
 

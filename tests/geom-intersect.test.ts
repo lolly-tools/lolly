@@ -203,7 +203,7 @@ test('signedAreaCubic is exact, checked against a numeric integral', () => {
   near(Math.abs(signedAreaCubic(q)), Math.PI / 4 - 0.5, 3e-4);
 });
 
-test('signedAreaCubic flips sign with direction — the orientation test callers need', () => {
+test('signedAreaCubic flips sign with direction - the orientation test callers need', () => {
   const c: Cubic = [0, 0, 30, 60, 70, 60, 100, 0];
   const reversed: Cubic = [c[6], c[7], c[4], c[5], c[2], c[3], c[0], c[1]];
   near(signedAreaCubic(c), -signedAreaCubic(reversed), 1e-12);
@@ -388,7 +388,7 @@ test('cubic × cubic: parameters are exact enough to REBUILD the split', () => {
     const e1 = splitCubic(c1, h.t1)[0];
     const e2 = splitCubic(c2, h.t2)[0];
     const d = Math.hypot(e1[6] - e2[6], e1[7] - e2[7]);
-    assert.ok(d < 1e-6, `split endpoints ${d} apart — not clean enough to build geometry on`);
+    assert.ok(d < 1e-6, `split endpoints ${d} apart - not clean enough to build geometry on`);
   }
 });
 
@@ -520,7 +520,7 @@ test('intersections never take unbounded time on a pathological pair', () => {
   const t0 = process.hrtime.bigint();
   const hits = intersectCubics(c1, c2);
   const ms = Number(process.hrtime.bigint() - t0) / 1e6;
-  assert.ok(ms < 2000, `took ${ms.toFixed(0)}ms — the fallback is not terminating`);
+  assert.ok(ms < 2000, `took ${ms.toFixed(0)}ms - the fallback is not terminating`);
   assert.ok(Array.isArray(hits));
 });
 
@@ -592,7 +592,7 @@ test('closing a path adds the wrap-around segment, and only when closed', () => 
   assert.equal(toCubics({ kind: 'line', closed: true, nodes }).length, 3);
 });
 
-test('catmull-rom passes THROUGH its nodes — that is what makes it interpolating', () => {
+test('catmull-rom passes THROUGH its nodes - that is what makes it interpolating', () => {
   const nodes = [{ x: 0, y: 0 }, { x: 40, y: 80 }, { x: 90, y: 10 }, { x: 140, y: 70 }];
   const cs = toCubics({ kind: 'catmull-rom', closed: false, nodes });
   assert.ok(cs.length >= 2);
@@ -611,7 +611,7 @@ test('centripetal catmull-rom does not cusp on badly spaced points', () => {
   }
   // The middle segment must not double back on itself.
   const mid = centripetal[1]!;
-  assert.ok(mid[2] >= mid[0] - 1e-6, 'the first control ran backwards — that is the cusp');
+  assert.ok(mid[2] >= mid[0] - 1e-6, 'the first control ran backwards - that is the cusp');
 });
 
 test('a b-spline does NOT pass through its control points', () => {

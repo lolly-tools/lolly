@@ -60,13 +60,13 @@ export interface ShellResult {
 function typecheckShell(shell: string): ShellResult {
   const dir = join(ROOT, shell);
   if (!existsSync(join(dir, 'tsconfig.json'))) {
-    return { shell, status: 'skipped', reason: 'no tsconfig.json — shell submodule not checked out' };
+    return { shell, status: 'skipped', reason: 'no tsconfig.json - shell submodule not checked out' };
   }
   if (!existsSync(join(dir, 'node_modules', PROBE))) {
     return {
       shell,
       status: 'skipped',
-      reason: `${PROBE} not installed — run \`npm --prefix ${shell} ci\` (the Tauri shells are not npm workspaces)`,
+      reason: `${PROBE} not installed - run \`npm --prefix ${shell} ci\` (the Tauri shells are not npm workspaces)`,
     };
   }
   const tsc = join(ROOT, 'node_modules/.bin/tsc');
@@ -85,9 +85,9 @@ if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) 
   const strict = process.argv.includes('--strict');
   const results = typecheckTauriShells();
   for (const r of results) {
-    if (r.status === 'ok') console.log(`✓ ${r.shell} — bridge-overrides typecheck clean`);
-    else if (r.status === 'skipped') console.log(`- ${r.shell} — SKIPPED: ${r.reason}`);
-    else console.error(`✗ ${r.shell} — ${r.reason}`);
+    if (r.status === 'ok') console.log(`✓ ${r.shell} - bridge-overrides typecheck clean`);
+    else if (r.status === 'skipped') console.log(`- ${r.shell} - SKIPPED: ${r.reason}`);
+    else console.error(`✗ ${r.shell} - ${r.reason}`);
   }
   const failed = results.filter((r) => r.status === 'failed');
   const skipped = results.filter((r) => r.status === 'skipped');

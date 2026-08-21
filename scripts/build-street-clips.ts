@@ -450,7 +450,7 @@ async function main(): Promise<void> {
       registry[k] = await buildCity(k);
     } catch (e) {
       failed.push(k);
-      console.log(`[${k}] FAILED — ${(e as Error).message} (skipping)`);
+      console.log(`[${k}] FAILED - ${(e as Error).message} (skipping)`);
     }
     if (i < keys.length - 1) await sleep(1500); // be polite to the public API
   }

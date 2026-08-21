@@ -1,7 +1,7 @@
 {
   "name": "Grabadora de voz",
   "description": "Graba una nota de voz con un medidor de nivel en vivo y una guía sutil, y guárdala como MP3.",
-  "a11yLabel": "Grabadora de voz — nivel {{default dbText \"idle\"}}",
+  "a11yLabel": "Grabadora de voz - nivel {{default dbText \"idle\"}}",
   "featured.blurb": "Graba una nota de voz nítida con guía de nivel en vivo",
   "inputs.title.label": "Etiqueta",
   "inputs.title.help": "Nombra la tarjeta de grabación y el archivo guardado.",

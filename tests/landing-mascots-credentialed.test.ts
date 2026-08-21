@@ -41,11 +41,11 @@ for (const m of MASCOTS) {
   test(`landing mascot ${m} carries its genAI Content Credential`, () => {
     const bytes = new Uint8Array(readFileSync(resolve(MASCOT_DIR, m)));
     const ex = extractC2paStore(bytes);
-    assert.ok(ex, `${m}: no C2PA store found — the credential was stripped (re-encode / optimiser?)`);
+    assert.ok(ex, `${m}: no C2PA store found - the credential was stripped (re-encode / optimiser?)`);
     const chain = collectActionChain(ex.store);
-    assert.ok(chain.length > 0, `${m}: C2PA present but no action chain — the Lolly journey was lost`);
+    assert.ok(chain.length > 0, `${m}: C2PA present but no action chain - the Lolly journey was lost`);
     const isGenAi = chain.some((s) => s.digitalSourceType === GENERATED || s.digitalSourceType === COMPOSITE);
-    assert.ok(isGenAi, `${m}: credential present but the genAI flag (trainedAlgorithmicMedia) is gone — it would read as human-made`);
+    assert.ok(isGenAi, `${m}: credential present but the genAI flag (trainedAlgorithmicMedia) is gone - it would read as human-made`);
   });
 }
 

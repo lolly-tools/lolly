@@ -1280,7 +1280,7 @@ test('both readers read data-t-z through the ENGINE clamp, not a re-typed one', 
     assert.equal((parseSequenceStage(node)!.layers[0] as SeqLayer).z, want, `plan z for "${raw}"`);
   }
   assert.equal(readDepthZ('99999'), hi);
-  assert.equal(hi, 900, 'the field clamp is still the plan\'s 900 — if this moves, the engine moved it');
+  assert.equal(hi, 900, 'the field clamp is still the plan\'s 900 - if this moves, the engine moved it');
 });
 
 test('both readers parse data-t-kf through ONE cache, junk and all', () => {
@@ -1350,7 +1350,7 @@ test('section 4.1 FOLD: a transition offset on a LIFTED layer is scaled by eff, 
   assert.ok(proj.scale > 1.2, 'a 220px lift at P = 1200 is a real magnification');
 });
 
-test('section 4.1 FOLD: the same scene FLAT is exactly the naive sum — the fold is not a no-op', () => {
+test('section 4.1 FOLD: the same scene FLAT is exactly the naive sum - the fold is not a no-op', () => {
   // The companion. Same box, same transition, same track, z = 0: now the projection
   // is an identity and the two readings coincide, which is what proves the previous
   // test was measuring the projection rather than an arithmetic slip.
@@ -1395,7 +1395,7 @@ test('section 4.2 Z-ORDER: crossing z curves swap the paint order, and tie on DO
   const order = (t: number): number[] =>
     sequenceDrawPlan(stage.layers, t, 4000, PLAN_ENV).map((i) => i.layer.idx);
   assert.deepEqual(order(0), [0, 1], 'A at z 0 paints under B at z 200');
-  assert.deepEqual(order(1000), [1, 0], 'the curves crossed — so does the paint order');
+  assert.deepEqual(order(1000), [1, 0], 'the curves crossed - so does the paint order');
   // Exactly at the crossing both resolve to 100; the stable sort keeps DOM order.
   const mid = sequenceDrawPlan(stage.layers, 500, 4000, PLAN_ENV);
   assert.equal(mid[0]!.resolvedZ, mid[1]!.resolvedZ);
@@ -1426,7 +1426,7 @@ test('section 4.2 Z-ORDER: the DOM expresses the same order as z-index, and only
   assert.deepEqual(els.map((e) => e.style.zIndex), ['', '']);
 });
 
-test('section 4.2 Z-ORDER: the DOM ranks the SAME SET the planner sorts — flat boxes included', () => {
+test('section 4.2 Z-ORDER: the DOM ranks the SAME SET the planner sorts - flat boxes included', () => {
   // THE COUNTER-EXAMPLE THAT FORCED THIS. In CSS a positioned box with an integer
   // `z-index` paints in a HIGHER stacking level than every `auto` sibling, so ranking
   // only the boxes the fold touched means "everything lifted floats above everything
@@ -1472,7 +1472,7 @@ test('section 4.2 Z-ORDER: the DOM ranks the SAME SET the planner sorts — flat
   assert.deepEqual(byRank3, plan3.map((i) => i.layer.idx));
 });
 
-test('section 4.2 Z-ORDER: a foreign writer owns the slot — a dragged box keeps its hoist', () => {
+test('section 4.2 Z-ORDER: a foreign writer owns the slot - a dragged box keeps its hoist', () => {
   // free-canvas hoists the box under a gesture to `z-index: 9999` straight on the
   // element, with no model write and no repaint. The rank pass must not fight it: the
   // inline value is not the one we last wrote, so the slot is not ours to move.
@@ -1581,7 +1581,7 @@ test('section 5.4 EXCLUSIONS: a frame page is out of scope for the projection, t
   assert.equal(el.style.zIndex, '');
 });
 
-test('section 5.4 EXCLUSIONS: a FRAMES document is out of depth scope whole — in both evaluators', () => {
+test('section 5.4 EXCLUSIONS: a FRAMES document is out of depth scope whole - in both evaluators', () => {
   // Not only its pages. A frames-as-scenes slideshow lays its slides side by side on
   // the pasteboard, so the exporter sizes its output to the FIRST TIMED FRAME's box
   // while the applier measures the artboard - two different W's, and the projection's
@@ -1612,7 +1612,7 @@ test('section 5.4 EXCLUSIONS: a FRAMES document is out of depth scope whole — 
 
 // ── section 4.4: depth of field is a SCREEN-space number ──────────────────────────
 
-test('section 4.4 DOF: the blur the viewer sees is the engine\'s number — not eff² of it', () => {
+test('section 4.4 DOF: the blur the viewer sees is the engine\'s number - not eff² of it', () => {
   // `dofBlur` already carries `eff(z)·eff(f)` and is defined as "px at stage-native
   // scale", i.e. what the viewer sees. But BOTH executors apply `PlanItem.blur` in the
   // LAYER's own space and then magnify by `item.scale` - the canvas blurs a
@@ -1667,7 +1667,7 @@ test('section 5.5 BLUR: the DOM rewrites only the blur term, keeps the shadow, a
   // The planner reached the same total.
   assert.equal((sequenceDrawPlan(stage.layers, 500, 4000, PLAN_ENV)[0] as PlanItem).blur, 8);
   assert.equal(parseSequenceStage(node)!.layers[0]!.blur, 8,
-    'and a re-parse of the POSED stage reads 8 as authored — the seam, demonstrated');
+    'and a re-parse of the POSED stage reads 8 as authored - the seam, demonstrated');
   ctx.store.restoreAll();
   assert.equal(el.style.filter, 'blur(2px) drop-shadow(0px 21px 46px #00000055)');
 });
@@ -2111,7 +2111,7 @@ test('section 5.4 CAMERAS: BOTH evaluators derive the same camera from the same 
   assert.equal((els[0] as HTMLElement).style.transform, '');
 });
 
-test('section 5.4 CAMERAS: the SESSION finds the "Always on" camera — not just a hand-fed list', () => {
+test('section 5.4 CAMERAS: the SESSION finds the "Always on" camera - not just a hand-fed list', () => {
   // THE TEST THE OLD PARITY BLOCK COULD NOT FAIL. Every assertion above hands the
   // applier `querySelectorAll('.lolly-box')` - the PLANNER's element set - and so never
   // exercises `createSequenceTime`'s own selector, which was `[data-t-start]` alone.
@@ -2220,7 +2220,7 @@ test('section 4.1 FOLD under a REAL camera: transition offsets are INSIDE the pr
     assert.equal(w.alpha, n4(item.alpha), `alpha at ${t}`);
     if (item.dx !== 0) moved++;
   }
-  assert.ok(moved > 40, 'the fixture really is moving — otherwise this proves nothing');
+  assert.ok(moved > 40, 'the fixture really is moving - otherwise this proves nothing');
 });
 
 // ── section 6.5 / section 9.15: the pose the EDITOR CHROME reads back ────────────
@@ -2265,7 +2265,7 @@ test('section 9.15: the applier publishes the pose it wrote, and drops it on res
     assert.equal(posed.x + posed.w / 2, 200 + 320 + p.dx, 'and stays centred on it');
     if (Math.hypot(posed.x - authored.x, posed.y - authored.y) > 1) offset++;
   }
-  assert.ok(offset > 25, 'the fixture really does move the chrome — otherwise this proves nothing');
+  assert.ok(offset > 25, 'the fixture really does move the chrome - otherwise this proves nothing');
 
   // Past the clip's out-point the applier hands the authored styles back, and the pose
   // goes with them: "no entry" and "not posed" have to be the same answer, or the

@@ -580,7 +580,7 @@ test('penpotShapeToNode: root frame + junk → null', () => {
 });
 
 // ── penpotGradientToSpec (gradient fills → Lolly grad spec) ──────────────────
-test('penpotGradientToSpec: the keynote background — linear, aspect-aware angle, sRGB', () => {
+test('penpotGradientToSpec: the keynote background - linear, aspect-aware angle, sRGB', () => {
   // Real values from a 31-slide Penpot keynote: 895×503 board, #151035→#312470.
   const g = {
     type: 'linear', startX: 0.227, startY: 0.335, endX: 0.944, endY: 0.987,
@@ -1147,7 +1147,7 @@ test('collectPenpotExportMarks: (b) identical duplicate entries dedupe; distinct
   ]);
 });
 
-test('collectPenpotExportMarks: (c) a component master subtree is a definition — 0 marks from master OR descendant', () => {
+test('collectPenpotExportMarks: (c) a component master subtree is a definition - 0 marks from master OR descendant', () => {
   // Descendant-marked: the master board itself is unmarked, a child inside it is.
   const descendantMarked: Record<string, any> = {
     [ROOT_ID]: { id: ROOT_ID, type: 'frame', shapes: ['master'] },

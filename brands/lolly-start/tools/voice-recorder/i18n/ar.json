@@ -2,7 +2,7 @@
   "name": "مسجل الصوت",
   "description": "سجل ملاحظة صوتية مع مقياس مستوى مباشر وإرشادات لطيفة، ثم احفظها بصيغة MP3.",
   "featured.blurb": "سجل ملاحظة صوتية نقية مع إرشاد مباشر للمستوى",
-  "a11yLabel": "مسجل الصوت — المستوى {{default dbText \"idle\"}}",
+  "a11yLabel": "مسجل الصوت - المستوى {{default dbText \"idle\"}}",
   "inputs.title.label": "التسمية",
   "inputs.title.help": "تسمي بطاقة التسجيل والملف المحفوظ.",
   "inputs.targetLevel.label": "المستوى المستهدف",

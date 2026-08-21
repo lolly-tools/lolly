@@ -45,7 +45,7 @@ const PACK_MOUNTED = existsSync(SUSE_TOOLS);
 const SKIP_SUSE = !PACK_MOUNTED && 'SUSE brand pack not mounted (see profiles.json)';
 if (PACK_MOUNTED) {
   assert.ok(existsSync(join(SUSE_TOOLS, 'color-block', 'tool.json')),
-    'brands/suse/tools/color-block/tool.json is missing — pack is mounted, so the tool was renamed or deleted');
+    'brands/suse/tools/color-block/tool.json is missing - pack is mounted, so the tool was renamed or deleted');
 }
 
 // Load + validate the real tool once; createRuntime never mutates it (only the

@@ -130,7 +130,7 @@ test('BMP is detected only with a full 54-byte header (a stray "BM" is not)', ()
   assert.equal(sniffContainer(Uint8Array.from([0x42, 0x4d, 0, 0])), null); // too short
 });
 
-test('a gzip stream is reported (never inflated) — the .svgz wrapper', () => {
+test('a gzip stream is reported (never inflated) - the .svgz wrapper', () => {
   assert.equal(sniffContainer(Uint8Array.from([0x1f, 0x8b, 0x08, 0, 0, 0, 0, 0])), 'gzip');
 });
 

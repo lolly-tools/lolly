@@ -48,7 +48,7 @@ const HOSTS = [
 
 for (const h of HOSTS) {
   assert.ok(existsSync(join(h.dir, h.id, 'tool.json')),
-    `${h.id}/tool.json is missing under ${h.dir} — the tool was renamed or deleted`);
+    `${h.id}/tool.json is missing under ${h.dir} - the tool was renamed or deleted`);
 }
 
 const W = 200, H = 100;
@@ -88,7 +88,7 @@ async function mount(hostTool: (typeof HOSTS)[number], box: Record<string, unkno
 interface PathSvg { width: number; height: number; vb: number[]; style: string }
 function pathSvg(html: string, who: string): PathSvg {
   const tag = /<svg class="lolly-box-path"[^>]*>/.exec(html)?.[0];
-  assert.ok(tag, `${who}: the path box emitted an <svg> — got: ${html.slice(0, 400)}`);
+  assert.ok(tag, `${who}: the path box emitted an <svg> - got: ${html.slice(0, 400)}`);
   const attr = (name: string): string => new RegExp(`${name}="([^"]*)"`).exec(tag!)?.[1] ?? '';
   return {
     width: Number(attr('width')),
@@ -129,7 +129,7 @@ for (const h of HOSTS) {
     assert.match(style, /overflow:visible/, `${h.id}: a path box's frame does not clip: ${style}`);
   });
 
-  test(`${h.id}: no stroke means no pad — the frame IS the shape`, async () => {
+  test(`${h.id}: no stroke means no pad - the frame IS the shape`, async () => {
     for (const box of [
       { stroke: '', strokeW: 40, bg: '#30ba78' },   // filled only: nothing paints outside
       { stroke: '#30ba78', strokeW: 0 },            // a stroke colour with no width

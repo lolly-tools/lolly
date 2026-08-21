@@ -555,7 +555,7 @@ test('the narration block collapses from its own header, folding its body to the
   assert.equal(block.getAttribute('data-narrblock-open'), 'true', 'open by default');
   assert.equal(toggle.getAttribute('aria-expanded'), 'true');
   toggle.click();
-  assert.equal(block.getAttribute('data-narrblock-open'), 'false', 'collapsed — body folds to the header (CSS)');
+  assert.equal(block.getAttribute('data-narrblock-open'), 'false', 'collapsed - body folds to the header (CSS)');
   assert.equal(toggle.getAttribute('aria-expanded'), 'false');
   // The title row (and its own play button) stay; the body is what the CSS folds.
   assert.ok(dock.el.querySelector('[data-narr-title]'), 'title row stays');
@@ -597,7 +597,7 @@ test('narrationBlock renders a SECOND coexisting player above the music player',
   // Its play is INDEPENDENT of the music transport.
   root.querySelector<HTMLButtonElement>('[data-narr-play]')!.click();
   assert.equal(voicePlaying, true, 'narration play delegates to narrationBlock (not the music host)');
-  assert.equal(host.state.playing, false, 'the music transport is untouched — they coexist');
+  assert.equal(host.state.playing, false, 'the music transport is untouched - they coexist');
   // Its follow-along delegates to the block's own narration adapter.
   root.querySelector<HTMLButtonElement>('[data-narr-follow]')!.click();
   assert.equal(follow, false);

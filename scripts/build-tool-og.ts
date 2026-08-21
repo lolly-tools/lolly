@@ -121,7 +121,7 @@ function stubHtml(
   { id, name, description, image, sized }:
   { id: string; name: string; description?: string; image: string; sized: boolean },
 ): string {
-  const title = `${name} — Lolly`;
+  const title = `${name} - Lolly`;
   const url   = `${SITE_URL}/t/${id}`;
   const desc  = description || FALLBACK_DESC;
   const dims  = sized
@@ -142,7 +142,7 @@ function stubHtml(
 <meta property="og:description" content="${esc(desc)}" />
 <meta property="og:url" content="${esc(url)}" />
 <meta property="og:image" content="${esc(image)}" />${dims}
-<meta property="og:image:alt" content="${esc(name)} — a Lolly tool" />
+<meta property="og:image:alt" content="${esc(name)} - a Lolly tool" />
 <meta name="twitter:card" content="summary_large_image" />
 <meta name="twitter:title" content="${esc(title)}" />
 <meta name="twitter:description" content="${esc(desc)}" />
@@ -195,7 +195,7 @@ async function main(): Promise<void> {
   // On Vercel, DON'T rasterise: cards are committed and ship via git (see header), and
   // Playwright's browser isn't installed there anyway. Refresh cards locally instead.
   if (process.env.VERCEL) {
-    console.log('tool-og: on Vercel — using committed cards, skipping browser rasterisation');
+    console.log('tool-og: on Vercel - using committed cards, skipping browser rasterisation');
   } else {
     try {
       rasterizer = await createSvgRasterizer(ROOT);
@@ -221,7 +221,7 @@ async function main(): Promise<void> {
   try {
     const parsed = JSON.parse(readFileSync(SIGS_FILE, 'utf8'));
     if (parsed && typeof parsed === 'object') sigs = parsed as Record<string, string>;
-  } catch { /* no manifest yet — treat every card as stale */ }
+  } catch { /* no manifest yet - treat every card as stale */ }
 
   let cards = 0, stubs = 0, withPreview = 0, overrides = 0;
   for (const t of tools) {
@@ -290,7 +290,7 @@ async function main(): Promise<void> {
 
   const total = tools.filter(t => t.id && t.name).length;
   console.log(`✓ tool-og: ${stubs} stub${stubs === 1 ? '' : 's'}, ${cards} card${cards === 1 ? '' : 's'} refreshed (${withPreview} with preview, ${overrides} author override${overrides === 1 ? '' : 's'}); ${total - overrides} tools point at committed cards`);
-  if (!renderer) console.log('tool-og: browser unavailable — kept committed catalog/og cards (regenerate locally with build:web/dev:web).');
+  if (!renderer) console.log('tool-og: browser unavailable - kept committed catalog/og cards (regenerate locally with build:web/dev:web).');
 }
 
 main().catch(e => { console.error(e); process.exit(1); });

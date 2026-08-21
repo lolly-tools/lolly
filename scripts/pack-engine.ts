@@ -110,7 +110,7 @@ function gitCommit(): string {
 const ENGINE_V = engineVersion();
 const enginePkgV = pkgVersion(join(REPO, 'engine'));
 if (enginePkgV !== ENGINE_V) {
-  throw new Error(`engine/package.json version ${enginePkgV} != ENGINE_VERSION ${ENGINE_V} — sync them before packing`);
+  throw new Error(`engine/package.json version ${enginePkgV} != ENGINE_VERSION ${ENGINE_V} - sync them before packing`);
 }
 
 rmSync(OUT, { recursive: true, force: true });

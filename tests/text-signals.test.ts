@@ -18,7 +18,7 @@ const HUMAN_PARAGRAPH =
   'then I went home and made soup.';
 
 test('digital text with a zero-width character flags an invisible-char artifact', () => {
-  const r = analyzeTextSignals('hello​world this is a normal looking sentence', { source: 'digital' });
+  const r = analyzeTextSignals('hello\u200bworld this is a normal looking sentence', { source: 'digital' });
   const f = r.findings.find((x) => x.kind === 'invisible-char');
   assert.ok(f, 'expected an invisible-char finding');
   assert.equal(f?.tier, 'artifact');
@@ -39,7 +39,7 @@ test('a Latin/Cyrillic mixed-script word is a homoglyph tell', () => {
 
 test('OCR-sourced text NEVER returns an artifact finding and sets pixelSourced', () => {
   // Same zero-width character, but read from an image: the byte-level layer is gone.
-  const r = analyzeTextSignals('hello​world with an invisible char', { source: 'ocr' });
+  const r = analyzeTextSignals('hello\u200bworld with an invisible char', { source: 'ocr' });
   assert.equal(r.pixelSourced, true);
   assert.ok(r.findings.every((x) => x.tier !== 'artifact'), 'OCR must not surface artifact tells');
 });
@@ -150,7 +150,7 @@ test('unfilled template placeholders are an artifact-tier tell', () => {
 
 test('em-dashes are judged by DENSITY, not bare count', () => {
   const filler = 'plain ordinary words fill this long sentence about the weather and the garden today. ';
-  const sparse = `one—two here. ${filler.repeat(12)} three—four more. ${filler.repeat(12)} five—six end.`;
+  const sparse = `one\u2014two here. ${filler.repeat(12)} three\u2014four more. ${filler.repeat(12)} five\u2014six end.`;
   const r = analyzeTextSignals(sparse, { source: 'digital' });
   assert.ok(!r.findings.some((x) => x.kind === 'em-dash-density'), '3 em-dashes across ~250 words is normal prose');
 });
@@ -215,7 +215,7 @@ test('new fingerprints: think tags, ChatML, link params, PUA delimiters, antml',
 });
 
 test('soft hyphens between letters (PDF/Word residue) are NOT an invisible-char tell', () => {
-  const r = analyzeTextSignals('a per­fectly ordi­nary hyphen­ated document line', { source: 'digital' });
+  const r = analyzeTextSignals('a per\u00adfectly ordi\u00adnary hyphen\u00aded document line', { source: 'digital' });
   assert.ok(!r.findings.some((f) => f.kind === 'invisible-char'), 'discretionary hyphenation is human copy residue');
 });
 
@@ -298,7 +298,7 @@ test('FP: Greek-letter units in engineering prose are not homoglyph artifacts', 
 });
 
 test('FP: a leading UTF-8 BOM alone is an encoder signature, not a signal', () => {
-  const r = analyzeTextSignals('﻿Just a perfectly ordinary sentence about the garden and the weather today.', { source: 'digital' });
+  const r = analyzeTextSignals('\ufeffJust a perfectly ordinary sentence about the garden and the weather today.', { source: 'digital' });
   assert.ok(!r.findings.some((f) => f.kind === 'invisible-char'));
   assert.equal(r.band, 'none');
 });

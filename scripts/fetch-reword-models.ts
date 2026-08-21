@@ -78,7 +78,7 @@ const sha256 = (bytes: Uint8Array): string => createHash('sha256').update(bytes)
 function verify(relPath: string, bytes: Uint8Array, source: string): void {
   const pin = PINS[relPath];
   if (!pin || !pin.sha256) {
-    throw new Error(`no integrity pin for ${relPath} — run --refresh-pins once and paste the printed lines over PINS`);
+    throw new Error(`no integrity pin for ${relPath} - run --refresh-pins once and paste the printed lines over PINS`);
   }
   const actual = sha256(bytes);
   if (actual !== pin.sha256) {
@@ -125,11 +125,11 @@ async function fetchFile(relPath: string): Promise<void> {
 
 async function main(): Promise<void> {
   if (refreshPins) {
-    process.stdout.write('--refresh-pins: downloading fresh copies and printing new pin lines — paste them over PINS.\n');
+    process.stdout.write('--refresh-pins: downloading fresh copies and printing new pin lines - paste them over PINS.\n');
   }
   for (const f of MODEL_FILES) await fetchFile(f);
   process.stdout.write(
-    '\nDone. These files are gitignored (shells/web/.gitignore) — never commit them.\n' +
+    '\nDone. These files are gitignored (shells/web/.gitignore) - never commit them.\n' +
     'Next: `npm run build:ort` if /ort-hf/ is not staged yet, then flip REWORD_STAGED in\n' +
     'shells/web/src/lib/reword-models.ts once the end-to-end check has run (plans/127 WP4).\n',
   );

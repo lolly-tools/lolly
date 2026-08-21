@@ -86,7 +86,7 @@ test('hdrBoostToPQ legacy byte path is BYTE-IDENTICAL to the pre-refactor snapsh
       hdrBoostToPQ(img, opts);
       h.update(img);
     }
-    assert.equal(h.digest('hex'), sha256, `config ${ci} output drifted — legacy byte path must not change`);
+    assert.equal(h.digest('hex'), sha256, `config ${ci} output drifted - legacy byte path must not change`);
   }
 });
 
@@ -116,7 +116,7 @@ test('hdrViewTransform: sRGB white with no boost stays at 1.0 (SDR reference whi
   for (let c = 0; c < 3; c++) assert.ok(Math.abs(out.data[c]! - 1) < 1e-6, `channel ${c} ~1`);
 });
 
-test('hdrViewTransform: boosted white exceeds 1.0 — headroom is real linear values, not PQ', () => {
+test('hdrViewTransform: boosted white exceeds 1.0 - headroom is real linear values, not PQ', () => {
   const out = hdrViewTransform(px1(1, 1, 1), { targets: [] }); // includeWhite default true
   // maxGain = 1000/203 ~ 4.93; white is a full match at full lightness.
   const g = out.data[1]!;
@@ -189,7 +189,7 @@ test('hdr: non-finite samples are sanitised to 0 at the encode boundary (icc-pix
   assert.equal(pqToU16(enc)[0], 0);
 });
 
-test('hdrViewTransform: matches legacy semantics — jungle boosted, pine calmed, red untouched', () => {
+test('hdrViewTransform: matches legacy semantics - jungle boosted, pine calmed, red untouched', () => {
   const jungle = fromU8Srgb(new Uint8ClampedArray([48, 186, 120, 255]), 1, 1);
   const pine = fromU8Srgb(new Uint8ClampedArray([12, 50, 44, 255]), 1, 1);
   const red = fromU8Srgb(new Uint8ClampedArray([255, 0, 0, 255]), 1, 1);
@@ -207,7 +207,7 @@ test('hdrViewTransform: matches legacy semantics — jungle boosted, pine calmed
 
 // ─── pqEncodeFrame / pqToU16 ─────────────────────────────────────────────────
 
-test('pqEncodeFrame: 203-nit anchor — linear 1.0 at sdrWhiteNits 203 -> PQ signal ~0.5806 (BT.2408)', () => {
+test('pqEncodeFrame: 203-nit anchor - linear 1.0 at sdrWhiteNits 203 -> PQ signal ~0.5806 (BT.2408)', () => {
   // ITU-R BT.2408: HDR reference/graphics white is 203 cd/m2, which sits at
   // ~58% PQ signal. Independent reference value, not a round-trip.
   const f = createDeepFrame(1, 1, 'rec2020-linear');
@@ -220,7 +220,7 @@ test('pqEncodeFrame: 203-nit anchor — linear 1.0 at sdrWhiteNits 203 -> PQ sig
   assert.equal(pq.data[3], 1, 'alpha stays linear 0..1');
 });
 
-test('pqEncodeFrame: monotonic — more nits in, more PQ signal out; headroom keeps climbing past 1.0', () => {
+test('pqEncodeFrame: monotonic - more nits in, more PQ signal out; headroom keeps climbing past 1.0', () => {
   const f = createDeepFrame(4, 1, 'rec2020-linear');
   const levels = [0.25, 1, 2, 6]; // 6x SDR white = 1218 nits, still well inside PQ range
   for (const [i, v] of levels.entries()) { f.data[i * 4] = v; f.data[i * 4 + 1] = v; f.data[i * 4 + 2] = v; f.data[i * 4 + 3] = 1; }

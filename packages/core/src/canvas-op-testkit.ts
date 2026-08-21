@@ -353,8 +353,8 @@ function caseLocalOrderRoundTrips(makeAdapter: () => CanvasSyncAdapter, label: s
     return ops;
   };
   const expectOrder = (expected: BoxId[], what: string): void => {
-    assert.deepEqual(a.state().order, expected, `${label}: ${what} — author's own order is wrong`);
-    assert.deepEqual(b.state().order, expected, `${label}: ${what} — peer's order diverged`);
+    assert.deepEqual(a.state().order, expected, `${label}: ${what} - author's own order is wrong`);
+    assert.deepEqual(b.state().order, expected, `${label}: ${what} - peer's order diverged`);
   };
 
   const g1 = new Map<BoxId, BoxRow>([['r01', row('r01', 'one')], ['r02', row('r02', 'two')]]);

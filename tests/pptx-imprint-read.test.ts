@@ -74,8 +74,8 @@ test('a v2-imprinted ppt/media PNG is enumerated and detected end-to-end', { ski
     'ppt/presentation.xml': '<p:presentation/>',
     'ppt/media/image1_1.png': pngBytes,   // v2-imprinted render
     'ppt/media/image2_1.jpeg': jpegBytes, // v2-imprinted render, jpeg branch
-    'ppt/media/logo.svg': '<svg xmlns="http://www.w3.org/2000/svg"/>', // vector logo — skipped
-    'ppt/media/chart.emf': new Uint8Array(64).fill(1),                 // metafile — skipped
+    'ppt/media/logo.svg': '<svg xmlns="http://www.w3.org/2000/svg"/>', // vector logo - skipped
+    'ppt/media/chart.emf': new Uint8Array(64).fill(1),                 // metafile - skipped
     'ppt/slides/slide1.xml': '<p:sld/>',
   };
 
@@ -97,7 +97,7 @@ test('a v2-imprinted ppt/media PNG is enumerated and detected end-to-end', { ski
   assert.ok(jpegHit.present, `JPEG media should survive q90 and carry the Imprint (score ${jpegHit.score.toFixed(4)})`);
 });
 
-test('an all-vector / unmarked-raster deck reads absent — never a false hit', { skip }, async () => {
+test('an all-vector / unmarked-raster deck reads absent - never a false hit', { skip }, async () => {
   const W = 384, H = 384;
   // An ordinary deck-builder deck: byte-faithful USER photo (never imprinted - 
   // it is the user's own asset, not Lolly-rendered pixels) alongside vector art.

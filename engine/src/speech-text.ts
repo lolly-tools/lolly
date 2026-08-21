@@ -374,7 +374,7 @@ export function normalizeText(text: string): string {
     .trim();
 }
 
-const PUNCTUATION = ';:,.!?¡¿—…"«»“”(){}[]';
+const PUNCTUATION = ';:,.!?¡¿\u2014…"«»“”(){}[]';
 const PUNCTUATION_PATTERN = new RegExp(
   `(\\s*[${PUNCTUATION.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}]+\\s*)+`,
   'g',
@@ -403,7 +403,7 @@ export function postProcessPhonemes(ps: string, language: 'a' | 'b'): string {
     .replace(/x/g, 'k')
     .replace(/ɬ/g, 'l')
     .replace(/(?<=[a-zɹː])(?=hˈʌndɹɪd)/g, ' ')
-    .replace(/ z(?=[;:,.!?¡¿—…"«»“” ]|$)/g, 'z');
+    .replace(/ z(?=[;:,.!?¡¿\u2014…"«»“” ]|$)/g, 'z');
   if (language === 'a') processed = processed.replace(/(?<=nˈaɪn)ti(?!ː)/g, 'di');
   return processed.trim();
 }

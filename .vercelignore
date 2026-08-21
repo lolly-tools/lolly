@@ -4,7 +4,7 @@
 # NOTE: Vercel does NOT read .gitignore when this file exists, so anything
 # gitignored-but-heavy must be repeated here or it uploads over the wire.
 
-# Installed dependencies (~1.3 GB) — Vercel runs its own install during the build,
+# Installed dependencies (~1.3 GB) - Vercel runs its own install during the build,
 # so shipping the local tree's node_modules is pure waste and was the bulk of the
 # ~1.2 GB archive upload (which flaky networks drop mid-transfer). Root + every
 # workspace/submodule copy.
@@ -17,26 +17,26 @@ scratch
 plans
 
 # Scoped Chromium for the CLI/MCP Tier-B raster path (`lolly install-browser`),
-# ~540 MB. Never used by the deployed function — esbuild bundles the MCP fn and
+# ~540 MB. Never used by the deployed function - esbuild bundles the MCP fn and
 # includeFiles is only {tools,catalog}/**. Was the bulk of the 450 MB upload.
 .browsers
 
-# Prebuilt web output — Vercel regenerates it via buildCommand (outputDirectory
+# Prebuilt web output - Vercel regenerates it via buildCommand (outputDirectory
 # is shells/web/dist), so shipping the local ~170 MB copy is pure waste.
 shells/web/dist
 
-# onnxruntime-web WASM runtime (~93 MB) — an EXACT copy of *.wasm/*.mjs from the
+# onnxruntime-web WASM runtime (~93 MB) - an EXACT copy of *.wasm/*.mjs from the
 # installed onnxruntime-web dep's dist/. `build:web` runs `build:ort`
 # (scripts/copy-ort.ts) to regenerate it from the dependency Vercel installs
 # anyway, so uploading the local copy every ship is pure waste. Byte-identical.
 shells/web/public/ort
 
-# Model STAGING dirs (~686 MB — the single biggest slice of the ~2 GB suse upload,
+# Model STAGING dirs (~686 MB - the single biggest slice of the ~2 GB suse upload,
 # which is what makes the finalize-POST drop on flaky links). scripts/fetch-{matte,
 # upscale}-models.ts stage a candidate OUT of the served tree, in .candidates/, for
 # evaluation before it is promoted into its /models/<category>/ path. Nothing serves
 # or references them: they are NOT in the precache manifest (the dist listing scan
-# skips dot-dirs) and only the dev fetch scripts — which never run on Vercel — touch
+# skips dot-dirs) and only the dev fetch scripts - which never run on Vercel - touch
 # them. They reach the live site today only because vite copies public/ wholesale, and
 # no client ever requests those URLs. Excluding them takes suse from ~2.0 GB to ~1.3 GB.
 **/models/*/.candidates
@@ -49,23 +49,23 @@ shells/web/public/ort
 # web-deploy-only. Cuts the upload ~467 MB (~1.3 GB → ~0.83 GB).
 shells/web/public/models/matte/birefnet.onnx
 
-# Profile views — derived from the packs (community/, brands/**), which DO ship.
+# Profile views - derived from the packs (community/, brands/**), which DO ship.
 # postinstall (use-profile --auto) rebuilds them on Vercel as real copies, so
 # vercel.json's includeFiles globs and the web build's dist copy see real files.
 /tools
 /catalog
 
-# Local sticky profile choice — a developer's `loldev profile <name>` selection.
+# Local sticky profile choice - a developer's `loldev profile <name>` selection.
 # NEVER ship it: `loldev ship` archives the local tree, and use-profile --auto
 # ranks the sticky file ABOVE the default profile. If it leaked into a deploy
 # whose project has no LOLLY_PROFILE env, it would ship the developer's local
-# brand (e.g. lolly-start) instead of the project's intended one — which once
+# brand (e.g. lolly-start) instead of the project's intended one - which once
 # shipped the blank brand to lolly.tools. Each project's brand is pinned by its
 # own LOLLY_PROFILE env var (or the `suse` default); this file is local-only.
 /.lolly-profile
 
-# Local Claude Code state (tool-permission config, a scheduler lock, and — the
-# expensive part — agent WORKTREES, which are whole extra checkouts complete with
+# Local Claude Code state (tool-permission config, a scheduler lock, and - the
+# expensive part - agent WORKTREES, which are whole extra checkouts complete with
 # their own dist/). Gitignored but rides an archive tarball otherwise.
 # UNANCHORED on purpose: as `/.claude` this matched only the repo root, so
 # shells/web/.claude/worktrees/<name> (133 MB, including its own 96 MB dist/ that
@@ -75,13 +75,13 @@ shells/web/public/models/matte/birefnet.onnx
 
 # The docs-site screenshot MIRROR. docs/build.ts (build:info, run by build:web)
 # rmSync's this directory and re-copies it from docs/shots on every build
-# (build.ts:2519-2529), so the two trees are byte-identical — 146 files,
-# 80,718,033 bytes each — and we were shipping both. docs/shots itself is tracked
+# (build.ts:2519-2529), so the two trees are byte-identical - 146 files,
+# 80,718,033 bytes each - and we were shipping both. docs/shots itself is tracked
 # and still ships; this copy is derived. ~45 MB off each gzipped tarball (62% of
 # it is SVG, which compresses ~71%, so it is NOT the ~105 MB a raw du suggests).
 # NOTE: deliberately NOT excluding the sibling info/og. Those cards look equally
 # generated, but generateOgImages() rasterises via Playwright Chromium, which is
-# absent on Vercel, and — unlike build-tool-og.ts / build-view-og.ts — it has no
+# absent on Vercel, and - unlike build-tool-og.ts / build-view-og.ts - it has no
 # process.env.VERCEL guard and its output is not committed. It fails soft and
 # build() then derives ogSlugs from what exists ON DISK, so excluding info/og
 # would silently drop the og:image from every /info page.
@@ -90,7 +90,7 @@ shells/web/public/info/shots
 # The rest of the generated docs site: build:info regenerates every page, the
 # sitemap and llms.txt from docs/*.md + docs/i18n/. ~27 MB off each gzipped
 # tarball across 1,037 files. The tracked non-generated assets in info/ (icons,
-# mascots, founded-by.svg — 152 files) are NOT matched by these patterns and
+# mascots, founded-by.svg - 152 files) are NOT matched by these patterns and
 # still ship, which is why this is per-extension rather than the whole directory.
 shells/web/public/info/*.html
 shells/web/public/info/*.md

@@ -397,7 +397,7 @@ test('readMpfIndex: reads a little-endian MPF index; a plain MPO is declared but
   assert.equal(idx!.images.length, 2);
   assert.equal(idx!.images[0]!.start, 0);
   assert.equal(idx!.images[1]!.start, idx!.trailerStart, 'the declared offset must land on the real trailer');
-  assert.equal(idx!.gainMap, false, 'no hdrgm/ISO metadata anywhere — not a gain map');
+  assert.equal(idx!.gainMap, false, 'no hdrgm/ISO metadata anywhere - not a gain map');
 
   const meta = extractFileMetadata(mpo);
   const f = meta.fields.find((x) => x.label === 'Appended data');
@@ -516,8 +516,8 @@ test('extractFileMetadata: BMFF reads tracks, tags, timestamps and the Google AI
   const by = (label: string) => meta.fields.find((f) => f.label === label);
   assert.equal(by('Encoded with')?.value, 'Google');
   assert.equal(by('Handler description')?.value, GOOGLE_NOTE);
-  assert.equal(by('Video track')?.value, 'H.264 (avc1) — 720 × 1280 px');
-  assert.equal(by('Audio track')?.value, 'AAC (mp4a) — 44.1 kHz stereo');
+  assert.equal(by('Video track')?.value, 'H.264 (avc1) - 720 × 1280 px');
+  assert.equal(by('Audio track')?.value, 'AAC (mp4a) - 44.1 kHz stereo');
   assert.equal(by('Created')?.value, '2026-08-19 14:02 UTC');
   assert.equal(by('Duration')?.value, '1 min 14 s');
   assert.equal(by('Container profile')?.value, 'mp42');
@@ -539,7 +539,7 @@ test('extractFileMetadata: audio-only DASH m4a maps to the Gemini/NotebookLM hin
   const meta = extractFileMetadata(m4a);
   assert.equal(meta.producer?.signature, 'ai-download');
   assert.equal(meta.producer?.hint, 'Gemini or NotebookLM');
-  assert.equal(meta.fields.find((f) => f.label === 'Container profile')?.value, 'dash — fragmented (streaming delivery)');
+  assert.equal(meta.fields.find((f) => f.label === 'Container profile')?.value, 'dash - fragmented (streaming delivery)');
   assert.equal(meta.fields.find((f) => f.label === 'Duration')?.value, '24 min 12 s');
   assert.equal(meta.fields.find((f) => f.label === 'Created'), undefined, 'a zero created stamp is unset, not 1904');
 });

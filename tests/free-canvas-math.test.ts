@@ -532,7 +532,7 @@ test('seedFrameOrder: left→right x gives ascending order, stable for ties, inp
     { id: 'c', x: 300 },
     { id: 'a', x: 100 },
     { id: 'b', x: 200 },
-    { id: 'a2', x: 100 }, // tie with 'a' — later in array keeps later order
+    { id: 'a2', x: 100 }, // tie with 'a' - later in array keeps later order
   ];
   const seeded: any = seedFrameOrder(frames);
   assert.notEqual(seeded, frames);
@@ -701,7 +701,7 @@ test('sequenceFramesInOrder: geometry (x/y/w/h/order) is never touched', () => {
   assert.equal(next[0].order, 0);
 });
 
-test('sequenceFramesInOrder: idempotent in value — running it twice yields the same timing', () => {
+test('sequenceFramesInOrder: idempotent in value - running it twice yields the same timing', () => {
   const boxes: any[] = [
     { id: 'F1', kind: 'frame', x: 0, order: 0 },
     { id: 'F2', kind: 'frame', x: 500, order: 1 },
@@ -894,7 +894,7 @@ test('liftRows: one row per layer, each holding its own derived SVG', () => {
   assert.deepEqual(rows.map((r: any) => r.id), ['b2', 'b3', 'b4']);
 });
 
-test('liftRows: geometry is IDENTICAL on every row — a lift moves nothing', () => {
+test('liftRows: geometry is IDENTICAL on every row - a lift moves nothing', () => {
   const src = liftSrc();
   for (const r of liftRows(src, LAYERS, LIFT_CFG, { group: 'g9' }) as any[]) {
     for (const k of ['x', 'y', 'w', 'h', 'rot', 'opacity', 'fit', 'blend', 'frame', 'start', 'dur']) {
@@ -911,7 +911,7 @@ test('liftRows: depth climbs the eff band and every row shares one group', () =>
   assert.deepEqual(rows.map((r) => r.group), ['g9', 'g9', 'g9']);
 });
 
-test('liftDepths: the band is a CEILING — N layers never climb past it', () => {
+test('liftDepths: the band is a CEILING - N layers never climb past it', () => {
   for (const n of [2, 3, 5, 14, 25, 35, 54, 64]) {
     const slots = Array.from({ length: n }, (_, i) => i);
     const z = liftDepths(slots, KF_Z_FIELD_CLAMP);
@@ -1010,7 +1010,7 @@ test('liftRows: `shadow: depth` is pre-set, and can be opted out of', () => {
     ['none', 'none', 'none'], 'shadow:"" leaves the source\'s own value alone');
 });
 
-test('liftRows: a deep stack never reaches the clamp — the band gets there first', () => {
+test('liftRows: a deep stack never reaches the clamp - the band gets there first', () => {
   // The P3.1 acceptance failure, as a test: a 40-layer lift used to pin 24 rows at
   // the field ceiling with no parallax between them. The band means the clamp is
   // now unreachable by construction, and the clamp is still honoured if a caller
@@ -1025,7 +1025,7 @@ test('liftRows: a deep stack never reaches the clamp — the band gets there fir
   assert.ok(tight.every((r) => r.z <= 10), 'a clamp that does bite is still applied');
 });
 
-test('liftRows: paint order survives — bg on the bottom row, text on the top, artwork on each', () => {
+test('liftRows: paint order survives - bg on the bottom row, text on the top, artwork on each', () => {
   const rows = liftRows(liftSrc(), LAYERS, LIFT_CFG, { group: 'g9' }) as any[];
   assert.equal(rows[0]!.bg, '#101418', 'the background paints first, so it rides the bottom row');
   assert.equal(rows[0]!.grad, 'lin');
@@ -1053,7 +1053,7 @@ test('liftRows: the source object is never mutated', () => {
   assert.equal(JSON.stringify(src), snapshot);
 });
 
-test('applyLift: the rows land WHERE the source was — array order is z-order here', () => {
+test('applyLift: the rows land WHERE the source was - array order is z-order here', () => {
   const boxes: any[] = [{ id: 'a' }, liftSrc(), { id: 'c' }];
   const rows = liftRows(boxes[1], LAYERS, LIFT_CFG, { group: 'g9' });
   const out = applyLift(boxes, 1, rows) as any[];

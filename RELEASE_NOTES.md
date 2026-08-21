@@ -1,4 +1,4 @@
-# Release Notes — v0.01 (2026-06-12)
+# Release Notes - v0.01 (2026-06-12)
 
 First tagged release of Lolly. The web shell is live, the engine is stable, and the initial tool set covers the most common employee and designer workflows.
 
@@ -7,7 +7,7 @@ First tagged release of Lolly. The web shell is live, the engine is stable, and 
 ## What's new
 
 ### Product Lockup tool
-Generate SUSE product name lockups as outlined SVG paths. Official status — exports are brand-approved and watermark-free.
+Generate SUSE product name lockups as outlined SVG paths. Official status - exports are brand-approved and watermark-free.
 
 ### Fullscreen and drag-to-resize sidebar
 The sidebar can now be resized by dragging its right edge and collapsed entirely to give the canvas full screen space. A floating reopen button appears when collapsed. State persists across sessions.
@@ -23,7 +23,7 @@ lolly qr-code --url=https://suse.com --w=1200 --h=628 --export=png
 ```
 
 ### Utility tool layout
-Tools that declare `"export": false` and have no inputs now render fullscreen with no sidebar — the canvas takes the whole viewport. Color Palette uses this mode.
+Tools that declare `"export": false` and have no inputs now render fullscreen with no sidebar - the canvas takes the whole viewport. Color Palette uses this mode.
 
 ### `afterExport` hook
 Tools can now declare an `afterExport` lifecycle hook that fires after the export blob is produced. Useful for cleanup, telemetry, or chaining exports.
@@ -88,7 +88,7 @@ Without `filename=`, the download falls back to the tool ID.
 Generate on-brand SUSE email signatures ready to paste into any email client. Supports first name, last name, job title, certifications, email, phone, mobile, fax, address, IM handle, and an optional executive headshot. Exports as HTML (copyable), plain text, or PNG. Profile bindings auto-fill name, email, and phone from saved profile. Includes Germany, Business, and Culture legal appends.
 
 ### Executive headshots as pre-loaded assets
-SUSE executive headshots are now bundled into the asset catalog and available offline. They appear automatically in any `asset` input that filters on `suse/executives` — no upload required. The email signature tool uses this to let you pick an exec photo for event-facing signatures.
+SUSE executive headshots are now bundled into the asset catalog and available offline. They appear automatically in any `asset` input that filters on `suse/executives` - no upload required. The email signature tool uses this to let you pick an exec photo for event-facing signatures.
 
 ### Gallery redesign and tool thumbnails
 The tools gallery has been reworked: tool cards now show a live thumbnail preview, layout adapts cleanly to narrow screens, and the overall page is faster to scan. Tool thumbnails load from saved session state where available.
@@ -138,13 +138,13 @@ Clicking any element on the canvas now highlights its corresponding sidebar cont
 ## What's new
 
 ### Day Brief tool
-A daily briefing card with the quote of the day, live weather, local time, and a world-map locator for any city. First tool to use the `"network"` capability — it fetches weather/time through `host.net`, the allowlisted fetch bridge.
+A daily briefing card with the quote of the day, live weather, local time, and a world-map locator for any city. First tool to use the `"network"` capability - it fetches weather/time through `host.net`, the allowlisted fetch bridge.
 
 ### Code Canvas tool
-Turn code snippets into beautiful, shareable images — syntax highlighted and brand themed. Exports as PNG or SVG.
+Turn code snippets into beautiful, shareable images - syntax highlighted and brand themed. Exports as PNG or SVG.
 
 ### Team Map tool
-Show a distributed team on a world map with each person's local time. Introduces the `blocks` input type — a repeating group editor (add / remove / reorder rows) that round-trips to the URL as JSON.
+Show a distributed team on a world map with each person's local time. Introduces the `blocks` input type - a repeating group editor (add / remove / reorder rows) that round-trips to the URL as JSON.
 
 ### Countdown Timer tool
 A focused countdown with a live donut progress ring; click to pause. Utility-category, HTML render.
@@ -153,7 +153,7 @@ A focused countdown with a live donut progress ring; click to pause. Utility-cat
 The quote pool behind the daily tools was expanded and refreshed.
 
 ### Stable-framerate animated export
-WebM and GIF recording was reworked to a two-phase render-then-replay pipeline. Each frame is rendered sequentially (slower than real time on weak hardware) so every frame is unique — no dropped or duplicated frames. Output plays back at the intended rate regardless of render speed. WebM gains an optional **60fps** toggle for high-smoothness clips.
+WebM and GIF recording was reworked to a two-phase render-then-replay pipeline. Each frame is rendered sequentially (slower than real time on weak hardware) so every frame is unique - no dropped or duplicated frames. Output plays back at the intended rate regardless of render speed. WebM gains an optional **60fps** toggle for high-smoothness clips.
 
 ### Clear-all inputs
 A "Clear all" button in the tool sidebar blanks every input back to its default in one click.
@@ -196,29 +196,29 @@ Saved sessions now show their size and timestamp, and display the export filenam
 
 # Since v0.01 (2026-06-21)
 
-This is the largest update since the first release — four new tools, plus major engine, batch, units, and export work.
+This is the largest update since the first release - four new tools, plus major engine, batch, units, and export work.
 
 ---
 
 ## What's new
 
 ### Dynamic Layout tool
-A do-anything layout that recomposes around whatever you add, at any size — text, images, and assets flow into a balanced, on-brand composition without manual positioning. (everyone, official)
+A do-anything layout that recomposes around whatever you add, at any size - text, images, and assets flow into a balanced, on-brand composition without manual positioning. (everyone, official)
 
 ### Logo tool
 Place the SUSE logo and it auto-picks the right variant for the theme/background and exports as clean vector. Ships alongside the full SUSE logo asset set (8 variants) bundled into the catalog. (everyone, official)
 
 ### URL Screenshot tool
-Capture any web page — at any scroll depth, with optional custom CSS injected before the shot. Introduces the `capture` bridge capability: native on Tauri (headless Chromium), and on the web via a companion **Chrome extension** that drives capture through the Chrome DevTools Protocol. (utility, experimental)
+Capture any web page - at any scroll depth, with optional custom CSS injected before the shot. Introduces the `capture` bridge capability: native on Tauri (headless Chromium), and on the web via a companion **Chrome extension** that drives capture through the Chrome DevTools Protocol. (utility, experimental)
 
 ### Chart Creator tool
-On-brand charts from your data — bar, donut, pie, or stacked — exported as vector. (designer, official)
+On-brand charts from your data - bar, donut, pie, or stacked - exported as vector. (designer, official)
 
 ### Vector input type
 A new compound `vector` input (zoom / x / y) with Figma-style scrubbers, presented as a single control and a single batch column. Embedded SVGs now render as true vectors with improved curve handling.
 
 ### Physical units & DPI
-`width`/`height` accept physical units (`mm`/`cm`/`in`/`pt`, `px` default), with `dpi` controlling raster resolution. Conversion is applied per format at export — PDF in true points, SVG in units, raster at DPI (PNG embeds a `pHYs` chunk). Batch rows support per-row unit and DPI.
+`width`/`height` accept physical units (`mm`/`cm`/`in`/`pt`, `px` default), with `dpi` controlling raster resolution. Conversion is applied per format at export - PDF in true points, SVG in units, raster at DPI (PNG embeds a `pHYs` chunk). Batch rows support per-row unit and DPI.
 
 ### Batch (Pro) mode
 A power-user bulk grid at `#/pro` for generating many assets at once from a spreadsheet-like editor, with shared canonical input columns.
@@ -227,7 +227,7 @@ A power-user bulk grid at `#/pro` for generating many assets at once from a spre
 The profile page gained feature-flag toggles (default on) that hide gallery categories and the Batch link, so a deployment can present a trimmed-down tool set.
 
 ### Export provenance
-Exports now embed authorship/Lolly provenance metadata per format (PNG iTXt, JPEG EXIF, PDF info, SVG metadata, GIF comment) — no copyright symbol, and no personal data unless explicitly opted in.
+Exports now embed authorship/Lolly provenance metadata per format (PNG iTXt, JPEG EXIF, PDF info, SVG metadata, GIF comment) - no copyright symbol, and no personal data unless explicitly opted in.
 
 ---
 
@@ -271,13 +271,13 @@ Exports now embed authorship/Lolly provenance metadata per format (PNG iTXt, JPE
 ## Known limitations
 
 - Saved state is per-device (no SUSE ID sync). Clearing browser storage loses sessions.
-- URL capture is native-only — fully functional on Tauri and via the Chrome extension on the web; the bare web shell and CLI stub it.
+- URL capture is native-only - fully functional on Tauri and via the Chrome extension on the web; the bare web shell and CLI stub it.
 
 ---
 
 # Since v0.01 (2026-06-22 → 2026-06-27)
 
-Eleven new tools — across the Designer, Event, and offline-utility sets — plus tool composition, on-device file utilities, and new vector/data export paths.
+Eleven new tools - across the Designer, Event, and offline-utility sets - plus tool composition, on-device file utilities, and new vector/data export paths.
 
 ---
 
@@ -287,7 +287,7 @@ Eleven new tools — across the Designer, Event, and offline-utility sets — pl
 Typed colour blocks that auto-compose into a grid which fills any frame, at any size. (everyone, official)
 
 ### Brand Lockup tool
-Official SUSE logo lockups — chameleon, wordmark, and a product or team name — exported as outlined vector. Replaces the earlier Product Lockup tool. (designer, official)
+Official SUSE logo lockups - chameleon, wordmark, and a product or team name - exported as outlined vector. Replaces the earlier Product Lockup tool. (designer, official)
 
 ### Street Map tool
 A clean vector street-block map of a bundled city; renders fully offline. (designer, official)
@@ -296,13 +296,13 @@ A clean vector street-block map of a bundled city; renders fully offline. (desig
 Turns a photo into a vector halftone dot grid, exported as SVG or transparent PNG/WebP/AVIF. (designer, official)
 
 ### Scanline Filter tool
-Turns a photo into a retro scanline grid — alternate lines drop out and the rest is posterised into brand tones as crisp rects, exported as SVG or transparent PNG/WebP/AVIF. (designer, official)
+Turns a photo into a retro scanline grid - alternate lines drop out and the rest is posterised into brand tones as crisp rects, exported as SVG or transparent PNG/WebP/AVIF. (designer, official)
 
 ### Animated Ad tool
-Builds a looping digital ad from scenes — exported as a self-contained HTML banner, GIF, MP4, or a still poster. (designer, official)
+Builds a looping digital ad from scenes - exported as a self-contained HTML banner, GIF, MP4, or a still poster. (designer, official)
 
 ### Event Name Badge tool
-Print-ready conference name badges with a role colour and an optional QR code. First tool to use **composition** — it renders the QR Code tool inline via the new `compose` capability. (event, official)
+Print-ready conference name badges with a role colour and an optional QR code. First tool to use **composition** - it renders the QR Code tool inline via the new `compose` capability. (event, official)
 
 ### Wayfinding Signage tool
 Directional event signs, each destination paired with an arrow; print-ready. (event, official)
@@ -311,7 +311,7 @@ Directional event signs, each destination paired with an arrow; print-ready. (ev
 Turns an event into a calendar `.ics` for Outlook, Google, or Apple, alongside a shareable card. (event, official)
 
 ### Strip Hidden Data tool
-Reveals and removes hidden metadata from images and PDFs entirely on-device — nothing is uploaded. (utility, official)
+Reveals and removes hidden metadata from images and PDFs entirely on-device - nothing is uploaded. (utility, official)
 
 ### Text Helper tool
 Format, decode, hash, and de-identify text (JSON/YAML/Helm/JWT and more), all on-device. (utility, official)
@@ -323,7 +323,7 @@ Shrinks a PDF by recompressing its images, on-device. (utility, official)
 A tool can now render another tool as an image. Manifests declare `composes`, the engine resolves the nested render through `host.compose`, and the result is embedded without its own watermark. Tools are also addressable as portable embed URLs.
 
 ### On-device file utilities
-A new `file` input type lets a tool take the user's own file as bytes held in memory. The transform path (`host.export.file` plus the `exportFile` hook, gated by `privacy: "on-device"`) processes the file locally and writes the result straight back — never embedding a watermark or provenance, and never uploading.
+A new `file` input type lets a tool take the user's own file as bytes held in memory. The transform path (`host.export.file` plus the `exportFile` hook, gated by `privacy: "on-device"`) processes the file locally and writes the result straight back - never embedding a watermark or provenance, and never uploading.
 
 ---
 
@@ -368,7 +368,7 @@ A new `file` input type lets a tool take the user's own file as bytes held in me
 | Engine | `file` input type and an on-device transform path (`host.export.file`, `exportFile` hook, `privacy: "on-device"`) |
 | Bridge | `host.pdf` API: analyze, strip, and compress PDFs on-device |
 | Export bridge | EMF replaces EPS as the vector export for Office; data exports `.ics`, `.vcf`, `.csv`, and `.json` generated from the input model |
-| Catalog | New "Event Kit" category; renames — `exif-stripper` → `strip-data`, `text-tools` → `text-helper`; the Product Lockup tool retired in favour of Brand Lockup |
+| Catalog | New "Event Kit" category; renames - `exif-stripper` → `strip-data`, `text-tools` → `text-helper`; the Product Lockup tool retired in favour of Brand Lockup |
 
 ---
 

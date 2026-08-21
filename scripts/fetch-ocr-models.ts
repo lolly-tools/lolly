@@ -153,7 +153,7 @@ async function fetchFile(relPath: string): Promise<'saved' | 'cached' | 'skipped
 
   if (!refreshPins && (pin.sha256 === PLACEHOLDER || pin.url === PLACEHOLDER)) {
     process.stdout.write(
-      `  ${relPath}: SKIPPED — no verified pin yet (${pin.note ?? 'placeholder'}). ` +
+      `  ${relPath}: SKIPPED - no verified pin yet (${pin.note ?? 'placeholder'}). ` +
       `Run --refresh-pins with a candidate url to fetch, then work the header gate list before pasting a real pin.\n`,
     );
     return 'skipped';
@@ -168,7 +168,7 @@ async function fetchFile(relPath: string): Promise<'saved' | 'cached' | 'skipped
   }
 
   if (pin.url === PLACEHOLDER) {
-    process.stdout.write(`  ${relPath}: no candidate url set — paste one into PINS first.\n`);
+    process.stdout.write(`  ${relPath}: no candidate url set - paste one into PINS first.\n`);
     return 'skipped';
   }
 
@@ -186,8 +186,8 @@ async function fetchFile(relPath: string): Promise<'saved' | 'cached' | 'skipped
     process.stdout.write(
       `  '${relPath}': { url: '${pin.url}', sha256: '${sha256(bytes)}', bytes: ${bytes.byteLength}, ` +
       `license: '${pin.license}', source: '${pin.source}', copyright: '${pin.copyright}' },\n` +
-      `  staged candidate → ${stagePath} (${bytes.byteLength} bytes, ${kb} KB) — NOT written to the live ${relPath}\n` +
-      (looksRight ? '' : `  ⚠ these bytes do NOT look like the expected file type — inspect before pinning\n`) +
+      `  staged candidate → ${stagePath} (${bytes.byteLength} bytes, ${kb} KB) - NOT written to the live ${relPath}\n` +
+      (looksRight ? '' : `  ⚠ these bytes do NOT look like the expected file type - inspect before pinning\n`) +
       `  ⚠ Work the licence + runtime gates in this script's header before trusting this pin.\n`,
     );
     return 'saved';
@@ -202,11 +202,11 @@ async function fetchFile(relPath: string): Promise<'saved' | 'cached' | 'skipped
 
 function writeCredits(vendored: string[]): void {
   const lines: string[] = [
-    'Lolly — vendored OCR (PP-OCRv5) ONNX models',
+    'Lolly - vendored OCR (PP-OCRv5) ONNX models',
     '===========================================',
     '',
     'These model files are not source code and are not covered by this repo\'s own',
-    'MPL-2.0 licensing — each carries the license of its own upstream project,',
+    'MPL-2.0 licensing - each carries the license of its own upstream project,',
     'recorded below (verified against the upstream repo, not merely the mirror the',
     'file was fetched from).',
     '',
@@ -231,7 +231,7 @@ function writeCredits(vendored: string[]): void {
 async function main(): Promise<void> {
   const wanted = Object.keys(PINS).filter((relPath) => !onlyFiles || onlyFiles.has(relPath));
   if (refreshPins) {
-    process.stdout.write('--refresh-pins: downloading fresh copies and printing new pin lines — paste them over PINS after working the gate list.\n');
+    process.stdout.write('--refresh-pins: downloading fresh copies and printing new pin lines - paste them over PINS after working the gate list.\n');
   }
 
   const vendored: string[] = [];
@@ -251,12 +251,12 @@ async function main(): Promise<void> {
   if (skipped.length > 0) {
     process.stdout.write(
       `\n${skipped.length} file(s) not vendored: ${skipped.join(', ')}.\n` +
-      'Every OCR file is a PLACEHOLDER until its licence + graph are verified — see this script\'s header gate list.\n',
+      'Every OCR file is a PLACEHOLDER until its licence + graph are verified - see this script\'s header gate list.\n',
     );
   }
 
   process.stdout.write(
-    '\nDone. These files are gitignored — never commit them.\n' +
+    '\nDone. These files are gitignored - never commit them.\n' +
     (refreshPins
       ? 'Paste the printed pin lines over PINS after working the gate list, then flip OCR_STAGED in ocr-models.ts in the same change.\n'
       : 'The OCR worker loads them from /models/ocr/ by the exact filenames above.\n'),

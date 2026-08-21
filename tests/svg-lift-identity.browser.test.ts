@@ -116,7 +116,7 @@ const FIXTURES: Array<[name: string, markup: string]> = [
     <g><path d="M200 40 L300 40 L250 160 Z" fill="#e8b31f"/></g>
   </svg>`],
 
-  ['translucent overlap — alpha, not just coverage', `<svg xmlns="${NS}" viewBox="0 0 ${W} ${H}">
+  ['translucent overlap - alpha, not just coverage', `<svg xmlns="${NS}" viewBox="0 0 ${W} ${H}">
     <g><rect x="10" y="10" width="200" height="160" fill="#c8352b" fill-opacity="0.55"/></g>
     <g><circle cx="160" cy="130" r="80" fill="#2f6fb4" opacity="0.6"/></g>
   </svg>`],
@@ -129,7 +129,7 @@ const FIXTURES: Array<[name: string, markup: string]> = [
     <g><circle cx="90" cy="90" r="60" fill="url(#grad)" opacity="0.7"/></g>
   </svg>`],
 
-  ['a cross-group <use> — the repaired reference', `<svg xmlns="${NS}" viewBox="0 0 ${W} ${H}">
+  ['a cross-group <use> - the repaired reference', `<svg xmlns="${NS}" viewBox="0 0 ${W} ${H}">
     <g id="a"><path id="star" d="M60 20 L74 58 L114 58 L82 82 L94 120 L60 96 L26 120 L38 82 L6 58 L46 58 Z" fill="#e8b31f"/></g>
     <g id="b"><use href="#star" x="120" y="60"/></g>
     <g id="c"><rect x="220" y="20" width="80" height="80" fill="#2f6fb4" opacity="0.8"/></g>
@@ -154,20 +154,20 @@ const FIXTURES: Array<[name: string, markup: string]> = [
     <g><rect id="shape" x="20" y="20" width="120" height="120" fill="#2f6fb4"/></g>
   </svg>`],
 
-  ['curves and strokes — anti-aliased edges everywhere', `<svg xmlns="${NS}" viewBox="0 0 ${W} ${H}">
+  ['curves and strokes - anti-aliased edges everywhere', `<svg xmlns="${NS}" viewBox="0 0 ${W} ${H}">
     <g><path d="M10 200 C 60 40, 120 40, 170 200" fill="none" stroke="#c8352b" stroke-width="9"/></g>
     <g><path d="M60 210 C 110 60, 180 60, 250 210" fill="none" stroke="#2f6fb4" stroke-width="7"/></g>
     <g><ellipse cx="240" cy="90" rx="60" ry="34" fill="#1fd6c1" stroke="#0a3b35" stroke-width="3"/></g>
   </svg>`],
 
-  ['ungrouped strays — the spatial clustering path', `<svg xmlns="${NS}" viewBox="0 0 ${W} ${H}">
+  ['ungrouped strays - the spatial clustering path', `<svg xmlns="${NS}" viewBox="0 0 ${W} ${H}">
     <rect x="10" y="10" width="60" height="60" fill="#c8352b"/>
     <rect x="66" y="30" width="60" height="60" fill="#e8b31f"/>
     <circle cx="250" cy="170" r="45" fill="#2f6fb4"/>
     <path d="M240 40 L300 40 L270 100 Z" fill="#1fd6c1"/>
   </svg>`],
 
-  ['one wrapping group with a transform — the descent', `<svg xmlns="${NS}" viewBox="0 0 ${W} ${H}">
+  ['one wrapping group with a transform - the descent', `<svg xmlns="${NS}" viewBox="0 0 ${W} ${H}">
     <g id="Layer_1" transform="translate(20 15) rotate(6)">
       <g><rect x="0" y="0" width="150" height="110" fill="#7a2ff0"/></g>
       <g><circle cx="200" cy="120" r="60" fill="#e8b31f" opacity="0.85"/></g>
@@ -303,7 +303,7 @@ describe('lift identity: N layers at z = 0 == the un-lifted original', { skip: g
         `${d.beyondOne} beyond ±1, max ${d.max}, mean ${d.meanAbs.toFixed(6)}`);
 
       assert.ok(d.beyondOne <= MAX_BEYOND_ONE,
-        `${name}: ${d.beyondOne} channels differ by more than 1 (allowed ${MAX_BEYOND_ONE}) — ` +
+        `${name}: ${d.beyondOne} channels differ by more than 1 (allowed ${MAX_BEYOND_ONE}) - ` +
         'that is a lift defect, not compositing rounding');
       assert.ok(d.max <= MAX_CHANNEL_DELTA, `${name}: max channel delta ${d.max} exceeds ${MAX_CHANNEL_DELTA}`);
       assert.ok(d.meanAbs <= MAX_MEAN_ABS, `${name}: mean absolute error ${d.meanAbs} exceeds ${MAX_MEAN_ABS}`);
@@ -334,7 +334,7 @@ describe('lift identity: N layers at z = 0 == the un-lifted original', { skip: g
   const scaledBudget = Math.round(SCALED_CHANNELS * MAX_BEYOND_ONE_FRACTION);
 
   for (const [name, markup] of FIXTURES) {
-    test(`${name} — at k = 1.5625, cropped to whole ROW px`, async () => {
+    test(`${name} - at k = 1.5625, cropped to whole ROW px`, async () => {
       const box = liftBox(SCALED_W, SCALED_H);
       const cropScale = liftCropScale(box, LIFT_CFG, { viewBox: svgRootViewBox(markup), fit: 'fill' });
       assert.ok(cropScale && cropScale.x !== 1 && cropScale.y !== 1,
@@ -374,7 +374,7 @@ describe('lift identity: N layers at z = 0 == the un-lifted original', { skip: g
       `max ${bad.max}, mean ${bad.meanAbs.toFixed(6)}`);
     assert.ok(bad.beyondOne > scaledBudget * 4,
       `a user-unit crop at k≠1 must be unmistakably worse, got ${bad.beyondOne} beyond ±1 ` +
-      `against a ${scaledBudget} budget — if this ever passes, the snap stopped mattering ` +
+      `against a ${scaledBudget} budget - if this ever passes, the snap stopped mattering ` +
       'and the k≠1 cases above are no longer proving anything');
   });
 
@@ -415,7 +415,7 @@ describe('lift identity: N layers at z = 0 == the un-lifted original', { skip: g
     });
   }
 
-  test('the bounds are not vacuous — dropping one layer blows through every one of them', async () => {
+  test('the bounds are not vacuous - dropping one layer blows through every one of them', async () => {
     // Without this, a stack that rendered the same whatever it contained (a
     // blank page, a failed decode) would pass every assertion above while
     // proving nothing.

@@ -3,7 +3,7 @@
   "compilerOptions": {
     // "DOM" is here ONLY for the fetch-spec globals (Blob, Response, RequestInit,
     // URL) shared by browsers and Node. The engine must stay renderer-agnostic:
-    // no document/window usage — enforced in review, not by the compiler.
+    // no document/window usage - enforced in review, not by the compiler.
     // DOM.Iterable: URLSearchParams.entries() iteration in url-mode (type-only;
     // the API is available in both browsers and Node).
     "lib": ["ES2023", "DOM", "DOM.Iterable"],
@@ -11,7 +11,7 @@
   },
   "include": ["src/**/*"],
   // Co-located *.test.ts files import Node built-ins (node:test / node:assert),
-  // but the engine keeps `types: []` on purpose to stay renderer/Node-agnostic —
+  // but the engine keeps `types: []` on purpose to stay renderer/Node-agnostic -
   // so they'd fail to resolve here. Tests run via `node --test` (native
   // type-stripping) and are typechecked with Node types by the root tsconfig; the
   // engine's own production typecheck excludes them.

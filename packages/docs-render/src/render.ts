@@ -59,7 +59,7 @@ export function inline(text: string, ctx: DocsRenderContext): string {
     s = next;
   }
   const leftover = /%(entity|sig|act|file|detail)\{/.exec(s);
-  if (leftover) console.warn(`⚠  unrendered provenance marker "%${leftover[1]}{" — check for an unclosed brace or deeper nesting`);
+  if (leftover) console.warn(`⚠  unrendered provenance marker "%${leftover[1]}{" - check for an unclosed brace or deeper nesting`);
 
   // Images before links, or the link regex eats `[alt](url)` and strands the `!`. The alt
   // is STRIPPED of markup first (inline code/emphasis already ran).
@@ -120,7 +120,7 @@ function buildShowcase(body: string, ctx: DocsRenderContext): string {
   const recipe = /!\[([^\]]*)\]\((\/t\/url-shot\?[^)\s]+)\)/.exec(body);
   const caption = body.replace(recipe?.[0] ?? '', '').trim();
   const bail = (why: string) => {
-    console.warn(`⚠  ::: showcase — ${why}; falling back to a plain screenshot`);
+    console.warn(`⚠  ::: showcase - ${why}; falling back to a plain screenshot`);
     return mdToHtml(body, ctx);
   };
   if (!recipe) return bail('no url-shot recipe line inside the fence');
@@ -129,7 +129,7 @@ function buildShowcase(body: string, ctx: DocsRenderContext): string {
   const slug = q.get('filename');
   const fmt = (q.get('format') || 'svg').toLowerCase();
   if (!slug) return bail('the recipe has no filename= param');
-  if (fmt !== 'svg') return bail(`${slug} is captured as ${fmt} — only a vector shot can be inlined`);
+  if (fmt !== 'svg') return bail(`${slug} is captured as ${fmt} - only a vector shot can be inlined`);
 
   const show = ctx.showcase(slug);
   if (!show) return bail(`docs/shots/${slug}.svg is not captured, or has no usable viewBox`);
@@ -147,12 +147,12 @@ function buildShowcase(body: string, ctx: DocsRenderContext): string {
 function buildFigure(id: string, body: string, ctx: DocsRenderContext): string {
   const art = ctx.art('figures', id);
   if (!art) {
-    console.warn(`⚠  ::: figure ${id} — no docs/figures/${id}.svg or .html (or it did not inline); nothing rendered`);
+    console.warn(`⚠  ::: figure ${id} - no docs/figures/${id}.svg or .html (or it did not inline); nothing rendered`);
     return '';
   }
   const caption = body.trim();
   const cred = renderCredential(ctx.credential(art.file, { assetSrc: art.src, art: true }), { file: art.file, extraClass: 'shot-cred--figure', fromPresent: true }, ctx);
-  if (!cred) console.warn(`⚠  ::: figure ${id} — ${art.file} carries no readable Content Credential; run 'node scripts/sign-docs-art.ts'`);
+  if (!cred) console.warn(`⚠  ::: figure ${id} - ${art.file} carries no readable Content Credential; run 'node scripts/sign-docs-art.ts'`);
   return figureBlock({
     art: art.html,
     caption: caption ? mdToHtml(caption, ctx) : '',

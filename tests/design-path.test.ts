@@ -440,7 +440,7 @@ test('encoding: refuses a value that is not one, rather than half-decoding it', 
   }
 });
 
-test('encoding: one home — host.geom exposes the SAME codec the engine exports', () => {
+test('encoding: one home - host.geom exposes the SAME codec the engine exports', () => {
   const enc = geom.encodeAuthored(DIAMOND as never);
   assert.ok(enc.ok);
   assert.equal((enc as { ok: true; value: string }).value, encodeAuthoredPath(DIAMOND));
@@ -487,7 +487,7 @@ test('URL: a path box survives the COMPACT blocks form (the one with unescapable
   const compact = encodeBlocksCompact(rows, fields);
   // Not null: a path box must never be what forces the whole boxes array onto the
   // JSON fallback.
-  assert.ok(compact, 'compact encoding bailed — a path value carried a separator');
+  assert.ok(compact, 'compact encoding bailed - a path value carried a separator');
 
   // Through a real URL, which is where percent-decoding happens BEFORE the block
   // splitter sees the string.
@@ -682,7 +682,7 @@ test('render: stroke and fill-rule are honoured; an unfilled stroked path is pos
   assert.equal(inside(d, 200, 150, 'evenodd'), false, 'star core filled under even-odd');
 });
 
-test('render: the STROKE is not clipped — the <svg> box and viewBox pad by half the width', () => {
+test('render: the STROKE is not clipped - the <svg> box and viewBox pad by half the width', () => {
   // The second half of the reported bounding-box bug, and independent of the frame refit: the
   // pen tool makes the frame the curve's TIGHT bbox, so a stroke straddles the frame edge and
   // half of it falls outside - and an outer <svg> clips to its viewport, in the browser AND in
@@ -786,7 +786,7 @@ function assertUndrawn(markup: string, logs: string[], why: RegExp): void {
   assert.match(logs.join(' | '), why);
 }
 
-test('degrade: host.geom absent — visible outline + a warning naming the missing bridge', () => {
+test('degrade: host.geom absent - visible outline + a warning naming the missing bridge', () => {
   const logs: string[] = [];
   const compute = loadCompute('community', { log: (l, m) => logs.push(`${l}: ${m}`) });
   const out = compute([pathBox()]);
@@ -807,7 +807,7 @@ test('degrade: a partial host.geom (no fromNodes) is treated as absent, not as a
   assertUndrawn(compute([pathBox()]).pathHtml![0]!, logs, /host\.geom is unavailable/);
 });
 
-test('degrade: fromNodes returns ok:false — the code and message reach the log', () => {
+test('degrade: fromNodes returns ok:false - the code and message reach the log', () => {
   // A real refusal from the real bridge: a kind no engine has ever heard of answers
   // 'invalid-argument', which the tool degrades to an undrawn outline + a warning.
   // (Spiro USED to be the "known but unimplemented" example - it is now a real solver,

@@ -46,7 +46,7 @@ test('xcf: isXcf accepts file/v001/v011 tokens, refuses others', () => {
   assert.equal(isXcf(new Uint8Array(4)), false);
 });
 
-test('xcf: v001 RLE — geometry, order reversal, opacity, mode, visibility, pixels', () => {
+test('xcf: v001 RLE - geometry, order reversal, opacity, mode, visibility, pixels', () => {
   const topPix = pix(6, 4, 3);
   const botPix = pix(8, 8, 1);
   const layers: XcfFixtureLayer[] = [
@@ -235,7 +235,7 @@ test('xcf: a newer version parses with a warning (v012 attempted as v011)', () =
   assert.deepEqual(doc.layers[0]!.pixels, pix(3, 3));
 });
 
-test('xcf: truncation degrades or refuses typed — never an uncontrolled throw', () => {
+test('xcf: truncation degrades or refuses typed - never an uncontrolled throw', () => {
   const full = buildXcf({
     version: 1,
     width: 8,

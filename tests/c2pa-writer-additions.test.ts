@@ -159,7 +159,7 @@ const claimOf = (store: Uint8Array): Map<unknown, unknown> => {
 
 // ═══ section 18.28 - the ai-disclosure assertion ═════════════════════════════════════
 
-test('section 18.28 — aiDisclosure is written in the spec\'s own shape, defaults modelType, and nests oversight', async () => {
+test('section 18.28 - aiDisclosure is written in the spec\'s own shape, defaults modelType, and nests oversight', async () => {
   const store = await buildC2paManifest({
     title: 'Masthead',
     claimGenerator: 'Lolly lolly.tools',
@@ -189,7 +189,7 @@ test('section 18.28 — aiDisclosure is written in the spec\'s own shape, defaul
   assert.deepEqual([...m.keys()], ['modelType', 'modelName', 'modelIdentifier', 'contentProfile', 'scientificDomain']);
 });
 
-test('section 18.28 — the disclosure is a CREATED assertion, referenced by a hashed URI that checks out', async () => {
+test('section 18.28 - the disclosure is a CREATED assertion, referenced by a hashed URI that checks out', async () => {
   const store = await buildC2paManifest({
     aiDisclosure: { modelName: 'Claude Fable 5', oversight: 'human_validated' },
     assetHash: { exclusions: [{ start: 0, length: 4 }], hash: new Uint8Array(32).fill(1) },
@@ -207,7 +207,7 @@ test('section 18.28 — the disclosure is a CREATED assertion, referenced by a h
   assert.equal(hex(ref.get('hash') as Uint8Array), hex(await sha256(payload)), 'hashed URI matches the assertion bytes');
 });
 
-test('section 18.28 — a disclosure round-trips into the reader\'s report.aiDisclosure', async () => {
+test('section 18.28 - a disclosure round-trips into the reader\'s report.aiDisclosure', async () => {
   const page = utf8(pageHtml());
   const store = await buildExternalC2paStore(page, {
     title: 'Signed page',
@@ -230,7 +230,7 @@ test('section 18.28 — a disclosure round-trips into the reader\'s report.aiDis
   assert.equal(report.aiDisclosures, undefined);
 });
 
-test('section 18.28 — malformed enums are refused at write time, not silently written', async () => {
+test('section 18.28 - malformed enums are refused at write time, not silently written', async () => {
   const base = { assetHash: { exclusions: [{ start: 0, length: 1 }], hash: new Uint8Array(32) } };
   await assert.rejects(
     () => buildC2paManifest({ ...base, aiDisclosure: { oversight: 'reviewed' as never } }),
@@ -249,7 +249,7 @@ test('section 18.28 — malformed enums are refused at write time, not silently 
   );
 });
 
-test('section 18.28.2 — modelType is checked against Table 12, and the c2pa namespace cannot be invented in', async () => {
+test('section 18.28.2 - modelType is checked against Table 12, and the c2pa namespace cannot be invented in', async () => {
   // "The value of the modelType field is an enumeration of AI model types defined
   // in Table 12, 'Model type values' and it shall be present in the
   // ai-model-disclosure-map object." Two of the three constrained fields were
@@ -284,7 +284,7 @@ test('section 18.28.2 — modelType is checked against Table 12, and the c2pa na
 
 // ═══ section 10.2.3 - specVersion in claim_generator_info ════════════════════════════
 
-test('section 10.2.3 — specVersion is written inside claim_generator_info, never in the claim', async () => {
+test('section 10.2.3 - specVersion is written inside claim_generator_info, never in the claim', async () => {
   const store = await buildC2paManifest({
     claimGenerator: 'Lolly lolly.tools',
     generatorInfo: { name: 'Lolly', version: '1.116.0' },
@@ -307,7 +307,7 @@ test('section 10.2.3 — specVersion is written inside claim_generator_info, nev
   assert.equal(agent.get('specVersion'), undefined, 'specVersion is not repeated on every action');
 });
 
-test('section 10.2.3 — the reader reads specVersion back off the generator info', async () => {
+test('section 10.2.3 - the reader reads specVersion back off the generator info', async () => {
   const page = utf8(pageHtml());
   const store = await buildExternalC2paStore(page, {
     generatorInfo: { name: 'Lolly', version: '1.116.0' },
@@ -318,7 +318,7 @@ test('section 10.2.3 — the reader reads specVersion back off the generator inf
   assert.equal(report.specVersion, '2.4.0');
 });
 
-test('section 10.2.3 — a specVersion the CDDL\'s semver-string rejects is refused', async () => {
+test('section 10.2.3 - a specVersion the CDDL\'s semver-string rejects is refused', async () => {
   await assert.rejects(
     () => buildC2paManifest({ specVersion: '2.4', assetHash: { exclusions: [{ start: 0, length: 1 }], hash: new Uint8Array(32) } }),
     /specVersion must be a SemVer string/,
@@ -331,7 +331,7 @@ test('section 10.2.3 — a specVersion the CDDL\'s semver-string rejects is refu
   );
 });
 
-test('the two new options are absent by default — same inputs, byte-identical store', async () => {
+test('the two new options are absent by default - same inputs, byte-identical store', async () => {
   const args = {
     title: 'Stable',
     claimGenerator: 'Lolly lolly.tools',
@@ -351,7 +351,7 @@ test('the two new options are absent by default — same inputs, byte-identical 
 
 // ═══ section 11.4 / section A.7.1.2 - the external (sidecar) store ══════════════════════════
 
-test('section A.7.1.3 — an external store binds the WHOLE document: no exclusions key, hash over every byte', async () => {
+test('section A.7.1.3 - an external store binds the WHOLE document: no exclusions key, hash over every byte', async () => {
   const page = utf8(pageHtml());
   const store = await buildExternalC2paStore(page, { title: 'Signed page' });
 
@@ -369,7 +369,7 @@ test('section A.7.1.3 — an external store binds the WHOLE document: no exclusi
   assert.equal(parseC2paStore(store).claimVersion, 2);
 });
 
-test('section 11.4 — the sidecar verifies against the unmodified page and fails against an edited one', async () => {
+test('section 11.4 - the sidecar verifies against the unmodified page and fails against an edited one', async () => {
   const page = utf8(pageHtml());
   const store = await buildExternalC2paStore(page, {
     title: 'Signed page',
@@ -406,7 +406,7 @@ test('section 11.4 — the sidecar verifies against the unmodified page and fail
   assert.equal((await verifyC2pa(cut, { externalManifest: store })).state, 'invalid');
 });
 
-test('section A.7.1.4 — without the sidecar the page reports "referenced but not obtained", not "no credential"', async () => {
+test('section A.7.1.4 - without the sidecar the page reports "referenced but not obtained", not "no credential"', async () => {
   const page = utf8(pageHtml());
   const report = await verifyC2pa(page);
   assert.equal(report.found, true);
@@ -415,13 +415,13 @@ test('section A.7.1.4 — without the sidecar the page reports "referenced but n
   assert.equal(report.textBinding?.manifestUrl, '/info/example.c2pa');
 });
 
-test('section 11.4 — ingredients ride into the external store and the chain reads back', async () => {
+test('section 11.4 - ingredients ride into the external store and the chain reads back', async () => {
   // A signed masthead: its own store, its own claim, its own section 18.28 disclosure - 
   // the M4 artifact, built here without a container so the test stays about the
   // ingredient machinery rather than about SVG splicing.
   const masthead = utf8('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 4 4"><rect width="4" height="4"/></svg>');
   const mastheadStore = await buildExternalC2paStore(masthead, {
-    title: 'Masthead — provenance',
+    title: 'Masthead - provenance',
     claimGenerator: 'Lolly lolly.tools',
     generatorInfo: { name: 'Lolly', version: '1.116.0' },
     actions: [{ action: 'c2pa.created', digitalSourceType: GENERATED_SOURCE_TYPE, description: 'Generated by a trained model' }],
@@ -463,7 +463,7 @@ test('section 11.4 — ingredients ride into the external store and the chain re
   const ingredientAssertion = cbor(assertionOf(store, 'c2pa.ingredient.v3').content) as Map<string, unknown>;
   assert.equal(ingredientAssertion.get('dc:format'), 'image/svg+xml');
   assert.equal(ingredientAssertion.get('relationship'), 'parentOf');
-  assert.equal(ingredientAssertion.get('dc:title'), 'Masthead — provenance');
+  assert.equal(ingredientAssertion.get('dc:title'), 'Masthead - provenance');
   // report.aiDisclosure is the ACTIVE manifest's - the page made no disclosure of
   // its own, and the reader does not (and should not) hoist an ingredient's.
   assert.equal(report.aiDisclosure, undefined);
@@ -477,12 +477,12 @@ test('section 11.4 — ingredients ride into the external store and the chain re
   assert.equal(disclosure.get('modelName'), 'Claude Fable 5');
 });
 
-test('section 11.4 — a signed FILE is packageable as an ingredient of a page seal (the M4 → M5 path)', async () => {
+test('section 11.4 - a signed FILE is packageable as an ingredient of a page seal (the M4 → M5 path)', async () => {
   // The real component shape: an SVG that carries its own store (section A.3.3), which
   // is what /info/mastheads/<id>.svg serves and what "Check it yourself" verifies.
   const svg = utf8('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 8 8"><circle cx="4" cy="4" r="3"/></svg>');
   const signedSvg = await embedC2pa(svg, 'svg', {
-    title: 'Masthead — provenance',
+    title: 'Masthead - provenance',
     claimGenerator: 'Lolly lolly.tools',
     generatorInfo: { name: 'Lolly', version: '1.116.0' },
     actions: [{ action: 'c2pa.created', digitalSourceType: GENERATED_SOURCE_TYPE, description: 'Generated by a trained model' }],
@@ -571,7 +571,7 @@ test('c2pa-rs reads the sidecar store: signature, hashed URIs, ai-disclosure and
   assert.deepEqual(failures.map((f) => f.code).sort(), ['assertion.dataHash.mismatch', 'signingCredential.untrusted']);
 });
 
-test('section 11.4 — an enrolled/explicit signer and dates flow through the external path', async () => {
+test('section 11.4 - an enrolled/explicit signer and dates flow through the external path', async () => {
   const page = utf8(pageHtml());
   const signer = await generateSigner({ notBefore: new Date(Date.now() - 60_000), notAfter: new Date(Date.now() + 86_400_000) });
   const store = await buildExternalC2paStore(page, {

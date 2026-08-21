@@ -1,11 +1,11 @@
-# Engine bundle publish — produces the pinned, checksummed engine artifacts that
+# Engine bundle publish - produces the pinned, checksummed engine artifacts that
 # downstream consumers vendor against (see scripts/pack-engine.ts). Pure
 # packaging of the MPL engine; no consumer knowledge here.
 #
 # Trigger: push a tag `engine-v<semver>` (matching ENGINE_VERSION), or run
 # manually. It attaches dist/engine-pack/ (core + engine tarballs, schemas,
 # manifest.json) to a GitHub Release. An npm-registry publish is intentionally
-# NOT wired here — the no-build engine ships TS source; a compiled-JS registry
+# NOT wired here - the no-build engine ships TS source; a compiled-JS registry
 # publish needs a bundler and is a separate, deliberate step (would live behind
 # an NPM_TOKEN secret + a manual approval, never auto).
 name: publish-engine
@@ -26,7 +26,7 @@ jobs:
       - uses: actions/setup-node@v7
         with:
           node-version: '24'
-      # The engine package version must equal ENGINE_VERSION — pack-engine.ts
+      # The engine package version must equal ENGINE_VERSION - pack-engine.ts
       # asserts this and fails the job otherwise.
       - name: Pack engine bundle
         run: node scripts/pack-engine.ts

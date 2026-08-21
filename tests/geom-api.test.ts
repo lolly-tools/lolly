@@ -55,13 +55,13 @@ const near = (a: number, b: number, eps: number, what = '') =>
 
 /** Unwrap a path result, asserting success and finiteness. */
 function d(r: GeomPathResult, what = ''): string {
-  assert.ok(r.ok, `${what}: expected ok, got ${r.ok ? '' : `${r.code} — ${r.message}`}`);
+  assert.ok(r.ok, `${what}: expected ok, got ${r.ok ? '' : `${r.code} - ${r.message}`}`);
   assertFinite(r.d, what);
   return r.d;
 }
 
 function val<T>(r: GeomResult<T>, what = ''): T {
-  assert.ok(r.ok, `${what}: expected ok, got ${r.ok ? '' : `${r.code} — ${r.message}`}`);
+  assert.ok(r.ok, `${what}: expected ok, got ${r.ok ? '' : `${r.code} - ${r.message}`}`);
   return r.value;
 }
 
@@ -505,7 +505,7 @@ test('oversized input is refused as `too-large`, promptly and without recursion'
     const ms = Date.now() - started;
     assert.ok(!r.ok, `${why}: expected a refusal`);
     assert.ok(['too-large', 'invalid-path'].includes(r.code), `${why}: unexpected code ${r.code}`);
-    assert.ok(ms < 5_000, `${why}: took ${ms}ms — a refusal must be prompt`);
+    assert.ok(ms < 5_000, `${why}: took ${ms}ms - a refusal must be prompt`);
   }
   const limits = geom.limits();
   for (const [k, v] of Object.entries(limits)) {

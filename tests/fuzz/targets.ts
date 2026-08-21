@@ -685,7 +685,7 @@ async function manifestStoreSeeds(): Promise<Uint8Array[]> {
     const ex = extractC2paStore(stamped);
     if (ex) out.push(ex.store);
   }
-  if (!out.length) throw new Error('c2pa seed corpus is empty — embedC2pa/extractC2paStore broke');
+  if (!out.length) throw new Error('c2pa seed corpus is empty - embedC2pa/extractC2paStore broke');
   return out;
 }
 // Built once: the container target needs A store to splice, and re-embedding per
@@ -810,7 +810,7 @@ export const urlPackTarget: FuzzTarget = {
     const bomb = urlPackBombToken();
     out.push(bytesOf(bomb));
     out.push(Uint8Array.from(atob(bomb.slice(1).replace(/-/g, '+').replace(/_/g, '/')), (c) => c.charCodeAt(0)));
-    if (!out.length) throw new Error('url-pack seed corpus is empty — packQuery returned null');
+    if (!out.length) throw new Error('url-pack seed corpus is empty - packQuery returned null');
     return out;
   },
   async invoke(bytes) {
@@ -929,7 +929,7 @@ export const lutParseTarget: FuzzTarget = {
   },
   async invoke(bytes) {
     const text = new TextDecoder('utf-8').decode(bytes);
-    try { parseCubeLut(text); } catch { /* controlled reject — parseLutText falls through to .3dl */ }
+    try { parseCubeLut(text); } catch { /* controlled reject - parseLutText falls through to .3dl */ }
     parse3dlLut(text);
   },
 };

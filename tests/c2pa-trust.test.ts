@@ -84,7 +84,7 @@ test('pinned anchor: chain verifies → trusted, identity email, no untrusted ro
   assert.equal(report.signer.selfSigned, false);
 });
 
-test('no options: untrusted info row, valid state — CA-issued leaf names the real reason', async () => {
+test('no options: untrusted info row, valid state - CA-issued leaf names the real reason', async () => {
   const report: any = await verifyC2pa(stamped);
   assert.equal(report.state, 'valid');
   assert.equal(report.trusted, false);
@@ -125,7 +125,7 @@ test('expired leaf: anchored identity surfaced, but trusted stays false', async 
   });
   const report: any = await verifyC2pa(pdf, { trustAnchors: [root.certDer] });
   assert.equal(report.trusted, false, 'no TSA: an expired cert cannot prove signing time');
-  assert.equal(report.signer.identity.email, 'test@example.com', 'identity WAS CA-verified — still surfaced');
+  assert.equal(report.signer.identity.email, 'test@example.com', 'identity WAS CA-verified - still surfaced');
   assert.equal(check(report, 'signingCredential.expired').ok, false);
   const trusted = check(report, 'signingCredential.trusted');
   assert.equal(trusted.ok, true);
@@ -243,7 +243,7 @@ test('forged intermediate: an issued LEAF cannot vouch for another identity', as
   const attacker = await subtle.generateKey({ name: 'ECDSA', namedCurve: 'P-256' }, false, ['sign', 'verify']);
   const fake = await issueLeafCert({
     caCertDer: leafDer, // the legitimate leaf as "issuer"
-    caPrivateKey: device.privateKey, // its actual key — signatures WILL verify
+    caPrivateKey: device.privateKey, // its actual key - signatures WILL verify
     spkiDer: new Uint8Array(await subtle.exportKey('spki', attacker.publicKey)),
     email: 'victim@example.com',
     days: 30,
@@ -322,7 +322,7 @@ test('impersonation: a cert claiming O=OpenAI that chains to no pinned anchor is
     signer: { privateKey: dev.privateKey, certDer: spoofLeaf, chain: [spoofLeaf, spoofRoot.certDer] },
   });
   const report: any = await verifyC2pa(pdf, { trustAnchors: c2paTrustAnchors() });
-  assert.equal(report.state, 'valid', 'the bytes match what was signed — it IS intact');
+  assert.equal(report.state, 'valid', 'the bytes match what was signed - it IS intact');
   assert.equal(report.trusted, false, 'claiming O=OpenAI must not confer trust without a real chain');
   assert.equal(report.signer?.identity, undefined, 'no CA-verified identity for an unanchored signer');
   assert.ok(check(report, 'signingCredential.untrusted'), 'the untrusted marker is present');

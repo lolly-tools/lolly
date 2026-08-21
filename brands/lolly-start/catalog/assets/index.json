@@ -22,8 +22,8 @@
         {
           "format": "json",
           "url": "/catalog/assets/lolly/tokens/brand.json",
-          "checksum": "sha256-XJNBauAyENL7D8qCfWuSxIWMqhwaQQfKRSgRmcbDrcg=",
-          "size": 4823
+          "checksum": "sha256-dtWy9eCzyaJmPX5S6N+DDJtReburjJqR7YxsIhClZD8=",
+          "size": 4809
         }
       ]
     },
@@ -70,7 +70,7 @@
     {
       "id": "lolly/palette/riso-inks",
       "name": "Riso Ink Colours",
-      "description": "The Risograph duplicator ink drums as named sRGB approximations — a brand-supplied ink book rather than an enum hardcoded in a tool. Each entry is one drum, so these are spot inks for overprinting (one pass per drum), not process colours. Foundation for the Riso pack: a finishing/duotone tool reads this palette instead of shipping its own ink list.",
+      "description": "The Risograph duplicator ink drums as named sRGB approximations - a brand-supplied ink book rather than an enum hardcoded in a tool. Each entry is one drum, so these are spot inks for overprinting (one pass per drum), not process colours. Foundation for the Riso pack: a finishing/duotone tool reads this palette instead of shipping its own ink list.",
       "type": "palette",
       "version": "1.0.0",
       "tier": "on-demand",
@@ -86,15 +86,15 @@
         {
           "format": "json",
           "url": "/catalog/assets/lolly/palette/riso-inks.json",
-          "checksum": "sha256-89Nhs9kH8rCTZTGMrchSS8KVTGCWtoEeHX+XZDV6HEo=",
-          "size": 3439
+          "checksum": "sha256-UJ3thKapRCUQ0eoz4N7nJX5J/noXoGfk4lxaLoKR7jg=",
+          "size": 3437
         }
       ]
     },
     {
       "id": "lolly/loops/pixel-quest-save-point",
       "name": "Pixel Quest Save Point",
-      "description": "Looping lo-fi beat (focus) — a focus track for Neurospicy Mode, also selectable as a video music bed. Public domain (CC0). Donated to the public domain by Bilal Tahir (next-beats). AI-generated with Suno (the Open Lo-Fi project, github.com/btahir/open-lofi).",
+      "description": "Looping lo-fi beat (focus) - a focus track for Neurospicy Mode, also selectable as a video music bed. Public domain (CC0). Donated to the public domain by Bilal Tahir (next-beats). AI-generated with Suno (the Open Lo-Fi project, github.com/btahir/open-lofi).",
       "type": "audio",
       "version": "1.0.0",
       "tier": "on-demand",
@@ -121,7 +121,7 @@
     {
       "id": "lolly/loops/breezy-afternoon-terrace",
       "name": "Breezy Afternoon Terrace",
-      "description": "Looping lo-fi beat (jazz-lounge) — a focus track for Neurospicy Mode, also selectable as a video music bed. Public domain (CC0). Donated to the public domain by Bilal Tahir (next-beats). AI-generated with Suno (the Open Lo-Fi project, github.com/btahir/open-lofi).",
+      "description": "Looping lo-fi beat (jazz-lounge) - a focus track for Neurospicy Mode, also selectable as a video music bed. Public domain (CC0). Donated to the public domain by Bilal Tahir (next-beats). AI-generated with Suno (the Open Lo-Fi project, github.com/btahir/open-lofi).",
       "type": "audio",
       "version": "1.0.0",
       "tier": "on-demand",
@@ -148,7 +148,7 @@
     {
       "id": "lolly/loops/rain-on-the-boulevard",
       "name": "Rain on the Boulevard",
-      "description": "Looping lo-fi beat (jazz-lounge) — a focus track for Neurospicy Mode, also selectable as a video music bed. Public domain (CC0). Donated to the public domain by Bilal Tahir (next-beats). AI-generated with Suno (the Open Lo-Fi project, github.com/btahir/open-lofi).",
+      "description": "Looping lo-fi beat (jazz-lounge) - a focus track for Neurospicy Mode, also selectable as a video music bed. Public domain (CC0). Donated to the public domain by Bilal Tahir (next-beats). AI-generated with Suno (the Open Lo-Fi project, github.com/btahir/open-lofi).",
       "type": "audio",
       "version": "1.0.0",
       "tier": "on-demand",
@@ -175,7 +175,7 @@
     {
       "id": "lolly/loops/fireplace-loop",
       "name": "Fireplace Loop",
-      "description": "Looping lo-fi beat (rainy-day) — a focus track for Neurospicy Mode, also selectable as a video music bed. Public domain (CC0). Donated to the public domain by Bilal Tahir (next-beats). AI-generated with Suno (the Open Lo-Fi project, github.com/btahir/open-lofi).",
+      "description": "Looping lo-fi beat (rainy-day) - a focus track for Neurospicy Mode, also selectable as a video music bed. Public domain (CC0). Donated to the public domain by Bilal Tahir (next-beats). AI-generated with Suno (the Open Lo-Fi project, github.com/btahir/open-lofi).",
       "type": "audio",
       "version": "1.0.0",
       "tier": "on-demand",
@@ -202,7 +202,7 @@
     {
       "id": "lolly/loops/first-coffee-thoughts",
       "name": "First Coffee Thoughts",
-      "description": "Looping lo-fi beat (focus) — a focus track for Neurospicy Mode, also selectable as a video music bed. Public domain (CC0). Donated to the public domain by Bilal Tahir (next-beats). AI-generated with Suno (the Open Lo-Fi project, github.com/btahir/open-lofi).",
+      "description": "Looping lo-fi beat (focus) - a focus track for Neurospicy Mode, also selectable as a video music bed. Public domain (CC0). Donated to the public domain by Bilal Tahir (next-beats). AI-generated with Suno (the Open Lo-Fi project, github.com/btahir/open-lofi).",
       "type": "audio",
       "version": "1.0.0",
       "tier": "on-demand",
@@ -229,7 +229,7 @@
     {
       "id": "lolly/loops/continue-screen-dreams",
       "name": "Continue Screen Dreams",
-      "description": "Looping lo-fi beat (focus) — a focus track for Neurospicy Mode, also selectable as a video music bed. Public domain (CC0). Donated to the public domain by Bilal Tahir (next-beats). AI-generated with Suno (the Open Lo-Fi project, github.com/btahir/open-lofi).",
+      "description": "Looping lo-fi beat (focus) - a focus track for Neurospicy Mode, also selectable as a video music bed. Public domain (CC0). Donated to the public domain by Bilal Tahir (next-beats). AI-generated with Suno (the Open Lo-Fi project, github.com/btahir/open-lofi).",
       "type": "audio",
       "version": "1.0.0",
       "tier": "on-demand",
@@ -256,7 +256,7 @@
     {
       "id": "lolly/loops/slow-dance-in-the-living-room",
       "name": "Slow Dance in the Living Room",
-      "description": "Looping lo-fi beat (soul & slow-jam) — a focus track for Neurospicy Mode, also selectable as a video music bed. Public domain (CC0). Donated to the public domain by Bilal Tahir (next-beats). AI-generated with Suno (the Open Lo-Fi project, github.com/btahir/open-lofi).",
+      "description": "Looping lo-fi beat (soul & slow-jam) - a focus track for Neurospicy Mode, also selectable as a video music bed. Public domain (CC0). Donated to the public domain by Bilal Tahir (next-beats). AI-generated with Suno (the Open Lo-Fi project, github.com/btahir/open-lofi).",
       "type": "audio",
       "version": "1.0.0",
       "tier": "on-demand",
@@ -283,7 +283,7 @@
     {
       "id": "lolly/loops/3-am-echoes",
       "name": "3 AM Echoes",
-      "description": "Looping lo-fi beat (late-night) — a focus track for Neurospicy Mode, also selectable as a video music bed. Public domain (CC0). Donated to the public domain by Bilal Tahir (next-beats). AI-generated with Suno (the Open Lo-Fi project, github.com/btahir/open-lofi).",
+      "description": "Looping lo-fi beat (late-night) - a focus track for Neurospicy Mode, also selectable as a video music bed. Public domain (CC0). Donated to the public domain by Bilal Tahir (next-beats). AI-generated with Suno (the Open Lo-Fi project, github.com/btahir/open-lofi).",
       "type": "audio",
       "version": "1.0.0",
       "tier": "on-demand",
@@ -310,7 +310,7 @@
     {
       "id": "lolly/loops/after-school-rain",
       "name": "After School Rain",
-      "description": "Looping lo-fi beat (rainy-day) — a focus track for Neurospicy Mode, also selectable as a video music bed. Public domain (CC0). Donated to the public domain by Bilal Tahir (next-beats). AI-generated with Suno (the Open Lo-Fi project, github.com/btahir/open-lofi).",
+      "description": "Looping lo-fi beat (rainy-day) - a focus track for Neurospicy Mode, also selectable as a video music bed. Public domain (CC0). Donated to the public domain by Bilal Tahir (next-beats). AI-generated with Suno (the Open Lo-Fi project, github.com/btahir/open-lofi).",
       "type": "audio",
       "version": "1.0.0",
       "tier": "on-demand",
@@ -337,7 +337,7 @@
     {
       "id": "lolly/loops/3am-sink-light",
       "name": "3AM Sink Light",
-      "description": "Looping lo-fi beat (soul & slow-jam) — a focus track for Neurospicy Mode, also selectable as a video music bed. Public domain (CC0). Donated to the public domain by Bilal Tahir (next-beats). AI-generated with Suno (the Open Lo-Fi project, github.com/btahir/open-lofi).",
+      "description": "Looping lo-fi beat (soul & slow-jam) - a focus track for Neurospicy Mode, also selectable as a video music bed. Public domain (CC0). Donated to the public domain by Bilal Tahir (next-beats). AI-generated with Suno (the Open Lo-Fi project, github.com/btahir/open-lofi).",
       "type": "audio",
       "version": "1.0.0",
       "tier": "on-demand",
@@ -364,7 +364,7 @@
     {
       "id": "lolly/loops/saxophone-in-the-rain",
       "name": "Saxophone in the Rain",
-      "description": "Looping lo-fi beat (jazz-lounge) — a focus track for Neurospicy Mode, also selectable as a video music bed. Public domain (CC0). Donated to the public domain by Bilal Tahir (next-beats). AI-generated with Suno (the Open Lo-Fi project, github.com/btahir/open-lofi).",
+      "description": "Looping lo-fi beat (jazz-lounge) - a focus track for Neurospicy Mode, also selectable as a video music bed. Public domain (CC0). Donated to the public domain by Bilal Tahir (next-beats). AI-generated with Suno (the Open Lo-Fi project, github.com/btahir/open-lofi).",
       "type": "audio",
       "version": "1.0.0",
       "tier": "on-demand",
@@ -391,7 +391,7 @@
     {
       "id": "lolly/loops/empty-street-static",
       "name": "Empty Street Static",
-      "description": "Looping lo-fi beat (late-night) — a focus track for Neurospicy Mode, also selectable as a video music bed. Public domain (CC0). Donated to the public domain by Bilal Tahir (next-beats). AI-generated with Suno (the Open Lo-Fi project, github.com/btahir/open-lofi).",
+      "description": "Looping lo-fi beat (late-night) - a focus track for Neurospicy Mode, also selectable as a video music bed. Public domain (CC0). Donated to the public domain by Bilal Tahir (next-beats). AI-generated with Suno (the Open Lo-Fi project, github.com/btahir/open-lofi).",
       "type": "audio",
       "version": "1.0.0",
       "tier": "on-demand",
@@ -443,7 +443,7 @@
     {
       "id": "lolly/songs/amber-glow",
       "name": "Amber Glow",
-      "description": "Sparse glass notes drifting over soothing pad swells — no drums. Generated on device from a few KB of ZzFXM data (~53s loop). A focus track for Neurospicy Mode, also selectable as a video music bed. Public domain (CC0).",
+      "description": "Sparse glass notes drifting over soothing pad swells - no drums. Generated on device from a few KB of ZzFXM data (~53s loop). A focus track for Neurospicy Mode, also selectable as a video music bed. Public domain (CC0).",
       "type": "audio",
       "version": "1.0.0",
       "tier": "on-demand",
@@ -469,7 +469,7 @@
     {
       "id": "lolly/songs/tide-pool",
       "name": "Tide Pool",
-      "description": "Very slow, open, suspended chords with long swells — drift-away focus. Generated on device from a few KB of ZzFXM data (~58s loop). A focus track for Neurospicy Mode, also selectable as a video music bed. Public domain (CC0).",
+      "description": "Very slow, open, suspended chords with long swells - drift-away focus. Generated on device from a few KB of ZzFXM data (~58s loop). A focus track for Neurospicy Mode, also selectable as a video music bed. Public domain (CC0).",
       "type": "audio",
       "version": "1.0.0",
       "tier": "on-demand",
@@ -521,7 +521,7 @@
     {
       "id": "lolly/songs/meadow",
       "name": "Meadow",
-      "description": "Bright, unhurried bell phrases over an easy pad — open and sunny. Generated on device from a few KB of ZzFXM data (~52s loop). A focus track for Neurospicy Mode, also selectable as a video music bed. Public domain (CC0).",
+      "description": "Bright, unhurried bell phrases over an easy pad - open and sunny. Generated on device from a few KB of ZzFXM data (~52s loop). A focus track for Neurospicy Mode, also selectable as a video music bed. Public domain (CC0).",
       "type": "audio",
       "version": "1.0.0",
       "tier": "on-demand",
@@ -546,7 +546,7 @@
     {
       "id": "lolly/songs/bn-copacabana-breeze",
       "name": "Copacabana Breeze",
-      "description": "Warm nylon guitar comping bounces over a soft brushed snare and a gentle shaker pulse — a sunny, unhurried bossa sway. Generated on device from a few KB of ZzFXM data (~47s loop). A focus track for Neurospicy Mode, also selectable as a video music bed. Public domain (CC0).",
+      "description": "Warm nylon guitar comping bounces over a soft brushed snare and a gentle shaker pulse - a sunny, unhurried bossa sway. Generated on device from a few KB of ZzFXM data (~47s loop). A focus track for Neurospicy Mode, also selectable as a video music bed. Public domain (CC0).",
       "type": "audio",
       "version": "1.0.0",
       "tier": "on-demand",
@@ -626,7 +626,7 @@
     {
       "id": "lolly/modules/aleja-deszczu",
       "name": "Aleja Deszczu",
-      "description": "Aleja Deszczu — a tracker module by JAM. Electronic - Breakbeat. Public Domain via The Mod Archive.",
+      "description": "Aleja Deszczu - a tracker module by JAM. Electronic - Breakbeat. Public Domain via The Mod Archive.",
       "type": "audio",
       "version": "1.0.0",
       "tier": "on-demand",
@@ -654,7 +654,7 @@
     {
       "id": "lolly/modules/blue-intermission",
       "name": "Blue Intermission",
-      "description": "Blue Intermission — a tracker module by congusbongus. Jazz (general). CC0 via The Mod Archive.",
+      "description": "Blue Intermission - a tracker module by congusbongus. Jazz (general). CC0 via The Mod Archive.",
       "type": "audio",
       "version": "1.0.0",
       "tier": "on-demand",
@@ -683,7 +683,7 @@
     {
       "id": "lolly/modules/headspin",
       "name": "Headspin",
-      "description": "Headspin — a tracker module by congusbongus. Hip-Hop. CC0 via The Mod Archive.",
+      "description": "Headspin - a tracker module by congusbongus. Hip-Hop. CC0 via The Mod Archive.",
       "type": "audio",
       "version": "1.0.0",
       "tier": "on-demand",
@@ -712,7 +712,7 @@
     {
       "id": "lolly/modules/jazzical-interpolation",
       "name": "Jazzical Interpolation",
-      "description": "Jazzical Interpolation — a tracker module by christofori. Jazz - Modern. Public Domain via The Mod Archive.",
+      "description": "Jazzical Interpolation - a tracker module by christofori. Jazz - Modern. Public Domain via The Mod Archive.",
       "type": "audio",
       "version": "1.0.0",
       "tier": "on-demand",
@@ -741,7 +741,7 @@
     {
       "id": "lolly/modules/wild-perspective",
       "name": "Wild Perspective",
-      "description": "wild perspective — a tracker module by m0d. Trance - Dream. Public Domain via The Mod Archive.",
+      "description": "wild perspective - a tracker module by m0d. Trance - Dream. Public Domain via The Mod Archive.",
       "type": "audio",
       "version": "1.0.0",
       "tier": "on-demand",
@@ -769,7 +769,7 @@
     {
       "id": "lolly/modules/take-a-walk",
       "name": "Take A Walk",
-      "description": "Take a Walk — a tracker module by JAM. Easy Listening. Public Domain via The Mod Archive.",
+      "description": "Take a Walk - a tracker module by JAM. Easy Listening. Public Domain via The Mod Archive.",
       "type": "audio",
       "version": "1.0.0",
       "tier": "on-demand",
@@ -797,7 +797,7 @@
     {
       "id": "lolly/modules/jazznocn",
       "name": "Jazznocn",
-      "description": "Jazznocn — a tracker module by JAM. Chillout. Public Domain via The Mod Archive.",
+      "description": "Jazznocn - a tracker module by JAM. Chillout. Public Domain via The Mod Archive.",
       "type": "audio",
       "version": "1.0.0",
       "tier": "on-demand",
@@ -825,7 +825,7 @@
     {
       "id": "lolly/demo/lolly-spin",
       "name": "Lolly Spin (animated)",
-      "description": "The Lolly swirl as a self-contained animated SVG — three nested spirals rotating at a calm 9/18/27s cadence (the mark's own motion, slowed for comfort) with a slow hue drift on a brand-tinted gradient, calmed under prefers-reduced-motion. The swirl and the background inherit the active brand's colours when placed live, and it makes a handy default subject for testing filters, grading and animation. A removable example — delete it any time.",
+      "description": "The Lolly swirl as a self-contained animated SVG - three nested spirals rotating at a calm 9/18/27s cadence (the mark's own motion, slowed for comfort) with a slow hue drift on a brand-tinted gradient, calmed under prefers-reduced-motion. The swirl and the background inherit the active brand's colours when placed live, and it makes a handy default subject for testing filters, grading and animation. A removable example - delete it any time.",
       "type": "vector",
       "version": "1.2.0",
       "tier": "core",
@@ -853,7 +853,7 @@
     {
       "id": "lolly/demo/app-screenshot",
       "name": "App screenshot (demo)",
-      "description": "A real Lolly screenshot — the brand studio's Colours tab, captured as vector by the app's own DOM-to-SVG walker. A demo subject for flythroughs, filters and layered animation. A removable example — delete it any time.",
+      "description": "A real Lolly screenshot - the brand studio's Colours tab, captured as vector by the app's own DOM-to-SVG walker. A demo subject for flythroughs, filters and layered animation. A removable example - delete it any time.",
       "type": "vector",
       "version": "1.0.0",
       "tier": "core",

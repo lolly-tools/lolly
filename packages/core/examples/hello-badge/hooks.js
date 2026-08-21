@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MPL-2.0
-// hello-badge hooks — pure and DOM-free (the classic-hook house style: plain
+// hello-badge hooks - pure and DOM-free (the classic-hook house style: plain
 // function declarations, no imports). The runtime injects `host` and collects any
 // function named onInit / onInput / … by name.
 //

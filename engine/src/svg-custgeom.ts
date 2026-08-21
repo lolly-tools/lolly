@@ -266,7 +266,7 @@ function decodeEntities(s: string): string {
       const code = body[1]?.toLowerCase() === 'x' ? parseInt(body.slice(2), 16) : parseInt(body.slice(1), 10);
       return Number.isFinite(code) && code > 0 && code <= 0x10FFFF ? String.fromCodePoint(code) : whole;
     }
-    return { amp: '&', lt: '<', gt: '>', quot: '"', apos: "'", nbsp: ' ' }[body] ?? whole;
+    return { amp: '&', lt: '<', gt: '>', quot: '"', apos: "'", nbsp: ' ' }[body] ?? whole;
   });
 }
 

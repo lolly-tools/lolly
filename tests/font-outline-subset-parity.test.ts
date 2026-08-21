@@ -33,7 +33,7 @@ const REPO_ROOT = fileURLToPath(new URL('..', import.meta.url));
 const OUTFIT_URL = '/fonts/Outfit[wght].ttf';
 const OUTFIT_DISK = join(REPO_ROOT, 'shells/web/public/fonts/Outfit[wght].ttf');
 
-const TEXT = 'The quick brown fox jumps over the lazy dog — fi ffl AVATAR 0123456789.';
+const TEXT = 'The quick brown fox jumps over the lazy dog - fi ffl AVATAR 0123456789.';
 
 const skeraBin = findSkera();
 const SKIP = skeraBin

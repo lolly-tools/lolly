@@ -70,7 +70,7 @@ test('parseRadialGradient: default ellipse farthest-corner at centre', () => {
   assert.equal(g!.stops.length, 2);
 });
 
-test('parseRadialGradient: explicit ellipse size (percent) + position — the quotes form', () => {
+test('parseRadialGradient: explicit ellipse size (percent) + position - the quotes form', () => {
   const g = parseRadialGradient('radial-gradient(42% 48% at 30% 28%, rgb(48, 186, 120), transparent 70%)', 500, 300);
   assert.ok(g);
   assert.ok(close(g!.cx, 150));         // 30% of 500
@@ -249,7 +249,7 @@ test('conic-gradient: the real checkerboard value parses', () => {
   const g = parseConicGradient(
     'repeating-conic-gradient(rgba(255, 255, 255, 0.024) 0%, rgba(255, 255, 255, 0.024) 25%, rgba(0, 0, 0, 0.024) 0%, rgba(0, 0, 0, 0.024) 50%)',
     100, 100);
-  assert.ok(g, 'the checkerboard must parse — it is the whole reason this exists');
+  assert.ok(g, 'the checkerboard must parse - it is the whole reason this exists');
   assert.equal(g.repeating, true);
   assert.equal(g.stops.length, 4);
   assert.equal(g.stops[0]!.opacity, 0.024);
@@ -298,7 +298,7 @@ test('parseGradientAngle: grad is not misread as rad', () => {
   assert.equal(deg(parseGradientAngle('0.25turn')), 90);
 });
 
-test('double-position stops expand — the checkerboard idiom keeps its bands', () => {
+test('double-position stops expand - the checkerboard idiom keeps its bands', () => {
   // `c 0% 25%, transparent 0% 50%` means c from 0-25% and clear from 25-50%
   // (CSS double-position shorthand). Collapsing each pair to its FIRST position
   // put both stops at 0% and dissolved the band structure entirely - the

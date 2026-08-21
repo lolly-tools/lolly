@@ -77,7 +77,7 @@ test('time-box: an async onInit past its budget → no patch, logged error, late
       `timeout logged through the hook-error path, got: ${logs.join(' | ')}`,
     );
     assert.deepEqual(rt.hookErrors.map((e) => e.hook), ['onInit'], 'failure recorded for the shell');
-    assert.equal(rt.getHydrated(), '<b>hi</b><i></i>', 'empty patch applied — inputs and extras untouched');
+    assert.equal(rt.getHydrated(), '<b>hi</b><i></i>', 'empty patch applied - inputs and extras untouched');
 
     // The hook finally "finishes" with a patch - after the race was lost. It
     // must be discarded, never resurrected into the model/extras.
@@ -129,7 +129,7 @@ test('time-box: an async hook within budget applies its patch normally', async (
 
 // ─── sync overrun: cannot be preempted - warn, patch still applies ────────────
 
-test('time-box: a slow SYNCHRONOUS hook cannot be preempted — warning logged, patch still applies', async () => {
+test('time-box: a slow SYNCHRONOUS hook cannot be preempted - warning logged, patch still applies', async () => {
   setBudgets({ onInput: 10 });
   try {
     const { host, logs } = logHost();
@@ -152,7 +152,7 @@ test('time-box: a slow SYNCHRONOUS hook cannot be preempted — warning logged, 
 
 // ─── onFrame is exempt ─────────────────────────────────────────────────────────
 
-test('time-box: onFrame is NOT time-boxed — a slow frame still applies its patch (drop-overlap only)', async () => {
+test('time-box: onFrame is NOT time-boxed - a slow frame still applies its patch (drop-overlap only)', async () => {
   // Shrink every budget: if onFrame were raced against any of them this would fail.
   setBudgets({ onInit: 10, onInput: 10, beforeExport: 10, afterExport: 10, exportFile: 10 });
   try {
@@ -176,7 +176,7 @@ test('time-box: onFrame is NOT time-boxed — a slow frame still applies its pat
     frameCbs[0]!(frame(8)); // overlaps the pending frame → dropped, not queued
     await sleep(80);
     assert.equal(rt.getHydrated(), '<b>hi</b><i>frame:7</i>', 'slow frame ran to completion, way past every budget');
-    assert.deepEqual(logs, [], 'no timeout logged — onFrame is exempt');
+    assert.deepEqual(logs, [], 'no timeout logged - onFrame is exempt');
     rt.stopLive();
   } finally { setBudgets(); }
 });
@@ -268,7 +268,7 @@ test('every budgeted hook has a real invocation site, and the schema matches', a
 
   assert.deepEqual(declarable,
     ['afterExport', 'beforeExport', 'exportFile', 'exportStill', 'onFrame', 'onInit', 'onInput', 'onLevel'],
-    'the declarable hook set changed — add the invocation site and a test with it, or drop it');
+    'the declarable hook set changed - add the invocation site and a test with it, or drop it');
 
   // Every budget key must be a declarable hook. (The converse does NOT hold:
   // onFrame/onLevel are deliberately unbudgeted and throttled by drop-overlap.)
@@ -279,7 +279,7 @@ test('every budgeted hook has a real invocation site, and the schema matches', a
     // A budget plus a null-coalescing load is not an implementation. Require an
     // actual call - runHook('<name>', …) - which is what beforeRender never had.
     assert.match(runtimeSrc, new RegExp(`runHook\\(\\s*'${name}'`),
-      `HOOK_BUDGET_MS budgets '${name}' but runtime.ts never calls runHook('${name}', …) — ` +
+      `HOOK_BUDGET_MS budgets '${name}' but runtime.ts never calls runHook('${name}', …) - ` +
       'a budgeted hook with no invocation site is the beforeRender trap');
   }
 });

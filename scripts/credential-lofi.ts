@@ -61,13 +61,13 @@ interface AssetEntry { id: string; name: string; description: string; formats: A
 
 const index = JSON.parse(readFileSync(INDEX, 'utf8')) as { assets: AssetEntry[] };
 const loops = index.assets.filter((a) => a.id.startsWith(ID_PREFIX));
-if (!loops.length) { console.error(`No ${ID_PREFIX}* assets in ${INDEX} — run ingest-lofi first.`); process.exit(1); }
+if (!loops.length) { console.error(`No ${ID_PREFIX}* assets in ${INDEX} - run ingest-lofi first.`); process.exit(1); }
 
 let stamped = 0;
 for (const entry of loops) {
   const slug = entry.id.slice(ID_PREFIX.length);
   const file = join(OUT_DIR, `${slug}.opus`);
-  if (!existsSync(file)) { console.log(`  (skipping ${entry.id} — ${file} not found)`); continue; }
+  if (!existsSync(file)) { console.log(`  (skipping ${entry.id} - ${file} not found)`); continue; }
 
   const bytes = new Uint8Array(readFileSync(file));
   // A fresh self-signed key per track (identity is the subject Name, not the key).

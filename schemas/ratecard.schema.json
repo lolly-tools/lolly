@@ -25,7 +25,7 @@
     "currency": {
       "type": "string",
       "pattern": "^[A-Z]{3}$",
-      "description": "ISO 4217. Shape only — parseRateCard proves it is a real code by letting Intl.NumberFormat throw. No default anywhere."
+      "description": "ISO 4217. Shape only - parseRateCard proves it is a real code by letting Intl.NumberFormat throw. No default anywhere."
     },
     "taxIncluded": { "type": "boolean" },
     "minimumCharge": {

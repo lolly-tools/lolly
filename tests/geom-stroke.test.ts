@@ -217,7 +217,7 @@ function assertRegionIsDiscSum(out: GeomPath, src: GeomPath, r: number, band: nu
       }
     }
   }
-  assert.ok(checked > 200, `${what}: only ${checked} decidable grid points — the oracle is not testing anything`);
+  assert.ok(checked > 200, `${what}: only ${checked} decidable grid points - the oracle is not testing anything`);
   assert.deepEqual(wrong.slice(0, 6), [], `${what}: ${wrong.length}/${checked} grid points misclassified`);
 }
 
@@ -249,7 +249,7 @@ test('a round cap adds one disc, measured against the same kappa circle it is dr
   near(areaOf(out), 1000 + disc, 1e-3, 'area');
   nearBox(out, -5, -5, 105, 5, 1e-3, 'round-capped rectangle');
   assertJoined(out, 'round cap');
-  assert.ok(curveCount(out) <= 12, `${curveCount(out)} curves — two sides and four quarter arcs is six`);
+  assert.ok(curveCount(out) <= 12, `${curveCount(out)} curves - two sides and four quarter arcs is six`);
 });
 
 test('a diagonal segment strokes to the same rectangle a horizontal one does', () => {
@@ -349,7 +349,7 @@ test('a miter is bounded by miterLimit rather than spiking to infinity', () => {
   assert.ok(far <= 4 * 5 + 1e-6, `the outline reaches ${far.toFixed(3)} from the path, past the miterLimit's 20`);
 });
 
-test('a generous miterLimit does let the spike through — the limit is doing the work', () => {
+test('a generous miterLimit does let the spike through - the limit is doing the work', () => {
   // The companion to the test above: without this, a miter implementation that always
   // bevels passes the limit test for the wrong reason.
   const spike: GeomPath = [poly([[0, 0], [100, 1], [0, 2]], false)];
@@ -407,9 +407,9 @@ test('a stroked circle is an annulus of area width × perimeter', () => {
   // splits at curvature features needs a handful of pieces per side, so a few tens is
   // expected and a few hundred means it flattened and re-emitted.
   const n = curveCount(out);
-  assert.ok(n <= 64, `${n} curves out of a 4-curve circle — that is a polyline`);
+  assert.ok(n <= 64, `${n} curves out of a 4-curve circle - that is a polyline`);
   const straight = out.flatMap((c) => c.curves).filter((k) => isLineCubic(k)).length;
-  assert.ok(straight <= n * 0.2, `${straight}/${n} output curves are straight — an annulus has no straight edges`);
+  assert.ok(straight <= n * 0.2, `${straight}/${n} output curves are straight - an annulus has no straight edges`);
   // And it has to finish. Four curves in is not a workload; anything past a second here
   // means two pieces of the outline came out coincident and the intersector is grinding
   // on a pair that has no isolated crossing.
@@ -438,7 +438,7 @@ test('output COMPLEXITY follows the input, not the tolerance', () => {
     // hundredth of a square unit is not geometry.
     for (const [ci, c] of out.entries()) {
       const a = Math.abs(denseArea([c]));
-      assert.ok(a > 1e-2, `tol ${tol}: contour ${ci} encloses ${a} — a zero-area sliver`);
+      assert.ok(a > 1e-2, `tol ${tol}: contour ${ci} encloses ${a} - a zero-area sliver`);
     }
     seen.push({ tol, contours: out.length, curves: curveCount(out), area: areaOf(out) });
   }

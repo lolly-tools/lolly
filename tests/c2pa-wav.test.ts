@@ -72,7 +72,7 @@ test('the audio bytes stay hard-bound: a data-chunk tamper breaks the binding', 
   assert.ok(broken.checks.some((c) => c.code === 'assertion.dataHash.mismatch' && !c.ok), JSON.stringify(broken.checks));
 });
 
-test('re-stamping replaces the prior credential — never a second C2PA chunk', async () => {
+test('re-stamping replaces the prior credential - never a second C2PA chunk', async () => {
   const once = await embedC2pa(tinyWav(), 'wav', OPTS);
   const twice = await embedC2pa(once, 'wav', { ...OPTS, title: 'Narration v2' });
   const ex = extractC2paStore(twice);

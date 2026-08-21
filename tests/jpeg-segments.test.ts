@@ -149,7 +149,7 @@ const appOrder = (bytes: Uint8Array): string[] =>
 
 // ── 1. scanning ─────────────────────────────────────────────────────────────
 
-test('scan: hand-built JPEG — every segment, SOS, EOI, no trailer', () => {
+test('scan: hand-built JPEG - every segment, SOS, EOI, no trailer', () => {
   const bytes = synthJpeg([EXIF_SEG, ICC_SEG]);
   const scan = scanJpegSegments(bytes)!;
   assertNoOverRead(scan, bytes, 'synth');
@@ -170,7 +170,7 @@ test('scan: entropy data with stuffed FF00 and a restart marker is walked, not m
   assert.equal(scan.eoi, bytes.length - 2);
 });
 
-test('scan: appId identification — Exif/XMP/MPF/ICC, APP11 JUMBF (no NUL), binary payload', () => {
+test('scan: appId identification - Exif/XMP/MPF/ICC, APP11 JUMBF (no NUL), binary payload', () => {
   const jumbf = buildJpegSegment(0xeb, Uint8Array.from([0x4a, 0x50, 0x02, 0x11, 0, 0, 0, 1]))!; // "JP" + En + Z
   const binary = buildJpegSegment(0xe4, Uint8Array.from([0x00, 0x01, 0x02]))!;
   const bytes = synthJpeg([EXIF_SEG, XMP_SEG, MPF_SEG, ICC_SEG, jumbf, binary]);
@@ -239,7 +239,7 @@ test('scan: real sharp-encoded JPEGs (baseline, progressive, EXIF, ICC)', { skip
   assert.ok(findJpegSegment(await realJpeg('exif'), 0xe1, 'Exif'), 'Exif APP1 found in a real file');
 });
 
-test('scan: a real libjpeg-turbo JPEG has NO APP0 — the exact case the ad-hoc inserters get wrong', { skip: SKIP_SHARP }, async () => {
+test('scan: a real libjpeg-turbo JPEG has NO APP0 - the exact case the ad-hoc inserters get wrong', { skip: SKIP_SHARP }, async () => {
   const bytes = await realJpeg('exif');
   assert.equal(findJpegSegment(bytes, 0xe0), null, 'no JFIF APP0');
   assert.equal(scanJpegSegments(bytes)!.segments[0]!.marker, 0xe1, 'first segment is APP1 Exif');
@@ -267,7 +267,7 @@ test('insert: canonical order APP0 -> Exif -> XMP -> MPF -> ICC regardless of ca
   assert.ok(Math.max(...ms.map((m, i) => (m >= 0xe0 && m <= 0xef ? i : -1))) < ms.indexOf(0xdb));
 });
 
-test('insert: byte-level — exact length, prefix and suffix preserved verbatim', () => {
+test('insert: byte-level - exact length, prefix and suffix preserved verbatim', () => {
   const base = synthJpeg();
   const out = insertJpegSegments(base, [ICC_SEG, MPF_SEG]);
   assert.equal(out.length, base.length + ICC_SEG.length + MPF_SEG.length);
@@ -310,7 +310,7 @@ test('insert: multiple chunks of one identity stay contiguous and in the given o
   assert.equal(found[2]!.start, found[1]!.end, 'contiguous');
 });
 
-test('insert: round-trip — what goes in comes back out byte-identical (idempotent re-scan)', () => {
+test('insert: round-trip - what goes in comes back out byte-identical (idempotent re-scan)', () => {
   const out = insertJpegSegments(synthJpeg(), [EXIF_SEG, XMP_SEG, MPF_SEG, ICC_SEG, COM_SEG]);
   const scan = scanJpegSegments(out)!;
   assertNoOverRead(scan, out, 'roundtrip');
@@ -364,7 +364,7 @@ test('insert: nothing is inserted past SOS, even with a COM already after it', (
   assert.equal(scan.truncated, false);
 });
 
-test('insert: all-or-nothing — malformed inputs return the original bytes', () => {
+test('insert: all-or-nothing - malformed inputs return the original bytes', () => {
   const base = synthJpeg();
   const badLen = Uint8Array.from([0xff, 0xe2, 0x00, 0x40, 1, 2, 3]); // declares 64, is 5
   assert.equal(insertJpegSegments(base, [badLen]), base, 'self-inconsistent length');
@@ -406,7 +406,7 @@ test('rank: the documented order, with unknown APPn kept in marker order', () =>
     r(0xed, 'Photoshop 3.0'), r(0xfe, null), r(0xdb, null),
   ];
   assert.deepEqual(seq, [...seq].sort((a, b) => a - b), 'ranks ascend in the documented order');
-  assert.ok(r(0xe2, 'MPF') < r(0xe2, 'ICC_PROFILE'), 'MPF before ICC — the offsets rule');
+  assert.ok(r(0xe2, 'MPF') < r(0xe2, 'ICC_PROFILE'), 'MPF before ICC - the offsets rule');
   assert.ok(r(0xe1, 'Exif') < r(0xe1, JPEG_APP_IDS.XMP), 'EXIF before XMP');
   assert.ok(r(0xec, null) < r(0xed, null), 'unknown APPn stay in marker order');
   assert.equal(r(0xc0, null), 100);
@@ -456,7 +456,7 @@ test('hostile: a length reaching past EOF is refused, not trusted', () => {
   assert.equal(insertJpegSegments(bytes, [ICC_SEG]).length, bytes.length + ICC_SEG.length, 'insert still safe on a short scan');
 });
 
-test('hostile: exact 64 KiB boundary lengths — the largest legal segment, and one byte too far', () => {
+test('hostile: exact 64 KiB boundary lengths - the largest legal segment, and one byte too far', () => {
   const maxBody = new Uint8Array(0xffff - 2); // segment length field == 0xFFFF
   maxBody.set([0x4d, 0x50, 0x46, 0x00], 0);   // "MPF\0"
   const seg = buildJpegSegment(0xe2, maxBody)!;

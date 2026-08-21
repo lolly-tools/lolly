@@ -18,7 +18,7 @@ export const DOCK_STYLE_ID = 'lolly-audio-dock-styles';
 
 export const DOCK_CSS = `
 .audio-dock {
-  /* ── theme tokens (host-overridable) — the committed deep-teal/SUSE-green look ── */
+  /* ── theme tokens (host-overridable) - the committed deep-teal/SUSE-green look ── */
   --dock-bg: hsl(171 62% 8%);
   --dock-bg-2: hsl(171 55% 13%);
   /* The controls face over the viz: near-opaque so text lists stay readable on top of
@@ -61,11 +61,11 @@ export const DOCK_CSS = `
   pointer-events: none;
 }
 /* Hidden when viz can't run (capability off / no signal / reduced motion / switched
-   off) or is not declared — the static deep-teal ground (the root background) shows. */
+   off) or is not declared - the static deep-teal ground (the root background) shows. */
 .audio-dock:not([data-cap-viz]) .audio-dock-viz,
 .audio-dock[data-viz="static"] .audio-dock-viz { display: none; }
 
-/* ── layer 2: the scrim — a darkening wash ONLY (NO blur anywhere), so control text
+/* ── layer 2: the scrim - a darkening wash ONLY (NO blur anywhere), so control text
       stays legible while the visualiser reads perfectly sharp behind it ── */
 .audio-dock-scrim {
   position: absolute;
@@ -81,7 +81,7 @@ export const DOCK_CSS = `
 /* A media-player column: the header + narration block at the TOP, a flexible viz/free
    space that GROWS to fill a tall window, then the music controls ANCHORED to the BOTTOM.
    In the default (auto-height) dock there is no slack, so the viz-space collapses to 0 and
-   the controls sit directly under the header — no dangling empty area either way. */
+   the controls sit directly under the header - no dangling empty area either way. */
 .audio-dock-face { position: relative; display: flex; flex-direction: column; }
 .audio-dock-main { display: flex; flex-direction: column; flex: 1 1 auto; min-height: 0; }
 .audio-dock-vizspace { flex: 1 1 auto; min-height: 0; }   /* the free/viz region (grows) */
@@ -135,7 +135,7 @@ export const DOCK_CSS = `
   margin-top: 2px; font-family: var(--font-mono, ui-monospace, monospace); font-variant-numeric: tabular-nums; }
 .audio-dock[data-seekable="false"] .audio-dock-scrub { display: none; }
 
-/* Range sliders (scrub + Music/Effects volume + atmosphere levels) read CLEAN — no
+/* Range sliders (scrub + Music/Effects volume + atmosphere levels) read CLEAN - no
    resting border/box around the track. The high-contrast a11y pref restores a 1px
    outline for definition; keyboard focus keeps its own focus-visible ring regardless. */
 .audio-dock input[type="range"] { border: none; box-shadow: none; }
@@ -233,15 +233,15 @@ html[data-a11y-contrast="high"] .audio-dock input[type="range"] { border: 1px so
 .audio-dock-atmo-row.is-on .audio-dock-atmo-label { color: var(--dock-fg); }
 .audio-dock-atmo-row input[type="range"] { flex: 1; min-width: 0; accent-color: var(--dock-accent); }
 
-/* ── the narration BLOCK (page voice) — its own player, ABOVE the music block ── */
+/* ── the narration BLOCK (page voice) - its own player, ABOVE the music block ── */
 /* Coexists with the music player: voice can sound over an optional bed. Shown only when
    the host exposes a narrationBlock. */
 .audio-dock-narrblock[hidden] { display: none; }
 .audio-dock-narrblock { flex: 0 0 auto; display: flex; flex-direction: column; gap: 8px;
   padding: 8px 14px 10px; border-bottom: 1px solid var(--dock-border); background: var(--dock-panel); }
 .audio-dock-narrblock-head { display: flex; align-items: center; gap: 8px; }
-/* The title row IS the collapse toggle (a ▾ chevron folds the body — scrub, caption,
-   Follow-along, Speed, disclosure — to just this row, like Tracks/Atmosphere). */
+/* The title row IS the collapse toggle (a ▾ chevron folds the body - scrub, caption,
+   Follow-along, Speed, disclosure - to just this row, like Tracks/Atmosphere). */
 .audio-dock-narrblock-toggle { flex: 1; min-width: 0; display: flex; align-items: center; gap: 8px;
   border: none; background: transparent; color: inherit; cursor: pointer; text-align: left; padding: 0; font: inherit; }
 .audio-dock-narrblock-toggle:focus-visible { outline: 2px solid var(--dock-accent); outline-offset: 2px; }
@@ -341,7 +341,7 @@ html[data-a11y-contrast="high"] .audio-dock input[type="range"] { border: 1px so
   height: 100%; max-height: 100%; overflow-y: auto;
 }
 
-/* reduced motion — OS query. The app pref (data-a11y-motion) is added by the
+/* reduced motion - OS query. The app pref (data-a11y-motion) is added by the
    host on its own root; the viz loop also checks it in JS and stands down. */
 @media (prefers-reduced-motion: reduce) {
   .audio-dock, .audio-dock-btn, .audio-dock-caret { transition: none; }

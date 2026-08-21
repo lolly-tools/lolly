@@ -292,7 +292,7 @@ test('an empty plan is a byte-identical pass-through of the whole map', () => {
 
 // ─── hostile-input hardening ─────────────────────────────────────────────────
 
-test('malformed XML never hangs or throws — unmatched patterns pass through', () => {
+test('malformed XML never hangs or throws - unmatched patterns pass through', () => {
   const hostile: PartMap = {
     // unclosed slot, unterminated tag, truncated attr - nothing we can safely edit
     'ppt/theme/theme1.xml': `<a:theme><a:clrScheme><a:dk1><a:srgbClr val="000000"`,

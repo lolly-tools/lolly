@@ -28,10 +28,10 @@ test('selects only ppt/media raster images (png/jpg/jpeg), case-insensitive', ()
     'ppt/media/image2.jpeg': bytes(10),
     'ppt/media/image3.jpg': bytes(10),
     'ppt/media/PHOTO.JPG': bytes(10),
-    'ppt/media/logo.svg': '<svg/>',           // vector — no pixel mark
-    'ppt/media/diagram.emf': bytes(10),        // metafile — not RGBA
-    'ppt/media/clip.wmf': bytes(10),           // metafile — not RGBA
-    'ppt/media/movie.mp4': bytes(10),          // video — not an image part
+    'ppt/media/logo.svg': '<svg/>',           // vector - no pixel mark
+    'ppt/media/diagram.emf': bytes(10),        // metafile - not RGBA
+    'ppt/media/clip.wmf': bytes(10),           // metafile - not RGBA
+    'ppt/media/movie.mp4': bytes(10),          // video - not an image part
     'docProps/thumbnail.jpeg': bytes(10),      // a jpeg, but NOT under ppt/media/
     'ppt/slides/slide1.xml': '<p:sld/>',
   };
@@ -71,7 +71,7 @@ test('skips empty parts (nothing to decode)', () => {
 
 test('excludes nested paths that only look like media', () => {
   const parts: PptxParts = {
-    'ppt/media/sub/inner.png': bytes(8),  // a slash after ppt/media/ — not a flat media part
+    'ppt/media/sub/inner.png': bytes(8),  // a slash after ppt/media/ - not a flat media part
     'notppt/media/x.png': bytes(8),
     'ppt/media/ok.png': bytes(8),
   };

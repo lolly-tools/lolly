@@ -363,9 +363,9 @@ OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 Bundled internal codecs, statically linked into the same WASM (all permissive):
-  * minimp3 — CC0-1.0 / public domain (MP3 samples in MO3)
-  * stb_vorbis — public domain OR MIT, © 2017 Sean Barrett (Vorbis samples)
-  * miniz — MIT, © 2013-2014 RAD Game Tools & Valve, © 2010-2014 Rich Geldreich
+  * minimp3 - CC0-1.0 / public domain (MP3 samples in MO3)
+  * stb_vorbis - public domain OR MIT, © 2017 Sean Barrett (Vorbis samples)
+  * miniz - MIT, © 2013-2014 RAD Game Tools & Valve, © 2010-2014 Rich Geldreich
 The Emscripten runtime glue in libopenmpt.mjs is MIT (© Emscripten authors).`;
 
 // Each manifest entry sets `where`: 'web' means it ships in the web build, so it
@@ -404,7 +404,7 @@ const MANIFEST: {
       copyright: '© 2004-2026 OpenMPT Project Developers & Contributors; © 1997-2003 Olivier Lapicque',
       files: 'shells/web/src/vendor/libopenmpt/libopenmpt.mjs',
       text: LIBOPENMPT_TEXT,
-      note: 'Tracker-module (.mod/.xm/.s3m/.it/…) decoder. Built from source with permissive internal codecs only — see scripts/build-libopenmpt-wasm.sh.',
+      note: 'Tracker-module (.mod/.xm/.s3m/.it/…) decoder. Built from source with permissive internal codecs only - see scripts/build-libopenmpt-wasm.sh.',
       where: 'web',
     },
   ],
