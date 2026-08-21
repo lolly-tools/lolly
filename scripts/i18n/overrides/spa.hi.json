@@ -198,5 +198,9 @@
   "Work collab": "कार्य कोलैब",
   "Invite others on this instance to co-edit this session, live.": "इस इंस्टेंस पर दूसरों को इस सेशन को लाइव साथ में एडिट करने के लिए आमंत्रित करें।",
   "Live now - 1 person editing": "अभी लाइव - 1 व्यक्ति एडिट कर रहा है",
-  "Live now - {n} people editing": "अभी लाइव - {n} लोग एडिट कर रहे हैं"
+  "Live now - {n} people editing": "अभी लाइव - {n} लोग एडिट कर रहे हैं",
+  "AI-declared ingredient in this design: {names}. Its provenance rides the export as a C2PA ingredient.": "इस डिज़ाइन में AI-घोषित सामग्री: {names}। इसका स्रोत-विवरण C2PA सामग्री के रूप में एक्सपोर्ट के साथ जाता है।",
+  "An ingredient carries AI-writing signals: {names}. A signal, not proof - review it in the catalogue before this file travels.": "एक सामग्री में AI-लेखन के संकेत हैं: {names}। यह एक संकेत है, प्रमाण नहीं - इस फ़ाइल के आगे बढ़ने से पहले कैटलॉग में इसे देख लें।",
+  "This file is packaged the way {vendor} AI products package downloads ({hint}). A signal, not proof.": "यह फ़ाइल उसी तरह पैक की गई है जिस तरह {vendor} के AI उत्पाद डाउनलोड पैक करते हैं ({hint})। यह एक संकेत है, प्रमाण नहीं।",
+  "likely AI-made": "संभवतः AI-निर्मित"
 }
