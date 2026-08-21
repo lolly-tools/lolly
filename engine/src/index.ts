@@ -188,6 +188,11 @@ export type { CaptionCue, GroupWordsOpts } from './captions.ts';
 // verify view, the catalog, the CLI, and the OCR path read identical numbers.
 // LEXICON_VERSION keys persisted analyses to the tell lists that produced them.
 export { analyzeTextSignals, applyModelEstimate, LEXICON_VERSION } from './text-signals.ts';
+// Document facts (plans/126 UX wave) - the neutral census behind the panels'
+// interrogation surface: hidden characters by name, script shares, link
+// hosts, structure and line-ending forensics. Counts, never verdicts.
+export { textFacts, invisibleCharName, hiddenCharSeverity } from './text-facts.ts';
+export type { TextFacts, HiddenCharCount, ScriptShare, LinkHost } from './text-facts.ts';
 export type {
   TextSignalSource, TextSignalBand, TextSignalTier, TextSignalSpan,
   TextSignalFinding, TextStyleGuess, TextSignalReport, AnalyzeTextSignalsOpts,
