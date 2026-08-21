@@ -12,7 +12,7 @@
  * puts that chain in the manifest's x5chain and a verifier pinning the issuing root
  * reads the file as trusted.
  */
-import { summarizeInputs, ENGINE_VERSION } from '@lolly/engine';
+import { summarizeInputs, ENGINE_VERSION, collectAiIngredientDeclarations, exportActionSteps } from '@lolly/engine';
 import type { embedC2pa, C2paSigner } from '@lolly/engine';
 import type { Profile } from '@lolly-tools/core/host-v1';
 
@@ -79,6 +79,15 @@ export function buildExportC2paOpts(o: BuildExportC2paOpts): ExportC2paOpts {
   const sizeLine = (typeof dims.width === 'number' && dims.width > 0 && typeof dims.height === 'number' && dims.height > 0)
     ? (unit !== 'px' ? `${dims.width} × ${dims.height} ${unit} @ ${dims.dpi || 300} DPI` : `${dims.width} × ${dims.height} px`)
     : undefined;
+  // AI-declared ingredients (plans/126 WP-B3): the same census the web shell's
+  // runtime takes - placed assets whose resolved ref carries meta.aiGenerated.
+  // When present (and the caller supplied no explicit history) the credential
+  // gains the composite created step + a c2pa.placed step naming each piece,
+  // and the section 18.28 ai-disclosure travels with it (generic model type - the
+  // user asserted THAT a model made the piece, never which one). Explicit
+  // caller `actions`/`aiDisclosure` always win; with no declarations the
+  // output stays byte-identical.
+  const aiIngredients = collectAiIngredientDeclarations(model);
   return {
     title: name,
     claimGenerator: 'Lolly lolly.tools',
@@ -101,8 +110,12 @@ export function buildExportC2paOpts(o: BuildExportC2paOpts): ExportC2paOpts {
       : { notBefore: new Date(Date.now() - 60_000), notAfter: new Date(Date.now() + days * 86_400_000) },
     // Carry a genAI source forward so the record stays accurate (default drops both).
     ...(o.ingredients?.length ? { ingredients: o.ingredients } : {}),
-    ...(o.actions?.length ? { actions: o.actions } : {}),
-    ...(o.aiDisclosure ? { aiDisclosure: o.aiDisclosure } : {}),
+    ...(o.actions?.length
+      ? { actions: o.actions }
+      : aiIngredients.length ? { actions: exportActionSteps(format, { aiIngredients }) } : {}),
+    ...(o.aiDisclosure
+      ? { aiDisclosure: o.aiDisclosure }
+      : aiIngredients.length ? { aiDisclosure: {} } : {}),
     ...(o.specVersion ? { specVersion: o.specVersion } : {}),
   };
 }

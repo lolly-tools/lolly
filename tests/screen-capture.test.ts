@@ -322,8 +322,12 @@ test('ENGINE_VERSION is 1.128.0', () => {
   // Then 1.139.0 (claudisms.ts abstract-register tells - ledger/machinery/
   // mechanics-of/figurative-survives/structure-of-the-argument, literal senses
   // carved out; LEXICON_VERSION 5. Pure exports only, no HostV1 change).
+  // Then 1.140.0 (WP-B3: collectAiIngredientDeclarations + exportActionSteps
+  // aiIngredients - a user's AI-origins assertion on placed assets becomes a
+  // composite created step, a naming c2pa.placed step and a section 18.28
+  // ai-disclosure in the fresh credential. Pure exports only, no HostV1 change).
   // The ^1.54.0 screencap floor below still holds (a minor bump satisfies it).
-  assert.equal(ENGINE_VERSION, '1.139.0');
+  assert.equal(ENGINE_VERSION, '1.140.0');
 });
 
 // ─── loadTool: a ^1.54.0 tool loads against this engine ───────────────────────
