@@ -25,6 +25,7 @@
  *   being declared as user-facing inputs in the manifest.
  */
 
+import { collectAiIngredientDeclarations } from './c2pa.ts';
 import { buildInputModel, updateInput, modelToValues, modelForHooks, flattenValue, summarizeInputs, normalizeTableValue } from './inputs.ts';
 import { hydrate } from './template.ts';
 import { buildExportMeta } from './metadata.ts';
@@ -1130,6 +1131,12 @@ export async function createRuntime(
           if (c2paAiUpscale) break;
         }
       }
+      // AI-declared ingredients (plans/126 WP-B3): the user's own Origins
+      // assertion (or an ingest-read declaration) on any placed asset travels
+      // into the export's FRESH credential - a composite created step, a
+      // c2pa.placed step naming each piece, and a section 18.28 ai-disclosure. The
+      // shared collector walks the same asset descent as the aiUpscale scan.
+      const c2paAiIngredients = stampProvenance ? collectAiIngredientDeclarations(model) : [];
       let blob;
       try {
         blob = await host.export.render(renderedNode as Element, format as ExportFormat, {
@@ -1141,6 +1148,7 @@ export async function createRuntime(
           ...(c2paCapture ? { c2paCapture } : {}),
           ...(c2paTextAdded ? { c2paTextAdded } : {}),
           ...(c2paAiUpscale ? { c2paAiUpscale } : {}),
+          ...(c2paAiIngredients.length ? { c2paAiIngredients } : {}),
           // Tag output with a colour profile by default (sRGB for raster, the
           // default press condition for CMYK PDF). Thumbnails stay untagged.
           colorProfile: opts.colorProfile ?? (opts.thumbnail ? 'none' : 'srgb'),

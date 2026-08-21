@@ -12,7 +12,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 
-import { exportActionSteps, DIGITAL_SOURCE_TYPE, CAPTURE_SOURCE_TYPE, SCREEN_SOURCE_TYPE, COMPOSITE_SOURCE_TYPE } from '../engine/src/index.ts';
+import { exportActionSteps, DIGITAL_SOURCE_TYPE, CAPTURE_SOURCE_TYPE, SCREEN_SOURCE_TYPE, COMPOSITE_SOURCE_TYPE, collectAiIngredientDeclarations } from '../engine/src/index.ts';
 
 const created = (steps: ReturnType<typeof exportActionSteps>) => steps[0]!;
 const codes = (steps: ReturnType<typeof exportActionSteps>) => steps.map((s) => s.action);
@@ -197,4 +197,70 @@ test('no aiUpscale → no AI-upscale edit step, created stays digitalCreation', 
 test('delivered short-circuits, ignoring aiUpscale', () => {
   const steps = exportActionSteps('png', { delivered: true, aiUpscale: { model: 'x', version: '1' } });
   assert.deepEqual(steps, [{ action: 'c2pa.published' }]);
+});
+
+// ─── aiIngredients (plans/126 WP-B3): a user's AI-origins assertion on placed
+// assets becomes signed provenance - the composite created step + a c2pa.placed
+// step naming each declared piece with its grade.
+
+test('aiIngredients: created is composite + a c2pa.placed step names each piece with its grade', () => {
+  const steps = exportActionSteps('png', { aiIngredients: [
+    { name: 'robot.png', kind: 'full' }, { name: 'hero.jpg', kind: 'partial' },
+  ] });
+  assert.equal(created(steps).digitalSourceType, COMPOSITE_SOURCE_TYPE);
+  assert.match(created(steps).description!, /declared as AI-made/);
+  const placed = steps.find((s) => s.action === 'c2pa.placed');
+  assert.ok(placed, 'a c2pa.placed step should be present');
+  assert.equal(placed!.description, 'Placed AI-declared ingredients: robot.png (AI-generated) and hero.jpg (AI-assisted)');
+});
+
+test('aiIngredients: one piece reads singular, and the step precedes the render close', () => {
+  const steps = exportActionSteps('png', { aiIngredients: [{ name: 'gen.webp', kind: 'full' }] });
+  const iPlaced = steps.findIndex((s) => s.action === 'c2pa.placed');
+  const iConvert = steps.findIndex((s) => s.action === 'c2pa.converted');
+  assert.equal(steps[iPlaced]!.description, 'Placed AI-declared ingredient: gen.webp (AI-generated)');
+  assert.ok(iPlaced >= 0 && iPlaced < iConvert, 'the placed step precedes the render close');
+});
+
+test('aiIngredients wins the source-type label over a capture origin, and aiUpscale wins the created description over both', () => {
+  const cap = exportActionSteps('png', { aiIngredients: [{ name: 'a', kind: 'full' }], capture: { camera: true } });
+  assert.equal(created(cap).digitalSourceType, COMPOSITE_SOURCE_TYPE);
+  const both = exportActionSteps('png', { aiIngredients: [{ name: 'a', kind: 'full' }], aiUpscale: { model: 'm', version: 'v' } });
+  assert.equal(created(both).digitalSourceType, COMPOSITE_SOURCE_TYPE);
+  assert.match(created(both).description!, /real image/i);
+  assert.ok(both.some((s) => s.action === 'c2pa.placed'), 'both disclosures ride: the placed step still names the ingredient');
+});
+
+test('empty aiIngredients adds nothing: created stays digitalCreation, no placed step', () => {
+  const steps = exportActionSteps('png', { aiIngredients: [] });
+  assert.equal(created(steps).digitalSourceType, DIGITAL_SOURCE_TYPE);
+  assert.equal(steps.some((s) => s.action === 'c2pa.placed'), false);
+});
+
+// ─── collectAiIngredientDeclarations: the census the runtime and node shells share ───
+
+test('collector walks top-level assets and blocks sub-fields, dedupes, and ignores undeclared refs', () => {
+  const model = [
+    { type: 'asset', value: { id: 'user/a', meta: { name: 'robot.png', aiGenerated: 'full' } } },
+    { type: 'asset', value: { id: 'user/b', meta: { name: 'photo.jpg' } } },
+    { type: 'text', value: 'hello' },
+    { type: 'blocks', fields: [{ id: 'img', type: 'asset' }, { id: 'label', type: 'text' }], value: [
+      { img: { id: 'user/c', meta: { name: 'hero.jpg', aiGenerated: 'partial' } }, label: 'x' },
+      { img: { id: 'user/a', meta: { name: 'robot.png', aiGenerated: 'full' } } },
+      { img: null },
+    ] },
+  ];
+  assert.deepEqual(collectAiIngredientDeclarations(model), [
+    { name: 'robot.png', kind: 'full' },
+    { name: 'hero.jpg', kind: 'partial' },
+  ]);
+});
+
+test('collector falls back to the ref id when meta carries no name, and rejects junk aiGenerated values', () => {
+  const model = [
+    { type: 'asset', value: { id: 'user/upload/x.png', meta: { aiGenerated: 'full' } } },
+    { type: 'asset', value: { id: 'user/y', meta: { aiGenerated: 'yes' } } },
+    { type: 'asset', value: 'user/plain-id-string' },
+  ];
+  assert.deepEqual(collectAiIngredientDeclarations(model), [{ name: 'user/upload/x.png', kind: 'full' }]);
 });

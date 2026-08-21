@@ -199,8 +199,8 @@
   "Invite others on this instance to co-edit this session, live.": "このインスタンスの他のメンバーを招待して、このセッションをライブで共同編集します。",
   "Live now - 1 person editing": "現在ライブ：1人が編集中",
   "Live now - {n} people editing": "現在ライブ：{n}人が編集中",
-  "AI-declared ingredient in this design: {names}. Its provenance rides the export as a C2PA ingredient.": "このデザインのAI申告済み素材：{names}。その来歴はC2PA素材としてエクスポートに載って運ばれます。",
   "An ingredient carries AI-writing signals: {names}. A signal, not proof - review it in the catalogue before this file travels.": "AIによる文章のシグナルを持つ素材があります：{names}。シグナルであり、証明ではありません。このファイルを送る前にカタログで確認してください。",
   "This file is packaged the way {vendor} AI products package downloads ({hint}). A signal, not proof.": "このファイルは、{vendor}のAI製品がダウンロードをパッケージする形式でパッケージされています（{hint}）。シグナルであり、証明ではありません。",
-  "likely AI-made": "AI製の可能性が高い"
+  "likely AI-made": "AI製の可能性が高い",
+  "AI-declared ingredient in this design: {names}. The export's own credential declares this AI origin, signed and machine-readable.": "このデザインのAI申告済み素材：{names}。エクスポート自身のクレデンシャルがこのAI由来を宣言します。署名済みで機械可読です。"
 }

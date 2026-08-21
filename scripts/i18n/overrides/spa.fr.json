@@ -199,8 +199,8 @@
   "Invite others on this instance to co-edit this session, live.": "Invite d'autres personnes sur cette instance à modifier cette session en direct.",
   "Live now - 1 person editing": "En direct - 1 personne en train de modifier",
   "Live now - {n} people editing": "En direct - {n} personnes en train de modifier",
-  "AI-declared ingredient in this design: {names}. Its provenance rides the export as a C2PA ingredient.": "Ingrédient déclaré comme œuvre d'IA dans ce design : {names}. Sa provenance voyage avec l'export comme ingrédient C2PA.",
   "An ingredient carries AI-writing signals: {names}. A signal, not proof - review it in the catalogue before this file travels.": "Un ingrédient porte des signaux d'écriture par IA : {names}. Un signal, pas une preuve - vérifie-le dans le catalogue avant que ce fichier voyage.",
   "This file is packaged the way {vendor} AI products package downloads ({hint}). A signal, not proof.": "Ce fichier est empaqueté comme les produits d'IA de {vendor} empaquettent leurs téléchargements ({hint}). Un signal, pas une preuve.",
-  "likely AI-made": "probablement fait par IA"
+  "likely AI-made": "probablement fait par IA",
+  "AI-declared ingredient in this design: {names}. The export's own credential declares this AI origin, signed and machine-readable.": "Ingrédient déclaré comme œuvre d'IA dans ce design : {names}. Le credential de l'export déclare lui-même cette origine IA, signé et lisible par machine."
 }

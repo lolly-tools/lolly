@@ -6,6 +6,20 @@ minors, never removed or signature-changed without a major bump.
 
 Moved verbatim from the comment block that used to live in `src/index.ts`.
 
+1.140.0 - additive (no HostV1 change): the user's AI-origins assertion
+becomes signed provenance at export (plans/126 WP-B3, Andy-approved
+2026-08-21). `collectAiIngredientDeclarations` (c2pa.ts) walks a runtime
+input model's placed assets - top-level and blocks sub-fields, the same
+descent as the aiUpscale scan - for `meta.aiGenerated` declarations;
+`exportActionSteps` gains `aiIngredients`, which swaps the created step to
+compositeWithTrainedAlgorithmicMedia and appends a c2pa.placed step naming
+each declared piece with its grade. The runtime passes the census to the
+shell (`c2paAiIngredients`); the web bridge and node-shell's shared
+buildExportC2paOpts pair it with a section 18.28 ai-disclosure assertion (generic
+model type - the user asserted THAT a model made the piece, never which
+one), so web, CLI and TUI exports declare identically. No declarations →
+byte-identical output.
+
 1.139.0 - additive (no HostV1 change): claudisms.ts learns the
 abstract-register tells Andy flagged - bookkeeping and machine words applied
 to ideas ("ledger of decisions", "the machinery of", "mechanics of",

@@ -197,8 +197,8 @@
   "Invite others on this instance to co-edit this session, live.": "Bu örnekteki diğer kişileri bu oturumu canlı olarak birlikte düzenlemeye davet et.",
   "Live now - 1 person editing": "Şu anda canlı - 1 kişi düzenliyor",
   "Live now - {n} people editing": "Şu anda canlı - {n} kişi düzenliyor",
-  "AI-declared ingredient in this design: {names}. Its provenance rides the export as a C2PA ingredient.": "Bu tasarımda yapay zeka işi olarak bildirilen bileşen: {names}. Kaynağı, dışa aktarmayla birlikte C2PA bileşeni olarak yolculuk eder.",
   "An ingredient carries AI-writing signals: {names}. A signal, not proof - review it in the catalogue before this file travels.": "Bir bileşen yapay zeka yazımı sinyalleri taşıyor: {names}. Bir sinyal, kanıt değil - bu dosya yola çıkmadan önce katalogda gözden geçir.",
   "This file is packaged the way {vendor} AI products package downloads ({hint}). A signal, not proof.": "Bu dosya, {vendor} yapay zeka ürünlerinin indirmeleri paketlediği şekilde paketlenmiş ({hint}). Bir sinyal, kanıt değil.",
-  "likely AI-made": "büyük olasılıkla yapay zeka yapımı"
+  "likely AI-made": "büyük olasılıkla yapay zeka yapımı",
+  "AI-declared ingredient in this design: {names}. The export's own credential declares this AI origin, signed and machine-readable.": "Bu tasarımda yapay zeka işi olarak bildirilen bileşen: {names}. Dışa aktarmanın kendi kimlik bilgisi bu yapay zeka kaynağını bildirir; imzalı ve makine tarafından okunabilir."
 }

@@ -199,8 +199,8 @@
   "Invite others on this instance to co-edit this session, live.": "এই ইনস্ট্যান্সের অন্যদের এই সেশন লাইভ একসঙ্গে এডিট করার জন্য আমন্ত্রণ জানান।",
   "Live now - 1 person editing": "এখন লাইভ - 1 জন এডিট করছেন",
   "Live now - {n} people editing": "এখন লাইভ - {n} জন এডিট করছেন",
-  "AI-declared ingredient in this design: {names}. Its provenance rides the export as a C2PA ingredient.": "এই ডিজাইনে AI-ঘোষিত উপাদান: {names}। এর উৎস-তথ্য C2PA উপাদান হিসেবে এক্সপোর্টের সাথে যায়।",
   "An ingredient carries AI-writing signals: {names}. A signal, not proof - review it in the catalogue before this file travels.": "একটি উপাদানে AI-লেখার সিগন্যাল আছে: {names}। একটি সিগন্যাল, প্রমাণ নয় - এই ফাইল পাঠানোর আগে ক্যাটালগে সেটি দেখে নিন।",
   "This file is packaged the way {vendor} AI products package downloads ({hint}). A signal, not proof.": "এই ফাইলটি সেভাবে প্যাকেজ করা, যেভাবে {vendor}-এর AI পণ্য ডাউনলোড প্যাকেজ করে ({hint})। একটি সিগন্যাল, প্রমাণ নয়।",
-  "likely AI-made": "সম্ভবত AI-নির্মিত"
+  "likely AI-made": "সম্ভবত AI-নির্মিত",
+  "AI-declared ingredient in this design: {names}. The export's own credential declares this AI origin, signed and machine-readable.": "এই ডিজাইনে AI-ঘোষিত উপাদান: {names}। এক্সপোর্টের নিজস্ব ক্রেডেনশিয়াল এই AI উৎস ঘোষণা করে, স্বাক্ষরিত ও মেশিনে পাঠযোগ্য।"
 }
