@@ -102,10 +102,10 @@
     "playwright-core": "^1.62.1"
   },
   "devDependencies": {
-    "@anthropic-ai/sdk": "^0.111.0",
-    "@biomejs/biome": "^2.5.2",
-    "@types/node": "^26.1.0",
-    "esbuild": "^0.28.1",
+    "@anthropic-ai/sdk": "^0.117.1",
+    "@biomejs/biome": "^2.5.9",
+    "@types/node": "^26.2.0",
+    "esbuild": "^0.28.2",
     "onnxruntime-node": "^1.27.0",
     "playwright": "^1.62.1",
     "sharp": "^0.35.3",
