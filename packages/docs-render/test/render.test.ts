@@ -15,7 +15,7 @@ import {
   mdDescription,
 } from '../src/index.ts';
 
-test('esc escapes ONLY & < > — never quotes (the 5-char escaper landmine)', () => {
+test('esc escapes ONLY & < > - never quotes (the 5-char escaper landmine)', () => {
   assert.equal(esc('a & b < c > d'), 'a &amp; b &lt; c &gt; d');
   // Quotes and apostrophes MUST pass through unchanged: a 5-char escaper would
   // re-encode every one and re-sign every C2PA page seal.

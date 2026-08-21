@@ -6,7 +6,7 @@
 # plans/linked-juggling-sky.md for the strategy.
 #
 # MODES
-#   (default)        Dry run — print every action, change nothing.
+#   (default)        Dry run - print every action, change nothing.
 #   --extract-only   Non-destructive: extract+stage each subrepo from HEAD into
 #                    $STAGE_ROOT and print `git ls-files` to inspect. No GitHub,
 #                    no monorepo changes.
@@ -38,7 +38,7 @@ done
 
 cd "$REPO_ROOT"
 PREMIGRATE="$REPO_ROOT/.subrepo-premigrate"
-HEAVY_DIRS=(node_modules .browsers)   # regenerable — moved (instant), never copied
+HEAVY_DIRS=(node_modules .browsers)   # regenerable - moved (instant), never copied
 
 TARGETS=(); if [ ${#ONLY[@]} -gt 0 ]; then TARGETS=("${ONLY[@]}"); else while read -r p; do TARGETS+=("$p"); done < <(subrepo_paths); fi
 
@@ -76,7 +76,7 @@ stage_one() {
 
   rm -rf "$dst"; mkdir -p "$dst"
   git archive "$SRC" -- "$path" | tar -x --strip-components="$depth" -C "$dst"
-  # NOTE: catalog music ($MUSIC_REL) is now INCLUDED (Andy's call — public, time-boxed
+  # NOTE: catalog music ($MUSIC_REL) is now INCLUDED (Andy's call - public, time-boxed
   # to the 2026-08-29 PremiumBeat removal in catalog/NOTICE.md). To re-exclude, add:
   # [ "$path" = "catalog" ] && rm -rf "$dst/$MUSIC_REL"
 
@@ -84,7 +84,7 @@ stage_one() {
     echo "Extracted from the [\`lolly\`](https://github.com/$ORG/lolly) monorepo and"
     echo "consumed there as a git submodule at \`$path/\`."; echo
     if is_mpl_path "$path"; then
-      echo "Builds **within the monorepo** — depends on sibling workspace packages"
+      echo "Builds **within the monorepo** - depends on sibling workspace packages"
       echo "(\`@lolly/engine\`) / relative paths that only exist in that layout."
     else echo "Tool/catalog **data**, not code. See \`NOTICE.md\` for licensing."; fi
   } > "$dst/README.md"
@@ -106,7 +106,7 @@ stage_one() {
 
 push_one() {
   local path="$1" repo url dst; repo="$(repo_for_path "$path")"; url="$(subrepo_url "$path")"; dst="$STAGE_ROOT/$repo"
-  if gh repo view "$ORG/$repo" >/dev/null 2>&1; then warn "$ORG/$repo exists — pushing to it"
+  if gh repo view "$ORG/$repo" >/dev/null 2>&1; then warn "$ORG/$repo exists - pushing to it"
   else gh repo create "$ORG/$repo" --public -d "$(repo_description "$path")" >/dev/null; ok "created $ORG/$repo"; fi
   git -C "$dst" remote remove origin 2>/dev/null || true
   git -C "$dst" remote add origin "$url"
@@ -131,7 +131,7 @@ submodule_one() {
 # ---------------------------------------------------------------------------
 case "$MODE" in
   dry)
-    say "DRY RUN — nothing changes. Use --extract-only to inspect, --run to migrate."; echo
+    say "DRY RUN - nothing changes. Use --extract-only to inspect, --run to migrate."; echo
     for p in "${TARGETS[@]}"; do stage_one "$p"; echo; done
     say "--run would then:"
     info "capture working tree (WIP) → create+push ${#TARGETS[@]} repos → convert to submodules (preserving in-path gitignored files)"
@@ -140,7 +140,7 @@ case "$MODE" in
     ;;
 
   extract)
-    say "EXTRACT-ONLY — staging to $STAGE_ROOT (from HEAD; no GitHub, no changes)"; echo
+    say "EXTRACT-ONLY - staging to $STAGE_ROOT (from HEAD; no GitHub, no changes)"; echo
     mkdir -p "$STAGE_ROOT"
     for p in "${TARGETS[@]}"; do stage_one "$p"; echo; done
     say "Inspect:  git -C $STAGE_ROOT/<repo> ls-files | less"
@@ -152,7 +152,7 @@ case "$MODE" in
       [ "$DO_SNAP" = 1 ] && say "and REWRITE the parent history to a single commit (backup branch kept)."
       printf "Type 'migrate' to proceed: "; read -r ans; [ "$ans" = "migrate" ] || { warn "aborted"; exit 1; }
     fi
-    [ -e "$PREMIGRATE" ] && { err "$PREMIGRATE exists — clean it up first"; exit 1; }
+    [ -e "$PREMIGRATE" ] && { err "$PREMIGRATE exists - clean it up first"; exit 1; }
     mkdir -p "$STAGE_ROOT"
 
     say "0/4  Capture working tree as source"
@@ -167,12 +167,12 @@ case "$MODE" in
     say "3/4  Convert to submodules (preserving in-path gitignored files)"; echo
     for p in "${TARGETS[@]}"; do submodule_one "$p"; done
     rmdir "$PREMIGRATE" 2>/dev/null || rm -rf "$PREMIGRATE"
-    if [ -d "catalog/$MUSIC_REL" ]; then ok "catalog music preserved locally"; else warn "catalog music not found locally after restore — check!"; fi
+    if [ -d "catalog/$MUSIC_REL" ]; then ok "catalog music preserved locally"; else warn "catalog music not found locally after restore - check!"; fi
     echo
 
     if [ "$DO_SNAP" = 1 ]; then
       say "4/4  Snap parent to clean history"; echo
-      bash "$SUBREPO_DIR/snap-history.sh" -m "lolly monorepo — clean history (lolly-tools submodule split @ $HEAD_SHORT)"
+      bash "$SUBREPO_DIR/snap-history.sh" -m "lolly monorepo - clean history (lolly-tools submodule split @ $HEAD_SHORT)"
     else
       say "4/4  Stage parent commit (no snap)"
       git add -A

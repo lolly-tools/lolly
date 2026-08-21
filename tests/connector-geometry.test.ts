@@ -40,7 +40,7 @@ const PACK_MOUNTED = existsSync(SUSE_PACK);
 const SKIP_SUSE = !PACK_MOUNTED && 'SUSE brand pack not mounted (see profiles.json)';
 if (PACK_MOUNTED) {
   assert.ok(existsSync(HOOK_URL),
-    'brands/suse/tools/org-chart/hooks.js is missing — pack is mounted, so the tool was renamed or deleted');
+    'brands/suse/tools/org-chart/hooks.js is missing - pack is mounted, so the tool was renamed or deleted');
 }
 
 // A stacked pair (a above b) and a diagonal pair (a up-left of b), in native px.
@@ -120,7 +120,7 @@ test('the elbow fractions live in the engine, and ONLY in the engine', { skip: S
   }
   const hook = readFileSync(HOOK_URL, 'utf8');
   assert.doesNotMatch(hook, /elbowFrac|function waypoints\(/,
-    'org-chart/hooks.js must not route on its own — that is host.connectors.build');
+    'org-chart/hooks.js must not route on its own - that is host.connectors.build');
 });
 
 // ── Arc family (a sampled quadratic bow; the render draws a real Q) ────────────
@@ -181,7 +181,7 @@ test('edgeArrowHead: open is two round-capped chevron lines meeting at the tip',
 test('edgeArrowHead: circle is a filled 4-cubic path, closed', () => {
   const out = edgeArrowHead(TIP, 1, 0, 10, '#30ba78', 'circle');
   assert.match(out, /^<path d="M[^"]*Z" fill="#30ba78"\/>$/, 'one closed filled path');
-  assert.equal((out.match(/C/g) || []).length, 4, 'four cubic segments — never <circle>/<ellipse>');
+  assert.equal((out.match(/C/g) || []).length, 4, 'four cubic segments - never <circle>/<ellipse>');
 });
 
 test('edgeArrowHead: none draws nothing', () => {
@@ -299,7 +299,7 @@ test('pathHeadSvg: an angle drives the same shapes as the unit-vector form', () 
   }
 });
 
-test('pathHeadSvg: golden — a tip at the origin pointing +x matches the connector head', () => {
+test('pathHeadSvg: golden - a tip at the origin pointing +x matches the connector head', () => {
   // Same numbers as the edgeArrowHead goldens above, reached through the path surface:
   // width 2.5 → size max(9, 10) = 10.
   assert.equal(pathHeadSvg({ tipX: 0, tipY: 0, angle: 0, head: 'triangle', color: '#30ba78', width: 2.5 }),
@@ -560,5 +560,5 @@ test('design: a dangling binding draws nothing rather than guessing', async () =
   const { html, layer } = await layoutStudio([card('a', 80, 80), lineBox({ bindStart: 'a', bindEnd: 'gone' })]);
   assert.equal(layer, '<svg class="lolly-connectors" width="1080" height="1080" viewBox="0 0 1080 1080" preserveAspectRatio="none" aria-hidden="true"></svg>',
     'an empty layer, not a line to nowhere');
-  assert.doesNotMatch(html, /class="lolly-box-path"/, 'and the box does not draw it either — it IS bound');
+  assert.doesNotMatch(html, /class="lolly-box-path"/, 'and the box does not draw it either - it IS bound');
 });

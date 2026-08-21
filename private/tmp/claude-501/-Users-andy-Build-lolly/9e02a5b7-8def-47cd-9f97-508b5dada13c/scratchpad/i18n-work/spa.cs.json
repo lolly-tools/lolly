@@ -1,7 +1,7 @@
 {
   "corpus": "spa",
   "lang": "cs",
-  "brief": "Translate the given UI strings from English into cs for a software product.\nThese are short UI microcopy strings — button labels, headings, aria-labels, and one-line descriptions — in a design-tool web app called Lolly. Keep them as short as the source; this is UI chrome, not prose.\nRegister: neutral-informal (tykání, not vykání).\nNever translate these terms — copy them verbatim wherever they appear: \"Lolly\", \"SUSE\", \"Geeko\", \"Content Credentials\", \"C2PA\", \"Pose Geeko\", \"Neurospicy\".\nPreserve every {placeholder} token exactly (same braces, same name, same count) — these are runtime interpolations, not prose.\nPreserve any inline HTML exactly: the same tags, the same count, every attribute (href, target, rel) byte-for-byte, and every HTML entity (&amp;, &lt;). Translate only the human text around and between the tags — never a tag name, an attribute value, or the contents of a <code> element.\nPreserve punctuation choices like → and & as-is where they read naturally in the target language; do not add explanatory text.\nMatch the source length and register. Do not pad or embellish.\nUse a plain hyphen \"-\" for parenthetical dashes. Never use an em-dash or a spaced en-dash: they read as machine-written in this language. An UNSPACED en-dash inside a numeric or alphabetic range (0-1, A-Z) is correct and must be preserved as-is.\nNo Oxford comma before the final conjunction in a list. A comma before a conjunction that joins two main clauses is still correct - only the list-final one is wrong.\nReturn ONLY the JSON matching the given schema — one translation per input id, in the same order.",
+  "brief": "Translate the given UI strings from English into cs for a software product.\nThese are short UI microcopy strings - button labels, headings, aria-labels, and one-line descriptions - in a design-tool web app called Lolly. Keep them as short as the source; this is UI chrome, not prose.\nRegister: neutral-informal (tykání, not vykání).\nNever translate these terms - copy them verbatim wherever they appear: \"Lolly\", \"SUSE\", \"Geeko\", \"Content Credentials\", \"C2PA\", \"Pose Geeko\", \"Neurospicy\".\nPreserve every {placeholder} token exactly (same braces, same name, same count) - these are runtime interpolations, not prose.\nPreserve any inline HTML exactly: the same tags, the same count, every attribute (href, target, rel) byte-for-byte, and every HTML entity (&amp;, &lt;). Translate only the human text around and between the tags - never a tag name, an attribute value, or the contents of a <code> element.\nPreserve punctuation choices like → and & as-is where they read naturally in the target language; do not add explanatory text.\nMatch the source length and register. Do not pad or embellish.\nUse a plain hyphen \"-\" for parenthetical dashes. Never use an em-dash or a spaced en-dash: they read as machine-written in this language. An UNSPACED en-dash inside a numeric or alphabetic range (0-1, A-Z) is correct and must be preserved as-is.\nNo Oxford comma before the final conjunction in a list. A comma before a conjunction that joins two main clauses is still correct - only the list-final one is wrong.\nReturn ONLY the JSON matching the given schema - one translation per input id, in the same order.",
   "items": [
     {
       "id": 61,
@@ -81,7 +81,7 @@
     },
     {
       "id": 750,
-      "text": "Flatten — layers only"
+      "text": "Flatten - layers only"
     },
     {
       "id": 841,
@@ -101,11 +101,11 @@
     },
     {
       "id": 962,
-      "text": "Live samples of the shell’s components — common primitives first, then by view. Full inventory and unification notes: plans/76-component-audit.md."
+      "text": "Live samples of the shell’s components - common primitives first, then by view. Full inventory and unification notes: plans/76-component-audit.md."
     },
     {
       "id": 1094,
-      "text": "No download — this runs instantly on-device."
+      "text": "No download - this runs instantly on-device."
     },
     {
       "id": 1102,
@@ -129,7 +129,7 @@
     },
     {
       "id": 1270,
-      "text": "Pointing at another Lolly instance needs the desktop app — a browser blocks a page from loading tools and assets across origins."
+      "text": "Pointing at another Lolly instance needs the desktop app - a browser blocks a page from loading tools and assets across origins."
     },
     {
       "id": 1302,
@@ -177,7 +177,7 @@
     },
     {
       "id": 1723,
-      "text": "The 2026-07 component audit is executed — the primitives below are what it produced. Per-recommendation history and each deliberate exception: plans/76-component-audit.md. Not yet done:"
+      "text": "The 2026-07 component audit is executed - the primitives below are what it produced. Per-recommendation history and each deliberate exception: plans/76-component-audit.md. Not yet done:"
     },
     {
       "id": 1752,
@@ -205,7 +205,7 @@
     },
     {
       "id": 1836,
-      "text": "This model is already downloaded — it runs on-device and your image is never uploaded."
+      "text": "This model is already downloaded - it runs on-device and your image is never uploaded."
     },
     {
       "id": 1922,
@@ -245,7 +245,7 @@
     },
     {
       "id": 1956,
-      "text": "Using the general model for now — a line-art model is on the way."
+      "text": "Using the general model for now - a line-art model is on the way."
     },
     {
       "id": 2001,

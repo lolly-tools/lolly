@@ -78,7 +78,7 @@ test('kitchen sink: the archive is a Penpot 2.17.1-RC4 export declaring the feat
   // `thumbnails/component/**` pointers reference - restored when the templates
   // pass started reading them, so that path is exercised by a committed fixture
   // and not only by the gated keynote replay.
-  assert.equal(paths.length, 60, 'entry count — a re-export that changes this needs re-reading');
+  assert.equal(paths.length, 60, 'entry count - a re-export that changes this needs re-reading');
   assert.equal(shapes.length, 34, 'page shapes (incl. the root frame)');
   assert.equal(paths.filter(p => /\/components\/[^/]+\.json$/.test(p)).length, 2, 'two component records');
   assert.equal(paths.filter(p => /\/tokens\.json$/.test(p)).length, 1, 'one in-file token doc');
@@ -92,7 +92,7 @@ test('kitchen sink: backgroundBlur is its own 4-key attribute, and the legacy in
     type: 'background-blur',
     value: 20,
     hidden: false,
-  }, 'exactly {id,type,value,hidden} — the inferred shape, observed');
+  }, 'exactly {id,type,value,hidden} - the inferred shape, observed');
 
   const withBg = shapes.filter(s => s.backgroundBlur);
   assert.deepEqual(
@@ -173,7 +173,7 @@ test('kitchen sink: strokeDash/strokeGap are camelCase numbers on the strokes[] 
     strokeWidth: 3,
     strokeDash: 6,
     strokeGap: 3,
-  }], 'the literal serialization — camelCase keys, numeric values, no wrapper');
+  }], 'the literal serialization - camelCase keys, numeric values, no wrapper');
 
   const st = byName('dashed 12-4 inner').strokes[0];
   assert.equal(st.strokeDash, 12);
@@ -258,7 +258,7 @@ test('kitchen sink: authored dash/gap land in DesignNode strokeDashLen/strokeGap
 test('kitchen sink: the in-file tokens.json is a Tokens-Studio doc with an EMPTY $themes beside a real set', () => {
   const doc = readJson('files/ddb7145f-a1be-80bb-8008-69139da641d1/tokens.json');
   assert.deepEqual(Object.keys(doc), ['Global', '$themes', '$metadata']);
-  assert.deepEqual(doc.$themes, [], 'no theme was authored — Penpot still writes the key, empty');
+  assert.deepEqual(doc.$themes, [], 'no theme was authored - Penpot still writes the key, empty');
   assert.deepEqual(doc.$metadata, {
     tokenSetOrder: ['Global'],
     activeThemes: [],
@@ -276,7 +276,7 @@ test('kitchen sink: the in-file tokens.json is a Tokens-Studio doc with an EMPTY
   });
 });
 
-test('kitchen sink: a themeless Penpot doc is still LAYERED — set names must not become path prefixes', () => {
+test('kitchen sink: a themeless Penpot doc is still LAYERED - set names must not become path prefixes', () => {
   // THE MISMATCH THIS FIXTURE FOUND. Set detection used to be "$themes is
   // non-empty", so "Global" read as a GROUP and every token flattened to
   // `Global.brand.primary` - which no longer joined to the `brand.primary` that
@@ -324,7 +324,7 @@ test('kitchen sink: appliedTokens names bare dotted token paths, and the census 
     { name: 'type.brand', fills: 0, strokes: 0, text: 0, type: 1, geometry: 0, total: 1 },
   ]);
   // 7 fills but only 4 + 3 counted as `fills`: the eighth ref is the fontFamily,
-  // and the text shape's own fill ref would have counted as `text` — the file has
+  // and the text shape's own fill ref would have counted as `text` - the file has
   // none, which is why `text` is 0 everywhere.
 });
 
@@ -357,7 +357,7 @@ test('kitchen sink: the token-first ingest path proposes roles from the designer
 
 // ── (d) prototype interaction ────────────────────────────────────────────────
 
-test('kitchen sink: the prototype interaction shape is pinned (read-only — nothing consumes it yet)', () => {
+test('kitchen sink: the prototype interaction shape is pinned (read-only - nothing consumes it yet)', () => {
   const withInteractions = shapes.filter(s => Array.isArray(s.interactions) && s.interactions.length);
   assert.equal(withInteractions.length, 1);
   const src = withInteractions[0]!;
@@ -400,7 +400,7 @@ test('kitchen sink: a variant set is a container frame plus ONE component record
   assert.ok(container, 'the variant set is marked with isVariantContainer on the wrapper frame');
   assert.equal(container.type, 'frame');
   assert.equal(container.layout, 'flex', 'Penpot lays a variant set out as a flex frame');
-  assert.equal(container.variantId, undefined, 'the CONTAINER carries no variantId — its children do');
+  assert.equal(container.variantId, undefined, 'the CONTAINER carries no variantId - its children do');
   assert.equal(container.shapes.length, 2);
 
   // Each variant's main instance is a componentRoot frame pointing back at the
@@ -584,7 +584,7 @@ test('kitchen sink: the authored flow drives scene order, and the dissolve becom
   const rev = penpotFlowOrder([...spatial].reverse().map((b: any) => String(b.id)), byId, page);
   assert.deepEqual(names(rev.ordered).slice(0, 2), ['effects', 'strokes']);
   assert.deepEqual(names(rev.ordered).slice(2), ['radii 4-8-16-32', 'radii 4-8-16-32', 'geometry'],
-    'the unreached remainder keeps the order it was handed — reversed in, reversed out');
+    'the unreached remainder keeps the order it was handed - reversed in, reversed out');
 });
 
 test('kitchen sink: with the interactions stripped, ordering falls back byte-identically to reading order', () => {
@@ -595,7 +595,7 @@ test('kitchen sink: with the interactions stripped, ordering falls back byte-ide
   for (const [id, s] of Object.entries(byId)) { const { interactions, ...rest } = s; stripped[id] = rest; }
   const ids = (root.shapes as string[]).filter(id => byId[id] && byId[id].type === 'frame');
   const flow = penpotFlowOrder(ids, stripped, null);
-  assert.equal(flow.hasFlow, false, 'this is the keynote case — zero interactions');
+  assert.equal(flow.hasFlow, false, 'this is the keynote case - zero interactions');
   assert.deepEqual(flow.ordered, ids, 'the input order comes back untouched');
   assert.deepEqual(flow.transitions, {});
 });

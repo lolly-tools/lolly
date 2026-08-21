@@ -62,7 +62,7 @@ function mapOf(rel: string): Record<string, unknown> {
 
 test('every collab module still exports a sliceable STRINGS map', () => {
   for (const rel of MODULES) {
-    assert.ok(existsSync(join(WEB_SRC, rel)), `${rel} is missing — its copy would ship untranslated`);
+    assert.ok(existsSync(join(WEB_SRC, rel)), `${rel} is missing - its copy would ship untranslated`);
     const strings = leaves(mapOf(rel));
     assert.ok(strings.length > 0, `${rel}: STRINGS sliced empty`);
     for (const s of strings) assert.ok(s.trim() !== '', `${rel}: an empty string is not copy`);
@@ -73,7 +73,7 @@ test('the corpus extracts every string from all eight maps, and nothing else', (
   const expected = [...new Set(MODULES.flatMap((rel) => leaves(mapOf(rel))))];
   const actual = extractCollabKeys();
   assert.deepEqual(actual, expected, 'extractCollabKeys drifted from the maps it is supposed to read');
-  assert.ok(actual.length > 150, `only ${actual.length} keys — a map was dropped from COLLAB_SOURCES`);
+  assert.ok(actual.length > 150, `only ${actual.length} keys - a map was dropped from COLLAB_SOURCES`);
 });
 
 test('the extractor throws loudly when a map is renamed, rather than shrinking silently', () => {

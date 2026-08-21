@@ -1435,7 +1435,7 @@ function stripHtmlC2paCarriers(bin: string): string {
         // section A.7.1.4 reads this document as truncated; a writer that guessed where
         // the element ended would either destroy content or leave a second
         // association behind. Refuse, and say which.
-        if (cutEnd < 0) throw new Error('C2PA embed: the HTML host has an unterminated <script type="application/c2pa"> element — it looks truncated');
+        if (cutEnd < 0) throw new Error('C2PA embed: the HTML host has an unterminated <script type="application/c2pa"> element - it looks truncated');
       }
     } else if ((attrs.get('rel') ?? '').trim().toLowerCase().split(/\s+/).includes('c2pa-manifest')) {
       cutEnd = end;
@@ -1568,10 +1568,10 @@ function stripArmorBlock(bin: string, label: string): string {
   const begin = begins[0]!;
   const end = ends[0]!;
   if (begins.length !== 1 || ends.length !== 1 || end < begin + ARMOR_BEGIN.length) {
-    throw new Error(`C2PA embed: this ${label} already carries more than one — or a malformed — C2PA manifest block (section A.9.3 allows at most one)`);
+    throw new Error(`C2PA embed: this ${label} already carries more than one - or a malformed - C2PA manifest block (section A.9.3 allows at most one)`);
   }
   const refuse = (what: string): never => {
-    throw new Error(`C2PA embed: this ${label} quotes the section A.9 armour delimiters ${what} — refusing to delete it, and a second block would make the file unreadable`);
+    throw new Error(`C2PA embed: this ${label} quotes the section A.9 armour delimiters ${what} - refusing to delete it, and a second block would make the file unreadable`);
   };
   const lineStart = bin.lastIndexOf('\n', begin) + 1;
   const nl = bin.indexOf('\n', end);
@@ -1611,7 +1611,7 @@ function stripArmorBlock(bin: string, label: string): string {
 function placeArmor(bytes: Uint8Array, manifest: Uint8Array, syntax: ArmorSyntax): PlaceResult {
   const bin = bytesToBin(bytes);
   if (/\r(?!\n)/.test(bin)) {
-    throw new Error(`C2PA embed: this ${syntax.label} uses bare CR line endings, which section A.9.4 does not support — convert it to LF or CRLF first`);
+    throw new Error(`C2PA embed: this ${syntax.label} uses bare CR line endings, which section A.9.4 does not support - convert it to LF or CRLF first`);
   }
   const base = stripArmorBlock(bin, syntax.label);
   // An empty host would put the block at BOTH the start and the end of the file,
@@ -1619,7 +1619,7 @@ function placeArmor(bytes: Uint8Array, manifest: Uint8Array, syntax: ArmorSyntax
   // {0, whole file}, i.e. a hard binding whose hash covers no content at all and
   // therefore matches every other such file. Refuse rather than mint one.
   if (!base.trim()) {
-    throw new Error(`C2PA embed: refusing to place a manifest block in an empty ${syntax.label} — the exclusion would cover the whole file and the hard binding would bind nothing`);
+    throw new Error(`C2PA embed: refusing to place a manifest block in an empty ${syntax.label} - the exclusion would cover the whole file and the hard binding would bind nothing`);
   }
   const eol = bin.includes('\r\n') && !/(^|[^\r])\n/.test(bin) ? '\r\n' : '\n';
   // Whether the terminator before the block is the HOST's or one this placer had

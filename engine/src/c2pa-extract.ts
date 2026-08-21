@@ -1244,7 +1244,7 @@ function readHtml(bytes: Uint8Array): TextRead {
     return {
       store: null,
       status: C2PA_TEXT_STATUS.htmlUnterminatedScript,
-      fatal: '<script type="application/c2pa"> has no closing tag — the document looks truncated',
+      fatal: '<script type="application/c2pa"> has no closing tag - the document looks truncated',
     };
   }
   // section A.7.1.3: ONE exclusion covering the entire element, `<script` through

@@ -248,8 +248,8 @@ function assertMinkowski(src: GeomPath, d: number, label: string, band = 0.05, s
       }
     }
   }
-  assert.ok(tested > 200, `${label}: only ${tested} points classified — the grid missed the shape`);
-  assert.equal(wrong.length, 0, `${label}: ${wrong.length}+ points on the wrong side —${wrong.join(';')}`);
+  assert.ok(tested > 200, `${label}: only ${tested} points classified - the grid missed the shape`);
+  assert.equal(wrong.length, 0, `${label}: ${wrong.length}+ points on the wrong side -${wrong.join(';')}`);
 }
 
 // ── oracle 2: the residual an offset is defined by ────────────────────────────
@@ -372,7 +372,7 @@ test('offsetCubic honours a tighter tolerance rather than just cutting more piec
   assert.ok(tight <= 0.0001, `tight fit missed by ${tight}`);
 });
 
-test('offsetCubic keeps the piece count proportional — one curve does not become a polyline', () => {
+test('offsetCubic keeps the piece count proportional - one curve does not become a polyline', () => {
   // The failure this module exists to prevent. A subdivider with no error feedback
   // emits hundreds of pieces; these numbers leave room for the curvature-feature split
   // (four pieces on an S) without leaving room for flattening.
@@ -634,7 +634,7 @@ test('a four-curve circle offsets to a handful of curves, not to a polyline', ()
   assert.ok(curveCount(coarse) <= curveCount(fine), 'a looser tolerance must not cost more curves');
 });
 
-test('a smooth contour gets no joins at all — the pieces already meet', () => {
+test('a smooth contour gets no joins at all - the pieces already meet', () => {
   // The shared-endpoint trap, in its offset form. Consecutive curves of a circle are
   // tangent-continuous, so their offsets meet exactly and nothing may be inserted
   // between them. A join wedged in at every source vertex would still chain, still be
@@ -646,7 +646,7 @@ test('a smooth contour gets no joins at all — the pieces already meet', () => 
     const out = offsetContour(src, d, { tol: 0.01 });
     assert.equal(out.length, 1);
     assert.equal(curveCount(out), pieces,
-      `d=${d}: ${curveCount(out)} curves for ${pieces} offset pieces — joins were inserted at a smooth vertex`);
+      `d=${d}: ${curveCount(out)} curves for ${pieces} offset pieces - joins were inserted at a smooth vertex`);
   }
 });
 
@@ -903,7 +903,7 @@ test('offsetting commutes with rotation, on every shape and both signs', () => {
         const offsetThenRotated = rotatePath(base, a);
         const label = `${name} d=${d} at ${deg}°`;
         assert.equal(rotatedThenOffset.length, offsetThenRotated.length, `${label}: contour count`);
-        assert.ok(rotatedThenOffset.length > 0, `${label}: came back EMPTY — the defect exactly`);
+        assert.ok(rotatedThenOffset.length > 0, `${label}: came back EMPTY - the defect exactly`);
         near(pathArea(rotatedThenOffset), baseArea, Math.abs(baseArea) * 1e-4, `${label}: area`);
         // 0.02 is twice the offsetter's own default fitting tolerance of 0.01, so this is
         // "the two agree to the accuracy either was promised", not a slackened bound. The
@@ -1040,7 +1040,7 @@ test('a cusp inside one cubic is joined, not cut across', () => {
       }
     }
     near(nearest, Math.abs(d), 2e-3, `d=${d}: the outline reaches ${nearest} from the cusp`);
-    assert.ok(apex <= 2e-3, `d=${d}: nothing arcs over the cusp — the cap is ${apex} short`);
+    assert.ok(apex <= 2e-3, `d=${d}: nothing arcs over the cusp - the cap is ${apex} short`);
   }
 
   // On the convex side the offset does not fold, so the full residual still has to hold

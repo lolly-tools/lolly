@@ -27,18 +27,18 @@ test('a LONE "Assistant:" line (a human credits list) is never stripped', () => 
 });
 
 test('removes invisible/zero-width characters but keeps emoji joiners', () => {
-  const r = humanizeText('hi​there 👩‍💻 done'); // ZWSP after "hi"; ZWJ inside the emoji
-  assert.ok(!/​/.test(r.text), 'zero-width space removed');
-  assert.ok(r.text.includes('‍'), 'emoji ZWJ preserved');
+  const r = humanizeText('hi\u200bthere \u{1F469}\u200d\u{1F4BB} done'); // ZWSP after "hi"; ZWJ inside the emoji
+  assert.ok(!/\u200b/.test(r.text), 'zero-width space removed');
+  assert.ok(r.text.includes('\u200d'), 'emoji ZWJ preserved');
 });
 
 test('normalises typography to house style', () => {
-  const r = humanizeText('He said “hello” — it’s fine… really.');
+  const r = humanizeText('He said \u201chello\u201d \u2014 it\u2019s fine\u2026 really.');
   assert.equal(r.text, 'He said "hello" - it\'s fine... really.');
 });
 
 test('keeps a numeric en-dash range, tidies a word en-dash', () => {
-  const r = humanizeText('pages 3–5 of the book – the good part');
+  const r = humanizeText('pages 3\u20135 of the book \u2013 the good part');
   assert.match(r.text, /pages 3–5/);      // numeric range preserved
   assert.match(r.text, /book - the good/); // word en-dash tidied
 });

@@ -47,7 +47,7 @@ function buildCard(toolId: string): void {
   const res = spawnSync('node', ['shells/cli/bin/lolly.ts', toolId, '--export=html'], {
     cwd: ROOT, encoding: 'utf8', maxBuffer: 32 * 1024 * 1024,
   });
-  if (res.status !== 0) throw new Error(`${toolId}: CLI html export failed — ${(res.stderr || '').split('\n')[0]}`);
+  if (res.status !== 0) throw new Error(`${toolId}: CLI html export failed - ${(res.stderr || '').split('\n')[0]}`);
   const body = res.stdout.trim();
   if (!body || !body.includes('<')) throw new Error(`${toolId}: CLI produced no HTML`);
 

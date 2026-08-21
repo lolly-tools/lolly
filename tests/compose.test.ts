@@ -183,7 +183,7 @@ function chainHost(tools: Record<string, any>, MAX = 3) {
   return { host, calls, rendered };
 }
 
-test('compose: nesting works to MAX depth (A→B→C); the level past it is rejected — no stack double-count', async () => {
+test('compose: nesting works to MAX depth (A→B→C); the level past it is rejected - no stack double-count', async () => {
   const tools = { A: chainTool('A', 'B'), B: chainTool('B', 'C'), C: chainTool('C', 'D'), D: chainTool('D', null) };
   const { host, calls, rendered } = chainHost(tools, 3);
   const rt = await createRuntime(tools.A, host, {});

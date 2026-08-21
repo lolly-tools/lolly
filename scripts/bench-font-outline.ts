@@ -92,7 +92,7 @@ const FONT_CASES: FontCase[] = [
 const PARAGRAPH =
   'Lolly generates on-brand creative assets from simple inputs: one engine, many shells, ' +
   'tools as data. Constraint-first means the template carries the design and the person ' +
-  'carries the message — QR codes, quote cards, signage, charts, badges and decks that ' +
+  'carries the message - QR codes, quote cards, signage, charts, badges and decks that ' +
   'ship correct the first time, in the brand, without a designer in the loop. 0123456789.';
 
 const CORPORA: Array<{ id: string; label: string; text: string }> = [
@@ -100,7 +100,7 @@ const CORPORA: Array<{ id: string; label: string; text: string }> = [
   {
     id: 'pangram',
     label: 'pangram + figures (68 ch)',
-    text: 'The quick brown fox jumps over the lazy dog — fi ffl AVATAR 0123456789.',
+    text: 'The quick brown fox jumps over the lazy dog - fi ffl AVATAR 0123456789.',
   },
   { id: 'paragraph', label: `paragraph (${PARAGRAPH.length} ch)`, text: PARAGRAPH },
   { id: 'long', label: `long run (${PARAGRAPH.length * 20} ch)`, text: PARAGRAPH.repeat(20) },
@@ -133,13 +133,13 @@ const report: Record<string, unknown> = {
 
 const fonts = FONT_CASES.filter((f) => existsSync(f.disk));
 const skipped = FONT_CASES.filter((f) => !existsSync(f.disk));
-for (const f of skipped) console.log(`skip: ${f.label} — ${f.disk} not mounted`);
+for (const f of skipped) console.log(`skip: ${f.label} - ${f.disk} not mounted`);
 if (!fonts.length) {
-  console.error('No benchmark fonts found — is this a full checkout?');
+  console.error('No benchmark fonts found - is this a full checkout?');
   process.exit(1);
 }
 
-console.log(`\n## Current method — HarfBuzz WASM toPath (${ITERS} warm iters, Node ${process.version})\n`);
+console.log(`\n## Current method - HarfBuzz WASM toPath (${ITERS} warm iters, Node ${process.version})\n`);
 console.log('| font | corpus | cold ms | warm med | warm p95 | kchars/s | path bytes | notdef |');
 console.log('|---|---|---|---|---|---|---|---|');
 
@@ -191,12 +191,12 @@ for (const font of fonts) {
 const skeraBin = findSkera();
 if (!skeraBin) {
   console.log(
-    '\nskera stage skipped — no binary found. Install with `cargo install skera --features cli` ' +
+    '\nskera stage skipped - no binary found. Install with `cargo install skera --features cli` ' +
       'or set SKERA_BIN, then re-run for the subset quality/perf comparison.',
   );
 } else {
   const version = skeraVersion(skeraBin);
-  console.log(`\n## skera stage — ${version} (${skeraBin})\n`);
+  console.log(`\n## skera stage - ${version} (${skeraBin})\n`);
   console.log('| font | corpus | subset ms | original | subset | parity (default) | parity (wght=700) |');
   console.log('|---|---|---|---|---|---|---|');
   const skeraRows: Record<string, unknown>[] = [];

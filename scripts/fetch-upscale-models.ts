@@ -124,7 +124,7 @@ const PINS: Record<string, Pin> = {
     sha256: PLACEHOLDER,
     bytes: null,
     license: 'BSD-3-Clause',
-    source: 'https://github.com/xinntao/Real-ESRGAN — no verified ONNX export located yet',
+    source: 'https://github.com/xinntao/Real-ESRGAN - no verified ONNX export located yet',
     copyright: 'Copyright (c) 2021, Xintao Wang and contributors (xinntao/Real-ESRGAN)',
     note: 'TODO(andy): needs a real ONNX conversion + hand-verified pin before this can ship.',
   },
@@ -156,7 +156,7 @@ const PINS: Record<string, Pin> = {
     source: 'https://github.com/google/mediapipe (BlazeFace, upstream TFLite); ONNX conversion re-hosted at https://huggingface.co/garavv/blazeface-onnx',
     copyright: 'Copyright 2020 Google LLC (MediaPipe / BlazeFace)',
     optional: true,
-    note: 'Best-effort — GFPGAN alignment falls back to a center crop when this file is absent.',
+    note: 'Best-effort - GFPGAN alignment falls back to a center crop when this file is absent.',
   },
 };
 
@@ -194,7 +194,7 @@ async function fetchFile(relPath: string): Promise<'saved' | 'cached' | 'skipped
 
   if (!refreshPins && pin.sha256 === PLACEHOLDER) {
     process.stdout.write(
-      `  ${relPath}: SKIPPED — no verified pin yet (${pin.note ?? 'placeholder'}). ` +
+      `  ${relPath}: SKIPPED - no verified pin yet (${pin.note ?? 'placeholder'}). ` +
       `Run --refresh-pins to fetch a candidate, then hand-verify before pasting a real pin over PINS.\n`,
     );
     return 'skipped';
@@ -230,8 +230,8 @@ async function fetchFile(relPath: string): Promise<'saved' | 'cached' | 'skipped
     process.stdout.write(
       `  '${relPath}': { url: '${pin.url}', sha256: '${sha256(bytes)}', bytes: ${bytes.byteLength}, ` +
       `license: '${pin.license}', source: '${pin.source}', copyright: '${pin.copyright}' },\n` +
-      `  staged candidate → ${stagePath} (${bytes.byteLength} bytes, ${mb} MB) — NOT written to the live ${relPath}\n` +
-      (looksOnnx ? '' : `  ⚠ these bytes do NOT look like a single-file ONNX (magic bytes suggest a .pth/.zip) — convert before pinning\n`) +
+      `  staged candidate → ${stagePath} (${bytes.byteLength} bytes, ${mb} MB) - NOT written to the live ${relPath}\n` +
+      (looksOnnx ? '' : `  ⚠ these bytes do NOT look like a single-file ONNX (magic bytes suggest a .pth/.zip) - convert before pinning\n`) +
       `  ⚠ RE-VERIFY the mirror's repo card against the upstream license before trusting this pin ` +
       `(see the HuggingFace community-upload caveat in this script's header).\n`,
     );
@@ -259,11 +259,11 @@ function sniffOnnx(bytes: Uint8Array): boolean {
 
 function writeCredits(vendored: string[]): void {
   const lines: string[] = [
-    'Lolly — vendored upscale/restore ONNX models',
+    'Lolly - vendored upscale/restore ONNX models',
     '==============================================',
     '',
     'These model files are not source code and are not covered by this repo\'s',
-    'own MPL-2.0 licensing — each carries the license of its own upstream',
+    'own MPL-2.0 licensing - each carries the license of its own upstream',
     'project, recorded below. See scripts/fetch-upscale-models.ts for the full',
     'HuggingFace community-upload caveat: the license below is the UPSTREAM',
     'project\'s license, verified against its own repo, not necessarily the',
@@ -295,7 +295,7 @@ async function main(): Promise<void> {
   });
 
   if (refreshPins) {
-    process.stdout.write('--refresh-pins: downloading fresh copies and printing new pin lines — paste them over PINS.\n');
+    process.stdout.write('--refresh-pins: downloading fresh copies and printing new pin lines - paste them over PINS.\n');
   }
 
   const vendored: string[] = [];
@@ -307,7 +307,7 @@ async function main(): Promise<void> {
       else skipped.push(relPath);
     } catch (err) {
       if (PINS[relPath]?.optional) {
-        process.stdout.write(`  ${relPath}: OPTIONAL fetch failed (${(err as Error).message}) — continuing without it.\n`);
+        process.stdout.write(`  ${relPath}: OPTIONAL fetch failed (${(err as Error).message}) - continuing without it.\n`);
         skipped.push(relPath);
         continue;
       }
@@ -328,7 +328,7 @@ async function main(): Promise<void> {
   }
 
   process.stdout.write(
-    '\nDone. These files are gitignored (shells/web/.gitignore) — never commit them.\n' +
+    '\nDone. These files are gitignored (shells/web/.gitignore) - never commit them.\n' +
     (refreshPins
       ? 'Paste the printed pin lines over PINS after hand-verifying each against its upstream license.\n'
       : 'The upscale worker loads them from /models/upscale/ by the exact filenames above.\n'),

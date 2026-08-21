@@ -1,5 +1,5 @@
 {
-  "//": "Typechecks the state logic BOTH Tauri shells share (bridge-overrides/state-fs.ts). Lives in the parent repo, so this config runs on every clone — unlike the two per-shell configs, which need that shell's own node_modules for @tauri-apps types (see scripts/typecheck-tauri.ts). lib/types mirror shells/web: this module runs in a webview and uses Blob.",
+  "//": "Typechecks the state logic BOTH Tauri shells share (bridge-overrides/state-fs.ts). Lives in the parent repo, so this config runs on every clone - unlike the two per-shell configs, which need that shell's own node_modules for @tauri-apps types (see scripts/typecheck-tauri.ts). lib/types mirror shells/web: this module runs in a webview and uses Blob.",
   "extends": "../../tsconfig.base.json",
   "compilerOptions": {
     "lib": ["ES2023", "DOM", "DOM.Iterable"],

@@ -152,13 +152,13 @@ export function buildXmpApp1(packet: string): Uint8Array {
   if (!seg) {
     throw new Error(
       `gainmap-jpeg: XMP packet is ${body.length} bytes, past the ${XMP_APP1_MAX}-byte single-segment limit; ` +
-      'the extended-XMP GUID chain is not implemented (see buildXmpApp1) — refusing rather than truncating.',
+      'the extended-XMP GUID chain is not implemented (see buildXmpApp1) - refusing rather than truncating.',
     );
   }
   return seg;
 }
 
-const XPACKET_HEAD = '<?xpacket begin="﻿" id="W5M0MpCehiHzreSzNTczkc9d"?>';
+const XPACKET_HEAD = '<?xpacket begin="" id="W5M0MpCehiHzreSzNTczkc9d"?>';
 const XPACKET_TAIL = '<?xpacket end="w"?>';
 
 /**

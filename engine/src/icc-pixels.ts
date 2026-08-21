@@ -375,14 +375,14 @@ export function iccFrameRefusal(frame: DeepFrame, direction: IccDirection): stri
   if (direction !== 'toPcs' && direction !== 'fromPcs') return `unknown direction: ${String(direction)}`;
   if (direction === 'toPcs') {
     if (deviceInputOk(frame)) return null;
-    return `toPcs needs ENCODED device channels, but this frame is tagged '${String(frame.space)}' — a colorimetric `
+    return `toPcs needs ENCODED device channels, but this frame is tagged '${String(frame.space)}' - a colorimetric `
       + 'space (linear light, or the PCS itself), whose channels are not this profile\'s device values. '
       + `Tag a genuine device frame with ICC_DEVICE_SPACE ('${String(ICC_DEVICE_SPACE)}'); to transform `
       + "colorimetric pixels, run the profile's other half with direction 'fromPcs' instead.";
   }
   if (pcsInputOk(frame)) return null;
   return `fromPcs needs a colorimetric frame (a real PixelSpace), but this frame is tagged '${String(frame.space)}' `
-    + "— device channels carry no colorimetry on their own. Run direction 'toPcs' with their profile first.";
+    + "- device channels carry no colorimetry on their own. Run direction 'toPcs' with their profile first.";
 }
 
 // ─── the transforms ───────────────────────────────────────────────────────────

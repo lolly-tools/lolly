@@ -127,7 +127,7 @@ for (const n of SIZES) {
 const f = (x: number, d = 1) => x.toFixed(d);
 const pad = (s: string, w: number) => s.padStart(w);
 
-console.log(`\ncanvas perf baseline — ${ITERS} iters, ${QUERIES} pointer events/run  (node ${process.version})\n`);
+console.log(`\ncanvas perf baseline - ${ITERS} iters, ${QUERIES} pointer events/run  (node ${process.version})\n`);
 console.log('              hit-test (per pointer event)      │  per-edit cost                     │');
 console.log('  boxes │   linear     grid    speedup  build   │  re-marshal floor   damage detect  │ marquee L→G');
 console.log('  ──────┼─────────────────────────────────────────┼────────────────────────────────────┼────────────');
@@ -142,9 +142,9 @@ for (const r of rows) {
 // Interpretation against a 60fps (16.7ms) frame budget.
 const worst = rows[rows.length - 1]!;
 console.log('\ninterpretation (largest fixture, 20k boxes):');
-console.log(`  • HIT-TEST: linear is ${f(worst.hitLinearNs / 1000, 1)}µs/event and grows with the document; the grid holds ${f(worst.hitGridNs, 0)}ns (${f(worst.hitLinearNs / worst.hitGridNs, 0)}× less) — picking stops scaling with box count. Grid (re)build is ${f(worst.gridBuildMs, 1)}ms, done once per geometry-damage batch, not per event.`);
-console.log(`  • PER-EDIT: today every change re-marshals + re-renders ALL ${worst.n} boxes. Just the re-marshal FLOOR is ${f(worst.reserializeMs, 2)}ms (${f((worst.reserializeMs / 16.7) * 100, 0)}% of a 16.7ms frame) — the real innerHTML swap + style/layout in the browser is strictly worse. Phase A instead pays a ${f(worst.diffUs / 1000, 2)}ms damage diff, then patches only the |damage| node(s) that changed — O(edit), not O(document).`);
-console.log(`  • the damage diff here is the UPPER BOUND (full per-field compare). The shipping design (plans/98 section 5) caches a contentVersion per box in the hook worker, so the diff becomes an O(n) integer compare — cheaper still. The browser paint win (|damage| vs ${worst.n} nodes) is measured by the interaction harness, plans/98 section 9 (a)-(e).\n`);
+console.log(`  • HIT-TEST: linear is ${f(worst.hitLinearNs / 1000, 1)}µs/event and grows with the document; the grid holds ${f(worst.hitGridNs, 0)}ns (${f(worst.hitLinearNs / worst.hitGridNs, 0)}× less) - picking stops scaling with box count. Grid (re)build is ${f(worst.gridBuildMs, 1)}ms, done once per geometry-damage batch, not per event.`);
+console.log(`  • PER-EDIT: today every change re-marshals + re-renders ALL ${worst.n} boxes. Just the re-marshal FLOOR is ${f(worst.reserializeMs, 2)}ms (${f((worst.reserializeMs / 16.7) * 100, 0)}% of a 16.7ms frame) - the real innerHTML swap + style/layout in the browser is strictly worse. Phase A instead pays a ${f(worst.diffUs / 1000, 2)}ms damage diff, then patches only the |damage| node(s) that changed - O(edit), not O(document).`);
+console.log(`  • the damage diff here is the UPPER BOUND (full per-field compare). The shipping design (plans/98 section 5) caches a contentVersion per box in the hook worker, so the diff becomes an O(n) integer compare - cheaper still. The browser paint win (|damage| vs ${worst.n} nodes) is measured by the interaction harness, plans/98 section 9 (a)-(e).\n`);
 
 if (JSON_OUT) {
   writeFileSync(JSON_OUT, JSON.stringify({ node: process.version, iters: ITERS, queries: QUERIES, rows }, null, 2));

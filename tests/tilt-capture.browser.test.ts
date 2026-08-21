@@ -81,7 +81,7 @@ function centre(kf: string, t: number, cx: number, cy: number, z: number): { x: 
 const measured: string[] = [];
 const say = (line: string): void => { measured.push(line); };
 
-describe('plans/104 P2a — the tilt capture tier', { skip: gate ?? false, concurrency: 1 }, () => {
+describe('plans/104 P2a - the tilt capture tier', { skip: gate ?? false, concurrency: 1 }, () => {
   let Hn: Harness;
   const page = (): Harness['page'] => Hn.page;
 

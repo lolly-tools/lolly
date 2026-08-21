@@ -1,13 +1,13 @@
-# Lolly Render — composite GitHub Action, built in-tree and ready to split into
-# lolly-tools/render-action (plans/48-fable-new-potential.md §5.4).
+# Lolly Render - composite GitHub Action, built in-tree and ready to split into
+# lolly-tools/render-action (plans/48-fable-new-potential.md section 5.4).
 #
 # Wraps the CLI shell's URL-mode render path: one `lolly <tool> --k=v` render, or a
 # `lolly batch rows.csv` CSV fan-out, on a pinned checkout of lolly-tools/lolly.
-# Every step is the same command a developer runs locally — no packaging, no npm
+# Every step is the same command a developer runs locally - no packaging, no npm
 # publish (out of scope by design). See README.md for copy-paste workflows.
 name: 'Lolly Render'
 description: >-
-  Render on-brand assets (SVG/PNG/PDF/…) from Lolly tools in CI — a single render
+  Render on-brand assets (SVG/PNG/PDF/…) from Lolly tools in CI - a single render
   or a CSV batch, via the same URL-mode CLI as lolly.tools.
 author: 'lolly-tools'
 branding:
@@ -23,7 +23,7 @@ inputs:
   args:
     description: >-
       Flags for the tool as one shell-quoted string of --key=value pairs
-      (e.g. --url=https://example.com --padding=2). Keys are the tool's input ids —
+      (e.g. --url=https://example.com --padding=2). Keys are the tool's input ids -
       the same names as its URL params; reserved params (width, height, unit, dpi,
       bleed, marks, c2pa, …) work too. Quote values that contain spaces:
       --text="Hello world".
@@ -31,7 +31,7 @@ inputs:
     default: ''
   rows:
     description: >-
-      Workspace-relative path of a batch CSV/TSV — the header names a toolId column
+      Workspace-relative path of a batch CSV/TSV - the header names a toolId column
       plus one column per tool input (print a starter grid with
       `lolly batch --template=<tool>`). When set, `tool`/`args`/`format` are ignored
       and every row renders into out-dir.
@@ -52,7 +52,7 @@ inputs:
   browser:
     description: >-
       'true' installs the scoped Chromium (lolly install-browser --with-deps) and
-      builds the web shell — the Tier-B path required for raster/pdf/video exports
+      builds the web shell - the Tier-B path required for raster/pdf/video exports
       of HTML-layout tools. SVG/EMF/EPS/DXF, the data formats, and PNG of
       SVG-native tools render browser-free, so leave this 'false' unless a render
       fails asking for it. Adds several minutes to the job.
@@ -61,13 +61,13 @@ inputs:
   lolly-ref:
     description: >-
       Git ref of lolly-tools/lolly to render with. Pin a tag for reproducible
-      renders; 'v1' is a placeholder until render-action tags releases — pass a
+      renders; 'v1' is a placeholder until render-action tags releases - pass a
       commit SHA (or 'main') meanwhile.
     required: false
     default: 'v1'
   profile-root:
     description: >-
-      Optional workspace-relative path of a brand-pack profile root — a directory
+      Optional workspace-relative path of a brand-pack profile root - a directory
       carrying tools/ and catalog/ with a built catalog/tools/index.json. Exported
       as LOLLY_ROOT (marker-validated) so renders read that pack instead of the
       checkout's fallback profile.
@@ -94,7 +94,7 @@ runs:
   steps:
     # The private brands/suse pack is `update = none` in .gitmodules, so a public
     # checkout gets the community tools only and the npm postinstall builds the
-    # lolly-start fallback profile — exactly what the parent repo's own CI renders.
+    # lolly-start fallback profile - exactly what the parent repo's own CI renders.
     - name: 'Checkout lolly (${{ inputs.lolly-ref }})'
       uses: actions/checkout@v7
       with:
@@ -129,7 +129,7 @@ runs:
       id: render
       shell: bash
       working-directory: .lolly-render-action
-      # Inputs ride in as env — never interpolated into the script — except `args`,
+      # Inputs ride in as env - never interpolated into the script - except `args`,
       # which is shell-parsed by design so quoted values survive word splitting.
       env:
         IN_TOOL: ${{ inputs.tool }}
@@ -148,7 +148,7 @@ runs:
           LOLLY_ROOT="$(abspath "$IN_PROFILE_ROOT")"
           export LOLLY_ROOT
         fi
-        # LOLLY_ROOT redirects repo-root resolution wholesale — keep the Tier-B web
+        # LOLLY_ROOT redirects repo-root resolution wholesale - keep the Tier-B web
         # dist pointing at THIS checkout, not the brand pack.
         if [ "$IN_BROWSER" = "true" ]; then
           export LOLLY_WEB_DIST="${LOLLY_WEB_DIST:-$PWD/shells/web/dist}"

@@ -192,7 +192,7 @@ const VIEWS: View[] = [
 // slug is a fixed literal ([a-z]); safe to embed raw in JS strings / attributes.
 function stubHtml({ slug, title, description, hash, image }:
   View & { image: string }): string {
-  const pageTitle = `${title} — Lolly`;
+  const pageTitle = `${title} - Lolly`;
   const url = `${SITE_URL}/${slug}`;
   // Redirect target is ROOT-anchored ('/#/verify', not the bare fragment '#/verify').
   // The stub is served AT the clean path (e.g. the browser URL stays /v via the Vercel
@@ -219,7 +219,7 @@ function stubHtml({ slug, title, description, hash, image }:
 <meta property="og:image" content="${esc(image)}" />
 <meta property="og:image:width" content="1200" />
 <meta property="og:image:height" content="630" />
-<meta property="og:image:alt" content="${esc(title)} — a Lolly view" />
+<meta property="og:image:alt" content="${esc(title)} - a Lolly view" />
 <meta name="twitter:card" content="summary_large_image" />
 <meta name="twitter:title" content="${esc(pageTitle)}" />
 <meta name="twitter:description" content="${esc(description)}" />
@@ -248,7 +248,7 @@ async function main(): Promise<void> {
   // On Vercel, DON'T rasterise: cards are committed and ship via git (see header +
   // build-tool-og.ts), and the render browser isn't installed there. Refresh locally.
   if (process.env.VERCEL) {
-    console.log('view-og: on Vercel — using committed cards, skipping browser rasterisation');
+    console.log('view-og: on Vercel - using committed cards, skipping browser rasterisation');
   } else {
     try {
       rasterizer = await createSvgRasterizer(ROOT);
@@ -273,7 +273,7 @@ async function main(): Promise<void> {
   try {
     const parsed = JSON.parse(readFileSync(SIGS_FILE, 'utf8'));
     if (parsed && typeof parsed === 'object') sigs = parsed as Record<string, string>;
-  } catch { /* no manifest yet — treat every card as stale */ }
+  } catch { /* no manifest yet - treat every card as stale */ }
 
   let cards = 0, stubs = 0;
   for (const v of VIEWS) {
@@ -323,7 +323,7 @@ async function main(): Promise<void> {
   writeFileSync(SIGS_FILE, `${JSON.stringify(ordered, null, 2)}\n`);
 
   console.log(`✓ view-og: ${stubs} stub${stubs === 1 ? '' : 's'}, ${cards} card${cards === 1 ? '' : 's'} refreshed`);
-  if (!renderer && !process.env.VERCEL) console.log('view-og: browser unavailable — kept committed catalog/og/views cards (regenerate locally with build:web/dev:web).');
+  if (!renderer && !process.env.VERCEL) console.log('view-og: browser unavailable - kept committed catalog/og/views cards (regenerate locally with build:web/dev:web).');
 }
 
 main().catch(e => { console.error(e); process.exit(1); });

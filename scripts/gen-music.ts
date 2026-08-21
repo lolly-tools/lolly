@@ -51,14 +51,14 @@ const TRACKS: Track[] = [
     name: 'Amber Glow',
     spec: { archetype: 'ambient', seed: 0x5d6e7f, bpm: 54, scale: 'minorPent', roots: [12, 17, 19, 15], targetSec: 55, lead: 'glass' },
     extraTags: ['ambient', 'calm', 'sweeps'],
-    description: 'Sparse glass notes drifting over soothing pad swells — no drums.',
+    description: 'Sparse glass notes drifting over soothing pad swells - no drums.',
   },
   {
     slug: 'tide-pool',
     name: 'Tide Pool',
     spec: { archetype: 'ambient', seed: 0x2c9a11, bpm: 50, scale: 'suspended', roots: [12, 19, 17, 14], targetSec: 58, lead: 'glass', restProb: 0.62 },
     extraTags: ['ambient', 'calm', 'sweeps', 'dreamy'],
-    description: 'Very slow, open, suspended chords with long swells — drift-away focus.',
+    description: 'Very slow, open, suspended chords with long swells - drift-away focus.',
   },
   {
     slug: 'paper-lanterns',
@@ -72,7 +72,7 @@ const TRACKS: Track[] = [
     name: 'Meadow',
     spec: { archetype: 'melodic', seed: 0x40e7a5, bpm: 60, scale: 'majorPent', roots: [12, 21, 19, 16], targetSec: 50, lead: 'bell', pan: 0.15 },
     extraTags: ['melodic', 'calm'],
-    description: 'Bright, unhurried bell phrases over an easy pad — open and sunny.',
+    description: 'Bright, unhurried bell phrases over an easy pad - open and sunny.',
   },
 
   // ── bossa nova ───────────────────────────────────────────────────────────
@@ -81,7 +81,7 @@ const TRACKS: Track[] = [
     name: 'Copacabana Breeze',
     spec: { archetype: 'bossaNova', seed: 0x6b2e9f, bpm: 122, scale: 'majorScale', roots: [12, 19, 17, 21], targetSec: 48, lead: 'nylonGuitar', pan: 0.12 },
     extraTags: ['bossa-nova', 'melodic', 'calm'],
-    description: 'Warm nylon guitar comping bounces over a soft brushed snare and a gentle shaker pulse — a sunny, unhurried bossa sway.',
+    description: 'Warm nylon guitar comping bounces over a soft brushed snare and a gentle shaker pulse - a sunny, unhurried bossa sway.',
   },
 
   // ── chiptune ─────────────────────────────────────────────────────────────
@@ -162,6 +162,6 @@ index.assets = (index.assets ?? []).filter((a) => !ownedSlugs.has(a.id));
 index.assets.push(...newEntries);
 writeFileSync(INDEX_PATH, JSON.stringify(index, null, 2) + '\n');
 
-console.log(`\n${anyBad ? '⚠ some tracks out of range — check flags above' : '✓'} Generated ${newEntries.length} ZzFXM tracks → ${SONGS_DIR}`);
+console.log(`\n${anyBad ? '⚠ some tracks out of range - check flags above' : '✓'} Generated ${newEntries.length} ZzFXM tracks → ${SONGS_DIR}`);
 console.log('  Checksums/sizes are self-filled; no build:catalog needed for the songs.');
 console.log('  To hear them: npm run profile:start && npm run dev:web (they live in the lolly-start brand).');

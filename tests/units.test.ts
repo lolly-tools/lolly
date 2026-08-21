@@ -48,7 +48,7 @@ test('toPixels: physical scales by DPI, px is dpi-independent', () => {
   assert.equal(toPixels({ value: 1, unit: 'in' }, 150), 150);
 });
 
-test('toPoints: vector — physical exact, px via 96dpi convention', () => {
+test('toPoints: vector - physical exact, px via 96dpi convention', () => {
   assert.ok(close(toPoints({ value: 210, unit: 'mm' }), 595.28)); // A4 width in pt
   assert.ok(close(toPoints({ value: 297, unit: 'mm' }), 841.89)); // A4 height in pt
   assert.equal(toPoints({ value: 72, unit: 'pt' }), 72);

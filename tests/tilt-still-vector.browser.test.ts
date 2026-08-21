@@ -75,7 +75,7 @@ function analyticTaper(kf: string, box: { x: number; y: number; w: number; h: nu
 
 const measured: string[] = [];
 
-describe('plans/104 section 12 Q2 — a tilted still keeps the untilted layers vector', { skip: gate ?? false, concurrency: 1 }, () => {
+describe('plans/104 section 12 Q2 - a tilted still keeps the untilted layers vector', { skip: gate ?? false, concurrency: 1 }, () => {
   let Hn: Harness;
   const page = (): Harness['page'] => Hn.page;
 
@@ -118,7 +118,7 @@ describe('plans/104 section 12 Q2 — a tilted still keeps the untilted layers v
 
   // ── 2: the embed is a TRAPEZOID, and its taper is the engine's ──────────────
 
-  test('the embedded raster is the tilted picture — its taper matches the projection', async () => {
+  test('the embedded raster is the tilted picture - its taper matches the projection', async () => {
     const r = await page().evaluate(async ({ spec, t }) => {
       const S = (window as never as { SEQ: { vectorStillAt: (s: unknown, t: number, f: string) => Promise<{ text: string }> } }).SEQ;
       const { text } = await S.vectorStillAt(spec, t, 'svg');
@@ -195,14 +195,14 @@ describe('plans/104 section 12 Q2 — a tilted still keeps the untilted layers v
       // and invisible to a taper measurement because a per-row shift does not change a
       // per-row width.
       assert.ok(s.drift >= 0 && s.drift < 0.75,
-        `embed ${i} shears across rows by ${s.drift}px — the fit transform is inside the divide`);
+        `embed ${i} shears across rows by ${s.drift}px - the fit transform is inside the divide`);
       // The fixture has to taper at all, or the rest of this proves nothing.
       assert.ok(wanted[i]! - 1 > 0.02, `the fixture is not tilted enough: engine taper ${wanted[i]}`);
       // A rectangle stretched to the AABB reads exactly 1.0000. THAT is what this
       // refuses; the engine's own number is what it accepts, inside 4 % relative - the
       // slack the ink threshold costs, which S2 measured as a 3–5 px inset per edge.
       assert.ok(Math.abs(got - wanted[i]!) < 0.04 * wanted[i]!,
-        `embed ${i} taper ${got.toFixed(4)} is not the engine's ${wanted[i]!.toFixed(4)} — ` +
+        `embed ${i} taper ${got.toFixed(4)} is not the engine's ${wanted[i]!.toFixed(4)} - ` +
         'an untilted stretch would read 1.0000');
       // …and stated the other way round, so the bound above cannot be satisfied by a
       // rectangle if someone widens it: most of the predicted taper is really present.
@@ -271,7 +271,7 @@ describe('plans/104 section 12 Q2 — a tilted still keeps the untilted layers v
     assert.ok(r.posed, 'the posed capture must produce something');
     assert.ok(r.hatch, 'the control capture must produce something');
     assert.notEqual(r.posed, r.hatch,
-      'the posed capture and the AABB escape hatch must not be the same bytes — if they are, '
+      'the posed capture and the AABB escape hatch must not be the same bytes - if they are, '
       + 'the wrapper-shaped capture S2 section 4 requires has been lost');
     // S2 section 3a: the placement rect is `getBoundingClientRect()` straight off the DOM, so no
     // second implementation of the projection can drift from section 4's module. With no effect

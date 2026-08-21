@@ -73,7 +73,7 @@ test('canvas-op-v1 + canvas-op-testkit never read the wall clock or unseeded ran
   assert.deepEqual(
     offenders,
     [],
-    'wall-clock/random token found outside the allowlist — LWW must ride Lamport ' +
+    'wall-clock/random token found outside the allowlist - LWW must ride Lamport ' +
     `(clock, client) only (plan 100 section 11.7):\n${offenders.join('\n')}`,
   );
 });

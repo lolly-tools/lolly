@@ -40,7 +40,7 @@ const SHARED_DIR = join(ROOT, 'community', '_shared');
 // Marker grammar. The em-dash tail is freeform human guidance; only the region
 // name is required. Anchored, whole-line matches - nothing else in a hooks
 // file can collide with `// === lolly:shared`.
-const BEGIN_RE = /^\/\/ === lolly:shared (\S+)(?: — (.*))? ===$/;
+const BEGIN_RE = /^\/\/ === lolly:shared (\S+)(?: - (.*))? ===$/;
 const END_RE = /^\/\/ === \/lolly:shared (\S+) ===$/;
 // Optional `generated from community/_shared/<file>` reference in a consumer's
 // begin-marker tail - when present it must name the region's actual source file.
@@ -68,7 +68,7 @@ interface ParsedRegion {
 /** Parse every marker region out of one file's text. Throws on malformed markers. */
 function parseRegions(text: string, rel: string): ParsedRegion[] {
   if (text.includes('\r')) {
-    throw new Error(`${rel}: contains CRLF line endings — shared-region sync only handles \\n files`);
+    throw new Error(`${rel}: contains CRLF line endings - shared-region sync only handles \\n files`);
   }
   const lines = text.split('\n');
   const regions: ParsedRegion[] = [];
@@ -190,7 +190,7 @@ export function verifySharedRegions(): string[] {
         errors.push(`${rel}:${region.beginLine + 1}: region "${region.name}" claims community/_shared/${ref[1]} but its canonical source is community/_shared/${canon.file}`);
       }
       if (region.content !== canon.content) {
-        errors.push(`${rel}:${region.beginLine + 1}: region "${region.name}" drifted from community/_shared/${canon.file} — edit the canonical file and run \`npm run sync:shared\``);
+        errors.push(`${rel}:${region.beginLine + 1}: region "${region.name}" drifted from community/_shared/${canon.file} - edit the canonical file and run \`npm run sync:shared\``);
       }
     }
   }
@@ -245,7 +245,7 @@ function sync(): void {
     .map(([name, n]) => `${name}×${n}`)
     .join(', ');
   console.log(
-    `✓ sync:shared — ${canonical.size} canonical regions, ${filesScanned} consuming files, ` +
+    `✓ sync:shared - ${canonical.size} canonical regions, ${filesScanned} consuming files, ` +
     `${filesChanged} rewritten${filesChanged === 0 ? ' (already in sync)' : ''}` +
     (regionSummary ? `\n  regions: ${regionSummary}` : ''),
   );

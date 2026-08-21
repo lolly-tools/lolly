@@ -70,7 +70,7 @@ test('the MCP verify path documents why it ignores caller/env pinned roots', () 
   // shells do); the reason is required and must stay visible next to the call.
   assert.match(MCP, /multi-tenant/i, 'the reason must be documented at the call site');
   assert.doesNotMatch(MCP, /process\.env\.LOLLY_TRUST_ANCHOR/,
-    'MCP must not read the env pin — that would vouch for one tenant on another tenant’s file');
+    'MCP must not read the env pin - that would vouch for one tenant on another tenant’s file');
   assert.match(MCP, /verifyC2pa\(bytes, \{ trustAnchors: defaultTrustAnchors\(\{ includeLollyRoot: true \}\) \}\)/,
     'MCP verifies with the built-in set only');
 });

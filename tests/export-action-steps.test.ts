@@ -120,7 +120,7 @@ test('textAdded appends a c2pa.edited "Added text" step with the sample', () => 
   const steps = exportActionSteps('png', { textAdded: true, textSample: 'Summer Sale' });
   const textStep = steps.find((s) => s.action === 'c2pa.edited');
   assert.ok(textStep, 'a c2pa.edited step should be present');
-  assert.equal(textStep!.description, 'Added text — “Summer Sale”');
+  assert.equal(textStep!.description, 'Added text - “Summer Sale”');
   // Text is an edit, sequenced before the closing render/convert step.
   const iText = steps.findIndex((s) => s.description?.startsWith('Added text'));
   const iConvert = steps.findIndex((s) => s.action === 'c2pa.converted');

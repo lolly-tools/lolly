@@ -88,7 +88,7 @@ let html: string;
 try {
   html = readFileSync(indexHtml, 'utf8');
 } catch {
-  fail(`cannot read ${path.relative(root, indexHtml)} — run \`npm run build:web\` first`);
+  fail(`cannot read ${path.relative(root, indexHtml)} - run \`npm run build:web\` first`);
 }
 
 // Collect boot JS: the entry <script type="module" src> and every
@@ -104,7 +104,7 @@ for (const m of html.matchAll(/<link[^>]*\brel=["']modulepreload["'][^>]*>/gi)) 
 }
 
 if (bootHrefs.size === 0) {
-  fail('found no entry/preload JS in index.html — did the HTML shape change?');
+  fail('found no entry/preload JS in index.html - did the HTML shape change?');
 }
 
 // Check for forbidden heavy chunks on the boot path.

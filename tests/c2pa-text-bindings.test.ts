@@ -76,10 +76,10 @@ function wrapperBytes(store: Uint8Array, { version = 1, declaredLength = store.l
 }
 /** section A.8.4.1: "prefixed with a single Zero-Width No-Break Space (U+FEFF)". */
 const wrapperText = (store: Uint8Array, opts?: { version?: number; declaredLength?: number }): string =>
-  '﻿' + vsRun(wrapperBytes(store, opts));
+  '\uFEFF' + vsRun(wrapperBytes(store, opts));
 
 /** UTF-8 byte length of one wrapper's U+FEFF + selectors: U+FEFF is 3 bytes,
- *  a low selector (bytes 0–15) is 3, a high selector (bytes 16–255) is 4. */
+ *  a low selector (bytes 0-15) is 3, a high selector (bytes 16-255) is 4. */
 const wrapperByteLength = (payload: readonly number[]): number =>
   3 + payload.reduce((n, b) => n + (b <= 15 ? 3 : 4), 0);
 
@@ -108,7 +108,7 @@ test('sniffFormat: an HTML document is html, even when it opens with an inline <
 test('sniffFormat: html is case-insensitive, and tolerates a BOM and leading whitespace', () => {
   assert.equal(sniffFormat(utf8('<!DOCTYPE HTML><html></html>')), 'html');
   assert.equal(sniffFormat(utf8('<!doctype   html>\n<html></html>')), 'html');
-  assert.equal(sniffFormat(utf8('﻿\n\n  <!DOCTYPE html>\n<html></html>')), 'html');
+  assert.equal(sniffFormat(utf8('\uFEFF\n\n  <!DOCTYPE html>\n<html></html>')), 'html');
   // No doctype at all - the root element alone is enough.
   assert.equal(sniffFormat(utf8('<html lang="en"><body>hello there</body></html>')), 'html');
   // ...but only as a real tag: a word that merely starts with "html" is not one.
@@ -158,7 +158,7 @@ test('sniffFormat: a mid-file carrier is found in a small text file, and not pai
   assert.equal(sniffFormat(binary), null);
 });
 
-test('sniffFormat: existing answers are untouched — no text sniff claims a binary container', () => {
+test('sniffFormat: existing answers are untouched - no text sniff claims a binary container', () => {
   const png = new Uint8Array(32);
   png.set([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a], 0);
   assert.equal(sniffFormat(png), 'png');
@@ -248,7 +248,7 @@ test('section A.7.1.2: a reference the engine will not hand to a fetcher is repo
   assert.equal(extractC2paDetailed(doc('/info/mastheads/a.c2pa'))!.externalUrl, '/info/mastheads/a.c2pa');
 });
 
-test('section A.7.1: more than one association refuses the document — never first-wins', () => {
+test('section A.7.1: more than one association refuses the document - never first-wins', () => {
   const store = fakeStore();
   const twoScripts = `<!DOCTYPE html><html><head>`
     + `<script type="application/c2pa">${b64(store)}</script>`
@@ -310,7 +310,7 @@ test('section A.9.3.1 + section A.9.4: a start-of-file comment line excludes { 0
   assert.equal(d.status, undefined);
 });
 
-test('section A.9.4: an end-of-file block excludes from the newline BEFORE it, to EOF — CRLF included', () => {
+test('section A.9.4: an end-of-file block excludes from the newline BEFORE it, to EOF - CRLF included', () => {
   const ref = 'https://fabrikam.com/manifests/a1b2c3.c2pa';
   const body = '#!/usr/bin/env node\r\nconsole.log(1);\r\n';
   const line = `// ${ARMOR_BEGIN} ${ref} ${ARMOR_END}`;
@@ -353,7 +353,7 @@ test('section A.9.3.2: the front-matter form excludes BEGIN..END, and not the ho
   assert.equal(
     file.slice(start, end),
     `${ARMOR_BEGIN}\ndata:application/c2pa;base64,${b64(store)}\n${ARMOR_END}\n`,
-    'the excluded bytes are exactly the block — the --- fences stay in the hash',
+    'the excluded bytes are exactly the block - the --- fences stay in the hash',
   );
 });
 
@@ -464,7 +464,7 @@ test('section A.8: a wrapper at the end of visible text round-trips, with hand-c
   assert.equal(utf8(d.text!.nfc).length, 13 + 3 + 67);
 });
 
-test('section A.8.7.3: offsets are measured AFTER NFC — a decomposed é ahead of the wrapper shifts them', () => {
+test('section A.8.7.3: offsets are measured AFTER NFC - a decomposed é ahead of the wrapper shifts them', () => {
   const store = fakeStore(4);
   // "café" written decomposed: c a f e + U+0301 = 4 + 2 = 6 UTF-8 bytes.
   // NFC composes it to c a f é = 3 + 2 = 5 bytes. So every offset moves by one.
@@ -485,7 +485,7 @@ test('section A.8.7.3: offsets are measured AFTER NFC — a decomposed é ahead 
   assert.ok(sameBytes(dNfc.store!, store));
 });
 
-test('section A.8: the wrapper itself is NFC-invariant — normalizing never rewrites the payload', () => {
+test('section A.8: the wrapper itself is NFC-invariant - normalizing never rewrites the payload', () => {
   // Variation selectors and U+FEFF are all ccc=0 with no decompositions, so NFC
   // can neither reorder nor recompose them. If that were ever false, the offsets
   // above would be measuring a different string than the one carrying the store.
@@ -497,7 +497,7 @@ test('section A.8: the wrapper itself is NFC-invariant — normalizing never rew
 
 test('section A.8.4.2: a U+FEFF whose selectors are not the magic is not a wrapper at all', () => {
   // An emoji + skin-tone-style variation sequence after a BOM is ordinary text.
-  const bytes = utf8('﻿Heading❤️ and more prose here to read.');
+  const bytes = utf8('\uFEFFHeading❤️ and more prose here to read.');
   const d = extractC2paDetailed(bytes);
   // No carrier → not sniffed as text at all, and the detailed read says nothing.
   assert.equal(sniffFormat(bytes), null);
@@ -540,12 +540,12 @@ test('section 15.12.1.3.2: a corrupt wrapper is named, never half-read', () => {
 });
 
 test('section A.8: a wrapper that ends the text immediately after its magic is corrupt, not a crash', () => {
-  const bare = utf8('prose﻿' + vsRun([0x43, 0x32, 0x50, 0x41, 0x54, 0x58, 0x54, 0x00]));
+  const bare = utf8('prose\uFEFF' + vsRun([0x43, 0x32, 0x50, 0x41, 0x54, 0x58, 0x54, 0x00]));
   const d = extractC2paDetailed(bare)!;
   assert.equal(d.status, C2PA_TEXT_STATUS.textCorruptedWrapper);
   assert.match(d.text!.wrappers[0]!.reason!, /ends immediately after its magic/);
   // ...and one byte further in, inside manifestLength.
-  const midLen = utf8('prose﻿' + vsRun([0x43, 0x32, 0x50, 0x41, 0x54, 0x58, 0x54, 0x00, 0x01, 0x00, 0x00]));
+  const midLen = utf8('prose\uFEFF' + vsRun([0x43, 0x32, 0x50, 0x41, 0x54, 0x58, 0x54, 0x00, 0x01, 0x00, 0x00]));
   assert.match(extractC2paDetailed(midLen)!.text!.wrappers[0]!.reason!, /inside manifestLength \(2 of 4 bytes\)/);
 });
 
@@ -647,13 +647,13 @@ test('bounds: a hostile text paste is a bounded refusal, not a hang', () => {
   // A megabyte of variation selectors behind one BOM: the magic check has to bail
   // after EIGHT selectors, or this is a megabyte of work per BOM.
   const t0 = Date.now();
-  const longRun = utf8('﻿' + String.fromCodePoint(0xfe00).repeat(400_000));
+  const longRun = utf8('\uFEFF' + String.fromCodePoint(0xfe00).repeat(400_000));
   assert.equal(extractC2paDetailed(longRun, 'text')!.text!.wrappers.length, 0);
   assert.ok(Date.now() - t0 < budget, 'a long selector run is bailed out of, not walked');
 
   // Many BOMs, each followed by a short non-magic run.
   const t1 = Date.now();
-  const manyBoms = utf8(('﻿' + String.fromCodePoint(0xfe0a).repeat(6)).repeat(50_000));
+  const manyBoms = utf8(('\uFEFF' + String.fromCodePoint(0xfe0a).repeat(6)).repeat(50_000));
   assert.equal(extractC2paDetailed(manyBoms, 'text')!.text!.wrappers.length, 0);
   assert.ok(Date.now() - t1 < budget, 'a field of decoy BOMs stays linear');
 
@@ -827,7 +827,7 @@ async function landOn(
     // from the same distribution, so the estimate only sharpens).
     if (i % 25 === 24) target = [...seen].sort((a, b) => b[1] - a[1] || a[0] - b[0])[0]![0];
   }
-  throw new Error('no store encoded to the target carrier length in 2000 tries — fixture bug, not a verifier bug');
+  throw new Error('no store encoded to the target carrier length in 2000 tries - fixture bug, not a verifier bug');
 }
 
 async function fixedPoint(
@@ -900,7 +900,7 @@ test('section 15.12.1.3: a signed section A.8 text verifies, and says so in the 
   assert.equal(exclusion.start, utf8('The quick brown fox jumps over the lazy dog.').length);
 });
 
-test('section A.8.7.3: NFC FIRST, then offsets — composed and decomposed é sign identically', async () => {
+test('section A.8.7.3: NFC FIRST, then offsets - composed and decomposed é sign identically', async () => {
   // The headline ordering test. "café" spelled two ways, in front of the SAME
   // wrapper: decomposed (e + U+0301) is one UTF-8 byte longer than composed (é),
   // so a validator that measured offsets in the file's own bytes would place the
@@ -960,7 +960,7 @@ test('section 15.12.1.3.1 step 6: the remainder is re-normalized after the wrapp
   assert.notEqual(Buffer.from(naive).toString('hex'), Buffer.from(hash).toString('hex'));
 });
 
-test('section 15.12.1.3.1: edited visible text is a MISMATCH — present-and-broken, not absent', async () => {
+test('section 15.12.1.3.1: edited visible text is a MISMATCH - present-and-broken, not absent', async () => {
   const { store } = await signUnstructured('The quick brown fox.');
   // Same byte length, one letter different: the wrapper still sits at the offset
   // the exclusion names, so this exercises the hash, not the exclusion matching.
@@ -1018,7 +1018,7 @@ test('section 15.12.1.3.4: a truncated wrapper reads as a FRAGMENT of a larger s
   // Copy-paste that stopped early: the visible text is intact, the invisible
   // wrapper is not. This is the shape section 15.12.1.3.4 asks validators to name.
   const r = await verifyC2pa(utf8('A long signed paragraph that someone only copied part of.' + whole.slice(0, -20)));
-  assert.equal(r.found, true, 'a wrapper WAS here — this is not "no credential"');
+  assert.equal(r.found, true, 'a wrapper WAS here - this is not "no credential"');
   assert.equal(r.state, 'invalid');
   assert.deepEqual(failedCodes(r), [C2PA_CHECK.manifestTextCorruptedWrapper]);
   assert.equal(r.textBinding!.fragment, true);
@@ -1076,10 +1076,10 @@ test('section A.7.1.3: re-serialization invalidates BY DESIGN, and stays disting
   assert.ok(r.claim, 'and its CONTENT is still readable and shown');
 });
 
-test('section A.7.1.2: a <link> reference is manifest.inaccessible — the engine never fetches', async () => {
+test('section A.7.1.2: a <link> reference is manifest.inaccessible - the engine never fetches', async () => {
   const doc = utf8(`${HTML_PREFIX}<link rel="c2pa-manifest" href="https://fabrikam.example/manifest.c2pa" type="application/c2pa">${HTML_SUFFIX}`);
   const r = await verifyC2pa(doc);
-  assert.equal(r.found, true, 'an association IS declared — "no credential" would be a lie');
+  assert.equal(r.found, true, 'an association IS declared - "no credential" would be a lie');
   assert.equal(r.state, 'invalid', 'and nothing about these bytes could be checked');
   assert.deepEqual(failedCodes(r), [C2PA_CHECK.manifestInaccessible]);
   assert.equal(r.textBinding!.manifestUrl, 'https://fabrikam.example/manifest.c2pa');
@@ -1359,7 +1359,7 @@ async function safely<T>(fn: () => T | Promise<T>): Promise<{ ok: true; value: T
 
 /** verifyC2pa must never report a hostile/garbage fixture as valid. */
 function assertNeverValid(outcome: Awaited<ReturnType<typeof safely<C2paReport>>>, label: string): void {
-  assert.equal(outcome.ok, true, `${label}: verifyC2pa must not throw — ${!outcome.ok ? outcome.error : ''}`);
+  assert.equal(outcome.ok, true, `${label}: verifyC2pa must not throw - ${!outcome.ok ? outcome.error : ''}`);
   if (outcome.ok) assert.notEqual(outcome.value.state, 'valid', `${label}: a hostile fixture must never verify`);
 }
 
@@ -1374,7 +1374,7 @@ test('hostile section A.8: wrapper truncated mid-magic, mid-version/length, and 
     const bytes = utf8('Some visible prose.') as Uint8Array;
     const withTail = new Uint8Array(bytes.length + 3 + truncated.length * 4); // generous upper bound
     withTail.set(bytes, 0);
-    const text = 'Some visible prose.' + '﻿' + vsRun(truncated);
+    const text = 'Some visible prose.' + '\uFEFF' + vsRun(truncated);
     const asBytes = utf8(text);
     await withBudget(2000, () => {
       const sniff = sniffFormat(asBytes);
@@ -1419,7 +1419,7 @@ test('hostile section A.8: U+FEFF followed by a 2 MB run of garbage-magic select
   // Make sure it does not coincidentally start with the real magic bytes.
   const magic = [0x43, 0x32, 0x50, 0x41, 0x54, 0x58, 0x54, 0x00];
   if (magic.every((b, i) => garbage[i] === b)) garbage[0] = (garbage[0]! + 1) & 0xff;
-  const bytes = utf8('﻿' + vsRun(garbage));
+  const bytes = utf8('\uFEFF' + vsRun(garbage));
   const sniffOutcome = await safely(() => withBudget(5000, () => sniffFormat(bytes)));
   assert.equal(sniffOutcome.ok, true, 'sniffFormat must not throw on a 2 MB garbage-magic run');
   if (sniffOutcome.ok) assert.equal(sniffOutcome.value, null, 'garbage magic behind a real BOM must not sniff as text');
@@ -1526,7 +1526,7 @@ test('hostile sniff: an inline <svg> inside HTML, once before and once after the
 
 // ── (6) declared exclusion ranges: out of order / overlapping / past EOF ───────
 
-test('hostile exclusions: out of order, overlapping, and past-EOF ranges never verify — html, code, text', async () => {
+test('hostile exclusions: out of order, overlapping, and past-EOF ranges never verify - html, code, text', async () => {
   const cases: Array<{ label: string; exclusions: Exclusion[] }> = [
     { label: 'out of order', exclusions: [{ start: 50, length: 5 }, { start: 0, length: 5 }] },
     { label: 'overlapping', exclusions: [{ start: 0, length: 20 }, { start: 10, length: 20 }] },
@@ -1572,7 +1572,7 @@ test('hostile corpus contract: every branch above returns a report, never an unh
   const inputs: Uint8Array[] = [
     new Uint8Array(0),
     Uint8Array.of(0xff, 0xfe, 0xfd),
-    utf8('﻿'), // BOM alone, no selectors at all
+    utf8('\uFEFF'), // BOM alone, no selectors at all
     utf8(ARMOR_BEGIN), // delimiter fragment with nothing else
     utf8(ARMOR_END),
     utf8('<html'), // truncated root tag, no closing bracket ever
@@ -1601,7 +1601,7 @@ test('hostile corpus contract: every branch above returns a report, never an unh
 
 // ── sniff precedence: a carrier that DECODED outranks a marker that guessed ───
 
-test('S1 — a section A.8 credential survives text that merely QUOTES the section A.9 delimiter', () => {
+test('S1 - a section A.8 credential survives text that merely QUOTES the section A.9 delimiter', () => {
   // Either armour delimiter ALONE used to win 'code', and 'code' with half a
   // block is a no-credential answer - so appending one line to someone's signed
   // text erased their credential instead of failing loudly. Every support
@@ -1619,7 +1619,7 @@ test('S1 — a section A.8 credential survives text that merely QUOTES the secti
   assert.equal(sniffFormat(utf8(`Docs: a block opens with ${ARMOR_BEGIN} and closes with the matching END line.\n`)), 'code');
 });
 
-test('S5 — an <html> marker does not outrank a complete section A.9 block in a source file', () => {
+test('S5 - an <html> marker does not outrank a complete section A.9 block in a source file', () => {
   const armour = `// ${ARMOR_BEGIN} data:application/c2pa;base64,${b64(fakeStore(8))} ${ARMOR_END}\n`;
   // A signed .js whose body holds an HTML template string. Which side of the
   // 4 KB head window that string fell on used to decide whether the file
@@ -1638,7 +1638,7 @@ test('S5 — an <html> marker does not outrank a complete section A.9 block in a
   assert.equal(sniffFormat(utf8(page)), 'html');
 });
 
-test('F1/M2 — an SVG whose leading comment mentions <html> keeps its credential', async () => {
+test('F1/M2 - an SVG whose leading comment mentions <html> keeps its credential', async () => {
   // "First marker wins" was a TEXT comparison over the first 4 KB, so anything
   // that may legally precede an SVG root - prolog, DOCTYPE, comments - could
   // take the file. A valid credential then read as state:'none', i.e. /verify
@@ -1663,7 +1663,7 @@ test('F1/M2 — an SVG whose leading comment mentions <html> keeps its credentia
 
 // ── section A.7 discovery is scoped to <head> ───────────────────────────────────────
 
-test('S3 — section A.7.1.4 scopes discovery to <head>: a body decoy cannot refuse the document', async () => {
+test('S3 - section A.7.1.4 scopes discovery to <head>: a body decoy cannot refuse the document', async () => {
   const { bytes } = await signHtml(HTML_PREFIX, HTML_SUFFIX);
   // A second association inside an HTML COMMENT in the body. A spec validator
   // parses the head, finds exactly one element, and validates the page; counting
@@ -1692,7 +1692,7 @@ test('S3 — section A.7.1.4 scopes discovery to <head>: a body decoy cannot ref
   assert.equal(extractC2paDetailed(twoInBody)!.status, C2PA_TEXT_STATUS.htmlMultipleManifests);
 });
 
-test('N1 — a filler-tag prefix cannot push a second association out of view', () => {
+test('N1 - a filler-tag prefix cannot push a second association out of view', () => {
   // The old cap counted TAGS SCANNED, so 4096 decoy <script> tags in front of a
   // real second association made the document read as having one. The cap now
   // counts MATCHES, and the scan is linear, so the decoys cost nothing and
@@ -1705,7 +1705,7 @@ test('N1 — a filler-tag prefix cannot push a second association out of view', 
 
 // ── external references ──────────────────────────────────────────────────────
 
-test('S4 — every syntactically valid reference is REPORTED; only schemes are refused', () => {
+test('S4 - every syntactically valid reference is REPORTED; only schemes are refused', () => {
   // Reporting is not fetching (the engine never fetches). Refusing the
   // same-directory sidecar - the least risky reference there is, and the natural
   // output of "write the page, write the manifest beside it" - while waving
@@ -1730,7 +1730,7 @@ test('S4 — every syntactically valid reference is REPORTED; only schemes are r
   assert.equal(extractC2paDetailed(armour('//evil.example/x'))!.status, C2PA_TEXT_STATUS.unsupportedReference);
 });
 
-test('S9 — a section A.9 data: URI may carry RFC 2397 media-type parameters', () => {
+test('S9 - a section A.9 data: URI may carry RFC 2397 media-type parameters', () => {
   const store = fakeStore(6);
   const block = (ref: string): Uint8Array => utf8(`// ${ARMOR_BEGIN} ${ref} ${ARMOR_END}\nconst x = 1;\n`);
   for (const ref of [
@@ -1764,7 +1764,7 @@ async function storeTitled(title: string, hash: Uint8Array, exclusions: Exclusio
   });
 }
 
-test('S2 — section A.8.4.1: the assertion\'s exclusions select the wrapper, not document order', async () => {
+test('S2 - section A.8.4.1: the assertion\'s exclusions select the wrapper, not document order', async () => {
   // The re-signed text section A.8.4.1 anticipates ("validators may encounter multiple
   // wrappers"): signed, then EDITED, then re-signed by appending a new wrapper
   // without removing the stale one. The stale wrapper's recorded offsets no
@@ -1798,7 +1798,7 @@ test('S2 — section A.8.4.1: the assertion\'s exclusions select the wrapper, no
   assert.ok(codesOf(r).includes(C2PA_CHECK.assertionDataHashMatch));
 });
 
-test('S11 — hitting the wrapper cap is SAID, so the refusal stays true', async () => {
+test('S11 - hitting the wrapper cap is SAID, so the refusal stays true', async () => {
   const swarm = utf8(('pad' + wrapperText(fakeStore(2))).repeat(4000));
   const d = extractC2paDetailed(swarm, 'text')!;
   assert.equal(d.text!.wrappers.length, 32);
@@ -1809,7 +1809,7 @@ test('S11 — hitting the wrapper cap is SAID, so the refusal stays true', async
   assert.equal((await verifyC2pa(bytes)).textBinding!.wrappersTruncated, undefined);
 });
 
-test('N2 — "looks like a fragment" needs a wrapper, not just a crafted offset', async () => {
+test('N2 - "looks like a fragment" needs a wrapper, not just a crafted offset', async () => {
   // A self-signed assertion can declare start: 1e15 on a text with no wrapper in
   // it at all. The verdict is invalid either way; what must not happen is the
   // report repeating a sentence the attacker wrote.
@@ -1832,7 +1832,7 @@ async function signHtmlNarrow(prefix: string, suffix: string) {
   return { store, exclusion, bytes: utf8(prefix + SCRIPT_OPEN + b64(store) + SCRIPT_CLOSE + suffix) };
 }
 
-test('S6 — a NARROWER exclusion is non-conformance, not "content outside the credential"', async () => {
+test('S6 - a NARROWER exclusion is non-conformance, not "content outside the credential"', async () => {
   // One check, one message, `assertion.dataHash.additionalExclusionsPresent`
   // ("exclusion ranges other than the C2PA Manifest Store") - for an exclusion
   // that excludes LESS. Nothing additional was excluded, the sentence asserted
@@ -1875,7 +1875,7 @@ async function signStructuredAtEnd(body: string, sep: string, tail: string) {
   return { store, exclusion, bytes: utf8(body + sep + line(store) + tail) };
 }
 
-test('S7 — section A.9.4\'s one-byte-ambiguous end-of-file newline: both readings are honoured', async () => {
+test('S7 - section A.9.4\'s one-byte-ambiguous end-of-file newline: both readings are honoured', async () => {
   // "the newline character preceding the manifest block" reads as the LF alone
   // or as the CRLF pair; and a trailing blank line flips the same file from the
   // end-of-file rule to the middle-of-file one. Either disagreement is ONE byte,
@@ -1894,7 +1894,7 @@ test('S7 — section A.9.4\'s one-byte-ambiguous end-of-file newline: both readi
   assert.equal(rb.state, 'valid', realFailures(rb).join(', '));
 });
 
-test('S8 — malformed exclusion ranges on html/code are MALFORMED, not a mismatch', async () => {
+test('S8 - malformed exclusion ranges on html/code are MALFORMED, not a mismatch', async () => {
   // section 15.12.1 assigns assertion.dataHash.malformed to out-of-order, overlapping
   // and negative ranges. The shared byte-range branch reported `mismatch`, which
   // says "the bytes changed" about an assertion that is simply broken. Binary
@@ -1913,7 +1913,7 @@ test('S8 — malformed exclusion ranges on html/code are MALFORMED, not a mismat
 
 // ── section 18.28: every disclosure, and versioned labels ───────────────────────────
 
-test('S10 — section 18.28 reads ALL disclosures, and tolerates a versioned label', async () => {
+test('S10 - section 18.28 reads ALL disclosures, and tolerates a versioned label', async () => {
   // "full disclosure of the AI MODELS used" is plural, and section 1558 labels repeats
   // `label__1`, `label__2` - a two-model pipeline that disclosed both had its
   // second disclosure dropped in silence.
@@ -1947,7 +1947,7 @@ test('S10 — section 18.28 reads ALL disclosures, and tolerates a versioned lab
 
 // ── bounds ───────────────────────────────────────────────────────────────────
 
-test('H1 — a >-free tail of <script/<link tokens is LINEAR, in both scanners', async () => {
+test('H1 - a >-free tail of <script/<link tokens is LINEAR, in both scanners', async () => {
   // `<name(?=[\s/>])([^>]*)>` is linear only when a `>` exists later in the
   // string. In a `>`-free tail every start position scanned to EOF and
   // backtracked to EOF: 128 KB took 937 ms, 1 MiB took 76 s, synchronously, with
@@ -1973,7 +1973,7 @@ test('H1 — a >-free tail of <script/<link tokens is LINEAR, in both scanners',
   assert.ok(Date.now() - t2 < budget, `verifyC2pa: ${Date.now() - t2} ms`);
 });
 
-test('H2 — past the reader\'s size cap is "we declined to look", not a broken credential', async () => {
+test('H2 - past the reader\'s size cap is "we declined to look", not a broken credential', async () => {
   // A 17 MiB saved web page with no C2PA anywhere in it was reported as
   // found:true / invalid / credential.unreadable - a verdict manufactured from
   // FILE SIZE alone. Large single-file HTML (saved pages, inlined-base64
@@ -1993,13 +1993,13 @@ test('H2 — past the reader\'s size cap is "we declined to look", not a broken 
   assert.equal(r2.state, 'none');
 });
 
-test('M1 — section A.8 allocation is bounded by each wrapper\'s OWN selector run', async () => {
+test('M1 - section A.8 allocation is bounded by each wrapper\'s OWN selector run', async () => {
   // The bound was derived from the input length (right instinct) but
   // re-evaluated PER WRAPPER, so 32 headers at the front of a large paste each
   // declared "almost the whole file": 508 MiB of ArrayBuffer from a 15 MiB
   // paste, in 13 ms, on a public drop target. A wrapper's payload cannot be
   // longer than its own selector run, and runs are disjoint.
-  const header = '﻿' + vsRun([0x43, 0x32, 0x50, 0x41, 0x54, 0x58, 0x54, 0x00, 1, 0x00, 0xf2, 0x9f, 0x00]) + 'X';
+  const header = '\uFEFF' + vsRun([0x43, 0x32, 0x50, 0x41, 0x54, 0x58, 0x54, 0x00, 1, 0x00, 0xf2, 0x9f, 0x00]) + 'X';
   const paste = utf8(header.repeat(40) + 'y'.repeat(8 * 1024 * 1024));
   const before = process.memoryUsage().external;
   const t = Date.now();
@@ -2007,11 +2007,11 @@ test('M1 — section A.8 allocation is bounded by each wrapper\'s OWN selector r
   const grew = (process.memoryUsage().external - before) / (1024 * 1024);
   assert.equal(d.status, C2PA_TEXT_STATUS.textCorruptedWrapper);
   assert.equal(d.text!.wrappers.every((w) => w.store === null), true, 'every header is refused');
-  assert.ok(grew < 8 * 32, `external memory grew ${grew.toFixed(0)} MiB — the per-wrapper bound is back`);
+  assert.ok(grew < 8 * 32, `external memory grew ${grew.toFixed(0)} MiB - the per-wrapper bound is back`);
   assert.ok(Date.now() - t < 4000);
 });
 
-test('F2/M3 — a caller-supplied prototype key is not a format', () => {
+test('F2/M3 - a caller-supplied prototype key is not a format', () => {
   // extractC2paDetailed is the first extraction entry point whose `format` comes
   // from the CALLER - exactly what a paste/?src= surface will hand it. Both
   // dispatch tables are object literals, so a bare lookup resolved
@@ -2030,7 +2030,7 @@ test('F2/M3 — a caller-supplied prototype key is not a format', () => {
   assert.equal(extractC2paDetailed(bytes, 'png')!.store, null);
 });
 
-test('H1 (follow-up) — a `<` inside a tag is an attribute character, not a second element', () => {
+test('H1 (follow-up) - a `<` inside a tag is an attribute character, not a second element', () => {
   // The linear scanner walks every `<`, so it must not re-enter a tag it has
   // already consumed: `<script <script type="application/c2pa">` is ONE element
   // to a browser (`<script` is a bare attribute name), and reading it as two

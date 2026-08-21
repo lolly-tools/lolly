@@ -115,12 +115,12 @@ test('every gradient kind emits its own CSS primitive', async () => {
   }
 });
 
-test('the interpolation space is honoured — sRGB emits only the authored stops', async () => {
+test('the interpolation space is honoured - sRGB emits only the authored stops', async () => {
   const smooth = boxStyle(await mount([{ ...BOX, grad: 'lin_90_000000-0_ffffff-100' }]));
   const muddy = boxStyle(await mount([{ ...BOX, grad: 'lin.srgb_90_000000-0_ffffff-100' }]));
   const count = (s: string): number => (s.match(/#[0-9a-f]{6,8} [\d.]+%/g) ?? []).length;
   assert.ok(count(smooth) > 2, `OKLab black→white needs baking (got ${count(smooth)})`);
-  assert.equal(count(muddy), 2, 'sRGB needs none — the renderer already agrees');
+  assert.equal(count(muddy), 2, 'sRGB needs none - the renderer already agrees');
 });
 
 // ── degrading, and refusing to leak ──────────────────────────────────────────
@@ -141,7 +141,7 @@ test('an unreadable spec paints nothing extra and never leaks into the style', a
   }
 });
 
-test('a path box ignores `grad` — its fill is the path, not the div behind it', async () => {
+test('a path box ignores `grad` - its fill is the path, not the div behind it', async () => {
   const style = boxStyle(await mount([
     { ...BOX, kind: 'path', path: 'M0,0L100,100', grad: 'lin_90_30ba78-0_efefef-100' },
   ]));

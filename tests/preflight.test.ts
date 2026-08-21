@@ -93,7 +93,7 @@ test('finish: pdf-cmyk emits a declared finish as its own OVERPRINTING named pla
   assert.equal(f.evidence?.spotName, 'Gold');
   assert.equal(f.evidence?.format, 'pdf-cmyk');
   assert.ok(!f.message.includes('knocks out'), 'the finish no longer knocks out');
-  assert.ok(!f.message.includes('—'), 'no em-dashes in finding copy');
+  assert.ok(!f.message.includes('\u2014'), 'no em-dashes in finding copy');
   assert.ok(!/[$£€¥]/.test(f.message), 'no currency anywhere in preflight');
   // The sibling finding is for the OTHER failure mode and must not double up.
   assert.equal(has(r, 'print.finish-flattened-into-process'), false);
@@ -753,7 +753,7 @@ test('no finding, anywhere, contains a currency symbol or the word cost', () => 
       // money vocabulary is.
       assert.ok(!/\b(cost|price|pricing|quote|budget|invoice|currency|rate card)\b/i.test(f.message),
         `money vocabulary in ${f.id}: ${f.message}`);
-      assert.ok(!f.message.includes('—'), `em-dash in ${f.id}`);
+      assert.ok(!f.message.includes('\u2014'), `em-dash in ${f.id}`);
     }
   }
 });

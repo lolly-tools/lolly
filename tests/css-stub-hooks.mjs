@@ -4,8 +4,8 @@
  *
  * Vite treats a stylesheet import as a side effect that injects the sheet; Node
  * has no idea what a `.css` file is and throws ERR_UNKNOWN_FILE_EXTENSION. That
- * one gap made every web-shell module that imports its own stylesheet — which is
- * every view and most components — completely untestable under `node --test`,
+ * one gap made every web-shell module that imports its own stylesheet - which is
+ * every view and most components - completely untestable under `node --test`,
  * and it is why the coverage that exists is all in extracted `*-geom` / helper
  * modules rather than in the modules that actually run.
  *

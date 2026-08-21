@@ -170,7 +170,7 @@ test('--designv=latest renders the edit head', async () => {
 
 test('an unknown slug falls through to the head and says so', async () => {
   const { swatch, stderr } = await rendered([...RUN, '--designv=no-such-version']);
-  assert.equal(swatch, '#111111', 'a render always draws — the ladder falls through, it does not fail');
+  assert.equal(swatch, '#111111', 'a render always draws - the ladder falls through, it does not fail');
   assert.match(stderr, /--designv=no-such-version names no design-system version/);
 });
 
@@ -190,7 +190,7 @@ test('a typo’d override is reported even when a manifest pin catches the fall'
   // a pinned tool swallowed it: the author typed one version, silently got
   // another, and nothing on stderr said the flag had been ignored.
   const r = await rendered(['run', 'pin-tool', '--export=svg', '--no-provenance', '--designv=v3']);
-  assert.equal(r.swatch, '#222222', 'the ladder still falls through to the pin — a render always draws');
+  assert.equal(r.swatch, '#222222', 'the ladder still falls through to the pin - a render always draws');
   assert.match(r.stderr, /--designv=v3 names no design-system version/);
   assert.match(r.stderr, /rendering against "v2" instead/, 'and names what it rendered instead');
 });

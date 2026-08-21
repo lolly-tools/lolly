@@ -327,7 +327,7 @@ test("a hook's console.log cannot corrupt a binary pipe", async () => {
   // in front of it (or, worse, in the middle of the IDAT).
   assert.deepEqual([...piped.stdout.subarray(0, 4)], [0x89, 0x50, 0x4e, 0x47]);
   assert.equal(piped.stdout.includes(Buffer.from('HOOK NOISE')), false, 'hook logging reached stdout');
-  assert.match(piped.stderr, /HOOK NOISE/, 'and it must still be visible — on stderr');
+  assert.match(piped.stderr, /HOOK NOISE/, 'and it must still be visible - on stderr');
 });
 
 test('--quiet silences the diagnostics but never the payload or an error', async () => {
@@ -340,7 +340,7 @@ test('--quiet silences the diagnostics but never the payload or an error', async
   assert.match(failed.stderr, /Tool not found/, 'an error survives --quiet');
 });
 
-test('the byte-determinism docs/cli.md promises for SVG holds — with provenance off', async () => {
+test('the byte-determinism docs/cli.md promises for SVG holds - with provenance off', async () => {
   // The docs used to claim "same inputs, same bytes" for everything. Measured, that is
   // true of SVG and the DOM-free formats and false of PDF (a /CreationDate), of the
   // browser tier, and of anything signed. Only the promise that survived is pinned here;
@@ -366,7 +366,7 @@ test('a DEFAULT render is signed, and therefore NOT byte-identical run to run (s
   assert.equal(a.code, 0, a.stderr);
   assert.ok(a.stdout.includes(Buffer.from('c2pa')), 'a default render must carry a credential');
   assert.ok(!a.stdout.equals(b.stdout),
-    'two default renders were byte-identical — either the credential stopped being embedded, ' +
+    'two default renders were byte-identical - either the credential stopped being embedded, ' +
     'or it stopped carrying a timestamp; both change what docs/cli.md promises');
   // …and the bare render is the SAME bytes as before the default moved: the opt-out is a
   // real escape hatch, not a differently-shaped output.

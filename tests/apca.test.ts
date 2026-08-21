@@ -30,7 +30,7 @@ test('matches the reference implementation on its published values', () => {
   near(apcaContrast('#fff', '#888'), -68.5415, 'white on mid grey');
 });
 
-test('polarity is asymmetric — the whole reason this exists alongside WCAG', () => {
+test('polarity is asymmetric - the whole reason this exists alongside WCAG', () => {
   // The SAME pair, swapped. WCAG 2 gives one number for both; APCA does not, and
   // the difference is not rounding - light-on-dark reads worse than the inverse.
   const bow = apcaContrast('#888', '#fff')!;   // dark text on light

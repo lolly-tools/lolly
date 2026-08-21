@@ -14,12 +14,12 @@ in a real browser (see the checklist at the bottom).
 ────────────────────────────────────────────────────────────────────────────
 WHY A CONVERSION IS REQUIRED (there is no ONNX to download)
 ────────────────────────────────────────────────────────────────────────────
-facebookresearch/content-seal is only a landing/portal page — it ships no code
+facebookresearch/content-seal is only a landing/portal page - it ships no code
 or weights and points at facebookresearch/videoseal. The open IMAGE watermark
 extractor lives in videoseal, distributed as torch/PyTorch **.pth** checkpoints.
 There is NO ONNX anywhere in that repo tree (no *.onnx, no export_onnx.py); the
 only "pre-compiled" path is a TorchScript guide (videoseal/docs/torchscript.md),
-and TorchScript is NOT ONNX — onnxruntime-web cannot load it. So a torch -> ONNX
+and TorchScript is NOT ONNX - onnxruntime-web cannot load it. So a torch -> ONNX
 export of the extractor is required for on-device web detection. That is this
 script.
 
@@ -39,10 +39,10 @@ is licensed under an MIT license"; videoseal's primary license is MIT and the
 released checkpoints are distributed under it). MIT is permissive enough to
 convert, redistribute, and ship the derived ONNX on-device. BEFORE you ship,
 RE-READ the videoseal LICENSE plus any `license:` field / model-card terms AT
-DOWNLOAD TIME — Meta sometimes attaches a separate weights/acceptable-use notice
+DOWNLOAD TIME - Meta sometimes attaches a separate weights/acceptable-use notice
 distinct from the code MIT header. As fetched for this spec, none was present.
 
-MUSE CAVEAT (must stay surfaced in the UI — see contentseal.ts / valid.ts):
+MUSE CAVEAT (must stay surfaced in the UI - see contentseal.ts / valid.ts):
 content-seal states "Content Seal Image is deployed at scale for Muse Image with
 a custom proprietary implementation." Meta's production Muse pipeline uses a
 PROPRIETARY variant, NOT these open weights. The converted extractor reliably
@@ -50,19 +50,19 @@ detects only OPEN Pixel Seal / Video Seal watermarks; it may decode genuine Muse
 watermarks as noise. Never claim it detects "Meta Muse" or "Meta AI" generally.
 
 ────────────────────────────────────────────────────────────────────────────
-THE EXTRACTOR CONTRACT (what the web shell feeds / reads — keep in lockstep)
+THE EXTRACTOR CONTRACT (what the web shell feeds / reads - keep in lockstep)
 ────────────────────────────────────────────────────────────────────────────
 INPUT  'image' : float32 [B, 3, H, W], RGB, range [0, 1] (torchvision ToTensor /
                  divide-by-255). The wrapper below does the resize-to-256 and the
                  [0,1]->[-1,1] scale INSIDE the graph, so the shell feeds raw
-                 [0,1] RGB — no ImageNet mean/std. (extractor.py's own
+                 [0,1] RGB - no ImageNet mean/std. (extractor.py's own
                  self.preprocess is exactly `lambda x: x * 2 - 1`.)
 OUTPUT 'preds' : float32 [B, 257] logits = spatial mean over H,W of the
                  extractor's per-pixel [B, 1+nbits, H, W] map. Index 0 is the
                  auxiliary detection bit (dropped by the shell); indices 1..256
                  are the 256 message-bit logits (threshold at 0). The shell runs
-                 this graph 4x — once per augmented view (original, JPEG q85,
-                 JPEG q60, 5% centre crop) — and applies the message-free
+                 this graph 4x - once per augmented view (original, JPEG q85,
+                 JPEG q60, 5% centre crop) - and applies the message-free
                  consensus rule in engine/src/contentseal.ts.
 
 ────────────────────────────────────────────────────────────────────────────
@@ -215,7 +215,7 @@ def main() -> int:
             else:
                 print("onnx-simplifier: simplify() reported failure; keeping the un-simplified graph.")
         except ImportError:
-            print("onnx-simplifier not installed — skipping (pip install onnx onnxsim to enable).")
+            print("onnx-simplifier not installed - skipping (pip install onnx onnxsim to enable).")
 
     size_mb = os.path.getsize(args.out) / (1024 * 1024)
     print(f"Done. Wrote {args.out} ({size_mb:.1f} MB).")
@@ -230,8 +230,8 @@ def main() -> int:
         "     'Deep scan for watermarks'. Enable diagnostics first in DevTools:\n"
         "       localStorage.setItem('lolly:contentseal:debug','1')\n"
         "  3. Confirm a green 'Meta Content Seal' pip on a watermarked sample, and NO pip on an ordinary photo.\n"
-        "  4. Reload offline and re-scan — should still work from the IndexedDB cache.\n"
-        "\nThese files are gitignored (shells/web/.gitignore) — never commit them. If you re-convert with\n"
+        "  4. Reload offline and re-scan - should still work from the IndexedDB cache.\n"
+        "\nThese files are gitignored (shells/web/.gitignore) - never commit them. If you re-convert with\n"
         "different weights, bump MODEL_CACHE_VERSION in shells/web/src/lib/contentseal.ts.\n"
     )
     return 0
@@ -240,14 +240,14 @@ def main() -> int:
 def validate_parity(args, torch, F, wrapper) -> None:
     """Compare the 256 thresholded message bits from the torch wrapper vs the
     exported ONNX graph on a real image. Parity here is the ONLY evidence the
-    conversion is faithful — do it against a genuinely watermarked sample before
+    conversion is faithful - do it against a genuinely watermarked sample before
     trusting the on-device detector."""
     try:
         import numpy as np
         import onnxruntime as ort
         from PIL import Image
     except ImportError:
-        print("--validate needs numpy, onnxruntime and pillow — skipping parity check.")
+        print("--validate needs numpy, onnxruntime and pillow - skipping parity check.")
         return
 
     img = Image.open(args.validate).convert("RGB")
@@ -265,7 +265,7 @@ def validate_parity(args, torch, F, wrapper) -> None:
     print(f"Parity check: {NBITS - mismatches}/{NBITS} message bits match between torch and ONNX "
           f"({mismatches} mismatch{'es' if mismatches != 1 else ''}).")
     if mismatches:
-        print("  WARNING: non-zero mismatch — do NOT ship until the export is faithful (check opset/ops).")
+        print("  WARNING: non-zero mismatch - do NOT ship until the export is faithful (check opset/ops).")
 
 
 if __name__ == "__main__":

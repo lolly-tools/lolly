@@ -97,7 +97,7 @@ test('the shipped platform faces still declare the SIL OFL in their own bytes', 
     assert.match(
       licence,
       /SIL Open Font License, Version 1\.1/,
-      `${face.staticUrl} name ID 13 must state the OFL 1.1 — a platform face ships in the OSS pack. Got: ${JSON.stringify(licence)}`,
+      `${face.staticUrl} name ID 13 must state the OFL 1.1 - a platform face ships in the OSS pack. Got: ${JSON.stringify(licence)}`,
     );
     // OFL section 3: a Reserved Font Name would forbid shipping the file under its own
     // family name, which is exactly what fonts.css and tokens.css do. Verified
@@ -106,7 +106,7 @@ test('the shipped platform faces still declare the SIL OFL in their own bytes', 
     assert.doesNotMatch(
       copyright,
       /Reserved Font Name/i,
-      `${face.staticUrl} declares a Reserved Font Name (${JSON.stringify(copyright)}) — it can no longer ship under its own family name`,
+      `${face.staticUrl} declares a Reserved Font Name (${JSON.stringify(copyright)}) - it can no longer ship under its own family name`,
     );
   }
 });
@@ -120,7 +120,7 @@ test('an OFL licence file sits beside the shipped platform binaries', () => {
     const candidates = [`OFL-${family.toUpperCase()}.txt`, `OFL-${family[0]!.toUpperCase()}${family.slice(1)}.txt`];
     assert.ok(
       candidates.some((c) => existsSync(repoPath(`${dir}/${c}`))),
-      `no OFL text beside the ${family} binaries — tried ${candidates.join(', ')} in ${dir}/`,
+      `no OFL text beside the ${family} binaries - tried ${candidates.join(', ')} in ${dir}/`,
     );
   }
 });
@@ -133,7 +133,7 @@ test('every PLATFORM_FACES entry points at a file that is actually on disk', () 
       assert.ok(face.staticUrl.startsWith('/fonts/'),
         `${family}: a platform face must be shell-served from /fonts/ (profile-independent), got ${face.staticUrl}`);
       assert.ok(existsSync(shellFontPath(face.staticUrl)),
-        `${family}: ${face.staticUrl} is registered but missing from shells/web/public/fonts/ — resolveVectorFont would fall through and the run would keep its <text> element`);
+        `${family}: ${face.staticUrl} is registered but missing from shells/web/public/fonts/ - resolveVectorFont would fall through and the run would keep its <text> element`);
     }
   }
 });
@@ -145,7 +145,7 @@ test('the DEFAULT family registers a real italic, not just an upright', () => {
   // bytes here, so a half-registered family SHADOWS the italic woff2 fonts.css
   // declares - dropping the entry below is strictly worse than having none.
   const faces = PLATFORM_FACES[DEFAULT_FAMILY];
-  assert.ok(faces, `PLATFORM_FACES has no "${DEFAULT_FAMILY}" entry — tokens.css sets it as --font-brand`);
+  assert.ok(faces, `PLATFORM_FACES has no "${DEFAULT_FAMILY}" entry - tokens.css sets it as --font-brand`);
   const styles = faces.map((f) => f.style).sort();
   assert.deepEqual(styles, ['italic', 'normal'],
     `the default family must register both slants (see the "Add slants in pairs or not at all" note in font-registry.ts), got ${JSON.stringify(styles)}`);
@@ -171,7 +171,7 @@ test('the default face is the one the stylesheets actually ask for', () => {
     assert.notEqual(shell, -1, `a SUSE @font-face has no shell-served src:\n${block.slice(0, 300)}`);
     if (catalog !== -1) {
       assert.ok(shell < catalog,
-        `a SUSE @font-face lists the brand catalog before the shell copy — it would 404/SPA-fallback on a pack with no fonts:\n${block.slice(0, 300)}`);
+        `a SUSE @font-face lists the brand catalog before the shell copy - it would 404/SPA-fallback on a pack with no fonts:\n${block.slice(0, 300)}`);
     }
   }
 });
@@ -205,7 +205,7 @@ test('every platform face shapes real outlines with no .notdef', async () => {
     for (const face of faces) {
       const out = await api.toPath({ text: SAMPLE, fontUrl: face.staticUrl, fontSize: 48 });
       assert.equal(out.notdef, 0,
-        `${family} ${face.style} (${face.staticUrl}) left ${out.notdef} .notdef glyph(s) on basic latin — the caller would keep <text>`);
+        `${family} ${face.style} (${face.staticUrl}) left ${out.notdef} .notdef glyph(s) on basic latin - the caller would keep <text>`);
       assert.ok(out.d.length > 0, `${family} ${face.style} produced an empty path for ${JSON.stringify(SAMPLE)}`);
       assert.ok(out.advanceWidth > 0, `${family} ${face.style} produced a zero advance width`);
     }
@@ -225,5 +225,5 @@ test('the default italic outlines, and is genuinely a different face from the up
     api.toPath({ text: SAMPLE, fontUrl: italic.staticUrl, fontSize: 48 }),
   ]);
   assert.equal(i.notdef, 0, 'the default italic face left .notdef glyphs on basic latin');
-  assert.notEqual(i.d, u.d, 'the italic and upright platform faces produced identical outlines — the italic entry is pointing at the upright file');
+  assert.notEqual(i.d, u.d, 'the italic and upright platform faces produced identical outlines - the italic entry is pointing at the upright file');
 });

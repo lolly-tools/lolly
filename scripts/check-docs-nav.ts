@@ -65,11 +65,11 @@ const DOCS_README = join(DOCS_DIR, 'README.md');
  */
 export const NOT_PAGES: Record<string, string> = {
   'README.md':
-    'the docs directory\'s own index — a map for contributors reading the repo, ' +
+    'the docs directory\'s own index - a map for contributors reading the repo, ' +
     'not a page for readers of the site (it describes the nav rather than joining it)',
   'faq.md':
     'the source for the accordion on the /info landing page, parsed by loadFaqs() in ' +
-    'build.ts — it ships as part of index.html, so registering it would publish the ' +
+    'build.ts - it ships as part of index.html, so registering it would publish the ' +
     'same content twice',
 };
 
@@ -80,7 +80,7 @@ export const NOT_PAGES: Record<string, string> = {
  */
 export const NOT_IN_SIDEBAR: Record<string, string> = {
   index:
-    'the /info landing page — the brand wordmark links to it from every page, and it ' +
+    'the /info landing page - the brand wordmark links to it from every page, and it ' +
     'renders the hub cards rather than sitting inside a pathway sidebar',
 };
 
@@ -183,7 +183,7 @@ export function checkDocsNav(): NavReport {
   const sidebarBlock = sliceDeclaration(buildTs, 'SIDEBARS');
   if (!pagesBlock || !sidebarBlock) {
     throw new Error(
-      'could not locate the `pages` and `SIDEBARS` declarations in docs/build.ts — ' +
+      'could not locate the `pages` and `SIDEBARS` declarations in docs/build.ts - ' +
         'this guard would pass vacuously. Update sliceDeclaration() to match the new layout.',
     );
   }
@@ -204,7 +204,7 @@ export function checkDocsNav(): NavReport {
   const entries = pageEntries(pagesBlock);
   if (entries.length !== pageSlugs.length) {
     throw new Error(
-      `recovered ${entries.length} of ${pageSlugs.length} \`pages\` entries from docs/build.ts — ` +
+      `recovered ${entries.length} of ${pageSlugs.length} \`pages\` entries from docs/build.ts - ` +
         'the README-index check would cover only a subset. Update pageEntries() to match the new layout.',
     );
   }
@@ -256,13 +256,13 @@ function main(): void {
   if (report.orphaned.length) {
     failed = true;
     console.error(
-      `\n✗ ${report.orphaned.length} docs page(s) are unreachable from /info — no \`pages\`` +
+      `\n✗ ${report.orphaned.length} docs page(s) are unreachable from /info - no \`pages\`` +
         ' entry in docs/build.ts and no declared exception:\n',
     );
     for (const n of report.orphaned) console.error(`    docs/${n}`);
     console.error(
       '\n  Either add a `pages` entry (slug, title, src, pathway) in docs/build.ts, fold the\n' +
-        '  content into a page that is registered, or — if it genuinely is not a site page —\n' +
+        '  content into a page that is registered, or - if it genuinely is not a site page -\n' +
         '  add it to NOT_PAGES in this script WITH the reason.',
     );
   }
@@ -285,7 +285,7 @@ function main(): void {
     failed = true;
     console.error('\n✗ NOT_PAGES exempts file(s) that ARE registered as pages:\n');
     for (const n of report.contradictoryExceptions) console.error(`    docs/${n}`);
-    console.error('\n  Drop the exception — the page is in the nav, which is what we wanted.');
+    console.error('\n  Drop the exception - the page is in the nav, which is what we wanted.');
   }
 
   if (report.unreachable.length) {
@@ -296,8 +296,8 @@ function main(): void {
     );
     for (const s of report.unreachable) console.error(`    ${s} (/info/${s}.html)`);
     console.error(
-      '\n  Add the slug to the right pathway group in SIDEBARS (docs/build.ts), or — if it\n' +
-        '  is deliberately reachable only through cross-links — add it to NOT_IN_SIDEBAR in\n' +
+      '\n  Add the slug to the right pathway group in SIDEBARS (docs/build.ts), or - if it\n' +
+        '  is deliberately reachable only through cross-links - add it to NOT_IN_SIDEBAR in\n' +
         '  this script WITH the reason.',
     );
   }
@@ -328,7 +328,7 @@ function main(): void {
   const exempt = Object.keys(NOT_PAGES).length;
   const sidebarExempt = Object.keys(NOT_IN_SIDEBAR).length;
   console.log(
-    `✓ docs nav complete — ${report.registeredCount} page(s) registered, ` +
+    `✓ docs nav complete - ${report.registeredCount} page(s) registered, ` +
       `${exempt} declared non-page(s), 0 orphans; every page reachable from a sidebar ` +
       `(${sidebarExempt} declared exception(s)) and indexed in docs/README.md`,
   );

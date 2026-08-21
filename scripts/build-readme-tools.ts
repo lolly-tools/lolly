@@ -52,21 +52,21 @@ function activeCatalogLabel(): string {
       if (p.catalog && realpathSync(join(ROOT, p.catalog)) === real) return p.label ?? 'active';
     }
   } catch {
-    /* fall through — a missing/odd profiles.json never blocks the README build */
+    /* fall through - a missing/odd profiles.json never blocks the README build */
   }
   return 'active';
 }
 
 if (!existsSync(INDEX_PATH)) {
   fail(
-    'catalog/tools/index.json not found — the catalog view is not built. ' +
+    'catalog/tools/index.json not found - the catalog view is not built. ' +
       'Run `npm run profile` (postinstall builds it) or `npm run build:catalog` first.',
   );
 }
 
 const index = JSON.parse(readFileSync(INDEX_PATH, 'utf8')) as { tools?: IndexEntry[] };
 const tools = index.tools ?? [];
-if (tools.length === 0) fail('catalog/tools/index.json has no tools — refusing to write an empty table.');
+if (tools.length === 0) fail('catalog/tools/index.json has no tools - refusing to write an empty table.');
 
 const listed = tools.filter(t => t.listed !== false).sort((a, b) => (a.name ?? a.id).localeCompare(b.name ?? b.id, 'en'));
 const unlisted = tools.filter(t => t.listed === false).sort((a, b) => (a.name ?? a.id).localeCompare(b.name ?? b.id, 'en'));

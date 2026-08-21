@@ -3,7 +3,7 @@
   "formatVersion": 1,
   "minReader": 1,
   "issuer": {
-    "name": "EXAMPLE — NOT REAL RATES",
+    "name": "EXAMPLE - NOT REAL RATES",
     "url": "https://example.invalid",
     "issued": "…",
     "validUntil": "…",

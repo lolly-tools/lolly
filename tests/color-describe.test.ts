@@ -53,7 +53,7 @@ test('every input notation parses, and an sRGB colour round-trips exactly', () =
   }
 });
 
-test('white is white however it is spelled — the gamut cannot depend on the notation', () => {
+test('white is white however it is spelled - the gamut cannot depend on the notation', () => {
   // `lab(100 0 0)` converts to OKLCH l = 1.0000000010492212, an ulp past the
   // domain guard's ceiling, where the same colour written '#fff' lands at
   // 0.9999999934. Without a float tolerance on that ceiling, one spelling was in
@@ -62,7 +62,7 @@ test('white is white however it is spelled — the gamut cannot depend on the no
     'oklch(100% 0 0)']) {
     const d = describeColor(spelling);
     assert.ok(d, `${spelling} parses`);
-    assert.equal(d.gamut, 'srgb', `${spelling} is white, and white is inside sRGB — not 'none'`);
+    assert.equal(d.gamut, 'srgb', `${spelling} is white, and white is inside sRGB - not 'none'`);
     assert.equal(d.inSrgb, true, `${spelling} must be reported as displayable`);
   }
 });
@@ -141,9 +141,9 @@ test('WCAG levels use the body and large-text thresholds separately', () => {
   // where the two scales (4.5/7 body, 3/4.5 large) put them.
   const cases: [string, 'AA' | 'AAA', 'AA' | 'AAA'][] = [
     ['#ffffff', 'AAA', 'AAA'],   // 21.00
-    ['#767676', 'AA', 'AAA'],    //  4.62 — just over the body AA line
+    ['#767676', 'AA', 'AAA'],    //  4.62 - just over the body AA line
     ['#8a8a8a', 'AA', 'AAA'],    //  6.08
-    ['#949494', 'AA', 'AAA'],    //  6.92 — still short of body AAA
+    ['#949494', 'AA', 'AAA'],    //  6.92 - still short of body AAA
     ['#a0a0a0', 'AAA', 'AAA'],   //  8.03
   ];
   for (const [hex, level, largeLevel] of cases) {

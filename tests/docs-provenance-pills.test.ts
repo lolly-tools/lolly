@@ -40,7 +40,7 @@ test('every provenance marker in docs/*.md uses a supported kind', () => {
       if (!KINDS.includes(m[1]!)) bad.push(`${f}: %${m[1]}{`);
     }
   }
-  assert.deepEqual(bad, [], 'unknown pill kind — it would render as literal text');
+  assert.deepEqual(bad, [], 'unknown pill kind - it would render as literal text');
 });
 
 test('every provenance marker in docs/*.md closes its brace', () => {
@@ -75,7 +75,7 @@ test('no built page ships an unrendered provenance marker', { skip: builtPages.l
     const m = new RegExp(`%(${KINDS.join('|')})\\{`).exec(html);
     if (m) leaked.push(`${f}: ${m[0]}`);
   }
-  assert.deepEqual(leaked, [], 'stale or unrendered markup shipped — run `npm run build:info`');
+  assert.deepEqual(leaked, [], 'stale or unrendered markup shipped - run `npm run build:info`');
 });
 
 test('a page whose source uses pills ships them as rendered spans', { skip: builtPages.length ? false : 'no built /info on disk' }, () => {
@@ -87,7 +87,7 @@ test('a page whose source uses pills ships them as rendered spans', { skip: buil
     const built = join(BUILT, f.replace(/\.md$/, '.html'));
     if (!existsSync(built)) continue;
     assert.match(readFileSync(built, 'utf-8'), /class="prov-pill prov-/,
-      `${f} authors provenance pills but its built page has none — stale artifact?`);
+      `${f} authors provenance pills but its built page has none - stale artifact?`);
   }
 });
 

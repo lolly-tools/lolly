@@ -65,7 +65,7 @@ function main(): void {
   const skipped = names.filter((n) => !runnable.includes(n));
 
   if (!runnable.length) {
-    console.error('✗ no profile has all its packs mounted — run `git submodule update --init --recursive`');
+    console.error('✗ no profile has all its packs mounted - run `git submodule update --init --recursive`');
     process.exitCode = 1;
     return;
   }
@@ -95,7 +95,7 @@ function main(): void {
       console.log(`\n↩ restoring active profile "${original}"`);
       // Best-effort: a restore that throws must not mask the real error from the loop.
       try { run('use-profile.ts', [original]); }
-      catch { console.error(`⚠ could not restore profile "${original}" — run \`npm run profile:${original}\``); }
+      catch { console.error(`⚠ could not restore profile "${original}" - run \`npm run profile:${original}\``); }
     }
   }
 

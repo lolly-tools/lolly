@@ -1,14 +1,14 @@
 # syntax=docker/dockerfile:1
 # ============================================================================
-# Lolly MCP server — the one hosted service (opt-in).
+# Lolly MCP server - the one hosted service (opt-in).
 # ============================================================================
 # Streamable-HTTP MCP transport + OAuth discovery. Runs `node services/mcp/src/http.ts`
-# (Node 24 executes TypeScript natively — no compile step). Listens on $PORT
+# (Node 24 executes TypeScript natively - no compile step). Listens on $PORT
 # (default 8790), serving JSON-RPC at POST /mcp plus the .well-known OAuth routes
 # and a public GET render path (/tool/<id>.<ext>). Stateless (SSE/session mgmt is
 # roadmap), so it scales horizontally.
 #
-# BUILD CONTEXT MUST BE THE REPO ROOT — the server imports its sibling workspace
+# BUILD CONTEXT MUST BE THE REPO ROOT - the server imports its sibling workspace
 # (@lolly/engine at ../../../engine) and, at runtime, loads tools from the
 # repo-root tools/ + catalog/ profile views:
 #
@@ -20,7 +20,7 @@
 #
 # Tier-B (browser/Chromium) render formats are DISABLED unless LOLLY_WEB_BASE is
 # set at runtime; svg/data + resvg-png work without a browser. We deliberately do
-# NOT install Playwright's Chromium here to keep the image slim — set env
+# NOT install Playwright's Chromium here to keep the image slim - set env
 # LOLLY_WEB_BASE=https://<your-web-host> to point at your web deployment's
 # renderer instead.
 # ============================================================================
@@ -46,7 +46,7 @@ ENV NODE_ENV=production
 # Default transport port; the chart sets PORT explicitly too.
 ENV PORT=8790
 
-# Bring the installed monorepo across whole — the .ts entrypoint resolves engine
+# Bring the installed monorepo across whole - the .ts entrypoint resolves engine
 # and tool/catalog paths by relative position, so the layout must be preserved.
 COPY --from=build /src /app
 

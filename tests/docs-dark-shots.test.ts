@@ -36,7 +36,7 @@ test('a dark twin carries its own Content Credential', () => {
     return !p?.signer || !p.when;
   });
   assert.deepEqual(unsigned, [],
-    'these dark baselines have no readable credential — re-capture them so the twin is signed too');
+    'these dark baselines have no readable credential - re-capture them so the twin is signed too');
 });
 
 test('the light/dark swap holds with no JS and cannot be out-specified', () => {
@@ -48,7 +48,7 @@ test('the light/dark swap holds with no JS and cannot be out-specified', () => {
   assert.ok(rules.length >= 4, `expected the .shot--dual swap rules, found ${rules.length}`);
   for (const [, sel] of rules) {
     assert.doesNotMatch(sel!, /\.shots-motion|@media/,
-      `"${sel!.trim()}" gates the theme swap behind the motion class or a media query — `
+      `"${sel!.trim()}" gates the theme swap behind the motion class or a media query - `
       + 'with JS off, or on an OS whose preference disagrees with the toggle, the wrong file shows');
   }
   // Each img rule must name the ELEMENT as well as the class: the base `.docs-content img`
@@ -84,7 +84,7 @@ test('the theme-blind token read that eight shots depend on is still theme-blind
   // still pixel-identical. Byte-equality proves waste; it does not prove invariance.
   const runtime = readFileSync(join(ROOT, 'engine/src/runtime.ts'), 'utf8');
   const call = /host\.tokens\.get\(([^)]*)\)/.exec(runtime);
-  assert.ok(call, 'engine/src/runtime.ts no longer calls host.tokens.get() — re-check the shots below');
+  assert.ok(call, 'engine/src/runtime.ts no longer calls host.tokens.get() - re-check the shots below');
   assert.equal(call[1]!.trim(), '',
     'runtime.ts now passes an argument to host.tokens.get(), so a tool\'s token-defaulted paint '
     + 'follows the app theme. Any docs shot that is pure token-coloured tool output is no longer '

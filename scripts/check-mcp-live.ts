@@ -26,7 +26,7 @@ const base = (baseArg ? baseArg.slice('--base='.length) : DEFAULT_BASE).replace(
 
 let failures = 0;
 function report(name: string, ok: boolean, detail: string): void {
-  console.log(`${ok ? '✓' : '✗'} ${name} — ${detail}`);
+  console.log(`${ok ? '✓' : '✗'} ${name} - ${detail}`);
   if (!ok) failures++;
 }
 
@@ -40,11 +40,11 @@ try {
   if (res.status === 401) {
     report('POST /api/mcp', true, 'HTTP 401 (function alive + auth-gated)');
   } else if (res.status === 405) {
-    report('POST /api/mcp', false, 'HTTP 405 — SPA fallback, MCP function not deployed');
+    report('POST /api/mcp', false, 'HTTP 405 - SPA fallback, MCP function not deployed');
   } else if (res.status === 500) {
-    report('POST /api/mcp', false, 'HTTP 500 — function crashed (likely .ts bundling regression)');
+    report('POST /api/mcp', false, 'HTTP 500 - function crashed (likely .ts bundling regression)');
   } else {
-    report('POST /api/mcp', false, `HTTP ${res.status} — expected 401`);
+    report('POST /api/mcp', false, `HTTP ${res.status} - expected 401`);
   }
 } catch (err) {
   report('POST /api/mcp', false, `request failed: ${(err as Error).message}`);
@@ -66,9 +66,9 @@ try {
   if (ok) {
     report('GET /api/ca/health', true, `JSON ${JSON.stringify(parsed)}`);
   } else if (!isJson) {
-    report('GET /api/ca/health', false, `non-JSON response (content-type: ${ctype || 'none'}) — SPA fallback?`);
+    report('GET /api/ca/health', false, `non-JSON response (content-type: ${ctype || 'none'}) - SPA fallback?`);
   } else {
-    report('GET /api/ca/health', false, `JSON but not ok:true — ${text.slice(0, 120)}`);
+    report('GET /api/ca/health', false, `JSON but not ok:true - ${text.slice(0, 120)}`);
   }
 } catch (err) {
   report('GET /api/ca/health', false, `request failed: ${(err as Error).message}`);
@@ -88,8 +88,8 @@ for (const path of ['/.well-known/oauth-protected-resource', '/.well-known/oauth
     // A real metadata doc names a resource or an issuer; the SPA index.html does not.
     const looksRight = isJson && (('resource' in parsed!) || ('issuer' in parsed!) || ('authorization_endpoint' in parsed!));
     if (looksRight) report(`GET ${path}`, true, `JSON metadata (${res.status})`);
-    else if (!isJson) report(`GET ${path}`, false, `non-JSON (content-type: ${ctype || 'none'}) — SPA fallback, OAuth not routed`);
-    else report(`GET ${path}`, false, `JSON but not OAuth metadata — ${text.slice(0, 100)}`);
+    else if (!isJson) report(`GET ${path}`, false, `non-JSON (content-type: ${ctype || 'none'}) - SPA fallback, OAuth not routed`);
+    else report(`GET ${path}`, false, `JSON but not OAuth metadata - ${text.slice(0, 100)}`);
   } catch (err) {
     report(`GET ${path}`, false, `request failed: ${(err as Error).message}`);
   }
@@ -103,7 +103,7 @@ for (const path of ['/.well-known/oauth-protected-resource', '/.well-known/oauth
 // `tools/list` (→ catalog read). Runs only when LOLLY_MCP_TOKEN is in the env.
 const token = process.env.LOLLY_MCP_TOKEN;
 if (!token) {
-  console.log('• skipped authenticated initialize/tools-list — set LOLLY_MCP_TOKEN to run it');
+  console.log('• skipped authenticated initialize/tools-list - set LOLLY_MCP_TOKEN to run it');
 } else {
   const rpc = async (method: string, params: unknown): Promise<{ status: number; body: Record<string, unknown> | undefined }> => {
     const res = await fetch(`${base}/api/mcp`, {
@@ -121,15 +121,15 @@ if (!token) {
     const initOk = init.status === 200 && !!init.body && !init.body.error && !!init.body.result;
     report('POST /api/mcp initialize (authed)', initOk,
       initOk ? 'JSON-RPC result (function has catalog/tools on disk)'
-      : init.status === 500 ? 'HTTP 500 — likely ENOENT: includeFiles did not ship catalog/tools'
-      : `HTTP ${init.status} — ${JSON.stringify(init.body).slice(0, 120)}`);
+      : init.status === 500 ? 'HTTP 500 - likely ENOENT: includeFiles did not ship catalog/tools'
+      : `HTTP ${init.status} - ${JSON.stringify(init.body).slice(0, 120)}`);
 
     const list = await rpc('tools/list', {});
     const tools = (list.body?.result as { tools?: unknown[] } | undefined)?.tools;
     const listOk = list.status === 200 && Array.isArray(tools) && tools.length > 0;
     report('POST /api/mcp tools/list (authed)', listOk,
       listOk ? `${tools!.length} tools (catalog index read OK)`
-      : `HTTP ${list.status} — no non-empty tools array (catalog read failed?)`);
+      : `HTTP ${list.status} - no non-empty tools array (catalog read failed?)`);
   } catch (err) {
     report('POST /api/mcp (authed)', false, `request failed: ${(err as Error).message}`);
   }

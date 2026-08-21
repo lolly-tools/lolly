@@ -146,7 +146,7 @@ test('a capital starting a SECOND sentence is sentence case, not an invented nam
 });
 
 test('gate refuses a candidate carrying an artifact tell', () => {
-  const v = rewordGate(ORIGINAL, 'The SUSE team will use 3 new tools at https://suse.com ​today.');
+  const v = rewordGate(ORIGINAL, 'The SUSE team will use 3 new tools at https://suse.com \u200btoday.');
   assert.ok(v.reasons.includes('artifact'), `got ${v.reasons.join()}`);
 });
 

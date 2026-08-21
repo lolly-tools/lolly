@@ -54,7 +54,7 @@ test('sRGB nests inside both wider gamuts', () => {
   }
 });
 
-test('Display-P3 does NOT nest inside Rec.2020 — the deep-red sliver', () => {
+test('Display-P3 does NOT nest inside Rec.2020 - the deep-red sliver', () => {
   // The assumption this test exists to kill. P3's red primary lies just outside
   // the Rec.2020 red–green edge, so a thin band of deep reds is displayable on a
   // P3 screen and NOT within Rec.2020. Inferring membership from gamut ORDER
@@ -71,7 +71,7 @@ test('Display-P3 does NOT nest inside Rec.2020 — the deep-red sliver', () => {
       }
     }
   }
-  assert.ok(escapees.length > 0, 'the sliver exists — if this fails, check the Rec.2020 matrix');
+  assert.ok(escapees.length > 0, 'the sliver exists - if this fails, check the Rec.2020 matrix');
   // It is confined to the reds; a wide spread would mean a broken matrix, not a
   // primary poking out.
   for (const e of escapees) assert.match(e, /H(25|30|35)$/, `unexpected escapee at ${e}`);
@@ -329,7 +329,7 @@ test('the sampled fill ceiling lands on the real sRGB boundary', () => {
 
 // ─── Wide-gamut encoding ──────────────────────────────────────────────────────
 
-test('encode does not change WHICH pixels exist — only how they are written', () => {
+test('encode does not change WHICH pixels exist - only how they are written', () => {
   // Membership is a `limit` question; encoding is a byte question. Conflating them
   // would make a wide-gamut canvas appear to widen the gamut itself.
   const box = { plane: 'lc' as const, fixed: 145, width: 64, height: 40, cMax: 0.4, limit: 'p3' as const };

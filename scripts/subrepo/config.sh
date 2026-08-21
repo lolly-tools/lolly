@@ -2,7 +2,7 @@
 # scripts/subrepo/config.sh
 #
 # Single source of truth for the lolly monorepo → github.com/lolly-tools split.
-# SOURCED by migrate.sh, sync.sh, status.sh — not executed directly.
+# SOURCED by migrate.sh, sync.sh, status.sh - not executed directly.
 #
 # See plans/linked-juggling-sky.md for the full strategy. Submodule mount paths
 # stay exactly where the dirs live today; repo names use the `lolly-` prefix.
@@ -10,13 +10,13 @@
 set -euo pipefail
 
 ORG="lolly-tools"
-# HTTPS host — public submodules clone anonymously, so Vercel's git-build / CI /
+# HTTPS host - public submodules clone anonymously, so Vercel's git-build / CI /
 # keyless clones can fetch them. (SSH .gitmodules URLs broke the Vercel git-build:
 # no SSH key in the build env.) Andy's existing local submodule push-remotes stay
 # SSH; a fresh clone fetches over HTTPS and pushes via gh/HTTPS auth.
 GIT_HOST="https://github.com"
 
-# Vercel deploy targets — every one of these gets built+validated by `loldev gtg`'s
+# Vercel deploy targets - every one of these gets built+validated by `loldev gtg`'s
 # build gate and shipped by `loldev ship`, uniformly. Each entry is
 # name|project-id|profile|domain[|driver]: `name`/`id` target a specific Vercel project via
 # VERCEL_ORG_ID/VERCEL_PROJECT_ID env overrides (so the local `.vercel/project.json`
@@ -47,7 +47,7 @@ STAGE_ROOT="${SUBREPO_STAGE:-${TMPDIR:-/tmp}/lolly-subrepo-stage}"
 # path-in-monorepo | repo-name-under-lolly-tools
 # Order is cosmetic (each unit is independent).
 # 2026-07-08 content split: the old tools/ + catalog/ submodules (lolly-suse-tools,
-# lolly-suse-catalog) were replaced by two packs — community/ (public, brand-agnostic
+# lolly-suse-catalog) were replaced by two packs - community/ (public, brand-agnostic
 # tools) and brands/suse/ (PRIVATE: SUSE tools + full catalog incl. music). The
 # repo-root tools/ and catalog/ paths are now gitignored profile VIEWS built by
 # scripts/use-profile.ts (see profiles.json).
@@ -76,7 +76,7 @@ MPL_PATHS=(
   "shells/tauri-desktop" "shells/tauri-mobile" "shells/chrome-extension"
 )
 
-# Licensed music (PremiumBeat/Shutterstock) — tracked in the PRIVATE brands/suse
+# Licensed music (PremiumBeat/Shutterstock) - tracked in the PRIVATE brands/suse
 # pack (at brands/suse/catalog/$MUSIC_REL) and must NEVER land in a public repo.
 MUSIC_REL="assets/suse/music"   # relative to the active catalog root
 
@@ -85,11 +85,11 @@ MUSIC_REL="assets/suse/music"   # relative to the active catalog root
 # .gitignore today and relies on the ROOT one to keep the root private key out.
 gitignore_extra() {
   case "$1" in
-    brands/suse)  printf '%s\n' '.DS_Store' 'node_modules/' ;;  # music INCLUDED — repo is PRIVATE
+    brands/suse)  printf '%s\n' '.DS_Store' 'node_modules/' ;;  # music INCLUDED - repo is PRIVATE
     community)    printf '%s\n' '.DS_Store' 'node_modules/' ;;
     services/ca)  printf '%s\n' '.DS_Store' 'node_modules/' '*.pem' 'lolly-root-key.pem' '.env' ;;
     services/mcp) printf '%s\n' '.DS_Store' 'node_modules/' '.browsers/' ;;
-    # Shells relied on the ROOT .gitignore for build-output rules — replicate the
+    # Shells relied on the ROOT .gitignore for build-output rules - replicate the
     # relevant ones here so the standalone subrepo never commits dist/vercel/etc.
     shells/web)   printf '%s\n' '.DS_Store' 'node_modules/' 'dist/' '.vercel' 'coverage' \
                     'public/_testlogos/' 'public/info/*.html' 'public/info/logos/' 'public/info/og/' \
@@ -153,7 +153,7 @@ else
   c_pink=''; c_purple=''; c_blue=''; c_gray=''; c_white=''
 fi
 
-# Repeat a (possibly multibyte) string $2 times — BSD/macOS `tr` can't do it, so
+# Repeat a (possibly multibyte) string $2 times - BSD/macOS `tr` can't do it, so
 # we build the string ourselves. Used for the full-width decorative rules.
 _repeat() { local s="$1" n="${2:-0}" out=''; while [ "$n" -gt 0 ]; do out+="$s"; n=$((n-1)); done; printf '%s' "$out"; }
 
@@ -169,7 +169,7 @@ _rule_w() {
 # A thin full-width divider.
 rule() { printf "${c_dim}${c_teal}%s${c_reset}\n" "$(_repeat '─' "$(_rule_w)")"; }
 
-# banner EMOJI TITLE [SUBTITLE] — the spaced header block for a top-level command.
+# banner EMOJI TITLE [SUBTITLE] - the spaced header block for a top-level command.
 banner() {
   echo
   printf "  %s  ${c_bold}${c_grn}%s${c_reset}\n" "$1" "$2"
@@ -177,10 +177,10 @@ banner() {
   rule
 }
 
-# phase EMOJI TITLE — a section divider with breathing room above it.
+# phase EMOJI TITLE - a section divider with breathing room above it.
 phase() { printf "\n${c_bold}${c_purple}%s  %s${c_reset}\n" "$1" "$2"; }
 
-# step TEXT — an in-progress action line (trailing ellipsis).
+# step TEXT - an in-progress action line (trailing ellipsis).
 step() { printf "  ${c_teal}▸${c_reset} ${c_dim}%s…${c_reset}\n" "$*"; }
 
 say()  { printf "${c_bold}${c_teal}▸ %s${c_reset}\n" "$*"; }

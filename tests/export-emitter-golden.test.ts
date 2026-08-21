@@ -78,7 +78,7 @@ function goldenCase(id: string, live: string): void {
   }
   const want = committed[id];
   assert.ok(want !== undefined,
-    `no committed golden for "${id}" — regenerate with UPDATE_GOLDENS=1 node --test tests/export-emitter-golden.test.ts`);
+    `no committed golden for "${id}" - regenerate with UPDATE_GOLDENS=1 node --test tests/export-emitter-golden.test.ts`);
   assert.equal(live, want, `output for "${id}" drifted from the committed golden`);
 }
 

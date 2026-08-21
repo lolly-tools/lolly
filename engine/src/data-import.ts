@@ -156,21 +156,21 @@ export function parseDataRows(text: string, opts: ParseDataOpts = {}): ParseData
     }
     if (any) rows.push(row);                            // skip fully-blank records
   }
-  if (!rows.length) throw new Error('No usable rows — check the column names match the fields.');
+  if (!rows.length) throw new Error('No usable rows - check the column names match the fields.');
   return { rows, truncated };
 }
 
 // ── internals ───────────────────────────────────────────────────────────────
 
 function detectFormat(text: string): 'json' | 'csv' {
-  const t = text.replace(/^﻿/, '').trim();
+  const t = text.replace(/^/, '').trim();
   return t.startsWith('[') || t.startsWith('{') ? 'json' : 'csv';
 }
 
 function readJson(text: string): unknown[] {
   let parsed: unknown;
-  try { parsed = JSON.parse(text.replace(/^﻿/, '')); }
-  catch { throw new Error('Could not read the JSON file — it isn’t valid JSON.'); }
+  try { parsed = JSON.parse(text.replace(/^/, '')); }
+  catch { throw new Error('Could not read the JSON file - it isn’t valid JSON.'); }
   // Accept a bare array, or a wrapper object exposing a data/rows array.
   const obj = parsed && typeof parsed === 'object' ? (parsed as Record<string, unknown>) : null;
   const arr: unknown[] | null = Array.isArray(parsed) ? parsed
@@ -196,7 +196,7 @@ function unionKeys(records: unknown[]): string[] {
 // RFC 4180-ish CSV: comma-separated, "double quotes" with "" escaping, quoted
 // fields may embed commas and newlines, CRLF or LF line endings, leading BOM.
 function readCsv(text: string): string[][] {
-  const s = text.replace(/^﻿/, '');
+  const s = text.replace(/^/, '');
   const rows: string[][] = [];
   let row: string[] = [], field = '', inQuotes = false, i = 0;
   while (i < s.length) {

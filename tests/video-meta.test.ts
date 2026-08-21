@@ -22,7 +22,7 @@ const META = {
   tool: 'Animated Ad',
   author: 'Andy Fitzsimon',
   contact: 'andy@example.com',
-  description: 'Made with https://lolly.tools — Animated Ad by Andy Fitzsimon',
+  description: 'Made with https://lolly.tools - Animated Ad by Andy Fitzsimon',
 };
 const DATE = new Date('2026-07-02T12:00:00Z');
 const TAGS = videoProvenanceTags(META, DATE);
@@ -41,7 +41,7 @@ test('provenance tags map the ExportMeta record onto container fields', () => {
 });
 
 test('empty profile fields stay empty (omitted by the writers), platform tags remain', () => {
-  const t = videoProvenanceTags({ software: 'Lolly', source: 'https://lolly.tools', tool: 'QR Code', author: '', contact: '', description: 'Made with https://lolly.tools — QR Code' }, DATE);
+  const t = videoProvenanceTags({ software: 'Lolly', source: 'https://lolly.tools', tool: 'QR Code', author: '', contact: '', description: 'Made with https://lolly.tools - QR Code' }, DATE);
   assert.equal(t.artist, '');
   assert.equal(t.publisher, 'https://lolly.tools');
 });

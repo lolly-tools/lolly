@@ -1,19 +1,19 @@
 #!/usr/bin/env bash
 #
-# Lolly workstation setup — macOS + openSUSE.
+# Lolly workstation setup - macOS + openSUSE.
 #
 # Gets a fresh clone of the umbrella repo to a running state: system prerequisites
 # (git, Node), the git submodules that make up the monorepo, workspace deps, and a
 # content profile. Safe to re-run (idempotent). See INSTALL.md for the manual path
 # and troubleshooting.
 #
-#   ./setup.sh                     # public setup — community tools + the blank lolly-start brand
+#   ./setup.sh                     # public setup - community tools + the blank lolly-start brand
 #   ./setup.sh --suse              # also mount the PRIVATE SUSE brand pack (needs repo access)
 #   ./setup.sh --profile lolly-start   # force a content profile after install
 #   ./setup.sh --skip-node         # don't touch Node (you manage it, e.g. via nvm)
 #   ./setup.sh --help
 #
-# Written for bash 3.2 (macOS ships it) — no bash-4 features.
+# Written for bash 3.2 (macOS ships it) - no bash-4 features.
 set -euo pipefail
 
 # ── config ──────────────────────────────────────────────────────────────────────
@@ -60,7 +60,7 @@ PKG=""; SUDO=""
 case "$OS" in
   Darwin)
     OSNAME="macOS"
-    have brew && PKG="brew" || warn "Homebrew not found — install from https://brew.sh if a prerequisite is missing"
+    have brew && PKG="brew" || warn "Homebrew not found - install from https://brew.sh if a prerequisite is missing"
     ;;
   Linux)
     OSNAME="Linux"
@@ -69,7 +69,7 @@ case "$OS" in
       have zypper && PKG="zypper" || warn "zypper not found on this SUSE box"
       [ "$(id -u)" -eq 0 ] || SUDO="sudo"
     else
-      warn "Not openSUSE — this script only auto-installs prerequisites on macOS and openSUSE."
+      warn "Not openSUSE - this script only auto-installs prerequisites on macOS and openSUSE."
       warn "It will still init submodules + npm install; install git/Node yourself first."
     fi
     ;;
@@ -77,7 +77,7 @@ case "$OS" in
 esac
 ok "$OSNAME${PKG:+ (package manager: $PKG)}"
 
-# pkg_install <brew-formula> <zypper-package...> — best-effort, only when PKG is known.
+# pkg_install <brew-formula> <zypper-package...> - best-effort, only when PKG is known.
 pkg_install() {
   local brew_pkg="$1"; shift
   case "$PKG" in
@@ -92,8 +92,8 @@ step "Checking git"
 if have git; then
   ok "git $(git --version | awk '{print $3}')"
 else
-  warn "git missing — installing"
-  pkg_install git git || die "could not install git — install it manually and re-run"
+  warn "git missing - installing"
+  pkg_install git git || die "could not install git - install it manually and re-run"
   ok "git installed"
 fi
 
@@ -109,16 +109,16 @@ node_ok() {
 }
 
 if [ "$SKIP_NODE" -eq 1 ]; then
-  step "Node (skipped — --skip-node)"
-  node_ok || warn "current node ($(node -v 2>/dev/null || echo none)) may be too old — need >=22.18 or >=24"
+  step "Node (skipped - --skip-node)"
+  node_ok || warn "current node ($(node -v 2>/dev/null || echo none)) may be too old - need >=22.18 or >=24"
 else
   step "Checking Node (need >=22.18 for TypeScript sources; .nvmrc pins 22)"
   if node_ok; then
     ok "node $(node -v)"
   else
-    if have node; then warn "node $(node -v) is too old — upgrading"; else warn "node missing — installing"; fi
+    if have node; then warn "node $(node -v) is too old - upgrading"; else warn "node missing - installing"; fi
     pkg_install node@22 nodejs22 npm22 || warn "could not install Node via $PKG"
-    # Homebrew's node@22 is keg-only — expose it for this session.
+    # Homebrew's node@22 is keg-only - expose it for this session.
     if [ "$PKG" = "brew" ] && ! node_ok; then
       P22="$(brew --prefix node@22 2>/dev/null || true)"
       [ -n "$P22" ] && export PATH="$P22/bin:$PATH"
@@ -126,14 +126,14 @@ else
     if node_ok; then
       ok "node $(node -v)"
     else
-      die "Node is still too old ($(node -v 2>/dev/null || echo none)). Easiest fix — nvm honours .nvmrc:
+      die "Node is still too old ($(node -v 2>/dev/null || echo none)). Easiest fix - nvm honours .nvmrc:
        curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.1/install.sh | bash
        # reopen the shell, then:  nvm install   (reads .nvmrc → 22)
      Then re-run ./setup.sh --skip-node"
     fi
   fi
 fi
-have npm || die "npm not found alongside node — install npm and re-run"
+have npm || die "npm not found alongside node - install npm and re-run"
 
 # ── 3. submodules ─────────────────────────────────────────────────────────────────
 # The 8 npm workspaces live in submodules, so these MUST exist before `npm install`.
@@ -148,7 +148,7 @@ if [ "$WITH_SUSE" -eq 1 ]; then
   if git submodule update --init --checkout brands/suse; then
     ok "brands/suse mounted"
   else
-    warn "could not fetch brands/suse — need access to github.com/lolly-tools/suse-lolly."
+    warn "could not fetch brands/suse - need access to github.com/lolly-tools/suse-lolly."
     warn "Skipping; you'll land on the blank lolly-start brand (everything still builds)."
     WITH_SUSE=0
   fi
@@ -164,12 +164,12 @@ ok "dependencies installed + content profile built"
 # ── 5. content profile (optional override) ───────────────────────────────────────
 if [ -n "$FORCE_PROFILE" ]; then
   step "Selecting content profile: $FORCE_PROFILE"
-  # use-profile.ts takes the profile NAME (suse | lolly-start) — the same thing the
+  # use-profile.ts takes the profile NAME (suse | lolly-start) - the same thing the
   # `npm run profile:*` scripts wrap. Names, not the npm-script suffixes.
   if node scripts/use-profile.ts "$FORCE_PROFILE"; then
     ok "profile → $FORCE_PROFILE"
   else
-    warn "could not switch to '$FORCE_PROFILE' (is its pack mounted?) — keeping the auto-selected profile"
+    warn "could not switch to '$FORCE_PROFILE' (is its pack mounted?) - keeping the auto-selected profile"
   fi
 fi
 

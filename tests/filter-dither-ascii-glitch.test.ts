@@ -773,7 +773,7 @@ test('freeze: a small base keeps its per-node vector path (byte-identical to tod
   });
 });
 
-test('freeze: ASCII never freezes a still (its <text> resolves fonts via foreignObject) — even at its cap', async () => {
+test('freeze: ASCII never freezes a still (its <text> resolves fonts via foreignObject) - even at its cap', async () => {
   await withFreezeDom(async () => {
     const { host } = makeHost();
     const hooks = loadFreeze(host);
@@ -796,7 +796,7 @@ test('freeze: a MOTION export still freezes any vector base regardless of size',
   });
 });
 
-test('freeze: an SVG (vector) export never freezes — the output must stay crisp vectors', async () => {
+test('freeze: an SVG (vector) export never freezes - the output must stay crisp vectors', async () => {
   await withFreezeDom(async () => {
     const { host } = makeHost();
     const hooks = loadFreeze(host);
@@ -807,7 +807,7 @@ test('freeze: an SVG (vector) export never freezes — the output must stay cris
   });
 });
 
-test('freeze: a raster effect (glitch) is never frozen — it already emits a single <image> base', async () => {
+test('freeze: a raster effect (glitch) is never frozen - it already emits a single <image> base', async () => {
   await withFreezeDom(async () => {
     const { host } = makeHost();
     const hooks = loadFreeze(host);

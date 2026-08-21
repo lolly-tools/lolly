@@ -51,7 +51,7 @@ test('design-components: a plain component record resolves to its master subtree
   assert.equal(out.components[0]!.variants[0]!.rootShapeId, out.components[0]!.rootShapeId);
 });
 
-test('design-components: components sort by path, then name, then id — zip order never leaks', () => {
+test('design-components: components sort by path, then name, then id - zip order never leaks', () => {
   const shapes = page(
     shape({ id: 'm1' }), shape({ id: 'm2' }), shape({ id: 'm3' }),
   );
@@ -74,7 +74,7 @@ test('design-components: a record whose master is missing is dropped with a name
   assert.match(out.warnings[0]!, /"GHOST".*master shape gone not found/);
 });
 
-test('design-components: a stale mainInstancePage still resolves — ids are unique file-wide', () => {
+test('design-components: a stale mainInstancePage still resolves - ids are unique file-wide', () => {
   const out = collectPenpotComponents(
     [rec({ id: 'c1', name: 'CARD', mainInstanceId: 'm1', mainInstancePage: 'page-that-moved' })],
     new Map([['page-2', page(shape({ id: 'm1', componentFile: FILE, mainInstance: true }))]]),
@@ -84,7 +84,7 @@ test('design-components: a stale mainInstancePage still resolves — ids are uni
   assert.equal(out.components[0]!.pageId, 'page-2', 'the page it was actually found on');
 });
 
-test('design-components: garbage in — non-array records and junk entries are ignored', () => {
+test('design-components: garbage in - non-array records and junk entries are ignored', () => {
   for (const bad of [null, undefined, {}, 'nope', 7]) {
     const out = collectPenpotComponents(bad, {}, { fileId: FILE });
     assert.deepEqual(out.components, []);

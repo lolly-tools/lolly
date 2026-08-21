@@ -2,7 +2,7 @@
   "name": "Registratore vocale",
   "description": "Registra una nota vocale con un misuratore di livello dal vivo e una guida discreta, poi salvala come MP3.",
   "featured.blurb": "Registra una nota vocale pulita con guida di livello in tempo reale",
-  "a11yLabel": "Registratore vocale — livello {{default dbText \"idle\"}}",
+  "a11yLabel": "Registratore vocale - livello {{default dbText \"idle\"}}",
   "inputs.title.label": "Etichetta",
   "inputs.title.help": "Assegna un nome alla scheda di registrazione e al file salvato.",
   "inputs.targetLevel.label": "Livello target",

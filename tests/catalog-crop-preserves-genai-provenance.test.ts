@@ -110,5 +110,5 @@ test('control: cropping WITHOUT carrying the ingredient loses the genAI flag (th
   const outEx = extractC2paStore(droppedCrop);
   assert.ok(outEx, 'still credentialed');
   assert.ok(!chainHasGenAi(outEx!.store),
-    'without the carried ingredient the genAI flag is GONE — proving the ingredient is what preserves it');
+    'without the carried ingredient the genAI flag is GONE - proving the ingredient is what preserves it');
 });

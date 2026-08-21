@@ -68,21 +68,21 @@ const NATIVE_DPI = 96;           // pdftoppm -r 96 → 1440px-wide native = matc
  *  it isn't, the harness itself is miscalibrated. */
 interface Fixture { slug: string; url: string; note: string; local?: boolean }
 const FIXTURES: Fixture[] = [
-  { slug: 'local-qr',  url: '/#/tool/qr-code?url=https://lolly.tools', local: true, note: 'control — our own clean page' },
+  { slug: 'local-qr',  url: '/#/tool/qr-code?url=https://lolly.tools', local: true, note: 'control - our own clean page' },
   // The docs-screenshot surfaces. These are the fixtures that matter most for the
   // vector-first docs pipeline: each is a real baseline recipe, and the two forced
   // to `format=png` are here to be re-tested as the interpreter improves. A local
   // fixture carries no foreign-font penalty, so its ENGINE-loss is directly
   // comparable to `local-qr`'s noise floor.
-  { slug: 'local-gallery',   url: '/#/',                    local: true, note: 'docs: tools gallery — forced to png (featured-row backdrop plate)' },
-  { slug: 'local-catalogue', url: '/#/c',                   local: true, note: 'docs: catalogue — forced to png' },
-  { slug: 'local-brand-col', url: '/#/start?tab=color',     local: true, note: 'docs: brand studio Colours tab — forced to png' },
-  { slug: 'local-export',    url: '/#/tool/qr-code?url=https://lolly.tools&options', local: true, note: 'docs: export panel — forced to png' },
-  { slug: 'local-verify',    url: '/#/verify',              local: true, note: 'docs: verify page — vector candidate' },
-  { slug: 'suse',      url: 'https://www.suse.com',        note: 'marketing — hero, cards, cookie modal' },
-  { slug: 'rancher',   url: 'https://apps.rancher.io',     note: 'app catalog — dense grid, icons' },
-  { slug: 'opensuse',  url: 'https://www.opensuse.org',    note: 'community — mixed media, gradients' },
-  { slug: 'penpot',    url: 'https://penpot.app',          note: 'partner — design tool landing, illustrations' },
+  { slug: 'local-gallery',   url: '/#/',                    local: true, note: 'docs: tools gallery - forced to png (featured-row backdrop plate)' },
+  { slug: 'local-catalogue', url: '/#/c',                   local: true, note: 'docs: catalogue - forced to png' },
+  { slug: 'local-brand-col', url: '/#/start?tab=color',     local: true, note: 'docs: brand studio Colours tab - forced to png' },
+  { slug: 'local-export',    url: '/#/tool/qr-code?url=https://lolly.tools&options', local: true, note: 'docs: export panel - forced to png' },
+  { slug: 'local-verify',    url: '/#/verify',              local: true, note: 'docs: verify page - vector candidate' },
+  { slug: 'suse',      url: 'https://www.suse.com',        note: 'marketing - hero, cards, cookie modal' },
+  { slug: 'rancher',   url: 'https://apps.rancher.io',     note: 'app catalog - dense grid, icons' },
+  { slug: 'opensuse',  url: 'https://www.opensuse.org',    note: 'community - mixed media, gradients' },
+  { slug: 'penpot',    url: 'https://penpot.app',          note: 'partner - design tool landing, illustrations' },
 ];
 
 interface Opts { only: string[]; noBuild: boolean; out: string; cull: boolean }
@@ -155,11 +155,11 @@ async function main(): Promise<void> {
   }
   mkdirSync(opts.out, { recursive: true });
   const nativeRenderer = detectNativeRenderer();
-  if (!nativeRenderer) console.warn('⚠  no independent PDF renderer (pdftoppm/sips) — print-loss vs ENGINE-loss cannot be separated; reporting total only.');
+  if (!nativeRenderer) console.warn('⚠  no independent PDF renderer (pdftoppm/sips) - print-loss vs ENGINE-loss cannot be separated; reporting total only.');
 
   await ensureBrowser();
   if (!opts.noBuild) await buildWebShell();
-  if (!existsSync(join(DIST, 'index.html'))) throw new Error(`No build at ${rel(DIST)} — run without --no-build.`);
+  if (!existsSync(join(DIST, 'index.html'))) throw new Error(`No build at ${rel(DIST)} - run without --no-build.`);
 
   const server = await serveDist();
   const base = `http://127.0.0.1:${server.port}`;
@@ -536,8 +536,8 @@ function tally(warnings: string[]): Record<string, number> {
 
 function rowLine(r: Row): string {
   if (!r.ok) return `  ✗ ${r.error}\n`;
-  const pl = r.printLoss === undefined ? '—' : `${r.printLoss}%`;
-  const el = r.engineLoss === undefined ? '—' : `${r.engineLoss}%`;
+  const pl = r.printLoss === undefined ? '-' : `${r.printLoss}%`;
+  const el = r.engineLoss === undefined ? '-' : `${r.engineLoss}%`;
   const wn = r.warnings ? Object.values(r.warnings).reduce((a, b) => a + b, 0) : 0;
   const cu = r.culled ? ` · culled ${r.culled}` : '';
   return `  ✓ ${r.elements} elems${cu} · ${r.svgKB}KB · print-loss ${pl} · ENGINE-loss ${el} · ${wn} warns\n`;
@@ -546,19 +546,19 @@ function rowLine(r: Row): string {
 function summaryTable(rows: Row[]): string {
   const head = '  fixture      elems   svgKB   print-loss   ENGINE-loss   warns   WALKER rast   vec   KB   zInv';
   const lines = rows.map(r => {
-    if (!r.ok) return `  ${r.slug.padEnd(12)} FAILED — ${r.error}`;
+    if (!r.ok) return `  ${r.slug.padEnd(12)} FAILED - ${r.error}`;
     const wn = r.warnings ? Object.values(r.warnings).reduce((a, b) => a + b, 0) : 0;
     // Walker columns read together or not at all: a loss figure is meaningless
     // without its raster coverage (a full-page raster scores ~0) and its parse
     // verdict (a broken file renders blank). `!` marks an unparseable capture.
     const wl = r.walkerParses === false ? '  BROKEN'
       : r.walkerError ? '   err'
-      : r.walkerLoss === undefined ? '     —' : `${r.walkerLoss}%`.padStart(7);
-    const wr = r.walkerRaster === undefined ? '   —' : `${Math.round(r.walkerRaster * 100)}%`.padStart(4);
-    const wk = r.walkerKB === undefined ? '   —' : String(r.walkerKB).padStart(4);
-    const wv = r.walkerVec === undefined ? '    —' : String(r.walkerVec).padStart(5);
-    const zi = r.zPairs === undefined ? '     —' : `${r.zPairs}/${Math.round((r.zArea ?? 0) * 100)}%`.padStart(6);
-    return `  ${r.slug.padEnd(12)} ${String(r.elements).padStart(5)}   ${String(r.svgKB).padStart(5)}   ${(r.printLoss ?? '—').toString().padStart(7)}%    ${(r.engineLoss ?? '—').toString().padStart(8)}%   ${String(wn).padStart(5)}  ${wl} ${wr} ${wv} ${wk} ${zi}`;
+      : r.walkerLoss === undefined ? '     -' : `${r.walkerLoss}%`.padStart(7);
+    const wr = r.walkerRaster === undefined ? '   -' : `${Math.round(r.walkerRaster * 100)}%`.padStart(4);
+    const wk = r.walkerKB === undefined ? '   -' : String(r.walkerKB).padStart(4);
+    const wv = r.walkerVec === undefined ? '    -' : String(r.walkerVec).padStart(5);
+    const zi = r.zPairs === undefined ? '     -' : `${r.zPairs}/${Math.round((r.zArea ?? 0) * 100)}%`.padStart(6);
+    return `  ${r.slug.padEnd(12)} ${String(r.elements).padStart(5)}   ${String(r.svgKB).padStart(5)}   ${(r.printLoss ?? '-').toString().padStart(7)}%    ${(r.engineLoss ?? '-').toString().padStart(8)}%   ${String(wn).padStart(5)}  ${wl} ${wr} ${wv} ${wk} ${zi}`;
   });
   return [head, ...lines].join('\n');
 }
@@ -569,30 +569,30 @@ function writeFindings(rows: Row[], native: NativeRenderer | null): string {
   const warnUnion = new Map<string, number>();
   for (const r of rows) for (const [k, v] of Object.entries(r.warnings ?? {})) warnUnion.set(k, (warnUnion.get(k) ?? 0) + v);
 
-  const md = `# Vector-render conformance audit — ${date}
+  const md = `# Vector-render conformance audit - ${date}
 
 Engine path under test: print-PDF → \`interpretPdfPage\` (engine/src/pdf-map.ts) → \`pdfNodesToSvg\` (engine/src/pdf-svg.ts). Method: three-way diff per fixture (screen ref ↔ independent native render ↔ our SVG). Native renderer: ${native?.name ?? 'NONE (print-loss/engine-loss not separable)'}. Mitigations: \`emulateMedia('screen')\` + pre-scroll.
 
-- **print-loss** (ref ↔ native): Chromium's print pass vs the live page — NOT an engine bug; mitigate upstream.
-- **ENGINE-loss** (native ↔ ours): our interpreter's fidelity against ground truth — **this is the backlog.**
+- **print-loss** (ref ↔ native): Chromium's print pass vs the live page - NOT an engine bug; mitigate upstream.
+- **ENGINE-loss** (native ↔ ours): our interpreter's fidelity against ground truth - **this is the backlog.**
 
 | fixture | note | elems | svg KB | print-loss | ENGINE-loss |
 |---|---|--:|--:|--:|--:|
 ${rows.map(r => r.ok
-    ? `| \`${r.slug}\` | ${r.note} | ${r.elements} | ${r.svgKB} | ${r.printLoss ?? '—'}% | **${r.engineLoss ?? '—'}%** |`
-    : `| \`${r.slug}\` | ${r.note} | — | — | — | FAILED: ${r.error} |`).join('\n')}
+    ? `| \`${r.slug}\` | ${r.note} | ${r.elements} | ${r.svgKB} | ${r.printLoss ?? '-'}% | **${r.engineLoss ?? '-'}%** |`
+    : `| \`${r.slug}\` | ${r.note} | - | - | - | FAILED: ${r.error} |`).join('\n')}
 
 Artifacts per fixture in the audit output dir: \`<slug>-ref.png\`, \`<slug>-native.png\`, \`<slug>-ours.png\`, \`<slug>-ours.svg\`, \`<slug>-engine-diff.png\` (red = differs from native).
 
 ## Calibration
 
-The \`local-qr\` control is our own clean page: its ENGINE-loss is the harness noise floor (font/AA differences between the native renderer and the SVG rasteriser). Read every external fixture's ENGINE-loss **relative to that floor** — external pages also carry an unavoidable font-fallback penalty (foreign \`@font-face\` can't be re-sourced on the dist), so their absolute number overstates true engine error.
+The \`local-qr\` control is our own clean page: its ENGINE-loss is the harness noise floor (font/AA differences between the native renderer and the SVG rasteriser). Read every external fixture's ENGINE-loss **relative to that floor** - external pages also carry an unavoidable font-fallback penalty (foreign \`@font-face\` can't be re-sourced on the dist), so their absolute number overstates true engine error.
 
 ## Interpreter warnings (union across fixtures)
 
 ${warnUnion.size ? [...warnUnion.entries()].sort((a, b) => b[1] - a[1]).map(([k, v]) => `- **${v}×** ${k}`).join('\n') : '_none_'}
 
-## Engine backlog — to triage from the \`-engine-diff.png\` heatmaps
+## Engine backlog - to triage from the \`-engine-diff.png\` heatmaps
 
 _Fill in per divergence class after eyeballing the heatmaps. Each fix should cite the fixture(s) whose ENGINE-loss it reduces so re-running this audit checks it off._
 

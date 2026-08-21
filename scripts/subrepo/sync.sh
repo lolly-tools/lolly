@@ -11,14 +11,14 @@
 #
 # OPTIONS
 #   -m, --message <msg>  Commit message for the submodule commits (required to push).
-#   --previews           Also run `npm run previews` (heavy — Playwright/Chromium).
+#   --previews           Also run `npm run previews` (heavy - Playwright/Chromium).
 #   --no-build           Skip the catalog rebuild (build:catalog + validate:catalog).
 #   --push-parent        Also commit + push the parent pointer bump. Default: only
 #                        STAGE it (you push the parent yourself).
 #   --dry-run            Show what would happen; change nothing.
 #   paths...             Restrict to these submodule paths. Default: every dirty one.
 #
-# Editing a SUSE tool touches ONE pack (brands/suse — manifest + regenerated
+# Editing a SUSE tool touches ONE pack (brands/suse - manifest + regenerated
 # index/preview-bundle live together); editing a community tool touches TWO
 # (community/ for the manifest, brands/suse for the regenerated suse catalog).
 # tools/ and catalog/ at the repo root are profile VIEWS (scripts/use-profile.ts),
@@ -43,7 +43,7 @@ while [ $# -gt 0 ]; do
 done
 
 cd "$REPO_ROOT"
-[ -f .gitmodules ] || { err "no .gitmodules — run migrate.sh first (this is post-split tooling)."; exit 1; }
+[ -f .gitmodules ] || { err "no .gitmodules - run migrate.sh first (this is post-split tooling)."; exit 1; }
 
 run() { if [ "$DRY" = 1 ]; then info "would: $*"; else eval "$*"; fi; }
 
@@ -53,7 +53,7 @@ if [ "$DO_BUILD" = 1 ]; then
   run "npm run build:catalog"
   run "npm run validate:catalog"
   if [ "$RUN_PREVIEWS" = 1 ]; then
-    warn "running previews (Playwright — slow)"; run "npm run previews"
+    warn "running previews (Playwright - slow)"; run "npm run previews"
   else
     info "skipping previews (pass --previews to regenerate look thumbnails)"
   fi
@@ -71,7 +71,7 @@ else
   done < <(subrepo_paths)
 fi
 
-if [ ${#CHANGED[@]} -eq 0 ]; then ok "no submodules have changes — nothing to sync."; exit 0; fi
+if [ ${#CHANGED[@]} -eq 0 ]; then ok "no submodules have changes - nothing to sync."; exit 0; fi
 
 say "Changed submodules"; for p in "${CHANGED[@]}"; do info "$p → $ORG/$(repo_for_path "$p" || echo '??')"; done; echo
 
@@ -80,7 +80,7 @@ if [ -z "$MSG" ] && [ "$DRY" != 1 ]; then err "commit message required (-m \"...
 
 for p in "${CHANGED[@]}"; do
   say "$p"
-  repo_for_path "$p" >/dev/null || { warn "not a mapped submodule — skipping"; continue; }
+  repo_for_path "$p" >/dev/null || { warn "not a mapped submodule - skipping"; continue; }
   if [ -n "$(git -C "$p" status --porcelain)" ]; then
     run "git -C '$p' add -A"
     run "git -C '$p' commit -m \"$MSG\""

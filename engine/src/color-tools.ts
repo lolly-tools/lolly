@@ -202,8 +202,8 @@ export type ApcaUse =
 export const APCA_BANDS: ReadonlyArray<{ min: number; use: ApcaUse; label: string }> = [
   { min: 90, use: 'body-preferred', label: 'Body text, comfortably' },
   { min: 75, use: 'body-minimum', label: 'Body text, minimum' },
-  { min: 60, use: 'large-text', label: 'Large text — 24px, or 16px bold' },
-  { min: 45, use: 'headline', label: 'Headlines — 36px, or 24px bold' },
+  { min: 60, use: 'large-text', label: 'Large text - 24px, or 16px bold' },
+  { min: 45, use: 'headline', label: 'Headlines - 36px, or 24px bold' },
   { min: 30, use: 'non-text', label: 'Icons and borders only' },
   { min: 0, use: 'invisible', label: 'Not usable' },
 ];

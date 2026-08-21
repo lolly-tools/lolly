@@ -60,8 +60,8 @@ test('every <!--l:key--> marker in the docs names a mark that exists', () => {
       if (!(m[1]! in DOC_LOGOS)) unknown.push(`${name}: ${m[0]}`);
     }
   }
-  assert.ok(seen > 0, 'no logo markers anywhere — the feature has been silently removed');
-  assert.deepEqual(unknown, [], 'unknown mark key — it renders as nothing at all');
+  assert.ok(seen > 0, 'no logo markers anywhere - the feature has been silently removed');
+  assert.deepEqual(unknown, [], 'unknown mark key - it renders as nothing at all');
 });
 
 test('a near-miss marker shape is caught rather than shipped blank', () => {
@@ -74,7 +74,7 @@ test('a near-miss marker shape is caught rather than shipped blank', () => {
       if (!/^<!--l:[a-z0-9-]+-->$/.test(m[0])) malformed.push(`${name}: ${m[0]}`);
     }
   }
-  assert.deepEqual(malformed, [], 'malformed logo marker — build.ts will not render it');
+  assert.deepEqual(malformed, [], 'malformed logo marker - build.ts will not render it');
 });
 
 // ─── the marks themselves ────────────────────────────────────────────────────
@@ -137,7 +137,7 @@ test('the built pages render their markers as .doc-logo spans, with none left ov
     assert.ok(!/<!--l:/.test(body), `${name}: an unrendered marker ships as an HTML comment`);
     assert.ok(!/&lt;!--l:/.test(body), `${name}: a marker ships as VISIBLE text`);
   }
-  assert.ok(pagesChecked > 0, 'no built page carries a marker — is /info stale?');
+  assert.ok(pagesChecked > 0, 'no built page carries a marker - is /info stale?');
 });
 
 test('every <!--lb:…--> block names marks that exist, and sits on a line of its own', () => {
@@ -157,7 +157,7 @@ test('every <!--lb:…--> block names marks that exist, and sits on a line of it
       }
     }
   }
-  assert.ok(seen > 0, 'no block markers anywhere — the feature has been silently removed');
+  assert.ok(seen > 0, 'no block markers anywhere - the feature has been silently removed');
   assert.deepEqual(bad, [], 'a block marker would render as nothing');
 });
 
@@ -220,7 +220,7 @@ test('a long page gets the jump nav and a short one does not', { skip: built }, 
 
   // trust.html: 3 h2s, ~8 KB of rendered body - under both thresholds.
   const short = readFileSync(join(BUILT, 'trust.html'), 'utf-8');
-  assert.ok(!/id="docJumpBtn"/.test(short), 'a short page grew a jump nav — the threshold slipped');
+  assert.ok(!/id="docJumpBtn"/.test(short), 'a short page grew a jump nav - the threshold slipped');
 });
 
 test('the jump nav ships on locale pages too', { skip: built }, () => {

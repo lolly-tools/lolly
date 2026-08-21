@@ -1,4 +1,4 @@
-// Voice Recorder — live level meter + coaching.
+// Voice Recorder - live level meter + coaching.
 //
 // The runtime drives `onLevel` from host.recorder (mic meter / recording) once per
 // audio sample (engine v1.17). Hooks are DOM-free, so the shell computes the raw
@@ -41,9 +41,9 @@ function onLevel(ctx) {
   var tooQuiet = level.rms < quiet;
   var tooLoud = !clipping && level.rms > hot;
 
-  // Background-noise cues — present only from a v1.19 raw meter (undefined otherwise,
+  // Background-noise cues - present only from a v1.19 raw meter (undefined otherwise,
   // so each is guarded). The sound-check runs the mic RAW, so these read the true room;
-  // during the take the recording suppresses noise, so they fall quiet (which is fine —
+  // during the take the recording suppresses noise, so they fall quiet (which is fine -
   // a noisy-room warning is a pre-record check). 'speaking' gates them so a normal soft
   // voice isn't mistaken for a noisy room.
   var floor = level.noiseFloor;
@@ -58,16 +58,16 @@ function onLevel(ctx) {
   var speaking = !droning && (level.snr != null ? level.snr > 12 : level.rms > quiet);
 
   var tone = 'ok', tip = '';
-  if (clipping) { tone = 'hot'; tip = 'You’re clipping — ease off or back away a little'; okStreak = 0; }
-  else if (tooLoud) { tone = 'hot'; tip = 'A touch hot — pull back from the mic'; okStreak = 0; }
-  else if (!speaking && humming) { tone = 'low'; tip = 'Electrical hum — try another cable or power socket'; okStreak = 0; }
-  else if (!speaking && droning) { tone = 'low'; tip = 'Steady background noise — turn off fans, AC or air circulation'; okStreak = 0; }
-  else if (!speaking && hissy) { tone = 'low'; tip = 'Background hiss — turn off nearby fans or AC'; okStreak = 0; }
-  else if (!speaking && noisy) { tone = 'low'; tip = 'Noisy room — a quieter spot will sound cleaner'; okStreak = 0; }
-  else if (tooQuiet) { tone = 'low'; tip = 'Too quiet — move closer or speak up'; okStreak = 0; }
+  if (clipping) { tone = 'hot'; tip = 'You’re clipping - ease off or back away a little'; okStreak = 0; }
+  else if (tooLoud) { tone = 'hot'; tip = 'A touch hot - pull back from the mic'; okStreak = 0; }
+  else if (!speaking && humming) { tone = 'low'; tip = 'Electrical hum - try another cable or power socket'; okStreak = 0; }
+  else if (!speaking && droning) { tone = 'low'; tip = 'Steady background noise - turn off fans, AC or air circulation'; okStreak = 0; }
+  else if (!speaking && hissy) { tone = 'low'; tip = 'Background hiss - turn off nearby fans or AC'; okStreak = 0; }
+  else if (!speaking && noisy) { tone = 'low'; tip = 'Noisy room - a quieter spot will sound cleaner'; okStreak = 0; }
+  else if (tooQuiet) { tone = 'low'; tip = 'Too quiet - move closer or speak up'; okStreak = 0; }
   else {
     tone = 'ok'; okStreak++;
-    tip = okStreak > 45 ? 'Sounds great — relax and keep going' : 'Nice and clear';
+    tip = okStreak > 45 ? 'Sounds great - relax and keep going' : 'Nice and clear';
   }
 
   return {

@@ -767,7 +767,7 @@ export function deriveBrandTokens(opts: BrandDeriveOptions): Record<string, unkn
 
   return {
     $description:
-      `Derived brand tokens${opts.name ? ` for ${opts.name}` : ''} — ` +
+      `Derived brand tokens${opts.name ? ` for ${opts.name}` : ''} - ` +
       `primary ${formatOklch(p)}, scheme ${scheme}, surface ${surfaceOpt}, contrast ${contrast}` +
       `${foreground === 'auto' ? '' : `, ${foreground} foreground`}.`,
     $metadata: { tokenSetOrder: ['base', 'light', 'dark'] },

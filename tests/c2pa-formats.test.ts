@@ -446,7 +446,7 @@ test('c2patool validates the avif BMFF binding end-to-end', { skip: !which('c2pa
   try {
     const sharp = (await import('sharp')).default;
     realAvif = new Uint8Array(await sharp({ create: { width: 32, height: 32, channels: 3, background: { r: 48, g: 186, b: 120 } } }).avif({ quality: 60 }).toBuffer());
-  } catch { t.skip('sharp unavailable — cannot build a real AVIF fixture'); return; }
+  } catch { t.skip('sharp unavailable - cannot build a real AVIF fixture'); return; }
   const out = await embedC2pa(realAvif, 'avif', OPTS);
   const file = join(mkdtempSync(join(tmpdir(), 'c2pa-')), 'stamped.avif');
   writeFileSync(file, out);

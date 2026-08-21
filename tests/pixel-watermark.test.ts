@@ -86,7 +86,7 @@ test('unmarked textured images are not false positives across many seeds', () =>
   assert.equal(positives, 0, `expected 0 false positives over 20 unmarked images, got ${positives}`);
 });
 
-test('small images demand a higher score (size-adjusted threshold) — no small-image false positives', () => {
+test('small images demand a higher score (size-adjusted threshold) - no small-image false positives', () => {
   // The null correlation is wider on few-block images; the σ-floor must keep them clean.
   let positives = 0;
   for (let s = 1; s <= 30; s++) {

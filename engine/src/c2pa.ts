@@ -541,7 +541,7 @@ export function exportActionSteps(format: string, flags: {
   if (flags.audio) steps.push({ action: 'c2pa.edited', description: 'Added an audio track' });
   // Text over an opened asset is a genuine edit (the caller has already gated this
   // on an ingredient); its short teaser labels the step, the full copy is digested.
-  if (flags.textAdded) steps.push({ action: 'c2pa.edited', description: flags.textSample ? `Added text — “${flags.textSample}”` : 'Added text' });
+  if (flags.textAdded) steps.push({ action: 'c2pa.edited', description: flags.textSample ? `Added text - “${flags.textSample}”` : 'Added text' });
   // The model that enlarged the image, named - so an inspected asset discloses not
   // just THAT it was AI-upscaled but with what. Kept as its own step after the other
   // edits, before the render/encode close.
@@ -727,7 +727,7 @@ function aiDisclosureMap(d: C2paAiDisclosureInput): Record<string, unknown> {
   // section 6.2.2) - never an invented value in the c2pa namespace.
   if (!(AI_MODEL_TYPES as readonly string[]).includes(modelType)
     && (modelType.startsWith('c2pa.') || !NAMESPACED_LABEL_RE.test(modelType))) {
-    throw new Error(`c2pa: aiDisclosure.modelType '${modelType}' is neither a Table 12 model type (section 18.28.2) nor an entity-specific namespaced label (section 6.2.2, e.g. 'com.litware.types.abc') — omit the field to get the generic ${AI_MODEL_TYPE_GENERIC}`);
+    throw new Error(`c2pa: aiDisclosure.modelType '${modelType}' is neither a Table 12 model type (section 18.28.2) nor an entity-specific namespaced label (section 6.2.2, e.g. 'com.litware.types.abc') - omit the field to get the generic ${AI_MODEL_TYPE_GENERIC}`);
   }
   if (d.oversight != null && !(HUMAN_OVERSIGHT_LEVELS as readonly string[]).includes(String(d.oversight))) {
     throw new Error(`c2pa: aiDisclosure.oversight must be one of ${HUMAN_OVERSIGHT_LEVELS.join(' / ')} (section 18.28.4), got '${String(d.oversight)}'`);

@@ -87,7 +87,7 @@ const fingerprint = (der: Uint8Array): string => createHash('sha256').update(der
 function pinnedRootDer(): Uint8Array {
   const src = readFileSync(join(ROOT, 'shells/web/src/ca-root.ts'), 'utf8');
   const m = src.match(/-----BEGIN CERTIFICATE-----[\s\S]*?-----END CERTIFICATE-----/);
-  if (!m) throw new Error('No CA root pinned in shells/web/src/ca-root.ts — cannot CA-sign.');
+  if (!m) throw new Error('No CA root pinned in shells/web/src/ca-root.ts - cannot CA-sign.');
   return pemToDer(m[0]);
 }
 
@@ -129,13 +129,13 @@ function patchHooks(src: string, varName: string, b64: string): string {
 async function main(): Promise<void> {
   const sb = await buildSigner();
   console.log(sb.signer
-    ? `Signing tier: CA identity — leaf for ${sb.identity}, ${CA_LEAF_DAYS}d, chains to the pinned Lolly CA root`
-    : 'Signing tier: on-device self-signed key (NOT identity-verified — pass no --self for the CA tier)');
+    ? `Signing tier: CA identity - leaf for ${sb.identity}, ${CA_LEAF_DAYS}d, chains to the pinned Lolly CA root`
+    : 'Signing tier: on-device self-signed key (NOT identity-verified - pass no --self for the CA tier)');
   console.log(`Claim: author "${AUTHOR}", authorship "delivered", generator Lolly ${ENGINE_VERSION}\n`);
 
   const hooksPath = join(ROOT, TARGET.hooks);
   if (!existsSync(hooksPath)) {
-    throw new Error(`${TARGET.hooks} is missing — mount the private brand pack first:\n`
+    throw new Error(`${TARGET.hooks} is missing - mount the private brand pack first:\n`
       + '  git submodule update --init --checkout brands/suse');
   }
   const toolDir = dirname(hooksPath);
@@ -149,7 +149,7 @@ async function main(): Promise<void> {
 
     if (extractC2paStore(bytes)) {
       if (!FORCE) {
-        console.log(`  ${logo.file}: already credentialed — skipped (--force to re-sign)`);
+        console.log(`  ${logo.file}: already credentialed - skipped (--force to re-sign)`);
         // Still resync hooks.js, so a hand-edited base64 can never drift from the master.
         hooks = patchHooks(hooks, logo.varName, toBase64(bytes));
         skipped++;
@@ -175,11 +175,11 @@ async function main(): Promise<void> {
     hooks = patchHooks(hooks, logo.varName, toBase64(signedBytes));
     signed++;
     const b64 = Math.ceil(signedBytes.length / 3) * 4;
-    console.log(`  ${logo.file}: signed — ${bytes.length} → ${signedBytes.length} B  (inlined base64 ${b64} B)`);
+    console.log(`  ${logo.file}: signed - ${bytes.length} → ${signedBytes.length} B  (inlined base64 ${b64} B)`);
   }
 
   writeFileSync(hooksPath, hooks);
-  console.log(`\n✓ ${signed} signed, ${skipped} already credentialed — ${TARGET.hooks} resynced`);
+  console.log(`\n✓ ${signed} signed, ${skipped} already credentialed - ${TARGET.hooks} resynced`);
   console.log('  Next: npm run build:catalog && npm run validate:catalog');
 }
 

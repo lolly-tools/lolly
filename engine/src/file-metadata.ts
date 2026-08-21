@@ -596,8 +596,8 @@ function noteAppended(bytes: Uint8Array, off: number, out: FileMetadata): void {
   out.fields.push({
     label: 'Appended data',
     value: declared
-      ? `${kind} — ${fmtBytes(len)}, declared by the file's multi-picture (MPF) index`
-      : `${kind} — ${fmtBytes(len)} after the image ends`,
+      ? `${kind} - ${fmtBytes(len)}, declared by the file's multi-picture (MPF) index`
+      : `${kind} - ${fmtBytes(len)} after the image ends`,
     group: 'technical',
     sensitive: !appendedIsExpected(out.appended),
   });
@@ -1107,14 +1107,14 @@ function readBmff(bytes: Uint8Array, out: FileMetadata): void {
         // VisualSampleEntry: width/height at payload offset 24/26.
         const w = e.end - e.payload >= 28 ? u16(bytes, e.payload + 24) : 0;
         const h = e.end - e.payload >= 28 ? u16(bytes, e.payload + 26) : 0;
-        trackRows.push({ label: 'Video track', value: w && h ? `${codec} — ${w} × ${h} px` : codec, group: 'technical' });
+        trackRows.push({ label: 'Video track', value: w && h ? `${codec} - ${w} × ${h} px` : codec, group: 'technical' });
       } else if (kind === 'soun') {
         // AudioSampleEntry: channels at payload offset 16, rate (16.16) at 24.
         const ch = e.end - e.payload >= 28 ? u16(bytes, e.payload + 16) : 0;
         const rate = e.end - e.payload >= 28 ? u32(bytes, e.payload + 24) >>> 16 : 0;
         const chs = ch === 1 ? 'mono' : ch === 2 ? 'stereo' : ch ? `${ch} channels` : '';
         const rateS = rate ? `${(rate / 1000).toFixed(1).replace(/\.0$/, '')} kHz` : '';
-        trackRows.push({ label: 'Audio track', value: [codec, [rateS, chs].filter(Boolean).join(' ')].filter(Boolean).join(' — '), group: 'technical' });
+        trackRows.push({ label: 'Audio track', value: [codec, [rateS, chs].filter(Boolean).join(' ')].filter(Boolean).join(' - '), group: 'technical' });
       }
     }
 
@@ -1170,7 +1170,7 @@ function readBmff(bytes: Uint8Array, out: FileMetadata): void {
     if (out.fields.length < MAX_FIELDS) out.fields.push(row);
   }
   if (brand && out.fields.length < MAX_FIELDS) {
-    out.fields.push({ label: 'Container profile', value: fragmented ? `${brand} — fragmented (streaming delivery)` : brand, group: 'technical' });
+    out.fields.push({ label: 'Container profile', value: fragmented ? `${brand} - fragmented (streaming delivery)` : brand, group: 'technical' });
   }
 
   const producer = detectProducer(handlerNotes, encoder, hasVideo);

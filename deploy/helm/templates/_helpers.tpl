@@ -47,7 +47,7 @@ app.kubernetes.io/part-of: {{ include "lolly.name" .root }}
 {{- end }}
 
 {{/*
-Selector labels for a component (stable — never include version/checksum).
+Selector labels for a component (stable - never include version/checksum).
 */}}
 {{- define "lolly.componentSelectorLabels" -}}
 app.kubernetes.io/name: {{ include "lolly.name" .root }}
@@ -76,7 +76,7 @@ Shared ServiceAccount name.
 {{- end }}
 
 {{/*
-CA Secret name — the existing secret if provided, else the chart-managed one.
+CA Secret name - the existing secret if provided, else the chart-managed one.
 */}}
 {{- define "lolly.ca.secretName" -}}
 {{- if .Values.ca.existingSecret }}

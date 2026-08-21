@@ -65,7 +65,7 @@ test('a channel token matches the LONGEST channel whose suffix is a number (rx-8
   assert.deepEqual(parseKf('t0_r_x_rx')[0]?.v, {});
 });
 
-test('junk tokens are skipped, never thrown — and a keyframe with no leading t<ms> is dropped whole', () => {
+test('junk tokens are skipped, never thrown - and a keyframe with no leading t<ms> is dropped whole', () => {
   const warnings: string[] = [];
   const track = parseKf('t0_x10_bogus_1234_..._q9*x10_y5*t100_y5', { onWarn: (m) => warnings.push(m) });
   assert.equal(track.length, 2);
@@ -217,7 +217,7 @@ test('the char cap DOMINATES the key cap: a full-density track always fits', () 
   }));
   const wire = serialiseKf(worst);
   assert.ok(wire.length <= KF_MAX_CHARS, `worst serialised track is ${wire.length} chars`);
-  assert.equal(parseKf(wire).length, KF_MAX_KEYS, 'and it re-parses whole — no key is lost');
+  assert.equal(parseKf(wire).length, KF_MAX_KEYS, 'and it re-parses whole - no key is lost');
   assert.deepEqual(parseKf(serialiseKf(parseKf(wire))), parseKf(wire), 'the law holds at full density');
 });
 
@@ -278,7 +278,7 @@ test('charset property: a serialised track is always [A-Za-z0-9._*()-], never ~ 
   }
 });
 
-test('a parsed track is plain data — it survives structuredClone (the worker wire)', () => {
+test('a parsed track is plain data - it survives structuredClone (the worker wire)', () => {
   const track = parseKf('t0_z0_b4*t1500_eo_z140_b0');
   const clone = structuredClone(track) as KfTrack;
   assert.deepEqual(clone, track);
@@ -567,7 +567,7 @@ test('two keys at the same time do not divide by zero', () => {
 
 // ─── the projection fold (section 4.1) ──────────────────────────────────────────────
 
-test('the DEFAULT camera is a no-op on a z = 0 layer — every existing document is byte-identical', () => {
+test('the DEFAULT camera is a no-op on a z = 0 layer - every existing document is byte-identical', () => {
   assert.deepEqual({ ...DEFAULT_CAMERA }, { x: 0, y: 0, z: 0, p: DEFAULT_PERSPECTIVE, f: 0, a: 0 });
   assert.equal(DEFAULT_PERSPECTIVE, 1200);
   for (const [bx, by] of [[0, 0], [100, 200], [1920, 1080], [-40, 4000]] as const) {
@@ -745,7 +745,7 @@ test('blur GROWS as the camera approaches an out-of-focus layer (the v1 formula 
 
 // ─── camera resolution (section 5.4) ────────────────────────────────────────────────
 
-test('no camera resolves to the DEFAULT camera — never a literal identity', () => {
+test('no camera resolves to the DEFAULT camera - never a literal identity', () => {
   for (const cams of [null, undefined, [], [null as never]] as const) {
     assert.deepEqual(resolveCamera(cams, 0), { ...DEFAULT_CAMERA });
     assert.deepEqual(resolveCamera(cams, 7331), { ...DEFAULT_CAMERA });
@@ -847,7 +847,7 @@ test('the channel vocabulary, its clamps and its quanta are all declared togethe
     assert.ok(Object.hasOwn(KF_QUANTA, ch), `${ch} has a quantum`);
     assert.ok(KF_CLAMPS[ch][0] < KF_CLAMPS[ch][1], ch);
   }
-  assert.deepEqual([...KF_CLAMPS.z], [-12000, 12000], 'the WIRE clamp — wide enough for the dolly');
+  assert.deepEqual([...KF_CLAMPS.z], [-12000, 12000], 'the WIRE clamp - wide enough for the dolly');
   assert.deepEqual([...KF_Z_FIELD_CLAMP], [-300, 900], 'the section 5.3 field clamp, separately');
   assert.deepEqual([...KF_CLAMPS.o], [0, 1]);
   assert.deepEqual([...KF_CLAMPS.a], [0, 1]);

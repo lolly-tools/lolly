@@ -422,7 +422,7 @@ test('malformed and truncated containers are refused, per format, with a named r
   }
 });
 
-test('a container truncated at every prefix either places or throws — never hangs, never a TypeError', () => {
+test('a container truncated at every prefix either places or throws - never hangs, never a TypeError', () => {
   // /valid and the share target take arbitrary files, so the placers see
   // truncations of real containers constantly. Each must reach a decision.
   const store = fakeStore(16);

@@ -176,7 +176,7 @@ test('decodeTrustmarkPayload: exactly t bit errors (the guaranteed-correctable m
   }
 });
 
-test('decodeTrustmarkPayload: heavy corruption is rejected — never silently returns wrong data', () => {
+test('decodeTrustmarkPayload: heavy corruption is rejected - never silently returns wrong data', () => {
   for (const v of REAL_VECTORS) {
     const r = decodeTrustmarkPayload(bitsFromString(v.heavyCorruption.corrupted));
     assert.equal(r.valid, false, `version ${v.version} heavy corruption must not validate`);

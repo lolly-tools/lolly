@@ -177,7 +177,7 @@ test('picking a NEW image drops the live frame and returns to the still path', a
 
 const countOf = (svg: string, re: RegExp): number => (svg.match(re) ?? []).length;
 
-test('halftone: a fine live grid is not rescaled — live emits the same dot grid as the still', async () => {
+test('halftone: a fine live grid is not rescaled - live emits the same dot grid as the still', async () => {
   const h = load(host);
   // gridSize 8 on a 1000×1000 canvas = 125×125 = 15 625 cells: inside the still
   // budget (26 000), far above the OLD live budget (6 000).

@@ -74,7 +74,7 @@ function centre(kf: string, t: number, cx: number, cy: number, z: number): { x: 
 const measured: string[] = [];
 const say = (line: string): void => { measured.push(line); };
 
-describe('plans/104 P2b — the GPU quad compositor at parity with P2a', { skip: gate ?? false, concurrency: 1 }, () => {
+describe('plans/104 P2b - the GPU quad compositor at parity with P2a', { skip: gate ?? false, concurrency: 1 }, () => {
   let Hn: Harness;
   const page = (): Harness['page'] => Hn.page;
 
@@ -125,8 +125,8 @@ describe('plans/104 P2b — the GPU quad compositor at parity with P2a', { skip:
 
     // 1. If WebGL2 is absent, P2b fell back to P2a - do not pretend that is parity.
     if (!r.gl.usedGpu) {
-      say('[skip] the launched browser has no WebGL2 quad compositor — P2b fell back to P2a; GPU parity not exercised here.');
-      console.log('[browser] no WebGL2 — GPU compositor parity SKIPPED (P2a fallback verified to still export).');
+      say('[skip] the launched browser has no WebGL2 quad compositor - P2b fell back to P2a; GPU parity not exercised here.');
+      console.log('[browser] no WebGL2 - GPU compositor parity SKIPPED (P2a fallback verified to still export).');
       assert.ok(r.gl.size > 1000, 'even the fallback must produce a video');
       return;
     }
@@ -151,7 +151,7 @@ describe('plans/104 P2b — the GPU quad compositor at parity with P2a', { skip:
       const d = r.delta[k] as number;
       say(`[measured] parity frame ${idx[k]}: P2b↔P2a mean luma Δ = ${d.toFixed(2)}`);
       assert.ok(Number.isFinite(d), `parity delta for frame ${idx[k]} did not compute`);
-      assert.ok(d < 10, `P2b diverges from P2a at frame ${idx[k]} (Δ ${d.toFixed(2)} — check the premultiplied-alpha readback)`);
+      assert.ok(d < 10, `P2b diverges from P2a at frame ${idx[k]} (Δ ${d.toFixed(2)} - check the premultiplied-alpha readback)`);
     }
 
     // 4. TEMPORAL STABILITY (the flicker fix): P2b's frame-to-frame delta ≤ P2a's.

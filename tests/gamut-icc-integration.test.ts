@@ -139,7 +139,7 @@ test('the same profile gives the same answer every time (pure, no cached state)'
   });
 });
 
-test('ink coverage is in channels, not normalised — and null for additive light', (t) => {
+test('ink coverage is in channels, not normalised - and null for additive light', (t) => {
   withProfile(CMYK_PATH, t, (p) => {
     const src = iccGamutSource(p, 'relative');
     const ink = src.inkCoverage!(0.35, 0.05, 250);
@@ -242,7 +242,7 @@ test('the inert profile handle passed where a SOURCE belongs answers nothing, an
       'a limit that is not a gamut source must give no ceiling, not a TypeError');
     const img = api.slice!({ plane: 'ch', fixed: 0.55, width: 8, height: 8, limit: handle as never });
     assert.ok(img.data.every((v) => v === 0),
-      'every pixel of a slice against a non-source must stay transparent — nothing is in gamut');
+      'every pixel of a slice against a non-source must stay transparent - nothing is in gamut');
     const region = api.gamutRegion!('ch', 0.55, handle as never);
     assert.ok(region.every((ring) => ring.every((pt) => pt.y === 1)),
       'and its boundary must collapse onto the zero-chroma edge rather than draw sRGB under a press label');
@@ -315,7 +315,7 @@ test('grid-based slice membership agrees with the profile’s own contains', (t)
           disagreed++;
         }
       }
-      assert.ok(checked > W * H * 0.9, `${plane}: ${disagreed} of ${W * H} pixels differed — too many`);
+      assert.ok(checked > W * H * 0.9, `${plane}: ${disagreed} of ${W * H} pixels differed - too many`);
     }
   });
 });
@@ -383,5 +383,5 @@ test('a matrix profile refuses colours whose round trip is well inside the toler
       }
     }
   }
-  assert.ok(found > 0, 'no colour is refused by the cube while passing the ΔE — gating would be moot');
+  assert.ok(found > 0, 'no colour is refused by the cube while passing the ΔE - gating would be moot');
 });

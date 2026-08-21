@@ -150,7 +150,7 @@ function parseName(stem: string): { name: string; author: string } {
 
 function main(): void {
   if (!existsSync(SRC)) {
-    console.error('[viz-presets] butterchurn-presets is not installed — nothing to rebuild');
+    console.error('[viz-presets] butterchurn-presets is not installed - nothing to rebuild');
     process.exitCode = 1;
     return;
   }
@@ -209,7 +209,7 @@ function main(): void {
     else byId.set(id, f);
   }
   if (collisions.length) {
-    console.error(`[viz-presets] ${collisions.length} id collision(s) — fix idFor() before staging:`);
+    console.error(`[viz-presets] ${collisions.length} id collision(s) - fix idFor() before staging:`);
     for (const c of collisions.slice(0, 10)) console.error(`  ${c}`);
     process.exitCode = 1;
     return;
@@ -222,9 +222,9 @@ function main(): void {
   const perTier = list.reduce<Record<number, number>>((acc, e) => { acc[e.t] = (acc[e.t] ?? 0) + 1; return acc; }, {});
   if (withheld.length) {
     const black = withheld.filter(e => (e.l ?? 0) < MIN_LUMA).length;
-    console.log(`[viz-presets] withholding ${withheld.length} from pickers — ${black} render black, ${withheld.length - black} blow out to white (still staged, ids still resolve)`);
+    console.log(`[viz-presets] withholding ${withheld.length} from pickers - ${black} render black, ${withheld.length - black} blow out to white (still staged, ids still resolve)`);
   }
-  console.log(`[viz-presets] wrote ${list.length} entries — per tier ${JSON.stringify(perTier)}`
+  console.log(`[viz-presets] wrote ${list.length} entries - per tier ${JSON.stringify(perTier)}`
     + `${unmatched ? `, ${unmatched} pack member(s) had no converted file` : ''}`
     + `, ${kept} kept as deep cuts`);
 
@@ -246,12 +246,12 @@ function rendersWell(e: Entry): boolean {
 }
 
 function writeToolOptions(list: Entry[]): void {
-  if (!existsSync(TOOL)) { console.warn('[viz-presets] audiogram manifest not found — skipping'); return; }
+  if (!existsSync(TOOL)) { console.warn('[viz-presets] audiogram manifest not found - skipping'); return; }
   const manifest = JSON.parse(readFileSync(TOOL, 'utf8')) as {
     inputs: Array<{ id: string; options?: Array<{ value: string; label: string }> }>;
   };
   const input = manifest.inputs.find(i => i.id === 'preset');
-  if (!input?.options) { console.warn('[viz-presets] no preset input — skipping'); return; }
+  if (!input?.options) { console.warn('[viz-presets] no preset input - skipping'); return; }
 
   const own = input.options.filter(o => !o.value.startsWith('stock:'));
   const stock = list

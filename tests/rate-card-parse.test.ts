@@ -272,7 +272,7 @@ test('rule 10: no shipped .json rate card contains a numeric rate', () => {
     if (!doc || typeof doc !== 'object' || doc.$format !== 'lolly-ratecard') continue;
     scanned++;
     assert.ok(!anyNumericRate(doc),
-      `${abs} is a rate card carrying a numeric rate — every shipped card must keep placeholder rates (rule 10)`);
+      `${abs} is a rate card carrying a numeric rate - every shipped card must keep placeholder rates (rule 10)`);
   }
   assert.ok(scanned >= 1, 'expected at least the section 5 example fixture to be scanned');
   console.log(`  scanned ${scanned} shipped rate-card .json file(s)`);

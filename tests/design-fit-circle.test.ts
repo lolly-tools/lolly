@@ -72,7 +72,7 @@ test('a `fitText` boolean field exists (default off) and keeps its wire SLOT', (
   const fit = fields.find(f => f.id === 'fitText');
   assert.ok(fit, 'boxes has a `fitText` sub-field');
   assert.equal(fit.type, 'boolean');
-  assert.equal(fit.default, false, 'off by default — grow-to-fit stays the norm');
+  assert.equal(fit.default, false, 'off by default - grow-to-fit stays the norm');
   // Compact block URLs encode fields POSITIONALLY, so the invariant is the slot, not
   // "last": a later field may be appended after this one (the path-box fields were, in
   // engine 1.64), but nothing may be inserted before it or every link already shared
@@ -119,7 +119,7 @@ test('a circle box renders border-radius:50% (identical to an ellipse)', async (
   assert.match(html, /data-box-id="e"[^>]*style="[^"]*border-radius:50%/, 'ellipse → 50% too');
 });
 
-test('a rectangle is unaffected — still border-radius:0 (no fit calc regression on default boxes)', async () => {
+test('a rectangle is unaffected - still border-radius:0 (no fit calc regression on default boxes)', async () => {
   const html = await mount([{ id: 'r', kind: 'box', x: 0, y: 0, w: 300, h: 300, shape: 'rect', bg: '#000' }]);
   assert.match(html, /data-box-id="r"[^>]*style="[^"]*border-radius:0/, 'rect → 0');
 });

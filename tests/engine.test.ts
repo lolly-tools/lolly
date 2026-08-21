@@ -208,7 +208,7 @@ test('url-mode: s is the deck state address, carried verbatim (plan 112)', () =>
   assert.equal(parseUrlState('s=', SAMPLE_MANIFEST).slide, null);
 });
 
-test('frame-address: parseFrameAddress — position vs id vs build step', () => {
+test('frame-address: parseFrameAddress - position vs id vs build step', () => {
   // Nothing addressed ⇒ null, so a caller can tell "no filter" from "filter matched nothing".
   assert.equal(parseFrameAddress(null), null);
   assert.equal(parseFrameAddress(undefined), null);
@@ -230,7 +230,7 @@ test('frame-address: parseFrameAddress — position vs id vs build step', () => 
   assert.deepEqual(parseFrameAddress('0'), { position: 0, id: null, build: null, raw: '0' });
 });
 
-test('frame-address: selectFramePage — the still-export filter both shells apply', () => {
+test('frame-address: selectFramePage - the still-export filter both shells apply', () => {
   const pages = ['slide1', 'slide2', 'slide3'];
 
   // No address ⇒ 'none' ⇒ the whole fan-out, byte-identical to before the filter existed.
@@ -258,7 +258,7 @@ test('frame-address: selectFramePage — the still-export filter both shells app
   assert.equal(selectFramePage(unstamped, 'slide1').kind, 'unmatched');
 });
 
-test('url-mode: depth param — requested export bit depth (8/16/float/auto)', () => {
+test('url-mode: depth param - requested export bit depth (8/16/float/auto)', () => {
   const tool = { inputs: [], render: {} };
   const depth = (qs: string): DepthSetting => parseUrlState(qs, tool).depth;
 
@@ -296,7 +296,7 @@ test('url-mode: depth param — requested export bit depth (8/16/float/auto)', (
   assert.equal(parseUrlState(serializeUrlState([], { depth: 8 }), tool).depth, 8);
 });
 
-test('url-mode: cuts param — contact-sheet frame count parse', () => {
+test('url-mode: cuts param - contact-sheet frame count parse', () => {
   const tool = { inputs: [], render: {} };
   const cuts = (qs: string): number => parseUrlState(qs, tool).cuts;
 
@@ -363,7 +363,7 @@ test('url-mode: cutTime samples midpoints, never endpoints', () => {
   assert.equal(cutTime(1000, 0, 0), 0);
 });
 
-test('url-mode: c2pa param — on/off + lifetime parse', () => {
+test('url-mode: c2pa param - on/off + lifetime parse', () => {
   const tool = { inputs: [], render: {} };
   // Absent → null so callers fall back to the tool's render.c2pa default.
   assert.equal(parseUrlState('', tool).c2pa, null);
@@ -390,7 +390,7 @@ test('url-mode: c2pa param serialize round-trip', () => {
   assert.equal(serializeUrlState([], {}), '');                              // absent → nothing
 });
 
-test('url-mode: imprint param — default-on parse/serialize round-trip', () => {
+test('url-mode: imprint param - default-on parse/serialize round-trip', () => {
   // Mirrors export.ts's imprintCapable / tool-actions.ts's isImprintFmt - the
   // raster formats the Lolly pixel watermark actually survives. Kept as an
   // inline list (like the RESERVED test above) so a drift in either real gate
@@ -438,7 +438,7 @@ test('url-mode: imprint param — default-on parse/serialize round-trip', () => 
   assert.equal('imprint' in parseUrlState('imprint=0', tool).values, false);
 });
 
-test('url-mode: meta param — default-on generator-metadata strip round-trip', () => {
+test('url-mode: meta param - default-on generator-metadata strip round-trip', () => {
   const tool = { inputs: [], render: {} };
   // Absent ⇒ null (keep the source field by default).
   assert.equal(parseUrlState('', tool).metadata, null);
@@ -455,7 +455,7 @@ test('url-mode: meta param — default-on generator-metadata strip round-trip', 
   assert.equal('meta' in parseUrlState('meta=off', tool).values, false);
 });
 
-test('url-mode: hdr param — opt-in parse/serialize round-trip', () => {
+test('url-mode: hdr param - opt-in parse/serialize round-trip', () => {
   const tool = { inputs: [], render: {} };
   // Off by default (absent ⇒ null ⇒ SDR).
   assert.equal(parseUrlState('', tool).hdr, null);
@@ -475,7 +475,7 @@ test('url-mode: hdr param — opt-in parse/serialize round-trip', () => {
   assert.equal('hdr' in parseUrlState('hdr=1', tool).values, false);
 });
 
-test('url-mode: hdr tuning dials — parse, clamp, serialize round-trip', () => {
+test('url-mode: hdr tuning dials - parse, clamp, serialize round-trip', () => {
   const tool = { inputs: [], render: {} };
   // `hdr=1` → default dials.
   assert.deepEqual(parseUrlState('hdr=1', tool).hdr, { peakNits: 1000, reach: 45, lift: 0, richness: 40 });
@@ -492,7 +492,7 @@ test('url-mode: hdr tuning dials — parse, clamp, serialize round-trip', () => 
   assert.deepEqual(parseUrlState('hdr=' + serializeHdr(round), tool).hdr, round);
 });
 
-test('url-mode: lang param — alias normalization + serialize round-trip', () => {
+test('url-mode: lang param - alias normalization + serialize round-trip', () => {
   const tool = { inputs: [], render: {} };
   // Canonical codes pass through.
   assert.equal(parseUrlState('lang=es', tool).lang, 'es');
@@ -556,7 +556,7 @@ test('url-mode: lang param — alias normalization + serialize round-trip', () =
   assert.equal(serializeUrlState([], { lang: 'de' }), 'lang=de');
 });
 
-test('lang: sortedLangs — the shared picker orderings (speakers default, az)', () => {
+test('lang: sortedLangs - the shared picker orderings (speakers default, az)', () => {
   const pop = sortedLangs();
   // No-arg IS the most-spoken-first order - the pickers' default.
   assert.deepEqual(pop, sortedLangs('speakers'));
@@ -994,7 +994,7 @@ test('annotateTemplate: annotates text refs + attribute refs, <style>/<script> b
   assert.ok(out.includes('i < 3') && out.includes('">" and "<"'));
 });
 
-test('annotateTemplate: attribute refs — self-closing tags, first-id-wins, author mapping respected', () => {
+test('annotateTemplate: attribute refs - self-closing tags, first-id-wins, author mapping respected', () => {
   const src = [
     '<div style="background:{{color}}"></div>',
     '<input value="{{name}}" />',
@@ -1153,7 +1153,7 @@ test('runtime: a hook patch key with an undefined value never blanks the input',
   assert.equal(rt.hookErrors.length, 0);
 });
 
-test('url-mode: bleed and marks are null unless explicitly in the URL — physical units do not imply them', () => {
+test('url-mode: bleed and marks are null unless explicitly in the URL - physical units do not imply them', () => {
   // Print prep is opt-in everywhere (web panel, CLI, TUI, MCP). The engine's half:
   // an absent ?bleed=/?marks= parses to null - including on a fully physical job
   // (mm + dpi), which is a size statement, not print intent. Shells key "apply

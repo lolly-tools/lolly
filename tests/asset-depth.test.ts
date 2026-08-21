@@ -114,7 +114,7 @@ test('depthForFormat answers null rather than guessing', async () => {
   assert.equal(await depthForFormat('raster', bytesOf('<svg xmlns="http://www.w3.org/2000/svg"/>')), null);
 });
 
-test('depthForFormat is gated on type "raster" — no depth on non-raster assets', async () => {
+test('depthForFormat is gated on type "raster" - no depth on non-raster assets', async () => {
   // Negative control for the gate itself: identical bytes, different declared
   // type. An SVG/video/font/palette has no bits-per-channel to report, and a
   // mislabelled row must not smuggle one in through its file.
@@ -165,7 +165,7 @@ test('AssetQuery.type matches the schema type enum exactly (catches the 1.73 pro
 test('every asset type is classified in asset-kinds (visual, data, or an explicit exemption)', () => {
   for (const t of schemaEnum(SCHEMA_COPIES[0])) {
     const classified = VISUAL_TYPES.has(t) || DATA_TYPES.has(t) || KIND_EXEMPT.has(t);
-    assert.ok(classified, `asset type "${t}" is in no kind set and is not exempt — folder/catalog tiling would guess`);
+    assert.ok(classified, `asset type "${t}" is in no kind set and is not exempt - folder/catalog tiling would guess`);
   }
   // ratecard is engine data: it must be on the deny-list so nothing tiles it.
   assert.ok(DATA_TYPES.has('ratecard'), 'ratecard must be a DATA type (nothing to tile)');
@@ -190,7 +190,7 @@ test('the schema accepts a depth-labelled asset and rejects a bogus one', () => 
     formats: [{ format: 'png@1x', url: '/catalog/assets/demo/photo.png', checksum: 'sha256-x', ...(depth === undefined ? {} : { depth }) }],
   });
   assert.ok(validate(asset(16)), JSON.stringify(validate.errors));
-  assert.ok(validate(asset(undefined)), 'absent depth is legal — it means unknown');
+  assert.ok(validate(asset(undefined)), 'absent depth is legal - it means unknown');
   assert.ok(!validate(asset('16')), 'a string depth must be rejected');
   assert.ok(!validate(asset(16.5)), 'a fractional depth must be rejected');
   assert.ok(!validate(asset(0)), 'depth 0 must be rejected');

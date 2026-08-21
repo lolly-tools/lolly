@@ -164,7 +164,7 @@ interface CorpusDef {
 const SPA_CORPUS: CorpusDef = {
   id: 'spa',
   keys: extractSpaKeys,
-  context: 'These are short UI microcopy strings — button labels, headings, aria-labels, and one-line descriptions — in a design-tool web app called Lolly. Keep them as short as the source; this is UI chrome, not prose.',
+  context: 'These are short UI microcopy strings - button labels, headings, aria-labels, and one-line descriptions - in a design-tool web app called Lolly. Keep them as short as the source; this is UI chrome, not prose.',
   outPath: lang => join(REPO_ROOT, 'shells', 'web', 'src', 'locales', `${lang}.json`),
 };
 
@@ -213,10 +213,10 @@ const CAPS_CORPUS: CorpusDef = {
   id: 'caps',
   keys: extractCapsKeys,
   context:
-    'These strings describe what a design-tool web app called Lolly can do — they are the feature map on its dashboard. ' +
+    'These strings describe what a design-tool web app called Lolly can do - they are the feature map on its dashboard. ' +
     'Unlike button labels, many are full explanatory sentences or short paragraphs written for a curious professional ' +
     '(a designer, a print operator, a developer). Translate them as clear, confident product prose in the target ' +
-    'language — same length, same register, no marketing embellishment and no added explanation. Several contain ' +
+    'language - same length, same register, no marketing embellishment and no added explanation. Several contain ' +
     'authored inline HTML (<code>, <strong>, <em>, <a href="…">): keep every tag, attribute and entity exactly as it ' +
     'appears and translate only the human text around and inside it. Never translate what sits inside a <code> tag ' +
     '(they are literal parameters, flags and file formats), nor format/technology names (PNG, SVG, PDF, CMYK, C2PA, ' +
@@ -483,11 +483,11 @@ const COLLAB_CORPUS: CorpusDef = {
     'These strings are the private-collab surface of a design-tool web app called Lolly: a three-step invite/join '
     + 'ceremony between two devices, the page a shared invite link opens, the consent prompt and progress for '
     + 'transferring files between them, and the labels on the little cluster showing who else is here. Register: calm, '
-    + 'plain, second person, present tense — short declarative sentences a person reads mid-task, often while something '
+    + 'plain, second person, present tense - short declarative sentences a person reads mid-task, often while something '
     + 'is not working. Say what happened and what to do next; never blame the reader, never apologise, never use '
     + 'exclamation marks. Keep each string about as long as the source: several are headings in a narrow dialog, and a '
     + 'sentence that doubles in length wraps over the button below it. `{name}`, `{peer}`, `{tool}`, `{time}`, `{n}` and '
-    + 'the rest are filled in at runtime with a person\'s chosen name, a tool id, a count or a countdown — keep every '
+    + 'the rest are filled in at runtime with a person\'s chosen name, a tool id, a count or a countdown - keep every '
     + 'one exactly as written, and put it where the target language needs it. "Step 1 of 3" style headings keep their '
     + 'numbers. Do not translate Lolly, QR, or the format and protocol names.',
   outPath: (lang) => join(REPO_ROOT, 'shells', 'web', 'src', 'locales', 'collab', `${lang}.json`),
@@ -529,7 +529,7 @@ function listToolManifests(): ToolManifestSlice[] {
   return out;
 }
 
-const TOOLS_CORPUS_CONTEXT = 'These are creative-tool catalog entries in a design-tool web app called Lolly — a short product name, a one-sentence description, and (sometimes) an even shorter marketing blurb shown on a gallery card. Keep translations as concise as the source.';
+const TOOLS_CORPUS_CONTEXT = 'These are creative-tool catalog entries in a design-tool web app called Lolly - a short product name, a one-sentence description, and (sometimes) an even shorter marketing blurb shown on a gallery card. Keep translations as concise as the source.';
 
 async function runToolsCorpus(client: Anthropic | null, lang: Lang, cache: Cache, glossary: Glossary): Promise<{ translated: number; cached: number; failed: number }> {
   const tools = listToolManifests();
@@ -748,7 +748,7 @@ export function validateDocBlock(source: string, translated: string): string | n
 }
 
 const DOCS_CONTEXT =
-  'These are blocks of a documentation page for an open-source design-asset platform called Lolly — ' +
+  'These are blocks of a documentation page for an open-source design-asset platform called Lolly - ' +
   'body prose written for a professional reader: paragraphs, bullet lists, markdown tables, headings and ' +
   'blockquote notes. Translate them as clear, precise technical documentation in the target language: same ' +
   'length, same register, no marketing embellishment, no added explanation, and never soften a precise ' +
@@ -756,19 +756,19 @@ const DOCS_CONTEXT =
   'of a claim is the point). Preserve markdown structure EXACTLY: the same leading #/##/### heading marks, ' +
   'the same list markers and indentation, the same table pipes with the same number of rows and columns, the ' +
   'same **bold**/*italic*/`backtick` spans. Never translate anything inside `backticks` (they are literal ' +
-  'file paths, commands, flags and formats), a URL, or a markdown link target — translate only the visible ' +
+  'file paths, commands, flags and formats), a URL, or a markdown link target - translate only the visible ' +
   'link text between the square brackets and leave everything inside the following parentheses byte-for-byte ' +
   'identical, including long query strings. Do not translate format, protocol or product names (PNG, SVG, ' +
   'PDF, CMYK, C2PA, SEAL, MCP, OAuth 2.1, IndexedDB, AES-256, GDPR, DPO), legal citations (Art. 6(1)(f), ' +
   'RFC 9116, ePrivacy Directive), company or product names (SUSE, Vercel, Resend, Cloudflare, Google Fonts, ' +
-  'GitHub), or the names of on-screen buttons and menu items when the interface itself is not translated — ' +
+  'GitHub), or the names of on-screen buttons and menu items when the interface itself is not translated - ' +
   'if a button label appears in bold as **Clear all my data**, keep the English label and, only where it ' +
   'genuinely aids comprehension, follow it with your translation in parentheses. When a passage uses a ' +
   'metaphor or image (water, irrigation, bumper lanes, a relay), carry the MEANING with imagery that reads ' +
-  'naturally in the target language rather than translating the image word-for-word — adapt it to a locally ' +
+  'naturally in the target language rather than translating the image word-for-word - adapt it to a locally ' +
   'resonant equivalent when a literal rendering would land as foreign or odd. An ATTRIBUTED quotation ' +
   '(one naming its speaker, e.g. "Andy Fitzsimon, Architect of Lolly") is the exception: translate it ' +
-  'faithfully and literally — it is a person\'s own words, not house copy — and keep the attribution line.';
+  'faithfully and literally - it is a person\'s own words, not house copy - and keep the attribution line.';
 
 // Blocks are far longer than UI strings, so batch by CHARACTER BUDGET rather
 // than a fixed count: 50 paragraphs would overflow the model's output ceiling,
@@ -888,7 +888,7 @@ async function runDocsCorpus(
       skipped++;
       if (readOnly || !existsSync(outPath)) continue;
       rmSync(outPath);
-      console.log(`  [docs/${lang}] ${doc.slug}: incomplete — removed stale ${relative(REPO_ROOT, outPath)} (English fallback)`);
+      console.log(`  [docs/${lang}] ${doc.slug}: incomplete - removed stale ${relative(REPO_ROOT, outPath)} (English fallback)`);
       continue;
     }
     if (readOnly) continue;
@@ -1000,13 +1000,13 @@ function buildSystemPrompt(lang: Lang, corpusContext: string, glossary: Glossary
     `Translate the given UI strings from English into ${lang} for a software product.`,
     corpusContext,
     `Register: ${register}.`,
-    `Never translate these terms — copy them verbatim wherever they appear: ${never}.`,
-    'Preserve every {placeholder} token exactly (same braces, same name, same count) — these are runtime interpolations, not prose.',
-    'Preserve any inline HTML exactly: the same tags, the same count, every attribute (href, target, rel) byte-for-byte, and every HTML entity (&amp;, &lt;). Translate only the human text around and between the tags — never a tag name, an attribute value, or the contents of a <code> element.',
+    `Never translate these terms - copy them verbatim wherever they appear: ${never}.`,
+    'Preserve every {placeholder} token exactly (same braces, same name, same count) - these are runtime interpolations, not prose.',
+    'Preserve any inline HTML exactly: the same tags, the same count, every attribute (href, target, rel) byte-for-byte, and every HTML entity (&amp;, &lt;). Translate only the human text around and between the tags - never a tag name, an attribute value, or the contents of a <code> element.',
     'Preserve punctuation choices like → and & as-is where they read naturally in the target language; do not add explanatory text.',
     'Match the source length and register. Do not pad or embellish.',
     ...punctuationRules(lang),
-    'Return ONLY the JSON matching the given schema — one translation per input id, in the same order.',
+    'Return ONLY the JSON matching the given schema - one translation per input id, in the same order.',
   ].join('\n');
 }
 
@@ -1057,7 +1057,7 @@ async function translateBatch(
       messages: [{ role: 'user', content: userText }],
     });
     if (response.stop_reason === 'refusal') {
-      console.warn(`  [${lang}] batch refused by the model — falling back to English for these ${items.length} strings`);
+      console.warn(`  [${lang}] batch refused by the model - falling back to English for these ${items.length} strings`);
       return new Map();
     }
     const textBlock = response.content.find((b): b is Anthropic.TextBlock => b.type === 'text');
@@ -1557,7 +1557,7 @@ async function main(): Promise<void> {
   let client: Anthropic | null = null;
   if (!check) {
     if (!process.env.ANTHROPIC_API_KEY && !process.env.ANTHROPIC_AUTH_TOKEN) {
-      console.error('ANTHROPIC_API_KEY (or an `ant auth login` profile) is required — omit only with --check.');
+      console.error('ANTHROPIC_API_KEY (or an `ant auth login` profile) is required - omit only with --check.');
       process.exit(1);
     }
     client = new Anthropic();

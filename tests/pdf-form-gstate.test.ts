@@ -332,8 +332,8 @@ test('a self-referential form with fanout terminates quickly', () => {
   const { nodes } = pageW('/Fm0 Do', { xobjects: { Fm0: self } } as never);
   const ms = Date.now() - t0;
   assert.ok(Array.isArray(nodes), 'should return normally, not throw');
-  assert.ok(nodes.length <= 4000, `emitted ${nodes.length} nodes — the sink ceiling is not holding`);
-  assert.ok(ms < 30_000, `fanout-6 self-reference took ${ms}ms — that is a hang, not slowness`);
+  assert.ok(nodes.length <= 4000, `emitted ${nodes.length} nodes - the sink ceiling is not holding`);
+  assert.ok(ms < 30_000, `fanout-6 self-reference took ${ms}ms - that is a hang, not slowness`);
 });
 
 test('a huge no-paint content stream is bounded by the token budget', () => {
@@ -342,5 +342,5 @@ test('a huge no-paint content stream is bounded by the token budget', () => {
   const ms = Date.now() - t0;
   assert.ok(Array.isArray(nodes), 'should return normally, not throw');
   // Same reasoning as above: a hang ceiling, not a performance assertion.
-  assert.ok(ms < 30_000, `200k no-op ops took ${ms}ms — that is a hang, not slowness`);
+  assert.ok(ms < 30_000, `200k no-op ops took ${ms}ms - that is a hang, not slowness`);
 });

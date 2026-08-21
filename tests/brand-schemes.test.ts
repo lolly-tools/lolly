@@ -120,7 +120,7 @@ test('adjacent-3 negative rotation wraps into [0,360)', () => {
 
 // ── determinism + fallback ──────────────────────────────────────────────────────
 
-test('generation is deterministic — same input, identical output', () => {
+test('generation is deterministic - same input, identical output', () => {
   for (const { id } of SCHEME_KINDS) {
     const a = generateSchemeAccents(PRIMARY, id);
     const b = generateSchemeAccents(PRIMARY, id);

@@ -118,7 +118,7 @@ describe('docs search index', { skip: built ? false : 'run `npm run build:info` 
     // a blocking wait before the first result, so the ceiling is deliberate.
     for (const lang of LOCALES) {
       const bytes = readFileSync(resolve(dirFor(lang), 'search-index.json')).byteLength;
-      assert.ok(bytes < 400_000, `${lang}: index is ${Math.round(bytes / 1024)} KB — trim SEARCH_SNIPPET_MAX`);
+      assert.ok(bytes < 400_000, `${lang}: index is ${Math.round(bytes / 1024)} KB - trim SEARCH_SNIPPET_MAX`);
     }
   });
 });

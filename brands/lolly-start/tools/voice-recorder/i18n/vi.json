@@ -1,7 +1,7 @@
 {
   "name": "Ghi Âm Giọng Nói",
   "description": "Ghi một đoạn ghi âm giọng nói với đồng hồ đo mức âm thanh trực tiếp và hướng dẫn nhẹ nhàng, sau đó lưu dưới dạng MP3.",
-  "a11yLabel": "Máy ghi âm giọng nói — mức {{default dbText \"idle\"}}",
+  "a11yLabel": "Máy ghi âm giọng nói - mức {{default dbText \"idle\"}}",
   "featured.blurb": "Ghi âm giọng nói rõ ràng với hướng dẫn mức âm thanh trực tiếp",
   "inputs.title.label": "Nhãn",
   "inputs.title.help": "Đặt tên cho thẻ ghi âm và tệp đã lưu.",

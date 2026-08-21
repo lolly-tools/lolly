@@ -224,5 +224,5 @@ export function describeHiddenText(findings: HiddenTextFinding[]): string {
   const words = findings.reduce((a, f) => a + (f.text.match(/\S+/g) ?? []).length, 0);
   const pages = new Set(findings.map((f) => f.page ?? 0)).size;
   const where = pages > 1 ? ` across ${pages} pages` : '';
-  return `${words} word${words === 1 ? '' : 's'} in ${findings.length} run${findings.length === 1 ? '' : 's'} sit behind opaque shapes${where} — present in the file, not visible on the page`;
+  return `${words} word${words === 1 ? '' : 's'} in ${findings.length} run${findings.length === 1 ? '' : 's'} sit behind opaque shapes${where} - present in the file, not visible on the page`;
 }

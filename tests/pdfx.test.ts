@@ -53,7 +53,7 @@ test('pdfx: PDFX_VERSION is the X-4 conformance string', () => {
   assert.equal(PDFX_VERSION, 'PDF/X-4');
 });
 
-test('pdfx: XMP packet framing — begin, writable end marker, padding', () => {
+test('pdfx: XMP packet framing - begin, writable end marker, padding', () => {
   const xmp = buildPdfXXmp(OPTS);
   assert.ok(xmp.startsWith('<?xpacket begin='), 'starts with xpacket begin');
   assert.ok(xmp.includes('W5M0MpCehiHzreSzNTczkc9d'), 'carries the fixed xpacket id');
@@ -93,7 +93,7 @@ test('pdfx: XMP carries every required property and namespace', () => {
   assert.ok(xmp.includes(`<xmpMM:InstanceID>${OPTS.instanceId}</xmpMM:InstanceID>`), 'InstanceID');
 });
 
-test('pdfx: XMP defaults — modifyDate mirrors createDate, ids generated, createDate required', () => {
+test('pdfx: XMP defaults - modifyDate mirrors createDate, ids generated, createDate required', () => {
   const xmp = buildPdfXXmp({ createDate: '2026-01-01T00:00:00Z' });
   assert.ok(xmp.includes('<xmp:ModifyDate>2026-01-01T00:00:00Z</xmp:ModifyDate>'), 'modifyDate falls back to createDate');
   assert.match(xmp, /<xmpMM:DocumentID>uuid:[0-9a-f-]{36}<\/xmpMM:DocumentID>/, 'DocumentID auto-generated');
@@ -122,7 +122,7 @@ test('pdfx: formatPdfDate produces the Info-dict D: shape', () => {
   assert.throws(() => formatPdfDate('not a date'), TypeError);
 });
 
-test('pdfx: makeDocumentId — seeded is deterministic, unseeded is not', () => {
+test('pdfx: makeDocumentId - seeded is deterministic, unseeded is not', () => {
   const shape = /^uuid:[0-9a-f]{8}-[0-9a-f]{4}-5[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/;
   const a = makeDocumentId('tool:qr-code|2026');
   assert.match(a, shape);
@@ -134,7 +134,7 @@ test('pdfx: makeDocumentId — seeded is deterministic, unseeded is not', () => 
   assert.notEqual(r1, r2, 'unseeded ids are unique');
 });
 
-test('pdfx: output intent spec — srgb embeds the ICC profile', () => {
+test('pdfx: output intent spec - srgb embeds the ICC profile', () => {
   const spec = pdfxOutputIntentSpec('srgb');
   assert.equal(spec.subtype, 'GTS_PDFX');
   assert.equal(spec.identifier, 'sRGB IEC61966-2.1');
@@ -143,7 +143,7 @@ test('pdfx: output intent spec — srgb embeds the ICC profile', () => {
   assert.equal(spec.components, 3);
 });
 
-test('pdfx: output intent spec — a CMYK condition alone carries no profile bytes', () => {
+test('pdfx: output intent spec - a CMYK condition alone carries no profile bytes', () => {
   // No CMYK ICC ships in this repo, so with no options the intent is the press
   // condition's registered NAME. That is a true statement of the condition and it
   // is what the CLI and every shared `profile=fogra39` link still produce - but it
@@ -205,7 +205,7 @@ test('pdfx: supplied profile bytes and identity pass through verbatim', () => {
   assert.equal(pdfxOutputIntentSpec('fogra39', { iccBytes: bytes, components: 1 }).components, 1);
 });
 
-test('pdfx: profile eligibility — only a real output profile in the intent’s space', () => {
+test('pdfx: profile eligibility - only a real output profile in the intent’s space', () => {
   const ok = { deviceClass: 'prtr', dataColourSpace: 'CMYK', nChannels: 4, version: '2.1.0' };
   assert.deepEqual(pdfxProfileEligibility(ok, 'CMYK'), { ok: true });
   // Trailing-space signatures ('RGB ') and case are the file's business, not ours.

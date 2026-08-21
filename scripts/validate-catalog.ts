@@ -144,7 +144,7 @@ for (const dir of toolDirs) {
   if ((RESERVED_SUBCOMMANDS as readonly string[]).includes(manifest.id)) {
     errors.push(
       `[${dir}] tool id "${manifest.id}" is a reserved CLI subcommand word ` +
-      `(${RESERVED_SUBCOMMANDS.join(', ')}) — \`lolly ${manifest.id}\` would run the verb, ` +
+      `(${RESERVED_SUBCOMMANDS.join(', ')}) - \`lolly ${manifest.id}\` would run the verb, ` +
       `so the tool would be permanently unreachable. Rename the tool.`,
     );
   }
@@ -261,7 +261,7 @@ for (const entry of toolsIndex.tools) {
   }
   for (const field of INDEX_FIELDS) {
     if (entry[field] !== manifest[field]) {
-      errors.push(`tools/index.json: "${entry.id}" ${field} "${entry[field]}" ≠ manifest "${manifest[field]}" — run \`npm run build:catalog\``);
+      errors.push(`tools/index.json: "${entry.id}" ${field} "${entry[field]}" ≠ manifest "${manifest[field]}" - run \`npm run build:catalog\``);
     }
   }
   // Derived flags: reuse the shared derivation so the generator and validator
@@ -272,10 +272,10 @@ for (const entry of toolsIndex.tools) {
   // disk-derived and intentionally not checked here; `preview` IS checked below.)
   const derived: any = entryFromManifest(manifest);
   if (entry.exportable !== derived.exportable) {
-    errors.push(`tools/index.json: "${entry.id}" exportable ${entry.exportable} ≠ derived ${derived.exportable} — run \`npm run build:catalog\``);
+    errors.push(`tools/index.json: "${entry.id}" exportable ${entry.exportable} ≠ derived ${derived.exportable} - run \`npm run build:catalog\``);
   }
   if (!!entry.personalized !== !!derived.personalized) {
-    errors.push(`tools/index.json: "${entry.id}" personalized ${!!entry.personalized} ≠ derived ${!!derived.personalized} — run \`npm run build:catalog\``);
+    errors.push(`tools/index.json: "${entry.id}" personalized ${!!entry.personalized} ≠ derived ${!!derived.personalized} - run \`npm run build:catalog\``);
   }
   // Preview path is disk-derived: build-previews rasterises expensive-to-paint SVGs
   // (huge paths / thousands of dots) to .png, so entryFromManifest picks the extension
@@ -289,7 +289,7 @@ for (const entry of toolsIndex.tools) {
     typeof derived.preview === 'string' &&
     existsSync(join(ROOT, derived.preview.replace(/^\//, '')))
   ) {
-    errors.push(`tools/index.json: "${entry.id}" preview ${entry.preview} ≠ derived ${derived.preview} — run \`npm run build:catalog\` (after \`npm run previews\`)`);
+    errors.push(`tools/index.json: "${entry.id}" preview ${entry.preview} ≠ derived ${derived.preview} - run \`npm run build:catalog\` (after \`npm run previews\`)`);
   }
   // "New from template" metadata. THE WHOLE-POINT INVARIANT: the synced index must carry
   // template METADATA ONLY - never the heavy `values` seed (that's fetched on demand). A
@@ -297,20 +297,20 @@ for (const entry of toolsIndex.tools) {
   // storage entirely.
   for (const tmpl of (entry.templates ?? []) as Array<Record<string, unknown>>) {
     if (tmpl && typeof tmpl === 'object' && 'values' in tmpl) {
-      errors.push(`tools/index.json: "${entry.id}" template "${tmpl.id}" carries "values" — the index must be metadata-only (values live in tools/<id>/templates/<tid>.json); run \`npm run build:catalog\``);
+      errors.push(`tools/index.json: "${entry.id}" template "${tmpl.id}" carries "values" - the index must be metadata-only (values live in tools/<id>/templates/<tid>.json); run \`npm run build:catalog\``);
     }
   }
   // Drift guard: entryFromManifest re-scans tools/<id>/templates/*.json, so a forgotten
   // build:catalog after adding/editing/removing a template file fails CI. Compare the
   // (deterministic) derived metadata against the committed index copy.
   if (JSON.stringify(entry.templates ?? null) !== JSON.stringify(derived.templates ?? null)) {
-    errors.push(`tools/index.json: "${entry.id}" templates drifted from tools/${entry.id}/templates/*.json — run \`npm run build:catalog\``);
+    errors.push(`tools/index.json: "${entry.id}" templates drifted from tools/${entry.id}/templates/*.json - run \`npm run build:catalog\``);
   }
 }
 // Every tool with a manifest must appear in the index.
 for (const id of toolManifests.keys()) {
   if (!indexedIds.has(id)) {
-    errors.push(`tools/index.json is missing tool "${id}" — run \`npm run build:catalog\``);
+    errors.push(`tools/index.json is missing tool "${id}" - run \`npm run build:catalog\``);
   }
 }
 
@@ -344,9 +344,9 @@ if (previewBundle) {
       const entry = previewBundle[`${id}:${i}`];
       const sig = JSON.stringify(look?.values ?? {});
       if (!entry) {
-        warnings.push(`[${id}] example look ${i} is absent from catalog/previews/bundle.json — the gallery will LIVE-RENDER it on first paint; run \`npm run previews\` then \`npm run build:catalog\``);
+        warnings.push(`[${id}] example look ${i} is absent from catalog/previews/bundle.json - the gallery will LIVE-RENDER it on first paint; run \`npm run previews\` then \`npm run build:catalog\``);
       } else if (entry.sig !== sig) {
-        errors.push(`[${id}] example look ${i} bundle sig is stale — the gallery will silently fall back to a live render on first paint; run \`npm run previews\` then \`npm run build:catalog\``);
+        errors.push(`[${id}] example look ${i} bundle sig is stale - the gallery will silently fall back to a live render on first paint; run \`npm run previews\` then \`npm run build:catalog\``);
       }
     });
   }
@@ -363,19 +363,19 @@ for (const [toolId, manifest] of toolManifests) {
     const canon = canonicalInputs[input.id];
     if (!canon) continue;
     if (input.type !== canon.type) {
-      warnings.push(`[${toolId}] input "${input.id}" type "${input.type}" diverges from canonical "${canon.type}" — won't share the /pro column (schemas/canonical-inputs.json)`);
+      warnings.push(`[${toolId}] input "${input.id}" type "${input.type}" diverges from canonical "${canon.type}" - won't share the /pro column (schemas/canonical-inputs.json)`);
       continue; // type mismatch already breaks the column; constraint checks are moot
     }
     const numKeys = canon.type === 'number' ? ['min', 'max', 'step'] : [];
     for (const k of numKeys) {
       if (canon[k] !== undefined && (input[k] ?? null) !== canon[k]) {
-        warnings.push(`[${toolId}] input "${input.id}" ${k}=${input[k] ?? 'unset'} diverges from canonical ${k}=${canon[k]} — breaks bulk-fill in /pro (schemas/canonical-inputs.json)`);
+        warnings.push(`[${toolId}] input "${input.id}" ${k}=${input[k] ?? 'unset'} diverges from canonical ${k}=${canon[k]} - breaks bulk-fill in /pro (schemas/canonical-inputs.json)`);
       }
     }
     if (canon.type === 'select' && Array.isArray(canon.options)) {
       const norm = (opts: any): string => (opts ?? []).map((o: any) => (o && typeof o === 'object' ? o.value : o)).join('|');
       if (norm(input.options) !== norm(canon.options)) {
-        warnings.push(`[${toolId}] input "${input.id}" options diverge from canonical — breaks bulk-fill in /pro (schemas/canonical-inputs.json)`);
+        warnings.push(`[${toolId}] input "${input.id}" options diverge from canonical - breaks bulk-fill in /pro (schemas/canonical-inputs.json)`);
       }
     }
   }
@@ -431,7 +431,7 @@ for (const [toolId, manifest] of toolManifests) {
     const key = String(hex).replace('#', '').toLowerCase();
     const prev = cmykByHex.get(key);
     if (prev && JSON.stringify(prev.cmyk) !== JSON.stringify(cmyk)) {
-      errors.push(`palette: hex "${hex}" has conflicting CMYK — "${prev.label}" ${JSON.stringify(prev.cmyk)} vs "${label}" ${JSON.stringify(cmyk)} (the PDF export's hex→CMYK lookup would resolve this by entry order)`);
+      errors.push(`palette: hex "${hex}" has conflicting CMYK - "${prev.label}" ${JSON.stringify(prev.cmyk)} vs "${label}" ${JSON.stringify(cmyk)} (the PDF export's hex→CMYK lookup would resolve this by entry order)`);
     } else if (!prev) {
       cmykByHex.set(key, { cmyk, label });
     }
@@ -470,11 +470,11 @@ for (const asset of assetsIndex.assets) {
       }
       const bytes = readFileSync(absPath);
       if (fmt.checksum === 'sha256-PLACEHOLDER') {
-        warnings.push(`[asset ${asset.id}] format "${fmt.format}" has placeholder checksum — run \`npm run build:catalog\``);
+        warnings.push(`[asset ${asset.id}] format "${fmt.format}" has placeholder checksum - run \`npm run build:catalog\``);
       } else {
         const actual = `sha256-${createHash('sha256').update(bytes).digest('base64')}`;
         if (fmt.checksum !== actual) {
-          errors.push(`[asset ${asset.id}] format "${fmt.format}" checksum stale — run \`npm run build:catalog\``);
+          errors.push(`[asset ${asset.id}] format "${fmt.format}" checksum stale - run \`npm run build:catalog\``);
         }
       }
 
@@ -486,9 +486,9 @@ for (const asset of assetsIndex.assets) {
       // the two can only disagree if the index is out of date.
       const expectedDepth = await depthForFormat(asset.type, bytes);
       if (expectedDepth == null && fmt.depth !== undefined) {
-        errors.push(`[asset ${asset.id}] format "${fmt.format}" declares depth ${fmt.depth} but its bytes state no depth (not a raster, or an unsniffable container) — run \`npm run build:catalog\``);
+        errors.push(`[asset ${asset.id}] format "${fmt.format}" declares depth ${fmt.depth} but its bytes state no depth (not a raster, or an unsniffable container) - run \`npm run build:catalog\``);
       } else if (expectedDepth != null && fmt.depth !== expectedDepth) {
-        errors.push(`[asset ${asset.id}] format "${fmt.format}" depth ${fmt.depth ?? '(absent)'} does not match the file's ${expectedDepth}-bit header — run \`npm run build:catalog\``);
+        errors.push(`[asset ${asset.id}] format "${fmt.format}" depth ${fmt.depth ?? '(absent)'} does not match the file's ${expectedDepth}-bit header - run \`npm run build:catalog\``);
       }
 
       // Tokens assets carry a DTCG document - validate its structure too.
@@ -518,7 +518,7 @@ for (const asset of assetsIndex.assets) {
           // brand user. It MUST be confidential:true so `canShowMoney` can only ever
           // reveal it by the explicit per-device action, never automatically off a
           // link. A non-confidential catalog card would leak the rates.
-          errors.push(`[asset ${asset.id}] rate card "${fmt.url}" is a catalog asset but is not confidential:true — a shipped house card must set confidential:true so its rates are protected`);
+          errors.push(`[asset ${asset.id}] rate card "${fmt.url}" is a catalog asset but is not confidential:true - a shipped house card must set confidential:true so its rates are protected`);
         }
       }
 
@@ -670,7 +670,7 @@ for (const slug of shippedVersionSlugs) {
   if (!ledgerVersionSlugs.has(slug)) {
     errors.push(
       `assets/index.json: design-system version "${slug}" ships a tokens asset but the head ` +
-      `document's version ledger does not list it — nothing can resolve it, since every shell ` +
+      `document's version ledger does not list it - nothing can resolve it, since every shell ` +
       `reads the ledger, not the asset list`,
     );
   }
@@ -679,7 +679,7 @@ for (const slug of ledgerVersionSlugs) {
   if (!shippedVersionSlugs.has(slug)) {
     errors.push(
       `assets/index.json: the head document's version ledger lists "${slug}" but this catalog ` +
-      `ships no tokens asset for it — a tool resolving to that version would render the edit head`,
+      `ships no tokens asset for it - a tool resolving to that version would render the edit head`,
     );
   }
 }
@@ -698,7 +698,7 @@ for (const [toolId, manifest] of toolManifests) {
     // A community tool pinned for another pack must not fail every pack that does
     // not ship versions - that would make one brand's pin everyone else's error.
     warnings.push(
-      `[${toolId}] designVersion "${pin}" but this catalog ships no design-system versions — ` +
+      `[${toolId}] designVersion "${pin}" but this catalog ships no design-system versions - ` +
       `the pin falls through to the active version, then to the edit head`,
     );
     continue;
@@ -706,7 +706,7 @@ for (const [toolId, manifest] of toolManifests) {
   if (!resolvableVersionSlugs.has(pin)) {
     errors.push(
       `[${toolId}] designVersion "${pin}" names no version this catalog can resolve ` +
-      `(available: ${[...resolvableVersionSlugs].sort().join(', ')}) — publish that version into the ` +
+      `(available: ${[...resolvableVersionSlugs].sort().join(', ')}) - publish that version into the ` +
       `pack, fix the slug, or drop the pin so the tool follows the active version`,
     );
   }
@@ -761,7 +761,7 @@ for (const [toolId, manifest] of toolManifests) {
   const checkAssetValue = (toolId: string, at: string, spec: any, value: unknown): void => {
     if (spec.type !== 'asset' || value == null) return;
     if (typeof value === 'string') {
-      errors.push(`[${toolId}] ${at}: asset input "${spec.id}" value ${JSON.stringify(value)} is a bare string — the runtime only resolves ref objects; use {"source":"library","id":"<asset-id>","_unresolved":true}`);
+      errors.push(`[${toolId}] ${at}: asset input "${spec.id}" value ${JSON.stringify(value)} is a bare string - the runtime only resolves ref objects; use {"source":"library","id":"<asset-id>","_unresolved":true}`);
       return;
     }
     const id = (value as { id?: unknown })?.id;
@@ -786,7 +786,7 @@ for (const [toolId, manifest] of toolManifests) {
     // renderFeaturedVariant throws and the tile silently keeps its static preview.
     const formats: string[] = manifest.render?.formats ?? [];
     if (!formats.some(f => DISPLAYABLE.has(f))) {
-      warnings.push(`[${toolId}] declares example looks but no gallery-displayable format (svg/png/jpg/jpeg/webp) — the preview strip can never render them`);
+      warnings.push(`[${toolId}] declares example looks but no gallery-displayable format (svg/png/jpg/jpeg/webp) - the preview strip can never render them`);
     }
 
     const inputById = new Map<string, any>((manifest.inputs ?? []).map((i: any) => [i.id, i]));
@@ -800,7 +800,7 @@ for (const [toolId, manifest] of toolManifests) {
       // engine render on the gallery, so an oversized strip is a perf smell, not
       // a correctness break.
       if (looks.length > 8) {
-        warnings.push(`[${toolId}] ${src} has ${looks.length} looks — each is a live gallery render; keep it to 8 or fewer`);
+        warnings.push(`[${toolId}] ${src} has ${looks.length} looks - each is a live gallery render; keep it to 8 or fewer`);
       }
       looks.forEach((look: any, i: number) => {
         const at = `${src}[${i}]`;
@@ -817,7 +817,7 @@ for (const [toolId, manifest] of toolManifests) {
             if (key === 'width' || key === 'height') continue;
             const idForUrlKey = idByUrlKey.get(key);
             errors.push(idForUrlKey
-              ? `[${toolId}] ${at}: values key "${key}" is input "${idForUrlKey}"'s urlKey — example values seed the runtime by input id (urlKey is URL-mode transport only)`
+              ? `[${toolId}] ${at}: values key "${key}" is input "${idForUrlKey}"'s urlKey - example values seed the runtime by input id (urlKey is URL-mode transport only)`
               : `[${toolId}] ${at}: values key "${key}" is not a declared input id`);
             continue;
           }
@@ -874,7 +874,7 @@ for (const [toolId, manifest] of toolManifests) {
   for (const dir of packToolDirs('community')) {
     const manifest = readJsonOptional(`community/${dir}/tool.json`);
     if (manifest && manifest.extends !== undefined) {
-      errors.push(`[community/${dir}] declares "extends" — community tools are overlay bases; only a brand pack may declare an overlay`);
+      errors.push(`[community/${dir}] declares "extends" - community tools are overlay bases; only a brand pack may declare an overlay`);
     }
   }
 
@@ -890,14 +890,14 @@ for (const [toolId, manifest] of toolManifests) {
       const manifest = readJsonOptional(`${rel}/tool.json`);
       if (!manifest || manifest.extends === undefined) continue;
       if (manifest.extends !== 'community') {
-        errors.push(`[${rel}] "extends": ${JSON.stringify(manifest.extends)} — v1 supports only "community" as the base pack`);
+        errors.push(`[${rel}] "extends": ${JSON.stringify(manifest.extends)} - v1 supports only "community" as the base pack`);
         continue;
       }
       if (manifest.id !== dir) {
-        errors.push(`[${rel}] overlay id "${manifest.id}" doesn't match its directory name — an overlay and its base share the same tool id`);
+        errors.push(`[${rel}] overlay id "${manifest.id}" doesn't match its directory name - an overlay and its base share the same tool id`);
       }
       if (!existsSync(join(ROOT, 'community', dir, 'tool.json'))) {
-        errors.push(`[${rel}] extends "community" but community/${dir}/tool.json does not exist — the overlay's base is missing (the profile build would fail loudly on this)`);
+        errors.push(`[${rel}] extends "community" but community/${dir}/tool.json does not exist - the overlay's base is missing (the profile build would fail loudly on this)`);
       }
     }
   }
@@ -930,7 +930,7 @@ if (errors.length) {
   process.exit(1);
 }
 
-console.log(`\n✓ Catalog OK — ${toolManifests.size} tools, ${assetById.size} assets`);
+console.log(`\n✓ Catalog OK - ${toolManifests.size} tools, ${assetById.size} assets`);
 if (warnings.length) console.log(`  (with ${warnings.length} warning${warnings.length === 1 ? '' : 's'})`);
 
 // ─── Helpers ────────────────────────────────────────────────────────────────

@@ -117,7 +117,7 @@ function main(): void {
   const missing = SENTINELS.filter((s) => !existsSync(join(ROOT, s.path)));
   if (missing.length === 0) {
     for (const w of uncoveredWorkspaces()) {
-      console.warn(`⚠ check-bootstrap: workspace "${w}" is a submodule with no sentinel — add one to scripts/check-bootstrap.ts`);
+      console.warn(`⚠ check-bootstrap: workspace "${w}" is a submodule with no sentinel - add one to scripts/check-bootstrap.ts`);
     }
     return;
   }
@@ -127,7 +127,7 @@ function main(): void {
   const log = warnOnly ? console.warn.bind(console) : console.error.bind(console);
 
   log('');
-  log(`${warnOnly ? '⚠' : '✗'} This clone is incomplete — ${modules.length} submodule${modules.length === 1 ? '' : 's'} ${modules.length === 1 ? 'has' : 'have'} not been initialised:`);
+  log(`${warnOnly ? '⚠' : '✗'} This clone is incomplete - ${modules.length} submodule${modules.length === 1 ? '' : 's'} ${modules.length === 1 ? 'has' : 'have'} not been initialised:`);
   log('');
   for (const m of missing) log(`    ${m.submodule.padEnd(16)} (missing ${m.path})`);
   log('');
@@ -145,7 +145,7 @@ function main(): void {
   log('      git clone --recurse-submodules https://github.com/lolly-tools/lolly.git');
   log('');
   log('  See the "Getting started" section of README.md for the full first-run walkthrough.');
-  log('  (brands/suse is private and is skipped on purpose — you land on the blank');
+  log('  (brands/suse is private and is skipped on purpose - you land on the blank');
   log('  lolly-start brand and everything still builds.)');
   log('');
   log('  To bypass this check deliberately, set LOLLY_SKIP_BOOTSTRAP_CHECK=1.');

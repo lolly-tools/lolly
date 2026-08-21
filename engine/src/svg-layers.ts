@@ -1124,7 +1124,7 @@ function enumerate(markup: string, opts: SvgLayerOptions, warnings: string[]): S
   // the property on each layer over-applies it, stripping it drops it), so the
   // honest answer is the wrapper's: keep the artwork whole.
   const rootUnit = unitCompositing(root.attrs);
-  if (rootUnit) return empty(`kept the artwork whole — its \`${rootUnit}\` applies to all of it at once`);
+  if (rootUnit) return empty(`kept the artwork whole - its \`${rootUnit}\` applies to all of it at once`);
 
   const rootKids = directChildren(tags, rootIdx);
   if (!rootKids) return empty('this SVG is not well-formed enough to lift');
@@ -1138,7 +1138,7 @@ function enumerate(markup: string, opts: SvgLayerOptions, warnings: string[]): S
     if (CARRY_TAGS.has(k.tag.name)) { carry.push(k); continue; }
     candidateNodes.push(k);
   }
-  if (!candidateNodes.length) return empty('nothing to lift — this SVG draws nothing at its root');
+  if (!candidateNodes.length) return empty('nothing to lift - this SVG draws nothing at its root');
 
   // ── descend through transparent single wrappers ───────────────────────────
   const wrappers: Tag[] = [];
@@ -1148,7 +1148,7 @@ function enumerate(markup: string, opts: SvgLayerOptions, warnings: string[]): S
     if (only.tag.name !== 'g' || only.tag.kind !== 'open') break;
     const unit = unitCompositing(only.tag.attrs);
     if (unit) {
-      warnings.push(`kept the outer group whole — its \`${unit}\` applies to all of it at once`);
+      warnings.push(`kept the outer group whole - its \`${unit}\` applies to all of it at once`);
       break;
     }
     const kids = directChildren(tags, only.ti);
@@ -1778,7 +1778,7 @@ function borrowedDefs(
   // CAP are the lift's doing - nothing looked at them, so anything among them
   // that lived in another layer will not paint - and that is said out loud.
   if (wanted.more) {
-    warnings.push(`layer ${layerNo}: more than ${SVG_LAYERS_MAX_REFS} shared references — the rest were left unrepaired`);
+    warnings.push(`layer ${layerNo}: more than ${SVG_LAYERS_MAX_REFS} shared references - the rest were left unrepaired`);
   }
   if (!out.length) return '';
   warnings.push(`layer ${layerNo}: copied ${out.length} referenced ${out.length === 1 ? 'element' : 'elements'} it shares with another layer`);

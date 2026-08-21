@@ -151,7 +151,7 @@ test('brands/lolly-start carries no SUSE brand hexes or SUSE references', () => 
     assert.equal(hex, null, `${rel} contains SUSE brand hex ${hex?.[0]}`);
     const scrubbed = text.replaceAll(ALLOWED_SUSE, '');
     const asset = withoutPaths(scrubbed).match(SUSE_ASSET);
-    assert.equal(asset, null, `${rel} references a SUSE asset path "${asset?.[0]}" — it would 404 under lolly-start`);
+    assert.equal(asset, null, `${rel} references a SUSE asset path "${asset?.[0]}" - it would 404 under lolly-start`);
     if (TYPEFACE_EXEMPT.has(f)) continue; // family names only - see TYPEFACE_EXEMPT
     // Case-insensitive, with surrounding word-ish context in the failure
     // message so a dangling "suse/logo/…" asset id is identifiable at a glance.
@@ -177,7 +177,7 @@ test('semantic brand var() references always carry a fallback', () => {
     for (const m of text.matchAll(BRAND_VAR)) {
       assert.equal(
         m[2], ',',
-        `${rel}: var(--brand-${m[1]}) has no fallback — an unbranded canvas leaves the var unset`,
+        `${rel}: var(--brand-${m[1]}) has no fallback - an unbranded canvas leaves the var unset`,
       );
     }
   }
@@ -196,7 +196,7 @@ test('lolly-start never consumes the retired bare semantic var names', () => {
     const rel = relative(ROOT, f);
     for (const m of text.matchAll(RETIRED_VAR)) {
       assert.fail(
-        `${rel}: var(--${m[1]}) uses a retired bare slot name — the injected brand vars are --brand-* (contract section 3); bare names are the shell's shadcn HSL-triple vocabulary`,
+        `${rel}: var(--${m[1]}) uses a retired bare slot name - the injected brand vars are --brand-* (contract section 3); bare names are the shell's shadcn HSL-triple vocabulary`,
       );
     }
   }

@@ -26,20 +26,20 @@ import test from 'node:test';
 // forward-slash paths and are intentionally depth-agnostic (`**/…`) so they
 // hold whether this suite runs from the monorepo root or a submodule root.
 const BUILD_REPRODUCIBLE = [
-  '**/catalog/og/**', // per-tool/per-view OG cards — rendered from titles at build time
-  '**/catalog/previews/**', // catalog preview SVGs — generated from assets
+  '**/catalog/og/**', // per-tool/per-view OG cards - rendered from titles at build time
+  '**/catalog/previews/**', // catalog preview SVGs - generated from assets
   '**/dist/**', // compiled/bundled output
   '**/node_modules/**', // installed deps
   '**/*.map', // sourcemaps
-  '**/scripts/i18n/cache.json', // translation-memory cache — a build accelerator, not source
-  '**/public/models/**', // ML weights — fetched on build, never committed (e.g. shells/web/public/models)
-  '**/public/ort/**', // onnxruntime-web wasm/js — vendored by the build (e.g. shells/web/public/ort)
+  '**/scripts/i18n/cache.json', // translation-memory cache - a build accelerator, not source
+  '**/public/models/**', // ML weights - fetched on build, never committed (e.g. shells/web/public/models)
+  '**/public/ort/**', // onnxruntime-web wasm/js - vendored by the build (e.g. shells/web/public/ort)
 ];
 
 // Deliberately-committed paths that a BUILD_REPRODUCIBLE pattern would
 // otherwise flag. Each entry states WHY it is in git.
 const ALLOW = [
-  '**/docs/shots/**', // test golden baselines — the vector-snapshot suite compares against these
+  '**/docs/shots/**', // test golden baselines - the vector-snapshot suite compares against these
   '**/catalog/tools/index.json', // generated, but committed as the drift-guard contract (validate:catalog fails on drift)
   '**/api/**/*.js', // generated esbuild bundles, but committed as the drift-guard contract (CI api-bundles job)
   '**/public/fonts/**', // AUTHORED source (SUSE/Outfit faces + OFL licences), not a build product
@@ -120,7 +120,7 @@ test('no build-reproducible artifacts are tracked (git holds source, build makes
           '',
           'Git holds authored source + test baselines; the build produces everything else.',
           'Fix by removing them from git (`git rm --cached <path>`) and gitignoring them,',
-          "or — if a file is committed on purpose — add its glob to this test's ALLOW list",
+          "or - if a file is committed on purpose - add its glob to this test's ALLOW list",
           'with a one-line reason (tag it TODO(deploy-optimizations) if it is only committed',
           'until the build learns to produce it).',
         ].join('\n'),

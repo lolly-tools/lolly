@@ -1,6 +1,6 @@
 # syntax=docker/dockerfile:1
 # ============================================================================
-# Lolly Web PWA — the primary self-hosted product.
+# Lolly Web PWA - the primary self-hosted product.
 # ============================================================================
 # Multi-stage: a Node build stage runs the real `npm run build:web` and a tiny
 # nginx-unprivileged stage serves the resulting static `shells/web/dist`.
@@ -11,13 +11,13 @@
 #
 # The build bakes ONE brand/profile into the static output (theme-color, PWA
 # chrome, and the copied tools/ + catalog/ content are resolved at build time by
-# scripts/use-profile.ts + the vite brandChrome plugin — see shells/web/vite.config.js).
+# scripts/use-profile.ts + the vite brandChrome plugin - see shells/web/vite.config.js).
 # Choose it with --build-arg LOLLY_PROFILE=suse|lolly-start (default: suse). The
-# resulting image is fully self-contained — nothing is read at serve time, so the
+# resulting image is fully self-contained - nothing is read at serve time, so the
 # Helm chart needs NO runtime pack/brand mount for the web app.
 #
 # REQUIREMENT: the repo's content submodules (community/, brands/*) must be
-# checked out in the build context — `npm run build:web` dereferences the
+# checked out in the build context - `npm run build:web` dereferences the
 # tools/ + catalog/ profile views into dist. A bare checkout without submodules
 # will build a shell with an empty catalog.
 # ============================================================================
@@ -33,7 +33,7 @@ ENV NODE_ENV=production
 # Native optional deps (sharp/onnxruntime/resvg/playwright) need dev tooling
 # absent from the slim variant; bookworm carries what node-gyp/prebuilt need.
 
-# Copy the whole monorepo — build:web spans root scripts, engine, docs, the
+# Copy the whole monorepo - build:web spans root scripts, engine, docs, the
 # web shell, and the profile content packs. A narrower copy breaks the workspace
 # graph, so we copy everything (respecting .dockerignore).
 COPY . .

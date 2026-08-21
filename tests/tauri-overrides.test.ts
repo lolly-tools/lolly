@@ -57,7 +57,7 @@ test('every bridge override is TypeScript, not JavaScript', () => {
       if (name.endsWith('.js') || name.endsWith('.mjs')) offenders.push(`${rel}/${name}`);
     }
   }
-  assert.ok(checked > 0, 'no bridge-overrides directory found at all — did the paths move?');
+  assert.ok(checked > 0, 'no bridge-overrides directory found at all - did the paths move?');
   assert.deepEqual(
     offenders,
     [],
@@ -75,7 +75,7 @@ test('each override directory is covered by a tsconfig that includes it', () => 
     checked++;
     assert.ok(
       existsSync(cfgPath),
-      `${rel} has bridge-overrides/ but no tsconfig.json — its overrides would be ` +
+      `${rel} has bridge-overrides/ but no tsconfig.json - its overrides would be ` +
         'typechecked by nothing, and scripts/typecheck-tauri.ts would report a SKIP ' +
         'rather than a failure.',
     );
@@ -85,16 +85,16 @@ test('each override directory is covered by a tsconfig that includes it', () => 
     const cfg = JSON.parse(raw) as { include?: string[] };
     assert.ok(
       cfg.include?.some((pattern) => pattern.startsWith('bridge-overrides/')),
-      `${rel}/tsconfig.json does not include bridge-overrides/ — tsc would pass vacuously`,
+      `${rel}/tsconfig.json does not include bridge-overrides/ - tsc would pass vacuously`,
     );
   }
-  assert.ok(checked > 0, 'no Tauri shell was checked — did the paths move?');
+  assert.ok(checked > 0, 'no Tauri shell was checked - did the paths move?');
 });
 
 test('the shared state logic is typed against the web bridge, not restated', () => {
   const rel = 'shells/tauri-shared/bridge-overrides/state-fs.ts';
   const path = join(ROOT, rel);
-  assert.ok(existsSync(path), `${rel} is missing — both Tauri shells import it`);
+  assert.ok(existsSync(path), `${rel} is missing - both Tauri shells import it`);
   const src = readFileSync(path, 'utf8');
   // The whole point of the type-only import: a method added to the web state
   // bridge and forgotten here must fail typecheck, not crash a device at boot.
@@ -129,9 +129,9 @@ test("the shells' vite override maps point at files that exist", () => {
       assert.ok(
         existsSync(join(ROOT, shell, 'bridge-overrides', name as string)),
         `${shell}/vite.config.js maps a bridge module to bridge-overrides/${name}, which ` +
-          'does not exist — the override silently falls back to the web implementation.',
+          'does not exist - the override silently falls back to the web implementation.',
       );
     }
   }
-  assert.ok(checked > 0, 'no Tauri vite config found — did the paths move?');
+  assert.ok(checked > 0, 'no Tauri vite config found - did the paths move?');
 });

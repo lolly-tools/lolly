@@ -232,7 +232,7 @@ async function main(): Promise<void> {
           // check: render once, compare to baseline.
           const base = baseline[key];
           const r = await renderViaWebShell(tool, query, format);
-          if (!base) { console.log(`  ??      ${key.padEnd(26)} not in baseline — skipped`); continue; }
+          if (!base) { console.log(`  ??      ${key.padEnd(26)} not in baseline - skipped`); continue; }
           if (base.status === 'stable') {
             const h = sha256(fingerprint(r.bytes, format).buf);   // pixel hash for PDF
             if (h === base.hash) { console.log(`  ✓ match ${key.padEnd(26)} ${h.slice(0, 12)}${PDF_FORMATS.has(format) ? ' (pixels)' : ''}`); ok++; }
@@ -270,7 +270,7 @@ async function main(): Promise<void> {
 
 function loadSnapshot(file: string): Record<string, Entry> {
   try { return JSON.parse(readFileSync(file, 'utf8')); }
-  catch { console.error(`✗ cannot read baseline ${file} — run --baseline first`); process.exit(2); }
+  catch { console.error(`✗ cannot read baseline ${file} - run --baseline first`); process.exit(2); }
 }
 
 main().catch(e => { console.error(e); process.exit(1); });

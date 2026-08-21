@@ -722,7 +722,7 @@ async function verifyOneRecord(
     keySource,
     valid,
     reason: valid
-      ? `signature valid — attributed to ${rec.domain}${base.coversWholeFile ? ', covers the whole file' : ', covers a partial byte range'}${keySource === 'inline' ? ' (verified with the record’s inline key)' : ''}`
+      ? `signature valid - attributed to ${rec.domain}${base.coversWholeFile ? ', covers the whole file' : ', covers a partial byte range'}${keySource === 'inline' ? ' (verified with the record’s inline key)' : ''}`
       : 'signature did not verify (the covered bytes were modified, or the key does not match)',
   };
 }

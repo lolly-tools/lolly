@@ -509,7 +509,7 @@ test('keynote: the flip and corner-radius census matches the audit scan exactly'
 
 // ── 14. the coordinate-model invariant on a baked flipX path ─────────────────
 
-test('keynote: path content is page-space-final — inverse transform lands on selrect (<0.1px)', { skip: SKIP }, async () => {
+test('keynote: path content is page-space-final - inverse transform lands on selrect (<0.1px)', { skip: SKIP }, async () => {
   const { all } = await loadDeck();
   const s = all.find((x) => x.id === '9f538c81-bdb5-8040-8008-04f3d4329d45');
   assert.ok(s, 'the flipX rot-336.56 arrow path exists');
@@ -546,7 +546,7 @@ test('keynote: a baked path maps to its content bbox with rot 0; identity paths 
   const s = all.find((x) => x.id === '9f538c81-bdb5-8040-8008-04f3d4329d45')!;
   const node = penpotShapeToNode(s) as any;
   assert.ok(node && node._vectorPath, 'takes the vector branch');
-  assert.equal(node.rot, 0, 'rot 0 — the transform is already in the content');
+  assert.equal(node.rot, 0, 'rot 0 - the transform is already in the content');
   const r3 = (v: number): number => Math.round(v * 1000) / 1000;
   assert.equal(r3(node.x), 484.166, 'x = content bbox, not selrect');
   assert.equal(r3(node.y), 244);
@@ -964,5 +964,5 @@ test('keynote: every component preview belongs to an INSTANCE, so a master needs
   assert.equal(foreign.length, 4);
   const localRecordIds = new Set(out.components.flatMap((c) => c.variants.map((v) => v.id)));
   assert.equal(foreign.filter((s) => localRecordIds.has(String(s.componentId))).length, 4,
-    'all four reuse a local componentId — componentFile is the only honest test');
+    'all four reuse a local componentId - componentFile is the only honest test');
 });

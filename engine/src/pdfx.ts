@@ -77,7 +77,7 @@ export function formatPdfDate(date: Date | string | number): string {
 // Adobe's recommended in-place-edit headroom: ~2KB of whitespace between the
 // metadata and the end marker, so editors can rewrite the packet without
 // resizing the stream. end='w' declares the padding writable.
-const XPACKET_BEGIN = '<?xpacket begin="﻿" id="W5M0MpCehiHzreSzNTczkc9d"?>';
+const XPACKET_BEGIN = '<?xpacket begin="" id="W5M0MpCehiHzreSzNTczkc9d"?>';
 const XPACKET_END = "<?xpacket end='w'?>";
 const XPACKET_PAD = ('\n' + ' '.repeat(99)).repeat(20) + '\n';
 

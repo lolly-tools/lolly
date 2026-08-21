@@ -157,9 +157,9 @@ test('buildRefOptions excludes self and descendants for a parent picker', () => 
   const rows = tree();
   const getRows = (id: string): BlockRow[] => (id === 'nodes' ? rows : []);
   const { options } = buildRefOptions({
-    of: { input: 'nodes', value: 'nodeId', label: 'label', excludeSelf: true, excludeDescendants: true, emptyLabel: '— Top level —' },
+    of: { input: 'nodes', value: 'nodeId', label: 'label', excludeSelf: true, excludeDescendants: true, emptyLabel: '- Top level -' },
     ownerInputId: 'nodes',
-    idx: 1, // CTO — its subtree (cto, eng, qa) must be excluded
+    idx: 1, // CTO - its subtree (cto, eng, qa) must be excluded
     getRows,
     ownerNestingCfg: CFG,
   });

@@ -119,7 +119,7 @@ function encodeIco(frames: Array<{ size: number; png: Buffer }>): Buffer {
 
 async function main(): Promise<void> {
   if (!existsSync(SOURCE)) {
-    console.error(`✗ ${SOURCE} not found — the icon pipeline needs icon.svg at the repo root.`);
+    console.error(`✗ ${SOURCE} not found - the icon pipeline needs icon.svg at the repo root.`);
     process.exit(1);
   }
 
@@ -129,7 +129,7 @@ async function main(): Promise<void> {
   try {
     rasterizer = await createSvgRasterizer(ROOT);
   } catch (e) {
-    console.log(`icons — skipped (${(e as Error).message}); kept the committed app icons.`);
+    console.log(`icons - skipped (${(e as Error).message}); kept the committed app icons.`);
     return;
   }
   let master: Buffer;
@@ -171,7 +171,7 @@ async function main(): Promise<void> {
     const dir = resolve(ROOT, shell);
     const bin = join(dir, 'node_modules/.bin/tauri');
     if (!existsSync(bin)) {
-      console.log(`ℹ ${shell}: tauri CLI not installed — skipped (run \`npm --prefix ${shell} ci\` to include it)`);
+      console.log(`ℹ ${shell}: tauri CLI not installed - skipped (run \`npm --prefix ${shell} ci\` to include it)`);
       continue;
     }
     try {

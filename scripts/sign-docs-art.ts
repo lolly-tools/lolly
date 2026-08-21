@@ -153,7 +153,7 @@ export function validateArtMeta(raw: unknown): { meta: ArtMeta } | { problems: s
   if (!isObj(raw)) return { problems: ['meta.json must be a JSON object'] };
 
   for (const k of Object.keys(raw)) {
-    if (!META_KEYS.has(k)) problems.push(`unknown key "${k}" — allowed: ${[...META_KEYS].join(', ')}`);
+    if (!META_KEYS.has(k)) problems.push(`unknown key "${k}" - allowed: ${[...META_KEYS].join(', ')}`);
   }
   const gen = raw.generator;
   if (!isObj(gen) || !isStr(gen.name)) problems.push('generator.name is required (the tool that authored the artifact)');
@@ -168,7 +168,7 @@ export function validateArtMeta(raw: unknown): { meta: ArtMeta } | { problems: s
     if (!isObj(model)) problems.push('model must be an object when present');
     else {
       for (const k of Object.keys(model)) {
-        if (!MODEL_KEYS.has(k)) problems.push(`unknown model key "${k}" — allowed: ${[...MODEL_KEYS].join(', ')}`);
+        if (!MODEL_KEYS.has(k)) problems.push(`unknown model key "${k}" - allowed: ${[...MODEL_KEYS].join(', ')}`);
       }
       if (!isStr(model.name)) problems.push('model.name is required when model is present');
       if (model.identifier !== undefined && !isStr(model.identifier)) problems.push('model.identifier must be a non-empty string when present');
@@ -178,7 +178,7 @@ export function validateArtMeta(raw: unknown): { meta: ArtMeta } | { problems: s
         if (!isObj(region)) problems.push('model.region must be an object { city?, state?, country }');
         else {
           for (const k of Object.keys(region)) {
-            if (!REGION_KEYS.has(k)) problems.push(`unknown model.region key "${k}" — allowed: ${[...REGION_KEYS].join(', ')}`);
+            if (!REGION_KEYS.has(k)) problems.push(`unknown model.region key "${k}" - allowed: ${[...REGION_KEYS].join(', ')}`);
           }
           if (!isStr(region.country)) problems.push('model.region.country is required when region is present (where the request was processed)');
           for (const k of ['city', 'state'] as const) {
@@ -193,7 +193,7 @@ export function validateArtMeta(raw: unknown): { meta: ArtMeta } | { problems: s
     if (!isObj(author)) problems.push('author must be an object { name, email?, url? }');
     else {
       for (const k of Object.keys(author)) {
-        if (!AUTHOR_KEYS.has(k)) problems.push(`unknown author key "${k}" — allowed: ${[...AUTHOR_KEYS].join(', ')}`);
+        if (!AUTHOR_KEYS.has(k)) problems.push(`unknown author key "${k}" - allowed: ${[...AUTHOR_KEYS].join(', ')}`);
       }
       if (!isStr(author.name)) problems.push('author.name is required when author is present (the person who directed the work)');
       for (const k of ['email', 'url'] as const) {
@@ -213,8 +213,8 @@ export function validateArtMeta(raw: unknown): { meta: ArtMeta } | { problems: s
   // resolve - either the artifact came out of a model (say so in `source`) or it did
   // not (drop the model). Guessing would falsify one half of the record.
   if (src === 'digitalCreation') {
-    if (model !== undefined) problems.push('source "digitalCreation" declares that no trained model was invoked (section 18.28.3) — remove `model`, or set source to trainedAlgorithmicMedia / compositeWithTrainedAlgorithmicMedia');
-    if (oversight !== undefined) problems.push('source "digitalCreation" has no human-oversight level to declare (section 18.28.3 reads "not applicable") — remove `oversight`');
+    if (model !== undefined) problems.push('source "digitalCreation" declares that no trained model was invoked (section 18.28.3) - remove `model`, or set source to trainedAlgorithmicMedia / compositeWithTrainedAlgorithmicMedia');
+    if (oversight !== undefined) problems.push('source "digitalCreation" has no human-oversight level to declare (section 18.28.3 reads "not applicable") - remove `oversight`');
   }
   return problems.length ? { problems } : { meta: raw as unknown as ArtMeta };
 }
@@ -297,7 +297,7 @@ const DENIED_IDENTIFIERS: { token: string; rule: string; why: string }[] = [
   // the globals themselves, which is no help against `var w = document.defaultView`
   // - one property read hands you `window` under a name no denylist can predict.
   // Deny the doors instead of trying to track what comes through them.
-  ...['defaultView', 'contentWindow', 'contentDocument'].map((token) => ({ token, rule: 'dynamic-code', why: 'a second window/document reference — name what you touch directly' })),
+  ...['defaultView', 'contentWindow', 'contentDocument'].map((token) => ({ token, rule: 'dynamic-code', why: 'a second window/document reference - name what you touch directly' })),
 ];
 
 const DENIED_PATTERNS: { rule: string; re: RegExp; message: string }[] = [
@@ -306,38 +306,38 @@ const DENIED_PATTERNS: { rule: string; re: RegExp; message: string }[] = [
   // puts the artifact's behaviour in a file the reviewer never opens, which is the
   // same defeat of "reviewable by reading it" as a dynamic import. Anchored on a
   // quote so the English word "import" in a comment is not a refusal.
-  { rule: 'dynamic-code', re: /\bimport\s*['"]|\bimport\s+[A-Za-z_$*{][^\n;]*\bfrom\s*['"]/, message: 'static ESM `import … from` — an artifact is one file' },
-  { rule: 'dynamic-code', re: /\.\s*constructor\b|\[\s*['"]constructor['"]\s*\]/, message: '`.constructor` — the standard route back to Function()' },
+  { rule: 'dynamic-code', re: /\bimport\s*['"]|\bimport\s+[A-Za-z_$*{][^\n;]*\bfrom\s*['"]/, message: 'static ESM `import … from` - an artifact is one file' },
+  { rule: 'dynamic-code', re: /\.\s*constructor\b|\[\s*['"]constructor['"]\s*\]/, message: '`.constructor` - the standard route back to Function()' },
   { rule: 'dynamic-code', re: /\bset(?:Timeout|Interval)\s*\(\s*['"`]/, message: 'setTimeout/setInterval with a string body (eval by another name)' },
   { rule: 'dynamic-code', re: /javascript\s*:/i, message: '`javascript:` URI' },
-  { rule: 'dynamic-code', re: /(?:window|self|globalThis|document|top|parent|frames)\s*\[/, message: 'bracket-indexed global — the shape a denylist bypass takes; name the property directly' },
+  { rule: 'dynamic-code', re: /(?:window|self|globalThis|document|top|parent|frames)\s*\[/, message: 'bracket-indexed global - the shape a denylist bypass takes; name the property directly' },
   { rule: 'embedding', re: /<\s*(?:iframe|object|embed|frame|frameset|portal)\b/i, message: 'nested browsing context (iframe/object/embed/frame/portal)' },
-  { rule: 'embedding', re: /\bsrcdoc\s*=/i, message: '`srcdoc` — an inline document with its own script scope' },
+  { rule: 'embedding', re: /\bsrcdoc\s*=/i, message: '`srcdoc` - an inline document with its own script scope' },
   // `<meta http-equiv="refresh" content="5;url=…">` navigates the reader's page
   // with no script at all, and browsers honour it in <body> - which is where an
   // inlined fragment lands. The `isolation` rules below name three scripted ways
   // to do this; this is the fourth, and the only one that needs no JS.
-  { rule: 'isolation', re: /<\s*meta\b[^>]*http-equiv\s*=\s*["']?\s*refresh/i, message: '`<meta http-equiv="refresh">` — the artwork navigating the page it sits on' },
+  { rule: 'isolation', re: /<\s*meta\b[^>]*http-equiv\s*=\s*["']?\s*refresh/i, message: '`<meta http-equiv="refresh">` - the artwork navigating the page it sits on' },
   // Markup and CSS assembled at runtime. Not a style question: every reference
   // rule below reads the artifact's TEXT, so a URL that only exists after a
   // string concatenation is a reference no rule can see. `textContent` is
   // deliberately NOT here (an artifact that writes a number into a label is
   // ordinary); the element that would carry the injected CSS is caught instead.
-  { rule: 'dynamic-code', re: /\b(?:innerHTML|outerHTML|insertAdjacentHTML|cssText|insertRule)\b|\bdocument\s*\.\s*write(?:ln)?\s*\(/, message: 'markup or CSS built at runtime — the artifact must be reviewable by reading it' },
-  { rule: 'dynamic-code', re: /createElement(?:NS)?\s*\([^)]*['"](?:style|script|link|meta|base|iframe|object|embed)['"]/i, message: 'creating a stylesheet/script/link element at runtime — same reason' },
+  { rule: 'dynamic-code', re: /\b(?:innerHTML|outerHTML|insertAdjacentHTML|cssText|insertRule)\b|\bdocument\s*\.\s*write(?:ln)?\s*\(/, message: 'markup or CSS built at runtime - the artifact must be reviewable by reading it' },
+  { rule: 'dynamic-code', re: /createElement(?:NS)?\s*\([^)]*['"](?:style|script|link|meta|base|iframe|object|embed)['"]/i, message: 'creating a stylesheet/script/link element at runtime - same reason' },
   { rule: 'xml', re: /<!ENTITY\b/i, message: 'XML entity declaration (entity expansion / external entity)' },
-  { rule: 'external-resource', re: /@import\b/i, message: 'CSS `@import` — an artifact carries its own styles' },
+  { rule: 'external-resource', re: /@import\b/i, message: 'CSS `@import` - an artifact carries its own styles' },
   // The runtime twins of the reference-attribute rules below. `new Image().src = …`
   // is a GET with a query string - a same-origin beacon the CSP happily allows, and
   // the one exfil shape that survives every rule above. Nothing an artifact does
   // needs to point a subresource somewhere after it has loaded.
-  { rule: 'external-resource', re: /\.\s*(?:src|srcset|href)\s*=(?!=)/, message: 'assigning a subresource URL at runtime — an artifact loads nothing after it is placed' },
-  { rule: 'external-resource', re: /setAttribute(?:NS)?\s*\(\s*[^)]*['"](?:xlink:)?(?:src|href|data|action|srcset)['"]/i, message: 'setting a URL attribute at runtime — same reason' },
+  { rule: 'external-resource', re: /\.\s*(?:src|srcset|href)\s*=(?!=)/, message: 'assigning a subresource URL at runtime - an artifact loads nothing after it is placed' },
+  { rule: 'external-resource', re: /setAttribute(?:NS)?\s*\(\s*[^)]*['"](?:xlink:)?(?:src|href|data|action|srcset)['"]/i, message: 'setting a URL attribute at runtime - same reason' },
   // Navigation is not exfiltration, but a decorative band that moves the reader's
   // page is the same class of surprise, and neither shape occurs in prose.
   { rule: 'isolation', re: /\blocation\s*(?:\.\s*(?:href|assign|replace)|=(?!=))/, message: 'navigating the page from inside the artwork' },
   { rule: 'isolation', re: /\bhistory\s*\.\s*(?:pushState|replaceState)\b/, message: 'rewriting the reader\'s history from inside the artwork' },
-  { rule: 'isolation', re: /\bwindow\s*\.\s*open\s*\(/, message: '`window.open` — an artifact opens nothing' },
+  { rule: 'isolation', re: /\bwindow\s*\.\s*open\s*\(/, message: '`window.open` - an artifact opens nothing' },
 ];
 
 /** Schemes that mean "off this document". `data:` is handled separately (an inlined
@@ -534,18 +534,18 @@ export function lintArtSource(text: string, ctx: LintContext): Violation[] {
   // ── budget (source bytes, pre-manifest)
   const bytes = Buffer.byteLength(text, 'utf8');
   if (bytes > ctx.budget) {
-    add('budget', null, `${Math.round(bytes / 1024)} KB of source — the ${ctx.kind} budget is ${Math.round(ctx.budget / 1024)} KB (pre-manifest)`);
+    add('budget', null, `${Math.round(bytes / 1024)} KB of source - the ${ctx.kind} budget is ${Math.round(ctx.budget / 1024)} KB (pre-manifest)`);
   }
   if (!text.trim()) add('empty', null, 'the artifact is empty');
   // Everything below 0x20 except tab/newline/carriage-return, plus DEL. A banked
   // artifact is text a human read; an invisible byte is the opposite of that.
   const ctl = /[\u0000-\u0008\u000B\u000C\u000E-\u001F\u007F]/.exec(text);
-  if (ctl) add('binary', lineOf(text, ctl.index), 'control characters in the source — a banked artifact is reviewable text');
+  if (ctl) add('binary', lineOf(text, ctl.index), 'control characters in the source - a banked artifact is reviewable text');
   // ── shape
   if (ctx.format === 'svg') {
     if (!/<svg\b/i.test(text)) add('shape', null, 'not an SVG (no <svg> element)');
   } else if (/<\s*(?:html|head|body)\b/i.test(text) || /<!DOCTYPE\s+html/i.test(text)) {
-    add('shape', null, 'the bank holds HTML FRAGMENTS (markup + script, no document shell) — a whole document cannot be inlined into a page');
+    add('shape', null, 'the bank holds HTML FRAGMENTS (markup + script, no document shell) - a whole document cannot be inlined into a page');
   }
   // Every <svg> needs a viewBox, in both formats: without one the artwork cannot
   // scale to the band/figure box it is inlined into, and the docs build reads the
@@ -564,7 +564,7 @@ export function lintArtSource(text: string, ctx: LintContext): Violation[] {
     const note = view.normalized ? ' (after decoding entities / escapes / concatenation)' : '';
     for (const { token, rule, why } of DENIED_IDENTIFIERS) {
       const m = new RegExp(`\\b${token}\\b`).exec(view.text);
-      if (m) add(rule, where(m.index), `\`${token}\`${note} — ${why}`);
+      if (m) add(rule, where(m.index), `\`${token}\`${note} - ${why}`);
     }
     for (const { rule, re, message } of DENIED_PATTERNS) {
       const m = re.exec(view.text);
@@ -577,9 +577,9 @@ export function lintArtSource(text: string, ctx: LintContext): Violation[] {
     const blank = (s: string, re: RegExp): string => s.replace(re, (mm) => ' '.repeat(mm.length));
     const scanned = blank(blank(blank(view.text, XMLNS_DECL), DOCTYPE), XML_PROLOG);
     const url = EXTERNAL_SCHEME.exec(scanned);
-    if (url) add('external-url', where(url.index), `external URL (${url[0]}…)${note} — an artifact reaches nothing off its own page`);
+    if (url) add('external-url', where(url.index), `external URL (${url[0]}…)${note} - an artifact reaches nothing off its own page`);
     const rel = /(["'(])\/\/[A-Za-z0-9]/.exec(scanned);
-    if (rel) add('external-url', where(rel.index), `protocol-relative URL${note} — an artifact reaches nothing off its own page`);
+    if (rel) add('external-url', where(rel.index), `protocol-relative URL${note} - an artifact reaches nothing off its own page`);
 
     // ── references must be same-document (or an inlined image/font)
     //
@@ -597,7 +597,7 @@ export function lintArtSource(text: string, ctx: LintContext): Violation[] {
       // `<use>`/`<image>`, the same attribute is a subresource load.
       const owner = ownerTag(view.text, m.index);
       if (attr === 'href' && HREF_IS_NAVIGATION.has(owner) && value.startsWith('/') && !value.startsWith('//')) continue;
-      add('external-resource', where(m.index), `<${owner || '?'}> ${attr}="${value.slice(0, 60)}"${note} — an artifact is one self-contained file (same-document \`#…\`, an inlined data: image/font, or a root-relative href on a link you can click)`);
+      add('external-resource', where(m.index), `<${owner || '?'}> ${attr}="${value.slice(0, 60)}"${note} - an artifact is one self-contained file (same-document \`#…\`, an inlined data: image/font, or a root-relative href on a link you can click)`);
     }
     for (const tag of openTags(view.text, 'use')) {
       const value = (/(?:xlink:)?href\s*=\s*(?:"([^"]*)"|'([^']*)'|([^\s"'=<>`]+))/i.exec(tag.src)?.slice(1).find((x) => x !== undefined) ?? '').trim();
@@ -606,7 +606,7 @@ export function lintArtSource(text: string, ctx: LintContext): Violation[] {
     for (const m of view.text.matchAll(CSS_URL)) {
       const value = (m[2] ?? '').trim();
       if (!value || value.startsWith('#') || DATA_OK.test(value)) continue;
-      add('external-resource', where(m.index), `url(${value.slice(0, 60)})${note} — an artifact carries its own paint`);
+      add('external-resource', where(m.index), `url(${value.slice(0, 60)})${note} - an artifact carries its own paint`);
     }
   }
 
@@ -619,7 +619,7 @@ export function lintArtSource(text: string, ctx: LintContext): Violation[] {
   // file that a real signing run would silently rewrite.
   const leftover = /-----(?:BEGIN|END) C2PA MANIFEST-----|<c2pa:manifest\b|type\s*=\s*["']?application\/c2pa/i.exec(text);
   if (leftover) {
-    add('manifest', lineOf(text, leftover.index), `C2PA manifest markup (${leftover[0]}) the bank's own strip does not recognise — a banked artifact carries its credential where the placer puts it, and text hidden behind a manifest carrier is text the lint cannot read`);
+    add('manifest', lineOf(text, leftover.index), `C2PA manifest markup (${leftover[0]}) the bank's own strip does not recognise - a banked artifact carries its credential where the placer puts it, and text hidden behind a manifest carrier is text the lint cannot read`);
   }
 
   // ── motion contract (plan section 6 step 2)
@@ -635,7 +635,7 @@ export function lintArtSource(text: string, ctx: LintContext): Violation[] {
   text.split('\n').forEach((l, i) => {
     if (!MOTION_JS.test(l)) return;
     if (!guardLines.some((g) => Math.abs(g - i) <= MOTION_GUARD_WINDOW)) {
-      add('motion', i + 1, `JS motion with no \`prefers-reduced-motion\` guard within ${MOTION_GUARD_WINDOW} lines — motion is opt-in, the guard has to be visible beside the loop it governs, and a comment is not a guard`);
+      add('motion', i + 1, `JS motion with no \`prefers-reduced-motion\` guard within ${MOTION_GUARD_WINDOW} lines - motion is opt-in, the guard has to be visible beside the loop it governs, and a comment is not a guard`);
     }
   });
   if (MOTION_CSS.test(runs)) {
@@ -648,10 +648,10 @@ export function lintArtSource(text: string, ctx: LintContext): Violation[] {
     const reduce = reduceMotionBlocks(runs);
     const guarded = CSS_MOTION_NO_PREF.test(runs) || reduce.some((b) => CSS_MOTION_OFF.test(b));
     if (!guarded) {
-      add('motion', null, 'CSS animation with no `prefers-reduced-motion` guard — put the motion behind `@media (prefers-reduced-motion: no-preference)`, or turn it off inside `@media (prefers-reduced-motion: reduce)`');
+      add('motion', null, 'CSS animation with no `prefers-reduced-motion` guard - put the motion behind `@media (prefers-reduced-motion: no-preference)`, or turn it off inside `@media (prefers-reduced-motion: reduce)`');
     }
     for (const b of reduce) {
-      if (declaresMotion(b)) add('motion', null, 'motion declared INSIDE `@media (prefers-reduced-motion: reduce)` — that block is for readers who asked for less motion, not more');
+      if (declaresMotion(b)) add('motion', null, 'motion declared INSIDE `@media (prefers-reduced-motion: reduce)` - that block is for readers who asked for less motion, not more');
     }
   }
   // A rAF loop that never stops keeps a hidden tab painting and a scrolled-past
@@ -659,7 +659,7 @@ export function lintArtSource(text: string, ctx: LintContext): Violation[] {
   // lesson). One of the three signals must be present - in CODE, for the same
   // reason the reduced-motion guard has to be.
   if (/\brequestAnimationFrame\s*\(/.test(text) && !SELF_SUSPEND.test(runs)) {
-    add('motion', null, 'a requestAnimationFrame loop with no self-suspend — gate it on `visibilitychange`/`document.hidden` or an IntersectionObserver so it stops off-screen and in a hidden tab');
+    add('motion', null, 'a requestAnimationFrame loop with no self-suspend - gate it on `visibilitychange`/`document.hidden` or an IntersectionObserver so it stops off-screen and in a hidden tab');
   }
   return out;
 }
@@ -815,7 +815,7 @@ export async function signDocsArt(o: SignDocsArtOptions = {}): Promise<SignRun> 
       try {
         text = new TextDecoder('utf-8', { fatal: true }).decode(new Uint8Array(readFileSync(path)));
       } catch {
-        v('binary', 'not valid UTF-8 — a banked artifact is text');
+        v('binary', 'not valid UTF-8 - a banked artifact is text');
         continue;
       }
       // The manifest comes off FIRST: the lint reads source, not base64, and the
@@ -830,14 +830,14 @@ export async function signDocsArt(o: SignDocsArtOptions = {}): Promise<SignRun> 
       if (!existsSync(metaPath)) {
         // Provenance is not optional: without a meta there is no honest claim to
         // make, and the fallback would be the script inventing one.
-        v('meta', `no ${id}.meta.json beside it — every banked artifact declares its generator and source type`);
+        v('meta', `no ${id}.meta.json beside it - every banked artifact declares its generator and source type`);
         continue;
       }
       let parsed: unknown;
       try {
         parsed = JSON.parse(readFileSync(metaPath, 'utf-8'));
       } catch (e) {
-        v('meta', `${id}.meta.json is not valid JSON — ${(e as Error).message}`);
+        v('meta', `${id}.meta.json is not valid JSON - ${(e as Error).message}`);
         continue;
       }
       const checked = validateArtMeta(parsed);
@@ -851,7 +851,7 @@ export async function signDocsArt(o: SignDocsArtOptions = {}): Promise<SignRun> 
 
   if (run.violations.length) {
     for (const x of run.violations) log(`  ✗ ${x.file}${x.line ? `:${x.line}` : ''}  [${x.rule}] ${x.message}`);
-    log(`\n${run.violations.length} violation(s) — nothing signed. The bank is a trust boundary: fix or withdraw the artifact.`);
+    log(`\n${run.violations.length} violation(s) - nothing signed. The bank is a trust boundary: fix or withdraw the artifact.`);
     return run;
   }
 
@@ -861,8 +861,8 @@ export async function signDocsArt(o: SignDocsArtOptions = {}): Promise<SignRun> 
     const state = await artBindingState(bytes);
     if (state.bound && !o.force) {
       run.skipped.push(e.id);
-      if (state.expired) run.warnings.push(`${e.id}: credential intact but its certificate has aged out — re-sign with --force when convenient`);
-      log(`  = ${e.id} unchanged — credential still binds`);
+      if (state.expired) run.warnings.push(`${e.id}: credential intact but its certificate has aged out - re-sign with --force when convenient`);
+      log(`  = ${e.id} unchanged - credential still binds`);
       continue;
     }
     if (o.check) {
@@ -877,7 +877,7 @@ export async function signDocsArt(o: SignDocsArtOptions = {}): Promise<SignRun> 
     const out = await embedC2pa(new TextEncoder().encode(e.source), e.format, opts);
     writeFileSync(e.path, out);
     run.signed.push(e.id);
-    log(`  ✓ ${e.id} signed — ${Buffer.byteLength(e.source, 'utf8')} B source → ${out.length} B`
+    log(`  ✓ ${e.id} signed - ${Buffer.byteLength(e.source, 'utf8')} B source → ${out.length} B`
       + `${e.meta.source === 'digitalCreation' ? '' : `, disclosing ${e.meta.model?.name ?? 'a trained model'}`}`);
   }
   for (const w of run.warnings) log(`  ⚠ ${w}`);
@@ -887,7 +887,7 @@ export async function signDocsArt(o: SignDocsArtOptions = {}): Promise<SignRun> 
 async function main(): Promise<void> {
   const force = process.argv.includes('--force');
   const check = process.argv.includes('--check');
-  console.log(`Docs art bank — ${check ? 'checking' : 'signing'} docs/mastheads + docs/figures`
+  console.log(`Docs art bank - ${check ? 'checking' : 'signing'} docs/mastheads + docs/figures`
     + `${force ? ' (--force: re-signing everything)' : ''}`);
   const run = await signDocsArt({ force, check });
   if (run.violations.length) process.exitCode = 1;

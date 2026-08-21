@@ -30,7 +30,7 @@ test('derived-formats: an already-declared child is not duplicated', () => {
   assert.deepEqual(expandDerivedFormats(['png', 'bmp', 'tiff']), ['png', 'bmp', 'tiff']);
 });
 
-test('derived-formats: idempotent — expanding twice is a no-op', () => {
+test('derived-formats: idempotent - expanding twice is a no-op', () => {
   const once = expandDerivedFormats(['svg', 'emf', 'png']);
   assert.deepEqual(expandDerivedFormats(once), once);
 });

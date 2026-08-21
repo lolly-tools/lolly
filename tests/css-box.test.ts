@@ -248,7 +248,7 @@ test('isNonAffineTransform tells "nothing to do" apart from "cannot be drawn"', 
   assert.equal(parseCssMatrix('matrix3d(1,0,0,0, 0,1,0,0, 0,0,1,0, 0,0,50,1)'), null,
     '…and parseCssMatrix still refuses it, which is exactly the ambiguity this predicate resolves');
   assert.equal(isNonAffineTransform('matrix3d(1,0,0,0, 0,0.7071,-0.7071,0, 0,0.7071,0.7071,0, 0,0,0,1)'), false,
-    'an ORTHOGRAPHIC rotateX paints its 2-D affine part — a separate, pre-existing gap in the walkers');
+    'an ORTHOGRAPHIC rotateX paints its 2-D affine part - a separate, pre-existing gap in the walkers');
 
   // "Unparseable" is NOT the same claim as "perspective": a hand-written or authored
   // value this module does not read must not send a caller down the raster hatch.
@@ -355,7 +355,7 @@ test('gaussianShadowBands: reaches the shadow\'s own alpha at the centre, never 
   const bands = gaussianShadowBands(16, 0.4);
   const inside = coverageAt(bands, -3 * 8);
   assert.ok(inside <= 0.4 + 1e-6, `overshoot: ${inside} > 0.4`);
-  assert.ok(inside > 0.39, `undershoot: ${inside} — the shadow would be too light in the middle`);
+  assert.ok(inside > 0.39, `undershoot: ${inside} - the shadow would be too light in the middle`);
 });
 
 test('gaussianShadowBands: no blur, or no alpha, means no bands', () => {

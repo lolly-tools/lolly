@@ -81,7 +81,7 @@ function committed(): Committed[] {
 function defect(c: Committed): string | null {
   if (c.lang !== 'en') return 'locale narration has no hash source wired into this test yet (plan section 9)';
   const spoken = currentSpoken(c.slug);
-  if (!spoken) return 'docs/build.ts no longer lists this page — prune the artefacts';
+  if (!spoken) return 'docs/build.ts no longer lists this page - prune the artefacts';
   if (spoken.hash !== c.meta.textHash) {
     return `textHash drifted (committed ${c.meta.textHash.slice(0, 12)}…, current ${spoken.hash.slice(0, 12)}…)`;
   }
@@ -109,7 +109,7 @@ test('docs audio: the stale allowlist has no entries that are fresh again or gon
   assert.deepEqual(
     rotten,
     [],
-    'These entries no longer describe a stale committed artefact — delete them so '
+    'These entries no longer describe a stale committed artefact - delete them so '
       + 'the list keeps meaning what it says.',
   );
 });
@@ -146,5 +146,5 @@ test('docs audio: every committed artefact directory is complete', () => {
       if (c.meta[field] == null) incomplete.push(`${c.key}/meta.json missing ${field}`);
     }
   }
-  assert.deepEqual(incomplete, [], 'Partial artefact directories — re-render or prune them.');
+  assert.deepEqual(incomplete, [], 'Partial artefact directories - re-render or prune them.');
 });

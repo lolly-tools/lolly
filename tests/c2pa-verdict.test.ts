@@ -293,7 +293,7 @@ test('defaultTrustAnchors: vendored-only (CLI flagless / MCP policy) equals c2pa
   const vendored = c2paTrustAnchors();
   assert.deepEqual(defaultTrustAnchors({ includeLollyRoot: false }), vendored);
   assert.deepEqual(defaultTrustAnchors(), vendored, 'includeLollyRoot defaults off');
-  assert.notEqual(defaultTrustAnchors(), vendored, 'a fresh array each call — never the cache itself');
+  assert.notEqual(defaultTrustAnchors(), vendored, 'a fresh array each call - never the cache itself');
 });
 
 test('defaultTrustAnchors: includeLollyRoot prepends the Lolly root (web /valid policy)', () => {

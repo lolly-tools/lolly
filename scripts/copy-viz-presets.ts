@@ -56,7 +56,7 @@ function main(): void {
   if (!existsSync(SRC)) {
     // Not a failure: a clone that hasn't installed the optional dependency simply gets the
     // brand-native presets, and viz-stock.ts degrades to an empty artist list.
-    console.warn('[viz-presets] butterchurn-presets not installed — skipping artist presets');
+    console.warn('[viz-presets] butterchurn-presets not installed - skipping artist presets');
     return;
   }
   const list = JSON.parse(readFileSync(join(here, 'viz-preset-list.json'), 'utf8')) as Entry[];

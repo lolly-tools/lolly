@@ -239,7 +239,7 @@ test('a pathological number of bars stays bounded and never over-reports', () =>
 
 // ─── the upstream invariant this module rests on ──────────────────────────────
 
-test('interpretPdfPage returns nodes in PAINT order — the invariant this rests on', () => {
+test('interpretPdfPage returns nodes in PAINT order - the invariant this rests on', () => {
   // Content stream: fill a rect, show text, fill a second rect. If the
   // interpreter ever sorted its output (by position, size, kind, anything), the
   // "painted after" test above would quietly become meaningless.

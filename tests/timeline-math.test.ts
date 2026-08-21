@@ -93,7 +93,7 @@ test('boxTiming: clamps every field into the phase-1 range', () => {
   assert.equal(boxTiming({ speed: 0.30000000000000004 }, cfg).speed, 0.3);
 });
 
-test('boxTiming: lane is only ever "" or "seq" — any other value is an overlay', () => {
+test('boxTiming: lane is only ever "" or "seq" - any other value is an overlay', () => {
   assert.equal(boxTiming({ lane: 'seq' }, cfg).lane, 'seq');
   assert.equal(boxTiming({ lane: 'SEQ' }, cfg).lane, '');
   assert.equal(boxTiming({ lane: 'constructor' }, cfg).lane, '');
@@ -218,7 +218,7 @@ test('packSeq: a null-dur clip takes its media length, or DEFAULT_CLIP_S when un
   assert.equal(byId(junk, 'b').dur, DEFAULT_CLIP_S);
 });
 
-test('packSeq: idempotent — pack(pack(x)) deep-equals pack(x), and stops allocating', () => {
+test('packSeq: idempotent - pack(pack(x)) deep-equals pack(x), and stops allocating', () => {
   const boxes = [clip('a', { start: 5, dur: 2 }), overlay('ov', 1), clip('b'), clip('c', { start: 1, dur: 0.4 })];
   const once = packSeq(boxes, cfg);
   const twice = packSeq(once, cfg);
@@ -336,7 +336,7 @@ test('trimClip in: clipIn advances by d * speed (the media out-point is invarian
   assert.equal((after.clipIn as number) + (after.dur as number) * 2, 8);
 });
 
-test('trimClip in: dragging past the far edge clamps to MIN_DUR — never zero, never negative', () => {
+test('trimClip in: dragging past the far edge clamps to MIN_DUR - never zero, never negative', () => {
   const before = [overlay('o', 0, { dur: 2, clipIn: 0 })];
   for (const d of [2, 5, 1e9, MAX_TIME_S * 10]) {
     const o = byId(trimClip(before, cfg, 'o', 'in', d, null), 'o');
@@ -369,7 +369,7 @@ test('trimClip in: dragging left clamps at clipIn 0 and start 0 (cannot invent s
   assert.equal(e.clipIn, 5);
 });
 
-test('trimClip in: the t=0 bound is an OVERLAY rule — the first seq clip can give its head back', () => {
+test('trimClip in: the t=0 bound is an OVERLAY rule - the first seq clip can give its head back', () => {
   // On the magnetic row `start` is re-derived by packOrder at the end of trimClip, so
   // "cannot go before t=0" constrains nothing there - except at index 0, where start
   // really is 0 and the bound used to pin the delta window shut. The result was that a
@@ -481,7 +481,7 @@ test('splitBox: halves sum to the original, B follows A in array order, transiti
   const a = byId(after, 'x'), b = byId(after, 'new-1');
   assert.deepEqual({ s: a.start, d: a.dur }, { s: 1, d: 2 });
   assert.deepEqual({ s: b.start, d: b.dur }, { s: 3, d: 2 });
-  assert.equal((a.dur as number) + (b.dur as number), 4, 'durations sum unchanged — the seq row needs no repack');
+  assert.equal((a.dur as number) + (b.dur as number), 4, 'durations sum unchanged - the seq row needs no repack');
   // Transitions belong to the OUTER edges of the original clip.
   assert.equal(a.enter, 'rise');
   assert.equal(a.exit, 'none');
@@ -550,7 +550,7 @@ test('rippleOverlays: an overlay exactly at a clip\'s OLD START is anchored to t
 test('rippleOverlays: never moves seq clips, scenery, or overlays outside every span', () => {
   const before = [clip('a', { start: 0, dur: 2 }), clip('b', { start: 2, dur: 2 }), overlay('far', 50), scenery('sc')];
   const after = trimClip(before, cfg, 'a', 'out', 1, null);
-  assert.equal(byId(after, 'far').start, 50, 'past the end of the row — nothing to anchor to');
+  assert.equal(byId(after, 'far').start, 50, 'past the end of the row - nothing to anchor to');
   assert.equal(byId(after, 'sc'), before[3], 'scenery keeps identity');
 });
 
@@ -896,7 +896,7 @@ test('moveOverlay refuses to write a seq clip, whose start the pack owns', () =>
   const rows = [clip('a', { dur: 3 }), clip('b', { dur: 2 })];
   const packed = packSeq(rows, cfg);
   const after = moveOverlay(packed, cfg, 'a', 12);
-  assert.deepEqual(startsOf(after), startsOf(packed), 'unchanged — use moveSeqClip instead');
+  assert.deepEqual(startsOf(after), startsOf(packed), 'unchanged - use moveSeqClip instead');
   // An unknown id is a no-op too, not a throw.
   assert.deepEqual(startsOf(moveOverlay(packed, cfg, 'nope', 5)), startsOf(packed));
 });
@@ -1070,7 +1070,7 @@ test('isThroughEdit: true immediately after a split, false once a transition lan
   const before = [clip('x', { start: 0, dur: 4, clipIn: 0, speed: 1, src: 'v.mp4' })];
   const after = splitBox(before, cfg, 'x', 2, mintId)!;
   assert.equal(isThroughEdit(after, cfg, 'x', 'new-1', sameSrc), true,
-    'a fresh cut is a through edit — nothing has been decided yet');
+    'a fresh cut is a through edit - nothing has been decided yet');
 
   // A transition on either side ends it.
   const faded = after.map((b) => (b!.id === 'x' ? { ...b!, exit: 'fade' } : b));
@@ -1099,7 +1099,7 @@ test('isThroughEdit: only ADJACENT seq clips, in that order, and never a clip wi
   assert.equal(isThroughEdit(rows, cfg, 'a', 'b', sameSrc), true);
   assert.equal(isThroughEdit(rows, cfg, 'b', 'c', sameSrc), true);
   assert.equal(isThroughEdit(rows, cfg, 'a', 'c', sameSrc), false, 'not adjacent');
-  assert.equal(isThroughEdit(rows, cfg, 'b', 'a', sameSrc), false, 'order matters — b does not precede a');
+  assert.equal(isThroughEdit(rows, cfg, 'b', 'a', sameSrc), false, 'order matters - b does not precede a');
   assert.equal(isThroughEdit(rows, cfg, 'a', 'a', sameSrc), false);
   assert.equal(isThroughEdit(rows, cfg, 'a', 'zz', sameSrc), false);
   // An overlay pair is not a seq adjacency at all.
@@ -1119,7 +1119,7 @@ test('joinClips: split then join round-trips the clip, modulo the minted id', ()
   assert.deepEqual(rejoined, before, 'byte-identical to the pre-split array');
 });
 
-test('joinClips: a clip with NO exit round-trips too — absence is carried, not undefined', () => {
+test('joinClips: a clip with NO exit round-trips too - absence is carried, not undefined', () => {
   minted = 0;
   const before = [clip('x', { start: 0, dur: 4, clipIn: 0, speed: 1 })];
   const after = splitBox(before, cfg, 'x', 1.5, mintId)!;
@@ -1178,7 +1178,7 @@ test('detachAudio: one new OVERLAY box, same ref and timing, symmetric link, sou
   assert.equal(audio.speed, 2);
   assert.equal(audio.kind, 'audio', 'the add-kind seed is applied over the copy');
 
-  assert.equal(audio.lane, '', 'the sound lands on an OVERLAY lane — packSeq must never see it');
+  assert.equal(audio.lane, '', 'the sound lands on an OVERLAY lane - packSeq must never see it');
   assert.equal(audio.mute, '', 'the sound is the half that plays');
   assert.equal(audio.enter, 'none');
   assert.equal(audio.exit, 'none');
@@ -1195,7 +1195,7 @@ test('detachAudio: one new OVERLAY box, same ref and timing, symmetric link, sou
 test('detachAudio: refused without a link field, on a missing box, and when already linked', () => {
   minted = 0;
   const rows = [clip('v', { start: 0, dur: 4 })];
-  assert.equal(detachAudio(rows, cfg, 'v', mintId), null, 'no linkField declared — the feature is not offered');
+  assert.equal(detachAudio(rows, cfg, 'v', mintId), null, 'no linkField declared - the feature is not offered');
   assert.equal(detachAudio(rows, linkCfg, 'nope', mintId), null);
   const linked = [clip('v', { start: 0, dur: 4, linkOf: 'x' })];
   assert.equal(detachAudio(linked, linkCfg, 'v', mintId), null, 'already detached');
@@ -1238,7 +1238,7 @@ test('reattachAudio: refuses when the muted side is empty rather than guessing',
 test('reattachAudio: null without a link field, on a singleton, and on a dangling id', () => {
   const rows = [clip('v', { start: 0, dur: 4, linkOf: 'ghost' })];
   assert.equal(reattachAudio(rows, cfg, 'v'), null, 'no linkField declared');
-  assert.equal(reattachAudio(rows, linkCfg, 'v'), null, 'the partner does not exist — group of one');
+  assert.equal(reattachAudio(rows, linkCfg, 'v'), null, 'the partner does not exist - group of one');
   assert.equal(reattachAudio([clip('v', { start: 0, dur: 4 })], linkCfg, 'v'), null, 'nothing linked');
   assert.equal(reattachAudio(rows, linkCfg, 'zz'), null, 'unknown id');
 });
@@ -1286,7 +1286,7 @@ test('onionNeighbours: two either side, NEAREST first, clamped at the row ends',
   assert.deepEqual(onionNeighbours(rows, cfg, 4.5, 2, 2), { past: ['s2', 's1'], future: ['s4'] },
     'nearest first in both lists; the future runs out after one');
   assert.deepEqual(onionNeighbours(rows, cfg, 0.5, 2, 2), { past: [], future: ['s2', 's3'] },
-    'the first scene has no past at all — clamped, never wrapped');
+    'the first scene has no past at all - clamped, never wrapped');
   assert.deepEqual(onionNeighbours(rows, cfg, 7.5, 2, 2), { past: ['s3', 's2'], future: [] });
 });
 
@@ -1322,7 +1322,7 @@ test('onionNeighbours: nothing active, an empty lane and a gap all return two em
   assert.deepEqual(onionNeighbours(gapped, cfg, 3, 2, 2), { past: [], future: [] });
 });
 
-test('onionNeighbours: SEQ LANE ONLY — overlays are never ghosted and never counted', () => {
+test('onionNeighbours: SEQ LANE ONLY - overlays are never ghosted and never counted', () => {
   const rows: Box[] = [
     ...SCENES(),
     overlay('lower3', 3, { dur: 2 }),     // straddles the s2/s3 cut
@@ -1402,7 +1402,7 @@ function assertContinuity(
       const g = got[ch as keyof typeof got];
       assert.ok(
         typeof g === 'number' && Math.abs(g - v) <= tol,
-        `${label}: ${ch} at local ${t}ms — want ${v}, got ${String(g)} (tol ${tol})`,
+        `${label}: ${ch} at local ${t}ms - want ${v}, got ${String(g)} (tol ${tol})`,
       );
     }
   }
@@ -1418,7 +1418,7 @@ const kfClip = (kf: string, extra: Box = {}): Box[] => [
   clip('x', { start: 0, dur: 3, clipIn: 0, speed: 1, kf, ...extra }),
 ];
 
-test('splitBox: the halves REPLAY the original — every channel, across an eased cut', () => {
+test('splitBox: the halves REPLAY the original - every channel, across an eased cut', () => {
   minted = 0;
   const rows = kfClip(FULL_TRACK);
   const orig = trackOf(rows[0]);
@@ -1596,7 +1596,7 @@ test('joinClips: an animated B onto an unanimated A keeps the motion (and poses 
   const merged = trackOf(byId(joinClips(rows, kfCfg, 'a', 'b')!, 'a'));
   assert.deepEqual(merged.map((k) => k.t), [2000, 3000]);
   assert.equal(evaluateKf(merged, 2000).o, 0, 'B\'s fade still starts where B starts');
-  assert.equal(evaluateKf(merged, 0).o, 0, 'and A\'s span holds it — stated, not accidental');
+  assert.equal(evaluateKf(merged, 0).o, 0, 'and A\'s span holds it - stated, not accidental');
 });
 
 test('splitAll routes through exactly the same rebase', () => {
@@ -1635,7 +1635,7 @@ test('the rebase rewrites the kf field and NOTHING else (the field-copy contract
   const det = detachAudio([{ ...src, link: '' }], linkCfg, 'x', () => 'snd')!;
   assert.equal(det[0]!.link, 'snd');
   assert.equal(det[1]!.link, 'x');
-  assert.equal(det[1]!.kf, FULL_TRACK, 'a detach still COPIES the track — no local time moved');
+  assert.equal(det[1]!.kf, FULL_TRACK, 'a detach still COPIES the track - no local time moved');
 });
 
 test('a tool with no kf field is byte-identical through every edit (the floor)', () => {
@@ -1754,13 +1754,13 @@ test('kfLocalMs / kfTimelineSec: a keyframe lives in the CLIP\'s own time, unsca
   assert.equal(kfLocalMs({ id: 'y', start: '', dur: '' }, zCfg, 1.5), 1500);
 });
 
-test('kfDiamondAt is EXACT — one millisecond off a keyframe is off it', () => {
+test('kfDiamondAt is EXACT - one millisecond off a keyframe is off it', () => {
   const box = clip('x', { start: 1, dur: 3, kf: 't0_x0*t1500_x40' });
   assert.equal(kfDiamondAt(box, zCfg, 1), 0);
   assert.equal(kfDiamondAt(box, zCfg, 2.5), 1500);
   assert.equal(kfDiamondAt(box, zCfg, 2.501), null,
     'the latch has already snapped the playhead onto the diamond, so "near" is a state '
-    + 'the user cannot be left in by accident — a tolerance here would let an edit land '
+    + 'the user cannot be left in by accident - a tolerance here would let an edit land '
     + 'on a keyframe the header says you are not on');
   assert.equal(kfDiamondAt(clip('x', { start: 0, dur: 3 }), zCfg, 0), null, 'no track, no diamonds');
   assert.deepEqual(kfDiamondTimes(box, zCfg), [1, 2.5], 'and the latch candidates are TIMELINE seconds');
@@ -1792,7 +1792,7 @@ test('the latch candidate is the ROUND TRIP of the latch test, on and off the ms
   assert.equal(kfDiamondAt(odd, zCfg, first as number), 0, 'Alt+→ lands ON the diamond it announces');
 });
 
-test('a keyframe never lands past the out-point — but an existing one is posed where it is', () => {
+test('a keyframe never lands past the out-point - but an existing one is posed where it is', () => {
   // The tail clamp is the drag path's own stated law ("a keyframe past the out-point is
   // unreachable without a trim, and a drag that silently parks one there looks exactly
   // like a drag that did nothing"), and "+Keyframe"/K go through the same door.
@@ -1874,7 +1874,7 @@ test('writeKfPose returns the array by IDENTITY when the pose it would write is 
   assert.equal(writeKfPose(rows, cfg, 'x', 2, { x: 1 }, 'add'), rows, 'a tool with no kf field writes nothing');
 });
 
-test('a brand-new track is born with the SEED pose — five neutral channels, so nothing moves', () => {
+test('a brand-new track is born with the SEED pose - five neutral channels, so nothing moves', () => {
   const rows = [clip('x', { start: 1, dur: 4 })];
   const out = writeKfPose(rows, zCfg, 'x', 1, {}, 'set');
   const t = parseKf(String(out[0]!.kf));
@@ -1908,13 +1908,13 @@ test('retime / duplicate / delete / re-ease each touch exactly what they name', 
   assert.equal(kfSlideMs(1500, 1.0, 3), 2500);
   assert.equal(kfSlideMs(1500, -9, 3), 0, 'clamped at the head');
   assert.equal(kfSlideMs(1500, 9, 3), 3000, 'and at the clip\'s own length, not the track\'s');
-  assert.equal(kfSlideMs(1500, 0.0004, 3), 1500, 'integer ms — the wire has no finer grid');
+  assert.equal(kfSlideMs(1500, 0.0004, 3), 1500, 'integer ms - the wire has no finer grid');
 
   const moved = kfTrackRetime(track, 1500, 2000);
   assert.deepEqual(moved.map((k) => k.t).sort((a, b) => a - b), [0, 2000, 2500]);
   assert.equal(serialiseKf(moved), 't0_x0*t2000_eo_x40*t2500_el_x0', 'pose AND ease travelled with it');
   assert.deepEqual(kfTrackRetime(track, 1500, 2500).map((k) => k.t).sort((a, b) => a - b), [0, 2500],
-    'landing on another diamond REPLACES it — the wire cannot hold two poses at one instant');
+    'landing on another diamond REPLACES it - the wire cannot hold two poses at one instant');
   assert.deepEqual(kfTrackRetime(track, 1234, 2000).map((k) => k.t), [0, 1500, 2500],
     'and retiming a keyframe that is not there is not an edit');
 
@@ -1937,13 +1937,13 @@ test('retime / duplicate / delete / re-ease each touch exactly what they name', 
     'junk normalises to the grammar\'s default rather than reaching the wire');
 });
 
-test('rescaleKfTrack stretches a track to a target span, tempo only — never its shape (A1#5)', () => {
+test('rescaleKfTrack stretches a track to a target span, tempo only - never its shape (A1#5)', () => {
   const track = parseKf('t0_x0*t1000_eo_x40*t4000_el_x0'); // last key at 4 s
 
   // Stretch to 8 s: every time doubles, ratios and eases and values ride along.
   const up = rescaleKfTrack(track, 8000);
   assert.deepEqual(up.map((k) => k.t), [0, 2000, 8000], 'first stays at 0, last lands on the target, mid scales');
-  assert.equal(serialiseKf(up), 't0_x0*t2000_eo_x40*t8000_el_x0', 'eases and poses are untouched — only the tempo');
+  assert.equal(serialiseKf(up), 't0_x0*t2000_eo_x40*t8000_el_x0', 'eases and poses are untouched - only the tempo');
 
   // Compress to 2 s: same shape, half again.
   assert.deepEqual(rescaleKfTrack(track, 2000).map((k) => k.t), [0, 500, 2000], 'compression is the same map, other way');
@@ -1954,7 +1954,7 @@ test('rescaleKfTrack stretches a track to a target span, tempo only — never it
   assert.equal(serialiseKf(rescaleKfTrack(track, Number.NaN)), serialiseKf(track), 'and a non-finite target');
   const single = parseKf('t0_x0');
   assert.equal(serialiseKf(rescaleKfTrack(single, 5000)), serialiseKf(single),
-    'a single key at 0 has a zero natural end — nothing to scale against');
+    'a single key at 0 has a zero natural end - nothing to scale against');
   assert.deepEqual(rescaleKfTrack([], 5000), [], 'an empty track is empty');
 });
 
@@ -1965,7 +1965,7 @@ test('kfSeekDiamond walks the union of the given boxes and stops at the ends', (
   ];
   assert.equal(kfSeekDiamond(rows, zCfg, ['a', 'b'], 0, 1), 1.5);
   assert.equal(kfSeekDiamond(rows, zCfg, ['a', 'b'], 1.5, 1), 3);
-  assert.equal(kfSeekDiamond(rows, zCfg, ['a', 'b'], 3.5, 1), null, 'no wrap — you keep your place');
+  assert.equal(kfSeekDiamond(rows, zCfg, ['a', 'b'], 3.5, 1), null, 'no wrap - you keep your place');
   assert.equal(kfSeekDiamond(rows, zCfg, ['a', 'b'], 3.5, -1), 3, 'and backwards across the boundary');
   assert.equal(kfSeekDiamond(rows, zCfg, ['a'], 3.5, 1), null, 'only the boxes asked about');
   assert.equal(kfSeekDiamond(rows, zCfg, [], 0, 1), null);
@@ -2059,7 +2059,7 @@ test('kfCameraClips derives the same shape stageCameras does, from the model ins
   assert.equal(resolveCamera(cams, 500).z, 120);
 });
 
-test('the sampled path IS the engine’s arithmetic — checked at three instants', () => {
+test('the sampled path IS the engine’s arithmetic - checked at three instants', () => {
   const rows: Box[] = [
     // 400×200 at (200, 300) → centre (400, 400). Lifted 160px off the surface.
     { id: 'art', x: 200, y: 300, w: 400, h: 200, rot: 0, start: 1, dur: 3, z: 160,

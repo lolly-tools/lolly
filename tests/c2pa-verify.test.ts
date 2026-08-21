@@ -239,7 +239,7 @@ test('tamper OUTSIDE the manifest on a Lolly-created asset → likelyMadeWithLol
   const report: any = await verifyC2pa(pdf);
   assert.equal(report.state, 'invalid');
   assert.equal(check(report, 'assertion.dataHash.mismatch').ok, false);
-  assert.equal(report.madeWithLolly, false, 'bytes no longer match — never the flat claim');
+  assert.equal(report.madeWithLolly, false, 'bytes no longer match - never the flat claim');
   assert.equal(report.likelyMadeWithLolly, true);
   assert.ok(check(report, 'claimSignature.validated').ok, 'the manifest content itself is untouched');
 });
@@ -255,7 +255,7 @@ test('tamper INSIDE the claim on a Lolly-created asset → likelyMadeWithLolly s
   assert.equal(report.state, 'invalid');
   assert.equal(check(report, 'claimSignature.mismatch').ok, false);
   assert.equal(report.madeWithLolly, false);
-  assert.equal(report.likelyMadeWithLolly, false, 'the claim signature itself failed — the content is not trustworthy');
+  assert.equal(report.likelyMadeWithLolly, false, 'the claim signature itself failed - the content is not trustworthy');
 });
 
 // v2 records the human author in a CAWG metadata assertion (dc:creator); the

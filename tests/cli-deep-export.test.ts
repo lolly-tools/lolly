@@ -53,12 +53,12 @@ async function haveTool(bin: string): Promise<boolean> {
 }
 const HAVE_FFMPEG = await haveTool('ffprobe') && await haveTool('ffmpeg');
 const SKIP_NO_FFMPEG = HAVE_FFMPEG ? false
-  : 'ffprobe/ffmpeg not on PATH — the independent EXR/Radiance decoder is the whole point of these cases';
+  : 'ffprobe/ffmpeg not on PATH - the independent EXR/Radiance decoder is the whole point of these cases';
 
 type SharpFn = (typeof import('sharp'))['default'];
 let sharp: SharpFn | null = null;
 try { sharp = (await import('sharp')).default; } catch { sharp = null; }
-const SKIP_NO_SHARP = sharp ? false : 'sharp not installed — needed as the straight-alpha oracle';
+const SKIP_NO_SHARP = sharp ? false : 'sharp not installed - needed as the straight-alpha oracle';
 
 // ── self-contained fixture repo ─────────────────────────────────────────────
 const root = await mkdtemp(join(tmpdir(), 'lolly-deep-export-'));
@@ -162,7 +162,7 @@ async function probe(path: string): Promise<{ codec: string; pixFmt: string; wid
  */
 async function pixelRgb(path: string, w: number, h: number, x: number, y: number): Promise<[number, number, number]> {
   assert.equal((await probe(path)).pixFmt, 'gbrapf32le',
-    'pixelRgb needs a float32 source — ffmpeg clamps a half→float conversion to [0,1]');
+    'pixelRgb needs a float32 source - ffmpeg clamps a half→float conversion to [0,1]');
   const raw = join(root, `raw-${seq++}.bin`);
   await exec('ffmpeg', ['-v', 'error', '-y', '-i', path, '-f', 'rawvideo', '-pix_fmt', 'gbrapf32le', raw]);
   const buf = await readFile(raw);
@@ -264,7 +264,7 @@ test('hdr: file is a real Radiance RGBE image (ffprobe + magic)', { skip: SKIP_N
   assert.equal(p.height, 20);
 });
 
-test('the tool never declared exr/hdr — the pro formats need no manifest entry', async () => {
+test('the tool never declared exr/hdr - the pro formats need no manifest entry', async () => {
   const tool = JSON.parse(await readFile(join(root, 'tools', 'swatch', 'tool.json'), 'utf8'));
   assert.deepEqual(tool.render.formats, ['svg', 'png'],
     'fixture drifted: the point of these cases is that exr/hdr are undeclared');
@@ -299,7 +299,7 @@ test('exr carries genuine above-1.0 headroom; the SDR png of the same design can
     const png = await cli('swatch', 'png', {});
     const stats = await sharp!(png).stats();
     assert.equal(Math.round(stats.channels[0]!.max), 255,
-      'the 8-bit control should be saturated at 255 — nothing above white exists there');
+      'the 8-bit control should be saturated at 255 - nothing above white exists there');
   });
 
 test('.hdr carries the same above-1.0 headroom (engine reader over the CLI file)', async () => {
@@ -325,7 +325,7 @@ test('depth=float writes 32-bit samples; the default writes 16-bit (negative con
     assert.ok((await readFile(flt)).length > (await readFile(half)).length);
   });
 
-test('depth=16 and depth=8 do NOT become EXR sample types — half is kept',
+test('depth=16 and depth=8 do NOT become EXR sample types - half is kept',
   { skip: SKIP_NO_FFMPEG }, async () => {
     for (const depth of ['16', '8']) {
       const out = await cli('swatch', 'exr', { hdr: '1', depth });
@@ -355,7 +355,7 @@ test('resvg pixels are premultiplied, and rasterizeSvgToRgba undoes it (sharp or
     // The raw resvg buffer, unmodified: this is the claim the correction rests on.
     const raw = new Resvg(svg, { fitTo: { mode: 'original' } }).render().pixels;
     assert.deepEqual([...raw.subarray(0, 4)], [128, 0, 0, 128],
-      'resvg changed its alpha convention — the un-premultiply in rasterizeSvgToRgba must be revisited');
+      'resvg changed its alpha convention - the un-premultiply in rasterizeSvgToRgba must be revisited');
 
     // Ours, after the correction.
     const ours = await rasterizeSvgToRgba(svg, 4, 2);

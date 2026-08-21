@@ -83,7 +83,7 @@ test('hwb()', () => {
   assert.equal(hexOf('hwb(120 50% 50%)'), '#808080');
 });
 
-test('lab() and lch() — CSS Color 4 sRGB-red equivalents', () => {
+test('lab() and lch() - CSS Color 4 sRGB-red equivalents', () => {
   assert.equal(hexOf('lab(54.29% 80.8 69.89)'), '#ff0000');
   assert.equal(hexOf('lch(54.29% 106.84 40.86)'), '#ff0000');
   assert.equal(hexOf('lab(100% 0 0)'), '#ffffff');

@@ -50,7 +50,7 @@ for (const a of process.argv.slice(2)) {
 mkdirSync(opts.out, { recursive: true });
 
 if (!existsSync(join(DIST, 'index.html'))) {
-  throw new Error(`No build at shells/web/dist — run: npm --workspace shells/web run build`);
+  throw new Error(`No build at shells/web/dist - run: npm --workspace shells/web run build`);
 }
 if (opts.baseline && dirname(opts.baseline) !== BRIDGE) {
   throw new Error(`--baseline must live in ${BRIDGE} so its relative imports resolve`);
@@ -74,7 +74,7 @@ async function bundleWalker(modulePath: string, name: string): Promise<string> {
 /** Tool ids from the active profile's generated catalog index. */
 function toolIds(): string[] {
   const idx = join(ROOT, 'catalog', 'tools', 'index.json');
-  if (!existsSync(idx)) throw new Error('catalog/tools/index.json missing — run `npm run profile` first');
+  if (!existsSync(idx)) throw new Error('catalog/tools/index.json missing - run `npm run profile` first');
   const json = JSON.parse(readFileSync(idx, 'utf8')) as { tools?: { id: string }[] } | { id: string }[];
   const list = Array.isArray(json) ? json : (json.tools ?? []);
   let ids = list.map(t => t.id);
@@ -116,7 +116,7 @@ async function probeTool(page: Page, base: string, id: string, bundles: string[]
       const n = document.getElementById('tool-canvas');
       return !!n && (n.tagName.toLowerCase() === 'svg' || (n.children.length === 1 && n.children[0]!.tagName.toLowerCase() === 'svg'));
     });
-    if (svgRooted) { r.note = 'svg-rooted canvas — never enters the HTML walker'; }
+    if (svgRooted) { r.note = 'svg-rooted canvas - never enters the HTML walker'; }
 
     const render = async (which: 'cur' | 'base', stackingOrder: boolean) => await page.evaluate(
       async ([w, so]: [string, boolean]) => {
@@ -161,7 +161,7 @@ try {
     const r = await probeTool(page, base, id, bundles);
     results.push(r);
     const flag = !r.canvas ? '·' : r.offVsBaseline === 'DIFFERS' ? '✗' : r.onVsOff === 'differs' ? '≠' : '=';
-    console.log(`  ${flag} ${id.padEnd(26)} off-vs-baseline=${r.offVsBaseline ?? '—'}  on-vs-off=${r.onVsOff ?? '—'}${r.note ? `   (${r.note})` : ''}`);
+    console.log(`  ${flag} ${id.padEnd(26)} off-vs-baseline=${r.offVsBaseline ?? '-'}  on-vs-off=${r.onVsOff ?? '-'}${r.note ? `   (${r.note})` : ''}`);
   }
 } finally {
   await ctx.close();

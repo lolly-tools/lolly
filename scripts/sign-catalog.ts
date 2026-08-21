@@ -98,7 +98,7 @@ async function genKey(): Promise<void> {
   writeFileSync(privPath, derToPem(pkcs8, 'PRIVATE KEY'), { mode: 0o600 });
   writeFileSync(pubPath, JSON.stringify(pubJwk, null, 2) + '\n');
   const keyId = await jwkThumbprint(pubJwk);
-  console.log(`✓ wrote private key  ${privPath}  (git-ignored — NEVER commit it)`);
+  console.log(`✓ wrote private key  ${privPath}  (git-ignored - NEVER commit it)`);
   console.log(`✓ wrote public JWK   ${pubPath}`);
   console.log(`  keyId (RFC 7638 thumbprint): ${keyId}`);
   console.log('\nPin this public JWK in the deployment (e.g. VITE_CATALOG_PUBLIC_KEY_JWK):');
@@ -149,7 +149,7 @@ async function run(args: Args): Promise<void> {
   const keyId = await jwkThumbprint(pubJwk);
 
   if (!existsSync(args.indexPath)) {
-    console.error(`✗ tool index not found: ${args.indexPath} — run npm run build:catalog first`);
+    console.error(`✗ tool index not found: ${args.indexPath} - run npm run build:catalog first`);
     process.exit(1);
   }
   const indexBytes = readFileSync(args.indexPath);

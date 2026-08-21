@@ -191,7 +191,7 @@ describe('ctx.filter functional probe (browser tier)', { skip: gate ?? false, co
     assert.equal(r.verdict, spread, `module said ${r.verdict}, raw said ${spread}`);
   });
 
-  test('support is per-engine, not per-thread — all three kinds agree', () => {
+  test('support is per-engine, not per-thread - all three kinds agree', () => {
     // The section 11 S1 finding the fallback lane is designed around. If this ever fails,
     // the plan's "probe once per kind" is still safe (each kind is probed), but the
     // claim that one verdict describes the engine is not, and section 5.5 needs revisiting.

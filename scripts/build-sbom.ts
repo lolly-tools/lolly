@@ -302,7 +302,7 @@ const bom = {
 writeFileSync(OUT_PATH, JSON.stringify(bom, null, 2) + '\n');
 const devCount = components.filter((c) => c.properties?.some((p) => p.value === 'true')).length;
 console.log(
-  `✓ Wrote sbom.cdx.json — ${components.length} components ` +
+  `✓ Wrote sbom.cdx.json - ${components.length} components ` +
   `(${components.length - devCount} runtime, ${devCount} dev)${sameComponents ? ' (unchanged)' : ''}`,
 );
 

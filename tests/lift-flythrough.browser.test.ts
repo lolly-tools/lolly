@@ -248,7 +248,7 @@ function predictedInkParallax(kf: string, tA: number, tB: number, z: number, car
 
 // ── the run ──────────────────────────────────────────────────────────────────
 
-describe('plans/104 P3 — the Lift-layers exit demo', { skip: gate ?? false, concurrency: 1 }, () => {
+describe('plans/104 P3 - the Lift-layers exit demo', { skip: gate ?? false, concurrency: 1 }, () => {
   let Hn: Harness;
   const page = (): Harness['page'] => Hn.page;
   let mp4 = false;
@@ -394,7 +394,7 @@ describe('plans/104 P3 — the Lift-layers exit demo', { skip: gate ?? false, co
 
     const names = layers.map((l) => `${l.label}${l.boxId ? ` (${l.boxId})` : ''}@z${zs[l.index]}`
       + `[${l.bbox ? `${l.bbox.w.toFixed(0)}x${l.bbox.h.toFixed(0)}@${l.bbox.x.toFixed(0)},${l.bbox.y.toFixed(0)}` : 'unmeasured'}]`);
-    say(`[demo] 2. lift: ${layers.length} layers — ${names.join(', ')}`);
+    say(`[demo] 2. lift: ${layers.length} layers - ${names.join(', ')}`);
     say(`[demo]    warnings: ${warnings.length ? warnings.join(' | ') : '(none)'}`);
     say(`[demo]    screenshot → stage ready in ${liftMs} ms of machine time (the user's part is: right-click → Lift layers → confirm)`);
   });
@@ -463,11 +463,11 @@ describe('plans/104 P3 — the Lift-layers exit demo', { skip: gate ?? false, co
       `the two flythroughs are not byte-identical:\n  A ${r.webm.a.size} B sha ${r.webm.a.sha}\n  B ${r.webm.b.size} B sha ${r.webm.b.sha}`);
     assert.equal(r.direct.err, null, `the direct control export failed: ${JSON.stringify(r.direct.err)}`);
     assert.equal(r.direct.sha, r.webm.a.sha,
-      `the public export funnel and a direct renderSequence disagree — something in api.render is changing the stage:\n  funnel ${r.webm.a.size} B sha ${r.webm.a.sha}\n  direct ${r.direct.size} B sha ${r.direct.sha}`);
+      `the public export funnel and a direct renderSequence disagree - something in api.render is changing the stage:\n  funnel ${r.webm.a.size} B sha ${r.webm.a.sha}\n  direct ${r.direct.size} B sha ${r.direct.sha}`);
 
     if (!mp4 && r.a.err) {
       say(`[demo] 3. flythrough @${GATE_WIDTH}px/${GATE_FPS}fps: webm ${r.webm.a.size} B in ${Math.round(r.webm.a.ms)} ms/run, byte-identical across two runs AND to a direct renderSequence`);
-      say(`[skip] mp4: this build cannot encode H.264 (${r.a.err.code}) — rerun with LOLLY_BROWSER_CHANNEL=chrome`);
+      say(`[skip] mp4: this build cannot encode H.264 (${r.a.err.code}) - rerun with LOLLY_BROWSER_CHANNEL=chrome`);
       return;
     }
     assert.equal(r.a.err, null, `the mp4 flythrough failed: ${JSON.stringify(r.a.err)}`);
@@ -568,7 +568,7 @@ describe('plans/104 P3 — the Lift-layers exit demo', { skip: gate ?? false, co
     }, { spec, fps: GATE_FPS, width: GATE_WIDTH, last: LAST });
 
     if (!mp4 && r.on.err) {
-      say('[skip] mp4: this build cannot encode H.264 — rerun with LOLLY_BROWSER_CHANNEL=chrome');
+      say('[skip] mp4: this build cannot encode H.264 - rerun with LOLLY_BROWSER_CHANNEL=chrome');
       return;
     }
     assert.equal(r.off.err, null, `the uncached control failed: ${JSON.stringify(r.off.err)}`);
@@ -627,7 +627,7 @@ describe('plans/104 P3 — the Lift-layers exit demo', { skip: gate ?? false, co
     const rounded = (r.text.match(/<rect[^>]*\brx="14"/g) ?? []).length;
     assert.ok(rounded >= CARDS.length,
       `the four lifted cards should still be rounded <rect>s, found ${rounded}`);
-    say(`[demo] 4. still @2000 ms: ${r.size} B SVG — ${mats.length} matrix() (all parseCssMatrix-accepted) + ${fd} feDropShadow + ${rounded} rounded card rects + ${rasters} rasters`);
+    say(`[demo] 4. still @2000 ms: ${r.size} B SVG - ${mats.length} matrix() (all parseCssMatrix-accepted) + ${fd} feDropShadow + ${rounded} rounded card rects + ${rasters} rasters`);
     say(`[demo]    projected scales ${[...new Set(scales.map((v) => v.toFixed(3)))].join(' / ')} (engine: ${[...new Set(wanted.map((v) => v.toFixed(3)))].join(' / ')})`);
 
     const path = await save(r.key, 'lift-still-mid-move.svg');

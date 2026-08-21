@@ -75,7 +75,7 @@ const USAGE = `Usage:
                 a DIRECTORY of per-set token files ($metadata.json/$themes.json + <set>.json),
                 a .penpot project file (zip), a Lolly design system pack (.zip),
                 or a zip of loose token-set files
-  --name        brand id — lowercase [a-z0-9-]. The asset-id namespace is the name
+  --name        brand id - lowercase [a-z0-9-]. The asset-id namespace is the name
                 with hyphens stripped (asset ids forbid '-' in the first segment:
                 'lolly-start' → 'lolly...' would be illegal, so 'lollystart/tokens/brand')
   --label       human label (default: capitalised name)
@@ -154,7 +154,7 @@ function parseArgs(argv: string[]): Args {
   if (positional.length !== 1) fail(`expected exactly one <source>, got ${positional.length}\n\n${USAGE}`);
   const name = typeof flags.name === 'string' ? flags.name : fail('--name is required');
   if (!/^[a-z0-9][a-z0-9-]*$/.test(name)) {
-    fail(`--name "${name}" is invalid — lowercase [a-z0-9-], starting alphanumeric`);
+    fail(`--name "${name}" is invalid - lowercase [a-z0-9-], starting alphanumeric`);
   }
 
   // The pack must live INSIDE the repo: profiles.json paths are joined onto the
@@ -165,10 +165,10 @@ function parseArgs(argv: string[]): Args {
   const rawOut = typeof flags.out === 'string' ? flags.out : join('brands', name);
   const outRel = relative(ROOT, resolve(ROOT, rawOut)).split(sep).join('/');
   if (outRel === '' || outRel.startsWith('..')) {
-    fail(`--out ${rawOut} resolves outside the repo (or to the repo root) — packs must live inside it, e.g. brands/${name}`);
+    fail(`--out ${rawOut} resolves outside the repo (or to the repo root) - packs must live inside it, e.g. brands/${name}`);
   }
   if (/^(catalog|tools)(\/|$)/.test(outRel)) {
-    fail(`--out ${rawOut} points into the ${outRel.split('/')[0]}/ profile VIEW — write to a real pack dir instead, e.g. brands/${name}`);
+    fail(`--out ${rawOut} points into the ${outRel.split('/')[0]}/ profile VIEW - write to a real pack dir instead, e.g. brands/${name}`);
   }
 
   return {
@@ -198,7 +198,7 @@ function walkJsonFiles(dir: string, base: string, files: Record<string, unknown>
     try {
       files[rel] = JSON.parse(readFileSync(full, 'utf8'));
     } catch (e) {
-      warnings.push(`${rel}: ${e instanceof Error ? e.message : 'unparseable JSON'} — skipped`);
+      warnings.push(`${rel}: ${e instanceof Error ? e.message : 'unparseable JSON'} - skipped`);
     }
   }
 }
@@ -238,7 +238,7 @@ function parseZipSetFiles(entries: Record<string, Uint8Array>): { files: Record<
     try {
       parsed[path] = JSON.parse(Buffer.from(raw).toString('utf8'));
     } catch (e) {
-      warnings.push(`${path}: ${e instanceof Error ? e.message : 'unparseable JSON'} — skipped`);
+      warnings.push(`${path}: ${e instanceof Error ? e.message : 'unparseable JSON'} - skipped`);
     }
   }
 
@@ -281,7 +281,7 @@ function verifyPackIntegrity(entries: Record<string, Uint8Array>, manifest: Reco
     if (!bytes || typeof expected !== 'string') continue; // a part we did not inflate
     const actual = `sha256-${createHash('sha256').update(bytes).digest('base64')}`;
     if (actual !== expected) {
-      fail(`${abs} appears corrupted — "${path}" failed the integrity check the pack carries. Export the pack again from the studio.`);
+      fail(`${abs} appears corrupted - "${path}" failed the integrity check the pack carries. Export the pack again from the studio.`);
     }
   }
 }
@@ -325,7 +325,7 @@ function readPackVersions(
   for (const entry of index.versions) {
     const doc = parseZipJson(entries, `versions/${entry.slug}.json`);
     if (doc === undefined) {
-      warnings.push(`published version "${entry.slug}" has no readable versions/${entry.slug}.json — dropped from the pack's version list`);
+      warnings.push(`published version "${entry.slug}" has no readable versions/${entry.slug}.json - dropped from the pack's version list`);
       continue;
     }
     const pins = (entry.assets ?? []).map((pin) => {
@@ -338,7 +338,7 @@ function readPackVersions(
         // The pin claims preserved bytes the pack did not carry. Dropping the
         // frozenId is the honest repair: the version then resolves the head id,
         // which is wrong-but-present rather than a dead reference.
-        warnings.push(`published version "${entry.slug}" pins preserved bytes (${pin.frozenId}) that the pack does not carry — the pin falls back to the live asset`);
+        warnings.push(`published version "${entry.slug}" pins preserved bytes (${pin.frozenId}) that the pack does not carry - the pin falls back to the live asset`);
         const { frozenId: _drop, ...rest } = pin;
         return rest;
       }
@@ -370,7 +370,7 @@ function extractZip(entries: Record<string, Uint8Array>, abs: string, ns: string
     verifyPackIntegrity(entries, manifest, abs);
     const tokens = parseZipJson(entries, 'tokens.json');
     if (tokens === undefined) {
-      fail(`${abs} is a ${PACK_LABEL} but carries no readable tokens.json — export the pack again from the studio`);
+      fail(`${abs} is a ${PACK_LABEL} but carries no readable tokens.json - export the pack again from the studio`);
     }
     const fonts = rowCount(parseZipJson(entries, 'fonts.json'));
     const logos = rowCount(parseZipJson(entries, 'logos.json'));
@@ -461,7 +461,7 @@ function emitPack(
     // it readably, and regardless of --force (force can't help a file).
     if (!statSync(out).isDirectory()) fail(`--out ${args.out} exists and is not a directory`);
     if (!args.force && readdirSync(out).length > 0) {
-      fail(`--out ${args.out} exists and is not empty — pass --force to write into it anyway`);
+      fail(`--out ${args.out} exists and is not empty - pass --force to write into it anyway`);
     }
   }
 
@@ -509,7 +509,7 @@ function emitPack(
     writeFileSync(join(dir, `${v.slug}.json`), bytes);
     assets.push({
       id: versionAssetId(`${args.ns}/tokens/brand`, v.slug),
-      name: `${args.label} Design Tokens — ${v.label}`,
+      name: `${args.label} Design Tokens - ${v.label}`,
       description: 'A published, immutable version of this design system.',
       type: 'tokens',
       version: '1.0.0',
@@ -595,11 +595,11 @@ function emitPack(
   writeFileSync(join(out, 'catalog/assets/index.json'), JSON.stringify(index, null, 2) + '\n');
 
   const { sets, themes, tokenCount, colorCount } = summary;
-  writeFileSync(join(out, 'README.md'), `# brands/${args.name} — ${args.label} brand pack
+  writeFileSync(join(out, 'README.md'), `# brands/${args.name} - ${args.label} brand pack
 
 Hydrated by \`scripts/ingest-brand.ts\`. The token document at
 \`catalog/assets/${args.ns}/tokens/brand.json\` is the extracted source
-verbatim — re-run the ingest to refresh it, or hand-edit and bump the asset
+verbatim - re-run the ingest to refresh it, or hand-edit and bump the asset
 version in \`catalog/assets/index.json\`.
 
 ## Provenance
@@ -646,10 +646,10 @@ function readProfilesFile(): ProfilesFile {
   try {
     cfg = JSON.parse(readFileSync(path, 'utf8'));
   } catch (e) {
-    return fail(`profiles.json is missing or not valid JSON (${e instanceof Error ? e.message : e}) — fix it before --register`);
+    return fail(`profiles.json is missing or not valid JSON (${e instanceof Error ? e.message : e}) - fix it before --register`);
   }
   if (typeof cfg !== 'object' || cfg === null || typeof (cfg as ProfilesFile).profiles !== 'object' || (cfg as ProfilesFile).profiles === null) {
-    return fail('profiles.json has no "profiles" object — fix it before --register');
+    return fail('profiles.json has no "profiles" object - fix it before --register');
   }
   return cfg as ProfilesFile;
 }
@@ -681,7 +681,7 @@ function activateProfile(name: string): void {
       process.exit(r.status ?? 1);
     }
   }
-  console.log(`✓ profile "${name}" active — catalog built and validated`);
+  console.log(`✓ profile "${name}" active - catalog built and validated`);
 }
 
 function main(): void {
@@ -694,11 +694,11 @@ function main(): void {
   for (const w of extraction.warnings) console.warn(`⚠ ${w}`);
 
   if (!extraction.doc) {
-    fail(`no usable token document in ${args.source} — see warnings above`);
+    fail(`no usable token document in ${args.source} - see warnings above`);
   }
   const summary = summarizeTokensDoc(extraction.doc);
   if (summary.colorCount === 0) {
-    fail(`extracted ${summary.tokenCount} tokens but ZERO resolvable colors — a brand pack without colors is almost certainly the wrong source (${containerLabel}: ${args.source})`);
+    fail(`extracted ${summary.tokenCount} tokens but ZERO resolvable colors - a brand pack without colors is almost certainly the wrong source (${containerLabel}: ${args.source})`);
   }
   console.log(
     `✓ extracted ${containerLabel}: ` +

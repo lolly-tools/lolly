@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MPL-2.0
 // jsdom ships no type declarations (no @types/jsdom); same ambient-shim pattern
-// as shells/{cli,web,tui}/src/jsdom.d.ts, narrowed to what scripts use —
+// as shells/{cli,web,tui}/src/jsdom.d.ts, narrowed to what scripts use -
 // gen-shutter-mark.ts parses icon.svg with a contentType option and walks the
 // resulting document via the standard DOM surface.
 declare module 'jsdom' {

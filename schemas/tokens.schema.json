@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://lolly.tools/schemas/tokens.schema.json",
   "title": "Design Tokens Document (DTCG)",
-  "description": "A W3C Design Tokens (DTCG) document, as imported/exported by Penpot and Tokens Studio. Validates the structural shape: groups nest tokens, a token carries $value (+ optional $type/$description/$extensions). Lenient on $value by design — type-specific value checking lives in engine/src/tokens.js, not here.",
+  "description": "A W3C Design Tokens (DTCG) document, as imported/exported by Penpot and Tokens Studio. Validates the structural shape: groups nest tokens, a token carries $value (+ optional $type/$description/$extensions). Lenient on $value by design - type-specific value checking lives in engine/src/tokens.js, not here.",
   "type": "object",
   "$defs": {
     "node": {

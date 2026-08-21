@@ -37,7 +37,7 @@ test('ZipCrypto: encrypt round-trips and the check byte is the CRC high byte', (
   assert.deepEqual(dec.subarray(12), data, 'recovers the compressed data');
 });
 
-test('AE-2 AES-256: PBKDF2 split, LE-CTR encrypt, HMAC — round-trips via node:crypto', async () => {
+test('AE-2 AES-256: PBKDF2 split, LE-CTR encrypt, HMAC - round-trips via node:crypto', async () => {
   const pw = enc('correct horse battery staple');
   const salt = new Uint8Array(16).map((_, i) => (i * 7 + 1) & 0xff);
   const data = enc('PNG-ish binary payload with SECRET markers'.repeat(3));

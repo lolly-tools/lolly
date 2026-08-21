@@ -50,7 +50,7 @@ test('the three animated rasters round-trip (import verbatim, export via the pac
   for (const token of ['GIF', 'APNG', 'Animated WebP']) {
     const f = byToken.get(token);
     assert.ok(f, `${token} is present in the register`);
-    assert.equal(f!.dir, 'both', `${token} imports (picker verbatim) and exports — dir must be both`);
+    assert.equal(f!.dir, 'both', `${token} imports (picker verbatim) and exports - dir must be both`);
   }
 });
 

@@ -90,7 +90,7 @@ test('the root attributes are reproduced verbatim, so every layer is in ROOT coo
   }
 });
 
-test('a missing xmlns is supplied — a data: URL <img> needs it to render at all', () => {
+test('a missing xmlns is supplied - a data: URL <img> needs it to render at all', () => {
   const r = enumerateSvgLayers('<svg viewBox="0 0 10 10"><g><rect width="1" height="1"/></g><g><circle r="1"/></g></svg>');
   assert.equal(r.layers.length, 2);
   for (const l of r.layers) assert.ok(l.markup.includes(`xmlns="${NS}"`));
@@ -105,13 +105,13 @@ test('the WHOLE <defs> rides into every layer (cheap, correct for cross-refs)', 
   assertPartition(r.layers, body, { carry: defs });
 });
 
-test('<style> is carried too — a class-driven fill would otherwise vanish per layer', () => {
+test('<style> is carried too - a class-driven fill would otherwise vanish per layer', () => {
   const style = '<style>.a{fill:#0a0}</style>';
   const r = enumerateSvgLayers(doc(`${style}<g><rect class="a" width="9" height="9"/></g><g><rect class="a" x="40" width="9" height="9"/></g>`));
   for (const l of r.layers) assert.ok(l.markup.includes('.a{fill:#0a0}'));
 });
 
-test('<title>/<desc>/<metadata> never reach a derived layer — the PII strip is not undone', () => {
+test('<title>/<desc>/<metadata> never reach a derived layer - the PII strip is not undone', () => {
   const r = enumerateSvgLayers(doc(
     '<title>Q3 revenue, internal</title><desc>drawn by a person</desc><metadata>rdf</metadata>' +
     '<g><rect width="9" height="9"/></g><g><rect x="40" width="9" height="9"/></g>',
@@ -133,7 +133,7 @@ test('a name in the file is never read as a label', () => {
 
 // ─── the single wrapper ──────────────────────────────────────────────────────
 
-test('a lone wrapping <g> is descended through — "1 layer found" is not a lift', () => {
+test('a lone wrapping <g> is descended through - "1 layer found" is not a lift', () => {
   const r = enumerateSvgLayers(doc('<g id="Layer_1"><rect width="9" height="9"/><circle cx="50" cy="50" r="9"/></g>'));
   assert.equal(r.layers.length, 2, 'the wrapper is not the layer; its children are');
   for (const l of r.layers) assert.ok(l.markup.includes('id="Layer_1"'), 'the wrapper rides along as an ancestor');
@@ -157,7 +157,7 @@ test('descent stops at the descent cap rather than running away', () => {
   let body = '<rect width="4" height="4"/><rect x="40" width="4" height="4"/>';
   for (let i = 0; i < SVG_LAYERS_MAX_DESCENT + 4; i++) body = `<g id="w${i}">${body}</g>`;
   const r = enumerateSvgLayers(doc(body));
-  assert.equal(r.layers.length, 1, 'the cap was reached before the branch — one layer, not a crash');
+  assert.equal(r.layers.length, 1, 'the cap was reached before the branch - one layer, not a crash');
   assert.ok(r.layers[0]!.markup.includes('<rect width="4" height="4"/>'));
 });
 
@@ -168,7 +168,7 @@ for (const [attr, why] of [
   ['style="mix-blend-mode:multiply"', 'a blend mode in style'],
   ['style="opacity:.4"', 'opacity in style'],
 ] as const) {
-  test(`descent REFUSES a wrapper with ${why} — splitting it would change the picture`, () => {
+  test(`descent REFUSES a wrapper with ${why} - splitting it would change the picture`, () => {
     const r = enumerateSvgLayers(doc(`<g ${attr}><rect width="9" height="9"/><rect x="4" width="9" height="9"/></g>`));
     assert.equal(r.layers.length, 1, 'the wrapper stays whole');
     assert.ok(r.warnings.some((w) => w.includes('applies to all of it at once')), r.warnings.join(' | '));
@@ -181,7 +181,7 @@ test('opacity="1" and filter="none" are no-ops and do NOT block the descent', ()
   assert.deepEqual(r.warnings, []);
 });
 
-test('transform and clip-path do not block the descent either — both are idempotent per layer', () => {
+test('transform and clip-path do not block the descent either - both are idempotent per layer', () => {
   const r = enumerateSvgLayers(doc('<g clip-path="url(#c)" transform="scale(2)"><rect width="4" height="4"/><rect x="40" width="4" height="4"/></g>'));
   assert.equal(r.layers.length, 2);
   for (const l of r.layers) assert.ok(l.markup.includes('clip-path="url(#c)"'));
@@ -200,7 +200,7 @@ test('stray leaves near each other become ONE layer; distant ones do not', () =>
   assertPartition(r.layers, body);
 });
 
-test('a group is a hint, never a requirement — an ungrouped drawing still lifts', () => {
+test('a group is a hint, never a requirement - an ungrouped drawing still lifts', () => {
   // Nothing here is grouped at all: the structure comes entirely from proximity.
   const body =
     '<path d="M0 0 L8 0 L8 8 Z"/><path d="M2 2 L6 2 L6 6 Z"/>' +
@@ -210,7 +210,7 @@ test('a group is a hint, never a requirement — an ungrouped drawing still lift
   assert.deepEqual(r.layers.map((l) => l.nodes), [2, 2]);
 });
 
-test('an unmeasurable leaf (<text>) is its own layer — we do not guess where it is', () => {
+test('an unmeasurable leaf (<text>) is its own layer - we do not guess where it is', () => {
   const body = '<rect width="10" height="10"/><text x="1" y="9">hi</text>';
   const r = enumerateSvgLayers(doc(body));
   assert.equal(r.layers.length, 2);
@@ -290,7 +290,7 @@ test('a reference into the carried <defs> needs no repair', () => {
   for (const l of r.layers) assert.equal((l.markup.match(/id="g1"/g) ?? []).length, 1);
 });
 
-test('a dangling reference is left dangling — a lift does not invent artwork', () => {
+test('a dangling reference is left dangling - a lift does not invent artwork', () => {
   const r = enumerateSvgLayers(doc('<g><use href="#nope"/><rect width="5" height="5"/></g><g><rect x="60" width="5" height="5"/></g>'));
   assert.deepEqual(r.warnings, []);
   assert.ok(r.layers[0]!.markup.includes('#nope'));
@@ -313,7 +313,7 @@ test('a DESCENDED WRAPPER\'s own reference is repaired for every layer, not just
   assertPartition(r.layers, inner1 + inner2, { wrapOpen: '<g clip-path="url(#c)">', wrapClose: '</g>' });
 });
 
-test('a CARRIED node\'s reference into a layer is repaired too — the Illustrator <clipPath><use> shape', () => {
+test('a CARRIED node\'s reference into a layer is repaired too - the Illustrator <clipPath><use> shape', () => {
   const carry = '<clipPath id="c"><use href="#shape"/></clipPath>';
   const body = '<g clip-path="url(#c)"><rect width="50" height="50"/></g><g><rect id="shape" x="60" width="20" height="20"/></g>';
   const r = enumerateSvgLayers(doc(carry + body));
@@ -385,13 +385,13 @@ test('a root carrying only NO-OP unit properties still lifts', () => {
 
 // ─── the walker identity passthrough ────────────────────────────────────────
 
-test('data-box-id survives onto the layer as boxId — ids, never names', () => {
+test('data-box-id survives onto the layer as boxId - ids, never names', () => {
   const r = enumerateSvgLayers(doc('<g data-box-id="b7"><rect width="5" height="5"/></g><g><rect x="60" width="5" height="5"/></g>'));
   assert.equal(r.layers[0]!.boxId, 'b7');
   assert.equal(r.layers[1]!.boxId, undefined);
 });
 
-test('a clustered layer reports no boxId — it is not one element', () => {
+test('a clustered layer reports no boxId - it is not one element', () => {
   const r = enumerateSvgLayers(doc('<rect data-box-id="b1" width="5" height="5"/><rect data-box-id="b2" x="3" width="5" height="5"/>'));
   assert.equal(r.layers.length, 1);
   assert.equal(r.layers[0]!.boxId, undefined);
@@ -399,7 +399,7 @@ test('a clustered layer reports no boxId — it is not one element', () => {
 
 // ─── caps, junk, refusals ───────────────────────────────────────────────────
 
-test('the layer cap MERGES THE TAIL — a cap must never drop artwork', () => {
+test('the layer cap MERGES THE TAIL - a cap must never drop artwork', () => {
   const parts: string[] = [];
   for (let i = 0; i < 10; i++) parts.push(`<g id="g${i}"><rect x="${i * 9}" width="4" height="4"/></g>`);
   const body = parts.join('');
@@ -417,7 +417,7 @@ test('maxLayers can only lower the ceiling, never raise it', () => {
   assert.equal(r.layers.length, SVG_LAYERS_MAX);
 });
 
-test('the candidate cap bounds the QUADRATIC clustering — and merges the tail', () => {
+test('the candidate cap bounds the QUADRATIC clustering - and merges the tail', () => {
   // Before this cap, 39 000 stray leaves took 16 seconds: the clustering is a
   // pairwise union-find. The cap is what makes a hostile (or merely large) file
   // a bounded wait instead of a hung tab, and the tail merge is what keeps it
@@ -506,7 +506,7 @@ test('a document with too many tags is refused, not walked', () => {
   assert.ok(paired.warnings[0]!.includes('tags'), paired.warnings.join(' | '));
 });
 
-test('junk in, warnings out — never a throw', () => {
+test('junk in, warnings out - never a throw', () => {
   const junk = [
     '', 'not markup at all', '<svg', '<svg></svg>', '<svg/>',
     '<svg xmlns="' + NS + '"><g><rect width="1" height="1"/></svg>',   // unclosed <g>
@@ -536,7 +536,7 @@ test('a <script> never reaches a derived layer, even if one got this far', () =>
   for (const l of r.layers) assert.ok(!/<script/i.test(l.markup), l.markup);
 });
 
-test('a NESTED <script> is dropped too — a layer body is a slice, and the slice has holes', () => {
+test('a NESTED <script> is dropped too - a layer body is a slice, and the slice has holes', () => {
   // This test used to place the <script> at the root ONLY, which is where the
   // enumerator's filter looked, so it read as a stronger guarantee than the code
   // gave: a layer body is a verbatim slice, and anything nested inside one rode
@@ -549,7 +549,7 @@ test('a NESTED <script> is dropped too — a layer body is a slice, and the slic
   assertPartition(r.layers, '<g><rect width="5" height="5"/></g><g><rect x="60" width="5" height="5"/></g>');
 });
 
-test('a NESTED <title>/<desc> is dropped too — that is where a name actually hides', () => {
+test('a NESTED <title>/<desc> is dropped too - that is where a name actually hides', () => {
   const r = enumerateSvgLayers(doc(
     '<g><title>Andy Fitzsimon draft</title><desc>internal only</desc><rect width="5" height="5"/></g>'
     + '<g><metadata>x</metadata><rect x="60" width="5" height="5"/></g>',
@@ -561,7 +561,7 @@ test('a NESTED <title>/<desc> is dropped too — that is where a name actually h
   }
 });
 
-test('a nested drop inside a CARRIED node goes too — the prologue is a slice as well', () => {
+test('a nested drop inside a CARRIED node goes too - the prologue is a slice as well', () => {
   const r = enumerateSvgLayers(doc(
     '<defs><linearGradient id="g1"><title>secret</title><stop offset="0"/></linearGradient></defs>'
     + '<g><rect width="5" height="5" fill="url(#g1)"/></g><g><rect x="60" width="5" height="5"/></g>',
@@ -606,7 +606,7 @@ test('analytic bounds cover every primitive we claim to measure', () => {
   }
 });
 
-test('a group containing anything unmeasurable is unmeasurable — never a partial extent', () => {
+test('a group containing anything unmeasurable is unmeasurable - never a partial extent', () => {
   const r = enumerateSvgLayers(doc('<g><rect width="5" height="5"/><text x="0" y="0">t</text></g><g><rect x="60" width="5" height="5"/></g>'));
   assert.equal(r.layers[0]!.bbox, null, 'the <text> makes the whole group unmeasurable');
   assert.deepEqual(r.layers[1]!.bbox, { x: 60, y: 0, w: 5, h: 5 });

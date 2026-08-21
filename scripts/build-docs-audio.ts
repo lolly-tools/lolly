@@ -326,7 +326,7 @@ async function synthesizeBlock(rt: KokoroRuntime, text: string): Promise<{ pcm: 
 
 async function renderPage(slug: string, tts: KokoroRuntime, tmp: string): Promise<Rendered> {
   const spoken = currentSpoken(slug);
-  if (!spoken) throw new Error(`${slug}: not listed in docs/build.ts pages[] — nothing to narrate`);
+  if (!spoken) throw new Error(`${slug}: not listed in docs/build.ts pages[] - nothing to narrate`);
 
   // Per-block synthesis, concatenated with the authored gaps. Cue times come
   // from sample positions - exact by construction - and each block's word
@@ -405,7 +405,7 @@ function writeArtefacts(slug: string, r: Rendered): void {
   writeFileSync(join(dir, 'meta.json'), `${JSON.stringify(r.meta, null, 2)}\n`);
   const kb = (n: number) => `${(n / 1024).toFixed(1)} KB`;
   process.stdout.write(
-    `  wrote docs/audio/${LANG}/${slug}/ — ${r.meta.duration.toFixed(1)}s, `
+    `  wrote docs/audio/${LANG}/${slug}/ - ${r.meta.duration.toFixed(1)}s, `
     + `opus ${kb(r.opus.length)}, ${r.cues.length} cues, ${r.words.length} words\n`,
   );
 }
@@ -447,7 +447,7 @@ async function loadKokoro(): Promise<KokoroRuntime> {
     const raw = readFileSync(voicePath);
     const voiceData = new Float32Array(raw.buffer.slice(raw.byteOffset, raw.byteOffset + raw.byteLength));
     if (voiceData.byteLength !== KOKORO_VOICE_BYTES) {
-      throw new Error(`voice ${VOICE} is ${voiceData.byteLength} bytes, expected ${KOKORO_VOICE_BYTES} — re-run scripts/fetch-kokoro-models.ts`);
+      throw new Error(`voice ${VOICE} is ${voiceData.byteLength} bytes, expected ${KOKORO_VOICE_BYTES} - re-run scripts/fetch-kokoro-models.ts`);
     }
     return {
       model: model as unknown as KokoroRuntime['model'],
@@ -460,7 +460,7 @@ async function loadKokoro(): Promise<KokoroRuntime> {
     bail([
       `Could not load the Kokoro model from ${MODEL_DIR}: ${(err as Error).message}`,
       '(@huggingface/transformers and phonemizer resolve from the shells/web',
-      'workspace — run `npm install` at the repo root if node_modules is bare,',
+      'workspace - run `npm install` at the repo root if node_modules is bare,',
       'and re-stage the model with `node scripts/fetch-kokoro-models.ts` if its',
       'files are damaged.)',
     ]);
@@ -511,9 +511,9 @@ async function main(): Promise<void> {
     for (const v of verdicts) {
       if (v.status === 'fresh') { process.stdout.write(`  fresh    ${v.slug}\n`); continue; }
       bad++;
-      if (v.status === 'unlisted') process.stdout.write(`  UNLISTED ${v.slug} — artefacts committed but docs/build.ts no longer lists the page\n`);
-      else if (v.status === 'missing') process.stdout.write(`  MISSING  ${v.slug} — launch page with no committed narration\n`);
-      else process.stdout.write(`  STALE    ${v.slug} — committed ${v.committed!.textHash.slice(0, 12)}… vs current ${v.currentHash!.slice(0, 12)}…\n`);
+      if (v.status === 'unlisted') process.stdout.write(`  UNLISTED ${v.slug} - artefacts committed but docs/build.ts no longer lists the page\n`);
+      else if (v.status === 'missing') process.stdout.write(`  MISSING  ${v.slug} - launch page with no committed narration\n`);
+      else process.stdout.write(`  STALE    ${v.slug} - committed ${v.committed!.textHash.slice(0, 12)}… vs current ${v.currentHash!.slice(0, 12)}…\n`);
     }
     process.stdout.write(bad ? `\n${bad} page(s) need attention. --check writes nothing; run without it to re-render.\n` : '\nAll narration is current.\n');
     process.exit(bad ? 1 : 0);
@@ -526,7 +526,7 @@ async function main(): Promise<void> {
   if (unlisted.length) {
     throw new Error(
       `launch page(s) not found in docs/build.ts pages[] (or their source file is missing): `
-      + `${unlisted.map((v) => v.slug).join(', ')} — fix LAUNCH_PAGES or pageSource()'s literal parse`,
+      + `${unlisted.map((v) => v.slug).join(', ')} - fix LAUNCH_PAGES or pageSource()'s literal parse`,
     );
   }
 
@@ -549,7 +549,7 @@ async function main(): Promise<void> {
 
   if (!ffmpegAvailable()) {
     bail([
-      'ffmpeg is not on PATH — it does the Opus encode and the loudness pass.',
+      'ffmpeg is not on PATH - it does the Opus encode and the loudness pass.',
       'Install it (macOS: `brew install ffmpeg`, needs libopus, which the',
       'default build includes) and re-run.',
     ]);
@@ -567,7 +567,7 @@ async function main(): Promise<void> {
     rmSync(tmp, { recursive: true, force: true });
   }
   process.stdout.write(
-    '\nDone. Commit docs/audio/ like docs/shots — tests/docs-audio-stale.test.ts\n'
+    '\nDone. Commit docs/audio/ like docs/shots - tests/docs-audio-stale.test.ts\n'
     + 'holds the artefacts to the staleness contract from here on.\n',
   );
 }

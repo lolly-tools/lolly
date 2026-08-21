@@ -308,7 +308,7 @@ test('every required attribute is present, correctly typed and correctly valued'
     pixelAspectRatio: 'float',
     screenWindowCenter: 'v2f',
     screenWindowWidth: 'float',
-    software: 'string',   // default source attribution — EXR's own generator field
+    software: 'string',   // default source attribution - EXR's own generator field
   });
   // The default `software` attribution names the source (safe ASCII, no scheme/params).
   assert.equal(f.strings.software, 'Lolly lolly.tools');

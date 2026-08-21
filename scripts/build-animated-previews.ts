@@ -126,7 +126,7 @@ async function runJob(context: BrowserContext, job: Job): Promise<void> {
   try {
     manifest = JSON.parse(await readFile(join(ROOT, 'tools', job.tool, 'tool.json'), 'utf8'));
   } catch {
-    console.log(`  · ${job.tool}: no manifest — skipped`);
+    console.log(`  · ${job.tool}: no manifest - skipped`);
     return;
   }
 
@@ -134,7 +134,7 @@ async function runJob(context: BrowserContext, job: Job): Promise<void> {
     const query = seedQuery(manifest, job.values ?? {});
     const bytes = await renderApng(context, job.tool, query, job);
     if (bytes) await writeAndReport(join(ROOT, 'tools', job.tool, 'card.png'), bytes);
-    else console.log(`  ✗ ${job.tool} card — capture failed`);
+    else console.log(`  ✗ ${job.tool} card - capture failed`);
     return;
   }
 
@@ -143,7 +143,7 @@ async function runJob(context: BrowserContext, job: Job): Promise<void> {
     (manifest as { examples?: unknown[]; featured?: { variants?: unknown[] } }).examples as never
     ?? (manifest as { featured?: { variants?: unknown[] } }).featured?.variants as never
     ?? [];
-  if (!looks.length) { console.log(`  · ${job.tool}: no examples — skipped`); return; }
+  if (!looks.length) { console.log(`  · ${job.tool}: no examples - skipped`); return; }
   for (let i = 0; i < looks.length; i++) {
     if (job.only && !job.only.includes(i)) continue;
     const values = looks[i]?.values;
@@ -151,7 +151,7 @@ async function runJob(context: BrowserContext, job: Job): Promise<void> {
     const query = seedQuery(manifest, values);
     const bytes = await renderApng(context, job.tool, query, job);
     if (bytes) await writeAndReport(join(ROOT, 'tools', job.tool, `look${i}.png`), bytes);
-    else console.log(`  ✗ ${job.tool} look${i} — capture failed`);
+    else console.log(`  ✗ ${job.tool} look${i} - capture failed`);
   }
 }
 
@@ -208,7 +208,7 @@ async function hasFfmpeg(): Promise<boolean> {
   if (!ffmpegChecked) {
     ffmpegChecked = true;
     try { await execFileP('ffmpeg', ['-version']); ffmpegOk = true; }
-    catch { ffmpegOk = false; console.log('  (ffmpeg not found — APNGs kept as full-RGBA; install ffmpeg to shrink ~75%)'); }
+    catch { ffmpegOk = false; console.log('  (ffmpeg not found - APNGs kept as full-RGBA; install ffmpeg to shrink ~75%)'); }
   }
   return ffmpegOk;
 }

@@ -86,7 +86,7 @@ export const isRateCardError = (r: RateCard | RateCardError): r is RateCardError
  *  Refused by NAME, belt-and-suspenders beyond the schema-invalid placeholder rates:
  *  a copy whose strings are still placeholders would fail the schema anyway, but the
  *  UNEDITED shipped file is refused with the clearest message regardless. */
-export const EXAMPLE_RATECARD_DIGEST = 'ef6b6002525d25ce';
+export const EXAMPLE_RATECARD_DIGEST = '2a5f07d3b865b929';
 
 /** The canonical `FinishKind` spellings a card's `finish` may use without a
  *  release. Built from the contract's `KNOWN_FINISH_KINDS`, never hand-copied. An

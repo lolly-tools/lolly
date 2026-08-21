@@ -69,7 +69,7 @@ function loadManifests(): Manifest[] {
 
 function build(): void {
   if (!existsSync(PREVIEWS_DIR)) {
-    console.log('No catalog/previews dir yet — nothing to bundle.');
+    console.log('No catalog/previews dir yet - nothing to bundle.');
     return;
   }
   const bundle: Record<string, BundleEntry> = {};
@@ -125,11 +125,11 @@ function build(): void {
   const json = JSON.stringify(sorted);
   const prev = existsSync(BUNDLE_PATH) ? readFileSync(BUNDLE_PATH, 'utf8') : '';
   if (json === prev) {
-    console.log(`✓ preview bundle unchanged — ${Object.keys(sorted).length} looks (${inlineSvg} inline svg, ${rasterRef} raster)`);
+    console.log(`✓ preview bundle unchanged - ${Object.keys(sorted).length} looks (${inlineSvg} inline svg, ${rasterRef} raster)`);
     return;
   }
   writeFileSync(BUNDLE_PATH, json);
-  console.log(`✓ Wrote ${BUNDLE_PATH.replace(ROOT + '/', '')} — ${Object.keys(sorted).length} looks (${inlineSvg} inline svg, ${rasterRef} raster), ${(json.length / 1024).toFixed(1)} KB`);
+  console.log(`✓ Wrote ${BUNDLE_PATH.replace(ROOT + '/', '')} - ${Object.keys(sorted).length} looks (${inlineSvg} inline svg, ${rasterRef} raster), ${(json.length / 1024).toFixed(1)} KB`);
 }
 
 build();

@@ -211,7 +211,7 @@ test('deflate: DecompressionStream (the url-pack codec path) decodes our streams
   assert.deepEqual(new Uint8Array(await new Response(stream).arrayBuffer()), samples[2]!, 'platform zlib inflate');
 });
 
-test('deflate: seeded property sweep — inflate(deflate(x)) === x across shapes', () => {
+test('deflate: seeded property sweep - inflate(deflate(x)) === x across shapes', () => {
   // The compressor's fuzz-style property lives HERE rather than in
   // tests/fuzz/targets.ts: that runner treats any thrown Error as a desired
   // parser rejection, which inverts for a compressor (a round-trip mismatch
@@ -221,7 +221,7 @@ test('deflate: seeded property sweep — inflate(deflate(x)) === x across shapes
     (n) => randomBytes(rng, n),
     (n) => new Uint8Array(n), // zeros
     (n) => { const d = new Uint8Array(n); for (let i = 0; i < n; i++) d[i] = i & 0xff; return d; }, // ramp
-    (n) => { // short period — hash-chain stress
+    (n) => { // short period - hash-chain stress
       const p = 2 + rng.int(6);
       const d = new Uint8Array(n);
       for (let i = 0; i < n; i++) d[i] = (i % p) * 40 & 0xff;
@@ -277,7 +277,7 @@ test('stream: empty input emits the same canonical minimal block as the one-shot
   assert.equal(inflateRawOracle(out).length, 0);
 });
 
-test('stream: slab-boundary cases round-trip (node:zlib) — under/exact/+1/many', async () => {
+test('stream: slab-boundary cases round-trip (node:zlib) - under/exact/+1/many', async () => {
   const rng = mulberry32(0x51ab5);
   // Mixed content: compressible runs AND incompressible noise, so both block
   // types are exercised, plus a repeated 4 KB motif that spans slab edges.
@@ -309,7 +309,7 @@ test('stream: slab-boundary cases round-trip (node:zlib) — under/exact/+1/many
   }
 });
 
-test('stream: slab size itself is irrelevant — 1-byte pushes decode identically', () => {
+test('stream: slab size itself is irrelevant - 1-byte pushes decode identically', () => {
   const rng = mulberry32(0x51ab5123);
   const data = new Uint8Array(70000);
   for (let i = 0; i < data.length; i++) data[i] = i % 4096 < 2000 ? (i % 7) * 30 : rng.byte();
@@ -472,7 +472,7 @@ test('stream: option sweep (lazy off, maxChain=1, tiny/huge blockBytes) stays va
   }
 });
 
-test('stream: seeded property sweep — inflate(stream(x)) === x across shapes and slabs', () => {
+test('stream: seeded property sweep - inflate(stream(x)) === x across shapes and slabs', () => {
   const rng = mulberry32(0x57ea11 | 0);
   const patterns: Array<(n: number) => Uint8Array> = [
     (n) => randomBytes(rng, n),

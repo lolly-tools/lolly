@@ -52,7 +52,7 @@ const RASTER_ALLOWED: Record<string, string> = {
     + 'and Chromium print flattens the ghost group opacity to opaque, hiding the live '
     + 'scene underneath. Re-check when the walker gains a docs-capture root that can opt '
     + 'INTO export-hidden chrome.',
-  // cc-verify-masthead left this list 2026-08-05: same fix as cc-verify-mobile — the masthead
+  // cc-verify-masthead left this list 2026-08-05: same fix as cc-verify-mobile - the masthead
   // is a wider frame of the same storm photo, now walker=1&format=svg&rasterDpi=96 with the
   // photo downscaled to its box (under the vector budget) AND its genAI credential preserved:
   // the walker carries the source's C2PA forward as a componentOf ingredient, so a re-verify
@@ -60,11 +60,11 @@ const RASTER_ALLOWED: Record<string, string> = {
   // downscale fix is exactly why a raster masthead was no longer acceptable here.
   // cc-verify-mobile left this list 2026-08-05: the walker CAN now downscale an embedded
   // raster to its box, via the `rasterDpi` recipe param (ExportOpts.rasterDpi). The mobile
-  // Verify shot is `walker=1&format=svg&rasterDpi=96` — vector chrome with the storm photo
+  // Verify shot is `walker=1&format=svg&rasterDpi=96` - vector chrome with the storm photo
   // embedded at its rendered box, under the vector budget. The masthead is a wider frame of
   // the same photo and could follow the same way.
   // incl-neuro-viz left this list 2026-07-31: the panel chrome is vector now, with only
-  // the WebGL canvas embedded as a bitmap <image> (the honest hybrid — a fragment
+  // the WebGL canvas embedded as a bitmap <image> (the honest hybrid - a fragment
   // shader's per-pixel field has no geometry to recover, but everything around it does).
   // The ?neuro demo renders a fixed driven frame sequence so the embedded bitmap is
   // byte-stable under the exact-string vector compare.
@@ -89,7 +89,7 @@ test('docs: every screenshot recipe is vector unless allowlisted with a reason',
     unexplained.map((r) => `${r.page}: ${r.slug} (format=${r.format})`),
     [],
     'A docs shot may only be a bitmap when it physically cannot be vector. Try '
-      + '`walker=1&format=svg` first — most of the original PNG list converted unchanged. '
+      + '`walker=1&format=svg` first - most of the original PNG list converted unchanged. '
       + 'If it genuinely cannot, add it to RASTER_ALLOWED with the reason.',
   );
 });
@@ -100,7 +100,7 @@ test('docs: the raster allowlist has no stale entries', () => {
   assert.deepEqual(
     stale,
     [],
-    'These slugs are no longer raster recipes — delete them from RASTER_ALLOWED so the '
+    'These slugs are no longer raster recipes - delete them from RASTER_ALLOWED so the '
       + 'list keeps meaning what it says.',
   );
 });
@@ -132,5 +132,5 @@ test('docs: no committed baseline is an undeclared bitmap', () => {
     }
   };
   const undeclared = bitmaps.filter((f) => !(baseSlug(f) in RASTER_ALLOWED));
-  assert.deepEqual(undeclared, [], 'Undeclared bitmap baselines in docs/shots — prune them.');
+  assert.deepEqual(undeclared, [], 'Undeclared bitmap baselines in docs/shots - prune them.');
 });

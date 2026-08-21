@@ -57,7 +57,7 @@ const UPDATE_GOLDENS = process.env.UPDATE_GOLDENS === '1';
 const OUTFIT_SRC = join(HERE, '..', 'shells', 'web', 'public', 'fonts', 'Outfit[wght].ttf');
 const outfitAvailable = existsSync(OUTFIT_SRC);
 const SKIP_NO_OUTFIT = outfitAvailable ? false
-  : `Platform font missing at ${OUTFIT_SRC} — text-outlining cases need it; ` +
+  : `Platform font missing at ${OUTFIT_SRC} - text-outlining cases need it; ` +
     'restore the committed shells/web/public/fonts/Outfit[wght].ttf to run them.';
 
 // ── self-contained fixture repo ─────────────────────────────────────────────
@@ -210,7 +210,7 @@ async function goldenCase(key: string, toolId: string, format: string,
     return live;
   }
   const expected = committed[key];
-  assert.ok(expected, `No committed golden for "${key}" — regenerate with: ` +
+  assert.ok(expected, `No committed golden for "${key}" - regenerate with: ` +
     'UPDATE_GOLDENS=1 node --import ./tests/css-stub.mjs --test tests/cli-export-golden.test.ts');
   assert.ok(live.equals(Buffer.from(expected.data, expected.encoding)),
     `Golden byte mismatch for "${key}" (CLI export output changed)`);
@@ -266,9 +266,9 @@ test('negative control: a perturbed input changes the svg AND emf bytes', async 
   const goldenEmf = UPDATE_GOLDENS ? regenerated['vector-mark.emf'] : committed['vector-mark.emf'];
   assert.ok(goldenSvg && goldenEmf, 'vector-mark goldens must exist before the control runs');
   assert.ok(!svg.equals(Buffer.from(goldenSvg.data, goldenSvg.encoding)),
-    'shade change must alter the svg bytes — the golden would pass on constant output');
+    'shade change must alter the svg bytes - the golden would pass on constant output');
   assert.ok(!emf.equals(Buffer.from(goldenEmf.data, goldenEmf.encoding)),
-    'shade change must alter the emf bytes — the golden would pass on constant output');
+    'shade change must alter the emf bytes - the golden would pass on constant output');
 });
 
 // ── text-mark: where outlining happens on the CLI, per format ───────────────
@@ -317,7 +317,7 @@ test('negative control: changing the label changes the outlined eps bytes (glyph
   const golden = UPDATE_GOLDENS ? regenerated['text-mark.eps'] : committed['text-mark.eps'];
   assert.ok(golden, 'text-mark.eps golden must exist before the control runs');
   assert.ok(!perturbed.equals(Buffer.from(golden.data, golden.encoding)),
-    'a one-letter label change must reshape the outlines — otherwise the text never reached HarfBuzz');
+    'a one-letter label change must reshape the outlines - otherwise the text never reached HarfBuzz');
 });
 
 // ── data format: engine-hydrated sibling template through the CLI bridge ────

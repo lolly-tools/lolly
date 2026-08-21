@@ -122,7 +122,7 @@ test('an allowlist rejects every URL no entry matches', async () => {
     const denied = [
       'https://other.example.com/tiles/1.png',      // different host entirely
       'http://api.example.com/v1/x',                // scheme is part of the prefix
-      'https://api.example.com.evil.io/v1/x',       // lookalike host — the /* boundary rule
+      'https://api.example.com.evil.io/v1/x',       // lookalike host - the /* boundary rule
       'https://api.example.com.evil.io/',
       'https://exact.example.com/two.json',         // exact entry allows one URL only
       'https://exact.example.com/one.json?x=1',     // ...not a query-string variant
@@ -176,7 +176,7 @@ test('tool code cannot widen the allowlist through the NetAPI it is handed', asy
   assert.deepEqual(Object.keys(net), ['fetch']);
   assert.deepEqual(Object.getOwnPropertyNames(net), ['fetch']);
   assert.equal(Object.getPrototypeOf(net), Object.prototype,
-    'the NetAPI should be a plain object — no class carrying accessors');
+    'the NetAPI should be a plain object - no class carrying accessors');
   const exposed = JSON.stringify(net);
   assert.equal(exposed, '{}', `the NetAPI must not serialise any config: ${exposed}`);
 
@@ -244,7 +244,7 @@ test('createNetAPI is defined in exactly one module', () => {
     if (/(?:export\s+)?function\s+createNetAPI\b/.test(src)) definers.push(relative(ROOT, file));
   }
   assert.deepEqual(definers, [NET_MODULE],
-    'the allowlist checker must have exactly one implementation — two copies drift');
+    'the allowlist checker must have exactly one implementation - two copies drift');
 });
 
 /** Assignments of the net API: `host.net = X` or `net: X` in a host literal/clone. */
@@ -299,7 +299,7 @@ test('every host.net assignment in every shell goes through createNetAPI', () =>
   // web/src/bridge/index.ts (the fail-closed boot default) and the three per-mount
   // scoped clones (web views/tool.ts, views/multi-edit.ts, pro/render-export.ts).
   assert.ok(sites.length >= 6,
-    `expected at least 6 host.net construction sites, found ${sites.length} (${sites.join(', ')}) — did the scan paths move?`);
+    `expected at least 6 host.net construction sites, found ${sites.length} (${sites.join(', ')}) - did the scan paths move?`);
   assert.deepEqual(offenders, [],
     'a shell is building a network API without the shared allowlist checker ('
     + NET_MODULE + '). host.net must be fail-closed in EVERY shell.');
@@ -311,7 +311,7 @@ test('the Tauri bridge overrides carry no net override', () => {
     let names: string[] = [];
     try { if (statSync(dir).isDirectory()) names = readdirSync(dir); } catch { continue; }
     assert.equal(names.some(n => /^net\./.test(n)), false,
-      `${shell}/bridge-overrides declares its own net — Tauri must inherit the web shell's allowlisted fetch`);
+      `${shell}/bridge-overrides declares its own net - Tauri must inherit the web shell's allowlisted fetch`);
   }
 });
 

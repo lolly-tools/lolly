@@ -69,7 +69,7 @@ export const WATERMARK_VERSION = 2;
 // real photos through real JPEG/crop/resize round-trips (via sharp), not
 // guessed; see tests/pixel-watermark-robustness.test.ts. Measured at the v2
 // scheme (strength 3.8, 22 mid-band coefficients):
-//   marked, non-resized true positives:  0.11 – 0.66   (JPEG q50→q95, PNG, 8px crop)
+//   marked, non-resized true positives:  0.11 - 0.66   (JPEG q50→q95, PNG, 8px crop)
 //   unmarked photo false-positive ceiling: ~0.017       (worst positive correlation)
 // The old 0.035 floor sat between those, but a wider corpus surfaced an
 // out-of-distribution false positive: an unmarked Rec.2100-PQ (HDR) JPEG scored

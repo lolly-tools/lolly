@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
-# loldev — one command for developing the lolly monorepo across its lolly-tools
+# loldev - one command for developing the lolly monorepo across its lolly-tools
 # submodules. Install puts it on your PATH (see `loldev help`). Works from any cwd;
 # operates on $LOLLY_ROOT (default ~/Build/lolly, override with the env var).
 #
 #   loldev gtg [-m "msg"] [--force] [--no-build]
-#       "good to go" — typecheck + full test suite + build/validate the catalog
+#       "good to go" - typecheck + full test suite + build/validate the catalog
 #       for EVERY live profile (gate, see SHIP_TARGETS in config.sh; the tests
 #       include the privacy-claim guards in tests/no-trackers.test.ts), then
 #       commit + push every
@@ -16,13 +16,13 @@
 #                                      Vercel uniformly (prod; --preview = preview URLs)
 #   loldev status | st                 what's dirty / ahead, per repo
 #   loldev build                       build:catalog + validate:catalog
-#   loldev previews [--preserve]       regenerate look/card thumbnails (slow, Playwright) — opt-in, run when a tool's look changes.
+#   loldev previews [--preserve]       regenerate look/card thumbnails (slow, Playwright) - opt-in, run when a tool's look changes.
 #                                      Overwrites every preview (now stamped: Imprint + C2PA); --preserve keeps existing, fills gaps only.
 #   loldev og [--preserve]             rebuild ALL the per-tool + per-view OG share cards, for EVERY mounted profile (catalog/og/*
-#                                      is committed per brand, so an active-profile-only run leaves the other brand stale — same
+#                                      is committed per brand, so an active-profile-only run leaves the other brand stale - same
 #                                      drift as build:catalog:all fixes). Playwright, opt-in. Overwrites every card (stamped:
 #                                      Imprint + C2PA); --preserve keeps existing, fills gaps only. Active profile restored, its
-#                                      stubs rebuilt last. (/info-page OG rebuilds with the docs site — build:info / `build:web`.)
+#                                      stubs rebuilt last. (/info-page OG rebuilds with the docs site - build:info / `build:web`.)
 #   loldev shots [--accept|--only=…]   capture + compare the docs screenshots (url-shot recipe links in docs/*.md → docs/shots/); also runs inside every gtg
 #   loldev shots --rebuild             full refresh: rebuild the shell, re-shoot EVERY recipe, write every baseline (even
 #                                      unchanged) and prune retired files. What you want after an engine/renderer change.
@@ -52,18 +52,18 @@ fi
 LOLLY_ROOT="${LOLLY_ROOT:-$HOME/Build/lolly}"
 SUB="$LOLLY_ROOT/scripts/subrepo"
 if [ ! -f "$SUB/config.sh" ]; then
-  echo "loldev: can't find $SUB/config.sh — set LOLLY_ROOT to your lolly checkout." >&2; exit 1
+  echo "loldev: can't find $SUB/config.sh - set LOLLY_ROOT to your lolly checkout." >&2; exit 1
 fi
 # shellcheck source=/dev/null
 source "$SUB/config.sh"
-set +e +u   # interactive resilience — keep going across submodules, handle errors inline
+set +e +u   # interactive resilience - keep going across submodules, handle errors inline
 cd "$REPO_ROOT" || { echo "loldev: cannot cd $REPO_ROOT" >&2; exit 1; }
 
 usage() { awk 'NR>1 && /^#/ {sub(/^# ?/,""); print; next} NR>1 {exit}' "${BASH_SOURCE[0]}"; }
 
 # Submodules gtg must VISIT. Dirty is not enough: a submodule that was committed
 # by hand (or by a previous half-finished gtg) but never pushed has a CLEAN status,
-# so keying on `status --porcelain` alone skipped it — and the parent was then
+# so keying on `status --porcelain` alone skipped it - and the parent was then
 # pushed anyway, publishing a pointer to a SHA that exists on nobody's remote.
 # That breaks `git submodule update --init --recursive` for every clone, every CI
 # run and every Vercel git build. Observed three times on 2026-07-30.
@@ -75,7 +75,7 @@ changed_submodules() {
     [ -n "$(git -C "$p" status --porcelain 2>/dev/null)" ] && { echo "$p"; continue; }
     ahead=$(git -C "$p" rev-list --count '@{u}..HEAD' 2>/dev/null)
     if [ -z "$ahead" ]; then
-      # No upstream (or detached) — only interesting if it actually has commits.
+      # No upstream (or detached) - only interesting if it actually has commits.
       git -C "$p" rev-parse --verify -q HEAD >/dev/null 2>&1 && echo "$p"
     elif [ "$ahead" -gt 0 ]; then
       echo "$p"
@@ -88,10 +88,10 @@ GATE_TEST_LOG="${TMPDIR:-/tmp}/loldev-gate-test.log"
 do_build() {
   phase "🔍" "Build gate"
   step "type-checking every project"
-  npm run --silent typecheck || { err "typecheck failed — fix it, or run 'loldev push' to bypass the build gate"; return 1; }
+  npm run --silent typecheck || { err "typecheck failed - fix it, or run 'loldev push' to bypass the build gate"; return 1; }
   ok "typecheck passed"
 
-  # The full node:test suite — including tests/no-trackers.test.ts, which is
+  # The full node:test suite - including tests/no-trackers.test.ts, which is
   # where the privacy policy's checkable claims (no analytics SDK, no DoH
   # resolver, no CA issuance log) are actually enforced. A ship gate that skips
   # the tests is how a green deploy once carried 4 failing recorder tests; and
@@ -103,12 +103,12 @@ do_build() {
   # `npm test` just to read WHICH test failed. PIPESTATUS keeps the suite's exit
   # status authoritative through the tee.
   npm run --silent test >"$GATE_TEST_LOG" 2>&1
-  [ "${PIPESTATUS[0]:-$?}" -eq 0 ] || { err "tests failed — see $GATE_TEST_LOG (or re-run: npm test)"; return 1; }
+  [ "${PIPESTATUS[0]:-$?}" -eq 0 ] || { err "tests failed - see $GATE_TEST_LOG (or re-run: npm test)"; return 1; }
   ok "tests passed"
 
   # build:catalog re-rolls catalog/previews/bundle.json (pure filesystem, no browser).
   # The heavy Playwright card/look render is a separate, opt-in `loldev previews`.
-  # Every SHIP_TARGETS profile feeds a live site (bt=suse, lolly-start=lolly-start) —
+  # Every SHIP_TARGETS profile feeds a live site (bt=suse, lolly-start=lolly-start) -
   # validate each one's catalog, not just whichever profile happens to be checked
   # out locally, so a push can't silently break the site we're not developing in.
   local starting; starting="$(cat "$REPO_ROOT/.lolly-profile" 2>/dev/null)"
@@ -119,14 +119,14 @@ do_build() {
     seen+=("$profile")
     step "building + validating the '$profile' catalog ($domain)"
     node scripts/use-profile.ts "$profile" >/dev/null 2>&1 \
-      || { err "profile '$profile' isn't mounted here — can't validate $domain before push"; return 1; }
+      || { err "profile '$profile' isn't mounted here - can't validate $domain before push"; return 1; }
     npm run --silent build:catalog    || { err "build:catalog failed for profile '$profile'";    return 1; }
     npm run --silent validate:catalog || { err "validate:catalog failed for profile '$profile'"; return 1; }
     ok "'$profile' catalog built + validated"
   done
   # Restore the pre-gate profile. If none was set (fresh checkout / no
   # .lolly-profile), the loop above leaves the LAST-iterated SHIP_TARGET
-  # (lolly-start) pinned locally — that is exactly the stale sticky state that
+  # (lolly-start) pinned locally - that is exactly the stale sticky state that
   # once leaked the blank brand into a lolly.tools deploy. Fall back to
   # $LOLLY_PROFILE, else profiles.json's default, so we never silently pin the
   # blank brand on someone who never chose one.
@@ -134,25 +134,25 @@ do_build() {
   [ -z "$restore" ] && restore="${LOLLY_PROFILE:-$(node -e 'process.stdout.write(require("./profiles.json").default||"")' 2>/dev/null)}"
   [ -n "$restore" ] && node scripts/use-profile.ts "$restore" >/dev/null 2>&1
 
-  # Docs screenshots — capture the web shell (pinned to the neutral lolly-start
+  # Docs screenshots - capture the web shell (pinned to the neutral lolly-start
   # brand; the script switches + restores the profile itself) at every url-shot
   # recipe link written inline in docs/*.md and compare against the committed
-  # docs/shots/ baselines (scripts/build-docs-shots.ts — Chromium + a local vite
+  # docs/shots/ baselines (scripts/build-docs-shots.ts - Chromium + a local vite
   # build, so this only runs on a build machine, never on Vercel). Exit 2 = shots
-  # changed: warn but keep going — the committed (still-valid) baselines ship;
+  # changed: warn but keep going - the committed (still-valid) baselines ship;
   # promoting new pixels is a deliberate `npm run docs:shots -- --accept`. Any
   # other failure blocks the gate.
   #
   # --changed narrows to recipes whose docs page differs from origin/main, so a
   # gate run only re-shoots what a commit could have altered (no changed page =>
   # near-instant, no vite build). The tradeoff: an app/engine change that alters an
-  # UNCHANGED recipe's render won't recapture here — that needs a deliberate
+  # UNCHANGED recipe's render won't recapture here - that needs a deliberate
   # `npm run docs:shots -- --rebuild` after a renderer change (as the shots help says).
   step "docs screenshots (capture + compare, lolly-start brand)"
   npm run --silent docs:shots -- --changed
   local shotrc=$?
   if [ "$shotrc" = 0 ]; then ok "docs screenshots verified"
-  elif [ "$shotrc" = 2 ]; then warn "docs screenshots CHANGED — review, then promote with: npm run docs:shots -- --accept"
+  elif [ "$shotrc" = 2 ]; then warn "docs screenshots CHANGED - review, then promote with: npm run docs:shots -- --accept"
   else err "docs screenshot capture failed"; return 1
   fi
 }
@@ -169,7 +169,7 @@ gtg_summary() {
     printf "  ${c_bold}${c_red}✗  finished with %s failure(s)${c_reset}  ${c_gray}·  %ss${c_reset}\n" "$f" "$secs"
   fi
   for x in "${PUSHED[@]}"; do printf "     ${c_grn}⬆${c_reset}  ${c_white}%s${c_reset}\n" "$x"; done
-  for x in "${NOOP[@]}";   do printf "     ${c_gray}·  %s — unchanged${c_reset}\n" "$x"; done
+  for x in "${NOOP[@]}";   do printf "     ${c_gray}·  %s - unchanged${c_reset}\n" "$x"; done
   for x in "${FAILED[@]}"; do printf "     ${c_red}✗  %s${c_reset}\n" "$x"; done
   rule
 }
@@ -186,20 +186,20 @@ gtg() {
   done
 
   local start=$SECONDS
-  PUSHED=(); FAILED=(); NOOP=()   # globals — read back in gtg_summary
+  PUSHED=(); FAILED=(); NOOP=()   # globals - read back in gtg_summary
   banner "🍭" "$title" "$blurb"
 
   if [ "$NOBUILD" = 1 ]; then
     phase "⏩" "Build gate"; info "skipped (push mode)"
   else
-    do_build || { err "build failed — not pushing"; return 1; }
+    do_build || { err "build failed - not pushing"; return 1; }
   fi
 
   # What `git add -A` below is about to sweep up, printed BEFORE it happens.
   # gtg stages the entire working tree, so anything a concurrent session (another
   # agent, another terminal, an editor's autosave) has in flight gets committed and
   # pushed under THIS run's message. That happened twice on 2026-07-30. A lock does
-  # not help — the other writer is not gtg — but seeing the list does: an unexpected
+  # not help - the other writer is not gtg - but seeing the list does: an unexpected
   # path here is the cue to stop. Cheap, non-interactive, and it never blocks.
   show_sweep_scope() {
     local p n files
@@ -224,13 +224,13 @@ gtg() {
     any=1; repo="$ORG/$(repo_for_path "$p")"
     step "$p  →  $repo"
     git -C "$p" add -A
-    # Commit if there is anything to commit — but PUSH REGARDLESS. These used to be
+    # Commit if there is anything to commit - but PUSH REGARDLESS. These used to be
     # nested, so "nothing to commit" also meant "nothing pushed", which is half of
     # the unpushed-pointer bug above (the other half was never visiting the repo).
     git -C "$p" commit --allow-empty-message -m "$MSG" >/dev/null 2>&1
     if [ -z "$(git -C "$p" log '@{u}..HEAD' --oneline 2>/dev/null)" ] \
        && git -C "$p" rev-parse --abbrev-ref '@{u}' >/dev/null 2>&1; then
-      warn "$p — already up to date"; NOOP+=("$p")
+      warn "$p - already up to date"; NOOP+=("$p")
     elif out=$(git -C "$p" push 2>&1); then
       ok "pushed $p"; PUSHED+=("$p  →  $repo")
     else
@@ -254,7 +254,7 @@ gtg() {
     ok "parent pushed"; PUSHED+=("(parent)  →  $ORG/lolly")
   else
     printf '%s\n' "$out" | sed "s/^/        ${c_red}│${c_reset} /"
-    err "parent push rejected — the FIRST push after the history rewrite needs:  loldev gtg --force"
+    err "parent push rejected - the FIRST push after the history rewrite needs:  loldev gtg --force"
     FAILED+=("(parent)")
   fi
 
@@ -294,8 +294,8 @@ newest_prod_url() {
 # Poll a deployment URL to a terminal state. Prints ONLY the final token to stdout
 # (progress to stderr, so `state=$(wait_ready ...)` captures a single clean token).
 # Return: 0=READY, 1=ERROR/CANCELED, 2=timeout. Anything that is not an EXACT
-# READY / ERROR / CANCELED token — QUEUED/INITIALIZING/BUILDING/UPLOADING, an empty
-# read, a failed `vercel inspect`, an unrecognised token — is treated as "keep
+# READY / ERROR / CANCELED token - QUEUED/INITIALIZING/BUILDING/UPLOADING, an empty
+# read, a failed `vercel inspect`, an unrecognised token - is treated as "keep
 # polling", so a transient inspect hiccup is never misread as a build failure (that
 # would just move the original false-failure bug from the log stream to this poll).
 wait_ready() {
@@ -316,8 +316,8 @@ wait_ready() {
 # ship() is host-agnostic: it orchestrates  publish → wait-for-ready → bind
 # success to deployment IDENTITY → verify the live brand,  and dispatches every
 # host-specific step to a driver picked per SHIP_TARGET (optional 5th field,
-# default 'vercel'; see config.sh). To add a target — e.g. when deployment moves
-# to internal IT — implement these functions with a `<name>_` prefix and put
+# default 'vercel'; see config.sh). To add a target - e.g. when deployment moves
+# to internal IT - implement these functions with a `<name>_` prefix and put
 # `|<name>` on that target's SHIP_TARGETS entry; NOTHING in ship() changes.
 # Contract (all progress → stderr; the single stdout value is noted):
 #   <drv>_setup <id> <domain>       scope creds/host for this target (may no-op)
@@ -346,12 +346,12 @@ vercel_logs_hint()   { printf '  logs:  VERCEL_ORG_ID=%s VERCEL_PROJECT_ID=%s np
 
 # Upload + queue a build with --no-wait: the CLI creates + uploads the deployment,
 # prints its *.vercel.app URL, and exits WITHOUT holding the build-log stream that
-# drops on flaky links — so this exit reflects only the UPLOAD; the build's real
+# drops on flaky links - so this exit reflects only the UPLOAD; the build's real
 # outcome is read from readyState by vercel_wait_ready (THAT decoupling is the
 # "fails despite a successful deploy" fix). --archive=tgz ships the local tree incl.
 # submodule content; --build-env pins the brand (repo = source of truth); node_modules
 # and .git are NOT in the tarball (Vercel default-ignores both; .vercelignore lists
-# node_modules too) — no parking ritual. A dropped finalize-POST creates no deployment:
+# node_modules too) - no parking ritual. A dropped finalize-POST creates no deployment:
 # detected by the missing URL and retried; if only the URL PRINT was lost, a freshly-
 # created deployment is adopted instead of re-uploading (the prod identity+brand gate
 # in ship() still validates whatever ends up live, so adoption is safe).
@@ -366,19 +366,19 @@ vercel_publish() {
     log="$(mktemp -t loldev-ship.XXXXXX)"
     # bt has NO git integration (disconnected 2026-08-10: a git clone can't mount
     # the private suse submodule, so a git build would silently ship the wrong
-    # brand to lolly.tools) — this CLI archive path is the only way bt deploys.
+    # brand to lolly.tools) - this CLI archive path is the only way bt deploys.
     # Never re-add an Ignored Build Step to bt: it cancels CLI builds too, and
     # per-deploy --build-env vars are invisible to it. LOLLY_CLI_DEPLOY=1 is a
     # harmless marker distinguishing loldev deploys in build logs.
     # ONNXRUNTIME_NODE_INSTALL_CUDA=skip: onnxruntime-node's postinstall fetches a
     # CUDA payload from a Microsoft CDN that Vercel's build network can't always
     # reach (ETIMEDOUT killed a prod build 2026-08-10); the GPU EP is useless in a
-    # serverless build anyway. Also set as project env on both projects — this
+    # serverless build anyway. Also set as project env on both projects - this
     # flag is the backstop if that ever gets lost.
     # NO --archive=tgz: an archive is one opaque blob Vercel cannot content-dedupe,
     # so the ~1.3 GB of gitignored ONNX models under shells/web/public/models (matte,
     # upscale, trustmark, kokoro, whisper) re-uploaded in full EVERY deploy even though
-    # they never change — the bulk of the ~1.5 GB/site upload and what dropped on flaky
+    # they never change - the bulk of the ~1.5 GB/site upload and what dropped on flaky
     # links. Per-file upload lets Vercel skip blobs it already has: the models upload
     # once, then a typical ship sends only the files that actually changed. The models
     # still ship (they are gitignored but NOT in .vercelignore, and Vercel ignores
@@ -390,22 +390,22 @@ vercel_publish() {
       --build-env "ONNXRUNTIME_NODE_INSTALL_CUDA=skip" \
       --yes 2>&1 | tee "$log" >&2
     rc=${PIPESTATUS[0]}
-    # The deployment URL is the *.vercel.app host — NEVER the vercel.com Inspect
+    # The deployment URL is the *.vercel.app host - NEVER the vercel.com Inspect
     # dashboard link (which `vercel inspect` cannot resolve). Restrict the match.
     url="$(grep -Eo 'https://[a-z0-9-]+\.vercel\.app' "$log" | tail -1)"
     rm -f "$log"
     [ -n "$url" ] && break
-    # No URL — a large-archive finalize-POST likely dropped before creating the
+    # No URL - a large-archive finalize-POST likely dropped before creating the
     # deployment. Give a just-queued deploy a few seconds to surface (ls is eventually
     # consistent), adopt it if one appeared, else retry the upload.
-    warn "no deployment URL (exit $rc) — checking whether one was created…" >&2
+    warn "no deployment URL (exit $rc) - checking whether one was created…" >&2
     for (( rtry=1; rtry<=5; rtry++ )); do
       url="$(newest_prod_url)"
       [ -n "$url" ] && [ "$url" != "$snap" ] && break
       url=""; sleep 6
     done
     [ -n "$url" ] && { warn "adopted $url (stdout lost; a new deployment exists)" >&2; break; }
-    warn "no deployment created — retrying the upload" >&2
+    warn "no deployment created - retrying the upload" >&2
   done
   [ -z "$url" ] && return 1
   printf '%s' "$url"
@@ -417,25 +417,25 @@ vercel_publish() {
 # LOCALLY with the brand pinned, rsync it to a fresh release dir on the host over SSH,
 # then atomically swap the `current` symlink nginx serves (zero-downtime; rollback =
 # repoint the symlink to a prior release). Readiness + IDENTITY come from the site's
-# OWN /precache.json `version` (the web build already emits it) — there is no server-
+# OWN /precache.json `version` (the web build already emits it) - there is no server-
 # side build to wait on, so the poll just confirms the live version is ours (covers
 # rsync/CDN propagation), which is exactly the identity-binding the contract wants.
 # Configure via env (REQUIRED where marked):
 #   LOLLY_IT_SSH       ssh target/alias, e.g. deploy@web01.suse.internal   [required]
 #   LOLLY_IT_RELEASES  absolute releases dir on the host, e.g. /srv/lolly/releases  [required]
 #   LOLLY_IT_CURRENT   the `current` symlink nginx serves, e.g. /srv/lolly/current  [required]
-# TODO(IT): (1) the api/ functions (mcp, ca) need a Node runtime on the host — a systemd
+# TODO(IT): (1) the api/ functions (mcp, ca) need a Node runtime on the host - a systemd
 #   unit or a container; this driver ships the STATIC site, so wire the functions into
 #   _publish after the rsync and reload their service. (2) _publish switches the local
-#   profile view to build the right brand, which MUTATES it — for multi-target ships
+#   profile view to build the right brand, which MUTATES it - for multi-target ships
 #   restore afterwards (`loldev profile <default>`). (3) a push-swap model has no
 #   throwaway preview URL, so --preview just 200-checks the domain; refine if IT offers previews.
-internal_it_setup()    { IT_DOMAIN="$2"; }       # $1=id(unused) $2=domain — stash for readiness/liveness
+internal_it_setup()    { IT_DOMAIN="$2"; }       # $1=id(unused) $2=domain - stash for readiness/liveness
 internal_it_teardown() { unset IT_DOMAIN; }
 internal_it_identity() { printf '%s' "$1"; }     # the handle already IS the release id
 internal_it_logs_hint(){ printf '  logs:  ssh %s -- journalctl -u lolly --since -10min\n' "${LOLLY_IT_SSH:-<host>}" >&2; }
 
-# The release id a DOMAIN currently serves — read the live site's own version stamp.
+# The release id a DOMAIN currently serves - read the live site's own version stamp.
 internal_it_promoted_id() {   # $1=domain
   curl -fsS --max-time 20 "https://$1/precache.json" 2>/dev/null \
     | node -e 'let s="";process.stdin.on("data",c=>s+=c).on("end",()=>{try{process.stdout.write(String(JSON.parse(s).version||""))}catch(e){}})'
@@ -452,7 +452,7 @@ internal_it_publish() {   # $1=name $2=profile $3=mode
   node scripts/use-profile.ts "$profile" 1>&2 || return 1     # NOTE: mutates the local active profile view
   ( export LOLLY_PROFILE="$profile"; npm run build:web ) 1>&2 || return 1
   rid="$(node -e 'process.stdout.write(String(require("./shells/web/dist/precache.json").version||""))' 2>/dev/null)"
-  [ -z "$rid" ] && { err "internal_it: no dist/precache.json version — build incomplete"; return 1; }
+  [ -z "$rid" ] && { err "internal_it: no dist/precache.json version - build incomplete"; return 1; }
   dest="$LOLLY_IT_RELEASES/$rid"
   step "rsync dist/ → $LOLLY_IT_SSH:$dest" >&2
   rsync -a --delete shells/web/dist/ "$LOLLY_IT_SSH:$dest/" 1>&2 || return 1
@@ -478,19 +478,19 @@ internal_it_wait_ready() {   # $1=handle(release id)
 internal_it_liveness() { curl -fsI --max-time 30 "https://${IT_DOMAIN:-}" >/dev/null 2>&1; }
 
 # Post-deploy brand assertion. The brand a project actually builds is governed
-# ENTIRELY by its Vercel LOLLY_PROFILE env — which this toolkit never sets and,
+# ENTIRELY by its Vercel LOLLY_PROFILE env - which this toolkit never sets and,
 # until now, never checked. A missing/typo'd env silently ships the wrong brand
 # to a live domain while ship() still prints a green banner (it once shipped the
 # blank brand to lolly.tools). This reads the freshly-deployed domain's catalog
 # and FAILS the ship if the live tool set doesn't match the set the target's
-# declared profile is supposed to serve. Prod only — a preview deploy gets a
+# declared profile is supposed to serve. Prod only - a preview deploy gets a
 # throwaway URL and never updates the domain alias, so there's nothing to assert.
 # $1=profile  $2=domain  $3=project id (for the hint).
 verify_deploy() {
   local profile="$1" domain="$2" id="$3" expected actual got="" tries=0
   expected="$(node -e 'const p=require("./profiles.json").profiles[process.argv[1]];if(!p)process.exit(3);process.stdout.write(String((require("./"+p.catalog+"/tools/index.json").tools||[]).length))' "$profile" 2>/dev/null)"
   if [ -z "$expected" ]; then
-    warn "verify: can't read the expected catalog for profile '$profile' — skipping brand assertion for $domain"
+    warn "verify: can't read the expected catalog for profile '$profile' - skipping brand assertion for $domain"
     return 0
   fi
   step "verifying $domain is serving the '$profile' brand (expecting $expected tools)"
@@ -498,23 +498,23 @@ verify_deploy() {
     actual="$(curl -fsS --max-time 30 "https://$domain/catalog/tools/index.json" 2>/dev/null \
       | node -e 'let s="";process.stdin.on("data",c=>s+=c).on("end",()=>{try{process.stdout.write(String((JSON.parse(s).tools||[]).length))}catch(e){process.stdout.write("")}})' 2>/dev/null)"
     [ -n "$actual" ] && got="$actual"
-    [ "$actual" = "$expected" ] && { ok "verify: $domain serving '$profile' — $actual tools live"; return 0; }
+    [ "$actual" = "$expected" ] && { ok "verify: $domain serving '$profile' - $actual tools live"; return 0; }
     tries=$((tries + 1)); sleep 5
   done
   # Never got a readable count. ship() only calls verify_deploy AFTER confirming the
   # domain already resolves to our READY deployment, so an unreadable catalog here is
-  # a transient CDN/network blip, not a wrong brand — don't hard-fail a live deploy.
+  # a transient CDN/network blip, not a wrong brand - don't hard-fail a live deploy.
   if [ -z "$got" ]; then
-    warn "verify: could not read $domain/catalog after $tries checks — deploy is live + READY, brand unconfirmed (transient?)"
+    warn "verify: could not read $domain/catalog after $tries checks - deploy is live + READY, brand unconfirmed (transient?)"
     return 0
   fi
-  err "verify: $domain shipped the WRONG brand — expected profile '$profile' ($expected tools) but the live catalog shows '$got'"
+  err "verify: $domain shipped the WRONG brand - expected profile '$profile' ($expected tools) but the live catalog shows '$got'"
   err "  the deploy is live but built the wrong brand. Check this project's LOLLY_PROFILE env:"
   err "    VERCEL_ORG_ID=$VERCEL_TEAM_ID VERCEL_PROJECT_ID=$id npx vercel env ls"
   return 1
 }
 
-# ship = gtg (build + commit + push to GitHub) THEN deploy to Vercel — EVERY
+# ship = gtg (build + commit + push to GitHub) THEN deploy to Vercel - EVERY
 # project in SHIP_TARGETS, uniformly (currently `bt`→lolly.tools/SUSE and
 # `lolly-start`→lolly.art/blank brand), so `loldev ship` never leaves one site
 # stale relative to the other. Uses `npx vercel` (CLI not installed globally) +
@@ -524,7 +524,7 @@ verify_deploy() {
 # for every target, so submodule content ships and Vercel compiles api/
 # functions. The brand each target builds is PINNED per-deploy from SHIP_TARGETS
 # via `--build-env LOLLY_PROFILE=<profile>` (repo = source of truth), so the right
-# profile — and therefore the whole brand: palette, tokens, fonts, tools, catalog —
+# profile - and therefore the whole brand: palette, tokens, fonts, tools, catalog -
 # always lands on the right domain regardless of dashboard/local state. Deploys use
 # --no-wait so the CLI's flaky post-upload wait can never false-fail a good build:
 # success is read from Vercel's own readyState, then BOUND to our deployment id
@@ -532,12 +532,12 @@ verify_deploy() {
 # (no deployment created) is retried; a build ERROR/timeout is a real, reported failure.
 # --preview → preview URLs instead of prod (liveness checked directly, no domain alias).
 # The host-specific steps run through a DRIVER (default 'vercel'; see the driver contract
-# above the helpers), selected per SHIP_TARGET — so a new target (e.g. internal IT) is an
+# above the helpers), selected per SHIP_TARGET - so a new target (e.g. internal IT) is an
 # adapter + a SHIP_TARGETS field, not a ship() rewrite. The orchestration here is host-agnostic.
 ship() {
   local PREVIEW=0 gargs=() a
   for a in "$@"; do [ "$a" = "--preview" ] && PREVIEW=1 || gargs+=("$a"); done
-  gtg "${gargs[@]}" || { err "gtg failed — not deploying"; return 1; }
+  gtg "${gargs[@]}" || { err "gtg failed - not deploying"; return 1; }
 
   local tgt mode
   if [ "$PREVIEW" = 1 ]; then tgt="PREVIEW"; mode="preview"; else tgt="PRODUCTION"; mode="prod"; fi
@@ -549,14 +549,14 @@ ship() {
     driver="${driver:-vercel}"                                # SHIP_TARGETS 5th field, default vercel
     phase "🚀" "Deploy → $driver ($name → $domain, $profile · $tgt)"
 
-    # Per-target scope for this driver (vercel: export the project env — never touches
+    # Per-target scope for this driver (vercel: export the project env - never touches
     # the local .vercel/ link, which stays pointed at bt for `vercel dev`). Every path
     # out of the loop body calls _teardown, so the scope never leaks between targets.
     "${driver}_setup" "$id" "$domain"
 
     # --- 1. publish -------------------------------------------------------
     # The driver owns transport + retry. stdout is the deployment HANDLE; its exit code
-    # reflects only whether a deployment was CREATED, never the build outcome — so a
+    # reflects only whether a deployment was CREATED, never the build outcome - so a
     # flaky link during the CLI's post-upload wait can't false-fail a good build (that
     # was the "fails despite a successful deploy" bug). The brand is pinned per-build via
     # the profile (repo = source of truth); the build's real outcome is read in step 2.
@@ -571,15 +571,15 @@ ship() {
     step "waiting for $name to build ($url · readyState ≤$(( ${WAIT_READY_TIMEOUT:-900} / 60 ))m)"
     state="$("${driver}_wait_ready" "$url")"; rc=$?
     if [ "$rc" -eq 1 ]; then
-      err "build FAILED: $name — deployment $state"
+      err "build FAILED: $name - deployment $state"
       command -v "${driver}_logs_hint" >/dev/null 2>&1 && "${driver}_logs_hint" "$url"
       SFAILED+=("$name → $domain (build $state)"); "${driver}_teardown"; continue
     fi
     if [ "$rc" -ne 0 ]; then
-      # Timeout with NO confirmed READY. Fail CLOSED — do NOT "rescue" via the domain
+      # Timeout with NO confirmed READY. Fail CLOSED - do NOT "rescue" via the domain
       # brand check: on a same-brand redeploy the PREVIOUS deployment already serves the
       # right brand, so a brand match here would falsely pass a stuck/slow build.
-      err "build did not reach READY within ${WAIT_READY_TIMEOUT:-900}s: $name (last: ${state:-unknown}) — raise LOLDEV_WAIT_READY_TIMEOUT"
+      err "build did not reach READY within ${WAIT_READY_TIMEOUT:-900}s: $name (last: ${state:-unknown}) - raise LOLDEV_WAIT_READY_TIMEOUT"
       command -v "${driver}_logs_hint" >/dev/null 2>&1 && "${driver}_logs_hint" "$url"
       SFAILED+=("$name → $domain (build timeout)"); "${driver}_teardown"; continue
     fi
@@ -587,13 +587,13 @@ ship() {
 
     # --- 3. success is authoritative on OUR deployment, never a CLI exit code
     if [ "$mode" = preview ]; then
-      # No domain alias to assert — READY plus a 200 from the deployment handle is success.
+      # No domain alias to assert - READY plus a 200 from the deployment handle is success.
       if "${driver}_liveness" "$url"; then SHIPPED+=("$name → $url")
       else SFAILED+=("$name → $url (READY but not serving)"); fi
       "${driver}_teardown"; continue
     fi
     # Prod: wait for the domain to actually resolve to OUR deployment id before the brand
-    # check — otherwise verify_deploy could read the PREVIOUS same-brand deployment and
+    # check - otherwise verify_deploy could read the PREVIOUS same-brand deployment and
     # pass while ours hasn't gone live. This binds success to deployment IDENTITY.
     waited=0; live=""
     while [ "$waited" -lt "${ALIAS_FLIP_TIMEOUT:-120}" ]; do
@@ -605,7 +605,7 @@ ship() {
       err "$domain did not promote to our deployment within ${ALIAS_FLIP_TIMEOUT:-120}s (ours=$our_id, live=${live:-none})"
       SFAILED+=("$name → $domain (built READY but never promoted)"); "${driver}_teardown"; continue
     fi
-    # The domain now serves OUR deployment — assert the brand it built is correct (shared).
+    # The domain now serves OUR deployment - assert the brand it built is correct (shared).
     if verify_deploy "$profile" "$domain" "$id"; then
       line="$domain"; [ -n "$url" ] && line="$line  ·  $url"
       SHIPPED+=("$line")
@@ -632,12 +632,12 @@ ship() {
 # Most contributors never need the whole recursive clone (the docs history alone
 # is ~270M of screenshot churn). But npm workspaces need EVERY workspace
 # package.json on disk before `npm install` resolves, and the bootstrap guard
-# (scripts/check-bootstrap.ts) also sentinels docs/ + community/ — so no persona
+# (scripts/check-bootstrap.ts) also sentinels docs/ + community/ - so no persona
 # can simply omit those. Slimness comes from DEPTH, not absence: full history
 # where the persona actually develops, `--depth 1` where presence is all npm
 # wants. Only the tauri shells + the chrome extension are skippable outright
 # (not workspaces, not sentinels). brands/suse is `update = none` in .gitmodules,
-# so every path here skips it and the blank lolly-start profile applies — exactly
+# so every path here skips it and the blank lolly-start profile applies - exactly
 # like any public clone. Pairs with a `--filter=blob:none` PARENT clone (partial
 # clone: old parent blobs fetch on demand, so history spelunking needs network).
 # See docs/contributing-setup.md for the user-facing walkthrough.
@@ -648,12 +648,12 @@ ship() {
 setup_shallow() {
   local p out
   for p in "$@"; do
-    [ -e "$p/.git" ] && { info "$p — already present"; continue; }
+    [ -e "$p/.git" ] && { info "$p - already present"; continue; }
     step "init $p (--depth 1)"
     if out=$(git submodule update --init --depth 1 "$p" 2>&1); then
       ok "$p (shallow)"
     else
-      warn "$p: shallow init failed — retrying with full history"
+      warn "$p: shallow init failed - retrying with full history"
       out=$(git submodule update --init "$p" 2>&1) && ok "$p (full)" \
         || { printf '%s\n' "$out" | sed "s/^/        ${c_red}│${c_reset} /"; err "could not init $p"; return 1; }
     fi
@@ -669,11 +669,11 @@ setup_full_history() {
     if [ -e "$p/.git" ]; then
       gd="$(git -C "$p" rev-parse --absolute-git-dir 2>/dev/null)"
       if [ -n "$gd" ] && [ -f "$gd/shallow" ]; then
-        step "$p — fetching full history (was shallow)"
+        step "$p - fetching full history (was shallow)"
         git -C "$p" fetch --unshallow >/dev/null 2>&1 && ok "$p unshallowed" \
           || { err "could not unshallow $p"; return 1; }
       else
-        info "$p — already present with full history"
+        info "$p - already present with full history"
       fi
       continue
     fi
@@ -700,9 +700,9 @@ setup() {
     full) ;;
     *)
       err "usage: loldev setup <tool-author|engine-dev|full>"
-      info "tool-author  — write/edit tools: full community/ history, everything else shallow"
-      info "engine-dev   — engine + shells work: adds full shells/web + shells/cli history"
-      info "full         — everything public, full history (upgrades a slim clone in place)"
+      info "tool-author  - write/edit tools: full community/ history, everything else shallow"
+      info "engine-dev   - engine + shells work: adds full shells/web + shells/cli history"
+      info "full         - everything public, full history (upgrades a slim clone in place)"
       return 2 ;;
   esac
 
@@ -711,7 +711,7 @@ setup() {
   if [ "$persona" = full ]; then
     phase "📦" "Submodules (everything public, full history)"
     while read -r p; do
-      [ "$p" = "brands/suse" ] && { info "$p — private, opt-in (git submodule update --init --checkout brands/suse)"; continue; }
+      [ "$p" = "brands/suse" ] && { info "$p - private, opt-in (git submodule update --init --checkout brands/suse)"; continue; }
       setup_full_history "$p" || return 1
     done < <(subrepo_paths)
   else
@@ -719,10 +719,10 @@ setup() {
     setup_full_history "${deep[@]}" || return 1
     phase "📦" "Present for npm workspaces (--depth 1)"
     info "npm install needs every workspace package.json on disk, and the bootstrap"
-    info "guard also wants docs/ + community/ — so these are shallow, not absent."
+    info "guard also wants docs/ + community/ - so these are shallow, not absent."
     setup_shallow "${shallow[@]}" || return 1
     phase "⏭️ " "Skipped for this persona"
-    for p in "${skipped[@]}"; do info "$p — get it later with: loldev setup full"; done
+    for p in "${skipped[@]}"; do info "$p - get it later with: loldev setup full"; done
   fi
 
   phase "🍭" "Profile views"
@@ -730,11 +730,11 @@ setup() {
   if node scripts/use-profile.ts --auto >/dev/null 2>&1; then
     ok "tools/ + catalog/ views ready (lolly-start unless brands/suse is mounted)"
   else
-    warn "profile views not built yet — 'npm install' builds them (postinstall)"
+    warn "profile views not built yet - 'npm install' builds them (postinstall)"
   fi
 
   echo
-  ok "setup '$persona' complete — next: npm install, then npm run dev:web (or npm run cli)"
+  ok "setup '$persona' complete - next: npm install, then npm run dev:web (or npm run cli)"
   return 0
 }
 

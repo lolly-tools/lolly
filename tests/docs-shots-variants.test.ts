@@ -89,7 +89,7 @@ test('dark: every committed twin has a dark=1 recipe, and every dark=1 recipe ha
   const wantDark = new Map(recipes.filter((r) => r.dark).map((r) => [`${r.slug}.dark.${r.format}`, r.slug]));
 
   const missing = [...wantDark].filter(([file]) => !existsSync(join(SHOTS, file))).map(([f]) => f);
-  assert.deepEqual(missing, [], 'dark=1 recipes with no committed twin — re-run scripts/build-docs-shots.ts');
+  assert.deepEqual(missing, [], 'dark=1 recipes with no committed twin - re-run scripts/build-docs-shots.ts');
 
   // And the other direction: a twin on disk whose recipe no longer asks for one is a
   // file that ships to readers and can never be re-captured.
@@ -100,7 +100,7 @@ test('dark: every committed twin has a dark=1 recipe, and every dark=1 recipe ha
       const slug = f.replace(/\.dark\.(svg|png|jpg)$/, '').replace(/\.[a-z]{2}(-[a-z]+)?$/i, '');
       return !bySlug.get(slug)?.dark;
     });
-  assert.deepEqual(orphaned, [], 'dark baselines no recipe claims — delete them or restore dark=1');
+  assert.deepEqual(orphaned, [], 'dark baselines no recipe claims - delete them or restore dark=1');
 });
 
 test('dark: the light and dark baselines of a shot are different files', () => {
@@ -111,7 +111,7 @@ test('dark: the light and dark baselines of a shot are different files', () => {
     .filter((r) => r.dark)
     .map((r) => [join(SHOTS, `${r.slug}.${r.format}`), join(SHOTS, `${r.slug}.dark.${r.format}`)] as const)
     .filter(([a, b]) => existsSync(a) && existsSync(b));
-  assert.ok(pairs.length, 'no dark twins committed — this test would pass vacuously');
+  assert.ok(pairs.length, 'no dark twins committed - this test would pass vacuously');
   const identical = pairs
     .filter(([a, b]) => readFileSync(a).equals(readFileSync(b)))
     .map(([a]) => a.split('/').pop());

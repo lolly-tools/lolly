@@ -87,7 +87,7 @@ test('hoisting the h1 into the band does not move its anchor', { skip: built }, 
   }
 });
 
-test('the band ships no provenance line — it is shell decoration, not a signed asset', { skip: built }, () => {
+test('the band ships no provenance line - it is shell decoration, not a signed asset', { skip: built }, () => {
   const band = /<div class="docs-masthead">[\s\S]*?<\/div>\s*<\/div>/.exec(bodyOf(page('build-guide.html')));
   assert.ok(band, 'no band found');
   assert.ok(!/shot-cred|asset-cred|prov-pill/.test(band[0]), 'the masthead claims a credential it does not have');
@@ -117,7 +117,7 @@ test('the chip list is generated from the formats catalog, not hand-written', { 
   // Newer formats the old 27-entry hand list never had. If someone replaces the
   // generator with a literal again, these are the first things to go missing.
   for (const ext of ['.EXR', '.DOCX', '.WOFF', '.PSD', '.EPUB', '.ODT', '.SVGZ']) {
-    assert.ok(exts.includes(ext), `the chips lost ${ext} — is the list hand-written again?`);
+    assert.ok(exts.includes(ext), `the chips lost ${ext} - is the list hand-written again?`);
   }
   // …and one that was in the hand list but is NOT in the catalog: its presence would
   // mean the literal survived somewhere.
@@ -131,7 +131,7 @@ test('the chip list is generated from the formats catalog, not hand-written', { 
     if (tokens.has(ext)) continue; // also exportable under another entry
     assert.ok(!exts.includes(ext), `${ext} is import-only and should not be a chip`);
   }
-  assert.ok(exts.length >= 40, `only ${exts.length} chips — the catalog says ${exportable.length} formats are exportable`);
+  assert.ok(exts.length >= 40, `only ${exts.length} chips - the catalog says ${exportable.length} formats are exportable`);
 });
 
 test('the landing and the masthead draw from the same generated list', { skip: built }, () => {
@@ -183,12 +183,12 @@ test('the masthead burst yields to links, buttons and text selection', { skip: b
 // default staying the default - and the credential machinery the art will carry
 // being present and honest before any art exists to carry it.
 
-test('with nothing mapped, every page still gets the default field — not a blank band', { skip: built }, () => {
+test('with nothing mapped, every page still gets the default field - not a blank band', { skip: built }, () => {
   for (const f of ['build-guide.html', 'trust.html', 'exporting.html']) {
     const body = bodyOf(page(f));
     assert.match(body, /<canvas class="docs-mast-canvas"/, `${f} lost the default chip field`);
     assert.ok(!/docs-masthead--art|docs-mast-art/.test(body),
-      `${f} renders banked art — the MASTHEADS table is supposed to be empty (and the art signed)`);
+      `${f} renders banked art - the MASTHEADS table is supposed to be empty (and the art signed)`);
   }
 });
 

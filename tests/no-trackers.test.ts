@@ -110,8 +110,8 @@ test('the certificate service logs no personal data', () => {
   // bundle is exactly how this claim would silently become false in production.
   for (const rel of ['services/ca/lib/enroll.mjs', 'services/ca/handler.mjs', 'api/ca/[...path].js']) {
     const text = readFileSync(join(ROOT, rel), 'utf8');
-    assert.ok(!text.includes('logIssuance'), `${rel}: the issuance log is back — see docs/privacy.md`);
-    assert.ok(!text.includes('CA_LOG_WEBHOOK'), `${rel}: the issuance webhook is back — see docs/privacy.md`);
+    assert.ok(!text.includes('logIssuance'), `${rel}: the issuance log is back - see docs/privacy.md`);
+    assert.ok(!text.includes('CA_LOG_WEBHOOK'), `${rel}: the issuance webhook is back - see docs/privacy.md`);
   }
 });
 

@@ -1,6 +1,6 @@
-# Dependabot — automated dependency-update PRs. Part of security-audit readiness
-# (end-July 2026): version updates land as reviewable PRs, and — once "Dependabot
-# security updates" is enabled in repo Settings → Code security — vulnerable deps
+# Dependabot - automated dependency-update PRs. Part of security-audit readiness
+# (end-July 2026): version updates land as reviewable PRs, and - once "Dependabot
+# security updates" is enabled in repo Settings → Code security - vulnerable deps
 # get an immediate fix PR to back up the CI `audit` gate (npm audit + SBOM drift).
 #
 # Scope: the PARENT repo only. Each submodule (lolly-tools/community, docs, every
@@ -33,7 +33,7 @@ updates:
       # onnxruntime-node drives the durable-content-credentials ONNX engine and
       # transitively constrains adm-zip (pinned to ^0.6.0 via package.json
       # `overrides`). Allow minor/patch security bumps, but hold the major for a
-      # manual, tested upgrade — an unattended major here breaks provenance
+      # manual, tested upgrade - an unattended major here breaks provenance
       # stamping (see plans/security-audit... / the adm-zip override rationale).
       - dependency-name: "onnxruntime-node"
         update-types: ["version-update:semver-major"]
@@ -76,7 +76,7 @@ updates:
   # ── Docker: digest-pinned base images ─────────────────────────────────────
   # Images are pinned by sha256 digest (SUSE assessment 2026-08, S7); this keeps
   # the pins moving as upstream rebuilds, so a pin does not become a stale base
-  # nobody patches — the failure mode that makes digest pinning worse than tags.
+  # nobody patches - the failure mode that makes digest pinning worse than tags.
   #
   # services/mcp is a SUBMODULE and carries no dependabot.yml of its own, so
   # nothing here or there watches services/mcp/deploy/Dockerfile. Its base image

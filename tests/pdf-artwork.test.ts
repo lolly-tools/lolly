@@ -184,7 +184,7 @@ test('the clustering gap scales with the size of the shapes', () => {
   assert.equal(small.length, 2, 'small shapes at the same separation are separate marks');
 });
 
-test('artwork with NO group is still found — grouping is a hint, not a requirement', () => {
+test('artwork with NO group is still found - grouping is a hint, not a requirement', () => {
   // Verified against a real generated PDF: paths drawn straight onto the page
   // carry no group at all, so a group-only rule would find nothing.
   const found = findVectorArtwork([

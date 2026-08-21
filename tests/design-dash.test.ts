@@ -104,7 +104,7 @@ test('both dash fields are numbers, default 0, path-only, and shown only for a d
     const byId = new Map(fieldsOf(brand).map((f) => [f.id, f]));
     for (const id of ['strokeDashLen', 'strokeGapLen']) {
       const f = byId.get(id)!;
-      assert.equal(f.type, 'number', `${brand}: ${id} type — a STRING could carry a comma`);
+      assert.equal(f.type, 'number', `${brand}: ${id} type - a STRING could carry a comma`);
       assert.equal(f.default, 0, `${brand}: ${id} default must be the no-op`);
       assert.equal(f.min, 0, `${brand}: ${id} min`);
       assert.equal(f.max, 400, `${brand}: ${id} max`);

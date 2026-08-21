@@ -266,7 +266,7 @@ test('a 45°-rotated rect extends beyond its unrotated box by the half-diagonal'
     'the same box unrotated does not reach that window');
 });
 
-test('a rotated <text> run fails open — a rotated unbounded strip is the whole plane', () => {
+test('a rotated <text> run fails open - a rotated unbounded strip is the whole plane', () => {
   // textEl rotates about the first line's origin, and a <text> run's advance is
   // unknowable (see the `<text>` section below), so a rotated one can put ink
   // anywhere along that ray: the only sound answer is "keep".
@@ -404,7 +404,7 @@ test('the default pad is CULL_PAD_PT and it is applied outward', () => {
   assert.equal(cullPdfNodes([n], withinPad).nodes.length, 1, 'the pad must reach outward');
 });
 
-test('a degenerate window is a no-op — a malformed crop must never blank a capture', () => {
+test('a degenerate window is a no-op - a malformed crop must never blank a capture', () => {
   const nodes = [box(), box({ x: 500 })];
   for (const win of [
     { x: 0, y: 0, width: 0, height: 100 },
@@ -542,7 +542,7 @@ function randomNode(rnd: () => number): PdfNode {
         // Each line's ink is its OWN advance (0.55em/char, 1em for full-width),
         // which for a later line can be many times the node's `w`.
         _outlinePath: lines.map((l) => (l
-          ? glyphPath(rnd, [...l].reduce((a, c) => a + size * (/[　-鿿]/.test(c) ? 1 : 0.55), 0), size)
+          ? glyphPath(rnd, [...l].reduce((a, c) => a + size * (/[ -鿿]/.test(c) ? 1 : 0.55), 0), size)
           : '')),
       }) as PdfNode;
     }
@@ -733,7 +733,7 @@ test('ratchet: a small crop of a spread-out page yields well under 10% of the un
 
   assert.ok(full.length > 500_000, `the fixture must be big enough to be interesting (got ${full.length})`);
   const frac = culled.length / full.length;
-  assert.ok(frac < 0.1, `culled output is ${(frac * 100).toFixed(1)}% of the uncropped bytes — culling has regressed`);
+  assert.ok(frac < 0.1, `culled output is ${(frac * 100).toFixed(1)}% of the uncropped bytes - culling has regressed`);
   // the heavy payloads went with their nodes (this is the reference-counted-defs fix)
   assert.ok(!culled.includes(bigPng), 'the canvas raster survived a crop it cannot reach');
   assert.ok(!culled.includes(tilePng), 'the shading tile survived a crop it cannot reach');
@@ -789,13 +789,13 @@ test('soundness guard: everything the serializer emits is intersective (no filte
   const svg = pdfNodesToSvg(nodes, { ...PAGE, images: IMAGES, background: '#ffffff' });
 
   for (const banned of ['filter=', 'mix-blend-mode', '<use', '<marker', '<foreignObject']) {
-    assert.ok(!svg.includes(banned), `serializer emitted "${banned}" — culling is no longer sound`);
+    assert.ok(!svg.includes(banned), `serializer emitted "${banned}" - culling is no longer sound`);
   }
   const tags = new Set([...svg.matchAll(/<\/?([a-zA-Z]+)/g)].map((m) => m[1]!));
   assert.deepEqual([...tags].sort(), [
     'clipPath', 'defs', 'ellipse', 'g', 'image', 'linearGradient', 'mask', 'path', 'pattern',
     'radialGradient', 'rect', 'stop', 'svg', 'text', 'tspan',
-  ], 'the emitted element vocabulary changed — re-audit cullPdfNodes');
+  ], 'the emitted element vocabulary changed - re-audit cullPdfNodes');
   // And the attribute vocabulary a culler could be broken by.
   const attrs = new Set([...svg.matchAll(/\s([a-zA-Z:-]+)="/g)].map((m) => m[1]!));
   const known = new Set([
@@ -808,7 +808,7 @@ test('soundness guard: everything the serializer emits is intersective (no filte
     'mask', 'maskUnits', 'mask-type', 'style',
   ]);
   const unknown = [...attrs].filter((a) => !known.has(a));
-  assert.deepEqual(unknown, [], 'the serializer grew a new attribute — check it can’t move ink outside a node’s geometry');
+  assert.deepEqual(unknown, [], 'the serializer grew a new attribute - check it can’t move ink outside a node’s geometry');
   // Only `rotate(...)` and `translate(...)` transforms, i.e. nothing that can
   // scale or skew ink outside the extent pdfNodeExtent computes.
   for (const m of svg.matchAll(/transform="([^"]*)"/g)) {
@@ -829,7 +829,7 @@ test('soundness guard: everything the serializer emits is intersective (no filte
     assert.match(a, /^ transform="translate\([-\d.eE+ ]+\)"$/, `a transformed group must only translate: <g${a}>`);
     const after = svg.slice(m.index! + m[0].length);
     assert.match(after, /^<path d="[^"]*" fill="[^"]*"\/><\/g>/,
-      'a transformed group must wrap exactly one glyph path — anything else is an untracked ancestor transform');
+      'a transformed group must wrap exactly one glyph path - anything else is an untracked ancestor transform');
   }
   // PIN 1: every <mask> carries a BOUNDED userSpaceOnUse region. An objectBoundingBox
   // mask, or one with no x/y/width/height, would make pdfNodeExtent's mask
@@ -871,7 +871,7 @@ test('adversarial: a wrapped paragraph whose SECOND line is longer than the firs
   });
   const e = pdfNodeExtent(n)!;
   assert.ok(e.x <= -PLANE + 1 && e.w >= 2 * PLANE - 1,
-    `a <text> run's advance is the RENDERER's business — the extent must not guess it: ${JSON.stringify(e)}`);
+    `a <text> run's advance is the RENDERER's business - the extent must not guess it: ${JSON.stringify(e)}`);
   // A window 400pt to the right of the node's declared box still holds line 2's ink.
   assert.equal(cullPdfNodes([n], { x: 400, y: 100, width: 60, height: 60, pad: 0 }).nodes.length, 1);
   // …and the vertical band still culls: the same run 900pt further down the page.
@@ -903,7 +903,7 @@ test('adversarial: outlined text is bounded EXACTLY by its glyph paths, per line
   assert.deepEqual(
     { x: r2(e.x), y: r2(e.y), w: r2(e.w), h: r2(e.h) },
     { x: r2(mb.x), y: r2(mb.y), w: r2(mb.w), h: r2(mb.h) },
-    'outlined text has real path data — the extent must not fall back to an estimate',
+    'outlined text has real path data - the extent must not fall back to an estimate',
   );
   assert.equal(cullPdfNodes([n], { x: 400, y: 100, width: 60, height: 80, pad: 0 }).nodes.length, 1);
 });
@@ -933,7 +933,7 @@ test('adversarial: a nonsense clip bbox fails OPEN instead of collapsing the ext
   });
   const e = pdfNodeExtent(n)!;
   assert.deepEqual({ x: e.x, y: e.y, w: e.w, h: e.h }, { x: 0, y: 0, w: 1000, h: 1000 },
-    'a negative-span bbox is a bug upstream, not a tighter clip — fall back to `d`');
+    'a negative-span bbox is a bug upstream, not a tighter clip - fall back to `d`');
   assert.equal(cullPdfNodes([n], { x: 0, y: 0, width: 500, height: 500, pad: 0 }).nodes.length, 1);
 });
 
@@ -973,7 +973,7 @@ test('adversarial: a clip edge that coincides with the node edge still paints a 
   const e = pdfNodeExtent(n)!;
   assert.ok(e.w > 0 && e.h > 0, `a coincident clip edge is a hairline, not nothing: ${JSON.stringify(e)}`);
   assert.equal(cullPdfNodes([n], { x: 480, y: 480, width: 600, height: 60 }).nodes.length, 1,
-    'the hairline column is inside this window — the node must survive');
+    'the hairline column is inside this window - the node must survive');
   // …and a clip that really is elsewhere still drops the node: the tolerance is one
   // device pixel, not an excuse to keep everything.
   const far = box({
@@ -1003,7 +1003,7 @@ function assertNoDanglingRefs(svg: string, label: string): void {
   const defined = new Set([...defs.matchAll(/\sid="([^"]+)"/g)].map((m) => m[1]!));
   const body = svg.replace(/<defs>[\s\S]*?<\/defs>/g, '');
   for (const m of body.matchAll(/url\(#([^)]+)\)/g)) {
-    assert.ok(defined.has(m[1]!), `${label}: dangling reference url(#${m[1]}) — the def was dropped but the paint wasn't`);
+    assert.ok(defined.has(m[1]!), `${label}: dangling reference url(#${m[1]}) - the def was dropped but the paint wasn't`);
   }
 }
 

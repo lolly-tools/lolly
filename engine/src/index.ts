@@ -187,11 +187,11 @@ export type { CaptionCue, GroupWordsOpts } from './captions.ts';
 // leaked fingerprint names a model with confidence). Pure + model-free, so the
 // verify view, the catalog, the CLI, and the OCR path read identical numbers.
 // LEXICON_VERSION keys persisted analyses to the tell lists that produced them.
-export { analyzeTextSignals, LEXICON_VERSION } from './text-signals.ts';
+export { analyzeTextSignals, applyModelEstimate, LEXICON_VERSION } from './text-signals.ts';
 export type {
   TextSignalSource, TextSignalBand, TextSignalTier, TextSignalSpan,
   TextSignalFinding, TextStyleGuess, TextSignalReport, AnalyzeTextSignalsOpts,
-  TextSignalDocKind, TextHeatCell, TextHeatmap,
+  TextSignalDocKind, TextHeatCell, TextHeatmap, AiModelEstimate,
 } from './text-signals.ts';
 // Humanize (plans/125) - the DETERMINISTIC, on-device clean-up of the mechanical AI
 // artifacts the analysis flags (invisible chars, leaked model tokens, curly-quote/em-dash

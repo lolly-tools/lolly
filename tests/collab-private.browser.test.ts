@@ -228,7 +228,7 @@ async function credential(svg: string, file: string, selector: string, how: stri
       days: 365,
     }));
   } catch (e) {
-    note(`DOCS ${file}: Content Credentials not attached — ${(e as Error).message}`);
+    note(`DOCS ${file}: Content Credentials not attached - ${(e as Error).message}`);
     return bytes;
   }
 }
@@ -244,7 +244,7 @@ async function docShot(page: Page, file: string, selector: string, how = 'walker
     const { w, h } = svgSize(svg);
     note(`DOCS ${file}: ${Math.round(svg.length / 1024)} KB, ${Math.round(w)}x${Math.round(h)} (${selector})`);
   } catch (e) {
-    note(`DOCS ${file}: write failed — ${(e as Error).message}`);
+    note(`DOCS ${file}: write failed - ${(e as Error).message}`);
   }
 }
 
@@ -278,7 +278,7 @@ async function docShotPair(
     note(`DOCS ${file}: ${Math.round(out.length / 1024)} KB, ${Math.round(W)}x${Math.round(H)} (two screens)`);
     return true;
   } catch (e) {
-    note(`DOCS ${file}: write failed — ${(e as Error).message}`);
+    note(`DOCS ${file}: write failed - ${(e as Error).message}`);
     return false;
   }
 }
@@ -426,7 +426,7 @@ const RTC_PROBE = `(() => {
   w.__presence = [];
   // Every connection plate this document ever PAINTED, whether or not it survived. The
   // acceptor's Connected screen is torn down by its own live mount within the same task,
-  // so a poll cannot see it — but the mutation record still holds the node.
+  // so a poll cannot see it - but the mutation record still holds the node.
   w.__plates = [];
   try {
     new MutationObserver((records) => {
@@ -709,10 +709,10 @@ let flagOffHasEnable = false;
 
 /** Fail fast, attributed, rather than time out on something that was never going to be there. */
 function requirePair(): void {
-  assert.equal(ceremonyOk, true, 'BLOCKED: no live pair — the CEREMONY drill above did not connect both sides. Its failure carries the diagnosis.');
+  assert.equal(ceremonyOk, true, 'BLOCKED: no live pair - the CEREMONY drill above did not connect both sides. Its failure carries the diagnosis.');
 }
 
-describe('private collab — real-browser ceremony drills', { skip: GATE ?? false, timeout: 600_000 }, () => {
+describe('private collab - real-browser ceremony drills', { skip: GATE ?? false, timeout: 600_000 }, () => {
   before(async () => {
     mkdirSync(OUT, { recursive: true });
     base = await startDevServer();
@@ -759,7 +759,7 @@ describe('private collab — real-browser ceremony drills', { skip: GATE ?? fals
     rtcPreflight = await rtcLoopbackWorks(context, `${base}/`);
     note(`RTC loopback preflight (${browserLabel}): ${rtcPreflight ? 'pairs' : 'FAILS'}`);
     if (!rtcPreflight && !wanted && !executablePath) {
-      note('retrying with the installed Chrome channel — a bundled Chromium has no macOS firewall entry');
+      note('retrying with the installed Chrome channel - a bundled Chromium has no macOS firewall entry');
       await context.close().catch(() => {});
       await browser.close().catch(() => {});
       try {
@@ -909,12 +909,12 @@ describe('private collab — real-browser ceremony drills', { skip: GATE ?? fals
       assert.fail(
         `the acceptor never showed its reply: ${(e as Error).message}` +
         (skippedOnIce
-          ? '\n\nDIAGNOSIS — the acceptor was promoted out of `awaiting-connection` before the ' +
+          ? '\n\nDIAGNOSIS - the acceptor was promoted out of `awaiting-connection` before the ' +
             'answer screen could be acted on. Its peer connection reached ICE `connected` ' +
             'pre-answer (loopback/LAN peer-reflexive checks get there before the reply has ' +
             'been delivered), so anything that treats ICE `connected` as "the pair is usable" ' +
             'skips the one step a human still has to perform. `connected` must be gated on ' +
-            'the transport `ready` event (the ops channel open — which cannot happen until ' +
+            'the transport `ready` event (the ops channel open - which cannot happen until ' +
             'BOTH descriptions are applied), and the answer must be published and rendered ' +
             'before any promotion can be considered. See shells/web/src/collab/ceremony.ts, ' +
             '"What \'connected\' MEANS" and the publish-before-promote guarantee.\n' +
@@ -1039,7 +1039,7 @@ describe('private collab — real-browser ceremony drills', { skip: GATE ?? fals
       )
       : false;
     if (paired) {
-      /* both screens were live — the picture the page asks for */
+      /* both screens were live - the picture the page asks for */
     } else if (plateA) {
       // ONE screen, and the file says so. The acceptor's Connected screen is torn down by
       // its own live mount inside the task that painted it (see readPlate's fallback to
@@ -1047,9 +1047,9 @@ describe('private collab — real-browser ceremony drills', { skip: GATE ?? fals
       // screens are live to photograph. A side-by-side would have to reconstruct B's
       // half from a record, which is a drawing of a screenshot, not a screenshot.
       await docShot(pageA, 'collab-plate.svg', '.collab-ceremony', '09-A-connected (inviter Connected screen)');
-      note('DOCS collab-plate.svg: inviter screen only — the acceptor never held a live Connected screen (completed by handoff)');
+      note('DOCS collab-plate.svg: inviter screen only - the acceptor never held a live Connected screen (completed by handoff)');
     } else {
-      note(`DOCS collab-plate.svg: skipped — plate on A=${JSON.stringify(plateA)} B=${JSON.stringify(plateB)}`);
+      note(`DOCS collab-plate.svg: skipped - plate on A=${JSON.stringify(plateA)} B=${JSON.stringify(plateB)}`);
     }
     note(`plates at connect: A=${JSON.stringify(plateA)} (${readA.source}) B=${JSON.stringify(plateB)} (${readB.source})`);
 
@@ -1082,7 +1082,7 @@ describe('private collab — real-browser ceremony drills', { skip: GATE ?? fals
       note('B: completed on the Connected screen, pressed "Start editing"');
     } else if (connected) {
       await shot(pageB, '10-B-connected');
-      note('B: completed by handoff — the dialog closed itself and the live mount took the pair');
+      note('B: completed by handoff - the dialog closed itself and the live mount took the pair');
     }
 
     if (!connected) {
@@ -1097,7 +1097,7 @@ describe('private collab — real-browser ceremony drills', { skip: GATE ?? fals
         bRtc: await rtcState(pageB),
         tail: timeline.slice(-6),
       }, null, 2));
-      note('ceremony stalled — see ceremony-stall.json / ceremony-timeline.json');
+      note('ceremony stalled - see ceremony-stall.json / ceremony-timeline.json');
       // Both sides published their payloads and neither reached `connected`. With the
       // completion signal now being the ops channel rather than ICE, the live suspect is
       // the lane: `ice:connected` in the trace with no `chan:ops:open` means the
@@ -1108,26 +1108,26 @@ describe('private collab — real-browser ceremony drills', { skip: GATE ?? fals
       assert.fail(
         'the pair never reached the connected screen on both sides.' +
         (earlyIce && !laneOpened
-          ? '\n\nNOTE — the acceptor had ICE up early and its ops channel never opened, so ' +
+          ? '\n\nNOTE - the acceptor had ICE up early and its ops channel never opened, so ' +
             'this is a CHANNEL failure, not the ceremony dropping an edge: `connected` is ' +
             'gated on the transport `ready` event by design (ICE-connected is not ' +
             'session-usable). Look at whether both descriptions were applied.'
           : '') +
         (earlyIce
-          ? '\n\nHISTORICAL — the first drill\'s acceptor-side race in shells/web/src/collab/ceremony.ts.\n' +
+          ? '\n\nHISTORICAL - the first drill\'s acceptor-side race in shells/web/src/collab/ceremony.ts.\n' +
             "The acceptor's peer connection reached ICE `connected` BEFORE the answer screen " +
-            'rendered — i.e. while `startAnswer` was still awaiting `effects.createAnswer()` ' +
+            'rendered - i.e. while `startAnswer` was still awaiting `effects.createAnswer()` ' +
             "(which waits for ICE gathering to complete before it can mint the reply blob), so " +
             'the machine was still in phase `creating-answer`. `onIce` drops BOTH relevant ' +
             'states in that phase: `checking` only arms the 45s connect watchdog when the ' +
             'phase is already `awaiting-connection`, and `connected` returns early unless the ' +
             'phase is `connecting` or `awaiting-connection`. ICE never transitions again, and ' +
-            'nothing re-reads the transport\'s CURRENT state on phase entry — the signal is ' +
+            'nothing re-reads the transport\'s CURRENT state on phase entry - the signal is ' +
             'edge-triggered only. The acceptor therefore sits on "Step 3 of 3: Send the reply ' +
             'back" until ANSWER_WAIT_MS (10 minutes) expires, while the inviter is fully live: ' +
             'all three data channels open on both sides, and the inviter\'s pill shows one ' +
             'participant forever.\n' +
-            'It is not a flake — on a loopback/LAN pair ICE connects tens of ms after ' +
+            'It is not a flake - on a loopback/LAN pair ICE connects tens of ms after ' +
             "setLocalDescription, and gathering-complete is always slower.\n" +
             `Acceptor trace at the moment the answer screen appeared: ${JSON.stringify(bAtAnswer[0]?.trace ?? [])}`
           : ''),
@@ -1170,11 +1170,11 @@ describe('private collab — real-browser ceremony drills', { skip: GATE ?? fals
     requirePair();
     assert.ok(
       plateA,
-      'the inviter showed no connection plate on its Connected screen. The pairing still works — `syncPlate` drops to no plate rather than a wrong one — but the confirmation step is missing, so nothing tells the two humans their session was not intercepted. Look at `plateMaterial()` on the transport effects (shells/web/src/collab/rtc-transport.ts) and `syncPlate` in shells/web/src/components/collab-ceremony.ts.',
+      'the inviter showed no connection plate on its Connected screen. The pairing still works - `syncPlate` drops to no plate rather than a wrong one - but the confirmation step is missing, so nothing tells the two humans their session was not intercepted. Look at `plateMaterial()` on the transport effects (shells/web/src/collab/rtc-transport.ts) and `syncPlate` in shells/web/src/components/collab-ceremony.ts.',
     );
     assert.ok(
       plateB,
-      "the acceptor showed no connection plate. Its Connected screen is torn down by its own live mount inside one task, so this is read from the probe's mutation record — an empty record means the node was never inserted with text, i.e. the derivation had not resolved by the time the screen painted (or `plateMaterial` was absent on the acceptor side).",
+      "the acceptor showed no connection plate. Its Connected screen is torn down by its own live mount inside one task, so this is read from the probe's mutation record - an empty record means the node was never inserted with text, i.e. the derivation had not resolved by the time the screen painted (or `plateMaterial` was absent on the acceptor side).",
     );
     for (const [label, plate] of [['A(inviter)', plateA], ['B(acceptor)', plateB]] as const) {
       assert.equal(plate.length, 7, `${label}'s plate should be 7 characters (XXX-XXX), got ${JSON.stringify(plate)}`);
@@ -1183,7 +1183,7 @@ describe('private collab — real-browser ceremony drills', { skip: GATE ?? fals
     assert.equal(
       plateA,
       plateB,
-      'THE PLATES DIFFER. This is the failure the plate exists to make visible: two devices that hashed different pairs of DTLS fingerprints. On a loopback drill there is no middleman, so a mismatch here means the derivation is not fed the material the handshake validated — check that `plateMaterial()` returns the fingerprint from the LOCAL description and the one decoded from the peer blob (not a re-read or a cached one), and that `orderFingerprints` is collapsing (mine, theirs) and (theirs, mine) to one ordered pair.',
+      'THE PLATES DIFFER. This is the failure the plate exists to make visible: two devices that hashed different pairs of DTLS fingerprints. On a loopback drill there is no middleman, so a mismatch here means the derivation is not fed the material the handshake validated - check that `plateMaterial()` returns the fingerprint from the LOCAL description and the one decoded from the peer blob (not a re-read or a cached one), and that `orderFingerprints` is collapsing (mine, theirs) and (theirs, mine) to one ordered pair.',
     );
     await shot(pageB, '09c-B-plate');
     note(`plate agreed on both screens: ${plateA} (read from ${plateSources})`);
@@ -1274,7 +1274,7 @@ describe('private collab — real-browser ceremony drills', { skip: GATE ?? fals
     assert.equal(
       before.open,
       false,
-      'starting a collab must dismiss the Share dialog it was started from: it is a `:modal` <dialog>, so leaving it open makes the whole tool inert — the person who just started a collab cannot type in their own sidebar until they find and press Escape. `lib/collab-share-private.ts`, the `start-private-collab` click handler, needs the `ctx.close?.()` its `join-private-collab` sibling already does.',
+      'starting a collab must dismiss the Share dialog it was started from: it is a `:modal` <dialog>, so leaving it open makes the whole tool inert - the person who just started a collab cannot type in their own sidebar until they find and press Escape. `lib/collab-share-private.ts`, the `start-private-collab` click handler, needs the `ctx.close?.()` its `join-private-collab` sibling already does.',
     );
   });
 
@@ -1328,7 +1328,7 @@ describe('private collab — real-browser ceremony drills', { skip: GATE ?? fals
       // fails, and the difference between "refused" and "offered" is the whole feature.
       assert.ok(title.length > 0, 'the flag-off join page must say something');
       note(`flag-off #/join → "${title}" / "${body}" (enable-and-continue control present: ${hasEnable})`);
-      flagOffCopy = `${title} — ${body}`;
+      flagOffCopy = `${title} - ${body}`;
       flagOffHasEnable = hasEnable;
       assert.equal(hasEnable, true, 'section 6.3 enable-on-accept: an invite must never dead-end an ungoverned user whose flag is off');
       // …and the half that matters: "no reload, no re-paste". Clicking it must walk into
@@ -1429,7 +1429,7 @@ describe('private collab — real-browser ceremony drills', { skip: GATE ?? fals
     presenceFrames = { A: await frames(pageA), B: await frames(pageB) };
     writeFileSync(join(OUT, 'presence-timeline.json'), JSON.stringify(presenceFrames, null, 2));
     const count = (side: unknown[], dir: string) => side.filter(f => (f as { dir?: string }).dir === dir).length;
-    note(`presence frames — A: ${count(presenceFrames.A, 'out')} out / ${count(presenceFrames.A, 'in')} in; ` +
+    note(`presence frames - A: ${count(presenceFrames.A, 'out')} out / ${count(presenceFrames.A, 'in')} in; ` +
       `B: ${count(presenceFrames.B, 'out')} out / ${count(presenceFrames.B, 'in')} in`);
   });
 
@@ -1478,7 +1478,7 @@ describe('private collab — real-browser ceremony drills', { skip: GATE ?? fals
       return Boolean(btn && !btn.hidden && !btn.disabled && btn.getClientRects().length);
     });
     if (!sendable) {
-      note('BEAM: no "Send this session" control on A — the bulk channel is not open, which is a state the pill has by design; consent card not exercised');
+      note('BEAM: no "Send this session" control on A - the bulk channel is not open, which is a state the pill has by design; consent card not exercised');
       return;
     }
     await pageA.click('.collab-pill .collab-action[data-action="send-session"]');
@@ -1565,4 +1565,4 @@ describe('private collab — real-browser ceremony drills', { skip: GATE ?? fals
   });
 });
 
-if (GATE) console.log(`[collab drills] skipped — ${GATE}`);
+if (GATE) console.log(`[collab drills] skipped - ${GATE}`);

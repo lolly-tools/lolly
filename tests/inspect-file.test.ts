@@ -239,7 +239,7 @@ test('a genuinely signed file resolves to a credential state; an unsigned one to
   assert.match(renderInspection(plain, { color: false }), /No Content Credentials found/);
 });
 
-test('credentials are NOT checked unless asked — the caller decides who verifies', async () => {
+test('credentials are NOT checked unless asked - the caller decides who verifies', async () => {
   const r = await inspectBytes(buildExifJpeg(), { path: 'photo.jpg' });
   assert.equal(r.credential, null);
   assert.ok(!r.checked.some((c) => /Content Credentials/.test(c)));
@@ -266,7 +266,7 @@ test('a truncated PDF (valid header, cut mid-body) is survivable too', async () 
   const whole = await buildRedactedPdf();
   const r = await inspectBytes(whole.slice(0, Math.floor(whole.length / 2)), { path: 'cut.pdf' });
   assert.ok(r.errors.length > 0 || (r.pdf && r.pdf.pagesScanned < r.pdf.pageCount),
-    'either it failed to load or it read fewer pages — both are honest');
+    'either it failed to load or it read fewer pages - both are honest');
   renderInspection(r, { color: false }); // must not throw
 });
 
@@ -291,7 +291,7 @@ test('scanPdfPages itself never throws on rubbish', async () => {
 test('control characters in file-supplied strings never reach the terminal', async () => {
   const evil = 'Quarterly \u001b[2K\u001b[31mVERIFIED BY LOLLY\u001b[0m report\u0007';
   const r = await inspectBytes(await buildRedactedPdf({ title: evil }), { path: 'evil.pdf' });
-  assert.ok(r.pdf!.info.title!.includes('\u001b'), 'the raw value keeps the ESC — scrubbing is the RENDERER’s job');
+  assert.ok(r.pdf!.info.title!.includes('\u001b'), 'the raw value keeps the ESC - scrubbing is the RENDERER’s job');
   const out = renderInspection(r, { color: false });
   assert.ok(!out.includes('\u001b'), 'no escape sequence survives into the rendered report');
   assert.ok(!out.includes('\u0007'));
@@ -301,7 +301,7 @@ test('control characters in file-supplied strings never reach the terminal', asy
 
 test('clean() strips C0 and C1 control characters and nothing else', () => {
   assert.equal(clean('a\u001bb\u0000c\u009fd'), 'a b c d');
-  assert.equal(clean('héllo — ok ✓'), 'héllo — ok ✓');
+  assert.equal(clean('héllo - ok ✓'), 'héllo - ok ✓');
 });
 
 // ─── the honesty contract ─────────────────────────────────────────────────────

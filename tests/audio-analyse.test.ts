@@ -94,7 +94,7 @@ test('a broadband signal lights bands across the whole spectrum, not two spikes'
   // The top of the spectrum must be visible, not merely non-zero: with linear
   // magnitude the 7kHz region measured ~0.01 against the 110Hz fundamental.
   const top = Math.max(...row.slice(24));
-  assert.ok(top > 0.3, `top-octave bands read ${top.toFixed(3)} — too quiet to draw`);
+  assert.ok(top > 0.3, `top-octave bands read ${top.toFixed(3)} - too quiet to draw`);
   // And it must still be a spectrum, not a flat wash: the loud low end reads higher.
   assert.ok(Math.max(...row.slice(0, 8)) > top, 'the low end still reads louder than the top');
 
@@ -227,7 +227,7 @@ test('a kick over a sustained tone is not read at half tempo', () => {
   assert.ok(Math.abs(a.bpm! - 120) < 8, `expected ~120 BPM, got ${a.bpm}`);
   for (let i = 1; i < a.beats.length; i++) {
     const gap = a.beats[i]! - a.beats[i - 1]!;
-    assert.ok(gap < 0.7, `beat gap ${gap.toFixed(2)}s — a beat was skipped`);
+    assert.ok(gap < 0.7, `beat gap ${gap.toFixed(2)}s - a beat was skipped`);
   }
 });
 

@@ -1,5 +1,5 @@
 {
-  "$comment": "Content profiles — which tool packs + brand catalog make up the repo-root tools/ and catalog/ views. Switch with `npm run profile:<name>` (or `loldev profile <name>`); scripts/use-profile.ts builds the views. Later tool roots win on id collisions, so a brand pack can override a community tool. Optional `exclude`: tool ids to drop from this profile's view + catalog (e.g. a community tool a brand doesn't want to ship) — it stays available to other profiles.",
+  "$comment": "Content profiles - which tool packs + brand catalog make up the repo-root tools/ and catalog/ views. Switch with `npm run profile:<name>` (or `loldev profile <name>`); scripts/use-profile.ts builds the views. Later tool roots win on id collisions, so a brand pack can override a community tool. Optional `exclude`: tool ids to drop from this profile's view + catalog (e.g. a community tool a brand doesn't want to ship) - it stays available to other profiles.",
   "default": "suse",
   "profiles": {
     "suse": {

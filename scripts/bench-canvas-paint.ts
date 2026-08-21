@@ -88,7 +88,7 @@ async function main(): Promise<void> {
 
   const f = (x: number, d = 2): string => x.toFixed(d);
   const pad = (s: string, w: number): string => s.padStart(w);
-  console.log(`\ncanvas PAINT baseline — real headless Chrome (plans/98 section 9 browser half)\n`);
+  console.log(`\ncanvas PAINT baseline - real headless Chrome (plans/98 section 9 browser half)\n`);
   console.log('  boxes │  full innerHTML+reflow │  patch geom (transform)   patch style (1 node)  │  full ÷ geom');
   console.log('  ──────┼────────────────────────┼──────────────────────────────────────────────────┼────────────');
   for (const r of rows) {
@@ -98,7 +98,7 @@ async function main(): Promise<void> {
   }
   const worst = rows[rows.length - 1]!;
   console.log(`\ninterpretation (${worst.n} boxes, real Chrome):`);
-  console.log(`  • the current per-edit paint (full innerHTML swap + reflow) is ${f(worst.fullMs)}ms — ${f((worst.fullMs / 16.7) * 100, 0)}% of a 16.7ms frame, EVERY edit, regardless of what changed.`);
+  console.log(`  • the current per-edit paint (full innerHTML swap + reflow) is ${f(worst.fullMs)}ms - ${f((worst.fullMs / 16.7) * 100, 0)}% of a 16.7ms frame, EVERY edit, regardless of what changed.`);
   console.log(`  • a Phase-A geometry patch (transform on one node) is ${f(worst.patchGeomMs)}ms (${f(worst.fullMs / Math.max(worst.patchGeomMs, 0.001), 0)}× cheaper); a single-node layout change is ${f(worst.patchStyleMs)}ms.`);
   console.log(`  • this is why the damage stream (patch |damage| nodes) is the paint-loop win, not just a nicety.\n`);
 

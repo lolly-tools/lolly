@@ -119,7 +119,7 @@ test('the schema declares the canvas set closed, in the copy the engine reads', 
   const canvas = findCanvasSchema(schema);
   assert.ok(canvas, 'schemas/tool.schema.json must still carry a blocks `canvas` schema');
   assert.equal(canvas.additionalProperties, false,
-    'canvas must stay a CLOSED set — an open one is how the property list fell 21 keys behind');
+    'canvas must stay a CLOSED set - an open one is how the property list fell 21 keys behind');
 });
 
 test('shadowField is documented as the select it is, not a Boolean', () => {
@@ -203,7 +203,7 @@ const PACK_MOUNTED = existsSync(SUSE_PACK);
 const SKIP_SUSE = !PACK_MOUNTED && 'SUSE brand pack not mounted (see profiles.json)';
 if (PACK_MOUNTED) {
   assert.ok(existsSync(join(SUSE_PACK, 'org-chart/tool.json')),
-    'brands/suse/tools/org-chart/tool.json is missing — pack is mounted, so the tool was renamed or deleted');
+    'brands/suse/tools/org-chart/tool.json is missing - pack is mounted, so the tool was renamed or deleted');
 }
 
 test('the real org-chart manifest passes the schema AND the reference check', { skip: SKIP_SUSE }, () => {
@@ -255,7 +255,7 @@ test('every canvas key in every MOUNTED pack is declared in the schema', () => {
   const undeclared = [...seen].filter(([k]) => !declared.has(k))
     .map(([k, tools]) => `${k} (${tools.join(', ')})`);
   assert.deepEqual(undeclared, [],
-    'a shipped canvas key is missing from schemas/tool.schema.json — with additionalProperties:false ' +
+    'a shipped canvas key is missing from schemas/tool.schema.json - with additionalProperties:false ' +
     'that tool now FAILS validation. Add the key (both schema copies) with a one-line description.');
 });
 

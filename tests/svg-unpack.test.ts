@@ -130,7 +130,7 @@ test('vectors: symbols become standalone SVGs; a <use>-heavy file yields no brok
     <use href="#ico" x="0"/><use href="#ico" x="30"/><use href="#ico" x="60"/>
   </svg>`);
   const vecs = svgVectors(doc);
-  assert.equal(vecs.length, 1, 'exactly the symbol — the <use> refs produce no entries');
+  assert.equal(vecs.length, 1, 'exactly the symbol - the <use> refs produce no entries');
   const v = vecs[0]!;
   assert.equal(v.width, 24);
   assert.equal(v.height, 24);

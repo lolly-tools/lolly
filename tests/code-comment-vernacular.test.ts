@@ -26,5 +26,5 @@ test('code comments carry no new em dashes or claudism phrases (ratchet only goe
     ...d.fresh.map(x => `${x.file}: new file with ${x.now} comment claudism(s)`),
     ...d.under.map(x => `${x.file}: improved ${x.was} → ${x.now} (run --write to lock)`),
   ];
-  assert.deepEqual(lines, [], 'code-comment vernacular ratchet drifted — see scripts/check-code-comment-vernacular.ts');
+  assert.deepEqual(lines, [], 'code-comment vernacular ratchet drifted - see scripts/check-code-comment-vernacular.ts');
 });

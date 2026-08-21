@@ -25,7 +25,7 @@ for (const name of [
     assert.deepEqual(
       bundled,
       source,
-      `packages/core/schema/${name} has drifted from schemas/${name} — re-copy it.`,
+      `packages/core/schema/${name} has drifted from schemas/${name} - re-copy it.`,
     );
   });
 }

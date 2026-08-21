@@ -361,7 +361,7 @@ export async function createRuntime(
     if (out == null || typeof (out as { then?: unknown }).then !== 'function') {
       const elapsed = Date.now() - started;
       if (elapsed > budget) {
-        host.log('warn', `${name} ran ${elapsed}ms synchronously (budget ${budget}ms — sync hooks can't be preempted)`, { toolId: tool.manifest.id });
+        host.log('warn', `${name} ran ${elapsed}ms synchronously (budget ${budget}ms - sync hooks can't be preempted)`, { toolId: tool.manifest.id });
       }
       return Promise.resolve(out);
     }

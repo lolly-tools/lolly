@@ -118,7 +118,7 @@ const sha256 = (bytes: Uint8Array): string => createHash('sha256').update(bytes)
  *  mismatch - the byte-length is reported alongside as the secondary signal. */
 function verify(relPath: string, bytes: Uint8Array, source: string): void {
   const pin = PINS[relPath];
-  if (!pin) throw new Error(`no integrity pin for ${relPath} — add it to PINS (or run --refresh-pins for an upgrade)`);
+  if (!pin) throw new Error(`no integrity pin for ${relPath} - add it to PINS (or run --refresh-pins for an upgrade)`);
   const actual = sha256(bytes);
   if (actual !== pin.sha256) {
     const sizeNote = bytes.byteLength === pin.bytes
@@ -168,11 +168,11 @@ async function main(): Promise<void> {
     ...VOICES.map((v) => `voices/${v}.bin`),
   ];
   if (refreshPins) {
-    process.stdout.write('--refresh-pins: downloading fresh copies and printing new pin lines — paste them over PINS.\n');
+    process.stdout.write('--refresh-pins: downloading fresh copies and printing new pin lines - paste them over PINS.\n');
   }
   for (const f of files) await fetchFile(f);
   process.stdout.write(
-    '\nDone. These files are gitignored (shells/web/.gitignore) — never commit them.\n' +
+    '\nDone. These files are gitignored (shells/web/.gitignore) - never commit them.\n' +
     'Next: `npm run build:ort` to stage the pinned onnxruntime-web runtime at /ort-hf/<version>/,\n' +
     'then a tool calling host.speech.synthesize() will load the model from /models/kokoro/.\n',
   );

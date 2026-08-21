@@ -279,7 +279,7 @@ test('a signed i18n sidecar verifies and its translations apply', async () => {
   assert.equal((tool.manifest.inputs[0] as { label?: string }).label, 'Titel');
 });
 
-test('a tampered sidecar is dropped — tool loads in English, no throw', async () => {
+test('a tampered sidecar is dropped - tool loads in English, no throw', async () => {
   const envelope = await makeEnvelope(TOOL_FILES_I18N);
   const files = { ...TOOL_FILES_I18N, 'demo/i18n/de.json': JSON.stringify({ name: 'Böse' }) };
   const tool = await loadTool('demo', makeFetchFile(files), {

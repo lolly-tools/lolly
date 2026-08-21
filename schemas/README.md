@@ -24,7 +24,7 @@ The prose counterpart is [`../docs/authoring-tools.md`](../docs/authoring-tools.
 
 `asset.schema.json` describes the **authored, stored** form: *"One asset in the global catalog. Tools resolve assets by id via `host.assets.get()`. The id is a forever-stable contract; the version moves."* Required: `id`, `type`, `version`, `tier`, `formats`. It also carries the lifecycle and policy fields the validator enforces invariants over: `deprecated`, `replacedBy`, `license`, `aiGenerated`, `prefetch` and `brandLock`.
 
-`asset-ref.schema.json` describes the **resolved, runtime** form: *"The runtime object representing a resolved asset. Returned by `host.assets.get()`, `host.assets.pick()`, and stored in saved tool state. Uniform across library assets and user uploads — tools handle them identically."* Required: `source`, `id`, `type`, `format`, `url`, with optional `width`, `height`, `version`, `checksum` and `meta`.
+`asset-ref.schema.json` describes the **resolved, runtime** form: *"The runtime object representing a resolved asset. Returned by `host.assets.get()`, `host.assets.pick()`, and stored in saved tool state. Uniform across library assets and user uploads - tools handle them identically."* Required: `source`, `id`, `type`, `format`, `url`, with optional `width`, `height`, `version`, `checksum` and `meta`.
 
 That uniformity is the point of having a separate schema. A catalog asset and a file the user dropped in five seconds ago arrive at a tool as the same shape, so a tool never branches on where an asset came from. `source` is the only field that records the difference, and tools are not meant to read it.
 
@@ -32,7 +32,7 @@ Note that `asset-ref.schema.json` is registered with Ajv (in both `engine/src/va
 
 ## `tokens.schema.json` is deliberately lenient
 
-Its description: *"A W3C Design Tokens (DTCG) document, as imported/exported by Penpot and Tokens Studio. Validates the structural shape: groups nest tokens, a token carries `$value` (+ optional `$type`/`$description`/`$extensions`). Lenient on `$value` by design — type-specific value checking lives in `engine/src/tokens.js`, not here."*
+Its description: *"A W3C Design Tokens (DTCG) document, as imported/exported by Penpot and Tokens Studio. Validates the structural shape: groups nest tokens, a token carries `$value` (+ optional `$type`/`$description`/`$extensions`). Lenient on `$value` by design - type-specific value checking lives in `engine/src/tokens.js`, not here."*
 
 It has a single recursive `$defs.node` plus the three document-level keys `$description`, `$themes` and `$metadata`. The split is intentional: structure here, semantics in the engine, because the value grammar of a colour token and a shadow token have nothing in common and encoding both in JSON Schema would produce error messages nobody can act on.
 
@@ -62,8 +62,8 @@ Both use `{ allErrors: true, strict: false }`, and both instantiate Ajv from `aj
 
 `tool.schema.json`, `asset.schema.json` and `asset-ref.schema.json` each exist twice:
 
-- `schemas/<name>` — the canonical source everything in this repo validates against.
-- `packages/core/schema/<name>` — bundled into the published tool-author SDK `@lolly-tools/core`, so a third party can validate a manifest without cloning this repo.
+- `schemas/<name>` - the canonical source everything in this repo validates against.
+- `packages/core/schema/<name>` - bundled into the published tool-author SDK `@lolly-tools/core`, so a third party can validate a manifest without cloning this repo.
 
 There is no generator and no copy script. The `packages/core` copies are maintained by hand. `tests/lolly-tools-core.test.ts` guards them with one test per file, named `@lolly-tools/core bundles an identical <name> (no drift)`, doing a `deepEqual` between the two; the same file also asserts that `core.validateTool()` and `engine.validateManifest()` agree on the SDK's example manifest. Editing the root schema alone makes those tests fail, which is the intended outcome.
 

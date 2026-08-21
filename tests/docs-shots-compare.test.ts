@@ -336,7 +336,7 @@ test('a taller-than-viewport centred element frames its visible band, not the to
   assert.deepEqual(w, { x: 0, y: 554.5, w: 944, h: 900 });
 });
 
-test('an element that fits on screen is unchanged — the common case must not churn', () => {
+test('an element that fits on screen is unchanged - the common case must not churn', () => {
   // off is {0,0} for anything fully visible, and min() already no-ops on a box
   // smaller than the frame, so the arithmetic reduces to what shipped before.
   assert.deepEqual(walkerWindow({ w: 600, h: 600 }, { w: 1440, h: 900 }, { x: 0, y: 0 }),
@@ -374,7 +374,7 @@ test('the windowing inlined in the browser context still matches walkerWindow', 
   const src = readFileSync(new URL('../scripts/build-docs-shots.ts', import.meta.url), 'utf-8');
   const grab = (name: string) => {
     const m = src.match(new RegExp(`const ${name} = (.+?);`));
-    assert.ok(m, `build-docs-shots.ts no longer declares ${name} — re-point this test`);
+    assert.ok(m, `build-docs-shots.ts no longer declares ${name} - re-point this test`);
     return m[1] as string;
   };
   const winWH = grab('winW'), wx = grab('wx'), wy = grab('wy');

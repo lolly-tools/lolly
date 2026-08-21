@@ -31,7 +31,7 @@ const TOOLS_DIR = join(dirname(fileURLToPath(import.meta.url)), '..', 'community
 const fetchFile = (path: string) => readFile(join(TOOLS_DIR, path), 'utf8');
 
 assert.ok(existsSync(join(TOOLS_DIR, 'darkroom', 'tool.json')),
-  'community/darkroom/tool.json is missing — the tool was renamed or deleted');
+  'community/darkroom/tool.json is missing - the tool was renamed or deleted');
 
 const tool: any = await loadTool('darkroom', fetchFile);
 
@@ -45,7 +45,7 @@ test('manifest keeps the Layers wire contract', () => {
   const layers = tool.manifest.inputs.find((i: any) => i.id === 'layers');
   assert.ok(layers, 'the layers blocks input folded in from layer-stack');
   assert.equal(layers.type, 'blocks');
-  assert.equal(layers.urlKey, 'l', 'compact URL key — every old layer-stack link depends on it');
+  assert.equal(layers.urlKey, 'l', 'compact URL key - every old layer-stack link depends on it');
   // Append-only forever: reordering or renaming any of these corrupts every
   // shared/bookmarked layered URL in existence.
   assert.deepEqual(layers.fields.map((f: any) => f.id), ['img', 'x', 'y', 'o', 'v', 'b', 'n', 'g']);
