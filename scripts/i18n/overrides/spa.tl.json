@@ -200,5 +200,9 @@
   "Invite one other device to co-edit this session directly - no account, no server.": "Mag-imbita ng isa pang device para sama-samang mag-edit ng session na ito nang direkta - walang account, walang server.",
   "Invite others on this instance to co-edit this session, live.": "Mag-imbita ng iba sa instance na ito para sama-samang mag-edit ng session na ito, live.",
   "Live now - 1 person editing": "Live ngayon - 1 taong nag-e-edit",
-  "Live now - {n} people editing": "Live ngayon - {n} taong nag-e-edit"
+  "Live now - {n} people editing": "Live ngayon - {n} taong nag-e-edit",
+  "AI-declared ingredient in this design: {names}. Its provenance rides the export as a C2PA ingredient.": "Sangkap na idineklarang gawa ng AI sa disenyong ito: {names}. Sumasama ang pinagmulan nito sa export bilang C2PA na sangkap.",
+  "An ingredient carries AI-writing signals: {names}. A signal, not proof - review it in the catalogue before this file travels.": "May sangkap na may dalang signal ng pagsulat ng AI: {names}. Signal lang ito, hindi patunay - suriin ito sa Katalogo bago maglakbay ang file na ito.",
+  "This file is packaged the way {vendor} AI products package downloads ({hint}). A signal, not proof.": "Naka-package ang file na ito tulad ng pag-package ng mga AI product ng {vendor} sa mga download ({hint}). Signal lang ito, hindi patunay.",
+  "likely AI-made": "malamang gawa ng AI"
 }

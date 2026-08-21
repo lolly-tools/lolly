@@ -249,5 +249,9 @@
   "Not all of this file is covered by its credential",
   "The bytes this credential does cover match exactly what was signed. But its declared exclusion reaches beyond its own manifest block, so part of what you can see here was never covered by the signature - that part is not vouched for, and could have been changed without the credential noticing.",
   "Not inspected as text",
-  "This file is past the size limit for on-device text inspection, so its text was never searched for a C2PA manifest - nothing is claimed about it either way. It was still inspected on-device for a Lolly Imprint, embedded metadata and hidden data."
+  "This file is past the size limit for on-device text inspection, so its text was never searched for a C2PA manifest - nothing is claimed about it either way. It was still inspected on-device for a Lolly Imprint, embedded metadata and hidden data.",
+  "AI-declared ingredient in this design: {names}. Its provenance rides the export as a C2PA ingredient.",
+  "An ingredient carries AI-writing signals: {names}. A signal, not proof - review it in the catalogue before this file travels.",
+  "This file is packaged the way {vendor} AI products package downloads ({hint}). A signal, not proof.",
+  "likely AI-made"
 ]

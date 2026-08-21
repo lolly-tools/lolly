@@ -6,6 +6,14 @@ minors, never removed or signature-changed without a major bump.
 
 Moved verbatim from the comment block that used to live in `src/index.ts`.
 
+1.139.0 - additive (no HostV1 change): claudisms.ts learns the
+abstract-register tells Andy flagged - bookkeeping and machine words applied
+to ideas ("ledger of decisions", "the machinery of", "mechanics of",
+figurative "survives", "the structure of the argument"), scoped so literal
+senses (an account ledger, quantum mechanics, a data structure) never trip.
+LEXICON_VERSION 4 -> 5, so persisted aiSignals notes from the old lexicon
+recompute on next read. The same frames enter the docs/code vernacular gates.
+
 1.138.0 - additive (no HostV1 change): `src/text-facts.ts`, the neutral
 document census behind the verify/catalog interrogation surface: `textFacts`
 (hidden characters by name+count with a severity grade - RLO/TAG/PUA-class

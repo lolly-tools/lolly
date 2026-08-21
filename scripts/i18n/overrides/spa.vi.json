@@ -198,5 +198,9 @@
   "Invite one other device to co-edit this session directly - no account, no server.": "Mời một thiết bị khác cùng chỉnh sửa trực tiếp phiên này - không cần tài khoản, không cần máy chủ.",
   "Invite others on this instance to co-edit this session, live.": "Mời người khác trên phiên bản này cùng chỉnh sửa trực tiếp phiên này.",
   "Live now - 1 person editing": "Đang trực tiếp - 1 người đang chỉnh sửa",
-  "Live now - {n} people editing": "Đang trực tiếp - {n} người đang chỉnh sửa"
+  "Live now - {n} people editing": "Đang trực tiếp - {n} người đang chỉnh sửa",
+  "AI-declared ingredient in this design: {names}. Its provenance rides the export as a C2PA ingredient.": "Thành phần được khai báo là tác phẩm AI trong thiết kế này: {names}. Nguồn gốc của nó đi cùng bản xuất dưới dạng thành phần C2PA.",
+  "An ingredient carries AI-writing signals: {names}. A signal, not proof - review it in the catalogue before this file travels.": "Một thành phần mang tín hiệu văn bản do AI viết: {names}. Một tín hiệu, không phải bằng chứng - hãy xem lại trong danh mục trước khi tệp này được gửi đi.",
+  "This file is packaged the way {vendor} AI products package downloads ({hint}). A signal, not proof.": "Tệp này được đóng gói theo cách các sản phẩm AI của {vendor} đóng gói bản tải xuống ({hint}). Một tín hiệu, không phải bằng chứng.",
+  "likely AI-made": "nhiều khả năng do AI tạo"
 }

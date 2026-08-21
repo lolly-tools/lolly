@@ -198,5 +198,9 @@
   "Work collab": "Teamsamarbeid",
   "Invite others on this instance to co-edit this session, live.": "Inviter andre på denne instansen til å redigere denne økten sammen med deg, live.",
   "Live now - 1 person editing": "Live nå - 1 person redigerer",
-  "Live now - {n} people editing": "Live nå - {n} personer redigerer"
+  "Live now - {n} people editing": "Live nå - {n} personer redigerer",
+  "AI-declared ingredient in this design: {names}. Its provenance rides the export as a C2PA ingredient.": "Ingrediens deklarert som KI-verk i dette designet: {names}. Opphavet reiser med eksporten som en C2PA-ingrediens.",
+  "An ingredient carries AI-writing signals: {names}. A signal, not proof - review it in the catalogue before this file travels.": "En ingrediens bærer signaler om KI-skrevet tekst: {names}. Et signal, ikke et bevis - se over den i katalogen før denne filen reiser videre.",
+  "This file is packaged the way {vendor} AI products package downloads ({hint}). A signal, not proof.": "Denne filen er pakket slik {vendor} sine KI-produkter pakker nedlastinger ({hint}). Et signal, ikke et bevis.",
+  "likely AI-made": "trolig KI-laget"
 }

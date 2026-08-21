@@ -164,6 +164,16 @@ export const BANNED_PHRASES: { what: string; re: RegExp }[] = [
   // expires with a card"), which is a legitimate noun use in status-quo.md.
   { what: '"leverage" as a verb', re: /\bleverag(?:e|es|ing|ed) (?:the|its|our|your|their|a|an)\b/i },
   { what: '"where it gets interesting"', re: /\bwhere it gets interesting\b/i },
+  // Abstract-register nouns (Andy, 2026-08-21): bookkeeping and machine words
+  // applied to ideas. The first two have no literal home in these docs, so
+  // they ban outright; the third carves out the physics senses, and the last
+  // two ban only the figurative frames - "state survives a reload" and "data
+  // structure" are genuine technical vocabulary and stay legal.
+  { what: 'abstract "ledger"', re: /\bledgers?\b/i },
+  { what: 'abstract "machinery"', re: /\bmachiner(?:y|ies)\b/i },
+  { what: 'abstract "mechanics of"', re: /(?<!\b(?:quantum|fluid|orbital|classical|statistical|celestial|auto)\s)\bmechanics of\b/i },
+  { what: 'figurative "survives"', re: /\bsurviv(?:e|es|ed|ing) (?:contact with|scrutiny|translation|the (?:cut|edit|rewrite|transition|retelling|journey))\b|\bwhat survives\b/i },
+  { what: 'abstract "structure of the argument"', re: /\bstructure of the (?:argument|essay|answer|response|conversation|thinking|reasoning|claim|story|prose|piece|writing|work|problem)\b/i },
   // "The (x) is (y) here." - the copula-flourish tic (owner-banned 2026-08-16):
   // a clause that redefines its subject and then hedges with a trailing "here".
   // Deterministic discriminators, calibrated against the whole owned corpus:

@@ -198,5 +198,9 @@
   "Work collab": "團隊協作",
   "Invite others on this instance to co-edit this session, live.": "邀請此執行個體上的其他人即時共同編輯此工作階段。",
   "Live now - 1 person editing": "正在即時協作：1 人在編輯",
-  "Live now - {n} people editing": "正在即時協作：{n} 人在編輯"
+  "Live now - {n} people editing": "正在即時協作：{n} 人在編輯",
+  "AI-declared ingredient in this design: {names}. Its provenance rides the export as a C2PA ingredient.": "此設計中聲明為 AI 生成的素材：{names}。其來源會作為 C2PA 素材隨匯出一起攜帶。",
+  "An ingredient carries AI-writing signals: {names}. A signal, not proof - review it in the catalogue before this file travels.": "有素材帶有 AI 寫作訊號：{names}。這只是訊號,不是證據。在此檔案送出之前,請先在目錄中查看它。",
+  "This file is packaged the way {vendor} AI products package downloads ({hint}). A signal, not proof.": "此檔案的打包方式與 {vendor} 的 AI 產品打包下載檔案的方式一致（{hint}）。這只是訊號,不是證據。",
+  "likely AI-made": "很可能由 AI 製作"
 }

@@ -191,5 +191,9 @@
   "Home": "Acasă",
   "Live now - 1 person editing": "Live acum - 1 persoană editează",
   "Live now - {n} people editing": "Live acum - {n} persoane editează",
-  "{n} more mark is in a format Logos does not take (PNG, JPEG, SVG or WebP).": "Încă {n} marcă este într-un format pe care Logos nu îl acceptă (PNG, JPEG, SVG sau WebP)."
+  "{n} more mark is in a format Logos does not take (PNG, JPEG, SVG or WebP).": "Încă {n} marcă este într-un format pe care Logos nu îl acceptă (PNG, JPEG, SVG sau WebP).",
+  "AI-declared ingredient in this design: {names}. Its provenance rides the export as a C2PA ingredient.": "Ingredient declarat ca operă AI în acest design: {names}. Proveniența lui călătorește cu exportul ca ingredient C2PA.",
+  "An ingredient carries AI-writing signals: {names}. A signal, not proof - review it in the catalogue before this file travels.": "Un ingredient poartă semnale de scriere AI: {names}. Un semnal, nu o dovadă - verifică-l în catalog înainte ca acest fișier să plece mai departe.",
+  "This file is packaged the way {vendor} AI products package downloads ({hint}). A signal, not proof.": "Acest fișier este împachetat așa cum produsele AI de la {vendor} împachetează descărcările ({hint}). Un semnal, nu o dovadă.",
+  "likely AI-made": "probabil făcut de AI"
 }

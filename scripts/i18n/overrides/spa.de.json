@@ -198,5 +198,9 @@
   "Work collab": "Team-Zusammenarbeit",
   "Invite others on this instance to co-edit this session, live.": "Laden Sie andere auf dieser Instanz ein, live gemeinsam an dieser Sitzung zu arbeiten.",
   "Live now - 1 person editing": "Jetzt live - 1 Person bearbeitet",
-  "Live now - {n} people editing": "Jetzt live - {n} Personen bearbeiten"
+  "Live now - {n} people editing": "Jetzt live - {n} Personen bearbeiten",
+  "AI-declared ingredient in this design: {names}. Its provenance rides the export as a C2PA ingredient.": "Als KI-Werk deklarierter Bestandteil in diesem Design: {names}. Seine Herkunft reist als C2PA-Bestandteil mit dem Export.",
+  "An ingredient carries AI-writing signals: {names}. A signal, not proof - review it in the catalogue before this file travels.": "Ein Bestandteil trägt Signale von KI-geschriebenem Text: {names}. Ein Hinweis, kein Beweis - prüfen Sie ihn im Katalog, bevor diese Datei auf Reisen geht.",
+  "This file is packaged the way {vendor} AI products package downloads ({hint}). A signal, not proof.": "Diese Datei ist so verpackt, wie die KI-Produkte von {vendor} Downloads verpacken ({hint}). Ein Hinweis, kein Beweis.",
+  "likely AI-made": "wahrscheinlich KI-gemacht"
 }

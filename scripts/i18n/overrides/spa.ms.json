@@ -198,5 +198,9 @@
   "Invite one other device to co-edit this session directly - no account, no server.": "Jemput satu peranti lain untuk mengedit sesi ini bersama secara langsung - tanpa akaun, tanpa pelayan.",
   "Invite others on this instance to co-edit this session, live.": "Jemput orang lain pada instans ini untuk mengedit sesi ini bersama secara langsung.",
   "Live now - 1 person editing": "Secara langsung sekarang - 1 orang sedang menyunting",
-  "Live now - {n} people editing": "Secara langsung sekarang - {n} orang sedang menyunting"
+  "Live now - {n} people editing": "Secara langsung sekarang - {n} orang sedang menyunting",
+  "AI-declared ingredient in this design: {names}. Its provenance rides the export as a C2PA ingredient.": "Bahan yang diisytiharkan sebagai hasil AI dalam reka bentuk ini: {names}. Asal usulnya mengikut eksport sebagai bahan C2PA.",
+  "An ingredient carries AI-writing signals: {names}. A signal, not proof - review it in the catalogue before this file travels.": "Satu bahan membawa isyarat penulisan AI: {names}. Isyarat, bukan bukti - semak dalam katalog sebelum fail ini berpindah.",
+  "This file is packaged the way {vendor} AI products package downloads ({hint}). A signal, not proof.": "Fail ini dibungkus seperti produk AI {vendor} membungkus muat turun ({hint}). Isyarat, bukan bukti.",
+  "likely AI-made": "berkemungkinan buatan AI"
 }

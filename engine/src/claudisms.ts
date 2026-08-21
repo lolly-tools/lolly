@@ -146,6 +146,15 @@ export const CLAUDE_TELLS: Tell[] = [
   { re: /\bkey takeaways?\b/gi, label: '"key takeaways"' },
   // The copula flourish: "the X is Y here." - a subject redefined and hedged with "here".
   { re: /(?<=[\w'’] )(?<!there )is (?:not )?(?:the|a|an) [\w'’-]+(?: [\w'’-]+){0,2} here[.,!?:;]/gi, label: 'the "…is Y here." flourish' },
+  // Abstract-register nouns Andy flagged (2026-08-21): bookkeeping and machine
+  // words applied to ideas. Weak on their own - the frames are scoped so each
+  // word's literal senses (accounting, physics, data layout) stay out, and
+  // density weighting keeps any single hit quiet.
+  { re: /\bledgers? of\b|\ba (?:running|living|quiet|small|single) ledger\b|\bkeeps? a ledger\b/gi, label: 'abstract "ledger"' },
+  { re: /\bmachinery of\b|\bthe [\w-]+ machinery\b/gi, label: 'abstract "machinery"' },
+  { re: /(?<!\b(?:quantum|fluid|orbital|classical|statistical|celestial|auto) )\bmechanics of\b/gi, label: 'abstract "mechanics of"' },
+  { re: /\bsurviv(?:e|es|ed|ing) (?:contact with|scrutiny|translation|the (?:cut|edit|rewrite|transition|retelling|journey))\b|\bwhat survives\b/gi, label: 'figurative "survives"' },
+  { re: /\bstructure of the (?:argument|essay|answer|response|conversation|thinking|reasoning|claim|story|prose|piece|writing|work|problem)\b/gi, label: 'abstract "structure of the argument"' },
 ];
 
 // ── 3a. Generic AI vocabulary (Wikipedia + frequency studies) ─────────────────
@@ -347,4 +356,4 @@ export const FAMILY_TELLS: FamilyTells[] = [
  * analysis (e.g. a catalog asset's stored AI-signal note) key it by this, so a
  * stored verdict from an older lexicon is recomputed rather than trusted.
  */
-export const LEXICON_VERSION = 4;
+export const LEXICON_VERSION = 5;

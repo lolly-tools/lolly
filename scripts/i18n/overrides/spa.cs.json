@@ -191,5 +191,9 @@
   "Home": "Domů",
   "Live now - 1 person editing": "Právě živě - upravuje 1 člověk",
   "Live now - {n} people editing": "Právě živě - upravuje {n} lidí",
-  "The text is checked on this device, exactly as pasted. Invisible characters matter here - a C2PA text credential is made of them - so paste rather than retype.": "Text se kontroluje na tomto zařízení přesně tak, jak byl vložen. Na neviditelných znacích záleží - textové pověření C2PA je z nich tvořeno - proto text vlož, nepřepisuj ho."
+  "The text is checked on this device, exactly as pasted. Invisible characters matter here - a C2PA text credential is made of them - so paste rather than retype.": "Text se kontroluje na tomto zařízení přesně tak, jak byl vložen. Na neviditelných znacích záleží - textové pověření C2PA je z nich tvořeno - proto text vlož, nepřepisuj ho.",
+  "AI-declared ingredient in this design: {names}. Its provenance rides the export as a C2PA ingredient.": "Součást tohoto návrhu deklarovaná jako dílo AI: {names}. Její původ cestuje s exportem jako součást C2PA.",
+  "An ingredient carries AI-writing signals: {names}. A signal, not proof - review it in the catalogue before this file travels.": "Jedna součást nese signály textu psaného AI: {names}. Signál, nikoli důkaz - před odesláním souboru ji zkontroluj v katalogu.",
+  "This file is packaged the way {vendor} AI products package downloads ({hint}). A signal, not proof.": "Tento soubor je zabalen tak, jak AI produkty {vendor} balí stahování ({hint}). Signál, nikoli důkaz.",
+  "likely AI-made": "pravděpodobně dílo AI"
 }
