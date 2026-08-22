@@ -283,6 +283,11 @@ export interface DockHost {
   /** Whether the current source can be seeked (false for radio / live streams). */
   seekable?(): boolean;
   seek?(seconds: number): void;
+  /** Set false to hide the numeric M:SS time labels under the scrub while KEEPING the
+   *  bar itself. For a block-based narration (device voice) the bar shows position
+   *  through the page but there is no clock, so a time readout would be a lie. Absent
+   *  ⇒ labels shown (a normal timed track). */
+  showScrubTime?: boolean;
   /** Subscribe to any state change (play/pause, position, track, caption) so the
    *  shell re-renders. Returns an unsubscribe. This is the one required callback. */
   onChange(listener: () => void): () => void;
@@ -301,6 +306,12 @@ export interface DockHost {
   /** Volume sliders (Music, interface Effects, …) for a music host. Rendered as a
    *  small block below the transport when present. Optional; narration omits it. */
   volumes?: DockVolume[];
+  /** A single MASTER output volume (0..1), rendered as a speaker button in the
+   *  transport that opens a vertical slider. Distinct from `volumes` (the music
+   *  host's named channels): this is one level for whatever the host is playing - a
+   *  narration host maps it to its audio element / utterance volume. Absent ⇒ no
+   *  volume button. Reuses DockVolume; a host uses id 'master'. */
+  volume?: DockVolume;
   /** A SECOND, self-contained narration player rendered as its own block above the main
    *  (music) player, so the unified dock can carry BOTH page voice and music at once.
    *  Absent ⇒ no narration block. Additive/optional; see {@link DockNarrationPlayer}. */

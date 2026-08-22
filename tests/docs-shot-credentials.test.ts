@@ -121,7 +121,7 @@ test('the hidden start state is armed pre-paint and gated, so no-JS shows plain 
   assert.match(BUILD_TS, /classList\.add\('shots-motion'\)/, 'the pre-paint init script must add the gate');
   // The gate has to be in <head> (with the theme flag), not at end of body, or a long
   // page paints the shots once and blinks them out to animate them back in.
-  const head = BUILD_TS.slice(BUILD_TS.indexOf('${THEME_INIT_SCRIPT}'), BUILD_TS.indexOf('<style>${CSS}</style>'));
+  const head = BUILD_TS.slice(BUILD_TS.indexOf('${THEME_INIT_SCRIPT}'), BUILD_TS.indexOf('${DOCS_CSS_LINK}'));
   assert.match(head, /SHOT_MOTION_INIT/, 'SHOT_MOTION_INIT belongs in <head>, beside THEME_INIT_SCRIPT');
   // Every declaration that hides the WRAPPER must sit behind the gate. Scoped to the
   // wrapper selector itself (`.shot` / `.shot--hero`, not `.shot-cred*`, which is the

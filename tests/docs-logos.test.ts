@@ -111,9 +111,24 @@ function bodyOf(html: string): string {
 // `npm run build:info` runs. Skip rather than fail there - same contract as
 // tests/docs-provenance-pills.test.ts. When the artifact IS present it is asserted in
 // full, which is what catches an /info older than docs/.
-const built = existsSync(join(BUILT, 'build-guide.html'))
-  ? false
-  : 'no built /info on disk - run `npm run build:info`';
+// The shared chrome CSS/JS ship as fingerprinted files linked per page (plan 131 B.1),
+// not inline. Resolve the file a page links and read it from the build.
+const linked = (html: string, ext: 'css' | 'js'): string => {
+  const m = new RegExp(`/info/(docs\\.[A-Za-z0-9_-]{16}\\.${ext})`).exec(html);
+  if (!m) throw new Error(`page links no docs.<hash>.${ext}`);
+  return readFileSync(join(BUILT, m[1]!), 'utf-8');
+};
+
+// Skip when /info is unbuilt OR mid-rebuild: page + both fingerprinted chrome files
+// must be present (a concurrent build can momentarily leave a page pointing at a file
+// its own next write has not laid down yet).
+const built = (() => {
+  if (!existsSync(join(BUILT, 'build-guide.html'))) return 'no built /info on disk - run `npm run build:info`';
+  const g = readFileSync(join(BUILT, 'build-guide.html'), 'utf-8');
+  try { linked(g, 'css'); linked(g, 'js'); }
+  catch { return 'built /info is mid-rebuild (linked chrome file absent) - rerun `npm run build:info`'; }
+  return false;
+})();
 
 test('the built pages render their markers as .doc-logo spans, with none left over', { skip: built }, () => {
   let pagesChecked = 0;
@@ -239,8 +254,8 @@ test('the jump nav is exempted from the rules that own every other <nav>', { ski
   // colour, and below 1100px they are `display:none`d out of existence. Both shipped
   // once, and neither shows up in markup-only assertions. (The landing page's
   // quicknav opts out of the same rules the same way.)
-  const css = /<style>([\s\S]*?)<\/style>/.exec(readFileSync(join(BUILT, 'build-guide.html'), 'utf-8'))?.[1] ?? '';
-  assert.ok(css.length > 1000, 'no inline stylesheet found in the built page');
+  const css = linked(readFileSync(join(BUILT, 'build-guide.html'), 'utf-8'), 'css');
+  assert.ok(css.length > 1000, 'the linked stylesheet is missing or empty');
   const panel = /\.doc-jump-nav\{([^}]*)\}/.exec(css)?.[1] ?? '';
   for (const reset of ['display:block', 'top:auto', 'width:auto', 'height:auto']) {
     assert.ok(panel.includes(reset), `.doc-jump-nav does not reset the top bar's ${reset}`);
@@ -255,10 +270,12 @@ test('the jump nav is exempted from the rules that own every other <nav>', { ski
 
 test('the jump nav script closes on Escape and returns focus', { skip: built }, () => {
   const html = readFileSync(join(BUILT, 'build-guide.html'), 'utf-8');
-  const script = /<script>\(function\(\)\{\s*var btn=document\.getElementById\('docJumpBtn'\)[\s\S]*?<\/script>/.exec(html);
+  // The jump-nav script rides the shared bundle (plan 131 B.1); each script is its own
+  // IIFE joined by `\n;\n`, so pull out the one that owns the docJumpBtn.
+  const script = linked(html, 'js').split('\n;\n').find((seg) => seg.includes("getElementById('docJumpBtn')"));
   assert.ok(script, 'the jump nav ships without its script');
-  assert.match(script[0], /Escape/, 'Esc does not close it (house rule)');
-  assert.match(script[0], /btn\.focus\(\)/, 'Esc does not return focus to the button (house rule)');
+  assert.match(script, /Escape/, 'Esc does not close it (house rule)');
+  assert.match(script, /btn\.focus\(\)/, 'Esc does not return focus to the button (house rule)');
   // No scroll hijacking: the links are plain anchors, the browser does the move.
-  assert.ok(!/scrollIntoView|scrollTo|preventDefault/.test(script[0]), 'the jump nav hijacks navigation');
+  assert.ok(!/scrollIntoView|scrollTo|preventDefault/.test(script), 'the jump nav hijacks navigation');
 });

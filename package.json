@@ -56,6 +56,7 @@
     "validate:catalog:all": "node scripts/build-catalog-all.ts --check",
     "sync:shared": "node scripts/sync-shared-hooks.ts",
     "check:bundle": "node scripts/check-bundle-budget.ts",
+    "check:docs-size": "node scripts/check-docs-size-budget.ts",
     "check:mcp": "node scripts/check-mcp-live.ts",
     "docs:shots": "node scripts/build-docs-shots.ts",
     "previews": "node scripts/build-previews.ts && node scripts/optimize-preview-webp.ts && node scripts/build-preview-bundle.ts",
