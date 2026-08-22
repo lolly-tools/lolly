@@ -53,8 +53,9 @@ export interface ExtractOptions {
   pageTitle?: string;
 }
 
-/** Does a leading H1 merely restate the page title (see ExtractOptions)? */
-function isMetaTitle(spoken: string, pageTitle: string): boolean {
+/** Does a leading H1 merely restate the page title (see ExtractOptions)? Exported so
+ *  the DOM-side extractor (docs/player/dom-spoken-text.ts) applies the identical skip. */
+export function isMetaTitle(spoken: string, pageTitle: string): boolean {
   const title = pageTitle.trim().replace(/\s+/g, ' ');
   if (!title) return false;
   const escaped = title.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');

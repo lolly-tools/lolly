@@ -30,6 +30,9 @@ export const DOCK_CSS = `
   --dock-accent: hsl(145 63% 49%);
   --dock-accent-fg: hsl(171 62% 8%);
   --dock-border: hsl(160 40% 96% / .14);
+  /* Slider track (unfilled). A clean, faintly brand-tinted line - never the browser's
+     default muddy grey (which accent-color forces on the unfilled portion). */
+  --dock-track: hsl(160 30% 82% / .22);
   --dock-radius: 16px;
   --dock-shadow: 0 14px 44px rgb(0 0 0 / .46);
 
@@ -125,22 +128,57 @@ export const DOCK_CSS = `
 .audio-dock-repeat { position: absolute; right: 12px; top: 50%; transform: translateY(-50%); width: 30px; height: 30px; }
 .audio-dock-repeat:active { transform: translateY(-50%) scale(.92); }
 .audio-dock-repeat.is-active { color: var(--dock-accent); }
+/* Volume speaker mirrors repeat on the left, so prev/play/next stay optically centred. */
+.audio-dock-volbtn { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); width: 30px; height: 30px; }
+.audio-dock-volbtn:active { transform: translateY(-50%) scale(.92); }
+.audio-dock-volbtn.is-muted { color: var(--dock-muted); }
+.audio-dock-volpop { position: absolute; z-index: 6; display: flex; flex-direction: column; align-items: center; gap: 8px;
+  padding: 12px 10px 10px; border: 1px solid var(--dock-border); border-radius: 12px;
+  background: var(--dock-bg-2); box-shadow: var(--dock-shadow); }
+.audio-dock-volpop[hidden] { display: none; }
+/* Vertical range: modern standard (writing-mode) with max at the top. The input is the
+   track's own thickness (6px) so the track fills it and the thumb centres on it with no
+   margin:auto drift; the wider thumb simply overhangs into the popover's padding. */
+.audio-dock-volrange { writing-mode: vertical-lr; direction: rtl; width: 6px; height: 120px; }
+.audio-dock-volpct { font: 700 .62rem/1 var(--font-mono, ui-monospace, monospace); color: var(--dock-muted); }
 .audio-dock-play {
   width: 46px; height: 46px; background: var(--dock-accent); color: var(--dock-accent-fg);
 }
 .audio-dock-play:hover { background: var(--dock-accent); filter: brightness(1.08); }
 .audio-dock-scrub { padding: 0 14px 10px; }
-.audio-dock-scrub input[type="range"] { width: 100%; accent-color: var(--dock-accent); cursor: pointer; }
+.audio-dock-scrub input[type="range"] { width: 100%; }
 .audio-dock-time { display: flex; justify-content: space-between; font-size: .68rem; color: var(--dock-muted);
   margin-top: 2px; font-family: var(--font-mono, ui-monospace, monospace); font-variant-numeric: tabular-nums; }
 .audio-dock[data-seekable="false"] .audio-dock-scrub { display: none; }
 
-/* Range sliders (scrub + Music/Effects volume + atmosphere levels) read CLEAN - no
-   resting border/box around the track. The high-contrast a11y pref restores a 1px
-   outline for definition; keyboard focus keeps its own focus-visible ring regardless. */
-.audio-dock input[type="range"] { border: none; box-shadow: none; }
+/* Every range slider (scrub, master Volume, Music/Effects, atmosphere) is fully
+   custom-styled so it shows the dock's own colours ONLY: a clean rounded track in
+   --dock-track and an accent thumb - never the browser-default grey unfilled track that
+   accent-color forces, and no resting border/box. The high-contrast a11y pref restores a
+   1px track outline for definition; keyboard focus keeps its own focus ring regardless. */
+.audio-dock input[type="range"] {
+  -webkit-appearance: none; appearance: none;
+  background: transparent; border: none; box-shadow: none; cursor: pointer;
+}
+.audio-dock input[type="range"]::-webkit-slider-runnable-track { background: var(--dock-track); border: none; border-radius: 999px; }
+.audio-dock input[type="range"]::-moz-range-track { background: var(--dock-track); border: none; border-radius: 999px; }
+.audio-dock input[type="range"]::-moz-range-progress { background: var(--dock-accent); border: none; border-radius: 999px; }
+.audio-dock input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none; appearance: none; border: none;
+  width: 13px; height: 13px; border-radius: 999px; background: var(--dock-accent);
+}
+.audio-dock input[type="range"]::-moz-range-thumb { border: none; width: 13px; height: 13px; border-radius: 999px; background: var(--dock-accent); }
 .audio-dock input[type="range"]:focus-visible { outline: 2px solid var(--dock-accent); outline-offset: 2px; }
-html[data-a11y-contrast="high"] .audio-dock input[type="range"] { border: 1px solid var(--dock-border); }
+/* Horizontal sliders: a thin 4px track with the thumb centred over it. The vertical
+   Volume slider sizes its track thickness from its own 14px width instead. */
+.audio-dock-scrub input[type="range"]::-webkit-slider-runnable-track,
+.audio-dock-vol input[type="range"]::-webkit-slider-runnable-track,
+.audio-dock-atmo-row input[type="range"]::-webkit-slider-runnable-track { height: 4px; }
+.audio-dock-scrub input[type="range"]::-webkit-slider-thumb,
+.audio-dock-vol input[type="range"]::-webkit-slider-thumb,
+.audio-dock-atmo-row input[type="range"]::-webkit-slider-thumb { margin-top: -4.5px; }
+html[data-a11y-contrast="high"] .audio-dock input[type="range"]::-webkit-slider-runnable-track { outline: 1px solid var(--dock-border); }
+html[data-a11y-contrast="high"] .audio-dock input[type="range"]::-moz-range-track { outline: 1px solid var(--dock-border); }
 
 /* ── capability sections (narration / music / atmosphere / visualiser) ──────── */
 /* A near-opaque backing so dense text lists read on top of the moving backdrop; the
@@ -260,7 +298,7 @@ html[data-a11y-contrast="high"] .audio-dock input[type="range"] { border: 1px so
 /* The MUSIC block wraps the transport + mixer + Tracks/Atmosphere, ANCHORED to the bottom
    of the window (a solid footer over the viz-space); hidden for a narration-block-only
    dock. flex:0 0 auto so it keeps its natural height while the viz-space above it grows. */
-.audio-dock-musicblock { flex: 0 0 auto; background: var(--dock-panel); }
+.audio-dock-musicblock { flex: 0 0 auto; background:transparent; }
 .audio-dock-musicblock[hidden] { display: none; }
 
 /* ── visualiser RIGHT-CLICK settings menu (on/off + theme pills + preset picker) ── */

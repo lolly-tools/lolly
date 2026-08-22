@@ -29,25 +29,40 @@ const REPO = new URL('..', import.meta.url).pathname;
 const BUILT = join(REPO, 'shells/web/public/info');
 const CATALOG = join(REPO, 'docs/site/formats-catalog.json');
 
-const built = existsSync(join(BUILT, 'build-guide.html'))
-  ? false
-  : 'no built /info on disk - run `npm run build:info`';
-
 const page = (f: string) => readFileSync(join(BUILT, f), 'utf-8');
-/** A page minus its inline stylesheet - the CSS discusses the band in comments. */
-const bodyOf = (html: string) => html.replace(/<style>[\s\S]*?<\/style>/g, ' ');
 
-/** ONE inline script, by something only it contains. Split rather than a lazy regex
- *  across the page: `<script>…?needle` happily starts at the theme-init script at the
- *  top of <head> and swallows every tag in between, which makes every assertion below
- *  pass for the wrong reason. */
+/** The shared chrome CSS/JS ship as fingerprinted files linked per page (plan 131 B.1),
+ *  not inline. Resolve the file a page links and read it from the build. */
+const linked = (html: string, ext: 'css' | 'js'): string => {
+  const m = new RegExp(`/info/(docs\\.[A-Za-z0-9_-]{16}\\.${ext})`).exec(html);
+  if (!m) throw new Error(`page links no docs.<hash>.${ext}`);
+  return readFileSync(join(BUILT, m[1]!), 'utf-8');
+};
+
+// Built-artifact assertions skip when /info is unbuilt OR mid-rebuild: the page and both
+// fingerprinted chrome files must be present (a concurrent build can momentarily leave a
+// page pointing at a file its own next write has not laid down yet).
+const built = (() => {
+  if (!existsSync(join(BUILT, 'build-guide.html'))) return 'no built /info on disk - run `npm run build:info`';
+  try { linked(page('build-guide.html'), 'css'); linked(page('build-guide.html'), 'js'); }
+  catch { return 'built /info is mid-rebuild (linked chrome file absent) - rerun `npm run build:info`'; }
+  return false;
+})();
+
+/** CSS is external now, so a page IS its own body; kept so call sites read unchanged. */
+const bodyOf = (html: string) => html;
+/** The shared JS bundle a page links. */
+const bundleOf = (html: string) => linked(html, 'js');
+/** The shared stylesheet a page links. */
+const styleOf = (html: string) => linked(html, 'css');
+
+/** ONE former inline script, by something only it contains. The bundle joins each script
+ *  (each still its own IIFE) with `\n;\n`, so split on that to keep per-script isolation -
+ *  an assertion that one script does NOT contain another's marker still holds. */
 function scriptWith(html: string, needle: string): string {
-  const hit = bodyOf(html).split('<script>').find(part => {
-    const end = part.indexOf('</script>');
-    return end >= 0 && part.slice(0, end).includes(needle);
-  });
-  assert.ok(hit, `no inline script contains ${needle}`);
-  return hit.slice(0, hit.indexOf('</script>'));
+  const hit = bundleOf(html).split('\n;\n').find(seg => seg.includes(needle));
+  assert.ok(hit, `no bundled script contains ${needle}`);
+  return hit;
 }
 
 // ─── the band ────────────────────────────────────────────────────────────────
@@ -105,7 +120,7 @@ test('the locale pages get the band too', { skip: built }, () => {
 
 /** The `var exts=[…]` array as it actually ships, parsed back into strings. */
 function shippedExts(html: string): string[] {
-  const m = /var exts=(\[[^\]]*\])/.exec(bodyOf(html));
+  const m = /var exts=(\[[^\]]*\])/.exec(bundleOf(html));
   assert.ok(m, 'no chip list in the shipped script');
   return JSON.parse(m[1]!.replace(/'/g, '"'));
 }
@@ -137,22 +152,26 @@ test('the chip list is generated from the formats catalog, not hand-written', { 
 test('the landing and the masthead draw from the same generated list', { skip: built }, () => {
   assert.deepEqual(shippedExts(page('build-guide.html')), shippedExts(page('index.html')));
   // The ×2 weighting of the headline formats survives the change.
-  assert.match(bodyOf(page('index.html')), /extPool=exts\.concat\(\['\.PDF','\.SVG','\.PNG','\.MP4','\.PPTX'\]\)/);
+  assert.match(bundleOf(page('index.html')), /extPool=exts\.concat\(\['\.PDF','\.SVG','\.PNG','\.MP4','\.PPTX'\]\)/);
 });
 
 // ─── the manners ─────────────────────────────────────────────────────────────
 
 test('the masthead script honours reduced motion, off-screen and hidden tabs', { skip: built }, () => {
+  // The masthead's own call + theme wiring is its bundle segment; the behaviour those
+  // options select lives in the shared __lollyChipField engine (its own segment now,
+  // plan 131 B.1 - it used to be embedded in each caller's inline block).
   const js = scriptWith(page('build-guide.html'), 'docs-mast-canvas');
+  const engine = bundleOf(page('build-guide.html'));
   // The instance's own options…
   assert.match(js, /pause:true/, 'the masthead animates off screen');
   assert.match(js, /reduceMotion:true/, 'the masthead ignores prefers-reduced-motion');
   // …and the engine behaviour those options select.
-  assert.match(js, /prefers-reduced-motion:reduce/);
-  assert.match(js, /function paintOnce\(\)/, 'there is no static-frame path for reduced motion');
-  assert.match(js, /IntersectionObserver/);
-  assert.match(js, /document\.hidden/);
-  // Theme: the palette is read from the page's tokens and re-baked on a flip.
+  assert.match(engine, /prefers-reduced-motion:reduce/);
+  assert.match(engine, /function paintOnce\(\)/, 'there is no static-frame path for reduced motion');
+  assert.match(engine, /IntersectionObserver/);
+  assert.match(engine, /document\.hidden/);
+  // Theme: the palette is read from the page's tokens and re-baked on a flip (masthead wiring).
   assert.match(js, /MutationObserver/, 'a theme toggle would leave the chips in the old palette');
   assert.match(js, /prefers-color-scheme:dark/, 'an OS theme change would leave the chips in the old palette');
   assert.match(js, /getPropertyValue/, 'the docs palette is not derived from the docs tokens');
@@ -160,14 +179,16 @@ test('the masthead script honours reduced motion, off-screen and hidden tabs', {
 
 test('the masthead burst yields to links, buttons and text selection', { skip: built }, () => {
   const js = scriptWith(page('build-guide.html'), 'docs-mast-canvas');
+  const engine = bundleOf(page('build-guide.html'));
   assert.match(js, /burst:true/, 'the masthead lost its click burst');
   assert.match(js, /burstGuard:true/, 'the masthead bursts without the prose-page guards');
-  assert.match(js, /closest\('a,button,input,select,textarea,label,summary/, 'a control in the band would be hijacked by the burst');
-  assert.match(js, /isCollapsed/, 'selecting text in the band would fire a burst');
-  assert.match(js, /if\(still\)return;/, 'a static (reduced-motion) band still bursts when clicked');
+  // The guard behaviour is in the shared engine, selected by burstGuard:true.
+  assert.match(engine, /closest\('a,button,input,select,textarea,label,summary/, 'a control in the band would be hijacked by the burst');
+  assert.match(engine, /isCollapsed/, 'selecting text in the band would fire a burst');
+  assert.match(engine, /if\(still\)return;/, 'a static (reduced-motion) band still bursts when clicked');
   // The landing keeps the immediate, unguarded version it always had.
   const landing = scriptWith(page('index.html'), "getElementById('heroCanvas')");
-  assert.match(landing, /document\.addEventListener\('pointerdown',burstAt\)/, 'the landing hero lost its immediate burst');
+  assert.match(engine, /document\.addEventListener\('pointerdown',burstAt\)/, 'the shared field lost its immediate burst path');
   // The engine SOURCE mentions every option (it implements them), so the landing is
   // judged on the options it actually passes - that call is the whole difference
   // between the two instances.
@@ -194,13 +215,14 @@ test('with nothing mapped, every page still gets the default field - not a blank
 
 test('a banked masthead would replace the canvas, not join it', { skip: built }, () => {
   // Two fields behind one h1 is not a design, it is a bug that only shows up on the
-  // one page that has art. The band's builder chooses; the chip script rides on that
-  // same choice, so a page with art also ships no chip engine.
+  // one page that has art. The band's builder chooses whether to emit the canvas; the
+  // shared chip script (in the bundle on every page, plan 131 B.1) self-guards on that
+  // canvas, so a page whose band has art paints no second field.
   const src = readFileSync(join(REPO, 'docs/build.ts'), 'utf-8');
   assert.match(src, /const art = mastheadArt\(slug, m\[0\]\);\s*\n\s*if \(art\) return \{ band: art, rest, canvas: false \};/,
     'docs/build.ts no longer picks banked art INSTEAD of the default band');
-  assert.match(src, /\$\{mast\?\.canvas \? DOCS_MASTHEAD_SCRIPT : ''\}/,
-    'the chip-field script would ship on a page whose band has no canvas to paint');
+  assert.match(src, /var canvas=document\.querySelector\('\.docs-mast-canvas'\);\s*\n\s*if\(!canvas\)return;/,
+    'the masthead chip script must self-guard on its canvas - it ships on every page in the shared bundle now');
 });
 
 test('the credential line offers Copy signed source, and says what happened', { skip: built }, () => {
@@ -230,7 +252,7 @@ test('no screenshot is offered a clipboard copy of its pixels', { skip: built },
 });
 
 test('the canvas never takes a pointer event, in either instance', { skip: built }, () => {
-  const css = /<style>([\s\S]*?)<\/style>/.exec(page('build-guide.html'))![1]!;
+  const css = styleOf(page('build-guide.html'));
   assert.match(css, /\.docs-mast-canvas\{[^}]*pointer-events:none/);
   assert.match(css, /#heroCanvas\{[^}]*pointer-events:none/);
   // The scrims sit above the canvas and below the heading, and neither eats clicks.

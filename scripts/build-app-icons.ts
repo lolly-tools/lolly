@@ -76,6 +76,24 @@ const MASTER = 1024;
 const PINE = { r: 12, g: 50, b: 44, alpha: 1 };        // #0c322c
 const TRANSPARENT = { r: 0, g: 0, b: 0, alpha: 0 };
 
+/** iOS home-screen icon: pine field, the mark OVERSIZED past the canvas (`bleed` > 1,
+ *  owner call 2026-08-22: the swirl reads stronger filling the squircle edge to edge),
+ *  cropped back to the square, alpha stripped (iOS icons allow none). */
+async function iosIconPng(master: Buffer, size: number, bleed: number): Promise<Buffer> {
+  const inner = Math.round(size * bleed);
+  const mark = await sharp(master)
+    .resize(inner, inner, { fit: 'contain', background: TRANSPARENT })
+    .png()
+    .toBuffer();
+  const off = Math.floor((inner - size) / 2);
+  const cropped = await sharp(mark).extract({ left: off, top: off, width: size, height: size }).png().toBuffer();
+  return sharp({ create: { width: size, height: size, channels: 4, background: PINE } })
+    .composite([{ input: cropped, gravity: 'center' }])
+    .removeAlpha()
+    .png()
+    .toBuffer();
+}
+
 /** Square PNG buffer of the master at `size`, `contain`-fit on `bg`, inset by `pad` (0..0.5). */
 async function iconPng(master: Buffer, size: number, bg: Color, pad = 0): Promise<Buffer> {
   const inner = Math.round(size * (1 - 2 * pad));
@@ -182,6 +200,27 @@ async function main(): Promise<void> {
     }
   }
   rmSync(masterFile, { force: true });
+
+  // ── iOS appiconset - what the Xcode build actually ships (gen/apple/Assets.xcassets,
+  // not icons/ios). Pine-backed, no alpha, and the swirl bleeds past the canvas. ──
+  const IOS_BLEED = 1.16;
+  const setDir = resolve(ROOT, 'shells/tauri-mobile/src-tauri/gen/apple/Assets.xcassets/AppIcon.appiconset');
+  if (existsSync(join(setDir, 'Contents.json'))) {
+    const contents = JSON.parse(readFileSync(join(setDir, 'Contents.json'), 'utf8')) as {
+      images: Array<{ filename?: string; size?: string; scale?: string }>;
+    };
+    const done = new Set<string>();
+    for (const im of contents.images) {
+      if (!im.filename || !im.size || done.has(im.filename)) continue;
+      const pts = Number(im.size.split('x')[0]);
+      const scale = Number((im.scale ?? '1x').replace('x', ''));
+      if (!Number.isFinite(pts) || !Number.isFinite(scale)) continue;
+      const px = Math.round(pts * scale);
+      writeFileSync(join(setDir, im.filename), await iosIconPng(master, px, IOS_BLEED));
+      done.add(im.filename);
+    }
+    console.log(`✓ iOS appiconset (${done.size} icons, pine, swirl +${Math.round((IOS_BLEED - 1) * 100)}% bleed)`);
+  }
 
   console.log('\n✓ app icons regenerated from icon.svg');
 }

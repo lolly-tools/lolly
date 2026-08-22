@@ -24,6 +24,13 @@
  * pages where the print path can't be faithful (wall-clock media, backdrop
  * effects) - a per-recipe, performance-reasons-only choice.
  *
+ * Locale: screenshots are ENGLISH, one set, shared by every locale (plan 131 B.2).
+ * There is no localized-shot recipe - a translated page falls back to the root shot
+ * (docs/build.ts localizedShot() returns null when no `<slug>.<loc>` file exists on
+ * disk). Do not commit `<slug>.<loc>.svg` variants: content translates, chrome must
+ * not multiply, or a 30-language wave becomes a ~1.5 GB binary regression. The guard
+ * is tests/docs-shots-vector.test.ts ('screenshots are English').
+ *
  * Authenticity: every baseline carries Content Credentials (embedC2pa, surface
  * 'docs', with the recipe's parameters in the credential). Raster baselines also
  * carry the Lolly Imprint (engine pixel-watermark, gentle LOSSLESS_STRENGTH);

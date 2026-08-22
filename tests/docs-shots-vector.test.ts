@@ -134,3 +134,25 @@ test('docs: no committed baseline is an undeclared bitmap', () => {
   const undeclared = bitmaps.filter((f) => !(baseSlug(f) in RASTER_ALLOWED));
   assert.deepEqual(undeclared, [], 'Undeclared bitmap baselines in docs/shots - prune them.');
 });
+
+test('docs: screenshots are English - no locale-suffixed shot files', () => {
+  // Policy (plan 131 B.2): one English screenshot set, shared by every locale. A
+  // translated page falls back to the root shot (build.ts localizedShot() returns
+  // null when no `<slug>.<loc>` file exists), so the chrome never multiplies per
+  // language. Without this guard a 30-language wave with localized shots would be a
+  // ~1.5 GB regression - each locale's whole shot corpus, re-captured.
+  const locales = readdirSync(join(DOCS, 'i18n'), { withFileTypes: true })
+    .filter((d) => d.isDirectory()).map((d) => d.name);
+  const localeSet = new Set(locales);
+  // `<slug>[.<loc>][.dark].<ext>`: drop the extension and an optional trailing
+  // `.dark`, then a locale code in final position is the violation.
+  const localeSuffixed = readdirSync(join(DOCS, 'shots'))
+    .filter((f) => /\.(png|jpg|jpeg|svg)$/.test(f))
+    .filter((f) => {
+      const s = f.replace(/\.(png|jpg|jpeg|svg)$/, '').replace(/\.dark$/, '');
+      const m = /\.([^.]+)$/.exec(s);
+      return !!m && localeSet.has(m[1]!);
+    });
+  assert.deepEqual(localeSuffixed, [],
+    'Locale-suffixed shots found - screenshots are English-only; delete these and let the locale page fall back to the root shot.');
+});

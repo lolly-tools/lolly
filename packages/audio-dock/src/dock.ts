@@ -50,6 +50,8 @@ const ICON = {
   compress: SVG('<path d="M8 3v3a2 2 0 0 1-2 2H3M16 3v3a2 2 0 0 0 2 2h3M8 21v-3a2 2 0 0 0-2-2H3M16 21v-3a2 2 0 0 1 2-2h3" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>'),
   // repeat = loop the current track; forward = play through the list.
   repeat: SVG('<path d="m17 2 4 4-4 4M3 11v-1a4 4 0 0 1 4-4h14M7 22l-4-4 4-4M21 13v1a4 4 0 0 1-4 4H3" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>'),
+  volume: SVG('<path d="M11 5 6 9H2v6h4l5 4V5Z" fill="currentColor"/><path d="M15.5 8.5a5 5 0 0 1 0 7M18 6a8 8 0 0 1 0 12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>'),
+  volumeMuted: SVG('<path d="M11 5 6 9H2v6h4l5 4V5Z" fill="currentColor"/><path d="m16 9 5 6M21 9l-5 6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>'),
   forward: SVG('<path d="M12 12H3M16 6H3M12 18H3M16 6l5 6-5 6V6Z" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>'),
   // The viz on/off toggle glyph: a little waveform.
   viz: SVG('<path d="M3 12h2l2-6 3 14 3-11 2 5h6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>'),
@@ -226,6 +228,7 @@ export function createAudioDock(opts: AudioDockOptions): DockController {
 
         <div class="audio-dock-musicblock" data-musicblock>
           <div class="audio-dock-transport">
+            <button type="button" class="audio-dock-btn audio-dock-volbtn" data-vol-btn aria-label="Volume" aria-haspopup="true" aria-expanded="false" hidden>${ICON.volume}</button>
             <button type="button" class="audio-dock-btn" data-prev aria-label="Previous">${ICON.prev}</button>
             <button type="button" class="audio-dock-btn audio-dock-play" data-play aria-label="Play">${ICON.play}</button>
             <button type="button" class="audio-dock-btn" data-next aria-label="Next">${ICON.next}</button>
@@ -272,6 +275,10 @@ export function createAudioDock(opts: AudioDockOptions): DockController {
         </div>
       </div>
     </div>
+    <div class="audio-dock-volpop" data-volpop hidden role="group" aria-label="Volume">
+      <input type="range" class="audio-dock-volrange" data-vol-range min="0" max="1" step="0.01" value="1" aria-label="Volume" aria-orientation="vertical">
+      <span class="audio-dock-volpct" data-vol-pct>100%</span>
+    </div>
     <div class="audio-dock-vizmenu" data-vizmenu hidden role="menu" aria-label="Visualiser settings">
       <button type="button" class="audio-dock-toggle" data-viz-toggle aria-pressed="true">${ICON.viz}<span>On</span></button>
       <div class="audio-dock-vizmenu-label" data-viz-theme-label hidden>Brand colour</div>
@@ -303,6 +310,9 @@ export function createAudioDock(opts: AudioDockOptions): DockController {
   const srcAttr = q<HTMLElement>('[data-src-attr]')!;
   const atmoRows = q<HTMLElement>('[data-atmo-rows]')!;
   const volumesEl = q<HTMLElement>('[data-volumes]')!;
+  const volBtn = q<HTMLButtonElement>('[data-vol-btn]');
+  const volPop = q<HTMLElement>('[data-volpop]');
+  const volRange = q<HTMLInputElement>('[data-vol-range]');
   const vizThemesEl = q<HTMLElement>('[data-viz-themes]')!;
   const vizTransitionsEl = q<HTMLElement>('[data-viz-transitions]')!;
   const vizPresetsEl = q<HTMLElement>('[data-viz-presets]')!;
@@ -585,6 +595,45 @@ export function createAudioDock(opts: AudioDockOptions): DockController {
     const label = repeat ? 'Repeat this track' : 'Play through the list';
     btn.setAttribute('aria-label', label);
     btn.setAttribute('title', label);
+  }
+
+  // ── master volume (speaker button + vertical slider) ─────────────────────────────
+  function paintVolume(): void {
+    if (!volBtn) return;
+    const show = !!host.volume;
+    volBtn.hidden = !show;
+    if (!show || !host.volume) { closeVolPop(); return; }
+    const v = host.volume.get();
+    const muted = v <= 0.001;
+    volBtn.innerHTML = muted ? ICON.volumeMuted : ICON.volume;
+    volBtn.classList.toggle('is-muted', muted);
+    const pct = Math.round(v * 100);
+    volBtn.setAttribute('aria-label', `Volume ${pct}%`);
+    volBtn.setAttribute('title', `Volume ${pct}%`);
+    // Don't fight the slider while the user is dragging it.
+    if (volRange && doc.activeElement !== volRange) volRange.value = String(v);
+    const pctEl = q<HTMLElement>('[data-vol-pct]');
+    if (pctEl) pctEl.textContent = `${pct}%`;
+  }
+  function openVolPop(): void {
+    if (!host.volume || !volPop || !volBtn) return;
+    paintVolume();
+    volPop.hidden = false;
+    volBtn.setAttribute('aria-expanded', 'true');
+    // Sit centred over the button, clamped inside the dock (root is overflow:hidden).
+    const r = root.getBoundingClientRect();
+    const b = volBtn.getBoundingClientRect();
+    const pw = volPop.offsetWidth || 46;
+    const ph = volPop.offsetHeight || 150;
+    const x = Math.max(6, Math.min(b.left - r.left + b.width / 2 - pw / 2, r.width - pw - 6));
+    const y = Math.max(6, b.top - r.top - ph - 8);
+    volPop.style.left = `${x}px`;
+    volPop.style.top = `${y}px`;
+    volRange?.focus();
+  }
+  function closeVolPop(): void {
+    if (volPop && !volPop.hidden) volPop.hidden = true;
+    volBtn?.setAttribute('aria-expanded', 'false');
   }
 
   // ── atmosphere mixer ────────────────────────────────────────────────────────────
@@ -888,6 +937,12 @@ export function createAudioDock(opts: AudioDockOptions): DockController {
     if (!finite) return;
     const cur = host.currentTime ? host.currentTime() : 0;
     if (!seeking) scrub.value = String(Math.round((cur / dur) * 1000));
+    // A block-based narration keeps the position BAR but hides the M:SS labels: it has
+    // no clock, so a time readout would be dishonest.
+    const showTime = host.showScrubTime !== false;
+    const timeEl = q<HTMLElement>('.audio-dock-musicblock .audio-dock-time');
+    if (timeEl) timeEl.hidden = !showTime;
+    if (!showTime) return;
     setText('[data-time-dur]', fmtTime(dur));
     if (!seeking) setText('[data-time-cur]', fmtTime(cur));
   }
@@ -944,6 +999,7 @@ export function createAudioDock(opts: AudioDockOptions): DockController {
       next.disabled = host.canNext ? !host.canNext() : false;
     }
     paintRepeat();
+    paintVolume();
     paintVolumes();
     updateScrub();
 
@@ -1090,6 +1146,15 @@ export function createAudioDock(opts: AudioDockOptions): DockController {
     if (host.repeat) host.repeat.set(!host.repeat.get());
     refresh();
   });
+  volBtn?.addEventListener('click', (e) => {
+    e.stopPropagation();
+    if (volPop?.hidden) openVolPop(); else closeVolPop();
+  });
+  volRange?.addEventListener('input', () => {
+    host.volume?.set(Number(volRange.value));
+    paintVolume();
+  });
+  volRange?.addEventListener('change', () => host.volume?.commit?.(Number(volRange.value)));
   srcSearch.addEventListener('input', () => applySearch());
   volumesEl.addEventListener('input', (e) => {
     const range = (e.target as HTMLElement).closest?.<HTMLInputElement>('[data-vol-id]');
@@ -1197,14 +1262,16 @@ export function createAudioDock(opts: AudioDockOptions): DockController {
   vizSearchEl.addEventListener('input', () => paintVizPresets(vizSearchEl.value));
   // Click-away closes the menu.
   root.addEventListener('pointerdown', (e) => {
-    if (vizMenu.hidden) return;
-    if (!(e.target as HTMLElement).closest?.('[data-vizmenu]')) closeVizMenu();
+    const t = e.target as HTMLElement;
+    if (!vizMenu.hidden && !t.closest?.('[data-vizmenu]')) closeVizMenu();
+    if (volPop && !volPop.hidden && !t.closest?.('[data-volpop]') && !t.closest?.('[data-vol-btn]')) closeVolPop();
   }, true);
 
-  // Escape: close the menu; else step the dock down. Root-scoped (no global hijack).
+  // Escape: close an open popover; else step the dock down. Root-scoped (no global hijack).
   root.addEventListener('keydown', (e) => {
     if (e.key !== 'Escape') return;
     if (!vizMenu.hidden) { e.stopPropagation(); closeVizMenu(); return; }
+    if (volPop && !volPop.hidden) { e.stopPropagation(); closeVolPop(); volBtn?.focus(); return; }
     if (collapse !== 'mini' && !root.hasAttribute('data-fullscreen')) { e.stopPropagation(); stepDownCollapse(); }
   });
 

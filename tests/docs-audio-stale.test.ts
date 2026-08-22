@@ -46,21 +46,13 @@ const AUDIO = join(ROOT, 'docs', 'audio');
  * test yet, so a committed non-en directory must be listed here until it is.
  */
 const STALE_ALLOWED: Record<string, string> = {
-  // Empty: the 2026-08-16 narration re-render brought every committed launch
-  // page fresh against its source. It cleared the debt that had piled up here -
-  // the 2026-08-11 docs copy sweep, plan 116/117's rewrites, the 2026-08-15
-  // AI-vernacular sweep, and the 2026-08-16 pass that spelled out the section
-  // sign (say "section 2", never the glyph) - all of it is now baked into the
-  // audio. An entry here is a debt with a face: add one only with a reason and
-  // a date when a page is knowingly left stale, and delete it the moment the
-  // page is re-rendered.
-  'en/operators': 'operators doc edited in the 2026-08-17 docs pass; narration re-render is Andy-run-only (build-docs-audio.ts + local Kokoro), so it is deferred to the docs owner - remove this line once re-rendered',
-  'en/inclusive-design': 'inclusive-design reworded in the 2026-08-18 front-door completion; narration re-render is Andy-run-only (build-docs-audio.ts + local Kokoro), deferred to the docs owner - remove this line once re-rendered',
-  'en/index': 'the landing (index) reworded in the 2026-08-18 front-door completion; narration re-render is Andy-run-only (build-docs-audio.ts + local Kokoro), deferred to the docs owner - remove this line once re-rendered',
-  'en/trust': 'trust doc reworded in the 2026-08-18 front-door completion; narration re-render is Andy-run-only (build-docs-audio.ts + local Kokoro), deferred to the docs owner - remove this line once re-rendered',
-  'en/ai-stance': 'ai-stance gained the reword-watermark disclosure sentence in the 2026-08-21 embedding-transparency pass; narration re-render is Andy-run-only (build-docs-audio.ts + local Kokoro), deferred to the docs owner - remove this line once re-rendered',
-  'en/privacy': 'privacy reworded one line in the 2026-08-21 house-style lands-sweep; narration re-render is Andy-run-only (build-docs-audio.ts + local Kokoro), deferred to the docs owner - remove this line once re-rendered',
-  'en/about': 'the about/landing spoken text reworded in the 2026-08-21 house-style lands-sweep (site.md + import.json); narration re-render is Andy-run-only (build-docs-audio.ts + local Kokoro), deferred to the docs owner - remove this line once re-rendered',
+  // Empty: the 2026-08-22 narration re-render (two passes, after the claudism
+  // sweep that reworded operators/animating/builders/faq/README and the
+  // "in (X) terms" removals in privacy/content-credentials-identity/favourites)
+  // brought every committed launch page fresh against its source, clearing the
+  // seven deferred entries that had accumulated since 2026-08-17. An entry here
+  // is a debt with a face: add one only with a reason and a date when a page is
+  // knowingly left stale, and delete it the moment the page is re-rendered.
 };
 
 interface Committed { key: string; lang: string; slug: string; meta: AudioMeta }
