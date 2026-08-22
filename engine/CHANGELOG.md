@@ -6,6 +6,19 @@ minors, never removed or signature-changed without a major bump.
 
 Moved verbatim from the comment block that used to live in `src/index.ts`.
 
+1.141.0 - additive: `ExportOpts.signal` (an optional AbortSignal), so an
+export can be CANCELLED rather than only hidden (mobile UX audit finding T1 -
+the export shutter's status block offered "Hide" because no abort seam
+existed). A pipeline polls it at its natural yield points and rejects with a
+DOMException named 'AbortError'; a path with no yield point may ignore it, and
+then the caller's only guarantee is that the result is discarded. The web
+shell honours it in the video/GIF/APNG/WebP/animated-SVG frame loops, the CMYK
+row pass, the SVG and PDF vector walks (their existing cooperative yield, plus
+the multi-page boundary), the sequence compositor (in-thread, GPU and
+tilt-capture paths, plus the worker offload's SEQ_ABORTED mapped to the one
+AbortError shape) and the two real-time recorder compositors. Unset by default,
+so every existing export is byte-identical.
+
 1.140.0 - additive (no HostV1 change): the user's AI-origins assertion
 becomes signed provenance at export (plans/126 WP-B3, Andy-approved
 2026-08-21). `collectAiIngredientDeclarations` (c2pa.ts) walks a runtime

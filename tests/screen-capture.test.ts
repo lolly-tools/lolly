@@ -326,8 +326,11 @@ test('ENGINE_VERSION is 1.128.0', () => {
   // aiIngredients - a user's AI-origins assertion on placed assets becomes a
   // composite created step, a naming c2pa.placed step and a section 18.28
   // ai-disclosure in the fresh credential. Pure exports only, no HostV1 change).
+  // Then 1.141.0 (ExportOpts.signal - the optional AbortSignal a shell's export
+  // pipeline polls at its yield points, rejecting with an 'AbortError'; audit
+  // finding T1, the export shutter's Cancel. A field, unset by default).
   // The ^1.54.0 screencap floor below still holds (a minor bump satisfies it).
-  assert.equal(ENGINE_VERSION, '1.140.0');
+  assert.equal(ENGINE_VERSION, '1.141.0');
 });
 
 // ─── loadTool: a ^1.54.0 tool loads against this engine ───────────────────────

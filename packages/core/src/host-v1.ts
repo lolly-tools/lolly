@@ -2854,6 +2854,19 @@ export interface ExportOpts {
   thumbnail?: boolean;
 
   /**
+   * Cancellation for a long export. A shell's export pipeline SHOULD poll it at
+   * its natural yield points - between frames, rows, pages - and reject with a
+   * DOMException named 'AbortError' as soon as it is aborted, so the work stops
+   * instead of finishing unwatched. A path with no yield point (a single
+   * synchronous encode, a real-time recorder handing back one blob) MAY ignore
+   * it, and then the only contract the caller gets is that the RESULT is
+   * discarded: it must not treat an abort as a failure, and must not deliver the
+   * bytes. Optional/additive (v1.141) - unset by default, so a shell that
+   * ignores it behaves exactly as before.
+   */
+  signal?: AbortSignal;
+
+  /**
    * Optional audio bed for the video formats (webm/mp4) - like the de-facto
    * wait/duration/fps timing opts, a web-shell extension the engine passes
    * through untouched. `url` is any fetchable audio file (the export popup
