@@ -35,7 +35,7 @@ export const DOCK_CSS = `
 
   position: fixed;
   right: 16px;
-  bottom: calc(1rem + env(safe-area-inset-bottom, 0px));
+  bottom: calc(1rem + var(--safe-bottom));
   z-index: 9002;
   width: 320px;
   max-width: calc(100vw - 32px);
