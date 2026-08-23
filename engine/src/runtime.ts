@@ -124,9 +124,13 @@ export interface StartRecordingResult {
 /**
  * Per-hook time budgets (ms) for the runtime's async time-box. A hook that
  * returns a Promise is RACED against its budget: on overrun the runtime logs
- * the timeout, applies NO patch, and discards the late resolution - but the
- * hook itself keeps executing (there is no in-realm preemption; a SYNCHRONOUS
- * overrun can only be measured and warned after the fact). `onFrame`/`onLevel`
+ * the timeout and applies NO patch now - but the hook itself keeps executing
+ * (there is no in-realm preemption; a SYNCHRONOUS overrun can only be measured
+ * and warned after the fact). For onInit/onInput (v1.146) the late resolution
+ * still applies WHEN it resolves, provided no newer onInit/onInput run has started
+ * since - so a slow first analysis heals instead of leaving the card stale
+ * forever, while a superseding keystroke still wins. Export-path hooks never
+ * late-apply (their overrun fails that export visibly). `onFrame`/`onLevel`
  * are deliberately absent: they run once per frame/sample and are throttled by
  * dropping overlapping samples instead (see startLive/driveLevels).
  * `exportFile` gets a larger budget because it's a real-work path (e.g. PDF
@@ -349,15 +353,30 @@ export async function createRuntime(
 
   // Run one lifecycle hook under its HOOK_BUDGET_MS budget. An async result is
   // raced: a timeout rejects HERE (the caller logs/records it and applies no
-  // patch) and the hook's eventual late resolution is discarded - withTimeout's
-  // promise has already settled, so the value never reaches mergePatch. The
-  // hook itself is NOT cancelled (no in-realm preemption). A synchronous hook
-  // has already finished by the time we can look at the clock, so a sync
-  // overrun is just measured and logged as a warning; its result still counts.
-  // A sync throw propagates to the caller's handler, same as before.
-  function runHook(name: keyof typeof HOOK_BUDGET_MS, invoke: () => unknown): Promise<unknown> {
+  // patch NOW). The hook itself is NOT cancelled (no in-realm preemption). A
+  // synchronous hook has already finished by the time we can look at the clock,
+  // so a sync overrun is just measured and logged as a warning; its result
+  // still counts. A sync throw propagates to the caller's handler, same as before.
+  //
+  // `onLate` (v1.146, onInit/onInput only): when the raced-out hook eventually
+  // RESOLVES, its patch is applied after all - but only if no newer onInit/
+  // onInput run has started since (hookRunSeq). Before this, a first analysis
+  // that outran its budget (e.g. the audiogram's cold audio decode) left the
+  // card permanently stale with nothing to retry it; now it heals the moment
+  // the work resolves, while a superseding keystroke still wins. Export hooks
+  // never late-apply: a budget overrun there fails that export visibly.
+  let hookRunSeq = 0;
+  function runHook(
+    name: keyof typeof HOOK_BUDGET_MS,
+    invoke: () => unknown,
+    onLate?: (patch: unknown) => void,
+  ): Promise<unknown> {
     const budget = HOOK_BUDGET_MS[name];
     const started = Date.now();
+    // Every onInit/onInput invocation - sync or async - supersedes earlier
+    // pending late patches; a sync run that skipped the bump would let a stale
+    // async result land on top of it.
+    const seq = onLate ? ++hookRunSeq : 0;
     const out = invoke();
     if (out == null || typeof (out as { then?: unknown }).then !== 'function') {
       const elapsed = Date.now() - started;
@@ -366,8 +385,35 @@ export async function createRuntime(
       }
       return Promise.resolve(out);
     }
-    return withTimeout(out as Promise<unknown>, budget, tool.manifest.id);
+    const p = out as Promise<unknown>;
+    if (!onLate) return withTimeout(p, budget, tool.manifest.id);
+    return withTimeout(p, budget, tool.manifest.id).catch((err: unknown) => {
+      // Timed out (a hook REJECTION reaches this catch too, but then the late .then
+      // below never fires). Keep listening for the real result.
+      p.then((patch) => {
+        if (seq !== hookRunSeq || !patch) return;
+        host.log('info', `${name} finished ${Date.now() - started}ms in (budget ${budget}ms) - applying late, still the newest run`, { toolId: tool.manifest.id });
+        onLate(patch);
+      }, () => { /* the timeout already told the story */ });
+      throw err;
+    });
   }
+
+  const listeners = new Set<(state: RuntimeState) => void>();
+  // Hydrate ONCE per change, not once per subscriber: every listener gets the same
+  // immutable snapshot (both current subscribers are read-only). A two-subscriber
+  // editor (design, carousel-maker) otherwise ran a full template render twice.
+  // Declared above the hooks block because a LATE onInit patch (runHook's onLate)
+  // has to re-emit; it only ever runs after mount, when getHydrated exists.
+  const emit = () => {
+    const state = { model, hydrated: getHydrated() };
+    listeners.forEach(fn => fn(state));
+  };
+  // Shared late-patch application for onInit/onInput: merge, then repaint.
+  const applyLatePatch = (patch: unknown): void => {
+    ({ model, extras } = mergePatch(model, extras, patch, inputIds));
+    emit();
+  };
 
   let hooks: Hooks | null = null;
   if (tool.hooksSource && tool.manifest.hooks) {
@@ -380,7 +426,7 @@ export async function createRuntime(
     const onInit = hooks.onInit;
     if (onInit) {
       try {
-        const patch = await runHook('onInit', () => onInit({ model: modelForHooks(model), host }));
+        const patch = await runHook('onInit', () => onInit({ model: modelForHooks(model), host }), applyLatePatch);
         if (patch) ({ model, extras } = mergePatch(model, extras, patch, inputIds));
       } catch (e) {
         // Record the failure (not just log it) so the shell can show a canvas-error
@@ -396,15 +442,6 @@ export async function createRuntime(
   // assets and expose them as extras for `{{asset <id>}}`. Awaited here so the
   // first paint already carries the embed. A no-op without host.compose.
   extras = { ...extras, ...await resolveNestedRenders(tool, model, extras, host, composeStack, composeMemo) };
-
-  const listeners = new Set<(state: RuntimeState) => void>();
-  // Hydrate ONCE per change, not once per subscriber: every listener gets the same
-  // immutable snapshot (both current subscribers are read-only). A two-subscriber
-  // editor (design, carousel-maker) otherwise ran a full template render twice.
-  const emit = () => {
-    const state = { model, hydrated: getHydrated() };
-    listeners.forEach(fn => fn(state));
-  };
 
   // ── Live media (onFrame) ────────────────────────────────────────────────────
   // When a shell drives a camera (host.media) AND the tool declares an `onFrame`
@@ -644,7 +681,7 @@ export async function createRuntime(
       const onInput = hooks?.onInput;
       if (onInput) {
         try {
-          const patch = await runHook('onInput', () => onInput({ id, value: flattenValue(value), model: modelForHooks(model), host }));
+          const patch = await runHook('onInput', () => onInput({ id, value: flattenValue(value), model: modelForHooks(model), host }), applyLatePatch);
           if (patch) {
             ({ model, extras } = mergePatch(model, extras, patch, inputIds));
             emit(); // re-emit with the hook's patch so the final state is correct
@@ -724,7 +761,7 @@ export async function createRuntime(
       if (onInput) {
         for (const { id, value } of applied) {
           try {
-            const patch = await runHook('onInput', () => onInput({ id, value, model: modelForHooks(model), host }));
+            const patch = await runHook('onInput', () => onInput({ id, value, model: modelForHooks(model), host }), applyLatePatch);
             if (patch) ({ model, extras } = mergePatch(model, extras, patch, inputIds));
           } catch (e) {
             host.log('warn', `onInput ${(e as Error).message}`, { toolId: tool.manifest.id });

@@ -278,3 +278,8 @@ scripts/i18n/cache.json
 # captures that same drill can write are a different thing entirely: those go to
 # docs/shots/ under LOLLY_DRILL_DOCS=1 and ARE committed, like every other baseline.
 /.drills/
+
+# App Store export-compliance filings (appstore/README.md) - carries Andy's personal
+# details (legal name, phone, home address) for Apple/BIS, so it stays out of git.
+# Keep a private backup; nothing in any build or test path reads this directory.
+/appstore/

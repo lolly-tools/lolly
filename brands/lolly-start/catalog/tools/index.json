@@ -1,6 +1,6 @@
 {
   "version": "1",
-  "generatedAt": "2026-08-21T03:41:32.228Z",
+  "generatedAt": "2026-08-23T13:52:28.423Z",
   "tools": [
     {
       "id": "compress-pdf",
@@ -502,7 +502,7 @@
       "height": 900,
       "exportable": true,
       "icon": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M14.106 5.553a2 2 0 0 0 1.788 0l3.659-1.83A1 1 0 0 1 21 4.619v12.764a1 1 0 0 1-.553.894l-4.553 2.277a2 2 0 0 1-1.788 0l-4.212-2.106a2 2 0 0 0-1.788 0l-3.659 1.83A1 1 0 0 1 3 19.381V6.618a1 1 0 0 1 .553-.894l4.553-2.277a2 2 0 0 1 1.788 0z\" /><path d=\"M15 5.764v15\" /><path d=\"M9 3.236v15\" /></svg>",
-      "preview": "/catalog/previews/street-map.png",
+      "preview": "/catalog/previews/street-map.webp",
       "examples": [
         {
           "label": "Paris in ink",
@@ -1495,7 +1495,7 @@
       "height": 900,
       "exportable": true,
       "icon": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><circle cx=\"9\" cy=\"9\" r=\"7\"/><circle cx=\"15\" cy=\"15\" r=\"7\"/></svg>",
-      "preview": "/catalog/previews/mesh-gradient.png",
+      "preview": "/catalog/previews/mesh-gradient.webp",
       "examples": [
         {
           "label": "Sunset haze",
@@ -1970,7 +1970,7 @@
       "height": 1024,
       "exportable": true,
       "icon": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><rect width=\"18\" height=\"18\" x=\"3\" y=\"3\" rx=\"2\" /><path d=\"M7 8h4\" /><path d=\"M7 12h4\" /><path d=\"M7 16h4\" /><path d=\"M14 8h3\" /><path d=\"M14 12h3\" /><path d=\"M14 16h3\" /></svg>",
-      "preview": "/catalog/previews/prompt-to-image.png",
+      "preview": "/catalog/previews/prompt-to-image.webp",
       "examples": [
         {
           "label": "Two-column brief",
@@ -2252,7 +2252,7 @@
       "id": "deck-studio",
       "name": "Markdown Slides",
       "description": "Turn Markdown or a JSON spec into a native, editable PowerPoint deck - real text, bullets, tables and brand theme - in seconds. The fast text-first path to a deck; reach for the Design canvas when you want to lay slides out by hand or animate them. Charts and diagrams come from your other Lolly tools. Exports .pptx (editable), plus PDF and PNG.",
-      "version": "1.1.0",
+      "version": "1.1.1",
       "status": "community",
       "category": "designer",
       "tags": [
@@ -2275,7 +2275,7 @@
       "height": 720,
       "exportable": true,
       "icon": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.6\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><rect x=\"3\" y=\"4\" width=\"18\" height=\"13\" rx=\"1.5\"/><path d=\"M7 20h10\"/><path d=\"M12 17v3\"/><path d=\"M6.5 8.5h6\"/><path d=\"M6.5 11.5h4\"/><rect x=\"14.5\" y=\"8\" width=\"3.5\" height=\"5.5\" rx=\"0.5\"/></svg>",
-      "preview": "/catalog/previews/deck-studio.png",
+      "preview": "/catalog/previews/deck-studio.webp",
       "examples": [
         {
           "label": "Boardroom title",
@@ -4214,7 +4214,7 @@
       "height": 1080,
       "exportable": true,
       "icon": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><line x1=\"4\" y1=\"6\" x2=\"20\" y2=\"6\"/><line x1=\"4\" y1=\"12\" x2=\"20\" y2=\"12\"/><line x1=\"4\" y1=\"18\" x2=\"20\" y2=\"18\"/><circle cx=\"9\" cy=\"6\" r=\"2\" fill=\"currentColor\" stroke=\"none\"/><circle cx=\"15\" cy=\"12\" r=\"2\" fill=\"currentColor\" stroke=\"none\"/><circle cx=\"8\" cy=\"18\" r=\"2\" fill=\"currentColor\" stroke=\"none\"/></svg>",
-      "preview": "/catalog/previews/filter.png",
+      "preview": "/catalog/previews/filter.webp",
       "featured": {
         "order": 7,
         "blurb": "Ten photo effects, vector or raster, in one tool"
@@ -4592,7 +4592,7 @@
       "height": 1080,
       "exportable": true,
       "icon": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><rect x=\"3\" y=\"3\" width=\"18\" height=\"18\" rx=\"2\" /><rect x=\"6\" y=\"6\" width=\"6\" height=\"5\" rx=\"1\" /><circle cx=\"16\" cy=\"9\" r=\"2.5\" /><rect x=\"6\" y=\"14\" width=\"12\" height=\"3\" rx=\"1\" /></svg>",
-      "preview": "/catalog/previews/design.svg",
+      "preview": "/catalog/previews/design.webp",
       "featured": {
         "order": 1,
         "blurb": "Free-form layouts on an open canvas"
@@ -4937,7 +4937,7 @@
       "height": 1280,
       "exportable": true,
       "icon": "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"24\" height=\"24\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z\"/><path d=\"m3.3 7 8.7 5 8.7-5\"/><path d=\"M12 22V12\"/></svg>",
-      "preview": "/catalog/previews/3d.webp",
+      "preview": "/catalog/previews/3d.svg",
       "i18n": {
         "ar": {
           "name": "3D",
@@ -5344,7 +5344,7 @@
       "height": 800,
       "exportable": true,
       "icon": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"m7 11 2-2-2-2\" /><path d=\"M11 13h4\" /><rect width=\"18\" height=\"18\" x=\"3\" y=\"3\" rx=\"2\" ry=\"2\" /></svg>",
-      "preview": "/catalog/previews/code-canvas.svg",
+      "preview": "/catalog/previews/code-canvas.webp",
       "i18n": {
         "ar": {
           "name": "لوحة الكود",
@@ -5486,7 +5486,7 @@
       "height": 1123,
       "exportable": true,
       "icon": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7z\"/><path d=\"M14 2v5h5\"/><line x1=\"8\" y1=\"12\" x2=\"16\" y2=\"12\"/><line x1=\"8\" y1=\"16\" x2=\"14\" y2=\"16\"/></svg>",
-      "preview": "/catalog/previews/doc-studio.svg",
+      "preview": "/catalog/previews/doc-studio.webp",
       "paged": true,
       "i18n": {
         "ar": {
@@ -5762,7 +5762,7 @@
       "height": 1123,
       "exportable": true,
       "icon": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M15 2H9a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V6z\" /><path d=\"M15 2v4h4\" /><path d=\"M11 10.5h4\" /><path d=\"M11 13.5h4\" /><path d=\"M7 6a2 2 0 0 0-3 1.7V20a2 2 0 0 0 2 2h9a2 2 0 0 0 1.7-1\" /></svg>",
-      "preview": "/catalog/previews/multi-page-pdf.svg",
+      "preview": "/catalog/previews/multi-page-pdf.webp",
       "personalized": true,
       "featured": {
         "order": 3,

@@ -38,11 +38,20 @@
  * (with the DEFAULT clrMap bg1→lt1/tx1→dk1/bg2→lt2/tx2→dk2) while preserving the
  * original slot name.
  *
+ * Also covered: the TEXT CASCADE. A run's size/bold/italic/underline/font/colour
+ * resolves through paragraph `pPr/defRPr` → the shape's own `lstStyle` → the
+ * slide layout's matching placeholder → the slide master's matching placeholder
+ * and its `txStyles` → `presentation.xml`'s `defaultTextStyle`, per outline
+ * level, filling only what the slide left undefined. An explicit off (`b="0"`)
+ * is a value, not an absence: it stops inheritance for that field. Placeholders
+ * match slide → layout → master by `idx` first, then by type with `title` and
+ * `ctrTitle` unified, which also resolves the TYPE of an idx-only slide
+ * placeholder.
+ *
  * DEFERRED, explicitly (documented so it isn't mistaken for a bug):
- *   • Placeholder / layout / master INHERITANCE: the genuinely hard part of
- *     reading PowerPoint. We read the slide spTree DIRECTLY; a run that inherits
- *     its size/colour from a layout/master placeholder (no explicit rPr) is read
- *     with only what the slide states. Best-effort, not full cascade.
+ *   • Inheritance beyond run text properties: a placeholder's geometry, fill,
+ *     line and bullet formatting are still read from the slide only, so a shape
+ *     that states none of them reports none.
  *   • Group-shape child-offset transforms (grpSp chOff/chExt): children are
  *     flattened with their own xfrm as-authored; the group's coordinate remap is
  *     not composed.
@@ -83,6 +92,23 @@ export interface PptxReadRun {
 
 export interface PptxReadPara {
   runs: PptxReadRun[];
+  /** outline level from `a:pPr@lvl` (0 = top). Absent means 0. */
+  lvl?: number;
+}
+
+/**
+ * A shape's placeholder binding, read from `p:nvSpPr/p:nvPr/p:ph` on the SLIDE
+ * itself. `type` tells a consumer which box is the title/subtitle/body and which
+ * is furniture (`ftr`, `sldNum`, `dt`); `idx` is the layout slot number. A slide
+ * placeholder that states only `idx` takes its `type` from the matching layout
+ * or master placeholder; with no layout part to read it falls back to `body`,
+ * which is what ECMA-376 says an untyped `ph` means. A shape with no `ph`
+ * element at all reports nothing here.
+ */
+export interface PptxPlaceholder {
+  /** `title`, `ctrTitle`, `subTitle`, `body`, `ftr`, `sldNum`, `dt`, `pic`, ... */
+  type?: string;
+  idx?: number;
 }
 
 interface NodeBox {
@@ -99,12 +125,16 @@ export interface PptxTextNode extends NodeBox {
   paras: PptxReadPara[];
   geom?: string;
   fill?: PptxReadColor;
+  ph?: PptxPlaceholder;
 }
 export interface PptxShapeNode extends NodeBox {
   type: 'shape';
   geom?: string;
   fill?: PptxReadColor;
   line?: PptxReadColor;
+  /** outline width in POINTS from `a:ln@w` (OOXML stores EMU; 12700 = 1pt). */
+  lineWidthPt?: number;
+  ph?: PptxPlaceholder;
 }
 export interface PptxPicNode extends NodeBox {
   type: 'pic';
@@ -164,6 +194,13 @@ const MAX_TABLE_ROWS = 2000;
 const MAX_TABLE_COLS = 512;
 const MAX_TEXT_LEN = 200_000; // per run/cell text clamp
 const MAX_DFS_VISITS = 200_000; // bound any descendant search
+const MAX_PH_TYPE_LEN = 64; // a ph type is a short enum value; clamp a hostile one
+const MAX_PH_IDX = 1_000_000;
+const MAX_OUTLINE_LVL = 8; // OOXML allows nine outline levels (0..8)
+const LVL_COUNT = MAX_OUTLINE_LVL + 1;
+const MAX_PH_PER_PART = 2000; // a real layout/master carries under 40
+const MAX_STYLE_PARTS = 256; // distinct layout+master parts parsed per deck
+const EMU_PER_PT = 12700;
 const MAX_COORD = 1e11; // EMU magnitude clamp (slide width is ~1.2e7)
 const DEFAULT_W_EMU = 12_192_000; // 13.333in, 16:9 default
 const DEFAULT_H_EMU = 6_858_000; // 7.5in
@@ -531,44 +568,176 @@ function readXfrm(container: Element | null): NodeBox {
 
 // ─── shape / text ────────────────────────────────────────────────────────────
 
-function readRun(r: Element, theme: PptxReadTheme): PptxReadRun | null {
+/**
+ * Run properties as ONE cascade layer states them. `false` on a boolean is an
+ * explicit off (`b="0"`) which stops inheritance for that field; `undefined` is
+ * absence, which lets the next layer speak.
+ */
+interface RunProps {
+  bold?: boolean;
+  italic?: boolean;
+  underline?: boolean;
+  sizePt?: number;
+  font?: string;
+  color?: PptxReadColor;
+}
+
+/** Read an `a:rPr`/`a:defRPr`/`a:endParaRPr` element into a cascade layer. */
+function readRunProps(rPr: Element | null, theme: PptxReadTheme): RunProps {
+  const out: RunProps = {};
+  if (!rPr) return out;
+  const b = attrByLocal(rPr, 'b');
+  if (b) out.bold = truthy(b);
+  const i = attrByLocal(rPr, 'i');
+  if (i) out.italic = truthy(i);
+  const u = attrByLocal(rPr, 'u');
+  if (u) out.underline = u !== 'none';
+  const sz = attrByLocal(rPr, 'sz');
+  if (sz) {
+    const pt = toInt(sz) / 100;
+    if (pt > 0) out.sizePt = pt;
+  }
+  const latin = firstChildByLocal(rPr, 'latin');
+  const face = latin ? attrByLocal(latin, 'typeface') : null;
+  if (face) out.font = face;
+  const color = readColor(firstChildByLocal(rPr, 'solidFill'), theme);
+  if (color) out.color = color;
+  return out;
+}
+
+/** Fill `out`'s undefined fields from `layer`. Fields already stated stay put. */
+function inheritInto(out: RunProps, layer: RunProps | undefined): void {
+  if (!layer) return;
+  if (out.bold === undefined && layer.bold !== undefined) out.bold = layer.bold;
+  if (out.italic === undefined && layer.italic !== undefined) out.italic = layer.italic;
+  if (out.underline === undefined && layer.underline !== undefined) out.underline = layer.underline;
+  if (out.sizePt === undefined && layer.sizePt !== undefined) out.sizePt = layer.sizePt;
+  if (out.font === undefined && layer.font !== undefined) out.font = layer.font;
+  if (out.color === undefined && layer.color !== undefined) out.color = layer.color;
+}
+
+/** Cascade layers indexed by outline level (0..8); a hole means "silent here". */
+type Levels = (RunProps | undefined)[];
+
+/** Read `a:lvl1pPr`..`a:lvl9pPr` under an lstStyle / txStyles kind / defaultTextStyle. */
+function readLevels(container: Element | null, theme: PptxReadTheme): Levels | undefined {
+  if (!container) return undefined;
+  let out: Levels | undefined;
+  for (const el of childElements(container)) {
+    const m = /^lvl([1-9])pPr$/.exec(elemLocal(el));
+    if (!m?.[1]) continue;
+    const defRPr = firstChildByLocal(el, 'defRPr');
+    if (!defRPr) continue;
+    if (!out) out = new Array<RunProps | undefined>(LVL_COUNT);
+    out[Number.parseInt(m[1], 10) - 1] = readRunProps(defRPr, theme);
+  }
+  return out;
+}
+
+/** One placeholder of a layout or master, with its per-level text styles. */
+interface PhStyle {
+  type?: string;
+  idx?: number;
+  lvls?: Levels;
+}
+
+/** A parsed slideLayout or slideMaster part, reduced to what the cascade needs. */
+interface PhLayer {
+  phs: PhStyle[];
+  /** master only: `p:txStyles` by kind. */
+  titleStyle?: Levels;
+  bodyStyle?: Levels;
+  otherStyle?: Levels;
+  /** layout only: the master part path its rels point at. */
+  masterPath?: string;
+}
+
+/** The layers a slide's shapes resolve through, above the shape's own state. */
+interface Cascade {
+  layout?: PhLayer;
+  master?: PhLayer;
+  defaults?: Levels;
+}
+
+/**
+ * `title` and `ctrTitle` are the same slot; an absent type means `body`. Used on
+ * both sides of a placeholder match so the two spellings unify.
+ */
+function phKind(type: string | undefined): string {
+  if (!type) return 'body';
+  return type === 'ctrTitle' ? 'title' : type;
+}
+
+/** Match a slide placeholder against a layer's: `idx` first, then kind. */
+function matchPh(layer: PhLayer | undefined, ph: PptxPlaceholder | undefined): PhStyle | undefined {
+  if (!layer || !ph) return undefined;
+  if (ph.idx !== undefined) {
+    const byIdx = layer.phs.find((p) => p.idx === ph.idx);
+    if (byIdx) return byIdx;
+  }
+  const want = phKind(ph.type);
+  return layer.phs.find((p) => phKind(p.type) === want);
+}
+
+/** The master txStyles kind that governs a placeholder of this type. */
+function txStyleFor(master: PhLayer | undefined, type: string | undefined): Levels | undefined {
+  if (!master) return undefined;
+  const kind = phKind(type);
+  if (kind === 'title') return master.titleStyle;
+  if (kind === 'body' || kind === 'subTitle') return master.bodyStyle;
+  return master.otherStyle;
+}
+
+function readRun(r: Element, theme: PptxReadTheme, inherit?: RunProps): PptxReadRun | null {
   const t = firstChildByLocal(r, 't');
   const text = textOf(t);
-  const rPr = firstChildByLocal(r, 'rPr');
+  const props = readRunProps(firstChildByLocal(r, 'rPr'), theme);
+  inheritInto(props, inherit);
   const run: PptxReadRun = { text };
-  if (rPr) {
-    if (truthy(attrByLocal(rPr, 'b'))) run.bold = true;
-    if (truthy(attrByLocal(rPr, 'i'))) run.italic = true;
-    const u = attrByLocal(rPr, 'u');
-    if (u && u !== 'none') run.underline = true;
-    const sz = attrByLocal(rPr, 'sz');
-    if (sz) {
-      const pt = toInt(sz) / 100;
-      if (pt > 0) run.sizePt = pt;
-    }
-    const latin = firstChildByLocal(rPr, 'latin');
-    const face = latin ? attrByLocal(latin, 'typeface') : null;
-    if (face) run.font = face;
-    const color = readColor(firstChildByLocal(rPr, 'solidFill'), theme);
-    if (color) run.color = color;
-  }
+  // An explicit-off resolves to `false` here and stays off the model, which is
+  // the same shape a run with nothing to say has always had.
+  if (props.bold) run.bold = true;
+  if (props.italic) run.italic = true;
+  if (props.underline) run.underline = true;
+  if (props.sizePt) run.sizePt = props.sizePt;
+  if (props.font) run.font = props.font;
+  if (props.color) run.color = props.color;
   // Keep the run if it carries text OR any styling worth preserving.
   if (text.length > 0 || run.bold || run.italic || run.underline || run.sizePt || run.color || run.font) return run;
   return null;
 }
 
-function readTxBody(txBody: Element | null, theme: PptxReadTheme): PptxReadPara[] {
+function readTxBody(
+  txBody: Element | null,
+  theme: PptxReadTheme,
+  inherit?: (lvl: number) => RunProps | undefined,
+): PptxReadPara[] {
   const paras: PptxReadPara[] = [];
   if (!txBody) return paras;
   const pEls = childrenByLocal(txBody, 'p');
   for (const pEl of pEls) {
     if (paras.length >= MAX_PARAS) break;
-    const runs: PptxReadRun[] = [];
+    const para: PptxReadPara = { runs: [] };
+    const pPr = firstChildByLocal(pEl, 'pPr');
+    const rawLvl = pPr ? attrByLocal(pPr, 'lvl') : null;
+    if (rawLvl != null) {
+      const n = Number.parseInt(rawLvl, 10);
+      if (Number.isFinite(n) && n > 0) para.lvl = Math.min(n, MAX_OUTLINE_LVL);
+    }
+    // Paragraph-level defaults sit between the run's own rPr and the shape's.
+    let runInherit = inherit ? inherit(para.lvl ?? 0) : undefined;
+    const pDefRPr = pPr ? firstChildByLocal(pPr, 'defRPr') : null;
+    if (pDefRPr) {
+      const pProps = readRunProps(pDefRPr, theme);
+      inheritInto(pProps, runInherit);
+      runInherit = pProps;
+    }
+    const runs = para.runs;
     for (const child of childElements(pEl)) {
       if (runs.length >= MAX_RUNS_PER_PARA) break;
       const ln = elemLocal(child);
       if (ln === 'r') {
-        const run = readRun(child, theme);
+        const run = readRun(child, theme, runInherit);
         if (run) runs.push(run);
       } else if (ln === 'br') {
         runs.push({ text: '\n' });
@@ -578,7 +747,7 @@ function readTxBody(txBody: Element | null, theme: PptxReadTheme): PptxReadPara[
         if (text) runs.push({ text });
       }
     }
-    paras.push({ runs });
+    paras.push(para);
   }
   return paras;
 }
@@ -588,31 +757,130 @@ function paraHasText(paras: PptxReadPara[]): boolean {
   return false;
 }
 
-function readSp(sp: Element, theme: PptxReadTheme): PptxReadNode {
+/**
+ * Read `p:nvSpPr/p:nvPr/p:ph` off a shape. A `ph` element with no `type`
+ * attribute means `body` per ECMA-376, which is how PowerPoint writes an
+ * idx-only content placeholder; `explicitType` records that the fallback was
+ * used so the cascade may replace it with the layout's real type.
+ */
+function readPlaceholder(sp: Element): { ph: PptxPlaceholder; explicitType: boolean } | undefined {
+  const nvSpPr = firstChildByLocal(sp, 'nvSpPr');
+  const nvPr = nvSpPr ? firstChildByLocal(nvSpPr, 'nvPr') : null;
+  const ph = nvPr ? firstChildByLocal(nvPr, 'ph') : null;
+  if (!ph) return undefined;
+  const rawType = attrByLocal(ph, 'type');
+  const out: PptxPlaceholder = { type: rawType ? rawType.slice(0, MAX_PH_TYPE_LEN) : 'body' };
+  const rawIdx = attrByLocal(ph, 'idx');
+  if (rawIdx != null) {
+    const idx = Number.parseInt(rawIdx, 10);
+    if (Number.isFinite(idx) && idx >= 0) out.idx = Math.min(idx, MAX_PH_IDX);
+  }
+  return { ph: out, explicitType: !!rawType };
+}
+
+function readSp(sp: Element, theme: PptxReadTheme, cascade?: Cascade): PptxReadNode {
   const spPr = firstChildByLocal(sp, 'spPr');
   const box = readXfrm(spPr);
   let geom: string | undefined;
   let fill: PptxReadColor | undefined;
   let line: PptxReadColor | undefined;
+  let lineWidthPt: number | undefined;
   if (spPr) {
     const prstGeom = firstChildByLocal(spPr, 'prstGeom');
     geom = (prstGeom && attrByLocal(prstGeom, 'prst')) || undefined;
     fill = readColor(firstChildByLocal(spPr, 'solidFill'), theme);
     const ln = firstChildByLocal(spPr, 'ln');
-    if (ln) line = readColor(firstChildByLocal(ln, 'solidFill'), theme);
+    if (ln) {
+      line = readColor(firstChildByLocal(ln, 'solidFill'), theme);
+      const w = attrByLocal(ln, 'w');
+      if (w) {
+        const pt = toInt(w) / EMU_PER_PT;
+        if (pt > 0) lineWidthPt = pt;
+      }
+    }
   }
-  const paras = readTxBody(firstChildByLocal(sp, 'txBody'), theme);
+
+  const read = readPlaceholder(sp);
+  let ph = read?.ph;
+  const layoutPh = matchPh(cascade?.layout, ph);
+  const masterPh = matchPh(cascade?.master, ph);
+  if (ph && read && !read.explicitType) {
+    const resolved = layoutPh?.type ?? masterPh?.type;
+    if (resolved) ph = { ...ph, type: resolved };
+  }
+
+  const txBody = firstChildByLocal(sp, 'txBody');
+  const shapeLvls = readLevels(txBody ? firstChildByLocal(txBody, 'lstStyle') : null, theme);
+  // Master txStyles govern placeholders only; a plain text box takes the
+  // presentation's defaultTextStyle and nothing else.
+  const layers = [shapeLvls, layoutPh?.lvls, masterPh?.lvls, ph ? txStyleFor(cascade?.master, ph.type) : undefined, cascade?.defaults].filter(
+    (l): l is Levels => !!l,
+  );
+  let inherit: ((lvl: number) => RunProps | undefined) | undefined;
+  if (layers.length) {
+    const cache: (RunProps | undefined)[] = new Array<RunProps | undefined>(LVL_COUNT);
+    inherit = (lvl: number): RunProps | undefined => {
+      const at = lvl >= 0 && lvl < LVL_COUNT ? lvl : 0;
+      let hit = cache[at];
+      if (!hit) {
+        hit = {};
+        for (const l of layers) inheritInto(hit, l[at]);
+        cache[at] = hit;
+      }
+      return hit;
+    };
+  }
+
+  const paras = readTxBody(txBody, theme, inherit);
   if (paraHasText(paras)) {
     const node: PptxTextNode = { type: 'text', ...box, paras };
     if (geom) node.geom = geom;
     if (fill) node.fill = fill;
+    if (ph) node.ph = ph;
     return node;
   }
   const node: PptxShapeNode = { type: 'shape', ...box };
   if (geom) node.geom = geom;
   if (fill) node.fill = fill;
   if (line) node.line = line;
+  if (lineWidthPt) node.lineWidthPt = lineWidthPt;
+  if (ph) node.ph = ph;
   return node;
+}
+
+/**
+ * Parse a slideLayout or slideMaster part down to its placeholders' text styles.
+ * Both are attacker-controlled parts: the placeholder count is capped, every
+ * level read is bounded to nine, and a missing or malformed part yields null,
+ * which degrades the slide to the no-cascade read.
+ */
+function readPhLayer(store: PartStore, path: string, parseXml: XmlParser, theme: PptxReadTheme): PhLayer | null {
+  const doc = parsePart(store, path, parseXml);
+  const root = doc?.documentElement;
+  if (!root) return null;
+  const layer: PhLayer = { phs: [] };
+  const spTree = descendantByLocal(root, 'spTree');
+  if (spTree) {
+    for (const sp of childrenByLocal(spTree, 'sp')) {
+      if (layer.phs.length >= MAX_PH_PER_PART) break;
+      const read = readPlaceholder(sp);
+      if (!read) continue;
+      const txBody = firstChildByLocal(sp, 'txBody');
+      const entry: PhStyle = { type: read.ph.type, idx: read.ph.idx };
+      const lvls = readLevels(txBody ? firstChildByLocal(txBody, 'lstStyle') : null, theme);
+      if (lvls) entry.lvls = lvls;
+      layer.phs.push(entry);
+    }
+  }
+  const txStyles = firstChildByLocal(root, 'txStyles');
+  if (txStyles) {
+    layer.titleStyle = readLevels(firstChildByLocal(txStyles, 'titleStyle'), theme);
+    layer.bodyStyle = readLevels(firstChildByLocal(txStyles, 'bodyStyle'), theme);
+    layer.otherStyle = readLevels(firstChildByLocal(txStyles, 'otherStyle'), theme);
+  }
+  const masterRel = parseRels(store, path, parseXml).find((r) => /slideMaster$/i.test(r.type) && !r.external);
+  if (masterRel?.target) layer.masterPath = masterRel.target;
+  return layer;
 }
 
 function readPic(pic: Element, slideRelsById: Map<string, Rel>): PptxPicNode {
@@ -664,6 +932,7 @@ function walkTree(
   slideRelsById: Map<string, Rel>,
   out: PptxReadNode[],
   depth: number,
+  cascade?: Cascade,
 ): void {
   if (depth > MAX_GROUP_DEPTH) return;
   for (const child of childElements(tree)) {
@@ -672,10 +941,10 @@ function walkTree(
     try {
       switch (ln) {
         case 'sp':
-          out.push(readSp(child, theme));
+          out.push(readSp(child, theme, cascade));
           break;
         case 'cxnSp': // connector: a shape with geom + line, no text
-          out.push(readSp(child, theme));
+          out.push(readSp(child, theme, cascade));
           break;
         case 'pic':
           out.push(readPic(child, slideRelsById));
@@ -686,7 +955,7 @@ function walkTree(
         case 'grpSp':
           // NOTE: group child-offset transform (chOff/chExt) is DEFERRED.
           // Children keep their own authored xfrm.
-          walkTree(child, theme, slideRelsById, out, depth + 1);
+          walkTree(child, theme, slideRelsById, out, depth + 1, cascade);
           break;
         case 'nvGrpSpPr':
         case 'grpSpPr':
@@ -776,6 +1045,52 @@ function slideNum(path: string): number {
 // ─── public API ──────────────────────────────────────────────────────────────
 
 /**
+ * Two node tops within this many EMU are the same row. 114300 EMU is 0.125 in,
+ * half a line at 18 pt, the same half-line discipline `pdf-text.ts` applies to
+ * PDF runs.
+ */
+const ROW_TOLERANCE_EMU = 114_300;
+
+/**
+ * Sort nodes into READING ORDER: rows top to bottom, then left to right inside
+ * a row. Two-column slides come back column by column within each band rather
+ * than interleaved, which is what a markdown serialiser needs.
+ *
+ * Banding is a single pass, not a comparator, so the result is a total order and
+ * never depends on the engine's sort implementation. The stored node order is
+ * spTree order (the authored z-order some consumers rely on), so this returns a
+ * NEW array and mutates nothing. Pure and total: garbage in yields an empty or
+ * best-effort array, never a throw.
+ */
+export function readingOrder(nodes: PptxReadNode[]): PptxReadNode[] {
+  if (!Array.isArray(nodes)) return [];
+  const coord = (v: unknown): number => (typeof v === 'number' && Number.isFinite(v) ? v : 0);
+  const items: { node: PptxReadNode; i: number; x: number; y: number }[] = [];
+  for (let i = 0; i < nodes.length; i++) {
+    const node = nodes[i];
+    if (node == null || typeof node !== 'object') continue;
+    items.push({ node, i, x: coord(node.xEmu), y: coord(node.yEmu) });
+  }
+  // Stable by y, ties by authored order.
+  items.sort((a, b) => a.y - b.y || a.i - b.i);
+  const out: PptxReadNode[] = [];
+  let band: typeof items = [];
+  let bandTop = 0;
+  const flush = (): void => {
+    band.sort((a, b) => a.x - b.x || a.i - b.i);
+    for (const it of band) out.push(it.node);
+    band = [];
+  };
+  for (const it of items) {
+    if (band.length && it.y - bandTop > ROW_TOLERANCE_EMU) flush();
+    if (!band.length) bandTop = it.y;
+    band.push(it);
+  }
+  flush();
+  return out;
+}
+
+/**
  * Detect a PowerPoint part map by the presence of `ppt/presentation.xml`.
  * The `PK` zip-magic sniff belongs to the CALLER (before inflation); this
  * operates on the already-unzipped map for `design-import.ts` routing.
@@ -849,7 +1164,8 @@ export function readPptx(parts: PptxParts, parseXml: XmlParser): PptxDeckRead {
     /* keep empty theme */
   }
 
-  // slide size
+  // slide size + the deck-wide default text style (the cascade's last layer)
+  let defaults: Levels | undefined;
   try {
     const pres = parsePart(store, 'ppt/presentation.xml', parseXml);
     if (pres?.documentElement) {
@@ -860,10 +1176,29 @@ export function readPptx(parts: PptxParts, parseXml: XmlParser): PptxDeckRead {
         if (cx > 0) deck.widthEmu = cx;
         if (cy > 0) deck.heightEmu = cy;
       }
+      defaults = readLevels(descendantByLocal(pres.documentElement, 'defaultTextStyle'), deck.theme);
     }
   } catch {
     /* keep default size */
   }
+
+  // Layout/master parts are parsed ONCE each per call, however many slides
+  // share them, and the number of distinct parts is capped.
+  const layerCache = new Map<string, PhLayer | null>();
+  const getLayer = (path: string | undefined): PhLayer | undefined => {
+    if (!path) return undefined;
+    const cached = layerCache.get(path);
+    if (cached !== undefined) return cached ?? undefined;
+    if (layerCache.size >= MAX_STYLE_PARTS) return undefined;
+    let layer: PhLayer | null = null;
+    try {
+      layer = readPhLayer(store, path, parseXml, deck.theme);
+    } catch {
+      layer = null;
+    }
+    layerCache.set(path, layer);
+    return layer ?? undefined;
+  };
 
   let slidePaths: string[] = [];
   try {
@@ -882,8 +1217,13 @@ export function readPptx(parts: PptxParts, parseXml: XmlParser): PptxDeckRead {
         // slide rels (pic embeds + notes link)
         const rels = parseRels(store, path, parseXml);
         const relsById = new Map<string, Rel>(rels.map((r) => [r.id, r]));
+        // layout → master cascade for this slide's placeholders
+        const layoutRel = rels.find((r) => /slideLayout$/i.test(r.type) && !r.external);
+        const layout = getLayer(layoutRel?.target);
+        const master = getLayer(layout?.masterPath);
+        const cascade: Cascade | undefined = layout || master || defaults ? { layout, master, defaults } : undefined;
         const spTree = descendantByLocal(doc.documentElement, 'spTree');
-        if (spTree) walkTree(spTree, deck.theme, relsById, slide.nodes, 0);
+        if (spTree) walkTree(spTree, deck.theme, relsById, slide.nodes, 0, cascade);
         // notes
         const notesRel = rels.find((r) => /notesSlide$/i.test(r.type) && !r.external);
         if (notesRel) {

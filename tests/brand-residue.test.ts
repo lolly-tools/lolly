@@ -115,6 +115,35 @@ const TYPEFACE_EXEMPT = new Set([
   join(PACK, 'catalog', 'assets', 'lolly', 'tokens', 'brand.json'),
 ]);
 
+// THE STARTER-PALETTE EXEMPTION (2026-08-23) - Andy's call, made at ship time
+// for the new starter tokens: lolly-start's blank-brand palette is deliberately
+// a minimal cut of the SUSE palette (one green ramp, Pine to Mint, over Fog
+// neutrals), authored by the brand's own director, who is entitled to publish
+// those colours here. The four brand hexes it reuses (#30ba78 / #0c322c /
+// #90ebcd / #efefef) are therefore permitted in EXACTLY these files: the
+// starter tokens and the two palette docs derive-generated from them. The hex
+// ban stays live in every other pack file, and the suse/* asset-id check still
+// runs on these three unchanged. Do not widen this to a directory.
+const STARTER_PALETTE_HEX_EXEMPT = new Set([
+  join(PACK, 'catalog', 'assets', 'lolly', 'tokens', 'brand.json'),
+  join(PACK, 'catalog', 'assets', 'lolly', 'palette', 'photo-treatments.json'),
+  join(PACK, 'catalog', 'assets', 'lolly', 'palette', 'icon-themes.json'),
+  // The shipped Lolly swirl marks are painted with the same starter palette
+  // (Pine ink), so the mark files that carry it are part of the same decision.
+  join(PACK, 'catalog', 'assets', 'lolly', 'logo', 'mono.svg'),
+  join(PACK, 'catalog', 'assets', 'lolly', 'logo', 'mono-reverse.svg'),
+  join(PACK, 'catalog', 'assets', 'lolly', 'logo', 'reverse.svg'),
+]);
+
+// Same decision, same date: the assets index names the palette's origin once,
+// in the starter-tokens asset description ("a minimal cut of the SUSE
+// palette"). That sentence is attribution, not a dangling reference, so this
+// one file skips the bare-name check the way the typeface exemption does. The
+// hex and asset-id checks still run on it.
+const PALETTE_ORIGIN_EXEMPT = new Set([
+  join(PACK, 'catalog', 'assets', 'index.json'),
+]);
+
 // A SUSE ASSET reference - the residue class that actually breaks under
 // lolly-start (a 404), as opposed to a typeface family name. Checked in EVERY
 // file including the two exempt ones.
@@ -141,18 +170,20 @@ test('brands/lolly-start carries no SUSE brand hexes or SUSE references', () => 
   assert.ok(files.length >= 8, `expected the starter pack's text files, found ${files.length}`);
   // Sanity: the exemption must name files that EXIST, or a rename would silently
   // retire the guard for content that is still there.
-  for (const f of TYPEFACE_EXEMPT) {
-    assert.ok(files.includes(f), `TYPEFACE_EXEMPT names a file the scan doesn't see: ${relative(ROOT, f)}`);
+  for (const f of [...TYPEFACE_EXEMPT, ...STARTER_PALETTE_HEX_EXEMPT, ...PALETTE_ORIGIN_EXEMPT]) {
+    assert.ok(files.includes(f), `an exemption names a file the scan doesn't see: ${relative(ROOT, f)}`);
   }
   for (const f of files) {
     const text = readFileSync(f, 'utf8');
     const rel = relative(ROOT, f);
-    const hex = text.match(SUSE_HEX);
-    assert.equal(hex, null, `${rel} contains SUSE brand hex ${hex?.[0]}`);
+    if (!STARTER_PALETTE_HEX_EXEMPT.has(f)) {
+      const hex = text.match(SUSE_HEX);
+      assert.equal(hex, null, `${rel} contains SUSE brand hex ${hex?.[0]}`);
+    }
     const scrubbed = text.replaceAll(ALLOWED_SUSE, '');
     const asset = withoutPaths(scrubbed).match(SUSE_ASSET);
     assert.equal(asset, null, `${rel} references a SUSE asset path "${asset?.[0]}" - it would 404 under lolly-start`);
-    if (TYPEFACE_EXEMPT.has(f)) continue; // family names only - see TYPEFACE_EXEMPT
+    if (TYPEFACE_EXEMPT.has(f) || PALETTE_ORIGIN_EXEMPT.has(f)) continue; // see the exemption comments
     // Case-insensitive, with surrounding word-ish context in the failure
     // message so a dangling "suse/logo/…" asset id is identifiable at a glance.
     const name = scrubbed.match(/[\w./-]*suse[\w./-]*/i);

@@ -329,8 +329,26 @@ test('ENGINE_VERSION is 1.128.0', () => {
   // Then 1.141.0 (ExportOpts.signal - the optional AbortSignal a shell's export
   // pipeline polls at its yield points, rejecting with an 'AbortError'; audit
   // finding T1, the export shutter's Cancel. A field, unset by default).
+  // Then 1.142.0 (plans/139 deck read side: pptx-read ph + para lvl +
+  // readingOrder, and deck-md.ts deckToMarkdown - the PptxDeckRead -> Markdown
+  // serialiser pinned to deck-studio's spec dialect. Pure exports only, no
+  // HostV1 change).
+  // Then 1.143.0 (plans/139 document read side: doc-model.ts DocBlocks,
+  // doc-md.ts mdFromBlocks/htmlFromBlocks, docx-read.ts readDocx/isDocx -
+  // WordprocessingML to the shared block model under xlsx-import's threat
+  // model. Pure exports only, no HostV1 change).
+  // Then 1.144.0 (plans/139 docx write depth: writeDocx accepts DocBlocks -
+  // styled runs, hyperlinks, lists via conditional numbering.xml, spanned
+  // tables, inline images, real footnotes; legacy DocxBlock output stays
+  // byte-identical. No HostV1 change).
+  // Then 1.145.0 (plans/139 pptx placeholder cascade: run styling inherited
+  // through layout/master/txStyles/defaultTextStyle, idx-only ph type
+  // resolution, lineWidthPt. Additive read-model fields, no HostV1 change).
+  // Then 1.146.0 (hook lifecycle: a raced-out onInit/onInput's late resolution
+  // applies when it resolves iff still the newest run - see runtime-hooks.test.ts.
+  // No HostV1 change).
   // The ^1.54.0 screencap floor below still holds (a minor bump satisfies it).
-  assert.equal(ENGINE_VERSION, '1.141.0');
+  assert.equal(ENGINE_VERSION, '1.146.0');
 });
 
 // ─── loadTool: a ^1.54.0 tool loads against this engine ───────────────────────
