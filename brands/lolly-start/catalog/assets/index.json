@@ -9,7 +9,7 @@
     {
       "id": "lolly/tokens/brand",
       "name": "Lolly Starter Tokens",
-      "description": "Neutral OKLCH-native brand tokens (DTCG sets + themes) shipped with the blank lolly-start profile: primary/neutral/secondary ramps, a six-hue spectrum, and light/dark semantic slots, so the colour picker and semantic CSS vars resolve real values. Replace with a real brand via the start wizard or 'npm run ingest:brand'.",
+      "description": "A minimal cut of the SUSE palette shipped with the blank lolly-start profile: one green brand ramp (Pine → Jungle → Mint), a Fog neutral ramp, light/dark semantic slots, and the default Lolly logo slots (asset.logo.*), so the colour picker, semantic CSS vars and the brand hero all resolve real values. Replace with a real brand via the start wizard or 'npm run ingest:brand'.",
       "type": "tokens",
       "version": "2.0.0",
       "tier": "core",
@@ -22,8 +22,98 @@
         {
           "format": "json",
           "url": "/catalog/assets/lolly/tokens/brand.json",
-          "checksum": "sha256-dtWy9eCzyaJmPX5S6N+DDJtReburjJqR7YxsIhClZD8=",
-          "size": 4809
+          "checksum": "sha256-QK2gVs7cVyMrNlKsb5pU0YPS5ljkc9VCB9K1SC36iMs=",
+          "size": 5895
+        }
+      ]
+    },
+    {
+      "id": "lolly/logo/primary",
+      "name": "Lolly Mark - Primary",
+      "description": "The Lolly swirl mark, full colour, for light backgrounds. The blank starter's default logo (square, so it serves both the horizontal and vertical slots). Replace it with your own in the #/start Brand studio.",
+      "type": "vector",
+      "version": "1.0.0",
+      "tier": "core",
+      "tags": [
+        "logo",
+        "lolly",
+        "mark",
+        "primary"
+      ],
+      "formats": [
+        {
+          "format": "svg",
+          "url": "/catalog/assets/lolly/logo/primary.svg",
+          "checksum": "sha256-NWmujlVZ1zygr2em+Zf3aFJUrr3l1OJK9w2O7Sz+8rY=",
+          "size": 19479
+        }
+      ]
+    },
+    {
+      "id": "lolly/logo/reverse",
+      "name": "Lolly Mark - Reverse",
+      "description": "The Lolly swirl mark, full colour, for dark backgrounds. The starter's default reverse logo, and the dark-mode variant of the app icon.",
+      "type": "vector",
+      "version": "1.0.0",
+      "tier": "core",
+      "tags": [
+        "logo",
+        "lolly",
+        "mark",
+        "reverse",
+        "on-dark"
+      ],
+      "formats": [
+        {
+          "format": "svg",
+          "url": "/catalog/assets/lolly/logo/reverse.svg",
+          "checksum": "sha256-zXo3qFxarWE1FeQyfE+2q47t4RwDhm7lnq2BznFe56s=",
+          "size": 20301
+        }
+      ]
+    },
+    {
+      "id": "lolly/logo/mono",
+      "name": "Lolly Mark - Mono",
+      "description": "The Lolly swirl mark, one colour, for light backgrounds. The starter's default mono logo.",
+      "type": "vector",
+      "version": "1.0.0",
+      "tier": "core",
+      "tags": [
+        "logo",
+        "lolly",
+        "mark",
+        "mono"
+      ],
+      "formats": [
+        {
+          "format": "svg",
+          "url": "/catalog/assets/lolly/logo/mono.svg",
+          "checksum": "sha256-WIAYZJMPOpN9KRvRutBVHKse7+3wG9AeKKRAMhnYkLk=",
+          "size": 17711
+        }
+      ]
+    },
+    {
+      "id": "lolly/logo/mono-reverse",
+      "name": "Lolly Mark - Mono reverse",
+      "description": "The Lolly swirl mark, one colour, for dark backgrounds. The starter's default mono reverse logo.",
+      "type": "vector",
+      "version": "1.0.0",
+      "tier": "core",
+      "tags": [
+        "logo",
+        "lolly",
+        "mark",
+        "mono",
+        "on-dark"
+      ],
+      "formats": [
+        {
+          "format": "svg",
+          "url": "/catalog/assets/lolly/logo/mono-reverse.svg",
+          "checksum": "sha256-HKdZbrfwOO9hBPfk0US9n1LjpC7PO97O7awGIqfva/w=",
+          "size": 15448
         }
       ]
     },
@@ -42,7 +132,7 @@
         {
           "format": "json",
           "url": "/catalog/assets/lolly/palette/photo-treatments.json",
-          "checksum": "sha256-qDBb03iaRSWlriTJSmKpA9cM7aYlJDfkznNtPOfE4jA=",
+          "checksum": "sha256-fn/lU3DaRkqk8w1/bgSS2MluZ2ybJTqFyEgP0XaToag=",
           "size": 839
         }
       ]
@@ -62,7 +152,7 @@
         {
           "format": "json",
           "url": "/catalog/assets/lolly/palette/icon-themes.json",
-          "checksum": "sha256-Qrbw9Y3AESMwRkHQ/q0BAR8x5ZmnwbJbh6lcWN29gqE=",
+          "checksum": "sha256-aQmurROi2BCjIJK1cS+s9PkSEIKGflqr+ziWj95N6uM=",
           "size": 636
         }
       ]

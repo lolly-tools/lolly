@@ -382,12 +382,24 @@ export { svgToCustGeomPaths, svgToNativePptx } from './svg-custgeom.ts';
 export type { SvgNativePptx } from './svg-custgeom.ts';
 export { rebrandPptxParts } from './pptx-patch.ts';
 export type { RebrandPlan, RebrandTheme, RebrandReport, PartMap } from './pptx-patch.ts';
-export { isPptx, readPptx, pptxMediaImages } from './pptx-read.ts';
+// readingOrder is aliased: design-map.ts already owns the bare name here.
+export { isPptx, readPptx, pptxMediaImages, readingOrder as pptxReadingOrder } from './pptx-read.ts';
 export type {
   PptxParts, XmlParser, PptxDeckRead, PptxReadSlide, PptxReadNode, PptxReadTheme,
   PptxReadColor, PptxReadRun, PptxReadPara, PptxTextNode, PptxShapeNode, PptxPicNode,
   PptxTableNode, PptxUnknownNode, PptxMediaImage,
+  // The read-side placeholder record; aliased because the WRITER's layout
+  // placeholder (pptx.ts) already owns the bare name on this surface.
+  PptxPlaceholder as PptxReadPlaceholder,
 } from './pptx-read.ts';
+export { deckToMarkdown } from './deck-md.ts';
+export type { DeckMarkdown, DeckMediaRef } from './deck-md.ts';
+export type { DocBlock, DocInline, DocListItem, DocTableCell, DocMedia } from './doc-model.ts';
+export { mdFromBlocks, htmlFromBlocks } from './doc-md.ts';
+// XmlParser is NOT re-exported from docx-read: pptx-read already owns the name
+// on this surface and the shapes are identical.
+export { isDocx, readDocx } from './docx-read.ts';
+export type { DocxParts, DocxReadResult } from './docx-read.ts';
 export {
   buildPdfXXmp, formatPdfDate, makeDocumentId, pdfxOutputIntentSpec,
   pdfxProfileEligibility, PDFX_VERSION,
@@ -450,7 +462,7 @@ export type { EpubReadDoc, EpubReadChapter } from './epub-read.ts';
 export { writeOdt } from './odt.ts';
 export type { OdtDoc, OdtBlock } from './odt.ts';
 export { writeDocx } from './docx.ts';
-export type { DocxDoc, DocxBlock } from './docx.ts';
+export type { DocxDoc, DocxBlock, DocxMedia } from './docx.ts';
 export {
   decomposeMatrix, boxGeomFromBBox, mapWeight, mapFontFamily, mapAlign,
   safeColor, nodeToBox, finalizeBoxes, parsePenpotContent, collectPenpotFontUsage, penpotShapeToNode, penpotGradientToSpec,

@@ -21,6 +21,7 @@ import assert from 'node:assert/strict';
 import { JSDOM } from 'jsdom'; // typed by tests/jsdom.d.ts (no @types/jsdom exists)
 
 import { isPptx, readPptx } from '../engine/src/pptx-read.ts';
+import { readingOrder } from '../engine/src/pptx-read.ts';
 import type { PptxParts, PptxReadNode, PptxTextNode, PptxShapeNode, PptxPicNode, PptxTableNode } from '../engine/src/pptx-read.ts';
 
 // ─── the injected parser (jsdom stands in for the shell's native DOMParser) ───
@@ -611,4 +612,428 @@ test('rel targets cannot escape the package root via ../..', () => {
   assert.equal(pic.media, 'etc/passwd');
   assert.ok(!pic.media!.startsWith('..'), 'no traversal above the root');
   assert.ok(!pic.media!.startsWith('/'), 'never absolute');
+});
+
+// ─── placeholders + reading order (plan 139 WP1) ─────────────────────────────
+
+const PH_SLIDE = `${XML_DECL}
+<p:sld xmlns:a="${NS_A}" xmlns:r="${NS_R}" xmlns:p="${NS_P}"><p:cSld><p:spTree>
+  <p:sp>
+    <p:nvSpPr><p:cNvPr id="2" name="Title 1"/><p:cNvSpPr/><p:nvPr><p:ph type="title"/></p:nvPr></p:nvSpPr>
+    <p:spPr><a:xfrm><a:off x="100000" y="100000"/><a:ext cx="10" cy="10"/></a:xfrm></p:spPr>
+    <p:txBody><a:bodyPr/><a:lstStyle/><a:p><a:r><a:rPr lang="en-US"/><a:t>The title</a:t></a:r></a:p></p:txBody>
+  </p:sp>
+  <p:sp>
+    <p:nvSpPr><p:cNvPr id="3" name="Content 2"/><p:cNvSpPr/><p:nvPr><p:ph idx="1"/></p:nvPr></p:nvSpPr>
+    <p:spPr><a:xfrm><a:off x="100000" y="900000"/><a:ext cx="10" cy="10"/></a:xfrm></p:spPr>
+    <p:txBody><a:bodyPr/><a:lstStyle/>
+      <a:p><a:r><a:rPr lang="en-US"/><a:t>Top level</a:t></a:r></a:p>
+      <a:p><a:pPr lvl="1"/><a:r><a:rPr lang="en-US"/><a:t>Nested</a:t></a:r></a:p>
+    </p:txBody>
+  </p:sp>
+  <p:sp>
+    <p:nvSpPr><p:cNvPr id="4" name="Loose box"/><p:cNvSpPr txBox="1"/><p:nvPr/></p:nvSpPr>
+    <p:spPr><a:xfrm><a:off x="100000" y="1800000"/><a:ext cx="10" cy="10"/></a:xfrm></p:spPr>
+    <p:txBody><a:bodyPr/><a:lstStyle/><a:p><a:r><a:rPr lang="en-US"/><a:t>No placeholder</a:t></a:r></a:p></p:txBody>
+  </p:sp>
+  <p:sp>
+    <p:nvSpPr><p:cNvPr id="5" name="Footer 3"/><p:cNvSpPr/><p:nvPr><p:ph type="ftr" sz="quarter" idx="11"/></p:nvPr></p:nvSpPr>
+    <p:spPr><a:xfrm><a:off x="100000" y="2700000"/><a:ext cx="10" cy="10"/></a:xfrm></p:spPr>
+    <p:txBody><a:bodyPr/><a:lstStyle/><a:p><a:r><a:rPr lang="en-US"/><a:t>Confidential</a:t></a:r></a:p></p:txBody>
+  </p:sp>
+</p:spTree></p:cSld></p:sld>`;
+
+test('a slide sp reports its own p:ph type and idx', () => {
+  const nodes = readPptx(deckParts({ 'ppt/slides/slide1.xml': PH_SLIDE }), parseXml).slides[0]!.nodes;
+  const texts = byType(nodes, 'text');
+  assert.equal(texts.length, 4);
+  assert.deepEqual(texts[0]!.ph, { type: 'title' });
+  // A ph element with NO type attribute means `body` per ECMA-376.
+  assert.deepEqual(texts[1]!.ph, { type: 'body', idx: 1 });
+  assert.equal(texts[2]!.ph, undefined, 'a plain text box carries no placeholder');
+  assert.deepEqual(texts[3]!.ph, { type: 'ftr', idx: 11 });
+});
+
+test('a paragraph reports its outline level from a:pPr lvl', () => {
+  const nodes = readPptx(deckParts({ 'ppt/slides/slide1.xml': PH_SLIDE }), parseXml).slides[0]!.nodes;
+  const body = byType(nodes, 'text')[1] as PptxTextNode;
+  assert.equal(body.paras[0]!.lvl, undefined, 'level 0 is absent, not 0');
+  assert.equal(body.paras[1]!.lvl, 1);
+});
+
+test('an empty placeholder shape keeps its ph without becoming a text node', () => {
+  const parts = deckParts({
+    'ppt/slides/slide1.xml': `${XML_DECL}
+<p:sld xmlns:a="${NS_A}" xmlns:r="${NS_R}" xmlns:p="${NS_P}"><p:cSld><p:spTree>
+  <p:sp>
+    <p:nvSpPr><p:cNvPr id="2" name="Subtitle 1"/><p:cNvSpPr/><p:nvPr><p:ph type="subTitle" idx="1"/></p:nvPr></p:nvSpPr>
+    <p:spPr><a:xfrm><a:off x="0" y="0"/><a:ext cx="10" cy="10"/></a:xfrm></p:spPr>
+    <p:txBody><a:bodyPr/><a:lstStyle/><a:p><a:endParaRPr lang="en-US"/></a:p></p:txBody>
+  </p:sp>
+</p:spTree></p:cSld></p:sld>`,
+  });
+  const shape = byType(readPptx(parts, parseXml).slides[0]!.nodes, 'shape')[0] as PptxShapeNode;
+  assert.deepEqual(shape.ph, { type: 'subTitle', idx: 1 });
+});
+
+test('hostile ph attributes are clamped, never NaN and never unbounded', () => {
+  const parts = deckParts({
+    'ppt/slides/slide1.xml': `${XML_DECL}
+<p:sld xmlns:a="${NS_A}" xmlns:r="${NS_R}" xmlns:p="${NS_P}"><p:cSld><p:spTree>
+  <p:sp>
+    <p:nvSpPr><p:cNvPr id="2" name="X"/><p:cNvSpPr/><p:nvPr><p:ph type="${'t'.repeat(500)}" idx="99999999999"/></p:nvPr></p:nvSpPr>
+    <p:spPr><a:xfrm><a:off x="0" y="0"/><a:ext cx="10" cy="10"/></a:xfrm></p:spPr>
+    <p:txBody><a:bodyPr/><a:lstStyle/><a:p><a:pPr lvl="9999"/><a:r><a:rPr lang="en-US"/><a:t>x</a:t></a:r></a:p></p:txBody>
+  </p:sp>
+  <p:sp>
+    <p:nvSpPr><p:cNvPr id="3" name="Y"/><p:cNvSpPr/><p:nvPr><p:ph type="body" idx="not-a-number"/></p:nvPr></p:nvSpPr>
+    <p:spPr><a:xfrm><a:off x="0" y="500000"/><a:ext cx="10" cy="10"/></a:xfrm></p:spPr>
+    <p:txBody><a:bodyPr/><a:lstStyle/><a:p><a:pPr lvl="-4"/><a:r><a:rPr lang="en-US"/><a:t>y</a:t></a:r></a:p></p:txBody>
+  </p:sp>
+</p:spTree></p:cSld></p:sld>`,
+  });
+  let nodes!: PptxReadNode[];
+  assert.doesNotThrow(() => {
+    nodes = readPptx(parts, parseXml).slides[0]!.nodes;
+  });
+  const texts = byType(nodes, 'text');
+  assert.equal(texts[0]!.ph!.type!.length, 64, 'a runaway type value is clamped');
+  assert.equal(texts[0]!.ph!.idx, 1_000_000, 'idx is clamped');
+  assert.equal(texts[0]!.paras[0]!.lvl, 8, 'nine outline levels, 0..8');
+  assert.equal(texts[1]!.ph!.idx, undefined, 'an unparseable idx is dropped, never NaN');
+  assert.equal(texts[1]!.paras[0]!.lvl, undefined, 'a negative level is dropped');
+});
+
+test('readingOrder sorts rows top-down then left-right, leaving the stored order alone', () => {
+  // Two columns, authored out of order: right column first, then left.
+  const stored = readPptx(
+    deckParts({
+      'ppt/slides/slide1.xml': `${XML_DECL}
+<p:sld xmlns:a="${NS_A}" xmlns:r="${NS_R}" xmlns:p="${NS_P}"><p:cSld><p:spTree>
+  ${[
+    ['Right top', 5_000_000, 1_000_000],
+    ['Right bottom', 5_000_000, 3_000_000],
+    ['Left top', 500_000, 1_020_000],
+    ['Left bottom', 500_000, 3_000_000],
+  ]
+    .map(
+      ([t, x, y], i) => `<p:sp>
+    <p:nvSpPr><p:cNvPr id="${i + 2}" name="b${i}"/><p:cNvSpPr/><p:nvPr/></p:nvSpPr>
+    <p:spPr><a:xfrm><a:off x="${x}" y="${y}"/><a:ext cx="1000000" cy="500000"/></a:xfrm></p:spPr>
+    <p:txBody><a:bodyPr/><a:lstStyle/><a:p><a:r><a:rPr lang="en-US"/><a:t>${t}</a:t></a:r></a:p></p:txBody>
+  </p:sp>`,
+    )
+    .join('\n')}
+</p:spTree></p:cSld></p:sld>`,
+    }),
+    parseXml,
+  ).slides[0]!.nodes;
+
+  const textOf = (n: PptxReadNode): string => (n as PptxTextNode).paras[0]!.runs[0]!.text;
+  assert.deepEqual(stored.map(textOf), ['Right top', 'Right bottom', 'Left top', 'Left bottom'], 'spTree order is untouched');
+  // "Left top" sits 20000 EMU below "Right top" - well inside the half-line row
+  // tolerance, so they band together and sort left to right.
+  assert.deepEqual(readingOrder(stored).map(textOf), ['Left top', 'Right top', 'Left bottom', 'Right bottom']);
+  assert.deepEqual(stored.map(textOf), ['Right top', 'Right bottom', 'Left top', 'Left bottom'], 'the input array is not mutated');
+});
+
+test('readingOrder never throws on garbage', () => {
+  assert.deepEqual(readingOrder(null as unknown as PptxReadNode[]), []);
+  assert.deepEqual(readingOrder(undefined as unknown as PptxReadNode[]), []);
+  assert.deepEqual(readingOrder([]), []);
+  const junk = [
+    null,
+    { type: 'text', xEmu: Number.NaN, yEmu: Number.NaN },
+    { type: 'shape', xEmu: '5', yEmu: {} },
+  ] as unknown as PptxReadNode[];
+  let out!: PptxReadNode[];
+  assert.doesNotThrow(() => {
+    out = readingOrder(junk);
+  });
+  assert.equal(out.length, 2, 'null entries are dropped, the rest survive in authored order');
+});
+
+// ─── the layout/master cascade (plans/139 WP7) ───────────────────────────────
+//
+// A slide states only what the author overrode; everything else lives in the
+// layout placeholder, the master placeholder, the master's txStyles, or the
+// presentation's defaultTextStyle. These fixtures wire all four layers up so
+// each one can be shown filling in where the one above it stayed silent.
+
+const CASCADE_PRESENTATION = `${XML_DECL}
+<p:presentation xmlns:a="${NS_A}" xmlns:r="${NS_R}" xmlns:p="${NS_P}">
+  <p:sldMasterIdLst><p:sldMasterId id="2147483648" r:id="rId1"/></p:sldMasterIdLst>
+  <p:sldIdLst><p:sldId id="256" r:id="rId2"/></p:sldIdLst>
+  <p:sldSz cx="9144000" cy="6858000"/>
+  <p:defaultTextStyle>
+    <a:lvl1pPr><a:defRPr><a:latin typeface="Default Face"/></a:defRPr></a:lvl1pPr>
+  </p:defaultTextStyle>
+</p:presentation>`;
+
+const CASCADE_SLIDE = `${XML_DECL}
+<p:sld xmlns:a="${NS_A}" xmlns:r="${NS_R}" xmlns:p="${NS_P}"><p:cSld><p:spTree>
+  <p:sp>
+    <p:nvSpPr><p:cNvPr id="2" name="Title 1"/><p:cNvSpPr/><p:nvPr><p:ph type="title"/></p:nvPr></p:nvSpPr>
+    <p:spPr><a:xfrm><a:off x="100000" y="100000"/><a:ext cx="10" cy="10"/></a:xfrm></p:spPr>
+    <p:txBody><a:bodyPr/><a:lstStyle/><a:p><a:r><a:t>Deck title</a:t></a:r></a:p></p:txBody>
+  </p:sp>
+  <p:sp>
+    <p:nvSpPr><p:cNvPr id="3" name="Placeholder 2"/><p:cNvSpPr/><p:nvPr><p:ph idx="1"/></p:nvPr></p:nvSpPr>
+    <p:spPr><a:xfrm><a:off x="100000" y="900000"/><a:ext cx="10" cy="10"/></a:xfrm></p:spPr>
+    <p:txBody><a:bodyPr/><a:lstStyle/>
+      <a:p><a:r><a:t>Subtitle line</a:t></a:r></a:p>
+      <a:p><a:pPr lvl="1"/><a:r><a:t>Second level</a:t></a:r></a:p>
+    </p:txBody>
+  </p:sp>
+  <p:sp>
+    <p:nvSpPr><p:cNvPr id="4" name="Content 3"/><p:cNvSpPr/><p:nvPr><p:ph type="body" idx="2"/></p:nvPr></p:nvSpPr>
+    <p:spPr><a:xfrm><a:off x="100000" y="1800000"/><a:ext cx="10" cy="10"/></a:xfrm></p:spPr>
+    <p:txBody><a:bodyPr/><a:lstStyle/><a:p><a:r><a:rPr lang="en-US" b="0"/><a:t>Not bold</a:t></a:r></a:p></p:txBody>
+  </p:sp>
+  <p:sp>
+    <p:nvSpPr><p:cNvPr id="5" name="TextBox 4"/><p:cNvSpPr txBox="1"/><p:nvPr/></p:nvSpPr>
+    <p:spPr><a:xfrm><a:off x="100000" y="2700000"/><a:ext cx="10" cy="10"/></a:xfrm></p:spPr>
+    <p:txBody><a:bodyPr/><a:lstStyle/><a:p><a:r><a:t>Plain box</a:t></a:r></a:p></p:txBody>
+  </p:sp>
+  <p:sp>
+    <p:nvSpPr><p:cNvPr id="6" name="Rectangle 5"/><p:cNvSpPr/><p:nvPr/></p:nvSpPr>
+    <p:spPr>
+      <a:xfrm><a:off x="100000" y="3600000"/><a:ext cx="500000" cy="200000"/></a:xfrm>
+      <a:prstGeom prst="rect"><a:avLst/></a:prstGeom>
+      <a:ln w="28575"><a:solidFill><a:schemeClr val="accent1"/></a:solidFill></a:ln>
+    </p:spPr>
+    <p:txBody><a:bodyPr/><a:lstStyle/><a:p><a:endParaRPr lang="en-US"/></a:p></p:txBody>
+  </p:sp>
+</p:spTree></p:cSld></p:sld>`;
+
+const CASCADE_SLIDE_RELS = `${XML_DECL}
+<Relationships xmlns="${NS_PKG_REL}">
+  <Relationship Id="rId1" Type="${NS_R}/slideLayout" Target="../slideLayouts/slideLayout1.xml"/>
+</Relationships>`;
+
+// The layout titles its slot `ctrTitle` where the slide says `title` (the two
+// spellings are one slot), and it names a face without stating a size.
+const CASCADE_LAYOUT = `${XML_DECL}
+<p:sldLayout xmlns:a="${NS_A}" xmlns:r="${NS_R}" xmlns:p="${NS_P}" type="title"><p:cSld><p:spTree>
+  <p:sp>
+    <p:nvSpPr><p:cNvPr id="2" name="Title 1"/><p:cNvSpPr/><p:nvPr><p:ph type="ctrTitle"/></p:nvPr></p:nvSpPr>
+    <p:spPr/>
+    <p:txBody><a:bodyPr/>
+      <a:lstStyle><a:lvl1pPr><a:defRPr><a:latin typeface="Layout Title Face"/></a:defRPr></a:lvl1pPr></a:lstStyle>
+      <a:p><a:endParaRPr lang="en-US"/></a:p>
+    </p:txBody>
+  </p:sp>
+  <p:sp>
+    <p:nvSpPr><p:cNvPr id="3" name="Subtitle 2"/><p:cNvSpPr/><p:nvPr><p:ph type="subTitle" idx="1"/></p:nvPr></p:nvSpPr>
+    <p:spPr/>
+    <p:txBody><a:bodyPr/>
+      <a:lstStyle>
+        <a:lvl1pPr><a:defRPr sz="2000" b="1"/></a:lvl1pPr>
+        <a:lvl2pPr><a:defRPr sz="1600"/></a:lvl2pPr>
+      </a:lstStyle>
+      <a:p><a:endParaRPr lang="en-US"/></a:p>
+    </p:txBody>
+  </p:sp>
+  <p:sp>
+    <p:nvSpPr><p:cNvPr id="4" name="Content 3"/><p:cNvSpPr/><p:nvPr><p:ph type="body" idx="2"/></p:nvPr></p:nvSpPr>
+    <p:spPr/>
+    <p:txBody><a:bodyPr/>
+      <a:lstStyle><a:lvl1pPr><a:defRPr sz="1800" b="1"/></a:lvl1pPr></a:lstStyle>
+      <a:p><a:endParaRPr lang="en-US"/></a:p>
+    </p:txBody>
+  </p:sp>
+</p:spTree></p:cSld></p:sldLayout>`;
+
+const CASCADE_LAYOUT_RELS = `${XML_DECL}
+<Relationships xmlns="${NS_PKG_REL}">
+  <Relationship Id="rId1" Type="${NS_R}/slideMaster" Target="../slideMasters/slideMaster1.xml"/>
+</Relationships>`;
+
+// The master's own placeholders say nothing; its txStyles carry the sizes and
+// colours, which is where PowerPoint actually puts them.
+const CASCADE_MASTER = `${XML_DECL}
+<p:sldMaster xmlns:a="${NS_A}" xmlns:r="${NS_R}" xmlns:p="${NS_P}"><p:cSld><p:spTree>
+  <p:sp>
+    <p:nvSpPr><p:cNvPr id="2" name="Title Placeholder 1"/><p:cNvSpPr/><p:nvPr><p:ph type="title"/></p:nvPr></p:nvSpPr>
+    <p:spPr/><p:txBody><a:bodyPr/><a:lstStyle/><a:p><a:endParaRPr lang="en-US"/></a:p></p:txBody>
+  </p:sp>
+  <p:sp>
+    <p:nvSpPr><p:cNvPr id="3" name="Text Placeholder 2"/><p:cNvSpPr/><p:nvPr><p:ph type="body" idx="1"/></p:nvPr></p:nvSpPr>
+    <p:spPr/><p:txBody><a:bodyPr/><a:lstStyle/><a:p><a:endParaRPr lang="en-US"/></a:p></p:txBody>
+  </p:sp>
+</p:spTree></p:cSld>
+<p:txStyles>
+  <p:titleStyle><a:lvl1pPr><a:defRPr sz="4400"/></a:lvl1pPr></p:titleStyle>
+  <p:bodyStyle>
+    <a:lvl1pPr><a:defRPr><a:solidFill><a:schemeClr val="accent2"/></a:solidFill></a:defRPr></a:lvl1pPr>
+    <a:lvl2pPr><a:defRPr><a:solidFill><a:schemeClr val="accent3"/></a:solidFill></a:defRPr></a:lvl2pPr>
+  </p:bodyStyle>
+  <p:otherStyle><a:lvl1pPr><a:defRPr sz="1000"/></a:lvl1pPr></p:otherStyle>
+</p:txStyles>
+</p:sldMaster>`;
+
+function cascadeParts(overrides: PptxParts = {}): PptxParts {
+  return deckParts({
+    'ppt/presentation.xml': CASCADE_PRESENTATION,
+    'ppt/slides/slide1.xml': CASCADE_SLIDE,
+    'ppt/slides/_rels/slide1.xml.rels': CASCADE_SLIDE_RELS,
+    'ppt/slideLayouts/slideLayout1.xml': CASCADE_LAYOUT,
+    'ppt/slideLayouts/_rels/slideLayout1.xml.rels': CASCADE_LAYOUT_RELS,
+    'ppt/slideMasters/slideMaster1.xml': CASCADE_MASTER,
+    ...overrides,
+  });
+}
+
+const cascadeTexts = (parts: PptxParts = cascadeParts()): PptxTextNode[] =>
+  byType(readPptx(parts, parseXml).slides[0]!.nodes, 'text');
+
+test('an idx-only slide placeholder takes its type from the matching layout slot', () => {
+  const texts = cascadeTexts();
+  // Without a layout this reads as the ECMA-376 default `body`; the layout's
+  // idx="1" slot says what it really is.
+  assert.deepEqual(texts[1]!.ph, { type: 'subTitle', idx: 1 });
+  // An explicit slide-level type is never overwritten by the layout.
+  assert.deepEqual(texts[2]!.ph, { type: 'body', idx: 2 });
+});
+
+test('a run with no rPr inherits size and bold from the layout placeholder', () => {
+  const run = cascadeTexts()[1]!.paras[0]!.runs[0]!;
+  assert.equal(run.text, 'Subtitle line');
+  assert.equal(run.sizePt, 20);
+  assert.equal(run.bold, true);
+});
+
+test('outline level picks the matching layout level, not level 1', () => {
+  const body = cascadeTexts()[1]!;
+  assert.equal(body.paras[1]!.lvl, 1);
+  assert.equal(body.paras[1]!.runs[0]!.sizePt, 16);
+});
+
+test('master txStyles fill in where the layout stayed silent', () => {
+  const texts = cascadeTexts();
+  const title = texts[0]!.paras[0]!.runs[0]!;
+  // Size comes from the master's titleStyle (neither the slide nor the layout
+  // states one); the face still comes from the layout, which is nearer.
+  assert.equal(title.sizePt, 44);
+  assert.equal(title.font, 'Layout Title Face');
+  // bodyStyle colours the subtitle per level, resolved through the theme.
+  assert.deepEqual(texts[1]!.paras[0]!.runs[0]!.color, { scheme: 'accent2', hex: 'ED7D31' });
+  assert.deepEqual(texts[1]!.paras[1]!.runs[0]!.color, { scheme: 'accent3', hex: 'A5A5A5' });
+});
+
+test('title and ctrTitle are one slot when placeholders are matched', () => {
+  // The slide says `title`, the layout says `ctrTitle`; the run is only styled
+  // if the two spellings matched.
+  assert.equal(cascadeTexts()[0]!.paras[0]!.runs[0]!.font, 'Layout Title Face');
+});
+
+test('an explicit b="0" survives a bold layout placeholder', () => {
+  const run = cascadeTexts()[2]!.paras[0]!.runs[0]!;
+  assert.equal(run.text, 'Not bold');
+  assert.equal(run.bold, undefined, 'an explicit off is a value, not an absence');
+  assert.equal(run.sizePt, 18, 'the fields it stayed silent about still inherit');
+});
+
+test('presentation defaultTextStyle is the last layer, and reaches a plain text box', () => {
+  const texts = cascadeTexts();
+  assert.equal(texts[3]!.paras[0]!.runs[0]!.font, 'Default Face');
+  // A shape with no placeholder takes nothing from the master's txStyles.
+  assert.equal(texts[3]!.paras[0]!.runs[0]!.sizePt, undefined);
+});
+
+test('a:ln width surfaces in points so importers stop defaulting one', () => {
+  const shapes = byType(readPptx(cascadeParts(), parseXml).slides[0]!.nodes, 'shape');
+  const outlined = shapes.find((s) => s.geom === 'rect')!;
+  assert.equal(outlined.lineWidthPt, 2.25, '28575 EMU at 12700 EMU per point');
+  assert.deepEqual(outlined.line, { scheme: 'accent1', hex: '4472C4' });
+});
+
+test('a layout relationship pointing at a missing part degrades to the slide-only read', () => {
+  let texts!: PptxTextNode[];
+  assert.doesNotThrow(() => {
+    texts = cascadeTexts(
+      cascadeParts({
+        'ppt/slides/_rels/slide1.xml.rels': `${XML_DECL}
+<Relationships xmlns="${NS_PKG_REL}">
+  <Relationship Id="rId1" Type="${NS_R}/slideLayout" Target="../slideLayouts/slideLayout9.xml"/>
+</Relationships>`,
+      }),
+    );
+  });
+  assert.deepEqual(texts[1]!.ph, { type: 'body', idx: 1 }, 'the ECMA-376 default stands in');
+  assert.equal(texts[1]!.paras[0]!.runs[0]!.sizePt, undefined, 'nothing to inherit, nothing invented');
+  assert.equal(texts[3]!.paras[0]!.runs[0]!.font, 'Default Face', 'the deck-level layer still applies');
+});
+
+test('a layout carrying ten thousand placeholders is capped, not fatal', () => {
+  const wanted = `<p:sp>
+    <p:nvSpPr><p:cNvPr id="2" name="Subtitle"/><p:cNvSpPr/><p:nvPr><p:ph type="subTitle" idx="1"/></p:nvPr></p:nvSpPr>
+    <p:spPr/>
+    <p:txBody><a:bodyPr/><a:lstStyle><a:lvl1pPr><a:defRPr sz="2000"/></a:lvl1pPr></a:lstStyle><a:p/></p:txBody>
+  </p:sp>`;
+  const filler = Array.from(
+    { length: 10_000 },
+    (_, i) => `<p:sp>
+    <p:nvSpPr><p:cNvPr id="${i + 3}" name="p${i}"/><p:cNvSpPr/><p:nvPr><p:ph type="body" idx="${i + 100}"/></p:nvPr></p:nvSpPr>
+    <p:spPr/><p:txBody><a:bodyPr/><a:lstStyle/><a:p/></p:txBody>
+  </p:sp>`,
+  ).join('');
+  let texts!: PptxTextNode[];
+  assert.doesNotThrow(() => {
+    texts = cascadeTexts(
+      cascadeParts({
+        'ppt/slideLayouts/slideLayout1.xml': `${XML_DECL}
+<p:sldLayout xmlns:a="${NS_A}" xmlns:r="${NS_R}" xmlns:p="${NS_P}"><p:cSld><p:spTree>${wanted}${filler}</p:spTree></p:cSld></p:sldLayout>`,
+      }),
+    );
+  });
+  assert.equal(texts.length, 4, 'the slide still reads in full');
+  assert.equal(texts[1]!.paras[0]!.runs[0]!.sizePt, 20, 'placeholders inside the cap still resolve');
+});
+
+test('a deck with no layout parts reads exactly as it did before the cascade', () => {
+  // Pinned against the pre-cascade output of the shared fixture. The ONLY
+  // difference is the additive `lineWidthPt`, which is new surface, not a
+  // changed value: nothing inherits when there is no layout to inherit from.
+  const slide = readPptx(deckParts(), parseXml).slides[0]!;
+  assert.deepEqual(slide, {
+    index: 0,
+    nodes: [
+      {
+        type: 'text',
+        xEmu: 838200,
+        yEmu: 365125,
+        cxEmu: 2743200,
+        cyEmu: 1143000,
+        rot: 90,
+        paras: [{ runs: [{ text: 'Hello', bold: true, sizePt: 18, font: 'Calibri', color: { scheme: 'accent1', hex: '4472C4' } }] }],
+        geom: 'rect',
+      },
+      {
+        type: 'shape',
+        xEmu: 4000000,
+        yEmu: 2000000,
+        cxEmu: 1000000,
+        cyEmu: 500000,
+        geom: 'rect',
+        fill: { hex: 'FF0000' },
+        line: { scheme: 'tx1', hex: '000000' },
+        lineWidthPt: 1,
+      },
+      { type: 'pic', xEmu: 100, yEmu: 200, cxEmu: 300, cyEmu: 400, embed: 'rId2', media: 'ppt/media/image1.png' },
+      {
+        type: 'table',
+        xEmu: 500000,
+        yEmu: 3000000,
+        cxEmu: 2000000,
+        cyEmu: 800000,
+        rows: [
+          ['A1', 'B1'],
+          ['A2', 'B2'],
+        ],
+      },
+      { type: 'shape', xEmu: 10, yEmu: 20, cxEmu: 30, cyEmu: 40, geom: 'ellipse', fill: { scheme: 'accent2', hex: 'ED7D31' } },
+    ],
+    notes: 'Speaker note here',
+  });
 });

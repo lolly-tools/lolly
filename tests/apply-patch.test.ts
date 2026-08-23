@@ -208,7 +208,9 @@ test('applyPatch: a hook past its budget drops only its own patch - same time-bo
     assert.equal(emits.n, 1, 'the timed-out hook did not cost an extra render');
     assert.equal(rt.getHydrated(), '<b>z</b><i>2</i><u>false</u><e></e><s>fast</s>',
       'both values applied; only the overrunning hook patch was dropped');
-    await sleep(80); // the abandoned hook resolves now - still discarded
+    // The abandoned hook resolves now, but the batch's `count` run superseded
+    // it (newer hookRunSeq) - so even under v1.146 late-apply it stays discarded.
+    await sleep(80);
     assert.equal(rt.getHydrated(), '<b>z</b><i>2</i><u>false</u><e></e><s>fast</s>');
   } finally { setBudgets(); delete (globalThis as any).__lollyPatchCalls; }
 });

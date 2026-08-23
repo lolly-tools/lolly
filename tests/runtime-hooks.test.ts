@@ -3,11 +3,13 @@
  * Contract tests for the runtime's per-hook time-boxes (HOOK_BUDGET_MS).
  *
  * An async hook result is RACED against its budget: on overrun the runtime
- * logs the timeout, applies NO patch, and discards the late resolution - the
- * hook itself keeps executing (there is no in-realm preemption). A SLOW
- * SYNCHRONOUS hook can't be preempted at all: its overrun is measured and
- * warned, and its patch still applies. onFrame/onLevel are exempt - they're
- * throttled by dropping overlapping frames/samples, never time-boxed.
+ * logs the timeout and applies no patch NOW - the hook itself keeps executing
+ * (there is no in-realm preemption). Since v1.146 the LATE resolution of an
+ * onInit/onInput run still applies when it resolves, iff no newer onInit/onInput
+ * run started since; a superseded run stays discarded. A SLOW SYNCHRONOUS hook
+ * can't be preempted at all: its overrun is measured and warned, and its patch
+ * still applies. onFrame/onLevel are exempt - they're throttled by dropping
+ * overlapping frames/samples, never time-boxed.
  *
  * HOOK_BUDGET_MS is exported mutable exactly so these tests can shrink the
  * budgets to ~10–20ms instead of waiting out the real 5s/2s defaults.
@@ -59,7 +61,7 @@ function logHost(extra: Record<string, unknown> = {}) {
 
 // ─── async overrun: empty patch, logged error, late resolution discarded ──────
 
-test('time-box: an async onInit past its budget → no patch, logged error, late resolution discarded', async () => {
+test('time-box: an async onInit past its budget → no patch NOW, logged error, late resolution applies when it arrives', async () => {
   setBudgets({ onInit: 15 });
   // hooks.js source can't close over test locals, so park the resolver where
   // the hook's realm-global scope can reach it (which is exactly the point:
@@ -79,18 +81,52 @@ test('time-box: an async onInit past its budget → no patch, logged error, late
     assert.deepEqual(rt.hookErrors.map((e) => e.hook), ['onInit'], 'failure recorded for the shell');
     assert.equal(rt.getHydrated(), '<b>hi</b><i></i>', 'empty patch applied - inputs and extras untouched');
 
-    // The hook finally "finishes" with a patch - after the race was lost. It
-    // must be discarded, never resurrected into the model/extras.
+    // The hook finally finishes with a patch - after the race was lost. It is
+    // still the NEWEST hook run, so it applies (v1.146) and repaints, instead
+    // of leaving the canvas permanently stale.
     resolveLate({ msg: 'LATE', note: 'LATE' });
     await sleep(5);
-    assert.equal(rt.getHydrated(), '<b>hi</b><i></i>', 'late resolution discarded');
+    assert.equal(rt.getHydrated(), '<b>LATE</b><i>LATE</i>', 'late resolution of the newest run applies');
+    assert.ok(
+      logs.some((l) => l.startsWith('info:onInit finished') && l.includes('applying late')),
+      `recovery logged, got: ${logs.join(' | ')}`,
+    );
   } finally {
     setBudgets();
     delete (globalThis as any).__lollyLateGate;
   }
 });
 
-test('time-box: an async onInput past its budget → keystroke kept, no hook patch, warning logged', async () => {
+test('time-box: a raced-out onInput superseded by a newer run stays discarded', async () => {
+  setBudgets({ onInput: 15 });
+  // First edit's hook stalls past the budget; second edit's resolves fast.
+  // When the stalled one finally resolves it is no longer the newest run - the
+  // fast patch must not be clobbered by the stale one.
+  let resolveSlow!: (v: unknown) => void;
+  (globalThis as any).__lollySlowGate = new Promise((r) => { resolveSlow = r; });
+  try {
+    const { host } = logHost();
+    const rt = await createRuntime(
+      toolWith({ onInput: true },
+        `function onInput({ value }) {
+           if (value === 'slow') return globalThis.__lollySlowGate;
+           return { note: 'fast:' + value };
+         }`),
+      host, {},
+    );
+    await rt.setInput('msg', 'slow');   // times out at 15ms
+    await rt.setInput('msg', 'quick');  // completes normally
+    assert.equal(rt.getHydrated(), '<b>quick</b><i>fast:quick</i>');
+    resolveSlow({ note: 'STALE' });
+    await sleep(5);
+    assert.equal(rt.getHydrated(), '<b>quick</b><i>fast:quick</i>', 'superseded late resolution discarded');
+  } finally {
+    setBudgets();
+    delete (globalThis as any).__lollySlowGate;
+  }
+});
+
+test('time-box: an async onInput past its budget → keystroke kept, patch applies late when it arrives', async () => {
   setBudgets({ onInput: 15 });
   try {
     const { host, logs } = logHost();
@@ -104,9 +140,9 @@ test('time-box: an async onInput past its budget → keystroke kept, no hook pat
       logs.some((l) => l.startsWith('warn:onInput') && l.includes('timed out after 15ms')),
       `timeout logged, got: ${logs.join(' | ')}`,
     );
-    assert.equal(rt.getHydrated(), '<b>typed</b><i></i>', 'input value kept; timed-out patch not applied');
-    await sleep(80); // the abandoned hook resolves now - still discarded
-    assert.equal(rt.getHydrated(), '<b>typed</b><i></i>', 'late resolution discarded');
+    assert.equal(rt.getHydrated(), '<b>typed</b><i></i>', 'input value kept; timed-out patch not applied yet');
+    await sleep(80); // the abandoned hook resolves now - still the newest run, so it applies
+    assert.equal(rt.getHydrated(), '<b>typed</b><i>slow</i>', 'late resolution of the newest run applies');
   } finally { setBudgets(); }
 });
 

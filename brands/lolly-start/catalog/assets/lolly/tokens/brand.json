@@ -1,5 +1,5 @@
 {
-  "$description": "Lolly starter tokens - deliberately small: one brand colour over a quiet neutral base, and nothing else. A new brand grows by ADDING colours in the #/start Design System studio, not by clearing out a big preset palette. Layered DTCG: a shared 'base' set of two ramps (primary + neutral) with per-theme semantic slots that alias into them. Every $value is a CSS oklch() string (L%, chroma, hue); anything needing hex goes through the engine's colorToHex. Add a secondary, a chart spectrum, and more as you go - or replace the lot via the #/start wizard or 'npm run ingest:brand'.",
+  "$description": "Lolly starter tokens - a deliberately minimal cut of the SUSE palette: one green brand ramp (Pine → Jungle → Mint) over a quiet Fog neutral base, and nothing else. A new brand grows by ADDING colours in the #/start Design System studio, not by clearing out a big preset palette. Layered DTCG: a shared 'base' set of two ramps (primary + neutral) with per-theme semantic slots that alias into them, plus the default logo slots (asset.logo.*) pointing at the shipped Lolly marks. $values are hex, like the SUSE pack; the engine's colorToHex reads either hex or oklch. Replace the lot via the #/start wizard or 'npm run ingest:brand'.",
   "$metadata": {
     "tokenSetOrder": [
       "base",
@@ -28,63 +28,66 @@
       "$type": "color",
       "ramp": {
         "primary": {
-          "$description": "The one starter brand colour - a nine-step indigo ramp, dark (1) to light (9). Step 5 is the anchor; step 4 is the light-theme primary, step 6 the dark-theme one.",
+          "$description": "The SUSE green ramp, dark (1) to light (9): Pine → Jungle → Mint. Step 4 is Jungle (the light-theme primary), step 6 is Mint (the dark-theme primary), step 1 is Pine (the on-primary ink).",
           "1": {
-            "$value": "oklch(19.14% 0.040625 260)"
+            "$value": "#0c322c",
+            "$description": "Pine"
           },
           "2": {
-            "$value": "oklch(30.08% 0.065625 260)"
+            "$value": "#025937"
           },
           "3": {
-            "$value": "oklch(52.34% 0.115625 260)"
+            "$value": "#008657"
           },
           "4": {
-            "$value": "oklch(61.33% 0.135937 260)"
+            "$value": "#30ba78",
+            "$description": "Jungle"
           },
           "5": {
-            "$value": "oklch(72.66% 0.151562 260)"
+            "$value": "#42d29f"
           },
           "6": {
-            "$value": "oklch(78.91% 0.114063 260)"
+            "$value": "#90ebcd",
+            "$description": "Mint"
           },
           "7": {
-            "$value": "oklch(85.35% 0.078125 260)"
+            "$value": "#c0efde"
           },
           "8": {
-            "$value": "oklch(96.48% 0.0171875 260)"
+            "$value": "#eafaf4"
           },
           "9": {
-            "$value": "oklch(98.83% 0.0046875 260)"
+            "$value": "#f5fefb"
           }
         },
         "neutral": {
-          "$description": "Quiet grays, faintly warmed toward the brand hue - surfaces, text and hairlines. Dark (1) to light (9); the themes invert it so ink and paper swap.",
+          "$description": "SUSE Fog - quiet true grays for surfaces, text and hairlines. Dark (1) to light (9); the themes invert it so ink and paper swap.",
           "1": {
-            "$value": "oklch(19.34% 0.024 275)"
+            "$value": "#1d1d1d"
           },
           "2": {
-            "$value": "oklch(30.27% 0.024 275)"
+            "$value": "#3e3e3e"
           },
           "3": {
-            "$value": "oklch(52.34% 0.024 275)"
+            "$value": "#525252"
           },
           "4": {
-            "$value": "oklch(61.33% 0.024 275)"
+            "$value": "#6f6f6f"
           },
           "5": {
-            "$value": "oklch(72.66% 0.024 275)"
+            "$value": "#999999"
           },
           "6": {
-            "$value": "oklch(78.91% 0.024 275)"
+            "$value": "#bababa"
           },
           "7": {
-            "$value": "oklch(85.35% 0.024 275)"
+            "$value": "#dcdbdc"
           },
           "8": {
-            "$value": "oklch(96.48% 0.01775 275)"
+            "$value": "#efefef"
           },
           "9": {
-            "$value": "oklch(98.83% 0.0046875 275)"
+            "$value": "#ffffff"
           }
         }
       }
@@ -98,6 +101,43 @@
       "mono": {
         "$value": "SUSE Mono",
         "$description": "Code, readouts & data - SUSE Mono, also shell-served and the platform's default mono on every profile. SIL OFL 1.1."
+      }
+    },
+    "asset": {
+      "logo": {
+        "$description": "The blank starter's default logo marks - the Lolly swirl, shipped in this pack's catalog (lolly/logo/*). The mark is square, so horizontal and vertical share one file per treatment. Upload your own in the #/start Brand studio to override any slot.",
+        "horizontal-primary": {
+          "$type": "asset",
+          "$value": "lolly/logo/primary"
+        },
+        "horizontal-primary-reverse": {
+          "$type": "asset",
+          "$value": "lolly/logo/reverse"
+        },
+        "horizontal-mono": {
+          "$type": "asset",
+          "$value": "lolly/logo/mono"
+        },
+        "horizontal-mono-reverse": {
+          "$type": "asset",
+          "$value": "lolly/logo/mono-reverse"
+        },
+        "vertical-primary": {
+          "$type": "asset",
+          "$value": "lolly/logo/primary"
+        },
+        "vertical-primary-reverse": {
+          "$type": "asset",
+          "$value": "lolly/logo/reverse"
+        },
+        "vertical-mono": {
+          "$type": "asset",
+          "$value": "lolly/logo/mono"
+        },
+        "vertical-mono-reverse": {
+          "$type": "asset",
+          "$value": "lolly/logo/mono-reverse"
+        }
       }
     }
   },

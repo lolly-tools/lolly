@@ -28,6 +28,7 @@
  *   - wav           : parseWav(bytes) - the RIFF/WAVE container walker
  *   - depth-hint    : depthHint(bytes) - the ingest bit-depth header sniff (web shell lib)
  *   - lut-parse     : parseCubeLut / parse3dlLut - the .cube/.3dl colour-grade LUT readers
+ *   - docx-read     : readDocx(parts, parseXml) + isDocx, then both doc-md serialisers
  */
 
 import { embedC2paInPdf, embedC2pa, attachC2paStore, encodeCbor, type Signer } from '../../engine/src/c2pa.ts';
@@ -56,6 +57,8 @@ import { parseDataRows } from '../../engine/src/data-import.ts';
 import { packTiff } from '../../engine/src/tiff.ts';
 import { parseIccProfile, iccGamutSource } from '../../engine/src/icc.ts';
 import { isPptx, readPptx, type PptxParts } from '../../engine/src/pptx-read.ts';
+import { isDocx, readDocx, type DocxParts } from '../../engine/src/docx-read.ts';
+import { mdFromBlocks, htmlFromBlocks } from '../../engine/src/doc-md.ts';
 import { rebrandPptxParts, type PartMap, type RebrandPlan } from '../../engine/src/pptx-patch.ts';
 import { createPptxAPI, looksLikePptxFile } from '../../shells/web/src/bridge/pptx.ts';
 import { depthHint } from '../../shells/web/src/lib/image-sample.ts';
@@ -1010,11 +1013,81 @@ export const xcfTarget: FuzzTarget = {
   },
 };
 
+// ── docx fixtures (mirroring tests/docx-read.test.ts, trimmed to keep each seed
+//    small) - the reader plus the two serialisers it feeds ───────────────────
+
+const NS_W = 'http://schemas.openxmlformats.org/wordprocessingml/2006/main';
+const NS_WP = 'http://schemas.openxmlformats.org/drawingml/2006/wordprocessingDrawing';
+
+const DOCX_DOCUMENT = `${XML_DECL}<w:document xmlns:w="${NS_W}" xmlns:r="${NS_R}" xmlns:a="${NS_A}" xmlns:wp="${NS_WP}"><w:body>` +
+  `<w:p><w:pPr><w:pStyle w:val="Heading1"/></w:pPr><w:r><w:t>Chapter One</w:t></w:r></w:p>` +
+  `<w:p><w:r><w:rPr><w:b/><w:i/><w:u w:val="single"/></w:rPr><w:t xml:space="preserve">Marked </w:t></w:r>` +
+  `<w:r><w:footnoteReference w:id="2"/></w:r></w:p>` +
+  `<w:p><w:pPr><w:numPr><w:ilvl w:val="0"/><w:numId w:val="1"/></w:numPr></w:pPr><w:r><w:t>Alpha</w:t></w:r></w:p>` +
+  `<w:p><w:pPr><w:numPr><w:ilvl w:val="1"/><w:numId w:val="1"/></w:numPr></w:pPr><w:r><w:t>Nested</w:t></w:r></w:p>` +
+  `<w:p><w:hyperlink r:id="rId4"><w:r><w:t>SUSE</w:t></w:r></w:hyperlink></w:p>` +
+  `<w:p><w:r><w:drawing><wp:inline><wp:docPr id="1" name="Picture 1" descr="alt"/>` +
+  `<a:graphic><a:graphicData><a:blip r:embed="rId5"/></a:graphicData></a:graphic></wp:inline></w:drawing></w:r></w:p>` +
+  `<w:tbl><w:tr><w:trPr><w:tblHeader/></w:trPr>` +
+  `<w:tc><w:tcPr><w:gridSpan w:val="2"/></w:tcPr><w:p><w:r><w:t>Wide</w:t></w:r></w:p></w:tc></w:tr>` +
+  `<w:tr><w:tc><w:tcPr><w:vMerge w:val="restart"/></w:tcPr><w:p><w:r><w:t>Tall</w:t></w:r></w:p></w:tc>` +
+  `<w:tc><w:p><w:r><w:t>b</w:t></w:r></w:p></w:tc></w:tr>` +
+  `<w:tr><w:tc><w:tcPr><w:vMerge/></w:tcPr><w:p/></w:tc><w:tc><w:p><w:r><w:t>c</w:t></w:r></w:p></w:tc></w:tr>` +
+  `</w:tbl></w:body></w:document>`;
+
+const DOCX_STYLES = `${XML_DECL}<w:styles xmlns:w="${NS_W}">` +
+  `<w:style w:type="paragraph" w:default="1" w:styleId="Normal"><w:name w:val="Normal"/></w:style>` +
+  `<w:style w:type="paragraph" w:styleId="Heading1"><w:name w:val="heading 1"/><w:basedOn w:val="Normal"/><w:pPr><w:outlineLvl w:val="0"/></w:pPr></w:style>` +
+  `<w:style w:type="paragraph" w:styleId="MyHead"><w:name w:val="My Head"/><w:basedOn w:val="Heading1"/></w:style></w:styles>`;
+
+const DOCX_NUMBERING = `${XML_DECL}<w:numbering xmlns:w="${NS_W}">` +
+  `<w:abstractNum w:abstractNumId="0"><w:lvl w:ilvl="0"><w:numFmt w:val="bullet"/></w:lvl>` +
+  `<w:lvl w:ilvl="1"><w:numFmt w:val="decimal"/></w:lvl></w:abstractNum>` +
+  `<w:num w:numId="1"><w:abstractNumId w:val="0"/></w:num></w:numbering>`;
+
+const DOCX_RELS = `${XML_DECL}<Relationships xmlns="${NS_PKG_REL}">` +
+  `<Relationship Id="rId1" Type="${NS_R}/styles" Target="styles.xml"/>` +
+  `<Relationship Id="rId4" Type="${NS_R}/hyperlink" Target="https://www.suse.com/" TargetMode="External"/>` +
+  `<Relationship Id="rId5" Type="${NS_R}/image" Target="media/image1.png"/></Relationships>`;
+
+const DOCX_FOOTNOTES = `${XML_DECL}<w:footnotes xmlns:w="${NS_W}">` +
+  `<w:footnote w:type="separator" w:id="-1"><w:p/></w:footnote>` +
+  `<w:footnote w:id="2"><w:p><w:r><w:t>The note body.</w:t></w:r></w:p></w:footnote></w:footnotes>`;
+
+const DOCX_PARTS: DocxParts = {
+  'word/document.xml': DOCX_DOCUMENT,
+  'word/_rels/document.xml.rels': DOCX_RELS,
+  'word/styles.xml': DOCX_STYLES,
+  'word/numbering.xml': DOCX_NUMBERING,
+  'word/footnotes.xml': DOCX_FOOTNOTES,
+  'word/media/image1.png': Uint8Array.of(0x89, 0x50, 0x4e, 0x47),
+};
+const DOCX_SLOTS = ['word/document.xml', 'word/styles.xml', 'word/numbering.xml', 'word/_rels/document.xml.rels'] as const;
+
+export const docxReadTarget: FuzzTarget = {
+  name: 'docx-read',
+  async seeds() {
+    const enc = new TextEncoder();
+    return [DOCX_DOCUMENT, DOCX_STYLES, DOCX_NUMBERING, DOCX_RELS, DOCX_FOOTNOTES].map((s) => enc.encode(s));
+  },
+  // Contract: readDocx never throws on content (only a vbaProject.bin part is
+  // refused, which mutation cannot introduce), and both serialisers are total -
+  // so the only findings are hang/alloc/stack.
+  async invoke(bytes) {
+    for (const slot of DOCX_SLOTS) {
+      const res = readDocx({ ...DOCX_PARTS, [slot]: bytes }, parseXml);
+      mdFromBlocks(res.blocks);
+      htmlFromBlocks(res.blocks);
+    }
+    isDocx({ 'word/document.xml': bytes });
+  },
+};
+
 export const ALL_TARGETS: FuzzTarget[] = [
   c2paVerifyTarget, cborTarget, mediaSniffTarget, pdfMapTarget, x509Target,
   fileMetadataTarget, stripMetadataTarget, videoMetaTarget, dataImportTarget,
   pptxReadTarget, pptxPatchTarget, pptxBridgeTarget, iccTarget,
   derReadTarget, c2paExtractTarget, c2paContainersTarget, urlPackTarget, wavTarget,
-  depthHintTarget, lutParseTarget, psdTarget, xcfTarget,
+  depthHintTarget, lutParseTarget, psdTarget, xcfTarget, docxReadTarget,
 ];
 export const TARGETS_BY_NAME: Record<string, FuzzTarget> = Object.fromEntries(ALL_TARGETS.map((t) => [t.name, t]));

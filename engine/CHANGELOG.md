@@ -6,6 +6,69 @@ minors, never removed or signature-changed without a major bump.
 
 Moved verbatim from the comment block that used to live in `src/index.ts`.
 
+1.146.0 - lifecycle: a raced-out async onInit/onInput now applies its LATE
+resolution when it finally arrives, iff no newer onInit/onInput run has started
+since (a per-runtime sequence guards ordering; the runtime logs the recovery
+at info). Previously the late result was discarded outright, so a first
+analysis that outran its budget - the audiogram's cold audio decode + worker
+spawn was the reproducer - left the card permanently stale with nothing to
+retry it. A superseding keystroke still wins; export-path hooks
+(beforeExport/afterExport/exportFile/exportStill) still never late-apply -
+their overrun fails that export visibly. No HostV1 change.
+
+1.145.0 - additive: the pptx placeholder CASCADE (plans/139 WP7). `pptx-read`
+now resolves run styling through the full inheritance chain - run rPr ->
+paragraph defRPr -> shape lstStyle -> slide-layout placeholder -> slide-master
+placeholder and txStyles -> presentation defaultTextStyle - filling ONLY what
+the slide left undefined, with explicit-off (`b="0"`) honoured at every
+layer. Placeholders match slide -> layout -> master by idx first, then by
+type with title/ctrTitle unified, so an idx-only slide placeholder gets its
+type resolved (better title detection for deckToMarkdown and the deck-editor
+ingest). Shapes additionally surface `lineWidthPt` from `a:ln@w`. Layout and
+master parts are attacker-controlled like everything else: size caps,
+per-part placeholder caps, parse-once memoisation, degrade-to-no-cascade on
+any hostile/missing part. Decks without layout parts parse identically to
+1.144.0 (pinned by a guard test). Pure additive read-model change, no HostV1
+change.
+
+1.144.0 - additive: docx WRITE depth (plans/139 WP5). `writeDocx` accepts the
+shared doc-model `DocBlock` shape alongside the legacy `DocxBlock` (union
+array; legacy-only documents stay byte-identical, pinned by a guard test) and
+emits styled runs (b/i/u/strike, nesting), hyperlinks (per-href rels),
+bullet/decimal lists via a conditional `word/numbering.xml` (two abstractNums,
+nine levels), tables with `gridSpan`/`vMerge` and a `w:tblHeader` header row,
+inline images (`DocxDoc.media` supplies bytes; PNG/GIF/JPEG natural size
+sniffed, capped to the printable width) and real footnotes
+(`word/footnotes.xml`). The DocBlocks -> writeDocx -> readDocx round trip is
+pinned by tests/docx-roundtrip.test.ts. No HostV1 change.
+
+1.143.0 - additive: the document read side of plans/139. New `doc-model.ts`
+(`DocBlock`/`DocInline` and friends - the shared block model every document
+reader projects into), `doc-md.ts` (`mdFromBlocks` - GFM with pipe tables,
+an inline-HTML table escape hatch for real row/col spans, `[^n]` footnotes;
+and `htmlFromBlocks` - escape-first HTML with real colspan/rowspan for the
+doc-studio TipTap ingest; URL scheme allowlist on both), and `docx-read.ts`
+(`readDocx(parts, parseXml)` + `isDocx` - WordprocessingML to DocBlocks:
+pStyle/outlineLvl headings, numbering.xml lists, gridSpan/vMerge tables,
+hyperlinks, footnotes/endnotes, images with alt, track-changes accepted;
+xlsx-import's hostile-file threat model, macro-enabled refused, caps set
+`truncated` instead of throwing). Fuzz target `docx-read` registered. Pure
+exports only, no HostV1 change.
+
+1.142.0 - additive: the deck-content read side of plans/139 ("rebrand this
+content"). `pptx-read` now surfaces the slide's own `p:ph` placeholder
+(`ph?: { type?, idx? }` on text/shape nodes, type defaulting to `body` when
+the element is present but untyped) and the paragraph outline level
+(`lvl?` on `PptxReadPara`), and exports `readingOrder(nodes)` - a pure
+position sort (y-banded at half a line, then x) that never mutates the
+stored spTree order. New module `deck-md.ts`: `deckToMarkdown(deck)` turns a
+`PptxDeckRead` into the Marp-flavoured Markdown dialect deck-studio's `spec`
+input parses (`---` slide breaks, ph-classified titles, 2-space list levels,
+GFM pipe tables, `<!-- notes: ... -->` speaker notes, furniture placeholders
+skipped) plus a media manifest; the round trip is pinned by
+tests/deck-roundtrip.test.ts against deck-studio's own parser. Pure exports
+only, no HostV1 change.
+
 1.141.0 - additive: `ExportOpts.signal` (an optional AbortSignal), so an
 export can be CANCELLED rather than only hidden (mobile UX audit finding T1 -
 the export shutter's status block offered "Hide" because no abort seam
