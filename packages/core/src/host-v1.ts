@@ -2500,6 +2500,12 @@ export interface Profile {
    *  stacks a second copy. Set from Profile like the a11y prefs (never
    *  localStorage). */
   saveRenders?: boolean;
+  /** Export home (plans/138 Tier A1): a connected provider KIND ('dropbox',
+   *  's3', …) the user pinned as "my exports live here". When set, every finished
+   *  export ALSO auto-sends to it over the same send-target driver a manual send
+   *  uses. Unset = no home (the default). Names a kind only; the connection itself
+   *  is device-local, so on a device that lacks it the home is simply inert. */
+  exportHome?: string;
 }
 
 // ─── Assets ─────────────────────────────────────────────────────────────────
