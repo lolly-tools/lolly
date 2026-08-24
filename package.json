@@ -103,7 +103,7 @@
     "playwright-core": "^1.62.1"
   },
   "devDependencies": {
-    "@anthropic-ai/sdk": "^0.117.1",
+    "@anthropic-ai/sdk": "^0.120.0",
     "@biomejs/biome": "^2.5.9",
     "@types/node": "^26.2.0",
     "esbuild": "^0.28.2",
