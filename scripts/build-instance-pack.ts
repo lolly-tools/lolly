@@ -411,6 +411,11 @@ async function main(): Promise<void> {
   console.log(signer
     ? `  signed - pin thumbprint ${signer.thumbprint}`
     : '  UNSIGNED - pass --keyfile (or LOLLY_CATALOG_SIGNING_KEY) before distributing');
+  // Where a finished pack goes: a deployment with a control plane hosts it at
+  // /connect/pack.lolly and advertises it in its instance manifest - the pack
+  // is verified at upload to point at the instance base it names, so cutting
+  // it for one deployment and hosting it on another is refused at the door.
+  console.log(`  host it on its instance: PUT /api/v1/instance-pack (owner) - e.g. \`lw instance pack ${relative(ROOT, outPath)}\``);
   if (danglingRefs.length) {
     console.warn(`  ⚠ tool manifests reference excluded assets (they will 404 for pack users until the brand instance exists):`);
     for (const ref of danglingRefs) console.warn(`    - ${ref}`);
