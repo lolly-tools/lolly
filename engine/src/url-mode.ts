@@ -24,6 +24,11 @@
  *                  entry's `values` are read in-process by the shell (never packed
  *                  into the URL). Unknown/absent id falls through to the normal
  *                  fresh-open flow. Web shell only; ignored by the CLI.
+ *   - `preset` - id of a preset INSIDE the named template (plans/142: a preset is
+ *                  a values overlay on its template's base values, e.g.
+ *                  `?template=poster&preset=story`). Only read alongside `template`;
+ *                  unknown/absent id applies the template base alone. Web shell
+ *                  only; ignored by the CLI.
  *   - `output` - output filename (CLI only)
  *   - `filename` - download filename (web shell)
  *   - `_v` - tool version pinning (optional)
@@ -333,7 +338,7 @@ export interface SerializeUrlOpts {
 // Param names that are NOT tool inputs (export/render controls). Exported so the
 // engine contract test can assert it stays in lock-step with the documented list
 // (the header comment above + docs/url-mode.md) and nothing drifts silently.
-export const RESERVED = new Set(['format', 'export', 'copy', 'slot', 'output', 'filename', '_v', 'width', 'height', 'w', 'h', 'unit', 'dpi', 'profile', 'password', 'bleed', 'marks', 'c2pa', 'imprint', 'durable', 'meta', 'hdr', 'depth', 'cuts', 'lang', 'designv', 'full', 'options', 'nostage', 'template', 'present', 's', 'z', 'zx']);
+export const RESERVED = new Set(['format', 'export', 'copy', 'slot', 'output', 'filename', '_v', 'width', 'height', 'w', 'h', 'unit', 'dpi', 'profile', 'password', 'bleed', 'marks', 'c2pa', 'imprint', 'durable', 'meta', 'hdr', 'depth', 'cuts', 'lang', 'designv', 'full', 'options', 'nostage', 'template', 'preset', 'present', 's', 'z', 'zx']);
 // NOTE on the presentation-mode kiosk flag `loop` (plan 112): it is deliberately
 // NOT in this set. `loop` is a live *input* id in several tools (slides, deck-builder,
 // 3d, digi-ad, lottie-digi-ad - a GIF-playback / animation control), so reserving it

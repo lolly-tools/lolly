@@ -202,5 +202,10 @@
   "An ingredient carries AI-writing signals: {names}. A signal, not proof - review it in the catalogue before this file travels.": "有素材带有 AI 写作信号：{names}。这是一个信号,不是证据。在此文件发出之前,请先在目录中查看它。",
   "This file is packaged the way {vendor} AI products package downloads ({hint}). A signal, not proof.": "此文件的打包方式与 {vendor} 的 AI 产品打包下载文件的方式一致（{hint}）。这是一个信号,不是证据。",
   "likely AI-made": "很可能由 AI 制作",
-  "AI-declared ingredient in this design: {names}. The export's own credential declares this AI origin, signed and machine-readable.": "此设计中声明为 AI 生成的素材：{names}。导出文件自身的凭证会声明该 AI 来源，已签名且可机读。"
+  "AI-declared ingredient in this design: {names}. The export's own credential declares this AI origin, signed and machine-readable.": "此设计中声明为 AI 生成的素材：{names}。导出文件自身的凭证会声明该 AI 来源，已签名且可机读。",
+  "Imported from": "导入来源",
+  "Imported": "导入日期",
+  "Copyright": "版权",
+  "Captured": "拍摄日期",
+  "Keywords": "关键词"
 }

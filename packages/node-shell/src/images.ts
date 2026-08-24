@@ -19,6 +19,7 @@
  */
 import { createRequire } from 'node:module';
 import type { ImagesAPI, ImageInfo, ImageResizeOpts, ImageEncodeOpts, ImageResult } from '@lolly-tools/core/host-v1';
+import { carryImageMetadata } from '@lolly/engine';
 
 /** The slice of sharp's surface this module uses (typed locally: sharp is an
  *  optional runtime dependency, so its types must not be a build requirement). */
@@ -90,6 +91,17 @@ export function createNodeImagesAPI(): ImagesAPI | null {
     };
   }
 
+  /** Metadata carry (v1.149) - the same engine core the web shell calls, so the
+   *  CLI reports identical carried/dropped lists. sharp strips everything on
+   *  re-encode by default, which keeps the carry the single writer. */
+  function withCarry(res: ImageResult, srcBytes: Buffer, carry: ImageResizeOpts['carryMetadata']): ImageResult {
+    if (!carry) return res;
+    const gps = typeof carry === 'object' && carry.gps === true;
+    const src = new Uint8Array(srcBytes.buffer, srcBytes.byteOffset, srcBytes.byteLength);
+    const { bytes, carried } = carryImageMetadata({ bytes: src }, { bytes: res.bytes, mime: res.mime }, { gps });
+    return { ...res, bytes, carried };
+  }
+
   return {
     async decode(input): Promise<ImageInfo> {
       const { img } = await open(input);
@@ -112,7 +124,7 @@ export function createNodeImagesAPI(): ImagesAPI | null {
     },
 
     async resize(input, opts: ImageResizeOpts = {}): Promise<ImageResult> {
-      const { img } = await open(input);
+      const { img, buf } = await open(input);
       const meta = await img.metadata();
       const srcFmt = (meta.format ?? 'png').toLowerCase();
       // maxEdge caps the LONGEST edge; width/height fit within a box. Both are
@@ -131,13 +143,13 @@ export function createNodeImagesAPI(): ImagesAPI | null {
       const outFmt = opts.format ?? (['jpeg', 'jpg', 'png', 'webp'].includes(srcFmt) ? srcFmt : 'png');
       let pipe = img.rotate();
       if (box.width || box.height) pipe = pipe.resize({ ...box, fit: 'inside', withoutEnlargement: true });
-      return finish(pipe, outFmt, opts.quality);
+      return withCarry(await finish(pipe, outFmt, opts.quality), buf, opts.carryMetadata);
     },
 
     async encode(input, opts: ImageEncodeOpts): Promise<ImageResult> {
       if (!opts?.format) throw new Error('host.images.encode: `format` is required (webp | jpeg | png).');
-      const { img } = await open(input);
-      return finish(img.rotate(), opts.format, opts.quality);
+      const { img, buf } = await open(input);
+      return withCarry(await finish(img.rotate(), opts.format, opts.quality), buf, opts.carryMetadata);
     },
   };
 }

@@ -195,5 +195,10 @@
   "An ingredient carries AI-writing signals: {names}. A signal, not proof - review it in the catalogue before this file travels.": "Un ingredient poartă semnale de scriere AI: {names}. Un semnal, nu o dovadă - verifică-l în catalog înainte ca acest fișier să plece mai departe.",
   "This file is packaged the way {vendor} AI products package downloads ({hint}). A signal, not proof.": "Acest fișier este împachetat așa cum produsele AI de la {vendor} împachetează descărcările ({hint}). Un semnal, nu o dovadă.",
   "likely AI-made": "probabil făcut de AI",
-  "AI-declared ingredient in this design: {names}. The export's own credential declares this AI origin, signed and machine-readable.": "Ingredient declarat ca operă AI în acest design: {names}. Credențialul propriu al exportului declară această origine AI, semnat și lizibil de mașină."
+  "AI-declared ingredient in this design: {names}. The export's own credential declares this AI origin, signed and machine-readable.": "Ingredient declarat ca operă AI în acest design: {names}. Credențialul propriu al exportului declară această origine AI, semnat și lizibil de mașină.",
+  "Imported from": "Importat din",
+  "Imported": "Importat",
+  "Copyright": "Drepturi de autor",
+  "Captured": "Realizată",
+  "Keywords": "Cuvinte-cheie"
 }

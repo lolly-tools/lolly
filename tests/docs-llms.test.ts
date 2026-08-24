@@ -44,6 +44,25 @@ test('the section lists exactly one line per register format', () => {
   }
 });
 
+test('every writable format states its metadata claims on its line', () => {
+  // plans/144 O1: an agent reading llms.txt must see what Lolly writes into a
+  // format's own metadata containers, not just that it writes the format. The
+  // claims ride INLINE on the existing line, so the one-line-per-format count
+  // above still holds.
+  const lines = section.split('\n').filter((l) => /^- \[/.test(l));
+  const missing: string[] = [];
+  for (const f of catalog.formats) {
+    if (f.dir === 'in') continue;
+    const line = lines.find((l) => l.includes(`/info/formats/${f.name.toLowerCase().replace(/[^a-z0-9]+/g, '-')}/`))
+      ?? lines.find((l) => l.startsWith(`- [${f.name}](`));
+    if (!line) { missing.push(`${f.token}: no line`); continue; }
+    if (!/Metadata: reads .+; writes .+; round trip (full|partial|none|n\/a)\./.test(line)) {
+      missing.push(`${f.token}: no metadata claim on its line`);
+    }
+  }
+  assert.deepEqual(missing, [], 'Every export and round-trip format needs its metadata block in llms.txt.');
+});
+
 test('the expected format count is a real number, not zero', () => {
   // A guard against a register that silently emptied: llms.txt must not ship a
   // Formats heading over nothing.

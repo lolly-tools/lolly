@@ -192,6 +192,27 @@ for (const dir of toolDirs) {
       if (t.id !== base) errors.push(`[${dir}] template ${file}: id "${t.id}" must match the file basename "${base}" (${rel})`);
       if (seenTemplateIds.has(t.id)) errors.push(`[${dir}] template ${file}: duplicate template id "${t.id}"`);
       seenTemplateIds.add(t.id);
+      // Presets (plans/142): optional curated variants inside the template - each a
+      // values OVERLAY merged over the template's base `values` (preset wins). Shape
+      // gate mirrors the template's own: non-empty string id + name, plain-object
+      // values, unique ids within the template.
+      if (t.presets !== undefined) {
+        if (!Array.isArray(t.presets)) {
+          errors.push(`[${dir}] template ${file}: "presets" must be an array of { id, name, values } overlays`);
+        } else {
+          const seenPresetIds = new Set<string>();
+          for (const p of t.presets) {
+            const pid = p && typeof p === 'object' && typeof p.id === 'string' ? p.id : '';
+            if (!pid) { errors.push(`[${dir}] template ${file}: a preset is missing a non-empty string "id"`); continue; }
+            if (typeof p.name !== 'string' || !p.name) errors.push(`[${dir}] template ${file}: preset "${pid}" missing/empty "name"`);
+            if (!p.values || typeof p.values !== 'object' || Array.isArray(p.values)) {
+              errors.push(`[${dir}] template ${file}: preset "${pid}" "values" must be a plain object (the overlay merged over the template base)`);
+            }
+            if (seenPresetIds.has(pid)) errors.push(`[${dir}] template ${file}: duplicate preset id "${pid}"`);
+            seenPresetIds.add(pid);
+          }
+        }
+      }
     }
   }
 

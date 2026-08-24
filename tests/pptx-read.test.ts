@@ -1037,3 +1037,19 @@ test('a deck with no layout parts reads exactly as it did before the cascade', (
     notes: 'Speaker note here',
   });
 });
+
+// ─── core props (plans/144 Wave 2 G6): the source's authorship surfaces ──────
+
+test('readPptx surfaces docProps/core.xml, round-tripping buildPptxParts meta', async () => {
+  const { buildPptxParts } = await import('../engine/src/pptx.ts');
+  const parts = buildPptxParts(
+    [{ shapes: [], media: [] }],
+    { meta: { title: 'Launch Deck', author: 'Ana Kovac', description: 'H2 plan' }, now: '2026-08-24T00:00:00Z' },
+  );
+  const deck = readPptx(parts as never, parseXml);
+  assert.ok(deck.coreProps, 'core props surfaced');
+  assert.equal(deck.coreProps!.creator, 'Ana Kovac');
+  assert.equal(deck.coreProps!.title, 'Launch Deck');
+  assert.equal(deck.coreProps!.description, 'H2 plan');
+  assert.equal(deck.coreProps!.created, '2026-08-24T00:00:00Z');
+});

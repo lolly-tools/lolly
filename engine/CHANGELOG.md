@@ -6,6 +6,51 @@ minors, never removed or signature-changed without a major bump.
 
 Moved verbatim from the comment block that used to live in `src/index.ts`.
 
+1.149.0 - metadata honor (plans/144 Waves 1+2). images: additive `carryMetadata`
+on ImageResizeOpts/ImageEncodeOpts and `carried: MetaCarryReport` on
+ImageResult - host.images rebuilds a source's descriptive metadata (EXIF
+authorship, copyright, description, software, capture date, and the XMP
+packet; GPS only on `{ gps: true }`) into the re-encoded JPEG/PNG/WebP and
+reports exactly what carried and what dropped. A C2PA credential is never
+copied across a re-encode (hard binding). The image byte stampers graduated
+from the web bridge into engine/src/image-meta.ts (the bridge file is now a
+re-export shim); file-metadata.ts gains extractXmpPacket. Export parity: WebP
+output gets the ExportMeta EXIF chunk (insertWebpMeta, VP8X flag handled),
+DOCX gets docProps/core.xml + app.xml (shared ooxml-props.ts writer; the pptx
+core-properties relationship type fixed to the OPC package namespace), and WAV
+gets a LIST/INFO chunk at the export seam (embedWavInfo, new ICOP copyright
+field). AVIF EXIF is a recorded follow-up, not claimed.
+Also (Wave 2 G6) pptx-read/docx-read surface the source package's
+docProps/core.xml as `coreProps` (OoxmlCoreProps), and (Wave 5 O2)
+file-metadata reads IPTC-IIM (JPEG APP13 by-line/credit/copyright/caption/
+keywords) and XMP dc:subject keywords, while buildExportXmp +
+insertPngXmp/insertJpegXmp (and insertWebpMeta) write the pro-photo XMP
+namespaces (dc, xmpRights, photoshop:Credit, plus:Licensor) on raster export.
+Follow-ups closed in the same minor: file-metadata reads HEIF/AVIF meta-box
+ITEMS (iinf/iloc walk - an iPhone HEIC's Exif and XMP items, which is what
+makes the HEIC convert carry real; format sniff now says HEIC/AVIF instead of
+MP4), image-meta gains insertAvifExif (a HEIF Exif item with iloc offsets
+rewritten for the meta-box growth), and the shared OOXML core props take
+`sourceAuthor` - dc:creator carries BOTH authors when an imported document's
+author differs from the current user ("Ana Kovac; Andy Fitzsimon", Word's
+separator; cp:lastModifiedBy stays the current actor).
+
+1.148.0 - url-mode: new reserved param `preset` (plans/142) - the id of a preset
+inside a `?template=` entry. A preset is a curated values overlay on its
+template's base values (`?template=poster&preset=story`); reserving the name
+keeps it out of tool inputs on every shell. Resolution is shell-side (the web
+shell merges base + overlay in-process); the CLI ignores it like `template`.
+Also preflight (plans/141 follow-up): `STILL_IMAGE_FORMATS` + the
+`count.artboard-fanout` info check - a still export of a multi-board stage
+fans out to one file per page box, so the panel says so instead of letting a
+single width×height imply one file. Additive check, no HostV1 change.
+
+1.147.0 - exports: `deriveExportFilename(manifest, values)` (inputs.ts) plus the
+`render.filenameFrom` manifest field (schema + SDK RenderSpec) - a tool names
+its exported file from its own input VALUES ("ana-kovac", a URL's host+path)
+instead of a colliding tool-name default. Pure derivation; the web download bar
+and the batch grid consume it, callers keep their tool-name/tool-id fallback.
+
 1.146.0 - lifecycle: a raced-out async onInit/onInput now applies its LATE
 resolution when it finally arrives, iff no newer onInit/onInput run has started
 since (a per-runtime sequence guards ordering; the runtime logs the recovery

@@ -57,6 +57,7 @@
 
 import type { DocBlock, DocInline, DocTableCell } from './doc-model.ts';
 import { storeZip, type ZipStoreEntry } from './zip.ts';
+import { corePropsXml, type OoxmlCoreMeta } from './ooxml-props.ts';
 
 const encoder = new TextEncoder();
 
@@ -89,9 +90,8 @@ export interface DocxMedia {
   height?: number;
 }
 
-/** The document model `writeDocx` serializes. `title` names the document for callers; it is
- *  currently unused by the emitted parts (there is no docProps part) but kept so callers pass a
- *  document, not a bare block list, and a future core.xml is a purely additive change.
+/** The document model `writeDocx` serializes. `title` names the document (dc:title in
+ *  docProps/core.xml, unless `meta.title` overrides it).
  *  `blocks` accepts either block shape, mixed: a {@link DocxBlock} is normalised to the
  *  equivalent {@link DocBlock} before anything is emitted. */
 export interface DocxDoc {
@@ -99,6 +99,12 @@ export interface DocxDoc {
   blocks: Array<DocxBlock | DocBlock>;
   /** Bytes for the `image` blocks. An image whose `ref` names no entry here is skipped. */
   media?: DocxMedia[];
+  /** docProps/core.xml fields (plans/144 Wave 2 G3) - the same shape pptx writes,
+   *  via the shared ooxml-props.ts writer. Absent → 'Lolly' authorship defaults. */
+  meta?: OoxmlCoreMeta | null;
+  /** dcterms:created/modified timestamp. Defaults to a fixed epoch so output
+   *  stays deterministic unless the caller passes a wall clock (pptx precedent). */
+  now?: string;
 }
 
 // Nested inline wrappers are bounded the way docx-read.ts bounds them, so a cyclic or
@@ -704,6 +710,8 @@ function contentTypesXml(exts: Set<string>, numbering: boolean, footnotes: boole
     defaults +
     `<Override PartName="/word/document.xml" ContentType="${wml}.document.main+xml"/>` +
     `<Override PartName="/word/styles.xml" ContentType="${wml}.styles+xml"/>` +
+    `<Override PartName="/docProps/core.xml" ContentType="application/vnd.openxmlformats-package.core-properties+xml"/>` +
+    `<Override PartName="/docProps/app.xml" ContentType="application/vnd.openxmlformats-officedocument.extended-properties+xml"/>` +
     overrides +
     `</Types>`
   );
@@ -713,7 +721,15 @@ const ROOT_RELS =
   `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\n` +
   `<Relationships xmlns="${PKG_REL_NS}">` +
   `<Relationship Id="rId1" Type="${REL}/officeDocument" Target="word/document.xml"/>` +
+  // Core props ride the PACKAGE relationship namespace (OPC section 8.3.3.2), not the
+  // officeDocument one - Word keys the Properties dialog off this exact type.
+  `<Relationship Id="rId2" Type="http://schemas.openxmlformats.org/package/2006/relationships/metadata/core-properties" Target="docProps/core.xml"/>` +
+  `<Relationship Id="rId3" Type="${REL}/extended-properties" Target="docProps/app.xml"/>` +
   `</Relationships>`;
+
+const APP_PROPS =
+  `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\n` +
+  `<Properties xmlns="http://schemas.openxmlformats.org/officeDocument/2006/extended-properties"><Application>Lolly</Application></Properties>`;
 
 const documentRels = (extra: string[]): string =>
   `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\n` +
@@ -732,8 +748,8 @@ const documentRels = (extra: string[]): string =>
  * LibreOffice Writer and Google Docs.
  *
  * `blocks` accepts the original `{ type, level?, text }` shape, doc-model's richer
- * {@link DocBlock}, or a mix. A document made only of the original shape emits exactly the
- * five parts it always did, byte for byte.
+ * {@link DocBlock}, or a mix. Every document also carries docProps/core.xml +
+ * app.xml (plans/144 Wave 2 G3), fed from `meta`/`now` with 'Lolly' defaults.
  *
  * @param doc  `{ title?, blocks, media? }`. An empty `blocks` still yields a valid
  *             one-paragraph doc. `media` supplies the bytes an `image` block's `ref` names.
@@ -781,9 +797,13 @@ export function writeDocx(doc: DocxDoc): Uint8Array {
   }));
 
   const str = (s: string): Uint8Array => encoder.encode(s);
+  const now = doc.now ?? '2026-01-01T00:00:00Z';
+  const coreMeta: OoxmlCoreMeta = { ...doc.meta, title: doc.meta?.title ?? doc.title };
   const entries: ZipStoreEntry[] = [
     { name: '[Content_Types].xml', bytes: str(contentTypesXml(ctx.exts, hasLists, notes.length > 0)) },
     { name: '_rels/.rels', bytes: str(ROOT_RELS) },
+    { name: 'docProps/core.xml', bytes: str(corePropsXml(coreMeta, now, 'Document')) },
+    { name: 'docProps/app.xml', bytes: str(APP_PROPS) },
     { name: 'word/document.xml', bytes: str(document) },
     { name: 'word/styles.xml', bytes: str(stylesXml(ctx)) },
     { name: 'word/_rels/document.xml.rels', bytes: str(documentRels(ctx.rels)) },

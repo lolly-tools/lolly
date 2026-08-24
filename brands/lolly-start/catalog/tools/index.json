@@ -1,6 +1,6 @@
 {
   "version": "1",
-  "generatedAt": "2026-08-23T13:52:28.423Z",
+  "generatedAt": "2026-08-24T02:12:31.541Z",
   "tools": [
     {
       "id": "compress-pdf",
@@ -269,7 +269,7 @@
       "id": "qr-code",
       "name": "QR Code Generator",
       "description": "QR codes for any URL, with full color and style control.",
-      "version": "2.0.0",
+      "version": "2.1.0",
       "status": "official",
       "category": "everyone",
       "tags": [
@@ -339,6 +339,90 @@
             "color": "#0f766e",
             "background": "#ecfdf5"
           }
+        }
+      ],
+      "templates": [
+        {
+          "id": "contact",
+          "name": "Contact card",
+          "category": "Utility",
+          "description": "Share your contact or profile page from a business card or badge.",
+          "presets": [
+            {
+              "id": "card",
+              "name": "Business card",
+              "description": "High redundancy and a tight quiet zone for card-sized print."
+            },
+            {
+              "id": "brand",
+              "name": "Brand colours",
+              "description": "Modules in your brand primary on the brand surface."
+            }
+          ]
+        },
+        {
+          "id": "event",
+          "name": "Event RSVP",
+          "category": "Utility",
+          "description": "Point guests at your RSVP or ticket page from an invite or poster.",
+          "presets": [
+            {
+              "id": "invite",
+              "name": "Printed invite",
+              "description": "Dark ink on warm white with a generous quiet zone."
+            },
+            {
+              "id": "screen",
+              "name": "On screen",
+              "description": "Light modules on dark for a closing slide."
+            }
+          ]
+        },
+        {
+          "id": "menu",
+          "name": "Table tent menu",
+          "category": "Utility",
+          "description": "Link diners to an online menu, with extra redundancy for small print.",
+          "presets": [
+            {
+              "id": "classic",
+              "name": "Classic",
+              "description": "Near-black on warm white for tabletop print."
+            },
+            {
+              "id": "fresh",
+              "name": "Fresh",
+              "description": "Deep teal on a pale mint ground."
+            },
+            {
+              "id": "brand",
+              "name": "Brand colours",
+              "description": "Modules in your brand primary on the brand surface."
+            }
+          ]
+        },
+        {
+          "id": "website",
+          "name": "Website link",
+          "category": "Utility",
+          "description": "A clean scannable link to any web page.",
+          "presets": [
+            {
+              "id": "brand",
+              "name": "Brand colours",
+              "description": "Modules in your brand primary on the brand surface."
+            },
+            {
+              "id": "ink",
+              "name": "Ink on paper",
+              "description": "Near-black on warm white for print."
+            },
+            {
+              "id": "night",
+              "name": "Night mode",
+              "description": "Light modules on a dark ground for screens and slides."
+            }
+          ]
         }
       ],
       "i18n": {
@@ -541,6 +625,77 @@
             "waterColor": "{color.semantic.secondary}",
             "background": "{color.semantic.surface}"
           }
+        }
+      ],
+      "templates": [
+        {
+          "id": "city-poster",
+          "name": "City poster",
+          "category": "Poster",
+          "description": "A bold ink-on-paper print of one city, made for framing.",
+          "presets": [
+            {
+              "id": "paris",
+              "name": "Paris",
+              "description": "The classic ink poster city."
+            },
+            {
+              "id": "new-york",
+              "name": "New York",
+              "description": "A dense grid that fills the frame."
+            },
+            {
+              "id": "rome",
+              "name": "Rome",
+              "description": "Winding old streets around the river."
+            }
+          ]
+        },
+        {
+          "id": "minimal-wayfinding",
+          "name": "Minimal wayfinding",
+          "category": "Wayfinding",
+          "description": "A clean high-contrast street grid for signage and directions.",
+          "presets": [
+            {
+              "id": "berlin",
+              "name": "Berlin",
+              "description": "Wide avenues that read at a glance."
+            },
+            {
+              "id": "zurich",
+              "name": "Zurich",
+              "description": "A compact centre split by the river."
+            },
+            {
+              "id": "copenhagen",
+              "name": "Copenhagen",
+              "description": "Harbour streets in crisp black and white."
+            }
+          ]
+        },
+        {
+          "id": "night-map",
+          "name": "Night map",
+          "category": "Poster",
+          "description": "Neon streets glowing on a deep night background.",
+          "presets": [
+            {
+              "id": "tokyo",
+              "name": "Tokyo",
+              "description": "The neon original."
+            },
+            {
+              "id": "hong-kong",
+              "name": "Hong Kong",
+              "description": "Harbour lights and dense streets."
+            },
+            {
+              "id": "london",
+              "name": "London",
+              "description": "The Thames cutting through the glow."
+            }
+          ]
         }
       ],
       "i18n": {
@@ -1566,6 +1721,77 @@
           }
         }
       ],
+      "templates": [
+        {
+          "id": "ocean",
+          "name": "Ocean",
+          "category": "Background",
+          "description": "Cool blues and sea green for calm, spacious backdrops.",
+          "presets": [
+            {
+              "id": "deep-water",
+              "name": "Deep water",
+              "description": "Dark navy and teal well below the surface."
+            },
+            {
+              "id": "lagoon",
+              "name": "Lagoon",
+              "description": "Bright turquoise over pale shallows."
+            },
+            {
+              "id": "storm",
+              "name": "Storm",
+              "description": "Grey swell with a cold blue break."
+            }
+          ]
+        },
+        {
+          "id": "studio",
+          "name": "Studio",
+          "category": "Background",
+          "description": "Muted neutral tones that sit quietly behind anything.",
+          "presets": [
+            {
+              "id": "paper",
+              "name": "Paper",
+              "description": "Warm off-white with a heavy toothy grain."
+            },
+            {
+              "id": "slate",
+              "name": "Slate",
+              "description": "The same calm surface in dark charcoal."
+            },
+            {
+              "id": "linen",
+              "name": "Linen",
+              "description": "Soft natural fabric tones with a light weave."
+            }
+          ]
+        },
+        {
+          "id": "sunrise",
+          "name": "Sunrise",
+          "category": "Background",
+          "description": "Warm amber and coral light for hero banners and covers.",
+          "presets": [
+            {
+              "id": "golden-hour",
+              "name": "Golden hour",
+              "description": "Deeper amber sinking into red."
+            },
+            {
+              "id": "dusk",
+              "name": "Dusk",
+              "description": "Pink fading into violet after the sun drops."
+            },
+            {
+              "id": "soft-glow",
+              "name": "Soft glow",
+              "description": "The same warmth melted into a gentle haze."
+            }
+          ]
+        }
+      ],
       "i18n": {
         "ar": {
           "name": "تدرج شبكي",
@@ -1750,7 +1976,7 @@
             "data": "Segment,Share\nEnterprise,38\nSMB,27\nPartner,20\nSelf-serve,15",
             "palette": "warm",
             "showValues": true,
-            "legendPosition": "right"
+            "legendPosition": "rc"
           }
         },
         {
@@ -1806,6 +2032,90 @@
             "sort": "desc",
             "palette": "suse"
           }
+        }
+      ],
+      "templates": [
+        {
+          "id": "comparison-columns",
+          "name": "Comparison columns",
+          "category": "Bars",
+          "description": "Single series columns ranking five options side by side.",
+          "presets": [
+            {
+              "id": "ranked-horizontal",
+              "name": "Ranked horizontal",
+              "description": "Sideways bars sorted from highest to lowest."
+            },
+            {
+              "id": "lollipop",
+              "name": "Lollipop",
+              "description": "A lighter lollipop look for the same ranking."
+            }
+          ]
+        },
+        {
+          "id": "quarterly-bars",
+          "name": "Quarterly bars",
+          "category": "Bars",
+          "description": "Grouped bars comparing three product lines across four quarters.",
+          "presets": [
+            {
+              "id": "stacked",
+              "name": "Stacked",
+              "description": "Stack the series to show the quarterly total."
+            },
+            {
+              "id": "share-of-total",
+              "name": "Share of total",
+              "description": "Normalise each quarter to 100 percent."
+            },
+            {
+              "id": "horizontal",
+              "name": "Horizontal",
+              "description": "Turn the bars sideways for long category names."
+            }
+          ]
+        },
+        {
+          "id": "share-donut",
+          "name": "Share donut",
+          "category": "Share",
+          "description": "A donut splitting a total into five segments.",
+          "presets": [
+            {
+              "id": "pie",
+              "name": "Pie",
+              "description": "Close the hole for a classic pie."
+            },
+            {
+              "id": "sorted",
+              "name": "Largest first",
+              "description": "Order the slices from largest to smallest."
+            }
+          ]
+        },
+        {
+          "id": "trend-line",
+          "name": "Trend line",
+          "category": "Lines",
+          "description": "A 12 month line comparing this year with last year.",
+          "presets": [
+            {
+              "id": "filled-area",
+              "name": "Filled area",
+              "description": "Fill under the lines to weight the volume."
+            },
+            {
+              "id": "with-points",
+              "name": "With points",
+              "description": "Mark each month with a point."
+            },
+            {
+              "id": "moving-average",
+              "name": "Moving average",
+              "description": "Overlay a moving average to smooth the noise."
+            }
+          ]
         }
       ],
       "i18n": {
@@ -2252,7 +2562,7 @@
       "id": "deck-studio",
       "name": "Markdown Slides",
       "description": "Turn Markdown or a JSON spec into a native, editable PowerPoint deck - real text, bullets, tables and brand theme - in seconds. The fast text-first path to a deck; reach for the Design canvas when you want to lay slides out by hand or animate them. Charts and diagrams come from your other Lolly tools. Exports .pptx (editable), plus PDF and PNG.",
-      "version": "1.1.1",
+      "version": "1.2.0",
       "status": "community",
       "category": "designer",
       "tags": [
@@ -2700,7 +3010,7 @@
       "id": "convert-image",
       "name": "Convert Image",
       "description": "Turn HEIC, TIFF or any photo into WebP, JPEG or PNG - on your device.",
-      "version": "1.0.0",
+      "version": "1.1.0",
       "status": "community",
       "category": "utility",
       "privacy": "on-device",
@@ -4744,19 +5054,55 @@
           "id": "launch-teaser",
           "name": "Launch teaser",
           "category": "Video",
-          "description": "A four-beat launch teaser: kicker, headline, and a closing call to action."
+          "description": "A four-beat launch teaser: kicker, headline, and a closing call to action.",
+          "presets": [
+            {
+              "id": "story",
+              "name": "Story",
+              "description": "9:16 for reels and stories."
+            },
+            {
+              "id": "square",
+              "name": "Square",
+              "description": "1:1 for social feeds."
+            }
+          ]
         },
         {
           "id": "poster",
           "name": "Poster",
           "category": "Poster",
-          "description": "One 16:9 frame - a big headline and a supporting line, in your brand colours."
+          "description": "One 16:9 frame - a big headline and a supporting line, in your brand colours.",
+          "presets": [
+            {
+              "id": "square",
+              "name": "Square",
+              "description": "1:1 for social feeds."
+            },
+            {
+              "id": "story",
+              "name": "Story",
+              "description": "9:16 for social stories."
+            }
+          ]
         },
         {
           "id": "pull-quote",
           "name": "Pull quote",
           "category": "Slides",
-          "description": "A large quotation with attribution - spare, in your brand colours."
+          "description": "A large quotation with attribution - spare, in your brand colours.",
+          "presets": [
+            {
+              "id": "square",
+              "name": "Square",
+              "description": "1:1 quote card for social feeds."
+            },
+            {
+              "id": "story",
+              "name": "Story",
+              "description": "9:16 for social stories."
+            }
+          ]
         },
         {
           "id": "slide-deck",
@@ -4768,7 +5114,19 @@
           "id": "title",
           "name": "Title slide",
           "category": "Slides",
-          "description": "A bold opening slide - big title and a supporting line, in your brand colours."
+          "description": "A bold opening slide - big title and a supporting line, in your brand colours.",
+          "presets": [
+            {
+              "id": "square",
+              "name": "Square",
+              "description": "1:1 for social feeds."
+            },
+            {
+              "id": "standard",
+              "name": "Standard",
+              "description": "4:3 for standard projectors."
+            }
+          ]
         },
         {
           "id": "video",
@@ -4914,7 +5272,7 @@
       "id": "3d",
       "name": "3D",
       "description": "Load a 3D model into a lit scene, orbit and pose the camera, and render a still or a turntable animation.",
-      "version": "1.0.0",
+      "version": "1.1.0",
       "status": "experimental",
       "category": "designer",
       "tags": [
@@ -5191,7 +5549,7 @@
       "id": "booth-studio",
       "name": "Booth Studio",
       "description": "Dress a 3D event booth with sponsor artwork. Click any panel to drop an image on it, pick a booth design, and render a still or a turntable for a sponsor pitch.",
-      "version": "0.1.0",
+      "version": "0.2.0",
       "status": "experimental",
       "category": "event",
       "tags": [
@@ -5456,7 +5814,7 @@
       "id": "doc-studio",
       "name": "Doc Studio",
       "description": "Write a multi-page document on the canvas - rich text, headings, tables and inserted Lolly renders that flow onto pages and export as a PDF.",
-      "version": "1.1.0",
+      "version": "1.2.0",
       "status": "official",
       "category": "designer",
       "tags": [

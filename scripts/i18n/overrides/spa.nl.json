@@ -194,5 +194,10 @@
   "An ingredient carries AI-writing signals: {names}. A signal, not proof - review it in the catalogue before this file travels.": "Een ingrediënt draagt signalen van AI-schrijfwerk: {names}. Een signaal, geen bewijs - bekijk het in de catalogus voordat dit bestand op reis gaat.",
   "This file is packaged the way {vendor} AI products package downloads ({hint}). A signal, not proof.": "Dit bestand is verpakt zoals de AI-producten van {vendor} downloads verpakken ({hint}). Een signaal, geen bewijs.",
   "likely AI-made": "waarschijnlijk AI-gemaakt",
-  "AI-declared ingredient in this design: {names}. The export's own credential declares this AI origin, signed and machine-readable.": "Als AI-werk gedeclareerd ingrediënt in dit ontwerp: {names}. De eigen credential van de export declareert deze AI-herkomst, ondertekend en machineleesbaar."
+  "AI-declared ingredient in this design: {names}. The export's own credential declares this AI origin, signed and machine-readable.": "Als AI-werk gedeclareerd ingrediënt in dit ontwerp: {names}. De eigen credential van de export declareert deze AI-herkomst, ondertekend en machineleesbaar.",
+  "Imported from": "Geïmporteerd uit",
+  "Imported": "Geïmporteerd",
+  "Copyright": "Copyright",
+  "Captured": "Gemaakt op",
+  "Keywords": "Trefwoorden"
 }

@@ -98,3 +98,60 @@ test('relationships wire the package root to the document and the document to st
   assert.match(root, /officeDocument"/);
   assert.match(docRels, /Target="styles\.xml"/);
 });
+
+// ─── docProps (plans/144 Wave 2 G3) ──────────────────────────────────────────
+
+test('every docx carries docProps/core.xml + app.xml with Lolly defaults', () => {
+  const bytes = writeDocx({ title: 'My Doc', blocks: [{ type: 'paragraph', text: 'x' }] });
+  const names = readZip(bytes).map((e) => e.name);
+  assert.ok(names.includes('docProps/core.xml'));
+  assert.ok(names.includes('docProps/app.xml'));
+  const core = part(bytes, 'docProps/core.xml');
+  assert.ok(core.includes('<dc:title>My Doc</dc:title>'), 'doc title becomes dc:title');
+  assert.ok(core.includes('<dc:creator>Lolly</dc:creator>'), 'creator defaults to Lolly');
+  assert.ok(core.includes('dcterms:created'), 'created timestamp present');
+  assert.ok(part(bytes, 'docProps/app.xml').includes('<Application>Lolly</Application>'));
+  // The package rels + content types must both name the parts, or Word ignores them.
+  const rels = part(bytes, '_rels/.rels');
+  assert.ok(rels.includes('package/2006/relationships/metadata/core-properties'), 'OPC package rel type');
+  assert.ok(part(bytes, '[Content_Types].xml').includes('/docProps/core.xml'));
+});
+
+test('docx core props: meta.author becomes dc:creator, description joins in', () => {
+  const bytes = writeDocx({
+    title: 'Fallback',
+    blocks: [],
+    meta: { author: 'Ana Kovac', description: 'A memo', title: 'Meta Title' },
+    now: '2026-08-24T00:00:00Z',
+  });
+  const core = part(bytes, 'docProps/core.xml');
+  assert.ok(core.includes('<dc:creator>Ana Kovac</dc:creator>'));
+  assert.ok(core.includes('<dc:title>Meta Title</dc:title>'), 'meta.title outranks doc.title');
+  assert.ok(core.includes('<dc:description>A memo</dc:description>'));
+  assert.ok(core.includes('2026-08-24T00:00:00Z'));
+});
+
+test('both authors when they differ: sourceAuthor + author share dc:creator (plans/144 G6)', () => {
+  const both = part(writeDocx({
+    blocks: [],
+    meta: { author: 'Andy Fitzsimon', sourceAuthor: 'Ana Kovac' },
+  }), 'docProps/core.xml');
+  assert.ok(both.includes('<dc:creator>Ana Kovac; Andy Fitzsimon</dc:creator>'), 'source first, Word separator');
+  assert.ok(both.includes('<cp:lastModifiedBy>Andy Fitzsimon</cp:lastModifiedBy>'), 'last modified stays the current actor');
+
+  // Identical names (trimmed, case-insensitive) collapse to one.
+  const same = part(writeDocx({
+    blocks: [],
+    meta: { author: 'Ana Kovac', sourceAuthor: ' ana kovac ' },
+  }), 'docProps/core.xml');
+  assert.ok(same.includes('<dc:creator>Ana Kovac</dc:creator>'));
+  assert.ok(!same.includes(';'), 'no separator when the authors are one person');
+
+  // A source author with no current user still survives; Lolly stays the actor.
+  const srcOnly = part(writeDocx({
+    blocks: [],
+    meta: { sourceAuthor: 'Ana Kovac' },
+  }), 'docProps/core.xml');
+  assert.ok(srcOnly.includes('<dc:creator>Ana Kovac</dc:creator>'));
+  assert.ok(srcOnly.includes('<cp:lastModifiedBy>Lolly</cp:lastModifiedBy>'));
+});

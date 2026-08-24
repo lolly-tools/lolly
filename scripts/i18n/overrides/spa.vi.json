@@ -202,5 +202,10 @@
   "An ingredient carries AI-writing signals: {names}. A signal, not proof - review it in the catalogue before this file travels.": "Một thành phần mang tín hiệu văn bản do AI viết: {names}. Một tín hiệu, không phải bằng chứng - hãy xem lại trong danh mục trước khi tệp này được gửi đi.",
   "This file is packaged the way {vendor} AI products package downloads ({hint}). A signal, not proof.": "Tệp này được đóng gói theo cách các sản phẩm AI của {vendor} đóng gói bản tải xuống ({hint}). Một tín hiệu, không phải bằng chứng.",
   "likely AI-made": "nhiều khả năng do AI tạo",
-  "AI-declared ingredient in this design: {names}. The export's own credential declares this AI origin, signed and machine-readable.": "Thành phần được khai báo là tác phẩm AI trong thiết kế này: {names}. Credential riêng của bản xuất tự khai báo nguồn gốc AI này, có chữ ký và máy đọc được."
+  "AI-declared ingredient in this design: {names}. The export's own credential declares this AI origin, signed and machine-readable.": "Thành phần được khai báo là tác phẩm AI trong thiết kế này: {names}. Credential riêng của bản xuất tự khai báo nguồn gốc AI này, có chữ ký và máy đọc được.",
+  "Imported from": "Nhập từ",
+  "Imported": "Đã nhập",
+  "Copyright": "Bản quyền",
+  "Captured": "Chụp lúc",
+  "Keywords": "Từ khóa"
 }

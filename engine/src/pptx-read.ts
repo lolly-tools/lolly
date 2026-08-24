@@ -174,11 +174,24 @@ export interface PptxReadTheme {
   minorFont?: string;
 }
 
+/** The source package's own docProps/core.xml facts (plans/144 Wave 2 G6):
+ *  who made the deck and what it says about itself, surfaced so a round trip
+ *  can carry the SOURCE's authorship instead of silently re-authoring it. */
+export interface OoxmlCoreProps {
+  title?: string;
+  creator?: string;
+  description?: string;
+  /** dcterms:created, verbatim W3CDTF text. */
+  created?: string;
+}
+
 export interface PptxDeckRead {
   widthEmu: number;
   heightEmu: number;
   theme: PptxReadTheme;
   slides: PptxReadSlide[];
+  /** Present when the package carries readable core properties. */
+  coreProps?: OoxmlCoreProps;
 }
 
 // ─── hardening caps ──────────────────────────────────────────────────────────
@@ -493,6 +506,29 @@ function pickThemePart(store: PartStore): string | null {
     .filter((k) => /^ppt\/theme\/theme\d+\.xml$/i.test(k))
     .sort();
   return themes[0] ?? null;
+}
+
+// docProps/core.xml → the source's own authorship facts. Values are clamped
+// like every other text read here; a missing part returns null.
+const MAX_CORE_PROP_LEN = 2048;
+function readCoreProps(store: PartStore, parseXml: XmlParser): OoxmlCoreProps | null {
+  const doc = parsePart(store, 'docProps/core.xml', parseXml);
+  const root = doc?.documentElement;
+  if (!root) return null;
+  const grab = (local: string): string | undefined => {
+    const t = descendantByLocal(root, local)?.textContent?.trim();
+    return t ? t.slice(0, MAX_CORE_PROP_LEN) : undefined;
+  };
+  const out: OoxmlCoreProps = {};
+  const title = grab('title');
+  if (title) out.title = title;
+  const creator = grab('creator');
+  if (creator) out.creator = creator;
+  const description = grab('description');
+  if (description) out.description = description;
+  const created = grab('created');
+  if (created) out.created = created;
+  return Object.keys(out).length ? out : null;
 }
 
 function readTheme(store: PartStore, parseXml: XmlParser): PptxReadTheme {
@@ -1162,6 +1198,13 @@ export function readPptx(parts: PptxParts, parseXml: XmlParser): PptxDeckRead {
     deck.theme = readTheme(store, parseXml);
   } catch {
     /* keep empty theme */
+  }
+
+  try {
+    const cp = readCoreProps(store, parseXml);
+    if (cp) deck.coreProps = cp;
+  } catch {
+    /* absent or unreadable core props stay absent */
   }
 
   // slide size + the deck-wide default text style (the cascade's last layer)

@@ -202,5 +202,10 @@
   "An ingredient carries AI-writing signals: {names}. A signal, not proof - review it in the catalogue before this file travels.": "한 재료에 AI 글쓰기 신호가 있어요: {names}. 신호일 뿐, 증거는 아니에요. 이 파일을 보내기 전에 카탈로그에서 확인해 보세요.",
   "This file is packaged the way {vendor} AI products package downloads ({hint}). A signal, not proof.": "이 파일은 {vendor}의 AI 제품이 다운로드를 패키징하는 방식으로 패키징되어 있어요({hint}). 신호일 뿐, 증거는 아니에요.",
   "likely AI-made": "AI로 만들어졌을 가능성 높음",
-  "AI-declared ingredient in this design: {names}. The export's own credential declares this AI origin, signed and machine-readable.": "이 디자인에 AI로 만들었다고 선언된 재료가 있어요: {names}. 내보내기 자체의 자격 증명이 이 AI 출처를 선언해요. 서명되어 있고 기계가 읽을 수 있어요."
+  "AI-declared ingredient in this design: {names}. The export's own credential declares this AI origin, signed and machine-readable.": "이 디자인에 AI로 만들었다고 선언된 재료가 있어요: {names}. 내보내기 자체의 자격 증명이 이 AI 출처를 선언해요. 서명되어 있고 기계가 읽을 수 있어요.",
+  "Imported from": "가져온 원본",
+  "Imported": "가져온 날짜",
+  "Copyright": "저작권",
+  "Captured": "촬영 날짜",
+  "Keywords": "키워드"
 }

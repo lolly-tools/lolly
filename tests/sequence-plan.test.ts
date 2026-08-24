@@ -1124,6 +1124,26 @@ test('normalizeFrameScene re-anchors a frame page to (0,0,nativeW,nativeH)', () 
   assert.equal(stage.layers.some((l) => l.frameScene), true);
 });
 
+test('normalizeFrameScene contain-fits a DIFFERENT-sized artboard (letterbox, never stretch)', () => {
+  // plans/141 WP-C: artboards stay freely mixed-size; the format resolves them at
+  // export time. A 1080×1080 square slide into a 1920×1080 output frame scales to
+  // 1080×1080 (s = min(1920/1080, 1080/1080) = 1) centred horizontally - pillarboxed,
+  // aspect kept. A portrait 540×1080 slide scales the same way. Nothing stretches.
+  const stage = parseSequenceStage(framesStageOf())!;
+  const l = stage.layers[0]!;                  // 1080×1080 square
+  const n = normalizeFrameScene(l, 1920, 1080);
+  assert.equal(n.rect.w, 1080, 'aspect kept - width scales by the limiting axis');
+  assert.equal(n.rect.h, 1080);
+  assert.equal(n.rect.x, 420, 'centred in the wider output frame: (1920−1080)/2');
+  assert.equal(n.rect.y, 0);
+  // Downscale case: the same slide into a smaller 960×540 frame.
+  const d = normalizeFrameScene(l, 960, 540);
+  assert.equal(d.rect.w, 540, 's = min(960/1080, 540/1080) = 0.5');
+  assert.equal(d.rect.h, 540);
+  assert.equal(d.rect.x, 210, '(960−540)/2');
+  assert.equal(d.rect.y, 0);
+});
+
 test('normalizeFrameScene leaves an object-clip .lolly-box untouched', () => {
   const stage = parseSequenceStage(stageOf(
     boxHtml({ style: 'left:320px;top:180px;width:640px;height:360px;', time: 'data-t-start="0" data-t-dur="2000"' }),

@@ -29,6 +29,8 @@ export interface WavInfoTags {
   artist?: string;
   /** ICMT - free-text comment (the AI-declaration line for generated audio). */
   comment?: string;
+  /** ICOP - the copyright notice (user-asserted, e.g. bindToMeta). */
+  copyright?: string;
   /** ISFT - the writing software; defaults to 'lolly.tools'. */
   software?: string;
 }
@@ -67,6 +69,8 @@ export function embedWavInfo(wav: Uint8Array, tags: WavInfoTags): Uint8Array {
   if (title) fields.push(['INAM', title]);
   if (artist) fields.push(['IART', artist]);
   if (comment) fields.push(['ICMT', comment]);
+  const copyright = clean(tags.copyright);
+  if (copyright) fields.push(['ICOP', copyright]);
   fields.push(['ISFT', software]);
   if (!fields.length) return wav;
 

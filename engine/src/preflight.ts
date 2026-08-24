@@ -124,6 +124,15 @@ export const DEPTH_FORMATS: ReadonlySet<string> = new Set(['exr', 'hdr']);
 export const PAGED_FORMATS: ReadonlySet<string> = new Set(['pdf', 'pdf-cmyk', 'pptx']);
 
 /**
+ * Single-image still formats. On a stage carrying MULTIPLE page boxes (a Design
+ * doc's artboards, a paged tool's pages) these fan out to one file per box, so
+ * the requested width/height describes ONE board, never the whole output - the
+ * artboard fan-out check below says so instead of letting the size line imply a
+ * single file. (plans/141 follow-up)
+ */
+export const STILL_IMAGE_FORMATS: ReadonlySet<string> = new Set(['png', 'jpg', 'jpeg', 'webp', 'svg', 'tiff']);
+
+/**
  * The canonical `FinishKind` spellings.
  *
  * `FinishKind` is an OPEN union on purpose (a brand may declare a house process
@@ -1137,6 +1146,27 @@ const checkPagesFromStage: Check = c => {
   });
 };
 
+/**
+ * A still-image export of a multi-board stage FANS OUT - one file per
+ * [data-pdf-page] box, each at its own board's size, delivered zipped. Without
+ * this line the panel's single width×height reads as one file's size, which is
+ * exactly the misread the export-dims work removed everywhere else. Info only;
+ * fires off the same stage fact the page count uses.
+ */
+const checkArtboardFanOut: Check = c => {
+  if (!STILL_IMAGE_FORMATS.has(c.fmt)) return;
+  const st = c.job?.stage;
+  if (st?.known !== true) return;
+  const n = st.value?.pageBoxes;
+  if (!isFiniteNum(n) || n <= 1) return;
+  c.add({
+    id: 'count.artboard-fanout',
+    severity: 'info',
+    message: `${Math.floor(n)} artboards export as ${Math.floor(n)} separate ${c.fmt.toUpperCase()} files (delivered zipped), each at its own artboard size - the size shown is the active artboard's.`,
+    evidence: { format: c.fmt, pageBoxes: Math.floor(n) },
+  });
+};
+
 const checkPagesUnknown: Check = c => {
   if (!PAGED_FORMATS.has(c.fmt)) return;
   const r = c.job?.manifest?.render;
@@ -1529,6 +1559,7 @@ const CHECKS: readonly Check[] = [
   checkPagesPages,
   checkPagesFromStage,
   checkPagesUnknown,
+  checkArtboardFanOut,
   checkRasterPixels,
   checkSequenceDuration,
   checkVideoDurationDeclared,

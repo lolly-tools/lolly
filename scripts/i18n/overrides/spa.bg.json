@@ -202,5 +202,10 @@
   "An ingredient carries AI-writing signals: {names}. A signal, not proof - review it in the catalogue before this file travels.": "Една съставка носи сигнали за писан от ИИ текст: {names}. Сигнал, не доказателство - прегледай я в каталога, преди файлът да поеме на път.",
   "This file is packaged the way {vendor} AI products package downloads ({hint}). A signal, not proof.": "Този файл е пакетиран така, както AI продуктите на {vendor} пакетират изтегляния ({hint}). Сигнал, не доказателство.",
   "likely AI-made": "вероятно дело на ИИ",
-  "AI-declared ingredient in this design: {names}. The export's own credential declares this AI origin, signed and machine-readable.": "Съставка в този дизайн, декларирана като дело на ИИ: {names}. Собственото удостоверение на експорта декларира този ИИ произход, подписано и машинно четимо."
+  "AI-declared ingredient in this design: {names}. The export's own credential declares this AI origin, signed and machine-readable.": "Съставка в този дизайн, декларирана като дело на ИИ: {names}. Собственото удостоверение на експорта декларира този ИИ произход, подписано и машинно четимо.",
+  "Imported from": "Импортирано от",
+  "Imported": "Импортирано",
+  "Copyright": "Авторски права",
+  "Captured": "Заснето",
+  "Keywords": "Ключови думи"
 }

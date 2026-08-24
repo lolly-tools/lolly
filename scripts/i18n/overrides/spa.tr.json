@@ -200,5 +200,10 @@
   "An ingredient carries AI-writing signals: {names}. A signal, not proof - review it in the catalogue before this file travels.": "Bir bileşen yapay zeka yazımı sinyalleri taşıyor: {names}. Bir sinyal, kanıt değil - bu dosya yola çıkmadan önce katalogda gözden geçir.",
   "This file is packaged the way {vendor} AI products package downloads ({hint}). A signal, not proof.": "Bu dosya, {vendor} yapay zeka ürünlerinin indirmeleri paketlediği şekilde paketlenmiş ({hint}). Bir sinyal, kanıt değil.",
   "likely AI-made": "büyük olasılıkla yapay zeka yapımı",
-  "AI-declared ingredient in this design: {names}. The export's own credential declares this AI origin, signed and machine-readable.": "Bu tasarımda yapay zeka işi olarak bildirilen bileşen: {names}. Dışa aktarmanın kendi kimlik bilgisi bu yapay zeka kaynağını bildirir; imzalı ve makine tarafından okunabilir."
+  "AI-declared ingredient in this design: {names}. The export's own credential declares this AI origin, signed and machine-readable.": "Bu tasarımda yapay zeka işi olarak bildirilen bileşen: {names}. Dışa aktarmanın kendi kimlik bilgisi bu yapay zeka kaynağını bildirir; imzalı ve makine tarafından okunabilir.",
+  "Imported from": "Şuradan içe aktarıldı",
+  "Imported": "İçe aktarıldı",
+  "Copyright": "Telif hakkı",
+  "Captured": "Çekildi",
+  "Keywords": "Anahtar kelimeler"
 }

@@ -46,7 +46,8 @@ export interface MetaField {
 }
 
 export interface FileMetadata {
-  /** Detected container, e.g. "JPEG", "PNG", "TIFF", "WebP", "SVG", "GIF" - '' if unknown. */
+  /** Detected container, e.g. "JPEG", "PNG", "TIFF", "WebP", "SVG", "GIF",
+   *  "HEIC", "AVIF", "MP4", "QuickTime" - '' if unknown. */
   format: string;
   /** Everything found, in discovery order; the view groups + orders them. */
   fields: MetaField[];
@@ -139,8 +140,14 @@ function sniff(b: Uint8Array): string {
       (b[0] === 0x4d && b[1] === 0x4d && b[2] === 0x00 && b[3] === 0x2a)) return 'TIFF';
   if (b[0] === 0x52 && b[1] === 0x49 && b[2] === 0x46 && b[3] === 0x46 &&
       b.length >= 12 && b[8] === 0x57 && b[9] === 0x45 && b[10] === 0x42 && b[11] === 0x50) return 'WebP';
-  // ISO BMFF video (mp4/m4v/mov) - an ftyp box first; 'qt  ' brand is QuickTime.
-  if (b.length >= 12 && matchAscii(b, 4, 'ftyp')) return matchAscii(b, 8, 'qt  ') ? 'QuickTime' : 'MP4';
+  // ISO BMFF - an ftyp box first. HEIF-family stills (HEIC, AVIF) are told
+  // apart by brand: their metadata lives in `meta` box ITEMS, not a moov tree.
+  if (b.length >= 12 && matchAscii(b, 4, 'ftyp')) {
+    const brand = String.fromCharCode(b[8]!, b[9]!, b[10]!, b[11]!);
+    if (brand === 'avif' || brand === 'avis') return 'AVIF';
+    if (/^(hei|hev)/.test(brand) || brand === 'mif1' || brand === 'msf1') return 'HEIC';
+    return brand === 'qt  ' ? 'QuickTime' : 'MP4';
+  }
   // SVG (and other XML) - decode a small prefix and look for the root element.
   const head = new TextDecoder('utf-8').decode(b.subarray(0, Math.min(b.length, 512)));
   if (/<svg[\s>]/i.test(head) || (/^\s*<\?xml/i.test(head) && /<svg[\s>]/i.test(new TextDecoder().decode(b.subarray(0, Math.min(b.length, 4096)))))) return 'SVG';
@@ -196,16 +203,24 @@ function readIfd(dv: DataView, off: number, le: boolean): IfdEntry[] {
 
 function asciiVal(dv: DataView, e: IfdEntry): string | null {
   if (e.type !== 2) return null;
-  let s = '';
   // A hostile TIFF can declare the whole file as one ASCII tag - cap the value.
   const max = Math.min(e.count, MAX_VALUE_CHARS);
+  const raw: number[] = [];
   for (let i = 0; i < max; i++) {
     const off = e.valueOffset + i;
     if (off >= dv.byteLength) break;
     const c = dv.getUint8(off);
     if (c === 0) break;
-    s += String.fromCharCode(c);
+    raw.push(c);
   }
+  if (!raw.length) return null;
+  // The tag type says 7-bit ASCII, but real writers (cameras, exiftool, our own
+  // carry) put UTF-8 here; decode that first and fall back to Latin-1 so a
+  // legacy byte-per-char value still reads.
+  const bytes = Uint8Array.from(raw);
+  let s: string;
+  try { s = new TextDecoder('utf-8', { fatal: true }).decode(bytes); }
+  catch { s = new TextDecoder('latin1').decode(bytes); }
   return s.trim() || null;
 }
 
@@ -357,6 +372,17 @@ function readXmp(text: string, out: FileMetadata): void {
     || grab(/<dc:rights>([\s\S]*?)<\/dc:rights>/i);
   if (rights) out.fields.push({ label: 'Rights', value: rights, group: 'authorship' });
 
+  // dc:subject keywords - the DAM payoff (plans/144 Wave 5): a photo's own
+  // embedded keywords, later folded into catalog search.
+  const subject = /<dc:subject>([\s\S]*?)<\/dc:subject>/i.exec(text)?.[1];
+  if (subject && !out.fields.some((f) => f.label === 'Keywords')) {
+    const items = [...subject.matchAll(/<rdf:li[^>]*>([\s\S]*?)<\/rdf:li>/gi)]
+      .map((m) => clip((m[1] || '').replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim()))
+      .filter(Boolean)
+      .slice(0, 64);
+    if (items.length) out.fields.push({ label: 'Keywords', value: clip(items.join(', ')), group: 'description' });
+  }
+
   // Credit line (photoshop:Credit) - where AI generators identify themselves in
   // prose ("Made with Google AI", "Imagined with AI").
   const credit = grab(/[\w-]+:Credit>\s*([\s\S]*?)<\/[\w-]+:Credit>/i)
@@ -383,6 +409,83 @@ function readXmp(text: string, out: FileMetadata): void {
     }
   }
   if (out.ai && !out.ai.credit && credit) out.ai.credit = credit;
+}
+
+// ── IPTC-IIM (JPEG APP13 "Photoshop 3.0" 8BIM resource 0x0404) ───────────────
+//
+// The photo industry's own caption/keyword/byline fields (plans/144 Wave 5 O2).
+// Same contract as everything here: bounded, best-effort, never throws. Values
+// decode as UTF-8 with a Latin-1 fallback (the 1:90 charset marker is not
+// honoured beyond that - real files overwhelmingly carry UTF-8 or Latin-1).
+
+const IPTC_DATASETS: Record<number, { label: string; group: MetaGroup; sensitive?: boolean }> = {
+  5: { label: 'Title', group: 'description' },
+  80: { label: 'By-line', group: 'authorship', sensitive: true },
+  85: { label: 'By-line title', group: 'authorship' },
+  105: { label: 'Headline', group: 'description' },
+  110: { label: 'Credit', group: 'authorship' },
+  115: { label: 'Source', group: 'authorship' },
+  116: { label: 'Copyright', group: 'authorship' },
+  120: { label: 'Caption', group: 'description' },
+};
+const MAX_IPTC_RECORDS = 256;
+
+function iptcText(bytes: Uint8Array, start: number, len: number): string {
+  const raw = bytes.subarray(start, start + len);
+  let s: string;
+  try { s = new TextDecoder('utf-8', { fatal: true }).decode(raw); }
+  catch { s = new TextDecoder('latin1').decode(raw); }
+  return clip(s.trim());
+}
+
+function readIptc(bytes: Uint8Array, start: number, len: number, out: FileMetadata): void {
+  const end = start + len;
+  if (!matchAscii(bytes, start, 'Photoshop 3.0\0')) return;
+  let p = start + 14;
+  // 8BIM image-resource blocks: id(2) + pascal name (even-padded) + size(4) + data (even-padded).
+  while (p + 12 <= end) {
+    if (!matchAscii(bytes, p, '8BIM')) return;
+    const id = (bytes[p + 4]! << 8) | bytes[p + 5]!;
+    let q = p + 6;
+    const nameLen = bytes[q]!;
+    q += 1 + nameLen;
+    if ((1 + nameLen) & 1) q += 1; // name padded to even
+    if (q + 4 > end) return;
+    const size = ((bytes[q]! << 24) | (bytes[q + 1]! << 16) | (bytes[q + 2]! << 8) | bytes[q + 3]!) >>> 0;
+    q += 4;
+    if (q + size > end) return;
+    if (id === 0x0404) {
+      // IPTC-NAA records: 0x1C recordNo dataset len(2, high bit = extended) value.
+      const keywords: string[] = [];
+      let r = q;
+      for (let i = 0; i < MAX_IPTC_RECORDS && r + 5 <= q + size; i++) {
+        if (bytes[r] !== 0x1c) break;
+        const rec = bytes[r + 1]!;
+        const dataset = bytes[r + 2]!;
+        const dlen = (bytes[r + 3]! << 8) | bytes[r + 4]!;
+        if (dlen & 0x8000) break; // extended-length records: stop rather than misparse
+        r += 5;
+        if (r + dlen > q + size) break;
+        if (rec === 2) {
+          const value = iptcText(bytes, r, dlen);
+          if (value) {
+            if (dataset === 25) keywords.push(value);
+            else {
+              const known = IPTC_DATASETS[dataset];
+              if (known && out.fields.length < MAX_FIELDS && !out.fields.some((f) => f.label === known.label && f.value === value)) {
+                out.fields.push({ label: known.label, value, group: known.group, ...(known.sensitive ? { sensitive: true } : {}) });
+              }
+            }
+          }
+        }
+        r += dlen;
+      }
+      if (keywords.length && out.fields.length < MAX_FIELDS && !out.fields.some((f) => f.label === 'Keywords')) {
+        out.fields.push({ label: 'Keywords', value: clip(keywords.join(', ')), group: 'description' });
+      }
+    }
+    p = q + size + (size & 1);
+  }
 }
 
 // ── MPF: the second image a JPEG legitimately declares ────────────────────────
@@ -678,7 +781,12 @@ function readJpeg(bytes: Uint8Array, out: FileMetadata): void {
         out.fields.push({ label: 'ICC colour profile', value: 'embedded profile', group: 'technical' });
       }
     } else if (marker === 0xed) {
-      out.fields.push({ label: 'IPTC / Photoshop', value: 'caption & author data', group: 'authorship' });
+      const before = out.fields.length;
+      readIptc(bytes, dataStart, dataLen, out);
+      if (out.fields.length === before) {
+        // The block exists but nothing parsed - still disclose its presence.
+        out.fields.push({ label: 'IPTC / Photoshop', value: 'caption & author data', group: 'authorship' });
+      }
     } else if (marker === 0xfe) {
       const c = clip(new TextDecoder('utf-8').decode(bytes.subarray(dataStart, dataStart + dataLen)).trim());
       if (c) out.fields.push({ label: 'Comment', value: c, group: 'description' });
@@ -1177,6 +1285,178 @@ function readBmff(bytes: Uint8Array, out: FileMetadata): void {
   if (producer) out.producer = producer;
 }
 
+// ── HEIF / AVIF stills (ISO 23008-12 meta-box items) ─────────────────────────
+//
+// An iPhone HEIC or an AVIF keeps its EXIF and XMP as ITEMS: `iinf` names each
+// item (an `infe` per item, type 'Exif' or a 'mime' content type), `iloc` says
+// where its bytes live (file-absolute extents, or inside the meta box's `idat`).
+// Same house contract as everything here: bounded, best-effort, never throws.
+
+const MAX_HEIF_ITEMS = 256;
+/** Metadata items only - a hostile iloc must not make us copy a video track. */
+const MAX_HEIF_ITEM_BYTES = 16 * 1024 * 1024;
+
+interface HeifItem { id: number; type: string; contentType?: string; extents: { offset: number; length: number; method: number }[] }
+
+interface HeifItemStore {
+  items: HeifItem[];
+  /** Payload start/end of the meta box's `idat` (construction_method 1), if present. */
+  idat?: { start: number; end: number };
+}
+
+function readHeifItemTable(bytes: Uint8Array): HeifItemStore | null {
+  const top = bmffChildren(bytes, 0, bytes.length);
+  const meta = top.find((b) => b.type === 'meta');
+  if (!meta) return null;
+  const kids = metaChildren(bytes, meta);
+  const iinf = kids.find((b) => b.type === 'iinf');
+  const iloc = kids.find((b) => b.type === 'iloc');
+  if (!iinf || !iloc) return null;
+
+  // iinf: FullBox, then entry_count (u16 for version 0, u32 after), then infe children.
+  const items = new Map<number, HeifItem>();
+  {
+    const v = bytes[iinf.payload]!;
+    const listAt = iinf.payload + 4 + (v === 0 ? 2 : 4);
+    for (const infe of bmffChildren(bytes, listAt, iinf.end, MAX_HEIF_ITEMS)) {
+      if (infe.type !== 'infe' || infe.end - infe.payload < 8) continue;
+      const iv = bytes[infe.payload]!;
+      if (iv < 2) continue; // pre-HEIF infe versions carry no item_type
+      let p = infe.payload + 4;
+      const id = iv === 2 ? u16(bytes, p) : u32(bytes, p);
+      p += iv === 2 ? 2 : 4;
+      p += 2; // item_protection_index
+      if (p + 4 > infe.end) continue;
+      const type = String.fromCharCode(bytes[p]!, bytes[p + 1]!, bytes[p + 2]!, bytes[p + 3]!);
+      p += 4;
+      const item: HeifItem = { id, type, extents: [] };
+      if (type === 'mime') {
+        // item_name (NUL-terminated) then content_type (NUL-terminated).
+        let q = p;
+        while (q < infe.end && bytes[q] !== 0) q++;
+        q++;
+        item.contentType = bmffString(bytes, q, infe.end);
+      }
+      items.set(id, item);
+      if (items.size >= MAX_HEIF_ITEMS) break;
+    }
+  }
+  if (!items.size) return null;
+
+  // iloc: every read is bounds-checked; a malformed table yields what parsed so far.
+  {
+    const v = bytes[iloc.payload]!;
+    let p = iloc.payload + 4;
+    if (p + 2 > iloc.end) return null;
+    const offsetSize = bytes[p]! >> 4;
+    const lengthSize = bytes[p]! & 0xf;
+    const baseOffsetSize = bytes[p + 1]! >> 4;
+    const indexSize = v === 1 || v === 2 ? bytes[p + 1]! & 0xf : 0;
+    p += 2;
+    const readN = (at: number, n: number): number => {
+      let out = 0;
+      for (let i = 0; i < n; i++) out = out * 256 + bytes[at + i]!;
+      return out;
+    };
+    const count = v === 2 ? u32(bytes, p) : u16(bytes, p);
+    p += v === 2 ? 4 : 2;
+    for (let i = 0; i < Math.min(count, MAX_HEIF_ITEMS) && p < iloc.end; i++) {
+      const id = v === 2 ? u32(bytes, p) : u16(bytes, p);
+      p += v === 2 ? 4 : 2;
+      let method = 0;
+      if (v === 1 || v === 2) {
+        if (p + 2 > iloc.end) break;
+        method = u16(bytes, p) & 0xf;
+        p += 2;
+      }
+      p += 2; // data_reference_index
+      if (p + baseOffsetSize > iloc.end) break;
+      const baseOffset = readN(p, baseOffsetSize);
+      p += baseOffsetSize;
+      if (p + 2 > iloc.end) break;
+      const extentCount = u16(bytes, p);
+      p += 2;
+      const item = items.get(id);
+      for (let e = 0; e < extentCount; e++) {
+        const need = indexSize + offsetSize + lengthSize;
+        if (p + need > iloc.end) { p = iloc.end; break; }
+        p += indexSize;
+        const off = readN(p, offsetSize);
+        p += offsetSize;
+        const len = readN(p, lengthSize);
+        p += lengthSize;
+        item?.extents.push({ offset: baseOffset + off, length: len, method });
+      }
+    }
+  }
+
+  const idat = kids.find((b) => b.type === 'idat');
+  return {
+    items: [...items.values()],
+    ...(idat ? { idat: { start: idat.payload, end: idat.end } } : {}),
+  };
+}
+
+/** Copy one item's bytes out of the file (extents concatenated), or null. */
+function heifItemPayload(bytes: Uint8Array, store: HeifItemStore, item: HeifItem): Uint8Array | null {
+  const total = item.extents.reduce((n, e) => n + e.length, 0);
+  if (!item.extents.length || total <= 0 || total > MAX_HEIF_ITEM_BYTES) return null;
+  const out = new Uint8Array(total);
+  let o = 0;
+  for (const e of item.extents) {
+    // method 0: file-absolute; method 1: relative to the meta box's idat payload.
+    const start = e.method === 1 ? (store.idat ? store.idat.start + e.offset : -1) : e.offset;
+    const limit = e.method === 1 ? (store.idat?.end ?? -1) : bytes.length;
+    if (start < 0 || start + e.length > limit) return null;
+    out.set(bytes.subarray(start, start + e.length), o);
+    o += e.length;
+  }
+  return out;
+}
+
+/** The TIFF header offset inside a HEIF ExifDataBlock: a u32 count of bytes
+ *  after itself (iPhone/libheif write 6, the "Exif\0\0" prefix), verified
+ *  against the TIFF magic; a short scan recovers writers that count from the
+ *  block start instead. */
+function heifExifTiffStart(payload: Uint8Array): number | null {
+  if (payload.length < 12) return null;
+  const magicAt = (p: number): boolean =>
+    p + 4 <= payload.length &&
+    ((payload[p] === 0x49 && payload[p + 1] === 0x49 && payload[p + 2] === 0x2a && payload[p + 3] === 0x00) ||
+     (payload[p] === 0x4d && payload[p + 1] === 0x4d && payload[p + 2] === 0x00 && payload[p + 3] === 0x2a));
+  const declared = u32(payload, 0);
+  if (declared <= 64 && magicAt(4 + declared)) return 4 + declared;
+  for (let p = 0; p <= Math.min(64, payload.length - 4); p++) if (magicAt(p)) return p;
+  return null;
+}
+
+function readHeif(bytes: Uint8Array, out: FileMetadata): void {
+  const store = readHeifItemTable(bytes);
+  if (!store) return;
+  for (const item of store.items) {
+    if (out.fields.length >= MAX_FIELDS) break;
+    if (item.type === 'Exif') {
+      const payload = heifItemPayload(bytes, store, item);
+      const tiffAt = payload ? heifExifTiffStart(payload) : null;
+      if (payload && tiffAt != null) readExif(payload, tiffAt, payload.length - tiffAt, out);
+    } else if (item.type === 'mime' && item.contentType === 'application/rdf+xml') {
+      const payload = heifItemPayload(bytes, store, item);
+      if (payload) readXmp(new TextDecoder('utf-8').decode(payload.subarray(0, MAX_TEXT_SCAN)), out);
+    }
+  }
+}
+
+/** The raw XMP item of a HEIF/AVIF still, for extractXmpPacket. */
+function heifXmpPacket(bytes: Uint8Array): string | null {
+  const store = readHeifItemTable(bytes);
+  if (!store) return null;
+  const item = store.items.find((i) => i.type === 'mime' && i.contentType === 'application/rdf+xml');
+  const payload = item ? heifItemPayload(bytes, store, item) : null;
+  if (!payload) return null;
+  const text = new TextDecoder('utf-8').decode(payload.subarray(0, MAX_TEXT_SCAN)).trim();
+  return text || null;
+}
+
 // ── SVG (text; targeted extraction) ───────────────────────────────────────────────
 
 function readSvg(bytes: Uint8Array, out: FileMetadata): void {
@@ -1229,9 +1509,109 @@ export function extractFileMetadata(bytes: Uint8Array): FileMetadata {
       case 'WebP': readWebp(bytes, out); break;
       case 'TIFF': readExif(bytes, 0, bytes.length, out); break;
       case 'SVG': readSvg(bytes, out); break;
+      case 'HEIC': case 'AVIF': readHeif(bytes, out); break;
       case 'MP4': case 'QuickTime': readBmff(bytes, out); break;
       // Other formats carry little structured metadata worth surfacing.
     }
   } catch { /* best-effort: return whatever was gathered before the fault */ }
   return out;
+}
+
+// ── Raw XMP packet extraction ────────────────────────────────────────────────
+//
+// The readers above DIGEST an XMP packet into display fields; the metadata
+// carry (engine/src/image-meta.ts) needs the packet ITSELF so a re-encode can
+// keep it verbatim. Same contract as everything here: bounded, never throws,
+// null when the file has none or the structure does not walk cleanly.
+
+/**
+ * The source file's XMP packet as text, or null. Covers the raster containers
+ * the carry path reads: JPEG (APP1), PNG (iTXt `XML:com.adobe.xmp`),
+ * WebP (`XMP ` chunk), TIFF (tag 0x02BC). Extended-XMP chains (a JPEG packet
+ * split across GUID-linked segments) are not reassembled - the main packet
+ * alone is returned.
+ */
+export function extractXmpPacket(bytes: Uint8Array): string | null {
+  try {
+    const dec = new TextDecoder('utf-8');
+    switch (sniff(bytes)) {
+      case 'JPEG': {
+        const scan = scanJpegSegments(bytes);
+        if (!scan) return null;
+        for (const seg of scan.segments) {
+          if (seg.marker !== 0xe1 || seg.appId !== JPEG_APP_IDS.XMP) continue;
+          const start = seg.start + 4 + JPEG_APP_IDS.XMP.length + 1; // marker+len, then the NUL-terminated id
+          if (start >= seg.end) return null;
+          const text = dec.decode(bytes.subarray(start, Math.min(seg.end, start + MAX_TEXT_SCAN))).trim();
+          return text || null;
+        }
+        return null;
+      }
+      case 'PNG': {
+        let p = 8;
+        while (p + 8 <= bytes.length) {
+          const len = ((bytes[p]! << 24) | (bytes[p + 1]! << 16) | (bytes[p + 2]! << 8) | bytes[p + 3]!) >>> 0;
+          const type = String.fromCharCode(bytes[p + 4]!, bytes[p + 5]!, bytes[p + 6]!, bytes[p + 7]!);
+          const dataStart = p + 8;
+          if (dataStart + len + 4 > bytes.length) return null;
+          if (type === 'iTXt') {
+            let nul = dataStart;
+            const end = dataStart + len;
+            while (nul < end && bytes[nul] !== 0) nul++;
+            const keyword = new TextDecoder('latin1').decode(bytes.subarray(dataStart, nul));
+            if (keyword === 'XML:com.adobe.xmp' && nul + 1 < end && bytes[nul + 1] === 0) {
+              // uncompressed only; skip compression(2) + langTag\0 + translated\0
+              let t = nul + 3;
+              while (t < end && bytes[t] !== 0) t++;
+              t++;
+              while (t < end && bytes[t] !== 0) t++;
+              t++;
+              if (t >= end) return null;
+              const text = dec.decode(bytes.subarray(t, Math.min(end, t + MAX_TEXT_SCAN))).trim();
+              return text || null;
+            }
+          }
+          if (type === 'IEND') return null;
+          p = dataStart + len + 4;
+        }
+        return null;
+      }
+      case 'WebP': {
+        let p = 12;
+        while (p + 8 <= bytes.length) {
+          const fourcc = String.fromCharCode(bytes[p]!, bytes[p + 1]!, bytes[p + 2]!, bytes[p + 3]!);
+          const size = (bytes[p + 4]! | (bytes[p + 5]! << 8) | (bytes[p + 6]! << 16) | (bytes[p + 7]! * 0x1000000)) >>> 0;
+          const dataStart = p + 8;
+          if (dataStart + size > bytes.length) return null;
+          if (fourcc === 'XMP ') {
+            const text = dec.decode(bytes.subarray(dataStart, Math.min(dataStart + size, dataStart + MAX_TEXT_SCAN))).trim();
+            return text || null;
+          }
+          p = dataStart + size + (size & 1);
+        }
+        return null;
+      }
+      case 'TIFF': {
+        let dv: DataView;
+        try { dv = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength); } catch { return null; }
+        const le = bytes[0] === 0x49;
+        if (dv.getUint16(2, le) !== 42) return null;
+        for (const e of readIfd(dv, dv.getUint32(4, le), le)) {
+          if (e.tag !== 0x02bc || (e.type !== 1 && e.type !== 7 && e.type !== 2)) continue;
+          const end = Math.min(e.valueOffset + Math.min(e.count, MAX_TEXT_SCAN), dv.byteLength);
+          if (e.valueOffset <= 0 || e.valueOffset >= end) return null;
+          const text = dec.decode(bytes.subarray(e.valueOffset, end)).replace(/\0+$/, '').trim();
+          return text || null;
+        }
+        return null;
+      }
+      case 'HEIC':
+      case 'AVIF':
+        return heifXmpPacket(bytes);
+      default:
+        return null;
+    }
+  } catch {
+    return null;
+  }
 }

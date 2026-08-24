@@ -705,3 +705,34 @@ export function flattenValue(v: InputValue): InputValue {
   // cache) flattens to '' - the same fallback the `?? ''` gave.
   return typeof v.value === 'string' ? v.value : '';
 }
+
+/**
+ * Content-derived export filename (plans/140 S1). `render.filenameFrom` names
+ * input ids whose VALUES name the exported file - "ana-kovac", not a fifth
+ * "Event Name Badge.pdf". Returns the slug of the listed values in order, or
+ * null when the manifest opts out or every listed value is empty (callers keep
+ * their existing fallback, the tool name). A URL value contributes its host and
+ * path ("https://suse.com/events" - "suse-com-events") so link tools name by
+ * destination. Pure string derivation shared by the web export bar and the
+ * batch grid, so both produce the same name for the same values.
+ */
+export function deriveExportFilename(
+  manifest: { render?: { filenameFrom?: unknown } },
+  values: Record<string, unknown>,
+): string | null {
+  const ids = manifest.render?.filenameFrom;
+  if (!Array.isArray(ids) || ids.length === 0) return null;
+  const parts: string[] = [];
+  for (const id of ids) {
+    const v = flattenValue(values[String(id)] as InputValue);
+    if (v == null || v === '' || typeof v === 'object') continue;
+    let s = String(v);
+    if (/^[a-z][a-z0-9+.-]*:\/\//i.test(s)) {
+      try { const u = new URL(s); s = `${u.hostname}${u.pathname}`; } catch { /* keep the raw string */ }
+    }
+    const slug = s.normalize('NFKD').replace(/[\u0300-\u036f]/g, '')
+      .replace(/[^a-zA-Z0-9]+/g, '-').replace(/^-+|-+$/g, '').toLowerCase().slice(0, 40).replace(/-+$/, '');
+    if (slug) parts.push(slug);
+  }
+  return parts.length ? parts.join('-').slice(0, 80).replace(/-+$/, '') : null;
+}

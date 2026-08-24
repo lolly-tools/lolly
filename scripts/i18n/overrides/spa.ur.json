@@ -202,5 +202,10 @@
   "An ingredient carries AI-writing signals: {names}. A signal, not proof - review it in the catalogue before this file travels.": "ایک جزو میں AI-تحریر کے سگنلز ہیں: {names}۔ ایک سگنل ہے، ثبوت نہیں - اس فائل کے آگے جانے سے پہلے کیٹلاگ میں اس کا جائزہ لیں۔",
   "This file is packaged the way {vendor} AI products package downloads ({hint}). A signal, not proof.": "یہ فائل اسی طرح پیک کی گئی ہے جس طرح {vendor} کی AI مصنوعات ڈاؤن لوڈ پیک کرتی ہیں ({hint})۔ ایک سگنل ہے، ثبوت نہیں۔",
   "likely AI-made": "غالباً AI کی بنائی ہوئی",
-  "AI-declared ingredient in this design: {names}. The export's own credential declares this AI origin, signed and machine-readable.": "اس ڈیزائن میں AI-اعلان شدہ جزو: {names}۔ ایکسپورٹ کا اپنا کریڈینشل اس AI ماخذ کا اعلان کرتا ہے، دستخط شدہ اور مشین سے پڑھنے کے قابل۔"
+  "AI-declared ingredient in this design: {names}. The export's own credential declares this AI origin, signed and machine-readable.": "اس ڈیزائن میں AI-اعلان شدہ جزو: {names}۔ ایکسپورٹ کا اپنا کریڈینشل اس AI ماخذ کا اعلان کرتا ہے، دستخط شدہ اور مشین سے پڑھنے کے قابل۔",
+  "Imported from": "سے درآمد شدہ",
+  "Imported": "درآمد شدہ",
+  "Copyright": "کاپی رائٹ",
+  "Captured": "کھینچی گئی",
+  "Keywords": "کلیدی الفاظ"
 }

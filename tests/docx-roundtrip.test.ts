@@ -309,7 +309,7 @@ const LEGACY_DOCUMENT_XML =
   SECT_PR +
   '</w:body></w:document>';
 
-test('the pre-doc-model block list still emits the same five parts and document.xml', () => {
+test('the pre-doc-model block list still emits the same parts and document.xml', () => {
   const { parts, names } = unzip(
     writeDocx({
       title: 'My Doc',
@@ -319,9 +319,13 @@ test('the pre-doc-model block list still emits the same five parts and document.
       ],
     }),
   );
+  // Part list: the original five plus docProps/core.xml + app.xml, which every
+  // document now carries (plans/144 Wave 2 G3 - see docx.test.ts for their content).
   assert.deepEqual(names, [
     '[Content_Types].xml',
     '_rels/.rels',
+    'docProps/core.xml',
+    'docProps/app.xml',
     'word/document.xml',
     'word/styles.xml',
     'word/_rels/document.xml.rels',

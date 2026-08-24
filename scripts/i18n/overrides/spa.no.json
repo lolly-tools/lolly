@@ -202,5 +202,10 @@
   "An ingredient carries AI-writing signals: {names}. A signal, not proof - review it in the catalogue before this file travels.": "En ingrediens bærer signaler om KI-skrevet tekst: {names}. Et signal, ikke et bevis - se over den i katalogen før denne filen reiser videre.",
   "This file is packaged the way {vendor} AI products package downloads ({hint}). A signal, not proof.": "Denne filen er pakket slik {vendor} sine KI-produkter pakker nedlastinger ({hint}). Et signal, ikke et bevis.",
   "likely AI-made": "trolig KI-laget",
-  "AI-declared ingredient in this design: {names}. The export's own credential declares this AI origin, signed and machine-readable.": "Ingrediens deklarert som KI-verk i dette designet: {names}. Eksportens egen attestasjon deklarerer denne KI-opprinnelsen, signert og maskinlesbar."
+  "AI-declared ingredient in this design: {names}. The export's own credential declares this AI origin, signed and machine-readable.": "Ingrediens deklarert som KI-verk i dette designet: {names}. Eksportens egen attestasjon deklarerer denne KI-opprinnelsen, signert og maskinlesbar.",
+  "Imported from": "Importert fra",
+  "Imported": "Importert",
+  "Copyright": "Opphavsrett",
+  "Captured": "Tatt",
+  "Keywords": "Nøkkelord"
 }

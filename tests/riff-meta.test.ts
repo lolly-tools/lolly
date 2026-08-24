@@ -120,3 +120,10 @@ test('non-WAV or unwalkable input comes back untouched - never corrupted', () =>
   new DataView(truncated.buffer).setUint32(40, 0xffff, true);
   assert.equal(embedWavInfo(truncated, { title: 'X' }), truncated);
 });
+
+test('ICOP carries the copyright notice (plans/144 Wave 2 G4)', () => {
+  const { subs } = readInfo(embedWavInfo(tinyWav(), { title: 'T', copyright: '© 2026 Ana Kovac' }));
+  assert.ok(subs.has('ICOP'));
+  const raw = subs.get('ICOP')!;
+  assert.equal(new TextDecoder().decode(raw.subarray(0, raw.length - 1)), '© 2026 Ana Kovac');
+});

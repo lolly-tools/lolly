@@ -120,6 +120,12 @@
           "items": { "type": "string", "enum": ["copy", "download", "save", "share"] },
           "description": "Default actions to show. Defaults to ['copy', 'download', 'save'] if omitted."
         },
+        "filenameFrom": {
+          "type": "array",
+          "items": { "type": "string" },
+          "minItems": 1,
+          "description": "Input ids whose VALUES name the exported file: their current values are slugified in order ('ana-kovac', or a URL value's host+path 'suse-com-events') and used as the download filename, falling back to the tool name when every listed value is empty. The batch grid uses the same derivation for its auto row filenames (row-number prefix kept). Engine: deriveExportFilename."
+        },
         "export": {
           "type": "boolean",
           "default": true,

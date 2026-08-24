@@ -1315,6 +1315,14 @@ export interface ImageResizeOpts {
   format?: ImageEncodeFormat;
   /** Quality 0..1 for the lossy formats. Ignored for PNG. */
   quality?: number;
+  /** Carry the source's own descriptive metadata (EXIF authorship, copyright,
+   *  description, software, capture date, and the XMP packet) into the output
+   *  container (v1.149). `true` carries everything EXCEPT location; pass
+   *  `{ gps: true }` to keep the GPS fix too. Default false - today's
+   *  behaviour, a re-encode drops everything. A C2PA credential is never
+   *  copied (its hard binding is to the source bytes). The result's `carried`
+   *  report says exactly what carried and what dropped, and why. */
+  carryMetadata?: boolean | { gps?: boolean };
 }
 
 export interface ImageEncodeOpts {
@@ -1322,6 +1330,16 @@ export interface ImageEncodeOpts {
   format: ImageEncodeFormat;
   /** Quality 0..1 for the lossy formats. Ignored for PNG. */
   quality?: number;
+  /** See ImageResizeOpts.carryMetadata (v1.149). */
+  carryMetadata?: boolean | { gps?: boolean };
+}
+
+/** What a metadata carry did - `carried` names the fields now present in the
+ *  output bytes; `dropped` names everything that did not move and why, so a
+ *  drop is never silent (plans/144: "honor at least"). */
+export interface MetaCarryReport {
+  carried: string[];
+  dropped: { field: string; why: string }[];
 }
 
 /** An encoded transform result - the mime/dimensions of `bytes`, which may
@@ -1335,6 +1353,8 @@ export interface ImageResult {
   width: number;
   /** Output pixel height. */
   height: number;
+  /** When `carryMetadata` was requested: what carried and what dropped (v1.149). */
+  carried?: MetaCarryReport;
 }
 
 // ─── Raster primitives (optional, v1.105) ────────────────────────────────────

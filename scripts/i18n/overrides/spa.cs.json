@@ -195,5 +195,10 @@
   "An ingredient carries AI-writing signals: {names}. A signal, not proof - review it in the catalogue before this file travels.": "Jedna součást nese signály textu psaného AI: {names}. Signál, nikoli důkaz - před odesláním souboru ji zkontroluj v katalogu.",
   "This file is packaged the way {vendor} AI products package downloads ({hint}). A signal, not proof.": "Tento soubor je zabalen tak, jak AI produkty {vendor} balí stahování ({hint}). Signál, nikoli důkaz.",
   "likely AI-made": "pravděpodobně dílo AI",
-  "AI-declared ingredient in this design: {names}. The export's own credential declares this AI origin, signed and machine-readable.": "Součást tohoto návrhu deklarovaná jako dílo AI: {names}. Vlastní credential exportu tento AI původ deklaruje, podepsaný a strojově čitelný."
+  "AI-declared ingredient in this design: {names}. The export's own credential declares this AI origin, signed and machine-readable.": "Součást tohoto návrhu deklarovaná jako dílo AI: {names}. Vlastní credential exportu tento AI původ deklaruje, podepsaný a strojově čitelný.",
+  "Imported from": "Importováno z",
+  "Imported": "Importováno",
+  "Copyright": "Autorská práva",
+  "Captured": "Pořízeno",
+  "Keywords": "Klíčová slova"
 }

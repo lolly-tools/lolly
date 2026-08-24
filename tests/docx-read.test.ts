@@ -455,3 +455,29 @@ test('the paragraph cap bounds a runaway document and reports truncation', () =>
   assert.ok(res.blocks.length <= 20_000, `expected the cap to hold, got ${res.blocks.length}`);
   assert.ok(res.blocks.length >= 19_000, 'the cap should not cut the document short early');
 });
+
+// ─── core props (plans/144 Wave 2 G6): the source's authorship surfaces ──────
+
+test('readDocx surfaces docProps/core.xml, round-tripping writeDocx meta', async () => {
+  const { writeDocx } = await import('../engine/src/docx.ts');
+  const bytes = writeDocx({
+    title: 'Quarterly Notes',
+    blocks: [{ type: 'paragraph', text: 'body' }],
+    meta: { author: 'Ana Kovac', description: 'Q3 notes' },
+    now: '2026-08-24T00:00:00Z',
+  });
+  const parts: DocxParts = {};
+  for (const e of readZip(bytes)) parts[e.name] = e.bytes;
+  const out = readDocx(parts, parseXml);
+  assert.ok(out.coreProps, 'core props surfaced');
+  assert.equal(out.coreProps!.creator, 'Ana Kovac');
+  assert.equal(out.coreProps!.title, 'Quarterly Notes');
+  assert.equal(out.coreProps!.description, 'Q3 notes');
+  assert.equal(out.coreProps!.created, '2026-08-24T00:00:00Z');
+});
+
+test('a package with no docProps carries no coreProps field', () => {
+  const parts: DocxParts = { 'word/document.xml': documentXml('<w:p><w:r><w:t>x</w:t></w:r></w:p>') };
+  const out = readDocx(parts, parseXml);
+  assert.equal(out.coreProps, undefined);
+});

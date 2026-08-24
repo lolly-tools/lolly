@@ -207,5 +207,10 @@
   "An ingredient carries AI-writing signals: {names}. A signal, not proof - review it in the catalogue before this file travels.": "مكوِّن يحمل إشارات كتابة بالذكاء الاصطناعي: {names}. إشارة لا دليل، فراجِعه في الكتالوج قبل أن ينتقل هذا الملف.",
   "This file is packaged the way {vendor} AI products package downloads ({hint}). A signal, not proof.": "هذا الملف مُغلَّف بالطريقة التي تُغلِّف بها منتجات الذكاء الاصطناعي من {vendor} التنزيلات ({hint}). إشارة لا دليل.",
   "likely AI-made": "يُرجَّح أنه من صنع الذكاء الاصطناعي",
-  "AI-declared ingredient in this design: {names}. The export's own credential declares this AI origin, signed and machine-readable.": "مكوِّن مُعلَن كعمل ذكاء اصطناعي في هذا التصميم: {names}. يُعلن اعتمادُ التصدير نفسه هذا الأصلَ الاصطناعي، موقَّعًا وقابلًا للقراءة الآلية."
+  "AI-declared ingredient in this design: {names}. The export's own credential declares this AI origin, signed and machine-readable.": "مكوِّن مُعلَن كعمل ذكاء اصطناعي في هذا التصميم: {names}. يُعلن اعتمادُ التصدير نفسه هذا الأصلَ الاصطناعي، موقَّعًا وقابلًا للقراءة الآلية.",
+  "Imported from": "مستورد من",
+  "Imported": "تاريخ الاستيراد",
+  "Copyright": "حقوق النشر",
+  "Captured": "تاريخ الالتقاط",
+  "Keywords": "كلمات مفتاحية"
 }

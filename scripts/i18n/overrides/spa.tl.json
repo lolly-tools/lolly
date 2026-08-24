@@ -204,5 +204,10 @@
   "An ingredient carries AI-writing signals: {names}. A signal, not proof - review it in the catalogue before this file travels.": "May sangkap na may dalang signal ng pagsulat ng AI: {names}. Signal lang ito, hindi patunay - suriin ito sa Katalogo bago maglakbay ang file na ito.",
   "This file is packaged the way {vendor} AI products package downloads ({hint}). A signal, not proof.": "Naka-package ang file na ito tulad ng pag-package ng mga AI product ng {vendor} sa mga download ({hint}). Signal lang ito, hindi patunay.",
   "likely AI-made": "malamang gawa ng AI",
-  "AI-declared ingredient in this design: {names}. The export's own credential declares this AI origin, signed and machine-readable.": "Sangkap na idineklarang gawa ng AI sa disenyong ito: {names}. Idinedeklara mismo ng credential ng export ang AI na pinagmulang ito, may lagda at nababasa ng makina."
+  "AI-declared ingredient in this design: {names}. The export's own credential declares this AI origin, signed and machine-readable.": "Sangkap na idineklarang gawa ng AI sa disenyong ito: {names}. Idinedeklara mismo ng credential ng export ang AI na pinagmulang ito, may lagda at nababasa ng makina.",
+  "Imported from": "In-import mula sa",
+  "Imported": "Na-import",
+  "Copyright": "Copyright",
+  "Captured": "Kinuha",
+  "Keywords": "Mga keyword"
 }

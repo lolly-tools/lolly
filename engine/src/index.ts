@@ -34,7 +34,7 @@ export {
   PSD_BLEND_TO_CSS, CSS_TO_PSD_BLEND, XCF_MODE_TO_CSS, psdBlendToCss, xcfModeToCss,
 } from './raster-layers.ts';
 export type { CssBlendMode, RasterLayer, LayeredRasterDoc, InflateFn } from './raster-layers.ts';
-export { buildInputModel, summarizeInputs, normalizeTableValue, DEFAULT_FILE_MAX_BYTES } from './inputs.ts';
+export { buildInputModel, summarizeInputs, normalizeTableValue, deriveExportFilename, DEFAULT_FILE_MAX_BYTES } from './inputs.ts';
 export type { TableValue } from './inputs.ts';
 export { parseUrlState, serializeUrlState, serializeHdr, encodeTableCompact, decodeTableCompact, RESERVED, HDR_DEFAULTS } from './url-mode.ts';
 // The `s=` state address + the still-export frame filter both shells apply (plan 112).
@@ -56,8 +56,19 @@ export {
 export { toCSV, parseDelimited, detectDelimiter, parseBatchCsv, batchCsvTemplate, batchCsvTemplateWithNotes } from './batch.ts';
 export type { BatchRow, BatchTemplateTool } from './batch.ts';
 export { buildExportMeta } from './metadata.ts';
-export { extractFileMetadata, readMpfIndex, appendedIsExpected, META_GROUP_ORDER, META_GROUP_LABEL } from './file-metadata.ts';
+export { extractFileMetadata, extractXmpPacket, readMpfIndex, appendedIsExpected, META_GROUP_ORDER, META_GROUP_LABEL } from './file-metadata.ts';
 export type { FileMetadata, MetaField, MetaGroup, JpegMpfIndex, MediaProducer } from './file-metadata.ts';
+// Image-metadata byte stampers + the metadata carry (plans/144 Wave 1). The
+// stampers graduated here from the web shell's bridge/export-image-meta.ts
+// (now a thin re-export) so the transform path and the CLI share them.
+export {
+  patchJpegDpi, readU32, writeU32, pngChunk, insertPngPhys, setAvifCicp, insertPngCicp,
+  iTXtChunk, insertPngMeta, buildExifTiff, insertJpegExif, svgMetaBlock, injectSvgMeta,
+  withGifComment, insertPngIcc, insertJpegIcc, inflateBytes, deflateBytes,
+  carryImageMetadata, buildCarryExifTiff, insertWebpMeta, insertAvifExif, buildExportXmp,
+  insertPngXmp, insertJpegXmp, META_CARRY_FIELDS,
+} from './image-meta.ts';
+export type { CarrySource, CarryOutput, CarryOpts } from './image-meta.ts';
 export { stripMetadata, isStrippableFormat, hasResidualMetadata } from './strip-metadata.ts';
 export type { StripFormat } from './strip-metadata.ts';
 export {

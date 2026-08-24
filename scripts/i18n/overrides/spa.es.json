@@ -202,5 +202,10 @@
   "An ingredient carries AI-writing signals: {names}. A signal, not proof - review it in the catalogue before this file travels.": "Un ingrediente lleva señales de escritura por IA: {names}. Una señal, no una prueba - revísalo en el catálogo antes de que este archivo viaje.",
   "This file is packaged the way {vendor} AI products package downloads ({hint}). A signal, not proof.": "Este archivo está empaquetado como los productos de IA de {vendor} empaquetan sus descargas ({hint}). Una señal, no una prueba.",
   "likely AI-made": "probablemente hecho con IA",
-  "AI-declared ingredient in this design: {names}. The export's own credential declares this AI origin, signed and machine-readable.": "Ingrediente declarado como obra de IA en este diseño: {names}. El propio credential de la exportación declara este origen de IA, firmado y legible por máquina."
+  "AI-declared ingredient in this design: {names}. The export's own credential declares this AI origin, signed and machine-readable.": "Ingrediente declarado como obra de IA en este diseño: {names}. El propio credential de la exportación declara este origen de IA, firmado y legible por máquina.",
+  "Imported from": "Importado de",
+  "Imported": "Importado",
+  "Copyright": "Copyright",
+  "Captured": "Capturada",
+  "Keywords": "Palabras clave"
 }

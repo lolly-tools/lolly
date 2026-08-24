@@ -200,5 +200,10 @@
   "An ingredient carries AI-writing signals: {names}. A signal, not proof - review it in the catalogue before this file travels.": "Один зі складників несе сигнали тексту, написаного ШІ: {names}. Це сигнал, а не доказ - перегляньте його в каталозі, перш ніж цей файл вирушить далі.",
   "This file is packaged the way {vendor} AI products package downloads ({hint}). A signal, not proof.": "Цей файл запаковано так, як AI-продукти {vendor} паковують завантаження ({hint}). Це сигнал, а не доказ.",
   "likely AI-made": "імовірно, створено ШІ",
-  "AI-declared ingredient in this design: {names}. The export's own credential declares this AI origin, signed and machine-readable.": "Складник цього дизайну, задекларований як робота ШІ: {names}. Власні облікові дані експорту декларують це ШІ-походження, підписані й машинозчитувані."
+  "AI-declared ingredient in this design: {names}. The export's own credential declares this AI origin, signed and machine-readable.": "Складник цього дизайну, задекларований як робота ШІ: {names}. Власні облікові дані експорту декларують це ШІ-походження, підписані й машинозчитувані.",
+  "Imported from": "Імпортовано з",
+  "Imported": "Імпортовано",
+  "Copyright": "Авторські права",
+  "Captured": "Знято",
+  "Keywords": "Ключові слова"
 }

@@ -907,6 +907,30 @@ test('a mounted stage with page boxes reports the count it measured', () => {
   assert.equal(has(declared, 'count.pages.stage'), false);
 });
 
+test('a still export of a multi-board stage says it fans out, one file per artboard', () => {
+  // plans/141 follow-up: the panel's single width×height must never imply one file
+  // when a Design doc's artboards each export separately.
+  const r = preflight(job({
+    settings: { format: 'png' },
+    stage: { known: true, value: { isSequence: false, pageBoxes: 3 } },
+  }));
+  const f = one(r, 'count.artboard-fanout');
+  assert.match(f.message, /3 artboards export as 3 separate PNG files/);
+  assert.match(f.message, /the size shown is the active artboard's/);
+  // One board is one file - nothing to explain.
+  const single = preflight(job({
+    settings: { format: 'png' },
+    stage: { known: true, value: { isSequence: false, pageBoxes: 1 } },
+  }));
+  assert.equal(has(single, 'count.artboard-fanout'), false);
+  // Paged formats carry the page count instead; the fan-out line is stills-only.
+  const pdf = preflight(job({
+    settings: { format: 'pdf' },
+    stage: { known: true, value: { isSequence: false, pageBoxes: 3 } },
+  }));
+  assert.equal(has(pdf, 'count.artboard-fanout'), false);
+});
+
 test('a mounted timeline reports its length instead of being collected and dropped', () => {
   const r = preflight(job({
     settings: { format: 'webm' },

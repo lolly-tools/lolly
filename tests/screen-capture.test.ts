@@ -347,8 +347,19 @@ test('ENGINE_VERSION is 1.128.0', () => {
   // Then 1.146.0 (hook lifecycle: a raced-out onInit/onInput's late resolution
   // applies when it resolves iff still the newest run - see runtime-hooks.test.ts.
   // No HostV1 change).
+  // Then 1.147.0 (plans/140 S1: deriveExportFilename + render.filenameFrom -
+  // content-derived export filenames. Additive export + manifest field, no
+  // HostV1 change - see derive-filename.test.ts).
+  // Then 1.148.0 (plans/142: reserved URL param `preset` - a values overlay
+  // inside a ?template= entry, resolved shell-side. Reserved-set addition
+  // only, no HostV1 change - see engine.test.ts's RESERVED drift guard).
+  // Then 1.149.0 (plans/144 Waves 1+2+5: images carryMetadata + carried report
+  // (additive ImagesAPI opts/result fields), image-meta.ts stampers + carry
+  // core, WebP/DOCX/WAV export metadata parity, ooxml coreProps read-back +
+  // both-authors sourceAuthor combine, IPTC-IIM read + pro-photo XMP write,
+  // HEIF/AVIF item read + AVIF Exif item write - see image-meta-carry.test.ts).
   // The ^1.54.0 screencap floor below still holds (a minor bump satisfies it).
-  assert.equal(ENGINE_VERSION, '1.146.0');
+  assert.equal(ENGINE_VERSION, '1.149.0');
 });
 
 // ─── loadTool: a ^1.54.0 tool loads against this engine ───────────────────────

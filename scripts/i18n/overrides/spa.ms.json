@@ -202,5 +202,10 @@
   "An ingredient carries AI-writing signals: {names}. A signal, not proof - review it in the catalogue before this file travels.": "Satu bahan membawa isyarat penulisan AI: {names}. Isyarat, bukan bukti - semak dalam katalog sebelum fail ini berpindah.",
   "This file is packaged the way {vendor} AI products package downloads ({hint}). A signal, not proof.": "Fail ini dibungkus seperti produk AI {vendor} membungkus muat turun ({hint}). Isyarat, bukan bukti.",
   "likely AI-made": "berkemungkinan buatan AI",
-  "AI-declared ingredient in this design: {names}. The export's own credential declares this AI origin, signed and machine-readable.": "Bahan yang diisytiharkan sebagai hasil AI dalam reka bentuk ini: {names}. Kredensial eksport ini sendiri mengisytiharkan asal AI tersebut, ditandatangani dan boleh dibaca mesin."
+  "AI-declared ingredient in this design: {names}. The export's own credential declares this AI origin, signed and machine-readable.": "Bahan yang diisytiharkan sebagai hasil AI dalam reka bentuk ini: {names}. Kredensial eksport ini sendiri mengisytiharkan asal AI tersebut, ditandatangani dan boleh dibaca mesin.",
+  "Imported from": "Diimport daripada",
+  "Imported": "Diimport",
+  "Copyright": "Hak cipta",
+  "Captured": "Diambil",
+  "Keywords": "Kata kunci"
 }

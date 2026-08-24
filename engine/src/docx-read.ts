@@ -67,6 +67,7 @@
  */
 
 import type { DocBlock, DocInline, DocListItem, DocMedia, DocTableCell } from './doc-model.ts';
+import type { OoxmlCoreProps } from './pptx-read.ts';
 
 // ─── public surface ──────────────────────────────────────────────────────────
 
@@ -83,6 +84,9 @@ export interface DocxReadResult {
   media: DocMedia[];
   /** true when a cap cut the document short (see the caps below). */
   truncated: boolean;
+  /** The source package's own docProps/core.xml facts (plans/144 Wave 2 G6),
+   *  when present - same shape the pptx reader surfaces. */
+  coreProps?: OoxmlCoreProps;
 }
 
 // ─── hardening caps ──────────────────────────────────────────────────────────
@@ -993,5 +997,35 @@ export function readDocx(parts: DocxParts, parseXml: XmlParser): DocxReadResult 
     /* notes are additive; their absence is not a failure */
   }
 
-  return { blocks: ctx.blocks, media: ctx.media, truncated: ctx.truncated };
+  const result: DocxReadResult = { blocks: ctx.blocks, media: ctx.media, truncated: ctx.truncated };
+  try {
+    const cp = readCoreProps(store, parseXml);
+    if (cp) result.coreProps = cp;
+  } catch {
+    /* absent or unreadable core props stay absent */
+  }
+  return result;
+}
+
+// docProps/core.xml → the source's own authorship facts (plans/144 Wave 2 G6).
+// Same clamp-and-degrade contract as every other part read here.
+const MAX_CORE_PROP_LEN = 2048;
+function readCoreProps(store: PartStore, parseXml: XmlParser): OoxmlCoreProps | null {
+  const doc = parsePart(store, 'docProps/core.xml', parseXml);
+  const root = doc?.documentElement;
+  if (!root) return null;
+  const grab = (local: string): string | undefined => {
+    const t = descendantByLocal(root, local)?.textContent?.trim();
+    return t ? t.slice(0, MAX_CORE_PROP_LEN) : undefined;
+  };
+  const out: OoxmlCoreProps = {};
+  const title = grab('title');
+  if (title) out.title = title;
+  const creator = grab('creator');
+  if (creator) out.creator = creator;
+  const description = grab('description');
+  if (description) out.description = description;
+  const created = grab('created');
+  if (created) out.created = created;
+  return Object.keys(out).length ? out : null;
 }

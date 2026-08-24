@@ -155,6 +155,11 @@ export interface RenderSpec {
    *  `paged: true` for the scrolling all-pages canvas. */
   paginate?: { source: string };
   aspectWarning?: { min?: number; max?: number; message?: string };
+  /** Input ids whose VALUES name the exported file (slugified, in order) - the
+   *  download bar and the batch grid fall back to the tool name / tool id when
+   *  absent or when every listed value is empty. See the engine's
+   *  deriveExportFilename. */
+  filenameFrom?: string[];
   preview?: Record<string, unknown>;
   video?: Record<string, unknown>;
   actions?: unknown[];

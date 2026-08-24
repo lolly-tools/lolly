@@ -194,5 +194,10 @@
   "An ingredient carries AI-writing signals: {names}. A signal, not proof - review it in the catalogue before this file travels.": "En ingrediens bär signaler om AI-skriven text: {names}. En signal, inte ett bevis - granska den i katalogen innan den här filen reser vidare.",
   "This file is packaged the way {vendor} AI products package downloads ({hint}). A signal, not proof.": "Den här filen är paketerad så som {vendor}s AI-produkter paketerar nedladdningar ({hint}). En signal, inte ett bevis.",
   "likely AI-made": "troligen AI-gjord",
-  "AI-declared ingredient in this design: {names}. The export's own credential declares this AI origin, signed and machine-readable.": "Ingrediens deklarerad som AI-verk i den här designen: {names}. Exportens eget credential deklarerar detta AI-ursprung, signerat och maskinläsbart."
+  "AI-declared ingredient in this design: {names}. The export's own credential declares this AI origin, signed and machine-readable.": "Ingrediens deklarerad som AI-verk i den här designen: {names}. Exportens eget credential deklarerar detta AI-ursprung, signerat och maskinläsbart.",
+  "Imported from": "Importerad från",
+  "Imported": "Importerad",
+  "Copyright": "Upphovsrätt",
+  "Captured": "Tagen",
+  "Keywords": "Nyckelord"
 }

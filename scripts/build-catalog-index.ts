@@ -166,6 +166,21 @@ export function entryFromManifest(manifest: Manifest): Record<string, unknown> {
       for (const k of ['id', 'name', 'category', 'description', 'thumb']) {
         if (t[k] !== undefined) meta[k] = t[k];
       }
+      // Presets (plans/142): a template's curated variants - each a values OVERLAY
+      // on the template base. Same metadata-only rule: id/name/description ride the
+      // index (the chooser's variant chips and the `?preset=` launcher need them);
+      // the overlay values stay in the template file, fetched with it.
+      if (Array.isArray(t.presets)) {
+        const presets = (t.presets as unknown[]).flatMap(p => {
+          if (!p || typeof p !== 'object') return [];
+          const pr = p as Record<string, unknown>;
+          if (typeof pr.id !== 'string' || !pr.id || typeof pr.name !== 'string' || !pr.name) return [];
+          const pm: Record<string, unknown> = { id: pr.id, name: pr.name };
+          if (pr.description !== undefined) pm.description = pr.description;
+          return [pm];
+        });
+        if (presets.length) meta.presets = presets;
+      }
       templates.push(meta);
     }
     if (templates.length) entry.templates = templates;

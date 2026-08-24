@@ -27,6 +27,7 @@
  */
 
 import { parseSvgPath } from './svg-path.ts';
+import { corePropsXml } from './ooxml-props.ts';
 
 export const EMU_PER_INCH = 914400;
 export const EMU_PER_PX = EMU_PER_INCH / 96; // CSS px at the 96-DPI convention
@@ -172,7 +173,7 @@ export interface PptxTheme {
 export interface PptxBuildOpts {
   emuW?: number;
   emuH?: number;
-  meta?: { title?: string; description?: string; source?: string; contact?: string } | null;
+  meta?: { title?: string; description?: string; source?: string; contact?: string; author?: string; sourceAuthor?: string } | null;
   now?: string;
   /** Brand theme (values only). Threads into theme1.xml (+ the notes theme2.xml). */
   theme?: PptxTheme;
@@ -667,7 +668,10 @@ const ROOT_RELS =
   `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\n` +
   `<Relationships xmlns="${PKG_REL_NS}">` +
   `<Relationship Id="rId1" Type="${REL}/officeDocument" Target="ppt/presentation.xml"/>` +
-  `<Relationship Id="rId2" Type="${REL}/metadata/core-properties" Target="docProps/core.xml"/>` +
+  // Core props ride the PACKAGE relationship namespace (OPC section 8.3.3.2) - the
+  // officeDocument-prefixed type this used to write kept PowerPoint's Properties
+  // dialog from seeing the part (plans/144 Wave 2 G6).
+  `<Relationship Id="rId2" Type="http://schemas.openxmlformats.org/package/2006/relationships/metadata/core-properties" Target="docProps/core.xml"/>` +
   `<Relationship Id="rId3" Type="${REL}/extended-properties" Target="docProps/app.xml"/>` +
   `</Relationships>`;
 
@@ -801,18 +805,8 @@ function themeXml(theme?: PptxTheme): string {
   );
 }
 
-function corePropsXml(meta: PptxBuildOpts['meta'], now: string): string {
-  const title = xmlEsc(meta?.title ?? 'Presentation');
-  const desc = [meta?.description, meta?.contact, meta?.source].filter(Boolean).map(String).join(' · ');
-  return (
-    `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\n` +
-    `<cp:coreProperties xmlns:cp="http://schemas.openxmlformats.org/package/2006/metadata/core-properties" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:dcterms="http://purl.org/dc/terms/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">` +
-    `<dc:title>${title}</dc:title>` + (desc ? `<dc:description>${xmlEsc(desc)}</dc:description>` : '') +
-    `<dc:creator>Lolly</dc:creator><cp:lastModifiedBy>Lolly</cp:lastModifiedBy>` +
-    `<dcterms:created xsi:type="dcterms:W3CDTF">${now}</dcterms:created><dcterms:modified xsi:type="dcterms:W3CDTF">${now}</dcterms:modified>` +
-    `</cp:coreProperties>`
-  );
-}
+// docProps/core.xml comes from the shared OOXML writer (ooxml-props.ts) so the
+// authorship fields stay identical across pptx and docx output.
 const appPropsXml = (n: number): string =>
   `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\n` +
   `<Properties xmlns="http://schemas.openxmlformats.org/officeDocument/2006/extended-properties"><Application>Lolly</Application><Slides>${n}</Slides><PresentationFormat>Custom</PresentationFormat></Properties>`;
@@ -862,7 +856,7 @@ export function buildPptxParts(slides: PptxSlide[], opts: PptxBuildOpts = {}): R
     parts['ppt/slideLayouts/_rels/slideLayout1.xml.rels'] = slideLayoutRelsXml();
   }
   parts['ppt/theme/theme1.xml'] = themeXml(opts.theme);
-  parts['docProps/core.xml'] = corePropsXml(opts.meta, now);
+  parts['docProps/core.xml'] = corePropsXml(opts.meta, now, 'Presentation');
   parts['docProps/app.xml'] = appPropsXml(n);
   slides.forEach((slide, i) => {
     const hasNotes = (slide.notes ?? '').trim() !== '';
