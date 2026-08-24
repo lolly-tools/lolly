@@ -16,6 +16,22 @@
 
     "bgOpacity":   { "type": "number",   "label": "Opacity", "min": 0, "max": 1, "step": 0.01, "description": "Background image opacity / overlay strength (0–1)." },
 
+    "windowStyle": {
+      "type": "select",
+      "label": "Window buttons",
+      "description": "Window-manager chrome look for a framed window: Nuremberg = GNOME Adwaita, Cupertino = macOS, Redmond = Windows. Shared by code-canvas and screenshot-frame (plans/147).",
+      "options": [
+        { "value": "cupertino", "label": "Cupertino" },
+        { "value": "redmond",   "label": "Redmond" },
+        { "value": "nuremberg", "label": "Nuremberg" }
+      ]
+    },
+
+    "eventName":     { "type": "text",           "label": "Event name",  "description": "Name of the event (badge, calendar payload, signage)." },
+    "eventStart":    { "type": "datetime-local", "label": "Starts",      "description": "Event start. Shipped as a URL contract by qr-code's calendar payload (plans/147 E1)." },
+    "eventEnd":      { "type": "datetime-local", "label": "Ends",        "description": "Event end. Shipped alongside eventStart." },
+    "eventLocation": { "type": "text",           "label": "Location",    "description": "Where the event happens (a room, venue or address as one line)." },
+
     "imageFraming": {
       "type": "vector",
       "label": "Zoom & Position",

@@ -138,6 +138,14 @@ export interface RenderSpec {
    *  `'microphone'`/`'camera'` capability): which record affordance the shell
    *  mounts. `'screen'` is display capture via `host.recorder`. */
   capture?: 'audio' | 'video' | 'av' | 'screen';
+  /** Speech to text, declared instead of built (v1.150). `source` names the asset
+   *  input holding the audio/video, `target` the text input the cues are written
+   *  into (one write, so one undo step), `format` what is written ('srt' default,
+   *  'vtt', or 'words' - the plain spoken text). `auto` names a boolean input:
+   *  while it is true a newly recorded or picked source transcribes with no click.
+   *  Feature-detected on `host.speech.transcribeAvailable()`, never capability-
+   *  gated - a shell without it mounts nothing and leaves the target untouched. */
+  transcribe?: { source: string; target: string; format?: 'srt' | 'vtt' | 'words'; auto?: string };
   /** Requested longest edge (px) for live-camera frames (see `MediaAPI`). */
   liveMaxEdge?: number;
   /** id of a number input whose value overrides `liveMaxEdge`: a user-facing

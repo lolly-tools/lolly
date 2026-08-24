@@ -37,6 +37,44 @@ test('packQuery/unpackToken round-trips a large query byte-for-byte', async () =
   assert.equal(await unpackToken(token!), BIG_QUERY);
 });
 
+// --- QR-friendly tag-2 tokens (base32-upper) -----------------------------------
+
+test('packQuery({qr:true}) mints a tag-2 base32 token that round-trips', async () => {
+  const token = await packQuery(BIG_QUERY, { qr: true });
+  assert.ok(token, 'codec should be available in the test runtime');
+  assert.equal(token![0], '2', 'tag byte marks the base32 flavour');
+  // The whole point: every payload char sits in the QR alphanumeric set AND the
+  // URL-unreserved set, so the token needs no % escaping in any serializer and a
+  // QR encoder can store it at 5.5 bits/char instead of 8.
+  assert.match(token!.slice(1), /^[A-Z2-7]+$/, 'payload is pure base32-upper');
+  assert.equal(await unpackToken(token!), BIG_QUERY);
+});
+
+test('tag-2 and tag-1 carry the same state; tag 1 stays the default', async () => {
+  const b64 = await packQuery(BIG_QUERY);
+  const b32 = await packQuery(BIG_QUERY, { qr: true });
+  assert.equal(b64![0], '1', 'no opts → the shorter-in-characters default');
+  assert.equal(await unpackToken(b64!), await unpackToken(b32!));
+  // ~20% more characters is the price of the denser QR encoding - pin the trade
+  // so a regression in either direction shows up.
+  assert.ok(b32!.length > b64!.length, 'base32 is longer in characters');
+  assert.ok(b32!.length < b64!.length * 1.35, 'but bounded (8/5 alphabet ratio, shared deflate)');
+});
+
+test('expandQuery reads a tag-2 z param like any other', async () => {
+  const token = await packQuery(BIG_QUERY, { qr: true });
+  assert.equal(await expandQuery(`${PACK_PARAM}=${token}`), BIG_QUERY);
+});
+
+test('a tag-2 token with out-of-alphabet chars decodes to null', async () => {
+  // (No bit-flip case here: raw DEFLATE carries no checksum, so a flipped char
+  // inside the alphabet may still inflate - same contract as tag 1. Integrity
+  // belongs to `zx`, whose AES-GCM tag authenticates the whole token.)
+  const token = await packQuery(BIG_QUERY, { qr: true });
+  assert.equal(await unpackToken('2' + token!.slice(1).toLowerCase()), null, 'lowercase is outside the alphabet');
+  assert.equal(await unpackToken('2!@#'), null, 'garbage payload → null');
+});
+
 // --- Encrypted links (`zx`) - password-gated, client-side, no server -----------
 
 test('packEncrypted/unpackEncrypted round-trips with the right password', async () => {

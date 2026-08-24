@@ -1,6 +1,6 @@
 {
   "version": "1",
-  "generatedAt": "2026-08-24T11:33:48.628Z",
+  "generatedAt": "2026-08-24T21:12:14.780Z",
   "tools": [
     {
       "id": "compress-pdf",
@@ -268,15 +268,17 @@
     {
       "id": "qr-code",
       "name": "QR Code Generator",
-      "description": "QR codes for any URL, with full color and style control.",
-      "version": "2.1.0",
+      "description": "QR codes for a link, contact card, Wi-Fi network, calendar event, location or plain text.",
+      "version": "2.3.0",
       "status": "official",
       "category": "everyone",
       "tags": [
         "qr",
         "url",
         "link",
-        "marketing"
+        "marketing",
+        "vcard",
+        "wifi"
       ],
       "formats": [
         "svg",
@@ -321,6 +323,34 @@
           }
         },
         {
+          "label": "Guest Wi-Fi card",
+          "values": {
+            "payload": "wifi",
+            "ssid": "Studio Guest",
+            "wifiKey": "welcome-2026",
+            "wifiSecurity": "WPA",
+            "color": "#134e4a",
+            "background": "#f0fdfa",
+            "ecl": "Q"
+          }
+        },
+        {
+          "label": "Contact card",
+          "values": {
+            "payload": "vcard",
+            "firstname": "Ana",
+            "lastname": "Kovac",
+            "company": "Northwind Studio",
+            "jobTitle": "Creative Director",
+            "email": "ana@example.com",
+            "phone": "+61 400 000 000",
+            "url": "https://example.com/ana",
+            "color": "#3f3f46",
+            "background": "#fafaf9",
+            "ecl": "Q"
+          }
+        },
+        {
           "label": "Night mode",
           "values": {
             "url": "https://lolly.tools/gallery",
@@ -343,8 +373,26 @@
       ],
       "templates": [
         {
+          "id": "calendar",
+          "name": "Calendar event",
+          "category": "Utility",
+          "description": "Scan to add the date to a calendar. The event travels in the code, so it works with no network.",
+          "presets": [
+            {
+              "id": "inperson",
+              "name": "In person",
+              "description": "Dark ink on warm white for a printed invite or poster."
+            },
+            {
+              "id": "online",
+              "name": "Online",
+              "description": "The joining link as the location, light modules for a closing slide."
+            }
+          ]
+        },
+        {
           "id": "contact",
-          "name": "Contact card",
+          "name": "Contact page link",
           "category": "Utility",
           "description": "Share your contact or profile page from a business card or badge.",
           "presets": [
@@ -379,6 +427,19 @@
           ]
         },
         {
+          "id": "geo",
+          "name": "Map location",
+          "category": "Utility",
+          "description": "Scan to open a pin in the phone's maps app. For a venue, a trailhead or a meeting point.",
+          "presets": [
+            {
+              "id": "signage",
+              "name": "Wayfinding sign",
+              "description": "Dark ink, wide quiet zone, high redundancy for a code that lives outdoors."
+            }
+          ]
+        },
+        {
           "id": "menu",
           "name": "Table tent menu",
           "category": "Utility",
@@ -393,6 +454,42 @@
               "id": "fresh",
               "name": "Fresh",
               "description": "Deep teal on a pale mint ground."
+            },
+            {
+              "id": "brand",
+              "name": "Brand colours",
+              "description": "Modules in your brand primary on the brand surface."
+            }
+          ]
+        },
+        {
+          "id": "text",
+          "name": "Plain text",
+          "category": "Utility",
+          "description": "Scan to read a short message. Nothing opens, nothing loads, the words are in the code.",
+          "presets": [
+            {
+              "id": "label",
+              "name": "Shelf label",
+              "description": "Small print, so high redundancy and a tight quiet zone."
+            },
+            {
+              "id": "brand",
+              "name": "Brand colours",
+              "description": "Modules in your brand primary on the brand surface."
+            }
+          ]
+        },
+        {
+          "id": "vcard",
+          "name": "Contact card",
+          "category": "Utility",
+          "description": "Scan to save a contact straight into the phone's address book, no page to load.",
+          "presets": [
+            {
+              "id": "card",
+              "name": "Business card",
+              "description": "Quartile redundancy and a tight quiet zone for card-sized print."
             },
             {
               "id": "brand",
@@ -421,6 +518,24 @@
               "id": "night",
               "name": "Night mode",
               "description": "Light modules on a dark ground for screens and slides."
+            }
+          ]
+        },
+        {
+          "id": "wifi",
+          "name": "Wi-Fi network",
+          "category": "Utility",
+          "description": "Scan to join the network. For the sign by the door, the reception desk or the studio wall.",
+          "presets": [
+            {
+              "id": "guest",
+              "name": "Guest network",
+              "description": "Dark ink on warm white, generous quiet zone for a printed sign."
+            },
+            {
+              "id": "hidden",
+              "name": "Hidden network",
+              "description": "For a network that does not broadcast its name."
             }
           ]
         }
@@ -562,7 +677,7 @@
       "id": "street-map",
       "name": "Street Map",
       "description": "Clean vector street-block maps of any city. Works offline.",
-      "version": "0.4.0",
+      "version": "0.5.0",
       "status": "official",
       "category": "designer",
       "tags": [
@@ -624,6 +739,19 @@
             "roadColor": "{color.semantic.primary}",
             "waterColor": "{color.semantic.secondary}",
             "background": "{color.semantic.surface}"
+          }
+        },
+        {
+          "label": "Nuremberg morning run",
+          "values": {
+            "city": "nuremberg",
+            "theme": "light",
+            "roadColor": "#cfc7ba",
+            "waterColor": "#bcd6e8",
+            "background": "#faf7f2",
+            "routeColor": "{color.semantic.primary}",
+            "routeWidth": 4,
+            "route": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<gpx version=\"1.1\" creator=\"Lolly\" xmlns=\"http://www.topografix.com/GPX/1/1\">\n <trk><name>Altstadt loop</name><trkseg>\n  <trkpt lat=\"49.4530\" lon=\"11.0740\"/>\n  <trkpt lat=\"49.4538\" lon=\"11.0752\"/>\n  <trkpt lat=\"49.4547\" lon=\"11.0764\"/>\n  <trkpt lat=\"49.4553\" lon=\"11.0781\"/>\n  <trkpt lat=\"49.4547\" lon=\"11.0796\"/>\n  <trkpt lat=\"49.4536\" lon=\"11.0798\"/>\n  <trkpt lat=\"49.4527\" lon=\"11.0779\"/>\n  <trkpt lat=\"49.4529\" lon=\"11.0745\"/>\n </trkseg></trk>\n</gpx>"
           }
         }
       ],
@@ -1097,7 +1225,7 @@
       "id": "url-shot",
       "name": "URL Screenshot",
       "description": "Any web page, at any scroll-depth, with custom CSS",
-      "version": "0.1.0",
+      "version": "0.2.0",
       "status": "official",
       "category": "utility",
       "capabilities": [
@@ -1405,7 +1533,7 @@
       "id": "color-palette",
       "name": "Palette Lab",
       "description": "Grow a palette from one seed colour - harmony accents, perceptual OKLab ramps and WCAG/APCA readability badges, with DTCG tokens and CSV export.",
-      "version": "2.2.0",
+      "version": "2.3.1",
       "status": "community",
       "category": "utility",
       "tags": [
@@ -1413,7 +1541,9 @@
         "palette",
         "tokens",
         "contrast",
-        "brand"
+        "brand",
+        "accessibility",
+        "colour-blind"
       ],
       "formats": [
         "svg",
@@ -1461,24 +1591,6 @@
           }
         },
         {
-          "label": "Violet adjacents",
-          "values": {
-            "seed": "#7c3aed",
-            "harmony": "adjacent-3",
-            "steps": 5,
-            "neutrals": true
-          }
-        },
-        {
-          "label": "Coral free four",
-          "values": {
-            "seed": "#ff6b6b",
-            "harmony": "free-4",
-            "steps": 11,
-            "neutrals": true
-          }
-        },
-        {
           "label": "Contrast ramp on white",
           "values": {
             "seed": "#2563eb",
@@ -1512,6 +1624,26 @@
             "mode": "contrast",
             "bg": "#f8fafc",
             "lcTargets": "15,30,45,60,75,90"
+          }
+        },
+        {
+          "label": "Contrast grid",
+          "values": {
+            "seed": "#2563eb",
+            "harmony": "triad-3",
+            "steps": 6,
+            "neutrals": true,
+            "grid": true
+          }
+        },
+        {
+          "label": "Deuteranopia preview",
+          "values": {
+            "seed": "#c2410c",
+            "harmony": "triad-3",
+            "steps": 7,
+            "neutrals": true,
+            "vision": "deutan"
           }
         }
       ],
@@ -1625,8 +1757,8 @@
     {
       "id": "mesh-gradient",
       "name": "Mesh Gradient",
-      "description": "Soft mesh-style gradients from your brand swatches. Drag the colour points right on the canvas.",
-      "version": "1.0.0",
+      "description": "Soft mesh-style gradients from your brand swatches. Drag the colour points right on the canvas, or turn on Drift and export the loop as WebM, MP4 or GIF.",
+      "version": "1.1.0",
       "status": "official",
       "category": "everyone",
       "tags": [
@@ -1644,7 +1776,8 @@
         "webp",
         "avif",
         "webm",
-        "mp4"
+        "mp4",
+        "gif"
       ],
       "width": 1600,
       "height": 900,
@@ -1718,6 +1851,23 @@
             "spread": 130,
             "blur": 2,
             "grain": 0
+          }
+        },
+        {
+          "label": "Live backdrop",
+          "values": {
+            "count": 4,
+            "color1": "#eef2f7",
+            "color2": "#cfe0f5",
+            "color3": "#dcd6f7",
+            "color4": "#f7e6d8",
+            "blend": "normal",
+            "spread": 110,
+            "blur": 16,
+            "grain": 25,
+            "animate": true,
+            "speed": 16,
+            "distance": 80
           }
         }
       ],
@@ -3338,7 +3488,7 @@
       "id": "audiogram",
       "name": "Audiogram",
       "description": "Turn a voice clip or song into a branded video that actually moves with the sound - bars, spectrum, ring, ridgeline or scope, ready for social.",
-      "version": "2.5.0",
+      "version": "2.7.1",
       "status": "community",
       "category": "everyone",
       "tags": [
@@ -3364,7 +3514,9 @@
         "wav",
         "mp3",
         "m4a",
-        "opus"
+        "opus",
+        "srt",
+        "vtt"
       ],
       "width": 1080,
       "height": 1080,
@@ -3378,6 +3530,15 @@
             "title": "Slow is smooth, smooth is fast",
             "subtitle": "The Build Notes podcast · Ep. 41",
             "style": "bars"
+          }
+        },
+        {
+          "label": "Interview - captioned",
+          "values": {
+            "title": "In her own words",
+            "subtitle": "Field notes · episode 12",
+            "style": "wave",
+            "transcript": "1\n00:00:00,200 --> 00:00:03,400\nWe started with one question.\n\n2\n00:00:03,600 --> 00:00:07,000\nWhat would you build if nothing had to scale?\n"
           }
         },
         {
@@ -3834,7 +3995,7 @@
       "id": "redact",
       "name": "Redact",
       "description": "Black out sensitive content by rebuilding the file, then verify the output before it downloads, all on your device.",
-      "version": "1.5.0",
+      "version": "1.6.0",
       "status": "official",
       "category": "utility",
       "privacy": "on-device",
@@ -5051,6 +5212,24 @@
           "description": "A five-beat feature tour: a title, three timed highlights, and a sign-off."
         },
         {
+          "id": "launch-kit",
+          "name": "Launch kit",
+          "category": "Marketing",
+          "description": "Two artboards for shipping a release: a 1280x320 README banner and a square release card with the version and three highlights.",
+          "presets": [
+            {
+              "id": "dark",
+              "name": "Dark",
+              "description": "Brand colour behind both artboards."
+            },
+            {
+              "id": "light",
+              "name": "Light",
+              "description": "Plain ground, a hairline instead of the colour panel."
+            }
+          ]
+        },
+        {
           "id": "launch-teaser",
           "name": "Launch teaser",
           "category": "Video",
@@ -5065,6 +5244,24 @@
               "id": "square",
               "name": "Square",
               "description": "1:1 for social feeds."
+            }
+          ]
+        },
+        {
+          "id": "meeting-background",
+          "name": "Meeting background",
+          "category": "Video",
+          "description": "A 1920x1080 backdrop for video calls, with the middle kept clear so nothing sits behind your head and shoulders.",
+          "presets": [
+            {
+              "id": "solid",
+              "name": "Solid",
+              "description": "One flat brand colour behind the name."
+            },
+            {
+              "id": "gradient-look",
+              "name": "Gradient look",
+              "description": "Layered translucent shapes, still clear of the centre."
             }
           ]
         },
@@ -5109,6 +5306,24 @@
           "name": "Slide deck",
           "category": "Slides",
           "description": "Three frames as slides - title, content, closing. Export as PowerPoint or PDF."
+        },
+        {
+          "id": "social-profile-kit",
+          "name": "Social profile kit",
+          "category": "Social",
+          "description": "Five profile artboards on one canvas: LinkedIn banner, X header, GitHub preview, YouTube banner and a square avatar. Exports one image per artboard.",
+          "presets": [
+            {
+              "id": "dark-ground",
+              "name": "Dark ground",
+              "description": "Brand colour behind every artboard."
+            },
+            {
+              "id": "minimal",
+              "name": "Minimal",
+              "description": "Name only, no accents."
+            }
+          ]
         },
         {
           "id": "title",
@@ -5685,7 +5900,7 @@
       "id": "code-canvas",
       "name": "Code Canvas",
       "description": "Turn code snippets into clean, syntax-highlighted, shareable images.",
-      "version": "1.0.0",
+      "version": "1.1.0",
       "status": "official",
       "category": "everyone",
       "tags": [
@@ -6264,7 +6479,7 @@
       "id": "record",
       "name": "Record",
       "description": "Design your own top and tail cards, then record a clip and Lolly wraps them around it automatically.",
-      "version": "1.2.0",
+      "version": "1.4.0",
       "status": "official",
       "category": "everyone",
       "capabilities": [
@@ -6294,7 +6509,9 @@
       ],
       "formats": [
         "mp4",
-        "webm"
+        "webm",
+        "srt",
+        "vtt"
       ],
       "width": 1080,
       "height": 1920,
@@ -6412,22 +6629,28 @@
     {
       "id": "web-icon",
       "name": "Web Icon Maker",
-      "description": "Favicon and app-icon maker - a multi-size .ico, plus PNG and SVG.",
-      "version": "1.0.0",
+      "description": "Favicon and app-icon maker - a multi-size .ico, PNG and SVG, or the whole app kit as one zip.",
+      "version": "1.1.0",
       "status": "community",
       "category": "everyone",
+      "capabilities": [
+        "compose"
+      ],
       "tags": [
         "favicon",
         "icon",
         "ico",
         "app icon",
         "web",
-        "logo"
+        "logo",
+        "pwa",
+        "manifest"
       ],
       "formats": [
         "ico",
         "png",
-        "svg"
+        "svg",
+        "zip"
       ],
       "width": 512,
       "height": 512,
@@ -6780,6 +7003,1544 @@
           "blurb": "用胶片风格、LUT 和品牌色为照片调色"
         }
       }
+    },
+    {
+      "id": "contrast-check",
+      "name": "Contrast Checker",
+      "description": "Check a text and background pair, or every pairing in your brand palette, against WCAG 2.1 and APCA, and see how it reads to colour-blind viewers.",
+      "version": "1.1.0",
+      "status": "community",
+      "category": "utility",
+      "tags": [
+        "contrast",
+        "accessibility",
+        "wcag",
+        "apca",
+        "colour-blind",
+        "a11y"
+      ],
+      "formats": [
+        "svg",
+        "png",
+        "pdf",
+        "csv",
+        "json"
+      ],
+      "width": 1600,
+      "height": 1000,
+      "exportable": true,
+      "icon": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><circle cx=\"9\" cy=\"9\" r=\"7\" /><path d=\"M9 2a7 7 0 0 1 0 14z\" fill=\"currentColor\" stroke=\"none\" /><path d=\"M14.5 18.5 16 20l3.5-3.5\" /></svg>",
+      "preview": "/catalog/previews/contrast-check.svg",
+      "examples": [
+        {
+          "label": "Mid grey on white fails",
+          "values": {
+            "color": "#9aa3ab",
+            "background": "#ffffff",
+            "mode": "pair",
+            "textSize": "normal",
+            "sample": "Light grey reads well until it does not"
+          }
+        },
+        {
+          "label": "Ink on paper, AAA",
+          "values": {
+            "color": "#14171a",
+            "background": "#f7f7f5",
+            "mode": "pair",
+            "textSize": "normal",
+            "sample": "Readable at every size"
+          }
+        },
+        {
+          "label": "Large text on sand",
+          "values": {
+            "color": "#7a5b3a",
+            "background": "#f4ece0",
+            "mode": "pair",
+            "textSize": "large",
+            "sample": "Headlines carry a lower bar"
+          }
+        },
+        {
+          "label": "Whole brand palette",
+          "values": {
+            "color": "#14171a",
+            "background": "#ffffff",
+            "mode": "palette",
+            "textSize": "normal"
+          }
+        }
+      ],
+      "templates": [
+        {
+          "id": "pair",
+          "name": "One pair",
+          "category": "Utility",
+          "description": "Check one text colour on one background, with the colour-vision strip.",
+          "presets": [
+            {
+              "id": "body-copy",
+              "name": "Body copy",
+              "description": "Normal text, so the AA bar is 4.5:1."
+            },
+            {
+              "id": "headline",
+              "name": "Headline",
+              "description": "Large text, judged at the 3:1 AA bar."
+            }
+          ]
+        },
+        {
+          "id": "palette",
+          "name": "Whole palette",
+          "category": "Utility",
+          "description": "Every combination of your brand colours as a pass/fail matrix.",
+          "presets": [
+            {
+              "id": "text-pairs",
+              "name": "Text pairings",
+              "description": "Judged at the normal-text bars, for body copy on brand surfaces."
+            },
+            {
+              "id": "display-pairs",
+              "name": "Display pairings",
+              "description": "Judged at the large-text bars, for headlines and display type."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "pricing-table",
+      "name": "Pricing Table",
+      "description": "Plans as columns, features as rows, ticks and crosses, and one plan picked out as the recommended one.",
+      "version": "1.0.0",
+      "status": "community",
+      "category": "everyone",
+      "tags": [
+        "pricing",
+        "comparison",
+        "table",
+        "features",
+        "plans",
+        "marketing"
+      ],
+      "formats": [
+        "png",
+        "svg",
+        "pdf",
+        "csv",
+        "json"
+      ],
+      "width": 1600,
+      "height": 1000,
+      "exportable": true,
+      "icon": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><rect x=\"3\" y=\"3\" width=\"18\" height=\"18\" rx=\"2\" /><path d=\"M3 8.5h18\" /><path d=\"M9 8.5V21\" /><path d=\"M12 14.2l1.7 1.7 3.3-3.6\" /></svg>",
+      "preview": "/catalog/previews/pricing-table.svg",
+      "examples": [
+        {
+          "label": "SaaS three tiers",
+          "values": {
+            "heading": "Simple, transparent pricing",
+            "subheading": "Every plan includes the whole toolkit. Pay for the seats and support you need.",
+            "accent": "#2563eb",
+            "background": "#f6f8fc",
+            "color": "#16202b",
+            "highlight": 2
+          }
+        },
+        {
+          "label": "Two-product comparison",
+          "values": {
+            "heading": "How we compare",
+            "subheading": "The same job, side by side.",
+            "cta": "Switch today",
+            "highlight": 1,
+            "highlightLabel": "Our pick",
+            "accent": "#0d7a5f",
+            "background": "#f5f7f4",
+            "color": "#132019",
+            "layout": "cards",
+            "data": {
+              "columns": [
+                "Feature",
+                "Lolly",
+                "The usual tool"
+              ],
+              "rows": [
+                [
+                  "Price",
+                  "Free",
+                  "$18 / month"
+                ],
+                [
+                  "Tagline",
+                  "Runs on your device",
+                  "Runs on their servers"
+                ],
+                [
+                  "Works offline",
+                  "yes",
+                  "no"
+                ],
+                [
+                  "Files stay on your machine",
+                  "yes",
+                  "no"
+                ],
+                [
+                  "Brand tokens built in",
+                  "yes",
+                  "no"
+                ],
+                [
+                  "Print-ready PDF",
+                  "yes",
+                  "yes"
+                ],
+                [
+                  "Command line",
+                  "yes",
+                  "no"
+                ]
+              ]
+            }
+          }
+        },
+        {
+          "label": "Five-tier grid",
+          "values": {
+            "heading": "Pick your seat count",
+            "subheading": "Volume pricing, billed yearly.",
+            "layout": "grid",
+            "highlight": 0,
+            "cta": "",
+            "accent": "#7c3aed",
+            "background": "#faf9fd",
+            "color": "#1c1730",
+            "data": {
+              "columns": [
+                "Feature",
+                "Solo",
+                "Duo",
+                "Squad",
+                "Studio",
+                "Agency"
+              ],
+              "rows": [
+                [
+                  "Price",
+                  "$0",
+                  "$12",
+                  "$40",
+                  "$120",
+                  "$400"
+                ],
+                [
+                  "Tagline",
+                  "1 seat",
+                  "2 seats",
+                  "10 seats",
+                  "40 seats",
+                  "Unlimited"
+                ],
+                [
+                  "Shared brand kit",
+                  "no",
+                  "yes",
+                  "yes",
+                  "yes",
+                  "yes"
+                ],
+                [
+                  "Batch renders",
+                  "-",
+                  "100",
+                  "2,000",
+                  "20,000",
+                  "Unlimited"
+                ],
+                [
+                  "Single sign-on",
+                  "no",
+                  "no",
+                  "no",
+                  "yes",
+                  "yes"
+                ],
+                [
+                  "Support",
+                  "Community",
+                  "Email",
+                  "Email",
+                  "> Priority",
+                  "> Named contact"
+                ]
+              ]
+            }
+          }
+        },
+        {
+          "label": "Ink accent on warm paper",
+          "values": {
+            "heading": "Membership",
+            "subheading": "One workshop a month, or all of them.",
+            "cta": "Join",
+            "highlight": 3,
+            "highlightLabel": "Best value",
+            "accent": "#1f2933",
+            "background": "#f7f4ee",
+            "color": "#1f2933",
+            "data": {
+              "columns": [
+                "Feature",
+                "Visitor",
+                "Member",
+                "Patron"
+              ],
+              "rows": [
+                [
+                  "Price",
+                  "$0",
+                  "$15 / month",
+                  "$40 / month"
+                ],
+                [
+                  "Tagline",
+                  "Drop in",
+                  "Every month",
+                  "Everything, plus"
+                ],
+                [
+                  "Workshop seats",
+                  "1 a year",
+                  "1 a month",
+                  "Unlimited"
+                ],
+                [
+                  "Recordings",
+                  "no",
+                  "yes",
+                  "yes"
+                ],
+                [
+                  "Studio access",
+                  "no",
+                  "no",
+                  "yes"
+                ],
+                [
+                  "Guest pass",
+                  "no",
+                  "1 a year",
+                  "4 a year"
+                ]
+              ]
+            }
+          }
+        }
+      ],
+      "templates": [
+        {
+          "id": "comparison",
+          "name": "Us and them",
+          "category": "Marketing",
+          "description": "Two columns side by side, yours picked out.",
+          "presets": [
+            {
+              "id": "before-after",
+              "name": "Before and after",
+              "description": "The old way against the new one, with the new way featured."
+            }
+          ]
+        },
+        {
+          "id": "feature-matrix",
+          "name": "Feature matrix",
+          "category": "Reference",
+          "description": "A flat grid of many plans, for a docs page or a one-pager.",
+          "presets": [
+            {
+              "id": "two-plan",
+              "name": "Two plans",
+              "description": "The short version, with the paid plan featured."
+            }
+          ]
+        },
+        {
+          "id": "saas",
+          "name": "SaaS plans",
+          "category": "Marketing",
+          "description": "Three tiers, one recommended, a button under each.",
+          "presets": [
+            {
+              "id": "yearly",
+              "name": "Billed yearly",
+              "description": "Two months free, with the discount in each price."
+            },
+            {
+              "id": "free-first",
+              "name": "Free tier first",
+              "description": "Opens with a free plan and features the middle tier."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "screenshot-frame",
+      "name": "Screenshot Frame",
+      "description": "Drop in a screenshot and get it framed, padded and shadowed on a brand backdrop.",
+      "version": "1.0.1",
+      "status": "community",
+      "category": "everyone",
+      "tags": [
+        "screenshot",
+        "frame",
+        "mockup",
+        "device",
+        "browser",
+        "social"
+      ],
+      "formats": [
+        "png",
+        "jpg",
+        "webp",
+        "svg",
+        "pdf"
+      ],
+      "width": 1600,
+      "height": 1000,
+      "exportable": true,
+      "icon": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><rect width=\"20\" height=\"16\" x=\"2\" y=\"4\" rx=\"2\" /><path d=\"M2 8.5h20\" /><path d=\"M5.2 6.3h.01\" /><path d=\"M7.8 6.3h.01\" /><path d=\"m6 17 3.2-3.4 2.2 2.3L15 12l3 5\" /></svg>",
+      "preview": "/catalog/previews/screenshot-frame.svg",
+      "examples": [
+        {
+          "label": "Browser, light chrome",
+          "values": {
+            "frame": "browser",
+            "windowStyle": "nuremberg",
+            "url": "https://lolly.tools/gallery",
+            "title": "Gallery",
+            "backdrop": "gradient",
+            "background": "{color.semantic.primary}",
+            "color2": "{color.semantic.secondary}",
+            "dark": false
+          }
+        },
+        {
+          "label": "Phone on a warm gradient",
+          "values": {
+            "frame": "phone",
+            "title": "Field notes",
+            "backdrop": "gradient",
+            "background": "#f6c99f",
+            "color2": "#e8836b",
+            "padding": 72,
+            "scale": 90,
+            "shadow": 65
+          }
+        },
+        {
+          "label": "Laptop on a solid brand ground",
+          "values": {
+            "frame": "laptop",
+            "backdrop": "solid",
+            "background": "{color.semantic.primary}",
+            "padding": 88,
+            "scale": 78,
+            "radius": 10
+          }
+        },
+        {
+          "label": "Bare shot, no backdrop",
+          "values": {
+            "frame": "none",
+            "backdrop": "transparent",
+            "padding": 48,
+            "scale": 88,
+            "radius": 24,
+            "shadow": 40
+          }
+        }
+      ],
+      "templates": [
+        {
+          "id": "browser",
+          "name": "Browser window",
+          "category": "Screenshot",
+          "description": "A web page in a desktop window on a soft brand gradient.",
+          "presets": [
+            {
+              "id": "light",
+              "name": "Light chrome",
+              "description": "Pale window on a two-colour brand wash."
+            },
+            {
+              "id": "night",
+              "name": "Dark chrome",
+              "description": "Dark window on a deep, calm ground."
+            }
+          ]
+        },
+        {
+          "id": "laptop",
+          "name": "Laptop",
+          "category": "Screenshot",
+          "description": "A wide app view on a laptop, for release notes and case studies.",
+          "presets": [
+            {
+              "id": "brand",
+              "name": "Brand ground",
+              "description": "One flat brand colour behind the machine."
+            },
+            {
+              "id": "studio",
+              "name": "Studio gradient",
+              "description": "A soft two-colour wash and a deeper shadow."
+            }
+          ]
+        },
+        {
+          "id": "phone",
+          "name": "Phone",
+          "category": "Screenshot",
+          "description": "A portrait app screen in a phone bezel, for stores and social posts.",
+          "presets": [
+            {
+              "id": "warm",
+              "name": "Warm gradient",
+              "description": "Sunset wash behind the handset."
+            },
+            {
+              "id": "clean",
+              "name": "Clean ground",
+              "description": "One flat brand colour, more room for a caption."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "captions",
+      "name": "Captions",
+      "description": "Subtitles for a clip - transcribe it on device or drop in an SRT/VTT file, style the cues, and export burned-in frames plus clean .srt and .vtt sidecars.",
+      "version": "1.0.1",
+      "status": "community",
+      "category": "everyone",
+      "tags": [
+        "captions",
+        "subtitles",
+        "srt",
+        "vtt",
+        "transcript",
+        "accessibility",
+        "video",
+        "audio"
+      ],
+      "formats": [
+        "png",
+        "svg",
+        "srt",
+        "vtt",
+        "json"
+      ],
+      "width": 1920,
+      "height": 1080,
+      "exportable": true,
+      "icon": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><rect width=\"18\" height=\"14\" x=\"3\" y=\"5\" rx=\"2\" /><path d=\"M7 11h2\" /><path d=\"M13 11h4\" /><path d=\"M7 15h4\" /><path d=\"M15 15h2\" /></svg>",
+      "preview": "/catalog/previews/captions.svg",
+      "examples": [
+        {
+          "label": "Interview - bar captions",
+          "values": {
+            "style": "bar",
+            "position": "bottom",
+            "time": 1.2,
+            "transcript": "1\n00:00:00,200 --> 00:00:02,400\nCaptions are how most people meet your work.\n\n2\n00:00:02,600 --> 00:00:05,000\nDrop in an SRT file, or transcribe the clip on your device.\n\n3\n00:00:05,200 --> 00:00:07,800\nNothing is uploaded, and nothing is invented."
+          }
+        },
+        {
+          "label": "Field notes - outline over VTT",
+          "values": {
+            "style": "outline",
+            "position": "bottom",
+            "time": 1,
+            "showTimecodes": true,
+            "transcript": "WEBVTT\n\nNOTE Recorded on the field day.\n\nintro\n00:00:00.000 --> 00:00:02.500\n<v Ana>Every clip should carry its words.\n\n00:00:02.700 --> 00:00:05.600 line:90%\nSubtitles travel further than sound does."
+          }
+        },
+        {
+          "label": "Karaoke - word by word",
+          "values": {
+            "style": "karaoke",
+            "position": "centre",
+            "time": 1.5,
+            "fontSize": 72,
+            "transcript": "1\n00:00:00,000 --> 00:00:03,000\nSing along with every single word.\n\n2\n00:00:03,200 --> 00:00:06,000\nThe line lights up as it is spoken."
+          }
+        }
+      ],
+      "templates": [
+        {
+          "id": "karaoke",
+          "name": "Karaoke",
+          "category": "Captions",
+          "description": "One line in the middle of the frame, lighting up word by word as it is spoken.",
+          "presets": [
+            {
+              "id": "lower",
+              "name": "Lower third",
+              "description": "The same word-by-word lift, sitting where subtitles usually do."
+            }
+          ]
+        },
+        {
+          "id": "subtitles",
+          "name": "Subtitles",
+          "category": "Captions",
+          "description": "Broadcast-style subtitles across the foot of the frame, two lines at most.",
+          "presets": [
+            {
+              "id": "outline",
+              "name": "Outline",
+              "description": "No plate. The words carry their own edge, so the picture stays whole."
+            },
+            {
+              "id": "box",
+              "name": "Boxed",
+              "description": "A rounded plate that hugs the words rather than the frame."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "certificate",
+      "name": "Certificate",
+      "description": "Completion and award certificates from the active brand - one name at a time, or a whole roster from a CSV in Bulk from rows.",
+      "version": "1.0.1",
+      "status": "community",
+      "category": "everyone",
+      "tags": [
+        "certificate",
+        "award",
+        "training",
+        "course",
+        "completion",
+        "print",
+        "roster"
+      ],
+      "formats": [
+        "pdf",
+        "pdf-cmyk",
+        "svg",
+        "png"
+      ],
+      "width": 1123,
+      "height": 794,
+      "exportable": true,
+      "icon": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M20 13V5a1 1 0 0 0-1-1H5a1 1 0 0 0-1 1v11a1 1 0 0 0 1 1h6\" /><path d=\"M8 8h8\" /><path d=\"M8 11.5h5\" /><circle cx=\"16.5\" cy=\"16.5\" r=\"3.2\" /><path d=\"M14.6 19.2 14 23l2.5-1.4L19 23l-.6-3.8\" /></svg>",
+      "preview": "/catalog/previews/certificate.svg",
+      "personalized": true,
+      "examples": [
+        {
+          "label": "Course completion",
+          "values": {
+            "certKind": "completion",
+            "firstname": "Ana",
+            "lastname": "Kovač",
+            "course": "Container Fundamentals",
+            "awarddate": "2026-06-18",
+            "presenter": "Maya Lindqvist",
+            "presenterTitle": "Programme Director",
+            "company": "Northwind Institute",
+            "color": "#1f2933",
+            "background": "#faf8f4",
+            "accent": "#8a6a2b"
+          }
+        },
+        {
+          "label": "Award",
+          "values": {
+            "certKind": "award",
+            "firstname": "Tomás",
+            "lastname": "Herrera",
+            "course": "The 2026 Innovation Award",
+            "awarddate": "2026-05-09",
+            "presenter": "Ingrid Sorensen",
+            "presenterTitle": "Chair of the Jury",
+            "company": "Northwind Institute",
+            "serial": "No. 2026-0413",
+            "color": "#1c2733",
+            "background": "#f7f7f4",
+            "accent": "#1f5d63"
+          }
+        },
+        {
+          "label": "Appreciation",
+          "values": {
+            "certKind": "appreciation",
+            "firstname": "Priya",
+            "lastname": "Nair",
+            "course": "Two years of volunteering",
+            "awarddate": "2026-03-02",
+            "presenter": "Jonas Weber",
+            "presenterTitle": "Community Lead",
+            "company": "Riverside Library",
+            "color": "#232a24",
+            "background": "#f8f7f1",
+            "accent": "#5c6b3c"
+          }
+        },
+        {
+          "label": "Achievement on screen",
+          "values": {
+            "certKind": "achievement",
+            "pageSize": "screen",
+            "firstname": "Lena",
+            "lastname": "Fischer",
+            "course": "Top of the 2026 cohort",
+            "awarddate": "2026-07-24",
+            "presenter": "Maya Lindqvist",
+            "presenterTitle": "Programme Director",
+            "company": "Northwind Institute",
+            "color": "#1f2933",
+            "background": "#f6f7f9",
+            "accent": "#3f5b8c"
+          }
+        }
+      ],
+      "templates": [
+        {
+          "id": "award",
+          "name": "Award",
+          "category": "Recognition",
+          "description": "An award or a thank-you, signed by whoever hands it over.",
+          "presets": [
+            {
+              "id": "appreciation",
+              "name": "Thank you",
+              "description": "Appreciation for time given, rather than a prize won."
+            },
+            {
+              "id": "team-of-the-year",
+              "name": "Team of the year",
+              "description": "A titled award with your own wording in place of the kind."
+            }
+          ]
+        },
+        {
+          "id": "completion",
+          "name": "Course completion",
+          "category": "Training",
+          "description": "The classic training certificate: who, what they completed, and when.",
+          "presets": [
+            {
+              "id": "workshop",
+              "name": "Workshop attendance",
+              "description": "A one-day workshop, signed by the facilitator."
+            },
+            {
+              "id": "certification",
+              "name": "Certification pass",
+              "description": "An exam pass, with the reference line switched on."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "print-sheet",
+      "name": "Print Sheet",
+      "description": "Lay one piece of artwork out n-up on A4, Letter or A3, with crop marks in the margin.",
+      "version": "1.0.0",
+      "status": "community",
+      "category": "everyone",
+      "tags": [
+        "print",
+        "imposition",
+        "n-up",
+        "sheet",
+        "crop marks",
+        "stickers",
+        "badges",
+        "business cards",
+        "a4",
+        "letter"
+      ],
+      "formats": [
+        "pdf",
+        "pdf-cmyk",
+        "svg",
+        "png"
+      ],
+      "width": 794,
+      "height": 1123,
+      "exportable": true,
+      "icon": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><rect x=\"3\" y=\"2\" width=\"18\" height=\"20\" rx=\"2\" /><rect x=\"6.5\" y=\"5.5\" width=\"4.5\" height=\"5\" rx=\"1\" /><rect x=\"13\" y=\"5.5\" width=\"4.5\" height=\"5\" rx=\"1\" /><rect x=\"6.5\" y=\"13.5\" width=\"4.5\" height=\"5\" rx=\"1\" /><rect x=\"13\" y=\"13.5\" width=\"4.5\" height=\"5\" rx=\"1\" /></svg>",
+      "preview": "/catalog/previews/print-sheet.svg",
+      "examples": [
+        {
+          "label": "Badges, 2 x 2 on A4",
+          "values": {
+            "sheet": "a4",
+            "rows": 2,
+            "cols": 2,
+            "gap": 5,
+            "margin": 10,
+            "ticks": true,
+            "tickShape": "rect"
+          }
+        },
+        {
+          "label": "Stickers, 3 x 3 round-cut",
+          "values": {
+            "sheet": "a4",
+            "rows": 3,
+            "cols": 3,
+            "gap": 6,
+            "margin": 12,
+            "ticks": true,
+            "tickShape": "round-rect"
+          }
+        },
+        {
+          "label": "Cards, 2 x 5 on A4",
+          "values": {
+            "sheet": "a4",
+            "rows": 5,
+            "cols": 2,
+            "gap": 4,
+            "margin": 10,
+            "ticks": true,
+            "tickShape": "rect"
+          }
+        }
+      ],
+      "templates": [
+        {
+          "id": "badges",
+          "name": "Badges and cards",
+          "category": "Print",
+          "description": "Straight-cut sheet for name badges, business cards and place cards.",
+          "presets": [
+            {
+              "id": "four-up",
+              "name": "4 up",
+              "description": "Two by two - conference badge size."
+            },
+            {
+              "id": "ten-up",
+              "name": "10 up",
+              "description": "Five rows of two - business cards."
+            },
+            {
+              "id": "letter-eight-up",
+              "name": "8 up on Letter",
+              "description": "Four rows of two on US Letter stock."
+            }
+          ]
+        },
+        {
+          "id": "stickers",
+          "name": "Sticker sheet",
+          "category": "Print",
+          "description": "Rounded die lines around every cell, for cut-out stickers and labels.",
+          "presets": [
+            {
+              "id": "nine-up",
+              "name": "9 up",
+              "description": "Three by three - big stickers."
+            },
+            {
+              "id": "twenty-up",
+              "name": "20 up",
+              "description": "Five rows of four - small round-cornered labels."
+            },
+            {
+              "id": "a3-thirty-up",
+              "name": "30 up on A3",
+              "description": "Six rows of five on A3 - a full print run in one pass."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "stationery",
+      "name": "Stationery",
+      "description": "Business cards, letterhead and compliments slips from your brand - each piece sized to its real print trim, ready as a print PDF.",
+      "version": "1.0.0",
+      "status": "community",
+      "category": "everyone",
+      "tags": [
+        "business card",
+        "letterhead",
+        "compliments slip",
+        "print",
+        "identity",
+        "stationery"
+      ],
+      "formats": [
+        "pdf",
+        "pdf-cmyk",
+        "svg",
+        "png"
+      ],
+      "width": 850,
+      "height": 550,
+      "exportable": true,
+      "icon": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><rect x=\"3\" y=\"2\" width=\"12\" height=\"15\" rx=\"1.6\" /><path d=\"M6 5.8h6\" /><path d=\"M6 9.2h4\" /><rect x=\"9\" y=\"13\" width=\"12\" height=\"9\" rx=\"1.6\" /><path d=\"M12 17.4h4\" /></svg>",
+      "preview": "/catalog/previews/stationery.svg",
+      "personalized": true,
+      "examples": [
+        {
+          "label": "Card front, teal edge",
+          "values": {
+            "piece": "business-card-front",
+            "color": "#17232b",
+            "background": "#ffffff",
+            "accent": "#1f5f52"
+          }
+        },
+        {
+          "label": "Card back, accent field",
+          "values": {
+            "piece": "business-card-back",
+            "color": "#17232b",
+            "background": "#ffffff",
+            "accent": "#1f5f52",
+            "tagline": "Design that keeps its promises."
+          }
+        },
+        {
+          "label": "Letterhead on warm paper",
+          "values": {
+            "piece": "letterhead",
+            "color": "#241d16",
+            "background": "#faf6ef",
+            "accent": "#8a5a2b"
+          }
+        },
+        {
+          "label": "Compliments slip",
+          "values": {
+            "piece": "comp-slip",
+            "color": "#17232b",
+            "background": "#f7f8fa",
+            "accent": "#1f5f52",
+            "tagline": "With compliments"
+          }
+        }
+      ],
+      "templates": [
+        {
+          "id": "card",
+          "name": "Business card",
+          "category": "Identity",
+          "description": "An 85 x 55 mm card, front and back, with the brand lockup and an accent edge.",
+          "presets": [
+            {
+              "id": "card-back",
+              "name": "Card back",
+              "description": "The reverse: lockup and tagline on the accent field."
+            },
+            {
+              "id": "card-mono",
+              "name": "Mono card",
+              "description": "Ink on white, no colour - the cheapest card a printer will quote."
+            }
+          ]
+        },
+        {
+          "id": "comp-slip",
+          "name": "Compliments slip",
+          "category": "Identity",
+          "description": "A DL slip, 210 x 99 mm, to go in the envelope with everything else.",
+          "presets": [
+            {
+              "id": "comp-slip-thanks",
+              "name": "Thank you",
+              "description": "The same slip with a warmer line on it."
+            },
+            {
+              "id": "comp-slip-ink",
+              "name": "Ink slip",
+              "description": "Dark stock, pale ink, mint accent."
+            }
+          ]
+        },
+        {
+          "id": "letterhead",
+          "name": "Letterhead",
+          "category": "Identity",
+          "description": "An A4 sheet with the lockup, a letter, and the address in the footer.",
+          "presets": [
+            {
+              "id": "letterhead-warm",
+              "name": "Warm paper",
+              "description": "Off-white stock with a rust accent."
+            },
+            {
+              "id": "letterhead-blank",
+              "name": "Second sheet",
+              "description": "The same furniture with no letter - the continuation page."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "jump",
+      "name": "Jump Page",
+      "description": "A one-link landing page: up to ten links with a heading and your colours, and the whole page lives inside the link you share.",
+      "version": "1.0.0",
+      "status": "community",
+      "category": "utility",
+      "tags": [
+        "links",
+        "landing",
+        "linktree",
+        "bio",
+        "jump",
+        "marketing",
+        "share"
+      ],
+      "formats": [
+        "html"
+      ],
+      "width": 900,
+      "height": 1400,
+      "exportable": false,
+      "icon": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><rect x=\"4\" y=\"3\" width=\"16\" height=\"4.6\" rx=\"2.3\"/><rect x=\"4\" y=\"9.7\" width=\"16\" height=\"4.6\" rx=\"2.3\"/><rect x=\"4\" y=\"16.4\" width=\"16\" height=\"4.6\" rx=\"2.3\"/></svg>",
+      "preview": "/catalog/previews/jump.webp",
+      "examples": [
+        {
+          "label": "Studio front door",
+          "values": {
+            "heading": "Northwind Studio",
+            "subheading": "Everything we make, one link.",
+            "style": "buttons",
+            "accent": "#2563eb",
+            "background": "#f6f8fc",
+            "color": "#16202b",
+            "links": [
+              {
+                "label": "Portfolio",
+                "url": "https://example.com/work"
+              },
+              {
+                "label": "Book a session",
+                "url": "https://example.com/book"
+              },
+              {
+                "label": "Newsletter",
+                "url": "https://example.com/news"
+              },
+              {
+                "label": "Contact",
+                "url": "https://example.com/hello"
+              }
+            ]
+          }
+        },
+        {
+          "label": "Conference talk",
+          "values": {
+            "heading": "Thanks for listening",
+            "subheading": "The slides, the paper and the demo from today's talk.",
+            "style": "cards",
+            "accent": "#0d7a5f",
+            "background": "#f5f7f4",
+            "color": "#132019",
+            "links": [
+              {
+                "label": "Slides (PDF)",
+                "url": "https://example.com/talk/slides"
+              },
+              {
+                "label": "The paper",
+                "url": "https://example.com/talk/paper"
+              },
+              {
+                "label": "Live demo",
+                "url": "https://example.com/talk/demo"
+              }
+            ]
+          }
+        },
+        {
+          "label": "Quiet list",
+          "values": {
+            "heading": "Ana Kovac",
+            "subheading": "",
+            "style": "minimal",
+            "accent": "#7c3aed",
+            "background": "#faf9fd",
+            "color": "#1c1730",
+            "links": [
+              {
+                "label": "Writing",
+                "url": "https://example.com/essays"
+              },
+              {
+                "label": "Photography",
+                "url": "https://example.com/photos"
+              },
+              {
+                "label": "Now",
+                "url": "https://example.com/now"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "annotate",
+      "name": "Annotate",
+      "description": "Mark up your own screenshot on your device - arrows, boxes, numbered steps, callouts, highlighter and a spotlight dim.",
+      "version": "1.0.0",
+      "status": "community",
+      "category": "utility",
+      "privacy": "on-device",
+      "tags": [
+        "annotate",
+        "markup",
+        "arrow",
+        "callout",
+        "highlight",
+        "spotlight",
+        "screenshot",
+        "steps",
+        "numbered",
+        "review",
+        "documentation",
+        "image"
+      ],
+      "formats": [
+        "png",
+        "jpg",
+        "webp"
+      ],
+      "width": 1200,
+      "height": 750,
+      "exportable": false,
+      "icon": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><rect x=\"3\" y=\"4\" width=\"18\" height=\"16\" rx=\"2\"/><path d=\"M8 15 15 8\"/><path d=\"M10.6 8H15v4.4\"/><path d=\"M7.5 18h6\"/></svg>",
+      "preview": "/catalog/previews/annotate.webp",
+      "examples": [
+        {
+          "label": "Three numbered steps",
+          "values": {
+            "annotStyle": "solid",
+            "accent": "{color.semantic.primary}",
+            "strokeWidth": 4,
+            "annotations": [
+              {
+                "kind": "pin",
+                "x": 11,
+                "y": 21,
+                "text": "Pick a template"
+              },
+              {
+                "kind": "pin",
+                "x": 52,
+                "y": 37,
+                "text": "Set the words"
+              },
+              {
+                "kind": "pin",
+                "x": 84,
+                "y": 76,
+                "text": "Download"
+              }
+            ]
+          }
+        },
+        {
+          "label": "Point at it and say why",
+          "values": {
+            "annotStyle": "sketchy",
+            "accent": "#d9480f",
+            "strokeWidth": 5,
+            "annotations": [
+              {
+                "kind": "box",
+                "x": 46,
+                "y": 22,
+                "w": 30,
+                "h": 27
+              },
+              {
+                "kind": "arrow",
+                "x": 22,
+                "y": 78,
+                "w": 22,
+                "h": -22
+              },
+              {
+                "kind": "callout",
+                "x": 8,
+                "y": 80,
+                "w": 34,
+                "h": 13,
+                "text": "This panel moved"
+              }
+            ]
+          }
+        },
+        {
+          "label": "Spotlight one detail",
+          "values": {
+            "annotStyle": "solid",
+            "accent": "#f2b705",
+            "strokeWidth": 3,
+            "annotations": [
+              {
+                "kind": "spotlight",
+                "x": 44,
+                "y": 20,
+                "w": 34,
+                "h": 31
+              },
+              {
+                "kind": "pin",
+                "x": 47,
+                "y": 24,
+                "text": ""
+              }
+            ]
+          }
+        },
+        {
+          "label": "Highlighter pass",
+          "values": {
+            "annotStyle": "solid",
+            "accent": "#0d7a5f",
+            "strokeWidth": 3,
+            "annotations": [
+              {
+                "kind": "highlight",
+                "x": 9,
+                "y": 33,
+                "w": 27,
+                "h": 6
+              },
+              {
+                "kind": "highlight",
+                "x": 9,
+                "y": 44,
+                "w": 21,
+                "h": 6
+              },
+              {
+                "kind": "box",
+                "x": 45,
+                "y": 60,
+                "w": 32,
+                "h": 19
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "barcode",
+      "name": "Barcode Generator",
+      "description": "Retail and logistics barcodes as crisp vector art - EAN-13, EAN-8, UPC-A and Code 128, with the check digit worked out for you.",
+      "version": "1.0.1",
+      "status": "community",
+      "category": "everyone",
+      "tags": [
+        "barcode",
+        "ean",
+        "upc",
+        "code128",
+        "retail",
+        "label",
+        "inventory"
+      ],
+      "formats": [
+        "svg",
+        "png",
+        "pdf",
+        "eps",
+        "emf"
+      ],
+      "width": 900,
+      "height": 520,
+      "exportable": true,
+      "icon": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M3 5v14\" /><path d=\"M8 5v14\" /><path d=\"M12 5v14\" /><path d=\"M17 5v14\" /><path d=\"M21 5v14\" /></svg>",
+      "preview": "/catalog/previews/barcode.svg",
+      "examples": [
+        {
+          "label": "Retail EAN-13",
+          "values": {
+            "value": "4006381333931",
+            "symbology": "auto",
+            "color": "#1a1a2e",
+            "background": "#faf7f2"
+          }
+        },
+        {
+          "label": "Compact EAN-8",
+          "values": {
+            "value": "96385074",
+            "symbology": "ean8",
+            "moduleWidth": 4,
+            "barHeight": 120,
+            "color": "#14324a",
+            "background": "#f2f6f8"
+          }
+        },
+        {
+          "label": "Asset tag, Code 128",
+          "values": {
+            "value": "LOLLY-ASSET-00417",
+            "symbology": "code128",
+            "barHeight": 120,
+            "color": "#1f2937",
+            "background": "#f7f7f5"
+          }
+        },
+        {
+          "label": "UPC-A retail",
+          "values": {
+            "value": "036000291452",
+            "symbology": "upca",
+            "color": "#3f3f46",
+            "background": "#fafaf9"
+          }
+        }
+      ],
+      "templates": [
+        {
+          "id": "asset-tag",
+          "name": "Asset tag",
+          "category": "Utility",
+          "description": "Code 128 for anything you label yourself - equipment, shelves, boxes, tickets. Letters, digits and punctuation all fit.",
+          "presets": [
+            {
+              "id": "equipment",
+              "name": "Equipment label",
+              "description": "A short alphanumeric tag, bars kept low for a narrow sticker."
+            },
+            {
+              "id": "serial",
+              "name": "Serial number",
+              "description": "A long digit run, which the encoder packs into code set C."
+            },
+            {
+              "id": "tracking",
+              "name": "Tracking number",
+              "description": "Letters around a digit block, the shape a parcel label takes."
+            }
+          ]
+        },
+        {
+          "id": "retail",
+          "name": "Retail barcode",
+          "category": "Product",
+          "description": "The barcode on a pack or shelf label - EAN-13, EAN-8 or UPC-A, digits printed between the guard bars.",
+          "presets": [
+            {
+              "id": "ean13",
+              "name": "EAN-13",
+              "description": "The 13-digit European article number."
+            },
+            {
+              "id": "ean8",
+              "name": "EAN-8",
+              "description": "The short code for a small pack."
+            },
+            {
+              "id": "upca",
+              "name": "UPC-A",
+              "description": "The 12-digit North American code, first and last digit outside the guards."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "link-card",
+      "name": "Link Card",
+      "description": "Paste a link, get a branded social card - title, description, site chip and a thumbnail, at Open Graph, square or summary size.",
+      "version": "1.0.0",
+      "status": "community",
+      "category": "everyone",
+      "tags": [
+        "open graph",
+        "og image",
+        "social card",
+        "link preview",
+        "share",
+        "twitter card",
+        "thumbnail"
+      ],
+      "formats": [
+        "png",
+        "jpg",
+        "webp",
+        "svg",
+        "pdf"
+      ],
+      "width": 1200,
+      "height": 630,
+      "exportable": true,
+      "icon": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><rect x=\"2\" y=\"4\" width=\"20\" height=\"16\" rx=\"2\" /><rect x=\"5\" y=\"8\" width=\"6\" height=\"8\" rx=\"1\" /><path d=\"M14 9.5h5\" /><path d=\"M14 13h5\" /><path d=\"M14 16.5h3\" /></svg>",
+      "preview": "/catalog/previews/link-card.svg",
+      "examples": [
+        {
+          "label": "Open Graph, light",
+          "values": {
+            "layout": "og-horizontal",
+            "color": "#17232b",
+            "background": "#ffffff",
+            "accent": "#1f5f52"
+          }
+        },
+        {
+          "label": "Square, warm paper",
+          "values": {
+            "layout": "square",
+            "heading": "Field notes, collected",
+            "body": "Six months of small decisions, written down while they were still fresh enough to argue about.",
+            "color": "#241d16",
+            "background": "#faf6ef",
+            "accent": "#8a5a2b"
+          }
+        },
+        {
+          "label": "Summary card, cool grey",
+          "values": {
+            "layout": "twitter-summary",
+            "heading": "Release 4.2 is out",
+            "body": "Faster exports, a calmer sidebar, and print sizes that are finally true to the millimetre.",
+            "color": "#14181b",
+            "background": "#f4f6f7",
+            "accent": "#2b5f9e"
+          }
+        },
+        {
+          "label": "Ink card",
+          "values": {
+            "layout": "og-horizontal",
+            "color": "#f4f6f7",
+            "background": "#14181b",
+            "accent": "#7fd1b9"
+          }
+        }
+      ],
+      "templates": [
+        {
+          "id": "og",
+          "name": "Open Graph card",
+          "category": "Social",
+          "description": "The 1200 x 630 image a link unfurls into on most platforms - title, description, site chip and a thumbnail panel.",
+          "presets": [
+            {
+              "id": "og-summary",
+              "name": "Summary card",
+              "description": "The shorter 1200 x 600 crop, with the thumbnail across the top."
+            },
+            {
+              "id": "og-release",
+              "name": "Release note",
+              "description": "A version announcement rather than an article."
+            },
+            {
+              "id": "og-ink",
+              "name": "Ink card",
+              "description": "Pale type on a dark card, with a mint accent."
+            }
+          ]
+        },
+        {
+          "id": "square",
+          "name": "Square share card",
+          "category": "Social",
+          "description": "A 1080 x 1080 card for the feeds that crop everything else - thumbnail on top, title and description under it.",
+          "presets": [
+            {
+              "id": "square-warm",
+              "name": "Warm paper",
+              "description": "Off-white stock with a brown accent."
+            },
+            {
+              "id": "square-event",
+              "name": "Event link",
+              "description": "The card for a talk or a meet-up page."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "signature",
+      "name": "Signature",
+      "description": "Sign with a finger, stylus or mouse and get a clean signature on transparency - SVG or PNG, no scanner, no photo of a bit of paper.",
+      "version": "1.0.0",
+      "status": "community",
+      "category": "everyone",
+      "tags": [
+        "signature",
+        "sign",
+        "handwriting",
+        "draw",
+        "transparent",
+        "svg"
+      ],
+      "formats": [
+        "svg",
+        "png",
+        "webp",
+        "avif",
+        "pdf"
+      ],
+      "width": 1200,
+      "height": 400,
+      "exportable": true,
+      "icon": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M3 16c1.5-8 3-10 4-8s0 8 1.5 8 3-11 4.5-11 1 9 2.5 9 2-2.5 3-4.5\"/><path d=\"M3 20h18\"/></svg>",
+      "preview": "/catalog/previews/signature.svg",
+      "examples": [
+        {
+          "label": "Flowing script",
+          "values": {
+            "strokes": "M150,240L173,217L197,200L228,195L259,211L283,232L306,252L337,265L368,256L392,236L415,213L439,194L470,188L493,202L517,228L540,259L563,286L587,301L618,296L641,276L665,249L688,226L712,216L743,229L766,257L782,279L797,301L821,326L852,333L875,315L891,294L907,269L922,245L930,233 M180,318L278,326L377,333L475,338L574,339L672,337L770,331L869,322L967,312L984,310L1000,308 M812,150L814,152",
+            "color": "#1f2937",
+            "penWidth": 7,
+            "smoothing": 45,
+            "trim": true
+          },
+          "theme": "light"
+        },
+        {
+          "label": "Printed initials",
+          "values": {
+            "strokes": "M420,300L428,282L437,264L445,246L454,228L462,210L470,192L479,174L487,156 M490,150L498,168L507,186L515,204L524,222L532,240L540,258L549,276L557,294 M452,240L528,240 M600,150L600,300 M600,152L688,148 M600,226L664,224 M400,332L432,334L464,337L496,338L528,340L560,340L592,340L624,338L656,337L688,334L720,332",
+            "color": "#1d4ed8",
+            "penWidth": 9,
+            "smoothing": 10,
+            "trim": true
+          },
+          "theme": "light"
+        },
+        {
+          "label": "Marker, one stroke",
+          "values": {
+            "strokes": "M240,206L271,175L302,149L331,130L372,121L406,138L434,175L450,208L463,241L475,272L491,306L526,304L549,272L568,244L589,216L613,192L640,175L684,168L715,177L746,197L777,224L808,256L837,289L864,320L888,343L920,361L953,344L959,334",
+            "color": "#111111",
+            "penWidth": 18,
+            "smoothing": 70,
+            "trim": true
+          },
+          "theme": "light"
+        }
+      ]
     }
   ]
 }

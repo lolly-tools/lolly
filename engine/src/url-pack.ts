@@ -51,6 +51,14 @@ export const PACK_PARAM = 'z';
 // Never reuse a tag for a different codec - old links must decode forever.
 const TAG_DEFLATE_RAW = '1';
 
+// '2' = the SAME raw DEFLATE bytes, base32-upper instead of base64url. A QR code
+// stores the 45-char alphanumeric set (digits, UPPERCASE, a few symbols) at 5.5
+// bits/char against byte mode's 8, and base32's A-Z2-7 alphabet sits inside both
+// that set and the URL-safe set, so a tag-2 token rides in a QR alphanumeric
+// segment. Net: ~20% MORE characters than tag 1 but ~17% FEWER QR bits - mint it
+// only for QR-destined links (packQuery's `qr` option); tag 1 stays the default.
+const TAG_DEFLATE_B32 = '2';
+
 // Bounds that defang a hostile link. A `z` token is decoded from an untrusted URL,
 // and DEFLATE can expand ~1000×, so cap BOTH the token we accept and the bytes we
 // inflate - a decompression bomb must not hang the tab. Both sit far above any real
@@ -72,6 +80,41 @@ function base64UrlToBytes(str: string): Uint8Array<ArrayBuffer> {
   const bin = atob(b64);
   const out = new Uint8Array(bin.length);
   for (let i = 0; i < bin.length; i++) out[i] = bin.charCodeAt(i);
+  return out;
+}
+
+// --- base32 <-> bytes (RFC 4648 upper, unpadded) ----------------------------
+// The tag-2 alphabet: every char is in BOTH the QR alphanumeric set and the
+// URL-unreserved set, so tokens survive URLSearchParams, encodeURIComponent and
+// form re-encoding untouched (base45 would be denser in a QR but its `+ % $ /`
+// chars get mangled or 3x-escaped by every URL serializer in the app).
+const B32_ALPHABET = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ234567';
+
+function bytesToBase32(bytes: Uint8Array): string {
+  let out = '';
+  let acc = 0;
+  let bits = 0;
+  for (const b of bytes) {
+    acc = (acc << 8) | b;
+    bits += 8;
+    while (bits >= 5) { out += B32_ALPHABET[(acc >>> (bits - 5)) & 31]; bits -= 5; }
+  }
+  if (bits > 0) out += B32_ALPHABET[(acc << (5 - bits)) & 31];
+  return out;
+}
+
+function base32ToBytes(str: string): Uint8Array<ArrayBuffer> | null {
+  const out = new Uint8Array(Math.floor((str.length * 5) / 8));
+  let acc = 0;
+  let bits = 0;
+  let i = 0;
+  for (const ch of str) {
+    const v = B32_ALPHABET.indexOf(ch);
+    if (v < 0) return null;   // not a tag-2 token - corrupt or hand-mangled
+    acc = (acc << 5) | v;
+    bits += 5;
+    if (bits >= 8) { out[i++] = (acc >>> (bits - 8)) & 0xff; bits -= 8; }
+  }
   return out;
 }
 
@@ -139,8 +182,11 @@ export function hasPackedState(query: string | null | undefined): boolean {
  * whether packing is worthwhile - the caller compares lengths (packing LOSES on
  * short inputs: DEFLATE framing + base64's 4/3 blowup exceed tiny payloads).
  * @param query  a `&`-joined query string (no leading `?`)
+ * @param opts   `qr: true` mints the tag-2 base32 form for QR-destined links:
+ *               a longer token in characters, but one a QR encoder can store in
+ *               its alphanumeric mode for a materially smaller code.
  */
-export async function packQuery(query: string | null | undefined): Promise<string | null> {
+export async function packQuery(query: string | null | undefined, opts: { qr?: boolean } = {}): Promise<string | null> {
   if (!isPackAvailable() || query == null) return null;
   try {
     const bytes = new TextEncoder().encode(String(query));
@@ -151,7 +197,10 @@ export async function packQuery(query: string | null | undefined): Promise<strin
     // that happens the caller falls back to the readable URL, which round-trips
     // unpacked (expandQuery is a no-op without a `z`).
     if (bytes.length > MAX_UNPACKED) return null;
-    const token = TAG_DEFLATE_RAW + bytesToBase64Url(await deflateRaw(bytes));
+    const deflated = await deflateRaw(bytes);
+    const token = opts.qr
+      ? TAG_DEFLATE_B32 + bytesToBase32(deflated)
+      : TAG_DEFLATE_RAW + bytesToBase64Url(deflated);
     return token.length > MAX_TOKEN ? null : token;
   } catch {
     return null;
@@ -167,9 +216,12 @@ export async function packQuery(query: string | null | undefined): Promise<strin
 export async function unpackToken(token: string): Promise<string | null> {
   if (!isPackAvailable() || typeof token !== 'string' || token.length < 2 || token.length > MAX_TOKEN) return null;
   const tag = token[0];
-  if (tag !== TAG_DEFLATE_RAW) return null;
+  if (tag !== TAG_DEFLATE_RAW && tag !== TAG_DEFLATE_B32) return null;
   try {
-    const bytes = base64UrlToBytes(token.slice(1));
+    const bytes = tag === TAG_DEFLATE_B32
+      ? base32ToBytes(token.slice(1))
+      : base64UrlToBytes(token.slice(1));
+    if (bytes == null) return null;
     return new TextDecoder().decode(await inflateRaw(bytes));
   } catch {
     return null;

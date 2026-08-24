@@ -110,7 +110,7 @@
         "height": { "type": "integer", "minimum": 1 },
         "formats": {
           "type": "array",
-          "items": { "type": "string", "enum": ["png", "jpg", "jpeg", "svg", "svg-anim", "emf", "eps", "eps-cmyk", "dxf", "pdf", "pdf-cmyk", "cmyk-tiff", "tiff", "exr", "hdr", "pptx", "docx", "odt", "html", "md", "txt", "json", "csv", "css", "scss", "gpl", "ase", "ics", "vcf", "ico", "zip", "webp", "webp-anim", "avif", "webm", "mp4", "gif", "apng", "wav", "mp3", "m4a", "opus", "ttf", "otf", "woff"] },
+          "items": { "type": "string", "enum": ["png", "jpg", "jpeg", "svg", "svg-anim", "emf", "eps", "eps-cmyk", "dxf", "pdf", "pdf-cmyk", "cmyk-tiff", "tiff", "exr", "hdr", "pptx", "docx", "odt", "html", "md", "txt", "json", "csv", "css", "scss", "gpl", "ase", "ics", "vcf", "srt", "vtt", "ico", "zip", "webp", "webp-anim", "avif", "webm", "mp4", "gif", "apng", "wav", "mp3", "m4a", "opus", "ttf", "otf", "woff"] },
           "minItems": 1,
           "description": "Output formats the tool supports. The host filters action buttons to these. Clipboard is an action (see render.actions), not a format."
         },
@@ -250,6 +250,23 @@
           "type": "string",
           "enum": ["audio", "video", "av", "screen"],
           "description": "Marks a device-recording tool (requires host.recorder + the matching 'microphone'/'camera' capability). Tells the shell which record affordance to mount: 'audio' = mic-only (a voice recorder - also shows a live level meter when the tool declares an onLevel hook); 'video' = camera-only, SILENT (no mic track); 'av' = camera+mic (a talking-head/video recorder - use this, not 'video', when the clip needs sound, and declare BOTH 'camera' and 'microphone'; the shell also shows an audio-level + background-noise coaching HUD). 'screen' = display capture (requires the 'screen' capability): the shell mounts a Screenshot + Record pair and the browser's own picker chooses the screen/window/tab, so the tool never names or sees a target it wasn't handed. Absent = no record button. The recorded bytes reach the user via the transform path (host.export.file, never watermarked) or, for a compositing tool, become a template asset the render wraps."
+        },
+        "transcribe": {
+          "type": "object",
+          "required": ["source", "target"],
+          "additionalProperties": false,
+          "description": "Speech to text, declared instead of built (engine 1.150). Names an audio/video input to listen to and a text input that receives the result, and the shell mounts one Transcribe affordance: the consent sheet for the one-time on-device speech-model download, a background job whose toast owns progress and cancel, and a single undoable write into the target input. Nothing is uploaded, and a clip with no speech writes an empty value rather than invented words. Feature-detected, never capability-gated: a shell without host.speech transcription (the CLI) simply mounts no button and leaves the target input exactly as the URL or the saved session set it.",
+          "properties": {
+            "source": { "type": "string", "description": "Id of the 'asset' input holding the audio or video to listen to. Empty value = the affordance is disabled with a plain reason." },
+            "target": { "type": "string", "description": "Id of the 'longtext' (or 'text') input the cues are written into. One write, so one undo step." },
+            "format": {
+              "type": "string",
+              "enum": ["srt", "vtt", "words"],
+              "default": "srt",
+              "description": "What is written into the target input. 'srt' (default) and 'vtt' are numbered/headered subtitle cue blocks; 'words' is the plain spoken text, one cue per line, with no timestamps."
+            },
+            "auto": { "type": "string", "description": "Optional id of a boolean input. While it is true, a newly recorded or newly picked source is transcribed with no click (the consent sheet still appears the first time the model is not on-device)." }
+          }
         },
         "aspectWarning": {
           "type": "object",

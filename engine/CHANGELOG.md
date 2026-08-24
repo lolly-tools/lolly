@@ -6,6 +6,28 @@ minors, never removed or signature-changed without a major bump.
 
 Moved verbatim from the comment block that used to live in `src/index.ts`.
 
+1.151.0 - QR-friendly packed links: `z` codec tag `2` (url-pack.ts). The same
+raw-DEFLATE bytes as tag 1, carried in base32-upper (RFC 4648, unpadded)
+instead of base64url, so the token fits a QR encoder's alphanumeric mode
+(5.5 bits/char against byte mode's 8): about 20% more characters, about 17%
+fewer QR bits. Minted only on request via `packQuery(query, { qr: true })` -
+tag 1 stays the default everywhere else - and `unpackToken` reads both tags,
+so a scanned tag-2 link decodes on every existing load boundary (web, CLI,
+embed) with no shell changes. No HostV1 change.
+
+1.150.0 - transcription as a DECLARATION (plans/147 T1a). New manifest key
+`render.transcribe` = { source, target, format?: 'srt' | 'vtt' | 'words',
+auto? }: a tool names the asset input holding audio/video and the text input
+that receives the cues, and the shell mounts the whole affordance - consent for
+the one-time on-device model download, the background job whose toast owns
+progress and cancel, and one undoable write into the target. Feature-detected
+on `host.speech.transcribeAvailable()`, never capability-gated, so the CLI (no
+host.speech) mounts nothing and leaves the target input untouched. No HostV1
+change: `speech.transcribe` has existed since 1.99. Also two new sibling text
+formats, `srt` (text/plain - SubRip has no registered MIME) and `vtt`
+(text/vtt): declare the format and ship `template.srt` / `template.vtt` and the
+export is model-derived exactly like template.csv.
+
 1.149.0 - metadata honor (plans/144 Waves 1+2). images: additive `carryMetadata`
 on ImageResizeOpts/ImageEncodeOpts and `carried: MetaCarryReport` on
 ImageResult - host.images rebuilds a source's descriptive metadata (EXIF

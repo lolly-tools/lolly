@@ -229,6 +229,11 @@ const ALLOW: Record<string, string[]> = {
   'docs/ask.md': ['Answers build up in the transcript above',
     'The transcript is a record of what you asked',
     'The transcript is session memory.'],
+  // render.transcribe (engine 1.150): the literal MANIFEST KEY a tool author has
+  // to type, in its heading and in the example block. The prose around them says
+  // "speech to text" instead.
+  'docs/authoring-tools.md': ['### Transcribing audio (`render.transcribe`)',
+    '"transcribe": { "source": "clip"'],
   // host.speech transcription: the industry feature name and literal API names
   'docs/host-api.md': ['speech synthesis + transcription',
     'Transcription (v1.99) is the reverse',

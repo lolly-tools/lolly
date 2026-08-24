@@ -42,12 +42,27 @@ const subtle = globalThis.crypto.subtle;
 export const CATALOG_SIG_ALG = 'ECDSA-P256-SHA256';
 /** Where the envelope lives, relative to the catalog root (sibling of tools/index.json). */
 export const CATALOG_SIG_PATH = 'tools/index.sig.json';
+/**
+ * Sibling text-template extensions loadTool fetches (`template.<ext>`), one
+ * per data export format the engine hydrates from the model. loader.ts filters
+ * this by the manifest's declared formats, so it is also the complete set of
+ * text templates a tool can ship - which is why the signed-file list below is
+ * DERIVED from it rather than hand-kept beside it. The two drifted once
+ * (css/scss/gpl/json were fetchable but unsigned, and srt/vtt joined them in
+ * 1.150), and under a signed catalog that drift is fatal: verifyToolFile fails
+ * closed on a file the envelope never named, so a tool shipping template.gpl
+ * refused to load at all.
+ */
+export const TEXT_TEMPLATE_EXTS = [
+  'ics', 'vcf', 'csv', 'srt', 'vtt', 'md', 'css', 'scss', 'gpl', 'json',
+] as const;
+
 /** Fixed tool-directory filenames covered by the signature. Together with the
  *  i18n sidecars (below), exactly the set loadTool can fetch. */
-export const CATALOG_SIGNED_TOOL_FILES = [
+export const CATALOG_SIGNED_TOOL_FILES: readonly string[] = [
   'tool.json', 'template.html', 'styles.css', 'hooks.js',
-  'template.ics', 'template.vcf', 'template.csv', 'template.md',
-] as const;
+  ...TEXT_TEMPLATE_EXTS.map((ext) => `template.${ext}`),
+];
 /** Per-tool i18n sidecars (`i18n/<lang>.json`) are signed too - but they're
  *  per-language and OPTIONAL per tool, so the signer enumerates whatever exists
  *  on disk against this pattern instead of a fixed list. Signer and any

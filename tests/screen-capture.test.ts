@@ -358,8 +358,16 @@ test('ENGINE_VERSION is 1.128.0', () => {
   // core, WebP/DOCX/WAV export metadata parity, ooxml coreProps read-back +
   // both-authors sourceAuthor combine, IPTC-IIM read + pro-photo XMP write,
   // HEIF/AVIF item read + AVIF Exif item write - see image-meta-carry.test.ts).
+  // Then 1.150.0 (plans/147 T1a: manifest key render.transcribe - the shell
+  // mounts consent + job + one undoable write from a declaration - plus the
+  // srt/vtt sibling text formats. Manifest + format additions, no HostV1
+  // change; speech.transcribe has existed since 1.99 - see transcribe-spec.test.ts).
+  // Then 1.151.0 (QR-friendly packed links: `z` codec tag 2 - the same DEFLATE
+  // bytes as tag 1 in base32-upper so the token rides a QR encoder's
+  // alphanumeric mode; packQuery gains { qr } and unpackToken reads both tags -
+  // see url-pack.test.ts. Codec addition only, no HostV1 change).
   // The ^1.54.0 screencap floor below still holds (a minor bump satisfies it).
-  assert.equal(ENGINE_VERSION, '1.149.0');
+  assert.equal(ENGINE_VERSION, '1.151.0');
 });
 
 // ─── loadTool: a ^1.54.0 tool loads against this engine ───────────────────────

@@ -29,7 +29,7 @@ import { execFileSync } from 'node:child_process';
 import {
   canonicalJson, sha256Hex, jwkThumbprint, importSpkiOrJwkPublicKey,
   signCatalogEnvelope, verifyEnvelopeSignature, verifyCatalogEnvelope, verifyToolFile,
-  CATALOG_SIG_ALG,
+  CATALOG_SIG_ALG, CATALOG_SIGNED_TOOL_FILES, TEXT_TEMPLATE_EXTS,
 } from '../engine/src/catalog-integrity.ts';
 import type { CatalogSignatureEnvelope } from '../engine/src/catalog-integrity.ts';
 import { loadTool, ToolLoadError } from '../engine/src/loader.ts';
@@ -344,4 +344,50 @@ test('sign-catalog.ts digests i18n sidecars into the envelope (end to end)', asy
     integrity: { envelope, publicKey }, lang: 'de',
   });
   assert.equal(tool.manifest.name, 'Démo');
+});
+
+// ─── the signed set IS the fetchable set ──────────────────────────────────────
+//
+// CATALOG_SIGNED_TOOL_FILES claims to be "exactly the set loadTool can fetch",
+// and loadTool fails CLOSED on a file the envelope never named. So every sibling
+// text template the loader will go and get has to be in the signed list, or a
+// signed deploy refuses the whole tool. The two lists drifted before: template
+// .css/.scss/.gpl/.json were fetchable but unsigned (community/color-palette
+// ships all four), and template.srt/.vtt joined them in engine 1.150.
+
+test('every sibling text template the loader fetches is in the signed file list', () => {
+  for (const ext of TEXT_TEMPLATE_EXTS) {
+    assert.ok(
+      CATALOG_SIGNED_TOOL_FILES.includes(`template.${ext}`),
+      `template.${ext} is fetchable but unsigned - a signed catalog would refuse the tool`,
+    );
+  }
+});
+
+test('a signed tool shipping template.srt and template.gpl loads (end to end)', async () => {
+  const manifest = { ...MANIFEST, render: { ...MANIFEST.render, formats: ['svg', 'srt', 'gpl'] } };
+  const files: Record<string, string> = {
+    ...TOOL_FILES,
+    'demo/tool.json': JSON.stringify(manifest),
+    'demo/template.srt': '1\n00:00:00,000 --> 00:00:01,000\n{{title}}\n',
+    'demo/template.gpl': 'GIMP Palette\nName: {{title}}\n',
+  };
+  const dir = mkdtempSync(join(tmpdir(), 'lolly-sign-text-'));
+  mkdirSync(join(dir, 'tools', 'demo'), { recursive: true });
+  for (const [path, text] of Object.entries(files)) writeFileSync(join(dir, 'tools', path), text);
+  const indexPath = join(dir, 'index.json');
+  writeFileSync(indexPath, Buffer.from(INDEX_BYTES));
+  const keyPath = join(dir, 'key.jwk.json');
+  writeFileSync(keyPath, JSON.stringify(await subtle.exportKey('jwk', privateKey)));
+  const outPath = join(dir, 'index.sig.json');
+  execFileSync(process.execPath, [
+    join(ROOT, 'scripts/sign-catalog.ts'),
+    '--keyfile', keyPath, '--tools', join(dir, 'tools'), '--index', indexPath, '--out', outPath,
+  ], { stdio: 'pipe' });
+  const envelope = JSON.parse(readFileSync(outPath, 'utf8')) as CatalogSignatureEnvelope;
+  assert.ok(envelope.files['demo/template.srt'], 'the signer skipped template.srt');
+  assert.ok(envelope.files['demo/template.gpl'], 'the signer skipped template.gpl');
+  const tool = await loadTool('demo', makeFetchFile(files), { integrity: { envelope, publicKey } });
+  assert.equal(tool.textTemplates.srt, files['demo/template.srt']);
+  assert.equal(tool.textTemplates.gpl, files['demo/template.gpl']);
 });

@@ -1223,9 +1223,12 @@ export async function createRuntime(
 // model rather than the rendered DOM, so the engine assembles the payload and
 // the host just wraps it in a Blob. JSON defaults to the resolved input values,
 // but a tool that ships a sibling template.json owns it instead (see below);
-// ICS/VCF/CSV/CSS/SCSS/GPL all come from a sibling text template (template.<ext>).
-const DATA_FORMATS: Record<string, string> =
+// ICS/VCF/CSV/SRT/VTT/CSS/SCSS/GPL all come from a sibling text template
+// (template.<ext>). SubRip has no registered MIME of its own, so it ships as
+// text/plain - the type every player and editor accepts for a .srt sidecar.
+export const DATA_FORMATS: Record<string, string> =
   { json: 'application/json', csv: 'text/csv', ics: 'text/calendar', vcf: 'text/vcard',
+    srt: 'text/plain', vtt: 'text/vtt',
     css: 'text/css', scss: 'text/x-scss', gpl: 'text/plain' };
 
 // Returns { dataText, dataMime } for a data/text format, or {} for render

@@ -25,7 +25,7 @@ import type {
   ToolHookFlags as ToolHookFlagsBase,
   ToolManifest as ToolManifestBase,
 } from '@lolly-tools/core';
-import { verifyEnvelopeSignature, verifyToolFile } from './catalog-integrity.ts';
+import { TEXT_TEMPLATE_EXTS, verifyEnvelopeSignature, verifyToolFile } from './catalog-integrity.ts';
 import type { CatalogSignatureEnvelope, IntegrityResult } from './catalog-integrity.ts';
 import type { Lang } from './lang.ts';
 import { ENGINE_VERSION } from './version.ts';
@@ -360,13 +360,16 @@ export async function loadTool(toolId: string, fetchFile: ToolFetchFile, opts: L
     manifest.render.formats = expandDerivedFormats(manifest.render.formats);
   }
   const declared = manifest.render?.formats ?? [];
-  // Sibling text templates for data formats (template.ics / .vcf / .csv / .md /
-  // .css / .scss / .gpl / .json). Only fetched when the manifest actually declares
-  // that format, so most tools incur no extra requests. The runtime hydrates these
-  // from the input model on export. `md` and `json` are opt-in per tool: with a
-  // template.md/.json the export is model-derived; without one, `md` falls back to
-  // serialising the rendered DOM and `json` to the built-in {tool,version,inputs} dump.
-  const textExts = ['ics', 'vcf', 'csv', 'md', 'css', 'scss', 'gpl', 'json'].filter(ext => declared.includes(ext));
+  // Sibling text templates for data formats (template.ics / .vcf / .csv / .srt /
+  // .vtt / .md / .css / .scss / .gpl / .json). Only fetched when the manifest
+  // actually declares that format, so most tools incur no extra requests. The
+  // runtime hydrates these from the input model on export. `md` and `json` are
+  // opt-in per tool: with a template.md/.json the export is model-derived; without
+  // one, `md` falls back to serialising the rendered DOM and `json` to the built-in
+  // {tool,version,inputs} dump. The extension list is catalog-integrity.ts's, not
+  // a copy: what this fetches must be exactly what the catalog signer signs, or a
+  // signed deploy refuses the tool (see TEXT_TEMPLATE_EXTS).
+  const textExts = TEXT_TEMPLATE_EXTS.filter(ext => declared.includes(ext));
 
   // Module hooks (hooks.module) are not fetched as text at all. The runtime
   // imports them natively, so sibling imports resolve and the browser/node

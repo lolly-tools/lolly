@@ -17,7 +17,7 @@
  * Run with: node --test tests/color-palette-contrast.test.ts
  */
 
-import { test } from 'node:test';
+import { describe, test } from 'node:test';
 import assert from 'node:assert/strict';
 import { existsSync } from 'node:fs';
 import { readFile } from 'node:fs/promises';
@@ -27,6 +27,8 @@ import { dirname, join } from 'node:path';
 import { loadTool } from '../engine/src/loader.ts';
 import { createRuntime } from '../engine/src/runtime.ts';
 import { makeColorApi, apcaContrast } from '../engine/src/color-tools.ts';
+import { contrastRatio } from '../engine/src/brand-derive.ts';
+import { simulateCvdHex, toGrayscaleHex } from '../engine/src/color-vision.ts';
 import { baseHost } from './helpers/host.ts';
 
 // color-palette ships in the PUBLIC community pack. Load from the SOURCE pack, not
@@ -326,4 +328,247 @@ test('palette exchange: an older shell (no paletteExport) degrades CSS/SCSS/GPL 
   // which produced no dataText → an empty, non-ASEF blob. The point: no throw.
   const ase = new Uint8Array(await (await rt.export({}, 'ase', { embedMeta: false })).arrayBuffer());
   assert.notEqual(String.fromCharCode(...ase.slice(0, 4)), 'ASEF', 'no ASE without paletteExportBytes');
+});
+
+// ── every shipped example ─────────────────────────────────────────────────────
+// The gallery offers each of these as a one-click starting point, so each one is
+// a URL people actually land on. A hook that throws is only LOGGED by the runtime
+// (never rethrown), so a broken example would quietly render a half-empty sheet -
+// the log is the only assertion that catches it.
+
+test('every declared example hydrates with no hook error and a painted sheet', { skip: SKIP }, async () => {
+  const examples: Array<{ label: string; values: Record<string, any> }> = tool.manifest.examples ?? [];
+  // The catalog validator warns past 8 looks (each is a live gallery render), so
+  // the count is bounded both ways; the two 2.3.0 aids must each keep a look.
+  assert.ok(examples.length > 0 && examples.length <= 8, 'examples exist and stay within the gallery cap of 8');
+  assert.ok(examples.some(ex => ex.values.grid === true), 'a Contrast grid look must ship');
+  assert.ok(examples.some(ex => ex.values.vision && ex.values.vision !== 'normal'), 'a colour-vision look must ship');
+
+  for (const ex of examples) {
+    const logged: string[] = [];
+    const host = baseHost({
+      color: makeColorApi(),
+      log: (level: string, msg: string) => { if (level === 'error' || level === 'warn') logged.push(`${level}: ${msg}`); },
+    });
+    const rt = await createRuntime(tool, host, ex.values);
+    const html = rt.getHydrated() as string;
+
+    assert.deepEqual(logged, [], `${ex.label}: the runtime logged a hook failure`);
+    assert.match(html, /class="pl-svg"/, `${ex.label}: no sheet rendered`);
+    assert.doesNotMatch(html, /\{\{/, `${ex.label}: an unresolved template reference survived hydration`);
+    assert.doesNotMatch(html, /fill=""/, `${ex.label}: an element was left with an empty fill`);
+    // An example that sets an id the manifest no longer declares silently does
+    // nothing, which is the failure mode a rename leaves behind.
+    for (const id of Object.keys(ex.values)) {
+      assert.ok(tool.manifest.inputs.some((i: any) => i.id === id), `${ex.label}: sets unknown input "${id}"`);
+    }
+  }
+});
+
+// ── review aids: colour-vision preview + the contrast grid (tool 2.3.0) ───────
+// Two inputs that only change what is PAINTED. `vision` repaints every swatch,
+// ramp cell and grid cell through the shared `cvd` region (the same Machado
+// matrices as engine/src/color-vision.ts), leaving every label showing the real
+// hex; `grid` appends a foreground-on-background matrix under the ramps. Both
+// default off, so the plain sheet must be untouched by their arrival.
+
+describe('review aids', () => {
+  // The hook carries a byte-for-byte copy of the engine's matrices, so in
+  // practice these agree exactly; the channel window is here so an 8-bit
+  // rounding difference reads as a pass and a wrong matrix still reads as a
+  // failure.
+  const chans = (hex: string) => [1, 3, 5].map((i) => parseInt(hex.slice(i, i + 2), 16));
+  const near = (got: string, want: string, what: string) => {
+    assert.match(got, /^#[0-9a-f]{6}$/, `${what}: not a hex colour, got "${got}"`);
+    const [g, w] = [chans(got), chans(want)];
+    assert.ok(g.every((v, i) => Math.abs(v - w[i]!) <= 1),
+      `${what}: painted ${got}, the engine simulates ${want}`);
+  };
+
+  // One record per swatch row, with the geometry the template positions from.
+  const readSwatches = (rt: any) =>
+    (rt.getHydratedString(
+      '{{#each swatches}}{{name}}|{{hex}}|{{paint}}|{{on}}|{{y}}|{{h}}|{{nameY}}|{{hexY}}|{{badgeY}}|{{cellLabelY}};{{/each}}',
+    ) as string)
+      .split(';').filter(Boolean)
+      .map((r) => {
+        const [name, hex, paint, on, y, h, nameY, hexY, badgeY, cellLabelY] = r.split('|');
+        return { name, hex, paint, on, y, h, nameY, hexY, badgeY, cellLabelY };
+      });
+
+  const readGrid = (rt: any) =>
+    (rt.getHydratedString(
+      '{{#each gridCells}}{{fg}}|{{bg}}|{{fgPaint}}|{{bgPaint}}|{{ratio}}|{{level}};{{/each}}',
+    ) as string)
+      .split(';').filter(Boolean)
+      .map((r) => {
+        const [fg, bg, fgPaint, bgPaint, ratio, level] = r.split('|');
+        return { fg, bg, fgPaint, bgPaint, ratio, level };
+      });
+
+  test('the default sheet keeps its swatch count and row geometry', { skip: SKIP }, async () => {
+    // The whole point of shipping both aids off by default: nothing about the
+    // sheet people already have may move. These are the pre-2.3.0 numbers -
+    // 4 rows for the default triad (seed + 2 accents + neutral) across the full
+    // 150..944 band, at the roomy 44/78/-24 text offsets.
+    const { rt } = await mount({ seed: '#2563eb' });
+    const rows = readSwatches(rt);
+    assert.equal(rows.length, 4, 'seed + two triad accents + the neutral row');
+    assert.deepEqual(rows.map((r) => [r.y, r.h, r.nameY, r.hexY, r.badgeY]), [
+      ['150', '185', '194', '228', '311'],
+      ['353', '185', '397', '431', '514'],
+      ['556', '185', '600', '634', '717'],
+      ['759', '185', '803', '837', '920'],
+    ]);
+    // Seven ramp cells per row, and with no simulation the paint IS the colour.
+    const cellCounts = (rt.getHydratedString('{{#each swatches}}{{#each ramp}}x{{/each}};{{/each}}') as string)
+      .split(';').filter(Boolean).map((s) => s.length);
+    assert.deepEqual(cellCounts, [7, 7, 7, 7]);
+    assert.ok(rows.every((r) => r.paint === r.hex), 'normal vision must paint the real colour');
+  });
+
+  test('a simulation repaints every swatch and ramp cell but never the labels', { skip: SKIP }, async () => {
+    const seed = '#2563eb';
+    for (const [vision, sim] of [
+      ['deutan', (h: string) => simulateCvdHex(h, 'deutan', 1)],
+      ['protan', (h: string) => simulateCvdHex(h, 'protan', 1)],
+      ['tritan', (h: string) => simulateCvdHex(h, 'tritan', 1)],
+      ['gray', (h: string) => toGrayscaleHex(h)],
+    ] as Array<[string, (h: string) => string | null]>) {
+      const { rt } = await mount({ seed, harmony: 'triad-3', steps: 5, neutrals: true, vision });
+      const rows = readSwatches(rt);
+      assert.equal(rows.length, 4);
+      // The seed row is the known swatch: its label still reads the real hex,
+      // and its fill is the engine's simulation of it.
+      assert.equal(rows[0]!.hex, seed, `${vision}: the label must keep the real hex`);
+      near(rows[0]!.paint!, sim(seed)!, `${vision}: the seed swatch fill`);
+
+      // Every row and every ramp cell, not only the seed.
+      for (const r of rows) near(r.paint!, sim(r.hex!)!, `${vision}: ${r.name} fill`);
+      const cells = (rt.getHydratedString('{{#each swatches}}{{#each ramp}}{{hex}}|{{paint}};{{/each}}{{/each}}') as string)
+        .split(';').filter(Boolean).map((c) => c.split('|'));
+      assert.ok(cells.length >= 20, 'four rows of five ramp cells');
+      for (const [hex, paint] of cells) near(paint!, sim(hex!)!, `${vision}: ramp cell ${hex}`);
+
+      // The sheet says which simulation is on; the tokens document does not,
+      // because a preview must not rewrite the exported palette.
+      const { tokens } = await mount({ seed, harmony: 'triad-3', steps: 5, neutrals: true, vision });
+      assert.match(rt.getHydratedString('{{subtitle}}') as string, /preview/);
+      assert.doesNotMatch(String(tokens.$description), /preview/,
+        'a repaint must not leak into the DTCG description');
+      assert.equal(tokens.color.seed.$value, seed, 'the tokens carry the real palette, never the simulation');
+    }
+  });
+
+  test('the grid is a square matrix whose ratios re-measure to the engine', { skip: SKIP }, async () => {
+    const { rt } = await mount({ seed: '#2563eb', harmony: 'triad-3', steps: 6, neutrals: true, grid: true });
+    const cells = readGrid(rt);
+    // Seed + two triad accents + neutral mid, plus the sheet's own paper and
+    // ink: six colours, so thirty-six cells.
+    const n = Math.round(Math.sqrt(cells.length));
+    assert.equal(n * n, cells.length, `the grid must be square, got ${cells.length} cells`);
+    assert.equal(n, 6, 'four base colours plus paper and ink');
+
+    const fgs = Array.from(new Set(cells.map((c) => c.fg)));
+    const bgs = Array.from(new Set(cells.map((c) => c.bg)));
+    assert.deepEqual(fgs, bgs, 'rows and columns are the same colours, in the same order');
+
+    for (const [i, c] of cells.entries()) {
+      assert.equal(c.fg, fgs[Math.floor(i / n)], 'cells run row by row');
+      assert.equal(c.bg, bgs[i % n], 'columns cycle within a row');
+      // RE-MEASURE from scratch: the cell's number must be the engine's.
+      assert.equal(c.ratio, contrastRatio(c.fg!, c.bg!).toFixed(2),
+        `${c.fg} on ${c.bg}: the cell's ratio must equal the engine's`);
+      // The level word follows the sheet's own bars, so a cell never leans on
+      // colour to say whether it passed.
+      const r = Number(c.ratio);
+      const want = r >= 7 ? 'AAA' : r >= 4.5 ? 'AA' : r >= 3 ? 'AA18' : 'Low';
+      assert.equal(c.level, want, `${c.fg} on ${c.bg}: level must follow the ratio`);
+      // With no simulation the cell paints the real pair.
+      assert.equal(c.fgPaint, c.fg);
+      assert.equal(c.bgPaint, c.bg);
+    }
+    // A colour on itself is 1:1, and paper against ink is the readable extreme -
+    // a grid that could only ever say Low would be telling nobody anything.
+    assert.ok(cells.some((c) => c.ratio === '1.00'), 'the diagonal is a colour on itself');
+    assert.ok(cells.some((c) => c.level === 'AAA'), 'paper and ink must clear AAA against each other');
+
+    // The CSV gains a second block of the same rows.
+    const csv = (rt.getHydratedString('{{#each gridCsvRows}}{{fg}},{{bg}},{{ratio}},{{level}};{{/each}}') as string)
+      .split(';').filter(Boolean);
+    assert.equal(csv.length, cells.length);
+    assert.equal(csv[0], `${cells[0]!.fg},${cells[0]!.bg},${cells[0]!.ratio},${cells[0]!.level}`);
+  });
+
+  test('the grid is absent by default and the ramps keep the full sheet', { skip: SKIP }, async () => {
+    const { rt, html } = await mount({ seed: '#2563eb', harmony: 'triad-3', steps: 6, neutrals: true });
+    assert.equal(readGrid(rt).length, 0, 'grid=false must emit no cells');
+    assert.equal(rt.getHydratedString('{{gridOn}}'), 'false');
+    assert.equal(rt.getHydratedString('{{#each gridCsvRows}}x{{/each}}'), '',
+      'the CSV must not grow a second block when the grid is off');
+    assert.doesNotMatch(html, /Contrast grid/, 'no grid heading is drawn');
+
+    // Turning it on moves the ramp rows up inside the same fixed viewBox rather
+    // than growing the page: the last row must end well above the grid band.
+    const on = await mount({ seed: '#2563eb', harmony: 'triad-3', steps: 6, neutrals: true, grid: true });
+    const last = readSwatches(on.rt).at(-1)!;
+    assert.ok(Number(last.y) + Number(last.h) <= 620,
+      `the ramp block must clear the grid band, ended at ${Number(last.y) + Number(last.h)}`);
+    assert.match(on.html, /viewBox="0 0 1600 1000"/, 'the sheet keeps its fixed size');
+    assert.doesNotMatch(on.html, /\{\{/, 'the grid markup left no unresolved reference');
+    assert.doesNotMatch(on.html, /fill=""/, 'no grid element may be left with an empty fill');
+  });
+
+  test('a simulation repaints the grid without moving its numbers', { skip: SKIP }, async () => {
+    const plain = readGrid((await mount({ seed: '#16a34a', harmony: 'complement', steps: 5, neutrals: true, grid: true })).rt);
+    const seen = readGrid((await mount({ seed: '#16a34a', harmony: 'complement', steps: 5, neutrals: true, grid: true, vision: 'protan' })).rt);
+    assert.equal(seen.length, plain.length);
+    for (const [i, c] of seen.entries()) {
+      assert.equal(c.ratio, plain[i]!.ratio, 'the reported ratio describes the real palette');
+      assert.equal(c.fg, plain[i]!.fg, 'the recorded colour is the real one');
+      near(c.fgPaint!, simulateCvdHex(c.fg!, 'protan', 1)!, `grid cell ${c.fg} ink`);
+      near(c.bgPaint!, simulateCvdHex(c.bg!, 'protan', 1)!, `grid cell ${c.bg} ground`);
+    }
+  });
+
+  test('the three row lines stay apart at every row height the grid can produce', { skip: SKIP }, async () => {
+    // The grid takes the bottom third of the fixed viewBox, so the ramp rows are
+    // squeezed and the row's name/hex/badge lines close up. The switch to the
+    // close-up offsets used to sit at 102px of row, but the roomy offsets only
+    // clear at 126 - so a four-row grid (the shipped "Contrast grid" example)
+    // put the 15px badge 2px under the 19px hex baseline, printing one line on
+    // top of the other. Every harmony, with and without neutrals.
+    for (const grid of [false, true]) {
+      for (const harmony of ['complement', 'adjacent-3', 'triad-3', 'tetrad-4', 'free-4']) {
+        for (const neutrals of [true, false]) {
+          const where = `${harmony}/neutrals=${neutrals}/grid=${grid}`;
+          const { rt } = await mount({ seed: '#2563eb', harmony, neutrals, grid, steps: 7 });
+          const rows = readSwatches(rt);
+          assert.ok(rows.length >= 2, `${where}: no rows`);
+          for (const r of rows) {
+            const [y, h, nameY, hexY, badgeY] = [r.y, r.h, r.nameY, r.hexY, r.badgeY].map(Number);
+            // A 19px hex line drops about 5px of descender; a 15px badge rises
+            // about 11px of cap. 16px apart is touching, so 18 is the bar.
+            assert.ok(badgeY! - hexY! >= 18,
+              `${where}: the badge sits ${(badgeY! - hexY!).toFixed(1)}px under the hex line`);
+            assert.ok(hexY! - nameY! >= 18, `${where}: the hex line sits on the name line`);
+            assert.ok(badgeY! <= y! + h!, `${where}: the badge fell outside its row`);
+          }
+          if (grid) {
+            const last = rows.at(-1)!;
+            assert.ok(Number(last.y) + Number(last.h) <= 620,
+              `${where}: the ramp block runs into the grid band`);
+          }
+        }
+      }
+    }
+  });
+
+  test('an unknown vision value falls back to the real sheet instead of a blank fill', { skip: SKIP }, async () => {
+    // `vision` arrives as a URL param, so junk must degrade, never paint ''.
+    const { rt, html } = await mount({ seed: '#2563eb', vision: 'nonsense' });
+    assert.ok(readSwatches(rt).every((r) => r.paint === r.hex));
+    assert.doesNotMatch(rt.getHydratedString('{{subtitle}}') as string, /preview/);
+    assert.doesNotMatch(html, /fill=""/);
+  });
 });

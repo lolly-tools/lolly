@@ -8,11 +8,16 @@
 // the same inputs, so the two cannot drift apart silently. Also pinned: the
 // in-point shifts and filters the timings, the captions toggle, and that
 // non-TTS audio (and the placeholder) emit no cues at all.
+//
+// Since plans/147 E7 there is a second cue source: the `transcript` input, an
+// SRT or WebVTT file the shell's Transcribe button writes (render.transcribe) or
+// the user drops in. Word timings still win, so everything above is unchanged;
+// the last block pins the fallback and the .srt / .vtt sidecars it feeds.
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { analysePcm } from '../engine/src/audio-analyse.ts';
-import { groupWordsToCues } from '../engine/src/captions.ts';
+import { cuesToSrt, cuesToVtt, groupWordsToCues } from '../engine/src/captions.ts';
 import type { AudioAnalyseOpts, SpeechWordTiming } from '../packages/core/src/host-v1.ts';
 
 const SR = 8000;
@@ -65,6 +70,7 @@ function ctxFor(
       { id: 'style', value: 'bars' },
       { id: 'start', value: extra.start ?? 0 },
       ...('captions' in extra ? [{ id: 'captions', value: extra.captions }] : []),
+      ...('transcript' in extra ? [{ id: 'transcript', value: extra.transcript }] : []),
     ],
   };
 }
@@ -162,4 +168,58 @@ test('the placeholder track emits no cues', async () => {
   const hooks = compileHooks();
   const out = await hooks.onInit(ctxFor(fakeHost(pcm(1)), undefined));
   assert.equal(out.agCues, '');
+});
+
+// ── the transcript fallback (plans/147 E7) ──────────────────────────────────
+//
+// A clip that carries no word timings can still be captioned, from the
+// `transcript` input the shell's Transcribe button fills (render.transcribe) or
+// a dropped-in .srt file. Word timings still win where the clip has them, so
+// scripted audio behaves exactly as it did before this existed.
+
+const TRANSCRIPT = [
+  '1',
+  '00:00:00,500 --> 00:00:02,000',
+  'Read from the file.',
+  '',
+  '2',
+  '00:00:03,000 --> 00:00:05,500',
+  'Not from the model.',
+  '',
+].join('\n');
+
+test('word timings win over a transcript, so scripted audio is unchanged', async () => {
+  const hooks = compileHooks();
+  const ref = { id: 'user/tts/demo', url: 'blob:tts', meta: { durationMs: 8000, tts: { words: WORDS } } };
+  const withText = await hooks.onInit(ctxFor(fakeHost(pcm(8)), ref, { transcript: TRANSCRIPT }));
+  const without = await hooks.onInit(ctxFor(fakeHost(pcm(8)), ref));
+  assert.equal(withText.agCues, without.agCues);
+  assert.deepEqual(JSON.parse(withText.agCues!) as Cue[], engineCues(WORDS));
+});
+
+test('a clip with no word timings takes its cues from the transcript', async () => {
+  const hooks = compileHooks();
+  const ref = { id: 'user/audio/plain', url: 'blob:plain', meta: { durationMs: 8000 } };
+  const out = await hooks.onInit(ctxFor(fakeHost(pcm(8)), ref, { transcript: TRANSCRIPT }));
+  assert.deepEqual(JSON.parse(out.agCues!) as Cue[], [
+    { t0: 0.5, t1: 2, text: 'Read from the file.' },
+    { t0: 3, t1: 5.5, text: 'Not from the model.' },
+  ]);
+  assert.equal((JSON.parse(out.agMeta!) as { real: boolean }).real, true, 'the clip still analysed');
+});
+
+test('the .srt sidecar carries the cues the card is drawing', async () => {
+  const hooks = compileHooks();
+  const ref = { id: 'user/tts/demo', url: 'blob:tts', meta: { durationMs: 8000, tts: { words: WORDS } } };
+  const out = await hooks.onInit(ctxFor(fakeHost(pcm(8)), ref));
+  const cues = (JSON.parse(out.agCues!) as Cue[]).map((c) => ({ start: c.t0, end: c.t1, text: c.text }));
+  assert.equal(out.agSrt, cuesToSrt(cues));
+  assert.equal(out.agVtt, cuesToVtt(cues));
+});
+
+test('no cues means empty sidecars, never a lonely WEBVTT header', async () => {
+  const hooks = compileHooks();
+  const out = await hooks.onInit(ctxFor(fakeHost(pcm(1)), undefined));
+  assert.equal(out.agSrt, '');
+  assert.equal(out.agVtt, '');
 });

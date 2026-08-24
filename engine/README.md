@@ -106,7 +106,7 @@ The table is generated. Run `node scripts/gen-engine-modules.ts` after adding, r
 | `c2pa-verify.ts` | 1643 | C2PA (Content Credentials) verifier - pure, DOM-free. | yes | `tests/c2pa-verify.test.ts` | yes |
 | `c2pa.ts` | 1166 | C2PA (Content Credentials) manifest builder + PDF embedder - pure, DOM-free. | yes | `tests/c2pa.test.ts` | – |
 | `captions.ts` | 129 | Captions - spoken-word timings in, subtitle cues out. | yes | `tests/captions.test.ts` | – |
-| `catalog-integrity.ts` | 241 | Catalog signing + runtime integrity verification - the SOVEREIGNTY.md "catalog origin is a trust anchor" gap, closed. | yes | `tests/catalog-integrity.test.ts` | – |
+| `catalog-integrity.ts` | 256 | Catalog signing + runtime integrity verification - the SOVEREIGNTY.md "catalog origin is a trust anchor" gap, closed. | yes | `tests/catalog-integrity.test.ts` | – |
 | `chroma-key.test.ts` | 97 | engine/src/chroma-key.ts - the perceptual (OKLab) colour-range key behind the video-matte "Colour key" method (plans/124 WP-G). | no | none | – |
 | `chroma-key.ts` | 97 | Chroma / colour-range keying: remove a flat background colour by PERCEPTUAL distance, so clean footage shot against an evenly-lit wall or screen keys out without the neural matte model at all (plans/124 WP-G). | yes | none | – |
 | `claudisms.ts` | 359 | AI writing-tell patterns for the text-signal analyzer (engine/src/text-signals.ts). | no | none | – |
@@ -182,7 +182,7 @@ The table is generated. Run `node scripts/gen-engine-modules.ts` after adding, r
 | `jpeg-segments.ts` | 372 | JPEG marker-segment walker and writer - one shared primitive, DOM-free. | no | `tests/jpeg-segments.test.ts` | – |
 | `keyframes.ts` | 1597 | Keyframe tracks, the `kf` wire grammar, and the depth-camera projection - the shared, DOM-free maths every consumer of plans/104 trusts. | yes | `tests/keyframes.test.ts` | – |
 | `lang.ts` | 171 | Supported UI/content languages, shared by the `lang` reserved URL param (url-mode.ts), `Profile.lang`, tool-manifest i18n sidecars, and every shell's language picker. | yes | indirect | – |
-| `loader.ts` | 474 | Tool loader. | yes | indirect | – |
+| `loader.ts` | 477 | Tool loader. | yes | indirect | – |
 | `media-sniff.ts` | 255 | Pure, DOM-free media classification from header bytes. | yes | `tests/media-sniff.test.ts` | yes |
 | `metadata.ts` | 85 | Export provenance: the generic authorship record embedded into every exported media file (platform-agnostic; no format/DOM knowledge here). | yes | `tests/metadata.test.ts` | – |
 | `midi.ts` | 169 | Standard MIDI File to ZzFXM. | yes | `tests/midi.test.ts` | – |
@@ -217,7 +217,7 @@ The table is generated. Run `node scripts/gen-engine-modules.ts` after adding, r
 | `rate-card.ts` | 689 | The printer's own rate card - stored, validated, never a source of prices. | yes | indirect | – |
 | `reword.ts` | 401 | Reword flagged text - the SEMANTIC half humanize.ts's header defers (plans/127). | yes | `tests/reword.test.ts` | – |
 | `riff-meta.ts` | 98 | WAV provenance tags: the RIFF LIST/INFO chunk. | yes | `tests/riff-meta.test.ts` | – |
-| `runtime.ts` | 1554 | Runtime - orchestrates the 5-step lifecycle for a single mounted tool. | yes | indirect | – |
+| `runtime.ts` | 1557 | Runtime - orchestrates the 5-step lifecycle for a single mounted tool. | yes | indirect | – |
 | `seal.ts` | 728 | SEAL (hackerfactor.com) signature verifier - pure, DOM-free (globalThis.crypto only, like c2pa-verify.ts / x509.ts). | yes | `tests/seal.test.ts` | – |
 | `semver-range.ts` | 112 | Minimal SemVer range satisfaction - enough to enforce a tool manifest's `engineVersion` against the running ENGINE_VERSION (loader.ts, P0-3). | yes | `tests/semver-range.test.ts` | – |
 | `session-record.ts` | 99 | Saved-session record envelope - the version stamps a shell's state bridge writes for one saved tool session, and the migrate-or-warn branch it runs on load. | yes | `tests/session-record.test.ts` | – |
@@ -242,7 +242,7 @@ The table is generated. Run `node scripts/gen-engine-modules.ts` after adding, r
 | `trustmark.ts` | 971 | Adobe TrustMark: BCH data-layer decode (pure GF(2^7) math, DOM-free). | yes | `tests/trustmark.test.ts` | – |
 | `units.ts` | 98 | Physical unit conversions for output dimensions - platform-agnostic, no DOM. | yes | `tests/units.test.ts` | – |
 | `url-mode.ts` | 791 | URL mode. | yes | indirect | – |
-| `url-pack.ts` | 308 | Packed URL state - the compact transport for large tool state. | yes | `tests/url-pack.test.ts` | yes |
+| `url-pack.ts` | 360 | Packed URL state - the compact transport for large tool state. | yes | `tests/url-pack.test.ts` | yes |
 | `validate.ts` | 78 | Validates a tool manifest against the JSON Schema. | yes | indirect | – |
 | `version.ts` | 16 | The engine's HostV1 contract version. | yes | indirect | – |
 | `video-meta.ts` | 437 | Video provenance - embeds the export authorship record (metadata.js) into the two MediaRecorder containers, which are produced bare (no metadata slot exists during recording, so the shell post-processes the finished… | yes | `tests/video-meta.test.ts` | yes |
