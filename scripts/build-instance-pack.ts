@@ -12,6 +12,12 @@
  *   node scripts/build-instance-pack.ts --out <dir>           # default dist-packs/
  *   node scripts/build-instance-pack.ts --keyfile <path>      # sign (PKCS8 PEM or JWK)
  *                                                             # or LOLLY_CATALOG_SIGNING_KEY
+ *   node scripts/build-instance-pack.ts --instance <base>     # override the recipe's
+ *                                                             # instance base - cut the same
+ *                                                             # brand for another deployment
+ *                                                             # (a control plane refuses to
+ *                                                             # host a pack naming a
+ *                                                             # different base)
  *
  * The output is the web shell's own `lolly-brand` bundle (brand-transfer.ts) -
  * tokens.json + fonts/* + logos/* land through the EXISTING importer - extended
@@ -98,7 +104,7 @@ interface FontRow {
 }
 
 function parseArgs(argv: string[]) {
-  const args = { brand: 'suse', out: join(ROOT, 'dist-packs'), keyfile: null as string | null };
+  const args = { brand: 'suse', out: join(ROOT, 'dist-packs'), keyfile: null as string | null, instance: null as string | null };
   for (let i = 0; i < argv.length; i++) {
     const flag = argv[i];
     const next = () => {
@@ -109,6 +115,7 @@ function parseArgs(argv: string[]) {
     if (flag === '--brand') args.brand = next();
     else if (flag === '--out') args.out = resolve(next());
     else if (flag === '--keyfile') args.keyfile = resolve(next());
+    else if (flag === '--instance') args.instance = next().replace(/\/+$/, '');
     else throw new Error(`unknown flag ${flag}`);
   }
   return args;
@@ -165,6 +172,7 @@ async function main(): Promise<void> {
     throw new Error(`no pack recipe at brands/${args.brand}/pack.json - the brand declares what leaves the building`);
   }
   const recipe: PackRecipe = JSON.parse(readFileSync(recipePath, 'utf8'));
+  if (args.instance) recipe.instance = args.instance;
   const catalogDir = join(brandDir, 'catalog');
   const toolsDir = join(brandDir, 'tools');
 

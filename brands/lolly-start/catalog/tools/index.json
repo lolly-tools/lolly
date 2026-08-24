@@ -1,6 +1,6 @@
 {
   "version": "1",
-  "generatedAt": "2026-08-24T11:26:32.892Z",
+  "generatedAt": "2026-08-24T11:33:48.628Z",
   "tools": [
     {
       "id": "compress-pdf",
@@ -6264,8 +6264,8 @@
       "id": "record",
       "name": "Record",
       "description": "Design your own top and tail cards, then record a clip and Lolly wraps them around it automatically.",
-      "version": "1.1.0",
-      "status": "experimental",
+      "version": "1.2.0",
+      "status": "official",
       "category": "everyone",
       "capabilities": [
         "camera",
