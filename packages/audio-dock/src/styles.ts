@@ -87,7 +87,7 @@ export const DOCK_CSS = `
    the controls sit directly under the header - no dangling empty area either way. */
 .audio-dock-face { position: relative; display: flex; flex-direction: column; }
 .audio-dock-main { display: flex; flex-direction: column; flex: 1 1 auto; min-height: 0; }
-.audio-dock-vizspace { flex: 1 1 auto; min-height: 0; }   /* the free/viz region (grows) */
+.audio-dock-vizspace { flex: 1 1 auto; min-height: 0; position: relative; }   /* the free/viz region (grows); positions the centred brand mark */
 /* Windowed / fullscreen: the face fills the window height so the flex slack lands in the
    viz-space and the music controls pin to the bottom edge. */
 .audio-dock[data-windowed] .audio-dock-face,
@@ -171,9 +171,15 @@ export const DOCK_CSS = `
 .audio-dock input[type="range"]:focus-visible { outline: 2px solid var(--dock-accent); outline-offset: 2px; }
 /* Horizontal sliders: a thin 4px track with the thumb centred over it. The vertical
    Volume slider sizes its track thickness from its own 14px width instead. */
+/* WebKit has no ::-moz-range-progress equivalent, so the filled portion before the thumb
+   is faked with a --fill gradient (a % the JS sets per slider on input/paint) - so the
+   volume level reads at a glance (plans/147). Firefox uses ::-moz-range-progress above. */
 .audio-dock-scrub input[type="range"]::-webkit-slider-runnable-track,
 .audio-dock-vol input[type="range"]::-webkit-slider-runnable-track,
-.audio-dock-atmo-row input[type="range"]::-webkit-slider-runnable-track { height: 4px; }
+.audio-dock-atmo-row input[type="range"]::-webkit-slider-runnable-track {
+  height: 4px;
+  background: linear-gradient(to right, var(--dock-accent) var(--fill, 0%), var(--dock-track) var(--fill, 0%));
+}
 .audio-dock-scrub input[type="range"]::-webkit-slider-thumb,
 .audio-dock-vol input[type="range"]::-webkit-slider-thumb,
 .audio-dock-atmo-row input[type="range"]::-webkit-slider-thumb { margin-top: -4.5px; }
@@ -183,7 +189,7 @@ html[data-a11y-contrast="high"] .audio-dock input[type="range"]::-moz-range-trac
 /* ── capability sections (narration / music / atmosphere / visualiser) ──────── */
 /* A near-opaque backing so dense text lists read on top of the moving backdrop; the
    header/transport above it keep the light scrim, so the viz still reads there. */
-.audio-dock-sections { display: flex; flex-direction: column; background: var(--dock-panel); }
+.audio-dock-sections { display: flex; flex-direction: column; background-color: #0005); }
 .audio-dock-section { border-top: 1px solid var(--dock-border); }
 .audio-dock-section-head {
   display: flex; align-items: center; gap: 8px; width: 100%; padding: 9px 14px;
@@ -264,7 +270,10 @@ html[data-a11y-contrast="high"] .audio-dock input[type="range"]::-moz-range-trac
 /* atmosphere mixer (restored per-layer icons) */
 .audio-dock-atmo-row { display: flex; align-items: center; gap: 8px; padding: 2px 0; }
 .audio-dock-atmo-icon { flex: 0 0 auto; width: 22px; height: 22px; display: inline-flex; align-items: center;
-  justify-content: center; border-radius: 7px; background: hsl(0 0% 100% / .06); color: var(--dock-muted); }
+  justify-content: center; border-radius: 7px; background: hsl(0 0% 100% / .06); color: var(--dock-muted);
+  border: 0; padding: 0; cursor: pointer; }   /* a button: tap to mute/unmute the layer (plans/147) */
+.audio-dock-atmo-icon:hover { background: hsl(0 0% 100% / .12); }
+.audio-dock-atmo-row.is-on .audio-dock-atmo-icon:hover { filter: brightness(1.08); }
 .audio-dock-atmo-icon svg { width: 14px; height: 14px; }
 .audio-dock-atmo-row.is-on .audio-dock-atmo-icon { background: var(--dock-accent); color: var(--dock-accent-fg); }
 .audio-dock-atmo-label { flex: 0 0 6em; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: .76rem; color: var(--dock-muted); }
@@ -368,6 +377,13 @@ html[data-a11y-contrast="high"] .audio-dock input[type="range"]::-moz-range-trac
 .audio-dock-rz-se { bottom: 0; right: 0; width: 16px; height: 16px; cursor: nwse-resize;
   display: flex; align-items: flex-end; justify-content: flex-end; padding: 2px; color: var(--dock-muted); }
 .audio-dock-rz-se svg { opacity: .8; }
+/* Touch (plans/147): fatten the invisible resize hit-zones to a comfortable target on
+   coarse pointers - the visible corner grip glyph is unchanged, only the tap box grows. */
+@media (pointer: coarse) {
+  .audio-dock-rz-n, .audio-dock-rz-s { height: 20px; }
+  .audio-dock-rz-e, .audio-dock-rz-w { width: 20px; }
+  .audio-dock-rz-ne, .audio-dock-rz-nw, .audio-dock-rz-sw, .audio-dock-rz-se { width: 30px; height: 30px; }
+}
 
 /* ── Fullscreen (Fullscreen API on the dock; native :fullscreen + our attribute) ── */
 .audio-dock:fullscreen, .audio-dock[data-fullscreen] {
@@ -377,6 +393,59 @@ html[data-a11y-contrast="high"] .audio-dock input[type="range"]::-moz-range-trac
 }
 .audio-dock:fullscreen .audio-dock-face, .audio-dock[data-fullscreen] .audio-dock-face {
   height: 100%; max-height: 100%; overflow-y: auto;
+}
+
+/* ── Brand silhouette over the viz (plans/147) ── the brand's MONO-REVERSE logo, painted
+   under mix-blend-mode:difference so it reads over any preset colour while the effects
+   still play THROUGH it. No z-index → it sits above the canvas/scrim but BELOW the controls
+   face (opaque panels occlude it), so it fills the open viz area without covering controls.
+   Only for the music player (--dock-brandmark set by host.viz.brandMark), and only when the
+   viz is the star (fullscreen / immersive). Tap it to fade it away (data-brandmark-off). */
+.audio-dock-brandmark {
+  position: absolute; inset: 0; margin: auto;
+  /* ~1/3 of the AVAILABLE AREA (plans/147, Andy). A square box sized as a % of the dock:
+     with background-size:contain, a WIDE horizontal logo fits to the box WIDTH (≈1/3 of the
+     viz width) and a tall/square one to the box HEIGHT (≈1/3 of the viz height) - so each
+     orientation reads big without a per-orientation rule. Scales with the dock, so it's ⅓
+     of the fullscreen viewport or ⅓ of a resized draggable window alike. */
+  width: 34%; height: 34%;
+  background: var(--dock-brandmark, none) center / contain no-repeat;
+  background-color: transparent; border: 0; padding: 0; cursor: pointer;
+  mix-blend-mode: exclusion;
+  opacity: 1; transition: opacity .3s ease;
+  display: none;
+}
+/* Shown whenever a mark resolved AND the vizspace has real room for it (data-brandmark-room,
+   set in JS from the vizspace height) - so it appears in a windowed/fullscreen/immersive
+   dock and turns OFF when the controls/sections crowd the clear area. */
+.audio-dock[data-cap-music][data-has-brandmark][data-brandmark-room] .audio-dock-brandmark { display: block; }
+.audio-dock[data-brandmark-off] .audio-dock-brandmark { opacity: 0; }
+/* Viz-menu top row (plans/147): the viz On toggle + the Logo (brand-mark) toggle side by
+   side. The Logo toggle is [hidden] until a mono-reverse mark resolves, so with no brand
+   logo the On toggle keeps the whole row. */
+.audio-dock-vizmenu-top { display: flex; gap: 8px; }
+.audio-dock-vizmenu-top .audio-dock-toggle { flex: 1 1 auto; justify-content: center; }
+
+/* ── Immersive full-page (plans/147) - app-managed fullscreen for touch (iOS can't
+   native-FS a <div>). Fill the viewport, hide all controls + sections + chrome, leave the
+   visualiser + the brand silhouette, keep only the tap-to-exit ↙ button top-right. ── */
+.audio-dock[data-immersive] {
+  position: fixed; inset: 0 !important; left: 0 !important; top: 0 !important;
+  width: 100vw !important; height: 100vh !important; height: 100dvh !important;
+  max-width: none !important; border-radius: 0; transition: none;
+}
+.audio-dock[data-immersive] .audio-dock-musicblock,
+.audio-dock[data-immersive] .audio-dock-narrblock,
+.audio-dock[data-immersive] .audio-dock-mini,
+.audio-dock[data-immersive] .audio-dock-np,
+.audio-dock[data-immersive] [data-collapse-btn],
+.audio-dock[data-immersive] [data-close-btn],
+.audio-dock[data-immersive] .audio-dock-resizers { display: none; }
+.audio-dock[data-immersive] .audio-dock-face { height: 100%; }
+.audio-dock[data-immersive] .audio-dock-head {
+  position: absolute; left: auto; width: auto; background: none; border: 0; z-index: 4;
+  top: 0; right: 0;
+  padding: max(8px, env(safe-area-inset-top)) max(8px, env(safe-area-inset-right)) 8px 8px;
 }
 
 /* reduced motion - OS query. The app pref (data-a11y-motion) is added by the

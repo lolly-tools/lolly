@@ -366,8 +366,13 @@ test('ENGINE_VERSION is 1.128.0', () => {
   // bytes as tag 1 in base32-upper so the token rides a QR encoder's
   // alphanumeric mode; packQuery gains { qr } and unpackToken reads both tags -
   // see url-pack.test.ts. Codec addition only, no HostV1 change).
+  // Then 1.152.0 (plans/148: one uniform image framing - engine/src/framing.ts's
+  // frameRect + framingStyle, the {{framing}} template helper and its data-framing
+  // marker, the optional manifest key `framingFor`, and canonical imageFraming.rotate
+  // / imageFit / imageCrop. Manifest + template additions, no HostV1 change - see
+  // framing.test.ts).
   // The ^1.54.0 screencap floor below still holds (a minor bump satisfies it).
-  assert.equal(ENGINE_VERSION, '1.151.0');
+  assert.equal(ENGINE_VERSION, '1.152.0');
 });
 
 // ─── loadTool: a ^1.54.0 tool loads against this engine ───────────────────────

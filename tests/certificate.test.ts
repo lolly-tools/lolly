@@ -97,11 +97,11 @@ test('an unknown kind falls back to completion rather than blanking the sheet', 
 
 // ── The shared ids reach the sheet ──────────────────────────────────────────
 
-test('firstname, lastname, course and awarddate all print', { skip: SKIP }, async () => {
+test('firstname, lastname, awardtopic and awarddate all print', { skip: SKIP }, async () => {
   const { rt, html } = await mount({
     firstname: 'Ada',
     lastname: 'Lovelace',
-    course: 'Analytical Engine Programming',
+    awardtopic: 'Analytical Engine Programming',
     awarddate: '2026-11-07',
     presenter: 'Charles Babbage',
     presenterTitle: 'Head of Engines',
@@ -207,12 +207,13 @@ test('the roster ids are spelled exactly as the batch grid merges them', { skip:
   }
   assert.equal(byId.get('firstname').bindToProfile, 'firstname');
   assert.equal(byId.get('lastname').bindToProfile, 'lastname');
-  // course / awarddate are the two ids this tool proposes as shared (plan 147
-  // rev 2, awaiting Andy). Pinned so a rename before release is a deliberate
-  // edit here, not a silent drift.
-  assert.equal(byId.get('course').type, 'text');
+  // awardtopic / awarddate are the two ids this tool shares (plan 147 rev 2;
+  // ratified by Andy 2026-08-25 - course was renamed to awardtopic, awarddate
+  // kept). Pinned so a future rename has to be changed here too, never drifting
+  // silently.
+  assert.equal(byId.get('awardtopic').type, 'text');
   assert.equal(byId.get('awarddate').type, 'date');
-  assert.deepEqual(manifest.render.filenameFrom, ['firstname', 'lastname', 'course'],
+  assert.deepEqual(manifest.render.filenameFrom, ['firstname', 'lastname', 'awardtopic'],
     'a batch row names its own file from the person and what it is for');
 });
 

@@ -1,6 +1,6 @@
 {
   "name": "@lolly-tools/audio-dock",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "The shared, dependency-free audio-dock UI shell: ONE collapsible dock (Full/Compact/Mini) with a viz backdrop + scrim + controls face, driven by a DockHost adapter each host implements. Consumed by BOTH the Lolly web app (music/radio/atmosphere) and the static /info docs site (page narration), so the two players can never drift.",
   "license": "MPL-2.0",
   "type": "module",

@@ -6,6 +6,26 @@ minors, never removed or signature-changed without a major bump.
 
 Moved verbatim from the comment block that used to live in `src/index.ts`.
 
+1.152.0 - one uniform image framing (plans/148). New module `framing.ts`:
+`frameRect()` (where an image lands inside a frame, as source + destination
+rectangles plus a roll about the pan point) and `framingStyle()` (the same
+placement as CSS), plus the perspective envelope - `projectFramingPoint()`,
+`framingQuad()` and `minZoomForCover()` (Lightroom's Constrain Crop), projecting
+through `FRAMING_PERSPECTIVE`. New `{{framing "<inputId>"}}` template helper
+emitting both the style and the `data-framing` marker the shell's generic
+overlay binds to, in top-level and blocks-row modes, plus `framing=` on
+`{{media}}`. New optional manifest key `framingFor` on a `vector` input (and on
+a blocks ASSET sub-field), naming the asset it frames; canonical `imageFraming`
+gains three optional fields - `rotate` (roll, -180..180) and `pitch` / `yaw`
+(the two perspective axes, -45..45) - and canonical `imageFit` / `imageCrop`
+join the registry. `community/_shared/framing.js` carries the byte-synced
+hook-side twin, drawing a tile mesh when the framing is tilted because canvas
+2-D has no projective transform either - pinned to the engine by a fixture table
+in tests/framing.test.ts. A tilted image is a projective homography, which SVG
+and PDF cannot express, so those exports take the walker's existing posed-raster
+path for that element; pan/zoom/roll stay fully vector. Manifest + template +
+helper additions only; no HostV1 change.
+
 1.151.0 - QR-friendly packed links: `z` codec tag `2` (url-pack.ts). The same
 raw-DEFLATE bytes as tag 1, carried in base32-upper (RFC 4648, unpadded)
 instead of base64url, so the token fits a QR encoder's alphanumeric mode

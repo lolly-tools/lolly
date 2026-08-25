@@ -73,7 +73,7 @@ const tool: any = SKIP_SUSE ? null : await loadTool('diagram-builder', fetchFile
 // Colours are pinned on every render so the geometry never depends on which brand
 // tokens happen to resolve; only the layout maths is under test.
 const PAINT = {
-  diagramType: 'gantt', source: 'visual', theme: 'custom', density: 'cozy', preset: 'custom',
+  diagramType: 'gantt', source: 'visual', theme: 'custom', density: 'cozy', diagramPreset: 'custom',
   nodeFill: '#ffffff', nodeStroke: '#0c322c', nodeText: '#0c322c', edgeColor: '#0c322c',
   background: '#ffffff', gridBg: 'none', title: '',
 };
@@ -424,9 +424,9 @@ test('every preset, scale and source hydrates a dated roadmap without a hook err
     assert.ok(!svg.includes('Could not build'), `${label} fell back to the error placeholder`);
   };
 
-  for (const preset of opts('preset')) {
+  for (const preset of opts('diagramPreset')) {
     for (const ganttScale of opts('ganttScale')) {
-      await ok(`${preset}/${ganttScale}`, { preset, ganttScale, ganttToday: '2026-02-01', nodes });
+      await ok(`${preset}/${ganttScale}`, { diagramPreset: preset, ganttScale, ganttToday: '2026-02-01', nodes });
     }
   }
   // Every Build-from route reaches the same layout; only `visual` carries dates today.

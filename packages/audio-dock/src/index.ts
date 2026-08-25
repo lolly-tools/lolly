@@ -31,6 +31,7 @@ export type {
   DockAtmosphere,
   DockAtmosphereLayer,
   DockViz,
+  DockBrandMark,
   DockVizPreset,
   DockVizTheme,
   DockVizTransition,

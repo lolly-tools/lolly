@@ -1,10 +1,10 @@
 {
   "bomFormat": "CycloneDX",
   "specVersion": "1.5",
-  "serialNumber": "urn:uuid:2dcedc5a-2361-40d8-82de-e9fc7963185c",
+  "serialNumber": "urn:uuid:89884e05-e872-4bc1-813a-b177096afa46",
   "version": 1,
   "metadata": {
-    "timestamp": "2026-08-15T08:39:22.004Z",
+    "timestamp": "2026-08-25T14:27:58.447Z",
     "tools": [
       {
         "vendor": "lolly",
@@ -70,10 +70,24 @@
         },
         {
           "type": "library",
-          "bom-ref": "pkg:npm/%40lolly/engine@1.124.0",
+          "bom-ref": "pkg:npm/%40lolly-tools/audio-dock@0.1.1",
+          "name": "@lolly-tools/audio-dock",
+          "version": "0.1.1",
+          "purl": "pkg:npm/%40lolly-tools/audio-dock@0.1.1",
+          "licenses": [
+            {
+              "license": {
+                "id": "MPL-2.0"
+              }
+            }
+          ]
+        },
+        {
+          "type": "library",
+          "bom-ref": "pkg:npm/%40lolly/engine@1.152.0",
           "name": "@lolly/engine",
-          "version": "1.124.0",
-          "purl": "pkg:npm/%40lolly/engine@1.124.0",
+          "version": "1.152.0",
+          "purl": "pkg:npm/%40lolly/engine@1.152.0",
           "licenses": [
             {
               "license": {
@@ -190,9 +204,7 @@
       "scope": "required",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "MIT OR Apache-2.0"
         }
       ],
       "hashes": [
@@ -217,9 +229,7 @@
       "scope": "required",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "Apache-2.0 OR MIT"
         }
       ],
       "hashes": [
@@ -244,15 +254,38 @@
       "scope": "required",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "MIT OR Apache-2.0"
         }
       ],
       "hashes": [
         {
           "alg": "SHA-256",
           "content": "b169f7a6d4742236a0a00c541b845991d0ac43e546831af1249753ab4c3aa3a0"
+        }
+      ],
+      "properties": [
+        {
+          "name": "lolly:source",
+          "value": "shells/tauri-desktop/src-tauri/Cargo.lock"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:cargo/ahash@0.8.12",
+      "name": "ahash",
+      "version": "0.8.12",
+      "purl": "pkg:cargo/ahash@0.8.12",
+      "scope": "required",
+      "licenses": [
+        {
+          "expression": "MIT OR Apache-2.0"
+        }
+      ],
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "5a15f179cd60c4584b8a8c596927aadc462e27f2ca70c04e0071964a73ba7a75"
         }
       ],
       "properties": [
@@ -580,6 +613,31 @@
     },
     {
       "type": "library",
+      "bom-ref": "pkg:cargo/base64@0.13.1",
+      "name": "base64",
+      "version": "0.13.1",
+      "purl": "pkg:cargo/base64@0.13.1",
+      "scope": "required",
+      "licenses": [
+        {
+          "expression": "MIT OR Apache-2.0"
+        }
+      ],
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "9e1b586273c5702936fe7b7d6896644d8be71e6314cfe09d3167c95f712589e8"
+        }
+      ],
+      "properties": [
+        {
+          "name": "lolly:source",
+          "value": "shells/tauri-desktop/src-tauri/Cargo.lock"
+        }
+      ]
+    },
+    {
+      "type": "library",
       "bom-ref": "pkg:cargo/base64@0.21.7",
       "name": "base64",
       "version": "0.21.7",
@@ -637,9 +695,7 @@
       "scope": "required",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "Apache-2.0 OR MIT"
         }
       ],
       "hashes": [
@@ -764,9 +820,7 @@
       "scope": "required",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "MIT OR Apache-2.0"
         }
       ],
       "hashes": [
@@ -1271,6 +1325,33 @@
     },
     {
       "type": "library",
+      "bom-ref": "pkg:cargo/castaway@0.2.4",
+      "name": "castaway",
+      "version": "0.2.4",
+      "purl": "pkg:cargo/castaway@0.2.4",
+      "scope": "required",
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT"
+          }
+        }
+      ],
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "dec551ab6e7578819132c713a93c022a05d60159dc86e7a7050223577484c55a"
+        }
+      ],
+      "properties": [
+        {
+          "name": "lolly:source",
+          "value": "shells/tauri-desktop/src-tauri/Cargo.lock"
+        }
+      ]
+    },
+    {
+      "type": "library",
       "bom-ref": "pkg:cargo/cc@1.2.63",
       "name": "cc",
       "version": "1.2.63",
@@ -1507,9 +1588,7 @@
       "scope": "required",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "Apache-2.0 OR MIT"
         }
       ],
       "hashes": [
@@ -1534,9 +1613,7 @@
       "scope": "required",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "Apache-2.0 OR MIT"
         }
       ],
       "hashes": [
@@ -1586,9 +1663,7 @@
       "scope": "required",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "MIT OR Apache-2.0"
         }
       ],
       "hashes": [
@@ -1633,6 +1708,33 @@
     },
     {
       "type": "library",
+      "bom-ref": "pkg:cargo/compact_str@0.9.1",
+      "name": "compact_str",
+      "version": "0.9.1",
+      "purl": "pkg:cargo/compact_str@0.9.1",
+      "scope": "required",
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT"
+          }
+        }
+      ],
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "9dfdd1c2274d9aa354115b09dc9a901d6c5576818cdf70d14cae2bdb47df00ab"
+        }
+      ],
+      "properties": [
+        {
+          "name": "lolly:source",
+          "value": "shells/tauri-desktop/src-tauri/Cargo.lock"
+        }
+      ]
+    },
+    {
+      "type": "library",
       "bom-ref": "pkg:cargo/concurrent-queue@2.5.0",
       "name": "concurrent-queue",
       "version": "2.5.0",
@@ -1640,9 +1742,7 @@
       "scope": "required",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "Apache-2.0 OR MIT"
         }
       ],
       "hashes": [
@@ -1987,6 +2087,56 @@
     },
     {
       "type": "library",
+      "bom-ref": "pkg:cargo/crossbeam-deque@0.8.7",
+      "name": "crossbeam-deque",
+      "version": "0.8.7",
+      "purl": "pkg:cargo/crossbeam-deque@0.8.7",
+      "scope": "required",
+      "licenses": [
+        {
+          "expression": "MIT OR Apache-2.0"
+        }
+      ],
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "5181e0de7b61eb03a81e347d6dd8797bae9da5146707b51077e2d71a54ec0ceb"
+        }
+      ],
+      "properties": [
+        {
+          "name": "lolly:source",
+          "value": "shells/tauri-desktop/src-tauri/Cargo.lock"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:cargo/crossbeam-epoch@0.9.20",
+      "name": "crossbeam-epoch",
+      "version": "0.9.20",
+      "purl": "pkg:cargo/crossbeam-epoch@0.9.20",
+      "scope": "required",
+      "licenses": [
+        {
+          "expression": "MIT OR Apache-2.0"
+        }
+      ],
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "2d6914041f254d6e9176c01941b21115dcfb7089e55135a35411081bd106ef3f"
+        }
+      ],
+      "properties": [
+        {
+          "name": "lolly:source",
+          "value": "shells/tauri-desktop/src-tauri/Cargo.lock"
+        }
+      ]
+    },
+    {
+      "type": "library",
       "bom-ref": "pkg:cargo/crossbeam-utils@0.8.21",
       "name": "crossbeam-utils",
       "version": "0.8.21",
@@ -2173,9 +2323,7 @@
       "scope": "required",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "MIT OR Apache-2.0"
         }
       ],
       "hashes": [
@@ -2200,9 +2348,7 @@
       "scope": "required",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "MIT OR Apache-2.0"
         }
       ],
       "hashes": [
@@ -2228,7 +2374,7 @@
       "licenses": [
         {
           "license": {
-            "name": "unknown"
+            "id": "BSD-3-Clause"
           }
         }
       ],
@@ -2409,6 +2555,31 @@
     },
     {
       "type": "library",
+      "bom-ref": "pkg:cargo/dary_heap@0.3.9",
+      "name": "dary_heap",
+      "version": "0.3.9",
+      "purl": "pkg:cargo/dary_heap@0.3.9",
+      "scope": "required",
+      "licenses": [
+        {
+          "expression": "MIT OR Apache-2.0"
+        }
+      ],
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "8b1e3a325bc115f096c8b77bbf027a7c2592230e70be2d985be950d3d5e60ebe"
+        }
+      ],
+      "properties": [
+        {
+          "name": "lolly:source",
+          "value": "shells/tauri-desktop/src-tauri/Cargo.lock"
+        }
+      ]
+    },
+    {
+      "type": "library",
       "bom-ref": "pkg:cargo/data-encoding@2.11.0",
       "name": "data-encoding",
       "version": "2.11.0",
@@ -2518,9 +2689,7 @@
       "scope": "required",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "Apache-2.0 OR MIT"
         }
       ],
       "hashes": [
@@ -3100,6 +3269,31 @@
     },
     {
       "type": "library",
+      "bom-ref": "pkg:cargo/either@1.17.0",
+      "name": "either",
+      "version": "1.17.0",
+      "purl": "pkg:cargo/either@1.17.0",
+      "scope": "required",
+      "licenses": [
+        {
+          "expression": "MIT OR Apache-2.0"
+        }
+      ],
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "9e5e8f6c15a24b9a3ee5efec809ccd006d3b30e8b3bb63c39af737c7f87daa1d"
+        }
+      ],
+      "properties": [
+        {
+          "name": "lolly:source",
+          "value": "shells/tauri-desktop/src-tauri/Cargo.lock"
+        }
+      ]
+    },
+    {
+      "type": "library",
       "bom-ref": "pkg:cargo/embed_plist@1.2.2",
       "name": "embed_plist",
       "version": "1.2.2",
@@ -3279,6 +3473,60 @@
     },
     {
       "type": "library",
+      "bom-ref": "pkg:cargo/esaxx-rs@0.1.10",
+      "name": "esaxx-rs",
+      "version": "0.1.10",
+      "purl": "pkg:cargo/esaxx-rs@0.1.10",
+      "scope": "required",
+      "licenses": [
+        {
+          "license": {
+            "id": "Apache-2.0"
+          }
+        }
+      ],
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "d817e038c30374a4bcb22f94d0a8a0e216958d4c3dcde369b1439fec4bdda6e6"
+        }
+      ],
+      "properties": [
+        {
+          "name": "lolly:source",
+          "value": "shells/tauri-desktop/src-tauri/Cargo.lock"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:cargo/fancy-regex@0.14.0",
+      "name": "fancy-regex",
+      "version": "0.14.0",
+      "purl": "pkg:cargo/fancy-regex@0.14.0",
+      "scope": "required",
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT"
+          }
+        }
+      ],
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "6e24cb5a94bcae1e5408b0effca5cd7172ea3c5755049c5f3af4cd283a165298"
+        }
+      ],
+      "properties": [
+        {
+          "name": "lolly:source",
+          "value": "shells/tauri-desktop/src-tauri/Cargo.lock"
+        }
+      ]
+    },
+    {
+      "type": "library",
       "bom-ref": "pkg:cargo/fastrand@2.4.1",
       "name": "fastrand",
       "version": "2.4.1",
@@ -3336,9 +3584,7 @@
       "scope": "required",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "MIT OR Apache-2.0 OR BSD-1-Clause"
         }
       ],
       "hashes": [
@@ -3388,9 +3634,7 @@
       "scope": "required",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "MIT OR Apache-2.0"
         }
       ],
       "hashes": [
@@ -3465,9 +3709,7 @@
       "scope": "required",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "Apache-2.0 OR MIT"
         }
       ],
       "hashes": [
@@ -3596,9 +3838,7 @@
       "scope": "required",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "MIT OR Apache-2.0"
         }
       ],
       "hashes": [
@@ -3648,9 +3888,7 @@
       "scope": "required",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "MIT OR Apache-2.0"
         }
       ],
       "hashes": [
@@ -4241,9 +4479,7 @@
       "scope": "required",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "Apache-2.0 OR MIT"
         }
       ],
       "hashes": [
@@ -5341,9 +5577,7 @@
       "scope": "required",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "MIT OR BSD-3-Clause"
         }
       ],
       "hashes": [
@@ -5445,9 +5679,7 @@
       "scope": "required",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "MIT OR Apache-2.0"
         }
       ],
       "hashes": [
@@ -5533,6 +5765,31 @@
         {
           "alg": "SHA-256",
           "content": "173609498df190136aa7dea1a91db051746d339e18476eed5ca40521f02d7aa5"
+        }
+      ],
+      "properties": [
+        {
+          "name": "lolly:source",
+          "value": "shells/tauri-desktop/src-tauri/Cargo.lock"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:cargo/itertools@0.14.0",
+      "name": "itertools",
+      "version": "0.14.0",
+      "purl": "pkg:cargo/itertools@0.14.0",
+      "scope": "required",
+      "licenses": [
+        {
+          "expression": "MIT OR Apache-2.0"
+        }
+      ],
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "2b192c782037fadd9cfa75548310488aabdbf3d2da73885b31bd0abd03351285"
         }
       ],
       "properties": [
@@ -6227,10 +6484,10 @@
     },
     {
       "type": "library",
-      "bom-ref": "pkg:cargo/lolly-mobile@0.1.0",
+      "bom-ref": "pkg:cargo/lolly-mobile@0.1.2",
       "name": "lolly-mobile",
-      "version": "0.1.0",
-      "purl": "pkg:cargo/lolly-mobile@0.1.0",
+      "version": "0.1.2",
+      "purl": "pkg:cargo/lolly-mobile@0.1.2",
       "scope": "required",
       "licenses": [
         {
@@ -6262,6 +6519,56 @@
         {
           "alg": "SHA-256",
           "content": "112b39cec0b298b6c1999fee3e31427f74f676e4cb9879ed1a121b43661a4154"
+        }
+      ],
+      "properties": [
+        {
+          "name": "lolly:source",
+          "value": "shells/tauri-desktop/src-tauri/Cargo.lock"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:cargo/macro_rules_attribute-proc_macro@0.2.3",
+      "name": "macro_rules_attribute-proc_macro",
+      "version": "0.2.3",
+      "purl": "pkg:cargo/macro_rules_attribute-proc_macro@0.2.3",
+      "scope": "required",
+      "licenses": [
+        {
+          "expression": "Apache-2.0 OR MIT OR Zlib"
+        }
+      ],
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "fc04a4c58212d57930a24bf47d3fa87485264a3a054e9c10e042eb373573ad3c"
+        }
+      ],
+      "properties": [
+        {
+          "name": "lolly:source",
+          "value": "shells/tauri-desktop/src-tauri/Cargo.lock"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:cargo/macro_rules_attribute@0.2.3",
+      "name": "macro_rules_attribute",
+      "version": "0.2.3",
+      "purl": "pkg:cargo/macro_rules_attribute@0.2.3",
+      "scope": "required",
+      "licenses": [
+        {
+          "expression": "Apache-2.0 OR MIT OR Zlib"
+        }
+      ],
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "b3ae8f6d608c795738406608304d30a2dfbdc8e58e44f7ba43236da5208ded3c"
         }
       ],
       "properties": [
@@ -6305,9 +6612,7 @@
       "scope": "required",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "MIT OR Apache-2.0"
         }
       ],
       "hashes": [
@@ -6332,9 +6637,7 @@
       "scope": "required",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "Apache-2.0 OR MIT"
         }
       ],
       "hashes": [
@@ -6454,6 +6757,31 @@
     },
     {
       "type": "library",
+      "bom-ref": "pkg:cargo/minimal-lexical@0.2.1",
+      "name": "minimal-lexical",
+      "version": "0.2.1",
+      "purl": "pkg:cargo/minimal-lexical@0.2.1",
+      "scope": "required",
+      "licenses": [
+        {
+          "expression": "MIT OR Apache-2.0"
+        }
+      ],
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "68354c5c6bd36d73ff3feceb05efa59b6acb7626617f4962be322a825e61f79a"
+        }
+      ],
+      "properties": [
+        {
+          "name": "lolly:source",
+          "value": "shells/tauri-desktop/src-tauri/Cargo.lock"
+        }
+      ]
+    },
+    {
+      "type": "library",
       "bom-ref": "pkg:cargo/miniz_oxide@0.8.9",
       "name": "miniz_oxide",
       "version": "0.8.9",
@@ -6495,6 +6823,56 @@
         {
           "alg": "SHA-256",
           "content": "02bd0af71c67b473010cbbc60715ee815645a4dc942899111f494b4b737d6fda"
+        }
+      ],
+      "properties": [
+        {
+          "name": "lolly:source",
+          "value": "shells/tauri-desktop/src-tauri/Cargo.lock"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:cargo/monostate-impl@0.1.18",
+      "name": "monostate-impl",
+      "version": "0.1.18",
+      "purl": "pkg:cargo/monostate-impl@0.1.18",
+      "scope": "required",
+      "licenses": [
+        {
+          "expression": "MIT OR Apache-2.0"
+        }
+      ],
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "e4db6d5580af57bf992f59068d4ea26fd518574ff48d7639b255a36f9de6e7e9"
+        }
+      ],
+      "properties": [
+        {
+          "name": "lolly:source",
+          "value": "shells/tauri-desktop/src-tauri/Cargo.lock"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:cargo/monostate@0.1.18",
+      "name": "monostate",
+      "version": "0.1.18",
+      "purl": "pkg:cargo/monostate@0.1.18",
+      "scope": "required",
+      "licenses": [
+        {
+          "expression": "MIT OR Apache-2.0"
+        }
+      ],
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "3341a273f6c9d5bef1908f17b7267bbab0e95c9bf69a0d4dcf8e9e1b2c76ef67"
         }
       ],
       "properties": [
@@ -6563,9 +6941,7 @@
       "scope": "required",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "MIT OR Apache-2.0"
         }
       ],
       "hashes": [
@@ -6590,9 +6966,7 @@
       "scope": "required",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "MIT OR Apache-2.0"
         }
       ],
       "hashes": [
@@ -6687,6 +7061,33 @@
     },
     {
       "type": "library",
+      "bom-ref": "pkg:cargo/nom@7.1.3",
+      "name": "nom",
+      "version": "7.1.3",
+      "purl": "pkg:cargo/nom@7.1.3",
+      "scope": "required",
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT"
+          }
+        }
+      ],
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "d273983c5a657a70a3e8f2a01329822f3b8c8172b73826411a55751e404a0a4a"
+        }
+      ],
+      "properties": [
+        {
+          "name": "lolly:source",
+          "value": "shells/tauri-desktop/src-tauri/Cargo.lock"
+        }
+      ]
+    },
+    {
+      "type": "library",
       "bom-ref": "pkg:cargo/num_enum_derive@0.7.6",
       "name": "num_enum_derive",
       "version": "0.7.6",
@@ -6744,9 +7145,7 @@
       "scope": "required",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "MIT OR Apache-2.0"
         }
       ],
       "hashes": [
@@ -6796,9 +7195,7 @@
       "scope": "required",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "MIT OR Apache-2.0"
         }
       ],
       "hashes": [
@@ -7304,9 +7701,7 @@
       "scope": "required",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "MIT OR Apache-2.0"
         }
       ],
       "hashes": [
@@ -7358,9 +7753,7 @@
       "scope": "required",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "MIT OR Apache-2.0"
         }
       ],
       "hashes": [
@@ -7385,9 +7778,7 @@
       "scope": "required",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "MIT OR Apache-2.0"
         }
       ],
       "hashes": [
@@ -7413,7 +7804,7 @@
       "licenses": [
         {
           "license": {
-            "name": "unknown"
+            "id": "MIT"
           }
         }
       ],
@@ -7440,7 +7831,7 @@
       "licenses": [
         {
           "license": {
-            "name": "unknown"
+            "id": "Apache-2.0"
           }
         }
       ],
@@ -7493,9 +7884,7 @@
       "scope": "required",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "MIT OR Apache-2.0"
         }
       ],
       "hashes": [
@@ -7520,9 +7909,7 @@
       "scope": "required",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "MIT OR Apache-2.0"
         }
       ],
       "hashes": [
@@ -7671,6 +8058,56 @@
     },
     {
       "type": "library",
+      "bom-ref": "pkg:cargo/paste@1.0.15",
+      "name": "paste",
+      "version": "1.0.15",
+      "purl": "pkg:cargo/paste@1.0.15",
+      "scope": "required",
+      "licenses": [
+        {
+          "expression": "MIT OR Apache-2.0"
+        }
+      ],
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "57c0d7b74b563b49d38dae00a0c37d4d6de9b432382b2892f0574ddcae73fd0a"
+        }
+      ],
+      "properties": [
+        {
+          "name": "lolly:source",
+          "value": "shells/tauri-desktop/src-tauri/Cargo.lock"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:cargo/pastey@0.2.3",
+      "name": "pastey",
+      "version": "0.2.3",
+      "purl": "pkg:cargo/pastey@0.2.3",
+      "scope": "required",
+      "licenses": [
+        {
+          "expression": "MIT OR Apache-2.0"
+        }
+      ],
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "2ee67f1008b1ba2321834326597b8e186293b049a023cdef258527550b9935b4"
+        }
+      ],
+      "properties": [
+        {
+          "name": "lolly:source",
+          "value": "shells/tauri-desktop/src-tauri/Cargo.lock"
+        }
+      ]
+    },
+    {
+      "type": "library",
       "bom-ref": "pkg:cargo/pathdiff@0.2.3",
       "name": "pathdiff",
       "version": "0.2.3",
@@ -7703,9 +8140,7 @@
       "scope": "required",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "Apache-2.0 OR MIT"
         }
       ],
       "hashes": [
@@ -8044,9 +8479,7 @@
       "scope": "required",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "Apache-2.0 OR MIT"
         }
       ],
       "hashes": [
@@ -8071,9 +8504,7 @@
       "scope": "required",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "Apache-2.0 OR MIT"
         }
       ],
       "hashes": [
@@ -8098,9 +8529,7 @@
       "scope": "required",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "Apache-2.0 OR MIT"
         }
       ],
       "hashes": [
@@ -8125,9 +8554,7 @@
       "scope": "required",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "Apache-2.0 OR MIT"
         }
       ],
       "hashes": [
@@ -8152,9 +8579,7 @@
       "scope": "required",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "Apache-2.0 OR MIT"
         }
       ],
       "hashes": [
@@ -8805,6 +9230,31 @@
     },
     {
       "type": "library",
+      "bom-ref": "pkg:cargo/rand_chacha@0.3.1",
+      "name": "rand_chacha",
+      "version": "0.3.1",
+      "purl": "pkg:cargo/rand_chacha@0.3.1",
+      "scope": "required",
+      "licenses": [
+        {
+          "expression": "MIT OR Apache-2.0"
+        }
+      ],
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "e6c10a63a0fa32252be49d21e7709d4d4baf8d231c2dbce1eaa8141b9b127d88"
+        }
+      ],
+      "properties": [
+        {
+          "name": "lolly:source",
+          "value": "shells/tauri-desktop/src-tauri/Cargo.lock"
+        }
+      ]
+    },
+    {
+      "type": "library",
       "bom-ref": "pkg:cargo/rand_chacha@0.9.0",
       "name": "rand_chacha",
       "version": "0.9.0",
@@ -8862,9 +9312,7 @@
       "scope": "required",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "MIT OR Apache-2.0"
         }
       ],
       "hashes": [
@@ -8982,6 +9430,31 @@
     },
     {
       "type": "library",
+      "bom-ref": "pkg:cargo/rand@0.8.7",
+      "name": "rand",
+      "version": "0.8.7",
+      "purl": "pkg:cargo/rand@0.8.7",
+      "scope": "required",
+      "licenses": [
+        {
+          "expression": "MIT OR Apache-2.0"
+        }
+      ],
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "22f6172bdec972074665ed81ed53b71da00bfc44b65a753cfde883ec4c702a1a"
+        }
+      ],
+      "properties": [
+        {
+          "name": "lolly:source",
+          "value": "shells/tauri-desktop/src-tauri/Cargo.lock"
+        }
+      ]
+    },
+    {
+      "type": "library",
       "bom-ref": "pkg:cargo/rand@0.9.4",
       "name": "rand",
       "version": "0.9.4",
@@ -9039,15 +9512,88 @@
       "scope": "required",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "MIT OR Apache-2.0"
         }
       ],
       "hashes": [
         {
           "alg": "SHA-256",
           "content": "60a357793950651c4ed0f3f52338f53b2f809f32d83a07f72909fa13e4c6c1e3"
+        }
+      ],
+      "properties": [
+        {
+          "name": "lolly:source",
+          "value": "shells/tauri-desktop/src-tauri/Cargo.lock"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:cargo/rayon-cond@0.4.0",
+      "name": "rayon-cond",
+      "version": "0.4.0",
+      "purl": "pkg:cargo/rayon-cond@0.4.0",
+      "scope": "required",
+      "licenses": [
+        {
+          "expression": "Apache-2.0 OR MIT"
+        }
+      ],
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "2964d0cf57a3e7a06e8183d14a8b527195c706b7983549cd5462d5aa3747438f"
+        }
+      ],
+      "properties": [
+        {
+          "name": "lolly:source",
+          "value": "shells/tauri-desktop/src-tauri/Cargo.lock"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:cargo/rayon-core@1.13.0",
+      "name": "rayon-core",
+      "version": "1.13.0",
+      "purl": "pkg:cargo/rayon-core@1.13.0",
+      "scope": "required",
+      "licenses": [
+        {
+          "expression": "MIT OR Apache-2.0"
+        }
+      ],
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "22e18b0f0062d30d4230b2e85ff77fdfe4326feb054b9783a3460d8435c8ab91"
+        }
+      ],
+      "properties": [
+        {
+          "name": "lolly:source",
+          "value": "shells/tauri-desktop/src-tauri/Cargo.lock"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:cargo/rayon@1.12.0",
+      "name": "rayon",
+      "version": "1.12.0",
+      "purl": "pkg:cargo/rayon@1.12.0",
+      "scope": "required",
+      "licenses": [
+        {
+          "expression": "MIT OR Apache-2.0"
+        }
+      ],
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "fb39b166781f92d482534ef4b4b1b2568f42613b53e5b6c160e24cfbfa30926d"
         }
       ],
       "properties": [
@@ -9623,7 +10169,7 @@
       "licenses": [
         {
           "license": {
-            "name": "unknown"
+            "id": "MIT"
           }
         }
       ],
@@ -9782,9 +10328,7 @@
       "scope": "required",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "MIT OR Apache-2.0"
         }
       ],
       "hashes": [
@@ -9809,9 +10353,7 @@
       "scope": "required",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "MIT OR Apache-2.0"
         }
       ],
       "hashes": [
@@ -10571,9 +11113,7 @@
       "scope": "required",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "MIT OR Apache-2.0"
         }
       ],
       "hashes": [
@@ -10598,9 +11138,7 @@
       "scope": "required",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "Apache-2.0 OR MIT"
         }
       ],
       "hashes": [
@@ -10625,9 +11163,7 @@
       "scope": "required",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "MIT OR Apache-2.0"
         }
       ],
       "hashes": [
@@ -10782,7 +11318,7 @@
       "licenses": [
         {
           "license": {
-            "name": "unknown"
+            "id": "MIT"
           }
         }
       ],
@@ -10790,6 +11326,33 @@
         {
           "alg": "SHA-256",
           "content": "3763264f6b73151db08c50ff20d7d8a0b8796e021cdea7ceedad07b80155fa0e"
+        }
+      ],
+      "properties": [
+        {
+          "name": "lolly:source",
+          "value": "shells/tauri-desktop/src-tauri/Cargo.lock"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:cargo/spm_precompiled@0.1.4",
+      "name": "spm_precompiled",
+      "version": "0.1.4",
+      "purl": "pkg:cargo/spm_precompiled@0.1.4",
+      "scope": "required",
+      "licenses": [
+        {
+          "license": {
+            "id": "Apache-2.0"
+          }
+        }
+      ],
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "5851699c4033c63636f7ea4cf7b7c1f1bf06d0cc03cfb42e711de5a5c46cf326"
         }
       ],
       "properties": [
@@ -10815,6 +11378,31 @@
         {
           "alg": "SHA-256",
           "content": "6ce2be8dc25455e1f91df71bfa12ad37d7af1092ae736f3a6cd0e37bc7810596"
+        }
+      ],
+      "properties": [
+        {
+          "name": "lolly:source",
+          "value": "shells/tauri-desktop/src-tauri/Cargo.lock"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:cargo/static_assertions@1.1.0",
+      "name": "static_assertions",
+      "version": "1.1.0",
+      "purl": "pkg:cargo/static_assertions@1.1.0",
+      "scope": "required",
+      "licenses": [
+        {
+          "expression": "MIT OR Apache-2.0"
+        }
+      ],
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "a2eb9349b6444b326872e140eb1cf5e7c522154d69e7a0ffb0fb81c06b37543f"
         }
       ],
       "properties": [
@@ -11218,9 +11806,7 @@
       "scope": "required",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "MIT OR Apache-2.0"
         }
       ],
       "hashes": [
@@ -12167,6 +12753,33 @@
     },
     {
       "type": "library",
+      "bom-ref": "pkg:cargo/tokenizers@0.21.4",
+      "name": "tokenizers",
+      "version": "0.21.4",
+      "purl": "pkg:cargo/tokenizers@0.21.4",
+      "scope": "required",
+      "licenses": [
+        {
+          "license": {
+            "id": "Apache-2.0"
+          }
+        }
+      ],
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "a620b996116a59e184c2fa2dfd8251ea34a36d0a514758c6f966386bd2e03476"
+        }
+      ],
+      "properties": [
+        {
+          "name": "lolly:source",
+          "value": "shells/tauri-desktop/src-tauri/Cargo.lock"
+        }
+      ]
+    },
+    {
+      "type": "library",
       "bom-ref": "pkg:cargo/tokio-macros@2.7.0",
       "name": "tokio-macros",
       "version": "2.7.0",
@@ -12987,6 +13600,31 @@
     },
     {
       "type": "library",
+      "bom-ref": "pkg:cargo/unicode_categories@0.1.1",
+      "name": "unicode_categories",
+      "version": "0.1.1",
+      "purl": "pkg:cargo/unicode_categories@0.1.1",
+      "scope": "required",
+      "licenses": [
+        {
+          "expression": "MIT OR Apache-2.0"
+        }
+      ],
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "39ec24b3121d976906ece63c9daad25b85969647682eee313cb5779fdd69e14e"
+        }
+      ],
+      "properties": [
+        {
+          "name": "lolly:source",
+          "value": "shells/tauri-desktop/src-tauri/Cargo.lock"
+        }
+      ]
+    },
+    {
+      "type": "library",
       "bom-ref": "pkg:cargo/unicode-ident@1.0.24",
       "name": "unicode-ident",
       "version": "1.0.24",
@@ -13001,6 +13639,31 @@
         {
           "alg": "SHA-256",
           "content": "e6e4313cd5fcd3dad5cafa179702e2b244f760991f45397d14d4ebf38247da75"
+        }
+      ],
+      "properties": [
+        {
+          "name": "lolly:source",
+          "value": "shells/tauri-desktop/src-tauri/Cargo.lock"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:cargo/unicode-normalization-alignments@0.1.12",
+      "name": "unicode-normalization-alignments",
+      "version": "0.1.12",
+      "purl": "pkg:cargo/unicode-normalization-alignments@0.1.12",
+      "scope": "required",
+      "licenses": [
+        {
+          "expression": "MIT OR Apache-2.0"
+        }
+      ],
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "43f613e4fa046e69818dd287fdc4bc78175ff20331479dab6e1b0f98d57062de"
         }
       ],
       "properties": [
@@ -13069,9 +13732,7 @@
       "scope": "required",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "MIT OR Apache-2.0"
         }
       ],
       "hashes": [
@@ -13350,9 +14011,7 @@
       "scope": "required",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "MIT OR Apache-2.0"
         }
       ],
       "hashes": [
@@ -14165,7 +14824,7 @@
       "licenses": [
         {
           "license": {
-            "name": "unknown"
+            "id": "CDLA-Permissive-2.0"
           }
         }
       ],
@@ -14503,9 +15162,7 @@
       "scope": "required",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "MIT OR Apache-2.0"
         }
       ],
       "hashes": [
@@ -14605,9 +15262,7 @@
       "scope": "required",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "MIT OR Apache-2.0"
         }
       ],
       "hashes": [
@@ -14707,9 +15362,7 @@
       "scope": "required",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "MIT OR Apache-2.0"
         }
       ],
       "hashes": [
@@ -14859,9 +15512,7 @@
       "scope": "required",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "MIT OR Apache-2.0"
         }
       ],
       "hashes": [
@@ -14961,9 +15612,7 @@
       "scope": "required",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "MIT OR Apache-2.0"
         }
       ],
       "hashes": [
@@ -15063,9 +15712,7 @@
       "scope": "required",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "MIT OR Apache-2.0"
         }
       ],
       "hashes": [
@@ -15165,9 +15812,7 @@
       "scope": "required",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "MIT OR Apache-2.0"
         }
       ],
       "hashes": [
@@ -15617,9 +16262,7 @@
       "scope": "required",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "MIT OR Apache-2.0"
         }
       ],
       "hashes": [
@@ -15769,9 +16412,7 @@
       "scope": "required",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "MIT OR Apache-2.0"
         }
       ],
       "hashes": [
@@ -16337,9 +16978,7 @@
       "scope": "required",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "MIT OR Apache-2.0"
         }
       ],
       "hashes": [
@@ -16720,10 +17359,10 @@
     },
     {
       "type": "library",
-      "bom-ref": "pkg:npm/%40anthropic-ai/sdk@0.111.0",
+      "bom-ref": "pkg:npm/%40anthropic-ai/sdk@0.120.0",
       "name": "@anthropic-ai/sdk",
-      "version": "0.111.0",
-      "purl": "pkg:npm/%40anthropic-ai/sdk@0.111.0",
+      "version": "0.120.0",
+      "purl": "pkg:npm/%40anthropic-ai/sdk@0.120.0",
       "scope": "excluded",
       "licenses": [
         {
@@ -16735,13 +17374,13 @@
       "hashes": [
         {
           "alg": "SHA-512",
-          "content": "d6152a2a2fae250a12e57f74f889f01db1405ccbe0ab40e7b02e6154b11e49168e0e25395af9aa0c07150a6192db00b4a4df59f23b5609b5b0ec92f3783766fd"
+          "content": "665be63454ff88817a243d77af16db3160fc9ef191d11694a7ac8c427a1cfb801fd188d555efdb21d5b55d2410b28c5702d83535a4fa55a9342ca165278777ed"
         }
       ],
       "externalReferences": [
         {
           "type": "distribution",
-          "url": "https://registry.npmjs.org/@anthropic-ai/sdk/-/sdk-0.111.0.tgz"
+          "url": "https://registry.npmjs.org/@anthropic-ai/sdk/-/sdk-0.120.0.tgz"
         }
       ],
       "properties": [
@@ -16807,10 +17446,10 @@
     },
     {
       "type": "library",
-      "bom-ref": "pkg:npm/%40biomejs/biome@2.5.2",
+      "bom-ref": "pkg:npm/%40biomejs/biome@2.5.9",
       "name": "@biomejs/biome",
-      "version": "2.5.2",
-      "purl": "pkg:npm/%40biomejs/biome@2.5.2",
+      "version": "2.5.9",
+      "purl": "pkg:npm/%40biomejs/biome@2.5.9",
       "scope": "excluded",
       "licenses": [
         {
@@ -16820,13 +17459,13 @@
       "hashes": [
         {
           "alg": "SHA-512",
-          "content": "550dd10aaafb2660c85fec3ab2d59897e83fddb6287cddeadb00c11d428a73f73b8b9416ac528505960260f59313a6a0b143cc21965eebf08c99551f50086428"
+          "content": "2a4802bdd1c1e0886da47a45e7ae29940f63a3a7c33b058643fde3beb78bce03ad44b103a0faabed03bda9e8cd03c8cac03b129002abefb86a0479f251b230e2"
         }
       ],
       "externalReferences": [
         {
           "type": "distribution",
-          "url": "https://registry.npmjs.org/@biomejs/biome/-/biome-2.5.2.tgz"
+          "url": "https://registry.npmjs.org/@biomejs/biome/-/biome-2.5.9.tgz"
         }
       ],
       "properties": [
@@ -16838,10 +17477,10 @@
     },
     {
       "type": "library",
-      "bom-ref": "pkg:npm/%40biomejs/cli-darwin-arm64@2.5.2",
+      "bom-ref": "pkg:npm/%40biomejs/cli-darwin-arm64@2.5.9",
       "name": "@biomejs/cli-darwin-arm64",
-      "version": "2.5.2",
-      "purl": "pkg:npm/%40biomejs/cli-darwin-arm64@2.5.2",
+      "version": "2.5.9",
+      "purl": "pkg:npm/%40biomejs/cli-darwin-arm64@2.5.9",
       "scope": "excluded",
       "licenses": [
         {
@@ -16851,13 +17490,13 @@
       "hashes": [
         {
           "alg": "SHA-512",
-          "content": "7bb3f73fb124c0573f2a25f6007c386032c804e31f1bd08f080c32e76939069d1d7e1928cf1f617fac02988af641e5f2d9779c709dd5fd283e8439b3604ab14a"
+          "content": "6a6db6a57d9a06ace7aaad5e332223fdb67efab885dcb93a72dedc6effa040ad1cb0586bf9df0ed1190e8b6145daa4a016000d6ea364219d3f3f19675b6a4b16"
         }
       ],
       "externalReferences": [
         {
           "type": "distribution",
-          "url": "https://registry.npmjs.org/@biomejs/cli-darwin-arm64/-/cli-darwin-arm64-2.5.2.tgz"
+          "url": "https://registry.npmjs.org/@biomejs/cli-darwin-arm64/-/cli-darwin-arm64-2.5.9.tgz"
         }
       ],
       "properties": [
@@ -16869,10 +17508,10 @@
     },
     {
       "type": "library",
-      "bom-ref": "pkg:npm/%40biomejs/cli-darwin-x64@2.5.2",
+      "bom-ref": "pkg:npm/%40biomejs/cli-darwin-x64@2.5.9",
       "name": "@biomejs/cli-darwin-x64",
-      "version": "2.5.2",
-      "purl": "pkg:npm/%40biomejs/cli-darwin-x64@2.5.2",
+      "version": "2.5.9",
+      "purl": "pkg:npm/%40biomejs/cli-darwin-x64@2.5.9",
       "scope": "excluded",
       "licenses": [
         {
@@ -16882,13 +17521,13 @@
       "hashes": [
         {
           "alg": "SHA-512",
-          "content": "ca6cccbe30b5260d1bf4ad03dba65d011a85417b3b32871f2c2e4538219f902d12b3e002509917e77eb864ce674f834b65a9c7459355ad9132f886f072fbb1fe"
+          "content": "978e0a5831cb0ef1270f437f5dcad5b3b5576f7035f312fb412dd607478bf77c1b9a4e76f5f7c81b9e6f95e182a9aba7a515232eb7678cad394248b576c8f296"
         }
       ],
       "externalReferences": [
         {
           "type": "distribution",
-          "url": "https://registry.npmjs.org/@biomejs/cli-darwin-x64/-/cli-darwin-x64-2.5.2.tgz"
+          "url": "https://registry.npmjs.org/@biomejs/cli-darwin-x64/-/cli-darwin-x64-2.5.9.tgz"
         }
       ],
       "properties": [
@@ -16900,10 +17539,10 @@
     },
     {
       "type": "library",
-      "bom-ref": "pkg:npm/%40biomejs/cli-linux-arm64-musl@2.5.2",
+      "bom-ref": "pkg:npm/%40biomejs/cli-linux-arm64-musl@2.5.9",
       "name": "@biomejs/cli-linux-arm64-musl",
-      "version": "2.5.2",
-      "purl": "pkg:npm/%40biomejs/cli-linux-arm64-musl@2.5.2",
+      "version": "2.5.9",
+      "purl": "pkg:npm/%40biomejs/cli-linux-arm64-musl@2.5.9",
       "scope": "excluded",
       "licenses": [
         {
@@ -16913,13 +17552,13 @@
       "hashes": [
         {
           "alg": "SHA-512",
-          "content": "c3e00d1b466f4eef4878483d427b2da0e9e4e8bd1fa702627d6e9a1d1d7cf9c6f9677f5b900348b588c07ccae7bdc7b9b6630af8843a9cf5fbfe440575a9b98b"
+          "content": "ec89953f004b0ad926a51e5eb1df111e14ea5bde1fd092c942e9ba027798732f788d19b5f1368f3e6eec95a8a01b31617e0b774220f5563e762ca9810272a2cc"
         }
       ],
       "externalReferences": [
         {
           "type": "distribution",
-          "url": "https://registry.npmjs.org/@biomejs/cli-linux-arm64-musl/-/cli-linux-arm64-musl-2.5.2.tgz"
+          "url": "https://registry.npmjs.org/@biomejs/cli-linux-arm64-musl/-/cli-linux-arm64-musl-2.5.9.tgz"
         }
       ],
       "properties": [
@@ -16931,10 +17570,10 @@
     },
     {
       "type": "library",
-      "bom-ref": "pkg:npm/%40biomejs/cli-linux-arm64@2.5.2",
+      "bom-ref": "pkg:npm/%40biomejs/cli-linux-arm64@2.5.9",
       "name": "@biomejs/cli-linux-arm64",
-      "version": "2.5.2",
-      "purl": "pkg:npm/%40biomejs/cli-linux-arm64@2.5.2",
+      "version": "2.5.9",
+      "purl": "pkg:npm/%40biomejs/cli-linux-arm64@2.5.9",
       "scope": "excluded",
       "licenses": [
         {
@@ -16944,13 +17583,13 @@
       "hashes": [
         {
           "alg": "SHA-512",
-          "content": "b7bb2c78e9aa343e7bb94593c256b053a0588fe274e93ffd124c9dcc1864ae0c3f14add05618d4db0b094747eb963aca674fc8f00feb630ef6f38420aa341f21"
+          "content": "20268af8861a559bca6c1c57dabc2b3d3d037540cc9c4f559b79d019efa696d40f994835f6938dce43d619d638142b28ade0c44d60f29ef76de32b026c5e6035"
         }
       ],
       "externalReferences": [
         {
           "type": "distribution",
-          "url": "https://registry.npmjs.org/@biomejs/cli-linux-arm64/-/cli-linux-arm64-2.5.2.tgz"
+          "url": "https://registry.npmjs.org/@biomejs/cli-linux-arm64/-/cli-linux-arm64-2.5.9.tgz"
         }
       ],
       "properties": [
@@ -16962,10 +17601,10 @@
     },
     {
       "type": "library",
-      "bom-ref": "pkg:npm/%40biomejs/cli-linux-x64-musl@2.5.2",
+      "bom-ref": "pkg:npm/%40biomejs/cli-linux-x64-musl@2.5.9",
       "name": "@biomejs/cli-linux-x64-musl",
-      "version": "2.5.2",
-      "purl": "pkg:npm/%40biomejs/cli-linux-x64-musl@2.5.2",
+      "version": "2.5.9",
+      "purl": "pkg:npm/%40biomejs/cli-linux-x64-musl@2.5.9",
       "scope": "excluded",
       "licenses": [
         {
@@ -16975,13 +17614,13 @@
       "hashes": [
         {
           "alg": "SHA-512",
-          "content": "540acd2c0ccd0f4eb7b45f97634c8fc8cf83c9a869cce333380bdbeeab36e7d9e18c95918ef8d976cb2e03e45f97e974efe34e7ac299d17bb6c85ad7c8132dcf"
+          "content": "45719a0f4a35fe94d382e630d5a783261f5a77a2dfaee8b47c8ee605d7ab4f21abed6b94264048b6d80b911dd7272a313a49207c10eca5a513f305c0ad3a8b67"
         }
       ],
       "externalReferences": [
         {
           "type": "distribution",
-          "url": "https://registry.npmjs.org/@biomejs/cli-linux-x64-musl/-/cli-linux-x64-musl-2.5.2.tgz"
+          "url": "https://registry.npmjs.org/@biomejs/cli-linux-x64-musl/-/cli-linux-x64-musl-2.5.9.tgz"
         }
       ],
       "properties": [
@@ -16993,10 +17632,10 @@
     },
     {
       "type": "library",
-      "bom-ref": "pkg:npm/%40biomejs/cli-linux-x64@2.5.2",
+      "bom-ref": "pkg:npm/%40biomejs/cli-linux-x64@2.5.9",
       "name": "@biomejs/cli-linux-x64",
-      "version": "2.5.2",
-      "purl": "pkg:npm/%40biomejs/cli-linux-x64@2.5.2",
+      "version": "2.5.9",
+      "purl": "pkg:npm/%40biomejs/cli-linux-x64@2.5.9",
       "scope": "excluded",
       "licenses": [
         {
@@ -17006,13 +17645,13 @@
       "hashes": [
         {
           "alg": "SHA-512",
-          "content": "33f94e66b7b0cd30910c835b8e143581862bbb7eca943de4241430c0a086d1c933e44f486702282775f4c01c115c0fb2043230594b8f0474baec7cc96387537c"
+          "content": "cf6d90ff31584af6c825f5b509b7d93eee17f0f75d4ba41dd8e45b73a87e693e84730031505de6e9f0381e336f0374d4e17d1d4c947034f075eb9112dcf257ce"
         }
       ],
       "externalReferences": [
         {
           "type": "distribution",
-          "url": "https://registry.npmjs.org/@biomejs/cli-linux-x64/-/cli-linux-x64-2.5.2.tgz"
+          "url": "https://registry.npmjs.org/@biomejs/cli-linux-x64/-/cli-linux-x64-2.5.9.tgz"
         }
       ],
       "properties": [
@@ -17024,10 +17663,10 @@
     },
     {
       "type": "library",
-      "bom-ref": "pkg:npm/%40biomejs/cli-win32-arm64@2.5.2",
+      "bom-ref": "pkg:npm/%40biomejs/cli-win32-arm64@2.5.9",
       "name": "@biomejs/cli-win32-arm64",
-      "version": "2.5.2",
-      "purl": "pkg:npm/%40biomejs/cli-win32-arm64@2.5.2",
+      "version": "2.5.9",
+      "purl": "pkg:npm/%40biomejs/cli-win32-arm64@2.5.9",
       "scope": "excluded",
       "licenses": [
         {
@@ -17037,13 +17676,13 @@
       "hashes": [
         {
           "alg": "SHA-512",
-          "content": "91b8c514ac9997362702ec3bb11cb9a83a051baceb3f8d142b4f283d0b162b472ddcd327192b7e06cd62be2104c8420fe7b37932bca419774eff0462691e25c3"
+          "content": "9c72befc71c2f83d288001d4c689a0a124dd8c899be9f98d3554ca99fd2dcaee1e0cbd43a8f2881dcfa2f942fcf9bd119c0bbcdb6e2aa3c176b42567693d00df"
         }
       ],
       "externalReferences": [
         {
           "type": "distribution",
-          "url": "https://registry.npmjs.org/@biomejs/cli-win32-arm64/-/cli-win32-arm64-2.5.2.tgz"
+          "url": "https://registry.npmjs.org/@biomejs/cli-win32-arm64/-/cli-win32-arm64-2.5.9.tgz"
         }
       ],
       "properties": [
@@ -17055,10 +17694,10 @@
     },
     {
       "type": "library",
-      "bom-ref": "pkg:npm/%40biomejs/cli-win32-x64@2.5.2",
+      "bom-ref": "pkg:npm/%40biomejs/cli-win32-x64@2.5.9",
       "name": "@biomejs/cli-win32-x64",
-      "version": "2.5.2",
-      "purl": "pkg:npm/%40biomejs/cli-win32-x64@2.5.2",
+      "version": "2.5.9",
+      "purl": "pkg:npm/%40biomejs/cli-win32-x64@2.5.9",
       "scope": "excluded",
       "licenses": [
         {
@@ -17068,13 +17707,13 @@
       "hashes": [
         {
           "alg": "SHA-512",
-          "content": "e089dc855a5d56676492482342a2a982fcaef953e7a05ffb44f4b0e58013804569b768fbdb070201e5794f0684f591895195999fbbf60b04808fa0ab309131f0"
+          "content": "622ab41f9e8b8d7492c3f85df589178122d07f3c832736f35364dece8cf1c8dc3eb8a580a8eb6a195bc17f329144389a145e5abc60211dd58ac7b2ed0ce4a153"
         }
       ],
       "externalReferences": [
         {
           "type": "distribution",
-          "url": "https://registry.npmjs.org/@biomejs/cli-win32-x64/-/cli-win32-x64-2.5.2.tgz"
+          "url": "https://registry.npmjs.org/@biomejs/cli-win32-x64/-/cli-win32-x64-2.5.9.tgz"
         }
       ],
       "properties": [
@@ -17407,10 +18046,10 @@
     },
     {
       "type": "library",
-      "bom-ref": "pkg:npm/%40esbuild/aix-ppc64@0.28.1",
+      "bom-ref": "pkg:npm/%40esbuild/aix-ppc64@0.28.2",
       "name": "@esbuild/aix-ppc64",
-      "version": "0.28.1",
-      "purl": "pkg:npm/%40esbuild/aix-ppc64@0.28.1",
+      "version": "0.28.2",
+      "purl": "pkg:npm/%40esbuild/aix-ppc64@0.28.2",
       "scope": "excluded",
       "licenses": [
         {
@@ -17422,13 +18061,13 @@
       "hashes": [
         {
           "alg": "SHA-512",
-          "content": "4af97bb6af24ff4f3ea7a0973e94634357ca5fed68747fc141b6f8f1f57a7e3dc258786ca083a863cef0d681d79b4a84a6420add97d5829d2179ddd7057cd731"
+          "content": "5c4c5c3be76f2cabd5b4d4e26d24c17a3d4d0806da1a15a7f56c3564fc7cd2ab1a8613c57bff238163f421c84d7b41771f0914ee7f1e8e11fc6e3a27aa1b7c99"
         }
       ],
       "externalReferences": [
         {
           "type": "distribution",
-          "url": "https://registry.npmjs.org/@esbuild/aix-ppc64/-/aix-ppc64-0.28.1.tgz"
+          "url": "https://registry.npmjs.org/@esbuild/aix-ppc64/-/aix-ppc64-0.28.2.tgz"
         }
       ],
       "properties": [
@@ -17440,10 +18079,10 @@
     },
     {
       "type": "library",
-      "bom-ref": "pkg:npm/%40esbuild/android-arm@0.28.1",
+      "bom-ref": "pkg:npm/%40esbuild/android-arm@0.28.2",
       "name": "@esbuild/android-arm",
-      "version": "0.28.1",
-      "purl": "pkg:npm/%40esbuild/android-arm@0.28.1",
+      "version": "0.28.2",
+      "purl": "pkg:npm/%40esbuild/android-arm@0.28.2",
       "scope": "excluded",
       "licenses": [
         {
@@ -17455,13 +18094,13 @@
       "hashes": [
         {
           "alg": "SHA-512",
-          "content": "d24d85d76f57762a354dd25fcc9f2ccb5438eef503d8d9f07618807fb76b50dd440537cf7f886c142b66320bbfea6f094b3b01ae59958ee74c050a8e7c6f2eb1"
+          "content": "9175e888f55519072721818e79aa2fc0e511a678830694aae00d37aa443e04c42ab461ba1d86a9df19def42d4ed72a384d1deac65097e48aaa997e9f168d8baa"
         }
       ],
       "externalReferences": [
         {
           "type": "distribution",
-          "url": "https://registry.npmjs.org/@esbuild/android-arm/-/android-arm-0.28.1.tgz"
+          "url": "https://registry.npmjs.org/@esbuild/android-arm/-/android-arm-0.28.2.tgz"
         }
       ],
       "properties": [
@@ -17473,10 +18112,10 @@
     },
     {
       "type": "library",
-      "bom-ref": "pkg:npm/%40esbuild/android-arm64@0.28.1",
+      "bom-ref": "pkg:npm/%40esbuild/android-arm64@0.28.2",
       "name": "@esbuild/android-arm64",
-      "version": "0.28.1",
-      "purl": "pkg:npm/%40esbuild/android-arm64@0.28.1",
+      "version": "0.28.2",
+      "purl": "pkg:npm/%40esbuild/android-arm64@0.28.2",
       "scope": "excluded",
       "licenses": [
         {
@@ -17488,13 +18127,13 @@
       "hashes": [
         {
           "alg": "SHA-512",
-          "content": "df810611b088020a2c633ea0a0b728a57e8ca3b3721aff6d7f010cdbfec27b655c551939ebc892be788659c517232ef0103475c33a2573172b88556b59873006"
+          "content": "e587ca79e23ca967c16485febb6c590b76656f73acfe02d2dac6c428cf88e1939cb169874b658bcac09c4190c0151b250d45393a2ab8e207fa3d8375bc6c06e4"
         }
       ],
       "externalReferences": [
         {
           "type": "distribution",
-          "url": "https://registry.npmjs.org/@esbuild/android-arm64/-/android-arm64-0.28.1.tgz"
+          "url": "https://registry.npmjs.org/@esbuild/android-arm64/-/android-arm64-0.28.2.tgz"
         }
       ],
       "properties": [
@@ -17506,10 +18145,10 @@
     },
     {
       "type": "library",
-      "bom-ref": "pkg:npm/%40esbuild/android-x64@0.28.1",
+      "bom-ref": "pkg:npm/%40esbuild/android-x64@0.28.2",
       "name": "@esbuild/android-x64",
-      "version": "0.28.1",
-      "purl": "pkg:npm/%40esbuild/android-x64@0.28.1",
+      "version": "0.28.2",
+      "purl": "pkg:npm/%40esbuild/android-x64@0.28.2",
       "scope": "excluded",
       "licenses": [
         {
@@ -17521,13 +18160,13 @@
       "hashes": [
         {
           "alg": "SHA-512",
-          "content": "75bc18ee5b523035ac45ab5c4690a7112e05fa29bcf0e094806663cb9dac842ec6a87444fdc625c4d6c1e19e14a49b30a5c738431776a04fee7ccd29eb520a9e"
+          "content": "3b7f3b8ad7bb4b353209ccb72505f83f86cbb4403b6cb2e4c7e7acbdee491e7c987cd4f1715a57668f6385d07495328de38833b442d3754ee74bc36bd7a16cd5"
         }
       ],
       "externalReferences": [
         {
           "type": "distribution",
-          "url": "https://registry.npmjs.org/@esbuild/android-x64/-/android-x64-0.28.1.tgz"
+          "url": "https://registry.npmjs.org/@esbuild/android-x64/-/android-x64-0.28.2.tgz"
         }
       ],
       "properties": [
@@ -17539,10 +18178,10 @@
     },
     {
       "type": "library",
-      "bom-ref": "pkg:npm/%40esbuild/darwin-arm64@0.28.1",
+      "bom-ref": "pkg:npm/%40esbuild/darwin-arm64@0.28.2",
       "name": "@esbuild/darwin-arm64",
-      "version": "0.28.1",
-      "purl": "pkg:npm/%40esbuild/darwin-arm64@0.28.1",
+      "version": "0.28.2",
+      "purl": "pkg:npm/%40esbuild/darwin-arm64@0.28.2",
       "scope": "excluded",
       "licenses": [
         {
@@ -17554,13 +18193,13 @@
       "hashes": [
         {
           "alg": "SHA-512",
-          "content": "4d96d691063b92f4c05db5d44fbb9500247970c1ec0e24b3f73ed92805ff453abf589124dd0c91af4c19a4d8410d7fbfd02b5da9420994e8a875072d6bab58dd"
+          "content": "9f82aa90e42badac4725c82333546fc1b8a07d028828956933bc69f8ab318b2512ad17485e7b7bdd586b3c0c747d5e388607e62152a3c4c37d275b798f249593"
         }
       ],
       "externalReferences": [
         {
           "type": "distribution",
-          "url": "https://registry.npmjs.org/@esbuild/darwin-arm64/-/darwin-arm64-0.28.1.tgz"
+          "url": "https://registry.npmjs.org/@esbuild/darwin-arm64/-/darwin-arm64-0.28.2.tgz"
         }
       ],
       "properties": [
@@ -17572,10 +18211,10 @@
     },
     {
       "type": "library",
-      "bom-ref": "pkg:npm/%40esbuild/darwin-x64@0.28.1",
+      "bom-ref": "pkg:npm/%40esbuild/darwin-x64@0.28.2",
       "name": "@esbuild/darwin-x64",
-      "version": "0.28.1",
-      "purl": "pkg:npm/%40esbuild/darwin-x64@0.28.1",
+      "version": "0.28.2",
+      "purl": "pkg:npm/%40esbuild/darwin-x64@0.28.2",
       "scope": "excluded",
       "licenses": [
         {
@@ -17587,13 +18226,13 @@
       "hashes": [
         {
           "alg": "SHA-512",
-          "content": "cdf77380af400813592c8fc2c874cec7cd52c8d6cce985e7eebc52817f7b563ca23e5f56d62e0a6b87e0284084a0508a1a9bc18f9a80ad62068108cec2482c91"
+          "content": "baaeacb885983f7eeacc675d04a3f0e501103e2e8788b1ac3bb5269297f2698350dc3fab37ac3a59fc07fa7baa7065d6bdac06c31384ae83b86069c587de5acf"
         }
       ],
       "externalReferences": [
         {
           "type": "distribution",
-          "url": "https://registry.npmjs.org/@esbuild/darwin-x64/-/darwin-x64-0.28.1.tgz"
+          "url": "https://registry.npmjs.org/@esbuild/darwin-x64/-/darwin-x64-0.28.2.tgz"
         }
       ],
       "properties": [
@@ -17605,10 +18244,10 @@
     },
     {
       "type": "library",
-      "bom-ref": "pkg:npm/%40esbuild/freebsd-arm64@0.28.1",
+      "bom-ref": "pkg:npm/%40esbuild/freebsd-arm64@0.28.2",
       "name": "@esbuild/freebsd-arm64",
-      "version": "0.28.1",
-      "purl": "pkg:npm/%40esbuild/freebsd-arm64@0.28.1",
+      "version": "0.28.2",
+      "purl": "pkg:npm/%40esbuild/freebsd-arm64@0.28.2",
       "scope": "excluded",
       "licenses": [
         {
@@ -17620,13 +18259,13 @@
       "hashes": [
         {
           "alg": "SHA-512",
-          "content": "c06d8403c10d744234aa191264c8dfaab758fb38826023cc9ad6638c8c0e9971639b2cc41e7f94531939a1ff9262c8ed7ecdd5a67942ed02f3488e6163face03"
+          "content": "9fe234053491228cbe77a44f2a7115c2a979530049a25cadbd8e2600e204268aca96a80f208f22c7ab25555adf6794e78fb825219be5a3295b07f1093cc5845f"
         }
       ],
       "externalReferences": [
         {
           "type": "distribution",
-          "url": "https://registry.npmjs.org/@esbuild/freebsd-arm64/-/freebsd-arm64-0.28.1.tgz"
+          "url": "https://registry.npmjs.org/@esbuild/freebsd-arm64/-/freebsd-arm64-0.28.2.tgz"
         }
       ],
       "properties": [
@@ -17638,10 +18277,10 @@
     },
     {
       "type": "library",
-      "bom-ref": "pkg:npm/%40esbuild/freebsd-x64@0.28.1",
+      "bom-ref": "pkg:npm/%40esbuild/freebsd-x64@0.28.2",
       "name": "@esbuild/freebsd-x64",
-      "version": "0.28.1",
-      "purl": "pkg:npm/%40esbuild/freebsd-x64@0.28.1",
+      "version": "0.28.2",
+      "purl": "pkg:npm/%40esbuild/freebsd-x64@0.28.2",
       "scope": "excluded",
       "licenses": [
         {
@@ -17653,13 +18292,13 @@
       "hashes": [
         {
           "alg": "SHA-512",
-          "content": "8bb759f6f4209ef482ce2feb6025cd82d17f53e78a64d241ceedde4d06d18079cceed3528b32ce911140977ab355cfcea7fbb96241c76b8a5fff70ce607b612d"
+          "content": "efc5c94c992f3ecd24cf6c3ad77d353c98d797883bab726a898319fccff2548ef710706b0914e0921bbda2a1bbbcfaaaf9aff269d116f1a0fe6a02a5939c6b9a"
         }
       ],
       "externalReferences": [
         {
           "type": "distribution",
-          "url": "https://registry.npmjs.org/@esbuild/freebsd-x64/-/freebsd-x64-0.28.1.tgz"
+          "url": "https://registry.npmjs.org/@esbuild/freebsd-x64/-/freebsd-x64-0.28.2.tgz"
         }
       ],
       "properties": [
@@ -17671,10 +18310,10 @@
     },
     {
       "type": "library",
-      "bom-ref": "pkg:npm/%40esbuild/linux-arm@0.28.1",
+      "bom-ref": "pkg:npm/%40esbuild/linux-arm@0.28.2",
       "name": "@esbuild/linux-arm",
-      "version": "0.28.1",
-      "purl": "pkg:npm/%40esbuild/linux-arm@0.28.1",
+      "version": "0.28.2",
+      "purl": "pkg:npm/%40esbuild/linux-arm@0.28.2",
       "scope": "excluded",
       "licenses": [
         {
@@ -17686,13 +18325,13 @@
       "hashes": [
         {
           "alg": "SHA-512",
-          "content": "a955c1387412f9de58ef6d86c09cc952d38b957ee49b70ab68e686a2b985d690ed3ddd82fe5d521d13e08cbba72c67b9d5287961858a3050f25784b180c4184d"
+          "content": "5e50e7bb6ab9ca8a9e9acfb16b2eb0480720f430c3ecaf512ca64404e3199b7724369241bce5f6d2d49f6f2f0a7ebae120d0f2bfd57661564a63f4a9a06248f3"
         }
       ],
       "externalReferences": [
         {
           "type": "distribution",
-          "url": "https://registry.npmjs.org/@esbuild/linux-arm/-/linux-arm-0.28.1.tgz"
+          "url": "https://registry.npmjs.org/@esbuild/linux-arm/-/linux-arm-0.28.2.tgz"
         }
       ],
       "properties": [
@@ -17704,10 +18343,10 @@
     },
     {
       "type": "library",
-      "bom-ref": "pkg:npm/%40esbuild/linux-arm64@0.28.1",
+      "bom-ref": "pkg:npm/%40esbuild/linux-arm64@0.28.2",
       "name": "@esbuild/linux-arm64",
-      "version": "0.28.1",
-      "purl": "pkg:npm/%40esbuild/linux-arm64@0.28.1",
+      "version": "0.28.2",
+      "purl": "pkg:npm/%40esbuild/linux-arm64@0.28.2",
       "scope": "excluded",
       "licenses": [
         {
@@ -17719,13 +18358,13 @@
       "hashes": [
         {
           "alg": "SHA-512",
-          "content": "c87b3ed2e73cfa7bc401f01fc6b59028ae6979237305ce0f7a070c3b4109da14fbd6e03bbc1f08860d9eefb4763fb486e6e6233db1e52cb9af7b82cb2d109fd2"
+          "content": "a56e000b43f78adf1cedda3d315338a79d45cc7cdd33f4d9adeaeeae045c1c9d964dad55435088ab5f319dc7e9049c38a23922659aca5b6c8805604ff768fa52"
         }
       ],
       "externalReferences": [
         {
           "type": "distribution",
-          "url": "https://registry.npmjs.org/@esbuild/linux-arm64/-/linux-arm64-0.28.1.tgz"
+          "url": "https://registry.npmjs.org/@esbuild/linux-arm64/-/linux-arm64-0.28.2.tgz"
         }
       ],
       "properties": [
@@ -17737,10 +18376,10 @@
     },
     {
       "type": "library",
-      "bom-ref": "pkg:npm/%40esbuild/linux-ia32@0.28.1",
+      "bom-ref": "pkg:npm/%40esbuild/linux-ia32@0.28.2",
       "name": "@esbuild/linux-ia32",
-      "version": "0.28.1",
-      "purl": "pkg:npm/%40esbuild/linux-ia32@0.28.1",
+      "version": "0.28.2",
+      "purl": "pkg:npm/%40esbuild/linux-ia32@0.28.2",
       "scope": "excluded",
       "licenses": [
         {
@@ -17752,13 +18391,13 @@
       "hashes": [
         {
           "alg": "SHA-512",
-          "content": "775cf866e3f46a3adfcff161193e2fbf6efcad7f0a9cf3c9c7c8b9f80b4aed361bc7d2def45d61cb3bab669904ca39066bd7541a1428c380b5366786beac4ddb"
+          "content": "0986e78fbf07b08780f8386050a80509fbcdb131c584c32b8a752b319a435c95ca37c4f75d589367ffb0b47795c44598f1ec12cd314dfa74664b03b6b5968b51"
         }
       ],
       "externalReferences": [
         {
           "type": "distribution",
-          "url": "https://registry.npmjs.org/@esbuild/linux-ia32/-/linux-ia32-0.28.1.tgz"
+          "url": "https://registry.npmjs.org/@esbuild/linux-ia32/-/linux-ia32-0.28.2.tgz"
         }
       ],
       "properties": [
@@ -17770,10 +18409,10 @@
     },
     {
       "type": "library",
-      "bom-ref": "pkg:npm/%40esbuild/linux-loong64@0.28.1",
+      "bom-ref": "pkg:npm/%40esbuild/linux-loong64@0.28.2",
       "name": "@esbuild/linux-loong64",
-      "version": "0.28.1",
-      "purl": "pkg:npm/%40esbuild/linux-loong64@0.28.1",
+      "version": "0.28.2",
+      "purl": "pkg:npm/%40esbuild/linux-loong64@0.28.2",
       "scope": "excluded",
       "licenses": [
         {
@@ -17785,13 +18424,13 @@
       "hashes": [
         {
           "alg": "SHA-512",
-          "content": "339b118d4559ae49b53803d1ddd94e63336637e96864a1958b5554406af0baa2dc6d1eaa780cfe7da98c863012787dd854abd9cfecd3d63961fe4782dd18ff96"
+          "content": "6eec2477c9eca61e11f9a8d1bf0d2a3391e36bf4d7428c37a6dcd63b611b1bf72a70890796846b76506d425b21c98193345bdf91f279b693cb5646380edb0f7d"
         }
       ],
       "externalReferences": [
         {
           "type": "distribution",
-          "url": "https://registry.npmjs.org/@esbuild/linux-loong64/-/linux-loong64-0.28.1.tgz"
+          "url": "https://registry.npmjs.org/@esbuild/linux-loong64/-/linux-loong64-0.28.2.tgz"
         }
       ],
       "properties": [
@@ -17803,10 +18442,10 @@
     },
     {
       "type": "library",
-      "bom-ref": "pkg:npm/%40esbuild/linux-mips64el@0.28.1",
+      "bom-ref": "pkg:npm/%40esbuild/linux-mips64el@0.28.2",
       "name": "@esbuild/linux-mips64el",
-      "version": "0.28.1",
-      "purl": "pkg:npm/%40esbuild/linux-mips64el@0.28.1",
+      "version": "0.28.2",
+      "purl": "pkg:npm/%40esbuild/linux-mips64el@0.28.2",
       "scope": "excluded",
       "licenses": [
         {
@@ -17818,13 +18457,13 @@
       "hashes": [
         {
           "alg": "SHA-512",
-          "content": "99139b0597878763b170114f584fc58f296446065d62e893477bda4e8ceab8218e1f5e223fda0de31e067bcd42a080d842b5e6231a45ba6241bb932d6699d025"
+          "content": "655ca46c3ca4ef9d7d57088d6fd2dc8fd9bc5cceafe55f6e28fbeb10c92411e7557b07fed22b6485a869e070e98044578702d1a56172a6c19b1bf27cb3442324"
         }
       ],
       "externalReferences": [
         {
           "type": "distribution",
-          "url": "https://registry.npmjs.org/@esbuild/linux-mips64el/-/linux-mips64el-0.28.1.tgz"
+          "url": "https://registry.npmjs.org/@esbuild/linux-mips64el/-/linux-mips64el-0.28.2.tgz"
         }
       ],
       "properties": [
@@ -17836,10 +18475,10 @@
     },
     {
       "type": "library",
-      "bom-ref": "pkg:npm/%40esbuild/linux-ppc64@0.28.1",
+      "bom-ref": "pkg:npm/%40esbuild/linux-ppc64@0.28.2",
       "name": "@esbuild/linux-ppc64",
-      "version": "0.28.1",
-      "purl": "pkg:npm/%40esbuild/linux-ppc64@0.28.1",
+      "version": "0.28.2",
+      "purl": "pkg:npm/%40esbuild/linux-ppc64@0.28.2",
       "scope": "excluded",
       "licenses": [
         {
@@ -17851,13 +18490,13 @@
       "hashes": [
         {
           "alg": "SHA-512",
-          "content": "b2549c06c3006f71850dc76b0a02f066d3d84681f61ffca8bafd744226724639ac3f8f1fce7a2f796cad4a0088fd1d19714829734661214131e8b1edb3ccab7d"
+          "content": "0805e5f83b5df5452e25df2928a77087a30b9b7314322a8c3e6859ded4d25cfa9fc90def0e5e91e6165d67f918a232b8a1f5ed75f4afd6d16af17cd6c7785e35"
         }
       ],
       "externalReferences": [
         {
           "type": "distribution",
-          "url": "https://registry.npmjs.org/@esbuild/linux-ppc64/-/linux-ppc64-0.28.1.tgz"
+          "url": "https://registry.npmjs.org/@esbuild/linux-ppc64/-/linux-ppc64-0.28.2.tgz"
         }
       ],
       "properties": [
@@ -17869,10 +18508,10 @@
     },
     {
       "type": "library",
-      "bom-ref": "pkg:npm/%40esbuild/linux-riscv64@0.28.1",
+      "bom-ref": "pkg:npm/%40esbuild/linux-riscv64@0.28.2",
       "name": "@esbuild/linux-riscv64",
-      "version": "0.28.1",
-      "purl": "pkg:npm/%40esbuild/linux-riscv64@0.28.1",
+      "version": "0.28.2",
+      "purl": "pkg:npm/%40esbuild/linux-riscv64@0.28.2",
       "scope": "excluded",
       "licenses": [
         {
@@ -17884,13 +18523,13 @@
       "hashes": [
         {
           "alg": "SHA-512",
-          "content": "930d28c24d68d061444d42725b48dcd06e18cecd011d99f424367c2514f4f3cbe32585fbefb040b357c31b1002faaf37d6a3acd834c2f7a98db06da8a5d7f2c9"
+          "content": "19e5c27a3e0842d53507e4250d5f16fd146f6f32373bf4adb2cfbf6c25efe25665b3958646dbb66bedc9900de2e2a21494c5e970779b5a917c024261013a30b8"
         }
       ],
       "externalReferences": [
         {
           "type": "distribution",
-          "url": "https://registry.npmjs.org/@esbuild/linux-riscv64/-/linux-riscv64-0.28.1.tgz"
+          "url": "https://registry.npmjs.org/@esbuild/linux-riscv64/-/linux-riscv64-0.28.2.tgz"
         }
       ],
       "properties": [
@@ -17902,10 +18541,10 @@
     },
     {
       "type": "library",
-      "bom-ref": "pkg:npm/%40esbuild/linux-s390x@0.28.1",
+      "bom-ref": "pkg:npm/%40esbuild/linux-s390x@0.28.2",
       "name": "@esbuild/linux-s390x",
-      "version": "0.28.1",
-      "purl": "pkg:npm/%40esbuild/linux-s390x@0.28.1",
+      "version": "0.28.2",
+      "purl": "pkg:npm/%40esbuild/linux-s390x@0.28.2",
       "scope": "excluded",
       "licenses": [
         {
@@ -17917,13 +18556,13 @@
       "hashes": [
         {
           "alg": "SHA-512",
-          "content": "fe50088d7f1a605441ca187a2f9ad8b4f10346a6bd75eff857f8ee39772d6b97eb8efcd73b8feca84b72cadb1ed20df3645b96bb97033743242f3daa4430f602"
+          "content": "dc7d707936193f1b7f58e841caccd06726d2f70e652b3527d450ccb2010285b1d64301d841045f071802719bcf8631df2b22632227afbcc98451ac09add63d0e"
         }
       ],
       "externalReferences": [
         {
           "type": "distribution",
-          "url": "https://registry.npmjs.org/@esbuild/linux-s390x/-/linux-s390x-0.28.1.tgz"
+          "url": "https://registry.npmjs.org/@esbuild/linux-s390x/-/linux-s390x-0.28.2.tgz"
         }
       ],
       "properties": [
@@ -17935,10 +18574,10 @@
     },
     {
       "type": "library",
-      "bom-ref": "pkg:npm/%40esbuild/linux-x64@0.28.1",
+      "bom-ref": "pkg:npm/%40esbuild/linux-x64@0.28.2",
       "name": "@esbuild/linux-x64",
-      "version": "0.28.1",
-      "purl": "pkg:npm/%40esbuild/linux-x64@0.28.1",
+      "version": "0.28.2",
+      "purl": "pkg:npm/%40esbuild/linux-x64@0.28.2",
       "scope": "excluded",
       "licenses": [
         {
@@ -17950,13 +18589,13 @@
       "hashes": [
         {
           "alg": "SHA-512",
-          "content": "bbf6a73581769a654e103c0bb67435c0eaf7119f6c4cd18b5abb18198c075b3180dd28bce083a41d795b5930f5341fbdff595c9f079828ee78ba1c59c9d3737c"
+          "content": "e314d9af5154992a105b85c85a68addedcd0ad44d933e3773f45d5f3144e298179d177c8ef178ef74fb56d9bcdc3122e7d0f610d0551247e588603d517c03f1d"
         }
       ],
       "externalReferences": [
         {
           "type": "distribution",
-          "url": "https://registry.npmjs.org/@esbuild/linux-x64/-/linux-x64-0.28.1.tgz"
+          "url": "https://registry.npmjs.org/@esbuild/linux-x64/-/linux-x64-0.28.2.tgz"
         }
       ],
       "properties": [
@@ -17968,10 +18607,10 @@
     },
     {
       "type": "library",
-      "bom-ref": "pkg:npm/%40esbuild/netbsd-arm64@0.28.1",
+      "bom-ref": "pkg:npm/%40esbuild/netbsd-arm64@0.28.2",
       "name": "@esbuild/netbsd-arm64",
-      "version": "0.28.1",
-      "purl": "pkg:npm/%40esbuild/netbsd-arm64@0.28.1",
+      "version": "0.28.2",
+      "purl": "pkg:npm/%40esbuild/netbsd-arm64@0.28.2",
       "scope": "excluded",
       "licenses": [
         {
@@ -17983,13 +18622,13 @@
       "hashes": [
         {
           "alg": "SHA-512",
-          "content": "a24b340d86cbc1632669a913b026feccbe04f9a1d154ba26f48259380b6131010f8909b27571e4ce2604b06611c74b8d57f22310a18057de352731f4da97e5ab"
+          "content": "b120134633de0c1837a5d807a107e8601a1bd752a4d4519af65ba2e51207642a029096bd40a96f977fef2b3daeb02998623b3bca6251ff6367b2a7be1e3b799f"
         }
       ],
       "externalReferences": [
         {
           "type": "distribution",
-          "url": "https://registry.npmjs.org/@esbuild/netbsd-arm64/-/netbsd-arm64-0.28.1.tgz"
+          "url": "https://registry.npmjs.org/@esbuild/netbsd-arm64/-/netbsd-arm64-0.28.2.tgz"
         }
       ],
       "properties": [
@@ -18001,10 +18640,10 @@
     },
     {
       "type": "library",
-      "bom-ref": "pkg:npm/%40esbuild/netbsd-x64@0.28.1",
+      "bom-ref": "pkg:npm/%40esbuild/netbsd-x64@0.28.2",
       "name": "@esbuild/netbsd-x64",
-      "version": "0.28.1",
-      "purl": "pkg:npm/%40esbuild/netbsd-x64@0.28.1",
+      "version": "0.28.2",
+      "purl": "pkg:npm/%40esbuild/netbsd-x64@0.28.2",
       "scope": "excluded",
       "licenses": [
         {
@@ -18016,13 +18655,13 @@
       "hashes": [
         {
           "alg": "SHA-512",
-          "content": "69e2fa9409cdf3d1f3e373258751bc0116ac6eea18bd22130c4c74b478796fb8c99c772cb2a823cbd631e37d060e99826ba3b2acaa12d1a3518caba77518b31a"
+          "content": "96a9f3095fa633480800368a8a188283a89f81f5362f7879137deb35004dd58e0c6951a7cebcb39afbdfed41f1a6ba50744f21a6a2e8949f5197e4a42110e9cb"
         }
       ],
       "externalReferences": [
         {
           "type": "distribution",
-          "url": "https://registry.npmjs.org/@esbuild/netbsd-x64/-/netbsd-x64-0.28.1.tgz"
+          "url": "https://registry.npmjs.org/@esbuild/netbsd-x64/-/netbsd-x64-0.28.2.tgz"
         }
       ],
       "properties": [
@@ -18034,10 +18673,10 @@
     },
     {
       "type": "library",
-      "bom-ref": "pkg:npm/%40esbuild/openbsd-arm64@0.28.1",
+      "bom-ref": "pkg:npm/%40esbuild/openbsd-arm64@0.28.2",
       "name": "@esbuild/openbsd-arm64",
-      "version": "0.28.1",
-      "purl": "pkg:npm/%40esbuild/openbsd-arm64@0.28.1",
+      "version": "0.28.2",
+      "purl": "pkg:npm/%40esbuild/openbsd-arm64@0.28.2",
       "scope": "excluded",
       "licenses": [
         {
@@ -18049,13 +18688,13 @@
       "hashes": [
         {
           "alg": "SHA-512",
-          "content": "3041497b90b747ca705dd679636d68a3a9bb78f892d1df695ae727f7d3bfc2fc896428682102ab403c4aac6796f05e7e4f4a244c77ac0260de8870d322ad15fd"
+          "content": "00bdaa2482c7ee5363ac3982403bddc4c7c0508bfc28c3593afaf0010f22f3ffe7b4bf457e584ec8c27c39948c05bf3f0165dedffe6fe52db4cb7cc2a1958aa1"
         }
       ],
       "externalReferences": [
         {
           "type": "distribution",
-          "url": "https://registry.npmjs.org/@esbuild/openbsd-arm64/-/openbsd-arm64-0.28.1.tgz"
+          "url": "https://registry.npmjs.org/@esbuild/openbsd-arm64/-/openbsd-arm64-0.28.2.tgz"
         }
       ],
       "properties": [
@@ -18067,10 +18706,10 @@
     },
     {
       "type": "library",
-      "bom-ref": "pkg:npm/%40esbuild/openbsd-x64@0.28.1",
+      "bom-ref": "pkg:npm/%40esbuild/openbsd-x64@0.28.2",
       "name": "@esbuild/openbsd-x64",
-      "version": "0.28.1",
-      "purl": "pkg:npm/%40esbuild/openbsd-x64@0.28.1",
+      "version": "0.28.2",
+      "purl": "pkg:npm/%40esbuild/openbsd-x64@0.28.2",
       "scope": "excluded",
       "licenses": [
         {
@@ -18082,13 +18721,13 @@
       "hashes": [
         {
           "alg": "SHA-512",
-          "content": "8bf64b20e69f13467c708fd700d2408b1a092ffb910284b6c4e037adbd3137e28ad0ad7bedc300b10624cc7b41aed31700ab8073b1c681c5a267fb110b537183"
+          "content": "42d8ae3f2b5c851c82e2bc142a17b125d40abc3b99ea15a5a22de282a3d03542424b5feff4488edd44ce5d1e80dc5a0ca387e700a6d625da9a23084ece1f2a13"
         }
       ],
       "externalReferences": [
         {
           "type": "distribution",
-          "url": "https://registry.npmjs.org/@esbuild/openbsd-x64/-/openbsd-x64-0.28.1.tgz"
+          "url": "https://registry.npmjs.org/@esbuild/openbsd-x64/-/openbsd-x64-0.28.2.tgz"
         }
       ],
       "properties": [
@@ -18100,10 +18739,10 @@
     },
     {
       "type": "library",
-      "bom-ref": "pkg:npm/%40esbuild/openharmony-arm64@0.28.1",
+      "bom-ref": "pkg:npm/%40esbuild/openharmony-arm64@0.28.2",
       "name": "@esbuild/openharmony-arm64",
-      "version": "0.28.1",
-      "purl": "pkg:npm/%40esbuild/openharmony-arm64@0.28.1",
+      "version": "0.28.2",
+      "purl": "pkg:npm/%40esbuild/openharmony-arm64@0.28.2",
       "scope": "excluded",
       "licenses": [
         {
@@ -18115,13 +18754,13 @@
       "hashes": [
         {
           "alg": "SHA-512",
-          "content": "81ef99ec45c536dd813b5a0032c569890f04c27755f62d715deac079320aec0b4fb376ca15740cee7951c4348850831eb9e47508d5f1ab3b4bcdd35e45e28126"
+          "content": "5a48580e6a538cbbc6952700d6bc234549a197893ca174777086eda969842e053f7457871e51259710ef75670d255f6b6f309ec41e6fcfc82d35ec162e0093ed"
         }
       ],
       "externalReferences": [
         {
           "type": "distribution",
-          "url": "https://registry.npmjs.org/@esbuild/openharmony-arm64/-/openharmony-arm64-0.28.1.tgz"
+          "url": "https://registry.npmjs.org/@esbuild/openharmony-arm64/-/openharmony-arm64-0.28.2.tgz"
         }
       ],
       "properties": [
@@ -18133,10 +18772,10 @@
     },
     {
       "type": "library",
-      "bom-ref": "pkg:npm/%40esbuild/sunos-x64@0.28.1",
+      "bom-ref": "pkg:npm/%40esbuild/sunos-x64@0.28.2",
       "name": "@esbuild/sunos-x64",
-      "version": "0.28.1",
-      "purl": "pkg:npm/%40esbuild/sunos-x64@0.28.1",
+      "version": "0.28.2",
+      "purl": "pkg:npm/%40esbuild/sunos-x64@0.28.2",
       "scope": "excluded",
       "licenses": [
         {
@@ -18148,13 +18787,13 @@
       "hashes": [
         {
           "alg": "SHA-512",
-          "content": "0448e0b440a42f7bd8f9269243a9f355f8802d4785c696b0ca9f0999fe4fb5885fd54838d0dd61fe1c6586db3e7f516f4af6ab12281dc52dc1952308d8f24b71"
+          "content": "18f3129133ad327bf653617c8317b8228eaa995b3e60aca9f37d84b6aab1af48459e0997437af3c32b5e966dc6227ed3e15be245495fdec3a004e89376f69fee"
         }
       ],
       "externalReferences": [
         {
           "type": "distribution",
-          "url": "https://registry.npmjs.org/@esbuild/sunos-x64/-/sunos-x64-0.28.1.tgz"
+          "url": "https://registry.npmjs.org/@esbuild/sunos-x64/-/sunos-x64-0.28.2.tgz"
         }
       ],
       "properties": [
@@ -18166,10 +18805,10 @@
     },
     {
       "type": "library",
-      "bom-ref": "pkg:npm/%40esbuild/win32-arm64@0.28.1",
+      "bom-ref": "pkg:npm/%40esbuild/win32-arm64@0.28.2",
       "name": "@esbuild/win32-arm64",
-      "version": "0.28.1",
-      "purl": "pkg:npm/%40esbuild/win32-arm64@0.28.1",
+      "version": "0.28.2",
+      "purl": "pkg:npm/%40esbuild/win32-arm64@0.28.2",
       "scope": "excluded",
       "licenses": [
         {
@@ -18181,13 +18820,13 @@
       "hashes": [
         {
           "alg": "SHA-512",
-          "content": "942bfd78afc7e992566c4edb8769f0e78099f4cda7ba907125c4ec764fd04275a47528ca1aec66987f3f196ae54f578c9997e7e1d19c0a346d7b7f7b5aa7d05c"
+          "content": "3c886112413db8f06579106b404269527ecc06789b6736c6cd858f998df1f98a1583ff79cdb8c1e02c4f3ce43c979b5860ce2631a0ad845f3fd4321f05043259"
         }
       ],
       "externalReferences": [
         {
           "type": "distribution",
-          "url": "https://registry.npmjs.org/@esbuild/win32-arm64/-/win32-arm64-0.28.1.tgz"
+          "url": "https://registry.npmjs.org/@esbuild/win32-arm64/-/win32-arm64-0.28.2.tgz"
         }
       ],
       "properties": [
@@ -18199,10 +18838,10 @@
     },
     {
       "type": "library",
-      "bom-ref": "pkg:npm/%40esbuild/win32-ia32@0.28.1",
+      "bom-ref": "pkg:npm/%40esbuild/win32-ia32@0.28.2",
       "name": "@esbuild/win32-ia32",
-      "version": "0.28.1",
-      "purl": "pkg:npm/%40esbuild/win32-ia32@0.28.1",
+      "version": "0.28.2",
+      "purl": "pkg:npm/%40esbuild/win32-ia32@0.28.2",
       "scope": "excluded",
       "licenses": [
         {
@@ -18214,13 +18853,13 @@
       "hashes": [
         {
           "alg": "SHA-512",
-          "content": "cef6ff981d9b482a093a9a0206060a2a95fa60cea624194151552d563e350e564954407aff408a9516313f9c169750b520b882a00539c19678ab53f7a9e4ba12"
+          "content": "62625b7d396f53b49d9fd041fb83d1112e2807aa71812dfb30038d8fe841aff7295d2d5a04f297c4d9c36eef900963e3d28f5d832c5eabbf60e9ce4ff0a7ae60"
         }
       ],
       "externalReferences": [
         {
           "type": "distribution",
-          "url": "https://registry.npmjs.org/@esbuild/win32-ia32/-/win32-ia32-0.28.1.tgz"
+          "url": "https://registry.npmjs.org/@esbuild/win32-ia32/-/win32-ia32-0.28.2.tgz"
         }
       ],
       "properties": [
@@ -18232,10 +18871,10 @@
     },
     {
       "type": "library",
-      "bom-ref": "pkg:npm/%40esbuild/win32-x64@0.28.1",
+      "bom-ref": "pkg:npm/%40esbuild/win32-x64@0.28.2",
       "name": "@esbuild/win32-x64",
-      "version": "0.28.1",
-      "purl": "pkg:npm/%40esbuild/win32-x64@0.28.1",
+      "version": "0.28.2",
+      "purl": "pkg:npm/%40esbuild/win32-x64@0.28.2",
       "scope": "excluded",
       "licenses": [
         {
@@ -18247,13 +18886,13 @@
       "hashes": [
         {
           "alg": "SHA-512",
-          "content": "6e6e0ca30aeff865cc969597fbe11c5f0fe22f2775a37f9b2640b60e4597615be0642a83fdb4a3f5cb59780302ddc2318234554760ee7da8aee183f1af9816d4"
+          "content": "e5e6e9c6bde758cceb2ffae7508ef9e4992e79ed1b1cbfc6ab459317d96f729bfbdf0029e5ebbc31f0548162bd6e15af6638fbc97f1eb5fffcb48f0d7b2ebde6"
         }
       ],
       "externalReferences": [
         {
           "type": "distribution",
-          "url": "https://registry.npmjs.org/@esbuild/win32-x64/-/win32-x64-0.28.1.tgz"
+          "url": "https://registry.npmjs.org/@esbuild/win32-x64/-/win32-x64-0.28.2.tgz"
         }
       ],
       "properties": [
@@ -23328,10 +23967,10 @@
     },
     {
       "type": "library",
-      "bom-ref": "pkg:npm/%40types/node@26.1.0",
+      "bom-ref": "pkg:npm/%40types/node@26.2.0",
       "name": "@types/node",
-      "version": "26.1.0",
-      "purl": "pkg:npm/%40types/node@26.1.0",
+      "version": "26.2.0",
+      "purl": "pkg:npm/%40types/node@26.2.0",
       "scope": "required",
       "licenses": [
         {
@@ -23343,13 +23982,13 @@
       "hashes": [
         {
           "alg": "SHA-512",
-          "content": "3b40351b7c4f1b2e30ec081074041852543e04a9363a8bf0f1e469a1fca9e4a7416542e76def96a9a39536b9bbd39487a610a21b85c7b000ab4a63eed5ff8a83"
+          "content": "e48be2ba54d9791369daf009e75e1c73f1d4958e6767d7c26eaf433320b9d81ae1159002a379c8d11eea0718509a8fdddbb3457bdeaeaff6fb5b0c6495d6be92"
         }
       ],
       "externalReferences": [
         {
           "type": "distribution",
-          "url": "https://registry.npmjs.org/@types/node/-/node-26.1.0.tgz"
+          "url": "https://registry.npmjs.org/@types/node/-/node-26.2.0.tgz"
         }
       ]
     },
@@ -26638,10 +27277,10 @@
     },
     {
       "type": "library",
-      "bom-ref": "pkg:npm/esbuild@0.28.1",
+      "bom-ref": "pkg:npm/esbuild@0.28.2",
       "name": "esbuild",
-      "version": "0.28.1",
-      "purl": "pkg:npm/esbuild@0.28.1",
+      "version": "0.28.2",
+      "purl": "pkg:npm/esbuild@0.28.2",
       "scope": "excluded",
       "licenses": [
         {
@@ -26653,13 +27292,13 @@
       "hashes": [
         {
           "alg": "SHA-512",
-          "content": "1eb26bbd9bf96b2c41ccf7f0a613a837393338822589fce4d0a26b18ad9cf11e3e2caa4cb6960b41e51d8e7c235affcb665907da569993ee30efca62f7d0f857"
+          "content": "1ca54b4bc76f208fb1a0a5bd926ab16d12ab9d61177c926bfc56618499a2a880747b4e7740d605a8e068b9330efe4e6c203e0cbc28940afbfc6fd338877db020"
         }
       ],
       "externalReferences": [
         {
           "type": "distribution",
-          "url": "https://registry.npmjs.org/esbuild/-/esbuild-0.28.1.tgz"
+          "url": "https://registry.npmjs.org/esbuild/-/esbuild-0.28.2.tgz"
         }
       ],
       "properties": [

@@ -217,7 +217,18 @@ export interface DockViz {
   transitions?(): DockVizTransition[] | Promise<DockVizTransition[]>;
   currentTransition?(): string;
   selectTransition?(id: string): void;
+  /** A brand silhouette to sit centred over the visualiser (plans/147): the brand's
+   *  MONO-REVERSE logo (a one-colour, dark-background mark), per orientation. The shell
+   *  paints it under `mix-blend-mode: difference` - the silhouette reads over any preset
+   *  colour while the effects still play through it - and picks the HORIZONTAL mark for a
+   *  wide viz, the VERTICAL for a tall/square one, re-picking on resize. A tap toggles it.
+   *  Null when the brand carries no mono-reverse mark. May be async; resolved once. */
+  brandMark?(): DockBrandMark | null | Promise<DockBrandMark | null>;
 }
+
+/** The brand's mono-reverse silhouette, per orientation (plans/147). Either may be null
+ *  when the brand only carries one; the shell falls back to whichever exists. */
+export interface DockBrandMark { horizontal?: string | null; vertical?: string | null }
 
 /**
  * A self-contained narration mini-player, rendered as its OWN block in the dock ABOVE the
@@ -386,6 +397,17 @@ export interface AudioDockOptions {
   /** Persist where the user dragged the player + how big they made the expanded
    *  window. Absent ⇒ position/size live only for the session. */
   placement?: DockPlacementStore;
+  /** Optional drag-feedback callbacks, invoked from the head/title drag ONLY (never
+   *  the resize grips) and only AFTER the drag threshold is crossed: `grab` at the
+   *  moment the threshold is first passed, `drag` on each move with the per-move
+   *  delta, `release` on pointer up. Structurally typed so the shell can wire its
+   *  wobble effect without this package depending on it. Absent ⇒ no calls, and the
+   *  drag path is byte-identical. */
+  dragEffects?: {
+    grab(x: number, y: number): void;
+    drag(dx: number, dy: number): void;
+    release(): void;
+  };
 }
 
 /** The handle {@link createAudioDock} returns. */

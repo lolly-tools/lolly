@@ -32,20 +32,50 @@
     "eventEnd":      { "type": "datetime-local", "label": "Ends",        "description": "Event end. Shipped alongside eventStart." },
     "eventLocation": { "type": "text",           "label": "Location",    "description": "Where the event happens (a room, venue or address as one line)." },
 
+    "awardtopic":    { "type": "text",           "label": "Course or award", "description": "What a certificate or badge is for - a course title, award name or contribution. Roster tools share it so one CSV column feeds them all (plans/147 T8; ratified 2026-08-25)." },
+    "awarddate":     { "type": "date",           "label": "Award date",  "description": "The date shown on a certificate or award. Shared with roster tools so one CSV column feeds them all (plans/147 T8; ratified 2026-08-25)." },
+    "sourceAuthor":  { "type": "text",           "label": "Author",      "description": "Author or creator credited as the source. Shared by deck-studio and doc-studio (plans/147 M1 id audit; ratified 2026-08-25)." },
+
     "imageFraming": {
       "type": "vector",
       "label": "Zoom & Position",
-      "description": "Zoom + pan of an image within its frame (like object-position with a scale). Tools that only pan may omit the `zoom` field.",
+      "description": "The whole envelope of an image inside its frame: zoom + pan (object-position with a scale), roll, and the two perspective axes. THE framing control - pair it with `framingFor: \"<assetInputId>\"` so the shell mounts its generic on-canvas overlay and offers 'Use as a new image'. Every field is opt-in: a tool that only pans declares x/y, one that straightens adds `rotate`, one that corrects converging verticals adds `pitch`/`yaw` (the Geometry panel in Lightroom, 'Adjust' in Instagram). Render it with the {{framing}} helper - never a hand-written object-position string - so the canvas, every export path and the hooks' frameRect()/drawFramed() place the image identically. Note pitch/yaw make the placement a projective homography, which SVG and PDF cannot express: those exports take the walker's posed-raster path for that element. See plans/148.",
       "fields": [
-        { "id": "zoom", "label": "Zoom", "min": 100, "max": 400, "step": 1, "default": 100 },
-        { "id": "x",    "label": "X",    "min": 0,   "max": 100, "step": 1, "default": 50 },
-        { "id": "y",    "label": "Y",    "min": 0,   "max": 100, "step": 1, "default": 50 }
+        { "id": "zoom",   "label": "Zoom",   "min": 100,  "max": 400, "step": 1,   "default": 100 },
+        { "id": "x",      "label": "X",      "min": 0,    "max": 100, "step": 1,   "default": 50 },
+        { "id": "y",      "label": "Y",      "min": 0,    "max": 100, "step": 1,   "default": 50 },
+        { "id": "rotate", "label": "Rotate", "min": -180, "max": 180, "step": 0.5, "default": 0 },
+        { "id": "pitch",  "label": "Vertical",   "min": -45, "max": 45, "step": 0.5, "default": 0 },
+        { "id": "yaw",    "label": "Horizontal", "min": -45, "max": 45, "step": 0.5, "default": 0 }
+      ]
+    },
+
+    "imageFit": {
+      "type": "select",
+      "label": "Fit",
+      "description": "How the image fills its frame before framing is applied: cover crops to fill, contain letterboxes. The companion select to `imageFraming` (vector fields are numbers, so fit cannot live inside it). Declare it with `attachTo: \"<assetInputId>\"` and `display: \"icon-toggle\"` so it rides on the asset row as one button rather than taking a row of its own.",
+      "options": [
+        { "value": "cover",   "label": "Fill" },
+        { "value": "contain", "label": "Fit" }
+      ]
+    },
+
+    "imageCrop": {
+      "type": "vector",
+      "label": "Crop",
+      "description": "An explicit crop RECTANGLE in percent of the source image. Only for the case where the crop sets the OUTPUT size (screencap): everywhere the frame is fixed, the crop is derived from imageFraming's zoom + pan and this input should not exist. Two canonical ids, deliberately, because they answer different questions.",
+      "fields": [
+        { "id": "x", "label": "X",      "min": 0, "max": 100, "step": 0.1, "default": 0 },
+        { "id": "y", "label": "Y",      "min": 0, "max": 100, "step": 0.1, "default": 0 },
+        { "id": "w", "label": "Width",  "min": 0, "max": 100, "step": 0.1, "default": 100 },
+        { "id": "h", "label": "Height", "min": 0, "max": 100, "step": 0.1, "default": 100 }
       ]
     }
   },
 
   "conventions": {
     "typography": "Per-element typography numbers use `<element>FontSize` and `<element>FontWeight` (e.g. headingFontSize, bodyFontWeight). Weight is a number with min 100, max 900, step 100. Size is a relative number whose range the tool defines.",
-    "bulkWrite": "A /pro column is bulk-writable only when every tool that declares the id agrees on type AND constraints - number min/max/step, select option values, color palette. Match the values above to keep the column actionable."
+    "bulkWrite": "A /pro column is bulk-writable only when every tool that declares the id agrees on type AND constraints - number min/max/step, select option values, color palette, and a vector's per-field min/max/step. Match the values above to keep the column actionable.",
+    "imageFraming": "One image slot takes at most three ids: the `asset` input itself, its `imageFraming` vector (framingFor: the asset's id), and an `imageFit` select attached to the asset row. Prefix all three together for a second slot on the same tool (bgImage + bgFraming + bgFit); inside a `blocks` row, where there is no vector sub-field type, the same values live as sibling numbers <base>Zoom / <base>X / <base>Y / <base>Rotate / <base>Pitch / <base>Yaw and the {{framing}} helper's block mode reads them. Never invent a fourth spelling."
   }
 }

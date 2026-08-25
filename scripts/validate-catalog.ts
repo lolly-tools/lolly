@@ -68,6 +68,11 @@ import { depthForFormat } from './checksum-assets.ts';
 // The frozen CLI verb list has exactly one home (shells/cli/src/args.ts); a tool id that
 // collides with one is unreachable from the terminal. See section 1.1 of the GA contract.
 import { RESERVED_SUBCOMMANDS } from '../shells/cli/src/args.ts';
+// The frozen URL/export param set (engine's single source of truth). A top-level
+// input whose id is one of these can never round-trip through a URL or the CLI:
+// parseUrlState skips every reserved key, so the value silently won't apply. See
+// the reserved-id guard below.
+import { RESERVED } from '../engine/src/url-mode.ts';
 // `canvas.*Field` → sub-field-id existence. The schema closes the canvas key SET;
 // this closes the reference side, which no JSON Schema can (it has to look at a
 // SIBLING array). Pure module so tests can drive it without running the script.
@@ -230,6 +235,19 @@ for (const dir of toolDirs) {
   for (const input of manifest.inputs) {
     if (input.bindToProfile && !PROFILE_FIELDS.has(input.bindToProfile)) {
       warnings.push(`[${dir}] input "${input.id}" bindToProfile "${input.bindToProfile}" is not a known profile field`);
+    }
+  }
+
+  // A top-level input id must not collide with a RESERVED url-mode/export param.
+  // parseUrlState skips reserved keys before matching inputs, so such an input can
+  // never be set via a URL or the CLI - its value silently won't apply. The one
+  // sanctioned overlap is the export-dimension family {width,height,w,h,unit,dpi}:
+  // those inputs deliberately pair with the reserved dimension system. Block/vector
+  // sub-fields are namespaced (`<input>.<field>`), so only top-level ids are checked.
+  const DIMENSIONAL_IDS = new Set(['width', 'height', 'w', 'h', 'unit', 'dpi']);
+  for (const input of manifest.inputs) {
+    if (RESERVED.has(input.id) && !DIMENSIONAL_IDS.has(input.id)) {
+      errors.push(`[${dir}] input "${input.id}" collides with a reserved URL/export parameter - it can never be set via URL or CLI (parseUrlState skips reserved keys). Rename it; the id-break window is the time to. Sanctioned overlaps: ${[...DIMENSIONAL_IDS].join(', ')}.`);
     }
   }
 
@@ -399,6 +417,31 @@ for (const [toolId, manifest] of toolManifests) {
         warnings.push(`[${toolId}] input "${input.id}" options diverge from canonical - breaks bulk-fill in /pro (schemas/canonical-inputs.json)`);
       }
     }
+    // A vector's constraints live on its FIELDS, so the number check above never
+    // saw them - which is how imageFraming's zoom came to mean 100-400 in three
+    // tools, 25-300 in another, and 100-800 inside one tool's own hook. Omitting
+    // a canonical field is fine (rotate is opt-in); redefining one with different
+    // bounds is the drift this warning exists for.
+    if (canon.type === 'vector' && Array.isArray(canon.fields)) {
+      const declared = new Map<string, any>(((input.fields ?? []) as any[]).map(f => [f.id, f]));
+      for (const cf of canon.fields as any[]) {
+        const f = declared.get(cf.id);
+        if (!f) continue;                       // a tool may offer a subset
+        for (const k of ['min', 'max', 'step', 'default']) {
+          if (cf[k] !== undefined && (f[k] ?? null) !== cf[k]) {
+            warnings.push(`[${toolId}] input "${input.id}" field "${cf.id}" ${k}=${f[k] ?? 'unset'} diverges from canonical ${k}=${cf[k]} - breaks bulk-fill in /pro (schemas/canonical-inputs.json)`);
+          }
+        }
+      }
+    }
+  }
+  // framingFor must name a real asset input, or the overlay silently never mounts.
+  // Checked for EVERY framing vector, canonical id or namespaced one (du_/px_).
+  for (const input of manifest.inputs) {
+    if (!input.framingFor) continue;
+    const target = manifest.inputs.find((i: any) => i.id === input.framingFor);
+    if (!target) warnings.push(`[${toolId}] input "${input.id}" framingFor="${input.framingFor}" names no input on this tool - the framing overlay will not mount`);
+    else if (target.type !== 'asset') warnings.push(`[${toolId}] input "${input.id}" framingFor="${input.framingFor}" points at a "${target.type}" input, not an asset`);
   }
 }
 

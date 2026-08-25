@@ -16,6 +16,7 @@
 
 import type {
   AudioDockOptions,
+  DockBrandMark,
   DockCapabilities,
   DockCollapse,
   DockController,
@@ -53,6 +54,8 @@ const ICON = {
   volume: SVG('<path d="M11 5 6 9H2v6h4l5 4V5Z" fill="currentColor"/><path d="M15.5 8.5a5 5 0 0 1 0 7M18 6a8 8 0 0 1 0 12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>'),
   volumeMuted: SVG('<path d="M11 5 6 9H2v6h4l5 4V5Z" fill="currentColor"/><path d="m16 9 5 6M21 9l-5 6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>'),
   forward: SVG('<path d="M12 12H3M16 6H3M12 18H3M16 6l5 6-5 6V6Z" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>'),
+  // Logo/brand-mark toggle in the viz menu (plans/147) - a picture glyph.
+  image: SVG('<rect x="3" y="4" width="18" height="16" rx="2" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="8.5" cy="9.5" r="1.5" fill="currentColor"/><path d="m21 15-5-5L6 20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>'),
   // The viz on/off toggle glyph: a little waveform.
   viz: SVG('<path d="M3 12h2l2-6 3 14 3-11 2 5h6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>'),
   // A magnifier for the preset search box.
@@ -169,6 +172,7 @@ export function createAudioDock(opts: AudioDockOptions): DockController {
   let narrBlockOpen = opts.openSections?.narration ?? true;
 
   let wasFullscreen = false;
+  let immersiveFs = false;   // immersive entered via native fullscreen (desktop / iPad)
 
   ensureStyles(doc);
 
@@ -224,7 +228,7 @@ export function createAudioDock(opts: AudioDockOptions): DockController {
           </div>
         </div>
 
-        <div class="audio-dock-vizspace" data-vizspace aria-hidden="true"></div>
+        <div class="audio-dock-vizspace" data-vizspace aria-hidden="true"><button type="button" class="audio-dock-brandmark" data-brandmark aria-label="Hide brand mark"></button></div>
 
         <div class="audio-dock-musicblock" data-musicblock>
           <div class="audio-dock-transport">
@@ -280,7 +284,10 @@ export function createAudioDock(opts: AudioDockOptions): DockController {
       <span class="audio-dock-volpct" data-vol-pct>100%</span>
     </div>
     <div class="audio-dock-vizmenu" data-vizmenu hidden role="menu" aria-label="Visualiser settings">
-      <button type="button" class="audio-dock-toggle" data-viz-toggle aria-pressed="true">${ICON.viz}<span>On</span></button>
+      <div class="audio-dock-vizmenu-top">
+        <button type="button" class="audio-dock-toggle" data-viz-toggle aria-pressed="true">${ICON.viz}<span>On</span></button>
+        <button type="button" class="audio-dock-toggle" data-brandmark-toggle aria-pressed="true" hidden>${ICON.image}<span>Logo</span></button>
+      </div>
       <div class="audio-dock-vizmenu-label" data-viz-theme-label hidden>Brand colour</div>
       <div class="audio-dock-viz-themes" data-viz-themes role="group" aria-label="Brand colour scheme"></div>
       <div class="audio-dock-vizmenu-label" data-viz-transition-label hidden>Timing</div>
@@ -332,6 +339,11 @@ export function createAudioDock(opts: AudioDockOptions): DockController {
         || typeof host.viz.subscribeFrames === 'function'
         || typeof host.viz.mount === 'function');
   }
+  // Coarse pointer (touch): no right-click, so touch affordances stand in for the
+  // desktop context menu (plans/147).
+  function isCoarsePointer(): boolean {
+    try { return !!win?.matchMedia?.('(pointer: coarse)').matches; } catch { return false; }
+  }
   // A HOST-RENDERED visualiser (butterchurn) with a preset/theme library → the right-click
   // settings menu is available.
   function hasRichViz(): boolean {
@@ -364,6 +376,7 @@ export function createAudioDock(opts: AudioDockOptions): DockController {
     root.toggleAttribute('data-cap-viz', hasVizCap());
     root.toggleAttribute('data-cap-vizmenu', hasRichViz());
     q<HTMLElement>('[data-musicblock]')!.hidden = !showMainBlock();
+    syncBrandMark();
   }
 
   // ── geometry helpers (drag + resize + fullscreen) ───────────────────────────
@@ -403,7 +416,8 @@ export function createAudioDock(opts: AudioDockOptions): DockController {
     root.setAttribute('data-windowed', '');
   }
   function resizable(): boolean {
-    return !!placementStore && collapse !== 'mini' && !root.hasAttribute('data-fullscreen');
+    return !!placementStore && collapse !== 'mini'
+      && !root.hasAttribute('data-fullscreen') && !root.hasAttribute('data-immersive');
   }
   function applyPosition(): void {
     if (root.hasAttribute('data-fullscreen')) return;
@@ -432,7 +446,11 @@ export function createAudioDock(opts: AudioDockOptions): DockController {
   function applyCollapse(): void {
     root.setAttribute('data-collapse', collapse);
     const btn = q<HTMLButtonElement>('[data-collapse-btn]');
-    if (btn) btn.setAttribute('aria-label', collapse === 'mini' ? 'Minimize player' : 'Collapse player');
+    if (btn) {
+      btn.setAttribute('aria-label',
+        isCoarsePointer() && hasRichViz() ? 'Visualiser settings'
+          : collapse === 'mini' ? 'Minimize player' : 'Collapse player');
+    }
     applyWindowSize();
     root.toggleAttribute('data-resizable', resizable());
     applyPosition();
@@ -449,7 +467,7 @@ export function createAudioDock(opts: AudioDockOptions): DockController {
   function updateExpandVisibility(): void {
     const el = q<HTMLButtonElement>('[data-viz-expand]');
     if (!el) return;
-    const fs = root.hasAttribute('data-fullscreen');
+    const fs = root.hasAttribute('data-fullscreen') || root.hasAttribute('data-immersive');
     el.hidden = !((canFullscreen() || fs) && collapse !== 'mini');
     el.innerHTML = fs ? ICON.compress : ICON.expand;
     el.setAttribute('aria-label', fs ? 'Exit fullscreen' : 'Fullscreen visualiser');
@@ -478,10 +496,105 @@ export function createAudioDock(opts: AudioDockOptions): DockController {
     const isFs = doc.fullscreenElement === root;
     root.toggleAttribute('data-fullscreen', isFs);
     if (isFs) wasFullscreen = true;
-    else if (wasFullscreen) { wasFullscreen = false; setCollapse('expanded'); }
+    else if (wasFullscreen) {
+      wasFullscreen = false;
+      // Esc'd out of native fullscreen while in the immersive brand player → leave it too.
+      if (root.hasAttribute('data-immersive')) {
+        root.removeAttribute('data-immersive');
+        root.removeAttribute('data-brandmark-off');
+        immersiveFs = false;
+      }
+      setCollapse('expanded');
+    }
     root.toggleAttribute('data-resizable', resizable());
     updateExpandVisibility();
     syncViz();
+  }
+
+  // ── immersive full-page brand player (plans/147) ─────────────────────────────
+  // The clean cast-to-a-big-screen view: fill the display, the CSS hides the controls +
+  // sections, leaving the visualiser + the brand silhouette with just a tap-to-exit
+  // button. Music-only (hasRichViz-gated), on BOTH desktop and mobile (Andy). Where
+  // native fullscreen exists (desktop, iPad) it's used too so it fills the whole DISPLAY,
+  // not just the browser viewport; iPhone can't requestFullscreen() a <div>, so there the
+  // app-managed position:fixed fill stands alone.
+  function enterImmersive(): void {
+    root.setAttribute('data-immersive', '');
+    root.toggleAttribute('data-resizable', false);
+    const el = root as HTMLElement & { requestFullscreen?: () => Promise<void> };
+    if (typeof el.requestFullscreen === 'function' && !doc.fullscreenElement) {
+      immersiveFs = true;
+      el.requestFullscreen().catch(() => { immersiveFs = false; });
+    }
+    updateExpandVisibility();
+    syncViz();
+    if (hostVizActive) host.viz?.resize?.();
+    pickBrandMark();
+  }
+  function exitImmersive(): void {
+    root.removeAttribute('data-immersive');
+    root.removeAttribute('data-brandmark-off');
+    if (immersiveFs && doc.fullscreenElement === root && typeof doc.exitFullscreen === 'function') {
+      void doc.exitFullscreen().catch(() => { /* closing anyway */ });
+    }
+    immersiveFs = false;
+    root.toggleAttribute('data-resizable', resizable());
+    updateExpandVisibility();
+    applyPosition();
+    syncViz();
+    if (hostVizActive) host.viz?.resize?.();
+    pickBrandMark();
+  }
+
+  // The brand silhouette over the viz (plans/147): resolved from the host ONCE viz is
+  // available. Sets --dock-brandmark (a CSS url()) + data-has-brandmark to reveal it;
+  // the CSS only paints it for the music player, when a mark resolved, and when the viz
+  // is the star (expanded / fullscreen / immersive).
+  // Show/hide the silhouette, keeping the on-viz tap, the menu Logo toggle, and the
+  // data-brandmark-off state all in step.
+  function brandMarkShown(): boolean { return !root.hasAttribute('data-brandmark-off'); }
+  function setBrandMarkShown(shown: boolean): void {
+    root.toggleAttribute('data-brandmark-off', !shown);
+    q<HTMLElement>('[data-brandmark]')?.setAttribute('aria-label', shown ? 'Hide brand mark' : 'Show brand mark');
+    q<HTMLElement>('[data-brandmark-toggle]')?.setAttribute('aria-pressed', String(shown));
+  }
+  let brandMarkDone = false;
+  let brandMarkPair: DockBrandMark | null = null;
+  // Pick the silhouette orientation that matches the viz SHAPE: horizontal for a wide box,
+  // vertical for a tall/square one (plans/147, Andy), falling back to whichever the brand
+  // has. Re-run on resize / fullscreen / immersive, since the aspect can flip.
+  function pickBrandMark(): void {
+    const toggle = q<HTMLButtonElement>('[data-brandmark-toggle]');
+    if (!brandMarkPair) {
+      root.style.removeProperty('--dock-brandmark');
+      root.removeAttribute('data-has-brandmark');
+      root.removeAttribute('data-brandmark-room');
+      if (toggle) toggle.hidden = true;
+      return;
+    }
+    // The mark lives in the VIZSPACE (the clear area between the header and the controls),
+    // so measure THAT: pick the orientation to its shape, and turn the mark OFF when the
+    // controls/sections crowd it too tight to the top (Andy, plans/147).
+    const space = q<HTMLElement>('[data-vizspace]');
+    const r = (space ?? root).getBoundingClientRect();
+    root.toggleAttribute('data-brandmark-room', r.height >= 150 && r.width >= 120);
+    const wide = r.width >= r.height;
+    const url = (wide ? brandMarkPair.horizontal : brandMarkPair.vertical)
+      || brandMarkPair.horizontal || brandMarkPair.vertical || null;
+    if (url) {
+      root.style.setProperty('--dock-brandmark', `url("${url}")`);
+      root.setAttribute('data-has-brandmark', '');
+      if (toggle) { toggle.hidden = false; toggle.setAttribute('aria-pressed', String(brandMarkShown())); }
+    }
+  }
+  function syncBrandMark(): void {
+    if (brandMarkDone || !hasRichViz() || typeof host.viz?.brandMark !== 'function') return;
+    brandMarkDone = true;
+    void Promise.resolve(host.viz.brandMark()).then((mark) => {
+      if (destroyed) return;
+      brandMarkPair = mark;
+      pickBrandMark();
+    }).catch(() => { brandMarkDone = false; });
   }
 
   // ── sections ──────────────────────────────────────────────────────────────────
@@ -564,6 +677,19 @@ export function createAudioDock(opts: AudioDockOptions): DockController {
     }
   }
 
+  // The filled portion before a slider's thumb (WebKit has no native progress fill, so the
+  // track gradient reads it from --fill) - so the volume level is clear at a glance. plans/147.
+  function setFill(input: HTMLInputElement | null): void {
+    if (!input) return;
+    const min = Number(input.min) || 0;
+    const max = Number(input.max) || 1;
+    const pct = max > min ? ((Number(input.value) - min) / (max - min)) * 100 : 0;
+    input.style.setProperty('--fill', `${Math.max(0, Math.min(100, pct))}%`);
+  }
+  // Remembered level per atmosphere layer, so tapping its icon mutes to 0 and un-mutes back
+  // to where it was (plans/147).
+  const atmoLastLevel = new Map<string, number>();
+
   // ── volume sliders ───────────────────────────────────────────────────────────
   function rebuildVolumes(): void {
     const vols = host.volumes;
@@ -572,6 +698,7 @@ export function createAudioDock(opts: AudioDockOptions): DockController {
       `<label class="audio-dock-vol"><span>${esc(v.label)}</span>`
       + `<input type="range" min="0" max="1" step="0.05" value="${v.get()}" data-vol-id="${esc(v.id)}" aria-label="${esc(v.label)} volume"></label>`,
     ).join('');
+    for (const r of volumesEl.querySelectorAll<HTMLInputElement>('[data-vol-id]')) setFill(r);
   }
   function paintVolumes(): void {
     if (!host.volumes) return;
@@ -579,7 +706,7 @@ export function createAudioDock(opts: AudioDockOptions): DockController {
     for (const range of volumesEl.querySelectorAll<HTMLInputElement>('[data-vol-id]')) {
       if (range === active) continue;
       const v = host.volumes.find((x) => x.id === range.dataset.volId);
-      if (v) range.value = String(v.get());
+      if (v) { range.value = String(v.get()); setFill(range); }
     }
   }
   function paintRepeat(): void {
@@ -650,13 +777,14 @@ export function createAudioDock(opts: AudioDockOptions): DockController {
       for (const l of items) {
         const v = host.atmosphere.getLevel(l.id);
         html += `<div class="audio-dock-atmo-row${v > 0 ? ' is-on' : ''}" data-atmo-row="${esc(l.id)}">`
-          + (l.icon ? `<span class="audio-dock-atmo-icon" aria-hidden="true">${l.icon}</span>` : '')
+          + (l.icon ? `<button type="button" class="audio-dock-atmo-icon" data-atmo-mute aria-label="${v > 0 ? 'Mute' : 'Unmute'} ${esc(l.label)}">${l.icon}</button>` : '')
           + `<span class="audio-dock-atmo-label">${esc(l.label)}</span>`
           + `<input type="range" min="0" max="1" step="0.01" value="${v}" data-atmo-range="${esc(l.id)}" aria-label="${esc(l.label)} level">`
           + `</div>`;
       }
     }
     atmoRows.innerHTML = html;
+    for (const r of atmoRows.querySelectorAll<HTMLInputElement>('input[type="range"]')) setFill(r);
   }
 
   // ── visualiser right-click settings menu (on/off + theme + preset) ─────────────
@@ -801,7 +929,7 @@ export function createAudioDock(opts: AudioDockOptions): DockController {
     narrBlock.setAttribute('data-narr-seekable', String(seekable && finite));
     if (!finite) return;
     const t = nb.currentTime ? nb.currentTime() : 0;
-    if (!narrSeeking) narrScrub.value = String(Math.round((t / dur) * 1000));
+    if (!narrSeeking) { narrScrub.value = String(Math.round((t / dur) * 1000)); setFill(narrScrub); }
     setText('[data-narr-dur]', fmtTime(dur));
     if (!narrSeeking) setText('[data-narr-cur]', fmtTime(t));
   }
@@ -936,7 +1064,7 @@ export function createAudioDock(opts: AudioDockOptions): DockController {
     root.setAttribute('data-seekable', String(seekable && finite));
     if (!finite) return;
     const cur = host.currentTime ? host.currentTime() : 0;
-    if (!seeking) scrub.value = String(Math.round((cur / dur) * 1000));
+    if (!seeking) { scrub.value = String(Math.round((cur / dur) * 1000)); setFill(scrub); }
     // A block-based narration keeps the position BAR but hides the M:SS labels: it has
     // no clock, so a time readout would be dishonest.
     const showTime = host.showScrubTime !== false;
@@ -1020,7 +1148,7 @@ export function createAudioDock(opts: AudioDockOptions): DockController {
         const v = host.atmosphere.getLevel(id);
         row.classList.toggle('is-on', v > 0);
         const range = row.querySelector<HTMLInputElement>('[data-atmo-range]');
-        if (range && range !== active) range.value = String(v);
+        if (range && range !== active) { range.value = String(v); setFill(range); }
       }
     }
     if (hasRichViz() && !vizMenu.hidden) { paintVizToggle(); markVizCurrent(); }
@@ -1038,6 +1166,7 @@ export function createAudioDock(opts: AudioDockOptions): DockController {
   function makeDraggable(handle: HTMLElement, exclude: string): void {
     let start: { px: number; py: number; x: number; y: number; w: number; h: number } | null = null;
     let moved = false;
+    let lastX = 0, lastY = 0;   // last pointer pos, for the per-move drag-effect deltas
     handle.addEventListener('pointerdown', (e: PointerEvent) => {
       if (root.hasAttribute('data-fullscreen')) return;
       const t = e.target as HTMLElement;
@@ -1056,7 +1185,12 @@ export function createAudioDock(opts: AudioDockOptions): DockController {
         moved = true;
         root.classList.add('is-dragging');
         try { handle.setPointerCapture(e.pointerId); } catch { /* jsdom */ }
+        opts.dragEffects?.grab(e.clientX, e.clientY);
+      } else {
+        opts.dragEffects?.drag(e.clientX - lastX, e.clientY - lastY);
       }
+      lastX = e.clientX;
+      lastY = e.clientY;
       const c = clampXY(start.x + dx, start.y + dy, start.w, start.h);
       pos = { x: c.x, y: c.y };
       root.style.left = `${c.x}px`;
@@ -1071,7 +1205,7 @@ export function createAudioDock(opts: AudioDockOptions): DockController {
       moved = false;
       root.classList.remove('is-dragging');
       try { if (handle.hasPointerCapture(e.pointerId)) handle.releasePointerCapture(e.pointerId); } catch { /* ignore */ }
-      if (wasMoved) { suppressClickUntil = Date.now() + 400; savePlacement(); }
+      if (wasMoved) { suppressClickUntil = Date.now() + 400; savePlacement(); opts.dragEffects?.release(); }
     };
     handle.addEventListener('pointerup', end);
     handle.addEventListener('pointercancel', end);
@@ -1135,11 +1269,38 @@ export function createAudioDock(opts: AudioDockOptions): DockController {
   q<HTMLButtonElement>('[data-play-mini]')?.addEventListener('click', (e) => { e.stopPropagation(); void primaryPlayer().togglePlay(); refresh(); });
   q<HTMLButtonElement>('[data-prev]')?.addEventListener('click', () => { void host.prev?.(); refresh(); });
   q<HTMLButtonElement>('[data-next]')?.addEventListener('click', () => { void host.next?.(); refresh(); });
-  q<HTMLButtonElement>('[data-collapse-btn]')?.addEventListener('click', () => stepDownCollapse());
+  q<HTMLButtonElement>('[data-collapse-btn]')?.addEventListener('click', (e) => {
+    // Touch has no right-click, so the ▾ opens the visualiser settings (theme / preset /
+    // timing) for the music player instead of collapsing - collapse-to-mini is hidden on
+    // phones anyway (audio-dock-singleton), and the menu is otherwise unreachable. plans/147.
+    if (isCoarsePointer() && hasRichViz()) {
+      const r = (e.currentTarget as HTMLElement).getBoundingClientRect();
+      openVizMenu(r.left, r.bottom + 4);
+      return;
+    }
+    stepDownCollapse();
+  });
   q<HTMLButtonElement>('[data-mini-expand]')?.addEventListener('click', () => setCollapse('full'));
   q<HTMLButtonElement>('[data-viz-expand]')?.addEventListener('click', () => {
+    // The music player's ↗ is the brand player (plans/147): the immersive full-page
+    // viz + brand silhouette, controls hidden - on desktop AND mobile (Andy). enterImmersive
+    // adds native fullscreen where it exists so it fills the whole display for casting.
+    // Narration (no rich viz) keeps plain native fullscreen.
+    if (hasRichViz()) {
+      if (root.hasAttribute('data-immersive')) exitImmersive(); else enterImmersive();
+      return;
+    }
     if (root.hasAttribute('data-fullscreen')) exitFullscreen();
     else goFullscreen();
+  });
+  q<HTMLButtonElement>('[data-brandmark]')?.addEventListener('click', () => {
+    // Tap the silhouette to fade it away (and back) - the effects show unobstructed.
+    setBrandMarkShown(!brandMarkShown());
+  });
+  // The Logo toggle in the viz menu (plans/147, Andy) - a discoverable show/hide beside
+  // the viz On toggle, in sync with the on-viz tap.
+  q<HTMLButtonElement>('[data-brandmark-toggle]')?.addEventListener('click', () => {
+    setBrandMarkShown(!brandMarkShown());
   });
   q<HTMLButtonElement>('[data-close-btn]')?.addEventListener('click', () => opts.onClose?.());
   q<HTMLButtonElement>('[data-repeat]')?.addEventListener('click', () => {
@@ -1225,6 +1386,28 @@ export function createAudioDock(opts: AudioDockOptions): DockController {
     host.atmosphere?.setLevel(range.dataset.atmoRange ?? '', Number(range.value));
     range.closest('[data-atmo-row]')?.classList.toggle('is-on', Number(range.value) > 0);
   });
+  // Tap an atmosphere layer's ICON to mute (→0, remembering the level) / un-mute (→ back)
+  // - plans/147, Andy. The slider stays the fine control.
+  atmoRows.addEventListener('click', (e) => {
+    const icon = (e.target as HTMLElement).closest?.<HTMLElement>('[data-atmo-mute]');
+    if (!icon || !host.atmosphere) return;
+    const row = icon.closest<HTMLElement>('[data-atmo-row]');
+    const id = row?.dataset.atmoRow ?? '';
+    if (!id) return;
+    const cur = host.atmosphere.getLevel(id);
+    const next = cur > 0 ? (atmoLastLevel.set(id, cur), 0) : (atmoLastLevel.get(id) ?? 0.5);
+    host.atmosphere.setLevel(id, next);
+    row?.classList.toggle('is-on', next > 0);
+    const label = row?.querySelector('.audio-dock-atmo-label')?.textContent ?? '';
+    icon.setAttribute('aria-label', `${next > 0 ? 'Mute' : 'Unmute'} ${label}`.trim());
+    const range = row?.querySelector<HTMLInputElement>('[data-atmo-range]');
+    if (range) { range.value = String(next); setFill(range); }
+  });
+  // Keep every slider's filled-track in step while it's dragged (plans/147).
+  root.addEventListener('input', (e) => {
+    const t = e.target;
+    if (t instanceof HTMLInputElement && t.type === 'range') setFill(t);
+  });
 
   // ── visualiser right-click menu ────────────────────────────────────────────────
   // Right-click the dock's PASSIVE surface (backdrop / chrome, never a control) → the viz
@@ -1236,6 +1419,18 @@ export function createAudioDock(opts: AudioDockOptions): DockController {
     e.preventDefault();
     openVizMenu(e.clientX, e.clientY);
   });
+  // Two-finger tap on the passive viz surface → the settings menu, on touch where there is
+  // no right-click (plans/147, Andy). Mirrors the contextmenu path; the ▾ header chevron is
+  // the other touch route.
+  root.addEventListener('touchstart', (e) => {
+    if (!hasRichViz() || e.touches.length !== 2) return;
+    const t = e.target as HTMLElement;
+    if (t.closest?.('button, input, select, a, [data-src-id], [data-atmo-row], [data-vizmenu]')) return;
+    e.preventDefault();
+    const x = (e.touches[0]!.clientX + e.touches[1]!.clientX) / 2;
+    const y = (e.touches[0]!.clientY + e.touches[1]!.clientY) / 2;
+    openVizMenu(x, y);
+  }, { passive: false });
   q<HTMLButtonElement>('[data-viz-toggle]')?.addEventListener('click', () => {
     host.viz?.setEnabled?.(!vizOn());
     paintVizToggle();
@@ -1288,9 +1483,13 @@ export function createAudioDock(opts: AudioDockOptions): DockController {
   if (typeof ResizeObserver === 'function' && raf) {
     vizRo = new ResizeObserver(() => {
       if (vizRoAf) return;
-      vizRoAf = raf(() => { vizRoAf = 0; if (hostVizActive) host.viz?.resize?.(); });
+      vizRoAf = raf(() => { vizRoAf = 0; if (hostVizActive) host.viz?.resize?.(); pickBrandMark(); });
     });
     vizRo.observe(vizCanvas);
+    // Also watch the vizspace: expanding a section shrinks it without resizing the canvas,
+    // and that's exactly when the brand mark must re-measure its room (plans/147).
+    const vizspaceEl = q<HTMLElement>('[data-vizspace]');
+    if (vizspaceEl) vizRo.observe(vizspaceEl);
   }
 
   doc.addEventListener('fullscreenchange', onFullscreenChange);

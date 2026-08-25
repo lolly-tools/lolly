@@ -134,6 +134,15 @@ export interface BlockFieldSpec extends VectorFieldSpec {
    *  control instead of a stacked text label (on a `labelledFields` block). The engine
    *  only carries it; the web shell resolves + renders the glyph. */
   icon?: string;
+  /** On an ASSET sub-field: the shared PREFIX of the row's framing numbers -
+   *  <prefix>Zoom / <prefix>X / <prefix>Y / <prefix>Rotate / <prefix>Pitch /
+   *  <prefix>Yaw - declaring that those siblings frame THIS image (plans/148). A
+   *  block sub-field cannot be a `vector`, so a row spells the values out; naming
+   *  the prefix here is what lets the shell's framing overlay bind a block row.
+   *  Normally the field's own id; a different prefix only where the numbers
+   *  already ship under one (color-block's bgImage + bgX/bgY/bgZoom), since those
+   *  ids are permanent URL contracts. */
+  framingFor?: string;
 }
 
 /** Typed "+ Add" menu on a blocks input (one sub-field is the discriminator). */
@@ -236,6 +245,12 @@ export interface InputSpec {
    *  ordinary input everywhere else (URL params, hooks, state, undo). The engine
    *  only carries it; the web shell places it. */
   attachTo?: string;
+  /** On a `vector` input holding image framing ({ zoom, x, y, rotate? }): the id of
+   *  the asset input whose content it frames (plans/148). Declares this as THE
+   *  framing control for that image - the web shell mounts its generic on-canvas
+   *  pan/zoom/rotate overlay on it and offers "Use as a new image". The engine only
+   *  carries it; the placement maths is framing.ts and the gestures are shell code. */
+  framingFor?: string;
   placeholder?: string;
   /** Unit label shown beside a slider value (e.g. "mm"). */
   unit?: string;
@@ -361,13 +376,16 @@ export function buildInputModel(
     manifest.render?.transparentBg !== undefined &&
     !declared.some(i => i.id === 'transparentBg')
   ) {
+    // A sidebar input, NOT group:'export': the background is a creative choice the
+    // user makes alongside colour/theme, and they rarely open the export panel where
+    // it used to hide. (convertPaths below stays in the export group - it only ever
+    // affects the exported vector file, not the on-canvas result.)
     synthetic.push({
       id: 'transparentBg',
-      label: 'No BG',
+      label: 'Transparent background',
       type: 'boolean',
       default: Boolean(manifest.render.transparentBg),
-      group: 'export',
-      help: 'Remove the background fill so alpha-supporting formats export with transparency.',
+      help: 'Remove the background fill so alpha-supporting formats (PNG/WebP/SVG) keep transparency.',
     });
   }
 

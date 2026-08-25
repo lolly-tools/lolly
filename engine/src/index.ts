@@ -92,6 +92,11 @@ export {
   toInches, isPhysical, toPixels, toPoints, toCssPx, toCssLength, toUnit,
 } from './units.ts';
 export {
+  frameRect, framingStyle, normalizeFraming, isNeutralFraming, isTilted,
+  framingQuad, projectFramingPoint, minZoomForCover, FRAMING_PERSPECTIVE,
+} from './framing.ts';
+export type { Framing, FramingFit, FrameRect } from './framing.ts';
+export {
   srgbIccProfile, pqBt2020IccProfile, iccProfileBytes, COLOR_PROFILES,
   rgbToCmyk, cmykCondition, CMYK_CONDITIONS, DEFAULT_CMYK_CONDITION,
 } from './color.ts';

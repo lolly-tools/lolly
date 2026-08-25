@@ -360,7 +360,7 @@
   "shells/web/src/sw.test.ts": 1,
   "shells/web/src/user-fonts.test.ts": 1,
   "shells/web/src/user-fonts.ts": 3,
-  "shells/web/src/views/catalog.ts": 19,
+  "shells/web/src/views/catalog.ts": 18,
   "shells/web/src/views/color-lab.test.ts": 1,
   "shells/web/src/views/color-lab.ts": 9,
   "shells/web/src/views/components.ts": 1,

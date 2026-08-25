@@ -461,6 +461,10 @@
           "type": "string",
           "description": "Id of a sibling input. Renders THIS input's control inside that input's control row (leading) instead of on its own labelled row - for a compact modifier belonging to another control, e.g. a fit toggle on an asset slot. It stays an ordinary input everywhere else (URL params, hooks, state, undo); only its placement changes. Pair with display:'icon-toggle' to keep it to one button. Ignored if the target id does not exist."
         },
+        "framingFor": {
+          "type": "string",
+          "description": "On a `vector` input holding image framing ({ zoom, x, y, rotate? }): the id of the asset input whose content it frames. Declares the input as THE framing control for that image, which is what lets the shell mount its generic on-canvas pan/zoom/rotate overlay, bound zoom against the image's real aspect ratio, and offer 'Use as a new image' (bake the framing into a new library asset). Reuse the canonical `imageFraming` field set (schemas/canonical-inputs.json) so the values stay bulk-writable in /batch. Ignored if the target id does not exist or is not an asset input. See plans/148."
+        },
         "dataSource": {
           "type": "object",
           "description": "Adds a unified 'Add data' affordance to this input: the user picks a file (csv/json/txt/md/xlsx) or a catalog text/boilerplate asset, and its content fills the field. For a text/longtext input the content is applied as text (an .xlsx is serialised to CSV, first sheet). Replaces per-tool paste buttons / 'paste your CSV here' instructions. See plan 87.",
@@ -686,6 +690,7 @@
                     "display": { "type": "string", "enum": ["input", "slider"], "default": "input" },
                     "assetType": { "type": "string", "enum": ["vector", "raster", "image", "video", "audio", "lottie", "any"] },
                     "allowUpload": { "type": "boolean", "default": false },
+                    "framingFor": { "type": "string", "description": "On an ASSET sub-field: the shared PREFIX of the row's framing numbers - <prefix>Zoom / <prefix>X / <prefix>Y / <prefix>Rotate / <prefix>Pitch / <prefix>Yaw - declaring that those sibling values frame THIS image (plans/148). Normally the asset field's own id; name a different prefix only where the numbers already ship under one (color-block's bgImage + bgX/bgY/bgZoom), since those ids are permanent URL contracts. A block sub-field cannot be a `vector`, so a row spells the values out; this is what lets the shell's generic framing overlay bind a block row. Render with the {{framing}} helper's block mode." },
                     "filter": {
                       "type": "object",
                       "properties": {

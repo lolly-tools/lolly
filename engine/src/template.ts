@@ -15,6 +15,7 @@
  */
 
 import Handlebars from 'handlebars';
+import { framingStyle, type Framing, type FramingFit } from './framing.ts';
 
 // Helper arguments arrive from logic-less templates, so every helper treats its
 // inputs as unknown and narrows/coerces immediately (String(...) / typeof).
@@ -199,6 +200,83 @@ Handlebars.registerHelper('asset', (ref: unknown, field: unknown) => {
   return url ?? '';
 });
 
+// Framing helper (plans/148): {{framing "imageFraming"}} emits BOTH the CSS that
+// places the image and the marker the shell's on-canvas overlay binds to, so one
+// call is the whole recipe:
+//
+//   <img src="{{asset image}}" {{framing "imageFraming"}}>
+//   → style="object-fit:cover;object-position:32% 40%;transform:…" data-framing="imageFraming"
+//
+// The argument is the framing input's ID, not its value: the helper needs the id
+// for the marker, and Handlebars gives a helper no way to recover the name of a
+// value it was handed. The value is read back off the root context (the hydrated
+// values object), which is also why `fit=` takes the FIT INPUT'S ID.
+//
+// Inside a {{#each}} over a blocks input, block sub-fields cannot be a `vector`
+// (the schema has no such sub-field type), so framing lives as four sibling
+// numbers named <base>Zoom / <base>X / <base>Y / <base>Rotate. Name the base and
+// the block, and the helper reads the CURRENT block context instead:
+//
+//   {{framing "bg" block="blocks" index=@index}}
+//   → … data-framing="blocks:0:bg"
+//
+// Either way the emitted CSS is framingStyle()'s, so the canvas, every export
+// path and the hooks' frameRect() agree by construction.
+const FIT_VALUES = new Set(['cover', 'contain']);
+function readFit(v: unknown): FramingFit {
+  const s = String(v ?? '').toLowerCase();
+  return FIT_VALUES.has(s) ? (s as FramingFit) : 'cover';
+}
+Handlebars.registerHelper('framing', function (
+  this: unknown,
+  idArg: unknown,
+  options?: { hash?: Record<string, unknown>; data?: { root?: Record<string, unknown> } },
+) {
+  const esc = Handlebars.escapeExpression;
+  const id = String(idArg ?? '').trim();
+  if (!id) return new Handlebars.SafeString('');
+  const hash = options?.hash ?? {};
+  const root = (options?.data?.root ?? {}) as Record<string, unknown>;
+  const blockId = hash.block != null ? String(hash.block) : '';
+
+  let framing: Framing;
+  let fitRaw: unknown;
+  let marker: string;
+
+  if (blockId) {
+    // Block mode: four sibling numbers on the current row.
+    const row = (this && typeof this === 'object' ? this : {}) as Record<string, unknown>;
+    framing = {
+      zoom: Number(row[`${id}Zoom`]),
+      x: Number(row[`${id}X`]),
+      y: Number(row[`${id}Y`]),
+      rotate: Number(row[`${id}Rotate`]),
+      pitch: Number(row[`${id}Pitch`]),
+      yaw: Number(row[`${id}Yaw`]),
+    };
+    // `<base>Fit` on the row (a per-row toggle), else a top-level one of the same
+    // name (one toggle for every row).
+    fitRaw = hash.fit != null ? root[String(hash.fit)] ?? hash.fit : (row[`${id}Fit`] ?? root[`${id}Fit`]);
+    const idx = Number(hash.index);
+    marker = `${blockId}:${Number.isFinite(idx) ? idx : 0}:${id}`;
+  } else {
+    const v = root[id];
+    framing = (v && typeof v === 'object' ? v : {}) as Framing;
+    // Default companion select: imageFraming → imageFit, bgFraming → bgFit.
+    const fitId = hash.fit != null ? String(hash.fit) : id.replace(/Framing$/, '') + 'Fit';
+    fitRaw = root[fitId] ?? (hash.fit != null ? hash.fit : undefined);
+    marker = id;
+  }
+
+  // persp= overrides the viewing distance the pitch/yaw envelope projects through
+  // (FRAMING_PERSPECTIVE otherwise). A tool that wants a flatter correction on a
+  // small slot raises it; one that wants a stronger tilt lowers it.
+  const perspRaw = Number(hash.persp);
+  const style = framingStyle(framing, readFit(fitRaw), Number.isFinite(perspRaw) && perspRaw > 0 ? perspRaw : undefined);
+  const extra = hash.style != null ? `;${String(hash.style)}` : '';
+  return new Handlebars.SafeString(`style="${esc(style + extra)}" data-framing="${esc(marker)}"`);
+});
+
 // Media helper: {{media logo}} emits the element that PLAYS the asset:
 //   • still raster / vector → <img> (byte-identical to <img src="{{asset logo}}">),
 //   • lottie                → a <div data-lottie-src> marker the shell's enhancer fills,
@@ -216,7 +294,10 @@ function mediaBool(v: unknown, dflt: boolean): boolean {
   const s = String(v).toLowerCase();
   return s === 'true' || s === '1' || s === 'yes' || s === 'on';
 }
-Handlebars.registerHelper('media', (ref: unknown, options?: { hash?: Record<string, unknown> }) => {
+Handlebars.registerHelper('media', (
+  ref: unknown,
+  options?: { hash?: Record<string, unknown>; data?: { root?: Record<string, unknown> } },
+) => {
   const empty = new Handlebars.SafeString('');
   if (!ref || typeof ref !== 'object') return empty;
   const esc = Handlebars.escapeExpression;
@@ -227,7 +308,20 @@ Handlebars.registerHelper('media', (ref: unknown, options?: { hash?: Record<stri
   const meta = (get('meta') && typeof get('meta') === 'object' ? get('meta') : {}) as Record<string, unknown>;
   const hash = options?.hash ?? {};
   const cls = hash.class != null ? ` class="${esc(String(hash.class))}"` : '';
-  const style = hash.style != null ? ` style="${esc(String(hash.style))}"` : '';
+  // framing="imageFraming" (an input ID, as with the {{framing}} helper) places
+  // the still/video with the shared recipe and stamps the overlay marker, so a
+  // {{media}} slot gets the same uniform pan/zoom/rotate as a hand-written <img>.
+  const root = (options?.data?.root ?? {}) as Record<string, unknown>;
+  const framingId = hash.framing != null ? String(hash.framing) : '';
+  const framingCss = framingId
+    ? framingStyle(
+        (root[framingId] && typeof root[framingId] === 'object' ? root[framingId] : {}) as Framing,
+        readFit(root[hash.fit != null ? String(hash.fit) : framingId.replace(/Framing$/, '') + 'Fit'] ?? hash.fit),
+      )
+    : '';
+  const styleText = [framingCss, hash.style != null ? String(hash.style) : ''].filter(Boolean).join(';');
+  const marker = framingId ? ` data-framing="${esc(framingId)}"` : '';
+  const style = styleText ? ` style="${esc(styleText)}"${marker}` : marker;
 
   if (type === 'lottie' || /\.json($|\?|#)/i.test(url)) {
     const loop = mediaBool(hash.loop, true) ? '1' : '0';

@@ -77,6 +77,40 @@ test('every example hydrates into a real page', { skip: SKIP }, async () => {
     const got = await mount(ex.values);
     assert.deepEqual(got.rt.hookErrors, [], `${ex.label}: hooks errored`);
     assert.equal(got.error, '', `${ex.label}: ${got.error}`);
-    assert.ok(got.svg.includes('jp-link'), `${ex.label}: no links rendered`);
+    // A landing page renders the link list; a forwarder renders the redirect panel.
+    assert.ok(got.svg.includes('jp-link') || got.svg.includes('jp-forward'),
+      `${ex.label}: neither a link list nor a forward panel rendered`);
   }
+});
+
+test('forward mode redirects to the first link and drops the list', { skip: SKIP }, async () => {
+  const { svg } = await mount({
+    onVisit: 'forward',
+    links: [
+      { label: 'One', url: 'suse.com' },
+      { label: 'Two', url: 'https://example.com/two' },
+    ],
+  });
+  assert.ok(svg.includes('jp-is-forward'), 'a forward panel is rendered');
+  assert.ok(svg.includes('data-jp-href="https://suse.com"'), 'forwards to the first link, scheme added');
+  assert.ok(!svg.includes('data-jp-challenge="1"'), 'plain forward has no human check');
+  assert.ok(!svg.includes('>Two<'), 'the second link is not shown - the visitor is forwarded');
+});
+
+test('gate mode arms the press-and-hold human check', { skip: SKIP }, async () => {
+  const { svg } = await mount({ onVisit: 'gate', links: [{ label: 'Go', url: 'https://example.com/x' }] });
+  assert.ok(svg.includes('data-jp-challenge="1"'), 'the human check is armed');
+  assert.ok(svg.includes('data-jp-hold'), 'the hold button is rendered');
+});
+
+test('a javascript: first link never becomes a redirect target', { skip: SKIP }, async () => {
+  const { svg } = await mount({ onVisit: 'forward', links: [{ label: 'X', url: 'javascript:alert(1)' }] });
+  assert.ok(!svg.includes('jp-is-forward'), 'no auto-forward to an unsafe scheme');
+  assert.ok(svg.includes('jp-list'), 'falls back to showing the link list');
+});
+
+test('default (page) mode keeps the link list, no redirect', { skip: SKIP }, async () => {
+  const { svg } = await mount({ links: [{ label: 'Home', url: 'https://example.com' }] });
+  assert.ok(svg.includes('jp-list'), 'the link list is shown');
+  assert.ok(!svg.includes('jp-is-forward'), 'nothing forwards by default');
 });

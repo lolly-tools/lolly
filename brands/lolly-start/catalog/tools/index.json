@@ -1,6 +1,6 @@
 {
   "version": "1",
-  "generatedAt": "2026-08-24T21:12:14.780Z",
+  "generatedAt": "2026-08-25T15:14:14.263Z",
   "tools": [
     {
       "id": "compress-pdf",
@@ -1783,7 +1783,7 @@
       "height": 900,
       "exportable": true,
       "icon": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><circle cx=\"9\" cy=\"9\" r=\"7\"/><circle cx=\"15\" cy=\"15\" r=\"7\"/></svg>",
-      "preview": "/catalog/previews/mesh-gradient.webp",
+      "preview": "/catalog/previews/mesh-gradient.png",
       "examples": [
         {
           "label": "Sunset haze",
@@ -2430,7 +2430,7 @@
       "height": 1024,
       "exportable": true,
       "icon": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><rect width=\"18\" height=\"18\" x=\"3\" y=\"3\" rx=\"2\" /><path d=\"M7 8h4\" /><path d=\"M7 12h4\" /><path d=\"M7 16h4\" /><path d=\"M14 8h3\" /><path d=\"M14 12h3\" /><path d=\"M14 16h3\" /></svg>",
-      "preview": "/catalog/previews/prompt-to-image.webp",
+      "preview": "/catalog/previews/prompt-to-image.png",
       "examples": [
         {
           "label": "Two-column brief",
@@ -2735,7 +2735,7 @@
       "height": 720,
       "exportable": true,
       "icon": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.6\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><rect x=\"3\" y=\"4\" width=\"18\" height=\"13\" rx=\"1.5\"/><path d=\"M7 20h10\"/><path d=\"M12 17v3\"/><path d=\"M6.5 8.5h6\"/><path d=\"M6.5 11.5h4\"/><rect x=\"14.5\" y=\"8\" width=\"3.5\" height=\"5.5\" rx=\"0.5\"/></svg>",
-      "preview": "/catalog/previews/deck-studio.webp",
+      "preview": "/catalog/previews/deck-studio.png",
       "examples": [
         {
           "label": "Boardroom title",
@@ -3582,7 +3582,7 @@
             "subtitle": "MilkDrop, twenty years on",
             "style": "milkdrop",
             "layout": "overlay",
-            "preset": "stock:geiss-thumb-drum"
+            "vizLook": "stock:geiss-thumb-drum"
           }
         }
       ],
@@ -4642,7 +4642,7 @@
       "id": "filter",
       "name": "Filter",
       "description": "One tool for photo effects: pick halftone, scanline, posterize, voronoi, dither or ASCII art (vector) or duotone, pixel-stretch, imperfections or glitch (raster). Brand overlays, live camera, and exports to as many formats as each effect supports.",
-      "version": "1.3.1",
+      "version": "1.4.0",
       "status": "official",
       "category": "designer",
       "tags": [
@@ -4685,7 +4685,7 @@
       "height": 1080,
       "exportable": true,
       "icon": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><line x1=\"4\" y1=\"6\" x2=\"20\" y2=\"6\"/><line x1=\"4\" y1=\"12\" x2=\"20\" y2=\"12\"/><line x1=\"4\" y1=\"18\" x2=\"20\" y2=\"18\"/><circle cx=\"9\" cy=\"6\" r=\"2\" fill=\"currentColor\" stroke=\"none\"/><circle cx=\"15\" cy=\"12\" r=\"2\" fill=\"currentColor\" stroke=\"none\"/><circle cx=\"8\" cy=\"18\" r=\"2\" fill=\"currentColor\" stroke=\"none\"/></svg>",
-      "preview": "/catalog/previews/filter.webp",
+      "preview": "/catalog/previews/filter.png",
       "featured": {
         "order": 7,
         "blurb": "Ten photo effects, vector or raster, in one tool"
@@ -5063,7 +5063,7 @@
       "height": 1080,
       "exportable": true,
       "icon": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><rect x=\"3\" y=\"3\" width=\"18\" height=\"18\" rx=\"2\" /><rect x=\"6\" y=\"6\" width=\"6\" height=\"5\" rx=\"1\" /><circle cx=\"16\" cy=\"9\" r=\"2.5\" /><rect x=\"6\" y=\"14\" width=\"12\" height=\"3\" rx=\"1\" /></svg>",
-      "preview": "/catalog/previews/design.webp",
+      "preview": "/catalog/previews/design.png",
       "featured": {
         "order": 1,
         "blurb": "Free-form layouts on an open canvas"
@@ -5764,7 +5764,7 @@
       "id": "booth-studio",
       "name": "Booth Studio",
       "description": "Dress a 3D event booth with sponsor artwork. Click any panel to drop an image on it, pick a booth design, and render a still or a turntable for a sponsor pitch.",
-      "version": "0.2.0",
+      "version": "0.3.0",
       "status": "experimental",
       "category": "event",
       "tags": [
@@ -5900,7 +5900,7 @@
       "id": "code-canvas",
       "name": "Code Canvas",
       "description": "Turn code snippets into clean, syntax-highlighted, shareable images.",
-      "version": "1.1.0",
+      "version": "1.2.0",
       "status": "official",
       "category": "everyone",
       "tags": [
@@ -5917,7 +5917,7 @@
       "height": 800,
       "exportable": true,
       "icon": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"m7 11 2-2-2-2\" /><path d=\"M11 13h4\" /><rect width=\"18\" height=\"18\" x=\"3\" y=\"3\" rx=\"2\" ry=\"2\" /></svg>",
-      "preview": "/catalog/previews/code-canvas.webp",
+      "preview": "/catalog/previews/code-canvas.png",
       "i18n": {
         "ar": {
           "name": "لوحة الكود",
@@ -6059,7 +6059,7 @@
       "height": 1123,
       "exportable": true,
       "icon": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7z\"/><path d=\"M14 2v5h5\"/><line x1=\"8\" y1=\"12\" x2=\"16\" y2=\"12\"/><line x1=\"8\" y1=\"16\" x2=\"14\" y2=\"16\"/></svg>",
-      "preview": "/catalog/previews/doc-studio.webp",
+      "preview": "/catalog/previews/doc-studio.png",
       "paged": true,
       "i18n": {
         "ar": {
@@ -6313,7 +6313,7 @@
       "id": "multi-page-pdf",
       "name": "Multi-Page PDF",
       "description": "Build a multi-page PDF - a cover, flowing content blocks, and a back page.",
-      "version": "1.0.0",
+      "version": "1.1.0",
       "status": "official",
       "category": "designer",
       "tags": [
@@ -6335,7 +6335,7 @@
       "height": 1123,
       "exportable": true,
       "icon": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M15 2H9a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V6z\" /><path d=\"M15 2v4h4\" /><path d=\"M11 10.5h4\" /><path d=\"M11 13.5h4\" /><path d=\"M7 6a2 2 0 0 0-3 1.7V20a2 2 0 0 0 2 2h9a2 2 0 0 0 1.7-1\" /></svg>",
-      "preview": "/catalog/previews/multi-page-pdf.webp",
+      "preview": "/catalog/previews/multi-page-pdf.png",
       "personalized": true,
       "featured": {
         "order": 3,
@@ -6517,7 +6517,7 @@
       "height": 1920,
       "exportable": true,
       "icon": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><rect x=\"2\" y=\"6\" width=\"20\" height=\"12\" rx=\"2\"/><path d=\"M8 6v12\"/><path d=\"M16 6v12\"/><circle cx=\"12\" cy=\"12\" r=\"2.4\" fill=\"currentColor\" stroke=\"none\"/></svg>",
-      "preview": "/catalog/previews/record.webp",
+      "preview": "/catalog/previews/record.png",
       "paged": true,
       "i18n": {
         "ar": {
@@ -6768,7 +6768,7 @@
       "id": "darkroom",
       "name": "Darkroom",
       "description": "A pro photo-grading darkroom: film looks, third-party .cube LUTs, brand-seeded colour treatments and finishing texture - then bake your look as a LUT any editor can use. Opens a Photoshop or GIMP file as layers too: position, blend and hide each one, grade the composite, and export flat images or a layered PSD.",
-      "version": "2.1.0",
+      "version": "2.2.0",
       "status": "community",
       "category": "designer",
       "tags": [
@@ -6834,7 +6834,7 @@
         {
           "label": "Teal & orange cinema",
           "values": {
-            "preset": "teal-orange",
+            "filmLook": "teal-orange",
             "vignette": 22,
             "halation": 18
           }
@@ -6842,7 +6842,7 @@
         {
           "label": "Faded matte + grain",
           "values": {
-            "preset": "matte",
+            "filmLook": "matte",
             "grain": 45,
             "vignette": 28
           }
@@ -6857,7 +6857,7 @@
         {
           "label": "Classic black & white",
           "values": {
-            "preset": "bw",
+            "filmLook": "bw",
             "grain": 35,
             "vignette": 24,
             "contrast": 12
@@ -7392,7 +7392,7 @@
       "id": "screenshot-frame",
       "name": "Screenshot Frame",
       "description": "Drop in a screenshot and get it framed, padded and shadowed on a brand backdrop.",
-      "version": "1.0.1",
+      "version": "1.1.0",
       "status": "community",
       "category": "everyone",
       "tags": [
@@ -7414,7 +7414,7 @@
       "height": 1000,
       "exportable": true,
       "icon": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><rect width=\"20\" height=\"16\" x=\"2\" y=\"4\" rx=\"2\" /><path d=\"M2 8.5h20\" /><path d=\"M5.2 6.3h.01\" /><path d=\"M7.8 6.3h.01\" /><path d=\"m6 17 3.2-3.4 2.2 2.3L15 12l3 5\" /></svg>",
-      "preview": "/catalog/previews/screenshot-frame.svg",
+      "preview": "/catalog/previews/screenshot-frame.png",
       "examples": [
         {
           "label": "Browser, light chrome",
@@ -7651,7 +7651,7 @@
             "certKind": "completion",
             "firstname": "Ana",
             "lastname": "Kovač",
-            "course": "Container Fundamentals",
+            "awardtopic": "Container Fundamentals",
             "awarddate": "2026-06-18",
             "presenter": "Maya Lindqvist",
             "presenterTitle": "Programme Director",
@@ -7667,7 +7667,7 @@
             "certKind": "award",
             "firstname": "Tomás",
             "lastname": "Herrera",
-            "course": "The 2026 Innovation Award",
+            "awardtopic": "The 2026 Innovation Award",
             "awarddate": "2026-05-09",
             "presenter": "Ingrid Sorensen",
             "presenterTitle": "Chair of the Jury",
@@ -7684,7 +7684,7 @@
             "certKind": "appreciation",
             "firstname": "Priya",
             "lastname": "Nair",
-            "course": "Two years of volunteering",
+            "awardtopic": "Two years of volunteering",
             "awarddate": "2026-03-02",
             "presenter": "Jonas Weber",
             "presenterTitle": "Community Lead",
@@ -7701,7 +7701,7 @@
             "pageSize": "screen",
             "firstname": "Lena",
             "lastname": "Fischer",
-            "course": "Top of the 2026 cohort",
+            "awardtopic": "Top of the 2026 cohort",
             "awarddate": "2026-07-24",
             "presenter": "Maya Lindqvist",
             "presenterTitle": "Programme Director",
@@ -7893,7 +7893,7 @@
       "height": 550,
       "exportable": true,
       "icon": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><rect x=\"3\" y=\"2\" width=\"12\" height=\"15\" rx=\"1.6\" /><path d=\"M6 5.8h6\" /><path d=\"M6 9.2h4\" /><rect x=\"9\" y=\"13\" width=\"12\" height=\"9\" rx=\"1.6\" /><path d=\"M12 17.4h4\" /></svg>",
-      "preview": "/catalog/previews/stationery.svg",
+      "preview": "/catalog/previews/stationery.png",
       "personalized": true,
       "examples": [
         {
@@ -8015,7 +8015,7 @@
       "height": 1400,
       "exportable": false,
       "icon": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><rect x=\"4\" y=\"3\" width=\"16\" height=\"4.6\" rx=\"2.3\"/><rect x=\"4\" y=\"9.7\" width=\"16\" height=\"4.6\" rx=\"2.3\"/><rect x=\"4\" y=\"16.4\" width=\"16\" height=\"4.6\" rx=\"2.3\"/></svg>",
-      "preview": "/catalog/previews/jump.webp",
+      "preview": "/catalog/previews/jump.svg",
       "examples": [
         {
           "label": "Studio front door",
@@ -8095,6 +8095,23 @@
               }
             ]
           }
+        },
+        {
+          "label": "Forwarder",
+          "values": {
+            "heading": "Redirecting",
+            "subheading": "One link that forwards you on.",
+            "onVisit": "gate",
+            "accent": "#2563eb",
+            "background": "#f6f8fc",
+            "color": "#16202b",
+            "links": [
+              {
+                "label": "Destination",
+                "url": "https://example.com/live"
+              }
+            ]
+          }
         }
       ]
     },
@@ -8129,7 +8146,7 @@
       "height": 750,
       "exportable": false,
       "icon": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><rect x=\"3\" y=\"4\" width=\"18\" height=\"16\" rx=\"2\"/><path d=\"M8 15 15 8\"/><path d=\"M10.6 8H15v4.4\"/><path d=\"M7.5 18h6\"/></svg>",
-      "preview": "/catalog/previews/annotate.webp",
+      "preview": "/catalog/previews/annotate.png",
       "examples": [
         {
           "label": "Three numbered steps",

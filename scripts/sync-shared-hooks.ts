@@ -127,8 +127,8 @@ export function loadSharedRegions(): Map<string, SharedRegion> {
 }
 
 /**
- * Every hooks.js the sync manages: community/<tool>/hooks.js plus
- * brands/<brand>/tools/<tool>/hooks.js. Enumerates the real pack sources, never
+ * Every file the sync manages: community/<tool>/{hooks.js,template.html} plus
+ * brands/<brand>/tools/<tool>/{hooks.js,template.html}. Enumerates the real pack sources, never
  * the gitignored tools/ profile view (which symlinks/copies these same files).
  * A missing pack (e.g. the private brands/suse on a public clone) is skipped.
  */
@@ -152,6 +152,12 @@ export function listConsumerHookFiles(): string[] {
       if (!statSync(dir).isDirectory()) continue;
       const hooks = join(dir, 'hooks.js');
       if (existsSync(hooks)) files.push(hooks);
+      // A tool may carry its imperative code in a template <script> instead of a
+      // hooks.js (booth-studio builds a whole THREE scene there). Those blocks are
+      // the same self-contained data with the same copy-paste rot, so they are
+      // consumers too - the markers behave identically inside HTML.
+      const template = join(dir, 'template.html');
+      if (existsSync(template)) files.push(template);
     }
   }
   return files;
