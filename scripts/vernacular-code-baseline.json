@@ -317,7 +317,6 @@
   "shells/web/src/lib/save-dialog.ts": 1,
   "shells/web/src/lib/scope-css.test.ts": 1,
   "shells/web/src/lib/scope-css.ts": 2,
-  "shells/web/src/lib/scrub-registry.ts": 1,
   "shells/web/src/lib/scrub.ts": 1,
   "shells/web/src/lib/search/providers/catalog.ts": 1,
   "shells/web/src/lib/search/providers/places.ts": 1,
