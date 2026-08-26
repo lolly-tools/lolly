@@ -442,3 +442,114 @@ export function pqToU16(pq: PqImage): Uint16Array {
   }
   return out;
 }
+
+// ─── I420P10 YUV encode (plan 154 WP-2 Phase 2) ───────────────────────────────
+//
+// The dual of pqToU16 for the BUFFERED video path: a WebCodecs HDR VideoFrame with
+// `format: 'I420P10'` + `colorSpace: {primaries:bt2020, transfer:pq, matrix:
+// bt2020-ncl, fullRange:false}` wants BT.2020 non-constant-luminance 10-bit YCbCr
+// planes at LIMITED (narrow) range. There was no RGB->YUV in the engine; this is it.
+//
+// The matrix operates on the TRANSFER-ENCODED R'G'B' - i.e. the PQ *code values*
+// from pqEncodeFrame, NOT linear light. That is precisely what `matrix:bt2020-ncl`
+// paired with `transfer:pq` means: the samples are PQ-coded, YCbCr is a linear
+// recombination of those coded primaries. Feeding linear light here would be wrong.
+
+/**
+ * BT.2020 non-constant-luminance luma coefficients (ITU-R BT.2020 Table 4) and the
+ * derived Cb/Cr denominators 2(1-KB) / 2(1-KR). KG is derived so the three sum to 1.
+ */
+const BT2020_KR = 0.2627;
+const BT2020_KB = 0.0593;
+const BT2020_KG = 1 - BT2020_KR - BT2020_KB; // 0.6780
+const CB_DEN = 2 * (1 - BT2020_KB); // 1.8814
+const CR_DEN = 2 * (1 - BT2020_KR); // 1.4746
+
+/**
+ * Round to a valid 10-bit code. Narrow-range nominal levels (Y 64..940, C 64..960)
+ * sit INSIDE 0..1023; a corner RGB whose chroma overshoots ±0.5 lands in the
+ * reserved foot/head-room, which is legal signalling and must not be crushed to the
+ * nominal band - so the only clamp is the 10-bit container ceiling itself.
+ */
+const to10bit = (v: number): number => {
+  const r = Math.round(san(v));
+  return r < 0 ? 0 : r > 1023 ? 1023 : r;
+};
+
+/**
+ * Packed WebCodecs `I420P10` planes: Y (w×h) then U (Cb) then V (Cr), each chroma
+ * plane ⌈w/2⌉×⌈h/2⌉ (4:2:0), one little-endian 10-bit sample per Uint16, in one
+ * contiguous buffer - the exact layout the buffer VideoFrame ctor expects.
+ */
+export interface I420P10Frame {
+  width: number;
+  height: number;
+  /** Y ++ U ++ V, tight-packed; 10-bit value in the low bits of each Uint16. */
+  data: Uint16Array;
+}
+
+/**
+ * PQ RGB ({@link PqImage} from {@link pqEncodeFrame}) -> `I420P10` YUV for a
+ * WebCodecs HDR VideoFrame (BT.2020 / PQ / bt2020-ncl / limited-range). RGB samples
+ * are PQ CODE VALUES; see the section header for why that is the correct input.
+ *
+ *   Y' = KR·R' + KG·G' + KB·B'                         (BT.2020 NCL)
+ *   Cb = (B' - Y') / (2(1-KB))    Cr = (R' - Y') / (2(1-KR))
+ * then narrow-range 10-bit digital levels (ITU-R BT.2020 §5.4, n=10, 2^(n-8)=4):
+ *   Y = round(876·Y' + 64)     Y'∈[0,1]      -> 64..940
+ *   C = round(896·C  + 512)    C ∈[-0.5,0.5] -> 64..960
+ *
+ * Chroma is 4:2:0: each U/V sample is the mean of its 2×2 luma-site block, computed
+ * in float before a single quantise (edge blocks average only the pixels that
+ * exist). This is the 10-bit precision Phase 1's 8-bit-sourced PQ lacked - the PQ
+ * transfer packs most of its codes into the shadows, so an 8-bit PQ path bands
+ * there; a 10-bit path does not.
+ */
+export function pqToI420P10(pq: PqImage): I420P10Frame {
+  const w = pq.width;
+  const h = pq.height;
+  const src = pq.data;
+  const cw = (w + 1) >> 1;
+  const ch = (h + 1) >> 1;
+  const ySize = w * h;
+  const cSize = cw * ch;
+  const out = new Uint16Array(ySize + 2 * cSize);
+
+  // Y': one code per pixel.
+  for (let y = 0; y < h; y++) {
+    for (let x = 0; x < w; x++) {
+      const i = (y * w + x) * 4;
+      const yp = BT2020_KR * san(src[i]!) + BT2020_KG * san(src[i + 1]!) + BT2020_KB * san(src[i + 2]!);
+      out[y * w + x] = to10bit(876 * yp + 64);
+    }
+  }
+
+  // Cb/Cr: one code per 2×2 block, the mean of the pixels present in that block.
+  for (let cy = 0; cy < ch; cy++) {
+    for (let cx = 0; cx < cw; cx++) {
+      let cbSum = 0;
+      let crSum = 0;
+      let n = 0;
+      for (let dy = 0; dy < 2; dy++) {
+        const yy = cy * 2 + dy;
+        if (yy >= h) break;
+        for (let dx = 0; dx < 2; dx++) {
+          const xx = cx * 2 + dx;
+          if (xx >= w) break;
+          const i = (yy * w + xx) * 4;
+          const r = san(src[i]!);
+          const g = san(src[i + 1]!);
+          const b = san(src[i + 2]!);
+          const yp = BT2020_KR * r + BT2020_KG * g + BT2020_KB * b;
+          cbSum += (b - yp) / CB_DEN;
+          crSum += (r - yp) / CR_DEN;
+          n++;
+        }
+      }
+      const inv = n > 0 ? 1 / n : 0;
+      out[ySize + cy * cw + cx] = to10bit(896 * (cbSum * inv) + 512);
+      out[ySize + cSize + cy * cw + cx] = to10bit(896 * (crSum * inv) + 512);
+    }
+  }
+  return { width: w, height: h, data: out };
+}

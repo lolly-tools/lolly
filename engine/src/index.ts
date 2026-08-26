@@ -131,8 +131,8 @@ export {
   premultiply, unpremultiply, mapScanlines, convertSpace,
 } from './pixels.ts';
 export type { PixelSpace, DeepFrame } from './pixels.ts';
-export { hdrBoostToPQ, pqEncode, hdrViewTransform, pqEncodeFrame, pqToU16, HDR_PQ_CICP } from './hdr.ts';
-export type { HdrBoostOptions, PqImage } from './hdr.ts';
+export { hdrBoostToPQ, pqEncode, hdrViewTransform, pqEncodeFrame, pqToU16, pqToI420P10, HDR_PQ_CICP } from './hdr.ts';
+export type { HdrBoostOptions, PqImage, I420P10Frame } from './hdr.ts';
 export {
   computePrintGeometry, cmykToRgbApprox, PRINT_MARK_DEFAULTS,
 } from './print-marks.ts';
