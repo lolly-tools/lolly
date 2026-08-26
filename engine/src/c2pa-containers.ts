@@ -780,6 +780,75 @@ function placeOgg(ogg: Uint8Array, manifest: Uint8Array): PlaceResult {
   };
 }
 
+// ─── FLAC ────────────────────────────────────────────────────────────────────
+// FLAC has no C2PA-spec container binding (c2pa-rs has no FLAC reader), so this
+// is Lolly's own home for the credential - the same "our verifier only" caveat
+// as the Ogg/WebM paths. The JUMBF store rides in a metadata APPLICATION block
+// (type 2) whose 4-byte application id is 'C2PA', inserted right after the
+// mandatory STREAMINFO block and before the audio frames. Decoders skip unknown
+// APPLICATION blocks, so the file still plays everywhere.
+//
+// FLAC's last-metadata-block flag (top bit of each block's 1-byte header) must
+// stay valid: STREAMINFO first, EXACTLY ONE block flagged last, frames untouched.
+// Rather than patch flags in place, we parse the whole metadata chain, drop any
+// prior Lolly credential, rebuild the list as [STREAMINFO, C2PA, ...rest], and
+// re-derive every last-block flag from the new order (all cleared, set only on
+// the final block). That is correct whether STREAMINFO was the only block (C2PA
+// becomes last) or others follow (the last of those stays last), and makes
+// re-stamp a clean replace. Read side: extractC2paFromFlac in c2pa-extract.ts.
+export const FLAC_C2PA_APPID = 'C2PA';
+
+function placeFlac(flac: Uint8Array, manifest: Uint8Array): PlaceResult {
+  if (flac.length < 4 || flac[0] !== 0x66 || flac[1] !== 0x4c || flac[2] !== 0x61 || flac[3] !== 0x43) {
+    throw new Error('C2PA embed: not a FLAC stream');
+  }
+  // Walk the metadata block chain, bounds-checked before every read (the file is
+  // attacker-controlled). Each block: 1 header byte [last<<7 | type], a 3-byte
+  // big-endian length, then the body. The first MUST be STREAMINFO (type 0).
+  const appId = asciiBytes(FLAC_C2PA_APPID);
+  const blocks: { type: number; body: Uint8Array }[] = [];
+  let off = 4;
+  let sawLast = false;
+  while (off + 4 <= flac.length) {
+    const header = flac[off]!;
+    const last = (header & 0x80) !== 0;
+    const type = header & 0x7f;
+    const len = (flac[off + 1]! << 16) | (flac[off + 2]! << 8) | flac[off + 3]!;
+    const bodyStart = off + 4;
+    const bodyEnd = bodyStart + len;
+    if (bodyEnd > flac.length) throw new Error('C2PA embed: malformed FLAC metadata block');
+    if (blocks.length === 0 && type !== 0) throw new Error('C2PA embed: FLAC first metadata block is not STREAMINFO');
+    // Drop a prior Lolly credential (our APPLICATION block) so re-stamp replaces.
+    const isPriorC2pa = type === 2 && len >= 4 &&
+      flac[bodyStart] === appId[0] && flac[bodyStart + 1] === appId[1] &&
+      flac[bodyStart + 2] === appId[2] && flac[bodyStart + 3] === appId[3];
+    if (!isPriorC2pa) blocks.push({ type, body: flac.subarray(bodyStart, bodyEnd) });
+    off = bodyEnd;
+    if (last) { sawLast = true; break; }
+  }
+  if (!sawLast || blocks.length === 0) throw new Error('C2PA embed: malformed FLAC metadata (no terminal block)');
+  const frames = flac.subarray(off);
+  const c2paBody = concatBytes([appId, manifest]);
+  if (c2paBody.length > 0xffffff) throw new Error('C2PA embed: manifest too large for a FLAC APPLICATION block');
+  // Rebuild: STREAMINFO, our credential, then the rest verbatim. The C2PA block
+  // is always index 1, at a fixed offset (STREAMINFO's size is manifest-independent),
+  // so only its LENGTH varies with the manifest - exactly the excluded range.
+  const ordered = [blocks[0]!, { type: 2, body: c2paBody }, ...blocks.slice(1)];
+  const out: Uint8Array[] = [asciiBytes('fLaC')];
+  let pos = 4;
+  let exclStart = 0;
+  for (let i = 0; i < ordered.length; i++) {
+    const b = ordered[i]!;
+    const isLast = i === ordered.length - 1;
+    const n = b.body.length;
+    out.push(Uint8Array.of((isLast ? 0x80 : 0) | b.type, (n >> 16) & 0xff, (n >> 8) & 0xff, n & 0xff), b.body);
+    if (i === 1) exclStart = pos;
+    pos += 4 + n;
+  }
+  out.push(frames);
+  return { out: concatBytes(out), exclusions: [{ start: exclStart, length: 4 + c2paBody.length }] };
+}
+
 // ─── MP4 (ISO BMFF) ───────────────────────────────────────────────────────────
 
 interface Box {
@@ -1734,6 +1803,11 @@ const CONTAINERS: Record<string, Container> = {
   css: { place: (b, m) => placeArmor(b, m, ARMOR_SYNTAX.css), mime: 'text/css' },
   md: { place: (b, m) => placeArmor(b, m, ARMOR_SYNTAX.md), mime: 'text/markdown' },
   'html-fragment': { place: (b, m) => placeArmor(b, m, ARMOR_SYNTAX['html-fragment']), mime: C2PA_FRAGMENT_PROFILE.mime },
+  // FLAC - the JUMBF store rides in an APPLICATION metadata block (id 'C2PA'),
+  // byte-range excluded (Lolly-only binding; c2pa-rs has no FLAC reader; see placeFlac).
+  // Appended LAST on purpose: C2PA_FORMATS is an append-only slot contract (shells key
+  // export slots off its order), so it joins the end rather than beside the audio group.
+  flac: { place: placeFlac, mime: 'audio/flac' },
 };
 
 /** Formats embedC2pa can stamp (plus 'pdf'/'pdf-cmyk' via embedC2paInPdf). */

@@ -626,7 +626,7 @@ test('every stampable format is round-tripped by SOME suite, none silently untes
     apng: 'placer-identical to png (CASES)', jpeg: 'placer-identical to jpg (CASES)',
     avif: 'tests/c2pa-containers.test.ts', m4a: 'tests/c2pa-containers.test.ts',
     wav: 'tests/c2pa-containers.test.ts', ogg: 'tests/c2pa-containers.test.ts',
-    opus: 'tests/c2pa-containers.test.ts',
+    opus: 'tests/c2pa-containers.test.ts', flac: 'tests/c2pa-flac.test.ts',
     html: 'tests/c2pa-text-write.test.ts', js: 'tests/c2pa-text-write.test.ts',
     css: 'tests/c2pa-text-write.test.ts', md: 'tests/c2pa-text-write.test.ts',
     'html-fragment': 'tests/c2pa-text-write.test.ts',

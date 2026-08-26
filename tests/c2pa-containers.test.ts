@@ -211,7 +211,7 @@ test('C2PA_FORMATS covers every dispatchable format and nothing else', () => {
   // so an id may join the END of it and none may move or leave. The five text
   // formats (C2PA 2.4 section A.7 / section A.9 + the Lolly fragment profile) are the 2026-08-11
   // addition - see tests/c2pa-text-write.test.ts for their round-trips.
-  assert.deepEqual([...C2PA_FORMATS], ['pdf', 'pdf-cmyk', 'png', 'apng', 'jpg', 'jpeg', 'gif', 'svg', 'tiff', 'cmyk-tiff', 'webp', 'mp4', 'avif', 'm4a', 'webm', 'mp3', 'wav', 'ogg', 'opus', 'html', 'js', 'css', 'md', 'html-fragment']);
+  assert.deepEqual([...C2PA_FORMATS], ['pdf', 'pdf-cmyk', 'png', 'apng', 'jpg', 'jpeg', 'gif', 'svg', 'tiff', 'cmyk-tiff', 'webp', 'mp4', 'avif', 'm4a', 'webm', 'mp3', 'wav', 'ogg', 'opus', 'html', 'js', 'css', 'md', 'html-fragment', 'flac']);
   assert.ok(Object.isFrozen(C2PA_FORMATS));
   for (const [fmt] of FIXTURES) assert.ok(C2PA_FORMATS.includes(fmt), `${fmt} is declared stampable`);
 });

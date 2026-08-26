@@ -77,12 +77,15 @@ const ex1 = (out: Uint8Array): { start: number; length: number } => {
 
 // ─── registration ─────────────────────────────────────────────────────────────
 
-test('the five text formats are registered, appended, and none displaced an old slot', () => {
+test('the five text formats keep their fixed slots; nothing displaced an old slot', () => {
   const list = [...C2PA_FORMATS];
-  assert.deepEqual(list.slice(-5), ['html', 'js', 'css', 'md', 'html-fragment']);
+  const h = list.indexOf('html');
+  assert.deepEqual(list.slice(h, h + 5), ['html', 'js', 'css', 'md', 'html-fragment']);
   // The pre-2.4 slots keep their exact positions - shells key export formats off
-  // this list, so an id may only ever join the end.
-  assert.deepEqual(list.slice(0, -5), ['pdf', 'pdf-cmyk', 'png', 'apng', 'jpg', 'jpeg', 'gif', 'svg', 'tiff', 'cmyk-tiff', 'webp', 'mp4', 'avif', 'm4a', 'webm', 'mp3', 'wav', 'ogg', 'opus']);
+  // this list, so an id may only ever join the end (flac is the post-text addition,
+  // appended after the text block rather than beside the audio group, for that reason).
+  assert.deepEqual(list.slice(0, h), ['pdf', 'pdf-cmyk', 'png', 'apng', 'jpg', 'jpeg', 'gif', 'svg', 'tiff', 'cmyk-tiff', 'webp', 'mp4', 'avif', 'm4a', 'webm', 'mp3', 'wav', 'ogg', 'opus']);
+  assert.deepEqual(list.slice(h + 5), ['flac']);
   assert.ok(Object.isFrozen(C2PA_FORMATS));
 });
 

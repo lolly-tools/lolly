@@ -370,7 +370,7 @@ function maskMarkupNoise(head: string): string {
  */
 const TEXT_WRAPPER_SIGNATURE = String.fromCharCode(0xef, 0xbb, 0xbf, 0xf3, 0xa0, 0x84, 0xb3);
 
-export type SniffFormat = 'pdf' | 'png' | 'jpeg' | 'gif' | 'svg' | 'tiff' | 'webp' | 'avif' | 'mp4' | 'webm' | 'mkv' | 'mp3' | 'wav' | 'ogg'
+export type SniffFormat = 'pdf' | 'png' | 'jpeg' | 'gif' | 'svg' | 'tiff' | 'webp' | 'avif' | 'mp4' | 'webm' | 'mkv' | 'mp3' | 'wav' | 'ogg' | 'flac'
   // C2PA 2.4 text bindings - see the "text bindings" section near the bottom of
   // this file. 'html' keys on the DOCUMENT (section A.7 covers whole HTML documents);
   // 'code' and 'text' key on finding the CARRIER itself (the section A.9 armour block /
@@ -397,6 +397,9 @@ export function sniffFormat(bytes: Uint8Array): SniffFormat | null {
   if (ascii(bytes, 0, 4) === '%PDF') return 'pdf';
   if (ascii(bytes, 0, 4) === 'RIFF' && ascii(bytes, 8, 4) === 'WEBP') return 'webp';
   if (ascii(bytes, 0, 4) === 'RIFF' && ascii(bytes, 8, 4) === 'WAVE') return 'wav';
+  // FLAC - the 'fLaC' marker, then metadata blocks (first is STREAMINFO). The
+  // credential rides in an APPLICATION block; write side placeFlac, read side below.
+  if (ascii(bytes, 0, 4) === 'fLaC') return 'flac';
   if ((bytes[0] === 0x49 && bytes[1] === 0x49 && bytes[2] === 0x2a) ||
       (bytes[0] === 0x4d && bytes[1] === 0x4d && bytes[3] === 0x2a)) return 'tiff';
   if (ascii(bytes, 4, 4) === 'ftyp') {
@@ -841,6 +844,30 @@ function extractC2paFromOgg(ogg: Uint8Array): { manifest: Uint8Array } | null {
   const b64 = bytesToBin(commentValue(field)).replace(/\s+/g, '');
   if (!b64) return null;
   try { return { manifest: base64ToBytes(b64) }; } catch { return null; }
+}
+
+// FLAC - the Lolly credential rides in an APPLICATION metadata block (type 2)
+// whose 4-byte application id is 'C2PA' (write side placeFlac; Lolly-only binding,
+// no c2pa-rs FLAC reader). Walk the metadata block chain - 1-byte header
+// [last<<7 | type], 3-byte big-endian length, body - bounds-checked before every
+// read, and hand back the block body past the application id.
+function extractC2paFromFlac(flac: Uint8Array): { manifest: Uint8Array } | null {
+  let off = 4; // past the 'fLaC' marker
+  while (off + 4 <= flac.length) {
+    const header = flac[off]!;
+    const last = (header & 0x80) !== 0;
+    const type = header & 0x7f;
+    const len = (flac[off + 1]! << 16) | (flac[off + 2]! << 8) | flac[off + 3]!;
+    const bodyStart = off + 4;
+    const bodyEnd = bodyStart + len;
+    if (bodyEnd > flac.length) throw new Error('malformed FLAC metadata block');
+    if (type === 2 && len >= 4 && ascii(flac, bodyStart, 4) === 'C2PA') {
+      return { manifest: flac.slice(bodyStart + 4, bodyEnd) };
+    }
+    off = bodyEnd;
+    if (last) break;
+  }
+  return null;
 }
 
 // ─── text bindings (C2PA 2.4 section A.7 HTML / section A.8 unstructured / section A.9 structured) ──
@@ -1667,6 +1694,7 @@ export const EXTRACTORS: Record<SniffFormat, (bytes: Uint8Array) => { manifest: 
   mp3: extractC2paFromMp3,
   wav: extractC2paFromRiff,
   ogg: extractC2paFromOgg,
+  flac: extractC2paFromFlac,
   // C2PA 2.4 text bindings. `html` and `code` return null for the REFERENCE
   // forms (section A.7.1.2 `<link>`, section A.9.3 URL) - nothing is embedded, so there is no
   // store to hand back; extractC2paDetailed carries the URL instead.
