@@ -86,6 +86,33 @@ describe('sequence export (browser tier)', { skip: gate ?? false, concurrency: 1
     assert.equal(r.a.size, r.b.size, 'the two exports are not the same size');
   });
 
+  test('WP-B: an explicit HEVC codec + CBR encodes deterministically and decodes (mp4)', async (t) => {
+    const r = await page().evaluate(async () => {
+      const VE = (globalThis as never as { VideoEncoder: { isConfigSupported(c: unknown): Promise<{ supported?: boolean }> } }).VideoEncoder;
+      let hevcOk = false;
+      try { hevcOk = !!(await VE.isConfigSupported({ codec: 'hvc1.1.6.L93.B0', width: 640, height: 360, bitrate: 2_000_000, framerate: 30 }))?.supported; } catch { hevcOk = false; }
+      if (!hevcOk) return { skip: true as const };
+      const S = (window as never as { SEQ: SeqApi }).SEQ;
+      const clip = await S.makeClip({ frames: 60, fps: 30, w: 640, h: 360 });
+      const spec = { w: 640, h: 360, seqMs: 2000, boxes: [{ clip: clip.key, start: 0, dur: 2000, lane: 'seq' as const }] };
+      const pro = { fps: 30, width: 640, videoCodec: 'hvc1.1.6.L93.B0', bitrateMode: 'constant' as const };
+      const a = await S.exportSeq(spec, 'mp4', pro);
+      const b = await S.exportSeq(spec, 'mp4', pro);
+      return {
+        skip: false as const,
+        aerr: a.error, berr: b.error, atype: a.type, asize: a.size, bsize: b.size,
+        codes: a.key ? await S.decodeCodes(a.key, [0, 30, 59], 30) : [],
+      };
+    });
+    if (r.skip) { t.skip('no HEVC encode in this browser build - set LOLLY_BROWSER_CHANNEL=chrome'); return; }
+    assert.equal(r.aerr, null, `explicit HEVC export failed: ${JSON.stringify(r.aerr)}`);
+    assert.equal(r.berr, null, `second HEVC export failed: ${JSON.stringify(r.berr)}`);
+    assert.equal(r.atype, 'video/mp4', 'an explicit-codec export must keep its container');
+    assert.equal(r.asize, r.bsize, 'HEVC + CBR is not deterministic across two runs');
+    assert.deepEqual(r.codes, [0, 30, 59], 'the HEVC mp4 shows different source frames than it should');
+    measured.push('[measured] explicit HEVC + CBR: deterministic, decodes frame-exact');
+  });
+
   test('mp4 and webm agree at the middle frame', async (t) => {
     if (!H.probe.avcEncode) {
       t.skip('no H.264 encode in this browser build (Playwright bundled Chromium ships no proprietary codecs) - set LOLLY_BROWSER_CHANNEL=chrome');
