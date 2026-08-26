@@ -131,6 +131,25 @@ describe('sequence export (browser tier)', { skip: gate ?? false, concurrency: 1
     measured.push(`[measured] CanvasSink filmstrip source frames: ${JSON.stringify(codes)}`);
   });
 
+  test('WP-C part 2: peaks() waveforms a clip via AudioBufferSink into a non-flat envelope', async (t) => {
+    const r = await page().evaluate(async () => {
+      const S = (window as never as { SEQ: SeqApi }).SEQ;
+      // A 2s WAV whose amplitude ramps 0 -> full, decoded through the real peaks() path
+      // (AudioBufferSink primary), returning 128 buckets.
+      return await S.waveformPeaks(2, 440, 128);
+    });
+    // Gate like the HEVC probe: a browser build with no AudioBufferSink decode skips
+    // cleanly rather than failing (computePeaksSink returned null).
+    if (!r.sinkAvailable) { t.skip('no AudioBufferSink audio decode in this browser build'); return; }
+    assert.equal(r.len, 128, 'peaks() returned the requested bucket count');
+    assert.ok(r.inRange, `every bucket must be in [0,1]: min=${r.min} max=${r.max}`);
+    // Non-flat: a ramp's last bucket normalises to 1.0 and its first sits near the 0.04
+    // floor, so a wide spread proves the sink read the real PCM and not silence.
+    assert.ok(r.max - r.min > 0.5, `waveform envelope is flat (min=${r.min} max=${r.max}) - it did not read real samples`);
+    assert.ok(Math.abs((r.durationSec ?? 0) - 2) < 0.15, `measured duration ${r.durationSec} != synthesised 2s`);
+    measured.push(`[measured] AudioBufferSink waveform: len=${r.len} min=${r.min.toFixed(3)} max=${r.max.toFixed(3)} dur=${(r.durationSec ?? 0).toFixed(3)}s`);
+  });
+
   test('mp4 and webm agree at the middle frame', async (t) => {
     if (!H.probe.avcEncode) {
       t.skip('no H.264 encode in this browser build (Playwright bundled Chromium ships no proprietary codecs) - set LOLLY_BROWSER_CHANNEL=chrome');
@@ -744,6 +763,7 @@ interface SeqApi {
   cutsAt(spec: StageLike, cuts: number, format: string, probes: { x: number; y: number }[]): Promise<{ type: string; size: number; names?: string[]; at?: number[][][]; pages?: number; restored: boolean; progress: number[][] }>;
   firstFramePixels(key: string, probes: { x: number; y: number }[], stageW: number): Promise<number[][]>;
   filmstripCodes(url: string, opts: { count: number; h: number; clipInSec: number; clipOutSec: number }): Promise<{ count: number; codes: (number | null)[]; w: number; h: number }>;
+  waveformPeaks(sec: number, hz: number, buckets: number): Promise<{ sinkAvailable: boolean; len: number; min: number; max: number; durationSec: number | null; inRange: boolean }>;
   fidelity(spec: StageLike): Promise<{ w: number; h: number; mae: number; overFrac: number; error?: { code: string; message: string }; logs?: string[] }>;
   constants: { HIGH_WATER: number; MAX_LIVE_PROVIDERS: number; CODE_BITS: number };
 }

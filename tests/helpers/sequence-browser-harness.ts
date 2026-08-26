@@ -237,6 +237,31 @@ function makeBed(sec: number, hz: number, gain: number): Any {
   return { key, url: urls.get(key) };
 }
 
+/**
+ * A WAV whose amplitude ramps linearly from silence up to full over its length - the
+ * waveform golden's fixture. A constant tone (makeBed) draws a FLAT envelope, which
+ * cannot tell "read real samples" apart from "read silence"; a ramp draws a rising
+ * envelope, so the first bucket is near the 0.04 floor and the last is 1.0, and the
+ * spread proves the sink read the actual PCM.
+ */
+function makeRampBed(sec: number, hz: number): Any {
+  const rate = 48_000;
+  const n = Math.round(sec * rate);
+  const buf = new ArrayBuffer(44 + n * 2);
+  const dv = new DataView(buf);
+  const ascii = (off: number, s: string): void => { for (let i = 0; i < s.length; i++) dv.setUint8(off + i, s.charCodeAt(i)); };
+  ascii(0, 'RIFF'); dv.setUint32(4, 36 + n * 2, true); ascii(8, 'WAVEfmt ');
+  dv.setUint32(16, 16, true); dv.setUint16(20, 1, true); dv.setUint16(22, 1, true);
+  dv.setUint32(24, rate, true); dv.setUint32(28, rate * 2, true); dv.setUint16(32, 2, true); dv.setUint16(34, 16, true);
+  ascii(36, 'data'); dv.setUint32(40, n * 2, true);
+  for (let i = 0; i < n; i++) {
+    const amp = n > 0 ? i / n : 0;           // ramps 0 -> 1 across the clip
+    dv.setInt16(44 + i * 2, Math.round(amp * 32767 * Math.sin((2 * Math.PI * hz * i) / rate)), true);
+  }
+  const key = put(new Blob([buf], { type: 'audio/wav' }));
+  return { key, url: urls.get(key) };
+}
+
 // ── the stage ────────────────────────────────────────────────────────────────
 
 export interface BoxSpec {
@@ -1452,8 +1477,36 @@ async function filmstripCodes(url: string, opts: Any): Promise<Any> {
   return { count: bitmaps.length, codes, w: bitmaps[0]?.width ?? 0, h: bitmaps[0]?.height ?? 0 };
 }
 
+/**
+ * WP-C part 2: run the real `peaks()` (the AudioBufferSink path in a WebCodecs browser)
+ * on a synthesised ramp-amplitude WAV, so a golden can prove the sink reads real samples
+ * into a non-flat envelope and removes the MAX_AUDIO_DECODE_BYTES ceiling.
+ *
+ * `computePeaksSink` is run directly too - it is the primary path, and it both gates the
+ * golden (null means this browser build cannot take the sink path, so the test skips)
+ * and reports the duration it measured, which `peaks()` alone does not return.
+ */
+async function waveformPeaks(sec: number, hz: number, buckets: number): Promise<Any> {
+  const { peaks, computePeaksSink } = await import('../../shells/web/src/lib/clip-thumbs.ts');
+  const { url } = makeRampBed(sec, hz);
+  const master = await computePeaksSink(url, new AbortController().signal);
+  const arr = await peaks(url, buckets);
+  const values = Array.from(arr as Float32Array) as number[];
+  let min = Number.POSITIVE_INFINITY;
+  let max = Number.NEGATIVE_INFINITY;
+  for (const v of values) { if (v < min) min = v; if (v > max) max = v; }
+  return {
+    sinkAvailable: !!master,
+    len: values.length,
+    min: values.length ? min : Number.NaN,
+    max: values.length ? max : Number.NaN,
+    durationSec: master ? master.durationSec : null,
+    inRange: values.every((v) => v >= 0 && v <= 1),
+  };
+}
+
 (globalThis as Any).SEQ = {
-  probe, makeClip, truncate, makeBed, exportSeq, buildStage, filmstripCodes,
+  probe, makeClip, truncate, makeBed, makeRampBed, waveformPeaks, exportSeq, buildStage, filmstripCodes,
   decodeCodes, frameHashes, blobSha, frameDelta, frameSelfDelta, audioRms, hasAudioTrack,
   driveProvider, stalledProvider, stillAt, cutsAt, fidelity, resetCounters, firstFramePixels,
   blobBytes, blobDiff, trackColors, rowRun, vectorStillAt, exportViaApi, walkToSvg, posedVsHatch,
