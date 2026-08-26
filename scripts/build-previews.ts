@@ -12,9 +12,12 @@
  *                                 just a screenshot and vector stays crisp at any size
  *                                 (the __lollyForceVectorThumb flag decouples this from
  *                                 render.formats - see captureThumbnail in tool.ts)
- *   • catalog/previews/<id>.png   fallback: a dense/expensive vector (rasterised below to
+ *   • catalog/previews/<id>.webp  fallback: a dense/expensive vector (rasterised below to
  *                                 keep the tile cheap to paint) or a tool whose canvas the
- *                                 walker can't vectorise (→ pixel-faithful raster screenshot)
+ *                                 walker can't vectorise (→ pixel-faithful raster screenshot).
+ *                                 Every raster is capped at 1024 px and WebP-encoded HERE,
+ *                                 at the point of capture, so a fallback is tile-sized even
+ *                                 if no optimise pass ever runs behind it (finalizePreview).
  * SVG previews are then shrunk in place (format-preserving - the catalog index derives
  * the .svg extension deterministically, so the file must stay SVG): never-painted
  * comments are dropped (a tool's template.html comments ride into the serialised SVG - 
@@ -28,6 +31,15 @@
  * "git-ignored" note above, these ARE committed on purpose - see .gitignore. Don't "clean
  * up" the diff.) The gallery falls back to a plain "open to start" tile when one is absent
  * (dev, or before this has run). Run before serving/deploying.
+ *
+ * Every card capture is MEASURED before it is written (check-blank-previews.ts's probe, the
+ * same one that writes blank-report.json). A tool's card is captured from its DEFAULT state,
+ * and plenty of tools open on an empty canvas because their template presets aren't baked
+ * yet - so a flat capture is re-taken from the example look that reads best at tile size
+ * (recaptureFromBestLook), which is a state the tool genuinely renders. A tool with no
+ * usable look keeps its blank tile and is listed at the end of the run as a CONTENT gap:
+ * a preview is a truthful sample of what the tool makes, so an honest blank beats invented
+ * art. See plans/155 Task 4.4.
  *
  * A tool can ship a committed card - tools/<id>/card.svg or card.html - which wins over
  * the generated preview and is skipped here. As of 2026-07-31 a card is NOT an "authored
@@ -79,11 +91,16 @@ import {
   stripSvgComments, listEmbeddedRasters, substituteDataUris, svgoThumb, isExpensiveThumbSvg,
   MAX_RASTER_DIM, RASTER_JPEG_QUALITY,
 } from './optimize-preview-svg.ts';
+// The blank verdict comes from the probe that WROTE the report (Task 4.4.1), not a second
+// definition of "empty" living here - a generator that fell back on slightly different
+// numbers than the gate measures would either re-blank a tile the gate then rejects, or
+// "fix" tiles nobody asked about.
+import { measureImage, verdictReason, type Measured } from './check-blank-previews.ts';
 // Engine-owned URL encoding - the SAME buildInputModel → serializeUrlState the app's
 // seed-url.ts uses, so a look's pre-render URL seeds the identical inputs the live
 // carousel would render from (shells/web/src/lib/seed-url.ts).
 import { buildInputModel, serializeUrlState } from '../engine/src/index.ts';
-import { stampVector } from './lib/stamp-media.ts';
+import { stampVector, stampBitmap } from './lib/stamp-media.ts';
 import type { InputValue } from '../engine/src/inputs.ts';
 
 /** Parsed CLI options. */
@@ -124,6 +141,20 @@ interface Tool {
 type CaptureResult =
   | { ok: true; file: string }
   | { ok: false; reason: string };
+
+/**
+ * A captured thumbnail, prepared exactly as it will be written - an SVG already optimised,
+ * an expensive vector already rasterised - plus its blankness measurement once taken.
+ */
+interface Prepared { ext: string; bytes: Buffer; measure: Measured | null }
+
+/**
+ * Tools whose card measured blank and that had no usable look to re-capture from. That is a
+ * CONTENT gap, not a generator bug (plans/155 Task 4.4.3): the tool opens on an empty canvas
+ * and declares no example to seed one, so there is no honest tile to make. Collected here and
+ * printed at the end of the run - do NOT invent art to fill it; bake the tool a preset.
+ */
+const contentGaps: { id: string; why: string }[] = [];
 
 /** Handle for the temporary static server that serves dist. */
 interface ServeHandle {
@@ -246,6 +277,16 @@ async function main(): Promise<void> {
     cpSync(PREVIEWS_DIR, distPreviews, { recursive: true });
     console.log(`Copied previews into ${rel(distPreviews)}.`);
   }
+
+  // Task 4.4.3's backlog, printed where the person who just ran the generator will see it.
+  // Not a failure: the honest tile for a tool that renders nothing and declares no example
+  // IS blank, and validate:catalog carries it as a warning until a preset is baked.
+  if (contentGaps.length) {
+    console.log(`\n! ${contentGaps.length} tool${contentGaps.length === 1 ? '' : 's'} left with a blank tile - CONTENT gap, not a generator bug:`);
+    for (const g of contentGaps) console.log(`    ${g.id.padEnd(20)} ${g.why}`);
+    console.log('  Bake these tools an example look (or a template preset) so there is a real');
+    console.log('  state to capture. Do not draw a picture of the tool and commit it as a card.');
+  }
   console.log('\nDone.');
 }
 
@@ -253,6 +294,7 @@ async function main(): Promise<void> {
 
 async function captureTool(context: BrowserContext, baseUrl: string, tool: Tool): Promise<CaptureResult> {
   const page = await context.newPage();
+  let cap: Prepared | null = null;
   try {
     await page.goto(`${baseUrl}/#/tool/${tool.id}`, { waitUntil: 'load', timeout: 30000 });
 
@@ -316,31 +358,9 @@ async function captureTool(context: BrowserContext, baseUrl: string, tool: Tool)
         { timeout: 25000 },
       );
 
-      const thumb = await readThumb(page, tool.id);
-      const { ext, bytes } = thumb ? decodeThumb(thumb) : {};
-      // Optimise the vector thumbnail in place (format-preserving - the catalog
-      // index derives the .svg extension deterministically from the tool's formats,
-      // so a preview must stay SVG). Strip never-painted template comments, then
-      // downscale any full-resolution embedded rasters to thumbnail size. A tool
-      // whose SVG is dense synthetic vector (no rasters - e.g. a halftone's 10k
-      // circles) is unaffected here and wants a committed card.png instead.
-      if (ext === 'svg' && bytes) {
-        const svg = await optimizeSvgThumb(page, bytes.toString('utf8'));
-        // Expensive-to-rasterise SVGs (blur filters / thousands of dots / huge paths)
-        // stall the gallery on every paint - svgo shrinks bytes but not render cost.
-        // Ship a pre-rasterised PNG for the tile instead; it decodes in ~1ms. The
-        // catalog index honours whichever file exists (build-catalog-index.ts). Falls
-        // back to the SVG on any rasterise hiccup, so this can only help, never break.
-        if (isExpensiveThumbSvg(svg)) {
-          const png = await rasterizeSvg(page, svg).catch(() => null);
-          if (png) return done(page, { ok: true, file: await writePreview(tool.id, 'png', png) });
-        }
-        return done(page, { ok: true, file: await writePreview(tool.id, 'svg', Buffer.from(svg, 'utf8')) });
-      }
-      // bytes truthy ⇒ decodeThumb returned an svg/png branch, so ext is non-null.
-      if (bytes) return done(page, { ok: true, file: await writePreview(tool.id, ext!, bytes) });
-      // Fall through to the screenshot fallback if the thumbnail was missing or
-      // in a format we don't persist (e.g. jpeg/webp default).
+      // Fall through to the vector/screenshot fallbacks below if the thumbnail was
+      // missing or in a format we don't persist (e.g. jpeg/webp default).
+      cap = await prepareThumb(page, await readThumb(page, tool.id));
     }
 
     // Before any raster screenshot, try a VECTOR SCREENSHOT via the app's own capture
@@ -348,53 +368,131 @@ async function captureTool(context: BrowserContext, baseUrl: string, tool: Tool)
     // button - an export:false utility like the colour browser or countdown timer - a crisp
     // vector tile too. Same optimise + expensive-rasterise path as the Save capture; a
     // null/failed result falls through to the pixel-faithful raster screenshot below.
-    const vecThumb = await page.evaluate(() => {
-      const cap = (globalThis as { __lollyCaptureThumb?: (f: string) => Promise<string | null> }).__lollyCaptureThumb;
-      return cap ? cap('svg') : null;
-    }).catch(() => null);
-    if (vecThumb) {
-      const { ext, bytes } = decodeThumb(vecThumb);
-      if (ext === 'svg' && bytes) {
-        const svg = await optimizeSvgThumb(page, bytes.toString('utf8'));
-        if (isExpensiveThumbSvg(svg)) {
-          const png = await rasterizeSvg(page, svg).catch(() => null);
-          if (png) return done(page, { ok: true, file: await writePreview(tool.id, 'png', png) });
-        }
-        return done(page, { ok: true, file: await writePreview(tool.id, 'svg', Buffer.from(svg, 'utf8')) });
-      }
+    if (!cap) cap = await prepareThumb(page, await captureVectorThumb(page));
+
+    if (!cap) {
+      // Fallback - display/utility tools with no Save action (or a failed capture):
+      // a raster screenshot of the rendered canvas. Gives every visual tool a
+      // preview; file-transform utilities just show their drop-zone UI.
+      // Hide app chrome first: an element screenshot includes anything painted over
+      // the element's box (the fixed "Tools" back link, the render FAB, the
+      // on-device badge), so the preview shows the tool - not the app shell.
+      await page.addStyleTag({
+        content:
+          '.tools-home,.render-fab,.fullscreen-toggle,.fullscreen-toggle-float,.on-device-badge,.export-overlay{display:none !important}',
+      });
+      const canvas = await page.$(CANVAS_SEL);
+      if (!canvas) return done(page, { ok: false, reason: 'no canvas to screenshot' });
+      cap = { ext: 'png', bytes: await canvas.screenshot({ type: 'png' }), measure: null };
     }
 
-    // Fallback - display/utility tools with no Save action (or a failed capture):
-    // a raster screenshot of the rendered canvas. Gives every visual tool a
-    // preview; file-transform utilities just show their drop-zone UI.
-    // Hide app chrome first: an element screenshot includes anything painted over
-    // the element's box (the fixed "Tools" back link, the render FAB, the
-    // on-device badge), so the preview shows the tool - not the app shell.
-    await page.addStyleTag({
-      content:
-        '.tools-home,.render-fab,.fullscreen-toggle,.fullscreen-toggle-float,.on-device-badge,.export-overlay{display:none !important}',
-    });
-    const canvas = await page.$(CANVAS_SEL);
-    if (!canvas) return done(page, { ok: false, reason: 'no canvas to screenshot' });
-    const png = await canvas.screenshot({ type: 'png' });
-    return done(page, { ok: true, file: await writePreview(tool.id, 'png', png) });
+    // Everything above captured the tool's DEFAULT state, and plenty of tools legitimately
+    // open on an empty canvas (the template presets that would seed them aren't baked yet).
+    // Measure before writing: a flat capture is not a truthful sample of what the tool
+    // makes, it just LOOKS like a preview on disk (plans/155 Task 4.4).
+    cap.measure = await measureCapture(page, cap);
+    if (cap.measure?.blank) {
+      const alt = await recaptureFromBestLook(context, baseUrl, tool);
+      if (alt) cap = alt;
+    }
+    return done(page, { ok: true, file: await writePreview(tool.id, cap.ext, cap.bytes) });
   } catch (e) {
     return done(page, { ok: false, reason: (e as Error).message.split('\n')[0]! });
   }
 }
 
+/**
+ * Turn a captured thumbnail data-URL into the bytes we would write.
+ *
+ * Optimise the vector thumbnail in place (format-preserving - the catalog index derives the
+ * .svg extension deterministically from the tool's formats, so a preview must stay SVG):
+ * strip never-painted template comments, then downscale any full-resolution embedded rasters
+ * to thumbnail size. A tool whose SVG is dense synthetic vector (no rasters - e.g. a
+ * halftone's 10k circles) is unaffected here and wants a committed card.png instead.
+ *
+ * Expensive-to-rasterise SVGs (thousands of elements / huge single paths / synthesised
+ * per-pixel noise - isExpensiveThumbSvg measures which, and a blur is NOT one of them) stall
+ * the gallery on every paint; svgo shrinks bytes but not render cost. Ship a pre-rasterised
+ * tile instead - it decodes in ~1ms, and writePreview encodes it to a stamped WebP, never a
+ * .png. The catalog index honours whichever file exists (build-catalog-index.ts). Falls back
+ * to the SVG on any rasterise hiccup, so this can only help, never break.
+ *
+ * Returns null when there is no thumbnail, or it is in a format we don't persist.
+ */
+async function prepareThumb(page: Page, dataUrl: string | null): Promise<Prepared | null> {
+  if (!dataUrl) return null;
+  const { ext, bytes } = decodeThumb(dataUrl);
+  if (ext === 'svg' && bytes) {
+    const svg = await optimizeSvgThumb(page, bytes.toString('utf8'));
+    if (isExpensiveThumbSvg(svg)) {
+      const png = await rasterizeSvg(page, svg).catch(() => null);
+      if (png) return { ext: 'png', bytes: png, measure: null };
+    }
+    return { ext: 'svg', bytes: Buffer.from(svg, 'utf8'), measure: null };
+  }
+  // bytes truthy ⇒ decodeThumb returned an svg/png branch, so ext is non-null.
+  if (bytes) return { ext: ext!, bytes, measure: null };
+  return null;
+}
+
+/** The app's own vector screenshot of the mounted canvas (mountTool exposes the hook). */
+function captureVectorThumb(page: Page): Promise<string | null> {
+  return page.evaluate(() => {
+    const cap = (globalThis as { __lollyCaptureThumb?: (f: string) => Promise<string | null> }).__lollyCaptureThumb;
+    return cap ? cap('svg') : null;
+  }).catch(() => null);
+}
+
 // Write catalog/previews/<id>.<ext> and remove a stale preview in the other format
 // so a tool never has both (e.g. after a tool gains an svg format). Returns the path.
 async function writePreview(toolId: string, ext: string, bytes: Buffer): Promise<string> {
-  const file = join(PREVIEWS_DIR, `${toolId}.${ext}`);
+  const final = await finalizePreview(toolId, ext, bytes, { id: toolId, name: toolId });
+  const file = join(PREVIEWS_DIR, `${toolId}.${final.ext}`);
   await mkdir(dirname(file), { recursive: true });
-  // SVG previews carry a "made with Lolly" C2PA credential (embedded AFTER the svgo pass
-  // in optimizeSvgThumb, so it isn't stripped). PNG previews stay bare here - they're
-  // intermediates that optimize-preview-webp turns into stamped .webp.
-  const finalBytes = ext === 'svg' ? Buffer.from(await stampVector(bytes, { id: toolId, name: toolId })) : bytes;
-  await writeFile(file, finalBytes);
-  await clearSiblings(`${toolId}`, ext);
+  await writeFile(file, final.bytes);
+  await clearSiblings(`${toolId}`, final.ext);
   return file;
+}
+
+// Retina-safe cap for a captured raster, MIRRORING MAX_DIM in optimize-preview-webp.ts:
+// the featured hero shows a preview at ~400 CSS px and grid tiles smaller, so 1024 covers
+// 2× on the largest surface. Keep the two in step - they are the same decision made at two
+// points in the same pipeline (this one at capture, that one when sweeping up a stray .png).
+const RASTER_MAX_DIM = 1024;
+
+// The on-disk form of one captured preview. An SVG stays an SVG (the catalog index derives
+// that extension deterministically) and gains its C2PA credential; a RASTER is encoded here
+// exactly the way optimize-preview-webp.ts would - resize to the cap, then one stamped
+// WebP q80 pass - instead of being written at full capture resolution and left for a later
+// step that might never run.
+//
+// It might never run: the raster screenshot in captureTool above is a 2× deviceScaleFactor
+// capture of the whole canvas, and dev:web's auto-backfill used to invoke this script
+// WITHOUT the optimize step behind it. That is how a 7.5 MB mesh-gradient.png and ~60 MB of
+// siblings came to be committed (plans/155 finding 3). Encoding at the point of capture
+// means a fallback is tile-sized even when nothing sweeps up after it: that same 7.5 MB
+// capture comes out of this function at 7 KB.
+async function finalizePreview(
+  base: string, ext: string, bytes: Buffer, meta: { id: string; name: string },
+): Promise<{ ext: string; bytes: Buffer }> {
+  if (ext === 'svg') return { ext, bytes: Buffer.from(await stampVector(bytes, meta)) };
+  try {
+    const sharp = (await import('sharp')).default;
+    // Resize to a lossless intermediate, then hand it to the shared stamper: it imprints
+    // the pixels (robust strength, since the WebP is lossy) and embeds the "made with
+    // Lolly" credential, re-encoding to WebP q80 in one pass (no double compression).
+    const resized = await sharp(bytes)
+      .resize({ width: RASTER_MAX_DIM, height: RASTER_MAX_DIM, fit: 'inside', withoutEnlargement: true })
+      .png()
+      .toBuffer();
+    return { ext: 'webp', bytes: Buffer.from(await stampBitmap(new Uint8Array(resized), 'webp', meta, { webpQuality: 80 })) };
+  } catch (e) {
+    // Best-effort like every other step here - a preview is better than none. Loud, though:
+    // the raw capture is exactly what the byte budgets in validate-catalog.ts reject, so
+    // the warning below explains the validate:catalog failure that follows.
+    console.warn(`    ! ${base}: WebP encode failed (${(e as Error).message}) - writing the raw ${ext}, which validate:catalog will reject`);
+    return { ext, bytes };
+  }
 }
 
 // A tool (or look) carries exactly ONE preview form. When we write one, drop any stale
@@ -416,54 +514,84 @@ function done(page: Page, result: CaptureResult): CaptureResult {
 
 // ── Pre-render example looks ────────────────────────────────────────────────
 // Each manifest example/variant look is rendered to catalog/previews/<id>.look<i>.svg (or
-// .png when the look is dense/expensive), which build-preview-bundle.ts rolls into
+// a stamped .webp when isExpensiveThumbSvg says the vector form is dense/expensive to
+// paint - never a .png), which build-preview-bundle.ts rolls into
 // bundle.json. The gallery then shows the look instantly from the bundle instead of
 // live-rendering it + fetching its assets on first load. All best-effort: any look that
 // fails to render simply isn't bundled and the gallery live-renders it exactly as before.
 
 async function captureLooks(context: BrowserContext, baseUrl: string, tool: Tool): Promise<void> {
   if (!tool.looks.length) return;
-  let manifest: Parameters<typeof buildInputModel>[0];
-  try {
-    manifest = JSON.parse(await readFile(join(ROOT, 'tools', tool.id, 'tool.json'), 'utf8'));
-  } catch {
-    return; // no manifest to seed from
-  }
+  const manifest = await loadManifest(tool.id);
+  if (!manifest) return; // no manifest to seed from
   let ok = 0;
   for (let i = 0; i < tool.looks.length; i++) {
-    const values = tool.looks[i]?.values;
-    if (!values || typeof values !== 'object') continue;
     // A committed authored look override (tools/<id>/look<i>.{png,webp,svg}) - e.g. an
     // animated APNG - wins in the preview bundle and must never be clobbered. Skip it (and
     // skip the wasted render). Mirrors the card-override skip in the main capture loop.
     if (['png', 'webp', 'svg'].some((ext) => existsSync(join(ROOT, 'tools', tool.id, `look${i}.${ext}`)))) continue;
-    // Only the look's OWN (dirty) inputs ride the URL - engine-owned encoding, identical
-    // to what a hand-made share of that look would produce (seed-url.ts), so the render
-    // matches the live carousel byte-for-byte.
-    let query: string;
-    try {
-      query = serializeUrlState(
-        buildInputModel(manifest, { initial: values as Record<string, InputValue> }).filter((m) => m.isDirty),
-      );
-    } catch {
-      continue;
-    }
-    // width/height/unit/dpi are RESERVED params, not inputs - serializeUrlState drops them,
-    // so a reflow look (color-block's wide/tall/banner variants set these in `values`) would
-    // otherwise render at the tool's default square and come out squished. Append them so the
-    // canvas reflows to the look's real aspect, exactly as the live renderVariantAt path does.
-    const params = new URLSearchParams(query);
-    for (const key of ['width', 'height', 'unit', 'dpi'] as const) {
-      const v = (values as Record<string, unknown>)[key];
-      if (v !== undefined && v !== null && v !== '') params.set(key, String(v));
-    }
-    const fullQuery = params.toString();
-    if (await captureLookAt(context, baseUrl, tool, i, fullQuery).catch(() => false)) ok++;
+    const query = lookQuery(manifest, tool.looks[i]);
+    if (query === null) continue;
+    if (await captureLookAt(context, baseUrl, tool, i, query).catch(() => false)) ok++;
   }
   if (ok) console.log(`    ↳ ${ok}/${tool.looks.length} look${ok === 1 ? '' : 's'} pre-rendered`);
 }
 
+/** The tool's manifest as buildInputModel wants it, or null when it can't be read. */
+async function loadManifest(toolId: string): Promise<Parameters<typeof buildInputModel>[0] | null> {
+  try {
+    return JSON.parse(await readFile(join(ROOT, 'tools', toolId, 'tool.json'), 'utf8'));
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * The seeded query string for one look, or null when it can't be encoded.
+ *
+ * Only the look's OWN (dirty) inputs ride the URL - engine-owned encoding, identical to what
+ * a hand-made share of that look would produce (seed-url.ts), so the render matches the live
+ * carousel byte-for-byte. That fidelity is also what makes this URL a legitimate source for a
+ * blank tool's CARD (Task 4.4.2): the tile shows a state the tool really renders.
+ */
+function lookQuery(manifest: Parameters<typeof buildInputModel>[0], look: Look | undefined): string | null {
+  const values = look?.values;
+  if (!values || typeof values !== 'object') return null;
+  let query: string;
+  try {
+    query = serializeUrlState(
+      buildInputModel(manifest, { initial: values as Record<string, InputValue> }).filter((m) => m.isDirty),
+    );
+  } catch {
+    return null;
+  }
+  // width/height/unit/dpi are RESERVED params, not inputs - serializeUrlState drops them,
+  // so a reflow look (color-block's wide/tall/banner variants set these in `values`) would
+  // otherwise render at the tool's default square and come out squished. Append them so the
+  // canvas reflows to the look's real aspect, exactly as the live renderVariantAt path does.
+  const params = new URLSearchParams(query);
+  for (const key of ['width', 'height', 'unit', 'dpi'] as const) {
+    const v = (values as Record<string, unknown>)[key];
+    if (v !== undefined && v !== null && v !== '') params.set(key, String(v));
+  }
+  return params.toString();
+}
+
 async function captureLookAt(context: BrowserContext, baseUrl: string, tool: Tool, i: number, query: string): Promise<boolean> {
+  const cap = await captureSeeded(context, baseUrl, tool, query, { measure: false });
+  if (!cap) return false;
+  await writeLookPreview(tool.id, i, cap.ext, cap.bytes);
+  return true;
+}
+
+/**
+ * Render one seeded URL and return the thumbnail as it would be written. Shared by
+ * "pre-render a look" and "re-capture a blank card from a look" so both take the same
+ * picture; `measure` is opt-in because only the fallback needs the (rasterise + probe) cost.
+ */
+async function captureSeeded(
+  context: BrowserContext, baseUrl: string, tool: Tool, query: string, o: { measure: boolean },
+): Promise<Prepared | null> {
   const page = await context.newPage();
   try {
     await page.goto(`${baseUrl}/#/tool/${tool.id}${query ? `?${query}` : ''}`, { waitUntil: 'load', timeout: 30000 });
@@ -476,42 +604,29 @@ async function captureLookAt(context: BrowserContext, baseUrl: string, tool: Too
       { timeout: 20000 },
     );
     await page.waitForTimeout(700);
-    // Same vector-screenshot capture the default fallback uses (mountTool's __lollyCaptureThumb) - 
+    // Same vector-screenshot capture the default fallback uses (mountTool's __lollyCaptureThumb) -
     // no Save, so it doesn't pollute IndexedDB with a session per look. The force flag makes it
     // vectorise HTML-layout tools too.
     await page.evaluate(() => { (globalThis as { __lollyForceVectorThumb?: boolean }).__lollyForceVectorThumb = true; });
-    const vec = await page.evaluate(() => {
-      const cap = (globalThis as { __lollyCaptureThumb?: (f: string) => Promise<string | null> }).__lollyCaptureThumb;
-      return cap ? cap('svg') : null;
-    }).catch(() => null);
-    if (!vec) return false;
-    const { ext, bytes } = decodeThumb(vec);
-    if (ext === 'svg' && bytes) {
-      const svg = await optimizeSvgThumb(page, bytes.toString('utf8'));
-      if (isExpensiveThumbSvg(svg)) {
-        const png = await rasterizeSvg(page, svg).catch(() => null);
-        if (png) { await writeLookPreview(tool.id, i, 'png', png); return true; }
-      }
-      await writeLookPreview(tool.id, i, 'svg', Buffer.from(svg, 'utf8'));
-      return true;
-    }
-    if (bytes) { await writeLookPreview(tool.id, i, ext!, bytes); return true; }
-    return false;
+    const cap = await prepareThumb(page, await captureVectorThumb(page));
+    if (cap && o.measure) cap.measure = await measureCapture(page, cap);
+    return cap;
   } finally {
     page.close().catch(() => {});
   }
 }
 
 // Write catalog/previews/<id>.look<i>.<ext>, clearing a stale sibling in the other format
-// (so a look never has both an .svg and a .png). Mirrors writePreview for looks.
+// (so a look never has both an .svg and a raster). Mirrors writePreview for looks.
 async function writeLookPreview(toolId: string, i: number, ext: string, bytes: Buffer): Promise<string> {
-  const file = join(PREVIEWS_DIR, `${toolId}.look${i}.${ext}`);
+  const base = `${toolId}.look${i}`;
+  // Same as writePreview: an SVG look gets a C2PA credential, a raster look is encoded to
+  // a stamped tile-sized WebP right here rather than left as a full-resolution capture.
+  const final = await finalizePreview(base, ext, bytes, { id: base, name: toolId });
+  const file = join(PREVIEWS_DIR, `${base}.${final.ext}`);
   await mkdir(dirname(file), { recursive: true });
-  // Same as writePreview: SVG looks get a C2PA credential; PNG looks stay bare (the WebP
-  // step stamps their raster form).
-  const finalBytes = ext === 'svg' ? Buffer.from(await stampVector(bytes, { id: `${toolId}.look${i}`, name: toolId })) : bytes;
-  await writeFile(file, finalBytes);
-  await clearSiblings(`${toolId}.look${i}`, ext);
+  await writeFile(file, final.bytes);
+  await clearSiblings(base, final.ext);
   return file;
 }
 
@@ -610,6 +725,84 @@ async function rasterizeSvg(page: Page, svg: string): Promise<Buffer> {
   return Buffer.from(dataUrl.slice(dataUrl.indexOf(',') + 1), 'base64');
 }
 
+// ── Blank capture → fall back to a look ─────────────────────────────────────
+
+/**
+ * Measure a just-taken capture for blankness, with the SAME probe that writes
+ * blank-report.json (check-blank-previews.ts) so the generator and the gate can never
+ * disagree about one file.
+ *
+ * An SVG is rasterised through rasterizeSvg first - i.e. by the same Chromium that produced
+ * the capture - rather than handed to sharp as SVG. The probe's own sweep reads committed
+ * files through libvips/librsvg, which renders a self-contained thumbnail fine but is a
+ * DIFFERENT engine from the one whose output we are judging; measuring the browser's own
+ * pixels means a "blank" verdict here is about what the capture actually paints.
+ */
+async function measureCapture(page: Page, cap: Prepared): Promise<Measured | null> {
+  try {
+    const png = cap.ext === 'svg' ? await rasterizeSvg(page, cap.bytes.toString('utf8')) : cap.bytes;
+    return await measureImage(png);
+  } catch {
+    // Best-effort like every other step here: an unmeasurable capture is written as captured
+    // rather than dropped, and the committed-file sweep will still catch it if it is blank.
+    return null;
+  }
+}
+
+/**
+ * How well a capture reads as a 164 px gallery tile: ink coverage × how strongly that ink
+ * separates from the ground. The ink term is square-rooted so a large flat wash can't out-score
+ * real content and a single high-contrast speck can't win on contrast alone.
+ *
+ * THIS IS WHY THE FALLBACK DOES NOT JUST TAKE look0. Measured on the committed `design`
+ * previews, 2026-08-26: look0 "Three steps" (dark text on white) scores stddev 25.3 / ink
+ * 0.0287 → 4.29, while look1 "Quote cutaway" (white type on a full-bleed dark green field)
+ * scores 34.0 / 0.0464 → 7.33. Both are non-blank, so "first look that isn't blank" would
+ * pick look0 - and design is the featured hero (index featured.order 1), where a tile of
+ * small dark text on white reads as near-empty at tile size. Pick the look that READS, not
+ * the first one that passes.
+ */
+function tileScore(m: Measured): number {
+  return m.stddev * Math.sqrt(m.inkRatio);
+}
+
+/**
+ * A card capture came out flat. Re-capture it from the example look that reads best at tile
+ * size, so the tile is a state the tool genuinely renders (plans/155 Task 4.4.2).
+ *
+ * Returns null when there is nothing honest to fall back on - no looks, no look that encodes,
+ * or every look equally blank. That is a CONTENT gap (Task 4.4.3): the fix is to bake the
+ * tool a preset, never to draw it a nicer picture. The tool is recorded in `contentGaps` and
+ * the blank tile is written as captured, so the gate keeps reporting it.
+ */
+async function recaptureFromBestLook(context: BrowserContext, baseUrl: string, tool: Tool): Promise<Prepared | null> {
+  const note = (why: string): null => {
+    console.log(`    ! ${tool.id}: default state is blank and ${why} - CONTENT gap, tile left blank`);
+    contentGaps.push({ id: tool.id, why });
+    return null;
+  };
+  if (!tool.looks.length) return note('the tool declares no example looks');
+  const manifest = await loadManifest(tool.id);
+  if (!manifest) return note('its manifest could not be read');
+
+  let best: { cap: Prepared; i: number; score: number } | null = null;
+  for (let i = 0; i < tool.looks.length; i++) {
+    const query = lookQuery(manifest, tool.looks[i]);
+    if (query === null) continue;
+    const cap = await captureSeeded(context, baseUrl, tool, query, { measure: true }).catch(() => null);
+    // An unmeasurable candidate is skipped rather than trusted: falling back to a look we
+    // cannot prove is non-blank would just move the blank tile, silently.
+    if (!cap?.measure || cap.measure.blank) continue;
+    const score = tileScore(cap.measure);
+    console.log(`      · look${i}: stddev=${cap.measure.stddev} ink=${cap.measure.inkRatio} score=${score.toFixed(2)}`);
+    if (!best || score > best.score) best = { cap, i, score };
+  }
+  if (!best) return note('no declared look renders anything either');
+  const reason = verdictReason(best.cap.measure!);
+  console.log(`    ↻ ${tool.id}: blank default → captured from look${best.i} (score ${best.score.toFixed(2)}${reason ? `, ${reason}` : ''})`);
+  return best.cap;
+}
+
 // Runs IN THE PAGE (serialised by Playwright). Decode each embedded data-URI into an
 // Image, redraw it into a canvas capped at `maxDim` on its longest edge, and re-encode
 // - JPEG for fully-opaque images (much smaller), PNG when any transparency is present
@@ -663,8 +856,13 @@ async function toolList(): Promise<Tool[]> {
     capabilities: Array.isArray(t.capabilities) ? t.capabilities : [],
     // A committed override (tools/<id>/card.svg|png) short-circuits generation.
     hasCard: existsSync(join(ROOT, 'tools', t.id, 'card.svg')) || existsSync(join(ROOT, 'tools', t.id, 'card.png')),
-    // A previously generated preview (catalog/previews/<id>.svg|png).
-    hasPreview: existsSync(join(PREVIEWS_DIR, `${t.id}.svg`)) || existsSync(join(PREVIEWS_DIR, `${t.id}.png`)),
+    // A previously generated preview (catalog/previews/<id>.svg|webp|png). .webp is the
+    // form a raster preview actually ships in, and it was missing from this list - so
+    // --skip-existing considered every WebP tool uncovered and re-rendered it on EVERY
+    // `npm run dev:web`, each time writing a fresh full-size capture. That is the other
+    // half of the 60 MB leak (plans/155 finding 3): a backfill that never stopped
+    // backfilling. .png stays for the pre-WebP files still on disk.
+    hasPreview: ['svg', 'webp', 'png'].some((ext) => existsSync(join(PREVIEWS_DIR, `${t.id}.${ext}`))),
     // resolveLooks(): examples is canonical, featured.variants is the pre-examples alias - 
     // MUST mirror resolveExamples() in featured-row.ts + resolveLooks() in build-preview-bundle.ts.
     looks: t.examples ?? t.featured?.variants ?? [],

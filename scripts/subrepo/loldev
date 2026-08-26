@@ -12,10 +12,16 @@
 #       No -m → empty commit message. First push after the history rewrite
 #       needs --force (once).
 #   loldev push [-m "msg"] [--force]   gtg without the catalog rebuild
-#   loldev ship [-m "msg"] [--preview] gtg, THEN deploy EVERY SHIP_TARGETS project to
-#                                      Vercel uniformly (prod; --preview = preview URLs)
+#   loldev ship [-m "msg"] [--prod|--preview]
+#                                      gtg, THEN deploy EVERY SHIP_TARGETS project to Vercel
+#                                      uniformly. DEFAULT: preview deploy → first-load smoke
+#                                      (scripts/check-first-load.ts) → promote only what
+#                                      passed, so a regression stops at a throwaway URL.
+#                                      --prod = straight to production, no smoke (hotfix
+#                                      hatch). --preview = stop at the preview URL.
 #   loldev status | st                 what's dirty / ahead, per repo
-#   loldev build                       build:catalog + validate:catalog
+#   loldev build                       the build gate on its own, no commit/push: typecheck ·
+#                                      tests · every profile's catalog · docs shots · byte budgets
 #   loldev previews [--preserve]       regenerate look/card thumbnails (slow, Playwright) - opt-in, run when a tool's look changes.
 #                                      Overwrites every preview (now stamped: Imprint + C2PA); --preserve keeps existing, fills gaps only.
 #   loldev og [--preserve]             rebuild ALL the per-tool + per-view OG share cards, for EVERY mounted profile (catalog/og/*
@@ -109,7 +115,7 @@ do_build() {
   # build:catalog re-rolls catalog/previews/bundle.json (pure filesystem, no browser).
   # The heavy Playwright card/look render is a separate, opt-in `loldev previews`.
   # Every SHIP_TARGETS profile feeds a live site (bt=suse, lolly-start=lolly-start) -
-  # validate each one's catalog, not just whichever profile happens to be checked
+  # build each one's catalog, not just whichever profile happens to be checked
   # out locally, so a push can't silently break the site we're not developing in.
   local starting; starting="$(cat "$REPO_ROOT/.lolly-profile" 2>/dev/null)"
   local entry name id profile domain seen=()
@@ -117,12 +123,11 @@ do_build() {
     IFS='|' read -r name id profile domain <<<"$entry"
     [[ " ${seen[*]:-} " == *" $profile "* ]] && continue   # dedupe shared profiles
     seen+=("$profile")
-    step "building + validating the '$profile' catalog ($domain)"
+    step "building the '$profile' catalog ($domain)"
     node scripts/use-profile.ts "$profile" >/dev/null 2>&1 \
       || { err "profile '$profile' isn't mounted here - can't validate $domain before push"; return 1; }
-    npm run --silent build:catalog    || { err "build:catalog failed for profile '$profile'";    return 1; }
-    npm run --silent validate:catalog || { err "validate:catalog failed for profile '$profile'"; return 1; }
-    ok "'$profile' catalog built + validated"
+    npm run --silent build:catalog || { err "build:catalog failed for profile '$profile'"; return 1; }
+    ok "'$profile' catalog built"
   done
   # Restore the pre-gate profile. If none was set (fresh checkout / no
   # .lolly-profile), the loop above leaves the LAST-iterated SHIP_TARGET
@@ -133,6 +138,25 @@ do_build() {
   local restore="$starting"
   [ -z "$restore" ] && restore="${LOLLY_PROFILE:-$(node -e 'process.stdout.write(require("./profiles.json").default||"")' 2>/dev/null)}"
   [ -n "$restore" ] && node scripts/use-profile.ts "$restore" >/dev/null 2>&1
+
+  # Validation runs ONCE, after every profile's catalog is rebuilt, and WHICH validator
+  # depends on how many profiles actually mounted above (one that didn't returned already).
+  # With more than one, `validate:catalog` is not enough: it only ever sees the ACTIVE
+  # view, so a community tool.json edit that leaves the OTHER brand's generated index a
+  # version behind passes it - the drift that once left the lolly-start audiogram entry a
+  # version behind and only surfaced on a public clone. validate:catalog:all
+  # (build-catalog-all.ts --check) validates every mounted profile and exits 1 on any of
+  # them; it switches the view itself and restores the profile we just put back.
+  if [ "${#seen[@]}" -gt 1 ]; then
+    step "validating every mounted profile's catalog (${#seen[@]}: ${seen[*]})"
+    npm run --silent validate:catalog:all \
+      || { err "validate:catalog:all failed - a profile's catalog is invalid or has drifted"; return 1; }
+    ok "all ${#seen[@]} mounted catalogs validated"
+  else
+    step "validating the '${seen[0]}' catalog"
+    npm run --silent validate:catalog || { err "validate:catalog failed for profile '${seen[0]}'"; return 1; }
+    ok "'${seen[0]}' catalog validated"
+  fi
 
   # Docs screenshots - capture the web shell (pinned to the neutral lolly-start
   # brand; the script switches + restores the profile itself) at every url-shot
@@ -155,6 +179,28 @@ do_build() {
   elif [ "$shotrc" = 2 ]; then warn "docs screenshots CHANGED - review, then promote with: npm run docs:shots -- --accept"
   else err "docs screenshot capture failed"; return 1
   fi
+
+  # Byte budgets: boot JS (scripts/check-bundle-budget.ts) and the built /info tree
+  # (scripts/check-docs-size-budget.ts). Both are HARD here - a failure is a failed gate,
+  # so `loldev ship` refuses before anything is uploaded. That is the whole point: the
+  # boot bundle drifted to 193.9 KB gz against its own 135 KB ceiling while CI printed the
+  # failure and every deploy went out anyway (plan 155 §0, Task 6.2).
+  #
+  # Both scripts are standalone by design - they MEASURE the last local build
+  # (shells/web/dist for boot JS, shells/web/public/info for the docs tree) and build
+  # nothing themselves, so each exits non-zero when its artifact is missing. A missing
+  # artifact is a FAILED gate, not a skipped one: an unmeasured budget is not a passed
+  # budget. Run `npm run build:web` (it builds /info first) before shipping so the numbers
+  # describe what you are about to deploy rather than a dist from last week. Placed last
+  # because the docs-shots step above may itself have just rebuilt dist/.
+  # Never raise a ceiling to make this pass - the number is only worth having if a
+  # regression has to be argued.
+  step "byte budgets (boot JS + built /info)"
+  npm run --silent check:bundle \
+    || { err "boot-JS budget failed (see the number above) - fix the boot path, don't raise the ceiling"; return 1; }
+  npm run --silent check:docs-size \
+    || { err "/info size budget failed (see the number above)"; return 1; }
+  ok "byte budgets passed"
 }
 
 # Pretty end-of-run tally. Reads the PUSHED / FAILED / NOOP globals gtg fills in.
@@ -331,9 +377,15 @@ wait_ready() {
 #   <drv>_promoted_id <domain>      stdout = the deployment id the DOMAIN currently serves
 #                                   (the prod identity-flip gate)
 #   <drv>_liveness <handle>         return 0 iff the handle serves 200 (the preview gate)
+#   <drv>_promote <handle>          make the handle's deployment the one the domain serves,
+#                                   without rebuilding it; return non-0 if that was refused.
+#                                   Only the DEFAULT preview→smoke→promote path calls it.
 #   <drv>_teardown                  clear whatever _setup set (may no-op)
 #   <drv>_logs_hint <handle>        OPTIONAL: print a "how to see the failed build" line
 # verify_deploy() below is SHARED across drivers (a plain HTTPS catalog check).
+# The handle is opaque to ship() with ONE exception: on the default path it is also handed
+# to scripts/check-first-load.ts, which fetches it - so a driver that wants that path has
+# to return a reachable https URL, not an internal id.
 
 # --- vercel driver (the primitives above are its internals) -----------------
 vercel_setup()       { export VERCEL_ORG_ID="$VERCEL_TEAM_ID" VERCEL_PROJECT_ID="$1"; }
@@ -344,25 +396,35 @@ vercel_promoted_id() { domain_live_id "$1"; }
 vercel_liveness()    { curl -fsI --max-time 30 "$1" >/dev/null 2>&1; }
 vercel_logs_hint()   { printf '  logs:  VERCEL_ORG_ID=%s VERCEL_PROJECT_ID=%s npx vercel inspect %s --logs\n' "$VERCEL_TEAM_ID" "${VERCEL_PROJECT_ID:-<id>}" "$1" >&2; }
 
-# Upload + queue a build with --no-wait: the CLI creates + uploads the deployment,
-# prints its *.vercel.app URL, and exits WITHOUT holding the build-log stream that
-# drops on flaky links - so this exit reflects only the UPLOAD; the build's real
-# outcome is read from readyState by vercel_wait_ready (THAT decoupling is the
-# "fails despite a successful deploy" fix). --archive=tgz ships the local tree incl.
-# submodule content; --build-env pins the brand (repo = source of truth); node_modules
-# and .git are NOT in the tarball (Vercel default-ignores both; .vercelignore lists
-# node_modules too) - no parking ritual. A dropped finalize-POST creates no deployment:
-# detected by the missing URL and retried; if only the URL PRINT was lost, a freshly-
-# created deployment is adopted instead of re-uploading (the prod identity+brand gate
-# in ship() still validates whatever ends up live, so adoption is safe).
+# Point the production domains at an ALREADY-BUILT deployment - the one that just passed
+# the smoke - rather than deploying again, so the bytes that were measured are the bytes
+# that go live. The build being promoted resolved the project's PREVIEW environment, which
+# is exactly why every brand-critical var is pinned per-deploy with --build-env in
+# vercel_publish instead of being trusted from the dashboard; verify_deploy still asserts
+# the live brand on the domain afterwards, and ship() only calls this after the identity
+# of OUR deployment is known. Progress → stderr, per the driver contract.
+vercel_promote()     { npx --yes vercel promote "$1" --yes >&2; }
+
+# Upload + build. Task 6.3 (plan 155) dropped --no-wait, so the CLI now holds the build-log
+# stream and a ship shows the build happening instead of three silent minutes of polling.
+# Its exit code is still read as "was a deployment CREATED", NEVER as the build's outcome -
+# ship() takes that from readyState via vercel_wait_ready, and that decoupling stays exactly
+# because a held log stream can still drop on a flaky link (it was the original "fails
+# despite a successful deploy" bug). --build-env pins the brand (repo = source of truth).
+# A dropped finalize-POST creates no deployment: detected by the missing URL and retried;
+# if only the URL PRINT was lost, a freshly-created deployment is adopted instead of
+# re-uploading (the prod identity+brand gate in ship() still validates whatever ends up
+# live, so adoption is safe) - PROD only, see the guard below.
 # $1=name $2=profile $3=mode(prod|preview).  stdout = the deployment URL; progress → stderr.
 vercel_publish() {
-  local name="$1" profile="$2" mode="$3" url="" rc=0 snap try rtry log
+  local name="$1" profile="$2" mode="$3" url="" rc=0 snap="" try rtry log
   local prod_flag=(); [ "$mode" = prod ] && prod_flag=(--prod)
   trap 'rm -f "${log:-}"' RETURN   # temp-log cleanup even on interrupt
-  snap="$(newest_prod_url)"
+  # Only the prod path can adopt a lost deployment (newest_prod_url lists production
+  # deployments), so only the prod path pays for the snapshot `vercel ls` call.
+  [ "$mode" = prod ] && snap="$(newest_prod_url)"
   for (( try=1; try<="${DEPLOY_UPLOAD_TRIES:-3}"; try++ )); do
-    step "uploading + queuing on Vercel (LOLLY_PROFILE=$profile · upload $try/${DEPLOY_UPLOAD_TRIES:-3})" >&2
+    step "uploading + building on Vercel (LOLLY_PROFILE=$profile · $mode · upload $try/${DEPLOY_UPLOAD_TRIES:-3})" >&2
     log="$(mktemp -t loldev-ship.XXXXXX)"
     # bt has NO git integration (disconnected 2026-08-10: a git clone can't mount
     # the private suse submodule, so a git build would silently ship the wrong
@@ -383,28 +445,42 @@ vercel_publish() {
     # once, then a typical ship sends only the files that actually changed. The models
     # still ship (they are gitignored but NOT in .vercelignore, and Vercel ignores
     # .gitignore whenever a .vercelignore exists); .git and node_modules stay excluded
-    # (Vercel default + .vercelignore). --no-wait still decouples upload from the build
-    # wait, and the missing-URL adoption/retry below is unchanged.
-    npx --yes vercel deploy "${prod_flag[@]}" --no-wait --force \
+    # (Vercel default + .vercelignore). The missing-URL adoption/retry below is unchanged.
+    # NO --force: it makes Vercel skip the BUILD CACHE, so every ship paid a cold `npm ci`
+    # (31 s) and then ~37 s building a cache the next --force run skipped again - roughly
+    # half of a 206 s ship, spent on nothing (measured from the prod build log, plan 155
+    # Task 6.3). Without it Vercel may answer an identical tree with the EXISTING
+    # deployment rather than creating a new one; that is fine here - the readyState,
+    # first-load and brand gates in ship() judge whatever URL comes back.
+    npx --yes vercel deploy "${prod_flag[@]}" \
       --build-env "LOLLY_PROFILE=$profile" --build-env "LOLLY_CLI_DEPLOY=1" \
       --build-env "ONNXRUNTIME_NODE_INSTALL_CUDA=skip" \
       --yes 2>&1 | tee "$log" >&2
     rc=${PIPESTATUS[0]}
     # The deployment URL is the *.vercel.app host - NEVER the vercel.com Inspect
-    # dashboard link (which `vercel inspect` cannot resolve). Restrict the match.
-    url="$(grep -Eo 'https://[a-z0-9-]+\.vercel\.app' "$log" | tail -1)"
+    # dashboard link (which `vercel inspect` cannot resolve). Restrict the match, and take
+    # the FIRST one: without --no-wait the whole build log follows the CLI's own
+    # "Preview:/Production: https://…vercel.app" line, so the LAST match in this file is no
+    # longer guaranteed to be ours.
+    url="$(grep -Eo 'https://[a-z0-9-]+\.vercel\.app' "$log" | head -1)"
     rm -f "$log"
     [ -n "$url" ] && break
     # No URL - a large-archive finalize-POST likely dropped before creating the
     # deployment. Give a just-queued deploy a few seconds to surface (ls is eventually
     # consistent), adopt it if one appeared, else retry the upload.
     warn "no deployment URL (exit $rc) - checking whether one was created…" >&2
-    for (( rtry=1; rtry<=5; rtry++ )); do
-      url="$(newest_prod_url)"
-      [ -n "$url" ] && [ "$url" != "$snap" ] && break
-      url=""; sleep 6
-    done
-    [ -n "$url" ] && { warn "adopted $url (stdout lost; a new deployment exists)" >&2; break; }
+    # Adoption is PROD-ONLY. newest_prod_url lists PRODUCTION deployments, so in preview
+    # mode the newest one it can see belongs to somebody else's ship, not to ours - and
+    # since the default path PROMOTES whatever this function returns, adopting a stranger's
+    # deployment would put it on the domain. A preview with a lost URL retries the upload.
+    if [ "$mode" = prod ]; then
+      for (( rtry=1; rtry<=5; rtry++ )); do
+        url="$(newest_prod_url)"
+        [ -n "$url" ] && [ "$url" != "$snap" ] && break
+        url=""; sleep 6
+      done
+      [ -n "$url" ] && { warn "adopted $url (stdout lost; a new deployment exists)" >&2; break; }
+    fi
     warn "no deployment created - retrying the upload" >&2
   done
   [ -z "$url" ] && return 1
@@ -429,10 +505,13 @@ vercel_publish() {
 #   _publish after the rsync and reload their service. (2) _publish switches the local
 #   profile view to build the right brand, which MUTATES it - for multi-target ships
 #   restore afterwards (`loldev profile <default>`). (3) a push-swap model has no
-#   throwaway preview URL, so --preview just 200-checks the domain; refine if IT offers previews.
+#   throwaway preview URL, so --preview just 200-checks the domain, and `loldev ship`'s
+#   DEFAULT preview→smoke→promote path would smoke a site this driver has already made
+#   live - use `loldev ship --prod` here until IT offers real previews; refine then.
 internal_it_setup()    { IT_DOMAIN="$2"; }       # $1=id(unused) $2=domain - stash for readiness/liveness
 internal_it_teardown() { unset IT_DOMAIN; }
 internal_it_identity() { printf '%s' "$1"; }     # the handle already IS the release id
+internal_it_promote()  { return 0; }             # the atomic `current` swap in _publish already promoted it
 internal_it_logs_hint(){ printf '  logs:  ssh %s -- journalctl -u lolly --since -10min\n' "${LOLLY_IT_SSH:-<host>}" >&2; }
 
 # The release id a DOMAIN currently serves - read the live site's own version stamp.
@@ -520,27 +599,54 @@ verify_deploy() {
 # stale relative to the other. Uses `npx vercel` (CLI not installed globally) +
 # cached auth (andyfitz); VERCEL_ORG_ID/VERCEL_PROJECT_ID env overrides pick the
 # target project per deploy without touching the local `.vercel/` link (stays
-# pointed at `bt`, e.g. for `vercel dev`). --archive=tgz tarballs the LOCAL tree
-# for every target, so submodule content ships and Vercel compiles api/
+# pointed at `bt`, e.g. for `vercel dev`). The CLI uploads the LOCAL tree per file (see
+# vercel_publish), so submodule content ships and Vercel compiles api/
 # functions. The brand each target builds is PINNED per-deploy from SHIP_TARGETS
 # via `--build-env LOLLY_PROFILE=<profile>` (repo = source of truth), so the right
 # profile - and therefore the whole brand: palette, tokens, fonts, tools, catalog -
-# always lands on the right domain regardless of dashboard/local state. Deploys use
-# --no-wait so the CLI's flaky post-upload wait can never false-fail a good build:
-# success is read from Vercel's own readyState, then BOUND to our deployment id
-# promoting to the domain, and verify_deploy asserts the brand on it. A dropped upload
-# (no deployment created) is retried; a build ERROR/timeout is a real, reported failure.
-# --preview → preview URLs instead of prod (liveness checked directly, no domain alias).
+# always lands on the right domain regardless of dashboard/local state.
+#
+# THREE MODES (plan 155 Task 6.3 - until then every ship went straight to production, and
+# all 20 recent deployments were production ones):
+#   loldev ship            DEFAULT. Deploy a PREVIEW, smoke it with
+#                          `node scripts/check-first-load.ts <url>` (headless Lighthouse,
+#                          mobile), and promote ONLY that deployment if it passes. A
+#                          first-load regression therefore ends at a throwaway URL with the
+#                          live domain untouched, instead of on production.
+#   loldev ship --prod     straight to production, no preview and no smoke - the escape
+#                          hatch for a hotfix, or for when the smoke's own toolchain is
+#                          what's broken.
+#   loldev ship --preview  stop at the preview URL: no smoke, no promote.
+#
+# Success is never a CLI exit code: it is read from Vercel's own readyState, then BOUND to
+# our deployment id serving the domain, and verify_deploy asserts the brand on it. A
+# dropped upload (no deployment created) is retried; a build ERROR/timeout is a real,
+# reported failure.
 # The host-specific steps run through a DRIVER (default 'vercel'; see the driver contract
 # above the helpers), selected per SHIP_TARGET - so a new target (e.g. internal IT) is an
 # adapter + a SHIP_TARGETS field, not a ship() rewrite. The orchestration here is host-agnostic.
 ship() {
-  local PREVIEW=0 gargs=() a
-  for a in "$@"; do [ "$a" = "--preview" ] && PREVIEW=1 || gargs+=("$a"); done
+  local PREVIEW=0 PROD=0 gargs=() a
+  for a in "$@"; do
+    case "$a" in
+      --preview)           PREVIEW=1 ;;
+      --prod|--production) PROD=1 ;;
+      *)                   gargs+=("$a") ;;
+    esac
+  done
   gtg "${gargs[@]}" || { err "gtg failed - not deploying"; return 1; }
 
-  local tgt mode
-  if [ "$PREVIEW" = 1 ]; then tgt="PREVIEW"; mode="preview"; else tgt="PRODUCTION"; mode="prod"; fi
+  # One deploy path, three modes (see the header). PROMOTE is what separates the default
+  # from a bare --preview: the same preview deployment, but gated and then promoted.
+  local tgt mode PROMOTE=0
+  if [ "$PROD" = 1 ]; then
+    [ "$PREVIEW" = 1 ] && warn "--prod and --preview both given - --prod wins, deploying straight to production"
+    tgt="PRODUCTION (direct, no smoke)"; mode="prod"
+  elif [ "$PREVIEW" = 1 ]; then
+    tgt="PREVIEW"; mode="preview"
+  else
+    tgt="PREVIEW → smoke → PROMOTE"; mode="preview"; PROMOTE=1
+  fi
 
   local -a SHIPPED=() SFAILED=()
   local entry name id profile domain driver rc url our_id state live waited line
@@ -587,14 +693,43 @@ ship() {
 
     # --- 3. success is authoritative on OUR deployment, never a CLI exit code
     if [ "$mode" = preview ]; then
-      # No domain alias to assert - READY plus a 200 from the deployment handle is success.
-      if "${driver}_liveness" "$url"; then SHIPPED+=("$name → $url")
-      else SFAILED+=("$name → $url (READY but not serving)"); fi
-      "${driver}_teardown"; continue
+      # No domain alias to assert yet - READY plus a 200 from the deployment handle is as
+      # far as a preview gets on its own. (A preview URL behind Vercel's deployment
+      # protection answers 401 to an unauthenticated fetch, so it fails HERE, loudly, and
+      # never reaches the smoke.)
+      if ! "${driver}_liveness" "$url"; then
+        SFAILED+=("$name → $url (READY but not serving)"); "${driver}_teardown"; continue
+      fi
+      if [ "$PROMOTE" = 0 ]; then SHIPPED+=("$name → $url"); "${driver}_teardown"; continue; fi
+
+      # --- 3a. the gate that makes the preview worth doing (plan 155 Tasks 6.3 + 7.1) ---
+      # Lighthouse against the deployment we are about to make production. Anything
+      # non-zero - a blown budget, a missing check-first-load.ts, no resolvable Lighthouse -
+      # is a FAILED smoke and stops this target here. Fail CLOSED: an unmeasured first load
+      # is not a passed one, and the cost of being wrong is a slow production site.
+      step "first-load smoke: node scripts/check-first-load.ts $url"
+      if ! node scripts/check-first-load.ts "$url"; then
+        err "first-load budgets FAILED for $name - NOT promoting; $domain still serves its previous deployment"
+        info "the preview is up at $url - iterate against it, then ship again"
+        SFAILED+=("$name → $domain (first-load smoke failed - not promoted)")
+        "${driver}_teardown"; continue
+      fi
+      ok "first-load budgets passed"
+
+      # --- 3b. promote the exact deployment that passed ---------------------
+      step "promoting the smoked deployment → $domain"
+      if ! "${driver}_promote" "$url"; then
+        err "promote FAILED for $name - $domain still serves its previous deployment"
+        SFAILED+=("$name → $domain (smoke passed, promote failed)")
+        "${driver}_teardown"; continue
+      fi
+      # Falls through into the prod gates below on purpose: a promote is a request, not
+      # proof, so the domain still has to be seen serving OUR deployment id + brand.
     fi
-    # Prod: wait for the domain to actually resolve to OUR deployment id before the brand
-    # check - otherwise verify_deploy could read the PREVIOUS same-brand deployment and
-    # pass while ours hasn't gone live. This binds success to deployment IDENTITY.
+    # Prod (deployed straight, or just promoted): wait for the domain to actually resolve
+    # to OUR deployment id before the brand check - otherwise verify_deploy could read the
+    # PREVIOUS same-brand deployment and pass while ours hasn't gone live. This binds
+    # success to deployment IDENTITY.
     waited=0; live=""
     while [ "$waited" -lt "${ALIAS_FLIP_TIMEOUT:-120}" ]; do
       live="$("${driver}_promoted_id" "$domain")"

@@ -12,6 +12,14 @@
  * Each index entry carries only the fields the gallery needs:
  *   id, name, description, version, status, category
  *
+ * It also emits `catalog/tools/index.slim.json` - the same tools in the same order,
+ * cut down to what the gallery GRID paints with (see slimEntry). The full index is
+ * 551 KB raw / 168 KB gz (suse profile, 2026-08-26) and the first-ever gallery paint
+ * used to block on all of it; the slim cut is 73 KB raw / 19 KB gz and is what boot
+ * reads for that first paint, while the full index keeps syncing behind it for tool
+ * views, search and the info dialog (plans/155 Task 3.8). Both files are generated -
+ * never hand-edit either.
+ *
  * Existing entry order is preserved and IS meaningful: the gallery groups by
  * category (ordered by CATEGORY_ORDER) and renders each section in this array's
  * order, so editing it hand-places tools within a section. New tools are appended
@@ -34,6 +42,7 @@ interface IndexFile {
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const INDEX_PATH = join(ROOT, 'catalog/tools/index.json');
+const SLIM_INDEX_PATH = join(ROOT, 'catalog/tools/index.slim.json');
 
 // Fields the index mirrors from each manifest. `capabilities` lets the gallery
 // gate tools a shell can't fulfil (e.g. 'capture' in the web PWA) without
@@ -214,6 +223,60 @@ export function entryFromManifest(manifest: Manifest): Record<string, unknown> {
   return entry;
 }
 
+// Fields the SLIM index mirrors from a full index entry (see slimEntry below).
+// The set is "everything the gallery GRID paints with", and nothing else - each
+// omission below is a measured one:
+//   i18n      335 KB of the index's 434 KB of compact JSON - 26 locale blocks per tool,
+//             each a translated name/description/blurb.
+//             The slim paint renders English and the full index (which arrives moments
+//             later) re-runs localizeToolIndex, exactly as Task 3.7 already does while
+//             a locale chunk is in flight.
+//   templates  17 KB - the "N templates" chip and the info dialog. Both are post-paint.
+//   examples   22 KB - the values/theme of each example look. Deliberately absent:
+//             without `formats` a slim tile can't build its example carousel at all,
+//             which is the point (Task 4.3 - chrome first, art behind it), and the
+//             looks' identity still rides `looks` below.
+//   formats/width/height/unit/exportable/paged/privacy/version - info-dialog and
+//             carousel inputs, none of which change the tile's box.
+// `icon` IS carried despite the plan text ("no inline icon SVG"): it is 24 KB raw /
+// ~4 KB gz, and it is the ONE thing Task 4.3's skeleton is made of - the
+// .gtile-iconfill-trace shimmer strokes the tool's own icon while its art streams in.
+// A slim index without it paints an empty box, not a named tile.
+// `listed`/`capabilities`/`new` are carried (≈280 bytes total) because each one
+// ADDS or REMOVES a tile / a badge: without them an unlisted mechanism would flash
+// into the grid and a desktop-only tool would flip to "Desktop app only" on the
+// upgrade paint.
+const SLIM_FIELDS = ['id', 'name', 'description', 'category', 'tags', 'status', 'capabilities', 'new', 'listed', 'icon', 'preview', 'featured'];
+
+/**
+ * The slim (first-paint) form of one full index entry - plans/155 Task 3.8.
+ *
+ * Derived FROM the full entry rather than from the manifest a second time, so the
+ * two files cannot disagree by construction: whatever entryFromManifest decided
+ * about a preview path or an icon is what the slim copy carries. scripts/
+ * validate-catalog.ts re-derives with this same function to fail a stale slim file.
+ *
+ * `looks` is the signature list for a tool's example looks - one `{ sig }` per look, in
+ * manifest order, where sig is `JSON.stringify(values)`, the SAME contract
+ * build-preview-bundle.ts writes and lib/preview-bundle.ts compares (a mismatch there
+ * means the bundle predates a manifest edit). It carries no values of its own, so a
+ * slim-only surface can pair look i with its pre-rendered file without the 22 KB of
+ * example bodies. No shell reads it yet - the slim gallery paint deliberately shows
+ * the committed preview, not the carousel - so treat it as a list of signatures,
+ * not as a licence to re-inline look values here.
+ */
+export function slimEntry(entry: Record<string, unknown>): Record<string, unknown> {
+  const slim: Record<string, unknown> = {};
+  for (const f of SLIM_FIELDS) {
+    if (entry[f] !== undefined) slim[f] = entry[f];
+  }
+  const examples = entry.examples;
+  if (Array.isArray(examples) && examples.length) {
+    slim.looks = examples.map((v) => ({ sig: JSON.stringify((v as { values?: unknown } | null)?.values ?? {}) }));
+  }
+  return slim;
+}
+
 function loadManifests(): Map<string, Manifest> {
   const toolsDir = join(ROOT, 'tools');
   const manifests = new Map<string, Manifest>(); // id → manifest
@@ -253,7 +316,26 @@ function build(): void {
   };
 
   writeFileSync(INDEX_PATH, JSON.stringify(out, null, 2) + '\n');
-  console.log(`✓ Wrote catalog/tools/index.json - ${out.tools.length} tools${unchanged ? ' (unchanged)' : ''}`);
+
+  // The slim companion the first gallery paint reads (plans/155 Task 3.8). Same
+  // tools in the same order (that order IS the gallery's within-section layout),
+  // same version + generatedAt watermark - so a slim file can never claim to
+  // describe a different catalog than the full one it was cut from.
+  //
+  // Written COMPACT, unlike the pretty-printed full index: this is the one catalog
+  // file on the first-paint critical path, indentation is ~30% of its raw bytes,
+  // and nobody reads it by hand - validate-catalog re-derives every entry, so its
+  // review value is a machine check, not a git diff.
+  const slim = {
+    version: out.version,
+    generatedAt: out.generatedAt,
+    tools: tools.map(slimEntry),
+  };
+  writeFileSync(SLIM_INDEX_PATH, JSON.stringify(slim) + '\n');
+
+  const kb = (p: string) => (statSync(p).size / 1024).toFixed(1);
+  console.log(`✓ Wrote catalog/tools/index.json - ${out.tools.length} tools${unchanged ? ' (unchanged)' : ''} (${kb(INDEX_PATH)} KB)`);
+  console.log(`✓ Wrote catalog/tools/index.slim.json - first-paint index (${kb(SLIM_INDEX_PATH)} KB)`);
 }
 
 // Only regenerate when run directly (`node scripts/build-catalog-index.ts`).

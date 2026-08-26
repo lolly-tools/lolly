@@ -2,15 +2,18 @@
 /**
  * Security headers must not drift between deployment paths.
  *
- * There are THREE places the same policy is expressed (SUSE assessment 2026-08, S2):
+ * There are TWO places the same policy is expressed (SUSE assessment 2026-08, S2):
  *   1. vercel.json - the live hosted deployment (project rootDirectory
  *                                  is the repo root, so this is the one that ships)
- *   2. shells/web/vercel.json - a build rooted at the web shell instead
- *   3. deploy/docker/nginx.conf - the self-hosted container
+ *   2. deploy/docker/nginx.conf - the self-hosted container
  *
- * Three copies of a security control is exactly how one of them silently loses a
- * directive. This test pins them together, and pins the directives that carry the
- * actual security value so a future edit cannot quietly drop one.
+ * There used to be a third, `shells/web/vercel.json`, for a build rooted at the web
+ * shell instead. Nothing ever deployed from that root, so it was never exercised and
+ * it had drifted (plan 155 Task 1.4 deleted it). Copies of a security control are
+ * exactly how one of them silently loses a directive, which is why the test below
+ * pins it deleted rather than trusting the next reader to know it was dead.
+ * This test pins the two live copies together, and pins the directives that carry
+ * the actual security value so a future edit cannot quietly drop one.
  *
  * Why the CSP is not strict: tool hooks run through `new Function` by design
  * (engine/src/runtime.ts), so `script-src` needs `unsafe-eval` and removing it
@@ -20,7 +23,7 @@
  */
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { readFileSync } from 'node:fs';
+import { existsSync, readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
 
@@ -49,11 +52,17 @@ function parseCsp(csp: string): Record<string, string[]> {
 }
 
 const rootHeaders = vercelHeaders('vercel.json');
-const webHeaders = vercelHeaders('shells/web/vercel.json');
 const nginx = read('deploy/docker/nginx.conf');
 
-test('the two vercel.json header blocks are byte-identical', () => {
-  assert.deepEqual(webHeaders, rootHeaders);
+test('the second vercel.json stays deleted', () => {
+  // A config nothing deploys from is a config nobody checks. This one shipped a
+  // stale CSP for months while the root file moved on. If a web-shell-rooted
+  // deployment is ever wanted again, add it back WITH a drift assertion here -
+  // don't reintroduce an unwatched copy.
+  assert.ok(
+    !existsSync(join(ROOT, 'shells/web/vercel.json')),
+    'shells/web/vercel.json is back - the live config is the ROOT vercel.json (project rootDirectory is the repo root)',
+  );
 });
 
 test('nginx serves the same CSP as vercel', () => {

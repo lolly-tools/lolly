@@ -60,8 +60,15 @@ const TEXT_EXTS = new Set([
 ]);
 
 // Generated-by-build:catalog aggregation of the active profile's tool manifests
-// (community residue, not pack content) - see the header comment.
-const GENERATED = new Set([join(PACK, 'catalog', 'tools', 'index.json')]);
+// (community residue, not pack content) - see the header comment. index.slim.json
+// is the first-paint subset of the same emit (plans/155 Task 3.8), from the same
+// generator and carrying the same community look sigs, so it inherits the same
+// exclusion - listed explicitly rather than globbed, so a genuinely authored file
+// dropped into catalog/tools/ still gets scanned.
+const GENERATED = new Set([
+  join(PACK, 'catalog', 'tools', 'index.json'),
+  join(PACK, 'catalog', 'tools', 'index.slim.json'),
+]);
 
 // catalog/previews/ is a `npm run previews` render cache (screenshots +
 // build-preview-bundle.ts's rolled-up bundle.json), COMMITTED so a plain

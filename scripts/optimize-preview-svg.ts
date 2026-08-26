@@ -46,18 +46,79 @@ export function svgoThumb(svg: string): string {
   catch { return svg; }
 }
 
-/** A gallery tile paints its preview by rasterising the SVG on the client every
- *  frame. Cheap for most, but three shapes are expensive REGARDLESS of byte size
- *  (svgo can't help): feGaussianBlur (a full convolution - the priciest SVG op),
- *  thousands of elements (a halftone's ~4k dots), or one enormous tessellated path
- *  (a street map). For these, build-previews ships a pre-rasterised PNG instead - 
- *  it decodes in ~1ms no matter how complex the source. viewBox crispness is only
- *  wanted by the zoom inspector, not the tile, so the trade is worth it here. */
+/**
+ * Per-pixel filter work in an SVG, counted in "noise octaves equivalent".
+ *
+ * Most SVG filter primitives are cheap: feColorMatrix / feComponentTransfer /
+ * feBlend / feOffset / feFlood are per-pixel arithmetic the compositor does at
+ * memory speed, and feGaussianBlur / feDropShadow are the separable three-pass box
+ * approximation every engine implements - fast enough that no blur in this catalog
+ * measured above 10 ms (see the table on isExpensiveThumbSvg).
+ *
+ * Two families are not:
+ *   - feTurbulence SYNTHESISES the whole filter region from Perlin/fractal noise,
+ *     re-evaluating the lattice once per `numOctaves`. So its cost is octaves, not
+ *     one filter - a 2-octave turbulence and a 6-octave one differ threefold.
+ *     Per the SVG spec numOctaves defaults to 1 when the attribute is absent.
+ *   - feDisplacementMap / feMorphology / feConvolveMatrix / feDiffuseLighting /
+ *     feSpecularLighting each read a NEIGHBOURHOOD (or a second input buffer) per
+ *     output pixel and cannot be separated into passes the way a blur can. Counted
+ *     as one octave-equivalent apiece - none of them appears alone in this catalog,
+ *     so a finer weight would be fitting noise rather than measuring it.
+ */
+function perPixelFilterWork(svg: string): number {
+  let work = 0;
+  for (const m of svg.matchAll(/<feTurbulence\b[^>]*>/g)) {
+    const oct = /numOctaves\s*=\s*"([\d.]+)"/.exec(m[0]);
+    work += oct ? Math.max(1, Number(oct[1])) : 1;
+  }
+  work += (svg.match(
+    /<(feDisplacementMap|feMorphology|feConvolveMatrix|feDiffuseLighting|feSpecularLighting)\b/g,
+  ) ?? []).length;
+  return work;
+}
+
+/** A gallery tile paints its preview by rasterising the SVG on the client. Cheap for
+ *  most, but some shapes are expensive REGARDLESS of byte size (svgo can't help):
+ *  thousands of elements (a halftone's ~4k dots), one enormous tessellated path (a
+ *  street map), or heavy per-pixel filter work. For these, build-previews ships a
+ *  pre-rasterised tile instead - it decodes in ~1ms no matter how complex the source.
+ *  viewBox crispness is only wanted by the zoom inspector, not the tile, so the trade
+ *  is worth it here.
+ *
+ *  THE FILTER CLAUSE USED TO BE `if (/<feGaussianBlur|<feDropShadow/) return true` and
+ *  that single line is why 30 of the 39 multi-MB PNGs in plans/155 finding 3 existed.
+ *  Presence of a filter is not expense. Measured 2026-08-26, median of 3 decode+draw
+ *  passes at 600 px (fresh blob URL each pass - Chromium caches the decoded bitmap per
+ *  URL, so a reused Image measures nothing after the first draw):
+ *
+ *    ms   file                    per-pixel work   blurs  bytes
+ *    61.9 filter.look4.svg        3×feTurbulence@2 + feDisplacementMap = 7   1   47,669
+ *    17.6 mesh-gradient.svg       1×feTurbulence@2 = 2                       1    6,016
+ *     9.6 design.svg              0                                          2    3,273
+ *     8.7 code-canvas.svg         0                                          2   24,396
+ *     8.1 doc-studio.svg          0                                          1   68,343
+ *     7.5 screenshot-frame.svg    0                                          1    7,819
+ *     4.4 deck-studio.svg         0                                          1   15,005
+ *
+ *  So: blur alone never crossed 10 ms, and mesh-gradient - the worst offender the old
+ *  clause produced, a 3,430 B SVG of real <radialGradient> stops answered by a
+ *  7,881,038 B committed PNG, 2298× - paints in a sixth of the time of the one look
+ *  that genuinely is expensive. Bytes and element count separate them no better than
+ *  blur does (mesh-gradient 6 KB / 6 elems vs filter.look4 47 KB / 3 elems; doc-studio
+ *  is 68 KB and paints in 8 ms). The thing that actually differs is the per-pixel
+ *  filter work, and the gate is set on that, at >3 octave-equivalents - clear of
+ *  mesh-gradient's 2 in both directions and well under filter.look4's 7.
+ *
+ *  If this ever needs re-tuning, re-measure; do not go back to presence-testing. A
+ *  workaround with no expiry is exactly how the docs' `format=png` allowlist rotted
+ *  (CLAUDE.md "Docs screenshots are vector"), and RASTER_PREVIEWS in
+ *  scripts/validate-catalog.ts now makes every surviving raster say why out loud. */
 export function isExpensiveThumbSvg(svg: string): boolean {
-  if (/<feGaussianBlur|<feDropShadow/.test(svg)) return true;      // blur/shadow filter
   const elems = (svg.match(/<(path|rect|circle|ellipse|polygon|polyline|line|use)\b/g) ?? []).length;
   if (elems > 800) return true;                                    // dense synthetic vector
   if (svg.length > 140_000) return true;                           // huge single/few paths
+  if (perPixelFilterWork(svg) > 3) return true;                    // synthesised noise / neighbourhood ops
   return false;
 }
 

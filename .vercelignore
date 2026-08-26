@@ -31,6 +31,15 @@ shells/web/dist
 # anyway, so uploading the local copy every ship is pure waste. Byte-identical.
 shells/web/public/ort
 
+# The transformers.js-pinned onnxruntime-web build (~31 MB, 4 files under a
+# version-stamped dir). Same story as `ort` above, one directory over: the second
+# half of `build:ort` (scripts/copy-transformers-ort.ts) recreates
+# public/ort-hf/<pinned-version>/ from the installed dep on Vercel - the prod build
+# log shows it doing exactly that, "copied 4 pinned onnxruntime-web runtime files".
+# The version lives in the PATH, so a version bump writes a new directory rather than
+# mutating this one - which is what makes vercel.json's `immutable` header safe here.
+shells/web/public/ort-hf
+
 # Model STAGING dirs (~686 MB - the single biggest slice of the ~2 GB suse upload,
 # which is what makes the finalize-POST drop on flaky links). scripts/fetch-{matte,
 # upscale}-models.ts stage a candidate OUT of the served tree, in .candidates/, for
@@ -72,6 +81,21 @@ shells/web/public/models/matte/birefnet.onnx
 # the anchored `shells/web/dist` rule above also missed) shipped on every deploy,
 # twice per ship. A bare pattern matches at any depth, like .gitignore.
 .claude
+
+# macOS Finder metadata. Tracked by nothing (the root .gitignore has `**/.DS_Store`),
+# which is precisely why it kept shipping unnoticed: `git status` never mentions it
+# and this file suppresses .gitignore, so ~40 of them rode every upload. One of them
+# mattered - shells/web/public/.DS_Store, which vite's wholesale public/ copy carried
+# into dist/ byte-identical (14,340 bytes) and the CDN then SERVED.
+**/.DS_Store
+
+# Hand-collected sample logos used for local testing (37 files, 500 KB). They carry
+# THIRD-PARTY MARKS - Microsoft, NVIDIA, Deutsche Telekom Magenta, Collabora,
+# Linagora - which are nobody's here to redistribute, and they sat in
+# shells/web/public/ until 2026-08-25, publicly fetchable at /_testlogos/*. They now
+# live in tests/fixtures/_testlogos/ with no code consumer anywhere in the repo; the
+# pattern is unanchored so they stay off every deploy wherever the fixtures are kept.
+**/_testlogos
 
 # The docs-site screenshot MIRROR. docs/build.ts (build:info, run by build:web)
 # rmSync's this directory and re-copies it from docs/shots on every build

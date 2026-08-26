@@ -376,7 +376,15 @@ const BLENDS: Record<string, number> = {
   difference: 1, exclusion: 1, hue: 1, saturation: 1, color: 1, luminosity: 1,
 };
 
-function has(o: unknown, k: string): boolean { return o != null && Object.hasOwn(o, k); }
+// The `typeof` test - not a bare `!= null` - is what makes this compile on BOTH
+// typecheck surfaces. Under strictNullChecks (every `tsc -p` project here) `!= null`
+// narrows `unknown` to `{}`, which the compiler lets through to Object.hasOwn's
+// `object` parameter; the @vercel/node function build compiles this same file with
+// strictNullChecks OFF, where that guard narrows nothing and the call is TS2345 - an
+// error that printed in every production build from 2026-07-07 without failing it.
+function has(o: unknown, k: string): boolean {
+  return typeof o === 'object' && o !== null && Object.hasOwn(o, k);
+}
 
 /**
  * Turn one normalized DesignNode into a full Design box row - every field

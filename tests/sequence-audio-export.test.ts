@@ -115,7 +115,17 @@ class FakeOfflineAudioContext {
   createGain(): FakeGain { const g = new FakeGain(); this.gains.push(g); return g; }
   async decodeAudioData(_bytes: ArrayBuffer): Promise<FakeBuffer> {
     this.decodes++;
-    return fakeBuffer(2, Math.round(BED_SEC * this.sampleRate), this.sampleRate);
+    // A DECODED bed is now real PCM the analytic mixer (plans/156 B2) loops and
+    // envelopes - the mix is no longer an OAC graph render, so the tests below observe
+    // the PRODUCED samples, not the graph. Fill a deterministic, everywhere-non-zero
+    // ramp so looping (a sample one bed-length apart is bit-identical) and the fade
+    // envelope (the head is ramped up from silence) are both visible in the output.
+    const buf = fakeBuffer(2, Math.round(BED_SEC * this.sampleRate), this.sampleRate);
+    for (let ch = 0; ch < buf.numberOfChannels; ch++) {
+      const plane = buf.getChannelData(ch);
+      for (let i = 0; i < plane.length; i++) plane[i] = 0.3 + 0.2 * (i / plane.length);
+    }
+    return buf;
   }
   async startRendering(): Promise<FakeBuffer> {
     this.renders++;
@@ -175,7 +185,12 @@ test('a music bed alone is a real mix, at the sequence length and the mix rate',
   const fps = 30;
   const expected = Math.ceil((frameTimestamps(totalMs, fps).length / fps) * MIX_RATE);
   assert.equal(pcm!.channels[0]!.length, expected, 'as many frames as the video would have sound for');
-  assert.equal(FakeOfflineAudioContext.last?.renders, 1, 'one graph, rendered once');
+  // The OAC is no longer a mix GRAPH - only the decoder now (plans/156 B2): the bed is
+  // decoded once and the mix is produced ANALYTICALLY by mixWindow. So "one pass" is
+  // one decode plus a real, non-silent buffer, not one `startRendering`.
+  assert.equal(FakeOfflineAudioContext.last?.decodes, 1, 'the bed is decoded exactly once');
+  const mid = pcm!.channels[0]![Math.floor(3 * MIX_RATE)]!;
+  assert.ok(Math.abs(mid) > 0.1, `the bed is actually mixed, at full gain mid-sequence (got ${mid})`);
 });
 
 test('a bed shorter than the timeline loops, exactly as the video export loops it', async () => {
@@ -185,12 +200,23 @@ test('a bed shorter than the timeline loops, exactly as the video export loops i
   reset();
   const pcm = await sequenceAudioPcm(stageOf(6000, [textBox(0, 6000)]), { audio: BED }, host);
   assert.ok(pcm);
-  const bed = FakeOfflineAudioContext.last!.sources.at(-1)!;
-  assert.equal(bed.loop, true, 'the bed loops');
-  assert.ok(bed.buffer!.duration < 6, 'test is meaningful: the stubbed bed really is shorter');
-  // And it is enveloped rather than played flat - the fades the export bar asked for.
-  assert.ok(FakeOfflineAudioContext.last!.gains.at(-1)!.gain.events.length > 1,
-    'the bed rides the shared gain envelope');
+  // The bed is 2s (BED_SEC) under a 6s sequence, so it must be LOOPED to fill the
+  // timeline - the one property that makes an audio-only export sound like the video.
+  // With the OAC graph gone (plans/156) the loop is not a `src.loop` flag but the
+  // analytic phase wrap in mixWindow, read straight off the produced PCM.
+  assert.ok(BED_SEC < 6, 'test is meaningful: the stubbed bed really is shorter than the sequence');
+  const ch0 = pcm!.channels[0]!;
+  const bedLen = Math.round(BED_SEC * MIX_RATE);            // 96000
+  const s = 105_600;                                        // 2.2s - past the bed's own 2s, inside the full-gain plateau [1s, 4.5s]
+  assert.ok(s > bedLen && s + bedLen < 4.5 * MIX_RATE, 'both sample points sit past 2s and inside the plateau');
+  // Still sounding well past its own length: the bed looped rather than falling silent.
+  assert.ok(Math.abs(ch0[s]!) > 0.1, `the bed loops to fill the sequence, not silent past 2s (got ${ch0[s]})`);
+  // And the loop PERIOD is exactly the bed length: two points one bed-length apart, both
+  // in the full-gain plateau, are bit-identical (same phase into consecutive loops).
+  assert.equal(ch0[s], ch0[s + bedLen], 'the loop period is exactly the bed length');
+  // It still rides the shared fade envelope: the head is ramped up from silence, so it
+  // is quieter than the full-gain body.
+  assert.ok(Math.abs(ch0[10]!) < Math.abs(ch0[s]!), 'the bed rides the fade-in envelope (head quieter than body)');
 });
 
 test('an unreachable bed warns and mixes to nothing, rather than failing the export', async () => {

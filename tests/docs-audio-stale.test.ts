@@ -46,13 +46,14 @@ const AUDIO = join(ROOT, 'docs', 'audio');
  * test yet, so a committed non-en directory must be listed here until it is.
  */
 const STALE_ALLOWED: Record<string, string> = {
-  // Empty: the 2026-08-22 narration re-render (two passes, after the claudism
-  // sweep that reworded operators/animating/builders/faq/README and the
-  // "in (X) terms" removals in privacy/content-credentials-identity/favourites)
-  // brought every committed launch page fresh against its source, clearing the
-  // seven deferred entries that had accumulated since 2026-08-17. An entry here
-  // is a debt with a face: add one only with a reason and a date when a page is
-  // knowingly left stale, and delete it the moment the page is re-rendered.
+  // The 2026-08-22 narration re-render (two passes, after the claudism sweep that
+  // reworded operators/animating/builders/faq/README and the wording
+  // removals in privacy/content-credentials-identity/favourites) brought every
+  // committed launch page fresh against its source. An entry here is a debt with
+  // a face: add one only with a reason and a date when a page is knowingly left
+  // stale, and delete it the moment the page is re-rendered.
+  'en/about': 'copy edits in the 2026-08-26 docs pass drifted the spoken text; narration re-record deferred to the next batched Kokoro run',
+  'en/operators': 'copy edits in the 2026-08-26 docs pass drifted the spoken text; narration re-record deferred to the next batched Kokoro run',
 };
 
 interface Committed { key: string; lang: string; slug: string; meta: AudioMeta }

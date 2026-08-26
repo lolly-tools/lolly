@@ -20,6 +20,10 @@
  *                               ready for a deploy. `--skip-existing` makes repeat starts
  *                               near-instant; run `npm run previews` to force a full
  *                               regenerate (e.g. after changing a tool's look).
+ *   3b. optimize-preview-webp.js - runs the moment step 3 exits cleanly, so a backfilled
+ *                               raster ends up a tile-sized stamped .webp. `npm run previews`
+ *                               is that same pair; this path must never run only its first
+ *                               half (see launchPreviews).
  *
  * Vite auto-increments the port if the default is busy, so we read the chosen URL from
  * its output rather than hard-coding it. Ctrl-C tears all three down.
@@ -91,7 +95,17 @@ function launchPreviews(url: string): void {
   if (previewsLaunched || shuttingDown) return;
   previewsLaunched = true;
   console.log(`\n[dev:web] generating any missing tool previews against ${url} …`);
-  start('node', ['scripts/build-previews.ts', `--url=${url}`, '--skip-existing']);
+  const previews = start('node', ['scripts/build-previews.ts', `--url=${url}`, '--skip-existing']);
+  // …then the optimise step, which is NOT optional. `npm run previews` is a two-command
+  // chain (capture, then optimize-preview-webp) and this backfill only ever ran the first
+  // half, so every `npm run dev:web` topped catalog/previews/ up with un-optimised rasters
+  // that nothing looked at again - the leak that put ~60 MB of full-resolution PNGs into
+  // the repo (plans/155 finding 3). Chained on exit rather than spawned alongside: the
+  // converter reads the files the capture is still writing.
+  previews.on('exit', (code) => {
+    if (shuttingDown || code !== 0) return;
+    start('node', ['scripts/optimize-preview-webp.ts']);
+  });
 }
 
 // vite was spawned with stdio[1]='pipe', so stdout is always a stream here.

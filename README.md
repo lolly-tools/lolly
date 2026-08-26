@@ -106,6 +106,8 @@ git clone https://github.com/lolly-tools/lolly.git && cd lolly && ./setup.sh
 Prefer to do it by hand? Because the shippable units are submodules, **clone recursively**:
 
 ```bash
+# Prerequisite: Node >=22.18 or >=24 (see .nvmrc). Older Node fails npm install -
+# the scripts run TypeScript directly via native type-stripping. INSTALL.md has the table.
 git clone --recurse-submodules https://github.com/lolly-tools/lolly.git
 cd lolly
 # already cloned non-recursively? → git submodule update --init --recursive
@@ -113,10 +115,12 @@ cd lolly
 npm install                    # workspaces need every submodule's package.json, so init submodules FIRST
                                # (postinstall picks a content profile automatically; see below)
 
-npm run dev:web                # run the web shell
+npm run dev:web                # run the web shell → then open http://localhost:5173
 npm run cli -- qr-code --url=https://suse.com --output=./qr.svg   # run a tool headlessly
 npm run validate:catalog       # validate the catalog
 ```
+
+Once it is running, **[docs/make-something.md](docs/make-something.md)** walks a first render in about 60 seconds (no account, nothing to configure), and **[docs/quickstart.md](docs/quickstart.md)** covers making Lolly wear your own brand.
 
 **Content profiles.** `tools/` and `catalog/` are gitignored *views* assembled from the mounted packs (`profiles.json`): the private `brands/suse` pack (skipped automatically on clone if you don't have access - it's `update = none`) plus the public `community/` tools. Without SUSE access you land on the blank **lolly-start** brand and everything still builds and runs. Switch explicitly:
 

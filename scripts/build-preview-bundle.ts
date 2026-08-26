@@ -13,11 +13,19 @@
  *
  * `npm run previews` now ALSO pre-renders each look to a committed, SVGO-optimised
  * catalog/previews/<id>.look<i>.svg (or .webp/.png when the look is raster-heavy). This
- * script rolls every one of those look files into a SINGLE catalog/previews/bundle.json
- * that the gallery fetches ONCE (shells/web/src/lib/preview-bundle.ts): the client shows
- * the pre-rendered look instantly - no engine, no per-look asset fetch - and the live
- * render becomes a background enhancement only for looks that aren't bundled (a fresh look
- * whose file hasn't been generated yet, or a profile-personalised preview).
+ * script writes the MANIFEST over those files: catalog/previews/bundle.json maps
+ * `<toolId>:<i>` → { src, sig }, and the gallery fetches it ONCE
+ * (shells/web/src/lib/preview-bundle.ts) to get a ready <img> src per look - no engine.
+ * The live render becomes a background enhancement only for looks that aren't bundled (a
+ * fresh look whose file hasn't been generated yet, or a profile-personalised preview).
+ *
+ * It used to INLINE every SVG look into this file instead of referencing it, and that got
+ * measurably worse as looks converted to vector: 83 inlined SVGs was 2.57 MB of SVG text,
+ * a 2.64 MB / 1.05 MB brotli bundle, and every tile's art waited behind the whole megabyte.
+ * The bundle's job was to avoid a LIVE ENGINE RENDER, never to avoid an image request - the
+ * looks are static same-origin files the browser fetches lazily, per tile, out of the
+ * service worker's stale-while-revalidate cache. Referencing them makes the same file
+ * 29 KB (8 KB gz), and it stays in that range however many looks go vector.
  *
  * Wired into `npm run build:catalog` so it regenerates deterministically after the index.
  * Idempotent: same look files + manifests → byte-identical bundle. Safe to run with no
@@ -54,8 +62,8 @@ function resolveLooks(m: Manifest): Look[] {
   return m.examples ?? m.featured?.variants ?? [];
 }
 
-/** A bundle entry: an inline SVG string, or a path to a raster look, plus the look's sig. */
-interface BundleEntry { svg?: string; src?: string; sig: string }
+/** A bundle entry: the same-origin path to the look file, plus the look's sig. */
+interface BundleEntry { src: string; sig: string }
 
 function loadManifests(): Manifest[] {
   const out: Manifest[] = [];
@@ -73,7 +81,7 @@ function build(): void {
     return;
   }
   const bundle: Record<string, BundleEntry> = {};
-  let inlineSvg = 0, rasterRef = 0;
+  let svgRef = 0, rasterRef = 0;
 
   for (const m of loadManifests()) {
     const looks = resolveLooks(m);
@@ -86,13 +94,13 @@ function build(): void {
       // the tool dir at tools/<id>/look<i>.{png,webp,svg}, served at /tools/<id>/…. It's the
       // per-look analogue of the tools/<id>/card.* card override, and WINS over any
       // build-generated catalog/previews/<id>.look<i>.* - so it survives `npm run previews`
-      // (which never writes into tools/). An .svg override is inlined like a generated svg;
-      // a raster/APNG override is referenced by its tool-dir path.
+      // (which never writes into tools/). Referenced at its tool-dir path, same as a
+      // generated look is referenced at its previews path.
       const ovrDir = join(TOOLS_DIR, m.id);
       const ovrSvg = join(ovrDir, `look${i}.svg`);
       if (existsSync(ovrSvg)) {
-        bundle[`${m.id}:${i}`] = { svg: readFileSync(ovrSvg, 'utf8').trim(), sig };
-        inlineSvg++;
+        bundle[`${m.id}:${i}`] = { src: `/tools/${m.id}/look${i}.svg`, sig };
+        svgRef++;
         continue;
       }
       const ovrRaster = ['png', 'webp'].find((ext) => existsSync(join(ovrDir, `look${i}.${ext}`)));
@@ -104,12 +112,11 @@ function build(): void {
 
       const svgFile = join(PREVIEWS_DIR, `${m.id}.look${i}.svg`);
       if (existsSync(svgFile)) {
-        bundle[`${m.id}:${i}`] = { svg: readFileSync(svgFile, 'utf8').trim(), sig };
-        inlineSvg++;
+        bundle[`${m.id}:${i}`] = { src: `/catalog/previews/${m.id}.look${i}.svg`, sig };
+        svgRef++;
         continue;
       }
-      // Raster look (dense/expensive vector or photo-heavy) - reference the file by path
-      // rather than inlining bytes into the bundle. webp preferred, then png.
+      // Raster look (dense/expensive vector or photo-heavy). webp preferred, then png.
       const raster = ['webp', 'png'].find((ext) => existsSync(join(PREVIEWS_DIR, `${m.id}.look${i}.${ext}`)));
       if (raster) {
         bundle[`${m.id}:${i}`] = { src: `/catalog/previews/${m.id}.look${i}.${raster}`, sig };
@@ -125,11 +132,11 @@ function build(): void {
   const json = JSON.stringify(sorted);
   const prev = existsSync(BUNDLE_PATH) ? readFileSync(BUNDLE_PATH, 'utf8') : '';
   if (json === prev) {
-    console.log(`✓ preview bundle unchanged - ${Object.keys(sorted).length} looks (${inlineSvg} inline svg, ${rasterRef} raster)`);
+    console.log(`✓ preview bundle unchanged - ${Object.keys(sorted).length} looks (${svgRef} svg, ${rasterRef} raster)`);
     return;
   }
   writeFileSync(BUNDLE_PATH, json);
-  console.log(`✓ Wrote ${BUNDLE_PATH.replace(ROOT + '/', '')} - ${Object.keys(sorted).length} looks (${inlineSvg} inline svg, ${rasterRef} raster), ${(json.length / 1024).toFixed(1)} KB`);
+  console.log(`✓ Wrote ${BUNDLE_PATH.replace(ROOT + '/', '')} - ${Object.keys(sorted).length} looks (${svgRef} svg, ${rasterRef} raster), ${(json.length / 1024).toFixed(1)} KB`);
 }
 
 build();

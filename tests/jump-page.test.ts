@@ -14,7 +14,7 @@
 
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { existsSync } from 'node:fs';
+import { existsSync, readFileSync } from 'node:fs';
 import { readFile } from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
@@ -113,4 +113,158 @@ test('default (page) mode keeps the link list, no redirect', { skip: SKIP }, asy
   const { svg } = await mount({ links: [{ label: 'Home', url: 'https://example.com' }] });
   assert.ok(svg.includes('jp-list'), 'the link list is shown');
   assert.ok(!svg.includes('jp-is-forward'), 'nothing forwards by default');
+});
+
+// ── Scroll cinema (plans/158) ───────────────────────────────────────────────
+
+test('the two-field row survives the third block field', { skip: SKIP }, async () => {
+  // `icon` was APPENDED to label,url - block field order is the wire format, so
+  // every link already shared as `label,url` (or `,url`) has to parse unchanged.
+  const state = parseUrlState('l=SUSE,suse.com~,docs.suse.com', tool.manifest);
+  assert.deepEqual(state.values.links, [
+    { label: 'SUSE', url: 'suse.com', icon: '' },
+    { label: '', url: 'docs.suse.com', icon: '' },
+  ]);
+  const { svg, error } = await mount(state.values);
+  assert.equal(error, '');
+  assert.ok(svg.includes('href="https://suse.com"'));
+  assert.ok(svg.includes('>docs.suse.com</span>'), 'second row still falls back to the host');
+  assert.ok(!svg.includes('jp-icon'), 'no glyph is invented for a two-field row');
+});
+
+test('a glyph is trimmed and capped, never a caption', { skip: SKIP }, async () => {
+  const family = '\u{1F469}‍\u{1F469}‍\u{1F467}‍\u{1F466}';
+  const { svg } = await mount({
+    links: [
+      { label: 'Trim', url: 'https://example.com/a', icon: '  ab  ' },
+      { label: 'Cap', url: 'https://example.com/b', icon: 'abcdefgh' },
+      { label: 'Emoji', url: 'https://example.com/c', icon: '🎬' },
+      { label: 'Family', url: 'https://example.com/d', icon: family },
+    ],
+  });
+  assert.ok(svg.includes('>ab</span>'), 'surrounding whitespace goes');
+  assert.ok(svg.includes('>abcd</span>'), 'capped at four');
+  assert.ok(!svg.includes('abcde'), 'nothing past the cap survives');
+  assert.ok(svg.includes('>🎬</span>'), 'an astral emoji is not split in half');
+  // The cap counts graphemes: cutting a ZWJ sequence would render a DIFFERENT
+  // emoji plus a dangling joiner, not a shortened one.
+  assert.ok(svg.includes(`>${family}</span>`), 'a ZWJ sequence stays the emoji it was');
+});
+
+test('a hand-typed mood outside the options never reaches the motion dial', { skip: SKIP }, async () => {
+  // Initial/URL values bypass the select's option whitelist, so a prototype key
+  // would otherwise put a function into --jp-motion and void every calc() on it.
+  for (const mood of ['constructor', '__proto__', 'toString', 'nonsense']) {
+    const { svg } = await mount({ mood, links: [{ url: 'https://example.com' }] });
+    assert.ok(svg.includes('--jp-motion:0.6'), `mood=${mood} falls back to calm`);
+  }
+  const bold = await mount({ mood: 'bold', links: [{ url: 'https://example.com' }] });
+  assert.ok(bold.svg.includes('--jp-motion:1'), 'a real option still gets through');
+});
+
+test('the word stagger is bounded, however long the heading', { skip: SKIP }, async () => {
+  // maxLength constrains edits, not initial values, so a share link can carry a
+  // heading of any length - an uncapped index would hold its tail invisible.
+  const heading = Array.from({ length: 40 }, (_, i) => `w${i}`).join(' ');
+  const { svg } = await mount({ heading, links: [{ url: 'https://example.com' }] });
+  assert.equal(svg.match(/class="jp-word"/g)?.length, 40, 'every word still renders');
+  const steps = [...svg.matchAll(/--jp-w:(\d+)/g)].map(m => Number(m[1]));
+  assert.ok(Math.max(...steps) <= 12, `stagger index capped, saw ${Math.max(...steps)}`);
+});
+
+test('the Lolly line is the cinema close, not a footer on every style', { skip: SKIP }, async () => {
+  const links = [{ label: 'Home', url: 'https://example.com' }];
+  const cinema = await mount({ links });
+  assert.ok(cinema.svg.includes('Made with Lolly'), 'cinema closes on the attribution line');
+  assert.ok(!(await mount({ style: 'buttons', links })).svg.includes('jp-foot'),
+    'an explicit buttons link renders as it did before the cinema style existed');
+  assert.ok(!(await mount({ style: 'minimal', links })).svg.includes('jp-foot'));
+  assert.ok(!(await mount({ style: 'cards', links })).svg.includes('jp-foot'));
+  assert.ok(!(await mount({ footer: false, links })).svg.includes('jp-foot'), 'and it opts out');
+});
+
+test('the heading arrives as words the opening can stagger', { skip: SKIP }, async () => {
+  const { svg } = await mount({ heading: 'One  Two Three', links: [{ url: 'https://example.com' }] });
+  assert.match(svg, /<span class="jp-word"[^>]*--jp-w:0[^>]*>One<\/span>/);
+  assert.match(svg, /<span class="jp-word"[^>]*--jp-w:1[^>]*>Two<\/span>/);
+  assert.match(svg, /<span class="jp-word"[^>]*--jp-w:2[^>]*>Three<\/span>/);
+  assert.equal(svg.match(/class="jp-word"/g)?.length, 3, 'runs of whitespace make one break, not empty words');
+});
+
+test('cinema is the default style and the plain lists stay', { skip: SKIP }, () => {
+  const style = tool.manifest.inputs.find((i: any) => i.id === 'style');
+  assert.equal(style.default, 'cinema');
+  assert.deepEqual(style.options.map((o: any) => o.value), ['cinema', 'buttons', 'cards', 'minimal']);
+});
+
+/** End index of the brace-delimited block whose opening `{` is at `open`. */
+function blockEnd(css: string, open: number): number {
+  let depth = 0;
+  for (let i = open; i < css.length; i++) {
+    if (css[i] === '{') depth++;
+    else if (css[i] === '}' && --depth === 0) return i;
+  }
+  return -1;
+}
+
+test('every scroll-driven rule sits behind all three gates', { skip: SKIP }, () => {
+  const css = readFileSync(join(COMMUNITY, 'jump', 'styles.css'), 'utf8');
+  assert.ok(!css.includes('scroll-snap-type'), 'no scroll hijack - the visitor owns the scroll');
+
+  const SUPPORTS = '@supports (animation-timeline: view())';
+  const sup = css.indexOf(SUPPORTS);
+  assert.ok(sup >= 0, 'the support gate exists');
+  assert.equal(css.indexOf(SUPPORTS, sup + 1), -1, 'exactly one support gate, so there is one region to read');
+  const supEnd = blockEnd(css, css.indexOf('{', sup + SUPPORTS.length - 1));
+
+  const MEDIA = '@media (prefers-reduced-motion: no-preference)';
+  const med = css.indexOf(MEDIA);
+  assert.ok(med > sup && med < supEnd, 'the reduced-motion gate sits inside the support gate');
+  const medEnd = blockEnd(css, css.indexOf('{', med + MEDIA.length - 1));
+
+  // The only mention outside the region is the support query's own condition.
+  const condition = sup + SUPPORTS.indexOf('animation-timeline');
+  let timelines = 0;
+  for (let i = css.indexOf('animation-timeline'); i >= 0; i = css.indexOf('animation-timeline', i + 1)) {
+    if (i === condition) continue;
+    timelines++;
+    assert.ok(i > med && i < medEnd, `a scroll timeline at offset ${i} escapes the gates`);
+    const open = css.lastIndexOf('{', i);
+    const prev = Math.max(css.lastIndexOf('{', open - 1), css.lastIndexOf('}', open - 1));
+    const selector = css.slice(prev + 1, open).trim();
+    assert.ok(selector.includes('.jp-live'), `"${selector}" would attach a timeline off the visitor page`);
+  }
+  assert.ok(timelines >= 5, `expected the cinema motion set, found ${timelines} timelines`);
+});
+
+test('the cinema page survives the places it is not the visitor page', { skip: SKIP }, () => {
+  const css = readFileSync(join(COMMUNITY, 'jump', 'styles.css'), 'utf8');
+
+  // `svh` measures the browser viewport even inside the fixed artboard, so the
+  // scenes must fall back to content height wherever `jp-live` is absent -
+  // otherwise the editor preview is the hero and nothing else.
+  for (const part of ['jp-head', 'jp-link', 'jp-foot']) {
+    assert.match(css, new RegExp(`\\.jp-cinema:not\\(\\.jp-live\\) \\.${part}\\s*\\{[^}]*min-height:\\s*0`),
+      `.${part} keeps its viewport height off the visitor page`);
+  }
+
+  assert.match(css, /\.jp-link:focus-visible\s*\{[^}]*outline:/, 'a full-bleed scene draws its own focus ring');
+
+  // A range ending in `cover` cannot complete for a subject at the foot of the
+  // document; `both` fill would strand it mid-reveal for good.
+  for (const sel of ['.jp-host', '.jp-foot-echo']) {
+    const at = css.indexOf(`.jp-live.jp-cinema ${sel} {`);
+    assert.ok(at > 0, `${sel} has a gated rule`);
+    const range = /animation-range:\s*([^;]+);/.exec(css.slice(at, blockEnd(css, css.indexOf('{', at))));
+    assert.ok(range && !/cover/.test(range[1] ?? ''), `${sel}'s range "${range?.[1]}" never reaches its end state`);
+  }
+
+  // A declaration holding var() parses as valid and beats the plain colour above
+  // it, so the derived washes only fall back from behind a feature query.
+  const bare = css.replace(/\/\*[\s\S]*?\*\//g, '');
+  for (const fn of bare.matchAll(/oklch\(from|color-mix\(/g)) {
+    const sup = bare.lastIndexOf('@supports', fn.index);
+    assert.ok(sup >= 0 && blockEnd(bare, bare.indexOf('{', sup)) > fn.index,
+      `a derived colour at offset ${fn.index} has no feature query over it`);
+  }
 });
