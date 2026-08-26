@@ -52,6 +52,25 @@ const SLIM_INDEX_PATH = join(ROOT, 'catalog/tools/index.slim.json');
 // handful that happen to appear in its name or description.
 const INDEX_FIELDS = ['id', 'name', 'description', 'version', 'status', 'category', 'capabilities', 'privacy', 'new', 'listed', 'tags'];
 
+/**
+ * Is this .png an ANIMATED png (APNG)? A still PNG and an APNG share the extension, the
+ * signature and the MIME type, so the file itself is the only thing that can answer - and
+ * the answer decides whether the file is a tool's still `preview` or its `anim`.
+ *
+ * The test is the spec's own: an `acTL` (animation control) chunk, which must appear
+ * BEFORE the first `IDAT` to be honoured. A later `acTL` is ignored by decoders, so a
+ * plain indexOf would call a still image animated. Reading the head is enough - a card is
+ * a few hundred KB at most, and the chunks that matter are at the front.
+ */
+export function isAnimatedPng(file: string): boolean {
+  let head: Buffer;
+  try { head = readFileSync(file); } catch { return false; }
+  const acTL = head.indexOf('acTL', 0, 'latin1');
+  if (acTL < 0) return false;
+  const idat = head.indexOf('IDAT', 0, 'latin1');
+  return idat < 0 || acTL < idat;
+}
+
 export function entryFromManifest(manifest: Manifest): Record<string, unknown> {
   const entry: Record<string, unknown> = {};
   for (const f of INDEX_FIELDS) {
@@ -94,11 +113,25 @@ export function entryFromManifest(manifest: Manifest): Record<string, unknown> {
   //      to a plain "open to start" tile when the file is absent (dev / not yet built).
   // Unlike the icon (inlined), the preview is a PATH served by the shell's static
   // handler - a sizeable PNG would bloat the index every shell fetches.
+  //
+  // MOTION is resolved separately, into `anim`, and `preview` stays the STILL file
+  // (plans/155 WP-5.3). A tool whose content genuinely animates can commit a
+  // tools/<id>/card.webm, or an APNG tools/<id>/card.png; the surfaces play it only on
+  // hover / focus / the centered tile, so pointing `preview` at it would hand every
+  // surface a file it has to download just to paint a thumbnail. An APNG card.png is
+  // therefore NOT a candidate for `preview` either - hence the acTL sniff below, which is
+  // the only way to tell one from a still PNG of the same name.
+  const animCard = join(ROOT, 'tools', manifest.id, 'card.webm');
+  const pngCard = join(ROOT, 'tools', manifest.id, 'card.png');
+  const pngCardAnimated = existsSync(pngCard) && isAnimatedPng(pngCard);
+  if (existsSync(animCard)) entry.anim = `/tools/${manifest.id}/card.webm`;
+  else if (pngCardAnimated) entry.anim = `/tools/${manifest.id}/card.png`;
+
   if (existsSync(join(ROOT, 'tools', manifest.id, 'card.html'))) {
     entry.preview = `/tools/${manifest.id}/card.html`;
   } else if (existsSync(join(ROOT, 'tools', manifest.id, 'card.svg'))) {
     entry.preview = `/tools/${manifest.id}/card.svg`;
-  } else if (existsSync(join(ROOT, 'tools', manifest.id, 'card.png'))) {
+  } else if (existsSync(pngCard) && !pngCardAnimated) {
     entry.preview = `/tools/${manifest.id}/card.png`;
   } else {
     // Vector tools default to a crisp .svg preview; raster/HTML tools to .png. But
@@ -238,6 +271,9 @@ export function entryFromManifest(manifest: Manifest): Record<string, unknown> {
 //             looks' identity still rides `looks` below.
 //   formats/width/height/unit/exportable/paged/privacy/version - info-dialog and
 //             carousel inputs, none of which change the tile's box.
+//   anim      the motion file (WP-5.3). Nothing plays it until a hover, a focus or the
+//             centered tile on touch, and the full index has arrived long before a human
+//             produces any of those - so the first paint would carry a URL it cannot use.
 // `icon` IS carried despite the plan text ("no inline icon SVG"): it is 24 KB raw /
 // ~4 KB gz, and it is the ONE thing Task 4.3's skeleton is made of - the
 // .gtile-iconfill-trace shimmer strokes the tool's own icon while its art streams in.

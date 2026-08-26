@@ -176,7 +176,7 @@ import { isToolUrl } from './tool-url.ts';
 import { assetIdForUrl, blocksForUrl } from './bake.ts';
 import { normalizeLang } from './lang.ts';
 import type { Lang } from './lang.ts';
-import { normalizeTableValue } from './inputs.ts';
+import { normalizeTableValue, syntheticInputs } from './inputs.ts';
 import type { BlockFieldSpec, InputManifest, InputSpec, InputValue, TableValue } from './inputs.ts';
 import type { PrintMarksFlags } from './print-marks.ts';
 import type { AssetRef } from './bridge/host-v1.ts';
@@ -484,7 +484,11 @@ export function parseUrlState(searchParams: string | URLSearchParams, manifest: 
   // Vector sub-fields are flat params named "<inputId>.<fieldId>" (e.g.
   // transform.zoom=200) - legible and one value per param.
   const vectorFieldByKey: Record<string, { input: InputSpec; field: BlockFieldSpec }> = {};
-  for (const i of manifest.inputs ?? []) {
+  // Declared inputs PLUS the synthesised ones (transparentBg / convertPaths) - otherwise a
+  // URL/CLI param for a synthesised input is silently dropped (it's absent from
+  // manifest.inputs), so ?transparentBg=true never reaches the render. Same source of truth
+  // as buildInputModel.
+  for (const i of [...(manifest.inputs ?? []), ...syntheticInputs(manifest)]) {
     inputsByKey[i.id] = i;
     if (i.urlKey) inputsByKey[i.urlKey] = i;
     if (i.type === 'vector') {

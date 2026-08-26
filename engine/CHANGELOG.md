@@ -6,6 +6,17 @@ minors, never removed or signature-changed without a major bump.
 
 Moved verbatim from the comment block that used to live in `src/index.ts`.
 
+1.153.0 - `host.scan`, an optional/additive on-device code reader (plans/162
+Part 2). New `ScanAPI` on the bridge (`packages/core/src/host-v1.ts`):
+`formats()` lists the symbologies this shell can decode (BarcodeDetector naming),
+and `detect(frame, opts?)` finds every machine-readable code in one RGBA frame
+(a live `MediaFrame` or a still-image `RasterFrame` are both structurally valid),
+resolving `ScanHit[]` (`format` + `rawValue` + optional `rawBytes`/`corners`).
+The dual of the qr-code generator: same-platform generate + read. Shell ladder is
+native `BarcodeDetector` → lazy zxing-wasm; absent on shells with no decoder, and
+NOT capability-gated (progressive enhancement, like `media`). Decoded text is
+untrusted - the contract says a reader must not act on it automatically.
+
 1.152.0 - one uniform image framing (plans/148). New module `framing.ts`:
 `frameRect()` (where an image lands inside a frame, as source + destination
 rectangles plus a roll about the pan point) and `framingStyle()` (the same

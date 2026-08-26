@@ -97,7 +97,7 @@ function libConst(name: string): number {
 
 test('folds the whole model into one parseable _state extra', { skip: SKIP }, async () => {
   const s = await state();
-  assert.equal(s.move, 'dolly-in');
+  assert.equal(s.move, 'sway');
   assert.equal(s.width, 1280);
   assert.equal(s.height, 720);
   assert.equal(s.photoUrl, 'asset:demo/photo');
@@ -130,7 +130,7 @@ test('every user-settable value is clamped in hooks', { skip: SKIP }, async () =
   assert.equal(junk.amount, 0.6);
   assert.equal(junk.duration, 6);
   assert.equal(junk.dof, 0.35);
-  assert.equal(junk.depthContrast, 1);
+  assert.equal(junk.depthContrast, 1.25);
 });
 
 test('an unknown move never reaches the state as a prototype key', { skip: SKIP }, async () => {

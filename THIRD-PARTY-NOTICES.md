@@ -1265,6 +1265,86 @@ SOFTWARE.
 license of the upstream project, https://github.com/evanw/kiwi.)
 ```
 
+### zxing-wasm 3.1.3
+
+- SPDX-License-Identifier: `MIT`
+- Copyright: Copyright (c) 2023 Ze-Zheng Wu
+- zxing-wasm is the MIT JS/WASM wrapper; the ZXing C++ engine it embeds is Apache-2.0 (see the separate "ZXing C++ (compiled WASM)" entry).
+
+```text
+MIT License
+
+Copyright (c) 2023 Ze-Zheng Wu
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+```
+
+### ZXing C++ (compiled WASM) (bundled in zxing-wasm)
+
+- SPDX-License-Identifier: `Apache-2.0`
+- Files: `node_modules/zxing-wasm/dist/reader/zxing_reader.wasm (shipped + PWA-precached)`
+- Copyright: © ZXing authors; C++ port © Axel Waggershauser (nu-book/zxing-cpp)
+
+```text
+                                 Apache License
+                           Version 2.0, January 2004
+                        http://www.apache.org/licenses/
+
+   TERMS AND CONDITIONS FOR USE, REPRODUCTION, AND DISTRIBUTION
+
+   1. Definitions.
+
+   "License" shall mean the terms and conditions for use, reproduction, and
+   distribution as defined by Sections 1 through 9 of this document.
+
+   "Licensor" shall mean the copyright owner or entity authorized by the
+   copyright owner that is granting the License.
+
+   "You" (or "Your") shall mean an individual or Legal Entity exercising
+   permissions granted by this License.
+
+   2. Grant of Copyright License. Subject to the terms and conditions of this
+   License, each Contributor hereby grants to You a perpetual, worldwide,
+   non-exclusive, no-charge, royalty-free, irrevocable copyright license to
+   reproduce, prepare Derivative Works of, publicly display, publicly perform,
+   sublicense, and distribute the Work and such Derivative Works in Source or
+   Object form.
+
+   3. Grant of Patent License. Subject to the terms and conditions of this
+   License, each Contributor hereby grants to You a perpetual, worldwide,
+   non-exclusive, no-charge, royalty-free, irrevocable (except as stated in
+   this section) patent license to make, have made, use, offer to sell, sell,
+   import, and otherwise transfer the Work.
+
+   7. Disclaimer of Warranty. Unless required by applicable law or agreed to in
+   writing, Licensor provides the Work (and each Contributor provides its
+   Contributions) on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+   KIND, either express or implied.
+
+   8. Limitation of Liability. In no event and under no legal theory shall any
+   Contributor be liable to You for damages arising out of the use or inability
+   to use the Work.
+
+   Full text: http://www.apache.org/licenses/LICENSE-2.0
+
+```
+
 ### @huggingface/transformers 3.8.1
 
 - SPDX-License-Identifier: `Apache-2.0`
@@ -2576,6 +2656,64 @@ Apache License
 > The CLI shell also uses `@lolly/engine` (handlebars, ajv) and `pdf-lib`, whose notices appear above under "Bundled in the web app".
 
 ## Vendored libraries
+
+### bwip-js (with BWIPP) 4.11.4 (@bwip-js/generic; BWIPP 2026-05-28)
+
+- SPDX-License-Identifier: `MIT`
+- Files: `tools/qr-code/hooks.js (inlined selective esbuild bundle)`
+- Copyright: Copyright (c) 2011-2026 Mark Warren; BWIPP Copyright (c) 2004-2024 Terry Burton
+- Selective bundle: the Data Matrix / GS1 Data Matrix / PDF417 / Aztec / Micro QR / MaxiCode / ITF-14 / Code 39 / Codabar / GS1-128 / GS1 DataBar / ISBN / UPC-E encoders plus the SVG drawing surface. Rebuild instructions sit above the bundle in the hooks file.
+
+```text
+Copyright (c) 2011-2026 Mark Warren (bwip-js)
+Copyright (c) 2004-2024 Terry Burton (Barcode Writer in Pure PostScript)
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+```
+
+### qrcode-svg 1.1.0
+
+- SPDX-License-Identifier: `MIT`
+- Files: `tools/qr-code/hooks.js (inlined)`
+- Copyright: Copyright (c) 2016 papnkukn
+
+```text
+Copyright (c) 2016 papnkukn
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+```
 
 ### d3 7.9.0
 

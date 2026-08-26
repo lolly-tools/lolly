@@ -1,10 +1,10 @@
 {
   "bomFormat": "CycloneDX",
   "specVersion": "1.5",
-  "serialNumber": "urn:uuid:89884e05-e872-4bc1-813a-b177096afa46",
+  "serialNumber": "urn:uuid:bdbfe581-b5e6-48a5-8ec6-c046d9babef3",
   "version": 1,
   "metadata": {
-    "timestamp": "2026-08-25T14:27:58.447Z",
+    "timestamp": "2026-08-26T10:09:10.352Z",
     "tools": [
       {
         "vendor": "lolly",
@@ -24129,33 +24129,6 @@
     },
     {
       "type": "library",
-      "bom-ref": "pkg:npm/%40types/wicg-file-system-access@2020.9.8",
-      "name": "@types/wicg-file-system-access",
-      "version": "2020.9.8",
-      "purl": "pkg:npm/%40types/wicg-file-system-access@2020.9.8",
-      "scope": "required",
-      "licenses": [
-        {
-          "license": {
-            "id": "MIT"
-          }
-        }
-      ],
-      "hashes": [
-        {
-          "alg": "SHA-512",
-          "content": "820333f273b2806eddfecb691f8d1655a36f070bb260b9eb83931bc9fe9b9ac8fff3e81be848b8659f7fe0f36970f3534fcb61f50f2c33cc189961a33162d7fc"
-        }
-      ],
-      "externalReferences": [
-        {
-          "type": "distribution",
-          "url": "https://registry.npmjs.org/@types/wicg-file-system-access/-/wicg-file-system-access-2020.9.8.tgz"
-        }
-      ]
-    },
-    {
-      "type": "library",
       "bom-ref": "pkg:npm/accepts@2.0.0",
       "name": "accepts",
       "version": "2.0.0",
@@ -24937,6 +24910,33 @@
         {
           "type": "distribution",
           "url": "https://registry.npmjs.org/butterchurn/-/butterchurn-2.6.7.tgz"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:npm/bwip-js@4.11.4",
+      "name": "bwip-js",
+      "version": "4.11.4",
+      "purl": "pkg:npm/bwip-js@4.11.4",
+      "scope": "required",
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT"
+          }
+        }
+      ],
+      "hashes": [
+        {
+          "alg": "SHA-512",
+          "content": "88d2b107fe97fd77578ec33ce449d53f718d634c2f1bdd46c7e44f64429d453e5ca3dbde6c16aefe589094da7a37eb07cc16cefcd2c90ce7135b01bbe651ba64"
+        }
+      ],
+      "properties": [
+        {
+          "name": "lolly:vendored",
+          "value": "tools/qr-code/hooks.js"
         }
       ]
     },
@@ -31021,33 +31021,6 @@
     },
     {
       "type": "library",
-      "bom-ref": "pkg:npm/mp4-muxer@5.2.2",
-      "name": "mp4-muxer",
-      "version": "5.2.2",
-      "purl": "pkg:npm/mp4-muxer@5.2.2",
-      "scope": "required",
-      "licenses": [
-        {
-          "license": {
-            "id": "MIT"
-          }
-        }
-      ],
-      "hashes": [
-        {
-          "alg": "SHA-512",
-          "content": "761a338d3cb0234876a85cde4a16a0b7c618c3cd757e1d57970883084d9fe807aa7fac46d82cae4a1a126b91340190cef293c5d09399df03a6581356206752a5"
-        }
-      ],
-      "externalReferences": [
-        {
-          "type": "distribution",
-          "url": "https://registry.npmjs.org/mp4-muxer/-/mp4-muxer-5.2.2.tgz"
-        }
-      ]
-    },
-    {
-      "type": "library",
       "bom-ref": "pkg:npm/ms@2.1.3",
       "name": "ms",
       "version": "2.1.3",
@@ -32807,6 +32780,33 @@
         {
           "type": "distribution",
           "url": "https://registry.npmjs.org/punycode/-/punycode-2.3.1.tgz"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:npm/qrcode-svg@1.1.0",
+      "name": "qrcode-svg",
+      "version": "1.1.0",
+      "purl": "pkg:npm/qrcode-svg@1.1.0",
+      "scope": "required",
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT"
+          }
+        }
+      ],
+      "hashes": [
+        {
+          "alg": "SHA-512",
+          "content": "88d2b107fe97fd77578ec33ce449d53f718d634c2f1bdd46c7e44f64429d453e5ca3dbde6c16aefe589094da7a37eb07cc16cefcd2c90ce7135b01bbe651ba64"
+        }
+      ],
+      "properties": [
+        {
+          "name": "lolly:vendored",
+          "value": "tools/qr-code/hooks.js"
         }
       ]
     },
@@ -35883,33 +35883,6 @@
         {
           "type": "distribution",
           "url": "https://registry.npmjs.org/webidl-conversions/-/webidl-conversions-7.0.0.tgz"
-        }
-      ]
-    },
-    {
-      "type": "library",
-      "bom-ref": "pkg:npm/webm-muxer@5.1.4",
-      "name": "webm-muxer",
-      "version": "5.1.4",
-      "purl": "pkg:npm/webm-muxer@5.1.4",
-      "scope": "required",
-      "licenses": [
-        {
-          "license": {
-            "id": "MIT"
-          }
-        }
-      ],
-      "hashes": [
-        {
-          "alg": "SHA-512",
-          "content": "762b738055456dfa8f6ae82422be261a101da1be4af4763a473961ed346c037ebcc80d6ca7f9b93bb9d009c30b76014378d1ad14f83c07e31e5cbb69cca597e9"
-        }
-      ],
-      "externalReferences": [
-        {
-          "type": "distribution",
-          "url": "https://registry.npmjs.org/webm-muxer/-/webm-muxer-5.1.4.tgz"
         }
       ]
     },

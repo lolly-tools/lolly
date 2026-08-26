@@ -129,7 +129,20 @@ test('the two-field row survives the third block field', { skip: SKIP }, async (
   assert.equal(error, '');
   assert.ok(svg.includes('href="https://suse.com"'));
   assert.ok(svg.includes('>docs.suse.com</span>'), 'second row still falls back to the host');
-  assert.ok(!svg.includes('jp-icon'), 'no glyph is invented for a two-field row');
+  // An emoji glyph is never invented - the scene's parallax layer for an
+  // icon-less link is the ghost letterform, the label's own first grapheme.
+  assert.ok(!svg.includes('jp-icon'), 'no emoji glyph is invented for a two-field row');
+  assert.ok(svg.includes('class="jp-ghost" aria-hidden="true">S</span>'), 'the label seeds the ghost letterform');
+  assert.ok(svg.includes('class="jp-ghost" aria-hidden="true">D</span>'), 'a host-fallback label seeds it too');
+});
+
+test('a chosen glyph replaces the ghost letterform, never joins it', { skip: SKIP }, async () => {
+  const withIcon = await mount({ links: [{ label: 'Films', url: 'https://example.com', icon: '🎬' }] });
+  assert.ok(withIcon.svg.includes('jp-icon'), 'the chosen glyph renders');
+  assert.ok(!withIcon.svg.includes('jp-ghost'), 'no ghost letterform beside a chosen glyph');
+  const without = await mount({ links: [{ label: 'films', url: 'https://example.com' }] });
+  assert.ok(without.svg.includes('class="jp-ghost" aria-hidden="true">F</span>'),
+    'no glyph chosen: the first grapheme stands in, uppercased so it reads as a mark');
 });
 
 test('a glyph is trimmed and capped, never a caption', { skip: SKIP }, async () => {

@@ -302,6 +302,11 @@ export interface Runtime {
  *        compose bridge when rendering a child, so nested composition
  *        (A embeds B embeds C) carries cycle/depth detection downward.
  */
+// Raster formats that carry an alpha channel - the ones a transparent background is
+// meaningful for. SVG keeps its transparency through a fill:none bg rect, so it needs no
+// help here; JPEG has no alpha at all.
+const ALPHA_EXPORT_FORMATS = new Set(['png', 'webp', 'avif', 'apng', 'webp-anim', 'gif']);
+
 export async function createRuntime(
   tool: LoadedTool,
   host: HostV1,
@@ -988,6 +993,18 @@ export async function createRuntime(
         // raise user-facing preconditions (e.g. url-shot's "enter a URL"), and
         // exporting an unstaged canvas silently would be worse than failing.
         await runHook('beforeExport', () => beforeExport({ node: renderedNode, format, opts, host }));
+      }
+      // Central transparent-background default - the counterpart to a tool's own beforeExport.
+      // A tool whose synthesised `transparentBg` input is ON wants a transparent backdrop, but
+      // many only omit the SVG bg rect and never clear the RASTER canvas, so their PNG/WebP
+      // exported composited onto opaque white (the gap d3 carried). Honour the input here for
+      // alpha-capable formats when neither the caller nor the tool's beforeExport set a
+      // background - a tool's explicit background always wins, since this runs only while
+      // opts.background is still unset. Effect tools with a prefixed toggle (filter's
+      // ht_transparentBg) clear the canvas in their own beforeExport and are untouched.
+      if (opts.background == null && ALPHA_EXPORT_FORMATS.has(format)
+          && model.find(i => i.id === 'transparentBg')?.value === true) {
+        opts.background = 'transparent';
       }
       // Tool-owned still: a tool that computes its own high-precision bytes for
       // this format (e.g. a float grading pipeline → 16-bit PNG / OpenEXR the

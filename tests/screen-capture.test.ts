@@ -371,8 +371,11 @@ test('ENGINE_VERSION is 1.128.0', () => {
   // marker, the optional manifest key `framingFor`, and canonical imageFraming.rotate
   // / imageFit / imageCrop. Manifest + template additions, no HostV1 change - see
   // framing.test.ts).
+  // Then 1.153.0 (plans/162 Part 2: host.scan - the optional/additive on-device
+  // code reader, ScanAPI in packages/core/src/host-v1.ts. New HostV1 field, no
+  // change to any existing method - see the scan-code + qr-code-roundtrip suites).
   // The ^1.54.0 screencap floor below still holds (a minor bump satisfies it).
-  assert.equal(ENGINE_VERSION, '1.152.0');
+  assert.equal(ENGINE_VERSION, '1.153.0');
 });
 
 // ─── loadTool: a ^1.54.0 tool loads against this engine ───────────────────────

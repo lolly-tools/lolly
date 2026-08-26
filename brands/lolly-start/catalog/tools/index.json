@@ -1,6 +1,6 @@
 {
   "version": "1",
-  "generatedAt": "2026-08-26T02:44:51.700Z",
+  "generatedAt": "2026-08-26T13:21:06.184Z",
   "tools": [
     {
       "id": "compress-pdf",
@@ -268,8 +268,8 @@
     {
       "id": "qr-code",
       "name": "QR Code Generator",
-      "description": "QR codes for a link, contact card, Wi-Fi network, calendar event, location or plain text.",
-      "version": "2.4.0",
+      "description": "Scannable codes of every kind: QR, Micro QR, Data Matrix, Aztec and PDF417 for links, contacts, Wi-Fi, events, locations and text - plus retail and logistics barcodes from EAN-13 and Code 128 to ITF-14, GS1-128, GS1 DataBar and MaxiCode.",
+      "version": "2.6.0",
       "status": "official",
       "category": "everyone",
       "tags": [
@@ -278,7 +278,12 @@
         "link",
         "marketing",
         "vcard",
-        "wifi"
+        "wifi",
+        "barcode",
+        "gs1",
+        "datamatrix",
+        "shipping",
+        "packaging"
       ],
       "formats": [
         "svg",
@@ -301,7 +306,7 @@
       "icon": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><rect width=\"5\" height=\"5\" x=\"3\" y=\"3\" rx=\"1\" /><rect width=\"5\" height=\"5\" x=\"16\" y=\"3\" rx=\"1\" /><rect width=\"5\" height=\"5\" x=\"3\" y=\"16\" rx=\"1\" /><path d=\"M21 16h-3a2 2 0 0 0-2 2v3\" /><path d=\"M21 21v.01\" /><path d=\"M12 7v3a2 2 0 0 1-2 2H7\" /><path d=\"M3 12h.01\" /><path d=\"M12 3h.01\" /><path d=\"M12 16v.01\" /><path d=\"M16 12h1\" /><path d=\"M21 12v.01\" /><path d=\"M12 21v-1\" /></svg>",
       "preview": "/catalog/previews/qr-code.svg",
       "featured": {
-        "order": 10,
+        "order": 6,
         "blurb": "QR codes in any brand colour"
       },
       "examples": [
@@ -368,6 +373,25 @@
             "join": true,
             "color": "#0f766e",
             "background": "#ecfdf5"
+          }
+        },
+        {
+          "label": "Food batch, GS1 Data Matrix",
+          "values": {
+            "payload": "gs1",
+            "gs1Carrier": "gs1datamatrix",
+            "value": "(01)09521234543213(17)270831(10)LOT42",
+            "color": "#7c2d12",
+            "background": "#fff7ed"
+          }
+        },
+        {
+          "label": "Carton, ITF-14",
+          "values": {
+            "payload": "itf14",
+            "value": "1931234567890",
+            "color": "#1a1a2e",
+            "background": "#faf7f2"
           }
         }
       ],
@@ -440,6 +464,24 @@
           ]
         },
         {
+          "id": "inventory",
+          "name": "Inventory label",
+          "category": "Utility",
+          "description": "A Data Matrix for archive boxes, assets and small parts - scans from a thumbnail-sized square.",
+          "presets": [
+            {
+              "id": "legacy",
+              "name": "Code 39 asset tag",
+              "description": "For older laser scanners that only read linear codes."
+            },
+            {
+              "id": "library",
+              "name": "Library Codabar",
+              "description": "The classic membership and circulation symbology."
+            }
+          ]
+        },
+        {
           "id": "menu",
           "name": "Table tent menu",
           "category": "Utility",
@@ -459,6 +501,29 @@
               "id": "brand",
               "name": "Brand colours",
               "description": "Modules in your brand primary on the brand surface."
+            }
+          ]
+        },
+        {
+          "id": "shipping",
+          "name": "Logistics label",
+          "category": "Utility",
+          "description": "A GS1-128 carrying an SSCC-18, the pallet and carton licence plate on shipping labels.",
+          "presets": [
+            {
+              "id": "sscc",
+              "name": "Pallet SSCC",
+              "description": "The serial shipping container code on its own."
+            },
+            {
+              "id": "batch",
+              "name": "Batch and best-before",
+              "description": "GTIN with expiry date and lot number, the food and pharma trio."
+            },
+            {
+              "id": "square",
+              "name": "Small square",
+              "description": "The same element string as a GS1 Data Matrix for tight labels."
             }
           ]
         },
@@ -543,132 +608,132 @@
       "i18n": {
         "ar": {
           "name": "مولد رموز QR",
-          "description": "رموز QR لأي عنوان URL، مع تحكم كامل في اللون والنمط.",
+          "description": "رموز QR لرابط، أو بطاقة تواصل، أو شبكة Wi-Fi، أو موعد في التقويم، أو موقع جغرافي، أو نص عادي.",
           "blurb": "رموز QR بأي لون من ألوان علامتك"
         },
         "bg": {
           "name": "Генератор на QR кодове",
-          "description": "QR кодове за всеки URL, с пълен контрол върху цвета и стила.",
+          "description": "QR кодове за линк, визитка за контакт, Wi-Fi мрежа, събитие в календара, местоположение или обикновен текст.",
           "blurb": "QR кодове във всеки брандов цвят"
         },
         "bn": {
           "name": "QR কোড জেনারেটর",
-          "description": "যেকোনো URL-এর জন্য QR কোড, রং ও স্টাইলের পূর্ণ নিয়ন্ত্রণসহ।",
+          "description": "লিঙ্ক, কন্টাক্ট কার্ড, Wi-Fi নেটওয়ার্ক, ক্যালেন্ডার ইভেন্ট, লোকেশন বা সাধারণ টেক্সটের জন্য QR কোড।",
           "blurb": "যেকোনো ব্র্যান্ড রঙে QR কোড"
         },
         "cs": {
           "name": "Generátor QR kódů",
-          "description": "QR kódy pro libovolnou adresu URL s plnou kontrolou nad barvami a stylem.",
+          "description": "QR kódy pro odkaz, kontaktní kartu, síť Wi-Fi, událost v kalendáři, polohu nebo prostý text.",
           "blurb": "QR kódy v libovolné barvě značky"
         },
         "de": {
           "name": "QR-Code-Generator",
-          "description": "QR-Codes für jede URL, mit voller Kontrolle über Farbe und Stil.",
+          "description": "QR-Codes für einen Link, eine Kontaktkarte, ein Wi-Fi-Netzwerk, einen Kalendertermin, einen Standort oder reinen Text.",
           "blurb": "QR-Codes in jeder Markenfarbe"
         },
         "es": {
           "name": "Generador de códigos QR",
-          "description": "Códigos QR para cualquier URL, con control total de color y estilo.",
+          "description": "Códigos QR para un enlace, una tarjeta de contacto, una red Wi-Fi, un evento de calendario, una ubicación o texto sencillo.",
           "blurb": "Códigos QR en cualquier color de marca"
         },
         "fr": {
           "name": "Générateur de code QR",
-          "description": "Des codes QR pour n'importe quelle URL, avec un contrôle total de la couleur et du style.",
+          "description": "Des codes QR pour un lien, une carte de contact, un réseau Wi-Fi, un événement de calendrier, un lieu ou du texte brut.",
           "blurb": "Des codes QR dans toutes les couleurs de ta marque"
         },
         "hi": {
           "name": "QR कोड जनरेटर",
-          "description": "किसी भी URL के लिए QR कोड, रंग और शैली पर पूरे नियंत्रण के साथ।",
+          "description": "लिंक, कॉन्टैक्ट कार्ड, Wi-Fi नेटवर्क, कैलेंडर इवेंट, लोकेशन या सादे टेक्स्ट के लिए QR कोड।",
           "blurb": "किसी भी ब्रांड रंग में QR कोड"
         },
         "id": {
           "name": "Generator Kode QR",
-          "description": "Kode QR untuk URL apa pun, dengan kontrol penuh atas warna dan gaya.",
+          "description": "Kode QR untuk tautan, kartu kontak, jaringan Wi-Fi, acara kalender, lokasi, atau teks biasa.",
           "blurb": "Kode QR dalam warna brand apa pun"
         },
         "it": {
           "name": "Generatore di codici QR",
-          "description": "Codici QR per qualsiasi URL, con pieno controllo su colore e stile.",
+          "description": "Codici QR per un link, una scheda contatto, una rete Wi-Fi, un evento di calendario, una posizione o del semplice testo.",
           "blurb": "Codici QR in qualsiasi colore del brand"
         },
         "ja": {
           "name": "QRコード生成ツール",
-          "description": "任意のURLからQRコードを作成できます。色やスタイルを自由に調整可能です。",
+          "description": "リンク、連絡先カード、Wi-Fiネットワーク、カレンダーの予定、位置情報、プレーンテキストのQRコードを作成します。",
           "blurb": "ブランドカラーでQRコードを作成"
         },
         "ko": {
           "name": "QR 코드 생성기",
-          "description": "모든 URL에 대한 QR 코드를 만들고, 색상과 스타일을 마음대로 조정하세요.",
+          "description": "링크, 연락처 카드, Wi-Fi 네트워크, 캘린더 일정, 위치, 일반 텍스트까지 QR 코드로 만들어요.",
           "blurb": "브랜드 색상 그대로 만드는 QR 코드"
         },
         "ms": {
           "name": "Penjana Kod QR",
-          "description": "Kod QR untuk sebarang URL, dengan kawalan penuh warna dan gaya.",
+          "description": "Kod QR untuk pautan, kad kenalan, rangkaian Wi-Fi, acara kalendar, lokasi atau teks biasa.",
           "blurb": "Kod QR dalam sebarang warna jenama"
         },
         "nl": {
           "name": "QR-codegenerator",
-          "description": "QR-codes voor elke URL, met volledige controle over kleur en stijl.",
+          "description": "QR-codes voor een link, contactkaart, Wi-Fi-netwerk, agenda-afspraak, locatie of platte tekst.",
           "blurb": "QR-codes in elke merkkleur"
         },
         "no": {
           "name": "QR-kodgenerator",
-          "description": "QR-koder for enhver URL, med full kontroll over farge og stil.",
+          "description": "QR-koder for en lenke, et kontaktkort, et Wi-Fi-nettverk, en kalenderhendelse, et sted eller ren tekst.",
           "blurb": "QR-koder i valgfri merkefarge"
         },
         "pl": {
           "name": "Generator kodów QR",
-          "description": "Kody QR dla dowolnego adresu URL, z pełną kontrolą kolorów i stylu.",
+          "description": "Kody QR dla linku, wizytówki, sieci Wi-Fi, wydarzenia w kalendarzu, lokalizacji lub zwykłego tekstu.",
           "blurb": "Kody QR w każdym kolorze marki"
         },
         "pt": {
           "name": "Gerador de Código QR",
-          "description": "Códigos QR para qualquer URL, com controle total de cor e estilo.",
+          "description": "Códigos QR para um link, cartão de contato, rede Wi-Fi, evento de calendário, localização ou texto simples.",
           "blurb": "Códigos QR em qualquer cor da marca"
         },
         "ro": {
           "name": "Generator de coduri QR",
-          "description": "Coduri QR pentru orice URL, cu control total asupra culorii și stilului.",
+          "description": "Coduri QR pentru un link, o carte de vizită, o rețea Wi-Fi, un eveniment de calendar, o locație sau text simplu.",
           "blurb": "Coduri QR în orice culoare de brand"
         },
         "sv": {
           "name": "QR-kodgenerator",
-          "description": "QR-koder för valfri URL, med full kontroll över färg och stil.",
+          "description": "QR-koder för en länk, ett kontaktkort, Wi-Fi-nätverk, kalenderhändelse, plats eller vanlig text.",
           "blurb": "QR-koder i valfri varumärkesfärg"
         },
         "tl": {
           "name": "Gumawa ng QR Code",
-          "description": "Mga QR code para sa kahit anong URL, may kumpletong kontrol sa kulay at istilo.",
+          "description": "Mga QR code para sa isang link, contact card, Wi-Fi network, calendar event, lokasyon o plain text.",
           "blurb": "Mga QR code sa kahit anong kulay ng brand"
         },
         "tr": {
           "name": "QR Kod Oluşturucu",
-          "description": "Her URL için QR kodları, tam renk ve stil kontrolüyle.",
+          "description": "Bağlantı, kişi kartı, Wi-Fi ağı, takvim etkinliği, konum ya da düz metin için QR kodları.",
           "blurb": "Her marka renginde QR kodları"
         },
         "uk": {
           "name": "Генератор QR-кодів",
-          "description": "QR-коди для будь-якої URL-адреси з повним контролем кольору й стилю.",
+          "description": "QR-коди для посилання, контактної картки, мережі Wi-Fi, події в календарі, місця розташування або звичайного тексту.",
           "blurb": "QR-коди у будь-якому брендовому кольорі"
         },
         "ur": {
           "name": "QR کوڈ جنریٹر",
-          "description": "کسی بھی URL کے لیے QR کوڈز، مکمل رنگ اور اسٹائل کنٹرول کے ساتھ۔",
+          "description": "کسی لنک، رابطہ کارڈ، Wi-Fi نیٹ ورک، کیلنڈر ایونٹ، مقام یا سادہ متن کے لیے QR کوڈز۔",
           "blurb": "کسی بھی برانڈ رنگ میں QR کوڈز"
         },
         "vi": {
           "name": "Trình Tạo Mã QR",
-          "description": "Mã QR cho bất kỳ URL nào, tùy chỉnh toàn bộ màu sắc và kiểu dáng.",
+          "description": "Tạo mã QR cho một liên kết, danh thiếp liên hệ, mạng Wi-Fi, sự kiện lịch, vị trí hoặc văn bản thuần.",
           "blurb": "Mã QR theo bất kỳ màu thương hiệu nào"
         },
         "zh-hant": {
           "name": "QR Code 產生器",
-          "description": "為任何網址產生 QR Code，顏色與樣式完全可自訂。",
+          "description": "產生連結、聯絡卡、Wi-Fi 網路、行事曆活動、地點或純文字用的 QR Code。",
           "blurb": "任何品牌色都能產生 QR Code"
         },
         "zh": {
           "name": "二维码生成器",
-          "description": "为任意网址生成二维码，颜色和样式完全可控。",
+          "description": "生成链接、联系人名片、Wi-Fi 网络、日历事件、位置或纯文本的二维码。",
           "blurb": "任意品牌色都能生成二维码"
         }
       }
@@ -1393,7 +1458,7 @@
       "icon": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><rect x=\"9\" y=\"2\" width=\"6\" height=\"12\" rx=\"3\"/><path d=\"M5 10a7 7 0 0 0 14 0\"/><line x1=\"12\" y1=\"19\" x2=\"12\" y2=\"22\"/><line x1=\"8\" y1=\"22\" x2=\"16\" y2=\"22\"/></svg>",
       "preview": "/catalog/previews/voice-recorder.svg",
       "featured": {
-        "order": 2,
+        "order": 7,
         "blurb": "Record a clean voice note with live level coaching"
       },
       "i18n": {
@@ -1658,7 +1723,7 @@
         },
         "bn": {
           "name": "প্যালেট ল্যাব",
-          "description": "একটি মূল রঙ থেকে একটি প্যালেট বাড়ান - হারমনি অ্যাকসেন্ট, পার্সেপচুয়াল OKLab র্যাম্প এবং WCAG/APCA পঠনযোগ্যতা ব্যাজ, DTCG টোকেন ও CSV এক্সপোর্ট সহ।"
+          "description": "একটি মূল রঙ থেকে একটি প্যালেট বাড়ান - হারমনি অ্যাকসেন্ট, পার্সেপচুয়াল OKLab র‌্যাম্প এবং WCAG/APCA পঠনযোগ্যতা ব্যাজ, DTCG টোকেন ও CSV এক্সপোর্ট সহ।"
         },
         "cs": {
           "name": "Laboratoř palet",
@@ -1945,107 +2010,107 @@
       "i18n": {
         "ar": {
           "name": "تدرج شبكي",
-          "description": "تدرجات شبكية ناعمة من ألوان علامتك. اسحب نقاط الألوان مباشرة على اللوحة."
+          "description": "تدرجات لونية ناعمة بأسلوب الشبكة من ألوان علامتك التجارية. اسحب نقاط اللون مباشرة على اللوحة، أو فعّل خاصية الانجراف وصدّر الحلقة بصيغة WebM أو MP4 أو GIF."
         },
         "bg": {
           "name": "Мрежест градиент",
-          "description": "Меки мрежести градиенти от брандовите ти цветове. Влачи цветните точки директно върху платното."
+          "description": "Меки градиенти в стил мрежа от цветовете на твоя бранд. Провлачи цветовите точки директно върху платното, или включи Дрейф и експортирай цикъла като WebM, MP4 или GIF."
         },
         "bn": {
           "name": "মেশ গ্রেডিয়েন্ট",
-          "description": "আপনার ব্র্যান্ড সোয়াচ থেকে নরম মেশ-স্টাইল গ্রেডিয়েন্ট। রঙের বিন্দুগুলি সরাসরি ক্যানভাসেই টেনে সরান।"
+          "description": "আপনার ব্র্যান্ডের রং থেকে সফট মেশ-স্টাইল গ্রেডিয়েন্ট। রঙের বিন্দুগুলি সরাসরি ক্যানভাসে টেনে সরান, অথবা ড্রিফট চালু করে লুপটি WebM, MP4 বা GIF হিসেবে এক্সপোর্ট করুন।"
         },
         "cs": {
           "name": "Síťový gradient",
-          "description": "Jemné síťové přechody z barev tvé značky. Barevné body přetáhneš přímo na plátně."
+          "description": "Jemné síťové přechody z barev tvé značky. Táhni barevné body přímo na plátně, nebo zapni pomalý plynulý pohyb bodů a exportuj smyčku jako WebM, MP4 nebo GIF."
         },
         "de": {
           "name": "Mesh-Verlauf",
-          "description": "Weiche Mesh-Verläufe aus Ihren Markenfarben. Ziehen Sie die Farbpunkte direkt auf der Zeichenfläche."
+          "description": "Weiche Mesh-Verläufe aus den Farbfeldern Ihrer Marke. Ziehen Sie die Farbpunkte direkt auf der Zeichenfläche, oder aktivieren Sie Drift und exportieren Sie die Schleife als WebM, MP4 oder GIF."
         },
         "es": {
           "name": "Degradado de malla",
-          "description": "Degradados suaves estilo malla a partir de tus muestras de marca. Arrastra los puntos de color directamente en el lienzo."
+          "description": "Degradados suaves tipo malla a partir de los colores de tu marca. Arrastra los puntos de color directamente en el lienzo, o activa Deriva y exporta el bucle como WebM, MP4 o GIF."
         },
         "fr": {
           "name": "Dégradé maillé",
-          "description": "Des dégradés doux façon maillage à partir des couleurs de ta marque. Fais glisser les points de couleur directement sur le canevas."
+          "description": "Des dégradés doux façon maillage à partir des couleurs de ta marque. Fais glisser les points de couleur directement sur le canevas, ou active la dérive et exporte la boucle en WebM, MP4 ou GIF."
         },
         "hi": {
           "name": "मेश ग्रेडिएंट",
-          "description": "आपके ब्रांड स्वैच से नरम मेश-शैली के ग्रेडिएंट। रंग बिंदुओं को सीधे कैनवास पर खींचें।"
+          "description": "अपने ब्रांड के रंगों से सॉफ़्ट मेश-स्टाइल ग्रेडिएंट। रंग बिंदुओं को सीधे कैनवास पर खींचें, या ड्रिफ़्ट चालू करके लूप को WebM, MP4 या GIF के रूप में एक्सपोर्ट करें।"
         },
         "id": {
           "name": "Gradien Mesh",
-          "description": "Gradien bergaya mesh yang lembut dari swatch brand Anda. Seret titik warna langsung di kanvas."
+          "description": "Gradien bergaya mesh yang lembut dari warna brand Anda. Seret titik warna langsung di kanvas, atau aktifkan Mengambang dan ekspor loop-nya sebagai WebM, MP4, atau GIF."
         },
         "it": {
           "name": "Mesh Gradient",
-          "description": "Sfumature morbide in stile mesh dai colori del tuo brand. Trascina i punti colore direttamente sulla tela."
+          "description": "Gradienti morbidi in stile mesh dai colori del tuo brand. Trascina i punti colore direttamente sul canvas, oppure attiva il Drift ed esporta il loop come WebM, MP4 o GIF."
         },
         "ja": {
           "name": "メッシュグラデーション",
-          "description": "ブランドスウォッチからやわらかなメッシュ風グラデーションを作成します。カラーポイントはキャンバス上で直接ドラッグして調整できます。"
+          "description": "ブランドのスウォッチから、やわらかいメッシュ風グラデーションを作成します。キャンバス上でカラーポイントを直接ドラッグしたり、「ドリフト」をオンにしてループをWebM、MP4、GIFとして書き出したりできます。"
         },
         "ko": {
           "name": "메시 그라데이션",
-          "description": "브랜드 컬러로 만드는 부드러운 메시 스타일 그라데이션이에요. 캔버스 위에서 컬러 포인트를 바로 드래그하세요."
+          "description": "브랜드 색상 샘플로 만드는 부드러운 메시 그라데이션이에요. 캔버스에서 색상 포인트를 직접 드래그하거나, Drift를 켜서 루프를 WebM·MP4·GIF로 내보내요."
         },
         "ms": {
           "name": "Gradien Jaringan",
-          "description": "Gradien lembut bergaya jaringan daripada petak warna jenama anda. Seret titik warna terus pada kanvas."
+          "description": "Kecerunan gaya jaringan yang lembut daripada sampel warna jenama anda. Seret titik warna terus pada kanvas, atau hidupkan Hanyut dan eksport gelung itu sebagai WebM, MP4 atau GIF."
         },
         "nl": {
           "name": "Meshverloop",
-          "description": "Zachte meshverlopen uit je merkkleuren. Sleep de kleurpunten direct op het canvas."
+          "description": "Zachte mesh-verlopen uit je merkkleuren. Sleep de kleurpunten direct op het canvas, of zet een langzame zwevende beweging aan en exporteer de loop als WebM, MP4 of GIF."
         },
         "no": {
           "name": "Mesh Gradient",
-          "description": "Myke mesh-gradienter fra fargene i merkevaren din. Dra fargepunktene rett på lerretet."
+          "description": "Myke mesh-fargeoverganger fra fargeprøvene i merkevaren din. Dra fargepunktene rett på lerretet, eller slå på Drift og eksporter løkken som WebM, MP4 eller GIF."
         },
         "pl": {
           "name": "Gradient siatkowy",
-          "description": "Miękkie gradienty siatkowe z próbek kolorów Twojej marki. Przesuwaj punkty kolorów bezpośrednio na płótnie."
+          "description": "Miękkie gradienty w stylu siatki z kolorów Twojej marki. Przeciągaj punkty kolorów wprost na płótnie albo włącz Dryf i eksportuj pętlę jako WebM, MP4 lub GIF."
         },
         "pt": {
           "name": "Gradiente em Malha",
-          "description": "Gradientes suaves em estilo malha a partir das amostras da sua marca. Arraste os pontos de cor diretamente na tela."
+          "description": "Gradientes suaves em malha a partir das amostras de cor da sua marca. Arraste os pontos de cor direto na tela, ou ative a Deriva e exporte o loop como WebM, MP4 ou GIF."
         },
         "ro": {
           "name": "Degrade Mesh",
-          "description": "Degrade-uri mesh delicate din mostrele brandului tău. Trage punctele de culoare direct pe canvas."
+          "description": "Degrade-uri moi în stil mesh, din eșantioanele brandului tău. Trage punctele de culoare direct pe canvas, sau activează Derivă și exportă bucla ca WebM, MP4 sau GIF."
         },
         "sv": {
           "name": "Nätgradient",
-          "description": "Mjuka nätgradienter från dina varumärkesfärger. Dra färgpunkterna direkt på ytan."
+          "description": "Mjuka mesh-liknande gradienter från dina varumärkesfärger. Dra färgpunkterna direkt på canvasen, eller slå på Drift-läget och exportera loopen som WebM, MP4 eller GIF."
         },
         "tl": {
           "name": "Mesh Gradient",
-          "description": "Malambot na mesh-style na gradient mula sa mga swatch ng brand mo. I-drag ang mga color point diretso sa canvas."
+          "description": "Malumanay na mesh-style na gradient mula sa mga swatch ng iyong brand. I-drag ang mga colour point direkta sa canvas, o i-on ang Drift mode at i-export ang loop bilang WebM, MP4 o GIF."
         },
         "tr": {
           "name": "Mesh Gradyan",
-          "description": "Marka renklerinden yumuşak, mesh tarzı gradyanlar. Renk noktalarını doğrudan kanvas üzerinde sürükle."
+          "description": "Marka renklerinden yumuşak, mesh tarzı gradyanlar. Renk noktalarını doğrudan tuval üzerinde sürükle ya da Kayma özelliğini aç, döngüyü WebM, MP4 veya GIF olarak dışa aktar."
         },
         "uk": {
           "name": "Сітковий градієнт",
-          "description": "М'які градієнти у стилі сітки з ваших брендових зразків. Перетягуйте точки кольору прямо на полотні."
+          "description": "М'які сіткові градієнти з кольорів вашого бренду. Перетягуйте точки кольору прямо на полотні або увімкніть Дрейф і експортуйте цикл як WebM, MP4 чи GIF."
         },
         "ur": {
           "name": "میش گریڈینٹ",
-          "description": "آپ کے برانڈ سویچز سے نرم میش طرز کے گریڈینٹ۔ رنگ پوائنٹس کو براہ راست کینوس پر گھسیٹیں۔"
+          "description": "آپ کے برانڈ رنگوں سے نرم میش طرز کے گریڈینٹس۔ رنگ پوائنٹس کو براہ راست کینوس پر گھسیٹیں، یا بہاؤ آن کریں اور لوپ کو WebM، MP4 یا GIF کے طور پر ایکسپورٹ کریں۔"
         },
         "vi": {
           "name": "Gradient Lưới",
-          "description": "Gradient dạng lưới mềm mại từ các mẫu màu thương hiệu của bạn. Kéo các điểm màu ngay trên khung vẽ."
+          "description": "Gradient mượt kiểu lưới, tạo từ các màu trong bảng màu thương hiệu của bạn. Kéo các điểm màu ngay trên canvas, hoặc bật chế độ trôi (Drift) để xuất vòng lặp dưới dạng WebM, MP4 hoặc GIF."
         },
         "zh-hant": {
           "name": "網格漸層",
-          "description": "用你的品牌色票打造柔和的網格漸層--色點可直接在畫布上拖曳調整。"
+          "description": "以你的品牌色票打造柔和的網格式漸層。直接在畫布上拖曳色點，或開啟漂移，將循環匯出為 WebM、MP4 或 GIF。"
         },
         "zh": {
           "name": "网格渐变",
-          "description": "用你的品牌色板生成柔和的网格渐变，直接在画布上拖动颜色点。"
+          "description": "由品牌色板生成的柔和网格渐变。直接在画布上拖动颜色点，或开启漂移效果，将循环动画导出为 WebM、MP4 或 GIF。"
         }
       }
     },
@@ -2105,7 +2170,7 @@
       "icon": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M3 3v16a2 2 0 0 0 2 2h16\" /><path d=\"M7 15c2.5 0 3-6 5-6s2.5 4 4.5 4 2.5-5 4.5-5\" /><circle cx=\"7\" cy=\"15\" r=\"1.1\" fill=\"currentColor\" stroke=\"none\" /><circle cx=\"12\" cy=\"9\" r=\"1.1\" fill=\"currentColor\" stroke=\"none\" /><circle cx=\"16.5\" cy=\"13\" r=\"1.1\" fill=\"currentColor\" stroke=\"none\" /></svg>",
       "preview": "/catalog/previews/d3.svg",
       "featured": {
-        "order": 4,
+        "order": 3,
         "blurb": "Paste a table — D3 charts it, on-brand and vector-clean"
       },
       "examples": [
@@ -2272,52 +2337,52 @@
         "ar": {
           "name": "استوديو مخططات D3",
           "description": "رسوم بيانية قوية مدفوعة بالبيانات مع D3 - الصق جدولاً وسيرسم نفسه. أعمدة، خطوط، مساحات، تشتت، دائرية، رادار، خريطة شجرية، خريطة حرارية، أعمدة ودوائر ثلاثية الأبعاد وسحب كلمات. تُستمد لوحات الألوان من ألوان علامتك التجارية، مع تعبئات نقشية وإعادة تلوين بنقرة - متوافقة مع العلامة التجارية ونظيفة كمتجهات.",
-          "blurb": "الصق جدولا - يرسمه D3 بهوية علامتك وبنقاء متجهي"
+          "blurb": "الصق جدولا — يرسمه D3 بهوية علامتك وبنقاء متجهي"
         },
         "bg": {
           "name": "D3 студио за диаграми",
           "description": "Мощни диаграми, управлявани от данни, с D3 - постави таблица и тя се изобразява сама. Барове, линии, области, точкови диаграми, кръгови, радарни, дървовидни карти, топлинни карти, 3D барове и кръгови диаграми и облаци от думи. Палитрите произлизат от цветовете на твоя бранд, с шарки за запълване и оцветяване с клик - на бранда и векторно чисто.",
-          "blurb": "Постави таблица - D3 я превръща в диаграма, брандирано и векторно чисто"
+          "blurb": "Постави таблица — D3 я превръща в диаграма, брандирано и векторно чисто"
         },
         "bn": {
           "name": "D3 চার্ট স্টুডিও",
           "description": "D3 দিয়ে শক্তিশালী ডেটা-চালিত চার্ট - একটি টেবিল পেস্ট করুন, এটি নিজে থেকেই চার্ট হয়ে যায়। বার, লাইন, এরিয়া, স্ক্যাটার, পাই, রাডার, ট্রিম্যাপ, হিটম্যাপ, 3-D বার ও পাই এবং ওয়ার্ড ক্লাউড। প্যালেট আপনার ব্র্যান্ডের রঙ থেকে তৈরি হয়, প্যাটার্ন ফিল ও ক্লিক-টু-রিকালার সহ - অন-ব্র্যান্ড এবং ভেক্টর-ক্লিন।",
-          "blurb": "একটি টেবিল পেস্ট করুন - D3 তার চার্ট বানিয়ে দেয়, অন-ব্র্যান্ড ও ভেক্টর-ক্লিন"
+          "blurb": "একটি টেবিল পেস্ট করুন — D3 তার চার্ট বানিয়ে দেয়, অন-ব্র্যান্ড ও ভেক্টর-ক্লিন"
         },
         "cs": {
           "name": "D3 Studio grafů",
           "description": "Výkonné datové grafy s D3 - vlož tabulku a graf se vykreslí sám. Sloupce, čáry, plochy, bodové grafy, koláče, paprskové grafy, treemapy, teplotní mapy, 3D sloupce a koláče a slovní mraky. Palety vycházejí z barev tvé značky, s vzorovými výplněmi a přebarvením kliknutím - na značku a vektorově čisté.",
-          "blurb": "Vlož tabulku - D3 z ní udělá graf, podle tvé značky a vektorově čistý"
+          "blurb": "Vlož tabulku — D3 z ní udělá graf, podle tvé značky a vektorově čistý"
         },
         "de": {
           "name": "D3-Diagrammstudio",
           "description": "Leistungsstarke datengetriebene Diagramme mit D3 - eine Tabelle einfügen, und sie zeichnet sich selbst. Balken, Linien, Flächen, Streudiagramme, Kreise, Radar, Treemap, Heatmap, 3D-Balken & -Kreise und Wortwolken. Paletten leiten sich aus Ihren Markenfarben ab, mit Musterfüllungen und Umfärben per Klick - markenkonform und vektorsauber.",
-          "blurb": "Tabelle einfügen - D3 erstellt das Diagramm, markenkonform und vektorsauber"
+          "blurb": "Tabelle einfügen — D3 erstellt das Diagramm, markenkonform und vektorsauber"
         },
         "es": {
           "name": "Estudio de gráficos D3",
-          "description": "Gráficos potentes basados en datos con D3 - pega una tabla y se grafica sola. Barras, líneas, áreas, dispersión, circular, radar, treemap, mapa de calor, barras y circulares en 3D y nubes de palabras. Las paletas derivan de los colores de tu marca, con rellenos de patrón y clic para recolorear - fieles a la marca y nítidos en vectorial.",
+          "description": "Gráficos potentes basados en datos con D3 — pega una tabla y se grafica sola. Barras, líneas, áreas, dispersión, circular, radar, treemap, mapa de calor, barras y circulares en 3D y nubes de palabras. Las paletas derivan de los colores de tu marca, con rellenos de patrón y clic para recolorear - fieles a la marca y nítidos en vectorial.",
           "blurb": "Pega una tabla y D3 la grafica, con estilo de marca y en vector nítido"
         },
         "fr": {
           "name": "Studio de graphiques D3",
-          "description": "Des graphiques puissants pilotés par les données avec D3 - collez un tableau et il se met en graphique tout seul. Barres, lignes, aires, nuage de points, camembert, radar, treemap, carte de chaleur, barres et camemberts 3D et nuages de mots. Les palettes dérivent des couleurs de votre marque, avec remplissages à motifs et recoloration en un clic - à l'image de la marque et net en vectoriel.",
-          "blurb": "Colle un tableau - D3 le transforme en graphique, à l'image de ta marque et en vectoriel net"
+          "description": "Des graphiques puissants pilotés par les données avec D3 - collez un tableau et il se met en graphique tout seul. Barres, lignes, aires, nuage de points, camembert, radar, treemap, carte de chaleur, barres et camemberts 3D et nuages de mots. Les palettes dérivent des couleurs de votre marque, avec remplissages à motifs et reco­loration en un clic - à l'image de la marque et net en vectoriel.",
+          "blurb": "Colle un tableau — D3 le transforme en graphique, à l'image de ta marque et en vectoriel net"
         },
         "hi": {
           "name": "D3 चार्ट स्टूडियो",
           "description": "D3 के साथ शक्तिशाली डेटा-आधारित चार्ट्स - एक टेबल पेस्ट करें और यह खुद चार्ट बन जाता है। बार्स, लाइनें, एरिया, स्कैटर, पाई, रडार, ट्रीमैप, हीटमैप, 3-D बार्स व पाई और वर्ड क्लाउड। पैलेट आपके ब्रांड के रंगों से बनते हैं, पैटर्न फिल और क्लिक-टू-रीकलर के साथ - ऑन-ब्रांड और वेक्टर-क्लीन।",
-          "blurb": "टेबल पेस्ट करें - D3 उसका चार्ट बना देता है, ऑन-ब्रांड और वेक्टर-क्लीन"
+          "blurb": "टेबल पेस्ट करें — D3 उसका चार्ट बना देता है, ऑन-ब्रांड और वेक्टर-क्लीन"
         },
         "id": {
           "name": "Studio Grafik D3",
           "description": "Grafik berbasis data yang tangguh dengan D3 - tempel tabel dan grafik terbentuk sendiri. Bar, garis, area, sebar, pai, radar, treemap, heatmap, bar & pai 3D dan word cloud. Palet diturunkan dari warna brand Anda, dengan isian pola dan klik-untuk-ubah-warna - sesuai brand dan bersih secara vektor.",
-          "blurb": "Tempel tabel - D3 membuat grafiknya, sesuai brand dan bersih secara vektor"
+          "blurb": "Tempel tabel — D3 membuat grafiknya, sesuai brand dan bersih secara vektor"
         },
         "it": {
           "name": "D3 Chart Studio",
           "description": "Grafici potenti basati sui dati con D3 - incolla una tabella e si crea da sola. Barre, linee, aree, dispersione, torta, radar, treemap, heatmap, barre e torte 3D e nuvole di parole. Le palette derivano dai colori del tuo brand, con riempimenti a pattern e ricolorazione con un clic - fedeli al brand e nitidi in vettoriale.",
-          "blurb": "Incolla una tabella - D3 crea il grafico, coerente col brand e vettoriale"
+          "blurb": "Incolla una tabella — D3 crea il grafico, coerente col brand e vettoriale"
         },
         "ja": {
           "name": "D3チャートスタジオ",
@@ -2327,67 +2392,67 @@
         "ko": {
           "name": "D3 차트 스튜디오",
           "description": "D3 기반의 강력한 데이터 차트 - 표를 붙여넣으면 스스로 차트가 됩니다. 막대, 선, 영역, 산점도, 파이, 레이더, 트리맵, 히트맵, 3D 막대와 파이, 워드클라우드까지. 팔레트는 브랜드 색상에서 파생되며, 패턴 채우기와 클릭 재색상이 가능합니다 - 온브랜드하고 벡터답게 깔끔합니다.",
-          "blurb": "표를 붙여넣으세요 - D3가 브랜드에 맞는 깔끔한 벡터 차트로 만들어 드려요"
+          "blurb": "표를 붙여넣으세요 — D3가 브랜드에 맞는 깔끔한 벡터 차트로 만들어 드려요"
         },
         "ms": {
           "name": "Studio Carta D3",
-          "description": "Carta berkuasa dipacu data dengan D3 - tampal jadual dan ia mencarta sendiri. Bar, garis, kawasan, serakan, pai, radar, treemap, peta haba, bar & pai 3-D dan awan kata. Palet berasal daripada warna jenama anda, dengan isian corak dan klik-untuk-warna semula - sesuai jenama dan bersih vektor.",
-          "blurb": "Tampal jadual - D3 terus menjadikannya carta, berjenama dan kemas dalam bentuk vektor"
+          "description": "Carta berkuasa dipacu data dengan D3 — tampal jadual dan ia mencarta sendiri. Bar, garis, kawasan, serakan, pai, radar, treemap, peta haba, bar & pai 3-D dan awan kata. Palet berasal daripada warna jenama anda, dengan isian corak dan klik-untuk-warna semula - sesuai jenama dan bersih vektor.",
+          "blurb": "Tampal jadual — D3 terus menjadikannya carta, berjenama dan kemas dalam bentuk vektor"
         },
         "nl": {
           "name": "D3 Grafiekstudio",
-          "description": "Krachtige datagestuurde grafieken met D3 - plak een tabel en hij tekent zichzelf. Staven, lijnen, vlakken, spreiding, taart, radar, boomkaart, heatmap, 3D-staven en -taarten en woordwolken. Paletten komen voort uit je merkkleuren, met patroonvullingen en klikken om te herkleuren - on-brand en vector-scherp.",
-          "blurb": "Plak een tabel - D3 maakt de grafiek, in je huisstijl en messcherp als vector"
+          "description": "Krachtige datagestuurde grafieken met D3 — plak een tabel en hij tekent zichzelf. Staven, lijnen, vlakken, spreiding, taart, radar, boomkaart, heatmap, 3D-staven en -taarten en woordwolken. Paletten komen voort uit je merkkleuren, met patroonvullingen en klikken om te herkleuren - on-brand en vector-scherp.",
+          "blurb": "Plak een tabel — D3 maakt de grafiek, in je huisstijl en messcherp als vector"
         },
         "no": {
           "name": "D3 diagramstudio",
           "description": "Kraftige datadrevne diagrammer med D3 - lim inn en tabell, så diagramfører den seg selv. Stolper, linjer, arealer, spredning, kake, radar, tremap, varmekart, 3D-stolper og -kaker og ordskyer. Paletter avledes fra merkevarens farger, med mønsterfyll og klikk-for-å-omfarge - merkevaretro og vektorrent.",
-          "blurb": "Lim inn en tabell - D3 lager diagrammet, merkevaretilpasset og vektorrent"
+          "blurb": "Lim inn en tabell — D3 lager diagrammet, merkevaretilpasset og vektorrent"
         },
         "pl": {
           "name": "D3 Chart Studio",
           "description": "Zaawansowane wykresy oparte na danych z D3 - wklej tabelę, a wykres powstanie sam. Słupki, linie, obszary, punkty, koło, radar, mapa drzewa, mapa cieplna, słupki i koła 3D oraz chmury słów. Palety pochodzą z kolorów Twojej marki, z wypełnieniami wzorami i przekolorowaniem jednym kliknięciem - zgodnie z marką i czysto wektorowo.",
-          "blurb": "Wklej tabelę - D3 utworzy wykres, w barwach marki i w czystej wektorowej jakości"
+          "blurb": "Wklej tabelę — D3 utworzy wykres, w barwach marki i w czystej wektorowej jakości"
         },
         "pt": {
           "name": "Estúdio de Gráficos D3",
           "description": "Gráficos poderosos orientados a dados com D3 - cole uma tabela e ela se transforma em gráfico sozinha. Barras, linhas, áreas, dispersão, pizza, radar, treemap, mapa de calor, barras & pizzas 3D e nuvens de palavras. As paletas derivam das cores da sua marca, com preenchimentos padronizados e reclique para recolorir - fiel à marca e nítido em vetor.",
-          "blurb": "Cole uma tabela - o D3 monta o gráfico, alinhado à marca e em vetor limpo"
+          "blurb": "Cole uma tabela — o D3 monta o gráfico, alinhado à marca e em vetor limpo"
         },
         "ro": {
           "name": "Studio Grafice D3",
           "description": "Grafice puternice bazate pe date cu D3 - lipește un tabel și se reprezintă singur. Bare, linii, arii, dispersie, plăcintă, radar, treemap, heatmap, bare și plăcinte 3D și nori de cuvinte. Paletele derivă din culorile brandului tău, cu umpluturi de model și reculorare cu un clic - în ton cu brandul și clare ca vector.",
-          "blurb": "Lipește un tabel - D3 îl transformă în grafic, pe brand și impecabil ca vector"
+          "blurb": "Lipește un tabel — D3 îl transformă în grafic, pe brand și impecabil ca vector"
         },
         "sv": {
           "name": "D3-diagramstudio",
           "description": "Kraftfulla datadrivna diagram med D3 - klistra in en tabell så diagrammar den sig själv. Staplar, linjer, ytor, spridning, cirkel, radar, träddiagram, värmekarta, 3D-staplar & -cirklar och ordmoln. Paletter härleds från ditt varumärkes färger, med mönsterfyllningar och klick-för-att-omfärga - varumärkesanpassat och vektorrent.",
-          "blurb": "Klistra in en tabell - D3 diagramför den, varumärkesanpassat och vektorrent"
+          "blurb": "Klistra in en tabell – D3 diagramför den, varumärkesanpassat och vektorrent"
         },
         "tl": {
           "name": "Chart Studio ng D3",
           "description": "Makapangyarihang data-driven na mga chart gamit ang D3 - i-paste ang isang table at kusa na itong magiging chart. Bars, lines, areas, scatter, pie, radar, treemap, heatmap, 3-D bars & pies at word clouds. Nagmumula ang mga palette sa kulay ng iyong brand, may pattern fills at click-to-recolour - on-brand at malinis na vector.",
-          "blurb": "I-paste ang table - ico-chart ito ng D3, on-brand at malinis na vector"
+          "blurb": "I-paste ang table — ico-chart ito ng D3, on-brand at malinis na vector"
         },
         "tr": {
           "name": "D3 Grafik Stüdyosu",
           "description": "D3 ile güçlü veri odaklı grafikler - bir tablo yapıştırın, kendini çizsin. Çubuklar, çizgiler, alanlar, dağılım, pasta, radar, ısı haritası, 3D çubuklar ve pastalar ile kelime bulutları. Paletler markanızın renklerinden türetilir, desenli dolgular ve tıkla-yeniden-renklendir ile - markanıza uygun ve vektör temiz.",
-          "blurb": "Bir tablo yapıştır - D3 onu grafiğe dönüştürsün, markana uygun ve vektör netliğinde"
+          "blurb": "Bir tablo yapıştır — D3 onu grafiğe dönüştürsün, markana uygun ve vektör netliğinde"
         },
         "uk": {
           "name": "Студія діаграм D3",
           "description": "Потужні дата-орієнтовані діаграми на D3 - вставте таблицю, і вона побудує себе сама. Стовпчики, лінії, області, точкові, кругові, радарні, деревовидні карти, теплові карти, 3-D стовпчики й кругові діаграми та хмари слів. Палітри походять із кольорів вашого бренду, з візерунковими заливками й перефарбуванням одним кліком - на бренді й векторно чисто.",
-          "blurb": "Вставте таблицю - D3 побудує діаграму, фірмово і чисто векторно"
+          "blurb": "Вставте таблицю — D3 побудує діаграму, фірмово і чисто векторно"
         },
         "ur": {
           "name": "D3 چارٹ اسٹوڈیو",
-          "description": "D3 کے ساتھ طاقتور ڈیٹا سے چلنے والے چارٹس - ایک ٹیبل پیسٹ کریں اور یہ خود چارٹ بن جاتا ہے۔ بارز، لائنز، ایریاز، اسکیٹر، پائی، ریڈار، ٹری میپ، ہیٹ میپ، 3-D بارز اور پائیز اور ورڈ کلاؤڈز۔ پیلٹس آپ کے برانڈ کے رنگوں سے اخذ ہوتے ہیں، پیٹرن فلز اور کلک ٹو ری کلر کے ساتھ - آن برانڈ اور ویکٹر کلین۔",
-          "blurb": "ایک ٹیبل پیسٹ کریں - D3 اسے چارٹ کرتا ہے، برانڈ کے مطابق اور ویکٹر لحاظ سے صاف"
+          "description": "D3 کے ساتھ طاقتور ڈیٹا سے چلنے والے چارٹس — ایک ٹیبل پیسٹ کریں اور یہ خود چارٹ بن جاتا ہے۔ بارز، لائنز، ایریاز، اسکیٹر، پائی، ریڈار، ٹری میپ، ہیٹ میپ، 3-D بارز اور پائیز اور ورڈ کلاؤڈز۔ پیلٹس آپ کے برانڈ کے رنگوں سے اخذ ہوتے ہیں، پیٹرن فلز اور کلک ٹو ری کلر کے ساتھ — آن برانڈ اور ویکٹر کلین۔",
+          "blurb": "ایک ٹیبل پیسٹ کریں — D3 اسے چارٹ کرتا ہے، برانڈ کے مطابق اور ویکٹر لحاظ سے صاف"
         },
         "vi": {
           "name": "Xưởng Biểu Đồ D3",
           "description": "Biểu đồ mạnh mẽ dựa trên dữ liệu với D3 - dán một bảng và nó tự vẽ biểu đồ. Cột, đường, vùng, phân tán, tròn, radar, treemap, heatmap, cột & tròn 3D và đám mây từ. Bảng màu lấy từ màu thương hiệu của bạn, với hình mẫu tô và bấm để đổi màu - đúng thương hiệu và sắc nét dạng vector.",
-          "blurb": "Dán một bảng vào - D3 tự vẽ biểu đồ, đúng chuẩn thương hiệu và sạch đẹp dạng vector"
+          "blurb": "Dán một bảng vào — D3 tự vẽ biểu đồ, đúng chuẩn thương hiệu và sạch đẹp dạng vector"
         },
         "zh-hant": {
           "name": "D3 圖表工作室",
@@ -3522,6 +3587,7 @@
       "height": 1080,
       "exportable": true,
       "icon": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><line x1=\"3\" y1=\"10\" x2=\"3\" y2=\"14\"/><line x1=\"6.5\" y1=\"7\" x2=\"6.5\" y2=\"17\"/><line x1=\"10\" y1=\"4\" x2=\"10\" y2=\"20\"/><line x1=\"13.5\" y1=\"8\" x2=\"13.5\" y2=\"16\"/><line x1=\"17\" y1=\"5.5\" x2=\"17\" y2=\"18.5\"/><line x1=\"20.5\" y1=\"10\" x2=\"20.5\" y2=\"14\"/></svg>",
+      "anim": "/tools/audiogram/card.webm",
       "preview": "/catalog/previews/audiogram.svg",
       "examples": [
         {
@@ -4181,7 +4247,7 @@
       "icon": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><rect x=\"3.5\" y=\"3.5\" width=\"17\" height=\"17\" rx=\"2.5\"/><path d=\"M6.5 17.5 17.5 6.5\"/><path d=\"M10.5 20.5 20.5 10.5\"/><path d=\"M8 8v3M6.5 9.5h3\"/></svg>",
       "preview": "/catalog/previews/finish-preview.svg",
       "featured": {
-        "order": 6,
+        "order": 13,
         "blurb": "Foil, spot UV and emboss - with the plate your printer needs"
       },
       "examples": [
@@ -4685,7 +4751,7 @@
       "height": 1080,
       "exportable": true,
       "icon": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><line x1=\"4\" y1=\"6\" x2=\"20\" y2=\"6\"/><line x1=\"4\" y1=\"12\" x2=\"20\" y2=\"12\"/><line x1=\"4\" y1=\"18\" x2=\"20\" y2=\"18\"/><circle cx=\"9\" cy=\"6\" r=\"2\" fill=\"currentColor\" stroke=\"none\"/><circle cx=\"15\" cy=\"12\" r=\"2\" fill=\"currentColor\" stroke=\"none\"/><circle cx=\"8\" cy=\"18\" r=\"2\" fill=\"currentColor\" stroke=\"none\"/></svg>",
-      "preview": "/catalog/previews/filter.svg",
+      "preview": "/catalog/previews/filter.webp",
       "featured": {
         "order": 7,
         "blurb": "Ten photo effects, vector or raster, in one tool"
@@ -4907,6 +4973,7 @@
       "width": 1280,
       "height": 720,
       "exportable": true,
+      "anim": "/tools/flythrough/card.webm",
       "preview": "/catalog/previews/flythrough.svg",
       "i18n": {
         "ar": {
@@ -5918,6 +5985,9 @@
       "exportable": true,
       "icon": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"m7 11 2-2-2-2\" /><path d=\"M11 13h4\" /><rect width=\"18\" height=\"18\" x=\"3\" y=\"3\" rx=\"2\" ry=\"2\" /></svg>",
       "preview": "/catalog/previews/code-canvas.svg",
+      "featured": {
+        "order": 5
+      },
       "i18n": {
         "ar": {
           "name": "لوحة الكود",
@@ -6213,7 +6283,7 @@
         },
         "bn": {
           "name": "Lottie বিজ্ঞাপন",
-          "description": "স্তরযুক্ত দৃশ্য থেকে অ্যানিমেটেড বিজ্ঞাপন বানান - প্রতিটিতে একটি Lottie মোশন অ্যাসেট - যেকোনো স্ট্যান্ডার্ড আকারে।"
+          "description": "স্তরযুক্ত দৃশ্য থেকে অ্যানিমেটেড বিজ্ঞাপন বানান — প্রতিটিতে একটি Lottie মোশন অ্যাসেট — যেকোনো স্ট্যান্ডার্ড আকারে।"
         },
         "cs": {
           "name": "Reklama Lottie",
@@ -6233,7 +6303,7 @@
         },
         "hi": {
           "name": "Lottie विज्ञापन",
-          "description": "लेयर वाले सीन से किसी भी मानक आकार के एनिमेटेड विज्ञापन बनाएँ - हर सीन में एक Lottie मोशन एसेट।"
+          "description": "लेयर वाले सीन से किसी भी मानक आकार के एनिमेटेड विज्ञापन बनाएँ — हर सीन में एक Lottie मोशन एसेट।"
         },
         "id": {
           "name": "Iklan Lottie",
@@ -6338,7 +6408,7 @@
       "preview": "/catalog/previews/multi-page-pdf.svg",
       "personalized": true,
       "featured": {
-        "order": 3,
+        "order": 8,
         "blurb": "Multi-page PDFs - cover, content, back"
       },
       "paged": true,
@@ -6550,7 +6620,7 @@
         },
         "hi": {
           "name": "रिकॉर्ड",
-          "description": "अपने इंट्रो और आउट्रो कार्ड खुद डिज़ाइन करें, फिर एक क्लिप रिकॉर्ड करें - Lolly उन्हें अपने आप उसके आगे-पीछे जोड़ देता है।"
+          "description": "अपने इंट्रो और आउट्रो कार्ड खुद डिज़ाइन करें, फिर एक क्लिप रिकॉर्ड करें — Lolly उन्हें अपने आप उसके आगे-पीछे जोड़ देता है।"
         },
         "id": {
           "name": "Rekam",
@@ -6660,107 +6730,107 @@
       "i18n": {
         "ar": {
           "name": "صانع أيقونات الويب",
-          "description": "صانع أيقونة الموقع وأيقونة التطبيق - ملف ‎.ico متعدد الأحجام، بالإضافة إلى PNG وSVG."
+          "description": "أداة إنشاء الفافيكون وأيقونة التطبيق - ملف .ico متعدد الأحجام، وPNG وSVG، أو مجموعة أيقونات التطبيق كاملة في ملف zip واحد."
         },
         "bg": {
           "name": "Генератор на уеб икони",
-          "description": "Създател на favicon и иконка на приложение - многоразмерен .ico, плюс PNG и SVG."
+          "description": "Инструмент за фавикони и икони на приложения - многоразмерен .ico, PNG и SVG файл, или целия комплект за приложение в един zip."
         },
         "bn": {
           "name": "ওয়েব আইকন মেকার",
-          "description": "ফেভিকন ও অ্যাপ-আইকন মেকার - একটি মাল্টি-সাইজ .ico, সাথে PNG ও SVG।"
+          "description": "ফেভিকন ও অ্যাপ-আইকন মেকার - মাল্টি-সাইজ .ico, PNG এবং SVG, অথবা পুরো অ্যাপ কিট একটি ZIP হিসেবে।"
         },
         "cs": {
           "name": "Tvůrce webových ikon",
-          "description": "Tvůrce faviconů a ikon aplikací - vícevelikostní .ico, plus PNG a SVG."
+          "description": "Tvorba faviconů a ikon aplikací - vícevelikostní .ico, PNG a SVG, nebo celá sada pro aplikaci v jednom ZIPu."
         },
         "de": {
           "name": "Web-Icon-Generator",
-          "description": "Favicon- und App-Icon-Ersteller - ein mehrgrößiges .ico, plus PNG und SVG."
+          "description": "Favicon- und App-Icon-Generator - eine .ico-Datei mit mehreren Größen, PNG und SVG, oder das komplette App-Icon-Set als eine ZIP-Datei."
         },
         "es": {
           "name": "Creador de iconos web",
-          "description": "Creador de favicon e icono de app - un .ico multitamaño, más PNG y SVG."
+          "description": "Generador de favicons e iconos de app - un archivo .ico con varios tamaños, PNG y SVG, o todo el kit de la app en un solo zip."
         },
         "fr": {
           "name": "Créateur d'icônes web",
-          "description": "Créateur de favicon et d'icône d'application - un .ico multi-tailles, plus PNG et SVG."
+          "description": "Générateur de favicon et d'icône d'application - un fichier .ico multi-tailles, en PNG et SVG, ou le kit complet dans un seul zip."
         },
         "hi": {
           "name": "वेब आइकन मेकर",
-          "description": "फ़ेविकॉन और ऐप-आइकन मेकर - एक मल्टी-साइज़ .ico, साथ ही PNG और SVG।"
+          "description": "फ़ेविकॉन और ऐप-आइकन मेकर - मल्टी-साइज़ .ico, PNG और SVG, या पूरी ऐप किट एक ZIP के रूप में।"
         },
         "id": {
           "name": "Pembuat Ikon Web",
-          "description": "Pembuat favicon dan ikon aplikasi - .ico multiukuran, plus PNG dan SVG."
+          "description": "Pembuat favicon dan ikon aplikasi - file .ico multi-ukuran, PNG, dan SVG, atau seluruh kit aplikasi sebagai satu zip."
         },
         "it": {
           "name": "Creatore di icone web",
-          "description": "Creatore di favicon e icone app - un .ico multi-dimensione, più PNG e SVG."
+          "description": "Creatore di favicon e icone per app - un file .ico multi-dimensione, PNG e SVG, oppure l'intero kit dell'app in un unico zip."
         },
         "ja": {
           "name": "ウェブアイコンメーカー",
-          "description": "ファビコン&アプリアイコンメーカー - マルチサイズの.ico、加えてPNGとSVG。"
+          "description": "ファビコンとアプリアイコンを作成します - マルチサイズの.ico、PNG、SVG、またはアプリキット一式を1つのZIPファイルとして書き出せます。"
         },
         "ko": {
           "name": "웹 아이콘 메이커",
-          "description": "파비콘 및 앱 아이콘 제작기 - 다중 크기 .ico와 PNG, SVG까지."
+          "description": "파비콘과 앱 아이콘을 만들어요 - 여러 크기가 담긴 .ico 파일과 PNG, SVG로 받거나, 전체 앱 아이콘 세트를 zip 파일 하나로 받을 수 있어요."
         },
         "ms": {
           "name": "Pencipta Ikon Web",
-          "description": "Pembuat favicon dan ikon aplikasi - .ico pelbagai saiz, serta PNG dan SVG."
+          "description": "Pembuat favicon dan ikon aplikasi - fail .ico pelbagai saiz, PNG dan SVG, atau keseluruhan kit aplikasi sebagai satu zip."
         },
         "nl": {
           "name": "Web-icoonmaker",
-          "description": "Favicon- en app-iconmaker - een .ico in meerdere formaten, plus PNG en SVG."
+          "description": "Favicon- en app-iconmaker - een .ico, PNG en SVG in meerdere formaten, of de hele app-iconenset als één zip-bestand."
         },
         "no": {
           "name": "Webikon-generator",
-          "description": "Favicon- og app-ikonskaper - en flerstørrelses .ico, pluss PNG og SVG."
+          "description": "Favicon- og app-ikon-generator - en flerstørrelses .ico-fil, PNG og SVG, eller hele appikonpakken som én zip-fil."
         },
         "pl": {
           "name": "Web Icon Maker",
-          "description": "Kreator favikon i ikon aplikacji - wielorozmiarowy plik .ico oraz PNG i SVG."
+          "description": "Kreator favicon i ikon aplikacji - wielorozmiarowy plik .ico, PNG i SVG, albo cały zestaw aplikacji w jednym archiwum zip."
         },
         "pt": {
           "name": "Criador de ícones para web",
-          "description": "Criador de favicon e ícone de app - um .ico multitamanho, além de PNG e SVG."
+          "description": "Criador de favicon e ícone de aplicativo - um .ico multitamanho, PNG e SVG, ou o kit completo do aplicativo em um único zip."
         },
         "ro": {
           "name": "Creator de iconițe web",
-          "description": "Creator de favicon și pictograme de aplicație - un .ico cu mai multe dimensiuni, plus PNG și SVG."
+          "description": "Creator de favicon și iconițe de aplicație - un fișier .ico cu mai multe dimensiuni, PNG și SVG, sau întregul kit de aplicație într-o singură arhivă zip."
         },
         "sv": {
           "name": "Webbikonskapare",
-          "description": "Favicon- och appikonsverktyg - en .ico i flera storlekar, plus PNG och SVG."
+          "description": "Favicon- och app-ikonmakare - en flerstorleks .ico, PNG och SVG, eller hela appkitet som en enda zip-fil."
         },
         "tl": {
           "name": "Tagagawa ng Web Icon",
-          "description": "Gumawa ng favicon at app-icon - multi-size na .ico, kasama ang PNG at SVG."
+          "description": "Favicon at app-icon maker - isang multi-size na .ico, PNG at SVG, o ang buong app kit bilang isang zip."
         },
         "tr": {
           "name": "Web İkonu Oluşturucu",
-          "description": "Favicon ve uygulama simgesi oluşturucu - çok boyutlu bir .ico, ayrıca PNG ve SVG."
+          "description": "Favicon ve uygulama simgesi oluşturucu - çok boyutlu bir .ico, PNG ve SVG dosyası, ya da tüm uygulama setini tek bir zip içinde."
         },
         "uk": {
           "name": "Створення веб-іконок",
-          "description": "Створювач фавіконок і іконок додатків - багаторозмірний .ico, а також PNG і SVG."
+          "description": "Створення favicon та іконок застосунків - багаторозмірний .ico, PNG і SVG, або весь набір застосунку одним zip-архівом."
         },
         "ur": {
           "name": "ویب آئیکون میکر",
-          "description": "فیوی کون اور ایپ آئیکن ساز - ایک ملٹی سائز .ico، نیز PNG اور SVG۔"
+          "description": "فیوی آئیکون اور ایپ آئیکون میکر - ایک ملٹی سائز .ico، PNG اور SVG، یا پورا ایپ کٹ ایک ہی zip کے طور پر۔"
         },
         "vi": {
           "name": "Trình tạo biểu tượng web",
-          "description": "Công cụ tạo favicon và biểu tượng ứng dụng - file .ico nhiều kích thước, cùng PNG và SVG."
+          "description": "Công cụ tạo favicon và biểu tượng ứng dụng - xuất file .ico đa kích thước, PNG và SVG, hoặc trọn bộ app kit dưới dạng một file ZIP."
         },
         "zh-hant": {
           "name": "網頁圖示產生器",
-          "description": "Favicon 與應用程式圖示產生器 - 多尺寸 .ico，另加 PNG 與 SVG。"
+          "description": "Favicon 與應用程式圖示產生工具 - 提供多尺寸的 .ico、PNG 與 SVG，或整組應用程式圖示打包成一個 zip 檔。"
         },
         "zh": {
           "name": "网页图标生成器",
-          "description": "网站图标与应用图标制作工具 - 生成多尺寸 .ico,以及 PNG 和 SVG。"
+          "description": "Favicon 与应用图标生成工具 - 可生成多尺寸 .ico、PNG 和 SVG 文件，或将整套应用图标打包成一个 zip。"
         }
       }
     },
@@ -6827,7 +6897,7 @@
       "icon": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><rect x=\"3\" y=\"3\" width=\"18\" height=\"18\" rx=\"3\"/><path d=\"M3 15.5 8 10l4.5 4.5L16 11l5 5\"/><circle cx=\"9\" cy=\"7.5\" r=\"1.4\"/><path d=\"M14.5 5.5h4M16.5 3.5v4\"/></svg>",
       "preview": "/catalog/previews/darkroom.svg",
       "featured": {
-        "order": 3,
+        "order": 9,
         "blurb": "Grade photos with film looks, LUTs and your brand colours"
       },
       "examples": [
@@ -7109,7 +7179,113 @@
             }
           ]
         }
-      ]
+      ],
+      "i18n": {
+        "ar": {
+          "name": "فاحص التباين",
+          "description": "تحقق من زوج لون النص والخلفية، أو من كل الأزواج في لوحة ألوان علامتك التجارية، وفق معياري WCAG 2.1 وAPCA، وشاهد كيف يظهر التباين لذوي عمى الألوان."
+        },
+        "bg": {
+          "name": "Проверка на контраста",
+          "description": "Провери двойка текст и фон, или всяка комбинация в брандовата ти палитра, спрямо WCAG 2.1 и APCA, и виж как изглежда за хора с далтонизъм."
+        },
+        "bn": {
+          "name": "কনট্রাস্ট চেকার",
+          "description": "একটি টেক্সট ও ব্যাকগ্রাউন্ড জোড়া, বা আপনার ব্র্যান্ড প্যালেটের প্রতিটি জোড়া, WCAG 2.1 এবং APCA অনুযায়ী পরীক্ষা করুন এবং দেখুন এটি বর্ণান্ধ দর্শকদের কাছে কেমন দেখায়।"
+        },
+        "cs": {
+          "name": "Kontrola kontrastu",
+          "description": "Zkontroluj dvojici textu a pozadí, nebo všechny kombinace ve své paletě značky, podle WCAG 2.1 a APCA, a podívej se, jak to působí na lidi s barvoslepostí."
+        },
+        "de": {
+          "name": "Kontrastprüfung",
+          "description": "Prüfen Sie ein Text-Hintergrund-Paar oder jede Kombination in Ihrer Markenpalette gegen WCAG 2.1 und APCA, und sehen Sie, wie es für Menschen mit Farbsehschwäche wirkt."
+        },
+        "es": {
+          "name": "Comprobador de contraste",
+          "description": "Comprueba un par de texto y fondo, o todas las combinaciones de la paleta de tu marca, frente a WCAG 2.1 y APCA, y mira cómo se ve para personas con daltonismo."
+        },
+        "fr": {
+          "name": "Vérificateur de contraste",
+          "description": "Vérifie une paire texte/arrière-plan, ou toutes les combinaisons de ta palette de marque, selon les normes WCAG 2.1 et APCA. Regarde aussi comment elles apparaissent aux personnes daltoniennes."
+        },
+        "hi": {
+          "name": "कंट्रास्ट चेकर",
+          "description": "किसी टेक्स्ट और बैकग्राउंड जोड़े को, या अपने ब्रांड पैलेट की हर जोड़ी को, WCAG 2.1 और APCA के मुताबिक जाँचें, और देखें कि यह कलर-ब्लाइंड दर्शकों को कैसा दिखता है।"
+        },
+        "id": {
+          "name": "Pemeriksa Kontras",
+          "description": "Periksa pasangan teks dan latar belakang, atau setiap pasangan pada palet brand Anda, terhadap WCAG 2.1 dan APCA, dan lihat tampilannya bagi orang dengan buta warna."
+        },
+        "it": {
+          "name": "Controllo contrasto",
+          "description": "Controlla una coppia testo-sfondo, o tutti gli abbinamenti della tua palette brand, secondo gli standard WCAG 2.1 e APCA, e verifica come appare a chi ha il daltonismo."
+        },
+        "ja": {
+          "name": "コントラストチェッカー",
+          "description": "文字色と背景色のペア、またはブランドパレット内のすべての組み合わせを、WCAG 2.1とAPCAの基準でチェックします。色覚特性を持つ人にどう見えるかも確認できます。"
+        },
+        "ko": {
+          "name": "대비 검사기",
+          "description": "텍스트와 배경 조합 하나, 또는 브랜드 팔레트의 모든 조합을 WCAG 2.1과 APCA 기준으로 검사하고, 색각 이상이 있는 사람에게는 어떻게 보이는지 확인해요."
+        },
+        "ms": {
+          "name": "Penyemak Kontras",
+          "description": "Semak pasangan teks dan latar belakang, atau setiap pasangan dalam palet jenama anda, berdasarkan WCAG 2.1 dan APCA, dan lihat cara ia kelihatan kepada penonton buta warna."
+        },
+        "nl": {
+          "name": "Contrastcontrole",
+          "description": "Toets een combinatie van tekst en achtergrond, of elke combinatie in je merkpalet, aan WCAG 2.1 en APCA, en bekijk hoe het overkomt bij kleurenblinde kijkers."
+        },
+        "no": {
+          "name": "Kontrastkontroll",
+          "description": "Sjekk et tekst- og bakgrunnspar, eller alle kombinasjonene i merkevarepaletten din, mot WCAG 2.1 og APCA, og se hvordan det oppfattes av fargeblinde."
+        },
+        "pl": {
+          "name": "Sprawdzanie kontrastu",
+          "description": "Sprawdź parę kolorów tekstu i tła - albo każdą parę w Twojej palecie marki - względem WCAG 2.1 i APCA, i zobacz, jak wygląda to dla osób z daltonizmem."
+        },
+        "pt": {
+          "name": "Verificador de Contraste",
+          "description": "Verifique um par de cores de texto e fundo, ou todas as combinações da sua paleta de marca, segundo o WCAG 2.1 e o APCA, e veja como ficam para pessoas com daltonismo."
+        },
+        "ro": {
+          "name": "Verificator de contrast",
+          "description": "Verifică o pereche text-fundal, sau fiecare pereche din paleta brandului tău, în raport cu WCAG 2.1 și APCA, și vezi cum arată persoanelor daltoniste."
+        },
+        "sv": {
+          "name": "Kontrastkontroll",
+          "description": "Kontrollera ett par av text och bakgrund, eller varje kombination i din varumärkespalett, mot WCAG 2.1 och APCA, och se hur det uppfattas av färgblinda."
+        },
+        "tl": {
+          "name": "Tagasuri ng Contrast",
+          "description": "Suriin ang isang pares ng text at background, o bawat pares sa iyong brand palette, laban sa WCAG 2.1 at APCA, at tingnan kung paano ito mababasa ng mga taong may color blindness."
+        },
+        "tr": {
+          "name": "Kontrast Kontrolü",
+          "description": "Bir metin ve arka plan çiftini ya da marka paletindeki her eşleşmeyi WCAG 2.1 ve APCA'ya göre kontrol et, renk körlüğü olan kişilere nasıl göründüğünü de gör."
+        },
+        "uk": {
+          "name": "Перевірка контрасту",
+          "description": "Перевірте пару кольорів тексту й фону - або кожну пару у вашій палітрі бренду - за стандартами WCAG 2.1 та APCA, і подивіться, як це виглядає для людей з дальтонізмом."
+        },
+        "ur": {
+          "name": "کنٹراسٹ کی جانچ",
+          "description": "کسی متن اور پس منظر کے جوڑے کو، یا اپنے برانڈ پیلیٹ کے ہر جوڑے کو، WCAG 2.1 اور APCA کے معیار پر جانچیں، اور دیکھیں کہ یہ کلر بلائنڈ ناظرین کو کیسا نظر آتا ہے۔"
+        },
+        "vi": {
+          "name": "Kiểm tra độ tương phản",
+          "description": "Kiểm tra một cặp màu chữ và nền, hoặc toàn bộ các cặp màu trong bảng màu thương hiệu của bạn, theo chuẩn WCAG 2.1 và APCA. Xem cách người mù màu nhìn thấy các cặp màu đó."
+        },
+        "zh-hant": {
+          "name": "對比度檢查器",
+          "description": "檢查文字與背景的顏色組合，或品牌調色盤中的每一種顏色搭配，是否符合 WCAG 2.1 與 APCA 標準，並查看色覺障礙者眼中的呈現效果。"
+        },
+        "zh": {
+          "name": "对比度检查器",
+          "description": "检查一组文字与背景颜色，或品牌调色板中的每一种颜色组合，是否符合 WCAG 2.1 和 APCA 标准，并查看色盲人士眼中的效果。"
+        }
+      }
     },
     {
       "id": "pricing-table",
@@ -7386,7 +7562,113 @@
             }
           ]
         }
-      ]
+      ],
+      "i18n": {
+        "ar": {
+          "name": "جدول الأسعار",
+          "description": "الخطط في أعمدة، والميزات في صفوف، مع علامات صح وخطأ، وخطة واحدة مميّزة بوصفها الموصى بها."
+        },
+        "bg": {
+          "name": "Ценова таблица",
+          "description": "Планове като колони, функции като редове, отметки и кръстчета, и един план, откроен като препоръчания."
+        },
+        "bn": {
+          "name": "প্রাইসিং টেবিল",
+          "description": "প্ল্যান কলামে, ফিচার সারিতে, টিক ও ক্রস চিহ্ন সহ, এবং একটি প্ল্যান প্রস্তাবিত হিসেবে হাইলাইট করা।"
+        },
+        "cs": {
+          "name": "Cenová tabulka",
+          "description": "Tarify jako sloupce, funkce jako řádky, zatržítka a křížky, a jeden tarif zvýrazněný jako doporučený."
+        },
+        "de": {
+          "name": "Preistabelle",
+          "description": "Pläne als Spalten, Funktionen als Zeilen, Häkchen und Kreuze, und ein Plan als Empfehlung hervorgehoben."
+        },
+        "es": {
+          "name": "Tabla de precios",
+          "description": "Planes en columnas, funciones en filas, marcas de verificación y cruces, y un plan destacado como el recomendado."
+        },
+        "fr": {
+          "name": "Tableau de tarifs",
+          "description": "Les formules en colonnes, les fonctionnalités en lignes, des coches et des croix. Une formule est mise en avant comme recommandée."
+        },
+        "hi": {
+          "name": "प्राइसिंग टेबल",
+          "description": "प्लान कॉलम में, फ़ीचर पंक्तियों में, टिक और क्रॉस चिह्न के साथ, और एक प्लान को अनुशंसित के तौर पर हाइलाइट किया गया।"
+        },
+        "id": {
+          "name": "Tabel Harga",
+          "description": "Paket sebagai kolom, fitur sebagai baris, tanda centang dan silang, dan satu paket ditandai sebagai yang disarankan."
+        },
+        "it": {
+          "name": "Tabella dei prezzi",
+          "description": "Piani in colonna, funzionalità in riga, segni di spunta e crocette, e un piano evidenziato come consigliato."
+        },
+        "ja": {
+          "name": "料金表",
+          "description": "プランを列、機能を行として並べ、チェックマークとバツ印で対応状況を示します。おすすめのプランは1つだけ強調表示できます。"
+        },
+        "ko": {
+          "name": "가격표",
+          "description": "요금제는 열로, 기능은 행으로 정리하고, 체크와 엑스 표시를 넣어요. 추천 요금제 하나는 따로 강조할 수 있어요."
+        },
+        "ms": {
+          "name": "Jadual Harga",
+          "description": "Pelan sebagai lajur, ciri sebagai baris, tanda betul dan tanda silang, serta satu pelan ditonjolkan sebagai pilihan disyorkan."
+        },
+        "nl": {
+          "name": "Prijstabel",
+          "description": "Abonnementen als kolommen, functies als rijen, vinkjes en kruisjes, en één abonnement uitgelicht als aanbevolen."
+        },
+        "no": {
+          "name": "Pristabell",
+          "description": "Planer som kolonner, funksjoner som rader, haker og kryss, og én plan fremhevet som den anbefalte."
+        },
+        "pl": {
+          "name": "Cennik",
+          "description": "Plany jako kolumny, funkcje jako wiersze, ptaszki i krzyżyki, i jeden plan wyróżniony jako polecany."
+        },
+        "pt": {
+          "name": "Tabela de Preços",
+          "description": "Planos em colunas, recursos em linhas e marcas de certo e de errado, com um plano destacado como o recomendado."
+        },
+        "ro": {
+          "name": "Tabel de Prețuri",
+          "description": "Planuri pe coloane, funcții pe rânduri, bife și X-uri, iar un plan este scos în evidență ca recomandat."
+        },
+        "sv": {
+          "name": "Pristabell",
+          "description": "Planer som kolumner, funktioner som rader, bockar och kryss, och en plan som markeras som den rekommenderade."
+        },
+        "tl": {
+          "name": "Talahanayan ng Presyo",
+          "description": "Mga plano bilang column, mga feature bilang row, mga tsek at ekis, at isang plano na naka-highlight bilang ang rekomendado."
+        },
+        "tr": {
+          "name": "Fiyatlandırma Tablosu",
+          "description": "Planlar sütun, özellikler satır olur; onay ve çarpı işaretleri kullanılır, bir plan da önerilen olarak öne çıkar."
+        },
+        "uk": {
+          "name": "Тарифи",
+          "description": "Плани як колонки, функції як рядки, галочки та хрестики, і один план виділений як рекомендований."
+        },
+        "ur": {
+          "name": "قیمتوں کا ٹیبل",
+          "description": "پلانز کالمز کی صورت میں، خصوصیات قطاروں کی صورت میں، ٹِک اور کراس نشانات، اور ایک پلان کو تجویز کردہ کے طور پر نمایاں کیا گیا ہے۔"
+        },
+        "vi": {
+          "name": "Bảng giá",
+          "description": "Xếp các gói dịch vụ theo cột, tính năng theo hàng, đánh dấu tích và dấu X, rồi làm nổi bật một gói được đề xuất."
+        },
+        "zh-hant": {
+          "name": "定價表",
+          "description": "方案排成欄，功能排成列，搭配打勾與打叉符號，並將其中一個方案標為建議方案。"
+        },
+        "zh": {
+          "name": "定价表",
+          "description": "以列显示套餐、以行显示功能，用勾号和叉号标示，并突出显示一个推荐套餐。"
+        }
+      }
     },
     {
       "id": "screenshot-frame",
@@ -7520,7 +7802,113 @@
             }
           ]
         }
-      ]
+      ],
+      "i18n": {
+        "ar": {
+          "name": "إطار لقطة الشاشة",
+          "description": "أضف لقطة شاشة واحصل عليها مؤطّرة ومزودة بهامش وظل على خلفية بألوان علامتك التجارية."
+        },
+        "bg": {
+          "name": "Рамка за екранна снимка",
+          "description": "Пусни екранна снимка и я получи с рамка, отстъп и сянка върху фон на бранда."
+        },
+        "bn": {
+          "name": "স্ক্রিনশট ফ্রেম",
+          "description": "একটি স্ক্রিনশট দিন এবং সেটিকে ব্র্যান্ড ব্যাকড্রপে ফ্রেম, প্যাডিং ও শ্যাডো সহ পান।"
+        },
+        "cs": {
+          "name": "Rámeček snímku",
+          "description": "Vlož snímek obrazovky a získej ho zarámovaný, s odsazením a stínem na pozadí v barvách značky."
+        },
+        "de": {
+          "name": "Screenshot-Rahmen",
+          "description": "Legen Sie einen Screenshot ab und erhalten Sie ihn gerahmt, mit Abstand und Schatten, auf einem Hintergrund im Markendesign."
+        },
+        "es": {
+          "name": "Marco de captura de pantalla",
+          "description": "Suelta una captura de pantalla y consíguela enmarcada, con margen y sombra, sobre un fondo con el estilo de tu marca."
+        },
+        "fr": {
+          "name": "Cadre de capture d'écran",
+          "description": "Dépose une capture d'écran : elle est encadrée, dotée de marges et ombrée sur un arrière-plan à l'image de ta marque."
+        },
+        "hi": {
+          "name": "स्क्रीनशॉट फ़्रेम",
+          "description": "एक स्क्रीनशॉट डालें और उसे ब्रांड बैकड्रॉप पर फ़्रेम, पैडिंग और शैडो के साथ पाएँ।"
+        },
+        "id": {
+          "name": "Bingkai Tangkapan Layar",
+          "description": "Masukkan tangkapan layar dan dapatkan hasilnya diberi bingkai, padding, dan bayangan di atas backdrop brand."
+        },
+        "it": {
+          "name": "Cornice per screenshot",
+          "description": "Carica uno screenshot e ottienilo incorniciato, con margine e ombra, su uno sfondo brand."
+        },
+        "ja": {
+          "name": "スクリーンショットフレーム",
+          "description": "スクリーンショットをドロップするだけで、ブランドの背景の上にフレーム、余白、影を付けて仕上げます。"
+        },
+        "ko": {
+          "name": "스크린샷 프레임",
+          "description": "스크린샷을 넣으면 브랜드 배경 위에 프레임과 여백, 그림자를 더해 완성해요."
+        },
+        "ms": {
+          "name": "Bingkai Tangkapan Skrin",
+          "description": "Masukkan tangkapan skrin dan dapatkannya dibingkai, diberi jidar dan berbayang di atas latar belakang jenama."
+        },
+        "nl": {
+          "name": "Screenshotkader",
+          "description": "Sleep een screenshot naar binnen en krijg hem omlijst, met marge en schaduw op een achtergrond in je huisstijl."
+        },
+        "no": {
+          "name": "Skjermbilderamme",
+          "description": "Last inn et skjermbilde og få det rammet inn, med god margin og skygge, på en bakgrunn i din merkevarestil."
+        },
+        "pl": {
+          "name": "Ramka na zrzut ekranu",
+          "description": "Wstaw zrzut ekranu - otrzymasz go w ramce, z marginesem i cieniem na tle marki."
+        },
+        "pt": {
+          "name": "Moldura de Captura de Tela",
+          "description": "Solte uma captura de tela e receba-a emoldurada, com respiro e sombra sobre um fundo da marca."
+        },
+        "ro": {
+          "name": "Ramă pentru Captură de Ecran",
+          "description": "Adaugă o captură de ecran și obține-o încadrată, cu spațiere și umbră, pe un fundal al brandului."
+        },
+        "sv": {
+          "name": "Skärmdumpsram",
+          "description": "Lägg in en skärmdump och få den inramad, med padding och skugga mot en varumärkesbakgrund."
+        },
+        "tl": {
+          "name": "Frame ng Screenshot",
+          "description": "Mag-drop ng screenshot at makakuha ito ng frame, padding at shadow sa ibabaw ng isang brand backdrop."
+        },
+        "tr": {
+          "name": "Ekran Görüntüsü Çerçevesi",
+          "description": "Bir ekran görüntüsü bırak - markana uygun bir zemin üzerinde çerçeveli, boşluklu ve gölgeli olarak çıkar."
+        },
+        "uk": {
+          "name": "Рамка для скриншота",
+          "description": "Додайте скриншот - отримайте його в рамці, з відступами і тінню на фірмовому фоні."
+        },
+        "ur": {
+          "name": "اسکرین شاٹ فریم",
+          "description": "کوئی اسکرین شاٹ ڈالیں اور اسے برانڈ بیک ڈراپ پر فریم، پیڈنگ اور شیڈو کے ساتھ حاصل کریں۔"
+        },
+        "vi": {
+          "name": "Khung ảnh chụp màn hình",
+          "description": "Thêm ảnh chụp màn hình vào, tự động được đóng khung, thêm khoảng đệm và đổ bóng trên nền thương hiệu của bạn."
+        },
+        "zh-hant": {
+          "name": "螢幕截圖外框",
+          "description": "拖放一張螢幕截圖，即可加上外框、留白與陰影，並置於品牌背景上。"
+        },
+        "zh": {
+          "name": "截图相框",
+          "description": "导入一张截图，即可为它添加相框、留白和阴影，衬在符合品牌风格的背景上。"
+        }
+      }
     },
     {
       "id": "captions",
@@ -7614,7 +8002,113 @@
             }
           ]
         }
-      ]
+      ],
+      "i18n": {
+        "ar": {
+          "name": "الترجمة",
+          "description": "ترجمة نصية لمقطع - فرّغها صوتيًا على جهازك أو أضف ملف SRT أو VTT جاهزًا، نسّق مظهر المقاطع، وصدّر إطارات بترجمة مدمجة في الصورة مع ملفي .srt و.vtt نظيفين مرفقين."
+        },
+        "bg": {
+          "name": "Субтитри",
+          "description": "Субтитри за клип - транскрибирай го на устройството или добави SRT/VTT файл, оформи репликите и експортирай кадри с вградени субтитри, плюс чисти .srt и .vtt файлове."
+        },
+        "bn": {
+          "name": "ক্যাপশন",
+          "description": "একটি ক্লিপের জন্য সাবটাইটেল - ডিভাইসে ট্রান্সক্রাইব করুন বা SRT/VTT ফাইল দিন, কিউ স্টাইল করুন, এবং ক্যাপশন বার্ন-ইন করা ফ্রেমের সাথে পরিষ্কার .srt ও .vtt সাইডকার ফাইল এক্সপোর্ট করুন।"
+        },
+        "cs": {
+          "name": "Titulky",
+          "description": "Titulky ke klipu - přepiš ho přímo v zařízení nebo vlož soubor SRT či VTT, uprav vzhled titulků a exportuj snímky s vypálenými titulky i čisté soubory .srt a .vtt."
+        },
+        "de": {
+          "name": "Untertitel",
+          "description": "Untertitel für einen Clip - transkribieren Sie ihn auf dem Gerät oder fügen Sie eine SRT- oder VTT-Datei ein, gestalten Sie die Zeilen und exportieren Sie Bilder mit eingebrannten Untertiteln sowie saubere .srt- und .vtt-Begleitdateien."
+        },
+        "es": {
+          "name": "Subtítulos",
+          "description": "Subtítulos para un clip - transcríbelo en el dispositivo o añade un archivo SRT/VTT, da estilo a las líneas y exporta fotogramas con los subtítulos incrustados, además de archivos complementarios .srt y .vtt limpios."
+        },
+        "fr": {
+          "name": "Sous-titres",
+          "description": "Des sous-titres pour un clip - transcris-le sur ton appareil ou importe un fichier SRT/VTT, personnalise le style des sous-titres, puis exporte des images avec sous-titres incrustés et des fichiers .srt et .vtt propres."
+        },
+        "hi": {
+          "name": "कैप्शन",
+          "description": "क्लिप के लिए सबटाइटल - इसे डिवाइस पर ट्रांसक्राइब करें या SRT/VTT फ़ाइल डालें, क्यू को स्टाइल करें, और कैप्शन बर्न-इन किए फ़्रेम के साथ साफ़ .srt और .vtt साइडकार फ़ाइलें एक्सपोर्ट करें।"
+        },
+        "id": {
+          "name": "Subtitle",
+          "description": "Subtitle untuk klip - buat transkrip otomatis di perangkat atau masukkan file SRT/VTT, atur gaya cue, dan ekspor frame dengan teks tertanam plus file pendamping .srt dan .vtt yang bersih."
+        },
+        "it": {
+          "name": "Sottotitoli",
+          "description": "Sottotitoli per una clip - trascrivila sul dispositivo o carica un file SRT/VTT, personalizza lo stile delle battute ed esporta fotogrammi con sottotitoli incorporati, oltre a file .srt e .vtt puliti."
+        },
+        "ja": {
+          "name": "字幕",
+          "description": "クリップの字幕を作成します - デバイス上で文字起こしするか、SRT/VTTファイルを読み込みます。字幕のスタイルを設定し、焼き込み済みのフレームと、きれいな.srt・.vttファイルを書き出せます。"
+        },
+        "ko": {
+          "name": "자막",
+          "description": "클립에 자막을 달아요 - 기기에서 바로 받아쓰거나 SRT나 VTT 파일을 넣을 수 있어요. 자막 스타일을 꾸미고, 자막이 새겨진 프레임과 깔끔한 .srt·.vtt 파일을 함께 내보내요."
+        },
+        "ms": {
+          "name": "Sari Kata",
+          "description": "Sari kata untuk klip - transkripkannya di peranti atau masukkan fail SRT/VTT, gayakan sari kata, dan eksport bingkai video dengan sari kata terbakar-masuk berserta fail sampingan .srt dan .vtt yang bersih."
+        },
+        "nl": {
+          "name": "Ondertitels",
+          "description": "Ondertitels voor een clip - transcribeer hem op je apparaat of sleep er een SRT- of VTT-bestand in, pas de opmaak van de ondertitels aan en exporteer beelden met ingebrande ondertitels plus schone .srt- en .vtt-bestanden."
+        },
+        "no": {
+          "name": "Undertekster",
+          "description": "Undertekster for et klipp - transkriber det på enheten, eller last inn en SRT- eller VTT-fil, tilpass utseendet på tekstlinjene og eksporter rammer med innbrente undertekster i tillegg til rene .srt- og .vtt-følgefiler."
+        },
+        "pl": {
+          "name": "Napisy",
+          "description": "Napisy dla klipu - transkrybuj go na urządzeniu albo wgraj plik SRT/VTT, dostosuj wygląd napisów i eksportuj klatki z wypalonymi napisami oraz czyste, towarzyszące pliki .srt i .vtt."
+        },
+        "pt": {
+          "name": "Legendas",
+          "description": "Legendas para um vídeo - transcreva no dispositivo ou solte um arquivo SRT/VTT, estilize as legendas e exporte quadros com a legenda gravada na imagem, além de arquivos .srt e .vtt limpos."
+        },
+        "ro": {
+          "name": "Subtitrări",
+          "description": "Subtitrări pentru un clip - transcrie-l pe dispozitiv sau adaugă un fișier SRT/VTT, stilizează replicile și exportă cadre video cu subtitrări incrustate, plus fișiere însoțitoare .srt și .vtt curate."
+        },
+        "sv": {
+          "name": "Undertexter",
+          "description": "Undertexter för ett klipp - transkribera på enheten eller lägg in en SRT/VTT-fil, stila texterna och exportera inbrända bildrutor plus rena .srt- och .vtt-sidofiler."
+        },
+        "tl": {
+          "name": "Mga Caption",
+          "description": "Mga subtitle para sa isang clip - i-transcribe ito sa iyong device o maglagay ng SRT/VTT file, i-style ang mga cue, at mag-export ng mga naka-burn-in na frame kasama ang malinis na .srt at .vtt na sidecar file."
+        },
+        "tr": {
+          "name": "Altyazı",
+          "description": "Bir klip için altyazı - cihazında metne çevir ya da bir SRT/VTT dosyası ekle, replikleri biçimlendir ve altyazısı gömülü kareler ile birlikte temiz .srt ve .vtt dosyalarını dışa aktar."
+        },
+        "uk": {
+          "name": "Субтитри",
+          "description": "Субтитри для кліпу - розшифруйте його прямо на пристрої або додайте готовий файл SRT/VTT, оформте репліки та експортуйте кадри із вбудованими субтитрами разом із чистими супровідними файлами .srt і .vtt."
+        },
+        "ur": {
+          "name": "سب ٹائٹلز",
+          "description": "کسی کلپ کے سب ٹائٹلز - اسے اپنے آلے پر ٹرانسکرائب کریں یا SRT/VTT فائل شامل کریں، کیپشنز کا انداز طے کریں، اور کیپشنز والے فریمز کے ساتھ ساتھ صاف .srt اور .vtt معاون فائلیں ایکسپورٹ کریں۔"
+        },
+        "vi": {
+          "name": "Phụ đề",
+          "description": "Phụ đề cho một đoạn clip - phiên âm ngay trên thiết bị hoặc thêm file SRT/VTT có sẵn, tùy chỉnh kiểu cho từng dòng phụ đề, rồi xuất khung hình đã gắn phụ đề cứng cùng với file .srt và .vtt sạch đi kèm."
+        },
+        "zh-hant": {
+          "name": "字幕",
+          "description": "為影片加上字幕 - 可在裝置上轉錄，或直接匯入 SRT/VTT 檔案，設定字幕樣式，然後匯出燒錄字幕的畫面，以及乾淨的 .srt 與 .vtt 字幕檔。"
+        },
+        "zh": {
+          "name": "字幕",
+          "description": "为视频片段生成字幕 - 在设备上转录，或直接导入 SRT/VTT 文件，设置字幕样式，然后导出烧录字幕的画面，以及干净的 .srt 和 .vtt 文件。"
+        }
+      }
     },
     {
       "id": "certificate",
@@ -7749,7 +8243,113 @@
             }
           ]
         }
-      ]
+      ],
+      "i18n": {
+        "ar": {
+          "name": "الشهادة",
+          "description": "شهادات إتمام وتكريم من العلامة التجارية النشطة - اسم واحد في كل مرة، أو قائمة كاملة من ملف CSV عبر التعبئة الجماعية من الصفوف."
+        },
+        "bg": {
+          "name": "Сертификат",
+          "description": "Сертификати за завършване и за награда, оформени по активния бранд - едно име наведнъж или цял списък от CSV файл с Групово от редове."
+        },
+        "bn": {
+          "name": "শংসাপত্র",
+          "description": "সক্রিয় ব্র্যান্ড থেকে সমাপ্তি ও পুরস্কার শংসাপত্র - একবারে একটি নাম, অথবা CSV থেকে Bulk from rows-এ পুরো তালিকা।"
+        },
+        "cs": {
+          "name": "Certifikát",
+          "description": "Certifikáty o absolvování a ocenění v barvách aktivní značky - jedno jméno najednou, nebo celý seznam ze souboru CSV v nástroji Hromadně z řádků."
+        },
+        "de": {
+          "name": "Zertifikat",
+          "description": "Abschluss- und Auszeichnungszertifikate im Design der aktiven Marke - einzeln, ein Name nach dem anderen, oder als komplette Liste aus einer CSV-Datei in Stapel aus Zeilen."
+        },
+        "es": {
+          "name": "Certificado",
+          "description": "Certificados de finalización y de premios con la marca activa - un nombre a la vez, o toda una lista desde un CSV en Lote desde filas."
+        },
+        "fr": {
+          "name": "Certificat",
+          "description": "Certificats de réussite et de récompense aux couleurs de la marque active - un nom à la fois, ou toute une liste à partir d'un CSV via le traitement par lot."
+        },
+        "hi": {
+          "name": "प्रमाणपत्र",
+          "description": "सक्रिय ब्रांड से पूर्णता और पुरस्कार प्रमाणपत्र - एक बार में एक नाम, या CSV से Bulk from rows में पूरी सूची।"
+        },
+        "id": {
+          "name": "Sertifikat",
+          "description": "Sertifikat penyelesaian dan penghargaan dari brand aktif - satu nama setiap kali, atau seluruh daftar dari CSV lewat Massal dari Baris."
+        },
+        "it": {
+          "name": "Certificato",
+          "description": "Certificati di completamento e di riconoscimento dal brand attivo - un nome alla volta, oppure un intero elenco da un CSV con l'importazione in blocco da righe."
+        },
+        "ja": {
+          "name": "証明書",
+          "description": "アクティブなブランドで修了証書・表彰状を作成します - 1名ずつでも、CSVを使って名簿全体を一括作成することもできます。"
+        },
+        "ko": {
+          "name": "인증서",
+          "description": "현재 브랜드 스타일로 만드는 수료증과 상장이에요 - 한 번에 한 명씩 만들거나, Bulk from rows에서 CSV로 전체 명단을 한꺼번에 만들 수 있어요."
+        },
+        "ms": {
+          "name": "Sijil",
+          "description": "Sijil penyudahan dan anugerah daripada jenama aktif - satu nama pada satu masa, atau keseluruhan senarai daripada CSV menggunakan Bulk from rows."
+        },
+        "nl": {
+          "name": "Certificaat",
+          "description": "Certificaten voor afronding en onderscheidingen in je huisstijl - één naam tegelijk, of een hele lijst uit een CSV-bestand via Bulk vanuit rijen."
+        },
+        "no": {
+          "name": "Diplom",
+          "description": "Diplom for fullførte kurs og utmerkelser fra din aktive merkevare - ett navn om gangen, eller en hel deltakerliste fra en CSV-fil via Bulk from rows."
+        },
+        "pl": {
+          "name": "Certyfikat",
+          "description": "Certyfikaty ukończenia i certyfikaty nagrody z aktywnej marki - jedno imię naraz albo cała lista z pliku CSV przez Bulk from rows."
+        },
+        "pt": {
+          "name": "Certificado",
+          "description": "Certificados de conclusão e de premiação com a marca ativa - um nome por vez, ou uma lista inteira a partir de um CSV com o Bulk from rows."
+        },
+        "ro": {
+          "name": "Certificat",
+          "description": "Certificate de finalizare și de premiere din brandul activ - un nume pe rând, sau un registru întreg dintr-un CSV, folosind Bulk from rows."
+        },
+        "sv": {
+          "name": "Diplom",
+          "description": "Diplom för avslutade kurser och utmärkelser med ditt aktiva varumärke - ett namn i taget, eller en hel deltagarlista från en CSV via Bulk from rows."
+        },
+        "tl": {
+          "name": "Sertipiko",
+          "description": "Mga sertipiko ng pagkumpleto at parangal mula sa aktibong brand - isang pangalan sa isang pagkakataon, o buong roster mula sa isang CSV gamit ang Bulk from rows."
+        },
+        "tr": {
+          "name": "Sertifika",
+          "description": "Aktif markaya uygun tamamlama ve ödül sertifikaları - tek seferde bir isim ya da Satırlardan Toplu ile bir CSV dosyasından tüm liste."
+        },
+        "uk": {
+          "name": "Сертифікат",
+          "description": "Сертифікати про завершення та нагородні сертифікати з активного бренду - одне ім'я за раз або весь список із CSV-файлу через Bulk from rows."
+        },
+        "ur": {
+          "name": "سرٹیفکیٹ",
+          "description": "فعال برانڈ سے تکمیل اور ایوارڈ کے سرٹیفکیٹس - ایک وقت میں ایک نام، یا قطاروں سے بلک کے ذریعے CSV سے پوری فہرست۔"
+        },
+        "vi": {
+          "name": "Chứng chỉ",
+          "description": "Tạo chứng chỉ hoàn thành và chứng nhận khen thưởng theo thương hiệu đang dùng - từng người một, hoặc cả danh sách từ file CSV bằng chế độ Tạo hàng loạt theo dòng."
+        },
+        "zh-hant": {
+          "name": "證書",
+          "description": "以目前品牌樣式製作的完成證書與獎狀 - 一次一個姓名，或透過 Bulk from rows 從 CSV 匯入整份名單。"
+        },
+        "zh": {
+          "name": "证书",
+          "description": "根据当前品牌样式生成结业证书和荣誉证书 - 可一次生成一份，也可通过批处理用 CSV 批量生成整份名单。"
+        }
+      }
     },
     {
       "id": "print-sheet",
@@ -7866,7 +8466,113 @@
             }
           ]
         }
-      ]
+      ],
+      "i18n": {
+        "ar": {
+          "name": "ورقة الطباعة",
+          "description": "رتّب تصميمًا واحدًا بعدة نسخ على الورقة (n-up) بمقاس A4 أو Letter أو A3، مع علامات قص في الهامش."
+        },
+        "bg": {
+          "name": "Печатен лист",
+          "description": "Подреди едно изделие в няколко копия на един лист A4, Letter или A3, с маркери за рязане в полето."
+        },
+        "bn": {
+          "name": "প্রিন্ট শিট",
+          "description": "একটি আর্টওয়ার্ক A4, Letter বা A3 শিটে একাধিক কপি হিসেবে সাজান, মার্জিনে ক্রপ মার্ক সহ।"
+        },
+        "cs": {
+          "name": "Tiskový arch",
+          "description": "Rozmísti jeden grafický návrh víckrát na arch A4, Letter nebo A3, s ořezovými značkami na okraji."
+        },
+        "de": {
+          "name": "Druckbogen",
+          "description": "Verteilen Sie ein einzelnes Motiv mehrfach auf einem Bogen (n-up) - auf A4, Letter oder A3, mit Schnittmarken im Rand."
+        },
+        "es": {
+          "name": "Hoja de impresión",
+          "description": "Distribuye una misma pieza de arte varias veces por hoja (n-up), en A4, Carta o A3, con marcas de corte en el margen."
+        },
+        "fr": {
+          "name": "Planche d'impression",
+          "description": "Répète un visuel plusieurs fois sur une page A4, Letter ou A3, avec des repères de coupe dans la marge."
+        },
+        "hi": {
+          "name": "प्रिंट शीट",
+          "description": "एक आर्टवर्क को A4, Letter या A3 शीट पर कई प्रतियों में लगाएँ, मार्जिन में क्रॉप मार्क के साथ।"
+        },
+        "id": {
+          "name": "Lembar Cetak",
+          "description": "Susun satu karya seni berulang (n-up) pada kertas A4, Letter, atau A3, dengan tanda potong di margin."
+        },
+        "it": {
+          "name": "Foglio di stampa",
+          "description": "Disponi una singola grafica in più copie sulla stessa pagina (n-up) in formato A4, Letter o A3, con segni di taglio nel margine."
+        },
+        "ja": {
+          "name": "印刷シート",
+          "description": "1つの作品をA4、レター、A3の用紙に面付けし、余白にトンボを入れます。"
+        },
+        "ko": {
+          "name": "인쇄 시트",
+          "description": "작품 하나를 A4·Letter·A3 용지에 n-up으로 배치해요. 여백에는 재단선이 들어가요."
+        },
+        "ms": {
+          "name": "Helaian Cetak",
+          "description": "Susun atur satu reka bentuk n-up pada kertas A4, Letter atau A3, dengan tanda potong di jidar."
+        },
+        "nl": {
+          "name": "Afdrukvel",
+          "description": "Zet één ontwerp meerdere keren op een vel A4, Letter of A3, met snijtekens in de marge."
+        },
+        "no": {
+          "name": "Utskriftsark",
+          "description": "Legg ut ett motiv n-up på A4, Letter eller A3, med skjæremerker i margen."
+        },
+        "pl": {
+          "name": "Arkusz do druku",
+          "description": "Rozmieść jeden projekt w układzie n-up na arkuszu A4, Letter lub A3, ze znacznikami cięcia na marginesie."
+        },
+        "pt": {
+          "name": "Folha de Impressão",
+          "description": "Distribua uma peça de arte em várias cópias (n-up) numa folha A4, Letter ou A3, com marcas de corte na margem."
+        },
+        "ro": {
+          "name": "Coală de Print",
+          "description": "Așază un singur design n-up pe o coală A4, Letter sau A3, cu semne de tăiere pe margine."
+        },
+        "sv": {
+          "name": "Utskriftsark",
+          "description": "Lägg upp en design n-up på A4, Letter eller A3, med skärmärken i marginalen."
+        },
+        "tl": {
+          "name": "Sheet ng Print",
+          "description": "I-lay out ang isang piraso ng artwork nang n-up sa A4, Letter o A3, may mga crop mark sa margin."
+        },
+        "tr": {
+          "name": "Baskı Sayfası",
+          "description": "Tek bir tasarımı A4, Letter ya da A3 kağıdına çoklu kopya olarak diz, kenarlara kesim işaretleri ekle."
+        },
+        "uk": {
+          "name": "Аркуш для друку",
+          "description": "Розмістіть один макет по кілька копій (n-up) на аркуші A4, Letter або A3, з мітками обрізки на полях."
+        },
+        "ur": {
+          "name": "پرنٹ شیٹ",
+          "description": "ایک آرٹ ورک کو A4، لیٹر یا A3 پر متعدد کاپیوں (n-up) میں ترتیب دیں، مارجن میں کراپ مارکس کے ساتھ۔"
+        },
+        "vi": {
+          "name": "Tờ In",
+          "description": "Xếp nhiều bản của một tác phẩm lên cùng một tờ A4, Letter hoặc A3, kèm dấu cắt ở lề."
+        },
+        "zh-hant": {
+          "name": "列印拼版",
+          "description": "將同一份作品以 n-up 方式重複排列於 A4、Letter 或 A3 紙張上，邊界處印有裁切線。"
+        },
+        "zh": {
+          "name": "拼版打印",
+          "description": "将同一份图稿在 A4、Letter 或 A3 页面上重复排列多份，页边留有裁切线。"
+        }
+      }
     },
     {
       "id": "stationery",
@@ -7990,7 +8696,113 @@
             }
           ]
         }
-      ]
+      ],
+      "i18n": {
+        "ar": {
+          "name": "القرطاسية",
+          "description": "بطاقات عمل، وورق رسائل رسمي، وبطاقات مجاملة بهوية علامتك التجارية - كل قطعة بمقاسها الفعلي بعد القص، وجاهزة كملف PDF للطباعة."
+        },
+        "bg": {
+          "name": "Канцеларски материали",
+          "description": "Визитки, фирмени бланки и придружаващи картички от твоя бранд - всяко изделие с размерите на истинския формат за печат, готово като PDF за печат."
+        },
+        "bn": {
+          "name": "স্টেশনারি",
+          "description": "আপনার ব্র্যান্ড থেকে বিজনেস কার্ড, লেটারহেড ও কমপ্লিমেন্টস স্লিপ - প্রতিটি আইটেম তার আসল প্রিন্ট ট্রিমের মাপে, প্রিন্ট PDF হিসেবে প্রস্তুত।"
+        },
+        "cs": {
+          "name": "Firemní tiskoviny",
+          "description": "Vizitky, hlavičkový papír a průvodní lístky v barvách tvé značky - každý kus ve skutečné tiskové velikosti, připravený jako tiskové PDF."
+        },
+        "de": {
+          "name": "Geschäftsausstattung",
+          "description": "Visitenkarten, Briefpapier und Kompliment-Karten im Design Ihrer Marke - jedes Stück im echten Druck-Beschnittformat, fertig als Druck-PDF."
+        },
+        "es": {
+          "name": "Papelería",
+          "description": "Tarjetas de presentación, papel con membrete y tarjetas de cortesía de tu marca - cada pieza con el tamaño real de corte de impresión, lista como PDF de impresión."
+        },
+        "fr": {
+          "name": "Papeterie",
+          "description": "Cartes de visite, papier à en-tête et cartons de correspondance à l'image de ta marque - chaque pièce au format d'impression réel, prête en PDF pour l'impression."
+        },
+        "hi": {
+          "name": "स्टेशनरी",
+          "description": "अपने ब्रांड से बिज़नेस कार्ड, लेटरहेड और कॉम्प्लीमेंट्स स्लिप - हर पीस असली प्रिंट ट्रिम के साइज़ में, प्रिंट PDF के रूप में तैयार।"
+        },
+        "id": {
+          "name": "Alat Tulis Kantor",
+          "description": "Kartu nama, kop surat, dan compliments slip dari brand Anda - setiap bagian berukuran sesuai ukuran potong cetak sebenarnya, siap sebagai PDF cetak."
+        },
+        "it": {
+          "name": "Cancelleria",
+          "description": "Biglietti da visita, carta intestata e biglietti di cortesia dal tuo brand - ogni pezzo nel formato reale di stampa e taglio, pronto come PDF di stampa."
+        },
+        "ja": {
+          "name": "ステーショナリー",
+          "description": "ブランドに基づいた名刺、レターヘッド、添え状を作成します - それぞれ実際の断裁サイズに合わせ、印刷用PDFとしてすぐに使えます。"
+        },
+        "ko": {
+          "name": "인쇄물",
+          "description": "명함, 레터헤드, 인사말 카드를 브랜드 스타일로 만들어요 - 실제 인쇄 재단 크기에 맞춰, 바로 인쇄할 수 있는 PDF로 준비돼요."
+        },
+        "ms": {
+          "name": "Alat Tulis",
+          "description": "Kad perniagaan, kepala surat dan slip kompliman daripada jenama anda - setiap keping bersaiz mengikut potongan cetak sebenar, sedia sebagai PDF cetak."
+        },
+        "nl": {
+          "name": "Drukwerkset",
+          "description": "Visitekaartjes, briefpapier en complimentskaartjes in je huisstijl - elk onderdeel op zijn echte drukformaat, klaar als print-PDF."
+        },
+        "no": {
+          "name": "Trykksaker",
+          "description": "Visittkort, brevpapir og komplimentkort i din merkevarestil - hvert stykke i riktig trykkformat, klart som en trykkeklar PDF."
+        },
+        "pl": {
+          "name": "Papeteria",
+          "description": "Wizytówki, papier firmowy i bileciki grzecznościowe z Twojej marki - każdy element w dokładnym rozmiarze, gotowy jako PDF do druku."
+        },
+        "pt": {
+          "name": "Papelaria",
+          "description": "Cartões de visita, papel timbrado e cartões de cortesia com a sua marca - cada peça no tamanho real de corte de impressão, prontos como PDF para impressão."
+        },
+        "ro": {
+          "name": "Papetărie",
+          "description": "Cărți de vizită, antet și bilete de curtoazie pe brandul tău - fiecare piesă dimensionată la formatul real de tipar, gata ca PDF de print."
+        },
+        "sv": {
+          "name": "Trycksaker",
+          "description": "Visitkort, brevhuvuden och hälsningslappar från ditt varumärke - varje del i sin riktiga tryckstorlek, klar som en tryck-PDF."
+        },
+        "tl": {
+          "name": "Mga Stationery",
+          "description": "Mga business card, letterhead at compliments slip mula sa iyong brand - bawat piraso ay may sukat ayon sa tunay na print trim nito, handa na bilang print PDF."
+        },
+        "tr": {
+          "name": "Kırtasiye",
+          "description": "Markana özel kartvizitler, antetli kağıtlar ve 'iyi dileklerimizle' kartları - her biri gerçek baskı ölçüsünde, baskıya hazır bir PDF olarak."
+        },
+        "uk": {
+          "name": "Канцелярія",
+          "description": "Візитки, фірмові бланки та картки-компліменти з вашого бренду - кожен елемент точного розміру, готовий у форматі PDF для друку."
+        },
+        "ur": {
+          "name": "اسٹیشنری",
+          "description": "آپ کے برانڈ سے بزنس کارڈز، لیٹر ہیڈ اور کمپلیمنٹس سلپس - ہر ٹکڑا اپنے اصل پرنٹ ٹرم کے مطابق سائز کیا گیا ہے، پرنٹ PDF کے طور پر تیار۔"
+        },
+        "vi": {
+          "name": "Văn phòng phẩm",
+          "description": "Danh thiếp, tiêu đề thư (letterhead) và phiếu gửi kèm (compliments slip) theo thương hiệu của bạn - mỗi mẫu đúng kích thước cắt in thực tế, sẵn sàng dưới dạng PDF để in."
+        },
+        "zh-hant": {
+          "name": "事務用品",
+          "description": "名片、信頭紙與致意便條，套用你的品牌 - 每一款都採用實際印刷裁切尺寸，並以可列印的 PDF 格式提供。"
+        },
+        "zh": {
+          "name": "办公文具",
+          "description": "根据你的品牌样式生成名片、信头纸和便签纸 - 每件物料都按实际印刷尺寸裁切，直接导出为可印刷的 PDF。"
+        }
+      }
     },
     {
       "id": "jump",
@@ -8113,7 +8925,113 @@
             ]
           }
         }
-      ]
+      ],
+      "i18n": {
+        "ar": {
+          "name": "Jump Page",
+          "description": "صفحة هبوط برابط واحد: حتى عشرة روابط مع عنوان وألوانك، والصفحة كاملة موجودة داخل الرابط الذي تشاركه."
+        },
+        "bg": {
+          "name": "Джъмп страница",
+          "description": "Стартова страница с един линк: до десет линка със заглавие и твоите цветове, а цялата страница се побира вътре в линка, който споделяш."
+        },
+        "bn": {
+          "name": "জাম্প পেজ",
+          "description": "একটি এক-লিঙ্ক ল্যান্ডিং পেজ: একটি হেডিং ও আপনার রঙে দশটি পর্যন্ত লিঙ্ক, এবং পুরো পেজটি সেই লিঙ্কের ভেতরেই থাকে যা আপনি শেয়ার করেন।"
+        },
+        "cs": {
+          "name": "Jump Page",
+          "description": "Vstupní stránka na jeden odkaz: až deset odkazů s nadpisem a tvými barvami. Celá stránka je uložená přímo v odkazu, který sdílíš."
+        },
+        "de": {
+          "name": "Jump Page",
+          "description": "Eine Landingpage mit nur einem Link: bis zu zehn Links mit einer Überschrift und Ihren Farben - die ganze Seite steckt im Link, den Sie teilen."
+        },
+        "es": {
+          "name": "Jump Page",
+          "description": "Una landing page de un solo enlace: hasta diez enlaces con un título y tus colores, y toda la página vive dentro del enlace que compartes."
+        },
+        "fr": {
+          "name": "Page de liens",
+          "description": "Une page d'atterrissage à un seul lien : jusqu'à dix liens avec un titre et tes couleurs. Toute la page tient dans le lien que tu partages."
+        },
+        "hi": {
+          "name": "जंप पेज",
+          "description": "एक-लिंक लैंडिंग पेज: एक हेडिंग और अपने रंगों के साथ दस तक लिंक, और पूरा पेज उसी लिंक के अंदर रहता है जिसे आप शेयर करते हैं।"
+        },
+        "id": {
+          "name": "Jump Page",
+          "description": "Landing page satu-tautan: hingga sepuluh tautan dengan judul dan warna Anda, dan seluruh halaman hidup di dalam tautan yang Anda bagikan."
+        },
+        "it": {
+          "name": "Jump Page",
+          "description": "Una landing page con un solo link: fino a dieci link con un titolo e i tuoi colori, e l'intera pagina vive dentro il link che condividi."
+        },
+        "ja": {
+          "name": "ジャンプページ",
+          "description": "1つのリンクで完結するランディングページです - 見出しと自分の色を添えて、最大10件のリンクをまとめられます。ページの中身はすべて、共有するリンクそのものの中に収まっています。"
+        },
+        "ko": {
+          "name": "링크 페이지",
+          "description": "링크 하나로 끝나는 랜딩 페이지예요. 제목과 브랜드 컬러를 넣은 링크를 최대 10개까지 담을 수 있고, 페이지 전체가 공유하는 링크 안에 그대로 들어 있어요."
+        },
+        "ms": {
+          "name": "Halaman Lompat",
+          "description": "Halaman pendaratan satu pautan: sehingga sepuluh pautan dengan tajuk dan warna anda, dan seluruh halaman itu wujud di dalam pautan yang anda kongsikan."
+        },
+        "nl": {
+          "name": "Jump Page",
+          "description": "Een landingspagina met maar één link: tot tien links met een titel en je eigen kleuren - de hele pagina zit in de link die je deelt."
+        },
+        "no": {
+          "name": "Jump Page",
+          "description": "En landingsside med bare én lenke: opptil ti lenker med en overskrift og dine farger, og hele siden ligger inni lenken du deler."
+        },
+        "pl": {
+          "name": "Jump Page",
+          "description": "Strona docelowa w jednym linku: do dziesięciu odnośników, nagłówek i Twoje kolory - cała strona mieści się w samym linku, którym się dzielisz."
+        },
+        "pt": {
+          "name": "Jump Page",
+          "description": "Uma landing page de um único link: até dez links com um título e as suas cores, e a página inteira vive dentro do link que você compartilha."
+        },
+        "ro": {
+          "name": "Pagină de Salt",
+          "description": "O pagină de destinație cu un singur link: până la zece linkuri cu un titlu și culorile tale, iar întreaga pagină trăiește chiar în linkul pe care îl distribui."
+        },
+        "sv": {
+          "name": "Länksida",
+          "description": "En landningssida med en enda länk: upp till tio länkar med en rubrik och dina färger, och hela sidan finns inuti länken du delar."
+        },
+        "tl": {
+          "name": "Jump Page",
+          "description": "Isang landing page na iisang link lang ang kailangan - hanggang sampung link kasama ang isang heading at ang mga kulay mo, at ang buong pahina ay nasa loob mismo ng link na ibinabahagi mo."
+        },
+        "tr": {
+          "name": "Jump Page",
+          "description": "Tek bağlantılı bir açılış sayfası: bir başlık ve kendi renklerinle en fazla on bağlantı, tüm sayfa paylaştığın bağlantının içinde barınır."
+        },
+        "uk": {
+          "name": "Jump Page",
+          "description": "Односилкова цільова сторінка: до десяти посилань, заголовок і ваші кольори - уся сторінка міститься в самому посиланні, яким ви ділитеся."
+        },
+        "ur": {
+          "name": "Jump Page",
+          "description": "ایک لنک والا لینڈنگ پیج: عنوان اور اپنے رنگوں کے ساتھ دس تک لنکس، اور پورا پیج اسی لنک کے اندر رہتا ہے جسے آپ شیئر کرتے ہیں۔"
+        },
+        "vi": {
+          "name": "Jump Page",
+          "description": "Một trang đích chỉ cần một liên kết để chia sẻ: chứa tối đa mười liên kết, kèm tiêu đề và màu sắc của bạn. Toàn bộ trang nằm gọn ngay trong liên kết mà bạn chia sẻ."
+        },
+        "zh-hant": {
+          "name": "Jump Page",
+          "description": "一頁式連結頁：最多十個連結，搭配一個標題與你的品牌色彩，而整個頁面就藏在你分享出去的那個連結裡。"
+        },
+        "zh": {
+          "name": "跳转页",
+          "description": "一个单链接的着陆页：最多十个链接，配上标题和你的品牌色，整张页面都装在你分享出去的这一个链接里。"
+        }
+      }
     },
     {
       "id": "annotate",
@@ -8262,7 +9180,113 @@
             ]
           }
         }
-      ]
+      ],
+      "i18n": {
+        "ar": {
+          "name": "التعليق التوضيحي",
+          "description": "علّم على لقطة شاشتك الخاصة على جهازك - أسهم، مربعات، خطوات مرقمة، تعليقات توضيحية، قلم تمييز وتعتيم بؤري."
+        },
+        "bg": {
+          "name": "Анотиране",
+          "description": "Маркирай собствената си снимка на екрана направо на устройството - стрелки, кутии, номерирани стъпки, бележки, маркер и затъмняване тип прожектор."
+        },
+        "bn": {
+          "name": "অ্যানোটেট",
+          "description": "আপনার ডিভাইসে নিজের স্ক্রিনশটে মার্কআপ করুন - তীর, বক্স, ক্রমাঙ্কিত ধাপ, কলআউট, হাইলাইটার এবং স্পটলাইট ডিম।"
+        },
+        "cs": {
+          "name": "Anotace snímku",
+          "description": "Vyznač si vlastní snímek obrazovky přímo v zařízení - šipky, rámečky, číslované kroky, bubliny, zvýrazňovač a reflektor se ztmavením okolí."
+        },
+        "de": {
+          "name": "Anmerkungen",
+          "description": "Beschriften Sie Ihren eigenen Screenshot auf Ihrem Gerät - Pfeile, Kästen, nummerierte Schritte, Legenden, Textmarker und ein Spotlight, das den Rest abdunkelt."
+        },
+        "es": {
+          "name": "Anotar",
+          "description": "Marca tu propia captura de pantalla en tu dispositivo - flechas, cuadros, pasos numerados, llamadas, resaltador y un foco que atenúa el resto."
+        },
+        "fr": {
+          "name": "Annoter",
+          "description": "Annote ta propre capture d'écran sur ton appareil - flèches, cadres, étapes numérotées, bulles de texte, surligneur et un projecteur qui assombrit le reste."
+        },
+        "hi": {
+          "name": "एनोटेट",
+          "description": "अपने डिवाइस पर अपने स्क्रीनशॉट पर मार्कअप करें - तीर, बॉक्स, क्रमांकित चरण, कॉलआउट, हाइलाइटर और स्पॉटलाइट डिम।"
+        },
+        "id": {
+          "name": "Anotasi",
+          "description": "Beri anotasi pada tangkapan layar Anda sendiri di perangkat Anda - panah, kotak, langkah bernomor, callout, highlighter, dan peredupan spotlight."
+        },
+        "it": {
+          "name": "Annotazioni",
+          "description": "Annota i tuoi screenshot direttamente sul dispositivo - frecce, riquadri, passaggi numerati, callout, evidenziatore e oscuramento spotlight."
+        },
+        "ja": {
+          "name": "注釈",
+          "description": "自分のスクリーンショットに、デバイス上で注釈を付けられます - 矢印、四角形、番号付きの手順、吹き出し、蛍光ペン、周囲を暗くするスポットライト効果。"
+        },
+        "ko": {
+          "name": "주석",
+          "description": "내 기기에서 직접 스크린샷에 표시를 추가해요 - 화살표, 박스, 번호 매긴 단계, 설명 박스, 형광펜, 나머지를 어둡게 하는 스포트라이트까지 가능해요."
+        },
+        "ms": {
+          "name": "Anotasi",
+          "description": "Tanda pada tangkapan skrin anda sendiri di peranti anda - anak panah, kotak, langkah bernombor, petunjuk, penyerlah dan peredupan sorotan."
+        },
+        "nl": {
+          "name": "Screenshot annoteren",
+          "description": "Markeer je eigen screenshot op je apparaat - pijlen, vakken, genummerde stappen, callouts, markeerstift en een spotlight die de rest dimt."
+        },
+        "no": {
+          "name": "Annotering",
+          "description": "Merk opp ditt eget skjermbilde på enheten din - piler, bokser, nummererte trinn, forklaringsbokser, tekstmarkør og et spotlys som mørklegger resten."
+        },
+        "pl": {
+          "name": "Adnotacje",
+          "description": "Oznaczaj własny zrzut ekranu na swoim urządzeniu - strzałki, ramki, numerowane kroki, objaśnienia, zakreślacz i tryb reflektora z przyciemnieniem tła."
+        },
+        "pt": {
+          "name": "Anotar",
+          "description": "Marque sua própria captura de tela no dispositivo - setas, caixas, passos numerados, chamadas, marca-texto e um holofote que escurece o resto."
+        },
+        "ro": {
+          "name": "Adnotare",
+          "description": "Adaugă adnotări pe propria ta captură de ecran, direct pe dispozitiv - săgeți, casete, pași numerotați, casete explicative, marker și reflector cu fundal estompat."
+        },
+        "sv": {
+          "name": "Annotering",
+          "description": "Markera din egen skärmdump på din enhet - pilar, rutor, numrerade steg, kommentarbubblor, överstrykningspenna och spotlight-nedtoning."
+        },
+        "tl": {
+          "name": "Anotasyon",
+          "description": "Markahan ang sarili mong screenshot sa iyong device - mga arrow, box, may-numerong hakbang, callout, highlighter at spotlight dim."
+        },
+        "tr": {
+          "name": "Notlandırma",
+          "description": "Kendi ekran görüntünü cihazında işaretle - oklar, kutular, numaralı adımlar, açıklama balonları, vurgulayıcı ve spot ışığı karartması."
+        },
+        "uk": {
+          "name": "Анотування",
+          "description": "Розмічайте власний скриншот на своєму пристрої - стрілки, рамки, нумеровані кроки, виноски, маркер і прожектор із затемненням."
+        },
+        "ur": {
+          "name": "نشان لگائیں",
+          "description": "اپنے آلے پر اپنے اسکرین شاٹ پر نشان لگائیں - تیر، باکس، نمبر والے مراحل، کالآؤٹس، ہائی لائٹر اور ایک اسپاٹ لائٹ دھندلاہٹ۔"
+        },
+        "vi": {
+          "name": "Chú thích",
+          "description": "Chú thích ảnh chụp màn hình của bạn ngay trên thiết bị - mũi tên, khung hộp, các bước đánh số, ô ghi chú, bút dạ quang và hiệu ứng làm tối xung quanh (spotlight)."
+        },
+        "zh-hant": {
+          "name": "標記",
+          "description": "在你自己的裝置上為螢幕截圖做標記 - 箭頭、方框、編號步驟、註解框、螢光筆與聚光燈變暗效果。"
+        },
+        "zh": {
+          "name": "标注",
+          "description": "在设备上为自己的截图添加标注 - 箭头、方框、编号步骤、文字标注框、荧光笔和让其余区域变暗的聚光灯效果。"
+        }
+      }
     },
     {
       "id": "link-card",
@@ -8376,7 +9400,113 @@
             }
           ]
         }
-      ]
+      ],
+      "i18n": {
+        "ar": {
+          "name": "بطاقة الرابط",
+          "description": "الصق رابطًا واحصل على بطاقة اجتماعية بهوية علامتك - عنوان، وصف، شريحة الموقع وصورة مصغّرة، بحجم Open Graph أو المربع أو الملخص."
+        },
+        "bg": {
+          "name": "Линк карта",
+          "description": "Постави линк и получи брандирана социална карта - заглавие, описание, чип на сайта и миниатюра, в размер Open Graph, квадратен или обобщен."
+        },
+        "bn": {
+          "name": "লিঙ্ক কার্ড",
+          "description": "একটি লিঙ্ক পেস্ট করুন, একটি ব্র্যান্ডেড সোশ্যাল কার্ড পান - শিরোনাম, বিবরণ, সাইট চিপ এবং থাম্বনেইল, Open Graph, স্কোয়ার বা সামারি সাইজে।"
+        },
+        "cs": {
+          "name": "Karta odkazu",
+          "description": "Vlož odkaz a získej kartu v barvách značky pro sociální sítě - název, popis, štítek webu a náhledový obrázek, ve velikosti Open Graph, čtvercové nebo souhrnné."
+        },
+        "de": {
+          "name": "Link-Karte",
+          "description": "Fügen Sie einen Link ein und erhalten Sie eine Social-Media-Karte im Markendesign - Titel, Beschreibung, Site-Chip und ein Vorschaubild, im Format Open Graph, Quadrat oder Zusammenfassung."
+        },
+        "es": {
+          "name": "Tarjeta de enlace",
+          "description": "Pega un enlace y obtén una tarjeta social con tu marca - título, descripción, chip del sitio y una miniatura, en tamaño Open Graph, cuadrado o resumen."
+        },
+        "fr": {
+          "name": "Carte de lien",
+          "description": "Colle un lien, obtiens une carte sociale à l'image de ta marque - titre, description, badge du site et miniature, au format Open Graph, carré ou résumé."
+        },
+        "hi": {
+          "name": "लिंक कार्ड",
+          "description": "एक लिंक पेस्ट करें, ब्रांडेड सोशल कार्ड पाएँ - शीर्षक, विवरण, साइट चिप और थंबनेल, Open Graph, स्क्वेयर या समरी साइज़ में।"
+        },
+        "id": {
+          "name": "Kartu Tautan",
+          "description": "Tempel tautan, dapatkan kartu sosial bermerek - judul, deskripsi, chip situs, dan thumbnail, dalam ukuran Open Graph, persegi, atau ringkasan."
+        },
+        "it": {
+          "name": "Scheda link",
+          "description": "Incolla un link e ottieni una social card brandizzata - titolo, descrizione, chip del sito e una miniatura, in formato Open Graph, quadrato o summary."
+        },
+        "ja": {
+          "name": "リンクカード",
+          "description": "リンクを貼り付けるだけで、ブランドに合わせたソーシャルカードを作成します - タイトル、説明文、サイトチップ、サムネイル画像を、Open Graph、正方形、サマリーの各サイズで書き出せます。"
+        },
+        "ko": {
+          "name": "링크 카드",
+          "description": "링크를 붙여넣으면 브랜드 스타일의 소셜 카드가 만들어져요 - 제목, 설명, 사이트 칩, 썸네일까지, Open Graph·정사각형·요약 크기 중에서 골라요."
+        },
+        "ms": {
+          "name": "Kad Pautan",
+          "description": "Tampal satu pautan, dapatkan kad sosial berjenama - tajuk, penerangan, label laman dan gambar kecil, dalam saiz Open Graph, segi empat sama atau ringkasan."
+        },
+        "nl": {
+          "name": "Linkkaart",
+          "description": "Plak een link en krijg een sociale kaart in je huisstijl - titel, beschrijving, sitelabel en een thumbnail, in Open Graph-, vierkant of samenvattingsformaat."
+        },
+        "no": {
+          "name": "Lenkekort",
+          "description": "Lim inn en lenke, og få et sosialt kort i din merkevarestil - tittel, beskrivelse, nettstedmerke og et miniatyrbilde, i Open Graph-, kvadrat- eller sammendragsstørrelse."
+        },
+        "pl": {
+          "name": "Karta z linkiem",
+          "description": "Wklej link - otrzymaj markową kartę społecznościową: tytuł, opis, chip witryny i miniaturę, w rozmiarze Open Graph, kwadratowym albo Summary."
+        },
+        "pt": {
+          "name": "Cartão de Link",
+          "description": "Cole um link e gere um cartão social com a sua marca - título, descrição, chip do site e uma miniatura, nos tamanhos Open Graph, quadrado ou resumo."
+        },
+        "ro": {
+          "name": "Card de Link",
+          "description": "Lipește un link și obții un card social pe brandul tău - titlu, descriere, eticheta site-ului și o miniatură, în dimensiune Open Graph, pătrată sau rezumat."
+        },
+        "sv": {
+          "name": "Länkkort",
+          "description": "Klistra in en länk och få ett varumärkesanpassat socialt kort - titel, beskrivning, webbplatschip och miniatyrbild, i storleken Open Graph, kvadrat eller summary."
+        },
+        "tl": {
+          "name": "Card ng Link",
+          "description": "I-paste ang isang link, kumuha ng branded na social card - title, description, site chip at thumbnail, sa sukat na Open Graph, square o summary."
+        },
+        "tr": {
+          "name": "Bağlantı Kartı",
+          "description": "Bir bağlantı yapıştır, markana uygun bir sosyal kart al - başlık, açıklama, site etiketi ve küçük resim; Open Graph, kare ya da özet boyutunda."
+        },
+        "uk": {
+          "name": "Картка з посиланням",
+          "description": "Вставте посилання - отримайте фірмову картку для соцмереж: заголовок, опис, чіп сайту та мініатюру, у розмірі Open Graph, квадратному або Summary."
+        },
+        "ur": {
+          "name": "لنک کارڈ",
+          "description": "کوئی لنک پیسٹ کریں اور ایک برانڈڈ سوشل کارڈ حاصل کریں - عنوان، تفصیل، سائٹ چپ اور تھمب نیل، Open Graph، چوکور یا خلاصہ سائز میں۔"
+        },
+        "vi": {
+          "name": "Thẻ liên kết",
+          "description": "Dán một liên kết vào, nhận ngay thẻ mạng xã hội theo thương hiệu của bạn - tiêu đề, mô tả, nhãn tên trang và ảnh thu nhỏ, ở kích thước Open Graph, vuông hoặc tóm tắt."
+        },
+        "zh-hant": {
+          "name": "連結卡片",
+          "description": "貼上連結，即可產生具品牌風格的社群卡片 - 標題、描述、網站標籤與縮圖，並提供 Open Graph、方形或摘要尺寸。"
+        },
+        "zh": {
+          "name": "链接卡片",
+          "description": "粘贴一个链接，即可生成符合品牌风格的社交卡片 - 包含标题、描述、网站标签和缩略图，可选择 Open Graph、方形或摘要卡片尺寸。"
+        }
+      }
     },
     {
       "id": "signature",
@@ -8439,13 +9569,119 @@
           },
           "theme": "light"
         }
-      ]
+      ],
+      "i18n": {
+        "ar": {
+          "name": "التوقيع",
+          "description": "وقّع بإصبعك أو بقلم رقمي أو بالماوس، واحصل على توقيع نظيف على خلفية شفافة - بصيغة SVG أو PNG، دون ماسح ضوئي ودون تصوير قطعة ورق."
+        },
+        "bg": {
+          "name": "Подпис",
+          "description": "Подпиши се с пръст, писалка или мишка и получи чист подпис на прозрачен фон - SVG или PNG, без скенер, без снимка на лист хартия."
+        },
+        "bn": {
+          "name": "স্বাক্ষর",
+          "description": "আঙুল, স্টাইলাস বা মাউস দিয়ে স্বাক্ষর করুন এবং স্বচ্ছ ব্যাকগ্রাউন্ডে একটি পরিষ্কার স্বাক্ষর পান - SVG বা PNG, কোনো স্ক্যানার নেই, কাগজের টুকরোর ছবি নেই।"
+        },
+        "cs": {
+          "name": "Podpis",
+          "description": "Podepiš se prstem, stylusem nebo myší a získej čistý podpis na průhledném pozadí - SVG nebo PNG, bez skeneru a bez fotografování kusu papíru."
+        },
+        "de": {
+          "name": "Unterschrift",
+          "description": "Unterschreiben Sie mit dem Finger, einem Stift oder der Maus, und erhalten Sie eine saubere Unterschrift auf Transparenz - als SVG oder PNG, ohne Scanner, ohne Foto von einem Blatt Papier."
+        },
+        "es": {
+          "name": "Firma",
+          "description": "Firma con el dedo, un lápiz óptico o el ratón, y obtén una firma limpia sobre transparencia - en SVG o PNG, sin escáner ni foto de un papel."
+        },
+        "fr": {
+          "name": "Signature",
+          "description": "Signe avec un doigt, un stylet ou une souris. Obtiens une signature nette sur fond transparent - en SVG ou PNG, sans scanner ni photo d'un bout de papier."
+        },
+        "hi": {
+          "name": "हस्ताक्षर",
+          "description": "उंगली, स्टाइलस या माउस से हस्ताक्षर करें और ट्रांसपेरेंट बैकग्राउंड पर एक साफ़ हस्ताक्षर पाएँ - SVG या PNG, न कोई स्कैनर, न कागज़ के टुकड़े की फ़ोटो।"
+        },
+        "id": {
+          "name": "Tanda Tangan",
+          "description": "Buat tanda tangan dengan jari, stylus, atau mouse, dan dapatkan tanda tangan bersih dengan transparansi - SVG atau PNG, tanpa scanner, tanpa foto secarik kertas."
+        },
+        "it": {
+          "name": "Firma",
+          "description": "Firma con un dito, una stilo o il mouse e ottieni una firma pulita su trasparenza - SVG o PNG, senza scanner, senza fotografare un pezzo di carta."
+        },
+        "ja": {
+          "name": "署名",
+          "description": "指、スタイラス、マウスでサインするだけで、透明背景のきれいな署名が得られます - SVGまたはPNG形式。スキャナーも、紙を撮影する手間も必要ありません。"
+        },
+        "ko": {
+          "name": "서명",
+          "description": "손가락, 스타일러스, 마우스로 서명하면 투명 배경 위에 깔끔한 서명이 만들어져요 - SVG나 PNG로, 스캐너도 종이 사진도 필요 없어요."
+        },
+        "ms": {
+          "name": "Tandatangan",
+          "description": "Tandatangan menggunakan jari, stylus atau tetikus dan dapatkan tandatangan bersih pada latar belakang lutsinar - SVG atau PNG, tanpa pengimbas, tanpa gambar sekeping kertas."
+        },
+        "nl": {
+          "name": "Handtekening",
+          "description": "Onderteken met een vinger, stylus of muis en krijg een strakke handtekening op een transparante achtergrond - SVG of PNG, zonder scanner en zonder foto van een velletje papier."
+        },
+        "no": {
+          "name": "Signatur",
+          "description": "Signer med en finger, penn eller mus, og få en ren signatur på gjennomsiktig bakgrunn - SVG eller PNG, uten skanner, uten bilde av et papirark."
+        },
+        "pl": {
+          "name": "Podpis",
+          "description": "Podpisz się palcem, rysikiem albo myszką i uzyskaj czysty podpis na przezroczystym tle - SVG lub PNG, bez skanera, bez zdjęcia kartki papieru."
+        },
+        "pt": {
+          "name": "Assinatura",
+          "description": "Assine com o dedo, uma caneta stylus ou o mouse e obtenha uma assinatura limpa sobre fundo transparente - em SVG ou PNG, sem scanner e sem foto de um pedaço de papel."
+        },
+        "ro": {
+          "name": "Semnătură",
+          "description": "Semnează cu degetul, cu un stylus sau cu mouse-ul și obține o semnătură curată pe fundal transparent - SVG sau PNG, fără scaner, fără poză a unei bucăți de hârtie."
+        },
+        "sv": {
+          "name": "Signatur",
+          "description": "Signera med finger, styluspenna eller mus och få en ren signatur på transparent bakgrund - SVG eller PNG, ingen skanner, inget foto av en papperslapp."
+        },
+        "tl": {
+          "name": "Pirma",
+          "description": "Pumirma gamit ang daliri, stylus o mouse at kumuha ng malinis na pirma sa transparent na background - SVG o PNG, walang scanner, walang litrato ng papel."
+        },
+        "tr": {
+          "name": "İmza",
+          "description": "Parmağınla, kalemle ya da fareyle imzala, şeffaf zeminde temiz bir imza al - SVG ya da PNG, tarayıcı yok, kağıt fotoğrafı yok."
+        },
+        "uk": {
+          "name": "Підпис",
+          "description": "Розпишіться пальцем, стилусом або мишею й отримайте чистий підпис на прозорому фоні - SVG або PNG, без сканера, без фото аркуша паперу."
+        },
+        "ur": {
+          "name": "دستخط",
+          "description": "انگلی، اسٹائلس یا ماؤس سے دستخط کریں اور شفاف پس منظر پر ایک صاف دستخط حاصل کریں - SVG یا PNG، نہ اسکینر، نہ کاغذ کے کسی ٹکڑے کی تصویر۔"
+        },
+        "vi": {
+          "name": "Chữ ký",
+          "description": "Ký bằng ngón tay, bút cảm ứng hoặc chuột, nhận ngay chữ ký sạch trên nền trong suốt - dạng SVG hoặc PNG. Không cần máy quét, không cần chụp ảnh một tờ giấy."
+        },
+        "zh-hant": {
+          "name": "簽名",
+          "description": "用手指、觸控筆或滑鼠簽名，即可得到背景透明的乾淨簽名檔 - SVG 或 PNG 格式，不需要掃描器，也不必拍一張紙的照片。"
+        },
+        "zh": {
+          "name": "签名",
+          "description": "用手指、触控笔或鼠标签名，即可获得透明背景下干净清晰的签名 - SVG 或 PNG 格式，无需扫描仪，也无需给一张纸拍照。"
+        }
+      }
     },
     {
       "id": "growth",
       "name": "Growth",
       "description": "Differential growth: a line that repels itself until it folds into coral. Seed it from a ring, a burst, your headline's letterforms or your logo, and export the result as real, plotter-ready SVG paths.",
-      "version": "1.0.0",
+      "version": "1.1.0",
       "status": "community",
       "category": "designer",
       "tags": [
@@ -8474,33 +9710,23 @@
       "preview": "/catalog/previews/growth.svg",
       "examples": [
         {
-          "label": "Coral bloom",
-          "values": {
-            "seedShape": "burst",
-            "density": 58,
-            "steps": 300,
-            "weight": 2,
-            "seed": 7
-          }
-        },
-        {
           "label": "Rosette",
           "values": {
             "seedShape": "ring",
             "symmetry": "radial-6",
-            "density": 52,
-            "steps": 155,
-            "weight": 1.5,
+            "density": 40,
+            "steps": 110,
+            "weight": 3,
             "seed": 12
           }
         },
         {
-          "label": "Ribbon",
+          "label": "Snowflake",
           "values": {
             "seedShape": "line",
-            "symmetry": "mirror",
-            "density": 45,
-            "steps": 280,
+            "symmetry": "radial-6",
+            "density": 28,
+            "steps": 160,
             "weight": 3,
             "seed": 3
           }
@@ -8511,18 +9737,138 @@
             "seedShape": "text",
             "text": "GROW",
             "density": 74,
-            "steps": 200,
-            "weight": 1.5,
+            "steps": 120,
+            "weight": 2,
             "seed": 21
           }
+        },
+        {
+          "label": "Plotter paper",
+          "values": {
+            "seedShape": "burst",
+            "background": "{color.semantic.surface}",
+            "color1": "{color.semantic.secondary}",
+            "color2": "{color.semantic.text}",
+            "color3": "{color.spectrum.teal}",
+            "density": 46,
+            "steps": 300,
+            "weight": 2,
+            "seed": 7
+          }
         }
-      ]
+      ],
+      "i18n": {
+        "ar": {
+          "name": "النمو",
+          "description": "النمو التفاضلي: خط يتنافر مع نفسه حتى يلتف على هيئة مرجان. ابدأه من حلقة، من انفجار، من حروف عنوانك أو من شعارك، وصدّر النتيجة كمسارات SVG حقيقية جاهزة للبلوتر."
+        },
+        "bg": {
+          "name": "Растеж",
+          "description": "Диференциален растеж: линия, която се отблъсква сама от себе си, докато се сгъне в корал. Засей я от пръстен, изблик, буквите на заглавието ти или логото ти, и експортирай резултата като истински SVG пътеки, готови за плотер."
+        },
+        "bn": {
+          "name": "গ্রোথ",
+          "description": "ডিফারেনশিয়াল গ্রোথ: এমন একটি লাইন যা নিজেকে দূরে ঠেলতে থাকে, যতক্ষণ না তা প্রবালের মতো আকৃতিতে ভাঁজ হয়ে যায়। একে রিং, বার্স্ট, আপনার হেডলাইনের অক্ষর বা আপনার লোগো থেকে শুরু করুন, এবং ফলাফলটি আসল, প্লটার-রেডি SVG পাথ হিসেবে এক্সপোর্ট করুন।"
+        },
+        "cs": {
+          "name": "Growth",
+          "description": "Diferenciální růst: čára, která sama sebe odpuzuje, až se zvlní do tvaru korálu. Nech ji vyrůst z kruhu, výbuchu, písmen svého nadpisu nebo loga a výsledek exportuj jako skutečné cesty SVG připravené pro plotter."
+        },
+        "de": {
+          "name": "Growth",
+          "description": "Differenzielles Wachstum: eine Linie, die sich selbst abstößt, bis sie sich zu Koralle faltet. Als Ausgangspunkt dienen ein Ring, eine Explosion, die Buchstabenformen Ihrer Überschrift oder Ihr Logo - exportiert wird das Ergebnis als echte, plotterfertige SVG-Pfade."
+        },
+        "es": {
+          "name": "Growth",
+          "description": "Crecimiento diferencial: una línea que se repele a sí misma hasta plegarse en forma de coral. Elige como semilla un anillo, una explosión, las letras de tu titular o tu logotipo, y exporta el resultado como rutas SVG reales, listas para plóter."
+        },
+        "fr": {
+          "name": "Croissance",
+          "description": "Croissance différentielle : une ligne qui se repousse elle-même jusqu'à se replier en corail. Pars d'un anneau, d'un éclatement, des lettres de ton titre ou de ton logo. Exporte le résultat en véritables tracés SVG prêts pour le traceur."
+        },
+        "hi": {
+          "name": "ग्रोथ",
+          "description": "डिफरेंशियल ग्रोथ: एक लाइन जो तब तक खुद को दूर धकेलती है जब तक वह मूँगे जैसी आकृति में तह न हो जाए। इसे रिंग, बर्स्ट, अपनी हेडलाइन के अक्षरों या अपने लोगो से शुरू करें, और नतीजे को असली, प्लॉटर के लिए तैयार SVG पाथ के रूप में एक्सपोर्ट करें।"
+        },
+        "id": {
+          "name": "Growth",
+          "description": "Pertumbuhan diferensial: sebuah garis yang menolak dirinya sendiri sampai melipat menjadi karang. Mulai dari cincin, burst, bentuk huruf judul Anda, atau logo Anda, lalu ekspor hasilnya sebagai path SVG asli yang siap plotter."
+        },
+        "it": {
+          "name": "Crescita",
+          "description": "Crescita differenziale: una linea che si respinge da sola finché non si piega fino a formare un corallo. Fai partire il seme da un anello, un'esplosione, le lettere del tuo titolo o il tuo logo, ed esporta il risultato come veri percorsi SVG pronti per il plotter."
+        },
+        "ja": {
+          "name": "成長",
+          "description": "差分成長: 自身と反発し合いながら伸びる線が、やがてサンゴのように折り重なっていきます。起点はリング、バースト、見出しの文字、ロゴから選べます。結果はプロッター対応の正真正銘のSVGパスとして書き出せます。"
+        },
+        "ko": {
+          "name": "성장",
+          "description": "차등 성장: 스스로를 밀어내다가 결국 산호 모양으로 접히는 선이에요. 고리나 방사형 다발, 헤드라인의 글자 모양, 로고에서 시드를 얻어 자라나고, 결과물은 플로터로 바로 출력할 수 있는 진짜 SVG 패스로 내보내요."
+        },
+        "ms": {
+          "name": "Growth",
+          "description": "Pertumbuhan berbeza: satu garisan yang menolak dirinya sendiri sehingga melipat menjadi bentuk karang. Mulakan daripada bulatan, letupan, bentuk huruf tajuk anda atau logo anda, dan eksport hasilnya sebagai laluan SVG sebenar yang sedia untuk ploter."
+        },
+        "nl": {
+          "name": "Growth",
+          "description": "Differentiële groei: een lijn die zichzelf afstoot tot hij zich vouwt tot koraal. Laat hem groeien vanuit een ring, een uitbarsting, de letters van je titel of je logo, en exporteer het resultaat als echte, plotterklare SVG-paden."
+        },
+        "no": {
+          "name": "Growth",
+          "description": "Differensiell vekst: en linje som frastøter seg selv til den folder seg til korall. Start den fra en ring, en eksplosjon, bokstavformene i overskriften din eller logoen din, og eksporter resultatet som ekte, plotterklare SVG-baner."
+        },
+        "pl": {
+          "name": "Growth",
+          "description": "Wzrost różnicowy: linia, która odpycha samą siebie, aż zwinie się w kształt przypominający koralowiec. Ustaw kształt początkowy - pierścień, eksplozję, litery Twojego nagłówka albo Twoje logo - i eksportuj wynik jako prawdziwe ścieżki SVG gotowe do plotera."
+        },
+        "pt": {
+          "name": "Growth",
+          "description": "Crescimento diferencial: uma linha que se repele até se dobrar em forma de coral. Comece a partir de um anel, uma explosão, as letras do seu título ou o seu logotipo, e exporte o resultado como caminhos SVG reais, prontos para plotter."
+        },
+        "ro": {
+          "name": "Growth",
+          "description": "Creștere diferențială: o linie care se respinge pe sine până se pliază într-o formă de coral. Pornește de la un inel, o explozie, literele titlului tău sau logoul tău, și exportă rezultatul ca trasee SVG reale, gata pentru plotter."
+        },
+        "sv": {
+          "name": "Tillväxt",
+          "description": "Differential growth: en linje som stöter bort sig själv tills den viker sig till en korallform. Så den från en ring, ett utbrott, din rubriks bokstavsformer eller din logotyp och exportera resultatet som riktiga, plotterklara SVG-banor."
+        },
+        "tl": {
+          "name": "Growth",
+          "description": "Differential growth: isang linya na tumataboy sa sarili nito hanggang bumuo ito ng anyong parang coral. Simulan ito mula sa isang ring, isang burst, sa mga letterform ng iyong headline, o sa iyong logo, at i-export ang resulta bilang totoo at handa-sa-plotter na mga SVG path."
+        },
+        "tr": {
+          "name": "Büyüme",
+          "description": "Diferansiyel büyüme: kendini iterek sonunda mercana dönüşen bir çizgi. Bir halkadan, bir patlamadan, başlığının harflerinden ya da logondan başlat ve sonucu gerçek, plotere hazır SVG yollarıyla dışa aktar."
+        },
+        "uk": {
+          "name": "Growth",
+          "description": "Диференціальний ріст: лінія, яка відштовхує сама себе, аж поки не згорнеться в коралоподібну форму. Задайте початкову форму - кільце, вибух, літери вашого заголовка або ваш логотип, і експортуйте результат як справжні SVG-контури, готові для плотера."
+        },
+        "ur": {
+          "name": "Growth",
+          "description": "امتیازی نمو: ایک لکیر جو خود کو دور دھکیلتی رہتی ہے یہاں تک کہ وہ مرجان کی شکل میں مڑ جاتی ہے۔ اسے ایک حلقے، ایک برسٹ، اپنی سرخی کے حروف کی شکلوں یا اپنے لوگو سے شروع کریں، اور نتیجہ حقیقی، پلاٹر کے لیے تیار SVG پاتھس کی صورت میں ایکسپورٹ کریں۔"
+        },
+        "vi": {
+          "name": "Tăng trưởng",
+          "description": "Differential growth: một đường tự đẩy ra xa chính nó cho đến khi cuộn thành hình san hô. Bắt đầu từ một vòng tròn, một chùm tia, nét chữ tiêu đề hoặc logo của bạn, rồi xuất kết quả thành đường dẫn SVG thật, sẵn sàng đưa vào máy vẽ (plotter)."
+        },
+        "zh-hant": {
+          "name": "Growth",
+          "description": "差異生長：一條會不斷自我排斥、最終摺疊成珊瑚狀的線條。可以圓環、爆裂圖案、標題文字的字形或標誌作為起點生成，並將結果匯出為真正可送繪圖機使用的 SVG 路徑。"
+        },
+        "zh": {
+          "name": "生长",
+          "description": "差分生长：一条线不断自我排斥，最终折叠成珊瑚状图案。可以从一个圆环、一个爆裂图形、你标题的字形或你的标志开始生长，并将结果导出为可直接用于绘图仪的矢量 SVG 路径。"
+        }
+      }
     },
     {
       "id": "synth",
       "name": "Synth",
-      "description": "A visual instrument: play a live fluid-ink field with your pointer, coloured entirely from your brand palette, and export it as a still or a seamless loop.",
-      "version": "0.1.0",
+      "description": "A visual instrument you play. Four scenes run live on the GPU: fluid ink, a particle swarm that flies at your headline or your logo, a feedback field, and your own camera. Every colour comes out of your brand palette, and the picture moves to your pointer, to a music track, and to a MIDI controller. Export a still or a seamless loop.",
+      "version": "0.2.0",
       "status": "experimental",
       "category": "designer",
       "tags": [
@@ -8546,7 +9892,157 @@
       "height": 720,
       "exportable": true,
       "icon": "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"24\" height=\"24\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M3 12c0-4 3-7 6-7s4 3 3 6-3 4-1 6 5 1 7-1\"/><path d=\"M2 19c3-1 5-3 6-5\"/><circle cx=\"18\" cy=\"6\" r=\"2\"/></svg>",
-      "preview": "/catalog/previews/synth.svg"
+      "anim": "/tools/synth/card.webm",
+      "preview": "/catalog/previews/synth.svg",
+      "examples": [
+        {
+          "label": "Ink bloom",
+          "values": {
+            "scene": "ink",
+            "seed": 17,
+            "intensity": 1.45,
+            "speed": 0.75
+          }
+        },
+        {
+          "label": "Headline swarm",
+          "values": {
+            "scene": "swarm",
+            "text": "SYNTH",
+            "particles": 200000,
+            "intensity": 1.5,
+            "speed": 0.7,
+            "seed": 11
+          }
+        },
+        {
+          "label": "Kaleidoscope",
+          "values": {
+            "scene": "field",
+            "symmetry": 8,
+            "intensity": 1.5,
+            "speed": 1.4,
+            "seed": 3
+          }
+        },
+        {
+          "label": "Slow drift",
+          "values": {
+            "scene": "field",
+            "symmetry": 1,
+            "intensity": 1.2,
+            "speed": 0.45,
+            "seed": 5,
+            "rampRotate": 40
+          }
+        }
+      ],
+      "i18n": {
+        "ar": {
+          "name": "Synth",
+          "description": "آلة بصرية تعزفها بنفسك. أربعة مشاهد تعمل مباشرة على معالج الرسوميات (GPU): حبر سائل، وسرب جسيمات يتطاير نحو عنوانك أو شعارك، وحقل تغذية راجعة بصرية، وكاميرتك الخاصة. يُستمد كل لون من لوحة ألوان علامتك التجارية، وتتحرك الصورة مع مؤشرك، ومع مقطوعة موسيقية، ومع وحدة تحكم MIDI. صدّر صورة ثابتة أو حلقة سلسة."
+        },
+        "bg": {
+          "name": "Синт",
+          "description": "Визуален инструмент, на който свириш. Четири сцени вървят на живо на GPU-то: течно мастило, рояк частици, който лети към заглавието или логото ти, поле на обратна връзка и собствената ти камера. Всеки цвят идва от палитрата на твоя бранд, а картината реагира на курсора ти, на музикален запис и на MIDI контролер. Експортирай кадър или безшевен цикъл."
+        },
+        "bn": {
+          "name": "সিন্থ",
+          "description": "একটি ভিজ্যুয়াল ইনস্ট্রুমেন্ট যা আপনি বাজান। চারটি দৃশ্য GPU-তে লাইভ চলে: ফ্লুইড ইঙ্ক, কণার একটি ঝাঁক যা আপনার হেডলাইন বা লোগোর দিকে ওড়ে, একটি ফিডব্যাক ফিল্ড, এবং আপনার নিজের ক্যামেরা। প্রতিটি রং আসে আপনার ব্র্যান্ড প্যালেট থেকে, এবং ছবিটি আপনার পয়েন্টার, একটি মিউজিক ট্র্যাক এবং একটি MIDI কন্ট্রোলারের সাথে নড়ে। একটি স্টিল বা সিমলেস লুপ এক্সপোর্ট করুন।"
+        },
+        "cs": {
+          "name": "Synth",
+          "description": "Vizuální nástroj, na který hraješ. Čtyři scény běží živě na GPU: tekutý inkoust, roj částic, který letí na tvůj nadpis nebo logo, pole zpětné vazby a tvá vlastní kamera. Každá barva vychází z palety tvé značky a obraz reaguje na tvůj kurzor, na hudební skladbu i na MIDI ovladač. Exportuj statický snímek nebo nekonečnou smyčku."
+        },
+        "de": {
+          "name": "Synth",
+          "description": "Ein visuelles Instrument, das Sie spielen. Vier Szenen laufen live auf der GPU: fließende Tinte, ein Partikelschwarm, der auf Ihre Überschrift oder Ihr Logo zufliegt, ein Feedback-Feld und Ihre eigene Kamera. Jede Farbe stammt aus Ihrer Markenpalette, und das Bild bewegt sich zu Ihrem Zeiger, zu einem Musiktrack und zu einem MIDI-Controller. Exportieren Sie ein Standbild oder eine nahtlose Schleife."
+        },
+        "es": {
+          "name": "Synth",
+          "description": "Un instrumento visual que tocas. Cuatro escenas se ejecutan en directo en la GPU: tinta fluida, un enjambre de partículas que vuela hacia tu titular o tu logotipo, un campo de retroalimentación y tu propia cámara. Cada color sale de la paleta de tu marca, y la imagen se mueve con tu puntero, con una pista de música y con un controlador MIDI. Exporta una imagen fija o un bucle perfecto."
+        },
+        "fr": {
+          "name": "Synthé",
+          "description": "Un instrument visuel que tu joues en direct. Quatre scènes tournent en temps réel sur le GPU : encre fluide, un essaim de particules qui fonce vers ton titre ou ton logo, un champ de feedback et ta propre caméra. Chaque couleur vient de ta palette de marque. L'image réagit à ton pointeur, à un morceau de musique et à un contrôleur MIDI. Exporte une image fixe ou une boucle parfaite."
+        },
+        "hi": {
+          "name": "सिंथ",
+          "description": "एक विज़ुअल इंस्ट्रूमेंट जिसे आप बजाते हैं। चार सीन GPU पर लाइव चलते हैं: फ़्लूइड इंक, कणों का एक झुंड जो आपकी हेडलाइन या लोगो की ओर उड़ता है, एक फ़ीडबैक फ़ील्ड, और आपका अपना कैमरा। हर रंग आपके ब्रांड पैलेट से आता है, और तस्वीर आपके पॉइंटर, किसी म्यूज़िक ट्रैक और MIDI कंट्रोलर के साथ चलती है। एक स्टिल या सीमलेस लूप एक्सपोर्ट करें।"
+        },
+        "id": {
+          "name": "Synth",
+          "description": "Instrumen visual yang Anda mainkan. Empat adegan berjalan langsung di GPU: tinta cair, kawanan partikel yang terbang ke arah judul atau logo Anda, medan umpan balik, dan kamera Anda sendiri. Setiap warna berasal dari palet brand Anda, dan gambarnya bergerak mengikuti pointer Anda, sebuah trek musik, dan kontroler MIDI. Ekspor gambar diam atau loop yang mulus."
+        },
+        "it": {
+          "name": "Synth",
+          "description": "Uno strumento visivo che suoni tu. Quattro scene girano in tempo reale sulla GPU: inchiostro fluido, uno sciame di particelle che vola verso il tuo titolo o il tuo logo, un campo di feedback e la tua stessa videocamera. Ogni colore viene dalla tua palette brand, e l'immagine si muove con il puntatore, con un brano musicale e con un controller MIDI. Esporta un fermo immagine o un loop perfetto."
+        },
+        "ja": {
+          "name": "シンセ",
+          "description": "自分で操作するビジュアル楽器です。GPU上でリアルタイムに動く4つのシーンを切り替えられます - 流体インク、見出しやロゴに向かって飛んでくるパーティクルの群れ、フィードバックフィールド、そして自分のカメラ映像です。色はすべてブランドパレットから生成され、映像はポインター、音楽トラック、MIDIコントローラーに反応して動きます。静止画または継ぎ目のないループとして書き出せます。"
+        },
+        "ko": {
+          "name": "신스",
+          "description": "직접 연주하는 비주얼 악기예요. GPU에서 실시간으로 돌아가는 네 가지 장면이 있어요: 흐르는 잉크, 헤드라인이나 로고를 향해 날아드는 파티클 무리, 피드백 필드, 내 카메라. 모든 색은 브랜드 팔레트에서 나오고, 화면은 포인터, 음악 트랙, MIDI 컨트롤러에 반응해 움직여요. 정지 이미지나 매끄럽게 반복되는 루프로 내보내요."
+        },
+        "ms": {
+          "name": "Synth",
+          "description": "Satu instrumen visual yang anda mainkan. Empat adegan berjalan secara langsung pada GPU: dakwat cecair, kerumunan zarah yang terbang ke arah tajuk utama atau logo anda, medan maklum balas dan kamera anda sendiri. Setiap warna datang daripada palet jenama anda, dan gambar bergerak mengikut kursor anda, mengikut trek muzik dan mengikut pengawal MIDI. Eksport imej pegun atau gelung lancar."
+        },
+        "nl": {
+          "name": "Synth",
+          "description": "Een visueel instrument waar je op speelt. Vier scènes draaien live op de GPU: vloeibare inkt, een zwerm deeltjes die op je titel of logo afvliegt, een feedbackveld en je eigen camera. Elke kleur komt uit je merkpalet, en het beeld reageert op je cursor, op een muzieknummer en op een MIDI-controller. Exporteer een still of een naadloze loop."
+        },
+        "no": {
+          "name": "Synth",
+          "description": "Et visuelt instrument du spiller. Fire scener kjører i sanntid på GPU-en: flytende blekk, en partikkelsverm som flyr mot overskriften din eller logoen din, et feedback-felt og ditt eget kamera. Hver farge kommer fra merkevarepaletten din, og bildet beveger seg til pekeren din, til et musikkspor og til en MIDI-kontroller. Eksporter et stillbilde eller en sømløs løkke."
+        },
+        "pl": {
+          "name": "Synth",
+          "description": "Wizualny instrument, na którym grasz. Cztery sceny działają na żywo na GPU: płynny atrament, rój cząsteczek lecący w stronę Twojego nagłówka albo Twojego logo, efekt sprzężenia zwrotnego i Twoja własna kamera. Każdy kolor pochodzi z Twojej palety marki, a obraz reaguje na Twój kursor, na utwór muzyczny i na kontroler MIDI. Eksportuj nieruchomy kadr albo bezszwową pętlę."
+        },
+        "pt": {
+          "name": "Synth",
+          "description": "Um instrumento visual que você toca. Quatro cenas rodam ao vivo na GPU: tinta fluida, um enxame de partículas que voa em direção ao seu título ou ao seu logotipo, um campo de feedback e a sua própria câmera. Todas as cores vêm da paleta da sua marca, e a imagem reage ao seu ponteiro, a uma faixa de música e a um controlador MIDI. Exporte uma imagem estática ou um loop contínuo."
+        },
+        "ro": {
+          "name": "Synth",
+          "description": "Un instrument vizual pe care îl cânți. Patru scene rulează live pe GPU: cerneală fluidă, un roi de particule care zboară spre titlul tău sau logoul tău, un câmp de feedback și camera ta proprie. Fiecare culoare provine din paleta brandului tău, iar imaginea se mișcă odată cu cursorul tău, cu o piesă muzicală și cu un controler MIDI. Exportă o imagine fixă sau o buclă perfectă."
+        },
+        "sv": {
+          "name": "Synt",
+          "description": "Ett visuellt instrument du spelar. Fyra scener körs live på GPU:n: flytande bläck, en partikelsvärm som flyger mot din rubrik eller din logotyp, ett återkopplingsfält och din egen kamera. Varje färg kommer från din varumärkespalett, och bilden rör sig efter din pekare, ett musikspår och en MIDI-styrenhet. Exportera en stillbild eller en sömlös loop."
+        },
+        "tl": {
+          "name": "Synth",
+          "description": "Isang visual instrument na iyong tinutugtog. Apat na eksena ang tumatakbo nang live sa GPU: fluid ink, isang particle swarm na lumilipad papunta sa iyong headline o logo, isang feedback field, at ang sarili mong camera. Nanggagaling ang bawat kulay sa iyong brand palette, at gumagalaw ang larawan ayon sa iyong pointer, sa isang music track at sa isang MIDI controller. Mag-export ng still o ng seamless loop."
+        },
+        "tr": {
+          "name": "Synth",
+          "description": "Çaldığın bir görsel enstrüman. Dört sahne GPU üzerinde canlı çalışır: akışkan mürekkep, başlığına ya da logona uçan bir parçacık sürüsü, bir geri besleme alanı ve kendi kameran. Her renk marka paletinden gelir; görüntü imlecine, bir müzik parçasına ve bir MIDI kontrolcüsüne tepki verir. Durağan bir görüntü ya da kesintisiz bir döngü olarak dışa aktar."
+        },
+        "uk": {
+          "name": "Synth",
+          "description": "Візуальний інструмент, на якому ви граєте. Чотири сцени працюють наживо на GPU: рідке чорнило, рій частинок, що летить до вашого заголовка або логотипа, ефект відеозворотного зв'язку та ваша власна камера. Кожен колір бере з вашої палітри бренду, а зображення реагує на ваш курсор, на музичний трек і на MIDI-контролер. Експортуйте нерухомий кадр або безшовний цикл."
+        },
+        "ur": {
+          "name": "Synth",
+          "description": "ایک بصری آلہ جسے آپ بجاتے ہیں۔ چار مناظر GPU پر لائیو چلتے ہیں: سیال روشنائی، ایک پارٹیکل سوارم جو آپ کی سرخی یا لوگو کی طرف اڑتا ہے، ایک فیڈ بیک فیلڈ، اور آپ کا اپنا کیمرہ۔ ہر رنگ آپ کے برانڈ پیلیٹ سے آتا ہے، اور تصویر آپ کے پوائنٹر، ایک میوزک ٹریک، اور ایک MIDI کنٹرولر کے مطابق حرکت کرتی ہے۔ ایک اسٹل یا ہموار لوپ ایکسپورٹ کریں۔"
+        },
+        "vi": {
+          "name": "Synth",
+          "description": "Một nhạc cụ hình ảnh do bạn điều khiển. Bốn cảnh chạy trực tiếp trên GPU: mực lỏng, đàn hạt bay về phía tiêu đề hoặc logo của bạn, trường phản hồi (feedback field) và camera của chính bạn. Mọi màu sắc đều lấy từ bảng màu thương hiệu, hình ảnh chuyển động theo con trỏ, theo bản nhạc và theo bộ điều khiển MIDI. Xuất ra ảnh tĩnh hoặc vòng lặp liền mạch."
+        },
+        "zh-hant": {
+          "name": "Synth",
+          "description": "一件你可以即興演奏的視覺樂器。四種場景即時在 GPU 上運算：流動墨水、朝你的標題或標誌飛去的粒子群、回饋場，以及你自己的攝影機畫面。所有顏色都取自品牌調色盤，畫面會隨指標、音樂與 MIDI 控制器變化。可匯出靜態圖片或無縫循環影片。"
+        },
+        "zh": {
+          "name": "合成器",
+          "description": "一件你可以实时演奏的视觉乐器。四个场景在 GPU 上实时运行：流动墨迹、朝你的标题或标志飞去的粒子群、反馈场，以及你自己的摄像头画面。每一种颜色都来自你的品牌调色板，画面会随你的指针、一段音乐或一台 MIDI 控制器而变化。可导出静态图像或无缝循环视频。"
+        }
+      }
     },
     {
       "id": "spatial-photo",
@@ -8576,7 +10072,143 @@
       "height": 720,
       "exportable": true,
       "icon": "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"24\" height=\"24\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><rect x=\"2\" y=\"4\" width=\"14\" height=\"12\" rx=\"2\"/><path d=\"M2 13l3.5-3 3 2.5\"/><circle cx=\"11\" cy=\"8\" r=\"1.5\"/><path d=\"M19 8v10a2 2 0 0 1-2 2H7\"/><path d=\"M9 18l-2 2 2 2\"/></svg>",
-      "preview": "/catalog/previews/spatial-photo.svg"
+      "preview": "/catalog/previews/spatial-photo.svg",
+      "i18n": {
+        "ar": {
+          "name": "صورة مكانية",
+          "description": "أضف صورة واحدة وحرّك كاميرا عبرها: يُقرأ العمق على جهازك، فتتحول الصورة المسطحة إلى مشهد فيه اختلاف منظر حقيقي، وأجواء، وتركيز بؤري."
+        },
+        "bg": {
+          "name": "Пространствена снимка",
+          "description": "Пусни една снимка и премести камера през нея: дълбочината се изчислява на устройството ти, така че плоска снимка се превръща в сцена с истински паралакс, атмосфера и фокус."
+        },
+        "bn": {
+          "name": "স্প্যাশিয়াল ফটো",
+          "description": "একটি ছবি দিন এবং তার ভেতর দিয়ে ক্যামেরা ঘোরান: গভীরতা আপনার ডিভাইসে পড়া হয়, তাই একটি সমতল ছবি বাস্তব প্যারালাক্স, বায়ুমণ্ডল ও ফোকাসসহ একটি দৃশ্যে পরিণত হয়।"
+        },
+        "cs": {
+          "name": "Spatial Photo",
+          "description": "Vlož jednu fotku a projeď jí kamerou: hloubka se počítá přímo v zařízení, takže se z ploché fotky stane scéna se skutečnou paralaxou, atmosférou a zaostřením."
+        },
+        "de": {
+          "name": "Raumfoto",
+          "description": "Legen Sie ein Foto ab und bewegen Sie eine Kamera hindurch: Die Tiefe wird auf Ihrem Gerät ausgelesen, sodass aus einem flachen Bild eine Szene mit echter Parallaxe, Atmosphäre und Fokus wird."
+        },
+        "es": {
+          "name": "Foto espacial",
+          "description": "Suelta una foto y mueve una cámara a través de ella: la profundidad se lee en tu dispositivo, así que una imagen plana se convierte en una escena con paralaje real, atmósfera y enfoque."
+        },
+        "fr": {
+          "name": "Photo spatiale",
+          "description": "Dépose une photo et déplace une caméra à travers elle : la profondeur est analysée sur ton appareil, si bien qu'une image plate devient une scène avec une vraie parallaxe, de l'atmosphère et une vraie mise au point."
+        },
+        "hi": {
+          "name": "स्पेशियल फ़ोटो",
+          "description": "एक फ़ोटो डालें और उसमें कैमरे को घुमाएँ: गहराई आपके डिवाइस पर पढ़ी जाती है, इसलिए एक फ़्लैट तस्वीर असली पैरालैक्स, वायुमंडल और फ़ोकस वाले सीन में बदल जाती है।"
+        },
+        "id": {
+          "name": "Spatial Photo",
+          "description": "Masukkan satu foto dan gerakkan kamera melewatinya: kedalaman dibaca di perangkat Anda, sehingga gambar datar menjadi adegan dengan paralaks, atmosfer, dan fokus yang nyata."
+        },
+        "it": {
+          "name": "Foto spaziale",
+          "description": "Carica una foto e muovi una telecamera al suo interno: la profondità viene letta sul tuo dispositivo, così un'immagine piatta diventa una scena con parallasse reale, atmosfera e messa a fuoco."
+        },
+        "ja": {
+          "name": "空間写真",
+          "description": "1枚の写真を読み込むと、その中をカメラが移動していきます - 奥行きはデバイス上で解析されるので、平面の写真が本物のパララックス、空気感、フォーカスを持つ1つのシーンに変わります。"
+        },
+        "ko": {
+          "name": "공간 사진",
+          "description": "사진 한 장을 넣고 그 안에서 카메라를 움직여요. 깊이 정보를 기기에서 직접 읽어내서, 평면 사진이 진짜 원근감과 분위기, 초점이 살아있는 장면으로 바뀌어요."
+        },
+        "ms": {
+          "name": "Foto Spasial",
+          "description": "Masukkan satu foto dan gerakkan kamera menerusinya: kedalaman dibaca terus di peranti anda, jadi gambar rata bertukar menjadi satu adegan dengan paralaks sebenar, atmosfera dan fokus."
+        },
+        "nl": {
+          "name": "Spatial Photo",
+          "description": "Sleep één foto naar binnen en beweeg er een camera doorheen: diepte wordt op je apparaat berekend, zodat een platte foto een scène wordt met echte parallax, sfeer en focus."
+        },
+        "no": {
+          "name": "Romlig foto",
+          "description": "Last inn ett bilde og beveg et kamera gjennom det: dybden leses av på enheten din, slik at et flatt bilde blir til en scene med ekte parallakse, atmosfære og fokus."
+        },
+        "pl": {
+          "name": "Zdjęcie przestrzenne",
+          "description": "Wstaw jedno zdjęcie i przeprowadź przez nie kamerę: głębia jest odczytywana na Twoim urządzeniu, dzięki czemu płaskie zdjęcie staje się sceną z prawdziwą paralaksą, atmosferą i ostrością."
+        },
+        "pt": {
+          "name": "Spatial Photo",
+          "description": "Solte uma foto e mova uma câmera por dentro dela: a profundidade é lida no seu dispositivo, então uma imagem plana vira uma cena com paralaxe, atmosfera e foco reais."
+        },
+        "ro": {
+          "name": "Fotografie Spațială",
+          "description": "Adaugă o fotografie și mișcă o cameră prin ea: adâncimea este citită direct pe dispozitivul tău, astfel încât o imagine plată devine o scenă cu paralaxă reală, atmosferă și focalizare."
+        },
+        "sv": {
+          "name": "Rumsligt foto",
+          "description": "Lägg in ett foto och flytta en kamera genom det: djupet läses av på din enhet, så en platt bild blir en scen med verklig parallax, atmosfär och fokus."
+        },
+        "tl": {
+          "name": "Spatial Photo",
+          "description": "Mag-drop ng isang litrato at igalaw ang camera papasok dito: nababasa ang depth sa iyong device, kaya ang flat na larawan ay nagiging isang eksena na may tunay na parallax, atmosphere at focus."
+        },
+        "tr": {
+          "name": "Mekânsal Fotoğraf",
+          "description": "Tek bir fotoğraf bırak ve içinde bir kamera gezdir: derinlik cihazında okunur, böylece düz bir görüntü gerçek bir paralaks, atmosfer ve odakla bir sahneye dönüşür."
+        },
+        "uk": {
+          "name": "Просторове фото",
+          "description": "Додайте одне фото й проведіть камеру крізь нього: глибина зчитується прямо на вашому пристрої, тож плоске зображення стає сценою зі справжнім паралаксом, атмосферою і фокусом."
+        },
+        "ur": {
+          "name": "Spatial Photo",
+          "description": "ایک تصویر شامل کریں اور اس کے اندر کیمرہ حرکت دیں: گہرائی آپ کے آلے پر پڑھی جاتی ہے، اس لیے ایک چپٹی تصویر حقیقی پیرالیکس، فضا اور فوکس کے ساتھ ایک منظر بن جاتی ہے۔"
+        },
+        "vi": {
+          "name": "Ảnh Không Gian",
+          "description": "Thêm một bức ảnh vào và di chuyển máy quay xuyên qua nó: độ sâu được đọc ngay trên thiết bị của bạn, biến một tấm ảnh phẳng thành một cảnh có hiệu ứng parallax, không khí và độ nét thực sự."
+        },
+        "zh-hant": {
+          "name": "Spatial Photo",
+          "description": "拖放一張照片，讓鏡頭在其中移動：深度資訊會在你的裝置上讀取，讓一張平面照片變成具有真實視差、氛圍與焦點變化的場景。"
+        },
+        "zh": {
+          "name": "空间照片",
+          "description": "导入一张照片，让镜头在其中移动：设备会读取照片的景深，让一张平面照片变成一个具有真实视差、氛围和对焦效果的场景。"
+        }
+      }
+    },
+    {
+      "id": "scan-code",
+      "name": "Scan a Code",
+      "description": "Read QR codes and barcodes on-device, with nothing sent to any cloud. A reader, not an opener: it decodes, classifies and explains what a code carries - links, Wi-Fi, contacts, product codes - and lets you act deliberately. Copy is always the first action; opening, joining or adding is an explicit, informed tap.",
+      "version": "0.1.0",
+      "status": "experimental",
+      "category": "utility",
+      "tags": [
+        "qr",
+        "scan",
+        "reader",
+        "barcode",
+        "wifi",
+        "safety",
+        "offline",
+        "privacy"
+      ],
+      "formats": [
+        "png"
+      ],
+      "width": 480,
+      "height": 640,
+      "exportable": false,
+      "icon": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M3 7V5a2 2 0 0 1 2-2h2\" /><path d=\"M17 3h2a2 2 0 0 1 2 2v2\" /><path d=\"M21 17v2a2 2 0 0 1-2 2h-2\" /><path d=\"M7 21H5a2 2 0 0 1-2-2v-2\" /><path d=\"M7 8h2v2H7z\" /><path d=\"M14 8h3\" /><path d=\"M17 8v3\" /><path d=\"M7 14v-1\" /><path d=\"M11 16h-1v-1\" /><path d=\"M14 14h3v3h-3z\" /></svg>",
+      "preview": "/catalog/previews/scan-code.webp",
+      "featured": {
+        "order": 7,
+        "blurb": "Read any code, safely and offline"
+      }
     }
   ]
 }

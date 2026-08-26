@@ -59,6 +59,10 @@ async function mount(values: Record<string, any>) {
     label: rt.getHydratedText(tool.manifest.a11yLabel).trim(),
     hookErrors: rt.hookErrors,
     svg: rt.getHydrated() as string,
+    // The barcode/bwip routes surface their result in the bc* extras instead
+    // (plans/147 T7a fold; plans/162 bwip symbologies).
+    barcodeValue: rt.getHydratedText('{{bcValue}}'),
+    barcodeError: rt.getHydratedText('{{bcError}}'),
   };
 }
 
@@ -340,9 +344,12 @@ test('every template seed and preset overlay hydrates into a real code', { skip:
       const got = await mount(values);
       assert.deepEqual(got.hookErrors, [], `${label}: hooks errored`);
       assert.equal(got.error, '', `${label}: ${got.error}`);
-      assert.ok(got.payload.length > 0, `${label}: encoded nothing`);
+      assert.equal(got.barcodeError, '', `${label}: ${got.barcodeError}`);
+      // A content payload writes qrPayload; a barcode seed writes bcValue.
+      assert.ok(got.payload.length > 0 || got.barcodeValue.length > 0, `${label}: encoded nothing`);
       assert.ok(got.svg.includes('<svg'), `${label}: no SVG`);
-      assert.ok(!got.svg.includes('QR code unavailable'), `${label}: rendered the placeholder`);
+      assert.ok(!/QR code unavailable|Barcode unavailable|Code unavailable/.test(got.svg),
+        `${label}: rendered the placeholder`);
     }
   }
 });

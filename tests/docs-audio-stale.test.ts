@@ -53,6 +53,7 @@ const STALE_ALLOWED: Record<string, string> = {
   // a face: add one only with a reason and a date when a page is knowingly left
   // stale, and delete it the moment the page is re-rendered.
   'en/about': 'copy edits in the 2026-08-26 docs pass drifted the spoken text; narration re-record deferred to the next batched Kokoro run',
+  'en/creators': 'copy edits in the 2026-08-26 docs pass drifted the spoken text; narration re-record deferred to the next batched Kokoro run',
   'en/operators': 'copy edits in the 2026-08-26 docs pass drifted the spoken text; narration re-record deferred to the next batched Kokoro run',
 };
 

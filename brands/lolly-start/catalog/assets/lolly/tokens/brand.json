@@ -152,7 +152,7 @@
           "$value": "{color.ramp.primary.1}"
         },
         "secondary": {
-          "$value": "{color.ramp.primary.4}"
+          "$value": "{color.ramp.primary.6}"
         },
         "surface": {
           "$value": "{color.ramp.neutral.9}"
@@ -180,7 +180,7 @@
           "$value": "{color.ramp.primary.1}"
         },
         "secondary": {
-          "$value": "{color.ramp.primary.6}"
+          "$value": "{color.ramp.primary.4}"
         },
         "surface": {
           "$value": "{color.ramp.neutral.1}"

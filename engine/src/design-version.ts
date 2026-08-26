@@ -26,7 +26,9 @@
  */
 
 import { bytesToHex, sha256 } from './bytes.ts';
-import { TOKEN_EXT } from './tokens.ts';
+// The leaf, not tokens.ts: this module is reached from bridge/assets.ts at first paint,
+// and the tokens module would bring its colour cluster along for one string (token-ext.ts).
+import { TOKEN_EXT } from './token-ext.ts';
 
 type Rec = Record<string, unknown>;
 

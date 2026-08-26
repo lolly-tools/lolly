@@ -127,6 +127,20 @@ export interface HostV1 {
   media?: MediaAPI;
 
   /**
+   * Scan - detect machine-readable codes (QR, Data Matrix, Aztec, PDF417, the
+   * 1D families) in one RGBA frame, fully on-device. The dual of the qr-code
+   * generator (plans/162): every code the platform writes, it should read back,
+   * with no "scan with our cloud". The shell owns the decoder ladder - native
+   * `BarcodeDetector` where present, a lazy zxing-wasm chunk otherwise - and hands
+   * the engine plain hits (text + optional bytes + quad), no DOM types, exactly
+   * like `media`. Optional/additive (v1.153): a shell without a decoder omits it,
+   * and it is NOT gated by a `capabilities` flag - a reader tool feature-degrades
+   * (e.g. hides the live viewfinder, keeps the from-image path) where it is absent.
+   * Pairs with `media` for a live viewfinder and stands alone for still images.
+   */
+  scan?: ScanAPI;
+
+  /**
    * Lift - enumerate an SVG's own layers into standalone documents (the engine's
    * `enumerateSvgLayers`). The shell fetches + sanitises the SVG through its one
    * untrusted-SVG path; the engine owns what a "layer" is, so web and CLI agree. The
@@ -1967,6 +1981,48 @@ export interface MediaFrame {
 }
 
 /**
+ * Detect machine-readable codes in one RGBA frame, on-device (plans/162 Part 2).
+ * Optional/additive (v1.153). See the `scan` field on HostV1 for the shell ladder
+ * and the progressive-enhancement contract.
+ */
+export interface ScanAPI {
+  /**
+   * The formats this shell can decode right now, in BarcodeDetector naming
+   * ('qr_code', 'data_matrix', 'aztec', 'pdf417', 'ean_13', 'code_128', …). Sync
+   * + cheap: a reader tool reads it to build its format filter and to decide what
+   * to promise. The set can WIDEN after the first detect() if a lazy decoder chunk
+   * loads, so treat it as "at least these", not a frozen list.
+   */
+  formats(): string[];
+
+  /**
+   * Detect codes in a frame. `frame` is any RGBA buffer with width/height - a live
+   * `MediaFrame` (for a viewfinder) or a `RasterFrame` decoded from a still image
+   * are both structurally valid. Read the pixels synchronously-valid; resolve with
+   * every hit found (empty array for none), never reject for "nothing there". A
+   * decode that overruns is the caller's to pace - the runtime's `onFrame` loop
+   * already drops overlapping frames, so a slow decode self-throttles.
+   * `opts.formats` restricts the search (a subset of `formats()`); omitted = all.
+   */
+  detect(
+    frame: { data: Uint8ClampedArray; width: number; height: number },
+    opts?: { formats?: string[] },
+  ): Promise<ScanHit[]>;
+}
+
+/** One decoded code from `ScanAPI.detect`. */
+export interface ScanHit {
+  /** The symbology, in BarcodeDetector naming ('qr_code', 'data_matrix', …). */
+  format: string;
+  /** The decoded text exactly as carried - untrusted input; a reader must not act on it automatically. */
+  rawValue: string;
+  /** The raw payload bytes, present when the content is not valid UTF-8 (e.g. a binary QR). */
+  rawBytes?: Uint8Array;
+  /** The code's quad in frame coordinates [[x,y]×4], for a viewfinder overlay. Absent if the decoder can't localise. */
+  corners?: [number, number][];
+}
+
+/**
  * Host abilities a tool can require via tool.json `capabilities`. A shell runs a
  * tool only when it can fulfil every capability the tool declares. Keep in sync
  * with the enum in schemas/tool.schema.json.
@@ -2814,10 +2870,11 @@ export interface InputFile {
 }
 
 export type ExportFormat =
-  | 'png' | 'apng' | 'jpg' | 'svg' | 'emf' | 'eps' | 'eps-cmyk' | 'pdf' | 'pdf-cmyk' | 'cmyk-tiff' | 'html' | 'webm'
-  // Audio-only exports. 'opus' is Opus in a WebM container (audio/webm), not Ogg -
-  // the shells already carry a WebM muxer and none can write an Ogg stream.
-  | 'wav' | 'mp3' | 'm4a' | 'opus';
+  | 'png' | 'apng' | 'gif' | 'jpg' | 'svg' | 'emf' | 'eps' | 'eps-cmyk' | 'pdf' | 'pdf-cmyk' | 'cmyk-tiff' | 'html' | 'webm' | 'mp4'
+  // Audio-only exports. 'opus' is Opus in a WebM container (audio/webm); 'ogg' is
+  // Opus-in-Ogg (the honest voice-memo shape) and 'aac' is bare ADTS - both written
+  // through mediabunny's Ogg/Adts output formats.
+  | 'wav' | 'mp3' | 'm4a' | 'aac' | 'opus' | 'ogg';
 
 export interface ExportOpts {
   scale?: number;        // raster scale (1, 2, 3) - used when width/height absent
@@ -3609,13 +3666,17 @@ export interface MatteFrame {
 }
 
 /**
- * A `host.matte` model an id can select - see `MatteAPI.models`. A tiny fast
- * preview net, a general default, a portrait specialist, and the full-size
- * "max quality" edge model (`birefnet`) for when the user will wait on a large
- * (~490 MB) download. All ship under permissive licences (Apache-2.0 / MIT); the
- * roster is deliberately free of the popular non-commercial models (BRIA RMBG et al.).
+ * A `host.matte` model an id can select - see `MatteAPI.models`. A small
+ * general-purpose saliency net (`u2netp`, the default) and a portrait specialist
+ * (`modnet`). All ship under permissive licences (Apache-2.0 / MIT); the roster is
+ * deliberately free of the popular non-commercial models (BRIA RMBG et al.).
+ *
+ * The roster NARROWS over time (`isnet-general` retired 2026-08-05, the BiRefNet
+ * pair 2026-08-26), so an id is not a promise: read `models()` rather than
+ * hard-coding one, and expect a shell to fall back to its default for an id it no
+ * longer carries rather than fail the run.
  */
-export type MatteModelId = 'u2netp' | 'birefnet-lite' | 'birefnet' | 'modnet';
+export type MatteModelId = 'u2netp' | 'modnet';
 
 /**
  * One entry in the on-device matte catalogue. `license` + `attribution` carry the
@@ -3625,7 +3686,7 @@ export type MatteModelId = 'u2netp' | 'birefnet-lite' | 'birefnet' | 'modnet';
  */
 export interface MatteModelInfo {
   id: MatteModelId;
-  /** Human name for the picker, e.g. "BiRefNet lite". */
+  /** Human name for the picker, e.g. "U²-Net lite". */
   name: string;
   /** Ordering + intent for the picker. */
   tier: 'fast' | 'default' | 'pro';

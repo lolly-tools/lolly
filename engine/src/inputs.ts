@@ -359,18 +359,14 @@ function isObjectValue(v: InputValue | null | undefined): v is { [key: string]: 
 }
 
 /**
- * @param manifest the tool manifest (inputs + render option slice)
- * @param opts.profile  user profile, for bindToProfile resolution
- * @param opts.initial  initial values (from saved state or URL)
+ * Render-level options surfaced as synthetic boolean inputs, so hooks can react to them
+ * (onInit/onInput) and URL mode can set them - without a tool redeclaring them. Shared by
+ * buildInputModel (the model) and parseUrlState (URL/CLI params): if only buildInputModel
+ * knew about these, `?transparentBg=true` would be silently dropped on load, which is
+ * exactly the bug this centralises away.
  */
-export function buildInputModel(
-  manifest: InputManifest,
-  { profile = {}, initial = {} }: { profile?: ProfileValues; initial?: Record<string, InputValue> } = {},
-): InputModelItem[] {
+export function syntheticInputs(manifest: InputManifest): InputSpec[] {
   const declared = manifest.inputs ?? [];
-
-  // Synthesise model entries for render-level options so hooks can react to them
-  // via onInput/onInit without tools needing to redeclare them as user inputs.
   const synthetic: InputSpec[] = [];
   if (
     manifest.render?.transparentBg !== undefined &&
@@ -410,6 +406,20 @@ export function buildInputModel(
       help: 'Outline text as vector paths so SVG/PDF render identically without the fonts installed. Turn off to keep selectable, editable text.',
     });
   }
+  return synthetic;
+}
+
+/**
+ * @param manifest the tool manifest (inputs + render option slice)
+ * @param opts.profile  user profile, for bindToProfile resolution
+ * @param opts.initial  initial values (from saved state or URL)
+ */
+export function buildInputModel(
+  manifest: InputManifest,
+  { profile = {}, initial = {} }: { profile?: ProfileValues; initial?: Record<string, InputValue> } = {},
+): InputModelItem[] {
+  const declared = manifest.inputs ?? [];
+  const synthetic = syntheticInputs(manifest);
 
   return [...declared, ...synthetic].map(input => {
     const value = resolveInitialValue(input, profile, initial);

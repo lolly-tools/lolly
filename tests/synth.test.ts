@@ -159,7 +159,7 @@ test('folds the whole model into one parseable _state extra', { skip: SKIP }, as
   assert.equal(s.height, 720);
   assert.equal(s.colors.length, 3);
   for (const c of s.colors) assert.match(c, /^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$/, `not a colour: ${c}`);
-  assert.equal(s.emitters.length, 5);
+  assert.equal(s.emitters.length, 7);
   assert.equal(typeof s.live, 'boolean');
 });
 
@@ -183,7 +183,7 @@ test('every user-settable value is clamped in hooks', { skip: SKIP }, async () =
   assert.equal(hostile.colors[2], '#abc', 'a short hex is accepted');
 
   const junk = await state({ intensity: 'x', speed: null, seed: 'NaN' });
-  assert.equal(junk.intensity, 1);
+  assert.equal(junk.intensity, 1.35);
   assert.equal(junk.speed, 1);
   assert.equal(junk.seed, 7);
 
@@ -224,14 +224,22 @@ test('the same seed folds to the same state twice', { skip: SKIP }, async () => 
 test('the manifest declares the export shape WP-A needs, and no capability it does not use', { skip: SKIP }, () => {
   const m = JSON.parse(readFileSync(join(DIR, 'tool.json'), 'utf8'));
   assert.equal(m.status, 'experimental', 'experimental forces the disclosed export watermark');
-  // A capability is a hard gate, not a stub: declaring microphone/camera made the
-  // CLI refuse to render the tool at all (exit 3) and told the gallery this tool
-  // opens your camera. Nothing here calls host.recorder or host.media - so nothing
-  // is declared. Re-add one only with the hook that consumes it.
-  assert.ok(!m.capabilities, 'no capability is used, so none may be declared');
+  // A capability is a hard GATE, not a stub: a shell that cannot fulfil one refuses
+  // the whole tool (the CLI exits 3), so declaring `camera` for the camera scene
+  // would take ink, swarm and field away from every shell without a camera. The
+  // schema says so of onFrame in as many words - "Pure progressive enhancement ...
+  // it must NOT be declared as a required 'camera' capability" - and the camera
+  // scene is written to that rule: it reads host.media when there is one and says
+  // so on the canvas when there is not.
+  assert.ok(!m.capabilities, 'the camera scene is progressive enhancement, so no capability may be declared');
+  const schema = JSON.parse(readFileSync(join(dirname(fileURLToPath(import.meta.url)), '..', 'schemas', 'tool.schema.json'), 'utf8'));
+  assert.match(schema.properties.hooks.properties.onFrame.description, /must NOT be declared as a required 'camera' capability/,
+    'this test rests on that schema rule - if it moved, re-read it before changing the manifest');
+  // The mic and screen APIs are the ones that DO need declaring, and nothing here
+  // touches them. host.media is reached only through the runtime's onFrame hook.
   for (const src of [LIB, HOOKS, TEMPLATE]) {
-    assert.ok(!/host\.recorder|host\.media|getUserMedia/.test(code(src)),
-      'a mic/camera call needs its capability declared alongside it');
+    assert.ok(!/host\.recorder|getUserMedia|getDisplayMedia|navigator\.mediaDevices/.test(code(src)),
+      'a mic, screen or direct-device call needs its capability declared alongside it');
   }
   for (const f of ['png', 'gif', 'webm']) assert.ok(m.render.formats.includes(f), `missing format ${f}`);
   assert.ok(!m.inputs.some((i: any) => i.id === 'width' || i.id === 'height'),
@@ -516,6 +524,505 @@ test('the manifest carries the audio slot the export bed is read from', { skip: 
   assert.equal(m.hooks.beforeExport, true, 'the clip length reaches the export through beforeExport');
 });
 
+/* ── WP-C: the swarm ──────────────────────────────────────────────────────── */
+
+const GROWTH = join(COMMUNITY, 'growth', 'hooks.js');
+
+/** A host that outlines any text as a stand-in "O" - the outer contour plus its
+ *  counter, the two subpaths a real host.text.toPath returns for that glyph. */
+function textHost(d = 'M0,0L200,0L200,200L0,200ZM60,60L60,140L140,140L140,60Z'): any {
+  return baseHost({
+    tokens: { resolve: async () => 'Stub Sans' },
+    text: {
+      fontUrl: async () => ({ url: 'font:stub' }),
+      toPath: async () => ({ d, advanceWidth: 200, bbox: { x1: 0, y1: 0, x2: 200, y2: 200 }, notdef: 0 }),
+    },
+  });
+}
+
+/** The parsed `_state` for a swarm render. */
+async function swarmState(host: any, values: Record<string, any> = {}): Promise<any> {
+  const rt = await createRuntime(tool, host, { scene: 'swarm', ...values });
+  const html = rt.getHydrated() as string;
+  const m = html.match(/id="synth-state">([\s\S]*?)<\/script>/);
+  assert.ok(m, '_state was not embedded in the template');
+  return JSON.parse(String(m![1]));
+}
+
+/**
+ * A recording stand-in for a WebGL2 context. Every ALL_CAPS read is a distinct
+ * enum, every other read is a call recorder - which is the whole context surface
+ * the lib touches, without a GPU. It cannot say whether a shader compiles (that
+ * is the browser tier's job); it CAN say exactly which GL objects were created
+ * and which were released, which is what a leaked context is made of.
+ */
+function fakeGl(): { gl: any; calls: { m: string; a: any[] }[]; made: any[] } {
+  const calls: { m: string; a: any[] }[] = [];
+  const consts: Record<string, number> = {};
+  const fns: Record<string, any> = {};
+  const made: any[] = [];
+  let next = 1;
+  const gl: any = new Proxy({}, {
+    get(_t, prop: string | symbol) {
+      if (typeof prop !== 'string') return undefined;
+      if (/^[A-Z][A-Z0-9_]*$/.test(prop)) {
+        if (!(prop in consts)) consts[prop] = next++;
+        return consts[prop];
+      }
+      if (!fns[prop]) {
+        fns[prop] = (...a: any[]) => {
+          calls.push({ m: prop, a });
+          if (prop === 'getExtension') return { loseContext: () => calls.push({ m: 'loseContext', a: [] }) };
+          if (prop === 'getShaderParameter') return true;
+          if (prop === 'getProgramParameter') return a[1] === consts.ACTIVE_UNIFORMS ? 0 : true;
+          if (prop.startsWith('create')) { const o = { kind: prop, id: made.length }; made.push(o); return o; }
+          return null;
+        };
+      }
+      return fns[prop];
+    },
+  });
+  return { gl, calls, made };
+}
+
+function fakeCanvas(gl: any): any {
+  return {
+    width: 0, height: 0, isConnected: true,
+    getContext: () => gl,
+    addEventListener() {}, removeEventListener() {},
+    getBoundingClientRect: () => ({ left: 0, top: 0, width: 1280, height: 720 }),
+  };
+}
+
+/** A second lib instance whose realm has a rAF, so create() can arm its loop. */
+function glLib(): any {
+  return new Function('window', `${LIB}\nreturn window.LollySynth;`)({
+    requestAnimationFrame: () => 1, cancelAnimationFrame: () => {},
+  });
+}
+
+function mount(cfg: any): { inst: any; calls: { m: string; a: any[] }[]; made: any[] } {
+  const { gl, calls, made } = fakeGl();
+  return { inst: glLib().create(fakeCanvas(gl), cfg), calls, made };
+}
+
+test('the swarm is a real scene option and folds a sampled target set', { skip: SKIP }, async () => {
+  const m = JSON.parse(readFileSync(join(DIR, 'tool.json'), 'utf8'));
+  const scene = m.inputs.find((i: any) => i.id === 'scene');
+  // The whole list is pinned by the WP-D test below; this one owns the swarm.
+  assert.ok(scene.options.some((o: any) => o.value === 'swarm'));
+  assert.equal((await state({ scene: 'ink' })).scene, 'ink', 'the ink scene is untouched');
+
+  const s = await swarmState(textHost(), { text: 'O' });
+  assert.equal(s.scene, 'swarm');
+  assert.equal(s.targets.count, 2048, 'the point budget is fixed, not a function of the source');
+  assert.ok(!s.targets.data.includes('<'), 'the payload sits inside a <script> tag');
+  const t = lib.unpackTargets(s.targets);
+  assert.equal(t.count, 2048);
+  assert.equal(t.uv.length, 4096);
+  for (let i = 0; i < t.uv.length; i++) assert.ok(t.uv[i] >= 0 && t.uv[i] <= 1, `target ${i} left the frame`);
+  // The traced "O" is square, so a 16:9 frame must not stretch it: the fit is
+  // computed in units of the shorter side and only then divided into uv x.
+  let minX = 1, maxX = 0, minY = 1, maxY = 0;
+  for (let i = 0; i < t.uv.length; i += 2) {
+    minX = Math.min(minX, t.uv[i]); maxX = Math.max(maxX, t.uv[i]);
+    minY = Math.min(minY, t.uv[i + 1]); maxY = Math.max(maxY, t.uv[i + 1]);
+  }
+  assert.ok(Math.abs((maxX - minX) * (1280 / 720) - (maxY - minY)) < 0.01, 'the outline was stretched by the frame');
+
+  // The logo path is the other source. No document in Node, so it cannot
+  // rasterise - and the fallback is a ring, never a blank canvas.
+  const withLogo = await swarmState(textHost(), { text: 'O', logo: { id: 'brand/logo', url: 'asset:brand/logo' } });
+  assert.equal(withLogo.targets.count, 2048);
+  assert.notDeepEqual(withLogo.targets.data, s.targets.data, 'a picked logo takes over from the headline');
+});
+
+test('target sampling is deterministic - same source, same points', { skip: SKIP }, async () => {
+  // A FRESH module each time, so the answer is re-derived rather than read back
+  // out of the sampling cache.
+  const a = await swarmState(textHost(), { text: 'ABC', seed: 11 });
+  const b = await swarmState(textHost(), { text: 'ABC', seed: 11 });
+  assert.deepEqual(a, b, 'the whole fold, sampled targets included, is reproducible');
+
+  // Different source, different points - otherwise the "determinism" above would
+  // just be a constant.
+  const c = await swarmState(textHost('M0,0L100,0L100,300L0,300Z'), { text: 'ABC', seed: 11 });
+  assert.notDeepEqual(c.targets.data, a.targets.data);
+
+  // No font resolver at all: the ring, not a failure and not a blank canvas.
+  const ring = await swarmState(baseHost(), { text: 'ABC' });
+  assert.equal(ring.targets.count, 2048);
+  assert.deepEqual(ring.targets.data, (await swarmState(baseHost(), { text: 'ABC' })).targets.data);
+  // A ring is what an empty headline draws too, so it must be the SAME ring.
+  assert.deepEqual((await swarmState(textHost(), { text: '   ' })).targets.data, ring.targets.data);
+});
+
+test('the sampling constants are the ones community/growth traces a logo with', { skip: SKIP }, () => {
+  // Sampled positions are part of the visual contract a shared URL replays, and
+  // the two tools claim to sample the same way. Reading both files is the only
+  // thing that keeps that claim true.
+  const growth = readFileSync(GROWTH, 'utf8');
+  const val = (src: string, name: string): string => {
+    const m = src.match(new RegExp(`var ${name} = ([^;]+);`));
+    assert.ok(m, `${name} is missing`);
+    return String(m![1]).trim();
+  };
+  for (const [here, there] of [
+    ['TARGET_RASTER', 'LOGO_RASTER'], ['TARGET_ALPHA', 'LOGO_ALPHA'],
+    ['TARGET_LUMA', 'LOGO_LUMA'], ['TARGET_STRIDE', 'LOGO_STRIDE'],
+  ] as const) {
+    assert.equal(val(HOOKS, here), val(growth, there), `${here} drifted from growth's ${there}`);
+  }
+});
+
+test('the particle count is clamped, in the hooks AND in the lib', { skip: SKIP }, async () => {
+  assert.equal((await swarmState(baseHost(), { particles: 1e9 })).particles, 200000);
+  assert.equal((await swarmState(baseHost(), { particles: -5 })).particles, 1000);
+  assert.equal((await swarmState(baseHost(), { particles: 'lots' })).particles, 160000);
+  assert.equal((await swarmState(baseHost(), { particles: 4321.6 })).particles, 4322, 'a count has to be whole');
+
+  // The lib clamps again on its own, because _state can be hand-written: it is
+  // JSON in the page, and the count sizes two GPU buffers.
+  const cfg = await swarmState(baseHost());
+  assert.equal(mount({ ...cfg, particles: 1e9 }).inst.swarm.count, lib.MAX_PARTICLES);
+  assert.equal(mount({ ...cfg, particles: 0 }).inst.swarm.count, lib.PARTICLE_MIN);
+  assert.equal(mount({ ...cfg, particles: -1 }).inst.swarm.count, lib.PARTICLE_MIN);
+});
+
+test('a target payload that disagrees with its own header is refused', { skip: SKIP }, async () => {
+  assert.equal(lib.unpackTargets(null), null);
+  assert.equal(lib.unpackTargets({ count: 4, data: '' }), null);
+  assert.equal(lib.unpackTargets({ count: 999, data: 'AAAA' }), null, 'a truncated payload');
+  assert.equal(lib.unpackTargets({ count: 0, data: 'AAAA' }), null);
+  // And the scene still mounts on one, with a single centre target rather than
+  // an empty texture - a blank export reads as a broken tool.
+  const cfg = await swarmState(baseHost());
+  assert.equal(mount({ ...cfg, targets: { count: 999, data: 'AAAA' } }).inst.swarm.targets, 1);
+});
+
+test('the swarm registers its transform-feedback resources, and releases every one', { skip: SKIP }, async () => {
+  const cfg = await swarmState(baseHost(), { particles: 5000 });
+  const { inst, calls, made } = mount(cfg);
+  const used = (name: string) => calls.filter((c) => c.m === name).length;
+
+  assert.equal(inst.scene, 'swarm');
+  assert.ok(used('transformFeedbackVaryings') > 0, 'the capture list has to be declared BEFORE the link, or the update pass writes nowhere');
+  assert.ok(used('beginTransformFeedback') > 0 && used('endTransformFeedback') === used('beginTransformFeedback'),
+    'every feedback pass must be closed');
+  assert.equal(used('createVertexArray'), 2, 'two VAOs ping-pong the particle state');
+  assert.equal(used('createBuffer'), 3, 'the fullscreen quad plus the two particle buffers');
+  // Feedback into a buffer that is also bound for reading is undefined, so the
+  // pass always writes the OTHER side: never the same object twice in a row.
+  const bound = calls.filter((c) => c.m === 'bindBufferBase' && c.a[2]).map((c) => c.a[2]);
+  assert.ok(bound.length > 1);
+  for (let i = 1; i < bound.length; i++) assert.notEqual(bound[i], bound[i - 1], 'the feedback target must alternate');
+
+  const before = made.length;
+  inst.dispose();
+  const released = new Set<any>();
+  for (const c of calls) if (c.m.startsWith('delete')) for (const arg of c.a) released.add(arg);
+  for (const o of made) assert.ok(released.has(o), `${o.kind} #${o.id} was never released`);
+  assert.equal(made.length, before, 'dispose must not allocate');
+  assert.ok(calls.some((c) => c.m === 'getExtension' && c.a[0] === 'WEBGL_lose_context'),
+    'dispose must drop the context, not wait for collection');
+
+  // The ink scene allocates none of this - it carries its state in textures.
+  const ink = mount({ ...cfg, scene: 'ink' });
+  assert.equal(ink.inst.scene, 'ink');
+  assert.equal(ink.inst.swarm, null);
+  assert.equal(ink.calls.filter((c) => c.m === 'createVertexArray').length, 0);
+  assert.equal(ink.calls.filter((c) => c.m === 'transformFeedbackVaryings').length, 0);
+});
+
+/* ── WP-D: the field and camera scenes ────────────────────────────────────── */
+
+/** The hooks' live-camera surface, with a stand-in realm to hand frames to. */
+function frameHooks(win: Record<string, any> = {}): any {
+  const f = new Function('window', `${HOOKS}\nreturn { onFrame: onFrame, compute: _compute };`) as (w: unknown) => any;
+  return f(win);
+}
+
+/** One RGBA camera frame of a flat colour, in the shape host.media hands over. */
+function camFrame(w: number, h: number, rgb: [number, number, number] = [255, 255, 255]): any {
+  const data = new Uint8ClampedArray(w * h * 4);
+  for (let i = 0; i < w * h; i++) {
+    data[i * 4] = rgb[0]; data[i * 4 + 1] = rgb[1]; data[i * 4 + 2] = rgb[2]; data[i * 4 + 3] = 255;
+  }
+  return { width: w, height: h, data, t: 0 };
+}
+
+/** A lib realm with just enough DOM for the on-canvas note, plus a canvas that
+ *  has a parent to hang it on. */
+function mountNoted(cfg: any, win?: any): { inst: any; kids: any[]; win: any; frame: (n?: number) => void } {
+  const kids: any[] = [];
+  const doc = {
+    createElement: () => {
+      const attrs: Record<string, string> = {};
+      return {
+        className: '', textContent: '', parentNode: null as any, attrs,
+        setAttribute: (k: string, v: string) => { attrs[k] = v; },
+      };
+    },
+  };
+  let tick: ((ts: number) => void) | null = null;
+  let ts = 0;
+  const w: any = win ?? {};
+  w.requestAnimationFrame = (fn: (t: number) => void) => { tick = fn; return 1; };
+  w.cancelAnimationFrame = () => { tick = null; };
+  w.document = doc;
+  const { gl } = fakeGl();
+  const canvas = fakeCanvas(gl);
+  canvas.parentNode = {
+    appendChild: (el: any) => { el.parentNode = canvas.parentNode; kids.push(el); },
+    removeChild: (el: any) => { kids.splice(kids.indexOf(el), 1); el.parentNode = null; },
+  };
+  const inst = new Function('window', `${LIB}\nreturn window.LollySynth;`)(w).create(canvas, cfg);
+  // Drive the live rAF loop by hand: the camera is only pumped there.
+  const frame = (n = 1) => { for (let i = 0; i < n; i++) { ts += 16; tick?.(ts); } };
+  return { inst, kids, win: w, frame };
+}
+
+test('the field and camera scenes are real options, and the wedge count is clamped', { skip: SKIP }, async () => {
+  const m = JSON.parse(readFileSync(join(DIR, 'tool.json'), 'utf8'));
+  const scene = m.inputs.find((i: any) => i.id === 'scene');
+  assert.deepEqual(scene.options.map((o: any) => o.value), ['ink', 'swarm', 'field', 'camera']);
+  assert.deepEqual(lib.SCENES, ['ink', 'swarm', 'field', 'camera'], 'the lib must accept exactly the declared scenes');
+
+  const sym = m.inputs.find((i: any) => i.id === 'symmetry');
+  assert.deepEqual(sym.showIf, { scene: ['field', 'camera'] }, 'symmetry belongs to the scenes that fold');
+  assert.equal((await state({ scene: 'field' })).scene, 'field');
+  assert.equal((await state({ scene: 'camera' })).scene, 'camera');
+  assert.equal((await state({ scene: 'field', symmetry: 1e9 })).symmetry, 12, 'the wedge count divides in a shader');
+  assert.equal((await state({ scene: 'field', symmetry: -4 })).symmetry, 1);
+  assert.equal((await state({ scene: 'field', symmetry: 5.6 })).symmetry, 6, 'half a wedge does not meet its mirror');
+  assert.equal((await state({ scene: 'field', symmetry: 'lots' })).symmetry, 6);
+  // And again in the lib, because _state is JSON in the page and can be hand-written.
+  const cfg = await state({ scene: 'field' });
+  assert.equal(mountNoted({ ...cfg, symmetry: 1e9 }).inst.symmetry, 12);
+  assert.equal(mountNoted({ ...cfg, symmetry: 0 }).inst.symmetry, 1, 'a zero wedge count would divide by zero');
+});
+
+test('the symmetry fold mirrors wedges onto one another and magnifies nothing', { skip: SKIP }, () => {
+  const AR = 1280 / 720;
+  const fold = (u: number, v: number, n: number) => lib.symmetryFold(u, v, n, AR);
+  // Square units, so a wedge of a 16:9 frame is a wedge and not a sheared one.
+  const radius = (p: number[]) => Math.hypot((p[0] - 0.5) * AR, p[1] - 0.5);
+  const at = (a: number, r: number) => [0.5 + (Math.cos(a) * r) / AR, 0.5 + Math.sin(a) * r];
+
+  // 1 is symmetry OFF, and so is anything that is not a wedge count - the value
+  // arrives off a URL.
+  for (const n of [1, 0, -6, NaN, undefined, 'six']) {
+    assert.deepEqual(lib.symmetryFold(0.3, 0.8, n as any, AR), [0.3, 0.8], `sectors ${String(n)} must leave the picture alone`);
+  }
+
+  for (const n of [2, 3, 6, 12]) {
+    const sector = (Math.PI * 2) / n;
+    for (const a of [0.05, 0.4, 1.1, 2.7, -0.6, 3.9]) {
+      for (const r of [0.05, 0.22, 0.5]) {
+        const here = fold(...(at(a, r) as [number, number]), n);
+        // Every wedge shows the same picture...
+        for (const k of [1, 2, n - 1]) {
+          const there = fold(...(at(a + k * sector, r) as [number, number]), n);
+          assert.ok(Math.hypot(there[0] - here[0], there[1] - here[1]) < 1e-9,
+            `n=${n}: wedge ${k} away must read the same point`);
+        }
+        // ...and each is mirrored about its own middle, so neighbours meet along
+        // their shared edge instead of showing a seam.
+        const mirrored = fold(...(at(-a, r) as [number, number]), n);
+        assert.ok(Math.hypot(mirrored[0] - here[0], mirrored[1] - here[1]) < 1e-9, `n=${n}: the wedge is not mirrored`);
+        // The radius is untouched: a fold rearranges the picture, it never zooms it.
+        assert.ok(Math.abs(radius(here) - r) < 1e-9, `n=${n}: the fold changed the radius`);
+        // A folded point is already inside its wedge.
+        assert.deepEqual(fold(here[0], here[1], n), here, `n=${n}: the fold must be idempotent`);
+      }
+    }
+  }
+  // The centre is the one fixed point of every fold.
+  for (const n of [2, 5, 12]) {
+    const c = fold(0.5, 0.5, n);
+    assert.ok(Math.abs(c[0] - 0.5) < 1e-12 && Math.abs(c[1] - 0.5) < 1e-12);
+  }
+});
+
+test('the shader fold is the same mapping as the exported one', { skip: SKIP }, () => {
+  // The GLSL cannot be run here (no GPU, and a compile is the browser tier's job),
+  // so what is checkable is that both copies carry the SAME six steps in the same
+  // order. They have to be changed together or a shared URL folds two ways.
+  const glsl = String(LIB.match(/vec2 fold\(vec2 uv\)\{([\s\S]*?)\n\s*'\}',/)![1]);
+  for (const step of [
+    /uSectors < 1\.5/,                      // 1 is symmetry off
+    /uv\.x - 0\.5\) \* uAspect/,            // square units
+    /6\.2831853 \/ uSectors/,               // the wedge angle
+    /atan\(p\.y, p\.x\)/,
+    /a - floor\(a \/ sector\) \* sector/,   // into the first wedge
+    /a > sector \* 0\.5.*sector - a/,       // mirrored about its middle
+    /cos\(a\) \* r \/ uAspect/,             // the radius is carried through
+  ]) {
+    assert.match(glsl, step, 'the shader fold drifted from symmetryFold');
+  }
+  // A folded point can sit outside [0,1] (the corners of a 16:9 frame reach past
+  // the short edge once they are rotated), so the field texture must clamp.
+  assert.match(LIB, /TEXTURE_WRAP_S, gl\.CLAMP_TO_EDGE/, 'a wrapped field would tile the folded corners back in');
+});
+
+test('the field scene runs the feedback pass and none of the ink solver', { skip: SKIP }, async () => {
+  const cfg = await state({ scene: 'field' });
+  const { inst, calls, made } = mount(cfg);
+  assert.equal(inst.scene, 'field');
+  assert.equal(inst.swarm, null, 'the field carries no particles');
+  // Nine ink passes down to three: the field is one warp of the dye buffer the
+  // emitters splat into, so the pressure solve and its four grids are not built.
+  assert.equal(calls.filter((c) => c.m === 'createProgram').length, 3, 'splat, field, display - and nothing else');
+  assert.equal(calls.filter((c) => c.m === 'createVertexArray').length, 0);
+
+  const released = new Set<any>();
+  inst.dispose();
+  for (const c of calls) if (c.m.startsWith('delete')) for (const arg of c.a) released.add(arg);
+  for (const o of made) assert.ok(released.has(o), `${o.kind} #${o.id} was never released`);
+});
+
+test('the camera scene allocates the live frame texture, and no other scene does', { skip: SKIP }, async () => {
+  const cfg = await state({ scene: 'camera' });
+  const cam = mount(cfg);
+  assert.equal(cam.inst.scene, 'camera');
+  // R8 luma, at the grid the hooks sample into - fixed on both sides, so the
+  // texture is allocated once and never resized.
+  const alloc = cam.calls.filter((c) => c.m === 'texImage2D' && c.a[3] === lib.CAM_W && c.a[4] === lib.CAM_H);
+  assert.equal(alloc.length, 1, 'the camera grid is uploaded into one fixed-size texture');
+
+  const inkCfg = await state({ scene: 'ink' });
+  assert.equal(mount(inkCfg).calls.filter((c) => c.m === 'texImage2D' && c.a[3] === lib.CAM_W && c.a[4] === lib.CAM_H).length, 0,
+    'the ink scene has no camera to hold');
+
+  const released = new Set<any>();
+  cam.inst.dispose();
+  for (const c of cam.calls) if (c.m.startsWith('delete')) for (const arg of c.a) released.add(arg);
+  for (const o of cam.made) assert.ok(released.has(o), `${o.kind} #${o.id} was never released`);
+});
+
+test('onFrame hands the camera to the instrument WITHOUT returning a patch', { skip: SKIP }, () => {
+  const m = JSON.parse(readFileSync(join(DIR, 'tool.json'), 'utf8'));
+  assert.equal(m.hooks.onFrame, true, 'the runtime only drives onFrame for a tool that declares it');
+
+  // The shell hangs its Play + Go live buttons on the FIRST asset input's picker
+  // row (views/live-controls.ts sourceInputId). A row hidden by showIf takes the
+  // camera control away with it, so the camera scene could never be started: the
+  // first asset slot has to be one that shows in every scene.
+  const firstAsset = m.inputs.find((i: any) => i.type === 'asset');
+  assert.ok(firstAsset && !firstAsset.showIf,
+    `Go live would ride "${firstAsset?.id}", which is hidden outside its own scene`);
+
+  const win: Record<string, any> = {};
+  const h = frameHooks(win);
+  // A returned patch re-renders the tool's DOM, which drops the WebGL context:
+  // one context built and leaked per camera frame, against a browser cap of ~16.
+  assert.equal(h.onFrame({ frame: camFrame(64, 32) }), undefined, 'a per-frame patch would leak a GL context a frame');
+
+  const chan = win.__lollySynthCam;
+  assert.ok(chan, 'the frame reaches the instrument as a property on the realm');
+  assert.equal(chan.w, lib.CAM_W);
+  assert.equal(chan.h, lib.CAM_H);
+  assert.equal(chan.lum.length, lib.CAM_W * lib.CAM_H);
+  assert.ok(chan.lum.every((v: number) => v >= 250), 'a white frame samples to white luma');
+  assert.equal(chan.n, 1, 'the instrument uploads only when the count moves');
+
+  // frame.data is valid only for the synchronous duration of the call, so the
+  // pixels have to be COPIED, never retained.
+  const frame = camFrame(8, 8, [0, 0, 0]);
+  h.onFrame({ frame });
+  assert.equal(chan.n, 2);
+  assert.ok(chan.lum.every((v: number) => v === 0));
+  frame.data.fill(255);
+  assert.ok(chan.lum.every((v: number) => v === 0), 'the sampler kept a reference to the shell\'s buffer');
+
+  // A frame that disagrees with its own dimensions is dropped, not sampled past
+  // the end of the buffer.
+  for (const bad of [null, undefined, {}, { width: 0, height: 4, data: new Uint8ClampedArray(16) },
+    { width: 8, height: 8, data: new Uint8ClampedArray(4) }]) {
+    assert.equal(h.onFrame({ frame: bad }), undefined);
+    assert.equal(chan.n, 2, `a malformed frame must not advance the sequence: ${JSON.stringify(bad)}`);
+  }
+  assert.equal(h.onFrame({}), undefined, 'no frame at all is not an error either');
+});
+
+test('a camera scene with no camera says so, instead of showing an unexplained picture', { skip: SKIP }, async () => {
+  const withCam = await createRuntime(tool, baseHost({ media: { isAvailable: () => true } }), { scene: 'camera' });
+  const ready = JSON.parse(String((withCam.getHydrated() as string).match(/id="synth-state">([\s\S]*?)<\/script>/)![1]));
+  assert.equal(ready.cameraReady, true, 'the fold reports whether this shell could open a camera at all');
+  assert.equal((await state({ scene: 'camera' })).cameraReady, false, 'no host.media, no camera');
+
+  // Two different truths, and neither of them is a blank canvas.
+  const waiting = mountNoted(ready);
+  assert.match(waiting.inst.note(), /Go live/, 'a shell WITH a camera is told how to start it');
+  const absent = mountNoted({ ...ready, cameraReady: false });
+  assert.match(absent.inst.note(), /cannot open a camera/, 'a shell without one is told that, not left guessing');
+  assert.equal(absent.kids.length, 1, 'the note is on the canvas, where the picture is');
+
+  // The other scenes are not camera scenes and say nothing.
+  assert.equal(mountNoted(await state({ scene: 'field' })).inst.note(), null);
+  assert.equal(mountNoted(await state()).inst.note(), null);
+
+  absent.inst.dispose();
+  assert.equal(absent.kids.length, 0, 'dispose takes the note away with the instrument');
+});
+
+test('the note is chrome, not part of the picture', { skip: SKIP }, async () => {
+  // The note is a sibling of the canvas inside the node the exporter rasterises,
+  // so nothing but data-export-hide keeps an English instruction out of a PNG.
+  const noted = mountNoted({ ...(await state({ scene: 'camera' })), cameraReady: true });
+  assert.equal(noted.kids.length, 1);
+  assert.equal(noted.kids[0].attrs['data-export-hide'], '', 'the note would be baked into every export');
+
+  // The template's own failure message sits in the same place.
+  const msg = TEMPLATE.match(/function message\(txt\)\{?[\s\S]*?\n  \}/)![0];
+  assert.match(msg, /setAttribute\('data-export-hide'/, 'an error string is not part of the user\'s picture');
+
+  // And it must not eat the gesture the canvas underneath is listening for.
+  assert.match(readFileSync(join(DIR, 'styles.css'), 'utf8').match(/\.synth-msg\s*\{[^}]*\}/)![0],
+    /pointer-events:\s*none/, 'the overlay would swallow the pointer swirl in that band');
+});
+
+test('a camera note tracks frames still ARRIVING, not one that arrived once', { skip: SKIP }, async () => {
+  const cfg = { ...(await state({ scene: 'camera' })), cameraReady: true };
+  const chan = { w: lib.CAM_W, h: lib.CAM_H, lum: new Uint8Array(lib.CAM_W * lib.CAM_H), n: 7 };
+
+  // A channel left on the realm by a PREVIOUS mount: its count is high but it
+  // never advances again, so it is not a running camera and must not be latched.
+  const m = mountNoted(cfg, { __lollySynthCam: chan });
+  m.frame(3);
+  assert.match(m.inst.note(), /Go live/, 'a stale channel from an earlier mount was taken as a live feed');
+
+  chan.n = 8;                       // the camera is actually running now
+  m.frame(1);
+  assert.equal(m.inst.note(), null, 'a frame that arrived after mount drives the scene');
+
+  // The user stops the camera: the last frame stays latched, and the note has to
+  // come back rather than claim a feed that has gone away.
+  m.frame(120);
+  assert.match(m.inst.note(), /Go live/, 'a stopped camera left the note off forever');
+  chan.n = 9;
+  m.frame(1);
+  assert.equal(m.inst.note(), null, 'and it clears again when frames resume');
+});
+
+test('a build that throws drops its own GL context', { skip: SKIP }, async () => {
+  // create() is the only path that takes a context, and the template can do
+  // nothing with the failure but show the message - it never gets an instance to
+  // dispose. Contexts cap around 16 a tab and a failing paint repeats on every
+  // nudge, so the context has to go back with the throw.
+  const cfg = await state();
+  const { gl, calls } = fakeGl();
+  const bad: any = new Proxy(gl, {
+    get: (t, p: string) => (p === 'getShaderParameter' ? () => false : (t as any)[p]),
+  });
+  assert.throws(() => glLib().create(fakeCanvas(bad), cfg), /synth shader/);
+  assert.ok(calls.some((c) => c.m === 'loseContext'), 'the failed build leaked its context');
+
+  // A build that succeeds keeps its context until dispose asks for it.
+  const ok = mount(cfg);
+  assert.ok(!ok.calls.some((c) => c.m === 'loseContext'));
+});
+
 test('nothing in the sim or the fold reads a wall clock or an unseeded random', { skip: SKIP }, () => {
   for (const [name, raw] of [['lib/synth.js', LIB], ['hooks.js', HOOKS]] as const) {
     const src = code(raw);
@@ -523,4 +1030,217 @@ test('nothing in the sim or the fold reads a wall clock or an unseeded random', 
     assert.ok(!/Date\.now|new Date\s*\(\s*\)/.test(src), `${name}: a wall clock would break deterministic replay`);
     assert.ok(!/performance\.now/.test(src), `${name}: the only clock is the rAF timestamp, live mode only`);
   }
+});
+
+/* ── WP-E: MIDI ───────────────────────────────────────────────────────────── */
+
+/** The template's own IIFE, run in a stand-in realm. Only the MIDI half is
+ *  exercised: the lib is handed over already loaded, so nothing here touches a
+ *  GL context. */
+function runTemplate(opts: {
+  cfg?: Record<string, unknown>;
+  panel?: unknown;
+  midi?: unknown;
+  /** The permission prompt was refused or dismissed. */
+  midiFails?: boolean;
+  mounted?: boolean;
+  /** The exporter owns the canvas and is stepping the frame clock. */
+  frameDriven?: boolean;
+  /** Reuse a realm, the way successive paints of one session share a window. */
+  win?: Record<string, any>;
+}): { win: Record<string, any>; asked: number; canvas: any } {
+  const src = TEMPLATE.match(/<script>([\s\S]*?)<\/script>/)![1]!;
+  const canvas: any = { id: 'synth-canvas', __lollyFrameDriven: opts.frameDriven === true };
+  const stateEl = { textContent: JSON.stringify({ emitters: [], ...(opts.cfg ?? {}) }) };
+  let asked = 0;
+  const doc: any = {
+    getElementById: (id: string) => (
+      id === 'synth-canvas' ? (opts.mounted === false ? null : canvas)
+        : id === 'synth-state' ? stateEl
+          : id === 'tool-inputs' ? (opts.panel ?? null) : null),
+    dispatchEvent: () => true,
+    createElement: () => ({ style: {}, remove() {}, setAttribute() {} }),
+    head: { appendChild() {} },
+  };
+  const win: Record<string, any> = opts.win ?? {
+    LollySynth: { create: () => ({ renderLoopFrame() {}, dispose() {} }) },
+  };
+  const nav: any = {};
+  if (opts.midi || opts.midiFails) {
+    nav.requestMIDIAccess = () => {
+      asked++;
+      return opts.midiFails ? Promise.reject(new Error('refused')) : Promise.resolve(opts.midi);
+    };
+  }
+  const KeyEv = function (this: any, _type: string, init: any) { this.key = init.key; } as unknown as new (t: string, i: any) => unknown;
+  const Cust = function (this: any) {} as unknown as new (...a: unknown[]) => unknown;
+  new Function('window', 'document', 'navigator', 'KeyboardEvent', 'CustomEvent', 'console', src)(
+    win, doc, nav, KeyEv, Cust, { error() {}, warn() {} });
+  return { win, asked, canvas };
+}
+
+/** A stand-in for the shell's `.custom-slider`, carrying the same attributes and
+ *  answering an arrow/page key the way mountCustomSlider does (snap, clamp,
+ *  aria-valuenow is the value). */
+function fakeSlider(min: number, max: number, step: number, value: number): any {
+  const attrs: Record<string, string> = {
+    'data-min': String(min), 'data-max': String(max), 'data-step': String(step),
+    'aria-valuenow': String(value),
+  };
+  const keys: string[] = [];
+  return {
+    keys,
+    get value(): number { return parseFloat(attrs['aria-valuenow']!); },
+    getAttribute: (n: string) => attrs[n] ?? null,
+    dispatchEvent(e: { key: string }) {
+      keys.push(e.key);
+      const d = e.key === 'ArrowRight' ? step : e.key === 'ArrowLeft' ? -step
+        : e.key === 'PageUp' ? step * 10 : e.key === 'PageDown' ? -step * 10 : 0;
+      const raw = parseFloat(attrs['aria-valuenow']!) + d;
+      const snapped = Math.round((raw - min) / step) * step + min;
+      attrs['aria-valuenow'] = String(+Math.min(max, Math.max(min, snapped)).toFixed(10));
+      return true;
+    },
+  };
+}
+
+/** A panel holding named sliders, matched on the exact selector the template builds. */
+function fakePanel(sliders: Record<string, any>): any {
+  return {
+    querySelector: (sel: string) => {
+      const m = sel.match(/data-input-id="([^"]+)"/);
+      return (m && sliders[m[1]!]) || null;
+    },
+  };
+}
+
+/** A MIDI access stub with one port, plus the message the template listens for. */
+function fakeMidi(): { access: any; send: (bytes: number[]) => void } {
+  const port: any = { onmidimessage: null };
+  const access: any = {
+    inputs: { forEach: (fn: (p: unknown) => void) => fn(port) },
+    onstatechange: null,
+  };
+  return { access, send: (bytes) => port.onmidimessage?.({ data: Uint8Array.from(bytes) }) };
+}
+
+test('a MIDI knob turns the sidebar control itself, and only once the tool is live', { skip: SKIP }, async () => {
+  const intensity = fakeSlider(0, 2, 0.05, 1);
+  const panel = fakePanel({ intensity });
+  const { access, send } = fakeMidi();
+
+  // Nothing is asked of the user's MIDI devices while the tool is not being played.
+  assert.equal(runTemplate({ cfg: { live: false }, panel, midi: access }).asked, 0);
+  // ...and where there is no Web MIDI at all (Safari), the tool is unaffected.
+  const noMidi = runTemplate({ cfg: { live: true }, panel });
+  assert.equal(noMidi.win.__lollySynthMidi, undefined, 'no flag, no listener, no error');
+
+  const { win, asked } = runTemplate({ cfg: { live: true }, panel, midi: access });
+  assert.equal(asked, 1);
+  await Promise.resolve(); await Promise.resolve();
+
+  // CC1 at the top of its travel walks the slider to its maximum THROUGH the
+  // control's own keyboard commit - the write path that carries undo, the URL
+  // and the share link. Never _state, which would be a second, unshareable
+  // copy of the same knob.
+  send([0xb0, 1, 127]);
+  assert.equal(intensity.value, 2, 'the knob reached the top of the declared range');
+  assert.ok(intensity.keys.length <= 12, `a full sweep is a handful of commits, not forty (${intensity.keys.length})`);
+  assert.ok(intensity.keys.every((k: string) => k === 'PageUp' || k === 'ArrowRight'), 'one direction only');
+
+  // Absolute, both ways, on any channel, and idempotent once it has arrived.
+  send([0xb5, 1, 0]);
+  assert.equal(intensity.value, 0);
+  const spent = intensity.keys.length;
+  send([0xb0, 1, 0]);
+  assert.equal(intensity.keys.length, spent, 'a knob that has not moved commits nothing');
+  send([0xb0, 1, 64]);
+  assert.equal(intensity.value, 1, 'the middle of the knob is the middle of the range');
+
+  // Everything that is not a control-change message, or not a mapped CC, or
+  // arrives malformed, is ignored rather than guessed at.
+  const before = intensity.value;
+  for (const msg of [[0x90, 1, 127], [0xb0, 9, 127], [0xb0, 1], [], [0xb0]]) send(msg);
+  assert.equal(intensity.value, before);
+
+  // The registration is once per session (the template re-runs on every paint),
+  // and a knob whose control this scene does not show does nothing at all.
+  assert.equal(runTemplate({ cfg: { live: true }, panel, midi: access, win }).asked, 0, 'one request per session');
+  assert.equal(win.__lollySynthMidi, true);
+  send([0xb0, 3, 127]);   // symmetry: hidden outside the field/camera scenes
+
+  // A session-long listener outlives the paint that registered it: once this
+  // tool is gone from the page it must stop writing to whatever is there now.
+  const orphan = fakeSlider(0, 2, 0.05, 1);
+  const gone = runTemplate({ cfg: { live: true }, panel: fakePanel({ intensity: orphan }), midi: access, mounted: false, win });
+  await Promise.resolve();
+  assert.equal(gone.asked, 0);
+  send([0xb0, 1, 127]);
+  assert.equal(orphan.keys.length, 0, 'a detached tool must not drive another tool\'s sidebar');
+});
+
+test('a knob turned mid-export does not kill the export', { skip: SKIP }, async () => {
+  // A commit re-renders the tool: the next paint disposes the instrument and
+  // loses the GL context, while the exporter goes on calling the frame clock on
+  // that same canvas - every remaining frame of the clip would be a dead canvas.
+  const speed = fakeSlider(0, 2, 0.05, 1);
+  const panel = fakePanel({ speed });
+  const { access, send } = fakeMidi();
+  const { canvas } = runTemplate({ cfg: { live: true }, panel, midi: access, frameDriven: true });
+  await Promise.resolve(); await Promise.resolve();
+
+  send([0xb0, 2, 127]);
+  assert.equal(speed.keys.length, 0, 'the knob wrote into a canvas the exporter owns');
+  assert.equal(speed.value, 1);
+
+  // Once the clip is done the exporter hands the canvas back, and the same knob
+  // works again.
+  canvas.__lollyFrameDriven = false;
+  send([0xb0, 2, 127]);
+  assert.equal(speed.value, 2);
+});
+
+test('a refused MIDI prompt is asked exactly once', { skip: SKIP }, async () => {
+  // The template re-runs on EVERY paint, so a flag cleared on rejection is a
+  // permission prompt per slider nudge.
+  const first = runTemplate({ cfg: { live: true }, midiFails: true });
+  assert.equal(first.asked, 1);
+  await Promise.resolve(); await Promise.resolve(); await Promise.resolve();
+  assert.equal(first.win.__lollySynthMidi, true, 'a refusal must not re-arm the request');
+  assert.equal(runTemplate({ cfg: { live: true }, midiFails: true, win: first.win }).asked, 0);
+});
+
+test('the CC map is fixed, documented, and points only at controls it can actually write', { skip: SKIP }, () => {
+  const m = JSON.parse(readFileSync(join(DIR, 'tool.json'), 'utf8'));
+  const table = new Function('return ' + TEMPLATE.match(/var MIDI_CC = (\[[\s\S]*?\]);/)![1]!)() as [number, string][];
+  assert.deepEqual(table, [[1, 'intensity'], [2, 'speed'], [3, 'symmetry'], [74, 'rampRotate']]);
+
+  const help = String(m.inputs.find((i: any) => i.id === 'live').help);
+  for (const [cc, id] of table) {
+    const input = m.inputs.find((i: any) => i.id === id);
+    assert.ok(input, `CC${cc} is mapped to an input that does not exist: ${id}`);
+    // The write path is the slider's own keyboard commit, so a mapped input has
+    // to BE a slider - a plain number field would silently swallow the knob.
+    assert.equal(input.display, 'slider', `CC${cc} -> ${id} is not a slider, so nothing would move`);
+    assert.ok(help.includes(`CC${cc} is ${input.label}`),
+      `the fixed map is the only map there is, so it has to be written down: CC${cc} is ${input.label}`);
+  }
+});
+
+test('the colour ramp rotates as a hue, is clamped, and reaches the shader in radians', { skip: SKIP }, async () => {
+  assert.equal((await state()).rampRotate, 0, 'off by default - an untouched piece keeps its palette');
+  assert.equal((await state({ rampRotate: 90 })).rampRotate, 90);
+  assert.equal((await state({ rampRotate: 1e9 })).rampRotate, 360, 'a turn past a full circle is a hostile URL');
+  assert.equal((await state({ rampRotate: -720 })).rampRotate, 0);
+  assert.equal((await state({ rampRotate: 'round' })).rampRotate, 0);
+
+  const cfg = await state({ rampRotate: 180 });
+  assert.ok(Math.abs(mountNoted(cfg).inst.rampRotate - Math.PI) < 1e-9);
+  assert.equal(mountNoted({ ...cfg, rampRotate: 1e9 }).inst.rampRotate, 2 * Math.PI, 'clamped in the lib too');
+  assert.equal(mountNoted({ ...cfg, rampRotate: 'round' }).inst.rampRotate, 0);
+
+  // Lightness is untouched by the rotation, so a re-tint cannot flatten the
+  // contrast the palette was chosen for.
+  const shader = LIB.match(/vec3 hueRot\(vec3 lab\)\{[\s\S]*?\}'/)![0];
+  assert.match(shader, /vec3\(lab\.x,/, 'the L channel must pass through unrotated');
 });

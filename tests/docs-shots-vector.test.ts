@@ -52,6 +52,17 @@ const RASTER_ALLOWED: Record<string, string> = {
     + 'and Chromium print flattens the ghost group opacity to opaque, hiding the live '
     + 'scene underneath. Re-check when the walker gains a docs-capture root that can opt '
     + 'INTO export-hidden chrome.',
+  'use-synth-field':
+    'The frame IS the canvas. Synth is a GPU fluid solve - velocity, pressure and dye '
+    + 'live in float textures - so every pixel is a field sample with no geometry under '
+    + 'it for the walker to recover. The audiogram route off this list does not reach '
+    + 'here: that one kept vector chrome AROUND a canvas, and this recipe crops to the '
+    + 'canvas alone, so a walker shot would be the same bitmap in an SVG wrapper. It '
+    + 'would also be worse, because a vector baseline compares exactly and the live '
+    + 'preview advances a chaotic solve on a wall clock. That is what tolerance=1 says '
+    + 'too: no two captures share a frame, so a pixel diff carries no signal, while the '
+    + 'blank, tiny, dims and weight flags all still bite. Re-check if Synth ever gains a '
+    + 'driven demo frame the way ?neuro=viz did for incl-neuro-viz.',
   // cc-verify-masthead left this list 2026-08-05: same fix as cc-verify-mobile - the masthead
   // is a wider frame of the same storm photo, now walker=1&format=svg&rasterDpi=96 with the
   // photo downscaled to its box (under the vector budget) AND its genAI credential preserved:

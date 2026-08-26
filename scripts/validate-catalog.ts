@@ -623,6 +623,14 @@ const RASTER_PREVIEWS: Record<string, string> = {
     'A WebGL/canvas render of the 3-D scene - the walker gets pixels, never the mesh. 528 B of markup survives once the one embedded <image> is removed, and 97.5% of the file is that image.',
   'synth.svg':
     'Synth is a WebGL2 fluid simulation: the ink is a per-pixel field advected on the GPU each frame, so the walker gets one <image> and there is no geometry behind it to recover. Same class as 3d.svg and the neuro-viz shot.',
+  'synth.look0.svg':
+    'Ink bloom - the same WebGL2 per-pixel field as the synth tile, at a curated seed/intensity. One embedded <image>, no geometry to recover.',
+  'synth.look1.svg':
+    'Headline swarm - 200k transform-feedback particles tracing the headline, drawn into the GPU dye field. Pixels, not paths.',
+  'synth.look2.svg':
+    'Kaleidoscope - the field scene folded 8-way in the fragment shader; every fold is per-pixel arithmetic, nothing walkable.',
+  'synth.look3.svg':
+    'Slow drift - the field scene at drift settings; same GPU field as the others, one embedded <image>.',
   'audiogram.svg':
     'Audiogram composites artwork + waveform into a real <canvas> before anything is walkable, so the capture is one <image> with 768 B of markup around it. The waveform is drawn per-pixel; there are no bars in the DOM to recover.',
   'audiogram.look0.svg':
@@ -665,6 +673,10 @@ const RASTER_PREVIEWS: Record<string, string> = {
     'Dither: a 4-colour ordered dither is one <rect> per output cell, past the 800-element ceiling by a wide margin, and the whole point of the look is per-pixel quantisation.',
   'filter.look6.webp':
     'ASCII art: a full-frame character grid, 4,937 <text> glyphs and 721,179 B as SVG. Neither form fits the look budget - see its OVER_BUDGET_PREVIEWS entry for the measurements and the ceiling it ships under.',
+  'filter.webp':
+    'Halftone (the default effect): ~1,910 image-coloured <circle> dots, past the 800-element SVG ceiling. Now transparent by default so the screen drops onto any design, which is exactly why the card is raster - a transparent WebP carries the dots + alpha where an 800+-element SVG cannot.',
+  'filter.look0.webp':
+    'Halftone look: same ~1,900-dot screen as the default card (see filter.webp), rasterised for the same reason and carrying its transparency in the WebP alpha channel.',
   'contrast-check.look3.webp':
     'The full type-scale matrix: 315 <text> runs over 312 <rect> swatches plus 147 <path>, serialising to 166,949 B - past the 140 KB ceiling - for a tile nobody reads the numbers off. 94,666 B as WebP.',
   'street-map.webp':

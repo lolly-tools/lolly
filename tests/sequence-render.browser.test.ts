@@ -552,6 +552,29 @@ describe('sequence export (browser tier)', { skip: gate ?? false, concurrency: 1
     assert.equal(r.capped.length, 1, `expected exactly one cap warning, got ${JSON.stringify(r.capped)}`);
   });
 
+  // webp-anim through the sequence compositor (plan 153: "Sequence stage offers
+  // webp-anim"). The new branch must mux a REAL animated WebP - full colour, not the
+  // gif fallthrough - and paint the clip that sits at the playhead.
+  test('a sequence exports as an animated WebP whose first frame is the clip', async () => {
+    const r = await page().evaluate(async () => {
+      const S = (window as never as { SEQ: SeqApi }).SEQ;
+      const spec = {
+        w: 320, h: 240, seqMs: 2000, bg: '#0b1220', boxes: [
+          { x: 0, y: 0, w: 320, h: 240, bg: '#ff0000', start: 0, dur: 1000, lane: 'seq' as const },
+          { x: 0, y: 0, w: 320, h: 240, bg: '#00ff00', start: 1000, dur: 1000, lane: 'seq' as const },
+        ],
+      };
+      const run = await S.exportSeq(spec, 'webp-anim', { fps: 10, width: 320 });
+      const px = run.key ? await S.firstFramePixels(run.key, [{ x: 160, y: 120 }], 320) : [];
+      return { err: run.error, type: run.type, size: run.size, px };
+    });
+    assert.equal(r.err, null, `webp-anim export failed: ${JSON.stringify(r.err)}`);
+    assert.equal(r.type, 'image/webp', 'a sequence webp-anim must be a real WebP, not the gif fallthrough');
+    assert.ok(r.size > 0);
+    const p = r.px[0] as number[] | undefined;
+    assert.ok(p && (p[0] as number) > 200 && (p[1] as number) < 60, `frame 0 is not the first (red) clip: ${JSON.stringify(p)}`);
+  });
+
   // Regression: a ZIP bundle re-dispatches mp4/webm through renderFormat with the
   // OUTER format ('zip'), so snapshotMotion has already frozen every <video> into a
   // sibling <img>. That still was captured into the box's "over" plate and drawn on
@@ -750,7 +773,7 @@ interface SeqApi {
   makeClip(spec: Record<string, unknown>): Promise<{ key: string; url: string; w: number; h: number; frames: number; fps: number; size: number }>;
   truncate(key: string, frac: number): Promise<{ key: string; url: string; size: number }>;
   makeBed(sec: number, hz: number, gain: number): { key: string; url: string };
-  exportSeq(spec: StageLike, format: 'mp4' | 'webm' | 'gif' | 'apng', opts?: Record<string, unknown>): Promise<RunLike>;
+  exportSeq(spec: StageLike, format: 'mp4' | 'webm' | 'gif' | 'apng' | 'webp-anim', opts?: Record<string, unknown>): Promise<RunLike>;
   decodeCodes(key: string, frameIdx: number[], fps: number): Promise<(number | null)[]>;
   frameHashes(key: string, frameIdx: number[], fps: number): Promise<string[]>;
   blobSha(key: string): Promise<string>;

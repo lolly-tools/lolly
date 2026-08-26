@@ -171,6 +171,21 @@ for (const [path, entry] of Object.entries(lock.packages ?? {}) as [string, any]
 // provenance, the license from the project's license audit (both ISC), and hash
 // the bytes on disk ourselves so the component is still independently verifiable.
 const VENDORED_LIBS = [
+  // bwip-js (and the qrcode-svg encoder before it) is inlined INSIDE
+  // tools/qr-code/hooks.js rather than a lib/ file - hooks ship as one
+  // self-contained data file - so the hash pins the carrier file.
+  {
+    name: 'bwip-js',
+    version: '4.11.4',
+    license: 'MIT',
+    files: ['tools/qr-code/hooks.js'],
+  },
+  {
+    name: 'qrcode-svg',
+    version: '1.1.0',
+    license: 'MIT',
+    files: ['tools/qr-code/hooks.js'],
+  },
   {
     name: 'd3',
     version: '7.9.0',

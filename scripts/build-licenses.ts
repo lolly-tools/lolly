@@ -196,6 +196,11 @@ const NPM_COMPONENTS: NpmComponent[] = [
   { pkg: 'fzstd', where: 'web' },
   { pkg: 'kiwi-schema', where: 'web', fallbackText: KIWI_SCHEMA_TEXT },
 
+  // On-device code reader (plans/162 Part 2, host.scan). The MIT JS wrapper; the
+  // zxing-cpp engine it compiles (Apache-2.0) is attributed separately below.
+  // Lazy-imported as the fallback rung, but bundled + PWA-precached all the same.
+  { pkg: 'zxing-wasm', where: 'web', note: 'zxing-wasm is the MIT JS/WASM wrapper; the ZXing C++ engine it embeds is Apache-2.0 (see the separate "ZXing C++ (compiled WASM)" entry).' },
+
   // On-device speech (Apache-2.0, both from the transformers.js author). Lazy-
   // imported by the Kokoro TTS and Whisper workers - a user who never asks for
   // speech never fetches them, but they ship in the PWA all the same. Declared
@@ -378,6 +383,25 @@ const MANIFEST: {
 } = {
   vendored: [
     {
+      name: 'bwip-js (with BWIPP)',
+      version: '4.11.4 (@bwip-js/generic; BWIPP 2026-05-28)',
+      spdx: 'MIT',
+      copyright: 'Copyright (c) 2011-2026 Mark Warren; BWIPP Copyright (c) 2004-2024 Terry Burton',
+      files: 'tools/qr-code/hooks.js (inlined selective esbuild bundle)',
+      text: `Copyright (c) 2011-2026 Mark Warren (bwip-js)\nCopyright (c) 2004-2024 Terry Burton (Barcode Writer in Pure PostScript)\n\n${MIT_BODY}`,
+      note: 'Selective bundle: the Data Matrix / GS1 Data Matrix / PDF417 / Aztec / Micro QR / MaxiCode / ITF-14 / Code 39 / Codabar / GS1-128 / GS1 DataBar / ISBN / UPC-E encoders plus the SVG drawing surface. Rebuild instructions sit above the bundle in the hooks file.',
+      where: 'web',
+    },
+    {
+      name: 'qrcode-svg',
+      version: '1.1.0',
+      spdx: 'MIT',
+      copyright: 'Copyright (c) 2016 papnkukn',
+      files: 'tools/qr-code/hooks.js (inlined)',
+      text: `Copyright (c) 2016 papnkukn\n\n${MIT_BODY}`,
+      where: 'web',
+    },
+    {
       name: 'd3',
       version: '7.9.0',
       spdx: 'ISC',
@@ -439,6 +463,61 @@ const MANIFEST: {
       where: 'web',
     },
   ],
+};
+
+// The ZXing C++ engine (Apache-2.0) is compiled into the WASM carried inside the
+// zxing-wasm npm package (whose own wrapper is MIT), so - exactly like the
+// HarfBuzz WASM below - it is a distinct shipped component declared by hand.
+const APACHE_2_0_TEXT = `                                 Apache License
+                           Version 2.0, January 2004
+                        http://www.apache.org/licenses/
+
+   TERMS AND CONDITIONS FOR USE, REPRODUCTION, AND DISTRIBUTION
+
+   1. Definitions.
+
+   "License" shall mean the terms and conditions for use, reproduction, and
+   distribution as defined by Sections 1 through 9 of this document.
+
+   "Licensor" shall mean the copyright owner or entity authorized by the
+   copyright owner that is granting the License.
+
+   "You" (or "Your") shall mean an individual or Legal Entity exercising
+   permissions granted by this License.
+
+   2. Grant of Copyright License. Subject to the terms and conditions of this
+   License, each Contributor hereby grants to You a perpetual, worldwide,
+   non-exclusive, no-charge, royalty-free, irrevocable copyright license to
+   reproduce, prepare Derivative Works of, publicly display, publicly perform,
+   sublicense, and distribute the Work and such Derivative Works in Source or
+   Object form.
+
+   3. Grant of Patent License. Subject to the terms and conditions of this
+   License, each Contributor hereby grants to You a perpetual, worldwide,
+   non-exclusive, no-charge, royalty-free, irrevocable (except as stated in
+   this section) patent license to make, have made, use, offer to sell, sell,
+   import, and otherwise transfer the Work.
+
+   7. Disclaimer of Warranty. Unless required by applicable law or agreed to in
+   writing, Licensor provides the Work (and each Contributor provides its
+   Contributions) on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+   KIND, either express or implied.
+
+   8. Limitation of Liability. In no event and under no legal theory shall any
+   Contributor be liable to You for damages arising out of the use or inability
+   to use the Work.
+
+   Full text: http://www.apache.org/licenses/LICENSE-2.0
+`;
+
+const ZXING_CPP_WASM_ENTRY: Entry = {
+  name: 'ZXing C++ (compiled WASM)',
+  version: '(bundled in zxing-wasm)',
+  spdx: 'Apache-2.0',
+  copyright: '© ZXing authors; C++ port © Axel Waggershauser (nu-book/zxing-cpp)',
+  files: 'node_modules/zxing-wasm/dist/reader/zxing_reader.wasm (shipped + PWA-precached)',
+  text: APACHE_2_0_TEXT,
+  where: 'web',
 };
 
 // The upstream HarfBuzz WASM is a distinct shipped component carried inside the
@@ -582,6 +661,7 @@ const bundledEntries: Entry[] = [];
 for (const c of webNpm) {
   bundledEntries.push(c);
   if (c.name === 'harfbuzzjs') bundledEntries.push(HARFBUZZ_WASM_ENTRY);
+  if (c.name === 'zxing-wasm') bundledEntries.push(ZXING_CPP_WASM_ENTRY);
 }
 
 // Coverage gate: every distributed direct dependency declared in the three

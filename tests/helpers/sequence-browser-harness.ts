@@ -565,7 +565,7 @@ export interface ExportRun {
  *                   bundle's mp4 sub-render actually sees (the guard there keys on
  *                   the outer 'zip' format, so the freeze has already happened).
  */
-async function exportSeq(spec: StageSpec, format: 'mp4' | 'webm' | 'gif' | 'apng', opts: Any = {}): Promise<ExportRun> {
+async function exportSeq(spec: StageSpec, format: 'mp4' | 'webm' | 'gif' | 'apng' | 'webp-anim', opts: Any = {}): Promise<ExportRun> {
   instrument();
   resetCounters();
   const target = buildStage(spec);

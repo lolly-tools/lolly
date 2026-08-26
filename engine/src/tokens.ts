@@ -32,9 +32,13 @@ import { parseOklch, oklchToHex } from './brand-derive.ts';
 import { parseColor, colorToHexString } from './css-color.ts';
 import { readFaces } from './color-faces.ts';
 
-// Vendor extension namespace for Lolly-specific token metadata (CMYK anchors,
-// swatch grouping hints). Reverse-domain per the DTCG `$extensions` convention.
-export const TOKEN_EXT = 'com.suse.lolly';
+// Vendor extension namespace for Lolly-specific token metadata (CMYK anchors, swatch
+// grouping hints). Defined in its own leaf module so a boot-path importer can take it
+// without dragging this module's colour code onto the first-paint graph - see
+// token-ext.ts for why that matters - and re-exported here so callers of the tokens
+// module are unaffected.
+export { TOKEN_EXT } from './token-ext.ts';
+import { TOKEN_EXT } from './token-ext.ts';
 
 const ALIAS_RE = /^\{([^{}]+)\}$/;
 

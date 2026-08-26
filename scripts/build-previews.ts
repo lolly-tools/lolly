@@ -472,20 +472,40 @@ const RASTER_MAX_DIM = 1024;
 // siblings came to be committed (plans/155 finding 3). Encoding at the point of capture
 // means a fallback is tile-sized even when nothing sweeps up after it: that same 7.5 MB
 // capture comes out of this function at 7 KB.
+// Preview byte budgets (mirror validate-catalog.ts PREVIEW_MAX_BYTES / LOOK_MAX_BYTES): a
+// card paints in the first viewport, a look in the carousel, both on a cold mobile load.
+const CARD_BUDGET_BYTES = 300 * 1024;
+const LOOK_BUDGET_BYTES = 150 * 1024;
+
 async function finalizePreview(
   base: string, ext: string, bytes: Buffer, meta: { id: string; name: string },
+  budgetBytes = CARD_BUDGET_BYTES,
 ): Promise<{ ext: string; bytes: Buffer }> {
   if (ext === 'svg') return { ext, bytes: Buffer.from(await stampVector(bytes, meta)) };
   try {
     const sharp = (await import('sharp')).default;
     // Resize to a lossless intermediate, then hand it to the shared stamper: it imprints
     // the pixels (robust strength, since the WebP is lossy) and embeds the "made with
-    // Lolly" credential, re-encoding to WebP q80 in one pass (no double compression).
-    const resized = await sharp(bytes)
-      .resize({ width: RASTER_MAX_DIM, height: RASTER_MAX_DIM, fit: 'inside', withoutEnlargement: true })
-      .png()
-      .toBuffer();
-    return { ext: 'webp', bytes: Buffer.from(await stampBitmap(new Uint8Array(resized), 'webp', meta, { webpQuality: 80 })) };
+    // Lolly" credential, re-encoding to WebP in one pass (no double compression).
+    //
+    // Budget-aware (plans/155 task 2.3): q80 at the 1024 cap is the common case and fits on
+    // the FIRST attempt for an ordinary photo, so nothing changes for it. But a dense capture
+    // - a colourful halftone SCREEN is ~500 KB at q80/1024 - would sail past the 300/150 KB
+    // gate, and the fix used to be a manual re-encode that the next `loldev previews` /
+    // dev:web backfill silently clobbered back to 500 KB. Stepping quality then dimension
+    // down until it fits means a re-capture is stable under budget on its own. A preview that
+    // fits in no form still ships its best here and is caught by the gate's OVER_BUDGET list.
+    const attempts: Array<[number, number]> = [[RASTER_MAX_DIM, 80], [RASTER_MAX_DIM, 68], [768, 72], [768, 60], [600, 58], [560, 54], [512, 50], [448, 46]];
+    let out = bytes;
+    for (const [dim, quality] of attempts) {
+      const resized = await sharp(bytes)
+        .resize({ width: dim, height: dim, fit: 'inside', withoutEnlargement: true })
+        .png()
+        .toBuffer();
+      out = Buffer.from(await stampBitmap(new Uint8Array(resized), 'webp', meta, { webpQuality: quality }));
+      if (out.length <= budgetBytes) break;
+    }
+    return { ext: 'webp', bytes: out };
   } catch (e) {
     // Best-effort like every other step here - a preview is better than none. Loud, though:
     // the raw capture is exactly what the byte budgets in validate-catalog.ts reject, so
@@ -621,8 +641,9 @@ async function captureSeeded(
 async function writeLookPreview(toolId: string, i: number, ext: string, bytes: Buffer): Promise<string> {
   const base = `${toolId}.look${i}`;
   // Same as writePreview: an SVG look gets a C2PA credential, a raster look is encoded to
-  // a stamped tile-sized WebP right here rather than left as a full-resolution capture.
-  const final = await finalizePreview(base, ext, bytes, { id: base, name: toolId });
+  // a stamped tile-sized WebP right here rather than left as a full-resolution capture -
+  // under the tighter LOOK budget (a look is smaller on screen than the card).
+  const final = await finalizePreview(base, ext, bytes, { id: base, name: toolId }, LOOK_BUDGET_BYTES);
   const file = join(PREVIEWS_DIR, `${base}.${final.ext}`);
   await mkdir(dirname(file), { recursive: true });
   await writeFile(file, final.bytes);
