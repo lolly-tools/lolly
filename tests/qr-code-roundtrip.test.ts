@@ -29,7 +29,7 @@ import { createNodeScanAPI } from '../packages/node-shell/src/scan.ts';
 
 const COMMUNITY = join(dirname(fileURLToPath(import.meta.url)), '..', 'community');
 
-let sharp: typeof import('sharp') | null = null;
+let sharp: import('sharp').SharpConstructor | null = null;
 try { sharp = (await import('sharp')).default; } catch { sharp = null; }
 
 const SKIP = !existsSync(COMMUNITY)

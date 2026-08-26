@@ -22,7 +22,7 @@ import { baseHost } from './helpers/host.ts';
 import { createNodeScanAPI } from '../packages/node-shell/src/scan.ts';
 
 const COMMUNITY = join(dirname(fileURLToPath(import.meta.url)), '..', 'community');
-let sharp: typeof import('sharp') | null = null;
+let sharp: import('sharp').SharpConstructor | null = null;
 try { sharp = (await import('sharp')).default; } catch { sharp = null; }
 const SKIP = !existsSync(join(COMMUNITY, 'scan-code')) ? 'scan-code not mounted'
   : !sharp ? 'sharp not installed' : false;
@@ -40,7 +40,7 @@ async function generateAndScan(vals: Record<string, unknown>): Promise<string> {
     .flatten({ background: '#ffffff' }).ensureAlpha().raw().toBuffer({ resolveWithObject: true });
   const hits = await scan.detect({ data: new Uint8ClampedArray(data.buffer, data.byteOffset, data.length), width: info.width, height: info.height });
   assert.ok(hits.length, 'the generated code did not decode');
-  return hits[0].rawValue;
+  return hits[0]!.rawValue;
 }
 
 /** Run a decoded value through scan-code's classifier (paste mode). */

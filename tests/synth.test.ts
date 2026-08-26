@@ -806,7 +806,7 @@ test('the symmetry fold mirrors wedges onto one another and magnifies nothing', 
   const AR = 1280 / 720;
   const fold = (u: number, v: number, n: number) => lib.symmetryFold(u, v, n, AR);
   // Square units, so a wedge of a 16:9 frame is a wedge and not a sheared one.
-  const radius = (p: number[]) => Math.hypot((p[0] - 0.5) * AR, p[1] - 0.5);
+  const radius = (p: number[]) => Math.hypot((p[0]! - 0.5) * AR, p[1]! - 0.5);
   const at = (a: number, r: number) => [0.5 + (Math.cos(a) * r) / AR, 0.5 + Math.sin(a) * r];
 
   // 1 is symmetry OFF, and so is anything that is not a wedge count - the value

@@ -58,7 +58,7 @@ test('no branded render ever emits an SVG arc command or a gradient paint server
     const s = await svg(vals);
     // Arc commands live only inside path `d` data (a/A between numbers); hex
     // colours like #1a2b3c are not in `d`, so scan the path data specifically.
-    const paths = [...s.matchAll(/ d="([^"]*)"/g)].map((m) => m[1]);
+    const paths = [...s.matchAll(/ d="([^"]*)"/g)].map((m) => m[1]!);
     for (const d of paths) {
       assert.ok(!/[Aa]/.test(d),
         `arc command leaked into a path for ${JSON.stringify(vals)} - export IR would drop it`);
@@ -156,7 +156,7 @@ test('a clean default raises no scannability warnings', { skip: SKIP }, async ()
 test('low contrast is flagged with the actual ratio', { skip: SKIP }, async () => {
   const w = await warnings({ color: 'cccccc', background: 'ffffff' });
   assert.equal(w.length, 1);
-  assert.match(w[0], /Low contrast \(1\.\d:1\)/);
+  assert.match(w[0]!, /Low contrast \(1\.\d:1\)/);
 });
 
 test('a code lighter than its background is flagged as inverted', { skip: SKIP }, async () => {
