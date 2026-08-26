@@ -25,6 +25,7 @@ import { renderSequence, _setSequenceWorkerFactory, _setFxCacheBytes } from '../
 import { createVideoProvider } from '../../shells/web/src/bridge/sequence-providers.ts';
 import { parseSequenceStage, frameTimestamps, activeSpanTimestamps, toCodedError } from '../../shells/web/src/bridge/sequence-plan.ts';
 import { HIGH_WATER } from '../../shells/web/src/bridge/video-encode-core.ts';
+import { buildMediabunnyMux } from '../../shells/web/src/bridge/mediabunny-mux.ts';
 import { MAX_LIVE_PROVIDERS } from '../../shells/web/src/bridge/sequence-render.ts';
 // `createExportAPI` is also the plans/104 section 7 P3 funnel's front door: `walkToSvg` renders
 // SVG through it, which is how `main.ts`'s `__lollyWalkerShot` reaches the walker too - 
@@ -133,22 +134,11 @@ async function makeClip(spec: ClipSpec = {}): Promise<Any> {
   const wantAudio = Boolean(spec.tone || spec.silentTrack);
   const rate = 48_000;
 
-  const mux: Any = container === 'mp4'
-    ? await import('mp4-muxer')
-    : await import('webm-muxer');
-  const muxer = new mux.Muxer({
-    target: new mux.ArrayBufferTarget(),
-    video: container === 'mp4'
-      ? { codec: 'avc', width: w, height: h }
-      : { codec: 'V_VP8', width: w, height: h, frameRate: fps },
-    ...(wantAudio
-      ? {
-        audio: container === 'mp4'
-          ? { codec: 'aac', numberOfChannels: 1, sampleRate: rate }
-          : { codec: 'A_OPUS', numberOfChannels: 1, sampleRate: rate },
-      }
-      : {}),
-    ...(container === 'mp4' ? { fastStart: 'in-memory' } : {}),
+  const { muxer, target } = await buildMediabunnyMux({
+    container,
+    video: container === 'mp4' ? 'avc' : 'V_VP8',
+    audio: wantAudio ? (container === 'mp4' ? 'aac' : 'A_OPUS') : null,
+    frameRate: fps,
   });
 
   const venc = new (globalThis as Any).VideoEncoder({
@@ -210,8 +200,12 @@ async function makeClip(spec: ClipSpec = {}): Promise<Any> {
     aenc.close();
   }
 
-  muxer.finalize();
-  const bytes = new Uint8Array(muxer.target.buffer as ArrayBuffer);
+  await muxer.finalize();
+  // `buildMediabunnyMux` returns a union target - `{buffer}` for the default
+  // BufferTarget, `{blob()}` for the OPFS StreamTarget. The harness never passes
+  // `target:'opfs'`, so it is always the in-memory half; narrowing it here is the
+  // same move `lib/audio-encode.ts` makes at its own buffer-only call site.
+  const bytes = new Uint8Array((target as { buffer: ArrayBuffer }).buffer);
   const blob = new Blob([bytes as BlobPart], { type: container === 'mp4' ? 'video/mp4' : 'video/webm' });
   const key = put(blob);
   return { key, url: urls.get(key), w, h, frames, fps, size: blob.size, container };

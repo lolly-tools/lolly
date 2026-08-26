@@ -1175,64 +1175,6 @@ SOFTWARE.
 license of the ONNX Runtime project, https://github.com/microsoft/onnxruntime.)
 ```
 
-### mp4-muxer 5.2.2
-
-- SPDX-License-Identifier: `MIT`
-- Copyright: Copyright (c) 2023 Vanilagy
-
-```text
-MIT License
-
-Copyright (c) 2023 Vanilagy
-
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
-```
-
-### webm-muxer 5.1.4
-
-- SPDX-License-Identifier: `MIT`
-- Copyright: Copyright (c) 2022 Vanilagy
-
-```text
-MIT License
-
-Copyright (c) 2022 Vanilagy
-
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
-```
-
 ### woff2-encoder 2.0.0
 
 - SPDX-License-Identifier: `MIT`
@@ -2684,7 +2626,7 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 - SPDX-License-Identifier: `BSD-3-Clause`
 - Files: `shells/web/src/vendor/libopenmpt/libopenmpt.mjs`
 - Copyright: © 2004-2026 OpenMPT Project Developers & Contributors; © 1997-2003 Olivier Lapicque
-- Tracker-module (.mod/.xm/.s3m/.it/…) decoder. Built from source with permissive internal codecs only — see scripts/build-libopenmpt-wasm.sh.
+- Tracker-module (.mod/.xm/.s3m/.it/…) decoder. Built from source with permissive internal codecs only - see scripts/build-libopenmpt-wasm.sh.
 
 ```text
 Copyright (c) 2004-2026, OpenMPT Project Developers and Contributors
@@ -2714,9 +2656,9 @@ OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 Bundled internal codecs, statically linked into the same WASM (all permissive):
-  * minimp3 — CC0-1.0 / public domain (MP3 samples in MO3)
-  * stb_vorbis — public domain OR MIT, © 2017 Sean Barrett (Vorbis samples)
-  * miniz — MIT, © 2013-2014 RAD Game Tools & Valve, © 2010-2014 Rich Geldreich
+  * minimp3 - CC0-1.0 / public domain (MP3 samples in MO3)
+  * stb_vorbis - public domain OR MIT, © 2017 Sean Barrett (Vorbis samples)
+  * miniz - MIT, © 2013-2014 RAD Game Tools & Valve, © 2010-2014 Rich Geldreich
 The Emscripten runtime glue in libopenmpt.mjs is MIT (© Emscripten authors).
 ```
 
@@ -2769,7 +2711,7 @@ avoid divergence; it ships verbatim with the fonts at:
 
 and is also carried in-band in every binary's name table (IDs 0, 13, 14).
 "SUSE" is a trademark of SUSE; the OFL grant does not include trademark
-rights (see OFL §3-4).
+rights (see OFL section 3-4).
 ```
 
 ## Map data

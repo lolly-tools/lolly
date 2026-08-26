@@ -192,8 +192,6 @@ const NPM_COMPONENTS: NpmComponent[] = [
   { pkg: 'butterchurn-presets', where: 'web' },
   { pkg: 'lottie-web', where: 'web' },
   { pkg: 'onnxruntime-web', where: 'web', fallbackText: ONNXRUNTIME_WEB_TEXT },
-  { pkg: 'mp4-muxer', where: 'web' },
-  { pkg: 'webm-muxer', where: 'web' },
   { pkg: 'woff2-encoder', where: 'web' },
   { pkg: 'fzstd', where: 'web' },
   { pkg: 'kiwi-schema', where: 'web', fallbackText: KIWI_SCHEMA_TEXT },
