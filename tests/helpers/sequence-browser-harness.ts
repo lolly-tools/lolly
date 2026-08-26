@@ -1432,8 +1432,28 @@ async function posedVsHatch(): Promise<Any> {
   } finally { host.remove(); }
 }
 
+/** WP-C: run the real `filmstrip()` (CanvasSink path in a WebCodecs browser) on a
+ *  synthesised clip and decode the block-code frame index of every returned bitmap, so
+ *  a golden can prove the sink decodes the RIGHT source frames, in order, with no proxy
+ *  and no <video> seeking. */
+async function filmstripCodes(url: string, opts: Any): Promise<Any> {
+  const { filmstrip } = await import('../../shells/web/src/lib/clip-thumbs.ts');
+  const bitmaps = await filmstrip(url, opts);
+  const cvs = document.createElement('canvas');
+  const codes: (number | null)[] = [];
+  for (const bmp of bitmaps) {
+    cvs.width = bmp.width;
+    cvs.height = bmp.height;
+    const ctx = cvs.getContext('2d', { willReadFrequently: true }) as CanvasRenderingContext2D;
+    ctx.drawImage(bmp, 0, 0);
+    const px = ctx.getImageData(0, 0, cvs.width, cvs.height).data;
+    codes.push(readCode(px, cvs.width, { x: 0, y: 0, w: cvs.width, h: cvs.height }));
+  }
+  return { count: bitmaps.length, codes, w: bitmaps[0]?.width ?? 0, h: bitmaps[0]?.height ?? 0 };
+}
+
 (globalThis as Any).SEQ = {
-  probe, makeClip, truncate, makeBed, exportSeq, buildStage,
+  probe, makeClip, truncate, makeBed, exportSeq, buildStage, filmstripCodes,
   decodeCodes, frameHashes, blobSha, frameDelta, frameSelfDelta, audioRms, hasAudioTrack,
   driveProvider, stalledProvider, stillAt, cutsAt, fidelity, resetCounters, firstFramePixels,
   blobBytes, blobDiff, trackColors, rowRun, vectorStillAt, exportViaApi, walkToSvg, posedVsHatch,

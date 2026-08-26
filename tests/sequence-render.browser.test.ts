@@ -113,6 +113,24 @@ describe('sequence export (browser tier)', { skip: gate ?? false, concurrency: 1
     measured.push('[measured] explicit HEVC + CBR: deterministic, decodes frame-exact');
   });
 
+  test('WP-C: the CanvasSink filmstrip decodes the requested source frames (no proxy, no seek)', async () => {
+    const r = await page().evaluate(async () => {
+      const S = (window as never as { SEQ: SeqApi }).SEQ;
+      const clip = await S.makeClip({ frames: 90, fps: 30, w: 640, h: 360 });
+      // 6 evenly spaced frames across [0,3)s: the sink decodes the monotonic grid directly,
+      // no hidden-<video> seek and no scrub proxy.
+      return await S.filmstripCodes(clip.url, { count: 6, h: 180, clipInSec: 0, clipOutSec: 3 });
+    });
+    assert.equal(r.count, 6, 'the sink returned every requested filmstrip frame');
+    assert.ok(!r.codes.includes(null), `an unreadable filmstrip frame: ${JSON.stringify(r.codes)}`);
+    const codes = r.codes as number[];
+    for (let i = 1; i < codes.length; i++) {
+      assert.ok(codes[i]! >= codes[i - 1]!, `filmstrip frames are not monotonic: ${JSON.stringify(codes)}`);
+    }
+    assert.ok(codes[codes.length - 1]! > codes[0]!, 'the strip does not advance through the clip');
+    measured.push(`[measured] CanvasSink filmstrip source frames: ${JSON.stringify(codes)}`);
+  });
+
   test('mp4 and webm agree at the middle frame', async (t) => {
     if (!H.probe.avcEncode) {
       t.skip('no H.264 encode in this browser build (Playwright bundled Chromium ships no proprietary codecs) - set LOLLY_BROWSER_CHANNEL=chrome');
@@ -725,6 +743,7 @@ interface SeqApi {
   stillAt(spec: StageLike, tMs: number, probes: { x: number; y: number }[], seekSec?: number): Promise<{ w: number; h: number; type: string; size: number; offCount: number; at: number[][]; code: number | null }>;
   cutsAt(spec: StageLike, cuts: number, format: string, probes: { x: number; y: number }[]): Promise<{ type: string; size: number; names?: string[]; at?: number[][][]; pages?: number; restored: boolean; progress: number[][] }>;
   firstFramePixels(key: string, probes: { x: number; y: number }[], stageW: number): Promise<number[][]>;
+  filmstripCodes(url: string, opts: { count: number; h: number; clipInSec: number; clipOutSec: number }): Promise<{ count: number; codes: (number | null)[]; w: number; h: number }>;
   fidelity(spec: StageLike): Promise<{ w: number; h: number; mae: number; overFrac: number; error?: { code: string; message: string }; logs?: string[] }>;
   constants: { HIGH_WATER: number; MAX_LIVE_PROVIDERS: number; CODE_BITS: number };
 }
