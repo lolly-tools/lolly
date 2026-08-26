@@ -89,7 +89,7 @@ for (const [name, fixture] of [['streaminfo-only', tinyFlac], ['streaminfo+paddi
     const out = attachC2paStore(fixture(), 'flac', known);
 
     // (c) still a valid FLAC: STREAMINFO first, exactly one terminal block, and
-    // the metadata chain lands EXACTLY on the untouched audio frames.
+    // the metadata chain sits EXACTLY on the untouched audio frames.
     const { framesStart, blockTypes } = parseFlac(out);
     assert.equal(blockTypes[0], 0, 'STREAMINFO stays first');
     assert.equal(blockTypes[1], 2, 'our credential is the second block (APPLICATION)');
@@ -135,7 +135,7 @@ test('flac: re-stamping replaces the credential instead of stacking a second APP
 
 test('placeFlac on non-FLAC bytes fails cleanly, like the other placers', () => {
   assert.throws(() => attachC2paStore(bytesOf('not a flac file at all........'), 'flac', new Uint8Array(4)), /not a FLAC/);
-  // Structurally-broken FLAC (a metadata length that overruns the file) is refused,
+  // A malformed FLAC (a metadata length that overruns the file) is refused,
   // not read past.
   const broken = concat([bytesOf('fLaC'), Uint8Array.of(0x80, 0xff, 0xff, 0xff), new Uint8Array(4)]);
   assert.throws(() => attachC2paStore(broken, 'flac', new Uint8Array(4)), /malformed FLAC/);

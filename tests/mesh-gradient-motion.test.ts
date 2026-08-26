@@ -284,10 +284,21 @@ test('every example, template and preset seed hydrates', { skip: SKIP }, async (
       assert.ok(declared.has(key), `${label} sets "${key}", which is not a declared input`);
     }
     const { svg } = await render(values);
-    assert.match(svg, /^<svg class="mg-svg"/, `${label} must render the gradient`);
-    assert.ok(svg.includes('<radialGradient'), `${label} must paint colour points`);
+    /* Each mode has its own root: blend an <svg> of radial gradients,
+       subdivide an <svg> of flat quads, mesh/warp/flow a <canvas> the
+       template script paints. */
+    const mode = (values.mode as string) ?? 'blend';
+    if (mode === 'blend') {
+      assert.match(svg, /^<svg class="mg-svg"/, `${label} must render the gradient`);
+      assert.ok(svg.includes('<radialGradient'), `${label} must paint colour points`);
+      assert.ok(!/stop-color=""/.test(svg), `${label} left a colour empty`);
+    } else if (mode === 'subdivide') {
+      assert.match(svg, /^<svg class="mg-svg mg-sub"/, `${label} must render the subdivided mesh`);
+      assert.ok(svg.includes('<path '), `${label} must emit mesh quads`);
+    } else {
+      assert.match(svg, new RegExp(`^<canvas class="mg-${mode}-canvas"`), `${label} must mount the ${mode} canvas`);
+    }
     assert.ok(!svg.includes('{color.'), `${label} leaked a token alias into the render`);
-    assert.ok(!/stop-color=""/.test(svg), `${label} left a colour empty`);
   }
 
   const drifting = manifest.examples.filter((ex: { values: Record<string, unknown> }) => ex.values.animate === true);

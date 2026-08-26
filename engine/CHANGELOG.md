@@ -6,6 +6,16 @@ minors, never removed or signature-changed without a major bump.
 
 Moved verbatim from the comment block that used to live in `src/index.ts`.
 
+1.154.0 - device-picker + picker fixes (plans/162), all optional/additive:
+- `AssetQuery.motion?` - a boolean on the `host.assets` query/pick filter. When set
+  on a `type:'image'` query it also admits `video` - a motion tool (an onFrame
+  consumer) takes catalog video in an image slot the same way it takes a user's
+  video upload. Fixes the asset picker hiding every catalog video from a motion slot.
+- `RecordOpts.audioDeviceId?` - record from a specific microphone (device picker).
+- `MeterAPI.start(opts?.deviceId)` - sound-check that SAME mic. The two MUST pair:
+  a meter on a different device reports the wrong levels/noise floor.
+No existing method changed; camera device-selection is shell-private (no contract).
+
 1.153.0 - `host.scan`, an optional/additive on-device code reader (plans/162
 Part 2). New `ScanAPI` on the bridge (`packages/core/src/host-v1.ts`):
 `formats()` lists the symbologies this shell can decode (BarcodeDetector naming),

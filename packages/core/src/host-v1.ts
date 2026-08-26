@@ -1805,8 +1805,12 @@ export interface MeterAPI {
    * are flowing; rejects on denial / no mic. Reference-counted + idempotent:
    * concurrent callers share one stream, and the mic stops only when the matching
    * number of stop() calls arrive.
+   * `opts.deviceId` (v1.154) sound-checks a SPECIFIC mic - it MUST be the same
+   * device the following `record()` uses (RecordOpts.audioDeviceId), or the meter's
+   * levels/noise floor describe a different mic than the take. Honoured only when
+   * this start() creates the stream (a device switch is stop() then start()).
    */
-  start(): Promise<void>;
+  start(opts?: { deviceId?: string }): Promise<void>;
   /** Release one start() reference; the mic + loop stop when the last is released. */
   stop(): void;
   /**
@@ -1894,6 +1898,11 @@ export interface RecordOpts {
    *  'environment' (rear). Ignored for audio-only and for source:'screen'; falls back to any
    *  camera if unavailable. */
   facingMode?: 'user' | 'environment';
+  /** Which microphone to record from (v1.154, device picker) - a specific
+   *  `deviceId`, else the platform default. Pairs with `MeterAPI.start({deviceId})`:
+   *  a sound-check meter MUST open the SAME mic as the take, or its levels describe
+   *  a different device. Ignored where the shell can't select a mic. */
+  audioDeviceId?: string;
   /** Hard ceiling on clip length in ms; the session auto-stops when reached. */
   maxMs?: number;
   /** Provenance stamped into the finished Blob (best-effort, per container). */
@@ -2642,6 +2651,10 @@ export interface AssetQuery {
   namespace?: string; // e.g. 'suse/logo' matches everything under it
   tags?: string[];    // AND across tags
   includeDeprecated?: boolean; // default false
+  /** Widen a `type:'image'` query to also admit `video` (v1.154). A motion tool
+   *  (an onFrame consumer) accepts catalog video in an image slot the same way it
+   *  accepts a user's video upload; without it the catalog rail hid every video. */
+  motion?: boolean;
 }
 
 export interface AssetPickerOpts extends AssetQuery {
@@ -2873,8 +2886,9 @@ export type ExportFormat =
   | 'png' | 'apng' | 'gif' | 'jpg' | 'svg' | 'emf' | 'eps' | 'eps-cmyk' | 'pdf' | 'pdf-cmyk' | 'cmyk-tiff' | 'html' | 'webm' | 'mp4'
   // Audio-only exports. 'opus' is Opus in a WebM container (audio/webm); 'ogg' is
   // Opus-in-Ogg (the honest voice-memo shape) and 'aac' is bare ADTS - both written
-  // through mediabunny's Ogg/Adts output formats.
-  | 'wav' | 'mp3' | 'm4a' | 'aac' | 'opus' | 'ogg';
+  // through mediabunny's Ogg/Adts output formats. 'flac' is lossless, via
+  // @mediabunny/flac-encoder.
+  | 'wav' | 'mp3' | 'm4a' | 'aac' | 'opus' | 'ogg' | 'flac';
 
 export interface ExportOpts {
   scale?: number;        // raster scale (1, 2, 3) - used when width/height absent

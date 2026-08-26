@@ -315,6 +315,67 @@ describe('sequence export (browser tier)', { skip: gate ?? false, concurrency: 1
     measured.push(`[measured] stalled source failed in ${Math.round(r.ms)}ms as ${r.error.code}`);
   });
 
+  // ── 4b. rotation on the element-seek fallback (plan 153 QW4) ───────────────
+
+  // VERIFY-FIRST. A phone films landscape pixels + a 90/270 rotation TAG; the naive
+  // claim is that the element-seek fallback (<video> + drawImage) exports such a clip
+  // un-turned. That is browser-dependent: modern Chromium BAKES the container rotation
+  // into the frame drawImage(video) presents, so baking getRotation() on top would
+  // DOUBLE-rotate. This observes what Chrome actually does before any production change.
+  // MP4-only fixture: WebM cannot carry rotation (MkvOutputFormat forbids it).
+  test('OBSERVE: element-seek fallback vs a 90°-tagged MP4 (does Chrome bake rotation?)', async (t) => {
+    if (!H.probe.avcEncode || !H.probe.avcDecode) {
+      t.skip('no H.264 encode+decode in this browser build (Playwright bundled Chromium ships no proprietary codecs) - set LOLLY_BROWSER_CHANNEL=chrome');
+      return;
+    }
+    const r = await page().evaluate(async () => {
+      const S = (window as never as { SEQ: SeqApi }).SEQ;
+      const clip = await S.makeClip({ frames: 30, fps: 30, w: 320, h: 240, rotation: 90 });
+      return { container: clip.container, probe: await S.elementRotationProbe(clip.key) };
+    });
+    const p = r.probe;
+    // The fixture must really be a landscape MP4 tagged 90° (display dims swapped).
+    assert.equal(r.container, 'mp4', 'a rotated fixture must be forced to MP4');
+    assert.ok(p.truth, 'no video track in the rotated fixture');
+    assert.equal(p.truth.rotation, 90, `the fixture is not tagged 90° (got ${p.truth.rotation})`);
+    assert.deepEqual([p.truth.codedW, p.truth.codedH], [320, 240], 'coded dims are not the landscape source');
+    assert.deepEqual([p.truth.displayW, p.truth.displayH], [240, 320], 'display dims did not swap for the 90° tag');
+    assert.equal(p.drew, true, 'the element fallback drew no frame');
+    assert.equal(p.stats.kind, 'element', 'the forced fallback did not take the element path');
+
+    const baked = p.element.w === p.truth.displayW && p.element.h === p.truth.displayH;
+    const raw = p.element.w === p.truth.codedW && p.element.h === p.truth.codedH;
+    const codeOnSide = Math.max(p.bands.left, p.bands.right) > p.bands.top;
+    const verdict = baked ? 'BAKED' : raw ? 'RAW' : 'INCONSISTENT';
+    const line = `[153 QW4 OBSERVE] coded=${p.truth.codedW}x${p.truth.codedH} display=${p.truth.displayW}x${p.truth.displayH} rot=${p.truth.rotation} | element drawImage=${p.element.w}x${p.element.h} codeWhole=${p.codeWhole} bands(t/b/l/r)=${p.bands.top}/${p.bands.bottom}/${p.bands.left}/${p.bands.right} codeOnSide=${codeOnSide} => ${verdict}`;
+    console.log(line);
+    measured.push(line);
+
+    // Assert the observed behaviour so a future browser regression is loud: modern
+    // Chromium BAKES container rotation into drawImage(video). The fallback is therefore
+    // already correct and must NOT re-apply getRotation() (that would double-rotate).
+    // If this ever fails RAW, the element path needs the guarded bake - see plan 153 QW4.
+    assert.ok(baked, `element drawImage did not bake rotation (verdict ${verdict}): element=${p.element.w}x${p.element.h}`);
+    assert.ok(codeOnSide, `the code band did not move to a side edge - drawImage may not be turning pixels: ${JSON.stringify(p.bands)}`);
+    assert.equal(p.codeWhole, null, 'the code read as a top-strip number - the frame came back landscape/un-rotated');
+  });
+
+  // WP-G transparent video: the node tier drives alphaVideoWriter with a FAKE mediabunny,
+  // so the REAL alpha:'keep' VP9/AV1 encode + WebM mux + decode is only provable here.
+  test('WP-G: mediabunny alpha:keep round-trips a transparent WebM in this browser', async (t) => {
+    const r = await page().evaluate(async () => {
+      const S = (window as never as { SEQ: SeqApi }).SEQ;
+      return await S.alphaWebmProbe();
+    });
+    if (!r.alphaEncodeSupported) {
+      t.skip('no alpha VP9/AV1 encode in this browser build - the transparent-WebM option is correctly not offered');
+      return;
+    }
+    assert.ok((r.bytes ?? 0) > 0, 'the alpha WebM has bytes');
+    assert.ok(r.alphaSurvived, `alpha did not survive the real encode+decode: leftAlpha=${r.leftAlpha} rightAlpha=${r.rightAlpha}`);
+    measured.push(`[measured] WP-G alpha ${r.id}: encode+decode round-trip ok (leftAlpha=${r.leftAlpha}, rightAlpha=${r.rightAlpha}, ${r.bytes}B)`);
+  });
+
   // ── 5. audio ───────────────────────────────────────────────────────────────
 
   test('clip audio lands at its own offset and is trimmed to the packet, not past it', async () => {
@@ -770,7 +831,7 @@ interface RunLike {
   frames: number; fps: number;
 }
 interface SeqApi {
-  makeClip(spec: Record<string, unknown>): Promise<{ key: string; url: string; w: number; h: number; frames: number; fps: number; size: number }>;
+  makeClip(spec: Record<string, unknown>): Promise<{ key: string; url: string; w: number; h: number; frames: number; fps: number; size: number; container: string }>;
   truncate(key: string, frac: number): Promise<{ key: string; url: string; size: number }>;
   makeBed(sec: number, hz: number, gain: number): { key: string; url: string };
   exportSeq(spec: StageLike, format: 'mp4' | 'webm' | 'gif' | 'apng' | 'webp-anim', opts?: Record<string, unknown>): Promise<RunLike>;
@@ -782,6 +843,15 @@ interface SeqApi {
   hasAudioTrack(key: string): Promise<boolean>;
   driveProvider(key: string, fps: number, durMs: number): Promise<{ asked: number; drawn: number; durationSec: number; stats: { kind: string; inFlight: number; maxInFlight: number; decoded: number; missed: number; lastSourceSec: number; randomAccess: boolean } }>;
   stalledProvider(): Promise<{ ms: number; error: { code: string; message: string } | null }>;
+  elementRotationProbe(clipKey: string): Promise<{
+    truth: { codedW: number; codedH: number; displayW: number; displayH: number; rotation: number } | null;
+    drew: boolean;
+    stats: { kind: string };
+    element: { w: number; h: number };
+    codeWhole: number | null;
+    bands: { top: number; bottom: number; left: number; right: number };
+  }>;
+  alphaWebmProbe(): Promise<{ alphaEncodeSupported: boolean; codec?: string; id?: string; bytes?: number; leftAlpha?: number; rightAlpha?: number; rightRed?: number; alphaSurvived?: boolean }>;
   stillAt(spec: StageLike, tMs: number, probes: { x: number; y: number }[], seekSec?: number): Promise<{ w: number; h: number; type: string; size: number; offCount: number; at: number[][]; code: number | null }>;
   cutsAt(spec: StageLike, cuts: number, format: string, probes: { x: number; y: number }[]): Promise<{ type: string; size: number; names?: string[]; at?: number[][][]; pages?: number; restored: boolean; progress: number[][] }>;
   firstFramePixels(key: string, probes: { x: number; y: number }[], stageW: number): Promise<number[][]>;

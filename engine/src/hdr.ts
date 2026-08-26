@@ -15,7 +15,7 @@
  * the transform:
  *
  *   1. Maps every pixel into a BT.2020 / PQ container so the whole image is a
- *      coherent HDR signal. A pixel with gain 1 lands at its normal SDR
+ *      coherent HDR signal. A pixel with gain 1 sits at its normal SDR
  *      appearance (sRGB white → SDR reference white), so non-brand content looks
  *      unchanged on an HDR display and tone-maps back to correct SDR elsewhere.
  *   2. Boosts pixels that match the active brand's colours toward peak luminance.
@@ -409,7 +409,7 @@ export interface PqImage {
  * The frame is converted to `'rec2020-linear'` first (Rec.2100 PQ is defined
  * over BT.2020 primaries), then each channel maps
  * `linear x sdrWhiteNits -> nits -> PQ` with the 203-nit BT.2408 diffuse-white
- * anchor by default, so linear 1.0 lands at PQ signal ~0.5806. This is where
+ * anchor by default, so linear 1.0 sits at PQ signal ~0.5806. This is where
  * >1.0 headroom finally meets the tonescale. pqEncode's only clip is the
  * 10 000-nit top of the PQ range itself.
  */
@@ -495,7 +495,7 @@ export interface I420P10Frame {
  *
  *   Y' = KR·R' + KG·G' + KB·B'                         (BT.2020 NCL)
  *   Cb = (B' - Y') / (2(1-KB))    Cr = (R' - Y') / (2(1-KR))
- * then narrow-range 10-bit digital levels (ITU-R BT.2020 §5.4, n=10, 2^(n-8)=4):
+ * then narrow-range 10-bit digital levels (ITU-R BT.2020 section 5.4, n=10, 2^(n-8)=4):
  *   Y = round(876·Y' + 64)     Y'∈[0,1]      -> 64..940
  *   C = round(896·C  + 512)    C ∈[-0.5,0.5] -> 64..960
  *

@@ -79,7 +79,7 @@ function paintCode(ctx: Any, w: number, h: number, n: number, tint: string): voi
 /**
  * Read the code back out of already-drawn pixels.
  *
- * `rect` is where the source picture landed in the image being read, so the same
+ * `rect` is where the source picture arrived in the image being read, so the same
  * decoder works on a raw source frame and on a composited export frame. Each bit is
  * the mean luma of the middle half of its block: mid-grey (a block that got blurred
  * away, or a frame that is not one of ours) reads as `null` rather than a wrong number.
@@ -123,6 +123,14 @@ export interface ClipSpec {
   tone?: { hz: number; gain: number; fromSec?: number; toSec?: number } | null;
   /** Emit an audio track that is all zeros (a real track carrying silence). */
   silentTrack?: boolean;
+  /**
+   * Container rotation metadata, degrees clockwise (a phone clip's landscape pixels
+   * plus a 90/270 turn tag). Setting it FORCES container:'mp4' - WebM cannot carry
+   * rotation (MkvOutputFormat.supportsVideoRotationMetadata is false). The frame code
+   * is still painted on the un-rotated coded pixels, so the tag is the only thing that
+   * says "turn me".
+   */
+  rotation?: 0 | 90 | 180 | 270;
 }
 
 async function makeClip(spec: ClipSpec = {}): Promise<Any> {
@@ -130,7 +138,9 @@ async function makeClip(spec: ClipSpec = {}): Promise<Any> {
   const h = spec.h ?? 240;
   const frames = spec.frames ?? 90;
   const fps = spec.fps ?? 30;
-  const container = spec.container ?? 'webm';
+  // Rotation can only ride an MP4 (WebM cannot carry it), so a rotated fixture forces
+  // the container regardless of what the caller asked for.
+  const container = spec.rotation ? 'mp4' : (spec.container ?? 'webm');
   const wantAudio = Boolean(spec.tone || spec.silentTrack);
   const rate = 48_000;
 
@@ -139,6 +149,7 @@ async function makeClip(spec: ClipSpec = {}): Promise<Any> {
     video: container === 'mp4' ? 'avc' : 'V_VP8',
     audio: wantAudio ? (container === 'mp4' ? 'aac' : 'A_OPUS') : null,
     frameRate: fps,
+    rotation: spec.rotation,
   });
 
   const venc = new (globalThis as Any).VideoEncoder({
@@ -730,7 +741,7 @@ const MB_FORMATS = async (): Promise<Any> => {
  * Decode the exported container at the given output-frame indices and read the
  * painted code out of each.
  *
- * Sampled at `(n + 0.5) / fps` so the request lands unambiguously INSIDE output
+ * Sampled at `(n + 0.5) / fps` so the request falls unambiguously INSIDE output
  * frame n rather than on the boundary between n-1 and n.
  */
 async function decodeCodes(key: string, frameIdx: number[], fps: number, rect?: Any): Promise<(number | null)[]> {
@@ -922,6 +933,92 @@ async function stalledProvider(): Promise<Any> {
   } catch (err) {
     return { ms: performance.now() - t0, error: toCodedError(err) };
   }
+}
+
+// ── the rotation observation (plan 153 QW4) ──────────────────────────────────
+
+/**
+ * OBSERVE what the browser's own `drawImage(<video>)` does with a container-rotated
+ * clip on the ELEMENT-SEEK fallback path.
+ *
+ * The question this answers before any production change: does modern Chromium BAKE the
+ * container's rotation tag into the frame it presents (so `ctx.drawImage(video)` already
+ * yields the turned picture, and re-applying `getRotation()` would DOUBLE-rotate), or does
+ * it hand back the raw coded pixels (so the fallback exports a phone clip un-turned)?
+ *
+ * The clip is authored with the frame code painted on the UN-rotated coded pixels and a
+ * 90/270 rotation TAG. The code strip is therefore a high-contrast band along the TOP edge
+ * of the coded frame; after a 90/270 turn it lands on a VERTICAL edge. So the band's home
+ * in the drawn buffer, together with the presented dimensions, tells baked from raw without
+ * depending on turn direction:
+ *   • BAKED  → element w/h = display (portrait) dims, and the code band is on a side edge
+ *   • RAW    → element w/h = coded (landscape) dims, and the code band is on the top edge
+ *
+ * mediabunny's coded-vs-display dims and getRotation() are read alongside as ground truth.
+ * The element path is forced (forceElement) so the raw drawImage is isolated - the provider
+ * applies NO rotation of its own today, which is exactly the behaviour under test.
+ */
+async function elementRotationProbe(clipKey: string): Promise<Any> {
+  const url = urls.get(clipKey) as string;
+  const blob = blobs.get(clipKey) as Blob;
+
+  // Ground truth: what the container actually declares.
+  const { mb, formats } = await MB_FORMATS();
+  const input = new mb.Input({ formats, source: new mb.BlobSource(blob) });
+  let truth: Any = null;
+  try {
+    const track = await input.getPrimaryVideoTrack();
+    if (track) {
+      truth = {
+        codedW: await track.getCodedWidth(), codedH: await track.getCodedHeight(),
+        displayW: await track.getDisplayWidth(), displayH: await track.getDisplayHeight(),
+        rotation: await track.getRotation(),
+      };
+    }
+  } finally { input.dispose(); }
+
+  // The raw element-seek fallback (no rotation applied by our code).
+  const provider = await createVideoProvider(url, { forceElement: true });
+  const ew = provider.w;
+  const eh = provider.h;
+  const cvs = new OffscreenCanvas(ew, eh);
+  const ctx = cvs.getContext('2d', { willReadFrequently: true }) as Any;
+  const drew = await provider.drawAt(ctx, 0.5, { dx: 0, dy: 0, dw: ew, dh: eh });
+  const px = ctx.getImageData(0, 0, ew, eh).data;
+  const stats = provider.stats();
+  await provider.dispose();
+
+  // Luma variance over a thin band on each edge. The code strip alternates black/white,
+  // so wherever it sits the variance is large; a flat tint edge is near zero.
+  const bandVar = (x0: number, y0: number, x1: number, y1: number): number => {
+    let sum = 0;
+    let sum2 = 0;
+    let n = 0;
+    for (let y = Math.max(0, y0 | 0); y < Math.min(eh, y1 | 0); y++) {
+      for (let x = Math.max(0, x0 | 0); x < Math.min(ew, x1 | 0); x++) {
+        const i = (y * ew + x) * 4;
+        const l = 0.299 * (px[i] as number) + 0.587 * (px[i + 1] as number) + 0.114 * (px[i + 2] as number);
+        sum += l; sum2 += l * l; n++;
+      }
+    }
+    return n ? Math.round(sum2 / n - (sum / n) * (sum / n)) : 0;
+  };
+  const band = Math.max(2, Math.round(Math.min(ew, eh) * 0.1));
+  const bands = {
+    top: bandVar(0, 0, ew, band),
+    bottom: bandVar(0, eh - band, ew, eh),
+    left: bandVar(0, 0, band, eh),
+    right: bandVar(ew - band, 0, ew, eh),
+  };
+
+  return {
+    truth, drew, stats: { kind: stats.kind },
+    element: { w: ew, h: eh },
+    // readCode expects the strip across the TOP: a correct number here means the drawn
+    // frame is landscape/un-rotated; null means the strip is not on top (turned, or lost).
+    codeWhole: readCode(px, ew, { x: 0, y: 0, w: ew, h: eh }),
+    bands,
+  };
 }
 
 // ── the still contract (Andy's rule) ─────────────────────────────────────────
@@ -1505,10 +1602,65 @@ async function waveformPeaks(sec: number, hz: number, buckets: number): Promise<
   };
 }
 
+/**
+ * WP-G smoke: does mediabunny's alpha:'keep' encode actually round-trip a TRANSPARENT
+ * WebM in this browser? The node tier drives alphaVideoWriter with a FAKE mediabunny, so
+ * the real VP9/AV1-alpha encode + mux + decode is only provable here. Encodes a frame with a
+ * transparent left half + opaque red right half via the SAME API alphaVideoWriter uses
+ * (CanvasSource {alpha:'keep'} -> WebMOutputFormat), decodes it back onto a cleared
+ * alpha-capable canvas, and reports whether the alpha channel survived.
+ */
+async function alphaWebmProbe(): Promise<Any> {
+  const { mb, formats } = await MB_FORMATS();
+  const w = 64, h = 64, fps = 10, bitrate = 1_000_000;
+  const VE: Any = (globalThis as Any).VideoEncoder;
+  // pickAlphaVideoCodec's probe: VP9 then AV1, alpha:'keep' honoured (not normalised to discard).
+  let pick: Any = null;
+  for (const c of [{ codec: 'vp09.00.10.08', id: 'vp9' }, { codec: 'av01.0.08M.08', id: 'av1' }]) {
+    try {
+      const s = await VE.isConfigSupported({ codec: c.codec, width: w, height: h, bitrate, framerate: fps, alpha: 'keep' });
+      if (s?.supported && s.config?.alpha === 'keep') { pick = c; break; }
+    } catch { /* try the next candidate */ }
+  }
+  if (!pick) return { alphaEncodeSupported: false };
+
+  const canvas = document.createElement('canvas'); canvas.width = w; canvas.height = h;
+  const ctx = canvas.getContext('2d') as Any;                 // alpha-capable (never {alpha:false})
+  const target = new mb.BufferTarget();
+  const output = new mb.Output({ format: new mb.WebMOutputFormat(), target });
+  const vSrc = new mb.CanvasSource(canvas, { codec: pick.codec, bitrate, alpha: 'keep' });
+  output.addVideoTrack(vSrc);
+  await output.start();
+  for (let i = 0; i < 4; i++) {
+    ctx.clearRect(0, 0, w, h);                                // left half stays fully transparent
+    ctx.fillStyle = 'rgba(255,0,0,1)';
+    ctx.fillRect(w / 2, 0, w / 2, h);                         // opaque red right half
+    await vSrc.add(i / fps, 1 / fps);
+  }
+  await output.finalize();
+  const bytes = new Uint8Array((target as Any).buffer);
+
+  const input = new mb.Input({ formats, source: new mb.BlobSource(new Blob([bytes])) });
+  const track = await input.getPrimaryVideoTrack();
+  const sink = new mb.VideoSampleSink(track);
+  const s = await sink.getSample(0.15);
+  const oc = new OffscreenCanvas(w, h);
+  const octx = oc.getContext('2d', { willReadFrequently: true }) as Any;
+  octx.clearRect(0, 0, w, h);
+  if (s) s.draw(octx, 0, 0, w, h);
+  const left = octx.getImageData(4, h >> 1, 1, 1).data;        // should be transparent
+  const right = octx.getImageData(w - 4, h >> 1, 1, 1).data;   // should be opaque red
+  return {
+    alphaEncodeSupported: true, codec: pick.codec, id: pick.id, bytes: bytes.length,
+    leftAlpha: left[3], rightAlpha: right[3], rightRed: right[0],
+    alphaSurvived: left[3] < 200 && right[3] > 200,
+  };
+}
+
 (globalThis as Any).SEQ = {
   probe, makeClip, truncate, makeBed, makeRampBed, waveformPeaks, exportSeq, buildStage, filmstripCodes,
   decodeCodes, frameHashes, blobSha, frameDelta, frameSelfDelta, audioRms, hasAudioTrack,
-  driveProvider, stalledProvider, stillAt, cutsAt, fidelity, resetCounters, firstFramePixels,
+  driveProvider, stalledProvider, elementRotationProbe, alphaWebmProbe, stillAt, cutsAt, fidelity, resetCounters, firstFramePixels,
   blobBytes, blobDiff, trackColors, rowRun, vectorStillAt, exportViaApi, walkToSvg, posedVsHatch,
   constants: { HIGH_WATER, MAX_LIVE_PROVIDERS, CODE_BITS },
 };

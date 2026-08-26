@@ -250,7 +250,7 @@ export interface Runtime {
    * digitalCapture for a decoded file would be a false statement in a signed
    * manifest (1.113).
    */
-  startLive(opts?: { source?: 'camera' | 'asset' }): Promise<boolean>;
+  startLive(opts?: { source?: 'camera' | 'asset'; facingMode?: 'user' | 'environment' }): Promise<boolean>;
   stopLive(): void;
   /** True when this tool declares an `onLevel` hook (it CAN react to live audio levels). */
   hasLevelHook: boolean;
@@ -814,7 +814,7 @@ export async function createRuntime(
      * is denied or there's no camera (the shell shows that error). No-op (returns
      * false) if already live, the tool has no onFrame, or there's no host.media.
      */
-    async startLive(opts?: { source?: 'camera' | 'asset' }) {
+    async startLive(opts?: { source?: 'camera' | 'asset'; facingMode?: 'user' | 'environment' }) {
       // Capture the hook + media locals so the deferred subscribe callback keeps
       // its narrowed (non-null) types; `hooks` is a mutable closure variable.
       const onFrame = hooks?.onFrame;
@@ -824,7 +824,13 @@ export async function createRuntime(
       // capture. A shell replaying an ANIMATED ASSET through the same frame loop
       // passes source:'asset' so the export never over-claims digitalCapture.
       const sensorSource = opts?.source !== 'asset';
-      await media.start(); // may reject (permission/no camera) - the shell catches
+      // Which camera: the explicit request, else the tool's manifest default
+      // (render.liveFacing - a code reader wants 'environment', the rear camera).
+      // Honoured only when this start() creates the stream (media is refcounted;
+      // a flip is stop() then start()).
+      const facingMode = opts?.facingMode
+        ?? (tool.manifest.render as { liveFacing?: 'user' | 'environment' } | undefined)?.liveFacing;
+      await media.start(facingMode ? { facingMode } : undefined); // may reject (permission/no camera) - the shell catches
       // A raster-output tool can ask for higher-resolution frames than the shell's
       // default vector-trace working size (render.liveMaxEdge, or a live slider via
       // render.liveMaxEdgeInput - see liveEdge()); the shell clamps it to the native

@@ -215,6 +215,11 @@
           "pattern": "^[a-z0-9]+(/[a-z0-9][a-z0-9-]*)+$",
           "description": "For onFrame tools: catalog id of an ANIMATED SVG asset the shell plays as a live, no-camera source (an off-screen <img> of the animation, sampled into onFrame like a camera would be) so the tool can show off its effect on a moving subject without a webcam. The shell auto-plays it when present; a still export still captures the current frame. Ignored by tools without onFrame."
         },
+        "liveFacing": {
+          "type": "string",
+          "enum": ["user", "environment"],
+          "description": "For onFrame (live camera) tools: which camera to open by default - 'user' (front, the default) or 'environment' (rear). A code reader / document scanner wants 'environment'. The user can still flip front/rear from the live controls; this only sets the initial camera. Honoured where the shell can choose a facing; ignored on a single-camera device and by shells without a camera."
+        },
         "convertPaths": {
           "type": "boolean",
           "default": true,

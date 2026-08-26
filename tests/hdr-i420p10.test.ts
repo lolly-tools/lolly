@@ -6,7 +6,7 @@
  * This is how the matrix + range + bit-packing are proven WITHOUT an HDR display:
  * known PQ code-value inputs are pushed through the conversion and the exact 10-bit
  * Y/U/V codes are asserted against the BT.2020 non-constant-luminance matrix and the
- * ITU-R BT.2020 §5.4 narrow-range 10-bit digital levels, computed INDEPENDENTLY here.
+ * ITU-R BT.2020 section 5.4 narrow-range 10-bit digital levels, computed INDEPENDENTLY here.
  * The reference below is a separate implementation of the standard, not a re-call of
  * the engine, so agreement means the engine's matrix/levels/packing are correct. The
  * only thing left for on-device HDR is the perceptual "no banding" confirmation.

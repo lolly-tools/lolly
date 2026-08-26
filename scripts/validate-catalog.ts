@@ -657,6 +657,10 @@ const RASTER_PREVIEWS: Record<string, string> = {
     'Brand duotone: a graded photograph, one embedded <image>, 453 B of surviving markup. The duotone is a per-pixel colour map applied to bitmap data.',
   'darkroom.look4.svg':
     'Vivid slide LUT: a 3-D LUT applied per pixel to a photograph. One embedded <image>, 450 B of surviving markup.',
+  'mesh-gradient.look2.svg':
+    'Silk flow: the Flow mode is a WebGL fragment shader (simplex-noise colour field) painted into a <canvas> - a per-pixel field with no geometry to recover, the incl-neuro-viz class. The Blend/Subdivide looks stay SVG.',
+  'mesh-gradient.look4.svg':
+    'Studio mesh: the Mesh mode gouraud-rasterises its Coons patches per pixel into a <canvas> (that raster finish is the mode\'s whole point - the vector spelling of the same mesh is the Subdivide look, which IS SVG).',
   'filter.look1.svg':
     'Duotone: a per-pixel colour map over a source photograph. Two embedded rasters and 514 B of surviving markup - there is no vector content in this look at all.',
   'filter.look7.svg':

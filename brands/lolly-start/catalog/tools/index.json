@@ -1,6 +1,6 @@
 {
   "version": "1",
-  "generatedAt": "2026-08-26T13:21:06.184Z",
+  "generatedAt": "2026-08-26T17:06:58.240Z",
   "tools": [
     {
       "id": "compress-pdf",
@@ -1822,8 +1822,8 @@
     {
       "id": "mesh-gradient",
       "name": "Mesh Gradient",
-      "description": "Soft mesh-style gradients from your brand swatches. Drag the colour points right on the canvas, or turn on Drift and export the loop as WebM, MP4 or GIF.",
-      "version": "1.1.0",
+      "description": "Five ways to build a gradient from your brand swatches: soft radial Blend, a real Coons-patch mesh as crisp SVG (Subdivide) or a smooth raster (Mesh), freeform Warp points, and the animated Flow waves. Drag everything right on the canvas; export stills or seamless video loops.",
+      "version": "1.2.0",
       "status": "official",
       "category": "everyone",
       "tags": [
@@ -1832,7 +1832,10 @@
         "background",
         "wallpaper",
         "hero",
-        "brand"
+        "brand",
+        "coons",
+        "warp",
+        "animated"
       ],
       "formats": [
         "svg",
@@ -1878,16 +1881,62 @@
           }
         },
         {
-          "label": "Deep sea",
+          "label": "Silk flow",
           "values": {
-            "count": 3,
+            "mode": "flow",
+            "count": 4,
+            "color1": "#0ea5e9",
+            "color2": "#a78bfa",
+            "color3": "#f472b6",
+            "color4": "#0b1021",
+            "flowSpeed": 24,
+            "waveScale": 100,
+            "waveAmp": 70,
+            "angle": 35,
+            "seed": 12
+          }
+        },
+        {
+          "label": "Stained glass",
+          "values": {
+            "mode": "subdivide",
+            "count": 4,
             "color1": "#0ea5e9",
             "color2": "#1e3a8a",
-            "color3": "#0f766e",
-            "blend": "normal",
-            "spread": 80,
-            "blur": 14,
-            "grain": 20
+            "color3": "#f2a65a",
+            "color4": "#0f766e",
+            "rows": 4,
+            "cols": 4,
+            "curvature": 70,
+            "detail": 1,
+            "grain": 0
+          }
+        },
+        {
+          "label": "Studio mesh",
+          "values": {
+            "mode": "mesh",
+            "count": 4,
+            "color1": "#6d5bd8",
+            "color2": "#e0679f",
+            "color3": "#2fb6a3",
+            "color4": "#f6f1e7",
+            "rows": 3,
+            "cols": 3,
+            "curvature": 60
+          }
+        },
+        {
+          "label": "Freeform pool",
+          "values": {
+            "mode": "warp",
+            "count": 5,
+            "color1": "#f472b6",
+            "color2": "#60a5fa",
+            "color3": "#facc15",
+            "color4": "#34d399",
+            "color5": "#f97316",
+            "spread": 95
           }
         },
         {
@@ -1901,21 +1950,6 @@
             "blur": 20,
             "grain": 100,
             "grainBlend": "overlay"
-          }
-        },
-        {
-          "label": "Candy pop",
-          "values": {
-            "count": 5,
-            "color1": "#f472b6",
-            "color2": "#60a5fa",
-            "color3": "#facc15",
-            "color4": "#34d399",
-            "color5": "#f97316",
-            "blend": "hard-light",
-            "spread": 130,
-            "blur": 2,
-            "grain": 0
           }
         },
         {
