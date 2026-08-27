@@ -317,7 +317,6 @@ test('palette APCA metric: usable pills take the row colour, red only below Lc 3
   assert.equal(cells.length, 9);
   let sawTint = false, sawFail = false;
   for (const c of cells) {
-    assert.equal(c.mark, '', 'APCA cells carry no tick or cross');
     const lc = Math.round(Math.abs(apcaContrast(c.fg!, c.bg!)));
     assert.equal(c.word, `Lc ${lc}`, 'the chip carries the Lc value');
     assert.notEqual(c.fill, CHIP.pass, 'APCA never claims a green pass without a size');
@@ -325,10 +324,13 @@ test('palette APCA metric: usable pills take the row colour, red only below Lc 3
     if (lc < 30) {
       assert.equal(c.fill, CHIP.fail, 'a pair below the floor stays red');
       assert.equal(c.ink, CHIP.ink, 'white ink on the red fail chip');
+      assert.equal(c.mark, CROSS, 'a fail carries an X, legible even next to a dark row-tinted pill');
       sawFail = true;
     } else {
       // Usable: the pill takes the ROW colour (this cell's text colour) so the row
-      // is legible across a big chart; ink is black/white by best APCA contrast.
+      // is legible across a big chart; ink is black/white by best APCA contrast, and
+      // there is no icon so the row colour reads clean.
+      assert.equal(c.mark, '', 'a usable pill carries no icon');
       assert.equal(c.fill!.toLowerCase(), c.fg!.toLowerCase(), 'the pill takes the row colour above the floor');
       const black = Math.abs(apcaContrast('#000000', c.fg!));
       const white = Math.abs(apcaContrast('#ffffff', c.fg!));

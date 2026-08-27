@@ -31,19 +31,14 @@ import { loadTool } from '../engine/src/loader.ts';
 import { createRuntime } from '../engine/src/runtime.ts';
 import { baseHost } from './helpers/host.ts';
 
-// diagram-builder ships in the (private) SUSE brand pack. Load it from the SOURCE
-// pack, not the gitignored tools/ profile view, so this suite is profile-
-// independent: skip ONLY when the pack itself isn't mounted (public CI /
-// lolly-start checkouts); with the pack mounted, a missing tool dir means the tool
-// was renamed or deleted - that must FAIL loudly, never silently skip.
-const SUSE_TOOLS = join(dirname(fileURLToPath(import.meta.url)), '..', 'brands', 'suse', 'tools');
-const TOOL_DIR = join(SUSE_TOOLS, 'diagram-builder');
-const PACK_MOUNTED = existsSync(SUSE_TOOLS);
-const SKIP_SUSE = !PACK_MOUNTED && 'SUSE brand pack not mounted (see profiles.json)';
-if (PACK_MOUNTED) {
-  assert.ok(existsSync(join(TOOL_DIR, 'tool.json')),
-    'brands/suse/tools/diagram-builder/tool.json is missing - pack is mounted, so the tool was renamed or deleted');
-}
+// diagram-builder is a community tool - always present in a full checkout. Load it
+// from the SOURCE pack (community/), not the gitignored tools/ profile view, so the
+// suite never silently skips: a missing dir means the tool was renamed or deleted,
+// which must FAIL here.
+const COMMUNITY_DIR = join(dirname(fileURLToPath(import.meta.url)), '..', 'community');
+const TOOL_DIR = join(COMMUNITY_DIR, 'diagram-builder');
+assert.ok(existsSync(join(TOOL_DIR, 'tool.json')),
+  'community/diagram-builder/tool.json is missing - the tool was renamed or deleted');
 
 interface Day { day: number; text: string; loose: boolean }
 interface Dates {
@@ -65,10 +60,10 @@ function dateHelpers(): Dates {
   return factory({ log: () => {} });
 }
 
-const D = SKIP_SUSE ? (null as unknown as Dates) : dateHelpers();
+const D = dateHelpers();
 
-const fetchFile = (path: string) => readFile(join(SUSE_TOOLS, path), 'utf8');
-const tool: any = SKIP_SUSE ? null : await loadTool('diagram-builder', fetchFile);
+const fetchFile = (path: string) => readFile(join(COMMUNITY_DIR, path), 'utf8');
+const tool: any = await loadTool('diagram-builder', fetchFile);
 
 // Colours are pinned on every render so the geometry never depends on which brand
 // tokens happen to resolve; only the layout maths is under test.
@@ -121,7 +116,7 @@ function texts(svg: string) {
 
 // ─── date parsing ────────────────────────────────────────────────────────────
 
-test('parseDay: ISO dates, in whole days from 1970-01-01 UTC', { skip: SKIP_SUSE }, () => {
+test('parseDay: ISO dates, in whole days from 1970-01-01 UTC', () => {
   assert.equal(D.parseDay('1970-01-01')!.day, 0);
   assert.equal(D.parseDay('1970-01-05')!.day, 4, '1970-01-05 was a Monday - the week-tick anchor');
   assert.equal(D.parseDay('2026-01-15')!.day, D.dayFromYMD(2026, 1, 15));
@@ -131,7 +126,7 @@ test('parseDay: ISO dates, in whole days from 1970-01-01 UTC', { skip: SKIP_SUSE
   assert.equal(D.parseDay('2026-01-15')!.loose, false);
 });
 
-test('parseDay: empty is absent, junk is unreadable, neither throws', { skip: SKIP_SUSE }, () => {
+test('parseDay: empty is absent, junk is unreadable, neither throws', () => {
   for (const empty of ['', '   ', null, undefined]) assert.equal(D.parseDay(empty), null, `${JSON.stringify(empty)} is no date at all`);
   for (const junk of ['next tuesday', '2026', 'Q1', '15-01-2026', '2026/01/15', '--', '2026-13-01', '2026-02-31']) {
     const p = D.parseDay(junk)!;
@@ -140,7 +135,7 @@ test('parseDay: empty is absent, junk is unreadable, neither throws', { skip: SK
   }
 });
 
-test('parseDay: d/m/yyyy is tolerated and flagged loose', { skip: SKIP_SUSE }, () => {
+test('parseDay: d/m/yyyy is tolerated and flagged loose', () => {
   assert.equal(D.parseDay('5/3/2026')!.day, D.dayFromYMD(2026, 3, 5), 'day first, never month first');
   assert.equal(D.parseDay('5/3/2026')!.loose, true);
   assert.equal(D.parseDay('05.03.2026')!.day, D.dayFromYMD(2026, 3, 5));
@@ -150,7 +145,7 @@ test('parseDay: d/m/yyyy is tolerated and flagged loose', { skip: SKIP_SUSE }, (
 
 // ─── axis ────────────────────────────────────────────────────────────────────
 
-test('pickScale: the span picks the tick spacing', { skip: SKIP_SUSE }, () => {
+test('pickScale: the span picks the tick spacing', () => {
   assert.equal(D.pickScale(14), 'days');
   assert.equal(D.pickScale(21), 'days');
   assert.equal(D.pickScale(22), 'weeks');
@@ -160,7 +155,7 @@ test('pickScale: the span picks the tick spacing', { skip: SKIP_SUSE }, () => {
   assert.equal(D.pickScale(801), 'quarters');
 });
 
-test('axisTicks: ticks sit on natural boundaries, never on the range start', { skip: SKIP_SUSE }, () => {
+test('axisTicks: ticks sit on natural boundaries, never on the range start', () => {
   const from = D.dayFromYMD(2026, 1, 8), to = D.dayFromYMD(2026, 4, 20);
 
   const days = D.axisTicks(D.dayFromYMD(2026, 1, 8), D.dayFromYMD(2026, 1, 12), 'days');
@@ -179,7 +174,7 @@ test('axisTicks: ticks sit on natural boundaries, never on the range start', { s
   assert.deepEqual(D.axisTicks(from, from - 5, 'days'), [], 'an inverted range yields nothing instead of looping');
 });
 
-test('axisTicks: a span too long to tick per unit thins, and still reaches its end', { skip: SKIP_SUSE }, () => {
+test('axisTicks: a span too long to tick per unit thins, and still reaches its end', () => {
   // Regression: the generators used to stop at a fixed 4000-tick cap, so a long span
   // produced 40 labels crowded into the first fraction of the chart while the rest of
   // the axis went unlabelled - an axis that mislabels the whole picture.
@@ -207,7 +202,7 @@ test('axisTicks: a span too long to tick per unit thins, and still reaches its e
   reaches(quarters, qTo, 'quarter');
 });
 
-test('tickLabel: day and month names, the year only where it turns over', { skip: SKIP_SUSE }, () => {
+test('tickLabel: day and month names, the year only where it turns over', () => {
   assert.equal(D.tickLabel(D.dayFromYMD(2026, 3, 9), 'days'), '9 Mar');
   assert.equal(D.tickLabel(D.dayFromYMD(2026, 3, 9), 'weeks'), '9 Mar');
   assert.equal(D.tickLabel(D.dayFromYMD(2026, 3, 1), 'months'), 'Mar');
@@ -223,12 +218,16 @@ const UNITLESS = [
   { shape: 'rounded', nodeId: 'ship', label: 'Ship', ganttStart: 5, ganttLen: 1 },
 ];
 
-test('a unitless gantt renders byte for byte what it rendered before dates existed', { skip: SKIP_SUSE }, async () => {
+test('a unitless gantt renders byte for byte what it rendered before dates existed', async () => {
   const RECORD = false; // flip, run, paste the printed hash, flip back
   const svg = await render({ nodes: UNITLESS, ganttUnit: 'wk' });
   const hash = createHash('sha256').update(svg).digest('hex').slice(0, 32);
   if (RECORD) console.log('unitless gantt hash:', hash);
-  assert.equal(hash, 'a8b358a557a96039ce7ccfff8f2bf3e6',
+  // Re-recorded 2026-08-27 with the move to the community pack: the SVG's
+  // font-family attribute lost its hardcoded brand name (the deciding rule is now
+  // `svg text` in styles.css, pointing at --font-brand), so the bytes moved by that
+  // string alone. Geometry is unchanged - the tick assertions below still hold.
+  assert.equal(hash, '5bfaa5f310b7da815acbf3d1a22f49d8',
     'the unitless bars moved - dates are additive, so this only changes deliberately');
 
   // Readable companions to the hash, so a break says WHAT moved.
@@ -240,7 +239,7 @@ test('a unitless gantt renders byte for byte what it rendered before dates exist
   assert.equal(await warningOf({ nodes: UNITLESS }), '', 'nothing to warn about');
 });
 
-test('milestone and lane fields are inert without dates', { skip: SKIP_SUSE }, async () => {
+test('milestone and lane fields are inert without dates', async () => {
   const plain = await render({ nodes: UNITLESS });
   const decorated = await render({
     nodes: UNITLESS.map(n => ({ ...n, milestone: true, layer: 'platform' })),
@@ -255,7 +254,7 @@ const DATED = [
   { shape: 'rounded', nodeId: 'build', label: 'Build', startDate: '2026-01-08', endDate: '2026-01-14' },
 ];
 
-test('one dated card switches the whole chart to a date axis', { skip: SKIP_SUSE }, async () => {
+test('one dated card switches the whole chart to a date axis', async () => {
   const svg = await render({ nodes: DATED });
   const axis = texts(svg).filter(t => t.cls === 'db-axis');
   assert.ok(axis.length >= 10, 'a two-week span ticks by day');
@@ -264,7 +263,7 @@ test('one dated card switches the whole chart to a date axis', { skip: SKIP_SUSE
   assert.ok(!/\d+ wk/.test(svg), 'the unitless unit label has no place on a dated axis');
 });
 
-test('bars span start to end inclusive, and a scale change only rescales them', { skip: SKIP_SUSE }, async () => {
+test('bars span start to end inclusive, and a scale change only rescales them', async () => {
   const svg = await render({ nodes: DATED });
   const day = verticals(svg, 0.4);
   const oneDay = day[1]! - day[0]!;
@@ -283,7 +282,7 @@ test('bars span start to end inclusive, and a scale change only rescales them', 
     'an explicit scale overrides the auto pick');
 });
 
-test('the today-line sits on its date and stays away when out of range', { skip: SKIP_SUSE }, async () => {
+test('the today-line sits on its date and stays away when out of range', async () => {
   // 1 Jan .. 15 Jan (exclusive end): 8 Jan is the exact midpoint of the span.
   const svg = await render({ nodes: DATED, ganttToday: '2026-01-08' });
   const grid = verticals(svg, 0.4);
@@ -300,7 +299,7 @@ test('the today-line sits on its date and stays away when out of range', { skip:
   assert.match(await warningOf({ nodes: DATED, ganttToday: 'tomorrow' }), /not a date/);
 });
 
-test('a milestone is a zero-length diamond centred on its start date', { skip: SKIP_SUSE }, async () => {
+test('a milestone is a zero-length diamond centred on its start date', async () => {
   const svg = await render({
     nodes: [
       ...DATED,
@@ -318,7 +317,7 @@ test('a milestone is a zero-length diamond centred on its start date', { skip: S
   assert.ok(rightX - topX > 4 && Math.abs((rightX - topX) - (midY - topY)) < 0.01, 'a square-on-its-point diamond');
 });
 
-test('swimlanes group the rows by Group, and undated rows sit at the bottom', { skip: SKIP_SUSE }, async () => {
+test('swimlanes group the rows by Group, and undated rows sit at the bottom', async () => {
   const svg = await render({
     nodes: [
       { nodeId: 'a', label: 'Alpha', layer: 'platform', startDate: '2026-01-01', endDate: '2026-01-10' },
@@ -339,7 +338,7 @@ test('swimlanes group the rows by Group, and undated rows sit at the bottom', { 
   assert.ok(bands.length >= 3, 'three lane bands are painted behind the rows');
 });
 
-test('a Group called "constructor" is a swimlane, not Object.prototype', { skip: SKIP_SUSE }, async () => {
+test('a Group called "constructor" is a swimlane, not Object.prototype', async () => {
   // Regression: lane lookup keyed a plain object by a user-typed group name, so the
   // one lowercase Object.prototype key that survives slug() returned the inherited
   // member and the whole diagram fell back to the error placeholder.
@@ -356,7 +355,7 @@ test('a Group called "constructor" is a swimlane, not Object.prototype', { skip:
   assert.ok(texts(svg).some(t => t.text === 'Apps'), 'the ordinary lane beside it is unaffected');
 });
 
-test('an end date with no start date is reported, not silently dropped', { skip: SKIP_SUSE }, async () => {
+test('an end date with no start date is reported, not silently dropped', async () => {
   assert.match(await warningOf({ nodes: [{ nodeId: 'a', label: 'Alpha', endDate: '2026-03-01' }] }),
     /Alpha has an end date but no start date/);
   assert.match(await warningOf({
@@ -369,7 +368,7 @@ test('an end date with no start date is reported, not silently dropped', { skip:
     'a complete pair says nothing');
 });
 
-test('mixed rows are warned about, not quietly drawn as fact', { skip: SKIP_SUSE }, async () => {
+test('mixed rows are warned about, not quietly drawn as fact', async () => {
   const w = await warningOf({
     nodes: [
       { nodeId: 'a', label: 'Alpha', startDate: '2026-01-01', endDate: '2026-01-10' },
@@ -380,7 +379,7 @@ test('mixed rows are warned about, not quietly drawn as fact', { skip: SKIP_SUSE
   assert.match(w, /2 card\(s\) have no start date/);
 });
 
-test('unreadable and day-first dates each say so', { skip: SKIP_SUSE }, async () => {
+test('unreadable and day-first dates each say so', async () => {
   const bad = await warningOf({
     nodes: [
       { nodeId: 'a', label: 'Alpha', startDate: '2026-01-01' },
@@ -409,7 +408,7 @@ test('unreadable and day-first dates each say so', { skip: SKIP_SUSE }, async ()
 
 // ─── every route into the mode ───────────────────────────────────────────────
 
-test('every preset, scale and source hydrates a dated roadmap without a hook error', { skip: SKIP_SUSE }, async () => {
+test('every preset, scale and source hydrates a dated roadmap without a hook error', async () => {
   const opts = (id: string) => tool.manifest.inputs.find((i: any) => i.id === id).options.map((o: any) => o.value);
   const nodes = [
     { nodeId: 'a', label: 'Alpha', layer: 'platform', startDate: '2026-01-01', endDate: '2026-02-10' },
@@ -438,7 +437,7 @@ test('every preset, scale and source hydrates a dated roadmap without a hook err
 
 // ─── manifest ────────────────────────────────────────────────────────────────
 
-test('manifest: the date fields exist and reuse the Group field as the swimlane', { skip: SKIP_SUSE }, () => {
+test('manifest: the date fields exist and reuse the Group field as the swimlane', () => {
   const input = (id: string) => tool.manifest.inputs.find((i: any) => i.id === id);
   const field = (id: string) => input('nodes').fields.find((f: any) => f.id === id);
 

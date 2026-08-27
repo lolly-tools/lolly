@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
- * Pricing Table (community/pricing-table) - table-to-sheet contract.
+ * Pricing Table (brands/suse/tools/pricing-table) - table-to-sheet contract.
  *
  * Loads the REAL tool from disk (manifest + template + hooks) and drives it
  * through the engine with the shared base host, so this guards the shipped
@@ -29,18 +29,19 @@ import { createRuntime } from '../engine/src/runtime.ts';
 import { apcaContrast } from '../engine/src/color-tools.ts';
 import { baseHost } from './helpers/host.ts';
 
-// pricing-table ships in the PUBLIC community pack. Load from the SOURCE pack,
+// pricing-table ships in the (private) SUSE brand pack. Load from the SOURCE pack,
 // not the gitignored tools/ profile view, so the suite is profile-independent:
-// skip only when community/ is not checked out (a clone without submodules);
-// with it present, a missing tool dir means a rename or delete and must fail.
-const COMMUNITY = join(dirname(fileURLToPath(import.meta.url)), '..', 'community');
-const fetchFile = (path: string) => readFile(join(COMMUNITY, path), 'utf8');
+// skip only when the pack itself is not mounted (public CI / lolly-start
+// checkouts); with it mounted, a missing tool dir means a rename or delete and
+// must fail loudly, never silently skip.
+const SUSE_TOOLS = join(dirname(fileURLToPath(import.meta.url)), '..', 'brands', 'suse', 'tools');
+const fetchFile = (path: string) => readFile(join(SUSE_TOOLS, path), 'utf8');
 
-const PACK_MOUNTED = existsSync(COMMUNITY);
-const SKIP = !PACK_MOUNTED && 'community pack not mounted (clone without submodules)';
+const PACK_MOUNTED = existsSync(SUSE_TOOLS);
+const SKIP = !PACK_MOUNTED && 'SUSE brand pack not mounted (see profiles.json)';
 if (PACK_MOUNTED) {
-  assert.ok(existsSync(join(COMMUNITY, 'pricing-table', 'tool.json')),
-    'community/pricing-table/tool.json is missing - pack is mounted, so the tool was renamed or deleted');
+  assert.ok(existsSync(join(SUSE_TOOLS, 'pricing-table', 'tool.json')),
+    'brands/suse/tools/pricing-table/tool.json is missing - pack is mounted, so the tool was renamed or deleted');
 }
 
 const tool: any = SKIP ? null : await loadTool('pricing-table', fetchFile);
@@ -63,7 +64,7 @@ function exportHost(): any {
 
 const count = (html: string, re: RegExp) => (html.match(re) ?? []).length;
 
-const PKG = join(COMMUNITY, 'pricing-table');
+const PKG = join(SUSE_TOOLS, 'pricing-table');
 const readJson = async (p: string) => JSON.parse(await readFile(join(PKG, p), 'utf8'));
 
 test('default seed: one card per plan column, the featured one flagged and labelled', { skip: SKIP }, async () => {

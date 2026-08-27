@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
- * Calendar ICS (brands/suse/tools/calendar-ics) - the printable month grid.
+ * Calendar ICS (community/calendar-ics) - the printable month grid.
  *
  * Run with: node --test tests/calendar-month.test.ts
  * No test framework - node:test only.
@@ -35,21 +35,18 @@ import { createRuntime } from '../engine/src/runtime.ts';
 import { parseUrlState, serializeUrlState } from '../engine/src/url-mode.ts';
 import { baseHost } from './helpers/host.ts';
 
-// calendar-ics ships in the (private) SUSE brand pack. Skip ONLY when the pack
-// itself is absent (public CI / lolly-start checkouts); with it mounted, a
-// missing tool dir means a rename or delete and must fail loudly.
-const SUSE_TOOLS = join(dirname(fileURLToPath(import.meta.url)), '..', 'brands', 'suse', 'tools');
-const fetchFile = (path: string) => readFile(join(SUSE_TOOLS, path), 'utf8');
+// calendar-ics is a community tool - always present in a full checkout. Load it
+// from the SOURCE pack (community/), not the gitignored tools/ profile view, so the
+// suite never silently skips: a missing dir means the tool was renamed or deleted,
+// which must FAIL here.
+const COMMUNITY_DIR = join(dirname(fileURLToPath(import.meta.url)), '..', 'community');
+const fetchFile = (path: string) => readFile(join(COMMUNITY_DIR, path), 'utf8');
 
-const PACK_MOUNTED = existsSync(SUSE_TOOLS);
-const SKIP_SUSE = !PACK_MOUNTED && 'SUSE brand pack not mounted (see profiles.json)';
-if (PACK_MOUNTED) {
-  assert.ok(existsSync(join(SUSE_TOOLS, 'calendar-ics', 'tool.json')),
-    'brands/suse/tools/calendar-ics/tool.json is missing - pack is mounted, so the tool was renamed or deleted');
-}
+assert.ok(existsSync(join(COMMUNITY_DIR, 'calendar-ics', 'tool.json')),
+  'community/calendar-ics/tool.json is missing - the tool was renamed or deleted');
 
-const PKG = join(SUSE_TOOLS, 'calendar-ics');
-const tool: any = SKIP_SUSE ? null : await loadTool('calendar-ics', fetchFile);
+const PKG = join(COMMUNITY_DIR, 'calendar-ics');
+const tool: any = await loadTool('calendar-ics', fetchFile);
 
 async function mount(initialState: any = {}) {
   const rt = await createRuntime(tool, baseHost(), initialState);
@@ -150,7 +147,7 @@ const LIST_SEED = {
   reminder: '15',
 };
 
-test('view=list renders byte-identically to the pre-grid card', { skip: SKIP_SUSE }, async () => {
+test('view=list renders byte-identically to the pre-grid card', async () => {
   const { html } = await mount(LIST_SEED);
   assert.equal(html, LIST_1_1_0);
   // The default view is the card, so an untouched link keeps rendering it.
@@ -159,7 +156,7 @@ test('view=list renders byte-identically to the pre-grid card', { skip: SKIP_SUS
   assert.ok(!html.includes('cm-'), 'no month markup may reach the card branch');
 });
 
-test('an empty "More dates" list leaves the .ics untouched', { skip: SKIP_SUSE }, async () => {
+test('an empty "More dates" list leaves the .ics untouched', async () => {
   const { rt: plain } = await mount(LIST_SEED);
   const { rt: withEmpty } = await mount({ ...LIST_SEED, events: [{ date: '', time: '', title: '' }] });
   assert.equal(ics(withEmpty), ics(plain));
@@ -168,7 +165,7 @@ test('an empty "More dates" list leaves the .ics untouched', { skip: SKIP_SUSE }
 
 // ── Grid maths ──────────────────────────────────────────────────────────────
 
-test('a month whose 1st is a Sunday fills the first row with the previous month', { skip: SKIP_SUSE }, async () => {
+test('a month whose 1st is a Sunday fills the first row with the previous month', async () => {
   // 1 February 2026 is a Sunday: a Monday-start grid needs six filler days.
   const { html } = await mount({ view: 'month', month: '2026-02' });
   assert.match(html, /<h1 class="cm-title">February 2026<\/h1>/);
@@ -186,7 +183,7 @@ test('a month whose 1st is a Sunday fills the first row with the previous month'
   assert.ok(at(all, 34).dim, '1 March is filler');
 });
 
-test('the same month on a Sunday start shifts the columns, not the dates', { skip: SKIP_SUSE }, async () => {
+test('the same month on a Sunday start shifts the columns, not the dates', async () => {
   const { html } = await mount({ view: 'month', month: '2026-02', weekStart: 'sunday' });
   assert.deepEqual(weekdayRow(html), ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']);
   const all = cells(html);
@@ -197,7 +194,7 @@ test('the same month on a Sunday start shifts the columns, not the dates', { ski
   assert.ok(all.every(c => !c.dim));
 });
 
-test('leap February keeps its 29th', { skip: SKIP_SUSE }, async () => {
+test('leap February keeps its 29th', async () => {
   const { html } = await mount({ view: 'month', month: '2024-02' });
   const inMonth = cells(html).filter(c => !c.dim).map(c => c.day);
   assert.equal(inMonth.length, 29);
@@ -209,7 +206,7 @@ test('leap February keeps its 29th', { skip: SKIP_SUSE }, async () => {
   assert.equal(cells(common.html).filter(c => !c.dim).length, 28, '2026 is not a leap year');
 });
 
-test('week numbers are ISO-8601, and only appear when asked for', { skip: SKIP_SUSE }, async () => {
+test('week numbers are ISO-8601, and only appear when asked for', async () => {
   const off = await mount({ view: 'month', month: '2026-02' });
   assert.equal(weekNumbers(off.html).length, 0);
   assert.ok(!off.html.includes('cm-has-wk'));
@@ -245,7 +242,7 @@ const BUSY = {
   ],
 };
 
-test('events land on their day, in time order, with a chip each', { skip: SKIP_SUSE }, async () => {
+test('events land on their day, in time order, with a chip each', async () => {
   const { html } = await mount(BUSY);
 
   const second = dayCell(html, 2);
@@ -265,7 +262,7 @@ test('events land on their day, in time order, with a chip each', { skip: SKIP_S
   assert.equal(dayCell(html, 20).chips, 0);
 });
 
-test('a fourth event on one day collapses into "+N more"', { skip: SKIP_SUSE }, async () => {
+test('a fourth event on one day collapses into "+N more"', async () => {
   const { html } = await mount(BUSY);
   const eleventh = dayCell(html, 11);
   assert.equal(eleventh.chips, 3, 'at most three chips are drawn');
@@ -280,7 +277,7 @@ test('a fourth event on one day collapses into "+N more"', { skip: SKIP_SUSE }, 
   assert.ok(!dayCell(two, 20).body.includes('cm-more'), 'a quiet day says nothing');
 });
 
-test('a multi-day event gets a chip on every day it covers', { skip: SKIP_SUSE }, async () => {
+test('a multi-day event gets a chip on every day it covers', async () => {
   const { html } = await mount({
     view: 'month',
     month: '2026-02',
@@ -297,7 +294,7 @@ test('a multi-day event gets a chip on every day it covers', { skip: SKIP_SUSE }
   assert.equal(dayCell(html, 14).chips, 0);
 });
 
-test('rows that are half filled in are counted under the grid, never dropped', { skip: SKIP_SUSE }, async () => {
+test('rows that are half filled in are counted under the grid, never dropped', async () => {
   const { html } = await mount({
     view: 'month',
     month: '2026-02',
@@ -318,14 +315,14 @@ test('rows that are half filled in are counted under the grid, never dropped', {
 
 // ── Choosing the month without a clock ──────────────────────────────────────
 
-test('with no month and no dates the sheet asks, instead of guessing today', { skip: SKIP_SUSE }, async () => {
+test('with no month and no dates the sheet asks, instead of guessing today', async () => {
   const { html } = await mount({ view: 'month' });
   assert.match(html, /<p class="cm-hint">/);
   assert.ok(!html.includes('cm-grid'), 'no grid is drawn from a date nobody entered');
   assert.match(html, /<h1 class="cm-title">Month grid<\/h1>/);
 });
 
-test('an empty month falls back to the earliest date entered', { skip: SKIP_SUSE }, async () => {
+test('an empty month falls back to the earliest date entered', async () => {
   const fromEvent = await mount({ view: 'month', meetingTime: '2026-05-20T09:00' });
   assert.match(fromEvent.html, /<h1 class="cm-title">May 2026<\/h1>/);
 
@@ -347,7 +344,7 @@ test('an empty month falls back to the earliest date entered', { skip: SKIP_SUSE
   assert.match(explicit.html, /<h1 class="cm-title">November 2026<\/h1>/);
 });
 
-test('the same inputs render the same sheet twice, whatever the wall clock says', { skip: SKIP_SUSE }, async () => {
+test('the same inputs render the same sheet twice, whatever the wall clock says', async () => {
   const a = await mount(BUSY);
   const b = await mount(BUSY);
   assert.equal(a.html, b.html);
@@ -357,7 +354,7 @@ test('the same inputs render the same sheet twice, whatever the wall clock says'
 
 // ── The rows are real calendar entries ──────────────────────────────────────
 
-test('each "More dates" row becomes its own VEVENT', { skip: SKIP_SUSE }, async () => {
+test('each "More dates" row becomes its own VEVENT', async () => {
   const { rt } = await mount({
     ...LIST_SEED,
     events: [
@@ -383,7 +380,7 @@ test('each "More dates" row becomes its own VEVENT', { skip: SKIP_SUSE }, async 
   assert.equal((ics(nasty).match(/\r\nSUMMARY:/g) ?? []).length, 2, 'no third SUMMARY was forged');
 });
 
-test('a month sheet survives the URL round trip, so the CLI draws the same grid', { skip: SKIP_SUSE }, async () => {
+test('a month sheet survives the URL round trip, so the CLI draws the same grid', async () => {
   const { rt, html } = await mount(BUSY);
   const query = serializeUrlState(rt.getModel() as any);
   const back = parseUrlState(new URLSearchParams(query), tool.manifest);
@@ -395,7 +392,7 @@ test('a month sheet survives the URL round trip, so the CLI draws the same grid'
 
 // ── The invented hour must not reach the grid ───────────────────────────────
 
-test('a late-evening event with no end stays on one day', { skip: SKIP_SUSE }, async () => {
+test('a late-evening event with no end stays on one day', async () => {
   // With Ends blank the .ics books an hour, which for 23:30 runs past midnight.
   // The grid must not read that invented hour as a two-day span (which would also
   // blank the chip's start time).
@@ -415,7 +412,7 @@ test('a late-evening event with no end stays on one day', { skip: SKIP_SUSE }, a
   assert.equal(dayCell(typed, 12).chips, 1);
 });
 
-test('a leading-zero year is refused, not drawn as the 1900s', { skip: SKIP_SUSE }, async () => {
+test('a leading-zero year is refused, not drawn as the 1900s', async () => {
   // JS maps years 0-99 onto 1900-1999, so "0026-02" would head the sheet
   // "February 26" over February 1926's weekdays.
   const { html } = await mount({ view: 'month', month: '0026-02' });
@@ -429,7 +426,7 @@ test('a leading-zero year is refused, not drawn as the 1900s', { skip: SKIP_SUSE
   assert.match(fallback, /<h1 class="cm-title">May 2026<\/h1>/);
 });
 
-test('the sheet carries its accent as fill, never a one-sided edge', { skip: SKIP_SUSE }, async () => {
+test('the sheet carries its accent as fill, never a one-sided edge', async () => {
   // House rule: a coloured border on one side of a rounded shape is banned. The
   // grid's own hairlines are neutral rules between cells, which is a different thing.
   const css = await readFile(join(PKG, 'styles.css'), 'utf8');
@@ -443,7 +440,7 @@ test('the sheet carries its accent as fill, never a one-sided edge', { skip: SKI
 
 // ── Seeds ───────────────────────────────────────────────────────────────────
 
-test('every template and preset seed hydrates into a grid', { skip: SKIP_SUSE }, async () => {
+test('every template and preset seed hydrates into a grid', async () => {
   const manifest = JSON.parse(await readFile(join(PKG, 'tool.json'), 'utf8'));
   const declared = new Set<string>(manifest.inputs.map((i: { id: string }) => i.id));
 

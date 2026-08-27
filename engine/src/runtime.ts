@@ -1590,11 +1590,16 @@ function mergePatch(
   const modelPatch: Record<string, InputValue> = {};
   let hasModelPatch = false;
   for (const [k, v] of Object.entries(patch as Record<string, unknown>)) {
-    // A key whose value is undefined is a hook MENTIONING an input, not
-    // setting it (`{ boxes: migrated || undefined }` is the shipped bug this
-    // guards: key presence used to blank the input to undefined and every
-    // consumer downstream saw nothing). Skipping is safe for extras too - an
-    // undefined extra is indistinguishable from an absent one in templates.
+    // A key whose value is undefined is a hook MENTIONING a key, not setting
+    // it - for an input (`{ boxes: migrated || undefined }` is the shipped bug
+    // this guards: key presence used to blank the input) AND for an extra:
+    // darkroom's `videoLook` cache contract publishes undefined on every
+    // unchanged-colour run precisely so the expensive extra it already
+    // published stands. A hook that means "this run computed NOTHING for this
+    // key - clear it" says so with null: null is stored, and a template's
+    // {{#if}} reads it as absent (design's frameGroups does exactly this when
+    // a doc leaves frames mode - an undefined there kept the stale artboard
+    // alive forever).
     if (v === undefined) continue;
     // Hook trust boundary: a patched input value is whatever the tool
     // computed - the same latitude the untyped runtime always gave hooks.

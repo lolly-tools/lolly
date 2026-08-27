@@ -126,6 +126,36 @@ test('time-box: a raced-out onInput superseded by a newer run stays discarded', 
   }
 });
 
+// ─── patch merge: undefined keeps, null clears - BOTH directions are contracts ─
+
+test('patch merge: an undefined extra KEEPS the published value (darkroom videoLook cache); a null extra CLEARS it (design frameGroups)', async () => {
+  const { host } = logHost();
+  const rt = await createRuntime(
+    toolWith({ onInput: true },
+      `function onInput(ctx) {
+         if (ctx.value === 'framed') return { note: 'FRAMES' };
+         if (ctx.value === 'cached') return { note: undefined, msg: undefined };
+         return { note: null };
+       }`),
+    host, {},
+  );
+  await rt.setInput('msg', 'framed');
+  assert.equal(rt.getHydrated(), '<b>framed</b><i>FRAMES</i>', 'the extra is set by the first run');
+  // undefined = "no opinion this run": the expensive published extra stands
+  // (darkroom re-publishes videoLook only when the colour key moves and leans on
+  // exactly this), and an undefined INPUT key stays mentioned-not-set, so the
+  // typed value survives too.
+  await rt.setInput('msg', 'cached');
+  assert.equal(rt.getHydrated(), '<b>cached</b><i>FRAMES</i>', 'undefined kept the extra AND the input');
+  // null = "this run computed nothing for this key": the stale value must go.
+  // Design's frameGroups does this when a doc leaves frames mode - before the
+  // hook said null (1.14.4) it said undefined, and the chooser's Video pick left
+  // the old artboard-era frameGroups alive forever: an empty frames-mode canvas
+  // that no later edit could heal (nothing drawn ever painted).
+  await rt.setInput('msg', 'flat');
+  assert.equal(rt.getHydrated(), '<b>flat</b><i></i>', 'null cleared the stale extra');
+});
+
 test('time-box: an async onInput past its budget → keystroke kept, patch applies late when it arrives', async () => {
   setBudgets({ onInput: 15 });
   try {

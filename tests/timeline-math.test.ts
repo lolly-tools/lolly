@@ -2188,7 +2188,7 @@ test('the sample count is bounded, and an UNTIMED animated box uses the sequence
 
 test('restackOverlay: onto shares the row and stacks directly in front', () => {
   const cfgG = { ...cfg, groupField: 'group' };
-  const before = [overlay('a', 0, { dur: 2 }), overlay('b', 0, { dur: 2 }), clip('s1', 0, 3)];
+  const before = [overlay('a', 0, { dur: 2 }), overlay('b', 0, { dur: 2 }), clip('s1', { start: 0, dur: 3 })];
   const next = restackOverlay(before, cfgG, 'a', { onto: 'b' });
   assert.deepEqual(next.map((b) => b.id), ['b', 'a', 's1'], 'a stacks directly in front of b');
   assert.equal(next[0]!.group, 'share-b', 'the target minted the shared group');
@@ -2214,7 +2214,7 @@ test('restackOverlay: before takes its own row and leaves a shared one', () => {
 });
 
 test('restackOverlay: seq boxes are never restacked and identity costs nothing', () => {
-  const before = [clip('s1', 0, 3), overlay('a', 0, { dur: 2 }), overlay('b', 0, { dur: 2 })];
+  const before = [clip('s1', { start: 0, dur: 3 }), overlay('a', 0, { dur: 2 }), overlay('b', 0, { dur: 2 })];
   assert.equal(restackOverlay(before, cfg, 's1', { onto: 'a' }), before, 'a seq clip is refused');
   assert.equal(restackOverlay(before, cfg, 'a', { onto: 's1' }), before, 'a seq target is refused');
   assert.equal(restackOverlay(before, cfg, 'a', { onto: 'ghost' }), before, 'an unknown target is refused');

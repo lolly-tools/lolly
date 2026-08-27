@@ -1668,6 +1668,10 @@
                     "type": "string",
                     "description": "String sub-field: the id of the box this one is A/V-linked to (written on BOTH sides when audio is detached from a video). Absent or naming a missing box reads as unlinked."
                   },
+                  "labelField": {
+                    "type": "string",
+                    "description": "Text sub-field: the user's own name for this box on the timeline - shown on its clip bar in place of the derived text/media label. Machine-written by the timeline (double-click or context-menu rename), so the sub-field carries showFor:[]. Absent or empty falls back to the derived label."
+                  },
                   "laneField": {
                     "type": "string",
                     "description": "Select sub-field: '' places the box on a free overlay lane; 'seq' places it on the magnetic main sequence row, where clips are kept gapless and edits ripple."

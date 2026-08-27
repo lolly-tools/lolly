@@ -509,8 +509,8 @@ if (previewBundle) {
 // does not, so one list can be true of every profile it is run against. That is also why
 // the both-ways check turns on the BASE name (`filter.look6`), not the whole filename: a
 // profile that has no preview for that base at all simply doesn't ship it (suse excludes
-// street-map; lolly-start has no diagram-builder), while a profile that has the base in
-// some OTHER form has genuinely retired the reason and must delete the entry.
+// street-map, so `street-map.webp` is a lolly-start-only entry), while a profile that has
+// the base in some OTHER form has genuinely retired the reason and must delete the entry.
 
 /** `filter.look6.webp` → `filter.look6`; `filter.webp` → `filter`. */
 function previewBase(file: string): string {
@@ -609,8 +609,6 @@ const RASTER_PREVIEWS: Record<string, string> = {
     'Grain 35 on the black-and-white look - same canvas texture pass as look1: the pixels are computed, there is no geometry behind them.',
   'prompt-card.webp':
     'The generated illustration arrives as one traced shape: 2 <path> elements, one of them a 193,303-char `d`. That is 196,041 B of SVG for a picture WebP stores in 94,254 B, and the path is a tessellation of pixels, not drawn geometry.',
-  'diagram-builder.webp':
-    'The card embeds three source photographs. Even downscaled to the 512 px thumbnail cap they are 117,685 B of data: URI inside a 167,916 B SVG - an SVG wrapper around bitmaps costs base64 (+33%) for nothing.',
 
   // ── Class 1, the .svg spelling: a bitmap the walker wrapped in an <svg> ─────
   // Each of these is one <image href="data:image/…"> plus the few hundred bytes of

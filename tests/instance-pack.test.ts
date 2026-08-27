@@ -66,7 +66,10 @@ test('the suse pack builds clean: exclusions hold, fonts/tools/envelope complete
     // Tools: every entry in tools.json has its tool.json bytes aboard.
     const toolsPart = JSON.parse(Buffer.from(files['tools.json']!).toString()) as
       { tools: Array<{ id: string }>; files: Record<string, string[]> };
-    assert.ok(toolsPart.tools.length >= 18, `expected ≥18 suse tools, got ${toolsPart.tools.length}`);
+    // A FLOOR, not a pin: the pack's own tool set shrinks whenever a SUSE tool
+    // graduates into the brand-agnostic community pack, and that is a good move,
+    // not a regression. What must never happen is the pack shipping a handful.
+    assert.ok(toolsPart.tools.length >= 15, `expected ≥15 suse tools, got ${toolsPart.tools.length}`);
     for (const t of toolsPart.tools) {
       assert.ok(files[`tools/${t.id}/tool.json`], `tool ${t.id} shipped without its manifest`);
     }

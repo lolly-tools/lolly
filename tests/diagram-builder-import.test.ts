@@ -30,19 +30,14 @@ import { loadTool } from '../engine/src/loader.ts';
 import { createRuntime } from '../engine/src/runtime.ts';
 import { baseHost } from './helpers/host.ts';
 
-// diagram-builder ships in the (private) SUSE brand pack. Load it from the SOURCE
-// pack, not the gitignored tools/ profile view, so this suite is profile-
-// independent: skip ONLY when the pack itself isn't mounted (public CI /
-// lolly-start checkouts); with the pack mounted, a missing tool dir means the
-// tool was renamed or deleted - that must FAIL loudly, never silently skip.
-const SUSE_TOOLS = join(dirname(fileURLToPath(import.meta.url)), '..', 'brands', 'suse', 'tools');
-const TOOL_DIR = join(SUSE_TOOLS, 'diagram-builder');
-const PACK_MOUNTED = existsSync(SUSE_TOOLS);
-const SKIP_SUSE = !PACK_MOUNTED && 'SUSE brand pack not mounted (see profiles.json)';
-if (PACK_MOUNTED) {
-  assert.ok(existsSync(join(TOOL_DIR, 'tool.json')),
-    'brands/suse/tools/diagram-builder/tool.json is missing - pack is mounted, so the tool was renamed or deleted');
-}
+// diagram-builder is a community tool - always present in a full checkout. Load it
+// from the SOURCE pack (community/), not the gitignored tools/ profile view, so the
+// suite never silently skips: a missing dir means the tool was renamed or deleted,
+// which must FAIL here.
+const COMMUNITY_DIR = join(dirname(fileURLToPath(import.meta.url)), '..', 'community');
+const TOOL_DIR = join(COMMUNITY_DIR, 'diagram-builder');
+assert.ok(existsSync(join(TOOL_DIR, 'tool.json')),
+  'community/diagram-builder/tool.json is missing - the tool was renamed or deleted');
 
 interface ParsedNode {
   nodeId: string; label: string; detail: string; shape: string; fill: string; layer: string; stroke?: string;
@@ -73,7 +68,7 @@ function parsers(): Parsers {
   return factory({ log: () => {} });
 }
 
-const P = SKIP_SUSE ? (null as unknown as Parsers) : parsers();
+const P = parsers();
 
 const ids = (r: Parsed) => r.nodes.map(n => n.nodeId);
 const labels = (r: Parsed) => r.nodes.map(n => n.label);
@@ -83,7 +78,7 @@ const edge = (r: Parsed, from: string, to: string) => r.arrows.find(a => a.from 
 
 // ─── Mermaid flowchart ───────────────────────────────────────────────────────
 
-test('mermaid: graph and flowchart headers both set the direction', { skip: SKIP_SUSE }, () => {
+test('mermaid: graph and flowchart headers both set the direction', () => {
   assert.equal(P.parseMermaid('graph LR\n A --> B').dir, 'right');
   assert.equal(P.parseMermaid('flowchart LR\n A --> B').dir, 'right');
   assert.equal(P.parseMermaid('flowchart RL\n A --> B').dir, 'right');
@@ -92,7 +87,7 @@ test('mermaid: graph and flowchart headers both set the direction', { skip: SKIP
   assert.equal(P.parseMermaid('flowchart TB\n A --> B').dir, 'down');
 });
 
-test('mermaid: node shapes and quoted text', { skip: SKIP_SUSE }, () => {
+test('mermaid: node shapes and quoted text', () => {
   const r = P.parseMermaid([
     'flowchart TD',
     '  A["Client app"]',
@@ -108,7 +103,7 @@ test('mermaid: node shapes and quoted text', { skip: SKIP_SUSE }, () => {
   assert.deepEqual(r.nodes.map(n => n.shape), ['box', 'rounded', 'cylinder', 'diamond', 'hexagon', 'pill', 'circle']);
 });
 
-test('mermaid: chained edges and fan-out in both directions', { skip: SKIP_SUSE }, () => {
+test('mermaid: chained edges and fan-out in both directions', () => {
   const r = P.parseMermaid([
     'flowchart LR',
     '  A --> B --> C',
@@ -119,13 +114,13 @@ test('mermaid: chained edges and fan-out in both directions', { skip: SKIP_SUSE 
   assert.deepEqual(ids(r), ['a', 'b', 'c', 'd', 'e', 'f']);
 });
 
-test('mermaid: an ampersand inside a node label is not a fan-out', { skip: SKIP_SUSE }, () => {
+test('mermaid: an ampersand inside a node label is not a fan-out', () => {
   const r = P.parseMermaid('flowchart LR\n A["R & D"] --> B');
   assert.deepEqual(edges(r), ['a>b']);
   assert.equal(node(r, 'a').label, 'R & D');
 });
 
-test('mermaid: edge labels in both forms, plus dotted and thick lines', { skip: SKIP_SUSE }, () => {
+test('mermaid: edge labels in both forms, plus dotted and thick lines', () => {
   const r = P.parseMermaid([
     'flowchart LR',
     '  A -->|cache miss| B',
@@ -141,7 +136,7 @@ test('mermaid: edge labels in both forms, plus dotted and thick lines', { skip: 
   assert.equal(edge(r, 'a', 'f').head, 'none', 'a plain --- link draws no arrowhead');
 });
 
-test('mermaid: subgraphs become bands, nested ones fold into the outermost', { skip: SKIP_SUSE }, () => {
+test('mermaid: subgraphs become bands, nested ones fold into the outermost', () => {
   const r = P.parseMermaid([
     'graph TD',
     '  subgraph edge[Edge tier]',
@@ -164,7 +159,7 @@ test('mermaid: subgraphs become bands, nested ones fold into the outermost', { s
   assert.match(String(r.warns[0]), /nested subgraph/);
 });
 
-test('mermaid: comments are ignored and unsupported directives are warnings, not throws', { skip: SKIP_SUSE }, () => {
+test('mermaid: comments are ignored and unsupported directives are warnings, not throws', () => {
   const r = P.parseMermaid([
     '%% a comment',
     'flowchart LR',
@@ -180,7 +175,7 @@ test('mermaid: comments are ignored and unsupported directives are warnings, not
   assert.ok(r.warns.every(w => typeof w === 'string' && w.length > 0));
 });
 
-test('mermaid: a semicolon separates statements on one line', { skip: SKIP_SUSE }, () => {
+test('mermaid: a semicolon separates statements on one line', () => {
   // The form the Mermaid docs open with - the whole graph on one line.
   const r = P.parseMermaid('graph TD;A[Client]-->B;B-->C;');
   assert.equal(r.dir, 'down');
@@ -194,7 +189,7 @@ test('mermaid: a semicolon separates statements on one line', { skip: SKIP_SUSE 
   assert.equal(edge(q, 'a', 'b').label, 'three; four');
 });
 
-test('mermaid: a :::class suffix does not invent a node', { skip: SKIP_SUSE }, () => {
+test('mermaid: a :::class suffix does not invent a node', () => {
   const r = P.parseMermaid([
     'flowchart LR',
     '  A[Client] --> B',
@@ -208,7 +203,7 @@ test('mermaid: a :::class suffix does not invent a node', { skip: SKIP_SUSE }, (
 
 // ─── Mermaid sequenceDiagram ─────────────────────────────────────────────────
 
-test('mermaid sequence: participants in order, messages as numbered arrows', { skip: SKIP_SUSE }, () => {
+test('mermaid sequence: participants in order, messages as numbered arrows', () => {
   const r = P.parseMermaid([
     'sequenceDiagram',
     '  participant A as Alice',
@@ -228,7 +223,7 @@ test('mermaid sequence: participants in order, messages as numbered arrows', { s
   assert.equal(edge(r, 'a', 'b').style, 'solid');
 });
 
-test('mermaid sequence: repeat messages merge, -x loses its head, blocks are warnings', { skip: SKIP_SUSE }, () => {
+test('mermaid sequence: repeat messages merge, -x loses its head, blocks are warnings', () => {
   const r = P.parseMermaid([
     'sequenceDiagram',
     '  A->>B: ping',
@@ -243,7 +238,7 @@ test('mermaid sequence: repeat messages merge, -x loses its head, blocks are war
   assert.deepEqual(r.warns, ['Note right of B: thinking', 'loop every minute', 'end']);
 });
 
-test('mermaid sequence: the +/- activation shorthand is not part of the name', { skip: SKIP_SUSE }, () => {
+test('mermaid sequence: the +/- activation shorthand is not part of the name', () => {
   const r = P.parseMermaid([
     'sequenceDiagram',
     '  Alice->>+John: Hello',
@@ -256,7 +251,7 @@ test('mermaid sequence: the +/- activation shorthand is not part of the name', {
 
 // ─── DOT / Graphviz ──────────────────────────────────────────────────────────
 
-test('dot: header, rankdir, node defaults, shapes, fills and multi-line labels', { skip: SKIP_SUSE }, () => {
+test('dot: header, rankdir, node defaults, shapes, fills and multi-line labels', () => {
   const r = P.parseDot([
     '// a line comment',
     'digraph pipeline {',
@@ -283,14 +278,14 @@ test('dot: header, rankdir, node defaults, shapes, fills and multi-line labels',
   assert.deepEqual(edges(r), ['build>test', 'test>ship'], 'a -> b -> c is a chain');
 });
 
-test('dot: a later edge does not overwrite a node declared earlier', { skip: SKIP_SUSE }, () => {
+test('dot: a later edge does not overwrite a node declared earlier', () => {
   const r = P.parseDot('digraph { node [shape=box]; a [shape=diamond, label="Choose"]; a -> b }');
   assert.equal(node(r, 'a').shape, 'diamond');
   assert.equal(node(r, 'a').label, 'Choose');
   assert.equal(node(r, 'b').shape, 'box');
 });
 
-test('dot: edge attributes - label, style, direction and arrowhead', { skip: SKIP_SUSE }, () => {
+test('dot: edge attributes - label, style, direction and arrowhead', () => {
   const r = P.parseDot([
     'digraph {',
     '  a -> b [label="retry", style=dashed]',
@@ -316,7 +311,7 @@ test('dot: edge attributes - label, style, direction and arrowhead', { skip: SKI
   assert.equal(r.warns.length, 1, 'and says so');
 });
 
-test('dot: clusters become bands, nested ones fold, plain subgraphs do not', { skip: SKIP_SUSE }, () => {
+test('dot: clusters become bands, nested ones fold, plain subgraphs do not', () => {
   const r = P.parseDot([
     'graph G {',
     '  subgraph cluster_edge {',
@@ -338,7 +333,7 @@ test('dot: clusters become bands, nested ones fold, plain subgraphs do not', { s
   assert.equal(edge(r, 'cdn', 'waf').head, 'none', 'an undirected -- link draws no arrowhead');
 });
 
-test('dot: node lists, brace groups, quoted ids and block comments', { skip: SKIP_SUSE }, () => {
+test('dot: node lists, brace groups, quoted ids and block comments', () => {
   const r = P.parseDot([
     'digraph {',
     '  /* a block',
@@ -353,7 +348,7 @@ test('dot: node lists, brace groups, quoted ids and block comments', { skip: SKI
   assert.deepEqual(edges(r), ['a>c', 'b>c', 'c>d', 'c>e', 'long-name>a']);
 });
 
-test('dot: syntax outside the subset is skipped and logged, never run', { skip: SKIP_SUSE }, () => {
+test('dot: syntax outside the subset is skipped and logged, never run', () => {
   const r = P.parseDot([
     'digraph {',
     '  bgcolor=beige',
@@ -366,7 +361,7 @@ test('dot: syntax outside the subset is skipped and logged, never run', { skip: 
   assert.equal(r.warns.length, 2);
 });
 
-test('dot: prose either side of an arrow is not an endpoint', { skip: SKIP_SUSE }, () => {
+test('dot: prose either side of an arrow is not an endpoint', () => {
   // The node-statement path already refuses a bare run of words; the edge path must
   // refuse it too, or a sentence containing "->" becomes two cards.
   const r = P.parseDot('digraph {\n  this is prose -> and so is this\n  a -> b\n}');
@@ -375,7 +370,7 @@ test('dot: prose either side of an arrow is not an endpoint', { skip: SKIP_SUSE 
   assert.ok(r.warns.length >= 1, 'and the skipped line is reported');
 });
 
-test('dot: a port suffix addresses the declared node, not a new one', { skip: SKIP_SUSE }, () => {
+test('dot: a port suffix addresses the declared node, not a new one', () => {
   const r = P.parseDot('digraph { a [label="Alpha"]; b; a:f0 -> b:f1:n }');
   assert.deepEqual(ids(r), ['a', 'b'], 'a:f0 is node a, not a card called "a:f0"');
   assert.equal(node(r, 'a').label, 'Alpha');
@@ -383,7 +378,7 @@ test('dot: a port suffix addresses the declared node, not a new one', { skip: SK
   assert.deepEqual(ids(P.parseDot('digraph { "a:b" -> c }')), ['a-b', 'c'], 'a quoted id keeps its colon');
 });
 
-test('dot: an empty or junk document parses to nothing instead of throwing', { skip: SKIP_SUSE }, () => {
+test('dot: an empty or junk document parses to nothing instead of throwing', () => {
   for (const src of ['', '   ', '}}}{{{', 'digraph {']) {
     const r = P.parseDot(src);
     assert.ok(Array.isArray(r.nodes), `parseDot(${JSON.stringify(src)}) must answer a shape`);
@@ -392,10 +387,10 @@ test('dot: an empty or junk document parses to nothing instead of throwing', { s
 
 // ─── manifest + end to end ───────────────────────────────────────────────────
 
-const fetchFile = (path: string) => readFile(join(SUSE_TOOLS, path), 'utf8');
-const tool: any = SKIP_SUSE ? null : await loadTool('diagram-builder', fetchFile);
+const fetchFile = (path: string) => readFile(join(COMMUNITY_DIR, path), 'utf8');
+const tool: any = await loadTool('diagram-builder', fetchFile);
 
-test('manifest: the DOT source mode and its input exist, and every text mode takes a file', { skip: SKIP_SUSE }, () => {
+test('manifest: the DOT source mode and its input exist, and every text mode takes a file', () => {
   const input = (id: string) => tool.manifest.inputs.find((i: any) => i.id === id);
   const sources = input('source').options.map((o: any) => o.value);
   assert.deepEqual(sources, ['visual', 'text', 'ascii', 'mermaid', 'dot', 'pikchr', 'table']);
@@ -415,7 +410,7 @@ test('manifest: the DOT source mode and its input exist, and every text mode tak
   }
 });
 
-test('the shipped DOT sample renders a diagram, not the empty-state placeholder', { skip: SKIP_SUSE }, async () => {
+test('the shipped DOT sample renders a diagram, not the empty-state placeholder', async () => {
   const sample = tool.manifest.inputs.find((i: any) => i.id === 'dot').default;
   const parsed = P.parseDot(sample);
   assert.deepEqual(ids(parsed), ['build', 'test', 'ship']);
@@ -429,7 +424,7 @@ test('the shipped DOT sample renders a diagram, not the empty-state placeholder'
   assert.ok(!html.includes('Paste DOT'), 'the placeholder hint must not be what we see');
 });
 
-test('every source mode mounts on its shipped default and draws a real diagram', { skip: SKIP_SUSE }, async () => {
+test('every source mode mounts on its shipped default and draws a real diagram', async () => {
   // The click-to-focus contract: a card jumps to whichever field the diagram was
   // built from, so each source maps to its own input, never to the hidden card list.
   const modes: [string, string][] = [
@@ -445,7 +440,7 @@ test('every source mode mounts on its shipped default and draws a real diagram',
   }
 });
 
-test('a sequenceDiagram mounts and draws its participants', { skip: SKIP_SUSE }, async () => {
+test('a sequenceDiagram mounts and draws its participants', async () => {
   const rt = await createRuntime(tool, baseHost(), {
     source: 'mermaid',
     mermaid: 'sequenceDiagram\n  participant A as Shopper\n  A->>+Cart: add item\n  Cart-->>-A: total',
